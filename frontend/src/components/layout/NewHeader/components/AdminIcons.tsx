@@ -58,6 +58,15 @@ const IconPastorLetter = (p: IconProps) => (
   </Svg>
 )
 
+/* 섬기는 사람들 — 사진 카드 위의 한 사람 (전체 메뉴 아이콘과 같은 문법) */
+const IconPeopleCard = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="3.2" />
+    <circle cx="12" cy="10" r="2.6" />
+    <path d="M7.6 17.4a4.6 4.6 0 0 1 8.8 0" />
+  </Svg>
+)
+
 /* 교회소식 — 핀으로 꽂아 둔 게시판 */
 const IconNoticeBoard = (p: IconProps) => (
   <Svg {...p}>
@@ -256,6 +265,7 @@ export const ADMIN_ICONS = {
   adminNavVerse: IconBookOpen,
   adminNavLanding: IconLanding,
   adminNavPastor: IconPastorLetter,
+  adminNavPeople: IconPeopleCard,
   adminNavEducation: IconSeedBook,
   adminNavNews: IconNoticeBoard,
   adminNavBulletin: IconNewspaper,

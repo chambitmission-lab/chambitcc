@@ -20,6 +20,7 @@ const MENU_SECTIONS: NavSection[] = [
       { path: '/about', key: 'about' },
       { path: '/greeting', key: 'greeting' },
       { path: '/visit', key: 'visit' },
+      { path: '/people', key: 'people' },
       { path: '/organization', key: 'organization' },
       { path: '/history', key: 'history' },
       { path: '/worship', key: 'worship' },

@@ -80,10 +80,15 @@ const AnnualVersePreview = import.meta.env.DEV
 const PresencePillPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Bible/components/together/PresencePillPreview'))
   : null
+// 섬기는 사람들 — 백엔드 없이 배치·다크모드 확인 (표본 데이터)
+const PeoplePreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/People/PeoplePreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
 const Organization = lazy(menuRouteLoaders['/organization'])
+const People = lazy(menuRouteLoaders['/people'])
 const History = lazy(menuRouteLoaders['/history'])
 const TV = lazy(() => import('./pages/TV/TV'))
 const Education = lazy(menuRouteLoaders['/education'])
@@ -122,6 +127,7 @@ const PushNotificationManagement = lazy(() =>
 )
 const NewsManagement = lazy(() => import('./pages/Admin/NewsManagement'))
 const PastorManagement = lazy(() => import('./pages/Admin/PastorManagement'))
+const PeopleManagement = lazy(() => import('./pages/Admin/PeopleManagement'))
 const EducationManagement = lazy(() => import('./pages/Admin/EducationManagement'))
 const OfferingManagement = lazy(() => import('./pages/Admin/OfferingManagement'))
 const EventManagement = lazy(() => import('./pages/Admin/EventManagement'))
@@ -324,6 +330,7 @@ function App() {
                 <Route path="/greeting" element={<Greeting />} />
                 <Route path="/visit" element={<Visit />} />
                 <Route path="/organization" element={<Organization />} />
+                <Route path="/people" element={<People />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/tv" element={<TV />} />
                 <Route path="/education" element={<Education />} />
@@ -361,6 +368,7 @@ function App() {
                 <Route path="/admin/surveys" element={<SurveyManagement />} />
                 <Route path="/admin/organization" element={<OrganizationManagement />} />
                 <Route path="/admin/pastors" element={<PastorManagement />} />
+                <Route path="/admin/people" element={<PeopleManagement />} />
                 <Route path="/admin/education" element={<EducationManagement />} />
                 <Route path="/admin/offering" element={<OfferingManagement />} />
                 <Route path="/admin/bible-engagement" element={<BibleEngagementManagement />} />
@@ -437,6 +445,9 @@ function App() {
                 )}
                 {PresencePillPreview && (
                   <Route path="/dev/presence-pill" element={<PresencePillPreview />} />
+                )}
+                {PeoplePreview && (
+                  <Route path="/dev/people" element={<PeoplePreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />

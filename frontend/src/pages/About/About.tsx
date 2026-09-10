@@ -14,7 +14,7 @@ import {
   FlagIcon,
   HeartIcon,
   MapPinIcon,
-  OrgChartIcon,
+  PeopleIcon,
   PhoneIcon,
   SproutIcon,
   XIcon,
@@ -117,7 +117,7 @@ const About = () => {
     { to: '/register', Icon: SproutIcon, title: ko ? '처음 오셨나요?' : 'New Here?', desc: ko ? '환영합니다!' : 'Welcome!', primary: true },
     { to: '/sermon', Icon: BookOpenIcon, title: ko ? '최근 설교 보기' : 'Recent Sermons', desc: ko ? '말씀 다시 듣기' : 'Listen again' },
     { to: '/history', Icon: FlagIcon, title: ko ? '참빛의 발자취' : 'Our Story', desc: ko ? '우리의 이야기' : 'Where we came from' },
-    { to: '/organization', Icon: OrgChartIcon, title: ko ? '교회 조직도' : 'Org Chart', desc: ko ? '함께 섬겨요' : 'Serving together' },
+    { to: '/people', Icon: PeopleIcon, title: ko ? '섬기는 사람들' : 'Our People', desc: ko ? '교역자 · 선교사 · 장로' : 'Pastors · missionaries · elders' },
   ] as const
 
   // EditableText 가 <button> 을 렌더하므로 행 자체는 button 이 아닌 div 로 만들어

@@ -1,0 +1,864 @@
+/* 섬기는 사람들 (/people) — 접두사 ppl- 필수 (다른 페이지 .hero-*, .card-* 와 충돌 방지)
+   색은 theme.css 토큰이 단일 출처. 손수 쓰는 CSS라 var(--text-body)/var(--text-muted) 를 쓴다
+   (--ink-* 는 Tailwind 색 이름이라 CSS 변수로 참조하면 다크에서 조용히 사라진다). */
+
+/* ── Hero ───────────────────────────────────────────── */
+.ppl-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 2.25rem 1.25rem 1.5rem;
+  text-align: center;
+}
+
+/* 브랜드 후광 — 히어로 위쪽에 옅게 한 겹 */
+.ppl-hero::before {
+  content: '';
+  position: absolute;
+  top: -140px;
+  left: 50%;
+  width: 320px;
+  height: 320px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, var(--brand-soft-strong), transparent 68%);
+  pointer-events: none;
+}
+
+.ppl-hero > * {
+  position: relative;
+}
+
+.ppl-hero-emblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 1.15rem;
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+  border: 1px solid var(--brand-glow);
+  box-shadow: 0 8px 22px -12px var(--brand-glow);
+}
+
+.ppl-hero-badge {
+  display: block;
+  margin-top: 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--brand);
+}
+
+.ppl-hero-title {
+  margin-top: 0.35rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.ppl-hero-subtitle {
+  margin-top: 0.6rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+/* 한눈에 보기 — 실제 등록된 인원만 센다 */
+.ppl-stats {
+  margin-top: 1.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.ppl-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  padding: 0.42rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+}
+
+[data-theme='dark'] .ppl-stat {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ppl-stat-num {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--brand);
+  letter-spacing: -0.01em;
+}
+
+/* ── 대표(담임·원로) 스트립 ───────────────────────────── */
+.ppl-leaders {
+  padding: 0.25rem 1rem 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+@media (min-width: 1024px) {
+  .ppl-leaders {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-inline: 1.25rem;
+  }
+}
+
+.ppl-leader {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1rem 0.75rem 0.9rem;
+  border-radius: 1.35rem;
+  text-align: center;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+[data-theme='dark'] .ppl-leader {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ppl-leader:hover {
+    transform: translateY(-2px);
+    border-color: var(--brand-glow);
+    box-shadow: 0 12px 26px -14px var(--brand-glow);
+  }
+}
+
+/* 현직은 브랜드 링, 원로는 중립 링 — 사진 위에 얹는 얇은 테두리 */
+.ppl-leader-photo {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 2px var(--surface-container), 0 0 0 4px var(--brand-glow);
+}
+
+[data-theme='dark'] .ppl-leader-photo {
+  box-shadow: 0 0 0 2px #1b1a22, 0 0 0 4px var(--brand-glow);
+}
+
+.ppl-leader.is-emeritus .ppl-leader-photo {
+  box-shadow: 0 0 0 2px var(--surface-container), 0 0 0 4px rgba(125, 120, 135, 0.25);
+}
+
+[data-theme='dark'] .ppl-leader.is-emeritus .ppl-leader-photo {
+  box-shadow: 0 0 0 2px #1b1a22, 0 0 0 4px rgba(255, 255, 255, 0.14);
+}
+
+.ppl-leader-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  filter: var(--media-dim);
+}
+
+.ppl-leader-role {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--brand);
+}
+
+.ppl-leader.is-emeritus .ppl-leader-role {
+  color: var(--text-muted);
+}
+
+.ppl-leader-name {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text-strong);
+}
+
+.ppl-leader-headline {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ppl-leader-cta {
+  margin-top: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* ── 탭 (세그먼트 pill) ───────────────────────────────── */
+.ppl-tabs {
+  scroll-margin-top: 4.25rem;
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.85rem 1rem 0.5rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ppl-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ppl-tab {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 2.3rem;
+  padding: 0 0.95rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ppl-tab:hover {
+    color: var(--text-strong);
+    background: var(--brand-soft);
+  }
+}
+
+.ppl-tab.is-active,
+.ppl-tab.is-active:hover {
+  color: var(--on-brand);
+  font-weight: 700;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 4px 14px -6px var(--brand-glow);
+}
+
+.ppl-tab-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+.ppl-tab.is-active .ppl-tab-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--on-brand);
+}
+
+/* ── 검색 ───────────────────────────────────────────── */
+.ppl-search {
+  position: relative;
+  margin: 0.25rem 1rem 0.5rem;
+}
+
+.ppl-search input {
+  width: 100%;
+  height: 2.6rem;
+  padding: 0 2.4rem 0 2.4rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--text-strong);
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  transition: border-color 0.15s;
+}
+
+[data-theme='dark'] .ppl-search input {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ppl-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.ppl-search input:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.ppl-search-icon,
+.ppl-search-clear {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  display: inline-flex;
+}
+
+.ppl-search-icon {
+  left: 0.85rem;
+  pointer-events: none;
+}
+
+.ppl-search-clear {
+  right: 0.7rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+}
+
+/* ── 그룹 헤더 ───────────────────────────────────────── */
+.ppl-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.15rem 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+
+.ppl-group-title::before {
+  content: '';
+  width: 3px;
+  height: 0.85rem;
+  border-radius: 999px;
+  background: var(--brand);
+}
+
+.ppl-group-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ppl-group-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--card-border);
+}
+
+[data-theme='dark'] .ppl-group-rule {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ── 인물 카드 그리드 ─────────────────────────────────── */
+.ppl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  padding: 0 1rem 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .ppl-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .ppl-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+    padding-inline: 1.25rem;
+  }
+}
+
+.ppl-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  animation: ppl-rise 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-theme='dark'] .ppl-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes ppl-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ppl-card {
+    animation: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ppl-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--brand-glow);
+    box-shadow: 0 14px 30px -16px var(--brand-glow);
+  }
+
+  .ppl-card:hover .ppl-card-photo img {
+    transform: scale(1.045);
+  }
+}
+
+.ppl-card-photo {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  background: var(--brand-soft);
+  overflow: hidden;
+}
+
+.ppl-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  filter: var(--media-dim);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 사진이 없는 자리 — 이니셜 한 글자 */
+.ppl-card-initial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--brand);
+  background: linear-gradient(160deg, var(--brand-soft-strong), var(--brand-soft));
+}
+
+/* 선교사 국기 — 사진 좌상단 */
+.ppl-card-flag {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.3rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme='dark'] .ppl-card-flag {
+  background: rgba(20, 20, 26, 0.8);
+}
+
+.ppl-card-body {
+  padding: 0.7rem 0.75rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 4.6rem;
+}
+
+.ppl-card-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text-strong);
+  line-height: 1.3;
+}
+
+.ppl-card-role {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--brand);
+  margin-left: 0.2rem;
+}
+
+.ppl-card-sub {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ppl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.1rem;
+}
+
+.ppl-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--text-body);
+  background: var(--surface-inset);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme='dark'] .ppl-chip {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ppl-chip.is-more {
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+/* 숨김(관리자에게만 보이는 카드) 표시 */
+.ppl-card.is-hidden-row {
+  opacity: 0.55;
+}
+
+/* ── 하단 시트 (인물 상세) ─────────────────────────────── */
+.ppl-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  animation: ppl-fade 0.18s ease both;
+}
+
+@media (min-width: 640px) {
+  .ppl-sheet-backdrop {
+    align-items: center;
+    padding: 1rem;
+  }
+}
+
+@keyframes ppl-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ppl-sheet {
+  position: relative;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 1.75rem 1.75rem 0 0;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+  animation: ppl-slide-up 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (min-width: 640px) {
+  .ppl-sheet {
+    max-width: 26rem;
+    border-radius: 1.75rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  }
+}
+
+[data-theme='dark'] .ppl-sheet {
+  background: #1c1c26;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+@keyframes ppl-slide-up {
+  from {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ppl-sheet,
+  .ppl-sheet-backdrop {
+    animation: none;
+  }
+}
+
+.ppl-sheet-handle {
+  width: 2.5rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--card-border);
+  margin: 0.6rem auto 0;
+}
+
+[data-theme='dark'] .ppl-sheet-handle {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.ppl-sheet-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.9rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: var(--surface-inset);
+}
+
+[data-theme='dark'] .ppl-sheet-close {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ppl-sheet-head {
+  padding: 1rem 1.25rem 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.ppl-sheet-photo {
+  position: relative;
+  width: 6rem;
+  height: 7.5rem;
+  flex: 0 0 auto;
+  border-radius: 1.1rem;
+  overflow: hidden;
+  background: var(--brand-soft);
+  border: 1px solid var(--card-border);
+}
+
+[data-theme='dark'] .ppl-sheet-photo {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ppl-sheet-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  filter: var(--media-dim);
+}
+
+.ppl-sheet-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  line-height: 1.35;
+}
+
+.ppl-sheet-role {
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.ppl-sheet-meta {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.ppl-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-inset);
+}
+
+[data-theme='dark'] .ppl-meta-chip {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.ppl-sheet-section {
+  padding: 0.9rem 1.25rem 0;
+}
+
+.ppl-sheet-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
+}
+
+.ppl-sheet-body {
+  font-size: 0.85rem;
+  line-height: 1.75;
+  color: var(--text-body);
+  white-space: pre-wrap;
+}
+
+/* 삶의 말씀 — 인용 카드 */
+.ppl-verse {
+  position: relative;
+  padding: 0.85rem 0.95rem 0.85rem 2.25rem;
+  border-radius: 1rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--text-body);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-glow);
+}
+
+.ppl-verse-mark {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+  color: var(--brand);
+  opacity: 0.65;
+}
+
+/* 연락처 액션 — 버튼 수(1~3개)에 따라 폭을 나눠 갖는다.
+   고정 3열이면 이메일이 없는 분의 카드에서 오른쪽 한 칸이 비어 보인다. */
+.ppl-contact {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.ppl-contact > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.ppl-contact-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.65rem 0.4rem;
+  border-radius: 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-glow);
+  transition: background-color 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ppl-contact-btn:hover {
+    background: var(--brand-soft-strong);
+  }
+}
+
+.ppl-contact-value {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ppl-sheet-foot {
+  padding: 1rem 1.25rem 1.4rem;
+}
+
+/* ── 빈 상태 ─────────────────────────────────────────── */
+.ppl-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.ppl-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 999px;
+  color: var(--brand);
+  background: var(--brand-soft);
+  margin-bottom: 0.85rem;
+}
+
+.ppl-empty-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.ppl-empty-desc {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* 로딩 스켈레톤 */
+.ppl-skeleton {
+  border-radius: 1.25rem;
+  aspect-ratio: 3 / 4.55;
+  background: var(--surface-inset);
+  animation: ppl-pulse 1.4s ease-in-out infinite;
+}
+
+[data-theme='dark'] .ppl-skeleton {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes ppl-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}

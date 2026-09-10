@@ -37,6 +37,7 @@ const GROUPS: Group[] = [
       { to: '/greeting', labelKey: 'greeting', descKey: 'navDescGreeting', icon: 'greeting' },
       { to: '/visit', labelKey: 'visit', descKey: 'navDescVisit', icon: 'visit' },
       { to: '/history', labelKey: 'history', descKey: 'navDescHistory', icon: 'history' },
+      { to: '/people', labelKey: 'people', descKey: 'navDescPeople', icon: 'people' },
       { to: '/organization', labelKey: 'organization', descKey: 'navDescOrganization', icon: 'organization' },
     ],
   },

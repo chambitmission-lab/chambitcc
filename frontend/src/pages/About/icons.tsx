@@ -23,6 +23,7 @@ import {
   SunDim,
   SunHorizon,
   TreeStructure,
+  UsersThree,
   X,
   type Icon,
   type IconWeight,
@@ -69,6 +70,8 @@ export const PlayCircleIcon = make(PlayCircle)
 export const FlagIcon = make(Flag)
 /** 조직도 */
 export const OrgChartIcon = make(TreeStructure)
+/** 섬기는 사람들 */
+export const PeopleIcon = make(UsersThree)
 /** 하트 — 손수건 만남 */
 export const HeartIcon = make(Heart)
 /** X — 스쳐가는 만남 */

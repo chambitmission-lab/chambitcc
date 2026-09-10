@@ -186,6 +186,15 @@ const IconOrgChart = (p: IconProps) => (
   </Svg>
 )
 
+/* 섬기는 사람들 — 사진 카드 위의 한 사람 (조직도는 상자, 소그룹은 두 사람) */
+const IconPeopleCard = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="3.2" />
+    <circle cx="12" cy="10" r="2.6" />
+    <path d="M7.6 17.4a4.6 4.6 0 0 1 8.8 0" />
+  </Svg>
+)
+
 /* 오시는 길 — 위치 핀 */
 const IconPin = (p: IconProps) => (
   <Svg {...p}>
@@ -218,6 +227,7 @@ export const NAV_ICONS = {
   greeting: IconLetter,
   visit: IconPin,
   organization: IconOrgChart,
+  people: IconPeopleCard,
   history: IconTrail,
   worship: IconWorship,
   events: IconCalendar,
