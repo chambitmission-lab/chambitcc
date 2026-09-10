@@ -4,6 +4,7 @@ import { useMyGroups } from '../../hooks/useGroups'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
 import { getGroupColorTheme } from '../../utils/groupColors'
+import { GroupGlyph, PrayIcon } from '../../pages/Groups/GroupIcons'
 import type { PrayerFilterType } from '../../types/prayer'
 
 interface GroupFilterProps {
@@ -167,7 +168,7 @@ const GroupFilter = ({
             <div className="p-6 text-center text-gray-500">{t('loading')}</div>
           ) : groups.length === 0 ? (
             <div className="p-4 text-center">
-              <div className="text-4xl mb-2">🙏</div>
+              <div className="mb-2 flex justify-center text-brand"><PrayIcon size={36} /></div>
               <p className="text-gray-600 dark:text-gray-400 text-xs mb-3">{t('noGroupsYet')}</p>
               <div className="flex gap-2">
                 <button
@@ -215,7 +216,12 @@ const GroupFilter = ({
                         }}
                       >
                         {/* 아이콘 */}
-                        <span className="text-base leading-none">{group.icon || '👥'}</span>
+                        <span
+                          className="inline-flex items-center leading-none"
+                          style={{ color: isSelected ? '#3D2817' : 'var(--brand)' }}
+                        >
+                          <GroupGlyph emoji={group.icon} size={17} />
+                        </span>
                         
                         {/* 그룹명 - 다크모드 대응 */}
                         <span 
