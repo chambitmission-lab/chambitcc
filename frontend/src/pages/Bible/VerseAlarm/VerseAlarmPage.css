@@ -1018,6 +1018,35 @@
   .va-hero.is-art-ready::before {
     opacity: 1;
   }
+
+  /* 삽화 한가운데의 "다이얼 자리" 원은 띠에서 지웠다(docs/verse-alarm-mobile-band.py) —
+     원본 배율대로 두면 다이얼보다 작은 원이 아래로 밀려나 시계와 따로 노는 동그라미로
+     보였기 때문. 대신 그 후광을 다이얼 바로 뒤에 다시 그려 원과 시계가 한 몸으로 읽히게 한다. */
+  .va-dial-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -7%;
+    border-radius: 50%;
+    z-index: -1;
+    pointer-events: none;
+    /* 원본 원의 실측 색(#e9eae5 안쪽, 테두리는 더 흰 빛띠) — 위쪽 흰 카드에선 살짝 가라앉은
+       동그라미로, 아래쪽 띠 위에선 살짝 떠오른 후광으로 읽힌다(원본과 같은 관계) */
+    background: radial-gradient(
+      circle,
+      rgba(232, 234, 231, 0.92) 0 58%,
+      rgba(243, 244, 242, 0.7) 68%,
+      rgba(255, 255, 255, 0) 80%
+    );
+  }
+
+  .dark .va-dial-wrap::before {
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.05) 0 56%,
+      rgba(255, 255, 255, 0.02) 68%,
+      rgba(255, 255, 255, 0) 80%
+    );
+  }
 }
 
 /* 모바일은 히어로가 맨바닥에 다이얼만 떠 있었다 — 삽화가 설 무대가 없으므로

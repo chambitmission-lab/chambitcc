@@ -17,12 +17,19 @@ PC(≥1440px)에서는 hero-{light,dark}.webp 한 장을 카드에 `cover` 로 �
 
 굽는 것 두 가지
 ---------------
-1) 다크 전용 원 자국 지우기.
-   원본의 빈 원은 "다이얼이 앉을 자리"라 아주 옅은 음영으로 그려져 있다(실측 2~5레벨).
-   PC 는 그 위에 다이얼이 정확히 포개져 안 보이지만, 모바일은 원이 다이얼보다 작고
-   아래로 밀려나 허공에 뜬 검은 원처럼 보인다. 라이트는 원이 페인트로 부드럽게 칠해져
-   있어 상수 보정으로 지워지지 않고(여러 값으로 확인) 은은한 후광처럼 읽혀 그대로 둔다.
-   다크만 반경 방향 스무스스텝으로 +(4,5,1) 을 더해 평평하게 만든다.
+1) 빈 원 자국 지우기.
+   원본의 빈 원은 "다이얼이 앉을 자리"다. PC 는 그 위에 다이얼이 정확히 포개져 안 보이지만,
+   모바일은 원이 다이얼보다 작고 아래로 밀려나 다이얼과 따로 노는 동그라미로 보인다
+   ("동그란 게 시계 안으로 들어가야 하는데 아래에 걸쳐만 있다"는 피드백, 2026-09).
+   그래서 띠에서는 원을 완전히 지우고, 다이얼 뒤 후광은 CSS 로 다시 그린다
+   (VerseAlarmPage.css `.va-dial-wrap::before`).
+   - 라이트: 원 안쪽이 주변보다 어둡고(휘도 231 vs 테두리 237) 가장자리에 흰 빛띠가
+     r≈1.0~1.3 까지 번져 있어 상수 보정으로는 안 지워진다. 원 바깥 고리(r 1.32~2.0)의
+     화소로 3차 다항식 색면을 로버스트 피팅(양·시계 화소는 잔차 컷으로 제외)해서
+     원 안을 그 색면으로 채우고 r 1.15~1.32 에서 페더링한다.
+   - 다크: 원이 아주 옅은 음영(2~5레벨)이라 반경 방향 스무스스텝으로 +(4,5,1) 을 더해
+     평평하게 만든다. 다항식 피팅은 오른쪽 양의 따뜻한 빛무리에 끌려 원 자리에 밝은
+     얼룩을 만들기 때문에(확인함) 다크에는 쓰지 않는다.
 2) 위쪽 알파 페이드.
    띠 위쪽 하늘이 카드 배경과 만나는 가로 경계를 지운다. CSS mask 로도 되지만
    에셋에 구워 두면 브라우저 편차가 없다. 카드 색이 무엇이든 녹아들도록 투명으로 뺀다.
@@ -38,28 +45,62 @@ SRC = Path(__file__).resolve().parent.parent / "public" / "images" / "verse-alar
 
 # 빈 원 — 1376×768 원본 기준 실측 (지름 = 폭의 43%)
 DISC = dict(cx=688, cy=384, r=296)
-DISC_EDGE = 0.20          # 원 가장자리 페더 폭(반지름 대비)
-DISC_FIX = {"dark": (4.0, 5.0, 1.0), "light": (0.0, 0.0, 0.0)}
+DISC_EDGE = 0.20          # 다크 상수 보정의 가장자리 페더 폭(반지름 대비)
+DISC_FIX = {"dark": (4.0, 5.0, 1.0)}
+
+# 라이트 다항식 인페인팅 — 반지름 배수
+FILL_R = 1.15             # 여기까지는 피팅한 색면으로 완전히 대체
+FEATHER_R = 1.32          # 여기서 원본으로 완전히 복귀(빛띠가 끝나는 곳)
+FIT_R = (1.32, 2.0)       # 색면을 피팅할 고리
+FIT_DEG = 3
 
 OUT_W = 716               # 카드 폭 358 의 2배
 FADE = 0.42               # 위에서 이 비율까지 알파 0 → 1
 
 
-def flatten_disc(img: np.ndarray, amp) -> np.ndarray:
-    if not any(amp):
-        return img
-    h, w, _ = img.shape
+def _radius(shape) -> np.ndarray:
+    h, w = shape[:2]
     ys, xs = np.mgrid[0:h, 0:w]
-    r = np.hypot(xs - DISC["cx"], ys - DISC["cy"]) / DISC["r"]
+    return np.hypot(xs - DISC["cx"], ys - DISC["cy"]) / DISC["r"]
+
+
+def flatten_disc(img: np.ndarray, amp) -> np.ndarray:
+    """다크용 — 원 안쪽을 상수만큼 밝혀 주변과 평평하게."""
+    r = _radius(img.shape)
     t = np.clip((1.0 + DISC_EDGE / 2 - r) / DISC_EDGE, 0.0, 1.0)
     s = (t * t * (3.0 - 2.0 * t))[..., None]
     return np.clip(img + np.array(amp) * s, 0, 255)
 
 
+def inpaint_disc(img: np.ndarray) -> np.ndarray:
+    """라이트용 — 원 바깥 고리에 맞춘 매끈한 색면으로 원 안을 다시 칠한다."""
+    h, w, _ = img.shape
+    r = _radius(img.shape)
+    ys, xs = np.mgrid[0:h, 0:w]
+    X, Y = xs / w - 0.5, ys / h - 0.5
+    basis = np.stack(
+        [(X**i) * (Y**j) for i in range(FIT_DEG + 1) for j in range(FIT_DEG + 1 - i)], -1
+    )
+    ring = (r > FIT_R[0]) & (r < FIT_R[1])
+    surface = np.empty_like(img)
+    for c in range(3):
+        keep = ring.copy()
+        for _ in range(4):  # 양·시계·거품 화소를 잔차로 걸러 내며 다시 맞춘다
+            coef, *_ = np.linalg.lstsq(basis[keep], img[..., c][keep], rcond=None)
+            pred = (basis.reshape(-1, basis.shape[-1]) @ coef).reshape(h, w)
+            resid = np.abs(img[..., c] - pred)
+            keep = ring & (resid < 2.0 * resid[ring].std())
+        surface[..., c] = pred
+    t = np.clip((r - FILL_R) / (FEATHER_R - FILL_R), 0.0, 1.0)
+    s = (t * t * (3.0 - 2.0 * t))[..., None]
+    return np.clip(img * s + surface * (1.0 - s), 0, 255)
+
+
 def main() -> None:
     for theme in ("light", "dark"):
         src = Image.open(SRC / f"hero-{theme}.webp").convert("RGB")
-        fixed = flatten_disc(np.asarray(src, dtype=float), DISC_FIX[theme])
+        arr = np.asarray(src, dtype=float)
+        fixed = inpaint_disc(arr) if theme == "light" else flatten_disc(arr, DISC_FIX[theme])
         band = Image.fromarray(fixed.astype(np.uint8)).resize(
             (OUT_W, round(OUT_W * src.height / src.width)), Image.LANCZOS
         )
