@@ -193,3 +193,40 @@ export const groupPeople = (
   })
   return groups
 }
+
+/* ── 대표(담임·원로) 중복 정리 ──────────────────────────
+   church_pastors(대표 카드)와 church_people(교역자 격자)은 서로 다른 테이블이라
+   같은 분이 양쪽에 등록되면 한 화면에 두 번 보인다. 공용 키가 없어 이름으로 맞추고,
+   대표 카드를 남긴 뒤 격자에서 뺀다 — 대신 대표 카드를 누르면 그분의 인물 시트가 열려
+   담당 사역·연락처는 그대로 닿는다. */
+
+/** 공백·가운뎃점 차이를 무시하고 이름을 견주기 위한 키 */
+const nameKey = (value: string): string => value.replace(/[\s·.]/g, '').toLowerCase()
+
+const leaderNameKeys = (leader: LeaderCard): string[] =>
+  [leader.name_ko, leader.name_en]
+    .map((value) => (typeof value === 'string' ? nameKey(value) : ''))
+    .filter(Boolean)
+
+/** 대표 카드와 같은 분(교역자 카테고리)을 찾아 pastor_id → Person 으로 묶는다 */
+export const leaderPersonMap = (
+  people: Person[],
+  leaders: LeaderCard[],
+): Map<number, Person> => {
+  const map = new Map<number, Person>()
+  leaders.forEach((leader) => {
+    const keys = leaderNameKeys(leader)
+    const found = people.find(
+      (person) => person.category === 'pastor' && keys.includes(nameKey(person.name_ko)),
+    )
+    if (found) map.set(leader.pastor_id, found)
+  })
+  return map
+}
+
+/** 대표 카드로 이미 올라간 분을 목록에서 뺀 나머지 */
+export const withoutLeaders = (people: Person[], leaders: LeaderCard[]): Person[] => {
+  if (leaders.length === 0) return people
+  const taken = new Set(Array.from(leaderPersonMap(people, leaders).values(), (p) => p.id))
+  return taken.size === 0 ? people : people.filter((person) => !taken.has(person.id))
+}

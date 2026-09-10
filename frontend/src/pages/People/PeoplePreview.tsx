@@ -36,6 +36,15 @@ const SAMPLE: PeopleDirectory = {
     },
   ],
   people: [
+    // church_pastors 에도 있는 담임목사 — 대표 카드로 접히고 격자에선 빠지는지 보는 표본
+    person(10, {
+      name_ko: '김참빛',
+      role_ko: '담임목사',
+      group_ko: '교역자',
+      phone: '032-000-1000',
+      assignments_ko: '전체 목양\n당회',
+      bio_ko: '말씀과 기도로 교회를 섬깁니다.',
+    }),
     person(11, {
       name_ko: '박요한',
       role_ko: '목사',

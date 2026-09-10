@@ -29,9 +29,11 @@ import {
   PERSON_CATEGORIES,
   assignmentList,
   groupPeople,
+  leaderPersonMap,
   leaderText,
   personInitial,
   personText,
+  withoutLeaders,
 } from '../../types/people'
 import type { LeaderCard, Person, PersonCategory } from '../../types/people'
 import PersonSheet from './PersonSheet'
@@ -52,7 +54,13 @@ const People = () => {
   const { language } = useLanguage()
   const ko = language === 'ko'
   const isAdminUser = can('content:manage')
-  const { leaders, people, isLoading } = usePeopleDirectory()
+  const { leaders, people: registered, isLoading } = usePeopleDirectory()
+
+  // 담임·원로목사가 church_people 에도 등록돼 있으면 대표 카드와 격자에 두 번 보인다 —
+  // 대표 카드만 남기고 격자에서 민다. 대신 대표 카드를 누르면 그분의 인물 시트가 열려
+  // 담당 사역·연락처는 그대로 닿는다.
+  const leaderPeople = useMemo(() => leaderPersonMap(registered, leaders), [registered, leaders])
+  const people = useMemo(() => withoutLeaders(registered, leaders), [registered, leaders])
 
   const [params, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState('')
@@ -66,6 +74,9 @@ const People = () => {
     })
     return map
   }, [people])
+
+  // 대표 카드도 교역자 수에 든다 — 탭 배지와 히어로 통계가 같은 숫자를 말하게
+  const totalFor = (c: PersonCategory) => counts[c] + (c === 'pastor' ? leaders.length : 0)
 
   const tabs = useMemo(
     () =>
@@ -151,9 +162,9 @@ const People = () => {
 
             {(totalPeople > 0 || leaders.length > 0) && (
               <div className="ppl-stats" aria-label={ko ? '한눈에 보기' : 'At a glance'}>
-                {PERSON_CATEGORIES.filter((c) => counts[c] > 0).map((c) => (
+                {PERSON_CATEGORIES.filter((c) => totalFor(c) > 0).map((c) => (
                   <span key={c} className="ppl-stat">
-                    <strong className="ppl-stat-num">{counts[c]}</strong>
+                    <strong className="ppl-stat-num">{totalFor(c)}</strong>
                     {CATEGORY_LABEL[c][ko ? 'ko' : 'en']}
                   </span>
                 ))}
@@ -179,7 +190,7 @@ const People = () => {
             <nav className="ppl-tabs" aria-label={ko ? '분류' : 'Categories'}>
               {tabs.map((c) => {
                 const TabIcon = CATEGORY_ICON[c]
-                const count = counts[c] + (c === 'pastor' ? leaders.length : 0)
+                const count = totalFor(c)
                 return (
                   <button
                     key={c}
@@ -206,9 +217,18 @@ const People = () => {
               </div>
               {/* 한 분뿐이면 왼쪽에 홀로 붙어 허전하다 — 가운데로 모은다 */}
               <div className={`ppl-leaders ${leaders.length === 1 ? 'is-single' : ''}`}>
-                {leaders.map((leader) => (
-                  <LeaderTile key={leader.pastor_id} leader={leader} ko={ko} language={language} />
-                ))}
+                {leaders.map((leader) => {
+                  const person = leaderPeople.get(leader.pastor_id) ?? null
+                  return (
+                    <LeaderTile
+                      key={leader.pastor_id}
+                      leader={leader}
+                      language={language}
+                      person={person}
+                      onOpen={person ? () => setSelected(person) : undefined}
+                    />
+                  )
+                })}
               </div>
             </>
           )}
@@ -309,27 +329,37 @@ const People = () => {
 }
 
 // ── 대표 카드 ─────────────────────────────────────────
+// 인사말은 메뉴와 /greeting 이 따로 맡는다 — 여긴 사진·직분·한 줄 소개만.
+// church_people 에 같은 분이 있으면 다른 카드처럼 눌러 인물 시트를 열 수 있다.
 const LeaderTile = ({
   leader,
-  ko,
   language,
+  person,
+  onOpen,
 }: {
   leader: LeaderCard
-  ko: boolean
   language: 'ko' | 'en'
+  person: Person | null
+  onOpen?: () => void
 }) => {
   const name = leaderText(leader, 'name', language)
   const role = leaderText(leader, 'role', language)
   const headline = leaderText(leader, 'headline', language)
+  const photo = leader.photo_url || person?.photo_url || ''
 
-  return (
-    <Link
-      to="/greeting"
-      className={`ppl-leader ${leader.status === 'emeritus' ? 'is-emeritus' : ''}`}
-    >
+  const className = [
+    'ppl-leader',
+    leader.status === 'emeritus' ? 'is-emeritus' : '',
+    onOpen ? '' : 'is-static',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const inner = (
+    <>
       <span className="ppl-leader-photo">
-        {leader.photo_url ? (
-          <img src={leader.photo_url} alt={name} loading="lazy" />
+        {photo ? (
+          <img src={photo} alt={name} loading="lazy" />
         ) : (
           <span className="ppl-card-initial">{personInitial(name)}</span>
         )}
@@ -337,11 +367,15 @@ const LeaderTile = ({
       <span className="ppl-leader-role">{role}</span>
       <span className="ppl-leader-name">{name}</span>
       {headline && <span className="ppl-leader-headline">{headline}</span>}
-      <span className="ppl-leader-cta">
-        {ko ? '인사말 읽기' : 'Read greeting'}
-        <ArrowRight size={11} weight="bold" />
-      </span>
-    </Link>
+    </>
+  )
+
+  if (!onOpen) return <div className={className}>{inner}</div>
+
+  return (
+    <button type="button" onClick={onOpen} className={className}>
+      {inner}
+    </button>
   )
 }
 
