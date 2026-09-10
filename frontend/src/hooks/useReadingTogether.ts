@@ -1,8 +1,11 @@
 // 함께 읽기 — 실시간 읽기 현황(presence) 훅 + SSE 캐시 동기화
 //
-// 흐름: 스크롤로 확정된 절(useReadingLine) → 하트비트(25초 주기 + 절 바뀔 때)
-//       → 서버 메모리 → 같은 장 사람들에게 SSE `reading_presence`
+// 흐름: 스크롤로 확정된 절(useReadingLine) → 하트비트(25초 주기, 장 진입·탭 복귀·재연결 시 즉시)
+//       → 서버 메모리 → 인원이 바뀌면 같은 장 사람들에게 SSE `reading_presence`
 //       → 이 파일의 핸들러가 React Query 캐시 갱신 → 칩·pill 리렌더.
+// 절이 바뀌는 것만으로는 보내지 않는다 — 절 단위 표시는 UI 에서 뺐고(2026-09-09), 절마다
+// 보내면 스크롤하는 한 사람이 몇 초마다 요청 + 같은 장 전원 팬아웃을 일으킨다. 최신 절은
+// 다음 정기 하트비트에 실려 간다.
 //
 // 카운트는 사용자 기준이라 탭이 여러 개여도 한 명이다. 탭이 숨겨지면 하트비트를 멈추고
 // 이탈을 보내 "읽는 중" 숫자가 부풀지 않게 한다. 서버 재시작으로 메모리가 비어도
@@ -187,10 +190,14 @@ export const useReadingPresenceHeartbeat = ({ bookNumber, chapter, verse, enable
   const activeRef = useRef(false)
   // 이 장의 확인용 하트비트 마감(첫 전송 +12초). 장이 바뀌면 새로 잡고, 보낸 뒤엔 at=null.
   const dwellRef = useRef<{ key: string; at: number | null } | null>(null)
+  // 마지막 하트비트 뒤 이탈을 이미 보냈는지 — 탭을 닫으면 visibilitychange(hidden)와 pagehide 가
+  // 연달아 와서 DELETE 가 두 번 나갔다. 서버엔 두 번째가 no-op 이라 한 번이면 된다.
+  const leftRef = useRef(true)
 
   const send = useCallback(() => {
     const { bookNumber: b, chapter: c, verse: v } = posRef.current
     if (!activeRef.current || v === null || document.visibilityState === 'hidden') return
+    leftRef.current = false
     sendPresenceHeartbeat({ book_number: b, chapter: c, verse: v })
       .then((data) => applyPresence(qc, data))
       .catch(() => {
@@ -199,13 +206,19 @@ export const useReadingPresenceHeartbeat = ({ bookNumber, chapter, verse, enable
   }, [qc])
 
   const leave = useCallback(() => {
+    if (leftRef.current) return
+    leftRef.current = true
     leavePresence().catch(() => {
       /* 이탈 실패는 서버 TTL 이 정리한다 */
     })
   }, [])
 
+  // 절은 "아직 모름(null) ↔ 앎"만 effect 를 흔든다. 절 번호 자체가 바뀌는 건 posRef 로만
+  // 따라가 다음 정기 하트비트에 실린다(위 파일 머리말 참고).
+  const hasVerse = verse !== null
+
   useEffect(() => {
-    if (!enabled || verse === null) {
+    if (!enabled || !hasVerse) {
       if (activeRef.current) {
         activeRef.current = false
         leave()
@@ -216,8 +229,8 @@ export const useReadingPresenceHeartbeat = ({ bookNumber, chapter, verse, enable
     send()
     const timer = window.setInterval(send, HEARTBEAT_INTERVAL_MS)
 
-    // 체류 확인 하트비트 — 장 진입 시점 기준 한 번. 절이 바뀌어 effect 가 다시 돌면 남은
-    // 시간만큼만 기다린다 (매번 12초를 새로 세면 스크롤하는 사람은 계속 뒤로 밀린다).
+    // 체류 확인 하트비트 — 장 진입 시점 기준 한 번. 공유 토글 등으로 effect 가 다시 돌면 남은
+    // 시간만큼만 기다린다 (매번 12초를 새로 세면 뒤로 밀린다).
     const key = `${bookNumber}:${chapter}`
     if (dwellRef.current?.key !== key) dwellRef.current = { key, at: Date.now() + DWELL_CONFIRM_MS }
     const dwellAt = dwellRef.current.at
@@ -248,9 +261,9 @@ export const useReadingPresenceHeartbeat = ({ bookNumber, chapter, verse, enable
       window.removeEventListener('pagehide', onPageHide)
       offConnected()
     }
-    // verse 가 바뀌면 effect 가 다시 돌아 즉시 send() — 절 이동을 바로 알린다.
-    // 장이 바뀌어도 leave 는 보내지 않는다: 다음 하트비트가 서버에서 이전 장을 자동으로 비운다.
-  }, [enabled, bookNumber, chapter, verse, send, leave])
+    // 장이 바뀌면 effect 가 다시 돌아 즉시 send() — 장 이동을 바로 알린다. 그때 leave 는
+    // 보내지 않는다: 다음 하트비트가 서버에서 이전 장을 자동으로 비운다.
+  }, [enabled, bookNumber, chapter, hasVerse, send, leave])
 
   // 성경 화면을 완전히 떠날 때
   useEffect(

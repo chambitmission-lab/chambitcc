@@ -16,6 +16,13 @@ import { prayerKeys } from '../hooks/usePrayersQuery'
 const INITIAL_RETRY_MS = 5_000
 const MAX_RETRY_MS = 60_000
 
+/**
+ * 재연결 대기 시간에 ±50% 흔들림을 준다. 서버가 재시작(재배포)되면 연결돼 있던 모두가
+ * 같은 순간 끊기는데, 지터가 없으면 정확히 5초 뒤 전원이 동시에 다시 붙고 그 즉시
+ * 'connected' 처리(알림 invalidate·홈 live 재조회·하트비트 재전송)까지 한꺼번에 몰린다.
+ */
+const jitter = (ms: number): number => Math.round(ms * (0.5 + Math.random()))
+
 /** 스트림 이벤트 구독자 — data 는 SSE data 라인 원문(JSON 문자열) */
 export type StreamEventHandler = (data: string) => void
 
@@ -178,7 +185,7 @@ class NotificationStreamManager {
       this.connected = false
       if (!this.running) break
 
-      await new Promise((resolve) => setTimeout(resolve, this.retryMs))
+      await new Promise((resolve) => setTimeout(resolve, jitter(this.retryMs)))
       this.retryMs = Math.min(this.retryMs * 2, MAX_RETRY_MS)
     }
   }
