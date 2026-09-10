@@ -204,7 +204,8 @@ const People = () => {
                 {ko ? '담임 · 원로목사' : 'Senior & Emeritus'}
                 <span className="ppl-group-rule" />
               </div>
-              <div className="ppl-leaders">
+              {/* 한 분뿐이면 왼쪽에 홀로 붙어 허전하다 — 가운데로 모은다 */}
+              <div className={`ppl-leaders ${leaders.length === 1 ? 'is-single' : ''}`}>
                 {leaders.map((leader) => (
                   <LeaderTile key={leader.pastor_id} leader={leader} ko={ko} language={language} />
                 ))}

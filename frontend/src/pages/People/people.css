@@ -114,6 +114,12 @@
   }
 }
 
+/* 대표가 한 분뿐일 때 — 2·4열 격자의 첫 칸에 홀로 붙지 않게 가운데로 */
+.ppl-leaders.is-single {
+  grid-template-columns: minmax(0, 16rem);
+  justify-content: center;
+}
+
 .ppl-leader {
   position: relative;
   display: flex;

@@ -18,6 +18,7 @@ import {
   CATEGORY_LABEL,
   PERSON_CATEGORIES,
   assignmentList,
+  looksLikeLeaderRole,
   personDateLabel,
   personInitial,
   personText,
@@ -290,6 +291,7 @@ const PeopleManagement = () => {
                       onMove={(direction) => handleMove(person, direction)}
                       onToggleVisibility={() => handleToggleVisibility(person)}
                       onDelete={() => handleDelete(person)}
+                      onGoPastors={() => navigate('/admin/pastors')}
                     />
                   )
                 })
@@ -340,6 +342,7 @@ interface PersonRowProps {
   onMove: (direction: 'up' | 'down') => void
   onToggleVisibility: () => void
   onDelete: () => void
+  onGoPastors: () => void
 }
 
 const PersonRow = ({
@@ -352,10 +355,13 @@ const PersonRow = ({
   onMove,
   onToggleVisibility,
   onDelete,
+  onGoPastors,
 }: PersonRowProps) => {
   const assignments = assignmentList(person, 'ko')
   const group = personText(person, 'group', 'ko')
   const since = personDateLabel(person.started_on)
+  // 담임·원로목사가 여기 들어오면 대표 카드가 아니라 일반 카드로 내려간다 — 눈에 띄게 알린다
+  const misplacedLeader = looksLikeLeaderRole(person)
 
   return (
     <div
@@ -409,6 +415,11 @@ const PersonRow = ({
                 숨김
               </span>
             )}
+            {misplacedLeader && (
+              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--amber-soft)] border border-[var(--amber-soft-strong)] text-[var(--amber)] shrink-0">
+                대표 아님
+              </span>
+            )}
           </div>
           <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
             {group || '그룹 없음'}
@@ -443,6 +454,27 @@ const PersonRow = ({
 
       {expanded && (
         <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-2.5">
+          {misplacedLeader && (
+            <div className="px-3.5 py-3 rounded-xl bg-[var(--amber-soft)] border border-[var(--amber-soft-strong)] space-y-2">
+              <p className="text-[12.5px] leading-[1.6] text-ink-strong">
+                담임목사·원로목사는 <span className="font-bold">인사말 관리</span>가 단일 출처입니다.
+                여기 등록된 분은 섬기는 사람들 화면에서 맨 위 <span className="font-bold">대표 카드</span>가
+                아니라 교역자 목록의 일반 카드로 보입니다.
+              </p>
+              <p className="text-[11.5px] leading-[1.6] text-gray-600 dark:text-white/60">
+                인사말 관리에 등록(원로목사는 상태를 <span className="font-semibold">원로목사</span>로)하면
+                대표 카드로 올라갑니다. 그 뒤 이 기록은 삭제해 주세요 — 두 곳에 있으면 두 번 보입니다.
+              </p>
+              <button
+                type="button"
+                onClick={onGoPastors}
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[12.5px] font-bold transition-colors"
+              >
+                인사말 관리로 이동 →
+              </button>
+            </div>
+          )}
+
           {person.bio_ko && (
             <p className="text-[12.5px] leading-[1.6] text-gray-700 dark:text-white/75 bg-gray-50 dark:bg-white/[0.03] rounded-xl px-3 py-2.5 whitespace-pre-wrap line-clamp-6">
               {person.bio_ko}

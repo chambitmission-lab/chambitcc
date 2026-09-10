@@ -18,20 +18,21 @@ const person = (id: number, data: Partial<Person> & { name_ko: string }): Person
 })
 
 const SAMPLE: PeopleDirectory = {
+  // 서버와 같은 순서 — 원로목사가 왼쪽, 담임목사가 그 다음 (레거시 예우 순서)
   leaders: [
-    {
-      pastor_id: 1,
-      name_ko: '김참빛',
-      role_ko: '담임목사',
-      headline_ko: '복있는 사람으로 불리는 것을 가장 좋아합니다',
-      status: 'current',
-    },
     {
       pastor_id: 2,
       name_ko: '이은혜',
       role_ko: '원로목사',
       headline_ko: '한 영혼을 천하보다 귀히 여긴 목회',
       status: 'emeritus',
+    },
+    {
+      pastor_id: 1,
+      name_ko: '김참빛',
+      role_ko: '담임목사',
+      headline_ko: '복있는 사람으로 불리는 것을 가장 좋아합니다',
+      status: 'current',
     },
   ],
   people: [

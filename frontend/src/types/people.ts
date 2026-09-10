@@ -158,6 +158,19 @@ export const personDateLabel = (value?: string | null): string => {
 /** 사진이 없을 때 원형 자리에 넣는 이니셜 — 한글은 성 한 자 */
 export const personInitial = (name: string): string => name.trim().charAt(0) || '·'
 
+/* 담임·원로목사는 church_pastors(= /admin/pastors)가 단일 출처다. 여기에 등록하면
+   대표 카드가 아니라 교역자 탭의 일반 카드로 내려가 두 번 보인다 — 관리자 화면이
+   그걸 조용히 넘기지 않도록 이름표로 잡아낸다(직분/그룹 어디에 적었든). */
+const LEADER_ROLE_WORDS = ['담임목사', '담임 목사', '원로목사', '원로 목사']
+
+export const looksLikeLeaderRole = (person: {
+  role_ko?: string | null
+  group_ko?: string | null
+}): boolean => {
+  const haystack = `${person.role_ko ?? ''} ${person.group_ko ?? ''}`
+  return LEADER_ROLE_WORDS.some((word) => haystack.includes(word))
+}
+
 /** 같은 group 끼리 묶는다. group 이 비면 카테고리 기본 라벨로 */
 export interface PersonGroup {
   key: string

@@ -13,7 +13,7 @@ import {
   useUpdatePerson,
   useUploadPersonPhoto,
 } from '../../../hooks/usePeople'
-import { CATEGORY_DATE_LABEL, CATEGORY_LABEL } from '../../../types/people'
+import { CATEGORY_DATE_LABEL, CATEGORY_LABEL, looksLikeLeaderRole } from '../../../types/people'
 import type { Person, PersonCategory, PersonTextField } from '../../../types/people'
 
 interface PersonComposerProps {
@@ -110,6 +110,9 @@ const PersonComposer = ({
   const submitting =
     createMutation.isPending || updateMutation.isPending || uploadMutation.isPending
   const canSubmit = name.ko.trim().length > 0 && !submitting
+
+  // 담임·원로목사를 여기 적고 있으면 저장 전에 알린다 (대표 카드는 인사말 관리가 단일 출처)
+  const misplacedLeader = looksLikeLeaderRole({ role_ko: role.ko, group_ko: group.ko })
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -346,6 +349,19 @@ const PersonComposer = ({
                   hint="같은 그룹끼리 묶여서 표시됩니다. 비우면 분류 이름으로 묶입니다."
                   presets={GROUP_PRESETS[category]}
                 />
+
+                {misplacedLeader && (
+                  <div className="px-3.5 py-3 rounded-xl bg-[var(--amber-soft)] border border-[var(--amber-soft-strong)]">
+                    <p className="text-[12.5px] font-bold text-ink-strong mb-1">
+                      담임목사 · 원로목사는 이 화면이 아닙니다
+                    </p>
+                    <p className="text-[11.5px] leading-[1.6] text-gray-600 dark:text-white/60">
+                      두 분은 <span className="font-semibold">인사말 관리(/admin/pastors)</span>에 등록해야
+                      섬기는 사람들 맨 위 대표 카드로 올라갑니다(원로목사는 상태를 &lsquo;원로목사&rsquo;로).
+                      여기 저장하면 교역자 목록의 일반 카드로만 보이고, 두 곳에 있으면 두 번 보입니다.
+                    </p>
+                  </div>
+                )}
 
                 {/* 공개 여부 */}
                 <FieldGroup label="공개">
