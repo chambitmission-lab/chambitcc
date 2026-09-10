@@ -10,3 +10,11 @@
 # self-host 폰트 — 디렉터리 이름에 버전이 있어 내용이 바뀌지 않는다 (src/styles/pretendard.css)
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
+
+# 테마별 히어로·카드 삽화(URL 고정, 가끔 교체). Pages 기본값(max-age=0, must-revalidate)이면
+# 이미 받은 반대 테마 파일도 토글마다 조건부 요청 한 왕복이 생긴다(서비스 워커 통제 전·첫 방문).
+# 하루는 그대로 쓰고, 그 뒤 일주일은 옛 파일을 먼저 보여주며 뒤에서 갱신한다 —
+# 그림을 다시 구우면 최대 하루 안에 새 파일로 바뀐다. 서비스 워커(sw.js)의
+# stale-while-revalidate 와 같은 정책이라 두 캐시가 서로 어긋나지 않는다.
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

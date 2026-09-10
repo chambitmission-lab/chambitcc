@@ -24,6 +24,8 @@ import {
   markNoticeSeenThisSession,
 } from '../../../utils/noticeDismiss'
 import { tokenStore } from '../../../utils/tokenStore'
+import { useThemeArt } from '../../../hooks/useThemeArt'
+import { NOTICE_BANNER } from '../../../utils/themeAssets'
 
 /**
  * 공지 링크 → 실제 이동 대상.
@@ -160,6 +162,9 @@ const HomeNotice = () => {
 
   // 조회가 끝날 때마다 배너 유무를 남긴다 — 다음 실행의 자리표시자 판단 근거
   const hasBanner = bannerNotices.length > 0
+  // 배너 마스코트는 인라인 CSS 배경(아래 <style>)이라 테마 토글 순간 반대 테마 파일을 새로 받는다 —
+  // 배너가 떠 있는 동안 등록해 두면 토글 직전 선요청이 챙긴다(themeAssets.ts)
+  useThemeArt(NOTICE_BANNER, hasBanner)
   useEffect(() => {
     if (data) writeSlotHint(hasBanner)
   }, [data, hasBanner])

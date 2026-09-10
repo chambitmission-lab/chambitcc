@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMessianicGenealogy, usePrefetchBibleFigure } from '../../../hooks/useBibleFigure'
@@ -11,12 +11,8 @@ import BibleSideRail from '../../../components/bible/BibleSideRail'
 import './Genealogy.css'
 import { tokenStore } from '../../../utils/tokenStore'
 
-// 히어로 이미지는 CSS 배경(테마 토큰)이라 다크 전환 순간에야 받기 시작한다.
-// 두 테마 파일을 마운트 시 미리 디코드해 두면 토글 시 즉시 뜨고, 첫 표시는 페이드인.
-const HERO_IMAGES = [
-  '/images/genealogy/tree-hero-light.webp',
-  '/images/genealogy/tree-hero-dark.webp',
-]
+import { useThemeArt } from '../../../hooks/useThemeArt'
+import { GENEALOGY_HERO } from '../../../utils/themeAssets'
 
 const encouragement = (p: number) => {
   if (p >= 1) return '완독했어요!'
@@ -59,24 +55,10 @@ export const Genealogy = () => {
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [helpOpen, setHelpOpen] = useState(false)
-  const [heroReady, setHeroReady] = useState(false)
+  // 히어로 이미지는 CSS 배경(테마 토큰)이라 렌더된 뒤에야 받기 시작하고 현재 테마 한 장만
+  // 받는다 — 현재 테마를 받아 페이드인하고, 반대 테마는 유휴 시간에 데운다(themeAssets.ts)
+  const heroReady = useThemeArt(GENEALOGY_HERO)
   const prefetchFigure = usePrefetchBibleFigure()
-
-  useEffect(() => {
-    let cancelled = false
-    Promise.allSettled(
-      HERO_IMAGES.map((src) => {
-        const img = new Image()
-        img.src = src
-        return img.decode ? img.decode() : Promise.resolve()
-      }),
-    ).then(() => {
-      if (!cancelled) setHeroReady(true)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const isLoggedIn = !!tokenStore.getAccess()
 

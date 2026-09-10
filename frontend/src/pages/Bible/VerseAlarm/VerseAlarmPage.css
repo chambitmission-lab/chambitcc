@@ -980,7 +980,7 @@
     background-position: center;
     background-repeat: no-repeat;
     /* CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다 — 도착에 맞춰 페이드인
-       (heroPrefetch.ts). 레일이 미리 데워 뒀으면 첫 렌더부터 is-art-ready 로 그린다. */
+       (utils/themeAssets.ts). 레일이 미리 데워 뒀으면 첫 렌더부터 is-art-ready 로 그린다. */
     opacity: 0;
     transition: opacity 320ms ease-out;
   }

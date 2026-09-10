@@ -1,4 +1,5 @@
 import { useTheme } from '../../../../contexts/ThemeContext'
+import { prewarmThemeToggle } from '../../../../utils/themeAssets'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { SearchIconButton } from '../../../command/SearchTrigger'
 
@@ -32,6 +33,8 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onNotific
       <SearchIconButton className={`${iconBaseClass} lg:hidden`} />
       <button
         onClick={toggleTheme}
+        onPointerEnter={prewarmThemeToggle}
+        onFocus={prewarmThemeToggle}
         className={iconBaseClass}
         aria-label={t('themeToggleAria')}
       >

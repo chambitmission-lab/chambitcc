@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { NEWS_HERO, OFFERING_HERO, type ThemePair } from '../../utils/themeAssets'
 import { useQueryClient } from '@tanstack/react-query'
 import { getBulletinDetail } from '../../api/bulletin'
 import { useBulletins, bulletinKeys } from '../../hooks/useBulletins'
@@ -48,6 +50,14 @@ const SECTIONS: {
   { key: 'offering', Icon: OfferingBoxIcon, label: '헌금', seal: { from: '#3ea7f0', to: '#1a6fd4' } },
 ]
 
+// 탭별 히어로 삽화(CSS 배경, news-hero.css·offering.css) — 활성 탭의 쌍만 테마 토글 선요청에 등록한다
+const SECTION_ART: Partial<Record<SectionKey, ThemePair>> = {
+  news: NEWS_HERO.news,
+  'new-family': NEWS_HERO['new-family'],
+  'event-album': NEWS_HERO['event-album'],
+  offering: OFFERING_HERO,
+}
+
 const isSectionKey = (value: string | null): value is SectionKey =>
   value === 'news' ||
   value === 'bulletin' ||
@@ -73,6 +83,7 @@ const News = () => {
   const tabParam = searchParams.get('tab')
   const section: SectionKey = isSectionKey(tabParam) ? tabParam : 'news'
   const activeSection = SECTIONS.find(s => s.key === section)
+  useThemeArt(SECTION_ART[section] ?? NEWS_HERO.news, section in SECTION_ART)
 
   // 목록은 React Query 캐시 우선 — 재방문 시 캐시로 즉시 그리고 뒤에서 조용히 갱신
   const { data: bulletins = [], isLoading: loading, error: listError } = useBulletins()

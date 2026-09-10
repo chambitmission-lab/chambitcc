@@ -2,7 +2,7 @@
 // 인스타 감성 리디자인: 스토리형 Hero + 피드형 카드 그리드 + 해시태그 칩.
 // 플랜 데이터에 커버 이미지가 없어 실사 대신 accent 그라데이션 + 이모지를
 // '감성 그래픽'으로 사용한다. (추후 plan.cover_image 추가 시 PlanVisual 교체만 하면 됨)
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBiblePlans, useTodayReadings } from '../../../hooks/useBiblePlan'
 import type { PlanSummary, TodayReading } from '../../../types/biblePlan'
@@ -22,7 +22,8 @@ import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import PersonalPlanSheet from './components/PersonalPlanSheet'
 import './plan-hero.css'
-import { isPlanHeroWarm, warmPlanHero } from './heroPrefetch'
+import { useThemeArt } from '../../../hooks/useThemeArt'
+import { PLAN_HERO, ROOMS_HERO, warmPair } from '../../../utils/themeAssets'
 import { showToast } from '../../../utils/toast'
 
 const PlanList = () => {
@@ -39,26 +40,14 @@ const PlanList = () => {
   const [codeOpen, setCodeOpen] = useState(false)
   const [codeValue, setCodeValue] = useState('')
 
-  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(heroPrefetch.ts 참고).
+  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(themeAssets.ts 참고).
   // 하단 도크·레일이 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인한다.
-  const [artReady, setArtReady] = useState(isPlanHeroWarm)
-  useEffect(() => {
-    if (artReady) return
-    let alive = true
-    void warmPlanHero().then(() => {
-      if (alive) setArtReady(true)
-    })
-    return () => {
-      alive = false
-    }
-  }, [artReady])
+  const artReady = useThemeArt(PLAN_HERO)
 
   // /rooms 히어로 삽화도 CSS 배경이라 화면이 그려진 뒤에야 요청이 나간다.
   // 여기가 /rooms 로 들어가는 유일한 길목이므로, 버튼에 손이 닿는 순간 미리 데운다.
   const warmRooms = () => {
-    void import('../../Rooms/heroPrefetch')
-      .then((m) => m.warmRoomsHero())
-      .catch(() => undefined)
+    void warmPair(ROOMS_HERO)
   }
 
   // 로딩 중엔 매 렌더 새 빈 배열이 되어 아래 useMemo 들이 무력화된다 — 참조를 고정

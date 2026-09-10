@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { VISIT_HERO } from '../../utils/themeAssets'
 import { EditableText } from '../../components/AboutEditor'
 import { showToast } from '../../utils/toast'
 import { getSundayServices, getWeekdayServices } from '../../api/worship'
@@ -34,10 +36,7 @@ const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
 /** 히어로 교회 사진 — public/images/visit/church-{day,night}.webp (RGBA 1600x800, scripts/build_visit_hero.py).
  *  교회만 담긴 투명 배경 레이어: 왼쪽 동 벽에서 알파가 0→1 로 올라 배경(CSS)에서 스며 나온다.
  *  라이트=낮, 다크=밤. 비우면 /about 사진을 쓴다 */
-const VISIT_HERO_IMAGES = {
-  light: '/images/visit/church-day.webp',
-  dark: '/images/visit/church-night.webp',
-} as const
+const VISIT_HERO_IMAGES = VISIT_HERO
 
 const Visit = () => {
   const { t } = useLanguage()
@@ -48,16 +47,7 @@ const Visit = () => {
   const heroImage = VISIT_HERO_IMAGES[theme] || heroBackgroundUrl
 
   // 반대 테마 사진을 한가할 때 미리 받아 둔다 — 토글 크로스페이드 순간에 빈 화면이 끼지 않도록
-  useEffect(() => {
-    const other = VISIT_HERO_IMAGES[theme === 'dark' ? 'light' : 'dark']
-    const warm = () => {
-      const img = new Image()
-      img.src = other
-    }
-    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number }
-    if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(warm)
-    else setTimeout(warm, 1500)
-  }, [theme])
+  useThemeArt(VISIT_HERO)
   const isAdminUser = can('content:manage')
 
   const [services, setServices] = useState<WorshipService[]>([])

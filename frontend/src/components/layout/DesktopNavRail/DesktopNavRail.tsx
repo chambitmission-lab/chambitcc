@@ -6,6 +6,7 @@ import { ImageIcon, PrayIcon, ThanksHandIcon } from '../../../pages/Home/compone
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { useTheme } from '../../../contexts/ThemeContext'
+import { prewarmThemeToggle } from '../../../utils/themeAssets'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
 
@@ -464,6 +465,8 @@ const DesktopNavRail = () => {
             라벨이 들어갈 자리가 있는 xl 폭에서는 글자를 함께 보여준다 */}
         <button
           onClick={toggleTheme}
+          onPointerEnter={prewarmThemeToggle}
+          onFocus={prewarmThemeToggle}
           aria-label={t('themeToggleAria')}
           className="group relative w-11 h-11 xl:w-auto xl:px-3 xl:gap-2 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
         >

@@ -28,11 +28,8 @@ import {
   SproutIcon,
   UsersIcon,
 } from './icons'
-import { getNaturalSeason, type NaturalSeason } from '../../utils/naturalSeason'
-import heroSpringDay from '../../assets/hero/spring-afternoon.webp'
-import heroSummerDay from '../../assets/hero/afternoon.webp'
-import heroAutumnDay from '../../assets/hero/autumn-afternoon.webp'
-import heroWinterDay from '../../assets/hero/winter-afternoon.webp'
+import { getNaturalSeason } from '../../utils/naturalSeason'
+import { GREETING_HERO_DAY_BY_SEASON } from '../../utils/themeAssets'
 import './styles/index.css'
 import { can } from '../../utils/access'
 
@@ -56,13 +53,9 @@ function SignatureLine({ text, name }: { text: string; name: string }) {
 
 /* 히어로 배경 — 라이트 테마용 계절 낮 사진(홈 히어로와 같은 자산).
  * 다크 테마는 계절 무관 겨울 밤 은하수 고정이라 theme.css 가 직접 url 을 갖는다.
- * CSS 변수로만 참조되므로 라이트에서 실제 다운로드는 현재 계절 1장뿐이다. */
-const HERO_DAY_BY_SEASON: Record<NaturalSeason, string> = {
-  spring: heroSpringDay,
-  summer: heroSummerDay,
-  autumn: heroAutumnDay,
-  winter: heroWinterDay,
-}
+ * CSS 변수로만 참조되므로 라이트에서 실제 다운로드는 현재 계절 1장뿐이다.
+ * 파일 매핑은 themeAssets.ts(테마 토글 선요청과 같은 출처). */
+const HERO_DAY_BY_SEASON = GREETING_HERO_DAY_BY_SEASON
 
 const Greeting = () => {
   const navigate = useNavigate()

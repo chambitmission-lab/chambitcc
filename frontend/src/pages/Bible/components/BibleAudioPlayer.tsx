@@ -14,6 +14,8 @@ import {
 } from '../data/audioSettings'
 import AudioSettingsMenu from './AudioSettingsMenu'
 import { lazyModal } from '../../../utils/lazyModal'
+import { useThemeArt } from '../../../hooks/useThemeArt'
+import { AUDIO_RIDGE } from '../../../utils/themeAssets'
 // 열 때만 받는 오버레이·시트 — 읽기 화면 청크에서 분리
 const AudioSleepSheet = lazyModal(() => import('./AudioSleepSheet'))
 const CinemaReading = lazyModal(() => import('./CinemaReading'))
@@ -77,6 +79,9 @@ const formatTime = (sec: number): string => {
  * 재사용해야 허용되기 때문 — key 리마운트로 요소를 새로 만들면 iOS에서 막힌다.
  */
 const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter, totalChapters, bookName }: BibleAudioPlayerProps) => {
+  // 능선 띠는 CSS 배경(audio-player.css)이라 테마 토글 순간 반대 테마 파일을 새로 받는다 —
+  // 플레이어가 떠 있는 동안 등록해 두면 토글 직전 선요청이 챙긴다(themeAssets.ts)
+  useThemeArt(AUDIO_RIDGE)
   const audioRef = useRef<HTMLAudioElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지

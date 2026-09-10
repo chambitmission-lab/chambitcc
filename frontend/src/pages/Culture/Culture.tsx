@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { CULTURE_HERO } from '../../utils/themeAssets'
 import DatePicker from '../../components/common/DatePicker'
 import { showToast } from '../../utils/toast'
 import {
@@ -274,21 +276,8 @@ const Culture = () => {
 
   // 브라우저는 지금 매칭되는 삽화 한 장만 받는다(.culture-hero / .dark .culture-hero).
   // 테마를 토글하는 순간 반대 테마 파일을 맨땅에서 받기 시작해 밴드가 빈 채로 남으므로,
-  // 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다 (TimeCapsuleCard 와 같은 이유)
-  useEffect(() => {
-    const dark = document.documentElement.classList.contains('dark')
-    const warm = () => {
-      const img = new Image()
-      img.decoding = 'async'
-      img.src = `/images/culture/hero-${dark ? 'light' : 'dark'}.webp`
-    }
-    if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(warm, { timeout: 5000 })
-      return () => window.cancelIdleCallback(id)
-    }
-    const id = window.setTimeout(warm, 2500)
-    return () => window.clearTimeout(id)
-  }, [])
+  // 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다 (themeAssets.ts)
+  useThemeArt(CULTURE_HERO)
 
   useEffect(() => {
     const load = async () => {

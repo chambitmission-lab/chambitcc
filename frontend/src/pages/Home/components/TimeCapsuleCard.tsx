@@ -9,6 +9,9 @@ import { useNavigate } from 'react-router-dom'
 import { useMyCapsules } from '../../../hooks/useTimeCapsule'
 import { isAuthenticated } from '../../../utils/auth'
 import { daysUntil } from '../../Capsule/capsuleDates'
+import { useThemeArt } from '../../../hooks/useThemeArt'
+import { CAPSULE_HERO, CAPSULE_HOME_BANNER, warmPair } from '../../../utils/themeAssets'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
 import './TimeCapsuleCard.css'
 
 const TimeCapsuleCard = () => {
@@ -17,26 +20,13 @@ const TimeCapsuleCard = () => {
 
   // 브라우저는 지금 매칭되는 한 장만 받는다(.tc-card__art / html:not(.dark) .tc-card__art).
   // 테마를 토글하는 순간 반대 테마 파일을 맨땅에서 받기 시작해 카드가 그라데이션만 남으므로,
-  // 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다 (plans/heroPrefetch.ts 와 같은 이유)
+  // 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다 (themeAssets.ts)
+  useThemeArt(CAPSULE_HOME_BANNER)
+  // 이 카드가 /capsule 로 들어가는 길목이다. 히어로 삽화도 CSS 배경이라 화면이 그려진 뒤에야
+  // 요청이 나가므로 첫 화면이 끝난 유휴 시간에 미리 데운다 — 절약 모드·2G 에선 받지 않는다
   useEffect(() => {
-    const dark = document.documentElement.classList.contains('dark')
-    const other = `/images/capsule/home-banner-${dark ? 'light' : 'dark'}.webp`
-    const warm = () => {
-      const img = new Image()
-      img.decoding = 'async'
-      img.src = other
-      // 이 카드가 /capsule 로 들어가는 길목이다. 히어로 삽화도 CSS 배경이라
-      // 화면이 그려진 뒤에야 요청이 나가므로 여기서 미리 데운다(Capsule/heroPrefetch.ts).
-      void import('../../Capsule/heroPrefetch')
-        .then((m) => m.warmCapsuleHero())
-        .catch(() => undefined)
-    }
-    if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(warm, { timeout: 5000 })
-      return () => window.cancelIdleCallback(id)
-    }
-    const id = window.setTimeout(warm, 2500)
-    return () => window.clearTimeout(id)
+    if (preloadBudget() === 'none') return
+    return scheduleAfterFirstScreen(() => void warmPair(CAPSULE_HERO))
   }, [])
 
   // 내가 열 수 있는데 아직 안 연 캡슐 (보낸 사람 재열람은 제외).

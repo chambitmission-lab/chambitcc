@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import { tokenStore } from './tokenStore'
 import { preloadBudget, scheduleAfterFirstScreen } from './idlePreload'
+import { warmRouteThemeAssets } from './themeAssets'
 
 type RouteLoader = () => Promise<{ default: ComponentType }>
 
@@ -41,12 +42,10 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
 // 청크와 함께 데워 둘 페이지 데이터. 청크만 먼저 받으면 진입 시 껍데기(히어로)는 즉시
 // 뜨는데 본문은 API 왕복만큼 늦게 따라와 "두 박자"로 그려진다 — 같은 타이밍에 응답과
 // 첫 화면 이미지를 미리 받아 둔다. 청크가 처음 로드될 때 한 번만 호출된다.
+// 테마별 히어로 삽화(CSS 배경)는 여기 적지 않는다 — themeAssets.ts 의 라우트 매니페스트가
+// 청크 로드 직후 일괄로 데운다(현재 테마 즉시, 반대 테마는 유휴 시간에).
 const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   '/greeting': () => import('../pages/Greeting/prefetch').then((m) => m.prefetch()),
-  // 설문 히어로 삽화는 CSS 배경이라 엘리먼트가 렌더된 뒤에야 요청이 나간다 — 청크와 같이 데운다
-  '/survey': () => import('../pages/Survey/heroPrefetch').then((m) => m.warmSurveyHero()),
-  // 칭호 히어로 배너도 CSS 배경 — 테마 토글 시 반대 테마 배너가 늦게 뜨는 것까지 같이 막는다
-  '/garden': () => import('../pages/Garden/heroPrefetch').then((m) => m.warmGardenHero()),
 }
 
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다
@@ -108,6 +107,9 @@ export const preloadRoute = (path: string): Promise<void> => {
       loaded.add(resolved.key)
       // 데이터 선요청 실패는 청크 프리로드 성공과 무관하다 — 진입 시 훅이 다시 받는다
       void routeDataPrefetchers[resolved.key]?.().catch(() => undefined)
+      // 히어로 삽화는 CSS 배경이라 청크를 받아 둬도 화면이 그려진 뒤에야 요청이 나간다 —
+      // 청크와 같은 시점에 현재 테마 파일을 데운다. 3G 이하 예산에선 청크만 받는다.
+      if (preloadBudget() === 'full') void warmRouteThemeAssets(path).catch(() => undefined)
     })
     .catch(() => {
       inflight.delete(resolved.key)

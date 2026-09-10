@@ -11,7 +11,8 @@ import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import CapsuleSlideshow from './CapsuleSlideshow'
 import CapsuleOpenRail from './CapsuleOpenRail'
-import { warmCapsuleLetterArt, warmCapsuleSealedArt } from './heroPrefetch'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { CAPSULE_LETTER, CAPSULE_SEALED } from '../../utils/themeAssets'
 import { daysSealed, daysUntil, formatKoreanDate, sealProgress } from './capsuleDates'
 import {
   CalendarGlyph,
@@ -606,16 +607,11 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
     }
   }, [capsule, phase])
 
-  // 봉투를 뜯기 전에 편지 하늘 삽화를 데워 둔다 — 개봉 연출이 끝나는 순간 이미 자리에 있게
-  useEffect(() => {
-    if (capsule?.openable) void warmCapsuleLetterArt()
-  }, [capsule?.openable])
-
-  // 봉인 대기 화면의 금고 삽화는 CSS 배경이라 현재 테마만 받는다 —
-  // 반대 테마도 미리 데워 첫 테마 토글에서 배경이 늦게 바뀌지 않게 한다
-  useEffect(() => {
-    if (capsule && !capsule.openable) void warmCapsuleSealedArt()
-  }, [capsule])
+  // 봉투를 뜯기 전에 편지 하늘 삽화를 데워 둔다 — 개봉 연출이 끝나는 순간 이미 자리에 있게.
+  // 봉인 대기 화면의 금고 삽화도 CSS 배경이라 현재 테마만 받는다 — 반대 테마까지 미리 데워
+  // 첫 테마 토글에서 배경이 늦게 바뀌지 않게 한다(themeAssets.ts).
+  useThemeArt(CAPSULE_LETTER, !!capsule?.openable)
+  useThemeArt(CAPSULE_SEALED, !!capsule && !capsule.openable)
 
   // 하늘 위 헤더 ↔ 크림 유리 헤더 전환 (편지를 읽는 동안에만)
   useEffect(() => {

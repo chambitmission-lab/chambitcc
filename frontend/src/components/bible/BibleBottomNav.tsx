@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
+import { PLAN_HERO, warmPair } from '../../utils/themeAssets'
 
 /** 'alarm'(구절 알람)·'meditation'(오늘의 묵상)은 목적지로만 존재한다 —
     도크/레일 항목에는 없어 활성 표시가 붙지 않는다 */
@@ -45,10 +46,8 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       import('../../pages/Bible/Plans/PlanList')
       import('../../pages/Bible/Genealogy/Genealogy')
       // 플랜 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
-      // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (heroPrefetch.ts)
-      import('../../pages/Bible/Plans/heroPrefetch')
-        .then((m) => m.warmPlanHero())
-        .catch(() => undefined)
+      // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (themeAssets.ts)
+      void warmPair(PLAN_HERO)
     }
     // 첫 화면(장 본문·API)이 끝난 뒤 유휴 시간에 — 절약 모드·2G 에선 받지 않는다
     if (preloadBudget() === 'none') return

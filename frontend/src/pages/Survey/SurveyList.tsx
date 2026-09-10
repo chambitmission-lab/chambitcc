@@ -1,11 +1,12 @@
 // 설문 목록 — 진행 중인 설문과, 이미 끝난 지난 설문
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSurveys } from '../../hooks/useSurvey'
 import { isAuthenticated } from '../../utils/auth'
 import { preloadRoute } from '../../utils/routePreload'
 import type { SurveySummary } from '../../types/survey'
-import { isSurveyHeroWarm, warmSurveyHero } from './heroPrefetch'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { SURVEY_HERO } from '../../utils/themeAssets'
 import { formatDate, isAcceptingResponses, surveyActionLabel } from './surveyShared'
 import {
   CenterNote,
@@ -82,19 +83,9 @@ const SurveyList = () => {
   const loggedIn = isAuthenticated()
   const { data, isLoading } = useSurveys(loggedIn)
 
-  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(heroPrefetch.ts 참고).
+  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(themeAssets.ts 참고).
   // 메뉴에서 청크를 미리 받았으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인.
-  const [artReady, setArtReady] = useState(isSurveyHeroWarm)
-  useEffect(() => {
-    if (artReady) return
-    let alive = true
-    void warmSurveyHero().then(() => {
-      if (alive) setArtReady(true)
-    })
-    return () => {
-      alive = false
-    }
-  }, [artReady])
+  const artReady = useThemeArt(SURVEY_HERO)
 
   const { ongoing, past, pending, answered, closingSoon } = useMemo(() => {
     const list = data ?? []

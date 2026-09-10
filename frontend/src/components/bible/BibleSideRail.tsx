@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { BibleNavKey } from './BibleBottomNav'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
+import { PLAN_HERO, alarmArtPair, warmPair } from '../../utils/themeAssets'
 import './BibleSideRail.css'
 
 interface BibleSideRailProps {
@@ -43,23 +44,19 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
 
   // 레일 목적지 lazy 청크 prefetch — 하단 도크(BibleBottomNav)와 동일 패턴.
   // 플랜 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
-  // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (heroPrefetch.ts)
+  // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (themeAssets.ts)
   useEffect(() => {
     const prefetch = () => {
       import('../../pages/Bible/BibleStudy')
       import('../../pages/Bible/Plans/PlanList')
       import('../../pages/Bible/Genealogy/Genealogy')
       import('../../pages/Bible/Atlas/AtlasMap')
-      import('../../pages/Bible/Plans/heroPrefetch')
-        .then((m) => m.warmPlanHero())
-        .catch(() => undefined)
+      void warmPair(PLAN_HERO)
       // 알람 히어로 삽화도 같은 사정이다. 폭에 따라 쓰는 에셋이 달라서(원본 장면 /
-      // 모바일 띠) warmAlarmHero 가 화면 폭을 보고 스스로 고른다.
+      // 모바일 띠) alarmArtPair 가 화면 폭을 보고 고른다.
       // 모바일 하단 도크에는 넣지 않았다 — 알람은 도크 목적지가 아니라, 방문하지도
       // 않을 사용자에게 미리 받게 할 이유가 없다(페이지가 직접 데운다).
-      import('../../pages/Bible/VerseAlarm/heroPrefetch')
-        .then((m) => m.warmAlarmHero())
-        .catch(() => undefined)
+      void warmPair(alarmArtPair())
     }
     // 첫 화면(장 본문·API)이 끝난 뒤 유휴 시간에 — 절약 모드·2G 에선 받지 않는다
     if (preloadBudget() === 'none') return

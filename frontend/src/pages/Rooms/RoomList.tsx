@@ -1,6 +1,6 @@
 // 공동 묵상방 목록 (/rooms)
 // 내가 참여 중인 방 + 새 방 만들기 (본문 범위를 기간에 절 단위 자동 분배)
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useJoinRoom, useMyRooms } from '../../hooks/useMeditationRoom'
 import type { RoomSummary } from '../../types/meditationRoom'
@@ -9,7 +9,8 @@ import { showToast } from '../../utils/toast'
 import { CheckIcon, FlameIcon, PartyIcon, RoomGlyph } from './RoomIcons'
 import { UsersIcon } from '../../components/icons/ActionIcons'
 import { ROOM_COURSES, courseRangeLabel } from './roomCourses'
-import { isRoomsHeroWarm, warmRoomsHero } from './heroPrefetch'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { ROOMS_HERO } from '../../utils/themeAssets'
 import './rooms-hero.css'
 
 // 위저드는 만들 때만 필요 — 목록 진입 번들에서 뺀다
@@ -25,19 +26,9 @@ const RoomList = () => {
   const [joinCode, setJoinCode] = useState('')
   const joinRoom = useJoinRoom()
 
-  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(heroPrefetch.ts 참고).
+  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(themeAssets.ts 참고).
   // 플랜 화면의 "공동 묵상방" 버튼이 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인.
-  const [artReady, setArtReady] = useState(isRoomsHeroWarm)
-  useEffect(() => {
-    if (artReady) return
-    let alive = true
-    void warmRoomsHero().then(() => {
-      if (alive) setArtReady(true)
-    })
-    return () => {
-      alive = false
-    }
-  }, [artReady])
+  const artReady = useThemeArt(ROOMS_HERO)
 
   const handleJoinByCode = async () => {
     const code = joinCode.trim().toUpperCase()

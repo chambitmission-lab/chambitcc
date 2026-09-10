@@ -3073,7 +3073,7 @@
   background-position: bottom center;
   background-repeat: no-repeat;
   /* 도착 전에는 감춰 뒀다 페이드인 — CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다
-     (heroPrefetch.ts 참고). 늦게 도착하면 카드 위에 "툭" 나타난다. */
+     (utils/themeAssets.ts 참고). 늦게 도착하면 카드 위에 "툭" 나타난다. */
   opacity: 0;
   transition: opacity 320ms ease-out;
 }

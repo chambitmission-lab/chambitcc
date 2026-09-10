@@ -1,14 +1,15 @@
 // 타임캡슐함 (/capsule)
 // 봉인 중인 캡슐(D-day)과 도착한 캡슐을 보여준다. 내용은 개봉 전까지 서버가 내려주지 않는다.
 // 목록 자체(검색·월별 그룹·접기)는 CapsuleMailbox 가 맡는다 — 여기는 화면 껍데기.
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMyCapsules } from '../../hooks/useTimeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import CapsuleMailbox from './CapsuleMailbox'
 import CapsuleRail from './CapsuleRail'
 import './capsule.css'
-import { isCapsuleHeroWarm, warmCapsuleHero } from './heroPrefetch'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { CAPSULE_HERO } from '../../utils/themeAssets'
 
 const CapsuleList = () => {
   const navigate = useNavigate()
@@ -24,19 +25,9 @@ const CapsuleList = () => {
     }
   }, [navigate])
 
-  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(heroPrefetch.ts 참고).
+  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(themeAssets.ts 참고).
   // 홈 배너가 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인한다.
-  const [artReady, setArtReady] = useState(isCapsuleHeroWarm)
-  useEffect(() => {
-    if (artReady) return
-    let alive = true
-    void warmCapsuleHero().then(() => {
-      if (alive) setArtReady(true)
-    })
-    return () => {
-      alive = false
-    }
-  }, [artReady])
+  const artReady = useThemeArt(CAPSULE_HERO)
 
   const mailbox = data ?? { sealed: [], arrived: [], arrivedTotal: 0, unreadTotal: 0 }
   const isEmpty = !isLoading && mailbox.sealed.length === 0 && mailbox.arrived.length === 0
