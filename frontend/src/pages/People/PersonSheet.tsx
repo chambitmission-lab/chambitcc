@@ -184,7 +184,9 @@ const PersonSheet = ({ person, onClose }: PersonSheetProps) => {
           {isAdminUser && (
             <button
               type="button"
-              onClick={() => navigate('/admin/people')}
+              // 목록만 열어 주면 관리자가 그 사람을 다시 찾아야 한다 —
+              // 수정 폼까지 바로 열리도록 대상 id를 들려 보낸다
+              onClick={() => navigate(`/admin/people?edit=${person.id}`)}
               className="w-full inline-flex items-center justify-center gap-1.5 h-10 rounded-xl bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[12.5px] font-bold"
             >
               <PencilSimple size={14} weight="bold" />

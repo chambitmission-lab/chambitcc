@@ -4,7 +4,7 @@
 // 같은 분류 안에서 ↑↓ 로 순서를 잡는다(공개 화면의 표시 순서가 그대로 이 순서다).
 // 담임·원로목사는 여기 없다 — /admin/pastors 가 단일 출처.
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import {
@@ -32,6 +32,7 @@ type CategoryFilter = 'all' | PersonCategory
 
 const PeopleManagement = () => {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const admin = can('admin:access')
 
   const { data: people = [], isPending, isError, refetch } = useAllPeople(admin)
@@ -55,6 +56,23 @@ const PeopleManagement = () => {
   useEffect(() => {
     if (isError) showToast('섬기는 사람들 목록을 불러오지 못했습니다', 'error')
   }, [isError])
+
+  // /people 상세 시트의 '인물 정보 수정' 딥링크(?edit=<id>) — 목록만 열고 끝내지 않고
+  // 그 사람의 수정 폼까지 펼쳐 준다. 목록이 도착한 뒤에야 대상을 찾을 수 있으므로
+  // people 이 채워지는 시점을 기다린다. 처리한 파라미터는 지워, 새로고침·뒤로가기로
+  // 폼이 다시 열리지 않게 한다.
+  const editParam = searchParams.get('edit')
+  useEffect(() => {
+    if (!editParam || people.length === 0) return
+    const target = people.find((person) => String(person.id) === editParam)
+    if (target) {
+      setComposer(target)
+      setExpandedId(target.id)
+    } else {
+      showToast('해당 인물을 찾을 수 없습니다', 'error')
+    }
+    setSearchParams({}, { replace: true })
+  }, [editParam, people, setSearchParams])
 
   // 서버가 이미 분류 → 순서로 정렬해 준다. 여기서는 거르기만 한다
   // (정렬을 다시 하면 ↑↓ 이동 결과와 화면이 어긋난다)
