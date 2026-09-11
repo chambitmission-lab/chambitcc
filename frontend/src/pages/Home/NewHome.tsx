@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useIsRestoring } from '@tanstack/react-query'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
@@ -34,6 +34,7 @@ import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
 import HomeQuickStrip, { HOME_CARD_IDS } from './components/HomeQuickStrip'
 import BottomNavigation from './components/BottomNavigation'
+import FeedBackToTop from './components/FeedBackToTop'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { usePrayerVisibility } from '../../hooks/usePrayerVisibility'
@@ -84,11 +85,34 @@ const NewHome = () => {
     if (prayerHook.loading) holdSecondaryRequests()
   }
   useEffect(() => releaseSecondaryRequests, [])
+
+  // "맨 위로" 알약의 "새 기도 N" 배지 기준 — 지금 피드에 실린 id 를 순서대로
+  const prayerIds = useMemo(
+    () => prayerHook.prayers.map((p) => p.id),
+    [prayerHook.prayers],
+  )
+
   const mainRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
+  // "맨 위로" 알약을 가로 가운데 맞추는 기준 — 피드 컬럼
+  const feedColumnRef = useRef<HTMLDivElement>(null)
   // 사이드 컬럼 bottom-sticky — 헤더(56px)+상단 여백에 맞춘 기존 top-[4.5rem]=72px 기준
   const sidebarStickyRef = useBottomStickyRail(72)
   const rightRailStickyRef = useBottomStickyRail(72)
+
+  // PC 사이드바 압축 모드 — lg+ 에서는 보조 카드들을 한 줄 행으로 접어
+  // 컬럼 전체가 한 화면에 들어오게 한다. 그래야 위 sticky 훅이 단순 top 고정으로
+  // 떨어져서, 피드를 아무리 내려가도 "오늘의 묵상"이 화면에 남는다.
+  // (CSS로 숨기는 대신 분기 렌더 — 압축 행은 마크업 자체가 다르다)
+  const [sideCompact, setSideCompact] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const onChange = (e: MediaQueryListEvent) => setSideCompact(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   // 우측 위젯 레일은 CSS로 숨기는 대신 조건부 마운트 — display:none이어도 React가
   // 마운트되면 레일의 쿼리(주간 통계·상황별 성구·오늘 일정)가 모바일에서도 나가므로,
@@ -367,50 +391,80 @@ const NewHome = () => {
             {/* 오늘의 묵상 카드 — 시간대별 히어로가 홈의 첫인사 역할 (위계 최상단) */}
             {/* 카드 래퍼 id 는 모바일 요약 스트립(HomeQuickStrip)의 바로가기 목적지 */}
             <div id={HOME_CARD_IDS.meditation}>
-              <DailyMeditationCard onWriteMeditation={handleComposerOpen} />
+              <DailyMeditationCard onWriteMeditation={handleComposerOpen} compact={sideCompact} />
             </div>
 
             {/* 오늘의 읽기 — 진행 중인 구독형 읽기 플랜(bible_plans) */}
             <div id={HOME_CARD_IDS.plan}>
-              <TodayPlanCard />
+              <TodayPlanCard variant={sideCompact ? 'row' : 'card'} />
             </div>
 
-            {/* 지금 함께 읽는 말씀 — 성도들이 지금 모여 있는 장(실시간) 또는 오늘 가장 많이
-                읽힌 장. 아무도 없으면 렌더하지 않는다 */}
-            <div id={HOME_CARD_IDS.live}>
-              <LiveReadingCard />
-            </div>
+            {sideCompact ? (
+              /* ── PC 압축 사이드바 ──────────────────────────────────────
+                 보조 카드 다섯을 한 장의 그룹 리스트로 접는다. 컬럼이 한 화면에
+                 들어와야 sticky 로 고정되고, 그래야 피드를 한참 내려가도 되돌아올
+                 일이 없다. 모바일은 아래 else 가지의 풀 카드 그대로다. */
+              <section className="px-4 pt-3 pb-1.5">
+                <div className="feed-card rounded-2xl overflow-hidden divide-y divide-[var(--card-border)]">
+                  <div id={HOME_CARD_IDS.live}>
+                    <LiveReadingCard variant="row" />
+                  </div>
+                  <div id={HOME_CARD_IDS.verse}>
+                    <AnnualThemeVerse variant="row" />
+                  </div>
+                  <div id={HOME_CARD_IDS.grace}>
+                    <ThanksTicker />
+                    <WeeklyPrayerBanner />
+                    <AnsweredPrayersBanner />
+                  </div>
+                  <div id={HOME_CARD_IDS.capsule}>
+                    <TimeCapsuleCard variant="row" />
+                  </div>
+                </div>
+              </section>
+            ) : (
+              <>
+                {/* 지금 함께 읽는 말씀 — 성도들이 지금 모여 있는 장(실시간) 또는 오늘 가장 많이
+                    읽힌 장. 아무도 없으면 렌더하지 않는다 */}
+                <div id={HOME_CARD_IDS.live}>
+                  <LiveReadingCard />
+                </div>
 
-            {/* 올해의 말씀 — 교회 연간 비전. 매일 바뀌는 '오늘' 영역과
-                커뮤니티(감사·기도) 영역 사이를 잇는 다리 위치 */}
-            <div id={HOME_CARD_IDS.verse}>
-              <AnnualThemeVerse />
-            </div>
+                {/* 올해의 말씀 — 교회 연간 비전. 매일 바뀌는 '오늘' 영역과
+                    커뮤니티(감사·기도) 영역 사이를 잇는 다리 위치 */}
+                <div id={HOME_CARD_IDS.verse}>
+                  <AnnualThemeVerse />
+                </div>
 
-            {/* 공동체 소식 — 감사 한 줄 + 응답의 전당을 하나의 그룹 리스트 카드로 묶어
-                "관련 항목 한 덩어리"로 스캔되게 한다 (토스식 grouped list) */}
-            <section id={HOME_CARD_IDS.grace} className="px-4 pt-3 pb-1.5">
-              <p className="px-1 mb-1.5 flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
-                {/* 올해의 말씀 장식과 같은 금색 반짝임 — 두 섹션을 은은하게 잇는다 */}
-                <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#d9a514] shrink-0" aria-hidden>
-                  <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
-                </svg>
-                함께 나누는 은혜
-              </p>
-              <div className="feed-card rounded-2xl overflow-hidden divide-y divide-[var(--card-border)]">
-                <ThanksTicker />
-                <WeeklyPrayerBanner />
-                <AnsweredPrayersBanner />
-              </div>
-            </section>
+                {/* 공동체 소식 — 감사 한 줄 + 응답의 전당을 하나의 그룹 리스트 카드로 묶어
+                    "관련 항목 한 덩어리"로 스캔되게 한다 (토스식 grouped list) */}
+                <section id={HOME_CARD_IDS.grace} className="px-4 pt-3 pb-1.5">
+                  <p className="px-1 mb-1.5 flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
+                    {/* 올해의 말씀 장식과 같은 금색 반짝임 — 두 섹션을 은은하게 잇는다 */}
+                    <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#d9a514] shrink-0" aria-hidden>
+                      <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
+                    </svg>
+                    함께 나누는 은혜
+                  </p>
+                  <div className="feed-card rounded-2xl overflow-hidden divide-y divide-[var(--card-border)]">
+                    <ThanksTicker />
+                    <WeeklyPrayerBanner />
+                    <AnsweredPrayersBanner />
+                  </div>
+                </section>
+              </>
+            )}
 
             {/* 진행 중인 설문 — 아직 참여하지 않은 성도에게만 뜬다 */}
             <SurveyBanner />
 
-            {/* 타임캡슐 — 밤하늘 봉인 편지 히어로 (내 캡슐 상태 반영 동적 문구) */}
-            <div id={HOME_CARD_IDS.capsule}>
-              <TimeCapsuleCard />
-            </div>
+            {!sideCompact && (
+              /* 타임캡슐 — 밤하늘 봉인 편지 히어로 (내 캡슐 상태 반영 동적 문구).
+                 PC 에선 위 그룹 리스트의 한 줄로 들어간다 */
+              <div id={HOME_CARD_IDS.capsule}>
+                <TimeCapsuleCard />
+              </div>
+            )}
 
             {/* 오늘의 감사 (Small Thanks Thread) — 임시 비활성화 */}
             {/* <ThanksThread /> */}
@@ -431,7 +485,7 @@ const NewHome = () => {
             )}{/* /우측 레일 */}
 
             {/* 피드 컬럼 — 데스크톱에선 접속 즉시 기도 피드가 보인다 */}
-            <div className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
+            <div ref={feedColumnRef} className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
 
             {/* PC 전용 인라인 작성바 — 키보드가 있는 환경에선 작성 진입을 피드 최상단에 */}
             <div className="hidden lg:block px-4 pt-1">
@@ -586,6 +640,15 @@ const NewHome = () => {
             <GlobalThanksComposer onClose={() => setShowThanksComposer(false)} />
           </Suspense>
         )}
+
+        {/* PC 전용 "맨 위로" 알약 — 무한 스크롤로 내려간 뒤 상단으로 돌아오는 유일한 장치.
+            모바일은 하단 네비의 홈 탭(onScrollToTop)이 같은 역할을 한다 */}
+        <FeedBackToTop
+          feedColumnRef={feedColumnRef}
+          prayerIds={prayerIds}
+          countNew={sort === 'latest'}
+          onScrollToTop={handleScrollToTop}
+        />
 
         {/* Bottom Navigation - Fixed at bottom, centered with max-w-md (lg+에선 좌측 레일이 대신한다) */}
         <div className="bottom-dock-anchor fixed bottom-0 left-0 right-0 z-[100] pointer-events-none lg:hidden">

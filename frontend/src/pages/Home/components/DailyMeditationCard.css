@@ -1010,3 +1010,43 @@
 .meditation-deepen-link:hover .material-icons-round {
   transform: translateX(3px);
 }
+
+/* ══════════════════════════════════════════════════════════
+   PC 사이드바 압축 모드 (.is-compact)
+   ──────────────────────────────────────────────────────────
+   데스크톱 사이드 컬럼이 뷰포트보다 길면 sticky 로 잡히지 않아, 피드를 내려간 뒤
+   이 카드를 다시 보려면 컬럼 높이만큼 역스크롤해야 했다. lg+ 에서는 히어로를 낮추고
+   보조 블록(절기 리본·본문 메타·묵상 질문)을 접어 컬럼이 한 화면에 들어오게 한다.
+   모바일에는 이 클래스가 붙지 않으므로 기존 카드 그대로다.
+   되돌리려면 NewHome 의 compact 전달만 지우면 된다.
+   ══════════════════════════════════════════════════════════ */
+.meditation-section.is-compact .meditation-hero {
+  min-height: 150px;
+}
+
+.meditation-section.is-compact .meditation-body {
+  padding: 16px 16px 16px;
+}
+
+/* 구절은 세 줄까지 — 나머지는 묵상 상세에서 이어 읽는다 */
+.meditation-section.is-compact .meditation-verse-text {
+  font-size: 16.5px;
+  line-height: 1.72;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 접는 보조 블록 — 정보는 묵상 화면에 그대로 있다 */
+.meditation-section.is-compact .meditation-ribbon,
+.meditation-section.is-compact .meditation-question-block,
+.meditation-section.is-compact .meditation-passage-meta,
+.meditation-section.is-compact .meditation-hero-whisper,
+.meditation-section.is-compact .meditation-deepen-link {
+  display: none;
+}
+
+.meditation-section.is-compact .meditation-actions {
+  margin-top: 14px;
+}

@@ -13,7 +13,10 @@ import './TodayPlanCard.css'
 // 완만하게 굽이치는 오솔길 — 끝은 별(종착지) 앞에서 멈춘다
 const TRAIL_D = 'M4 32 C 60 14, 118 42, 178 24 C 232 9, 286 30, 322 15'
 
-const TodayPlanCard = () => {
+/** card = 모바일 풀 카드(기본), row = PC 사이드바 압축 — 한 줄 + 진행바 */
+type Variant = 'card' | 'row'
+
+const TodayPlanCard = ({ variant = 'card' }: { variant?: Variant } = {}) => {
   const navigate = useNavigate()
   const authed = isAuthenticated()
   const { data } = useTodayReadings(authed)
@@ -51,6 +54,37 @@ const TodayPlanCard = () => {
     today.completed_days > 0
       ? `총 ${today.total_days}일 여정 · ${today.completed_days}일 함께 걸었어요`
       : `총 ${today.total_days}일의 여정, 오늘 첫 걸음이에요`
+
+  if (variant === 'row') {
+    return (
+      <section className="px-4 pt-3">
+        <button
+          type="button"
+          onClick={() => navigate(readTarget)}
+          aria-label={readLabel}
+          className="w-full feed-card rounded-2xl px-4 py-3.5 text-left hover:border-[var(--brand-glow)] transition-colors duration-150"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-[13.5px] font-bold text-ink-strong shrink-0">
+              {today.done_today ? '다음 읽기' : '오늘의 읽기'}
+            </span>
+            <span className="text-[12px] text-[var(--text-muted)] truncate">
+              {titleDupsRefs ? refs || today.plan_title : today.day_title}
+            </span>
+            <span className="ml-auto shrink-0 text-[12px] font-bold text-brand tabular-nums">
+              {percent}%
+            </span>
+          </div>
+          <div className="mt-2.5 h-2 rounded-full bg-[var(--surface-inset)] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[var(--brand)]"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+        </button>
+      </section>
+    )
+  }
 
   return (
     <section className="px-4 pt-3">

@@ -12,16 +12,22 @@ import { daysUntil } from '../../Capsule/capsuleDates'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { CAPSULE_HERO, CAPSULE_HOME_BANNER, warmPair } from '../../../utils/themeAssets'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
+import { EnvelopeSimple } from '../../../components/icons/phosphor'
+import SideDigestRow from './SideDigestRow'
 import './TimeCapsuleCard.css'
 
-const TimeCapsuleCard = () => {
+/** card = 모바일 풀 카드(기본), row = PC 사이드바 압축 행 */
+type Variant = 'card' | 'row'
+
+const TimeCapsuleCard = ({ variant = 'card' }: { variant?: Variant } = {}) => {
   const navigate = useNavigate()
   const { data } = useMyCapsules(isAuthenticated())
 
   // 브라우저는 지금 매칭되는 한 장만 받는다(.tc-card__art / html:not(.dark) .tc-card__art).
   // 테마를 토글하는 순간 반대 테마 파일을 맨땅에서 받기 시작해 카드가 그라데이션만 남으므로,
   // 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다 (themeAssets.ts)
-  useThemeArt(CAPSULE_HOME_BANNER)
+  // 압축 행에는 밤하늘 배너가 없으므로 이미지도 받지 않는다
+  useThemeArt(CAPSULE_HOME_BANNER, variant === 'card')
   // 이 카드가 /capsule 로 들어가는 길목이다. 히어로 삽화도 CSS 배경이라 화면이 그려진 뒤에야
   // 요청이 나가므로 첫 화면이 끝난 유휴 시간에 미리 데운다 — 절약 모드·2G 에선 받지 않는다
   useEffect(() => {
@@ -57,6 +63,25 @@ const TimeCapsuleCard = () => {
     )
   } else {
     status = <span className="tc-card__status">지금 이 마음을 봉인해보세요</span>
+  }
+
+  if (variant === 'row') {
+    const dday = nextSealed ? `D-${daysUntil(nextSealed.open_at)}` : null
+    return (
+      <SideDigestRow
+        icon={<EnvelopeSimple size={16} weight="bold" />}
+        label="타임캡슐"
+        sub={
+          unopened > 0
+            ? '도착한 편지가 기다려요'
+            : nextSealed
+              ? '봉인한 편지가 곧 열려요'
+              : '지금 이 마음을 봉인해보세요'
+        }
+        value={unopened > 0 ? `${unopened}개` : dday}
+        onClick={() => navigate('/capsule')}
+      />
+    )
   }
 
   return (
