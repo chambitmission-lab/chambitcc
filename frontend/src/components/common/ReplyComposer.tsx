@@ -3,10 +3,10 @@
 // 복잡하게 만든다는 피드백. 탭하면 전체 폼(텍스트영역·이모티콘·익명 체크)이 열린다.
 import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useProfileDetail } from '../../hooks/useProfile'
+import { useMyIdentity } from '../../hooks/useProfile'
 import EmojiPickerPanel from './EmojiPickerPanel'
 import { showToast } from '../../utils/toast'
-import { tokenStore, sessionStore } from '../../utils/tokenStore'
+import { tokenStore } from '../../utils/tokenStore'
 
 interface ReplyComposerProps {
   onSubmit: (content: string, displayName: string) => void
@@ -50,21 +50,14 @@ const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyCompos
     }
   }
 
-  // 프로필 사진 — 캐시된 프로필 상세에서 (미등록/비로그인 시 null → 이니셜 아바타)
-  const { data: profileDetail } = useProfileDetail()
-  const avatarUrl = profileDetail?.stats.avatar_url ?? null
+  // 내 사진·이름 — 헤더 아바타가 이미 캐시해 둔 가벼운 /profile/stats(useMyIdentity).
+  // 예전엔 useProfileDetail(통계+기도·댓글 목록 집계, 15초 stale)을 써서 기도 상세 모달을
+  // 열 때마다 300~400ms 짜리 무거운 요청이 나갔다. 이름은 full_name 우선(실제 노출 기준).
+  const { avatarUrl, displayName: myName } = useMyIdentity()
 
-  // 로그인한 사용자 이름 가져오기
-  // 로그인 응답에 full_name이 없으면 localStorage에 이름이 저장되지 않으므로
-  // 프로필 상세(stats.full_name)를 최우선으로 사용한다 — 실제 노출도 이름 기준
   const getUserName = (): string => {
     if (!isLoggedIn || isAnonymous) return '익명'
-
-    const fullName =
-      profileDetail?.stats.full_name || sessionStore.get('fullName')
-    const username = sessionStore.get('username')
-
-    return fullName || username || '익명'
+    return myName || '익명'
   }
 
   const displayName = getUserName()

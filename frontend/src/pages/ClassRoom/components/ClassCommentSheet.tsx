@@ -9,9 +9,8 @@ import {
   useDeleteClassPostComment,
   useUpdateClassPostComment,
 } from '../../../hooks/useClassRoom'
-import { sessionStore } from '../../../utils/tokenStore'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import { useProfileDetail } from '../../../hooks/useProfile'
+import { useMyIdentity } from '../../../hooks/useProfile'
 import type { Reply } from '../../../types/prayer'
 import type { ClassPost } from '../../../types/classRoom'
 import { timeAgo } from '../classUi'
@@ -30,13 +29,10 @@ const ClassCommentSheet = ({ post, isTeacher, onClose }: ClassCommentSheetProps)
 
   useModalBackButton(onClose)
 
-  const { data: profileDetail } = useProfileDetail()
-  const avatarUrl = profileDetail?.stats.avatar_url ?? null
-  const displayName =
-    profileDetail?.stats.full_name ||
-    sessionStore.get('fullName') ||
-    sessionStore.get('username') ||
-    '성도'
+  // 내 사진·이름 — 헤더가 캐시한 가벼운 /profile/stats(useMyIdentity). 시트를 열 때마다
+  // 무거운 프로필 상세(통계+목록 집계)를 다시 부르지 않는다
+  const { avatarUrl, displayName: myName } = useMyIdentity()
+  const displayName = myName || '성도'
 
   const { data: comments, isLoading } = useClassPostComments(post.class_id, post.id, true)
   const createComment = useCreateClassPostComment(post.class_id, post.id)

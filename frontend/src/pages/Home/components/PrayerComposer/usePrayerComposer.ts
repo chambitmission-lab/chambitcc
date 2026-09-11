@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react'
 import { usePrayersInfinite } from '../../../../hooks/usePrayersQuery'
-import { useProfileDetail } from '../../../../hooks/useProfile'
+import { useMyIdentity } from '../../../../hooks/useProfile'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { validation } from '../../../../utils/validation'
 import type { Prayer, PrayerEmotion, RecommendedVerses, SortType } from '../../../../types/prayer'
-import { tokenStore, sessionStore } from '../../../../utils/tokenStore'
+import { tokenStore } from '../../../../utils/tokenStore'
 import { prayerToastFeedback } from '../../../../components/prayer/prayerFeedback'
 
 interface UsePrayerComposerProps {
@@ -44,20 +44,13 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
 
   const isLoggedIn = !!tokenStore.getAccess()
 
-  // 프로필 사진 — 캐시된 프로필 상세에서 가져온다 (미등록/비로그인 시 null → 이니셜 아바타)
-  const { data: profileDetail } = useProfileDetail()
-  const avatarUrl = profileDetail?.stats.avatar_url ?? null
+  // 내 사진·이름 — 헤더가 캐시한 가벼운 /profile/stats(useMyIdentity). 작성 모달을 열 때마다
+  // 무거운 프로필 상세(통계+목록 집계)를 다시 부르지 않는다. 이름은 full_name 우선(실제 노출 기준)
+  const { avatarUrl, displayName: myName } = useMyIdentity()
 
-  // 로그인 응답에 full_name이 없으면 localStorage에 이름이 저장되지 않으므로
-  // 프로필 상세(stats.full_name)를 최우선으로 사용한다 — 실제 노출도 이름 기준
   const getUserName = (): string => {
     if (!isLoggedIn || isAnonymous) return '익명'
-
-    const fullName =
-      profileDetail?.stats.full_name || sessionStore.get('fullName')
-    const username = sessionStore.get('username')
-
-    return fullName || username || '익명'
+    return myName || '익명'
   }
 
   const displayName = getUserName()

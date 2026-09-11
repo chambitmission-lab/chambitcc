@@ -3,7 +3,7 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 import { showToast } from '../../../../utils/toast'
 import { getCurrentUser } from '../../../../utils/auth'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
-import { useProfileDetail } from '../../../../hooks/useProfile'
+import { useMyIdentity } from '../../../../hooks/useProfile'
 import { THANKS_EMOTIONS, type ThanksEmotion } from '../../../../types/thanks'
 import { ThanksIcon, type ThanksIconName } from '../../../../components/icons/ThanksIcons'
 import ThanksAvatar from './ThanksAvatar'
@@ -139,14 +139,14 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
   const meta = emotion ? THANKS_EMOTIONS[emotion] : null
   const accent = meta?.hue ?? 'var(--brand)'
 
-  // 미리보기에 쓸 내 프로필 — 이름은 프로필 상세 우선(로그인 응답에 없을 수 있음)
-  const { data: profileDetail } = useProfileDetail()
+  // 미리보기에 쓸 내 프로필 — 헤더가 캐시한 가벼운 /profile/stats(useMyIdentity).
+  // 무거운 프로필 상세(통계+목록 집계)를 작성창 열 때마다 부르지 않는다. 이름은 full_name 우선
+  const { avatarUrl: authorAvatar, displayName: myName } = useMyIdentity()
   const authorName =
-    profileDetail?.stats.full_name ||
+    myName ||
     getCurrentUser().fullName ||
     getCurrentUser().username ||
     (ko ? '나' : 'Me')
-  const authorAvatar = profileDetail?.stats.avatar_url ?? null
 
   const rollSeeds = () => {
     setSeeds(pickSeeds(SEEDS[ko ? 'ko' : 'en']))

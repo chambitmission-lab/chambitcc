@@ -6,7 +6,10 @@ import ErrorBoundary from '../../components/common/ErrorBoundary'
 // 작성 모달은 홈의 1순위 액션이라 첫 화면이 그려진 뒤 한가할 때 미리 받아 둔다(preloadComposer).
 const loadPrayerComposer = () => import('./components/PrayerComposer')
 const PrayerComposer = lazy(loadPrayerComposer)
-const PrayerDetail = lazy(() => import('./components/PrayerDetail'))
+// 상세 모달도 카드 탭 = 홈의 2순위 액션이라 함께 선로드한다 — 첫 탭에서 청크(약 12kB gzip)를
+// 받는 300ms 동안 fallback 이 null 이라 '안 눌린 것처럼' 멈춰 보이던 문제.
+const loadPrayerDetail = () => import('./components/PrayerDetail')
+const PrayerDetail = lazy(loadPrayerDetail)
 const HomeRightRail = lazy(() => import('./components/HomeRightRail'))
 const GlobalThanksComposer = lazy(() => import('./components/GlobalThanksComposer'))
 const CreateGroupModal = lazy(() =>
@@ -106,9 +109,12 @@ const NewHome = () => {
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
-  // 기도 작성 모달 청크 선로드 — 첫 화면이 그려진 뒤 한가할 때 받아 두어 첫 탭이 즉시 열리게 한다
+  // 기도 작성·상세 모달 청크 선로드 — 첫 화면이 그려진 뒤 한가할 때 받아 두어 첫 탭이 즉시 열리게 한다
   useEffect(() => {
-    const run = () => { void loadPrayerComposer() }
+    const run = () => {
+      void loadPrayerComposer()
+      void loadPrayerDetail()
+    }
     if (typeof window.requestIdleCallback === 'function') {
       const id = window.requestIdleCallback(run, { timeout: 4000 })
       return () => window.cancelIdleCallback(id)
