@@ -344,7 +344,7 @@ const DemoSection = ({ ko }: { ko: boolean }) => (
     <Reveal>
       <SectionHeader
         kicker={ko ? '직접 써보기' : 'Try it'}
-        title={ko ? '말로 하면 안 믿으실까 봐,\n지금 바로 만져보세요' : "Don't take our word for it —\ntry three things right now"}
+        title={ko ? '가입 없이 지금 눌러보세요,\n셋 다 진짜로 작동합니다' : 'Press anything — no sign-up,\nall three actually work'}
       />
     </Reveal>
     {/* 벤토 놀이터 — lg+: 참비(2칸 폭 × 2행, 큰 카드) + 오른쪽 열에 통독표·말씀 카드가 정사각형에 가깝게 쌓인다.

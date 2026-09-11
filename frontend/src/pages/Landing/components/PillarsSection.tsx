@@ -51,7 +51,7 @@ const PILLARS = (ko: boolean): Pillar[] => [
     key: 'smart',
     Icon: SparkleIcon,
     title: ko ? '스마트' : 'Smart',
-    tagline: ko ? '교회 앱 맞습니다. 저희도 가끔 헷갈려요.' : "Yes, it's a church app. We forget sometimes too.",
+    tagline: ko ? '새벽 세 시에 물어봐도 참비는 깨어 있습니다.' : 'Ask at 3 a.m. — Chambi is still awake.',
     desc: ko
       ? '말씀 비서 참비가 예배 시간부터 성구 검색까지 대답하고, 낭독 영화관과 수면 타이머로 잠들기 전까지 말씀을 듣고, 우리반 알림장·타임캡슐·기도방까지 한 앱에.'
       : 'Chambi the Word assistant answers anything from service times to verse lookups; a reading cinema and sleep timer carry the Word to bedtime; class notices, time capsules and prayer rooms all live here.',

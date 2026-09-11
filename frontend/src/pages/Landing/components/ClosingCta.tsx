@@ -32,7 +32,7 @@ const ClosingCta = ({ ko }: { ko: boolean }) => {
             <div className="ld-cta-card rounded-3xl p-6 lg:p-7 h-full flex flex-col">
               <span className="w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center"><MapPinIcon size={20} /></span>
               <h3 className="mt-4 text-[21px] font-extrabold tracking-tight text-ink-strong leading-tight">
-                {ko ? '일단 한 번 와보세요' : 'Just come once'}
+                {ko ? '주일에 그냥 오셔도 됩니다' : 'Just show up on Sunday'}
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-ink-muted whitespace-pre-line">
                 {ko
@@ -64,7 +64,7 @@ const ClosingCta = ({ ko }: { ko: boolean }) => {
                 </span>
               </div>
               <h3 className="mt-4 text-[24px] lg:text-[28px] font-extrabold tracking-tight text-ink-strong leading-tight">
-                {ko ? '앱으로 먼저 만날게요' : "I'll start with the app"}
+                {ko ? '첫 도장, 오늘 밤에 찍으세요' : 'Stamp your first chapter tonight'}
               </h3>
               <p className="mt-2 text-[14.5px] leading-relaxed text-ink-muted whitespace-pre-line">
                 {ko
