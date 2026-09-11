@@ -290,13 +290,10 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
         />
       )}
 
-      <div
-        className="thanks-backdrop fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/55 backdrop-blur-[2px] sm:p-4 overflow-hidden"
-        onClick={onClose}
-      >
+      {/* 작성 중 실수로 닫히지 않도록 배경 클릭으로는 닫지 않는다(X·다음에·뒤로가기만) */}
+      <div className="thanks-backdrop fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/55 backdrop-blur-[2px] sm:p-4 overflow-hidden">
         <div
           className="thanks-sheet relative w-full sm:max-w-[440px] max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
-          onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
         >
