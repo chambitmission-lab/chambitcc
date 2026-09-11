@@ -122,15 +122,10 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
     showToast(language === 'ko' ? '하이라이트를 해제했습니다' : 'Highlight removed', 'success')
   }
 
+  // 작성 중 실수로 닫히지 않도록 배경 클릭으로는 닫지 않는다(X 버튼·뒤로가기만)
   return (
-    <div
-      className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[110] flex items-stretch md:items-center justify-center p-0 md:p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md md:h-auto md:max-h-[calc(100dvh-2rem)] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[110] flex items-stretch md:items-center justify-center p-0 md:p-4">
+      <div className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md md:h-auto md:max-h-[calc(100dvh-2rem)] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]">
         <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
           <div className="flex items-center justify-between">
             <h2 className="text-[18px] font-bold text-ink-strong tracking-[-0.015em]">
