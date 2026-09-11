@@ -4,7 +4,7 @@ import { useAboutContent } from '../../../hooks/useAboutContent'
 import type { AboutFieldKey } from '../../../types/aboutContent'
 import { ChevronDownIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
-import { MicIcon, SneakerIcon, OpenBookIcon, MoneyIcon, SleepIcon, SparkleIcon } from './LandingIcons'
+import { MicIcon, SneakerIcon, OpenBookIcon, PeopleIcon, SleepIcon, SparkleIcon } from './LandingIcons'
 import { ChevronRightIcon } from '../../About/icons'
 
 // 유머 FAQ — 처음 오는 사람의 불안을 먼저 꺼내 웃기고, 바로 뒤에 진짜 답을 준다.
@@ -18,7 +18,7 @@ const ITEMS: {
   { q: 'landingFaq1Q', a: 'landingFaq1A', Icon: MicIcon },
   { q: 'landingFaq2Q', a: 'landingFaq2A', Icon: SneakerIcon },
   { q: 'landingFaq3Q', a: 'landingFaq3A', Icon: OpenBookIcon },
-  { q: 'landingFaq4Q', a: 'landingFaq4A', Icon: MoneyIcon },
+  { q: 'landingFaq4Q', a: 'landingFaq4A', Icon: PeopleIcon },
   { q: 'landingFaq5Q', a: 'landingFaq5A', Icon: SleepIcon },
 ]
 

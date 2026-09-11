@@ -66,6 +66,18 @@ export function MoneyIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+/** 두 사람 — 아는 사람 없이 혼자 오는 걱정 */
+export function PeopleIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="9.2" cy="8" r="3.2" />
+      <path d="M3.4 19.4c0-3.2 2.6-5.4 5.8-5.4s5.8 2.2 5.8 5.4" />
+      <path d="M16.4 6.3a3 3 0 0 1 0 5.5" />
+      <path d="M17.8 14.4c1.9.7 3 2.3 3 4.4" />
+    </svg>
+  )
+}
+
 /** 초승달과 Zzz — 졸음 */
 export function SleepIcon(props: SVGProps<SVGSVGElement>) {
   return (

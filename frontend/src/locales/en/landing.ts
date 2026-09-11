@@ -14,8 +14,8 @@ export const landing = {
   landingFaq2A: "Whatever you're wearing right now. Jesus wore sandals.",
   landingFaq3Q: "I don't know the Bible at all.",
   landingFaq3A: 'Perfect. "Meeting the Bible" is a 42-episode story mode built for exactly that.\nFollow it from Genesis like a drama series.',
-  landingFaq4Q: 'Is giving pressured?',
-  landingFaq4A: "No. If anyone pressured you, we'd be the embarrassed ones.\nWhen your heart moves, as much as it moves.",
+  landingFaq4Q: "I don't know a single person there.",
+  landingFaq4A: 'Everyone started that way. Sit alone, leave quietly — nobody will stop you.\nWant a hand? Just say so at the door.',
   landingFaq5Q: 'I overslept and missed the 1st service.',
   landingFaq5A: "There's a 4th. Miss that too and there's sermon replay.\nSermons don't run away.",
 } as const
