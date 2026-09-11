@@ -1,6 +1,6 @@
 // 목양컬럼 API
 import type { Column, ColumnEngagement, CreateColumnRequest, UpdateColumnRequest } from '../types/column'
-import { request, requestRaw } from './utils/request'
+import { request, requestRaw, type UntypedJson } from './utils/request'
 
 // 목양컬럼 목록 조회 (인증 불필요, 선택적 키워드 검색)
 export const getColumns = async (q?: string): Promise<Column[]> => {
@@ -46,4 +46,16 @@ export const updateColumn = async (id: number, data: UpdateColumnRequest): Promi
 // 목양컬럼 삭제 (관리자)
 export const deleteColumn = async (id: number): Promise<void> => {
   await requestRaw(`/columns/${id}`, { method: 'DELETE', errorMessage: 'Failed to delete column' })
+}
+
+/** 편지 사진 업로드 (R2) — 표지·본문 사진 공용. URL 저장은 등록/수정 요청이 담당한다 */
+export const uploadColumnImage = async (file: File): Promise<string> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const body = await request<UntypedJson>('/columns/upload-image', {
+    method: 'POST',
+    body: formData,
+    errorMessage: '사진 업로드에 실패했습니다',
+  })
+  return body.url as string
 }

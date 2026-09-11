@@ -3,16 +3,13 @@ import type { Column } from '../../types/column'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
-import andongProfile from '../../assets/andong.webp'
-import { renderHighlightedText } from './highlightMarkup'
+import ColumnLetter from './ColumnLetter'
 import {
   FONT_STEPS,
-  PEN,
   SERIF,
   buildShareText,
   formatLetterDate,
   loadFontStep,
-  readingLabel,
   saveFontStep,
 } from './letterFormat'
 
@@ -197,50 +194,7 @@ const ColumnReaderModal = ({
 
         {/* 편지 본문 */}
         <div className="px-6 pt-6 pb-12">
-          {/* 오버라인 → 세리프 대제목 → 짧은 악센트 룰 */}
-          <div className="text-[12.5px] text-gray-500 dark:text-gray-400">
-            {formatLetterDate(column.date, language)}
-            <span className="mx-1.5 opacity-60">·</span>
-            {readingLabel(column.content, language, true)}
-          </div>
-          <h2
-            className="text-[24px] font-semibold text-ink-strong tracking-[-0.01em] leading-[1.45] mt-3"
-            style={{ fontFamily: SERIF }}
-          >
-            {column.title}
-          </h2>
-          <div className="w-8 h-[3px] rounded-full bg-[var(--brand-muted)] opacity-50 mt-6 mb-8"></div>
-
-          {column.content.split('\n\n').map((paragraph, index) => (
-            <p
-              key={index}
-              className="text-gray-700 dark:text-gray-300 leading-[1.95] mb-7"
-              style={{ fontFamily: SERIF, fontSize: `${FONT_STEPS[fontStep]}px` }}
-            >
-              {renderHighlightedText(paragraph)}
-            </p>
-          ))}
-
-          {/* 서명 — 편지의 맺음 */}
-          <div className="mt-12 pt-7 border-t border-border-light dark:border-white/[0.06] flex items-center gap-4">
-            <img
-              src={andongProfile}
-              alt={column.author}
-              className="w-12 h-12 rounded-full object-cover ring-1 ring-black/[0.07] dark:ring-white/[0.12] flex-shrink-0"
-            />
-            <div className="min-w-0">
-              {language === 'ko' ? (
-                <div className="text-[26px] leading-none text-ink-strong" style={{ fontFamily: PEN }}>
-                  {column.author} 드림
-                </div>
-              ) : (
-                <div className="text-[17px] italic leading-none text-ink-strong" style={{ fontFamily: SERIF }}>
-                  {column.author}
-                </div>
-              )}
-              <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-2">{column.role}</div>
-            </div>
-          </div>
+          <ColumnLetter language={language} column={column} fontSize={FONT_STEPS[fontStep]} />
 
           {/* 아멘 — 편지를 다 읽고 조용히 화답하는 자리 (좋아요가 아니라 응답) */}
           <div className="mt-9 flex flex-col items-center">

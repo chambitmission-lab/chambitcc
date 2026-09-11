@@ -1,7 +1,7 @@
 import type { Column } from '../../types/column'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
 import andongProfile from '../../assets/andong.webp'
-import { removeHighlightTags } from './highlightMarkup'
+import { columnPlainText } from './blockFormat'
 import {
   SERIF,
   firstHighlight,
@@ -64,7 +64,7 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
         </span>
       </h3>
       <p className="text-[13px] text-gray-500 dark:text-gray-400 line-clamp-1 leading-[1.6] mt-1.5">
-        {highlightKeyword(removeHighlightTags(column.content), appliedQuery)}
+        {highlightKeyword(columnPlainText(column.content), appliedQuery)}
       </p>
       <div className="text-[11.5px] text-gray-400 dark:text-gray-500 mt-1.5">
         {formatLetterDate(column.date, language)}
@@ -151,12 +151,12 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
                     </p>
                   </blockquote>
                   <p className="text-[14px] text-gray-600 dark:text-gray-300 line-clamp-2 leading-[1.8] tracking-[-0.01em] mt-3.5">
-                    {removeHighlightTags(featured.content)}
+                    {columnPlainText(featured.content)}
                   </p>
                 </>
               ) : (
                 <p className="text-[15px] text-gray-600 dark:text-gray-300 line-clamp-4 leading-[1.8] tracking-[-0.01em]">
-                  {removeHighlightTags(featured.content)}
+                  {columnPlainText(featured.content)}
                 </p>
               )}
             </div>

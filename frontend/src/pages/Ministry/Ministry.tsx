@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
 import { deleteColumn } from '../../api/column'
@@ -8,10 +8,15 @@ import { firstHighlight, groupByMonth } from './letterFormat'
 import MinistryHeader from './MinistryHeader'
 import ColumnFeed from './ColumnFeed'
 import ColumnReaderModal from './ColumnReaderModal'
-import ColumnEditorModal from './ColumnEditorModal'
 import DeleteColumnDialog from './DeleteColumnDialog'
 import MinistryRail, { type RailHighlight } from './MinistryRail'
 import { can } from '../../utils/access'
+import { lazyModal } from '../../utils/lazyModal'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
+
+// 편지 쓰기 화면(서식 바·템플릿·미리보기)은 관리자만 여는 것이라 별도 청크로 뗀다.
+// 읽기만 하는 성도는 내려받지 않는다
+const ColumnEditorModal = lazyModal(() => import('./ColumnEditorModal'))
 
 /** 새 컬럼 기본값 — 날짜는 오늘 */
 const newColumnDraft = (): Partial<Column> => ({
@@ -39,7 +44,15 @@ const Ministry = () => {
   // PC: 우측 레일을 타이틀 행 아래(피처드 카드 윗선)에 맞추기 위한 헤더 실측 높이
   const [headerHeight, setHeaderHeight] = useState(0)
   const { columns, allColumns, loading, syncColumnsCache, patchColumnCache } = useColumns(appliedQuery)
+
   const handleAmen = useColumnAmen(patchColumnCache, language)
+
+  // 관리자에겐 '글쓰기' 버튼이 늘 보이므로, 첫 화면이 끝난 뒤 편집기 청크를 미리 받아 둔다
+  // (미리 받아두지 않으면 첫 클릭에 Suspense 스로틀로 빈 화면이 잠깐 뜬다)
+  useEffect(() => {
+    if (!isAdminUser || preloadBudget() !== 'full') return
+    return scheduleAfterFirstScreen(ColumnEditorModal.preload, { settleMs: 1000 })
+  }, [isAdminUser])
 
   // ── 관리자 동작 ───────────────────────────────────────────────────
   const handleEdit = (column: Column) => {

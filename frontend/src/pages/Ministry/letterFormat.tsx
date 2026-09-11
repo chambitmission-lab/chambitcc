@@ -2,7 +2,7 @@
 // 컴포넌트에서 분리해 두어 목록·읽기·레일이 같은 규칙으로 표기한다.
 
 import type { Column } from '../../types/column'
-import { removeHighlightTags } from './highlightMarkup'
+import { columnPlainText } from './blockFormat'
 
 // 편지·에세이 톤의 서체 — 성경 읽기 설정과 동일한 스택(이미 index.html에서 로드됨)
 // Noto Serif KR은 400/600만 로드되어 있으므로 굵기는 font-semibold(600)까지만 사용
@@ -49,7 +49,7 @@ export const formatLetterDate = (dateStr: string, language: string): string => {
 
 /** 한국어 평균 묵독 속도(분당 약 500자) 기준 읽기 시간 */
 export const readingMinutes = (content: string): number =>
-  Math.max(1, Math.round(removeHighlightTags(content).length / 500))
+  Math.max(1, Math.round(columnPlainText(content).length / 500))
 
 /** 읽기 시간 라벨 — 목록은 짧게(분), 피처드·본문은 "min read" */
 export const readingLabel = (content: string, language: string, long = false): string => {
@@ -105,7 +105,7 @@ export const monthAnchorId = (index: number) => `ministry-month-${index}`
 
 /** 공유용 편지 전문 — 카톡 전달을 염두에 두고 텍스트로 */
 export const buildShareText = (column: Column, language: string): string => {
-  const body = removeHighlightTags(column.content)
+  const body = columnPlainText(column.content)
   const signature = language === 'ko' ? `${column.author} 드림` : `— ${column.author}`
   return `${column.title}\n${formatLetterDate(column.date, language)}\n\n${body}\n\n${signature}`
 }
