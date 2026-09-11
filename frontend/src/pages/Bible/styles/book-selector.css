@@ -415,7 +415,7 @@
   margin-top: 0.875rem;
   padding-top: 0.875rem;
   border-top: 1px solid var(--ig-border);
-  animation: bible-map-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: bible-map-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 [data-theme="dark"] .bible-map {
@@ -564,7 +564,7 @@
   letter-spacing: -0.04em;
   cursor: pointer;
   transition: transform 0.12s, border-color 0.12s;
-  animation: bible-map-cell-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: bible-map-cell-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes bible-map-cell-in {

@@ -123,8 +123,9 @@ const BibleProgressMap = ({ books, infoMap, onBookSelect }: BibleProgressMapProp
                     type="button"
                     className="bible-map__cell"
                     data-level={level}
-                    // 펼칠 때 앞에서부터 순차로 떠오르는 스태거 — 뒤쪽은 딜레이 상한으로 묶는다
-                    style={{ animationDelay: `${Math.min(index * 10, 220)}ms` }}
+                    // 펼칠 때 앞에서부터 순차로 떠오르는 스태거 — 뒤쪽은 딜레이 상한으로 묶는다.
+                    // (10ms×칸, 상한 220ms 였을 땐 마지막 칸까지 0.45s 가 걸려 "느리게 뜬다"는 체감)
+                    style={{ animationDelay: `${Math.min(index * 4, 100)}ms` }}
                     // 칸이 작아 텍스트로 수치를 못 넣으므로 접근성 라벨에 정확한 값을 싣는다
                     aria-label={`${name} ${Math.round(rate)}%`}
                     title={`${name} · ${Math.round(rate)}%`}

@@ -1,11 +1,15 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ReadingProgressResponse, ResumePosition } from '../../../api/bibleReading'
 import { parseApiDate } from '../../../utils/dateUtils'
 import { lazyModal } from '../../../utils/lazyModal'
-// 지도 보기는 토글해야 나온다 — 기본 뷰(여정)만 정적으로 둔다
+import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
+// 지도 보기는 토글해야 나온다 — 기본 뷰(여정)만 정적으로 둔다.
+// 단, 청크는 요약 카드가 뜬 뒤 유휴 시간에(그리고 버튼에 손이 닿는 순간) 미리 받아 둔다 —
+// 예전엔 "지도"를 누른 뒤에야 청크 왕복이 시작돼 fallback(null) 빈 화면이 한 박자 끼었다
 const BibleProgressMap = lazyModal(() => import('./BibleProgressMap'))
+const preloadProgressMap = () => void BibleProgressMap.preload()
 import BookJourneyPath from './BookJourneyPath'
 import { aggregateRange, buildBookInfoMap } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
@@ -74,6 +78,12 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 서브 필터가 어느 방향에서 슬라이드 인 될지 — OT→NT는 우측(forward), NT→OT는 좌측(back)에서 들어온다
   const [dir, setDir] = useState<'forward' | 'back'>('forward')
   const [showMap, setShowMap] = useState(false)
+
+  // 지도 청크 선로드 — 요약 카드(토글 버튼)가 보이는 동안 3G 이하가 아니면 유휴 시간에 받는다
+  useEffect(() => {
+    if (preloadBudget() !== 'full') return
+    return scheduleAfterFirstScreen(preloadProgressMap, { settleMs: 1000 })
+  }, [])
   // 책 목록 보기 방식 — 여정 경로(기본)와 예전 격자 중 취향대로. 선택은 기기에 기억된다
   const [viewMode, setViewMode] = useState<BookViewMode>(loadViewMode)
 
@@ -569,6 +579,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                 aria-selected={showMap}
                 className={`reading-summary__view${showMap ? ' active' : ''}`}
                 onClick={() => setShowMap(true)}
+                onPointerEnter={preloadProgressMap}
+                onTouchStart={preloadProgressMap}
+                onFocus={preloadProgressMap}
               >
                 <MapTrifold size="1em" weight="duotone" color="currentColor" aria-hidden="true" />
                 {t.mapToggle}
