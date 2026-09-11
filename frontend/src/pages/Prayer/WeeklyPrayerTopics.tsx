@@ -10,6 +10,7 @@ import {
   toggleWeeklyPrayerAmen,
 } from '../../api/weeklyPrayer'
 import type { WeeklyPrayer, WeeklyPrayerListItem } from '../../types/weeklyPrayer'
+import { HandHeartIcon } from '../../components/icons/ActionIcons'
 
 const formatWeekLabel = (weekDate: string): string => {
   const d = new Date(`${weekDate}T00:00:00`)
@@ -190,7 +191,7 @@ const WeeklyPrayerTopics = () => {
           </div>
         ) : empty || !prayer ? (
           <div className="min-h-[50vh] flex flex-col items-center justify-center gap-2 text-center px-8">
-            <span className="text-3xl">🙏</span>
+            <HandHeartIcon size={34} strokeWidth={1.6} className="text-gray-300 dark:text-white/25" />
             <p className="text-sm font-semibold text-gray-600 dark:text-white/70">
               아직 등록된 기도제목이 없습니다
             </p>
@@ -260,7 +261,7 @@ const WeeklyPrayerTopics = () => {
                               : 'bg-transparent border-gray-300 dark:border-white/[0.15] text-gray-600 dark:text-white/70 hover:border-brand hover:text-brand'
                           }`}
                         >
-                          <span aria-hidden>🙏</span>
+                          <HandHeartIcon size={14} strokeWidth={2} filled={item.is_amened ?? false} />
                           {item.is_amened ? '함께 기도했어요' : '함께 기도해요'}
                           {(item.amen_count ?? 0) > 0 && (
                             <span className={item.is_amened ? 'text-white/90' : 'text-brand'}>
@@ -273,8 +274,9 @@ const WeeklyPrayerTopics = () => {
                   ))}
                 </div>
 
-                <p className="mt-8 text-center text-xs text-gray-400 dark:text-white/40">
-                  이번 주에도 한마음으로 함께 기도해요 🙏
+                <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-xs text-gray-400 dark:text-white/40">
+                  이번 주에도 한마음으로 함께 기도해요
+                  <HandHeartIcon size={14} strokeWidth={1.8} />
                 </p>
               </div>
 

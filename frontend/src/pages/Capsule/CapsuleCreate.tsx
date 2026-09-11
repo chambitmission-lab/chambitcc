@@ -20,7 +20,7 @@ import { getCurrentSeason } from '../../utils/churchCalendar'
 import { resizeImageToBlob } from '../../utils/imageResize'
 import { showToast } from '../../utils/toast'
 import { buildPresets, formatKoreanDate, toDateStr } from './capsuleDates'
-import { CalendarGlyph, Icon } from './capsuleIcons'
+import { CalendarGlyph, Icon, LetterHeartGlyph } from './capsuleIcons'
 import './capsule.css'
 
 const MAX_RECORD_SECONDS = 180
@@ -311,7 +311,11 @@ const CapsuleCreate = () => {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-center px-6 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-[60vh]">
-          <span className="text-[64px]">💌</span>
+          <span className="text-brand">
+            <Icon size={60}>
+              <LetterHeartGlyph />
+            </Icon>
+          </span>
           <h2 className="text-[20px] font-extrabold mt-4 text-center break-keep">
             {isDirect ? (
               <>

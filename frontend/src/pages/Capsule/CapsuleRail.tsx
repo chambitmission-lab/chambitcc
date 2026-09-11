@@ -2,16 +2,18 @@
 // 모바일에는 아예 렌더되지 않는다(부모 aside가 hidden lg:flex).
 // 본문 목록은 스크롤하면 사라지므로, 여기엔 '지금 무엇을 할 수 있는지'와
 // '다음에 열릴 편지가 언제인지'만 남긴다.
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { CapsuleSummary } from '../../types/timeCapsule'
 import type { CapsuleMailboxData } from '../../hooks/useTimeCapsule'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
 import { counterpartLabel } from './capsuleGroups'
+import { BellGlyph, Icon, LinkGlyph, MicGlyph } from './capsuleIcons'
 
 const cardClass =
   'rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none'
-const eyebrowClass =
-  'text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50'
+// 레일 섹션 제목 — 회색 eyebrow는 카드 안에서 거의 안 읽혀서 본문색 소제목으로 올린다
+const eyebrowClass = 'text-[12.5px] font-extrabold tracking-[0.01em] text-ink-strong'
 
 /** 한눈에 — 한 줄에 이름·수 */
 const StatLine = ({
@@ -31,6 +33,18 @@ const StatLine = ({
       {value}
     </span>
   </div>
+)
+
+/** 안내 한 줄 — 레일 바닥의 회색 문단은 눈에 안 들어와서, 글리프를 앞세워 읽히게 만든다 */
+const GuideRow = ({ glyph, children }: { glyph: ReactNode; children: ReactNode }) => (
+  <li className="flex items-start gap-2.5">
+    <span className="shrink-0 mt-[1px] w-[22px] h-[22px] rounded-lg bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+      <Icon size={13}>{glyph}</Icon>
+    </span>
+    <span className="flex-1 text-[12.5px] leading-[1.65] text-[var(--text-body)] break-keep">
+      {children}
+    </span>
+  </li>
 )
 
 /** 다가올 개봉 한 줄 — D-day가 앞, 제목이 뒤 */
@@ -83,8 +97,9 @@ const CapsuleRail = ({ data }: { data: CapsuleMailboxData }) => {
         >
           새 캡슐 봉인하기
         </button>
-        <p className="mt-3 text-[11.5px] leading-[1.7] text-gray-500 dark:text-white/50 break-keep">
-          오늘의 마음을 봉인하면 정해진 날 아침에 도착해요. 개봉 전엔 나도 열어볼 수 없어요.
+        <p className="mt-3 rounded-xl bg-[var(--brand-soft)] px-3 py-2.5 text-[12.5px] leading-[1.7] text-[var(--text-body)] break-keep">
+          오늘의 마음을 봉인하면 <b className="font-bold text-ink-strong">정해진 날 아침</b>에 도착해요.
+          개봉 전엔 <b className="font-bold text-ink-strong">나도 열어볼 수 없어요.</b>
         </p>
       </section>
 
@@ -108,12 +123,12 @@ const CapsuleRail = ({ data }: { data: CapsuleMailboxData }) => {
             ))}
           </div>
           {sealed.length > upcoming.length && (
-            <p className="mt-2.5 text-[11px] text-gray-400 dark:text-white/40">
+            <p className="mt-2.5 text-[11.5px] text-[var(--text-muted)]">
               그 밖에 {sealed.length - upcoming.length}통이 더 기다리고 있어요
             </p>
           )}
           {waitingShare > 0 && (
-            <p className="mt-2.5 text-[11px] leading-[1.6] text-[var(--text-body)] break-keep">
+            <p className="mt-2.5 text-[12px] leading-[1.65] text-[var(--text-body)] break-keep">
               아직 초대장을 전하지 않은 선물 캡슐이 {waitingShare}통 있어요. 목록의 [초대 전달]로
               링크를 보내주세요.
             </p>
@@ -123,10 +138,16 @@ const CapsuleRail = ({ data }: { data: CapsuleMailboxData }) => {
 
       <section className={cardClass}>
         <p className={`mb-2.5 ${eyebrowClass}`}>캡슐함 안내</p>
-        <ul className="flex flex-col gap-2 text-[11.5px] leading-[1.7] text-gray-500 dark:text-white/50 break-keep">
-          <li>개봉일 아침이 되면 알림으로 도착을 알려드려요.</li>
-          <li>편지에는 음성과 사진을 함께 봉인할 수 있어요.</li>
-          <li>선물 캡슐은 [초대 전달]로 받는 분께 링크를 보내주세요.</li>
+        <ul className="flex flex-col gap-2.5">
+          <GuideRow glyph={<BellGlyph />}>
+            개봉일 <b className="font-bold text-ink-strong">아침</b>이 되면 알림으로 도착을 알려드려요.
+          </GuideRow>
+          <GuideRow glyph={<MicGlyph />}>
+            편지에는 <b className="font-bold text-ink-strong">음성과 사진</b>을 함께 봉인할 수 있어요.
+          </GuideRow>
+          <GuideRow glyph={<LinkGlyph />}>
+            선물 캡슐은 <b className="font-bold text-ink-strong">[초대 전달]</b>로 받는 분께 링크를 보내주세요.
+          </GuideRow>
         </ul>
       </section>
     </aside>

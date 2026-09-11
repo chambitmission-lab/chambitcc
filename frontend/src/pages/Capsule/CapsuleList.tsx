@@ -10,6 +10,7 @@ import CapsuleRail from './CapsuleRail'
 import './capsule.css'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CAPSULE_HERO } from '../../utils/themeAssets'
+import { Icon, LetterHeartGlyph } from './capsuleIcons'
 
 const CapsuleList = () => {
   const navigate = useNavigate()
@@ -119,7 +120,11 @@ const CapsuleList = () => {
         {/* 빈 상태 */}
         {isEmpty && (
           <div className="mx-4 mt-6 p-8 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] text-center">
-            <span className="text-4xl block mb-3">💌</span>
+            <span className="flex justify-center mb-3 text-gray-300 dark:text-white/25">
+              <Icon size={40}>
+                <LetterHeartGlyph />
+              </Icon>
+            </span>
             <p className="text-[14.5px] font-bold text-ink-strong">
               아직 봉인한 캡슐이 없어요
             </p>
