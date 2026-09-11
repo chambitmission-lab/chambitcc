@@ -293,7 +293,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
       {/* 작성 중 실수로 닫히지 않도록 배경 클릭으로는 닫지 않는다(X·다음에·뒤로가기만) */}
       <div className="thanks-backdrop fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/55 backdrop-blur-[2px] sm:p-4 overflow-hidden">
         <div
-          className="thanks-sheet relative w-full sm:max-w-[440px] max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
+          className="thanks-sheet relative w-full sm:max-w-[440px] lg:max-w-[900px] max-h-[92vh] overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
           role="dialog"
           aria-modal="true"
         >
@@ -306,7 +306,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
           </div>
 
           {/* 헤더 */}
-          <div className="px-5 pt-2.5 pb-3 flex items-start justify-between gap-3">
+          <div className="px-5 lg:px-7 pt-2.5 lg:pt-4 pb-3 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="text-[19px] font-extrabold tracking-[-0.02em] text-ink-strong">
                 {ko ? '기도제목 나누기' : 'Share a prayer request'}
@@ -324,441 +324,448 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
           </div>
 
           <form onSubmit={handleSubmit}>
-            {/* 미리보기 — 지금 쓰는 게 피드에 어떻게 보일지 실시간으로 */}
-            <div className="px-5">
-              <div
-                className="relative overflow-hidden rounded-2xl border p-4 transition-colors duration-300"
-                style={{
-                  borderColor: meta
-                    ? `color-mix(in srgb, ${accent} 32%, transparent)`
-                    : 'var(--card-border)',
-                  background: meta
-                    ? `color-mix(in srgb, ${accent} 8%, var(--surface-inset))`
-                    : 'var(--surface-inset)',
-                }}
-              >
-                <span className="absolute right-3 top-3 text-[9.5px] font-bold tracking-[0.1em] text-ink-muted">
-                  {ko ? '미리보기' : 'PREVIEW'}
-                </span>
-
-                <div className="flex items-start gap-3">
+            {/* PC에선 좌(미리보기·설정) / 우(작성) 2단으로 펼친다 */}
+            <div className="lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-7 lg:px-7 lg:pt-1 lg:items-start">
+              <div className="lg:min-w-0">
+                {/* 미리보기 — 지금 쓰는 게 피드에 어떻게 보일지 실시간으로 */}
+                <div className="px-5 lg:px-0">
                   <div
-                    className="shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-[22px] transition-all duration-300"
+                    className="relative overflow-hidden rounded-2xl border p-4 transition-colors duration-300"
                     style={{
+                      borderColor: meta
+                        ? `color-mix(in srgb, ${accent} 32%, transparent)`
+                        : 'var(--card-border)',
                       background: meta
-                        ? `color-mix(in srgb, ${accent} 18%, transparent)`
-                        : 'var(--surface-container-high)',
-                      boxShadow: meta
-                        ? `0 6px 16px color-mix(in srgb, ${accent} 22%, transparent)`
-                        : 'none',
+                        ? `color-mix(in srgb, ${accent} 8%, var(--surface-inset))`
+                        : 'var(--surface-inset)',
                     }}
                   >
-                    {meta ? (
-                      <span
-                        key={emotion}
-                        className="thanks-swap inline-flex leading-none"
-                        style={{ color: accent }}
+                    <span className="absolute right-3 top-3 text-[9.5px] font-bold tracking-[0.1em] text-ink-muted">
+                      {ko ? '미리보기' : 'PREVIEW'}
+                    </span>
+
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-[22px] transition-all duration-300"
+                        style={{
+                          background: meta
+                            ? `color-mix(in srgb, ${accent} 18%, transparent)`
+                            : 'var(--surface-container-high)',
+                          boxShadow: meta
+                            ? `0 6px 16px color-mix(in srgb, ${accent} 22%, transparent)`
+                            : 'none',
+                        }}
                       >
-                        <EmotionGlyph emotion={meta.key} fallback={meta.emoji} size={22} />
-                      </span>
-                    ) : (
-                      <span className="thanks-nudge inline-flex leading-none text-ink-muted opacity-45">
-                        <PrayIcon size={22} />
-                      </span>
+                        {meta ? (
+                          <span
+                            key={emotion}
+                            className="thanks-swap inline-flex leading-none"
+                            style={{ color: accent }}
+                          >
+                            <EmotionGlyph emotion={meta.key} fallback={meta.emoji} size={22} />
+                          </span>
+                        ) : (
+                          <span className="thanks-nudge inline-flex leading-none text-ink-muted opacity-45">
+                            <PrayIcon size={22} />
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        {title.trim() && (
+                          <p className="text-[14.5px] font-bold leading-snug text-ink-strong break-words line-clamp-1 mb-0.5">
+                            {title}
+                          </p>
+                        )}
+                        {content.trim() ? (
+                          <p className="text-[14.5px] leading-[1.6] text-ink-strong break-words whitespace-pre-wrap line-clamp-3">
+                            {content}
+                          </p>
+                        ) : (
+                          <p className="text-[14px] leading-[1.6] text-ink-muted">
+                            {ko ? '여기에 오늘의 기도가 담겨요' : 'Your prayer will show up here'}
+                          </p>
+                        )}
+                        <div className="mt-2 flex items-center gap-1.5 text-[11.5px] text-ink-muted">
+                          {isPrivate ? (
+                            <>
+                              <span
+                                className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
+                                style={{ background: 'var(--brand-soft-strong)', color: 'var(--brand)' }}
+                              >
+                                <LockIcon size={12} />
+                              </span>
+                              <span key="private" className="thanks-swap truncate font-semibold text-brand">
+                                {t('privatePrayerPreviewName')}
+                              </span>
+                              <span className="opacity-60">·</span>
+                              <span>{ko ? '방금' : 'just now'}</span>
+                            </>
+                          ) : isAnonymous || !avatarUrl ? (
+                            <span
+                              className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[12px]"
+                              style={{
+                                background: isAnonymous
+                                  ? 'var(--surface-container-high)'
+                                  : 'var(--brand)',
+                                color: isAnonymous ? 'var(--text-muted)' : 'var(--on-brand)',
+                                fontWeight: 700,
+                                fontSize: isAnonymous ? '12px' : '10px',
+                              }}
+                            >
+                              {isAnonymous ? <ClosetIcon size={12} /> : previewName.charAt(0).toUpperCase()}
+                            </span>
+                          ) : (
+                            <img
+                              src={avatarUrl}
+                              alt=""
+                              className="shrink-0 w-5 h-5 rounded-full object-cover"
+                            />
+                          )}
+                          {!isPrivate && (
+                            <>
+                              <span key={previewName} className="thanks-swap truncate font-semibold">
+                                {previewName}
+                              </span>
+                              <span className="opacity-60">·</span>
+                              <span>{ko ? '방금' : 'just now'}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 공개 범위 — 전체 공개 / 나만 보기 / 소그룹. 하나만 고른다 */}
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-[11.5px] font-bold text-ink-strong">{t('prayerVisibilityLabel')}</span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {[
+                      { key: 'public', Icon: GlobeIcon, label: t('prayerVisibilityPublic'), active: !isPrivate && selectedGroupId === null, onClick: () => { setIsPrivate(false); setSelectedGroupId(null) } },
+                      { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: isPrivate, onClick: () => setIsPrivate(true) },
+                    ].map((opt) => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={opt.onClick}
+                        aria-pressed={opt.active}
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all active:scale-95 ${
+                          opt.active
+                            ? 'border-transparent bg-brand text-[var(--on-brand)] shadow-[0_4px_12px_var(--brand-glow)]'
+                            : 'text-ink-muted hover:text-brand'
+                        }`}
+                        style={
+                          opt.active
+                            ? undefined
+                            : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
+                        }
+                      >
+                        <opt.Icon size={14} />
+                        {opt.label}
+                      </button>
+                    ))}
+
+                    {groups.map((group) => {
+                      const active = selectedGroupId === group.id
+                      return (
+                        <button
+                          key={group.id}
+                          type="button"
+                          onClick={() => setSelectedGroupId(active ? null : group.id)}
+                          aria-pressed={active}
+                          className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all active:scale-95 ${
+                            active
+                              ? 'border-transparent bg-brand text-[var(--on-brand)] shadow-[0_4px_12px_var(--brand-glow)]'
+                              : 'text-ink-muted hover:text-brand'
+                          }`}
+                          style={
+                            active
+                              ? undefined
+                              : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
+                          }
+                        >
+                          <GroupGlyph emoji={group.icon} size={14} className="shrink-0" />
+                          {group.name}
+                        </button>
+                      )
+                    })}
+
+                    {/* 골방 기도자(익명) — 남에게 보이는 기도일 때만 의미가 있다 */}
+                    {isLoggedIn && !isPrivate && (
+                      <button
+                        type="button"
+                        onClick={() => setIsAnonymous(!isAnonymous)}
+                        aria-pressed={isAnonymous}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed text-[12px] font-semibold transition-all active:scale-95 ${
+                          isAnonymous ? 'text-brand border-brand' : 'text-ink-muted hover:text-brand'
+                        }`}
+                        style={{
+                          borderColor: isAnonymous ? undefined : 'var(--card-border)',
+                          background: isAnonymous ? 'var(--brand-soft)' : 'var(--surface-inset)',
+                        }}
+                      >
+                        {isAnonymous ? <ClosetIcon size={14} /> : <EyeIcon size={14} />}
+                        {t('prayerComposerAnonymous')}
+                      </button>
                     )}
                   </div>
 
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    {title.trim() && (
-                      <p className="text-[14.5px] font-bold leading-snug text-ink-strong break-words line-clamp-1 mb-0.5">
-                        {title}
-                      </p>
-                    )}
-                    {content.trim() ? (
-                      <p className="text-[14.5px] leading-[1.6] text-ink-strong break-words whitespace-pre-wrap line-clamp-3">
-                        {content}
-                      </p>
-                    ) : (
-                      <p className="text-[14px] leading-[1.6] text-ink-muted">
-                        {ko ? '여기에 오늘의 기도가 담겨요' : 'Your prayer will show up here'}
-                      </p>
-                    )}
-                    <div className="mt-2 flex items-center gap-1.5 text-[11.5px] text-ink-muted">
-                      {isPrivate ? (
-                        <>
-                          <span
-                            className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
-                            style={{ background: 'var(--brand-soft-strong)', color: 'var(--brand)' }}
-                          >
-                            <LockIcon size={12} />
-                          </span>
-                          <span key="private" className="thanks-swap truncate font-semibold text-brand">
-                            {t('privatePrayerPreviewName')}
-                          </span>
-                          <span className="opacity-60">·</span>
-                          <span>{ko ? '방금' : 'just now'}</span>
-                        </>
-                      ) : isAnonymous || !avatarUrl ? (
-                        <span
-                          className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[12px]"
-                          style={{
-                            background: isAnonymous
-                              ? 'var(--surface-container-high)'
-                              : 'var(--brand)',
-                            color: isAnonymous ? 'var(--text-muted)' : 'var(--on-brand)',
-                            fontWeight: 700,
-                            fontSize: isAnonymous ? '12px' : '10px',
-                          }}
+                  <p
+                    key={isPrivate ? 'private' : selectedGroupId ? 'group' : isAnonymous ? 'anon' : 'real'}
+                    className="thanks-swap mt-1.5 text-[11px] leading-snug"
+                    style={{ color: isPrivate ? 'var(--brand)' : 'var(--text-muted)' }}
+                  >
+                    {isPrivate
+                      ? t('privatePrayerNotice')
+                      : selectedGroupId
+                        ? ko
+                          ? '이 소그룹에만 보여요'
+                          : 'Visible to this group only'
+                        : isAnonymous
+                          ? t('anonymousNotice')
+                          : t('realNameNotice')}
+                  </p>
+                </div>
+
+                {/* 오늘의 마음 */}
+                <div className="px-5 lg:px-0 pt-4">
+                  <div className="flex items-baseline justify-between mb-2.5">
+                    <label className="text-[12.5px] font-bold tracking-[-0.01em] text-ink-strong">
+                      {ko ? '지금 마음은 어떠세요?' : 'How is your heart?'}
+                    </label>
+                    <span className="text-[11px] text-ink-muted">
+                      {ko ? '골라도 되고 안 골라도 돼요' : 'optional'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {EMOTIONS.map((item) => {
+                      const active = emotion === item.key
+                      return (
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => setEmotion(active ? null : item.key)}
+                          aria-pressed={active}
+                          className="group flex flex-col items-center gap-1 py-2.5 rounded-2xl border transition-all active:scale-95"
+                          style={
+                            active
+                              ? {
+                                  borderColor: `color-mix(in srgb, ${item.hue} 55%, transparent)`,
+                                  background: `color-mix(in srgb, ${item.hue} 14%, transparent)`,
+                                  boxShadow: `0 6px 16px color-mix(in srgb, ${item.hue} 22%, transparent)`,
+                                }
+                              : {
+                                  borderColor: 'var(--card-border)',
+                                  background: 'var(--surface-inset)',
+                                }
+                          }
                         >
-                          {isAnonymous ? <ClosetIcon size={12} /> : previewName.charAt(0).toUpperCase()}
-                        </span>
-                      ) : (
-                        <img
-                          src={avatarUrl}
-                          alt=""
-                          className="shrink-0 w-5 h-5 rounded-full object-cover"
-                        />
-                      )}
-                      {!isPrivate && (
-                        <>
-                          <span key={previewName} className="thanks-swap truncate font-semibold">
-                            {previewName}
+                          <span
+                            className={`inline-flex leading-none transition-all ${
+                              active ? 'thanks-pop' : 'opacity-55 group-hover:opacity-100'
+                            }`}
+                            style={{ color: active ? item.hue : 'var(--text-muted)' }}
+                          >
+                            <EmotionGlyph emotion={item.key} fallback={item.emoji} size={24} />
                           </span>
-                          <span className="opacity-60">·</span>
-                          <span>{ko ? '방금' : 'just now'}</span>
-                        </>
+                          <span
+                            className="text-[10.5px] font-bold"
+                            style={{ color: active ? item.hue : 'var(--text-muted)' }}
+                          >
+                            {ko ? item.label : item.labelEn}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <p
+                    key={emotion ?? 'none'}
+                    className="thanks-swap mt-2 text-[12px] leading-snug"
+                    style={{ color: meta ? accent : 'var(--text-muted)' }}
+                  >
+                    {meta
+                      ? ko
+                        ? meta.hint
+                        : meta.hintEn
+                      : ko
+                        ? '골라두면 주간 기도 스토리에 마음의 흐름이 담겨요'
+                        : 'Pick one — it shapes your weekly prayer story'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="lg:min-w-0">
+                {/* 기도 내용 */}
+                <div className="px-5 lg:px-0 pt-4 lg:pt-0">
+                  <div
+                    className="rounded-2xl border px-4 pt-3.5 pb-2.5 transition-colors focus-within:border-brand"
+                    style={{ background: 'var(--surface-inset)', borderColor: 'var(--card-border)' }}
+                  >
+                    {/* 제목은 선택 — 기본은 숨기고 칩으로 필요할 때만 펼친다 */}
+                    {showTitle ? (
+                      <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-[var(--card-border)]">
+                        <input
+                          type="text"
+                          value={title}
+                          onChange={handleManualTitleChange}
+                          placeholder={t('prayerComposerTitlePlaceholder')}
+                          maxLength={TITLE_MAX}
+                          autoFocus
+                          className={`flex-1 min-w-0 bg-transparent outline-none text-[15.5px] font-bold tracking-[-0.015em] text-ink-strong placeholder:text-[13px] placeholder:font-normal placeholder:text-ink-muted ${
+                            titleVoice.isListening ? 'animate-pulse' : ''
+                          }`}
+                        />
+                        {titleVoice.isSupported && (
+                          <button
+                            type="button"
+                            onClick={toggleTitleVoice}
+                            aria-label={
+                              titleVoice.isListening ? t('stopVoiceInput') : t('startVoiceInput')
+                            }
+                            className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-colors ${
+                              titleVoice.isListening
+                                ? 'text-red-500 bg-red-500/10 animate-pulse'
+                                : 'text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)]'
+                            }`}
+                          >
+                            <span className="material-icons-outlined text-[16px]">
+                              {titleVoice.isListening ? 'stop_circle' : 'mic'}
+                            </span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleRemoveTitle}
+                          aria-label={t('prayerComposerRemoveTitle')}
+                          className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                        >
+                          <span className="material-icons-outlined text-[16px]">close</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowTitle(true)}
+                        className="inline-flex items-center gap-0.5 mb-1 -ml-1 px-2 py-1 rounded-full text-[11.5px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                      >
+                        <span className="material-icons-outlined text-[13px]">add</span>
+                        {t('prayerComposerAddTitle')} {t('prayerComposerTitleOptional')}
+                      </button>
+                    )}
+
+                    <textarea
+                      ref={textareaRef}
+                      value={content}
+                      onChange={handleManualContentChange}
+                      rows={4}
+                      maxLength={MAX_LEN}
+                      placeholder={placeholder}
+                      className={`w-full bg-transparent resize-none outline-none text-[15px] lg:text-[16px] leading-[1.65] text-ink-strong placeholder:text-[13.5px] placeholder:text-ink-muted lg:min-h-[280px] ${
+                        contentVoice.isListening ? 'animate-pulse' : ''
+                      }`}
+                    />
+
+                    <div className="flex items-center justify-between pt-1">
+                      {contentVoice.isSupported ? (
+                        <button
+                          type="button"
+                          onClick={toggleVoice}
+                          className={`inline-flex items-center gap-1 -ml-1 px-2 py-1 rounded-full text-[11.5px] font-semibold transition-colors ${
+                            contentVoice.isListening
+                              ? 'text-red-500 bg-red-500/10 animate-pulse'
+                              : 'text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)]'
+                          }`}
+                        >
+                          <span className="material-icons-outlined text-[15px]">
+                            {contentVoice.isListening ? 'stop_circle' : 'mic'}
+                          </span>
+                          {contentVoice.isListening
+                            ? ko
+                              ? '듣고 있어요…'
+                              : 'Listening…'
+                            : ko
+                              ? '말로 하기'
+                              : 'Speak'}
+                        </button>
+                      ) : (
+                        <span className="text-[11.5px] text-ink-muted">
+                          {ko ? '길게 써도, 한 줄만 써도 돼요' : 'Long or short — both are fine'}
+                        </span>
                       )}
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="text-[11px] font-bold tabular-nums"
+                          style={{ color: nearLimit ? 'var(--amber)' : 'var(--text-muted)' }}
+                        >
+                          {content.length}/{MAX_LEN}
+                        </span>
+                        <svg width="22" height="22" viewBox="0 0 22 22" className="-rotate-90">
+                          <circle
+                            cx="11"
+                            cy="11"
+                            r={RING_R}
+                            fill="none"
+                            strokeWidth="2.5"
+                            stroke="var(--card-border)"
+                          />
+                          <circle
+                            cx="11"
+                            cy="11"
+                            r={RING_R}
+                            fill="none"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            stroke={nearLimit ? 'var(--amber-icon)' : 'var(--brand)'}
+                            strokeDasharray={RING_C}
+                            strokeDashoffset={RING_C * (1 - ratio)}
+                            style={{ transition: 'stroke-dashoffset 0.2s ease-out' }}
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 공개 범위 — 전체 공개 / 나만 보기 / 소그룹. 하나만 고른다 */}
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-[11.5px] font-bold text-ink-strong">{t('prayerVisibilityLabel')}</span>
-              </div>
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                {[
-                  { key: 'public', Icon: GlobeIcon, label: t('prayerVisibilityPublic'), active: !isPrivate && selectedGroupId === null, onClick: () => { setIsPrivate(false); setSelectedGroupId(null) } },
-                  { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: isPrivate, onClick: () => setIsPrivate(true) },
-                ].map((opt) => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    onClick={opt.onClick}
-                    aria-pressed={opt.active}
-                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all active:scale-95 ${
-                      opt.active
-                        ? 'border-transparent bg-brand text-[var(--on-brand)] shadow-[0_4px_12px_var(--brand-glow)]'
-                        : 'text-ink-muted hover:text-brand'
-                    }`}
-                    style={
-                      opt.active
-                        ? undefined
-                        : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
-                    }
-                  >
-                    <opt.Icon size={14} />
-                    {opt.label}
-                  </button>
-                ))}
-
-                {groups.map((group) => {
-                  const active = selectedGroupId === group.id
-                  return (
+                {/* 기도 씨앗 — 첫 문장 도우미 */}
+                <div className="px-5 lg:px-0 pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[12px] font-bold text-ink-strong">
+                      {ko ? '막막할 땐, 이렇게 시작해봐요' : 'Stuck? Start like this'}
+                    </span>
                     <button
-                      key={group.id}
                       type="button"
-                      onClick={() => setSelectedGroupId(active ? null : group.id)}
-                      aria-pressed={active}
-                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all active:scale-95 ${
-                        active
-                          ? 'border-transparent bg-brand text-[var(--on-brand)] shadow-[0_4px_12px_var(--brand-glow)]'
-                          : 'text-ink-muted hover:text-brand'
-                      }`}
-                      style={
-                        active
-                          ? undefined
-                          : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
-                      }
+                      onClick={rollSeeds}
+                      className="flex items-center gap-1 px-2 py-1 rounded-full text-[11.5px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
                     >
-                      <GroupGlyph emoji={group.icon} size={14} className="shrink-0" />
-                      {group.name}
-                    </button>
-                  )
-                })}
-
-                {/* 골방 기도자(익명) — 남에게 보이는 기도일 때만 의미가 있다 */}
-                {isLoggedIn && !isPrivate && (
-                  <button
-                    type="button"
-                    onClick={() => setIsAnonymous(!isAnonymous)}
-                    aria-pressed={isAnonymous}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed text-[12px] font-semibold transition-all active:scale-95 ${
-                      isAnonymous ? 'text-brand border-brand' : 'text-ink-muted hover:text-brand'
-                    }`}
-                    style={{
-                      borderColor: isAnonymous ? undefined : 'var(--card-border)',
-                      background: isAnonymous ? 'var(--brand-soft)' : 'var(--surface-inset)',
-                    }}
-                  >
-                    {isAnonymous ? <ClosetIcon size={14} /> : <EyeIcon size={14} />}
-                    {t('prayerComposerAnonymous')}
-                  </button>
-                )}
-              </div>
-
-              <p
-                key={isPrivate ? 'private' : selectedGroupId ? 'group' : isAnonymous ? 'anon' : 'real'}
-                className="thanks-swap mt-1.5 text-[11px] leading-snug"
-                style={{ color: isPrivate ? 'var(--brand)' : 'var(--text-muted)' }}
-              >
-                {isPrivate
-                  ? t('privatePrayerNotice')
-                  : selectedGroupId
-                    ? ko
-                      ? '이 소그룹에만 보여요'
-                      : 'Visible to this group only'
-                    : isAnonymous
-                      ? t('anonymousNotice')
-                      : t('realNameNotice')}
-              </p>
-            </div>
-
-            {/* 오늘의 마음 */}
-            <div className="px-5 pt-4">
-              <div className="flex items-baseline justify-between mb-2.5">
-                <label className="text-[12.5px] font-bold tracking-[-0.01em] text-ink-strong">
-                  {ko ? '지금 마음은 어떠세요?' : 'How is your heart?'}
-                </label>
-                <span className="text-[11px] text-ink-muted">
-                  {ko ? '골라도 되고 안 골라도 돼요' : 'optional'}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-4 gap-1.5">
-                {EMOTIONS.map((item) => {
-                  const active = emotion === item.key
-                  return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => setEmotion(active ? null : item.key)}
-                      aria-pressed={active}
-                      className="group flex flex-col items-center gap-1 py-2.5 rounded-2xl border transition-all active:scale-95"
-                      style={
-                        active
-                          ? {
-                              borderColor: `color-mix(in srgb, ${item.hue} 55%, transparent)`,
-                              background: `color-mix(in srgb, ${item.hue} 14%, transparent)`,
-                              boxShadow: `0 6px 16px color-mix(in srgb, ${item.hue} 22%, transparent)`,
-                            }
-                          : {
-                              borderColor: 'var(--card-border)',
-                              background: 'var(--surface-inset)',
-                            }
-                      }
-                    >
-                      <span
-                        className={`inline-flex leading-none transition-all ${
-                          active ? 'thanks-pop' : 'opacity-55 group-hover:opacity-100'
-                        }`}
-                        style={{ color: active ? item.hue : 'var(--text-muted)' }}
-                      >
-                        <EmotionGlyph emotion={item.key} fallback={item.emoji} size={24} />
+                      <span className={rolling ? 'thanks-roll inline-flex' : 'inline-flex'}>
+                        <DiceIcon size={14} />
                       </span>
-                      <span
-                        className="text-[10.5px] font-bold"
-                        style={{ color: active ? item.hue : 'var(--text-muted)' }}
-                      >
-                        {ko ? item.label : item.labelEn}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-
-              <p
-                key={emotion ?? 'none'}
-                className="thanks-swap mt-2 text-[12px] leading-snug"
-                style={{ color: meta ? accent : 'var(--text-muted)' }}
-              >
-                {meta
-                  ? ko
-                    ? meta.hint
-                    : meta.hintEn
-                  : ko
-                    ? '골라두면 주간 기도 스토리에 마음의 흐름이 담겨요'
-                    : 'Pick one — it shapes your weekly prayer story'}
-              </p>
-            </div>
-
-            {/* 기도 내용 */}
-            <div className="px-5 pt-4">
-              <div
-                className="rounded-2xl border px-4 pt-3.5 pb-2.5 transition-colors focus-within:border-brand"
-                style={{ background: 'var(--surface-inset)', borderColor: 'var(--card-border)' }}
-              >
-                {/* 제목은 선택 — 기본은 숨기고 칩으로 필요할 때만 펼친다 */}
-                {showTitle ? (
-                  <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-[var(--card-border)]">
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={handleManualTitleChange}
-                      placeholder={t('prayerComposerTitlePlaceholder')}
-                      maxLength={TITLE_MAX}
-                      autoFocus
-                      className={`flex-1 min-w-0 bg-transparent outline-none text-[15.5px] font-bold tracking-[-0.015em] text-ink-strong placeholder:text-[13px] placeholder:font-normal placeholder:text-ink-muted ${
-                        titleVoice.isListening ? 'animate-pulse' : ''
-                      }`}
-                    />
-                    {titleVoice.isSupported && (
-                      <button
-                        type="button"
-                        onClick={toggleTitleVoice}
-                        aria-label={
-                          titleVoice.isListening ? t('stopVoiceInput') : t('startVoiceInput')
-                        }
-                        className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-colors ${
-                          titleVoice.isListening
-                            ? 'text-red-500 bg-red-500/10 animate-pulse'
-                            : 'text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)]'
-                        }`}
-                      >
-                        <span className="material-icons-outlined text-[16px]">
-                          {titleVoice.isListening ? 'stop_circle' : 'mic'}
-                        </span>
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleRemoveTitle}
-                      aria-label={t('prayerComposerRemoveTitle')}
-                      className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
-                    >
-                      <span className="material-icons-outlined text-[16px]">close</span>
+                      {ko ? '다른 문장' : 'Shuffle'}
                     </button>
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowTitle(true)}
-                    className="inline-flex items-center gap-0.5 mb-1 -ml-1 px-2 py-1 rounded-full text-[11.5px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
-                  >
-                    <span className="material-icons-outlined text-[13px]">add</span>
-                    {t('prayerComposerAddTitle')} {t('prayerComposerTitleOptional')}
-                  </button>
-                )}
-
-                <textarea
-                  ref={textareaRef}
-                  value={content}
-                  onChange={handleManualContentChange}
-                  rows={4}
-                  maxLength={MAX_LEN}
-                  placeholder={placeholder}
-                  className={`w-full bg-transparent resize-none outline-none text-[15px] leading-[1.65] text-ink-strong placeholder:text-[13.5px] placeholder:text-ink-muted ${
-                    contentVoice.isListening ? 'animate-pulse' : ''
-                  }`}
-                />
-
-                <div className="flex items-center justify-between pt-1">
-                  {contentVoice.isSupported ? (
-                    <button
-                      type="button"
-                      onClick={toggleVoice}
-                      className={`inline-flex items-center gap-1 -ml-1 px-2 py-1 rounded-full text-[11.5px] font-semibold transition-colors ${
-                        contentVoice.isListening
-                          ? 'text-red-500 bg-red-500/10 animate-pulse'
-                          : 'text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)]'
-                      }`}
-                    >
-                      <span className="material-icons-outlined text-[15px]">
-                        {contentVoice.isListening ? 'stop_circle' : 'mic'}
-                      </span>
-                      {contentVoice.isListening
-                        ? ko
-                          ? '듣고 있어요…'
-                          : 'Listening…'
-                        : ko
-                          ? '말로 하기'
-                          : 'Speak'}
-                    </button>
-                  ) : (
-                    <span className="text-[11.5px] text-ink-muted">
-                      {ko ? '길게 써도, 한 줄만 써도 돼요' : 'Long or short — both are fine'}
-                    </span>
-                  )}
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="text-[11px] font-bold tabular-nums"
-                      style={{ color: nearLimit ? 'var(--amber)' : 'var(--text-muted)' }}
-                    >
-                      {content.length}/{MAX_LEN}
-                    </span>
-                    <svg width="22" height="22" viewBox="0 0 22 22" className="-rotate-90">
-                      <circle
-                        cx="11"
-                        cy="11"
-                        r={RING_R}
-                        fill="none"
-                        strokeWidth="2.5"
-                        stroke="var(--card-border)"
-                      />
-                      <circle
-                        cx="11"
-                        cy="11"
-                        r={RING_R}
-                        fill="none"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        stroke={nearLimit ? 'var(--amber-icon)' : 'var(--brand)'}
-                        strokeDasharray={RING_C}
-                        strokeDashoffset={RING_C * (1 - ratio)}
-                        style={{ transition: 'stroke-dashoffset 0.2s ease-out' }}
-                      />
-                    </svg>
+                  <div className="flex flex-wrap gap-1.5">
+                    {seeds.map((seed) => (
+                      <button
+                        key={seed}
+                        type="button"
+                        onClick={() => applySeed(seed)}
+                        className="px-3 py-1.5 rounded-full border border-dashed text-[12.5px] text-ink hover:text-brand hover:border-brand active:scale-95 transition-all"
+                        style={{ borderColor: 'var(--card-border)', background: 'transparent' }}
+                      >
+                        {seed.trim()}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* 기도 씨앗 — 첫 문장 도우미 */}
-            <div className="px-5 pt-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[12px] font-bold text-ink-strong">
-                  {ko ? '막막할 땐, 이렇게 시작해봐요' : 'Stuck? Start like this'}
-                </span>
-                <button
-                  type="button"
-                  onClick={rollSeeds}
-                  className="flex items-center gap-1 px-2 py-1 rounded-full text-[11.5px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
-                >
-                  <span className={rolling ? 'thanks-roll inline-flex' : 'inline-flex'}>
-                    <DiceIcon size={14} />
-                  </span>
-                  {ko ? '다른 문장' : 'Shuffle'}
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {seeds.map((seed) => (
-                  <button
-                    key={seed}
-                    type="button"
-                    onClick={() => applySeed(seed)}
-                    className="px-3 py-1.5 rounded-full border border-dashed text-[12.5px] text-ink hover:text-brand hover:border-brand active:scale-95 transition-all"
-                    style={{ borderColor: 'var(--card-border)', background: 'transparent' }}
-                  >
-                    {seed.trim()}
-                  </button>
-                ))}
               </div>
             </div>
 
             {/* 에러 */}
             {error && (
-              <div className="px-5 pt-3">
+              <div className="px-5 lg:px-7 pt-3">
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/25">
                   <p className="text-[12.5px] leading-snug text-red-500">{error}</p>
                 </div>
@@ -767,7 +774,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
 
             {/* 액션 */}
             <div
-              className="sticky bottom-0 mt-5 px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] flex gap-2 border-t border-[var(--card-border)]"
+              className="sticky bottom-0 mt-5 px-5 lg:px-7 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pb-5 flex gap-2 lg:justify-end border-t border-[var(--card-border)]"
               style={{ background: 'var(--surface-container)' }}
             >
               <button
@@ -781,7 +788,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="flex-1 py-3 rounded-2xl bg-brand text-[var(--on-brand)] text-[15px] font-extrabold tracking-[-0.01em] shadow-[0_8px_20px_var(--brand-glow)] hover:bg-brand-dim active:scale-[0.98] transition-all disabled:opacity-40 disabled:shadow-none disabled:active:scale-100 flex items-center justify-center gap-1.5"
+                className="flex-1 lg:flex-none lg:min-w-[260px] lg:px-10 py-3 rounded-2xl bg-brand text-[var(--on-brand)] text-[15px] font-extrabold tracking-[-0.01em] shadow-[0_8px_20px_var(--brand-glow)] hover:bg-brand-dim active:scale-[0.98] transition-all disabled:opacity-40 disabled:shadow-none disabled:active:scale-100 flex items-center justify-center gap-1.5"
               >
                 <span className="inline-flex leading-none">
                   {meta ? (
