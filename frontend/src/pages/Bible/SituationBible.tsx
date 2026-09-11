@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useSituationCategories, useSituationVerses } from '../../hooks/useSituation'
+import { pickSituationHero, situationHeroDateSeed, useSituationCategories, useSituationVerses } from '../../hooks/useSituation'
 import type { SituationCategory, SituationVerse } from '../../types/situation'
 import './SituationBible.css'
 
@@ -95,18 +95,13 @@ const SituationBible = () => {
   const q = query.trim()
 
   // ── 오늘의 추천 성구 (날짜 기반 + 새로고침 버튼) ──────────────────
-  const dateSeed = useMemo(() => {
-    const d = new Date()
-    return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
-  }, [])
-
-  const heroPool = useMemo(
-    () => categories.filter((c) => c.verse_count > 0),
-    [categories],
+  // 카테고리 선택 로직은 훅 파일과 공유 — 라우트 진입 선요청(prefetchSituation)이 같은
+  // 카테고리의 구절을 미리 받아 두므로 첫 화면에서 히어로가 곧바로 그려진다
+  const dateSeed = useMemo(situationHeroDateSeed, [])
+  const heroCat = useMemo(
+    () => pickSituationHero(categories, heroNonce, dateSeed),
+    [categories, heroNonce, dateSeed],
   )
-  const heroCat = heroPool.length
-    ? heroPool[(dateSeed + heroNonce) % heroPool.length]
-    : null
 
   const { data: heroDetail } = useSituationVerses(
     heroCat?.id ?? 0,
@@ -224,8 +219,27 @@ const SituationBible = () => {
         {!selected && (
           <div className="pb-8">
             {isLoading ? (
-              <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-gray-400 dark:border-t-gray-300 rounded-full animate-spin" />
+              // 콜드 진입(배포 직후 persist 캐시가 비었을 때)엔 스피너 대신 실제 레이아웃 모양의
+              // 스켈레톤 — 라우트 스피너 → 페이지 스피너 → 본문으로 세 번 바뀌던 화면을 한 번으로 줄인다
+              <div className="situation-skeleton" aria-hidden="true">
+                <div className="px-4 pt-5 lg:hidden">
+                  <div className="situation-hero situation-hero--skeleton" />
+                </div>
+                <div className="px-4 pt-5">
+                  <div className="situation-search situation-search--skeleton" />
+                </div>
+                <div className="px-4 pt-6">
+                  <div className="situation-list">
+                    {Array.from({ length: 8 }, (_, i) => (
+                      <div key={i} className="situation-row situation-row--skeleton" style={{ animationDelay: `${i * 40}ms` }}>
+                        <span className="situation-row__icon-wrap" />
+                        <span className="situation-row__name">
+                          <span className="situation-skeleton__bar" style={{ width: `${44 + ((i * 17) % 30)}%` }} />
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             ) : (
               <>

@@ -6,6 +6,8 @@ import { useQueryClient, useIsRestoring } from '@tanstack/react-query'
 import { biblePlanKeys, useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
 import { holdSecondaryRequests, releaseSecondaryRequests } from '../../utils/requestPriority'
+import { preloadRoute } from '../../utils/routePreload'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
@@ -138,6 +140,14 @@ const BibleStudy = () => {
     if (isLoggedIn() && progressPending) holdSecondaryRequests()
   }
   useEffect(() => releaseSecondaryRequests, [])
+
+  // 허브 도구 카드 목적지(상황별 성구)를 유휴 시간에 미리 받아 둔다 — 청크와 첫 데이터까지.
+  // 예전엔 카드를 누른 뒤에야 청크 → 카테고리 → 히어로 구절이 직렬로 내려와 스피너가 두 번 떴다.
+  // 책 목록(허브)이 보일 때만, 3G 이하 예산에선 받지 않는다.
+  useEffect(() => {
+    if (!showBookList || preloadBudget() !== 'full') return
+    return scheduleAfterFirstScreen(() => void preloadRoute('/bible/situation'), { settleMs: 1500 })
+  }, [showBookList])
 
   const resumeMap = useMemo(() => {
     const map = new Map<number, ResumePosition>()

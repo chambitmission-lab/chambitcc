@@ -35,6 +35,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/growth': () => import('../pages/Growth/Growth'),
   // 홈 FAB 스피드 다이얼의 "말씀 카드 만들기" 목적지
   '/bible/photo-verse': () => import('../pages/Bible/PhotoVerse/PhotoVerse'),
+  // /bible 허브 도구 카드·홈 우측 레일 칩 목적지 — 허브가 뜨면 유휴 시간에 미리 받는다
+  '/bible/situation': () => import('../pages/Bible/SituationBible'),
   '/classes': () => import('../pages/ClassRoom/ClassList'),
   '/survey': () => import('../pages/Survey/SurveyList'),
 }
@@ -48,6 +50,11 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   '/greeting': () => import('../pages/Greeting/prefetch').then((m) => m.prefetch()),
   // 하단 네비 1순위 목적지 — 책 목록(+로그인 시 진행률·이어읽기)을 청크와 같이 데운다
   '/bible': () => import('../pages/Bible/prefetch').then((m) => m.prefetchBibleHub()),
+  // 카테고리 목록 + 오늘의 위로 말씀 구절 — 청크만 받아 두면 진입 시 API 두 왕복이 직렬로 남는다
+  '/bible/situation': () =>
+    Promise.all([import('../hooks/useSituation'), import('../config/queryClient')]).then(
+      ([m, q]) => m.prefetchSituation(q.queryClient),
+    ),
 }
 
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다

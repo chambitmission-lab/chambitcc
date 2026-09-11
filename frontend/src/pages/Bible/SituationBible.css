@@ -58,6 +58,45 @@
   50% { opacity: 0.55; }
 }
 
+/* ── 콜드 진입 스켈레톤 (카테고리 화면과 같은 레이아웃) ─────────────── */
+
+.situation-search--skeleton {
+  height: 44px;
+  background: #f3f4f6;
+  border-color: transparent;
+  animation: situation-pulse 1.4s ease-in-out infinite;
+}
+
+.dark .situation-search--skeleton {
+  background: #26262f;
+}
+
+.situation-row--skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+
+.situation-row--skeleton .situation-row__icon-wrap {
+  background: #f3f4f6;
+  animation: situation-pulse 1.4s ease-in-out infinite;
+}
+
+.dark .situation-row--skeleton .situation-row__icon-wrap {
+  background: #26262f;
+}
+
+.situation-skeleton__bar {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: #f3f4f6;
+  animation: situation-pulse 1.4s ease-in-out infinite;
+}
+
+.dark .situation-skeleton__bar {
+  background: #26262f;
+}
+
 .situation-hero__top {
   display: flex;
   align-items: center;
