@@ -138,14 +138,17 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
     : []
 
   return (
-    <section className="relative bg-gray-50 dark:bg-black">
+    <section className="relative bg-background-light dark:bg-background-dark">
       {/* ── 사진 띠 ──
           모바일·태블릿(<lg): 사진 위에 흰 글씨 카피 + CTA. 화면이 사진(800px)보다 좁아 cover 가 선명하다.
           아래 통계 카드가 이 띠의 하단에 걸치도록 pb 를 넉넉히 두고, 다음 블록이 -mt 로 올라탄다.
           PC(lg+): 800px 사진을 2000px 로 늘리면 뭉개지므로 배경에 깔지 않고, 캔버스 위 2단(카피 | 사진 카드).
           모바일 띠는 화면 끝까지 깔지 않고 좌우 여백을 둔 라운드 카드로 — 아래 통계·안내 카드와 같은 문법
           (풀블리드 사진이 바로 아래 라운드 카드들과 어긋나 보인다는 피드백, 프로필 헤더와 동일한 처리). */}
-      <div className="relative overflow-hidden mx-5 mt-4 sm:mt-5 rounded-[24px] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.45)] dark:shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)] lg:mx-0 lg:mt-0 lg:rounded-none lg:ring-0 lg:shadow-none">
+      {/* mt 는 mt-4 대신 임의값 — common.css 의 레거시 유틸(.mt-4 { margin-top: 2rem })이
+          Tailwind 의 .mt-4(1rem)를 덮어써 헤더 아래 여백이 두 배(32px)로 벌어진다.
+          /about·/greeting 히어로 카드와 같은 16px 을 확실히 쓰기 위해 임의값으로 고정. */}
+      <div className="relative overflow-hidden mx-5 mt-[1rem] sm:mt-5 rounded-[24px] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.45)] dark:shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)] lg:mx-0 lg:mt-0 lg:rounded-none lg:ring-0 lg:shadow-none">
         {heroBackgroundUrl ? (
           <img
             src={heroBackgroundUrl}
