@@ -26,3 +26,30 @@
 
 .nh-hero--album { background-image: url('/images/news/event-album-light.webp'); }
 .dark .nh-hero--album { background-image: url('/images/news/event-album-dark.webp'); }
+
+/* PC(lg 이상) — 헌금 히어로(off-hero)와 같은 존재감으로
+ *
+ * 카드가 832px 까지 넓어지면 `auto 100%` 삽화는 폭 237px, 카드의 오른쪽 28% 짜리
+ * 자투리로 쪼그라든다(헌금은 2:1 에셋이라 316px). 에셋에는 아래쪽에 알파 여백이
+ * 구워져 있으므로(그림 720 / 캔버스 1080·1100), **배경을 여백 비율만큼 키우고 위로 붙여**
+ * 그 여백을 카드 밖으로 내보낸다. 그러면 카드에 보이는 것은 그림 720줄 뿐 —
+ * 삽화가 카드 높이를 꽉 채우고 폭도 355px 로 커진다. 카드가 높아져도 %는 같이
+ * 늘어나므로 잘리는 위치(그림 아래 끝)는 변하지 않는다.
+ *
+ * 모바일·태블릿은 그대로 둔다. 열 폭이 max-w-md(카드 416px)로 묶여 있어서
+ * 삽화를 키우면 제목·안내문이 양 위로 올라탄다.
+ */
+@media (min-width: 1024px) {
+  .nh-hero {
+    background-position: right top;
+  }
+  /* 1080 / 720 */
+  .nh-hero--news {
+    background-size: auto 150%;
+  }
+  /* 1100 / 720 */
+  .nh-hero--family,
+  .nh-hero--album {
+    background-size: auto 152.8%;
+  }
+}

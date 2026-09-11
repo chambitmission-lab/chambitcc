@@ -47,7 +47,9 @@ export const useThanks = ({ limit = THANKS_PAGE_SIZE }: UseThanksOptions = {}) =
   const query = useInfiniteQuery({
     queryKey,
     queryFn: async ({ pageParam = 1 }): Promise<ThanksPage> => {
-      const data = await getThanksList(pageParam, THANKS_PAGE_SIZE)
+      // 홈 "함께 나누는 은혜" 행 — 콜드 홈에서 기도 목록 게이트를 기다리지 않는다(응답 8KB 남짓).
+      // 'high' 는 게이트를 열지 않으므로 기도 목록 우선 정책은 그대로다 (utils/requestPriority)
+      const data = await getThanksList(pageParam, THANKS_PAGE_SIZE, { priority: 'high' })
       return {
         items: data.items,
         total: data.total,

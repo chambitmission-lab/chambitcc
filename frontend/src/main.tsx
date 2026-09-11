@@ -58,9 +58,15 @@ createRoot(document.getElementById('root')!).render(
             shouldDehydrateQuery: (query) => {
               // 기본 조건: 성공한 쿼리만 persist
               if (query.state.status !== 'success') return false
-              // 무한 스크롤 쿼리는 데이터가 크므로 persist 제외
+              // 무한 스크롤 쿼리는 데이터가 크므로 persist 제외.
+              // 단, 감사 한 줄(thanks)은 예외 — 홈 "함께 나누는 은혜" 티커가 이 무한 쿼리를
+              // /thanks 페이지와 공유하는데, 여기서 통째로 빼면 앱을 켤 때마다 이 행만 콜드로
+              // 남아 옆의 두 행(persist 복원)보다 늦게 채워졌다. /thanks 에서 깊이 내려간
+              // 뒤에도 저장되도록 페이지 수와 무관하게 허용하고, 첫 페이지(8KB 남짓)만
+              // 남기는 일은 아래 serializeData 가 한다.
               const key = query.queryKey
-              if (Array.isArray(key) && key.includes('infinite')) return false
+              const isThanks = Array.isArray(key) && key[0] === 'thanks'
+              if (Array.isArray(key) && key.includes('infinite') && !isThanks) return false
               // 발자취 게임 상태는 서버 권위 데이터이므로 persist 제외
               // (stale pending_quiz가 캐시되면 진입 시 잘못된 퀴즈가 뜸)
               // 단, 통계(stats)는 복원한다 — /profile이 레벨 계산에 쓰는데,
@@ -78,10 +84,21 @@ createRoot(document.getElementById('root')!).render(
               // pageParams가 있는 infinite query도 제외 (커뮤니티, 기도, 댓글 등)
               if (query.state.data && typeof query.state.data === 'object' && 'pageParams' in query.state.data) {
                 const pageParams = (query.state.data as { pageParams?: unknown }).pageParams
-                // 첫 페이지만 있으면 persist 허용, 2페이지 이상이면 제외
-                if (Array.isArray(pageParams) && pageParams.length > 1) return false
+                // 첫 페이지만 있으면 persist 허용, 2페이지 이상이면 제외 (thanks 는 위 참고)
+                if (Array.isArray(pageParams) && pageParams.length > 1 && !isThanks) return false
               }
               return true
+            },
+            // 여기까지 온 무한 쿼리 데이터 중 2페이지 이상인 것은 thanks 뿐(나머지는 위에서 걸렀다).
+            // 저장은 첫 페이지만 — 티커는 첫 페이지만 쓰고, /thanks 는 스크롤하면 다시 받는다.
+            serializeData: (data: unknown) => {
+              if (data && typeof data === 'object' && 'pages' in data && 'pageParams' in data) {
+                const d = data as { pages: unknown[]; pageParams: unknown[] }
+                if (Array.isArray(d.pages) && Array.isArray(d.pageParams) && d.pages.length > 1) {
+                  return { ...d, pages: d.pages.slice(0, 1), pageParams: d.pageParams.slice(0, 1) }
+                }
+              }
+              return data
             },
           },
         }}

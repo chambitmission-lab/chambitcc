@@ -6,12 +6,17 @@ import type {
   WeeklyPrayerCreateRequest,
   WeeklyPrayerUpdateRequest,
 } from '../types/weeklyPrayer'
-import { request, requestRaw, withStatusMessages, type UntypedJson } from './utils/request'
+import { request, requestRaw, withStatusMessages, type RequestPriority, type UntypedJson } from './utils/request'
 
 // 이번 주 기도제목 조회 (인증 불필요, 로그인 시 is_amened 포함)
-export const getCurrentWeeklyPrayer = async (): Promise<WeeklyPrayer> => {
+export const getCurrentWeeklyPrayer = async (
+  options?: { priority?: RequestPriority }
+): Promise<WeeklyPrayer> => {
   return withStatusMessages(
-    request<WeeklyPrayer>('/weekly-prayers/current', { errorMessage: 'Failed to fetch current weekly prayer' }),
+    request<WeeklyPrayer>('/weekly-prayers/current', {
+      errorMessage: 'Failed to fetch current weekly prayer',
+      priority: options?.priority,
+    }),
     { 404: 'NOT_FOUND' }
   )
 }

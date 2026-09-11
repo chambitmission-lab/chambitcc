@@ -11,11 +11,12 @@ import { prayerKeys } from '../../../hooks/usePrayersQuery'
 const AnsweredPrayersBanner = () => {
   const navigate = useNavigate()
 
-  // 개수만 필요하므로 limit=1로 total만 받아온다
+  // 개수만 필요하므로 limit=1로 total만 받아온다.
+  // 'high': 콜드 홈에서 기도 목록 게이트를 기다리지 않는다(응답 100B 남짓, utils/requestPriority)
   const { data: answeredTotal } = useQuery({
     queryKey: prayerKeys.answeredCount(),
     queryFn: async () =>
-      (await fetchPrayers(1, 1, 'latest', null, null, true)).data.total,
+      (await fetchPrayers(1, 1, 'latest', null, null, true, { priority: 'high' })).data.total,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: false,

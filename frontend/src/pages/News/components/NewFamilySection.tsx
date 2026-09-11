@@ -116,13 +116,14 @@ const NewFamilySection = () => {
             참빛교회 가족이 된 분들을 소개합니다. 따뜻한 환영 인사를 남겨주세요.
           </p>
 
-          <div className="flex items-center gap-5">
+          {/* PC 에선 삽화(오른쪽 43%)를 덮지 않게 글 칼럼 폭에 맞춘다 */}
+          <div className="flex items-center gap-5 lg:max-w-[52%]">
             <HeroStat label="이번 달" value={stats?.this_month ?? 0} />
             <HeroStat label="올해" value={stats?.this_year ?? 0} />
             <HeroStat label="전체" value={stats?.total ?? 0} />
 
             {/* 뷰 전환 */}
-            <div className="ml-auto inline-flex p-0.5 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]">
+            <div className="ml-auto inline-flex p-0.5 rounded-full bg-gray-100/90 dark:bg-white/[0.05] backdrop-blur-sm border border-gray-200/70 dark:border-white/[0.06]">
               <ViewToggle active={viewMode === 'feed'} onClick={() => setViewMode('feed')} label="피드로 보기">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="8" rx="2" />

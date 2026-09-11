@@ -16,7 +16,8 @@ const WeeklyPrayerBanner = () => {
   // 홈 진입마다 두드리지 않게 길게 캐시 — 주간 단위 데이터라 신선도 부담이 없다
   const { data } = useQuery({
     queryKey: weeklyPrayerKeys.homeBanner(),
-    queryFn: getCurrentWeeklyPrayer,
+    // 'high': 콜드 홈에서 기도 목록 게이트를 기다리지 않는다(1KB 남짓, utils/requestPriority)
+    queryFn: () => getCurrentWeeklyPrayer({ priority: 'high' }),
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: false,

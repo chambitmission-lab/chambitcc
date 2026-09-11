@@ -6,12 +6,19 @@ import type {
   ThanksListResponse,
   ThanksWeeklyTopResponse,
 } from '../types/thanks'
-import { request, requestRaw, type UntypedJson } from './utils/request'
+import { request, requestRaw, type RequestPriority, type UntypedJson } from './utils/request'
 
 // 목록 조회 (인증 옵션 — 토큰 있으면 is_mine/is_amened 채워짐)
-export const getThanksList = async (page = 1, limit = 10): Promise<ThanksListResponse['data']> => {
+export const getThanksList = async (
+  page = 1,
+  limit = 10,
+  options?: { priority?: RequestPriority }
+): Promise<ThanksListResponse['data']> => {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
-  const json: ThanksListResponse = await request<ThanksListResponse>(`/thanks?${params.toString()}`, { errorMessage: 'Failed to fetch thanks' })
+  const json: ThanksListResponse = await request<ThanksListResponse>(`/thanks?${params.toString()}`, {
+    errorMessage: 'Failed to fetch thanks',
+    priority: options?.priority,
+  })
   return json.data
 }
 

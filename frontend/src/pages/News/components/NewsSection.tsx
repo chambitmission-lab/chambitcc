@@ -112,8 +112,8 @@ const NewsSection = () => {
             교회의 안내와 공지, 행사 소식을 한곳에서 확인하세요.
           </p>
 
-          {/* 검색 */}
-          <div className="relative">
+          {/* 검색 — PC 에선 삽화(오른쪽 43%)를 덮지 않게 글 칼럼 폭에 맞춘다 */}
+          <div className="relative lg:max-w-[52%]">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
@@ -125,7 +125,7 @@ const NewsSection = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="제목 · 내용 검색"
-              className="w-full pl-10 pr-3 h-11 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
+              className="w-full pl-10 pr-3 h-11 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] backdrop-blur-sm text-[13.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
             />
           </div>
         </div>

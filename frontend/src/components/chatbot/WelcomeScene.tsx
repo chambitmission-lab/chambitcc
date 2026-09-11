@@ -268,7 +268,7 @@ const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
   // 함께하는 우리 — 이번 주 공동 기도에 함께한 실제 인원 (홈 배너와 같은 캐시)
   const { data: weekly } = useQuery({
     queryKey: weeklyPrayerKeys.homeBanner(),
-    queryFn: getCurrentWeeklyPrayer,
+    queryFn: () => getCurrentWeeklyPrayer(),
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: false,
