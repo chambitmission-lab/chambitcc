@@ -124,7 +124,9 @@ const SituationBible = () => {
   }, [categories, q, mood, activeGroup])
 
   const handleVerseClick = (v: SituationVerse) => {
-    navigate(`/bible/${v.book_number}/${v.chapter}`)
+    // 상황별 성구는 "그 한 절"을 보여준 카드라, 장 첫머리가 아니라 그 절로 데려간다.
+    // BibleStudy가 ?verse=N 을 받아 스크롤+하이라이트한다.
+    navigate(`/bible/${v.book_number}/${v.chapter}${v.verse > 0 ? `?verse=${v.verse}` : ''}`)
   }
 
   // 오늘의 위로 말씀 히어로 — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다
