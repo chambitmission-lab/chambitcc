@@ -318,8 +318,18 @@ const HomeNotice = () => {
           animation: notice-pin 11s linear infinite;
         }
         @media (min-width: 1024px) {
-          .notice-fly { --fly-from: 36%; --fly-to: calc(100% - 106px); }
-          .notice-pin { right: 90px; }
+          /* PC는 배너가 3배 넓어 같은 시간에 훨씬 먼 거리를 지난다 → 활공 구간을 길게 잡아
+             속도를 낮춘다(주기 11s는 그대로라 날아오는 간격은 안 변한다) */
+          .notice-fly {
+            --fly-from: 36%;
+            --fly-to: calc(100% - 106px);
+            animation-name: notice-fly-wide;
+            /* 기본 곡선은 출발 기울기가 평균의 2.5배라 "휙 나갔다 끝에서만 감속"한다.
+               PC는 거리가 길어 그 출발 가속이 그대로 보인다 → 처음부터 고르게 미끄러지는
+               곡선으로 바꾼다(출발 0.34배, 착지 0.15배 속도) */
+            animation-timing-function: cubic-bezier(0.35, 0.12, 0.45, 0.92);
+          }
+          .notice-pin { right: 90px; animation-name: notice-pin-wide; }
         }
         @keyframes notice-fly {
           0%        { opacity: 0; transform: translateX(var(--fly-from)); }
@@ -327,6 +337,19 @@ const HomeNotice = () => {
           25%       { opacity: 1; }
           28%       { transform: translateX(var(--fly-to)); }
           31%, 100% { opacity: 0; transform: translateX(var(--fly-to)); }
+        }
+        /* PC 전용 — notice-fly 를 2배 길게 늘인 것(비율만 스케일, 연출은 동일) */
+        @keyframes notice-fly-wide {
+          0%        { opacity: 0; transform: translateX(var(--fly-from)); }
+          5%        { opacity: 1; }
+          52%       { opacity: 1; }
+          58%       { transform: translateX(var(--fly-to)); }
+          63%, 100% { opacity: 0; transform: translateX(var(--fly-to)); }
+        }
+        @keyframes notice-pin-wide {
+          0%, 56%   { opacity: 0; transform: scale(0.3); }
+          59%       { opacity: 0.9; transform: scale(0.6); }
+          74%, 100% { opacity: 0; transform: scale(1.6); }
         }
         @keyframes notice-flutter {
           0%   { transform: translateY(calc(-50% - 6px)) rotate(-9deg); }
