@@ -175,6 +175,19 @@ const NotificationComposer = ({
     onClose()
   }
 
+  // 모바일은 탭으로, PC는 오른쪽 패널로 — 같은 미리보기를 두 자리에서 쓴다
+  const previewBody = (
+    <>
+      {form.image_url && <img className="nme-preview-img" src={form.image_url} alt="" />}
+      <p className="nme-preview-title">{form.title.trim() || '제목을 입력해주세요'}</p>
+      {form.content.trim() ? (
+        <NoticeContent source={form.content} />
+      ) : (
+        <div className="nme-preview-empty">미리보기할 내용이 없습니다</div>
+      )}
+    </>
+  )
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!canSubmit) return
@@ -203,11 +216,11 @@ const NotificationComposer = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={handleClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
@@ -217,7 +230,7 @@ const NotificationComposer = ({
         <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="w-10 h-1 rounded-full bg-white/15 absolute left-1/2 -translate-x-1/2 -top-3 sm:hidden" />
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
@@ -240,52 +253,54 @@ const NotificationComposer = ({
           </button>
         </div>
 
-        {/* 본문 */}
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5">
-            <FieldGroup label="제목" required>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="예) 5월 청년부 헌신예배 안내"
-                maxLength={120}
-                required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
-              />
-              <p className="mt-1 text-right text-[11px] text-gray-400 dark:text-white/35">
-                {form.title.length} / 120
-              </p>
-            </FieldGroup>
+        {/* 본문 — PC에선 좌(작성) / 우(미리보기·설정) 2단으로 펼친다 */}
+        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
+            {/* 좌 — 제목·본문 */}
+            <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
+              <FieldGroup label="제목" required>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="예) 5월 청년부 헌신예배 안내"
+                  maxLength={120}
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
+                />
+                <p className="mt-1 text-right text-[11px] text-gray-400 dark:text-white/35">
+                  {form.title.length} / 120
+                </p>
+              </FieldGroup>
 
-            <FieldGroup
-              label="내용"
-              required
-              action={
-                <div className="nme-tabs" role="tablist" aria-label="본문 보기 전환">
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={contentMode === 'edit'}
-                    className="nme-tab"
-                    onClick={() => setContentMode('edit')}
-                  >
-                    편집
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={contentMode === 'preview'}
-                    className="nme-tab"
-                    onClick={() => setContentMode('preview')}
-                  >
-                    미리보기
-                  </button>
-                </div>
-              }
-            >
-              {contentMode === 'edit' ? (
-                <>
+              <FieldGroup
+                label="내용"
+                required
+                action={
+                  <div className="nme-tabs lg:hidden" role="tablist" aria-label="본문 보기 전환">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={contentMode === 'edit'}
+                      className="nme-tab"
+                      onClick={() => setContentMode('edit')}
+                    >
+                      편집
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={contentMode === 'preview'}
+                      className="nme-tab"
+                      onClick={() => setContentMode('preview')}
+                    >
+                      미리보기
+                    </button>
+                  </div>
+                }
+              >
+                {/* PC에선 미리보기가 오른쪽에 늘 떠 있으므로 편집기를 감추지 않는다 */}
+                <div className={contentMode === 'edit' ? '' : 'hidden lg:block'}>
                   <NoticeMarkupToolbar
                     textareaRef={contentRef}
                     value={form.content}
@@ -298,7 +313,7 @@ const NotificationComposer = ({
                     placeholder="공지사항 내용을 입력해주세요. 일시·장소·준비물 등 성도들이 알아야 할 정보를 명확하게 적어주세요."
                     rows={8}
                     required
-                    className="nmt-field w-full px-3.5 py-2.5 border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7]"
+                    className="nmt-field w-full px-3.5 py-2.5 border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7] lg:min-h-[320px]"
                   />
 
                   {/* 빈 본문일 때만 — 다 쓴 뒤에는 방해만 된다 */}
@@ -322,186 +337,192 @@ const NotificationComposer = ({
                     <code>일시:</code> <code>장소:</code> <code>준비물:</code>{' '}
                     <code>문의:</code> 로 시작하는 줄은 자동으로 정보 카드가 됩니다.
                   </p>
-                </>
-              ) : (
-                <div className="nme-preview">
-                  {form.image_url && (
-                    <img className="nme-preview-img" src={form.image_url} alt="" />
-                  )}
-                  <p className="nme-preview-title">
-                    {form.title.trim() || '제목을 입력해주세요'}
-                  </p>
-                  {form.content.trim() ? (
-                    <NoticeContent source={form.content} />
-                  ) : (
-                    <div className="nme-preview-empty">미리보기할 내용이 없습니다</div>
-                  )}
                 </div>
-              )}
-            </FieldGroup>
 
-            {/* 이미지 첨부 — 포스터·안내문을 그대로 보여줄 때 */}
-            <FieldGroup label="이미지 (선택)">
-              {form.image_url ? (
-                <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-white/[0.08]">
-                  <img
-                    src={form.image_url}
-                    alt="첨부 이미지 미리보기"
-                    className="w-full max-h-64 object-contain bg-gray-50 dark:bg-white/[0.03]"
-                  />
+                {contentMode === 'preview' && (
+                  <div className="nme-preview lg:hidden">{previewBody}</div>
+                )}
+              </FieldGroup>
+            </div>
+
+            {/* 우 — 성도 화면 미리보기와 노출 설정 */}
+            <div className="px-5 pb-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
+              {/* PC 전용 — 입력하는 대로 바로 비치는 미리보기 */}
+              <div className="hidden lg:block">
+                <div className="flex items-baseline gap-1.5 mb-2">
+                  <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
+                    미리보기
+                  </p>
+                  <span className="text-[11px] text-gray-400 dark:text-white/35">
+                    입력하는 대로 반영됩니다
+                  </span>
+                </div>
+                <div className="nme-preview">{previewBody}</div>
+              </div>
+
+              {/* 이미지 첨부 — 포스터·안내문을 그대로 보여줄 때 */}
+              <FieldGroup label="이미지 (선택)">
+                {form.image_url ? (
+                  <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-white/[0.08]">
+                    <img
+                      src={form.image_url}
+                      alt="첨부 이미지 미리보기"
+                      className="w-full max-h-64 object-contain bg-gray-50 dark:bg-white/[0.03]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, image_url: null })}
+                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/75 transition-colors"
+                      aria-label="이미지 삭제"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <p className="absolute left-2 bottom-2 px-2 py-1 rounded-lg bg-black/60 text-white text-[10.5px] font-semibold">
+                      아래 저장 버튼을 눌러야 반영됩니다
+                    </p>
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => setForm({ ...form, image_url: null })}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/75 transition-colors"
-                    aria-label="이미지 삭제"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full py-6 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.14] flex flex-col items-center gap-1.5 text-gray-500 dark:text-white/50 hover:border-brand hover:text-brand transition-colors disabled:opacity-50"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
+                    {uploading ? (
+                      <>
+                        <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                        <span className="text-[12.5px] font-semibold">업로드 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="M21 15l-5-5L5 21" />
+                        </svg>
+                        <span className="text-[12.5px] font-semibold">이미지 첨부하기</span>
+                        <span className="text-[11px]">JPG·PNG·WebP · 최대 {MAX_IMAGE_MB}MB</span>
+                      </>
+                    )}
                   </button>
-                  <p className="absolute left-2 bottom-2 px-2 py-1 rounded-lg bg-black/60 text-white text-[10.5px] font-semibold">
-                    아래 저장 버튼을 눌러야 반영됩니다
-                  </p>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="w-full py-6 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.14] flex flex-col items-center gap-1.5 text-gray-500 dark:text-white/50 hover:border-brand hover:text-brand transition-colors disabled:opacity-50"
-                >
-                  {uploading ? (
-                    <>
-                      <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                      </svg>
-                      <span className="text-[12.5px] font-semibold">업로드 중...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <circle cx="8.5" cy="8.5" r="1.5" />
-                        <path d="M21 15l-5-5L5 21" />
-                      </svg>
-                      <span className="text-[12.5px] font-semibold">이미지 첨부하기</span>
-                      <span className="text-[11px]">JPG·PNG·WebP · 최대 {MAX_IMAGE_MB}MB</span>
-                    </>
-                  )}
-                </button>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
-              />
-            </FieldGroup>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+              </FieldGroup>
 
-            {/* 팝업 노출 — 홈(기도 목록) 진입 시 전면 팝업 */}
-            <div className="rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] overflow-hidden">
-              <div className="flex items-center justify-between gap-3 px-3.5 py-3">
+              {/* 팝업 노출 — 홈(기도 목록) 진입 시 전면 팝업 */}
+              <div className="rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] overflow-hidden">
+                <div className="flex items-center justify-between gap-3 px-3.5 py-3">
+                  <div className="min-w-0">
+                    <p className="text-[13.5px] font-bold text-ink-strong">
+                      홈 팝업으로 띄우기
+                    </p>
+                    <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
+                      기도 목록 진입 시 전면 팝업 + 상단 배너로 노출
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={!!form.is_popup}
+                    onClick={() => setForm({ ...form, is_popup: !form.is_popup })}
+                    className={`relative shrink-0 w-12 h-7 rounded-full transition-colors ${
+                      form.is_popup
+                        ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]'
+                        : 'bg-gray-300 dark:bg-white/[0.1]'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${
+                        form.is_popup ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {form.is_popup && (
+                  <div className="px-3.5 pb-3.5 pt-0.5 border-t border-gray-200 dark:border-white/[0.08]">
+                    <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 mt-3 mb-2">
+                      팝업 종료일
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {/* 네이티브 date 입력은 브라우저 로케일을 따라 08/02/2026처럼 보인다 —
+                          앱 전역에서 쓰는 한국식 달력(요일·주말 색)으로 통일한다 */}
+                      <div className="flex-1 min-w-0">
+                        <DatePicker
+                          value={popupUntilDate}
+                          onChange={setPopupUntilDate}
+                          placeholder="종료일을 선택하세요"
+                          minDate={minPopupDate}
+                        />
+                      </div>
+                      {popupUntilDate && (
+                        <button
+                          type="button"
+                          onClick={() => setPopupUntilDate('')}
+                          className="px-3 h-11 rounded-xl text-[12.5px] font-semibold text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
+                        >
+                          지우기
+                        </button>
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-[11.5px] text-gray-500 dark:text-white/50">
+                      {popupUntilDate
+                        ? `${formatKo(popupUntilDate)} 자정까지 팝업으로 노출됩니다`
+                        : '비워두면 팝업을 끌 때까지 계속 노출됩니다'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* 공개 여부 */}
+              <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
                 <div className="min-w-0">
                   <p className="text-[13.5px] font-bold text-ink-strong">
-                    홈 팝업으로 띄우기
+                    공개하기
                   </p>
                   <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
-                    기도 목록 진입 시 전면 팝업 + 상단 배너로 노출
+                    끄면 비활성 (성도들에게 보이지 않음)
                   </p>
                 </div>
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={!!form.is_popup}
-                  onClick={() => setForm({ ...form, is_popup: !form.is_popup })}
+                  aria-checked={!!form.is_active}
+                  onClick={() => setForm({ ...form, is_active: !form.is_active })}
                   className={`relative shrink-0 w-12 h-7 rounded-full transition-colors ${
-                    form.is_popup
+                    form.is_active
                       ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]'
                       : 'bg-gray-300 dark:bg-white/[0.1]'
                   }`}
                 >
                   <span
                     className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${
-                      form.is_popup ? 'translate-x-5' : 'translate-x-0'
+                      form.is_active ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </button>
               </div>
 
-              {form.is_popup && (
-                <div className="px-3.5 pb-3.5 pt-0.5 border-t border-gray-200 dark:border-white/[0.08]">
-                  <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 mt-3 mb-2">
-                    팝업 종료일
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {/* 네이티브 date 입력은 브라우저 로케일을 따라 08/02/2026처럼 보인다 —
-                        앱 전역에서 쓰는 한국식 달력(요일·주말 색)으로 통일한다 */}
-                    <div className="flex-1 min-w-0">
-                      <DatePicker
-                        value={popupUntilDate}
-                        onChange={setPopupUntilDate}
-                        placeholder="종료일을 선택하세요"
-                        minDate={minPopupDate}
-                      />
-                    </div>
-                    {popupUntilDate && (
-                      <button
-                        type="button"
-                        onClick={() => setPopupUntilDate('')}
-                        className="px-3 h-11 rounded-xl text-[12.5px] font-semibold text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
-                      >
-                        지우기
-                      </button>
-                    )}
-                  </div>
-                  <p className="mt-1.5 text-[11.5px] text-gray-500 dark:text-white/50">
-                    {popupUntilDate
-                      ? `${formatKo(popupUntilDate)} 자정까지 팝업으로 노출됩니다`
-                      : '비워두면 팝업을 끌 때까지 계속 노출됩니다'}
-                  </p>
+              {error && (
+                <div className="px-3.5 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 text-red-600 dark:text-red-300 text-[12.5px] font-medium">
+                  {error}
                 </div>
               )}
             </div>
-
-            {/* 공개 여부 */}
-            <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
-              <div className="min-w-0">
-                <p className="text-[13.5px] font-bold text-ink-strong">
-                  공개하기
-                </p>
-                <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
-                  끄면 비활성 (성도들에게 보이지 않음)
-                </p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={!!form.is_active}
-                onClick={() => setForm({ ...form, is_active: !form.is_active })}
-                className={`relative shrink-0 w-12 h-7 rounded-full transition-colors ${
-                  form.is_active
-                    ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]'
-                    : 'bg-gray-300 dark:bg-white/[0.1]'
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${
-                    form.is_active ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {error && (
-              <div className="px-3.5 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 text-red-600 dark:text-red-300 text-[12.5px] font-medium">
-                {error}
-              </div>
-            )}
           </div>
 
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={handleClose}
