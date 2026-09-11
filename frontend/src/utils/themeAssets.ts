@@ -28,6 +28,8 @@ import alarmHeroLight from '../assets/verse-alarm/hero-light.webp'
 import alarmHeroDark from '../assets/verse-alarm/hero-dark.webp'
 import alarmBandLight from '../assets/verse-alarm/mobile-band-light.webp'
 import alarmBandDark from '../assets/verse-alarm/mobile-band-dark.webp'
+import missionHeroLight from '../assets/mission/hero-light.webp'
+import missionHeroDark from '../assets/mission/hero-dark.webp'
 import heroSpringDay from '../assets/hero/spring-afternoon.webp'
 import heroSummerDay from '../assets/hero/afternoon.webp'
 import heroAutumnDay from '../assets/hero/autumn-afternoon.webp'
@@ -129,6 +131,8 @@ export const NEWS_HERO: Record<'news' | 'new-family' | 'event-album', ThemePair>
 }
 /** /news 헌금 탭 히어로 (offering.css) */
 export const OFFERING_HERO: ThemePair = { light: '/images/offering/hero-light.webp', dark: '/images/offering/hero-dark.webp' }
+/** /mission 히어로 좌우 삽화 (Mission.css) — 한 장이 PC 배경 · 모바일 바닥 띠를 겸한다 */
+export const MISSION_HERO: ThemePair = { light: missionHeroLight, dark: missionHeroDark }
 /** /visit 히어로 사진 — Visit.tsx 가 인라인 style 로 고른다(라이트=낮, 다크=밤) */
 export const VISIT_HERO: ThemePair = { light: '/images/visit/church-day.webp', dark: '/images/visit/church-night.webp' }
 
@@ -170,6 +174,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/greeting$/, pairs: [GREETING_HERO] },
   { match: /^\/visit$/, pairs: [VISIT_HERO] },
   { match: /^\/worship$/, pairs: [WORSHIP_HERO] },
+  { match: /^\/mission$/, pairs: [MISSION_HERO] },
   { match: /^\/education$/, pairs: [EDUCATION_HERO] },
   { match: /^\/culture$/, pairs: [CULTURE_HERO] },
   { match: /^\/news$/, pairs: [NEWS_HERO.news] },

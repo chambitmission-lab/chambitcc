@@ -18,6 +18,8 @@ import WorldGlobe from './WorldGlobe'
 import CountryFlag from './CountryFlag'
 import CountryMiniMap from './CountryMiniMap'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { MISSION_HERO } from '../../utils/themeAssets'
 import './Mission.css'
 import {
   PinIcon,
@@ -130,6 +132,8 @@ const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: num
 
 const Mission = () => {
   const { t, language } = useLanguage()
+  // 히어로 삽화(라이트/다크 한 쌍) — 도착에 맞춰 페이드인
+  const heroArtReady = useThemeArt(MISSION_HERO)
   const [activeRegion, setActiveRegion] = useState<RegionKey>('asia')
   const [hoverCountry, setHoverCountry] = useState<string | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null) // "country|name"
@@ -234,7 +238,7 @@ const Mission = () => {
     <div className="mission-page">
       <div className="mission-shell">
         {/* ===== HERO ===== */}
-        <section className="mission-hero">
+        <section className={`mission-hero${heroArtReady ? ' is-art-ready' : ''}`}>
           <div className="hero-eyebrow">CHAMBIT CHURCH · MISSION</div>
           <h1 className="hero-title">
             {t('missionHeroTitleLine1')}
