@@ -34,6 +34,7 @@ import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
 import HomeQuickStrip, { HOME_CARD_IDS } from './components/HomeQuickStrip'
 import BottomNavigation from './components/BottomNavigation'
+import FeedBackToTop from './components/FeedBackToTop'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { usePrayerVisibility } from '../../hooks/usePrayerVisibility'
@@ -86,6 +87,8 @@ const NewHome = () => {
   useEffect(() => releaseSecondaryRequests, [])
   const mainRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
+  // PC "맨 위로" 알약을 가로 가운데 맞추는 기준 — 피드 컬럼
+  const feedColumnRef = useRef<HTMLDivElement>(null)
   // 사이드 컬럼 bottom-sticky — 헤더(56px)+상단 여백에 맞춘 기존 top-[4.5rem]=72px 기준
   const sidebarStickyRef = useBottomStickyRail(72)
   const rightRailStickyRef = useBottomStickyRail(72)
@@ -431,7 +434,7 @@ const NewHome = () => {
             )}{/* /우측 레일 */}
 
             {/* 피드 컬럼 — 데스크톱에선 접속 즉시 기도 피드가 보인다 */}
-            <div className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
+            <div ref={feedColumnRef} className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
 
             {/* PC 전용 인라인 작성바 — 키보드가 있는 환경에선 작성 진입을 피드 최상단에 */}
             <div className="hidden lg:block px-4 pt-1">
@@ -586,6 +589,10 @@ const NewHome = () => {
             <GlobalThanksComposer onClose={() => setShowThanksComposer(false)} />
           </Suspense>
         )}
+
+        {/* PC 전용 "맨 위로" 알약 — 무한 스크롤로 내려간 뒤 상단으로 돌아오는 장치.
+            모바일은 하단 네비의 홈 탭(onScrollToTop)이 같은 역할을 한다 */}
+        <FeedBackToTop feedColumnRef={feedColumnRef} onScrollToTop={handleScrollToTop} />
 
         {/* Bottom Navigation - Fixed at bottom, centered with max-w-md (lg+에선 좌측 레일이 대신한다) */}
         <div className="bottom-dock-anchor fixed bottom-0 left-0 right-0 z-[100] pointer-events-none lg:hidden">
