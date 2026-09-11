@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDailyVerse } from '../../../hooks/useDailyVerse'
-import SideDigestRow from './SideDigestRow'
 import './AnnualThemeVerse.css'
 
 // "에스겔 37장 5,10절" → "에스겔 37:5,10" (형식이 다르면 원문 그대로)
@@ -30,30 +29,18 @@ const readOpen = (): boolean => {
 
 type PreviewVerse = { verse_text: string; verse_reference: string }
 
-/** card = 모바일 명판 카드(기본), row = PC 사이드바 압축 행(탭하면 아래로 펼침) */
-type Variant = 'card' | 'row'
-
-const AnnualThemeVerse = ({
-  preview,
-  variant = 'card',
-}: {
-  preview?: PreviewVerse
-  variant?: Variant
-}) => {
+const AnnualThemeVerse = ({ preview }: { preview?: PreviewVerse }) => {
   const navigate = useNavigate()
   const query = useDailyVerse()
   const verse = preview ?? query.data
   const isLoading = preview ? false : query.isLoading
   const error = preview ? undefined : query.error
 
-  // 압축 행은 접힌 상태로 시작한다 — PC 사이드 컬럼이 한 화면을 넘지 않아야
-  // sticky 로 고정되기 때문. 펼침 여부도 기억하지 않는다(그 자리에서만 유효).
-  const [open, setOpen] = useState(variant === 'row' ? false : readOpen)
+  const [open, setOpen] = useState(readOpen)
 
   const toggle = useCallback(() => {
     setOpen((prev) => {
       const next = !prev
-      if (variant === 'row') return next
       try {
         localStorage.setItem(OPEN_KEY, String(next))
       } catch {
@@ -61,7 +48,7 @@ const AnnualThemeVerse = ({
       }
       return next
     })
-  }, [variant])
+  }, [])
 
   if (error?.message === 'NOT_FOUND' || (!isLoading && !verse)) {
     return null
@@ -78,45 +65,6 @@ const AnnualThemeVerse = ({
     navigate('/bible/photo-verse', {
       state: { presetVerse: { text: full, refLabel: ref || '올해의 말씀' } },
     })
-  }
-
-  if (variant === 'row') {
-    return (
-      <div>
-        <SideDigestRow
-          icon={
-            <svg width="12" height="12" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
-              <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" />
-            </svg>
-          }
-          label={`${year} 올해의 말씀`}
-          sub={isLoading ? '' : full}
-          accent="gold"
-          expanded={open}
-          onClick={toggle}
-          ariaLabel={open ? '올해의 말씀 접기' : '올해의 말씀 펼치기'}
-        />
-        {open && !isLoading && full && (
-          <div className="px-4 pb-4 -mt-1">
-            <blockquote className="text-[14px] leading-[1.7] text-[var(--text-body)]">
-              {head}
-              <em className="not-italic font-bold text-ink-strong">{mark}</em>
-            </blockquote>
-            <div className="mt-2.5 flex items-center justify-between gap-2">
-              <span className="text-[12px] font-bold text-[var(--brand-muted)]">{ref}</span>
-              <button
-                type="button"
-                onClick={openVerseCard}
-                className="text-[12px] font-bold text-brand"
-                aria-label="말씀 카드 만들어 공유하기"
-              >
-                말씀 카드
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    )
   }
 
   return (

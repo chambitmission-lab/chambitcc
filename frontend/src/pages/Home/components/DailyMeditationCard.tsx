@@ -214,12 +214,9 @@ const estimateMinutes = (verseCount: number): number =>
 interface DailyMeditationCardProps {
   /** [나의 묵상 나누기] 버튼 — 기도/묵상 작성기를 여는 콜백 (없으면 버튼 미노출) */
   onWriteMeditation?: () => void
-  /** PC 사이드바 압축 모드 — 히어로를 낮추고 본문을 줄여 컬럼이 한 화면에 들어오게 한다.
-   *  (자세한 내용은 SideDigestRow.tsx 주석 참고) */
-  compact?: boolean
 }
 
-const DailyMeditationCard = ({ onWriteMeditation, compact = false }: DailyMeditationCardProps) => {
+const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
   const { data, error } = useDailyMeditation()
@@ -337,7 +334,7 @@ const DailyMeditationCard = ({ onWriteMeditation, compact = false }: DailyMedita
   }
 
   return (
-    <section className={`meditation-section${compact ? ' is-compact' : ''}`}>
+    <section className="meditation-section">
       <article
         className="meditation-card"
         data-time={timeOfDay}

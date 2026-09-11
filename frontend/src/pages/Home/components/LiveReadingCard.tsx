@@ -17,7 +17,6 @@ import { useBibleBooks } from '../../../hooks/useBible'
 import { useLiveReading } from '../../../hooks/useLiveReading'
 import { isAuthenticated } from '../../../utils/auth'
 import { ChevronRightIcon, UsersIcon } from '../../../components/icons/ActionIcons'
-import SideDigestRow from './SideDigestRow'
 import './LiveReadingCard.css'
 
 /** 실시간 헤드라인으로 올리는 최소 인원 (나 제외) */
@@ -28,10 +27,7 @@ const TODAY_MIN = 2
 const chapterLabel = (bookNumber: number, chapter: number) =>
   bookNumber === 19 ? `${chapter}편` : `${chapter}장`
 
-/** card = 모바일 풀 카드(기본), row = PC 사이드바 압축 행 */
-type Variant = 'card' | 'row'
-
-const LiveReadingCard = ({ variant = 'card' }: { variant?: Variant } = {}) => {
+const LiveReadingCard = () => {
   const navigate = useNavigate()
   const authed = isAuthenticated()
   const { data } = useLiveReading(authed)
@@ -52,8 +48,7 @@ const LiveReadingCard = ({ variant = 'card' }: { variant?: Variant } = {}) => {
   // 테마를 토글하는 순간 반대 테마 파일을 맨땅에서 받기 시작해 목장 삽화가 사라지고
   // 스크림만 남으므로, 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다(themeAssets.ts).
   // 카드가 실제로 뜰 때만 — 안 뜨는 사람에게 20KB 를 물리지 않는다.
-  // 압축 행에는 목장 삽화가 없으므로 이미지도 받지 않는다
-  useThemeArt(LIVE_READING_CARD, shown && variant === 'card')
+  useThemeArt(LIVE_READING_CARD, shown)
 
   if (!data || !books?.length || !shown) return null
 
@@ -69,19 +64,6 @@ const LiveReadingCard = ({ variant = 'card' }: { variant?: Variant } = {}) => {
   // 실시간 줄일 때도 오늘 숫자를 꼬리로 — 실시간 인원보다 클 때만(둘 다 방금 들어왔으면 모순)
   const todayTail = isLive && (head.readers_today ?? 0) > head.others ? head.readers_today : null
   const extras = isLive ? live.slice(1, 3) : []
-
-  if (variant === 'row') {
-    return (
-      <SideDigestRow
-        icon={<UsersIcon size={15} />}
-        label={isLive ? '지금 함께 읽는 말씀' : '오늘 함께 읽은 말씀'}
-        sub={titleOf(target.book_number, target.chapter)}
-        value={`${isLive ? head.others : today!.readers}명`}
-        onClick={go}
-        ariaLabel={`${titleOf(target.book_number, target.chapter)} 함께 읽기`}
-      />
-    )
-  }
 
   return (
     <section className="px-4 pt-3">
