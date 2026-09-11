@@ -85,7 +85,15 @@ const ColumnToolbar = ({
 }: ColumnToolbarProps) => {
   const ko = language === 'ko'
 
-  const button = (name: string, label: string, onClick: () => void, disabled = false) => (
+  /* 아이콘만으로는 무슨 서식인지 알기 어려워 아래에 이름을 함께 적는다.
+     label 은 짧은 표시용, title 은 단축키까지 담은 툴팁. */
+  const button = (
+    name: string,
+    label: string,
+    onClick: () => void,
+    disabled = false,
+    title = label,
+  ) => (
     <button
       key={name}
       type="button"
@@ -93,33 +101,40 @@ const ColumnToolbar = ({
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       disabled={disabled}
-      title={label}
-      aria-label={label}
-      className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-600 dark:text-gray-300 hover:bg-[var(--brand-soft)] hover:text-[var(--brand)] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+      title={title}
+      aria-label={title}
+      className="min-w-[46px] px-1.5 py-1 flex flex-col items-center justify-center gap-0.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-[var(--brand-soft)] hover:text-[var(--brand)] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
     >
       <Glyph name={name} />
+      <span className="text-[10px] font-semibold leading-none tracking-[-0.02em]">{label}</span>
     </button>
   )
 
   return (
     <div className="sticky top-0 z-20 -mx-1 px-1 py-2 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md flex items-center gap-0.5 flex-wrap">
       {button('heading', ko ? '소제목' : 'Heading', () => onPrefix('heading'))}
-      {button('quote', ko ? '인용 · 성구' : 'Quote', () => onPrefix('quote'))}
-      {button('callout', ko ? '강조 상자' : 'Callout', () => onPrefix('callout'))}
+      {button('quote', ko ? '인용·성구' : 'Quote', () => onPrefix('quote'))}
+      {button('callout', ko ? '강조상자' : 'Callout', () => onPrefix('callout'))}
 
-      <span className="w-px h-5 bg-border-light dark:bg-white/[0.1] mx-1.5"></span>
+      <span className="w-px h-8 bg-border-light dark:bg-white/[0.1] mx-1.5"></span>
 
-      {button('bullet', ko ? '목록' : 'Bullet list', () => onPrefix('bullet'))}
-      {button('ordered', ko ? '번호 목록' : 'Numbered list', () => onPrefix('ordered'))}
+      {button('bullet', ko ? '목록' : 'List', () => onPrefix('bullet'), false, ko ? '목록' : 'Bullet list')}
+      {button('ordered', ko ? '번호목록' : 'Numbers', () => onPrefix('ordered'), false, ko ? '번호 목록' : 'Numbered list')}
       {button('divider', ko ? '구분선' : 'Divider', onDivider)}
 
-      <span className="w-px h-5 bg-border-light dark:bg-white/[0.1] mx-1.5"></span>
+      <span className="w-px h-8 bg-border-light dark:bg-white/[0.1] mx-1.5"></span>
 
-      {button('image', ko ? '사진 넣기' : 'Insert photo', onImage, uploading)}
+      {button('image', ko ? '사진' : 'Photo', onImage, uploading, ko ? '사진 넣기' : 'Insert photo')}
 
       {/* 하이라이트는 팝오버를 달고 있어 감싸는 relative 가 필요하다 */}
       <div className="relative">
-        {button('highlight', ko ? '하이라이트 (⌘H)' : 'Highlight (⌘H)', onHighlight)}
+        {button(
+          'highlight',
+          ko ? '형광펜' : 'Highlight',
+          onHighlight,
+          false,
+          ko ? '형광펜 (⌘H)' : 'Highlight (⌘H)',
+        )}
         {highlightSlot}
       </div>
     </div>

@@ -39,6 +39,10 @@ const withLineBreaks = (nodes: ReactNode[]): ReactNode[] => {
   return out
 }
 
+/* 한글은 기본 줄바꿈 규칙상 어절 중간에서도 잘린다("한 동기 / 가 …").
+   편지 본문은 어절을 붙여 두고(keep-all), 긴 URL 같은 예외만 넘칠 때 쪼갠다(anywhere). */
+const WRAP = 'break-keep [overflow-wrap:anywhere]'
+
 /** 블록 하나 → 마크업. 크기는 본문 기준 글자 크기에서 파생시킨다 */
 const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
   switch (block.kind) {
@@ -46,7 +50,7 @@ const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
       return (
         <h3
           key={index}
-          className="font-semibold text-ink-strong tracking-[-0.02em] leading-[1.5] mt-11 mb-4 first:mt-0"
+          className={`font-semibold text-ink-strong tracking-[-0.02em] leading-[1.5] mt-11 mb-4 first:mt-0 ${WRAP}`}
           style={{ fontFamily: SERIF, fontSize: `${fontSize + 3}px` }}
         >
           {renderHighlightedText(block.text)}
@@ -63,14 +67,14 @@ const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
           {block.lines.map((line, i) => (
             <p
               key={i}
-              className="text-ink-strong leading-[1.85] tracking-[-0.01em]"
+              className={`text-ink-strong leading-[1.85] tracking-[-0.01em] ${WRAP}`}
               style={{ fontFamily: SERIF, fontSize: `${fontSize + 0.5}px` }}
             >
               {renderHighlightedText(line)}
             </p>
           ))}
           {block.cite && (
-            <cite className="block not-italic text-[12.5px] text-gray-500 dark:text-gray-400 mt-2.5">
+            <cite className={`block not-italic text-[12.5px] text-gray-500 dark:text-gray-400 mt-2.5 ${WRAP}`}>
               — {block.cite}
             </cite>
           )}
@@ -86,7 +90,7 @@ const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
           {block.lines.map((line, i) => (
             <p
               key={i}
-              className="text-ink-strong leading-[1.8] tracking-[-0.01em]"
+              className={`text-ink-strong leading-[1.8] tracking-[-0.01em] ${WRAP}`}
               style={{ fontFamily: SERIF, fontSize: `${fontSize - 0.5}px` }}
             >
               {renderHighlightedText(line)}
@@ -116,7 +120,7 @@ const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
             className="w-full rounded-2xl object-cover"
           />
           {block.caption && (
-            <figcaption className="text-center text-[12.5px] text-gray-500 dark:text-gray-400 mt-2.5 leading-[1.6]">
+            <figcaption className={`text-center text-[12.5px] text-gray-500 dark:text-gray-400 mt-2.5 leading-[1.6] ${WRAP}`}>
               {block.caption}
             </figcaption>
           )}
@@ -135,7 +139,7 @@ const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
                 {block.ordered ? `${i + 1}.` : '·'}
               </span>
               <span
-                className="text-gray-700 dark:text-gray-300 leading-[1.95]"
+                className={`text-gray-700 dark:text-gray-300 leading-[1.95] ${WRAP}`}
                 style={{ fontFamily: SERIF, fontSize: `${fontSize}px` }}
               >
                 {renderHighlightedText(item)}
@@ -149,7 +153,7 @@ const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
       return (
         <p
           key={index}
-          className="text-gray-700 dark:text-gray-300 leading-[1.95] mb-7"
+          className={`text-gray-700 dark:text-gray-300 leading-[1.95] mb-7 ${WRAP}`}
           style={{ fontFamily: SERIF, fontSize: `${fontSize}px` }}
         >
           {withLineBreaks(renderHighlightedText(block.text))}
@@ -193,7 +197,7 @@ const ColumnLetter = ({ language, column, fontSize, placeholder = false }: Colum
         )}
       </div>
       <h2
-        className={`text-[24px] font-semibold tracking-[-0.01em] leading-[1.45] mt-3 ${
+        className={`text-[24px] font-semibold tracking-[-0.01em] leading-[1.45] mt-3 ${WRAP} ${
           column.title ? 'text-ink-strong' : 'text-gray-400 dark:text-gray-600'
         }`}
         style={{ fontFamily: SERIF }}
@@ -206,7 +210,7 @@ const ColumnLetter = ({ language, column, fontSize, placeholder = false }: Colum
         <ColumnBody content={content} fontSize={fontSize} />
       ) : (
         placeholder && (
-          <p className="text-gray-400 dark:text-gray-600 leading-[1.95]" style={{ fontFamily: SERIF, fontSize: `${fontSize}px` }}>
+          <p className={`text-gray-400 dark:text-gray-600 leading-[1.95] ${WRAP}`} style={{ fontFamily: SERIF, fontSize: `${fontSize}px` }}>
             {ko
               ? '본문을 쓰기 시작하면 성도님께 보이는 모습 그대로 여기에 나타납니다.'
               : 'Start writing and the letter will appear here exactly as your congregation will see it.'}

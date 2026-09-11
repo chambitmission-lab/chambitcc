@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Column, CreateColumnRequest } from '../../types/column'
 import { createColumn, updateColumn, uploadColumnImage } from '../../api/column'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
+import DatePicker from '../../components/common/DatePicker'
 import { showToast } from '../../utils/toast'
 import HighlightPopover from './HighlightPopover'
 import ColumnToolbar from './ColumnToolbar'
@@ -30,6 +31,8 @@ interface ColumnEditorModalProps {
 const INPUT_CLASS =
   'w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-ink-strong text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors'
 const LABEL_CLASS = 'block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-[-0.005em]'
+/* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다 */
+const DATE_TRIGGER_CLASS = `${INPUT_CLASS} flex items-center justify-between gap-2 text-left`
 
 /** 선택 영역을 그 줄 전체로 넓힌다 — 줄머리 마커는 줄 단위로 붙고 떨어진다 */
 const lineRange = (value: string, start: number, end: number) => {
@@ -289,11 +292,11 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
       <div className="grid grid-cols-2 gap-4 mt-4">
         <div>
           <label className={LABEL_CLASS}>{ko ? '날짜' : 'Date'}</label>
-          <input
-            type="date"
+          {/* 네이티브 date 입력은 09/11/2026·OS 달력이라 앱 공통 DatePicker로 */}
+          <DatePicker
             value={draft.date || ''}
-            onChange={(e) => patch({ date: e.target.value })}
-            className={INPUT_CLASS}
+            onChange={(date) => patch({ date })}
+            className={DATE_TRIGGER_CLASS}
           />
         </div>
         <div>

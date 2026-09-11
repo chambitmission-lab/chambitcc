@@ -131,7 +131,7 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
                 )}
               </div>
               <h2
-                className="text-[21px] lg:text-[26px] font-semibold text-ink-strong mb-3 lg:mb-5 line-clamp-2 tracking-[-0.01em] leading-[1.4]"
+                className="text-[21px] lg:text-[26px] font-semibold text-ink-strong mb-3 lg:mb-5 line-clamp-2 tracking-[-0.01em] leading-[1.4] break-keep"
                 style={{ fontFamily: SERIF }}
               >
                 {featured.title}
@@ -144,18 +144,18 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
                 <>
                   <blockquote className="border-l-2 pl-4 py-0.5" style={{ borderColor: 'var(--brand-muted)' }}>
                     <p
-                      className="text-[15.5px] lg:text-[17px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em]"
+                      className="text-[15.5px] lg:text-[17px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em] break-keep"
                       style={{ fontFamily: SERIF }}
                     >
                       “{featuredQuote}”
                     </p>
                   </blockquote>
-                  <p className="text-[14px] text-gray-600 dark:text-gray-300 line-clamp-2 leading-[1.8] tracking-[-0.01em] mt-3.5">
+                  <p className="text-[14px] text-gray-600 dark:text-gray-300 line-clamp-2 leading-[1.8] tracking-[-0.01em] mt-3.5 break-keep">
                     {columnPlainText(featured.content)}
                   </p>
                 </>
               ) : (
-                <p className="text-[15px] text-gray-600 dark:text-gray-300 line-clamp-4 leading-[1.8] tracking-[-0.01em]">
+                <p className="text-[15px] text-gray-600 dark:text-gray-300 line-clamp-4 leading-[1.8] tracking-[-0.01em] break-keep">
                   {columnPlainText(featured.content)}
                 </p>
               )}
