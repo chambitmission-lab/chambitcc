@@ -969,8 +969,45 @@
 .pv-sheet__body {
   flex: 1;
   overflow-y: auto;
-  padding: 0 18px 18px;
+  /* 선택 전에는 푸터가 없어 목록이 바로 바닥에 닿는다 */
+  padding: 0 18px calc(18px + env(safe-area-inset-bottom));
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* 큰 화면에선 바닥에 붙은 시트가 아니라 가운데 뜨는 대화상자로 —
+   목록 끝이 창 바닥에 닿아 잘린 것처럼 보이던 문제 */
+@media (min-width: 640px) {
+  .pv-sheet-overlay {
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  .pv-sheet {
+    max-height: min(84vh, 42rem);
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+    animation-name: pv-sheet-in;
+  }
+
+  .pv-sheet__handle {
+    display: none;
+  }
+
+  .pv-sheet__header {
+    padding-top: 18px;
+  }
+}
+
+@keyframes pv-sheet-in {
+  from {
+    transform: translateY(12px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .pv-sheet__hint {

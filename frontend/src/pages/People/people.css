@@ -163,19 +163,33 @@
 .ppl-stats {
   margin-top: 1rem;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.4rem;
+  /* 모바일에서 2줄로 접히면 숫자가 흘러내리는 느낌이 난다 —
+     한 줄로 고정하고, 그래도 넘치면 가로로만 쓸어 보게 한다 */
+  flex-wrap: nowrap;
+  justify-content: safe center;
+  gap: 0.32rem;
+  /* 칩이 카드 가장자리까지 쓸 수 있게 허리통 패딩을 잠시 풀어준다 */
+  margin-inline: -0.75rem;
+  padding-inline: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ppl-stats::-webkit-scrollbar {
+  display: none;
 }
 
 .ppl-stat {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: baseline;
-  gap: 0.3rem;
-  padding: 0.42rem 0.8rem;
+  gap: 0.24rem;
+  padding: 0.38rem 0.62rem;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
+  white-space: nowrap;
   color: var(--text-muted);
   background: var(--surface-container);
   border: 1px solid var(--card-border);
@@ -194,6 +208,19 @@
   font-weight: 800;
   color: var(--brand);
   letter-spacing: -0.01em;
+}
+
+/* 폭이 넓어지면 원래 여유 있는 크기로 돌린다 */
+@media (min-width: 480px) {
+  .ppl-stats {
+    gap: 0.4rem;
+  }
+
+  .ppl-stat {
+    gap: 0.3rem;
+    padding: 0.42rem 0.8rem;
+    font-size: 0.75rem;
+  }
 }
 
 /* ── 대표(담임·원로) 스트립 ─────────────────────────────
