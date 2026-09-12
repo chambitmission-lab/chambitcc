@@ -21,6 +21,8 @@ import {
 import type { TimeOfDay } from '../../../types/meditation'
 import { getNaturalSeason, type NaturalSeason } from '../../../utils/naturalSeason'
 import { tokenStore } from '../../../utils/tokenStore'
+import { useThemeArt } from '../../../hooks/useThemeArt'
+import { VERSE_SCENE } from '../../../utils/themeAssets'
 import heroSummerMorning from '../../../assets/hero/morning.webp'
 import heroSummerAfternoon from '../../../assets/hero/afternoon.webp'
 import heroSummerEvening from '../../../assets/hero/evening.webp'
@@ -232,6 +234,9 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const sundayPop = useSundayRain()
   const { fullName } = getCurrentUser()
   const { isLoggedIn } = useAuth()
+  /* 핵심 절 박스 뒤 장면(예수님과 어린양) — 테마 쌍을 마운트 동안 등록해 토글 직전
+   * 선요청이 반대 테마 파일을 챙기게 하고, 도착 전엔 바탕색만 두었다가 페이드인한다 */
+  const sceneReady = useThemeArt(VERSE_SCENE)
 
   // 오늘 본문(장)의 절 단위 읽음 상태 — 비로그인/로딩 중엔 미조회
   const { data: readStatus } = useChapterReadStatus(
@@ -572,14 +577,22 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           </span>
         </div>
 
-        <blockquote className="meditation-verse-quote">
-          <span className="meditation-verse-glyph" aria-hidden>
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7.2 6.5c-2.6.9-4.2 3.1-4.2 6.1V17.5h5.5V12H5.6c.1-1.7 1-2.9 2.7-3.5zm9.3 0c-2.6.9-4.2 3.1-4.2 6.1V17.5h5.5V12h-2.9c.1-1.7 1-2.9 2.7-3.5z" />
-            </svg>
-          </span>
-          <p className="meditation-verse-text">{data.verse.text}</p>
-          <cite className="meditation-verse-reference">— {data.verse.reference}</cite>
+        {/* 핵심 절 — 들판에 앉은 예수님과 어린양 장면 위에 말씀이 놓인다.
+          * 그림의 주인공은 오른쪽에만 있고 왼쪽은 하늘·들판뿐이라, 왼쪽에서 박스색
+          * 스크림을 덮어 그 위에 말씀을 올린다(지금 함께 읽는 카드와 같은 처방).
+          * 말씀 폭을 제한해 글이 인물을 침범하지 않게 하고, 출처는 글 아래 왼쪽에 둔다. */}
+        <blockquote
+          className={`meditation-verse-quote${sceneReady ? ' is-art-ready' : ''}`}
+        >
+          <div className="meditation-verse-body">
+            <span className="meditation-verse-glyph" aria-hidden>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7.2 6.5c-2.6.9-4.2 3.1-4.2 6.1V17.5h5.5V12H5.6c.1-1.7 1-2.9 2.7-3.5zm9.3 0c-2.6.9-4.2 3.1-4.2 6.1V17.5h5.5V12h-2.9c.1-1.7 1-2.9 2.7-3.5z" />
+              </svg>
+            </span>
+            <p className="meditation-verse-text">{data.verse.text}</p>
+            <cite className="meditation-verse-reference">— {data.verse.reference}</cite>
+          </div>
         </blockquote>
 
         <div className="meditation-question-block">

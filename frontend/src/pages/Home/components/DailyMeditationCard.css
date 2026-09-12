@@ -680,50 +680,96 @@
   opacity: 0.85;
 }
 
-/* ── 핵심 절 — 독립된 내부 인셋 박스 ─────── */
+/* ── 핵심 절 — 들판 장면 위에 놓인 말씀 ───────
+ * 예수님과 어린양이 들판에 앉아 먼 산을 바라보는 삽화(3.07:1)를 박스 오른쪽에
+ * cover 로 깔고, 인물이 없는 왼쪽 하늘·들판 위에 박스색 스크림을 덮어 말씀을
+ * 올린다(지금 함께 읽는 카드 .live-card 와 같은 처방). 삽화는 ::before(도착 후
+ * 페이드인), 스크림은 ::after, 본문은 그 위 — 세 겹이 전부 이 박스 안에서 끝난다.
+ *   라이트: 흰 스크림 → 카드 바탕과 한 몸, 오른쪽으로 갈수록 낮 하늘이 드러난다
+ *   다크:   밤하늘 남색 스크림(삽화 왼쪽 가장자리 색을 역산) → 박스 자체가 밤 장면
+ * 삽화는 높이에 맞춰 커지고 오른쪽 끝에 붙으므로, 말씀이 길어져 박스가 자라도
+ * 인물은 항상 우측에 온전히 서고 왼쪽 하늘만 더 잘려 나간다. */
 .meditation-verse-quote {
+  --verse-scene-scrim: #ffffff;
+  --verse-scene-base: #eaf1fb; /* 삽화 도착 전 바탕 — 삽화 하늘의 평균색 */
   position: relative;
+  isolation: isolate;
+  overflow: hidden;
   margin: 0 0 12px;
-  /* 좌우 여백을 2px 줄여 한 줄에 들어가는 어절 수를 늘린다 —
-     keep-all 로 어절을 쪼개지 않는 만큼 가로 폭이 곧 줄바꿈 품질이다 */
-  padding: 18px 18px 16px;
+  min-height: 172px;
+  padding: 16px 16px 14px;
   border-radius: 18px;
-  background: linear-gradient(135deg, var(--brand-soft) 0%, var(--tint-morning) 100%);
-  border: 1px solid var(--brand-soft-strong);
+  background: var(--verse-scene-base);
+  border: 1px solid rgba(49, 130, 246, 0.14);
 }
 .dark .meditation-verse-quote {
-  background: linear-gradient(135deg, rgba(49, 130, 246, 0.16) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --verse-scene-scrim: #0e1b2d;
+  --verse-scene-base: #0f1a2c;
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 큰 따옴표 글리프 — 본문 따옴표 대신 시각 기호로.
- * 블록으로 두면 글리프가 한 줄을 통째로 차지해 그 오른쪽이 텅 비고,
- * 말씀이 카드 안에서 아래로 밀려 떠 보인다. 첫 줄 옆으로 흘려
- * 인용이 시작되는 지점을 짚어 주는 표식이 되게 한다. */
+/* 삽화 레이어 — 오른쪽 끝·세로 중앙 기준 cover. 세로 여백이 없도록 박스 높이가
+ * 곧 삽화 높이가 된다. 도착 전엔 투명, 도착하면 짧게 페이드인. */
+.meditation-verse-quote::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url('/images/home/verse-scene-light.webp') right center / cover no-repeat;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+.dark .meditation-verse-quote::before {
+  background-image: url('/images/home/verse-scene-dark.webp');
+}
+.meditation-verse-quote.is-art-ready::before {
+  opacity: 1;
+}
+
+/* 스크림 — 말씀 폭(64%)이 끝나는 자리까지 거의 불투명하게 받치고, 인물(우측 ~35%)
+ * 앞에서 완전히 걷힌다. 약간 기울인 각도(100deg)라 경계가 직선 띠로 읽히지 않는다. */
+.meditation-verse-quote::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    var(--verse-scene-scrim) 0%,
+    var(--verse-scene-scrim) 42%,
+    color-mix(in srgb, var(--verse-scene-scrim) 94%, transparent) 54%,
+    color-mix(in srgb, var(--verse-scene-scrim) 58%, transparent) 66%,
+    color-mix(in srgb, var(--verse-scene-scrim) 0%, transparent) 80%
+  );
+}
+
+/* 말씀 영역 — 삽화의 인물을 침범하지 않도록 폭을 묶는다. 이 폭이 곧 줄바꿈
+ * 품질이므로 글자는 한 단계 줄이고(19→17.5px) 행간으로 숨을 준다. */
+.meditation-verse-body {
+  position: relative;
+  max-width: 64%;
+}
+
+/* 큰 따옴표 글리프 — 첫 줄 옆으로 흘려 인용이 시작되는 지점을 짚는 표식 */
 .meditation-verse-glyph {
   float: left;
-  width: 22px;
-  height: 22px;
-  margin: 6px 8px 0 0;
+  width: 20px;
+  height: 20px;
+  margin: 5px 7px 0 0;
   color: var(--brand);
-  opacity: 0.75;
+  opacity: 0.8;
 }
 .meditation-verse-glyph svg { width: 100%; height: 100%; }
 
-/* 말씀만 명조(Noto Serif KR) — 카드 안에서 "지금 읽는 것이 성경 본문"임을
-   서체가 먼저 말한다. 명조는 같은 크기에서 고딕보다 작아 보이고 획이 가늘어
-   17px/600 을 그대로 쓰면 오히려 힘이 빠지므로 한 단계 키우고(19px) 웨이트는
-   낮춘다(400) — 굵기 대신 크기·행간으로 무게를 만드는 게 명조 문법이다. */
+/* 말씀만 명조(Noto Serif KR) — "지금 읽는 것이 성경 본문"임을 서체가 먼저 말한다.
+   명조는 굵기 대신 크기·행간으로 무게를 만든다(400). */
 .meditation-verse-text {
   font-family: var(--font-serif-kr);
-  font-size: 19px;
-  /* 명조 + 짧은 측정폭(카드 폭)에서는 1.75 도 빽빽하게 읽힌다.
-     크기는 그대로 두고 행간만 열어 구절이 숨 쉬게 한다 */
-  line-height: 1.8;
+  font-size: 17.5px;
+  line-height: 1.75;
   font-weight: 400;
   letter-spacing: -0.005em;
-  /* 어절 단위 줄바꿈 — 단어 중간이 잘리지 않게. 다만 공백 없는 긴 문자열
-     (URL·원어 표기)이 카드를 밀어내지 않도록 안전판을 함께 둔다 */
+  /* 어절 단위 줄바꿈 — 단어 중간이 잘리지 않게. 공백 없는 긴 문자열 안전판 포함 */
   word-break: keep-all;
   overflow-wrap: break-word;
   /* 마지막 줄에 한 어절만 남는 고아 줄을 브라우저가 알아서 피하게 한다 */
@@ -732,26 +778,29 @@
   margin: 0;
 }
 
-/* 좁은 화면(≤360px)에서는 측정폭 자체가 부족해 어절이 과하게 쪼개진다.
-   글자 크기는 유지하고 좌우 여백과 자간만 조금 더 조여 한 줄을 벌어준다 */
+/* 좁은 화면(≤360px)에서는 측정폭 자체가 부족하다 — 말씀 폭을 조금 더 열고
+   자간을 조여 한 줄을 벌어준다(스크림은 그대로라 인물 왼쪽만 살짝 더 덮인다) */
 @media (max-width: 360px) {
-  .meditation-verse-quote { padding-left: 15px; padding-right: 15px; }
-  .meditation-verse-text { letter-spacing: -0.015em; }
+  .meditation-verse-quote { padding-left: 14px; padding-right: 14px; }
+  .meditation-verse-body { max-width: 68%; }
+  .meditation-verse-text { font-size: 17px; letter-spacing: -0.015em; }
 }
 
 /* 출처는 본문이 아니라 꼬리표 — 고딕으로 되돌리고 한 단계 더 작고 흐리게.
- * 왼쪽에 두면 바로 위 제목(창세기 2:1-25)과 같은 자리에서 같은 책 이름이
- * 두 번 읽혀 겹쳐 보인다. 오른쪽 끝에 붙여 인용의 서명처럼 마무리한다. */
+ * 오른쪽 끝은 삽화(인물)의 자리라, 시안대로 말씀 아래 왼쪽에 서명처럼 붙인다. */
 .meditation-verse-reference {
   display: block;
   clear: both;
-  margin-top: 12px;
+  margin-top: 10px;
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--brand-muted);
-  text-align: right;
+  text-align: left;
   font-style: normal;
+}
+.dark .meditation-verse-reference {
+  color: rgba(186, 214, 255, 0.82);
 }
 
 /* ── 오늘의 질문 — 박스가 아니라 인용구(pull-quote) 문법 ──
@@ -926,7 +975,7 @@
 /* 높이는 실제 블록을 헤드리스로 잰 값(구절 행 67·핵심 절 183·질문 115·CTA 52) — 스켈레톤이
    실제보다 66px 낮아 데이터 도착 때 아래 피드가 밀렸다(실측 CLS 0.115). 블록 마크업을 바꾸면 다시 잴 것. */
 .meditation-skeleton.passage { height: 67px; width: 62%; border-radius: 8px; margin: 18px 0 12px; }
-.meditation-skeleton.quote { height: 183px; border-radius: 18px; margin-bottom: 12px; }
+.meditation-skeleton.quote { height: 172px; border-radius: 18px; margin-bottom: 12px; }
 .meditation-skeleton.question { height: 115px; border-radius: 18px; margin-bottom: 16px; }
 .meditation-skeleton.actions { height: 52px; border-radius: 16px; }
 

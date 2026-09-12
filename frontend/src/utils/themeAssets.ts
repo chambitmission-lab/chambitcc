@@ -90,6 +90,12 @@ export const LIVE_READING_CARD: ThemePair = {
   light: '/images/home/live-reading-light.webp',
   dark: '/images/home/live-reading-dark.webp',
 }
+/** 홈 오늘의 묵상 카드 — 핵심 절 박스 뒤 "예수님과 어린양이 들판에 앉은" 장면 (DailyMeditationCard.css)
+ * 로그인 홈에만 뜨는 카드라 매니페스트 대신 컴포넌트가 useThemeArt 로 등록한다 */
+export const VERSE_SCENE: ThemePair = {
+  light: '/images/home/verse-scene-light.webp',
+  dark: '/images/home/verse-scene-dark.webp',
+}
 /** 홈 공지 배너 마스코트 (HomeNotice.tsx 인라인 스타일) */
 export const NOTICE_BANNER: ThemePair = { light: '/images/notice/banner-light.webp', dark: '/images/notice/banner-dark.webp' }
 /** /bible 통독표 히어로 (book-selector.css) — 테마 쌍 중 가장 큰 파일(71~92KB) */
