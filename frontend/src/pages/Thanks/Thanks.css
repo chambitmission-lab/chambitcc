@@ -1,6 +1,9 @@
 /* /thanks — 히어로·감사 카드·타임라인 (색은 theme.css 토큰만) */
 
-/* ── Hero: 오늘의 말씀 — garden 히어로와 같은 "좌 surface 그라데이션 + 우 사진" 기법 ── */
+/* ── Hero: 오늘의 말씀 — 좌 surface 그라데이션 + 우 삽화 ──
+   프롬프트·구역표는 docs/thanks-hero-bg-prompts.md. 에셋은 src/assets 에 둔다
+   (번들러 콘텐츠 해시 → 다시 구우면 URL 이 같이 바뀌어 SW 옛 캐시를 비켜 간다).
+   CSS 배경은 preload 스캐너 사각지대라 선요청은 themeAssets.ts 의 THANKS_HERO 가 맡는다. */
 .thanks-hero {
   position: relative;
   overflow: hidden;
@@ -14,18 +17,18 @@
   background-color: var(--surface-container);
   background-image:
     linear-gradient(90deg, var(--surface-container) 38%, rgba(0, 0, 0, 0) 78%),
-    var(--thanks-hero-image);
+    url('../../assets/thanks/hero-light.webp');
   background-repeat: no-repeat;
   background-position: left center, right 40%;
   background-size: auto, cover;
   /* cover 사진이 반투명 테두리 밑까지 번져 위쪽에 1px 사진 띠가 비치는 것 방지 */
   background-clip: padding-box;
 }
-/* 다크에선 사진을 한 톤 눌러 카드와 섞이게 */
+/* 다크는 삽화 자체가 웜 차콜 밤이라 누름막을 얹지 않는다 — 얹으면 오른쪽 장면이 죽는다 */
 html.dark .thanks-hero {
   background-image:
-    linear-gradient(90deg, var(--surface-container) 38%, rgba(19, 19, 19, 0.35) 78%, rgba(19, 19, 19, 0.15) 100%),
-    var(--thanks-hero-image);
+    linear-gradient(90deg, var(--surface-container) 38%, rgba(0, 0, 0, 0) 78%),
+    url('../../assets/thanks/hero-dark.webp');
 }
 .thanks-hero-body { position: relative; max-width: 62%; }
 .thanks-hero-label {

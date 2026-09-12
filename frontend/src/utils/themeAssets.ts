@@ -32,6 +32,8 @@ import missionHeroLight from '../assets/mission/hero-light.webp'
 import missionHeroDark from '../assets/mission/hero-dark.webp'
 import classHeroLight from '../assets/classes/hero-light.webp'
 import classHeroDark from '../assets/classes/hero-dark.webp'
+import thanksHeroLight from '../assets/thanks/hero-light.webp'
+import thanksHeroDark from '../assets/thanks/hero-dark.webp'
 import heroSpringDay from '../assets/hero/spring-afternoon.webp'
 import heroSummerDay from '../assets/hero/afternoon.webp'
 import heroAutumnDay from '../assets/hero/autumn-afternoon.webp'
@@ -143,6 +145,8 @@ export const OFFERING_HERO: ThemePair = { light: '/images/offering/hero-light.we
 export const MISSION_HERO: ThemePair = { light: missionHeroLight, dark: missionHeroDark }
 /** /classes 히어로 (class-hero.css) — 게시판 앞에 모인 우리 반 */
 export const CLASS_HERO: ThemePair = { light: classHeroLight, dark: classHeroDark }
+/** /thanks 오늘의 말씀 히어로 (Thanks.css) — 감사 항아리에 쪽지를 넣는 양 */
+export const THANKS_HERO: ThemePair = { light: thanksHeroLight, dark: thanksHeroDark }
 /** /visit 히어로 사진 — Visit.tsx 가 인라인 style 로 고른다(라이트=낮, 다크=밤) */
 export const VISIT_HERO: ThemePair = { light: '/images/visit/church-day.webp', dark: '/images/visit/church-night.webp' }
 
@@ -192,6 +196,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/garden$/, pairs: [GARDEN_HERO] },
   { match: /^\/rooms$/, pairs: [ROOMS_HERO] },
   { match: /^\/classes$/, pairs: [CLASS_HERO] },
+  { match: /^\/thanks$/, pairs: [THANKS_HERO] },
   { match: /^\/capsule$/, pairs: [CAPSULE_HERO] },
   { match: /^\/groups\/(?!join\/)[^/]+$/, pairs: [GROUP_DETAIL_HERO] },
   { match: /^\/bible$/, pairs: [READING_HERO, RESUME_CARD] },

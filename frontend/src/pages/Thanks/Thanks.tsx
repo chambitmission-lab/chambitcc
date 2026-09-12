@@ -28,11 +28,12 @@ import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
 import ThanksAvatar from '../Home/components/ThanksThread/ThanksAvatar'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
 import { ThanksIcon } from '../../components/icons/ThanksIcons'
-import gratitudeHero from '../../assets/hero/gratitude.webp'
 import '../Home/components/ThanksThread/thanks.css'
 import './Thanks.css'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { THANKS_HERO } from '../../utils/themeAssets'
 
 /* 히어로에 하루 하나씩 도는 감사 말씀 */
 const THANKS_VERSES = [
@@ -68,6 +69,7 @@ const Thanks = () => {
   const navigate = useNavigate()
   const admin = can('community:moderate')
   const queryClient = useQueryClient()
+  useThemeArt(THANKS_HERO)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [showComposer, setShowComposer] = useState(false)
@@ -470,10 +472,7 @@ const Thanks = () => {
           <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
             {/* Hero — 오늘의 말씀 (garden 히어로와 같은 그라데이션+사진 기법) */}
             <section className="px-4 pt-4 lg:p-0">
-              <article
-                className="thanks-hero"
-                style={{ ['--thanks-hero-image' as string]: `url(${gratitudeHero})` }}
-              >
+              <article className="thanks-hero">
                 <div className="thanks-hero-body">
                   <span className="thanks-hero-label">TODAY’S BIBLE</span>
                   <p className="thanks-hero-verse">“{ko ? verse.ko : verse.en}”</p>
