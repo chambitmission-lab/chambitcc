@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './verseCopy'
 import { isGlossaryEnabled, setGlossaryEnabled } from '../data/bibleGlossary'
 import { getReaderLayout, setReaderLayout, type ReaderLayout } from '../data/readerLayout'
+import { isSectionHeadingsEnabled, setSectionHeadingsEnabled } from '../data/sectionHeadings'
 import { isPresenceSharingEnabled, setPresenceSharingEnabled } from '../data/presenceSharing'
 import { ensureDeferredFontsNow } from '../../../utils/deferredFonts'
 
@@ -77,6 +78,8 @@ const ReaderSettings = () => {
   const [glossaryOn, setGlossaryOn] = useState(isGlossaryEnabled)
   // 본문 보기(절별/이어읽기) — readerLayout 모듈이 저장·전파 (VerseList가 구독)
   const [layout, setLayout] = useState<ReaderLayout>(getReaderLayout)
+  // 단락 소제목(태초의 창조 1-2절 …) — sectionHeadings 모듈이 저장·전파 (VerseList가 구독)
+  const [headingsOn, setHeadingsOn] = useState(isSectionHeadingsEnabled)
   // 함께 읽기 — 내 읽기 위치 공유 (presenceSharing 모듈이 저장·전파, VerseList 하트비트가 구독)
   const [sharingOn, setSharingOn] = useState(isPresenceSharingEnabled)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -151,8 +154,39 @@ const ReaderSettings = () => {
           </div>
           <p className="reader-settings__hint">
             {layout === 'flow'
-              ? '절을 문단으로 이어 붙이고 번호는 작게 달아요. 단락마다 소제목이 붙어 종이 성경처럼 읽혀요.'
+              ? '절을 문단으로 이어 붙이고 번호는 작게 달아요. 종이 성경처럼 쭉 읽혀요.'
               : '절마다 한 줄씩 나눠 보여줘요. 절 단위로 표시·묵상 노트를 남기기 편해요.'}
+          </p>
+
+          {/* 단락 소제목 — 본문 중간의 개요 제목. 끄면 단락 나누기는 그대로 두고 제목만 감춘다 */}
+          <div className="reader-settings__row">
+            <span className="reader-settings__label">단락 소제목</span>
+            <div className="reader-settings__seg">
+              <button
+                type="button"
+                className={headingsOn ? 'active' : ''}
+                onClick={() => {
+                  setSectionHeadingsEnabled(true)
+                  setHeadingsOn(true)
+                }}
+              >
+                켜기
+              </button>
+              <button
+                type="button"
+                className={!headingsOn ? 'active' : ''}
+                onClick={() => {
+                  setSectionHeadingsEnabled(false)
+                  setHeadingsOn(false)
+                }}
+              >
+                끄기
+              </button>
+            </div>
+          </div>
+          <p className="reader-settings__hint">
+            “태초의 창조 1-2절”처럼 본문 사이에서 흐름을 짚어 주는 제목이에요. 성경 원문에는 없는
+            안내라서, 끄면 말씀만 이어져요.
           </p>
 
           <div className="reader-settings__divider" aria-hidden />

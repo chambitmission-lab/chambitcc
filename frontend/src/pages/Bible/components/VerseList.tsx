@@ -30,6 +30,7 @@ import { useVerseScroll } from '../hooks/useVerseScroll'
 import { useAudioFollow } from '../hooks/useAudioFollow'
 const VerseShareSheet = lazyModal(() => import('./VerseShareSheet'))
 import { getReaderLayout, subscribeReaderLayout } from '../data/readerLayout'
+import { isSectionHeadingsEnabled, subscribeSectionHeadings } from '../data/sectionHeadings'
 import { loadBookOutline, peekBookOutline, type BookOutline, type OutlineSection } from '../data/chapterOutlines'
 import { bibleKeys } from '../../../hooks/queryKeys'
 import { can } from '../../../utils/access'
@@ -198,6 +199,8 @@ const VerseList = ({
   // 본문 보기(절별/이어읽기) — Aa 읽기 설정에서 바꾸면 열린 본문에 즉시 반영
   const layout = useSyncExternalStore(subscribeReaderLayout, getReaderLayout)
   const isFlow = layout === 'flow'
+  // 단락 소제목 표시 여부 — 끄면 본문 중간의 소제목만 감추고 단락 나누기는 그대로 둔다
+  const showHeadings = useSyncExternalStore(subscribeSectionHeadings, isSectionHeadingsEnabled)
   // 단락 나누기용 장 개요(책별 lazy). 캐시된 책은 동기로 꺼내 깜빡임을 피한다.
   // 이어읽기는 문단으로, 절별 보기는 단락 첫 절 앞 소제목으로 쓴다 — PC 레일의 "이 장의 흐름"이
   // 모바일에선 숨겨지므로(1024px 미만 display:none) 본문 안에서 같은 흐름을 보여준다.
@@ -977,7 +980,9 @@ const VerseList = ({
             ? // 이어읽기: 단락(소제목) 안에 절이 인라인으로 흐른다
               flowParagraphs.map((para) => (
                 <section key={para.key} className="verse-paragraph">
-                  {para.title && <h3 className="verse-paragraph__title">{para.title}</h3>}
+                  {showHeadings && para.title && (
+                    <h3 className="verse-paragraph__title">{para.title}</h3>
+                  )}
                   <div className="verse-paragraph__body">
                     {para.verses.map((verse) => renderVerse(verse, bookNameKo, selectedChapter, 'flow'))}
                   </div>
@@ -986,7 +991,7 @@ const VerseList = ({
             : // 절별 보기: 절 카드는 그대로 두고, 개요 단락이 시작되는 절 앞에 소제목만 끼운다
               flowParagraphs.map((para) => (
                 <div key={para.key} className="verse-section">
-                  {para.title && (
+                  {showHeadings && para.title && (
                     <h3 className="verse-section__title">
                       <span className="verse-section__name">{para.title}</span>
                       {para.range && (
