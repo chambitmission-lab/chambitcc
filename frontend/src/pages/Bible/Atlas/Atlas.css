@@ -1,6 +1,110 @@
 /* 성경 지도여행 (/bible/atlas) — 지도 캔버스 + 걸어보기 + 지점 목록
    클래스 접두사는 atl-. BookJourneyPath(bjp-) 와 같은 규칙이다. */
 
+/* ── 화면 뼈대 (스크롤러 + 지도 고정) ──────────────────────────
+   예전엔 페이지 전체가 스크롤돼, 아래 지점 목록을 누를 때마다 지도가 위로
+   사라지고 다시 스크롤해 올라가 확인해야 했다(이 화면에서 가장 잦은 행동이
+   "목록 탭 → 지도 확인"인데 둘이 한 화면에 없었다).
+   - 모바일: 이 화면만 자체 스크롤러로 만들고 그 안에서 지도 덩어리를 sticky 로
+     세운다. 앱 전역(#root overflow-x) 탓에 body 스크롤에는 sticky 가 붙지 않아
+     ([[root-overflow-sticky-pitfall]]) 스크롤 컨테이너를 여기서 만드는 것이다.
+   - PC(lg+): 지도 판과 지점 목록을 좌우로 나눠, 목록은 자기 안에서만 스크롤한다. */
+
+/* 지도 덩어리 — 헤드 헤어라인과 지도 사이 숨구멍을 여기서 준다(.atl-stage 마진 대신) */
+.atl-sticky {
+  padding-top: 0.875rem;
+}
+
+.atl-page {
+  min-height: 100vh;
+  /* 모바일 지도 높이 — 목록과 한 화면에 같이 서야 하므로 예전(46vh)보다 낮다.
+     vh 대신 index.html 이 실측 주입하는 --vvh 를 쓴다(설치형 PWA 오계산 회피) */
+  --atl-map-h: clamp(212px, calc(var(--vvh, 100dvh) * 0.33), 320px);
+}
+
+@media (max-width: 1023px) {
+  /* 모바일에선 좌우 판 구분이 없다 — 박스를 지워 sticky 지도의 기준(containing block)이
+     카드 전체가 되게 한다. 판을 그대로 두면 지도는 자기 판(지도+요약)이 지나가는
+     순간 떨어져, 목록을 스크롤하는 내내 붙어 있어야 할 이유가 사라진다. */
+  .atl-body,
+  .atl-pane-map,
+  .atl-pane-list {
+    display: contents;
+  }
+
+  .atl-page {
+    height: calc(100vh - 3.5rem);
+    height: calc(100dvh - 3.5rem);
+    height: calc(var(--vvh, 100dvh) - 3.5rem);
+    min-height: 0;
+    overflow-y: auto;
+    /* 안쪽 스크롤이 바깥(body)으로 번지지 않게 — 브라우저 기본 PTR 차단과 같은 규약 */
+    overscroll-behavior-y: contain;
+  }
+
+  /* 지도 + 재생 컨트롤(퀴즈 중엔 문제 패널)이 함께 붙는다.
+     배경은 카드와 같은 색이어야 목록이 그 아래로 흘러도 비치지 않는다
+     (모바일 카드 배경 background-light === --app-canvas) */
+  .atl-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    background: var(--app-canvas);
+  }
+  .atl-sticky--stuck {
+    box-shadow: 0 10px 18px -14px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* 아주 낮은 화면(가로 모드·작은 폰)에선 지도를 더 낮춰 목록 자리를 남긴다 —
+   미디어쿼리는 모바일 키보드·설치형에서 어긋나므로 실측 tier 속성을 쓴다 */
+:root[data-vh-tier='short'] .atl-page {
+  --atl-map-h: clamp(190px, calc(var(--vvh, 100dvh) * 0.3), 260px);
+}
+:root[data-vh-tier='tiny'] .atl-page {
+  --atl-map-h: 176px;
+}
+
+@media (min-width: 1024px) {
+  /* 지도 판 | 지점 목록 — 목록을 눌러도 지도가 그대로 보인다.
+     예전엔 이 자리를 우측 레일 카드(여정 요약·팁)가 쓰고 목록은 지도 아래
+     한 컬럼으로 길게 이어져, 화면 두 배를 스크롤해야 지도와 목록을 오갔다. */
+  .atl-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+  .atl-pane-map {
+    flex: 1;
+    min-width: 0;
+  }
+  .atl-pane-list {
+    width: 336px;
+    flex-shrink: 0;
+    max-height: calc(100vh - 12rem);
+    max-height: calc(var(--vvh, 100vh) - 12rem);
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding: 0.9rem 1rem 0 1.15rem;
+    border-left: 1px solid var(--ig-border);
+    scrollbar-width: thin;
+  }
+  .atl-pane-list .atl-stops {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* ★크롬(127+)은 스크롤 컨테이너를 키보드 포커스 대상으로 만든다 — 이 화면은 본문이
+   스크롤러라, 안의 버튼을 누르면 화면 전체를 두르는 기본 파란 포커스 링이 그려졌다
+   (좌우 가장자리에 파란 세로선으로 보인다). 앱 어디에도 없는 장식이라 지운다. */
+.atl-page:focus,
+.atl-page:focus-visible,
+.atl-pane-list:focus,
+.atl-pane-list:focus-visible {
+  outline: none;
+}
+
 /* ── 페이지 헤드 (타이틀 + 도장 + 여정 선택) ────────────────── */
 
 .atl-head {
@@ -82,9 +186,9 @@
 
 .atl-stage {
   position: relative;
-  /* 위 여백은 헤드의 헤어라인과 지도 사이 숨구멍 — 예전엔 칩 줄의
-     padding-bottom 이 이 역할을 했다 */
-  margin: 0.875rem 1rem 0;
+  /* 헤드의 헤어라인과 지도 사이 숨구멍은 .atl-sticky 의 padding-top 이 맡는다 —
+     sticky 래퍼 안에서 마진이 겹쳐 붙는 위치가 어긋나는 것을 피한다 */
+  margin: 0 1rem;
   border-radius: 1.25rem;
   overflow: hidden;
   border: 1px solid var(--ig-border);
@@ -101,7 +205,8 @@
   --atl-leader: rgba(60, 65, 73, 0.45);
 
   position: relative;
-  height: clamp(272px, 46vh, 440px);
+  /* 높이는 .atl-page 가 정한다(모바일은 목록과 한 화면에 서도록 낮게, PC는 아래 440px) */
+  height: var(--atl-map-h, clamp(272px, 46vh, 440px));
   touch-action: none; /* 지도에서 손가락 이동은 스크롤이 아니라 팬 */
   cursor: grab;
   background: var(--atl-sea);
@@ -402,6 +507,12 @@
 
 /* ── 여정 요약 ─────────────────────────────────────────────── */
 
+/* ── 여정 요약 ─────────────────────────────────────────────── */
+
+.atl-summary {
+  padding: 0 1rem;
+}
+
 .atl-meta {
   display: flex;
   flex-wrap: wrap;
@@ -426,12 +537,55 @@
   color: var(--ig-primary-text);
   word-break: keep-all;
 }
+/* 여정 한 줄 소개 — 우측 레일 카드를 지점 목록에 내주면서 이리로 합쳤다 */
+.atl-tagline {
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+
+/* ── 지점 목록 머리 ────────────────────────────────────────── */
+
+.atl-list-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0 1rem;
+  margin-top: 1.1rem;
+}
+.atl-list-head__title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-list-head__hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+
+/* 사용법 카드 — PC 목록 꼬리에만 (모바일에선 화면만 길어진다) */
+.atl-tips-card {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .atl-list-head {
+    padding: 0;
+    margin-top: 0;
+  }
+  .atl-tips-card {
+    display: block;
+    margin: 0.25rem 0 1.25rem;
+  }
+}
 
 /* ── 지점 목록 ─────────────────────────────────────────────── */
 
 .atl-stops {
   position: relative;
-  margin: 0.9rem 0 0;
+  margin: 0.5rem 0 0;
   padding: 0 1rem 1.5rem;
   list-style: none;
 }
@@ -596,7 +750,7 @@
   border: 1px solid var(--ig-border);
 }
 
-/* ── 우측 레일 (lg+) ───────────────────────────────────────── */
+/* ── 사용법 카드 (PC 목록 꼬리) ────────────────────────────── */
 
 .atl-rail-card {
   position: relative;
@@ -617,38 +771,6 @@
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--ig-secondary-text);
-}
-.atl-rail-card__title {
-  margin-top: 0.2rem;
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--ig-primary-text);
-  word-break: keep-all;
-}
-.atl-rail-card__text {
-  margin-top: 0.4rem;
-  font-size: 0.8rem;
-  line-height: 1.65;
-  color: var(--ig-secondary-text);
-  word-break: keep-all;
-}
-.atl-rail-stats {
-  display: flex;
-  gap: 1.25rem;
-  margin-top: 0.9rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--ig-border);
-}
-.atl-rail-stats dt {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--ig-secondary-text);
-}
-.atl-rail-stats dd {
-  margin: 0.1rem 0 0;
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: var(--ig-primary-text);
 }
 .atl-tips {
   list-style: none;

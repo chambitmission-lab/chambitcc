@@ -1,0 +1,29 @@
+/* /classes 히어로 삽화 — 프롬프트·구역표는 docs/class-note-hero-bg-prompts.md
+   에셋은 src/assets 에 둔다(번들러가 콘텐츠 해시를 붙여 줘서 다시 구우면 URL 이 같이 바뀐다).
+   public/ 이면 sw.js 의 stale-while-revalidate 가 옛 그림을 계속 내준다.
+   CSS 배경은 preload 스캐너 사각지대라 선요청은 themeAssets.ts 의 CLASS_HERO 가 맡는다. */
+.class-hero-art {
+  background-image: url('../../assets/classes/hero-light.webp');
+  background-size: cover;
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+
+.dark .class-hero-art {
+  background-image: url('../../assets/classes/hero-dark.webp');
+}
+
+.class-hero-art.is-ready {
+  opacity: 1;
+}
+
+/* 밝은 배경 위 남색 글씨에 검은 그림자가 붙으면 지저분하다 — 다크에서만 쓴다 */
+.dark .class-hero-ink {
+  text-shadow: 0 1px 14px rgba(4, 16, 44, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .class-hero-art { transition: none; }
+}

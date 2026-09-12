@@ -17,7 +17,9 @@ import { showToast } from '../../utils/toast'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { Avatar, DEPARTMENTS, DeptBadge, timeAgo } from './classUi'
 import { BellIcon, KeyIcon, PeopleIcon, SchoolIcon, type IconFn } from './ClassIcons'
-import classNoteHero from '../../assets/hero/class-note.webp'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { CLASS_HERO } from '../../utils/themeAssets'
+import './class-hero.css'
 
 const ClassList = () => {
   const navigate = useNavigate()
@@ -27,6 +29,7 @@ const ClassList = () => {
   const [joinCode, setJoinCode] = useState('')
   const [pendingClassId, setPendingClassId] = useState<number | null>(null)
   const joinClass = useJoinClass()
+  const heroArtReady = useThemeArt(CLASS_HERO)
 
   // 반 상세(ClassHome)는 목록보다 5배 큰 청크다. 라우터가 startTransition으로
   // 전환하는 동안엔 Suspense fallback이 뜨지 않아 목록이 그대로 멈춘 것처럼 보이므로
@@ -102,54 +105,30 @@ const ClassList = () => {
           </h1>
         </div>
 
-        {/* Hero — 수채화 배경 + 브랜드 블루 워시.
+        {/* Hero — 라이트는 밝은 하늘빛 카드+남색 잉크, 다크는 심야 남색 카드+흰 글씨.
+            삽화가 불투명하게 카드를 덮으므로 위에 워시를 겹치지 않는다
+            (겹치면 왼쪽만 파랗게 눌린 얼룩이 된다 — docs/class-note-hero-bg-prompts.md).
             이미 반에 속한 사람에겐 기능 소개 대신 "내 반 현황"을 보여준다. */}
-        <section className="relative isolate overflow-hidden rounded-[26px] mx-4 mt-5 px-6 py-7 min-h-[168px] flex flex-col justify-center bg-brand text-white shadow-[0_12px_32px_-16px_var(--brand-glow)] ring-1 ring-white/[0.14] dark:ring-white/[0.1]">
-          {/* 배경 그림 — 교회와 주일학교 풍경(수채화) */}
+        <section className="relative isolate overflow-hidden rounded-[26px] mx-4 mt-5 px-6 py-7 min-h-[168px] flex flex-col justify-center bg-[linear-gradient(180deg,#c8e5ee_0%,#daecf0_100%)] ring-1 ring-[#3182f6]/15 shadow-[0_10px_30px_-14px_rgba(49,130,246,0.45)] dark:bg-[linear-gradient(180deg,#07173b_0%,#050c20_100%)] dark:ring-white/[0.08] dark:shadow-[0_10px_34px_-12px_rgba(0,0,0,0.6)]">
+          {/* 배경 그림 — 게시판 앞에 모인 우리 반(주일학교) */}
           <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: `url(${classNoteHero})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center 46%',
-            }}
+            className={`absolute inset-0 pointer-events-none class-hero-art${heroArtReady ? ' is-ready' : ''}`}
             aria-hidden
           />
-          {/* 브랜드 워시 — 왼쪽은 글씨 가독성만 확보할 정도로 은은하게, 오른쪽 교회·게시판은 살려둔다 */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                'linear-gradient(102deg, rgba(20,66,158,0.82) 0%, rgba(24,80,186,0.72) 46%, rgba(34,102,216,0.5) 80%, rgba(49,130,246,0.16) 100%)',
-            }}
-            aria-hidden
-          />
-          {/* 하단 가독성 스크림 */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(6,22,55,0) 42%, rgba(6,22,55,0.32) 76%, rgba(6,22,55,0.58) 100%)',
-            }}
-            aria-hidden
-          />
-          <div
-            className="relative z-10"
-            style={{ textShadow: '0 1px 14px rgba(4,16,44,0.45)' }}
-          >
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/75">
+          <div className="relative z-10 class-hero-ink">
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-[#2563eb] dark:text-white/70">
               Class Note
             </span>
             {hasClasses ? (
               <>
-                <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5">
+                <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5 text-[#152648] dark:text-white">
                   참여 중인 반 {classes!.length}곳
                 </h2>
                 {latestPost ? (
                   // 반 이름이 길어도 줄바꿈으로 무너지지 않게 — 이름만 줄이고 한 줄 유지
-                  <p className="flex items-center gap-2 text-[13px] text-white/90 mt-3 max-w-[19rem]">
+                  <p className="flex items-center gap-2 text-[13px] text-[#41527a] dark:text-white/85 mt-3 max-w-[19rem]">
                     <span className="shrink-0 opacity-75">최근 소식</span>
-                    <span aria-hidden className="shrink-0 w-px h-3 bg-white/30" />
+                    <span aria-hidden className="shrink-0 w-px h-3 bg-[#152648]/20 dark:bg-white/30" />
                     <span className="min-w-0 truncate font-bold">
                       {latestPost.name}
                     </span>
@@ -158,17 +137,17 @@ const ClassList = () => {
                     </span>
                   </p>
                 ) : (
-                  <p className="text-[13px] font-light leading-[1.7] text-white/90 mt-2.5 max-w-[17rem] break-keep">
+                  <p className="text-[13px] font-light leading-[1.7] text-[#41527a] dark:text-white/85 mt-2.5 max-w-[14rem] break-keep">
                     아직 올라온 알림이 없어요. 반에 들어가 첫 소식을 남겨보세요.
                   </p>
                 )}
               </>
             ) : (
               <>
-                <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5">
+                <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5 text-[#152648] dark:text-white">
                   반에 참여해 보세요
                 </h2>
-                <p className="text-[13px] font-light leading-[1.7] text-white/90 mt-2.5 max-w-[17rem] break-keep">
+                <p className="text-[13px] font-light leading-[1.7] text-[#41527a] dark:text-white/85 mt-2.5 max-w-[14rem] break-keep">
                   공지·암송요절·일정을 반별로 받아보고, 확인 버튼과 댓글로 바로
                   답할 수 있어요.
                 </p>
