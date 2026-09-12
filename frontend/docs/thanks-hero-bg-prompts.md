@@ -1,6 +1,6 @@
 # /thanks 오늘의 말씀 히어로 배경 이미지 프롬프트 (Gemini용)
 
-`/thanks` 맨 위 **오늘의 말씀 히어로**(`src/pages/Thanks/Thanks.tsx` — `.thanks-hero`,
+`/thanks` 맨 위 **오늘의 말씀 히어로**(`src/pages/Thanks/Thanks.tsx` — `.thanks-hero` 안 `.thanks-hero-art` 레이어,
 `TODAY’S BIBLE` 라벨 + `“여호와께 감사하라 그는 선하시며”` + `시 107:1`) 뒤에 깔 배경.
 라이트/다크 각 1장.
 
@@ -68,7 +68,7 @@
 | 모바일 (`max-w-md` 448 − `px-4`) | **416** | 168 | 2.48 : 1 |
 | PC(lg+) 좌측 단 (`max-w-[1100px]` − `px-6` − 레일 340 − gap 24) | **688** | 168 | 4.10 : 1 |
 
-CSS는 이렇게 깐다(`Thanks.css` `.thanks-hero`):
+CSS는 이렇게 깐다(`Thanks.css` `.thanks-hero-art` — 카드 안 절대배치 삽화 레이어, useThemeArt 도착 후 `.is-loaded` 페이드인):
 
 ```css
 background-image:

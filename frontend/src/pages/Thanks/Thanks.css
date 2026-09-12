@@ -15,17 +15,25 @@
   align-items: center;
   padding: 22px 24px;
   background-color: var(--surface-container);
+}
+/* 삽화 레이어 — 파일 도착(useThemeArt) 전에는 카드색만 보이고, 도착하면 페이드인.
+   따로 떼어 둔 건 background-image 는 opacity 전환이 안 되기 때문 */
+.thanks-hero-art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   background-image:
     linear-gradient(90deg, var(--surface-container) 38%, rgba(0, 0, 0, 0) 78%),
     url('../../assets/thanks/hero-light.webp');
   background-repeat: no-repeat;
   background-position: left center, right 40%;
   background-size: auto, cover;
-  /* cover 사진이 반투명 테두리 밑까지 번져 위쪽에 1px 사진 띠가 비치는 것 방지 */
-  background-clip: padding-box;
+  opacity: 0;
+  transition: opacity 0.45s ease;
 }
+.thanks-hero-art.is-loaded { opacity: 1; }
 /* 다크는 삽화 자체가 웜 차콜 밤이라 누름막을 얹지 않는다 — 얹으면 오른쪽 장면이 죽는다 */
-html.dark .thanks-hero {
+html.dark .thanks-hero-art {
   background-image:
     linear-gradient(90deg, var(--surface-container) 38%, rgba(0, 0, 0, 0) 78%),
     url('../../assets/thanks/hero-dark.webp');
@@ -397,6 +405,7 @@ html.dark .thanks-side-top li:nth-child(3) .thanks-side-rank {
 @media (prefers-reduced-motion: reduce) {
   .thanks-side-detail,
   .thanks-tl-highlight { animation: none !important; }
+  .thanks-hero-art { transition: none; }
 }
 
 /* ── 빈 감사 항아리 앰블럼 — 이모지 대신 브랜드 tint 원 + 선화 아이콘

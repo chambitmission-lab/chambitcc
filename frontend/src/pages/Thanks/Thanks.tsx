@@ -53,10 +53,6 @@ const THANKS_VERSES = [
   { ko: '이 날은 여호와께서 정하신 것이라', en: 'This is the day the Lord has made', ref: '시 118:24', refEn: 'Psalm 118:24' },
 ]
 
-/* 하루 단위로 도는 말씀 — 렌더 중 시각을 읽지 않도록 모듈 로드 시 한 번 고른다 */
-const TODAYS_VERSE =
-  THANKS_VERSES[Math.floor(Date.now() / 86_400_000) % THANKS_VERSES.length]
-
 /** 히어로 아바타 스택에 얼굴을 띄우는 최대 인원 — 넘으면 "+N"으로 접는다 */
 const MAX_HERO_AVATARS = 4
 
@@ -69,6 +65,13 @@ const kstDateKey = (offsetDays = 0) => {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(now)
 }
 
+/* 하루 단위로 도는 말씀 — 날짜는 KST 자정 기준(UTC 일수로 세면 아침 9시에 바뀐다).
+   렌더 중 시각을 읽지 않도록 마운트 때 한 번 고른다(useState 초기화) */
+const pickTodaysVerse = () => {
+  const days = Math.floor(Date.parse(`${kstDateKey()}T00:00:00Z`) / 86_400_000)
+  return THANKS_VERSES[days % THANKS_VERSES.length]
+}
+
 const Thanks = () => {
   const { language } = useLanguage()
   const ko = language === 'ko'
@@ -76,7 +79,7 @@ const Thanks = () => {
   const navigate = useNavigate()
   const admin = can('community:moderate')
   const queryClient = useQueryClient()
-  useThemeArt(THANKS_HERO)
+  const heroReady = useThemeArt(THANKS_HERO)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [showComposer, setShowComposer] = useState(false)
@@ -180,7 +183,7 @@ const Thanks = () => {
       recentAuthors.length,
   )
 
-  const verse = TODAYS_VERSE
+  const [verse] = useState(pickTodaysVerse)
 
   const updatePages = (
     updater: (page: ThanksPage, index: number) => ThanksPage,
@@ -495,6 +498,7 @@ const Thanks = () => {
             {/* Hero — 오늘의 말씀 (garden 히어로와 같은 그라데이션+사진 기법) */}
             <section className="px-4 pt-4 lg:p-0">
               <article className="thanks-hero">
+                <div className={`thanks-hero-art${heroReady ? ' is-loaded' : ''}`} aria-hidden />
                 <div className="thanks-hero-body">
                   <span className="thanks-hero-label">TODAY’S BIBLE</span>
                   <p className="thanks-hero-verse">“{ko ? verse.ko : verse.en}”</p>

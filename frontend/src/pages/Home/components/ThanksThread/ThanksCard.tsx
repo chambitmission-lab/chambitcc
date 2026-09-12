@@ -205,42 +205,7 @@ const ThanksCard = ({
           </span>
         </div>
 
-        <button
-          onClick={handleAmen}
-          className="relative shrink-0 flex items-center gap-1.5 h-8 pl-2.5 pr-3 rounded-full text-[12.5px] font-bold tabular-nums active:scale-95 transition-all"
-          style={
-            thanks.is_amened
-              ? {
-                  background: 'var(--brand-soft-strong)',
-                  color: 'var(--brand)',
-                  border: '1px solid color-mix(in srgb, var(--brand) 45%, transparent)',
-                }
-              : {
-                  background: 'var(--surface-inset)',
-                  color: 'var(--text-muted)',
-                  border: '1px solid var(--card-border)',
-                }
-          }
-          aria-label={ko ? '함께 감사해요' : 'Give thanks together'}
-          title={ko ? '함께 감사해요' : 'Give thanks together'}
-        >
-          <HandHeartIcon
-            size={15}
-            filled={thanks.is_amened}
-            className={popKey > 0 && thanks.is_amened ? 'thanks-heart-pop' : ''}
-          />
-          <span>{thanks.amen_count}</span>
-
-          {popKey > 0 && thanks.is_amened && (
-            <span
-              key={popKey}
-              className="thanks-plus-one absolute -top-1 right-2 text-[12px] font-extrabold pointer-events-none"
-              style={{ color: 'var(--brand)' }}
-            >
-              +1
-            </span>
-          )}
-        </button>
+        {amenButton}
       </div>
     </article>
   )
