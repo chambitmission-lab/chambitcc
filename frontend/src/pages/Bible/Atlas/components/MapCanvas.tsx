@@ -194,10 +194,24 @@ const MapCanvas = ({
 
   const unit = size.w ? view.w / size.w : 1 // 지도 단위 / 화면 px
 
+  /** 끌기가 시작된 뒤에만 캡처를 잡는다 — 이유는 onPointerDown 주석 참고 */
+  const capturePointer = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) return
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      // 이미 놓친 포인터 — 팬은 캡처 없이도 캔버스 안에서는 계속된다
+    }
+  }
+
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
     draggedRef.current = false
-    if (pointers.current.size === 1) e.currentTarget.setPointerCapture(e.pointerId)
+    // ★여기서 캡처를 잡으면 안 된다. 캡처 중에는 마우스 down/up 이 캔버스(svg)로
+    // 되겨냥돼 브라우저가 계산하는 click 타깃도 svg 가 되고, 핀 <g onClick> 이
+    // 영원히 안 불린다(퀴즈에서 반짝이는 핀을 눌러도 반응이 없던 원인).
+    // 캡처는 손가락이 캔버스를 벗어나도 팬을 이어받으려는 장치이므로,
+    // 실제로 끌기 시작한 순간(onPointerMove 임계치)에 잡는다.
   }
 
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -221,12 +235,16 @@ const MapCanvas = ({
         })
       }
       draggedRef.current = true
+      capturePointer(e)
       return
     }
 
     const dx = e.clientX - prev.x
     const dy = e.clientY - prev.y
-    if (Math.abs(dx) + Math.abs(dy) > 2) draggedRef.current = true
+    if (Math.abs(dx) + Math.abs(dy) > 2) {
+      draggedRef.current = true
+      capturePointer(e)
+    }
     setView((v) => clampView({ ...v, x: v.x - dx * unit, y: v.y - dy * unit }, aspect))
   }
 
