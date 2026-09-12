@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import confetti from 'canvas-confetti'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import MapCanvas from './components/MapCanvas'
@@ -60,12 +59,16 @@ const AtlasMap = () => {
   useEffect(() => {
     if (!journeyComplete || hasCelebratedJourney(journey.id)) return
     markJourneyCelebrated(journey.id)
-    confetti({
-      particleCount: 110,
-      spread: 78,
-      origin: { y: 0.55 },
-      colors: [journey.color, '#3182f6', '#facc15'],
-    })
+    // 축하 효과는 완주 순간에만 필요하다 — canvas-confetti 는 그때 받는다
+    // (읽기 화면·플랜과 같은 규약. 첫 진입 청크에 들고 다니지 않는다)
+    void import('canvas-confetti').then(({ default: confetti }) =>
+      confetti({
+        particleCount: 110,
+        spread: 78,
+        origin: { y: 0.55 },
+        colors: [journey.color, '#3182f6', '#facc15'],
+      }),
+    )
   }, [journeyComplete, journey])
 
   const activePlace = activePlaceId ? PLACES[activePlaceId] : undefined

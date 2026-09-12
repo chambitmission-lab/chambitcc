@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
-import { LAND_PATH } from '../data/basemap'
 import { PLACES, placeLabel } from '../data/places'
 import { atlasLinkFor, findPlaceByName } from '../placeLookup'
 import { project } from '../projection'
+import { useLandPath } from '../useLandPath'
 import '../Atlas.css'
 
 interface AtlasPlaceCardProps {
@@ -32,6 +32,8 @@ const SPAN_RATIO = 0.3
  */
 const AtlasPlaceCard = ({ name, placeId, onNavigate }: AtlasPlaceCardProps) => {
   const navigate = useNavigate()
+  // 해안선은 따로 받는다 — 읽기 흐름을 끊지 않으려면 카드가 먼저 떠야 한다
+  const landPath = useLandPath()
 
   const place = placeId ? PLACES[placeId] : name ? findPlaceByName(name) : undefined
   if (!place) return null
@@ -56,7 +58,7 @@ const AtlasPlaceCard = ({ name, placeId, onNavigate }: AtlasPlaceCardProps) => {
             height={SPAN * 2}
             className="atl-card__sea"
           />
-          <path d={LAND_PATH} className="atl-card__land" fillRule="evenodd" />
+          {landPath && <path d={landPath} className="atl-card__land" fillRule="evenodd" />}
           {/* 핀 — 미니맵은 확대/이동이 없으므로 크기를 고정값으로 둔다 */}
           <g transform={`translate(${point.x} ${point.y})`}>
             <circle r={9} className="atl-card__halo" />

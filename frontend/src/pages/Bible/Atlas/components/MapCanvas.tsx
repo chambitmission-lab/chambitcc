@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { AtlasJourney } from '../atlasTypes'
 import { layoutLabels, type LabelBox, type LabelInput } from '../labelLayout'
 import { PLACES, placeLabel } from '../data/places'
-import { LAND_PATH } from '../data/basemap'
+import { useLandPath } from '../useLandPath'
 import {
   MAP_VIEW,
   boundsOf,
@@ -83,6 +83,8 @@ const MapCanvas = ({
   quizRevealed,
 }: MapCanvasProps) => {
   const wrapRef = useRef<HTMLDivElement>(null)
+  // 해안선은 따로 받는다 — 도착 전에도 바다·경로·핀은 먼저 그려진다
+  const landPath = useLandPath()
   const [size, setSize] = useState({ w: 0, h: 0 })
   const [view, setView] = useState<ViewBox>({
     x: 0,
@@ -325,8 +327,8 @@ const MapCanvas = ({
           className="atl-sea"
         />
 
-        {/* 육지 — 미리 구운 해안선 (data/basemap.ts) */}
-        <path d={LAND_PATH} className="atl-land" fillRule="evenodd" />
+        {/* 육지 — 미리 구운 해안선 (data/landPath.ts, 동적 로드) */}
+        {landPath && <path d={landPath} className="atl-land" fillRule="evenodd" />}
 
         {/* 경로 */}
         <g fill="none" strokeLinecap="round">

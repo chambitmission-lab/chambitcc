@@ -3,7 +3,9 @@
  *
  * Natural Earth 1:50m 국가 경계(world-atlas)를 성경 무대(지중해 동부 ~ 메소포타미아)로
  * 잘라내고, 국경을 지운 한 덩어리 육지로 합친 뒤 SVG path 문자열로 굽는다.
- * 결과는 src/pages/Bible/Atlas/data/basemap.ts 에 정적 상수로 커밋된다.
+ * 결과는 두 파일로 커밋된다 — 해안선(38KB 문자열)은 data/landPath.ts, 거리 체감
+ * 카드용 작은 비교 지도는 data/basemap.ts. 나눠 둔 이유는 해안선을 동적으로
+ * 받아(useLandPath) 지도 첫 페인트를 붙잡지 않기 위해서다.
  *
  * 왜 런타임이 아니라 빌드 전 1회인가
  * - 지도 타일/GeoJSON을 런타임에 받으면 요금·오프라인·다크모드 문제가 모두 생긴다.
@@ -27,6 +29,7 @@ const topojson = require('topojson-client')
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(__dirname, '../src/pages/Bible/Atlas/data/basemap.ts')
+const OUT_LAND = resolve(__dirname, '../src/pages/Bible/Atlas/data/landPath.ts')
 
 // ── 투영 (projection.ts 와 동일) ────────────────────────────────
 // 성경 무대 전체를 담는 경위도 상자. 서쪽 끝 로마(12.5E), 동쪽 끝 우르(46.1E),
@@ -281,15 +284,29 @@ const main = () => {
     }
   })
 
-  const source = `// 자동 생성 파일 — 직접 수정하지 마세요.
+  const HEADER = `// 자동 생성 파일 — 직접 수정하지 마세요.
 //   생성: node scripts/gen-atlas-basemap.mjs
 //   원본: Natural Earth 1:50m (world-atlas), 국경 병합 + Douglas-Peucker 단순화
+//`
+
+  const landSource = `${HEADER}
+// 해안선만 따로 둔 파일이다 — 38KB 문자열 하나라서 지도 청크에 섞여 있으면
+// 지도 화면(그리고 읽기 화면의 지명 카드)의 첫 페인트가 이만큼 늦는다.
+// 직접 import 하지 말고 useLandPath() 를 쓸 것 (동적 로드 + 캐시).
 //
 // 좌표계는 projection.ts 의 메르카토르 상자와 동일하다. 둘 중 하나만 바꾸면
 // 해안선과 핀이 어긋나므로 반드시 스크립트를 다시 돌릴 것.
 
 /** 성경 무대 육지 — viewBox "0 0 ${round(VIEW_W)} ${round(VIEW_H)}" 기준 SVG path */
 export const LAND_PATH = '${landPath}'
+`
+
+  const source = `${HEADER}
+// 성경 무대 해안선(LAND_PATH)은 크기 때문에 landPath.ts 로 따로 뺐다 —
+// 이 파일에는 거리 체감 카드용 작은 비교 지도만 남는다.
+//
+// 좌표계는 projection.ts 의 메르카토르 상자와 동일하다. 둘 중 하나만 바꾸면
+// 해안선과 핀이 어긋나므로 반드시 스크립트를 다시 돌릴 것.
 
 // ── 거리 체감 카드용 비교 지도 ────────────────────────────────
 // "참빛교회에서 같은 거리면 어디까지"를 원으로 겹쳐 보여 줄 때 쓴다.
@@ -300,8 +317,10 @@ ${miniSources.map((m) => m.block).join(String.fromCharCode(10, 10))}
 `
 
   mkdirSync(dirname(OUT), { recursive: true })
+  writeFileSync(OUT_LAND, landSource, 'utf8')
   writeFileSync(OUT, source, 'utf8')
 
+  console.log(`✓ ${OUT_LAND}`)
   console.log(`✓ ${OUT}`)
   console.log(`  viewBox      : 0 0 ${round(VIEW_W)} ${round(VIEW_H)}`)
   console.log(`  링           : ${kept}개 사용 / ${dropped}개 제외`)

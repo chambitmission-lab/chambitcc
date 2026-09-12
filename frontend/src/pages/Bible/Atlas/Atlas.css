@@ -63,6 +63,21 @@
   stroke-width: 0.4;
   /* 인접 폴리곤 사이 머리카락 같은 이음새를 같은 색 실선으로 덮는다 */
   vector-effect: non-scaling-stroke;
+  /* 해안선은 따로 받아 뒤늦게 붙는다(useLandPath) — 바다에서 육지가 배어 나오듯 */
+  animation: atl-land-in 200ms ease-out;
+}
+
+@keyframes atl-land-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atl-land,
+  .atl-card__land {
+    animation: none;
+  }
 }
 
 .atl-leg {
@@ -911,6 +926,7 @@
   fill: #e6e9ee;
   stroke: #bfc8d2;
   stroke-width: 0.5;
+  animation: atl-land-in 200ms ease-out;
 }
 [data-theme='dark'] .atl-card__sea {
   fill: #0a121c;

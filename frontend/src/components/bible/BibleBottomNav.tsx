@@ -38,13 +38,17 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
   const { language } = useLanguage()
   const [keyboardOpen, setKeyboardOpen] = useState(false)
 
-  // 네비 목적지(읽기·플랜·가계도) lazy 청크 prefetch — 홈 BottomNavigation과 동일 패턴.
+  // 네비 목적지(읽기·플랜·지도·가계도) lazy 청크 prefetch — 홈 BottomNavigation과 동일 패턴.
   // 특히 Genealogy는 87KB라 첫 탭에서 받기 시작하면 전환이 눈에 띄게 늦다.
   useEffect(() => {
     const prefetch = () => {
       import('../../pages/Bible/BibleStudy')
       import('../../pages/Bible/Plans/PlanList')
       import('../../pages/Bible/Genealogy/Genealogy')
+      // 지도여행은 이 도크에서 가장 무거운 목적지다(청크+장소·여정 데이터 약 55KB gz).
+      // 청크를 평가하는 시점에 해안선(data/landPath) 요청까지 같이 시작된다 —
+      // useLandPath 가 모듈 최상단에서 받아 두기 때문이다.
+      import('../../pages/Bible/Atlas/AtlasMap')
       // 플랜 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
       // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (themeAssets.ts)
       void warmPair(PLAN_HERO)
