@@ -1,0 +1,107 @@
+/* ── 목소리 들으며 사진 보기 (전체화면 슬라이드쇼) ─────────────────
+   음성이 흐르는 동안 사진이 천천히 줌·팬되며 크로스페이드로 넘어간다. */
+
+.capsule-show {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #000;
+  overflow: hidden;
+}
+
+.capsule-show__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: opacity 1.4s ease;
+}
+
+.capsule-show__slide--active {
+  opacity: 1;
+}
+
+/* 흐린 배경 — 사진 비율이 화면과 달라 생기는 여백을 사진 자신으로 채운다.
+   (예전엔 object-fit: cover라 세로 모바일에서 사진이 심하게 잘렸다) */
+.capsule-show__bg {
+  position: absolute;
+  inset: -8%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(30px) brightness(0.45) saturate(1.1);
+}
+
+.capsule-show__img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  will-change: transform;
+}
+
+/* Ken Burns — 슬라이드마다 다른 방향으로 아주 천천히 */
+.capsule-kenburns-a {
+  animation: capsule-kb-a 16s ease-out forwards;
+}
+.capsule-kenburns-b {
+  animation: capsule-kb-b 16s ease-out forwards;
+}
+.capsule-kenburns-c {
+  animation: capsule-kb-c 16s ease-out forwards;
+}
+
+/* contain이라 크게 키우면 사진 끝이 잘린다 — 아주 얕은 줌·팬으로만 */
+@keyframes capsule-kb-a {
+  from {
+    transform: scale(1) translate(0, 0);
+  }
+  to {
+    transform: scale(1.05) translate(-0.8%, -0.6%);
+  }
+}
+
+@keyframes capsule-kb-b {
+  from {
+    transform: scale(1.05) translate(0.7%, 0.5%);
+  }
+  to {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+@keyframes capsule-kb-c {
+  from {
+    transform: scale(1) translate(0, 0.5%);
+  }
+  to {
+    transform: scale(1.05) translate(0.7%, -0.6%);
+  }
+}
+
+/* 위아래 그라데이션 스크림 — 텍스트 가독성 */
+.capsule-show__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent 22%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 30%);
+}
+
+/* 캡션 — 슬라이드가 바뀔 때 아래에서 살며시 */
+.capsule-show__caption {
+  animation: capsule-fade-up 1s ease 0.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-kenburns-a,
+  .capsule-kenburns-b,
+  .capsule-kenburns-c,
+  .capsule-show__caption {
+    animation: none;
+  }
+  .capsule-show__slide {
+    transition: opacity 0.3s ease;
+  }
+}
+

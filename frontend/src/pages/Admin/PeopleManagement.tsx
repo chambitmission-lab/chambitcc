@@ -434,8 +434,8 @@ const PersonRow = ({
               </span>
             )}
             {misplacedLeader && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--amber-soft)] border border-[var(--amber-soft-strong)] text-[var(--amber)] shrink-0">
-                대표 아님
+              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand shrink-0">
+                대표 카드
               </span>
             )}
           </div>
@@ -473,15 +473,15 @@ const PersonRow = ({
       {expanded && (
         <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-2.5">
           {misplacedLeader && (
-            <div className="px-3.5 py-3 rounded-xl bg-[var(--amber-soft)] border border-[var(--amber-soft-strong)] space-y-2">
+            <div className="px-3.5 py-3 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-glow)] space-y-2">
               <p className="text-[12.5px] leading-[1.6] text-ink-strong">
-                담임목사·원로목사는 <span className="font-bold">인사말 관리</span>가 단일 출처입니다.
-                여기 등록된 분은 섬기는 사람들 화면에서 맨 위 <span className="font-bold">대표 카드</span>가
-                아니라 교역자 목록의 일반 카드로 보입니다.
+                담임목사·원로목사의 이름 · 직분 · 인사말은 <span className="font-bold">인사말 관리</span>가
+                단일 출처입니다. 이 기록은 섬기는 사람들 맨 위{' '}
+                <span className="font-bold">대표 카드</span>에 합쳐집니다 — 교역자 목록에 또 나오지 않습니다.
               </p>
               <p className="text-[11.5px] leading-[1.6] text-gray-600 dark:text-white/60">
-                인사말 관리에 등록(원로목사는 상태를 <span className="font-semibold">원로목사</span>로)하면
-                대표 카드로 올라갑니다. 그 뒤 이 기록은 삭제해 주세요 — 두 곳에 있으면 두 번 보입니다.
+                대표 카드 사진은 <span className="font-semibold">여기 올린 사진</span>이 먼저 쓰입니다
+                (비워 두면 인사말 사진). 담당 사역 · 연락처도 이 기록에서 가져와 카드를 누르면 열립니다.
               </p>
               <button
                 type="button"

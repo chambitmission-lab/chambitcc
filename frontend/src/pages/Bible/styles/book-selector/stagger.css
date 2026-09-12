@@ -1,0 +1,16 @@
+/* ── 진입 스태거 게이트 ──
+   위의 pop-in·chip-in·title-fade·도장 압인은 모두 "필터/탭/보기를 바꿨다"에 대한 응답이다.
+   BookSelector 는 사용자가 한 번 만진 뒤에야 루트에 data-animate 를 붙인다 — 라우트 진입
+   첫 마운트에는 전부 즉시 그려진다(매번 0.7초씩 순차로 떠올라 로딩처럼 보이던 것).
+   인라인 animation-delay 는 남아 있어도 animation 자체가 없으니 상속되는 압인도 함께 멈춘다. */
+.bible-books-section:not([data-animate]) :is(
+  .book-filter-chip,
+  .testament-title,
+  .list-tools,
+  .books-grid .book-cell,
+  .books-list .book-row,
+  .book-cell.is-complete .book-stamp,
+  .book-row.is-complete .book-row__avatar
+) {
+  animation: none;
+}

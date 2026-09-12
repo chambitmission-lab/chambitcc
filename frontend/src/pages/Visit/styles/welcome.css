@@ -1,0 +1,133 @@
+/* ── 처음 오시는 분께 ──────────────────── */
+.visit-first {
+  grid-column: 1 / -1;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+}
+
+.visit-first-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.visit-first-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.visit-first-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-first-cta {
+  margin-top: 14px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px -8px var(--brand-glow);
+}
+
+/* ── 초대 ──────────────────────────────── */
+.visit-invite {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+}
+
+.visit-invite-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-invite-desc {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.visit-invite-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.visit-invite-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.visit-invite-btn.is-primary {
+  flex: 1;
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+.visit-invite-qr {
+  margin: 14px auto 2px;
+  width: 168px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #ffffff; /* QR 은 대비가 생명 — 다크에서도 흰 바탕을 유지한다 */
+  border: 1px solid var(--card-border);
+}
+
+.visit-invite-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── 관리자 힌트 ───────────────────────── */
+.visit-admin-hint {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  text-align: center;
+  background: var(--surface-inset);
+  border: 1px dashed var(--card-border);
+  color: var(--text-muted);
+}
+
+

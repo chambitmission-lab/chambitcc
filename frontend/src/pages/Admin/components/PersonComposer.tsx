@@ -351,14 +351,16 @@ const PersonComposer = ({
                 />
 
                 {misplacedLeader && (
-                  <div className="px-3.5 py-3 rounded-xl bg-[var(--amber-soft)] border border-[var(--amber-soft-strong)]">
+                  <div className="px-3.5 py-3 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-glow)]">
                     <p className="text-[12.5px] font-bold text-ink-strong mb-1">
-                      담임목사 · 원로목사는 이 화면이 아닙니다
+                      담임목사 · 원로목사는 인사말 관리와 짝이 됩니다
                     </p>
                     <p className="text-[11.5px] leading-[1.6] text-gray-600 dark:text-white/60">
-                      두 분은 <span className="font-semibold">인사말 관리(/admin/pastors)</span>에 등록해야
-                      섬기는 사람들 맨 위 대표 카드로 올라갑니다(원로목사는 상태를 &lsquo;원로목사&rsquo;로).
-                      여기 저장하면 교역자 목록의 일반 카드로만 보이고, 두 곳에 있으면 두 번 보입니다.
+                      이름 · 직분 · 인사말은{' '}
+                      <span className="font-semibold">인사말 관리(/admin/pastors)</span>가 단일 출처입니다.
+                      여기에 같은 이름으로 등록해 두면 섬기는 사람들 맨 위 대표 카드가{' '}
+                      <span className="font-semibold">이 기록의 사진</span>을 먼저 쓰고(비우면 인사말 사진),
+                      카드를 누르면 담당 사역 · 연락처 시트가 열립니다. 두 곳에 있어도 한 번만 보입니다.
                     </p>
                   </div>
                 )}

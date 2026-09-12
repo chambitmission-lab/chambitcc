@@ -113,6 +113,39 @@
   box-shadow: 0 3px 8px -3px var(--brand-glow);
 }
 
+/* 독립 토글 칩 (본문 앞 안내) — 세그먼트와 달리 여러 개를 동시에 켤 수 있어
+   공유 트랙 없이 낱개 알약으로 둔다. 켜짐 = 브랜드 채움. */
+.reader-settings__chips {
+  display: flex;
+  gap: 6px;
+}
+
+.reader-settings__chips button {
+  flex: 1;
+  padding: 5px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--ig-border);
+  background: var(--ig-secondary-background);
+  color: var(--ig-secondary-text);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+[data-theme="dark"] .reader-settings__chips button {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.reader-settings__chips button.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #ffffff;
+  box-shadow: 0 3px 8px -3px var(--brand-glow);
+}
+
 /* 스텝퍼 (글자 크기) */
 .reader-settings__stepper {
   display: flex;

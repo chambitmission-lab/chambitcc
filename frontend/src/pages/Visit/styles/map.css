@@ -1,0 +1,127 @@
+/* ── 지도 ──────────────────────────────────
+   레거시 홈페이지처럼 "여기 어디쯤"을 한 장으로 보여주는 자리.
+   드래그·확대는 컴포넌트에서 잠갔고, 표면 전체가 카카오맵으로 가는 버튼이다. */
+.visit-map {
+  position: relative;
+  height: 236px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  box-shadow: var(--card-shadow), 0 18px 40px -20px rgba(10, 24, 60, 0.3);
+}
+
+.visit-map-canvas {
+  position: absolute;
+  /* 카카오 기본 컨트롤(로고·축척)이 왼쪽 아래에 여백 없이 붙는다 — 캔버스를 아래로
+     조금 늘려 그 띠를 카드 밖으로 밀어내고, 우리 글래스 바가 그 자리를 맡는다 */
+  inset: 0 0 -34px 0;
+  /* 카카오 SDK 가 내부 div 에 z-index 를 직접 박아서, 여기서 쌓임 맥락을 만들어
+     가둬 두지 않으면 아래 .visit-map-tap 버튼이 지도 타일에 덮여 눌리지 않는다 */
+  z-index: 0;
+}
+
+/* 안쪽 1px 흰 링 — 히어로와 같은 유리 액자 */
+.visit-map::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+/* 카카오 지도 타일은 라이트 전용이라 다크에서 흰 판으로 튄다. 색을 바꾸면 지명이
+   읽히지 않으므로, 라벨 가독성을 지키는 선에서 밝기만 낮춰 페이지에 앉힌다.
+   (토큰으로 풀 수 없는 서드파티 래스터라 이 파일의 "[data-theme] 분기 금지" 예외) */
+[data-theme="dark"] .visit-map-canvas {
+  filter: brightness(0.82) saturate(0.88);
+}
+
+/* 지도가 아직 없거나 못 불러온 자리 — 깨진 화면이 아니라 조용한 빈 카드로 보이게 */
+.visit-map-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  background: var(--surface-inset);
+}
+
+/* 지도 표면 전체가 "카카오맵에서 보기" 버튼 */
+.visit-map-tap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* 글래스 컨트롤 바 — 카드 안쪽 여백(12px)을 두고 위·아래에 떠 있는 반투명 유리 줄 */
+.visit-map-bar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+.visit-map-bar--top { top: 12px; }
+.visit-map-bar--bottom { bottom: 12px; }
+
+.visit-map-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(1.3);
+  -webkit-backdrop-filter: blur(12px) saturate(1.3);
+  box-shadow: inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)), 0 6px 16px -8px rgba(10, 24, 60, 0.35);
+  color: var(--text-strong);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.visit-map-glass--label {
+  color: var(--brand);
+}
+
+.visit-map-glass--muted {
+  color: var(--text-muted);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+}
+
+.visit-map-chip {
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.visit-map-tap:hover .visit-map-chip {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+  transform: translateY(-1px);
+}
+

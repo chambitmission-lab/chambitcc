@@ -340,7 +340,8 @@ const LeaderTile = ({
   const name = leaderText(slot, 'name', language)
   const role = leaderText(slot, 'role', language)
   const headline = leaderText(slot, 'headline', language)
-  const photo = slot.photo_url || slot.person?.photo_url || ''
+  // 사진 우선순위는 buildLeaderSlots 가 이미 정했다 — 인물 관리 사진 > 인사말 사진
+  const photo = slot.photo_url || ''
 
   // 아래 인물 카드와 같은 생김새(세로 사진 + 이름·직분)로 간다 — 대표라고 따로 놀지 않게
   const className = [

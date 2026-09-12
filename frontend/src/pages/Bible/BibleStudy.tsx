@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
 import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress, BIBLE_HUB_RESUME_LIMIT } from '../../hooks/useBibleReading'
@@ -32,6 +32,7 @@ import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
 import ChapterBriefCard from './components/ChapterBriefCard'
+import { getReaderIntroCards, subscribeReaderIntroCards } from './data/readerIntroCards'
 import { AtlasIcon, StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon } from './components/BibleToolIcons'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../components/bible/BibleSideRail'
@@ -64,6 +65,14 @@ const BibleStudy = () => {
   const [audioPlaying, setAudioPlaying] = useState<boolean>(false)
   // 절 메뉴 '여기부터 듣기' 요청 (VerseList → 플레이어). seq로 같은 절 재요청도 구분
   const [playFromVerse, setPlayFromVerse] = useState<PlayFromVerseRequest | null>(null)
+  // 본문 앞 안내(오디오북·권 개관·길잡이) 표시 설정 — Aa 읽기 설정에서 바꾸면 즉시 반영
+  const introCards = useSyncExternalStore(subscribeReaderIntroCards, getReaderIntroCards)
+  // 오디오북을 꺼 뒀어도 '여기부터 듣기'를 누르면 컨트롤이 필요하다 — 그때만 도로 드러낸다
+  const [audioRevealed, setAudioRevealed] = useState<boolean>(false)
+  useEffect(() => {
+    // 설정을 다시 켰다 껐다 하면 임시 노출은 초기화
+    setAudioRevealed(false)
+  }, [introCards.audio])
   // PC(lg+) 해석 패널이 우측에 도킹 중인지 — 본문 컬럼을 왼쪽으로 비켜 나란히 보이게 한다
   const [commentaryOpen, setCommentaryOpen] = useState<boolean>(false)
 
@@ -322,6 +331,7 @@ const BibleStudy = () => {
   const handleListenFromVerse = useCallback(
     (verse: number) => {
       if (!selectedBookData) return
+      setAudioRevealed(true)
       setPlayFromVerse(prev => ({
         book: selectedBookData.book_number,
         chapter: selectedChapter,
@@ -648,6 +658,7 @@ const BibleStudy = () => {
                 {/* 오디오북 — 현재 장을 음성으로 듣기.
                     key로 리마운트하지 않는다: 연속 재생(장 끝 → 다음 장 자동 재생)이
                     같은 <audio> 요소를 재사용해야 모바일 자동재생 정책에 안 걸린다. */}
+                <div hidden={!introCards.audio && !audioRevealed}>
                 <BibleAudioPlayer
                   bookNumber={selectedBookData.book_number}
                   chapter={selectedChapter}
@@ -660,23 +671,28 @@ const BibleStudy = () => {
                   totalChapters={selectedBookData.chapter_count}
                   bookName={selectedBook}
                 />
+                </div>
 
                 {/* 권 개관 — 한 줄 진입 바. 실제 소개는 탭하면 열리는 읽기 시트라
                     본문을 밀지 않는다. 그래서 1장뿐 아니라 모든 장에서 열 수 있다. */}
-                <BookIntroCard
-                  bookNumber={selectedBookData.book_number}
-                  bookNameKo={selectedBook}
-                  totalChapters={selectedBookData.chapter_count}
-                  currentChapter={selectedChapter}
-                  onJumpToChapter={handleChapterChange}
-                />
+                {introCards.bookIntro && (
+                  <BookIntroCard
+                    bookNumber={selectedBookData.book_number}
+                    bookNameKo={selectedBook}
+                    totalChapters={selectedBookData.chapter_count}
+                    currentChapter={selectedChapter}
+                    onJumpToChapter={handleChapterChange}
+                  />
+                )}
 
                 {/* 오늘의 길잡이 — 읽기 직전 3줄 지도 (지금까지·이 장에서·눈여겨보기).
                     데이터 없는 책은 조용히 빠지고, 오랜만에 오면 지난 이야기를 덧붙인다 */}
-                <ChapterBriefCard
-                  bookNumber={selectedBookData.book_number}
-                  chapter={selectedChapter}
-                />
+                {introCards.brief && (
+                  <ChapterBriefCard
+                    bookNumber={selectedBookData.book_number}
+                    chapter={selectedChapter}
+                  />
+                )}
 
                 <VerseList
                   chapterData={chapterData}

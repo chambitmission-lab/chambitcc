@@ -164,9 +164,9 @@ export const personDateLabel = (value?: string | null): string => {
 /** 사진이 없을 때 원형 자리에 넣는 이니셜 — 한글은 성 한 자 */
 export const personInitial = (name: string): string => name.trim().charAt(0) || '·'
 
-/* 담임·원로목사는 church_pastors(= /admin/pastors)가 단일 출처다. 여기에 등록하면
-   대표 카드가 아니라 교역자 탭의 일반 카드로 내려가 두 번 보인다 — 관리자 화면이
-   그걸 조용히 넘기지 않도록 이름표로 잡아낸다(직분/그룹 어디에 적었든). */
+/* 담임·원로목사의 이름·직분·인사말은 church_pastors(= /admin/pastors)가 단일 출처다.
+   church_people 쪽 기록은 대표 카드에 합쳐져 사진(우선)·담당 사역·연락처를 얹는다 —
+   관리자 화면이 그 관계를 설명할 수 있게 이름표로 잡아낸다(직분/그룹 어디에 적었든). */
 const LEADER_ROLE_WORDS = ['담임목사', '담임 목사', '원로목사', '원로 목사']
 
 export const looksLikeLeaderRole = (person: {
@@ -264,18 +264,24 @@ const findLeaderPerson = (people: Person[], leader: LeaderCard): Person | null =
 }
 
 export const buildLeaderSlots = (people: Person[], leaders: LeaderCard[]): LeaderSlot[] => {
-  const slots: LeaderSlot[] = leaders.map((leader) => ({
-    key: `pastor-${leader.pastor_id}`,
-    name_ko: leader.name_ko,
-    name_en: leader.name_en,
-    role_ko: leader.role_ko,
-    role_en: leader.role_en,
-    photo_url: leader.photo_url,
-    headline_ko: leader.headline_ko,
-    headline_en: leader.headline_en,
-    status: leader.status,
-    person: findLeaderPerson(people, leader),
-  }))
+  const slots: LeaderSlot[] = leaders.map((leader) => {
+    const person = findLeaderPerson(people, leader)
+    return {
+      key: `pastor-${leader.pastor_id}`,
+      name_ko: leader.name_ko,
+      name_en: leader.name_en,
+      role_ko: leader.role_ko,
+      role_en: leader.role_en,
+      // 사진만은 인물 관리(/admin/people)에 올린 것이 우선이다 — 인사말의 사진은
+      // 소개 글에 맞춘 컷이라 격자에 어울리지 않을 수 있어, 이 화면용 사진을
+      // 따로 올릴 수 있게 둔다. 없으면 인사말 사진으로 폴백.
+      photo_url: person?.photo_url || leader.photo_url,
+      headline_ko: leader.headline_ko,
+      headline_en: leader.headline_en,
+      status: leader.status,
+      person,
+    }
+  })
 
   // church_pastors 에 없는 담임·원로(= 인사말 없이 교역자로만 등록된 분)도 같은 줄에
   people.forEach((person) => {

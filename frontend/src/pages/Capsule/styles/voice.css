@@ -1,0 +1,225 @@
+/* ── 그날의 목소리 = 카세트 테이프 ──────────────────────────────
+   릴 허브가 돌고, 감긴 테이프가 왼쪽에서 오른쪽으로 옮겨 간다. */
+.capsule-tape {
+  border-radius: 14px;
+  padding: 10px 12px 12px;
+  background: linear-gradient(170deg, #4a4230, #332c20);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 14px 28px -16px rgba(40, 32, 16, 0.7);
+}
+
+.capsule-tape__hit {
+  display: block;
+  width: 100%;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 라벨 스티커 — 크림 종이에 펜으로 쓴 제목 */
+.capsule-tape__strip {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 12px 6px;
+  border-radius: 6px;
+  background: linear-gradient(174deg, #faf5ea, #efe6d0);
+  box-shadow: inset 0 0 0 1px rgba(74, 67, 53, 0.12);
+}
+
+.capsule-tape__strip b {
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: 19px;
+  font-weight: 400;
+  color: #4a4335;
+  transform: rotate(-0.6deg);
+}
+
+.capsule-tape__strip i {
+  font-family: 'Courier New', monospace;
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(74, 67, 53, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 테이프 창 — 릴 두 개가 들여다보인다 */
+.capsule-tape__window {
+  margin-top: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 16px;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.capsule-tape__reel {
+  width: 40px;
+  height: 40px;
+}
+
+.capsule-tape__hub {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+
+.capsule-tape__hub--spin {
+  animation: capsule-reel-spin 2.2s linear infinite;
+}
+
+@keyframes capsule-reel-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.capsule-tape__toggle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(244, 236, 219, 0.14);
+  color: #f4ecdb;
+}
+
+.capsule-tape__toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 재생 위치 — 필름 날짜 각인과 같은 앰버 */
+.capsule-tape__track {
+  position: relative;
+  margin-top: 10px;
+  height: 14px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.capsule-tape__track::before {
+  content: '';
+  position: absolute;
+  inset: 5px 0;
+  border-radius: 99px;
+  background: rgba(244, 236, 219, 0.18);
+}
+
+.capsule-tape__track i {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 0;
+  border-radius: 99px;
+  background: #ffb03a;
+  box-shadow: 0 0 8px rgba(255, 140, 40, 0.5);
+}
+
+.capsule-tape__track:focus-visible {
+  outline: 2px solid rgba(255, 176, 58, 0.7);
+  outline-offset: 2px;
+  border-radius: 99px;
+}
+
+/* ── P.S. 카드 — 편지에 클립으로 끼워둔 그날의 기록 ─────────────── */
+.capsule-ps {
+  position: relative;
+  margin: 20px 10px 0;
+  padding: 18px 18px 15px;
+  border-radius: 5px;
+  background: linear-gradient(174deg, var(--p-hi), var(--p-lo));
+  box-shadow:
+    inset 0 0 0 1px var(--p-edge),
+    0 16px 32px -20px rgba(6, 12, 32, 0.45);
+  transform: rotate(-1deg);
+  color: var(--p-ink);
+}
+
+.capsule-ps::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  opacity: 0.05;
+}
+
+.capsule-ps__clip {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  color: var(--p-clip);
+  transform: rotate(8deg);
+  filter: drop-shadow(0 1px 1px rgba(60, 50, 30, 0.25));
+}
+
+.capsule-ps__label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  color: var(--p-ink-mute);
+}
+
+.capsule-ps__verse {
+  margin-top: 10px;
+  font-family: 'Noto Serif KR', 'Pretendard Variable', serif;
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--p-ink-body);
+  word-break: keep-all;
+}
+
+.capsule-ps__ref {
+  display: block;
+  margin-top: 4px;
+  font-family: 'Pretendard Variable', sans-serif;
+  font-size: 12px;
+  color: var(--p-ink-mute);
+}
+
+/* capsule-fade-up의 to(translateY(0))가 fill 상태로 남아 rotate를 덮어쓴다 —
+   기울기를 키프레임 안에 넣은 전용 등장 애니메이션을 쓴다 */
+.capsule-ps.capsule-letter-enter,
+.capsule-ps.capsule-letter-enter--delayed {
+  animation-name: capsule-ps-in;
+}
+
+@keyframes capsule-ps-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(-1deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-1deg);
+  }
+}
+
+.capsule-ps__stats {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--p-dash);
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: 19px;
+  line-height: 1.4;
+  color: var(--p-ink-soft);
+  transform: rotate(-0.4deg);
+  word-break: keep-all;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-tape__hub--spin {
+    animation: none;
+  }
+  .capsule-paper__message {
+    animation: none;
+  }
+}
+

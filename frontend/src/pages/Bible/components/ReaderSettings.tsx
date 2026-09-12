@@ -3,6 +3,11 @@ import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './
 import { isGlossaryEnabled, setGlossaryEnabled } from '../data/bibleGlossary'
 import { getReaderLayout, setReaderLayout, type ReaderLayout } from '../data/readerLayout'
 import { isSectionHeadingsEnabled, setSectionHeadingsEnabled } from '../data/sectionHeadings'
+import {
+  getReaderIntroCards,
+  setReaderIntroCard,
+  type ReaderIntroCards,
+} from '../data/readerIntroCards'
 import { isPresenceSharingEnabled, setPresenceSharingEnabled } from '../data/presenceSharing'
 import { ensureDeferredFontsNow } from '../../../utils/deferredFonts'
 
@@ -63,6 +68,13 @@ const applyPrefs = (p: ReaderPrefs) => {
   }
 }
 
+// 본문 앞 안내 세 줄 — 독립 토글이라 세그먼트(택1)가 아니라 칩으로 늘어놓는다
+const INTRO_CARD_OPTIONS: { key: keyof ReaderIntroCards; label: string }[] = [
+  { key: 'audio', label: '오디오북' },
+  { key: 'bookIntro', label: '권 개관' },
+  { key: 'brief', label: '길잡이' },
+]
+
 const COPY_STYLE_OPTIONS: { key: CopyStyle; label: string }[] = [
   { key: 'refAfter', label: '본문+출처' },
   { key: 'refBefore', label: '출처+본문' },
@@ -80,6 +92,8 @@ const ReaderSettings = () => {
   const [layout, setLayout] = useState<ReaderLayout>(getReaderLayout)
   // 단락 소제목(태초의 창조 1-2절 …) — sectionHeadings 모듈이 저장·전파 (VerseList가 구독)
   const [headingsOn, setHeadingsOn] = useState(isSectionHeadingsEnabled)
+  // 본문 앞 안내 세 줄 — readerIntroCards 모듈이 저장·전파 (BibleStudy가 구독)
+  const [introCards, setIntroCards] = useState<ReaderIntroCards>(getReaderIntroCards)
   // 함께 읽기 — 내 읽기 위치 공유 (presenceSharing 모듈이 저장·전파, VerseList 하트비트가 구독)
   const [sharingOn, setSharingOn] = useState(isPresenceSharingEnabled)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -187,6 +201,32 @@ const ReaderSettings = () => {
           <p className="reader-settings__hint">
             “태초의 창조 1-2절”처럼 본문 사이에서 흐름을 짚어 주는 제목이에요. 성경 원문에는 없는
             안내라서, 끄면 말씀만 이어져요.
+          </p>
+
+          {/* 본문 앞 안내 — 오디오북 바 / 권 개관 바 / 오늘의 길잡이. 각각 독립 토글 */}
+          <div className="reader-settings__row reader-settings__row--stack">
+            <span className="reader-settings__label">본문 앞 안내</span>
+            <div className="reader-settings__chips">
+              {INTRO_CARD_OPTIONS.map(opt => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  className={introCards[opt.key] ? 'active' : ''}
+                  aria-pressed={introCards[opt.key]}
+                  onClick={() => {
+                    const next = !introCards[opt.key]
+                    setReaderIntroCard(opt.key, next)
+                    setIntroCards(prev => ({ ...prev, [opt.key]: next }))
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="reader-settings__hint">
+            본문 위에 쌓이는 줄이에요. 끄면 말씀이 그만큼 위로 올라와요. 오디오북을 꺼도 절을
+            길게 눌러 '여기부터 듣기'를 고르면 다시 나타나요.
           </p>
 
           <div className="reader-settings__divider" aria-hidden />

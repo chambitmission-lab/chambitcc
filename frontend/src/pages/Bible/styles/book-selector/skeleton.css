@@ -1,0 +1,456 @@
+/* ── 로딩 스켈레톤 ─────────────────────────────────────────
+   읽기 진행 요약은 개인화 쿼리가 도착해야 그려진다.
+   자리 없이 늦게 나타나면 아래 책 목록 전체가 밀려 새로고침처럼 보이므로,
+   로딩 동안 실제 카드와 같은 크기의 뼈대를 먼저 세워 레이아웃을 고정한다. */
+.bib-skel {
+  display: inline-block;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(120, 120, 130, 0.12) 25%,
+    rgba(120, 120, 130, 0.2) 50%,
+    rgba(120, 120, 130, 0.12) 75%
+  );
+  background-size: 200% 100%;
+  animation: bib-skel-shimmer 1.4s ease-in-out infinite;
+}
+
+[data-theme="dark"] .bib-skel {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.11) 50%,
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes bib-skel-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* 크기는 실제 요소의 폰트 박스에 맞춘다 — 데이터가 와도 높이가 튀지 않게 */
+.bib-skel--badge {
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 11px;
+}
+
+.bib-skel--title {
+  width: 6rem;
+  height: 0.95rem;
+}
+
+.bib-skel--subtitle {
+  width: 8.5rem;
+  height: 0.7rem;
+}
+
+.bib-skel--toggle {
+  width: 7.2rem;
+  height: 1.7rem; /* 보기 전환 버튼 두 개(패딩 0.36rem×2 + 0.74rem 텍스트) 폭·높이 */
+  border-radius: 10px;
+}
+
+.bib-skel--label {
+  width: 4.2rem;
+  height: 0.78rem;
+}
+
+.bib-skel--number {
+  width: 8.5rem;
+  height: 2.6rem;
+  border-radius: 10px;
+}
+
+.bib-skel--cheer {
+  width: 11rem;
+  height: 0.8rem;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.bib-skel--tile {
+  display: block;
+  width: 100%;
+  height: 4.4rem;
+  border-radius: 10px;
+}
+
+.bib-skel--detail {
+  width: 4.4rem;
+  height: 0.85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bib-skel {
+    animation: none;
+  }
+}
+
+/* 구약/신약 탭 + 분류 칩을 하나의 패널로 묶는 컨테이너
+   — "칩은 선택된 탭의 하위 분류"라는 종속 관계를 시각적으로 드러낸다 */
+.book-nav {
+  position: sticky;
+  /* 상단 헤더(.bible-study-header, top:56px + 헤더 높이) 바로 아래에 고정 */
+  top: 120px;
+  z-index: 8;
+  margin-bottom: 1rem;
+  padding: 0.375rem 0.375rem 0.5rem;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 16px;
+}
+
+/* 고정 시 아래 책 그리드가 패널 뒤·모서리로 비쳐 보이지 않도록 섹션 배경으로 풀블리드 마스킹 */
+.book-nav::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -1rem;
+  left: -1rem;
+  right: -1rem;
+  bottom: -0.5rem;
+  background: var(--ig-secondary-background);
+}
+
+/* 마스크가 위로 1rem 뻗기 때문에 바로 위 "책 선택" 제목의 받침을 덮어
+   "채 서태"처럼 잘려 보였다. 제목을 패널(z-index:8)보다 위 레이어로 올려
+   마스크가 글자를 가리지 못하게 한다. */
+.bible-books-section .section-title {
+  position: relative;
+  z-index: 9;
+}
+
+[data-theme="dark"] .book-nav {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 구약 / 신약 상단 세그먼트 컨트롤 — 하나의 트랙 위를 마커가 슬라이딩 */
+.testament-tabs {
+  position: relative;
+  display: flex;
+  gap: 0;
+  /* 상위(세그먼트) ↔ 하위(필터 칩) 위계 구분을 위해 여백을 조금 넉넉히 */
+  margin-bottom: 1.25rem;
+  background: var(--ig-secondary-background);
+  border-radius: 12px;
+  padding: 3px;
+  isolation: isolate;
+}
+
+[data-theme="dark"] .testament-tabs {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 슬라이딩 선택 마커 — 트랙 절반 폭으로 좌/우를 부드럽게 오간다 */
+.testament-marker {
+  position: absolute;
+  z-index: 0;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 9px;
+  /* 완독 도장·도구 인장과 같은 문법: 블루 그라데이션 + 실선 링 + 후광 + 안쪽 점선 압인 링 */
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 2px 12px -1px rgba(49, 130, 246, 0.4);
+  transition: transform 0.32s cubic-bezier(0.34, 1.3, 0.5, 1);
+  will-change: transform;
+}
+
+.testament-marker::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .testament-marker {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 2px 14px 0 rgba(69, 147, 252, 0.3);
+}
+
+.testament-tabs[data-active="NT"] .testament-marker {
+  transform: translateX(100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testament-marker {
+    transition: none;
+  }
+}
+
+.testament-tab {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.5rem;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  transition: color 0.2s;
+}
+
+.testament-tab__icon {
+  font-size: 1.05rem;
+  opacity: 0.65;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.testament-tab.active {
+  color: #fff;
+}
+
+.testament-tab.active .testament-tab__icon {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.testament-tab__label {
+  letter-spacing: -0.01em;
+}
+
+/* 권수 — 핵심 레이블보다 한 단계 낮춘 부가 정보(작게 + 낮은 대비).
+   미선택 탭은 브랜드 강조를 빼고 중립 회색조로 톤다운 → 선택된 탭으로 시선 집중 */
+.testament-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  padding: 0 0.28rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  background: rgba(120, 120, 130, 0.12);
+  color: var(--ig-secondary-text);
+  opacity: 0.75;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+
+/* 선택된 탭 배지만 밝게 강조 */
+.testament-tab.active .testament-tab__count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  opacity: 1;
+  /* 인장 안의 작은 인장 — 가는 실선 링 */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+[data-theme="dark"] .testament-tab:not(.active) .testament-tab__count {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.42);
+  opacity: 1;
+}
+
+/* 분류 필터 칩 — 모세오경/역사서/시가서… 으로 그리드를 한눈에 줄인다 */
+.book-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0 0.125rem;
+}
+
+.book-filter-chip {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+  transition: all 0.15s;
+  /* 탭 전환 시(.book-filter key 변경) 새 칩들이 방향에 맞춰 순차적으로 슬라이드 인 — delay는 인라인 스타일 */
+  animation: chip-in-forward 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* OT→NT: 우측에서, NT→OT: 좌측에서 스와이프 하듯 들어온다 */
+.book-filter[data-dir="forward"] .book-filter-chip {
+  animation-name: chip-in-forward;
+}
+.book-filter[data-dir="back"] .book-filter-chip {
+  animation-name: chip-in-back;
+}
+
+@keyframes chip-in-forward {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes chip-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-filter .book-filter-chip,
+  .book-filter[data-dir] .book-filter-chip {
+    animation: none;
+  }
+}
+[data-theme="dark"] .book-filter-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.book-filter-chip.active {
+  background: var(--brand);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px -4px rgba(49, 130, 246, 0.5);
+}
+
+/* 분류별 진행률 — 칩 배경을 왼쪽부터 채운다. 숫자를 읽지 않아도
+   "덜 채워진 분류"가 바로 눈에 들어와 다음에 읽을 곳을 고르게 해준다 */
+.book-filter-chip__fill {
+  position: absolute;
+  z-index: 0;
+  inset: 0 auto 0 0;
+  background: rgba(49, 130, 246, 0.16);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .book-filter-chip__fill {
+  background: rgba(49, 130, 246, 0.26);
+}
+
+.book-filter-chip.active .book-filter-chip__fill {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.book-filter-chip__label,
+.book-filter-chip__pct {
+  position: relative;
+  z-index: 1;
+}
+
+.book-filter-chip__pct {
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.book-filter-chip.active .book-filter-chip__pct {
+  opacity: 0.9;
+}
+
+.testament-section {
+  margin-bottom: 1.5rem;
+}
+
+.testament-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.005em;
+  /* 필터 전환(섹션 리마운트) 시 제목이 살짝 밀려 들어오며 교체 */
+  animation: title-fade-in 0.24s ease both;
+}
+
+/* 제목 + 여정/격자 보기 토글을 한 줄에 — 토글은 목록 바로 위, 대상이 명확한 자리 */
+.testament-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.testament-head .testament-title {
+  margin-bottom: 0;
+}
+
+.view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: rgba(120, 120, 130, 0.1);
+}
+
+[data-theme="dark"] .view-toggle {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.view-toggle__btn {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 1.6rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.view-toggle__btn .material-icons-round {
+  font-size: 1rem;
+}
+
+.view-toggle__btn.active {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 2px 8px -2px rgba(49, 130, 246, 0.5);
+}
+
+@keyframes title-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+

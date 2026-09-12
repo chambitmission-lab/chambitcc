@@ -1,0 +1,155 @@
+/* ── /capsule 히어로 — "시간을 건너 편지를 부치는 배달부 양" ─────────────
+   에셋 생성/후처리는 docs/capsule-hero-bg-prompts.md · docs/capsule-hero-process.py
+   (`python docs/capsule-hero-process.py ~/Downloads`).
+
+   ★ 플랜·묵상방 히어로와 배치 방식이 다르다 — 여기만 `cover` 가 아니다.
+   저쪽 삽화는 주인공이 오른쪽 25% 안에 들어가 있어서 `cover`(높이맞춤)로 깔아도
+   모바일에서 글씨를 안 덮는다. 이 그림은 주인공 덩어리가 폭의 44%(양 x56% ~ 우체통 x96%)라
+   `cover` 로 깔면 모바일에서 양의 왼쪽 끝이 카드 x 99px 에 떨어져 안내 문구(202px까지) 위로 올라온다.
+   그래서 `background-size: 100% auto` + 아래 정렬 — **삽화 폭 = 카드 폭**으로 고정한다.
+     · 양의 왼쪽 끝이 어느 폭에서나 0.566 × 카드폭(모바일 203px · PC 308px) → 글씨와 안 겹친다
+     · 글씨는 항상 평평한 카드 그라데이션 위에 앉는다(삽화 밝기와 무관하게 대비가 보장된다)
+     · 삽화 x 좌표가 카드 x 좌표와 1:1 이라, 아래 가로 그라데이션이 어느 폭에서나 이음매 없이 맞는다
+   삽화 위쪽은 에셋에 알파 페이드가 구워져 있다(하늘은 길게, 그려진 것은 짧게).
+   카드 그라데이션 값은 그 페이드 지점의 삽화 하늘색을 그대로 읽어 온 것이다 — 바꾸면 띠가 보인다. */
+.capsule-hero {
+  background: linear-gradient(180deg, #dceefd 0%, #d9ebfd 100%);
+  box-shadow: 0 10px 30px -14px rgba(49, 130, 246, 0.45);
+}
+.dark .capsule-hero {
+  background: linear-gradient(100deg, #09122c 0%, #0a1434 55%, #101a39 100%);
+  box-shadow: 0 10px 34px -12px rgba(0, 0, 0, 0.6);
+}
+.capsule-hero-art {
+  background-image: url('/images/capsule/hero-light.webp');
+  background-size: 100% auto;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  /* 도착 전에는 감춰 뒀다 페이드인 — CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다
+     (utils/themeAssets.ts 참고). 늦게 도착하면 카드 위에 "툭" 나타난다. */
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+.dark .capsule-hero-art {
+  background-image: url('/images/capsule/hero-dark.webp');
+}
+.capsule-hero-art.is-ready {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .capsule-hero-art {
+    transition: none;
+  }
+}
+
+/* ── /capsule PC(lg+) 2단 ────────────────────────────────────────────────
+   표준 규격(1240px 본문 + 312px 레일)으로 넓어지면서 생긴 두 가지만 손본다.
+   모바일 레이아웃은 1px도 바뀌지 않는다(전부 min-width:1024 안). */
+
+/* 편지 목록 컨테이너 — 모바일은 예전 space-y-2.5(10px)와 같은 세로 흐름 */
+.capsule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 1024px) {
+  /* 편지 한 통은 좁아야 읽히는 카드다. 넓은 컬럼에서는 늘리지 말고 두 통씩 세운다. */
+  .capsule-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* 히어로 삽화는 `100% auto`(삽화 폭 = 카드 폭)라, 카드가 넓어지면 삽화 높이도
+     같이 커진다 — 카드 높이가 따라오지 않으면 위쪽(하늘·날아오르는 편지)이 잘린다.
+     그래서 카드에 삽화와 같은 비율(1200×396)을 주어 통째로 앉게 한다. */
+  .capsule-hero {
+    aspect-ratio: 1200 / 396;
+    display: flex;
+    align-items: center;
+  }
+  /* 양의 왼쪽 끝은 어느 폭에서나 카드폭의 56.6% 지점이다(위 주석 참고).
+     글 묶음을 52%로 묶어 두면 폭이 변해도 삽화 위로 올라가지 않는다. */
+  .capsule-hero__body {
+    max-width: 52%;
+  }
+}
+
+/* ── /capsule/new PC(lg+) 2단 ───────────────────────────────────────────
+   편집기 화면이라 위젯 레일을 붙이지 않고 폼 자체를 편다(/bible/photo-verse 와 같은 방식).
+   왼쪽 = 무엇을 담을까(받는 사람·편지·사진) / 오른쪽 = 어떻게 보낼까(음성·개봉일·봉인).
+   두 래퍼는 lg 미만에서 display:contents 라 모바일 DOM 흐름·간격이 1px도 바뀌지 않는다. */
+.cc-main,
+.cc-side {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .cc-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    column-gap: 20px;
+    align-items: start;
+    padding: 0 12px 8px;
+  }
+  .cc-main,
+  .cc-side {
+    display: block;
+  }
+
+  /* 오른쪽 열 첫 카드는 왼쪽 첫 섹션(pt-5)과 눈높이를 맞춘다 */
+  .cc-side > section:first-child {
+    padding-top: 1.25rem;
+  }
+
+  /* 편지 칸 — 폰의 7줄은 넓은 화면에서 너무 얕다. 오른쪽 열 길이와도 얼추 맞는다 */
+  .cc-letter-body {
+    min-height: 320px;
+  }
+}
+
+/* ── /capsule/:id PC(lg+) ────────────────────────────────────────────────
+   본문 카드는 표준 2단으로 넓어진다. 다만 편지 세계의 비례는 카드 폭에 묶여 있다 —
+   하늘(.capsule-sky)은 5:3 전폭이고, 편지가 내려앉는 높이(.capsule-reading__journey)는
+   부모 폭의 %로 계산된다. 그래서 .capsule-reading 자체를 좁히면 편지가 삽화 한가운데
+   올라타 버린다. 컨테이너는 그대로 두고 **그 안의 종이들만** 읽기 폭으로 묶는다. */
+@media (min-width: 1024px) {
+  .capsule-reading > .capsule-reading__journey,
+  .capsule-reading > .capsule-paper,
+  .capsule-reading > .capsule-ps,
+  .capsule-reading > .capsule-reading__outro {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* 클립으로 끼운 쪽지는 편지지보다 좌우 10px 씩 안쪽에 놓인다(기본 margin) —
+     가운데 정렬로 바뀌어도 그 관계를 지킨다 */
+  .capsule-reading > .capsule-ps {
+    max-width: 580px;
+  }
+
+  /* 봉투가 내려앉는 무대·기다리는 다이얼도 넓은 카드 한가운데로 */
+  .capsule-arrival__inner,
+  .capsule-waiting {
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* 삽화의 페이드 여백(좌우 105px)까지 560px 안에 가두면 그 지점에서 잘려
+     경계가 다시 보인다. 가로 스크롤은 부모 카드(lg:overflow-hidden)가 막는다 */
+  .capsule-waiting {
+    overflow: visible;
+  }
+
+  /* 넓은 카드에서는 621px 그림만 가운데 떠 있어 좌우가 빈 접시처럼 보인다.
+     그림의 조명을 카드 폭까지 넓혀, 빈 자리를 '빛이 번진 자리'로 만든다.
+     그림 자체는 621px 그대로 — 늘리면 다이얼과 어긋난다. */
+  .capsule-waiting::before {
+    width: 1040px;
+    background:
+      var(--vault-art) center top / 621px 621px no-repeat,
+      var(--vault-glow);
+  }
+}

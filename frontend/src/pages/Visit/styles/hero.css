@@ -1,0 +1,278 @@
+/* ── 페이지 셸 ─────────────────────────── */
+.visit-page {
+  min-height: 100vh;
+  background: var(--app-canvas);
+}
+
+.visit-shell {
+  max-width: 28rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--app-canvas);
+  border-left: 1px solid var(--card-border);
+  border-right: 1px solid var(--card-border);
+}
+
+/* PC(lg+) 와이드 셸 — 2단 무대. 세부 배치는 파일 맨 아래 PC 블록 참고.
+   규격은 다른 안내 페이지와 동일(1240px + 좌우 20px + 상단 12px) — 페이지를 오가도
+   콘텐츠 가장자리가 같은 자리에 있어야 한다. 카드 테두리도 lg 에선 벗는다(표준 문법). */
+@media (min-width: 1024px) {
+  .visit-shell {
+    max-width: 1240px;
+    min-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border: 0;
+  }
+}
+
+.visit-body {
+  padding: 16px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Hero ──────────────────────────────── */
+/* 레퍼런스 구도(2026-09-03 v3): 매트한 배경 위에 왼쪽 글자·CTA, 오른쪽에서 교회가 스며 나온다.
+   사진(church-{day,night}.webp)은 교회만 담은 RGBA 레이어(왼쪽 동 벽에서 알파 0→1) — 배경·글로우·
+   나뭇가지·동심원은 모두 여기 CSS 가 그린다. 그래서 하늘을 합성해 붙이던 시절의 '색 안 맞는 이음새'가 없다.
+   색 토큰 예외: 사진 위 무대는 밤=남색+금빛, 낮=하늘+햇살로 사용자가 레퍼런스로 확정한 팔레트(`--hero-*`).
+   금빛은 이 카드의 밤 무대에서만 쓴다(브랜드 블루 원칙의 의도된 예외). */
+.visit-hero {
+  position: relative;
+  border-radius: 22px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow), 0 18px 40px -20px rgba(10, 24, 60, 0.35);
+  overflow: hidden;
+  isolation: isolate;
+}
+/* 다크: 카드 전체(경로 레일 포함)를 무대와 같은 남색 계열로 — 남색 무대 아래 회색 띠가 붙으면 두 장처럼 보인다.
+   레일의 점 바깥 링·호버 타일이 쓰는 표면 토큰도 이 안에서만 남색으로 바꾼다 */
+.dark .visit-hero {
+  --surface-container: #0e1522;
+  --surface-inset: #16202f;
+  --card-border: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--surface-container);
+  box-shadow: 0 18px 44px -22px rgba(0, 0, 0, 0.7);
+}
+
+/* 무대 — 모바일: 글자 위 / 교회 아래·오른쪽(세로 구도). lg: 글자 왼쪽 / 교회 오른쪽(레퍼런스).
+   낮 팔레트: 옅은 하늘 + 왼쪽 햇살 글로우. 사진 하늘(오른�ỏ쪽 위, 약 #7ab9f7)과 이어지도록 오른쪽 끝은 조금 진하게 */
+.visit-hero-stage {
+  --hero-bg-a: #f2f8ff;
+  --hero-bg-b: #d3e8fb;
+  --hero-bg-c: #84bff5;   /* 오른쪽 위는 조금 더 진한 하늘 — 구름 대비 */
+  --hero-ink: #14213d;
+  --hero-sub: #4b5d78;
+  --hero-accent: var(--brand);
+  --hero-cta-bg: rgba(255, 255, 255, 0.6);
+  --hero-cta-bg-hover: rgba(255, 255, 255, 0.9);
+  --hero-cta-border: rgba(49, 130, 246, 0.55);
+  position: relative;
+  /* 모바일 높이 — 글자를 위로 밀어 올리고 건물을 아래에 쌓으면 카드가 높아진다(20:23→20:19 모두 "높다").
+     PC 처럼 글자는 왼쪽 세로 중앙, 건물은 오른쪽 아래 — 왼쪽 동의 옅은 끝만 글자와 살짝 겹친다(레퍼런스 구도) */
+  aspect-ratio: 7 / 5;   /* 4:3 에서 살짝 더 낮춤(2026-09-03) */
+  min-height: 240px;
+  padding: 22px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  /* 제목·부제는 건물 꼭대기(무대 35% 지점)보다 위에, CTA 만 건물 옆 빈자리로 — 글자가 창문 위에 얹히지 않게 */
+  justify-content: flex-start;
+  background: linear-gradient(118deg, var(--hero-bg-a) 0%, var(--hero-bg-b) 46%, var(--hero-bg-c) 100%);
+  overflow: hidden;
+}
+/* 밤 팔레트: 레퍼런스의 차콜 네이비(파랑이 세면 "남색 느낌이 강하다" 피드백 2026-09-03) —
+   제목은 흰색, 라벨·CTA 만 금빛 */
+.dark .visit-hero-stage {
+  --hero-bg-a: #141d2e;
+  --hero-bg-b: #0e1626;
+  --hero-bg-c: #0a111d;
+  --hero-ink: #f5f2ea;
+  --hero-sub: rgba(232, 236, 245, 0.72);
+  --hero-accent: #d9b877;
+  --hero-cta-bg: rgba(217, 184, 119, 0.06);
+  --hero-cta-bg-hover: rgba(217, 184, 119, 0.16);
+  --hero-cta-border: rgba(217, 184, 119, 0.55);
+}
+/* 무대 → 레일 착지(다크, 2026-09-03) — 무대 끝선에 하드 엣지 3개가 겹쳐 가로 이음새로 읽혔다:
+   ① 사진 컷아웃은 아래쪽에 알파가 없어(object-position: * bottom) 건물 1층 입구가 가장 밝은 채로 잘리고
+   ② 무대는 118deg 대각 그라디언트라 경계 바로 위가 왼쪽은 레일보다 밝고 오른쪽은 어두워 단차 부호가 뒤집히고
+   ③ 그 위에 레일의 흰 헤어라인(아래 .dark .visit-route 에서 해제)이 포개졌다.
+   한 겹으로 ①②를 같이 없앤다 — 바닥을 레일 표면색으로 착지시키면 사진은 녹아들고 좌우 단차도 사라진다.
+   mask-image 는 WebKit 에서 적용 전 한 프레임 통칠이 보여 쓰지 않는다(/greeting 사인 사례) */
+.dark .visit-hero-stage::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22%;
+  /* 투명 끝은 같은 색의 알파 0 으로 — `transparent` 키워드는 회색으로 도는 브라우저가 있다 */
+  background: linear-gradient(to top, var(--surface-container) 0%, rgba(14, 21, 34, 0) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 사진이 없을 때만 시간대 하늘 토큰으로 대신한다(/worship 과 같은 --worship-sky-*) */
+.visit-hero:not(.has-photo) .visit-hero-stage {
+  background-image: var(--visit-sky, none);
+}
+.visit-hero--dawn { --visit-sky: var(--worship-sky-dawn); }
+.visit-hero--day { --visit-sky: var(--worship-sky-day); }
+.visit-hero--dusk { --visit-sky: var(--worship-sky-dusk); }
+.visit-hero--night { --visit-sky: var(--worship-sky-night); }
+
+/* 장식 — 낮: 왼쪽 위 햇살 글로우 + 왼쪽 아래 흐린 보케 몇 개 */
+.visit-hero-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.visit-hero-deco::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 60% at 10% 22%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(circle at 6% 92%, rgba(255, 255, 255, 0.34) 0, rgba(255, 255, 255, 0.34) 30px, transparent 40px),
+    radial-gradient(circle at 21% 80%, rgba(255, 255, 255, 0.24) 0, rgba(255, 255, 255, 0.24) 16px, transparent 24px),
+    radial-gradient(circle at 34% 95%, rgba(255, 255, 255, 0.2) 0, rgba(255, 255, 255, 0.2) 22px, transparent 30px),
+    radial-gradient(circle at 14% 66%, rgba(255, 255, 255, 0.18) 0, rgba(255, 255, 255, 0.18) 9px, transparent 14px);
+}
+/* 밤: 글로우는 푸른 안개 한 겹만, 왼쪽 아래에 금빛 동심원(레퍼런스의 레이더 링) */
+.dark .visit-hero-deco::before {
+  background: radial-gradient(70% 70% at 18% 40%, rgba(70, 92, 130, 0.2), rgba(70, 92, 130, 0) 70%);
+}
+.dark .visit-hero-deco::after {
+  content: '';
+  position: absolute;
+  /* 모서리에만 걸치게 — 글자 뒤까지 번지면 산만하다(검증 2026-09-03) */
+  left: -26%;
+  bottom: -48%;
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, transparent 0 26px, rgba(217, 184, 119, 0.13) 26px 27px);
+  -webkit-mask-image: radial-gradient(circle, #000 12%, rgba(0, 0, 0, 0.45) 38%, transparent 60%);
+  mask-image: radial-gradient(circle, #000 12%, rgba(0, 0, 0, 0.45) 38%, transparent 60%);
+}
+
+/* 나뭇가지 실루엣(밤만) — 왼쪽 위 모서리에 걸린 가지 몇 개(branch-night.webp, 절차 생성 RGBA) */
+.visit-hero-branch {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 78%;
+  aspect-ratio: 880 / 480;
+  background: url('/images/visit/branch-night.webp') left top / 100% auto no-repeat;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.dark .visit-hero-branch {
+  display: block;
+}
+
+/* 교회 사진 — 자산은 하늘까지 떼어낸 건물 컷아웃(RGBA)이라 배경과 만나는 가로선이 없다.
+   모바일: 무대 아래 65% 높이에 오른쪽·아래 기준으로 — 자산(2:1)이 거의 통째로 들어와 왼쪽 동까지 온전히,
+   제목·부제는 건물 위 여백에, CTA 는 건물 왼쪽 빈자리에 앉는다 */
+.visit-hero-photo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 65%;
+  pointer-events: none;
+}
+.visit-hero-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right bottom;
+}
+
+/* 글자 — 무대 왼쪽, 위에서부터(모바일) / 세로 중앙(lg) */
+.visit-hero-body {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 62%;
+}
+
+.visit-hero-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--hero-accent);
+}
+
+.visit-hero-title {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--hero-ink);
+}
+.dark .visit-hero-title {
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+}
+
+.visit-hero-subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--hero-sub);
+}
+
+/* 길찾기 CTA — 얇은 링의 필 버튼. 낮은 흰 유리, 밤은 금빛 링 */
+.visit-hero-cta {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px 10px 22px;
+  border-radius: 999px;
+  border: 1.5px solid var(--hero-cta-border);
+  background: var(--hero-cta-bg);
+  color: var(--hero-accent);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.visit-hero-cta svg {
+  transition: transform 0.2s ease;
+}
+@media (hover: hover) {
+  .visit-hero-cta:hover {
+    transform: translateY(-1px);
+    background: var(--hero-cta-bg-hover);
+    box-shadow: 0 8px 20px -10px rgba(10, 24, 60, 0.35);
+  }
+  .visit-hero-cta:hover svg {
+    transform: translateX(3px);
+  }
+}
+.visit-hero-cta:active {
+  transform: translateY(0);
+}
+.visit-hero-cta:focus-visible {
+  outline: 2px solid var(--hero-accent);
+  outline-offset: 3px;
+}
+

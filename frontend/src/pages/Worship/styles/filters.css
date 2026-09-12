@@ -1,0 +1,181 @@
+/* ── 주간 리듬 스트립 + 요일 필터 ──────── */
+.worship-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 우리 교회의 일주일 리듬 — 예배가 열리는 요일에 dot, 오늘은 채운 원 */
+.worship-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 10px 8px 8px;
+  border-radius: 14px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+}
+
+.worship-week-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+}
+
+.worship-week-day {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.worship-week-cell--today .worship-week-day {
+  font-weight: 700;
+  color: var(--on-brand);
+  background: var(--brand);
+  box-shadow: 0 4px 10px -4px var(--brand-glow);
+}
+
+.worship-week-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: transparent;
+}
+.worship-week-dot--on {
+  background: var(--brand);
+  opacity: 0.7;
+}
+
+/* ── 요일 필터 칩 ─────────────────────── */
+.worship-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.worship-filter {
+  position: relative;
+  flex: 1;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.worship-filter:hover {
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+.worship-filter--active,
+.worship-filter--active:hover {
+  font-weight: 700;
+  color: var(--on-brand);
+  border-color: transparent;
+  /* 인장(도장) 문법 — /news 세그먼트 마커·/events 카테고리 칩과 같은 감각:
+     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 6px 14px -6px var(--brand-glow);
+}
+
+.worship-filter--active::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .worship-filter--active,
+[data-theme="dark"] .worship-filter--active:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 6px 16px -6px rgba(69, 147, 252, 0.45);
+}
+
+/* ── 예배 상태 배지 (입장 가능/예배 중/대기/종료) ── */
+.worship-item-namewrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.worship-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.worship-status-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 입장 가능 — 지금 행동 가능한 상태이므로 브랜드 블루 위계 */
+.worship-status--open {
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+}
+.worship-status--open .worship-status-dot {
+  animation: worship-dot-pulse 1.4s ease-in-out infinite;
+}
+
+/* 예배 중 — 라이브 시그널만 레드 유지 */
+.worship-status--ongoing {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+.worship-status--ongoing .worship-status-dot {
+  animation: worship-dot-pulse 1.4s ease-in-out infinite;
+}
+
+.worship-status--waiting {
+  color: var(--text-muted);
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+.worship-status--ended {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--card-border);
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .worship-status--open .worship-status-dot,
+  .worship-status--ongoing .worship-status-dot {
+    animation: none;
+  }
+}
+

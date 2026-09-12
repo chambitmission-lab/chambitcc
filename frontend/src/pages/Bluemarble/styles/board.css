@@ -1,0 +1,233 @@
+/* ============================ 보드 (구버전 — 호환 유지) ============================ */
+.bm-board-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.bm-board {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: min(95vw, 720px);
+  aspect-ratio: 1 / 1;
+  background:
+    linear-gradient(135deg, rgba(69, 147, 252, 0.08), rgba(69, 147, 252, 0.06));
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+.bm-tile {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: default;
+  transition: transform 0.2s, box-shadow 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tile-color, white);
+}
+.bm-tile-bg { position: absolute; inset: 0; opacity: 0.95; }
+.bm-tile-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  text-align: center;
+  color: #1e293b;
+}
+.bm-tile-icon { font-size: clamp(16px, 3vw, 26px); line-height: 1; }
+.bm-tile-title {
+  font-size: clamp(8px, 1.4vw, 11px);
+  font-weight: 700;
+  margin-top: 2px;
+  line-height: 1.1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.bm-tile-type-badge {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #475569;
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+}
+.bm-tile-pos {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.45);
+  font-weight: 600;
+}
+.bm-tile-corner {
+  border-width: 2px;
+  border-color: rgba(69, 147, 252, 0.5);
+}
+.bm-tile-current {
+  box-shadow:
+    0 0 0 3px #4593fc,
+    0 0 24px rgba(69, 147, 252, 0.7);
+  z-index: 2;
+}
+.bm-tile-landed { animation: bm-tile-pop 0.6s ease-out; }
+@keyframes bm-tile-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* 보드 중앙 영역 */
+.bm-board-center {
+  grid-row: 2 / 7;
+  grid-column: 2 / 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px;
+  background: rgba(19, 19, 19, 0.55);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  position: relative;
+}
+.bm-last-msg {
+  font-size: 13px;
+  text-align: center;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 6px 12px;
+  border-radius: 6px;
+  max-width: 90%;
+}
+.bm-current-tile-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #8ec1ff;
+  font-weight: 600;
+}
+.bm-cti-icon { font-size: 18px; }
+
+/* ============================ 주사위 ============================ */
+.bm-dice-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bm-dice-scene {
+  width: 80px;
+  height: 80px;
+  perspective: 600px;
+}
+
+.bm-dice-cube {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bm-dice-rolling .bm-dice-cube {
+  animation: bm-dice-roll 0.9s ease-out;
+}
+
+@keyframes bm-dice-roll {
+  0% { transform: rotateX(0deg) rotateY(0deg); }
+  100% { transform: rotateX(720deg) rotateY(1440deg) rotateZ(360deg); }
+}
+
+.bm-face {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 8px;
+  gap: 2px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.05);
+}
+.bm-dot-cell { display: flex; align-items: center; justify-content: center; }
+.bm-dot {
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle at 30% 30%, #475569, #1e293b);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.bm-face-front  { transform: translateZ(40px); }
+.bm-face-back   { transform: rotateY(180deg) translateZ(40px); }
+.bm-face-right  { transform: rotateY(90deg) translateZ(40px); }
+.bm-face-left   { transform: rotateY(-90deg) translateZ(40px); }
+.bm-face-top    { transform: rotateX(90deg) translateZ(40px); }
+.bm-face-bottom { transform: rotateX(-90deg) translateZ(40px); }
+
+.bm-dice-button {
+  background: var(--brand-gradient);
+  color: white;
+  border: 0;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  box-shadow:
+    0 4px 14px rgba(69, 147, 252, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.bm-dice-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 18px rgba(69, 147, 252, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.bm-dice-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #475569, #334155);
+  box-shadow: none;
+}
+
+/* ============================ 말 ============================ */
+.bm-piece {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition:
+    grid-row 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    grid-column 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+}
+.bm-piece-hop { animation: bm-piece-hop 0.35s ease-out; }
+@keyframes bm-piece-hop {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-12px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+

@@ -1,0 +1,182 @@
+/* ── 경로 요약 레일 — 역 → 골목 → 교회 ─────
+   모던 타임라인: 점 뒤로 한 줄의 진행선이 끊김 없이 이어지고(레일의 ::before),
+   중간 단계는 틴트 링, 마지막(도착)만 브랜드로 채워 종점이 한눈에 보인다.
+   초록/파랑 두 색과 완료·도착 배지는 시선을 흩뜨려 뺐다 — 순서(STEP n)가 곧 진행도다.
+   각 단계는 타일이라 PC 호버에서 살짝 떠오른다 */
+.visit-route {
+  --route-dot: 30px;
+  --route-pad-x: 18px;
+  --route-tile-pad: 10px;
+  --route-gap: 6px;
+  --route-num-h: 14px; /* 번호 줄 높이 — 진행선 y 계산용 */
+  /* 한 칼럼의 절반 폭 — 첫/마지막 점의 중심 x 계산용 (칼럼은 1fr 등분) */
+  --route-half-col: calc(
+    (100% - 2 * var(--route-pad-x) - (var(--route-count, 3) - 1) * var(--route-gap)) /
+      var(--route-count, 3) / 2
+  );
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 14px var(--route-pad-x) 14px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--route-gap);
+  border-top: 1px solid var(--card-border);
+}
+/* 다크: 무대 바닥이 이미 레일 표면색으로 착지하므로 헤어라인은 지운 이음새를 도로 그린다 */
+.dark .visit-route {
+  border-top-color: transparent;
+}
+
+/* 진행선 — 첫 점 중심에서 마지막 점 중심까지 한 줄.
+   스텝이 칼럼 중앙 정렬이므로 양 끝 = 패딩 + 칼럼 절반(--route-half-col).
+   (점 뒤를 지나쳐 카드 끝까지 뻗으면 도착점이 종점으로 안 읽힌다) */
+.visit-route::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: calc(14px + var(--route-tile-pad) + var(--route-num-h) + 4px + var(--route-dot) / 2 - 1px);
+  left: calc(var(--route-pad-x) + var(--route-half-col));
+  right: calc(var(--route-pad-x) + var(--route-half-col));
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--brand-soft-strong), var(--brand));
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* 스텝은 칼럼 중앙 정렬 — 넓은 카드에서 아이콘이 왼쪽에 몰려 있으면 레일이 성글어 보인다 */
+.visit-route-step {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: var(--route-tile-pad);
+  border-radius: 14px;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.3, 0.5, 1),
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.visit-route-num {
+  height: var(--route-num-h);
+  line-height: var(--route-num-h);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.visit-route-step.is-last .visit-route-num {
+  color: var(--brand);
+}
+
+.visit-route-dot {
+  position: relative;
+  width: var(--route-dot);
+  height: var(--route-dot);
+  margin: 4px 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  /* 바깥 3px 링(카드색)으로 진행선을 점 뒤에서 끊어 보이게 */
+  box-shadow: 0 0 0 3px var(--surface-container), inset 0 0 0 1.5px var(--brand-soft-strong);
+  transition: transform 0.22s cubic-bezier(0.34, 1.3, 0.5, 1), box-shadow 0.2s ease;
+}
+.visit-route-step.is-last .visit-route-dot {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--surface-container), 0 0 0 5px var(--brand-soft-strong), 0 6px 14px -4px rgba(49, 130, 246, 0.6);
+}
+
+.visit-route-title {
+  max-width: 100%;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.visit-route-desc {
+  max-width: 100%;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* 호버 — 포인터가 있는 기기에서만 살짝 확대·떠오름 */
+@media (hover: hover) {
+  .visit-route-step:hover {
+    background: var(--surface-inset);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 10px 22px -12px rgba(10, 24, 60, 0.3);
+  }
+  .visit-route-step:hover .visit-route-dot {
+    transform: scale(1.1);
+  }
+  .visit-route-step:hover .visit-route-dot {
+    box-shadow: 0 0 0 3px var(--surface-inset), inset 0 0 0 1.5px var(--brand);
+  }
+  .visit-route-step.is-last:hover .visit-route-dot {
+    box-shadow: 0 0 0 3px var(--surface-inset), 0 0 0 5px var(--brand-soft-strong), 0 8px 18px -4px rgba(49, 130, 246, 0.65);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visit-route-step,
+  .visit-route-dot {
+    transition: none;
+  }
+}
+
+/* 모바일·태블릿(<1024px) — 가로 3칸 유지(사용자 확정 2026-09-03: 세로 타임라인은 되돌림).
+   셸이 28rem 이라 칸이 좁으니 칸 여백·간격·글자를 한 단계씩 줄여 "송내대로265번길"이 한 줄에 들어오게 한다.
+   그래도 넘치는 긴 이름은 레이아웃을 깨는 대신 두 줄로 흐른다(overflow-wrap: anywhere — 기본 규칙 그대로) */
+@media (max-width: 1023px) {
+  .visit-route {
+    --route-dot: 28px;
+    /* 칸 폭이 곧 제목 한 줄이라 여백을 최대한 양보한다.
+       타일 배경은 PC 호버에만 있어 gap 0 이어도 칸이 붙어 보이지 않고,
+       점 바깥 3px 링이 진행선을 끊어 주므로 칸 사이 간격은 없어도 된다 */
+    --route-pad-x: 6px;
+    --route-gap: 0px;
+    --route-tile-pad: 3px;
+    padding: 12px var(--route-pad-x) 14px;
+  }
+
+  /* 진행선 y — 위 padding 이 14px→12px, 점 위 여백이 4px→3px 로 줄어든 만큼 같이 올린다 */
+  .visit-route::before {
+    top: calc(12px + var(--route-tile-pad) + var(--route-num-h) + 3px + var(--route-dot) / 2 - 1px);
+  }
+
+  .visit-route-dot {
+    margin: 3px 0 5px;
+  }
+
+  .visit-route-num {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+  }
+
+  /* 한 칸의 글자 폭 = 뷰포트/3 - 18px, "송내대로265번길" 은 약 8.45em(한글 1em + 숫자 0.55em).
+     그래서 필요한 크기가 뷰포트에 정비례한다 — vw 로 따라가게 두면 좁은 기기에서도 한 줄을 지킨다 */
+  .visit-route-title {
+    font-size: clamp(10px, 3.2vw, 12px);
+  }
+
+  .visit-route-desc {
+    font-size: 10.5px;
+  }
+}
+

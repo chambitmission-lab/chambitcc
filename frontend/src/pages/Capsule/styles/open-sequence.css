@@ -1,0 +1,210 @@
+/* ── 개봉 연출 ─────────────────────────────────────────────────
+   인장이 갈라져 떨어짐 → 덮개가 젖혀짐 → 속지가 솟아오름 → 빛 */
+.capsule-arrival--opening .capsule-wax {
+  pointer-events: none;
+}
+
+.capsule-arrival--opening .capsule-wax__half--l {
+  animation: capsule-wax-break-l 0.85s cubic-bezier(0.3, 0.1, 0.4, 1) forwards;
+}
+
+.capsule-arrival--opening .capsule-wax__half--r {
+  animation: capsule-wax-break-r 0.85s cubic-bezier(0.3, 0.1, 0.4, 1) forwards;
+}
+
+.capsule-arrival--opening .capsule-wax__sigil {
+  animation: capsule-wax-sigil-out 0.3s ease-out forwards;
+}
+
+@keyframes capsule-wax-break-l {
+  0% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-26px, 30px) rotate(-38deg);
+    opacity: 0;
+  }
+}
+
+@keyframes capsule-wax-break-r {
+  0% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(26px, 34px) rotate(42deg);
+    opacity: 0;
+  }
+}
+
+@keyframes capsule-wax-sigil-out {
+  to {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+.capsule-arrival--opening .capsule-mailpiece__flap {
+  animation: capsule-flap-open 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.22s forwards;
+}
+
+.capsule-arrival--opening .capsule-mailpiece__letter {
+  animation: capsule-letter-rise 1s cubic-bezier(0.2, 0.7, 0.3, 1) 0.62s forwards;
+}
+
+.capsule-arrival--opening .capsule-mailpiece__peek {
+  animation: capsule-peek-out 0.5s ease-out forwards;
+}
+
+@keyframes capsule-peek-out {
+  to {
+    opacity: 0;
+    transform: translateY(-12px) rotate(0deg);
+  }
+}
+
+@keyframes capsule-flap-open {
+  0% {
+    transform: rotateX(0deg);
+  }
+  100% {
+    transform: rotateX(-178deg);
+    z-index: 0;
+  }
+}
+
+@keyframes capsule-letter-rise {
+  0% {
+    transform: translateY(0);
+    z-index: 1;
+  }
+  60% {
+    transform: translateY(-104px) scale(1.04);
+    z-index: 5;
+  }
+  100% {
+    transform: translateY(-80px) scale(1.06);
+    z-index: 5;
+    box-shadow: 0 18px 38px rgba(6, 12, 32, 0.24);
+  }
+}
+
+/* ── 개봉 안내 ─────────────────────────────────────────────────
+   버튼이 없어졌으니 "무엇을 해야 하는지"는 말로 분명히 알려준다.
+   밤하늘 끝자락에 걸치는 위치라, 배경에 의존하지 않는 짙은 글래스 알약으로 둔다. */
+.capsule-arrival__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(11, 20, 40, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(234, 241, 255, 0.95);
+  backdrop-filter: blur(6px);
+  letter-spacing: -0.01em;
+}
+
+.capsule-arrival__hint i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: capsule-dot-blink 1.9s ease-in-out infinite;
+}
+
+/* 개봉 안내 점 전용 — 목록 CTA에서 도트를 걷어내며 이 정의만 남겼다 */
+@keyframes capsule-dot-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* 짧게 탭했을 때 — 손을 떼면 안 된다는 걸 몸으로 알려준다 */
+.capsule-arrival__hint--nudge {
+  animation: capsule-hint-nudge 0.5s ease-in-out;
+  background: var(--brand);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--on-brand);
+}
+
+@keyframes capsule-hint-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  22% {
+    transform: translateX(-5px);
+  }
+  48% {
+    transform: translateX(5px);
+  }
+  74% {
+    transform: translateX(-3px);
+  }
+}
+
+/* 꾹 누르기를 못 찾은 사람을 위한 보조 경로 — 잠시 뒤 조용히 나타난다 */
+.capsule-arrival__bypass {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  animation: capsule-fade-up 0.5s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-arrival::after,
+  .capsule-mailpiece,
+  .capsule-mailpiece--idle,
+  .capsule-arrival__hint i,
+  .capsule-arrival__hint--nudge,
+  .capsule-arrival__bypass {
+    animation: none;
+  }
+  .capsule-wax--holding .capsule-wax__disc {
+    animation: none;
+    transform: scale(1.05);
+  }
+}
+
+/* 편지 본문 등장 */
+.capsule-letter-enter {
+  animation: capsule-fade-up 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.capsule-letter-enter--delayed {
+  animation-delay: 0.25s;
+}
+
+@keyframes capsule-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 부유감 — 봉투(capsule-mailpiece--idle)가 숨 쉬듯 아주 얕게 */
+@keyframes capsule-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+

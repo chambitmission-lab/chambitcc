@@ -1,0 +1,266 @@
+/* ── 상태 (로딩/빈) ───────────────────── */
+.worship-state {
+  text-align: center;
+  padding: 28px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.worship-state-hint {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand);
+}
+
+/* ── 오늘 예배 없음 — 벤토로 채운 빈 상태 ───────
+   가장 가까운 예배(브랜드, 2칸) + 온라인으로 함께 + 오시는 길 */
+.worship-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.worship-empty-lead {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.worship-empty-bento {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.worship-empty-tile {
+  --i: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 132px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  color: var(--text-strong);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: worship-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i) * 70ms);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.worship-empty-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-soft-strong);
+  box-shadow: 0 12px 26px -12px var(--brand-glow);
+}
+
+.worship-empty-tile--next {
+  grid-column: 1 / -1;
+  min-height: 160px;
+  gap: 5px;
+  color: #fff;
+  border-color: transparent;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.22), transparent 42%),
+    linear-gradient(150deg, #4593fc, #2b78ee 70%, #1b6ef3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 14px 30px -12px var(--brand-glow);
+}
+.worship-empty-tile--next:hover {
+  border-color: transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 18px 34px -12px var(--brand-glow);
+}
+
+.worship-empty-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.82);
+}
+.worship-empty-tile--next .worship-next-dot {
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+
+.worship-empty-name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.worship-empty-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.worship-empty-tag {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.worship-empty-cta {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 12px 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.worship-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.worship-empty-tile-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.worship-empty-tile-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.worship-empty-all {
+  align-self: center;
+}
+
+/* ── 타임라인 전환 — 필터를 바꾸면 카드가 레일을 따라 차례로 떠오른다 ── */
+.worship-block--timeline {
+  position: relative;
+  padding-left: 22px;
+}
+.worship-block--timeline::before {
+  content: '';
+  position: absolute;
+  top: 34px;
+  bottom: 18px;
+  left: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--brand), var(--brand-soft-strong));
+  opacity: 0.6;
+  transform-origin: top;
+  animation: worship-rail-grow 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.worship-block--timeline .worship-block-title {
+  margin-left: -22px;
+}
+.worship-block--timeline .worship-item {
+  --i: 0;
+  animation: worship-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i) * 60ms);
+}
+/* 레일 위의 정거장 점 — 카드 왼쪽 바깥, 세로 중앙 */
+.worship-block--timeline .worship-item::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface-container);
+  border: 2px solid var(--brand);
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 3px var(--app-canvas);
+}
+.worship-block--timeline .worship-item--next::before {
+  background: var(--brand);
+  box-shadow: 0 0 0 3px var(--app-canvas), 0 0 0 6px var(--brand-soft-strong);
+}
+.worship-block--timeline .worship-item--ended::before {
+  border-color: var(--card-border);
+}
+
+@keyframes worship-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes worship-rail-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .worship-empty-tile,
+  .worship-block--timeline::before,
+  .worship-block--timeline .worship-item {
+    animation: none;
+  }
+}
+.worship-spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  border: 3px solid var(--brand-soft-strong);
+  border-top-color: var(--brand);
+  animation: worship-spin 0.8s linear infinite;
+}
+@keyframes worship-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── 안내 노트 ─────────────────────────── */
+.worship-note {
+  position: relative;
+  padding: 16px 16px 16px 18px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+  overflow: hidden;
+}
+.worship-note::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--brand);
+}
+.worship-note-line {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-body);
+}
+.worship-note-line + .worship-note-line {
+  margin-top: 4px;
+}
+.worship-note-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: var(--brand);
+  vertical-align: -1px;
+}
+
