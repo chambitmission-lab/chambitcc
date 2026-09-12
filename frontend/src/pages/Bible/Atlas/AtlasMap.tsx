@@ -293,7 +293,7 @@ const AtlasMap = () => {
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
         <BibleSideRail active="atlas" />
 
-        <div className="atl-card max-w-md mx-auto bg-background-light dark:bg-background-dark pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-6 lg:overflow-hidden">
+        <div className="atl-shell max-w-md mx-auto bg-background-light dark:bg-background-dark pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-6 lg:overflow-hidden">
           {/* 페이지 헤드 — 타이틀·여권 진척·여정 선택을 한 블록으로 묶는다.
               예전엔 56px 고정 띠(17px 제목 + 부제 두 줄)에 칩 줄이 따로 떠 있어,
               PC에선 제목과 여권 사이가 통째로 비고 모바일에선 두 줄이 눌려 보였다.
