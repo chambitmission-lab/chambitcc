@@ -7,7 +7,7 @@ import PlaceSheet from './components/PlaceSheet'
 import DistanceSheet from './components/DistanceSheet'
 import PassportSheet from './components/PassportSheet'
 import QuizPanel from './components/QuizPanel'
-import { JOURNEYS, getJourney, uniquePlaceIds } from './data/journeys'
+import { ALL_JOURNEY_PLACE_IDS, JOURNEYS, getJourney, uniquePlaceIds } from './data/journeys'
 import { PLACES, placeLabel } from './data/places'
 import { distanceFeelOf, formatKm } from './distanceFeel'
 import { hasCelebratedJourney, markJourneyCelebrated, useAtlasProgress } from './atlasProgress'
@@ -54,6 +54,10 @@ const AtlasMap = () => {
   const journeyPlaceIds = useMemo(() => uniquePlaceIds(journey), [journey])
   const visitedInJourney = journeyPlaceIds.filter((id) => visitedIds.has(id)).length
   const journeyComplete = visitedInJourney === journeyPlaceIds.length
+
+  // 여권 진척 — 여정을 통틀어 찍은 도장. 헤더의 "여권"이 빈 버튼이 아니라
+  // 지금 상태를 가리키게 한다(여권 시트와 같은 분모를 쓴다)
+  const totalVisited = ALL_JOURNEY_PLACE_IDS.filter((id) => visitedIds.has(id)).length
 
   // 여정 완주 축하 — 여정당 최초 1회만 (스토리 모드 완주 연출과 같은 규약)
   useEffect(() => {
@@ -126,44 +130,67 @@ const AtlasMap = () => {
         <BibleSideRail active="atlas" />
 
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-8 lg:overflow-hidden">
-          {/* 헤더 */}
-          <div className="flex items-center gap-3 px-4 h-14">
-            <button
-              onClick={() => navigate('/bible')}
-              className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full lg:hidden"
-              aria-label="성경으로 돌아가기"
-            >
-              <span className="material-icons-round text-[22px]">arrow_back</span>
-            </button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-[17px] font-bold text-ink-strong">지도여행</h1>
-              <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-                말씀이 실제로 걸어간 길
-              </p>
+          {/* 페이지 헤드 — 타이틀·여권 진척·여정 선택을 한 블록으로 묶는다.
+              예전엔 56px 고정 띠(17px 제목 + 부제 두 줄)에 칩 줄이 따로 떠 있어,
+              PC에선 제목과 여권 사이가 통째로 비고 모바일에선 두 줄이 눌려 보였다.
+              다른 성경 하위 화면(읽기 플랜·단어장·구절 알람)의 헤더 문법대로
+              아래 헤어라인 하나로 크롬을 닫고, 제목은 같은 급(19 / PC 22px)으로 올린다. */}
+          <div className="atl-head">
+            <div className="atl-head__row">
+              <button
+                onClick={() => navigate('/bible')}
+                className="atl-head__back lg:hidden"
+                aria-label="성경으로 돌아가기"
+              >
+                <span className="material-icons-round">arrow_back</span>
+              </button>
+              <div className="min-w-0 flex-1">
+                <h1 className="atl-head__title">지도여행</h1>
+                <p className="atl-head__sub">말씀이 실제로 걸어간 길</p>
+              </div>
+              {/* 빈 가로를 채우면서 여권 버튼에 이유를 만들어 주는 자리 */}
+              <span className="atl-stamps">
+                도장 {totalVisited}
+                <span className="atl-stamps__total">/{ALL_JOURNEY_PLACE_IDS.length}</span>
+              </span>
+              <button
+                type="button"
+                className="atl-passport-btn"
+                onClick={() => setShowPassport(true)}
+              >
+                <span className="material-icons-outlined">approval</span>
+                여권
+              </button>
             </div>
-            <button type="button" className="atl-passport-btn" onClick={() => setShowPassport(true)}>
-              <span className="material-icons-outlined">approval</span>
-              여권
-            </button>
-          </div>
 
-          {/* 여정 선택 */}
-          <div className="atl-tracks">
-            {JOURNEYS.map((item) => {
-              const on = item.id === journey.id
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`atl-track${on ? ' atl-track--on' : ''}`}
-                  style={on ? { borderColor: item.color, color: item.color } : undefined}
-                  onClick={() => selectJourney(item.id)}
-                >
-                  <span className="atl-track__dot" style={{ background: item.color }} />
-                  {item.short}
-                </button>
-              )
-            })}
+            {/* 여정 선택 */}
+            <div className="atl-tracks">
+              {JOURNEYS.map((item) => {
+                const on = item.id === journey.id
+                return (
+                  // 활성 칩은 배경 틴트까지 여정 색에서 뽑는다 — 배경만 brand-soft(파랑)를
+                  // 쓰던 예전 조합은 주황·초록 여정에서 한 칩에 액센트가 둘로 갈렸다
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`atl-track${on ? ' atl-track--on' : ''}`}
+                    style={
+                      on
+                        ? {
+                            borderColor: item.color,
+                            color: item.color,
+                            background: `${item.color}1f`,
+                          }
+                        : undefined
+                    }
+                    onClick={() => selectJourney(item.id)}
+                  >
+                    <span className="atl-track__dot" style={{ background: item.color }} />
+                    {item.short}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* 지도 */}

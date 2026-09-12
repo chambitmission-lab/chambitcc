@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
-import { JOURNEYS, uniquePlaceIds } from '../data/journeys'
+import { ALL_JOURNEY_PLACE_IDS, JOURNEYS, uniquePlaceIds } from '../data/journeys'
 import { PLACES } from '../data/places'
 
 interface PassportSheetProps {
@@ -26,10 +26,10 @@ const PassportSheet = ({ visitedIds, onOpenJourney, onClose }: PassportSheetProp
     return { journey, placeIds, done, complete: done === placeIds.length }
   })
 
-  const totalPlaces = new Set(JOURNEYS.flatMap(uniquePlaceIds)).size
-  const totalVisited = new Set(
-    [...visitedIds].filter((id) => !!PLACES[id])
-  ).size
+  // 헤더의 "도장 n/m" 칩과 같은 셈 — 분모·분자가 어긋나면 같은 화면에서
+  // 두 수가 다르게 보인다
+  const totalPlaces = ALL_JOURNEY_PLACE_IDS.length
+  const totalVisited = ALL_JOURNEY_PLACE_IDS.filter((id) => visitedIds.has(id)).length
   const completedJourneys = rows.filter((r) => r.complete).length
 
   return createPortal(

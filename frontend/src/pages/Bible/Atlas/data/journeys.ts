@@ -715,3 +715,9 @@ export const uniquePlaceIds = (journey: AtlasJourney): string[] => {
 /** 이 장소가 등장하는 다른 여정들 — 핀 카드에서 "같은 자리, 다른 시대"를 잇는다 */
 export const journeysAtPlace = (placeId: string): AtlasJourney[] =>
   JOURNEYS.filter((journey) => journey.stops.some((stop) => stop.place === placeId))
+
+/** 모든 여정의 지점(중복 제거) — 여권 진척("도장 n/m")의 분모.
+    헤더 칩과 여권 시트가 같은 수를 말해야 하므로 셈은 여기 한 곳에서만 한다 */
+export const ALL_JOURNEY_PLACE_IDS: string[] = [
+  ...new Set(JOURNEYS.flatMap(uniquePlaceIds)),
+]

@@ -1,11 +1,90 @@
 /* 성경 지도여행 (/bible/atlas) — 지도 캔버스 + 걸어보기 + 지점 목록
    클래스 접두사는 atl-. BookJourneyPath(bjp-) 와 같은 규칙이다. */
 
+/* ── 페이지 헤드 (타이틀 + 도장 + 여정 선택) ────────────────── */
+
+.atl-head {
+  /* 헤어라인 하나로 크롬과 캔버스를 가른다 — 배경은 카드 그대로 두고
+     경계만 준다(읽기 플랜·단어장 헤더와 같은 처리) */
+  border-bottom: 1px solid var(--ig-border);
+}
+
+.atl-head__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem 0;
+}
+
+.atl-head__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin-left: -0.375rem;
+  border-radius: 999px;
+  color: var(--ig-secondary-text);
+}
+.atl-head__back .material-icons-round {
+  font-size: 1.375rem;
+}
+
+.atl-head__title {
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+  color: var(--text-strong);
+}
+
+.atl-head__sub {
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  color: var(--ig-secondary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 도장 진척 — 여권 시트와 같은 분모(ALL_JOURNEY_PLACE_IDS) */
+.atl-stamps {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ig-secondary-text);
+}
+.atl-stamps__total {
+  opacity: 0.6;
+}
+
+@media (min-width: 1024px) {
+  .atl-head__row {
+    padding: 1.25rem 1rem 0;
+  }
+  .atl-head__title {
+    font-size: 1.375rem;
+  }
+  .atl-head__sub {
+    font-size: 0.875rem;
+  }
+  .atl-stamps {
+    font-size: 0.8125rem;
+  }
+}
+
 /* ── 지도 ──────────────────────────────────────────────────── */
 
 .atl-stage {
   position: relative;
-  margin: 0 1rem;
+  /* 위 여백은 헤드의 헤어라인과 지도 사이 숨구멍 — 예전엔 칩 줄의
+     padding-bottom 이 이 역할을 했다 */
+  margin: 0.875rem 1rem 0;
   border-radius: 1.25rem;
   overflow: hidden;
   border: 1px solid var(--ig-border);
@@ -289,7 +368,7 @@
   display: flex;
   gap: 0.4rem;
   overflow-x: auto;
-  padding: 0.15rem 1rem 0.75rem;
+  padding: 0.75rem 1rem;
   scrollbar-width: none;
 }
 .atl-tracks::-webkit-scrollbar {
@@ -309,8 +388,11 @@
   background: var(--ig-primary-background);
   border: 1px solid var(--ig-border);
 }
+/* 활성 칩의 배경 틴트·테두리·글자색은 모두 여정 색에서 나온다(인라인 style).
+   배경만 brand-soft(파랑)를 쓰던 예전 조합은 주황·초록 여정에서 한 칩 안에
+   액센트가 둘로 갈려 보였다 */
 .atl-track--on {
-  background: var(--brand-soft);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .atl-track__dot {
   width: 0.45rem;
@@ -601,9 +683,14 @@
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--brand);
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
+  /* 페이지의 액센트는 지금 보고 있는 여정 색이다. 여기에 brand-soft(파랑) pill 이
+     헤더에 하나 떠 있으면 화면에 주인이 둘이 된다 — 중립 고스트로 물러선다 */
+  color: var(--text-strong);
+  background: transparent;
+  border: 1px solid var(--ig-border);
+}
+.atl-passport-btn:hover {
+  background: var(--surface-inset);
 }
 .atl-passport-btn .material-icons-outlined {
   font-size: 1rem;
