@@ -21,19 +21,26 @@ import {
   type ThanksInfiniteData,
   type ThanksPage,
 } from '../Home/components/ThanksThread/useThanks'
-import type { CreateThanksRequest, Thanks as ThanksItem } from '../../types/thanks'
+import type {
+  CreateThanksRequest,
+  Thanks as ThanksItem,
+  ThanksWeeklyTopResponse,
+} from '../../types/thanks'
 import { showToast } from '../../utils/toast'
 import ThanksCard from '../Home/components/ThanksThread/ThanksCard'
 import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
 import ThanksAvatar from '../Home/components/ThanksThread/ThanksAvatar'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
 import { ThanksIcon } from '../../components/icons/ThanksIcons'
+import { CrownSimple } from '../../components/icons/phosphor'
 import '../Home/components/ThanksThread/thanks.css'
 import './Thanks.css'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { THANKS_HERO } from '../../utils/themeAssets'
+
+type ThanksWeeklyTop = ThanksWeeklyTopResponse['data']
 
 /* 히어로에 하루 하나씩 도는 감사 말씀 */
 const THANKS_VERSES = [
@@ -102,14 +109,22 @@ const Thanks = () => {
 
   // 이번 주 TOP 감사 + 이번 주 감사 수 (감사 카드)
   const weeklyKey = [...thanksKeys.all, 'weekly-top'] as const
+  const weeklyTopKey = [...weeklyKey, 3] as const
   const weeklyQuery = useQuery({
-    queryKey: [...weeklyKey, 3],
+    queryKey: weeklyTopKey,
     queryFn: () => getThanksWeeklyTop(3),
     staleTime: 1000 * 60 * 2,
   })
   const weeklyTop = weeklyQuery.data?.items ?? []
   const weekCount = weeklyQuery.data?.week_count ?? 0
   const refreshWeekly = () => queryClient.invalidateQueries({ queryKey: weeklyKey })
+
+  /* TOP 카드에서 바로 누른 아멘 — 피드 캐시와 별도라 같이 손봐야 숫자가 그 자리에서 움직인다 */
+  const updateWeeklyItem = (id: number, patch: (t: ThanksItem) => ThanksItem) => {
+    queryClient.setQueryData<ThanksWeeklyTop>(weeklyTopKey, (prev) =>
+      prev ? { ...prev, items: prev.items.map((t) => (t.id === id ? patch(t) : t)) } : prev,
+    )
+  }
 
   const items = useMemo(
     () => query.data?.pages.flatMap((p) => p.items) ?? [],
@@ -212,21 +227,20 @@ const Thanks = () => {
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey })
       const previous = queryClient.getQueryData<ThanksInfiniteData>(queryKey)
+      const previousWeekly = queryClient.getQueryData<ThanksWeeklyTop>(weeklyTopKey)
+      const toggle = (t: ThanksItem): ThanksItem => ({
+        ...t,
+        is_amened: !t.is_amened,
+        amen_count: t.is_amened
+          ? Math.max(0, t.amen_count - 1)
+          : t.amen_count + 1,
+      })
       updatePages((page) => ({
         ...page,
-        items: page.items.map((t) =>
-          t.id === id
-            ? {
-                ...t,
-                is_amened: !t.is_amened,
-                amen_count: t.is_amened
-                  ? Math.max(0, t.amen_count - 1)
-                  : t.amen_count + 1,
-              }
-            : t,
-        ),
+        items: page.items.map((t) => (t.id === id ? toggle(t) : t)),
       }))
-      return { previous }
+      updateWeeklyItem(id, toggle)
+      return { previous, previousWeekly }
     },
     onSuccess: (res, id) => {
       updatePages((page) => ({
@@ -237,11 +251,15 @@ const Thanks = () => {
             : t,
         ),
       }))
+      updateWeeklyItem(id, (t) => ({ ...t, is_amened: res.is_amened, amen_count: res.amen_count }))
       refreshWeekly()
     },
     onError: (_e, _id, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous)
+      }
+      if (context?.previousWeekly) {
+        queryClient.setQueryData(weeklyTopKey, context.previousWeekly)
       }
       showToast(ko ? '실패했습니다' : 'Failed', 'error')
     },
@@ -342,99 +360,103 @@ const Thanks = () => {
     </div>
   )
 
-  // 감사 카드: 이번 주 숫자 + 참여자 + TOP 3 (PC 우측 레일 / 모바일 히어로 아래)
+  // 감사 카드: 새벽 하늘 띠(숫자 + 참여자) 위에 흰 패널이 올라탄 구조 (PC 우측 레일 / 모바일 히어로 아래)
   const sideCard = (
     <section className="thanks-side-card" aria-label={ko ? '감사 카드' : 'Thanks card'}>
-      <div className="thanks-side-label">
-        <span className="material-icons-round text-[16px]">auto_awesome</span>
-        {ko ? '감사 카드' : 'Thanks card'}
-      </div>
-      <div className="flex items-end justify-between gap-3 mt-2">
-        <div className="flex items-baseline gap-1.5">
-          <span className="thanks-side-count">{weekCount}</span>
-          <span className="text-[13px] font-semibold opacity-90">
-            {ko ? '개의 감사' : 'thanks'}
-          </span>
+      <div className="thanks-side-head">
+        <div className="thanks-side-label">
+          <span className="material-icons-round text-[16px]">auto_awesome</span>
+          {ko ? '감사 카드' : 'Thanks card'}
         </div>
-        {avatarStack}
-      </div>
-      <p className="text-[12px] opacity-80 mt-1">
-        {ko ? `이번 주 우리 교회가 나눈 감사 · 전체 ${total}개` : `Shared this week · ${total} in total`}
-      </p>
 
-      <h3 className="text-[13.5px] font-bold mt-4 mb-2">
-        {ko ? '이번 주 TOP 감사' : 'This week’s top thanks'}
-      </h3>
-      <ol className="thanks-side-top">
-        {weeklyTop.length === 0 ? (
-          <li className="thanks-side-top-empty">
-            {weeklyQuery.isLoading
-              ? '…'
-              : ko
-                ? '이번 주 첫 감사를 남겨보세요'
-                : 'Be the first to give thanks this week'}
-          </li>
-        ) : (
-          weeklyTop.map((t, i) => {
-            const open = expandedTopId === t.id
-            return (
-              <li key={t.id} className={open ? 'is-open' : ''}>
-                <button
-                  type="button"
-                  className="thanks-side-top-row"
-                  onClick={() => setExpandedTopId(open ? null : t.id)}
-                  aria-expanded={open}
-                >
-                  <span className="thanks-side-rank">{i + 1}</span>
-                  <span className="thanks-side-top-text">{t.content}</span>
-                  <span className="thanks-side-top-amen">
-                    <HandHeartIcon size={13} filled />
-                    {t.amen_count}
-                  </span>
-                </button>
-                {open && (
-                  <div className="thanks-side-top-detail">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <ThanksAvatar name={t.display_name} avatarUrl={t.avatar_url} size={20} />
-                      <span className="truncate text-[12px] font-semibold text-ink">{t.display_name}</span>
-                      <span className="text-[12px] text-ink-muted opacity-60">·</span>
-                      <span className="whitespace-nowrap text-[12px] text-ink-muted">{t.time_ago}</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
+        <div className="thanks-side-stat">
+          <div className="thanks-side-num">
+            <span className="thanks-side-count">{weekCount}</span>
+            <span className="thanks-side-num-side">
+              <span className="thanks-side-script" aria-hidden>Thanks</span>
+              <span className="thanks-side-unit">{ko ? '개의 감사' : 'thanks'}</span>
+            </span>
+          </div>
+          {avatarStack}
+        </div>
+
+        <p className="thanks-side-sub">
+          {ko ? `이번 주 우리 교회가 나눈 감사 · 전체 ${total}개` : `Shared this week · ${total} in total`}
+        </p>
+      </div>
+
+      <div className="thanks-side-panel">
+        <h3 className="thanks-side-panel-title">
+          <CrownSimple size={19} weight="duotone" className="thanks-side-crown" aria-hidden />
+          {ko ? (
+            <>이번 주 <b>TOP</b> 감사</>
+          ) : (
+            <>This week’s <b>TOP</b> thanks</>
+          )}
+        </h3>
+
+        <ol className="thanks-side-top">
+          {weeklyTop.length === 0 ? (
+            <li className="thanks-side-top-empty">
+              {weeklyQuery.isLoading
+                ? '…'
+                : ko
+                  ? '이번 주 첫 감사를 남겨보세요'
+                  : 'Be the first to give thanks this week'}
+            </li>
+          ) : (
+            weeklyTop.map((t, i) => {
+              const open = expandedTopId === t.id
+              return (
+                <li key={t.id}>
+                  <div className={`thanks-side-item${open ? ' is-open' : ''}`}>
+                    <div className="thanks-side-item-row">
                       <button
                         type="button"
+                        className="thanks-side-item-main"
+                        onClick={() => setExpandedTopId(open ? null : t.id)}
+                        aria-expanded={open}
+                      >
+                        <span className="thanks-side-rank" aria-hidden>{i + 1}</span>
+                        <span className="thanks-side-top-text">{t.content}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`thanks-side-amen${t.is_amened ? ' is-on' : ''}`}
                         onClick={() => handleAmen(t.id)}
-                        className="thanks-side-top-amen-btn"
-                        style={
-                          t.is_amened
-                            ? {
-                                background: 'var(--brand-soft-strong)',
-                                color: 'var(--brand)',
-                                borderColor: 'color-mix(in srgb, var(--brand) 45%, transparent)',
-                              }
-                            : undefined
-                        }
+                        aria-pressed={t.is_amened}
                         aria-label={ko ? '함께 감사해요' : 'Give thanks together'}
                       >
-                        <HandHeartIcon size={14} filled={t.is_amened} />
-                        {ko ? '함께 감사' : 'Amen'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => revealInFeed(t.id)}
-                        className="thanks-side-top-goto"
-                      >
-                        {ko ? '피드에서 보기' : 'View in feed'}
-                        <span className="material-icons-round text-[15px]">arrow_downward</span>
+                        <HandHeartIcon size={15} filled={t.is_amened} />
+                        {t.amen_count}
                       </button>
                     </div>
+
+                    {open && (
+                      <div className="thanks-side-detail">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <ThanksAvatar name={t.display_name} avatarUrl={t.avatar_url} size={20} />
+                          <span className="truncate text-[12px] font-semibold text-ink">{t.display_name}</span>
+                          <span className="text-[12px] text-ink-muted opacity-60">·</span>
+                          <span className="whitespace-nowrap text-[12px] text-ink-muted">{t.time_ago}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => revealInFeed(t.id)}
+                          className="thanks-side-top-goto"
+                        >
+                          {ko ? '피드에서 보기' : 'View in feed'}
+                          <span className="material-icons-round text-[15px]">arrow_downward</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </li>
-            )
-          })
-        )}
-      </ol>
+                </li>
+              )
+            })
+          )}
+        </ol>
+      </div>
     </section>
   )
 

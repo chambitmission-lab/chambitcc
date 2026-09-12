@@ -56,14 +56,32 @@ html.dark .thanks-hero {
   color: var(--text-muted);
 }
 
-/* ── 감사 카드 (브랜드 그라데이션) ── */
+/* ── 감사 카드 ──
+   새벽 하늘 띠(숫자·참여자) 위에 흰 패널이 올라탄 2층 구조.
+   하늘은 사진이 아니라 겹 그라데이션 — 위 히어로가 이미 삽화라 사진을 또 깔면 두 장이 싸운다. */
 .thanks-side-card {
-  border-radius: 20px;
-  padding: 18px 18px 16px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  padding-bottom: 8px;
   color: var(--on-brand);
-  background-image: linear-gradient(135deg, var(--brand) 0%, var(--brand-dim) 100%);
-  box-shadow: 0 12px 30px var(--brand-glow);
+  background-color: var(--brand);
+  /* 우상단 해무리 → 좌상단 옅은 빛 → 바탕 하늘. 아바타 스택이 앉는 자리라 해무리는 모서리로 물린다 */
+  background-image:
+    radial-gradient(52% 58% at 92% 2%, rgba(255, 236, 203, 0.52), rgba(255, 216, 168, 0.16) 46%, rgba(255, 216, 168, 0) 72%),
+    radial-gradient(84% 66% at 8% -12%, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 62%),
+    linear-gradient(158deg, #1f5fd0 0%, #3182f6 52%, #6ea8f8 100%);
+  box-shadow: 0 14px 34px var(--brand-glow);
 }
+html.dark .thanks-side-card {
+  background-image:
+    radial-gradient(52% 58% at 92% 2%, rgba(255, 190, 120, 0.28), rgba(255, 190, 120, 0) 68%),
+    radial-gradient(84% 66% at 8% -12%, rgba(120, 170, 255, 0.16), rgba(120, 170, 255, 0) 62%),
+    linear-gradient(158deg, #10336e 0%, #17498f 56%, #2b6ad0 100%);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
+}
+
+.thanks-side-head { padding: 16px 18px 20px; }
 .thanks-side-label {
   display: inline-flex;
   align-items: center;
@@ -72,12 +90,56 @@ html.dark .thanks-hero {
   font-weight: 700;
   opacity: 0.95;
 }
+.thanks-side-stat {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.thanks-side-num {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  min-width: 0;
+}
 .thanks-side-count {
-  font-size: 40px;
+  font-size: 44px;
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 12px rgba(10, 36, 84, 0.28);
+}
+.thanks-side-num-side {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-bottom: 1px;
+}
+/* 필기체 액센트 — 없는 기기에선 명조 이탤릭으로 떨어진다.
+   generic `cursive` 는 넣지 않는다(윈도우에서 코믹산스로 떨어진다) */
+.thanks-side-script {
+  font-family: 'Snell Roundhand', 'Apple Chancery', 'Segoe Script', 'Bradley Hand', var(--font-serif-kr);
+  font-style: italic;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  opacity: 0.72;
+  letter-spacing: 0.01em;
+}
+.thanks-side-unit {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  opacity: 0.95;
+}
+.thanks-side-sub {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.82;
 }
 .thanks-side-more {
   width: 28px;
@@ -88,52 +150,116 @@ html.dark .thanks-hero {
   font-size: 11px;
   font-weight: 700;
   color: #fff;
-  background: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(4px);
 }
+
+/* 하늘 위에 올라탄 흰 패널 */
+.thanks-side-panel {
+  position: relative;
+  margin: 0 8px;
+  padding: 13px 11px 11px;
+  border-radius: 18px;
+  background: var(--surface-container);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 8px 22px rgba(12, 36, 82, 0.18);
+}
+.thanks-side-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 1px 5px 11px;
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+.thanks-side-panel-title b { color: var(--brand); font-weight: 800; }
+.thanks-side-crown { color: var(--brand); flex: none; }
+
+/* ── TOP 3 — 한 건이 한 장의 카드 ── */
 .thanks-side-top {
   list-style: none;
   margin: 0;
-  padding: 4px 6px;
-  border-radius: 14px;
-  background: var(--surface-container);
-  color: var(--text-body);
-}
-.thanks-side-top li {
-  border-bottom: 1px solid var(--card-border);
-}
-.thanks-side-top li:last-child { border-bottom: 0; }
-.thanks-side-top-row {
+  padding: 0;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 8px;
-  text-align: left;
-  border-radius: 10px;
-  color: inherit;
-  transition: background 0.15s;
+  flex-direction: column;
+  gap: 8px;
 }
-.thanks-side-top-row:hover,
-.thanks-side-top li.is-open .thanks-side-top-row { background: var(--brand-soft); }
-.thanks-side-top li.is-open .thanks-side-top-text {
-  display: block;
-  -webkit-line-clamp: unset;
+.thanks-side-item {
+  border-radius: 14px;
+  padding: 9px 10px;
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 10%, transparent);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.thanks-side-item:hover,
+.thanks-side-item.is-open {
+  background: var(--brand-soft-strong);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 22%, transparent);
+}
+.thanks-side-item-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.thanks-side-item-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  color: inherit;
 }
 .thanks-side-rank {
-  width: 18px;
-  flex-shrink: 0;
-  font-size: 12px;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
   font-weight: 800;
-  color: var(--brand);
-  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--rank-ink, var(--brand));
+  background: var(--rank-bg, var(--brand-soft-strong));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rank-ink, var(--brand)) 20%, transparent);
+}
+/* 1·2·3 을 한 색으로 두면 순위가 아니라 목록처럼 읽힌다 — 등수마다 다른 잉크 */
+.thanks-side-top li:nth-child(1) .thanks-side-rank {
+  --rank-ink: #2563eb;
+  --rank-bg: linear-gradient(145deg, #dce9ff, #c6dbff);
+}
+.thanks-side-top li:nth-child(2) .thanks-side-rank {
+  --rank-ink: #6355d8;
+  --rank-bg: linear-gradient(145deg, #e5e2fb, #d5d1f7);
+}
+.thanks-side-top li:nth-child(3) .thanks-side-rank {
+  --rank-ink: #0f8a80;
+  --rank-bg: linear-gradient(145deg, #d8f1ec, #c5e9e1);
+}
+html.dark .thanks-side-top li:nth-child(1) .thanks-side-rank {
+  --rank-ink: #9ec5ff;
+  --rank-bg: linear-gradient(145deg, rgba(69, 147, 252, 0.26), rgba(69, 147, 252, 0.12));
+}
+html.dark .thanks-side-top li:nth-child(2) .thanks-side-rank {
+  --rank-ink: #b8b0f5;
+  --rank-bg: linear-gradient(145deg, rgba(122, 108, 235, 0.26), rgba(122, 108, 235, 0.12));
+}
+html.dark .thanks-side-top li:nth-child(3) .thanks-side-rank {
+  --rank-ink: #7fd6cb;
+  --rank-bg: linear-gradient(145deg, rgba(35, 168, 155, 0.26), rgba(35, 168, 155, 0.12));
 }
 .thanks-side-top-text {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 500;
   line-height: 1.5;
+  color: var(--text-body);
   word-break: keep-all;
   overflow-wrap: break-word;
   display: -webkit-box;
@@ -141,17 +267,48 @@ html.dark .thanks-hero {
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
-.thanks-side-rank { padding-top: 3px; }
-.thanks-side-top-detail {
+.thanks-side-item.is-open .thanks-side-top-text {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+/* 카운트가 아니라 버튼 — TOP 목록에서 바로 함께 감사할 수 있다 */
+.thanks-side-amen {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+  background: var(--surface-container);
+  box-shadow:
+    0 1px 2px rgba(16, 42, 90, 0.1),
+    inset 0 0 0 1px color-mix(in srgb, var(--brand) 16%, transparent);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+.thanks-side-amen:hover { box-shadow: 0 2px 6px rgba(16, 42, 90, 0.14), inset 0 0 0 1px color-mix(in srgb, var(--brand) 34%, transparent); }
+.thanks-side-amen.is-on {
+  color: var(--on-brand);
+  background: var(--brand);
+  box-shadow: 0 5px 14px var(--brand-glow);
+}
+.thanks-side-amen:active { transform: scale(0.94); }
+
+.thanks-side-detail {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 2px 8px 10px 36px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px dashed color-mix(in srgb, var(--brand) 24%, transparent);
   animation: thanks-card-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.thanks-side-top-amen-btn,
 .thanks-side-top-goto {
   display: inline-flex;
   align-items: center;
@@ -161,30 +318,15 @@ html.dark .thanks-hero {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  border: 1px solid var(--card-border);
-  background: var(--surface-inset);
-  color: var(--text-muted);
-  transition: all 0.15s;
-}
-.thanks-side-top-goto { color: var(--brand); }
-.thanks-side-top-goto:hover { background: var(--brand-soft-strong); }
-.thanks-side-top-amen-btn:active { transform: scale(0.95); }
-.thanks-side-top-amen {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
   color: var(--brand);
-  background: var(--brand-soft-strong);
+  background: var(--surface-container);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 18%, transparent);
+  transition: background 0.15s;
 }
+.thanks-side-top-goto:hover { background: var(--brand-soft-strong); }
 .thanks-side-top-empty {
-  justify-content: center;
+  padding: 14px 8px;
+  text-align: center;
   font-size: 12.5px;
   color: var(--text-muted);
 }
@@ -253,7 +395,7 @@ html.dark .thanks-hero {
   border-color: var(--brand);
 }
 @media (prefers-reduced-motion: reduce) {
-  .thanks-side-top-detail,
+  .thanks-side-detail,
   .thanks-tl-highlight { animation: none !important; }
 }
 
