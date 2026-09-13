@@ -97,17 +97,22 @@ export const buildHighlightMarkup = (text: string, opt: HighlightOptions): strin
 const TOKEN_RE = /(\[\[[\s\S]*?\]\])/g
 
 /** 상세 화면: 마커를 스타일 span으로 */
+/* 본문은 어절 단위로만 줄을 바꾸므로(keep-all) "(마 7:12)"가 "(마 / 7:12)"로 쪼개진다.
+   책 이름과 장:절 사이 공백을 줄바꿈 없는 공백으로 바꿔 성구 표기를 한 덩어리로 묶는다. */
+const SCRIPTURE_REF_SPACE_RE = /([가-힣A-Za-z]+\.?) (?=\d{1,3}:\d)/g
+export const glueScriptureRefs = (text: string): string => text.replace(SCRIPTURE_REF_SPACE_RE, '$1 ')
+
 export const renderHighlightedText = (text: string): ReactNode[] =>
   text.split(TOKEN_RE).map((part, i) => {
     if (part.startsWith('[[') && part.endsWith(']]')) {
       const { text: inner, options } = parseHighlightToken(part.slice(2, -2))
       return (
         <span key={i} className="text-ink-strong" style={highlightStyle(options)}>
-          {inner}
+          {glueScriptureRefs(inner)}
         </span>
       )
     }
-    return part
+    return glueScriptureRefs(part)
   })
 
 /** 목록·복사용: 마커 제거하고 문구만 */

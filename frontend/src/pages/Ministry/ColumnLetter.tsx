@@ -5,7 +5,7 @@
 import type { ReactNode } from 'react'
 import type { Column } from '../../types/column'
 import andongProfile from '../../assets/andong.webp'
-import { renderHighlightedText } from './highlightMarkup'
+import { glueScriptureRefs, renderHighlightedText } from './highlightMarkup'
 import { parseColumnBlocks, type ColumnBlock } from './blockFormat'
 import { PEN, SERIF, formatLetterDate, readingLabel } from './letterFormat'
 
@@ -75,7 +75,7 @@ const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
           ))}
           {block.cite && (
             <cite className={`block not-italic text-[12.5px] text-gray-500 dark:text-gray-400 mt-2.5 ${WRAP}`}>
-              — {block.cite}
+              — {glueScriptureRefs(block.cite)}
             </cite>
           )}
         </blockquote>
