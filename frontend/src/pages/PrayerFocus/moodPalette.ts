@@ -1,5 +1,5 @@
 // 시간대별 분위기 팔레트 — 집중 기도 흐름의 배경 공기만 결정한다.
-// 새벽(푸른 회색), 아침(부드러운 햇살), 낮(밝은 햇살), 저녁(노을 주황), 밤(깊은 남색)
+// 새벽(푸른 회색), 아침(부드러운 햇살), 낮(밝은 햇살), 저녁(노을 주황), 밤(따뜻한 먹색)
 // 버튼·선택·타이머 아크 같은 강조 톤은 시간대와 무관하게 촛불빛을 따른다 — candleTone.ts
 
 export type TimeOfDay = 'dawn' | 'morning' | 'day' | 'dusk' | 'night'
@@ -45,9 +45,11 @@ const PALETTES: Record<TimeOfDay, MoodPalette> = {
   },
   night: {
     id: 'night',
-    bgBase: 'bg-[#090c14]',
-    glowA: 'bg-[#1d2d52]/40',
-    ringFrom: '#4f6fa8',
+    // 따뜻한 먹색 — 불 꺼진 예배당. 촛불빛이 어둠에 번진 듯 갈색 기운만 아주 옅게
+    // (비교안 깊은 남색: bg #090c14 · glow #1d2d52/40 · 할로 #4f6fa8)
+    bgBase: 'bg-[#0f0d0b]',
+    glowA: 'bg-[#3a2a1c]/40',
+    ringFrom: '#8a6a4a',
     greetingKey: 'focusGreetingNight',
   },
 }
