@@ -14,6 +14,7 @@ import ExitSheet from './ExitSheet'
 import SharedIntercession from './SharedIntercession'
 import { PRAYER_TIME_PRESETS } from './presets'
 import { getCurrentMood } from './moodPalette'
+import { CANDLE_TONE, CANDLE_CLASS, CANDLE_SELECTED } from './candleTone'
 import { PRAYER_THEMES, findTheme } from './prayerThemes'
 import type { PrayerTheme } from './prayerThemes'
 import { AMBIENCE_TRACKS, findAmbience } from './ambienceTracks'
@@ -333,7 +334,7 @@ const PrayerFocus = () => {
         {guidedMode && (
           <SegmentGuide
             segment={guideSegIndex !== null ? ACTS_SEGMENTS[guideSegIndex] : null}
-            accentText={mood.accentText}
+            accentText={CANDLE_CLASS.accentText}
             onHide={() => setGuideSegIndex(null)}
           />
         )}
@@ -341,7 +342,7 @@ const PrayerFocus = () => {
         {/* 중보 기도 — 이번 주 공동 기도제목을 하단에 잔잔히 순환 표시 */}
         <SharedIntercession
           show={selectedTheme?.id === 'intercession' || (guidedMode && actsIndex === 3)}
-          accentText={mood.accentText}
+          accentText={CANDLE_CLASS.accentText}
         />
 
         {/* 포모도로 다이얼 — 화면 가운데. 무접촉 시 은은하게 디밍 */}
@@ -378,15 +379,12 @@ const PrayerFocus = () => {
             totalSeconds={totalSeconds}
             isPaused={isPaused}
             statusLabel={isPaused ? t('timerPausedBadge') : t('praying')}
-            ringFrom={mood.ringFrom}
-            ringTo={mood.ringTo}
             segmented={guidedMode}
           />
 
           <div className="mt-14">
             <TimerControls
               isPaused={isPaused}
-              buttonGradient={mood.buttonGradient}
               onPause={handlePause}
               onResume={handleResume}
               onReset={handleReset}
@@ -402,7 +400,6 @@ const PrayerFocus = () => {
         <ExitSheet
           show={showExitSheet}
           elapsedSeconds={totalSeconds - timeLeft}
-          mood={mood}
           onStay={handleExitStay}
           onSaveAndFinish={handleExitSaveAndFinish}
           onDiscard={handleExitDiscard}
@@ -426,8 +423,9 @@ const PrayerFocus = () => {
     <div className={`min-h-screen ${mood.bgBase} text-white relative`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className={`absolute top-[18%] left-[8%] w-96 h-96 ${mood.glowA} rounded-full blur-3xl opacity-70`}></div>
-        <div className={`absolute bottom-[18%] right-[8%] w-96 h-96 ${mood.glowB} rounded-full blur-3xl opacity-70`}></div>
-        <div className={`absolute bottom-0 right-0 w-80 h-80 ${mood.glowD} rounded-full blur-[100px] translate-x-1/4`}></div>
+        {/* 아래쪽 글로우는 시간대 무관 촛불 웜톤 — 무드 보조색(밤의 분홍 등)이 촛불과 부딪히지 않게 */}
+        <div className="absolute bottom-[18%] right-[8%] w-96 h-96 bg-amber-600/[0.08] rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-orange-700/10 rounded-full blur-[100px] translate-x-1/4"></div>
       </div>
 
       <div className="relative z-10 pt-12 px-6 flex items-center justify-between">
@@ -482,19 +480,17 @@ const PrayerFocus = () => {
                 <button
                   key={theme.id}
                   onClick={() => setSelectedTheme(active ? null : theme)}
-                  className={`rounded-2xl py-3.5 px-2 text-xs font-medium tracking-wide border transition-all duration-300 backdrop-blur-md ${
+                  aria-pressed={active}
+                  className={`rounded-2xl py-3.5 px-2 text-xs font-medium tracking-wide border transition-all duration-300 ${
                     active
-                      ? 'bg-white/[0.10] text-white'
+                      ? 'text-white'
                       : 'border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/[0.08] hover:text-white/85'
                   }`}
-                  style={
-                    active
-                      ? { borderColor: `${mood.ringFrom}99`, boxShadow: `0 0 24px ${mood.ringFrom}30` }
-                      : undefined
-                  }
+                  style={active ? CANDLE_SELECTED : undefined}
                 >
                   <span
-                    className={`material-icons-outlined text-lg block mb-1 ${active ? mood.accentText : 'text-white/40'}`}
+                    className={`material-icons-outlined text-lg block mb-1 transition-colors ${active ? '' : 'text-white/40'}`}
+                    style={active ? { color: CANDLE_TONE.text } : undefined}
                   >
                     {theme.icon}
                   </span>
@@ -506,7 +502,8 @@ const PrayerFocus = () => {
           {/* 선택한 마음의 한 줄 설명 — 없으면 주제 없이도 된다는 안내 */}
           <p
             key={selectedTheme?.id ?? 'none'}
-            className={`text-[12px] text-center mt-3 animate-fade-in ${selectedTheme ? mood.accentText : 'text-white/30'}`}
+            className={`text-[12px] text-center mt-3 animate-fade-in ${selectedTheme ? '' : 'text-white/30'}`}
+            style={selectedTheme ? { color: CANDLE_TONE.textMuted } : undefined}
           >
             {selectedTheme ? tx(selectedTheme.descKey) : t('prayerThemeOptional')}
           </p>
@@ -515,26 +512,27 @@ const PrayerFocus = () => {
         {/* ② 머무는 시간 */}
         <div className="w-full mb-8">
           <p className="text-white/55 text-[13px] mb-3 text-center font-serif-kr">{t('stayHowLong')}</p>
-          <div className="grid grid-cols-5 gap-2">
+          {/* 하나로 이어진 세그먼트 바 — 한 값만 고르는 선택이라 칸마다 테두리를 두지 않는다 */}
+          <div
+            role="radiogroup"
+            aria-label={t('stayHowLong')}
+            className="grid grid-cols-5 gap-1 p-1 rounded-2xl border border-white/10 bg-white/[0.03]"
+          >
             {PRAYER_TIME_PRESETS.map((preset) => {
               const active = selectedMinutes === preset.minutes
               return (
                 <button
                   key={preset.minutes}
+                  role="radio"
+                  aria-checked={active}
                   onClick={() => setSelectedMinutes(preset.minutes)}
-                  className={`rounded-xl py-3 flex flex-col items-center border transition-all duration-300 backdrop-blur-md ${
-                    active
-                      ? 'bg-white/[0.10] text-white'
-                      : 'border-white/10 bg-white/[0.04] text-white/55 hover:bg-white/[0.08]'
+                  className={`rounded-xl py-3 flex items-baseline justify-center gap-0.5 border transition-all duration-300 ${
+                    active ? 'text-white' : 'border-transparent text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
                   }`}
-                  style={
-                    active
-                      ? { borderColor: `${mood.ringFrom}99`, boxShadow: `0 0 24px ${mood.ringFrom}30` }
-                      : undefined
-                  }
+                  style={active ? CANDLE_SELECTED : undefined}
                 >
-                  <span className="text-lg font-semibold tabular-nums leading-none">{preset.minutes}</span>
-                  <span className={`text-[10px] mt-1 ${active ? 'text-white/60' : 'text-white/35'}`}>
+                  <span className="text-[17px] font-semibold tabular-nums leading-none">{preset.minutes}</span>
+                  <span className={`text-[11px] leading-none ${active ? 'text-white/60' : 'text-white/30'}`}>
                     {t('minutes')}
                   </span>
                 </button>
@@ -542,7 +540,11 @@ const PrayerFocus = () => {
             })}
           </div>
           {selectedPreset && (
-            <p key={selectedMinutes} className={`text-[12px] text-center mt-3 animate-fade-in ${mood.accentText}`}>
+            <p
+              key={selectedMinutes}
+              className="text-[12px] text-center mt-3 animate-fade-in"
+              style={{ color: CANDLE_TONE.textMuted }}
+            >
               {tx(selectedPreset.labelKey)}
             </p>
           )}
@@ -581,7 +583,10 @@ const PrayerFocus = () => {
                 className="w-full rounded-xl py-3 px-3.5 flex items-center justify-between border border-white/10 bg-white/[0.04] transition-all"
               >
                 <div className="flex items-center gap-3 text-left">
-                  <span className={`material-icons-outlined text-lg ${guidedMode ? mood.accentText : 'text-white/40'}`}>
+                  <span
+                    className={`material-icons-outlined text-lg ${guidedMode ? '' : 'text-white/40'}`}
+                    style={guidedMode ? { color: CANDLE_TONE.text } : undefined}
+                  >
                     signpost
                   </span>
                   <div>
@@ -590,9 +595,8 @@ const PrayerFocus = () => {
                   </div>
                 </div>
                 <div
-                  className={`shrink-0 w-10 h-6 rounded-full p-0.5 transition-colors ${
-                    guidedMode ? `bg-gradient-to-r ${mood.buttonGradient}` : 'bg-white/15'
-                  }`}
+                  className={`shrink-0 w-10 h-6 rounded-full p-0.5 transition-colors ${guidedMode ? '' : 'bg-white/15'}`}
+                  style={guidedMode ? { backgroundColor: CANDLE_TONE.switchOn } : undefined}
                 >
                   <div
                     className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
@@ -611,7 +615,10 @@ const PrayerFocus = () => {
                   className="w-full rounded-xl py-2.5 px-3.5 flex items-center justify-between border border-white/10 bg-white/[0.03] transition-all animate-fade-in"
                 >
                   <div className="flex items-center gap-3 text-left">
-                    <span className={`material-icons-outlined text-base ${chimeOn ? mood.accentText : 'text-white/40'}`}>
+                    <span
+                      className={`material-icons-outlined text-base ${chimeOn ? '' : 'text-white/40'}`}
+                      style={chimeOn ? { color: CANDLE_TONE.text } : undefined}
+                    >
                       notifications
                     </span>
                     <div>
@@ -620,9 +627,8 @@ const PrayerFocus = () => {
                     </div>
                   </div>
                   <div
-                    className={`shrink-0 w-9 h-5 rounded-full p-0.5 transition-colors ${
-                      chimeOn ? `bg-gradient-to-r ${mood.buttonGradient}` : 'bg-white/15'
-                    }`}
+                    className={`shrink-0 w-9 h-5 rounded-full p-0.5 transition-colors ${chimeOn ? '' : 'bg-white/15'}`}
+                    style={chimeOn ? { backgroundColor: CANDLE_TONE.switchOn } : undefined}
                   >
                     <div
                       className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${
@@ -645,12 +651,15 @@ const PrayerFocus = () => {
                         onClick={() => setAmbienceId(track.id)}
                         className={`px-3 py-1.5 rounded-full text-[11px] font-medium tracking-wide border transition-all flex items-center gap-1.5 ${
                           active
-                            ? 'bg-white/[0.12] text-white'
+                            ? 'text-white'
                             : 'border-white/10 bg-white/[0.04] text-white/55 hover:bg-white/[0.08]'
                         }`}
-                        style={active ? { borderColor: `${mood.ringFrom}99` } : undefined}
+                        style={active ? CANDLE_SELECTED : undefined}
                       >
-                        <span className={`material-icons-outlined text-sm ${active ? mood.accentText : ''}`}>
+                        <span
+                          className="material-icons-outlined text-sm"
+                          style={active ? { color: CANDLE_TONE.text } : undefined}
+                        >
                           {track.icon}
                         </span>
                         {tx(track.labelKey)}
@@ -665,12 +674,21 @@ const PrayerFocus = () => {
 
         {/* 진입 CTA — 스크롤해도 손 닿는 곳에 */}
         <div className="sticky bottom-5 w-full mt-4 z-20">
+          {/* 촛불 크림빛 버튼 — 화면에서 촛불 다음으로 밝은 단 하나의 면 */}
           <button
             onClick={handleEnter}
-            className={`w-full rounded-2xl py-4 bg-gradient-to-r ${mood.buttonGradient} shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 hover:scale-[1.01] active:scale-[0.99]`}
+            className={`w-full rounded-2xl py-4 ${CANDLE_CLASS.primary} shadow-[0_14px_34px_-14px_rgba(255,170,90,0.6),0_8px_24px_rgba(0,0,0,0.35)] transition-[transform,filter] duration-300 hover:brightness-105 active:scale-[0.99]`}
           >
-            <div className="text-[15px] font-semibold text-white">{t('enterPrayerCta')}</div>
-            <div className="text-[11px] text-white/75 mt-0.5">
+            <div className="flex items-center justify-center gap-1.5 text-[15px] font-semibold">
+              <svg width="11" height="15" viewBox="0 0 22 30" aria-hidden="true" className="text-[#c8662a]">
+                <path
+                  d="M11 0 C12.4 7 22 13 22 20.5 C22 26 17 30 11 30 C5 30 0 26 0 20.5 C0 13 9.6 7 11 0 Z"
+                  fill="currentColor"
+                />
+              </svg>
+              {t('enterPrayerCta')}
+            </div>
+            <div className="text-[11px] text-[rgba(43,27,12,0.6)] mt-0.5">
               {`${selectedMinutes}${t('minutes')}`} ·{' '}
               {selectedTheme ? tx(selectedTheme.labelKey) : t('freePrayerFallback')}
             </div>

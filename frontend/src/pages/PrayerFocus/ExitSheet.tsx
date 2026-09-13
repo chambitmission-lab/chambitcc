@@ -1,13 +1,12 @@
-// 기도 중 이탈 확인 — OS confirm 대신 무드 팔레트를 따르는 인앱 시트.
+// 기도 중 이탈 확인 — OS confirm 대신 촛불 톤을 따르는 인앱 시트.
 // 1분 이상 기도했다면 "여기까지 기록하고 마치기"로 부분 세션을 남길 수 있다.
 import { useLanguage } from '../../contexts/LanguageContext'
-import type { MoodPalette } from './moodPalette'
+import { CANDLE_CLASS } from './candleTone'
 
 interface ExitSheetProps {
   show: boolean
   /** 지금까지 기도한 초 */
   elapsedSeconds: number
-  mood: MoodPalette
   /** 조금 더 머물기 (재개) */
   onStay: () => void
   /** 여기까지 기록하고 마치기 — 1분 이상일 때만 노출 */
@@ -16,7 +15,7 @@ interface ExitSheetProps {
   onDiscard: () => void
 }
 
-const ExitSheet = ({ show, elapsedSeconds, mood, onStay, onSaveAndFinish, onDiscard }: ExitSheetProps) => {
+const ExitSheet = ({ show, elapsedSeconds, onStay, onSaveAndFinish, onDiscard }: ExitSheetProps) => {
   const { t } = useLanguage()
 
   if (!show) return null
@@ -41,7 +40,7 @@ const ExitSheet = ({ show, elapsedSeconds, mood, onStay, onSaveAndFinish, onDisc
           <div className="mt-5 space-y-2.5">
             <button
               onClick={onStay}
-              className={`w-full py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r ${mood.buttonGradient} transition-all`}
+              className={`w-full py-3.5 rounded-xl font-semibold ${CANDLE_CLASS.primary} hover:brightness-105 transition-all`}
             >
               {t('exitStayMore')}
             </button>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { MoodPalette } from './moodPalette'
+import { CANDLE_CLASS } from './candleTone'
 
 interface RitualIntroProps {
   mood: MoodPalette
@@ -58,7 +59,7 @@ const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 0,
           <p className="font-serif italic text-white/90 text-xl md:text-2xl leading-relaxed">
             {verseText}
           </p>
-          <p className={`mt-3 text-xs tracking-widest uppercase ${mood.accentText}`}>
+          <p className={`mt-3 text-xs tracking-widest uppercase ${CANDLE_CLASS.accentText}`}>
             — {verseRef}
           </p>
         </div>

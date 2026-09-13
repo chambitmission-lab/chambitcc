@@ -1,6 +1,8 @@
 // 기도 중 화면의 포모도로 스타일 집중 다이얼
 // - 60개 눈금(5분 단위 굵은 눈금) 시계 문법 + 남은 시간이 줄어드는 카운트다운 아크
 // - 아크 끝에 발광 노브가 붙어 시간의 흐름을 시각화 (Time Timer 계열 벤치마킹)
+import { CANDLE_TONE } from './candleTone'
+
 interface TimerDisplayProps {
   timeLeft: number
   totalSeconds: number
@@ -8,7 +10,7 @@ interface TimerDisplayProps {
   isPaused?: boolean
   /** 시간 아래 표시할 상태 라벨 (테마명 · 기도중 · 일시정지 등) */
   statusLabel?: string
-  /** 그라데이션 시작/끝 색. 미지정 시 기존 보라/핑크 */
+  /** 그라데이션 시작/끝 색 (6자리 hex). 미지정 시 촛불 톤 */
   ringFrom?: string
   ringTo?: string
   /** 구간 안내 기도(ACTS) — 아크 위 4분할 경계 마커 표시 */
@@ -28,8 +30,8 @@ const TimerDisplay = ({
   totalSeconds,
   isPaused = false,
   statusLabel,
-  ringFrom = '#a855f7',
-  ringTo = '#ec4899',
+  ringFrom = CANDLE_TONE.ringFrom,
+  ringTo = CANDLE_TONE.ringTo,
   segmented = false,
 }: TimerDisplayProps) => {
   const minutes = Math.floor(timeLeft / 60)

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { MoodPalette } from './moodPalette'
+import { CANDLE_CLASS } from './candleTone'
 import type { PrayerTheme } from './prayerThemes'
 import {
   createPrayerSession,
@@ -152,7 +153,8 @@ const SessionComplete = ({
     <div className={`min-h-screen ${mood.bgBase} text-white relative overflow-hidden`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className={`absolute top-[20%] left-[10%] w-96 h-96 ${mood.glowA} rounded-full blur-3xl`}></div>
-        <div className={`absolute bottom-[20%] right-[10%] w-96 h-96 ${mood.glowB} rounded-full blur-3xl`}></div>
+        {/* 두 번째 글로우는 촛불 웜톤 고정 — 무드 보조색(밤의 분홍 등)이 끼지 않게 */}
+        <div className="absolute bottom-[20%] right-[10%] w-96 h-96 bg-amber-600/[0.08] rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative z-10 px-4 py-10 max-w-md mx-auto space-y-6 animate-fade-in text-center">
@@ -163,10 +165,10 @@ const SessionComplete = ({
           <div className="relative z-10">
             {/* 완료 아이콘 (emblem) */}
             <div className="relative w-24 h-24 mx-auto mb-4">
-              <div className={`w-24 h-24 bg-gradient-to-br ${mood.buttonGradient} rounded-full flex items-center justify-center animate-scale-in shadow-[0_10px_15px_-3px_rgba(168,85,247,0.25),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]`}>
+              <div className={`w-24 h-24 ${CANDLE_CLASS.primary} rounded-full flex items-center justify-center animate-scale-in shadow-[0_14px_30px_-10px_rgba(255,170,90,0.5),inset_0_2px_4px_rgba(255,255,255,0.45)]`}>
                 <span className="material-icons-outlined text-5xl">check_circle</span>
               </div>
-              <div className={`absolute inset-0 w-24 h-24 rounded-full animate-ping ${mood.glowC}`}></div>
+              <div className="absolute inset-0 w-24 h-24 rounded-full animate-ping bg-amber-300/15"></div>
             </div>
 
             <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
@@ -176,7 +178,7 @@ const SessionComplete = ({
 
             {/* 시간·주제 chip */}
             <div className="mt-4 flex justify-center">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full bg-white/8 border border-white/10 text-xs font-medium ${mood.accentText}`}>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full bg-white/8 border border-white/10 text-xs font-medium ${CANDLE_CLASS.accentText}`}>
                 {duration} {t('minutes')}{theme ? ` · ${tx(theme.labelKey)}` : ''}
               </span>
             </div>
@@ -187,8 +189,8 @@ const SessionComplete = ({
         {isLoggedIn() && (
           <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-5 border border-white/8 text-left">
             <div className="flex items-center gap-2 mb-3">
-              <span className={`material-icons-outlined text-sm ${mood.accentText}`}>auto_awesome</span>
-              <h3 className={`text-xs font-bold tracking-widest uppercase ${mood.accentText}`}>
+              <span className={`material-icons-outlined text-sm ${CANDLE_CLASS.accentText}`}>auto_awesome</span>
+              <h3 className={`text-xs font-bold tracking-widest uppercase ${CANDLE_CLASS.accentText}`}>
                 {t('spiritualTrace')}
               </h3>
             </div>
@@ -205,12 +207,12 @@ const SessionComplete = ({
                     String(duration),
                   )}
                 </p>
-                {stats.week_days && <WeekDots weekDays={stats.week_days} mood={mood} labels={t('weekdaysShort')} />}
+                {stats.week_days && <WeekDots weekDays={stats.week_days} labels={t('weekdaysShort')} />}
                 <div className="grid grid-cols-4 gap-2 text-center">
-                  <Stat value={stats.streak_days} unit={t('daysUnit')} label={t('streakDaysLabel')} mood={mood} />
-                  <Stat value={stats.this_week_minutes} unit={t('minutesUnit')} label={t('thisWeekMinutesLabel')} mood={mood} />
-                  <Stat value={stats.total_minutes} unit={t('minutesUnit')} label={t('totalMinutesLabel')} mood={mood} />
-                  <Stat value={stats.average_duration_minutes} unit={t('minutesUnit')} label={t('averageSessionLabel')} mood={mood} />
+                  <Stat value={stats.streak_days} unit={t('daysUnit')} label={t('streakDaysLabel')} />
+                  <Stat value={stats.this_week_minutes} unit={t('minutesUnit')} label={t('thisWeekMinutesLabel')} />
+                  <Stat value={stats.total_minutes} unit={t('minutesUnit')} label={t('totalMinutesLabel')} />
+                  <Stat value={stats.average_duration_minutes} unit={t('minutesUnit')} label={t('averageSessionLabel')} />
                 </div>
               </>
             )}
@@ -242,7 +244,7 @@ const SessionComplete = ({
             <button
               onClick={handleSaveNote}
               disabled={!note.trim() || savingNote}
-              className={`w-full mt-2 py-2.5 text-sm font-medium rounded-xl bg-gradient-to-r ${mood.buttonGradient} disabled:opacity-40 disabled:cursor-not-allowed transition-all`}
+              className={`w-full mt-2 py-2.5 text-sm font-semibold rounded-xl ${CANDLE_CLASS.primary} disabled:opacity-40 disabled:cursor-not-allowed transition-all`}
             >
               {savingNote ? '...' : t('saveOneLine')}
             </button>
@@ -251,7 +253,7 @@ const SessionComplete = ({
 
         {noteSaved && (
           <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-4 border border-white/8 text-left">
-            <p className={`text-sm ${mood.accentText}`}>✓ {t('devotionNoteSaved')}</p>
+            <p className={`text-sm ${CANDLE_CLASS.accentText}`}>✓ {t('devotionNoteSaved')}</p>
             <p className="text-white/50 text-xs mt-1.5">{t('devotionNoteSavedHint')}</p>
             <button
               onClick={() => navigate('/growth')}
@@ -288,12 +290,12 @@ const SessionComplete = ({
           {!amenPressed ? (
             <button
               onClick={handleAmen}
-              className={`w-full py-4 bg-gradient-to-r ${mood.buttonGradient} rounded-xl font-semibold tracking-wide transition-all hover:shadow-[0_10px_25px_-5px_rgba(168,85,247,0.4)]`}
+              className={`w-full py-4 ${CANDLE_CLASS.primary} rounded-xl font-semibold tracking-wide transition-all hover:brightness-105 shadow-[0_14px_34px_-14px_rgba(255,170,90,0.55)]`}
             >
               🙏 {t('amenButton')}
             </button>
           ) : (
-            <div className={`w-full py-4 bg-white/10 border border-white/15 rounded-xl text-sm ${mood.accentText}`}>
+            <div className={`w-full py-4 bg-white/10 border border-white/15 rounded-xl text-sm ${CANDLE_CLASS.accentText}`}>
               ✓ {t('amenSaved')}
             </div>
           )}
@@ -319,7 +321,7 @@ const SessionComplete = ({
 }
 
 // 이번 주(월~일) 기도한 날 도트 — 오늘은 링으로 강조
-const WeekDots = ({ weekDays, mood, labels }: { weekDays: string[]; mood: MoodPalette; labels: string }) => {
+const WeekDots = ({ weekDays, labels }: { weekDays: string[]; labels: string }) => {
   const toLocalISO = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
@@ -344,11 +346,11 @@ const WeekDots = ({ weekDays, mood, labels }: { weekDays: string[]; mood: MoodPa
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
                 done
-                  ? `bg-gradient-to-br ${mood.buttonGradient} shadow-[0_2px_8px_rgba(0,0,0,0.3)]`
+                  ? `${CANDLE_CLASS.primary} shadow-[0_2px_8px_rgba(0,0,0,0.3)]`
                   : 'bg-white/[0.06] border border-white/10'
               } ${isToday ? 'ring-2 ring-white/40 ring-offset-2 ring-offset-transparent' : ''}`}
             >
-              {done && <span className="material-icons-outlined text-[14px] text-white">check</span>}
+              {done && <span className="material-icons-outlined text-[14px]">check</span>}
             </div>
             <span className={`text-[10px] ${isToday ? 'text-white/80 font-semibold' : 'text-white/35'}`}>
               {dayLabels[i] ?? ''}
@@ -360,9 +362,9 @@ const WeekDots = ({ weekDays, mood, labels }: { weekDays: string[]; mood: MoodPa
   )
 }
 
-const Stat = ({ value, unit, label, mood }: { value: number; unit: string; label: string; mood: MoodPalette }) => (
+const Stat = ({ value, unit, label }: { value: number; unit: string; label: string }) => (
   <div>
-    <div className={`text-xl font-bold ${mood.accentText} whitespace-nowrap`}>
+    <div className={`text-xl font-bold ${CANDLE_CLASS.accentText} whitespace-nowrap`}>
       {value}
       <span className="text-xs font-medium ml-0.5">{unit}</span>
     </div>

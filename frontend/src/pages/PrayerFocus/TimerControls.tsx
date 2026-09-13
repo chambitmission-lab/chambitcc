@@ -1,10 +1,9 @@
 // 포모도로 스타일 컨트롤 바 — 중앙 큰 일시정지/재개 + 양옆 보조 버튼(처음부터 / 5분 연장)
 import { useLanguage } from '../../contexts/LanguageContext'
+import { CANDLE_CLASS } from './candleTone'
 
 interface TimerControlsProps {
   isPaused: boolean
-  /** 무드 팔레트의 메인 버튼 그라데이션 (tailwind from-.. to-..) */
-  buttonGradient?: string
   onPause: () => void
   onResume: () => void
   onReset: () => void
@@ -17,7 +16,6 @@ interface TimerControlsProps {
 
 const TimerControls = ({
   isPaused,
-  buttonGradient = 'from-purple-500 to-pink-500',
   onPause,
   onResume,
   onReset,
@@ -46,10 +44,10 @@ const TimerControls = ({
       <div className="flex flex-col items-center gap-2 -mt-2">
         <button
           onClick={isPaused ? onResume : onPause}
-          className={`w-[72px] h-[72px] rounded-full bg-gradient-to-br ${buttonGradient} flex items-center justify-center transition-all active:scale-95 hover:brightness-110 shadow-[0_10px_20px_-5px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]`}
+          className={`w-[72px] h-[72px] rounded-full ${CANDLE_CLASS.primary} flex items-center justify-center transition-all active:scale-95 hover:brightness-105 shadow-[0_12px_28px_-10px_rgba(255,170,90,0.55),0_10px_20px_-5px_rgba(0,0,0,0.5),inset_0_2px_3px_rgba(255,255,255,0.45)]`}
           aria-label={isPaused ? t('timerResume') : t('timerPause')}
         >
-          <span className="material-icons-outlined text-4xl text-white drop-shadow">
+          <span className="material-icons-outlined text-4xl">
             {isPaused ? 'play_arrow' : 'pause'}
           </span>
         </button>
