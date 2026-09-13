@@ -66,7 +66,7 @@ export default function HighlightPopover({ language, options, onChange, onApply,
       ref={ref}
       // textarea 포커스(선택 영역)를 잃지 않도록 mousedown 기본동작 차단
       onMouseDown={(e) => e.preventDefault()}
-      className="absolute right-0 top-full mt-2 z-30 w-[268px] rounded-2xl border border-border-light dark:border-white/[0.1] bg-white dark:bg-[#1c1c1c] shadow-[0_12px_32px_rgba(0,0,0,0.14)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.5)] p-3.5 text-left"
+      className="absolute left-1 right-1 mx-auto max-w-[340px] sm:left-auto sm:right-0 sm:mx-0 sm:w-[268px] top-full mt-2 z-30 rounded-2xl border border-border-light dark:border-white/[0.1] bg-white dark:bg-[#1c1c1c] shadow-[0_12px_32px_rgba(0,0,0,0.14)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.5)] p-3.5 text-left"
     >
       {/* 미리보기 */}
       <div className="rounded-xl bg-surface-light dark:bg-white/[0.04] px-3 py-2.5 mb-3 text-sm text-ink-strong leading-relaxed overflow-hidden">

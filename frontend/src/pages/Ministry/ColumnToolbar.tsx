@@ -126,8 +126,9 @@ const ColumnToolbar = ({
 
       {button('image', ko ? '사진' : 'Photo', onImage, uploading, ko ? '사진 넣기' : 'Insert photo')}
 
-      {/* 하이라이트는 팝오버를 달고 있어 감싸는 relative 가 필요하다 */}
-      <div className="relative">
+      {/* 하이라이트 팝오버 기준점 — 모바일은 줄바꿈으로 버튼이 왼쪽 끝에 올 수 있어
+          sticky 툴바 전체 폭을 기준으로 삼고, sm 이상에서만 버튼에 붙인다 */}
+      <div className="sm:relative">
         {button(
           'highlight',
           ko ? '형광펜' : 'Highlight',
