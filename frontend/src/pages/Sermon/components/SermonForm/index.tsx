@@ -52,8 +52,9 @@ const SermonForm = ({ sermon, onClose, onSuccess }: SermonFormProps) => {
   }
 
   return (
-    <div className="sf-overlay" onClick={handleClose}>
-      <div className="sf-modal" onClick={(e) => e.stopPropagation()}>
+    // 바깥 클릭으로는 닫지 않음 — 작성 중 실수로 눌러 입력이 날아가는 것 방지(X·취소·뒤로가기로만 닫힘)
+    <div className="sf-overlay">
+      <div className="sf-modal">
         {showRecorder ? (
           <div className="p-6 overflow-y-auto">
             <AudioRecorder
