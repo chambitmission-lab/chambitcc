@@ -475,23 +475,17 @@ html:not([data-viewport-settled]) .bottom-dock-anchor {
   80% { transform: translateX(calc(-50% + 0.4px)) scaleY(0.97) rotate(-1.6deg); }
 }
 
+/* 불꽃 모양·색은 CandleHero의 SVG path가 담당, 여기선 부드러움·발광·흔들림만 */
 .candle-flame-outer {
-  border-radius: 50% 50% 42% 42% / 72% 72% 28% 28%;
-  background: linear-gradient(
-    to top,
-    rgba(251, 146, 60, 0.95) 0%,
-    rgba(251, 191, 36, 0.95) 45%,
-    rgba(254, 240, 199, 0.98) 100%
-  );
-  filter: blur(0.5px) drop-shadow(0 0 14px rgba(251, 146, 60, 0.55));
+  overflow: visible;
+  filter: blur(0.6px) drop-shadow(0 0 10px rgba(255, 170, 80, 0.7)) drop-shadow(0 0 22px rgba(251, 146, 60, 0.35));
   transform-origin: 50% 100%;
   animation: candle-flicker 3.2s ease-in-out infinite;
 }
 
 .candle-flame-core {
-  border-radius: 50% 50% 45% 45% / 70% 70% 30% 30%;
-  background: linear-gradient(to top, rgba(255, 237, 213, 0.9), #fffbeb);
-  filter: blur(0.4px);
+  filter: blur(1.2px);
+  opacity: 0.9;
   transform-origin: 50% 100%;
   animation: candle-flicker 2.6s ease-in-out infinite reverse;
 }
