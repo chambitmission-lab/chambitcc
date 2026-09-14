@@ -11,6 +11,7 @@ import {
   joinPlanByCode,
   listAllPlans,
   listPlans,
+  mergePlanDays,
   previewPlanInvite,
   restartPlan,
   subscribePlan,
@@ -23,6 +24,7 @@ import type {
   PersonalPlanCreateRequest,
   PersonalPlanUpdateRequest,
   PlanCreateRequest,
+  PlanDayInput,
   PlanUpdateRequest,
 } from '../types/biblePlan'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
@@ -185,6 +187,15 @@ export const useUpdatePlan = () => {
   return useMutation({
     mutationFn: ({ planId, payload }: { planId: number; payload: PlanUpdateRequest }) =>
       updatePlan(planId, payload),
+    onSuccess: () => invalidatePlanData(qc),
+  })
+}
+
+export const useMergePlanDays = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ planId, days }: { planId: number; days: PlanDayInput[] }) =>
+      mergePlanDays(planId, days),
     onSuccess: () => invalidatePlanData(qc),
   })
 }

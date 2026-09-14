@@ -2,6 +2,7 @@
 // 상태별 시각 위계: 완료(과거) = 딤드 / 오늘 = 블루 하이라이트 / 예정(미래) = 아웃라인 원 + 차분한 텍스트
 import type { PlanDay } from '../../../../types/biblePlan'
 import { ChatIcon as CommentIcon, SparkleIcon as SparklesIcon } from '../PlanIcons'
+import { SERMON_DEFAULT_LABEL, formatPlanDay, sermonSummary } from '../planSchedule'
 
 const DayCard = ({
   domId,
@@ -32,6 +33,9 @@ const DayCard = ({
   // AI 묵상·묵상 프롬프트는 "읽은(읽는) 날"에만 — 미래 일차에 미리 노출하면 플로우가 어색하고 카드만 길어진다.
   // 미구독 상태에서는 둘러보기용 미리보기로 그대로 열어둔다.
   const showReflectionArea = showReflect && (!subscribed || day.completed || isToday)
+  // 달력 고정 플랜만 날짜가, 설교 정보가 등록된 일차만 설교 줄이 붙는다 (기존 플랜은 둘 다 없음)
+  const dateLabel = formatPlanDay(day.scheduled_date)
+  const sermonText = sermonSummary(day.sermon)
 
   return (
     <div
@@ -86,7 +90,7 @@ const DayCard = ({
               </span>
             )}
             <span className="text-[10px] font-semibold text-gray-400 dark:text-white/40">
-              {day.day_number}일차
+              {day.day_number}일차{dateLabel ? ` · ${dateLabel}` : ''}
             </span>
           </div>
           {day.title && (
@@ -107,6 +111,15 @@ const DayCard = ({
           >
             {day.passages.map((p) => p.reference).filter(Boolean).join(' · ')}
           </p>
+          {sermonText && (
+            <p className="text-[11.5px] truncate mt-0.5 text-gray-500 dark:text-white/50">
+              <span className="font-semibold text-gray-600 dark:text-white/65">
+                {day.sermon?.label || SERMON_DEFAULT_LABEL}
+              </span>
+              {' · '}
+              {sermonText}
+            </p>
+          )}
         </button>
 
         {/* 읽기 화살표 */}

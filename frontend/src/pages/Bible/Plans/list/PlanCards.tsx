@@ -275,9 +275,18 @@ const FeaturedPlanCard = ({
               </p>
               <div className="mt-1.5 flex items-center justify-between gap-3">
                 <p className="min-w-0 text-[12.5px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
-                  다음 {todayDay}일차
-                  {headline && (
-                    <span className="text-gray-700 dark:text-white/75"> · {headline}</span>
+                  {plan.schedule_mode === 'calendar' ? (
+                    // 달력 고정 — 오늘 본문이 곧 위 완료 일차라 '다음' 대신 밀린 읽기/내일 안내
+                    (progress?.behind_days ?? 0) > 0
+                      ? `밀린 읽기 ${progress?.behind_days}일 · ${progress?.catch_up_day}일차부터`
+                      : '내일 본문으로 이어서 함께 읽어요'
+                  ) : (
+                    <>
+                      다음 {todayDay}일차
+                      {headline && (
+                        <span className="text-gray-700 dark:text-white/75"> · {headline}</span>
+                      )}
+                    </>
                   )}
                 </p>
                 <span className="shrink-0 inline-flex items-center gap-0.5 text-[12px] font-bold tracking-[-0.02em] text-brand transition-transform group-hover:translate-x-0.5">

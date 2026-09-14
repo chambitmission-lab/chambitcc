@@ -286,6 +286,14 @@ const PlanRow = ({
           <div className="space-y-1.5 text-[12.5px]">
             <InfoRow label="slug" value={plan.slug} />
             <InfoRow label="일수" value={`${plan.total_days}일 (등록 ${plan.day_count}일)`} />
+            <InfoRow
+              label="진행 방식"
+              value={
+                plan.schedule_mode === 'calendar'
+                  ? `교회 달력 고정${plan.anchor_date ? ` · 1일차 ${plan.anchor_date.slice(0, 10)}` : ''}`
+                  : '각자 속도'
+              }
+            />
             <InfoRow label="카테고리" value={plan.category ?? '-'} />
             <InfoRow label="난이도" value={plan.level ?? '-'} />
             <InfoRow label="공개" value={plan.is_published ? '공개' : '임시저장'} />

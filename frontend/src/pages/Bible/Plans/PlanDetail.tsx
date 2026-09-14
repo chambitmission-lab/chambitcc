@@ -35,6 +35,7 @@ import {
 import { can } from '../../../utils/access'
 import { Divider, ProgressRing, RenameSheet, Shell } from './detail/PlanDetailBits'
 import { numStyle } from './detail/styles'
+import { formatPlanDay, isCalendarPlan, todayYmd } from './planSchedule'
 
 // 나만의 플랜 초대 링크 — HashRouter 라 #/ 경로, JoinPlan(/bible/plans/join/:code)으로 떨어진다
 const inviteUrl = (code: string) =>
@@ -102,9 +103,17 @@ const PlanDetail = () => {
   // 개인 플랜(나만의 플랜) — AI 묵상 없음, 참여자 섹션·초대 링크·소유자 메뉴가 달라진다
   const personal = !!plan?.is_personal
   const owner = !!plan?.is_owner
+  // 교회 달력 고정 — 모두 같은 날 같은 본문. 오늘 일차는 current_day 가 아니라 today_day
+  const calendar = isCalendarPlan(plan)
   // 여정의 시작과 끝 — "언제 시작했고 언제 끝나는지"가 장기 플랜에서 가장 큰 동기가 된다
-  const startLabel = formatPlanDate(progress?.start_date)
-  const endLabel = planEndDate(progress?.start_date, progress?.total_days ?? plan?.total_days)
+  // (달력 고정은 내가 합류한 날이 아니라 교회 일정의 1일차 ~ 마지막 등록 일차)
+  const startLabel = calendar
+    ? formatPlanDate(plan?.anchor_date)
+    : formatPlanDate(progress?.start_date)
+  const endLabel = calendar
+    ? formatPlanDate(plan?.days[plan.days.length - 1]?.scheduled_date)
+    : planEndDate(progress?.start_date, progress?.total_days ?? plan?.total_days)
+  const calendarUpcoming = calendar && !!plan?.anchor_date && plan.anchor_date.slice(0, 10) > todayYmd()
 
   // 긴 플랜(50일차쯤)에서 매번 스크롤해 내려가지 않도록, 진입 시 오늘 일차 카드로 자동 스크롤.
   // 초반(1~3일차)은 카드가 이미 화면 근처라 스크롤하면 오히려 대시보드가 가려져 스킵한다.
@@ -328,7 +337,10 @@ const PlanDetail = () => {
       day={day}
       grad={grad}
       subscribed={subscribed}
-      isToday={subscribed && day.day_number === progress?.current_day}
+      isToday={
+        subscribed &&
+        day.day_number === (calendar ? progress?.today_day : progress?.current_day)
+      }
       busy={completeDay.isPending || uncompleteDay.isPending}
       onToggle={() => handleToggleDay(day)}
       onRead={() => handleRead(day)}
@@ -465,6 +477,11 @@ const PlanDetail = () => {
               <BookOpenIcon size={12} />
               {plan.total_days}일 플랜
             </span>
+            {calendar && (
+              <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                · 교회 일정
+              </span>
+            )}
             {personal ? (
               <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
                 · {owner ? '내가 만든 플랜' : `${plan.owner_name ?? '친구'}님의 플랜`}
@@ -580,11 +597,33 @@ const PlanDetail = () => {
             >
               <BookOpenIcon size={17} className="shrink-0 opacity-90" />
               <span className="flex-1 text-center">
-                오늘 분량 읽기 · {progress.current_day}일차
+                {!calendar || progress.today_day != null
+                  ? `오늘 분량 읽기 · ${progress.current_day}일차`
+                  : calendarUpcoming
+                    ? `${formatPlanDay(plan.anchor_date)} 시작 · 1일차 미리 읽기`
+                    : `${progress.catch_up_day ? '밀린' : '다음'} 분량 읽기 · ${progress.current_day}일차`}
               </span>
               <ChevronRightIcon size={15} className="shrink-0 opacity-80" />
             </button>
           )}
+
+          {/* 달력 고정 — 오늘 분량은 위 버튼, 지난 일차 중 안 읽은 것은 따로 이어 읽기 */}
+          {calendar &&
+            progress.status !== 'completed' &&
+            progress.today_day != null &&
+            (progress.behind_days ?? 0) > 0 &&
+            progress.catch_up_day != null && (
+              <button
+                type="button"
+                onClick={() => {
+                  const day = plan.days.find((d) => d.day_number === progress.catch_up_day)
+                  if (day) handleRead(day)
+                }}
+                className="mt-2 w-full py-2 rounded-xl text-[12.5px] font-semibold text-brand bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors"
+              >
+                밀린 읽기 {progress.behind_days}일 · {progress.catch_up_day}일차부터 이어 읽기
+              </button>
+            )}
         </section>
       ) : (
         <section className="mx-4 mt-3">
@@ -596,9 +635,11 @@ const PlanDetail = () => {
             {subscribe.isPending ? '시작하는 중...' : '이 플랜 시작하기'}
           </button>
           <p className="text-center text-[12px] text-gray-400 dark:text-white/45 mt-2">
-            {(plan.participant_count ?? 0) > 0
-              ? `지금 ${(plan.participant_count ?? 0).toLocaleString()}명이 함께 읽고 있어요`
-              : `${plan.total_days}일 동안 매일 함께 읽어요`}
+            {calendar
+              ? '교회 일정에 맞춰 오늘 본문부터 함께 읽어요'
+              : (plan.participant_count ?? 0) > 0
+                ? `지금 ${(plan.participant_count ?? 0).toLocaleString()}명이 함께 읽고 있어요`
+                : `${plan.total_days}일 동안 매일 함께 읽어요`}
           </p>
         </section>
       )}

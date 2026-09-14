@@ -8,6 +8,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTodayReadings } from '../../../hooks/useBiblePlan'
 import { isAuthenticated } from '../../../utils/auth'
+import {
+  SERMON_DEFAULT_LABEL,
+  formatPlanDay,
+  isCalendarPlan,
+  sermonSummary,
+  todayYmd,
+} from '../../Bible/Plans/planSchedule'
 import './TodayPlanCard.css'
 
 // 완만하게 굽이치는 오솔길 — 끝은 별(종착지) 앞에서 멈춘다
@@ -51,6 +58,24 @@ const TodayPlanCard = () => {
     today.completed_days > 0
       ? `총 ${today.total_days}일 여정 · ${today.completed_days}일 함께 걸었어요`
       : `총 ${today.total_days}일의 여정, 오늘 첫 걸음이에요`
+  // 교회 달력 고정 — 카드의 본문은 "다음 분량"이 아니라 오늘 날짜의 분량(없으면 밀린 첫 일차)
+  const calendar = isCalendarPlan(today)
+  const calendarIsToday = calendar && today.scheduled_date?.slice(0, 10) === todayYmd()
+  const behindDays = calendar ? today.behind_days ?? 0 : 0
+  const dateLabel = calendar ? formatPlanDay(today.scheduled_date) : null
+  const sermonText = sermonSummary(today.sermon)
+  const kicker = calendar
+    ? calendarIsToday ? '오늘의 읽기' : '밀린 읽기'
+    : today.done_today ? '다음 읽기' : '오늘의 읽기'
+  const doneLine = calendar
+    ? '오늘 읽기 완료!'
+    : today.last_completed_day
+      ? `오늘 ${today.last_completed_day}일차까지 완료 · 다음은 ${today.day_number}일차`
+      : '오늘 읽기 완료!'
+  const readBase = readLabel.replace(' 바로 읽기', '')
+  const ctaLabel = today.done_today
+    ? `${readBase} ${calendar ? '다시' : '미리'} 읽기`
+    : readLabel
 
   return (
     <section className="px-4 pt-3">
@@ -71,8 +96,9 @@ const TodayPlanCard = () => {
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-[11px] font-bold tracking-[0.08em] text-brand">
                 {/* 오늘 분량을 마쳤으면 카드의 본문은 "다음 분량"이므로 라벨도 맞춘다
-                    — "오늘의 읽기 + 완료 배지"가 위 본문을 읽은 것처럼 오독되는 것 방지 */}
-                {today.done_today ? '다음 읽기' : '오늘의 읽기'}
+                    — "오늘의 읽기 + 완료 배지"가 위 본문을 읽은 것처럼 오독되는 것 방지
+                    (달력 고정은 본문이 늘 오늘 날짜 분량이라 예외) */}
+                {kicker}
               </span>
               <span className="text-[11px] font-medium text-gray-400 dark:text-white/40 truncate">
                 · {today.plan_title}
@@ -114,7 +140,9 @@ const TodayPlanCard = () => {
 
           {/* 위계: 일차는 작은 칩, 본문 범위(사무엘하 17-19장)가 카드의 주인공 */}
           <div className="mt-3 min-w-0">
-            <span className="plan-day-chip">{today.day_number}일차</span>
+            <span className="plan-day-chip">
+              {today.day_number}일차{dateLabel ? ` · ${dateLabel}` : ''}
+            </span>
             <p className="mt-1.5 text-[22px] font-extrabold text-ink-strong tracking-[-0.035em] leading-[1.25]">
               {titleDupsRefs ? refs || today.plan_title : today.day_title}
             </p>
@@ -124,6 +152,15 @@ const TodayPlanCard = () => {
               </p>
             ) : (
               refs && <p className="text-[13px] font-semibold text-brand mt-1.5">{refs}</p>
+            )}
+            {sermonText && (
+              <p className="mt-1 text-[12px] text-gray-500 dark:text-white/50 truncate">
+                <span className="font-semibold text-gray-600 dark:text-white/65">
+                  {today.sermon?.label || SERMON_DEFAULT_LABEL}
+                </span>
+                {' · '}
+                {sermonText}
+              </p>
             )}
           </div>
 
@@ -152,20 +189,23 @@ const TodayPlanCard = () => {
             {percent > 0 && <span className="plan-trail__pct">{percent}%</span>}
           </div>
 
-          {(today.done_today || items.length > 1) && (
+          {(today.done_today || items.length > 1 || (calendarIsToday && behindDays > 0)) && (
           <div className="mt-2">
             {today.done_today ? (
               <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-brand">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                {today.last_completed_day
-                  ? `오늘 ${today.last_completed_day}일차까지 완료 · 다음은 ${today.day_number}일차`
-                  : '오늘 읽기 완료!'}
+                {doneLine}
               </span>
             ) : null}
+            {calendarIsToday && behindDays > 0 && (
+              <span className={`text-[11.5px] font-semibold text-gray-500 dark:text-white/55 ${today.done_today ? 'ml-2' : ''}`}>
+                밀린 읽기 {behindDays}일
+              </span>
+            )}
             {items.length > 1 && (
-              <span className={`text-[11.5px] text-gray-400 dark:text-white/45 ${today.done_today ? 'ml-2' : ''}`}>
+              <span className={`text-[11.5px] text-gray-400 dark:text-white/45 ${today.done_today || (calendarIsToday && behindDays > 0) ? 'ml-2' : ''}`}>
                 외 {items.length - 1}개 플랜
               </span>
             )}
@@ -182,9 +222,7 @@ const TodayPlanCard = () => {
             className={today.done_today ? 'plan-cta plan-cta--secondary' : 'plan-cta'}
           >
             <span className="plan-cta__kicker">{today.day_number}일차</span>
-            <span className="plan-cta__label">
-              {today.done_today ? `${readLabel.replace(' 바로 읽기', '')} 미리 읽기` : readLabel}
-            </span>
+            <span className="plan-cta__label">{ctaLabel}</span>
             <svg className="plan-cta__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <polyline points="9 18 15 12 9 6" />
             </svg>

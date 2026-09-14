@@ -2,9 +2,11 @@ import { API_V1 } from '../config/api'
 import { streamSSE } from './sse'
 import type {
   GenerateScheduleResponse,
+  ParseScheduleResponse,
   PersonalPlanCreateRequest,
   PersonalPlanUpdateRequest,
   PlanCreateRequest,
+  PlanDayInput,
   PlanDetail,
   PlanInvitePreview,
   PlanListResponse,
@@ -210,4 +212,29 @@ export const generateSchedule = async (
     json: { book_numbers: bookNumbers, total_days: totalDays },
     errorMessage: '일정 자동 생성에 실패했습니다',
   })
+}
+
+// 표 붙여넣기(한 줄 = 하루) → 일정 초안 + 줄별 오류 (저장 안 함)
+export const parseSchedule = async (
+  text: string,
+  anchorDate?: string | null,
+): Promise<ParseScheduleResponse> => {
+  return request<ParseScheduleResponse>(`${BASE}/parse-schedule`, {
+    method: 'POST',
+    json: { text, anchor_date: anchorDate || null },
+    errorMessage: '표를 분석하지 못했습니다',
+  })
+}
+
+// 일정 이어 붙이기 — 받은 일차만 추가·교체, 나머지 일차는 그대로
+export const mergePlanDays = async (
+  planId: number,
+  days: PlanDayInput[],
+): Promise<PlanDetail> => {
+  const data = await request<UntypedJson>(`${BASE}/${planId}/days/merge`, {
+    method: 'POST',
+    json: { days },
+    errorMessage: '일정 이어 붙이기에 실패했습니다',
+  })
+  return data.plan as PlanDetail
 }

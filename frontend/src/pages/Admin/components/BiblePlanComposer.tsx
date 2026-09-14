@@ -1,9 +1,11 @@
 // 읽기 플랜 등록/수정 Composer 모달 (admin) — slide-up sheet, 다크모드 합의 토큰
-// 메타 편집 + 일정 자동생성(책 범위 균등 분배). 큐레이션 일정은 seed 로 관리.
+// 메타 편집 + 진행 방식(각자 속도/교회 달력 고정) + 일정(자동 생성 | 표 붙여넣기)
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useCreatePlan, useUpdatePlan } from '../../../hooks/useBiblePlan'
+import { useCreatePlan, useMergePlanDays, useUpdatePlan } from '../../../hooks/useBiblePlan'
 import { generateSchedule } from '../../../api/biblePlan'
-import type { PlanDayInput, PlanSummary } from '../../../types/biblePlan'
+import type { PlanDayInput, PlanScheduleMode, PlanSummary } from '../../../types/biblePlan'
+import PlanSchedulePaste from './PlanSchedulePaste'
+import { todayYmd } from '../../Bible/Plans/planSchedule'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { PlanGlyph } from '../../Bible/Plans/PlanIcons'
@@ -75,6 +77,7 @@ const slugify = (title: string) => {
 const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
   const createPlan = useCreatePlan()
   const updatePlan = useUpdatePlan()
+  const mergeDays = useMergePlanDays()
 
   const [form, setForm] = useState<FormState>(DEFAULT_FORM)
   const [presetIdx, setPresetIdx] = useState<number | null>(null)
@@ -82,6 +85,14 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
   const [generatedDays, setGeneratedDays] = useState<PlanDayInput[] | null>(null)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 진행 방식 — calendar 는 1일차 날짜가 있어야 저장된다
+  const [scheduleMode, setScheduleMode] = useState<PlanScheduleMode>('self_paced')
+  const [anchorDate, setAnchorDate] = useState('')
+  // 일정 입력 — 자동 생성(균등 분배) | 표 붙여넣기(주보 표)
+  const [scheduleTab, setScheduleTab] = useState<'auto' | 'paste'>('auto')
+  const [pastedDays, setPastedDays] = useState<PlanDayInput[] | null>(null)
+  // 수정 중 붙여넣기 — 주보는 몇 주치씩 들어오므로 기본은 이어 붙이기(같은 일차만 교체)
+  const [mergePaste, setMergePaste] = useState(true)
 
   // 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)
@@ -100,19 +111,31 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
         is_published: editingPlan.is_published,
         sort_order: editingPlan.sort_order ?? 0,
       })
+      setScheduleMode(editingPlan.schedule_mode === 'calendar' ? 'calendar' : 'self_paced')
+      setAnchorDate(editingPlan.anchor_date?.slice(0, 10) ?? '')
+      // 달력 고정 플랜은 주보 표로 관리하는 경우가 대부분 — 붙여넣기 탭을 먼저
+      setScheduleTab(editingPlan.schedule_mode === 'calendar' ? 'paste' : 'auto')
     } else {
       setForm(DEFAULT_FORM)
+      setScheduleMode('self_paced')
+      setAnchorDate('')
+      setScheduleTab('auto')
     }
     setPresetIdx(null)
     setGeneratedDays(null)
+    setPastedDays(null)
+    setMergePaste(true)
     setError(null)
   }, [editingPlan])
 
   // 고른 아이콘의 뜻을 그리드 아래 한 줄로 보여준다 (아이콘만 보면 구분이 어려워서)
   const selectedGlyph = PLAN_GLYPH_OPTIONS.find((o) => o.emoji === normalizeGlyph(form.emoji))
 
-  const submitting = createPlan.isPending || updatePlan.isPending
-  const canSubmit = form.title.trim().length > 0 && !submitting
+  const calendar = scheduleMode === 'calendar'
+  const pendingDays = scheduleTab === 'paste' ? pastedDays : generatedDays
+  const merging = !!editingPlan && scheduleTab === 'paste' && mergePaste && !!pastedDays
+  const submitting = createPlan.isPending || updatePlan.isPending || mergeDays.isPending
+  const canSubmit = form.title.trim().length > 0 && !submitting && !(calendar && !anchorDate)
 
   const handleGenerate = async () => {
     if (presetIdx === null) {
@@ -147,11 +170,17 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
       accent: form.accent || null,
       is_published: form.is_published,
       sort_order: form.sort_order,
-      ...(generatedDays ? { days: generatedDays } : {}),
+      schedule_mode: scheduleMode,
+      anchor_date: calendar ? anchorDate : null,
+      // 이어 붙이기는 아래 merge 호출로 따로 보낸다 (days 를 주면 일정 전체 교체)
+      ...(pendingDays && !merging ? { days: pendingDays } : {}),
     }
     try {
       if (editingPlan) {
         await updatePlan.mutateAsync({ planId: editingPlan.id, payload })
+        if (merging && pastedDays) {
+          await mergeDays.mutateAsync({ planId: editingPlan.id, days: pastedDays })
+        }
         showToast('플랜이 수정되었습니다', 'success')
       } else {
         await createPlan.mutateAsync(payload)
@@ -164,10 +193,16 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
   }
 
   const scheduleStatus = useMemo(() => {
-    if (generatedDays) return `${generatedDays.length}일 일정 생성됨 (저장 시 적용)`
+    if (pendingDays) {
+      return merging
+        ? `${pendingDays.length}일 이어 붙이기 — 같은 일차만 교체 (저장 시 적용)`
+        : editingPlan
+          ? `${pendingDays.length}일 일정으로 전체 교체 (저장 시 적용)`
+          : `${pendingDays.length}일 일정 생성됨 (저장 시 적용)`
+    }
     if (editingPlan) return `현재 ${editingPlan.total_days}일 (그대로 유지)`
     return '아직 일정이 없습니다'
-  }, [generatedDays, editingPlan])
+  }, [pendingDays, merging, editingPlan])
 
   return (
     <div
@@ -335,8 +370,84 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
               </div>
             </FieldGroup>
 
-            {/* 일정 자동 생성 */}
+            {/* 진행 방식 */}
+            <FieldGroup label="진행 방식">
+              <div className="grid grid-cols-2 gap-1.5">
+                <ModeCard
+                  active={!calendar}
+                  onClick={() => setScheduleMode('self_paced')}
+                  title="각자 속도"
+                  desc="시작한 날부터 안 읽은 일차를 이어서"
+                />
+                <ModeCard
+                  active={calendar}
+                  onClick={() => setScheduleMode('calendar')}
+                  title="교회 달력 고정"
+                  desc="모두 같은 날 같은 본문 · 늦게 와도 오늘부터"
+                />
+              </div>
+              {calendar && (
+                <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                  <label htmlFor="plan-anchor-date" className="text-[12px] font-semibold text-gray-600 dark:text-white/65">
+                    1일차 날짜<span className="text-brand">*</span>
+                  </label>
+                  <input
+                    id="plan-anchor-date"
+                    type="date"
+                    value={anchorDate}
+                    onChange={(e) => setAnchorDate(e.target.value)}
+                    className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-brand"
+                  />
+                  {!anchorDate && (
+                    <button
+                      type="button"
+                      onClick={() => setAnchorDate(todayYmd())}
+                      className="px-2.5 h-7 rounded-full text-[11.5px] font-bold bg-gray-50 dark:bg-white/[0.03] text-gray-600 dark:text-white/70 border border-gray-200 dark:border-white/[0.08]"
+                    >
+                      오늘
+                    </button>
+                  )}
+                  <p className="basis-full text-[11px] text-gray-400 dark:text-white/40">
+                    표에 날짜를 적어 붙여넣으면 첫 날짜로 자동 채워져요
+                  </p>
+                </div>
+              )}
+            </FieldGroup>
+
+            {/* 일정 — 자동 생성 | 표 붙여넣기 */}
             <div className="rounded-2xl border border-[var(--brand-glow)] bg-[var(--brand-soft)] p-4">
+              <div className="flex items-center gap-1.5 mb-3">
+                <Pill active={scheduleTab === 'auto'} onClick={() => setScheduleTab('auto')}>
+                  자동 생성
+                </Pill>
+                <Pill active={scheduleTab === 'paste'} onClick={() => setScheduleTab('paste')}>
+                  표 붙여넣기
+                </Pill>
+              </div>
+
+              {scheduleTab === 'paste' ? (
+                <>
+                  <PlanSchedulePaste
+                    anchorDate={calendar ? anchorDate : ''}
+                    onParsed={(days, parsedAnchor) => {
+                      setPastedDays(days)
+                      if (calendar && !anchorDate && parsedAnchor) setAnchorDate(parsedAnchor)
+                    }}
+                  />
+                  {editingPlan && (
+                    <div className="mt-3 flex gap-1.5 flex-wrap">
+                      <Pill active={mergePaste} onClick={() => setMergePaste(true)}>
+                        이어 붙이기
+                      </Pill>
+                      <Pill active={!mergePaste} onClick={() => setMergePaste(false)}>
+                        전체 교체
+                      </Pill>
+                    </div>
+                  )}
+                  <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-2">{scheduleStatus}</p>
+                </>
+              ) : (
+              <>
               <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 mb-2">
                 일정 자동 생성 <span className="font-normal text-gray-400 dark:text-white/40">(균등 분배)</span>
               </p>
@@ -377,6 +488,8 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
               <p className="text-[11px] text-gray-400 dark:text-white/35 mt-1">
                 절 단위 큐레이션 플랜은 seed_bible_plans.py 로 관리합니다.
               </p>
+              </>
+              )}
             </div>
 
             {/* 공개 */}
@@ -403,6 +516,12 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
                 />
               </button>
             </div>
+
+            {calendar && !anchorDate && (
+              <p className="px-1 text-[12px] font-semibold text-amber-600 dark:text-amber-300">
+                교회 달력 고정은 1일차 날짜를 정해야 저장할 수 있어요
+              </p>
+            )}
 
             {error && (
               <div className="px-3.5 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 text-red-600 dark:text-red-300 text-[12.5px] font-medium">
@@ -459,6 +578,35 @@ const Pill = ({ active, onClick, children }: { active: boolean; onClick: () => v
     ].join(' ')}
   >
     {children}
+  </button>
+)
+
+const ModeCard = ({
+  active,
+  onClick,
+  title,
+  desc,
+}: {
+  active: boolean
+  onClick: () => void
+  title: string
+  desc: string
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={[
+      'text-left px-3 py-2.5 rounded-xl border transition-all',
+      active
+        ? 'bg-brand text-white border-transparent shadow-[0_4px_14px_-4px_var(--brand-glow)]'
+        : 'bg-gray-50 dark:bg-white/[0.03] text-gray-700 dark:text-white/75 border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
+    ].join(' ')}
+  >
+    <span className="block text-[13px] font-bold">{title}</span>
+    <span className={`block text-[11px] leading-[1.45] mt-0.5 ${active ? 'text-white/85' : 'text-gray-500 dark:text-white/50'}`}>
+      {desc}
+    </span>
   </button>
 )
 
