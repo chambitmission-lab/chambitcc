@@ -697,7 +697,8 @@
 
 .audio-settings__chips {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* 배속 6단계(0.75~2×) → 3×2 — 4열이면 둘째 줄이 두 개만 남아 어색하다 */
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.375rem;
 }
 .audio-settings__chip {

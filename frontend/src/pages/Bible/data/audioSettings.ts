@@ -5,7 +5,7 @@
 import { useSyncExternalStore } from 'react'
 import type { BibleTTSVoice } from '../../../types/bible'
 
-export const RATE_OPTIONS = [0.75, 1, 1.25, 1.5]
+export const RATE_OPTIONS = [0.75, 1, 1.25, 1.5, 1.75, 2]
 
 export interface AudioSettings {
   voice: BibleTTSVoice

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
-import { getTtsStreamUrl } from '../../../api/bibleTts'
+import { getTtsStreamUrl, prewarmTts } from '../../../api/bibleTts'
 import { useTtsTimings } from '../hooks/useTtsTimings'
+import { useTtsResolve } from '../hooks/useTtsResolve'
 import { formatRemain, useAudioSleepTimer } from '../hooks/useAudioSleepTimer'
 import {
   RATE_OPTIONS,
@@ -57,6 +58,17 @@ const LOADING_MESSAGES = [
   '곧 들려드릴게요…',
 ]
 
+// R2(오디오 캐시 호스트)에 미리 TCP+TLS 를 열어 둔다 — 재생 버튼을 누른 순간 첫 바이트까지의
+// 왕복에서 커넥션 수립을 뺀다. <audio> 는 crossorigin 없이 받으므로 preconnect 도 익명 커넥션.
+const ensurePreconnect = (origin: string) => {
+  if (typeof document === 'undefined') return
+  if (document.head.querySelector(`link[rel="preconnect"][href="${origin}"]`)) return
+  const link = document.createElement('link')
+  link.rel = 'preconnect'
+  link.href = origin
+  document.head.appendChild(link)
+}
+
 const formatTime = (sec: number): string => {
   if (!Number.isFinite(sec) || sec < 0) return '0:00'
   const m = Math.floor(sec / 60)
@@ -93,7 +105,15 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const autoAdvanceRef = useRef(false)
 
   const { voice, rate, autoNext, collapsed } = useAudioSettings()
-  const [started, setStarted] = useState(false) // 첫 재생 이후에만 src 설정
+  // 재생을 시작한 장(key)과 그때 확정한 src. 장이 바뀌면 key 가 달라져 "시작 전"이 된다.
+  // 캐시된 장은 R2 직접 URL, 아니면 백엔드 스트리밍 URL — 재생 중엔 resolve 가 뒤늦게
+  // 도착해도 src 를 바꾸지 않는다(바꾸면 오디오가 처음부터 다시 로드된다).
+  const chapterKey = `${bookNumber}-${chapter}`
+  const [play, setPlay] = useState<{ key: string; url: string } | null>(null)
+  const started = play?.key === chapterKey
+  const streamUrl = getTtsStreamUrl(bookNumber, chapter, voice)
+  // 장을 열 때 캐시 상태를 미리 묻는다 — 캐시된 장은 재생 순간 백엔드 왕복 없이 R2 로 직행
+  const resolved = useTtsResolve({ bookNumber, chapter, voice })
   const [isPlaying, setIsPlaying] = useState(false)
   const [preparing, setPreparing] = useState(false) // 첫 소리가 나기 전 대기 상태
   const [isError, setIsError] = useState(false)
@@ -148,7 +168,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   }
 
   // 절별 타이밍 — 재생을 시작한 뒤에만 조회하고, 스트리밍 생성 중엔 최종본까지 폴링한다
-  const timings = useTtsTimings({ enabled: started, bookNumber, chapter, voice })
+  const timings = useTtsTimings({ enabled: started, bookNumber, chapter, voice, initial: resolved?.timings?.verses })
 
   // 재생 시각 → 지금 낭독 중인 절 (마지막으로 start를 지난 절)
   const syncActiveVerse = (time: number | null) => {
@@ -238,7 +258,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
       // 그래서 아래 pause()는 no-op이 되고 onPause도 안 오므로,
       // isPlaying을 여기서 직접 내려야 한다(안 내리면 '재생 중' 표시로 고착).
       wantPlayRef.current = false
-      setStarted(false)
+      setPlay(null)
       setPreparing(false)
       setIsPlaying(false)
       audioRef.current?.pause()
@@ -260,9 +280,18 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     return () => obs.disconnect()
   }, [])
 
-  // 재생을 누른 시점에만 백엔드 스트리밍 엔드포인트를 src로 건다.
-  // 음성이 바뀌면 URL이 바뀌어 audio 요소가 새 음성으로 다시 로드된다.
-  const audioUrl = started ? getTtsStreamUrl(bookNumber, chapter, voice) : undefined
+  // 재생 전에도 캐시된 장이면 R2 URL 을 src 로 미리 걸어 둔다(preload="none" 이라 받지는
+  // 않는다) — 누르는 순간 백엔드 307 없이 R2 로 곧장 간다. 시작한 뒤엔 그때 확정한 URL 고정.
+  const audioUrl = started ? play!.url : (resolved?.url ?? undefined)
+
+  useEffect(() => {
+    if (!resolved?.url) return
+    try {
+      ensurePreconnect(new URL(resolved.url).origin)
+    } catch {
+      // 잘못된 URL 이면 무시 — 재생 시 onError 폴백이 처리한다
+    }
+  }, [resolved?.url])
 
   // src가 준비되면 배속을 적용하고, 대기 중이던 재생 요청을 실행
   useEffect(() => {
@@ -304,11 +333,18 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
       audio.play().catch(() => {})
       return
     }
-    // 첫 재생 → src를 걸고, 로드되면 자동 재생
+    // 첫 재생 → src를 확정하고, 로드되면 자동 재생
     setIsError(false)
     setPreparing(true)
     wantPlayRef.current = true
-    setStarted(true)
+    const url = resolved?.url ?? streamUrl
+    setPlay({ key: chapterKey, url })
+    // 선해결한 R2 URL 이 이미 src 로 걸려 있으면 audioUrl effect 가 다시 돌지 않는다 — 여기서 바로 재생
+    if (audio && audioUrl === url) {
+      wantPlayRef.current = false
+      audio.playbackRate = rate
+      audio.play().catch(() => {})
+    }
   }
 
   const togglePlay = () => {
@@ -357,6 +393,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     if (started) {
       wantPlayRef.current = wasPlaying
       if (wasPlaying) setPreparing(true)
+      // 새 음성은 아직 캐시 여부를 모른다 — 스트리밍 URL 로 두면 백엔드가 알아서 캐시로 보낸다
+      setPlay({ key: chapterKey, url: getTtsStreamUrl(bookNumber, chapter, v) })
     }
   }
 
@@ -395,6 +433,29 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   // 이 경우 멈춘 듯한 0:00·고정 진행바 대신 "실시간 생성 중" 불확정 표시로 보여준다.
   const liveStream = started && !loading && !isError && duration <= 0
   const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
+
+  // 연속 재생 다음 장 준비: 현재 장을 절반(총길이 모르는 스트리밍이면 30초) 넘게 들었으면
+  // 다음 장을 백엔드에 미리 생성시키고, 캐시 URL 이 생길 때까지 resolve 를 다시 묻는다.
+  // 장이 끝나는 순간 생성 지연 없이 R2 파일로 바로 이어진다.
+  const nextChapter = chapter + 1
+  const [prepNextKey, setPrepNextKey] = useState<string | null>(null)
+  const prepNext = prepNextKey === chapterKey && !!hasNextChapter
+  useEffect(() => {
+    if (prepNext || !started || !isPlaying || !autoNext || !hasNextChapter) return
+    if (currentTime < 30 && pct < 50) return
+    setPrepNextKey(chapterKey)
+  }, [prepNext, started, isPlaying, autoNext, hasNextChapter, currentTime, pct, chapterKey])
+  const nextResolved = useTtsResolve({
+    bookNumber,
+    chapter: nextChapter,
+    voice,
+    enabled: prepNext,
+    pollUntilCached: true,
+  })
+  useEffect(() => {
+    if (!prepNext) return
+    prewarmTts(bookNumber, nextChapter, voice).catch(() => {})
+  }, [prepNext, bookNumber, nextChapter, voice])
 
   // 로딩 중에는 잔잔한 문구를 천천히 교체
   useEffect(() => {
@@ -508,7 +569,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
           {started && (
             <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-black/[0.06] dark:bg-white/[0.08]">
               <span
-                className={`block h-full rounded-r-full bg-brand ${liveStream ? 'w-full animate-pulse' : 'transition-[width] duration-200'}`}
+                className={`block h-full rounded-r-full bg-brand ${liveStream ? 'w-full animate-pulse' : 'transition-[width] duration-1000 ease-linear'}`}
                 style={liveStream ? undefined : { width: `${pct}%` }}
               />
             </span>
@@ -802,6 +863,11 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
             autoAdvanceRef.current = true
             wantPlayRef.current = true
             setPreparing(true)
+            // 다음 장 src 를 지금 확정 — 미리 준비된 캐시 URL 이 있으면 R2 로 곧장, 없으면 스트리밍
+            setPlay({
+              key: `${bookNumber}-${nextChapter}`,
+              url: nextResolved?.url ?? getTtsStreamUrl(bookNumber, nextChapter, voice),
+            })
             onAutoNextChapter()
           } else if (autoNext && !hasNextChapter) {
             showToast('이 책의 마지막 장까지 다 들었어요 🙌', 'info')
@@ -811,11 +877,23 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
           setPreparing(false)
           setIsPlaying(false)
           // started 후에만 실제 오류로 간주(초기 src 없는 상태 제외)
-          if (started) setIsError(true)
+          if (!started) return
+          // 선해결한 R2 URL 이 죽었으면(본문 수정으로 파일이 바뀐 뒤 옛 URL 등)
+          // 백엔드 스트리밍 URL 로 한 번 되돌린다 — 백엔드가 새 캐시로 보내거나 생성한다
+          if (play && play.url !== streamUrl) {
+            wantPlayRef.current = true
+            setPreparing(true)
+            setPlay({ key: chapterKey, url: streamUrl })
+            return
+          }
+          setIsError(true)
         }}
         onTimeUpdate={(e) => {
-          setCurrentTime(e.currentTarget.currentTime)
-          syncActiveVerse(e.currentTarget.currentTime)
+          const t = e.currentTarget.currentTime
+          // 시간 표시는 초 단위, 진행바는 1초 선형 전환 — 초가 바뀔 때만 상태를 갱신해
+          // 초당 4번 오던 플레이어 전체 리렌더를 1번으로 줄인다
+          if (Math.floor(t) !== Math.floor(currentTime)) setCurrentTime(t)
+          syncActiveVerse(t)
           // 화면이 꺼진 채 재생 중에도 이 이벤트는 계속 발생 — 수면 타이머 판정
           checkSleepTimer()
         }}
@@ -870,7 +948,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                 <div className="h-full w-full animate-pulse bg-brand" />
               ) : (
                 <div
-                  className="h-full rounded-full bg-brand transition-[width] duration-200"
+                  className="h-full rounded-full bg-brand transition-[width] duration-1000 ease-linear"
                   style={{ width: `${pct}%` }}
                 />
               )}

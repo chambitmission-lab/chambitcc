@@ -468,6 +468,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 성경 오디오북(mp3)도 가로채지 않는다 — <audio> 의 Range 요청·307 리다이렉트·
+  // 생성 스트리밍(chunked)은 그대로 네트워크로 보내야 하고, SW 기동 지연이 재생
+  // 시작에 붙지 않는다. 오프라인일 때 JSON 폴백 응답을 오디오 요소에 넘기는 일도 막는다.
+  if (url.pathname.includes('/bible/tts/')) {
+    return;
+  }
+
   // TTS 오디오 스트림도 캐싱 제외 — 장(章)마다 수 MB짜리 MP3를 clone()으로
   // 이중 버퍼링하고 Cache Storage 를 무한정 키우게 된다 (음성×장 조합만큼 누적)
   if (url.pathname.includes('/bible/tts/')) {

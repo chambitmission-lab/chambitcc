@@ -12,6 +12,11 @@ interface UseTtsTimingsOptions {
   bookNumber: number
   chapter: number
   voice: BibleTTSVoice
+  /**
+   * 장을 열 때 resolve 로 이미 받아 둔 최종 타이밍(useTtsResolve). 있으면 요청 없이
+   * 그대로 쓰고 폴링도 하지 않는다 — 캐시된 장은 재생 순간 첫 절부터 바로 붙는다.
+   */
+  initial?: VerseTiming[] | null
 }
 
 /**
@@ -21,10 +26,14 @@ interface UseTtsTimingsOptions {
  * 앞 절들 하이라이트가 생성 완료를 기다리지 않고 거의 바로 붙는다.
  * 음성이 바뀌면 오디오가 달라지므로 타이밍도 다시 받는다(null로 초기화).
  */
-export const useTtsTimings = ({ enabled, bookNumber, chapter, voice }: UseTtsTimingsOptions) => {
+export const useTtsTimings = ({ enabled, bookNumber, chapter, voice, initial }: UseTtsTimingsOptions) => {
   const [timings, setTimings] = useState<VerseTiming[] | null>(null)
 
   useEffect(() => {
+    if (initial && initial.length > 0) {
+      setTimings(initial)
+      return
+    }
     setTimings(null)
     if (!enabled) return
     const controller = new AbortController()
@@ -52,7 +61,7 @@ export const useTtsTimings = ({ enabled, bookNumber, chapter, voice }: UseTtsTim
       controller.abort()
       if (timer) clearTimeout(timer)
     }
-  }, [enabled, voice, bookNumber, chapter])
+  }, [enabled, voice, bookNumber, chapter, initial])
 
   return timings
 }

@@ -78,6 +78,9 @@ createRoot(document.getElementById('root')!).render(
               // 함께 읽기 실시간 현황도 제외 — 복원되면 지난 세션의 '나'가 유령처럼
               // "1명이 함께 읽는 중"으로 떠 있다가 응답이 오면 사라지며 화면이 흔들린다
               if (Array.isArray(key) && key[0] === 'readingTogether' && (key[1] === 'presence' || key[1] === 'live')) return false
+              // 오디오북 캐시 URL(R2 직접 주소)도 제외 — 본문이 수정되면 파일이 바뀌는데,
+              // 며칠 전 URL 이 복원되면 재생 버튼이 404 부터 맞고 스트리밍으로 되돌아가야 한다
+              if (Array.isArray(key) && key[0] === 'bibleTts') return false
               // 성경 본문(장·검색)은 persist 제외 — 장 하나가 6~29KB 라 며칠 읽으면 캐시가
               // 수 MB 로 불어 매 persist·부팅 복원을 무겁게 만든다. 오프라인 읽기는
               // 서비스워커의 API 캐시(network-first)가 이미 담당한다.
