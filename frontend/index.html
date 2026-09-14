@@ -11,7 +11,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
+    <!-- 512px 아이콘 링크는 뺐다 — 191KB 짜리 PNG 를 일부 브라우저(마지막 선언을 고르는 쪽)가
+         탭 아이콘으로 받아갔다. 큰 아이콘은 manifest 의 pwa-512 가 맡는다. -->
     <!-- 배율 잠금: 설치형 PWA(standalone)에서 당겨서 새로고침하면 크롬이 이전 배율을
          복원해 화면이 확대된 채(=스크롤 생기고 깨져 보임) 로드되는 버그 차단.
          maximum-scale=1만으로 안 막히는 기기가 있어 user-scalable=no까지 잠그고,

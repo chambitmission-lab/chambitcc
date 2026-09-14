@@ -1,8 +1,7 @@
 // 설교 폼 필드 — 섹션 그룹 + 입력 실시간 피드백 (성구 미리보기·예배 유형·유튜브 썸네일 제안)
 import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import DatePicker from '../../../../components/common/DatePicker'
-import { getBibleVerse } from '../../../../api/bible'
+import { useSermonLeadVerse } from '../../hooks/useSermonLeadVerse'
 import {
   parseBibleReference,
   formatReference,
@@ -37,13 +36,7 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
 
   /* 조회는 책 번호로만 가능하다(백엔드 book_number: int). 이름을 못 알아들으면
    * (bookNumber null) 요청 없이 곧장 미확인 상태로 안내한다. */
-  const { data: previewVerse, isError: verseNotFound } = useQuery({
-    queryKey: ['sermon-hero-verse', parsed?.bookNumber, parsed?.chapter, parsed?.verse ?? 1],
-    queryFn: () => getBibleVerse(parsed!.bookNumber!, parsed!.chapter, parsed!.verse ?? 1),
-    enabled: parsed?.bookNumber != null,
-    staleTime: Infinity,
-    retry: 0,
-  })
+  const { data: previewVerse, isError: verseNotFound } = useSermonLeadVerse(parsed, { retry: 0 })
   const unknownBook = !!parsed && parsed.bookNumber == null
 
   const worshipType = formData.title.trim() ? deriveWorshipType(formData.title) : null

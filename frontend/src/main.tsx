@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { queryClient } from './config/queryClient'
 import { persister } from './config/persister'
+import { PERSIST_SCHEMA_VERSION } from './config/persistSchema'
 import { initPWAInstallPrompt, registerPushServiceWorker } from './utils/pwa'
 import { escapeKakaoInApp, isKakaoInApp } from './utils/inappBrowser'
 import { LanguageProvider } from './contexts/LanguageContext'
@@ -47,9 +48,9 @@ createRoot(document.getElementById('root')!).render(
         client={queryClient}
         persistOptions={{
           persister,
-          // 빌드가 바뀌면 persist 캐시를 통째로 폐기 — 새 코드가 옛 스키마의
-          // 캐시 데이터를 복원해서 생기는 코드-데이터 불일치를 막는다
-          buster: __APP_VERSION__,
+          // 캐시 데이터 형태가 바뀔 때만 손으로 올리는 스키마 버전 — 빌드 시각을 쓰면
+          // 배포마다 전 사용자가 콜드 스타트였다 (src/config/persistSchema.ts 참고)
+          buster: PERSIST_SCHEMA_VERSION,
           // persist-client 기본 maxAge 는 24시간 — 그보다 오래 안 열면 캐시를 통째로 버려
           // 하루 만에 켠 앱이 매번 콜드 스타트였다. gcTime(7일)과 맞춘다.
           // 오래된 데이터는 refetchOnMount(staleTime 5분)가 뒤에서 조용히 갱신한다.

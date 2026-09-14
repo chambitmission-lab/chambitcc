@@ -31,6 +31,10 @@ import {
 import { getNaturalSeason } from '../../utils/naturalSeason'
 import { GREETING_HERO_DAY_BY_SEASON } from '../../utils/themeAssets'
 import './styles/index.css'
+import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
+ensureFontFamily('nanumPen')
 import { can } from '../../utils/access'
 
 /* 서명 문장 안의 이름만 손글씨 잉크로 바꿔 "참빛교회 담임목사 [사인] 올림" 으로 읽히게 한다.

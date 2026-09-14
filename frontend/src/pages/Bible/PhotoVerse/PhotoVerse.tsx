@@ -2,6 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { ensureFontFamily } from '../../../utils/deferredFonts'
+
+// 카드 전용 서체(붓글씨·손글씨·날짜 스탬프)는 이 화면 청크가 로드될 때 받기 시작한다
+ensureFontFamily('nanumBrush')
+ensureFontFamily('nanumPen')
+ensureFontFamily('orbitron')
 import VersePickerSheet from './VersePickerSheet'
 import { getTodayRecommended } from './recommendedVerses'
 import type { PickedVerse } from './recommendedVerses'

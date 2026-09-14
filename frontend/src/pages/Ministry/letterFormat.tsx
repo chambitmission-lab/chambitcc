@@ -3,6 +3,10 @@
 
 import type { Column } from '../../types/column'
 import { columnPlainText } from './blockFormat'
+import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
+ensureFontFamily('nanumPen')
 
 // 편지·에세이 톤의 서체 — 성경 읽기 설정과 동일한 스택(이미 index.html에서 로드됨)
 // Noto Serif KR은 400/600만 로드되어 있으므로 굵기는 font-semibold(600)까지만 사용

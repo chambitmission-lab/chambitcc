@@ -6,10 +6,6 @@ const ORIGIN = self.location.origin;
 const SW_PATH = self.location.pathname; // /chambitcc/sw.js
 const BASE_PATH = SW_PATH.replace(/sw\.js$/, ''); // /chambitcc/
 
-console.log('🚀 Service Worker 시작');
-console.log('ORIGIN:', ORIGIN);
-console.log('SW_PATH:', SW_PATH);
-console.log('BASE_PATH:', BASE_PATH);
 
 // 절대 URL 생성 함수
 const getAbsoluteUrl = (path) => {
@@ -22,9 +18,7 @@ const getAbsoluteUrl = (path) => {
   // BASE_PATH가 /로 끝나지 않으면 추가
   const basePath = BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/';
   
-  const fullUrl = `${ORIGIN}${basePath}${cleanPath}`;
-  console.log('🔗 URL 생성:', path, '→', fullUrl);
-  return fullUrl;
+  return `${ORIGIN}${basePath}${cleanPath}`;
 };
 
 // 앱이 Cache Storage에 적어둔 API base를 읽는다 (예: https://api.example.com/api/v1).
@@ -389,26 +383,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
       // 오래된 API 캐시 항목 정리
-      caches.open(CACHE_NAME).then(cache => {
-        return cache.keys().then(requests => {
-          const now = Date.now();
-          return Promise.all(
-            requests.map(request => {
-              return cache.match(request).then(response => {
-                if (response) {
-                  const dateHeader = response.headers.get('date');
-                  if (dateHeader) {
-                    const cacheAge = now - new Date(dateHeader).getTime();
-                    if (cacheAge > API_CACHE_DURATION) {
-                      return cache.delete(request);
-                    }
-                  }
-                }
-              });
-            })
-          );
-        });
-      }),
+      pruneOldApiCache().catch(() => {}),
       // 오래된 번들 캐시 정리
       pruneOldAssets().catch(() => {}),
       // 더 이상 안 쓰는 chambit-* 캐시 통째로 정리
@@ -426,6 +401,22 @@ self.addEventListener('activate', (event) => {
 // API 캐싱 전략 (Network First with Cache Fallback)
 const CACHE_NAME = 'chambit-api-cache-v1';
 const API_CACHE_DURATION = 1000 * 60 * 60 * 24; // 1일 (React Query persist가 장기 캐싱 담당)
+
+// date 헤더 기준으로 하루 지난 API 응답 제거 — activate 와 온라인 앱 시작(1시간 1회) 양쪽에서 호출
+const pruneOldApiCache = async () => {
+  const cache = await caches.open(CACHE_NAME);
+  const requests = await cache.keys();
+  const now = Date.now();
+  await Promise.all(
+    requests.map(async (request) => {
+      const response = await cache.match(request);
+      const dateHeader = response && response.headers.get('date');
+      if (dateHeader && now - new Date(dateHeader).getTime() > API_CACHE_DURATION) {
+        await cache.delete(request);
+      }
+    })
+  );
+};
 
 // 소개 페이지 히어로 배경 캐시 (Cache First)
 //
@@ -502,10 +493,13 @@ self.addEventListener('fetch', (event) => {
             const copy = response.clone();
             caches.open(APP_SHELL_CACHE).then((cache) => cache.put(BASE_PATH, copy));
           }
-          // 온라인 앱 시작을 계기로 오래된 번들 정리 (SW 프로세스당 1시간에 1회)
+          // 온라인 앱 시작을 계기로 오래된 번들·API 캐시 정리 (SW 프로세스당 1시간에 1회).
+          // activate 는 sw.js 내용이 바뀔 때만 돌아서, 여기 안 걸면 성경 장(6~29KB)을
+          // 며칠 읽는 동안 API 캐시가 수 MB 로 불어도 아무도 비우지 않는다.
           if (Date.now() - lastAssetPruneAt > 1000 * 60 * 60) {
             lastAssetPruneAt = Date.now();
             pruneOldAssets().catch(() => {});
+            pruneOldApiCache().catch(() => {});
           }
           return response;
         })
@@ -565,12 +559,16 @@ self.addEventListener('fetch', (event) => {
 
   // API 요청만 캐싱 (GET 요청만)
   if (event.request.method === 'GET' && url.pathname.includes('/api/')) {
+    // 로그인 사용자 응답(Authorization 헤더)은 저장하지 않는다 — Cache Storage 는 URL 로만
+    // 매칭하므로 같은 기기에서 계정을 바꾸면 오프라인 폴백에 앞 사람의 기도·프로필이 나온다.
+    // 로그인 데이터의 오프라인 복원은 사용자별 키를 쓰는 React Query persist(IndexedDB)가 맡는다.
+    const isAuthed = !!event.request.headers.get('authorization');
     event.respondWith(
       // Network First 전략: 네트워크 우선, 실패 시 캐시 사용
       fetch(event.request)
         .then(response => {
           // 성공하면 캐시에 저장하고 반환
-          if (response && response.status === 200) {
+          if (!isAuthed && response && response.status === 200) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then(cache => {
               cache.put(event.request, responseToCache);
@@ -579,8 +577,8 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // 네트워크 실패 시 캐시에서 가져오기
-          return caches.match(event.request).then(cachedResponse => {
+          // 네트워크 실패 시 API 캐시에서만 가져오기 (전역 caches.match 는 다섯 캐시를 전부 뒤진다)
+          return caches.match(event.request, { cacheName: CACHE_NAME }).then(cachedResponse => {
             if (cachedResponse) {
               console.log('📦 캐시에서 응답:', url.pathname);
               return cachedResponse;

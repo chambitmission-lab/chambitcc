@@ -14,6 +14,10 @@ import { showToast } from '../../utils/toast'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
 import { Icon, LockShackle, MicGlyph, PhotoGlyph, SigilGlyph } from './capsuleIcons'
 import './capsule.css'
+import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
+ensureFontFamily('nanumPen')
 
 /** 소인 각인: 2026-07-29 → { year: "'26", day: "7 · 29" } */
 const postmark = (dateStr: string): { year: string; day: string } => {

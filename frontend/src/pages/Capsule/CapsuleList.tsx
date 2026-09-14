@@ -8,6 +8,10 @@ import { isAuthenticated } from '../../utils/auth'
 import CapsuleMailbox from './CapsuleMailbox'
 import CapsuleRail from './CapsuleRail'
 import './capsule.css'
+import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
+ensureFontFamily('nanumPen')
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CAPSULE_HERO } from '../../utils/themeAssets'
 import { Icon, LetterHeartGlyph } from './capsuleIcons'

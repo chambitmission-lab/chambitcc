@@ -5,6 +5,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CapsulePhoto } from '../../types/timeCapsule'
 import './capsule.css'
+import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
+ensureFontFamily('nanumPen')
 
 const KENBURNS = ['capsule-kenburns-a', 'capsule-kenburns-b', 'capsule-kenburns-c']
 

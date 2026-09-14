@@ -36,6 +36,7 @@ export { BACKGROUNDS, backgroundCss, createBackgroundImage } from './canvas/back
 export type { VerseBackground } from './canvas/backgrounds'
 
 import { FONT_STACKS, FONT_TUNING, isLightColor, minPx } from './canvas/cardStyle'
+import { ensureFontFamily } from '../../../utils/deferredFonts'
 import type { CardFilterId, CardFrameId, CardRatioId, VerseCardStyle } from './canvas/cardStyle'
 import { cropRect, getBaseLayer, sampleLuminance } from './canvas/baseLayer'
 import {
@@ -208,6 +209,13 @@ export const createCardCanvas = (
 export const ensureCardFonts = async (sampleText?: string) => {
   const sample = sampleText?.trim() || undefined
   try {
+    // 카드 전용 서체 CSS 가 아직 CSSOM 에 없으면 fonts.load() 가 빈 결과로 즉시 끝나
+    // 폴백으로 그려진다 — @font-face 선언이 들어올 때까지 먼저 기다린다.
+    await Promise.all([
+      ensureFontFamily('nanumBrush'),
+      ensureFontFamily('nanumPen'),
+      ensureFontFamily('orbitron'),
+    ])
     await Promise.all([
       document.fonts.load('500 24px "Pretendard Variable"', sample),
       document.fonts.load('600 24px "Pretendard Variable"', sample),

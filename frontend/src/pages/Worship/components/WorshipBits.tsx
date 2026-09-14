@@ -57,8 +57,18 @@ const CountdownClock = memo(({ deadlineTs }: { deadlineTs: number }) => {
     const update = () =>
       setRemainSec(Math.max(0, Math.round((deadlineTs - Date.now()) / 1000)))
     update()
-    const timer = setInterval(update, 1_000)
-    return () => clearInterval(timer)
+    // 백그라운드 탭에선 매초 setState 를 건너뛴다 — 보이지 않는 카운트다운을 위해
+    // 렌더를 돌릴 이유가 없고, 다시 보일 때 visibilitychange 로 한 번에 맞춘다.
+    const tick = () => {
+      if (document.visibilityState === 'hidden') return
+      update()
+    }
+    const timer = setInterval(tick, 1_000)
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', tick)
+    }
   }, [deadlineTs])
   const sec = Math.max(0, remainSec)
   const h = Math.floor(sec / 3600)

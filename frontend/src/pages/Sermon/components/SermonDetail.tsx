@@ -3,10 +3,9 @@
 // 색·질감은 theme.css 토큰만 참조하고, 문법은 목록(SermonHero)의 편집 위계를 잇는다.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
 import { API_URL } from '../../../config/api'
-import { getBibleVerse } from '../../../api/bible'
+import { useSermonLeadVerse } from '../hooks/useSermonLeadVerse'
 import { useDeleteSermon } from '../../../hooks/useSermons'
 import { useSermonBibleReferences } from '../../../hooks/useSermonBibleReferences'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -101,13 +100,7 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
 
   // 성구 첫 절 인용 — 목록 히어로와 같은 파서·쿼리키라 캐시를 공유한다
   const parsed = useMemo(() => parseBibleReference(sermon.bible_verse), [sermon.bible_verse])
-  const { data: leadVerse } = useQuery({
-    queryKey: ['sermon-hero-verse', parsed?.bookNumber, parsed?.chapter, parsed?.verse ?? 1],
-    queryFn: () => getBibleVerse(parsed!.bookNumber!, parsed!.chapter, parsed!.verse ?? 1),
-    enabled: parsed?.bookNumber != null,
-    staleTime: Infinity,
-    retry: 1,
-  })
+  const { data: leadVerse } = useSermonLeadVerse(parsed)
 
   const worshipType = deriveWorshipType(sermon.title)
   const referenceLabel = parsed ? formatReference(parsed) : sermon.bible_verse

@@ -22,6 +22,10 @@ import { showToast } from '../../utils/toast'
 import { buildPresets, formatKoreanDate, toDateStr } from './capsuleDates'
 import { CalendarGlyph, Icon, LetterHeartGlyph } from './capsuleIcons'
 import './capsule.css'
+import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
+ensureFontFamily('nanumPen')
 
 const MAX_RECORD_SECONDS = 180
 const MAX_MESSAGE_LEN = 5000

@@ -1,8 +1,7 @@
 // 이번 주 말씀 히어로 — 최신 설교 1건을 성구 인용 중심으로 크게
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
-import { getBibleVerse } from '../../../api/bible'
+import { useSermonLeadVerse } from '../hooks/useSermonLeadVerse'
 import { useNowMs } from '../../../hooks/useNowMs'
 import {
   parseBibleReference,
@@ -23,13 +22,7 @@ const SermonHero = ({ sermon, onOpen }: SermonHeroProps) => {
   const parsed = useMemo(() => parseBibleReference(sermon.bible_verse), [sermon.bible_verse])
 
   // 본문 첫 절을 인용구로 — 성경 API 재사용(책 번호 필수), 파싱·해석·조회 실패 시 조용히 생략
-  const { data: verse } = useQuery({
-    queryKey: ['sermon-hero-verse', parsed?.bookNumber, parsed?.chapter, parsed?.verse ?? 1],
-    queryFn: () => getBibleVerse(parsed!.bookNumber!, parsed!.chapter, parsed!.verse ?? 1),
-    enabled: parsed?.bookNumber != null,
-    staleTime: Infinity,
-    retry: 1,
-  })
+  const { data: verse } = useSermonLeadVerse(parsed)
 
   const isThisWeek = useNowMs() - new Date(sermon.sermon_date).getTime() < WEEK_MS
   const dateLabel = formatSermonDate(sermon.sermon_date)

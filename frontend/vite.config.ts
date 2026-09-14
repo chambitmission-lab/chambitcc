@@ -48,7 +48,7 @@ export default defineConfig(({ command }) => ({
         // 넣으면 첫 로드에 강제 포함되므로 금지.
         manualChunks(id) {
           if (
-            /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|@tanstack|axios)[\\/]/.test(
+            /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|@tanstack)[\\/]/.test(
               id,
             )
           ) {

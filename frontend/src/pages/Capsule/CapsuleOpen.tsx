@@ -15,6 +15,10 @@ import { CAPSULE_LETTER, CAPSULE_SEALED } from '../../utils/themeAssets'
 import { formatKoreanDate } from './capsuleDates'
 import { CalendarGlyph, Icon, MicGlyph, PhotoGlyph } from './capsuleIcons'
 import './capsule.css'
+import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
+ensureFontFamily('nanumPen')
 import { confirmDialog } from '../../utils/confirmDialog'
 import { ArrivalEnvelope } from './open/ArrivalEnvelope'
 import { DawnSky, LetterStamp } from './open/LetterDecor'
