@@ -732,7 +732,8 @@
   background: none;
   box-shadow: none;
   animation: none;
-  transition: none;
+  /* 읽음 흐림만 스르르 — 뒤늦게 도착한 읽음 상태가 문단을 툭 바꾸지 않게 */
+  transition: opacity 0.35s ease;
 }
 
 /* 읽음 완료 — 흐림만 (초록 틴트는 문단에서 얼룩처럼 보인다) */

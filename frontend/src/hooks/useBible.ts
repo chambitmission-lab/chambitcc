@@ -3,6 +3,8 @@ import type { InfiniteData, QueryClient } from '@tanstack/react-query'
 import type { BibleSearchResult } from '../types/bible'
 import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible, getBibleChapterPaginated } from '../api/bible'
 import { bibleKeys } from './queryKeys'
+import { prefetchChapterReadStatus } from './useBibleReading'
+import { isAuthenticated } from '../utils/auth'
 
 // 성경 책 목록
 export const useBibleBooks = () => {
@@ -129,4 +131,22 @@ export const prefetchBibleChapter = (qc: QueryClient, bookNumber: number, chapte
     staleTime: CHAPTER_STALE_MS,
     gcTime: CHAPTER_GC_MS,
   })
+  // 읽음 상태도 본문과 나란히 — 따로 늦게 오면 읽은 절이 뒤늦게 흐려지며 화면이 툭 바뀐다
+  if (isAuthenticated()) prefetchChapterReadStatus(qc, bookNumber, chapter)
+}
+
+/**
+ * 지금 읽는 장의 이전·다음 장(본문 첫 페이지 + 읽음 상태)을 미리 받는다.
+ * 장 넘김은 URL 을 바꾸지 않아(BibleStudy.handleChapterChange 는 state 만 갱신) 라우트
+ * 선요청을 타지 않는다 — 여기서 받아 두지 않으면 매 장마다 스피너 → 본문 → 뒤늦은 읽음 표시
+ * 순서로 세 번 그려졌다. 본문이 그려진 뒤 유휴 시간에, 데이터 절약·2G/3G 에선 부르지 않는다.
+ */
+export const prefetchAdjacentChapters = (
+  qc: QueryClient,
+  bookNumber: number,
+  chapter: number,
+  totalChapters: number,
+): void => {
+  if (chapter < totalChapters) prefetchBibleChapter(qc, bookNumber, chapter + 1)
+  if (chapter > 1) prefetchBibleChapter(qc, bookNumber, chapter - 1)
 }

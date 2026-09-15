@@ -103,6 +103,9 @@ export const useReadVerses = (params?: {
   })
 }
 
+/** 장 읽음 상태 신선도 — 훅과 선요청(prefetchChapterReadStatus)이 반드시 같은 값 */
+export const CHAPTER_STATUS_STALE_MS = 1000 * 60 * 5
+
 /**
  * 특정 장의 읽음 상태 조회
  */
@@ -115,11 +118,26 @@ export const useChapterReadStatus = (
     queryKey: bibleReadingKeys.chapterStatus(bookNumber, chapter),
     queryFn: () => getChapterReadStatus(bookNumber, chapter),
     enabled: enabled && bookNumber > 0 && chapter > 0,
-    staleTime: 1000 * 60 * 5, // 5분
+    staleTime: CHAPTER_STATUS_STALE_MS,
     // 전역 refetchOnMount:false(queryClient.ts) 예외 — 읽음 mutation의 invalidate는
     // 비활성 쿼리를 stale 마크만 하므로, true(=stale이면 refetch)가 없으면
     // 다른 장으로 이동했을 때 옛 읽음 표시가 그대로 남는다
     refetchOnMount: true,
+  })
+}
+
+/**
+ * 장 읽음 상태를 훅과 같은 키·staleTime 으로 미리 받는다.
+ * 본문(prefetchBibleChapter)과 같은 시점에 띄워야 절 번호 색·흐림이 본문과 한 프레임에
+ * 그려진다 — 예전엔 VerseList 가 마운트된 뒤에야 요청이 나가 본문이 먼저 밝게 그려졌다가
+ * 뒤늦게 읽은 절이 일제히 흐려지며 화면이 툭 바뀌었다. 로그인 상태에서만 부른다.
+ */
+export const prefetchChapterReadStatus = (qc: QueryClient, bookNumber: number, chapter: number): void => {
+  if (!(bookNumber > 0 && chapter > 0)) return
+  void qc.prefetchQuery({
+    queryKey: bibleReadingKeys.chapterStatus(bookNumber, chapter),
+    queryFn: () => getChapterReadStatus(bookNumber, chapter),
+    staleTime: CHAPTER_STATUS_STALE_MS,
   })
 }
 

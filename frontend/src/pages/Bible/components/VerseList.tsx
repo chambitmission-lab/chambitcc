@@ -33,6 +33,8 @@ import { getReaderLayout, subscribeReaderLayout } from '../data/readerLayout'
 import { isSectionHeadingsEnabled, subscribeSectionHeadings } from '../data/sectionHeadings'
 import { loadBookOutline, peekBookOutline, type BookOutline, type OutlineSection } from '../data/chapterOutlines'
 import { bibleKeys } from '../../../hooks/queryKeys'
+import { prefetchAdjacentChapters } from '../../../hooks/useBible'
+import { preloadBudget } from '../../../utils/idlePreload'
 import { can } from '../../../utils/access'
 // 함께 읽기 — 읽는 줄 감지 → 하트비트 → presence/묵상 요약 캐시 → 절 칩·장 pill·배너·시트
 import { useReadingLine } from '../hooks/useReadingLine'
@@ -44,6 +46,10 @@ const VerseReflectionSheet = lazyModal(() => import('./together/VerseReflectionS
 
 /** 절 번호 길게 누르기 안내를 이미 본 적 있는지 (한 번 보면 다시 안 뜬다) */
 const HOLD_HINT_KEY = 'bible_hold_read_hint_v1'
+// 본문이 먼저 왔을 때 읽음 상태를 함께 기다리는 최대 시간 — 이보다 길면 본문부터 그린다
+const READ_STATUS_HOLD_MS = 220
+// 본문 그려진 뒤 이전·다음 장 선요청까지의 여유 — 이 장의 부가 요청과 경쟁하지 않게
+const ADJACENT_PREFETCH_DELAY_MS = 1500
 
 /** 본문 단락 하나 — 장 개요(단락 소제목) 범위대로 절을 묶는다. 이어읽기·절별 보기가 같이 쓴다 */
 interface FlowParagraph {
@@ -667,7 +673,44 @@ const VerseList = ({
   // 예전엔 읽음 상태까지 기다렸는데, chapterData 만 보고 돌면 스피너 상태에서
   // getElementById 가 null 인 채 끝나 딥링크가 첫 진입에 안 가던 버그가 있었다 —
   // 게이트 조건과 이 값은 반드시 같이 움직여야 한다.
-  const bodyRendered = !isLoading && !!chapterData
+  //
+  // 읽음 상태가 "아직 오는 중"(캐시 없음)인데 본문이 먼저 왔으면 아주 잠깐만 같이 기다린다.
+  // 선요청 덕에 두 응답은 보통 몇십 ms 차이로 도착하는데, 그 틈에 본문을 먼저 그리면
+  // 읽은 절이 뒤늦게 일제히 흐려지며 화면이 툭 바뀐다. 대기는 READ_STATUS_HOLD_MS 를 넘지 않고,
+  // 그 뒤엔 본문을 먼저 그리고 도착 시 색만 스르르 입힌다(백엔드가 느릴 때 빈 화면을 오래 안 보게).
+  // 캐시가 있어 refetch 만 도는 경우(isLoading=false)는 기다리지 않는다.
+  const readStatusPending = isLoggedIn() && readStatusLoading
+  const [readStatusHoldExpired, setReadStatusHoldExpired] = useState(false)
+  useEffect(() => {
+    setReadStatusHoldExpired(false)
+  }, [bookNumber, selectedChapter])
+  useEffect(() => {
+    if (!chapterData || !readStatusPending || readStatusHoldExpired) return
+    const id = window.setTimeout(() => setReadStatusHoldExpired(true), READ_STATUS_HOLD_MS)
+    return () => window.clearTimeout(id)
+  }, [chapterData, readStatusPending, readStatusHoldExpired])
+  const holdingForReadStatus = !!chapterData && readStatusPending && !readStatusHoldExpired
+  const bodyRendered = !isLoading && !!chapterData && !holdingForReadStatus
+
+  // 이전·다음 장을 미리 받아 둔다 — 장 넘김이 URL 을 안 바꿔 라우트 선요청을 못 타므로 여기서.
+  // 본문이 그려지고 이 장의 부가 요청(해석·북마크·단어장·현황)이 먼저 나간 뒤 유휴 시간에 띄운다.
+  useEffect(() => {
+    if (!bodyRendered || preloadBudget() !== 'full') return
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    let idleId: number | null = null
+    const timer = window.setTimeout(() => {
+      const run = () => prefetchAdjacentChapters(queryClient, bookNumber, selectedChapter, totalChapters)
+      if (w.requestIdleCallback) idleId = w.requestIdleCallback(run, { timeout: 4000 })
+      else run()
+    }, ADJACENT_PREFETCH_DELAY_MS)
+    return () => {
+      window.clearTimeout(timer)
+      if (idleId !== null) w.cancelIdleCallback?.(idleId)
+    }
+  }, [bodyRendered, bookNumber, selectedChapter, totalChapters, queryClient])
 
   // ── 함께 읽기 ──
   // 읽는 줄(화면 40% 지점)이 3초 이상 머문 절만 서버에 알린다. 공유를 끄면 하트비트가
@@ -794,9 +837,10 @@ const VerseList = ({
   // 로딩 상태는 모든 훅 호출 이후에 체크.
   // 본문은 프리페치·24시간 캐시로 거의 즉시 오지만 읽음 상태는 네트워크를 탄다.
   // 예전엔 둘 다 기다려 스피너를 띄웠는데, 본문이 있는데도 빈 화면을 보는 시간이
-  // 더 길게 느껴졌다. 이제 본문을 먼저 그리고 읽음 표시는 도착 시 색만 스르르 입힌다
+  // 더 길게 느껴졌다. 이제 읽음 상태는 아주 짧게만(holdingForReadStatus) 같이 기다리고,
+  // 그 뒤엔 본문을 먼저 그리고 읽음 표시는 도착 시 색만 스르르 입힌다
   // (팝 애니메이션은 사용자가 직접 바꾼 절만 — VerseItem.readPop).
-  if (isLoading) {
+  if (isLoading || holdingForReadStatus) {
     return <ChapterLoader size="lg" />
   }
   
