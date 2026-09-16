@@ -7,7 +7,6 @@ import { EditableText, EditableImage, HeroEditButton } from '../../components/Ab
 import { captureAboutHeroLqip, readAboutHeroLqip } from '../../utils/aboutHeroLqip'
 import {
   BookOpenIcon,
-  CameraIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   ClockIcon,
@@ -23,6 +22,8 @@ import {
   MedalIcon,
 } from './icons'
 import { EmojiText } from '../../components/common/EmojiText'
+import pastorPhoto from '../../assets/about-pastor/pastor.webp'
+import pastorPhotoSquare from '../../assets/about-pastor/pastor-sq.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
 
@@ -400,11 +401,15 @@ const About = () => {
               >
                 {pastorPhotoUrl ? (
                   <img className="pastor-photo" src={pastorPhotoUrl} alt={tx('aboutPastorName')} />
-                ) : isAdminUser ? (
-                  <span className="pastor-photo pastor-photo--empty" aria-hidden="true">
-                    <CameraIcon size={22} />
-                  </span>
-                ) : null}
+                ) : (
+                  /* 관리자가 따로 올린 사진이 없으면 기본 인물 사진.
+                     다크 테마도 같은(밝은) 사진을 쓴다 — 어두운 배경 판은 카드 안에서 무거웠다.
+                     PC 4:5 타일과 모바일 84px 아바타는 <picture> 가 다른 크롭을 고른다. */
+                  <picture>
+                    <source media="(min-width: 1024px)" srcSet={pastorPhoto} />
+                    <img className="pastor-photo" src={pastorPhotoSquare} alt={tx('aboutPastorName')} />
+                  </picture>
+                )}
               </EditableImage>
               </div>
               <div className="pastor-head-text">

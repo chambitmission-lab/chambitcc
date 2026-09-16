@@ -223,11 +223,6 @@
     display: block;
   }
 
-  /* 사진 미등록(비관리자)이면 빈 흰 타일 대신 옅은 브랜드 그라데이션 */
-  .pastor-photo-slot:empty {
-    background: linear-gradient(160deg, var(--brand-soft), var(--surface-container) 80%);
-  }
-
   .pastor-photo-slot > * {
     display: block;
     width: 100%;
@@ -239,12 +234,6 @@
     height: 100%;
     border-radius: 0;
     object-fit: cover;
-  }
-
-  .pastor-photo-slot .pastor-photo--empty {
-    display: flex;
-    border-radius: 0;
-    border: 0;
   }
 
   /* 이름 타일 */

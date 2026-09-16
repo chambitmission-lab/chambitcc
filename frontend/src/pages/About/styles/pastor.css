@@ -27,16 +27,6 @@
   filter: var(--media-dim);
 }
 
-/* 사진 미등록 시 관리자에게만 보이는 등록 플레이스홀더 */
-.pastor-photo--empty {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px dashed var(--brand-soft-strong);
-  color: var(--text-muted);
-  filter: none;
-}
-
 .pastor-head-text {
   display: flex;
   flex-direction: column;
