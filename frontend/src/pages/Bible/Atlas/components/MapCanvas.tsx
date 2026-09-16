@@ -6,6 +6,7 @@ import { useLandPath } from '../useLandPath'
 import {
   MAP_VIEW,
   boundsOf,
+  curveControl,
   curvePath,
   project,
   splitCurve,
@@ -19,6 +20,7 @@ import seaNightUrl from '../../../../assets/atlas/sea-night.webp'
 import compassUrl from '../../../../assets/atlas/deco/compass.webp'
 import compassNightUrl from '../../../../assets/atlas/deco/compass-night.webp'
 import { useTheme } from '../../../../contexts/ThemeContext'
+import { registerThemePair, warmPair, type ThemePair } from '../../../../utils/themeAssets'
 
 /**
  * 성경 지도여행 — SVG 지도 캔버스.
@@ -65,6 +67,39 @@ interface MapCanvasProps {
 const MIN_SPAN = 40 // 최대 확대 (지도 단위)
 const MAX_SPAN = MAP_VIEW.width * 1.15 // 최대 축소
 
+/** 여백 삽화가 이보다 작아지면 그림이 아니라 얼룩이다 — 그리지 않는다 */
+const DECOR_MIN_PX = 20
+/** 나타나고 사라질 때 이 구간(px)에 걸쳐 흐려진다 — 줌 중에 툭 튀지 않게 */
+const DECOR_FADE_PX = 16
+
+/**
+ * 여정을 맞출 때 비워 두는 테두리(화면 px).
+ *
+ * 캔버스 전체가 지도를 읽는 자리는 아니다 — 아래쪽은 자막(.atl-caption)이
+ * 덮고, 지명은 핀의 위·옆으로 뻗는다. 캔버스 한가운데에 맞추면 여정이 자막
+ * 밑으로 깔려, 좁은 화면에서 핀·지명·삽화가 아래쪽 한 덩어리로 뭉쳐 보인다.
+ * 그래서 "실제로 보이는 자리"의 한가운데에 맞춘다.
+ */
+const FIT_INSET = { top: 30, side: 42, bottom: 76 }
+
+/**
+ * 지도 안쪽 그림도 낮/밤 두 벌이다(종이·물 질감, 나침반, 여백 삽화).
+ *
+ * 페이지 배경은 themeAssets 매니페스트가 맡지만 이 그림들은 거기 없어서, 테마를
+ * 바꾸면 종이와 삽화만 맨땅에서 받기 시작했다 — 배경은 이미 바뀌었는데 지도만
+ * 한 박자 늦게 따라오던 이유다. 지금 떠 있는 것으로 등록해 두면 토글 직전 선요청이
+ * 반대 테마 파일까지 챙긴다.
+ */
+const TEXTURE_PAIRS: ThemePair[] = [
+  { light: seaUrl, dark: seaNightUrl },
+  { light: parchmentUrl, dark: parchmentNightUrl },
+  { light: compassUrl, dark: compassNightUrl },
+]
+/** 삽화는 지금 그려진 것만 등록한다 — 화면 밖 그림까지 기다리면 토글이 늘 늦어진다 */
+const DECOR_PAIRS = new Map<string, ThemePair>(
+  MAP_DECOR.map((item) => [item.id, { light: item.src, dark: item.night }])
+)
+
 const clampView = (v: ViewBox, aspect: number): ViewBox => {
   const w = Math.min(Math.max(v.w, MIN_SPAN), MAX_SPAN)
   const h = w / aspect
@@ -97,6 +132,24 @@ const MapCanvas = ({
   const night = theme === 'dark'
   // 해안선은 따로 받는다 — 도착 전에도 바다·경로·핀은 먼저 그려진다
   const landPath = useLandPath()
+  /**
+   * 종이·물 질감 — 낮/밤 두 벌 중 지금 테마의 것만 받는다(예전엔 네 장을 다 받아
+   * 절반은 쓰지도 않고 디코딩까지 했다).
+   *
+   * 아이디는 네 개를 그대로 둔다. 어느 아이디를 칠할지는 CSS(--atl-sea/--atl-land)가
+   * 테마로 고르는데, 그 전환과 이 렌더의 순서는 보장되지 않는다. 네 아이디가 모두
+   * "지금 질감"을 가리키면 어느 쪽이 먼저 바뀌든 칠이 비는 프레임이 없다.
+   */
+  const textures = useMemo(() => {
+    const sea = night ? seaNightUrl : seaUrl
+    const land = night ? parchmentNightUrl : parchmentUrl
+    return [
+      { id: 'atl-tex-sea', href: sea },
+      { id: 'atl-tex-sea-night', href: sea },
+      { id: 'atl-tex-land', href: land },
+      { id: 'atl-tex-land-night', href: land },
+    ]
+  }, [night])
   const [size, setSize] = useState({ w: 0, h: 0 })
   const [view, setView] = useState<ViewBox>({
     x: 0,
@@ -148,26 +201,50 @@ const MapCanvas = ({
     return () => ro.disconnect()
   }, [])
 
-  /** 여정 전체가 화면에 들어오는 viewBox */
+  // 화면에 들어와야 하는 점들 — 지점뿐 아니라 곡선이 가장 부풀어 오르는 곳까지.
+  // 경로는 휘어 있어서(bow) 지점 상자만 재면 바다를 크게 도는 구간의 선이 잘린다.
+  const fitPoints = useMemo<Point[]>(() => {
+    const pts = [...stopPoints]
+    journey.stops.slice(1).forEach((stop, i) => {
+      const from = stopPoints[i]
+      const to = stopPoints[i + 1]
+      const c = curveControl(from, to, stop.bow ?? 0.14)
+      // 2차 베지어의 중점 — 휨이 가장 큰 자리
+      pts.push({ x: (from.x + 2 * c.x + to.x) / 4, y: (from.y + 2 * c.y + to.y) / 4 })
+    })
+    return pts
+  }, [journey, stopPoints])
+
+  /** 여정 전체가 "실제로 보이는 자리"에 들어오는 viewBox */
   const computeFit = useCallback(
     (w: number, h: number): ViewBox | null => {
       if (!w || !h) return null
-      const b = boundsOf(stopPoints)
+      const b = boundsOf(fitPoints)
       const ratio = w / h
-      // 여백 — 핀 라벨과 하단 자막이 지점을 가리지 않도록 넉넉히
-      const padded = { w: b.w * 1.5 + 40, h: b.h * 1.9 + 40 }
-      const span = Math.min(Math.max(Math.max(padded.w, padded.h * ratio), MIN_SPAN), MAX_SPAN)
+      // 캔버스가 작을 땐 테두리를 그대로 빼면 남는 자리가 없다 — 비율로 묶는다
+      const side = Math.min(FIT_INSET.side, w * 0.16)
+      const top = Math.min(FIT_INSET.top, h * 0.12)
+      const bottom = Math.min(FIT_INSET.bottom, h * 0.32)
+      const usableW = w - side * 2
+      const usableH = h - top - bottom
+      // 여정 상자가 그 자리에 꼭 맞는 배율(= viewBox 폭)
+      const span = Math.min(
+        Math.max(Math.max((b.w * w) / usableW, ((b.h * h) / usableH) * ratio), MIN_SPAN),
+        MAX_SPAN
+      )
+      const fitUnit = span / w
       return clampView(
         {
-          x: b.x + b.w / 2 - span / 2,
-          y: b.y + b.h / 2 - span / ratio / 2,
+          // 여정의 한가운데를 캔버스가 아니라 "보이는 자리"의 한가운데에 둔다
+          x: b.x + b.w / 2 - (side + usableW / 2) * fitUnit,
+          y: b.y + b.h / 2 - (top + usableH / 2) * fitUnit,
           w: span,
           h: span / ratio,
         },
         ratio
       )
     },
-    [stopPoints]
+    [fitPoints]
   )
 
   const fitToJourney = useCallback(() => {
@@ -206,6 +283,65 @@ const MapCanvas = ({
 
   const unit = size.w ? view.w / size.w : 1 // 지도 단위 / 화면 px
 
+  /**
+   * 손가락·휠은 프레임보다 자주 들어온다(120Hz 기기에선 초당 120번). 그때마다
+   * viewBox 를 바꾸면 그 수만큼 지도 전체 — 해안선 path, 질감 패턴, 핀과 지명 —
+   * 를 다시 래스터라이즈한다. 그래서 들어온 만큼 모아 두고 프레임당 한 번만 반영한다.
+   * 손가락이 지나간 거리는 더해서 쓰므로 움직임이 잘리지 않는다.
+   */
+  const pendingRef = useRef<{
+    dx: number
+    dy: number
+    /** 핀치가 목표로 하는 viewBox 폭 */
+    pinchW: number | null
+    /** 휠 누적량과 마지막 커서 위치(0~1) */
+    wheel: { dy: number; px: number; py: number } | null
+  }>({ dx: 0, dy: 0, pinchW: null, wheel: null })
+  const frameRef = useRef(0)
+
+  const flushView = useCallback(() => {
+    frameRef.current = 0
+    const { dx, dy, pinchW, wheel } = pendingRef.current
+    pendingRef.current = { dx: 0, dy: 0, pinchW: null, wheel: null }
+    if (!dx && !dy && pinchW == null && !wheel) return
+    setView((v) => {
+      let next = v
+      if (pinchW != null) {
+        const cx = v.x + v.w / 2
+        const cy = v.y + v.h / 2
+        const w = Math.min(Math.max(pinchW, MIN_SPAN), MAX_SPAN)
+        next = { x: cx - w / 2, y: cy - w / aspect / 2, w, h: w / aspect }
+      }
+      if (wheel) {
+        const w = Math.min(Math.max(next.w * Math.exp(wheel.dy * 0.0015), MIN_SPAN), MAX_SPAN)
+        const h = w / aspect
+        // 커서가 가리키던 지점을 그대로 붙잡아 둔다 — "그 지점을 향해" 확대되는 느낌
+        const anchorX = next.x + next.w * wheel.px
+        const anchorY = next.y + next.h * wheel.py
+        next = { x: anchorX - w * wheel.px, y: anchorY - h * wheel.py, w, h }
+      }
+      if (dx || dy) {
+        // 배율은 이번 프레임의 것으로 — 핀치·휠과 같은 프레임에 들어와도 어긋나지 않게
+        const u = size.w ? next.w / size.w : 1
+        next = { ...next, x: next.x - dx * u, y: next.y - dy * u }
+      }
+      return clampView(next, aspect)
+    })
+  }, [aspect, size.w])
+
+  const scheduleFlush = useCallback(() => {
+    if (frameRef.current) return
+    frameRef.current = requestAnimationFrame(flushView)
+  }, [flushView])
+
+  // 화면을 떠날 때 예약된 프레임을 거둔다
+  useEffect(
+    () => () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current)
+    },
+    []
+  )
+
   /** 끌기가 시작된 뒤에만 캡처를 잡는다 — 이유는 onPointerDown 주석 참고 */
   const capturePointer = (e: React.PointerEvent<SVGSVGElement>) => {
     if (e.currentTarget.hasPointerCapture(e.pointerId)) return
@@ -238,13 +374,8 @@ const MapCanvas = ({
       if (!pinchRef.current) {
         pinchRef.current = { dist, w: view.w }
       } else if (dist > 0) {
-        const nextW = pinchRef.current.w * (pinchRef.current.dist / dist)
-        setView((v) => {
-          const cx = v.x + v.w / 2
-          const cy = v.y + v.h / 2
-          const w = Math.min(Math.max(nextW, MIN_SPAN), MAX_SPAN)
-          return clampView({ x: cx - w / 2, y: cy - w / aspect / 2, w, h: w / aspect }, aspect)
-        })
+        pendingRef.current.pinchW = pinchRef.current.w * (pinchRef.current.dist / dist)
+        scheduleFlush()
       }
       draggedRef.current = true
       capturePointer(e)
@@ -257,7 +388,9 @@ const MapCanvas = ({
       draggedRef.current = true
       capturePointer(e)
     }
-    setView((v) => clampView({ ...v, x: v.x - dx * unit, y: v.y - dy * unit }, aspect))
+    pendingRef.current.dx += dx
+    pendingRef.current.dy += dy
+    scheduleFlush()
   }
 
   const endPointer = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -272,20 +405,18 @@ const MapCanvas = ({
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
       const rect = el.getBoundingClientRect()
-      const px = (e.clientX - rect.left) / rect.width
-      const py = (e.clientY - rect.top) / rect.height
-      setView((v) => {
-        const factor = Math.exp(e.deltaY * 0.0015)
-        const w = Math.min(Math.max(v.w * factor, MIN_SPAN), MAX_SPAN)
-        const h = w / aspect
-        const anchorX = v.x + v.w * px
-        const anchorY = v.y + v.h * py
-        return clampView({ x: anchorX - w * px, y: anchorY - h * py, w, h }, aspect)
-      })
+      const prev = pendingRef.current.wheel
+      // 트랙패드는 한 번 미는 동안 수십 번 들어온다 — 양은 더하고, 기준점은 마지막 커서
+      pendingRef.current.wheel = {
+        dy: (prev?.dy ?? 0) + e.deltaY,
+        px: (e.clientX - rect.left) / rect.width,
+        py: (e.clientY - rect.top) / rect.height,
+      }
+      scheduleFlush()
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [aspect])
+  }, [scheduleFlush])
 
   const zoomBy = (factor: number) => {
     setView((v) => {
@@ -324,17 +455,118 @@ const MapCanvas = ({
   // 성경의 도시들은 실제로 붙어 있어(버가–앗달리아 17km) 고정 위치로는 해결되지 않는다.
   const labelBoxes = useMemo(() => {
     if (!size.w) return new Map<string, LabelBox | null>()
+    // 좌표에서 view 를 빼지 않는다 — layoutLabels 는 핀들의 '서로 간 거리'만 보고
+    // 자리를 고르므로(화면 가장자리를 보지 않는다) 지도를 옮겨도 답이 같다. view 를
+    // 넣으면 손가락을 끄는 내내 수십 개 라벨의 충돌 검사를 프레임마다 다시 돌게 된다.
     const inputs: LabelInput[] = pins
       .filter((pin) => pin.place && pin.firstIndex <= revealedIndex)
       .filter((pin) => !quizChoices || quizRevealed?.answer === pin.placeId)
       .map((pin) => ({
         id: pin.placeId,
-        screen: { x: (pin.point.x - view.x) / unit, y: (pin.point.y - view.y) / unit },
+        screen: { x: pin.point.x / unit, y: pin.point.y / unit },
         text: placeLabel(pin.place!),
         priority: pin.firstIndex,
       }))
     return layoutLabels(inputs)
-  }, [pins, revealedIndex, view.x, view.y, unit, size.w, quizChoices, quizRevealed])
+  }, [pins, revealedIndex, unit, size.w, quizChoices, quizRevealed])
+
+  /**
+   * 화면에 실제로 그릴 여백 삽화.
+   *
+   * 삽화는 "빈 자리"에만 머물러야 읽힌다. 두 가지 이유로 자리를 잃는다.
+   *
+   * 1. 지도를 줄이면 그림이 덮는 땅이 넓어진다. 크기가 화면 px 기준이라
+   *    배율과 무관하게 같은 크기로 그려지는데, 지도가 멀어질수록 그 크기가
+   *    더 넓은 땅을 가린다 — 모바일 기본 배율에서 바다에 띄운 돛단배가
+   *    해안을 넘어 육지에 올라앉아 보이던 이유다. 그래서 제 자리(item.span)
+   *    보다 커지지 않게 묶고, 그 바람에 알아볼 수 없이 작아지면 숨긴다.
+   * 2. 좁은 화면에서는 핀·지명과 한 덩어리로 뭉친다. 핀과 지명 둘 다
+   *    비켜야 할 자리로 보고, 그 둘레에 들어오는 삽화는 비켜 준다.
+   *
+   * 둘 다 갑자기 사라지면 눈에 걸리므로 경계에서 서서히 흐려진다.
+   */
+  const decorItems = useMemo(() => {
+    if (!size.w || !size.h) return []
+    // 핀·지명 둘레에 비워 둘 거리(화면 px) — 화면이 좁을수록 넉넉히
+    const clearPx = size.w < 560 ? 30 : 20
+    const occupied: Point[] = []
+    for (const pin of pins) {
+      if (!pin.place || pin.firstIndex > revealedIndex) continue
+      const sx = (pin.point.x - view.x) / unit
+      const sy = (pin.point.y - view.y) / unit
+      occupied.push({ x: sx, y: sy - 13 }) // 핀은 끝점 위로 뻗는다
+      const label = labelBoxes.get(pin.placeId)
+      if (label) occupied.push({ x: sx + label.dx, y: sy + label.dy })
+    }
+
+    const out: {
+      id: string
+      href: string
+      x: number
+      y: number
+      w: number
+      h: number
+      opacity: number
+    }[] = []
+    for (const item of MAP_DECOR) {
+      const w = Math.min(item.px * unit, item.span)
+      const screenW = w / unit
+      if (screenW < DECOR_MIN_PX) continue
+      const h = w * item.ratio
+      const p = project(item.lat, item.lng)
+      const sx = (p.x - view.x) / unit
+      const sy = (p.y - view.y) / unit
+      const screenH = screenW * item.ratio
+      // 화면 밖은 그리지 않는다
+      if (
+        sx < -screenW ||
+        sy < -screenH ||
+        sx > size.w + screenW ||
+        sy > size.h + screenH
+      )
+        continue
+      // 그림 테두리에서 재는 거리 — 가운데에서 재면 낮고 긴 그림(낙타 행렬)이
+      // 실제로는 닿지도 않는 핀 때문에 통째로 사라진다
+      let near = Infinity
+      for (const o of occupied) {
+        const gapX = Math.max(Math.abs(o.x - sx) - screenW / 2, 0)
+        const gapY = Math.max(Math.abs(o.y - sy) - screenH / 2, 0)
+        const dist = Math.hypot(gapX, gapY)
+        if (dist < near) near = dist
+      }
+      const fadeSize = Math.min((screenW - DECOR_MIN_PX) / DECOR_FADE_PX, 1)
+      const fadeCrowd = Math.min((near - clearPx) / 24, 1)
+      // 거의 보이지 않을 그림은 그리지 않는다 — 얼룩만 남고 디코딩 값은 다 치른다
+      const opacity = Math.min(fadeSize, fadeCrowd)
+      if (opacity < 0.06) continue
+      out.push({
+        id: item.id,
+        href: night ? item.night : item.src,
+        x: p.x - w / 2,
+        y: p.y - h / 2,
+        w,
+        h,
+        opacity,
+      })
+    }
+    return out
+  }, [pins, revealedIndex, labelBoxes, view, unit, size, night])
+
+  // 팬·줌마다 바뀌는 것은 투명도뿐이므로, 그려진 '목록'이 실제로 달라질 때만 다시 등록한다
+  const decorKey = decorItems.map((item) => item.id).join('|')
+  useEffect(() => {
+    const pairs = [
+      ...TEXTURE_PAIRS,
+      ...decorKey
+        .split('|')
+        .map((id) => DECOR_PAIRS.get(id))
+        .filter((pair): pair is ThemePair => !!pair),
+    ]
+    const unregister = pairs.map(registerThemePair)
+    // 현재 테마 파일은 이미 SVG 가 요청했다 — 여기서 얻는 것은 유휴 시간의 '반대 테마' 선요청
+    pairs.forEach((pair) => void warmPair(pair))
+    return () => unregister.forEach((off) => off())
+  }, [decorKey])
 
   return (
     <div className="atl-canvas" ref={wrapRef}>
@@ -354,33 +586,22 @@ const MapCanvas = ({
             밤 질감은 런타임 filter 가 아니라 미리 어둡게 구운 파일이다 — 필터는
             팬·줌·재생 때마다 다시 래스터라이즈돼 프레임을 잡아먹는다. */}
         <defs>
-          <pattern id="atl-tex-sea" patternUnits="userSpaceOnUse" width={900} height={900}>
-            <image href={seaUrl} width={900} height={900} preserveAspectRatio="xMidYMid slice" />
-          </pattern>
-          <pattern id="atl-tex-land" patternUnits="userSpaceOnUse" width={900} height={900}>
-            <image
-              href={parchmentUrl}
+          {textures.map((tex) => (
+            <pattern
+              key={tex.id}
+              id={tex.id}
+              patternUnits="userSpaceOnUse"
               width={900}
               height={900}
-              preserveAspectRatio="xMidYMid slice"
-            />
-          </pattern>
-          <pattern id="atl-tex-sea-night" patternUnits="userSpaceOnUse" width={900} height={900}>
-            <image
-              href={seaNightUrl}
-              width={900}
-              height={900}
-              preserveAspectRatio="xMidYMid slice"
-            />
-          </pattern>
-          <pattern id="atl-tex-land-night" patternUnits="userSpaceOnUse" width={900} height={900}>
-            <image
-              href={parchmentNightUrl}
-              width={900}
-              height={900}
-              preserveAspectRatio="xMidYMid slice"
-            />
-          </pattern>
+            >
+              <image
+                href={tex.href}
+                width={900}
+                height={900}
+                preserveAspectRatio="xMidYMid slice"
+              />
+            </pattern>
+          ))}
         </defs>
 
         {/* 바다 — viewBox 전체를 덮는다 (지도 밖으로 나가도 배경이 끊기지 않게 넉넉히) */}
@@ -397,21 +618,17 @@ const MapCanvas = ({
 
         {/* 여백의 삽화 — 경로·핀보다 먼저 깔아 절대 위를 덮지 않는다 */}
         <g className="atl-decor" aria-hidden>
-          {MAP_DECOR.map((item) => {
-            const p = project(item.lat, item.lng)
-            const w = item.px * unit
-            const h = w * item.ratio
-            return (
-              <image
-                key={item.id}
-                href={night ? item.night : item.src}
-                x={p.x - w / 2}
-                y={p.y - h / 2}
-                width={w}
-                height={h}
-              />
-            )
-          })}
+          {decorItems.map((item) => (
+            <image
+              key={item.id}
+              href={item.href}
+              x={item.x}
+              y={item.y}
+              width={item.w}
+              height={item.h}
+              opacity={item.opacity}
+            />
+          ))}
         </g>
 
         {/* 경로 */}
@@ -587,7 +804,13 @@ const MapCanvas = ({
 
       {/* 나침반 — 지도와 함께 움직이지 않는다. 이건 지도 위의 물건이 아니라
           "지도를 읽는 도구"라서, 옛 지도의 도장처럼 모서리에 붙어 있어야 한다 */}
-      <img className="atl-compass" src={night ? compassNightUrl : compassUrl} alt="" aria-hidden />
+      <img
+        className="atl-compass"
+        src={night ? compassNightUrl : compassUrl}
+        alt=""
+        aria-hidden
+        decoding="async"
+      />
 
       {/* 확대 컨트롤 — 데스크톱 휠·모바일 핀치를 모르는 사람을 위한 보조 장치 */}
       <div className="atl-zoom">

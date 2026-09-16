@@ -27,13 +27,9 @@ export const useLandPath = (): string | null => {
   const [path, setPath] = useState<string | null>(cached)
 
   useEffect(() => {
-    // 첫 렌더와 이 effect 사이에 해안선이 도착했을 수 있다 — 그때 그냥 돌아서면
-    // 구독도 못 하고 값도 못 받아 지도가 바다만 남은 채로 굳는다(같은 값이면
-    // setState 는 리렌더 없이 끝난다)
-    if (cached) {
-      setPath(cached)
-      return
-    }
+    // 이미 도착했든(promise 가 마이크로태스크로 곧장 resolve 된다) 아직이든 한 길로
+    // 기다린다. 첫 렌더와 이 effect 사이에 도착한 경우를 여기서 놓치면 지도가
+    // 바다만 남은 채로 굳는다. 같은 값이면 setState 는 리렌더 없이 끝난다.
     let alive = true
     void loading.then((value) => {
       if (alive && value) setPath(value)

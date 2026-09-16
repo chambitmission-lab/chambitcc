@@ -39,6 +39,10 @@ import heroSummerDay from '../assets/hero/afternoon.webp'
 import heroAutumnDay from '../assets/hero/autumn-afternoon.webp'
 import heroWinterDay from '../assets/hero/winter-afternoon.webp'
 import heroWinterEvening from '../assets/hero/winter-evening.webp'
+import atlasBgMobileLight from '../assets/atlas/bg-mobile.webp'
+import atlasBgMobileDark from '../assets/atlas/bg-mobile-night.webp'
+import atlasBgPcLight from '../assets/atlas/bg-pc.webp'
+import atlasBgPcDark from '../assets/atlas/bg-pc-night.webp'
 
 export type ThemeName = 'light' | 'dark'
 
@@ -150,6 +154,22 @@ export const THANKS_HERO: ThemePair = { light: thanksHeroLight, dark: thanksHero
 /** /visit 히어로 사진 — Visit.tsx 가 인라인 style 로 고른다(라이트=낮, 다크=밤) */
 export const VISIT_HERO: ThemePair = { light: '/images/visit/church-day.webp', dark: '/images/visit/church-night.webp' }
 
+/** 지도 판이 좌우로 갈라지는 폭인가 — Atlas.css 의 @media (min-width: 1024px) 와 짝 */
+const atlasWide = (): boolean =>
+  typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+/** /bible/atlas 배경 — 모바일은 세로로 긴 그림(Atlas.css .atl-page) */
+export const ATLAS_BG_MOBILE: ThemePair = {
+  light: atlasBgMobileLight,
+  dark: atlasBgMobileDark,
+  when: () => !atlasWide(),
+}
+/** /bible/atlas 배경 — PC 는 하늘을 덧댄 가로 그림(같은 곳의 min-width:1024px 규칙) */
+export const ATLAS_BG_PC: ThemePair = {
+  light: atlasBgPcLight,
+  dark: atlasBgPcDark,
+  when: atlasWide,
+}
+
 /** 장면 한 장을 통째로 까는 폭인가 — VerseAlarmPage.css 의 @media (min-width: 1440px) 와 짝 */
 const alarmWideScene = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(min-width: 1440px)').matches
@@ -204,6 +224,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/bible\/genealogy$/, pairs: [GENEALOGY_HERO] },
   { match: /^\/bible\/photo-verse$/, pairs: [PHOTO_VERSE_INTRO] },
   { match: /^\/bible\/alarm$/, pairs: [ALARM_HERO, ALARM_BAND] },
+  { match: /^\/bible\/atlas$/, pairs: [ATLAS_BG_MOBILE, ATLAS_BG_PC] },
 ]
 
 const cleanPath = (path: string): string => path.split(/[?#]/)[0].replace(/\/+$/, '') || '/'

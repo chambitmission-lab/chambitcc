@@ -525,7 +525,15 @@ const AtlasMap = () => {
                 </p>
 
                 <div className="atl-farewell__row">
-                  <img className="atl-farewell__art" src={shepherdUrl} alt="" aria-hidden />
+                  <img
+                    className="atl-farewell__art"
+                    src={shepherdUrl}
+                    alt=""
+                    aria-hidden
+                    /* 목록 한참 아래에 선 그림이다 — 첫 화면의 지도·배경과 대역폭을 다투지 않게 */
+                    loading="lazy"
+                    decoding="async"
+                  />
 
                   <div className="atl-farewell__next">
                     <p className="atl-farewell__label">다음 여정</p>

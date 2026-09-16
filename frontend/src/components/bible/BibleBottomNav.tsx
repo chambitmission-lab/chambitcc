@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
-import { PLAN_HERO, warmPair } from '../../utils/themeAssets'
+import { PLAN_HERO, warmPair, warmRouteThemeAssets } from '../../utils/themeAssets'
 
 /** 'alarm'(구절 알람)·'meditation'(오늘의 묵상)은 목적지로만 존재한다 —
     도크/레일 항목에는 없어 활성 표시가 붙지 않는다 */
@@ -49,9 +49,11 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       // 청크를 평가하는 시점에 해안선(data/landPath) 요청까지 같이 시작된다 —
       // useLandPath 가 모듈 최상단에서 받아 두기 때문이다.
       import('../../pages/Bible/Atlas/AtlasMap')
-      // 플랜 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
-      // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (themeAssets.ts)
+      // 플랜·지도 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
+      // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (themeAssets.ts).
+      // 지도 배경은 폭에 따라 다른 파일이라 매니페스트가 고르게 한다.
       void warmPair(PLAN_HERO)
+      void warmRouteThemeAssets('/bible/atlas')
     }
     // 첫 화면(장 본문·API)이 끝난 뒤 유휴 시간에 — 절약 모드·2G 에선 받지 않는다
     if (preloadBudget() === 'none') return
