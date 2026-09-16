@@ -46,7 +46,18 @@ const fetchEpisodeVerses = async (refs: StoryVerseRef[]): Promise<FetchedRef[]> 
     refs.map(async ref => {
       const chapter = await chapterFetches.get(chapterKey(ref.book, ref.chapter))!
       const byVerse = new Map(chapter.verses.map(v => [v.verse, v]))
-      const verses = ref.verses.map(n => byVerse.get(n)).filter((v): v is BibleVerse => v !== undefined)
+      // 병합 구간(신 6:18-19)은 자리표시자 절의 본문이 비어 있다 — 묶음 첫 절로
+      // 옮겨 잡고 중복은 걸러낸다(18·19를 함께 인용해도 한 번만 나오게)
+      const picked = ref.verses.map(n => {
+        const v = byVerse.get(n)
+        return v?.merged_into ? byVerse.get(v.merged_into) : v
+      })
+      const seen = new Set<number>()
+      const verses = picked.filter((v): v is BibleVerse => {
+        if (!v || seen.has(v.id)) return false
+        seen.add(v.id)
+        return true
+      })
       return { ref, verses }
     })
   )

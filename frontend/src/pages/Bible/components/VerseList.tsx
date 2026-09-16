@@ -25,6 +25,7 @@ import { useChapterWordNotes, groupWordNotesByVerse } from '../../../hooks/useBi
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
 import type { VerseCopyTarget } from './verseCopy'
+import { visibleVerses } from './mergedVerses'
 import VerseSelectionBar from './VerseSelectionBar'
 import { useVerseScroll } from '../hooks/useVerseScroll'
 import { useAudioFollow } from '../hooks/useAudioFollow'
@@ -69,6 +70,23 @@ const FLOW_FALLBACK_CHUNK = 10
  * - 개요가 없으면 FLOW_FALLBACK_CHUNK 절씩 제목 없이 끊는다.
  * 페이지네이션으로 절이 뒤늦게 붙어도 번호 기준이라 같은 단락으로 자연히 들어간다.
  */
+/**
+ * 읽음 처리 호출 묶음을 기다린다.
+ *
+ * 병합 구간(신 6:18-19)은 화면엔 한 덩이지만 읽음 기록은 절 행마다 남는다 —
+ * 함께 찍어야 '읽은 절 / 전체 절'과 장 완독 판정(백엔드는 행 수로 센다)이
+ * 어긋나지 않는다. 이미 읽음(ALREADY_READ)은 실패가 아니다: 묶음 중 일부만
+ * 기록돼 있을 수 있다.
+ */
+const settleReadCalls = async (calls: Promise<unknown>[]) => {
+  const results = await Promise.allSettled(calls)
+  for (const r of results) {
+    if (r.status !== 'rejected') continue
+    if (r.reason instanceof Error && r.reason.message === 'ALREADY_READ') continue
+    throw r.reason
+  }
+}
+
 const buildFlowParagraphs = (
   verses: BibleVerse[],
   sections: OutlineSection[],
@@ -227,10 +245,44 @@ const VerseList = ({
   }, [bookNumber])
   const flowParagraphs = useMemo<FlowParagraph[]>(() => {
     if (!chapterData) return []
-    const verses = chapterData.pages.flatMap((page) => page.verses)
+    // 병합 구간의 자리표시자 절(신 6:19)은 그리지 않는다 — 앞 절이 '18-19'로 품는다
+    const verses = visibleVerses(chapterData.pages.flatMap((page) => page.verses))
     const outline = bookOutline ?? peekBookOutline(bookNumber)
     return buildFlowParagraphs(verses, outline?.[selectedChapter] ?? [], isFlow ? FLOW_FALLBACK_CHUNK : 0)
   }, [isFlow, chapterData, bookOutline, bookNumber, selectedChapter])
+
+  // ── 절 병합 묶음 색인 ──
+  // 개역이 한 덩이로 인쇄하는 구간(신 6:18-19 등). 화면엔 첫 절 하나만 그리므로
+  //  - mergedMemberIds: 첫 절 id → 함께 읽음 처리할 절 id 전부 (숨은 절 포함)
+  //  - mergedAnchorByVerse: 자리표시자 절 번호 → 첫 절 번호 (딥링크·배너가 옮겨 잡는다)
+  const mergedMemberIds = useMemo(() => {
+    const map = new Map<number, number[]>()
+    if (!chapterData) return map
+    const all = chapterData.pages.flatMap((page) => page.verses)
+    const idByVerse = new Map(all.map((v) => [v.verse, v.id]))
+    for (const v of all) {
+      const members = v.merged_verses
+      if (!members?.length || v.verse !== members[0]) continue
+      map.set(
+        v.id,
+        members.map((n) => idByVerse.get(n)).filter((id): id is number => id != null),
+      )
+    }
+    return map
+  }, [chapterData])
+  // 읽음 콜백은 memo 된 절에 내려가므로 참조를 흔들지 않게 ref 로 읽는다
+  const mergedMemberIdsRef = useRef(mergedMemberIds)
+  mergedMemberIdsRef.current = mergedMemberIds
+
+  const mergedAnchorByVerse = useMemo(() => {
+    const map = new Map<number, number>()
+    chapterData?.pages.forEach((page) =>
+      page.verses.forEach((v) => {
+        if (v.merged_into) map.set(v.verse, v.merged_into)
+      }),
+    )
+    return map
+  }, [chapterData])
 
   // 해당 장의 해석 목록 (절별로 indicator 표시용)
   const { data: chapterCommentaries } = useChapterCommentarySummaries(
@@ -407,10 +459,19 @@ const VerseList = ({
   
   // 읽음 처리 핸들러 - 훅 호출 이후에 정의
   // (mutateAsync/refetch는 React Query가 참조를 보장하므로 deps에 넣어도 안정적)
+  // 묶음 처리로 mutateAsync 가 map 안에서 불려 deps 추적이 객체 단위로 넓어진다 —
+  // 미리 꺼내 두면 콜백 참조가 예전처럼 안정적으로 유지된다(memo 된 절 재렌더 방지)
+  const markVerseRead = markAsReadMutation.mutateAsync
+  const unmarkVerseRead = unmarkAsReadMutation.mutateAsync
+
   const handleReadSuccess = useCallback(async (verseId: number, similarity: number) => {
     try {
       // 백엔드 API 호출
-      await markAsReadMutation.mutateAsync({ verseId, similarity })
+      await settleReadCalls(
+        (mergedMemberIdsRef.current.get(verseId) ?? [verseId]).map((id) =>
+          markVerseRead({ verseId: id, similarity }),
+        ),
+      )
 
       // 꽃 피어남 축하 효과
       celebrateFlowerBloom()
@@ -426,7 +487,7 @@ const VerseList = ({
         console.error('Failed to save reading record:', error)
       }
     }
-  }, [markAsReadMutation.mutateAsync, refetchReadStatus])
+  }, [markVerseRead, refetchReadStatus])
 
   // 수동 읽음 처리/취소 — 음성 낭독 없이 상태만 바꾼다. 로그인한 사용자면 누구나.
   // similarity는 수동 처리임을 뜻하는 1.0으로 보낸다(백엔드 최소 임계값 0.75 충족).
@@ -436,15 +497,18 @@ const VerseList = ({
     if (togglingGuardRef.current) return
     togglingGuardRef.current = true
     setTogglingVerseId(verse.id)
+    // '18-19'처럼 묶인 절은 묶음 전체를 한 번에 (안내 문구도 묶음 기준)
+    const ids = mergedMemberIdsRef.current.get(verse.id) ?? [verse.id]
+    const label = verse.verse_label || String(verse.verse)
     try {
       if (nextRead) {
-        await markAsReadMutation.mutateAsync({ verseId: verse.id, similarity: 1 })
-        showToast(`${verse.verse}절을 읽음 처리했습니다`, 'success')
+        await settleReadCalls(ids.map((id) => markVerseRead({ verseId: id, similarity: 1 })))
+        showToast(`${label}절을 읽음 처리했습니다`, 'success')
         // 한 번 해봤으면 안내는 역할을 다했다
         dismissHoldHint()
       } else {
-        await unmarkAsReadMutation.mutateAsync(verse.id)
-        showToast(`${verse.verse}절 읽음을 취소했습니다`, 'info')
+        await settleReadCalls(ids.map((id) => unmarkVerseRead(id)))
+        showToast(`${label}절 읽음을 취소했습니다`, 'info')
       }
       await refetchReadStatus()
     } catch (error) {
@@ -459,7 +523,7 @@ const VerseList = ({
       togglingGuardRef.current = false
       setTogglingVerseId(null)
     }
-  }, [markAsReadMutation.mutateAsync, unmarkAsReadMutation.mutateAsync, refetchReadStatus, dismissHoldHint])
+  }, [markVerseRead, unmarkVerseRead, refetchReadStatus, dismissHoldHint])
 
   // 구절 수정 핸들러 (관리자용)
   const handleEditVerse = useCallback((verse: BibleVerse) => {
@@ -503,6 +567,13 @@ const VerseList = ({
     chapterData?.pages.forEach((page) => {
       page.verses.forEach((v) => map.set(v.verse, v.text))
     })
+    // 병합 자리표시자는 본문이 비어 있다 — 묶음 첫 절의 본문으로 대신 채운다
+    // (19절에 달린 해석을 열어도 말씀이 빈칸으로 뜨지 않게)
+    chapterData?.pages.forEach((page) => {
+      page.verses.forEach((v) => {
+        if (v.merged_into) map.set(v.verse, map.get(v.merged_into) ?? '')
+      })
+    })
     return map
   }, [chapterData])
 
@@ -528,6 +599,8 @@ const VerseList = ({
     bookNumber,
     chapter: selectedChapter,
     verses: selectedVerses.map((v) => ({ verse: v.verse, text: v.text })),
+    // 병합 묶음은 본문 한 덩이가 여러 절이라 출처·링크만 펼쳐 적는다
+    refVerses: selectedVerses.flatMap((v) => v.merged_verses ?? [v.verse]),
   }
 
   // 선택 구간에 빈 절이 있는지 (16, 19만 골랐다면 17·18) — 있으면 '구간 채우기' 제안
@@ -572,6 +645,7 @@ const VerseList = ({
     const ids: number[] = []
     chapterData.pages.forEach((page) => {
       page.verses.forEach((v) => {
+        if (v.merged_into) return // 화면에 없는 자리표시자 절
         if (v.verse >= from && v.verse <= to) ids.push(v.id)
       })
     })
@@ -737,7 +811,9 @@ const VerseList = ({
   const reflectionCountAt = (verseNo: number) => reflectionSummary?.verse_counts[String(verseNo)] ?? 0
   useEffect(() => {
     if (!scrollToVerse || !bodyRendered || !chapterData) return
-    const el = document.getElementById(`bible-verse-${scrollToVerse}`)
+    // ?verse=19 처럼 병합 자리표시자를 가리키면 화면에 그 절이 없다 — 첫 절로
+    const targetVerse = mergedAnchorByVerse.get(scrollToVerse) ?? scrollToVerse
+    const el = document.getElementById(`bible-verse-${targetVerse}`)
     if (el) {
       scrollVerseIntoView(el)
       el.classList.add('verse-resume-highlight')
@@ -750,7 +826,7 @@ const VerseList = ({
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
-  }, [scrollToVerse, bodyRendered, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
+  }, [scrollToVerse, mergedAnchorByVerse, bodyRendered, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
 
   // ---------- 오디오북 듣기-보기 동기화 ----------
   // 하단 앵커 따라가기, 직접 스크롤 시 일시 정지, 6초 자동 복귀는 useAudioFollow 로 분리했다.
@@ -1242,7 +1318,8 @@ const VerseList = ({
           chapter={selectedChapter}
           bookNameKo={chapterData.pages[0].book_name_ko}
           onOpen={(verseNo) => {
-            const found = chapterData.pages.flatMap((page) => page.verses).find((v) => v.verse === verseNo)
+            const target = mergedAnchorByVerse.get(verseNo) ?? verseNo
+            const found = chapterData.pages.flatMap((page) => page.verses).find((v) => v.verse === target)
             if (found) setReflectionTarget(found)
           }}
         />

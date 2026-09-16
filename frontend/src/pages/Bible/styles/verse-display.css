@@ -192,6 +192,23 @@
   font-weight: 800;
 }
 
+/* 병합 구간('18-19')의 번호는 다섯 자리라 두 자리용 거터(2rem)에서 줄바꿈된다.
+   조금 줄이고, 본문 시작선은 그대로 둔 채 왼쪽 여백으로만 넘치게 한다
+   (거터 폭 2.75rem - 음수 마진 0.75rem = 차지하는 자리는 그대로 2rem). */
+.bible-verse-item:not(.bible-verse-item--flow) .bible-verse-number--range {
+  white-space: nowrap;
+  width: 2.75rem;
+  margin-left: -0.75rem;
+  font-size: 0.6875rem;
+  letter-spacing: -0.01em;
+}
+
+/* 묶음에서 이어지는 절(렘 32:4) — 번호는 앞 절이 이미 찍었다.
+   본문 시작선을 맞추는 빈 자리일 뿐이라 길게 누르기 탭 타깃도 만들지 않는다. */
+.bible-verse-number--continued::before {
+  content: none;
+}
+
 /* 절 번호 길게 누르기(= 읽음 표시)의 탭 타깃 확대.
    번호 글리프는 13px밖에 안 돼 그대로면 손가락으로 집기 어렵다.
    레이아웃을 건드리지 않도록 보이지 않는 오버레이로만 넓힌다. */

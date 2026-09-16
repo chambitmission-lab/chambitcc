@@ -19,6 +19,7 @@ import VerseSheets from './verse/VerseSheets'
 import { useHoldToRead } from './verse/useHoldToRead'
 import { useWordSelection } from './verse/useWordSelection'
 import { useGlossarySegments, useNoteSegments, useWordTokens } from './verse/verseTextSegments'
+import { isMergedContinuation, verseNumberLabel } from './mergedVerses'
 import { can } from '../../../utils/access'
 import { showToast } from '../../../utils/toast'
 import VerseTogetherChip from './together/VerseTogetherChip'
@@ -159,6 +160,13 @@ const VerseItem = ({
     }
     onActionsOpenChange(!showActions)
   }
+  // ── 절 병합 표기 ──
+  // 개역이 '18,19'처럼 한 덩이로 인쇄하는 구간(신 6:18-19 등). 묶음 첫 절은
+  // 번호 자리에 범위를 찍고, 이어지는 절(렘 32:4)은 번호를 다시 찍지 않는다.
+  // 자리표시자 절은 VerseList 가 아예 걸러내므로 여기까지 오지 않는다.
+  const isContinuation = isMergedContinuation(verse)
+  const verseLabel = verseNumberLabel(verse)
+
   const bodyA11y = {
     role: 'button' as const,
     tabIndex: 0,
@@ -171,8 +179,8 @@ const VerseItem = ({
     'aria-expanded': selectionMode ? undefined : showActions,
     'aria-pressed': selectionMode ? !!isSelected : undefined,
     'aria-label': selectionMode
-      ? `${verse.verse}절 ${isSelected ? '선택 해제' : '선택'}`
-      : `${verse.verse}절 메뉴 ${showActions ? '닫기' : '열기'}`,
+      ? `${verseLabel}절 ${isSelected ? '선택 해제' : '선택'}`
+      : `${verseLabel}절 메뉴 ${showActions ? '닫기' : '열기'}`,
   }
 
   // 함께 읽기 — 묵상 나눔 시트는 목록(VerseList)에 하나뿐이라 열기만 위임한다.
@@ -186,20 +194,25 @@ const VerseItem = ({
   }
 
   // 복사/공유 대상 — 이 절 하나 (여러 절은 VerseList의 선택 바가 따로 만든다)
+  // 병합 구간이면 묶음 전체를 출처·링크에 적는다 (신 6:18 → '신명기 6:18-19')
   const copyTarget: VerseCopyTarget = {
     bookNameKo: bookNameKo ?? verse.book_name_ko ?? '',
     bookNumber: bookNumber ?? verse.book_number ?? 0,
     chapter: chapter ?? verse.chapter,
     verses: [{ verse: verse.verse, text: verse.text }],
+    refVerses: verse.merged_verses ?? undefined,
   }
-  const verseReference = `${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()
+  const verseReference = `${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verseLabel}`.trim()
 
   const itemClassName = `bible-verse-item ${isFlow ? 'bible-verse-item--flow' : ''} ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''} ${showActions && !isReading ? 'verse-selected' : ''} ${isAudioActive ? 'verse-audio-active' : ''}`
 
   // ── 공통 조각 ─────────────────────────────────────────────────────
-  const numberEl = (
+  const numberEl = isContinuation ? (
+    // 앞 절이 이미 '3-5'를 찍었다 — 번호 자리만 비워 본문 시작선을 맞춘다
+    <span className="bible-verse-number bible-verse-number--continued" aria-hidden />
+  ) : (
     <VerseNumber
-      number={verse.verse}
+      label={verseLabel}
       isRead={isRead}
       pop={readPop}
       canHoldToRead={canHoldToRead}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { visibleVerses, verseNumberLabel } from './mergedVerses'
 import { useBibleChapter } from '../../../hooks/useBible'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
@@ -64,7 +65,8 @@ const FocusReading = ({
   const loggedIn = isLoggedIn()
 
   const { data: chapterData, isLoading } = useBibleChapter(bookId, chapter)
-  const verses = useMemo(() => chapterData?.verses ?? [], [chapterData])
+  // 병합 자리표시자 절은 앞 절이 품고 있다 — 빈 슬라이드가 끼지 않게 걸러낸다
+  const verses = useMemo(() => visibleVerses(chapterData?.verses ?? []), [chapterData])
 
   const { data: readStatus } = useChapterReadStatus(bookNumber, chapter, loggedIn)
   const { data: chapterBookmarks } = useChapterBookmarks(bookNumber, chapter, loggedIn)
@@ -138,6 +140,10 @@ const FocusReading = ({
   const verseTextMap = useMemo(() => {
     const map = new Map<number, string>()
     for (const v of verses) map.set(v.verse, v.text)
+    // 병합 묶음에 딸린 절 번호로 찾아와도 같은 본문이 나오게 (19절 해석 → 18-19 본문)
+    for (const v of verses) {
+      for (const n of v.merged_verses ?? []) map.set(n, v.text)
+    }
     return map
   }, [verses])
 
@@ -285,6 +291,9 @@ const FocusReading = ({
   }, [])
 
   const totalVerses = verses.length
+  // 화면에 적는 '전체 N절'은 슬라이드 수가 아니라 장의 마지막 절 번호다
+  // (병합 구간이 있으면 슬라이드가 한둘 적다 — 성경책 절 수와 맞춘다)
+  const lastVerseNo = verses.length ? verses[verses.length - 1].verse : 0
   const isEndSlide = activeIndex >= totalVerses && totalVerses > 0
   const currentVerse = verses[Math.min(activeIndex, Math.max(0, totalVerses - 1))]
   const currentBookmark = currentVerse ? bookmarksByVerse.get(currentVerse.id) ?? null : null
@@ -325,7 +334,7 @@ const FocusReading = ({
                 {/* 절 번호는 작고 연하게 — 본문보다 먼저 시선을 끌지 않도록 라벨 수준으로.
                     읽음 표시는 번호 옆에 점 하나로만 */}
                 <span className="focus-slide__meta">
-                  <span className="focus-slide__num">{v.verse}절</span>
+                  <span className="focus-slide__num">{verseNumberLabel(v)}절</span>
                   {isRead && (
                     <span className="focus-slide__read" title="읽은 절">
                       <span className="material-icons-round" aria-hidden>
@@ -353,7 +362,7 @@ const FocusReading = ({
                       type="button"
                       className="focus-slide__commentary"
                       onClick={() => setCommentaryVerse(v.verse)}
-                      aria-label={`${v.verse}절 해석 보기`}
+                      aria-label={`${verseNumberLabel(v)}절 해석 보기`}
                       tabIndex={toolsOpen && i === activeIndex ? 0 : -1}
                     >
                       <span className="material-icons-round" aria-hidden>
@@ -512,9 +521,9 @@ const FocusReading = ({
 
           <div className="focus-bottom__ref">
             {isEndSlide
-              ? `${bookName} ${chapter}장 · ${totalVerses}절 끝`
+              ? `${bookName} ${chapter}장 · ${lastVerseNo}절 끝`
               : currentVerse
-                ? `${bookName} ${chapter}:${currentVerse.verse} · 전체 ${totalVerses}절`
+                ? `${bookName} ${chapter}:${verseNumberLabel(currentVerse)} · 전체 ${lastVerseNo}절`
                 : `${bookName} ${chapter}장`}
           </div>
 
@@ -549,7 +558,7 @@ const FocusReading = ({
       {showBookmark && currentVerse && (
         <VerseBookmarkModal
           verseId={currentVerse.id}
-          verseReference={`${bookName} ${chapter}:${currentVerse.verse}`}
+          verseReference={`${bookName} ${chapter}:${verseNumberLabel(currentVerse)}`}
           verseText={currentVerse.text}
           existing={currentBookmark}
           onClose={() => setShowBookmark(false)}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { RefObject } from 'react'
+import { visibleVerses, verseNumberLabel } from './mergedVerses'
 import { useBibleChapter } from '../../../hooks/useBible'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { useAuth } from '../../../hooks/useAuth'
@@ -64,7 +65,8 @@ const CinemaReading = ({
   onClose,
 }: CinemaReadingProps) => {
   const { data: chapterData } = useBibleChapter(bookId, chapter)
-  const verses = useMemo(() => chapterData?.verses ?? [], [chapterData])
+  // 병합 자리표시자 절(신 6:19)은 본문이 비어 있다 — 빈 화면이 지나가지 않게 걸러낸다
+  const verses = useMemo(() => visibleVerses(chapterData?.verses ?? []), [chapterData])
 
   const { isLoggedIn } = useAuth()
   const loggedIn = isLoggedIn()
@@ -372,7 +374,7 @@ const CinemaReading = ({
               ))}
             </p>
             <span className="cinema-verse__ref">
-              {bookName} {chapter}:{currentVerseObj.verse}
+              {bookName} {chapter}:{verseNumberLabel(currentVerseObj)}
             </span>
           </div>
         ) : (

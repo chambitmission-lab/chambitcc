@@ -85,7 +85,17 @@ export interface VerseCopyTarget {
   chapter: number
   /** 절 번호 오름차순일 필요는 없다 — 내부에서 정렬/중복 제거한다 */
   verses: CopyVerse[]
+  /**
+   * 출처·공유 링크에 쓸 절 번호. 본문 한 덩이가 여러 절일 때만 따로 준다
+   * (개역이 '18,19'로 묶어 인쇄하는 신 6:18-19 같은 병합 구간).
+   * 없으면 verses 의 번호를 그대로 쓴다.
+   */
+  refVerses?: number[]
 }
+
+/** 출처·링크 기준 절 번호 — 병합 구간이면 묶음 전체 */
+const referenceNumbers = (target: VerseCopyTarget): number[] =>
+  target.refVerses?.length ? target.refVerses : target.verses.map((v) => v.verse)
 
 /** [16,17,20] → "16-17, 20" — 연속 구간은 하이픈으로 묶는다 */
 export const formatVerseNumbers = (nums: number[]): string => {
@@ -109,7 +119,7 @@ export const formatVerseNumbers = (nums: number[]): string => {
 
 /** "요한복음 3:16-17" */
 export const buildReference = (target: VerseCopyTarget): string => {
-  const nums = formatVerseNumbers(target.verses.map((v) => v.verse))
+  const nums = formatVerseNumbers(referenceNumbers(target))
   return `${target.bookNameKo} ${target.chapter}:${nums}`.trim()
 }
 
@@ -138,7 +148,7 @@ const toVerseSpec = (nums: number[]): string =>
  * 곧바로 이동한다. (해시 딥링크는 크롤러가 앱 셸만 읽어 늘 일반 홈 카드가 떴다)
  */
 export const buildVerseLink = (target: VerseCopyTarget): string => {
-  const nums = target.verses.map((v) => v.verse)
+  const nums = referenceNumbers(target)
   if (isLocalHost()) {
     const { origin, pathname } = window.location
     return `${origin}${pathname}#/bible/${target.bookNumber}/${target.chapter}?verse=${Math.min(...nums)}`

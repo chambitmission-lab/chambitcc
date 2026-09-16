@@ -2,7 +2,8 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent }
 import { HOLD_TO_READ_MS } from './useHoldToRead'
 
 interface VerseNumberProps {
-  number: number
+  /** 찍을 번호 — 보통 절 번호지만 병합 구간은 '18-19'처럼 범위다 */
+  label: string
   isRead: boolean
   /** 방금 사용자가 읽음으로 바꾼 절만 튀어오른다 — 서버 상태가 뒤늦게 도착해 칠해지는 절은 색만 스르르 */
   pop: boolean
@@ -22,9 +23,10 @@ interface VerseNumberProps {
 }
 
 /** 절 번호 — 절별/이어읽기 두 보기 공통. 읽음 색·길게 누르기·차오름 표시를 품는다. */
-const VerseNumber = ({ number, isRead, pop, canHoldToRead, isHolding, holdHandlers }: VerseNumberProps) => (
+const VerseNumber = ({ label, isRead, pop, canHoldToRead, isHolding, holdHandlers }: VerseNumberProps) => (
   <span
-    className="bible-verse-number"
+    // '18-19' 같은 병합 범위는 두 자리용 거터에 안 들어간다 — CSS 가 줄바꿈을 막는다
+    className={`bible-verse-number${label.includes('-') ? ' bible-verse-number--range' : ''}`}
     title={
       canHoldToRead
         ? isRead
@@ -57,7 +59,7 @@ const VerseNumber = ({ number, isRead, pop, canHoldToRead, isHolding, holdHandle
         style={{ animationDuration: `${HOLD_TO_READ_MS}ms` }}
       />
     )}
-    <span style={{ position: 'relative' }}>{number}</span>
+    <span style={{ position: 'relative' }}>{label}</span>
   </span>
 )
 

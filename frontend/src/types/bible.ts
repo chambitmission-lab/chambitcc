@@ -17,6 +17,14 @@ export interface BibleVerse {
   chapter: number
   verse: number
   text: string
+  // ── 절 병합 표기 (개역이 '18,19'처럼 한 덩이로 인쇄하는 구간) ──
+  // 백엔드 app/lib/bible_merged_verses.py 가 채운다. 평소엔 전부 없다.
+  /** 묶음 첫 절이면 '18-19', 이어지는 절이면 ''(번호 안 찍음), 그 외 없음 */
+  verse_label?: string | null
+  /** 한 덩이로 읽는 절 번호들 — 읽음 처리는 이 절들을 함께 다룬다 */
+  merged_verses?: number[] | null
+  /** 자리표시자 행 — 이 절 번호로 접힌다. 목록에서 감춘다 */
+  merged_into?: number | null
 }
 
 // 장 전체 조회 응답

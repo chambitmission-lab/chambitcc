@@ -281,11 +281,12 @@
 }
 
 /* ── 탭 (세그먼트 pill) ───────────────────────────────── */
+/* 분류는 넷을 넘지 않는다 — 모바일에서도 옆으로 밀지 않고 두 줄로 접어 한눈에 */
 .ppl-tabs {
   scroll-margin-top: 4.25rem;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.35rem;
-  overflow-x: auto;
   padding: 0.85rem 1rem 0.5rem;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -295,14 +296,24 @@
   display: none;
 }
 
+/* 한 줄에 다 들어가는 폭부터는 예전처럼 왼쪽 정렬 한 줄 */
+@media (min-width: 640px) {
+  .ppl-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+}
+
 .ppl-tab {
   position: relative;
-  flex: 0 0 auto;
+  /* 접힌 줄을 남는 폭만큼 나눠 채운다(PC 한 줄에서는 아래에서 원래 폭으로) */
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
   height: 2.3rem;
-  padding: 0 0.95rem;
+  padding: 0 0.8rem;
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -345,6 +356,14 @@
 .ppl-tab.is-active .ppl-tab-count {
   background: rgba(255, 255, 255, 0.22);
   color: var(--on-brand);
+}
+
+@media (min-width: 640px) {
+  .ppl-tab {
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    padding: 0 0.95rem;
+  }
 }
 
 /* ── 검색 ───────────────────────────────────────────── */

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useBibleChapter } from '../../../hooks/useBible'
+import { visibleVerses, verseNumberLabel } from '../../Bible/components/mergedVerses'
 import { useToggleVerseMark } from '../../../hooks/useMeditationRoom'
 import type { PlanPassage } from '../../../types/biblePlan'
 import type { RoomDayDetail, RoomDetail } from '../../../types/meditationRoom'
@@ -117,7 +118,8 @@ export const PassageBlock = ({
     if (!data) return []
     const s = passage.verse_start ?? 1
     const e = passage.verse_end ?? Number.MAX_SAFE_INTEGER
-    return data.verses.filter((v) => v.verse >= s && v.verse <= e)
+    // 병합 자리표시자 절(신 6:19)은 본문이 비어 있다 — 앞 절이 '18-19'로 품는다
+    return visibleVerses(data.verses).filter((v) => v.verse >= s && v.verse <= e)
   }, [data, passage.verse_start, passage.verse_end])
 
   if (isLoading) {
@@ -141,7 +143,7 @@ export const PassageBlock = ({
               }`}
             >
               <span className="shrink-0 w-5 text-right text-[10.5px] font-bold text-gray-400 dark:text-white/35 pt-[3px] tabular-nums">
-                {v.verse}
+                {verseNumberLabel(v)}
               </span>
               <span className="flex-1 text-[15px] leading-[1.75] text-gray-800 dark:text-white/85 font-serif-kr break-keep">
                 {v.text}
