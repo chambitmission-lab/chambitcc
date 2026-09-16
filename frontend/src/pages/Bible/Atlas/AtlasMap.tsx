@@ -13,6 +13,7 @@ import { distanceFeelOf, formatKm } from './distanceFeel'
 import { hasCelebratedJourney, markJourneyCelebrated, useAtlasProgress } from './atlasProgress'
 import { useJourneyPlayer } from './useJourneyPlayer'
 import { useMapQuiz } from './useMapQuiz'
+import shepherdUrl from '../../../assets/atlas/shepherd.webp'
 import './Atlas.css'
 
 /**
@@ -81,6 +82,9 @@ const AtlasMap = () => {
       journeyRef.current = journey.id
       followedRef.current = player.index
       if (listRef.current) listRef.current.scrollTop = 0
+      // 모바일에서 여정을 바꾸는 자리는 목록 맨 아래(배웅 카드)다 — 페이지까지
+      // 되돌리지 않으면 새 여정의 지도를 보지 못한 채 남의 여정 끝에 서 있게 된다
+      if (shellRef.current) shellRef.current.scrollTop = 0
       return
     }
     // 첫 렌더에서 스크롤하면 들어오자마자 목록이 지도를 밀어 올린다 — 한 번은 건너뛴다
@@ -178,6 +182,13 @@ const AtlasMap = () => {
   const selectJourney = (id: string) => {
     setSearchParams(id === JOURNEYS[0].id ? {} : { j: id }, { replace: true })
   }
+
+  // 목록 끝 배웅 카드가 권하는 다음 여정 — 성경의 시간 순서 그대로 둘.
+  // 마지막 여정(로마로)에서는 처음으로 돌아간다(여정은 끊기지 않는다)
+  const nextJourneys = useMemo(() => {
+    const here = JOURNEYS.findIndex((item) => item.id === journey.id)
+    return [1, 2].map((step) => JOURNEYS[(here + step) % JOURNEYS.length])
+  }, [journey.id])
 
   // 아직 걸어보지 않았다면 진행 바는 비어 있어야 한다 — 전체가 그려진 상태와
   // "다 걸었다"는 다른 뜻이다
@@ -500,6 +511,55 @@ const AtlasMap = () => {
                     <span>점선은 바닷길, 실선은 걸어간 길입니다.</span>
                   </li>
                 </ul>
+              </section>
+
+              {/* 여정 끝 — 배웅.
+                  목록의 마지막 지점 다음은 원래 빈 여백이었다. 다 걸어온 사람에게
+                  "여기까지 왔다"를 말해 주고, 곧바로 다음 여정을 고르게 한다.
+                  카드 밖(배경 위)에 두어 목자가 잘리지 않고 전신으로 선다. */}
+              <section className="atl-farewell">
+                <p className="atl-farewell__lead">여기까지 걸어왔습니다</p>
+                <p className="atl-farewell__sub">
+                  {journey.title} · 지점 {journeyPlaceIds.length}곳 · 도장 {visitedInJourney}/
+                  {journeyPlaceIds.length}
+                </p>
+
+                <div className="atl-farewell__row">
+                  <img className="atl-farewell__art" src={shepherdUrl} alt="" aria-hidden />
+
+                  <div className="atl-farewell__next">
+                    <p className="atl-farewell__label">다음 여정</p>
+                    {nextJourneys.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className="atl-next"
+                        onClick={() => selectJourney(item.id)}
+                      >
+                        <span className="atl-next__dot" style={{ background: item.color }} />
+                        <span className="atl-next__text">
+                          <span className="atl-next__title">{item.short}</span>
+                          <span className="atl-next__sub">{item.subtitle}</span>
+                        </span>
+                        <span className="material-icons-round atl-next__go">chevron_right</span>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="atl-next atl-next--passport"
+                      onClick={() => setShowPassport(true)}
+                    >
+                      <span className="material-icons-outlined atl-next__stamp">approval</span>
+                      <span className="atl-next__text">
+                        <span className="atl-next__title">여권 보기</span>
+                        <span className="atl-next__sub">
+                          도장 {totalVisited}/{ALL_JOURNEY_PLACE_IDS.length}
+                        </span>
+                      </span>
+                      <span className="material-icons-round atl-next__go">chevron_right</span>
+                    </button>
+                  </div>
+                </div>
               </section>
             </div>
           </div>

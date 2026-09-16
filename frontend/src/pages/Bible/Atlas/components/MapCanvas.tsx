@@ -11,6 +11,14 @@ import {
   splitCurve,
   type Point,
 } from '../projection'
+import { MAP_DECOR } from '../decor'
+import parchmentUrl from '../../../../assets/atlas/parchment.webp'
+import seaUrl from '../../../../assets/atlas/sea.webp'
+import parchmentNightUrl from '../../../../assets/atlas/parchment-night.webp'
+import seaNightUrl from '../../../../assets/atlas/sea-night.webp'
+import compassUrl from '../../../../assets/atlas/deco/compass.webp'
+import compassNightUrl from '../../../../assets/atlas/deco/compass-night.webp'
+import { useTheme } from '../../../../contexts/ThemeContext'
 
 /**
  * 성경 지도여행 — SVG 지도 캔버스.
@@ -83,6 +91,10 @@ const MapCanvas = ({
   quizRevealed,
 }: MapCanvasProps) => {
   const wrapRef = useRef<HTMLDivElement>(null)
+  // 여백의 삽화·나침반은 낮/밤 두 벌이다. CSS 로 감췄다 켜면 두 벌을 다 받으므로
+  // 여기서 골라 한 벌만 그린다
+  const { theme } = useTheme()
+  const night = theme === 'dark'
   // 해안선은 따로 받는다 — 도착 전에도 바다·경로·핀은 먼저 그려진다
   const landPath = useLandPath()
   const [size, setSize] = useState({ w: 0, h: 0 })
@@ -336,6 +348,41 @@ const MapCanvas = ({
         role="img"
         aria-label={`${journey.title} 지도`}
       >
+        {/* 종이·물 질감 — --atl-sea/--atl-land 가 테마에 따라 낮/밤 패턴을 가리킨다.
+            타일은 지도 단위로 크게 잡는다. 확대하면 결도 같이 커지지만, 대비가 거의
+            없는 워시라 결보다 "종이 위의 지도"라는 인상이 먼저 읽힌다.
+            밤 질감은 런타임 filter 가 아니라 미리 어둡게 구운 파일이다 — 필터는
+            팬·줌·재생 때마다 다시 래스터라이즈돼 프레임을 잡아먹는다. */}
+        <defs>
+          <pattern id="atl-tex-sea" patternUnits="userSpaceOnUse" width={900} height={900}>
+            <image href={seaUrl} width={900} height={900} preserveAspectRatio="xMidYMid slice" />
+          </pattern>
+          <pattern id="atl-tex-land" patternUnits="userSpaceOnUse" width={900} height={900}>
+            <image
+              href={parchmentUrl}
+              width={900}
+              height={900}
+              preserveAspectRatio="xMidYMid slice"
+            />
+          </pattern>
+          <pattern id="atl-tex-sea-night" patternUnits="userSpaceOnUse" width={900} height={900}>
+            <image
+              href={seaNightUrl}
+              width={900}
+              height={900}
+              preserveAspectRatio="xMidYMid slice"
+            />
+          </pattern>
+          <pattern id="atl-tex-land-night" patternUnits="userSpaceOnUse" width={900} height={900}>
+            <image
+              href={parchmentNightUrl}
+              width={900}
+              height={900}
+              preserveAspectRatio="xMidYMid slice"
+            />
+          </pattern>
+        </defs>
+
         {/* 바다 — viewBox 전체를 덮는다 (지도 밖으로 나가도 배경이 끊기지 않게 넉넉히) */}
         <rect
           x={-MAP_VIEW.width}
@@ -347,6 +394,25 @@ const MapCanvas = ({
 
         {/* 육지 — 미리 구운 해안선 (data/landPath.ts, 동적 로드) */}
         {landPath && <path d={landPath} className="atl-land" fillRule="evenodd" />}
+
+        {/* 여백의 삽화 — 경로·핀보다 먼저 깔아 절대 위를 덮지 않는다 */}
+        <g className="atl-decor" aria-hidden>
+          {MAP_DECOR.map((item) => {
+            const p = project(item.lat, item.lng)
+            const w = item.px * unit
+            const h = w * item.ratio
+            return (
+              <image
+                key={item.id}
+                href={night ? item.night : item.src}
+                x={p.x - w / 2}
+                y={p.y - h / 2}
+                width={w}
+                height={h}
+              />
+            )
+          })}
+        </g>
 
         {/* 경로 */}
         <g fill="none" strokeLinecap="round">
@@ -518,6 +584,10 @@ const MapCanvas = ({
           )
         })}
       </svg>
+
+      {/* 나침반 — 지도와 함께 움직이지 않는다. 이건 지도 위의 물건이 아니라
+          "지도를 읽는 도구"라서, 옛 지도의 도장처럼 모서리에 붙어 있어야 한다 */}
+      <img className="atl-compass" src={night ? compassNightUrl : compassUrl} alt="" aria-hidden />
 
       {/* 확대 컨트롤 — 데스크톱 휠·모바일 핀치를 모르는 사람을 위한 보조 장치 */}
       <div className="atl-zoom">
