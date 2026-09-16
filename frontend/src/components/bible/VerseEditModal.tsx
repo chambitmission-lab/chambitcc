@@ -44,8 +44,10 @@ const VerseEditModal = ({ verse, onSave, onClose }: VerseEditModalProps) => {
   }
 
   return (
-    <div className="verse-edit-modal-overlay" onClick={onClose}>
-      <div className="verse-edit-modal" onClick={(e) => e.stopPropagation()}>
+    // 배경(딤) 클릭으로는 닫지 않는다 — 본문을 드래그 선택하다 밖에서 손을 떼면
+    // click 이 오버레이에서 발생해 입력하던 수정 내용이 통째로 날아갔다. 닫기는 X/취소/뒤로가기로만.
+    <div className="verse-edit-modal-overlay">
+      <div className="verse-edit-modal">
         <div className="verse-edit-modal-header">
           <h3>성경 구절 수정</h3>
           <button 
