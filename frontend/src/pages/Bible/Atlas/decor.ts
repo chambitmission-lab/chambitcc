@@ -55,6 +55,13 @@ export const MAP_DECOR: MapDecorItem[] = [
   { id: 'camels', src: camelsUrl, night: camelsNightUrl, ratio: 0.329, lat: 31.2, lng: 41.2, px: 88 },
   { id: 'tent', src: tentUrl, night: tentNightUrl, ratio: 0.609, lat: 30.0, lng: 37.4, px: 42 },
   { id: 'olive', src: oliveUrl, night: oliveNightUrl, ratio: 0.967, lat: 35.6, lng: 36.9, px: 44 },
+  // 유다·네게브 — 여정이 좁은 길(다윗·예수님)은 지도가 가까이 당겨져,
+  // 멀리 둔 삽화가 전부 화면 밖으로 나가 종이만 남는다. 그 자리를 위한 것들이라
+  // 지점과 36~62km 로 가깝다(지도에서는 손가락 두어 개 거리).
+  { id: 'ship-joppa', src: shipUrl, night: shipNightUrl, ratio: 0.948, lat: 31.85, lng: 34.15, px: 62 },
+  { id: 'palms-negev', src: palmsUrl, night: palmsNightUrl, ratio: 1.019, lat: 30.95, lng: 34.92, px: 38 },
+  { id: 'camels-negev', src: camelsUrl, night: camelsNightUrl, ratio: 0.329, lat: 30.92, lng: 35.5, px: 72 },
+  { id: 'tent-moab', src: tentUrl, night: tentNightUrl, ratio: 0.609, lat: 31.4, lng: 36.05, px: 38 },
   // 메소포타미아
   { id: 'city', src: cityUrl, night: cityNightUrl, ratio: 0.522, lat: 34.6, lng: 43.2, px: 64 },
 ]
