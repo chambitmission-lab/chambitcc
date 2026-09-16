@@ -577,8 +577,10 @@ const BibleStudy = () => {
               // 컨테이너 폭·레일 규격은 다른 안내 페이지(/news 등)와 통일(1240 / 312 / sticky).
               // 다만 본문 컬럼은 620px를 유지한다 — 통독표(.books-grid)가 3열 고정이라
               // 폭을 더 주면 도장 격자가 늘어져 종이 통독표 느낌이 깨진다.
-              // 그래서 묶음(레일+본문+도구)을 컨테이너 안에서 가운데 정렬한다.
-              <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5">
+              // ★묶음을 가운데 정렬(justify-center)하지 않는다 — 좌측 레일은 fixed 로 슬롯 위치를
+              // 따라가므로, 가운데 정렬하면 넓은 화면에서 검색·플랜·지도여행 등 다른 화면(flex-start)과
+              // 레일 자리가 어긋나 메뉴를 누를 때마다 레일이 좌우로 뛴다. 남는 폭은 오른쪽에 둔다.
+              <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5">
                 <BibleSideRail active="read" onSelectTab={handleSelectTab} />
                 <div className="lg:w-full lg:max-w-[620px] lg:min-w-0">
                   <div className="hidden lg:block">

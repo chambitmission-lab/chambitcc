@@ -154,6 +154,13 @@
   background: var(--ig-primary-background);
   padding: 0;
   min-height: calc(100vh - 200px);
+  /* 해석 패널 도킹 폭 — 우측 fixed 패널(400 / 1280px+ 430)과 같은 값 */
+  --commentary-dock-w: 400px;
+}
+@media (min-width: 1280px) {
+  .bible-chapter-section {
+    --commentary-dock-w: 430px;
+  }
 }
 
 /* PC(lg+) — 헤더는 컬럼 안 인라인 타이틀로.
@@ -165,20 +172,7 @@
     border-bottom: none;
     padding: 1.25rem 1rem 0.25rem;
   }
-
-  /* 해석 패널이 우측에 도킹되면 본문 컬럼이 왼쪽으로 비켜 나란히 보인다.
-     (Tailwind pr 유틸은 아래 padding: 0 선언에 캐스케이드로 지므로 전용 클래스로 처리) */
-  .bible-chapter-section {
-    transition: padding-right 0.3s ease;
-  }
-  .bible-chapter-section.commentary-docked {
-    padding-right: 400px;
-  }
-}
-@media (min-width: 1280px) {
-  .bible-chapter-section.commentary-docked {
-    padding-right: 430px;
-  }
+  /* 해석 패널 도킹 시 본문 칼럼이 비키는 규칙은 아래 .bible-chapter-inner 블록에 있다 */
 }
 
 /* 반응형 */
@@ -193,16 +187,35 @@
 }
 
 
-/* 레일과 본문을 나란히 놓는 뼈대 — 레일 자체 스타일은 components/bible/BibleSideRail.css */
+/* 레일과 본문을 나란히 놓는 뼈대 — 레일 자체 스타일은 components/bible/BibleSideRail.css
+   ★다른 성경 화면(검색·플랜·지도여행·단어장·가계도)과 같은 셸 규격(1240 · 가운데 · 좌우 1.25rem ·
+   flex-start)을 쓴다. 예전엔 전체 폭에서 justify-center 로 가운데 정렬해, 좌측 레일(fixed 로
+   슬롯을 따라감)이 화면 폭에 따라 다른 화면과 수십 px 어긋났고, 해석 패널이 도킹되면 섹션
+   padding-right 때문에 가운데가 왼쪽으로 옮겨 레일까지 같이 미끄러졌다.
+   이제 레일은 셸 왼쪽에 고정되고, 도킹 시엔 본문 칼럼만 패널을 피해 줄어든다. */
 @media (min-width: 1024px) {
   .bible-chapter-inner {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
     gap: 1.5rem;
+    box-sizing: border-box;
+    width: min(100%, 1240px);
+    /* mx-auto 대신 명시적 왼쪽 여백 — 오른쪽 패딩이 늘어도 왼쪽 가장자리가 그대로다.
+       100% = 섹션(main-content 폭) 기준 */
+    margin: 0 0 0 max(0px, calc((100% - 1240px) / 2));
     padding: 0 1.25rem;
+    transition: padding-right 0.3s ease;
+  }
+  /* 도킹: 우측 패널이 셸 안으로 파고드는 만큼만 오른쪽 패딩을 더한다.
+     파고듦 = 패널 폭 − 셸 바깥 오른쪽 여백((섹션 폭 − 1240) / 2). 셸이 섹션보다 좁지 않으면 0 */
+  .bible-chapter-section.commentary-docked .bible-chapter-inner {
+    padding-right: calc(
+      1.25rem + max(0px, var(--commentary-dock-w) - max(0px, calc((100% - 1240px) / 2)))
+    );
   }
   .bible-chapter-column {
+    flex: 1 1 auto;
     width: 100%;
     max-width: 720px;
     min-width: 0;
