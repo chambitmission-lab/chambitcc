@@ -55,6 +55,10 @@ const BibleStudy = () => {
     searchParams.get('tab') === 'search' ? 'search' : 'read'
   )
   const [showBookList, setShowBookList] = useState<boolean>(true)
+  // 본문 화면이 "이 페이지 안에서 책 목록을 눌러" 열렸는지. 홈의 [오늘 본문 읽기]처럼
+  // 다른 화면에서 /bible/:book/:chapter 로 바로 들어온 경우와 구분해, 뒤로가기를
+  // 책 목록으로 가로챌지 결정한다(아래 useModalBackButton).
+  const [openedFromList, setOpenedFromList] = useState<boolean>(false)
   const [pendingScrollVerse, setPendingScrollVerse] = useState<number | null>(null)
   const [showPlaylist, setShowPlaylist] = useState<boolean>(false)
   // 집중 읽기 — 한 절씩 넘기는 몰입 모드 (본문 위 전체화면 오버레이)
@@ -200,6 +204,8 @@ const BibleStudy = () => {
         setSelectedBook(book.book_name_ko)
         setSelectedChapter(chapterNum)
         setShowBookList(false)
+        // URL로 직접 열린 본문 — 뒤로가기는 보내 준 화면(홈·묵상노트 등)으로 돌아가야 한다
+        setOpenedFromList(false)
         if (tabParam !== 'search') setActiveTab('read')
 
         if (verseParam > 0) {
@@ -348,6 +354,7 @@ const BibleStudy = () => {
     setSelectedChapter(resume?.chapter ?? 1)
     setPendingScrollVerse(resume?.verse ?? null)
     setShowBookList(false)
+    setOpenedFromList(true)
     setPlayFromVerse(null)
     // 책 목록(특히 여정 보기)은 세로로 길어서, 아래쪽 책을 고르면 스크롤이 그 위치에
     // 남은 채 본문 화면이 열린다. URL 진입 effect는 state 전환에는 타지 않으므로 여기서 직접 올린다.
@@ -364,6 +371,7 @@ const BibleStudy = () => {
     setSelectedChapter(pos.chapter)
     setPendingScrollVerse(pos.verse)
     setShowBookList(false)
+    setOpenedFromList(true)
     setActiveTab('read')
     setPlayFromVerse(null)
   }
@@ -375,13 +383,19 @@ const BibleStudy = () => {
   }
 
   // 본문(장) 보기는 책 목록 위에 뜬 오버레이처럼 취급한다.
-  // 모바일/브라우저 뒤로가기 시 메인으로 빠져나가는 대신 책 목록으로 돌아간다.
-  // 단, 읽기 플랜(?plan=)에서 진입한 경우는 예외 — 뒤로가기가 플랜 상세로
-  // 자연스럽게 돌아가야 하므로 가로채지 않는다.
-  // 검색 탭에서 결과를 눌러 들어온 경우(goToChapter가 넘긴 chapterNav state)도 예외 —
-  // 바로 앞 히스토리가 검색 화면이므로 가로채면 책 목록을 한 번 거쳐야 검색으로 돌아간다.
+  // 이 페이지 안에서 책을 눌러 연 경우에만, 모바일/브라우저 뒤로가기 시 메인으로
+  // 빠져나가는 대신 책 목록으로 돌아간다.
+  // 예외 1. 읽기 플랜(?plan=)에서 진입 — 뒤로가기가 플랜 상세로 자연스럽게 돌아가야 한다.
+  // 예외 2. 검색 탭 결과 클릭(goToChapter가 넘긴 chapterNav state) — 바로 앞 히스토리가
+  //   검색 화면이라, 가로채면 책 목록을 한 번 거쳐야 검색으로 돌아간다.
+  // 예외 3. 홈의 [오늘 본문 읽기]처럼 다른 화면에서 /bible/:book/:chapter 로 바로 들어온 경우
+  //   (openedFromList === false) — 뒤로가기는 보내 준 그 화면으로 돌아가야지,
+  //   한 번도 본 적 없는 성경 책 목록으로 떨어뜨리면 안 된다.
   const openedFromSearch = !!chapterNavSignal
-  useModalBackButton(handleChangeBook, !showBookList && planId === 0 && !openedFromSearch)
+  useModalBackButton(
+    handleChangeBook,
+    !showBookList && openedFromList && planId === 0 && !openedFromSearch
+  )
   
   const handleChapterChange = (chapter: number) => {
     setSelectedChapter(chapter)
