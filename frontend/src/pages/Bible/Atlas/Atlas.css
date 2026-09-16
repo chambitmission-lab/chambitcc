@@ -620,17 +620,8 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
-/* 노드를 잇는 세로 선 — 마지막 지점 아래로는 이어지지 않게 */
-.atl-stops li:not(:last-child) .atl-stop::before {
-  content: '';
-  position: absolute;
-  left: 0.8rem;
-  top: 1.9rem;
-  bottom: -0.3rem;
-  width: 2px;
-  transform: translateX(-1px);
-  background: var(--ig-border);
-}
+/* 노드를 잇는 세로 선은 두지 않는다 — 번호 원이 이미 순서를 말해주는데
+   82px 짜리 세로선이 왼쪽 여백을 통째로 차지해 본문보다 먼저 눈에 띄었다. */
 .atl-stop__body {
   flex: 1;
   min-width: 0;
@@ -830,7 +821,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  /* 지점 번호 원(1.6rem)의 중심에 맞춰 들여쓴다 — 세로 연결선 위에 얹힌 표지판처럼 */
+  /* 지점 이름과 같은 선에서 시작하게 들여쓴다(번호 원 1.6rem + 간격 0.7rem) */
   margin-left: 2.3rem;
   padding: 0.18rem 0.5rem;
   border-radius: 999px;
