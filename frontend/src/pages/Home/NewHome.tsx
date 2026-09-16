@@ -1,27 +1,31 @@
-import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useState, useRef, useEffect, useCallback, lazy, Suspense, type ComponentProps } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useIsRestoring } from '@tanstack/react-query'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
-// 열어야만 보이는 모달·PC 전용 레일은 lazy — 홈 첫 로드 번들에서 제외한다.
-// 작성 모달은 홈의 1순위 액션이라 첫 화면이 그려진 뒤 한가할 때 미리 받아 둔다(preloadComposer).
-const loadPrayerComposer = () => import('./components/PrayerComposer')
-const PrayerComposer = lazy(loadPrayerComposer)
-// 상세 모달도 카드 탭 = 홈의 2순위 액션이라 함께 선로드한다 — 첫 탭에서 청크(약 12kB gzip)를
-// 받는 300ms 동안 fallback 이 null 이라 '안 눌린 것처럼' 멈춰 보이던 문제.
-const loadPrayerDetail = () => import('./components/PrayerDetail')
-const PrayerDetail = lazy(loadPrayerDetail)
+import { lazyModal } from '../../utils/lazyModal'
+import type * as GroupModals from '../../components/prayer/GroupModals'
+// 열어야만 보이는 모달·PC 전용 레일은 별도 청크 — 홈 첫 로드 번들에서 제외한다.
+// 모달은 raw React.lazy 가 아니라 lazyModal 로 뗀다. React.lazy 는 import() 를 미리 불러 청크가
+// 캐시돼 있어도 첫 렌더에서 한 번은 suspend 하고, 그 순간 커밋된 null 폴백 때문에 실제 내용은
+// 폴백 스로틀(약 300ms) 뒤에야 그려진다 — "한 박자 쉬고 열리는" 느낌의 정체.
+// lazyModal 은 .preload() 가 끝나면 Suspense 를 거치지 않고 곧장 그린다.
+// 작성·상세 모달은 홈의 1·2순위 액션이라 첫 화면이 그려진 뒤 한가할 때 미리 받아 둔다(아래 idle 블록).
+const PrayerComposer = lazyModal(() => import('./components/PrayerComposer'))
+const PrayerDetail = lazyModal(() => import('./components/PrayerDetail'))
 const HomeRightRail = lazy(() => import('./components/HomeRightRail'))
-const GlobalThanksComposer = lazy(() => import('./components/GlobalThanksComposer'))
-const CreateGroupModal = lazy(() =>
+const CreateGroupModal = lazyModal<ComponentProps<typeof GroupModals.CreateGroupModal>>(() =>
   import('../../components/prayer/GroupModals').then((m) => ({ default: m.CreateGroupModal })),
 )
-const JoinGroupModal = lazy(() =>
+const JoinGroupModal = lazyModal<ComponentProps<typeof GroupModals.JoinGroupModal>>(() =>
   import('../../components/prayer/GroupModals').then((m) => ({ default: m.JoinGroupModal })),
 )
-const AnswerModal = lazy(() => import('../../components/prayer/AnswerModal'))
+const AnswerModal = lazyModal(() => import('../../components/prayer/AnswerModal'))
 // TodaysVerse — AnnualThemeVerse 전용 카드로 대체. 다시 살리려면 아래 import와 <TodaysVerse /> 주석을 해제하세요.
 // import TodaysVerse from './components/TodaysVerse'
 import AnnualThemeVerse from './components/AnnualThemeVerse'
+// 감사 작성 — 래퍼는 가볍고(useThanks 는 티커가 이미 씀) 시트 본체만 ThanksComposerLazy 청크
+import GlobalThanksComposer from './components/GlobalThanksComposer'
+import ThanksComposerLazy from './components/ThanksThread/ThanksComposerLazy'
 import HomeNotice from './components/HomeNotice'
 import DailyMeditationCard from './components/DailyMeditationCard'
 import TimeCapsuleCard from './components/TimeCapsuleCard'
@@ -109,11 +113,13 @@ const NewHome = () => {
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
-  // 기도 작성·상세 모달 청크 선로드 — 첫 화면이 그려진 뒤 한가할 때 받아 두어 첫 탭이 즉시 열리게 한다
+  // 기도 작성·상세·감사 시트 청크 선로드 — 첫 화면이 그려진 뒤 한가할 때 받아 두어 첫 탭이 즉시 열리게 한다.
+  // 감사 시트는 FAB 다이얼·티커가 공유. preload 가 끝난 lazyModal 은 Suspense 없이 곧장 그린다
   useEffect(() => {
     const run = () => {
-      void loadPrayerComposer()
-      void loadPrayerDetail()
+      void PrayerComposer.preload()
+      void PrayerDetail.preload()
+      void ThanksComposerLazy.preload()
     }
     if (typeof window.requestIdleCallback === 'function') {
       const id = window.requestIdleCallback(run, { timeout: 4000 })
@@ -515,8 +521,7 @@ const NewHome = () => {
               PC(lg+)는 사이드바가 양방향 sticky 라 렌더하지 않는다 */}
           <HomeQuickStrip feedAnchorRef={feedRef} />
 
-          {/* 모달들 — 전부 lazy 청크. 열리기 전엔 마운트되지 않으므로 fallback 은 비워 둔다 */}
-          <Suspense fallback={null}>
+          {/* 모달들 — 전부 lazyModal 청크(각자 Suspense 를 품고 있어 바깥 경계는 두지 않는다) */}
           {/* Prayer Composer Modal */}
           {showComposer && (
             <PrayerComposer
@@ -586,14 +591,11 @@ const NewHome = () => {
             isSubmitting={prayerHook.isAnswering}
           />
           )}
-          </Suspense>
         </div>
 
         {/* FAB 스피드 다이얼 → 감사 한 줄 작성 */}
         {showThanksComposer && (
-          <Suspense fallback={null}>
-            <GlobalThanksComposer onClose={() => setShowThanksComposer(false)} />
-          </Suspense>
+          <GlobalThanksComposer onClose={() => setShowThanksComposer(false)} />
         )}
 
         {/* PC 전용 "맨 위로" 알약 — 무한 스크롤로 내려간 뒤 상단으로 돌아오는 장치.

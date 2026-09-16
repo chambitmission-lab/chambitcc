@@ -308,33 +308,39 @@ const AtlasMap = () => {
           {/* 페이지 헤드 — 타이틀·여권 진척·여정 선택을 한 블록으로 묶는다.
               예전엔 56px 고정 띠(17px 제목 + 부제 두 줄)에 칩 줄이 따로 떠 있어,
               PC에선 제목과 여권 사이가 통째로 비고 모바일에선 두 줄이 눌려 보였다.
-              다른 성경 하위 화면(읽기 플랜·단어장·구절 알람)의 헤더 문법대로
-              아래 헤어라인 하나로 크롬을 닫고, 제목은 같은 급(19 / PC 22px)으로 올린다. */}
+              ★판(유리)도 헤어라인도 없다 — 배경 그림 위에 halo 로 선 제목·칩이다.
+              껍데기 폭의 유리판은 --atl-gut 만큼 들여 앉은 지도·요약 카드와 좌우선이
+              어긋나는 사각 박스가 되어 폐기했다(Atlas.css .atl-head 주석). */}
           <div className="atl-head">
             <div className="atl-head__row">
+              {/* ★lg:hidden 은 쓰지 않는다 — Tailwind 유틸리티와 .atl-head__back 은
+                  특이도가 같고, 라우트 청크인 Atlas.css 가 나중에 실려 display:flex 가
+                  이겼다(PC에 없어야 할 뒤로가기가 보이던 원인). 숨김은 CSS 에서 한다 */}
               <button
                 onClick={() => navigate('/bible')}
-                className="atl-head__back lg:hidden"
+                className="atl-head__back"
                 aria-label="성경으로 돌아가기"
               >
                 <span className="material-icons-round">arrow_back</span>
               </button>
-              <div className="min-w-0 flex-1">
+              <div className="atl-head__titles">
                 <h1 className="atl-head__title">지도여행</h1>
                 <p className="atl-head__sub">말씀이 실제로 걸어간 길</p>
               </div>
-              {/* 빈 가로를 채우면서 여권 버튼에 이유를 만들어 주는 자리 */}
-              <span className="atl-stamps">
-                도장 {totalVisited}
-                <span className="atl-stamps__total">/{ALL_JOURNEY_PLACE_IDS.length}</span>
-              </span>
+              {/* 도장 수는 버튼 안에 있다 — 여권 버튼에 이유를 만들어 주는 값이
+                  버튼 밖에 따로 떠 있으면 헤더 오른쪽이 두 덩어리로 갈린다 */}
               <button
                 type="button"
                 className="atl-passport-btn"
                 onClick={() => setShowPassport(true)}
+                aria-label={`여권 열기 — 도장 ${totalVisited}/${ALL_JOURNEY_PLACE_IDS.length}`}
               >
                 <span className="material-icons-outlined">approval</span>
                 여권
+                <span className="atl-passport-btn__count">
+                  {totalVisited}
+                  <span className="atl-passport-btn__total">/{ALL_JOURNEY_PLACE_IDS.length}</span>
+                </span>
               </button>
             </div>
 
@@ -392,7 +398,21 @@ const AtlasMap = () => {
                     }
                   />
 
+                  {/* 진행 바 — 지도와 자막을 가르는 선을 겸한다 */}
+                  <div className="atl-seek">
+                    <div
+                      className="atl-seek__fill"
+                      style={{
+                        width: `${progressPct}%`,
+                        background: journey.color,
+                      }}
+                    />
+                  </div>
+
                   {/* 자막 — 걸어본 뒤에는 지금 지점, 그 전에는 여정 훅.
+                      ★지도 위 검은 스크림이 아니라 지도 아래에 덧댄 판이다. 모바일
+                      지도는 영화 화면만큼 크지 않아, 스크림이 아래 1/3 을 먹고 그
+                      밑에서 여백 삽화가 글자 뒤로 비쳤다.
                       퀴즈 중에는 문제 패널이 아래에 있으므로 자막을 비운다 */}
                   <div className="atl-caption" aria-live="polite" hidden={quiz.active}>
                     {player.hasPlayed ? (
@@ -407,16 +427,6 @@ const AtlasMap = () => {
                         {journey.hook}
                       </span>
                     )}
-                  </div>
-
-                  <div className="atl-seek">
-                    <div
-                      className="atl-seek__fill"
-                      style={{
-                        width: `${progressPct}%`,
-                        background: journey.color,
-                      }}
-                    />
                   </div>
                 </div>
 

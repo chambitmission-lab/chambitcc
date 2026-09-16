@@ -17,9 +17,17 @@
 
 .atl-page {
   min-height: 100vh;
-  /* 모바일 지도 높이 — 목록과 한 화면에 같이 서야 하므로 예전(46vh)보다 낮다.
+  /* ★화면의 좌우선은 하나다 — 헤드·칩·지도·요약·목록 카드가 모두 이 값을 쓴다.
+     예전엔 블록마다 1rem 과 0.75rem 이 섞여 있어 위아래 판의 좌우 끝이 4px 씩
+     어긋났다. "넓이가 안 맞는다"는 인상의 실제 원인이 이것이었다. */
+  --atl-gut: 1rem;
+  /* 판(지도·요약·목록)의 모서리도 하나로 — 1.25 / 1.1 / 1rem 이 섞여 있었다 */
+  --atl-panel-r: 1.25rem;
+  /* 모바일 지도 높이 — 목록과 한 화면에 같이 서야 하므로 낮다.
+     자막이 지도 위 스크림에서 지도 아래 한 줄 판으로 내려오면서(아래) 캔버스
+     자체는 조금 낮아지지만, 가려지던 1/3 이 돌아와 실제로 보이는 지도는 넓어졌다.
      vh 대신 index.html 이 실측 주입하는 --vvh 를 쓴다(설치형 PWA 오계산 회피) */
-  --atl-map-h: clamp(212px, calc(var(--vvh, 100dvh) * 0.33), 320px);
+  --atl-map-h: clamp(196px, calc(var(--vvh, 100dvh) * 0.3), 300px);
 }
 
 @media (max-width: 1023px) {
@@ -49,7 +57,13 @@
     position: sticky;
     top: 0;
     z-index: 4;
-    background: var(--app-canvas);
+    /* ★쉬고 있을 땐 판이 없다 — 지도 카드·컨트롤이 배경 그림 위에 그대로 선다.
+       예전엔 헤드부터 컨트롤까지 껍데기 폭의 유리 한 장을 깔았는데, 안쪽 여백만큼
+       들여 앉은 지도·요약 카드와 좌우선이 달라 "왜 있는지 모를 사각 박스"가 됐다.
+       목록이 밑으로 흘러 들어오는 순간(--stuck)에만 유리를 켜 가린다 */
+    background: transparent;
+    /* 띠의 바닥 — 붙었을 때 컨트롤이 목록에 바짝 붙지 않게 */
+    padding-bottom: 0.6rem;
   }
   .atl-sticky--stuck {
     box-shadow: 0 10px 18px -14px rgba(0, 0, 0, 0.5);
@@ -59,10 +73,10 @@
 /* 아주 낮은 화면(가로 모드·작은 폰)에선 지도를 더 낮춰 목록 자리를 남긴다 —
    미디어쿼리는 모바일 키보드·설치형에서 어긋나므로 실측 tier 속성을 쓴다 */
 :root[data-vh-tier='short'] .atl-page {
-  --atl-map-h: clamp(190px, calc(var(--vvh, 100dvh) * 0.3), 260px);
+  --atl-map-h: clamp(176px, calc(var(--vvh, 100dvh) * 0.27), 244px);
 }
 :root[data-vh-tier='tiny'] .atl-page {
-  --atl-map-h: 176px;
+  --atl-map-h: 164px;
 }
 
 @media (min-width: 1024px) {
@@ -85,7 +99,7 @@
     max-height: calc(var(--vvh, 100vh) - 12rem);
     overflow-y: auto;
     overscroll-behavior-y: contain;
-    padding: 0.9rem 1rem 0 1.15rem;
+    padding: 0.9rem 1rem 0;
     border-left: 1px solid var(--ig-border);
     scrollbar-width: thin;
   }
@@ -111,26 +125,48 @@
 /* ── 페이지 헤드 (타이틀 + 도장 + 여정 선택) ────────────────── */
 
 .atl-head {
-  /* 헤어라인 하나로 크롬과 캔버스를 가른다 — 배경은 카드 그대로 두고
-     경계만 준다(읽기 플랜·단어장 헤더와 같은 처리) */
-  border-bottom: 1px solid var(--ig-border);
+  /* ★판도 헤어라인도 없다 — 제목·칩은 배경 그림 위에 맨몸으로 선다.
+     이 화면의 모든 덩어리(지도·요약·목록)는 --atl-gut 만큼 들여 앉은 카드인데,
+     헤드만 껍데기 폭의 유리판을 두르면 그 판의 좌우선이 카드들과 어긋난다.
+     읽힘은 아래의 글자 halo 가 맡는다 */
+  border-bottom: 0;
 }
 
+/* ★제목은 칩·지도와 같은 좌측선(--atl-gut)에서 시작한다.
+   예전엔 [뒤로][제목] 이 한 줄이라 제목만 50px 쯤 안으로 들어가, 그 아래 칩 줄과
+   지도 카드가 그리는 세로선에서 혼자 벗어나 있었다. 모바일에선 뒤로가기를 제목 위
+   줄로 올려(여권과 같은 줄) 큰 제목이 좌측선에 붙게 하고, PC 에선 뒤로가기가 아예
+   없으므로 한 줄 그대로 둔다. 줄 나눔은 order + flex-basis 로만 한다(DOM 은 하나). */
 .atl-head__row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.875rem 1rem 0;
+  row-gap: 0.15rem;
+  padding: 0.625rem var(--atl-gut) 0;
+}
+.atl-head__titles {
+  order: 3;
+  flex: 0 0 100%;
+  min-width: 0;
+}
+.atl-head__row .atl-passport-btn {
+  order: 2;
 }
 
 .atl-head__back {
+  order: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  /* 오른쪽의 여권 버튼을 끝으로 밀어내는 여백 — 둘이 한 줄에 선다 */
+  margin-right: auto;
   width: 2rem;
   height: 2rem;
-  margin-left: -0.375rem;
+  /* 화살표 글리프의 왼쪽 끝이 제목 첫 글자와 같은 세로선에 오도록 당긴다
+     (버튼 2rem 안에서 아이콘 1.375rem 이 가운데 놓이므로 그만큼 보정) */
+  margin-left: -0.3125rem;
   border-radius: 999px;
   color: var(--ig-secondary-text);
 }
@@ -154,34 +190,50 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* 배경 그림(올리브 잎 / 밤하늘) 위에서 글자를 세우는 halo — 판 대신 이것이다
+   (랜딩·/about 히어로 라이트 변형과 같은 문법) */
+:root:not([data-theme='dark']) .atl-head__title,
+:root:not([data-theme='dark']) .atl-head__sub {
+  text-shadow:
+    0 0 4px rgba(255, 255, 255, 0.95),
+    0 0 10px rgba(255, 255, 255, 0.85),
+    0 0 18px rgba(255, 255, 255, 0.6);
+}
+[data-theme='dark'] .atl-head__title,
+[data-theme='dark'] .atl-head__sub {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 0 12px rgba(0, 0, 0, 0.45);
+}
+/* 여권 버튼도 그림 위에 서므로 칩과 같은 몸(배경)을 가진다 */
+.atl-head__row .atl-passport-btn {
+  background: var(--ig-primary-background);
+}
 
-/* 도장 진척 — 여권 시트와 같은 분모(ALL_JOURNEY_PLACE_IDS) */
-.atl-stamps {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.1rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  white-space: nowrap;
-  color: var(--ig-secondary-text);
-}
-.atl-stamps__total {
-  opacity: 0.6;
-}
 
 @media (min-width: 1024px) {
   .atl-head__row {
-    padding: 1.25rem 1rem 0;
+    flex-wrap: nowrap;
+    padding: 1.25rem var(--atl-gut) 0;
+  }
+  /* PC 엔 뒤로가기가 없다(좌측 성경 레일이 그 자리를 대신한다) — 제목·여권 한 줄.
+     ★Tailwind 의 lg:hidden 으로는 못 숨긴다: 특이도가 같은데 라우트 청크인 이
+     파일이 나중에 실려 위의 display:flex 가 이긴다 */
+  .atl-head__back {
+    display: none;
+  }
+  .atl-head__titles {
+    order: 0;
+    flex: 1 1 auto;
+  }
+  .atl-head__row .atl-passport-btn {
+    order: 0;
   }
   .atl-head__title {
     font-size: 1.375rem;
   }
   .atl-head__sub {
     font-size: 0.875rem;
-  }
-  .atl-stamps {
-    font-size: 0.8125rem;
   }
 }
 
@@ -191,11 +243,16 @@
   position: relative;
   /* 헤드의 헤어라인과 지도 사이 숨구멍은 .atl-sticky 의 padding-top 이 맡는다 —
      sticky 래퍼 안에서 마진이 겹쳐 붙는 위치가 어긋나는 것을 피한다 */
-  margin: 0 1rem;
-  border-radius: 1.25rem;
+  margin: 0 var(--atl-gut);
+  border-radius: var(--atl-panel-r);
   overflow: hidden;
   border: 1px solid var(--ig-border);
   background: var(--atl-sea);
+  /* 지도 → 진행 바 → 자막이 위에서 아래로 쌓인다. 예전엔 뒤의 둘이 지도 위에
+     absolute 로 얹혀, 낮은 모바일 지도의 아래 1/3 을 검은 스크림이 덮고 그 밑에서
+     여백 삽화(성읍·배)가 글자 뒤로 비쳤다 */
+  display: flex;
+  flex-direction: column;
 }
 
 .atl-canvas {
@@ -208,8 +265,10 @@
   --atl-leader: rgba(60, 65, 73, 0.45);
 
   position: relative;
-  /* 높이는 .atl-page 가 정한다(모바일은 목록과 한 화면에 서도록 낮게, PC는 아래 440px) */
+  /* 높이는 .atl-page 가 정한다(모바일은 목록과 한 화면에 서도록 낮게, PC는 아래) */
   height: var(--atl-map-h, clamp(272px, 46vh, 440px));
+  /* 판(.atl-stage)이 세로 flex 다 — 자막이 길어져도 지도를 눌러 찌그러뜨리지 않게 */
+  flex-shrink: 0;
   touch-action: none; /* 지도에서 손가락 이동은 스크롤이 아니라 팬 */
   cursor: grab;
   background: var(--atl-sea);
@@ -229,7 +288,9 @@
 
 @media (min-width: 1024px) {
   .atl-canvas {
-    height: 440px;
+    /* 자막이 지도 위에서 지도 아래 판으로 내려온 만큼(약 60px) 캔버스를 줄여,
+       지도 판 전체 높이는 예전과 비슷하게 둔다 */
+    height: 420px;
   }
 }
 
@@ -353,7 +414,8 @@
 .atl-zoom {
   position: absolute;
   right: 0.6rem;
-  bottom: 4.6rem;
+  /* 자막이 지도 밖(아래 판)으로 내려가, 더 이상 자막을 비켜설 이유가 없다 */
+  bottom: 0.6rem;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -384,50 +446,68 @@
 
 /* ── 자막 ──────────────────────────────────────────────────── */
 
+/* 지도 아래에 붙는 한 줄 판 — 박물관의 작품 설명표처럼.
+   예전에는 지도 위에 검은 그라데이션으로 얹혀 있었다. 영화 자막의 문법이지만
+   이 화면의 지도는 영화 화면만큼 크지 않아, 스크림이 지도의 아래 1/3 을 먹고
+   그 아래로 여백 삽화가 비쳐 글자도 지도도 둘 다 흐려졌다. */
 .atl-caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 1.6rem 0.9rem 0.8rem;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.3) 60%, transparent);
-  color: #fff;
-  pointer-events: none;
+  flex-shrink: 0;
+  /* 한 줄 / 두 줄 내레이션이 섞여 있다 — 판 높이가 매 걸음 출렁이지 않게 바닥을 정한다 */
+  min-height: 3.4rem;
+  padding: 0.5rem 0.85rem 0.6rem;
+  color: var(--ig-primary-text);
 }
 .atl-caption__where {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.02em;
-  /* 어두운 그라데이션 위에 얹히므로 트랙 색을 그대로 쓰면 가라앉는다 — 충분히 밝힌다 */
-  filter: brightness(1.9) saturate(1.15);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.1rem;
 }
 .atl-caption__text {
-  display: block;
-  font-size: 0.83rem;
-  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   font-weight: 600;
+  color: var(--ig-secondary-text);
   word-break: keep-all;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 .atl-caption__text--hook {
-  font-size: 0.88rem;
+  /* 아직 걸어보지 않은 사람에게 던지는 한 줄 — 자막보다 본문에 가깝다 */
+  font-size: 0.85rem;
+  line-height: 1.55;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  color: var(--ig-primary-text);
+  padding-top: 0.15rem;
 }
 
-/* 진행 바 — 자막 위에 얇게 */
+/* 진행 바 — 지도와 자막을 가르는 선을 겸한다 */
 .atl-seek {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex-shrink: 0;
   height: 3px;
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--ig-border);
 }
 .atl-seek__fill {
   height: 100%;
   transition: width 0.12s linear;
+}
+
+@media (min-width: 1024px) {
+  .atl-caption {
+    min-height: 3.75rem;
+    padding: 0.6rem 1rem 0.7rem;
+  }
+  .atl-caption__text {
+    font-size: 0.85rem;
+  }
+  .atl-caption__text--hook {
+    font-size: 0.9rem;
+  }
 }
 
 /* ── 재생 컨트롤 ───────────────────────────────────────────── */
@@ -435,7 +515,7 @@
 .atl-controls {
   display: flex;
   gap: 0.5rem;
-  padding: 0.85rem 1rem 0.25rem;
+  padding: 0.85rem var(--atl-gut) 0.25rem;
 }
 .atl-play {
   flex: 1;
@@ -476,8 +556,24 @@
   display: flex;
   gap: 0.4rem;
   overflow-x: auto;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem var(--atl-gut);
   scrollbar-width: none;
+  /* 마지막 칩이 화면 끝에서 뭉툭하게 잘려 "깨진 것"처럼 보였다 —
+     양 끝을 흐려 "옆으로 더 있다"는 신호로 바꾼다 */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--atl-gut),
+    #000 calc(100% - 1.5rem),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--atl-gut),
+    #000 calc(100% - 1.5rem),
+    transparent 100%
+  );
 }
 .atl-tracks::-webkit-scrollbar {
   display: none;
@@ -513,7 +609,7 @@
 /* ── 여정 요약 ─────────────────────────────────────────────── */
 
 .atl-summary {
-  padding: 0 1rem;
+  padding: 0 var(--atl-gut);
 }
 
 .atl-meta {
@@ -555,7 +651,7 @@
   display: flex;
   align-items: baseline;
   gap: 0.4rem;
-  padding: 0 1rem;
+  padding: 0 var(--atl-gut);
   margin-top: 1.1rem;
 }
 .atl-list-head__title {
@@ -589,7 +685,7 @@
 .atl-stops {
   position: relative;
   margin: 0.5rem 0 0;
-  padding: 0 1rem 1.5rem;
+  padding: 0 var(--atl-gut) 1.5rem;
   list-style: none;
 }
 .atl-stop {
@@ -813,6 +909,21 @@
 }
 .atl-passport-btn:active {
   transform: scale(0.96);
+}
+/* 도장 수는 여권 버튼 안으로 들어왔다 — 예전엔 버튼 왼쪽에 맨 글자로 따로 떠 있어,
+   헤더 오른쪽이 "글자 + 알약" 두 덩어리로 보이고 그 사이 간격도 제각각이었다 */
+.atl-passport-btn__count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.05rem;
+  margin-left: 0.1rem;
+  padding-left: 0.45rem;
+  border-left: 1px solid var(--ig-border);
+  font-variant-numeric: tabular-nums;
+  color: var(--ig-secondary-text);
+}
+.atl-passport-btn__total {
+  opacity: 0.6;
 }
 
 /* ── 구간 거리 칩 ──────────────────────────────────────────── */
@@ -1378,26 +1489,26 @@
   border-color: transparent;
 }
 
-/* 제목·부제가 올리브 잎 위에 얹혀 읽히지 않는 것을 막는 위쪽 숨구멍 */
-:root:not([data-theme='dark']) .atl-head {
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.2));
-  border-bottom-color: rgba(255, 255, 255, 0.5);
-}
+/* ★헤드에는 유리판을 두르지 않는다(.atl-head 주석 참고). 제목은 halo 로 읽힌다.
+   예전 "헤드+지도 띠 유리 한 장"은 껍데기 폭의 사각 박스가 되어 폐기했다. */
 
 @media (max-width: 1023px) {
-  /* 고정된 지도 덩어리 — 아래로 지나가는 목록을 가려야 하므로 불투명에 가깝게.
-     그래도 유리처럼 두어 배경의 색이 아주 옅게 배어 나온다 */
-  :root:not([data-theme='dark']) .atl-sticky {
+  /* 고정된 지도 덩어리 — 목록이 밑으로 흘러 들어올 때(--stuck)만 유리를 켜 가린다.
+     쉬고 있을 땐 투명해서 지도 카드가 그림 위에 그대로 선다 */
+  :root:not([data-theme='dark']) .atl-sticky--stuck {
     background: rgba(255, 255, 255, 0.86);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(31, 50, 72, 0.1);
   }
 
-  /* 지점 목록 — 배경 위에 뜬 한 장의 카드 */
+  /* 지점 목록 — 배경 위에 뜬 한 장의 카드.
+     ★좌우 마진은 지도·요약과 같은 --atl-gut 이다(예전 0.75rem: 지도보다 4px 넓어
+     아래 카드가 살짝 삐져나와 보였다) */
   :root:not([data-theme='dark']) .atl-stops {
-    margin: 0.5rem 0.75rem 0;
+    margin: 0.5rem var(--atl-gut) 0;
     padding: 0.35rem 0.85rem 0.9rem;
-    border-radius: 1.1rem;
+    border-radius: var(--atl-panel-r);
     background: rgba(255, 255, 255, 0.93);
     border: 1px solid rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(14px);
@@ -1411,7 +1522,7 @@
      허공에 그은 선이 되어 버린다 */
   :root:not([data-theme='dark']) .atl-pane-list {
     border-left: 0;
-    border-radius: 1.25rem;
+    border-radius: var(--atl-panel-r);
     background: rgba(255, 255, 255, 0.78);
     border: 1px solid rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px);
@@ -1438,6 +1549,20 @@
   background: #bcd8e6;
   border-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 16px 40px -22px rgba(31, 50, 72, 0.65);
+}
+/* 자막 판은 지도의 종이를 그대로 이어받는다 — 지도 아래에 덧댄 여백처럼 */
+:root:not([data-theme='dark']) .atl-caption {
+  background: #faf4e6;
+  color: #4a3f2c;
+}
+:root:not([data-theme='dark']) .atl-caption__text {
+  color: rgba(74, 63, 44, 0.78);
+}
+:root:not([data-theme='dark']) .atl-caption__text--hook {
+  color: #4a3f2c;
+}
+:root:not([data-theme='dark']) .atl-seek {
+  background: rgba(74, 63, 44, 0.16);
 }
 
 /* 여백의 삽화 — 경로·핀 아래에 깔린다(MapCanvas 의 순서). 다크에는 종이 그림이
@@ -1466,7 +1591,7 @@
 /* ── 여정 끝 배웅 ──────────────────────────────────────────── */
 
 .atl-farewell {
-  padding: 0.5rem 1rem 1.75rem;
+  padding: 0.5rem var(--atl-gut) 1.75rem;
   text-align: center;
 }
 .atl-farewell__lead {
@@ -1615,21 +1740,19 @@
   border-color: transparent;
 }
 
-[data-theme='dark'] .atl-head {
-  background: linear-gradient(to bottom, rgba(14, 16, 20, 0.82), rgba(14, 16, 20, 0.15));
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-}
+/* 헤드 유리판 없음 — 라이트와 같다(밤하늘 위 흰 글자 + 어두운 halo) */
 
 @media (max-width: 1023px) {
-  [data-theme='dark'] .atl-sticky {
+  [data-theme='dark'] .atl-sticky--stuck {
     background: rgba(19, 19, 19, 0.88);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
   [data-theme='dark'] .atl-stops {
-    margin: 0.5rem 0.75rem 0;
+    margin: 0.5rem var(--atl-gut) 0;
     padding: 0.35rem 0.85rem 0.9rem;
-    border-radius: 1.1rem;
+    border-radius: var(--atl-panel-r);
     background: rgba(32, 31, 31, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.07);
     backdrop-filter: blur(14px);
@@ -1640,7 +1763,7 @@
 @media (min-width: 1024px) {
   [data-theme='dark'] .atl-pane-list {
     border-left: 0;
-    border-radius: 1.25rem;
+    border-radius: var(--atl-panel-r);
     background: rgba(32, 31, 31, 0.82);
     border: 1px solid rgba(255, 255, 255, 0.07);
     backdrop-filter: blur(16px);
@@ -1667,6 +1790,24 @@
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 16px 40px -22px rgba(0, 0, 0, 0.8);
 }
+/* 밤에도 같은 문법 — 등불 아래 지도에 덧댄 판 */
+[data-theme='dark'] .atl-caption {
+  background: #161b24;
+  color: rgba(255, 255, 255, 0.92);
+}
+[data-theme='dark'] .atl-caption__text {
+  color: rgba(255, 255, 255, 0.62);
+}
+[data-theme='dark'] .atl-caption__text--hook {
+  color: rgba(255, 255, 255, 0.9);
+}
+[data-theme='dark'] .atl-seek {
+  background: rgba(255, 255, 255, 0.12);
+}
+/* 여정 색은 밤 판 위에서 한 톤 밝혀야 라이트와 같은 무게로 읽힌다 */
+[data-theme='dark'] .atl-caption__where {
+  filter: brightness(1.25) saturate(1.05);
+}
 [data-theme='dark'] .atl-next {
   background: rgba(32, 31, 31, 0.86);
   border-color: rgba(255, 255, 255, 0.08);
@@ -1676,9 +1817,9 @@
    얹힌다. 밤 그림의 달빛 강줄기 위에서는 흰 글자가 통째로 사라진다. 다른 덩어리와
    같은 유리판을 한 장 깔아 준다. */
 .atl-page .atl-summary {
-  margin: 0.75rem 1rem 0;
+  margin: 0.75rem var(--atl-gut) 0;
   padding: 0.1rem 0.9rem 0.85rem;
-  border-radius: 1rem;
+  border-radius: var(--atl-panel-r);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
