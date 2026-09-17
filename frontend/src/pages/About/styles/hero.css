@@ -81,8 +81,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0 1.5rem 1.75rem;
+  gap: 0.35rem;
+  padding: 0 1.75rem 2rem;
   text-align: left;
 }
 
@@ -107,11 +107,12 @@
 }
 
 .about-hero .hero-content .hero-subtitle {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   color: #ffffff;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   line-height: 1.6;
+  margin-top: 0.15rem;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.8),
     0 2px 10px rgba(0, 0, 0, 0.65),
@@ -129,35 +130,39 @@
   text-shadow: 0 1px 12px rgba(8, 20, 45, 0.5);
 }
 
-/* 히어로 버튼 두 개 — 실행(브랜드) / 읽기(흰색) */
+/* 히어로 버튼 두 개 — 실행(브랜드) / 읽기(흰색).
+   예전 브랜드 버튼은 흰 실선 링 + 점선 압인 + 3겹 후광의 "도장"이었다.
+   옆의 흰 버튼과 재질이 너무 달라 둘이 한 쌍으로 안 읽혔다 —
+   둘 다 테두리 없는 알약으로 맞추고, 무게 차이는 색으로만 낸다. */
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
-  margin-top: 0.75rem;
+  margin-top: 1rem;
 }
 
 .hero-action {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.75rem 1.15rem 0.75rem 1.3rem;
-  border-radius: 14px;
+  gap: 0.3rem;
+  padding: 0.8rem 1.2rem 0.8rem 1.4rem;
+  border-radius: 999px;
   font-family: inherit;
-  font-size: 0.925rem;
+  font-size: 0.9375rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: #191722;
   background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 0;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(8, 20, 45, 0.25);
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 22px -8px rgba(8, 20, 45, 0.45);
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 
 .hero-action:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(8, 20, 45, 0.3);
+  box-shadow: 0 14px 30px -10px rgba(8, 20, 45, 0.5);
 }
 
 .hero-action:active {
@@ -166,32 +171,17 @@
 
 .hero-action--primary {
   color: #ffffff;
-  border-color: transparent;
-  /* 인장(도장) 문법 — /news 마커·/events 칩과 같은 감각:
-     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
   background:
-    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    radial-gradient(circle at 26% 18%, rgba(255, 255, 255, 0.24), transparent 52%),
     linear-gradient(155deg, #4593fc, #2b78ee);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 3px rgba(49, 130, 246, 0.12),
-    0 6px 18px rgba(49, 130, 246, 0.45);
-}
-
-.hero-action--primary::after {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 11px;
-  border: 1px dashed rgba(255, 255, 255, 0.32);
-  pointer-events: none;
+  box-shadow: 0 10px 26px -8px rgba(27, 110, 243, 0.75);
 }
 
 .hero-action--primary:hover {
   background:
-    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.22), transparent 48%),
+    radial-gradient(circle at 26% 18%, rgba(255, 255, 255, 0.26), transparent 52%),
     linear-gradient(155deg, #3585f7, #1b6ef3);
+  box-shadow: 0 16px 34px -10px rgba(27, 110, 243, 0.8);
 }
 
 /* 히어로 안의 한눈에 정보 카드 — lg+ 에서만 (아래 미디어쿼리). 모바일은 숨긴다.
@@ -219,21 +209,23 @@
   }
 
   .about-hero .hero-content .hero-title {
-    font-size: 3rem;
-    line-height: 1.15;
+    font-size: 3.1rem;
+    line-height: 1.12;
+    letter-spacing: -0.04em;
   }
 
   .about-hero .hero-content .hero-subtitle {
-    font-size: 1.125rem;
+    font-size: 1.1875rem;
     max-width: 30rem;
   }
 
   .hero-actions {
-    margin-top: 1.1rem;
+    margin-top: 1.35rem;
+    gap: 0.7rem;
   }
 
   .hero-action {
-    padding: 0.85rem 1.3rem 0.85rem 1.5rem;
+    padding: 0.95rem 1.5rem 0.95rem 1.7rem;
     font-size: 1rem;
   }
 

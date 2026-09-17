@@ -1,7 +1,8 @@
 /* About Page - Pastor Section
-   이력서가 아니라 편지: 사진 + 세리프 본문 + 서명.
+   이력서가 아니라 편지: 사진 + 세리프 본문 + 손글씨 사인.
    약력(학력·경력·수상)은 details 아코디언으로 접어 정보는 유지하되 벽을 없앤다.
-   세리프는 목양칼럼(주간 편지)과 같은 Noto Serif KR 을 재사용해 앱 안 문법을 맞춘다. */
+   세리프는 목양칼럼(주간 편지)과 같은 Noto Serif KR 을 재사용해 앱 안 문법을 맞춘다.
+   별칭은 인사말(/greeting)과 같은 펜 서체 — 목사님이 직접 적은 한마디처럼. */
 
 .pastor-section {
   margin-bottom: 3rem;
@@ -30,7 +31,7 @@
 .pastor-head-text {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.15rem;
   min-width: 0;
 }
 
@@ -42,9 +43,13 @@
   line-height: 1.3;
 }
 
+/* 별칭 — 손글씨 펜. 인사말 페이지(.gr-letter-nickname)와 같은 문법 */
 .pastor-nickname {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-family: 'Nanum Pen Script', 'Noto Serif KR', cursive;
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0;
   color: var(--brand);
 }
 
@@ -56,47 +61,92 @@
 
 .pastor-text {
   font-size: 0.9375rem;
-  line-height: 1.95;
+  line-height: 2;
   color: var(--text-body);
   margin-bottom: 1.25rem;
+  word-break: keep-all;
+  text-wrap: pretty;
 }
 
-/* 하이라이트 문단 — 연한 블루 인용 박스 (따옴표 아이콘 + 라운드) */
+/* 첫 문단은 편지의 인사 — 한 호흡 크게 읽히도록 */
+.pastor-text.lead {
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: var(--text-strong);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-bottom: 1.5rem;
+}
+
+/* 하이라이트 문단 — 상자를 씌우지 않는다. 왼쪽 브랜드 레일과 옅은 tint 만 */
 .pastor-text.highlight {
   position: relative;
-  padding: 1.25rem 1.25rem 1.25rem 3rem;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
-  border-radius: 16px;
+  padding: 0.35rem 0.25rem 0.35rem 2.6rem;
+  background: none;
+  border: 0;
+  border-radius: 0;
   font-weight: 600;
   color: var(--brand-muted);
+  line-height: 1.95;
 }
 
 .pastor-text.highlight::before {
   content: '“';
   position: absolute;
-  left: 1.1rem;
-  top: 0.55rem;
+  left: 0.6rem;
+  top: 0.15rem;
   font-family: Georgia, serif;
-  font-size: 2.4rem;
+  font-size: 2.2rem;
   line-height: 1;
   color: var(--brand);
-  opacity: 0.7;
+  opacity: 0.45;
+}
+
+/* 왼쪽 레일 — 인용이 여기서 시작하고 끝난다는 유일한 경계 */
+.pastor-text.highlight::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--brand);
+  opacity: 0.28;
 }
 
 .pastor-signature {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   text-align: right;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-strong);
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
+}
+
+/* 손글씨 사인 — 인사말 페이지(.gr-signature-ink)와 같은 잉크 PNG.
+   라이트는 그대로, 다크는 --ink-glyph-filter 로 반전해 글자색에 맞춘다 */
+.pastor-signature-ink {
+  display: inline-block;
+  width: 5.1em;
+  height: 2.1em;
+  margin: 0 0.25em;
+  vertical-align: middle;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0.92;
+  user-select: none;
+  filter: var(--ink-glyph-filter, none);
 }
 
 /* Credentials — 접힌 약력 */
 .pastor-credentials {
   background: var(--surface-container-high);
   border: 1px solid var(--card-border);
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   overflow: hidden;
 }
 
@@ -149,18 +199,20 @@
   padding-right: 0;
 }
 
-/* 열 머리 — 아이콘 + 라벨, 밑줄로 열 구분 */
+/* 열 머리 — 아이콘 + 라벨. 2px 브랜드 밑줄은 표의 머리글처럼 딱딱했다.
+   밑줄을 빼고 라벨 자체를 작은 캡션으로 낮춘다 */
 .credential-label {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  padding-bottom: 0.65rem;
-  margin-bottom: 0.85rem;
-  border-bottom: 2px solid var(--brand-soft-strong);
-  font-size: 0.875rem;
+  padding-bottom: 0;
+  margin-bottom: 0.9rem;
+  border-bottom: 0;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--brand);
   letter-spacing: 0.02em;
+  opacity: 0.9;
 }
 
 .credential-label-icon {
@@ -175,14 +227,14 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.65rem;
   position: relative;
 }
 
 .credential-list::before {
   content: '';
   position: absolute;
-  left: 5px;
+  left: 4px;
   top: 0.6rem;
   bottom: 0.6rem;
   width: 1px;
@@ -191,23 +243,24 @@
 
 .credential-line {
   position: relative;
-  padding-left: 1.25rem;
+  padding-left: 1.2rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-strong);
-  line-height: 1.5;
+  color: var(--text-body);
+  line-height: 1.55;
+  word-break: keep-all;
 }
 
 .credential-line::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 0.42rem;
-  width: 11px;
-  height: 11px;
+  top: 0.45rem;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--surface-container-high);
-  border: 2px solid var(--brand);
+  background: var(--brand);
+  opacity: 0.55;
   box-sizing: border-box;
 }
 
@@ -238,22 +291,20 @@
   justify-content: center;
   gap: 0.35rem;
   width: 100%;
-  margin-top: 0.75rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--brand-soft-strong);
-  border-radius: 1rem;
+  margin-top: 0.85rem;
+  padding: 0.95rem 1rem;
+  border: 0;
+  border-radius: 1.25rem;
   background: var(--brand-soft);
   color: var(--brand);
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+  transition: background 0.18s ease, transform 0.18s ease;
 }
 
 .pastor-greeting-link:hover {
   background: var(--brand-soft-strong);
-  border-color: var(--brand);
+  transform: translateY(-1px);
 }

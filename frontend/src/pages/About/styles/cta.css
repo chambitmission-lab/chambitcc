@@ -1,42 +1,50 @@
 /* About Page - CTA Section
-   딥블루 밤하늘 카드: 좌측에 초대 문구, 우측 상단에서 새벽빛이 번지고,
-   행동 타일 4개(첫 타일만 브랜드)가 한 줄로, 아래에 배지 + 감사 인사. */
+   초대 카드. 예전엔 딥블루 밤하늘 판이었는데, 라이트 모드에서 이 카드만
+   재질이 달라 페이지 끝이 툭 떨어졌다(위쪽은 전부 흰 카드).
+   지금은 다른 섹션과 같은 서피스 위에 새벽빛 워시만 얹는다 —
+   색은 전부 토큰이라 다크에서는 저절로 가라앉은 판이 된다.
+
+   ★ 되돌리기 금지: 이 카드를 다시 고정 딥네이비(#0b1733)로 칠하지 말 것. */
 
 .cta-section {
   margin-bottom: 3rem;
 }
 
-/* 히어로와 같은 딥 블루 계열 — 라이트/다크 공통 다크 서피스 */
 .cta-card {
   position: relative;
-  background: linear-gradient(135deg, #0b1733 0%, #132c5c 60%, #1a3a78 100%);
-  border-radius: 1.5rem;
-  padding: 2rem 1.5rem 1.75rem;
+  background:
+    radial-gradient(circle at 82% -12%, rgba(255, 186, 110, 0.16) 0%, rgba(255, 186, 110, 0) 55%),
+    linear-gradient(150deg, var(--brand-soft) 0%, transparent 55%),
+    var(--surface-container);
+  border-radius: 1.75rem;
+  padding: 2.25rem 1.5rem 1.9rem;
   text-align: left;
   overflow: hidden;
-  border: 1px solid rgba(49, 130, 246, 0.25);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
 }
 
 /* 새벽빛 — 우측 상단에서 번지는 따뜻한 광원 (정적) */
 .cta-card::before {
   content: '';
   position: absolute;
-  top: -140px;
-  right: -80px;
+  top: -150px;
+  right: -90px;
   width: 420px;
   height: 420px;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 196, 120, 0.42) 0%,
-    rgba(255, 160, 90, 0.18) 30%,
-    rgba(49, 130, 246, 0.12) 55%,
-    rgba(49, 130, 246, 0) 72%
+    rgba(255, 186, 110, 0.3) 0%,
+    rgba(255, 170, 100, 0.14) 32%,
+    rgba(49, 130, 246, 0.07) 58%,
+    rgba(49, 130, 246, 0) 74%
   );
   pointer-events: none;
 }
 
-/* 십자가 실루엣 — 빛 앞에 서 있는 얇은 십자가 */
+/* 십자가 실루엣 — 빛 앞에 서 있는 얇은 십자가.
+   흰 바탕에선 크림색이 사라지므로 따뜻한 금색으로 낮춰 세운다 */
 .cta-card::after {
   content: '';
   position: absolute;
@@ -45,20 +53,26 @@
   width: 56px;
   height: 84px;
   background:
-    linear-gradient(rgba(255, 224, 180, 0.9), rgba(255, 224, 180, 0.9)) center top / 6px 100% no-repeat,
-    linear-gradient(rgba(255, 224, 180, 0.9), rgba(255, 224, 180, 0.9)) center 22px / 100% 6px no-repeat;
-  filter: drop-shadow(0 0 14px rgba(255, 200, 130, 0.6));
-  opacity: 0.85;
+    linear-gradient(rgba(224, 160, 82, 0.55), rgba(224, 160, 82, 0.55)) center top / 6px 100% no-repeat,
+    linear-gradient(rgba(224, 160, 82, 0.55), rgba(224, 160, 82, 0.55)) center 22px / 100% 6px no-repeat;
+  filter: drop-shadow(0 0 16px rgba(255, 190, 120, 0.55));
+  opacity: 0.9;
   pointer-events: none;
+}
+
+.dark .cta-card::after {
+  background:
+    linear-gradient(rgba(255, 224, 180, 0.85), rgba(255, 224, 180, 0.85)) center top / 6px 100% no-repeat,
+    linear-gradient(rgba(255, 224, 180, 0.85), rgba(255, 224, 180, 0.85)) center 22px / 100% 6px no-repeat;
 }
 
 .cta-title {
   position: relative;
-  font-size: 1.625rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  color: white;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.6rem;
+  color: var(--text-strong);
+  letter-spacing: -0.03em;
+  margin-bottom: 0.7rem;
 }
 
 /* 제목 옆 하트 — 이모지 대신 선화 아이콘 (이모지 금지 규칙) */
@@ -71,23 +85,25 @@
 
 .cta-text {
   position: relative;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.78);
-  line-height: 1.7;
-  margin-bottom: 1.5rem;
+  font-size: 0.975rem;
+  color: var(--text-body);
+  line-height: 1.8;
+  margin-bottom: 1.6rem;
   max-width: 26rem;
+  word-break: keep-all;
 }
 
 /* 행동 타일 */
 .cta-actions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.7rem;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1.6rem;
   position: relative;
   z-index: 1;
 }
 
+/* 카드 안의 카드 — 테두리 대신 한 단계 밝은 서피스 + 옅은 그림자 */
 .cta-action {
   position: relative;
   display: flex;
@@ -95,36 +111,44 @@
   align-items: flex-start;
   gap: 0.6rem;
   min-height: 118px;
-  padding: 1rem 1rem 0.9rem;
-  border-radius: 16px;
+  padding: 1.1rem 1.1rem 1rem;
+  border-radius: 18px;
   text-align: left;
-  color: #fff;
+  color: var(--text-strong);
   cursor: pointer;
   font-family: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  border: 0;
+  background: var(--surface-container);
+  box-shadow: 0 1px 2px rgba(24, 26, 40, 0.05), 0 10px 22px -16px rgba(24, 26, 40, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .cta-action:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 2px 5px rgba(24, 26, 40, 0.07), 0 16px 30px -18px rgba(24, 26, 40, 0.5);
 }
 
 .cta-action:active {
   transform: translateY(0);
 }
 
+/* 다크 — 그림자로는 흰 카드 위 타일이 안 떨어진다. 한 단계 밝은 서피스 + 빛줄 */
+.dark .cta-action {
+  background: var(--surface-container-high);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 22px -16px rgba(0, 0, 0, 0.8);
+}
+
 .cta-action-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.12);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
   flex-shrink: 0;
 }
 
@@ -138,14 +162,14 @@
 .cta-action-title {
   font-size: 0.95rem;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 1.3;
 }
 
 .cta-action-desc {
   font-size: 0.78rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--text-muted);
 }
 
 .cta-action-arrow {
@@ -154,50 +178,46 @@
   font-size: 1rem;
   font-weight: 700;
   line-height: 1;
-  opacity: 0.85;
-  transition: transform 0.15s ease;
+  color: var(--text-muted);
+  opacity: 0.7;
+  transition: transform 0.18s ease, opacity 0.18s ease;
 }
 
 .cta-action:hover .cta-action-arrow {
   transform: translateX(3px);
+  opacity: 1;
 }
 
+/* 첫 타일만 브랜드 반전 — 링·점선 압인은 걷어내고 그라데이션 한 겹 */
 .cta-action--primary {
-  /* 인장(도장) 문법 — /news 마커·/events 칩과 같은 감각:
-     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
+  color: #fff;
   background:
-    radial-gradient(circle at 24% 14%, rgba(255, 255, 255, 0.24), transparent 46%),
+    radial-gradient(circle at 24% 14%, rgba(255, 255, 255, 0.22), transparent 52%),
     linear-gradient(155deg, #4593fc, #2b78ee);
-  border-color: transparent;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 0 0 3px rgba(69, 147, 252, 0.14),
-    0 8px 22px rgba(49, 130, 246, 0.45);
+  box-shadow: 0 14px 28px -16px rgba(49, 130, 246, 0.9);
 }
 
-/* 타일이라 여백이 넉넉하다 — 점선도 조금 더 안쪽(5px)에서 한 바퀴 돈다 */
-.cta-action--primary::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  border-radius: 11px;
-  border: 1px dashed rgba(255, 255, 255, 0.34);
-  pointer-events: none;
+.dark .cta-action--primary {
+  background:
+    radial-gradient(circle at 24% 14%, rgba(255, 255, 255, 0.2), transparent 52%),
+    linear-gradient(155deg, #3f8cf2, #2160c8);
+  box-shadow: 0 14px 28px -16px rgba(0, 0, 0, 0.9);
 }
 
 .cta-action--primary:hover {
   background:
-    radial-gradient(circle at 24% 14%, rgba(255, 255, 255, 0.2), transparent 46%),
+    radial-gradient(circle at 24% 14%, rgba(255, 255, 255, 0.24), transparent 52%),
     linear-gradient(155deg, #3585f7, #1b6ef3);
-  border-color: transparent;
+  box-shadow: 0 20px 36px -16px rgba(49, 130, 246, 0.95);
 }
 
 .cta-action--primary .cta-action-icon {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
-.cta-action--primary .cta-action-desc {
+.cta-action--primary .cta-action-desc,
+.cta-action--primary .cta-action-arrow {
   color: rgba(255, 255, 255, 0.85);
 }
 
@@ -214,17 +234,17 @@
 .cta-badge {
   display: inline-block;
   padding: 0.55rem 1.2rem;
-  background: rgba(49, 130, 246, 0.2);
-  border: 1px solid rgba(120, 175, 255, 0.35);
-  color: rgba(255, 255, 255, 0.95);
+  background: var(--brand-soft);
+  border: 0;
+  color: var(--brand);
   border-radius: 50px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
 }
 
 .cta-foot .footer-text {
   font-size: 0.875rem;
-  line-height: 1.7;
-  color: rgba(170, 200, 255, 0.8);
+  line-height: 1.75;
+  color: var(--text-muted);
   font-weight: 500;
 }

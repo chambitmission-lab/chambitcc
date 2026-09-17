@@ -18,7 +18,7 @@ import EditablePastorPhoto from './components/EditablePastorPhoto'
 import PastorSheet from './components/PastorSheet'
 import LetterBody from './components/LetterBody'
 import GreetingRail from './components/GreetingRail'
-import { SIGNATURE_INK } from './components/signatureInk'
+import { SignatureLine } from '../../components/common/SignatureLine'
 import CredentialTimeline, { CREDENTIAL_ICONS } from './components/CredentialTimeline'
 import {
   CameraIcon,
@@ -36,24 +36,6 @@ import { ensureFontFamily } from '../../utils/deferredFonts'
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
 import { can } from '../../utils/access'
-
-/* 서명 문장 안의 이름만 손글씨 잉크로 바꿔 "참빛교회 담임목사 [사인] 올림" 으로 읽히게 한다.
-   등록된 이름이 아니면 텍스트 그대로. */
-function SignatureLine({ text, name }: { text: string; name: string }) {
-  const ink = name ? SIGNATURE_INK[name] : undefined
-  const at = ink && name ? text.indexOf(name) : -1
-  if (!ink || at < 0) return <>{text}</>
-  return (
-    <>
-      {text.slice(0, at)}
-      {/* CSS mask 가 아니라 <img> — WebKit 은 마스크 이미지 적용 전 요소를 마스크 없이
-          통째로 칠하고 다시 그리지 않을 때가 있어 사인 자리가 네모 박스로 남았다.
-          투명 PNG(검정 잉크)를 그대로 그리고 다크 테마는 CSS filter 로 반전한다. */}
-      <img className="gr-signature-ink" src={ink} alt={name} decoding="async" draggable={false} />
-      {text.slice(at + name.length)}
-    </>
-  )
-}
 
 /* 히어로 배경 — 라이트 테마용 계절 낮 사진(홈 히어로와 같은 자산).
  * 다크 테마는 계절 무관 겨울 밤 은하수 고정이라 theme.css 가 직접 url 을 갖는다.

@@ -22,10 +22,15 @@ import {
   MedalIcon,
 } from './icons'
 import { EmojiText } from '../../components/common/EmojiText'
+import { SignatureLine } from '../../components/common/SignatureLine'
+import { ensureFontFamily } from '../../utils/deferredFonts'
 import pastorPhoto from '../../assets/about-pastor/pastor.webp'
 import pastorPhotoSquare from '../../assets/about-pastor/pastor-sq.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
+
+// 목사님 별칭(.pastor-nickname)이 쓰는 펜 서체 — 인사말 페이지와 같은 문법
+ensureFontFamily('nanumPen')
 
 // 다섯 가지 만남 — 행 순서 = 화면 순서. key 는 이미지 파일명(./img/{key}.webp)이자 프롬프트 문서의 슬러그
 const MEETINGS = [
@@ -59,6 +64,29 @@ const toLines = (value: string): string[] =>
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
+
+/* 장면 카드 문구 — 마지막 줄이 주인공.
+   "땀과 눈물을 닦아주는 / 손수건 같은 만남" 을 한 덩어리로 굵게 쓰면 간판처럼 읽힌다.
+   앞줄은 숨을 고르는 도입부로 작고 옅게, 마지막 줄만 크게 받는다. */
+const SceneLines = ({ text }: { text: string }) => {
+  const lines = toLines(text)
+  if (lines.length === 0) return null
+  return (
+    <>
+      {lines.map((line, i) => (
+        <span
+          className={`good-line${i === lines.length - 1 ? ' good-line--last' : ''}`}
+          key={`${i}-${line}`}
+        >
+          {line}
+        </span>
+      ))}
+    </>
+  )
+}
+
+// 사인 잉크는 이름(성+이름)으로 찾는다 — 표시용 이름은 "안동철 담임목사" 처럼 직함이 붙는다
+const bareName = (displayName: string): string => displayName.trim().split(/\s+/)[0] ?? ''
 
 const About = () => {
   const navigate = useNavigate()
@@ -371,13 +399,13 @@ const About = () => {
               <span className="meeting-good-emblem">
                 {activeMeeting.good ? <HeartIcon size={30} /> : <XIcon size={26} />}
               </span>
-              <p className="good-text" style={{ whiteSpace: 'pre-line' }}>
+              <p className="good-text">
                 {activeMeeting.good ? (
                   <EditableText fieldKey="aboutMeetingGood" multiline isAdmin={isAdminUser}>
-                    {tx('aboutMeetingGood')}
+                    <SceneLines text={tx('aboutMeetingGood')} />
                   </EditableText>
                 ) : (
-                  tx(activeMeeting.field)
+                  <SceneLines text={tx(activeMeeting.field)} />
                 )}
               </p>
             </div>
@@ -427,7 +455,8 @@ const About = () => {
             </div>
 
             <div className="pastor-letter">
-              <p className="pastor-text" style={{ whiteSpace: 'pre-line' }}>
+              {/* 첫 문단은 편지의 인사 — 한 호흡 크게 읽히도록 lead */}
+              <p className="pastor-text lead" style={{ whiteSpace: 'pre-line' }}>
                 <EditableText fieldKey="aboutPastorIntro1" multiline isAdmin={isAdminUser}>
                   {tx('aboutPastorIntro1')}
                 </EditableText>
@@ -442,9 +471,15 @@ const About = () => {
                   {tx('aboutPastorIntro3')}
                 </EditableText>
               </p>
+              {/* 서명 — 이름 자리는 손글씨 잉크. 인사말(/greeting)과 같은 사인이라
+                  두 화면이 같은 분의 같은 편지로 읽힌다 */}
               <div className="pastor-signature">
                 <EditableText fieldKey="aboutPastorSignature" isAdmin={isAdminUser}>
-                  {tx('aboutPastorSignature')}
+                  <SignatureLine
+                    text={tx('aboutPastorSignature')}
+                    name={bareName(tx('aboutPastorName'))}
+                    className="pastor-signature-ink"
+                  />
                 </EditableText>
               </div>
             </div>
