@@ -142,27 +142,31 @@ const DesktopNavRail = () => {
   const isGrowthActive = pathname === '/growth'
   const isProfileActive = pathname === '/profile'
 
-  // 활성 항목은 꽉 찬 브랜드 알약(흰 글자) — 좌측 바 인디케이터 없이 이것만으로 "지금 여기"가 읽힌다.
+  // 하단 도크와 같은 가벼운 아이콘 언어 유지. 활성은 브랜드 연한 배경 + 좌측 바 인디케이터만
   const itemClass = (active: boolean) =>
-    `group relative flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-full px-0 xl:px-3.5 active:scale-[0.97] transition-[color,background-color,box-shadow,transform] duration-150 ${
+    `group relative flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-xl px-0 xl:px-3 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
       active
-        ? 'text-white bg-[linear-gradient(150deg,#4593fc,var(--brand-dim))] shadow-[0_8px_18px_-8px_var(--brand-glow)]'
-        : 'text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)]'
+        ? 'text-brand bg-[var(--brand-soft)]'
+        : 'text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)]'
     }`
+  const ActiveBar = () => (
+    <span
+      className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-brand"
+      aria-hidden
+    />
+  )
 
   const labelClass = (active: boolean) =>
     `hidden xl:inline text-[15px] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`
 
   return (
     <aside
-      // 레일 자리(fixed 폭)는 그대로 두고, 그 안에 여백을 준 카드를 띄운다.
-      // 화면의 층은 여전히 "바닥(캔버스) / 떠 있는 카드" 둘뿐 — 예전처럼 캔버스와 맞닿는
-      // 흰 패널이 아니라 사방에 여백이 있는 카드라서 세로 이음새가 생기지 않는다.
-      // 본문 오프셋(App.tsx lg:pl-[76px] xl:pl-[248px])은 이 바깥 폭 기준이라 건드리지 않는다.
-      className="hidden lg:block fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] p-2.5 xl:p-3"
+      // 레일은 배경과 한 몸 — 크롬(헤더 + 레일)을 캔버스와 같은 톤(--desktop-chrome)으로 깐다.
+      // 세로 헤어라인도, 흰 레일 vs 회색 캔버스의 세로 이음새도 없다(둘 다 어색하다는 피드백).
+      // 화면의 층은 오직 "바닥(캔버스) / 떠 있는 흰 카드" 둘뿐이다.
+      className="hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-[var(--desktop-chrome)] px-3 xl:px-4 pt-6 pb-5"
       aria-label={t('railAria')}
     >
-     <div className="h-full flex flex-col rounded-[26px] bg-[var(--surface-container)] border border-black/[0.055] dark:border-white/[0.07] shadow-[0_12px_32px_-22px_rgba(16,24,40,0.5)] px-2.5 xl:px-3 pt-4 pb-3.5">
       <nav className="flex flex-col gap-1">
         {/* 홈 — 홈에서 다시 누르면 최상단 스크롤 */}
         <button
@@ -171,6 +175,7 @@ const DesktopNavRail = () => {
           aria-current={isHomeActive ? 'page' : undefined}
           className={itemClass(isHomeActive)}
         >
+          {isHomeActive && <ActiveBar />}
           <House size={GLYPH} weight={isHomeActive ? 'duotone' : 'bold'} className="shrink-0" />
           <span className={labelClass(isHomeActive)}>{t('home')}</span>
           <RailTip label={t('home')} />
@@ -185,6 +190,7 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/bible'}
           className={itemClass(isBibleActive)}
         >
+          {isBibleActive && <ActiveBar />}
           {pendingPath === '/bible' ? (
             <RailSpinner />
           ) : (
@@ -224,6 +230,7 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/bible/photo-verse'}
           className={itemClass(isVerseCardActive)}
         >
+          {isVerseCardActive && <ActiveBar />}
           {pendingPath === '/bible/photo-verse' ? (
             <RailSpinner />
           ) : (
@@ -246,6 +253,7 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/groups'}
           className={itemClass(isGroupsActive)}
         >
+          {isGroupsActive && <ActiveBar />}
           {pendingPath === '/groups' ? (
             <RailSpinner />
           ) : (
@@ -268,6 +276,7 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/growth'}
           className={itemClass(isGrowthActive)}
         >
+          {isGrowthActive && <ActiveBar />}
           {pendingPath === '/growth' ? (
             <RailSpinner />
           ) : (
@@ -286,6 +295,7 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/profile'}
           className={itemClass(isProfileActive)}
         >
+          {isProfileActive && <ActiveBar />}
           {pendingPath === '/profile' ? (
             <RailSpinner />
           ) : (
@@ -303,7 +313,7 @@ const DesktopNavRail = () => {
       {/* 나눔 액션 — X/인스타 데스크톱 문법의 단일 주 CTA. 누르면 모바일 홈 FAB과
           같은 3액션 스피드 다이얼(기도·감사·말씀 카드)이 팝오버로 열린다.
           두 버튼을 세로로 쌓던 이전 형태보다 위계가 분명하고 확장에도 유리하다 */}
-      <div className="mt-5 relative flex flex-col items-center xl:items-stretch">
+      <div className="mt-6 relative flex flex-col items-center xl:items-stretch">
         {dialOpen && (
           <>
             {/* 바깥 클릭으로 닫기 */}
@@ -442,7 +452,6 @@ const DesktopNavRail = () => {
           <RailTip label={t('allMenu')} placement="top" />
         </button>
       </div>
-     </div>
     </aside>
   )
 }
