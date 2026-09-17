@@ -88,6 +88,10 @@ const PeoplePreview = import.meta.env.DEV
 const NavRailPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/dev/NavRailPreview'))
   : null
+// 성경 읽기 현황 히어로 — 백엔드·로그인 없이 진행률 카드 배치 확인
+const ReadingHeroPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/dev/ReadingHeroPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -455,6 +459,9 @@ function App() {
                 )}
                 {NavRailPreview && (
                   <Route path="/dev/nav-rail" element={<NavRailPreview />} />
+                )}
+                {ReadingHeroPreview && (
+                  <Route path="/dev/reading-hero" element={<ReadingHeroPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />

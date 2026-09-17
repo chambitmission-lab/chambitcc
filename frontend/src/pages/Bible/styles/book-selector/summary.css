@@ -114,95 +114,122 @@
 }
 
 /* ── 히어로: 전체 진행률 ─────────────────────────────────────────
-   숫자 하나가 먼저 읽히도록 큰 활자, 그 옆에 장 수 칩.
-   배경 삽화(펼친 성경, 728×510, 투명 배경 WebP)는 카드 전체를 덮지 않고 우상단에 "작게 얹는다".
-   크기는 카드 "폭" 기준 — 높이 기준(%)으로 잡으면 문장이 두 줄로 접힐 때 카드가 늘어나며
-   책까지 따라 커진다. 오른쪽 음수 오프셋으로 삽화 우측의 잎·별 장식을 카드 밖으로 밀어
-   책 자체가 오른쪽 끝에 붙는다. 알파 에셋이라 바탕색과 이음새(상자 자국)가 생기지 않는다. */
+   위 칸은 "숫자 + 격려 | 삽화" 2열, 아래 칸은 카드 폭을 다 쓰는 게이지.
+   삽화를 배경으로 깔고 글자에 padding-right 로 자리를 비워 주던 예전 방식은
+   카드 폭이 조금만 달라져도 책이 오른쪽에서 잘리거나 문장에 올라탔다 —
+   삽화에 자기 칸을 주어 겹침 자체를 없앴다. contain 으로 담고 왼쪽 가장자리는
+   mask 로 흐려, 에셋에 구워진 광륜이 원형 스티커처럼 도드라지지 않게 한다.
+
+   면은 딥 블루 한 칸 — 예전의 옅은 블루 틴트는 배경·숫자·게이지·아래 타일이 모두
+   같은 파랑이라 강약이 없었다. 히어로만 진하게 깔고 글자를 반전시키면 파랑이
+   "진행률 = 성취"의 색으로 정리되고, 흰 타일 위에서 이 칸만 앞으로 나온다.
+   라이트/다크 모두 같은 남색 계열 — 이 카드는 두 테마에서 같은 얼굴이다. */
 .reading-hero {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.9rem 0.95rem 0.95rem;
-  border-radius: 14px;
-  background-color: #ecf4ff;
-  background-image: url('/images/bible/reading-hero-light.webp');
-  background-size: 46% auto;
-  /* 세로는 % 정렬 — 카드가 늘어나도 게이지 위 영역의 가운데쯤에 머문다(top 고정이면 코너에 붙는다) */
-  background-position: right -2rem top 32%;
-  background-repeat: no-repeat;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem 0.9rem;
+  border-radius: 16px;
+  background:
+    radial-gradient(125% 120% at 100% 0%, rgba(130, 185, 255, 0.38), transparent 60%),
+    linear-gradient(160deg, #2060bd 0%, #0f2f6b 100%);
+  background-color: #123a7d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
   overflow: hidden;
 }
 
+/* 다크에서는 같은 남색을 한 단 낮춰 — 어두운 화면에서 이 칸만 형광등처럼 뜨지 않게 */
 [data-theme="dark"] .reading-hero {
-  background-color: #1a222d;
-  background-image: url('/images/bible/reading-hero-dark.webp');
+  background:
+    radial-gradient(125% 120% at 100% 0%, rgba(110, 170, 250, 0.3), transparent 60%),
+    linear-gradient(160deg, #1b4f9e 0%, #0c2550 100%);
+  background-color: #0f3068;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
-.reading-hero__label {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-body);
-}
-
-.reading-hero__row {
+.reading-hero__top {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: 0.5rem;
+}
+
+.reading-hero__stat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+/* 삽화 칸 — 글자 칸과 겹치지 않는 자기 자리. 높이는 글자 칸을 따라간다 */
+.reading-hero__art {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 118px;
+  min-height: 88px;
+  /* 카드 안쪽 여백만큼 살짝 내밀어, 에셋에 구워진 광륜의 오른쪽 끝이 카드 밖으로 나간다 —
+     원 테두리가 안 보이니 책만 놓인 것처럼 읽힌다(책 자체는 contain 이라 잘리지 않는다) */
+  margin-right: -0.6rem;
+  /* 두 테마 모두 라이트 에셋 — 남색 면 위에서는 흰 책이 또렷하다.
+     다크 에셋은 남색 광륜이 얼룩으로 남는다. 왼쪽은 글자 쪽으로 흐리고(linear),
+     바깥 테두리는 한 겹 더 흐려(radial) 광륜이 원반처럼 보이지 않게 한다 */
+  background-image: url('/images/bible/reading-hero-light.webp');
+  background-size: contain;
+  background-position: right center;
+  background-repeat: no-repeat;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 38%),
+    radial-gradient(closest-side at 50% 50%, #000 66%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 38%),
+    radial-gradient(closest-side at 50% 50%, #000 66%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* 라벨은 한 단 물러서고 숫자가 앞으로 — 셋이 같은 굵기로 늘어서 있던 예전 위계를 정리.
+   딥 블루 면 위라 색은 토큰(--text-*)이 아니라 흰색 투명도로 잡는다 */
+.reading-hero__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .reading-hero__value {
-  font-size: 2.45rem;
+  font-size: 2.85rem;
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.045em;
-  color: var(--brand);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
   font-variant-numeric: tabular-nums;
+  /* 숫자에만 아주 얕은 세로 그라데이션 — 단색 한 겹보다 깊게 앉는다 */
+  color: #ffffff;
+  background: linear-gradient(175deg, #ffffff 10%, #cfe2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .reading-hero__value small {
-  margin-left: 2px;
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.reading-hero__chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.3rem 0.62rem;
-  border-radius: 999px;
-  background: var(--ig-primary-background);
-  color: var(--brand);
-  font-size: 0.78rem;
+  margin-left: 3px;
+  font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  box-shadow: inset 0 0 0 1px rgba(49, 130, 246, 0.14);
 }
 
-[data-theme="dark"] .reading-hero__chip {
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(69, 147, 252, 0.22);
-}
-
-/* 격려 한 줄은 책 왼쪽에서 접히게 — 삽화 위로 글자가 올라타지 않도록 오른쪽을 비운다.
-   flex 가 아니라 인라인 흐름으로 두어 손모양 아이콘이 문장 끝에 붙어 함께 접히고,
+/* 격려 한 줄은 숫자 바로 아래 캡션 자리 — 삽화가 자기 칸을 가지므로 폭을 비워 둘 필요가 없다.
    keep-all 로 어절 단위에서만 줄이 바뀐다("있어/요" 같은 낱자 분리 방지) */
 .reading-hero__cheer {
   display: block;
-  margin: 0.15rem 0 0.35rem;
-  padding-right: 30%;
+  margin: 0.3rem 0 0;
   word-break: keep-all;
   overflow-wrap: anywhere;
-  line-height: 1.4;
+  line-height: 1.45;
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: var(--text-body);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .reading-hero__cheer-tail {
@@ -214,47 +241,77 @@
   margin-left: 0.3rem;
   font-size: 1rem;
   vertical-align: -0.18em;
-  color: var(--brand);
+  color: #cfe2ff;
 }
 
-/* 게이지 + 남은 장 수를 한 줄에 — 트랙이 늘어나고 라벨은 오른쪽 끝에 붙는다 */
+/* 게이지 — 막대는 폭 전체를 쓰고, 읽은 장/남은 장이 그 아래 양 끝에 선다.
+   숫자가 막대의 양 끝을 가리키니 "칩 하나가 숫자 옆에 떠 있던" 어색함이 사라진다 */
 .reading-hero__gauge {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  flex-direction: column;
+  gap: 0.42rem;
 }
 
 .reading-hero__track {
   position: relative;
   display: block;
-  flex: 1;
-  height: 8px;
+  height: 10px;
   border-radius: 999px;
-  background: rgba(49, 130, 246, 0.16);
+  background: rgba(255, 255, 255, 0.2);
   overflow: hidden;
 }
 
-[data-theme="dark"] .reading-hero__track {
-  background: rgba(255, 255, 255, 0.1);
+/* 25·50·75% 눈금 — 채워진 쪽에서 또렷하고 빈 쪽에서는 거의 안 보인다.
+   "절반을 넘었다"가 문장이 아니라 그림으로 먼저 읽히게 하는 장치 */
+.reading-hero__track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0 calc(25% - 1px), rgba(16, 45, 95, 0.45) calc(25% - 1px) 25%,
+    transparent 25% calc(50% - 1px), rgba(16, 45, 95, 0.45) calc(50% - 1px) 50%,
+    transparent 50% calc(75% - 1px), rgba(16, 45, 95, 0.45) calc(75% - 1px) 75%,
+    transparent 75%
+  );
 }
 
 .reading-hero__fill {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--brand);
+  background: linear-gradient(90deg, #8ec2ff 0%, #ffffff 100%);
+  box-shadow: 0 0 12px rgba(180, 215, 255, 0.55);
   transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reading-hero__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.reading-hero__read {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .reading-hero__left {
   flex-shrink: 0;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.68);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+
 
 /* ── 구약/신약 타일 ─────────────────────────────────────────────
    같은 파랑 안에서 아이콘(두루마리/십자가)만 다르다. 모바일은 세로 결, 넓어지면 가로 결 */
@@ -374,18 +431,27 @@
   }
 
   .reading-hero {
-    padding: 1.1rem 1.2rem 1.2rem;
-    /* 이전 높이 기준 70%(카드 156px → 책 ~160px 폭)와 같은 크기를 폭 기준으로 고정 */
-    background-size: 30% auto;
-    background-position: right 0.75rem top 38%;
+    gap: 1rem;
+    padding: 1.15rem 1.2rem 1.05rem;
   }
 
-  .reading-hero__cheer {
-    padding-right: 34%;
+  .reading-hero__art {
+    width: 150px;
+    min-height: 106px;
+    margin-right: -0.7rem;
   }
 
   .reading-hero__value {
-    font-size: 3.1rem;
+    font-size: 3.3rem;
+  }
+
+  .reading-hero__cheer {
+    font-size: 0.84rem;
+  }
+
+  .reading-hero__read,
+  .reading-hero__left {
+    font-size: 0.76rem;
   }
 
   .reading-tile {

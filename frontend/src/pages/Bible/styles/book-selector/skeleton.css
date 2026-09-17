@@ -25,6 +25,19 @@
   background-size: 200% 100%;
 }
 
+/* 히어로 안쪽은 딥 블루 면 — 회색 뼈대는 묻히므로 두 테마 모두 흰색 투명도로 세운다.
+   [data-theme="dark"] .bib-skel 과 특정도가 같으므로 순서상 이 규칙이 뒤에 와야 한다 */
+.reading-hero .bib-skel,
+[data-theme="dark"] .reading-hero .bib-skel {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.12) 25%,
+    rgba(255, 255, 255, 0.24) 50%,
+    rgba(255, 255, 255, 0.12) 75%
+  );
+  background-size: 200% 100%;
+}
+
 @keyframes bib-skel-shimmer {
   from {
     background-position: 200% 0;

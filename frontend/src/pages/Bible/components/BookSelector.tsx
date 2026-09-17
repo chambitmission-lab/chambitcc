@@ -139,7 +139,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       summarySubtitle: '말씀을 읽으며 믿음이 자라가요',
       overallLabel: '전체 진행률',
       remaining: '남은',
-      allComplete: '성경 전체를 완독했어요 🎉',
+      allComplete: '성경 전체를 완독했어요',
       whole: '전체',
       statsToggle: '진행률',
       mapToggle: '지도',
@@ -173,7 +173,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       summarySubtitle: 'Faith grows as you read the Word',
       overallLabel: 'Overall progress',
       remaining: 'Remaining',
-      allComplete: 'Whole Bible complete 🎉',
+      allComplete: 'Whole Bible complete',
       whole: 'Whole Bible',
       statsToggle: 'Progress',
       mapToggle: 'Map',
@@ -534,10 +534,17 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             <span className="bib-skel bib-skel--toggle" />
           </div>
           <div className="reading-hero">
-            <span className="bib-skel bib-skel--label" />
-            <span className="bib-skel bib-skel--number" />
-            <span className="bib-skel bib-skel--cheer" />
-            <span className="reading-hero__track" />
+            <div className="reading-hero__top">
+              <div className="reading-hero__stat">
+                <span className="bib-skel bib-skel--label" />
+                <span className="bib-skel bib-skel--number" />
+                <span className="bib-skel bib-skel--cheer" />
+              </div>
+              <span className="reading-hero__art" />
+            </div>
+            <div className="reading-hero__gauge">
+              <span className="reading-hero__track" />
+            </div>
           </div>
           <div className="reading-tiles">
             {[0, 1].map(i => (
@@ -589,29 +596,34 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             </div>
           </div>
 
-          {/* 히어로 — 전체 진행률 한 숫자 + 장 수 칩 + 격려 한 줄 + 게이지.
-              배경은 우측에 펼친 성경 삽화(라이트/다크 각 1장, CSS background) — 왼쪽은 스크림으로 비워 글자 자리 확보 */}
+          {/* 히어로 — 위는 "숫자 + 격려 | 삽화" 두 칸, 아래는 폭 전체를 쓰는 게이지.
+              삽화를 배경으로 깔고 글자에 padding-right 를 주던 방식은 책이 오른쪽에서 잘리고
+              글줄 폭이 눈에 안 보이는 규칙에 묶여 어색했다 — 삽화에 자기 칸을 주어 겹침을 없앴다.
+              장 수는 게이지 양 끝(읽은 만큼 / 남은 만큼)으로 내려, 막대가 그 두 숫자의 그림이 된다 */}
           <div className="reading-hero" data-done={overallStat.rate >= 100 ? 'true' : undefined}>
-            <span className="reading-hero__label">{t.overallLabel}</span>
-            <div className="reading-hero__row">
-              <span
-                className="reading-hero__value"
-                aria-label={`${t.overallLabel} ${pctLabel(overallStat.rate)}%`}
-              >
-                {pctLabel(overallStat.rate)}
-                <small>%</small>
-              </span>
-              <span className="reading-hero__chip">{overallStat.detail}</span>
+            <div className="reading-hero__top">
+              <div className="reading-hero__stat">
+                <span className="reading-hero__label">{t.overallLabel}</span>
+                <span
+                  className="reading-hero__value"
+                  aria-label={`${t.overallLabel} ${pctLabel(overallStat.rate)}%`}
+                >
+                  {pctLabel(overallStat.rate)}
+                  <small>%</small>
+                </span>
+                {/* 마지막 어절 + 손모양 아이콘을 nowrap 한 덩어리로 — 크롬은 NBSP 뒤의 인라인 SVG 앞에서도
+                    줄을 바꾸므로, 아이콘만 다음 줄로 떨어지지 않게 어절과 함께 움직이게 한다 */}
+                <p className="reading-hero__cheer">
+                  {cheerHead}
+                  <span className="reading-hero__cheer-tail">
+                    {cheerTail}
+                    <HandsPraying size="1em" weight="duotone" color="currentColor" aria-hidden="true" />
+                  </span>
+                </p>
+              </div>
+              <span className="reading-hero__art" aria-hidden="true" />
             </div>
-            {/* 마지막 어절 + 손모양 아이콘을 nowrap 한 덩어리로 — 크롬은 NBSP 뒤의 인라인 SVG 앞에서도
-                줄을 바꾸므로, 아이콘만 다음 줄로 떨어지지 않게 어절과 함께 움직이게 한다 */}
-            <p className="reading-hero__cheer">
-              {cheerHead}
-              <span className="reading-hero__cheer-tail">
-                {cheerTail}
-                <HandsPraying size="1em" weight="duotone" color="currentColor" aria-hidden="true" />
-              </span>
-            </p>
+
             <div className="reading-hero__gauge">
               <span className="reading-hero__track" aria-hidden="true">
                 <span
@@ -619,11 +631,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                   style={{ width: `${gaugeWidth(overallStat.rate)}%` }}
                 />
               </span>
-              <span className="reading-hero__left">
-                {overallStat.total - overallStat.read > 0
-                  ? `${t.remaining} ${(overallStat.total - overallStat.read).toLocaleString()}${overallStat.unit}`
-                  : t.allComplete}
-              </span>
+              <div className="reading-hero__meta">
+                <span className="reading-hero__read">{overallStat.detail}</span>
+                <span className="reading-hero__left">
+                  {overallStat.total - overallStat.read > 0
+                    ? `${t.remaining} ${(overallStat.total - overallStat.read).toLocaleString()}${overallStat.unit}`
+                    : t.allComplete}
+                </span>
+              </div>
             </div>
           </div>
 
