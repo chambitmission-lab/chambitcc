@@ -35,20 +35,70 @@ const MOCK: MeditationCard = {
   context: { time_of_day: null, emotion: null, selected_at: new Date().toISOString() },
 }
 
+// 절 길이 3단계 — 핵심 절 박스가 길이에 따라 글자만 줄이고 장면은 유지하는지 확인용
+const VERSE_SAMPLES = [
+  {
+    key: '짧게',
+    reference: '창세기 2:18',
+    text: '여호와 하나님이 이르시되 사람이 혼자 사는 것이 좋지 아니하니',
+  },
+  {
+    key: '길게',
+    reference: '갈라디아서 1:10',
+    text:
+      '이제 내가 사람들에게 좋게 하랴 하나님께 좋게 하랴 사람들에게 기쁨을 구하랴 ' +
+      '내가 지금까지 사람들의 기쁨을 구하였다면 그리스도의 종이 아니니라',
+  },
+  {
+    key: '아주 길게',
+    reference: '에베소서 1:3-4',
+    text:
+      '찬송하리로다 하나님 곧 우리 주 예수 그리스도의 아버지께서 그리스도 안에서 ' +
+      '하늘에 속한 모든 신령한 복을 우리에게 주시되 곧 창세 전에 그리스도 안에서 ' +
+      '우리를 택하사 우리로 사랑 안에서 그 앞에 거룩하고 흠이 없게 하시려고',
+  },
+]
+
 const DailyMeditationCardPreview = () => {
   const qc = useQueryClient()
   const [ready, setReady] = useState(false)
+  const [sample, setSample] = useState(0)
 
   useEffect(() => {
     const now = new Date()
     const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    qc.setQueryData(['meditation', 'today', dateKey, deriveTimeOfDay(now.getHours()), null], MOCK)
+    const s = VERSE_SAMPLES[sample]
+    qc.setQueryData(['meditation', 'today', dateKey, deriveTimeOfDay(now.getHours()), null], {
+      ...MOCK,
+      verse: { ...MOCK.verse, reference: s.reference, text: s.text },
+    })
     setReady(true)
-  }, [qc])
+  }, [qc, sample])
 
   if (!ready) return null
   return (
     <div className="home" style={{ maxWidth: 480, margin: '0 auto', paddingTop: 12 }}>
+      <div style={{ display: 'flex', gap: 6, padding: '0 16px 10px' }}>
+        {VERSE_SAMPLES.map((s, i) => (
+          <button
+            key={s.key}
+            type="button"
+            onClick={() => setSample(i)}
+            style={{
+              flex: 1,
+              padding: '6px 8px',
+              borderRadius: 999,
+              fontSize: 12,
+              fontWeight: 700,
+              border: '1px solid var(--brand-soft-strong)',
+              background: i === sample ? 'var(--brand)' : 'transparent',
+              color: i === sample ? '#fff' : 'var(--brand)',
+            }}
+          >
+            {s.key}
+          </button>
+        ))}
+      </div>
       <DailyMeditationCard onWriteMeditation={() => {}} />
     </div>
   )

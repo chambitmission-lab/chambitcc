@@ -237,6 +237,16 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   /* 핵심 절 박스 뒤 장면(예수님과 어린양) — 테마 쌍을 마운트 동안 등록해 토글 직전
    * 선요청이 반대 테마 파일을 챙기게 하고, 도착 전엔 바탕색만 두었다가 페이드인한다 */
   const sceneReady = useThemeArt(VERSE_SCENE)
+  /* 말씀 길이에 따른 밀도 단계 — 절이 길수록 글자를 한 단계씩 줄인다.
+   * 박스가 세로로 자라면 뒤에 깔린 들판 장면도 같이 확대돼(cover) 어린양이
+   * 클로즈업처럼 잘려 보이기 때문에, "글자를 줄이고 장면은 그대로" 쪽으로 간다.
+   * 공백을 뺀 글자 수로 재면 어절 수와 무관하게 줄 수에 비례한다. */
+  const verseDensity = (() => {
+    const len = data?.verse.text.replace(/\s/g, '').length ?? 0
+    if (len > 92) return ' is-xlong'
+    if (len > 48) return ' is-long'
+    return ''
+  })()
 
   // 오늘 본문(장)의 절 단위 읽음 상태 — 비로그인/로딩 중엔 미조회
   const { data: readStatus } = useChapterReadStatus(
@@ -582,7 +592,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           * 스크림을 덮어 그 위에 말씀을 올린다(지금 함께 읽는 카드와 같은 처방).
           * 말씀 폭을 제한해 글이 인물을 침범하지 않게 하고, 출처는 글 아래 왼쪽에 둔다. */}
         <blockquote
-          className={`meditation-verse-quote${sceneReady ? ' is-art-ready' : ''}`}
+          className={`meditation-verse-quote${sceneReady ? ' is-art-ready' : ''}${verseDensity}`}
         >
           <div className="meditation-verse-body">
             <span className="meditation-verse-glyph" aria-hidden>
