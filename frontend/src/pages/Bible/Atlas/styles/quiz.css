@@ -1,0 +1,136 @@
+/* ── 지도 퀴즈 ─────────────────────────────────────────────── */
+
+.atl-ghost--quiz {
+  display: grid;
+  place-items: center;
+  padding: 0.75rem;
+}
+.atl-ghost--quiz .material-icons-outlined {
+  font-size: 1.15rem;
+}
+
+/* 퀴즈 중 핀 상태 */
+.atl-pin--dimmed {
+  opacity: 0.22;
+  pointer-events: none;
+}
+.atl-pin--wrong {
+  opacity: 0.5;
+}
+.atl-pin--answer .atl-pin__label {
+  font-weight: 800;
+}
+
+.atl-quiz {
+  margin: 0.85rem 1rem 0.25rem;
+  padding: 0.9rem 1rem 1rem;
+  border-radius: 1rem;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+}
+.atl-quiz__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.atl-quiz__step {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.atl-quiz__quit {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-quiz__prompt {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.5;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.atl-quiz__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+.atl-quiz__reveal {
+  margin-top: 0.7rem;
+}
+.atl-quiz__verdict {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-quiz__explain {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-quiz__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+.atl-quiz__ref,
+.atl-quiz__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  border: 1px solid var(--ig-border);
+}
+.atl-quiz__next,
+.atl-quiz__again {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.7rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.atl-quiz__next:active,
+.atl-quiz__again:active {
+  transform: scale(0.98);
+}
+
+/* 결과 */
+.atl-quiz--done {
+  text-align: center;
+}
+.atl-quiz__score {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.atl-quiz__result {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+

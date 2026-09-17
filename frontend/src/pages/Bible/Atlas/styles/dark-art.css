@@ -1,0 +1,127 @@
+/* ── 밤의 성지 — 다크 배경 아트 ─────────────────────────────
+   라이트와 같은 구도의 밤 그림이 생겨, 다크도 같은 문법으로 맞춘다.
+   지도는 낮의 양피지를 미리 어둡게 구운 질감을 쓴다(등불 아래 펼친 지도).
+   장식 그림과 나침반은 여전히 감춘다 — 종이에 갈색 펜으로 그린 그림이라
+   밤 지도 위에서는 색이 뜬다. 밤 버전 삽화가 생기면 그때 켠다. */
+
+[data-theme='dark'] .atl-page {
+  background-color: #0e1014;
+  background-image: linear-gradient(
+      to bottom,
+      rgba(14, 16, 20, 0.35) 0%,
+      rgba(14, 16, 20, 0.15) 30%,
+      rgba(14, 16, 20, 0.72) 100%
+    ),
+    url('../../../../assets/atlas/bg-mobile-night.webp');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+@media (min-width: 1024px) {
+  [data-theme='dark'] .atl-page {
+    background-image: linear-gradient(
+        to bottom,
+        rgba(14, 16, 20, 0.3) 0%,
+        rgba(14, 16, 20, 0.08) 40%
+      ),
+      url('../../../../assets/atlas/bg-pc-night.webp');
+    /* 라이트와 같다 — 하늘을 덧댄 긴 그림 + bottom 고정 (위 주석 참고) */
+    background-size: auto, cover;
+    background-position: center bottom;
+    background-attachment: fixed;
+  }
+}
+
+[data-theme='dark'] .atl-page .atl-shell {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* 헤드 유리판 없음 — 라이트와 같다(밤하늘 위 흰 글자 + 어두운 halo) */
+
+@media (max-width: 1023px) {
+  [data-theme='dark'] .atl-sticky--stuck {
+    background: rgba(19, 19, 19, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  [data-theme='dark'] .atl-stops {
+    margin: 0.5rem var(--atl-gut) 0;
+    padding: 0.35rem 0.85rem 0.9rem;
+    border-radius: var(--atl-panel-r);
+    background: rgba(32, 31, 31, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-theme='dark'] .atl-pane-list {
+    border-left: 0;
+    border-radius: var(--atl-panel-r);
+    background: rgba(32, 31, 31, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  /* 판 모양·여백은 위(.atl-page .corl)에서 공통 — 여기선 색만 갈아 끼운다 */
+  [data-theme='dark'] .atl-page .corl {
+    background: rgba(32, 31, 31, 0.72);
+  }
+}
+
+/* 밤 지도 — 낮과 같은 종이, 등불만큼만 밝다 */
+[data-theme='dark'] .atl-canvas {
+  --atl-sea: url(#atl-tex-sea-night);
+  --atl-land: url(#atl-tex-land-night);
+  --atl-land-edge: #4a4335;
+  background: #10141c;
+}
+[data-theme='dark'] .atl-stage {
+  background: #10141c;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px -22px rgba(0, 0, 0, 0.8);
+}
+/* 밤에도 같은 문법 — 등불 아래 지도에 덧댄 판 */
+[data-theme='dark'] .atl-caption {
+  background: #161b24;
+  color: rgba(255, 255, 255, 0.92);
+}
+[data-theme='dark'] .atl-caption__text {
+  color: rgba(255, 255, 255, 0.62);
+}
+[data-theme='dark'] .atl-caption__text--hook {
+  color: rgba(255, 255, 255, 0.9);
+}
+[data-theme='dark'] .atl-seek {
+  background: rgba(255, 255, 255, 0.12);
+}
+/* 여정 색은 밤 판 위에서 한 톤 밝혀야 라이트와 같은 무게로 읽힌다 */
+[data-theme='dark'] .atl-caption__where {
+  filter: brightness(1.25) saturate(1.05);
+}
+[data-theme='dark'] .atl-next {
+  background: rgba(32, 31, 31, 0.86);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 여정 요약(연대·제목·태그라인) — 지도 판 안이지만 카드 밖이라 그림 위에 맨몸으로
+   얹힌다. 밤 그림의 달빛 강줄기 위에서는 흰 글자가 통째로 사라진다. 다른 덩어리와
+   같은 유리판을 한 장 깔아 준다. */
+.atl-page .atl-summary {
+  margin: 0.75rem var(--atl-gut) 0;
+  padding: 0.1rem 0.9rem 0.85rem;
+  border-radius: var(--atl-panel-r);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+:root:not([data-theme='dark']) .atl-page .atl-summary {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+[data-theme='dark'] .atl-page .atl-summary {
+  background: rgba(19, 19, 19, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}

@@ -1,0 +1,131 @@
+/* ── 여정 끝 배웅 ──────────────────────────────────────────── */
+
+.atl-farewell {
+  padding: 0.5rem var(--atl-gut) 1.75rem;
+  text-align: center;
+}
+.atl-farewell__lead {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.atl-farewell__sub {
+  margin-top: 0.2rem;
+  font-size: 0.74rem;
+  color: var(--ig-secondary-text);
+}
+/* 목자는 카드 밖 배경 위에 선다 — 카드 안에 넣으면 아래가 잘려 상반신만 남는다 */
+.atl-farewell__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+.atl-farewell__art {
+  width: 36%;
+  max-width: 128px;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+[data-theme='dark'] .atl-farewell__art {
+  opacity: 0.72;
+}
+.atl-farewell__next {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+  padding-bottom: 0.6rem;
+}
+.atl-farewell__label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--ig-secondary-text);
+  margin-left: 0.15rem;
+}
+.atl-next {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.85rem;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--ig-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.15s ease;
+}
+.atl-next:active {
+  transform: scale(0.985);
+}
+[data-theme='dark'] .atl-next {
+  background: rgba(255, 255, 255, 0.06);
+}
+.atl-next__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.atl-next__stamp {
+  font-size: 1.05rem;
+  color: var(--brand);
+}
+.atl-next__text {
+  flex: 1;
+  min-width: 0;
+}
+.atl-next__title {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.atl-next__sub {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--ig-secondary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.atl-next__go {
+  font-size: 1.05rem;
+  color: var(--ig-secondary-text);
+  flex-shrink: 0;
+}
+
+/* 성경 좌측 레일(corl) — 이 화면에선 레일도 그림 위에 놓인다. 다른 성경 화면에선
+   흰 캔버스 위라 배경이 필요 없었지만, 여기서는 올리브 잎 위에 글자가 얹혀
+   읽히지 않는다. 이 화면 안에서만 유리판을 한 장 깔아 준다.
+   ★유리판의 안쪽 여백이 메뉴를 밀면 안 된다 — 예전엔 padding 을 0.35/0.5rem 으로
+   갈아 끼워, 이 화면에서만 메뉴가 오른쪽 8px·위 10px 로 옮겨 앉았다. 읽기·플랜·
+   단어장과 오갈 때 메뉴가 톡 튀어 보이던 원인이 이것이다. 이제는 판을 여백만큼
+   왼쪽으로 물리고(margin-left) 좌우 패딩 합을 기본값(0.75rem)과 같게 맞춰,
+   글자·아이콘 자리는 다른 성경 화면과 1px도 다르지 않다. */
+@media (min-width: 1024px) {
+  .atl-page .corl {
+    /* 기본값: padding 1rem 0.75rem 1.5rem 0 / margin-left 0 (BibleSideRail.css) */
+    margin-left: -0.5rem;
+    /* 좌우 0.5rem 씩 유리 여백을 주되, 그만큼 판을 넓혀 안쪽 폭(--corl-w)은 보존 */
+    width: calc(var(--corl-w) + 0.25rem);
+    padding: 1rem 0.5rem 0.8rem;
+    border-radius: 1.1rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  /* 접힌 아이콘 바는 기본값이 좌우 여백 0(아이콘이 가운데 정렬)이라
+     좌우로 같은 여백을 주고 폭을 그만큼 돌려줘야 가운데가 어긋나지 않는다 */
+  .atl-page .corl--collapsed {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    width: calc(56px + 1rem);
+  }
+  :root:not([data-theme='dark']) .atl-page .corl {
+    background: rgba(255, 255, 255, 0.72);
+  }
+}
+

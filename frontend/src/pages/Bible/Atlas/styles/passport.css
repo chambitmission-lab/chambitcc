@@ -1,0 +1,314 @@
+/* ── 여권 버튼 (헤더) ──────────────────────────────────────── */
+
+.atl-passport-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  /* 페이지의 액센트는 지금 보고 있는 여정 색이다. 여기에 brand-soft(파랑) pill 이
+     헤더에 하나 떠 있으면 화면에 주인이 둘이 된다 — 중립 고스트로 물러선다 */
+  color: var(--text-strong);
+  background: transparent;
+  border: 1px solid var(--ig-border);
+}
+.atl-passport-btn:hover {
+  background: var(--surface-inset);
+}
+.atl-passport-btn .material-icons-outlined {
+  font-size: 1rem;
+}
+.atl-passport-btn:active {
+  transform: scale(0.96);
+}
+/* 도장 수는 여권 버튼 안으로 들어왔다 — 예전엔 버튼 왼쪽에 맨 글자로 따로 떠 있어,
+   헤더 오른쪽이 "글자 + 알약" 두 덩어리로 보이고 그 사이 간격도 제각각이었다 */
+.atl-passport-btn__count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.05rem;
+  margin-left: 0.1rem;
+  padding-left: 0.45rem;
+  border-left: 1px solid var(--ig-border);
+  font-variant-numeric: tabular-nums;
+  color: var(--ig-secondary-text);
+}
+.atl-passport-btn__total {
+  opacity: 0.6;
+}
+
+/* ── 구간 거리 칩 ──────────────────────────────────────────── */
+
+.atl-leg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  /* 지점 이름과 같은 선에서 시작하게 들여쓴다(번호 원 1.6rem + 간격 0.7rem) */
+  margin-left: 2.3rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  background: var(--ig-secondary-background, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--ig-border);
+}
+[data-theme='dark'] .atl-leg-chip {
+  background: rgba(255, 255, 255, 0.05);
+}
+.atl-leg-chip__more {
+  font-size: 0.85rem !important;
+  opacity: 0.5;
+}
+.atl-leg-chip:active {
+  transform: scale(0.97);
+}
+
+.atl-stop__stamp {
+  display: inline-flex;
+  align-items: center;
+}
+.atl-meta__done {
+  font-weight: 800;
+}
+
+/* ── 다른 여정으로 건너가는 칩 ─────────────────────────────── */
+
+.atl-cross {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid;
+}
+.atl-cross__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+}
+
+/* ── 거리 체감 시트 ────────────────────────────────────────── */
+
+.atl-dist__route {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-dist__arrow {
+  font-weight: 800;
+}
+.atl-dist__figures {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+.atl-dist__value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.atl-dist__unit {
+  margin-left: 0.15rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ig-secondary-text);
+}
+.atl-dist__days {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-dist__label {
+  margin-bottom: 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ig-secondary-text);
+}
+.atl-dist__mini {
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid var(--ig-border);
+  /* 비교 지도는 성경 지도와 같은 바다색을 써서 "같은 종류의 지도"로 읽히게 한다 */
+  background: #c7dcef;
+  padding: 0.5rem;
+}
+[data-theme='dark'] .atl-dist__mini {
+  background: #0a121c;
+}
+.atl-dist__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.atl-dist__land {
+  fill: #e6e9ee;
+  stroke: #bfc8d2;
+  stroke-width: 0.4;
+}
+[data-theme='dark'] .atl-dist__land {
+  fill: #2c323a;
+  stroke: #3f4650;
+}
+.atl-dist__ref {
+  fill: #3c4149;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+[data-theme='dark'] .atl-dist__ref {
+  fill: #d7dbe2;
+  stroke: rgba(10, 18, 28, 0.92);
+}
+.atl-dist__sentence {
+  margin-top: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.atl-dist__note {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+
+/* ── 여권 시트 ─────────────────────────────────────────────── */
+
+.atl-pass__summary {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.9rem;
+  border-radius: 0.9rem;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+}
+.atl-pass__summary dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-pass__summary dd {
+  margin: 0.1rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.atl-pass__summary dd span {
+  font-size: 0.8rem;
+  color: var(--ig-secondary-text);
+}
+.atl-pass__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.atl-pass__row {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border-radius: 0.85rem;
+  text-align: left;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+}
+.atl-pass__row--done {
+  background: transparent;
+}
+.atl-pass__head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.atl-pass__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.atl-pass__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-pass__count {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--ig-secondary-text);
+  font-variant-numeric: tabular-nums;
+}
+.atl-pass__stamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.55rem;
+}
+/* 도장 자리 — 빈 칸이 보여야 "다음에 갈 곳"이 생긴다 */
+.atl-pass__stamp {
+  display: grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  border: 1px dashed var(--ig-border);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  opacity: 0.65;
+}
+.atl-pass__stamp--on {
+  border-style: solid;
+  border-width: 1.5px;
+  opacity: 1;
+}
+.atl-pass__stamp .material-icons-round {
+  font-size: 0.85rem;
+}
+/* 완주 도장 — 카운트와 같은 자리를 쓰므로 둘은 절대 함께 뜨지 않는다 */
+.atl-pass__seal {
+  flex-shrink: 0;
+  padding: 0.14rem 0.45rem;
+  border-radius: 0.35rem;
+  border: 1.5px solid;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transform: rotate(-5deg);
+}
+.atl-pass__hint {
+  margin-top: 0.9rem;
+  font-size: 0.72rem;
+  color: var(--ig-secondary-text);
+  text-align: center;
+}
+

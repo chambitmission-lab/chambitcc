@@ -1,0 +1,97 @@
+/* ── 본문·스토리에서 쓰는 지명 카드 ──────────────────────────
+   ★이름 주의 — 이건 AtlasPlaceCard(본문에 끼는 작은 카드)다. 지도여행 페이지
+   껍데기는 .atl-shell 이다. 예전엔 껍데기도 .atl-card 를 달고 있어, 여기 있는
+   overflow:hidden 이 sticky 지도를 죽이고 :hover 테두리가 화면 좌우에 파란
+   세로선으로 그려졌다. 껍데기에 이 클래스를 다시 붙이지 말 것. */
+
+.atl-card {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  text-align: left;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  transition: border-color 0.15s ease;
+}
+.atl-card__row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.75rem 0.65rem;
+}
+.atl-card:active {
+  transform: scale(0.99);
+}
+.atl-card:hover {
+  border-color: var(--brand);
+}
+.atl-card__map {
+  display: block;
+  width: 100%;
+  line-height: 0;
+  border-bottom: 1px solid var(--ig-border);
+}
+.atl-card__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.atl-card__sea {
+  fill: #c7dcef;
+}
+.atl-card__land {
+  fill: #e6e9ee;
+  stroke: #bfc8d2;
+  stroke-width: 0.5;
+  animation: atl-land-in 200ms ease-out;
+}
+[data-theme='dark'] .atl-card__sea {
+  fill: #0a121c;
+}
+[data-theme='dark'] .atl-card__land {
+  fill: #2c323a;
+  stroke: #3f4650;
+}
+.atl-card__halo {
+  fill: var(--brand);
+  opacity: 0.25;
+}
+.atl-card__dot {
+  fill: var(--brand);
+  stroke: #fff;
+  stroke-width: 1;
+}
+.atl-card__body {
+  flex: 1;
+  min-width: 0;
+}
+.atl-card__eyebrow {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--brand);
+}
+.atl-card__title {
+  display: block;
+  margin-top: 0.05rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-card__modern {
+  display: block;
+  margin-top: 0.05rem;
+  font-size: 0.72rem;
+  color: var(--ig-secondary-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atl-card__chevron {
+  flex-shrink: 0;
+  font-size: 1.15rem !important;
+  color: var(--ig-secondary-text);
+}
+

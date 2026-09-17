@@ -1,0 +1,367 @@
+/* ── 지도 ──────────────────────────────────────────────────── */
+
+.atl-stage {
+  position: relative;
+  /* 헤드의 헤어라인과 지도 사이 숨구멍은 .atl-sticky 의 padding-top 이 맡는다 —
+     sticky 래퍼 안에서 마진이 겹쳐 붙는 위치가 어긋나는 것을 피한다 */
+  margin: 0 var(--atl-gut);
+  border-radius: var(--atl-panel-r);
+  overflow: hidden;
+  border: 1px solid var(--ig-border);
+  background: var(--atl-sea);
+  /* 지도 → 진행 바 → 자막이 위에서 아래로 쌓인다. 예전엔 뒤의 둘이 지도 위에
+     absolute 로 얹혀, 낮은 모바일 지도의 아래 1/3 을 검은 스크림이 덮고 그 밑에서
+     여백 삽화(성읍·배)가 글자 뒤로 비쳤다 */
+  display: flex;
+  flex-direction: column;
+}
+
+.atl-canvas {
+  /* 바다/육지 색은 여기서만 정한다 — 라이트/다크 전환이 한 곳에서 끝나도록 */
+  --atl-sea: #c7dcef;
+  --atl-land: #e6e9ee;
+  --atl-land-edge: #bfc8d2;
+  --atl-label: #3c4149;
+  --atl-label-halo: rgba(255, 255, 255, 0.92);
+  --atl-leader: rgba(60, 65, 73, 0.45);
+
+  position: relative;
+  /* 높이는 .atl-page 가 정한다(모바일은 목록과 한 화면에 서도록 낮게, PC는 아래) */
+  height: var(--atl-map-h, clamp(272px, 46vh, 440px));
+  /* 판(.atl-stage)이 세로 flex 다 — 자막이 길어져도 지도를 눌러 찌그러뜨리지 않게 */
+  flex-shrink: 0;
+  touch-action: none; /* 지도에서 손가락 이동은 스크롤이 아니라 팬 */
+  cursor: grab;
+  background: var(--atl-sea);
+}
+.atl-canvas:active {
+  cursor: grabbing;
+}
+
+[data-theme='dark'] .atl-canvas {
+  --atl-sea: #0a121c;
+  --atl-land: #2c323a;
+  --atl-land-edge: #3f4650;
+  --atl-label: #d7dbe2;
+  --atl-label-halo: rgba(10, 18, 28, 0.92);
+  --atl-leader: rgba(215, 219, 226, 0.4);
+}
+
+@media (min-width: 1024px) {
+  .atl-canvas {
+    /* 자막이 지도 위에서 지도 아래 판으로 내려온 만큼(약 60px) 캔버스를 줄여,
+       지도 판 전체 높이는 예전과 비슷하게 둔다 */
+    height: 420px;
+  }
+}
+
+.atl-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.atl-sea {
+  fill: var(--atl-sea);
+}
+.atl-land {
+  fill: var(--atl-land);
+  stroke: var(--atl-land-edge);
+  stroke-width: 0.4;
+  /* 인접 폴리곤 사이 머리카락 같은 이음새를 같은 색 실선으로 덮는다 */
+  vector-effect: non-scaling-stroke;
+  /* 해안선은 따로 받아 뒤늦게 붙는다(useLandPath) — 바다에서 육지가 배어 나오듯 */
+  animation: atl-land-in 200ms ease-out;
+}
+
+@keyframes atl-land-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atl-land,
+  .atl-card__land {
+    animation: none;
+  }
+}
+
+.atl-leg {
+  stroke-linejoin: round;
+  opacity: 0.92;
+}
+.atl-leg--growing {
+  opacity: 1;
+}
+
+/* 여행자 — 선 끝에서 함께 움직인다 */
+.atl-walker-halo {
+  animation: atl-walker 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes atl-walker {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.22;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.1;
+  }
+}
+
+/* ── 핀 ────────────────────────────────────────────────────── */
+
+.atl-pin {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.atl-pin:focus {
+  outline: none;
+}
+.atl-pin__shadow {
+  fill: rgba(0, 0, 0, 0.18);
+}
+[data-theme='dark'] .atl-pin__shadow {
+  fill: rgba(0, 0, 0, 0.45);
+}
+.atl-pin__no {
+  pointer-events: none;
+}
+.atl-pin__label {
+  fill: var(--atl-label);
+  stroke: var(--atl-label-halo);
+  pointer-events: none;
+  letter-spacing: -0.01em;
+}
+.atl-pin__leader {
+  stroke: var(--atl-leader);
+  pointer-events: none;
+}
+.atl-pin--active .atl-pin__label {
+  fill: var(--brand);
+}
+
+/* 현재 지점 파동 — 재생 중에만 */
+.atl-pin__pulse {
+  animation: atl-pulse 1.6s ease-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes atl-pulse {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atl-walker-halo,
+  .atl-pin__pulse {
+    animation: none;
+  }
+}
+
+/* ── 확대 컨트롤 ───────────────────────────────────────────── */
+
+.atl-zoom {
+  position: absolute;
+  right: 0.6rem;
+  /* 자막이 지도 밖(아래 판)으로 내려가, 더 이상 자막을 비켜설 이유가 없다 */
+  bottom: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.atl-zoom button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: #4b5563;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(6px);
+}
+.atl-zoom button:active {
+  transform: scale(0.94);
+}
+.atl-zoom .material-icons-round {
+  font-size: 1.05rem;
+}
+[data-theme='dark'] .atl-zoom button {
+  background: rgba(32, 31, 31, 0.9);
+  color: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ── 자막 ──────────────────────────────────────────────────── */
+
+/* 지도 아래에 붙는 한 줄 판 — 박물관의 작품 설명표처럼.
+   예전에는 지도 위에 검은 그라데이션으로 얹혀 있었다. 영화 자막의 문법이지만
+   이 화면의 지도는 영화 화면만큼 크지 않아, 스크림이 지도의 아래 1/3 을 먹고
+   그 아래로 여백 삽화가 비쳐 글자도 지도도 둘 다 흐려졌다. */
+.atl-caption {
+  flex-shrink: 0;
+  /* 한 줄 / 두 줄 내레이션이 섞여 있다 — 판 높이가 매 걸음 출렁이지 않게 바닥을 정한다 */
+  min-height: 3.4rem;
+  padding: 0.5rem 0.85rem 0.6rem;
+  color: var(--ig-primary-text);
+}
+.atl-caption__where {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.1rem;
+}
+.atl-caption__text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-caption__text--hook {
+  /* 아직 걸어보지 않은 사람에게 던지는 한 줄 — 자막보다 본문에 가깝다 */
+  font-size: 0.85rem;
+  line-height: 1.55;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  color: var(--ig-primary-text);
+  padding-top: 0.15rem;
+}
+
+/* 진행 바 — 지도와 자막을 가르는 선을 겸한다 */
+.atl-seek {
+  flex-shrink: 0;
+  height: 3px;
+  background: var(--ig-border);
+}
+.atl-seek__fill {
+  height: 100%;
+  transition: width 0.12s linear;
+}
+
+@media (min-width: 1024px) {
+  .atl-caption {
+    min-height: 3.75rem;
+    padding: 0.6rem 1rem 0.7rem;
+  }
+  .atl-caption__text {
+    font-size: 0.85rem;
+  }
+  .atl-caption__text--hook {
+    font-size: 0.9rem;
+  }
+}
+
+/* ── 재생 컨트롤 ───────────────────────────────────────────── */
+
+.atl-controls {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.85rem var(--atl-gut) 0.25rem;
+}
+.atl-play {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.875rem;
+  color: #fff;
+  font-size: 0.925rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px -12px var(--brand-glow);
+  transition: transform 0.15s ease;
+}
+.atl-play:active {
+  transform: scale(0.98);
+}
+.atl-ghost {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.875rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  background: var(--ig-secondary-background, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--ig-border);
+}
+.atl-ghost:disabled {
+  opacity: 0.4;
+}
+[data-theme='dark'] .atl-ghost {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── 트랙 선택 칩 ──────────────────────────────────────────── */
+
+.atl-tracks {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.7rem var(--atl-gut);
+  scrollbar-width: none;
+  /* 마지막 칩이 화면 끝에서 뭉툭하게 잘려 "깨진 것"처럼 보였다 —
+     양 끝을 흐려 "옆으로 더 있다"는 신호로 바꾼다 */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--atl-gut),
+    #000 calc(100% - 1.5rem),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--atl-gut),
+    #000 calc(100% - 1.5rem),
+    transparent 100%
+  );
+}
+.atl-tracks::-webkit-scrollbar {
+  display: none;
+}
+.atl-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0.42rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ig-secondary-text);
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+}
+/* 활성 칩의 배경 틴트·테두리·글자색은 모두 여정 색에서 나온다(인라인 style).
+   배경만 brand-soft(파랑)를 쓰던 예전 조합은 주황·초록 여정에서 한 칩 안에
+   액센트가 둘로 갈려 보였다 */
+.atl-track--on {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.atl-track__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+}
+

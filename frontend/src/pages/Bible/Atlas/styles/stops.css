@@ -1,0 +1,280 @@
+/* ── 여정 요약 ─────────────────────────────────────────────── */
+
+/* ── 여정 요약 ─────────────────────────────────────────────── */
+
+.atl-summary {
+  padding: 0 var(--atl-gut);
+}
+
+.atl-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.9rem;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-meta__era {
+  color: var(--brand);
+}
+.atl-meta__dot {
+  opacity: 0.5;
+}
+.atl-subtitle {
+  margin-top: 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+/* 여정 한 줄 소개 — 우측 레일 카드를 지점 목록에 내주면서 이리로 합쳤다 */
+.atl-tagline {
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+
+/* ── 지점 목록 머리 ────────────────────────────────────────── */
+
+.atl-list-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0 var(--atl-gut);
+  margin-top: 1.1rem;
+}
+.atl-list-head__title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-list-head__hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+
+/* 사용법 카드 — PC 목록 꼬리에만 (모바일에선 화면만 길어진다) */
+.atl-tips-card {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .atl-list-head {
+    padding: 0;
+    margin-top: 0;
+  }
+  .atl-tips-card {
+    display: block;
+    margin: 0.25rem 0 1.25rem;
+  }
+}
+
+/* ── 지점 목록 ─────────────────────────────────────────────── */
+
+.atl-stops {
+  position: relative;
+  margin: 0.5rem 0 0;
+  padding: 0 var(--atl-gut) 1.5rem;
+  list-style: none;
+}
+.atl-stop {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.7rem 0.5rem 0.7rem 0;
+  text-align: left;
+  opacity: 0.45;
+  transition: opacity 0.25s ease;
+}
+.atl-stop--on {
+  opacity: 1;
+}
+.atl-stop__no {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-top: 0.1rem;
+  border-radius: 999px;
+  background: var(--ig-border);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+/* 노드를 잇는 세로 선은 두지 않는다 — 번호 원이 이미 순서를 말해주는데
+   82px 짜리 세로선이 왼쪽 여백을 통째로 차지해 본문보다 먼저 눈에 띄었다. */
+.atl-stop__body {
+  flex: 1;
+  min-width: 0;
+}
+.atl-stop__head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.atl-stop__place {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-stop__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+.atl-stop__title {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--brand-muted);
+}
+.atl-stop__narration {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-stop__more {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin-top: 0.05rem;
+  border-radius: 999px;
+  color: var(--ig-secondary-text);
+}
+.atl-stop--current .atl-stop__no {
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+}
+
+/* ── 핀 상세 시트 ──────────────────────────────────────────── */
+
+.atl-sheet__badge {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.atl-sheet__label {
+  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ig-secondary-text);
+}
+.atl-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.atl-event {
+  display: flex;
+  gap: 0.6rem;
+}
+.atl-event__no {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+.atl-event__text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.atl-event__ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+.atl-figure {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+}
+
+/* ── 사용법 카드 (PC 목록 꼬리) ────────────────────────────── */
+
+.atl-rail-card {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--ig-border);
+}
+[data-theme='dark'] .atl-rail-card {
+  background: #201f1f;
+  /* 다크 카드 규약 — 솔리드 + 미세 그라데이션 + 상단 1px 빛줄 */
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.045), transparent 45%);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.atl-rail-card__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--ig-secondary-text);
+}
+.atl-tips {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.atl-tips li {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-tips .material-icons-round {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--brand);
+}
+

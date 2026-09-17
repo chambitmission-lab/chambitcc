@@ -1,0 +1,157 @@
+/* ── 성지의 아침 — 배경 아트 (라이트 전용) ───────────────────
+   지도여행은 "정보를 읽는 화면"이기 전에 "길을 떠나는 화면"이다. 회색 캔버스
+   위의 파란 지도는 앞의 절반만 하고 있었다. 그래서 화면 바닥에 그림을 깔고,
+   지도는 종이(양피지) 위에 그린 것처럼 바꾼다.
+
+   원칙 세 가지
+   1. 그림은 배경이지 내용이 아니다 — 글이 얹히는 자리는 전부 반투명 흰 판을
+      덮고(backdrop-filter), 그림은 가장자리와 여백에서만 보인다.
+   2. 다크는 건드리지 않는다 — 밤 배경 그림이 생기기 전까지 다크는 지금의
+      어두운 지도 그대로다. 라이트에만 얹는 이유가 여기 있다.
+   3. 지도 지오메트리는 그대로다 — 해안선·핀·경로는 여전히 투영식이 만든
+      SVG 다. 그림은 질감(fill)과 여백의 삽화로만 들어간다. */
+
+:root:not([data-theme='dark']) .atl-page {
+  background-color: #e7eef4;
+  /* 위에서 아래로 갈수록 흰 장막을 덮는다 — 그림의 아랫단(언덕 위 성읍)이
+     지점 목록 바로 뒤에 놓여, 덮지 않으면 글 뒤에서 집들이 어른거린다.
+     하늘이 있는 위쪽은 거의 그대로 둔다 */
+  background-image: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.06) 22%,
+      rgba(255, 255, 255, 0.55) 52%,
+      rgba(255, 255, 255, 0.82) 100%
+    ),
+    url('../../../../assets/atlas/bg-mobile.webp');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+
+@media (min-width: 1024px) {
+  :root:not([data-theme='dark']) .atl-page {
+    /* PC 는 그림의 가운데(빈 하늘)가 콘텐츠 뒤로 오므로 장막이 거의 필요 없다 */
+    background-image: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.24) 0%,
+        rgba(255, 255, 255, 0) 42%
+      ),
+      url('../../../../assets/atlas/bg-pc.webp');
+    /* ★그림 파일은 위쪽에 빈 하늘을 덧대어 세로로 길게(2560x2200) 구워 두었다.
+       그래서 cover 를 써도 확대되는 대신 '늘려 둔 하늘'만 잘린다 — 창이 세로로
+       길든 가로로 넓든 골짜기·성읍은 언제나 같은 크기로 바닥에 앉는다.
+       bottom 에 붙이는 것이 핵심이다(top 이면 그림이 화면 밖으로 밀린다). */
+    background-size: auto, cover;
+    background-position: center bottom;
+    /* 페이지가 길어져도 그림이 늘어지지 않게 — 화면에 붙여 둔다 */
+    background-attachment: fixed;
+  }
+}
+
+/* 카드(흰 판)를 걷어 배경이 보이게 한다. 대신 글이 얹히는 덩어리마다
+   자기 몫의 반투명 판을 가진다(아래) */
+:root:not([data-theme='dark']) .atl-page .atl-shell {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* ★헤드에는 유리판을 두르지 않는다(.atl-head 주석 참고). 제목은 halo 로 읽힌다.
+   예전 "헤드+지도 띠 유리 한 장"은 껍데기 폭의 사각 박스가 되어 폐기했다. */
+
+@media (max-width: 1023px) {
+  /* 고정된 지도 덩어리 — 목록이 밑으로 흘러 들어올 때(--stuck)만 유리를 켜 가린다.
+     쉬고 있을 땐 투명해서 지도 카드가 그림 위에 그대로 선다 */
+  :root:not([data-theme='dark']) .atl-sticky--stuck {
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(31, 50, 72, 0.1);
+  }
+
+  /* 지점 목록 — 배경 위에 뜬 한 장의 카드.
+     ★좌우 마진은 지도·요약과 같은 --atl-gut 이다(예전 0.75rem: 지도보다 4px 넓어
+     아래 카드가 살짝 삐져나와 보였다) */
+  :root:not([data-theme='dark']) .atl-stops {
+    margin: 0.5rem var(--atl-gut) 0;
+    padding: 0.35rem 0.85rem 0.9rem;
+    border-radius: var(--atl-panel-r);
+    background: rgba(255, 255, 255, 0.93);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 10px 28px -20px rgba(31, 50, 72, 0.6);
+  }
+}
+
+@media (min-width: 1024px) {
+  /* PC 는 목록 판 자체가 카드가 된다 — 세로 헤어라인(border-left)은 배경 위에서
+     허공에 그은 선이 되어 버린다 */
+  :root:not([data-theme='dark']) .atl-pane-list {
+    border-left: 0;
+    border-radius: var(--atl-panel-r);
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 16px 40px -26px rgba(31, 50, 72, 0.7);
+  }
+}
+
+/* ── 지도 = 종이 위의 지도 ─────────────────────────────────── */
+
+:root:not([data-theme='dark']) .atl-canvas {
+  /* SVG fill 은 MapCanvas 가 정의한 <pattern> 을 가리킨다.
+     ★ CSS background 에는 쓸 수 없다(url(#id) 는 그림 파일이 아니다) —
+       아래에서 평평한 대체 색을 따로 준다 */
+  --atl-sea: url(#atl-tex-sea);
+  --atl-land: url(#atl-tex-land);
+  --atl-land-edge: #cbb489;
+  --atl-label: #4a3f2c;
+  --atl-label-halo: rgba(250, 244, 230, 0.95);
+  --atl-leader: rgba(90, 74, 51, 0.45);
+  background: #bcd8e6;
+}
+:root:not([data-theme='dark']) .atl-stage {
+  background: #bcd8e6;
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 40px -22px rgba(31, 50, 72, 0.65);
+}
+/* 자막 판은 지도의 종이를 그대로 이어받는다 — 지도 아래에 덧댄 여백처럼 */
+:root:not([data-theme='dark']) .atl-caption {
+  background: #faf4e6;
+  color: #4a3f2c;
+}
+:root:not([data-theme='dark']) .atl-caption__text {
+  color: rgba(74, 63, 44, 0.78);
+}
+:root:not([data-theme='dark']) .atl-caption__text--hook {
+  color: #4a3f2c;
+}
+:root:not([data-theme='dark']) .atl-seek {
+  background: rgba(74, 63, 44, 0.16);
+}
+
+/* 여백의 삽화 — 경로·핀 아래에 깔린다(MapCanvas 의 순서). 다크에는 종이 그림이
+   뜨므로 밤 지도 그림이 생길 때까지 감춘다 */
+.atl-decor {
+  opacity: 0.85;
+  pointer-events: none;
+}
+/* 다크에서는 같은 그림의 달빛 버전을 쓴다(MapCanvas 가 src 를 고른다) —
+   밤 종이 위에서도 읽히도록 낮보다 조금 더 진하게 얹는다 */
+[data-theme='dark'] .atl-decor {
+  opacity: 0.95;
+}
+
+.atl-compass {
+  position: absolute;
+  left: 0.55rem;
+  top: 0.5rem;
+  width: 2.6rem;
+  opacity: 0.85;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
