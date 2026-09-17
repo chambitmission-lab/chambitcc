@@ -24,6 +24,8 @@
 // stale-while-revalidate 가 백그라운드로 갱신한다. 어느 쪽이든 CSS 와 같은 경로여야 한다.
 import { preloadBudget } from './idlePreload'
 import { getNaturalSeason, type NaturalSeason } from './naturalSeason'
+import { deriveTimeOfDay } from '../hooks/useDailyMeditation'
+import type { TimeOfDay } from '../types/meditation'
 import alarmHeroLight from '../assets/verse-alarm/hero-light.webp'
 import alarmHeroDark from '../assets/verse-alarm/hero-dark.webp'
 import alarmBandLight from '../assets/verse-alarm/mobile-band-light.webp'
@@ -34,6 +36,12 @@ import classHeroLight from '../assets/classes/hero-light.webp'
 import classHeroDark from '../assets/classes/hero-dark.webp'
 import thanksHeroLight from '../assets/thanks/hero-light.webp'
 import thanksHeroDark from '../assets/thanks/hero-dark.webp'
+import growthHeroMorningLight from '../assets/growth/hero-morning-light.webp'
+import growthHeroMorningDark from '../assets/growth/hero-morning-dark.webp'
+import growthHeroAfternoonLight from '../assets/growth/hero-afternoon-light.webp'
+import growthHeroAfternoonDark from '../assets/growth/hero-afternoon-dark.webp'
+import growthHeroEveningLight from '../assets/growth/hero-evening-light.webp'
+import growthHeroEveningDark from '../assets/growth/hero-evening-dark.webp'
 import heroSpringDay from '../assets/hero/spring-afternoon.webp'
 import heroSummerDay from '../assets/hero/afternoon.webp'
 import heroAutumnDay from '../assets/hero/autumn-afternoon.webp'
@@ -151,6 +159,22 @@ export const MISSION_HERO: ThemePair = { light: missionHeroLight, dark: missionH
 export const CLASS_HERO: ThemePair = { light: classHeroLight, dark: classHeroDark }
 /** /thanks 오늘의 말씀 히어로 (Thanks.css) — 감사 항아리에 쪽지를 넣는 양 */
 export const THANKS_HERO: ThemePair = { light: thanksHeroLight, dark: thanksHeroDark }
+/** /growth 신앙 여정 히어로 (GrowthHero.css) — 같은 능선의 시간대 3장 × 테마 2장.
+ *  홈 묵상 카드와 같은 시간대 판정(deriveTimeOfDay)을 쓰고, CSS 는 시간대 클래스로 고른다. */
+export const GROWTH_HERO_BY_TIME: Record<TimeOfDay, ThemePair> = {
+  morning: { light: growthHeroMorningLight, dark: growthHeroMorningDark },
+  afternoon: { light: growthHeroAfternoonLight, dark: growthHeroAfternoonDark },
+  evening: { light: growthHeroEveningLight, dark: growthHeroEveningDark },
+}
+/** 지금 시간대의 쌍 — 세 장을 다 받지 않게 getter 로 지금 것만 노출한다(/greeting 과 같은 방식) */
+export const GROWTH_HERO: ThemePair = {
+  get light() {
+    return GROWTH_HERO_BY_TIME[deriveTimeOfDay(new Date().getHours())].light
+  },
+  get dark() {
+    return GROWTH_HERO_BY_TIME[deriveTimeOfDay(new Date().getHours())].dark
+  },
+}
 /** /visit 히어로 사진 — Visit.tsx 가 인라인 style 로 고른다(라이트=낮, 다크=밤) */
 export const VISIT_HERO: ThemePair = { light: '/images/visit/church-day.webp', dark: '/images/visit/church-night.webp' }
 
@@ -217,6 +241,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/rooms$/, pairs: [ROOMS_HERO] },
   { match: /^\/classes$/, pairs: [CLASS_HERO] },
   { match: /^\/thanks$/, pairs: [THANKS_HERO] },
+  { match: /^\/growth$/, pairs: [GROWTH_HERO] },
   { match: /^\/capsule$/, pairs: [CAPSULE_HERO] },
   { match: /^\/groups\/(?!join\/)[^/]+$/, pairs: [GROUP_DETAIL_HERO] },
   { match: /^\/bible$/, pairs: [READING_HERO, RESUME_CARD] },

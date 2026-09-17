@@ -1,17 +1,24 @@
 import type { GrowthSummaryData } from '../../../types/growth'
 import { SproutIcon } from '../../../components/icons/GrowthIcons'
-// 홈 묵상 카드의 아침 히어로와 같은 사진 — 여명빛이 "빛을 향해 자라나는 여정" 서사와 맞닿는다
-import heroMorning from '../../../assets/hero/morning.webp'
+import { deriveTimeOfDay } from '../../../hooks/useDailyMeditation'
+import { useThemeArt } from '../../../hooks/useThemeArt'
+import { GROWTH_HERO } from '../../../utils/themeAssets'
+import './GrowthHero.css'
 
 interface GrowthHeroProps {
   summary: GrowthSummaryData
 }
 
-/** 여정의 첫 카드 — 함께한 일수 + 한 줄 요약 (여명 사진 배경) */
+/** 여정의 첫 카드 — 함께한 일수 + 한 줄 요약.
+ *  배경은 같은 능선을 시간대로 갈아 끼우는 삽화(오전 발자국 / 오후 능선 / 저녁 등불) ×
+ *  라이트·다크. 홈 묵상 카드와 같은 시간대 판정을 쓴다 — 프롬프트는 docs/growth-hero-bg-prompts.md */
 const GrowthHero = ({ summary }: GrowthHeroProps) => {
   const { days_together, headline, sub, has_activity } = summary
   // 구버전 백엔드 문구("N일째, …")가 오더라도 큰 숫자와 중복되지 않게 정리
   const narrative = headline.replace(/^\d+\s*일째[,，]?\s*/, '')
+  const timeOfDay = deriveTimeOfDay(new Date().getHours())
+  // 도착 전 반쪽 그림이 깜빡이지 않게 페이드인(반대 테마는 토글 직전에 미리 받아 둔다)
+  const artReady = useThemeArt(GROWTH_HERO)
 
   return (
     <div className="px-4 pt-4">
@@ -22,18 +29,13 @@ const GrowthHero = ({ summary }: GrowthHeroProps) => {
           dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_12px_28px_rgba(0,0,0,0.35)]
         "
       >
-        {/* 배경 사진 — 텍스트가 좌측에 모이므로 우상단의 해는 그대로 살린다 */}
-        <img
-          src={heroMorning}
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        />
-        {/* 스크림 — 텍스트 구간(좌하단)만 어둡게, 빛(우상단)은 남긴다 */}
+        {/* 배경 삽화 — 텍스트가 좌측·하단에 모이므로 우상단(일출·달·등불)만 밝게 남긴다 */}
         <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/65 via-black/35 to-black/10"
+          className={`growth-hero-art growth-hero-art--${timeOfDay}${artReady ? ' is-loaded' : ''}`}
           aria-hidden="true"
         />
+        {/* 스크림 — 텍스트 구간(좌·하단)만 어둡게, 빛(우상단)은 남긴다. 테마별 겹수는 CSS */}
+        <div className="growth-hero-scrim" aria-hidden="true" />
 
         <div className="relative">
           <div className="flex items-center gap-2 mb-3">
