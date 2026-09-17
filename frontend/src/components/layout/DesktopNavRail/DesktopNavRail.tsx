@@ -3,6 +3,16 @@ import { HeavenLetterIcon } from '../../icons/HeavenLetterIcon'
 // 나누기 다이얼 아이콘 — 기도 작성 모달과 같은 Phosphor duotone 세트를 재사용한다
 // (컬러 이모지는 OS 폰트마다 생김새가 달라 메뉴 톤이 기기별로 흔들렸음)
 import { ImageIcon, PrayIcon, ThanksHandIcon } from '../../../pages/Home/components/EmotionIcons'
+// 내비 글리프도 같은 Phosphor 세트 — 비활성은 굵은 선(bold), 활성은 면이 차오르는 duotone
+import {
+  BookOpenText,
+  House,
+  ImageSquare,
+  Path,
+  Timer,
+  UserCircle,
+  UsersThree,
+} from '../../icons/phosphor'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { useTheme } from '../../../contexts/ThemeContext'
@@ -21,6 +31,9 @@ import { useDesktopRailVisible } from './useDesktopRailVisible'
 const RailSpinner = () => (
   <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
 )
+
+/** 내비 글리프 공통 크기 — 활성만 duotone 으로 면이 차오른다 */
+const GLYPH = 24
 
 // 나누기 다이얼 인사 — 모바일 홈 FAB(BottomNavigation)과 같은 문구 로테이션
 const DIAL_GREETING_KEYS = [
@@ -129,31 +142,27 @@ const DesktopNavRail = () => {
   const isGrowthActive = pathname === '/growth'
   const isProfileActive = pathname === '/profile'
 
-  // 하단 도크와 같은 스트로크 1.8 아이콘 언어 유지. 활성 항목만 굵게 (인스타 문법)
+  // 활성 항목은 꽉 찬 브랜드 알약(흰 글자) — 좌측 바 인디케이터 없이 이것만으로 "지금 여기"가 읽힌다.
   const itemClass = (active: boolean) =>
-    `group relative flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-xl px-0 xl:px-3 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
+    `group relative flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-full px-0 xl:px-3.5 active:scale-[0.97] transition-[color,background-color,box-shadow,transform] duration-150 ${
       active
-        ? 'text-brand bg-[var(--brand-soft)]'
-        : 'text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)]'
+        ? 'text-white bg-[linear-gradient(150deg,#4593fc,var(--brand-dim))] shadow-[0_8px_18px_-8px_var(--brand-glow)]'
+        : 'text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)]'
     }`
-  const ActiveBar = () => (
-    <span
-      className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-brand"
-      aria-hidden
-    />
-  )
 
   const labelClass = (active: boolean) =>
     `hidden xl:inline text-[15px] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`
 
   return (
     <aside
-      // 레일은 배경과 한 몸 — 크롬(헤더 + 레일)을 캔버스와 같은 톤(--desktop-chrome)으로 깐다.
-      // 세로 헤어라인도, 흰 레일 vs 회색 캔버스의 세로 이음새도 없다(둘 다 어색하다는 피드백).
-      // 화면의 층은 오직 "바닥(캔버스) / 떠 있는 흰 카드" 둘뿐이다.
-      className="hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-[var(--desktop-chrome)] px-3 xl:px-4 pt-6 pb-5"
+      // 레일 자리(fixed 폭)는 그대로 두고, 그 안에 여백을 준 카드를 띄운다.
+      // 화면의 층은 여전히 "바닥(캔버스) / 떠 있는 카드" 둘뿐 — 예전처럼 캔버스와 맞닿는
+      // 흰 패널이 아니라 사방에 여백이 있는 카드라서 세로 이음새가 생기지 않는다.
+      // 본문 오프셋(App.tsx lg:pl-[76px] xl:pl-[248px])은 이 바깥 폭 기준이라 건드리지 않는다.
+      className="hidden lg:block fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] p-2.5 xl:p-3"
       aria-label={t('railAria')}
     >
+     <div className="h-full flex flex-col rounded-[26px] bg-[var(--surface-container)] border border-black/[0.055] dark:border-white/[0.07] shadow-[0_12px_32px_-22px_rgba(16,24,40,0.5)] px-2.5 xl:px-3 pt-4 pb-3.5">
       <nav className="flex flex-col gap-1">
         {/* 홈 — 홈에서 다시 누르면 최상단 스크롤 */}
         <button
@@ -162,19 +171,7 @@ const DesktopNavRail = () => {
           aria-current={isHomeActive ? 'page' : undefined}
           className={itemClass(isHomeActive)}
         >
-          {isHomeActive && <ActiveBar />}
-          <svg
-            className="w-[26px] h-[26px] shrink-0"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={isHomeActive ? 2.2 : 1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            viewBox="0 0 24 24"
-          >
-            <path d="M3 11.5 12 3l9 8.5" />
-            <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
-          </svg>
+          <House size={GLYPH} weight={isHomeActive ? 'duotone' : 'bold'} className="shrink-0" />
           <span className={labelClass(isHomeActive)}>{t('home')}</span>
           <RailTip label={t('home')} />
         </button>
@@ -188,11 +185,14 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/bible'}
           className={itemClass(isBibleActive)}
         >
-          {isBibleActive && <ActiveBar />}
           {pendingPath === '/bible' ? (
             <RailSpinner />
           ) : (
-            <span className="material-icons-outlined text-[26px] shrink-0">menu_book</span>
+            <BookOpenText
+              size={GLYPH}
+              weight={isBibleActive ? 'duotone' : 'bold'}
+              className="shrink-0"
+            />
           )}
           <span className={labelClass(isBibleActive)}>{t('bible')}</span>
           <RailTip label={t('bible')} />
@@ -209,19 +209,7 @@ const DesktopNavRail = () => {
           {pendingPath === '/prayer-focus' ? (
             <RailSpinner />
           ) : (
-            <svg
-              className="w-[26px] h-[26px] shrink-0"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M10 2.5h4" />
-              <circle cx="12" cy="14" r="7.5" />
-              <path d="M12 14l2.7-2.7" />
-            </svg>
+            <Timer size={GLYPH} weight="bold" className="shrink-0" />
           )}
           <span className={labelClass(false)}>{t('railPrayerFocus')}</span>
           <RailTip label={t('railPrayerFocus')} />
@@ -236,23 +224,14 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/bible/photo-verse'}
           className={itemClass(isVerseCardActive)}
         >
-          {isVerseCardActive && <ActiveBar />}
           {pendingPath === '/bible/photo-verse' ? (
             <RailSpinner />
           ) : (
-            <svg
-              className="w-[26px] h-[26px] shrink-0"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="4.5" width="18" height="15" rx="2.5" />
-              <circle cx="9" cy="10" r="1.6" />
-              <path d="M4 17.5l4.8-4.8 3.2 3.2 3.5-3.5 4.5 4.5" />
-            </svg>
+            <ImageSquare
+              size={GLYPH}
+              weight={isVerseCardActive ? 'duotone' : 'bold'}
+              className="shrink-0"
+            />
           )}
           <span className={labelClass(isVerseCardActive)}>{t('railVerseCard')}</span>
           <RailTip label={t('railVerseCard')} />
@@ -267,24 +246,14 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/groups'}
           className={itemClass(isGroupsActive)}
         >
-          {isGroupsActive && <ActiveBar />}
           {pendingPath === '/groups' ? (
             <RailSpinner />
           ) : (
-            <svg
-              className="w-[26px] h-[26px] shrink-0"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={isGroupsActive ? 2.2 : 1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="9" cy="8.5" r="3.2" />
-              <path d="M3.2 19.5v-.5a5.8 5.8 0 0 1 11.6 0v.5" />
-              <path d="M15.4 5.9a3.2 3.2 0 1 1 .9 6.3" />
-              <path d="M17 13.6a5.8 5.8 0 0 1 3.8 5.4v.5" />
-            </svg>
+            <UsersThree
+              size={GLYPH}
+              weight={isGroupsActive ? 'duotone' : 'bold'}
+              className="shrink-0"
+            />
           )}
           <span className={labelClass(isGroupsActive)}>{t('railGroups')}</span>
           <RailTip label={t('railGroups')} />
@@ -299,23 +268,10 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/growth'}
           className={itemClass(isGrowthActive)}
         >
-          {isGrowthActive && <ActiveBar />}
           {pendingPath === '/growth' ? (
             <RailSpinner />
           ) : (
-            <svg
-              className="w-[26px] h-[26px] shrink-0"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={isGrowthActive ? 2.2 : 1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 21.5v-8.5" />
-              <path d="M12 13c0-3.6 2.7-6.1 6.7-6.1-.2 3.9-2.9 6.1-6.7 6.1Z" />
-              <path d="M12 10.3c0-2.9-2.2-4.9-5.4-4.9.2 3.1 2.3 4.9 5.4 4.9" />
-            </svg>
+            <Path size={GLYPH} weight={isGrowthActive ? 'duotone' : 'bold'} className="shrink-0" />
           )}
           <span className={labelClass(isGrowthActive)}>{t('railGrowth')}</span>
           <RailTip label={t('railGrowth')} />
@@ -330,22 +286,14 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/profile'}
           className={itemClass(isProfileActive)}
         >
-          {isProfileActive && <ActiveBar />}
           {pendingPath === '/profile' ? (
             <RailSpinner />
           ) : (
-            <svg
-              className="w-[26px] h-[26px] shrink-0"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
-            </svg>
+            <UserCircle
+              size={GLYPH}
+              weight={isProfileActive ? 'duotone' : 'bold'}
+              className="shrink-0"
+            />
           )}
           <span className={labelClass(isProfileActive)}>{t('profile')}</span>
           <RailTip label={t('profile')} />
@@ -355,7 +303,7 @@ const DesktopNavRail = () => {
       {/* 나눔 액션 — X/인스타 데스크톱 문법의 단일 주 CTA. 누르면 모바일 홈 FAB과
           같은 3액션 스피드 다이얼(기도·감사·말씀 카드)이 팝오버로 열린다.
           두 버튼을 세로로 쌓던 이전 형태보다 위계가 분명하고 확장에도 유리하다 */}
-      <div className="mt-6 relative flex flex-col items-center xl:items-stretch">
+      <div className="mt-5 relative flex flex-col items-center xl:items-stretch">
         {dialOpen && (
           <>
             {/* 바깥 클릭으로 닫기 */}
@@ -494,6 +442,7 @@ const DesktopNavRail = () => {
           <RailTip label={t('allMenu')} placement="top" />
         </button>
       </div>
+     </div>
     </aside>
   )
 }

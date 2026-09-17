@@ -84,6 +84,10 @@ const PresencePillPreview = import.meta.env.DEV
 const PeoplePreview = import.meta.env.DEV
   ? lazy(() => import('./pages/People/PeoplePreview'))
   : null
+// PC 좌측 내비 레일 — 아이콘/항목 디자인 시안 비교
+const NavRailPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/dev/NavRailPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -448,6 +452,9 @@ function App() {
                 )}
                 {PeoplePreview && (
                   <Route path="/dev/people" element={<PeoplePreview />} />
+                )}
+                {NavRailPreview && (
+                  <Route path="/dev/nav-rail" element={<NavRailPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
