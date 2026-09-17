@@ -120,12 +120,9 @@
    삽화에 자기 칸을 주어 겹침 자체를 없앴다. contain 으로 담고 왼쪽 가장자리는
    mask 로 흐려, 에셋에 구워진 광륜이 원형 스티커처럼 도드라지지 않게 한다.
 
-   면은 브랜드 블루 한 칸 — 예전의 옅은 블루 틴트는 배경·숫자·게이지·아래 타일이 모두
-   같은 파랑이라 강약이 없었다. 히어로만 채우고 글자를 반전시키면 파랑이
-   "진행률 = 성취"의 색으로 정리되고, 흰 타일 위에서 이 칸만 앞으로 나온다.
-   남색(#0f2f6b)까지 내리면 화면에서 이 칸만 무거워지므로 브랜드 블루 언저리에 머문다 —
-   왼쪽 아래가 진하고 오른쪽 위로 갈수록 밝아지는 대각 그라데이션.
-   라이트/다크 모두 같은 파랑 계열 — 이 카드는 두 테마에서 같은 얼굴이다. */
+   면은 옅은 블루 틴트 그대로 둔다 — 딥 블루/브랜드 블루로 채워 봤지만,
+   책 삽화 에셋에 "흰 배경용 광륜"이 구워져 있어 색이 있는 면 위에서는 책이 푸르게 뭉개진다.
+   삽화를 살리려면 면은 흰색에 가까워야 한다(2026-09 검증). */
 .reading-hero {
   position: relative;
   display: flex;
@@ -133,21 +130,19 @@
   gap: 0.85rem;
   padding: 0.95rem 1rem 0.9rem;
   border-radius: 16px;
+  /* 평평한 단색 대신 우상단으로 아주 얕게 기우는 그라데이션 + 1px 빛줄 */
   background:
-    radial-gradient(120% 120% at 100% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
-    linear-gradient(35deg, #2e7aec 0%, #4a91f6 52%, #70aefd 100%);
-  background-color: #4a91f6;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    radial-gradient(130% 110% at 100% 0%, rgba(49, 130, 246, 0.16), transparent 62%),
+    linear-gradient(168deg, #f3f8ff 0%, #e7f0ff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   overflow: hidden;
 }
 
-/* 다크에서는 채도·명도를 한 단 낮춰 — 어두운 화면에서 이 칸만 형광등처럼 뜨지 않게 */
 [data-theme="dark"] .reading-hero {
   background:
-    radial-gradient(120% 120% at 100% 0%, rgba(255, 255, 255, 0.12), transparent 58%),
-    linear-gradient(35deg, #2062c6 0%, #3a7fdf 52%, #5b9bf4 100%);
-  background-color: #3a7fdf;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    radial-gradient(130% 110% at 100% 0%, rgba(69, 147, 252, 0.2), transparent 62%),
+    linear-gradient(168deg, #1c2532 0%, #151b25 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .reading-hero__top {
@@ -173,30 +168,25 @@
   /* 카드 안쪽 여백만큼 살짝 내밀어, 에셋에 구워진 광륜의 오른쪽 끝이 카드 밖으로 나간다 —
      원 테두리가 안 보이니 책만 놓인 것처럼 읽힌다(책 자체는 contain 이라 잘리지 않는다) */
   margin-right: -0.6rem;
-  /* 두 테마 모두 라이트 에셋 — 남색 면 위에서는 흰 책이 또렷하다.
-     다크 에셋은 남색 광륜이 얼룩으로 남는다. 왼쪽은 글자 쪽으로 흐리고(linear),
-     바깥 테두리는 한 겹 더 흐려(radial) 광륜이 원반처럼 보이지 않게 한다 */
+  /* 에셋의 광륜이 면 색과 같은 계열이어야 자연스럽다 — 테마별로 짝을 맞춘다 */
   background-image: url('/images/bible/reading-hero-light.webp');
   background-size: contain;
   background-position: right center;
   background-repeat: no-repeat;
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, #000 38%),
-    radial-gradient(closest-side at 50% 50%, #000 66%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to right, transparent 0%, #000 38%),
-    radial-gradient(closest-side at 50% 50%, #000 66%, transparent 100%);
-  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 38%);
 }
 
-/* 라벨은 한 단 물러서고 숫자가 앞으로 — 셋이 같은 굵기로 늘어서 있던 예전 위계를 정리.
-   딥 블루 면 위라 색은 토큰(--text-*)이 아니라 흰색 투명도로 잡는다 */
+[data-theme="dark"] .reading-hero__art {
+  background-image: url('/images/bible/reading-hero-dark.webp');
+}
+
+/* 라벨은 한 단 물러서고(muted) 숫자가 앞으로 — 셋이 같은 굵기로 늘어서 있던 예전 위계를 정리 */
 .reading-hero__label {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
 }
 
 .reading-hero__value {
@@ -206,8 +196,8 @@
   letter-spacing: -0.05em;
   font-variant-numeric: tabular-nums;
   /* 숫자에만 아주 얕은 세로 그라데이션 — 단색 한 겹보다 깊게 앉는다 */
-  color: #ffffff;
-  background: linear-gradient(175deg, #ffffff 10%, #cfe2ff 100%);
+  color: var(--brand);
+  background: linear-gradient(175deg, var(--brand) 12%, var(--brand-dim) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -231,7 +221,7 @@
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-body);
 }
 
 .reading-hero__cheer-tail {
@@ -243,7 +233,7 @@
   margin-left: 0.3rem;
   font-size: 1rem;
   vertical-align: -0.18em;
-  color: #cfe2ff;
+  color: var(--brand);
 }
 
 /* 게이지 — 막대는 폭 전체를 쓰고, 읽은 장/남은 장이 그 아래 양 끝에 선다.
@@ -259,7 +249,8 @@
   display: block;
   height: 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(49, 130, 246, 0.16);
+  box-shadow: inset 0 1px 2px rgba(20, 60, 120, 0.08);
   overflow: hidden;
 }
 
@@ -272,19 +263,28 @@
   pointer-events: none;
   background-image: linear-gradient(
     90deg,
-    transparent 0 calc(25% - 1px), rgba(21, 74, 156, 0.3) calc(25% - 1px) 25%,
-    transparent 25% calc(50% - 1px), rgba(21, 74, 156, 0.3) calc(50% - 1px) 50%,
-    transparent 50% calc(75% - 1px), rgba(21, 74, 156, 0.3) calc(75% - 1px) 75%,
+    transparent 0 calc(25% - 1px), rgba(255, 255, 255, 0.72) calc(25% - 1px) 25%,
+    transparent 25% calc(50% - 1px), rgba(255, 255, 255, 0.72) calc(50% - 1px) 50%,
+    transparent 50% calc(75% - 1px), rgba(255, 255, 255, 0.72) calc(75% - 1px) 75%,
     transparent 75%
   );
+}
+
+[data-theme="dark"] .reading-hero__track {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .reading-hero__track::after {
+  opacity: 0.55;
 }
 
 .reading-hero__fill {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #dbeaff 0%, #ffffff 60%);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+  background: linear-gradient(90deg, #62a6ff 0%, var(--brand) 78%, var(--brand-dim) 100%);
+  box-shadow: 0 0 10px rgba(49, 130, 246, 0.45);
   transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -299,7 +299,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: #ffffff;
+  color: var(--brand);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -309,7 +309,7 @@
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--text-muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
