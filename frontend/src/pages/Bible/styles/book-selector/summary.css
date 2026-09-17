@@ -120,10 +120,12 @@
    삽화에 자기 칸을 주어 겹침 자체를 없앴다. contain 으로 담고 왼쪽 가장자리는
    mask 로 흐려, 에셋에 구워진 광륜이 원형 스티커처럼 도드라지지 않게 한다.
 
-   면은 딥 블루 한 칸 — 예전의 옅은 블루 틴트는 배경·숫자·게이지·아래 타일이 모두
-   같은 파랑이라 강약이 없었다. 히어로만 진하게 깔고 글자를 반전시키면 파랑이
+   면은 브랜드 블루 한 칸 — 예전의 옅은 블루 틴트는 배경·숫자·게이지·아래 타일이 모두
+   같은 파랑이라 강약이 없었다. 히어로만 채우고 글자를 반전시키면 파랑이
    "진행률 = 성취"의 색으로 정리되고, 흰 타일 위에서 이 칸만 앞으로 나온다.
-   라이트/다크 모두 같은 남색 계열 — 이 카드는 두 테마에서 같은 얼굴이다. */
+   남색(#0f2f6b)까지 내리면 화면에서 이 칸만 무거워지므로 브랜드 블루 언저리에 머문다 —
+   왼쪽 아래가 진하고 오른쪽 위로 갈수록 밝아지는 대각 그라데이션.
+   라이트/다크 모두 같은 파랑 계열 — 이 카드는 두 테마에서 같은 얼굴이다. */
 .reading-hero {
   position: relative;
   display: flex;
@@ -132,20 +134,20 @@
   padding: 0.95rem 1rem 0.9rem;
   border-radius: 16px;
   background:
-    radial-gradient(125% 120% at 100% 0%, rgba(130, 185, 255, 0.38), transparent 60%),
-    linear-gradient(160deg, #2060bd 0%, #0f2f6b 100%);
-  background-color: #123a7d;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    radial-gradient(120% 120% at 100% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
+    linear-gradient(35deg, #2e7aec 0%, #4a91f6 52%, #70aefd 100%);
+  background-color: #4a91f6;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
   overflow: hidden;
 }
 
-/* 다크에서는 같은 남색을 한 단 낮춰 — 어두운 화면에서 이 칸만 형광등처럼 뜨지 않게 */
+/* 다크에서는 채도·명도를 한 단 낮춰 — 어두운 화면에서 이 칸만 형광등처럼 뜨지 않게 */
 [data-theme="dark"] .reading-hero {
   background:
-    radial-gradient(125% 120% at 100% 0%, rgba(110, 170, 250, 0.3), transparent 60%),
-    linear-gradient(160deg, #1b4f9e 0%, #0c2550 100%);
-  background-color: #0f3068;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    radial-gradient(120% 120% at 100% 0%, rgba(255, 255, 255, 0.12), transparent 58%),
+    linear-gradient(35deg, #2062c6 0%, #3a7fdf 52%, #5b9bf4 100%);
+  background-color: #3a7fdf;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 .reading-hero__top {
@@ -257,7 +259,7 @@
   display: block;
   height: 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.28);
   overflow: hidden;
 }
 
@@ -270,9 +272,9 @@
   pointer-events: none;
   background-image: linear-gradient(
     90deg,
-    transparent 0 calc(25% - 1px), rgba(16, 45, 95, 0.45) calc(25% - 1px) 25%,
-    transparent 25% calc(50% - 1px), rgba(16, 45, 95, 0.45) calc(50% - 1px) 50%,
-    transparent 50% calc(75% - 1px), rgba(16, 45, 95, 0.45) calc(75% - 1px) 75%,
+    transparent 0 calc(25% - 1px), rgba(21, 74, 156, 0.3) calc(25% - 1px) 25%,
+    transparent 25% calc(50% - 1px), rgba(21, 74, 156, 0.3) calc(50% - 1px) 50%,
+    transparent 50% calc(75% - 1px), rgba(21, 74, 156, 0.3) calc(75% - 1px) 75%,
     transparent 75%
   );
 }
@@ -281,8 +283,8 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #8ec2ff 0%, #ffffff 100%);
-  box-shadow: 0 0 12px rgba(180, 215, 255, 0.55);
+  background: linear-gradient(90deg, #dbeaff 0%, #ffffff 60%);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
   transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
