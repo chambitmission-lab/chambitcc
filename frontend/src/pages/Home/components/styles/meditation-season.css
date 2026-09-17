@@ -1,0 +1,158 @@
+/* ── 교회력 절기 리본 ──
+ * 한 해를 절기 색 구간(대림-성탄-주현-사순-부활-연중)으로 펼친다.
+ * 각 구간은 옅은 절기색 트랙, 지나온 날만큼 진한 절기색으로 채워지고
+ * 오늘이 속한 구간은 은은한 글로우 + 채움 끝에 빛 마커가 놓인다. */
+.meditation-ribbon {
+  display: flex;
+  gap: 3px;
+  /* 버튼 상하 패딩이 히트 영역을 만들므로 시각 높이(7px)보다 크다 */
+  margin: -9px 0;
+}
+
+/* 구간 = 탭 가능한 버튼 — 보이지 않는 상하 패딩으로 터치 영역 확보 */
+.meditation-ribbon-seg {
+  --ribbon-c: #34d399; /* ordinary 기본 */
+  position: relative;
+  flex-basis: 0;
+  min-width: 4px;
+  padding: 9px 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: block;
+}
+
+/* 시각적 트랙 — 옅은 절기색 바탕 */
+.meditation-ribbon-track {
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ribbon-c) 16%, transparent);
+}
+
+/* 절기별 색 — 전통 전례색을 앱 다크 팔레트에 맞게 순화 */
+.meditation-ribbon-seg[data-season='advent'] { --ribbon-c: #818cf8; }   /* 대림 — 청보라 */
+.meditation-ribbon-seg[data-season='christmas'] { --ribbon-c: #fcd34d; } /* 성탄 — 금빛 */
+.meditation-ribbon-seg[data-season='epiphany'] { --ribbon-c: #7dd3fc; }  /* 주현 — 별빛 하늘 */
+.meditation-ribbon-seg[data-season='lent'] { --ribbon-c: #c084fc; }      /* 사순 — 자색 */
+.meditation-ribbon-seg[data-season='easter'] { --ribbon-c: #fbbf24; }    /* 부활 — 새벽 금빛 */
+.meditation-ribbon-seg[data-season='ordinary'] { --ribbon-c: #34d399; }  /* 연중 — 초록 */
+
+.meditation-ribbon-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ribbon-c);
+  transition: width 0.6s ease;
+}
+
+/* 오늘이 속한 절기 — 살아있는 구간임을 알리는 글로우 */
+.meditation-ribbon-seg.is-current .meditation-ribbon-track {
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ribbon-c) 50%, transparent);
+}
+
+/* 오늘 위치의 별 — 오디오 플레이어의 네 갈래 별과 같은 형태.
+ * 후광은 현재 절기 색으로 숨 쉬듯 맥동한다. */
+.meditation-ribbon-star {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  color: #ffffff;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ribbon-c) 90%, white));
+}
+
+.meditation-ribbon-star svg {
+  position: relative;
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
+.meditation-ribbon-star::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ribbon-c) 45%, transparent);
+  filter: blur(3px);
+  animation: meditation-star-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes meditation-star-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meditation-ribbon-star::before {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+.meditation-season-tag {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 6px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* 교회력 절기별 액센트 — 사진 위에 앉으므로 테마와 무관하게
+ * 파스텔 채움 + 진한 글자(시안의 '활동' 칩). 팔레트는 아래 절기 리본과 동일 계열 */
+.meditation-season-tag[data-season="advent"] { background: rgba(224, 231, 255, 0.92); border-color: rgba(165, 180, 252, 0.6); color: #3730a3; }
+.meditation-season-tag[data-season="christmas"] { background: rgba(254, 243, 199, 0.92); border-color: rgba(252, 211, 77, 0.6); color: #854d0e; }
+.meditation-season-tag[data-season="epiphany"] { background: rgba(224, 242, 254, 0.92); border-color: rgba(125, 211, 252, 0.6); color: #075985; }
+.meditation-season-tag[data-season="lent"] { background: rgba(243, 232, 255, 0.92); border-color: rgba(192, 132, 252, 0.6); color: #6b21a8; }
+.meditation-season-tag[data-season="easter"] { background: rgba(254, 243, 199, 0.92); border-color: rgba(251, 191, 36, 0.6); color: #92400e; }
+.meditation-season-tag[data-season="ordinary"] { background: rgba(209, 250, 229, 0.92); border-color: rgba(110, 231, 183, 0.6); color: #065f46; }
+.meditation-season-tag[data-season] { text-shadow: none; }
+
+/* ── 인사말 줄 앞 절기 칩 ──
+ * 하단 파스텔 알약을 그대로 옮기면 한 줄 안에서 너무 무겁다. 같은 절기색을
+ * 옅게 머금은 유리 칩으로 낮추고, 글자는 절기색을 띤 밝은 톤으로 — 흰 인사말과
+ * 한 호흡으로 읽히면서 오늘이 어떤 절기인지만 살짝 얹는다. */
+.meditation-season-tag.is-inline {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 7px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: 1px;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.34);
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.meditation-season-tag.is-inline[data-season="advent"] { background: rgba(129, 140, 248, 0.3); border-color: rgba(199, 210, 254, 0.5); color: #e0e7ff; }
+.meditation-season-tag.is-inline[data-season="christmas"] { background: rgba(251, 191, 36, 0.3); border-color: rgba(253, 230, 138, 0.5); color: #fef3c7; }
+.meditation-season-tag.is-inline[data-season="epiphany"] { background: rgba(56, 189, 248, 0.3); border-color: rgba(186, 230, 253, 0.5); color: #e0f2fe; }
+.meditation-season-tag.is-inline[data-season="lent"] { background: rgba(168, 85, 247, 0.3); border-color: rgba(216, 180, 254, 0.5); color: #f3e8ff; }
+.meditation-season-tag.is-inline[data-season="easter"] { background: rgba(245, 158, 11, 0.3); border-color: rgba(252, 211, 77, 0.5); color: #fef3c7; }
+.meditation-season-tag.is-inline[data-season="ordinary"] { background: rgba(52, 211, 153, 0.32); border-color: rgba(167, 243, 208, 0.52); color: #d1fae5; }
+.meditation-season-tag.is-inline[data-season] { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); }
+

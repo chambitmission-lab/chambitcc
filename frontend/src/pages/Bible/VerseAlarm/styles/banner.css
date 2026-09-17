@@ -1,0 +1,110 @@
+/* ── 푸시 상태 배너 ── */
+.va-banner {
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 구독 상태 확인 중 자리 잡기용 — 배너와 같은 높이로 레이아웃 점프 방지 */
+.va-banner-skeleton {
+  height: 52px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  background: var(--surface-container-high);
+  animation: va-pulse 1.4s ease-in-out infinite;
+}
+
+.va-banner--ok {
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.va-banner--warn {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.va-banner--action {
+  background: var(--brand-soft);
+  color: var(--text-strong);
+  justify-content: space-between;
+}
+
+.va-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.va-banner-text span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.va-enable-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--on-brand);
+  background: var(--brand);
+  cursor: pointer;
+}
+
+.va-enable-btn:hover {
+  background: var(--brand-dim);
+}
+
+.va-enable-btn:disabled {
+  opacity: 0.6;
+}
+
+/* iOS 설치 안내 */
+.va-banner--guide {
+  flex-direction: column;
+  align-items: stretch;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  color: var(--text-strong);
+  gap: 10px;
+}
+
+.va-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.va-banner-title .material-icons-round {
+  color: var(--brand);
+  font-size: 20px;
+}
+
+.va-guide-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.va-guide-steps strong {
+  color: var(--brand);
+}
+
+.va-guide-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+

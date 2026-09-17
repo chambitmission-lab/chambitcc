@@ -1,0 +1,96 @@
+/* ── 날씨 앰비언트 — 비(빗줄기)·눈(❄️)만. 계절 장식은 두지 않는다 ──
+ * 히어로 사진과 같은 마스크를 공유해 카드 본문으로 넘어가기 전에 함께
+ * 사라진다. 장식일 뿐이므로 포인터를 막지 않고, 모션 최소화 설정을 존중. */
+.meditation-hero-ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 42%,
+    rgba(0, 0, 0, 0.75) 62%,
+    rgba(0, 0, 0, 0.3) 82%,
+    transparent 99%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black 42%,
+    rgba(0, 0, 0, 0.75) 62%,
+    rgba(0, 0, 0, 0.3) 82%,
+    transparent 99%
+  );
+}
+
+.meditation-ambient-particle {
+  position: absolute;
+  top: -20px;
+  opacity: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+  animation: meditation-ambient-fall var(--fall-duration, 14s) linear infinite;
+  animation-delay: var(--fall-delay, 0s);
+  will-change: transform, opacity;
+}
+
+@keyframes meditation-ambient-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--fall-opacity, 0.5);
+  }
+  85% {
+    opacity: var(--fall-opacity, 0.5);
+  }
+  100% {
+    /* 히어로 높이(192px)를 살짝 넘겨 마스크 소멸 구간까지 통과시킨다 */
+    transform: translate3d(var(--fall-drift, 16px), 220px, 0) rotate(60deg);
+    opacity: 0;
+  }
+}
+
+/* 빗줄기 — 이모지가 아니라 위가 투명한 얇은 사선 스트릭.
+ * 사진 위에서 과하지 않게 1px 폭 + 낮은 불투명도로 흐른다. */
+.meditation-rain-drop {
+  position: absolute;
+  top: -24px;
+  width: 1px;
+  height: var(--drop-length, 15px);
+  border-radius: 1px;
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(214, 233, 255, 0.85) 100%
+  );
+  animation: meditation-rain-fall var(--fall-duration, 1.15s) linear infinite;
+  animation-delay: var(--fall-delay, 0s);
+  will-change: transform, opacity;
+}
+
+@keyframes meditation-rain-fall {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--fall-opacity, 0.45);
+  }
+  88% {
+    opacity: var(--fall-opacity, 0.45);
+  }
+  100% {
+    /* 살짝 왼쪽으로 기울여 바람 맞은 비처럼 보이게 한다 */
+    transform: translate3d(-12px, 232px, 0);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meditation-ambient-particle,
+  .meditation-rain-drop {
+    display: none;
+  }
+}
+

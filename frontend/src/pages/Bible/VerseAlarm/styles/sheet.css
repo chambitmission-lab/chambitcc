@@ -1,0 +1,260 @@
+/* ── 편집 바텀시트 ── */
+.va-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.va-sheet {
+  width: 100%;
+  max-width: 560px;
+  background: var(--surface-container);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
+  animation: va-sheet-up 0.25s ease;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+
+@keyframes va-sheet-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.va-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 35%, transparent);
+  margin: 0 auto 14px;
+}
+
+.va-sheet-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin-bottom: 16px;
+}
+
+/* 시간 선택 — 시계판 피커 */
+.va-clock-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.va-clock-digits {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.va-clock-digits button {
+  min-width: 72px;
+  border: none;
+  background: var(--surface-container-high);
+  color: var(--text-strong);
+  border-radius: 14px;
+  padding: 8px 14px;
+  font-size: 2.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.va-clock-digits button.is-active {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.va-time-colon {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.va-ampm {
+  display: flex;
+  gap: 6px;
+}
+
+.va-ampm-btn {
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.va-ampm-btn.is-active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+}
+
+.va-clock {
+  display: block;
+  width: min(64vw, 224px);
+  margin: 0 auto 18px;
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.va-clock-face {
+  fill: var(--surface-container-high);
+}
+
+.va-clock-hand {
+  stroke: var(--brand);
+  stroke-width: 2;
+}
+
+.va-clock-pivot {
+  fill: var(--brand);
+}
+
+.va-clock-sel {
+  fill: var(--brand);
+}
+
+.va-clock-sel-dot {
+  fill: var(--on-brand);
+}
+
+.va-clock-num {
+  fill: var(--text-body);
+  font-size: 13px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.va-clock-num.is-selected {
+  fill: var(--on-brand);
+  font-weight: 700;
+}
+
+/* 요일 선택 */
+.va-days-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.va-day-chip {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.va-day-chip.is-weekend {
+  color: #e06a5e;
+}
+
+.va-day-chip.is-active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+}
+
+.va-day-presets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.va-day-presets button {
+  border: none;
+  background: var(--brand-soft);
+  color: var(--brand);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.va-day-presets button:hover {
+  background: var(--brand-soft-strong);
+}
+
+/* 이름 입력 */
+.va-label-input {
+  width: 100%;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  background: transparent;
+  color: var(--text-strong);
+  margin-bottom: 20px;
+}
+
+.va-label-input::placeholder {
+  color: var(--text-muted);
+}
+
+.va-label-input:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+/* 시트 액션 */
+.va-sheet-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.va-sheet-actions .va-primary-btn {
+  flex: 1;
+}
+
+.va-cancel-btn {
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.va-delete-btn {
+  border: none;
+  background: transparent;
+  color: #e5484d;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: auto;
+}
+

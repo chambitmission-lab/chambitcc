@@ -1,0 +1,39 @@
+/* ── 빈 상태 / 스켈레톤 ── */
+.va-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  word-break: keep-all; /* 한글이 단어 중간에서 끊기지 않게 */
+}
+
+/* 빈 상태 앰블럼 — 이모지 대신 브랜드 tint 원 + 선화 아이콘 */
+.va-empty-emblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+.va-skeleton {
+  height: 84px;
+  border-radius: 16px;
+  background: var(--surface-container-high);
+  animation: va-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes va-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+

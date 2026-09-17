@@ -1,0 +1,153 @@
+/* 실황 날씨 칩 — 우측 상단 프로스티드 유리. 어떤 사진 위에서도 읽히도록
+ * 반투명 배경 + 블러 + 얇은 하이라이트 보더 (iOS 위젯 문법) */
+/* 우상단 클러스터 — 날씨 칩과 알람 버튼을 한 줄에 나란히.
+ * 카드 모서리에서 한 뼘 떼어 놓는다 — 14px면 라운드 코너와 겹쳐 보여
+ * 칩이 배경에 붙어 있는 것처럼 답답하게 읽힌다 */
+.meditation-hero-top {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meditation-weather-chip {
+  /* 클러스터 안에서는 흐름을 타되, 스켈레톤 시머(::after inset:0)의
+   * 기준 상자가 되도록 relative는 유지한다 */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  background: rgba(20, 24, 32, 0.38);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* 날씨 로딩 자리표시자 — 칩과 같은 유리 모양·크기의 빈 알약.
+ * 내용이 없으므로 폭을 직접 잡아준다(⛅ 24° 기준).
+ * 본문 스켈레톤과 같은 시머 스윕을 쓴다(히어로 사진 위라 항상 다크 유리).
+ * position은 덮어쓰지 않는다 — relative로 바꾸면 인라인 흐름을 타고
+ * 히어로 좌측 상단에 잠깐 나타났다 사라진다(시머 ::after는 absolute로도 담긴다). */
+.meditation-weather-chip.is-skeleton {
+  overflow: hidden;
+  width: 66px;
+  height: 30px;
+  padding: 0;
+  background: rgba(20, 24, 32, 0.24);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.meditation-weather-chip.is-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: meditation-shimmer 1.5s ease-in-out infinite;
+}
+
+/* 비·눈 오는 날은 칩도 젖은 톤(푸른 유리)으로 바뀐다 */
+.meditation-weather-chip[data-wet] {
+  background: rgba(24, 40, 64, 0.46);
+  border-color: rgba(178, 214, 255, 0.32);
+}
+
+.meditation-weather-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.meditation-weather-temp {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 강수확률 — 기온과 구분되게 얇은 세로선 뒤 작은 숫자 */
+.meditation-weather-pop {
+  padding-left: 6px;
+  border-left: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(196, 226, 255, 0.95);
+  font-variant-numeric: tabular-nums;
+}
+
+.meditation-hero-text {
+  /* absolute가 아니라 플렉스 흐름 — 속삭임이 붙어 블록이 자라면 히어로가
+   * (min-height를 넘어) 같이 자라, 넓은 화면에서 빈 하늘이 남지 않는다.
+   * relative는 앰비언트(absolute 레이어)가 텍스트를 덮지 않게 하는 스태킹용. */
+  position: relative;
+  /* 페이드가 시작되기 전, 사진이 아직 선명한 구간에 앉힌다.
+   * 좌우 여백은 본문(.meditation-body 18px)보다 2px 넉넉하게 — 사진 위 글자는
+   * 배경과 붙으면 실제 여백보다 더 좁아 보인다. */
+  /* 하단은 본문 패널(-22px)이 덮고 올라오는 만큼 + 숨 쉴 틈 */
+  margin: 0 20px 46px;
+}
+
+.meditation-hero-greeting {
+  /* 인사말과 헤드라인이 붙어 한 덩어리로 뭉치지 않게 한 줄 사이를 벌린다 */
+  margin: 0 0 8px;
+  /* 절기 칩이 앞에 붙으므로 줄바꿈되어도 높이가 고르게 */
+  line-height: 1.5;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* 날씨 실패 시에만 붙는 폴백 이모지 — 늦게 나타나도 튀지 않게 부드럽게 */
+.meditation-hero-greeting-emoji {
+  animation: meditation-emoji-in 0.35s ease-out both;
+}
+
+@keyframes meditation-emoji-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meditation-hero-greeting-emoji {
+    animation: none;
+  }
+}
+
+/* 헤드라인 속 강조 낱말 — '빛나는' 같은 말에 아침 햇살 한 줄기.
+ * 사진 위이므로 색은 어떤 배경에서도 살아나는 따뜻한 금빛 그라데이션,
+ * 흰 글자와 나란히 놓여도 튀지 않게 채도는 낮춰 잡았다. */
+.meditation-hero-accent {
+  background: linear-gradient(100deg, #ffefb5 0%, #ffd383 45%, #ffb659 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  /* clip된 글자에 text-shadow는 상자에 남아 번져 보인다 — drop-shadow로 대체 */
+  text-shadow: none;
+  filter: drop-shadow(0 2px 7px rgba(0, 0, 0, 0.45));
+}
+
+.meditation-hero-headline {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.32;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+

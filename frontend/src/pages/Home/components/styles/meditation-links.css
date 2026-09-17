@@ -1,0 +1,58 @@
+/* ── 구절 알람 진입 버튼 (우상단 클러스터) ──
+ * 날씨 칩과 같은 높이·같은 유리 톤으로 맞춰 한 쌍처럼 읽히게 한다 */
+.meditation-alarm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  background: rgba(20, 24, 32, 0.38);
+  color: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background 0.15s ease;
+}
+
+.meditation-alarm-btn:hover {
+  background: rgba(20, 24, 32, 0.55);
+}
+
+.meditation-alarm-btn .material-icons-round {
+  font-size: 17px;
+}
+
+/* ── 1분 묵상 이어가기 링크 (질문 블록 하단) —
+   카드 안 액션 색은 브랜드 블루 하나로 통일 (금색은 응답/영광 전용 액센트) ── */
+.meditation-deepen-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 9px;
+  border: none;
+  background: transparent;
+  /* 카드 안 파란 요소가 셋(주 CTA·보조 CTA·이 링크)이면 우선순위가 흐려진다.
+     인라인 링크는 채도를 낮춘 스틸 블루로 한 계단 내려둔다. */
+  color: var(--brand-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.meditation-deepen-link:hover {
+  color: var(--brand);
+}
+
+.meditation-deepen-link .material-icons-round {
+  font-size: 16px;
+  transition: transform 0.15s ease;
+}
+
+.meditation-deepen-link:hover .material-icons-round {
+  transform: translateX(3px);
+}

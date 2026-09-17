@@ -1,0 +1,41 @@
+/* ── 버튼 ── */
+.va-add-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  border: none;
+  border-radius: 16px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.va-add-btn:hover {
+  background: var(--brand-soft-strong);
+}
+
+.va-primary-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--on-brand);
+  background: var(--brand);
+  cursor: pointer;
+}
+
+.va-primary-btn:hover {
+  background: var(--brand-dim);
+}
+
+.va-primary-btn:disabled {
+  opacity: 0.6;
+}
+
