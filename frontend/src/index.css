@@ -114,6 +114,15 @@ body {
   overflow-x: hidden;
   /* html과 동일 — 실제 스크롤 컨테이너가 body라서 여기에도 걸어야 확실히 막힌다 */
   overscroll-behavior-y: none;
+  /* 스크롤바 자리를 항상 비워 둔다 (PC 클래식 스크롤바 15px).
+     이게 없으면 "페이지가 화면보다 긴가"에 따라 본문 폭이 15px 널뛰고,
+     가운데 정렬(mx-auto) 셸은 그 절반인 7.5px 씩 좌우로 미끄러진다.
+     성경 섹션에서 특히 티가 났다 — 좌측 레일(BibleSideRail)은 슬롯의 left 를
+     재서 따라가는 fixed 요소라, 읽기·검색·플랜·지도여행·단어장·가계도를
+     오갈 때마다(그리고 데이터가 늦게 도착해 스크롤바가 뒤늦게 생길 때마다)
+     메뉴가 7.5px 씩 움직였다.
+     오버레이 스크롤바(모바일·macOS)에선 아무 자리도 차지하지 않으므로 무해하다. */
+  scrollbar-gutter: stable;
   width: 100%;
   max-width: 100vw;
   background-color: var(--ig-secondary-background);
