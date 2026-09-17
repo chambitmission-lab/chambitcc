@@ -12,6 +12,8 @@ import { loadDeferredFonts } from './utils/deferredFonts'
 // index.html 의 preload 와 곧바로 매칭된다 (Pretendard 핵심 조각·아이콘 폰트)
 import './styles/pretendard.css'
 import './styles/material-icons.css'
+// PC 크롬(헤더·좌측 레일) 전용 G마켓 산스 — lg+ 에서만 쓰이므로 모바일은 내려받지 않는다
+import './styles/gmarket-sans.css'
 import './index.css'
 import './styles/theme.css'
 import './styles/common.css'
@@ -37,6 +39,7 @@ loadDeferredFonts()
 // dev 전용 — 서브셋에 없는 Material Icons 이름을 콘솔로 경고 (프로덕션 번들에서 제거됨)
 if (import.meta.env.DEV) {
   void import('./utils/materialIconsCheck').then((m) => m.startMaterialIconsCheck())
+  void import('./utils/gmarketSansCheck').then((m) => m.startGmarketSansCheck())
 }
 
 // Strict Mode는 개발/프로덕션 모두에서 활성화

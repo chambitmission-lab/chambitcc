@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# G마켓 산스 원본(600KB×2) — 서브셋만 커밋한다. `npm run gen:gmarket-sans` 가 자동으로 내려받음
+scripts/gmarket-sans/

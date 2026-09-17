@@ -61,7 +61,6 @@ const VERSE_SAMPLES = [
 
 const DailyMeditationCardPreview = () => {
   const qc = useQueryClient()
-  const [ready, setReady] = useState(false)
   const [sample, setSample] = useState(0)
 
   useEffect(() => {
@@ -72,10 +71,9 @@ const DailyMeditationCardPreview = () => {
       ...MOCK,
       verse: { ...MOCK.verse, reference: s.reference, text: s.text },
     })
-    setReady(true)
   }, [qc, sample])
 
-  if (!ready) return null
+  // 캐시가 채워지기 전 첫 프레임은 카드 자체의 스켈레톤이 받는다
   return (
     <div className="home" style={{ maxWidth: 480, margin: '0 auto', paddingTop: 12 }}>
       <div style={{ display: 'flex', gap: 6, padding: '0 16px 10px' }}>

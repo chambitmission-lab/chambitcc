@@ -11,7 +11,8 @@
     "deploy:ghpages": "npm run build -- --base=/chambitcc/ && gh-pages -d dist",
     "check-env": "node check-env.js",
     "gen:icons": "node scripts/gen-phosphor-icons.mjs",
-    "gen:material-icons": "python3 scripts/gen-material-icons.py"
+    "gen:material-icons": "python3 scripts/gen-material-icons.py",
+    "gen:gmarket-sans": "python3 scripts/gen-gmarket-sans.py"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",

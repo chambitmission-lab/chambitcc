@@ -112,7 +112,8 @@ const NewHeader = () => {
       {/* 메뉴가 열리면 헤더(와 그 안의 드롭다운 메뉴)를 하단 dock(z-100) 위,
           모달류(z-110+) 아래로 올린다 — 평소 z-60을 유지해야 모달이 헤더를 덮을 수 있음 */}
       <header
-        className={`fixed top-0 left-0 right-0 ${
+        // chrome-type: 좌측 레일과 함께 G마켓 산스로 그리는 "앱의 틀" (styles/gmarket-sans.css, lg+ 에서만)
+        className={`chrome-type fixed top-0 left-0 right-0 ${
           isMenuOpen ? 'z-[105]' : 'z-[60]'
         } max-lg:bg-white/85 max-lg:dark:bg-background-dark/85 lg:bg-[var(--desktop-chrome-blur)] backdrop-blur-xl border-b transition-[border-color,box-shadow] duration-200 ${
           scrolled || isMenuOpen

@@ -1,0 +1,57 @@
+/* G마켓 산스 — PC 크롬(상단 헤더 + 좌측 레일) 전용 서체
+ * scripts/gen-gmarket-sans.py 가 만든 서브셋(두 벌 합쳐 ~40KB)을 self-host 한다.
+ *
+ * 왜 여기만: 헤더·레일은 "앱의 틀"이고 본문은 Pretendard 가 읽기를 맡는다.
+ *   서체가 둘로 갈리는 게 아니라, 틀과 내용의 역할이 갈린다.
+ * 왜 lg+ 에서만: 좌측 레일과 헤더 인라인 메뉴는 lg(1024px) 이상에서만 존재한다.
+ *   폰트는 "실제로 쓰이는 글자가 렌더될 때"만 내려받으므로, 규칙 전체를 미디어쿼리
+ *   안에 두면 모바일은 이 파일을 한 바이트도 받지 않는다. 모바일 헤더(로고+아이콘)는
+ *   지금처럼 Pretendard 로 남는다.
+ *
+ * 주의: 메뉴 문구를 바꾸면 `npm run gen:gmarket-sans` 를 다시 돌릴 것 —
+ * 서브셋에 없는 글자만 Pretendard 로 떨어져 한 단어 안에서 서체가 섞인다.
+ * (dev 에서는 utils/gmarketSansCheck.ts 가 콘솔로 알려준다)
+ *
+ * G마켓 산스: 지마켓 제공, 무료 배포·상업적 사용 가능. */
+
+@font-face {
+  font-family: 'Gmarket Sans';
+  font-style: normal;
+  /* 원본은 Light/Medium/Bold 3종뿐인 정적 폰트다. 앱이 쓰는 400~600 을 Medium 한 벌로,
+     700~900 을 Bold 한 벌로 받아 합성 굵기(가짜 볼드)가 생기지 않게 범위를 넓게 잡는다. */
+  font-weight: 100 600;
+  font-display: swap;
+  src: url('../assets/fonts/gmarket-sans-medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Gmarket Sans';
+  font-style: normal;
+  font-weight: 601 900;
+  font-display: swap;
+  src: url('../assets/fonts/gmarket-sans-bold.woff2') format('woff2');
+}
+
+/* 적용 — 루트 두 곳에만 선언하고 나머지는 상속으로 내려간다.
+ * `*` 로 덮지 않는 이유: Material Icons 스팬은 자기 font-family 를 직접 갖는데,
+ * 상속은 그 선언을 이기지 못하므로 아이콘이 안전하게 남는다(덮으면 리가처 원문이
+ * "chevron_right" 글자로 그대로 보인다). */
+@media (min-width: 1024px) {
+  .chrome-type {
+    font-family:
+      'Gmarket Sans', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont,
+      system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    /* 자폭이 Pretendard 보다 넓고 획이 평평하다. 전역 -0.02em 을 그대로 두면
+       글자가 서로 붙어 보이므로 크롬 안에서만 자간을 되돌린다. */
+    letter-spacing: -0.005em;
+  }
+
+  /* 본문 폰트로 되돌릴 자리 — 사람이 쓴 내용이나 숫자 데이터는 Pretendard 가 낫다.
+     (레일 하단 프로필 이름 등, 메뉴 라벨이 아닌 값) */
+  .chrome-type .chrome-type-off {
+    font-family:
+      'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui,
+      'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
