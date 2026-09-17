@@ -1,0 +1,117 @@
+/* ── 네비 (렌즈 토글 + 연대 칩) ───────────────────────────
+   #root에 overflow-y:auto가 걸려 있어 position:sticky가 먹지 않는다.
+   그래서 sentinel이 헤더 위로 올라가면 .is-pinned로 fixed 전환한다. */
+.history-nav-sentinel {
+  height: 1px;
+  margin-top: 18px;
+  scroll-margin-top: 58px; /* 고정 헤더 밑에 정확히 붙게 */
+}
+
+.history-nav-slot {
+  position: relative;
+}
+
+.history-nav {
+  z-index: 30;
+  margin: 0 12px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-nav.is-pinned {
+  position: fixed;
+  top: 56px; /* 고정 헤더 높이 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100vw - 24px), 424px);
+  margin: 0;
+  box-shadow: 0 8px 24px rgba(28, 25, 45, 0.14);
+}
+
+:root[data-theme='dark'] .history-nav.is-pinned,
+.dark .history-nav.is-pinned {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.history-lens-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-inset);
+}
+
+.history-lens-toggle button {
+  padding: 8px 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.history-lens-toggle button.active {
+  background: var(--surface-container);
+  color: var(--brand);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.history-decade-chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.history-decade-chips button {
+  position: relative;
+  padding: 7px 0;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.history-decade-chips button.active {
+  /* 인장(도장) 문법 — /news 마커·/events 칩과 같은 감각:
+     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  border-color: transparent;
+  color: var(--on-brand);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 4px 12px -6px var(--brand-glow);
+}
+
+.history-decade-chips button.active::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .history-decade-chips button.active {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 4px 14px -6px rgba(69, 147, 252, 0.45);
+}
+

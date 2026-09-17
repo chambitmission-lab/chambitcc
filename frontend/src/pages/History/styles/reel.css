@@ -1,0 +1,115 @@
+/* ── 이정표 가로 릴 ───────────────────────────────────── */
+.hreel {
+  margin-top: 26px;
+}
+
+.hreel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-bottom: 12px;
+}
+
+.hreel-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-strong);
+}
+
+.hreel-count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hreel-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.hreel-track {
+  display: flex;
+  gap: 10px;
+  padding: 2px 20px 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.hreel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.hreel-track > li {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+.hreel-card {
+  width: 148px;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  text-align: left;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.hreel-card:active {
+  transform: scale(0.97);
+}
+
+.hreel-card:hover {
+  border-color: var(--brand-soft-strong);
+}
+
+.hreel-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 16px;
+}
+
+.hreel-year {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.hreel-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+

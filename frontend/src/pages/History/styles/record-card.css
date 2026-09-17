@@ -1,0 +1,119 @@
+/* ── 기록 카드 (두 렌즈 공용) ─────────────────────────── */
+.hrec {
+  position: relative;
+  margin-bottom: 8px;
+  padding-left: 16px;
+  scroll-margin-top: 172px; /* 이정표 릴에서 점프해 올 때 고정 네비에 가리지 않게 */
+}
+
+.hrec-marker {
+  position: absolute;
+  left: -22px;
+  top: 14px;
+  width: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.hrec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--brand);
+  box-sizing: border-box;
+}
+
+.hrec-icon {
+  width: 28px;
+  height: 28px;
+  margin-left: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-container);
+  border: 1.5px solid var(--brand-soft-strong);
+  box-shadow: 0 0 0 4px var(--brand-soft);
+  color: var(--brand);
+  font-size: 14px;
+  transform: translateY(-6px);
+}
+
+.hrec-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  padding: 12px 14px;
+  cursor: default;
+  transition: border-color 0.18s ease, box-shadow 0.3s ease;
+}
+
+.hrec-card.is-collapsible {
+  cursor: pointer;
+}
+
+.hrec.is-milestone .hrec-card {
+  border-color: var(--brand-soft-strong);
+  background: linear-gradient(0deg, var(--brand-soft), var(--brand-soft)), var(--surface-container);
+}
+
+.hrec.is-flashed .hrec-card {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+.hrec-date {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 3px;
+}
+
+.hrec-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.45;
+  color: var(--text-strong);
+  margin-bottom: 4px;
+  word-break: keep-all;
+}
+
+.hrec-text {
+  display: block;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-body);
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.hrec.is-milestone .hrec-text {
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.hrec-text.is-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hrec-more {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand);
+}
+

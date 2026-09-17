@@ -1,0 +1,64 @@
+/* ── 에필로그 ─────────────────────────────────────────── */
+.history-epilogue {
+  margin: 44px 16px 0;
+  padding: 36px 20px;
+  border-radius: 22px;
+  background: var(--brand);
+  text-align: center;
+}
+
+.history-epilogue-copy {
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: var(--on-brand);
+}
+
+.history-epilogue-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.history-epilogue-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.history-epilogue-actions button {
+  padding: 13px 0;
+  border-radius: 14px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.history-epilogue-actions button:active {
+  transform: scale(0.98);
+}
+
+.history-epilogue-actions .primary {
+  background: #ffffff;
+  color: var(--brand-dim);
+}
+
+.history-epilogue-actions button:not(.primary) {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hmap-col,
+  .hreel-card,
+  .hthm-card,
+  .hyear-chevron,
+  .hrec-card {
+    transition: none;
+  }
+}
+

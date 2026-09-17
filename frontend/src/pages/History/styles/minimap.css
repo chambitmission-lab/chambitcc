@@ -1,0 +1,121 @@
+/* ── 32년 미니맵 ──────────────────────────────────────── */
+.hmap {
+  margin: 4px 16px 0;
+  padding: 16px 16px 12px;
+  border-radius: 20px;
+}
+
+.hmap-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.hmap-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.hmap-title span {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0 2px;
+}
+
+.hmap-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.hmap-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  height: 72px;
+}
+
+/* 한 해 = 한 컬럼. 좌우 1px 패딩이 막대 사이 2px 여백을 만든다. */
+.hmap-col {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  padding: 0 1px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.38;
+  transition: opacity 0.2s ease;
+}
+
+.hmap-col.is-active {
+  opacity: 1;
+}
+
+.hmap-col:hover {
+  opacity: 1;
+}
+
+.hmap-bar {
+  display: block;
+  width: 100%;
+  height: var(--h, 0px);
+  min-height: 0;
+  border-radius: 3px 3px 0 0;
+  background: var(--brand);
+}
+
+/* 이정표 표시 — 막대와 헷갈리지 않게 가운데 점 하나로 찍는다. */
+.hmap-tick {
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.hmap-tick.has-milestone {
+  background: var(--brand);
+  box-shadow: 0 0 0 1.5px var(--surface-container);
+}
+
+.hmap-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--card-border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.hmap-legend-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
+}
+
