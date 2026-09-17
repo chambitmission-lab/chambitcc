@@ -172,6 +172,12 @@
     border-bottom: none;
     padding: 1.25rem 1rem 0.25rem;
   }
+  /* 흰 읽기 판이 회색 캔버스·좌측 레일과 만나는 좌상단 모서리만 둥글게 —
+     직각으로 맞물리면 판이 화면에 붙어 보인다. 오른쪽·아래는 화면 밖으로
+     이어지므로 모서리가 노출되지 않아 그대로 둔다. */
+  .bible-chapter-section {
+    border-top-left-radius: 18px;
+  }
   /* 해석 패널 도킹 시 본문 칼럼이 비키는 규칙은 아래 .bible-chapter-inner 블록에 있다 */
 }
 
