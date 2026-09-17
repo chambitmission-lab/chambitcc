@@ -1,0 +1,190 @@
+/* ── 스타일 컨트롤 ─────────────────────────────────────── */
+.pv-controls {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pv-section__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* 스타일 프리셋 스트립 — 내 사진·말씀으로 각 룩을 실제로 그린 썸네일 */
+.pv-presets {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 6px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pv-presets::-webkit-scrollbar {
+  display: none;
+}
+
+.pv-preset {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pv-preset__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 105px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-inset);
+  border: 2px solid var(--card-border);
+  transition: border-color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.pv-preset__thumb {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+.pv-preset--active .pv-preset__frame {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+  transform: scale(1.04);
+}
+
+.pv-preset__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pv-preset--active .pv-preset__name {
+  color: var(--brand);
+}
+
+/* 세부 조정 — 접힌 상태가 기본. 프리셋으로 충분한 사람에게는 도구가 보이지 않는다 */
+.pv-details-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pv-details-toggle .material-icons-round:first-child {
+  color: var(--brand);
+}
+
+.pv-details-toggle__chevron {
+  margin-left: auto;
+  font-size: 20px;
+  color: var(--text-muted);
+  transition: transform 0.18s ease;
+}
+
+.pv-details-toggle--open .pv-details-toggle__chevron {
+  transform: rotate(180deg);
+}
+
+.pv-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0 2px;
+  animation: pv-details-in 0.18s ease;
+}
+
+@keyframes pv-details-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 레이아웃 프리셋 스트립 — 완성된 구도를 도식 썸네일로 고른다 */
+.pv-layouts {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pv-layouts::-webkit-scrollbar {
+  display: none;
+}
+
+.pv-layout {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pv-layout__thumb {
+  width: 46px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.12s ease, transform 0.12s ease, color 0.12s ease;
+}
+
+.pv-layout__thumb svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pv-layout--active .pv-layout__thumb {
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+  transform: scale(1.05);
+}
+
+.pv-layout__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pv-layout--active .pv-layout__name {
+  color: var(--brand);
+}
+

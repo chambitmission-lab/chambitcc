@@ -1,0 +1,154 @@
+/* 절기 프레임 안내 — 지금 절기에만 찍히는 스탬프 */
+.pv-season-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand);
+  margin-top: -6px;
+}
+
+/* 감성 필터 스트립 — 내 사진에 필터를 입힌 실사 썸네일 */
+.pv-filters {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pv-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.pv-filter {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pv-filter__thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 2px solid var(--card-border);
+  display: block;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.pv-filter--active .pv-filter__thumb {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+  transform: scale(1.05);
+}
+
+.pv-filter__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pv-filter--active .pv-filter__name {
+  color: var(--brand);
+}
+
+/* 감성 배경 스와치 — 인트로/에디터 공용 */
+.pv-bg-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pv-bg-row::-webkit-scrollbar {
+  display: none;
+}
+
+.pv-bg-dot {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pv-bg-dot__swatch {
+  width: 44px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--card-border);
+  display: block;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.pv-bg-dot--active .pv-bg-dot__swatch {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+  transform: scale(1.05);
+}
+
+.pv-bg-dot__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pv-bg-dot--active .pv-bg-dot__name {
+  color: var(--brand);
+}
+
+.pv-bg-section {
+  padding-top: 4px;
+}
+
+.pv-bg-section__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.pv-swatches {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.pv-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--card-border);
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.pv-swatch--active {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+  transform: scale(1.1);
+}
+
+.pv-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+

@@ -1,0 +1,72 @@
+/* 세그먼트 컨트롤 (서체/정렬) */
+.pv-seg {
+  display: inline-flex;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 2px;
+}
+
+.pv-seg__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pv-seg__item--active {
+  background: var(--surface-container);
+  color: var(--brand);
+  box-shadow: var(--card-shadow);
+}
+
+.pv-toggle {
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pv-toggle--active {
+  background: var(--brand-soft-strong);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.pv-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+}
+
+.pv-slider-label {
+  color: var(--text-muted);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pv-slider-label--small {
+  font-size: 12px;
+}
+
+.pv-slider-label--big {
+  font-size: 20px;
+}
+
+.pv-slider {
+  flex: 1;
+  accent-color: var(--brand);
+}
+

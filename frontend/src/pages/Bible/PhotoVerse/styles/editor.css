@@ -1,0 +1,78 @@
+/* ── 편집 화면 ─────────────────────────────────────────── */
+.pv-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.pv-canvas-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface-inset);
+}
+
+.pv-canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 52vh;
+  width: auto;
+  height: auto;
+  border-radius: 16px;
+  /* 드래그 중 페이지 스크롤 방지 */
+  touch-action: none;
+  cursor: grab;
+}
+
+.pv-canvas:active {
+  cursor: grabbing;
+}
+
+.pv-drag-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* 말씀/사진 교체 칩 */
+.pv-source-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.pv-source-chip {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  border: 1px solid var(--card-border);
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pv-source-chip .material-icons-round {
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.pv-source-chip__action {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
