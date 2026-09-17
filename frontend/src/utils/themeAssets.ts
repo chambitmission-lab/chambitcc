@@ -110,6 +110,14 @@ export const VERSE_SCENE: ThemePair = {
   light: '/images/home/verse-scene-light.webp',
   dark: '/images/home/verse-scene-dark.webp',
 }
+/** PC 좌측 레일 하단 삽화 (DesktopNavRail.tsx 인라인 스타일) — 언덕 위 작은 예배당.
+ * 배경이 레일 색(--desktop-chrome)과 같은 평면이라, 그 토큰이 바뀌면 에셋도 다시 구워야 한다.
+ * 모든 페이지에 뜨지만 xl(1280px+) 레일에서만 쓰므로, 매니페스트(ROUTE_ASSETS)가 아니라
+ * 레일이 useThemeArt 로 조건부 등록한다 — 좁은 화면 사용자에게는 파일을 물리지 않는다. */
+export const RAIL_BOTTOM: ThemePair = {
+  light: '/images/rail/bottom-light.webp',
+  dark: '/images/rail/bottom-dark.webp',
+}
 /** 홈 공지 배너 마스코트 (HomeNotice.tsx 인라인 스타일) */
 export const NOTICE_BANNER: ThemePair = { light: '/images/notice/banner-light.webp', dark: '/images/notice/banner-dark.webp' }
 /** /bible 통독표 히어로 (book-selector.css) — 테마 쌍 중 가장 큰 파일(71~92KB) */

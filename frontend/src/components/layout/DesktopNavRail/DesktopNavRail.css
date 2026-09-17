@@ -1,0 +1,48 @@
+/* ── PC 좌측 레일 하단 삽화 ────────────────────────────────────────
+   메뉴 7개와 하단 유틸(테마·전체 메뉴) 사이에 남는 세로를 그림이 가져간다.
+   언덕 위 작은 예배당 — 다크에서는 창 한 칸에만 불이 켜져 있다.
+
+   ★ 이 그림은 "장면"이 아니라 "배경에 스며드는 마크"다. 1차에는 하늘·달무리까지 들어간
+     완성된 장면을 깔았는데, 레일 폭에서 좌우가·구분선에서 아래가 직각으로 끊겨
+     레일 안에 사진 액자가 하나 생겼다. 2차 에셋은 배경이 레일 색과 같은 완전 평면이고
+     능선이 사방으로 녹아 사라지도록 그려졌다.
+   ★ 그래도 마스크로 네 변을 한 번 더 지운다 — webp 손실 압축이 평면 배경을 1레벨쯤
+     밀어 놓기 때문에(라이트 실측: #f1f3f6 → #f2f3f7), 마스크가 없으면 그 1레벨 차이가
+     직사각형 경계로 보인다. 4:2:0 크로마라 사전 보정으로는 정확히 맞출 수 없다.
+   ★ 세로가 화면마다 크게 변한다(짧은 노트북 ~190px, 27" ~490px). `bottom` 으로 바닥에
+     붙이고 위가 잘리게 둔다 — 그림 위 절반은 빈 배경이라 어디서 잘려도 장면이 안 상한다.
+     상단 페이드를 에셋에 구우면 안 되는 이유도 이것이다(잘리는 위치가 매번 다르다).
+   ★ 높이 티어가 tall(실측 780px 초과)일 때만 보인다. 그보다 짧으면 능선 밑동만 남는다.
+     @media (max-height) 는 설치형 PWA 에서 안 걸리므로 index.html 이 찍는 data-vh-tier 를 쓴다. */
+.rail-bottom-art {
+  display: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* 좌우 패딩(px-4)을 뚫고 레일 폭 248px 을 꽉 채운다 */
+  margin: 0.5rem -1rem 0;
+  background-size: 100% auto;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  /* 네 변 모두 배경으로 녹인다 — 그림이 실제로 그려진 구간(세로 48~87%, 좌우 6~94%)은
+     건드리지 않는 범위다 */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 40%, #000 93%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 40%, #000 93%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  mask-composite: intersect;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+/* ★ 폭 조건도 여기서 — Tailwind 의 `hidden xl:block`(특이도 0,1,0)에 맡기면
+   아래 `:root[...] .rail-bottom-art`(0,2,0)가 이겨서 좁은 아이콘 바에서도 나온다 */
+@media (min-width: 1280px) {
+  :root[data-vh-tier='tall'] .rail-bottom-art {
+    display: block;
+  }
+}
+/* 파일이 도착한 뒤에 떠오른다 — 빈 칸에서 그림이 툭 나타나지 않게 */
+.rail-bottom-art.is-loaded {
+  opacity: 1;
+}

@@ -3,6 +3,7 @@
 
     python docs/gemini-unwatermark.py 입력.png [출력.png]
     python docs/gemini-unwatermark.py ~/Downloads/2.png          # → 2-clean.png
+    python docs/gemini-unwatermark.py ~/Downloads/1.png --min-step=4   # 아주 밝은 그림
 
 인페인트가 **아니다**. ✦ 는 순수 흰색(255)을 일정 알파로 올린 하드 글리프라
 `I = bg(1-a) + 255a` 가 정확히 성립하고, 모양·알파만 알면 `bg = (I - 255a)/(1-a)` 로
@@ -45,7 +46,7 @@ SS = 8                 # 피복률 슈퍼샘플링 격자 (8x8)
 
 
 # ── 1. 글리프 대략 위치 잡기 ──────────────────────────────────────────
-def rough_mask(gray, x1, x2, y1, y2, M=81):
+def rough_mask(gray, x1, x2, y1, y2, M=81, min_step=12.0):
     """✦ 가 덮는 자리를 거칠게 표시한다 (정확한 모양은 3단계에서 알파 값으로 맞춘다).
 
     ☠ 행마다 밝기 계단으로 좌우 끝을 찾는 방식은 쓰면 안 된다 — 별 오른쪽에 걸친 들꽃·풀이
@@ -62,7 +63,7 @@ def rough_mask(gray, x1, x2, y1, y2, M=81):
     sym = (hp + hp[:, ::-1] + hp[::-1, :] + hp[::-1, ::-1])/4.0
     cy, cx = sym.shape[0]//2, sym.shape[1]//2
     plateau = float(np.median(sym[cy-4:cy+4, cx-4:cx+4]))
-    if plateau < 12.0:
+    if plateau < min_step:
         raise SystemExit("✦ 를 못 찾았다 — 이미 지웠거나 워터마크가 없는 그림이다.")
     # ★ 중심에 붙은 덩어리만 남긴다 — 대칭화해도 밝은 들꽃이 문턱을 넘는 자리가 남고,
     #   그게 마스크에 섞이면 하모닉 구멍이 상자 가장자리까지 번져 터진다.
@@ -184,8 +185,16 @@ def ring_excess(gray, sd, cx, cy):
 
 
 def main():
-    src = os.path.expanduser(sys.argv[1])
-    dst = (os.path.expanduser(sys.argv[2]) if len(sys.argv) > 2
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    # ★ 밝은 그림에서는 단차가 아주 작다 — 흰 ✦ 를 이미 밝은 배경(220대)에 올리면
+    #   같은 알파라도 눈에 보이는 차이는 +9 정도밖에 안 된다. 기본 문턱(12)에 걸려
+    #   "워터마크 없음"으로 빠지므로 그런 그림은 --min-step 으로 낮춰 준다.
+    min_step = 12.0
+    for a in sys.argv[1:]:
+        if a.startswith("--min-step="):
+            min_step = float(a.split("=", 1)[1])
+    src = os.path.expanduser(args[0])
+    dst = (os.path.expanduser(args[1]) if len(args) > 1
            else os.path.splitext(src)[0] + "-clean.png")
 
     full = np.asarray(Image.open(src).convert("RGBA")).astype(np.float64)
@@ -201,7 +210,7 @@ def main():
     y1, y2 = int(cy-0.5)-R+1, int(cy+0.5)+R
     img = full[y1:y2, x1:x2, :3].copy()
 
-    rough, plateau = rough_mask(gray0, x1, x2, y1, y2)
+    rough, plateau = rough_mask(gray0, x1, x2, y1, y2, min_step=min_step)
     print(f"  ✦ 중심 ({cx}, {cy})  거친 넓이 {rough.sum()}px  단차 {plateau:.0f}")
     S, P, ac = fit_shape(img, rough, cx, cy, x1, x2, y1, y2)
 

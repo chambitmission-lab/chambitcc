@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { HeavenLetterIcon } from '../../icons/HeavenLetterIcon'
 // 나누기 다이얼 아이콘 — 기도 작성 모달과 같은 Phosphor duotone 세트를 재사용한다
 // (컬러 이모지는 OS 폰트마다 생김새가 달라 메뉴 톤이 기기별로 흔들렸음)
@@ -16,7 +16,8 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { useTheme } from '../../../contexts/ThemeContext'
-import { prewarmThemeToggle } from '../../../utils/themeAssets'
+import { prewarmThemeToggle, pairSrc, RAIL_BOTTOM } from '../../../utils/themeAssets'
+import { useThemeArt } from '../../../hooks/useThemeArt'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
 
@@ -27,6 +28,28 @@ import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
 
 // 레일 표시 여부 훅은 ./useDesktopRailVisible 로 분리 — 이 파일은 PC 에서만 lazy 로 받는다.
 import { useDesktopRailVisible } from './useDesktopRailVisible'
+import './DesktopNavRail.css'
+
+/** 라벨이 보이는 폭(xl)인가 — 하단 삽화는 이 폭에서만 쓰므로, 좁은 화면 사용자에게는
+    파일 자체를 물리지 않는다. 창을 넓히면 그때 받는다(리사이즈에 반응해야 하는 이유). */
+const useIsXl = (): boolean => {
+  const [isXl, setIsXl] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1280px)')
+    const sync = () => setIsXl(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+  return isXl
+}
+
+// 하단 삽화를 끄는 화면 — 배경 그림이 화면 전체를 덮는 페이지에서는 레일의 언덕과
+// 그 그림이 레일 경계에서 맞닿아 서로를 깎아 먹는다(/bible/atlas 의 성지 수채화).
+// 그림이 둘이면 하나는 져야 하고, 그 화면에서는 본문이 주인공이다.
+const ART_FREE_PATHS = ['/bible/atlas']
 
 const RailSpinner = () => (
   <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
@@ -80,6 +103,9 @@ const DesktopNavRail = () => {
   const [dialNonce, setDialNonce] = useState(0)
   const visible = useDesktopRailVisible()
   const { theme, toggleTheme } = useTheme()
+  // 레일 하단 삽화 — 테마 쌍을 등록해 두면 토글 직전 선요청이 반대 테마를 챙긴다
+  const showRailArt = useIsXl() && !ART_FREE_PATHS.some((p) => pathname.startsWith(p))
+  const railArtReady = useThemeArt(RAIL_BOTTOM, showRailArt)
   const { t } = useLanguage()
 
   // 청크가 아직 안 왔으면 다운로드를 기다렸다가 이동한다 (startTransition 중엔
@@ -414,6 +440,17 @@ const DesktopNavRail = () => {
           {!dialOpen && <RailTip label={t('railShare')} />}
         </button>
       </div>
+
+      {/* 레일 하단 삽화 — 남는 세로를 다 가져가고 그림은 바닥에 붙는다.
+          보이는 조건(xl 폭 · 높이 티어 tall)과 네 변 페이드는 DesktopNavRail.css 가 쥔다.
+          장식이므로 aria-hidden — 스크린리더의 메뉴 읽기 흐름에 끼어들지 않는다 */}
+      {showRailArt && (
+        <div
+          className={`rail-bottom-art${railArtReady ? ' is-loaded' : ''}`}
+          style={{ backgroundImage: `url(${pairSrc(RAIL_BOTTOM, theme)})` }}
+          aria-hidden
+        />
+      )}
 
       {/* 하단 유틸리티 — 사이트 설정 성격의 액션(테마·전체 메뉴)만 남긴다.
           "내 것"인 알림과 계정은 헤더 우상단 클러스터(HeaderAccountCluster)가 담당한다.
