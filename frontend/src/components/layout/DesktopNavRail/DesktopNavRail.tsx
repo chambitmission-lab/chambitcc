@@ -339,8 +339,10 @@ const DesktopNavRail = () => {
 
       {/* 나눔 액션 — X/인스타 데스크톱 문법의 단일 주 CTA. 누르면 모바일 홈 FAB과
           같은 3액션 스피드 다이얼(기도·감사·말씀 카드)이 팝오버로 열린다.
-          두 버튼을 세로로 쌓던 이전 형태보다 위계가 분명하고 확장에도 유리하다 */}
-      <div className="mt-6 relative flex flex-col items-center xl:items-stretch">
+          두 버튼을 세로로 쌓던 이전 형태보다 위계가 분명하고 확장에도 유리하다.
+          ★ 폭은 내용만큼(알약형) — 레일 폭을 꽉 채우던 풀폭은 좌측 정렬 메뉴와 따로 놀아
+            위 메뉴 아이콘 열에 맞춰 왼쪽으로 붙인다(items-start). 좁은 바에서는 원형 */}
+      <div className="mt-6 relative flex flex-col items-center xl:items-start">
         {dialOpen && (
           <>
             {/* 바깥 클릭으로 닫기 */}
@@ -352,7 +354,7 @@ const DesktopNavRail = () => {
             <div
               role="menu"
               aria-label={t('railShareMenuAria')}
-              className="absolute z-50 bottom-[calc(100%_+_10px)] left-0 w-[236px] xl:right-0 xl:w-auto feed-card rounded-2xl p-2 shadow-xl origin-bottom-left xl:origin-bottom"
+              className="absolute z-50 bottom-[calc(100%_+_10px)] left-0 w-[236px] feed-card rounded-2xl p-2 shadow-xl origin-bottom-left"
               style={{ animation: 'scale-in 0.16s ease-out both' }}
             >
               {/* 모바일 FAB과 같은 다정한 인사 — 열 때마다 로테이션 */}
@@ -427,7 +429,7 @@ const DesktopNavRail = () => {
           aria-label={t('railShare')}
           aria-haspopup="menu"
           aria-expanded={dialOpen}
-          className="group relative w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-3 rounded-full flex items-center justify-center gap-2 text-white bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%),linear-gradient(155deg,#4593fc,var(--brand-dim))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.12),0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
+          className="group relative w-12 h-12 xl:w-auto xl:h-auto xl:pl-3 xl:pr-5 xl:py-3 rounded-full flex items-center justify-center gap-2 text-white bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%),linear-gradient(155deg,#4593fc,var(--brand-dim))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.12),0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
         >
           {/* 인장 문법(도크 FAB·완독 도장과 동일): 안쪽 점선 압인 링 */}
           <span aria-hidden className="absolute inset-[3px] rounded-full border border-dashed border-white/30 pointer-events-none" />
