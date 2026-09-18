@@ -22,15 +22,49 @@ export interface PushPayload {
   tag?: string;
 }
 
+export type PushAudienceMode = 'all' | 'active' | 'admin' | 'selected'
+
 export interface SendPushRequest {
   payload: PushPayload;
   user_ids?: number[];
+  /** 발송 이력 표시용 — 어떤 기준으로 고른 대상인지 */
+  audience_mode?: PushAudienceMode;
+  /** 발송 이력에 보일 대상 표기 (예: "전체 120명") */
+  audience_label?: string;
+}
+
+export interface PushSendLog {
+  id: number;
+  sender_user_id: number | null;
+  sender_name: string | null;
+  title: string;
+  body: string;
+  url: string | null;
+  tag: string | null;
+  audience_mode: PushAudienceMode;
+  audience_label: string | null;
+  target_count: number;
+  sent: number;
+  failed: number;
+  users_notified: number;
+  recorded: number;
+  created_at: string;
+}
+
+export interface PushSendLogListResponse {
+  items: PushSendLog[];
+  total: number;
+  page: number;
+  limit: number;
+  has_next: boolean;
 }
 
 export interface SendPushResult {
   sent: number;
   failed: number;
   users_notified: number;
+  /** 알림함(알림 벨)에 함께 기록된 알림 수 — 전체 발송은 1, 대상 지정은 대상자 수 */
+  recorded?: number;
   success?: boolean;
   message?: string;
 }
@@ -134,7 +168,17 @@ export const sendPush = async (payload: SendPushRequest): Promise<SendPushResult
     sent: result?.sent ?? 0,
     failed: result?.failed ?? 0,
     users_notified: result?.users_notified ?? 0,
+    recorded: result?.recorded ?? 0,
     success: result?.success,
     message: result?.message
   };
 };
+
+/**
+ * 푸시 발송 이력 조회 (관리자 전용, 최신순)
+ */
+export const getPushHistory = async (params: { page: number; limit?: number }): Promise<PushSendLogListResponse> =>
+  request<PushSendLogListResponse>('/push/history', {
+    query: { page: params.page, limit: params.limit ?? 20 },
+    errorMessage: '발송 이력을 불러올 수 없습니다.',
+  });

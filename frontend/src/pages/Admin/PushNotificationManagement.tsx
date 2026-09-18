@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { sendPush, type PushPayload, type SendPushResult } from '../../api/push'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import { getPushHistory, sendPush, type PushPayload, type PushSendLog, type SendPushResult } from '../../api/push'
 import { useAudiencePicker } from '../../hooks/useAudiencePicker'
 import { showToast } from '../../utils/toast'
 import AudiencePicker from './components/AudiencePicker'
@@ -71,8 +72,12 @@ const URL_OPTIONS: Array<{ label: string; value: string }> = [
   { label: '기도', value: '/' },
 ]
 
+const HISTORY_PAGE_SIZE = 10
+const pushHistoryKey = ['admin', 'push-history'] as const
+
 export const PushNotificationManagement = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   // 폼 상태
   const [title, setTitle] = useState('')
@@ -130,7 +135,7 @@ export const PushNotificationManagement = () => {
       !(await confirmDialog({
         title: '푸시 알림 전송',
         message: `${audienceLabel}에게 푸시 알림을 전송하시겠습니까?`,
-        description: '전송한 알림은 취소할 수 없습니다.',
+        description: '전송한 알림은 취소할 수 없습니다. 알림함(알림 벨)에도 함께 기록됩니다.',
         confirmText: '전송',
         tone: 'brand',
         icon: 'send',
@@ -150,8 +155,14 @@ export const PushNotificationManagement = () => {
         url: url.trim() || '/',
         tag: tag.trim() || 'notification',
       }
-      const data = await sendPush({ payload, user_ids: audienceUserIds })
+      const data = await sendPush({
+        payload,
+        user_ids: audienceUserIds,
+        audience_mode: audienceMode,
+        audience_label: audienceLabel,
+      })
       setResult({ ok: true, data, audienceLabel })
+      void queryClient.invalidateQueries({ queryKey: pushHistoryKey })
       if (data.failed === 0 && data.sent > 0) {
         showToast(`${data.sent}명에게 전송 완료`, 'success')
       } else if (data.sent === 0) {
@@ -167,6 +178,18 @@ export const PushNotificationManagement = () => {
     } finally {
       setIsSending(false)
     }
+  }
+
+  // 이력에서 "다시 쓰기" — 지난 발송 내용을 폼에 그대로 채운다 (대상은 다시 고르게 둔다)
+  const reuseLog = (log: PushSendLog) => {
+    setTitle(log.title.slice(0, TITLE_MAX))
+    setBody(log.body.slice(0, BODY_MAX))
+    setUrl(log.url || '/home')
+    setTag(log.tag || 'notification')
+    setResult(null)
+    showToast('지난 발송 내용을 불러왔습니다', 'success')
+    // #root overflow 탓에 window.scrollTo 가 죽어 있어 요소 기준으로 올린다
+    document.getElementById('push-title')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   const handleReset = () => {
@@ -370,6 +393,14 @@ export const PushNotificationManagement = () => {
                         실패한 사용자는 구독 만료 또는 미구독 상태입니다. 해당 사용자에게 프로필에서 알림 재구독을 안내해주세요.
                       </p>
                     )}
+                    <p className="mt-3 flex items-center gap-1.5 text-[11.5px] leading-relaxed text-gray-500 dark:text-white/55">
+                      <span className="material-icons-outlined text-[15px] text-brand">
+                        {(result.data.recorded ?? 0) > 0 ? 'notifications' : 'info'}
+                      </span>
+                      {(result.data.recorded ?? 0) > 0
+                        ? '알림함에도 기록되어 푸시를 놓친 사용자도 알림 벨에서 다시 볼 수 있습니다.'
+                        : '알림함 기록에 실패했습니다. 푸시는 전송됐지만 알림 벨에는 남지 않습니다.'}
+                    </p>
                   </div>
                 ) : (
                   <div className="flex items-start gap-2">
@@ -382,6 +413,11 @@ export const PushNotificationManagement = () => {
                 )}
               </SectionCard>
             )}
+
+            {/* 발송 이력 */}
+            <SectionCard title="발송 이력" subtitle="지금까지 보낸 푸시와 도달 결과">
+              <PushHistoryList onReuse={reuseLog} />
+            </SectionCard>
 
             {/* 안내 (접기) */}
             <div className="px-4 py-3">
@@ -577,6 +613,157 @@ const ResultStat = ({
     <div className={`rounded-xl border px-3 py-2 text-center ${toneCls}`}>
       <div className="text-[10.5px] font-semibold opacity-75">{label}</div>
       <div className="text-[18px] font-bold tracking-tight">{value}</div>
+    </div>
+  )
+}
+
+// ─── 발송 이력 ────────────────────────────────────────────
+
+const AUDIENCE_MODE_LABEL: Record<PushSendLog['audience_mode'], string> = {
+  all: '전체',
+  active: '활성',
+  admin: '관리자',
+  selected: '선택',
+}
+
+// created_at 은 DB 로컬(KST) naive 값 — 'Z' 가 없으니 new Date 가 로컬로 그대로 읽는다
+const formatLogTime = (iso: string): string => {
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  const now = new Date()
+  const sameYear = d.getFullYear() === now.getFullYear()
+  const md = `${d.getMonth() + 1}.${d.getDate()}`
+  const hm = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+  return sameYear ? `${md} ${hm}` : `${d.getFullYear()}.${md} ${hm}`
+}
+
+const PushHistoryList = ({ onReuse }: { onReuse: (log: PushSendLog) => void }) => {
+  const [openId, setOpenId] = useState<number | null>(null)
+  const { data, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: pushHistoryKey,
+    queryFn: ({ pageParam }) => getPushHistory({ page: pageParam as number, limit: HISTORY_PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.has_next ? last.page + 1 : undefined),
+    staleTime: 0,
+    refetchOnMount: 'always',
+  })
+
+  const logs = data?.pages.flatMap((p) => p.items) ?? []
+  const total = data?.pages[0]?.total ?? 0
+
+  if (isPending) {
+    return (
+      <div className="space-y-2">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-white/[0.04] animate-pulse" />
+        ))}
+      </div>
+    )
+  }
+  if (isError) {
+    return (
+      <p className="text-[12px] text-gray-500 dark:text-white/55">
+        발송 이력을 불러오지 못했습니다. 백엔드에 이력 테이블이 아직 없다면 마이그레이션이 필요합니다.
+      </p>
+    )
+  }
+  if (logs.length === 0) {
+    return (
+      <div className="flex flex-col items-center py-6 text-center">
+        <span className="material-icons-outlined text-[28px] text-gray-300 dark:text-white/25">history</span>
+        <p className="mt-2 text-[12.5px] text-gray-500 dark:text-white/55">아직 보낸 푸시가 없습니다</p>
+        <p className="mt-0.5 text-[11px] text-gray-400 dark:text-white/40">전송하면 여기에 결과가 쌓입니다</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[11px] text-gray-500 dark:text-white/50">
+          총 <span className="font-bold text-brand">{total}</span>건
+        </span>
+      </div>
+      <ul className="divide-y divide-gray-100 dark:divide-white/[0.06]">
+        {logs.map((log) => {
+          const open = openId === log.id
+          const reachTone =
+            log.sent === 0 ? 'text-red-500' : log.failed > 0 ? 'text-amber-500' : 'text-green-600 dark:text-green-400'
+          return (
+            <li key={log.id}>
+              <button
+                type="button"
+                onClick={() => setOpenId(open ? null : log.id)}
+                aria-expanded={open}
+                className="w-full flex items-center gap-2.5 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-white/[0.03] -mx-1 px-1 rounded-lg transition-colors"
+              >
+                <span className="shrink-0 w-[62px] text-[10.5px] font-mono text-gray-400 dark:text-white/40 tabular-nums">
+                  {formatLogTime(log.created_at)}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[13px] font-semibold text-ink-strong truncate">{log.title}</span>
+                  {!open && (
+                    <span className="block text-[11px] text-gray-500 dark:text-white/50 truncate">{log.body}</span>
+                  )}
+                </span>
+                <span className="shrink-0 inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.05] text-gray-600 dark:text-white/65">
+                  {AUDIENCE_MODE_LABEL[log.audience_mode] ?? log.audience_mode}
+                </span>
+                <span className={`shrink-0 text-[12px] font-bold tabular-nums ${reachTone}`}>{log.sent}</span>
+                <span
+                  className={`material-icons-outlined text-[18px] text-gray-400 dark:text-white/40 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                >
+                  expand_more
+                </span>
+              </button>
+              {open && (
+                <div className="pb-3 pl-[70px] pr-1">
+                  <p className="text-[12.5px] text-gray-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap break-words">
+                    {log.body}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-500 dark:text-white/50">
+                    <span>
+                      대상 <span className="font-semibold text-gray-700 dark:text-white/75">{log.audience_label || AUDIENCE_MODE_LABEL[log.audience_mode]}</span>
+                    </span>
+                    <span>
+                      성공 <span className="font-semibold text-green-600 dark:text-green-400">{log.sent}</span>
+                    </span>
+                    <span>
+                      실패 <span className={`font-semibold ${log.failed > 0 ? 'text-red-500' : 'text-gray-700 dark:text-white/75'}`}>{log.failed}</span>
+                    </span>
+                    <span>
+                      구독자 <span className="font-semibold text-gray-700 dark:text-white/75">{log.users_notified}</span>
+                    </span>
+                    <span>
+                      알림함 <span className="font-semibold text-gray-700 dark:text-white/75">{log.recorded > 0 ? '기록됨' : '없음'}</span>
+                    </span>
+                    {log.url && <span className="font-mono">{log.url}</span>}
+                    {log.sender_name && <span>보낸이 {log.sender_name}</span>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onReuse(log)}
+                    className="mt-2.5 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold bg-[var(--brand-soft)] text-brand border border-[var(--brand-glow)] hover:bg-[var(--brand-soft-strong)] transition-colors"
+                  >
+                    <span className="material-icons-outlined text-[15px]">replay</span>
+                    이 내용 다시 쓰기
+                  </button>
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+      {hasNextPage && (
+        <button
+          type="button"
+          onClick={() => void fetchNextPage()}
+          disabled={isFetchingNextPage}
+          className="mt-2 w-full py-2 rounded-xl text-[12px] font-semibold text-gray-600 dark:text-white/65 bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] hover:bg-gray-100 dark:hover:bg-white/[0.07] disabled:opacity-50 transition-colors"
+        >
+          {isFetchingNextPage ? '불러오는 중…' : '더 보기'}
+        </button>
+      )}
     </div>
   )
 }
