@@ -8,6 +8,7 @@ import { isApiError } from '../../api/utils/request'
 import { restorePushSubscriptionForUser } from '../../utils/pushNotification'
 import { playWelcomeTransition } from '../../utils/welcomeTransition'
 import { deriveTimeOfDay, prefetchTodayMeditation } from '../../hooks/useDailyMeditation'
+import { prefetchTodayReadings } from '../../hooks/useBiblePlan'
 import { EyeIcon, StatusIcon } from './AuthIcons'
 import './AuthForm.css'
 
@@ -121,9 +122,13 @@ const Login = () => {
       const redirectPath = sessionStorage.getItem('redirect_after_login')
       sessionStorage.removeItem('redirect_after_login')
 
-      // 홈으로 갈 때는 오늘의 묵상 카드를 마중 연출 동안 미리 받아 둔다 —
-      // 방금 캐시를 비워서, 안 그러면 홈에 도착해 말씀 자리만 스켈레톤으로 기다린다.
-      if (!redirectPath || redirectPath === '/') void prefetchTodayMeditation(queryClient)
+      // 홈으로 갈 때는 오늘의 묵상·오늘의 읽기 카드를 마중 연출 동안 미리 받아 둔다 —
+      // 방금 캐시를 비워서, 안 그러면 홈에 도착해 말씀 자리는 스켈레톤으로 기다리고
+      // 읽기 플랜 카드는 뒤늦게 끼어든다.
+      if (!redirectPath || redirectPath === '/') {
+        void prefetchTodayMeditation(queryClient)
+        void prefetchTodayReadings(queryClient)
+      }
 
       // 마중 모먼트 — 이름을 부르며 맞아주는 짧은 환대 연출.
       // 라우트 교체는 화면이 브랜드색으로 덮인 정점에 실행돼 보이지 않고,

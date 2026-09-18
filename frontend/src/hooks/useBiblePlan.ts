@@ -61,6 +61,20 @@ export const useTodayReadings = (enabled = true) =>
     staleTime: 1000 * 60,
   })
 
+/**
+ * 홈 "오늘의 읽기" 카드를 미리 받아 둔다 — 로그인 직후 마중 연출이 도는 동안 호출.
+ * 이 카드는 응답 전엔 아예 그려지지 않아서(null), 캐시가 비워진 로그인 직후엔
+ * 홈에 도착한 뒤 뒤늦게 끼어들었다. 키·staleTime 은 useTodayReadings 와 같다.
+ */
+export const prefetchTodayReadings = (qc: ReturnType<typeof useQueryClient>) =>
+  qc
+    .prefetchQuery({
+      queryKey: biblePlanKeys.today(),
+      queryFn: getTodayReadings,
+      staleTime: 1000 * 60,
+    })
+    .catch(() => {})
+
 const invalidatePlanData = (qc: ReturnType<typeof useQueryClient>) => {
   // 그만두기/구독을 상세 페이지에서 누르면 홈의 today 카드·목록은 비활성이라 stale 마크만
   // 된다 — 전역 refetchOnMount:true 가 다음 마운트에 재조회하므로 그걸로 충분하다.
