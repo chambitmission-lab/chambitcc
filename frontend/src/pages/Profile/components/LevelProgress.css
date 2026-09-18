@@ -255,43 +255,6 @@
   }
 }
 
-/* ── 이번 주 요일 미니 붓 획(탤리) ──────────────── */
-.lp-weekdot {
-  width: 4.5px;
-  height: 11px;
-  background: rgba(0, 0, 0, 0.13);
-  -webkit-mask-image: var(--brush-dab);
-  -webkit-mask-size: 100% 100%;
-  mask-image: var(--brush-dab);
-  mask-size: 100% 100%;
-  transform: rotate(var(--tilt, 0deg));
-}
-.lp-weekdot:nth-of-type(odd) {
-  --tilt: -7deg;
-}
-.lp-weekdot:nth-of-type(even) {
-  --tilt: 6deg;
-}
-[data-theme='dark'] .lp-weekdot {
-  background: rgba(255, 255, 255, 0.16);
-}
-.lp-weekdot[data-on='true'] {
-  background: var(--brand);
-}
-.lp-weekdot[data-future='true'] {
-  background: rgba(0, 0, 0, 0.06);
-}
-[data-theme='dark'] .lp-weekdot[data-future='true'] {
-  background: rgba(255, 255, 255, 0.08);
-}
-/* 오늘 획은 링 대신 조금 더 길게 — 마스크가 box-shadow 를 잘라내므로 */
-.lp-weekdot[data-today='true'] {
-  height: 13.5px;
-}
-.lp-weekdot[data-today='true'][data-on='false'] {
-  background: var(--brand-soft-strong);
-}
-
 /* ── 스탯 숫자 뒤 붓 스와치 — 성경에 형광펜 긋듯 ── */
 .lp-stat-num {
   position: relative;
@@ -355,60 +318,76 @@
 @media (prefers-reduced-motion: reduce) {
   .lp-lamp__flame { animation: none; }
 }
-.lp-graph {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-  --graph-future: rgba(148, 163, 184, 0.55);
-  /* 천상의 광채(흰빛) 구간 — 프리즘 스펙트럼 + halo 밑획 */
-  --graph-prism-a: #7dd3fc;
-  --graph-prism-b: #c4b5fd;
-  --graph-prism-c: #fcd34d;
-  --graph-halo: rgba(15, 23, 42, 0.16);
+/* 등불 계단 — 레벨이 한 칸씩 높아지는 계단, 지금 칸 위에 작은 등불 */
+.lp-stairs {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 150px;
+  margin-top: 14px;
+  padding-top: 34px;
+  --lp-stair-track: #eef1f5;
+  --lp-stair-done: rgba(49, 130, 246, 0.32);
 }
-[data-theme="dark"] .lp-graph {
-  --graph-prism-a: #e0f2fe;
-  --graph-prism-b: #ffffff;
-  --graph-prism-c: #fef3c7;
-  --graph-halo: rgba(255, 255, 255, 0.28);
+[data-theme='dark'] .lp-stairs {
+  --lp-stair-track: rgba(255, 255, 255, 0.07);
+  --lp-stair-done: rgba(69, 147, 252, 0.38);
 }
-.lp-graph__halo {
-  fill: none;
-  stroke: var(--graph-halo);
-  stroke-width: 6;
-  stroke-linecap: round;
+.lp-stair {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  border-radius: 10px 10px 4px 4px;
+  background: var(--lp-stair-track);
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.lp-graph__halo-dot { fill: var(--graph-halo); }
-.lp-graph__line {
-  fill: none;
-  stroke-width: 3;
-  stroke-linecap: round;
+.lp-stair:hover { transform: translateY(-2px); }
+.lp-stair[data-state='done'] { background: var(--lp-stair-done); }
+.lp-stair[data-state='current'] { background: var(--brand); }
+.lp-stair[data-selected='true'] { box-shadow: 0 0 0 2px var(--brand); }
+.lp-stair[data-state='current'][data-selected='true'] { box-shadow: 0 0 0 3px var(--brand-soft); }
+.lp-stair__fill {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  border-radius: 10px 10px 4px 4px;
+  background: var(--lp-stair-done);
+  opacity: 0.55;
+  transition: height 0.6s ease;
 }
-.lp-graph__progress { stroke: var(--brand); }
-.lp-graph__future {
-  fill: none;
-  stroke: var(--graph-future);
-  stroke-width: 2;
-  stroke-dasharray: 4 5;
-  stroke-linecap: round;
-}
-.lp-graph__label {
-  font-size: 11px;
-  font-weight: 600;
-  fill: var(--text-muted);
-}
-.lp-graph__label[data-current="true"] {
+.lp-stair__lv {
+  position: absolute;
+  bottom: 7px;
+  font-size: 10.5px;
   font-weight: 800;
-  fill: var(--text-strong);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.lp-stair[data-state='done'] .lp-stair__lv { color: var(--brand); }
+[data-theme='dark'] .lp-stair[data-state='done'] .lp-stair__lv { color: #dbe9ff; }
+.lp-stair[data-state='current'] .lp-stair__lv { color: #fff; }
+.lp-stair__lamp {
+  position: absolute;
+  top: -34px;
+  width: 30px;
+  overflow: visible;
+}
+.lp-stair__lamp .lp-lamp__flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: lp-flicker 2.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-stair__lamp .lp-lamp__flame { animation: none; }
 }
 .lp-tile {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 14px 6px 12px;
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 11px 12px;
   border-radius: 14px;
   border: 1px solid var(--card-border);
   background: var(--surface-container);
-  text-align: center;
+  text-align: left;
 }
 [data-theme="dark"] .lp-tile { background: rgba(255, 255, 255, 0.03); }
 .lp-earn__badge {

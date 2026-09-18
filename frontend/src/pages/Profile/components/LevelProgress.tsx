@@ -1,12 +1,8 @@
 import { useId, useState, type CSSProperties } from 'react'
 import type { GlowLevel } from '../../../types/achievement'
 import { GLOW_LEVELS } from '../../../types/achievement'
-import { toOpaqueColor } from '../../../utils/contrastText'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { useGrowthRecentDays } from '../../../hooks/useGrowth'
-import { buildWeekCells, type DayCell } from './growthFootprints'
 import './LevelProgress.css'
-import { tokenStore } from '../../../utils/tokenStore'
 
 interface LevelProgressProps {
   currentLevel: GlowLevel
@@ -85,7 +81,7 @@ const EarnIcon = ({ name }: { name: string }) => (
  * 예전 '신앙의 온도'(당근 매너온도식 °C)를 마 25장 슬기로운 처녀 비유로 교체:
  * - 등잔에 차오르는 기름 = 다음 단계까지 진행률 (레벨 이름 '등불·별'과 세계관 일치)
  * - 불꽃은 은은한 흔들림만, 무한 글로우 없음
- * - 아래 성장 그래프 카드: 레벨 꺾은선 + 스탯 타일 + 획득 안내
+ * - 아래 성장 카드: 등불 계단 + 스탯 타일 + 획득 안내
  */
 const LevelProgress = ({
   currentLevel,
@@ -106,13 +102,7 @@ const LevelProgress = ({
   const selIdx = selectedIdx ?? currentIdx
   const selLevel = GLOW_LEVELS[selIdx]
 
-  // 요일 마이크로 도트 — 스토리 트레이(useGrowthRecentDays 14일)와 같은 쿼리를
-  // 공유하므로 추가 요청 없음. 데이터 도착 전에는 자리 잡지 않고 숨긴다.
-  const hasToken = !!tokenStore.getAccess()
-  const { data: recent } = useGrowthRecentDays(14, hasToken)
-  const weekCells = recent?.data ? buildWeekCells(recent.data.events) : null
-
-  // 성장 그래프 창 — 현재 레벨 앞 4단계 + 뒤 1단계(6칸). 끝단에선 창을 밀어 6칸 유지
+  // 계단 창 — 현재 레벨 앞 4단계 + 뒤 1단계(6칸). 끝단에선 창을 밀어 6칸 유지
   const WIN = 6
   const winStart = Math.max(0, Math.min(currentIdx - 4, GLOW_LEVELS.length - WIN))
   const winLevels = GLOW_LEVELS.slice(winStart, winStart + WIN)
@@ -193,7 +183,7 @@ const LevelProgress = ({
       </div>
     </div>
 
-    {/* ── 성장 그래프 카드 — 레벨 꺾은선 + 스탯 타일 + 획득 안내 ── */}
+    {/* ── 성장 카드 — 등불 계단 + 스탯 타일 + 획득 안내 ── */}
     <div className="px-4 py-1">
       <div
         className="
@@ -216,14 +206,14 @@ const LevelProgress = ({
           </a>
         </div>
 
-        <LevelGraph
+        <LevelStairs
           levels={winLevels}
           currentIdx={currentIdx - winStart}
           progress={progress}
           selectedIdx={selectedIdx === null ? null : selectedIdx - winStart}
           onSelect={(i) => setSelectedIdx(i + winStart)}
         />
-        <div className="relative z-10 mt-1 flex items-center gap-1.5 text-[11.5px]">
+        <div className="relative z-10 mt-2.5 flex items-center gap-1.5 text-[11.5px]">
           <span className="font-semibold text-gray-600 dark:text-white/65">
             Lv.{selLevel.level} {t(selLevel.nameKey)}
           </span>
@@ -239,17 +229,13 @@ const LevelProgress = ({
           </span>
         </div>
 
-        {/* 스탯 타일 3개 */}
+        {/* 스탯 타일 3개 — 라벨(아이콘) 위, 숫자 크게, 단위 작게 */}
         <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
-          <TemperatureStat value={totalCount} label={t('totalPrayers')} icon="volunteer_activism" />
-          <TemperatureStat
-            value={thisWeekCount}
-            label={t('profileThisWeek')}
-            icon="date_range"
-            cells={weekCells}
-          />
-          <TemperatureStat
+          <GrowthStat value={totalCount} unit={t('statUnitTimes')} label={t('totalPrayers')} icon="volunteer_activism" />
+          <GrowthStat value={thisWeekCount} unit={t('statUnitTimes')} label={t('profileThisWeek')} icon="date_range" />
+          <GrowthStat
             value={streakDays}
+            unit={t('statUnitDays')}
             label={t('consecutivePrayers')}
             icon="local_fire_department"
             hot={streakDays >= 7}
@@ -340,25 +326,9 @@ const LevelProgress = ({
   )
 }
 
-/* 레벨 성장 꺾은선 — 창에 담긴 레벨들을 완만히 오르는 지그재그로 잇고,
-   지나온 구간은 각 단계 색, 남은 구간은 회색 점선. 현재 위치엔 Lv 태그. */
-const GRAPH_W = 320
-const GRAPH_H = 104
-const GRAPH_YS = [78, 62, 70, 50, 56, 32]
-
-/* 그래프용 레벨 색 — 흰색(Lv.6 천상의 광채)처럼 밝기가 높은 색은 흰 카드 위에서 사라진다.
-   단색 대체 대신 "흰 빛 = 프리즘을 지난 스펙트럼" 은유로, 파스텔 프리즘 그라데이션 +
-   반투명 halo 밑획을 깔아 라이트/다크 어디서든 선이 떠 보이게 한다 */
-const PRISM_ID = 'lp-graph-prism'
-const isRadiant = (glow: string) => {
-  const m = glow.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
-  if (!m) return false
-  const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])]
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.85
-}
-const graphColor = (glow: string) => (isRadiant(glow) ? `url(#${PRISM_ID})` : toOpaqueColor(glow))
-
-const LevelGraph = ({
+/* 등불 계단 — 창에 담긴 레벨을 한 칸씩 높아지는 계단으로. 지나온 칸은 연한 브랜드,
+   지금 칸은 브랜드 솔리드 + 위에 작은 등불, 다음 칸은 진행률만큼 차오른다. 탭하면 아래 줄에 단계 정보 */
+const LevelStairs = ({
   levels,
   currentIdx,
   progress,
@@ -372,88 +342,29 @@ const LevelGraph = ({
   onSelect: (i: number) => void
 }) => {
   const n = levels.length
-  const pts = levels.map((_, i) => ({
-    x: 26 + ((GRAPH_W - 52) * i) / (n - 1),
-    y: GRAPH_YS[i] ?? 50,
-  }))
-  const seg = (a: number, b: number) => {
-    const p = pts[a], q = pts[b]
-    const cx = (p.x + q.x) / 2
-    return `M ${p.x} ${p.y} C ${cx} ${p.y}, ${cx} ${q.y}, ${q.x} ${q.y}`
-  }
-  const cur = pts[currentIdx]
   return (
-    <div className="relative z-10 mt-2">
-      <svg viewBox={`0 0 ${GRAPH_W} ${GRAPH_H + 22}`} className="lp-graph" aria-hidden="true">
-        <defs>
-          <linearGradient id={PRISM_ID} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="var(--graph-prism-a)" />
-            <stop offset="50%" stopColor="var(--graph-prism-b)" />
-            <stop offset="100%" stopColor="var(--graph-prism-c)" />
-          </linearGradient>
-        </defs>
-        {/* 지나온 구간 — 도착 단계 색 */}
-        {pts.slice(1).map((_, i) =>
-          i + 1 <= currentIdx ? (
-            <g key={`p${i}`}>
-              {isRadiant(levels[i + 1].glowColor) && (
-                <path d={seg(i, i + 1)} className="lp-graph__halo" />
-              )}
-              <path
-                d={seg(i, i + 1)}
-                className="lp-graph__line"
-                style={{ stroke: graphColor(levels[i + 1].glowColor) }}
-              />
-            </g>
-          ) : (
-            <path key={`f${i}`} d={seg(i, i + 1)} className="lp-graph__future" />
-          ),
-        )}
-        {/* 현재 단계 안 진행분 — 다음 점을 향해 브랜드색으로 조금 더 뻗는다 */}
-        {currentIdx < n - 1 && progress > 0 && (
-          <path
-            d={seg(currentIdx, currentIdx + 1)}
-            className="lp-graph__line lp-graph__progress"
-            pathLength={100}
-            strokeDasharray={`${Math.min(progress, 100)} 100`}
-          />
-        )}
-        {/* 단계 눈금(짧은 세로 획) + 점 */}
-        {pts.map((p, i) => {
-          const passed = i <= currentIdx
-          const radiant = passed && isRadiant(levels[i].glowColor)
-          const color = passed ? graphColor(levels[i].glowColor) : 'var(--graph-future)'
-          return (
-            <g key={levels[i].level} onClick={() => onSelect(i)} style={{ cursor: 'pointer' }}>
-              {radiant && <circle cx={p.x} cy={p.y} r={6.5} className="lp-graph__halo-dot" />}
-              <rect x={p.x - 1.5} y={p.y - 9} width={3} height={18} rx={1.5} fill={color} opacity={0.85} />
-              <circle cx={p.x} cy={p.y} r={4.2} fill={color} />
-              {i === currentIdx && (
-                <circle cx={p.x} cy={p.y} r={7} fill="none" stroke="var(--brand)" strokeWidth={2} opacity={0.5} />
-              )}
-              {selectedIdx === i && i !== currentIdx && (
-                <circle cx={p.x} cy={p.y} r={7} fill="none" stroke={color} strokeWidth={1.5} strokeDasharray="2 2" />
-              )}
-              <text
-                x={p.x}
-                y={GRAPH_H + 16}
-                textAnchor="middle"
-                className="lp-graph__label"
-                data-current={i === currentIdx}
-              >
-                Lv.{levels[i].level}
-              </text>
-            </g>
-          )
-        })}
-        {/* 현재 위치 태그 */}
-        <g transform={`translate(${cur.x} ${cur.y - 22})`}>
-          <rect x={-19} y={-9} width={38} height={18} rx={9} fill="var(--brand)" />
-          <text y={4} textAnchor="middle" fontSize={10.5} fontWeight={700} fill="#fff">
-            Lv.{levels[currentIdx].level}
-          </text>
-        </g>
-      </svg>
+    <div className="lp-stairs relative z-10">
+      {levels.map((lv, i) => {
+        const state = i < currentIdx ? 'done' : i === currentIdx ? 'current' : i === currentIdx + 1 ? 'next' : 'future'
+        return (
+          <button
+            key={lv.level}
+            type="button"
+            className="lp-stair"
+            data-state={state}
+            data-selected={selectedIdx === i}
+            style={{ height: `${30 + (70 * i) / Math.max(n - 1, 1)}%` }}
+            onClick={() => onSelect(i)}
+            aria-label={`Lv.${lv.level}`}
+          >
+            {state === 'next' && (
+              <span className="lp-stair__fill" style={{ height: `${Math.min(progress, 100)}%` }} aria-hidden="true" />
+            )}
+            {state === 'current' && <OilLamp progress={100} className="lp-stair__lamp" />}
+            <span className="lp-stair__lv">Lv.{lv.level}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -461,12 +372,12 @@ const LevelGraph = ({
 /* 등잔 삽화 — 그릇 안 기름 높이가 진행률. 불꽃은 금빛(빛 자체의 색), 그릇·심지는 중립 톤 */
 const LAMP_TOP = 70
 const LAMP_BOTTOM = 104
-const OilLamp = ({ progress }: { progress: number }) => {
+const OilLamp = ({ progress, className = 'lp-lamp' }: { progress: number; className?: string }) => {
   const id = useId().replace(/:/g, '')
   const oilY = LAMP_BOTTOM - ((LAMP_BOTTOM - LAMP_TOP) * Math.min(Math.max(progress, 0), 100)) / 100
   const vessel = 'M14 70 Q14 104 50 104 Q86 104 86 70 Z'
   return (
-    <svg viewBox="0 0 100 120" className="lp-lamp" aria-hidden="true">
+    <svg viewBox="0 0 100 120" className={className} aria-hidden="true">
       <defs>
         <clipPath id={`${id}-v`}><path d={vessel} /></clipPath>
         <linearGradient id={`${id}-o`} x1="0" y1="0" x2="0" y2="1">
@@ -494,41 +405,33 @@ const OilLamp = ({ progress }: { progress: number }) => {
   )
 }
 
-const TemperatureStat = ({
+const GrowthStat = ({
   value,
+  unit,
   label,
   icon,
   hot,
-  cells,
 }: {
   value: number
+  unit: string
   label: string
   icon: string
   hot?: boolean
-  cells?: DayCell[] | null
 }) => (
   <div className="lp-tile">
-    <span className="text-brand text-[24px] font-bold leading-none tracking-[-0.02em]">
-      {value.toLocaleString()}
-    </span>
-    <span className={`material-icons-round mt-2 text-[20px] ${hot ? 'text-orange-500' : 'text-brand'}`} aria-hidden="true">
-      {icon}
-    </span>
-    {cells && (
-      <div className="mt-1.5 flex items-end justify-center gap-[3px]" aria-hidden="true">
-        {cells.map((c) => (
-          <span
-            key={c.date}
-            className="lp-weekdot"
-            data-on={c.count > 0}
-            data-today={c.isToday}
-            data-future={c.isFuture}
-          />
-        ))}
-      </div>
-    )}
-    <div className="mt-1.5 text-[11px] font-medium text-gray-500 dark:text-white/50 whitespace-nowrap">
+    <div className="flex items-center gap-1 text-[11.5px] font-medium text-gray-500 dark:text-white/55 whitespace-nowrap">
+      <span className={`material-icons-round text-[15px] ${hot ? 'text-orange-500' : 'text-brand'}`} aria-hidden="true">
+        {icon}
+      </span>
       {label}
+    </div>
+    <div className="mt-1.5 leading-none">
+      <span className="text-[22px] font-extrabold text-ink-strong tracking-[-0.03em] tabular-nums">
+        {value.toLocaleString()}
+      </span>
+      {unit && (
+        <span className="ml-0.5 text-[12px] font-semibold text-gray-500 dark:text-white/55">{unit}</span>
+      )}
     </div>
   </div>
 )
