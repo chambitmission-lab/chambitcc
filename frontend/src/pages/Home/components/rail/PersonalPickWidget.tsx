@@ -130,7 +130,10 @@ const PersonalPickWidget = () => {
         <div className="relative mt-3">
           <button
             type="button"
-            onClick={() => verse && navigate(`/bible/${verse.book_number}/${verse.chapter}`)}
+            onClick={() =>
+              verse &&
+              navigate(`/bible/${verse.book_number}/${verse.chapter}${verse.verse > 0 ? `?verse=${verse.verse}` : ''}`)
+            }
             disabled={!verse}
             className="w-full rounded-full bg-[var(--brand)] px-3 py-1.5 text-[12px] font-bold text-white shadow-[0_6px_14px_-6px_var(--brand-glow)] active:scale-[0.97] transition-transform duration-150 disabled:opacity-50"
           >
