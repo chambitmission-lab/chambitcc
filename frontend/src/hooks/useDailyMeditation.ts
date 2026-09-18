@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, useQueryClient, keepPreviousData, type QueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { getTodayMeditation } from '../api/meditation'
 import type { EmotionTag, TimeOfDay } from '../types/meditation'
@@ -42,6 +42,23 @@ export const useDailyMeditation = (options: UseDailyMeditationOptions = {}) => {
     // (없으면 isLoading → 스켈레톤으로 화면 전체가 "새로고침"되듯 깜빡인다)
     placeholderData: keepPreviousData,
   })
+}
+
+/**
+ * 홈 묵상 카드(감정 없음)를 미리 받아 둔다 — 로그인 직후 마중 연출이 도는 동안 호출.
+ * 로그인은 캐시를 통째로 비우므로(사용자별 분리) 홈에 도착하면 이 카드만 스켈레톤으로
+ * API 왕복을 기다렸다. 키·staleTime 을 useDailyMeditation 과 맞춰 도착 즉시 캐시 히트가 된다.
+ */
+export const prefetchTodayMeditation = (qc: QueryClient) => {
+  const now = new Date()
+  const timeOfDay = deriveTimeOfDay(now.getHours())
+  return qc
+    .prefetchQuery({
+      queryKey: meditationKey(localDateKey(now), timeOfDay),
+      queryFn: () => getTodayMeditation({ time_of_day: timeOfDay }),
+      staleTime: STALE,
+    })
+    .catch(() => {})
 }
 
 /**
