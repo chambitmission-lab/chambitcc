@@ -48,7 +48,13 @@ export const logout = async (tokenOverride?: string | null) => {
  * (React Query 메모리 캐시 초기화는 호출부가 queryClient.clear() 로 담당)
  */
 export const establishSession = (
-  data: { access_token: string; refresh_token?: string; username?: string; full_name?: string },
+  data: {
+    access_token: string
+    refresh_token?: string
+    username?: string
+    full_name?: string
+    avatar_url?: string | null
+  },
   fallbackUsername: string
 ): { username: string; fullName: string | null } => {
   tokenStore.setAccess(data.access_token)
@@ -60,6 +66,19 @@ export const establishSession = (
   sessionStore.set('username', username)
   localStorage.setItem('last_cached_username', username)
   if (data.full_name) sessionStore.set('fullName', data.full_name)
+
+  // 헤더 아바타 — 로그아웃 때 미러가 지워져서, 로그인 직후엔 프로필 API 응답이 와야
+  // URL을 알 수 있었다(그 뒤에야 R2 DNS+TLS+다운로드 시작 → 헤더에서 혼자 늦게 뜸).
+  // 로그인 응답의 URL을 바로 미러링하고, 마중 연출이 도는 동안 미리 받아 둔다.
+  // 헤더 <img> 에 crossOrigin 이 없으므로 여기도 붙이지 않는다(불일치 시 두 번 받는다).
+  // undefined(구버전 백엔드)면 건드리지 않는다.
+  if (data.avatar_url !== undefined) {
+    sessionStore.set('avatarUrl', data.avatar_url)
+    if (data.avatar_url) {
+      const warm = new Image()
+      warm.src = data.avatar_url
+    }
+  }
 
   // 이전 사용자의 캐시 완전히 제거 (사용자별 캐시 분리)
   clearAllPersistedCache()
