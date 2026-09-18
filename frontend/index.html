@@ -147,6 +147,29 @@
          API 요청은 자격증명 없는 CORS(Authorization 헤더만) 라 crossorigin(anonymous) 커넥션과 매칭된다. -->
     <link rel="preconnect" href="%VITE_API_URL%" crossorigin />
 
+    <!-- PC 우상단 계정 아바타 선요청: 사진은 R2(r2.dev — 별도 오리진, CDN 캐시 없음)에 있고
+         <img> 는 엔트리 JS 실행 → React 렌더 뒤에야 생겨서, 그때부터 DNS+TLS+다운로드가 시작돼
+         헤더에서 혼자 늦게 떴다. URL 은 지난 방문에 localStorage 에 미러링돼 있으므로
+         문서 파싱 시점에 JS 번들과 나란히 받아 둔다. 우선순위는 기본(낮음) — 엔트리 JS·CSS 와 다투지 않는다.
+         아바타는 lg+ 헤더에만 있으므로 모바일은 건너뛴다.
+         키는 src/utils/tokenStore.ts 의 ACCESS_KEY / SESSION_USER_KEYS.avatarUrl 과 동일.
+         HeaderAccountCluster 의 <img> 에 crossOrigin 이 없으므로 여기도 붙이지 않는다(불일치 시 두 번 받는다). -->
+    <script>
+      (function () {
+        try {
+          if (!window.matchMedia('(min-width: 1024px)').matches) return;
+          if (!localStorage.getItem('access_token')) return;
+          var url = localStorage.getItem('user_avatar_url');
+          if (!url || !/^https:\/\//.test(url)) return;
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = url;
+          document.head.appendChild(link);
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- /about 히어로 배경 선요청: 배경 URL은 /about-content API 응답 안에 있어
          (라우트 청크 → API 왕복 → 렌더) 뒤에야 발견된다. CSS background-image 나
          React가 그리는 <img> 모두 프리로드 스캐너가 못 보므로, 지난 방문에 저장해 둔
