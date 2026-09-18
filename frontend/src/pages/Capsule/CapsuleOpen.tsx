@@ -479,6 +479,33 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
               </aside>
             )}
 
+            {/* 함께 봉인한 '누군가의 기도' 한 달 — 지난달 마무리에서 봉인한 캡슐에만 있다.
+                1년 전 누군가 붙들어 준 기도제목을 다시 만나며 응답을 돌아보는 자리 */}
+            {snapshot?.intercession && (
+              <aside className="capsule-ps capsule-letter-enter capsule-letter-enter--delayed">
+                <span className="capsule-ps__clip" aria-hidden>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round">
+                    <path d="M8 8.5v7.8a4 4 0 0 0 8 0V7.2a2.7 2.7 0 1 0-5.4 0v8.6a1.35 1.35 0 0 0 2.7 0V8.5" />
+                  </svg>
+                </span>
+                <p className="capsule-ps__label">
+                  누군가의 기도 · {snapshot.intercession.month_label}
+                </p>
+                {snapshot.intercession.request_line && (
+                  <p className="capsule-ps__verse">“{snapshot.intercession.request_line}”</p>
+                )}
+                <p className="capsule-ps__verse">
+                  {snapshot.intercession.weeks_lit > 0
+                    ? `그 한 달, 누군가 이름도 모르는 당신을 위해 기도했어요. ${snapshot.intercession.week_count}주 가운데 ${snapshot.intercession.weeks_lit}주에 등불이 켜졌어요.`
+                    : '그 한 달, 교회의 누군가와 기도로 이어져 있었어요.'}
+                  {snapshot.intercession.letters > 0 ? ' 익명 편지도 받았지요.' : ''}
+                </p>
+                <p className="capsule-ps__label" style={{ marginTop: 14 }}>
+                  그 기도, 어떻게 응답되었나요?
+                </p>
+              </aside>
+            )}
+
             {/* P.S. — 편지에 클립으로 끼워둔 그날의 기록 카드 */}
             {snapshot && (
               <aside className="capsule-ps capsule-letter-enter capsule-letter-enter--delayed">

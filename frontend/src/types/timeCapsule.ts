@@ -34,6 +34,16 @@ export interface CapsuleSnapshot {
   sealed_date?: string
   stats?: CapsuleSnapshotStats
   prayer?: CapsuleSnapshotPrayer
+  intercession?: CapsuleSnapshotIntercession
+}
+
+/** '누군가의 기도' 한 달 — 지난달 마무리에서 봉인한 캡슐에만 (서버가 조립) */
+export interface CapsuleSnapshotIntercession {
+  month_label: string
+  weeks_lit: number
+  week_count: number
+  letters: number
+  request_line?: string
 }
 
 export interface CapsuleSummary {
@@ -113,6 +123,7 @@ export interface CapsuleCreateRequest {
   recipientName?: string
   recipientUserId?: number // direct 전용 — 받는 앱 사용자
   prayerId?: number // 기도→캡슐 흐름 — 그날의 기도를 함께 봉인
+  intercessionCycleId?: number // 누군가의 기도 지난달 마무리 → 그 한 달을 함께 봉인
   clientSnapshot?: Pick<CapsuleSnapshot, 'season_label' | 'verse_reference' | 'verse_text'>
   audioBlob?: Blob | null
   audioDuration?: number

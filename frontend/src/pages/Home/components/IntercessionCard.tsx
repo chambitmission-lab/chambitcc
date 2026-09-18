@@ -4,11 +4,12 @@
 //   진행 중        → 오늘 기도할 분 + 나를 위한 등불(작게)
 //   쉬는 중        → 띄우지 않는다 (쉬기로 한 분을 홈에서 조르지 않는다)
 //   안 읽은 편지   → 위 상태보다 먼저 "누군가의 편지가 도착했어요" (쉬는 중이어도)
+//   지난달 마무리  → 고마움을 아직 안 전했으면 그다음으로 "M월의 기도를 마무리해요"
 import { useNavigate } from 'react-router-dom'
 import { useMyIntercession } from '../../../hooks/useIntercession'
 import { preloadRoute } from '../../../utils/routePreload'
 import { FlameGlyph, Lamp } from '../../Intercession/intercessionUi'
-import { daysUntil, formatDay } from '../../Intercession/intercessionDates'
+import { cycleMonthLabel, daysUntil, formatDay } from '../../Intercession/intercessionDates'
 import '../../Intercession/intercession.css'
 
 const IntercessionCard = () => {
@@ -18,13 +19,18 @@ const IntercessionCard = () => {
   if (!data?.open) return null
   const p = data.participant
   const unread = data.unread_letters
-  if (p?.status === 'paused' && unread === 0) return null
+  const recap = data.recap
+  const thankPending = !!recap?.can_thank && !recap.thanks_sent
+  if (p?.status === 'paused' && unread === 0 && !thankPending) return null
 
   let title: string
   let sub: string
   if (unread > 0) {
     title = unread > 1 ? `누군가의 편지 ${unread}통이 도착했어요` : '누군가의 편지가 도착했어요'
     sub = '당신을 위해 한 달 동안 기도한 분이 남겼어요'
+  } else if (thankPending && recap) {
+    title = `${cycleMonthLabel(recap.start_date)}의 기도를 마무리해요`
+    sub = '얼굴 모르는 기도자에게 고마움을 전해 보세요'
   } else if (!p) {
     title = '서로를 위해 몰래 기도해요'
     sub = '한 달에 한 분, 이름 모를 기도가 오가요 · 함께하기'

@@ -73,6 +73,11 @@ const CapsuleCreate = () => {
     return {
       fromPrayer: searchParams.get('from') === 'prayer',
       prayerId: Number(searchParams.get('prayerId')) || undefined,
+      // 누군가의 기도 지난달 마무리 → 그 한 달(등불·편지·기도제목)을 함께 봉인
+      intercessionCycleId:
+        searchParams.get('from') === 'intercession'
+          ? Number(searchParams.get('intercessionCycleId')) || undefined
+          : undefined,
       title: (searchParams.get('title') || '').slice(0, 50),
       openDate: isValidFutureDateStr(rawDate) ? rawDate : '',
       openLabel: (searchParams.get('openLabel') || '').trim().slice(0, 30),
@@ -168,6 +173,7 @@ const CapsuleCreate = () => {
 
   // 기도 동봉은 '미래의 나에게'일 때만 — 남에게 보내는 캡슐엔 내 기도를 붙이지 않는다
   const sealedPrayerId = capsuleType === 'self' ? suggested.prayerId : undefined
+  const sealedIntercessionCycleId = capsuleType === 'self' ? suggested.intercessionCycleId : undefined
 
   const audioUrl = useMemo(
     () => (audioBlob ? URL.createObjectURL(audioBlob) : null),
@@ -269,6 +275,7 @@ const CapsuleCreate = () => {
         recipientUserId:
           capsuleType === 'direct' ? selectedRecipient?.id : undefined,
         prayerId: sealedPrayerId,
+        intercessionCycleId: sealedIntercessionCycleId,
         clientSnapshot,
         audioBlob,
         audioDuration: audioBlob ? Math.min(recordingTime, MAX_RECORD_SECONDS) : undefined,
@@ -404,6 +411,16 @@ const CapsuleCreate = () => {
             <p className="text-[13px] font-bold text-brand">🙏 방금의 기도가 함께 봉인돼요</p>
             <p className="text-[12px] text-gray-600 dark:text-white/60 mt-1 leading-[1.6]">
               캡슐을 여는 날, 이 편지와 함께 그날의 기도와 붙들었던 말씀을 다시 보여드릴게요.
+            </p>
+          </div>
+        )}
+
+        {/* 누군가의 기도 → 캡슐 흐름 안내 — 지난 한 달(기도제목·등불·편지)이 함께 봉인된다 */}
+        {sealedIntercessionCycleId && (
+          <div className="mx-4 mt-4 px-4 py-3.5 rounded-2xl bg-[var(--brand-soft)] border border-brand/15">
+            <p className="text-[13px] font-bold text-brand">누군가 함께 기도해 준 한 달이 봉인돼요</p>
+            <p className="text-[12px] text-gray-600 dark:text-white/60 mt-1 leading-[1.6]">
+              캡슐을 여는 날, 그때의 기도제목과 켜졌던 등불을 다시 보여드릴게요. 어떻게 응답되었는지 돌아봐요.
             </p>
           </div>
         )}

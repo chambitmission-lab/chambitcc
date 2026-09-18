@@ -12,6 +12,7 @@ import {
   reportIntercessionLetter,
   resolveIntercessionLetterReport,
   saveIntercessionLetter,
+  sendIntercessionThanks,
   getIntercessionSummary,
   getMyIntercession,
   joinIntercession,
@@ -84,6 +85,9 @@ export const usePauseIntercession = (feedback?: MutationFeedback<IntercessionSta
 
 export const usePrayIntercession = (feedback?: MutationFeedback<IntercessionState, void>) =>
   useStateMutation(() => prayIntercession(), feedback)
+
+export const useSendIntercessionThanks = (feedback?: MutationFeedback<IntercessionState, string>) =>
+  useStateMutation((body: string) => sendIntercessionThanks(body), feedback)
 
 export const useSaveIntercessionLetter = (feedback?: MutationFeedback<IntercessionState, string>) =>
   useStateMutation((body: string) => saveIntercessionLetter(body), feedback)

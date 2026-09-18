@@ -23,6 +23,7 @@ import { RailCard, SurveyShell } from '../Survey/surveyUi'
 import { FlameGlyph, Lamp } from './intercessionUi'
 import { cycleMonthLabel, daysUntil, formatDay } from './intercessionDates'
 import { LetterEntry, LetterInbox } from './Letters'
+import { RecapCard } from './Recap'
 import './intercession.css'
 
 const LINE_MAX = 80
@@ -407,6 +408,7 @@ const Body = ({ state, loggedIn }: { state: IntercessionState; loggedIn: boolean
   if (p.status === 'paused') {
     return (
       <>
+        {state.recap ? <RecapCard recap={state.recap} /> : null}
         <Hero label="누군가의 기도" title={'잠시 쉬어 가는 중이에요'}>
           <p className="mt-3 text-[13px] leading-[1.7] text-[#41527a] dark:text-white/75 break-keep">
             다시 함께하면 이번 달 사슬에 바로 이어져, 기도할 분이 정해져요.
@@ -423,6 +425,9 @@ const Body = ({ state, loggedIn }: { state: IntercessionState; loggedIn: boolean
 
   return (
     <>
+      {/* 지난달 마무리 — 주기가 끝나고 두 주 동안, 새 달 등불보다 먼저 */}
+      {state.recap ? <RecapCard recap={state.recap} /> : null}
+
       {state.lamp && state.cycle ? (
         <LampHero state={state} />
       ) : (

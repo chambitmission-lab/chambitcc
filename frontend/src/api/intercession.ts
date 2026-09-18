@@ -54,6 +54,23 @@ export interface IntercessionLamp {
   months_received: number
 }
 
+/** 지난달 마무리 — 주기가 끝나고 두 주 동안 */
+export interface IntercessionRecap {
+  cycle_id: number
+  start_date: string
+  end_date: string
+  was_receiver: boolean
+  was_giver: boolean
+  weeks: IntercessionLampWeek[]
+  letters_received: number
+  church_prayers: number
+  my_prayed_days: number
+  can_thank: boolean
+  thanks_sent: string | null
+  thanks_received: string[]
+  request_line: string | null
+}
+
 export interface IntercessionState {
   open: boolean
   participant: { status: 'active' | 'paused'; request_line: string | null; joined_at: string } | null
@@ -63,6 +80,7 @@ export interface IntercessionState {
   target: IntercessionTarget | null
   lamp: IntercessionLamp | null
   unread_letters: number
+  recap: IntercessionRecap | null
   church: { participants: number; cycle_prayers: number }
 }
 
@@ -155,6 +173,14 @@ export const prayIntercession = () =>
     method: 'POST',
     auth: 'required',
     errorMessage: '기도를 기록하지 못했습니다',
+  })
+
+export const sendIntercessionThanks = (body: string) =>
+  request<IntercessionState>(`${BASE}/thanks`, {
+    method: 'POST',
+    json: { body },
+    auth: 'required',
+    errorMessage: '고마움을 전하지 못했습니다',
   })
 
 export const saveIntercessionLetter = (body: string) =>

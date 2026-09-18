@@ -47,14 +47,32 @@ const LETTERS: IntercessionLetterList = {
 const NO_LETTERS: IntercessionLetterList = { unread: 0, items: [] }
 
 const STATES: Record<string, IntercessionState> = {
-  닫힘: { open: false, participant: null, cycle: null, next_start_date: '2026-11-01', waiting_reason: null, target: null, lamp: null, unread_letters: 0, church: { participants: 0, cycle_prayers: 0 } },
-  미참여: { open: true, participant: null, cycle: null, next_start_date: '2026-11-01', waiting_reason: null, target: null, lamp: null, unread_letters: 0, church: { participants: 42, cycle_prayers: 0 } },
-  '첫 주기 전': { open: true, participant: joined, cycle: null, next_start_date: '2026-11-01', waiting_reason: 'not_started', target: null, lamp: null, unread_letters: 0, church: { participants: 42, cycle_prayers: 0 } },
-  '진행 중': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: target(false), lamp: { weeks: weeks([true, true, false], 2), received_today: false, months_received: 1 }, unread_letters: 0, church },
-  '오늘 기도함': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: target(true), lamp: { weeks: weeks([true, true, true], 2), received_today: true, months_received: 3 }, unread_letters: 0, church },
-  '인원 모으는 중': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: 'gathering', target: null, lamp: { weeks: weeks([], 2), received_today: false, months_received: 0 }, unread_letters: 0, church: { participants: 2, cycle_prayers: 0 } },
-  '편지 도착': { open: true, participant: joined, cycle: { ...cycle, id: 2, start_date: '2026-12-06', end_date: '2027-01-03', week_count: 4, current_week: 0 }, next_start_date: '2027-01-03', waiting_reason: null, target: { ...target(false), display_name: '이믿음', request_line: null, recent_prayers: [] }, lamp: { weeks: weeks([], 0).slice(0, 4), received_today: false, months_received: 3 }, unread_letters: 1, church },
-  '쉬는 중': { open: true, participant: { ...joined, status: 'paused' }, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: null, lamp: null, unread_letters: 0, church },
+  닫힘: { open: false, participant: null, cycle: null, next_start_date: '2026-11-01', waiting_reason: null, target: null, lamp: null, unread_letters: 0, recap: null, church: { participants: 0, cycle_prayers: 0 } },
+  미참여: { open: true, participant: null, cycle: null, next_start_date: '2026-11-01', waiting_reason: null, target: null, lamp: null, unread_letters: 0, recap: null, church: { participants: 42, cycle_prayers: 0 } },
+  '첫 주기 전': { open: true, participant: joined, cycle: null, next_start_date: '2026-11-01', waiting_reason: 'not_started', target: null, lamp: null, unread_letters: 0, recap: null, church: { participants: 42, cycle_prayers: 0 } },
+  '진행 중': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: target(false), lamp: { weeks: weeks([true, true, false], 2), received_today: false, months_received: 1 }, unread_letters: 0, recap: null, church },
+  '오늘 기도함': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: target(true), lamp: { weeks: weeks([true, true, true], 2), received_today: true, months_received: 3 }, unread_letters: 0, recap: null, church },
+  '인원 모으는 중': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: 'gathering', target: null, lamp: { weeks: weeks([], 2), received_today: false, months_received: 0 }, unread_letters: 0, recap: null, church: { participants: 2, cycle_prayers: 0 } },
+  '편지 도착': { open: true, participant: joined, cycle: { ...cycle, id: 2, start_date: '2026-12-06', end_date: '2027-01-03', week_count: 4, current_week: 0 }, next_start_date: '2027-01-03', waiting_reason: null, target: { ...target(false), display_name: '이믿음', request_line: null, recent_prayers: [] }, lamp: { weeks: weeks([], 0).slice(0, 4), received_today: false, months_received: 3 }, unread_letters: 1, recap: null, church },
+  '지난달 마무리': {
+    open: true, participant: joined,
+    cycle: { ...cycle, id: 2, start_date: '2026-12-06', end_date: '2027-01-03', week_count: 4, current_week: 0 },
+    next_start_date: '2027-01-03', waiting_reason: null,
+    target: { ...target(false), display_name: '이믿음', request_line: null, recent_prayers: [] },
+    lamp: { weeks: weeks([], 0).slice(0, 4), received_today: false, months_received: 3 },
+    unread_letters: 0,
+    recap: {
+      cycle_id: 1, start_date: '2026-11-01', end_date: '2026-12-06',
+      was_receiver: true, was_giver: true,
+      weeks: weeks([true, true, false, true, true], 5),
+      letters_received: 1, church_prayers: 1342, my_prayed_days: 21,
+      can_thank: true, thanks_sent: null,
+      thanks_received: ['기도 덕분에 한 달을 잘 지냈어요'],
+      request_line: '이직 준비 중이에요. 지혜를 구해 주세요',
+    },
+    church,
+  },
+  '쉬는 중': { open: true, participant: { ...joined, status: 'paused' }, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: null, lamp: null, unread_letters: 0, recap: null, church },
 }
 
 const IntercessionPreview = () => {
@@ -62,7 +80,7 @@ const IntercessionPreview = () => {
   const [name, setName] = useState('진행 중')
   const plant = (key: string) => {
     qc.setQueryData(intercessionKeys.me(), STATES[key])
-    const hasLetters = key === '편지 도착' || key === '쉬는 중' || key === '오늘 기도함'
+    const hasLetters = key === '편지 도착' || key === '지난달 마무리' || key === '쉬는 중' || key === '오늘 기도함'
     qc.setQueryData(intercessionKeys.letters(), hasLetters ? LETTERS : NO_LETTERS)
   }
   const seed = (key: string) => {
