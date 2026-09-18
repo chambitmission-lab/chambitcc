@@ -29,6 +29,7 @@ import ThanksComposerLazy from './components/ThanksThread/ThanksComposerLazy'
 import HomeNotice from './components/HomeNotice'
 import DailyMeditationCard from './components/DailyMeditationCard'
 import TimeCapsuleCard from './components/TimeCapsuleCard'
+import IntercessionCard from './components/IntercessionCard'
 import SurveyBanner from './components/SurveyBanner'
 import TodayPlanCard from './components/TodayPlanCard'
 import LiveReadingCard from './components/LiveReadingCard'
@@ -418,6 +419,9 @@ const NewHome = () => {
                 <AnsweredPrayersBanner />
               </div>
             </section>
+
+            {/* 누군가의 기도 — 교회 전체 익명 중보 짝. 운영이 열렸을 때만, 쉬는 중이면 숨긴다 */}
+            <IntercessionCard />
 
             {/* 진행 중인 설문 — 아직 참여하지 않은 성도에게만 뜬다 */}
             <SurveyBanner />

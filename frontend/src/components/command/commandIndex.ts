@@ -65,6 +65,7 @@ export const PAGE_INDEX: PageEntry[] = [
   { to: '/garden', label: { ko: '성경 칭호', en: 'Bible Titles' }, desc: { ko: '모은 칭호와 커버', en: 'Titles you earned' }, icon: 'garden', keywords: ['칭호', '뱃지', '업적', 'title', 'badge'], memberOnly: true },
   { to: '/bluemarble', label: { ko: '바이블 퀘스트', en: 'Bible Quest' }, desc: { ko: '성경 보드게임 · 퀴즈', en: 'Bible board game · quiz' }, icon: 'bluemarble', keywords: ['퀘스트', '게임', '퀴즈', '보드', 'quest', 'quiz', 'game'], memberOnly: true },
   { to: '/answered-prayers', label: { ko: '응답의 전당', en: 'Answered Prayers' }, desc: { ko: '응답받은 기도의 기록', en: 'Testimonies of answered prayer' }, icon: 'answeredPrayers', keywords: ['응답', '간증', 'answered', 'testimony'] },
+  { to: '/intercession', label: { ko: '누군가의 기도', en: "Someone's Prayer" }, desc: { ko: '서로를 위해 몰래 기도하는 짝', en: 'Pray in secret for one another' }, icon: 'intercession', keywords: ['누군가', '중보', '기도짝', '짝꿍', '마니또', 'intercession'] },
   { to: '/capsule', label: { ko: '타임캡슐', en: 'Time Capsule' }, desc: { ko: '미래의 나에게 봉인 편지', en: 'A sealed letter to future you' }, glyph: Hourglass, keywords: ['타임캡슐', '캡슐', '편지', 'capsule', 'letter'], memberOnly: true },
   { to: '/profile', label: { ko: '내 프로필', en: 'My Profile' }, desc: { ko: '프로필 · 칭호 · 설정', en: 'Profile · titles · settings' }, glyph: UserCircle, keywords: ['프로필', '내정보', '설정', 'profile', 'settings'], memberOnly: true },
   { to: '/login', label: { ko: '로그인', en: 'Log in' }, desc: { ko: '교인 로그인', en: 'Member login' }, glyph: Key, keywords: ['로그인', 'login', 'sign in'] },

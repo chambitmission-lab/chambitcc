@@ -1,0 +1,119 @@
+/* 누군가의 기도 — 등불(초)과 불꽃. 클래스는 ic- 접두사.
+   불꽃은 켜질 때 한 번만 피어오른다 (무한 깜빡임·글로우 애니메이션은 쓰지 않는다). */
+
+.ic-lamp {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 18px;
+}
+.ic-lamp--sm {
+  gap: 7px;
+  justify-content: flex-start;
+}
+
+.ic-candle {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(21, 38, 72, 0.28);
+}
+.ic-candle__stick {
+  display: block;
+  width: 14px;
+  height: 34px;
+  margin-top: 1px;
+  border-radius: 4px 4px 3px 3px;
+  background: linear-gradient(180deg, #ffffff 0%, #eef3fb 100%);
+  box-shadow: inset 0 0 0 1px rgba(49, 130, 246, 0.16);
+}
+.ic-lamp--sm .ic-candle__stick {
+  width: 7px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+/* 이번 주 — 초 받침에 브랜드 링 */
+.ic-candle.is-current .ic-candle__stick {
+  box-shadow: inset 0 0 0 1.5px var(--brand), 0 0 0 3px var(--brand-soft-strong);
+}
+.ic-candle.is-future {
+  opacity: 0.45;
+}
+
+/* 켜진 초 — 불꽃 뒤 따뜻한 빛무리 (정적) */
+.ic-candle__glow {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+}
+.ic-candle.is-lit .ic-candle__glow {
+  opacity: 1;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.38) 0%, rgba(251, 191, 36, 0) 68%);
+}
+.ic-lamp--sm .ic-candle__glow {
+  top: -4px;
+  width: 22px;
+  height: 22px;
+}
+
+.ic-flame {
+  position: relative;
+  display: block;
+  overflow: visible;
+}
+.ic-flame.is-lit {
+  transform-origin: 50% 100%;
+  animation: ic-ignite 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes ic-ignite {
+  from {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 오늘 기도 버튼을 누른 직후 — 한 번 피어나는 빛 */
+.ic-pray-burst {
+  animation: ic-burst 0.9s ease-out both;
+}
+@keyframes ic-burst {
+  0% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(251, 191, 36, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ic-flame.is-lit,
+  .ic-pray-burst {
+    animation: none;
+  }
+}
+
+html.dark .ic-candle {
+  color: rgba(255, 255, 255, 0.3);
+}
+html.dark .ic-candle__stick {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.07) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+html.dark .ic-candle.is-current .ic-candle__stick {
+  box-shadow: inset 0 0 0 1.5px var(--brand), 0 0 0 3px var(--brand-soft-strong);
+}
+html.dark .ic-candle.is-lit .ic-candle__glow {
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.3) 0%, rgba(251, 191, 36, 0) 68%);
+}

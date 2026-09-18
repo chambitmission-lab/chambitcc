@@ -28,6 +28,7 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
     import('../pages/Garden/Garden').then((m) => ({ default: m.Garden })),
   '/bluemarble': () => import('../pages/Bluemarble/Bluemarble'),
   '/answered-prayers': () => import('../pages/Prayer/AnsweredPrayers'),
+  '/intercession': () => import('../pages/Intercession/Intercession'),
   '/account': () => import('../pages/Account/AccountSettings'),
   '/profile': () => import('../pages/Profile/Profile'),
   '/prayer-focus': () => import('../pages/PrayerFocus'),

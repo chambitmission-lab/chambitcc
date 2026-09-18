@@ -81,6 +81,9 @@ const PresencePillPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Bible/components/together/PresencePillPreview'))
   : null
 // 섬기는 사람들 — 백엔드 없이 배치·다크모드 확인 (표본 데이터)
+const IntercessionPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Intercession/IntercessionPreview'))
+  : null
 const PeoplePreview = import.meta.env.DEV
   ? lazy(() => import('./pages/People/PeoplePreview'))
   : null
@@ -170,6 +173,7 @@ const BibleAtlas = lazy(() => import('./pages/Bible/Atlas/AtlasMap'))
 const BiblePlanManagement = lazy(() => import('./pages/Admin/BiblePlanManagement'))
 const BibleCommentaryManagement = lazy(() => import('./pages/Admin/BibleCommentaryManagement'))
 const AnsweredPrayers = lazy(menuRouteLoaders['/answered-prayers'])
+const Intercession = lazy(menuRouteLoaders['/intercession'])
 const Thanks = lazy(() => import('./pages/Thanks/Thanks'))
 const Garden = lazy(menuRouteLoaders['/garden'])
 const Bluemarble = lazy(menuRouteLoaders['/bluemarble'])
@@ -185,6 +189,7 @@ const VerseAlarmPage = lazy(() => import('./pages/Bible/VerseAlarm/VerseAlarmPag
 const SituationManagement = lazy(() => import('./pages/Admin/SituationManagement'))
 const CultureManagement = lazy(() => import('./pages/Admin/CultureManagement'))
 const SurveyManagement = lazy(() => import('./pages/Admin/SurveyManagement'))
+const IntercessionManagement = lazy(() => import('./pages/Admin/IntercessionManagement'))
 const OrganizationManagement = lazy(() => import('./pages/Admin/OrganizationManagement'))
 const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
 const CareRadar = lazy(() => import('./pages/Admin/CareRadar'))
@@ -374,6 +379,7 @@ function App() {
                 <Route path="/admin/chatbot" element={<ChatbotManagement />} />
                 <Route path="/admin/culture" element={<CultureManagement />} />
                 <Route path="/admin/surveys" element={<SurveyManagement />} />
+                <Route path="/admin/intercession" element={<IntercessionManagement />} />
                 <Route path="/admin/organization" element={<OrganizationManagement />} />
                 <Route path="/admin/pastors" element={<PastorManagement />} />
                 <Route path="/admin/people" element={<PeopleManagement />} />
@@ -390,6 +396,7 @@ function App() {
                 <Route path="/prayer-topics/screen" element={<WeeklyPrayerScreen />} />
                 <Route path="/admin/weekly-prayers" element={<WeeklyPrayerManagement />} />
                 <Route path="/answered-prayers" element={<AnsweredPrayers />} />
+                <Route path="/intercession" element={<Intercession />} />
                 <Route path="/thanks" element={<Thanks />} />
                 <Route path="/bible" element={<BibleStudy />} />
                 <Route path="/bible/genealogy" element={<Genealogy />} />
@@ -453,6 +460,9 @@ function App() {
                 )}
                 {PresencePillPreview && (
                   <Route path="/dev/presence-pill" element={<PresencePillPreview />} />
+                )}
+                {IntercessionPreview && (
+                  <Route path="/dev/intercession" element={<IntercessionPreview />} />
                 )}
                 {PeoplePreview && (
                   <Route path="/dev/people" element={<PeoplePreview />} />

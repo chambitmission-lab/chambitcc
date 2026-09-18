@@ -156,6 +156,15 @@ const IconSparkle = (p: IconProps) => (
   </Svg>
 )
 
+/* 누군가의 기도 — 불 켜진 초 */
+const IconCandle = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 2.6c1.5 2 3 3.4 3 5.5a3 3 0 0 1-6 0c0-1.6 1-2.6 1.7-4 .4.8.8 1.1 1.2 1.3.2-1 .2-1.9.1-2.8Z" />
+    <rect x="8.6" y="12.6" width="6.8" height="8.4" rx="1.6" />
+    <path d="M6 21h12" />
+  </Svg>
+)
+
 /* 우리반 알림장 — 종이 달린 알림판 */
 const IconClassNote = (p: IconProps) => (
   <Svg {...p}>
@@ -243,7 +252,11 @@ export const NAV_ICONS = {
   garden: IconMedal,
   bluemarble: IconDice,
   answeredPrayers: IconSparkle,
+  intercession: IconCandle,
   survey: IconSurvey,
 } as const
 
 export type NavIconKey = keyof typeof NAV_ICONS
+
+/* 관리자 메뉴에서도 같은 초를 쓴다 */
+export { IconCandle }

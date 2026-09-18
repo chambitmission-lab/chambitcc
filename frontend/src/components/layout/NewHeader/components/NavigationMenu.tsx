@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { NAV_ICONS, type NavIconKey } from './NavIcons'
+import { useIntercessionSummary } from '../../../../hooks/useIntercession'
 
 interface NavItem {
   path: string
@@ -53,7 +54,8 @@ const MENU_SECTIONS: NavSection[] = [
 const ACTIVITY_ITEMS: NavItem[] = [
   { path: '/garden', key: 'garden' },
   { path: '/bluemarble', key: 'bluemarble' },
-  { path: '/answered-prayers', key: 'answeredPrayers' }
+  { path: '/answered-prayers', key: 'answeredPrayers' },
+  { path: '/intercession', key: 'intercession' }
 ]
 
 const SectionTitle = ({ children }: { children: string }) => (
@@ -107,6 +109,11 @@ const LauncherItem = ({
 
 const NavigationMenu = () => {
   const { t } = useLanguage()
+  // 누군가의 기도는 운영자가 연 뒤에만 메뉴에 보인다 (그 전엔 광고 전 기능)
+  const { data: intercession } = useIntercessionSummary()
+  const activityItems = ACTIVITY_ITEMS.filter(
+    item => item.path !== '/intercession' || intercession?.open
+  )
 
   return (
     // 모바일: 섹션 세로 스택 + 4열 아이콘 그리드 (런처)
@@ -129,7 +136,7 @@ const NavigationMenu = () => {
       <div>
         <SectionTitle>{t('navGroupActivity')}</SectionTitle>
         <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-1 lg:gap-0.5">
-          {ACTIVITY_ITEMS.map(item => (
+          {activityItems.map(item => (
             <LauncherItem key={item.path} item={item} label={t(item.key)} accent />
           ))}
         </div>

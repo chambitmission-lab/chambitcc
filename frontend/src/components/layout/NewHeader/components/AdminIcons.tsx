@@ -1,7 +1,7 @@
 /* 관리자 메뉴용 라인 아이콘 — NavIcons와 같은 스트로크 1.6 규격.
    OS마다 다르게 그려지던 이모지를 대체한다. */
 
-import { Svg, type IconProps } from './NavIcons'
+import { IconCandle, Svg, type IconProps } from './NavIcons'
 
 /* 관리자 홈 — 대시보드 타일 */
 const IconDashboard = (p: IconProps) => (
@@ -280,6 +280,7 @@ export const ADMIN_ICONS = {
   adminNavPush: IconBell,
   adminNavChatbot: IconChatBot,
   adminNavSurvey: IconSurveyBoard,
+  adminNavIntercession: IconCandle,
   adminNavEvent: IconCalendar,
   adminNavCulture: IconPalette,
   adminNavOrganization: IconOrgChart,
