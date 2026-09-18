@@ -19,7 +19,7 @@ import PrayingForList from './components/PrayingForList'
 import MyRepliesList from './components/MyRepliesList'
 import MyBookmarksList from './components/MyBookmarksList'
 import LoadMoreSentinel from './components/LoadMoreSentinel'
-import LoadingSpinner from '../../components/common/LoadingSpinner'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import type { ProfileTab } from '../../types/profile'
 import type { Achievement, GlowLevel, UserActivityData } from '../../types/achievement'
 import { 
@@ -30,6 +30,35 @@ import {
   getNewlyUnlockedAchievements 
 } from '../../utils/achievementCalculator'
 import { tokenStore } from '../../utils/tokenStore'
+
+// 본문 도착 전 자리표시자 — 실제 섹션(커버·아바타·온도 카드·배지 행·탭·목록)과 같은 자리·비슷한 높이라
+// 데이터가 오면 제자리에서 채워진다. 전체 화면 스피너와 달리 셸이 즉시 떠 "열렸다"는 응답이 빠르다
+const ProfileSkeleton = () => {
+  const bone = 'bg-gray-200/80 dark:bg-white/[0.07]'
+  return (
+    <div className="animate-pulse" aria-hidden="true">
+      <div className={`h-28 ${bone}`} />
+      <div className="px-4 -mt-10 flex flex-col items-center gap-2.5">
+        <div className={`w-20 h-20 rounded-full border-4 border-background-light dark:border-background-dark ${bone}`} />
+        <div className={`h-4 w-28 rounded-full ${bone}`} />
+        <div className={`h-3 w-20 rounded-full ${bone}`} />
+      </div>
+      <div className="px-4 pt-5 space-y-3">
+        <div className={`h-44 rounded-2xl ${bone}`} />
+        <div className={`h-24 rounded-2xl ${bone}`} />
+        <div className="flex gap-3 pt-1">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className={`w-12 h-12 rounded-full ${bone}`} />
+          ))}
+        </div>
+        <div className={`h-10 rounded-xl ${bone}`} />
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={`h-20 rounded-2xl ${bone}`} />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 const Profile = () => {
   const navigate = useNavigate()
@@ -48,6 +77,9 @@ const Profile = () => {
   }, [navigate])
   
   const hasToken = !!tokenStore.getAccess()
+  // 인사이트·여정·주간 스토리·푸시 카드는 모바일 본문과 PC 우측 레일 두 곳에 자리가 있다.
+  // CSS 로 한쪽만 숨기면 둘 다 마운트돼 첫 렌더 비용이 두 배라, 보이는 쪽만 렌더한다
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const { data, isLoading, error } = useProfileDetail()
 
   // 탭 목록 무한 스크롤 — detail 응답은 미리보기(5/12/8개)일 뿐이므로,
@@ -160,17 +192,8 @@ const Profile = () => {
     setSelectedAchievement(null)
   }
 
-  if (isLoading || (hasToken && bmLoading)) {
-    return (
-      <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark flex items-center justify-center page-stage">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark p-8 rounded-2xl">
-          <LoadingSpinner />
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !data) {
+  // 캐시가 있으면 재조회 실패여도 그대로 보여준다 (오프라인·일시 오류)
+  if (error && !data) {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark flex items-center justify-center p-4 page-stage">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark p-8 rounded-2xl text-center">
@@ -186,7 +209,10 @@ const Profile = () => {
     )
   }
 
-  const { stats, my_prayers, praying_for, my_replies } = data
+  // 본문은 detail + 블루마블 통계가 모두 있어야 그린다(레벨 점프 플래시 방지).
+  // 그 전에도 전체 스피너로 막지 않고 셸(상단 바)+같은 자리의 스켈레톤을 즉시 그린다 —
+  // persist 복원 중(isLoading=false·data 없음)에도 에러 화면 대신 스켈레톤이 뜬다
+  const ready = !!data && !isLoading && !(hasToken && bmLoading)
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
@@ -212,6 +238,9 @@ const Profile = () => {
           </button>
         </div>
 
+        {!ready || !data ? <ProfileSkeleton /> : (() => {
+        const { stats, my_prayers, praying_for, my_replies } = data
+        return (<>
         {/* ① 아이덴티티 — 이름·칭호·단계, 조용하게 */}
         <ProfileHeader
           username={stats.username}
@@ -231,11 +260,13 @@ const Profile = () => {
         />
 
         {/* ③④ 인사이트·여정·주간 스토리 — lg에선 우측 레일이 대신한다 */}
-        <div className="lg:hidden">
-          <FaithInsightCard />
-          <GrowthHook />
-          <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
-        </div>
+        {!isDesktop && (
+          <div>
+            <FaithInsightCard />
+            <GrowthHook />
+            <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
+          </div>
+        )}
 
         {/* ⑤ 업적 — 대표 배지 행 + 펼쳐보기 */}
         <AchievementBadges
@@ -244,7 +275,8 @@ const Profile = () => {
         />
 
         {/* 푸시 알림 설정 — lg에선 우측 레일이 대신한다 */}
-        <div className="px-4 py-3 lg:hidden">
+        {!isDesktop && (
+        <div className="px-4 py-3">
           <div
             className="
               relative overflow-hidden rounded-2xl p-4
@@ -269,6 +301,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* 콘텐츠 탭 */}
         <ContentTabs
@@ -326,7 +359,9 @@ const Profile = () => {
           )}
           {activeTab === 'notes' && <MyBookmarksList />}
         </div>
-        
+        </>)
+        })()}
+
         {/* 레벨업 축하 모먼트 */}
         {levelUp && (
           <LevelUpMoment level={levelUp} onClose={() => setLevelUp(null)} />
@@ -344,13 +379,14 @@ const Profile = () => {
 
       {/* 우측 위젯 레일 (lg+) — 정체성·콘텐츠는 본문에 두고, 진입 카드와 설정을 옆에 고정.
           레일이 화면보다 길어질 수 있어 홈 사이드바와 같은 자체 스크롤을 준다 */}
-      <aside className="hidden lg:block lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
+      {isDesktop && ready && data && (
+      <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
         {/* 카드들은 자체 px-4 여백을 갖고 있어 레일 안에서도 같은 거터를 그대로 쓴다
             (음수 마진으로 상쇄하면 overflow-y-auto 컨테이너에 가로 스크롤이 생긴다) */}
         <div>
           <FaithInsightCard />
           <GrowthHook />
-          <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
+          <WeeklyStoryHook thisWeekCount={data.stats.activity.this_week_count} />
 
           <div className="px-4 py-3">
             <div className="relative overflow-hidden rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]">
@@ -368,6 +404,7 @@ const Profile = () => {
           </div>
         </div>
       </aside>
+      )}
       </div>
     </div>
   )

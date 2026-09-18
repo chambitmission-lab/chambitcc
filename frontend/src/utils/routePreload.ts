@@ -51,6 +51,9 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   '/greeting': () => import('../pages/Greeting/prefetch').then((m) => m.prefetch()),
   // 하단 네비 1순위 목적지 — 책 목록(+로그인 시 진행률·이어읽기)을 청크와 같이 데운다
   '/bible': () => import('../pages/Bible/prefetch').then((m) => m.prefetchBibleHub()),
+  // 하단 네비 목적지 — 캐시가 아예 없을 때만(coldOnly) 받아 둔다. 무거운 집계 API 라
+  // 앱을 켤 때마다 부르진 않고, 재로그인·배포 직후 같은 콜드 진입의 전체 로딩만 없앤다
+  '/profile': () => import('../pages/Profile/prefetch').then((m) => m.prefetchProfile(undefined, true)),
   // 카테고리 목록 + 오늘의 위로 말씀 구절 — 청크만 받아 두면 진입 시 API 두 왕복이 직렬로 남는다
   '/bible/situation': () =>
     Promise.all([import('../hooks/useSituation'), import('../config/queryClient')]).then(

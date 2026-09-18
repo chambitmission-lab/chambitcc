@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import {
   getProfileDetail,
   getProfileStats,
@@ -12,21 +13,38 @@ import {
 import { tokenStore, sessionStore } from '../utils/tokenStore'
 import { profileKeys, meKeys } from './queryKeys'
 
+// detail 응답에 같이 실려 오는 탭 미리보기 개수 — 훅과 선요청(prefetchProfileDetail)이 같은 값을 써야 한다
+const fetchProfileDetail = () =>
+  getProfileDetail({
+    prayers_limit: 5,
+    praying_limit: 12,
+    replies_limit: 8,
+  })
+const PROFILE_DETAIL_STALE_MS = 1000 * 15 // 15초 (포인트 실시간 반영 위해 짧게)
+
+// /profile 선요청 — 훅과 같은 키라 화면이 뜨면 캐시를 그대로 이어받는다.
+// coldOnly: 유휴 프리로드용. 무거운 집계 API 라 앱을 켤 때마다 부르지 않고,
+// 캐시(persist 복원 포함)가 아예 없을 때만 받아 둔다 — 최신화는 진입 시 refetchOnMount 가 한다.
+export const prefetchProfileDetail = (qc: QueryClient, coldOnly = false): void => {
+  void qc.prefetchQuery({
+    queryKey: profileKeys.detail(),
+    queryFn: fetchProfileDetail,
+    staleTime: coldOnly ? Infinity : PROFILE_DETAIL_STALE_MS,
+  })
+}
+
 // 프로필 전체 정보 조회 (React Query persist-client가 localStorage 영속화 담당)
 export const useProfileDetail = () => {
   const token = tokenStore.getAccess()
 
   return useQuery({
     queryKey: profileKeys.detail(),
-    queryFn: () => getProfileDetail({
-      prayers_limit: 5,
-      praying_limit: 12,
-      replies_limit: 8,
-    }),
+    queryFn: fetchProfileDetail,
     // 로그인 안되어 있으면 쿼리 비활성화
     enabled: !!token,
-    staleTime: 1000 * 15, // 15초 (포인트 실시간 반영 위해 짧게)
-    gcTime: 1000 * 60 * 30, // 30분간 메모리 유지
+    staleTime: PROFILE_DETAIL_STALE_MS,
+    // gcTime 은 전역 기본(7일)을 따른다 — 예전엔 30분이라, 프로필을 떠난 뒤 30분이 지나면
+    // 캐시에서 빠지면서 persist 스냅샷에서도 사라져 다음 진입이 콜드(전체 로딩)로 돌아갔다
     refetchOnWindowFocus: true, // 탭 복귀 시 자동 갱신
     refetchOnMount: true, // 페이지 진입 시 최신화
   })

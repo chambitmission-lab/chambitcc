@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { prefetchBibleChapter } from '../../hooks/useBible'
 import { prefetchBibleHub } from '../../pages/Bible/prefetch'
+import { prefetchProfile } from '../../pages/Profile/prefetch'
 import { prefetchAboutContent } from '../../hooks/useAboutContent'
 import { prefetchSituation } from '../../hooks/useSituation'
 import { tokenStore } from '../../utils/tokenStore'
@@ -26,6 +27,8 @@ const RouteDataPrefetch = () => {
     }
     // /bible 허브(책 목록·진행률·이어읽기) — 예전엔 장 화면만 선요청해 허브는 청크 뒤에 API 가 왔다
     if (pathname === '/bible') prefetchBibleHub(queryClient)
+    // 프로필 — detail·블루마블 통계와 그 아래 카드 데이터(여정·칭호)를 청크와 나란히 한 번에 띄운다
+    if (pathname === '/profile') prefetchProfile(queryClient)
     // 상황별 성구 — 청크 → 카테고리 → 히어로 구절 3단 직렬을 청크와 나란히 한 번에 띄운다
     if (pathname === '/bible/situation') prefetchSituation(queryClient)
     // 비로그인 랜딩 — 히어로 사진 URL 이 /about-content 응답에 있어 청크 뒤에 API, 그 뒤에
