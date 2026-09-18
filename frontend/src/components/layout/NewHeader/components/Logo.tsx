@@ -21,8 +21,9 @@ const Logo = () => {
       {/* 주변 빛 확산 — 브랜드 블루 (theme.css 토큰) */}
       <div className="absolute inset-0 bg-[var(--brand-glow)] blur-md animate-pulse" />
 
+      {/* 라이트 글자는 차콜 그레이 — 새까만 글자는 푸른 빛무리 위에서 딱딱해 보인다. 다크는 ink-strong */}
       <h1
-        className="text-xl font-extrabold tracking-tighter font-display select-none text-ink-strong relative z-10 whitespace-nowrap"
+        className="text-xl font-extrabold tracking-tighter font-display select-none text-[#333d4b] dark:text-ink-strong relative z-10 whitespace-nowrap"
         style={{ filter: 'drop-shadow(0 0 10px var(--brand-glow)) drop-shadow(0 0 20px var(--brand-glow))' }}
       >
         {t('churchName')}
