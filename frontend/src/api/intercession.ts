@@ -20,6 +20,13 @@ export interface IntercessionTargetPrayer {
   time_ago: string
 }
 
+/** 내가 이번 달 짝에게 쓴 익명 편지 (도착 전 — 고칠 수 있다) */
+export interface IntercessionMyLetter {
+  body: string
+  updated_at: string
+  deliver_on: string // 이 날 아침에 도착
+}
+
 /** 내가 이번 달 기도할 분 */
 export interface IntercessionTarget {
   user_id: number
@@ -29,6 +36,7 @@ export interface IntercessionTarget {
   recent_prayers: IntercessionTargetPrayer[]
   prayed_today: boolean
   prayed_days: number
+  letter: IntercessionMyLetter | null
 }
 
 export interface IntercessionLampWeek {
@@ -54,7 +62,33 @@ export interface IntercessionState {
   waiting_reason: 'not_started' | 'gathering' | null
   target: IntercessionTarget | null
   lamp: IntercessionLamp | null
+  unread_letters: number
   church: { participants: number; cycle_prayers: number }
+}
+
+/** 도착한 익명 편지 — 보낸 사람 정보는 오지 않는다 */
+export interface IntercessionLetter {
+  id: number
+  body: string
+  month_start: string // 어느 달의 기도였는지
+  delivered_at: string
+  is_read: boolean
+}
+
+export interface IntercessionLetterList {
+  items: IntercessionLetter[]
+  unread: number
+}
+
+/** [관리자] 신고된 편지 — 운영자만 보낸 사람을 본다 */
+export interface IntercessionLetterReport {
+  id: number
+  body: string
+  report_reason: string | null
+  reported_at: string
+  month_start: string
+  sender_name: string
+  receiver_name: string
 }
 
 export interface IntercessionSummary {
@@ -77,6 +111,8 @@ export interface IntercessionAdminOverview {
   cycle_prayers: number
   total_prayers: number
   today_givers: number
+  cycle_letters: number
+  pending_reports: number
 }
 
 const BASE = '/intercession'
@@ -119,6 +155,55 @@ export const prayIntercession = () =>
     method: 'POST',
     auth: 'required',
     errorMessage: '기도를 기록하지 못했습니다',
+  })
+
+export const saveIntercessionLetter = (body: string) =>
+  request<IntercessionState>(`${BASE}/letter`, {
+    method: 'PUT',
+    json: { body },
+    auth: 'required',
+    errorMessage: '편지를 저장하지 못했습니다',
+  })
+
+export const deleteIntercessionLetter = () =>
+  request<IntercessionState>(`${BASE}/letter`, {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '편지를 지우지 못했습니다',
+  })
+
+export const getIntercessionLetters = () =>
+  request<IntercessionLetterList>(`${BASE}/letters`, {
+    auth: 'required',
+    errorMessage: '편지를 불러오지 못했습니다',
+  })
+
+export const readIntercessionLetter = (id: number) =>
+  request<IntercessionLetterList>(`${BASE}/letters/${id}/read`, {
+    method: 'POST',
+    auth: 'required',
+    errorMessage: '편지를 열지 못했습니다',
+  })
+
+export const reportIntercessionLetter = (id: number, reason: string | null) =>
+  request<IntercessionLetterList>(`${BASE}/letters/${id}/report`, {
+    method: 'POST',
+    json: { reason },
+    auth: 'required',
+    errorMessage: '신고하지 못했습니다',
+  })
+
+export const getIntercessionLetterReports = () =>
+  request<IntercessionLetterReport[]>(`${BASE}/admin/reports`, {
+    auth: 'required',
+    errorMessage: '신고 목록을 불러오지 못했습니다',
+  })
+
+export const resolveIntercessionLetterReport = (id: number, restore: boolean) =>
+  request<IntercessionLetterReport[]>(`${BASE}/admin/reports/${id}/${restore ? 'restore' : 'dismiss'}`, {
+    method: 'POST',
+    auth: 'required',
+    errorMessage: '신고를 처리하지 못했습니다',
   })
 
 export const getIntercessionAdminOverview = () =>

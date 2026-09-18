@@ -3,6 +3,7 @@
 //   대기 중        → 첫 짝이 정해지는 날 D-day / 인원 모으는 중
 //   진행 중        → 오늘 기도할 분 + 나를 위한 등불(작게)
 //   쉬는 중        → 띄우지 않는다 (쉬기로 한 분을 홈에서 조르지 않는다)
+//   안 읽은 편지   → 위 상태보다 먼저 "누군가의 편지가 도착했어요" (쉬는 중이어도)
 import { useNavigate } from 'react-router-dom'
 import { useMyIntercession } from '../../../hooks/useIntercession'
 import { preloadRoute } from '../../../utils/routePreload'
@@ -16,11 +17,15 @@ const IntercessionCard = () => {
 
   if (!data?.open) return null
   const p = data.participant
-  if (p?.status === 'paused') return null
+  const unread = data.unread_letters
+  if (p?.status === 'paused' && unread === 0) return null
 
   let title: string
   let sub: string
-  if (!p) {
+  if (unread > 0) {
+    title = unread > 1 ? `누군가의 편지 ${unread}통이 도착했어요` : '누군가의 편지가 도착했어요'
+    sub = '당신을 위해 한 달 동안 기도한 분이 남겼어요'
+  } else if (!p) {
     title = '서로를 위해 몰래 기도해요'
     sub = '한 달에 한 분, 이름 모를 기도가 오가요 · 함께하기'
   } else if (data.target) {
@@ -58,7 +63,9 @@ const IntercessionCard = () => {
           </span>
           <span className="mt-0.5 block text-[12px] text-[var(--text-muted)] truncate">{sub}</span>
         </span>
-        {data.lamp && data.target ? (
+        {unread > 0 ? (
+          <span className="shrink-0 w-2.5 h-2.5 rounded-full bg-[var(--brand)]" aria-label="새 편지" />
+        ) : data.lamp && data.target ? (
           <span className="shrink-0 pl-1">
             <Lamp weeks={data.lamp.weeks} size="sm" />
           </span>

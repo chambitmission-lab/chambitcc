@@ -4,7 +4,14 @@
 // 재조회 없이 setQueryData 로 바로 반영한다.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  deleteIntercessionLetter,
   getIntercessionAdminOverview,
+  getIntercessionLetterReports,
+  getIntercessionLetters,
+  readIntercessionLetter,
+  reportIntercessionLetter,
+  resolveIntercessionLetterReport,
+  saveIntercessionLetter,
   getIntercessionSummary,
   getMyIntercession,
   joinIntercession,
@@ -14,6 +21,8 @@ import {
   startIntercessionNow,
   updateIntercessionLine,
   type IntercessionAdminOverview,
+  type IntercessionLetterList,
+  type IntercessionLetterReport,
   type IntercessionState,
 } from '../api/intercession'
 import type { MutationFeedback } from './mutationFeedback'
@@ -23,6 +32,8 @@ export const intercessionKeys = {
   summary: () => [...intercessionKeys.all, 'summary'] as const,
   me: () => [...intercessionKeys.all, 'me'] as const,
   admin: () => [...intercessionKeys.all, 'admin'] as const,
+  letters: () => [...intercessionKeys.all, 'letters'] as const,
+  reports: () => [...intercessionKeys.all, 'reports'] as const,
 }
 
 /** 교회 전체 합계 + 열림 여부 — 메뉴·홈 카드 노출 판단에도 쓴다 */
@@ -74,6 +85,53 @@ export const usePauseIntercession = (feedback?: MutationFeedback<IntercessionSta
 export const usePrayIntercession = (feedback?: MutationFeedback<IntercessionState, void>) =>
   useStateMutation(() => prayIntercession(), feedback)
 
+export const useSaveIntercessionLetter = (feedback?: MutationFeedback<IntercessionState, string>) =>
+  useStateMutation((body: string) => saveIntercessionLetter(body), feedback)
+
+export const useDeleteIntercessionLetter = (feedback?: MutationFeedback<IntercessionState, void>) =>
+  useStateMutation(() => deleteIntercessionLetter(), feedback)
+
+// ── 도착한 편지 ───────────────────────────────────────────────────────
+
+export const useIntercessionLetters = (enabled = true) =>
+  useQuery({
+    queryKey: intercessionKeys.letters(),
+    queryFn: getIntercessionLetters,
+    enabled,
+    staleTime: 1000 * 60,
+    refetchOnMount: 'always',
+  })
+
+/** 편지함을 서버 응답으로 갈아 끼우고, 홈 카드의 '안 읽은 편지' 수도 맞춘다 */
+const useLetterMutation = <TVars>(
+  fn: (vars: TVars) => Promise<IntercessionLetterList>,
+  feedback?: MutationFeedback<IntercessionLetterList, TVars>,
+) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (data, vars) => {
+      qc.setQueryData(intercessionKeys.letters(), data)
+      qc.setQueryData<IntercessionState>(intercessionKeys.me(), (old) =>
+        old ? { ...old, unread_letters: data.unread } : old,
+      )
+      feedback?.onSuccess?.(data, vars)
+    },
+    onError: (error, vars) => feedback?.onError?.(error, vars),
+  })
+}
+
+export const useReadIntercessionLetter = () =>
+  useLetterMutation((id: number) => readIntercessionLetter(id))
+
+export const useReportIntercessionLetter = (
+  feedback?: MutationFeedback<IntercessionLetterList, { id: number; reason: string | null }>,
+) =>
+  useLetterMutation(
+    ({ id, reason }: { id: number; reason: string | null }) => reportIntercessionLetter(id, reason),
+    feedback,
+  )
+
 // ── 관리자 ────────────────────────────────────────────────────────────
 
 export const useIntercessionAdmin = (enabled = true) =>
@@ -107,3 +165,27 @@ export const useSetIntercessionOpen = (
 
 export const useStartIntercessionNow = (feedback?: MutationFeedback<IntercessionAdminOverview, void>) =>
   useAdminMutation(() => startIntercessionNow(), feedback)
+
+export const useIntercessionLetterReports = (enabled = true) =>
+  useQuery({
+    queryKey: intercessionKeys.reports(),
+    queryFn: getIntercessionLetterReports,
+    enabled,
+    refetchOnMount: 'always',
+  })
+
+export const useResolveIntercessionReport = (
+  feedback?: MutationFeedback<IntercessionLetterReport[], { id: number; restore: boolean }>,
+) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, restore }: { id: number; restore: boolean }) =>
+      resolveIntercessionLetterReport(id, restore),
+    onSuccess: (data, vars) => {
+      qc.setQueryData(intercessionKeys.reports(), data)
+      void qc.invalidateQueries({ queryKey: intercessionKeys.admin(), refetchType: 'all' })
+      feedback?.onSuccess?.(data, vars)
+    },
+    onError: (error, vars) => feedback?.onError?.(error, vars),
+  })
+}

@@ -22,6 +22,7 @@ import { confirmDialog } from '../../utils/confirmDialog'
 import { RailCard, SurveyShell } from '../Survey/surveyUi'
 import { FlameGlyph, Lamp } from './intercessionUi'
 import { cycleMonthLabel, daysUntil, formatDay } from './intercessionDates'
+import { LetterEntry, LetterInbox } from './Letters'
 import './intercession.css'
 
 const LINE_MAX = 80
@@ -78,6 +79,7 @@ const HOW_IT_WORKS = [
   '매월 첫 주일, 함께하는 성도 가운데 한 분이 내가 기도할 분으로 정해져요.',
   '나를 위해 기도하는 분은 다른 분이에요. 누구인지는 끝까지 알려 드리지 않아요.',
   '기도한 날 "오늘 기도했어요"를 눌러 주세요. 그날 저녁, 그분께 "누군가 기도했어요" 소식이 조용히 전해져요.',
+  '한 달 동안 품은 마음을 익명 편지로 남길 수 있어요. 다음 달 첫 주일 아침, 보낸 사람 없이 도착해요.',
   '다음 달 첫 주일이 되면 새로운 분과 이어져요.',
 ]
 
@@ -148,7 +150,15 @@ const JoinPanel = ({ rejoin }: { rejoin: boolean }) => {
   )
 }
 
-const TargetCard = ({ target, month }: { target: IntercessionTarget; month: string }) => {
+const TargetCard = ({
+  target,
+  month,
+  deliverOn,
+}: {
+  target: IntercessionTarget
+  month: string
+  deliverOn: string
+}) => {
   const [burst, setBurst] = useState(false)
   const pray = usePrayIntercession(
     toastFeedback({ success: '기도가 조용히 전해질 거예요', error: '기도를 기록하지 못했습니다' }),
@@ -215,6 +225,8 @@ const TargetCard = ({ target, month }: { target: IntercessionTarget; month: stri
           🙏 오늘 기도했어요
         </PrimaryButton>
       )}
+
+      <LetterEntry target={target} deliverOn={deliverOn} />
     </Card>
   )
 }
@@ -401,6 +413,7 @@ const Body = ({ state, loggedIn }: { state: IntercessionState; loggedIn: boolean
           </p>
         </Hero>
         <JoinPanel rejoin />
+        <LetterInbox enabled={loggedIn} />
         <ChurchLine state={state} />
       </>
     )
@@ -431,8 +444,11 @@ const Body = ({ state, loggedIn }: { state: IntercessionState; loggedIn: boolean
         </Hero>
       )}
 
-      {state.target ? (
-        <TargetCard target={state.target} month={month} />
+      {/* 도착한 편지 — 한 통이라도 있을 때만. 기도할 분 카드보다 먼저: 새 달 첫 아침의 선물 */}
+      <LetterInbox enabled={loggedIn} />
+
+      {state.target && state.cycle ? (
+        <TargetCard target={state.target} month={month} deliverOn={state.cycle.end_date} />
       ) : state.cycle && state.waiting_reason === 'gathering' ? (
         <Card>
           <p className="text-[13px] leading-relaxed text-[var(--text-body)] break-keep">

@@ -7,6 +7,8 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   useIntercessionAdmin,
+  useIntercessionLetterReports,
+  useResolveIntercessionReport,
   useSetIntercessionOpen,
   useStartIntercessionNow,
 } from '../../hooks/useIntercession'
@@ -14,7 +16,7 @@ import { can } from '../../utils/access'
 import { showToast, toastFeedback } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { AdminPageHeader, SectionCard, StatSpinner } from './components/StatCards'
-import { formatDay } from '../Intercession/intercessionDates'
+import { cycleMonthLabel, formatDay } from '../Intercession/intercessionDates'
 
 const Stat = ({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) => (
   <div className="rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] px-3.5 py-3">
@@ -28,6 +30,73 @@ const Stat = ({ label, value, accent = false }: { label: string; value: number; 
     </p>
   </div>
 )
+
+/** 신고된 익명 편지 — 신고가 들어온 편지에 한해서만 보낸 사람을 보여 준다 */
+const LetterReports = ({ enabled }: { enabled: boolean }) => {
+  const { data } = useIntercessionLetterReports(enabled)
+  const resolve = useResolveIntercessionReport(
+    toastFeedback({
+      success: (_d, v) => (v.restore ? '편지를 받은 편지함에 되돌렸습니다' : '숨김을 확정했습니다'),
+      error: '신고를 처리하지 못했습니다',
+    }),
+  )
+  const items = data ?? []
+
+  return (
+    <SectionCard
+      title="신고된 편지"
+      action={
+        <span className="text-[11px] text-gray-400 dark:text-white/40">
+          {items.length > 0 ? `${items.length}건 대기` : '대기 없음'}
+        </span>
+      }
+    >
+      {items.length === 0 ? (
+        <p className="text-[12.5px] text-gray-500 dark:text-white/50">처리를 기다리는 신고가 없습니다.</p>
+      ) : (
+        <ul className="space-y-2.5">
+          {items.map((r) => (
+            <li
+              key={r.id}
+              className="rounded-xl border border-[var(--amber-soft-strong)] bg-[var(--amber-soft)] px-3.5 py-3"
+            >
+              <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/55">
+                {cycleMonthLabel(r.month_start)} 편지 · 보낸 사람 {r.sender_name} → 받은 사람 {r.receiver_name}
+              </p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-ink-strong whitespace-pre-line break-keep">
+                {r.body}
+              </p>
+              {r.report_reason ? (
+                <p className="mt-1 text-[12px] text-gray-500 dark:text-white/50">신고 사유: {r.report_reason}</p>
+              ) : null}
+              <div className="mt-2.5 flex gap-2">
+                <button
+                  type="button"
+                  disabled={resolve.isPending}
+                  onClick={() => resolve.mutate({ id: r.id, restore: true })}
+                  className="flex-1 h-9 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[12.5px] font-bold text-ink-strong"
+                >
+                  문제없음 · 되돌리기
+                </button>
+                <button
+                  type="button"
+                  disabled={resolve.isPending}
+                  onClick={() => resolve.mutate({ id: r.id, restore: false })}
+                  className="flex-1 h-9 rounded-lg bg-[var(--brand)] text-[var(--on-brand)] text-[12.5px] font-bold"
+                >
+                  숨김 확정
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="text-[11.5px] leading-relaxed text-gray-400 dark:text-white/40 break-keep">
+        신고된 편지는 받은 분 편지함에서 바로 숨겨집니다. 보낸 분께는 신고 사실이 알려지지 않습니다.
+      </p>
+    </SectionCard>
+  )
+}
 
 const IntercessionManagement = () => {
   const navigate = useNavigate()
@@ -161,12 +230,16 @@ const IntercessionManagement = () => {
                 <Stat label="짝을 기다리는 성도" value={data.unlinked_active} />
                 <Stat label="이번 주기 기도" value={data.cycle_prayers} accent />
                 <Stat label="오늘 기도한 성도" value={data.today_givers} />
+                <Stat label="이번 주기 편지" value={data.cycle_letters} />
+                <Stat label="신고 대기" value={data.pending_reports} />
               </div>
               <p className="text-[11.5px] leading-relaxed text-gray-400 dark:text-white/40 break-keep">
                 누적 기도 {data.total_prayers.toLocaleString()}번 · 누가 누구를 위해 기도하는지는 관리자에게도
                 표시하지 않습니다. 짝은 세 분 이상 모여야 정해집니다.
               </p>
             </SectionCard>
+
+            <LetterReports enabled={admin} />
           </>
         )}
       </div>

@@ -4,7 +4,7 @@
 // 표본 인물은 가상이다. 버튼(기도·참여)은 실제 API 를 부르므로 여기선 실패해도 괜찮다.
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import type { IntercessionState } from '../../api/intercession'
+import type { IntercessionLetterList, IntercessionState } from '../../api/intercession'
 import { intercessionKeys } from '../../hooks/useIntercession'
 import IntercessionCard from '../Home/components/IntercessionCard'
 import Intercession from './Intercession'
@@ -32,28 +32,46 @@ const target = (prayed: boolean) => ({
   ],
   prayed_today: prayed,
   prayed_days: prayed ? 9 : 8,
+  letter: prayed
+    ? { body: '한 달 동안 매일 아침 당신의 이름을 부르며 기도했어요.\n수능 날, 평안이 함께하길.', updated_at: '2026-11-20T21:00:00', deliver_on: '2026-12-06' }
+    : null,
 })
 
+const LETTERS: IntercessionLetterList = {
+  unread: 1,
+  items: [
+    { id: 2, body: '한 달 동안 당신을 위해 기도했어요.\n\n이직을 준비하며 지치지 않도록, 하나님께서 가장 좋은 길로 인도해 주시길 바랐어요. 얼굴은 모르지만 같은 교회에서 함께 기도하고 있다는 걸 기억해 주세요.', month_start: '2026-11-01', delivered_at: '2026-12-06T07:03:00', is_read: false },
+    { id: 1, body: '늘 평안하시길 기도합니다.', month_start: '2026-10-04', delivered_at: '2026-11-01T07:03:00', is_read: true },
+  ],
+}
+const NO_LETTERS: IntercessionLetterList = { unread: 0, items: [] }
+
 const STATES: Record<string, IntercessionState> = {
-  닫힘: { open: false, participant: null, cycle: null, next_start_date: '2026-11-01', waiting_reason: null, target: null, lamp: null, church: { participants: 0, cycle_prayers: 0 } },
-  미참여: { open: true, participant: null, cycle: null, next_start_date: '2026-11-01', waiting_reason: null, target: null, lamp: null, church: { participants: 42, cycle_prayers: 0 } },
-  '첫 주기 전': { open: true, participant: joined, cycle: null, next_start_date: '2026-11-01', waiting_reason: 'not_started', target: null, lamp: null, church: { participants: 42, cycle_prayers: 0 } },
-  '진행 중': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: target(false), lamp: { weeks: weeks([true, true, false], 2), received_today: false, months_received: 1 }, church },
-  '오늘 기도함': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: target(true), lamp: { weeks: weeks([true, true, true], 2), received_today: true, months_received: 3 }, church },
-  '인원 모으는 중': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: 'gathering', target: null, lamp: { weeks: weeks([], 2), received_today: false, months_received: 0 }, church: { participants: 2, cycle_prayers: 0 } },
-  '쉬는 중': { open: true, participant: { ...joined, status: 'paused' }, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: null, lamp: null, church },
+  닫힘: { open: false, participant: null, cycle: null, next_start_date: '2026-11-01', waiting_reason: null, target: null, lamp: null, unread_letters: 0, church: { participants: 0, cycle_prayers: 0 } },
+  미참여: { open: true, participant: null, cycle: null, next_start_date: '2026-11-01', waiting_reason: null, target: null, lamp: null, unread_letters: 0, church: { participants: 42, cycle_prayers: 0 } },
+  '첫 주기 전': { open: true, participant: joined, cycle: null, next_start_date: '2026-11-01', waiting_reason: 'not_started', target: null, lamp: null, unread_letters: 0, church: { participants: 42, cycle_prayers: 0 } },
+  '진행 중': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: target(false), lamp: { weeks: weeks([true, true, false], 2), received_today: false, months_received: 1 }, unread_letters: 0, church },
+  '오늘 기도함': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: target(true), lamp: { weeks: weeks([true, true, true], 2), received_today: true, months_received: 3 }, unread_letters: 0, church },
+  '인원 모으는 중': { open: true, participant: joined, cycle, next_start_date: '2026-12-06', waiting_reason: 'gathering', target: null, lamp: { weeks: weeks([], 2), received_today: false, months_received: 0 }, unread_letters: 0, church: { participants: 2, cycle_prayers: 0 } },
+  '편지 도착': { open: true, participant: joined, cycle: { ...cycle, id: 2, start_date: '2026-12-06', end_date: '2027-01-03', week_count: 4, current_week: 0 }, next_start_date: '2027-01-03', waiting_reason: null, target: { ...target(false), display_name: '이믿음', request_line: null, recent_prayers: [] }, lamp: { weeks: weeks([], 0).slice(0, 4), received_today: false, months_received: 3 }, unread_letters: 1, church },
+  '쉬는 중': { open: true, participant: { ...joined, status: 'paused' }, cycle, next_start_date: '2026-12-06', waiting_reason: null, target: null, lamp: null, unread_letters: 0, church },
 }
 
 const IntercessionPreview = () => {
   const qc = useQueryClient()
   const [name, setName] = useState('진행 중')
-  const seed = (key: string) => {
+  const plant = (key: string) => {
     qc.setQueryData(intercessionKeys.me(), STATES[key])
+    const hasLetters = key === '편지 도착' || key === '쉬는 중' || key === '오늘 기도함'
+    qc.setQueryData(intercessionKeys.letters(), hasLetters ? LETTERS : NO_LETTERS)
+  }
+  const seed = (key: string) => {
+    plant(key)
     setName(key)
   }
   // 렌더 전에 심어야 첫 프레임부터 표본이 보인다 (useState 초기화 = 1회만 실행)
   useState(() => {
-    qc.setQueryData(intercessionKeys.me(), STATES[name])
+    plant(name)
     return null
   })
 
