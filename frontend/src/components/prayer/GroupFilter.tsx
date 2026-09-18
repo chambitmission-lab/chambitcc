@@ -16,6 +16,10 @@ interface GroupFilterProps {
   onJoinGroup: () => void
 }
 
+// lg+ 세그먼트 컨트롤 — 활성 탭은 언더라인 대신 트랙 위로 떠오른 알약
+const SEG_BASE = 'lg:px-1 lg:py-1.5 lg:text-[13px] lg:rounded-full lg:whitespace-nowrap'
+const SEG_ACTIVE = 'lg:font-semibold lg:bg-[var(--surface-container)] lg:shadow-sm dark:lg:bg-white/[0.12]'
+
 const GroupFilter = ({ 
   selectedGroupId,
   selectedFilter,
@@ -35,9 +39,17 @@ const GroupFilter = ({
   
   const selectedGroup = groups.find(g => g.id === selectedGroupId)
 
-  // 드롭다운 위치 계산
-  useEffect(() => {
-    if (isExpanded && buttonRef.current) {
+  // 드롭다운 위치는 여는 순간에 계산한다
+  const toggleDropdown = () => {
+    if (isExpanded || !buttonRef.current) {
+      setIsExpanded(false)
+      return
+    }
+    // PC: 화면 중앙 고정 시트가 아니라 세그먼트 바로 아래에 붙는 팝오버
+    // (피드 컬럼은 3컬럼 배치라 뷰포트 중앙이 아니다)
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      setDropdownStyle({ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0 })
+    } else {
       const rect = buttonRef.current.getBoundingClientRect()
       setDropdownStyle({
         position: 'fixed',
@@ -48,6 +60,17 @@ const GroupFilter = ({
         margin: '0 auto',
       })
     }
+    setIsExpanded(true)
+  }
+
+  // 키보드가 있는 환경 — Esc로 팝오버 닫기
+  useEffect(() => {
+    if (!isExpanded) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsExpanded(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
   }, [isExpanded])
   
   return (
@@ -55,21 +78,22 @@ const GroupFilter = ({
       {/* Backdrop */}
       {isExpanded && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:bg-transparent lg:backdrop-blur-none"
           onClick={() => setIsExpanded(false)}
         />
       )}
       
       {/* 언더라인 탭 스타일 */}
       <div className="relative z-50">
-        <div className="flex items-center border-b border-black/[0.06] dark:border-white/[0.08]">
+        {/* lg+: 모바일식 언더라인 탭을 늘려 쓰지 않고 한 줄 세그먼트(알약 트랙)로 — 옆에 정렬 토글이 붙는다 */}
+        <div className="flex items-center border-b border-black/[0.06] dark:border-white/[0.08] lg:border-b-0 lg:gap-0.5 lg:p-1 lg:rounded-full lg:bg-black/[0.05] dark:lg:bg-white/[0.06]">
           {/* 전체 공개 */}
           <button
             className={`
-              relative flex-1 px-4 py-3 text-sm font-medium
+              relative flex-1 px-4 py-3 text-sm font-medium ${SEG_BASE}
               transition-all duration-200
               ${selectedGroupId === null && selectedFilter === 'all'
-                ? 'text-brand'
+                ? `text-brand ${SEG_ACTIVE}`
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }
             `}
@@ -80,7 +104,7 @@ const GroupFilter = ({
           >
             {t('allPublic')}
             {selectedGroupId === null && selectedFilter === 'all' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full lg:hidden" />
             )}
           </button>
           
@@ -88,18 +112,18 @@ const GroupFilter = ({
           <button
             ref={buttonRef}
             className={`
-              relative flex-1 flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium
+              relative flex-1 flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium lg:gap-0.5 ${SEG_BASE}
               transition-all duration-200
               ${selectedGroupId !== null
-                ? 'text-brand'
+                ? `text-brand ${SEG_ACTIVE}`
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }
             `}
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={toggleDropdown}
           >
-            <span className="truncate max-w-[90px]">{selectedGroup?.name || t('myGroups')}</span>
+            <span className="truncate max-w-[90px] lg:max-w-[56px]">{selectedGroup?.name || t('myGroups')}</span>
             <svg 
-              className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 lg:w-3.5 lg:h-3.5 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -107,17 +131,17 @@ const GroupFilter = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
             {selectedGroupId !== null && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full lg:hidden" />
             )}
           </button>
 
           {/* 내 기도 */}
           <button
             className={`
-              relative flex-1 px-4 py-3 text-sm font-medium
+              relative flex-1 px-4 py-3 text-sm font-medium ${SEG_BASE}
               transition-all duration-200
               ${selectedFilter === 'my_prayers'
-                ? 'text-brand'
+                ? `text-brand ${SEG_ACTIVE}`
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }
             `}
@@ -130,17 +154,17 @@ const GroupFilter = ({
           >
             {t('myPrayers')}
             {selectedFilter === 'my_prayers' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full lg:hidden" />
             )}
           </button>
 
           {/* 내가 기도한 */}
           <button
             className={`
-              relative flex-1 px-4 py-3 text-sm font-medium
+              relative flex-1 px-4 py-3 text-sm font-medium ${SEG_BASE}
               transition-all duration-200
               ${selectedFilter === 'prayed_by_me'
-                ? 'text-brand'
+                ? `text-brand ${SEG_ACTIVE}`
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }
             `}
@@ -153,7 +177,7 @@ const GroupFilter = ({
           >
             {t('prayedByMe')}
             {selectedFilter === 'prayed_by_me' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full lg:hidden" />
             )}
           </button>
         </div>
@@ -162,7 +186,7 @@ const GroupFilter = ({
       {isExpanded && (
         <div 
           style={dropdownStyle}
-          className="bg-white/95 dark:bg-[#201f1f]/95 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
+          className="bg-white/95 dark:bg-[#201f1f]/95 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto lg:animate-pop-in"
         >
           {isLoading ? (
             <div className="p-6 text-center text-gray-500">{t('loading')}</div>

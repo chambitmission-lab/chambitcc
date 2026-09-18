@@ -38,7 +38,8 @@ import ThanksTicker from './components/ThanksTicker'
 import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 // 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
 // import ThanksThread from './components/ThanksThread'
-import SortTabs from './components/SortTabs'
+import SortTabs, { DesktopSortToggle } from './components/SortTabs'
+import DesktopComposerCard from './components/DesktopComposerCard'
 import PrayerFeed from './components/PrayerFeed'
 import HomeQuickStrip, { HOME_CARD_IDS } from './components/HomeQuickStrip'
 import BottomNavigation from './components/BottomNavigation'
@@ -453,26 +454,23 @@ const NewHome = () => {
             <div ref={feedColumnRef} className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
 
             {/* PC 전용 인라인 작성바 — 키보드가 있는 환경에선 작성 진입을 피드 최상단에 */}
-            <div className="hidden lg:block px-4 pt-1">
-              <button
-                type="button"
-                onClick={handleComposerOpen}
-                className="w-full feed-card rounded-2xl pl-3 pr-4 py-3 flex items-center gap-3 text-left hover:border-[var(--brand-glow)] hover:shadow-[0_6px_18px_-6px_var(--brand-glow)] active:scale-[0.99] transition-[border-color,box-shadow,transform] duration-150"
-              >
-                <span className="w-9 h-9 rounded-full bg-[var(--brand-soft-strong)] text-brand flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                    <path d="M11 6.5 C11.65 10.4 13.8 12.55 17.7 13.2 C13.8 13.85 11.65 16 11 19.9 C10.35 16 8.2 13.85 4.3 13.2 C8.2 12.55 10.35 10.4 11 6.5 Z" />
-                  </svg>
-                </span>
-                <span className="flex-1 text-[14px] text-gray-400 dark:text-white/40">
-                  함께 기도할 제목을 나눠주세요
-                </span>
-                <span className="text-[13px] font-bold text-brand shrink-0">나누기</span>
-              </button>
+            {/* pt-3: 옆 컬럼 첫 카드(.meditation-section margin-top 12px)와 윗선을 맞춘다 */}
+            <div className="hidden lg:block px-4 pt-3">
+              <DesktopComposerCard
+                onCompose={handleComposerOpen}
+                onThanks={handleThanksOpen}
+                onVerseCard={() => void goLazy('/bible/photo-verse')}
+              />
             </div>
 
             {/* 소그룹 필터 — scroll-mt는 고정 헤더에 안 가리게 하는 오프셋 */}
-            <div ref={feedRef} className="px-4 py-3 overflow-x-auto scrollbar-hide scroll-mt-16">
+            {/* lg+: 세그먼트 탭 + 정렬 토글을 한 줄 툴바로 묶어 헤더(56px) 아래에 고정.
+                z-30은 SortTabs와 같은 이유(드롭다운 딤막 z-40 아래), overflow-visible은 팝오버가 잘리지 않게 */}
+            <div
+              ref={feedRef}
+              className="px-4 py-3 overflow-x-auto scrollbar-hide scroll-mt-16 lg:flex lg:items-center lg:gap-1.5 lg:overflow-visible lg:sticky lg:top-14 lg:z-30 lg:bg-[var(--app-canvas)]"
+            >
+              <div className="lg:flex-1 lg:min-w-0">
               <GroupFilter
                 selectedGroupId={selectedGroupId}
                 selectedFilter={selectedFilter}
@@ -481,6 +479,8 @@ const NewHome = () => {
                 onCreateGroup={() => setShowCreateModal(true)}
                 onJoinGroup={() => setShowJoinModal(true)}
               />
+              </div>
+              <DesktopSortToggle currentSort={sort} onSortChange={setSort} />
             </div>
             
             <SortTabs currentSort={sort} onSortChange={setSort} />

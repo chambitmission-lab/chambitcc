@@ -437,7 +437,8 @@ const PhotoVerse = () => {
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
           <div className="flex items-center gap-3 px-4 h-14">
             <button
-              onClick={() => navigate('/bible')}
+              // 홈 나누기·FAB 등 어디서 들어왔든 온 곳으로 돌아간다 — 링크 직접 진입(히스토리 없음)만 /bible로
+              onClick={() => (location.key === 'default' ? navigate('/bible') : navigate(-1))}
               aria-label={t.back}
               className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 rounded-full transition-colors"
             >
