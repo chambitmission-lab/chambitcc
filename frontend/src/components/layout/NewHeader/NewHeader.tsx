@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
@@ -6,9 +6,10 @@ import { preloadMenuRoutes } from '../../../utils/routePreload'
 // 알림 모달은 종을 눌러야 열린다 — lazy 로 분리해 첫 로드에서 제외.
 // 다만 눌린 뒤에 받으면 도착까지 아무것도 안 떠서, 로그인 후 유휴 시간과 종 hover/pointerdown 에
 // 같은 로더로 미리 받아둔다 (loadNotificationModal 을 공유해야 청크가 하나다)
-import { loadNotificationModal, warmNotificationModal, warmNotificationModalOnIdle } from '../../common/notificationModalLoader'
+import { getLoadedNotificationModal, loadNotificationModal, warmNotificationModal, warmNotificationModalOnIdle } from '../../common/notificationModalLoader'
 import NotificationModalFallback from '../../common/NotificationModalFallback'
-const NotificationModal = lazy(loadNotificationModal)
+const LazyNotificationModal = lazy(loadNotificationModal)
+type NotificationModalType = ComponentType<{ isOpen: boolean; onClose: () => void }>
 import Logo from './components/Logo'
 // PC(lg+) 전용 메뉴 — framer-motion(layoutId 투영 엔진 ~120KB)을 끌고 오므로
 // 엔트리 청크에서 떼어 lg 이상 화면에서만 내려받는다. 모바일 사용자는 영영 받지 않는다.
@@ -43,6 +44,9 @@ const NewHeader = () => {
   const isDesktop = useIsDesktop()
   const navigate = useNavigate()
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  // 여는 순간에 구현을 고른다 — 청크가 이미 와 있으면 lazy 를 건너뛰어 fallback(→300ms 스로틀) 없이 바로 그린다.
+  // 열려 있는 동안 타입이 바뀌면 모달이 리마운트되므로 state 로 고정한다.
+  const [NotificationModal, setNotificationModal] = useState<NotificationModalType>(() => LazyNotificationModal)
   
   // Custom hooks
   const { isMenuOpen, setIsMenuOpen, menuRef } = useMenuState()
@@ -70,6 +74,7 @@ const NewHeader = () => {
   useEffect(() => {
     const openFromRail = () => {
       void warmNotificationModal()
+      setNotificationModal(() => getLoadedNotificationModal() ?? LazyNotificationModal)
       setIsNotificationOpen(true)
     }
     const openMenu = () => setIsMenuOpen(true)
@@ -90,6 +95,7 @@ const NewHeader = () => {
   // 종을 누르는 순간 청크 요청도 같이 시작 (이미 받았으면 즉시 resolve)
   const openNotifications = () => {
     void warmNotificationModal()
+    setNotificationModal(() => getLoadedNotificationModal() ?? LazyNotificationModal)
     setIsNotificationOpen(true)
   }
 

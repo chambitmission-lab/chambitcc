@@ -6,7 +6,20 @@ type NotificationModalProps = { isOpen: boolean; onClose: () => void }
 // 알림 모달 청크의 동적 import 를 한곳에 모은다.
 // NewHeader 의 lazy() 와 미리 받기(warm)가 같은 함수를 써야 청크가 하나로 공유된다.
 export const loadNotificationModal = (): Promise<{ default: ComponentType<NotificationModalProps> }> =>
-  import('./NotificationModal')
+  import('./NotificationModal').then((m) => {
+    resolved = m.default
+    return m
+  })
+
+let resolved: ComponentType<NotificationModalProps> | null = null
+
+/**
+ * 이미 도착한 모달 컴포넌트 (아직이면 null).
+ * 청크를 미리 받아놔도 lazy() 는 첫 렌더에서 반드시 한 번 suspend 해 fallback 이 커밋되고,
+ * React 는 fallback 을 그린 뒤 300ms 안에는 본 내용을 커밋하지 않는다(깜빡임 방지 스로틀).
+ * 그래서 첫 탭만 스피너가 0.3초 넘게 보였다 — 도착한 뒤에는 lazy 를 거치지 않고 바로 그린다.
+ */
+export const getLoadedNotificationModal = (): ComponentType<NotificationModalProps> | null => resolved
 
 let warmed: Promise<unknown> | null = null
 
