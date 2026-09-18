@@ -64,7 +64,12 @@ const PRESETS: Preset[] = [
   },
 ]
 
+// 특정 화면이 없는 인사·안내 푸시의 기본 도착지 — 앱을 열고 알림함을 펼쳐 방금 받은 내용을 다시 보게 한다.
+// (푸시는 기기에서 사라지지만 알림함에는 같은 내용이 기록돼 있다)
+const NOTIFICATIONS_URL = '/home?open=notifications'
+
 const URL_OPTIONS: Array<{ label: string; value: string }> = [
+  { label: '알림함', value: NOTIFICATIONS_URL },
   { label: '홈', value: '/home' },
   { label: '공지', value: '/news' },
   { label: '설교', value: '/sermon' },
@@ -82,7 +87,7 @@ export const PushNotificationManagement = () => {
   // 폼 상태
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [url, setUrl] = useState('/home')
+  const [url, setUrl] = useState(NOTIFICATIONS_URL)
   const [tag, setTag] = useState('notification')
   const [icon, setIcon] = useState(DEFAULT_ICON)
   const [advancedOpen, setAdvancedOpen] = useState(false)
@@ -184,7 +189,7 @@ export const PushNotificationManagement = () => {
   const reuseLog = (log: PushSendLog) => {
     setTitle(log.title.slice(0, TITLE_MAX))
     setBody(log.body.slice(0, BODY_MAX))
-    setUrl(log.url || '/home')
+    setUrl(log.url || NOTIFICATIONS_URL)
     setTag(log.tag || 'notification')
     setResult(null)
     showToast('지난 발송 내용을 불러왔습니다', 'success')
@@ -195,7 +200,7 @@ export const PushNotificationManagement = () => {
   const handleReset = () => {
     setTitle('')
     setBody('')
-    setUrl('/home')
+    setUrl(NOTIFICATIONS_URL)
     setTag('notification')
     setIcon(DEFAULT_ICON)
     picker.reset()
@@ -301,6 +306,11 @@ export const PushNotificationManagement = () => {
                 placeholder="/news"
                 className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
               />
+              <p className="mt-1 text-[10.5px] text-gray-400 dark:text-white/40">
+                {url === NOTIFICATIONS_URL
+                  ? '인사·안내처럼 갈 화면이 따로 없을 때 — 앱을 열고 알림함을 펼쳐 받은 내용을 다시 보여줍니다'
+                  : '푸시를 탭하면 이 화면으로 바로 이동합니다 (앱 내 경로)'}
+              </p>
 
               {/* 고급 옵션 */}
               <button

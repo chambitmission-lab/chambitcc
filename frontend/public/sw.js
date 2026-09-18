@@ -264,18 +264,33 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   console.log('👆 알림 클릭:', event);
   event.notification.close();
-  
-  const urlToOpen = event.notification.data?.url || BASE_PATH;
-  
+
+  // 상대 경로('/#/news')는 절대 URL 로 — 창 주소(절대)와 비교하고 openWindow 에 넘기려면 필요하다.
+  // (예전엔 상대 경로 그대로 비교해 절대 일치하지 않았고, 앱이 떠 있어도 항상 새 창을 하나 더 열었다)
+  const rawUrl = event.notification.data?.url || BASE_PATH;
+  const urlToOpen = new URL(rawUrl, ORIGIN).href;
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // 이미 열린 창이 있으면 포커스
-      for (let client of windowClients) {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (windowClients) => {
+      // 1) 이미 정확히 그 주소에 있는 창 → 포커스만
+      for (const client of windowClients) {
         if (client.url === urlToOpen && 'focus' in client) {
           return client.focus();
         }
       }
-      // 없으면 새 창 열기
+      // 2) 같은 출처의 앱 창이 있으면 그 창을 목표 주소로 옮기고 포커스 (새 창 남발 방지)
+      for (const client of windowClients) {
+        if (client.url.startsWith(ORIGIN) && 'navigate' in client) {
+          try {
+            const navigated = await client.navigate(urlToOpen);
+            if (navigated && 'focus' in navigated) return navigated.focus();
+            if ('focus' in client) return client.focus();
+          } catch (e) {
+            console.warn('창 이동 실패, 새 창으로 대체:', e);
+          }
+        }
+      }
+      // 3) 없으면 새 창
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }

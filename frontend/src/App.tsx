@@ -13,6 +13,7 @@ import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
 import PullToRefresh from './components/common/PullToRefresh'
 import ScrollRestoration from './components/common/ScrollRestoration'
+import OpenFromQuery from './components/common/OpenFromQuery'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 import { ConfirmDialogHost } from './components/common/ConfirmDialog'
 // 챗봇 위젯(24KB + CSS 24KB + 아바타 7장)은 첫 페인트에 필요 없다 — 엔트리에서 떼고
@@ -316,6 +317,8 @@ function App() {
     <ThemeProvider>
       <Router>
         <ScrollRestoration />
+        {/* ?open=notifications 등 URL 로 전역 UI 열기 (푸시 클릭 → 알림함) */}
+        <OpenFromQuery />
         {/* lazy 청크와 나란히 라우트 데이터를 미리 받는다 (Suspense 바깥이라 청크를 기다리지 않는다) */}
         <RouteDataPrefetch />
         <div className="app">
