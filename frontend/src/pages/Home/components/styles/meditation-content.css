@@ -64,6 +64,11 @@
 .meditation-verse-quote {
   --verse-scene-scrim: #ffffff;
   --verse-scene-base: #eaf1fb; /* 삽화 도착 전 바탕 — 삽화 하늘의 평균색 */
+  /* 글자 후광 — 장면 위에 글이 "떠" 보이게 하는 빛 번짐. 좁은 테두리 + 넓은 번짐 두 겹 */
+  --verse-halo:
+    0 0 2px rgba(255, 255, 255, 0.95),
+    0 0 10px rgba(255, 255, 255, 0.9),
+    0 0 22px rgba(255, 255, 255, 0.7);
   /* 스크림이 걷히기 시작하는 지점 — 말씀 폭이 넓어지는 밀도 단계에서 함께 밀린다 */
   --verse-scrim-solid: 42%;
   --verse-scrim-soft: 54%;
@@ -82,6 +87,10 @@
 .dark .meditation-verse-quote {
   --verse-scene-scrim: #0e1b2d;
   --verse-scene-base: #0f1a2c;
+  --verse-halo:
+    0 1px 2px rgba(6, 12, 26, 0.9),
+    0 0 12px rgba(6, 12, 26, 0.85),
+    0 0 26px rgba(6, 12, 26, 0.6);
   border-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -103,8 +112,10 @@
   opacity: 1;
 }
 
-/* 스크림 — 말씀 폭(64%)이 끝나는 자리까지 거의 불투명하게 받치고, 인물(우측 ~35%)
- * 앞에서 완전히 걷힌다. 약간 기울인 각도(100deg)라 경계가 직선 띠로 읽히지 않는다. */
+/* 스크림 — 장면을 가리는 막이 아니라 옅은 베일. 하늘·들판이 박스 전체에 그대로
+ * 보이도록 가장 짙은 곳도 반투명에 머물고, 인물(우측 ~35%) 앞에서 완전히 걷힌다.
+ * 글자 가독성은 스크림이 아니라 글자 자체의 후광(--verse-halo)이 맡는다.
+ * 약간 기울인 각도(100deg)라 경계가 직선 띠로 읽히지 않는다. */
 .meditation-verse-quote::after {
   content: '';
   position: absolute;
@@ -112,10 +123,9 @@
   z-index: -1;
   background: linear-gradient(
     100deg,
-    var(--verse-scene-scrim) 0%,
-    var(--verse-scene-scrim) var(--verse-scrim-solid),
-    color-mix(in srgb, var(--verse-scene-scrim) 94%, transparent) var(--verse-scrim-soft),
-    color-mix(in srgb, var(--verse-scene-scrim) 58%, transparent) var(--verse-scrim-fade),
+    color-mix(in srgb, var(--verse-scene-scrim) 46%, transparent) 0%,
+    color-mix(in srgb, var(--verse-scene-scrim) 36%, transparent) var(--verse-scrim-solid),
+    color-mix(in srgb, var(--verse-scene-scrim) 22%, transparent) var(--verse-scrim-fade),
     color-mix(in srgb, var(--verse-scene-scrim) 0%, transparent) var(--verse-scrim-end)
   );
 }
@@ -201,6 +211,7 @@
   /* 마지막 줄에 한 어절만 남는 고아 줄을 브라우저가 알아서 피하게 한다 */
   text-wrap: pretty;
   color: var(--text-strong);
+  text-shadow: var(--verse-halo);
   margin: 0;
 }
 
@@ -226,6 +237,7 @@
   font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--brand-muted);
+  text-shadow: var(--verse-halo);
   text-align: left;
   font-style: normal;
 }
