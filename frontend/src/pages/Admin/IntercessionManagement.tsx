@@ -18,7 +18,7 @@ import { confirmDialog } from '../../utils/confirmDialog'
 import { AdminPageHeader, SectionCard, StatSpinner } from './components/StatCards'
 import { cycleMonthLabel, formatDay } from '../Intercession/intercessionDates'
 
-const Stat = ({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) => (
+const Stat = ({ label, value, accent = false }: { label: string; value: number | undefined; accent?: boolean }) => (
   <div className="rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] px-3.5 py-3">
     <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/55">{label}</p>
     <p
@@ -26,7 +26,7 @@ const Stat = ({ label, value, accent = false }: { label: string; value: number; 
         accent ? 'text-brand' : 'text-ink-strong'
       }`}
     >
-      {value.toLocaleString()}
+      {(value ?? 0).toLocaleString()}
     </p>
   </div>
 )
@@ -234,7 +234,7 @@ const IntercessionManagement = () => {
                 <Stat label="신고 대기" value={data.pending_reports} />
               </div>
               <p className="text-[11.5px] leading-relaxed text-gray-400 dark:text-white/40 break-keep">
-                누적 기도 {data.total_prayers.toLocaleString()}번 · 누가 누구를 위해 기도하는지는 관리자에게도
+                누적 기도 {(data.total_prayers ?? 0).toLocaleString()}번 · 누가 누구를 위해 기도하는지는 관리자에게도
                 표시하지 않습니다. 짝은 세 분 이상 모여야 정해집니다.
               </p>
             </SectionCard>

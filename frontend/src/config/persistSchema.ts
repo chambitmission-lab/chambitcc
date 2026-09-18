@@ -8,5 +8,7 @@
 //   또는 queryKey 의 의미가 바뀌었을 때. 새 코드가 옛 캐시를 복원하면 렌더가 깨질 수 있는 경우다.
 //   필드 추가처럼 옛 데이터로도 그려지는 변경은 올리지 않아도 된다 — staleTime(5분)이 지나면
 //   refetchOnMount 가 뒤에서 조용히 새 응답으로 바꿔 놓는다.
+//   단, 새 필드를 가드 없이 바로 쓰면(value.toLocaleString() 등) 복원된 옛 캐시로 그리는 첫 렌더에서
+//   undefined 로 터진다 — 그땐 올리거나 `?? 기본값` 으로 받을 것. (2026-09-18 /admin/intercession 사고)
 // 형식은 자유(날짜.순번 권장). 값이 달라지기만 하면 된다.
-export const PERSIST_SCHEMA_VERSION = '2026-09-14.1'
+export const PERSIST_SCHEMA_VERSION = '2026-09-18.1'
