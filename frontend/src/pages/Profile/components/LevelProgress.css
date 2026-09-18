@@ -1,19 +1,5 @@
-/* 신앙의 온도 카드 — 온도계·레벨 여정·요일 마이크로 도트 */
+/* 나의 등불 카드 — 등잔 삽화·레벨 성장 그래프·요일 마이크로 도트 */
 
-/* 현재 단계 이름 옆 글로우 — 점 대신 세로 붓자국 */
-.lp-glow-dot {
-  display: inline-flex;
-  flex: 0 0 auto;
-}
-.lp-glow-dot__ink {
-  width: 8px;
-  height: 16px;
-  -webkit-mask-image: var(--brush-dab);
-  -webkit-mask-size: 100% 100%;
-  mask-image: var(--brush-dab);
-  mask-size: 100% 100%;
-  transform: rotate(6deg);
-}
 
 /* 붓자국 마스크 — 세로 획(위→아래로 눌러 찍은 dab)과 가로 획 */
 :root {
@@ -343,49 +329,31 @@
   color: var(--brand);
   font-size: 13px; font-weight: 800; letter-spacing: -0.01em;
 }
-.lp-track {
-  position: relative;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--brand-soft-strong);
+/* 등잔 삽화 — 기름 높이 = 다음 단계 진행률 */
+.lp-lamp {
+  width: 96px;
+  flex: none;
+  display: block;
+  overflow: visible;
 }
-.lp-fill {
-  position: relative;
-  height: 100%;
-  min-width: 10px;
-  border-radius: 999px;
-  background: var(--brand);
-  transition: width 0.5s ease;
+.lp-lamp__flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: lp-flicker 2.6s ease-in-out infinite;
 }
-/* 셔머 클립 — 빛 띠는 fill 폭 안에서만 흐른다.
-   예전엔 띠(absolute inset-0 + translateX(-100%→100%))를 클립 없이 두어, 매 주기 시작마다
-   띠가 바 왼쪽 바깥(카드 여백·테두리 너머)까지 튀어나와 '왼쪽으로 번쩍'하는 것처럼 보였다. */
-.lp-fill__clip {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  overflow: hidden;
+@keyframes lp-flicker {
+  0%, 100% { transform: scale(1) rotate(-1deg); }
+  50% { transform: scale(1.05, 1.09) rotate(1.5deg); }
 }
-.lp-shimmer {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: lp-shimmer 2.4s linear infinite;
-}
-@keyframes lp-shimmer {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
-}
+.lp-lamp__oil { transition: y 0.8s ease; }
+.lp-lamp__vessel { fill: var(--brand-soft); stroke: rgba(148, 163, 184, 0.35); stroke-width: 1; }
+.lp-lamp__metal { fill: #9aa4b1; }
+.lp-lamp__rim { stroke: #9aa4b1; stroke-width: 3; stroke-linecap: round; }
+.dark .lp-lamp__vessel { fill: rgba(255, 255, 255, 0.06); stroke: rgba(255, 255, 255, 0.12); }
+.dark .lp-lamp__metal { fill: #6b7684; }
+.dark .lp-lamp__rim { stroke: #6b7684; }
 @media (prefers-reduced-motion: reduce) {
-  .lp-shimmer { animation: none; }
-}
-.lp-knob {
-  position: absolute;
-  right: -2px; top: 50%;
-  width: 16px; height: 16px;
-  border-radius: 999px;
-  background: var(--brand);
-  transform: translateY(-50%);
+  .lp-lamp__flame { animation: none; }
 }
 .lp-graph {
   display: block;

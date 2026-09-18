@@ -1,7 +1,6 @@
-import { useState, type CSSProperties } from 'react'
+import { useId, useState, type CSSProperties } from 'react'
 import type { GlowLevel } from '../../../types/achievement'
 import { GLOW_LEVELS } from '../../../types/achievement'
-import { glowTemperature } from '../../../utils/achievementCalculator'
 import { toOpaqueColor } from '../../../utils/contrastText'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useGrowthRecentDays } from '../../../hooks/useGrowth'
@@ -81,13 +80,12 @@ const EarnIcon = ({ name }: { name: string }) => (
 )
 
 /**
- * '신앙의 온도' 통합 카드 — 이 화면에서 숫자를 말하는 유일한 자리.
+ * '나의 등불' 카드 — 이 화면에서 숫자를 말하는 유일한 자리.
  *
- * 카드 이름이 '온도'인데 온도라는 시각 언어가 없던 문제를 해소:
- * - 온도 리딩(36.5° 시작, 당근 매너온도 벤치마크)이 히어로
- * - 진행 바 → 수은구 달린 온도계 게이지
- * - 새싹→생명의 면류관 11단계 여정 스트립(탭하면 각 단계 이름 확인)
- * - '이번 주' 스탯 밑에 요일 마이크로 도트 (아래 스토리 트레이의 축약판)
+ * 예전 '신앙의 온도'(당근 매너온도식 °C)를 마 25장 슬기로운 처녀 비유로 교체:
+ * - 등잔에 차오르는 기름 = 다음 단계까지 진행률 (레벨 이름 '등불·별'과 세계관 일치)
+ * - 불꽃은 은은한 흔들림만, 무한 글로우 없음
+ * - 아래 성장 그래프 카드: 레벨 꺾은선 + 스탯 타일 + 획득 안내
  */
 const LevelProgress = ({
   currentLevel,
@@ -104,7 +102,6 @@ const LevelProgress = ({
   const progress = pointsToNext
     ? ((pointsToNext.total - pointsToNext.needed) / pointsToNext.total) * 100
     : 100
-  const temperature = glowTemperature(currentPoints)
   const nextLevel = GLOW_LEVELS[currentIdx + 1] ?? null
   const selIdx = selectedIdx ?? currentIdx
   const selLevel = GLOW_LEVELS[selIdx]
@@ -139,12 +136,12 @@ const LevelProgress = ({
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <h3 className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
-              {t('levelTitle')}
+              {t('lampTitle')}
             </h3>
             <button
               type="button"
               className="lp-hint-btn"
-              aria-label={t('levelHint')}
+              aria-label={t('lampHint')}
               aria-expanded={hintOpen}
               onClick={() => setHintOpen((v) => !v)}
             >
@@ -155,70 +152,42 @@ const LevelProgress = ({
         </div>
         {hintOpen && (
           <p className="relative z-10 mt-2 rounded-lg bg-[var(--brand-soft)] px-3 py-2 text-[12px] leading-snug text-gray-600 dark:text-white/70">
-            {t('levelHint')}
+            {t('lampHint')}
           </p>
         )}
 
-        {/* 온도 히어로 — 왼쪽 큰 온도, 오른쪽 단계 이름·포인트 */}
-        <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
-          <div className="text-brand font-bold leading-none tracking-[-0.04em]">
-            <span className="text-[46px]">{temperature.toFixed(1)}</span>
-            <span className="ml-0.5 align-top text-[20px] font-bold">°C</span>
-          </div>
-          <div className="text-right pb-1">
-            <div className="flex items-center justify-end gap-1.5">
-              <span
-                className="lp-glow-dot"
-                style={{ filter: `drop-shadow(0 0 6px ${currentLevel.glowColor})` }}
-                aria-hidden="true"
-              >
-                <span
-                  className="lp-glow-dot__ink"
-                  style={{ backgroundColor: toOpaqueColor(currentLevel.glowColor) }}
-                />
+        {/* 등불 히어로 — 왼쪽 등잔(기름 = 다음 단계 진행률), 오른쪽 단계 이름·말씀·채움률 */}
+        <div className="relative z-10 mt-3 flex items-center gap-4">
+          <OilLamp progress={progress} />
+          <div className="min-w-0 flex-1">
+            <div className="text-[22px] font-extrabold leading-tight text-ink-strong tracking-[-0.03em]">
+              {t(currentLevel.nameKey)}
+            </div>
+            <p className="mt-1 break-keep text-[12px] leading-snug text-gray-500 dark:text-white/55">
+              {t('lampVerse')}
+            </p>
+            <div className="mt-2.5 flex items-baseline gap-1.5">
+              <span className="text-[30px] font-extrabold leading-none text-brand tracking-[-0.03em] tabular-nums">
+                {Math.floor(progress)}%
               </span>
-              <span className="text-[16px] font-bold text-ink-strong tracking-[-0.01em]">
-                {t(currentLevel.nameKey)}
+              <span className="text-[12.5px] text-gray-500 dark:text-white/55">
+                {t('lampFilled')}
               </span>
             </div>
-            <p className="mt-0.5 text-[12.5px] text-gray-500 dark:text-white/55">
-              {currentPoints.toLocaleString()} {t('levelPoints')}
-            </p>
           </div>
         </div>
 
-        {/* 진행 바 — 브랜드 솔리드 fill + 끝단 손잡이. 레벨 색은 손잡이 glow 로만 */}
-        <div className="relative z-10 mt-4">
-          <div className="lp-track">
-            <div className="lp-fill" style={{ width: `${progress}%` }}>
-              {/* 셔머는 클립 레이어 안에서만 움직인다 — 손잡이(fill 밖으로 삐져나옴)는
-                  클립 밖에 두어야 하므로 fill 자체에 overflow:hidden 을 걸지 않는다 */}
-              <div className="lp-fill__clip" aria-hidden="true">
-                <div className="lp-shimmer" />
-              </div>
-              <span
-                className="lp-knob"
-                style={{ boxShadow: `0 0 0 3px rgba(255,255,255,0.9), 0 0 12px ${currentLevel.glowColor}` }}
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-
+        {/* 하단 — 모은 포인트 · 다음 단계까지 */}
+        <div className="relative z-10 mt-4 flex items-center justify-between gap-3 border-t border-dashed border-gray-200 pt-3 text-[12.5px] dark:border-white/[0.1]">
+          <span className="text-gray-500 dark:text-white/55 tabular-nums">
+            {currentPoints.toLocaleString()} {t('levelPoints')}
+          </span>
           {pointsToNext && nextLevel ? (
-            <>
-              <div className="mt-2 text-right text-[12px] font-semibold text-brand">
-                {t('levelToNextStage')} {pointsToNext.needed.toLocaleString()}P
-              </div>
-              <div className="mt-1 text-[12px] text-gray-500 dark:text-white/55">
-                {t('levelNextLabel')}: {t(nextLevel.nameKey)} ({nextLevel.minPoints.toLocaleString()}P)
-              </div>
-            </>
+            <span className="font-bold text-brand tabular-nums">
+              {t(nextLevel.nameKey)}{t('lampUntil')} {pointsToNext.needed.toLocaleString()}P
+            </span>
           ) : (
-            <div className="text-center mt-2">
-              <span className="text-[12px] font-bold text-brand">
-                🎉 {t('levelMaxReached')} 🎉
-              </span>
-            </div>
+            <span className="font-bold text-brand">{t('levelMaxReached')}</span>
           )}
         </div>
       </div>
@@ -486,6 +455,42 @@ const LevelGraph = ({
         </g>
       </svg>
     </div>
+  )
+}
+
+/* 등잔 삽화 — 그릇 안 기름 높이가 진행률. 불꽃은 금빛(빛 자체의 색), 그릇·심지는 중립 톤 */
+const LAMP_TOP = 70
+const LAMP_BOTTOM = 104
+const OilLamp = ({ progress }: { progress: number }) => {
+  const id = useId().replace(/:/g, '')
+  const oilY = LAMP_BOTTOM - ((LAMP_BOTTOM - LAMP_TOP) * Math.min(Math.max(progress, 0), 100)) / 100
+  const vessel = 'M14 70 Q14 104 50 104 Q86 104 86 70 Z'
+  return (
+    <svg viewBox="0 0 100 120" className="lp-lamp" aria-hidden="true">
+      <defs>
+        <clipPath id={`${id}-v`}><path d={vessel} /></clipPath>
+        <linearGradient id={`${id}-o`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffd76a" />
+          <stop offset="1" stopColor="#f5a300" />
+        </linearGradient>
+        <radialGradient id={`${id}-h`}>
+          <stop offset="0" stopColor="#ffd76a" stopOpacity="0.5" />
+          <stop offset="1" stopColor="#ffd76a" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="40" r="36" fill={`url(#${id}-h)`} />
+      <g className="lp-lamp__flame">
+        <path d="M50 16 C58 30 62 40 56 52 Q50 60 44 52 C38 42 44 30 50 16Z" fill="#ffb300" />
+        <path d="M50 32 C54 40 55 46 52 52 Q50 55 48 52 C46 47 47 40 50 32Z" fill="#fff4c2" />
+      </g>
+      <rect x="47" y="58" width="6" height="12" rx="2" className="lp-lamp__metal" />
+      <path d={vessel} className="lp-lamp__vessel" />
+      <g clipPath={`url(#${id}-v)`}>
+        <rect x="0" y={oilY} width="100" height="40" fill={`url(#${id}-o)`} className="lp-lamp__oil" />
+      </g>
+      <path d="M14 70 H86" className="lp-lamp__rim" />
+      <path d="M86 78 q14 2 10 14" className="lp-lamp__rim" fill="none" />
+    </svg>
   )
 }
 
