@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   useChapterCommentaries,
   useCreateCommentary,
@@ -25,6 +25,8 @@ interface BibleCommentaryPanelProps {
   bookNameKo: string
   /** 패널이 열려있을 때 표시할 절 번호 (이 절을 포함하는 해석만 보여줌). null 이면 장 전체 */
   focusVerse: number | null
+  /** PC 도킹 패널 전용 — 본문에서 지금 읽는 절. 장 전체 해석일 때 이 절을 덮는 해석으로 따라간다 */
+  followVerse?: number | null
   totalVerses?: number
   /** 절 번호 → 본문. 해석 위에 실제 말씀을 띄우는 데 쓴다 */
   verseTexts?: Map<number, string>
@@ -36,6 +38,7 @@ const BibleCommentaryPanel = ({
   chapter,
   bookNameKo,
   focusVerse,
+  followVerse,
   totalVerses,
   verseTexts,
   onClose,
@@ -68,6 +71,40 @@ const BibleCommentaryPanel = ({
       total: filtered.length,
     }
   }, [data, focusVerse])
+
+  // ── 본문 따라가기 ──
+  // 본문의 읽는 절이 다른 해석 구간으로 넘어갈 때만 패널을 옮긴다(같은 구간 안에서는 가만히).
+  // 요약 해석을 먼저 잡고, 없으면 절별 해석. 패널 위에 마우스가 있으면 해석을 읽는 중이므로
+  // (낭독 자동 스크롤이 본문을 내리는 경우 포함) 미뤘다가 마우스가 나갈 때 따라잡는다.
+  const panelRef = useRef<HTMLElement>(null)
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const followedIdRef = useRef<number | null>(null)
+  const followTargetId = useMemo(() => {
+    if (followVerse == null || focusVerse != null) return null
+    const covers = (c: BibleCommentary) =>
+      c.verse_start <= followVerse && c.verse_end >= followVerse
+    return (summaries.find(covers) ?? verses.find(covers))?.id ?? null
+  }, [followVerse, focusVerse, summaries, verses])
+
+  const syncFollow = useCallback(() => {
+    const scroller = scrollerRef.current
+    if (!scroller || followTargetId == null || followedIdRef.current === followTargetId) return
+    // 첫 위치 잡기는 예외 — 해석 버튼이 패널 자리에 있어 열자마자는 늘 hover 상태다
+    if (followedIdRef.current != null && panelRef.current?.matches(':hover')) return
+    const el = scroller.querySelector<HTMLElement>(`[data-commentary-id="${followTargetId}"]`)
+    if (!el) return
+    followedIdRef.current = followTargetId
+    const isFirst = el === scroller.querySelector('[data-commentary-id]')
+    const top = isFirst
+      ? 0
+      : scroller.scrollTop + el.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    scroller.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' })
+  }, [followTargetId])
+
+  useEffect(() => {
+    syncFollow()
+  }, [syncFollow])
 
   const headerLabel =
     focusVerse != null
@@ -152,14 +189,18 @@ const BibleCommentaryPanel = ({
   return (
     <>
       {/* PC(lg+)에선 모달이 아니라 우측 도킹 패널 — 배경을 투명·통과 처리해
-          본문을 읽고 절을 탭하면서 해석을 나란히 볼 수 있다 (본문 컬럼은 BibleStudy가 비켜줌) */}
+          본문을 읽고 절을 탭하면서 해석을 나란히 볼 수 있다 (본문 컬럼은 BibleStudy가 비켜줌).
+          블러 없이 스크림만 — 전체화면 backdrop-filter는 긴 절 목록 위에서 저사양 폰의 열림을
+          무겁게 한다(장 선택 시트와 같은 처방). 등장은 다른 성경 시트와 같은 공용 전환 */}
       <div
-        className="fixed inset-0 bg-black/55 backdrop-blur-[2px] z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden lg:top-14 lg:bg-transparent lg:backdrop-blur-0 lg:pointer-events-none lg:items-stretch lg:justify-end lg:p-0"
+        className="sheet-backdrop fixed inset-0 bg-black/60 z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden lg:top-14 lg:bg-transparent lg:pointer-events-none lg:items-stretch lg:justify-end lg:p-0"
         onClick={onClose}
         role="presentation"
       >
         <section
-          className="relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col lg:pointer-events-auto lg:w-[400px] xl:w-[430px] lg:max-w-none lg:!max-h-none lg:rounded-none lg:border-0 lg:border-l lg:shadow-[-12px_0_40px_rgba(0,0,0,0.25)]"
+          ref={panelRef}
+          onMouseLeave={syncFollow}
+          className="sheet-rise relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col lg:pointer-events-auto lg:w-[400px] xl:w-[430px] lg:max-w-none lg:!max-h-none lg:rounded-none lg:border-0 lg:border-l lg:shadow-[-12px_0_40px_rgba(0,0,0,0.25)]"
           style={{ ...genreStyle(bookNumber), maxHeight: 'calc(var(--vvh, 100dvh) * 0.92)' }}
           onClick={(e) => e.stopPropagation()}
           role="dialog"
@@ -190,7 +231,7 @@ const BibleCommentaryPanel = ({
           </div>
 
           {/* 본문 */}
-          <div className="flex-1 overflow-y-auto overscroll-contain px-6 pb-6">
+          <div ref={scrollerRef} className="flex-1 overflow-y-auto overscroll-contain px-6 pb-6">
             {isLoading && (
               <div className="text-center py-10 text-ink-muted">
                 <span className="material-icons-round animate-spin text-[28px]">refresh</span>

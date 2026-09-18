@@ -39,6 +39,7 @@ import { preloadBudget } from '../../../utils/idlePreload'
 import { can } from '../../../utils/access'
 // 함께 읽기 — 읽는 줄 감지 → 하트비트 → presence/묵상 요약 캐시 → 절 칩·장 pill·배너·시트
 import { useReadingLine } from '../hooks/useReadingLine'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { useChapterPresence, useChapterReflectionSummary, useReadingPresenceHeartbeat } from '../../../hooks/useReadingTogether'
 import { isPresenceSharingEnabled, subscribePresenceSharing } from '../data/presenceSharing'
 import ChapterPresencePill from './together/ChapterPresencePill'
@@ -206,17 +207,23 @@ const VerseList = ({
 
   // 사전 칩·단어장·묵상 노트 시트는 lazy 청크라 첫 탭이 네트워크 왕복만큼 늦게 열렸다.
   // 본문이 그려진 뒤 브라우저가 한가할 때 미리 받아둔다 (배포 직후 해시가 바뀐 경우 포함).
+  // 해석 패널도 함께 — "해석" 버튼은 해석이 없는 장의 절에도 떠 있어서, 안 받아 두면
+  // 첫 탭이 Suspense 폴백 스로틀(300ms)을 탄다. 해석 있는 장은 아래에서 더 일찍 받는다.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const w = window as Window & {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
       cancelIdleCallback?: (id: number) => void
     }
+    const run = () => {
+      void VerseSheets.preload()
+      void BibleCommentaryPanel.preload()
+    }
     if (w.requestIdleCallback) {
-      const id = w.requestIdleCallback(VerseSheets.preload, { timeout: 2500 })
+      const id = w.requestIdleCallback(run, { timeout: 2500 })
       return () => w.cancelIdleCallback?.(id)
     }
-    const id = window.setTimeout(VerseSheets.preload, 1200)
+    const id = window.setTimeout(run, 1200)
     return () => window.clearTimeout(id)
   }, [])
 
@@ -346,8 +353,26 @@ const VerseList = ({
 
   const handleShowChapterCommentaries = () => {
     setCommentaryFocusVerse(null)
+    setCommentaryFollowFrom(`${bookNumber}:${selectedChapter}`)
     setCommentaryPanelOpen(true)
   }
+
+  // ── 해석 패널 따라가기 (PC 도킹 · 장 전체 해석일 때만) ──
+  // 본문을 18절까지 내리면 패널도 18절을 덮는 해석으로 옮겨 간다. 모바일은 패널이 본문을
+  // 덮는 모달이라 해당 없음. 패널을 연 장에선 이전 장 DOM이 남아 있지 않으니 워밍업 없이
+  // 바로 재고, 패널을 연 채 장을 넘기면 기본 워밍업(0.8초)으로 되돌린다.
+  const isDesktopDock = useMediaQuery('(min-width: 1024px)')
+  const [commentaryFollowFrom, setCommentaryFollowFrom] = useState<string | null>(null)
+  const commentaryFollowActive =
+    isDesktopDock && commentaryPanelOpen && commentaryFocusVerse == null
+  const commentaryFollowVerse = useReadingLine(
+    bookNumber,
+    selectedChapter,
+    chapterData?.pages[0]?.total_verses,
+    commentaryFollowActive,
+    250,
+    commentaryFollowFrom === `${bookNumber}:${selectedChapter}` ? 0 : 800,
+  )
 
   // 부모(BibleStudy)에 패널 상태 통지 — 장을 떠나며 언마운트될 때도 닫힘으로 되돌린다
   useEffect(() => {
@@ -1347,6 +1372,7 @@ const VerseList = ({
           chapter={selectedChapter}
           bookNameKo={chapterData.pages[0].book_name_ko}
           focusVerse={commentaryFocusVerse}
+          followVerse={commentaryFollowVerse}
           totalVerses={chapterData.pages[0].total_verses}
           verseTexts={verseTextMap}
           onClose={() => {

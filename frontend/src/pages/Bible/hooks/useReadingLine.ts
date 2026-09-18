@@ -13,6 +13,9 @@ import { useEffect, useState } from 'react'
  *
  * settleMs: 값이 이 시간 동안 유지될 때만 확정한다 — 스크롤 중 스쳐 지나가는 절은
  * 보고하지 않는다(함께 읽기 카운트가 7→8→7 로 튀는 것을 막는다).
+ *
+ * warmupMs: 측정을 건너뛰는 첫 구간. 장 중간에서 켜지는 소비자(해석 패널 따라가기)는
+ * 남아 있는 이전 장 DOM이 없으므로 0으로 줄여 바로 잰다.
  */
 export const useReadingLine = (
   bookNumber: number,
@@ -20,13 +23,15 @@ export const useReadingLine = (
   totalVerses: number | undefined,
   enabled: boolean,
   settleMs = 3000,
+  warmupMs = 800,
 ): number | null => {
   const [rawVerse, setRawVerse] = useState<number | null>(null)
   const [settled, setSettled] = useState<number | null>(null)
 
   // 장이 바뀌면 이전 장의 절 번호를 버린다 — effect 대신 렌더 중 키 비교로 리셋
   // (React 권장 패턴: 이전 장의 값이 한 프레임이라도 새 장으로 보고되지 않는다)
-  const chapterKey = `${bookNumber}:${chapter}`
+  // 껐다 켤 때도 버린다 — 꺼져 있던 동안의 옛 절이 다시 켠 직후 한 번 보고되지 않게
+  const chapterKey = `${bookNumber}:${chapter}:${enabled}`
   const [seenKey, setSeenKey] = useState(chapterKey)
   if (seenKey !== chapterKey) {
     setSeenKey(chapterKey)
@@ -41,7 +46,7 @@ export const useReadingLine = (
     const collectNodes = () => {
       nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-verse]'))
     }
-    const settledAt = performance.now() + 800
+    const settledAt = performance.now() + warmupMs
     const measure = () => {
       raf = 0
       if (performance.now() < settledAt) return
@@ -71,14 +76,14 @@ export const useReadingLine = (
     document.addEventListener('scroll', onScroll, { capture: true, passive: true })
     window.addEventListener('resize', onScroll)
     // 장 진입 직후 첫 측정(스크롤 없이 머무는 경우)
-    const kick = window.setTimeout(onScroll, 900)
+    const kick = window.setTimeout(onScroll, warmupMs + 100)
     return () => {
       document.removeEventListener('scroll', onScroll, { capture: true })
       window.removeEventListener('resize', onScroll)
       window.clearTimeout(kick)
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [enabled, bookNumber, chapter, totalVerses])
+  }, [enabled, bookNumber, chapter, totalVerses, warmupMs])
 
   // 디바운스 확정
   useEffect(() => {

@@ -96,7 +96,7 @@ const BibleCommentaryItem = ({
   )
 
   return (
-    <article className="py-5 first:pt-1">
+    <article className="py-5 first:pt-1" data-commentary-id={commentary.id}>
       <div className="flex items-baseline gap-2">
         <span
           className="text-[11.5px] font-bold tracking-[0.1em] shrink-0"

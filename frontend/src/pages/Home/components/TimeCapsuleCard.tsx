@@ -12,6 +12,7 @@ import { daysUntil } from '../../Capsule/capsuleDates'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { CAPSULE_HERO, CAPSULE_HOME_BANNER, warmPair } from '../../../utils/themeAssets'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
+import { preloadRoute } from '../../../utils/routePreload'
 import './TimeCapsuleCard.css'
 
 const TimeCapsuleCard = () => {
@@ -23,10 +24,15 @@ const TimeCapsuleCard = () => {
   // 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다 (themeAssets.ts)
   useThemeArt(CAPSULE_HOME_BANNER)
   // 이 카드가 /capsule 로 들어가는 길목이다. 히어로 삽화도 CSS 배경이라 화면이 그려진 뒤에야
-  // 요청이 나가므로 첫 화면이 끝난 유휴 시간에 미리 데운다 — 절약 모드·2G 에선 받지 않는다
+  // 요청이 나가므로 첫 화면이 끝난 유휴 시간에 미리 데운다 — 절약 모드·2G 에선 받지 않는다.
+  // 페이지 청크(JS+CSS)도 같이 받는다: 라우터는 화면 전환을 startTransition 으로 돌려
+  // 청크가 올 때까지 홈을 붙잡고 있으므로, 안 받아 두면 탭한 뒤 한 박자 멈췄다가 넘어간다
   useEffect(() => {
     if (preloadBudget() === 'none') return
-    return scheduleAfterFirstScreen(() => void warmPair(CAPSULE_HERO))
+    return scheduleAfterFirstScreen(() => {
+      void warmPair(CAPSULE_HERO)
+      void preloadRoute('/capsule')
+    })
   }, [])
 
   // 내가 열 수 있는데 아직 안 연 캡슐 (보낸 사람 재열람은 제외).
@@ -61,7 +67,13 @@ const TimeCapsuleCard = () => {
 
   return (
     <section className="px-4 mt-3">
-      <button type="button" onClick={() => navigate('/capsule')} className="tc-card">
+      <button
+        type="button"
+        onClick={() => navigate('/capsule')}
+        onMouseEnter={() => void preloadRoute('/capsule')}
+        onTouchStart={() => void preloadRoute('/capsule')}
+        className="tc-card"
+      >
         <span className="tc-card__milkyway" aria-hidden />
         <span className="tc-card__stars" aria-hidden />
         <span className="tc-card__meteor" aria-hidden />

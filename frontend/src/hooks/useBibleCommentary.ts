@@ -12,6 +12,17 @@ import type {
   BibleCommentaryCreateRequest,
   BibleCommentaryUpdateRequest,
 } from '../types/bibleCommentary'
+import { warmFontShaping, type FontCombo } from '../utils/warmFontShaping'
+
+/**
+ * 해석 패널(BibleCommentaryPanel·BibleCommentaryItem)이 쓰는 글자 [크기, 굵기] 중 읽기 화면에
+ * 없던 조합 — 첫 열기 Layout 을 무겁게 하던 주범이라 미리 데워 둔다(utils/warmFontShaping).
+ * 패널 타이포를 바꾸면 여기도 맞춘다. 어긋나도 버그는 아니고 첫 열기만 다시 굼떠진다.
+ */
+const PANEL_FONT_COMBOS: readonly FontCombo[] = [
+  [15, 400], [15.5, 400], [14.5, 400], [15, 700], [17, 700],
+  [11.5, 700], [11.5, 600], [11.5, 400], [12.5, 700], [15, 600], [19, 700],
+]
 
 const keys = {
   all: ['bibleCommentary'] as const,
@@ -63,12 +74,26 @@ export const usePrefetchChapterCommentaries = (
   const queryClient = useQueryClient()
   useEffect(() => {
     if (!enabled || bookNumber <= 0 || chapter <= 0) return
+    let cancelled = false
+    let cancelWarm: (() => void) | null = null
     const run = () => {
-      void queryClient.prefetchQuery({
-        queryKey: keys.chapter(bookNumber, chapter),
-        queryFn: () => listChapterCommentaries(bookNumber, chapter),
-        staleTime: 60_000,
-      })
+      void queryClient
+        .fetchQuery({
+          queryKey: keys.chapter(bookNumber, chapter),
+          queryFn: () => listChapterCommentaries(bookNumber, chapter),
+          staleTime: 60_000,
+        })
+        .then(async (data) => {
+          // Pretendard 는 unicode-range 조각이라, 본문에 없던 드문 글자가 해석에 나오면 패널을
+          // 연 뒤에야 조각을 받아 글자가 교체(재배치)됐다. 해석 글자로 미리 요청해 두고,
+          // 조각이 온 뒤 패널의 크기·굵기 조합을 데운다(폴백 글꼴로 데우면 헛일).
+          if (cancelled) return
+          // ①②… 는 패널이 관찰 블록 머리에 붙이는 글자(BibleCommentaryItem)
+          const text = data.items.map((c) => `${c.title ?? ''}${c.content}`).join('') + '①②③④⑤⑥'
+          await document.fonts?.load?.('15px "Pretendard Variable"', text).catch(() => undefined)
+          if (!cancelled) cancelWarm = warmFontShaping(text, PANEL_FONT_COMBOS)
+        })
+        .catch(() => undefined)
     }
     const w = window as Window & {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
@@ -76,10 +101,18 @@ export const usePrefetchChapterCommentaries = (
     }
     if (w.requestIdleCallback) {
       const id = w.requestIdleCallback(run, { timeout: 2500 })
-      return () => w.cancelIdleCallback?.(id)
+      return () => {
+        cancelled = true
+        cancelWarm?.()
+        w.cancelIdleCallback?.(id)
+      }
     }
     const id = window.setTimeout(run, 1200)
-    return () => window.clearTimeout(id)
+    return () => {
+      cancelled = true
+      cancelWarm?.()
+      window.clearTimeout(id)
+    }
   }, [queryClient, bookNumber, chapter, enabled])
 }
 
