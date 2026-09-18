@@ -144,7 +144,7 @@ const Login = () => {
     /* 세로 중앙 정렬. 여백·간격은 auth-page 토큰이 기기 높이에 따라 조절한다
        (작은 폰에서 고정 여백이 화면을 꽉 채워 답답해 보이던 문제).
        min-height라 내용이 길어지면 컨테이너가 같이 늘어나 잘리지 않는다. */
-    <div className="bg-surface screen-fit-minus-header auth-page flex flex-col justify-center">
+    <div className="auth-type bg-surface screen-fit-minus-header auth-page flex flex-col justify-center">
       <div className="w-full max-w-sm mx-auto">
         {/* 헤드라인 — 좌측 정렬 2줄. 헤더에 이미 로고가 있어 브랜드 마크는 넣지 않는다.
             카드도 부제도 없이 여백이 위계를 만든다. */}

@@ -105,7 +105,7 @@ const Register = () => {
     /* 세로 중앙 정렬. 여백·간격은 auth-page 토큰이 기기 높이에 따라 조절한다
        (필드가 4개라 작은 폰에서 특히 꽉 차 보이던 문제).
        min-height라 내용이 길어지면 컨테이너가 같이 늘어나 잘리지 않는다. */
-    <div className="bg-surface screen-fit-minus-header auth-page flex flex-col justify-center">
+    <div className="auth-type bg-surface screen-fit-minus-header auth-page flex flex-col justify-center">
       <div className="w-full max-w-sm mx-auto">
         {/* 헤드라인 — 헤더에 이미 로고가 있어 브랜드 마크는 넣지 않는다 */}
         <h1 className="auth-title font-display font-bold tracking-tight text-ink-strong">

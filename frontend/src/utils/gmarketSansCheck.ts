@@ -1,4 +1,4 @@
-// dev 전용 — 서브셋에 없는 글자가 PC 크롬(헤더·좌측 레일)에 뜨는지 잡아낸다.
+// dev 전용 — 서브셋에 없는 글자가 PC 크롬(헤더·좌측 레일)·로그인/회원가입에 뜨는지 잡아낸다.
 //
 // G마켓 산스는 헤더·레일에 실제로 뜨는 글자만 남긴 서브셋으로 서빙한다
 // (scripts/gen-gmarket-sans.py). 메뉴 문구를 바꾸고 `npm run gen:gmarket-sans` 를
@@ -13,14 +13,16 @@ const warned = new Set<string>()
 const LG = 1024
 
 const scan = () => {
-  if (!known || window.innerWidth < LG) return
-  for (const root of document.querySelectorAll<HTMLElement>('.chrome-type')) {
+  if (!known) return
+  // 로그인·회원가입(.auth-type)은 모바일에서도 G마켓 산스라 폭과 무관하게 검사한다
+  const selector = window.innerWidth >= LG ? '.chrome-type, .auth-type' : '.auth-type'
+  for (const root of document.querySelectorAll<HTMLElement>(selector)) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
     let node: Node | null
     while ((node = walker.nextNode())) {
       const parent = node.parentElement
       // 아이콘 폰트(리가처 원문)와 본문 폰트로 되돌린 자리는 대상이 아니다
-      if (parent?.closest('[class*="material-icons"], .chrome-type-off')) continue
+      if (parent?.closest('[class*="material-icons"], .chrome-type-off, .auth-msg--error')) continue
       for (const ch of node.textContent ?? '') {
         if (ch.trim() === '' || known.has(ch) || warned.has(ch)) continue
         warned.add(ch)

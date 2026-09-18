@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Gmarket Sans 서브셋 생성기 — `npm run gen:gmarket-sans`
 
-왜: PC 크롬(상단 헤더 + 좌측 레일)에만 G마켓 산스를 쓴다. 원본은 한 벌에 600KB
+왜: PC 크롬(상단 헤더 + 좌측 레일)과 로그인·회원가입 화면에만 G마켓 산스를 쓴다. 원본은 한 벌에 600KB
     (한글 완성형 전부)라 그대로 쓰면 장식 하나에 본문 폰트보다 큰 값을 치른다.
     헤더·레일에 실제로 뜨는 글자는 200자 남짓이라, 그 글자만 남기면 두 벌 합쳐
     수십 KB로 끝난다.
@@ -54,6 +54,7 @@ WEIGHTS = {
 SCAN_DIRS = [
     SRC_DIR / "components" / "layout" / "NewHeader",
     SRC_DIR / "components" / "layout" / "DesktopNavRail",
+    SRC_DIR / "pages" / "Auth",  # 로그인·회원가입 (.auth-type)
 ]
 # 메뉴 어휘는 통째로 — 나중에 항목을 늘려도 글리프가 비지 않게
 LOCALE_FILES = sorted((SRC_DIR / "locales").glob("*/navigation.ts"))
@@ -104,6 +105,10 @@ def collect_text() -> tuple[set[str], dict[str, int]]:
                 if literal:
                     chars.update(literal)
                     stats["literals"] += 1
+                    # 키를 변수에 담아 넘기는 경우(GREETING_KEYS, 삼항 t(a ? 'x' : 'y'))도
+                    # 리터럴이 곧 로케일 키이므로 그 번역값을 함께 넣는다
+                    for value in table.get(literal, ()):
+                        chars.update(value)
             # 2) JSX 텍스트 노드의 한글 (>참빛교회< 같은 형태)
             for m in re.finditer(r">([^<>{}\n]*[가-힣][^<>{}\n]*)<", text):
                 chars.update(m.group(1))

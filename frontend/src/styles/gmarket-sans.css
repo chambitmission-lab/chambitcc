@@ -1,4 +1,4 @@
-/* G마켓 산스 — PC 크롬(상단 헤더 + 좌측 레일) 전용 서체
+/* G마켓 산스 — PC 크롬(상단 헤더 + 좌측 레일) + 로그인·회원가입 화면 서체
  * scripts/gen-gmarket-sans.py 가 만든 서브셋(두 벌 합쳐 ~40KB)을 self-host 한다.
  *
  * 왜 여기만: 헤더·레일은 "앱의 틀"이고 본문은 Pretendard 가 읽기를 맡는다.
@@ -54,4 +54,25 @@
       'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
     letter-spacing: -0.02em;
   }
+}
+
+/* 로그인·회원가입 — 앱의 "현관"이라 크롬과 같은 서체로 맞춘다.
+ * 크롬과 달리 모바일에서도 적용한다(로그인은 대부분 폰에서 한다). 미디어쿼리 밖이어도
+ * 폰트는 이 화면의 글자가 렌더될 때만 내려받으므로 다른 화면의 비용은 그대로 0 이다.
+ * 제목의 .font-display 는 Tailwind 가 font-family 를 직접 지정하므로 함께 덮는다. */
+.auth-type,
+.auth-type .font-display {
+  font-family:
+    'Gmarket Sans', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont,
+    system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.005em;
+}
+
+/* 사람이 입력한 값과 서버가 보낸 문구는 서브셋 밖 글자가 섞일 수 있어 본문 서체로 둔다 */
+.auth-type input,
+.auth-type .auth-msg--error {
+  font-family:
+    'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui,
+    'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  letter-spacing: -0.02em;
 }
