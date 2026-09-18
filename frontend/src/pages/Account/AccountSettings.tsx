@@ -40,6 +40,9 @@ import {
 import { tokenStore, sessionStore } from '../../utils/tokenStore'
 import { profileKeys } from '../../hooks/queryKeys'
 
+// 가입 화면·백엔드 auth.py와 같은 값
+const FULL_NAME_MAX_LENGTH = 15
+
 /* 행 앞 아이콘 타일 — 소프트 브랜드 배경 위 duotone 아이콘 (계정 정보·보안 공용) */
 const RowTile = ({ Icon, size = 20 }: { Icon: (p: AccountIconProps) => React.ReactElement; size?: number }) => (
   <div className="shrink-0 w-10 h-10 rounded-2xl bg-[var(--brand-soft-strong)] text-brand flex items-center justify-center">
@@ -151,6 +154,11 @@ const AccountSettings = () => {
     }
     if (nameUnchanged) {
       setEditingName(false)
+      return
+    }
+    // 예전 규칙(50자)으로 저장된 긴 이름은 input maxLength로 잘리지 않으니 여기서 막는다
+    if (Array.from(nameTrimmed).length > FULL_NAME_MAX_LENGTH) {
+      setNameError(t('registerFullNameTooLong'))
       return
     }
 
@@ -406,7 +414,7 @@ const AccountSettings = () => {
                         if (e.key === 'Escape') cancelEditName()
                       }}
                       placeholder={t('accountNamePlaceholder')}
-                      maxLength={50}
+                      maxLength={FULL_NAME_MAX_LENGTH}
                       required
                       disabled={nameSubmitting}
                       autoComplete="name"
@@ -415,7 +423,7 @@ const AccountSettings = () => {
                     <div className="mt-1.5 flex items-center justify-between gap-2 min-h-[18px]">
                       <p className="text-[12px] text-red-500 dark:text-red-400">{nameError}</p>
                       <span className="shrink-0 text-[11.5px] text-ink-muted tabular-nums">
-                        {nameTrimmed.length}/50
+                        {Array.from(nameTrimmed).length}/{FULL_NAME_MAX_LENGTH}
                       </span>
                     </div>
                     <div className="mt-2.5 flex gap-2">

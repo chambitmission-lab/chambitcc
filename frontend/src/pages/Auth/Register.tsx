@@ -7,6 +7,13 @@ import { EyeIcon, StatusIcon } from './AuthIcons'
 import './AuthForm.css'
 
 const MIN_PASSWORD_LENGTH = 6
+// 백엔드 auth.py와 같은 값 — 한쪽만 바꾸면 화면은 통과하고 서버에서 막힌다
+const USERNAME_MIN_LENGTH = 2
+const USERNAME_MAX_LENGTH = 12
+const FULL_NAME_MAX_LENGTH = 15
+
+/* 서버(파이썬 len)와 같게 코드포인트 단위로 센다 */
+const charCount = (value: string) => Array.from(value.trim()).length
 
 const Register = () => {
   const navigate = useNavigate()
@@ -56,6 +63,15 @@ const Register = () => {
 
   /* 제출 전에 필드 아래에서 미리 알려주는 상태들 — 다 채우고 나서야
      "비밀번호가 다릅니다"를 만나는 일이 없도록 한다 */
+  const usernameLength = charCount(formData.username)
+  const usernameHasSpace = /\s/.test(formData.username.trim())
+  const usernameBadLength =
+    usernameLength > USERNAME_MAX_LENGTH ||
+    (usernameLength > 0 && usernameLength < USERNAME_MIN_LENGTH)
+  const usernameInvalid = usernameHasSpace || usernameBadLength
+  const fullNameLength = charCount(formData.full_name)
+  const fullNameTooLong = fullNameLength > FULL_NAME_MAX_LENGTH
+
   const passwordTooShort =
     formData.password.length > 0 && formData.password.length < MIN_PASSWORD_LENGTH
   const confirmTouched = formData.confirmPassword.length > 0
@@ -67,6 +83,20 @@ const Register = () => {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    // 서버도 같은 규칙으로 막지만, 왕복 전에 필드 아래 문구로 먼저 알려준다
+    if (usernameInvalid || usernameLength === 0 || fullNameTooLong) {
+      setError(
+        fullNameTooLong && !usernameInvalid && usernameLength > 0
+          ? t('registerFullNameTooLong')
+          : usernameHasSpace
+            ? t('registerUsernameSpace')
+            : t('registerUsernameLength')
+      )
+      setErrorSeq((seq) => seq + 1)
+      setLoading(false)
+      return
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError(t('registerPasswordMismatch'))
@@ -143,9 +173,23 @@ const Register = () => {
               />
               <label htmlFor="register-username">{t('registerUsername')}</label>
             </div>
-            {/* 아이디에 한글도 쓸 수 있다는 건 직접 말해주지 않으면 아무도 모른다 */}
-            <p className="auth-msg auth-msg--hint mt-2">
-              <span>{t('registerUsernameHelp')}</span>
+            {/* 아이디에 한글도 쓸 수 있다는 건 직접 말해주지 않으면 아무도 모른다.
+                규칙은 항상 보이고, 어기면 그 자리에서 빨갛게 바뀐다 */}
+            <p
+              className={`auth-msg mt-2 ${usernameInvalid ? 'auth-msg--error' : 'auth-msg--hint'}`}
+            >
+              <span>
+                {usernameHasSpace
+                  ? t('registerUsernameSpace')
+                  : usernameBadLength
+                    ? t('registerUsernameLength')
+                    : t('registerUsernameHelp')}
+              </span>
+              {usernameLength > 0 && (
+                <span className="ml-auto shrink-0 tabular-nums">
+                  {usernameLength}/{USERNAME_MAX_LENGTH}
+                </span>
+              )}
             </p>
 
             <div className="auth-field auth-gap">
@@ -162,8 +206,17 @@ const Register = () => {
               />
               <label htmlFor="register-fullname">{t('registerFullName')}</label>
             </div>
-            <p className="auth-msg auth-msg--hint mt-2">
-              <span>{t('registerFullNameHelp')}</span>
+            <p
+              className={`auth-msg mt-2 ${fullNameTooLong ? 'auth-msg--error' : 'auth-msg--hint'}`}
+            >
+              <span>
+                {fullNameTooLong ? t('registerFullNameTooLong') : t('registerFullNameHelp')}
+              </span>
+              {fullNameLength > 0 && (
+                <span className="ml-auto shrink-0 tabular-nums">
+                  {fullNameLength}/{FULL_NAME_MAX_LENGTH}
+                </span>
+              )}
             </p>
 
             <div className="auth-field auth-gap">

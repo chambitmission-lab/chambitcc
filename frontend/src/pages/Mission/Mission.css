@@ -72,9 +72,11 @@
   transition: opacity 320ms ease-out;
 }
 
-/* 안쪽(글자 쪽) 모서리는 캔버스로 흘려보낸다 */
+/* 안쪽(글자 쪽) 모서리는 캔버스로 흘려보낸다.
+   바깥쪽 두 모서리는 그림 끝이 그대로 드러나 직각 판떼기처럼 보이므로 둥글린다 */
 .mission-hero::before {
   left: 0;
+  border-radius: 28px 0 0 28px;
   background-position: center, left bottom;
   -webkit-mask-image: linear-gradient(90deg, #000 0 58%, transparent 100%);
   mask-image: linear-gradient(90deg, #000 0 58%, transparent 100%);
@@ -82,6 +84,7 @@
 
 .mission-hero::after {
   right: 0;
+  border-radius: 0 28px 28px 0;
   background-position: center, right bottom;
   -webkit-mask-image: linear-gradient(270deg, #000 0 58%, transparent 100%);
   mask-image: linear-gradient(270deg, #000 0 58%, transparent 100%);
@@ -112,6 +115,7 @@
     width: auto;
     height: 0;
     padding-bottom: 48%;
+    border-radius: 0;
     /* 네 변을 모두 캔버스로 녹인다 — 안 그러면 히어로 아래에 밝은/어두운 직사각형이 그대로 보인다
        (다크에서 특히 티가 난다: 그림 바탕 #1a1614 vs 캔버스 #131313) */
     background-image:
