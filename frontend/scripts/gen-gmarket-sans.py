@@ -56,6 +56,10 @@ SCAN_DIRS = [
     SRC_DIR / "components" / "layout" / "DesktopNavRail",
     SRC_DIR / "pages" / "Auth",  # 로그인·회원가입 (.auth-type)
 ]
+# 디렉터리 밖 낱개 파일 — 로그인 직후 마중 문구(welcome-overlay 도 .auth-type)
+SCAN_FILES = [
+    SRC_DIR / "utils" / "welcomeTransition.ts",
+]
 # 메뉴 어휘는 통째로 — 나중에 항목을 늘려도 글리프가 비지 않게
 LOCALE_FILES = sorted((SRC_DIR / "locales").glob("*/navigation.ts"))
 ALL_LOCALE_FILES = sorted((SRC_DIR / "locales").rglob("*.ts"))
@@ -94,29 +98,29 @@ def collect_text() -> tuple[set[str], dict[str, int]]:
     chars: set[str] = set(ALWAYS)
     stats = {"literals": 0, "keys": 0, "navEntries": 0}
 
-    for base in SCAN_DIRS:
-        for path in sorted(base.rglob("*")):
-            if path.suffix not in {".ts", ".tsx"}:
-                continue
-            text = read(path)
-            # 1) 파일 안의 문자열 리터럴(하드코딩된 한글 라벨·로고 등)
-            for m in STRING_RE.finditer(text):
-                literal = next((g for g in m.groups() if g), "")
-                if literal:
-                    chars.update(literal)
-                    stats["literals"] += 1
-                    # 키를 변수에 담아 넘기는 경우(GREETING_KEYS, 삼항 t(a ? 'x' : 'y'))도
-                    # 리터럴이 곧 로케일 키이므로 그 번역값을 함께 넣는다
-                    for value in table.get(literal, ()):
-                        chars.update(value)
-            # 2) JSX 텍스트 노드의 한글 (>참빛교회< 같은 형태)
-            for m in re.finditer(r">([^<>{}\n]*[가-힣][^<>{}\n]*)<", text):
-                chars.update(m.group(1))
-            # 3) t('key') 의 모든 언어 번역값
-            for m in T_KEY_RE.finditer(text):
-                stats["keys"] += 1
-                for value in table.get(m.group(1), ()):  # 없는 키는 조용히 건너뜀
+    scan_paths = [p for base in SCAN_DIRS for p in sorted(base.rglob("*"))] + SCAN_FILES
+    for path in scan_paths:
+        if path.suffix not in {".ts", ".tsx"}:
+            continue
+        text = read(path)
+        # 1) 파일 안의 문자열 리터럴(하드코딩된 한글 라벨·로고 등)
+        for m in STRING_RE.finditer(text):
+            literal = next((g for g in m.groups() if g), "")
+            if literal:
+                chars.update(literal)
+                stats["literals"] += 1
+                # 키를 변수에 담아 넘기는 경우(GREETING_KEYS, 삼항 t(a ? 'x' : 'y'))도
+                # 리터럴이 곧 로케일 키이므로 그 번역값을 함께 넣는다
+                for value in table.get(literal, ()):
                     chars.update(value)
+        # 2) JSX 텍스트 노드의 한글 (>참빛교회< 같은 형태)
+        for m in re.finditer(r">([^<>{}\n]*[가-힣][^<>{}\n]*)<", text):
+            chars.update(m.group(1))
+        # 3) t('key') 의 모든 언어 번역값
+        for m in T_KEY_RE.finditer(text):
+            stats["keys"] += 1
+            for value in table.get(m.group(1), ()):  # 없는 키는 조용히 건너뜀
+                chars.update(value)
 
     # 4) 메뉴 어휘 전체(navigation.ts)
     for path in LOCALE_FILES:

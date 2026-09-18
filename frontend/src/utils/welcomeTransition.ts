@@ -10,6 +10,7 @@
 // - z-index 10000 (토스트 9999 바로 위, 앱 내 최고값).
 import { deriveTimeOfDay } from '../hooks/useDailyMeditation'
 import { getCurrentSeason, type ChurchSeason } from './churchCalendar'
+import gmarketManifest from '../styles/gmarket-sans.manifest.json'
 import '../styles/welcomeTransition.css'
 
 type Lang = 'ko' | 'en'
@@ -37,6 +38,11 @@ const SEASON_LABELS: Record<Lang, Record<ChurchSeason, string>> = {
   ko: { advent: '대림절', christmas: '성탄절기', lent: '사순절', easter: '부활절기', epiphany: '주현절기', ordinary: '연중' },
   en: { advent: 'Advent', christmas: 'Christmastide', lent: 'Lent', easter: 'Eastertide', epiphany: 'Epiphany', ordinary: 'Ordinary Time' },
 }
+
+/* 이름은 사람이 정한 값이라 G마켓 산스 서브셋 밖 글자가 섞일 수 있다 — 한 글자라도
+   빠지면 이름 안에서 서체가 갈리므로, 그때만 이름 전체를 본문 서체로 되돌린다 */
+const GMARKET_CHARS = new Set(gmarketManifest.chars)
+const coveredByGmarket = (text: string) => [...text].every((ch) => ch.trim() === '' || GMARKET_CHARS.has(ch))
 
 const LONG_AWAY_MS = 1000 * 60 * 60 * 24 * 7
 const lastSeenKey = (username: string) => `welcome_last_seen_${username}`
@@ -101,7 +107,8 @@ export const playWelcomeTransition = (opts: WelcomeTransitionOptions): void => {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 
     const overlay = document.createElement('div')
-    overlay.className = 'welcome-overlay'
+    /* auth-type: 로그인 화면과 같은 G마켓 산스 (styles/gmarket-sans.css) */
+    overlay.className = 'welcome-overlay auth-type'
 
     /* 원점: CTA 버튼 중심. 반지름은 원점에서 가장 먼 모서리까지 — 확실히 다 덮는다 */
     const rect = opts.originEl?.getBoundingClientRect()
@@ -116,8 +123,8 @@ export const playWelcomeTransition = (opts: WelcomeTransitionOptions): void => {
     const inner = document.createElement('div')
     inner.className = 'welcome-inner'
     const nameEl = document.createElement('p')
-    nameEl.className = 'welcome-name'
     nameEl.textContent = lang === 'en' ? `${opts.name},` : `${opts.name}님,`
+    nameEl.className = coveredByGmarket(nameEl.textContent) ? 'welcome-name' : 'welcome-name auth-type-off'
     const lineEl = document.createElement('p')
     lineEl.className = 'welcome-line'
     lineEl.textContent = pickLine(lang, now, opts.username)

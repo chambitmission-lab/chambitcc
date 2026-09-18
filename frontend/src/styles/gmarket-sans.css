@@ -68,9 +68,17 @@
   letter-spacing: -0.005em;
 }
 
-/* 사람이 입력한 값과 서버가 보낸 문구는 서브셋 밖 글자가 섞일 수 있어 본문 서체로 둔다 */
+/* 로그인 직후 마중 문구(utils/welcomeTransition.ts 의 .welcome-overlay)도 .auth-type 이다.
+   이름의 -0.02em 은 Pretendard 기준이라 G마켓 산스에선 글자가 붙는다 */
+.auth-type .welcome-name {
+  letter-spacing: -0.005em;
+}
+
+/* 사람이 입력한 값과 서버가 보낸 문구는 서브셋 밖 글자가 섞일 수 있어 본문 서체로 둔다
+   (.auth-type-off: 서브셋이 못 덮는 이름 등 — JS 가 판단해 붙인다) */
 .auth-type input,
-.auth-type .auth-msg--error {
+.auth-type .auth-msg--error,
+.auth-type .auth-type-off {
   font-family:
     'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui,
     'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;

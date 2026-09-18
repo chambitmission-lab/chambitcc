@@ -22,7 +22,7 @@ const scan = () => {
     while ((node = walker.nextNode())) {
       const parent = node.parentElement
       // 아이콘 폰트(리가처 원문)와 본문 폰트로 되돌린 자리는 대상이 아니다
-      if (parent?.closest('[class*="material-icons"], .chrome-type-off, .auth-msg--error')) continue
+      if (parent?.closest('[class*="material-icons"], .chrome-type-off, .auth-type-off, .auth-msg--error')) continue
       for (const ch of node.textContent ?? '') {
         if (ch.trim() === '' || known.has(ch) || warned.has(ch)) continue
         warned.add(ch)
