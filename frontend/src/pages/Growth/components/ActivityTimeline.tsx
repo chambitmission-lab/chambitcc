@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { TimelineDomain, TimelineEvent } from '../../../types/growth'
 import { TimelineEventGlyph } from '../../../components/icons/GrowthIcons'
@@ -6,6 +6,8 @@ import './ActivityTimeline.css'
 
 interface ActivityTimelineProps {
   events: TimelineEvent[]
+  /** 지금까지 받은 구간(페이지) 수 — 필터 자동 탐색 예산 계산용 */
+  pageCount: number
   hasMore: boolean
   isLoadingMore: boolean
   onLoadMore: () => void
@@ -31,6 +33,19 @@ const DOMAIN_ORDER: TimelineDomain[] = [
   'community',
   'game',
 ]
+
+/** 상단 유형 필터 — '전체' 또는 도메인 하나 */
+type TimelineFilter = 'all' | TimelineDomain
+
+const FILTER_OPTIONS: { key: TimelineFilter; label: string; color: string }[] = [
+  { key: 'all', label: '전체', color: 'var(--brand)' },
+  ...DOMAIN_ORDER.map((d) => ({ key: d, label: DOMAIN_META[d].label, color: DOMAIN_META[d].color })),
+]
+
+/** 필터 결과가 비었을 때 이전 구간(60일)을 자동으로 더 당겨오는 최대 횟수.
+    기록이 몇 년치여도 무한정 페이지를 긁지 않도록 상한을 두고, 그 뒤엔
+    '이전 기록 더 보기' 버튼으로 사용자가 직접 이어간다 */
+const AUTO_LOAD_LIMIT = 3
 
 const ymdLocal = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
@@ -149,11 +164,43 @@ const EventRow = ({ event }: { event: TimelineEvent }) => {
 
 const ActivityTimeline = ({
   events,
+  pageCount,
   hasMore,
   isLoadingMore,
   onLoadMore,
 }: ActivityTimelineProps) => {
-  const dayGroups = useMemo(() => groupByDay(events), [events])
+  const [filter, setFilter] = useState<TimelineFilter>('all')
+  const filtered = useMemo(
+    () => (filter === 'all' ? events : events.filter((e) => e.domain === filter)),
+    [events, filter],
+  )
+  const dayGroups = useMemo(() => groupByDay(filtered), [filtered])
+  const filterLabel = FILTER_OPTIONS.find((f) => f.key === filter)?.label ?? ''
+
+  // 특정 유형만 보는데 지금까지 받은 구간엔 그 유형이 하나도 없으면
+  // 이전 구간을 자동으로 몇 번 더 당겨본다. 예산은 "필터를 고른 시점의 페이지 수"
+  // 기준으로 세어 effect 안에서 setState 없이 계산한다(필터를 바꾸거나 버튼을
+  // 직접 누르면 기준점을 지금으로 옮겨 예산이 되살아난다).
+  // inFlight 는 onLoadMore 호출 뒤 isLoadingMore 가 true 로 바뀌기 전
+  // 재렌더에서 두 번 부르는 걸 막는 잠금이다
+  const [pagesAtSelect, setPagesAtSelect] = useState(pageCount)
+  const inFlight = useRef(false)
+  const autoLoadExhausted = pageCount - pagesAtSelect >= AUTO_LOAD_LIMIT
+  const selectFilter = (next: TimelineFilter) => {
+    setFilter(next)
+    setPagesAtSelect(pageCount)
+    inFlight.current = false
+  }
+  useEffect(() => {
+    if (isLoadingMore) {
+      inFlight.current = false
+      return
+    }
+    if (filter === 'all' || filtered.length > 0 || !hasMore) return
+    if (inFlight.current || autoLoadExhausted) return
+    inFlight.current = true
+    onLoadMore()
+  }, [filter, filtered.length, hasMore, isLoadingMore, onLoadMore, autoLoadExhausted])
 
   return (
     // lg+: 한 줄짜리 이벤트 카드라 폭을 다 주면 글이 왼쪽에 몰린다 —
@@ -166,11 +213,63 @@ const ActivityTimeline = ({
         활동 기록
       </h3>
 
+      {/* 유형별 필터 탭 — 기록이 길어지면 말씀만·기도만 골라 복기할 수 있게.
+          칩 색은 카드 액센트 바·도메인 칩과 같은 --atl-* 를 쓴다 */}
+      {events.length > 0 && (
+        <div
+          className="atl-filter scrollbar-hide -mx-4 px-4 mb-4"
+          role="tablist"
+          aria-label="활동 유형 필터"
+        >
+          {FILTER_OPTIONS.map((opt) => {
+            const active = opt.key === filter
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => selectFilter(opt.key)}
+                className={'atl-filter-chip' + (active ? ' is-active' : '')}
+                style={{ ['--atl-accent' as string]: opt.color }}
+              >
+                {opt.key !== 'all' && <span className="atl-filter-dot" aria-hidden="true" />}
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       {events.length === 0 ? (
         <div className="text-center py-10 text-[13px] text-gray-500 dark:text-white/50">
           아직 기록된 활동이 없어요.
           <br />
           오늘 한 줄 기도, 한 절 읽기부터 시작해보세요.
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-10 text-[13px] text-gray-500 dark:text-white/50">
+          {isLoadingMore ? (
+            <>
+              {filterLabel} 기록을 찾는 중…
+              <br />
+              <span className="text-[12px] text-gray-400 dark:text-white/40">
+                이전 구간을 이어서 살펴보고 있어요
+              </span>
+            </>
+          ) : hasMore && autoLoadExhausted ? (
+            <>
+              최근 기록엔 {filterLabel} 활동이 없어요.
+              <br />
+              <span className="text-[12px] text-gray-400 dark:text-white/40">
+                아래 버튼으로 더 이전 기록을 이어서 볼 수 있어요
+              </span>
+            </>
+          ) : (
+            <>
+              아직 {filterLabel} 기록이 없어요.
+            </>
+          )}
         </div>
       ) : (
         <div>
@@ -216,7 +315,13 @@ const ActivityTimeline = ({
         <div className="flex justify-center pt-3">
           <button
             type="button"
-            onClick={onLoadMore}
+            onClick={() => {
+              // 직접 누르면 자동 탐색 횟수를 되돌려, 새 구간도 비어있을 때
+              // 다시 최대 3구간까지 이어서 찾아보게 한다
+              inFlight.current = true
+              setPagesAtSelect(pageCount)
+              onLoadMore()
+            }}
             disabled={isLoadingMore}
             className="
               px-5 py-2.5 rounded-full text-[13px] font-semibold

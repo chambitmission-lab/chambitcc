@@ -120,6 +120,7 @@ const Growth = () => {
 
         <ActivityTimeline
           events={events}
+          pageCount={timelineData?.pages.length ?? 0}
           hasMore={!!hasNextPage}
           isLoadingMore={isFetchingNextPage || timelineLoading}
           onLoadMore={() => fetchNextPage()}
