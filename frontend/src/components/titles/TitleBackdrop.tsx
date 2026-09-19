@@ -40,6 +40,9 @@ const TITLE_BG: Record<string, string> = Object.fromEntries(
   TITLE_BG_KEYS.map((key) => [key, `/images/title-bg/${key}.webp`]),
 )
 
+/** 이 칭호에 커버 배너가 등록돼 있는지 — 프로필 스켈레톤이 배너 자리를 미리 잡을 때 쓴다 */
+export const hasTitleBackdrop = (key: string): boolean => key in TITLE_BG
+
 /** 장착 칭호의 커버 배너 이미지 경로(없으면 undefined) */
 export const useTitleBackdropSrc = (): string | undefined => {
   const { data: equipped } = useEquippedTitle()

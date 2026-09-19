@@ -20,6 +20,10 @@ import MyRepliesList from './components/MyRepliesList'
 import MyBookmarksList from './components/MyBookmarksList'
 import LoadMoreSentinel from './components/LoadMoreSentinel'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { useGrowthSummary, useGrowthRecentDays } from '../../hooks/useGrowth'
+import { useEquippedTitle } from '../../hooks/useTitles'
+import { hasTitleBackdrop } from '../../components/titles/TitleBackdrop'
+import ProfileSkeleton, { ProfileRailSkeleton } from './components/ProfileSkeleton'
 import type { ProfileTab } from '../../types/profile'
 import type { Achievement, GlowLevel, UserActivityData } from '../../types/achievement'
 import { 
@@ -31,33 +35,14 @@ import {
 } from '../../utils/achievementCalculator'
 import { tokenStore } from '../../utils/tokenStore'
 
-// 본문 도착 전 자리표시자 — 실제 섹션(커버·아바타·온도 카드·배지 행·탭·목록)과 같은 자리·비슷한 높이라
-// 데이터가 오면 제자리에서 채워진다. 전체 화면 스피너와 달리 셸이 즉시 떠 "열렸다"는 응답이 빠르다
-const ProfileSkeleton = () => {
-  const bone = 'bg-gray-200/80 dark:bg-white/[0.07]'
-  return (
-    <div className="animate-pulse" aria-hidden="true">
-      <div className={`h-28 ${bone}`} />
-      <div className="px-4 -mt-10 flex flex-col items-center gap-2.5">
-        <div className={`w-20 h-20 rounded-full border-4 border-background-light dark:border-background-dark ${bone}`} />
-        <div className={`h-4 w-28 rounded-full ${bone}`} />
-        <div className={`h-3 w-20 rounded-full ${bone}`} />
-      </div>
-      <div className="px-4 pt-5 space-y-3">
-        <div className={`h-44 rounded-2xl ${bone}`} />
-        <div className={`h-24 rounded-2xl ${bone}`} />
-        <div className="flex gap-3 pt-1">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className={`w-12 h-12 rounded-full ${bone}`} />
-          ))}
-        </div>
-        <div className={`h-10 rounded-xl ${bone}`} />
-        {[0, 1, 2].map((i) => (
-          <div key={i} className={`h-20 rounded-2xl ${bone}`} />
-        ))}
-      </div>
-    </div>
-  )
+// 마지막으로 본 커버 배너 유무 — 칭호 응답이 오기 전 스켈레톤이 배너 자리를 미리 잡는 데 쓴다
+const COVER_HINT_KEY = 'profile_cover_hint'
+const readCoverHint = (): boolean => {
+  try {
+    return localStorage.getItem(COVER_HINT_KEY) === '1'
+  } catch {
+    return false
+  }
 }
 
 const Profile = () => {
@@ -90,6 +75,20 @@ const Profile = () => {
   // 블루마블 통계도 포인트(=양 단계/레벨)에 기여하므로, 도착 전 렌더하면
   // bluemarble=0 으로 낮게 계산된 양이 먼저 떴다가 점프하는 플래시가 생긴다.
   const { data: bmStats, isLoading: bmLoading } = useBluemarbleStats(hasToken)
+  // 아래 카드들이 쓰는 쿼리 — 같은 키라 요청은 하나. 여기선 "도착했는지"만 본다(ready 참고)
+  const { data: equipped, isLoading: equippedLoading } = useEquippedTitle(hasToken)
+  const { isLoading: summaryLoading } = useGrowthSummary(hasToken)
+  const { isLoading: recentLoading } = useGrowthRecentDays(14, hasToken)
+
+  // 커버 배너(16:9)는 헤더 높이를 200px 넘게 바꾼다 — 칭호 응답이 왔으면 그 값,
+  // 아직이면 지난 방문 때 기억해 둔 값으로 스켈레톤이 같은 자리를 잡는다
+  const hasCover = equipped === undefined ? readCoverHint() : !!equipped && hasTitleBackdrop(equipped.key)
+  useEffect(() => {
+    if (equipped === undefined) return
+    try {
+      localStorage.setItem(COVER_HINT_KEY, hasCover ? '1' : '0')
+    } catch { /* 저장 불가 환경 — 힌트 없이 동작 */ }
+  }, [equipped, hasCover])
 
   // 활동 데이터를 기반으로 업적 계산
   const activityData = useMemo<UserActivityData | null>(() => {
@@ -211,8 +210,14 @@ const Profile = () => {
 
   // 본문은 detail + 블루마블 통계가 모두 있어야 그린다(레벨 점프 플래시 방지).
   // 그 전에도 전체 스피너로 막지 않고 셸(상단 바)+같은 자리의 스켈레톤을 즉시 그린다 —
-  // persist 복원 중(isLoading=false·data 없음)에도 에러 화면 대신 스켈레톤이 뜬다
-  const ready = !!data && !isLoading && !(hasToken && bmLoading)
+  // persist 복원 중(isLoading=false·data 없음)에도 에러 화면 대신 스켈레톤이 뜬다.
+  //
+  // 카드 데이터(장착 칭호·여정 요약·최근 14일)도 같이 기다린다 — 따로 두면 본문이 뜬 뒤에
+  // 커버 배너(16:9)와 인사이트 카드가 하나씩 끼어들며 아래를 밀어내 "자라나는" 것처럼 보인다.
+  // 전부 prefetch.ts 가 같은 시점에 띄운 요청이라 기다림은 가장 느린 하나(detail)만큼이고,
+  // isLoading 기준이라 실패한 요청은 막지 않는다(그 카드만 빠진다).
+  const cardsLoading = hasToken && (equippedLoading || summaryLoading || recentLoading)
+  const ready = !!data && !isLoading && !(hasToken && bmLoading) && !cardsLoading
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
@@ -238,7 +243,7 @@ const Profile = () => {
           </button>
         </div>
 
-        {!ready || !data ? <ProfileSkeleton /> : (() => {
+        {!ready || !data ? <ProfileSkeleton isDesktop={isDesktop} withCover={hasCover} /> : (() => {
         const { stats, my_prayers, praying_for, my_replies } = data
         return (<>
         {/* ① 아이덴티티 — 이름·칭호·단계, 조용하게 */}
@@ -379,10 +384,11 @@ const Profile = () => {
 
       {/* 우측 위젯 레일 (lg+) — 정체성·콘텐츠는 본문에 두고, 진입 카드와 설정을 옆에 고정.
           레일이 화면보다 길어질 수 있어 홈 사이드바와 같은 자체 스크롤을 준다 */}
-      {isDesktop && ready && data && (
+      {isDesktop && (
       <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
         {/* 카드들은 자체 px-4 여백을 갖고 있어 레일 안에서도 같은 거터를 그대로 쓴다
             (음수 마진으로 상쇄하면 overflow-y-auto 컨테이너에 가로 스크롤이 생긴다) */}
+        {!ready || !data ? <ProfileRailSkeleton /> : (
         <div>
           <FaithInsightCard />
           <GrowthHook />
@@ -403,6 +409,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
+        )}
       </aside>
       )}
       </div>
