@@ -198,7 +198,7 @@ const SeatEventComposer = ({ event, onClose, onSaved }: Props) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-3xl max-h-[94vh] sm:max-h-[92vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
+        className="relative w-full sm:max-w-3xl lg:max-w-[1320px] max-h-[94vh] sm:max-h-[92vh] lg:h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
@@ -211,7 +211,9 @@ const SeatEventComposer = ({ event, onClose, onSaved }: Props) => {
           <CloseButton onClick={onClose} />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        {/* 모바일은 한 줄로 쌓고, PC(lg)는 3칸 — ①② 입력 | ③ 배치 설정 | 큰 미리보기. 칸마다 따로 스크롤한다 */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 lg:overflow-hidden lg:p-0 lg:space-y-0 lg:grid lg:grid-cols-[360px_340px_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:min-h-0">
+          <div className="space-y-5 lg:overflow-y-auto lg:px-5 lg:py-4 lg:border-r lg:border-black/[0.05] dark:lg:border-white/[0.06]">
           {/* ① 기본 정보 */}
           <section className="space-y-3">
             <StepTitle n={1}>행사 정보</StepTitle>
@@ -383,9 +385,10 @@ const SeatEventComposer = ({ event, onClose, onSaved }: Props) => {
               />
             </div>
           </section>
+          </div>
 
           {/* ③ 좌석 배치 */}
-          <section className="space-y-3">
+          <section className="space-y-3 lg:overflow-y-auto lg:px-5 lg:py-4 lg:border-r lg:border-black/[0.05] dark:lg:border-white/[0.06]">
             <StepTitle n={3}>좌석 배치</StepTitle>
 
             {reservedCount > 0 ? (
@@ -396,17 +399,17 @@ const SeatEventComposer = ({ event, onClose, onSaved }: Props) => {
 
             <div>
               <label className={labelCls}>빠른 시작</label>
-              <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
+              <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 lg:flex-col lg:overflow-visible lg:mx-0 lg:px-0">
                 {LAYOUT_PRESETS.map((p) => (
                   <button
                     key={p.key}
                     type="button"
                     title={p.hint}
                     onClick={() => setLayout(cloneLayout(p.layout))}
-                    className="shrink-0 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-left hover:border-brand transition-colors"
+                    className="shrink-0 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-left hover:border-brand transition-colors lg:w-full"
                   >
                     <span className="block text-[12.5px] font-bold text-ink-strong">{p.label}</span>
-                    <span className="block text-[10.5px] text-ink-muted max-w-[13rem] truncate">{p.hint}</span>
+                    <span className="block text-[10.5px] text-ink-muted max-w-[13rem] lg:max-w-none truncate">{p.hint}</span>
                   </button>
                 ))}
               </div>
@@ -453,7 +456,7 @@ const SeatEventComposer = ({ event, onClose, onSaved }: Props) => {
               ) : null}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] lg:grid-cols-1 gap-2 items-end">
               <div>
                 <label className={labelCls}>좌석 번호 규칙</label>
                 <div className="flex gap-1.5">
@@ -486,13 +489,20 @@ const SeatEventComposer = ({ event, onClose, onSaved }: Props) => {
                   onChange={(e) => setLayout((prev) => ({ ...prev, stage_label: e.target.value }))}
                   maxLength={30}
                   placeholder="무대"
-                  className={`${inputCls} sm:w-28`}
+                  className={`${inputCls} sm:w-28 lg:w-full`}
                 />
               </div>
             </div>
 
-            {/* 미리보기 + 칠하기 */}
-            <div className="rounded-3xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] p-4">
+          </section>
+
+          {/* 미리보기 + 칠하기 — PC 에선 오른쪽 넓은 칸을 통째로 써서 좌석이 크게 보인다 */}
+          <div className="lg:overflow-y-auto lg:px-6 lg:py-4 lg:bg-gray-50/70 dark:lg:bg-black/[0.12]">
+            <div className="hidden lg:flex items-center gap-2 mb-3">
+              <h3 className="text-[14px] font-extrabold text-ink-strong tracking-[-0.02em]">미리보기</h3>
+              <span className="text-[11.5px] text-ink-muted">성도에게 보이는 배치 그대로예요 · 칸을 누르거나 쓸어서 칠해요</span>
+            </div>
+            <div className="rounded-3xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] p-4 lg:p-5">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <p className="text-[12.5px] text-ink-muted">
                   <b className="text-ink-strong text-[14px] tabular-nums">{seatCount}</b>석
@@ -532,7 +542,7 @@ const SeatEventComposer = ({ event, onClose, onSaved }: Props) => {
                 showSectionNames
               />
             </div>
-          </section>
+          </div>
         </div>
 
         <div className="px-5 py-3 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center gap-2">
