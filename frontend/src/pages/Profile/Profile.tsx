@@ -37,6 +37,9 @@ import { tokenStore } from '../../utils/tokenStore'
 import { preloadRoute } from '../../utils/routePreload'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 
+/** 프로필 카드 목적지 프리로드를 시작하기 전, 스크롤이 멎어 있어야 하는 시간 */
+const SCROLL_QUIET_MS = 1500
+
 // 마지막으로 본 커버 배너 유무 — 칭호 응답이 오기 전 스켈레톤이 배너 자리를 미리 잡는 데 쓴다
 const COVER_HINT_KEY = 'profile_cover_hint'
 const readCoverHint = (): boolean => {
@@ -178,14 +181,32 @@ const Profile = () => {
   const hasData = !!data
   // 프로필 카드들의 목적지(여정·칭호 도감·주간 스토리)를 유휴 시간에 미리 받아 둔다 — 청크 + 첫 데이터
   // (캐시가 없을 때만). 안 그러면 카드를 누른 뒤에야 청크 → API 가 직렬로 내려온다. 순차로 받아 몰아치지 않는다.
+  // 스크롤이 SCROLL_QUIET_MS 동안 멎은 뒤에만 시작한다 — 청크가 도착하면 그 CSS 가 문서에 붙으며
+  // 전체 스타일 재계산이 도는데(:root 변수를 가진 파일도 있다), 스크롤 도중이면 화면이 덜컥 끊긴다.
   useEffect(() => {
     if (!hasData || preloadBudget() !== 'full') return
-    return scheduleAfterFirstScreen(
-      () => void (async () => {
-        for (const path of ['/growth', '/garden', '/weekly-story']) await preloadRoute(path)
-      })(),
-      { settleMs: 1000 },
-    )
+    let cancelIdle: (() => void) | undefined
+    let quietTimer = 0
+    const start = () => {
+      window.removeEventListener('scroll', arm)
+      cancelIdle = scheduleAfterFirstScreen(
+        () => void (async () => {
+          for (const path of ['/growth', '/garden', '/weekly-story']) await preloadRoute(path)
+        })(),
+        { settleMs: 0 },
+      )
+    }
+    const arm = () => {
+      window.clearTimeout(quietTimer)
+      quietTimer = window.setTimeout(start, SCROLL_QUIET_MS)
+    }
+    window.addEventListener('scroll', arm, { passive: true })
+    arm()
+    return () => {
+      window.removeEventListener('scroll', arm)
+      window.clearTimeout(quietTimer)
+      cancelIdle?.()
+    }
   }, [hasData])
 
   const handleLogout = async () => {

@@ -8,7 +8,7 @@
 // 키·staleTime 은 각 훅과 같아 진입 시 캐시를 그대로 이어받는다. 이미 신선하면 요청하지 않는다.
 import type { QueryClient } from '@tanstack/react-query'
 import { queryClient } from '../../config/queryClient'
-import { prefetchProfileDetail } from '../../hooks/useProfile'
+import { prefetchProfileDetail, prefetchMyPrayers } from '../../hooks/useProfile'
 import { QK_BM_STATS } from '../../hooks/useBluemarble'
 import { growthKeys } from '../../hooks/useGrowth'
 import { titleKeys } from '../../hooks/useTitles'
@@ -27,6 +27,8 @@ export const prefetchProfile = (qc: QueryClient = queryClient, coldOnly = false)
   const staleTime = coldOnly ? Infinity : FIVE_MIN
 
   prefetchProfileDetail(qc, coldOnly)
+  // 기본 탭 목록 첫 페이지 — persist 되지 않는 쿼리라 유휴(coldOnly)에선 받지 않고 진입 시에만
+  if (!coldOnly) prefetchMyPrayers(qc)
   void qc.prefetchQuery({ queryKey: QK_BM_STATS, queryFn: fetchBluemarbleStats, staleTime })
   void qc.prefetchQuery({ queryKey: growthKeys.summary, queryFn: getGrowthSummary, staleTime })
   void qc.prefetchQuery({

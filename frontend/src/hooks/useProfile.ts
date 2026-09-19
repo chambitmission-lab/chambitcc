@@ -60,15 +60,31 @@ const nextSkip = <T,>(lastPage: T[], allPages: T[][]) =>
     ? undefined
     : allPages.reduce((n, p) => n + p.length, 0)
 
+const MY_PRAYERS_STALE_MS = 1000 * 60 * 3
+const fetchMyPrayersPage = ({ pageParam }: { pageParam: number }) =>
+  getMyPrayers({ skip: pageParam, limit: LIST_PAGE_SIZE })
+
+// 프로필 기본 탭(내 기도)의 첫 페이지 선요청. 무한 쿼리는 persist 제외라 매 진입이 콜드인데,
+// 본문이 뜬 뒤에 도착하면 detail 미리보기(5개)가 20개로 갑자기 늘어난다 — detail 과 나란히 받는다.
+export const prefetchMyPrayers = (qc: QueryClient): void => {
+  void qc.prefetchInfiniteQuery({
+    queryKey: profileKeys.myPrayers(),
+    queryFn: fetchMyPrayersPage,
+    initialPageParam: 0,
+    getNextPageParam: nextSkip,
+    staleTime: MY_PRAYERS_STALE_MS,
+  })
+}
+
 // 내가 작성한 기도 목록 (무한 스크롤)
 export const useMyPrayers = (enabled: boolean = true) => {
   return useInfiniteQuery({
     queryKey: profileKeys.myPrayers(),
-    queryFn: ({ pageParam }) => getMyPrayers({ skip: pageParam, limit: LIST_PAGE_SIZE }),
+    queryFn: fetchMyPrayersPage,
     initialPageParam: 0,
     getNextPageParam: nextSkip,
     enabled,
-    staleTime: 1000 * 60 * 3,
+    staleTime: MY_PRAYERS_STALE_MS,
   })
 }
 

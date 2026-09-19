@@ -24,7 +24,9 @@ const LoadMoreSentinel = ({
           fetchNextPage()
         }
       },
-      { threshold: 0.1, rootMargin: '200px' },
+      // 화면 1.5개 앞에서 미리 받는다 — 200px 이던 때는 목록 끝에 닿아 스피너를 본 뒤에야
+      // 20개가 한꺼번에 붙어 스크롤 도중 화면이 덜컥 늘어났다 (성경 절 목록과 같은 값)
+      { threshold: 0, rootMargin: '0px 0px 150% 0px' },
     )
     observer.observe(sentinel)
     return () => observer.disconnect()
