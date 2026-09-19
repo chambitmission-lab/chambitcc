@@ -1,0 +1,51 @@
+/* /seats 히어로 배경 삽화 — "명당 사수" (의자 한 줄 + 대자로 뻗어 자리 맡는 새끼양, 다크는 잠든 판)
+   에셋 생성/후처리는 docs/seats-hero-bg-prompts.md (시안 A).
+   - 설문 히어로와 같은 규격(카드 214px 고정, 에셋 2.2:1, 불투명, right 85%).
+   - ★제미나이가 의자 줄을 0.59~0.98(40%)로 넓게 그려서, 모바일 안내문 폭을 11rem 으로 좁혔다
+     (14rem 이면 긴 카피 첫 줄이 다크의 회색 의자 위로 지나가 밝기 상한을 깬다).
+   - 카드 그라데이션은 삽화 도착 전 자리끼움 — 위에 워시를 한 겹 더 깔지 말 것. */
+.seats-hero-art {
+  background-image: url('/images/seats/hero-light.webp');
+  background-size: cover;
+  background-position: right 85%;
+  background-repeat: no-repeat;
+  /* 도착 전에는 감춰 뒀다 페이드인 — 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야
+     요청이 나가고, 늦게 도착하면 카드 위에 "툭" 나타난다(utils/themeAssets.ts 참고). */
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+.dark .seats-hero-art {
+  background-image: url('/images/seats/hero-dark.webp');
+}
+.seats-hero-art.is-ready {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .seats-hero-art {
+    transition: none;
+  }
+}
+
+/* /seats/:id 정보 카드 오른쪽 배경 — "좌석 안내 양" (시안 C: 라이트 거꾸로 든 티켓 / 다크 손전등 스포트라이트)
+   에셋은 확장 없는 3.3:1(1536x462, `python docs/seats-hero-process.py detail`).
+   카드 높이를 늘리지 않는다 — 삽화는 카드 안 오른쪽 상자(모바일 위 112px · PC 전체 높이)에 cover 로 깔고,
+   상자의 왼쪽·아래 가장자리를 카드색으로 녹인다(카드 바탕 = 삽화 바닥 실측색). */
+.seats-detail-art {
+  background-image: url('/images/seats/detail-light.webp');
+  background-size: cover;
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+.dark .seats-detail-art {
+  background-image: url('/images/seats/detail-dark.webp');
+}
+.seats-detail-art.is-ready {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .seats-detail-art {
+    transition: none;
+  }
+}

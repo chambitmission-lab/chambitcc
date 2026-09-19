@@ -77,6 +77,10 @@ export const PLAN_HERO: ThemePair = { light: '/images/plans/hero-light.webp', da
 export const ROOMS_HERO: ThemePair = { light: '/images/rooms/hero-light.webp', dark: '/images/rooms/hero-dark.webp' }
 /** /survey 히어로 (survey-hero.css) */
 export const SURVEY_HERO: ThemePair = { light: '/images/survey/hero-light.webp', dark: '/images/survey/hero-dark.webp' }
+/** /seats 히어로 (seats-hero.css) */
+export const SEATS_HERO: ThemePair = { light: '/images/seats/hero-light.webp', dark: '/images/seats/hero-dark.webp' }
+/** /seats/:id 정보 카드 표지 띠 (seats-hero.css) */
+export const SEATS_DETAIL: ThemePair = { light: '/images/seats/detail-light.webp', dark: '/images/seats/detail-dark.webp' }
 /** /garden 성경 칭호 히어로 배너 (theme.css --garden-hero-image) */
 export const GARDEN_HERO: ThemePair = {
   light: '/images/garden/bible-title-hero-light.webp',
@@ -245,6 +249,8 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/culture$/, pairs: [CULTURE_HERO] },
   { match: /^\/news$/, pairs: [NEWS_HERO.news] },
   { match: /^\/survey$/, pairs: [SURVEY_HERO] },
+  { match: /^\/seats$/, pairs: [SEATS_HERO] },
+  { match: /^\/seats\/[^/]+$/, pairs: [SEATS_DETAIL] },
   { match: /^\/garden$/, pairs: [GARDEN_HERO] },
   { match: /^\/rooms$/, pairs: [ROOMS_HERO] },
   { match: /^\/classes$/, pairs: [CLASS_HERO] },

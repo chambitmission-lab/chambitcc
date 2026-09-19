@@ -6,6 +6,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useBookSeats, useCancelMySeats, useSeatEvent } from '../../hooks/useSeatEvents'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { SEATS_DETAIL } from '../../utils/themeAssets'
 import { isAuthenticated } from '../../utils/auth'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { showToast } from '../../utils/toast'
@@ -25,6 +27,7 @@ import {
   seatPhase,
 } from './seatShared'
 import { SeatIcon, TicketCard } from './seatUi'
+import './seats-hero.css'
 
 type Mode = 'book' | 'cancel'
 
@@ -422,81 +425,97 @@ const InfoCard = ({ event }: { event: SeatEventDetailData }) => {
   const ratio = event.total_seats ? event.reserved_count / event.total_seats : 0
   const almostFull = phase === 'open' && isAlmostFull(event)
   const soldOut = phase === 'open' && event.available_count === 0
+  // 표지 삽화는 CSS 배경 — 도착에 맞춰 페이드인(utils/themeAssets.ts)
+  const artReady = useThemeArt(SEATS_DETAIL)
 
+  // 카드 크기는 삽화 전과 같다 — 삽화는 띠로 덧붙이지 않고 카드 오른쪽 배경으로 깐다.
+  // 카드 바탕은 삽화 바닥 실측색(라이트 #eef5fe · 다크 #071222)이라 삽화 가장자리를 같은 색으로 녹이면 이음매가 없다.
+  // 모바일: 카드 윗부분 전체 폭 148px(삽화 왼쪽은 빈 하늘이라 칩·제목이 얹혀도 된다 — 의자·양은 오른쪽 약 200px)
+  // PC: 오른쪽 62% 전체 높이. 글자는 왼쪽, 게이지는 PC 에서 왼쪽 절반까지.
   return (
-    <section className="relative overflow-hidden rounded-3xl p-5 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm">
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className={`inline-flex text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${PHASE_META[phase].badge}`}>
-          {soldOut ? '매진' : PHASE_META[phase].label}
-        </span>
-        {dday ? (
-          <span className="inline-flex text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 tabular-nums">
-            {dday}
-          </span>
-        ) : null}
-        {almostFull && !soldOut ? (
-          <span className="inline-flex text-[10.5px] font-bold px-2 py-0.5 rounded-full border bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/25">
-            마감 임박
-          </span>
-        ) : null}
+    <section className="relative overflow-hidden rounded-3xl p-5 bg-[#eef5fe] ring-1 ring-[rgba(49,130,246,0.15)] shadow-[0_10px_30px_-14px_rgba(49,130,246,0.45)] dark:bg-[#071222] dark:ring-white/[0.08] dark:shadow-[0_10px_34px_-12px_rgba(0,0,0,0.6)]">
+      {/* "좌석 안내 양" 삽화(docs/seats-hero-bg-prompts.md 시안 C) */}
+      <div className="absolute inset-x-0 top-0 h-[148px] lg:left-auto lg:h-full lg:w-[62%]" aria-hidden>
+        <div className={`seats-detail-art absolute inset-0${artReady ? ' is-ready' : ''}`} />
+        {/* 가장자리를 카드색으로 녹인다 — 모바일은 아래, PC 는 왼쪽 */}
+        <div className="hidden lg:block absolute inset-y-0 left-0 w-[18%] bg-gradient-to-r from-[#eef5fe] to-transparent dark:from-[#071222]" />
+        <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-b from-transparent to-[#eef5fe] dark:to-[#071222] lg:hidden" />
       </div>
 
-      <h1 className="mt-2.5 text-[21px] font-extrabold text-ink-strong tracking-[-0.025em] leading-snug break-keep">
-        {event.title}
-      </h1>
-      {event.description ? (
-        <p className="mt-1.5 text-[13px] text-ink-muted leading-relaxed whitespace-pre-line break-keep">
-          {event.description}
-        </p>
-      ) : null}
-
-      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[13px]">
-        {event.performance_at ? (
-          <>
-            <dt className="text-gray-400 dark:text-white/40 font-semibold">일시</dt>
-            <dd className="text-ink-strong font-semibold">
-              {formatDay(event.performance_at)} {formatTime(event.performance_at)}
-            </dd>
-          </>
-        ) : null}
-        {event.venue ? (
-          <>
-            <dt className="text-gray-400 dark:text-white/40 font-semibold">장소</dt>
-            <dd className="text-ink-strong font-semibold">{event.venue}</dd>
-          </>
-        ) : null}
-        {event.closes_at && phase !== 'ended' ? (
-          <>
-            <dt className="text-gray-400 dark:text-white/40 font-semibold">마감</dt>
-            <dd className="text-ink-strong font-semibold">{formatShort(event.closes_at)}</dd>
-          </>
-        ) : null}
-        {phase === 'upcoming' && event.opens_at ? (
-          <>
-            <dt className="text-gray-400 dark:text-white/40 font-semibold">오픈</dt>
-            <dd className="text-brand font-bold">{formatShort(event.opens_at)}</dd>
-          </>
-        ) : null}
-      </dl>
-
-      {/* 잔여석 게이지 */}
-      <div className="mt-4">
-        <div className="flex items-baseline justify-between text-[12px]">
-          <span className="font-semibold text-gray-500 dark:text-white/50">
-            남은 좌석{' '}
-            <b className={`text-[15px] tabular-nums ${almostFull || soldOut ? 'text-red-500' : 'text-brand'}`}>
-              {event.available_count}
-            </b>
+      <div className="relative">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className={`inline-flex text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${PHASE_META[phase].badge}`}>
+            {soldOut ? '매진' : PHASE_META[phase].label}
           </span>
-          <span className="text-gray-400 dark:text-white/40 tabular-nums">
-            {event.reserved_count} / {event.total_seats}석 예약
-          </span>
+          {dday ? (
+            <span className="inline-flex text-[10.5px] font-extrabold px-2 py-0.5 rounded-full bg-gray-900 text-white dark:bg-white dark:text-gray-900 tabular-nums">
+              {dday}
+            </span>
+          ) : null}
+          {almostFull && !soldOut ? (
+            <span className="inline-flex text-[10.5px] font-bold px-2 py-0.5 rounded-full border bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/25">
+              마감 임박
+            </span>
+          ) : null}
         </div>
-        <div className="mt-1.5 h-2 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-[width] duration-500 ${almostFull || soldOut ? 'bg-red-400' : 'bg-brand'}`}
-            style={{ width: `${Math.min(100, Math.round(ratio * 100))}%` }}
-          />
+
+        <h1 className="mt-2.5 pr-[180px] lg:pr-0 lg:max-w-[45%] text-[21px] font-extrabold text-[#152648] dark:text-white tracking-[-0.025em] leading-snug break-keep">
+          {event.title}
+        </h1>
+        {event.description ? (
+          <p className="mt-1.5 pr-[180px] lg:pr-0 lg:max-w-[45%] text-[13px] text-[#41527a] dark:text-white/70 leading-relaxed whitespace-pre-line break-keep">
+            {event.description}
+          </p>
+        ) : null}
+
+        <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[13px]">
+          {event.performance_at ? (
+            <>
+              <dt className="text-[#7a8bb0] dark:text-white/45 font-semibold">일시</dt>
+              <dd className="text-[#152648] dark:text-white font-semibold">
+                {formatDay(event.performance_at)} {formatTime(event.performance_at)}
+              </dd>
+            </>
+          ) : null}
+          {event.venue ? (
+            <>
+              <dt className="text-[#7a8bb0] dark:text-white/45 font-semibold">장소</dt>
+              <dd className="text-[#152648] dark:text-white font-semibold">{event.venue}</dd>
+            </>
+          ) : null}
+          {event.closes_at && phase !== 'ended' ? (
+            <>
+              <dt className="text-[#7a8bb0] dark:text-white/45 font-semibold">마감</dt>
+              <dd className="text-[#152648] dark:text-white font-semibold">{formatShort(event.closes_at)}</dd>
+            </>
+          ) : null}
+          {phase === 'upcoming' && event.opens_at ? (
+            <>
+              <dt className="text-[#7a8bb0] dark:text-white/45 font-semibold">오픈</dt>
+              <dd className="text-brand font-bold">{formatShort(event.opens_at)}</dd>
+            </>
+          ) : null}
+        </dl>
+
+        {/* 잔여석 게이지 — PC 에선 삽화(오른쪽)와 겹치지 않게 왼쪽 절반까지 */}
+        <div className="mt-4 lg:max-w-[48%]">
+          <div className="flex items-baseline justify-between text-[12px]">
+            <span className="font-semibold text-[#41527a] dark:text-white/60">
+              남은 좌석{' '}
+              <b className={`text-[15px] tabular-nums ${almostFull || soldOut ? 'text-red-500' : 'text-brand'}`}>
+                {event.available_count}
+              </b>
+            </span>
+            <span className="text-[#7a8bb0] dark:text-white/45 tabular-nums">
+              {event.reserved_count} / {event.total_seats}석 예약
+            </span>
+          </div>
+          <div className="mt-1.5 h-2 rounded-full bg-white dark:bg-white/[0.1] overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-[width] duration-500 ${almostFull || soldOut ? 'bg-red-400' : 'bg-brand'}`}
+              style={{ width: `${Math.min(100, Math.round(ratio * 100))}%` }}
+            />
+          </div>
         </div>
       </div>
     </section>
