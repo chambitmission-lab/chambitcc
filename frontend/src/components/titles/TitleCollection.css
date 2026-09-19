@@ -302,3 +302,25 @@
     font-size: 17px;
   }
 }
+
+/* ===== 로딩 스켈레톤 — 실제 통계 칸·메달 타일 안에 뼈대만 채운다 ===== */
+.title-skel {
+  display: block;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.28);
+  animation: title-skel-pulse 1.4s ease-in-out infinite;
+}
+[data-theme="dark"] .title-skel, html.dark .title-skel { background: rgba(255, 255, 255, 0.08); }
+.title-skel--value { width: 44px; height: 26px; border-radius: 8px; }
+.title-skel--label { width: 56px; height: 11px; margin-top: 4px; }
+.title-skel--head { width: 96px; height: 16px; }
+/* 타일의 메달은 md(74px) — TitleMedal.css .title-medal-md 와 같은 크기. 이름·부제 두 줄 */
+.title-skel--medal { width: 74px; height: 74px; }
+.title-medal-tile .title-skel--label { margin-bottom: 15px; }
+@keyframes title-skel-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .title-skel { animation: none; }
+}

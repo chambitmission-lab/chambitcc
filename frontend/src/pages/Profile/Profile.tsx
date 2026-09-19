@@ -34,6 +34,8 @@ import {
   getNewlyUnlockedAchievements 
 } from '../../utils/achievementCalculator'
 import { tokenStore } from '../../utils/tokenStore'
+import { preloadRoute } from '../../utils/routePreload'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 
 // 마지막으로 본 커버 배너 유무 — 칭호 응답이 오기 전 스켈레톤이 배너 자리를 미리 잡는 데 쓴다
 const COVER_HINT_KEY = 'profile_cover_hint'
@@ -172,6 +174,19 @@ const Profile = () => {
       localStorage.setItem(KEY, String(glowLevel.level))
     }
   }, [isLoading, bmLoading, hasToken, data, glowLevel])
+
+  const hasData = !!data
+  // 프로필 카드들의 목적지(여정·칭호 도감·주간 스토리)를 유휴 시간에 미리 받아 둔다 — 청크 + 첫 데이터
+  // (캐시가 없을 때만). 안 그러면 카드를 누른 뒤에야 청크 → API 가 직렬로 내려온다. 순차로 받아 몰아치지 않는다.
+  useEffect(() => {
+    if (!hasData || preloadBudget() !== 'full') return
+    return scheduleAfterFirstScreen(
+      () => void (async () => {
+        for (const path of ['/growth', '/garden', '/weekly-story']) await preloadRoute(path)
+      })(),
+      { settleMs: 1000 },
+    )
+  }, [hasData])
 
   const handleLogout = async () => {
     await logout() // 푸시 구독 해제 + 토큰 제거 + React Query 캐시 정리

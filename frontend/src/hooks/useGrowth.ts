@@ -1,5 +1,6 @@
 // 신앙 성장 여정 — React Query 훅
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import {
   getFaithJourneyInsight,
   getGrowthSummary,
@@ -18,6 +19,32 @@ export const growthKeys = {
   insight: ['growth', 'insight'] as const,
 }
 
+// gcTime 은 전역 기본(7일)을 따른다 — 예전엔 네 쿼리 모두 30분이라, 여정 화면을 떠나고 30분이
+// 지나면 캐시·persist 스냅샷에서 빠져 다음 진입이 매번 콜드(전체 로딩)였다.
+
+const TIMELINE_DAYS = 60
+const fetchTimelinePage = ({ pageParam }: { pageParam: unknown }) =>
+  getGrowthTimeline(pageParam as string | undefined, TIMELINE_DAYS)
+const nextTimelineParam = (lastPage: GrowthTimelineResponse) =>
+  lastPage.data.has_more ? lastPage.data.next_before : undefined
+
+/**
+ * /growth 첫 화면 데이터(요약·타임라인 첫 구간·말씀 여정 인사이트)를 훅과 같은 키로 미리 받는다.
+ * coldOnly: 유휴 프리로드용 — 캐시가 아예 없을 때만 받는다(최신화는 진입 시 refetchOnMount 몫).
+ */
+export const prefetchGrowth = (qc: QueryClient, coldOnly = false): void => {
+  const stale = (ms: number) => (coldOnly ? Infinity : ms)
+  void qc.prefetchQuery({ queryKey: growthKeys.summary, queryFn: getGrowthSummary, staleTime: stale(1000 * 60 * 5) })
+  void qc.prefetchInfiniteQuery({
+    queryKey: growthKeys.timeline,
+    queryFn: fetchTimelinePage,
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: nextTimelineParam,
+    staleTime: stale(1000 * 60 * 5),
+  })
+  void qc.prefetchQuery({ queryKey: growthKeys.insight, queryFn: getFaithJourneyInsight, staleTime: stale(1000 * 60 * 10) })
+}
+
 /**
  * 신앙 여정 요약.
  * - staleTime 5분: 활동에 따라 바뀌지만 과하게 다시 부르지 않도록.
@@ -32,7 +59,6 @@ export const useGrowthSummary = (enabled = true) => {
     queryKey: growthKeys.summary,
     queryFn: getGrowthSummary,
     staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
     refetchOnMount: true,
     enabled,
     retry: 1,
@@ -51,7 +77,6 @@ export const useGrowthRecentDays = (days = 14, enabled = true) => {
     queryKey: [...growthKeys.recent, days],
     queryFn: () => getGrowthTimeline(undefined, days),
     staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
     refetchOnMount: true,
     enabled,
     retry: 1,
@@ -68,7 +93,6 @@ export const useFaithJourneyInsight = (enabled = true) => {
     queryKey: growthKeys.insight,
     queryFn: getFaithJourneyInsight,
     staleTime: 1000 * 60 * 10,
-    gcTime: 1000 * 60 * 30,
     refetchOnMount: true,
     enabled,
     retry: 1,
@@ -83,13 +107,10 @@ export const useFaithJourneyInsight = (enabled = true) => {
 export const useGrowthTimeline = (enabled = true) => {
   return useInfiniteQuery<GrowthTimelineResponse>({
     queryKey: growthKeys.timeline,
-    queryFn: ({ pageParam }) =>
-      getGrowthTimeline(pageParam as string | undefined, 60),
+    queryFn: fetchTimelinePage,
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.data.has_more ? lastPage.data.next_before : undefined,
+    getNextPageParam: nextTimelineParam,
     staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
     refetchOnMount: true,
     enabled,
     retry: 1,

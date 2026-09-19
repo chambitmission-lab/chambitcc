@@ -55,6 +55,27 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   // 앱을 켤 때마다 부르진 않고, 재로그인·배포 직후 같은 콜드 진입의 전체 로딩만 없앤다
   '/profile': () => import('../pages/Profile/prefetch').then((m) => m.prefetchProfile(undefined, true)),
   // 카테고리 목록 + 오늘의 위로 말씀 구절 — 청크만 받아 두면 진입 시 API 두 왕복이 직렬로 남는다
+  // 칭호 도감 — 프로필 칭호 필·메뉴 목적지. GET /titles 는 평가까지 도는 무거운 요청이라 coldOnly
+  '/garden': () =>
+    Promise.all([import('../hooks/useTitles'), import('../config/queryClient'), import('./auth')]).then(
+      ([m, q, a]) => {
+        if (a.isAuthenticated()) m.prefetchTitles(q.queryClient, true)
+      },
+    ),
+  // 주간 스토리 — 프로필 스토리 카드 목적지 (키는 deepLinkRouteLoaders 의 key)
+  'weekly-story': () =>
+    Promise.all([import('../hooks/useWeeklyStory'), import('../config/queryClient'), import('./auth')]).then(
+      ([m, q, a]) => {
+        if (a.isAuthenticated()) m.prefetchWeeklyStory(q.queryClient, true)
+      },
+    ),
+  // 신앙 여정 — 프로필 여정 카드·PC 레일 목적지. 캐시가 없을 때만(coldOnly)
+  '/growth': () =>
+    Promise.all([import('../hooks/useGrowth'), import('../config/queryClient'), import('./auth')]).then(
+      ([m, q, a]) => {
+        if (a.isAuthenticated()) m.prefetchGrowth(q.queryClient, true)
+      },
+    ),
   '/bible/situation': () =>
     Promise.all([import('../hooks/useSituation'), import('../config/queryClient')]).then(
       ([m, q]) => m.prefetchSituation(q.queryClient),
@@ -81,6 +102,8 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'capsule', match: /^\/capsule$/, load: () => import('../pages/Capsule/CapsuleList') },
   { key: 'classes/join', match: /^\/classes\/join\//, load: () => import('../pages/ClassRoom/JoinClass') },
   { key: 'classes/detail', match: /^\/classes\/[^/]+$/, load: () => import('../pages/ClassRoom/ClassHome') },
+  // 프로필 스토리 카드 목적지 — 메뉴 테이블에 없어 청크 프리로드 대상이 아니었다
+  { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
 ]
 

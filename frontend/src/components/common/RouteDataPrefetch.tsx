@@ -4,6 +4,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { prefetchBibleChapter } from '../../hooks/useBible'
 import { prefetchBibleHub } from '../../pages/Bible/prefetch'
 import { prefetchProfile } from '../../pages/Profile/prefetch'
+import { prefetchGrowth } from '../../hooks/useGrowth'
+import { prefetchTitles } from '../../hooks/useTitles'
+import { prefetchWeeklyStory } from '../../hooks/useWeeklyStory'
 import { prefetchAboutContent } from '../../hooks/useAboutContent'
 import { prefetchSituation } from '../../hooks/useSituation'
 import { tokenStore } from '../../utils/tokenStore'
@@ -29,6 +32,11 @@ const RouteDataPrefetch = () => {
     if (pathname === '/bible') prefetchBibleHub(queryClient)
     // 프로필 — detail·블루마블 통계와 그 아래 카드 데이터(여정·칭호)를 청크와 나란히 한 번에 띄운다
     if (pathname === '/profile') prefetchProfile(queryClient)
+    // 신앙 여정 — 요약·타임라인·인사이트를 청크와 나란히 (예전엔 청크 뒤에 요약, 요약 뒤에 인사이트가 출발)
+    if (pathname === '/growth' && tokenStore.getAccess()) prefetchGrowth(queryClient)
+    // 칭호 도감·주간 스토리 — 청크와 나란히
+    if (pathname === '/garden' && tokenStore.getAccess()) prefetchTitles(queryClient)
+    if (pathname === '/weekly-story' && tokenStore.getAccess()) prefetchWeeklyStory(queryClient)
     // 상황별 성구 — 청크 → 카테고리 → 히어로 구절 3단 직렬을 청크와 나란히 한 번에 띄운다
     if (pathname === '/bible/situation') prefetchSituation(queryClient)
     // 비로그인 랜딩 — 히어로 사진 URL 이 /about-content 응답에 있어 청크 뒤에 API, 그 뒤에

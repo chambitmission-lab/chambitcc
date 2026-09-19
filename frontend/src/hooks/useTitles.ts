@@ -1,10 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import { getTitles, equipTitle, unequipTitle, getEquippedTitle } from '../api/titles'
 
 export const titleKeys = {
   all: ['titles'] as const,
   list: () => [...titleKeys.all, 'list'] as const,
   equipped: () => [...titleKeys.all, 'equipped'] as const,
+}
+
+/**
+ * /garden 칭호 목록을 훅과 같은 키로 미리 받는다.
+ * GET /titles 는 동기화·평가까지 도는 무거운 요청이라 coldOnly(유휴 프리로드)에선 캐시가 없을 때만 받는다.
+ * 응답의 newly_earned 는 캐시에 그대로 남아 TitleCollection 이 마운트될 때 축하 팝업으로 소비한다.
+ */
+export const prefetchTitles = (qc: QueryClient, coldOnly = false): void => {
+  void qc.prefetchQuery({
+    queryKey: titleKeys.list(),
+    queryFn: getTitles,
+    staleTime: coldOnly ? Infinity : 1000 * 30,
+  })
 }
 
 /** 전체 칭호 컬렉션 */

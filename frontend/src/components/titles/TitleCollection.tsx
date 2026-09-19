@@ -63,11 +63,40 @@ export const TitleCollection: React.FC = () => {
     equipMut.mutate(title.equipped ? null : title.key)
   }
 
+  // 로딩 — 실제 컨테이너 클래스를 그대로 써서 같은 자리·같은 틀(통계 3칸 → 카테고리별 메달 격자)을
+  // 먼저 그린다. 예전의 가운데 이모지 스피너는 데이터가 오면 화면이 통째로 바뀌어 보였다
   if (isLoading) {
     return (
-      <div className="title-collection-state">
-        <div className="title-collection-spinner">🏷️</div>
-        <p>{t('titleCollectionLoading')}</p>
+      <div className="title-collection" aria-busy="true" aria-label={t('titleCollectionLoading')}>
+        <div className="title-columns">
+          <div className="title-col-side">
+            <div className="title-collection-stats">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="title-stat">
+                  <span className="title-skel title-skel--value" />
+                  <span className="title-skel title-skel--label" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="title-col-main">
+            {[6, 4, 5].map((count, s) => (
+              <section key={s} className="title-section">
+                <div className="title-section-head">
+                  <span className="title-skel title-skel--head" />
+                </div>
+                <div className="title-medal-grid">
+                  {Array.from({ length: count }, (_, i) => (
+                    <div key={i} className="title-medal-tile" aria-hidden="true">
+                      <span className="title-skel title-skel--medal" />
+                      <span className="title-skel title-skel--label" />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

@@ -7,10 +7,39 @@ import JourneyInsightCard from './components/JourneyInsightCard'
 import GrowthStats from './components/GrowthStats'
 import ActivityTimeline from './components/ActivityTimeline'
 import { tokenStore } from '../../utils/tokenStore'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
+
+// 요약 도착 전 자리표시자 — 실제 섹션(히어로 카드 → 인사이트 → 통계)과 같은 여백·반경·높이.
+// 전체 화면 스피너와 달리 셸(상단 바)이 즉시 뜨고, 데이터가 오면 제자리에서 채워진다
+const GrowthSkeleton = ({ withCards }: { withCards: boolean }) => {
+  const bone = 'bg-gray-200/80 dark:bg-white/[0.08]'
+  return (
+    <div className="animate-pulse" aria-hidden="true">
+      <div className="px-4 pt-4">
+        <div className={`h-[208px] rounded-2xl ${bone}`} />
+      </div>
+      {withCards && <GrowthCardsSkeleton />}
+    </div>
+  )
+}
+
+const GrowthCardsSkeleton = () => (
+  <div className="animate-pulse" aria-hidden="true">
+    <div className="px-4 pt-5">
+      <div className="h-40 rounded-2xl bg-gray-100 dark:bg-white/[0.04]" />
+    </div>
+    <div className="px-4 pt-5">
+      <div className="h-44 rounded-2xl bg-gray-100 dark:bg-white/[0.04]" />
+    </div>
+  </div>
+)
 
 const Growth = () => {
   const navigate = useNavigate()
   const hasToken = !!tokenStore.getAccess()
+  // 인사이트·통계는 모바일 본문과 PC 우측 레일 두 곳에 자리가 있다 — CSS 로 한쪽만 숨기면
+  // 둘 다 마운트되므로 보이는 쪽만 렌더한다
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
 
   useEffect(() => {
     if (!hasToken) navigate('/login', { replace: true })
@@ -45,15 +74,9 @@ const Growth = () => {
     }
   }, [timelineLoading, events.length, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  if (summaryLoading) {
-    return (
-      <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark flex items-center justify-center page-stage">
-        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (error || !summary) {
+  // 캐시가 있으면 재조회 실패여도 그대로 보여준다. 요약이 아직 없으면(로딩·persist 복원 중)
+  // 전체 스피너 대신 아래에서 셸+스켈레톤을 그린다
+  if (error && !summary) {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark flex items-center justify-center p-4 page-stage">
         <div className="max-w-md mx-auto text-center">
@@ -91,13 +114,16 @@ const Growth = () => {
           <span className="w-16" />
         </div>
 
+        {!summary || summaryLoading ? <GrowthSkeleton withCards={!isDesktop} /> : (<>
         <GrowthHero summary={summary} />
 
         {/* 말씀 여정 인사이트 · 통계 — lg에선 우측 레일이 대신한다 */}
-        <div className="lg:hidden">
-          <JourneyInsightCard />
-          {summary.has_activity && <GrowthStats summary={summary} />}
-        </div>
+        {!isDesktop && (
+          <div>
+            <JourneyInsightCard />
+            {summary.has_activity && <GrowthStats summary={summary} />}
+          </div>
+        )}
 
         {/* 발자취 → 활동 기록 트랜지션: 은은한 페이드 + 스크롤 유도 */}
         {summary.has_activity && (
@@ -125,14 +151,19 @@ const Growth = () => {
           isLoadingMore={isFetchingNextPage || timelineLoading}
           onLoadMore={() => fetchNextPage()}
         />
+        </>)}
       </div>
 
       {/* 우측 위젯 레일 (lg+) — 요약 지표는 옆에 고정하고, 본문은 발자취(타임라인)에 집중.
           카드가 길어질 수 있어 자체 스크롤을 준다 */}
-      <aside className="hidden lg:block lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
+      {isDesktop && (
+      <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
+        {!summary || summaryLoading ? <GrowthCardsSkeleton /> : (<>
         <JourneyInsightCard />
         {summary.has_activity && <GrowthStats summary={summary} />}
+        </>)}
       </aside>
+      )}
       </div>
     </div>
   )
