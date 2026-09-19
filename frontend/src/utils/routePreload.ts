@@ -112,7 +112,13 @@ export const preloadRoute = (path: string): Promise<void> => {
   if (!resolved) return Promise.resolve()
 
   const cached = inflight.get(resolved.key)
-  if (cached) return cached
+  if (cached) {
+    // 청크는 한 번 받으면 끝이지만 데이터는 아니다 — 같은 탭에서 다시 로그인하면 캐시가 통째로
+    // 비워지는데(queryClient.clear), 여기서 그냥 돌아가면 선요청이 영영 다시 돌지 않는다.
+    // 선요청은 전부 staleTime 가드가 있어 캐시가 신선하면 요청 없이 끝난다.
+    if (loaded.has(resolved.key)) void routeDataPrefetchers[resolved.key]?.().catch(() => undefined)
+    return cached
+  }
 
   const promise = resolved
     .load()
