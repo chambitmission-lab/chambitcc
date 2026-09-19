@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
 import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
-import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
+import { useBibleBooks, useBibleChapterInfinite, prefetchBibleChapter } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress, BIBLE_HUB_RESUME_LIMIT } from '../../hooks/useBibleReading'
 import { useQueryClient, useIsRestoring } from '@tanstack/react-query'
 import { biblePlanKeys, useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
@@ -25,6 +25,9 @@ import ChapterLoader from './components/ChapterLoader'
 import { lazyModal } from '../../utils/lazyModal'
 // 열 때만 필요한 화면은 별도 청크 — 읽기 화면 청크(gz 82KB)에서 검색 탭·집중 읽기·
 // 즐겨찾기 플레이리스트(framer-motion gz 40KB 를 혼자 끌어오던 주범)를 뗀다
+/** 허브 유휴 시간에 미리 받아 둘 장 수 — 이어읽기(latest) + 최근 읽은 책. 장당 요청 2건(본문·읽음 상태) */
+const HUB_CHAPTER_PREFETCH_MAX = 3
+
 const BibleSearch = lazyModal(() => import('./components/BibleSearch'), <ChapterLoader />)
 const FavoritesPlaylistModal = lazyModal(() => import('./components/FavoritesPlaylistModal'))
 const FocusReading = lazyModal(() => import('./components/FocusReading'))
@@ -295,6 +298,29 @@ const BibleStudy = () => {
     planId > 0 && planDayNumber > 0 && !!planDay && !planDay.completed && planChapterInDay
 
   const qc = useQueryClient()
+
+  // 허브 → 본문은 URL 이 아니라 state 전환이라 라우트 선요청(RouteDataPrefetch)을 타지 않는다.
+  // 그대로 두면 본문·읽음 상태 요청이 읽기 화면이 다 그려진 뒤(effect)에야 출발하는데, 본문은
+  // HTTP/서버 캐시로 바로 오고 읽음 상태만 사용자별 DB 왕복이라 "본문 → 한 박자 뒤 읽음 표시"
+  // 순서로 보였다. 두 군데서 앞당긴다.
+  //  1) 허브가 떠 있는 유휴 시간: 이어읽기 카드(latest)와 최근 읽은 책 몇 권의 장을 미리 받는다
+  //     — 허브에서 가장 많이 눌리는 목적지. 키·staleTime 이 훅과 같아 진입 시 캐시를 이어받는다.
+  //  2) 탭하는 순간(아래 handleBookSelect·handleResume·handleChapterChange): 렌더보다 먼저 출발.
+  useEffect(() => {
+    // resumeData 는 로그인 상태에서만 채워진다(쿼리가 enabled: isLoggedIn())
+    if (!showBookList || !resumeData || preloadBudget() === 'none') return
+    const targets: ResumePosition[] = []
+    if (resumeData.latest) targets.push(resumeData.latest)
+    for (const p of resumeData.recent_books ?? []) {
+      if (targets.length >= HUB_CHAPTER_PREFETCH_MAX) break
+      if (!targets.some(t => t.book_number === p.book_number && t.chapter === p.chapter)) targets.push(p)
+    }
+    if (targets.length === 0) return
+    return scheduleAfterFirstScreen(
+      () => targets.forEach(t => prefetchBibleChapter(qc, t.book_number, t.chapter)),
+      { settleMs: 300, idleTimeoutMs: 2000 },
+    )
+  }, [showBookList, resumeData, qc])
   const handleChapterFullyRead = useCallback(async () => {
     if (!planAutoComplete) return
     if (isPlanLastChapter) {
@@ -349,6 +375,9 @@ const BibleStudy = () => {
   )
 
   const handleBookSelect = (bookId: number, bookName: string, resume?: ResumePosition) => {
+    // 읽기 화면이 그려지기 전에 본문·읽음 상태 요청부터 띄운다 (이미 받아 뒀으면 요청 없음)
+    const bookNumber = books?.find(b => b.id === bookId)?.book_number
+    if (bookNumber) prefetchBibleChapter(qc, bookNumber, resume?.chapter ?? 1)
     setSelectedBookId(bookId)
     setSelectedBook(bookName)
     setSelectedChapter(resume?.chapter ?? 1)
@@ -366,6 +395,7 @@ const BibleStudy = () => {
   const handleResume = (pos: ResumePosition) => {
     const book = books?.find(b => b.book_number === pos.book_number)
     if (!book) return
+    prefetchBibleChapter(qc, pos.book_number, pos.chapter)
     setSelectedBookId(book.id)
     setSelectedBook(book.book_name_ko)
     setSelectedChapter(pos.chapter)
@@ -398,6 +428,7 @@ const BibleStudy = () => {
   )
   
   const handleChapterChange = (chapter: number) => {
+    if (selectedBookData) prefetchBibleChapter(qc, selectedBookData.book_number, chapter)
     setSelectedChapter(chapter)
     setPendingScrollVerse(null)
     setPlayFromVerse(null)
