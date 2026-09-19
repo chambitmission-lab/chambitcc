@@ -57,6 +57,7 @@ const GROUPS: Group[] = [
     labelKey: 'navTopTogether',
     items: [
       { to: '/events', labelKey: 'events', descKey: 'navDescEvents', icon: 'events' },
+      { to: '/seats', labelKey: 'seats', descKey: 'navDescSeats', icon: 'seats' },
       { to: '/mission', labelKey: 'mission', descKey: 'navDescMission', iconFallback: 'mission' },
       { to: '/culture', labelKey: 'culture', descKey: 'navDescCulture', icon: 'culture' },
       { to: '/survey', labelKey: 'survey', descKey: 'navDescSurvey', icon: 'survey' },

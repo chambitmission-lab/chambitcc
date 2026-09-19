@@ -258,6 +258,15 @@ const IconSurveyBoard = (p: IconProps) => (
   </Svg>
 )
 
+/* 좌석 예약 관리 — 극장 의자 */
+const IconSeat = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M6.5 11V6.5A2.5 2.5 0 0 1 9 4h6a2.5 2.5 0 0 1 2.5 2.5V11" />
+    <path d="M4.5 11.5a1.5 1.5 0 0 1 3 0V14h9v-2.5a1.5 1.5 0 0 1 3 0V16a1.5 1.5 0 0 1-1.5 1.5h-12A1.5 1.5 0 0 1 4.5 16z" />
+    <path d="M7 17.5V20M17 17.5V20" />
+  </Svg>
+)
+
 export const ADMIN_ICONS = {
   adminNavDashboard: IconDashboard,
   adminNavCare: IconRadar,
@@ -282,6 +291,7 @@ export const ADMIN_ICONS = {
   adminNavSurvey: IconSurveyBoard,
   adminNavIntercession: IconCandle,
   adminNavEvent: IconCalendar,
+  adminNavSeats: IconSeat,
   adminNavCulture: IconPalette,
   adminNavOrganization: IconOrgChart,
   adminNavUser: IconMember,

@@ -60,6 +60,7 @@ const ADMIN_GROUPS: AdminGroup[] = [
     titleKey: 'adminGroupOps',
     items: [
       { path: '/admin/events', key: 'adminNavEvent' },
+      { path: '/admin/seats', key: 'adminNavSeats' },
       { path: '/admin/culture', key: 'adminNavCulture' },
       { path: '/admin/organization', key: 'adminNavOrganization' }
     ]

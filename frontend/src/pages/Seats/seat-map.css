@@ -1,0 +1,49 @@
+/* 좌석 배치도 — 색은 SeatMap.tsx 의 VISUAL 표(Tailwind 토큰)가 정하고,
+   여기엔 모양·애니메이션·빗금처럼 클래스로 못 쓰는 것만 둔다. */
+
+.seat {
+  /* 등받이가 살짝 느껴지는 좌석 실루엣 — 위는 둥글게, 아래는 덜 둥글게 */
+  border-radius: 32% 32% 22% 22%;
+  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease,
+    box-shadow 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.seat-pop {
+  animation: seat-pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes seat-pop {
+  0% { transform: scale(0.82); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* 보류 좌석 — 빗금. 색은 currentColor 라 라이트/다크를 Tailwind text-* 가 정한다 */
+.seat-hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    currentColor 0 1.5px,
+    transparent 1.5px 5px
+  );
+}
+
+/* 무대 — 객석을 향해 휘어진 호 */
+.seat-stage {
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+}
+
+/* 드래그로 칠하는 동안엔 페이지가 스크롤되지 않게 */
+.seat-paint {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seat,
+  .seat-pop {
+    transition: none;
+    animation: none;
+  }
+}

@@ -40,6 +40,7 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/bible/situation': () => import('../pages/Bible/SituationBible'),
   '/classes': () => import('../pages/ClassRoom/ClassList'),
   '/survey': () => import('../pages/Survey/SurveyList'),
+  '/seats': () => import('../pages/Seats/SeatEventList'),
 }
 
 // 청크와 함께 데워 둘 페이지 데이터. 청크만 먼저 받으면 진입 시 껍데기(히어로)는 즉시
@@ -105,6 +106,7 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   // 프로필 스토리 카드 목적지 — 메뉴 테이블에 없어 청크 프리로드 대상이 아니었다
   { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
+  { key: 'seats/detail', match: /^\/seats\/[^/]+$/, load: () => import('../pages/Seats/SeatEventDetail') },
 ]
 
 // 진행 중인 로드는 promise 자체를 캐싱한다. Set으로 "시작했음"만 기록하면
