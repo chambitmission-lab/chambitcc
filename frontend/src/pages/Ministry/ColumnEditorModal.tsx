@@ -33,6 +33,8 @@ const INPUT_CLASS =
 const LABEL_CLASS = 'block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-[-0.005em]'
 /* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다 */
 const DATE_TRIGGER_CLASS = `${INPUT_CLASS} flex items-center justify-between gap-2 text-left`
+/** 읽기 화면 표지 틀이 PC 에서 약 600px — 이보다 좁은 원본은 늘어나 흐려진다 */
+const COVER_MIN_WIDTH = 800
 
 /** 선택 영역을 그 줄 전체로 넓힌다 — 줄머리 마커는 줄 단위로 붙고 떨어진다 */
 const lineRange = (value: string, start: number, end: number) => {
@@ -52,6 +54,8 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   const [mobileTab, setMobileTab] = useState<'write' | 'preview'>('write')
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  // 표지는 틀을 꽉 채워 보여주므로 원본이 작으면 늘어나 흐려진다 — 올린 직후 알려 준다
+  const [smallCoverWidth, setSmallCoverWidth] = useState<number | null>(null)
   const [showEn, setShowEn] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -303,7 +307,15 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
           <label className={LABEL_CLASS}>{ko ? '표지 사진' : 'Cover photo'}</label>
           <div className="flex items-center gap-2.5">
             {draft.image ? (
-              <img src={draft.image} alt="" className="w-16 h-11 rounded-lg object-cover flex-shrink-0" />
+              <img
+                src={draft.image}
+                alt=""
+                onLoad={(e) => {
+                  const { naturalWidth } = e.currentTarget
+                  setSmallCoverWidth(naturalWidth < COVER_MIN_WIDTH ? naturalWidth : null)
+                }}
+                className="w-16 h-11 rounded-lg object-cover flex-shrink-0"
+              />
             ) : (
               <div className="w-16 h-11 rounded-lg border border-dashed border-border-light dark:border-white/[0.14] flex-shrink-0"></div>
             )}
@@ -325,9 +337,17 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
               </button>
             )}
           </div>
-          <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-gray-400">
-            {ko ? '가로로 긴 사진, 폭 1200px 이상이면 가장 선명합니다' : 'Best with a landscape photo at least 1200px wide'}
-          </p>
+          {draft.image && smallCoverWidth ? (
+            <p className="mt-1.5 text-[11.5px] leading-[1.5] font-semibold text-red-500 dark:text-red-400">
+              {ko
+                ? `사진이 작아요(폭 ${smallCoverWidth}px) — 늘어나 흐리게 보일 수 있습니다. 폭 1200px 이상을 권합니다`
+                : `This photo is small (${smallCoverWidth}px wide) and may look blurry. Use one at least 1200px wide`}
+            </p>
+          ) : (
+            <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-gray-400">
+              {ko ? '가로로 긴 사진, 폭 1200px 이상이면 가장 선명합니다' : 'Best with a landscape photo at least 1200px wide'}
+            </p>
+          )}
         </div>
       </div>
 
