@@ -100,6 +100,10 @@ const ReadingHeroPreview = import.meta.env.DEV
 const NoticeBannerPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/dev/NoticeBannerPreview'))
   : null
+// 헤더 워드마크("참빛교회") — 로고 시안 비교
+const LogoPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/dev/LogoPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -488,6 +492,9 @@ function App() {
                 )}
                 {NoticeBannerPreview && (
                   <Route path="/dev/notice-banner" element={<NoticeBannerPreview />} />
+                )}
+                {LogoPreview && (
+                  <Route path="/dev/logo" element={<LogoPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
