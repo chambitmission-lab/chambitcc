@@ -111,6 +111,7 @@ export const navigation = {
   adminNavCulture: 'Culture',
   adminNavSurvey: 'Surveys',
   adminNavSeats: 'Seat Booking',
+  adminNavElections: 'Elections',
   adminNavIntercession: "Someone's Prayer",
   adminNavOrganization: 'Org Chart',
   adminNavUser: 'Members',

@@ -122,6 +122,8 @@ const SurveyList = lazy(menuRouteLoaders['/survey'])
 const SurveyDetail = lazy(() => import('./pages/Survey/SurveyDetail'))
 const SeatEventList = lazy(menuRouteLoaders['/seats'])
 const SeatEventDetail = lazy(() => import('./pages/Seats/SeatEventDetail'))
+const ElectionList = lazy(() => import('./pages/Election/ElectionList'))
+const ElectionDetail = lazy(() => import('./pages/Election/ElectionDetail'))
 const Worship = lazy(menuRouteLoaders['/worship'])
 const Sermon = lazy(menuRouteLoaders['/sermon'])
 const Register = lazy(() => import('./pages/Auth/Register'))
@@ -201,6 +203,7 @@ const SituationManagement = lazy(() => import('./pages/Admin/SituationManagement
 const CultureManagement = lazy(() => import('./pages/Admin/CultureManagement'))
 const SurveyManagement = lazy(() => import('./pages/Admin/SurveyManagement'))
 const SeatEventManagement = lazy(() => import('./pages/Admin/SeatEventManagement'))
+const ElectionManagement = lazy(() => import('./pages/Admin/ElectionManagement'))
 const IntercessionManagement = lazy(() => import('./pages/Admin/IntercessionManagement'))
 const OrganizationManagement = lazy(() => import('./pages/Admin/OrganizationManagement'))
 const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
@@ -371,6 +374,8 @@ function App() {
                 <Route path="/survey/:id" element={<SurveyDetail />} />
                 <Route path="/seats" element={<SeatEventList />} />
                 <Route path="/seats/:id" element={<SeatEventDetail />} />
+                <Route path="/elections" element={<ElectionList />} />
+                <Route path="/elections/:id" element={<ElectionDetail />} />
                 <Route path="/worship" element={<Worship />} />
                 <Route path="/sermon" element={<Sermon />} />
                 <Route path="/login" element={<Login />} />
@@ -396,6 +401,7 @@ function App() {
                 <Route path="/admin/culture" element={<CultureManagement />} />
                 <Route path="/admin/surveys" element={<SurveyManagement />} />
                 <Route path="/admin/seats" element={<SeatEventManagement />} />
+                <Route path="/admin/elections" element={<ElectionManagement />} />
                 <Route path="/admin/intercession" element={<IntercessionManagement />} />
                 <Route path="/admin/organization" element={<OrganizationManagement />} />
                 <Route path="/admin/pastors" element={<PastorManagement />} />

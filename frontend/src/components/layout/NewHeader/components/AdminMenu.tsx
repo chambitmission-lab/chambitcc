@@ -61,6 +61,7 @@ const ADMIN_GROUPS: AdminGroup[] = [
     items: [
       { path: '/admin/events', key: 'adminNavEvent' },
       { path: '/admin/seats', key: 'adminNavSeats' },
+      { path: '/admin/elections', key: 'adminNavElections' },
       { path: '/admin/culture', key: 'adminNavCulture' },
       { path: '/admin/organization', key: 'adminNavOrganization' }
     ]

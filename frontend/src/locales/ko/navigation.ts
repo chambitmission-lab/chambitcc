@@ -112,6 +112,7 @@ export const navigation = {
   adminNavCulture: '문화교실',
   adminNavSurvey: '설문조사',
   adminNavSeats: '좌석 예약',
+  adminNavElections: '선거',
   adminNavIntercession: '누군가의 기도',
   adminNavOrganization: '조직도',
   adminNavUser: '회원',

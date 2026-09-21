@@ -267,6 +267,15 @@ const IconSeat = (p: IconProps) => (
   </Svg>
 )
 
+const IconBallot = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 11.5h16V19a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z" />
+    <path d="M8.5 11.5V5A1.5 1.5 0 0 1 10 3.5h4A1.5 1.5 0 0 1 15.5 5v6.5" />
+    <path d="m10.3 7.6 1.3 1.3 2.3-2.5" />
+    <path d="M9.5 15.5h5" />
+  </Svg>
+)
+
 export const ADMIN_ICONS = {
   adminNavDashboard: IconDashboard,
   adminNavCare: IconRadar,
@@ -292,6 +301,7 @@ export const ADMIN_ICONS = {
   adminNavIntercession: IconCandle,
   adminNavEvent: IconCalendar,
   adminNavSeats: IconSeat,
+  adminNavElections: IconBallot,
   adminNavCulture: IconPalette,
   adminNavOrganization: IconOrgChart,
   adminNavUser: IconMember,

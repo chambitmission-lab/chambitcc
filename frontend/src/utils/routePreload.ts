@@ -107,6 +107,9 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
   { key: 'seats/detail', match: /^\/seats\/[^/]+$/, load: () => import('../pages/Seats/SeatEventDetail') },
+  // 선거는 메뉴에 없다(선거인에게만 열림) — 홈 배너·링크로만 들어오므로 메뉴 프리로드에 넣지 않는다
+  { key: 'elections', match: /^\/elections$/, load: () => import('../pages/Election/ElectionList') },
+  { key: 'elections/detail', match: /^\/elections\/[^/]+$/, load: () => import('../pages/Election/ElectionDetail') },
 ]
 
 // 진행 중인 로드는 promise 자체를 캐싱한다. Set으로 "시작했음"만 기록하면

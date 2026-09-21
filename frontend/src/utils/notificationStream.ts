@@ -174,6 +174,11 @@ class NotificationStreamManager {
               this.invalidate()
             } else if (event === 'prayer_reaction' || event === 'prayer_reply') {
               this.applyPrayerCount(event, data)
+            } else if (event === 'election_update') {
+              // 표가 들어오거나 회차가 열리고 닫혔다 — 득표는 싣지 않고 신호만 온다.
+              // 공개 범위는 조회 API 가 판단하므로 보고 있는 선거 화면을 다시 받게 한다.
+              // (순환 import 를 피하려고 electionKeys.all 과 같은 리터럴 키를 쓴다)
+              this.queryClient?.invalidateQueries({ queryKey: ['elections'] })
             }
             this.dispatch(event, data)
           },
