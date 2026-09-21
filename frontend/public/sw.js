@@ -447,6 +447,31 @@ const isAboutImageRequest = (url) =>
   url.pathname.includes('/storage/v1/object/public/') &&
   url.pathname.includes('/about/');
 
+// R2 이미지 → 같은 출처 /r2/* 엣지 캐시 프록시 (functions/r2/[[path]].js)
+//
+// 아바타·공지·소식·새가족·행사 사진이 있는 R2 공개 주소(r2.dev)는 국내에서 미국(LAX)
+// 엣지로 나가고 엣지 캐시도 없다(실측 TTFB 600ms — API 는 40ms). 이 사이트(Pages)는
+// 서울 엣지라, 이미지 요청만 /r2/<key> 로 돌리면 엣지 캐시에서 바로 받는다.
+// DB·API 의 URL 은 r2.dev 그대로 둔다 — 여기서만 바꾸므로 백엔드 삭제 로직(key 복원)·
+// 푸시 이미지·공유 미리보기는 영향이 없다. 오디오(TTS)·첨부 파일은 건드리지 않는다.
+const R2_PUBLIC_HOST = 'pub-87bb083395694bdf9d778c720a600324.r2.dev';
+const R2_PROXY_MARK = 'x-r2-proxy';
+
+// 프록시가 없는 호스트(localhost·GitHub Pages)에선 /r2/* 가 index.html 이나 404 로 떨어진다.
+// 표식 헤더가 없는 응답을 한 번 보면 이 SW 프로세스 동안은 원래 주소로만 보낸다.
+let r2ProxyAvailable = true;
+
+const fetchR2ImageViaProxy = (request, url) => {
+  if (!r2ProxyAvailable) return fetch(request);
+  return fetch(`${ORIGIN}/r2${url.pathname}${url.search}`, { credentials: 'omit' })
+    .then((response) => {
+      if (response.headers.has(R2_PROXY_MARK)) return response;
+      r2ProxyAvailable = false;
+      return fetch(request);
+    })
+    .catch(() => fetch(request));
+};
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -473,6 +498,15 @@ self.addEventListener('fetch', (event) => {
         })
       )
     );
+    return;
+  }
+
+  if (
+    event.request.method === 'GET' &&
+    url.hostname === R2_PUBLIC_HOST &&
+    event.request.destination === 'image'
+  ) {
+    event.respondWith(fetchR2ImageViaProxy(event.request, url));
     return;
   }
 

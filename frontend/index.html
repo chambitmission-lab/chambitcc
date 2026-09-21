@@ -142,6 +142,13 @@
          없으므로, 그 경우를 메우려면 정적 preconnect 여야 한다. -->
     <link rel="preconnect" href="https://omkzokuhaxadkfrgklcm.supabase.co" crossorigin />
 
+    <!-- R2 공개 주소 사전 연결 — 아바타·공지·소식·새가족·행사 사진이 이 호스트에서 온다.
+         국내에선 미국(LAX) 엣지로 나가 커넥션 수립만 300ms(실측 연결 145ms + TLS 145ms)라,
+         첫 이미지가 그 비용을 통째로 물었다. 서비스 워커가 통제 중이면 이미지는 같은 출처
+         /r2/* 프록시(functions/r2)로 돌아가므로, 이 힌트는 첫 방문·SW 미통제 탭을 위한 것이다.
+         <img> 는 crossorigin 없이 부르므로(익명 아님) 여기도 붙이지 않는다 — 불일치 시 커넥션을 새로 연다. -->
+    <link rel="preconnect" href="https://pub-87bb083395694bdf9d778c720a600324.r2.dev" />
+
     <!-- API 서버 사전 연결 — 첫 API 요청(기도 목록)이 DNS+TCP+TLS 를 통째로 무는 것을 막는다
          (실측 약 30ms, 모바일망에선 100~300ms). VITE_API_URL 은 빌드 때 치환된다(.env.production).
          API 요청은 자격증명 없는 CORS(Authorization 헤더만) 라 crossorigin(anonymous) 커넥션과 매칭된다. -->
