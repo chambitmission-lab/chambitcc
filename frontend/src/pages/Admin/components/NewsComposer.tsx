@@ -2,6 +2,7 @@
 // Single Responsibility: 소식 폼 상태 + 이미지/첨부 슬롯 관리 후 저장
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createNews, fetchNewsDetail, updateNews } from '../../../api/news'
+import { createNotification } from '../../../api/notification'
 import { showToast } from '../../../utils/toast'
 import { resizeImageToBlob } from '../../../utils/imageResize'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -30,8 +31,12 @@ const MAX_FILES = 5
 /** 업로드 전 클라이언트 리사이즈 — 포스터는 긴 변 1600px이면 충분 */
 const UPLOAD_MAX_SIZE = 1600
 const MAX_FILE_SIZE = 20 * 1024 * 1024
-const CATEGORY_PRESETS = ['공지', '행사', '모집', '안내', '감사']
+// '공지'는 빼 둔다 — 공지 팝업·알림(/admin/notifications)과 역할이 겹쳐 보여
+// 관리자가 어느 화면에 올려야 하는지 헷갈리던 가장 직접적인 원인이었다.
+const CATEGORY_PRESETS = ['안내', '행사', '모집', '보고', '감사']
 const FILE_ACCEPT = '.pdf,.hwp,.hwpx,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip'
+/** 알림함·팝업에 실을 미리보기 길이 — 전문은 소식 원문에서 읽게 한다 */
+const NOTICE_PREVIEW_LIMIT = 280
 
 const datePickerTriggerClass =
   'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-left text-ink-strong hover:border-brand focus:outline-none focus:border-brand transition-colors'
@@ -45,6 +50,29 @@ const toDateOnly = (value: string | null): string => {
   const d = new Date(value)
   return Number.isNaN(d.getTime()) ? today() : toDateInput(d)
 }
+
+/**
+ * 소식 본문 → 알림 본문.
+ * 알림은 "읽고 지나가는" 자리라 앞부분만 싣고, 전문은 link_url 로 원문에 맡긴다.
+ */
+const toNoticeBody = (content: string): string => {
+  const body = content.trim()
+  if (body.length <= NOTICE_PREVIEW_LIMIT) return body
+  // 단어/문장 중간에서 끊기지 않게 마지막 줄바꿈·마침표 뒤에서 자른다
+  const head = body.slice(0, NOTICE_PREVIEW_LIMIT)
+  // 경계 문자를 포함한 위치에서 끊는다 — 인덱스 그대로 자르면 '…합니' 처럼 끝이 잘린다
+  const cut = Math.max(
+    head.lastIndexOf('\n') + 1,
+    head.lastIndexOf('. ') + 2,
+    head.lastIndexOf('요. ') + 3,
+    head.lastIndexOf('다. ') + 3,
+  )
+  // 너무 앞에서 끊기면(경계가 앞머리에만 있으면) 차라리 글자 수대로 자른다
+  return `${(cut > NOTICE_PREVIEW_LIMIT * 0.5 ? head.slice(0, cut) : head).trimEnd()}…`
+}
+
+/** 소식 원문 딥링크 — /news 의 '소식' 탭에서 해당 글 상세를 연다 */
+const newsDeepLink = (newsId: number) => `/news?tab=news&post=${newsId}`
 
 const formatSize = (bytes: number | null) => {
   if (!bytes || bytes <= 0) return ''
@@ -63,6 +91,9 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
   const [publishedAt, setPublishedAt] = useState(toDateOnly(news?.published_at ?? null))
   const [isPublished, setIsPublished] = useState(news?.is_published ?? true)
   const [isPinned, setIsPinned] = useState(news?.is_pinned ?? false)
+  // 등록할 때만 뜨는 옵션 — 켜면 소식 원문으로 가는 공지를 한 건 같이 만든다.
+  // (같은 내용을 공지사항 화면에서 한 번 더 입력하지 않게 하는 게 목적)
+  const [alsoNotify, setAlsoNotify] = useState(false)
   const [images, setImages] = useState<ImageSlot[]>([])
   const [files, setFiles] = useState<FileSlot[]>([])
   // 수정 모드는 본문·첨부를 상세 API로 채운다(목록에는 요약만 있다)
@@ -215,8 +246,29 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
         await updateNews(news.id, payload)
         showToast('수정되었습니다', 'success')
       } else {
-        await createNews(payload)
+        const created = await createNews(payload)
         showToast('소식이 등록되었습니다', 'success')
+
+        // 알림 생성 실패는 소식 등록을 되돌리지 않는다 — 소식은 이미 올라갔으니
+        // 알림만 공지 화면에서 다시 만들 수 있게 안내하고 넘어간다.
+        if (alsoNotify && isPublished) {
+          try {
+            await createNotification({
+              title: payload.title,
+              content: toNoticeBody(payload.content),
+              is_active: true,
+              link_url: newsDeepLink(created.id),
+            })
+            showToast('알림함에도 공지로 올렸어요', 'success')
+          } catch (notifyError) {
+            showToast(
+              notifyError instanceof Error
+                ? `알림 생성 실패: ${notifyError.message}`
+                : '소식은 올라갔지만 알림 생성에 실패했어요',
+              'error',
+            )
+          }
+        }
       }
       onSuccess()
     } catch (err) {
@@ -473,6 +525,33 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
                 onClick={() => setIsPinned((v) => !v)}
               />
             </FieldGroup>
+
+            {/* 알림 동시 발행 — 등록할 때만. 수정에서 켜면 같은 알림이 또 생긴다 */}
+            {!isEdit && (
+              <FieldGroup label="알림으로도 알리기">
+                <ToggleRow
+                  title={alsoNotify ? '알림함·홈 배너에도 올림' : '소식 게시판에만 올림'}
+                  desc={
+                    isPublished
+                      ? '앞부분만 알림으로 나가고, 탭하면 이 소식 원문이 열려요'
+                      : '비공개 소식은 알림으로 보낼 수 없어요'
+                  }
+                  active={alsoNotify && isPublished}
+                  onClick={() => {
+                    if (!isPublished) {
+                      showToast('먼저 성도에게 공개로 바꿔주세요', 'error')
+                      return
+                    }
+                    setAlsoNotify((v) => !v)
+                  }}
+                />
+                {alsoNotify && isPublished && (
+                  <p className="text-[11px] text-gray-500 dark:text-white/45 mt-2 leading-[1.6]">
+                    홈 전면 팝업으로 띄우려면 등록 뒤 <span className="font-bold text-brand">공지 팝업·알림</span> 화면에서 팝업을 켜주세요.
+                  </p>
+                )}
+              </FieldGroup>
+            )}
 
             {error && (
               <div className="px-3.5 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 text-red-600 dark:text-red-300 text-[12.5px] font-medium">

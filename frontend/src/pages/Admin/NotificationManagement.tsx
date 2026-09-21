@@ -5,6 +5,7 @@ import { showToast } from '../../utils/toast'
 import type { Notification } from '../../types/notification'
 import NotificationComposer from './components/NotificationComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import ChannelGuideNote from './components/ChannelGuideNote'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 
@@ -138,6 +139,13 @@ const NotificationManagement = () => {
             ADMIN
           </span>
         </div>
+
+        <ChannelGuideNote
+          mine="홈 팝업 · 알림함에 띄우는 공지"
+          theirs="첨부파일이 붙거나 두고두고 다시 읽을 글은 교회소식 게시판에 올려주세요."
+          to="/admin/news"
+          toLabel="교회소식 게시판"
+        />
 
         {/* PC(lg+) 2단 — 좌: 공지 목록 / 우: 도구(등록·통계·검색/필터)가 sticky.
             래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
@@ -385,6 +393,15 @@ const NotificationRow = ({
             {notification.image_url && (
               <span className="text-[9.5px] shrink-0" title="이미지 첨부" aria-label="이미지 첨부">
                 🖼
+              </span>
+            )}
+            {/* 소식 게시판에서 "알림으로도 알리기"로 만들어진 공지 — 원문이 따로 있다는 표시 */}
+            {notification.link_url?.startsWith('/news') && (
+              <span
+                className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/60 tracking-[0.05em] shrink-0"
+                title="교회소식 게시판의 글과 연결된 공지"
+              >
+                소식 연결
               </span>
             )}
           </div>

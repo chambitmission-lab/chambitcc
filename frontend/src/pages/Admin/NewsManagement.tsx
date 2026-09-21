@@ -9,6 +9,7 @@ import type { NewsItem } from '../../types/news'
 import { useInvalidateNews } from '../../hooks/useNews'
 import NewsComposer from './components/NewsComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import ChannelGuideNote from './components/ChannelGuideNote'
 import { can } from '../../utils/access'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
@@ -152,6 +153,13 @@ const NewsManagement = () => {
             ADMIN
           </span>
         </div>
+
+        <ChannelGuideNote
+          mine="/news 에 쌓이는 소식 게시판"
+          theirs="기간이 지나면 내릴 짧은 안내는 공지 팝업·알림으로 띄우세요. 소식을 올릴 때 '알림으로도 알리기'를 켜면 알림은 자동으로 만들어집니다."
+          to="/admin/notifications"
+          toLabel="공지 팝업·알림"
+        />
 
         {/* PC(lg+) 2단 — 좌: 목록 / 우: 도구(등록·통계·검색/필터)가 sticky */}
         <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">

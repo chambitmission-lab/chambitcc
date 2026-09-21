@@ -30,6 +30,8 @@ export interface CreateNotificationRequest {
   is_popup?: boolean
   popup_until?: string | null
   image_url?: string | null
+  /** 탭하면 이동할 앱 내 경로 — 소식 게시판에서 "알림으로도 알리기"로 만든 공지가 쓴다 */
+  link_url?: string | null
 }
 
 export interface UpdateNotificationRequest {
@@ -39,6 +41,7 @@ export interface UpdateNotificationRequest {
   is_popup?: boolean
   popup_until?: string | null
   image_url?: string | null
+  link_url?: string | null
 }
 
 export interface UnreadCountResponse {
