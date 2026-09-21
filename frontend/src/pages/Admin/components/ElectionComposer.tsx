@@ -385,15 +385,16 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
   const presetKey = rules ? (customThreshold ? 'custom' : matchPreset(rules)) : ''
   const exampleBase = rules?.threshold_basis === 'voters' ? voterIds.size + offlineCount : 100
 
+  // 배경을 눌러도 닫지 않는다 — 입력이 많은 폼이라 드래그·사진 끌어 놓기 중 빗나간 클릭 한 번에
+  // 작성하던 내용이 날아간다. 닫기는 ✕·취소(와 뒤로가기)로만. 같은 이유로 등록 칸을 빗나간
+  // 사진 드롭은 삼킨다(그냥 두면 브라우저가 그 사진 파일로 이동해 버린다).
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
-      onClick={onClose}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => e.preventDefault()}
     >
-      <div
-        className="relative w-full sm:max-w-3xl lg:max-w-[1320px] max-h-[94vh] sm:max-h-[92vh] lg:h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative w-full sm:max-w-3xl lg:max-w-[1320px] max-h-[94vh] sm:max-h-[92vh] lg:h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col">
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
