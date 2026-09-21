@@ -6,6 +6,9 @@ export type Language = 'ko' | 'en'
 /** 한 언어분 번역 사전 — `t: any` 대신 프로퍼티 오타까지 잡히는 타입 */
 export type Translation = typeof ko
 
+/** `useLanguage().t` 와 같은 모양 — 컴포넌트 밖 헬퍼에 t 를 넘길 때 쓴다 */
+export type Translate = (key: keyof Translation) => string
+
 // 영어 사전(~100KB)은 필요할 때만 내려받는다 — 사용자 대다수가 한국어라
 // 첫 화면 엔트리 청크에 en 전체를 싣는 건 순수 낭비였다.
 // 로드 전까지 en 슬롯은 ko 를 가리키고(폴백), loadTranslation('en') 이 끝나면 교체된다.

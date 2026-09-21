@@ -4,6 +4,7 @@
 // 인스타 캐러셀과 같은 감각이 나오고, 코드도 짧다.
 import { useRef, useState } from 'react'
 import type { NewFamilyPhoto } from '../../../types/newFamily'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface NewFamilyPhotoCarouselProps {
   photos: NewFamilyPhoto[]
@@ -22,6 +23,7 @@ const NewFamilyPhotoCarousel = ({
   onPhotoClick,
   ratio = '4/5',
 }: NewFamilyPhotoCarouselProps) => {
+  const { t } = useLanguage()
   // Tailwind JIT가 문자열 결합 클래스를 못 잡으므로 정적 매핑으로 지정
   const ratioClass = ratio === '4/5' ? 'aspect-[4/5]' : ratio === '1/1' ? 'aspect-square' : ''
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -58,7 +60,7 @@ const NewFamilyPhotoCarousel = ({
               'relative flex-shrink-0 w-full snap-center',
               ratioClass,
             ].join(' ')}
-            aria-label={`${alt} 사진 ${i + 1}`}
+            aria-label={`${alt} ${t('newsPhotoNth').replace('{n}', String(i + 1))}`}
           >
             <img
               src={photo.image_url}
@@ -88,7 +90,7 @@ const NewFamilyPhotoCarousel = ({
                 key={photo.id}
                 type="button"
                 onClick={() => scrollTo(i)}
-                aria-label={`사진 ${i + 1}로 이동`}
+                aria-label={t('newsGoToPhotoNth').replace('{n}', String(i + 1))}
                 className={[
                   'rounded-full transition-all duration-200',
                   i === index

@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import NewFamilyPhotoCarousel from './NewFamilyPhotoCarousel'
 import { WELCOME_EMOJI_META, WelcomeEmojiImg } from './welcomeEmoji'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import type { Translate } from '../../../locales'
 import { AnimatedEmojiText } from '../../../components/common/animatedEmoji'
 import type { NewFamilyPost } from '../../../types/newFamily'
 import { SproutIcon } from './NewsIcons'
@@ -15,11 +17,11 @@ interface NewFamilyPostCardProps {
   onDelete?: () => void
 }
 
-const formatRegisteredAt = (value: string): string => {
+const formatRegisteredAt = (value: string, t: Translate): string => {
   // 'YYYY-MM-DD' — 타임존 보정 없이 그대로 읽는다 (등록 주일은 날짜 개념)
   const [y, m, d] = value.split('-').map(Number)
   if (!y || !m || !d) return value
-  const days = ['일', '월', '화', '수', '목', '금', '토']
+  const days = t('newsWeekdays').split(',')
   const weekday = days[new Date(y, m - 1, d).getDay()]
   return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${weekday})`
 }
@@ -34,6 +36,7 @@ const NewFamilyPostCard = ({
   isAdmin,
   onDelete,
 }: NewFamilyPostCardProps) => {
+  const { t } = useLanguage()
   const [expanded, setExpanded] = useState(false)
 
   const greeting = post.greeting ?? ''
@@ -61,12 +64,12 @@ const NewFamilyPostCard = ({
             )}
             {isAdmin && !post.is_published && (
               <span className="shrink-0 inline-flex items-center px-2 h-5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60 text-[10.5px] font-bold">
-                비공개
+                {t('newsPrivate')}
               </span>
             )}
           </div>
           <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
-            {formatRegisteredAt(post.registered_at)} 등록
+            {t('newsNfRegisteredAt').replace('{date}', formatRegisteredAt(post.registered_at, t))}
           </p>
         </div>
 
@@ -74,7 +77,7 @@ const NewFamilyPostCard = ({
           <button
             type="button"
             onClick={onDelete}
-            aria-label="삭제"
+            aria-label={t('newsDelete')}
             className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/40 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 transition-colors"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -104,7 +107,7 @@ const NewFamilyPostCard = ({
               key={meta.char}
               type="button"
               onClick={() => onToggleWelcome(meta.char)}
-              aria-label={meta.label}
+              aria-label={t(meta.labelKey)}
               aria-pressed={active}
               className={[
                 'inline-flex items-center gap-1 h-9 rounded-full border transition-all active:scale-90',
@@ -135,7 +138,7 @@ const NewFamilyPostCard = ({
           type="button"
           onClick={onOpenComments}
           className="ml-auto inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-gray-500 dark:text-white/60 hover:text-[var(--brand)] hover:bg-[var(--brand-soft)] transition-colors"
-          aria-label="댓글 보기"
+          aria-label={t('newsNfViewComments')}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -147,7 +150,7 @@ const NewFamilyPostCard = ({
       {/* 환영 수 요약 */}
       {post.welcome_count > 0 && (
         <p className="relative z-10 px-4 text-[12.5px] font-bold text-gray-700 dark:text-white/75">
-          {post.welcome_count}명이 환영했어요
+          {t('newsNfWelcomedCount').replace('{n}', String(post.welcome_count))}
         </p>
       )}
 
@@ -164,7 +167,7 @@ const NewFamilyPostCard = ({
               onClick={() => setExpanded(true)}
               className="mt-0.5 text-[12.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-[var(--brand)] transition-colors"
             >
-              더 보기
+              {t('newsNfMore')}
             </button>
           )}
         </div>
@@ -178,8 +181,8 @@ const NewFamilyPostCard = ({
           className="text-[12.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-[var(--brand)] transition-colors"
         >
           {post.comment_count > 0
-            ? `환영 댓글 ${post.comment_count}개 모두 보기`
-            : '첫 환영 인사를 남겨보세요'}
+            ? t('newsNfAllComments').replace('{n}', String(post.comment_count))
+            : t('newsNfFirstComment')}
         </button>
         <p className="text-[10.5px] text-gray-400 dark:text-white/30 mt-1">{post.time_ago}</p>
       </div>

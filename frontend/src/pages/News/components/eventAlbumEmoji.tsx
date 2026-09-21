@@ -2,20 +2,22 @@
 // 기도의 🙏 골드 액센트는 기도 버튼 전용 — 여기서는 브랜드 색 리액션 칩으로만 쓴다.
 // 코드는 Noto Animated Emoji의 코드포인트(소문자 hex, ZWJ는 '_' 결합).
 import { useState } from 'react'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import type { Translation } from '../../../locales'
 import { animatedEmojiUrl } from '../../../components/common/animatedEmoji'
 import { EVENT_ALBUM_EMOJIS } from '../../../types/eventAlbum'
 
 export interface EventAlbumEmojiMeta {
   char: string
   code: string
-  label: string
+  labelKey: keyof Translation
 }
 
 export const EVENT_ALBUM_EMOJI_META: EventAlbumEmojiMeta[] = [
-  { char: '🙏', code: '1f64f', label: '은혜였어요' },
-  { char: '❤️', code: '2764_fe0f', label: '사랑해요' },
-  { char: '🎉', code: '1f389', label: '즐거웠어요' },
-  { char: '🙌', code: '1f64c', label: '함께해요' },
+  { char: '🙏', code: '1f64f', labelKey: 'newsEaEmojiGrace' },
+  { char: '❤️', code: '2764_fe0f', labelKey: 'newsEaEmojiLove' },
+  { char: '🎉', code: '1f389', labelKey: 'newsEaEmojiJoy' },
+  { char: '🙌', code: '1f64c', labelKey: 'newsEaEmojiTogether' },
 ]
 
 // types의 화이트리스트와 어긋나면 조용히 빠지는 대신 개발 중에 바로 드러나게 한다
@@ -35,6 +37,7 @@ interface EventAlbumEmojiImgProps {
 }
 
 export const EventAlbumEmojiImg = ({ meta, size, className }: EventAlbumEmojiImgProps) => {
+  const { t } = useLanguage()
   const [failed, setFailed] = useState(false)
 
   if (failed) {
@@ -51,7 +54,7 @@ export const EventAlbumEmojiImg = ({ meta, size, className }: EventAlbumEmojiImg
   return (
     <img
       src={animatedEmojiUrl(meta.code)}
-      alt={meta.label}
+      alt={t(meta.labelKey)}
       loading="lazy"
       draggable={false}
       onError={() => setFailed(true)}

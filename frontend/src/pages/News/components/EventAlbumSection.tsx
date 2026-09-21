@@ -25,10 +25,13 @@ import { AlbumIcon } from './NewsIcons'
 import { EventTagIcon } from './NewsIcons'
 import '../news-hero.css'
 import { can } from '../../../utils/access'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import type { Translate } from '../../../locales'
 
 type ViewMode = 'feed' | 'grid'
 
 const EventAlbumSection = () => {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -51,7 +54,7 @@ const EventAlbumSection = () => {
     useEventAlbumPosts(filter, 10, isLoggedIn)
   const { data: stats } = useEventAlbumStats(isLoggedIn)
   const { data: onThisDay } = useEventAlbumOnThisDay(isLoggedIn)
-  const { toggleReaction } = useToggleEventAlbumReaction(toastFeedback({ error: '반응 처리에 실패했습니다' }))
+  const { toggleReaction } = useToggleEventAlbumReaction(toastFeedback({ error: t('newsEaReactionFailed') }))
 
   // ── 딥링크: /news?tab=event-album&post=123 → 해당 포스트 뷰어 자동 오픈 ──
   const openedDeepLink = useRef(false)
@@ -68,7 +71,7 @@ const EventAlbumSection = () => {
         if (!cancelled) setViewer({ post, index: 0 })
       })
       .catch(() => {
-        if (!cancelled) showToast('해당 행사 소식을 찾지 못했습니다', 'error')
+        if (!cancelled) showToast(t('newsEaNotFound'), 'error')
       })
       .finally(() => {
         if (!cancelled) {
@@ -79,6 +82,7 @@ const EventAlbumSection = () => {
     return () => {
       cancelled = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t: 딥링크는 한 번만 연다. 언어가 바뀌었다고 진행 중인 fetch 를 끊을 이유가 없다
   }, [isLoggedIn, postParam, setSearchParams])
 
   // 시트가 열려 있는 동안 목록이 갱신되면 최신 카운트로 따라가게 한다
@@ -89,20 +93,20 @@ const EventAlbumSection = () => {
   const handleDelete = async (post: EventAlbumPost) => {
     if (
       !(await confirmDialog({
-        title: '행사 앨범 삭제',
-        message: `"${post.title}" 앨범을 삭제할까요?`,
-        description: '등록된 사진과 댓글도 함께 삭제됩니다.',
-        confirmText: '삭제',
+        title: t('newsEaDeleteTitle'),
+        message: t('newsEaDeleteMessage').replace('{title}', post.title),
+        description: t('newsEaDeleteDescription'),
+        confirmText: t('newsDelete'),
         icon: 'delete_outline',
       }))
     )
       return
     try {
       await deleteEventAlbumPost(post.id)
-      showToast('삭제되었습니다', 'success')
+      showToast(t('newsEaDeleted'), 'success')
       invalidateEventAlbum(queryClient)
     } catch (err) {
-      showToast(err instanceof Error ? err.message : '삭제에 실패했습니다', 'error')
+      showToast(err instanceof Error ? err.message : t('newsEaDeleteFailed'), 'error')
     }
   }
 
@@ -117,19 +121,19 @@ const EventAlbumSection = () => {
               <Lock size={30} weight="duotone" color="currentColor" aria-hidden="true" />
             </div>
             <p className="text-ink-strong text-[15px] font-bold mb-1.5">
-              성도님만 볼 수 있어요
+              {t('newsGateTitle')}
             </p>
             <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.65] mb-5">
-              행사 사진에는 성도들의 얼굴이 담겨 있어
+              {t('newsGateEventLine1')}
               <br />
-              로그인한 성도에게만 공개됩니다
+              {t('newsGateLine2')}
             </p>
             <button
               type="button"
               onClick={() => navigate('/login')}
               className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] active:scale-[0.98] transition-all"
             >
-              로그인하고 보기
+              {t('newsGateCta')}
             </button>
           </div>
         </div>
@@ -155,31 +159,31 @@ const EventAlbumSection = () => {
                 EVENT ALBUM
               </p>
               <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-                행사 앨범
+                {t('newsEaTitle')}
               </h2>
             </div>
           </div>
 
           {/* 글줄이 삽화 위로 넘어가지 않게 폭을 잡는다 — 삽화 위치가 바뀌면 이 값도 다시 볼 것 */}
           <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
-            함께한 예배와 행사의 순간들을 모았습니다. 추억에 반응을 남겨주세요.
+            {t('newsEaIntro')}
           </p>
 
           {/* PC 에선 삽화(오른쪽 43%)를 덮지 않게 글 칼럼 폭에 맞춘다 */}
           <div className="flex items-center gap-5 lg:max-w-[52%]">
-            <HeroStat label="앨범" value={stats?.total_posts ?? 0} />
-            <HeroStat label="사진" value={stats?.total_photos ?? 0} />
-            <HeroStat label="연도" value={years.length} />
+            <HeroStat label={t('newsEaStatPosts')} value={stats?.total_posts ?? 0} />
+            <HeroStat label={t('newsEaStatPhotos')} value={stats?.total_photos ?? 0} />
+            <HeroStat label={t('newsEaStatYears')} value={years.length} />
 
             {/* 뷰 전환 */}
             <div className="ml-auto inline-flex p-0.5 rounded-full bg-gray-100/90 dark:bg-white/[0.05] backdrop-blur-sm border border-gray-200/70 dark:border-white/[0.06]">
-              <ViewToggle active={viewMode === 'feed'} onClick={() => setViewMode('feed')} label="피드로 보기">
+              <ViewToggle active={viewMode === 'feed'} onClick={() => setViewMode('feed')} label={t('newsNfViewFeed')}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="8" rx="2" />
                   <rect x="3" y="13" width="18" height="8" rx="2" />
                 </svg>
               </ViewToggle>
-              <ViewToggle active={viewMode === 'grid'} onClick={() => setViewMode('grid')} label="그리드로 보기">
+              <ViewToggle active={viewMode === 'grid'} onClick={() => setViewMode('grid')} label={t('newsNfViewGrid')}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="7" height="7" rx="1.5" />
                   <rect x="14" y="3" width="7" height="7" rx="1.5" />
@@ -195,7 +199,7 @@ const EventAlbumSection = () => {
       {/* 태그 필터 — 가로 스크롤 칩 */}
       <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
         <FilterPill active={selectedTag === null} onClick={() => setSelectedTag(null)}>
-          전체
+          {t('newsEaTagAll')}
         </FilterPill>
         {EVENT_ALBUM_TAGS.map((tag) => {
           const count = stats?.tags?.[tag] ?? 0
@@ -221,7 +225,7 @@ const EventAlbumSection = () => {
       {years.length > 0 && (
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-3">
           <FilterPill active={selectedYear === null} onClick={() => setSelectedYear(null)}>
-            모든 해
+            {t('newsEaYearAll')}
           </FilterPill>
           {years.map((year) => (
             <FilterPill
@@ -229,7 +233,7 @@ const EventAlbumSection = () => {
               active={selectedYear === year}
               onClick={() => setSelectedYear((prev) => (prev === year ? null : year))}
             >
-              {year}년
+              {t('newsEaYear').replace('{year}', String(year))}
             </FilterPill>
           ))}
         </div>
@@ -247,7 +251,7 @@ const EventAlbumSection = () => {
       {isLoading ? (
         <SkeletonFeed />
       ) : error ? (
-        <ErrorState message={error instanceof Error ? error.message : '불러오지 못했습니다'} />
+        <ErrorState message={error instanceof Error ? error.message : t('newsLoadFailed')} />
       ) : posts.length === 0 ? (
         <EmptyState filtered={hasFilter} />
       ) : viewMode === 'grid' ? (
@@ -308,7 +312,7 @@ const EventAlbumSection = () => {
             disabled={isFetchingNextPage}
             className="px-5 h-10 rounded-full text-[12.5px] font-bold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
           >
-            {isFetchingNextPage ? '불러오는 중...' : '지난 행사 더 보기'}
+            {isFetchingNextPage ? t('newsLoadingMore') : t('newsEaLoadMore')}
           </button>
         </div>
       )}
@@ -328,10 +332,12 @@ const EventAlbumSection = () => {
 }
 
 // ── "N년 전 오늘" 회상 카드 ──────────────────────────────
-const yearsAgoLabel = (eventDate: string): string => {
+const yearsAgoLabel = (eventDate: string, t: Translate): string => {
   const year = Number(eventDate.slice(0, 4))
   const diff = new Date().getFullYear() - year
-  return diff <= 1 ? '1년 전 오늘' : `${diff}년 전 오늘`
+  return diff <= 1
+    ? t('newsEaAnniversaryToday')
+    : t('newsEaAnniversaryYears').replace('{n}', String(diff))
 }
 
 const OnThisDayCard = ({
@@ -340,7 +346,9 @@ const OnThisDayCard = ({
 }: {
   posts: EventAlbumPost[]
   onOpen: (post: EventAlbumPost) => void
-}) => (
+}) => {
+  const { t } = useLanguage()
+  return (
   <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4 mb-4">
     <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
     <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand" />
@@ -351,10 +359,10 @@ const OnThisDayCard = ({
           🕰️
         </span>
         <p className="text-[12.5px] font-bold text-ink-strong tracking-[-0.01em]">
-          그날의 추억
+          {t('newsEaMemoryTitle')}
         </p>
         <p className="text-[11px] text-gray-400 dark:text-white/40 ml-auto">
-          이맘때 함께했던 순간
+          {t('newsEaMemorySubtitle')}
         </p>
       </div>
 
@@ -379,7 +387,7 @@ const OnThisDayCard = ({
               </span>
             )}
             <span className="absolute top-1 left-1 inline-flex items-center px-1.5 h-5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold">
-              {yearsAgoLabel(post.event_date)}
+              {yearsAgoLabel(post.event_date, t)}
             </span>
             <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/75 to-transparent text-white text-[9.5px] font-bold truncate text-left">
               {post.title}
@@ -389,7 +397,8 @@ const OnThisDayCard = ({
       </div>
     </div>
   </div>
-)
+  )
+}
 
 // ── 작은 컴포넌트들 ────────────────────────────────────
 const HeroStat = ({ label, value }: { label: string; value: number }) => (
@@ -467,21 +476,22 @@ const SkeletonFeed = () => (
   </div>
 )
 
-const EmptyState = ({ filtered }: { filtered: boolean }) => (
+const EmptyState = ({ filtered }: { filtered: boolean }) => {
+  const { t } = useLanguage()
+  return (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <AlbumIcon width={30} height={30} className="text-brand" />
     </div>
     <p className="text-ink-strong text-[14.5px] font-bold mb-1">
-      {filtered ? '조건에 맞는 앨범이 없어요' : '아직 등록된 행사 앨범이 없어요'}
+      {t(filtered ? 'newsEaEmptyFilteredTitle' : 'newsEaEmptyTitle')}
     </p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-      {filtered
-        ? '태그나 연도를 바꿔서 다시 찾아보세요'
-        : '행사 사진이 올라오면 이곳에서 만나볼 수 있어요'}
+      {t(filtered ? 'newsEaEmptyFilteredDesc' : 'newsEaEmptyDesc')}
     </p>
   </div>
-)
+  )
+}
 
 const ErrorState = ({ message }: { message: string }) => (
   <div className="rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 py-8 px-6 text-center">

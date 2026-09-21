@@ -4,17 +4,23 @@ import { useState } from 'react'
 import { useNewsDetail } from '../../../hooks/useNews'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { NewsAttachment } from '../../../types/news'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import type { Language } from '../../../locales'
 
 interface NewsDetailViewProps {
   newsId: number
   onBack: () => void
 }
 
-const formatDateTime = (value: string | null) => {
+const formatDateTime = (value: string | null, lang: Language) => {
   if (!value) return ''
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+  return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
 const formatSize = (bytes: number | null) => {
@@ -32,6 +38,7 @@ const extensionOf = (attachment: NewsAttachment): string => {
 }
 
 const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
+  const { t, language } = useLanguage()
   const { data: news, isLoading, error } = useNewsDetail(newsId)
   const [zoom, setZoom] = useState<string | null>(null)
 
@@ -48,7 +55,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />
         </svg>
-        목록으로
+        {t('newsDetailBack')}
       </button>
 
       {isLoading ? (
@@ -60,9 +67,9 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
       ) : error || !news ? (
         <div className="rounded-2xl border border-[var(--card-border)] bg-white/80 dark:bg-card-dark px-6 py-12 text-center">
           <span className="text-3xl block mb-2">🕊️</span>
-          <p className="text-[13.5px] font-bold text-ink-strong mb-1">소식을 불러오지 못했어요</p>
+          <p className="text-[13.5px] font-bold text-ink-strong mb-1">{t('newsDetailErrorTitle')}</p>
           <p className="text-[12px] text-gray-500 dark:text-white/55">
-            삭제되었거나 아직 공개되지 않은 글일 수 있어요
+            {t('newsDetailErrorDesc')}
           </p>
         </div>
       ) : (
@@ -73,7 +80,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
             <div className="flex flex-wrap items-center gap-1.5 mb-2">
               {news.is_pinned && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand text-white tracking-[0.04em]">
-                  고정
+                  {t('newsPinned')}
                 </span>
               )}
               {news.category && (
@@ -83,7 +90,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
               )}
               {!news.is_published && (
                 <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
-                  비공개
+                  {t('newsPrivate')}
                 </span>
               )}
             </div>
@@ -93,11 +100,11 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
             </h2>
 
             <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">
-              <span className="font-semibold">{news.author || '관리자'}</span>
+              <span className="font-semibold">{news.author || t('newsDetailAuthorFallback')}</span>
               <span className="text-gray-300 dark:text-white/20">·</span>
-              <span>{formatDateTime(news.published_at)}</span>
+              <span>{formatDateTime(news.published_at, language)}</span>
               <span className="text-gray-300 dark:text-white/20">·</span>
-              <span>조회 {news.views}</span>
+              <span>{t('newsViewCount').replace('{n}', String(news.views))}</span>
             </div>
           </header>
 
@@ -110,7 +117,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
                   type="button"
                   onClick={() => setZoom(image.url)}
                   className="block w-full overflow-hidden rounded-2xl border border-gray-200/70 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.03]"
-                  aria-label="사진 크게 보기"
+                  aria-label={t('newsDetailZoomPhoto')}
                 >
                   <img
                     src={image.url}
@@ -131,7 +138,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
           {files.length > 0 && (
             <div className="relative z-10 px-5 pb-5">
               <p className="text-[11.5px] font-bold text-gray-500 dark:text-white/55 mb-2">
-                첨부파일 {files.length}개
+                {t('newsDetailAttachments').replace('{n}', String(files.length))}
               </p>
               <ul className="space-y-1.5">
                 {files.map((file) => (
@@ -147,7 +154,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
                       </span>
                       <span className="flex-1 min-w-0">
                         <span className="block text-[13px] font-semibold text-ink-strong truncate">
-                          {file.filename ?? '첨부파일'}
+                          {file.filename ?? t('newsDetailAttachmentFallback')}
                         </span>
                         <span className="block text-[11px] text-gray-500 dark:text-white/45">
                           {formatSize(file.file_size)}
@@ -174,6 +181,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
 
 /** 사진 확대 — 뒤로가기로도 닫힌다 */
 const Lightbox = ({ src, onClose }: { src: string; onClose: () => void }) => {
+  const { t } = useLanguage()
   useModalBackButton(onClose)
   return (
     <div
@@ -185,7 +193,7 @@ const Lightbox = ({ src, onClose }: { src: string; onClose: () => void }) => {
       <button
         type="button"
         onClick={onClose}
-        aria-label="닫기"
+        aria-label={t('newsClose')}
         className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">

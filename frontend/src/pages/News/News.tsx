@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useLanguage } from '../../contexts/LanguageContext'
+import type { Language, Translation } from '../../locales'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { NEWS_HERO, OFFERING_HERO, type ThemePair } from '../../utils/themeAssets'
 import { useQueryClient } from '@tanstack/react-query'
@@ -42,16 +44,16 @@ type BulletinTabKey = 'image' | 'digital'
 const SECTIONS: {
   key: SectionKey
   Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
-  label: string
+  labelKey: keyof Translation
   seal?: { from: string; to: string }
 }[] = [
-  { key: 'news', Icon: MegaphoneIcon, label: '소식' },
+  { key: 'news', Icon: MegaphoneIcon, labelKey: 'newsTabNews' },
   // 공지는 소식과 데이터 소스가 다르다(notifications) — 분류 칩이 아니라 이 줄에 둔다
-  { key: 'notice', Icon: NoticeBoardIcon, label: '공지', seal: { from: '#4a93f2', to: '#2a6fd6' } },
-  { key: 'bulletin', Icon: BulletinIcon, label: '주보', seal: { from: '#5b8cf0', to: '#3562d9' } },
-  { key: 'new-family', Icon: SproutIcon, label: '새가족', seal: { from: '#45a8f7', to: '#1f86e8' } },
-  { key: 'event-album', Icon: AlbumIcon, label: '행사', seal: { from: '#6f86f4', to: '#4d5ee0' } },
-  { key: 'offering', Icon: OfferingBoxIcon, label: '헌금', seal: { from: '#3ea7f0', to: '#1a6fd4' } },
+  { key: 'notice', Icon: NoticeBoardIcon, labelKey: 'newsTabNotice', seal: { from: '#4a93f2', to: '#2a6fd6' } },
+  { key: 'bulletin', Icon: BulletinIcon, labelKey: 'newsTabBulletin', seal: { from: '#5b8cf0', to: '#3562d9' } },
+  { key: 'new-family', Icon: SproutIcon, labelKey: 'newsTabNewFamily', seal: { from: '#45a8f7', to: '#1f86e8' } },
+  { key: 'event-album', Icon: AlbumIcon, labelKey: 'newsTabEventAlbum', seal: { from: '#6f86f4', to: '#4d5ee0' } },
+  { key: 'offering', Icon: OfferingBoxIcon, labelKey: 'newsTabOffering', seal: { from: '#3ea7f0', to: '#1a6fd4' } },
 ]
 
 // 탭별 히어로 삽화(CSS 배경, news-hero.css·offering.css) — 활성 탭의 쌍만 테마 토글 선요청에 등록한다
@@ -70,8 +72,10 @@ const isSectionKey = (value: string | null): value is SectionKey =>
   value === 'event-album' ||
   value === 'offering'
 
-const formatLongDate = (date: string) =>
-  new Date(date).toLocaleDateString('ko-KR', {
+const localeOf = (lang: Language) => (lang === 'en' ? 'en-US' : 'ko-KR')
+
+const formatLongDate = (date: string, lang: Language) =>
+  new Date(date).toLocaleDateString(localeOf(lang), {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -84,6 +88,7 @@ const isThisMonth = (date: string): boolean => {
 }
 
 const News = () => {
+  const { t } = useLanguage()
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab')
   const section: SectionKey = isSectionKey(tabParam) ? tabParam : 'news'
@@ -117,7 +122,7 @@ const News = () => {
       setSelectedBulletin(detail)
       setViewMode('view')
     } catch (error) {
-      showToast(error instanceof Error ? error.message : '주보를 불러오는데 실패했습니다', 'error')
+      showToast(error instanceof Error ? error.message : t('newsBulletinOpenFailed'), 'error')
     } finally {
       setOpeningId(null)
     }
@@ -147,10 +152,10 @@ const News = () => {
             NEWS
           </p>
           <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
-            교회소식
+            {t('newsPageTitle')}
           </h1>
           <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
-            참빛교회의 매주 새 소식을 모았어요
+            {t('newsPageSubtitle')}
           </p>
         </header>
 
@@ -184,7 +189,7 @@ const News = () => {
                 ].join(' ')}
               >
                 <s.Icon width={14} height={14} className="hidden min-[360px]:block shrink-0" />
-                {s.label}
+                {t(s.labelKey)}
               </button>
             ))}
           </SegmentTrack>
@@ -216,11 +221,11 @@ const News = () => {
             >
               <TabPill active={tab === 'image'} onClick={() => setTab('image')}>
                 <ImagePageIcon width={15} height={15} className="shrink-0" />
-                이미지 주보
+                {t('newsBulletinTabImage')}
               </TabPill>
               <TabPill active={tab === 'digital'} onClick={() => setTab('digital')}>
                 <ScreenPageIcon width={15} height={15} className="shrink-0" />
-                디지털 주보
+                {t('newsBulletinTabDigital')}
               </TabPill>
             </SegmentTrack>
           </div>
@@ -249,7 +254,7 @@ const News = () => {
                 {bulletins.length > 1 && (
                   <div className="pt-1">
                     <p className="text-[12px] font-bold text-gray-500 dark:text-white/55 mb-2 px-1">
-                      지난 주보
+                      {t('newsBulletinPast')}
                     </p>
                     {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 그리드 */}
                     <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
@@ -361,7 +366,9 @@ const FeaturedCard = ({
   bulletin: Bulletin
   onClick: () => void
   busy?: boolean
-}) => (
+}) => {
+  const { t, language } = useLanguage()
+  return (
   <button
     type="button"
     onClick={onClick}
@@ -391,7 +398,7 @@ const FeaturedCard = ({
           {isThisMonth(bulletin.bulletin_date) && (
             <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-brand text-white text-[10.5px] font-bold tracking-wide shadow-[0_4px_12px_-2px_var(--brand-glow)]">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              최신
+              {t('newsBulletinLatest')}
             </span>
           )}
           <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-black/45 backdrop-blur-sm text-white text-[10.5px] font-semibold">
@@ -402,7 +409,7 @@ const FeaturedCard = ({
         {/* 하단 텍스트 (모바일 — 사진 위 오버레이) */}
         <div className="absolute inset-x-0 bottom-0 p-4 z-10 lg:hidden">
           <p className="text-white/80 text-[11.5px] font-semibold mb-1">
-            {formatLongDate(bulletin.bulletin_date)}
+            {formatLongDate(bulletin.bulletin_date, language)}
           </p>
           <h2 className="text-white text-[18px] font-bold leading-[1.3] tracking-[-0.015em] line-clamp-2 mb-1.5">
             {bulletin.title}
@@ -413,7 +420,7 @@ const FeaturedCard = ({
               {bulletin.views}
             </span>
             <span className="ml-auto inline-flex items-center gap-0.5 text-white font-bold">
-              읽어보기
+              {t('newsBulletinRead')}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
@@ -425,7 +432,7 @@ const FeaturedCard = ({
       {/* 정보 패널 (lg — 썸네일 오른쪽) */}
       <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:flex-col lg:justify-center lg:gap-2 lg:p-7">
         <p className="text-gray-500 dark:text-white/70 text-[12.5px] font-semibold">
-          {formatLongDate(bulletin.bulletin_date)}
+          {formatLongDate(bulletin.bulletin_date, language)}
         </p>
         <h2 className="text-gray-900 dark:text-white text-[22px] font-bold leading-[1.32] tracking-[-0.02em] line-clamp-2">
           {bulletin.title}
@@ -446,7 +453,7 @@ const FeaturedCard = ({
             {bulletin.views}
           </span>
           <span className="ml-auto inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
-            읽어보기
+            {t('newsBulletinRead')}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
@@ -464,7 +471,8 @@ const FeaturedCard = ({
       )}
     </article>
   </button>
-)
+  )
+}
 
 // ── Compact Card (지난 주보) ─────────────────────
 const CompactCard = ({
@@ -475,7 +483,9 @@ const CompactCard = ({
   bulletin: Bulletin
   onClick: () => void
   busy?: boolean
-}) => (
+}) => {
+  const { language } = useLanguage()
+  return (
   <button
     type="button"
     onClick={onClick}
@@ -507,7 +517,7 @@ const CompactCard = ({
             {bulletin.title}
           </p>
           <p className="text-[11.5px] text-gray-500 dark:text-white/55 truncate mt-0.5">
-            {formatLongDate(bulletin.bulletin_date)}
+            {formatLongDate(bulletin.bulletin_date, language)}
           </p>
           <div className="flex items-center gap-2.5 text-[11px] text-gray-400 dark:text-white/45 mt-0.5">
             <span className="inline-flex items-center gap-1">
@@ -538,7 +548,8 @@ const CompactCard = ({
       </div>
     </article>
   </button>
-)
+  )
+}
 
 // ── Desktop Sidebar (lg+) ────────────────────────
 // 넓어진 화면의 우측을 채우는 보조 위젯 열.
@@ -556,6 +567,7 @@ const NewsSidebar = ({
   onSectionChange: (next: SectionKey) => void
   onBulletinClick: (bulletin: Bulletin) => void
 }) => {
+  const { t, language } = useLanguage()
   const latest = bulletins[0]
   const recent = bulletins.slice(1, 6)
 
@@ -563,7 +575,7 @@ const NewsSidebar = ({
     <>
       {/* 이번 주 주보 — 어느 섹션에 있든 최신 주보로 바로 들어가는 문 */}
       {latest && (
-        <SidebarCard title="이번 주 주보" Icon={BulletinIcon}>
+        <SidebarCard title={t('newsSidebarThisWeek')} Icon={BulletinIcon}>
           <button
             type="button"
             onClick={() => onBulletinClick(latest)}
@@ -571,13 +583,13 @@ const NewsSidebar = ({
             className={`group w-full text-left ${openingId === latest.id ? 'opacity-60' : ''}`}
           >
             <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/50">
-              {formatLongDate(latest.bulletin_date)}
+              {formatLongDate(latest.bulletin_date, language)}
             </p>
             <p className="mt-1 text-[14px] font-bold text-ink-strong leading-[1.4] line-clamp-2">
               {latest.title}
             </p>
             <span className="mt-2.5 inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
-              읽어보기
+              {t('newsBulletinRead')}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
@@ -588,7 +600,7 @@ const NewsSidebar = ({
 
       {/* 주보 바로가기 — 날짜만 훑고 바로 여는 얇은 목록 */}
       {recent.length > 0 && (
-        <SidebarCard title="주보 바로가기" Icon={ArchiveIcon}>
+        <SidebarCard title={t('newsSidebarShortcuts')} Icon={ArchiveIcon}>
           <ul className="-mx-1">
             {recent.map(b => (
               <li key={b.id}>
@@ -601,7 +613,7 @@ const NewsSidebar = ({
                   }`}
                 >
                   <span className="shrink-0 text-[11px] font-bold tabular-nums text-gray-400 dark:text-white/40">
-                    {new Date(b.bulletin_date).toLocaleDateString('ko-KR', {
+                    {new Date(b.bulletin_date).toLocaleDateString(localeOf(language), {
                       month: 'numeric',
                       day: 'numeric',
                     })}
@@ -617,7 +629,7 @@ const NewsSidebar = ({
       )}
 
       {/* 다른 소식 — 세그먼트를 위로 올라가 누르지 않아도 되게 */}
-      <SidebarCard title="다른 소식" Icon={SparkleIcon}>
+      <SidebarCard title={t('newsSidebarOther')} Icon={SparkleIcon}>
         <div className="flex flex-col gap-1.5">
           {SECTIONS.filter(sec => sec.key !== section).map(sec => (
             <button
@@ -627,7 +639,7 @@ const NewsSidebar = ({
               className="flex items-center gap-2 h-10 px-3 rounded-xl border border-[var(--card-border)] text-[13px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
             >
               <sec.Icon width={16} height={16} className="shrink-0 text-brand" />
-              {sec.label}
+              {t(sec.labelKey)}
               <svg
                 width="15"
                 height="15"
@@ -688,32 +700,38 @@ const SkeletonCards = () => (
   </div>
 )
 
-const ErrorState = () => (
+const ErrorState = () => {
+  const { t } = useLanguage()
+  return (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
       <SignalIcon width={28} height={28} />
     </div>
     <p className="text-ink-strong text-[14.5px] font-bold mb-1">
-      주보를 불러오지 못했어요
+      {t('newsBulletinErrorTitle')}
     </p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-      네트워크 상태를 확인한 뒤 다시 열어 주세요
+      {t('newsBulletinErrorDesc')}
     </p>
   </div>
-)
+  )
+}
 
-const EmptyState = () => (
+const EmptyState = () => {
+  const { t } = useLanguage()
+  return (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
       <BulletinIcon width={28} height={28} />
     </div>
     <p className="text-ink-strong text-[14.5px] font-bold mb-1">
-      아직 등록된 주보가 없어요
+      {t('newsBulletinEmptyTitle')}
     </p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-      곧 새로운 주간 소식이 올라올 거예요
+      {t('newsBulletinEmptyDesc')}
     </p>
   </div>
-)
+  )
+}
 
 export default News

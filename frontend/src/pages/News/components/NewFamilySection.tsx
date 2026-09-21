@@ -16,6 +16,7 @@ import { SproutIcon } from './NewsIcons'
 import '../news-hero.css'
 import { tokenStore } from '../../../utils/tokenStore'
 import { can } from '../../../utils/access'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 type ViewMode = 'feed' | 'grid'
 
@@ -23,6 +24,7 @@ const NewFamilySection = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
+  const { t } = useLanguage()
   const isLoggedIn = !!tokenStore.getAccess()
   const admin = can('content:manage')
 
@@ -33,7 +35,7 @@ const NewFamilySection = () => {
   const { posts, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage, error } =
     useNewFamilyPosts(10, isLoggedIn)
   const { data: stats } = useNewFamilyStats(isLoggedIn)
-  const { toggleWelcome } = useToggleWelcome(toastFeedback({ error: '환영 표시에 실패했습니다' }))
+  const { toggleWelcome } = useToggleWelcome(toastFeedback({ error: t('newsNfWelcomeFailed') }))
 
   // 시트가 열려 있는 동안 목록이 갱신되면 최신 카운트로 따라가게 한다
   const activeCommentPost = commentPost
@@ -43,20 +45,20 @@ const NewFamilySection = () => {
   const handleDelete = async (post: NewFamilyPost) => {
     if (
       !(await confirmDialog({
-        title: '새가족 소식 삭제',
-        message: `${post.member_name} 소식을 삭제할까요?`,
-        description: '등록된 사진과 환영 댓글도 함께 삭제됩니다.',
-        confirmText: '삭제',
+        title: t('newsNfDeleteTitle'),
+        message: t('newsNfDeleteMessage').replace('{name}', post.member_name),
+        description: t('newsNfDeleteDescription'),
+        confirmText: t('newsDelete'),
         icon: 'delete_outline',
       }))
     )
       return
     try {
       await deleteNewFamilyPost(post.id)
-      showToast('삭제되었습니다', 'success')
+      showToast(t('newsNfDeleted'), 'success')
       queryClient.invalidateQueries({ queryKey: ['new-family'] })
     } catch (err) {
-      showToast(err instanceof Error ? err.message : '삭제에 실패했습니다', 'error')
+      showToast(err instanceof Error ? err.message : t('newsNfDeleteFailed'), 'error')
     }
   }
 
@@ -71,19 +73,19 @@ const NewFamilySection = () => {
               <Lock size={30} weight="duotone" color="currentColor" aria-hidden="true" />
             </div>
             <p className="text-ink-strong text-[15px] font-bold mb-1.5">
-              성도님만 볼 수 있어요
+              {t('newsGateTitle')}
             </p>
             <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.65] mb-5">
-              새가족 앨범에는 실명과 사진이 담겨 있어
+              {t('newsGateNewFamilyLine1')}
               <br />
-              로그인한 성도에게만 공개됩니다
+              {t('newsGateLine2')}
             </p>
             <button
               type="button"
               onClick={() => navigate('/login')}
               className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] active:scale-[0.98] transition-all"
             >
-              로그인하고 보기
+              {t('newsGateCta')}
             </button>
           </div>
         </div>
@@ -106,31 +108,31 @@ const NewFamilySection = () => {
                 NEW FAMILY
               </p>
               <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-                새가족 등록 앨범
+                {t('newsNfTitle')}
               </h2>
             </div>
           </div>
 
           {/* 글줄이 삽화 위로 넘어가지 않게 폭을 잡는다 — 삽화 위치가 바뀌면 이 값도 다시 볼 것 */}
           <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
-            참빛교회 가족이 된 분들을 소개합니다. 따뜻한 환영 인사를 남겨주세요.
+            {t('newsNfIntro')}
           </p>
 
           {/* PC 에선 삽화(오른쪽 43%)를 덮지 않게 글 칼럼 폭에 맞춘다 */}
           <div className="flex items-center gap-5 lg:max-w-[52%]">
-            <HeroStat label="이번 달" value={stats?.this_month ?? 0} />
-            <HeroStat label="올해" value={stats?.this_year ?? 0} />
-            <HeroStat label="전체" value={stats?.total ?? 0} />
+            <HeroStat label={t('newsNfStatMonth')} value={stats?.this_month ?? 0} />
+            <HeroStat label={t('newsNfStatYear')} value={stats?.this_year ?? 0} />
+            <HeroStat label={t('newsNfStatTotal')} value={stats?.total ?? 0} />
 
             {/* 뷰 전환 */}
             <div className="ml-auto inline-flex p-0.5 rounded-full bg-gray-100/90 dark:bg-white/[0.05] backdrop-blur-sm border border-gray-200/70 dark:border-white/[0.06]">
-              <ViewToggle active={viewMode === 'feed'} onClick={() => setViewMode('feed')} label="피드로 보기">
+              <ViewToggle active={viewMode === 'feed'} onClick={() => setViewMode('feed')} label={t('newsNfViewFeed')}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="18" height="8" rx="2" />
                   <rect x="3" y="13" width="18" height="8" rx="2" />
                 </svg>
               </ViewToggle>
-              <ViewToggle active={viewMode === 'grid'} onClick={() => setViewMode('grid')} label="그리드로 보기">
+              <ViewToggle active={viewMode === 'grid'} onClick={() => setViewMode('grid')} label={t('newsNfViewGrid')}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="3" width="7" height="7" rx="1.5" />
                   <rect x="14" y="3" width="7" height="7" rx="1.5" />
@@ -147,7 +149,7 @@ const NewFamilySection = () => {
       {isLoading ? (
         <SkeletonFeed />
       ) : error ? (
-        <ErrorState message={error instanceof Error ? error.message : '불러오지 못했습니다'} />
+        <ErrorState message={error instanceof Error ? error.message : t('newsLoadFailed')} />
       ) : posts.length === 0 ? (
         <EmptyState />
       ) : viewMode === 'grid' ? (
@@ -207,7 +209,7 @@ const NewFamilySection = () => {
             disabled={isFetchingNextPage}
             className="px-5 h-10 rounded-full text-[12.5px] font-bold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
           >
-            {isFetchingNextPage ? '불러오는 중...' : '지난 새가족 더 보기'}
+            {isFetchingNextPage ? t('newsLoadingMore') : t('newsNfLoadMore')}
           </button>
         </div>
       )}
@@ -278,19 +280,22 @@ const SkeletonFeed = () => (
   </div>
 )
 
-const EmptyState = () => (
+const EmptyState = () => {
+  const { t } = useLanguage()
+  return (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <SproutIcon width={30} height={30} className="text-purple-500 dark:text-purple-300" />
     </div>
     <p className="text-ink-strong text-[14.5px] font-bold mb-1">
-      아직 등록된 새가족이 없어요
+      {t('newsNfEmptyTitle')}
     </p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-      새 가족이 등록되면 이곳에서 만나볼 수 있어요
+      {t('newsNfEmptyDesc')}
     </p>
   </div>
-)
+  )
+}
 
 const ErrorState = ({ message }: { message: string }) => (
   <div className="rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 py-8 px-6 text-center">

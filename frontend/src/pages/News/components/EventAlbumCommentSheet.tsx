@@ -14,6 +14,7 @@ import {
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { toastFeedback } from '../../../utils/toast'
 import { can } from '../../../utils/access'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface EventAlbumCommentSheetProps {
   post: EventAlbumPost
@@ -23,6 +24,7 @@ interface EventAlbumCommentSheetProps {
 const MAX_LENGTH = 500
 
 const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) => {
+  const { t } = useLanguage()
   const [content, setContent] = useState('')
   const [showStickers, setShowStickers] = useState(false)
 
@@ -31,13 +33,13 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
   // 내 사진·이름 — 헤더가 캐시한 가벼운 /profile/stats(useMyIdentity). 시트를 열 때마다
   // 무거운 프로필 상세(통계+목록 집계)를 다시 부르지 않는다
   const { avatarUrl, displayName: myName } = useMyIdentity()
-  const displayName = myName || '성도'
+  const displayName = myName || t('newsCommentNameFallback')
 
   const { comments, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useEventAlbumComments(post.id)
-  const { createComment, isCreating } = useCreateEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 등록에 실패했습니다' }))
-  const { updateComment, isUpdating } = useUpdateEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 수정에 실패했습니다' }))
-  const { deleteComment } = useDeleteEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 삭제에 실패했습니다' }))
+  const { createComment, isCreating } = useCreateEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: t('newsCommentCreateFailed') }))
+  const { updateComment, isUpdating } = useUpdateEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: t('newsCommentUpdateFailed') }))
+  const { deleteComment } = useDeleteEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: t('newsCommentDeleteFailed') }))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,16 +69,16 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
           <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
             <div className="min-w-0">
               <p className="text-[16px] font-bold text-ink-strong tracking-[-0.015em]">
-                댓글
+                {t('newsEaCommentTitle')}
               </p>
               <p className="text-[12px] text-gray-500 dark:text-white/50 truncate">
-                {post.title}의 추억을 나눠주세요
+                {t('newsEaCommentSubtitle').replace('{title}', post.title)}
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              aria-label="닫기"
+              aria-label={t('newsClose')}
               className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -135,7 +137,7 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
             <div className="flex-1 min-w-0 flex items-end gap-1.5 rounded-2xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-2 py-1.5 focus-within:border-[var(--brand)] transition-colors">
               <button
                 type="button"
-                aria-label="움직이는 이모티콘"
+                aria-label={t('newsAnimatedSticker')}
                 aria-expanded={showStickers}
                 disabled={isCreating}
                 onClick={() => setShowStickers((v) => !v)}
@@ -150,7 +152,7 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value.slice(0, MAX_LENGTH))}
-                placeholder="추억이나 감사를 남겨주세요"
+                placeholder={t('newsEaCommentPlaceholder')}
                 rows={1}
                 disabled={isCreating}
                 className="flex-1 min-w-0 bg-transparent resize-none py-1.5 text-[14px] leading-[1.5] text-ink-strong placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none max-h-24 disabled:opacity-50"
@@ -162,12 +164,12 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
               disabled={!content.trim() || isCreating}
               className="shrink-0 px-4 h-9 rounded-full brand-gradient text-[13px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              {isCreating ? '전송중' : '등록'}
+              {isCreating ? t('newsCommentSending') : t('newsCommentSubmit')}
             </button>
           </div>
 
           <p className="mt-1.5 pl-[42px] text-[10.5px] text-gray-400 dark:text-white/35">
-            {displayName} 이름으로 남겨져요
+            {t('newsCommentSignature').replace('{name}', displayName)}
           </p>
         </form>
       </div>

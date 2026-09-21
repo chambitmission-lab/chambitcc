@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Bulletin } from '../../../types/bulletin'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import './InstagramBulletinViewer.css'
 
 interface InstagramBulletinViewerProps {
@@ -9,6 +10,7 @@ interface InstagramBulletinViewerProps {
 }
 
 const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerProps) => {
+  const { t } = useLanguage()
   const [currentPage, setCurrentPage] = useState(0)
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -162,7 +164,7 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
   if (totalPages === 0) {
     return (
       <div className="instagram-viewer">
-        <div className="viewer-error">페이지를 불러올 수 없습니다</div>
+        <div className="viewer-error">{t('newsViewerPageFailed')}</div>
       </div>
     )
   }
@@ -203,7 +205,7 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
         <img
           ref={imageRef}
           src={pages[currentPage]?.image_url}
-          alt={`페이지 ${currentPage + 1}`}
+          alt={t('newsViewerPageNth').replace('{n}', String(currentPage + 1))}
           className="bulletin-image"
           style={{
             transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,

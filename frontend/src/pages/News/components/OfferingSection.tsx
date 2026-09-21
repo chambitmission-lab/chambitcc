@@ -43,14 +43,14 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
 
 const OfferingSection = () => {
   const navigate = useNavigate()
-  const { language } = useLanguage()
+  const { t, language } = useLanguage()
   const admin = can('content:manage')
   const { guide, accounts, isLoading, isError } = useOffering()
 
   // 방금 복사한 계좌 — 버튼이 체크로 잠깐 바뀐다
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
-  const title = guideText(guide, 'title', language) || '온라인 헌금'
+  const title = guideText(guide, 'title', language) || t('newsOfferingFallbackTitle')
   const intro = guideText(guide, 'intro', language)
   const methodTitle = guideText(guide, 'method_title', language)
   const depositFormat = guideText(guide, 'deposit_format', language)
@@ -64,11 +64,14 @@ const OfferingSection = () => {
     const plain = plainAccountNumber(account.account_number)
     const ok = await copyToClipboard(plain || account.account_number)
     if (!ok) {
-      showToast('계좌번호를 복사하지 못했어요', 'error')
+      showToast(t('newsOfferingCopyFailed'), 'error')
       return
     }
     setCopiedId(account.id)
-    showToast(`${accountText(account, 'label', language)} 계좌번호를 복사했어요`, 'success')
+    showToast(
+      t('newsOfferingCopied').replace('{label}', accountText(account, 'label', language)),
+      'success',
+    )
     window.setTimeout(() => setCopiedId((prev) => (prev === account.id ? null : prev)), 1800)
   }
 
@@ -103,7 +106,7 @@ const OfferingSection = () => {
           {accounts.length > 0 && (
             <p className="mt-3 inline-flex items-center gap-1.5 px-3 h-7 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[11.5px] font-bold">
               <BankIcon width={13} height={13} />
-              계좌 {accounts.length}곳
+              {t('newsOfferingAccountCount').replace('{n}', String(accounts.length))}
             </p>
           )}
         </div>
@@ -125,7 +128,7 @@ const OfferingSection = () => {
             {(depositFormat || depositDesc) && (
               <div className="rounded-2xl bg-gray-50/80 dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/[0.06] px-4 py-3.5">
                 <p className="text-[10.5px] font-bold tracking-[0.08em] text-gray-400 dark:text-white/40 mb-2">
-                  입금자명
+                  {t('newsOfferingDepositName')}
                 </p>
                 {depositFormat && (
                   <p className="inline-flex items-center px-3 py-1.5 rounded-xl bg-brand text-white text-[13px] font-bold shadow-[0_6px_16px_-8px_var(--brand-glow)]">
@@ -161,10 +164,10 @@ const OfferingSection = () => {
           <div className="relative z-10">
             <h3 className="flex items-center gap-1.5 text-ink-strong text-[15px] font-bold tracking-[-0.015em] mb-1">
               <BankIcon width={16} height={16} className="text-brand shrink-0" />
-              계좌번호
+              {t('newsOfferingAccountNumber')}
             </h3>
             <p className="text-gray-500 dark:text-white/50 text-[12px] mb-3.5">
-              카드를 누르면 계좌번호가 복사됩니다
+              {t('newsOfferingCopyHint')}
             </p>
 
             {/* lg+: 본문이 넓어지므로 2열 */}
@@ -203,7 +206,7 @@ const OfferingSection = () => {
           onClick={() => navigate('/admin/offering')}
           className="mt-3 w-full h-11 rounded-2xl border border-dashed border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] text-brand text-[12.5px] font-bold transition-colors"
         >
-          온라인 헌금 안내 관리 →
+          {t('newsOfferingAdminLink')}
         </button>
       )}
     </div>
@@ -222,6 +225,7 @@ const AccountCard = ({
   copied: boolean
   onCopy: () => void
 }) => {
+  const { t } = useLanguage()
   const label = accountText(account, 'label', language)
   const bank = accountText(account, 'bank', language)
   const holder = accountText(account, 'holder', language)
@@ -232,7 +236,7 @@ const AccountCard = ({
       type="button"
       onClick={onCopy}
       className="w-full text-left group rounded-2xl border border-gray-200/70 dark:border-white/[0.08] bg-gray-50/70 dark:bg-white/[0.03] hover:border-[var(--brand-soft-strong)] active:scale-[0.995] transition-all px-3.5 py-3"
-      aria-label={`${label} 계좌번호 복사`}
+      aria-label={t('newsOfferingCopyAria').replace('{label}', label)}
     >
       <div className="flex items-center gap-2.5">
         <div className="flex-1 min-w-0">
@@ -251,7 +255,9 @@ const AccountCard = ({
           </p>
           {(holder || note) && (
             <p className="mt-0.5 text-[11.5px] text-gray-500 dark:text-white/50 truncate">
-              {[holder && `예금주 ${holder}`, note].filter(Boolean).join(' · ')}
+              {[holder && t('newsOfferingHolder').replace('{name}', holder), note]
+            .filter(Boolean)
+            .join(' · ')}
             </p>
           )}
         </div>
@@ -280,26 +286,31 @@ const SkeletonSection = () => (
   </div>
 )
 
-const ErrorState = () => (
+const ErrorState = () => {
+  const { t } = useLanguage()
+  return (
   <div className="rounded-3xl bg-white/80 dark:bg-card-dark border border-[var(--card-border)] py-12 px-6 text-center">
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
       <SignalIcon width={28} height={28} />
     </div>
-    <p className="text-ink-strong text-[14.5px] font-bold mb-1">헌금 안내를 불러오지 못했어요</p>
+    <p className="text-ink-strong text-[14.5px] font-bold mb-1">{t('newsOfferingErrorTitle')}</p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-      네트워크 상태를 확인한 뒤 다시 열어 주세요
+      {t('newsOfferingErrorDesc')}
     </p>
   </div>
-)
+  )
+}
 
-const EmptyState = ({ admin, onGoAdmin }: { admin: boolean; onGoAdmin: () => void }) => (
+const EmptyState = ({ admin, onGoAdmin }: { admin: boolean; onGoAdmin: () => void }) => {
+  const { t } = useLanguage()
+  return (
   <div className="rounded-3xl bg-white/80 dark:bg-card-dark border border-[var(--card-border)] py-12 px-6 text-center">
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
       <BankIcon width={28} height={28} />
     </div>
-    <p className="text-ink-strong text-[14.5px] font-bold mb-1">아직 등록된 계좌가 없어요</p>
+    <p className="text-ink-strong text-[14.5px] font-bold mb-1">{t('newsOfferingEmptyTitle')}</p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-      {admin ? '관리자 화면에서 헌금 계좌를 등록해 주세요' : '교회 사무실로 문의해 주세요'}
+      {t(admin ? 'newsOfferingEmptyDescAdmin' : 'newsOfferingEmptyDesc')}
     </p>
     {admin && (
       <button
@@ -307,10 +318,11 @@ const EmptyState = ({ admin, onGoAdmin }: { admin: boolean; onGoAdmin: () => voi
         onClick={onGoAdmin}
         className="mt-4 inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] active:scale-[0.98] transition-all"
       >
-        계좌 등록하러 가기
+        {t('newsOfferingEmptyCta')}
       </button>
     )}
   </div>
-)
+  )
+}
 
 export default OfferingSection

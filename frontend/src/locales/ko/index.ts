@@ -17,6 +17,7 @@ import { answered } from './answered'
 import { mission } from './mission'
 import { home } from './home'
 import { landing } from './landing'
+import { news } from './news'
 
 export const ko = {
   ...common,
@@ -37,4 +38,5 @@ export const ko = {
   ...mission,
   ...home,
   ...landing,
+  ...news,
 } as const

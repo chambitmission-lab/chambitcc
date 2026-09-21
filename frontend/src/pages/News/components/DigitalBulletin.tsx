@@ -22,36 +22,43 @@ import {
   SparkleIcon,
 } from './NewsIcons'
 import { can } from '../../../utils/access'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import type { Translation } from '../../../locales'
 
 type SectionKey = 'worship' | 'announcements' | 'groups' | 'schedule'
 
 const SECTION_META: Record<
   SectionKey,
-  { Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement; title: string; bar: string }
+  {
+    Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
+    titleKey: keyof Translation
+    bar: string
+  }
 > = {
   worship: {
     Icon: ChurchIcon,
-    title: '주일오전예배',
+    titleKey: 'newsDbSectionWorship',
     bar: 'from-blue-500 to-blue-600',
   },
   announcements: {
     Icon: MegaphoneIcon,
-    title: '교회 소식',
+    titleKey: 'newsDbSectionAnnouncements',
     bar: 'from-sky-400 to-blue-500',
   },
   groups: {
     Icon: PeopleIcon,
-    title: '구역 보고',
+    titleKey: 'newsDbSectionGroups',
     bar: 'from-cyan-400 to-sky-500',
   },
   schedule: {
     Icon: CalendarIcon,
-    title: '이번 주 일정',
+    titleKey: 'newsDbSectionSchedule',
     bar: 'from-indigo-400 to-blue-600',
   },
 }
 
 const DigitalBulletin = () => {
+  const { t } = useLanguage()
   const isAdminUser = can('content:manage')
   const { data } = useDigitalBulletin()
   const replaceMutation = useReplaceDigitalBulletin()
@@ -71,7 +78,7 @@ const DigitalBulletin = () => {
       await replaceMutation.mutateAsync(next)
     } catch (e) {
       console.error(e)
-      showToast('저장에 실패했습니다', 'error')
+      showToast(t('newsDbSaveFailed'), 'error')
     }
   }
 
@@ -185,7 +192,7 @@ const DigitalBulletin = () => {
               <EditableField
                 value={data.date}
                 isAdmin={isAdminUser}
-                label="날짜"
+                label={t('newsDbFieldDate')}
                 onSave={setTopField('date')}
               >
                 {data.date}
@@ -196,7 +203,7 @@ const DigitalBulletin = () => {
                 value={data.title}
                 isAdmin={isAdminUser}
                 multiline
-                label="대표 제목"
+                label={t('newsDbFieldTitle')}
                 onSave={setTopField('title')}
               >
                 {data.title}
@@ -206,7 +213,7 @@ const DigitalBulletin = () => {
               <EditableField
                 value={data.subtitle}
                 isAdmin={isAdminUser}
-                label="성경 구절"
+                label={t('newsDbFieldVerse')}
                 onSave={setTopField('subtitle')}
               >
                 {data.subtitle}
@@ -221,7 +228,7 @@ const DigitalBulletin = () => {
         sectionKey="worship"
         expanded={expanded.has('worship')}
         onToggle={() => toggle('worship')}
-        badge={`${data.worship.schedule.length}개 예배`}
+        badge={t('newsDbBadgeServices').replace('{n}', String(data.worship.schedule.length))}
       >
         {/* 예배 일정 */}
         <div className="space-y-2">
@@ -233,7 +240,7 @@ const DigitalBulletin = () => {
                   <EditableField
                     value={service.name}
                     isAdmin={isAdminUser}
-                    label="예배 이름"
+                    label={t('newsDbFieldServiceName')}
                     onSave={updateServiceField(idx, 'name')}
                   >
                     {service.name}
@@ -243,7 +250,7 @@ const DigitalBulletin = () => {
                   <EditableField
                     value={service.time}
                     isAdmin={isAdminUser}
-                    label="예배 시간"
+                    label={t('newsDbFieldServiceTime')}
                     onSave={updateServiceField(idx, 'time')}
                   >
                     {service.time}
@@ -251,11 +258,11 @@ const DigitalBulletin = () => {
                 </span>
               </div>
               <p className="text-[12px] text-gray-500 dark:text-white/55">
-                설교 ·{' '}
+                {t('newsDbSermonBy')}
                 <EditableField
                   value={service.preacher}
                   isAdmin={isAdminUser}
-                  label="설교자"
+                  label={t('newsDbFieldPreacher')}
                   onSave={updateServiceField(idx, 'preacher')}
                 >
                   {service.preacher}
@@ -263,18 +270,18 @@ const DigitalBulletin = () => {
               </p>
             </ItemCard>
           ))}
-          <AddItemButton isAdmin={isAdminUser} onClick={addService} label="예배 추가" />
+          <AddItemButton isAdmin={isAdminUser} onClick={addService} label={t('newsDbAddService')} />
         </div>
 
         {/* 찬송/기도/설교 */}
         <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/[0.05] space-y-1.5">
           <DetailRow
-            label="찬송"
+            label={t('newsDbFieldHymn')}
             value={
               <EditableField
                 value={data.worship.offering}
                 isAdmin={isAdminUser}
-                label="찬송"
+                label={t('newsDbFieldHymn')}
                 onSave={setOffering}
               >
                 {data.worship.offering}
@@ -282,12 +289,12 @@ const DigitalBulletin = () => {
             }
           />
           <DetailRow
-            label="기도"
+            label={t('newsDbFieldPrayer')}
             value={
               <EditableField
                 value={data.worship.prayer}
                 isAdmin={isAdminUser}
-                label="기도"
+                label={t('newsDbFieldPrayer')}
                 onSave={setPrayer}
               >
                 {data.worship.prayer}
@@ -299,14 +306,14 @@ const DigitalBulletin = () => {
           <div className="mt-2 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] p-3">
             <p className="inline-flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-[0.1em] text-brand mb-1.5">
               <SparkleIcon width={13} height={13} className="shrink-0" />
-              설교
+              {t('newsDbSermon')}
             </p>
             <p className="text-[14px] font-bold text-ink-strong leading-[1.4] tracking-[-0.01em] mb-0.5 whitespace-pre-line">
               <EditableField
                 value={data.worship.sermon.title}
                 isAdmin={isAdminUser}
                 multiline
-                label="설교 제목"
+                label={t('newsDbFieldSermonTitle')}
                 onSave={setSermonField('title')}
               >
                 {data.worship.sermon.title}
@@ -316,7 +323,7 @@ const DigitalBulletin = () => {
               <EditableField
                 value={data.worship.sermon.subtitle}
                 isAdmin={isAdminUser}
-                label="설교 부제"
+                label={t('newsDbFieldSermonSubtitle')}
                 onSave={setSermonField('subtitle')}
               >
                 {data.worship.sermon.subtitle}
@@ -331,7 +338,7 @@ const DigitalBulletin = () => {
         sectionKey="announcements"
         expanded={expanded.has('announcements')}
         onToggle={() => toggle('announcements')}
-        badge={`${data.announcements.length}건`}
+        badge={t('newsDbBadgeAnnouncements').replace('{n}', String(data.announcements.length))}
       >
         <div className="space-y-2">
           {data.announcements.map((item, idx) => (
@@ -341,7 +348,7 @@ const DigitalBulletin = () => {
                 <EditableField
                   value={item.title}
                   isAdmin={isAdminUser}
-                  label="소식 제목"
+                  label={t('newsDbFieldAnnouncementTitle')}
                   onSave={updateAnnouncementField(idx, 'title')}
                 >
                   {item.title}
@@ -352,7 +359,7 @@ const DigitalBulletin = () => {
                   value={item.content}
                   isAdmin={isAdminUser}
                   multiline
-                  label="소식 내용"
+                  label={t('newsDbFieldAnnouncementBody')}
                   onSave={updateAnnouncementField(idx, 'content')}
                 >
                   {item.content}
@@ -360,7 +367,7 @@ const DigitalBulletin = () => {
               </p>
             </ItemCard>
           ))}
-          <AddItemButton isAdmin={isAdminUser} onClick={addAnnouncement} label="소식 추가" />
+          <AddItemButton isAdmin={isAdminUser} onClick={addAnnouncement} label={t('newsDbAddAnnouncement')} />
         </div>
       </SectionCard>
 
@@ -369,7 +376,7 @@ const DigitalBulletin = () => {
         sectionKey="groups"
         expanded={expanded.has('groups')}
         onToggle={() => toggle('groups')}
-        badge={`${data.groups.length}구역`}
+        badge={t('newsDbBadgeGroups').replace('{n}', String(data.groups.length))}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {data.groups.map((group, idx) => (
@@ -383,7 +390,7 @@ const DigitalBulletin = () => {
                   <EditableField
                     value={group.name}
                     isAdmin={isAdminUser}
-                    label="구역 이름"
+                    label={t('newsDbFieldGroupName')}
                     onSave={updateGroupField(idx, 'name')}
                   >
                     {group.name}
@@ -393,12 +400,12 @@ const DigitalBulletin = () => {
               <div className="space-y-1 text-[11.5px]">
                 <DetailRow
                   size="sm"
-                  label="구역장"
+                  label={t('newsDbFieldGroupLeader')}
                   value={
                     <EditableField
                       value={group.leader}
                       isAdmin={isAdminUser}
-                      label="구역장"
+                      label={t('newsDbFieldGroupLeader')}
                       onSave={updateGroupField(idx, 'leader')}
                     >
                       {group.leader}
@@ -407,27 +414,27 @@ const DigitalBulletin = () => {
                 />
                 <DetailRow
                   size="sm"
-                  label="인원"
+                  label={t('newsDbFieldGroupMembers')}
                   value={
                     <EditableField
                       value={String(group.members)}
                       isAdmin={isAdminUser}
                       type="number"
-                      label="인원"
+                      label={t('newsDbFieldGroupMembers')}
                       onSave={updateGroupField(idx, 'members')}
                     >
-                      {group.members}명
+                      {t('newsDbGroupMemberCount').replace('{n}', String(group.members))}
                     </EditableField>
                   }
                 />
                 <DetailRow
                   size="sm"
-                  label="모임"
+                  label={t('newsDbFieldGroupMeeting')}
                   value={
                     <EditableField
                       value={group.meeting}
                       isAdmin={isAdminUser}
-                      label="모임"
+                      label={t('newsDbFieldGroupMeeting')}
                       onSave={updateGroupField(idx, 'meeting')}
                     >
                       {group.meeting}
@@ -437,7 +444,7 @@ const DigitalBulletin = () => {
               </div>
             </ItemCard>
           ))}
-          <AddItemButton isAdmin={isAdminUser} onClick={addGroup} label="구역 추가" />
+          <AddItemButton isAdmin={isAdminUser} onClick={addGroup} label={t('newsDbAddGroup')} />
         </div>
       </SectionCard>
 
@@ -446,7 +453,7 @@ const DigitalBulletin = () => {
         sectionKey="schedule"
         expanded={expanded.has('schedule')}
         onToggle={() => toggle('schedule')}
-        badge={`${data.weeklySchedule.length}개 일정`}
+        badge={t('newsDbBadgeSchedules').replace('{n}', String(data.weeklySchedule.length))}
       >
         <div className="space-y-2">
           {data.weeklySchedule.map((item, idx) => (
@@ -458,7 +465,7 @@ const DigitalBulletin = () => {
                   <EditableField
                     value={item.day}
                     isAdmin={isAdminUser}
-                    label="요일"
+                    label={t('newsDbFieldScheduleDay')}
                     onSave={updateScheduleField(idx, 'day')}
                   >
                     {item.day}
@@ -469,7 +476,7 @@ const DigitalBulletin = () => {
                     <EditableField
                       value={item.event}
                       isAdmin={isAdminUser}
-                      label="일정명"
+                      label={t('newsDbFieldScheduleName')}
                       onSave={updateScheduleField(idx, 'event')}
                     >
                       {item.event}
@@ -481,7 +488,7 @@ const DigitalBulletin = () => {
                       <EditableField
                         value={item.time}
                         isAdmin={isAdminUser}
-                        label="시간"
+                        label={t('newsDbFieldScheduleTime')}
                         onSave={updateScheduleField(idx, 'time')}
                       >
                         {item.time}
@@ -493,7 +500,7 @@ const DigitalBulletin = () => {
                       <EditableField
                         value={item.location}
                         isAdmin={isAdminUser}
-                        label="장소"
+                        label={t('newsDbFieldScheduleLocation')}
                         onSave={updateScheduleField(idx, 'location')}
                       >
                         {item.location}
@@ -504,14 +511,14 @@ const DigitalBulletin = () => {
               </div>
             </ItemCard>
           ))}
-          <AddItemButton isAdmin={isAdminUser} onClick={addSchedule} label="일정 추가" />
+          <AddItemButton isAdmin={isAdminUser} onClick={addSchedule} label={t('newsDbAddSchedule')} />
         </div>
       </SectionCard>
 
       {isAdminUser && (
         <div className="mx-4 mt-2 px-3 py-2.5 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
           <p className="text-[11.5px] text-brand leading-[1.6]">
-            ✏️ 텍스트 옆 연필로 수정 · ➕ 항목 추가 · 🗑️ 항목 삭제 · 변경은 즉시 저장됩니다.
+            {t('newsDbAdminHint')}
           </p>
         </div>
       )}
@@ -529,6 +536,7 @@ interface SectionCardProps {
 }
 
 const SectionCard = ({ sectionKey, expanded, onToggle, badge, children }: SectionCardProps) => {
+  const { t } = useLanguage()
   const meta = SECTION_META[sectionKey]
   return (
     <div className="px-4">
@@ -556,7 +564,7 @@ const SectionCard = ({ sectionKey, expanded, onToggle, badge, children }: Sectio
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
-              {meta.title}
+              {t(meta.titleKey)}
             </p>
             {badge && (
               <p className="text-[11px] text-gray-500 dark:text-white/55 mt-0.5">{badge}</p>

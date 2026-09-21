@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { NewFamilyPost } from '../../../types/newFamily'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface NewFamilyViewerProps {
   post: NewFamilyPost
@@ -10,6 +11,7 @@ interface NewFamilyViewerProps {
 }
 
 const NewFamilyViewer = ({ post, initialIndex = 0, onClose }: NewFamilyViewerProps) => {
+  const { t } = useLanguage()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(initialIndex)
 
@@ -43,7 +45,7 @@ const NewFamilyViewer = ({ post, initialIndex = 0, onClose }: NewFamilyViewerPro
         <button
           type="button"
           onClick={onClose}
-          aria-label="닫기"
+          aria-label={t('newsClose')}
           className="w-10 h-10 rounded-full flex items-center justify-center text-white/85 hover:bg-white/10 transition-colors"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">

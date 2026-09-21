@@ -5,6 +5,8 @@ import NewFamilyPhotoCarousel from './NewFamilyPhotoCarousel'
 import { EVENT_ALBUM_EMOJI_META, EventAlbumEmojiImg } from './eventAlbumEmoji'
 import { AnimatedEmojiText } from '../../../components/common/animatedEmoji'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import type { Translate } from '../../../locales'
 import { AlbumIcon, EventTagIcon } from './NewsIcons'
 
 interface EventAlbumPostCardProps {
@@ -18,11 +20,11 @@ interface EventAlbumPostCardProps {
   onDelete?: () => void
 }
 
-export const formatEventDate = (value: string): string => {
+export const formatEventDate = (value: string, t: Translate): string => {
   // 'YYYY-MM-DD' — 타임존 보정 없이 그대로 읽는다 (행사일은 날짜 개념)
   const [y, m, d] = value.split('-').map(Number)
   if (!y || !m || !d) return value
-  const days = ['일', '월', '화', '수', '목', '금', '토']
+  const days = t('newsWeekdays').split(',')
   const weekday = days[new Date(y, m - 1, d).getDay()]
   return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${weekday})`
 }
@@ -38,6 +40,7 @@ const EventAlbumPostCard = ({
   isAdmin,
   onDelete,
 }: EventAlbumPostCardProps) => {
+  const { t } = useLanguage()
   const [expanded, setExpanded] = useState(false)
 
   const caption = post.caption ?? ''
@@ -67,13 +70,13 @@ const EventAlbumPostCard = ({
             </span>
             {isAdmin && !post.is_published && (
               <span className="shrink-0 inline-flex items-center px-2 h-5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60 text-[10.5px] font-bold">
-                비공개
+                {t('newsPrivate')}
               </span>
             )}
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
             <p className="text-[11.5px] text-gray-500 dark:text-white/50 truncate">
-              {formatEventDate(post.event_date)}
+              {formatEventDate(post.event_date, t)}
             </p>
             <span className="shrink-0 inline-flex items-center gap-0.5 px-2 h-5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[10.5px] font-bold">
               <EventTagIcon tag={post.tag} width={12} height={12} className="shrink-0" />
@@ -92,7 +95,7 @@ const EventAlbumPostCard = ({
               <rect x="3" y="5" width="18" height="16" rx="2.5" />
               <path d="M8 3v4M16 3v4M3 10h18" />
             </svg>
-            일정 보기
+            {t('newsEaViewEvent')}
           </button>
         )}
 
@@ -100,7 +103,7 @@ const EventAlbumPostCard = ({
           <button
             type="button"
             onClick={onDelete}
-            aria-label="삭제"
+            aria-label={t('newsDelete')}
             className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/40 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 transition-colors"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -131,7 +134,7 @@ const EventAlbumPostCard = ({
               key={meta.char}
               type="button"
               onClick={() => onToggleReaction(meta.char)}
-              aria-label={meta.label}
+              aria-label={t(meta.labelKey)}
               aria-pressed={active}
               className={[
                 'inline-flex items-center gap-1 h-9 rounded-full border transition-all active:scale-90',
@@ -162,7 +165,7 @@ const EventAlbumPostCard = ({
           type="button"
           onClick={onOpenComments}
           className="ml-auto inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-gray-500 dark:text-white/60 hover:text-[var(--brand)] hover:bg-[var(--brand-soft)] transition-colors"
-          aria-label="댓글 보기"
+          aria-label={t('newsNfViewComments')}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -174,7 +177,7 @@ const EventAlbumPostCard = ({
       {/* 리액션 수 요약 */}
       {post.reaction_count > 0 && (
         <p className="relative z-10 px-4 text-[12.5px] font-bold text-gray-700 dark:text-white/75">
-          {post.reaction_count}명이 반응했어요
+          {t('newsEaReactedCount').replace('{n}', String(post.reaction_count))}
         </p>
       )}
 
@@ -191,7 +194,7 @@ const EventAlbumPostCard = ({
               onClick={() => setExpanded(true)}
               className="mt-0.5 text-[12.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-[var(--brand)] transition-colors"
             >
-              더 보기
+              {t('newsEaMore')}
             </button>
           )}
         </div>
@@ -205,8 +208,8 @@ const EventAlbumPostCard = ({
           className="text-[12.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-[var(--brand)] transition-colors"
         >
           {post.comment_count > 0
-            ? `댓글 ${post.comment_count}개 모두 보기`
-            : '첫 댓글을 남겨보세요'}
+            ? t('newsEaAllComments').replace('{n}', String(post.comment_count))
+            : t('newsEaFirstComment')}
         </button>
         <p className="text-[10.5px] text-gray-400 dark:text-white/30 mt-1">{post.time_ago}</p>
       </div>

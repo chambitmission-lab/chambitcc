@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import NewsDetailView from './NewsDetailView'
 import { MegaphoneIcon, SignalIcon, InboxIcon } from './NewsIcons'
 import { useNewsCategories, useNewsList } from '../../../hooks/useNews'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import type { NewsItem } from '../../../types/news'
 import '../news-hero.css'
 import { can } from '../../../utils/access'
@@ -28,6 +29,7 @@ const isFresh = (value: string | null): boolean => {
 }
 
 const NewsSection = () => {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const admin = can('content:manage')
@@ -89,7 +91,7 @@ const NewsSection = () => {
                 CHURCH NEWS
               </p>
               <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-                교회소식
+                {t('newsBoardTitle')}
               </h2>
             </div>
             {admin && (
@@ -102,14 +104,14 @@ const NewsSection = () => {
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                소식 등록
+                {t('newsBoardCreate')}
               </button>
             )}
           </div>
 
           {/* 글줄이 삽화 위로 넘어가지 않게 폭을 잡는다 — 삽화 위치가 바뀌면 이 값도 다시 볼 것 */}
           <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
-            교회의 안내와 행사, 보고 소식을 한곳에 모아 두었어요.
+            {t('newsBoardIntro')}
           </p>
 
           {/* 검색 — PC 에선 삽화(오른쪽 43%)를 덮지 않게 글 칼럼 폭에 맞춘다 */}
@@ -124,7 +126,7 @@ const NewsSection = () => {
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="제목 · 내용 검색"
+              placeholder={t('newsSearchPlaceholder')}
               className="w-full pl-10 pr-3 h-11 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] backdrop-blur-sm text-[13.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
             />
           </div>
@@ -135,7 +137,7 @@ const NewsSection = () => {
       {categories.length > 0 && (
         <div className="flex gap-1.5 overflow-x-auto pb-3 -mx-1 px-1 no-scrollbar">
           <CategoryChip active={category === null} onClick={() => setCategory(null)}>
-            전체
+            {t('newsCategoryAll')}
           </CategoryChip>
           {categories.map((name) => (
             <CategoryChip
@@ -155,23 +157,21 @@ const NewsSection = () => {
       ) : error ? (
         <EmptyBox
           icon={<SignalIcon width={28} height={28} />}
-          title="소식을 불러오지 못했어요"
-          desc="네트워크 상태를 확인하고 다시 시도해 주세요"
+          title={t('newsListErrorTitle')}
+          desc={t('newsListErrorDesc')}
         />
       ) : items.length === 0 ? (
         <EmptyBox
           icon={<InboxIcon width={28} height={28} />}
-          title={search || category ? '조건에 맞는 소식이 없어요' : '아직 등록된 소식이 없어요'}
-          desc={
-            search || category
-              ? '검색어를 지우거나 다른 분류를 눌러보세요'
-              : '새로운 소식이 올라오면 이곳에 표시됩니다'
-          }
+          title={t(search || category ? 'newsEmptyFilteredTitle' : 'newsEmptyTitle')}
+          desc={t(search || category ? 'newsEmptyFilteredDesc' : 'newsEmptyDesc')}
         />
       ) : (
         <>
           <p className="px-1 pb-2 text-[11.5px] text-gray-500 dark:text-white/50">
-            전체 <span className="font-bold text-ink-strong">{total}</span>건
+            {t('newsCountPrefix')}
+            <span className="font-bold text-ink-strong">{total}</span>
+            {t('newsCountSuffix')}
           </p>
           {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 */}
           <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
@@ -190,7 +190,7 @@ const NewsSection = () => {
             disabled={isFetchingNextPage}
             className="px-5 h-10 rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
           >
-            {isFetchingNextPage ? '불러오는 중...' : '지난 소식 더 보기'}
+            {isFetchingNextPage ? t('newsLoadingMore') : t('newsLoadMore')}
           </button>
         </div>
       )}
@@ -199,7 +199,9 @@ const NewsSection = () => {
 }
 
 // ── 카드 ──────────────────────────────────────────────
-const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) => (
+const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) => {
+  const { t } = useLanguage()
+  return (
   <button
     type="button"
     onClick={onClick}
@@ -224,7 +226,7 @@ const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) =>
         <div className="flex flex-wrap items-center gap-1 mb-1">
           {news.is_pinned && (
             <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-brand text-white">
-              고정
+              {t('newsPinned')}
             </span>
           )}
           {news.category && (
@@ -239,7 +241,7 @@ const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) =>
           )}
           {!news.is_published && (
             <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
-              비공개
+              {t('newsPrivate')}
             </span>
           )}
         </div>
@@ -256,7 +258,7 @@ const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) =>
         <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-white/40">
           <span>{formatDate(news.published_at)}</span>
           <span className="text-gray-300 dark:text-white/20">·</span>
-          <span>조회 {news.views}</span>
+          <span>{t('newsViewCount').replace('{n}', String(news.views))}</span>
           {news.file_count > 0 && (
             <>
               <span className="text-gray-300 dark:text-white/20">·</span>
@@ -272,7 +274,8 @@ const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) =>
       </div>
     </div>
   </button>
-)
+  )
+}
 
 // ── 작은 조각들 ────────────────────────────────────────
 const CategoryChip = ({
