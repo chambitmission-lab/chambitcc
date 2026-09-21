@@ -8,6 +8,7 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNoticeArchive } from '../../../hooks/useNotifications'
 import NoticeContent from '../../../components/common/NoticeContent'
+import '../news-hero.css'
 import { noticePreviewText } from '../../../utils/noticeMarkup'
 import { NoticeBoardIcon, SignalIcon, InboxIcon } from './NewsIcons'
 import type { Notification } from '../../../types/notification'
@@ -67,9 +68,9 @@ const NoticeArchiveSection = () => {
 
   return (
     <div className="px-4 pt-3 pb-8">
-      {/* Hero — 소식 탭과 같은 골격이되 삽화 없이, 아카이브라는 성격을 문구로만 말한다 */}
-      <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
-        <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-transparent pointer-events-none" />
+      {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--notice). 소식 탭과 같은 골격이다.
+          다크 상단 광택 span 은 두지 않는다 — 삽화 위에 얹히면 뿌옇게 뜬다(소식 세 장과 같은 이유). */}
+      <div className="nh-hero nh-hero--notice relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-11 h-11 rounded-2xl bg-brand text-white flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)]">
@@ -83,11 +84,14 @@ const NoticeArchiveSection = () => {
                 공지사항
               </h2>
             </div>
+            {/* ★ ml-auto 로 오른쪽 끝에 붙이지 않는다 — 카드가 낮고 넓어서 배경 삽화가
+                어느 배율에서든 우상단을 차지하고, 거기 두면 주인공 양 얼굴을 덮는다.
+                제목 바로 옆(왼쪽 빈 영역)이 삽화와 안 겹치는 유일한 자리다. */}
             {admin && (
               <button
                 type="button"
                 onClick={() => navigate('/admin/notifications')}
-                className="ml-auto inline-flex items-center gap-1 h-8 px-3 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[11.5px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
+                className="ml-2 inline-flex items-center gap-1 h-8 px-3 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[11.5px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
@@ -98,7 +102,9 @@ const NoticeArchiveSection = () => {
             )}
           </div>
 
-          <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
+          {/* max-w 는 삽화와 짝이다 — 풀폭으로 두면 글줄이 양 위로 올라탄다.
+              삽화를 다시 뽑아 장면 위치가 바뀌면 이 값도 같이 다시 볼 것. */}
+          <p className="max-w-[62%] lg:max-w-[54%] text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
             홈에서 지나간 안내도 여기에 그대로 남아 있어요. 제목을 탭하면 전문을 읽을 수 있습니다.
           </p>
         </div>

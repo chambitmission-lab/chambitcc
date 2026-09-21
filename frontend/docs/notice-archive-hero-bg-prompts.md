@@ -447,54 +447,73 @@ charcoal.
 
 ---
 
-## 후처리 · 적용 (그림을 받은 뒤)
+## 적용 상태 (2026-09-21) — **B안으로 확정**
 
-### 1. 후처리 — `news-hero-process.py` 를 그대로 재사용
+두 장 모두 적용 완료. 후처리는 **`docs/notice-archive-process.py` 한 방**이면 재현된다
+(원본을 `1.png`/`2.png` 로 받아 두고 `python docs/notice-archive-process.py [원본폴더]`).
 
-원본 2장을 `1.png`(light) / `2.png`(dark) 로 받아 두고, `news-hero-process.py` 를 복사해
-`CFG` 만 아래로 바꾸면 된다(소식 전용 보정 블록 `clean()` 의 `i == 2/4/6` 분기는 빼고
-`unwatermark()` 만 남긴다).
+- **에셋**: `public/images/news/notice-archive-{light,dark}.webp` (1456×1040 RGBA, 각 39~42KB)
+- **CSS**: `src/pages/News/news-hero.css` 맨 아래 `.nh-hero--notice`
+- **컴포넌트**: `NoticeArchiveSection.tsx` — `nh-hero nh-hero--notice`, 안내문 `max-w`,
+  다크 광택 span 제거, **관리자 `공지 등록` 버튼을 제목 옆으로 이동**(아래 참고)
+
+### 이번 원본에서 제미나이가 틀린 것 (다음 재생성 때 반드시 반영)
+
+1. **우상단에 라운드 사각 패널을 그려 버렸다** — 두 장 다. 프롬프트에 세 줄이나 금지해 뒀는데도
+   `x=1091` 세로 단차 + `y=195` 가로 단차짜리 패널이 나왔고, **다크는 거기에 파란 네온
+   테두리(+글로우)까지** 그렸다. 하필 관리자 버튼 자리다. → `strip_panel()`/`strip_glow()` 로 지웠다.
+2. **장면을 가로로 너무 넓게 폈다** — 선반 왼쪽 끝이 x 46% 까지 나왔다(지시는 55%).
+   왼쪽 페이드를 240→880 으로 길게 잡아 선반 왼쪽이 안개에 잠기게 해서 글줄을 살렸다.
+3. **top-right 22%×34% 를 안 비웠다** — 날아가는 두루마리와 양 머리가 그 자리에 있다.
+
+### 후처리에서 알아 둘 것
 
 ```python
 # i: (name, out height, left fade [x0,x1], bottom fade [y0,y1])
 CFG = {
-    1: ("notice-archive-light", 1040, (200, 760), (620, 1000)),
-    2: ("notice-archive-dark",  1040, (200, 760), (620, 1000)),
+    1: ("notice-archive-light", 1040, (240, 880), (700, 1000)),
+    2: ("notice-archive-dark",  1040, (240, 880), (700, 1000)),
 }
 ```
 
-- **워터마크 제거는 인페인트가 아니라 '알파 역산'**. 다크 원본의 평평한 바닥에서
-  `a = (obs-bg)/(255-bg)` 로 알파 맵을 뽑고 `bg = (obs-255a)/(1-a)`.
-  좌표는 1456×720 기준 **중심 (1337, 599), 반경 ≈ 25px** — 헌금·공지 배너·소식과 같은 자리.
-  TELEA 인페인트는 여기서도 쓰지 말 것.
-- **아래로 캔버스를 1040 까지 늘린다**(그림 720 + 여백 320). 이 여백은 알파로 사라지고,
-  그 대신 배경을 키워 그림을 크게 쓰는 데 쓰인다(아래 CSS).
-- **왼쪽 페이드는 길게**(x 200→760). 제미나이가 장면을 프롬프트보다 넓게 그리기 때문에
-  짧은 페이드로는 안내 문구가 양 위에 그대로 얹힌다.
-- 결과: `1456×1040 RGBA`, 한 장 **40KB 이하** 목표
-  (`quality=80, method=6, alpha_quality=92`).
+- **워터마크(✦) 는 이번 원본엔 없었다.** 있으면 `docs/gemini-unwatermark.py` 로 먼저 벗긴다
+  (인페인트 금지, 매번 실측하는 알파 역산). 양털처럼 밝은 데 얹히면 기본 문턱에 안 걸리니
+  `--min-step=3` 정도로 낮춰 볼 것.
+- **네온 테두리는 '색 역산'으로 빼면 안 된다.** 코어는 거의 흰 하늘색(가산 89,126,171),
+  번짐은 순수한 파랑(2,10,19)이라 **색비가 자리마다 다르다**. 단일 계수로 빼면 번짐 쪽이
+  18 까지 파여 검은 얼룩이 남는다(실측). → 배경이 완전 중성(33,33,33)인 점을 이용해
+  `e = B-R` 로 오염 범위만 집어내고, **주변 배경으로 메운다**(정규화 합성곱).
+  표본에서 밝은 것(양털·두루마리)을 빼지 않으면 복원값이 흰색으로 끌린다.
+- **단차를 평균값으로 빼면 하드 스텝은 그대로 남는다.** 이 패널은 세로변 8, 가로변 4 로
+  세기가 달라서, 평균(2.5/5/14.5)을 160px 램프로 빼도 경계에 잔차 9 가 남았다(실측).
+  → 줄마다 실측해 그 자리에서 없애는 `feather_vedge`/`feather_hedge` 를 쓴다.
+  그 뒤 남는 **1~2px 머리카락 선**(원본 안티앨리어싱 픽셀)은 `soften_line` 으로 지운다.
+  현재 잔여 단차 **≤1 레벨**.
+- **아래로 캔버스를 1040 까지 늘렸다**(그림 720 + 여백 320). 이 여백은 알파로 사라지고,
+  배율을 키워 그림을 크게 쓰는 데 쓰인다.
+- 결과: `1456×1040 RGBA`, 한 장 40KB 안팎(`quality=80, method=6, alpha_quality=92`).
 
-### 2. CSS — `src/pages/News/news-hero.css` **맨 아래**에 추가
+### CSS — `news-hero.css` **맨 아래**
 
 ```css
-/* 공지 아카이브 — 카드 안에 검색창·토글이 없어서 소식 세 장과 달리
- * 모든 폭에서 같은 배율을 쓴다. 1040 / 720 = 144.4% 라 카드에 보이는 건
- * 정확히 그림 720줄뿐이고, 늘린 여백은 카드 밖으로 빠진다. */
 .nh-hero--notice {
   background-image: url('/images/news/notice-archive-light.webp');
-  background-size: auto 144.4%;
+  background-size: auto 122%;        /* 모바일 */
   background-position: right top;
 }
-.dark .nh-hero--notice {
-  background-image: url('/images/news/notice-archive-dark.webp');
+.dark .nh-hero--notice { background-image: url('/images/news/notice-archive-dark.webp'); }
+@media (min-width: 1024px) {
+  .nh-hero--notice { background-size: auto 144.4%; }   /* 1040 / 720 */
 }
 ```
 
-> **반드시 파일 맨 아래에 둘 것.** `@media (min-width: 1024px) { .nh-hero { … } }` 블록과
-> 특정도가 같아서(둘 다 클래스 1개) **나중에 나온 쪽이 이긴다.** 위에 두면 PC에서
-> `background-size` 가 소식용 값으로 덮여 그림이 잘린다.
+- **배율이 두 개다.** PC(144.4%)는 카드에 그림 720줄이 정확히 들어와 딱 맞지만,
+  모바일은 카드가 더 높아서(156) 같은 배율이면 그림이 커져 **안내문 둘째 줄 위로 양이 올라탄다**.
+  122% 로 줄이면 그림이 카드 위 82% 에 들어가고 아래 18% 는 알파 여백이 지나가 카드색으로 끝난다.
+- ☠ **반드시 파일 맨 아래에 둘 것.** 위의 `@media (min-width:1024px) { .nh-hero { … } }` 와
+  특정도가 같아서(둘 다 클래스 1개) 나중에 나온 쪽이 이긴다.
 
-### 3. 컴포넌트 — `NoticeArchiveSection.tsx`
+### 컴포넌트 — `NoticeArchiveSection.tsx`
 
 ```diff
 +import '../news-hero.css'
@@ -503,26 +522,34 @@ CFG = {
 -        <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] …" />
 +      <div className="nh-hero nh-hero--notice relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark …">
 
+-                className="ml-auto inline-flex items-center gap-1 h-8 px-3 rounded-full …"
++                className="ml-2 inline-flex items-center gap-1 h-8 px-3 rounded-full …"
+
 -          <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-+          <p className="max-w-[60%] lg:max-w-[54%] text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
++          <p className="max-w-[62%] lg:max-w-[54%] text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
              홈에서 지나간 안내도 여기에 그대로 남아 있어요. 제목을 탭하면 전문을 읽을 수 있습니다.
            </p>
 ```
 
-- **안내문 `max-w` 를 반드시 걸 것.** 지금은 카드 끝까지 늘어나서 삽화 위로 글이 올라탄다.
-  소식 히어로도 같은 이유로 `max-w-[60%] lg:max-w-[52%]` 를 걸어 두었다.
+- **관리자 `공지 등록` 버튼은 `ml-auto` 를 뗐다.** 이 카드는 아주 낮고 넓어서(PC 832×136)
+  배경이 `auto <카드높이>` 로 깔리면 삽화 폭이 275px 밖에 안 되고, 우상단 92px 짜리 알약이
+  **그 3분의 1을 덮는다 — 정확히 주인공 양 얼굴**. 배율을 어떻게 잡아도 못 피한다
+  (그림이 카드 높이를 채우는 한 양 머리는 항상 카드 위 30% 에 온다).
+  → 제목 바로 옆이 삽화와 안 겹치는 유일한 자리다. **다시 `ml-auto` 로 되돌리지 말 것.**
+- **안내문 `max-w` 를 반드시 걸 것.** 풀폭이면 글줄이 양 위로 올라탄다.
 - **다크 상단 광택 `span` 은 제거한다.** 소식 세 장에서도 뺐다 — 삽화 위에 얹히면 뿌옇게 뜬다.
 - 카드 바탕은 `bg-white` 그대로(반투명 `bg-white/80` 이면 삽화가 뿌예진다).
-- 삽화를 다시 뽑아 장면 위치가 바뀌면 **`max-w` 값과 왼쪽 페이드 좌표를 같이 다시 볼 것.**
+- 삽화를 다시 뽑아 장면 위치가 바뀌면 **`max-w`·배율·왼쪽 페이드를 같이 다시 볼 것.**
 - `public/` 아래 이미지는 서비스워커 캐시 때문에 **바꿔도 한동안 예전 그림이 보인다**.
   "고쳤는데 그대로"면 캐시부터 의심할 것.
 
-## 제미나이가 자주 틀리는 것 (소식 6장에서 실제로 겪음)
+## 제미나이가 자주 틀리는 것 (소식 6장 + 이번 2장)
 
 1. **UI 를 진짜로 그린다** — "버튼 자리"라고 쓰면 흰 알약을 그려 넣는다.
    → 프롬프트의 `Do NOT draw any user-interface elements…` 줄을 절대 빼지 말 것.
-2. **하늘을 사각형 패널로 그린다** — 다크에서 밝은 직사각형이 카드에 뜬다.
-   → `The background must be ONE continuous soft gradient…` 줄 유지.
+2. **사각 패널을 그린다** — 이번에도 두 장 다 그렸다(다크는 네온 테두리까지).
+   → `The background must be ONE continuous soft gradient…` 줄을 유지하고,
+   그래도 나오면 `notice-archive-process.py` 의 `strip_panel`/`strip_glow` 로 지운다.
 3. **장면을 가로로 너무 넓게 편다** — 좌표를 무시하고 캐릭터를 늘어놓는다.
    → `ONE tight cluster … no wider than 30% of the frame` 줄 유지. 그래도 넓게 나오면
    **다시 뽑는 게 빠르다**(왼쪽 페이드로 억지로 덮으면 주인공이 안개에 잠긴다).

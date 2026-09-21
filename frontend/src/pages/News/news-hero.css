@@ -53,3 +53,28 @@
     background-size: auto 152.8%;
   }
 }
+
+/* 공지 아카이브 (`/news?tab=notice`) — docs/notice-archive-hero-bg-prompts.md
+ *
+ * 이 카드는 안에 검색창·토글이 없어서 소식 세 장보다 **더 낮고 납작하다**
+ * (모바일 약 358x156 / PC 약 832x136). 그래서 배율이 두 개다:
+ *   모바일 122% — 그림이 카드 높이를 다 채우면 안내문 둘째 줄 위로 양이 올라탄다.
+ *                 카드 아래 18% 는 알파 여백이 지나가 순수 카드색으로 끝난다.
+ *   PC 144.4% — 1040/720. 카드에 보이는 건 정확히 그림 720줄뿐이고 여백은 카드 밖으로 나간다.
+ *
+ * ☠ 이 블록은 **파일 맨 아래**에 있어야 한다. 위의 `@media (min-width:1024px) { .nh-hero }`
+ *   와 특정도가 같아서(둘 다 클래스 1개) 나중에 나온 쪽이 이긴다.
+ */
+.nh-hero--notice {
+  background-image: url('/images/news/notice-archive-light.webp');
+  background-size: auto 122%;
+  background-position: right top;
+}
+.dark .nh-hero--notice {
+  background-image: url('/images/news/notice-archive-dark.webp');
+}
+@media (min-width: 1024px) {
+  .nh-hero--notice {
+    background-size: auto 144.4%;
+  }
+}
