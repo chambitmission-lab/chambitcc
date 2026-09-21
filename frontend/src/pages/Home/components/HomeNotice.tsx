@@ -234,6 +234,13 @@ const HomeNotice = () => {
     navigate(target.path, { state: target.state })
   }
 
+  // 지난 공지 보관함(/news '공지' 탭) — 팝업은 기간이 지나면 배너에서 내려가므로,
+  // 다 읽은 자리에서 "그 전 것들"로 갈 길을 하나 열어둔다.
+  const handleArchive = () => {
+    closeCurrent()
+    navigate('/news?tab=notice')
+  }
+
   // 배너 → 팝업 다시 열기 ('오늘 하루 안 보기'로 숨긴 공지도 여기서는 다시 볼 수 있다.
   // '다시 안 보기'는 queue 에서 foreverIds 로 제외돼 여기서도 안 뜬다)
   const reopen = () => {
@@ -498,6 +505,19 @@ const HomeNotice = () => {
                   </svg>
                 </button>
               )}
+
+              {/* 다 읽고 난 자리 — '바로가기'보다 한 단계 낮은 위계로 보관함을 알려준다 */}
+              <button
+                type="button"
+                onClick={handleArchive}
+                className="mt-4 flex items-center gap-1 text-[12px] font-semibold"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                지난 공지 모두 보기
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
             </div>
 
             {/* 푸터 — 확인이 주 동작, 안 보기는 한 단계 낮은 위계 */}

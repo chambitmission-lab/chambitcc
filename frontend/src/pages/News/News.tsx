@@ -10,6 +10,7 @@ import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
 import NewsSection from './components/NewsSection'
+import NoticeArchiveSection from './components/NoticeArchiveSection'
 import NewFamilySection from './components/NewFamilySection'
 import EventAlbumSection from './components/EventAlbumSection'
 import OfferingSection from './components/OfferingSection'
@@ -17,6 +18,7 @@ import OfferingSection from './components/OfferingSection'
 import AnnualThemeVerse from '../Home/components/AnnualThemeVerse'
 import {
   MegaphoneIcon,
+  NoticeBoardIcon,
   BulletinIcon,
   SproutIcon,
   AlbumIcon,
@@ -31,7 +33,7 @@ import {
 } from './components/NewsIcons'
 
 /** 최상위 그룹 — 소식 허브 */
-type SectionKey = 'news' | 'bulletin' | 'new-family' | 'event-album' | 'offering'
+type SectionKey = 'news' | 'notice' | 'bulletin' | 'new-family' | 'event-album' | 'offering'
 /** 주보 하위 탭 */
 type BulletinTabKey = 'image' | 'digital'
 
@@ -44,6 +46,8 @@ const SECTIONS: {
   seal?: { from: string; to: string }
 }[] = [
   { key: 'news', Icon: MegaphoneIcon, label: '소식' },
+  // 공지는 소식과 데이터 소스가 다르다(notifications) — 분류 칩이 아니라 이 줄에 둔다
+  { key: 'notice', Icon: NoticeBoardIcon, label: '공지', seal: { from: '#4a93f2', to: '#2a6fd6' } },
   { key: 'bulletin', Icon: BulletinIcon, label: '주보', seal: { from: '#5b8cf0', to: '#3562d9' } },
   { key: 'new-family', Icon: SproutIcon, label: '새가족', seal: { from: '#45a8f7', to: '#1f86e8' } },
   { key: 'event-album', Icon: AlbumIcon, label: '행사', seal: { from: '#6f86f4', to: '#4d5ee0' } },
@@ -60,6 +64,7 @@ const SECTION_ART: Partial<Record<SectionKey, ThemePair>> = {
 
 const isSectionKey = (value: string | null): value is SectionKey =>
   value === 'news' ||
+  value === 'notice' ||
   value === 'bulletin' ||
   value === 'new-family' ||
   value === 'event-album' ||
@@ -169,15 +174,16 @@ const News = () => {
                 onClick={() => handleSectionChange(s.key)}
                 aria-pressed={section === s.key}
                 className={[
-                  // 탭이 5개라 320px 폭에서도 아이콘+2~3글자가 들어가야 한다 — gap/글자를 한 단계 줄인다
-                  'relative z-10 flex-1 h-10 rounded-xl text-[12px] font-bold transition-colors duration-200',
-                  'inline-flex items-center justify-center gap-1 whitespace-nowrap',
+                  // 탭이 6개라 한 칸이 320px 폭에서 ~47px 밖에 안 된다. 가장 긴 '새가족'(3글자)이
+                  // 기준 — 360px 미만에선 아이콘을 접고 글자만 남겨 줄이 깨지지 않게 한다.
+                  'relative z-10 flex-1 h-10 rounded-xl text-[11.5px] min-[380px]:text-[12px] font-bold transition-colors duration-200',
+                  'inline-flex items-center justify-center gap-0.5 min-[400px]:gap-1 whitespace-nowrap',
                   section === s.key
                     ? 'text-white'
                     : 'text-gray-600 dark:text-white/60 hover:text-brand hover:bg-[var(--brand-soft)] dark:hover:text-white dark:hover:bg-white/[0.06] active:scale-[0.97]',
                 ].join(' ')}
               >
-                <s.Icon width={15} height={15} className="shrink-0" />
+                <s.Icon width={14} height={14} className="hidden min-[360px]:block shrink-0" />
                 {s.label}
               </button>
             ))}
@@ -186,6 +192,9 @@ const News = () => {
 
         {/* 교회소식 게시판 */}
         {section === 'news' && <NewsSection />}
+
+        {/* 공지 아카이브 — 홈 배너에서 내려간 지난 공지 */}
+        {section === 'notice' && <NoticeArchiveSection />}
 
         {/* 새가족 앨범 */}
         {section === 'new-family' && <NewFamilySection />}

@@ -10,12 +10,15 @@ import { request, requestRaw, isApiError, type UntypedJson } from './utils/reque
 export const getNotifications = async (params?: {
   page?: number
   limit?: number
+  /** true 면 개인 알림을 빼고 전체 공지만 — /news 공지 아카이브용 */
+  announcementsOnly?: boolean
 }): Promise<NotificationsResponse> => {
 
 
   const query = new URLSearchParams()
   if (params?.page) query.set('page', String(params.page))
   if (params?.limit) query.set('limit', String(params.limit))
+  if (params?.announcementsOnly) query.set('announcements_only', 'true')
   const qs = query.toString()
 
   const data = await request<UntypedJson>(`/notifications${qs ? `?${qs}` : ''}`, { errorMessage: '공지사항을 불러오는데 실패했습니다' })

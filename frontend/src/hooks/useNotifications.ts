@@ -16,6 +16,7 @@ export const notificationKeys = {
   all: ['notifications'] as const,
   list: () => [...notificationKeys.all, 'infinite'] as const,
   popups: () => [...notificationKeys.all, 'popups'] as const,
+  archive: () => [...notificationKeys.all, 'archive'] as const,
 }
 
 /**
@@ -43,6 +44,27 @@ export const useNotifications = () => {
     refetchOnWindowFocus: false,
   })
 }
+
+/**
+ * 공지 아카이브 — /news '공지' 탭의 지난 공지 목록.
+ *
+ * 알림함(useNotifications)과 달리 개인 알림을 빼고 전체 공지만 최신순으로 받는다.
+ * 비로그인 방문자도 지난 안내를 읽을 수 있어야 하므로 토큰을 요구하지 않는다.
+ * 읽음 상태를 쓰지 않으니 SSE 로 안 읽음 뱃지가 갱신돼도 다시 받을 이유가 없다 —
+ * 탭을 다시 열 때만 확인한다.
+ */
+export const useNoticeArchive = (enabled = true) =>
+  useInfiniteQuery({
+    queryKey: notificationKeys.archive(),
+    queryFn: ({ pageParam }) =>
+      getNotifications({ page: pageParam as number, limit: PAGE_SIZE, announcementsOnly: true }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.has_next ? lastPage.page + 1 : undefined),
+    enabled,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: refetchIfFewPages(2),
+    refetchOnWindowFocus: false,
+  })
 
 /**
  * 홈 팝업 공지 (관리자가 팝업으로 지정한 활성 공지)

@@ -4,6 +4,7 @@
  * 인장 마커 위(흰색)든 카드 위(브랜드색)든 부모 색을 그대로 따른다.
  *
  * - MegaphoneIcon : 확성기 + 소리 결 (소식)
+ * - NoticeBoardIcon: 핀으로 꽂은 안내문 (공지 아카이브)
  * - BulletinIcon  : 십자가 머리글이 얹힌 주간 인쇄물 (주보)
  * - SproutIcon    : 흙에서 갓 올라온 두 잎 새싹 (새가족)
  * - AlbumIcon     : 셔터를 든 카메라 (행사 앨범)
@@ -41,6 +42,19 @@ export function MegaphoneIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 /** 주간 인쇄물 — 머리글 자리에 작은 십자가, 아래로 본문 두 줄 */
+/** 게시판에 핀으로 꽂힌 안내문 — 확성기(지금 알림)와 달리 '붙어 있는 것'으로 구분한다 */
+export function NoticeBoardIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="4" y="5.6" width="16" height="14.2" rx="2.2" />
+      <path d="M12 2.6v3" />
+      <circle cx="12" cy="5.6" r="1.4" />
+      <path d="M8 11.4h8" />
+      <path d="M8 15.2h5" />
+    </svg>
+  )
+}
+
 export function BulletinIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...base} {...props}>
