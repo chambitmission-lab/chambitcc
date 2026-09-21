@@ -7,6 +7,7 @@ import LangFlag from '../../../../components/common/LangFlag'
 import { getLanguageName } from '../../../../utils/languageFlags'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 // 피드 카드와 동일한 아바타 스타일(feed-avatar/anon-avatar) — 목록↔상세 일관성
+import { PastorIcon } from '../EmotionIcons'
 import '../PrayerArticle/PrayerHeader.css'
 
 interface PrayerAuthorInfoProps {
@@ -16,6 +17,7 @@ interface PrayerAuthorInfoProps {
   timeAgo: string
   isOwner: boolean
   isPrivate?: boolean
+  sharedWithPastor?: boolean
   hasTranslation: boolean
   showTranslation: boolean
   nextLanguage: string
@@ -29,6 +31,7 @@ const PrayerAuthorInfo = ({
   timeAgo,
   isOwner,
   isPrivate = false,
+  sharedWithPastor = false,
   hasTranslation,
   showTranslation,
   nextLanguage,
@@ -70,7 +73,12 @@ const PrayerAuthorInfo = ({
               : 'font-semibold text-ink-strong'
           }`}>
             <span className="truncate">{shownName}</span>
-            {isPrivate ? (
+            {sharedWithPastor ? (
+              <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+                <PastorIcon size={11} />
+                {t('pastorPrayerBadge')}
+              </span>
+            ) : isPrivate ? (
               <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
                 <span className="material-icons-outlined text-[11px] leading-none">lock</span>
                 {t('privatePrayerBadge')}

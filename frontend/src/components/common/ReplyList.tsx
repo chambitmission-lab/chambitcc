@@ -130,12 +130,20 @@ const ReplyList = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className={`text-sm ${
-                isAnonymousReply(reply)
+                isAnonymousReply(reply) && !reply.is_pastor
                   ? 'font-medium text-gray-500 dark:text-gray-400'
                   : 'font-semibold text-ink-strong'
               }`}>
-                {isAnonymousReply(reply) ? t('anonymousDisplayName') : reply.display_name}
+                {/* 목양 기도의 목회자 답글 — 익명으로 남겨도 '목사님'임은 알 수 있게 */}
+                {reply.is_pastor && isAnonymousReply(reply)
+                  ? t('pastorReplyBadge')
+                  : isAnonymousReply(reply) ? t('anonymousDisplayName') : reply.display_name}
               </span>
+              {reply.is_pastor && !isAnonymousReply(reply) && (
+                <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+                  {t('pastorReplyBadge')}
+                </span>
+              )}
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {reply.time_ago}
               </span>

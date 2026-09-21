@@ -52,8 +52,10 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
           <div className="relative z-10">
             {prayer.is_private && (
               <span className="inline-flex items-center gap-0.5 mb-2 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
-                <span className="material-icons-outlined text-[11px] leading-none">lock</span>
-                {t('privatePrayerBadge')}
+                <span className="material-icons-outlined text-[11px] leading-none">
+                  {prayer.shared_with_pastor ? 'church' : 'lock'}
+                </span>
+                {prayer.shared_with_pastor ? t('pastorPrayerBadge') : t('privatePrayerBadge')}
               </span>
             )}
             {prayer.title && (

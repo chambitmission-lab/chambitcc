@@ -5,6 +5,7 @@ import type {
   PrayerResponse,
   SortType,
   Prayer,
+  PrayerFilterType,
 } from '../../types/prayer'
 import { request, type RequestPriority, type UntypedJson } from '../utils/request'
 
@@ -18,7 +19,7 @@ export const fetchPrayers = async (
   limit: number = 20,
   sort: SortType = 'popular',
   groupId?: number | null,
-  filter?: 'all' | 'my_prayers' | 'prayed_by_me' | null,
+  filter?: PrayerFilterType | null,
   isAnswered?: boolean,
   options?: { priority?: RequestPriority }
 ): Promise<PrayerListResponse> => {

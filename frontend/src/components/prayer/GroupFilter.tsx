@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
 import { getGroupColorTheme } from '../../utils/groupColors'
 import { GroupGlyph, PrayIcon } from '../../pages/Groups/GroupIcons'
+import { isPastor } from '../../utils/access'
 import type { PrayerFilterType } from '../../types/prayer'
 
 interface GroupFilterProps {
@@ -38,6 +39,11 @@ const GroupFilter = ({
   const groups = groupsData?.data.items || []
   
   const selectedGroup = groups.find(g => g.id === selectedGroupId)
+
+  // 목양 기도함 — 목회자에게만 다섯 번째 탭이 생긴다 (서버도 filter=pastoral 을 403 으로 지킨다).
+  // 탭이 하나 늘면 모바일 폭이 빠듯해 좌우 패딩만 줄인다
+  const showPastoral = isPastor()
+  const tabPad = showPastoral ? 'px-2' : 'px-4'
 
   // 드롭다운 위치는 여는 순간에 계산한다
   const toggleDropdown = () => {
@@ -90,7 +96,7 @@ const GroupFilter = ({
           {/* 전체 공개 */}
           <button
             className={`
-              relative flex-1 px-4 py-3 text-sm font-medium ${SEG_BASE}
+              relative flex-1 ${tabPad} py-3 text-sm font-medium ${SEG_BASE}
               transition-all duration-200
               ${selectedGroupId === null && selectedFilter === 'all'
                 ? `text-brand ${SEG_ACTIVE}`
@@ -112,7 +118,7 @@ const GroupFilter = ({
           <button
             ref={buttonRef}
             className={`
-              relative flex-1 flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium lg:gap-0.5 ${SEG_BASE}
+              relative flex-1 flex items-center justify-center gap-1.5 ${tabPad} py-3 text-sm font-medium lg:gap-0.5 ${SEG_BASE}
               transition-all duration-200
               ${selectedGroupId !== null
                 ? `text-brand ${SEG_ACTIVE}`
@@ -138,7 +144,7 @@ const GroupFilter = ({
           {/* 내 기도 */}
           <button
             className={`
-              relative flex-1 px-4 py-3 text-sm font-medium ${SEG_BASE}
+              relative flex-1 ${tabPad} py-3 text-sm font-medium ${SEG_BASE}
               transition-all duration-200
               ${selectedFilter === 'my_prayers'
                 ? `text-brand ${SEG_ACTIVE}`
@@ -161,7 +167,7 @@ const GroupFilter = ({
           {/* 내가 기도한 */}
           <button
             className={`
-              relative flex-1 px-4 py-3 text-sm font-medium ${SEG_BASE}
+              relative flex-1 ${tabPad} py-3 text-sm font-medium ${SEG_BASE}
               transition-all duration-200
               ${selectedFilter === 'prayed_by_me'
                 ? `text-brand ${SEG_ACTIVE}`
@@ -180,6 +186,29 @@ const GroupFilter = ({
               <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full lg:hidden" />
             )}
           </button>
+
+          {/* 목양 기도함 — '목사님과 함께'로 올라온 기도 (목회자 전용) */}
+          {showPastoral && (
+            <button
+              className={`
+                relative flex-1 ${tabPad} py-3 text-sm font-medium ${SEG_BASE}
+                transition-all duration-200
+                ${selectedFilter === 'pastoral'
+                  ? `text-brand ${SEG_ACTIVE}`
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }
+              `}
+              onClick={() => {
+                onGroupChange(null)
+                onFilterChange('pastoral')
+              }}
+            >
+              {t('pastoralInbox')}
+              {selectedFilter === 'pastoral' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full lg:hidden" />
+              )}
+            </button>
+          )}
         </div>
       </div>
       

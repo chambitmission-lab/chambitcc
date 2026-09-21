@@ -54,6 +54,7 @@ export const establishSession = (
     username?: string
     full_name?: string
     avatar_url?: string | null
+    is_pastor?: boolean
   },
   fallbackUsername: string
 ): { username: string; fullName: string | null } => {
@@ -66,6 +67,7 @@ export const establishSession = (
   sessionStore.set('username', username)
   localStorage.setItem('last_cached_username', username)
   if (data.full_name) sessionStore.set('fullName', data.full_name)
+  sessionStore.set('isPastor', data.is_pastor ? '1' : null)
 
   // 헤더 아바타 — 로그아웃 때 미러가 지워져서, 로그인 직후엔 프로필 API 응답이 와야
   // URL을 알 수 있었다(그 뒤에야 R2 DNS+TLS+다운로드 시작 → 헤더에서 혼자 늦게 뜸).
@@ -166,6 +168,10 @@ export const refreshAccessToken = async (): Promise<string | null> => {
 
     // 새 access token 저장
     tokenStore.setAccess(newAccessToken)
+    // 로그인 이후 목회자로 지정·해제된 경우도 재로그인 없이 반영 (구버전 백엔드는 필드가 없다)
+    if (typeof data.is_pastor === 'boolean') {
+      sessionStore.set('isPastor', data.is_pastor ? '1' : null)
+    }
 
     return newAccessToken
   } catch (error) {

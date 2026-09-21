@@ -41,6 +41,8 @@ interface PrayerFeedProps {
   showGroupName?: boolean
   /** 시간순 피드에 날짜 구간 헤더를 붙인다 (최신순일 때만 의미 있음) */
   groupByDate?: boolean
+  /** 빈 상태 문구 교체 — 목양 기도함처럼 "첫 기도를 올려보세요"가 맞지 않는 목록용 */
+  emptyText?: { title: string; desc: string }
 }
 
 const PrayerFeed = ({
@@ -56,7 +58,8 @@ const PrayerFeed = ({
   onMakePublic,
   onPrayerClick,
   showGroupName = true,
-  groupByDate = false
+  groupByDate = false,
+  emptyText,
 }: PrayerFeedProps) => {
   const { t, language } = useLanguage()
   const loadMoreRef = useRef<HTMLDivElement>(null)
@@ -127,8 +130,8 @@ const PrayerFeed = ({
       {!loading && prayers.length === 0 && (
         <div className="py-12 text-center">
           <span className="text-6xl mb-4 block">🙏</span>
-          <p className="text-gray-500 dark:text-gray-400">{t('noPrayersYet')}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('firstPrayerRequest')}</p>
+          <p className="text-gray-500 dark:text-gray-400">{emptyText?.title ?? t('noPrayersYet')}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{emptyText?.desc ?? t('firstPrayerRequest')}</p>
         </div>
       )}
 

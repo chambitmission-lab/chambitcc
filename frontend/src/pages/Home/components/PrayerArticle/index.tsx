@@ -34,7 +34,7 @@ const PrayerArticle = ({
   onPrayerClick,
   showGroupName = true,
 }: PrayerArticleProps) => {
-  const { language } = useLanguage()
+  const { t, language } = useLanguage()
   const [isPraying, setIsPraying] = useState(false)
   const [showVersesModal, setShowVersesModal] = useState(false)
   
@@ -104,6 +104,12 @@ const PrayerArticle = ({
     }
   }, [showVersesModal, versesQuery.isError])
 
+  // 목사님과 함께 — 작성자에게는 조용한 비밀기도 카드(+목사님 반응 한 줄)로,
+  // 목양 기도함에서 보는 목회자에게는 기도·답글 액션이 살아 있는 일반 카드로 그린다
+  const sharedWithPastor = !!prayer.shared_with_pastor
+  const pastorView = sharedWithPastor && !prayer.is_owner
+  const actionLocked = !!prayer.is_private && !pastorView
+
   const liveStatusText = prayer.is_owner
     ? language === 'ko'
       ? `지금 ${prayer.prayer_count}명이 당신을 위해 기도하고 있어요`
@@ -138,6 +144,7 @@ const PrayerArticle = ({
             showGroupName={showGroupName}
             colorTheme={colorTheme}
             isPrivate={!!prayer.is_private}
+            sharedWithPastor={sharedWithPastor}
           />
 
           <PrayerContent
@@ -164,7 +171,7 @@ const PrayerArticle = ({
               onVersesClick={handleVersesClick}
               isOwner={prayer.is_owner}
               isAnswered={prayer.is_answered}
-              isPrivate={!!prayer.is_private}
+              isPrivate={actionLocked}
               onAnswerClick={handleAnswer}
               onEditAnswerClick={handleEditAnswer}
               onCancelAnswerClick={handleCancelAnswer}
@@ -175,6 +182,16 @@ const PrayerArticle = ({
             {!prayer.is_private && prayer.prayer_count > 0 && (
               <div className="mt-2.5 text-[12px] text-gray-600 dark:text-gray-400">
                 {liveStatusText}
+              </div>
+            )}
+
+            {/* 목사님과 나눈 내 기도 — 목사님의 기도·답글 여부를 한 줄로 */}
+            {sharedWithPastor && prayer.is_owner && (
+              <div className="mt-2.5 text-[12px] font-medium text-brand">
+                {prayer.prayer_count > 0 ? t('pastorPrayed') : t('pastorPrayerWaiting')}
+                {prayer.reply_count > 0 && (
+                  <span> · {t('pastorReplyCount').replace('{count}', String(prayer.reply_count))}</span>
+                )}
               </div>
             )}
           </div>

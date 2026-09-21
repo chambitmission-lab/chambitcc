@@ -36,6 +36,8 @@ export interface Prayer {
   group_id?: number  // 소그룹 ID (null이면 전체 공개)
   group?: PrayerGroup  // 소그룹 정보
   is_private?: boolean  // 나만 보는 기도 (비밀기도) — 작성자에게만 내려온다
+  // 목사님과 함께 — is_private 위에 얹힌다. 작성자와 목회자에게만 내려온다
+  shared_with_pastor?: boolean
 }
 
 export interface PrayerDetailResponse {
@@ -61,6 +63,7 @@ export interface CreatePrayerRequest {
   is_fully_anonymous: boolean
   group_id?: number  // 소그룹 ID (선택)
   is_private?: boolean  // 나만 보기 — true면 group_id는 서버가 무시
+  shared_with_pastor?: boolean  // 목사님과 함께 — 서버가 is_private 도 강제한다
   emotion?: PrayerEmotion  // 감정 태그 (선택)
 }
 
@@ -97,7 +100,8 @@ export interface PrayerResponse {
 
 export type SortType = 'popular' | 'latest'
 
-export type PrayerFilterType = 'all' | 'my_prayers' | 'prayed_by_me'
+// 'pastoral' — 목양 기도함('목사님과 함께'로 올라온 기도). 목회자 전용, 서버가 403 으로 지킨다
+export type PrayerFilterType = 'all' | 'my_prayers' | 'prayed_by_me' | 'pastoral'
 
 // Reply 관련 타입 정의
 export interface Reply {
@@ -109,6 +113,7 @@ export interface Reply {
   time_ago: string
   is_owner?: boolean   // 내가 작성한 댓글 여부 (로그인 시)
   is_edited?: boolean  // 수정된 댓글 여부
+  is_pastor?: boolean  // 목양 기도에 달린 목회자의 답글 (공개 기도에서는 항상 false)
 }
 
 export interface ReplyListResponse {

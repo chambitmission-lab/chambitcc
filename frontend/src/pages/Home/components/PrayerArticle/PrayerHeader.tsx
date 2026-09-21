@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from 'react'
 import type { GroupColorTheme } from '../../../../utils/groupColors'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import AvatarZoomModal from '../../../../components/AvatarZoomModal'
+import { PastorIcon } from '../EmotionIcons'
 import './PrayerHeader.css'
 
 interface PrayerHeaderProps {
@@ -15,6 +16,8 @@ interface PrayerHeaderProps {
   colorTheme: GroupColorTheme
   /** 나만 보는 기도 — 이름 옆에 자물쇠 칩 */
   isPrivate?: boolean
+  /** 목사님과 함께 — 자물쇠 대신 목양 칩 (작성자·목회자에게만 내려오는 카드) */
+  sharedWithPastor?: boolean
 }
 
 const PrayerHeader = ({
@@ -26,6 +29,7 @@ const PrayerHeader = ({
   showGroupName = true,
   colorTheme,
   isPrivate = false,
+  sharedWithPastor = false,
 }: PrayerHeaderProps) => {
   const { t } = useLanguage()
   const [showAvatarZoom, setShowAvatarZoom] = useState(false)
@@ -123,7 +127,12 @@ const PrayerHeader = ({
               · {groupName}
             </span>
           )}
-          {isPrivate && (
+          {sharedWithPastor ? (
+            <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+              <PastorIcon size={11} />
+              {t('pastorPrayerBadge')}
+            </span>
+          ) : isPrivate && (
             <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
               <span className="material-icons-outlined text-[11px] leading-none">lock</span>
               {t('privatePrayerBadge')}

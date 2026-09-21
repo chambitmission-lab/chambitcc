@@ -59,18 +59,20 @@ export const answerPrayer = async (
 /**
  * 기도 공개 범위 전환 (로그인 필수, 작성자만)
  *
- * 백엔드: PUT /api/v1/prayers/{id}  { is_private }
- * - 나만 보기 → 전체 공개는 언제나 가능
+ * 백엔드: PUT /api/v1/prayers/{id}  { is_private, shared_with_pastor }
+ * - 나만 보기 → 전체 공개는 목사님 답글이 없을 때만 (409)
  * - 전체 공개 → 나만 보기는 아직 함께 기도한 사람·댓글이 없을 때만 (409)
+ * - sharedWithPastor=true 면 '목사님과 함께'(성도에게는 여전히 없는 글)
  */
 export const updatePrayerVisibility = async (
   prayerId: number,
-  isPrivate: boolean
+  isPrivate: boolean,
+  sharedWithPastor: boolean = false
 ): Promise<{ success: boolean; message: string; data: Prayer }> => {
   return request<{ success: boolean; message: string; data: Prayer }>(`/prayers/${prayerId}`, {
     method: 'PUT',
     auth: 'required',
-    json: { is_private: isPrivate },
+    json: { is_private: isPrivate || sharedWithPastor, shared_with_pastor: sharedWithPastor },
     errorMessage: '공개 범위를 바꾸지 못했어요',
   })
 }

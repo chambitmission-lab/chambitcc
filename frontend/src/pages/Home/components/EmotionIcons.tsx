@@ -11,6 +11,7 @@ import type { CSSProperties, ReactElement } from 'react'
 import {
   Alarm,
   CalendarDots,
+  Church,
   Image,
   CloudLightning,
   CloudRain,
@@ -61,6 +62,8 @@ export const ThanksHandIcon = duotone(HandHeart)
 /** 공개 범위 — 전체 공개 / 나만 보기 / 실명 */
 export const GlobeIcon = duotone(GlobeSimple)
 export const LockIcon = duotone(LockSimple)
+/** 목사님과 함께 — 목회자만 읽는 목양 기도 */
+export const PastorIcon = duotone(Church)
 export const EyeIcon = duotone(Eye)
 /** 골방 기도자(익명) — 마 6:6 "골방에 들어가 문을 닫고" */
 export const ClosetIcon = duotone(DoorOpen)

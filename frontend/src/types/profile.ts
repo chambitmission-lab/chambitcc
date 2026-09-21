@@ -46,6 +46,7 @@ export interface MyPrayer {
   created_at: string
   is_active: boolean
   is_private?: boolean  // 나만 보는 기도
+  shared_with_pastor?: boolean  // 목사님과 함께
 }
 
 export interface PrayingFor {

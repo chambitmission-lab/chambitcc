@@ -22,14 +22,34 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   const [selectedGroupId, setSelectedGroupIdRaw] = useState<number | null>(groupId || null)  // ✅ 초기값 설정
   // 나만 보기(비밀기도) — 그룹과 배타적. 하나를 고르면 다른 쪽은 풀린다
   const [isPrivate, setIsPrivateRaw] = useState(false)
+  // 목사님과 함께 — 나만 보기의 한 종류(성도에게는 없는 글)라 isPrivate 도 함께 켜진다.
+  // 목사님이 누구의 기도인지 알아야 돌볼 수 있으므로 고르는 순간 실명이 기본이고(익명 전환 가능),
+  // 빠져나올 땐 익명 기본값으로 되돌린다 — 실명이 켜진 채 전체 공개로 넘어가는 사고 방지
+  const [sharedWithPastor, setSharedWithPastorRaw] = useState(false)
+  const leavePastor = useCallback(() => {
+    setSharedWithPastorRaw((was) => {
+      if (was) setIsAnonymous(true)
+      return false
+    })
+  }, [])
   const setIsPrivate = useCallback((next: boolean) => {
+    leavePastor()
     setIsPrivateRaw(next)
     if (next) setSelectedGroupIdRaw(null)
+  }, [leavePastor])
+  const setSharedWithPastor = useCallback(() => {
+    setSharedWithPastorRaw(true)
+    setIsPrivateRaw(true)
+    setSelectedGroupIdRaw(null)
+    setIsAnonymous(false)
   }, [])
   const setSelectedGroupId = useCallback((next: number | null) => {
     setSelectedGroupIdRaw(next)
-    if (next !== null) setIsPrivateRaw(false)
-  }, [])
+    if (next !== null) {
+      leavePastor()
+      setIsPrivateRaw(false)
+    }
+  }, [leavePastor])
   const [emotion, setEmotion] = useState<PrayerEmotion | null>(null)
   const [error, setError] = useState('')
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
@@ -87,6 +107,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
         is_fully_anonymous: isAnonymous,
         group_id: isPrivate ? undefined : selectedGroupId || undefined,
         is_private: isPrivate || undefined,
+        shared_with_pastor: sharedWithPastor || undefined,
         emotion: emotion || undefined,
       })
 
@@ -144,6 +165,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     content,
     isAnonymous,
     isPrivate,
+    sharedWithPastor,
     selectedGroupId,
     emotion,
     error,
@@ -161,6 +183,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     setContent: handleContentChange,
     setIsAnonymous,
     setIsPrivate,
+    setSharedWithPastor,
     setSelectedGroupId,
     setEmotion,
     handleSubmit,

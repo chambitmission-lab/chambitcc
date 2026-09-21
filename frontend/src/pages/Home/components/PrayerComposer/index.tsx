@@ -14,6 +14,7 @@ import {
   EyeIcon,
   GlobeIcon,
   LockIcon,
+  PastorIcon,
   PrayIcon,
 } from '../EmotionIcons'
 import { GroupGlyph } from '../../../Groups/GroupIcons'
@@ -147,6 +148,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     content,
     isAnonymous,
     isPrivate,
+    sharedWithPastor,
     selectedGroupId,
     emotion,
     error,
@@ -162,6 +164,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     setContent,
     setIsAnonymous,
     setIsPrivate,
+    setSharedWithPastor,
     setSelectedGroupId,
     setEmotion,
     handleSubmit,
@@ -277,6 +280,8 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
 
   const anonymousName = t('anonymousDisplayName')
   const previewName = isAnonymous ? anonymousName : displayName
+  // 정말 나만 보는 기도 — '목사님과 함께'는 isPrivate 이면서도 읽는 사람(목사님)이 있다
+  const onlyMe = isPrivate && !sharedWithPastor
 
   return (
     <>
@@ -387,7 +392,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                           </p>
                         )}
                         <div className="mt-2 flex items-center gap-1.5 text-[11.5px] text-ink-muted">
-                          {isPrivate ? (
+                          {onlyMe ? (
                             <>
                               <span
                                 className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
@@ -422,7 +427,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                               className="shrink-0 w-5 h-5 rounded-full object-cover"
                             />
                           )}
-                          {!isPrivate && (
+                          {!onlyMe && (
                             <>
                               <span key={previewName} className="thanks-swap truncate font-semibold">
                                 {previewName}
@@ -436,14 +441,15 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                     </div>
                   </div>
 
-                  {/* 공개 범위 — 전체 공개 / 나만 보기 / 소그룹. 하나만 고른다 */}
+                  {/* 공개 범위 — 전체 공개 / 나만 보기 / 목사님과 함께 / 소그룹. 하나만 고른다 */}
                   <div className="mt-3 flex items-center justify-between">
                     <span className="text-[11.5px] font-bold text-ink-strong">{t('prayerVisibilityLabel')}</span>
                   </div>
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     {[
                       { key: 'public', Icon: GlobeIcon, label: t('prayerVisibilityPublic'), active: !isPrivate && selectedGroupId === null, onClick: () => { setIsPrivate(false); setSelectedGroupId(null) } },
-                      { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: isPrivate, onClick: () => setIsPrivate(true) },
+                      { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: onlyMe, onClick: () => setIsPrivate(true) },
+                      { key: 'pastor', Icon: PastorIcon, label: t('prayerVisibilityPastor'), active: sharedWithPastor, onClick: setSharedWithPastor },
                     ].map((opt) => (
                       <button
                         key={opt.key}
@@ -491,8 +497,8 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                       )
                     })}
 
-                    {/* 골방 기도자(익명) — 남에게 보이는 기도일 때만 의미가 있다 */}
-                    {isLoggedIn && !isPrivate && (
+                    {/* 골방 기도자(익명) — 남에게 보이는 기도일 때만 의미가 있다 (목사님께도 가릴 수 있다) */}
+                    {isLoggedIn && !onlyMe && (
                       <button
                         type="button"
                         onClick={() => setIsAnonymous(!isAnonymous)}
@@ -512,11 +518,15 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                   </div>
 
                   <p
-                    key={isPrivate ? 'private' : selectedGroupId ? 'group' : isAnonymous ? 'anon' : 'real'}
+                    key={sharedWithPastor ? (isAnonymous ? 'pastor-anon' : 'pastor-real') : isPrivate ? 'private' : selectedGroupId ? 'group' : isAnonymous ? 'anon' : 'real'}
                     className="thanks-swap mt-1.5 text-[11px] leading-snug"
                     style={{ color: isPrivate ? 'var(--brand)' : 'var(--text-muted)' }}
                   >
-                    {isPrivate
+                    {sharedWithPastor
+                      ? isAnonymous
+                        ? t('pastorPrayerNoticeAnonymous')
+                        : t('pastorPrayerNoticeRealName')
+                      : isPrivate
                       ? t('privatePrayerNotice')
                       : selectedGroupId
                         ? ko
@@ -797,7 +807,11 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                     <PrayIcon size={17} />
                   )}
                 </span>
-                {isPrivate
+                {sharedWithPastor
+                  ? isCreating || celebrating
+                    ? t('pastorPrayerSubmitting')
+                    : t('pastorPrayerSubmit')
+                  : isPrivate
                   ? isCreating || celebrating
                     ? t('privatePrayerSubmitting')
                     : t('privatePrayerSubmit')

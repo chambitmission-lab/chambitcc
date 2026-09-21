@@ -48,6 +48,8 @@ export const SESSION_USER_KEYS = {
   username: 'user_username',
   fullName: 'user_full_name',
   avatarUrl: 'user_avatar_url',
+  // 목회자 여부('1') — '목양 기도함' 탭을 그릴지 정하는 표시용. 권한은 서버가 따로 검증한다
+  isPastor: 'user_is_pastor',
   fingerprint: 'user_fingerprint',
   user: 'user',
 } as const

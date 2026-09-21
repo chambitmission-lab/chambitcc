@@ -75,7 +75,7 @@ export const usePrayersInfinite = (
   const currentUser = getCurrentUser()
 
   // 로그인 필요한 필터인지 확인
-  const requiresAuth = filter === 'my_prayers' || filter === 'prayed_by_me'
+  const requiresAuth = filter === 'my_prayers' || filter === 'prayed_by_me' || filter === 'pastoral'
   const isAuthenticated = !!currentUser.username
 
   const infiniteListKey = prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered)
@@ -177,6 +177,7 @@ export const usePrayersInfinite = (
         is_owner: true,
         group_id: data.group_id,
         is_private: data.is_private,
+        shared_with_pastor: data.shared_with_pastor,
       }
 
       queryClient.setQueryData<PrayerListCache>(listKey, (old) => {

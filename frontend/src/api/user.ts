@@ -8,6 +8,8 @@ export interface User {
   username: string
   full_name?: string
   is_admin: boolean
+  /** 목회자(담임·부목사) — '목사님과 함께'로 올라온 기도를 읽을 수 있는 유일한 자격 (관리자와 별개) */
+  is_pastor?: boolean
   is_active: boolean
   approval_status: ApprovalStatus
   approved_at?: string | null
@@ -49,6 +51,19 @@ export const updateUserRole = async (
     auth: 'required',
     json: { is_admin: isAdmin },
     errorMessage: '권한 변경에 실패했습니다',
+  })
+}
+
+// 목회자 지정 / 해제 — 목양 기도함 열람 권한
+export const updateUserPastor = async (
+  userId: number,
+  isPastor: boolean
+): Promise<void> => {
+  await requestRaw(`/admin/users/${userId}/pastor`, {
+    method: 'PATCH',
+    auth: 'required',
+    json: { is_pastor: isPastor },
+    errorMessage: '목회자 지정에 실패했습니다',
   })
 }
 

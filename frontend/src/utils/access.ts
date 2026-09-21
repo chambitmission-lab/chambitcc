@@ -38,5 +38,12 @@ export const getRole = (): Role => {
   return username === 'admin' ? 'admin' : 'member'
 }
 
+/**
+ * 목회자(담임·부목사)인가 — '목사님과 함께'로 올라온 기도를 읽을 수 있는 유일한 자격.
+ * 관리자 역할과 별개라 Role 표에 넣지 않는다(관리자도 목양 기도는 못 본다).
+ * 로그인·토큰 갱신 응답의 is_pastor 를 세션에 미러링한 값이며, 실제 권한은 서버가 지킨다.
+ */
+export const isPastor = (): boolean => sessionStore.get('isPastor') === '1'
+
 /** 현재 사용자가 해당 권한을 가졌는가 — 동기(세션 저장소 기반). 화면 렌더 중 바로 호출해도 된다 */
 export const can = (permission: Permission): boolean => ROLE_PERMISSIONS[getRole()].has(permission)

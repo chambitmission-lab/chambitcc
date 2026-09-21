@@ -4,6 +4,7 @@ import { showToast } from '../../utils/toast'
 import {
   getUserList,
   updateUserRole,
+  updateUserPastor,
   updateUserStatus,
   updateUserApproval,
   resetUserPassword,
@@ -135,6 +136,31 @@ const UserManagement = () => {
       loadUsers()
     } catch {
       showToast('권한 변경에 실패했습니다', 'error')
+    }
+  }
+
+  const handleTogglePastor = async (userId: number, name: string, currentStatus: boolean) => {
+    if (
+      !(await confirmDialog({
+        title: currentStatus ? '목회자 지정 해제' : '목회자로 지정',
+        message: currentStatus
+          ? `${name} 님의 목회자 지정을 해제하시겠습니까?`
+          : `${name} 님을 목회자로 지정하시겠습니까?`,
+        description: currentStatus
+          ? "'목사님과 함께'로 올라온 기도를 더 이상 볼 수 없게 됩니다."
+          : "성도님들이 '목사님과 함께'로 나눈 비밀 기도를 읽고 기도·답글할 수 있게 됩니다. 담임목사님·부목사님만 지정해 주세요.",
+        confirmText: currentStatus ? '해제' : '지정',
+        tone: 'warning',
+        icon: 'church',
+      }))
+    )
+      return
+    try {
+      await updateUserPastor(userId, !currentStatus)
+      showToast(currentStatus ? '목회자 지정이 해제되었습니다' : '목회자로 지정되었습니다', 'success')
+      loadUsers()
+    } catch {
+      showToast('목회자 지정에 실패했습니다', 'error')
     }
   }
 
@@ -412,6 +438,7 @@ const UserManagement = () => {
                     expanded={expandedId === user.id}
                     onToggleExpand={() => setExpandedId(prev => (prev === user.id ? null : user.id))}
                     onToggleAdmin={() => handleToggleAdmin(user.id, user.is_admin)}
+                    onTogglePastor={() => handleTogglePastor(user.id, user.full_name || user.username, !!user.is_pastor)}
                     onToggleStatus={() => handleToggleStatus(user.id, user.is_active)}
                     onApproval={(approve) => handleApproval(user.id, approve)}
                     onResetPassword={() => handleResetPassword(user.id, user.full_name || user.username)}
@@ -468,6 +495,7 @@ interface UserRowProps {
   expanded: boolean
   onToggleExpand: () => void
   onToggleAdmin: () => void
+  onTogglePastor: () => void
   onToggleStatus: () => void
   onApproval: (approve: boolean) => void
   onResetPassword: () => void
@@ -480,6 +508,7 @@ const UserRow = ({
   expanded,
   onToggleExpand,
   onToggleAdmin,
+  onTogglePastor,
   onToggleStatus,
   onApproval,
   onResetPassword,
@@ -537,6 +566,11 @@ const UserRow = ({
           {user.is_admin && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.05em] shrink-0">
               ADMIN
+            </span>
+          )}
+          {user.is_pastor && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand shrink-0">
+              목회자
             </span>
           )}
           {user.approval_status === 'pending' && (
@@ -617,8 +651,14 @@ const UserRow = ({
           />
         </div>
 
-        {/* 비밀번호 분실 회원용 — 임시 비밀번호로 초기화 (중립 톤) */}
+        {/* 목회자 지정 — '목사님과 함께' 기도 열람 권한 (관리자 권한과 별개) · 비밀번호 초기화 */}
         <div className="flex gap-2 pt-2">
+          <RowAction
+            onClick={onTogglePastor}
+            accent={!user.is_pastor}
+            icon="church"
+            label={user.is_pastor ? '목회자 해제' : '목회자로 지정'}
+          />
           <RowAction
             onClick={onResetPassword}
             icon="lock_reset"

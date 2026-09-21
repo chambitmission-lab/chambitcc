@@ -16,7 +16,10 @@ import PrayerActions from './PrayerActions'
 import PrayerStats from './PrayerStats'
 import RepliesSection from './RepliesSection'
 import DeleteConfirmModal from './DeleteConfirmModal'
-import { toastFeedback } from '../../../../utils/toast'
+import { toastFeedback, showToast } from '../../../../utils/toast'
+import { confirmDialog } from '../../../../utils/confirmDialog'
+import { usePrayerVisibility } from '../../../../hooks/usePrayerVisibility'
+import { PastorIcon } from '../EmotionIcons'
 import { prayerToastFeedback } from '../../../../components/prayer/prayerFeedback'
 import { can } from '../../../../utils/access'
 import { useLanguage } from '../../../../contexts/LanguageContext'
@@ -115,6 +118,36 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
     deleteReply(replyId)
   }
 
+  // 나만 보기 ↔ 목사님과 함께 — 둘 다 성도 피드에는 없는 글이라 이 화면 안에서 끝난다
+  // (전체 공개 전환은 피드 갱신이 걸려 있어 호출부의 onMakePublic 이 맡는다)
+  const { setVisibility, isUpdating: isSwitchingVisibility } = usePrayerVisibility({
+    onError: (err) => showToast(err.message, 'error'),
+  })
+  const handleShareWithPastor = async () => {
+    const ok = await confirmDialog({
+      title: t('sharePrayerWithPastorTitle'),
+      message: t('sharePrayerWithPastorMessage'),
+      description: t('sharePrayerWithPastorDescription'),
+      confirmText: t('sharePrayerWithPastorConfirm'),
+      cancelText: t('cancel'),
+    })
+    if (!ok) return
+    try {
+      await setVisibility(prayerId, true, true)
+      showToast(t('prayerSharedWithPastor'), 'success')
+    } catch {
+      // onError 토스트
+    }
+  }
+  const handleUnshareWithPastor = async () => {
+    try {
+      await setVisibility(prayerId, true, false)
+      showToast(t('prayerUnsharedWithPastor'), 'success')
+    } catch {
+      // onError 토스트
+    }
+  }
+
   // 로딩 상태
   if (loading) {
     return <LoadingState />
@@ -128,8 +161,12 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
   // 관리자는 부적절한 글을 즉시 정리할 수 있도록 남의 글에도 삭제 버튼 노출 (백엔드도 is_admin 허용)
   const isOwner = prayer.is_owner || false
   const isAdminDelete = !isOwner && can('community:moderate')
+  // 목사님과 함께 — 작성자와 목회자 둘만의 자리. 기도·답글이 오간다
+  const sharedWithPastor = !!prayer.shared_with_pastor
   // 나만 보는 기도 — 함께 기도·댓글 없이 조용한 일기장처럼
-  const isPrivate = !!prayer.is_private
+  const isPrivate = !!prayer.is_private && !sharedWithPastor
+  // 목양 기도를 작성자 본인이 볼 때 — 자기 기도에 '기도했어요'를 누를 일은 없다
+  const ownPastoral = sharedWithPastor && isOwner
 
   return (
     <>
@@ -148,6 +185,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
             timeAgo={prayer.time_ago}
             isOwner={isOwner}
             isPrivate={isPrivate}
+            sharedWithPastor={sharedWithPastor}
             hasTranslation={hasTranslation}
             showTranslation={showTranslation}
             nextLanguage={nextLanguage}
@@ -167,22 +205,67 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
                   <p className="mt-1 text-[12.5px] leading-snug text-gray-600 dark:text-gray-400">
                     {t('privatePrayerDetailNotice')}
                   </p>
-                  {onMakePublic && (
-                    <button
-                      type="button"
-                      onClick={() => onMakePublic(prayer.id)}
-                      className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-brand text-[var(--on-brand)] text-[12.5px] font-bold shadow-[0_4px_12px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"
-                    >
-                      <span className="material-icons-outlined text-[15px]">public</span>
-                      {t('makePrayerPublic')}
-                    </button>
-                  )}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {onMakePublic && (
+                      <button
+                        type="button"
+                        onClick={() => onMakePublic(prayer.id)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-brand text-[var(--on-brand)] text-[12.5px] font-bold shadow-[0_4px_12px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"
+                      >
+                        <span className="material-icons-outlined text-[15px]">public</span>
+                        {t('makePrayerPublic')}
+                      </button>
+                    )}
+                    {isOwner && (
+                      <button
+                        type="button"
+                        onClick={handleShareWithPastor}
+                        disabled={isSwitchingVisibility}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--card-border)] bg-[var(--surface-container)] text-[12.5px] font-bold text-brand hover:bg-[var(--brand-soft)] active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        <PastorIcon size={15} />
+                        {t('sharePrayerWithPastor')}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
           <>
-          <PrayerStats prayerCount={prayer.prayer_count} />
+          {ownPastoral ? (
+            <div className="mt-2 mb-1 rounded-2xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-4">
+              <div className="flex items-start gap-3">
+                <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-[var(--brand)]">
+                  <PastorIcon size={18} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13.5px] font-bold text-ink-strong">
+                    {prayer.prayer_count > 0 ? t('pastorPrayed') : t('pastorPrayerStatus')}
+                  </p>
+                  <p className="mt-1 text-[12.5px] leading-snug text-gray-600 dark:text-gray-400">
+                    {t('pastorPrayerDetailNotice')}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleUnshareWithPastor}
+                    disabled={isSwitchingVisibility}
+                    className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--card-border)] bg-[var(--surface-container)] text-[12.5px] font-bold text-ink-muted hover:text-brand active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    <span className="material-icons-outlined text-[15px]">lock</span>
+                    {t('unsharePrayerWithPastor')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <PrayerStats prayerCount={prayer.prayer_count} />
+          )}
+
+          {/* 목회자에게 — 이 자리의 답글은 피드 댓글과 달리 작성자 한 사람에게만 간다 */}
+          {sharedWithPastor && !isOwner && (
+            <p className="mb-1 px-1 text-[12px] font-medium text-brand">{t('pastorReplySectionHint')}</p>
+          )}
 
           {/* 댓글은 토글 없이 항상 인라인 — 짧은 글일 때 하단이 텅 비지 않고
               댓글·입력창이 자연스럽게 이어져 화면을 채운다 */}
@@ -210,7 +293,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
             항상 엄지 존에 머문다. 설치형 PWA 홈 인디케이터 영역만큼 safe-area 패딩.
             댓글 작성 중에는 접어둔다 — "댓글 작성"을 누르려다 이 큰 파란 버튼을
             잘못 누르는 오탭 방지. 작성 완료/취소 시 다시 올라온다 */}
-        {!isPrivate && (
+        {!isPrivate && !ownPastoral && (
         <div
           aria-hidden={isComposing}
           className={`shrink-0 overflow-hidden transition-all duration-300 ease-out ${

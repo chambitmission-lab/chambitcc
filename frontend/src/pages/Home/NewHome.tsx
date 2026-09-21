@@ -162,7 +162,7 @@ const NewHome = () => {
 
   // 로그인 상태 변경 시 필터 초기화
   useEffect(() => {
-    if (!isLoggedIn() && (selectedFilter === 'my_prayers' || selectedFilter === 'prayed_by_me')) {
+    if (!isLoggedIn() && selectedFilter !== 'all') {
       setSelectedFilter('all')
       setSelectedGroupId(null)
     }
@@ -518,6 +518,11 @@ const NewHome = () => {
                 onCancelAnswer={handleCancelAnswer}
                 onMakePublic={handleMakePublic}
                 onPrayerClick={handlePrayerClick}
+                emptyText={
+                  selectedFilter === 'pastoral'
+                    ? { title: t('pastoralInboxEmptyTitle'), desc: t('pastoralInboxEmptyDesc') }
+                    : undefined
+                }
               />
             )}
 
