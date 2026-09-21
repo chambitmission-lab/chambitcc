@@ -7,6 +7,7 @@ import type { Column } from '../../types/column'
 import andongProfile from '../../assets/andong.webp'
 import { glueScriptureRefs, renderHighlightedText } from './highlightMarkup'
 import { parseColumnBlocks, type ColumnBlock } from './blockFormat'
+import ColumnCover from './ColumnCover'
 import { PEN, SERIF, formatLetterDate, readingLabel } from './letterFormat'
 
 interface ColumnLetterProps {
@@ -176,15 +177,7 @@ const ColumnLetter = ({ language, column, fontSize, placeholder = false }: Colum
   return (
     <>
       {/* 표지 사진 — 있으면 편지 맨 위에서 한 통의 표정을 만든다 */}
-      {column.image && (
-        <img
-          src={column.image}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="w-full aspect-[16/9] object-cover rounded-2xl mb-7"
-        />
-      )}
+      {column.image && <ColumnCover src={column.image} />}
 
       {/* 오버라인 → 세리프 대제목 → 짧은 악센트 룰 */}
       <div className="text-[12.5px] text-gray-500 dark:text-gray-400">

@@ -325,6 +325,9 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
               </button>
             )}
           </div>
+          <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-gray-400">
+            {ko ? '가로로 긴 사진, 폭 1200px 이상이면 가장 선명합니다' : 'Best with a landscape photo at least 1200px wide'}
+          </p>
         </div>
       </div>
 
