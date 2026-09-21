@@ -1,8 +1,9 @@
 // 선거 React Query 훅 — 캐시만 다루고 토스트는 호출부(feedback)에 맡긴다.
 //
 // 실시간 갱신은 두 겹이다: 서버가 표·회차 변화를 SSE(election_update)로 알리면
-// utils/notificationStream.ts 가 electionKeys.all 을 무효화하고, 스트림이 끊긴 동안을
-// 대비해 보고 있는 화면은 짧은 주기로 조용히 다시 받는다.
+// utils/electionLiveSync.ts 가 캐시를 맞추고(투표율은 바로 반영, 득표는 몰아서 재조회),
+// 스트림이 끊긴 동안을 대비해 보고 있는 화면은 주기적으로 조용히 다시 받는다.
+// 이 폴링은 안전망이라 스트림이 붙어 있는 동안에는 느리게 돈다.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addPaperBallots,
@@ -27,6 +28,7 @@ import type {
   ElectionPayload,
   OpenRoundPayload,
 } from '../types/election'
+import { notificationStream } from '../utils/notificationStream'
 import type { MutationFeedback } from './mutationFeedback'
 
 export const electionKeys = {
@@ -55,7 +57,7 @@ export const useElection = (id: number) =>
     queryFn: () => getElection(id),
     enabled: id > 0,
     staleTime: 1000 * 5,
-    refetchInterval: 1000 * 15,
+    refetchInterval: () => (notificationStream.connected ? 1000 * 60 : 1000 * 15),
     refetchIntervalInBackground: false,
     retry: false, // 명부 밖(403)·없는 선거(404)는 다시 물어도 같다
   })
@@ -89,14 +91,15 @@ export const useAdminElections = () =>
     staleTime: 0,
   })
 
-/** 현황판 — live 면 5초마다 새로 받는다(SSE 가 끊겨도 득표가 멈춰 보이지 않게) */
+/** 현황판 — live 면 SSE 가 끊긴 동안 5초마다 새로 받는다(득표가 멈춰 보이지 않게).
+ * 붙어 있을 때는 SSE 가 갱신을 맡으므로 15초 안전망만 돈다. */
 export const useElectionAdmin = (id: number, live = false) =>
   useQuery({
     queryKey: electionKeys.adminDetail(id),
     queryFn: () => getElectionAdmin(id),
     enabled: id > 0,
     staleTime: 0,
-    refetchInterval: live ? 1000 * 5 : false,
+    refetchInterval: live ? () => (notificationStream.connected ? 1000 * 15 : 1000 * 5) : false,
     refetchIntervalInBackground: false,
   })
 
