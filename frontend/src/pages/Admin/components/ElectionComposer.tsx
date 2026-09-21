@@ -5,6 +5,7 @@
 // 이미 투표한 선거인은 명부에서 뺄 수 없다(서버가 거절한다).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Reorder, motion, useDragControls } from 'framer-motion'
 import { uploadCandidatePhoto } from '../../../api/election'
 import { getUserList } from '../../../api/user'
 import { useDefaultElectionRules, useSaveElection } from '../../../hooks/useElections'
@@ -39,6 +40,21 @@ interface CandidateDraft {
 let draftSeq = 0
 const newDraft = (): CandidateDraft => ({ key: `new-${++draftSeq}`, name: '', bio: '', photo_url: null })
 
+const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_CANDIDATES = 100 // 서버 스키마(ElectionCreate.candidates)의 상한
+const BULK_UPLOAD_CONCURRENCY = 3
+
+/** NFC 로 합친 파일 이름 — macOS 는 한글 파일명을 자모 분리(NFD)로 넘겨서, 그대로 쓰면
+ *  눈에는 같은 '김민수'가 명부·이미 입력한 후보 이름과 다른 글자가 된다 */
+const fileLabel = (file: File) => file.name.normalize('NFC')
+
+/** 파일 이름 → 후보 이름. '1_김민수.jpg'·'김민수 (1).jpg' 처럼 붙은 기호·복사본 번호는 뗀다 */
+const nameFromFile = (file: File) => {
+  const base = fileLabel(file).replace(/\.[^.]+$/, '').trim()
+  const name = base.replace(/^\d+[\s._\-)]*/, '').replace(/\s*\(\d+\)$/, '').trim()
+  return (name || base).slice(0, 100)
+}
+
 const chipBtn = (active: boolean) =>
   `px-3 py-1.5 rounded-full text-[12.5px] font-bold border transition-colors ${
     active
@@ -66,6 +82,88 @@ const NumberBox = ({ value, onChange, min, max }: { value: number; onChange: (v:
     className="w-14 px-2 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-center text-[14px] font-bold text-ink-strong tabular-nums focus:outline-none focus:border-brand"
   />
 )
+
+interface CandidateRowProps {
+  candidate: CandidateDraft
+  index: number
+  total: number
+  locked: boolean
+  onPatch: (patch: Partial<CandidateDraft>) => void
+  onPickPhoto: () => void
+  onMove: (dir: -1 | 1) => void
+  onRemove: () => void
+}
+
+/**
+ * 후보 한 줄 — 기호 아래 손잡이만 드래그 시작점(FavoritesPlaylistModal 의 PlaylistRow 와 같은 방식).
+ * dragListener={false} 라 입력칸 글자 선택과 목록 스크롤은 그대로 동작한다.
+ * 투표가 시작되면 후보 순서(기호)도 잠기므로 손잡이를 감춘다.
+ */
+const CandidateRow = ({ candidate: c, index, total, locked, onPatch, onPickPhoto, onMove, onRemove }: CandidateRowProps) => {
+  const dragControls = useDragControls()
+
+  return (
+    <Reorder.Item
+      as="div"
+      value={c}
+      dragListener={false}
+      dragControls={dragControls}
+      whileDrag={{ scale: 1.015, zIndex: 20, boxShadow: '0 10px 26px rgba(0,0,0,0.18)' }}
+      className="relative flex items-start gap-3 p-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06]"
+    >
+      <div className="shrink-0 mt-1 flex flex-col items-center gap-1.5">
+        <span className="w-6 h-6 rounded-full bg-ink-strong text-white dark:bg-white dark:text-[#16161d] text-[11.5px] font-extrabold flex items-center justify-center tabular-nums">
+          {index + 1}
+        </span>
+        {!locked ? (
+          <button
+            type="button"
+            onPointerDown={(e) => {
+              e.preventDefault()
+              dragControls.start(e)
+            }}
+            aria-label="순서 변경 (드래그)"
+            className="w-7 h-9 -mx-0.5 grid place-items-center rounded-lg cursor-grab active:cursor-grabbing text-gray-300 dark:text-white/25 hover:text-gray-500 dark:hover:text-white/50 transition-colors touch-none"
+          >
+            <span className="material-icons-round text-[20px]">drag_indicator</span>
+          </button>
+        ) : null}
+      </div>
+      <button
+        type="button"
+        onClick={onPickPhoto}
+        disabled={c.uploading}
+        className="shrink-0 relative w-[68px] h-[85px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/[0.05] border border-dashed border-gray-300 dark:border-white/[0.15] flex items-center justify-center text-[11px] font-semibold text-ink-muted hover:border-brand hover:text-brand transition-colors"
+        aria-label="후보 사진 올리기"
+      >
+        {c.photo_url ? <img src={c.photo_url} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover" /> : null}
+        {c.uploading ? (
+          <span className="absolute inset-0 bg-black/45 flex items-center justify-center">
+            <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+          </span>
+        ) : !c.photo_url ? (
+          '사진'
+        ) : null}
+      </button>
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <input value={c.name} onChange={(e) => onPatch({ name: e.target.value })} placeholder="이름" maxLength={100} className={inputCls} />
+        <input value={c.bio} onChange={(e) => onPatch({ bio: e.target.value })} placeholder="한 줄 소개 (예: 안수집사 · 재정부)" maxLength={300} className={inputCls} />
+        {c.photo_url ? (
+          <button type="button" onClick={() => onPatch({ photo_url: null })} className="text-[11.5px] font-semibold text-ink-muted hover:text-red-500">
+            사진 지우기
+          </button>
+        ) : null}
+      </div>
+      {!locked ? (
+        <div className="shrink-0 flex flex-col items-center gap-0.5 text-ink-muted">
+          <button type="button" onClick={() => onMove(-1)} disabled={index === 0} className="w-7 h-7 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand disabled:opacity-25" aria-label="위로">▲</button>
+          <button type="button" onClick={() => onMove(1)} disabled={index === total - 1} className="w-7 h-7 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand disabled:opacity-25" aria-label="아래로">▼</button>
+          <button type="button" onClick={onRemove} className="w-7 h-7 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-red-500" aria-label="후보 삭제">✕</button>
+        </div>
+      ) : null}
+    </Reorder.Item>
+  )
+}
 
 interface Props {
   election?: ElectionAdminDetail | null
@@ -149,6 +247,61 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
       patchCandidate(key, { uploading: false })
       showToast(e instanceof Error ? e.message : '사진 업로드에 실패했습니다', 'error')
     }
+  }
+
+  // 사진 여러 장 한 번에 — 파일 이름이 곧 후보 이름. 같은 이름의 후보가 있으면 그 후보에
+  // 사진만 넣고, 없으면 빈 칸을 먼저 채운 뒤 모자라면 칸을 늘린다. 순서는 파일 이름순이라
+  // '1_김민수'처럼 번호를 붙여 두면 그대로 기호 순서가 된다.
+  const bulkInput = useRef<HTMLInputElement>(null)
+  const [bulkDragging, setBulkDragging] = useState(false)
+
+  const onBulkPicked = async (picked: File[]) => {
+    if (!picked.length) return
+    const files = picked
+      .filter((f) => PHOTO_TYPES.includes(f.type))
+      .sort((a, b) => fileLabel(a).localeCompare(fileLabel(b), 'ko', { numeric: true }))
+    if (!files.length) return showToast('JPG · PNG · WEBP 사진을 골라주세요', 'error')
+
+    const next = [...candidates]
+    const jobs = new Map<string, File>()
+    let skipped = 0
+    for (const file of files) {
+      const name = nameFromFile(file)
+      let target = next.find((c) => c.name.trim() === name)
+      if (!target && !candidatesLocked) {
+        const emptyAt = next.findIndex((c) => !c.id && !c.name.trim() && !c.bio.trim() && !c.photo_url && !c.uploading)
+        if (emptyAt >= 0) target = next[emptyAt] = { ...next[emptyAt], name }
+        else if (next.length < MAX_CANDIDATES) next.push((target = { ...newDraft(), name }))
+      }
+      if (target) jobs.set(target.key, file)
+      else skipped++
+    }
+    setCandidates(next.map((c) => (jobs.has(c.key) ? { ...c, uploading: true } : c)))
+
+    const queue = [...jobs]
+    let failed = 0
+    const worker = async () => {
+      for (let job = queue.shift(); job; job = queue.shift()) {
+        const [key, file] = job
+        try {
+          patchCandidate(key, { photo_url: await uploadCandidatePhoto(file), uploading: false })
+        } catch {
+          failed++
+          patchCandidate(key, { uploading: false })
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(BULK_UPLOAD_CONCURRENCY, queue.length) }, worker))
+
+    const done = jobs.size - failed
+    const notes = [
+      failed ? `${failed}장은 업로드에 실패했어요` : '',
+      skipped ? `${skipped}장은 ${candidatesLocked ? '같은 이름의 후보가 없어' : '후보 수 한도를 넘어'} 건너뛰었어요` : '',
+    ].filter(Boolean)
+    showToast(
+      [done ? `${done}명의 사진을 올렸어요` : '', ...notes].filter(Boolean).join(' · '),
+      !notes.length ? 'success' : done ? 'info' : 'error'
+    )
   }
 
   // ── 선거인 명부 ─────────────────────────────────────────────────────
@@ -252,7 +405,7 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
         </div>
 
         {/* 모바일은 한 줄로 쌓고, PC(lg)는 3칸 — ① 정보·기준 | ② 후보 | ③ 명부. 칸마다 따로 스크롤한다 */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6 lg:overflow-hidden lg:p-0 lg:space-y-0 lg:grid lg:grid-cols-[400px_minmax(0,1fr)_380px] lg:grid-rows-[minmax(0,1fr)] lg:min-h-0">
+        <motion.div layoutScroll className="flex-1 overflow-y-auto px-5 py-4 space-y-6 lg:overflow-hidden lg:p-0 lg:space-y-0 lg:grid lg:grid-cols-[400px_minmax(0,1fr)_380px] lg:grid-rows-[minmax(0,1fr)] lg:min-h-0">
           {/* ① 선거 정보 · 당선 기준 */}
           <div className="space-y-5 lg:overflow-y-auto lg:px-5 lg:py-4 lg:border-r lg:border-black/[0.05] dark:lg:border-white/[0.06]">
             <section className="space-y-3">
@@ -411,13 +564,13 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
             )}
           </div>
 
-          {/* ② 후보 */}
-          <div className="space-y-3 lg:overflow-y-auto lg:px-5 lg:py-4 lg:border-r lg:border-black/[0.05] dark:lg:border-white/[0.06]">
+          {/* ② 후보 — 스크롤하는 칸(모바일은 위 본문, PC 는 이 칸)에 layoutScroll 이 있어야 스크롤된 상태에서도 드래그 자리가 맞는다 */}
+          <motion.div layoutScroll className="space-y-3 lg:overflow-y-auto lg:px-5 lg:py-4 lg:border-r lg:border-black/[0.05] dark:lg:border-white/[0.06]">
             <StepTitle n={3} aside={`${candidates.filter((c) => c.name.trim()).length}명`}>후보</StepTitle>
             <p className="text-[12px] text-ink-muted break-keep">
               {candidatesLocked
                 ? '투표가 시작되어 후보를 넣고 뺄 수 없어요. 이름·사진·소개만 고칠 수 있어요.'
-                : '위에서부터 기호 1번이에요. 화살표로 순서를 바꾸세요.'}
+                : '위에서부터 기호 1번이에요. 손잡이를 끌거나 화살표로 순서를 바꾸세요.'}
             </p>
             <input
               ref={fileInput}
@@ -429,47 +582,58 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
                 e.target.value = ''
               }}
             />
-            <div className="space-y-2.5">
+            <input
+              ref={bulkInput}
+              type="file"
+              multiple
+              accept={PHOTO_TYPES.join(',')}
+              className="hidden"
+              onChange={(e) => {
+                void onBulkPicked([...(e.target.files ?? [])])
+                e.target.value = ''
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => bulkInput.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setBulkDragging(true)
+              }}
+              onDragLeave={() => setBulkDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault()
+                setBulkDragging(false)
+                void onBulkPicked([...e.dataTransfer.files])
+              }}
+              className={`w-full px-3 py-3 rounded-xl border border-dashed text-center transition-colors ${
+                bulkDragging
+                  ? 'border-brand bg-[var(--brand-soft)] text-brand'
+                  : 'border-gray-300 dark:border-white/[0.15] text-ink-muted hover:border-brand hover:text-brand'
+              }`}
+            >
+              <span className="block text-[13px] font-bold">사진 여러 장으로 한 번에 등록</span>
+              <span className="block mt-0.5 text-[11.5px] font-medium break-keep">
+                {candidatesLocked
+                  ? '파일 이름과 같은 이름의 후보에게 사진을 넣어요 (예: 김민수.jpg)'
+                  : '파일 이름이 후보 이름이 돼요 (예: 김민수.jpg) · 여기로 끌어다 놓아도 돼요'}
+              </span>
+            </button>
+            <Reorder.Group as="div" axis="y" values={candidates} onReorder={setCandidates} className="space-y-2.5">
               {candidates.map((c, i) => (
-                <div key={c.key} className="flex items-start gap-3 p-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06]">
-                  <span className="shrink-0 mt-1 w-6 h-6 rounded-full bg-ink-strong text-white dark:bg-white dark:text-[#16161d] text-[11.5px] font-extrabold flex items-center justify-center tabular-nums">
-                    {i + 1}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => pickPhoto(c.key)}
-                    disabled={c.uploading}
-                    className="shrink-0 relative w-[68px] h-[85px] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/[0.05] border border-dashed border-gray-300 dark:border-white/[0.15] flex items-center justify-center text-[11px] font-semibold text-ink-muted hover:border-brand hover:text-brand transition-colors"
-                    aria-label="후보 사진 올리기"
-                  >
-                    {c.photo_url ? <img src={c.photo_url} alt="" className="absolute inset-0 w-full h-full object-cover" /> : null}
-                    {c.uploading ? (
-                      <span className="absolute inset-0 bg-black/45 flex items-center justify-center">
-                        <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      </span>
-                    ) : !c.photo_url ? (
-                      '사진'
-                    ) : null}
-                  </button>
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <input value={c.name} onChange={(e) => patchCandidate(c.key, { name: e.target.value })} placeholder="이름" maxLength={100} className={inputCls} />
-                    <input value={c.bio} onChange={(e) => patchCandidate(c.key, { bio: e.target.value })} placeholder="한 줄 소개 (예: 안수집사 · 재정부)" maxLength={300} className={inputCls} />
-                    {c.photo_url ? (
-                      <button type="button" onClick={() => patchCandidate(c.key, { photo_url: null })} className="text-[11.5px] font-semibold text-ink-muted hover:text-red-500">
-                        사진 지우기
-                      </button>
-                    ) : null}
-                  </div>
-                  {!candidatesLocked ? (
-                    <div className="shrink-0 flex flex-col items-center gap-0.5 text-ink-muted">
-                      <button type="button" onClick={() => moveCandidate(i, -1)} disabled={i === 0} className="w-7 h-7 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand disabled:opacity-25" aria-label="위로">▲</button>
-                      <button type="button" onClick={() => moveCandidate(i, 1)} disabled={i === candidates.length - 1} className="w-7 h-7 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand disabled:opacity-25" aria-label="아래로">▼</button>
-                      <button type="button" onClick={() => setCandidates((prev) => prev.filter((x) => x.key !== c.key))} className="w-7 h-7 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-red-500" aria-label="후보 삭제">✕</button>
-                    </div>
-                  ) : null}
-                </div>
+                <CandidateRow
+                  key={c.key}
+                  candidate={c}
+                  index={i}
+                  total={candidates.length}
+                  locked={candidatesLocked}
+                  onPatch={(patch) => patchCandidate(c.key, patch)}
+                  onPickPhoto={() => pickPhoto(c.key)}
+                  onMove={(dir) => moveCandidate(i, dir)}
+                  onRemove={() => setCandidates((prev) => prev.filter((x) => x.key !== c.key))}
+                />
               ))}
-            </div>
+            </Reorder.Group>
             {!candidatesLocked ? (
               <button
                 type="button"
@@ -479,7 +643,7 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
                 + 후보 추가
               </button>
             ) : null}
-          </div>
+          </motion.div>
 
           {/* ③ 선거인 명부 */}
           <div className="space-y-3 lg:flex lg:flex-col lg:space-y-0 lg:gap-3 lg:min-h-0 lg:px-5 lg:py-4">
@@ -535,7 +699,7 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
               <Stepper value={offlineCount} min={0} max={9999} onChange={setOfflineCount} suffix="명" />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         <div className="relative z-10 px-5 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center gap-2">
           <p className="hidden sm:block flex-1 text-[12px] text-ink-muted">
