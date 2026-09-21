@@ -1,5 +1,5 @@
 // 약력 타임라인 — 자유 텍스트 약력(줄 단위)을 "걸어오신 길" 여정 문법으로 그린다.
-// 데이터는 손대지 않고 렌더 시점에 "전)/현)" 접두와 꼬리 괄호(학위·연도)만 분리하므로
+// 데이터는 손대지 않고 렌더 시점에 "전)/현)"(영어는 "Former)/Current)") 접두와 꼬리 괄호(학위·연도)만 분리하므로
 // 관리자가 어떤 형식으로 적어도 깨지지 않는다. /greeting 본문과 역대 목사 시트가 공유한다.
 import type { ReactNode } from 'react'
 import { AwardIcon, BriefcaseIcon, GraduationCapIcon } from '../icons'
@@ -22,16 +22,18 @@ interface CredLine {
 const parseCredLine = (raw: string): CredLine => {
   let text = raw
   let current: boolean | undefined
-  const status = text.match(/^(전|현)\)\s*/)
+  const status = text.match(/^(전|현|Former|Current)\)\s*/i)
   if (status) {
-    current = status[1] === '현'
+    current = /^(현|current)$/i.test(status[1])
     text = text.slice(status[0].length)
   }
   let tag: string | undefined
-  const tail = text.match(/\(([^()]{1,40})\)\s*(등)?$/)
+  // 꼬리 "등"(영어는 ", etc.")은 괄호 뒤에 붙어 있어도 본문 쪽으로 되돌린다
+  const tail = text.match(/\(([^()]{1,40})\)\s*(등|,?\s*etc\.?)?$/i)
   if (tail) {
     tag = tail[1]
-    text = text.slice(0, tail.index).trim() + (tail[2] ? ' 등' : '')
+    const rest = tail[2] ? (tail[2] === '등' ? ' 등' : ', etc.') : ''
+    text = text.slice(0, tail.index).trim() + rest
   }
   return { text, tag, current }
 }

@@ -69,8 +69,10 @@ const NoticeArchiveSection = () => {
   return (
     <div className="px-4 pt-3 pb-8">
       {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--notice). 소식 탭과 같은 골격이다.
-          다크 상단 광택 span 은 두지 않는다 — 삽화 위에 얹히면 뿌옇게 뜬다(소식 세 장과 같은 이유). */}
-      <div className="nh-hero nh-hero--notice relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
+          다크 상단 광택 span 은 두지 않는다 — 삽화 위에 얹히면 뿌옇게 뜬다(소식 세 장과 같은 이유).
+          PC 에서만 카드를 키운다(lg:min-h) — 136px 높이로는 삽화가 손톱만 해서 장면이 안 읽힌다.
+          news-hero.css 의 lg 배율(185.7%)과 짝이다. */}
+      <div className="nh-hero nh-hero--notice relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 lg:px-7 lg:min-h-[184px] lg:flex lg:flex-col lg:justify-center mb-4">
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-11 h-11 rounded-2xl bg-brand text-white flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)]">
@@ -80,7 +82,7 @@ const NoticeArchiveSection = () => {
               <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
                 NOTICE
               </p>
-              <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
+              <h2 className="text-ink-strong text-[17px] lg:text-[19px] font-bold tracking-[-0.015em]">
                 공지사항
               </h2>
             </div>
@@ -104,7 +106,7 @@ const NoticeArchiveSection = () => {
 
           {/* max-w 는 삽화와 짝이다 — 풀폭으로 두면 글줄이 양 위로 올라탄다.
               삽화를 다시 뽑아 장면 위치가 바뀌면 이 값도 같이 다시 볼 것. */}
-          <p className="max-w-[62%] lg:max-w-[54%] text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
+          <p className="max-w-[62%] lg:max-w-[60%] text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[13px] leading-[1.6]">
             홈에서 지나간 안내도 여기에 그대로 남아 있어요. 제목을 탭하면 전문을 읽을 수 있습니다.
           </p>
         </div>

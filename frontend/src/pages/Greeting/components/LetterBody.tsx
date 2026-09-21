@@ -6,9 +6,15 @@
    원문은 손대지 않는다 — 감지에 실패하면 그대로 문단이 된다. */
 
 const ORDINALS = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째', '아홉째', '열째']
-const ORDINAL_RE = new RegExp(`^(${ORDINALS.join('|')})\\s*[,，:：]?\\s*(.+)$`)
+/* 영어 번역본(greeting_body_en)도 같은 목록 블록으로 선다 — "First, … / Second, …" */
+const ORDINALS_EN = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth']
+const ORDINAL_RE = new RegExp(
+  `^(${[...ORDINALS, ...ORDINALS_EN].join('|')})\\s*[,，:：]?\\s*(.+)$`,
+)
 /* "생선과 같은 만남", "손수건 같은 만남" — 문장 끝의 비유(명사 + 같은 + 명사) */
 const SIMILE_RE = /^(.*?)(\S+?)((?:과|와|처럼)?\s*같은\s+\S+)\s*$/
+/* 영어는 어순이 반대라 비유가 줄 앞에 온다 — "a meeting like a fish — the more you meet, …" */
+const SIMILE_EN_RE = /^(.*?)\b((?:an?|the)\s+\w+\s+like\s+(?:an?|the)\s+[^—–,.;:]+?)(\s*(?:[—–,.;:].*)?)$/i
 
 type Block =
   | { kind: 'text'; text: string }
@@ -54,6 +60,7 @@ function parseLetter(text: string): Block[] {
 
 function Item({ ordinal, body, index }: { ordinal: string; body: string; index: number }) {
   const m = body.match(SIMILE_RE)
+  const en = m ? null : body.match(SIMILE_EN_RE)
   return (
     <li className="gr-enum-item">
       <span className="gr-enum-num" aria-hidden="true">
@@ -68,6 +75,12 @@ function Item({ ordinal, body, index }: { ordinal: string; body: string; index: 
               {m[2]}
               {m[3]}
             </mark>
+          </>
+        ) : en ? (
+          <>
+            {en[1]}
+            <mark className="gr-enum-simile">{en[2]}</mark>
+            {en[3]}
           </>
         ) : (
           body

@@ -75,7 +75,24 @@ export const firstHighlight = (content: string): string | null => {
   const m = content.match(/\[\[(.*?)\]\]/)
   // [[문구|yellow|wavy]] 처럼 옵션이 붙어 있으면 문구만
   const text = m?.[1]?.split('|')[0]?.trim()
-  return text || null
+  return text ? stripOuterQuotes(text) || null : null
+}
+
+/* 쓰는 쪽(ColumnFeed·MinistryRail)이 문구를 “…” 로 감싸 보여 준다. 형광펜 친 문장이
+   그 자체로 따옴표 인용문이면 ““…”” 로 겹치므로 바깥 한 겹만 벗긴다.
+   문장 안쪽의 온전한 인용(예수님은 "나를 따르라")은 짝이 맞으므로 건드리지 않는다. */
+const QUOTE_CHARS = '"“”„‟‘’「」『』'
+const isQuote = (ch: string | undefined) => !!ch && QUOTE_CHARS.includes(ch)
+const stripOuterQuotes = (text: string): string => {
+  const head = isQuote(text[0])
+  const tail = isQuote(text[text.length - 1])
+  if (!head && !tail) return text
+  const innerText = text.slice(head ? 1 : 0, tail ? -1 : undefined)
+  // 안쪽에 따옴표가 또 있으면 양 끝이 한 쌍이라고 단정할 수 없다
+  // (“A” 그리고 “B” 를 벗기면 A” 그리고 “B 가 된다) → 그대로 둔다
+  if ([...innerText].some(isQuote)) return text
+  // 양 끝 한 쌍이거나, 인용문 일부만 칠해 한쪽 따옴표만 딸려 온 경우
+  return innerText.trim()
 }
 
 /** "2026년 7월" 단위 아카이브 그룹 라벨 */
