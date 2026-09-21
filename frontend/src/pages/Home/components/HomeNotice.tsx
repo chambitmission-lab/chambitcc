@@ -26,6 +26,7 @@ import {
 import { tokenStore } from '../../../utils/tokenStore'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { NOTICE_BANNER } from '../../../utils/themeAssets'
+import './HomeNotice.css'
 
 /**
  * 공지 링크 → 실제 이동 대상.
@@ -162,7 +163,7 @@ const HomeNotice = () => {
 
   // 조회가 끝날 때마다 배너 유무를 남긴다 — 다음 실행의 자리표시자 판단 근거
   const hasBanner = bannerNotices.length > 0
-  // 배너 마스코트는 인라인 CSS 배경(아래 <style>)이라 테마 토글 순간 반대 테마 파일을 새로 받는다 —
+  // 배너 마스코트는 CSS 배경(HomeNotice.css)이라 테마 토글 순간 반대 테마 파일을 새로 받는다 —
   // 배너가 떠 있는 동안 등록해 두면 토글 직전 선요청이 챙긴다(themeAssets.ts)
   useThemeArt(NOTICE_BANNER, hasBanner)
   useEffect(() => {
@@ -255,122 +256,6 @@ const HomeNotice = () => {
 
   return (
     <>
-      <style>{`
-        @keyframes notice-backdrop-in { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes notice-card-in {
-          from { opacity: 0; transform: translateY(12px) scale(0.98); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes notice-banner-in {
-          from { opacity: 0; transform: translateY(-8px); }
-          to   { opacity: 1; transform: none; }
-        }
-        .notice-backdrop { animation: notice-backdrop-in 0.16s ease-out; }
-        .notice-card { animation: notice-card-in 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
-        .notice-banner { animation: notice-banner-in 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        /* 팝업 속 포스터 — 세로로 긴 포스터가 본문을 다 밀어내지 않을 만큼만.
-           PC는 화면이 세로로 여유가 있어 한 단계 크게 보여준다 */
-        .notice-poster-img { max-height: 46vh; }
-        @media (min-width: 1024px) {
-          .notice-poster-img { max-height: 58vh; }
-        }
-
-        /* 배너 오른쪽 끝 마스코트 — "알림판에 공지 붙이는 양".
-           배너는 높이만 ≈81px로 고정이고 가로는 모바일 4.4:1 ~ PC 15:1까지 변한다 →
-           cover 금지. 카드색 가로 워시 위에 높이맞춤(auto N%) 삽화를 오른쪽에 얹는다.
-           삽화는 사방이 알파로 페이드된 webp라 카드색과 색 맞춤이 따로 필요 없다.
-           right 26px 은 셰브런(오른쪽 12~29px) 자리를 비켜 세우기 위한 오프셋. */
-        .notice-banner {
-          background-image:
-            linear-gradient(90deg, var(--surface-container) 0%, var(--surface-container) 34%, rgba(255, 255, 255, 0) 100%),
-            url('/images/notice/banner-light.webp');
-          background-repeat: no-repeat, no-repeat;
-          background-position: left center, right 26px center;
-          /* 모바일은 배너 폭이 좁아 제목이 삽화 위를 지나간다 → 한 단계 작게 */
-          background-size: 100% 100%, auto 86%;
-        }
-        @media (min-width: 1024px) {
-          .notice-banner { background-size: 100% 100%, auto 100%; }
-        }
-        [data-theme='dark'] .notice-banner {
-          background-image:
-            linear-gradient(90deg, var(--surface-container) 0%, var(--surface-container) 34%, rgba(32, 31, 31, 0) 100%),
-            url('/images/notice/banner-dark.webp');
-        }
-
-        /* 가운데 빈 구간 연출 — 공지 한 장이 날아가 게시판에 붙는다.
-           바깥 span 은 배너 폭과 같아서 translateX 의 %가 곧 배너 폭 비율이 된다
-           (요소 자기 크기 기준이라, 폭이 358~1192px로 변해도 착지점이 안 흔들린다).
-           출발/착지는 변수로 빼서 모바일·PC 각각 삽화 속 '게시판 종이' 위치에 맞춘다 —
-           삽화 크기가 모바일 auto 86% / PC auto 100% 로 달라 좌표가 같을 수 없다. */
-        .notice-fly {
-          /* 모바일: 미리보기 글줄이 끝나는 뒤쪽에서 출발해 짧게 붙는다 */
-          --fly-from: 52%;
-          --fly-to: calc(100% - 94px);
-          animation: notice-fly 11s cubic-bezier(0.2, 0.5, 0.25, 1) infinite;
-        }
-        .notice-leaf { animation: notice-flutter 1.35s ease-in-out infinite; }
-        .notice-pin {
-          position: absolute;
-          right: 79px;
-          top: 25px;
-          animation: notice-pin 11s linear infinite;
-        }
-        @media (min-width: 1024px) {
-          /* PC는 배너가 3배 넓어 같은 시간에 훨씬 먼 거리를 지난다 → 활공 구간을 길게 잡아
-             속도를 낮춘다(주기 11s는 그대로라 날아오는 간격은 안 변한다) */
-          .notice-fly {
-            --fly-from: 36%;
-            --fly-to: calc(100% - 106px);
-            animation-name: notice-fly-wide;
-            /* 기본 곡선은 출발 기울기가 평균의 2.5배라 "휙 나갔다 끝에서만 감속"한다.
-               PC는 거리가 길어 그 출발 가속이 그대로 보인다 → 처음부터 고르게 미끄러지는
-               곡선으로 바꾼다(출발 0.34배, 착지 0.15배 속도) */
-            animation-timing-function: cubic-bezier(0.35, 0.12, 0.45, 0.92);
-          }
-          .notice-pin { right: 90px; animation-name: notice-pin-wide; }
-        }
-        @keyframes notice-fly {
-          0%        { opacity: 0; transform: translateX(var(--fly-from)); }
-          4%        { opacity: 1; }
-          25%       { opacity: 1; }
-          28%       { transform: translateX(var(--fly-to)); }
-          31%, 100% { opacity: 0; transform: translateX(var(--fly-to)); }
-        }
-        /* PC 전용 — notice-fly 를 2배 길게 늘인 것(비율만 스케일, 연출은 동일) */
-        @keyframes notice-fly-wide {
-          0%        { opacity: 0; transform: translateX(var(--fly-from)); }
-          5%        { opacity: 1; }
-          52%       { opacity: 1; }
-          58%       { transform: translateX(var(--fly-to)); }
-          63%, 100% { opacity: 0; transform: translateX(var(--fly-to)); }
-        }
-        @keyframes notice-pin-wide {
-          0%, 56%   { opacity: 0; transform: scale(0.3); }
-          59%       { opacity: 0.9; transform: scale(0.6); }
-          74%, 100% { opacity: 0; transform: scale(1.6); }
-        }
-        @keyframes notice-flutter {
-          0%   { transform: translateY(calc(-50% - 6px)) rotate(-9deg); }
-          30%  { transform: translateY(calc(-50% - 13px)) rotate(7deg); }
-          65%  { transform: translateY(calc(-50% - 1px)) rotate(-5deg); }
-          100% { transform: translateY(calc(-50% - 6px)) rotate(-9deg); }
-        }
-        @keyframes notice-pin {
-          0%, 27%   { opacity: 0; transform: scale(0.3); }
-          29%       { opacity: 0.9; transform: scale(0.6); }
-          38%, 100% { opacity: 0; transform: scale(1.6); }
-        }
-        /* 날아가는 종이 — 삽화 속 공지 종이와 같은 톤 */
-        .notice-banner { --notice-paper: #ffffff; --notice-paper-line: rgba(122, 108, 88, 0.55); }
-        [data-theme='dark'] .notice-banner { --notice-paper: #efe6d4; --notice-paper-line: rgba(60, 48, 32, 0.5); }
-
-        @media (prefers-reduced-motion: reduce) {
-          .notice-backdrop, .notice-card, .notice-banner { animation: none; }
-          .notice-fly, .notice-pin { display: none; }
-        }
-      `}</style>
 
       {/* 홈 상단 배너 — 팝업을 닫아도 확인 경로가 남는다.
           풀블리드 알림 띠가 아니라 홈의 다른 카드와 같은 리듬(px-4 · 라운드 카드)으로
@@ -428,16 +313,31 @@ const HomeNotice = () => {
             style={{ border: '1.5px solid var(--brand)' }}
           />
 
-          <div className="relative flex items-center gap-3 py-3 pl-3.5 pr-3">
-            {/* 포스터가 붙은 공지는 썸네일이 곧 내용 — 없으면 게시판 압정 */}
-            {latest.image_url ? (
-              <img
-                src={latest.image_url}
-                alt=""
-                className="h-11 w-11 shrink-0 rounded-[13px] object-cover"
-                style={{ background: 'var(--surface-inset)', filter: 'var(--media-dim)' }}
-              />
-            ) : (
+          {/* 포스터는 카드 왼쪽 끝에 세로로 꽉 채운다 — 44px 정사각에 object-cover 로
+              넣으면 A4 포스터(1:1.41)의 가운데 글자 조각만 남아 '깨진 이미지'로 읽혔다.
+              배너 높이(≈92px)에 맞춘 65px 폭이면 원비율과 거의 같아 크롭이 사라진다.
+              흐름에서 빼고 absolute 로 깔아야 py-3 안쪽이 아니라 카드 끝까지 닿는다.
+              h-full 은 생략 금지 — 절대배치된 <img> 는 교체 요소라 height:auto 면 bottom 을
+              무시하고 고유 비율로 높이를 정한다(inset-y-0 만으론 아래가 뜬다).
+              object-top 은 포스터 제목이 늘 위쪽에 있어서 — 비율이 어긋나는 포스터가 와도
+              잘려 나가는 건 아래 여백이지 제목이 아니게 된다. */}
+          {latest.image_url && (
+            <img
+              src={latest.image_url}
+              alt=""
+              aria-hidden
+              className="notice-banner__strip pointer-events-none absolute left-0 top-0 h-full w-[65px] object-cover object-top"
+              style={{ background: 'var(--surface-inset)', filter: 'var(--media-dim)' }}
+            />
+          )}
+
+          <div
+            className={`relative flex items-center gap-3 py-3 pr-3 ${
+              latest.image_url ? 'pl-[77px]' : 'pl-3.5'
+            }`}
+          >
+            {/* 포스터가 없는 공지는 게시판 압정 */}
+            {!latest.image_url && (
               <span
                 aria-hidden
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px]"

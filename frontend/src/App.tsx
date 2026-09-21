@@ -96,6 +96,10 @@ const NavRailPreview = import.meta.env.DEV
 const ReadingHeroPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/dev/ReadingHeroPreview'))
   : null
+// 홈 공지 배너 포스터 썸네일 — 크롭 방식 시안 비교
+const NoticeBannerPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/dev/NoticeBannerPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -481,6 +485,9 @@ function App() {
                 )}
                 {ReadingHeroPreview && (
                   <Route path="/dev/reading-hero" element={<ReadingHeroPreview />} />
+                )}
+                {NoticeBannerPreview && (
+                  <Route path="/dev/notice-banner" element={<NoticeBannerPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
