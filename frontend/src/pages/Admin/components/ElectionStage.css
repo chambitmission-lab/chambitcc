@@ -224,25 +224,34 @@
   padding: 0 clamp(1rem, 2.5vw, 2.4rem) clamp(1rem, 3vh, 2.25rem);
 }
 
-/* 좌우 여백 = 제목 → 손글씨 → 삽화 로 이어지는 **한 칼럼**.
-   아래를 삽화 높이만큼 비워 두고(0.6 — 패널 위 32% 는 투명한 하늘이고 그 아래도 한동안은
-   옅은 언덕이라, 그만큼은 글씨가 내려와도 겹치지 않는다),
-   손글씨를 `margin-top: auto` 로 그 바로 위에 붙인다. 안 그러면 손글씨가 위에 붙어 있고
-   삽화는 맨 아래 붙어서, 그 사이 수백 px 이 빈 채로 둘이 따로 논다(실기에서 확인). */
+/* 좌우 여백은 **카드에 붙어 서는 한 띠**다 — [제목·손글씨] [카드] [손글씨] 가 화면
+   한가운데서 나란히 읽히고, 삽화만 아래 두 모서리에 깔린다.
+   전엔 제목은 왼쪽 위 모서리, 손글씨는 삽화 위, 오른쪽 글씨는 오른쪽 끝에 붙어 있어서
+   2000px 프로젝터에서 네 덩이가 제각각 떠 있었다(실기에서 확인 — 손글씨를 삽화 위로
+   내려도 달라 보이지 않았다). 그래서
+   · 세로: 삽화 위 빈 공간의 **가운데**에 세운다(카드가 화면 가운데라 같은 높이가 된다).
+     아래는 삽화 높이만큼 비운다(0.6 — 패널 위 32% 는 투명한 하늘이라 그만큼은 내려와도 된다).
+   · 가로: 양쪽 다 **카드 쪽으로 붙인다** — 왼쪽은 오른맞춤, 오른쪽은 왼맞춤.
+     화면이 넓어질수록 벌어지는 건 바깥 여백이지, 글과 카드 사이가 아니다. */
 .els-side {
   align-self: stretch;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   min-width: 0;
   padding-top: clamp(0.25rem, 2vh, 1.75rem);
   padding-bottom: calc(var(--els-art-h) * 0.6);
 }
 
-.els-side--right {
+.els-side--left {
   align-items: flex-end;
   text-align: right;
-  justify-content: flex-end;
-  gap: clamp(1.5rem, 9vh, 5.5rem);
+}
+
+.els-side--right {
+  align-items: flex-start;
+  text-align: left;
+  gap: clamp(1.25rem, 5vh, 3rem);
 }
 
 .els-center {
@@ -264,7 +273,7 @@
 .els-eyebrow {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
+  align-self: flex-end;
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
   background: var(--brand-soft);
@@ -301,7 +310,7 @@
 .els-sub {
   position: relative;
   margin-top: 0.7rem;
-  align-self: flex-start;
+  align-self: flex-end;
 }
 
 /* 형광펜 자국 — 손글씨 두 줄 아래를 한 번 긋는다 */
@@ -319,16 +328,17 @@
   opacity: 0.75;
 }
 
-/* 왼쪽 손글씨는 삽화 바로 위에 내려앉는다 — 제목과 삽화 사이를 이 한 줄이 잇는다 */
+/* 왼쪽 손글씨는 제목 바로 아래 한 덩이로 붙는다 — 제목과 떼어 놓으면 다시 따로 논다 */
 .els-note {
   position: relative;
-  margin-top: auto;
+  margin-top: clamp(1.5rem, 4.5vh, 3rem);
 }
 
 .els-side--right .els-note {
   margin-top: 0;
 }
 
+/* 빗금은 글씨의 바깥쪽(카드 반대편)에 — 왼쪽 여백은 오른맞춤이라 왼쪽에 붙는다 */
 .els-sparks {
   position: absolute;
   top: -0.55rem;
@@ -339,15 +349,11 @@
   opacity: 0.8;
 }
 
-.els-side--right .els-sparks {
-  left: auto;
-  right: -1.9rem;
-}
-
 /* 회차 탭 */
 .els-rounds {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.4rem;
   margin-top: 0.85rem;
 }
@@ -767,9 +773,22 @@
     display: none;
   }
 
+  /* 한 칼럼이 되면 제목은 카드 위의 머리글 — 다시 왼맞춤 */
   .els-side--left {
+    align-items: flex-start;
+    text-align: left;
+    justify-content: flex-start;
     padding-top: 0;
     padding-bottom: 0;
+  }
+
+  .els-side--left .els-eyebrow,
+  .els-side--left .els-sub {
+    align-self: flex-start;
+  }
+
+  .els-rounds {
+    justify-content: flex-start;
   }
 
   .els-side--left .els-note {
