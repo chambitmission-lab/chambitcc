@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { visibleVerses, verseNumberLabel } from './mergedVerses'
 import { useBibleChapter } from '../../../hooks/useBible'
@@ -13,6 +13,12 @@ import { showToast } from '../../../utils/toast'
 import VerseBookmarkModal from './VerseBookmarkModal'
 import type { BibleVerse } from '../../../types/bible'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
+import {
+  IMMERSIVE_SCALES,
+  loadImmersiveScaleIdx,
+  saveImmersiveScaleIdx,
+  stepImmersiveScaleIdx,
+} from './immersiveScale'
 import '../styles/focus-reading.css'
 
 /**
@@ -42,6 +48,9 @@ interface FocusReadingProps {
 /** 이 시간 이상 머문 절만 "읽었다"로 본다 — 눈금자 스크럽·빠른 플링은 걸리지 않는다 */
 const DWELL_MS = 2200
 const HINT_KEY = 'bible-focus-hint-v1'
+/** 마우스·트랙패드 환경 — 첫 진입 힌트를 스와이프 대신 키보드·휠 안내로 바꾼다 */
+const hasFinePointer = (): boolean =>
+  typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
 /** 시간대 틴트 — 새벽/낮/노을/밤의 빛을 배경에 옅게 얹는다 */
 const currentTint = (): string => {
@@ -87,6 +96,15 @@ const FocusReading = ({
   const [hint, setHint] = useState<'off' | 'on' | 'leaving'>(() =>
     localStorage.getItem(HINT_KEY) ? 'off' : 'on'
   )
+  const [finePointer] = useState(hasFinePointer)
+  // 글자 크기 가−/가+ — 영화관과 공유(immersiveScale)
+  const [scaleIdx, setScaleIdx] = useState(loadImmersiveScaleIdx)
+  const stepScale = (dir: 1 | -1) =>
+    setScaleIdx(i => {
+      const next = stepImmersiveScaleIdx(i, dir)
+      saveImmersiveScaleIdx(next)
+      return next
+    })
 
   const scrollerRef = useRef<HTMLDivElement>(null)
   const rulerRef = useRef<HTMLDivElement>(null)
@@ -312,7 +330,13 @@ const FocusReading = ({
   const tickGap = totalVerses > 90 ? 0 : totalVerses > 45 ? 1 : 2
 
   return createPortal(
-    <div className="focus-overlay" data-tint={tint} role="dialog" aria-label="집중 읽기">
+    <div
+      className="focus-overlay"
+      data-tint={tint}
+      style={{ '--focus-scale': IMMERSIVE_SCALES[scaleIdx] } as CSSProperties}
+      role="dialog"
+      aria-label="집중 읽기"
+    >
       {/* 절 스크롤러 — 한 절 = 한 화면 */}
       <div ref={scrollerRef} className="focus-scroller" onScroll={handleScroll}>
         {isLoading && (
@@ -427,6 +451,29 @@ const FocusReading = ({
             {bookName} {chapter}장
           </span>
         </div>
+        {/* 글자 크기 — 오버레이 안에서는 Aa 패널이 없으므로 여기서 바로 키운다 */}
+        <div className="focus-top__size" role="group" aria-label="글자 크기">
+          <button
+            type="button"
+            className="focus-top__btn focus-top__btn--size"
+            onClick={() => stepScale(-1)}
+            disabled={scaleIdx === 0}
+            aria-label="글자 작게"
+            title="글자 작게"
+          >
+            <span className="focus-top__size-glyph is-small" aria-hidden>가</span>
+          </button>
+          <button
+            type="button"
+            className="focus-top__btn focus-top__btn--size"
+            onClick={() => stepScale(1)}
+            disabled={scaleIdx === IMMERSIVE_SCALES.length - 1}
+            aria-label="글자 크게"
+            title="글자 크게"
+          >
+            <span className="focus-top__size-glyph is-large" aria-hidden>가</span>
+          </button>
+        </div>
         <button
           type="button"
           className={`focus-top__btn${currentBookmark ? ' is-on' : ''}`}
@@ -464,9 +511,9 @@ const FocusReading = ({
       {hint !== 'off' && (
         <div className={`focus-hint${hint === 'leaving' ? ' is-leaving' : ''}`}>
           <span className="material-icons-round" aria-hidden>
-            arrow_upward
+            {finePointer ? 'arrow_downward' : 'arrow_upward'}
           </span>
-          위로 쓸어올려 다음 절로
+          {finePointer ? '방향키 ↓ · 스페이스 · 마우스 휠로 다음 절' : '위로 쓸어올려 다음 절로'}
         </div>
       )}
 

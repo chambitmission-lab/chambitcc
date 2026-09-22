@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { RefObject } from 'react'
+import type { CSSProperties, RefObject } from 'react'
 import { visibleVerses, verseNumberLabel } from './mergedVerses'
 import { useBibleChapter } from '../../../hooks/useBible'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
@@ -10,6 +10,12 @@ import { useWakeLock } from '../../PrayerFocus/useWakeLock'
 import { getCinemaScenes } from './cinemaScenes'
 import { TRANSLATION_LABEL } from './verseCopy'
 import type { VerseTiming } from '../../../api/bibleTts'
+import {
+  IMMERSIVE_SCALES,
+  loadImmersiveScaleIdx,
+  saveImmersiveScaleIdx,
+  stepImmersiveScaleIdx,
+} from './immersiveScale'
 import '../styles/cinema-reading.css'
 
 /**
@@ -84,6 +90,15 @@ const CinemaReading = ({
   const [rotateHint, setRotateHint] = useState(
     () => window.matchMedia?.('(orientation: portrait)').matches ?? false
   )
+
+  // 글자 크기 가−/가+ — 집중 읽기와 공유(immersiveScale). 화면 맞춤(--cinema-fit)도 다시 잰다
+  const [scaleIdx, setScaleIdx] = useState(loadImmersiveScaleIdx)
+  const stepScale = (dir: 1 | -1) =>
+    setScaleIdx(i => {
+      const next = stepImmersiveScaleIdx(i, dir)
+      saveImmersiveScaleIdx(next)
+      return next
+    })
 
   useWakeLock(true)
   useModalBackButton(onClose)
@@ -165,7 +180,7 @@ const CinemaReading = ({
       fit = Math.round((fit - 0.05) * 100) / 100
       stage.style.setProperty('--cinema-fit', String(fit))
     }
-  }, [fitKey, fitTick])
+  }, [fitKey, fitTick, scaleIdx])
 
   // ── 낭독 완료 자동 읽음 — 절 낭독이 끝나 다음 절로 넘어가는 순간 조용히 기록 ──
   // 시네마는 단어가 밝아지는 걸 눈으로 따라 읽는 화면이므로 집중 읽기와 같은
@@ -340,7 +355,13 @@ const CinemaReading = ({
   const canSeek = maxTimedVerse > 0
 
   return createPortal(
-    <div ref={rootRef} className="cinema-overlay" role="dialog" aria-label="성경 낭독 영화관">
+    <div
+      ref={rootRef}
+      className="cinema-overlay"
+      style={{ '--cinema-scale': IMMERSIVE_SCALES[scaleIdx] } as CSSProperties}
+      role="dialog"
+      aria-label="성경 낭독 영화관"
+    >
       {/* 배경 — 장면 레이어 크로스페이드 + 느린 빛무리. 항상 말씀보다 뒤·어둡게 */}
       <div className="cinema-bg" aria-hidden>
         {scenes.map((s, i) => (
@@ -412,7 +433,29 @@ const CinemaReading = ({
           <span className="cinema-ui__caption">
             {bookName} {chapter}장 낭독
           </span>
-          <span className="cinema-ui__spacer" />
+          {/* 글자 크기 — 오버레이 안에서는 Aa 패널이 없으므로 여기서 바로 키운다 */}
+          <div className="cinema-ui__size" role="group" aria-label="글자 크기">
+            <button
+              type="button"
+              className="cinema-ui__btn cinema-ui__btn--size"
+              onClick={() => stepScale(-1)}
+              disabled={scaleIdx === 0}
+              aria-label="글자 작게"
+              title="글자 작게"
+            >
+              <span className="cinema-ui__size-glyph is-small" aria-hidden>가</span>
+            </button>
+            <button
+              type="button"
+              className="cinema-ui__btn cinema-ui__btn--size"
+              onClick={() => stepScale(1)}
+              disabled={scaleIdx === IMMERSIVE_SCALES.length - 1}
+              aria-label="글자 크게"
+              title="글자 크게"
+            >
+              <span className="cinema-ui__size-glyph is-large" aria-hidden>가</span>
+            </button>
+          </div>
         </header>
 
         <footer className="cinema-ui__bottom">

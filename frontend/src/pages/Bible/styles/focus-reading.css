@@ -139,7 +139,7 @@
 .focus-slide__text {
   /* Aa 설정을 따르되(명조 선택 시 그대로), 기본값은 몰입감을 위해 명조 */
   font-family: var(--bible-font-family, 'Noto Serif KR', 'Nanum Myeongjo', serif);
-  font-size: calc(1.375rem * var(--bible-font-scale, 1));
+  font-size: calc(1.375rem * var(--bible-font-scale, 1) * var(--focus-scale, 1));
   /* Aa 설정보다 좁아지지 않게 하한을 둔다 — 몰입 모드는 한 절만 보이므로 여유 있게 */
   line-height: max(2, var(--bible-line-height, 2));
   font-weight: 500;
@@ -153,12 +153,12 @@
 
 /* 긴 절은 화면을 넘기지 않도록 단계적으로 줄인다 */
 .focus-slide__text.is-long {
-  font-size: calc(1.1875rem * var(--bible-font-scale, 1));
+  font-size: calc(1.1875rem * var(--bible-font-scale, 1) * var(--focus-scale, 1));
   line-height: max(2.05, var(--bible-line-height, 2));
 }
 
 .focus-slide__text.is-vlong {
-  font-size: calc(1.03125rem * var(--bible-font-scale, 1));
+  font-size: calc(1.03125rem * var(--bible-font-scale, 1) * var(--focus-scale, 1));
   /* 글자가 작아질수록 절대 행간(px)도 줄어 촘촘해 보이므로 비율을 더 높인다 */
   line-height: max(2.1, var(--bible-line-height, 2));
   /* 긴 문단에 balance를 쓰면 줄 끝이 들쭉날쭉해져 시선이 흔들린다 */
@@ -316,6 +316,37 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 글자 크기 가−/가+ — 아이콘 폰트 대신 '가' 글리프 두 크기로 뜻을 바로 보여준다 */
+.focus-top__size {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.focus-top__btn--size:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.focus-top__btn--size:disabled:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(238, 242, 248, 0.85);
+}
+
+.focus-top__size-glyph {
+  font-family: var(--bible-font-family, inherit);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.focus-top__size-glyph.is-small {
+  font-size: 0.8125rem;
+}
+
+.focus-top__size-glyph.is-large {
+  font-size: 1.1875rem;
 }
 
 /* ── 좌우 절 이동 화살표 ─────────────────────────────────────── */
@@ -600,6 +631,225 @@
 
 @keyframes focus-spin {
   to { transform: rotate(360deg); }
+}
+
+/* ── PC(1024px+) — 넓은 화면을 글자에 쓴다 ──────────────────────
+   모바일 규격(1.375rem·30rem 열)을 그대로 두면 2000px 화면 한가운데 손바닥만 한 글이
+   떠 있게 된다. 어르신이 주로 쓰는 화면이므로 본문을 폭에 비례해 키우고(상한 있음),
+   열 너비는 글자 크기 기준 em 으로 잡아 한 줄 25~32자를 유지한다. 컨트롤도 한 단계씩 크게. */
+@media (min-width: 1024px) {
+  .focus-slide {
+    padding: 6rem 4rem 10rem;
+  }
+
+  .focus-slide__inner {
+    max-width: none;
+  }
+
+  .focus-slide__text {
+    /* 폭 1024→2.2rem, 1440→2.55rem, 상한 2.75rem — 낮은 노트북 화면에선 높이로도 제한 */
+    font-size: calc(
+      min(2.75rem, 1.2rem + 1.5vw, var(--vvh, 100dvh) * 0.052)
+      * var(--bible-font-scale, 1) * var(--focus-scale, 1)
+    );
+    /* 큰 글자에 2.0 행간은 줄이 흩어진다 — Aa 설정의 90%, 하한 1.75 */
+    line-height: max(1.75, var(--bible-line-height, 2) * 0.9);
+    max-width: 30em;
+    margin-inline: auto;
+  }
+
+  .focus-slide__text.is-long {
+    font-size: calc(
+      min(2.375rem, 1rem + 1.3vw, var(--vvh, 100dvh) * 0.046)
+      * var(--bible-font-scale, 1) * var(--focus-scale, 1)
+    );
+    line-height: max(1.8, var(--bible-line-height, 2) * 0.9);
+    max-width: 32em;
+  }
+
+  .focus-slide__text.is-vlong {
+    font-size: calc(
+      min(1.9375rem, 0.9rem + 1.1vw, var(--vvh, 100dvh) * 0.04)
+      * var(--bible-font-scale, 1) * var(--focus-scale, 1)
+    );
+    line-height: max(1.85, var(--bible-line-height, 2) * 0.92);
+    max-width: 34em;
+  }
+
+  .focus-slide__meta {
+    gap: 0.8rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .focus-slide__num {
+    font-size: 1rem;
+  }
+
+  .focus-slide__read {
+    padding-left: 0.8rem;
+    font-size: 0.875rem;
+  }
+
+  .focus-slide__read .material-icons-round {
+    font-size: 1rem;
+  }
+
+  .focus-slide__tools {
+    height: 3.25rem;
+    margin-top: 1.25rem;
+  }
+
+  .focus-slide__more {
+    width: 7px;
+    height: 7px;
+  }
+
+  .focus-slide__commentary {
+    padding: 0.45rem 1.1rem;
+    font-size: 0.875rem;
+  }
+
+  .focus-slide__commentary .material-icons-round {
+    font-size: 1rem;
+  }
+
+  /* 상단 바 */
+  .focus-top {
+    gap: 0.75rem;
+    padding: 1rem 1.5rem 2rem;
+  }
+
+  .focus-top__btn {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .focus-top__btn .material-icons-round {
+    font-size: 1.5rem;
+  }
+
+  .focus-top__size {
+    gap: 0.4rem;
+    margin-right: 0.5rem;
+  }
+
+  .focus-top__size-glyph.is-small {
+    font-size: 0.9375rem;
+  }
+
+  .focus-top__size-glyph.is-large {
+    font-size: 1.375rem;
+  }
+
+  .focus-top__mode {
+    font-size: 0.75rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .focus-top__book {
+    font-size: 1.25rem;
+  }
+
+  /* 좌우 화살표 — 화면 끝이 아니라 본문 열 바로 바깥에 붙인다(1024px 미만 폭에선 가장자리) */
+  .focus-arrow {
+    width: 3.75rem;
+    height: 3.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(238, 242, 248, 0.75);
+  }
+
+  .focus-arrow .material-icons-round {
+    font-size: 2rem;
+  }
+
+  .focus-arrow--prev { left: max(1.5rem, calc(50% - 42rem)); }
+  .focus-arrow--next { right: max(1.5rem, calc(50% - 42rem)); }
+
+  /* 하단 — 눈금자·장 이동은 본문 열과 같은 폭으로 모은다 */
+  .focus-bottom {
+    padding: 3rem 2rem 1.5rem;
+  }
+
+  .focus-ruler,
+  .focus-bottom__row {
+    max-width: 80rem;
+    margin-inline: auto;
+  }
+
+  .focus-ruler {
+    height: 36px;
+    margin-bottom: 0.9rem;
+  }
+
+  .focus-ruler__tick {
+    height: 12px;
+    border-radius: 2px;
+  }
+
+  .focus-ruler__tick.is-current {
+    height: 30px;
+  }
+
+  .focus-bottom__ref {
+    font-size: 1rem;
+  }
+
+  .focus-chapter-btn {
+    min-width: 4.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 14px;
+  }
+
+  .focus-chapter-btn__num {
+    font-size: 1.375rem;
+  }
+
+  .focus-chapter-btn__label {
+    font-size: 0.75rem;
+  }
+
+  .focus-hint {
+    bottom: 9rem;
+    padding: 0.7rem 1.4rem;
+    font-size: 0.9375rem;
+  }
+
+  .focus-hint .material-icons-round {
+    font-size: 1.25rem;
+  }
+
+  /* 장 끝 카드 */
+  .focus-end__icon {
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .focus-end__icon .material-icons-round {
+    font-size: 2.25rem;
+  }
+
+  .focus-end__title {
+    font-size: 2rem;
+  }
+
+  .focus-end__sub {
+    font-size: 1.125rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .focus-end__next {
+    padding: 1rem 2.25rem;
+    font-size: 1.125rem;
+  }
+
+  .focus-end__next .material-icons-round {
+    font-size: 1.35rem;
+  }
+
+  .focus-end__close {
+    font-size: 0.9375rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

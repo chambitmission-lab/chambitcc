@@ -101,7 +101,7 @@
 .cinema-verse__text {
   margin: 0;
   font-family: var(--bible-font-family, 'Noto Serif KR', 'Nanum Myeongjo', serif);
-  font-size: calc(1.5rem * var(--bible-font-scale, 1) * var(--cinema-fit, 1));
+  font-size: calc(1.5rem * var(--bible-font-scale, 1) * var(--cinema-scale, 1) * var(--cinema-fit, 1));
   line-height: 2;
   font-weight: 500;
   letter-spacing: 0.005em;
@@ -144,7 +144,7 @@
   .cinema-verse__text {
     font-size: calc(
       max(1.5rem, min(2.4rem, 3.4vw, var(--vvh, 100dvh) * 0.08))
-      * var(--bible-font-scale, 1) * var(--cinema-fit, 1)
+      * var(--bible-font-scale, 1) * var(--cinema-scale, 1) * var(--cinema-fit, 1)
     );
     line-height: 1.65;
   }
@@ -271,6 +271,28 @@
   flex-shrink: 0;
 }
 
+/* 글자 크기 가−/가+ — 아이콘 폰트 대신 '가' 글리프 두 크기 (집중 읽기와 같은 문법) */
+.cinema-ui__size {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.cinema-ui__size-glyph {
+  font-family: var(--bible-font-family, inherit);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cinema-ui__size-glyph.is-small {
+  font-size: 0.8125rem;
+}
+
+.cinema-ui__size-glyph.is-large {
+  font-size: 1.1875rem;
+}
+
 .cinema-ui__bottom {
   position: absolute;
   left: 0;
@@ -343,6 +365,111 @@
   border-radius: 999px;
   background: rgba(246, 242, 232, 0.65);
   transition: width 0.8s ease;
+}
+
+/* ── PC(1024px+) — 넓은 화면을 말씀에 쓴다 (가로 분기 뒤에 두어 우선) ─────
+   가로 분기의 상한 2.4rem 은 폰 가로 기준이라 모니터에선 여전히 작다. 폭에 비례해
+   더 키우고(상한 3rem), 열 너비는 em 기준으로 한 줄 25~30자를 유지한다. 넘치는 절은
+   기존 JS 화면 맞춤(--cinema-fit)이 줄인다. 컨트롤도 한 단계씩 크게. */
+@media (min-width: 1024px) {
+  .cinema-stage {
+    padding: 4rem 3rem 8rem;
+  }
+
+  .cinema-verse__text {
+    /* 폭 1024→2.0rem, 1440→2.36rem, 1920→2.78rem, 상한 3rem — 낮은 화면은 높이로도 제한 */
+    font-size: calc(
+      min(3rem, 1.1rem + 1.4vw, var(--vvh, 100dvh) * 0.07)
+      * var(--bible-font-scale, 1) * var(--cinema-scale, 1) * var(--cinema-fit, 1)
+    );
+    line-height: 1.7;
+  }
+
+  /* 열 너비는 본문 글자 크기(em) 기준이어야 하므로 텍스트 쪽에서 잡는다 */
+  .cinema-verse:not(.cinema-title) {
+    max-width: 88vw;
+  }
+
+  .cinema-verse:not(.cinema-title) .cinema-verse__text {
+    max-width: 30em;
+    margin-inline: auto;
+  }
+
+  .cinema-verse__ref {
+    margin-top: 1.5rem;
+    font-size: 0.9375rem;
+  }
+
+  .cinema-title__label {
+    font-size: 0.875rem;
+  }
+
+  .cinema-title__book {
+    font-size: 3.5rem;
+  }
+
+  .cinema-title__chapter {
+    margin-top: 0.75rem;
+    font-size: 1.5rem;
+  }
+
+  .cinema-title__status {
+    font-size: 1rem;
+  }
+
+  /* 컨트롤 */
+  .cinema-ui__top {
+    gap: 0.75rem;
+    padding: 1rem 1.5rem 2rem;
+  }
+
+  .cinema-ui__caption {
+    font-size: 1rem;
+  }
+
+  .cinema-ui__btn {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .cinema-ui__btn .material-icons-round {
+    font-size: 1.5rem;
+  }
+
+  .cinema-ui__btn--play {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .cinema-ui__btn--play .material-icons-round {
+    font-size: 2.25rem;
+  }
+
+  .cinema-ui__size {
+    gap: 0.4rem;
+  }
+
+  .cinema-ui__size-glyph.is-small {
+    font-size: 0.9375rem;
+  }
+
+  .cinema-ui__size-glyph.is-large {
+    font-size: 1.375rem;
+  }
+
+  .cinema-ui__bottom {
+    padding: 2.5rem 2rem 1.5rem;
+  }
+
+  .cinema-ui__controls {
+    gap: 2.25rem;
+  }
+
+  .cinema-progress {
+    height: 3px;
+    max-width: 80rem;
+    margin: 0 auto 1.4rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
