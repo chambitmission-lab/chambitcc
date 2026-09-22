@@ -2,7 +2,8 @@
 //
 // 현황판은 일하는 화면이고, 여기는 **회중이 같이 보는 화면**이다. 그래서 도구가 하나도 없다 —
 // 손에 쥐고 있어야 하는 '득표 가리기'·'발표 화면' 두 개만 오른쪽 위에 남고, 나머지는
-// 큰 숫자와 여백이다. 좌우 여백(프로젝터에서 원래 버려지는 자리)에는 삽화와 손글씨를 둔다.
+// 큰 숫자와 여백이다. 좌우 여백(프로젝터에서 원래 버려지는 자리)에는 손글씨를 둔다.
+// (아래 두 모서리의 양 떼·교회 삽화는 2026-09 에 걷어냈다 — 되살리지 말 것. ElectionStage.css 머리말)
 //
 // 데이터·집계는 현황판이 이미 갖고 있는 것을 그대로 받는다(SSE + 폴링은 hooks/useElections.ts).
 // 막대 길이·기준선 계산은 성도 화면의 TallyBars(pages/Election/electionUi.tsx)와 **같은 식**이다 —
@@ -10,8 +11,6 @@
 // 한쪽만 고치면 같은 표가 두 화면에서 다르게 보인다.
 import { useEffect, useMemo, useState } from 'react'
 import { ensureFontFamily } from '../../../utils/deferredFonts'
-import { useThemeArt } from '../../../hooks/useThemeArt'
-import { ELECTION_STAGE_LEFT, ELECTION_STAGE_RIGHT } from '../../../utils/themeAssets'
 import { thresholdText, turnoutPercent } from '../../Election/electionShared'
 import { CandidateAvatar } from '../../Election/electionUi'
 import type { ElectionAdminDetail, ElectionRound } from '../../../types/election'
@@ -85,11 +84,6 @@ interface Props {
 }
 
 const ElectionStage = ({ election, round, hideTally, onToggleHideTally, onExit, onPickRound }: Props) => {
-  // 좌우 둘 다 도착해야 켠다 — 한쪽만 먼저 뜨면 화면이 한쪽으로 기울어 보인다
-  const leftReady = useThemeArt(ELECTION_STAGE_LEFT)
-  const rightReady = useThemeArt(ELECTION_STAGE_RIGHT)
-  const artReady = leftReady && rightReady
-
   const isOpen = round?.status === 'open'
   const turnout = round ? turnoutPercent(round.voted_count, round.voters_total) : 0
   const waiting = round ? Math.max(0, round.voters_total - round.voted_count) : 0
@@ -141,7 +135,7 @@ const ElectionStage = ({ election, round, hideTally, onToggleHideTally, onExit, 
   const linePercent = result && result.base > 0 ? Math.min(100, (result.required / base) * 100) : null
 
   return (
-    <div className={`els-stage${artReady ? ' is-art-ready' : ''}`}>
+    <div className="els-stage">
       {/* ── 상단 띠 ── */}
       <div className="els-top">
         <span className="els-brand">

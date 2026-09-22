@@ -6,12 +6,12 @@
    그래서 여기는 도구가 하나도 없고, 글씨가 크고, 여백이 따뜻하다.
 
    레이아웃은 3단: [왼쪽 여백 = 제목·손글씨] [가운데 = 카드] [오른쪽 여백 = 손글씨].
-   좌우 여백은 원래 프로젝터에서 버려지는 자리다. 거기에 삽화와 손글씨를 둬서
+   좌우 여백은 원래 프로젝터에서 버려지는 자리다. 거기에 손글씨를 둬서
    "표를 세는 화면"이 아니라 "함께 세우는 자리"로 읽히게 한다.
 
-   삽화(`--els-art`)는 없어도 화면이 완성돼 보여야 한다 — 아래 그라데이션 배경이
-   그 자체로 바탕이고, webp 가 도착하면 그 위에 좌우 날개로 얹힌다.
-   프롬프트·구역표: docs/election-stage-bg-prompts.md
+   ★ 아래 두 모서리의 삽화(양 떼·교회)는 걷어냈다(2026-09). 바탕은 맑은 캔버스 하나뿐이다 —
+   되살리지 말 것. 그림이 빠진 만큼 본문은 화면 한가운데가 아니라 **위에서부터** 채우고,
+   남는 높이는 득표 카드가 받는다(.els-body / .els-card--tally).
    ============================================================ */
 
 .els-stage {
@@ -22,80 +22,16 @@
   flex-direction: column;
   overflow: hidden;
   color: var(--text-body);
-  /* 삽화가 없을 때의 바탕 — 위는 맑게, 좌우 아래 모서리만 아주 옅은 브랜드 워시 */
+  /* 맑은 바탕 하나 — 위쪽만 살짝 들어 올린다 */
   background:
     radial-gradient(150% 90% at 50% -25%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 62%),
-    radial-gradient(62% 58% at 6% 104%, rgba(49, 130, 246, 0.085), transparent 72%),
-    radial-gradient(62% 58% at 95% 104%, rgba(49, 130, 246, 0.06), transparent 72%),
     var(--app-canvas);
-  --els-art-left: url('/images/election/stage-left-light.webp');
-  --els-art-right: url('/images/election/stage-right-light.webp');
-
-  /* 삽화 날개의 폭과, 거기서 따라 나오는 높이.
-     여백 글씨가 삽화 위에서 끝나야 좌우가 "제목 → 손글씨 → 삽화" 한 칼럼으로 읽힌다 —
-     그래서 폭을 변수로 두고 `.els-side` 가 같은 값으로 아래를 비워 둔다.
-     1.111 은 패널 비율(720×648, docs/election-stage-process.py). 굽는 크기를 바꾸면 같이 바꿀 것. */
-  --els-wing: clamp(240px, 26vw, 500px);
-  --els-art-h: calc(var(--els-wing) / 1.111);
 }
 
 [data-theme='dark'] .els-stage {
   background:
     radial-gradient(150% 90% at 50% -25%, rgba(255, 255, 255, 0.05), transparent 60%),
-    radial-gradient(62% 58% at 6% 104%, rgba(69, 147, 252, 0.11), transparent 72%),
-    radial-gradient(62% 58% at 95% 104%, rgba(69, 147, 252, 0.075), transparent 72%),
     var(--app-canvas);
-  --els-art-left: url('/images/election/stage-left-dark.webp');
-  --els-art-right: url('/images/election/stage-right-dark.webp');
-}
-
-/* 좌우 삽화 날개 — 화면 아래 두 모서리에 장면을 한 덩이씩 깐다.
-   ★ **폭맞춤**(`background-size: 100% auto`)이다. 처음엔 /mission 처럼 높이맞춤
-   (`auto 100%`, 한 장을 양쪽이 끝만 잘라 쓰기)으로 짰는데, 받아 온 그림은 왼쪽 무리가
-   프레임의 48.7% 를 먹어서 날개 폭(23%)에 담을 재간이 없었다 — 돌을 안은 새끼양이 잘렸다.
-   그래서 좌우를 **가로 720px 로 같게** 잘라 두 장으로 굽고(docs/election-stage-process.py),
-   여기선 폭에 맞춰 깐다. 두 패널의 가로가 같아야 배율도 같다 — 한쪽만 바꾸면 원근이 깨진다.
-   위·안쪽 모서리 페이드는 CSS 마스크가 아니라 **알파로 구워져 있다**(무대 배경의
-   라디얼 워시 위에 캔버스색 네모가 뜨지 않게). */
-.els-stage::before,
-.els-stage::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  z-index: 0;
-  pointer-events: none;
-  /* 26vw(최대 500px) — 더 넓히면 돌을 안은 새끼양이 가운데 카드 뒤로 숨는다.
-     1999 기준 500px 이고 새끼양 오른쪽 끝이 444px, 카드 왼쪽 끝이 469px 라 아슬하게 산다. */
-  width: var(--els-wing);
-  background-size: 100% auto;
-  background-repeat: no-repeat;
-  opacity: 0;
-  transition: opacity 420ms ease-out;
-}
-
-.els-stage::before {
-  left: 0;
-  background-image: var(--els-art-left);
-  background-position: left bottom;
-}
-
-.els-stage::after {
-  right: 0;
-  background-image: var(--els-art-right);
-  background-position: right bottom;
-}
-
-.els-stage.is-art-ready::before,
-.els-stage.is-art-ready::after {
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .els-stage::before,
-  .els-stage::after {
-    transition: none;
-  }
 }
 
 /* ---------- 상단 띠 ---------- */
@@ -217,30 +153,30 @@
   /* 좌우에 최소 폭을 물려 둔다 — `minmax(0,1fr)` 로 두면 가운데가 1060 을 먼저 다 먹어서
      1280~1440 구간에서 여백이 30px 로 눌리고 제목이 세로로 쪼개진다(겪었다). */
   grid-template-columns: minmax(200px, 1fr) minmax(0, 1060px) minmax(200px, 1fr);
-  /* 카드는 화면 한가운데 — 프로젝터에서 아래 절반이 비면 화면이 위로 쏠려 보인다.
-     좌우 여백은 stretch 라 제목은 위에, 손글씨는 그 아래 제자리에 선다. */
-  align-items: center;
+  /* 세 칸 모두 화면 높이를 다 쓰고, **안의 내용은 위에서부터** 선다.
+     전엔 카드를 화면 한가운데(`align-items: center`)에 띄웠는데, 아래 두 모서리의 삽화를
+     걷어내고 나니 상단 띠와 카드 사이가 250px 넘게 벌어져 화면이 두 동강 나 보였다
+     (2000×1125 프로젝터에서 확인). 남는 높이는 득표 카드가 받아 후보 줄이 고르게 퍼진다. */
+  align-items: stretch;
   gap: clamp(0.75rem, 2vw, 2.5rem);
-  padding: 0 clamp(1rem, 2.5vw, 2.4rem) clamp(1rem, 3vh, 2.25rem);
+  padding: clamp(0.25rem, 1.5vh, 1rem) clamp(1rem, 2.5vw, 2.4rem) clamp(1rem, 3vh, 2.25rem);
 }
 
-/* 좌우 여백은 **카드에 붙어 서는 한 띠**다 — [제목·손글씨] [카드] [손글씨] 가 화면
-   한가운데서 나란히 읽히고, 삽화만 아래 두 모서리에 깔린다.
+/* 좌우 여백은 **카드에 붙어 서는 한 띠**다 — [제목·손글씨] [카드] [손글씨] 가 같은 줄에서
+   시작해 나란히 읽힌다.
    전엔 제목은 왼쪽 위 모서리, 손글씨는 삽화 위, 오른쪽 글씨는 오른쪽 끝에 붙어 있어서
-   2000px 프로젝터에서 네 덩이가 제각각 떠 있었다(실기에서 확인 — 손글씨를 삽화 위로
-   내려도 달라 보이지 않았다). 그래서
-   · 세로: 삽화 위 빈 공간의 **가운데**에 세운다(카드가 화면 가운데라 같은 높이가 된다).
-     아래는 삽화 높이만큼 비운다(0.6 — 패널 위 32% 는 투명한 하늘이라 그만큼은 내려와도 된다).
+   2000px 프로젝터에서 네 덩이가 제각각 떠 있었다(실기에서 확인). 그래서
+   · 세로: 카드와 **같은 높이에서 시작**한다. 삽화를 걷어낸 뒤로 아래를 비워 둘 이유가
+     없어졌으므로(옛 `--els-art-h` 패딩) 위맞춤 하나로 끝난다.
    · 가로: 양쪽 다 **카드 쪽으로 붙인다** — 왼쪽은 오른맞춤, 오른쪽은 왼맞춤.
      화면이 넓어질수록 벌어지는 건 바깥 여백이지, 글과 카드 사이가 아니다. */
 .els-side {
   align-self: stretch;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   min-width: 0;
   padding-top: clamp(0.25rem, 2vh, 1.75rem);
-  padding-bottom: calc(var(--els-art-h) * 0.6);
 }
 
 .els-side--left {
@@ -407,10 +343,13 @@
     var(--surface-container);
 }
 
+/* 남는 높이는 득표 카드가 받는다 — 삽화가 빠진 아래 여백을 카드가 메워, 본문이 위에 붙어도
+   화면 아래가 텅 비지 않는다. `1 0 auto` 라 짧은 화면에서는 줄어들지 않고 .els-center 가 구른다. */
 .els-card--tally {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  flex: 1 0 auto;
 }
 
 .els-card-head {
@@ -539,11 +478,15 @@
 
 /* ---------- 득표 ---------- */
 
+/* 카드가 커진 만큼 후보 줄도 함께 벌어진다 — 카드 안쪽만 텅 비면 그게 더 어색하다.
+   자리가 딱 맞으면 남는 공간이 0 이라 gap 그대로다. */
 .els-rows {
   display: flex;
   flex-direction: column;
   gap: clamp(0.5rem, 1.6vh, 1.05rem);
   min-height: 0;
+  flex: 1;
+  justify-content: space-evenly;
 }
 
 .els-row {
