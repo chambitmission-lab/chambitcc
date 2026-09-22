@@ -1,0 +1,769 @@
+/* ============================================================
+   선거 발표 화면 (프로젝터) — ElectionStage.tsx
+   ────────────────────────────────────────────────────────────
+   관리자 현황판(ElectionBoard)에서 '발표 화면' 을 켜면 이 화면이 뜬다.
+   현황판은 "일하는 화면", 이 화면은 "회중이 같이 보는 화면"이다 —
+   그래서 여기는 도구가 하나도 없고, 글씨가 크고, 여백이 따뜻하다.
+
+   레이아웃은 3단: [왼쪽 여백 = 제목·손글씨] [가운데 = 카드] [오른쪽 여백 = 손글씨].
+   좌우 여백은 원래 프로젝터에서 버려지는 자리다. 거기에 삽화와 손글씨를 둬서
+   "표를 세는 화면"이 아니라 "함께 세우는 자리"로 읽히게 한다.
+
+   삽화(`--els-art`)는 없어도 화면이 완성돼 보여야 한다 — 아래 그라데이션 배경이
+   그 자체로 바탕이고, webp 가 도착하면 그 위에 좌우 날개로 얹힌다.
+   프롬프트·구역표: docs/election-stage-bg-prompts.md
+   ============================================================ */
+
+.els-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--text-body);
+  /* 삽화가 없을 때의 바탕 — 위는 맑게, 좌우 아래 모서리만 아주 옅은 브랜드 워시 */
+  background:
+    radial-gradient(150% 90% at 50% -25%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 62%),
+    radial-gradient(62% 58% at 6% 104%, rgba(49, 130, 246, 0.085), transparent 72%),
+    radial-gradient(62% 58% at 95% 104%, rgba(49, 130, 246, 0.06), transparent 72%),
+    var(--app-canvas);
+  --els-art-left: url('/images/election/stage-left-light.webp');
+  --els-art-right: url('/images/election/stage-right-light.webp');
+}
+
+[data-theme='dark'] .els-stage {
+  background:
+    radial-gradient(150% 90% at 50% -25%, rgba(255, 255, 255, 0.05), transparent 60%),
+    radial-gradient(62% 58% at 6% 104%, rgba(69, 147, 252, 0.11), transparent 72%),
+    radial-gradient(62% 58% at 95% 104%, rgba(69, 147, 252, 0.075), transparent 72%),
+    var(--app-canvas);
+  --els-art-left: url('/images/election/stage-left-dark.webp');
+  --els-art-right: url('/images/election/stage-right-dark.webp');
+}
+
+/* 좌우 삽화 날개 — 화면 아래 두 모서리에 장면을 한 덩이씩 깐다.
+   ★ **폭맞춤**(`background-size: 100% auto`)이다. 처음엔 /mission 처럼 높이맞춤
+   (`auto 100%`, 한 장을 양쪽이 끝만 잘라 쓰기)으로 짰는데, 받아 온 그림은 왼쪽 무리가
+   프레임의 48.7% 를 먹어서 날개 폭(23%)에 담을 재간이 없었다 — 돌을 안은 새끼양이 잘렸다.
+   그래서 좌우를 **가로 720px 로 같게** 잘라 두 장으로 굽고(docs/election-stage-process.py),
+   여기선 폭에 맞춰 깐다. 두 패널의 가로가 같아야 배율도 같다 — 한쪽만 바꾸면 원근이 깨진다.
+   위·안쪽 모서리 페이드는 CSS 마스크가 아니라 **알파로 구워져 있다**(무대 배경의
+   라디얼 워시 위에 캔버스색 네모가 뜨지 않게). */
+.els-stage::before,
+.els-stage::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* 1920 기준 470px — 가운데 카드의 왼쪽 끝(430px)을 40px 넘어서지만, 그 40px 에는
+     패널의 알파 페이드만 걸린다. 더 넓히면 돌을 안은 새끼양이 카드 뒤로 숨는다. */
+  width: clamp(220px, 25%, 470px);
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 420ms ease-out;
+}
+
+.els-stage::before {
+  left: 0;
+  background-image: var(--els-art-left);
+  background-position: left bottom;
+}
+
+.els-stage::after {
+  right: 0;
+  background-image: var(--els-art-right);
+  background-position: right bottom;
+}
+
+.els-stage.is-art-ready::before,
+.els-stage.is-art-ready::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .els-stage::before,
+  .els-stage::after {
+    transition: none;
+  }
+}
+
+/* ---------- 상단 띠 ---------- */
+
+.els-top {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: clamp(0.75rem, 2vh, 1.4rem) clamp(1rem, 2.5vw, 2.4rem);
+}
+
+.els-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--brand);
+}
+
+.els-brand-name {
+  font-size: clamp(0.95rem, 1.3vw, 1.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.els-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.3rem;
+  font-size: clamp(0.66rem, 0.9vw, 0.78rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #059669;
+}
+
+[data-theme='dark'] .els-live {
+  color: #6ee7b7;
+}
+
+.els-live-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: currentColor;
+  animation: els-live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes els-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .els-live-dot {
+    animation: none;
+  }
+}
+
+.els-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 발표 중에도 손에 쥐고 있어야 하는 두 손잡이 — 기능은 현황판과 같다 */
+.els-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: clamp(0.74rem, 0.95vw, 0.85rem);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.els-pill:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.els-pill.is-on {
+  background: var(--brand);
+  border-color: transparent;
+  color: var(--on-brand);
+  box-shadow: 0 8px 20px -10px var(--brand-glow);
+}
+
+.els-pill.is-on:hover {
+  color: var(--on-brand);
+}
+
+/* ---------- 본문 3단 ---------- */
+
+.els-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  /* 좌우에 최소 폭을 물려 둔다 — `minmax(0,1fr)` 로 두면 가운데가 1060 을 먼저 다 먹어서
+     1280~1440 구간에서 여백이 30px 로 눌리고 제목이 세로로 쪼개진다(겪었다). */
+  grid-template-columns: minmax(200px, 1fr) minmax(0, 1060px) minmax(200px, 1fr);
+  /* 카드는 화면 한가운데 — 프로젝터에서 아래 절반이 비면 화면이 위로 쏠려 보인다.
+     좌우 여백은 stretch 라 제목은 위에, 손글씨는 그 아래 제자리에 선다. */
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 2.5rem);
+  padding: 0 clamp(1rem, 2.5vw, 2.4rem) clamp(1rem, 3vh, 2.25rem);
+}
+
+.els-side {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-top: clamp(0.25rem, 2vh, 1.75rem);
+}
+
+/* 삽화는 화면 아래쪽에 깔린다(docs/election-stage-bg-prompts.md 의 세로 구역표) —
+   여백의 글씨는 그보다 위에서 끝나야 한다. 그래서 두 쪽 다 위에서부터 쌓는다. */
+.els-side--right {
+  align-items: flex-end;
+  text-align: right;
+  padding-top: clamp(1rem, 10vh, 6rem);
+  gap: clamp(1.75rem, 13vh, 8rem);
+}
+
+.els-center {
+  min-width: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.65rem, 1.8vh, 1.15rem);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.els-center::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- 왼쪽 — 제목 ---------- */
+
+.els-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--brand);
+  font-size: clamp(0.68rem, 0.9vw, 0.8rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.els-title {
+  margin: 0.65rem 0 0;
+  font-size: clamp(1.6rem, 2.9vw, 2.85rem);
+  font-weight: 800;
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+
+/* 손글씨 — 남는 여백에 두는 말. 정보가 아니라 온도다.
+   나눔손글씨 펜은 ensureFontFamily('nanumPen') 으로 이 모듈이 로드될 때 붙는다. */
+.els-hand {
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: clamp(1.15rem, 1.85vw, 2rem);
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--brand-muted);
+  word-break: keep-all;
+  white-space: pre-line;
+  letter-spacing: 0.01em;
+}
+
+.els-sub {
+  position: relative;
+  margin-top: 0.7rem;
+  align-self: flex-start;
+}
+
+/* 형광펜 자국 — 손글씨 두 줄 아래를 한 번 긋는다 */
+.els-swash {
+  display: block;
+  width: 100%;
+  height: clamp(0.5rem, 1vh, 0.7rem);
+  margin-top: 0.1rem;
+  color: #f2c14e;
+  opacity: 0.85;
+}
+
+[data-theme='dark'] .els-swash {
+  color: #d2a23c;
+  opacity: 0.75;
+}
+
+.els-note {
+  position: relative;
+  margin-top: clamp(1.25rem, 8vh, 4.5rem);
+}
+
+.els-side--right .els-note {
+  margin-top: 0;
+}
+
+.els-sparks {
+  position: absolute;
+  top: -0.55rem;
+  left: -1.9rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  color: #f2c14e;
+  opacity: 0.8;
+}
+
+.els-side--right .els-sparks {
+  left: auto;
+  right: -1.9rem;
+}
+
+/* 회차 탭 */
+.els-rounds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+}
+
+.els-round {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: clamp(0.7rem, 0.9vw, 0.8rem);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.els-round:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.els-round.is-on {
+  background: var(--brand);
+  border-color: transparent;
+  color: var(--on-brand);
+}
+
+/* ---------- 카드 ---------- */
+
+.els-card {
+  position: relative;
+  flex-shrink: 0;
+  padding: clamp(0.9rem, 2.3vh, 1.65rem) clamp(1rem, 1.8vw, 1.9rem);
+  border: 1px solid var(--card-border);
+  border-radius: clamp(1rem, 1.5vw, 1.5rem);
+  background: var(--surface-container);
+  box-shadow:
+    0 22px 48px -28px rgba(30, 60, 120, 0.35),
+    0 2px 6px rgba(30, 60, 120, 0.05);
+}
+
+[data-theme='dark'] .els-card {
+  box-shadow: 0 22px 48px -28px rgba(0, 0, 0, 0.7);
+}
+
+/* 투표율 카드만 옅은 브랜드 그라데이션 — 두 카드의 위계를 색이 아니라 온도로 가른다 */
+.els-card--turnout {
+  background:
+    linear-gradient(118deg, var(--brand-soft-strong) 0%, var(--brand-soft) 42%, transparent 78%),
+    var(--surface-container);
+}
+
+.els-card--tally {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.els-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: clamp(0.5rem, 1.4vh, 0.95rem);
+}
+
+.els-badge {
+  flex-shrink: 0;
+  width: clamp(2rem, 4.2vh, 2.6rem);
+  height: clamp(2rem, 4.2vh, 2.6rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: 0 8px 18px -8px var(--brand-glow);
+}
+
+.els-card-title {
+  font-size: clamp(0.95rem, 1.35vw, 1.25rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.els-card-sub {
+  margin-top: 0.1rem;
+  font-size: clamp(0.72rem, 0.95vw, 0.88rem);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.els-card-aside {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  font-size: clamp(0.68rem, 0.9vw, 0.8rem);
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.els-card-aside.is-live {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+[data-theme='dark'] .els-card-aside.is-live {
+  background: rgba(16, 185, 129, 0.14);
+  color: #6ee7b7;
+}
+
+/* ---------- 투표율 ---------- */
+
+.els-turnout-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.els-turnout-num {
+  font-size: clamp(2.4rem, 7.2vh, 4.4rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.els-turnout-den {
+  font-size: clamp(1rem, 2.4vh, 1.5rem);
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.els-turnout-say {
+  margin-bottom: 0.15rem;
+  font-size: clamp(0.8rem, 1.05vw, 0.95rem);
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.els-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: clamp(0.6rem, 1.6vh, 1.05rem);
+}
+
+.els-progress {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: clamp(0.75rem, 2vh, 1.2rem);
+  border-radius: 999px;
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+
+.els-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand-dim), var(--brand) 55%, #5fc6f0 100%);
+  transition: width 700ms ease-out;
+}
+
+.els-progress-pct {
+  flex-shrink: 0;
+  font-size: clamp(1.3rem, 3.4vh, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* ---------- 득표 ---------- */
+
+.els-rows {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.6vh, 1.05rem);
+  min-height: 0;
+}
+
+.els-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.55rem, 1vw, 1.05rem);
+}
+
+.els-rank {
+  flex-shrink: 0;
+  width: clamp(1.5rem, 3.4vh, 2.05rem);
+  height: clamp(1.5rem, 3.4vh, 2.05rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  font-size: clamp(0.72rem, 1.6vh, 0.9rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.els-row.is-elected .els-rank {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+.els-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.els-row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.els-name {
+  font-size: clamp(0.95rem, 2.3vh, 1.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.els-tag {
+  flex-shrink: 0;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: clamp(0.62rem, 1.35vh, 0.78rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.els-tag--elected {
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+.els-tag--tied {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+/* 방금 들어온 표 — 발표 화면에서만 뜬다. 숫자가 조용히 바뀌면 아무도 못 본다 */
+.els-bump {
+  flex-shrink: 0;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  font-size: clamp(0.62rem, 1.35vh, 0.78rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  animation: els-bump-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+[data-theme='dark'] .els-bump {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+}
+
+@keyframes els-bump-in {
+  0% {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.8);
+  }
+  60% {
+    transform: translateY(-0.15rem) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.els-votes {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: clamp(1.15rem, 3vh, 1.85rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.els-votes-unit {
+  margin-left: 0.1em;
+  font-size: 0.5em;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.els-bar {
+  position: relative;
+  margin-top: 0.4rem;
+  height: clamp(0.55rem, 1.6vh, 0.95rem);
+  border-radius: 999px;
+  background: var(--surface-inset);
+}
+
+.els-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--bar-tone, var(--surface-inset));
+  transition: width 700ms ease-out;
+}
+
+/* 당선 기준선 — 색의 뜻은 카드 아래 한 줄이 설명한다(TallyBars 와 같은 약속) */
+.els-bar-line {
+  position: absolute;
+  top: -0.25rem;
+  bottom: -0.25rem;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 999px;
+  background: var(--amber);
+}
+
+.els-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: clamp(0.55rem, 1.6vh, 1rem);
+  padding-top: clamp(0.5rem, 1.4vh, 0.85rem);
+  border-top: 1px solid var(--card-border);
+}
+
+.els-foot-note {
+  min-width: 0;
+  font-size: clamp(0.72rem, 0.95vw, 0.88rem);
+  font-weight: 600;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
+.els-foot-chip {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-soft-strong);
+  color: var(--amber);
+  font-size: clamp(0.7rem, 0.95vw, 0.85rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- 비어 있는 상태 (가린 득표 · 시작 전) ---------- */
+
+.els-blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: clamp(1.75rem, 8vh, 4.5rem) 1rem;
+  text-align: center;
+}
+
+.els-blank-icon {
+  color: var(--brand);
+  opacity: 0.55;
+}
+
+.els-blank-title {
+  font-size: clamp(1rem, 2.6vh, 1.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.els-blank-sub {
+  font-size: clamp(0.78rem, 1.05vw, 0.95rem);
+  font-weight: 600;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
+/* ============================================================
+   좁은 화면 — 좌우 여백이 없다. 제목을 카드 위로 올리고 손글씨는 접는다.
+   (발표 화면은 프로젝터용이지만, 태블릿으로 미리 보는 일이 잦다)
+   ============================================================ */
+@media (max-width: 1279.98px) {
+  .els-stage::before,
+  .els-stage::after {
+    display: none;
+  }
+
+  .els-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(0.5rem, 1.5vh, 1rem);
+    overflow-y: auto;
+  }
+
+  .els-side--right {
+    display: none;
+  }
+
+  .els-side--left {
+    padding-top: 0;
+  }
+
+  .els-side--left .els-note {
+    display: none;
+  }
+
+  .els-center {
+    overflow: visible;
+  }
+}

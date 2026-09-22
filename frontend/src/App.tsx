@@ -104,6 +104,10 @@ const NoticeBannerPreview = import.meta.env.DEV
 const LogoPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/dev/LogoPreview'))
   : null
+// 선거 발표 화면(프로젝터) — 진행 중인 선거 없이 배치·삽화 자리 확인
+const ElectionStagePreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/dev/ElectionStagePreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -501,6 +505,9 @@ function App() {
                 )}
                 {LogoPreview && (
                   <Route path="/dev/logo" element={<LogoPreview />} />
+                )}
+                {ElectionStagePreview && (
+                  <Route path="/dev/election-stage" element={<ElectionStagePreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />

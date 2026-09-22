@@ -71,24 +71,22 @@ export const TurnoutBar = ({ voted, total }: { voted: number; total: number }) =
 /**
  * 후보별 득표 막대 + 당선 기준선.
  * 막대 길이의 분모는 당선 기준의 분모(base)라, 기준선(required/base)을 넘는 순간이 곧 기준 통과다.
- * size="board" 는 프로젝터에 띄우는 현황판용 큰 글씨.
+ * 프로젝터에 띄우는 발표 화면은 이걸 쓰지 않고 자기 크기로 다시 그린다
+ * (Admin/components/ElectionStage.tsx) — 식은 같으니 한쪽만 고치지 말 것.
  */
 export const TallyBars = ({
   result,
   candidates,
-  size = 'normal',
 }: {
   result: ElectionRoundResult
   candidates: ElectionCandidate[]
-  size?: 'normal' | 'board'
 }) => {
   const byId = new Map(candidates.map((c) => [c.id, c]))
   const base = Math.max(result.base, 1)
   const linePercent = result.base > 0 ? Math.min(100, (result.required / base) * 100) : null
-  const board = size === 'board'
 
   return (
-    <div className={board ? 'space-y-4' : 'space-y-3'}>
+    <div className="space-y-3">
       {result.tallies.map((row) => {
         const cand = byId.get(row.candidate_id)
         if (!cand) return null
@@ -100,34 +98,34 @@ export const TallyBars = ({
             : 'bg-gray-300 dark:bg-white/25'
         return (
           <div key={row.candidate_id} className="flex items-center gap-3">
-            <CandidateAvatar candidate={cand} size={board ? 64 : 40} />
+            <CandidateAvatar candidate={cand} size={40} />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
-                <span className={`font-bold text-ink-strong truncate ${board ? 'text-[20px]' : 'text-[14px]'}`}>
+                <span className="text-[14px] font-bold text-ink-strong truncate">
                   {cand.name}
                   {row.elected ? (
-                    <span className={`ml-1.5 align-middle font-bold text-brand ${board ? 'text-[14px]' : 'text-[11px]'}`}>
+                    <span className="ml-1.5 align-middle text-[11px] font-bold text-brand">
                       {result.is_final ? '당선' : '기준 통과'}
                     </span>
                   ) : row.tied ? (
-                    <span className={`ml-1.5 align-middle font-bold text-amber-600 dark:text-amber-300 ${board ? 'text-[14px]' : 'text-[11px]'}`}>
+                    <span className="ml-1.5 align-middle text-[11px] font-bold text-amber-600 dark:text-amber-300">
                       동률
                     </span>
                   ) : null}
                 </span>
-                <span className={`shrink-0 font-extrabold text-ink-strong tabular-nums ${board ? 'text-[26px]' : 'text-[15px]'}`}>
+                <span className="shrink-0 text-[15px] font-extrabold text-ink-strong tabular-nums">
                   {row.votes}
-                  <span className={`font-semibold text-ink-muted ${board ? 'text-[14px]' : 'text-[11px]'}`}>표</span>
+                  <span className="text-[11px] font-semibold text-ink-muted">표</span>
                 </span>
               </div>
-              <div className={`relative mt-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] ${board ? 'h-4' : 'h-2'}`}>
+              <div className="relative mt-1.5 h-2 rounded-full bg-gray-100 dark:bg-white/[0.08]">
                 <div
                   className={`h-full rounded-full transition-[width] duration-700 ease-out ${tone}`}
                   style={{ width: `${percent}%` }}
                 />
                 {linePercent !== null ? (
                   <span
-                    className={`absolute w-0.5 -translate-x-1/2 rounded-full bg-amber-500 ${board ? '-top-1.5 -bottom-1.5' : '-top-1 -bottom-1'}`}
+                    className="absolute -top-1 -bottom-1 w-0.5 -translate-x-1/2 rounded-full bg-amber-500"
                     style={{ left: `${linePercent}%` }}
                     aria-hidden
                   />
@@ -141,12 +139,10 @@ export const TallyBars = ({
           선에 설명이 없으면 막대 위의 정체 모를 눈금처럼 보인다 */}
       {linePercent !== null ? (
         <div className="flex items-start gap-3" aria-hidden>
-          <span className="shrink-0" style={{ width: board ? 64 : 40 }} />
-          <div className={`relative flex-1 ${board ? 'h-8' : 'h-6'}`}>
+          <span className="shrink-0" style={{ width: 40 }} />
+          <div className="relative flex-1 h-6">
             <span
-              className={`absolute top-0 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/25 font-bold tabular-nums ${
-                board ? 'px-3 py-1 text-[14px]' : 'px-2 py-0.5 text-[11px]'
-              }`}
+              className="absolute top-0 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/25 px-2 py-0.5 text-[11px] font-bold tabular-nums"
               style={
                 // 끝에 붙은 기준선(예: 9/10)에서도 이름표가 밖으로 넘치지 않게 정렬을 바꾼다
                 linePercent > 85
@@ -161,7 +157,7 @@ export const TallyBars = ({
           </div>
         </div>
       ) : null}
-      <p className={`text-ink-muted ${board ? 'text-[14px]' : 'text-[11.5px]'}`}>
+      <p className="text-[11.5px] text-ink-muted">
         {result.base > 0
           ? `주황색 선을 넘으면 당선 기준 통과예요${result.is_final ? '' : ' — 투표가 들어오면 기준선도 함께 움직여요'}`
           : '아직 표가 없어요 — 첫 표가 들어오면 당선 기준선이 나타나요'}

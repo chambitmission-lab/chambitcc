@@ -187,6 +187,18 @@ export const GROWTH_HERO: ThemePair = {
     return GROWTH_HERO_BY_TIME[deriveTimeOfDay(new Date().getHours())].dark
   },
 }
+/** 선거 발표 화면(프로젝터) 좌우 삽화 (ElectionStage.css) — 관리자가 '발표 화면' 을 켤 때만 쓰므로
+ *  매니페스트가 아니라 ElectionStage 가 useThemeArt 로 등록한다(성도에겐 안 물린다).
+ *  에셋이 없으면 404 로 조용히 넘어가고 CSS 그라데이션 바탕만 남는다 — 화면은 그대로 선다.
+ *  좌우가 따로인 이유는 docs/election-stage-process.py 머리말 참고(한 장으로는 무리가 잘린다). */
+export const ELECTION_STAGE_LEFT: ThemePair = {
+  light: '/images/election/stage-left-light.webp',
+  dark: '/images/election/stage-left-dark.webp',
+}
+export const ELECTION_STAGE_RIGHT: ThemePair = {
+  light: '/images/election/stage-right-light.webp',
+  dark: '/images/election/stage-right-dark.webp',
+}
 /** /visit 히어로 사진 — Visit.tsx 가 인라인 style 로 고른다(라이트=낮, 다크=밤) */
 export const VISIT_HERO: ThemePair = { light: '/images/visit/church-day.webp', dark: '/images/visit/church-night.webp' }
 

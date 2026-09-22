@@ -1,8 +1,10 @@
 // 선거 현황판 — 실시간 득표(기준선 포함)를 크게 띄우고, 회차를 열고 닫는다.
 //
 // 왼쪽은 보여 주는 화면(투표율·득표 막대), 오른쪽은 진행 도구(회차 제어·다음 회차 후보·
-// 미투표 선거인·종이 표). '발표 화면'을 켜면 도구가 사라지고 전체 화면으로 커진다 —
-// 프로젝터에 띄울 때 쓴다. 투표 중 쏠림이 걱정되면 '득표 가리기'로 투표율만 보여 줄 수 있다.
+// 미투표 선거인·종이 표). 여기는 **관리자가 일하는 화면**이다.
+// '발표 화면'을 켜면 이 화면이 통째로 ElectionStage(프로젝터용)로 바뀐다 — 도구가 사라지고,
+// 좌우 여백에 삽화와 손글씨가 붙는 "회중이 같이 보는 화면"이다.
+// 투표 중 쏠림이 걱정되면 '득표 가리기'로 투표율만 보여 줄 수 있다(두 화면 공통).
 // 갱신은 SSE(election_update) + 5초 폴링 두 겹(hooks/useElections.ts).
 import { useEffect, useMemo, useState } from 'react'
 import { downloadElectionCsv } from '../../../api/election'
@@ -13,6 +15,7 @@ import { showToast } from '../../../utils/toast'
 import type { ElectionAdminDetail, ElectionRound } from '../../../types/election'
 import { STATUS_META, phaseLabel, thresholdText, turnoutPercent } from '../../Election/electionShared'
 import { CandidateAvatar, TallyBars } from '../../Election/electionUi'
+import ElectionStage from './ElectionStage'
 import { CloseButton, Stepper } from './SeatEventComposer'
 
 const panelCls = 'rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] p-4'
@@ -138,6 +141,22 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
   const canRunoff = !!lastRound && lastRound.status === 'closed' && election.seats_left > 0
   const turnout = round ? turnoutPercent(round.voted_count, round.voters_total) : 0
 
+  // 발표 화면 — 진행 도구를 내려놓고 프로젝터용 화면으로 바꿔 단다.
+  // 상태(presenting·hideTally·보고 있는 회차)는 여기 그대로 두고 손잡이만 넘긴다 —
+  // 발표를 끄면 보던 회차와 가림 상태가 그대로 살아 있어야 한다.
+  if (presenting) {
+    return (
+      <ElectionStage
+        election={election}
+        round={round}
+        hideTally={hideTally}
+        onToggleHideTally={() => setHideTally((v) => !v)}
+        onExit={togglePresenting}
+        onPickRound={setViewRoundNo}
+      />
+    )
+  }
+
   return (
     <div className="fixed inset-0 z-[110] bg-[var(--app-canvas)] dark:bg-background-dark flex flex-col">
       {/* 상단 바 */}
@@ -154,23 +173,23 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
               </span>
             ) : null}
           </div>
-          <h2 className={`font-extrabold text-ink-strong tracking-[-0.02em] truncate ${presenting ? 'text-[26px] mt-1' : 'text-[18px] mt-0.5'}`}>
+          <h2 className="mt-0.5 text-[18px] font-extrabold text-ink-strong tracking-[-0.02em] truncate">
             {election.title}
           </h2>
         </div>
         <button type="button" onClick={() => setHideTally((v) => !v)} className={chipBtn(hideTally)}>
           득표 가리기
         </button>
-        <button type="button" onClick={togglePresenting} className={chipBtn(presenting)}>
+        <button type="button" onClick={togglePresenting} className={chipBtn(false)}>
           발표 화면
         </button>
-        {!presenting ? <CloseButton onClick={onClose} /> : null}
+        <CloseButton onClick={onClose} />
       </div>
 
-      <div className={`flex-1 min-h-0 overflow-y-auto lg:overflow-hidden ${presenting ? '' : 'lg:grid lg:grid-cols-[minmax(0,1fr)_400px]'}`}>
+      <div className="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_400px]">
         {/* ── 보여 주는 화면 ── */}
-        <div className={`lg:overflow-y-auto ${presenting ? 'px-8 py-8 lg:px-16 lg:h-full' : 'px-5 py-5'}`}>
-          <div className={presenting ? 'max-w-[1100px] mx-auto' : ''}>
+        <div className="px-5 py-5 lg:overflow-y-auto">
+          <div>
             {election.rounds.length > 1 ? (
               <div className="flex gap-1.5 mb-4">
                 {election.rounds.map((r) => (
@@ -191,42 +210,36 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
             ) : (
               <>
                 {/* 투표율 */}
-                <div className={`${panelCls} ${presenting ? 'p-7' : ''}`}>
+                <div className={panelCls}>
                   <div className="flex items-end justify-between gap-4">
                     <div>
-                      <p className={`font-bold text-ink-muted ${presenting ? 'text-[16px]' : 'text-[12.5px]'}`}>
+                      <p className="text-[12.5px] font-bold text-ink-muted">
                         {round.round_no}차 투표율 · {round.seats_open}명 선출 · {round.max_select}명까지 선택
                       </p>
-                      <p className={`mt-1 font-extrabold text-ink-strong tabular-nums leading-none ${presenting ? 'text-[64px]' : 'text-[40px]'}`}>
+                      <p className="mt-1 text-[40px] font-extrabold text-ink-strong tabular-nums leading-none">
                         {round.voted_count}
-                        <span className={`font-bold text-ink-muted ${presenting ? 'text-[26px]' : 'text-[18px]'}`}> / {round.voters_total}명</span>
+                        <span className="text-[18px] font-bold text-ink-muted"> / {round.voters_total}명</span>
                       </p>
                     </div>
-                    <p className={`font-extrabold text-brand tabular-nums leading-none ${presenting ? 'text-[56px]' : 'text-[34px]'}`}>
-                      {turnout}%
-                    </p>
+                    <p className="text-[34px] font-extrabold text-brand tabular-nums leading-none">{turnout}%</p>
                   </div>
-                  <div className={`mt-4 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden ${presenting ? 'h-4' : 'h-2.5'}`}>
+                  <div className="mt-4 h-2.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
                     <div className="h-full rounded-full bg-brand transition-[width] duration-700 ease-out" style={{ width: `${turnout}%` }} />
                   </div>
                 </div>
 
                 {/* 득표 */}
-                <div className={`${panelCls} mt-4 ${presenting ? 'p-7' : ''}`}>
+                <div className={`${panelCls} mt-4`}>
                   <div className="flex items-baseline justify-between gap-2 mb-4">
-                    <h3 className={`font-extrabold text-ink-strong ${presenting ? 'text-[22px]' : 'text-[15px]'}`}>
+                    <h3 className="text-[15px] font-extrabold text-ink-strong">
                       {round.status === 'closed' ? '개표 결과' : '실시간 득표'}
                     </h3>
-                    <span className={`text-ink-muted ${presenting ? 'text-[15px]' : 'text-[12px]'}`}>
-                      당선 기준 · {thresholdText(round.rules)}
-                    </span>
+                    <span className="text-[12px] text-ink-muted">당선 기준 · {thresholdText(round.rules)}</span>
                   </div>
                   {hideTally && round.status === 'open' ? (
-                    <p className={`py-10 text-center text-ink-muted ${presenting ? 'text-[20px]' : 'text-[14px]'}`}>
-                      투표가 끝나면 결과를 공개합니다
-                    </p>
+                    <p className="py-10 text-center text-[14px] text-ink-muted">투표가 끝나면 결과를 공개합니다</p>
                   ) : round.result ? (
-                    <TallyBars result={round.result} candidates={election.candidates} size={presenting ? 'board' : 'normal'} />
+                    <TallyBars result={round.result} candidates={election.candidates} />
                   ) : null}
                 </div>
               </>
@@ -235,65 +248,63 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
         </div>
 
         {/* ── 진행 도구 ── */}
-        {!presenting ? (
-          <aside className="px-5 pb-10 lg:py-5 lg:pl-0 lg:overflow-y-auto space-y-3">
-            <section className={panelCls}>
-              <h3 className="text-[13.5px] font-extrabold text-ink-strong mb-3">진행</h3>
-              <div className="space-y-2">
-                {!lastRound ? (
-                  <button type="button" onClick={() => void startFirst()} disabled={action.isPending} className="w-full py-3 rounded-xl bg-brand text-white text-[14.5px] font-bold disabled:opacity-50">
-                    1차 투표 시작
-                  </button>
-                ) : isOpen ? (
-                  <button type="button" onClick={() => void closeRound()} disabled={action.isPending} className="w-full py-3 rounded-xl bg-ink-strong text-white dark:bg-white dark:text-[#16161d] text-[14.5px] font-bold disabled:opacity-50">
-                    {lastRound.round_no}차 투표 마감
+        <aside className="px-5 pb-10 lg:py-5 lg:pl-0 lg:overflow-y-auto space-y-3">
+          <section className={panelCls}>
+            <h3 className="text-[13.5px] font-extrabold text-ink-strong mb-3">진행</h3>
+            <div className="space-y-2">
+              {!lastRound ? (
+                <button type="button" onClick={() => void startFirst()} disabled={action.isPending} className="w-full py-3 rounded-xl bg-brand text-white text-[14.5px] font-bold disabled:opacity-50">
+                  1차 투표 시작
+                </button>
+              ) : isOpen ? (
+                <button type="button" onClick={() => void closeRound()} disabled={action.isPending} className="w-full py-3 rounded-xl bg-ink-strong text-white dark:bg-white dark:text-[#16161d] text-[14.5px] font-bold disabled:opacity-50">
+                  {lastRound.round_no}차 투표 마감
+                </button>
+              ) : null}
+              <div className="flex flex-wrap gap-1.5">
+                {lastRound && !isOpen ? (
+                  <button type="button" onClick={() => void reopenRound()} disabled={action.isPending} className={ghostBtn}>
+                    마감 되돌리기
                   </button>
                 ) : null}
-                <div className="flex flex-wrap gap-1.5">
-                  {lastRound && !isOpen ? (
-                    <button type="button" onClick={() => void reopenRound()} disabled={action.isPending} className={ghostBtn}>
-                      마감 되돌리기
-                    </button>
-                  ) : null}
-                  {canRunoff && election.status !== 'finished' ? (
-                    <button type="button" onClick={() => void finish()} disabled={action.isPending} className={ghostBtn}>
-                      여기서 선거 종료
-                    </button>
-                  ) : null}
-                  <button type="button" onClick={() => onEdit(election)} className={ghostBtn}>
-                    기준·명부 수정
+                {canRunoff && election.status !== 'finished' ? (
+                  <button type="button" onClick={() => void finish()} disabled={action.isPending} className={ghostBtn}>
+                    여기서 선거 종료
                   </button>
-                  {lastRound ? (
-                    <button
-                      type="button"
-                      onClick={() => void downloadElectionCsv(election.id, `${election.title}_결과.csv`).catch((e: Error) => showToast(e.message, 'error'))}
-                      className={ghostBtn}
-                    >
-                      결과 CSV
-                    </button>
-                  ) : null}
-                </div>
+                ) : null}
+                <button type="button" onClick={() => onEdit(election)} className={ghostBtn}>
+                  기준·명부 수정
+                </button>
+                {lastRound ? (
+                  <button
+                    type="button"
+                    onClick={() => void downloadElectionCsv(election.id, `${election.title}_결과.csv`).catch((e: Error) => showToast(e.message, 'error'))}
+                    className={ghostBtn}
+                  >
+                    결과 CSV
+                  </button>
+                ) : null}
               </div>
-            </section>
+            </div>
+          </section>
 
-            {canRunoff ? <RunoffPanel key={lastRound.id} election={election} onOpen={(data) => action.mutate({ kind: 'open', id: election.id, data })} pending={action.isPending} /> : null}
+          {canRunoff ? <RunoffPanel key={lastRound.id} election={election} onOpen={(data) => action.mutate({ kind: 'open', id: election.id, data })} pending={action.isPending} /> : null}
 
-            <ElectedPanel election={election} />
+          <ElectedPanel election={election} />
 
-            {isOpen ? <WaitingPanel election={election} /> : null}
+          {isOpen ? <WaitingPanel election={election} /> : null}
 
-            {isOpen && lastRound ? (
-              <PaperPanel
-                key={lastRound.id}
-                election={election}
-                round={lastRound}
-                pending={action.isPending}
-                onAdd={(candidateIds, count) => action.mutate({ kind: 'paper-add', id: election.id, candidateIds, count })}
-                onDelete={(ballotId) => action.mutate({ kind: 'paper-delete', id: election.id, ballotId })}
-              />
-            ) : null}
-          </aside>
-        ) : null}
+          {isOpen && lastRound ? (
+            <PaperPanel
+              key={lastRound.id}
+              election={election}
+              round={lastRound}
+              pending={action.isPending}
+              onAdd={(candidateIds, count) => action.mutate({ kind: 'paper-add', id: election.id, candidateIds, count })}
+              onDelete={(ballotId) => action.mutate({ kind: 'paper-delete', id: election.id, ballotId })}
+            />
+          ) : null}
+        </aside>
       </div>
     </div>
   )
