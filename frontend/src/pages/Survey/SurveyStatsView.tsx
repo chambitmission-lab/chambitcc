@@ -6,6 +6,8 @@ import { cardCls, formatDateTime } from './surveyShared'
 interface Props {
   stats: SurveyStats
   showNames?: boolean
+  /** lg+ 에서 문항 카드를 두 단으로 — 본문이 넓은 성도용 결과 탭에서 쓴다 */
+  grid?: boolean
 }
 
 /* 보기별 가로 막대 — 퍼센트가 아니라 "몇 명"이 먼저 읽히게 한다 */
@@ -167,7 +169,7 @@ const QuestionStatCard = ({
   )
 }
 
-const SurveyStatsView = ({ stats, showNames = false }: Props) => (
+const SurveyStatsView = ({ stats, showNames = false, grid = false }: Props) => (
   <div className="space-y-3">
     <div className={`${cardCls} px-4 py-3.5 flex items-center justify-between`}>
       <div>
@@ -182,14 +184,20 @@ const SurveyStatsView = ({ stats, showNames = false }: Props) => (
       </p>
     </div>
 
-    {stats.questions.map((stat, i) => (
-      <QuestionStatCard
-        key={stat.question_id}
-        stat={stat}
-        order={i + 1}
-        showNames={showNames}
-      />
-    ))}
+    <div
+      className={
+        grid ? 'space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start' : 'space-y-3'
+      }
+    >
+      {stats.questions.map((stat, i) => (
+        <QuestionStatCard
+          key={stat.question_id}
+          stat={stat}
+          order={i + 1}
+          showNames={showNames}
+        />
+      ))}
+    </div>
   </div>
 )
 

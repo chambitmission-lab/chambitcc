@@ -3,7 +3,7 @@
 // 캔버스 바탕 + sticky 상단 바 + 흰 카드, lg+ 에서는 본문 + 312px 우측 레일 2단.
 import type { ReactNode } from 'react'
 import type { SurveySummary } from '../../types/survey'
-import { STATUS_META, daysLeft, isAcceptingResponses } from './surveyShared'
+import { STATUS_META, daysLeft, displayStatus, isAcceptingResponses } from './surveyShared'
 
 export const ChevronLeft = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -64,7 +64,7 @@ export const SurveyShell = ({
     >
       <div
         className={`max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark ${
-          rail ? 'lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0' : 'lg:max-w-[760px] lg:mx-0'
+          rail ? 'lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0' : 'lg:w-full lg:max-w-[760px] lg:mx-0'
         }`}
       >
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2 lg:rounded-t-3xl">
@@ -185,5 +185,5 @@ export const StatusChip = ({ status }: { status: SurveySummary['status'] }) => (
 export const SurveyStateChip = ({ survey }: { survey: SurveySummary }) => {
   if (survey.my_response_id) return <DoneChip />
   if (isAcceptingResponses(survey)) return <DeadlineChip endsAt={survey.ends_at} />
-  return <StatusChip status={survey.status} />
+  return <StatusChip status={displayStatus(survey)} />
 }

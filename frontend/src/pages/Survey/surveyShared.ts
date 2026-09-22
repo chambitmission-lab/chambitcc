@@ -102,6 +102,17 @@ export const daysLeft = (endsAt?: string | null): number | null => {
 }
 
 /** 지금 응답을 받을 수 있는 설문인가 (마감일이 지났으면 상태와 무관하게 닫힘) */
+/**
+ * 화면에 보여줄 상태 — 마감일이 지나면 서버 status 가 아직 open 이어도 '마감'이 사실이다.
+ * (본문은 '마감된 설문입니다'라고 하는데 배지만 '진행 중'이면 서로 어긋나 보인다)
+ */
+export const displayStatus = (survey: SurveySummary): SurveyStatus => {
+  if (survey.status === 'open' && survey.ends_at && new Date(survey.ends_at).getTime() < Date.now()) {
+    return 'closed'
+  }
+  return survey.status
+}
+
 export const isAcceptingResponses = (survey: SurveySummary): boolean => {
   if (survey.status !== 'open') return false
   if (survey.ends_at && new Date(survey.ends_at).getTime() < Date.now()) return false
