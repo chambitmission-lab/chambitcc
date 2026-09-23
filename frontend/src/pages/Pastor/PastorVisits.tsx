@@ -49,7 +49,7 @@ const PastorVisits = () => {
       {isPending && !data ? (
         <StatSpinner label="심방 기록을 불러오는 중..." />
       ) : !data ? (
-        <p className="px-4 py-16 text-center text-[13px] text-gray-500 dark:text-white/50">심방 기록을 불러오지 못했습니다</p>
+        <p className="px-4 py-16 text-center text-[13px] text-gray-600 dark:text-white/60">심방 기록을 불러오지 못했습니다</p>
       ) : (
         <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
           <div className="contents lg:block lg:min-w-0 lg:col-start-2 lg:row-start-1">
@@ -59,12 +59,12 @@ const PastorVisits = () => {
             <SectionCard
               title="내 심방 기록"
               action={
-                <Link to="/pastor/members" className="text-[11.5px] font-semibold text-brand hover:underline">
+                <Link to="/pastor/members" className="text-[12px] font-semibold text-brand hover:underline">
                   성도를 골라 기록 남기기
                 </Link>
               }
             >
-              <p className="text-[11.5px] text-gray-500 dark:text-white/45">
+              <p className="text-[12px] text-gray-600 dark:text-white/60">
                 목사님이 쓴 기록만 모았습니다. 다른 교역자의 기록 내용은 보이지 않습니다.
               </p>
               {months.length === 0 ? (
@@ -72,8 +72,8 @@ const PastorVisits = () => {
               ) : (
                 months.map(g => (
                   <div key={g.key}>
-                    <p className="text-[12px] font-bold text-gray-500 dark:text-white/55 mb-1.5">
-                      {g.label} <span className="font-semibold text-gray-400">· {g.items.length}건</span>
+                    <p className="text-[12px] font-bold text-gray-600 dark:text-white/65 mb-1.5">
+                      {g.label} <span className="font-semibold text-gray-500">· {g.items.length}건</span>
                     </p>
                     <ul className="space-y-1.5">
                       {g.items.map(v => (
@@ -87,7 +87,7 @@ const PastorVisits = () => {
                             <span className="flex-1 min-w-0">
                               <span className="flex items-center gap-2 flex-wrap">
                                 <span className="text-[13px] font-bold text-ink-strong">{v.member_name}</span>
-                                <span className="flex items-center gap-0.5 text-[11.5px] text-gray-500 dark:text-white/50">
+                                <span className="flex items-center gap-0.5 text-[12px] text-gray-600 dark:text-white/60">
                                   <span className="material-icons-outlined text-[14px]">{VISIT_KIND_ICON[v.kind]}</span>
                                   {VISIT_KIND_LABEL[v.kind]} · {formatDay(v.visit_date)}
                                 </span>
@@ -99,8 +99,8 @@ const PastorVisits = () => {
                               )}
                               {v.follow_up && (
                                 <span
-                                  className={`inline-block mt-1 text-[11.5px] font-semibold ${
-                                    v.follow_up_done ? 'text-gray-400 line-through' : 'text-brand'
+                                  className={`inline-block mt-1 text-[12px] font-semibold ${
+                                    v.follow_up_done ? 'text-gray-500 line-through' : 'text-brand'
                                   }`}
                                 >
                                   → {v.follow_up}
@@ -134,7 +134,7 @@ const PastorVisits = () => {
 const FollowUpCard = ({ items }: { items: FollowUp[] }) => (
   <SectionCard title={`후속 할 일 ${items.length || ''}`.trim()}>
     <FollowUpList items={items} />
-    <p className="text-[11px] text-gray-400 dark:text-white/35 leading-relaxed">
+    <p className="text-[12px] text-gray-500 dark:text-white/50 leading-relaxed">
       심방 기록에 적은 후속 할 일입니다. 체크하면 마친 일로 넘어갑니다.
     </p>
   </SectionCard>

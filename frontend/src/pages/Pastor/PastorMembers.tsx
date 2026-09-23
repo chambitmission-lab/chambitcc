@@ -84,7 +84,7 @@ const PastorMembers = () => {
       {isPending && !data ? (
         <StatSpinner label="성도 명부를 불러오는 중..." />
       ) : !data ? (
-        <p className="px-4 py-16 text-center text-[13px] text-gray-500 dark:text-white/50">
+        <p className="px-4 py-16 text-center text-[13px] text-gray-600 dark:text-white/60">
           성도 명부를 불러오지 못했습니다
         </p>
       ) : (
@@ -99,14 +99,14 @@ const PastorMembers = () => {
             }
           >
             <div className="relative">
-              <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-gray-400">
+              <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-gray-500">
                 search
               </span>
               <input
                 value={q}
                 onChange={e => setQ(e.target.value)}
                 placeholder="이름 · 연락처 · 구역으로 찾기"
-                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 focus:outline-none focus:border-brand"
+                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-500 focus:outline-none focus:border-brand"
               />
             </div>
 
@@ -131,15 +131,15 @@ const PastorMembers = () => {
             )}
 
             <div className="flex items-center justify-between gap-2 pt-1">
-              <span className="text-[12px] font-semibold text-gray-500 dark:text-white/50">{rows.length}명</span>
+              <span className="text-[12px] font-semibold text-gray-600 dark:text-white/60">{rows.length}명</span>
               <div className="flex gap-1">
                 {SORTS.map(s => (
                   <button
                     key={s.key}
                     type="button"
                     onClick={() => setSort(s.key)}
-                    className={`px-2 py-1 rounded-md text-[11.5px] font-semibold ${
-                      sort === s.key ? 'text-brand bg-[var(--brand-soft)]' : 'text-gray-500 dark:text-white/50'
+                    className={`px-2 py-1 rounded-md text-[12px] font-semibold ${
+                      sort === s.key ? 'text-brand bg-[var(--brand-soft)]' : 'text-gray-600 dark:text-white/60'
                     }`}
                   >
                     {s.label}
@@ -151,7 +151,7 @@ const PastorMembers = () => {
 
           <div className="px-4 pt-3">
             {/* PC 열 머리 */}
-            <div className="hidden lg:grid lg:grid-cols-[minmax(0,1.4fr)_110px_120px_120px_130px_150px] gap-3 px-4 pb-2 text-[11px] font-semibold text-gray-400 dark:text-white/40">
+            <div className="hidden lg:grid lg:grid-cols-[minmax(0,1.4fr)_110px_120px_120px_130px_150px] gap-3 px-4 pb-2 text-[12px] font-semibold text-gray-500 dark:text-white/55">
               <span>이름</span>
               <span>구역</span>
               <span>생일</span>
@@ -160,7 +160,7 @@ const PastorMembers = () => {
               <span>마지막 심방</span>
             </div>
             {rows.length === 0 ? (
-              <p className="py-12 text-center text-[13px] text-gray-400 dark:text-white/40">조건에 맞는 성도가 없습니다</p>
+              <p className="py-12 text-center text-[13px] text-gray-500 dark:text-white/55">조건에 맞는 성도가 없습니다</p>
             ) : (
               <ul className="space-y-1.5">
                 {rows.map(m => (
@@ -189,16 +189,16 @@ const MemberRow = ({ m }: { m: RosterMember }) => {
             <span className="flex items-center gap-1.5">
               <span className="text-[13.5px] font-bold text-ink-strong truncate">{m.name}</span>
               {m.church_title && (
-                <span className="shrink-0 text-[11px] font-semibold text-brand">{m.church_title}</span>
+                <span className="shrink-0 text-[12px] font-semibold text-brand">{m.church_title}</span>
               )}
               {!m.has_profile && (
-                <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 dark:bg-white/[0.06] text-gray-400">
+                <span className="shrink-0 text-[12px] font-bold px-1.5 py-0.5 rounded bg-gray-100 dark:bg-white/[0.06] text-gray-500">
                   미작성
                 </span>
               )}
             </span>
             {/* 모바일 한 줄 요약 */}
-            <span className="lg:hidden block text-[11.5px] text-gray-500 dark:text-white/45 truncate">
+            <span className="lg:hidden block text-[12px] text-gray-600 dark:text-white/60 truncate">
               {[m.district, `활동 ${agoLabel(m.days_since)}`, m.last_visit ? `심방 ${agoLabel(visitDays)}` : '심방 없음']
                 .filter(Boolean)
                 .join(' · ')}
@@ -212,7 +212,7 @@ const MemberRow = ({ m }: { m: RosterMember }) => {
         <Cell tone={visitDays == null || visitDays >= 90 ? 'muted' : undefined}>
           {m.last_visit ? `${agoLabel(visitDays)} · ${m.last_visit_by ?? ''}` : '아직 없음'}
         </Cell>
-        <span className="lg:hidden material-icons-outlined text-[18px] text-gray-300 dark:text-white/25">chevron_right</span>
+        <span className="lg:hidden material-icons-outlined text-[18px] text-gray-300 dark:text-white/40">chevron_right</span>
       </Link>
     </li>
   )
@@ -224,7 +224,7 @@ const Cell = ({ children, tone }: { children: ReactNode; tone?: 'warn' | 'muted'
       tone === 'warn'
         ? 'text-[var(--amber)] font-semibold'
         : tone === 'muted'
-          ? 'text-gray-400 dark:text-white/35'
+          ? 'text-gray-500 dark:text-white/50'
           : 'text-gray-600 dark:text-white/70'
     }`}
   >
@@ -233,7 +233,7 @@ const Cell = ({ children, tone }: { children: ReactNode; tone?: 'warn' | 'muted'
 )
 
 const StatChip = ({ label, value }: { label: string; value: number }) => (
-  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand">
+  <span className="text-[12px] font-semibold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand">
     {label} {value.toLocaleString()}
   </span>
 )
@@ -250,7 +250,7 @@ const FacetRow = ({
   onSelect: (v: string | null) => void
 }) => (
   <div className="flex items-center gap-2">
-    <span className="shrink-0 w-8 text-[11.5px] font-semibold text-gray-400 dark:text-white/40">{label}</span>
+    <span className="shrink-0 w-8 text-[12px] font-semibold text-gray-500 dark:text-white/55">{label}</span>
     <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
       <button type="button" className={chip(selected === null)} onClick={() => onSelect(null)}>
         전체

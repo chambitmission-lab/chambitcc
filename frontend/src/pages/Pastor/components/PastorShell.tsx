@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AdminPageHeader } from '../../Admin/components/StatCards'
+import TextScaleToggle from './TextScaleToggle'
+import { pastorScaleProps, usePastorTextScale } from './textScale'
 
 // 목회자 영역 공용 껍데기 — 관리자 화면과 같은 와이드 셸 + 목회자 섹션 내비.
 // 준비 중인 섹션도 자리를 보여 둔다: 목양 → 심방 → AI 비서로 이어지는 로드맵이 한눈에 보이게.
@@ -16,6 +18,8 @@ const SECTIONS: Section[] = [
   { path: '/pastor/care', icon: 'volunteer_activism', label: '돌봄 레이더', ready: true },
   { path: '/pastor/members', icon: 'groups', label: '성도 명부', ready: true },
   { path: '/pastor/visits', icon: 'edit_note', label: '심방 기록', ready: true },
+  { path: '/pastor/schedule', icon: 'event', label: '목회 일정', ready: true },
+  { path: '/pastor/sermon', icon: 'menu_book', label: '설교 준비', ready: true },
   { path: '/pastor/report', icon: 'insights', label: '주간 리포트', ready: true },
   { path: '/pastor/assistant', icon: 'tips_and_updates', label: '목회 비서', ready: true },
 ]
@@ -33,12 +37,12 @@ export const PastorSectionNav = () => {
           return (
             <span
               key={s.path}
-              className={`${base} border-dashed border-gray-200 dark:border-white/[0.1] text-gray-400 dark:text-white/35 cursor-default`}
+              className={`${base} border-dashed border-gray-200 dark:border-white/[0.1] text-gray-500 dark:text-white/50 cursor-default`}
               title="준비 중입니다"
             >
               <span className="material-icons-outlined text-[16px]">{s.icon}</span>
               {s.label}
-              <span className="text-[10px] font-bold">준비 중</span>
+              <span className="text-[12px] font-bold">준비 중</span>
             </span>
           )
         }
@@ -63,10 +67,11 @@ export const PastorSectionNav = () => {
 }
 
 const PastorShell = ({ children }: { children: ReactNode }) => {
+  const scale = usePastorTextScale()
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-[1180px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
-        <AdminPageHeader title="목회자 홈" badge="PASTOR" />
+      <div {...pastorScaleProps(scale)} className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-[1180px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
+        <AdminPageHeader title="목회자 홈" badge="PASTOR" trailing={<TextScaleToggle />} />
 
         <PastorSectionNav />
 

@@ -68,7 +68,7 @@ const ProfileEditor = ({ memberId, memberName, profile, districtSuggestions, onC
         </>
       }
     >
-      <p className="text-[11.5px] text-gray-500 dark:text-white/45 leading-relaxed">
+      <p className="text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
         교역자 모두가 함께 보고 고치는 정보입니다. 성도님 본인에게는 보이지 않습니다.
       </p>
 
@@ -115,7 +115,7 @@ const ProfileEditor = ({ memberId, memberName, profile, districtSuggestions, onC
                 key={d}
                 type="button"
                 onClick={() => set('district', d)}
-                className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-[11.5px] font-semibold text-gray-600 dark:text-white/65 hover:text-brand"
+                className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-[12px] font-semibold text-gray-600 dark:text-white/65 hover:text-brand"
               >
                 {d}
               </button>

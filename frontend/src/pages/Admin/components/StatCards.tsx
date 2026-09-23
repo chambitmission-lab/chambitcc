@@ -2,7 +2,16 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-export const AdminPageHeader = ({ title, badge = 'ADMIN' }: { title: string; badge?: string }) => {
+export const AdminPageHeader = ({
+  title,
+  badge = 'ADMIN',
+  trailing,
+}: {
+  title: string
+  badge?: string
+  /** 배지 왼쪽에 붙는 도구 (목회자 화면의 글씨 크기 토글 등) */
+  trailing?: ReactNode
+}) => {
   const navigate = useNavigate()
   return (
     <div className="sticky top-0 lg:static lg:rounded-t-3xl z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
@@ -14,9 +23,12 @@ export const AdminPageHeader = ({ title, badge = 'ADMIN' }: { title: string; bad
         <span className="text-sm font-semibold">뒤로</span>
       </button>
       <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">{title}</h1>
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
-        {badge}
-      </span>
+      <div className="flex items-center gap-2">
+        {trailing}
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
+          {badge}
+        </span>
+      </div>
     </div>
   )
 }

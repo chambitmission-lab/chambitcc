@@ -4,6 +4,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { VISIT_KIND_ICON, VISIT_KIND_LABEL, fetchWeeklyReport, type WeeklyReport } from '../../api/pastor'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
+import EmotionFlowCard from './components/EmotionFlowCard'
 import { Avatar } from './components/ui'
 import { agoLabel, formatDay, usePastorGate } from './components/pastorUtils'
 
@@ -29,7 +30,7 @@ const PastorReport = () => {
       {isPending && !data ? (
         <StatSpinner label="한 주를 돌아보는 중..." />
       ) : !data ? (
-        <p className="px-4 py-16 text-center text-[13px] text-gray-500">주간 리포트를 불러오지 못했습니다</p>
+        <p className="px-4 py-16 text-center text-[13px] text-gray-600">주간 리포트를 불러오지 못했습니다</p>
       ) : (
         <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
           <div className="contents lg:block lg:min-w-0">
@@ -37,7 +38,7 @@ const PastorReport = () => {
             <CoverageCard data={data} />
           </div>
           <div className="contents lg:block">
-            <EmotionCard data={data} />
+            <EmotionFlowCard emotions={data.emotions} />
           </div>
         </div>
       )}
@@ -61,7 +62,7 @@ const WeekNav = ({ data, week, onChange }: { data?: WeeklyReport; week: number; 
       <p className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
         {data ? `${formatDay(data.week_start, false)} ~ ${formatDay(data.week_end, false).replace(/^\d+년 /, '')}` : '…'}
       </p>
-      <p className="text-[11.5px] font-semibold text-brand">
+      <p className="text-[12px] font-semibold text-brand">
         {week === 0 ? '이번 주' : week === -1 ? '지난주' : `${-week}주 전`}
       </p>
     </div>
@@ -96,17 +97,17 @@ const SummaryCard = ({ data }: { data: WeeklyReport }) => {
   return (
     <SectionCard
       title={data.is_current ? '이번 주 돌아보기' : '그 주 돌아보기'}
-      action={<span className="text-[11px] text-gray-400 dark:text-white/35">교역자 전체 심방 {s.team_visits}건</span>}
+      action={<span className="text-[12px] text-gray-500 dark:text-white/50">교역자 전체 심방 {s.team_visits}건</span>}
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {tiles.map(t => (
           <div key={t.label} className="rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] px-3.5 py-3">
-            <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/55">{t.label}</p>
+            <p className="text-[12px] font-semibold text-gray-600 dark:text-white/65">{t.label}</p>
             <p className="mt-0.5 text-[22px] font-bold tracking-[-0.02em] leading-tight">
               <span className="brand-text-gradient">{t.value}</span>
-              <span className="text-[12px] font-semibold text-gray-400 ml-0.5">{t.unit}</span>
+              <span className="text-[12px] font-semibold text-gray-500 ml-0.5">{t.unit}</span>
             </p>
-            <p className="text-[11px] text-gray-400 dark:text-white/40 truncate">{t.sub}</p>
+            <p className="text-[12px] text-gray-500 dark:text-white/55 truncate">{t.sub}</p>
           </div>
         ))}
       </div>
@@ -121,7 +122,7 @@ const SummaryCard = ({ data }: { data: WeeklyReport }) => {
         </div>
       )}
       <div>
-        <div className="flex items-center justify-between text-[11.5px] font-semibold text-gray-500 dark:text-white/55">
+        <div className="flex items-center justify-between text-[12px] font-semibold text-gray-600 dark:text-white/65">
           <span>성도 명부 작성률</span>
           <span>{s.with_profile} / {s.members}명 · {profileRate}%</span>
         </div>
@@ -141,12 +142,12 @@ const CoverageCard = ({ data }: { data: WeeklyReport }) => {
     <SectionCard
       title="구역별 심방 커버리지"
       action={
-        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand">
+        <span className="text-[12px] font-semibold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand">
           전체 {c.rate}%
         </span>
       }
     >
-      <p className="text-[11.5px] text-gray-500 dark:text-white/45 leading-relaxed">
+      <p className="text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
         지금 기준으로 최근 {c.window_days}일 안에 교역자 누구라도 심방한 성도의 비율입니다. 비어 있는 구역이 위에 옵니다.
       </p>
       {c.districts.length === 0 ? (
@@ -166,11 +167,11 @@ const CoverageCard = ({ data }: { data: WeeklyReport }) => {
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-[13.5px] font-bold text-ink-strong">{d.district}</span>
-                    <span className="text-[11.5px] text-gray-500 dark:text-white/50">
+                    <span className="text-[12px] text-gray-600 dark:text-white/60">
                       {d.covered}/{d.members}명
                     </span>
                     <span className={`ml-auto text-[13px] font-bold ${low ? 'text-[var(--amber)]' : 'text-brand'}`}>{d.rate}%</span>
-                    <span className="material-icons-outlined text-[18px] text-gray-400">{expanded ? 'expand_less' : 'expand_more'}</span>
+                    <span className="material-icons-outlined text-[18px] text-gray-500">{expanded ? 'expand_less' : 'expand_more'}</span>
                   </div>
                   <div className="mt-2 h-2 rounded-full bg-gray-200/70 dark:bg-white/[0.06] overflow-hidden">
                     <div
@@ -178,7 +179,7 @@ const CoverageCard = ({ data }: { data: WeeklyReport }) => {
                       style={{ width: `${Math.max(d.rate, 2)}%` }}
                     />
                   </div>
-                  <p className="mt-1.5 text-[11.5px] text-gray-500 dark:text-white/45">
+                  <p className="mt-1.5 text-[12px] text-gray-600 dark:text-white/60">
                     {d.days_since_visit == null ? '심방 기록 없음' : `마지막 심방 ${agoLabel(d.days_since_visit)}`}
                     {d.quiet > 0 && ` · 소식 뜸한 분 ${d.quiet}명`}
                     {d.unvisited_count > 0 && ` · 아직 못 만난 분 ${d.unvisited_count}명`}
@@ -187,7 +188,7 @@ const CoverageCard = ({ data }: { data: WeeklyReport }) => {
                 {expanded && (
                   <div className="px-3.5 pb-3 border-t border-gray-100 dark:border-white/[0.06]">
                     {d.unvisited.length === 0 ? (
-                      <p className="pt-3 text-[12px] text-gray-500">모두 최근에 만났습니다</p>
+                      <p className="pt-3 text-[12px] text-gray-600">모두 최근에 만났습니다</p>
                     ) : (
                       <ul className="pt-2 space-y-1.5">
                         {d.unvisited.map(m => (
@@ -196,16 +197,16 @@ const CoverageCard = ({ data }: { data: WeeklyReport }) => {
                               <Avatar name={m.name} url={m.avatar_url} size="sm" />
                               <span className="flex-1 min-w-0 text-[12.5px] font-semibold text-ink-strong truncate group-hover:text-brand">
                                 {m.name}
-                                {m.church_title && <span className="ml-1 text-[11px] text-brand">{m.church_title}</span>}
+                                {m.church_title && <span className="ml-1 text-[12px] text-brand">{m.church_title}</span>}
                               </span>
-                              <span className="shrink-0 text-[11px] text-gray-500 dark:text-white/45">
+                              <span className="shrink-0 text-[12px] text-gray-600 dark:text-white/60">
                                 {m.last_visit ? `심방 ${formatDay(m.last_visit, false)}` : '심방 없음'} · 활동 {agoLabel(m.quiet_days)}
                               </span>
                             </Link>
                           </li>
                         ))}
                         {d.unvisited_count > d.unvisited.length && (
-                          <li className="text-[11px] text-gray-400">외 {d.unvisited_count - d.unvisited.length}명 — 성도 명부에서 구역으로 걸러 보세요</li>
+                          <li className="text-[12px] text-gray-500">외 {d.unvisited_count - d.unvisited.length}명 — 성도 명부에서 구역으로 걸러 보세요</li>
                         )}
                       </ul>
                     )}
@@ -216,81 +217,6 @@ const CoverageCard = ({ data }: { data: WeeklyReport }) => {
           })}
         </ul>
       )}
-    </SectionCard>
-  )
-}
-
-// ── 기도 감정 흐름 (익명 집계) ──────────────────────────
-const EmotionCard = ({ data }: { data: WeeklyReport }) => {
-  const e = data.emotions
-  const max = Math.max(1, ...e.this_week.map(x => Math.max(x.count, x.prev)))
-  const trendMax = Math.max(1, ...e.trend.map(t => t.total))
-  return (
-    <SectionCard
-      title="기도 감정 흐름"
-      action={<span className="text-[11px] text-gray-400 dark:text-white/35">익명 집계</span>}
-    >
-      {!e.enough ? (
-        <p className="py-4 text-center text-[12.5px] text-gray-500 dark:text-white/50 leading-relaxed">
-          이 주에 감정을 고른 기도가 {e.total}건이라
-          <br />
-          흐름을 말하기엔 아직 적습니다 ({e.min_sample}건부터 보여 드려요)
-        </p>
-      ) : (
-        <>
-          {e.rising && (
-            <div className="rounded-xl bg-[var(--brand-soft)] px-3.5 py-3">
-              <p className="text-[12.5px] font-bold text-ink-strong">
-                ‘{e.rising.label}’의 기도가 지난주보다 {e.rising.delta}건 늘었습니다
-              </p>
-              <p className="mt-0.5 text-[11.5px] text-gray-600 dark:text-white/60">
-                설교·광고·중보 기도 시간에 함께 품을 마음으로 참고해 보세요.
-              </p>
-            </div>
-          )}
-          <ul className="space-y-1.5">
-            {e.this_week.map(x => (
-              <li key={x.key} className="flex items-center gap-2.5">
-                <span className="w-12 shrink-0 text-[12px] font-semibold text-gray-600 dark:text-white/65">{x.label}</span>
-                <span className="flex-1 relative h-3.5">
-                  {/* 지난주는 옅은 막대, 이번 주는 진한 막대 */}
-                  <span className="absolute inset-y-0 left-0 rounded bg-gray-200 dark:bg-white/[0.08]" style={{ width: `${(x.prev / max) * 100}%` }} />
-                  <span
-                    className={`absolute inset-y-[3px] left-0 rounded ${x.key === 'hopeful' || x.key === 'grateful' ? 'bg-brand' : 'bg-gray-500 dark:bg-white/50'}`}
-                    style={{ width: `${(x.count / max) * 100}%` }}
-                  />
-                </span>
-                <span className="w-14 shrink-0 text-right text-[11.5px] font-semibold text-gray-600 dark:text-white/65">
-                  {x.count}
-                  <span className="text-gray-400 font-normal"> / {x.prev}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="text-[11px] text-gray-400 dark:text-white/35">진한 막대가 이 주, 옅은 막대가 지난주입니다. (이 주 {e.total}건 · 지난주 {e.prev_total}건)</p>
-        </>
-      )}
-
-      <div className="pt-3 border-t border-gray-100 dark:border-white/[0.06]">
-        <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/55">최근 {e.trend.length}주 · 무거운 마음과 밝은 마음</p>
-        <div className="mt-2 flex items-end gap-2">
-          {e.trend.map(t => (
-            <div key={t.week_start} className="flex-1 flex flex-col items-center gap-1 min-w-0" title={`${t.week_start} · 무거운 ${t.heavy} · 밝은 ${t.bright}`}>
-              {/* 막대 높이(%)의 기준이 되도록 고정 높이 — flex-1 만으로는 퍼센트가 풀리지 않는다 */}
-              <div className="w-full h-[72px] flex flex-col justify-end gap-[2px]">
-                <div className="w-full rounded-t bg-brand" style={{ height: `${(t.bright / trendMax) * 100}%` }} />
-                <div className="w-full rounded-b bg-gray-400 dark:bg-white/40" style={{ height: `${(t.heavy / trendMax) * 100}%` }} />
-              </div>
-              <span className="text-[10px] text-gray-400 dark:text-white/35 leading-none">
-                {formatDay(t.week_start, false).replace(/^\d+년 /, '').replace('월 ', '/').replace('일', '')}
-              </span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-2 text-[11px] text-gray-400 dark:text-white/35 leading-relaxed">
-          파랑은 소망·감사, 회색은 불안·지침·슬픔·외로움·분노·혼란입니다. 나만 보기 기도는 세지 않으며, 누가 썼는지는 드러나지 않습니다.
-        </p>
-      </div>
     </SectionCard>
   )
 }

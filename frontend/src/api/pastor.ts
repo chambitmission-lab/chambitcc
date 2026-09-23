@@ -94,6 +94,8 @@ export interface PastorHomeData {
       lunar: boolean
     }>
     follow_ups: FollowUp[]
+    /** 내 심방 예약 (7일 안 + 지난 예약) */
+    plans: Array<PastoralVisit & { overdue: boolean }>
   }
   assistant: SuggestionData
 }
@@ -167,10 +169,15 @@ export interface MemberProfile {
 }
 
 /** 심방 한 건 — 내용(summary·follow_up)은 내가 쓴 기록에만 채워져 온다 */
+export type VisitStatus = 'done' | 'planned'
+
 export interface PastoralVisit {
   id: number
   member_user_id: number
   visit_date: string
+  /** 'HH:MM' — 예약에 주로 쓴다 */
+  visit_time: string | null
+  status: VisitStatus
   kind: VisitKind
   pastor_name: string | null
   is_mine: boolean
@@ -216,6 +223,8 @@ export interface MemberDetail {
 
 export interface VisitInput {
   visit_date: string
+  visit_time?: string | null
+  status?: VisitStatus
   kind: VisitKind
   summary?: string
   follow_up?: string
@@ -289,7 +298,7 @@ export interface SuggestionData {
 export interface Briefing {
   headline: string
   points: Array<{
-    kind: 'visit' | 'memo' | 'follow_up' | 'activity' | 'prayer' | 'birthday' | 'family' | 'note'
+    kind: 'visit' | 'plan' | 'memo' | 'follow_up' | 'activity' | 'prayer' | 'birthday' | 'family' | 'note'
     text: string
     tone: 'info' | 'urgent' | 'care' | 'joy'
   }>
@@ -357,3 +366,123 @@ export interface WeeklyReport {
 
 export const fetchWeeklyReport = (week: number): Promise<WeeklyReport> =>
   pastorGet(`/pastor/report?week=${week}`, '주간 리포트를 불러오는데 실패했습니다')
+
+// ── 목회 일정 (어젠다) ────────────────────────────────────
+export type AgendaItem =
+  | {
+      type: 'visit_plan'
+      id: string
+      visit_id: number
+      date: string
+      time: string | null
+      overdue: boolean
+      member_user_id: number
+      member_name: string
+      member_avatar_url: string | null
+      kind: VisitKind
+      is_mine: boolean
+      pastor_name: string
+      /** 내 예약에만 채워진다 */
+      memo: string | null
+    }
+  | {
+      type: 'follow_up'
+      id: string
+      visit_id: number
+      date: string
+      time: null
+      overdue: boolean
+      member_user_id: number
+      member_name: string
+      member_avatar_url: string | null
+      title: string
+    }
+  | {
+      type: 'birthday'
+      id: string
+      date: string
+      time: null
+      overdue: false
+      member_user_id: number
+      member_name: string
+      member_avatar_url: string | null
+      title: string
+      lunar: boolean
+    }
+  | {
+      type: 'event'
+      id: string
+      event_id: number
+      date: string
+      time: string | null
+      overdue: false
+      title: string
+      location: string | null
+      category: string
+    }
+
+export interface AgendaData {
+  today: string
+  until: string
+  items: AgendaItem[]
+}
+
+export const fetchAgenda = (): Promise<AgendaData> =>
+  pastorGet('/pastor/agenda', '목회 일정을 불러오는데 실패했습니다')
+
+// ── 설교 준비 도우미 ─────────────────────────────────────
+export interface SermonRef {
+  id: number
+  title: string
+  date: string
+  bible_verse: string | null
+  pastor: string
+}
+
+export interface SermonPrep {
+  years: 0 | 1 | 3
+  total_sermons: number
+  in_period: number
+  unparsed: number
+  testament: { ot: number; nt: number }
+  books: Array<{
+    book_number: number
+    name: string
+    testament: 'OT' | 'NT'
+    count: number
+    last_date: string | null
+    sermons: SermonRef[]
+  }>
+  stale: Array<{ book_number: number; name: string; last_date: string | null }>
+  recent: Array<SermonRef & { views: number; parsed: boolean }>
+  heart: WeeklyReport['emotions']
+  engagement: {
+    days: number
+    favorites: EngagedVerse[]
+    underlines: EngagedVerse[]
+    words: string[]
+  }
+}
+
+export interface EngagedVerse {
+  verse_id: number
+  book_number: number
+  book_name: string
+  chapter: number
+  verse: number
+  text: string
+  count: number
+  users: number
+}
+
+export interface PassageCheck {
+  query: string
+  parsed: string[]
+  matches: SermonRef[]
+}
+
+export const fetchSermonPrep = (years: number): Promise<SermonPrep> =>
+  pastorGet(`/pastor/sermon-prep?years=${years}`, '설교 준비 자료를 불러오는데 실패했습니다')
+
+export const checkPassage = (ref: string): Promise<PassageCheck> =>
+  pastorGet(`/pastor/sermon-prep/check?ref=${encodeURIComponent(ref)}`, '본문 확인에 실패했습니다')

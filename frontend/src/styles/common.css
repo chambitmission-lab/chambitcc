@@ -264,3 +264,11 @@
 @media (prefers-reduced-motion: reduce) {
   .keycap { transition: none; }
 }
+
+/* 목회자 화면 글씨 크기 (pages/Pastor/components/textScale.ts) — PC(lg+)에서만.
+   zoom 은 하드코딩된 px 글씨·여백까지 같은 비율로 키운다. --pz 는 vh 기반 높이를
+   되돌려 나눌 때 쓴다(예: 모달 max-h: calc(90vh / var(--pz, 1))). */
+@media (min-width: 1024px) {
+  [data-pastor-scale='large'] { --pz: 1.15; zoom: 1.15; }
+  [data-pastor-scale='xlarge'] { --pz: 1.3; zoom: 1.3; }
+}

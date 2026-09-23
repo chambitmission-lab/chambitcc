@@ -35,19 +35,19 @@ const PastorAssistant = () => {
             title="오늘 연락하면 좋은 분"
             action={
               data ? (
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand">
+                <span className="text-[12px] font-semibold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand">
                   {data.total}명
                 </span>
               ) : undefined
             }
           >
-            <p className="text-[11.5px] text-gray-500 dark:text-white/45 leading-relaxed">
+            <p className="text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
               교회 기록을 엮어 급한 순서로 골랐습니다. 심방·전화 기록을 남기거나 할 일을 마치면 다음부터 이유가 풀립니다.
             </p>
             {isPending && !data ? (
               <StatSpinner label="오늘 챙길 분을 고르는 중..." />
             ) : !data ? (
-              <p className="py-10 text-center text-[13px] text-gray-500">제안을 불러오지 못했습니다</p>
+              <p className="py-10 text-center text-[13px] text-gray-600">제안을 불러오지 못했습니다</p>
             ) : (
               <SuggestionList items={data.items} />
             )}
@@ -62,12 +62,12 @@ const PastorAssistant = () => {
                   <span className="material-icons-outlined text-[18px] text-brand shrink-0 mt-0.5">{r.icon}</span>
                   <span>
                     <span className="block text-[12.5px] font-bold text-ink-strong">{r.title}</span>
-                    <span className="block text-[11.5px] text-gray-500 dark:text-white/50 leading-relaxed">{r.desc}</span>
+                    <span className="block text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">{r.desc}</span>
                   </span>
                 </li>
               ))}
             </ul>
-            <p className="text-[11px] text-gray-400 dark:text-white/35 leading-relaxed">
+            <p className="text-[12px] text-gray-500 dark:text-white/50 leading-relaxed">
               AI를 쓰지 않고 정해진 규칙으로만 고릅니다. 다른 교역자의 심방은 날짜와 방식만 쓰고,
               비밀기도와 익명으로 맡긴 기도는 사람과 연결하지 않습니다.
             </p>

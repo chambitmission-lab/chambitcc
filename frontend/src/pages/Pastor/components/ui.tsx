@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { pastorScaleProps, usePastorTextScale } from './textScale'
 
 export const Avatar = ({
   name,
@@ -13,7 +14,7 @@ export const Avatar = ({
   size?: 'sm' | 'md' | 'lg'
 }) => {
   const cls =
-    size === 'sm' ? 'w-7 h-7 text-[11px]' : size === 'lg' ? 'w-16 h-16 text-[22px]' : 'w-9 h-9 text-[13px]'
+    size === 'sm' ? 'w-7 h-7 text-[12px]' : size === 'lg' ? 'w-16 h-16 text-[22px]' : 'w-9 h-9 text-[13px]'
   return url ? (
     <img src={url} alt="" loading="lazy" className={`${cls} shrink-0 rounded-full object-cover`} />
   ) : (
@@ -26,7 +27,7 @@ export const Avatar = ({
 export const FieldLabel = ({ children, hint }: { children: ReactNode; hint?: string }) => (
   <span className="flex items-baseline justify-between gap-2 mb-1.5">
     <span className="text-[12.5px] font-bold text-ink-strong">{children}</span>
-    {hint && <span className="text-[11px] text-gray-400 dark:text-white/35">{hint}</span>}
+    {hint && <span className="text-[12px] text-gray-500 dark:text-white/50">{hint}</span>}
   </span>
 )
 
@@ -47,25 +48,28 @@ export const PastorModal = ({
   footer: ReactNode
 }) => {
   useModalBackButton(onClose)
+  // body 로 포털하면 셸의 zoom 밖이라 모달만 작아진다 — 같은 글씨 크기를 따로 건다
+  const scale = usePastorTextScale()
   return createPortal(
     <div
+      {...pastorScaleProps(scale)}
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[calc(90vh/var(--pz,1))] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em]">PASTOR</p>
+            <p className="text-brand text-[12px] font-bold tracking-[0.12em]">PASTOR</p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">{title}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-600 dark:text-white/65 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
             aria-label="닫기"
           >
             <span className="material-icons-outlined text-[20px]">close</span>

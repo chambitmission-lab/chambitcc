@@ -37,24 +37,24 @@ const SuggestionList = ({ items, compact = false }: { items: Suggestion[]; compa
             <Avatar name={s.name} url={s.avatar_url} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <Link to={`/pastor/members/${s.user_id}`} className="text-[13.5px] font-bold text-ink-strong hover:text-brand">
+                <Link to={`/pastor/members/${s.user_id}`} className="text-[15px] font-bold text-ink-strong hover:text-brand">
                   {s.name}
                 </Link>
-                {s.church_title && <span className="text-[11.5px] font-semibold text-brand">{s.church_title}</span>}
-                {s.district && <span className="text-[11.5px] text-gray-500 dark:text-white/45">{s.district}</span>}
+                {s.church_title && <span className="text-[12px] font-semibold text-brand">{s.church_title}</span>}
+                {s.district && <span className="text-[12px] text-gray-600 dark:text-white/60">{s.district}</span>}
               </div>
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {(compact ? s.reasons.slice(0, 2) : s.reasons).map(r => (
                   <span
                     key={r.code + r.label}
-                    className={`inline-flex items-center gap-0.5 text-[11.5px] font-semibold px-2 py-0.5 rounded-md ${TONE_CHIP[r.tone]}`}
+                    className={`inline-flex items-center gap-0.5 text-[12px] font-semibold px-2 py-0.5 rounded-md ${TONE_CHIP[r.tone]}`}
                   >
                     <span className="material-icons-outlined text-[13px]">{TONE_ICON[r.tone]}</span>
                     {r.label}
                   </span>
                 ))}
                 {compact && s.reasons.length > 2 && (
-                  <span className="text-[11px] text-gray-400 self-center">외 {s.reasons.length - 2}</span>
+                  <span className="text-[12px] text-gray-500 self-center">외 {s.reasons.length - 2}</span>
                 )}
               </div>
             </div>
@@ -62,7 +62,7 @@ const SuggestionList = ({ items, compact = false }: { items: Suggestion[]; compa
               {s.phone && !compact && (
                 <a
                   href={`tel:${s.phone}`}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-[var(--brand-soft)] hover:text-brand"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 dark:text-white/65 hover:bg-[var(--brand-soft)] hover:text-brand"
                   aria-label={`${s.name}님께 전화`}
                   title={s.phone}
                 >

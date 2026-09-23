@@ -12,7 +12,7 @@ const FollowUpList = ({ items, compact = false }: { items: FollowUp[]; compact?:
     mutationFn: (visitId: number) => updateVisit(visitId, { follow_up_done: true }),
     onSuccess: () => {
       showToast('마친 일로 표시했습니다', 'success')
-      for (const key of [['pastor-visits'], ['pastor-home'], ['pastor-member'], ['pastor-suggestions']]) {
+      for (const key of [['pastor-visits'], ['pastor-home'], ['pastor-member'], ['pastor-suggestions'], ['pastor-agenda'], ['pastor-report']]) {
         void qc.invalidateQueries({ queryKey: key, refetchType: 'all' })
       }
     },
@@ -29,15 +29,15 @@ const FollowUpList = ({ items, compact = false }: { items: FollowUp[]; compact?:
             aria-label="마친 일로 표시"
             disabled={done.isPending}
             onClick={() => done.mutate(f.visit_id)}
-            className="shrink-0 mt-0.5 text-gray-300 dark:text-white/30 hover:text-brand transition-colors"
+            className="shrink-0 mt-0.5 text-gray-300 dark:text-white/45 hover:text-brand transition-colors"
           >
             <span className="material-icons-outlined text-[20px]">check_box_outline_blank</span>
           </button>
           <Link to={`/pastor/members/${f.member_user_id}`} className="flex-1 min-w-0 group">
-            <span className="block text-[12.5px] font-semibold text-ink-strong group-hover:text-brand">
+            <span className="block text-[14px] font-semibold text-ink-strong group-hover:text-brand">
               {f.follow_up}
             </span>
-            <span className="block text-[11px] text-gray-500 dark:text-white/45">
+            <span className="block text-[13px] text-gray-600 dark:text-white/60">
               {f.member_name}
               {f.follow_up_date ? (
                 <span className={f.overdue ? 'text-[var(--amber)] font-bold' : ''}>

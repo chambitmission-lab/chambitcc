@@ -13,6 +13,8 @@ import { FilterChip, FilterRow } from './components/FilterControls'
 import { AdminPageHeader, EmptyHint, SectionCard, StatSpinner } from './components/StatCards'
 import { can, isPastor } from '../../utils/access'
 import { PastorSectionNav } from '../Pastor/components/PastorShell'
+import TextScaleToggle from '../Pastor/components/TextScaleToggle'
+import { pastorScaleProps, usePastorTextScale } from '../Pastor/components/textScale'
 
 type Tab = 'quiet' | 'newcomers'
 
@@ -65,6 +67,7 @@ const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
     placeholderData: keepPreviousData,
   })
   const loading = isPending && !data
+  const textScale = usePastorTextScale()
 
   useEffect(() => {
     if (isError) showToast('돌봄 레이더를 불러오는데 실패했습니다', 'error')
@@ -77,9 +80,13 @@ const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
         이 상자의 스크롤바는 명단이 길 때만 생겨서 가운데 정렬 카드를 7.5px 밀었다 —
         양쪽에 같은 자리를 늘 비워 두면(both-edges) 스크롤바 유무와 무관하게 다른 화면과 같은 자리에 선다. */}
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto lg:[scrollbar-gutter:stable_both-edges]">
-      <div className={`max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark ${pastorScope ? 'lg:max-w-[1180px]' : 'lg:max-w-[1100px]'}`}>
+      <div {...(pastorScope ? pastorScaleProps(textScale) : {})} className={`max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark ${pastorScope ? 'lg:max-w-[1180px]' : 'lg:max-w-[1100px]'}`}>
         {/* 목회자 화면은 다른 목회자 화면과 같은 머리 + 섹션 내비 — 뒤로 가지 않고 옮겨 다닌다 */}
-        <AdminPageHeader title={pastorScope ? '목회자 홈' : '돌봄 레이더'} badge={pastorScope ? 'PASTOR' : 'ADMIN'} />
+        <AdminPageHeader
+          title={pastorScope ? '목회자 홈' : '돌봄 레이더'}
+          badge={pastorScope ? 'PASTOR' : 'ADMIN'}
+          trailing={pastorScope ? <TextScaleToggle /> : undefined}
+        />
         {pastorScope && <PastorSectionNav />}
 
         {/* PC(lg+) 2단 — 좌: 성도 명단 / 우: 안내·탭·요약이 sticky.
