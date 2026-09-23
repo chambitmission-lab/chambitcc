@@ -28,7 +28,6 @@ import { isAuthenticated, getCurrentUser } from './utils/auth'
 import RouteDataPrefetch from './components/common/RouteDataPrefetch'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
-import Login from './pages/Auth/Login'
 import { tokenStore, sessionStore } from './utils/tokenStore'
 
 // 보조/관리/대형 페이지는 lazy로 분리 → 메인 번들 축소
@@ -41,6 +40,11 @@ const Landing = lazy(loadLanding)
 // 딥링크(#/bible/1/1 등)로 들어온 비로그인 방문자에겐 랜딩 청크가 첫 화면과 무관하다 — 루트일 때만
 const atRootHash = /^#?\/?(\?|$)/.test(window.location.hash)
 if (!tokenStore.getAccess() && atRootHash) void loadLanding()
+// 로그인 화면 — 로그인 교인에겐 쓸 일 없는 코드·CSS(AuthForm·환영 전환)라 메인 번들에서 뗀다.
+// 비로그인이면 어느 경로로 들어왔든(보호 페이지 딥링크 → /login 리다이렉트 포함) 곧바로 받아둔다.
+const loadLogin = () => import('./pages/Auth/Login')
+const Login = lazy(loadLogin)
+if (!tokenStore.getAccess()) void loadLogin()
 // dev 전용 — 업적 모달 미리보기 (프로덕션 번들에는 라우트 자체가 빠짐)
 const AchievementModalPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/AchievementModalPreview'))
