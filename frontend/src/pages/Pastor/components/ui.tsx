@@ -1,5 +1,6 @@
 // 목회자 영역 공용 컴포넌트 — 아바타 · slide-up 모달 · 버튼 (훅·날짜 헬퍼는 ./pastorUtils)
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 
 export const Avatar = ({
@@ -29,7 +30,11 @@ export const FieldLabel = ({ children, hint }: { children: ReactNode; hint?: str
   </span>
 )
 
-/** 어드민 컴포저와 같은 slide-up 모달 껍데기 (모바일: 아래에서 / sm+: 가운데) */
+/** 어드민 컴포저와 같은 slide-up 모달 껍데기 (모바일: 아래에서 / sm+: 가운데)
+ *
+ * body 로 포털한다 — 카드(SectionCard)가 relative + z-10 으로 쌓임 맥락을 만들어서,
+ * 카드 안에서 연 모달은 fixed 여도 그 층에 갇히고 뒤따르는 카드가 모달 위로 비쳐 보였다.
+ */
 export const PastorModal = ({
   title,
   onClose,
@@ -42,7 +47,7 @@ export const PastorModal = ({
   footer: ReactNode
 }) => {
   useModalBackButton(onClose)
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
       onClick={onClose}
@@ -71,7 +76,8 @@ export const PastorModal = ({
           {footer}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
