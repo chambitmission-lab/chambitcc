@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { AdminPageHeader } from '../../Admin/components/StatCards'
 import TextScaleToggle from './TextScaleToggle'
+import { warmPastorSections } from '../prefetch'
 import { pastorScaleProps, usePastorTextScale } from './textScale'
 
 // 목회자 영역 공용 껍데기 — 관리자 화면과 같은 와이드 셸 + 목회자 섹션 내비.
@@ -108,6 +109,9 @@ export const PastorSectionNav = () => {
   const { pathname } = useLocation()
   const navRef = useRef<HTMLElement>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
+
+  // 다른 섹션 청크·데이터를 유휴 시간에 미리 받아 둔다 — 칩을 누르는 순간 바로 그려지게 (세션당 한 번)
+  useEffect(() => warmPastorSections(), [])
 
   useLayoutEffect(() => {
     const nav = navRef.current

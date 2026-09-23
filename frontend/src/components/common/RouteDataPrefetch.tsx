@@ -10,6 +10,7 @@ import { prefetchWeeklyStory } from '../../hooks/useWeeklyStory'
 import { prefetchAboutContent } from '../../hooks/useAboutContent'
 import { prefetchSituation } from '../../hooks/useSituation'
 import { tokenStore } from '../../utils/tokenStore'
+import { isPastor } from '../../utils/access'
 import { warmRouteThemeAssets } from '../../utils/themeAssets'
 
 /* 라우트가 바뀌는 순간 그 화면의 첫 데이터를 lazy 청크와 나란히 요청한다.
@@ -32,6 +33,13 @@ const RouteDataPrefetch = () => {
     if (pathname === '/bible') prefetchBibleHub(queryClient)
     // 프로필 — detail·블루마블 통계와 그 아래 카드 데이터(여정·칭호)를 청크와 나란히 한 번에 띄운다
     if (pathname === '/profile') prefetchProfile(queryClient)
+    // 목회자 영역 — 섹션 칩을 누르면 청크 → API 직렬이라 두 번 기다렸다. 청크와 나란히 띄운다
+    // (목회자만 쓰는 API 모듈이 메인 번들에 섞이지 않게 동적 import — 작은 청크라 페이지 청크와 나란히 온다)
+    if (pathname.startsWith('/pastor') && isPastor()) {
+      void import('../../pages/Pastor/prefetch')
+        .then(m => m.prefetchPastorRoute(pathname, queryClient))
+        .catch(() => undefined)
+    }
     // 신앙 여정 — 요약·타임라인·인사이트를 청크와 나란히 (예전엔 청크 뒤에 요약, 요약 뒤에 인사이트가 출발)
     if (pathname === '/growth' && tokenStore.getAccess()) prefetchGrowth(queryClient)
     // 칭호 도감·주간 스토리 — 청크와 나란히
