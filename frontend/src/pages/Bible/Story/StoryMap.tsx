@@ -154,8 +154,10 @@ const StoryMap = () => {
         {/* 헤더 */}
         {/* 하단 실선을 두지 않는다 — #root 의 overflow-x:hidden 때문에 sticky 가 실제로는 붙지 않아
             이 바는 본문과 함께 스크롤되고, 반투명 앱 헤더 밑을 지날 때 실선만 카드 폭만큼 비쳐
-            "중간에 끊긴 선"처럼 보였다. sticky 가 살아나면 헤더 바로 아래(top-14)에 붙는다 */}
-        <div className="sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm lg:rounded-t-3xl">
+            "중간에 끊긴 선"처럼 보였다. sticky 가 살아나면 헤더 바로 아래(top-14)에 붙는다.
+            lg+ 는 static — 카드의 overflow-hidden 이 sticky 기준 상자가 되는데 그 상자는 스크롤하지
+            않으니, top-14 만큼 바가 그대로 56px 밀려 내려와 1막 머리글을 덮었다 */}
+        <div className="sticky top-14 lg:static z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm lg:rounded-t-3xl">
           <div className="flex items-center gap-3 px-4 h-14">
             <button
               onClick={() => navigate('/bible')}
