@@ -12,10 +12,15 @@ interface TimePickerProps {
   disabled?: boolean
   /** 트리거 버튼 스타일 덮어쓰기 — 폼의 다른 입력과 테두리·높이를 맞출 때 */
   className?: string
+  /** PC(lg+)에서 목록을 크게 — 노안 사용자용. 모바일 폭은 기본 크기 그대로 */
+  large?: boolean
 }
 
 const PANEL_W = 148
 const PANEL_MAX_H = 276
+const PANEL_W_LARGE = 200
+const PANEL_MAX_H_LARGE = 420
+const LG_MIN = 1024
 const PANEL_GAP = 8
 const VIEWPORT_PAD = 12
 
@@ -32,13 +37,17 @@ const label12 = (hm: string, isEn: boolean) => {
     : `${h < 12 ? '오전' : '오후'} ${h12}:${m[2]}`
 }
 
-const TimePicker = ({ value, onChange, placeholder, disabled, className }: TimePickerProps) => {
+const TimePicker = ({ value, onChange, placeholder, disabled, className, large = false }: TimePickerProps) => {
   const { language } = useLanguage()
   const isEn = language === 'en'
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  /* large 는 PC 폭에서만 — 여는 순간의 폭으로 판단한다 */
+  const big = large && typeof window !== 'undefined' && window.innerWidth >= LG_MIN
+  const panelW = big ? PANEL_W_LARGE : PANEL_W
+  const panelMaxH = big ? PANEL_MAX_H_LARGE : PANEL_MAX_H
 
   // 30분 간격 48개. 수정 중 15:45 같은 그리드 밖 값이 오면 목록에 끼워 넣어
   // 현재 값이 목록에서 사라지는 일이 없게 한다.
@@ -61,10 +70,10 @@ const TimePicker = ({ value, onChange, placeholder, disabled, className }: TimeP
       const r = trigger.getBoundingClientRect()
       const vw = window.innerWidth
       const vh = window.innerHeight
-      const panelH = Math.min(PANEL_MAX_H, panelRef.current?.scrollHeight || PANEL_MAX_H)
+      const panelH = Math.min(panelMaxH, panelRef.current?.scrollHeight || panelMaxH)
       const left = Math.max(
         VIEWPORT_PAD,
-        Math.min(r.left, vw - PANEL_W - VIEWPORT_PAD),
+        Math.min(r.left, vw - panelW - VIEWPORT_PAD),
       )
       const below = r.bottom + PANEL_GAP
       const above = r.top - PANEL_GAP - panelH
@@ -83,7 +92,7 @@ const TimePicker = ({ value, onChange, placeholder, disabled, className }: TimeP
       window.removeEventListener('resize', place)
       window.removeEventListener('scroll', place, true)
     }
-  }, [isOpen])
+  }, [isOpen, panelW, panelMaxH])
 
   // 열릴 때 선택값(없으면 오전 9시)이 가운데 오도록 목록을 미리 감아 둔다
   useEffect(() => {
@@ -167,8 +176,8 @@ const TimePicker = ({ value, onChange, placeholder, disabled, className }: TimeP
           style={{
             top: pos?.top ?? 0,
             left: pos?.left ?? 0,
-            width: PANEL_W,
-            maxHeight: PANEL_MAX_H,
+            width: panelW,
+            maxHeight: panelMaxH,
             visibility: pos ? 'visible' : 'hidden',
           }}
         >
@@ -182,7 +191,9 @@ const TimePicker = ({ value, onChange, placeholder, disabled, className }: TimeP
                 aria-selected={selected}
                 data-time={hm}
                 onClick={() => pick(hm)}
-                className={`block w-full rounded-xl px-3 py-2 text-left text-[13px] font-semibold tabular-nums transition-all active:scale-95 ${
+                className={`block w-full rounded-xl text-left font-semibold tabular-nums transition-all active:scale-95 ${
+                  big ? 'px-4 py-3 text-[17px]' : 'px-3 py-2 text-[13px]'
+                } ${
                   selected
                     ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
                     : 'text-ink hover:bg-[var(--brand-soft)]'

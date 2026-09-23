@@ -20,6 +20,9 @@ interface DatePickerProps {
   /** 선택 가능 하한/상한 (YYYY-MM-DD, 포함) */
   minDate?: string
   maxDate?: string
+  /** PC(lg+)에서 달력을 크게 — 노안 사용자용(목회자 심방 기록 등). 칸·글자·버튼이 한 단계씩 커진다.
+   *  모바일 폭에서는 기본 크기 그대로(360px 패널이 폰 화면을 넘지 않게). */
+  large?: boolean
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -65,6 +68,8 @@ const YEAR_PAGE = 12
 
 /** 달력 패널 크기·여백 (px) — 화면 안에 넣을 위치를 계산할 때 쓴다 */
 const PANEL_W = 288 // w-72
+const PANEL_W_LARGE = 372 // large + lg: 52px 칸 × 7 + 여백
+const LG_MIN = 1024
 const PANEL_GAP = 8 // 트리거와의 간격
 const VIEWPORT_PAD = 12 // 화면 가장자리 최소 여백
 const PANEL_H_FALLBACK = 360 // 첫 렌더에서 실제 높이를 재기 전 어림값
@@ -135,6 +140,7 @@ const DatePicker = ({
   birthMode = false,
   minDate,
   maxDate,
+  large = false,
 }: DatePickerProps) => {
   const { language } = useLanguage()
   const isEn = language === 'en'
@@ -194,7 +200,8 @@ const DatePicker = ({
       const vw = window.innerWidth
       const vh = window.innerHeight
       const panelH = panelRef.current?.offsetHeight || PANEL_H_FALLBACK
-      const width = Math.min(PANEL_W, vw - VIEWPORT_PAD * 2)
+      const panelW = large && vw >= LG_MIN ? PANEL_W_LARGE : PANEL_W
+      const width = Math.min(panelW, vw - VIEWPORT_PAD * 2)
 
       const left = Math.max(
         VIEWPORT_PAD,
@@ -224,7 +231,7 @@ const DatePicker = ({
       window.removeEventListener('resize', place)
       window.removeEventListener('scroll', place, true)
     }
-  }, [isOpen, panel])
+  }, [isOpen, panel, large])
 
   // 바깥 클릭 · Esc 로 닫기
   useEffect(() => {
@@ -277,8 +284,20 @@ const DatePicker = ({
   const yearPageStart = Math.floor(view.y / YEAR_PAGE) * YEAR_PAGE
   const navLabels = text.units
 
-  const navBtn =
-    'grid h-8 w-8 place-items-center rounded-lg text-gray-500 dark:text-white/60 transition-colors hover:bg-[var(--brand-soft)] hover:text-brand active:scale-95'
+  const navBtn = `grid h-8 w-8 place-items-center rounded-lg text-gray-500 dark:text-white/60 transition-colors hover:bg-[var(--brand-soft)] hover:text-brand active:scale-95${
+    large ? ' lg:h-11 lg:w-11 lg:[&>svg]:h-5 lg:[&>svg]:w-5' : ''
+  }`
+  /* large(PC) 크기 덧칠 — 기본 클래스 뒤에 붙는 lg: 유틸리티라 모바일에는 영향이 없다 */
+  const lg = large
+    ? {
+        title: ' lg:text-[19px] lg:px-2.5 lg:py-1.5',
+        weekday: ' lg:text-[14px] lg:py-2',
+        day: ' lg:h-12 lg:w-12 lg:text-[17px]',
+        cell: ' lg:py-3.5 lg:text-[16px]',
+        quick: ' lg:py-3 lg:text-[15px]',
+        panel: ' lg:p-4',
+      }
+    : { title: '', weekday: '', day: '', cell: '', quick: '', panel: '' }
 
   return (
     <div ref={containerRef} className="relative">
@@ -329,7 +348,7 @@ const DatePicker = ({
           role="dialog"
           aria-label={text.dialog}
           /* body 포털이라 모달(바텀시트 z-9999)과 형제 — 그보다 위에 둬야 가려지지 않는다 */
-          className="fixed z-[10000] origin-top animate-pop-in rounded-2xl border border-black/[0.06] bg-white p-3 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)] dark:border-white/[0.08] dark:bg-card-dark"
+          className={`fixed z-[10000] origin-top animate-pop-in rounded-2xl border border-black/[0.06] bg-white p-3 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)] dark:border-white/[0.08] dark:bg-card-dark${lg.panel}`}
           style={{
             top: pos?.top ?? 0,
             left: pos?.left ?? 0,
@@ -346,7 +365,7 @@ const DatePicker = ({
             <button
               type="button"
               onClick={cyclePanel}
-              className="flex items-center gap-1 rounded-lg px-2 py-1 text-[15px] font-bold text-ink-strong transition-colors hover:bg-[var(--brand-soft)]"
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[15px] font-bold text-ink-strong transition-colors hover:bg-[var(--brand-soft)]${lg.title}`}
             >
               {panel === 'years'
                 ? `${yearPageStart} ~ ${yearPageStart + YEAR_PAGE - 1}${isEn ? '' : '년'}`
@@ -413,7 +432,7 @@ const DatePicker = ({
                       setView((v) => ({ ...v, y: year }))
                       setPanel('months')
                     }}
-                    className={`rounded-xl py-2.5 text-[13px] font-semibold tabular-nums transition-all active:scale-95 ${
+                    className={`rounded-xl py-2.5 text-[13px] font-semibold tabular-nums transition-all active:scale-95${lg.cell} ${
                       selected
                         ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
                         : disabled
@@ -448,7 +467,7 @@ const DatePicker = ({
                       setView((v) => ({ ...v, m: i }))
                       setPanel('days')
                     }}
-                    className={`rounded-xl py-2.5 text-[13px] font-semibold transition-all active:scale-95 ${
+                    className={`rounded-xl py-2.5 text-[13px] font-semibold transition-all active:scale-95${lg.cell} ${
                       selected
                         ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
                         : disabled
@@ -470,7 +489,7 @@ const DatePicker = ({
                 {weekdayLabels.map((w, i) => (
                   <div
                     key={w}
-                    className={`py-1 text-center text-[11px] font-bold ${
+                    className={`py-1 text-center text-[11px] font-bold${lg.weekday} ${
                       i === 0
                         ? 'text-rose-500 dark:text-rose-400'
                         : i === 6
@@ -517,7 +536,7 @@ const DatePicker = ({
                       aria-label={formatFull(c.iso, isEn)}
                       aria-pressed={selected}
                       {...(isToday ? { 'aria-current': 'date' as const } : {})}
-                      className={`relative mx-auto grid h-9 w-9 place-items-center rounded-full text-[13px] tabular-nums transition-all active:scale-90 ${
+                      className={`relative mx-auto grid h-9 w-9 place-items-center rounded-full text-[13px] tabular-nums transition-all active:scale-90${lg.day} ${
                         selected
                           ? 'bg-brand font-bold text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
                           : disabled
@@ -544,14 +563,14 @@ const DatePicker = ({
                 <button
                   type="button"
                   onClick={() => pick(sundayISO(0))}
-                  className="flex-1 rounded-xl bg-[var(--brand-soft)] py-2 text-[12px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)] active:scale-95"
+                  className={`flex-1 rounded-xl bg-[var(--brand-soft)] py-2 text-[12px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)] active:scale-95${lg.quick}`}
                 >
                   {text.thisSunday}
                 </button>
                 <button
                   type="button"
                   onClick={() => pick(sundayISO(1))}
-                  className="flex-1 rounded-xl bg-[var(--brand-soft)] py-2 text-[12px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)] active:scale-95"
+                  className={`flex-1 rounded-xl bg-[var(--brand-soft)] py-2 text-[12px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)] active:scale-95${lg.quick}`}
                 >
                   {text.nextSunday}
                 </button>
@@ -561,7 +580,7 @@ const DatePicker = ({
               <button
                 type="button"
                 onClick={() => setPanel('years')}
-                className="flex-1 rounded-xl bg-[var(--brand-soft)] py-2 text-[12px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)] active:scale-95"
+                className={`flex-1 rounded-xl bg-[var(--brand-soft)] py-2 text-[12px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)] active:scale-95${lg.quick}`}
               >
                 {text.pickYear}
               </button>
@@ -570,7 +589,7 @@ const DatePicker = ({
                 <button
                   type="button"
                   onClick={() => pick(today)}
-                  className="flex-1 rounded-xl bg-[var(--brand-soft)] py-2 text-[12px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)] active:scale-95"
+                  className={`flex-1 rounded-xl bg-[var(--brand-soft)] py-2 text-[12px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)] active:scale-95${lg.quick}`}
                 >
                   {text.today}
                 </button>

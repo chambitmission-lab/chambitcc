@@ -26,12 +26,15 @@ export const Avatar = ({
 
 export const FieldLabel = ({ children, hint }: { children: ReactNode; hint?: string }) => (
   <span className="flex items-baseline justify-between gap-2 mb-1.5">
-    <span className="text-[12.5px] font-bold text-ink-strong">{children}</span>
-    {hint && <span className="text-[12px] text-gray-500 dark:text-white/50">{hint}</span>}
+    <span className="text-[12.5px] lg:text-[15px] font-bold text-ink-strong">{children}</span>
+    {hint && <span className="text-[12px] lg:text-[13.5px] text-gray-500 dark:text-white/50 lg:text-gray-600 dark:lg:text-white/60">{hint}</span>}
   </span>
 )
 
 /** 어드민 컴포저와 같은 slide-up 모달 껍데기 (모바일: 아래에서 / sm+: 가운데)
+ *
+ * wide — PC(lg+)에서 화면을 넓게 쓰는 모드(심방 기록처럼 오래 쓰는 폼). 셸 zoom(--pz) 안이라
+ * 폭·높이를 화면 기준(vw/vh)으로 줄 땐 --pz 로 나눠야 확대 후에도 화면 안에 들어온다.
  *
  * body 로 포털한다 — 카드(SectionCard)가 relative + z-10 으로 쌓임 맥락을 만들어서,
  * 카드 안에서 연 모달은 fixed 여도 그 층에 갇히고 뒤따르는 카드가 모달 위로 비쳐 보였다.
@@ -41,11 +44,13 @@ export const PastorModal = ({
   onClose,
   children,
   footer,
+  wide = false,
 }: {
   title: string
   onClose: () => void
   children: ReactNode
   footer: ReactNode
+  wide?: boolean
 }) => {
   useModalBackButton(onClose)
   // body 로 포털하면 셸의 zoom 밖이라 모달만 작아진다 — 같은 글씨 크기를 따로 건다
@@ -57,26 +62,30 @@ export const PastorModal = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[calc(90vh/var(--pz,1))] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className={`relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[calc(90vh/var(--pz,1))] ${
+          wide
+            ? 'lg:max-w-[1120px] lg:w-[calc((100vw-48px)/var(--pz,1))] lg:max-h-none lg:h-[min(880px,calc((100vh-48px)/var(--pz,1)))]'
+            : ''
+        } bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col`}
         onClick={e => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className={`relative z-10 flex items-center justify-between px-5 py-4 ${wide ? 'lg:px-8 lg:py-5' : ''} border-b border-black/[0.04] dark:border-white/[0.06]`}>
           <div>
             <p className="text-brand text-[12px] font-bold tracking-[0.12em]">PASTOR</p>
-            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">{title}</h2>
+            <h2 className={`text-ink-strong text-[17px] font-bold tracking-[-0.015em] ${wide ? 'lg:text-[22px]' : ''}`}>{title}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-600 dark:text-white/65 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
+            className="w-9 h-9 lg:w-11 lg:h-11 rounded-full flex items-center justify-center text-gray-600 dark:text-white/65 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
             aria-label="닫기"
           >
-            <span className="material-icons-outlined text-[20px]">close</span>
+            <span className="material-icons-outlined text-[20px] lg:text-[24px]">close</span>
           </button>
         </div>
-        <div className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">{children}</div>
-        <div className="relative z-10 px-5 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] flex gap-2">
+        <div className={`relative z-10 flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4 ${wide ? 'lg:px-8 lg:py-6' : ''}`}>{children}</div>
+        <div className={`relative z-10 px-5 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] flex gap-2 ${wide ? 'lg:px-8 lg:py-4 lg:justify-end' : ''}`}>
           {footer}
         </div>
       </div>
@@ -98,7 +107,7 @@ export const PrimaryButton = ({
     type="button"
     disabled={disabled}
     onClick={onClick}
-    className="flex-1 py-3 rounded-xl bg-brand text-white text-[14px] font-bold disabled:opacity-40 transition-opacity"
+    className="flex-1 py-3 lg:py-3.5 rounded-xl bg-brand text-white text-[14px] lg:text-[16px] font-bold disabled:opacity-40 transition-opacity"
   >
     {children}
   </button>
@@ -108,7 +117,7 @@ export const GhostButton = ({ children, onClick, danger }: { children: ReactNode
   <button
     type="button"
     onClick={onClick}
-    className={`px-4 py-3 rounded-xl border text-[14px] font-semibold transition-colors ${
+    className={`px-4 py-3 lg:px-5 lg:py-3.5 rounded-xl border text-[14px] lg:text-[16px] font-semibold transition-colors ${
       danger
         ? 'border-red-200 dark:border-red-400/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10'
         : 'border-gray-200 dark:border-white/[0.1] text-gray-600 dark:text-white/70 hover:border-brand hover:text-brand'

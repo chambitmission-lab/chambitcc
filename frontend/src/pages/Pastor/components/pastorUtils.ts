@@ -20,6 +20,11 @@ export const usePastorGate = (): boolean => {
 export const inputCls =
   'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
+// 앱 공용 달력·시간(DatePicker/TimePicker) 트리거 — 목회자 폼의 입력칸과 같은 테두리·높이.
+// 선택된 날짜가 'YYYY년 M월 D일 (요일)'로 크게 읽히도록 폭을 다 쓰고, PC(lg)에선 한 단계 크게
+export const pickerCls =
+  'flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] px-3.5 py-2.5 lg:px-4 lg:py-3.5 text-left text-[14px] lg:text-[17px] text-ink-strong hover:border-brand focus:border-brand focus:outline-none transition-colors'
+
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 /** 'YYYY-MM-DD' → 로컬 Date (UTC 파싱으로 하루 밀리는 걸 막는다) */
