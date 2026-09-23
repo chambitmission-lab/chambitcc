@@ -217,6 +217,9 @@ const OrganizationManagement = lazy(() => import('./pages/Admin/OrganizationMana
 const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
 const CareRadar = lazy(() => import('./pages/Admin/CareRadar'))
 const PastorHome = lazy(() => import('./pages/Pastor/PastorHome'))
+const PastorMembers = lazy(() => import('./pages/Pastor/PastorMembers'))
+const PastorMemberDetail = lazy(() => import('./pages/Pastor/PastorMemberDetail'))
+const PastorVisits = lazy(() => import('./pages/Pastor/PastorVisits'))
 const BibleEngagementManagement = lazy(() => import('./pages/Admin/BibleEngagementManagement'))
 const WeeklyPrayerManagement = lazy(() => import('./pages/Admin/WeeklyPrayerManagement'))
 const ChatbotManagement = lazy(() => import('./pages/Admin/ChatbotManagement'))
@@ -395,6 +398,9 @@ function App() {
                 <Route path="/admin/care" element={<CareRadar />} />
                 <Route path="/pastor" element={<PastorHome />} />
                 <Route path="/pastor/care" element={<CareRadar scope="pastor" />} />
+                <Route path="/pastor/members" element={<PastorMembers />} />
+                <Route path="/pastor/members/:id" element={<PastorMemberDetail />} />
+                <Route path="/pastor/visits" element={<PastorVisits />} />
                 <Route path="/admin/notifications" element={<NotificationManagement />} />
                 <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
                 <Route path="/admin/bulletins" element={<BulletinManagement />} />

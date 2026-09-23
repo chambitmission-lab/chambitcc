@@ -35,6 +35,8 @@
     "celebration",
     "chat_bubble_outline",
     "check",
+    "check_box",
+    "check_box_outline_blank",
     "check_circle",
     "checklist",
     "chevron_left",
@@ -131,6 +133,7 @@
     "link",
     "list",
     "local_fire_department",
+    "local_hospital",
     "lock",
     "lock_reset",
     "login",
@@ -221,6 +224,7 @@
     "skip_next",
     "skip_previous",
     "smart_display",
+    "sms",
     "spa",
     "speed",
     "spellcheck",
@@ -280,10 +284,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 22124
+    "bytes": 22156
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 24724
+    "bytes": 24936
   }
 }

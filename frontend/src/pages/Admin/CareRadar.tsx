@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { showToast } from '../../utils/toast'
 import {
@@ -12,6 +12,7 @@ import {
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { AdminPageHeader, EmptyHint, SectionCard, StatSpinner } from './components/StatCards'
 import { can, isPastor } from '../../utils/access'
+import { PastorSectionNav } from '../Pastor/components/PastorShell'
 
 type Tab = 'quiet' | 'newcomers'
 
@@ -30,6 +31,18 @@ const TABS: Array<{ key: Tab; label: string }> = [
 const MEMBER_LIST_CLS = 'space-y-1.5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-1.5'
 
 /** scope='pastor' — 목회자 영역(/pastor/care)에서 같은 화면을 목회자 권한으로 연다 */
+// 목회자 화면에선 이름을 누르면 성도 상세(명부·심방)로 — 관리자 화면엔 그런 페이지가 없다
+const PastorLinkContext = createContext(false)
+
+const MemberName = ({ id, name }: { id: number; name: string }) =>
+  useContext(PastorLinkContext) ? (
+    <Link to={`/pastor/members/${id}`} className="hover:text-brand hover:underline">
+      {name}
+    </Link>
+  ) : (
+    <>{name}</>
+  )
+
 const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
   const navigate = useNavigate()
   const pastorScope = scope === 'pastor'
@@ -58,11 +71,14 @@ const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
   }, [isError])
 
   return (
-    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
-    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 레일 sticky 가 산다.
+    <PastorLinkContext.Provider value={pastorScope}>
+    {/* lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+        sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 레일 sticky 가 산다. */}
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
-        <AdminPageHeader title="돌봄 레이더" badge={pastorScope ? 'PASTOR' : 'ADMIN'} />
+      <div className={`max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark ${pastorScope ? 'lg:max-w-[1180px]' : 'lg:max-w-[1100px]'}`}>
+        {/* 목회자 화면은 다른 목회자 화면과 같은 머리 + 섹션 내비 — 뒤로 가지 않고 옮겨 다닌다 */}
+        <AdminPageHeader title={pastorScope ? '목회자 홈' : '돌봄 레이더'} badge={pastorScope ? 'PASTOR' : 'ADMIN'} />
+        {pastorScope && <PastorSectionNav />}
 
         {/* PC(lg+) 2단 — 좌: 성도 명단 / 우: 안내·탭·요약이 sticky.
             래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 동일하다. */}
@@ -118,6 +134,7 @@ const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
         </div>
       </div>
     </div>
+    </PastorLinkContext.Provider>
   )
 }
 
@@ -183,7 +200,7 @@ const QuietRow = ({ member }: { member: QuietMember }) => (
     <Avatar name={member.name} url={member.avatar_url} />
     <div className="flex-1 min-w-0">
       <p className="text-[13px] font-bold text-ink-strong tracking-[-0.01em] truncate">
-        {member.name}
+        <MemberName id={member.user_id} name={member.name} />
       </p>
       <p className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
         {member.days_since === null
@@ -277,7 +294,7 @@ const NewcomerRow = ({
     <Avatar name={member.name} url={member.avatar_url} />
     <div className="flex-1 min-w-0">
       <p className="text-[13px] font-bold text-ink-strong tracking-[-0.01em] truncate">
-        {member.name}
+        <MemberName id={member.user_id} name={member.name} />
       </p>
       <p className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
         {member.days_since_join === null

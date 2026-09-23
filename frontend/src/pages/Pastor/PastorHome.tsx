@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { showToast } from '../../utils/toast'
-import { isPastor } from '../../utils/access'
 import { sessionStore } from '../../utils/tokenStore'
 import { lazyModal } from '../../utils/lazyModal'
 import { fetchPastorHome, type PastorHomeData, type PastoralPrayerItem } from '../../api/pastor'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
+import FollowUpList from './components/FollowUpList'
+import { Avatar } from './components/ui'
+import { formatDay as formatIsoDay, usePastorGate } from './components/pastorUtils'
 
 // 목회자 홈 — 월요일 아침에 여는 '이번 주 목양 브리핑'.
 // 개인정보 경계: 기도 본문은 성도가 '목사님과 함께'로 스스로 맡긴 것만,
@@ -41,16 +43,8 @@ const waitLabel = (days: number | null): string => {
 }
 
 const PastorHome = () => {
-  const navigate = useNavigate()
-  const pastor = isPastor()
+  const pastor = usePastorGate()
   const [openPrayerId, setOpenPrayerId] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (!pastor) {
-      showToast('목회자 권한이 필요합니다', 'error')
-      navigate('/')
-    }
-  }, [pastor, navigate])
 
   const { data, isPending, isError, refetch } = useQuery<PastorHomeData>({
     queryKey: ['pastor-home'],
@@ -89,6 +83,7 @@ const PastorHome = () => {
               <GraceCard data={data} />
             </div>
             <div className="contents lg:block">
+              <ShepherdCard data={data} />
               <CareCard data={data} />
               <WeekCard data={data} />
               <PulseCard data={data} />
@@ -219,6 +214,52 @@ const PastoralRow = ({ item, onOpen }: { item: PastoralPrayerItem; onOpen: (id: 
   </li>
 )
 
+// ── 이번 주 생일 · 내 후속 할 일 (성도 명부·심방 기록에서) ─────
+const ShepherdCard = ({ data }: { data: PastorHomeData }) => {
+  const { birthdays, follow_ups: followUps } = data.shepherd
+  return (
+    <SectionCard
+      title="이번 주 챙길 일"
+      action={
+        <Link to="/pastor/visits" className="text-[11.5px] font-semibold text-brand hover:underline">
+          심방 기록
+        </Link>
+      }
+    >
+      <div>
+        <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/55">내 후속 할 일 · {followUps.length}건</p>
+        <div className="mt-2">
+          <FollowUpList items={followUps} compact />
+        </div>
+      </div>
+      <div className="pt-3 border-t border-gray-100 dark:border-white/[0.06]">
+        <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/55">7일 안 생일 · {birthdays.length}명</p>
+        {birthdays.length === 0 ? (
+          <EmptyHint text="명부에 생일이 적힌 분 중 이번 주 생일은 없습니다" />
+        ) : (
+          <ul className="mt-2 space-y-1.5">
+            {birthdays.map(b => (
+              <li key={b.user_id}>
+                <Link to={`/pastor/members/${b.user_id}`} className="flex items-center gap-2.5 group">
+                  <Avatar name={b.name} url={b.avatar_url} size="sm" />
+                  <span className="flex-1 min-w-0 text-[12.5px] font-semibold text-ink-strong truncate group-hover:text-brand">
+                    {b.name}
+                    {b.church_title && <span className="ml-1 text-[11px] font-semibold text-brand">{b.church_title}</span>}
+                  </span>
+                  <span className="shrink-0 text-[11px] font-semibold text-gray-500 dark:text-white/50">
+                    {b.days_until === 0 ? '오늘' : formatIsoDay(b.date)}
+                    {b.lunar && ' · 음력'}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </SectionCard>
+  )
+}
+
 // ── 돌봄이 필요한 성도 ────────────────────────────────
 const CareCard = ({ data }: { data: PastorHomeData }) => {
   const { care } = data
@@ -242,7 +283,7 @@ const CareCard = ({ data }: { data: PastorHomeData }) => {
             {care.quiet_preview.map(m => (
               <li key={m.user_id} className="flex items-center gap-2.5">
                 <Avatar name={m.name} url={m.avatar_url} size="sm" />
-                <span className="flex-1 min-w-0 text-[12.5px] font-semibold text-ink-strong truncate">{m.name}</span>
+                <Link to={`/pastor/members/${m.user_id}`} className="flex-1 min-w-0 text-[12.5px] font-semibold text-ink-strong truncate hover:text-brand">{m.name}</Link>
                 <span className="shrink-0 text-[11px] text-gray-500 dark:text-white/45">
                   {m.days_since == null ? '기록 없음' : `${m.days_since}일 전`}
                 </span>
@@ -263,7 +304,7 @@ const CareCard = ({ data }: { data: PastorHomeData }) => {
             {care.newcomer_preview.map(m => (
               <li key={m.user_id} className="flex items-center gap-2.5">
                 <Avatar name={m.name} url={m.avatar_url} size="sm" />
-                <span className="flex-1 min-w-0 text-[12.5px] font-semibold text-ink-strong truncate">{m.name}</span>
+                <Link to={`/pastor/members/${m.user_id}`} className="flex-1 min-w-0 text-[12.5px] font-semibold text-ink-strong truncate hover:text-brand">{m.name}</Link>
                 <span className="shrink-0 flex gap-[3px]" title={`정착 ${m.done}/${m.steps}단계`}>
                   {Array.from({ length: m.steps }, (_, i) => (
                     <span
@@ -437,17 +478,6 @@ const PulseCard = ({ data }: { data: PastorHomeData }) => {
 }
 
 // ── 공용 ─────────────────────────────────────────────
-const Avatar = ({ name, url, size = 'md' }: { name: string; url: string | null; size?: 'sm' | 'md' }) => {
-  const cls = size === 'sm' ? 'w-7 h-7 text-[11px]' : 'w-9 h-9 text-[13px]'
-  return url ? (
-    <img src={url} alt="" loading="lazy" className={`${cls} shrink-0 rounded-full object-cover`} />
-  ) : (
-    <span className={`${cls} shrink-0 rounded-full bg-brand text-white font-bold flex items-center justify-center`}>
-      {name.slice(0, 1)}
-    </span>
-  )
-}
-
 const formatTime = (d: Date): string => {
   const h = d.getHours()
   const m = d.getMinutes()
