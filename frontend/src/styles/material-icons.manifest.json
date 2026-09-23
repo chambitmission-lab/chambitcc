@@ -28,6 +28,7 @@
     "bookmark_border",
     "brush",
     "cached",
+    "cake",
     "call",
     "campaign",
     "cancel",
@@ -76,9 +77,11 @@
     "event",
     "event_available",
     "event_busy",
+    "event_note",
     "expand_less",
     "expand_more",
     "explore",
+    "family_restroom",
     "favorite",
     "favorite_border",
     "feed",
@@ -156,6 +159,7 @@
     "my_location",
     "navigation",
     "nightlight",
+    "nights_stay",
     "not_started",
     "note",
     "notes",
@@ -188,6 +192,7 @@
     "poll",
     "preview",
     "print",
+    "priority_high",
     "public",
     "quiz",
     "radio",
@@ -248,6 +253,7 @@
     "theaters",
     "timeline",
     "timer",
+    "tips_and_updates",
     "title",
     "today",
     "touch_app",
@@ -276,6 +282,7 @@
     "volunteer_activism",
     "warning",
     "water_drop",
+    "waving_hand",
     "wb_cloudy",
     "wb_sunny",
     "wb_twilight",
@@ -284,10 +291,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 22156
+    "bytes": 22992
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 24936
+    "bytes": 25636
   }
 }

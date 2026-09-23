@@ -46,6 +46,8 @@ const ProfileEditor = ({ memberId, memberName, profile, districtSuggestions, onC
       void qc.invalidateQueries({ queryKey: ['pastor-member', memberId], refetchType: 'all' })
       void qc.invalidateQueries({ queryKey: ['pastor-roster'], refetchType: 'all' })
       void qc.invalidateQueries({ queryKey: ['pastor-home'], refetchType: 'all' })
+      void qc.invalidateQueries({ queryKey: ['pastor-suggestions'], refetchType: 'all' })
+      void qc.invalidateQueries({ queryKey: ['pastor-briefing', memberId], refetchType: 'all' })
       onClose()
     },
     onError: (e: Error) => showToast(e.message, 'error'),

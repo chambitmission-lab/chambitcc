@@ -8,6 +8,7 @@ import { fetchPastorHome, type PastorHomeData, type PastoralPrayerItem } from '.
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import FollowUpList from './components/FollowUpList'
+import SuggestionList from './components/SuggestionList'
 import { Avatar } from './components/ui'
 import { formatDay as formatIsoDay, usePastorGate } from './components/pastorUtils'
 
@@ -58,6 +59,9 @@ const PastorHome = () => {
     if (isError) showToast('목회자 홈을 불러오는데 실패했습니다', 'error')
   }, [isError])
 
+  // 예전 형태로 저장돼 있던 응답(목회 비서·챙길 일 추가 전)은 '아직 로딩'으로 본다 — 새 응답이 곧 온다
+  const ready = !!data && !!data.assistant && !!data.shepherd
+
   const closeDetail = () => {
     setOpenPrayerId(null)
     void refetch()
@@ -65,9 +69,9 @@ const PastorHome = () => {
 
   return (
     <PastorShell>
-      {isPending && !data ? (
+      {!ready && (isPending || !!data) ? (
         <StatSpinner label="이번 주 목양 브리핑을 준비하는 중..." />
-      ) : !data ? (
+      ) : !ready || !data ? (
         <p className="px-4 py-16 text-center text-[13px] text-gray-500 dark:text-white/50">
           목회자 홈을 불러오지 못했습니다
         </p>
@@ -79,6 +83,7 @@ const PastorHome = () => {
               래퍼는 lg 미만에서 display:contents 라 모바일은 한 줄 흐름 그대로. */}
           <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
             <div className="contents lg:block lg:min-w-0">
+              <AssistantCard data={data} />
               <PastoralInbox data={data} onOpen={setOpenPrayerId} />
               <GraceCard data={data} />
             </div>
@@ -144,6 +149,20 @@ const Greeting = ({ data }: { data: PastorHomeData }) => {
     </div>
   )
 }
+
+// ── 목회 비서 — 오늘 연락하면 좋은 분 ─────────────────────
+const AssistantCard = ({ data }: { data: PastorHomeData }) => (
+  <SectionCard
+    title="오늘 연락하면 좋은 분"
+    action={
+      <Link to="/pastor/assistant" className="text-[11.5px] font-semibold text-brand hover:underline">
+        {data.assistant.total > data.assistant.items.length ? `전체 ${data.assistant.total}명 보기` : '목회 비서'}
+      </Link>
+    }
+  >
+    <SuggestionList items={data.assistant.items} compact />
+  </SectionCard>
+)
 
 // ── 목사님께 맡겨진 기도 ───────────────────────────────
 const PastoralInbox = ({ data, onOpen }: { data: PastorHomeData; onOpen: (id: number) => void }) => {

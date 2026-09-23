@@ -16,7 +16,7 @@ const SECTIONS: Section[] = [
   { path: '/pastor/care', icon: 'volunteer_activism', label: '돌봄 레이더', ready: true },
   { path: '/pastor/members', icon: 'groups', label: '성도 명부', ready: true },
   { path: '/pastor/visits', icon: 'edit_note', label: '심방 기록', ready: true },
-  { path: '/pastor/assistant', icon: 'auto_awesome', label: 'AI 목회 비서', ready: false },
+  { path: '/pastor/assistant', icon: 'tips_and_updates', label: '목회 비서', ready: true },
 ]
 
 /** 목회자 섹션 내비 — PastorShell 밖(돌봄 레이더처럼 관리자 화면을 재사용하는 곳)에서도 같은 줄을 쓴다 */

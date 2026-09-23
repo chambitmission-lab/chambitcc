@@ -54,7 +54,7 @@ const VisitComposer = ({ memberId, memberName, visit, onClose }: Props) => {
   const [followDone, setFollowDone] = useState(visit?.follow_up_done ?? false)
 
   const refresh = () => {
-    for (const key of [['pastor-member', memberId], ['pastor-roster'], ['pastor-visits'], ['pastor-home']]) {
+    for (const key of [['pastor-member', memberId], ['pastor-roster'], ['pastor-visits'], ['pastor-home'], ['pastor-suggestions'], ['pastor-briefing', memberId]]) {
       void qc.invalidateQueries({ queryKey: key, refetchType: 'all' })
     }
   }

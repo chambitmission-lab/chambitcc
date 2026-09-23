@@ -12,7 +12,7 @@ const FollowUpList = ({ items, compact = false }: { items: FollowUp[]; compact?:
     mutationFn: (visitId: number) => updateVisit(visitId, { follow_up_done: true }),
     onSuccess: () => {
       showToast('마친 일로 표시했습니다', 'success')
-      for (const key of [['pastor-visits'], ['pastor-home'], ['pastor-member']]) {
+      for (const key of [['pastor-visits'], ['pastor-home'], ['pastor-member'], ['pastor-suggestions']]) {
         void qc.invalidateQueries({ queryKey: key, refetchType: 'all' })
       }
     },

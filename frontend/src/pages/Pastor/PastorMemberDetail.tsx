@@ -4,8 +4,10 @@ import { useQuery } from '@tanstack/react-query'
 import {
   VISIT_KIND_ICON,
   VISIT_KIND_LABEL,
+  fetchBriefing,
   fetchMemberDetail,
   fetchRoster,
+  type Briefing,
   type MemberDetail,
   type PastoralVisit,
 } from '../../api/pastor'
@@ -61,6 +63,7 @@ const PastorMemberDetail = () => {
             <VisitsCard data={data} onNew={() => setVisitTarget({})} onEdit={v => setVisitTarget({ visit: v })} />
           </div>
           <div className="contents lg:block">
+            <BriefingCard memberId={memberId} enabled={pastor} />
             <ActivityCard data={data} />
             <SharedPrayersCard data={data} onOpen={setOpenPrayerId} />
           </div>
@@ -265,6 +268,62 @@ const VisitsCard = ({
     )}
   </SectionCard>
 )
+
+// ── 심방 전 브리핑 (목회 비서 · 규칙 기반) ─────────────────
+const BRIEF_TONE: Record<Briefing['points'][number]['tone'], string> = {
+  info: 'text-gray-400 dark:text-white/40',
+  urgent: 'text-[var(--amber)]',
+  care: 'text-brand',
+  joy: 'text-brand',
+}
+
+// 아이콘 이름은 화면이 들고 있어야 아이콘 서브셋 생성기가 글리프를 챙긴다
+const BRIEF_ICON: Record<Briefing['points'][number]['kind'], string> = {
+  visit: 'event_note',
+  memo: 'sticky_note_2',
+  follow_up: 'flag',
+  activity: 'directions_walk',
+  prayer: 'volunteer_activism',
+  birthday: 'cake',
+  family: 'family_restroom',
+  note: 'bookmark',
+}
+
+const BriefingCard = ({ memberId, enabled }: { memberId: number; enabled: boolean }) => {
+  const { data } = useQuery({
+    queryKey: ['pastor-briefing', memberId],
+    queryFn: () => fetchBriefing(memberId),
+    enabled,
+    refetchOnMount: 'always',
+  })
+  return (
+    <SectionCard title="심방 전 브리핑">
+      {!data ? (
+        // 늦게 도착해도 아래 카드가 튀지 않게 자리를 먼저 잡아 둔다
+        <div className="space-y-2.5 animate-pulse" aria-hidden>
+          {[70, 90, 60, 80].map(w => (
+            <div key={w} className="h-3.5 rounded bg-gray-100 dark:bg-white/[0.06]" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      ) : (
+      <>
+      <p className="text-[13px] font-bold text-ink-strong">{data.headline}</p>
+      <ul className="space-y-2">
+        {data.points.map((p, i) => (
+          <li key={i} className="flex gap-2">
+            <span className={`material-icons-outlined text-[17px] shrink-0 mt-px ${BRIEF_TONE[p.tone]}`}>{BRIEF_ICON[p.kind]}</span>
+            <span className={`text-[12.5px] leading-relaxed ${p.tone === 'urgent' ? 'font-semibold text-ink-strong' : 'text-[#4b5563] dark:text-white/70'}`}>
+              {p.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[11px] text-gray-400 dark:text-white/35">명부·심방·기도·활동 기록을 규칙으로 엮은 요약입니다.</p>
+      </>
+      )}
+    </SectionCard>
+  )
+}
 
 // ── 활동 ─────────────────────────────────────────────
 const ActivityCard = ({ data }: { data: MemberDetail }) => (
