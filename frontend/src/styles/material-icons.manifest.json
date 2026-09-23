@@ -9,6 +9,7 @@
     "air",
     "alarm",
     "approval",
+    "apps",
     "archive",
     "arrow_back",
     "arrow_downward",
@@ -291,10 +292,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 22992
+    "bytes": 23076
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 25636
+    "bytes": 25632
   }
 }
