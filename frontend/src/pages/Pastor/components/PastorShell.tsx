@@ -16,6 +16,7 @@ const SECTIONS: Section[] = [
   { path: '/pastor/care', icon: 'volunteer_activism', label: '돌봄 레이더', ready: true },
   { path: '/pastor/members', icon: 'groups', label: '성도 명부', ready: true },
   { path: '/pastor/visits', icon: 'edit_note', label: '심방 기록', ready: true },
+  { path: '/pastor/report', icon: 'insights', label: '주간 리포트', ready: true },
   { path: '/pastor/assistant', icon: 'tips_and_updates', label: '목회 비서', ready: true },
 ]
 

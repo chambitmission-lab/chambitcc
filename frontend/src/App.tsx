@@ -221,6 +221,7 @@ const PastorMembers = lazy(() => import('./pages/Pastor/PastorMembers'))
 const PastorMemberDetail = lazy(() => import('./pages/Pastor/PastorMemberDetail'))
 const PastorVisits = lazy(() => import('./pages/Pastor/PastorVisits'))
 const PastorAssistant = lazy(() => import('./pages/Pastor/PastorAssistant'))
+const PastorReport = lazy(() => import('./pages/Pastor/PastorReport'))
 const BibleEngagementManagement = lazy(() => import('./pages/Admin/BibleEngagementManagement'))
 const WeeklyPrayerManagement = lazy(() => import('./pages/Admin/WeeklyPrayerManagement'))
 const ChatbotManagement = lazy(() => import('./pages/Admin/ChatbotManagement'))
@@ -403,6 +404,7 @@ function App() {
                 <Route path="/pastor/members/:id" element={<PastorMemberDetail />} />
                 <Route path="/pastor/visits" element={<PastorVisits />} />
                 <Route path="/pastor/assistant" element={<PastorAssistant />} />
+                <Route path="/pastor/report" element={<PastorReport />} />
                 <Route path="/admin/notifications" element={<NotificationManagement />} />
                 <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
                 <Route path="/admin/bulletins" element={<BulletinManagement />} />
