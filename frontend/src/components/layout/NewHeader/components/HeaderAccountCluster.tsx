@@ -11,12 +11,13 @@ interface HeaderAccountClusterProps {
 }
 
 // 호버 툴팁 — 레일 툴팁(RailTip)과 같은 반전 토큰. 헤더 아래로 떨어지므로 top 배치.
-const Tip = ({ label, align = 'center' }: { label: string; align?: 'center' | 'right' }) => (
+// plain: 사람 이름처럼 서브셋에 담을 수 없는 값 — G마켓 산스 대신 본문 서체(chrome-type-off)로 그린다
+const Tip = ({ label, align = 'center', plain = false }: { label: string; align?: 'center' | 'right'; plain?: boolean }) => (
   <span
     role="tooltip"
     className={`pointer-events-none absolute top-[calc(100%_+_8px)] z-50 whitespace-nowrap rounded-lg bg-[var(--text-strong)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--surface-container)] opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 ${
       align === 'right' ? 'right-0' : 'left-1/2 -translate-x-1/2'
-    }`}
+    } ${plain ? 'chrome-type-off' : ''}`}
   >
     {label}
   </span>
@@ -83,7 +84,7 @@ const HeaderAccountCluster = ({ unreadCount, onNotificationClick, onNotification
             {initial}
           </span>
         )}
-        <Tip label={displayName || t('profile')} align="right" />
+        <Tip label={displayName || t('profile')} align="right" plain={!!displayName} />
       </button>
     </div>
   )

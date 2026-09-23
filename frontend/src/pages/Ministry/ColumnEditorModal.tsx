@@ -24,6 +24,7 @@ import {
   type HighlightColor,
   type HighlightOptions,
 } from './highlightMarkup'
+import { modKey, redoKey } from './editorKeys'
 import './columnEditor.css'
 
 interface ColumnEditorModalProps {
@@ -295,10 +296,11 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
     if (!(e.metaKey || e.ctrlKey)) return
     const key = e.key.toLowerCase()
     // ⌘S 는 브라우저 "페이지 저장" 대신 편지 저장 — PC 에서 손에 익은 저장 키
-    if (e.key === 'Enter' || key === 's') {
+    // 한글 입력 상태면 e.key 가 'ㄴ'·'ㅗ'로 들어오는 브라우저가 있어 물리 키(e.code)도 본다
+    if (e.key === 'Enter' || key === 's' || e.code === 'KeyS') {
       e.preventDefault()
       void handleSave()
-    } else if (key === 'h') {
+    } else if (key === 'h' || e.code === 'KeyH') {
       e.preventDefault()
       openHighlight('toolbar')
     }
@@ -429,9 +431,26 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
 
   const preview = (
     <div className="px-4 py-5 lg:px-10 lg:py-10">
-      <p className="max-w-[720px] mx-auto text-[11px] lg:text-[13px] font-semibold text-gray-400 dark:text-gray-500 tracking-[0.04em] mb-3 lg:mb-4">
-        {ko ? '성도님께 보이는 모습 (읽기 화면 기본 글자 크기)' : 'AS YOUR CONGREGATION SEES IT'}
-      </p>
+      {/* 미리보기 중임을 크게 알린다 — 여기서는 글이 고쳐지지 않으므로 돌아가는 길도 바로 옆에 */}
+      <div className="max-w-[720px] mx-auto mb-4 lg:mb-6 flex items-center gap-3 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] px-4 lg:px-5 py-3 lg:py-4">
+        <svg viewBox="0 0 20 20" fill="none" stroke="var(--brand)" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0">
+          <path d="M1.8 10S4.8 4.5 10 4.5 18.2 10 18.2 10 15.2 15.5 10 15.5 1.8 10 1.8 10z" />
+          <circle cx="10" cy="10" r="2.6" />
+        </svg>
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] lg:text-[17px] font-bold text-ink-strong">{ko ? '미리보기 중입니다' : 'Previewing'}</p>
+          <p className="text-[12px] lg:text-[14px] text-gray-600 dark:text-gray-300 mt-0.5">
+            {ko ? '성도님께 보이는 모습이에요. 여기서는 글을 고칠 수 없습니다.' : 'This is what your congregation will see. Editing is off here.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setView('write')}
+          className="flex-shrink-0 px-3.5 lg:px-5 py-2 lg:py-3 rounded-xl bg-[var(--brand)] text-white text-[13px] lg:text-[16px] font-bold shadow-[0_2px_8px_var(--brand-glow)]"
+        >
+          {ko ? '작성으로 돌아가기' : 'Back to writing'}
+        </button>
+      </div>
       <div className="max-w-[720px] mx-auto bg-[var(--surface-container)] rounded-2xl lg:rounded-[28px] border border-border-light dark:border-border-dark px-6 py-8 lg:px-12 lg:py-12">
         <ColumnLetter language={language} column={draft} fontSize={FONT_STEPS[1]} placeholder />
       </div>
@@ -582,9 +601,9 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
                 [':: + 띄어쓰기', '강조 상자'],
                 ['- / 1. + 띄어쓰기', '목록'],
                 ['---', '구분선'],
-                ['⌘H', '형광펜'],
-                ['⌘Z / ⇧⌘Z', '되돌리기 / 다시'],
-                ['⌘S', '저장'],
+                [modKey('H'), '형광펜'],
+                [`${modKey('Z')} / ${redoKey}`, '되돌리기 / 다시'],
+                [modKey('S'), '저장'],
               ]
             : [
                 ['Enter', 'Line break'],
@@ -594,9 +613,9 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
                 [':: + space', 'Callout'],
                 ['- / 1. + space', 'List'],
                 ['---', 'Divider'],
-                ['⌘H', 'Highlight'],
-                ['⌘Z / ⇧⌘Z', 'Undo / Redo'],
-                ['⌘S', 'Save'],
+                [modKey('H'), 'Highlight'],
+                [`${modKey('Z')} / ${redoKey}`, 'Undo / Redo'],
+                [modKey('S'), 'Save'],
               ]
           ).map(([k, v]) => (
             <div key={k} className="contents">
@@ -631,21 +650,38 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
 
           <div className="flex items-center gap-2 lg:gap-3">
             <div className="flex bg-surface-light dark:bg-white/[0.06] rounded-xl p-0.5 lg:p-1">
-              {(['write', 'preview'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => {
-                    setView(tab)
-                    setHighlight(null)
-                  }}
-                  className={`px-3 lg:px-5 py-1.5 lg:py-2 rounded-lg text-[12.5px] lg:text-[15px] font-semibold transition-colors ${
-                    view === tab ? 'bg-white dark:bg-white/[0.12] text-ink-strong shadow-sm' : 'text-gray-500 dark:text-gray-400'
-                  }`}
-                >
-                  {tab === 'write' ? (ko ? '작성' : 'Write') : ko ? '미리보기' : 'Preview'}
-                </button>
-              ))}
+              {(['write', 'preview'] as const).map((tab) => {
+                const on = view === tab
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => {
+                      setView(tab)
+                      setHighlight(null)
+                    }}
+                    // 지금 모드가 한눈에 — 켜진 쪽은 브랜드색으로 꽉 채우고 아이콘을 붙인다(노안에도 색·모양 두 겹으로 구분)
+                    className={`inline-flex items-center gap-1.5 px-3 lg:px-5 py-1.5 lg:py-2.5 rounded-lg lg:rounded-xl text-[13px] lg:text-[16px] font-bold transition-colors ${
+                      on
+                        ? 'bg-[var(--brand)] text-white shadow-[0_2px_8px_var(--brand-glow)]'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-ink-strong'
+                    }`}
+                  >
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="w-4 h-4 lg:w-[18px] lg:h-[18px]">
+                      {tab === 'write' ? (
+                        <path d="M12.8 3.9l3.3 3.3L7.3 16H4v-3.3z" />
+                      ) : (
+                        <>
+                          <path d="M1.8 10S4.8 4.5 10 4.5 18.2 10 18.2 10 15.2 15.5 10 15.5 1.8 10 1.8 10z" />
+                          <circle cx="10" cy="10" r="2.6" />
+                        </>
+                      )}
+                    </svg>
+                    {tab === 'write' ? (ko ? '작성' : 'Write') : ko ? '미리보기' : 'Preview'}
+                  </button>
+                )
+              })}
             </div>
             <button
               onClick={onClose}
@@ -720,7 +756,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
           <button
             onClick={handleSave}
             disabled={saving}
-            title="⌘S / ⌘ + Enter"
+            title={`${modKey('S')} / ${modKey('Enter')}`}
             className="flex-1 lg:flex-none lg:px-12 py-3 lg:py-3.5 px-4 brand-gradient rounded-2xl font-semibold text-sm lg:text-[16px] shadow-[0_2px_10px_var(--brand-glow)] hover:shadow-[0_4px_16px_var(--brand-glow)] disabled:opacity-60 transition-all"
           >
             {saving ? (ko ? '저장 중…' : 'Saving…') : ko ? '저장하기' : 'Save'}

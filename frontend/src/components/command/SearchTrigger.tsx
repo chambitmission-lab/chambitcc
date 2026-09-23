@@ -20,7 +20,8 @@ export const SearchCapsule = () => {
       <span className="font-medium flex-1 text-left">{t('cmdkTrigger')}</span>
       {/* 단축키 키캡 — 실제 키보드 버튼처럼 입체감 있는 <kbd> 두 개 */}
       <span className="ml-1 inline-flex items-center gap-1" aria-hidden="true">
-        <kbd className="keycap">{isMacLike() ? '⌘' : 'Ctrl'}</kbd>
+        {/* G마켓 산스에는 ⌘ 글리프가 아예 없다(서브셋을 다시 구워도 못 넣는다) — 본문 서체로 그린다 */}
+        <kbd className="keycap chrome-type-off">{isMacLike() ? '⌘' : 'Ctrl'}</kbd>
         <kbd className="keycap">K</kbd>
       </span>
     </button>

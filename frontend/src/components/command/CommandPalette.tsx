@@ -70,7 +70,8 @@ const CommandPalette = () => {
   // 열기 — 단축키·이벤트
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+      // 한글 입력 상태면 e.key 가 'ㅏ'로 들어오는 브라우저가 있어 물리 키(e.code)도 본다
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K' || e.code === 'KeyK')) {
         e.preventDefault()
         setOpen((o) => !o)
       }

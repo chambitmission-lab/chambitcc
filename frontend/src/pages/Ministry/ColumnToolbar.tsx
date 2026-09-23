@@ -4,6 +4,7 @@
 
 import type { ReactNode } from 'react'
 import { useEditorState, type Editor } from '@tiptap/react'
+import { modKey, redoKey } from './editorKeys'
 
 interface ColumnToolbarProps {
   language: string
@@ -131,11 +132,11 @@ const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, high
       <div className="hidden lg:contents">
         {button('undo', ko ? '되돌리기' : 'Undo', () => chain().undo().run(), {
           disabled: !state.canUndo,
-          title: ko ? '되돌리기 (⌘Z)' : 'Undo (⌘Z)',
+          title: ko ? `되돌리기 (${modKey('Z')})` : `Undo (${modKey('Z')})`,
         })}
         {button('redo', ko ? '다시' : 'Redo', () => chain().redo().run(), {
           disabled: !state.canRedo,
-          title: ko ? '다시 하기 (⇧⌘Z)' : 'Redo (⇧⌘Z)',
+          title: ko ? `다시 하기 (${redoKey})` : `Redo (${redoKey})`,
         })}
         <Sep />
       </div>
@@ -178,7 +179,7 @@ const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, high
       <div className="lg:relative flex-shrink-0">
         {button('highlight', ko ? '형광펜' : 'Highlight', onHighlight, {
           active: state.highlight,
-          title: ko ? '형광펜 (⌘H) — 문구를 드래그한 뒤 누르세요' : 'Highlight (⌘H) — select text first',
+          title: ko ? `형광펜 (${modKey('H')}) — 문구를 드래그한 뒤 누르세요` : `Highlight (${modKey('H')}) — select text first`,
         })}
         {highlightSlot}
       </div>
