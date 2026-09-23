@@ -73,8 +73,10 @@ const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
   return (
     <PastorLinkContext.Provider value={pastorScope}>
     {/* lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
-        sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 레일 sticky 가 산다. */}
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+        sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 레일 sticky 가 산다.
+        이 상자의 스크롤바는 명단이 길 때만 생겨서 가운데 정렬 카드를 7.5px 밀었다 —
+        양쪽에 같은 자리를 늘 비워 두면(both-edges) 스크롤바 유무와 무관하게 다른 화면과 같은 자리에 선다. */}
+    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto lg:[scrollbar-gutter:stable_both-edges]">
       <div className={`max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark ${pastorScope ? 'lg:max-w-[1180px]' : 'lg:max-w-[1100px]'}`}>
         {/* 목회자 화면은 다른 목회자 화면과 같은 머리 + 섹션 내비 — 뒤로 가지 않고 옮겨 다닌다 */}
         <AdminPageHeader title={pastorScope ? '목회자 홈' : '돌봄 레이더'} badge={pastorScope ? 'PASTOR' : 'ADMIN'} />
