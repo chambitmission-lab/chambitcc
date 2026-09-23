@@ -235,8 +235,7 @@ const PastoralRow = ({ item, onOpen }: { item: PastoralPrayerItem; onOpen: (id: 
 
 // ── 이번 주 생일 · 내 후속 할 일 (성도 명부·심방 기록에서) ─────
 const ShepherdCard = ({ data }: { data: PastorHomeData }) => {
-  // plans 는 심방 예약과 함께 추가된 필드 — 이전 서버 응답에는 없으니 빈 목록으로 받는다
-  const { birthdays, follow_ups: followUps, plans = [] } = data.shepherd
+  const { birthdays, follow_ups: followUps, plans } = data.shepherd
   return (
     <SectionCard
       title="이번 주 챙길 일"
