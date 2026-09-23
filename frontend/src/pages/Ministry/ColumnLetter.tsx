@@ -150,6 +150,17 @@ const renderBlock = (block: ColumnBlock, index: number, fontSize: number) => {
         </ul>
       )
 
+    case 'center':
+      return (
+        <p
+          key={index}
+          className={`text-center text-gray-700 dark:text-gray-300 leading-[1.95] mb-7 ${WRAP}`}
+          style={{ fontFamily: SERIF, fontSize: `${fontSize}px` }}
+        >
+          {withLineBreaks(renderHighlightedText(block.text))}
+        </p>
+      )
+
     case 'paragraph':
       return (
         <p

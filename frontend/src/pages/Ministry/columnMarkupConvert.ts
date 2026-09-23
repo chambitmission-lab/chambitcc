@@ -9,14 +9,22 @@
 //   columnImage     ↔ !(url|캡션)
 //   bullet/ordered  ↔ - 항목 / 1. 항목
 //   paragraph       ↔ 빈 줄로 나뉜 문단, 문단 안 줄바꿈(Shift+Enter) = hardBreak
+//   centered para   ↔ -> 줄 <-
+//   bold/italic/underline/strike ↔ **굵게** _기울임_ ++밑줄++ ~~취소선~~
 //   columnHighlight ↔ [[문구|색|스타일|bold]]
 
 import type { JSONContent } from '@tiptap/core'
 import type { Node as PMNode } from '@tiptap/pm/model'
 import { parseColumnBlocks } from './blockFormat'
-import { buildHighlightMarkup, parseHighlightToken, type HighlightOptions } from './highlightMarkup'
+import {
+  buildHighlightMarkup,
+  parseInline,
+  wrapInlineMarks,
+  type HighlightOptions,
+  type InlineMarks,
+} from './highlightMarkup'
 
-const TOKEN_RE = /(\[\[[\s\S]*?\]\])/g
+const FORMAT_MARKS = ['bold', 'italic', 'underline', 'strike'] as const
 
 // ── 문자열 → 문서 ─────────────────────────────────────────────────
 const textNodes = (text: string, marks?: JSONContent['marks']): JSONContent[] => {
@@ -29,17 +37,15 @@ const textNodes = (text: string, marks?: JSONContent['marks']): JSONContent[] =>
 }
 
 const inline = (text: string): JSONContent[] =>
-  text.split(TOKEN_RE).flatMap((part) => {
-    if (part.startsWith('[[') && part.endsWith(']]')) {
-      const { text: inner, options } = parseHighlightToken(part.slice(2, -2))
-      return textNodes(inner, [{ type: 'columnHighlight', attrs: { ...options } }])
-    }
-    return textNodes(part)
+  parseInline(text).flatMap(({ text: t, marks, highlight }) => {
+    const pm: NonNullable<JSONContent['marks']> = FORMAT_MARKS.filter((k) => marks[k]).map((type) => ({ type }))
+    if (highlight) pm.push({ type: 'columnHighlight', attrs: { ...highlight } })
+    return textNodes(t, pm.length ? pm : undefined)
   })
 
-const paragraph = (text: string): JSONContent => {
+const paragraph = (text: string, attrs?: Record<string, unknown>): JSONContent => {
   const content = inline(text)
-  return content.length ? { type: 'paragraph', content } : { type: 'paragraph' }
+  return { type: 'paragraph', ...(attrs ? { attrs } : {}), ...(content.length ? { content } : {}) }
 }
 
 export const markupToDoc = (content: string): JSONContent => {
@@ -49,13 +55,15 @@ export const markupToDoc = (content: string): JSONContent => {
         return { type: 'heading', attrs: { level: 2 }, content: inline(block.text) }
       case 'paragraph':
         return paragraph(block.text)
+      case 'center':
+        return paragraph(block.text, { textAlign: 'center' })
       case 'quote':
         return {
           type: 'blockquote',
-          content: [...block.lines.map(paragraph), ...(block.cite ? [paragraph(`— ${block.cite}`)] : [])],
+          content: [...block.lines.map((l) => paragraph(l)), ...(block.cite ? [paragraph(`— ${block.cite}`)] : [])],
         }
       case 'callout':
-        return { type: 'callout', content: block.lines.map(paragraph) }
+        return { type: 'callout', content: block.lines.map((l) => paragraph(l)) }
       case 'divider':
         return { type: 'horizontalRule' }
       case 'image':
@@ -71,22 +79,43 @@ export const markupToDoc = (content: string): JSONContent => {
 }
 
 // ── 문서 → 문자열 ─────────────────────────────────────────────────
-/** 텍스트 블록 하나의 인라인 내용 → 마커 문자열. 같은 강조가 이어진 조각은 한 토큰으로 묶는다 */
+/**
+ * 텍스트 블록 하나의 인라인 내용 → 마커 문자열.
+ * 같은 형광펜이 이어진 조각은 한 토큰으로 묶고, 그 안에서 같은 글자 서식이 이어진 조각을 다시 묶는다.
+ */
 const inlineMarkup = (node: PMNode): string => {
-  const runs: { text: string; opt: HighlightOptions | null; key: string }[] = []
+  type Piece = { text: string; marks: InlineMarks; key: string }
+  const runs: { pieces: Piece[]; opt: HighlightOptions | null; key: string }[] = []
   node.forEach((child) => {
-    // 강조는 줄바꿈에서 끊는다 — 읽기 화면은 강조 span 안의 개행을 살리지 못한다
+    // 서식·강조는 줄바꿈에서 끊는다 — 읽기 화면은 서식 태그 안의 개행을 살리지 못한다
     const isBreak = child.type.name === 'hardBreak'
     const text = child.isText ? child.text ?? '' : isBreak ? '\n' : ''
     if (!text) return
-    const mark = isBreak ? undefined : child.marks.find((m) => m.type.name === 'columnHighlight')
-    const opt = mark ? (mark.attrs as HighlightOptions) : null
-    const key = opt ? `${opt.color}|${opt.style}|${opt.bold}` : ''
-    const last = runs[runs.length - 1]
-    if (last && last.key === key) last.text += text
-    else runs.push({ text, opt, key })
+    const has = (name: string) => !isBreak && child.marks.some((m) => m.type.name === name)
+    const hl = isBreak ? undefined : child.marks.find((m) => m.type.name === 'columnHighlight')
+    const opt = hl ? (hl.attrs as HighlightOptions) : null
+    const hlKey = opt ? `${opt.color}|${opt.style}|${opt.bold}` : ''
+    const marks: InlineMarks = {}
+    FORMAT_MARKS.forEach((k) => {
+      if (has(k)) marks[k] = true
+    })
+    const markKey = FORMAT_MARKS.filter((k) => marks[k]).join(',')
+
+    let run = runs[runs.length - 1]
+    if (!run || run.key !== hlKey) {
+      run = { pieces: [], opt, key: hlKey }
+      runs.push(run)
+    }
+    const last = run.pieces[run.pieces.length - 1]
+    if (last && last.key === markKey) last.text += text
+    else run.pieces.push({ text, marks, key: markKey })
   })
-  return runs.map((r) => (r.opt && r.text.trim() ? buildHighlightMarkup(r.text, r.opt) : r.text)).join('')
+  return runs
+    .map((r) => {
+      const inner = r.pieces.map((p) => wrapInlineMarks(p.text, p.marks)).join('')
+      return r.opt && inner.trim() ? buildHighlightMarkup(inner, r.opt) : inner
+    })
+    .join('')
 }
 
 /** 블록 안의 모든 텍스트 블록을 줄 단위로 (인용·강조 상자·목록용) */
@@ -108,7 +137,16 @@ const blockMarkup = (node: PMNode): string | null => {
   switch (node.type.name) {
     case 'paragraph': {
       const text = inlineMarkup(node).replace(/\s+$/, '')
-      return text.trim() ? text : null
+      if (!text.trim()) return null
+      if (node.attrs.textAlign === 'center') {
+        return text
+          .split('\n')
+          .map((l) => l.trim())
+          .filter(Boolean)
+          .map((l) => `-> ${l} <-`)
+          .join('\n')
+      }
+      return text
     }
     case 'heading': {
       const text = inlineMarkup(node).replace(/\n/g, ' ').trim()

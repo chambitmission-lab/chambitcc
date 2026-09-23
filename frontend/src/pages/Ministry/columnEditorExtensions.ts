@@ -1,15 +1,18 @@
 // 편지 편집기(Tiptap) 스키마 — 저장 형식(블록 마커 문법)으로 되돌릴 수 있는 것만 허용한다.
-// 굵게·기울임·링크처럼 마커로 표현할 수 없는 서식은 아예 끈다(저장하면 조용히 사라지므로).
+// 링크·코드·표처럼 마커로 표현할 수 없는 서식은 아예 끈다(저장하면 조용히 사라지므로).
+// 굵게·기울임·밑줄·취소선·가운데 정렬은 highlightMarkup / blockFormat 에 기호가 있어 켠다.
 
 import { Extension, Mark, Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Placeholder } from '@tiptap/extensions'
+import TextAlign from '@tiptap/extension-text-align'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import type { CSSProperties } from 'react'
 import { DEFAULT_HIGHLIGHT, highlightStyle, type HighlightOptions } from './highlightMarkup'
 import ColumnImageView from './ColumnImageView'
+import { VerseSuggestion, type VerseSuggestBridge } from './verseSuggestion'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -226,13 +229,12 @@ const EnterAsLineBreak = Extension.create({
   },
 })
 
-export const buildColumnExtensions = (placeholder: string) => [
+export const buildColumnExtensions = (
+  placeholder: string,
+  verseBridge: { current: VerseSuggestBridge | null } = { current: null },
+) => [
   StarterKit.configure({
     heading: { levels: [2] },
-    bold: false,
-    italic: false,
-    strike: false,
-    underline: false,
     code: false,
     codeBlock: false,
     link: false,
@@ -241,9 +243,12 @@ export const buildColumnExtensions = (placeholder: string) => [
     // 빈 편지일 때만 안내 문구를 띄운다 — 중간의 빈 줄마다 긴 문구가 뜨면 시끄럽다
     placeholder: ({ editor }) => (editor.isEmpty ? placeholder : ''),
   }),
+  // 가운데 정렬은 본문 문단만 — 저장 형식(-> 줄 <-)이 문단에만 있다
+  TextAlign.configure({ types: ['paragraph'], alignments: ['left', 'center'], defaultAlignment: 'left' }),
   ColumnHighlight,
   Callout,
   ColumnImage,
   CiteDecoration,
   EnterAsLineBreak,
+  VerseSuggestion.configure({ bridge: verseBridge }),
 ]

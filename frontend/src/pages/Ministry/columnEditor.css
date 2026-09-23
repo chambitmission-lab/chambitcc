@@ -132,3 +132,22 @@
   opacity: 0.75;
   pointer-events: none;
 }
+
+/* 글자 서식 — Noto Serif KR 은 600 까지만 있어 굵게도 600(읽기 화면 font-semibold 와 같게) */
+.ce-editor .ProseMirror strong {
+  font-weight: 600;
+}
+.ce-editor .ProseMirror u {
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+}
+.ce-editor .ProseMirror s {
+  text-decoration-thickness: 1.5px;
+}
+
+/* 입력 중 알아본 성구 표기("빌 4:7") — 제안 카드가 떠 있는 동안 옅은 배경 + 밑줄 */
+.ce-editor .ProseMirror .ce-verse-ref {
+  border-radius: 4px;
+  background: var(--brand-soft);
+  box-shadow: inset 0 -2px 0 var(--brand);
+}

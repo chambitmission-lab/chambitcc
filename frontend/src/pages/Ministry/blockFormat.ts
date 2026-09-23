@@ -9,8 +9,9 @@
 //   !(https://.../photo.webp|사진 설명)
 //   - 목록 항목
 //   1. 번호 목록 항목
+//   -> 가운데 정렬 줄 <-        ← 연달아 쓰면 한 문단으로 묶인다
 //
-// 인라인 강조([[문구|색|스타일]])는 highlightMarkup 이 계속 담당한다.
+// 인라인 서식(**굵게** _기울임_ ++밑줄++ ~~취소선~~ [[형광펜|색|스타일]])은 highlightMarkup 이 담당한다.
 
 import { removeHighlightTags } from './highlightMarkup'
 
@@ -22,6 +23,7 @@ export type ColumnBlock =
   | { kind: 'image'; url: string; caption?: string }
   | { kind: 'list'; ordered: boolean; items: string[] }
   | { kind: 'paragraph'; text: string }
+  | { kind: 'center'; text: string }
 
 const HEADING_RE = /^##\s*(.+)$/
 const QUOTE_RE = /^>\s?(.*)$/
@@ -31,6 +33,7 @@ const IMAGE_RE = /^!\(([^)|]+)(?:\|([^)]*))?\)\s*$/
 const BULLET_RE = /^[-*]\s+(.+)$/
 const ORDERED_RE = /^\d+[.)]\s+(.+)$/
 // 인용 안에서 출처로 볼 줄 — "— 요한복음 3:16" / "- 요한복음 3:16"
+const CENTER_RE = /^->\s?(.*?)\s?<-$/
 const CITE_RE = /^[—–-]\s*(.+)$/
 
 /** 본문 문자열 → 블록 목록. 알 수 없는 줄은 문단으로 흘려보낸다(기존 글 그대로 호환). */
@@ -41,6 +44,7 @@ export const parseColumnBlocks = (content: string): ColumnBlock[] => {
   let quote: string[] = []
   let callout: string[] = []
   let list: { ordered: boolean; items: string[] } | null = null
+  let center: string[] = []
 
   const flush = () => {
     if (para.length) {
@@ -61,6 +65,10 @@ export const parseColumnBlocks = (content: string): ColumnBlock[] => {
     if (list) {
       blocks.push({ kind: 'list', ...list })
       list = null
+    }
+    if (center.length) {
+      blocks.push({ kind: 'center', text: center.join('\n') })
+      center = []
     }
   }
 
@@ -92,16 +100,23 @@ export const parseColumnBlocks = (content: string): ColumnBlock[] => {
       continue
     }
 
+    const centerLine = line.match(CENTER_RE)
+    if (centerLine) {
+      if (para.length || quote.length || callout.length || list) flush()
+      center.push(centerLine[1].trim())
+      continue
+    }
+
     const quoteLine = line.match(QUOTE_RE)
     if (quoteLine) {
-      if (para.length || callout.length || list) flush()
+      if (para.length || callout.length || list || center.length) flush()
       quote.push(quoteLine[1].trim())
       continue
     }
 
     const calloutLine = line.match(CALLOUT_RE)
     if (calloutLine) {
-      if (para.length || quote.length || list) flush()
+      if (para.length || quote.length || list || center.length) flush()
       callout.push(calloutLine[1].trim())
       continue
     }
@@ -112,13 +127,13 @@ export const parseColumnBlocks = (content: string): ColumnBlock[] => {
       const isOrdered = !!ordered
       // 종류가 바뀌면(글머리 ↔ 번호) 새 목록으로
       if (list && list.ordered !== isOrdered) flush()
-      if (para.length || quote.length || callout.length) flush()
+      if (para.length || quote.length || callout.length || center.length) flush()
       if (!list) list = { ordered: isOrdered, items: [] }
       list.items.push(((ordered ?? bullet) as RegExpMatchArray)[1].trim())
       continue
     }
 
-    if (quote.length || callout.length || list) flush()
+    if (quote.length || callout.length || list || center.length) flush()
     para.push(line)
   }
   flush()
@@ -145,6 +160,7 @@ export const columnPlainText = (content: string): string => {
     }
     const stripped =
       line.match(HEADING_RE)?.[1] ??
+      line.match(CENTER_RE)?.[1] ??
       line.match(QUOTE_RE)?.[1] ??
       line.match(CALLOUT_RE)?.[1] ??
       line.match(BULLET_RE)?.[1] ??

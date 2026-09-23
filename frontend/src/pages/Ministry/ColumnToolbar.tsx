@@ -11,6 +11,8 @@ interface ColumnToolbarProps {
   editor: Editor
   onImage: () => void
   onHighlight: () => void
+  /** 성구 찾아 넣기 */
+  onVerse: () => void
   /** 업로드 중이면 사진 버튼을 잠근다 */
   uploading?: boolean
   /** 하이라이트 팝오버 — 버튼 기준으로 위치를 잡아야 해서 부모가 넘긴다 */
@@ -31,6 +33,22 @@ const svgProps = {
 const ICONS: Record<string, ReactNode> = {
   undo: <path d="M7.5 5L4 8.5 7.5 12M4.5 8.5h7a4.5 4.5 0 010 9H9" />,
   redo: <path d="M12.5 5L16 8.5 12.5 12M15.5 8.5h-7a4.5 4.5 0 000 9H11" />,
+  bold: <path d="M6 4h4.8a3 3 0 010 6H6zM6 10h5.6a3 3 0 010 6H6z" strokeWidth={2.1} />,
+  italic: <path d="M9 4h6M5 16h6M12.2 4L7.8 16" />,
+  underline: <path d="M6 3.5v6a4 4 0 008 0v-6M4.5 17h11" />,
+  strike: (
+    <>
+      <path d="M3.5 10h13" />
+      <path d="M13.6 6.3C13.1 4.9 11.8 4 10 4 8 4 6.6 5 6.6 6.6c0 1 .6 1.8 1.8 2.4M7 13.4c.4 1.6 1.6 2.6 3.3 2.6 2 0 3.5-1 3.5-2.7" />
+    </>
+  ),
+  center: <path d="M3.5 5h13M6.5 10h7M3.5 15h13" />,
+  verse: (
+    <>
+      <path d="M10 5.6C8.4 4.4 6.4 3.9 3.5 4v11c2.9-.1 4.9.4 6.5 1.6 1.6-1.2 3.6-1.7 6.5-1.6V4c-2.9-.1-4.9.4-6.5 1.6z" />
+      <path d="M10 5.6v11" />
+    </>
+  ),
   heading: <path d="M5 4.5v11M13 4.5v11M5 10h8" />,
   quote: (
     <>
@@ -80,13 +98,18 @@ const Glyph = ({ name }: { name: string }) => (
 
 const Sep = () => <span className="w-px h-8 lg:h-10 bg-border-light dark:bg-white/[0.1] mx-1 lg:mx-2 flex-shrink-0"></span>
 
-const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, highlightSlot, trailing }: ColumnToolbarProps) => {
+const ColumnToolbar = ({ language, editor, onImage, onHighlight, onVerse, uploading, highlightSlot, trailing }: ColumnToolbarProps) => {
   const ko = language === 'ko'
 
   // 커서가 어느 블록에 있는지 — 해당 버튼을 눌린 상태로 보여 준다
   const state = useEditorState({
     editor,
     selector: ({ editor: e }) => ({
+      bold: e.isActive('bold'),
+      italic: e.isActive('italic'),
+      underline: e.isActive('underline'),
+      strike: e.isActive('strike'),
+      center: e.isActive({ textAlign: 'center' }),
       heading: e.isActive('heading'),
       quote: e.isActive('blockquote'),
       callout: e.isActive('callout'),
@@ -116,7 +139,7 @@ const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, high
       title={title}
       aria-label={title}
       aria-pressed={active}
-      className={`flex-shrink-0 min-w-[46px] lg:min-w-[62px] px-1.5 lg:px-2 py-1 lg:py-1.5 flex flex-col items-center justify-center gap-0.5 lg:gap-1 rounded-xl transition-colors disabled:opacity-35 disabled:hover:bg-transparent ${
+      className={`flex-shrink-0 min-w-[46px] lg:min-w-[58px] px-1.5 lg:px-2 py-1 lg:py-1.5 flex flex-col items-center justify-center gap-0.5 lg:gap-1 rounded-xl transition-colors disabled:opacity-35 disabled:hover:bg-transparent ${
         active
           ? 'bg-[var(--brand-soft-strong)] text-[var(--brand)]'
           : 'text-gray-600 dark:text-gray-300 hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]'
@@ -128,7 +151,8 @@ const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, high
   )
 
   return (
-    <div className="flex items-center gap-0.5 lg:gap-1 overflow-x-auto lg:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    // PC 는 창이 좁으면 두 줄로 접힌다(가로 스크롤은 형광펜 팝오버를 잘라 먹는다)
+    <div className="flex items-center gap-0.5 lg:gap-x-1 lg:gap-y-1.5 overflow-x-auto lg:overflow-visible lg:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="hidden lg:contents">
         {button('undo', ko ? '되돌리기' : 'Undo', () => chain().undo().run(), {
           disabled: !state.canUndo,
@@ -140,6 +164,25 @@ const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, high
         })}
         <Sep />
       </div>
+
+      {button('bold', ko ? '굵게' : 'Bold', () => chain().toggleBold().run(), {
+        active: state.bold,
+        title: ko ? `굵게 (${modKey('B')})` : `Bold (${modKey('B')})`,
+      })}
+      {button('italic', ko ? '기울임' : 'Italic', () => chain().toggleItalic().run(), {
+        active: state.italic,
+        title: ko ? `기울임 (${modKey('I')})` : `Italic (${modKey('I')})`,
+      })}
+      {button('underline', ko ? '밑줄' : 'Underline', () => chain().toggleUnderline().run(), {
+        active: state.underline,
+        title: ko ? `밑줄 (${modKey('U')})` : `Underline (${modKey('U')})`,
+      })}
+      {button('strike', ko ? '취소선' : 'Strike', () => chain().toggleStrike().run(), {
+        active: state.strike,
+        title: ko ? '취소선' : 'Strikethrough',
+      })}
+
+      <Sep />
 
       {button('heading', ko ? '소제목' : 'Heading', () => chain().toggleHeading({ level: 2 }).run(), {
         active: state.heading,
@@ -167,6 +210,15 @@ const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, high
       {button('divider', ko ? '구분선' : 'Divider', () => chain().setHorizontalRule().run(), {
         title: ko ? '구분선 — "---" 를 쳐도 됩니다' : 'Divider — or type "---"',
       })}
+      {button(
+        'center',
+        ko ? '가운데' : 'Center',
+        () => (state.center ? chain().unsetTextAlign().run() : chain().setTextAlign('center').run()),
+        {
+          active: state.center,
+          title: ko ? '가운데 정렬 — 다시 누르면 왼쪽으로' : 'Center — press again to align left',
+        },
+      )}
 
       <Sep />
 
@@ -183,6 +235,9 @@ const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, high
         })}
         {highlightSlot}
       </div>
+      {button('verse', ko ? '성구 찾기' : 'Verse', onVerse, {
+        title: ko ? '성구 찾아 넣기 — "요 3:16"·"시 23"·"사랑" 으로 찾기' : 'Find & insert a Bible verse',
+      })}
 
       {trailing && <div className="hidden lg:flex ml-auto items-center pl-3">{trailing}</div>}
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
 import type { EditorOptions } from '@tiptap/core'
 import { BubbleMenu } from '@tiptap/react/menus'
@@ -25,6 +25,10 @@ import {
   type HighlightOptions,
 } from './highlightMarkup'
 import { modKey, redoKey } from './editorKeys'
+import VerseFinderDialog, { type PickedPassage } from './VerseFinderDialog'
+import VerseSuggestCard from './VerseSuggestCard'
+import { verseSuggestionKey, type VerseSuggestBridge, type VerseSuggestState } from './verseSuggestion'
+import { exitSuggestion } from '@tiptap/suggestion'
 import './columnEditor.css'
 
 interface ColumnEditorModalProps {
@@ -86,6 +90,11 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   const uploadTargetRef = useRef<'cover' | 'body'>('cover')
   const [highlight, setHighlight] = useState<{ anchor: 'toolbar' | 'bubble'; existing: boolean; text: string } | null>(null)
   const [highlightOpt, setHighlightOpt] = useState<HighlightOptions>(DEFAULT_HIGHLIGHT)
+  const [verseOpen, setVerseOpen] = useState(false)
+  // 입력 중 성구 제안 — 확장(플러그인)과 React 카드 사이 다리. Tab 은 준비된 말씀이 있을 때만 가로챈다
+  const [verseSuggest, setVerseSuggest] = useState<VerseSuggestState | null>(null)
+  const readyPassageRef = useRef<PickedPassage | null>(null)
+  const verseBridge = useRef<VerseSuggestBridge | null>(null)
 
   const { pendingRestore, dismissRestore, clearDraft, savedAt } = useColumnDraft(initial, draft)
 
@@ -101,7 +110,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
     ? '사랑하는 성도 여러분께,\n\n여기에 편지를 써 주세요. 위 서식 바로 소제목·성구 인용·강조 상자·사진을 넣고,\n문구를 드래그하면 형광펜 색을 바로 고를 수 있습니다.'
     : 'Dear church family,\n\nWrite your letter here. Use the toolbar for headings, quotes, callouts and photos,\nand select text to highlight it.'
 
-  const extensions = useMemo(() => buildColumnExtensions(placeholder), [placeholder])
+  const extensions = useMemo(() => buildColumnExtensions(placeholder, verseBridge), [placeholder])
 
   // useEditor 는 옵션 객체가 바뀔 때마다 setOptions(→ view.updateState)를 다시 부르므로
   // 매 렌더 새로 만들어지는 content·editorProps 는 처음 한 번만 만든다(핸들러는 ref 로 최신 값을 본다)
@@ -124,7 +133,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
         }
         const html = data.getData('text/html')
         const text = data.getData('text/plain')
-        if (!html && text && /\n|^(##|>|::|---|!\(|[-*] |\d+[.)] )|\[\[/m.test(text)) {
+        if (!html && text && /\n|^(##|>|::|---|!\(|[-*] |\d+[.)] |->)|\[\[|\*\*|\+\+|~~/m.test(text)) {
           const parsed = markupToDoc(text).content ?? []
           editorRef.current?.chain().focus().insertContent(parsed).run()
           return true
@@ -251,6 +260,68 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
       />
     ) : null
 
+  // ── 성구 ──────────────────────────────────────────────────────────
+  /** 성구 찾기 창에서 고른 말씀 — 인용 상자(마지막 줄 출처) 또는 문장 안 “말씀” (출처) */
+  const insertPassage = ({ text, cite }: PickedPassage, mode: 'quote' | 'inline') => {
+    const chain = editorRef.current?.chain().focus()
+    if (!chain) return
+    if (mode === 'quote') {
+      chain
+        .insertContent({
+          type: 'blockquote',
+          content: [
+            { type: 'paragraph', content: [{ type: 'text', text }] },
+            { type: 'paragraph', content: [{ type: 'text', text: `— ${cite}` }] },
+          ],
+        })
+        .scrollIntoView()
+        .run()
+    } else {
+      chain.insertContent({ type: 'text', text: `“${text}” (${cite})` }).scrollIntoView().run()
+    }
+    setVerseOpen(false)
+    showToast(ko ? `${cite} 말씀을 넣었습니다` : `Inserted ${cite}`, 'success')
+  }
+
+  /** 입력 중 제안 카드에서 — 친 성구 표기를 말씀으로 바꿔 넣는다 */
+  const acceptSuggest = (passage: PickedPassage, mode: 'inline' | 'quote') => {
+    const e = editorRef.current
+    const s = verseSuggest
+    if (!e || !s) return
+    if (mode === 'inline') {
+      // 뒤에 한 칸 띄워 두면 바로 이어 쓸 수 있다
+      e.chain().focus().insertContentAt(s.range, { type: 'text', text: `“${passage.text}” (${passage.cite}) ` }).run()
+    } else {
+      e.chain()
+        .focus()
+        .deleteRange(s.range)
+        .insertContent({
+          type: 'blockquote',
+          content: [
+            { type: 'paragraph', content: [{ type: 'text', text: passage.text }] },
+            { type: 'paragraph', content: [{ type: 'text', text: `— ${passage.cite}` }] },
+          ],
+        })
+        .scrollIntoView()
+        .run()
+    }
+    setVerseSuggest(null)
+  }
+  const acceptSuggestRef = useRef(acceptSuggest)
+  acceptSuggestRef.current = acceptSuggest
+  verseBridge.current = {
+    update: setVerseSuggest,
+    accept: () => {
+      const passage = readyPassageRef.current
+      if (!passage) return false
+      acceptSuggestRef.current(passage, 'inline')
+      return true
+    },
+  }
+  const onSuggestReady = useCallback((p: PickedPassage | null) => {
+    readyPassageRef.current = p
+  }, [])
+
   // ── 사진 ──────────────────────────────────────────────────────────
   const pickImage = (target: 'cover' | 'body') => {
     uploadTargetRef.current = target
@@ -297,7 +368,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
     const key = e.key.toLowerCase()
     // ⌘S 는 브라우저 "페이지 저장" 대신 편지 저장 — PC 에서 손에 익은 저장 키
     // 한글 입력 상태면 e.key 가 'ㄴ'·'ㅗ'로 들어오는 브라우저가 있어 물리 키(e.code)도 본다
-    if (e.key === 'Enter' || key === 's' || e.code === 'KeyS') {
+    if (e.key === 'Enter' || (!e.shiftKey && (key === 's' || e.code === 'KeyS'))) {
       e.preventDefault()
       void handleSave()
     } else if (key === 'h' || e.code === 'KeyH') {
@@ -583,7 +654,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
             onChange={(e) => patch({ content_en: e.target.value })}
             rows={8}
             className={`${INPUT_CLASS} leading-[1.7] resize-y`}
-            placeholder={ko ? '영문 본문 (## 소제목 · > 인용 · :: 강조 상자 · --- 구분선 문법)' : 'English content (## heading · > quote · :: callout · --- divider)'}
+            placeholder={ko ? '영문 본문 (## 소제목 · > 인용 · :: 강조 상자 · **굵게** · _기울임_ 문법)' : 'English content (## heading · > quote · :: callout · --- divider)'}
           />
         </div>
       </details>
@@ -601,6 +672,8 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
                 [':: + 띄어쓰기', '강조 상자'],
                 ['- / 1. + 띄어쓰기', '목록'],
                 ['---', '구분선'],
+                ['빌 4:7 → Tab', '성구를 치면 그 말씀으로 바꿔 넣기'],
+                [`${modKey('B')} ${modKey('I')} ${modKey('U')}`, '굵게 · 기울임 · 밑줄'],
                 [modKey('H'), '형광펜'],
                 [`${modKey('Z')} / ${redoKey}`, '되돌리기 / 다시'],
                 [modKey('S'), '저장'],
@@ -613,6 +686,8 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
                 [':: + space', 'Callout'],
                 ['- / 1. + space', 'List'],
                 ['---', 'Divider'],
+                ['빌 4:7 → Tab', 'Type a reference, press Tab to insert the verse'],
+                [`${modKey('B')} ${modKey('I')} ${modKey('U')}`, 'Bold · Italic · Underline'],
                 [modKey('H'), 'Highlight'],
                 [`${modKey('Z')} / ${redoKey}`, 'Undo / Redo'],
                 [modKey('S'), 'Save'],
@@ -701,6 +776,10 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
               editor={editor}
               onImage={() => pickImage('body')}
               onHighlight={() => openHighlight('toolbar')}
+              onVerse={() => {
+                setHighlight(null)
+                setVerseOpen(true)
+              }}
               uploading={uploading}
               highlightSlot={highlightPopover('toolbar')}
               trailing={fontControl}
@@ -785,6 +864,19 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
         </BubbleMenu>
       )}
 
+      {verseSuggest && view === 'write' && (
+        <VerseSuggestCard
+          ko={ko}
+          suggest={verseSuggest}
+          onReady={onSuggestReady}
+          onInline={(p) => acceptSuggest(p, 'inline')}
+          onQuote={(p) => acceptSuggest(p, 'quote')}
+          onDismiss={() => editor && exitSuggestion(editor.view, verseSuggestionKey)}
+        />
+      )}
+
+      {verseOpen && <VerseFinderDialog language={language} onInsert={insertPassage} onClose={() => setVerseOpen(false)} />}
+
       <input
         ref={fileRef}
         type="file"
@@ -805,16 +897,46 @@ interface HighlightBubbleProps {
   popover: React.ReactNode
 }
 
-/** 선택 문구 위 말풍선 — 색 6개 · 모양 고르기 · 지우기 */
+/** 선택 문구 위 말풍선 — 굵게·기울임·밑줄·취소선 · 형광펜 색 6개 · 모양 고르기 · 지우기 */
 const HighlightBubble = ({ editor, ko, onQuick, onMore, onRemove, popover }: HighlightBubbleProps) => {
-  const active = useEditorState({
+  const { active, bold, italic, underline, strike } = useEditorState({
     editor,
-    selector: ({ editor: e }) => (e.isActive('columnHighlight') ? (e.getAttributes('columnHighlight').color as HighlightColor) : null),
+    selector: ({ editor: e }) => ({
+      active: e.isActive('columnHighlight') ? (e.getAttributes('columnHighlight').color as HighlightColor) : null,
+      bold: e.isActive('bold'),
+      italic: e.isActive('italic'),
+      underline: e.isActive('underline'),
+      strike: e.isActive('strike'),
+    }),
   })
+
+  // 글자 서식 — 드래그한 자리에서 바로 (서식 바까지 눈을 옮기지 않게)
+  const formats = [
+    { key: 'bold', on: bold, label: 'B', title: ko ? '굵게' : 'Bold', cls: 'font-extrabold', run: () => editor.chain().focus().toggleBold().run() },
+    { key: 'italic', on: italic, label: 'I', title: ko ? '기울임' : 'Italic', cls: 'italic font-serif', run: () => editor.chain().focus().toggleItalic().run() },
+    { key: 'underline', on: underline, label: 'U', title: ko ? '밑줄' : 'Underline', cls: 'underline underline-offset-2', run: () => editor.chain().focus().toggleUnderline().run() },
+    { key: 'strike', on: strike, label: 'S', title: ko ? '취소선' : 'Strikethrough', cls: 'line-through', run: () => editor.chain().focus().toggleStrike().run() },
+  ]
 
   return (
     <div className="relative" onMouseDown={(e) => e.preventDefault()}>
       <div className="flex items-center gap-1.5 rounded-2xl border border-border-light dark:border-white/[0.1] bg-white dark:bg-[#1c1c1c] shadow-[0_12px_32px_rgba(0,0,0,0.16)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.5)] px-2.5 py-2">
+        {formats.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={f.run}
+            title={f.title}
+            aria-label={f.title}
+            aria-pressed={f.on}
+            className={`w-9 h-9 rounded-xl text-[17px] ${f.cls} transition-colors ${
+              f.on ? 'bg-[var(--brand)] text-white' : 'text-ink-strong hover:bg-[var(--brand-soft)]'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        <span className="w-px h-6 bg-border-light dark:bg-white/[0.1] mx-1"></span>
         <span className="text-[13px] font-semibold text-gray-500 dark:text-gray-400 pl-1 pr-1.5">{ko ? '형광펜' : 'Marker'}</span>
         {HIGHLIGHT_COLORS.map((c) => (
           <button
