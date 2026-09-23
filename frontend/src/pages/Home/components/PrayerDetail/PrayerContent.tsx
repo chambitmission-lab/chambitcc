@@ -43,14 +43,14 @@ const PrayerContent = ({ title, content }: PrayerContentProps) => {
     <div className="mb-7">
       {displayTitle && (
         <h3
-          className="text-[22px] font-bold text-ink-strong tracking-[-0.015em] leading-[1.3] mb-8"
+          className="text-[22px] lg:text-[length:calc(25px*var(--fs,1))] font-bold text-ink-strong tracking-[-0.015em] leading-[1.3] mb-8"
           style={transitionStyles}
         >
           {displayTitle}
         </h3>
       )}
       <p
-        className="text-[15px] text-gray-700 dark:text-gray-300 leading-[1.75] whitespace-pre-wrap tracking-[-0.01em]"
+        className="text-[15px] lg:text-[length:calc(18px*var(--fs,1))] text-gray-700 dark:text-gray-300 lg:text-gray-800 dark:lg:text-gray-200 leading-[1.75] lg:leading-[1.8] whitespace-pre-wrap tracking-[-0.01em]"
         style={transitionStyles}
       >
         {displayContent}

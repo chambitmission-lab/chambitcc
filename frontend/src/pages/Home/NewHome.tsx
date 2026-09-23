@@ -40,6 +40,8 @@ import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 // 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
 // import ThanksThread from './components/ThanksThread'
 import SortTabs, { DesktopSortToggle } from './components/SortTabs'
+import FeedTextScaleToggle from './components/FeedTextScaleToggle'
+import { useFeedTextScale, type FeedTextScale } from '../../utils/feedTextScale'
 import DesktopComposerCard from './components/DesktopComposerCard'
 import PrayerFeed from './components/PrayerFeed'
 import HomeQuickStrip, { HOME_CARD_IDS } from './components/HomeQuickStrip'
@@ -58,7 +60,35 @@ import { confirmDialog } from '../../utils/confirmDialog'
 import { prayerToastFeedback } from '../../components/prayer/prayerFeedback'
 import { holdSecondaryRequests, releaseSecondaryRequests } from '../../utils/requestPriority'
 
+// PC 피드 컬럼 폭 — 글씨를 키우면 한 줄에 담기는 글자가 줄어(480px·17px ≈ 24자) 줄바꿈이 잦아진다.
+// 배율만큼 컬럼도 넓혀 한 줄 글자 수를 비슷하게 지킨다. 위 공지 배너 폭도 같은 차이만큼 맞춘다
+// (컬럼 합계 + lg:px-6 — 피드 480 + 사이드바 368 + 레일 312, gap 32).
+// 1024~1439px 에서 넓힌 폭이 화면보다 크면 피드가 min-w-0 으로 줄어들 뿐 넘치지 않는다.
+const FEED_MAX_W: Record<FeedTextScale, string> = {
+  base: 'lg:max-w-[480px]',
+  large: 'lg:max-w-[552px]',
+  xlarge: 'lg:max-w-[624px]',
+}
+const NOTICE_MAX_W: Record<FeedTextScale, string> = {
+  base: 'lg:max-w-[928px]',
+  large: 'lg:max-w-[1000px]',
+  xlarge: 'lg:max-w-[1072px]',
+}
+const NOTICE_MAX_W_WIDE: Record<FeedTextScale, string> = {
+  base: 'lg:max-w-[1272px]',
+  large: 'lg:max-w-[1344px]',
+  xlarge: 'lg:max-w-[1416px]',
+}
+// 우측 레일이 서는 화면 폭 — 좌측 내비 레일(248) + 위 컬럼 합계가 들어갈 만큼
+const RAIL_QUERY: Record<FeedTextScale, string> = {
+  base: '(min-width: 1440px)',
+  large: '(min-width: 1600px)',
+  xlarge: '(min-width: 1680px)',
+}
+
 const NewHome = () => {
+  // PC 기도 피드 글씨 크기 — 피드 컬럼 폭도 함께 따라간다
+  const feedScale = useFeedTextScale()
   const location = useLocation()
   const navigate = useNavigate()
   const { requireAuth, requireAuthWithRedirect, isLoggedIn } = useAuth()
@@ -105,16 +135,20 @@ const NewHome = () => {
 
   // 우측 위젯 레일은 CSS로 숨기는 대신 조건부 마운트 — display:none이어도 React가
   // 마운트되면 레일의 쿼리(주간 통계·상황별 성구·오늘 일정)가 모바일에서도 나가므로,
-  // 레일이 실제로 보이는 폭(1440px+, min-[1440px] 클래스와 동일 기준)에서만 렌더한다
+  // 레일이 실제로 보이는 폭(기본 1440px+)에서만 렌더한다.
+  // 피드 글씨를 키우면 피드 컬럼이 넓어져야 하는데, 레일까지 세우면 그 폭을 레일이 먹어 피드가
+  // 400px 안팎으로 눌린다 — 글씨가 클수록 레일이 서는 기준 폭을 올린다(RAIL_QUERY).
+  const railQuery = RAIL_QUERY[feedScale]
   const [railWide, setRailWide] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1440px)').matches
+    () => typeof window !== 'undefined' && window.matchMedia(railQuery).matches
   )
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1440px)')
+    const mq = window.matchMedia(railQuery)
+    setRailWide(mq.matches)
     const onChange = (e: MediaQueryListEvent) => setRailWide(e.matches)
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
-  }, [])
+  }, [railQuery])
 
   // 기도 작성·상세·감사 시트 청크 선로드 — 첫 화면이 그려진 뒤 한가할 때 받아 두어 첫 탭이 즉시 열리게 한다.
   // 감사 시트는 FAB 다이얼·티커가 공유. preload 가 끝난 lazyModal 은 Suspense 없이 곧장 그린다
@@ -365,7 +399,7 @@ const NewHome = () => {
                 같은 폭으로 묶어야 배너 혼자 화면 끝까지 늘어나지 않는다.
                 max-w는 border-box라 컬럼 합계 + lg:px-6(24×2)을 더한 값 */}
             <div
-              className={`lg:mx-auto lg:px-6 ${railWide ? 'lg:max-w-[1272px]' : 'lg:max-w-[928px]'}`}
+              className={`lg:mx-auto lg:px-6 ${(railWide ? NOTICE_MAX_W_WIDE : NOTICE_MAX_W)[feedScale]}`}
             >
               <HomeNotice />
             </div>
@@ -441,12 +475,12 @@ const NewHome = () => {
 
             </div>{/* /사이드바 */}
 
-            {/* 우측 위젯 레일 — 3컬럼이 들어갈 만큼 넓은 화면(1440px+)에서만 마운트.
+            {/* 우측 위젯 레일 — 3컬럼이 들어갈 만큼 넓은 화면(railWide — 기본 1440px+, 글씨를 키우면 더 넓게)에서만 마운트.
                 기도 현황·기도 태그·알림 배너·오늘 일정·말씀 카드로 남는 좌우 여백을 채운다 */}
             {railWide && (
               <div
                 ref={rightRailStickyRef}
-                className="hidden min-[1440px]:block lg:order-3 w-[312px] shrink-0 sticky self-start pb-4"
+                className="hidden lg:block lg:order-3 w-[312px] shrink-0 sticky self-start pb-4"
               >
                 <Suspense fallback={null}>
                   <HomeRightRail />
@@ -455,7 +489,7 @@ const NewHome = () => {
             )}{/* /우측 레일 */}
 
             {/* 피드 컬럼 — 데스크톱에선 접속 즉시 기도 피드가 보인다 */}
-            <div ref={feedColumnRef} className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
+            <div ref={feedColumnRef} className={`lg:order-1 lg:w-full ${FEED_MAX_W[feedScale]} lg:min-w-0`}>
 
             {/* PC 전용 인라인 작성바 — 키보드가 있는 환경에선 작성 진입을 피드 최상단에 */}
             {/* pt-3: 옆 컬럼 첫 카드(.meditation-section margin-top 12px)와 윗선을 맞춘다 */}
@@ -488,6 +522,11 @@ const NewHome = () => {
             </div>
             
             <SortTabs currentSort={sort} onSortChange={setSort} />
+
+            {/* PC 글씨 크기 — 노안인 성도를 위해. 툴바는 이미 세그먼트 탭으로 차 있어 따로 한 줄 */}
+            <div className="hidden lg:flex justify-end px-4 pt-1">
+              <FeedTextScaleToggle />
+            </div>
 
             {showOfflineWithoutCache ? (
               <div className="px-4 py-12 text-center">

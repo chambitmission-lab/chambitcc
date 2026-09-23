@@ -158,7 +158,7 @@ const PrayerArticle = ({
           {/* 통합 액션바 — 흩어졌던 통계·말씀을 아이콘+숫자로 흡수 (스레드형).
               줄 전체를 클릭 차단 지대로: 버튼 사이 빈틈이나 상태 문구를 눌러도
               카드 클릭(상세보기)으로 새지 않는다 (X·Threads 액션바 문법) */}
-          <div className="px-5 pt-3 pb-4 cursor-default" onClick={(e) => e.stopPropagation()}>
+          <div className="px-5 pt-3 pb-4 lg:pt-4 lg:pb-5 cursor-default" onClick={(e) => e.stopPropagation()}>
             <PrayerActions
               isPrayed={prayer.is_prayed}
               isPraying={isPraying}
@@ -180,14 +180,14 @@ const PrayerArticle = ({
 
             {/* 살아있는 기도 — 지금 함께 기도하는 사람 수 (따뜻한 문구) */}
             {!prayer.is_private && prayer.prayer_count > 0 && (
-              <div className="mt-2.5 text-[12px] text-gray-600 dark:text-gray-400">
+              <div className="mt-2.5 lg:mt-3.5 text-[12px] lg:text-[length:calc(14px*var(--fs,1))] text-gray-600 dark:text-gray-400">
                 {liveStatusText}
               </div>
             )}
 
             {/* 목사님과 나눈 내 기도 — 목사님의 기도·답글 여부를 한 줄로 */}
             {sharedWithPastor && prayer.is_owner && (
-              <div className="mt-2.5 text-[12px] font-medium text-brand">
+              <div className="mt-2.5 lg:mt-3.5 text-[12px] lg:text-[length:calc(14px*var(--fs,1))] font-medium text-brand">
                 {prayer.prayer_count > 0 ? t('pastorPrayed') : t('pastorPrayerWaiting')}
                 {prayer.reply_count > 0 && (
                   <span> · {t('pastorReplyCount').replace('{count}', String(prayer.reply_count))}</span>

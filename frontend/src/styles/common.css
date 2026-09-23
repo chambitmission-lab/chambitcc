@@ -272,3 +272,29 @@
   [data-pastor-scale='large'] { --pz: 1.15; zoom: 1.15; }
   [data-pastor-scale='xlarge'] { --pz: 1.3; zoom: 1.3; }
 }
+
+/* 기도 글씨 크기 (utils/feedTextScale.ts) — PC(lg+)에서만. 기도 피드 뿌리와 기도 상세 모달이
+   data-feed-scale 을 단다. 그 안의 lg 글씨는 calc(Npx * var(--fs, 1)) 로 적혀 있어 이 배율만 바꾸면 함께 커진다.
+   --feed-clamp: 글씨가 커지면 3줄에 담기는 말이 너무 적어 접는 줄 수도 늘린다. */
+@media (min-width: 1024px) {
+  [data-feed-scale='large'] { --fs: 1.15; --feed-clamp: 5; }
+  [data-feed-scale='xlarge'] { --fs: 1.3; --feed-clamp: 5; }
+
+  /* 공용 댓글(ReplyList·ReplyComposer)은 교실·소식 시트도 같이 쓴다 — Tailwind 크기는 그대로 두고
+     기도 화면(data-feed-scale) 안에서만 훅 클래스로 키운다. [attr] .class 라 유틸리티보다 우선한다 */
+  [data-feed-scale] .reply-avatar { width: calc(40px * var(--fs, 1)); height: calc(40px * var(--fs, 1)); }
+  [data-feed-scale] .reply-name { font-size: calc(15.5px * var(--fs, 1)); }
+  [data-feed-scale] .reply-badge { font-size: calc(12px * var(--fs, 1)); padding: 0.3em 0.6em; }
+  [data-feed-scale] .reply-meta { font-size: calc(13px * var(--fs, 1)); }
+  [data-feed-scale] .reply-action {
+    font-size: calc(13.5px * var(--fs, 1));
+    /* 누르는 영역만 넓힌다(보이는 자리는 그대로) */
+    padding: 6px 4px;
+    margin: -6px -4px;
+  }
+  [data-feed-scale] .reply-action-pill { font-size: calc(13.5px * var(--fs, 1)); }
+  [data-feed-scale] .reply-body { font-size: calc(16px * var(--fs, 1)); line-height: 1.75; }
+  [data-feed-scale] .reply-composer-input { font-size: calc(15.5px * var(--fs, 1)); }
+  [data-feed-scale] .reply-composer-label { font-size: calc(15px * var(--fs, 1)); }
+  [data-feed-scale] .reply-composer-submit { font-size: calc(15px * var(--fs, 1)); padding: 0.6em 1.4em; }
+}

@@ -225,6 +225,11 @@ div.auth-page {
   color: var(--text-muted);
 }
 
+/* Caps Lock 경고 — 틀린 건 아니지만 곧 틀리게 될 상태라 빨강 대신 앰버 */
+.auth-msg--warn {
+  color: var(--amber);
+}
+
 /* 인증 실패 시 폼이 살짝 튕긴다 — 레이아웃은 그대로 두고 시선만 끈다 */
 @keyframes auth-shake {
   10%,
@@ -270,4 +275,107 @@ div.auth-page {
   border-top-color: #fff;
   border-radius: 9999px;
   animation: auth-spin 0.6s linear infinite;
+}
+
+/* ── PC(lg+) 노안 대응 ─────────────────────────────────────
+   모바일은 눈 가까이 보지만 PC 모니터는 멀어서 같은 크기가 훨씬 작게 읽힌다.
+   글자·밑줄·버튼·누르는 영역을 한 단계씩 키우고, 옅은 회색(--text-muted, 흰 바탕 약 4:1)
+   글씨는 본문색으로 올린다. 간격 토큰은 여기서 넓히되 세로가 짧은 노트북에선
+   data-vh-tier 규칙(특이도가 더 높다)이 다시 줄인다 — 글자 크기는 토큰 대신 직접 지정해 줄지 않게 한다. */
+@media (min-width: 1024px) {
+  .auth-page {
+    --auth-gap: 1.9rem;
+    --auth-lead: 2.75rem;
+    --auth-cta: 2.75rem;
+    --auth-field-top: 1.5rem;
+  }
+
+  .auth-page .auth-column {
+    max-width: 440px;
+  }
+
+  .auth-page .auth-title {
+    font-size: 2.25rem;
+  }
+
+  /* 밑줄 인풋 — 글자 20px, 밑줄은 2px 에 한 톤 진하게(기존 헤어라인은 칸이 어디인지 안 보인다) */
+  .auth-field input {
+    font-size: 1.25rem;
+    padding-right: 3rem;
+    border-bottom-width: 2px;
+    border-bottom-color: color-mix(in srgb, var(--text-muted) 50%, transparent);
+  }
+
+  .auth-field label {
+    font-size: 1.25rem;
+    color: var(--text-body);
+  }
+
+  /* 눈 아이콘 — 누르는 영역 44px */
+  .auth-eye {
+    right: -0.6rem;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .auth-eye svg {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  .auth-msg {
+    font-size: 0.9375rem;
+  }
+
+  .auth-msg svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.15rem;
+  }
+
+  .auth-msg--hint {
+    color: var(--text-body);
+  }
+
+  .auth-check {
+    width: 1.375rem;
+    height: 1.375rem;
+    border-width: 2px;
+  }
+
+  .auth-check:checked {
+    background-size: 0.9rem;
+  }
+
+  .auth-page .auth-option {
+    font-size: 0.96875rem;
+    color: var(--text-body);
+  }
+
+  .auth-page .auth-help {
+    font-size: 0.96875rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .auth-page .auth-submit {
+    height: 60px;
+    font-size: 1.125rem;
+    border-radius: 1.125rem;
+  }
+
+  .auth-page .auth-foot {
+    margin-top: 1.75rem;
+    font-size: 0.96875rem;
+    color: var(--text-body);
+  }
+
+  /* 인라인 링크의 누르는 영역만 넓힌다 — 줄 높이는 그대로 */
+  .auth-page .auth-foot a {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .auth-spinner {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
 }

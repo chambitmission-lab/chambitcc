@@ -4,6 +4,7 @@ import { usePrayerDetail } from '../../../../hooks/usePrayersQuery'
 import { useReplies, useCreateReply, useUpdateReply, useDeleteReply } from '../../../../hooks/useReplies'
 import { usePrayerDelete } from '../../../../hooks/usePrayerDelete'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
+import { useMediaQuery } from '../../../../hooks/useMediaQuery'
 import type { Prayer } from '../../../../types/prayer'
 import { useTranslation } from './useTranslation'
 import PrayerDetailModal from './PrayerDetailModal'
@@ -42,6 +43,8 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
   // 댓글 작성 중 여부 — 작성 중엔 하단 기도 바를 접어 "댓글 작성"과
   // "함께 기도했어요"가 같은 하단 영역에 파란 버튼으로 공존하며 생기는 오탭을 막는다
   const [isComposing, setIsComposing] = useState(false)
+  // PC 2단(본문·댓글 나란히) 여부 — 작성 중 기도 바 접기를 모바일에만 적용하려고 쓴다
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
 
   // 브라우저/안드로이드 뒤로가기: 모달을 닫는다 (댓글은 항상 펼쳐져 있어 별도 단계 없음)
   useModalBackButton(onClose)
@@ -168,16 +171,32 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
   // 목양 기도를 작성자 본인이 볼 때 — 자기 기도에 '기도했어요'를 누를 일은 없다
   const ownPastoral = sharedWithPastor && isOwner
 
+  // PC(lg+) 넓은 화면 — 본문(좌)과 댓글(우)을 나란히. 댓글이 없는 나만 보기 기도는 기존 중앙 모달.
+  // DOM 은 하나만 그린다(댓글 쿼리·작성 상태가 둘로 갈리지 않게): 모바일은 스크롤 래퍼 안에
+  // 본문→댓글이 세로로 흐르고, lg 에선 스크롤 래퍼를 display:contents 로 풀어 세 조각
+  // (본문·댓글·기도 바)을 바깥 그리드 칸에 직접 앉힌다.
+  const split = !isPrivate
+  // lg 에선 댓글이 옆 칸이라 작성 중에도 기도 바를 접을 이유가 없다(오탭 방지는 모바일 한정)
+  const hideActionBar = isComposing && !isDesktop
+
   return (
     <>
-      <PrayerDetailModal>
+      <PrayerDetailModal wide={split}>
         <PrayerDetailHeader
           canDelete={isOwner || isAdminDelete}
           onClose={onClose}
           onDeleteClick={() => setShowDeleteConfirm(true)}
         />
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div
+          className={`flex-1 min-h-0 flex flex-col ${
+            split ? 'lg:grid lg:grid-cols-[minmax(0,1.3fr)_minmax(400px,1fr)] lg:grid-rows-[minmax(0,1fr)_auto]' : ''
+          }`}
+        >
+        <div className={`flex-1 overflow-y-auto p-5 lg:p-0 ${split ? 'lg:contents' : ''}`}>
+          {/* 본문 칸 — 한 줄이 너무 길면 다음 줄을 놓치므로 읽기 폭(680px)으로 가운데 모은다 */}
+          <div className="lg:col-start-1 lg:row-start-1 lg:min-h-0 lg:overflow-y-auto lg:px-12 lg:pt-10 lg:pb-8">
+          <div className="lg:max-w-[680px] lg:mx-auto">
           <PrayerAuthorInfo
             prayerId={prayer.id}
             displayName={prayer.display_name}
@@ -201,8 +220,8 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
                   <span className="material-icons-outlined text-[18px]">lock</span>
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13.5px] font-bold text-ink-strong">{t('privatePrayerStatus')}</p>
-                  <p className="mt-1 text-[12.5px] leading-snug text-gray-600 dark:text-gray-400">
+                  <p className="text-[13.5px] lg:text-[length:calc(15.5px*var(--fs,1))] font-bold text-ink-strong">{t('privatePrayerStatus')}</p>
+                  <p className="mt-1 text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] leading-snug lg:leading-normal text-gray-600 dark:text-gray-400">
                     {t('privatePrayerDetailNotice')}
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -210,7 +229,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
                       <button
                         type="button"
                         onClick={() => onMakePublic(prayer.id)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-brand text-[var(--on-brand)] text-[12.5px] font-bold shadow-[0_4px_12px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-brand text-[var(--on-brand)] text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] lg:px-4 lg:py-2.5 font-bold shadow-[0_4px_12px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"
                       >
                         <span className="material-icons-outlined text-[15px]">public</span>
                         {t('makePrayerPublic')}
@@ -221,7 +240,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
                         type="button"
                         onClick={handleShareWithPastor}
                         disabled={isSwitchingVisibility}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--card-border)] bg-[var(--surface-container)] text-[12.5px] font-bold text-brand hover:bg-[var(--brand-soft)] active:scale-95 transition-all disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--card-border)] bg-[var(--surface-container)] text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] lg:px-4 lg:py-2.5 font-bold text-brand hover:bg-[var(--brand-soft)] active:scale-95 transition-all disabled:opacity-50"
                       >
                         <PastorIcon size={15} />
                         {t('sharePrayerWithPastor')}
@@ -231,26 +250,24 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
                 </div>
               </div>
             </div>
-          ) : (
-          <>
-          {ownPastoral ? (
+          ) : ownPastoral ? (
             <div className="mt-2 mb-1 rounded-2xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-4">
               <div className="flex items-start gap-3">
                 <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-[var(--brand)]">
                   <PastorIcon size={18} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13.5px] font-bold text-ink-strong">
+                  <p className="text-[13.5px] lg:text-[length:calc(15.5px*var(--fs,1))] font-bold text-ink-strong">
                     {prayer.prayer_count > 0 ? t('pastorPrayed') : t('pastorPrayerStatus')}
                   </p>
-                  <p className="mt-1 text-[12.5px] leading-snug text-gray-600 dark:text-gray-400">
+                  <p className="mt-1 text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] leading-snug lg:leading-normal text-gray-600 dark:text-gray-400">
                     {t('pastorPrayerDetailNotice')}
                   </p>
                   <button
                     type="button"
                     onClick={handleUnshareWithPastor}
                     disabled={isSwitchingVisibility}
-                    className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--card-border)] bg-[var(--surface-container)] text-[12.5px] font-bold text-ink-muted hover:text-brand active:scale-95 transition-all disabled:opacity-50"
+                    className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--card-border)] bg-[var(--surface-container)] text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] lg:px-4 lg:py-2.5 font-bold text-ink-muted hover:text-brand active:scale-95 transition-all disabled:opacity-50"
                   >
                     <span className="material-icons-outlined text-[15px]">lock</span>
                     {t('unsharePrayerWithPastor')}
@@ -261,15 +278,21 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
           ) : (
             <PrayerStats prayerCount={prayer.prayer_count} />
           )}
-
-          {/* 목회자에게 — 이 자리의 답글은 피드 댓글과 달리 작성자 한 사람에게만 간다 */}
-          {sharedWithPastor && !isOwner && (
-            <p className="mb-1 px-1 text-[12px] font-medium text-brand">{t('pastorReplySectionHint')}</p>
-          )}
+          </div>
+          </div>{/* /본문 칸 */}
 
           {/* 댓글은 토글 없이 항상 인라인 — 짧은 글일 때 하단이 텅 비지 않고
-              댓글·입력창이 자연스럽게 이어져 화면을 채운다 */}
-          <div ref={repliesSectionRef} className="scroll-mt-2">
+              댓글·입력창이 자연스럽게 이어져 화면을 채운다.
+              lg: 오른쪽 칸 전체 높이(기도 바 줄까지)를 차지하고 안에서 따로 스크롤한다 */}
+          {split && (
+          <div
+            ref={repliesSectionRef}
+            className="scroll-mt-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:min-h-0 lg:flex lg:flex-col lg:border-l lg:border-[var(--card-border)] lg:bg-[var(--surface-inset)]"
+          >
+            {/* 목회자에게 — 이 자리의 답글은 피드 댓글과 달리 작성자 한 사람에게만 간다 */}
+            {sharedWithPastor && !isOwner && (
+              <p className="mb-1 px-1 lg:mb-0 lg:px-8 lg:pt-6 text-[12px] lg:text-[length:calc(14px*var(--fs,1))] font-medium text-brand">{t('pastorReplySectionHint')}</p>
+            )}
             <RepliesSection
               replyCount={prayer.reply_count}
               replies={replies}
@@ -285,22 +308,23 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
               onComposerExpandedChange={setIsComposing}
             />
           </div>
-          </>
           )}
-        </div>
+        </div>{/* /스크롤 래퍼 */}
 
         {/* 하단 고정 액션 바 — 짧은 글에서도 버튼이 어중간한 높이에 뜨지 않고
             항상 엄지 존에 머문다. 설치형 PWA 홈 인디케이터 영역만큼 safe-area 패딩.
-            댓글 작성 중에는 접어둔다 — "댓글 작성"을 누르려다 이 큰 파란 버튼을
-            잘못 누르는 오탭 방지. 작성 완료/취소 시 다시 올라온다 */}
+            댓글 작성 중에는 접어둔다(모바일) — "댓글 작성"을 누르려다 이 큰 파란 버튼을
+            잘못 누르는 오탭 방지. 작성 완료/취소 시 다시 올라온다.
+            lg: 본문 칸 바닥에 붙고, 버튼은 본문과 같은 읽기 폭으로 모은다 */}
         {!isPrivate && !ownPastoral && (
         <div
-          aria-hidden={isComposing}
-          className={`shrink-0 overflow-hidden transition-all duration-300 ease-out ${
-            isComposing ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-32 opacity-100'
+          aria-hidden={hideActionBar}
+          className={`shrink-0 overflow-hidden transition-all duration-300 ease-out lg:col-start-1 lg:row-start-2 ${
+            hideActionBar ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-32 opacity-100'
           }`}
         >
-          <div className="px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-black/[0.06] dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
+          <div className="px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-12 lg:py-5 border-t border-black/[0.06] dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
+            <div className="lg:max-w-[680px] lg:mx-auto">
             <PrayerActions
               isPrayed={prayer.is_prayed}
               isToggling={isToggling}
@@ -308,9 +332,11 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
               onPrayerToggle={handlePrayerToggle}
               onCommentClick={scrollToReplies}
             />
+            </div>
           </div>
         </div>
         )}
+        </div>{/* /본문·댓글 그리드 */}
       </PrayerDetailModal>
 
       {showDeleteConfirm && (

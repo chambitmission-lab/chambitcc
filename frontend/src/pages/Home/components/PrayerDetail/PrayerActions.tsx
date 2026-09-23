@@ -35,7 +35,7 @@ const PrayerActions = ({
         onClick={handlePrayerToggle}
         disabled={isToggling}
         aria-pressed={isPrayed}
-        className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-200 active:scale-[0.97] ${
+        className={`flex-1 flex items-center justify-center gap-2 py-3.5 lg:py-4 rounded-2xl font-semibold text-[15px] lg:text-[length:calc(17px*var(--fs,1))] lg:[&>svg]:w-[calc(22px*var(--fs,1))] lg:[&>svg]:h-[calc(22px*var(--fs,1))] transition-all duration-200 active:scale-[0.97] ${
           isPrayed
             ? 'brand-gradient shadow-[0_8px_24px_-8px_var(--brand-glow)]'
             : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08]'
@@ -49,15 +49,16 @@ const PrayerActions = ({
         <span>{isPrayed ? '함께 기도했어요' : '함께 기도하기'}</span>
       </button>
 
-      {/* 댓글 바로가기 — 섹션은 항상 펼쳐져 있으므로 스크롤 이동만 담당 */}
+      {/* 댓글 바로가기 — 섹션은 항상 펼쳐져 있으므로 스크롤 이동만 담당.
+          PC 2단에선 댓글이 옆 칸에 늘 보이므로 숨긴다 */}
       <button
         onClick={onCommentClick}
         aria-label={`댓글${replyCount > 0 ? ` ${replyCount}개` : ''}로 이동`}
-        className="relative shrink-0 flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-all duration-200 active:scale-[0.97]"
+        className="relative shrink-0 flex lg:hidden items-center justify-center w-[52px] h-[52px] lg:w-[calc(56px*var(--fs,1))] lg:h-[calc(56px*var(--fs,1))] lg:[&>svg]:w-[calc(24px*var(--fs,1))] lg:[&>svg]:h-[calc(24px*var(--fs,1))] rounded-2xl bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-all duration-200 active:scale-[0.97]"
       >
         <CommentIcon size={22} />
         {replyCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold leading-none bg-[var(--brand)] text-white shadow-sm">
+          <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 lg:min-w-[1.5rem] lg:h-6 px-1.5 rounded-full text-[11px] lg:text-[13px] font-bold leading-none bg-[var(--brand)] text-white shadow-sm">
             {replyCount}
           </span>
         )}

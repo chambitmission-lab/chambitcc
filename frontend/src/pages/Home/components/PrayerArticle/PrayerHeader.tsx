@@ -47,15 +47,15 @@ const PrayerHeader = ({
   // 은은하게 주인공 스포트라이트를 준다. 그룹 기도는 그룹 컬러 후광.
   return (
     <>
-    <div className="px-4 py-2.5 flex items-center justify-between">
-      <div className="flex items-center gap-2.5 min-w-0">
+    <div className="px-4 py-2.5 lg:py-3 flex items-center justify-between">
+      <div className="flex items-center gap-2.5 lg:gap-3 min-w-0">
         <div className="shrink-0">
           {isAnonymous ? (
             <div
-              className="anon-avatar w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500"
+              className="anon-avatar w-9 h-9 lg:w-[calc(40px*var(--fs,1))] lg:h-[calc(40px*var(--fs,1))] rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500"
               style={{ '--anon-ring': anonRing } as CSSProperties}
             >
-              <span className="material-icons-outlined text-[18px]">person</span>
+              <span className="material-icons-outlined text-[18px] lg:text-[length:calc(20px*var(--fs,1))]">person</span>
             </div>
           ) : avatarUrl ? (
             // 실제 업로드 사진만 탭하면 확대(인스타그램식). 카드 전체 클릭
@@ -91,7 +91,7 @@ const PrayerHeader = ({
             </span>
           ) : useGroupColor ? (
             <div
-              className="w-9 h-9 rounded-full backdrop-blur-md border-2 flex items-center justify-center text-xs font-bold"
+              className="w-9 h-9 lg:w-[calc(40px*var(--fs,1))] lg:h-[calc(40px*var(--fs,1))] rounded-full backdrop-blur-md border-2 flex items-center justify-center text-xs lg:text-[length:calc(14px*var(--fs,1))] font-bold"
               style={{
                 background: colorTheme.gradient,
                 borderColor: colorTheme.primary,
@@ -102,39 +102,39 @@ const PrayerHeader = ({
               {displayName.charAt(0).toUpperCase()}
             </div>
           ) : (
-            <div className="w-9 h-9 rounded-full brand-gradient flex items-center justify-center text-xs font-bold shadow-[0_2px_10px_var(--brand-glow)]">
+            <div className="w-9 h-9 lg:w-[calc(40px*var(--fs,1))] lg:h-[calc(40px*var(--fs,1))] rounded-full brand-gradient flex items-center justify-center text-xs lg:text-[length:calc(14px*var(--fs,1))] font-bold shadow-[0_2px_10px_var(--brand-glow)]">
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
 
         <div className="flex items-baseline gap-1.5 min-w-0">
-          <span className={`text-[13.5px] tracking-[-0.015em] truncate ${
+          <span className={`text-[13.5px] lg:text-[length:calc(15.5px*var(--fs,1))] tracking-[-0.015em] truncate ${
             isAnonymous
-              ? 'font-medium text-gray-500 dark:text-gray-400'
+              ? 'font-medium text-gray-500 dark:text-gray-400 lg:text-gray-600 dark:lg:text-gray-300'
               : 'font-semibold text-ink-strong'
           }`}>
             {shownName}
           </span>
-          <span className="text-[11.5px] text-gray-400 dark:text-gray-500 shrink-0">
+          <span className="text-[11.5px] text-gray-400 dark:text-gray-500 shrink-0 lg:text-[length:calc(13.5px*var(--fs,1))] lg:text-gray-500 dark:lg:text-gray-400">
             · {timeAgo}
           </span>
           {groupName && showGroupName && (
             <span
-              className="text-[11.5px] font-semibold truncate"
+              className="text-[11.5px] lg:text-[length:calc(13.5px*var(--fs,1))] font-semibold truncate"
               style={{ color: colorTheme.accent }}
             >
               · {groupName}
             </span>
           )}
           {sharedWithPastor ? (
-            <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+            <span className="shrink-0 self-center inline-flex items-center gap-0.5 px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full bg-[var(--brand-soft-strong)] text-[10px] lg:text-[length:calc(12px*var(--fs,1))] font-bold leading-none text-[var(--brand)] lg:[&>svg]:w-[calc(13px*var(--fs,1))] lg:[&>svg]:h-[calc(13px*var(--fs,1))]">
               <PastorIcon size={11} />
               {t('pastorPrayerBadge')}
             </span>
           ) : isPrivate && (
-            <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
-              <span className="material-icons-outlined text-[11px] leading-none">lock</span>
+            <span className="shrink-0 self-center inline-flex items-center gap-0.5 px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full bg-[var(--brand-soft-strong)] text-[10px] lg:text-[length:calc(12px*var(--fs,1))] font-bold leading-none text-[var(--brand)] lg:[&>svg]:w-[calc(13px*var(--fs,1))] lg:[&>svg]:h-[calc(13px*var(--fs,1))]">
+              <span className="material-icons-outlined text-[11px] lg:text-[length:calc(13px*var(--fs,1))] leading-none">lock</span>
               {t('privatePrayerBadge')}
             </span>
           )}

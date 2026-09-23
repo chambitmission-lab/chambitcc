@@ -48,6 +48,8 @@ export const auth = {
   registerUsernameSpace: '아이디에는 띄어쓰기를 쓸 수 없어요',
   // 최소 길이는 라벨이 아니라 필드 아래 힌트로 안내한다
   registerPassword: '비밀번호',
+  // 비밀번호 칸에서 Caps Lock 이 켜져 있을 때 (PC 키보드)
+  authCapsLockOn: 'Caps Lock이 켜져 있어요. 대문자로 입력되고 있어요',
   registerPasswordRule: '6자 이상 입력해 주세요',
   registerPasswordOk: '비밀번호가 일치해요',
   registerConfirmPassword: '비밀번호 확인',

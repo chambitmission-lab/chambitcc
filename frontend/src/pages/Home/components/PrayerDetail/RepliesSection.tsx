@@ -33,21 +33,26 @@ const RepliesSection = ({
   onComposerExpandedChange,
 }: RepliesSectionProps) => {
   return (
-    <div className="mt-8">
-      <h3 className="text-[15px] font-semibold text-ink-strong mb-5">
+    // lg: 상세 모달 오른쪽 칸 — 제목·작성창은 위에 고정하고 목록만 따로 스크롤한다.
+    // 긴 댓글을 읽다가도 작성창을 찾으러 내려갈 필요가 없다
+    <div className="mt-8 lg:mt-0 lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
+      <div className="lg:shrink-0 lg:max-h-[65%] lg:overflow-y-auto lg:px-8 lg:pt-7 lg:pb-6 lg:border-b lg:border-[var(--card-border)]">
+      <h3 className="text-[15px] lg:text-[length:calc(17px*var(--fs,1))] font-semibold text-ink-strong mb-5">
         댓글 {replyCount > 0 && <span className="text-gray-500 dark:text-gray-400 font-normal">({replyCount})</span>}
       </h3>
 
       {/* Reply Composer */}
-      <div className="mb-6">
+      <div className="mb-6 lg:mb-0">
         <ReplyComposer
           onSubmit={onReplySubmit}
           isSubmitting={isCreating}
           onExpandedChange={onComposerExpandedChange}
         />
       </div>
+      </div>
 
       {/* Reply List */}
+      <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:px-8 lg:py-6">
       <ReplyList
         replies={replies}
         isLoading={isLoading}
@@ -58,6 +63,7 @@ const RepliesSection = ({
         onReplyDelete={onReplyDelete}
         isUpdating={isUpdating}
       />
+      </div>
     </div>
   )
 }

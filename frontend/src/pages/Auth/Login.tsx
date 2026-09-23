@@ -10,6 +10,7 @@ import { playWelcomeTransition } from '../../utils/welcomeTransition'
 import { deriveTimeOfDay, prefetchTodayMeditation } from '../../hooks/useDailyMeditation'
 import { prefetchTodayReadings } from '../../hooks/useBiblePlan'
 import { EyeIcon, StatusIcon } from './AuthIcons'
+import { useCapsLock } from './useCapsLock'
 import './AuthForm.css'
 
 /* 아이디 저장 — 사용자가 명시적으로 켰을 때만 남긴다.
@@ -42,6 +43,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(() => !!localStorage.getItem(REMEMBER_KEY))
   const [showForgotHelp, setShowForgotHelp] = useState(false)
+  const { capsOn, capsLockProps } = useCapsLock()
 
   const greeting = t(GREETING_KEYS[deriveTimeOfDay(new Date().getHours())])
 
@@ -154,7 +156,7 @@ const Login = () => {
        (작은 폰에서 고정 여백이 화면을 꽉 채워 답답해 보이던 문제).
        min-height라 내용이 길어지면 컨테이너가 같이 늘어나 잘리지 않는다. */
     <div className="auth-type bg-surface screen-fit-minus-header auth-page flex flex-col justify-center">
-      <div className="w-full max-w-sm mx-auto">
+      <div className="auth-column w-full max-w-sm mx-auto">
         {/* 헤드라인 — 좌측 정렬 2줄. 헤더에 이미 로고가 있어 브랜드 마크는 넣지 않는다.
             카드도 부제도 없이 여백이 위계를 만든다. */}
         <h1 className="auth-title font-display font-bold tracking-tight text-ink-strong">
@@ -196,6 +198,7 @@ const Login = () => {
                 disabled={loading}
                 autoComplete="current-password"
                 enterKeyHint="go"
+                {...capsLockProps}
               />
               <label htmlFor="login-password">{t('loginPassword')}</label>
               <button
@@ -209,6 +212,13 @@ const Login = () => {
                 <EyeIcon off={showPassword} />
               </button>
             </div>
+            {/* Caps Lock 경고 — 비밀번호는 가려져 있어 대문자로 들어가도 알 수 없다 */}
+            {capsOn && (
+              <p className="auth-msg auth-msg--warn mt-2" role="status">
+                <StatusIcon tone="error" />
+                <span>{t('authCapsLockOn')}</span>
+              </p>
+            )}
           </div>
 
           {/* 에러는 배너가 아니라 필드 바로 아래 인라인으로 — 레이아웃이 튀지 않는다 */}
@@ -223,7 +233,7 @@ const Login = () => {
           )}
 
           <div className="flex items-center justify-between mt-5">
-            <label className="flex items-center gap-2 text-[13px] text-ink cursor-pointer select-none">
+            <label className="auth-option flex items-center gap-2 text-[13px] text-ink cursor-pointer select-none">
               <input
                 type="checkbox"
                 className="auth-check"
@@ -235,7 +245,7 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setShowForgotHelp((v) => !v)}
-              className="text-[13px] text-ink-muted hover:text-brand transition-colors"
+              className="auth-option text-[13px] text-ink-muted hover:text-brand transition-colors"
               aria-expanded={showForgotHelp}
             >
               {t('loginForgot')}
@@ -243,7 +253,7 @@ const Login = () => {
           </div>
 
           {showForgotHelp && (
-            <p className="mt-3 rounded-xl bg-[var(--brand-soft)] px-3.5 py-2.5 text-[13px] leading-relaxed text-ink animate-pop-in">
+            <p className="auth-help mt-3 rounded-xl bg-[var(--brand-soft)] px-3.5 py-2.5 text-[13px] leading-relaxed text-ink animate-pop-in">
               {t('loginForgotHelp')}
             </p>
           )}
@@ -254,13 +264,13 @@ const Login = () => {
               ref={submitRef}
               type="submit"
               disabled={loading}
-              className="w-full h-[52px] flex items-center justify-center gap-2 bg-brand hover:bg-brand-dim text-white font-semibold rounded-2xl text-[15px] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_10px_28px_-10px_var(--brand-glow)]"
+              className="auth-submit w-full h-[52px] flex items-center justify-center gap-2 bg-brand hover:bg-brand-dim text-white font-semibold rounded-2xl text-[15px] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_10px_28px_-10px_var(--brand-glow)]"
             >
               {loading && <span className="auth-spinner" aria-hidden="true" />}
               {loading ? t('loginLoading') : t('loginButton')}
             </button>
 
-            <p className="mt-5 text-center text-[13px] text-ink-muted">
+            <p className="auth-foot mt-5 text-center text-[13px] text-ink-muted">
               {t('loginFirstTime')}{' '}
               <Link
                 to="/register"

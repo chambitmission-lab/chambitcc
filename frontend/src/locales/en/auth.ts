@@ -48,6 +48,8 @@ export const auth = {
   registerUsernameSpace: 'Usernames cannot contain spaces',
   // The minimum length is shown as a hint under the field, not in the label
   registerPassword: 'Password',
+  // Shown on password fields while Caps Lock is on (physical keyboards)
+  authCapsLockOn: 'Caps Lock is on',
   registerPasswordRule: 'Use at least 6 characters',
   registerPasswordOk: 'Passwords match',
   registerConfirmPassword: 'Confirm Password',

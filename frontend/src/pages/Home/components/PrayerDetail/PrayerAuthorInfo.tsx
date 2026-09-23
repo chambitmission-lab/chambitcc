@@ -51,52 +51,52 @@ const PrayerAuthorInfo = ({
         <div className="shrink-0">
           {isAnonymous ? (
             <div
-              className="anon-avatar w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500"
+              className="anon-avatar w-9 h-9 lg:w-[calc(40px*var(--fs,1))] lg:h-[calc(40px*var(--fs,1))] rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500"
               style={{ '--anon-ring': anonRing } as CSSProperties}
             >
-              <span className="material-icons-outlined text-[18px]">person</span>
+              <span className="material-icons-outlined text-[18px] lg:text-[length:calc(20px*var(--fs,1))]">person</span>
             </div>
           ) : avatarUrl ? (
             <span className="feed-avatar">
               <img src={avatarUrl} alt="" className="feed-avatar-img" />
             </span>
           ) : (
-            <div className="w-9 h-9 rounded-full brand-gradient flex items-center justify-center text-xs font-bold shadow-[0_2px_10px_var(--brand-glow)]">
+            <div className="w-9 h-9 lg:w-[calc(40px*var(--fs,1))] lg:h-[calc(40px*var(--fs,1))] rounded-full brand-gradient flex items-center justify-center text-xs lg:text-[length:calc(14px*var(--fs,1))] font-bold shadow-[0_2px_10px_var(--brand-glow)]">
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
         <div className="flex flex-col min-w-0">
-          <p className={`text-sm leading-none mb-1 flex items-center gap-1.5 ${
+          <p className={`text-sm lg:text-[length:calc(16px*var(--fs,1))] leading-none mb-1 lg:mb-1.5 flex items-center gap-1.5 ${
             isAnonymous
-              ? 'font-medium text-gray-500 dark:text-gray-400'
+              ? 'font-medium text-gray-500 dark:text-gray-400 lg:text-gray-600 dark:lg:text-gray-300'
               : 'font-semibold text-ink-strong'
           }`}>
             <span className="truncate">{shownName}</span>
             {sharedWithPastor ? (
-              <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+              <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] lg:text-[length:calc(12px*var(--fs,1))] lg:px-2 lg:py-1 font-bold leading-none text-[var(--brand)] lg:[&>svg]:w-[calc(13px*var(--fs,1))] lg:[&>svg]:h-[calc(13px*var(--fs,1))]">
                 <PastorIcon size={11} />
                 {t('pastorPrayerBadge')}
               </span>
             ) : isPrivate ? (
-              <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
-                <span className="material-icons-outlined text-[11px] leading-none">lock</span>
+              <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] lg:text-[length:calc(12px*var(--fs,1))] lg:px-2 lg:py-1 font-bold leading-none text-[var(--brand)]">
+                <span className="material-icons-outlined text-[11px] lg:text-[length:calc(13px*var(--fs,1))] leading-none">lock</span>
                 {t('privatePrayerBadge')}
               </span>
             ) : isOwner && (
-              <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+              <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] lg:text-[length:calc(12px*var(--fs,1))] lg:px-2 lg:py-1 font-bold leading-none text-[var(--brand)]">
                 내 기도
               </span>
             )}
           </p>
-          <p className="text-[11px] text-gray-500 dark:text-gray-400">{timeAgo}</p>
+          <p className="text-[11px] lg:text-[length:calc(13.5px*var(--fs,1))] text-gray-500 dark:text-gray-400">{timeAgo}</p>
         </div>
       </div>
 
       {hasTranslation && (
         <button
           onClick={onTranslationToggle}
-          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-light dark:bg-white/[0.05] border border-border-light dark:border-white/[0.08] rounded-full text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-[var(--brand-soft)] transition-colors duration-300"
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-light dark:bg-white/[0.05] border border-border-light dark:border-white/[0.08] rounded-full text-xs lg:text-[length:calc(14px*var(--fs,1))] lg:px-3.5 lg:py-2 font-semibold text-gray-700 dark:text-gray-300 hover:bg-[var(--brand-soft)] transition-colors duration-300"
           aria-label={
             showTranslation ? '원문 보기' : `${getLanguageName(nextLanguage)}로 번역`
           }

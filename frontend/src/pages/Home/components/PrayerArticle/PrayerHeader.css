@@ -68,3 +68,12 @@
     0 0 0 1.5px color-mix(in srgb, var(--anon-ring) 40%, transparent),
     0 0 10px color-mix(in srgb, var(--anon-ring) 18%, transparent);
 }
+
+/* PC(lg+) — 기도 글씨 크기(--fs, common.css `[data-feed-scale]`)를 따라 사진도 함께 키운다
+   (피드 카드·상세 작성자 줄 모두) */
+@media (min-width: 1024px) {
+  [data-feed-scale] .feed-avatar-img {
+    width: calc(40px * var(--fs, 1));
+    height: calc(40px * var(--fs, 1));
+  }
+}

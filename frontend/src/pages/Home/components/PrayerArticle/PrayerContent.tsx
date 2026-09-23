@@ -45,14 +45,14 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
             <svg width="10" height="10" viewBox="0 0 10 10" className="text-[var(--amber-icon)] shrink-0" aria-hidden>
               <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
             </svg>
-            <span className="text-[11px] font-bold text-[var(--amber)]">응답됨</span>
+            <span className="text-[11px] lg:text-[length:calc(13px*var(--fs,1))] font-bold text-[var(--amber)]">응답됨</span>
           </span>
         </div>
       )}
 
       {title && (
         <h3
-          className="text-[21px] font-bold text-ink-strong mb-2.5 tracking-[-0.03em] leading-[1.32] text-left"
+          className="text-[21px] lg:text-[length:calc(23px*var(--fs,1))] font-bold text-ink-strong mb-2.5 tracking-[-0.03em] leading-[1.32] text-left"
           style={transitionStyles}
         >
           {title}
@@ -61,22 +61,22 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
 
       <p
         ref={contentRef}
-        className={`text-[15px] text-gray-800 dark:text-gray-300 leading-[1.75] font-normal tracking-[-0.015em] text-left ${
-          expanded ? '' : 'line-clamp-3'
+        className={`text-[15px] lg:text-[length:calc(17px*var(--fs,1))] text-gray-800 dark:text-gray-300 dark:lg:text-gray-200 leading-[1.75] lg:leading-[1.8] font-normal tracking-[-0.015em] text-left ${
+          expanded ? '' : 'line-clamp-3 lg:[-webkit-line-clamp:var(--feed-clamp,3)]'
         }`}
         style={transitionStyles}
       >
         {content}
       </p>
 
-      {/* 긴 기도문은 카드가 한없이 길어지지 않게 3줄로 접고, 이 자리에서 펼친다
+      {/* 긴 기도문은 카드가 한없이 길어지지 않게 3줄로 접고(PC 크게 보기는 5줄 — --feed-clamp), 이 자리에서 펼친다
           (카드 클릭은 상세 열기라 여기서 전파를 끊는다) */}
       {isClamped && (
         <button
           type="button"
           onClick={toggleExpanded}
           aria-expanded={expanded}
-          className="mt-1.5 text-[12.5px] font-semibold text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
+          className="mt-1.5 lg:mt-2 lg:py-1.5 lg:-my-1.5 text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-semibold text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
         >
           {expanded
             ? language === 'ko' ? '접기' : 'Show less'
@@ -92,9 +92,9 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
             <svg width="9" height="9" viewBox="0 0 10 10" className="text-[var(--amber-icon)] shrink-0" aria-hidden>
               <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
             </svg>
-            <span className="text-[11px] font-bold tracking-[0.04em] text-[var(--amber)]">간증</span>
+            <span className="text-[11px] lg:text-[length:calc(13px*var(--fs,1))] font-bold tracking-[0.04em] text-[var(--amber)]">간증</span>
           </div>
-          <p className="text-[13.5px] text-gray-800 dark:text-gray-300 leading-[1.7] line-clamp-2">
+          <p className="text-[13.5px] lg:text-[length:calc(15.5px*var(--fs,1))] text-gray-800 dark:text-gray-300 leading-[1.7] line-clamp-2 lg:line-clamp-3">
             {testimony}
           </p>
         </div>

@@ -3,6 +3,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import PrayerArticle from './PrayerArticle'
 import { calendarDateKey, kstDateKey, kstNow } from '../../../utils/kstTime'
 import type { Prayer } from '../../../types/prayer'
+import { useFeedTextScale } from '../../../utils/feedTextScale'
 
 // 시간순 피드의 스캔성 — 카드가 쌓여도 "언제의 기도인지"가 한눈에 보이게
 // 오늘 / 어제 / 이번 주 / M월 네 단계로만 끊는다 (더 잘게 쪼개면 헤더가 소음이 된다)
@@ -93,13 +94,16 @@ const PrayerFeed = ({
     return () => observer.disconnect()
   }, [loading, hasMore, isFetchingMore, onLoadMore])
 
+  // PC 글씨 크기 — 카드들이 --fs 배율을 물려받는다 (common.css `[data-feed-scale]`)
+  const textScale = useFeedTextScale()
+
   return (
-    <div className="flex flex-col px-4 pt-3">
+    <div className="prayer-feed flex flex-col px-4 pt-3" data-feed-scale={textScale}>
       {prayers.map((prayer, i) => (
         <div key={prayer.id} className="contents">
           {labels[i] && (
             <div className="flex items-center gap-2.5 mb-3 first:mt-0 mt-1">
-              <span className="text-[11.5px] font-bold tracking-[0.02em] text-gray-400 dark:text-white/40">
+              <span className="text-[11.5px] font-bold tracking-[0.02em] text-gray-400 dark:text-white/40 lg:text-[length:calc(13.5px*var(--fs,1))] lg:text-gray-500 dark:lg:text-white/55">
                 {labels[i]}
               </span>
               <span className="flex-1 h-px bg-gray-200/70 dark:bg-white/[0.07]" />

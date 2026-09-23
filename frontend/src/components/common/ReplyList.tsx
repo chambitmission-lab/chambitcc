@@ -111,7 +111,7 @@ const ReplyList = ({
       {replies.map((reply) => (
         <div key={reply.id} className="reply-item flex gap-3">
           {isAnonymousReply(reply) ? (
-            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-500 dark:text-gray-400 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
+            <div className="reply-avatar w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-500 dark:text-gray-400 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
               <span className="material-icons-outlined text-[18px]">person</span>
             </div>
           ) : reply.avatar_url ? (
@@ -119,17 +119,17 @@ const ReplyList = ({
               src={reply.avatar_url}
               alt=""
               loading="lazy"
-              className="w-9 h-9 rounded-full object-cover shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0"
+              className="reply-avatar w-9 h-9 rounded-full object-cover shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0"
             />
           ) : (
-            <div className="w-9 h-9 rounded-full brand-gradient flex items-center justify-center text-sm font-semibold shadow-[0_2px_10px_var(--brand-glow)] flex-shrink-0">
+            <div className="reply-avatar w-9 h-9 rounded-full brand-gradient flex items-center justify-center text-sm font-semibold shadow-[0_2px_10px_var(--brand-glow)] flex-shrink-0">
               {reply.display_name.charAt(0).toUpperCase()}
             </div>
           )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className={`text-sm ${
+              <span className={`reply-name text-sm ${
                 isAnonymousReply(reply) && !reply.is_pastor
                   ? 'font-medium text-gray-500 dark:text-gray-400'
                   : 'font-semibold text-ink-strong'
@@ -140,15 +140,15 @@ const ReplyList = ({
                   : isAnonymousReply(reply) ? t('anonymousDisplayName') : reply.display_name}
               </span>
               {reply.is_pastor && !isAnonymousReply(reply) && (
-                <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+                <span className="reply-badge shrink-0 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
                   {t('pastorReplyBadge')}
                 </span>
               )}
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="reply-meta text-xs text-gray-500 dark:text-gray-400">
                 {reply.time_ago}
               </span>
               {reply.is_edited && (
-                <span className="text-xs text-gray-400/80 dark:text-gray-600">(수정됨)</span>
+                <span className="reply-meta text-xs text-gray-400/80 dark:text-gray-600">(수정됨)</span>
               )}
               {(reply.is_owner || canModerate) && editingId !== reply.id && (
                 <span className="ml-auto flex items-center gap-2.5">
@@ -156,7 +156,7 @@ const ReplyList = ({
                   {reply.is_owner && onReplyUpdate && (
                     <button
                       onClick={() => startEdit(reply)}
-                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-[var(--brand)] transition-colors"
+                      className="reply-action text-xs text-gray-500 dark:text-gray-400 hover:text-[var(--brand)] transition-colors"
                     >
                       수정
                     </button>
@@ -164,7 +164,7 @@ const ReplyList = ({
                   {onReplyDelete && (
                     <button
                       onClick={() => handleDelete(reply)}
-                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                      className="reply-action text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                     >
                       삭제
                     </button>
@@ -182,20 +182,20 @@ const ReplyList = ({
                   maxLength={500}
                   autoFocus
                   disabled={isUpdating}
-                  className="w-full px-3 py-2.5 text-[14px] leading-[1.65] border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-ink-strong focus:outline-none focus:ring-2 focus:ring-[var(--brand-glow)] resize-none disabled:opacity-50 transition-all"
+                  className="reply-body w-full px-3 py-2.5 text-[14px] leading-[1.65] border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-ink-strong focus:outline-none focus:ring-2 focus:ring-[var(--brand-glow)] resize-none disabled:opacity-50 transition-all"
                 />
                 <div className="flex items-center justify-end gap-2 mt-2">
                   <button
                     onClick={cancelEdit}
                     disabled={isUpdating}
-                    className="px-4 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-full transition-colors disabled:opacity-50"
+                    className="reply-action-pill px-4 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-full transition-colors disabled:opacity-50"
                   >
                     취소
                   </button>
                   <button
                     onClick={() => saveEdit(reply)}
                     disabled={!editContent.trim() || isUpdating}
-                    className="px-4 py-1.5 text-xs font-semibold brand-gradient rounded-full shadow-[0_3px_10px_-3px_var(--brand-glow)] active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="reply-action-pill px-4 py-1.5 text-xs font-semibold brand-gradient rounded-full shadow-[0_3px_10px_-3px_var(--brand-glow)] active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdating ? '저장중...' : '저장'}
                   </button>
@@ -204,7 +204,7 @@ const ReplyList = ({
             ) : (
               <AnimatedEmojiText
                 content={reply.content}
-                className="text-gray-700 dark:text-gray-200 text-[14px] leading-[1.65] whitespace-pre-wrap break-words"
+                className="reply-body text-gray-700 dark:text-gray-200 text-[14px] leading-[1.65] whitespace-pre-wrap break-words"
               />
             )}
           </div>
@@ -216,7 +216,7 @@ const ReplyList = ({
           <button
             onClick={onLoadMore}
             disabled={isFetchingNextPage}
-            className="px-5 py-2 text-xs font-semibold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="reply-action-pill px-5 py-2 text-xs font-semibold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isFetchingNextPage ? '불러오는 중...' : '댓글 더보기'}
           </button>

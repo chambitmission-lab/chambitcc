@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { getSignupPolicy, register } from '../../api/auth'
 import { showToast } from '../../utils/toast'
 import { EyeIcon, StatusIcon } from './AuthIcons'
+import { useCapsLock } from './useCapsLock'
 import './AuthForm.css'
 
 const MIN_PASSWORD_LENGTH = 6
@@ -29,6 +30,9 @@ const Register = () => {
   const [errorSeq, setErrorSeq] = useState(0)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  // 비밀번호·확인 칸 각각 — 경고는 지금 치고 있는 칸 아래에만 뜬다
+  const { capsOn: capsOnPassword, capsLockProps: passwordCapsProps } = useCapsLock()
+  const { capsOn: capsOnConfirm, capsLockProps: confirmCapsProps } = useCapsLock()
   // 관리자가 가입 승인제를 켰는지 — 가입 전에 미리 안내하기 위해 조회한다
   const [requireApproval, setRequireApproval] = useState(false)
   const fieldsRef = useRef<HTMLDivElement>(null)
@@ -136,7 +140,7 @@ const Register = () => {
        (필드가 4개라 작은 폰에서 특히 꽉 차 보이던 문제).
        min-height라 내용이 길어지면 컨테이너가 같이 늘어나 잘리지 않는다. */
     <div className="auth-type bg-surface screen-fit-minus-header auth-page flex flex-col justify-center">
-      <div className="w-full max-w-sm mx-auto">
+      <div className="auth-column w-full max-w-sm mx-auto">
         {/* 헤드라인 — 헤더에 이미 로고가 있어 브랜드 마크는 넣지 않는다 */}
         <h1 className="auth-title font-display font-bold tracking-tight text-ink-strong">
           {t('registerGreeting')}
@@ -232,6 +236,7 @@ const Register = () => {
                 disabled={loading}
                 autoComplete="new-password"
                 enterKeyHint="next"
+                {...passwordCapsProps}
               />
               <label htmlFor="register-password">{t('registerPassword')}</label>
               <button
@@ -251,6 +256,13 @@ const Register = () => {
             >
               <span>{t('registerPasswordRule')}</span>
             </p>
+            {/* Caps Lock 경고 — 비밀번호는 가려져 있어 대문자로 들어가도 알 수 없다 */}
+            {capsOnPassword && (
+              <p className="auth-msg auth-msg--warn mt-2" role="status">
+                <StatusIcon tone="error" />
+                <span>{t('authCapsLockOn')}</span>
+              </p>
+            )}
 
             <div className="auth-field auth-gap">
               <input
@@ -265,9 +277,17 @@ const Register = () => {
                 disabled={loading}
                 autoComplete="new-password"
                 enterKeyHint="go"
+                {...confirmCapsProps}
               />
               <label htmlFor="register-confirm">{t('registerConfirmPassword')}</label>
             </div>
+            {/* Caps Lock 경고 — 비밀번호는 가려져 있어 대문자로 들어가도 알 수 없다 */}
+            {capsOnConfirm && (
+              <p className="auth-msg auth-msg--warn mt-2" role="status">
+                <StatusIcon tone="error" />
+                <span>{t('authCapsLockOn')}</span>
+              </p>
+            )}
             {/* 다 입력한 뒤가 아니라 치는 도중에 일치 여부를 알려준다 */}
             {(passwordMismatch || passwordMatched) && (
               <p
@@ -293,13 +313,13 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-[52px] flex items-center justify-center gap-2 bg-brand hover:bg-brand-dim text-white font-semibold rounded-2xl text-[15px] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_10px_28px_-10px_var(--brand-glow)]"
+              className="auth-submit w-full h-[52px] flex items-center justify-center gap-2 bg-brand hover:bg-brand-dim text-white font-semibold rounded-2xl text-[15px] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_10px_28px_-10px_var(--brand-glow)]"
             >
               {loading && <span className="auth-spinner" aria-hidden="true" />}
               {loading ? t('registerLoading') : t('registerButton')}
             </button>
 
-            <p className="mt-5 text-center text-[13px] text-ink-muted">
+            <p className="auth-foot mt-5 text-center text-[13px] text-ink-muted">
               {t('registerHaveAccount')}{' '}
               <Link
                 to="/login"

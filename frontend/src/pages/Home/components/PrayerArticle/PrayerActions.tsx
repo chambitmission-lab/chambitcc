@@ -85,6 +85,9 @@ const PrayerActions = ({
     ? language === 'ko' ? `${prayerCount}명이 당신을 위해 기도했어요` : `${prayerCount} prayed for you`
     : language === 'ko' ? `${prayerCount}명이 함께 기도했어요` : `${prayerCount} prayed together`
 
+  // PC 라벨 — 누르기 전후로 폭이 달라지면 옆 버튼이 밀리므로 상태와 무관하게 고정
+  const prayActionLabel = language === 'ko' ? '기도' : 'Pray'
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -92,16 +95,16 @@ const PrayerActions = ({
             p-2/-m-2: 보이는 크기는 그대로 두고 누를 수 있는 영역만 넓히는 트릭 —
             아이콘을 살짝 빗나가도 카드(상세보기)가 아니라 버튼이 잡힌다.
             호버 시 은은한 원형 배경으로 "여긴 버튼" 피드백 (X 문법) */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 lg:gap-7">
           {/* 나만 보는 기도 — 함께 기도·댓글은 없다. 헤더 칩이 이미 '나만 보기'를 말하므로
               여기선 공개 전환 액션 하나만 (문구까지 두면 두 줄로 접힌다) */}
           {isPrivate ? (
             onMakePublicClick && (
               <button
                 onClick={onMakePublicClick}
-                className="flex items-center gap-1 whitespace-nowrap rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors text-[12.5px] font-medium"
+                className="flex items-center gap-1 whitespace-nowrap rounded-full p-2 -m-2 lg:p-3 lg:-m-3 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-medium"
               >
-                <span className="material-icons-outlined text-[15px]">public</span>
+                <span className="material-icons-outlined text-[15px] lg:text-[length:calc(17px*var(--fs,1))]">public</span>
                 <span>{t('makePrayerPublic')}</span>
               </button>
             )
@@ -112,7 +115,7 @@ const PrayerActions = ({
             onClick={handlePrayClick}
             disabled={isPraying}
             title={prayLabel}
-            className={`relative flex items-center gap-1.5 rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-300 ${
+            className={`relative flex items-center gap-1.5 rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-300 ${
               !useGroupColor && isPrayed ? 'text-brand' :
               !useGroupColor ? 'text-gray-600 dark:text-gray-400 hover:text-brand' : ''
             }`}
@@ -128,7 +131,9 @@ const PrayerActions = ({
               style={isPopping ? { animation: 'pray-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)' } : undefined}
             />
             {/* 숫자 자리는 항상 확보 — 0→1이 될 때 옆 버튼들이 밀리지 않도록 */}
-            <span className="text-[12.5px] font-bold tabular-nums min-w-[10px]">
+            {/* PC: 아이콘만으론 뜻을 짐작하기 어려운 분들을 위해 글자 라벨을 곁들인다 */}
+            <span className="hidden lg:inline text-[length:calc(14.5px*var(--fs,1))] font-medium">{prayActionLabel}</span>
+            <span className="text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-bold tabular-nums min-w-[10px]">
               {prayerCount > 0 ? prayerCount : ''}
             </span>
           </button>
@@ -136,11 +141,12 @@ const PrayerActions = ({
           {/* 댓글 */}
           <button
             onClick={onReplyClick}
-            className="flex items-center gap-1.5 rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
+            className="flex items-center gap-1.5 rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
           >
             <CommentIcon size={18} />
+            <span className="hidden lg:inline text-[length:calc(14.5px*var(--fs,1))] font-medium">{language === 'ko' ? '댓글' : 'Reply'}</span>
             {replyCount > 0 && (
-              <span className="text-[12.5px] font-bold tabular-nums">{replyCount}</span>
+              <span className="text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-bold tabular-nums">{replyCount}</span>
             )}
           </button>
           </>
@@ -151,10 +157,11 @@ const PrayerActions = ({
             <button
               onClick={onVersesClick}
               title={language === 'ko' ? '함께 묵상해볼 수 있는 말씀' : 'Verses to meditate on'}
-              className="flex items-center gap-1.5 rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
+              className="flex items-center gap-1.5 rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
             >
               <BookOpenIcon size={18} />
-              <span className="text-[12.5px] font-bold tabular-nums">{versesCount}</span>
+              <span className="hidden lg:inline text-[length:calc(14.5px*var(--fs,1))] font-medium">{language === 'ko' ? '말씀' : 'Verses'}</span>
+              <span className="text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-bold tabular-nums">{versesCount}</span>
             </button>
           )}
         </div>
@@ -164,7 +171,7 @@ const PrayerActions = ({
         {isOwner && !isAnswered && onAnswerClick && (
           <button
             onClick={onAnswerClick}
-            className="flex items-center gap-1.5 whitespace-nowrap rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-[var(--amber)] transition-colors text-[12.5px] font-medium"
+            className="flex items-center gap-1.5 whitespace-nowrap rounded-full p-2 -m-2 lg:p-3 lg:-m-3 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-[var(--amber)] transition-colors text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-medium"
           >
             <svg width="10" height="10" viewBox="0 0 10 10" className="text-[var(--amber-icon)] shrink-0" aria-hidden>
               <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
@@ -176,11 +183,11 @@ const PrayerActions = ({
         {/* 응답 수정 / 취소 (내 기도이고 이미 응답된 경우) —
             보조 액션은 아이콘 없이 조용한 텍스트로, 가운뎃점으로만 구분 */}
         {isOwner && isAnswered && (onEditAnswerClick || onCancelAnswerClick) && (
-          <div className="flex items-center gap-2 text-[12.5px] text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 lg:gap-5 text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] text-gray-600 dark:text-gray-400">
             {onEditAnswerClick && (
               <button
                 onClick={onEditAnswerClick}
-                className="p-1.5 -m-1.5 rounded-md font-medium hover:text-[var(--amber)] transition-colors"
+                className="p-1.5 -m-1.5 lg:p-3 lg:-m-3 rounded-md font-medium hover:text-[var(--amber)] transition-colors"
               >
                 {language === 'ko' ? '간증 수정' : 'Edit'}
               </button>
@@ -191,7 +198,7 @@ const PrayerActions = ({
             {onCancelAnswerClick && (
               <button
                 onClick={onCancelAnswerClick}
-                className="p-1.5 -m-1.5 rounded-md hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                className="p-1.5 -m-1.5 lg:p-3 lg:-m-3 rounded-md hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 title={language === 'ko' ? '응답 등록 취소' : 'Cancel answer'}
               >
                 {language === 'ko' ? '응답 취소' : 'Cancel'}
