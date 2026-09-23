@@ -8,7 +8,7 @@
 // 노안을 고려해 글자·버튼을 크게 두고, 앞뒤 장 이동·Shift 클릭 범위 선택을 지원한다.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useBibleBooks, useBibleChapter, useBibleSearch } from '../../hooks/useBible'
+import { useBibleBooks, useBibleChapter, useBibleSearchInfinite } from '../../hooks/useBible'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { formatReference, matchBibleBooks, parseBibleReference } from '../Sermon/utils/sermonMeta'
 import { SERIF } from './letterFormat'
@@ -80,7 +80,26 @@ const VerseFinderDialog = ({ language, onInsert, onClose }: VerseFinderDialogPro
   const target = resolved.chapter
 
   const chapterQuery = useBibleChapter(target?.bookNumber ?? 0, target?.chapter ?? 0, !!target)
-  const searchQuery = useBibleSearch(target ? '' : query, 40)
+  // 키워드 검색은 30절씩 — 목록 끝에 닿으면 다음 쪽을 이어 받는다
+  const searchQuery = useBibleSearchInfinite(target ? '' : query)
+  const searchPages = searchQuery.data?.pages
+  const searchResults = useMemo(() => (searchPages ?? []).flatMap((p) => p.results), [searchPages])
+  const searchTotal = searchPages?.[0]?.total ?? 0
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = searchQuery
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !hasNextPage) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) void fetchNextPage()
+      },
+      // 끝에 닿기 조금 전에 미리 받아 두어 스크롤이 멈추지 않게
+      { root: listRef.current, rootMargin: '0px 0px 400px 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, searchResults.length])
   const { data: books } = useBibleBooks()
 
   // 선택 범위 — 입력이 바뀌면 입력이 가리키는 절(없으면 비움)로 돌아간다
@@ -93,7 +112,12 @@ const VerseFinderDialog = ({ language, onInsert, onClose }: VerseFinderDialogPro
   )
   const chapterCount = books?.find((b) => b.book_number === target?.bookNumber)?.chapter_count ?? 0
 
-  // 장이 펼쳐지면 미리 고른 절이 보이게 스크롤
+  // 검색어가 바뀌면 목록을 맨 위부터 — 이전 결과를 한참 내려 본 자리에 머물지 않게
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 0 })
+  }, [query])
+
+  // 장이 펼쳐지면 미리 고른 절이 보이게 스크롤 (위 초기화 뒤에 돈다)
   useEffect(() => {
     if (!resolved.preset || !verses.length) return
     const el = listRef.current?.querySelector<HTMLElement>(`[data-verse="${resolved.preset.from}"]`)
@@ -299,17 +323,17 @@ const VerseFinderDialog = ({ language, onInsert, onClose }: VerseFinderDialogPro
               )}
               {query.length < 2 ? null : searchQuery.isPending ? (
                 <p className="py-10 text-center text-[16px] text-gray-500">{ko ? '찾는 중…' : 'Searching…'}</p>
-              ) : (searchQuery.data?.results ?? []).length === 0 ? (
+              ) : searchResults.length === 0 ? (
                 !resolved.bookOnly && <p className="py-10 text-center text-[16px] text-gray-500">{ko ? '찾는 말씀이 없습니다' : 'No results'}</p>
               ) : (
                 <>
                   <p className="text-[13px] lg:text-[14px] text-gray-500 dark:text-gray-400 mb-2">
                     {ko
-                      ? `"${query}" 이(가) 들어간 말씀 ${searchQuery.data?.total ?? 0}곳 — 누르면 그 장이 펼쳐집니다`
-                      : `${searchQuery.data?.total ?? 0} verses — click to open the chapter`}
+                      ? `"${query}" 이(가) 들어간 말씀 ${searchTotal.toLocaleString()}곳 — 누르면 그 장이 펼쳐집니다`
+                      : `${searchTotal.toLocaleString()} verses — click to open the chapter`}
                   </p>
                   <div className="space-y-1">
-                    {(searchQuery.data?.results ?? []).map((v) => {
+                    {searchResults.map((v) => {
                       const book = v.book_name_ko || nameByNumber.get(v.book_number ?? -1) || ''
                       return (
                         <button
@@ -328,6 +352,16 @@ const VerseFinderDialog = ({ language, onInsert, onClose }: VerseFinderDialogPro
                       )
                     })}
                   </div>
+                  {/* 무한 스크롤 감지점 — 보이면 다음 30절 */}
+                  <div ref={sentinelRef} className="h-1" aria-hidden="true"></div>
+                  {isFetchingNextPage && (
+                    <p className="py-5 text-center text-[15px] text-gray-500 dark:text-gray-400">{ko ? '말씀을 더 불러오는 중…' : 'Loading more…'}</p>
+                  )}
+                  {!hasNextPage && searchResults.length > 0 && searchTotal > 30 && (
+                    <p className="py-5 text-center text-[14px] text-gray-400 dark:text-gray-500">
+                      {ko ? `모두 ${searchResults.length.toLocaleString()}곳을 보여 드렸습니다` : `All ${searchResults.length} shown`}
+                    </p>
+                  )}
                 </>
               )}
             </div>
