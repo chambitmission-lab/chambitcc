@@ -42,7 +42,6 @@ const PastorSermon = () => {
     queryKey: ['pastor-sermon-prep', years],
     queryFn: () => fetchSermonPrep(years),
     enabled: pastor,
-    refetchOnMount: 'always',
     placeholderData: keepPreviousData,
   })
 

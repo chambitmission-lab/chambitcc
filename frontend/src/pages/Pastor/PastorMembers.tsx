@@ -45,7 +45,6 @@ const PastorMembers = () => {
     queryKey: ['pastor-roster'],
     queryFn: fetchRoster,
     enabled: pastor,
-    refetchOnMount: 'always',
   })
 
   const rows = useMemo(() => {

@@ -13,7 +13,7 @@ const FollowUpList = ({ items, compact = false }: { items: FollowUp[]; compact?:
     onSuccess: () => {
       showToast('마친 일로 표시했습니다', 'success')
       for (const key of [['pastor-visits'], ['pastor-home'], ['pastor-member'], ['pastor-suggestions'], ['pastor-agenda'], ['pastor-report']]) {
-        void qc.invalidateQueries({ queryKey: key, refetchType: 'all' })
+        void qc.invalidateQueries({ queryKey: key })
       }
     },
     onError: (e: Error) => showToast(e.message, 'error'),

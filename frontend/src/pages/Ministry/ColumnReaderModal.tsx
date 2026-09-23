@@ -62,10 +62,17 @@ const ColumnReaderModal = ({
   }, [column.id])
 
   // 상세 스크롤 → 상단 읽기 진행 바
+  // 스크롤 이벤트는 프레임보다 잦으므로 한 프레임에 한 번만 반영한다
+  const scrollFrame = useRef(0)
+  useEffect(() => () => cancelAnimationFrame(scrollFrame.current), [])
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget
-    const max = el.scrollHeight - el.clientHeight
-    setReadProgress(max > 0 ? Math.min(1, el.scrollTop / max) : 1)
+    if (scrollFrame.current) return
+    scrollFrame.current = requestAnimationFrame(() => {
+      scrollFrame.current = 0
+      const max = el.scrollHeight - el.clientHeight
+      setReadProgress(max > 0 ? Math.min(1, el.scrollTop / max) : 1)
+    })
   }
 
   const cycleFontSize = () => {

@@ -2,7 +2,7 @@
 // 읽기 모달과 편집기 미리보기가 이 컴포넌트 하나를 공유하므로,
 // "미리보기에서 본 그대로 성도에게 보인다"가 구조적으로 보장된다.
 
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import type { Column } from '../../types/column'
 import andongProfile from '../../assets/andong.webp'
 import { glueScriptureRefs, renderHighlightedText } from './highlightMarkup'
@@ -246,4 +246,5 @@ const ColumnLetter = ({ language, column, fontSize, placeholder = false }: Colum
   )
 }
 
-export default ColumnLetter
+// 읽기 모달은 스크롤마다 진행 바를 갱신한다 — 그때마다 본문 전체를 다시 파싱하지 않게 props 가 같으면 건너뛴다
+export default memo(ColumnLetter)

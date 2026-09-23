@@ -108,7 +108,7 @@ const VisitComposer = ({ memberId, memberName, visit, initialStatus = 'done', co
       ['pastor-agenda'],
       ['pastor-report'],
     ]) {
-      void qc.invalidateQueries({ queryKey: key, refetchType: 'all' })
+      void qc.invalidateQueries({ queryKey: key })
     }
   }
 

@@ -16,7 +16,7 @@ import { useColumnDraft } from './useColumnDraft'
 import { buildColumnExtensions } from './columnEditorExtensions'
 import { docToMarkup, markupToDoc } from './columnMarkupConvert'
 import { columnPlainText } from './blockFormat'
-import { FONT_STEPS, SERIF, formatLetterDate, readingMinutes } from './letterFormat'
+import { FONT_STEPS, SERIF, formatLetterDate, minutesForPlainLength } from './letterFormat'
 import {
   DEFAULT_HIGHLIGHT,
   HIGHLIGHT_COLORS,
@@ -52,6 +52,8 @@ const COVER_MIN_WIDTH = 800
 /** 쓰는 화면 글자 크기(px) — 읽기 화면 설정과는 별개로, 목사님 눈에 맞춰 둔다 */
 const EDITOR_FONT_STEPS = [16, 18, 20, 22, 24, 27]
 const EDITOR_FONT_KEY = 'ministry_editor_font_px'
+/** 본문 입력이 이만큼 멈추면 마커 문자열로 동기화(글자 수·자동 저장·미리보기 기준) */
+const CONTENT_SYNC_MS = 300
 const readEditorFont = (): number => {
   try {
     const saved = Number(localStorage.getItem(EDITOR_FONT_KEY))
@@ -156,13 +158,31 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
     extensions,
     content: initialDoc,
     editorProps,
-    onUpdate: ({ editor: e }) => patch({ content: docToMarkup(e.state.doc) }),
+    // 문서 → 마커 문자열 변환·상태 반영은 입력이 잠깐 멈췄을 때 한 번만 — 매 트랜잭션(한글은 자모마다)
+    // 하면 글자마다 모달 전체가 다시 그려진다. 저장·미리보기 직전엔 flushContent 로 즉시 맞춘다
+    onUpdate: () => {
+      window.clearTimeout(contentSyncTimer.current)
+      contentSyncTimer.current = window.setTimeout(flushContent, CONTENT_SYNC_MS)
+    },
   })
   const editorRef = useRef<Editor | null>(editor)
   editorRef.current = editor
+  const contentSyncTimer = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(contentSyncTimer.current), [])
+
+  /** 미뤄 둔 본문 동기화를 지금 끝내고 최신 본문을 돌려준다 */
+  function flushContent(): string {
+    window.clearTimeout(contentSyncTimer.current)
+    const e = editorRef.current
+    if (!e) return draft.content || ''
+    const content = docToMarkup(e.state.doc)
+    patch({ content })
+    return content
+  }
 
   /** 템플릿·자동 저장본 복구처럼 본문을 통째로 바꿀 때 */
   const replaceBody = (content: string) => {
+    window.clearTimeout(contentSyncTimer.current)
     editor?.commands.setContent(markupToDoc(content), { emitUpdate: false })
     patch({ content })
   }
@@ -187,7 +207,9 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   }
 
   const handleSave = async () => {
-    if (!draft.title || !draft.author || !draft.content) {
+    const content = flushContent()
+    const payload = { ...draft, content }
+    if (!payload.title || !payload.author || !content) {
       showToast(ko ? '제목, 작성자, 내용은 필수입니다' : 'Title, author and content are required', 'error')
       return
     }
@@ -195,12 +217,12 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
     setSaving(true)
     try {
       if (draft.id) {
-        const updated = await updateColumn(draft.id, draft)
+        const updated = await updateColumn(draft.id, payload)
         showToast(ko ? '목양컬럼이 수정되었습니다' : 'Column updated', 'success')
         clearDraft()
         onSaved(updated, false)
       } else {
-        const created = await createColumn(draft as CreateColumnRequest)
+        const created = await createColumn(payload as CreateColumnRequest)
         showToast(ko ? '목양컬럼이 추가되었습니다' : 'Column added', 'success')
         clearDraft()
         onSaved(created, true)
@@ -378,8 +400,14 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   }
 
   // ── 상태줄 수치 ───────────────────────────────────────────────────
-  const plainLength = useMemo(() => columnPlainText(draft.content || '').replace(/\s/g, '').length, [draft.content])
-  const minutes = draft.content ? readingMinutes(draft.content) : 0
+  const { plainLength, minutes } = useMemo(() => {
+    const plain = columnPlainText(draft.content || '')
+    // 같은 평문 파싱을 두 번 돌리지 않게 글자 수·분량을 함께 구한다
+    return {
+      plainLength: plain.replace(/\s/g, '').length,
+      minutes: draft.content ? minutesForPlainLength(plain.length) : 0,
+    }
+  }, [draft.content])
   const savedLabel = savedAt
     ? savedAt.toLocaleTimeString(ko ? 'ko-KR' : 'en-US', { hour: 'numeric', minute: '2-digit' })
     : null
@@ -733,6 +761,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
                     type="button"
                     aria-pressed={on}
                     onClick={() => {
+                      if (tab === 'preview') flushContent()
                       setView(tab)
                       setHighlight(null)
                     }}

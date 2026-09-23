@@ -19,7 +19,6 @@ const PastorReport = () => {
     queryKey: ['pastor-report', week],
     queryFn: () => fetchWeeklyReport(week),
     enabled: pastor,
-    refetchOnMount: 'always',
     // 주를 넘길 때 스피너 대신 이전 주를 잠깐 유지 — 화면이 덜컹이지 않게
     placeholderData: keepPreviousData,
   })

@@ -44,11 +44,11 @@ const ProfileEditor = ({ memberId, memberName, profile, districtSuggestions, onC
       }),
     onSuccess: () => {
       showToast('명부를 저장했습니다', 'success')
-      void qc.invalidateQueries({ queryKey: ['pastor-member', memberId], refetchType: 'all' })
-      void qc.invalidateQueries({ queryKey: ['pastor-roster'], refetchType: 'all' })
-      void qc.invalidateQueries({ queryKey: ['pastor-home'], refetchType: 'all' })
-      void qc.invalidateQueries({ queryKey: ['pastor-suggestions'], refetchType: 'all' })
-      void qc.invalidateQueries({ queryKey: ['pastor-briefing', memberId], refetchType: 'all' })
+      void qc.invalidateQueries({ queryKey: ['pastor-member', memberId] })
+      void qc.invalidateQueries({ queryKey: ['pastor-roster'] })
+      void qc.invalidateQueries({ queryKey: ['pastor-home'] })
+      void qc.invalidateQueries({ queryKey: ['pastor-suggestions'] })
+      void qc.invalidateQueries({ queryKey: ['pastor-briefing', memberId] })
       onClose()
     },
     onError: (e: Error) => showToast(e.message, 'error'),

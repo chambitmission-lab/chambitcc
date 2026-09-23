@@ -52,8 +52,10 @@ export const formatLetterDate = (dateStr: string, language: string): string => {
 }
 
 /** 한국어 평균 묵독 속도(분당 약 500자) 기준 읽기 시간 */
-export const readingMinutes = (content: string): number =>
-  Math.max(1, Math.round(columnPlainText(content).length / 500))
+/** 읽기 시간 — 평문 글자 수 기준(500자/분) */
+export const minutesForPlainLength = (length: number): number => Math.max(1, Math.round(length / 500))
+
+export const readingMinutes = (content: string): number => minutesForPlainLength(columnPlainText(content).length)
 
 /** 읽기 시간 라벨 — 목록은 짧게(분), 피처드·본문은 "min read" */
 export const readingLabel = (content: string, language: string, long = false): string => {

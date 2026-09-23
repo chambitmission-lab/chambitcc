@@ -81,7 +81,6 @@ const PastorSchedule = () => {
     queryKey: ['pastor-agenda'],
     queryFn: fetchAgenda,
     enabled: pastor,
-    refetchOnMount: 'always',
   })
 
   const groups = useMemo(() => {
