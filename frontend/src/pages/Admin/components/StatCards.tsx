@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-export const AdminPageHeader = ({ title }: { title: string }) => {
+export const AdminPageHeader = ({ title, badge = 'ADMIN' }: { title: string; badge?: string }) => {
   const navigate = useNavigate()
   return (
     <div className="sticky top-0 lg:static lg:rounded-t-3xl z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
@@ -15,7 +15,7 @@ export const AdminPageHeader = ({ title }: { title: string }) => {
       </button>
       <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">{title}</h1>
       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
-        ADMIN
+        {badge}
       </span>
     </div>
   )

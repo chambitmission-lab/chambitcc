@@ -216,6 +216,7 @@ const IntercessionManagement = lazy(() => import('./pages/Admin/IntercessionMana
 const OrganizationManagement = lazy(() => import('./pages/Admin/OrganizationManagement'))
 const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
 const CareRadar = lazy(() => import('./pages/Admin/CareRadar'))
+const PastorHome = lazy(() => import('./pages/Pastor/PastorHome'))
 const BibleEngagementManagement = lazy(() => import('./pages/Admin/BibleEngagementManagement'))
 const WeeklyPrayerManagement = lazy(() => import('./pages/Admin/WeeklyPrayerManagement'))
 const ChatbotManagement = lazy(() => import('./pages/Admin/ChatbotManagement'))
@@ -392,6 +393,8 @@ function App() {
                 <Route path="/account" element={<AccountSettings />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/care" element={<CareRadar />} />
+                <Route path="/pastor" element={<PastorHome />} />
+                <Route path="/pastor/care" element={<CareRadar scope="pastor" />} />
                 <Route path="/admin/notifications" element={<NotificationManagement />} />
                 <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
                 <Route path="/admin/bulletins" element={<BulletinManagement />} />

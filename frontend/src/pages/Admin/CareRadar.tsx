@@ -4,13 +4,14 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { showToast } from '../../utils/toast'
 import {
   fetchCareRadar,
+  fetchPastorCareRadar,
   type CareRadarData,
   type NewcomerMember,
   type QuietMember,
 } from '../../api/admin'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { AdminPageHeader, EmptyHint, SectionCard, StatSpinner } from './components/StatCards'
-import { can } from '../../utils/access'
+import { can, isPastor } from '../../utils/access'
 
 type Tab = 'quiet' | 'newcomers'
 
@@ -28,22 +29,24 @@ const TABS: Array<{ key: Tab; label: string }> = [
 // 명단은 넓은 좌측 칼럼에서 2열로 — 이름만 보고 훑는 화면이라 밀도가 높을수록 낫다
 const MEMBER_LIST_CLS = 'space-y-1.5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-1.5'
 
-const CareRadar = () => {
+/** scope='pastor' — 목회자 영역(/pastor/care)에서 같은 화면을 목회자 권한으로 연다 */
+const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
   const navigate = useNavigate()
-  const admin = can('admin:access')
+  const pastorScope = scope === 'pastor'
+  const admin = pastorScope ? isPastor() : can('admin:access')
   const [quietDays, setQuietDays] = useState(21)
   const [tab, setTab] = useState<Tab>('quiet')
 
   useEffect(() => {
     if (!admin) {
-      showToast('관리자 권한이 필요합니다', 'error')
+      showToast(pastorScope ? '목회자 권한이 필요합니다' : '관리자 권한이 필요합니다', 'error')
       navigate('/')
     }
-  }, [admin, navigate])
+  }, [admin, pastorScope, navigate])
 
   const { data, isPending, isError } = useQuery<CareRadarData>({
-    queryKey: ['admin-care-radar', quietDays],
-    queryFn: () => fetchCareRadar(quietDays),
+    queryKey: [pastorScope ? 'pastor-care-radar' : 'admin-care-radar', quietDays],
+    queryFn: () => (pastorScope ? fetchPastorCareRadar : fetchCareRadar)(quietDays),
     enabled: admin,
     // 기준 기간을 바꿀 때 스피너 대신 이전 목록을 유지해 깜빡임 방지
     placeholderData: keepPreviousData,
@@ -59,7 +62,7 @@ const CareRadar = () => {
     // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 레일 sticky 가 산다.
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
-        <AdminPageHeader title="돌봄 레이더" />
+        <AdminPageHeader title="돌봄 레이더" badge={pastorScope ? 'PASTOR' : 'ADMIN'} />
 
         {/* PC(lg+) 2단 — 좌: 성도 명단 / 우: 안내·탭·요약이 sticky.
             래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 동일하다. */}

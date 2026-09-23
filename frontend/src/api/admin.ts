@@ -161,6 +161,13 @@ export const fetchCareRadar = (quietDays: number): Promise<CareRadarData> =>
     '돌봄 레이더를 불러오는데 실패했습니다'
   )
 
+/** 목회자 영역용 — 같은 데이터를 목회자 권한(is_pastor)으로 받는다 */
+export const fetchPastorCareRadar = (quietDays: number): Promise<CareRadarData> =>
+  adminGet(
+    `/pastor/care-radar?quiet_days=${quietDays}`,
+    '돌봄 레이더를 불러오는데 실패했습니다'
+  )
+
 // 관리자용 그룹 삭제
 export const deleteAdminGroup = async (groupId: number): Promise<void> => {
   await requestRaw(`/admin/groups/${groupId}`, {
