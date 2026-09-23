@@ -1,0 +1,134 @@
+/* 편지 편집기(Tiptap) 본문 — 읽기 화면(ColumnLetter)의 블록 모양을 글자 크기(--ce-fs) 비례로 옮겨 온 것.
+   "쓰는 화면 = 성도님이 읽는 화면" 이 되도록 간격·색·서체를 맞추되, 크기만 목사님 눈에 맞춰 키운다. */
+
+.ce-editor .ProseMirror {
+  outline: none;
+  min-height: 42vh;
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+  font-size: var(--ce-fs, 20px);
+  line-height: 1.95;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  caret-color: var(--brand);
+}
+
+.ce-editor .ProseMirror > :first-child {
+  margin-top: 0;
+}
+
+.ce-editor .ProseMirror p {
+  margin: 0 0 1.6em;
+}
+
+.ce-editor .ProseMirror h2 {
+  margin: 2.4em 0 0.85em;
+  font-size: calc(var(--ce-fs, 20px) + 4px);
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+}
+
+.ce-editor .ProseMirror blockquote {
+  margin: 1.8em 0;
+  padding: 0.1em 0 0.1em 1.2em;
+  border-left: 3px solid var(--brand-muted);
+}
+.ce-editor .ProseMirror blockquote p {
+  margin: 0;
+  line-height: 1.85;
+}
+.ce-editor .ProseMirror blockquote p.is-cite {
+  margin-top: 0.55em;
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  font-size: max(14px, calc(var(--ce-fs, 20px) * 0.76));
+  color: var(--text-muted);
+}
+
+.ce-editor .ProseMirror .ce-callout {
+  margin: 1.8em 0;
+  padding: 0.9em 1.2em;
+  border-radius: 16px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+}
+.ce-editor .ProseMirror .ce-callout p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+.ce-editor .ProseMirror ul,
+.ce-editor .ProseMirror ol {
+  margin: 1.5em 0;
+  padding-left: 1.5em;
+}
+.ce-editor .ProseMirror ul {
+  list-style-type: '·  ';
+}
+.ce-editor .ProseMirror li {
+  margin: 0.45em 0;
+}
+.ce-editor .ProseMirror li p {
+  margin: 0;
+}
+.ce-editor .ProseMirror li::marker {
+  color: var(--brand-muted);
+  font-weight: 600;
+}
+
+/* 구분선 — 읽기 화면처럼 점 세 개(딩거스) */
+.ce-editor .ProseMirror hr {
+  width: 4px;
+  height: 4px;
+  margin: 2.6em auto;
+  border: none;
+  border-radius: 50%;
+  background: var(--brand-muted);
+  box-shadow: -14px 0 0 var(--brand-muted), 14px 0 0 var(--brand-muted);
+  opacity: 0.6;
+  cursor: pointer;
+}
+.ce-editor .ProseMirror hr.ProseMirror-selectednode {
+  outline: 3px solid var(--brand);
+  outline-offset: 10px;
+  opacity: 1;
+}
+
+.ce-editor .ProseMirror .ce-hl {
+  color: var(--text-strong);
+}
+
+/* 사진 블록 */
+.ce-editor .ProseMirror .ce-figure {
+  margin: 2em 0;
+}
+.ce-editor .ce-figcaption-input {
+  display: block;
+  width: 100%;
+  margin-top: 0.5em;
+  padding: 0.35em 0.5em;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  background: transparent;
+  text-align: center;
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  font-size: max(14px, calc(var(--ce-fs, 20px) * 0.72));
+  color: var(--text-muted);
+  outline: none;
+}
+.ce-editor .ce-figcaption-input:hover,
+.ce-editor .ce-figcaption-input:focus {
+  border-bottom-color: var(--brand-muted);
+}
+
+/* 빈 편지 안내 문구 */
+.ce-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  white-space: pre-line;
+  color: var(--text-muted);
+  opacity: 0.75;
+  pointer-events: none;
+}

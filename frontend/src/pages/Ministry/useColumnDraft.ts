@@ -30,12 +30,18 @@ export const useColumnDraft = (initial: Partial<Column>, draft: Partial<Column>)
     return saved && isMeaningfullyDifferent(saved, initial) ? saved : null
   })
   const timerRef = useRef<number | undefined>(undefined)
+  // 마지막으로 브라우저에 맡긴 시각 — 편집기 상태줄의 "자동 저장됨" 표시용
+  const [savedAt, setSavedAt] = useState<Date | null>(null)
+  const firstRunRef = useRef(true)
 
   useEffect(() => {
     window.clearTimeout(timerRef.current)
     timerRef.current = window.setTimeout(() => {
       try {
         localStorage.setItem(key, JSON.stringify(draft))
+        // 열자마자 한 번 도는 저장은 "자동 저장됨"으로 알리지 않는다 — 아직 쓴 게 없다
+        if (firstRunRef.current) firstRunRef.current = false
+        else setSavedAt(new Date())
       } catch {
         /* 용량 초과 등은 무시 — 자동 저장은 어디까지나 보조 장치 */
       }
@@ -56,6 +62,7 @@ export const useColumnDraft = (initial: Partial<Column>, draft: Partial<Column>)
     /** 복구를 제안할 자동 저장본 (없으면 null) */
     pendingRestore,
     dismissRestore: () => setPendingRestore(null),
+    savedAt,
     clearDraft,
   }
 }

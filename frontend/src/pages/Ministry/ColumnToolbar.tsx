@@ -1,20 +1,21 @@
-// 본문 서식 바 — 줄머리 마커를 손으로 외우지 않아도 되게 한다.
+// 편지 편집기 서식 바 — 아이콘 아래에 이름을 함께 적고, PC 에서는 크게 키운다(돋보기 없이 읽히도록).
 // 아이콘은 인라인 SVG(스트로크 1.8) — 아이콘 서브셋을 다시 만들지 않아도 되고,
 // 앱의 선화 아이콘 문법(ActionIcons)과 톤이 맞는다.
 
 import type { ReactNode } from 'react'
-import type { LinePrefixKey } from './blockFormat'
+import { useEditorState, type Editor } from '@tiptap/react'
 
 interface ColumnToolbarProps {
   language: string
-  onPrefix: (key: LinePrefixKey) => void
-  onDivider: () => void
+  editor: Editor
   onImage: () => void
   onHighlight: () => void
   /** 업로드 중이면 사진 버튼을 잠근다 */
   uploading?: boolean
   /** 하이라이트 팝오버 — 버튼 기준으로 위치를 잡아야 해서 부모가 넘긴다 */
   highlightSlot?: ReactNode
+  /** 오른쪽 끝(글자 크기 조절 등) */
+  trailing?: ReactNode
 }
 
 const svgProps = {
@@ -27,6 +28,8 @@ const svgProps = {
 }
 
 const ICONS: Record<string, ReactNode> = {
+  undo: <path d="M7.5 5L4 8.5 7.5 12M4.5 8.5h7a4.5 4.5 0 010 9H9" />,
+  redo: <path d="M12.5 5L16 8.5 12.5 12M15.5 8.5h-7a4.5 4.5 0 000 9H11" />,
   heading: <path d="M5 4.5v11M13 4.5v11M5 10h8" />,
   quote: (
     <>
@@ -69,75 +72,118 @@ const ICONS: Record<string, ReactNode> = {
 }
 
 const Glyph = ({ name }: { name: string }) => (
-  <svg width="18" height="18" {...svgProps} aria-hidden="true">
+  <svg {...svgProps} aria-hidden="true" className="w-[18px] h-[18px] lg:w-[22px] lg:h-[22px]">
     {ICONS[name]}
   </svg>
 )
 
-const ColumnToolbar = ({
-  language,
-  onPrefix,
-  onDivider,
-  onImage,
-  onHighlight,
-  uploading,
-  highlightSlot,
-}: ColumnToolbarProps) => {
+const Sep = () => <span className="w-px h-8 lg:h-10 bg-border-light dark:bg-white/[0.1] mx-1 lg:mx-2 flex-shrink-0"></span>
+
+const ColumnToolbar = ({ language, editor, onImage, onHighlight, uploading, highlightSlot, trailing }: ColumnToolbarProps) => {
   const ko = language === 'ko'
 
-  /* 아이콘만으로는 무슨 서식인지 알기 어려워 아래에 이름을 함께 적는다.
-     label 은 짧은 표시용, title 은 단축키까지 담은 툴팁. */
+  // 커서가 어느 블록에 있는지 — 해당 버튼을 눌린 상태로 보여 준다
+  const state = useEditorState({
+    editor,
+    selector: ({ editor: e }) => ({
+      heading: e.isActive('heading'),
+      quote: e.isActive('blockquote'),
+      callout: e.isActive('callout'),
+      bullet: e.isActive('bulletList'),
+      ordered: e.isActive('orderedList'),
+      highlight: e.isActive('columnHighlight'),
+      canUndo: e.can().undo(),
+      canRedo: e.can().redo(),
+    }),
+  })
+
+  const chain = () => editor.chain().focus()
+
   const button = (
     name: string,
     label: string,
     onClick: () => void,
-    disabled = false,
-    title = label,
+    { active = false, disabled = false, title = label }: { active?: boolean; disabled?: boolean; title?: string } = {},
   ) => (
     <button
       key={name}
       type="button"
-      // 클릭 순간 textarea 의 선택 영역을 잃지 않도록
+      // 클릭 순간 본문의 선택 영역을 잃지 않도록
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       disabled={disabled}
       title={title}
       aria-label={title}
-      className="min-w-[46px] px-1.5 py-1 flex flex-col items-center justify-center gap-0.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-[var(--brand-soft)] hover:text-[var(--brand)] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+      aria-pressed={active}
+      className={`flex-shrink-0 min-w-[46px] lg:min-w-[62px] px-1.5 lg:px-2 py-1 lg:py-1.5 flex flex-col items-center justify-center gap-0.5 lg:gap-1 rounded-xl transition-colors disabled:opacity-35 disabled:hover:bg-transparent ${
+        active
+          ? 'bg-[var(--brand-soft-strong)] text-[var(--brand)]'
+          : 'text-gray-600 dark:text-gray-300 hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]'
+      }`}
     >
       <Glyph name={name} />
-      <span className="text-[10px] font-semibold leading-none tracking-[-0.02em]">{label}</span>
+      <span className="text-[10px] lg:text-[13px] font-semibold leading-none tracking-[-0.02em] whitespace-nowrap">{label}</span>
     </button>
   )
 
   return (
-    <div className="sticky top-0 z-20 -mx-1 px-1 py-2 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md flex items-center gap-0.5 flex-wrap">
-      {button('heading', ko ? '소제목' : 'Heading', () => onPrefix('heading'))}
-      {button('quote', ko ? '인용·성구' : 'Quote', () => onPrefix('quote'))}
-      {button('callout', ko ? '강조상자' : 'Callout', () => onPrefix('callout'))}
+    <div className="flex items-center gap-0.5 lg:gap-1 overflow-x-auto lg:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="hidden lg:contents">
+        {button('undo', ko ? '되돌리기' : 'Undo', () => chain().undo().run(), {
+          disabled: !state.canUndo,
+          title: ko ? '되돌리기 (⌘Z)' : 'Undo (⌘Z)',
+        })}
+        {button('redo', ko ? '다시' : 'Redo', () => chain().redo().run(), {
+          disabled: !state.canRedo,
+          title: ko ? '다시 하기 (⇧⌘Z)' : 'Redo (⇧⌘Z)',
+        })}
+        <Sep />
+      </div>
 
-      <span className="w-px h-8 bg-border-light dark:bg-white/[0.1] mx-1.5"></span>
+      {button('heading', ko ? '소제목' : 'Heading', () => chain().toggleHeading({ level: 2 }).run(), {
+        active: state.heading,
+        title: ko ? '소제목 — 줄 앞에 "## " 를 쳐도 됩니다' : 'Heading — or type "## "',
+      })}
+      {button('quote', ko ? '인용·성구' : 'Quote', () => chain().toggleBlockquote().run(), {
+        active: state.quote,
+        title: ko ? '인용·성구 — 마지막 줄을 "— 시편 23:1" 처럼 쓰면 출처가 됩니다' : 'Quote — end with "— Psalm 23:1" for a citation',
+      })}
+      {button('callout', ko ? '강조상자' : 'Callout', () => chain().toggleCallout().run(), {
+        active: state.callout,
+        title: ko ? '강조 상자 — 줄 앞에 ":: " 를 쳐도 됩니다' : 'Callout — or type ":: "',
+      })}
 
-      {button('bullet', ko ? '목록' : 'List', () => onPrefix('bullet'), false, ko ? '목록' : 'Bullet list')}
-      {button('ordered', ko ? '번호목록' : 'Numbers', () => onPrefix('ordered'), false, ko ? '번호 목록' : 'Numbered list')}
-      {button('divider', ko ? '구분선' : 'Divider', onDivider)}
+      <Sep />
 
-      <span className="w-px h-8 bg-border-light dark:bg-white/[0.1] mx-1.5"></span>
+      {button('bullet', ko ? '목록' : 'List', () => chain().toggleBulletList().run(), {
+        active: state.bullet,
+        title: ko ? '목록 — 줄 앞에 "- " 를 쳐도 됩니다' : 'Bullet list — or type "- "',
+      })}
+      {button('ordered', ko ? '번호목록' : 'Numbers', () => chain().toggleOrderedList().run(), {
+        active: state.ordered,
+        title: ko ? '번호 목록 — 줄 앞에 "1. " 을 쳐도 됩니다' : 'Numbered list — or type "1. "',
+      })}
+      {button('divider', ko ? '구분선' : 'Divider', () => chain().setHorizontalRule().run(), {
+        title: ko ? '구분선 — "---" 를 쳐도 됩니다' : 'Divider — or type "---"',
+      })}
 
-      {button('image', ko ? '사진' : 'Photo', onImage, uploading, ko ? '사진 넣기' : 'Insert photo')}
+      <Sep />
 
-      {/* 하이라이트 팝오버 기준점 — 모바일은 줄바꿈으로 버튼이 왼쪽 끝에 올 수 있어
-          sticky 툴바 전체 폭을 기준으로 삼고, sm 이상에서만 버튼에 붙인다 */}
-      <div className="sm:relative">
-        {button(
-          'highlight',
-          ko ? '형광펜' : 'Highlight',
-          onHighlight,
-          false,
-          ko ? '형광펜 (⌘H)' : 'Highlight (⌘H)',
-        )}
+      {button('image', ko ? '사진' : 'Photo', onImage, {
+        disabled: uploading,
+        title: ko ? '사진 넣기 — 사진 파일을 본문에 끌어다 놓거나 붙여 넣어도 됩니다' : 'Insert photo — or drop / paste an image',
+      })}
+
+      {/* 하이라이트 팝오버 기준점 — 모바일은 가로 스크롤 서식 바라 부모(툴바 줄 전체)를 기준으로 삼는다 */}
+      <div className="lg:relative flex-shrink-0">
+        {button('highlight', ko ? '형광펜' : 'Highlight', onHighlight, {
+          active: state.highlight,
+          title: ko ? '형광펜 (⌘H) — 문구를 드래그한 뒤 누르세요' : 'Highlight (⌘H) — select text first',
+        })}
         {highlightSlot}
       </div>
+
+      {trailing && <div className="hidden lg:flex ml-auto items-center pl-3">{trailing}</div>}
     </div>
   )
 }

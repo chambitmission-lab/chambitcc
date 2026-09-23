@@ -118,27 +118,3 @@ export const renderHighlightedText = (text: string): ReactNode[] =>
 /** 목록·복사용: 마커 제거하고 문구만 */
 export const removeHighlightTags = (text: string): string =>
   text.replace(/\[\[([\s\S]*?)\]\]/g, (_, inner: string) => inner.split('|')[0])
-
-/**
- * 선택 범위가 기존 마커와 겹치면 그 마커 전체 범위로 확장하고, 안쪽 문구만 남긴다.
- * 반환: 새 선택 범위 + 순수 문구 (재적용/스타일 교체용)
- */
-export const expandSelectionOverMarkup = (
-  value: string,
-  start: number,
-  end: number,
-): { start: number; end: number; text: string } => {
-  const re = /\[\[[\s\S]*?\]\]/g
-  let m: RegExpExecArray | null
-  let s = start
-  let e = end
-  while ((m = re.exec(value))) {
-    const ms = m.index
-    const me = ms + m[0].length
-    if (ms < e && me > s) {
-      s = Math.min(s, ms)
-      e = Math.max(e, me)
-    }
-  }
-  return { start: s, end: e, text: removeHighlightTags(value.slice(s, e)) }
-}
