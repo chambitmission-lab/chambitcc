@@ -50,9 +50,14 @@ const EventAlbumSection = () => {
     [selectedTag, selectedYear],
   )
 
-  const { posts, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage, error } =
-    useEventAlbumPosts(filter, 10, isLoggedIn)
   const { data: stats } = useEventAlbumStats(isLoggedIn)
+  // 연도 없이 태그만 골랐고 통계상 그 태그가 0건이면 서버에 물을 것도 없다 — 바로 빈 화면
+  const knownEmpty =
+    selectedYear === null && selectedTag !== null && !!stats && (stats.tags?.[selectedTag] ?? 0) === 0
+  const { posts, isLoading, isPlaceholderData, hasNextPage, isFetchingNextPage, fetchNextPage, error } =
+    useEventAlbumPosts(filter, 10, isLoggedIn && !knownEmpty)
+  // 필터를 바꾼 직후 — 새 결과가 오기 전까지 직전 목록을 흐리게 남겨 둔다
+  const switching = isPlaceholderData && !knownEmpty
   const { data: onThisDay } = useEventAlbumOnThisDay(isLoggedIn)
   const { toggleReaction } = useToggleEventAlbumReaction(toastFeedback({ error: t('newsEaReactionFailed') }))
 
@@ -247,8 +252,14 @@ const EventAlbumSection = () => {
         />
       )}
 
-      {/* 목록 */}
-      {isLoading ? (
+      {/* 목록 — 필터 전환 중엔 직전 목록을 흐리게 두고 누르지 못하게 */}
+      <div
+        className={`transition-opacity duration-150 ${switching ? 'opacity-50 pointer-events-none' : ''}`}
+        aria-busy={switching}
+      >
+      {knownEmpty ? (
+        <EmptyState filtered />
+      ) : isLoading && !isPlaceholderData ? (
         <SkeletonFeed />
       ) : error ? (
         <ErrorState message={error instanceof Error ? error.message : t('newsLoadFailed')} />
@@ -303,8 +314,9 @@ const EventAlbumSection = () => {
           ))}
         </div>
       )}
+      </div>
 
-      {hasNextPage && (
+      {hasNextPage && !switching && !knownEmpty && (
         <div className="flex justify-center pt-5">
           <button
             type="button"

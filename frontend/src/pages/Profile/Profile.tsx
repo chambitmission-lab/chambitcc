@@ -288,6 +288,7 @@ const Profile = () => {
           fullName={stats.full_name}
           avatarUrl={stats.avatar_url ?? null}
           glowLevel={glowLevel}
+          churchTitle={stats.church_title ?? null}
         />
 
         {/* ② 신앙의 온도 — 레벨·포인트·활동 스탯을 한 카드로 */}

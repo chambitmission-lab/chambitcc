@@ -1,6 +1,7 @@
 // 행사 앨범 훅 (Single Responsibility: 행사 앨범 데이터 조회/변경)
 // 새가족 훅(useNewFamily)을 미러링하되, 목록은 연도·태그 필터별로 캐시가 갈라진다.
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -87,6 +88,9 @@ export const useEventAlbumPosts = (
     staleTime: 1000 * 60 * 2, // 2분
     // 관리자 등록/수정/삭제는 invalidateEventAlbum으로 즉시 무효화된다
     refetchOnMount: true,
+    // 필터(태그·연도)를 바꾸면 키가 갈라져 매번 스켈레톤으로 비었다가 다시 채워졌다 —
+    // 새 결과가 올 때까지 직전 목록을 그대로 두고(isPlaceholderData 로 흐리게) 한 번에 바꾼다
+    placeholderData: keepPreviousData,
   })
 
   const posts: EventAlbumPost[] = query.data?.pages.flatMap((p) => p.data.items) ?? []

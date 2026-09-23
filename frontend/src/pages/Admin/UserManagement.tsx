@@ -5,6 +5,7 @@ import {
   getUserList,
   updateUserRole,
   updateUserPastor,
+  updateUserChurchTitle,
   updateUserStatus,
   updateUserApproval,
   resetUserPassword,
@@ -15,10 +16,30 @@ import {
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog, alertDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import { CHURCH_TITLES, CLERGY_TITLES } from '../../utils/churchTitles'
 
 type RoleFilter = 'all' | 'admin' | 'user'
 type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
 type SortKey = 'recentLogin' | 'createdAt' | 'name'
+type TitleFilter = 'all' | 'clergy' | 'elder' | 'kwonsa' | 'none'
+
+const TITLE_FILTERS: [TitleFilter, string][] = [
+  ['all', '전체'],
+  ['clergy', '교역자'],
+  ['elder', '장로'],
+  ['kwonsa', '권사'],
+  ['none', '미지정'],
+]
+
+const matchesTitleFilter = (title: string | null | undefined, f: TitleFilter) => {
+  if (f === 'all') return true
+  if (f === 'none') return !title
+  if (!title) return false
+  // 명부에서 '시무장로'·'시무권사'처럼 직접 입력한 값도 같은 묶음으로
+  if (f === 'clergy') return CLERGY_TITLES.includes(title) || title.endsWith('목사') || title.endsWith('전도사')
+  if (f === 'elder') return title.includes('장로')
+  return title.includes('권사')
+}
 
 const UserManagement = () => {
   const navigate = useNavigate()
@@ -27,6 +48,7 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState<RoleFilter>('all')
   const [filterStatus, setFilterStatus] = useState<StatusFilter>('all')
+  const [filterTitle, setFilterTitle] = useState<TitleFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('recentLogin')
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [requireApproval, setRequireApproval] = useState(false)
@@ -142,13 +164,13 @@ const UserManagement = () => {
   const handleTogglePastor = async (userId: number, name: string, currentStatus: boolean) => {
     if (
       !(await confirmDialog({
-        title: currentStatus ? '목회자 지정 해제' : '목회자로 지정',
+        title: currentStatus ? '목회자 권한 해제' : '목회자 권한 주기',
         message: currentStatus
-          ? `${name} 님의 목회자 지정을 해제하시겠습니까?`
-          : `${name} 님을 목회자로 지정하시겠습니까?`,
+          ? `${name} 님의 목회자 권한을 해제하시겠습니까?`
+          : `${name} 님에게 목회자 권한을 주시겠습니까?`,
         description: currentStatus
-          ? "'목사님과 함께'로 올라온 기도를 더 이상 볼 수 없게 됩니다."
-          : "성도님들이 '목사님과 함께'로 나눈 비밀 기도를 읽고 기도·답글할 수 있게 됩니다. 담임목사님·부목사님만 지정해 주세요.",
+          ? "목회자 화면과 '목사님과 함께'로 올라온 기도를 더 이상 볼 수 없게 됩니다. 직분은 그대로 남습니다."
+          : "목회자 화면(성도 명부·심방 기록)과 성도님들이 '목사님과 함께'로 나눈 비밀 기도를 볼 수 있게 됩니다. 교역자에게만 주세요.",
         confirmText: currentStatus ? '해제' : '지정',
         tone: 'warning',
         icon: 'church',
@@ -157,10 +179,41 @@ const UserManagement = () => {
       return
     try {
       await updateUserPastor(userId, !currentStatus)
-      showToast(currentStatus ? '목회자 지정이 해제되었습니다' : '목회자로 지정되었습니다', 'success')
+      showToast(currentStatus ? '목회자 권한을 해제했습니다' : '목회자 권한을 주었습니다', 'success')
       loadUsers()
     } catch {
       showToast('목회자 지정에 실패했습니다', 'error')
+    }
+  }
+
+  const handleChurchTitle = async (user: User, title: string | null) => {
+    const name = user.full_name || user.username
+    // 교역자 직분은 목양 기록 열람 권한까지 켜지므로 한 번 확인한다
+    if (
+      title &&
+      CLERGY_TITLES.includes(title) &&
+      !user.is_pastor &&
+      !(await confirmDialog({
+        title: `${title}(으)로 지정`,
+        message: `${name} 님을 ${title}(으)로 지정하시겠습니까?`,
+        description:
+          "교역자 직분이라 목회자 권한도 함께 켜집니다. 목회자 화면(성도 명부·심방 기록)과 '목사님과 함께' 기도를 볼 수 있게 됩니다.",
+        confirmText: '지정',
+        tone: 'warning',
+        icon: 'church',
+      }))
+    )
+      return
+    try {
+      const res = await updateUserChurchTitle(user.id, title)
+      showToast(res.message, 'success')
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === user.id ? { ...u, church_title: res.user.church_title, is_pastor: res.user.is_pastor } : u,
+        ),
+      )
+    } catch {
+      showToast('직분 지정에 실패했습니다', 'error')
     }
   }
 
@@ -232,7 +285,7 @@ const UserManagement = () => {
         (filterStatus === 'active' && user.is_active) ||
         (filterStatus === 'inactive' && !user.is_active) ||
         (filterStatus === 'pending' && user.approval_status === 'pending')
-      return matchesSearch && matchesRole && matchesStatus
+      return matchesSearch && matchesRole && matchesStatus && matchesTitleFilter(user.church_title, filterTitle)
     })
 
     // 승인 대기는 항상 맨 위로 — 처리해야 할 일이 정렬 기준에 묻히지 않게
@@ -251,9 +304,10 @@ const UserManagement = () => {
       }
       return (a.full_name || a.username).localeCompare(b.full_name || b.username, 'ko')
     })
-  }, [users, searchTerm, filterRole, filterStatus, sortKey])
+  }, [users, searchTerm, filterRole, filterStatus, filterTitle, sortKey])
 
   const adminCount = users.filter(u => u.is_admin).length
+  const pastorCount = users.filter(u => u.is_pastor).length
   const activeCount = users.filter(u => u.is_active).length
   const pendingCount = users.filter(u => u.approval_status === 'pending').length
 
@@ -301,6 +355,7 @@ const UserManagement = () => {
             <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
               <StatChip label="전체" value={users.length} />
               <StatChip label="관리자" value={adminCount} accent />
+              <StatChip label="목회자" value={pastorCount} />
               <StatChip label="활성" value={activeCount} />
               {pendingCount > 0 && <StatChip label="승인 대기" value={pendingCount} warn />}
             </div>
@@ -391,6 +446,13 @@ const UserManagement = () => {
                     ))}
                   </FilterRow>
 
+                  {/* 직분 */}
+                  <FilterRow align="center" label="직분">
+                    {TITLE_FILTERS.map(([v, l]) => (
+                      <FilterChip key={v} active={filterTitle === v} onClick={() => setFilterTitle(v)}>{l}</FilterChip>
+                    ))}
+                  </FilterRow>
+
                   {/* 상태 */}
                   <FilterRow align="center" label="상태">
                     {([['all', '전체'], ['active', '활성'], ['inactive', '비활성'], ['pending', '승인 대기']] as const).map(([v, l]) => (
@@ -439,6 +501,7 @@ const UserManagement = () => {
                     onToggleExpand={() => setExpandedId(prev => (prev === user.id ? null : user.id))}
                     onToggleAdmin={() => handleToggleAdmin(user.id, user.is_admin)}
                     onTogglePastor={() => handleTogglePastor(user.id, user.full_name || user.username, !!user.is_pastor)}
+                    onChurchTitle={title => handleChurchTitle(user, title)}
                     onToggleStatus={() => handleToggleStatus(user.id, user.is_active)}
                     onApproval={(approve) => handleApproval(user.id, approve)}
                     onResetPassword={() => handleResetPassword(user.id, user.full_name || user.username)}
@@ -496,6 +559,7 @@ interface UserRowProps {
   onToggleExpand: () => void
   onToggleAdmin: () => void
   onTogglePastor: () => void
+  onChurchTitle: (title: string | null) => void
   onToggleStatus: () => void
   onApproval: (approve: boolean) => void
   onResetPassword: () => void
@@ -509,6 +573,7 @@ const UserRow = ({
   onToggleExpand,
   onToggleAdmin,
   onTogglePastor,
+  onChurchTitle,
   onToggleStatus,
   onApproval,
   onResetPassword,
@@ -563,6 +628,11 @@ const UserRow = ({
           <span className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
             {user.full_name || user.username}
           </span>
+          {user.church_title && (
+            <span className="text-[12px] font-semibold text-gray-600 dark:text-white/65 shrink-0">
+              {user.church_title}
+            </span>
+          )}
           {user.is_admin && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.05em] shrink-0">
               ADMIN
@@ -570,7 +640,7 @@ const UserRow = ({
           )}
           {user.is_pastor && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand shrink-0">
-              목회자
+              목회자 권한
             </span>
           )}
           {user.approval_status === 'pending' && (
@@ -651,13 +721,16 @@ const UserRow = ({
           />
         </div>
 
-        {/* 목회자 지정 — '목사님과 함께' 기도 열람 권한 (관리자 권한과 별개) · 비밀번호 초기화 */}
+        {/* 직분 — 표시용(성도 명부·본인 프로필). 교역자 직분은 목회자 권한도 함께 켠다 */}
+        <ChurchTitlePicker current={user.church_title ?? null} onPick={onChurchTitle} />
+
+        {/* 목회자 권한 — 목회자 화면·'목사님과 함께' 기도 열람 (직분·관리자 권한과 별개) · 비밀번호 초기화 */}
         <div className="flex gap-2 pt-2">
           <RowAction
             onClick={onTogglePastor}
             accent={!user.is_pastor}
             icon="church"
-            label={user.is_pastor ? '목회자 해제' : '목회자로 지정'}
+            label={user.is_pastor ? '목회자 권한 해제' : '목회자 권한 주기'}
           />
           <RowAction
             onClick={onResetPassword}
@@ -669,6 +742,57 @@ const UserRow = ({
     )}
   </div>
 )
+
+const ChurchTitlePicker = ({
+  current,
+  onPick,
+}: {
+  current: string | null
+  onPick: (title: string | null) => void
+}) => {
+  // 명부에서 직접 입력한 값(예: 시무권사)은 목록에 없어도 선택된 pill 로 보여 준다
+  const options: string[] = [...CHURCH_TITLES]
+  if (current && !options.includes(current)) options.push(current)
+  return (
+    <div className="pt-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-gray-500 dark:text-white/50">직분</span>
+        {current && (
+          <button
+            type="button"
+            onClick={() => onPick(null)}
+            className="text-[12px] font-semibold text-gray-500 dark:text-white/50 hover:text-brand"
+          >
+            지우기
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map(t => {
+          const active = current === t
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => !active && onPick(t)}
+              aria-pressed={active}
+              className={`px-3 py-1.5 rounded-full border text-[12.5px] font-semibold transition-colors ${
+                active
+                  ? 'bg-brand border-brand text-white'
+                  : 'border-gray-200 dark:border-white/[0.1] text-gray-600 dark:text-white/70 hover:border-brand hover:text-brand'
+              }`}
+            >
+              {t}
+            </button>
+          )
+        })}
+      </div>
+      <p className="mt-1.5 text-[12px] text-gray-500 dark:text-white/45 leading-relaxed">
+        담임목사·부목사·강도사·전도사는 목회자 권한이 함께 켜집니다.
+      </p>
+    </div>
+  )
+}
 
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex items-center justify-between gap-2">

@@ -17,6 +17,8 @@ interface ProfileHeaderProps {
   fullName: string
   avatarUrl?: string | null
   glowLevel: GlowLevel
+  /** 직분 — 관리자·교역자가 지정 (예: 장로). 이름 뒤에 붙는다 */
+  churchTitle?: string | null
 }
 
 /**
@@ -32,6 +34,7 @@ const ProfileHeader = ({
   fullName,
   avatarUrl = null,
   glowLevel,
+  churchTitle = null,
 }: ProfileHeaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadAvatar = useUploadAvatar()
@@ -207,11 +210,16 @@ const ProfileHeader = ({
           style={{ wordBreak: 'keep-all' }}
         >
           {titleName ?? fullName}
+          {!titleName && churchTitle && (
+            <span className="ml-1.5 text-[16px] font-semibold text-gray-500 dark:text-white/55">{churchTitle}</span>
+          )}
         </h2>
         {/* 닉네임 + 연필(닉네임 변경 → /account) — 칭호가 아니라 이름을 고치는 버튼임이 드러나도록 이름 바로 옆에 */}
         <div className={`flex items-center justify-center gap-1 ${titleName ? 'mt-1' : 'mt-1.5'}`}>
           {titleName && (
-            <p className="m-0 text-[13px] font-semibold text-gray-500 dark:text-white/55">{fullName}</p>
+            <p className="m-0 text-[13px] font-semibold text-gray-500 dark:text-white/55">
+              {churchTitle ? `${fullName} ${churchTitle}` : fullName}
+            </p>
           )}
           <button
             type="button"

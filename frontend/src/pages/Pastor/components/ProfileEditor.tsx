@@ -5,9 +5,10 @@ import { showToast } from '../../../utils/toast'
 import { saveMemberProfile, type MemberProfile } from '../../../api/pastor'
 import { FieldLabel, GhostButton, PastorModal, PrimaryButton } from './ui'
 import { inputCls } from './pastorUtils'
+import { CHURCH_TITLES } from '../../../utils/churchTitles'
 
-// 자주 쓰는 직분은 pill 로, 그 밖은 직접 입력
-const COMMON_TITLES = ['성도', '서리집사', '안수집사', '권사', '장로', '청년', '학생']
+// 자주 쓰는 직분은 pill 로(관리자 회원관리와 같은 목록 + 청년·학생), 그 밖은 직접 입력
+const COMMON_TITLES = [...CHURCH_TITLES, '청년', '학생']
 
 interface Props {
   memberId: number
@@ -69,11 +70,11 @@ const ProfileEditor = ({ memberId, memberName, profile, districtSuggestions, onC
       }
     >
       <p className="text-[12px] text-gray-600 dark:text-white/60 leading-relaxed">
-        교역자 모두가 함께 보고 고치는 정보입니다. 성도님 본인에게는 보이지 않습니다.
+        교역자 모두가 함께 보고 고치는 정보입니다. 성도님 본인에게는 직분만 보이고 나머지는 보이지 않습니다.
       </p>
 
       <div>
-        <FieldLabel>직분</FieldLabel>
+        <FieldLabel hint="본인 프로필에도 보입니다">직분</FieldLabel>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {COMMON_TITLES.map(t => (
             <button

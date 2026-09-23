@@ -5,6 +5,7 @@ export interface ProfileStats {
   username: string
   full_name: string
   avatar_url?: string | null // 프로필 사진 (미등록 시 null → 이니셜 아바타)
+  church_title?: string | null // 직분 — 관리자·교역자가 지정 (구버전 백엔드엔 없음)
   activity: {
     this_week_count: number
     total_count: number

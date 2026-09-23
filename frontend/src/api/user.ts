@@ -10,6 +10,8 @@ export interface User {
   is_admin: boolean
   /** 목회자(담임·부목사) — '목사님과 함께'로 올라온 기도를 읽을 수 있는 유일한 자격 (관리자와 별개) */
   is_pastor?: boolean
+  /** 직분 — 성도 명부(member_profiles)와 같은 칸. 담임목사·강도사·장로·권사… */
+  church_title?: string | null
   is_active: boolean
   approval_status: ApprovalStatus
   approved_at?: string | null
@@ -64,6 +66,19 @@ export const updateUserPastor = async (
     auth: 'required',
     json: { is_pastor: isPastor },
     errorMessage: '목회자 지정에 실패했습니다',
+  })
+}
+
+/** 직분 지정 — null 이면 지우기. 교역자 직분이면 서버가 목회자 권한도 함께 켠다 */
+export const updateUserChurchTitle = async (
+  userId: number,
+  churchTitle: string | null
+): Promise<{ message: string; user: { id: number; church_title: string | null; is_pastor: boolean } }> => {
+  return request(`/admin/users/${userId}/church-title`, {
+    method: 'PATCH',
+    auth: 'required',
+    json: { church_title: churchTitle },
+    errorMessage: '직분 지정에 실패했습니다',
   })
 }
 
