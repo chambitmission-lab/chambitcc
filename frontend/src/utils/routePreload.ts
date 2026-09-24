@@ -105,6 +105,8 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'classes/detail', match: /^\/classes\/[^/]+$/, load: () => import('../pages/ClassRoom/ClassHome') },
   // 프로필 스토리 카드 목적지 — 메뉴 테이블에 없어 청크 프리로드 대상이 아니었다
   { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
+  // 발자취 시범 화면 — 기존 /history 상단 배너로만 들어오므로 메뉴 프리로드에 넣지 않는다
+  { key: 'history/new', match: /^\/history\/new$/, load: () => import('../pages/History/labs/HistoryLab') },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
   { key: 'seats/detail', match: /^\/seats\/[^/]+$/, load: () => import('../pages/Seats/SeatEventDetail') },
   // 선거는 메뉴에 없다(선거인에게만 열림) — 홈 배너·링크로만 들어오므로 메뉴 프리로드에 넣지 않는다

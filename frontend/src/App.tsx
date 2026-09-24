@@ -118,6 +118,7 @@ const Visit = lazy(menuRouteLoaders['/visit'])
 const Organization = lazy(menuRouteLoaders['/organization'])
 const People = lazy(menuRouteLoaders['/people'])
 const History = lazy(menuRouteLoaders['/history'])
+const HistoryLab = lazy(() => import('./pages/History/labs/HistoryLab'))
 const TV = lazy(() => import('./pages/TV/TV'))
 const Education = lazy(menuRouteLoaders['/education'])
 const Mission = lazy(menuRouteLoaders['/mission'])
@@ -378,6 +379,8 @@ function App() {
                 <Route path="/organization" element={<Organization />} />
                 <Route path="/people" element={<People />} />
                 <Route path="/history" element={<History />} />
+                {/* 발자취 새 화면 시범 운영 — 성도 의견 수렴 중, 기존 화면은 그대로 유지 */}
+                <Route path="/history/new" element={<HistoryLab />} />
                 <Route path="/tv" element={<TV />} />
                 <Route path="/education" element={<Education />} />
                 <Route path="/mission" element={<Mission />} />
