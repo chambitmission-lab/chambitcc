@@ -40,5 +40,8 @@
 /* 로딩 — 쉘 먼저, 본문만 스켈레톤 */
 @import './styles/meditation-skeleton.css';
 
+/* 핵심 절 대기 — 성경 속 기다림 한 줄 유머 */
+@import './styles/meditation-quip-loader.css';
+
 /* 구절 알람 진입 버튼 · 1분 묵상 이어가기 링크 */
 @import './styles/meditation-links.css';

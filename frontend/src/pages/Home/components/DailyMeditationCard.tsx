@@ -35,6 +35,7 @@ import heroAutumnEvening from '../../../assets/hero/autumn-evening.webp'
 import heroWinterMorning from '../../../assets/hero/winter-morning.webp'
 import heroWinterAfternoon from '../../../assets/hero/winter-afternoon.webp'
 import heroWinterEvening from '../../../assets/hero/winter-evening.webp'
+import WaitingQuipLoader from './WaitingQuipLoader'
 import './DailyMeditationCard.css'
 
 const GREETING_KEYS = {
@@ -661,7 +662,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
            * 자리를 예약해, 데이터 도착 시 레이아웃 시프트 없이 채워지기만 한다 */
           <div className="meditation-content" aria-hidden>
             <div className="meditation-skeleton passage" />
-            <div className="meditation-skeleton quote" />
+            {/* 핵심 절 자리 — 시머 대신 성경 속 "기다림" 한 줄 유머 */}
+            <WaitingQuipLoader />
             <div className="meditation-skeleton question" />
             <div className="meditation-skeleton actions" />
           </div>

@@ -1,0 +1,86 @@
+/* ── 핵심 절 대기 — 성경 속 기다림 한 줄 유머 (WaitingQuipLoader) ──────────
+ * 스켈레톤 quote 자리(172px·18px radius)를 그대로 쓰되, 시머 대신 실제 인용 박스처럼
+ * 명조 한 줄 + 출처를 둔다. 400ms 안에 채워지면 문구가 드러나기 전에 끝난다. */
+/* 바탕은 고정 색이 아니라 반투명 층 — 카드 바탕이 계절 × 시간대 히어로를 따라 톤이
+ * 바뀌므로(가을 아침은 크림, 다크는 갈색 밤 등) 고정 하늘색·남색은 카드와 따로 놀았다.
+ * 흰 막 한 겹 + 왼쪽 위 옅은 브랜드 빛만 얹어 어느 톤 위에서도 카드의 일부로 읽힌다. */
+.meditation-skeleton.quote.waiting-quip {
+  background:
+    radial-gradient(90% 80% at 0% 0%, rgba(49, 130, 246, 0.07), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.55));
+  border-color: rgba(49, 130, 246, 0.12);
+  box-shadow: 0 1px 2px rgba(20, 30, 50, 0.03);
+}
+[data-theme="dark"] .meditation-skeleton.quote.waiting-quip {
+  background:
+    radial-gradient(90% 80% at 0% 0%, rgba(69, 147, 252, 0.1), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+.meditation-skeleton.quote.waiting-quip::after { content: none; }
+
+.waiting-quip-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 20px;
+  animation: waiting-quip-in 0.4s ease-out 0.4s both;
+}
+@keyframes waiting-quip-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.waiting-quip-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.waiting-quip-text {
+  margin: 0;
+  font-family: var(--font-serif-kr);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-strong);
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+
+.waiting-quip-ref {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 준비 중 표시 — 오른쪽 아래 점 세 개가 차례로 숨 쉰다 */
+.waiting-quip-dots {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  display: flex;
+  gap: 5px;
+}
+.waiting-quip-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  opacity: 0.25;
+  animation: waiting-quip-dot 1.2s ease-in-out infinite;
+}
+.waiting-quip-dots i:nth-child(2) { animation-delay: 0.2s; }
+.waiting-quip-dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes waiting-quip-dot {
+  0%, 100% { opacity: 0.25; transform: none; }
+  40% { opacity: 0.9; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waiting-quip-stage,
+  .waiting-quip-dots i { animation: none; }
+}

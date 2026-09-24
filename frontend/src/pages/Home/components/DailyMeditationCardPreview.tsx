@@ -62,8 +62,18 @@ const VERSE_SAMPLES = [
 const DailyMeditationCardPreview = () => {
   const qc = useQueryClient()
   const [sample, setSample] = useState(0)
+  // 로딩 재현 — 캐시를 지우고 카드를 다시 마운트해 기다림 유머 대기부터 본다.
+  // 실제 요청이 나가므로 백엔드가 떠 있거나, 헤드리스 검증처럼 /meditation/today 를 지연 목으로 받아야 한다.
+  const [mountKey, setMountKey] = useState(0)
+  const [loadingDemo, setLoadingDemo] = useState(false)
+  const replayLoading = () => {
+    qc.removeQueries({ queryKey: ['meditation', 'today'] })
+    setLoadingDemo(true)
+    setMountKey((k) => k + 1)
+  }
 
   useEffect(() => {
+    if (loadingDemo) return
     const now = new Date()
     const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     const s = VERSE_SAMPLES[sample]
@@ -71,7 +81,7 @@ const DailyMeditationCardPreview = () => {
       ...MOCK,
       verse: { ...MOCK.verse, reference: s.reference, text: s.text },
     })
-  }, [qc, sample])
+  }, [qc, sample, loadingDemo])
 
   // 캐시가 채워지기 전 첫 프레임은 카드 자체의 스켈레톤이 받는다
   return (
@@ -81,7 +91,10 @@ const DailyMeditationCardPreview = () => {
           <button
             key={s.key}
             type="button"
-            onClick={() => setSample(i)}
+            onClick={() => {
+              setLoadingDemo(false)
+              setSample(i)
+            }}
             style={{
               flex: 1,
               padding: '6px 8px',
@@ -96,8 +109,22 @@ const DailyMeditationCardPreview = () => {
             {s.key}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={replayLoading}
+          style={{
+            padding: '6px 10px',
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 700,
+            border: '1px solid var(--brand-soft-strong)',
+            color: 'var(--brand)',
+          }}
+        >
+          로딩 재현
+        </button>
       </div>
-      <DailyMeditationCard onWriteMeditation={() => {}} />
+      <DailyMeditationCard key={mountKey} onWriteMeditation={() => {}} />
     </div>
   )
 }
