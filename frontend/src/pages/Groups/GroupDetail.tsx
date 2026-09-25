@@ -283,7 +283,7 @@ const GroupDetail = () => {
 
         {/* 탭 바(모바일) — PC는 상단 바에 인라인 */}
         {group.is_member && (
-          <div className="sticky top-0 z-40 bg-surface border-b border-border-light dark:border-border-dark px-4 lg:hidden">
+          <div className="sticky top-14 z-40 bg-surface border-b border-border-light dark:border-border-dark px-4 lg:hidden">
             {renderTabs('bar')}
           </div>
         )}
@@ -525,7 +525,7 @@ const GroupDetail = () => {
 
       {/* 우측 위젯 레일 (lg+) — 본문 헤더(lg:hidden)를 대신하는 방 카드 + 방의 근황
           (최근 기도·최근 활동·멤버 미리보기·다음 모임·함께 기도 시간) */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
         <section className="rounded-2xl p-5 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
           <div className="flex items-start gap-3">
             <div className="shrink-0 w-[68px] h-[68px] rounded-[1.25rem] bg-brand flex items-center justify-center text-white shadow-[0_10px_24px_-8px_var(--brand-glow)]">

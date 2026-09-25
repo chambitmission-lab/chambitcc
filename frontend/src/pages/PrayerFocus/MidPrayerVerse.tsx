@@ -44,11 +44,11 @@ const MidPrayerVerse = ({ show, verseText, verseRef, visibleMs = 9000, onHide }:
         mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       }`}
     >
-      <p className="font-serif italic text-white/90 text-base md:text-lg leading-relaxed max-w-md">
+      <p className="font-serif italic text-white/90 text-base md:text-lg lg:text-[22px] leading-relaxed max-w-md lg:max-w-xl">
         "{text}"
       </p>
       {verseRef && (
-        <p className="mt-2.5 text-white/45 text-xs tracking-widest">— {verseRef}</p>
+        <p className="mt-2.5 text-white/45 text-xs lg:text-[14px] lg:text-white/65 tracking-widest">— {verseRef}</p>
       )}
     </div>
   )

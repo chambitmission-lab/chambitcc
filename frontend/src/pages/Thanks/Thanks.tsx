@@ -447,9 +447,9 @@ const Thanks = () => {
                       <div className="thanks-side-detail">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <ThanksAvatar name={t.display_name} avatarUrl={t.avatar_url} size={20} />
-                          <span className="truncate text-[12px] font-semibold text-ink">{t.display_name}</span>
-                          <span className="text-[12px] text-ink-muted opacity-60">·</span>
-                          <span className="whitespace-nowrap text-[12px] text-ink-muted">{t.time_ago}</span>
+                          <span className="truncate text-[12px] lg:text-[14px] font-semibold text-ink">{t.display_name}</span>
+                          <span className="text-[12px] lg:text-[14px] text-ink-muted opacity-60">·</span>
+                          <span className="whitespace-nowrap text-[12px] lg:text-[13.5px] text-ink-muted lg:text-ink">{t.time_ago}</span>
                         </div>
                         <button
                           type="button"
@@ -474,7 +474,7 @@ const Thanks = () => {
   // lg 에서 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
   // sticky 가 전역으로 죽어 있어, 이 상자를 만들어야 우측 레일 sticky 가 산다.
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] page-stage lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto">
+    <div className="thanks-page min-h-screen bg-[var(--app-canvas)] page-stage lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto">
       <div className="max-w-md mx-auto min-h-screen bg-[var(--app-canvas)] lg:max-w-[1100px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-[var(--card-border)] lg:min-h-0">
         {/* 헤더 — 제목 + 한 줄 부제 */}
         <div
@@ -484,16 +484,16 @@ const Thanks = () => {
           <div className="px-4 py-3 flex items-center gap-2 lg:px-6 lg:py-4">
             <button
               onClick={() => navigate(-1)}
-              className="w-9 h-9 -ml-1 shrink-0 flex items-center justify-center rounded-full text-ink hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+              className="w-9 h-9 lg:w-11 lg:h-11 -ml-1 shrink-0 flex items-center justify-center rounded-full text-ink hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
               aria-label={ko ? '뒤로' : 'Back'}
             >
-              <span className="material-icons-outlined text-[22px]">arrow_back</span>
+              <span className="material-icons-outlined text-[22px] lg:text-[25px]">arrow_back</span>
             </button>
             <div className="min-w-0">
-              <h1 className="text-[17px] lg:text-[20px] font-bold tracking-[-0.01em] text-ink-strong leading-tight">
+              <h1 className="text-[17px] lg:text-[23px] font-bold tracking-[-0.01em] text-ink-strong leading-tight">
                 {ko ? '오늘의 감사' : 'Today’s Thanks'}
               </h1>
-              <p className="text-[12px] text-ink-muted mt-0.5">
+              <p className="text-[12px] lg:text-[15px] text-ink-muted lg:text-ink mt-0.5">
                 {ko ? '작은 감사가 삶을 변화시킵니다' : 'Small thanks change a life'}
               </p>
             </div>
@@ -529,10 +529,10 @@ const Thanks = () => {
                   <span className="thanks-empty-emblem thanks-nudge" aria-hidden>
                     <ThanksIcon name="jar" size={30} />
                   </span>
-                  <span className="text-[15px] font-bold text-ink-strong">
+                  <span className="text-[15px] lg:text-[18px] font-bold text-ink-strong">
                     {ko ? '감사 항아리가 비어 있어요' : 'The gratitude jar is empty'}
                   </span>
-                  <span className="text-[13px] text-ink-muted leading-relaxed">
+                  <span className="text-[13px] lg:text-[15.5px] text-ink-muted lg:text-ink leading-relaxed">
                     {ko
                       ? '첫 한 조각을 넣어주세요.\n정말 사소한 것도 괜찮아요'
                       : 'Drop in the first piece.\nEven the tiniest one counts'}
@@ -578,7 +578,7 @@ const Thanks = () => {
               )}
 
               {!query.hasNextPage && items.length > 0 && !showSpinner && (
-                <p className="pt-4 text-center text-[12px] text-ink-muted">
+                <p className="pt-4 text-center text-[12px] lg:text-[14px] text-ink-muted lg:text-ink">
                   {ko ? '여기까지가 우리의 감사예요' : 'That’s all our thanks'}
                 </p>
               )}
@@ -595,10 +595,10 @@ const Thanks = () => {
               <div className="flex items-center gap-2.5">
                 <span className="thanks-write-icon material-icons-round" aria-hidden>edit</span>
                 <div>
-                  <h3 className="text-[14.5px] font-bold text-ink-strong leading-tight">
+                  <h3 className="text-[14.5px] lg:text-[17px] font-bold text-ink-strong leading-tight">
                     {ko ? '감사 남기기' : 'Share thanks'}
                   </h3>
-                  <p className="text-[12px] text-ink-muted mt-0.5">
+                  <p className="text-[12px] lg:text-[14px] text-ink-muted lg:text-ink mt-0.5">
                     {ko ? '작은 감사가 큰 은혜가 됩니다' : 'Small thanks become great grace'}
                   </p>
                 </div>
@@ -608,7 +608,7 @@ const Thanks = () => {
               </button>
               <button
                 onClick={handleOpenComposer}
-                className="mt-2.5 w-full h-11 rounded-xl brand-gradient text-[var(--on-brand)] text-[14px] font-extrabold tracking-[-0.01em] shadow-[0_8px_22px_var(--brand-glow)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                className="mt-2.5 w-full h-11 lg:h-[52px] rounded-xl brand-gradient text-[var(--on-brand)] text-[14px] lg:text-[16.5px] font-extrabold tracking-[-0.01em] shadow-[0_8px_22px_var(--brand-glow)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
               >
                 {ko ? '감사 남기기' : 'Share thanks'}
                 <span className="material-icons-round text-[17px]">send</span>

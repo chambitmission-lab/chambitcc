@@ -1,0 +1,16 @@
+/* 수강신청 시트(ApplySheet) — body 포털이라 페이지의 <main data-app-scale> zoom 밖에 있다.
+ * 기본 크기는 lg: 유틸로 키워 두고(입력·버튼 약 56px), 헤더 '가' 배율은 패널 zoom 으로 따라간다.
+ * zoom 안에선 vh 도 함께 커지므로 높이 상한은 배율로 나눈다(common.css [data-app-scale] 와 같은 규칙). */
+.culture-apply-panel {
+  max-height: 90vh;
+}
+
+@media (min-width: 1024px) {
+  .culture-apply-panel {
+    --apply-z: 1;
+    zoom: var(--apply-z);
+    max-height: calc(90vh / var(--apply-z));
+  }
+  .culture-apply-panel[data-scale='large'] { --apply-z: 1.15; }
+  .culture-apply-panel[data-scale='xlarge'] { --apply-z: 1.3; }
+}

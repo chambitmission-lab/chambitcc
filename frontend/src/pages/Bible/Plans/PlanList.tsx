@@ -113,7 +113,7 @@ const PlanList = () => {
       <BibleSideRail active="plans" />
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-8 lg:overflow-hidden">
         {/* 헤더 — PC에선 좌측 레일이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
+        <div className="sticky top-14 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate('/bible')}
             className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors lg:hidden"
@@ -286,9 +286,9 @@ const PlanList = () => {
               </SectionTitle>
               {/* 해시태그 필터 칩 — 플랜이 늘어도 수준·주제로 바로 좁힐 수 있게.
                   우측 페이드로 "밀어서 더 볼 수 있음"을 힌트하고, 그리드를 내려
-                  보는 동안에도 상단 헤더(48px) 아래 붙어 즉시 필터를 바꿀 수 있다 */}
+                  보는 동안에도 앱바(56)+상단 헤더(48) 아래 붙어 즉시 필터를 바꿀 수 있다 */}
               {filterTags.length > 0 && (
-                <div className="lg:hidden sticky top-[48px] z-10 -mx-4 mb-4 pt-2 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+                <div className="lg:hidden sticky top-[104px] z-10 -mx-4 mb-4 pt-2 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
                   <div className="flex gap-2 overflow-x-auto pb-1 px-4 pr-10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {[null, ...filterTags].map((tag) => {
                       const active = tagFilter === tag

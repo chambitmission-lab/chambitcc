@@ -6,7 +6,6 @@
 //
 // 음성·사진은 받지 않는다 (목소리·얼굴이 곧 이름이다). 텍스트만.
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import type { IntercessionLetter, IntercessionTarget } from '../../api/intercession'
 import {
   useDeleteIntercessionLetter,
@@ -31,7 +30,11 @@ const EnvelopeGlyph = ({ size = 18 }: { size?: number }) => (
   </svg>
 )
 
-/** 하단 시트 셸 — 모바일은 아래에서 올라오고, PC 는 가운데 카드 */
+/**
+ * 하단 시트 셸 — 모바일은 아래에서 올라오고, PC 는 가운데 카드.
+ * body 포털을 쓰지 않는다 — 페이지 안에 두어야 PC 글씨 크기(zoom)를 함께 받는다.
+ * 조상에 transform·filter 가 없어 fixed 는 화면 기준 그대로다.
+ */
 const Sheet = ({
   onClose,
   label,
@@ -51,7 +54,7 @@ const Sheet = ({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  return createPortal(
+  return (
     <div className="ic-sheet-backdrop" onClick={onClose} role="presentation">
       <div
         className="ic-sheet"
@@ -63,8 +66,7 @@ const Sheet = ({
         <div className="ic-sheet__handle" aria-hidden />
         {children}
       </div>
-    </div>,
-    document.body,
+    </div>
   )
 }
 
@@ -94,14 +96,14 @@ const LetterComposer = ({ target, onClose }: { target: IntercessionTarget; onClo
 
   return (
     <Sheet onClose={onClose} label="익명 편지 쓰기">
-      <p className="flex items-center gap-1.5 text-[12px] font-bold text-brand">
+      <p className="flex items-center gap-1.5 text-[12px] lg:text-[14px] font-bold text-brand">
         <EnvelopeGlyph size={15} />
         익명 편지
       </p>
-      <h2 className="mt-1.5 text-[19px] font-extrabold text-ink-strong tracking-[-0.02em] break-keep">
+      <h2 className="mt-1.5 text-[19px] lg:text-[23px] font-extrabold text-ink-strong tracking-[-0.02em] break-keep">
         {target.display_name} 님께
       </h2>
-      <ul className="mt-2.5 space-y-1 text-[12.5px] leading-relaxed text-[var(--text-muted)] break-keep">
+      <ul className="mt-2.5 space-y-1 text-[12.5px] lg:text-[15px] leading-relaxed text-[var(--text-muted)] lg:text-[var(--text-body)] break-keep">
         <li>· 이번 달이 끝나는 아침, 보낸 사람 없이 &lsquo;누군가&rsquo;의 편지로 도착해요.</li>
         <li>· 이름이나 누구인지 짐작되는 이야기는 적지 말아 주세요.</li>
         <li>· 도착하기 전까지는 언제든 고치거나 지울 수 있어요.</li>
@@ -120,7 +122,7 @@ const LetterComposer = ({ target, onClose }: { target: IntercessionTarget; onClo
           <FlameGlyph size={13} /> 누군가
         </p>
       </div>
-      <p className="mt-1.5 text-right text-[11.5px] tabular-nums text-[var(--text-muted)]">
+      <p className="mt-1.5 text-right text-[11.5px] lg:text-[13.5px] tabular-nums text-[var(--text-muted)]">
         {body.length}/{LETTER_MAX}
       </p>
 
@@ -130,7 +132,7 @@ const LetterComposer = ({ target, onClose }: { target: IntercessionTarget; onClo
             type="button"
             onClick={() => void onDelete()}
             disabled={remove.isPending}
-            className="h-12 px-4 rounded-2xl border border-gray-200 dark:border-white/10 text-[14px] font-semibold text-[var(--text-muted)]"
+            className="h-12 lg:h-14 px-4 lg:px-5 rounded-2xl border border-gray-200 dark:border-white/10 text-[14px] lg:text-[16px] font-semibold text-[var(--text-muted)]"
           >
             지우기
           </button>
@@ -139,13 +141,13 @@ const LetterComposer = ({ target, onClose }: { target: IntercessionTarget; onClo
           type="button"
           disabled={trimmed.length < LETTER_MIN || save.isPending || trimmed === existing?.body}
           onClick={() => save.mutate(trimmed, { onSuccess: onClose })}
-          className="flex-1 h-12 rounded-2xl bg-[var(--brand)] text-[var(--on-brand)] text-[15px] font-bold shadow-[0_8px_20px_-10px_rgba(49,130,246,0.8)] disabled:opacity-50"
+          className="flex-1 h-12 lg:h-14 rounded-2xl bg-[var(--brand)] text-[var(--on-brand)] text-[15px] lg:text-[17px] font-bold shadow-[0_8px_20px_-10px_rgba(49,130,246,0.8)] disabled:opacity-50"
         >
           {save.isPending ? '봉인하는 중…' : existing ? '고친 편지 봉인하기' : '편지 봉인하기'}
         </button>
       </div>
       {deliverOn ? (
-        <p className="mt-2 text-center text-[11.5px] text-[var(--text-muted)]">{formatDay(deliverOn)} 아침에 도착해요</p>
+        <p className="mt-2 text-center text-[11.5px] lg:text-[14px] text-[var(--text-muted)]">{formatDay(deliverOn)} 아침에 도착해요</p>
       ) : null}
     </Sheet>
   )
@@ -161,22 +163,22 @@ export const LetterEntry = ({ target, deliverOn }: { target: IntercessionTarget;
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-3 w-full text-left rounded-xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-3.5 py-3"
+          className="mt-3 w-full text-left rounded-xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-3.5 py-3 lg:px-4 lg:py-3.5"
         >
-          <span className="flex items-center gap-1.5 text-[12px] font-bold text-brand">
+          <span className="flex items-center gap-1.5 text-[12px] lg:text-[14px] font-bold text-brand">
             <EnvelopeGlyph size={14} />
             봉인해 둔 편지 · {formatDay(deliverOn)} 아침 도착
           </span>
-          <span className="mt-1 block text-[13px] leading-relaxed text-[var(--text-body)] line-clamp-2 whitespace-pre-line">
+          <span className="mt-1 block text-[13px] lg:text-[16px] leading-relaxed text-[var(--text-body)] line-clamp-2 whitespace-pre-line">
             {letter.body}
           </span>
-          <span className="mt-1 block text-[12px] font-bold text-brand">고치기</span>
+          <span className="mt-1 block text-[12px] lg:text-[14.5px] font-bold text-brand">고치기</span>
         </button>
       ) : (
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-3 w-full h-11 rounded-xl border border-gray-200 dark:border-white/10 flex items-center justify-center gap-1.5 text-[13.5px] font-bold text-[var(--text-body)] hover:border-[var(--brand-soft-strong)] hover:text-brand transition-colors"
+          className="mt-3 w-full h-11 lg:h-14 rounded-xl border border-gray-200 dark:border-white/10 flex items-center justify-center gap-1.5 text-[13.5px] lg:text-[16px] font-bold text-[var(--text-body)] hover:border-[var(--brand-soft-strong)] hover:text-brand transition-colors"
         >
           <EnvelopeGlyph size={16} />
           {target.display_name} 님께 익명 편지 남기기
@@ -205,7 +207,7 @@ const LetterView = ({ letter, onClose }: { letter: IntercessionLetter; onClose: 
 
   return (
     <Sheet onClose={onClose} label="도착한 편지">
-      <p className="flex items-center gap-1.5 text-[12px] font-bold text-brand">
+      <p className="flex items-center gap-1.5 text-[12px] lg:text-[14px] font-bold text-brand">
         <EnvelopeGlyph size={15} />
         {cycleMonthLabel(letter.month_start)}, 당신을 위해 기도한 누군가의 편지
       </p>
@@ -215,7 +217,7 @@ const LetterView = ({ letter, onClose }: { letter: IntercessionLetter; onClose: 
           <FlameGlyph size={13} /> 누군가
         </p>
       </div>
-      <p className="mt-3 text-center text-[12px] leading-relaxed text-[var(--text-muted)] break-keep">
+      <p className="mt-3 text-center text-[12px] lg:text-[14.5px] leading-relaxed text-[var(--text-muted)] lg:text-[var(--text-body)] break-keep">
         누가 썼는지는 알 수 없어요. 한 달 동안 당신을 위해 기도한 분이에요.
       </p>
       <div className="mt-4 flex items-center justify-between">
@@ -223,14 +225,14 @@ const LetterView = ({ letter, onClose }: { letter: IntercessionLetter; onClose: 
           type="button"
           onClick={() => void onReport()}
           disabled={report.isPending}
-          className="text-[12px] font-semibold text-[var(--text-muted)] underline underline-offset-4"
+          className="text-[12px] lg:text-[14.5px] font-semibold text-[var(--text-muted)] underline underline-offset-4 lg:min-h-[44px] lg:px-2 lg:-ml-2"
         >
           신고하기
         </button>
         <button
           type="button"
           onClick={onClose}
-          className="h-10 px-5 rounded-xl bg-[var(--brand)] text-[var(--on-brand)] text-[13.5px] font-bold"
+          className="h-10 lg:h-12 px-5 lg:px-7 rounded-xl bg-[var(--brand)] text-[var(--on-brand)] text-[13.5px] lg:text-[16px] font-bold"
         >
           닫기
         </button>
@@ -253,11 +255,11 @@ export const LetterInbox = ({ enabled }: { enabled: boolean }) => {
   }
 
   return (
-    <section className="mx-4 mt-3 rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
-      <div className="mb-3 flex items-center gap-1.5">
-        <h3 className="text-[14.5px] font-extrabold text-ink-strong tracking-[-0.02em]">도착한 편지</h3>
+    <section className="mx-4 mt-3 lg:mt-4 rounded-2xl p-4 lg:p-6 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
+      <div className="mb-3 lg:mb-4 flex items-center gap-1.5">
+        <h3 className="text-[14.5px] lg:text-[18px] font-extrabold text-ink-strong tracking-[-0.02em]">도착한 편지</h3>
         {data.unread > 0 ? (
-          <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold bg-[var(--brand)] text-[var(--on-brand)] tabular-nums">
+          <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 lg:min-w-[1.5rem] lg:h-6 px-1.5 rounded-full text-[11px] lg:text-[13px] font-bold bg-[var(--brand)] text-[var(--on-brand)] tabular-nums">
             {data.unread}
           </span>
         ) : null}
@@ -268,24 +270,24 @@ export const LetterInbox = ({ enabled }: { enabled: boolean }) => {
             <button
               type="button"
               onClick={() => open(letter)}
-              className={`w-full flex items-center gap-3 rounded-xl px-3.5 py-3 text-left border transition-colors ${
+              className={`w-full flex items-center gap-3 rounded-xl px-3.5 py-3 lg:px-4 lg:py-3.5 text-left border transition-colors ${
                 letter.is_read
                   ? 'border-gray-100 dark:border-white/[0.06]'
                   : 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)]'
               }`}
             >
               <span
-                className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${
+                className={`shrink-0 w-9 h-9 lg:w-11 lg:h-11 rounded-xl flex items-center justify-center ${
                   letter.is_read ? 'bg-gray-100 dark:bg-white/[0.05] text-[var(--text-muted)]' : 'bg-white dark:bg-white/10 text-brand'
                 }`}
               >
                 <EnvelopeGlyph size={18} />
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[13.5px] font-bold text-ink-strong">
+                <span className="block text-[13.5px] lg:text-[16px] font-bold text-ink-strong">
                   {cycleMonthLabel(letter.month_start)}, 누군가의 편지
                 </span>
-                <span className="block text-[12px] text-[var(--text-muted)] truncate">
+                <span className="block text-[12px] lg:text-[14px] text-[var(--text-muted)] truncate">
                   {letter.is_read ? letter.body.replace(/\s+/g, ' ') : '아직 열어 보지 않았어요'}
                 </span>
               </span>

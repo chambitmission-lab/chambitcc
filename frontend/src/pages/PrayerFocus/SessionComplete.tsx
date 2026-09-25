@@ -157,7 +157,7 @@ const SessionComplete = ({
         <div className="absolute bottom-[20%] right-[10%] w-96 h-96 bg-amber-600/[0.08] rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 px-4 py-10 max-w-md mx-auto space-y-6 animate-fade-in text-center">
+      <div className="relative z-10 px-4 py-10 max-w-md lg:max-w-xl mx-auto space-y-6 animate-fade-in text-center">
         {/* 완료 Hero 카드 */}
         <div className="relative overflow-hidden rounded-3xl p-6 bg-[rgba(20,20,25,0.6)] backdrop-blur-xl border border-white/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
@@ -171,14 +171,14 @@ const SessionComplete = ({
               <div className="absolute inset-0 w-24 h-24 rounded-full animate-ping bg-amber-300/15"></div>
             </div>
 
-            <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
+            <h2 className="text-3xl lg:text-[34px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
               {t('prayerComplete')}
             </h2>
-            <p className="text-white/70 leading-relaxed mt-2">{closingMessage}</p>
+            <p className="text-white/70 lg:text-[18px] lg:text-white/85 leading-relaxed mt-2">{closingMessage}</p>
 
             {/* 시간·주제 chip */}
             <div className="mt-4 flex justify-center">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full bg-white/8 border border-white/10 text-xs font-medium ${CANDLE_CLASS.accentText}`}>
+              <span className={`inline-flex items-center px-3 py-1 lg:px-4 lg:py-1.5 rounded-full bg-white/8 border border-white/10 text-xs lg:text-[14px] font-medium ${CANDLE_CLASS.accentText}`}>
                 {duration} {t('minutes')}{theme ? ` · ${tx(theme.labelKey)}` : ''}
               </span>
             </div>
@@ -190,7 +190,7 @@ const SessionComplete = ({
           <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-5 border border-white/8 text-left">
             <div className="flex items-center gap-2 mb-3">
               <span className={`material-icons-outlined text-sm ${CANDLE_CLASS.accentText}`}>auto_awesome</span>
-              <h3 className={`text-xs font-bold tracking-widest uppercase ${CANDLE_CLASS.accentText}`}>
+              <h3 className={`text-xs lg:text-[14px] font-bold tracking-widest uppercase ${CANDLE_CLASS.accentText}`}>
                 {t('spiritualTrace')}
               </h3>
             </div>
@@ -201,7 +201,7 @@ const SessionComplete = ({
 
             {!statsLoading && stats && (
               <>
-                <p className="text-white/80 text-sm mb-4">
+                <p className="text-white/80 text-sm lg:text-[16.5px] lg:text-white/90 mb-4">
                   {(t('todaysPrayerAdded') || '오늘 {minutes}분이 기도에 더해졌습니다').replace(
                     '{minutes}',
                     String(duration),
@@ -218,7 +218,7 @@ const SessionComplete = ({
             )}
 
             {!statsLoading && !stats && recordError && (
-              <p className="text-rose-300/70 text-xs text-center py-2">{recordError}</p>
+              <p className="text-rose-300/70 text-xs lg:text-[14px] text-center py-2">{recordError}</p>
             )}
           </div>
         )}
@@ -226,8 +226,8 @@ const SessionComplete = ({
         {/* 한 줄 묵상 기록 (비공개 — 이 기도 세션에 종속) */}
         {isLoggedIn() && !noteSaved && (
           <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-5 border border-white/8 text-left">
-            <p className="text-white/75 text-sm mb-1">{t('recordOneLineTitle')}</p>
-            <p className="text-white/40 text-xs mb-3 flex items-center gap-1">
+            <p className="text-white/75 text-sm lg:text-[16.5px] lg:text-white/90 mb-1">{t('recordOneLineTitle')}</p>
+            <p className="text-white/40 text-xs lg:text-[13.5px] lg:text-white/60 mb-3 flex items-center gap-1">
               <span className="material-icons-outlined text-[13px]">lock</span>
               {t('devotionNotePrivateHint')}
             </p>
@@ -236,15 +236,15 @@ const SessionComplete = ({
               onChange={(e) => setNote(e.target.value.slice(0, 100))}
               placeholder={t('recordOneLinePlaceholder')}
               rows={2}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white/90 placeholder-white/30 focus:outline-none focus:border-white/30 resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 lg:px-4 lg:py-3 text-sm lg:text-[16.5px] text-white/90 placeholder-white/30 lg:placeholder-white/45 focus:outline-none focus:border-white/30 resize-none"
             />
             <div className="flex justify-end mt-1.5">
-              <span className="text-[10px] text-white/30">{note.length}/100</span>
+              <span className="text-[10px] lg:text-[13px] text-white/30 lg:text-white/50">{note.length}/100</span>
             </div>
             <button
               onClick={handleSaveNote}
               disabled={!note.trim() || savingNote}
-              className={`w-full mt-2 py-2.5 text-sm font-semibold rounded-xl ${CANDLE_CLASS.primary} disabled:opacity-40 disabled:cursor-not-allowed transition-all`}
+              className={`w-full mt-2 py-2.5 lg:py-3.5 text-sm lg:text-[16px] font-semibold rounded-xl ${CANDLE_CLASS.primary} disabled:opacity-40 disabled:cursor-not-allowed transition-all`}
             >
               {savingNote ? '...' : t('saveOneLine')}
             </button>
@@ -253,11 +253,11 @@ const SessionComplete = ({
 
         {noteSaved && (
           <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-4 border border-white/8 text-left">
-            <p className={`text-sm ${CANDLE_CLASS.accentText}`}>✓ {t('devotionNoteSaved')}</p>
-            <p className="text-white/50 text-xs mt-1.5">{t('devotionNoteSavedHint')}</p>
+            <p className={`text-sm lg:text-[16px] ${CANDLE_CLASS.accentText}`}>✓ {t('devotionNoteSaved')}</p>
+            <p className="text-white/50 text-xs lg:text-[14px] lg:text-white/65 mt-1.5">{t('devotionNoteSavedHint')}</p>
             <button
               onClick={() => navigate('/growth')}
-              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-white/80 hover:text-white transition-colors"
+              className="mt-3 inline-flex items-center gap-1 lg:min-h-[44px] text-xs lg:text-[15px] font-medium text-white/80 hover:text-white transition-colors"
             >
               <span className="material-icons-outlined text-sm">timeline</span>
               {t('viewInGrowth')}
@@ -267,7 +267,7 @@ const SessionComplete = ({
 
         {/* 격려 말씀 + 세션 말씀 카드 만들기 */}
         <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-4 border border-white/8">
-          <p className="text-white/75 leading-relaxed font-serif italic text-sm">
+          <p className="text-white/75 leading-relaxed font-serif italic text-sm lg:text-[17px] lg:text-white/85">
             "쉬지 말고 기도하라" — 데살로니가전서 5:17
           </p>
           {verseText && verseRef && (
@@ -277,7 +277,7 @@ const SessionComplete = ({
                   state: { presetVerse: { text: verseText, refLabel: verseRef } },
                 })
               }
-              className="mt-3 w-full py-2.5 rounded-xl text-xs font-medium text-white/80 bg-white/8 border border-white/12 hover:bg-white/15 transition-all flex items-center justify-center gap-1.5"
+              className="mt-3 w-full py-2.5 lg:py-3.5 rounded-xl text-xs lg:text-[15px] font-medium text-white/80 bg-white/8 border border-white/12 hover:bg-white/15 transition-all flex items-center justify-center gap-1.5"
             >
               <span className="material-icons-outlined text-sm">photo_camera</span>
               {t('makeVerseCard')}
@@ -290,12 +290,12 @@ const SessionComplete = ({
           {!amenPressed ? (
             <button
               onClick={handleAmen}
-              className={`w-full py-4 ${CANDLE_CLASS.primary} rounded-xl font-semibold tracking-wide transition-all hover:brightness-105 shadow-[0_14px_34px_-14px_rgba(255,170,90,0.55)]`}
+              className={`w-full py-4 lg:py-5 lg:text-[18px] ${CANDLE_CLASS.primary} rounded-xl font-semibold tracking-wide transition-all hover:brightness-105 shadow-[0_14px_34px_-14px_rgba(255,170,90,0.55)]`}
             >
               🙏 {t('amenButton')}
             </button>
           ) : (
-            <div className={`w-full py-4 bg-white/10 border border-white/15 rounded-xl text-sm ${CANDLE_CLASS.accentText}`}>
+            <div className={`w-full py-4 lg:py-5 bg-white/10 border border-white/15 rounded-xl text-sm lg:text-[16px] ${CANDLE_CLASS.accentText}`}>
               ✓ {t('amenSaved')}
             </div>
           )}
@@ -303,13 +303,13 @@ const SessionComplete = ({
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={onRestart}
-              className="py-3 bg-white/10 backdrop-blur-md rounded-xl text-sm font-medium border border-white/15 hover:bg-white/20 transition-all"
+              className="py-3 lg:py-4 bg-white/10 backdrop-blur-md rounded-xl text-sm lg:text-[16px] font-medium border border-white/15 hover:bg-white/20 transition-all"
             >
               {t('startAgain')}
             </button>
             <button
               onClick={onClose}
-              className="py-3 bg-white/5 backdrop-blur-md rounded-xl text-sm font-medium border border-white/10 hover:bg-white/15 transition-all"
+              className="py-3 lg:py-4 bg-white/5 backdrop-blur-md rounded-xl text-sm lg:text-[16px] font-medium border border-white/10 hover:bg-white/15 transition-all"
             >
               {t('close')}
             </button>
@@ -344,7 +344,7 @@ const WeekDots = ({ weekDays, labels }: { weekDays: string[]; labels: string }) 
         return (
           <div key={i} className="flex flex-col items-center gap-1.5">
             <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+              className={`w-7 h-7 lg:w-9 lg:h-9 rounded-full flex items-center justify-center transition-all ${
                 done
                   ? `${CANDLE_CLASS.primary} shadow-[0_2px_8px_rgba(0,0,0,0.3)]`
                   : 'bg-white/[0.06] border border-white/10'
@@ -352,7 +352,7 @@ const WeekDots = ({ weekDays, labels }: { weekDays: string[]; labels: string }) 
             >
               {done && <span className="material-icons-outlined text-[14px]">check</span>}
             </div>
-            <span className={`text-[10px] ${isToday ? 'text-white/80 font-semibold' : 'text-white/35'}`}>
+            <span className={`text-[10px] lg:text-[13px] ${isToday ? 'text-white/80 font-semibold' : 'text-white/35 lg:text-white/55'}`}>
               {dayLabels[i] ?? ''}
             </span>
           </div>
@@ -364,11 +364,11 @@ const WeekDots = ({ weekDays, labels }: { weekDays: string[]; labels: string }) 
 
 const Stat = ({ value, unit, label }: { value: number; unit: string; label: string }) => (
   <div>
-    <div className={`text-xl font-bold ${CANDLE_CLASS.accentText} whitespace-nowrap`}>
+    <div className={`text-xl lg:text-[26px] font-bold ${CANDLE_CLASS.accentText} whitespace-nowrap`}>
       {value}
-      <span className="text-xs font-medium ml-0.5">{unit}</span>
+      <span className="text-xs lg:text-[14px] font-medium ml-0.5">{unit}</span>
     </div>
-    <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap">{label}</div>
+    <div className="text-[10px] lg:text-[13px] text-white/50 lg:text-white/65 mt-1 whitespace-nowrap">{label}</div>
   </div>
 )
 

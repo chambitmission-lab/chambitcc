@@ -256,3 +256,45 @@ html.dark .ic-paper__input::placeholder {
     animation: none;
   }
 }
+
+/* ── PC 노안 패스 — 시트는 페이지 안(zoom 안)에 있어 vh 는 --az 로 나눈다 ── */
+@media (min-width: 1024px) {
+  .ic-sheet {
+    max-width: 34rem;
+    max-height: calc(92vh / var(--az, 1));
+    padding: 1.75rem 2rem 1.75rem;
+  }
+  .ic-paper {
+    padding: 22px 22px 16px;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 33px, rgba(49, 130, 246, 0.1) 33px 34px) 0 14px / 100% 100%
+        no-repeat,
+      #fffdf7;
+  }
+  html.dark .ic-paper {
+    background:
+      repeating-linear-gradient(180deg, transparent 0 33px, rgba(255, 255, 255, 0.06) 33px 34px) 0 14px / 100% 100%
+        no-repeat,
+      #24232a;
+  }
+  .ic-paper__input,
+  .ic-paper__body {
+    font-size: 18px;
+    line-height: 34px;
+  }
+  .ic-paper__body {
+    min-height: 136px;
+  }
+  .ic-paper__sign {
+    margin-top: 8px;
+    font-size: 16px;
+  }
+  /* 등불 — 한 단계 크게 */
+  .ic-lamp--lg {
+    gap: 22px;
+  }
+  .ic-lamp--lg .ic-candle__stick {
+    width: 17px;
+    height: 40px;
+  }
+}

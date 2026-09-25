@@ -314,12 +314,12 @@ const PrayerFocus = () => {
         {/* 닫기 버튼만 최소한으로 */}
         <button
           onClick={handleClose}
-          className={`absolute top-10 right-6 z-20 w-10 h-10 rounded-full bg-white/5 backdrop-blur-md border border-white/5 flex items-center justify-center hover:bg-white/15 transition-all duration-1000 ${
+          className={`absolute top-10 right-6 z-20 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/5 flex items-center justify-center hover:bg-white/15 transition-all duration-1000 ${
             dimmed ? 'opacity-25' : 'opacity-100'
           }`}
           aria-label="close"
         >
-          <span className="material-icons-outlined text-lg text-white/60">close</span>
+          <span className="material-icons-outlined text-lg lg:text-2xl text-white/60 lg:text-white/75">close</span>
         </button>
 
         {/* 중간 말씀(절반 시점 fade-in) — 구간 안내 모드에서는 구간 안내가 대신한다 */}
@@ -355,22 +355,22 @@ const PrayerFocus = () => {
               위쪽 안내/말씀이 떠 있는 동안은 겹치지 않게 잠깐 숨긴다 */}
           {guidedMode && actsIndex >= 0 ? (
             <div
-              className={`mb-8 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md transition-opacity duration-700 ${
+              className={`mb-8 flex items-center gap-1.5 px-3.5 py-1.5 lg:px-5 lg:py-2.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md transition-opacity duration-700 ${
                 guideSegIndex !== null ? 'opacity-0' : 'opacity-100'
               }`}
             >
-              <span className="material-icons-outlined text-sm text-white/60">{ACTS_SEGMENTS[actsIndex].icon}</span>
-              <span className="text-xs text-white/70 tracking-wide">{tx(ACTS_SEGMENTS[actsIndex].labelKey)}</span>
-              <span className="text-[10px] text-white/35 tabular-nums">{actsIndex + 1}/4</span>
+              <span className="material-icons-outlined text-sm lg:text-lg text-white/60">{ACTS_SEGMENTS[actsIndex].icon}</span>
+              <span className="text-xs lg:text-[15px] text-white/70 lg:text-white/85 tracking-wide">{tx(ACTS_SEGMENTS[actsIndex].labelKey)}</span>
+              <span className="text-[10px] lg:text-[13.5px] text-white/35 lg:text-white/55 tabular-nums">{actsIndex + 1}/4</span>
             </div>
           ) : selectedTheme ? (
             <div
-              className={`mb-8 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md transition-opacity duration-700 ${
+              className={`mb-8 flex items-center gap-1.5 px-3.5 py-1.5 lg:px-5 lg:py-2.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md transition-opacity duration-700 ${
                 showMidVerse ? 'opacity-0' : 'opacity-100'
               }`}
             >
-              <span className="material-icons-outlined text-sm text-white/60">{selectedTheme.icon}</span>
-              <span className="text-xs text-white/70 tracking-wide">{tx(selectedTheme.labelKey)}</span>
+              <span className="material-icons-outlined text-sm lg:text-lg text-white/60">{selectedTheme.icon}</span>
+              <span className="text-xs lg:text-[15px] text-white/70 lg:text-white/85 tracking-wide">{tx(selectedTheme.labelKey)}</span>
             </div>
           ) : null}
 
@@ -431,15 +431,16 @@ const PrayerFocus = () => {
       <div className="relative z-10 pt-12 px-6 flex items-center justify-between">
         <button
           onClick={handleClose}
-          className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/5 flex items-center justify-center hover:bg-white/20 transition-colors"
+          className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/5 flex items-center justify-center hover:bg-white/20 transition-colors"
+          aria-label="close"
         >
-          <span className="material-icons-outlined text-xl">close</span>
+          <span className="material-icons-outlined text-xl lg:text-2xl">close</span>
         </button>
-        <h1 className="text-white/55 text-[13px] font-medium tracking-wide">{t('prayerFocusMode')}</h1>
-        <div className="w-10 opacity-0"></div>
+        <h1 className="text-white/55 text-[13px] lg:text-base lg:text-white/75 font-medium tracking-wide">{t('prayerFocusMode')}</h1>
+        <div className="w-10 lg:w-12 opacity-0"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center px-6 pb-8 max-w-md mx-auto animate-fade-in">
+      <div className="relative z-10 flex flex-col items-center px-6 pb-8 max-w-md lg:max-w-xl mx-auto animate-fade-in">
         {/* 촛불 히어로 */}
         <div className="mt-4 mb-2">
           <CandleHero haloTint={mood.ringFrom} />
@@ -447,19 +448,19 @@ const PrayerFocus = () => {
 
         {/* 시간대별 인사 */}
         <div className="text-center mb-7">
-          <h2 className="font-serif-kr text-[22px] leading-relaxed text-white/95">{tx(mood.greetingKey)}</h2>
-          <p className="mt-1.5 text-[13px] text-white/40">{t('focusGreetingSub')}</p>
+          <h2 className="font-serif-kr text-[22px] lg:text-[28px] leading-relaxed text-white/95">{tx(mood.greetingKey)}</h2>
+          <p className="mt-1.5 text-[13px] lg:text-[16px] text-white/40 lg:text-white/65">{t('focusGreetingSub')}</p>
         </div>
 
         {/* 지난 기도 그대로 — 조용한 원탭 재시작 */}
         {lastSetup && (
           <button
             onClick={handleQuickStart}
-            className="mb-9 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md hover:bg-white/10 transition-colors"
+            className="mb-9 inline-flex items-center gap-2 px-4 py-2 lg:px-5 lg:py-3 lg:min-h-[48px] rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md hover:bg-white/10 transition-colors"
           >
-            <span className="material-icons-outlined text-[15px] text-white/50">replay</span>
-            <span className="text-[12px] font-medium text-white/80">{t('quickStartTitle')}</span>
-            <span className="text-[11px] text-white/40">
+            <span className="material-icons-outlined text-[15px] lg:text-[19px] text-white/50">replay</span>
+            <span className="text-[12px] lg:text-[15px] font-medium text-white/80 lg:text-white/90">{t('quickStartTitle')}</span>
+            <span className="text-[11px] lg:text-[13.5px] text-white/40 lg:text-white/60">
               {[
                 `${lastSetup.minutes}${t('minutes')}`,
                 findTheme(lastSetup.themeId) ? tx(findTheme(lastSetup.themeId)!.labelKey) : null,
@@ -472,8 +473,8 @@ const PrayerFocus = () => {
 
         {/* ① 마음 — 주제 선택 */}
         <div className="w-full mb-8">
-          <p className="text-white/55 text-[13px] mb-3 text-center font-serif-kr">{t('selectPrayerTheme')}</p>
-          <div className="grid grid-cols-3 gap-2">
+          <p className="text-white/55 text-[13px] lg:text-[16px] lg:text-white/75 mb-3 text-center font-serif-kr">{t('selectPrayerTheme')}</p>
+          <div className="grid grid-cols-3 gap-2 lg:gap-3">
             {PRAYER_THEMES.map((theme) => {
               const active = selectedTheme?.id === theme.id
               return (
@@ -481,15 +482,15 @@ const PrayerFocus = () => {
                   key={theme.id}
                   onClick={() => setSelectedTheme(active ? null : theme)}
                   aria-pressed={active}
-                  className={`rounded-2xl py-3.5 px-2 text-xs font-medium tracking-wide border transition-all duration-300 ${
+                  className={`rounded-2xl py-3.5 px-2 lg:py-4 text-xs lg:text-[15px] font-medium tracking-wide border transition-all duration-300 ${
                     active
                       ? 'text-white'
-                      : 'border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/[0.08] hover:text-white/85'
+                      : 'border-white/10 bg-white/[0.04] text-white/60 lg:text-white/80 hover:bg-white/[0.08] hover:text-white/85'
                   }`}
                   style={active ? CANDLE_SELECTED : undefined}
                 >
                   <span
-                    className={`material-icons-outlined text-lg block mb-1 transition-colors ${active ? '' : 'text-white/40'}`}
+                    className={`material-icons-outlined text-lg lg:text-[22px] block mb-1 transition-colors ${active ? '' : 'text-white/40'}`}
                     style={active ? { color: CANDLE_TONE.text } : undefined}
                   >
                     {theme.icon}
@@ -502,7 +503,7 @@ const PrayerFocus = () => {
           {/* 선택한 마음의 한 줄 설명 — 없으면 주제 없이도 된다는 안내 */}
           <p
             key={selectedTheme?.id ?? 'none'}
-            className={`text-[12px] text-center mt-3 animate-fade-in ${selectedTheme ? '' : 'text-white/30'}`}
+            className={`text-[12px] lg:text-[14.5px] text-center mt-3 animate-fade-in ${selectedTheme ? '' : 'text-white/30 lg:text-white/55'}`}
             style={selectedTheme ? { color: CANDLE_TONE.textMuted } : undefined}
           >
             {selectedTheme ? tx(selectedTheme.descKey) : t('prayerThemeOptional')}
@@ -511,7 +512,7 @@ const PrayerFocus = () => {
 
         {/* ② 머무는 시간 */}
         <div className="w-full mb-8">
-          <p className="text-white/55 text-[13px] mb-3 text-center font-serif-kr">{t('stayHowLong')}</p>
+          <p className="text-white/55 text-[13px] lg:text-[16px] lg:text-white/75 mb-3 text-center font-serif-kr">{t('stayHowLong')}</p>
           {/* 하나로 이어진 세그먼트 바 — 한 값만 고르는 선택이라 칸마다 테두리를 두지 않는다 */}
           <div
             role="radiogroup"
@@ -526,13 +527,13 @@ const PrayerFocus = () => {
                   role="radio"
                   aria-checked={active}
                   onClick={() => setSelectedMinutes(preset.minutes)}
-                  className={`rounded-xl py-3 flex items-baseline justify-center gap-0.5 border transition-all duration-300 ${
-                    active ? 'text-white' : 'border-transparent text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
+                  className={`rounded-xl py-3 lg:py-4 flex items-baseline justify-center gap-0.5 border transition-all duration-300 ${
+                    active ? 'text-white' : 'border-transparent text-white/50 lg:text-white/75 hover:text-white/80 hover:bg-white/[0.04]'
                   }`}
                   style={active ? CANDLE_SELECTED : undefined}
                 >
-                  <span className="text-[17px] font-semibold tabular-nums leading-none">{preset.minutes}</span>
-                  <span className={`text-[11px] leading-none ${active ? 'text-white/60' : 'text-white/30'}`}>
+                  <span className="text-[17px] lg:text-[22px] font-semibold tabular-nums leading-none">{preset.minutes}</span>
+                  <span className={`text-[11px] lg:text-[14px] leading-none ${active ? 'text-white/60 lg:text-white/80' : 'text-white/30 lg:text-white/55'}`}>
                     {t('minutes')}
                   </span>
                 </button>
@@ -542,7 +543,7 @@ const PrayerFocus = () => {
           {selectedPreset && (
             <p
               key={selectedMinutes}
-              className="text-[12px] text-center mt-3 animate-fade-in"
+              className="text-[12px] lg:text-[14.5px] text-center mt-3 animate-fade-in"
               style={{ color: CANDLE_TONE.textMuted }}
             >
               {tx(selectedPreset.labelKey)}
@@ -555,13 +556,13 @@ const PrayerFocus = () => {
           <button
             onClick={() => setHelpersOpen((v) => !v)}
             aria-expanded={helpersOpen}
-            className="w-full py-3.5 px-4 flex items-center justify-between hover:bg-white/[0.04] transition-colors"
+            className="w-full py-3.5 px-4 lg:py-4 lg:px-5 flex items-center justify-between hover:bg-white/[0.04] transition-colors"
           >
             <div className="flex items-center gap-3 text-left">
-              <span className="material-icons-outlined text-lg text-white/40">tune</span>
+              <span className="material-icons-outlined text-lg lg:text-[22px] text-white/40 lg:text-white/60">tune</span>
               <div>
-                <div className="text-[13px] font-medium text-white/85">{t('helpersTitle')}</div>
-                <div className="text-[11px] text-white/40 mt-0.5">{helpersSummary}</div>
+                <div className="text-[13px] lg:text-[16px] font-medium text-white/85">{t('helpersTitle')}</div>
+                <div className="text-[11px] lg:text-[13.5px] text-white/40 lg:text-white/60 mt-0.5">{helpersSummary}</div>
               </div>
             </div>
             <span
@@ -580,7 +581,7 @@ const PrayerFocus = () => {
                 onClick={() => setGuidedMode((v) => !v)}
                 role="switch"
                 aria-checked={guidedMode}
-                className="w-full rounded-xl py-3 px-3.5 flex items-center justify-between border border-white/10 bg-white/[0.04] transition-all"
+                className="w-full rounded-xl py-3 px-3.5 lg:py-3.5 lg:px-4 flex items-center justify-between border border-white/10 bg-white/[0.04] transition-all"
               >
                 <div className="flex items-center gap-3 text-left">
                   <span
@@ -590,8 +591,8 @@ const PrayerFocus = () => {
                     signpost
                   </span>
                   <div>
-                    <div className="text-[13px] font-medium text-white/85">{t('guidedPrayerTitle')}</div>
-                    <div className="text-[11px] text-white/40 mt-0.5">{t('guidedPrayerDesc')}</div>
+                    <div className="text-[13px] lg:text-[16px] font-medium text-white/85">{t('guidedPrayerTitle')}</div>
+                    <div className="text-[11px] lg:text-[13.5px] text-white/40 lg:text-white/60 mt-0.5">{t('guidedPrayerDesc')}</div>
                   </div>
                 </div>
                 <div
@@ -612,7 +613,7 @@ const PrayerFocus = () => {
                   onClick={() => setChimeOn((v) => !v)}
                   role="switch"
                   aria-checked={chimeOn}
-                  className="w-full rounded-xl py-2.5 px-3.5 flex items-center justify-between border border-white/10 bg-white/[0.03] transition-all animate-fade-in"
+                  className="w-full rounded-xl py-2.5 px-3.5 lg:py-3.5 lg:px-4 flex items-center justify-between border border-white/10 bg-white/[0.03] transition-all animate-fade-in"
                 >
                   <div className="flex items-center gap-3 text-left">
                     <span
@@ -622,8 +623,8 @@ const PrayerFocus = () => {
                       notifications
                     </span>
                     <div>
-                      <div className="text-[12px] font-medium text-white/80">{t('chimeToggleTitle')}</div>
-                      <div className="text-[11px] text-white/40 mt-0.5">{t('chimeToggleDesc')}</div>
+                      <div className="text-[12px] lg:text-[15px] font-medium text-white/80">{t('chimeToggleTitle')}</div>
+                      <div className="text-[11px] lg:text-[13.5px] text-white/40 lg:text-white/60 mt-0.5">{t('chimeToggleDesc')}</div>
                     </div>
                   </div>
                   <div
@@ -641,7 +642,7 @@ const PrayerFocus = () => {
 
               {/* 배경음 — 탭하면 짧게 미리 들려준다 */}
               <div>
-                <p className="text-white/40 text-[11px] mb-2">{t('ambience')}</p>
+                <p className="text-white/40 text-[11px] lg:text-[13.5px] lg:text-white/60 mb-2">{t('ambience')}</p>
                 <div className="flex flex-wrap gap-2">
                   {AMBIENCE_TRACKS.map((track) => {
                     const active = ambienceId === track.id
@@ -649,15 +650,15 @@ const PrayerFocus = () => {
                       <button
                         key={track.id}
                         onClick={() => setAmbienceId(track.id)}
-                        className={`px-3 py-1.5 rounded-full text-[11px] font-medium tracking-wide border transition-all flex items-center gap-1.5 ${
+                        className={`px-3 py-1.5 lg:px-4 lg:min-h-[44px] rounded-full text-[11px] lg:text-[14px] font-medium tracking-wide border transition-all flex items-center gap-1.5 ${
                           active
                             ? 'text-white'
-                            : 'border-white/10 bg-white/[0.04] text-white/55 hover:bg-white/[0.08]'
+                            : 'border-white/10 bg-white/[0.04] text-white/55 lg:text-white/75 hover:bg-white/[0.08]'
                         }`}
                         style={active ? CANDLE_SELECTED : undefined}
                       >
                         <span
-                          className="material-icons-outlined text-sm"
+                          className="material-icons-outlined text-sm lg:text-lg"
                           style={active ? { color: CANDLE_TONE.text } : undefined}
                         >
                           {track.icon}
@@ -677,9 +678,9 @@ const PrayerFocus = () => {
           {/* 촛불 크림빛 버튼 — 화면에서 촛불 다음으로 밝은 단 하나의 면 */}
           <button
             onClick={handleEnter}
-            className={`w-full rounded-2xl py-4 ${CANDLE_CLASS.primary} shadow-[0_14px_34px_-14px_rgba(255,170,90,0.6),0_8px_24px_rgba(0,0,0,0.35)] transition-[transform,filter] duration-300 hover:brightness-105 active:scale-[0.99]`}
+            className={`w-full rounded-2xl py-4 lg:py-5 ${CANDLE_CLASS.primary} shadow-[0_14px_34px_-14px_rgba(255,170,90,0.6),0_8px_24px_rgba(0,0,0,0.35)] transition-[transform,filter] duration-300 hover:brightness-105 active:scale-[0.99]`}
           >
-            <div className="flex items-center justify-center gap-1.5 text-[15px] font-semibold">
+            <div className="flex items-center justify-center gap-1.5 text-[15px] lg:text-[18px] font-semibold">
               <svg width="11" height="15" viewBox="0 0 22 30" aria-hidden="true" className="text-[#c8662a]">
                 <path
                   d="M11 0 C12.4 7 22 13 22 20.5 C22 26 17 30 11 30 C5 30 0 26 0 20.5 C0 13 9.6 7 11 0 Z"
@@ -688,7 +689,7 @@ const PrayerFocus = () => {
               </svg>
               {t('enterPrayerCta')}
             </div>
-            <div className="text-[11px] text-[rgba(43,27,12,0.6)] mt-0.5">
+            <div className="text-[11px] lg:text-[14px] text-[rgba(43,27,12,0.6)] lg:text-[rgba(43,27,12,0.75)] mt-0.5">
               {`${selectedMinutes}${t('minutes')}`} ·{' '}
               {selectedTheme ? tx(selectedTheme.labelKey) : t('freePrayerFallback')}
             </div>

@@ -26,7 +26,7 @@ interface MinistryRailProps {
  */
 const MinistryRail = ({ language, featured, totalLetters, railHighlights, monthGroups, topOffset, onOpen }: MinistryRailProps) => (
   <aside
-    className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]"
+    className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0"
     style={{ marginTop: topOffset }}
   >
     {/* 발신인 — 본문 인트로(lg:hidden)가 이 자리로 옮겨왔다 */}

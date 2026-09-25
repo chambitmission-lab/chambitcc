@@ -442,7 +442,7 @@ const Greeting = () => {
         </div>
 
         {/* 우측 위젯 레일 (lg+) — 읽는 페이지라 목차가 주인공 */}
-        <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
           <GreetingRail ko={ko} />
         </aside>
       </div>

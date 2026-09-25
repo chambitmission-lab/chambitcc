@@ -26,7 +26,7 @@ const ClassCard = ({
     <div className={`${cardClass} overflow-hidden`}>
       {/* 상단 파스텔 틴트 헤더 */}
       <div
-        className="flex items-center gap-3 px-4 pt-4 pb-3"
+        className="flex items-center gap-3 px-4 pt-4 pb-3 lg:px-5 lg:pt-5"
         style={{
           background: `linear-gradient(135deg, ${withAlpha(accent.color, 0.1)}, transparent 70%)`,
         }}
@@ -43,27 +43,27 @@ const ClassCard = ({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <h3 className="text-[15.5px] font-bold text-gray-900 dark:text-white/90">
+            <h3 className="text-[15.5px] lg:text-[19px] font-bold text-gray-900 dark:text-white/90">
               {cultureClass.title}
             </h3>
             {cultureClass.is_open ? (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand">
+              <span className="text-[10px] lg:text-[12.5px] lg:px-2.5 font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand">
                 모집중
               </span>
             ) : (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/40">
+              <span className="text-[10px] lg:text-[12.5px] lg:px-2.5 font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/40">
                 모집 마감
               </span>
             )}
             {almostFull && cultureClass.is_open && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 text-amber-600 dark:text-amber-300">
+              <span className="text-[10px] lg:text-[12.5px] lg:px-2.5 font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 text-amber-600 dark:text-amber-300">
                 마감 임박
               </span>
             )}
           </div>
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
             {cultureClass.quarter && (
-              <span className="text-[11.5px] font-semibold" style={{ color: accent.color }}>
+              <span className="text-[11.5px] lg:text-[14px] font-semibold" style={{ color: accent.color }}>
                 {cultureClass.quarter}
               </span>
             )}
@@ -72,7 +72,7 @@ const ClassCard = ({
                 {days.map((d) => (
                   <span
                     key={d}
-                    className="w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center"
+                    className="w-[18px] h-[18px] lg:w-6 lg:h-6 rounded-full text-[10px] lg:text-[12.5px] font-bold flex items-center justify-center"
                     style={{
                       background: withAlpha(accent.color, 0.13),
                       color: accent.color,
@@ -87,14 +87,14 @@ const ClassCard = ({
         </div>
       </div>
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 lg:px-5 lg:pb-5">
         {cultureClass.description && (
-          <p className="text-[13px] text-gray-600 dark:text-white/60 leading-relaxed whitespace-pre-wrap">
+          <p className="text-[13px] lg:text-[16.5px] text-gray-600 dark:text-white/60 lg:text-gray-700 lg:dark:text-white/75 leading-relaxed whitespace-pre-wrap">
             {cultureClass.description}
           </p>
         )}
 
-        <div className="mt-3 space-y-1.5">
+        <div className="mt-3 space-y-1.5 lg:space-y-2">
           {[
             { icon: 'person', value: cultureClass.instructor && `강사 ${cultureClass.instructor}` },
             { icon: 'schedule', value: cultureClass.schedule },
@@ -104,10 +104,10 @@ const ClassCard = ({
             .filter((row) => row.value)
             .map((row) => (
               <div key={row.icon} className="flex items-center gap-2">
-                <span className="material-icons-outlined text-[15px] text-gray-400 dark:text-white/35">
+                <span className="material-icons-outlined text-[15px] lg:text-[19px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/50">
                   {row.icon}
                 </span>
-                <span className="text-[12.5px] text-gray-600 dark:text-white/55">{row.value}</span>
+                <span className="text-[12.5px] lg:text-[15.5px] text-gray-600 dark:text-white/55 lg:text-gray-700 lg:dark:text-white/70">{row.value}</span>
               </div>
             ))}
         </div>
@@ -116,11 +116,11 @@ const ClassCard = ({
         {hasSeatInfo ? (
           <div className="mt-3">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11.5px] text-gray-400 dark:text-white/40">
+              <span className="text-[11.5px] lg:text-[14px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55">
                 정원 {capacity}명
               </span>
               <span
-                className={`text-[11.5px] font-bold ${
+                className={`text-[11.5px] lg:text-[14px] font-bold ${
                   isFull
                     ? 'text-gray-400 dark:text-white/40'
                     : almostFull
@@ -133,7 +133,7 @@ const ClassCard = ({
               </span>
             </div>
             <div
-              className="h-1.5 rounded-full overflow-hidden"
+              className="h-1.5 lg:h-2 rounded-full overflow-hidden"
               style={{ background: withAlpha(accent.color, 0.12) }}
             >
               <div
@@ -146,10 +146,10 @@ const ClassCard = ({
           capacity !== null &&
           capacity > 0 && (
             <div className="mt-3 flex items-center gap-2">
-              <span className="material-icons-outlined text-[15px] text-gray-400 dark:text-white/35">
+              <span className="material-icons-outlined text-[15px] lg:text-[19px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/50">
                 groups
               </span>
-              <span className="text-[12.5px] text-gray-600 dark:text-white/55">
+              <span className="text-[12.5px] lg:text-[15.5px] text-gray-600 dark:text-white/55 lg:text-gray-700 lg:dark:text-white/70">
                 정원 {capacity}명
               </span>
             </div>
@@ -160,7 +160,7 @@ const ClassCard = ({
           <button
             onClick={() => onApply(cultureClass)}
             disabled={isFull}
-            className={`relative mt-3.5 w-full py-2.5 text-sm font-semibold rounded-xl transition-colors [--seal-radius:0.75rem] ${
+            className={`relative mt-3.5 w-full py-2.5 text-sm lg:h-14 lg:py-0 lg:text-[17px] lg:font-bold font-semibold rounded-xl transition-colors [--seal-radius:0.75rem] ${
               isFull
                 ? 'bg-gray-200 text-gray-400 dark:bg-white/[0.06] dark:text-white/35'
                 : 'seal-chip bg-brand hover:bg-brand-dim text-white'

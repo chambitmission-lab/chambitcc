@@ -86,7 +86,7 @@ const CapsuleRail = ({ data }: { data: CapsuleMailboxData }) => {
   ).length
 
   return (
-    <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+    <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
       <section className={cardClass}>
         {/* relative 필수 — seal-chip 점선은 absolute ::after 라,
             빠뜨리면 sticky가 걸린 레일(aside) 전체를 감싼다 */}

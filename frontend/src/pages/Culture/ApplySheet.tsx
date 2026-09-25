@@ -7,6 +7,8 @@ import { writeToClipboard } from '../Bible/components/verseCopy'
 import { createCultureApplication } from '../../api/culture'
 import type { CultureClass, CultureApplication } from '../../types/culture'
 import { getCultureAccent, withAlpha } from './cultureAccents'
+import { useFeedTextScale } from '../../utils/feedTextScale'
+import './culture-apply.css'
 
 // 수강료 입금 계좌 — 문의 섹션과 신청 완료 화면에서 함께 사용
 export const BANK_ACCOUNT = {
@@ -15,11 +17,12 @@ export const BANK_ACCOUNT = {
   holder: '대한예수교장로회 참빛교회',
 }
 
+// lg: 입력칸 약 56px·글씨 17px — 시트는 body 포털이라 페이지 zoom 을 받지 않아 여기서 직접 키운다
 const inputClass =
-  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
+  'w-full px-4 py-2.5 text-sm lg:px-5 lg:py-4 lg:text-[17px] rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
 const labelClass =
-  'text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block'
+  'text-[11px] lg:text-[14px] lg:mb-2 font-semibold text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/60 uppercase tracking-wider mb-1.5 block'
 
 /** 숫자만 남기고 010-1234-5678 형태로 하이픈 자동 삽입 */
 const formatPhoneInput = (value: string): string => {
@@ -45,24 +48,24 @@ export const AccountCopyRow = () => {
     })
   }
   return (
-    <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.06]">
+    <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.06]">
       <div className="min-w-0">
-        <p className="text-[13px] font-bold text-gray-800 dark:text-white/85">
+        <p className="text-[13px] lg:text-[16px] font-bold text-gray-800 dark:text-white/85">
           {BANK_ACCOUNT.bank} {BANK_ACCOUNT.number}
         </p>
-        <p className="text-[11.5px] text-gray-400 dark:text-white/40 mt-0.5">
+        <p className="text-[11.5px] lg:text-[13.5px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55 mt-0.5">
           {BANK_ACCOUNT.holder}
         </p>
       </div>
       <button
         onClick={copy}
-        className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 text-[12px] font-bold rounded-lg border transition-colors ${
+        className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 text-[12px] lg:min-h-[44px] lg:px-4 lg:text-[14.5px] font-bold rounded-lg border transition-colors ${
           copied
             ? 'border-emerald-200 dark:border-emerald-500/25 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
             : 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] text-brand hover:opacity-80'
         }`}
       >
-        <span className="material-icons-round text-[14px]">
+        <span className="material-icons-round text-[14px] lg:text-[17px]">
           {copied ? 'check' : 'content_copy'}
         </span>
         {copied ? '복사됨' : '복사'}
@@ -86,6 +89,8 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
   // 뒤로가기 → 시트만 닫기
   useModalBackButton(onClose)
   const accent = getCultureAccent(cultureClass.title)
+  // 헤더 '가' 배율 — 시트는 body 포털이라 <main data-app-scale> zoom 을 받지 못해 패널이 직접 따라간다(lg 에서만)
+  const textScale = useFeedTextScale()
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -126,7 +131,8 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-md max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex flex-col"
+        data-scale={textScale}
+        className="culture-apply-panel relative w-full sm:max-w-md lg:max-w-[560px] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 액센트 글로우 */}
@@ -136,7 +142,7 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
         />
 
         {/* 헤더 — 선택한 강좌 요약 고정 */}
-        <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center gap-3 px-5 py-4 lg:px-6 lg:py-5 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div
             className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
@@ -149,39 +155,39 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
             <accent.Icon width={22} height={22} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[10.5px] font-bold tracking-[0.1em]" style={{ color: accent.color }}>
+            <p className="text-[10.5px] lg:text-[13px] font-bold tracking-[0.1em]" style={{ color: accent.color }}>
               수강신청
             </p>
-            <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
+            <h3 className="text-ink-strong text-[17px] lg:text-[21px] font-bold tracking-[-0.015em] truncate">
               {cultureClass.title}
             </h3>
             {cultureClass.schedule && (
-              <p className="text-[11.5px] text-gray-400 dark:text-white/40 truncate mt-0.5">
+              <p className="text-[11.5px] lg:text-[14px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55 truncate mt-0.5">
                 {cultureClass.schedule}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors shrink-0"
+            className="w-9 h-9 lg:w-11 lg:h-11 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors shrink-0"
             aria-label="닫기"
           >
-            <span className="material-icons-round text-[20px]">close</span>
+            <span className="material-icons-round text-[20px] lg:text-[24px]">close</span>
           </button>
         </div>
 
         {/* 본문 */}
-        <div className="relative z-10 flex-1 overflow-y-auto px-5 py-5">
+        <div className="relative z-10 flex-1 overflow-y-auto px-5 py-5 lg:px-6 lg:py-6">
           {submitted ? (
             /* ── 신청 완료 ── */
             <div className="text-center animate-fade-in">
               <div className="w-16 h-16 mx-auto rounded-full bg-emerald-50 dark:bg-emerald-500/15 flex items-center justify-center animate-scale-in">
                 <span className="material-icons-round text-[34px] text-emerald-500">check</span>
               </div>
-              <h2 className="text-[17px] font-bold text-ink-strong mt-4">
+              <h2 className="text-[17px] lg:text-[21px] font-bold text-ink-strong mt-4">
                 수강신청이 접수되었습니다
               </h2>
-              <p className="text-[13.5px] text-gray-500 dark:text-white/55 mt-1.5 leading-relaxed">
+              <p className="text-[13.5px] lg:text-[16.5px] text-gray-500 dark:text-white/55 lg:text-gray-600 lg:dark:text-white/70 mt-1.5 leading-relaxed">
                 {submitted.name}님, {cultureClass.title}에서 만나요
                 <accent.Icon
                   width={15}
@@ -192,7 +198,7 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
               </p>
 
               <div className="mt-5 text-left space-y-2.5">
-                <p className="text-[12.5px] text-gray-600 dark:text-white/60 leading-relaxed">
+                <p className="text-[12.5px] lg:text-[15.5px] text-gray-600 dark:text-white/60 lg:dark:text-white/70 leading-relaxed">
                   아래 계좌로 수강료를 입금하시면 등록이 완료됩니다.
                   <br />
                   12회 일괄 또는 5회 분할 입금이 가능합니다.
@@ -202,14 +208,14 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
 
               <button
                 onClick={onClose}
-                className="relative mt-5 w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl transition-colors seal-chip [--seal-radius:0.75rem]"
+                className="relative mt-5 w-full py-3 text-sm lg:h-14 lg:py-0 lg:text-[17px] font-bold bg-brand hover:bg-brand-dim text-white rounded-xl transition-colors seal-chip [--seal-radius:0.75rem]"
               >
                 확인
               </button>
             </div>
           ) : (
             /* ── 신청 폼 ── */
-            <div className="space-y-4">
+            <div className="space-y-4 lg:space-y-5">
               <div>
                 <label className={labelClass}>이름 (수강생) *</label>
                 <input
@@ -241,7 +247,7 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
                       onClick={() =>
                         setForm((f) => ({ ...f, gender: f.gender === g ? '' : g }))
                       }
-                      className={`flex-1 py-2.5 text-sm font-semibold rounded-xl border transition-colors ${
+                      className={`flex-1 py-2.5 text-sm lg:h-14 lg:py-0 lg:text-[17px] font-semibold rounded-xl border transition-colors ${
                         form.gender === g
                           ? 'border-brand bg-[var(--brand-soft)] text-brand'
                           : 'border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/50 hover:border-gray-300 dark:hover:border-white/20'
@@ -265,7 +271,7 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
                   placeholder="010-0000-0000"
                   className={inputClass}
                 />
-                <p className="text-[11.5px] text-gray-400 dark:text-white/35 mt-1.5">
+                <p className="text-[11.5px] lg:text-[14px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/55 mt-1.5">
                   신청 확인과 취소 시 본인 확인에 사용됩니다
                 </p>
               </div>
@@ -286,11 +292,11 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
 
         {/* 푸터 — 제출 버튼 (완료 화면에서는 숨김) */}
         {!submitted && (
-          <div className="relative z-10 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+          <div className="relative z-10 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 lg:px-6 lg:py-4 pb-[max(12px,env(safe-area-inset-bottom))]">
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="relative w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors seal-chip [--seal-radius:0.75rem]"
+              className="relative w-full py-3 text-sm lg:h-14 lg:py-0 lg:text-[17px] font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors seal-chip [--seal-radius:0.75rem]"
             >
               {submitting ? '신청 중...' : `${cultureClass.title} 신청하기`}
             </button>

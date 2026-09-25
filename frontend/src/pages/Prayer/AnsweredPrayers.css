@@ -436,3 +436,73 @@
     font-size: 20px;
   }
 }
+
+/* ============================================
+   PC (lg+) 노안 패스 — 글씨 한 단계 + 누르는 영역 44px
+   화면 전체 zoom(--az)은 그대로 받고, 여기선 기본 크기의 바닥만 올린다.
+   PrayerCard.css 는 다른 화면과 공유하므로 .answered-list 아래로만 덮어쓴다.
+   ============================================ */
+@media (min-width: 1024px) {
+  /* 전당 헤더 */
+  .answered-hall-label { font-size: 12.5px; padding: 4px 11px; }
+  .answered-hall-reference { font-size: 13.5px; color: var(--text-body); }
+  .answered-col-side .answered-hall-title { font-size: 23px; }
+  .answered-hall-subtitle { font-size: 15px; color: var(--text-body); margin-bottom: 14px; }
+  .answered-hall-verse { font-size: 16px; line-height: 1.7; padding: 14px 16px; }
+  .answered-hall-verse-mark { font-size: 22px; }
+  .answered-hall-count { font-size: 14px; padding: 6px 13px; }
+  .answered-hall-count .material-icons-round { font-size: 16px !important; }
+
+  /* 정렬 탭 — 탭 높이 44px */
+  .answered-sort-tab {
+    font-size: 16.5px;
+    min-height: 44px;
+    padding: 10px 2px;
+    margin-bottom: -12px;
+  }
+  .answered-sort-count { font-size: 14px; }
+
+  /* 상태 카드·더 보기 */
+  .answered-state-title { font-size: 19px; }
+  .answered-state-desc { font-size: 15.5px; color: var(--text-body); }
+  .answered-state-error { font-size: 16px; }
+  .answered-state-retry,
+  .answered-load-more-btn {
+    min-height: 48px;
+    padding: 12px 30px;
+    font-size: 15.5px;
+  }
+
+  /* 응답 카드(PrayerCard) — 이 화면에서만 */
+  .answered-list .prayer-group-badge { font-size: 13px; padding: 0.35rem 0.8rem; }
+  .answered-list .author-name { font-size: 15.5px; }
+  .answered-list .prayer-time { font-size: 13.5px; color: var(--text-body); }
+  .answered-list .answered-badge,
+  .answered-list .owner-badge { font-size: 12.5px; padding: 0.28rem 0.7rem; }
+  .answered-list .owner-badge { color: var(--text-body); }
+  .answered-list .prayer-title { font-size: 19px; }
+  .answered-list .prayer-content { font-size: 16.5px; line-height: 1.7; }
+  .answered-list .testimony-label { font-size: 13px; }
+  .answered-list .testimony-content { font-size: 16.5px; line-height: 1.75; }
+  .answered-list .testimony-sign-name { font-size: 14px; }
+  .answered-list .testimony-sign-date { font-size: 13px; color: var(--text-body); }
+  .answered-list .action-button {
+    min-height: 44px;
+    padding: 0.55rem 1rem;
+    font-size: 14.5px;
+  }
+  .answered-list .action-text,
+  .answered-list .action-count { font-size: 14.5px; }
+  .answered-list .owner-link {
+    min-height: 44px;
+    padding: 0.5rem 0.6rem;
+    font-size: 14px;
+    color: var(--text-body);
+  }
+  .answered-list .owner-sep { font-size: 13px; }
+}
+
+/* 간증 수정 모달(AnswerModal, 공용)은 포털이 아니라 zoom 안에 그려진다 — 화면 높이만 --az 로 나눈다 */
+@media (min-width: 1024px) {
+  .answered-page > .fixed > .max-h-\[90vh\] { max-height: calc(90vh / var(--az, 1)); }
+}

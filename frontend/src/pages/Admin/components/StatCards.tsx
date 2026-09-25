@@ -14,7 +14,8 @@ export const AdminPageHeader = ({
 }) => {
   const navigate = useNavigate()
   return (
-    <div className="sticky top-0 lg:static lg:rounded-t-3xl z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+    // 모바일: 페이지 흐름의 sticky 라 body 스크롤 기준 — 고정 앱 헤더(56px) 바로 밑에 붙인다
+    <div className="sticky top-14 lg:static lg:rounded-t-3xl z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"

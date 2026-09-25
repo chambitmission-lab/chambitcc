@@ -949,3 +949,148 @@
     opacity: 0.55;
   }
 }
+
+/* ── PC 노안 패스(lg+) — 글씨·누르는 영역만 한 단계 올린다. 배치·색 방향은 그대로.
+   라우트가 zoom(--az) 을 받으므로 여기 값이 배율 1 기준이다.
+   카드 이름 16px · 캡션 13.5px 이상 · 회색 캡션은 --text-body 로 한 단계 진하게, 버튼 44px 이상 */
+@media (min-width: 1024px) {
+  .ppl-hero-badge {
+    font-size: 0.875rem;
+  }
+
+  .ppl-hero-title {
+    font-size: 1.9rem;
+  }
+
+  .ppl-hero-subtitle {
+    font-size: 1.0625rem;
+    color: var(--text-body);
+  }
+
+  .ppl-hero .ppl-hero-admin {
+    height: 2.5rem;
+    font-size: 0.875rem;
+  }
+
+  .ppl-stat {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+    color: var(--text-body);
+  }
+
+  .ppl-stat-num {
+    font-size: 1.125rem;
+  }
+
+  /* 탭 · 검색 */
+  .ppl-tab {
+    height: 2.875rem;
+    padding: 0 1.15rem;
+    font-size: 1rem;
+    color: var(--text-body);
+  }
+
+  .ppl-tab-count {
+    font-size: 0.8125rem;
+  }
+
+  .ppl-search input {
+    height: 3rem;
+    font-size: 1rem;
+  }
+
+  .ppl-group-title {
+    font-size: 1.0625rem;
+  }
+
+  .ppl-group-count {
+    font-size: 0.875rem;
+    color: var(--text-body);
+  }
+
+  /* 카드 */
+  .ppl-card-body {
+    padding: 0.85rem 0.95rem 1rem;
+    min-height: 5.5rem;
+  }
+
+  .ppl-card-name {
+    font-size: 1.0625rem;
+  }
+
+  .ppl-card-role {
+    font-size: 0.9rem;
+  }
+
+  .ppl-card-sub {
+    font-size: 0.875rem;
+    color: var(--text-body);
+  }
+
+  .ppl-chip {
+    padding: 0.2rem 0.55rem;
+    font-size: 0.8125rem;
+  }
+
+  /* 인물 시트 — 라우트 트리 안이라 zoom 을 같이 받는다 */
+  .ppl-sheet {
+    max-width: 30rem;
+  }
+
+  .ppl-sheet-close {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .ppl-sheet-name {
+    font-size: 1.5rem;
+  }
+
+  .ppl-sheet-role {
+    font-size: 1rem;
+  }
+
+  .ppl-meta-chip {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.8438rem;
+    color: var(--text-body);
+  }
+
+  [data-theme='dark'] .ppl-meta-chip {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .ppl-sheet-label {
+    font-size: 0.8438rem;
+    color: var(--text-body);
+  }
+
+  .ppl-sheet-body {
+    font-size: 1.0625rem;
+  }
+
+  .ppl-verse {
+    font-size: 1rem;
+  }
+
+  .ppl-contact-btn {
+    min-height: 4.25rem;
+    padding: 0.8rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .ppl-contact-value {
+    font-size: 0.9rem;
+    color: var(--text-body);
+  }
+
+  /* 빈 상태 */
+  .ppl-empty-title {
+    font-size: 1.0625rem;
+  }
+
+  .ppl-empty-desc {
+    font-size: 0.95rem;
+    color: var(--text-body);
+  }
+}

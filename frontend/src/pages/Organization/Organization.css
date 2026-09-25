@@ -455,3 +455,29 @@
     scrollbar-width: thin;
   }
 }
+
+/* ── PC 노안 패스(lg+) — 글씨·누르는 영역만 한 단계 올린다. 배치·색 방향은 그대로.
+   라우트가 zoom(--az) 을 받으므로 여기 값이 배율 1 기준이다.
+   (Tailwind 로 그린 카드·문구는 Organization.tsx 의 lg: 유틸이 맡는다) */
+@media (min-width: 1024px) {
+  .org-eyebrow {
+    font-size: 13px;
+  }
+
+  .org-stat {
+    font-size: 15px;
+  }
+
+  .org-stat b {
+    font-size: 19px;
+  }
+
+  .org-section-title {
+    font-size: 16px;
+  }
+
+  /* 의결기구 트리 — 레일 380px 에 세 칸이 들어가게 라벨만 키운다 */
+  .org-node-label {
+    font-size: 15px;
+  }
+}

@@ -56,10 +56,10 @@ const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 0,
             step >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
         >
-          <p className="font-serif italic text-white/90 text-xl md:text-2xl leading-relaxed">
+          <p className="font-serif italic text-white/90 text-xl md:text-2xl lg:text-[30px] leading-relaxed">
             {verseText}
           </p>
-          <p className={`mt-3 text-xs tracking-widest uppercase ${CANDLE_CLASS.accentText}`}>
+          <p className={`mt-3 text-xs lg:text-[14px] tracking-widest uppercase ${CANDLE_CLASS.accentText}`}>
             — {verseRef}
           </p>
         </div>
@@ -79,7 +79,7 @@ const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 0,
             {/* 중심의 작은 고정 점 — 시선 둘 곳 */}
             <div className="w-2 h-2 rounded-full bg-white/70" />
           </div>
-          <p className="text-white/70 text-base md:text-lg leading-loose">
+          <p className="text-white/70 text-base md:text-lg lg:text-[21px] lg:text-white/85 leading-loose">
             {t('ritualBreathe')}
             <br />
             {t('ritualGaze')}
@@ -92,7 +92,7 @@ const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 0,
             step >= 3 ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <p className="text-white/30 text-xs tracking-[0.3em] uppercase animate-pulse-slow">
+          <p className="text-white/30 text-xs lg:text-[14px] lg:text-white/55 tracking-[0.3em] uppercase animate-pulse-slow">
             {t('tapToEnter')}
           </p>
         </div>

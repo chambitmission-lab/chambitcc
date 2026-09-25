@@ -12,9 +12,9 @@
 .search-form {
   margin-bottom: 0.75rem;
   position: sticky;
-  /* 헤더(.bible-study-header, top 56 + 높이 ~64) 바로 아래. 탭 바가 하단 네비로
-     이동했으므로 176px(구 탭 바 포함 오프셋)을 쓰면 폼이 아래로 밀려 뒤 콘텐츠를 가린다. */
-  top: 120px;
+  /* 앱바(56) 바로 아래 — 모바일 .bible-study-header 는 lg:hidden 래퍼에 갇혀 붙지 않고
+     스크롤과 함께 사라지므로, 그 높이를 더하면(120px) 헤더가 빠진 자리에 틈이 생긴다. */
+  top: 56px;
   z-index: 8;
   background: var(--ig-secondary-background);
   padding-bottom: 0.625rem;

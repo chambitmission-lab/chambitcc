@@ -59,11 +59,11 @@ const SharedIntercession = ({ show, accentText, rotateMs = 18000 }: SharedInterc
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-8 z-10 flex flex-col items-center px-8 text-center">
-      <p className={`text-[10px] tracking-[0.3em] uppercase mb-2 ${accentText} opacity-80`}>
+      <p className={`text-[10px] lg:text-[13px] tracking-[0.3em] uppercase mb-2 ${accentText} opacity-80`}>
         {t('intercessionSharedTitle')}
       </p>
       <p
-        className={`text-white/60 text-sm leading-relaxed max-w-sm break-keep transition-opacity ease-in-out ${
+        className={`text-white/60 text-sm lg:text-[17px] lg:text-white/80 leading-relaxed max-w-sm lg:max-w-lg break-keep transition-opacity ease-in-out ${
           visible ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ transitionDuration: `${FADE_MS}ms` }}

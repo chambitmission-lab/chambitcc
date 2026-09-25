@@ -13,7 +13,7 @@
   flex-direction: column;
   gap: 12px;
   position: sticky;
-  top: 16px;
+  top: calc(3.5rem + 16px); /* 고정 앱 헤더(56px) 밑 16px */
 }
 .bm-side-action {
   display: flex;

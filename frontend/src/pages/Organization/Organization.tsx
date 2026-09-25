@@ -122,10 +122,10 @@ const GovernanceBand = ({ units }: { units: OrgUnit[] }) => {
 // ── 위원회 카드 ───────────────────────────────────────────────────────
 
 const DepartmentChip = ({ unit }: { unit: OrgUnit }) => (
-  <span className="px-3 py-1.5 rounded-full bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.05] text-[12.5px] text-gray-700 dark:text-white/70">
+  <span className="px-3 py-1.5 rounded-full bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.05] text-[12.5px] text-gray-700 dark:text-white/70 lg:px-3.5 lg:py-2 lg:text-[15px] lg:text-gray-800 dark:lg:text-white/85">
     {unit.name}
     {unit.note && (
-      <span className="ml-1.5 text-[11px] text-gray-400 dark:text-white/35">{unit.note}</span>
+      <span className="ml-1.5 text-[11px] text-gray-400 dark:text-white/35 lg:text-[13px] lg:text-gray-500 dark:lg:text-white/55">{unit.note}</span>
     )}
   </span>
 )
@@ -150,7 +150,7 @@ const CommitteeCard = ({
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="relative z-10 w-full flex items-center gap-3.5 px-4 py-4 text-left"
+        className="relative z-10 w-full flex items-center gap-3.5 px-4 py-4 text-left lg:py-5"
       >
         {/* 위원회 첫 글자 모노그램 — 밋밋한 막대 대신 얼굴이 되어 준다 */}
         <span
@@ -159,17 +159,17 @@ const CommitteeCard = ({
           {committee.name.charAt(0)}
         </span>
         <span className="flex-1 min-w-0">
-          <span className="block text-[15px] font-bold text-ink-strong tracking-[-0.02em] truncate">
+          <span className="block text-[15px] font-bold text-ink-strong tracking-[-0.02em] truncate lg:text-[17.5px]">
             {committee.name}
           </span>
           {bureaus.length > 0 && (
-            <span className="block text-[12px] text-gray-500 dark:text-white/40 mt-1 truncate">
+            <span className="block text-[12px] text-gray-500 dark:text-white/40 mt-1 truncate lg:text-[14px] lg:text-gray-600 dark:lg:text-white/60">
               {bureaus.map(b => b.name).join(' · ')}
             </span>
           )}
         </span>
         {departmentCount > 0 && (
-          <span className={`org-count tone-${committee.id % 4} shrink-0 px-2.5 py-1 rounded-full text-[11.5px] font-semibold`}>
+          <span className={`org-count tone-${committee.id % 4} shrink-0 px-2.5 py-1 rounded-full text-[11.5px] font-semibold lg:px-3 lg:text-[13.5px]`}>
             부서 {departmentCount}
           </span>
         )}
@@ -194,7 +194,7 @@ const CommitteeCard = ({
         <div className="relative z-10 px-4 pb-4 space-y-3 animate-pop-in">
           {bureaus.map(bureau => (
             <div key={bureau.id}>
-              <span className="inline-block px-2.5 py-1 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[12px] font-bold mb-2">
+              <span className="inline-block px-2.5 py-1 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[12px] font-bold mb-2 lg:text-[14px] lg:px-3">
                 {bureau.name}
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -214,7 +214,7 @@ const CommitteeCard = ({
           )}
 
           {bureaus.length === 0 && directDepartments.length === 0 && (
-            <p className="text-[12.5px] text-gray-400 dark:text-white/30">
+            <p className="text-[12.5px] text-gray-400 dark:text-white/30 lg:text-[14.5px] lg:text-gray-500 dark:lg:text-white/50">
               등록된 하위 조직이 없습니다
             </p>
           )}
@@ -231,10 +231,10 @@ const VerseCard = () => (
     <div className={`${cardClass} org-verse-card px-5 py-5`}>
       <CardSheen />
       <span className="org-verse-quote" aria-hidden>“</span>
-      <p className="relative z-10 m-0 pr-16 text-[13px] leading-relaxed text-gray-600 dark:text-white/65 break-keep">
+      <p className="relative z-10 m-0 pr-16 text-[13px] leading-relaxed text-gray-600 dark:text-white/65 break-keep lg:text-[15.5px] lg:text-gray-700 dark:lg:text-white/80">
         몸은 하나인데 많은 지체가 있고 몸의 지체가 많으나 한 몸임과 같이 그리스도도 그러하니라
       </p>
-      <p className="relative z-10 m-0 mt-2.5 text-[12px] font-semibold text-brand">고린도전서 12:12</p>
+      <p className="relative z-10 m-0 mt-2.5 text-[12px] font-semibold text-brand lg:text-[14px]">고린도전서 12:12</p>
       <span className="org-verse-art" aria-hidden>
         <Church size={56} weight="duotone" />
       </span>
@@ -278,7 +278,7 @@ const Organization = () => {
               Church Organization
             </span>
             <h1 className="text-[26px] font-extrabold tracking-[-0.03em] text-ink-strong mt-2.5">교회 조직도</h1>
-            <p className="text-[13px] text-gray-500 dark:text-white/45 mt-2 break-keep">
+            <p className="text-[13px] text-gray-500 dark:text-white/45 mt-2 break-keep lg:text-[16px] lg:text-gray-600 dark:lg:text-white/65">
               한 몸을 이루는 여러 지체입니다. 섬기고 계신 자리를 찾아보세요.
             </p>
           </div>
@@ -311,14 +311,14 @@ const Organization = () => {
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="부서 · 위원회 이름으로 찾기"
-                  className="org-search-input w-full pl-11 pr-10 py-3.5 text-[13.5px] rounded-full text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none transition-[border-color,box-shadow]"
+                  className="org-search-input w-full pl-11 pr-10 py-3.5 text-[13.5px] lg:pr-14 lg:py-4 lg:text-[16px] rounded-full text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none transition-[border-color,box-shadow]"
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => setQuery('')}
                     aria-label="검색어 지우기"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 lg:w-9 lg:h-9 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                   >
                     <X size={14} weight="bold" />
                   </button>
@@ -341,11 +341,11 @@ const Organization = () => {
                 <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
               </div>
             ) : isError ? (
-              <p className="px-6 py-20 text-center text-[13px] text-gray-500 dark:text-white/50">
+              <p className="px-6 py-20 text-center text-[13px] text-gray-500 dark:text-white/50 lg:text-[16px]">
                 조직도를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
               </p>
             ) : !data || (data.governance.length === 0 && data.committees.length === 0) ? (
-              <p className="px-6 py-20 text-center text-[13px] text-gray-400 dark:text-white/30">
+              <p className="px-6 py-20 text-center text-[13px] text-gray-400 dark:text-white/30 lg:text-[16px] lg:text-gray-500 dark:lg:text-white/50">
                 아직 등록된 조직도가 없습니다
               </p>
             ) : (
@@ -356,7 +356,7 @@ const Organization = () => {
                     위원회
                   </p>
                   {committees.length === 0 ? (
-                    <p className="py-12 text-center text-[13px] text-gray-400 dark:text-white/30">
+                    <p className="py-12 text-center text-[13px] text-gray-400 dark:text-white/30 lg:text-[16px] lg:text-gray-500 dark:lg:text-white/50">
                       "{query}"와 일치하는 조직이 없습니다
                     </p>
                   ) : (
@@ -373,7 +373,7 @@ const Organization = () => {
                 </section>
 
                 {data.updated_at && (
-                  <p className="org-updated px-5 pt-5 text-[11.5px] text-gray-400 dark:text-white/30">
+                  <p className="org-updated px-5 pt-5 text-[11.5px] text-gray-400 dark:text-white/30 lg:text-[13.5px] lg:text-gray-500 dark:lg:text-white/50">
                     마지막 업데이트 {formatStamp(data.updated_at)}
                   </p>
                 )}

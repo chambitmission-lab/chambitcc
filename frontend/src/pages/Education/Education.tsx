@@ -144,7 +144,7 @@ const Education = () => {
                   <button
                     type="button"
                     onClick={() => navigate('/admin/education')}
-                    className="inline-flex items-center gap-1 h-9 px-3.5 rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] hover:bg-[var(--brand-soft)] transition-colors"
+                    className="inline-flex items-center gap-1 h-9 px-3.5 lg:h-11 lg:px-5 lg:text-[15px] rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] hover:bg-[var(--brand-soft)] transition-colors"
                   >
                     <PencilIcon width={13} height={13} className="shrink-0" />
                     {ko ? '부서 관리' : 'Manage'}
@@ -281,28 +281,28 @@ const CategorySection = ({
       {/* 부서 소개 카드 — 엠블럼 + 이름 + 태그라인 + 설명.
           회색 캔버스 위에 맨살로 얹혀 있던 두 덩어리를 프로그램 카드와 같은 흰 카드로 묶는다
           (히어로 카드화와 같은 패스 — 화면이 카드 리듬으로 정렬된다). */}
-      <div className="mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+      <div className="mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4 lg:p-6">
         <div className="flex items-start gap-3">
           <div className="shrink-0 w-12 h-12 rounded-2xl bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] flex items-center justify-center text-brand">
             {category.emoji ? <EduGlyph emoji={category.emoji} size={24} /> : <BookGlyph />}
           </div>
           <div className="min-w-0 pt-0.5">
-            <h2 className="text-[20px] font-bold leading-[1.3] tracking-[-0.02em] text-ink-strong">
+            <h2 className="text-[20px] lg:text-[24px] font-bold leading-[1.3] tracking-[-0.02em] text-ink-strong">
               {name}
               {!category.is_active && isAdmin && (
-                <span className="ml-2 align-middle text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
+                <span className="ml-2 align-middle text-[10px] lg:text-[12.5px] font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
                   숨김
                 </span>
               )}
             </h2>
             {tagline && (
-              <p className="text-[13px] leading-[1.55] text-gray-500 dark:text-white/55 mt-0.5">{tagline}</p>
+              <p className="text-[13px] lg:text-[16px] leading-[1.55] text-gray-500 dark:text-white/55 lg:text-gray-600 lg:dark:text-white/70 mt-0.5">{tagline}</p>
             )}
           </div>
         </div>
 
         {description && (
-          <p className="mt-3 text-[14px] leading-[1.75] text-gray-700 dark:text-white/75 whitespace-pre-line">
+          <p className="mt-3 text-[14px] lg:text-[17px] leading-[1.75] text-gray-700 dark:text-white/75 lg:dark:text-white/80 whitespace-pre-line">
             {description}
           </p>
         )}
@@ -310,7 +310,7 @@ const CategorySection = ({
 
       {/* 프로그램 카드 */}
       {category.programs.length === 0 ? (
-        <p className="text-[12.5px] text-gray-400 dark:text-white/40 py-3">
+        <p className="text-[12.5px] lg:text-[15px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55 py-3">
           {language === 'ko' ? '등록된 프로그램이 없습니다' : 'No programs yet'}
         </p>
       ) : (
@@ -323,9 +323,9 @@ const CategorySection = ({
 
       {verseText && (
         <blockquote className="edu-verse mt-4">
-          <p className="text-[14px] leading-[1.75] text-ink-strong">{verseText}</p>
+          <p className="text-[14px] lg:text-[17px] leading-[1.75] text-ink-strong">{verseText}</p>
           {verseRef && (
-            <cite className="block mt-1.5 text-[12px] not-italic font-semibold text-brand">{verseRef}</cite>
+            <cite className="block mt-1.5 text-[12px] lg:text-[14.5px] not-italic font-semibold text-brand">{verseRef}</cite>
           )}
         </blockquote>
       )}
@@ -378,36 +378,36 @@ const ProgramCard = ({
           <img src={program.image_url} alt={name} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
       )}
-      <div className="relative p-4 space-y-3">
+      <div className="relative p-4 space-y-3 lg:p-5 lg:space-y-3.5">
         <div className="flex items-center gap-3">
           <span className="edu-card-tile" style={tileTone(index)} aria-hidden="true">
             {emoji ? <EduGlyph emoji={emoji} size={20} /> : <BookGlyph />}
           </span>
-          <h3 className="flex-1 min-w-0 text-[16px] font-bold leading-[1.35] tracking-[-0.01em] text-ink-strong truncate">{name}</h3>
+          <h3 className="flex-1 min-w-0 text-[16px] lg:text-[19px] font-bold leading-[1.35] tracking-[-0.01em] text-ink-strong truncate">{name}</h3>
           {target && (
-            <span className="shrink-0 inline-flex items-center h-6 px-2 rounded-full text-[11px] font-semibold text-gray-600 dark:text-white/65 bg-gray-100 dark:bg-white/[0.06]">
+            <span className="shrink-0 inline-flex items-center h-6 px-2 lg:h-7 lg:px-2.5 lg:text-[13.5px] rounded-full text-[11px] font-semibold text-gray-600 dark:text-white/65 bg-gray-100 dark:bg-white/[0.06]">
               {target}
             </span>
           )}
         </div>
 
         {rows.length > 0 && (
-          <dl className="space-y-1.5">
+          <dl className="space-y-1.5 lg:space-y-2">
             {rows.map(([label, value]) => (
               <div key={label} className="flex items-center gap-2.5">
                 <dt className="edu-row-label">{label}</dt>
-                <dd className="text-[14px] font-medium text-gray-800 dark:text-white/85 min-w-0 truncate">{value}</dd>
+                <dd className="text-[14px] lg:text-[16.5px] font-medium text-gray-800 dark:text-white/85 min-w-0 truncate">{value}</dd>
               </div>
             ))}
           </dl>
         )}
 
         {description && (
-          <p className="text-[13px] leading-[1.7] text-gray-600 dark:text-white/65 whitespace-pre-line">{description}</p>
+          <p className="text-[13px] lg:text-[16px] leading-[1.7] text-gray-600 dark:text-white/65 lg:text-gray-700 lg:dark:text-white/75 whitespace-pre-line">{description}</p>
         )}
 
         {notice && (
-          <p className="text-[13px] leading-[1.6] font-semibold text-ink-strong bg-[var(--brand-soft)] rounded-xl px-3 py-2.5">
+          <p className="text-[13px] lg:text-[16px] leading-[1.6] font-semibold text-ink-strong bg-[var(--brand-soft)] rounded-xl px-3 py-2.5 lg:px-4 lg:py-3">
             {notice}
           </p>
         )}
@@ -417,7 +417,7 @@ const ProgramCard = ({
             href={linkUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-brand hover:bg-brand-dim text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-colors"
+            className="inline-flex items-center gap-1.5 h-10 px-4 lg:h-12 lg:px-5 lg:text-[15.5px] rounded-full bg-brand hover:bg-brand-dim text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-colors"
           >
             {linkLabel}
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -427,7 +427,7 @@ const ProgramCard = ({
         )}
 
         {!hasDetails && (
-          <p className="text-[12px] text-gray-400 dark:text-white/40">{labels.pending}</p>
+          <p className="text-[12px] lg:text-[14.5px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55">{labels.pending}</p>
         )}
       </div>
     </article>
@@ -454,19 +454,19 @@ const PagerButton = ({
       type="button"
       onClick={onClick}
       className={[
-        'group rounded-2xl px-4 py-3 min-w-0 bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.08]',
+        'group rounded-2xl px-4 py-3 lg:px-5 lg:py-4 min-w-0 bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.08]',
         'shadow-sm hover:border-[var(--brand-glow)] hover:bg-[var(--brand-soft)] transition-colors',
         isNext ? 'text-right' : 'text-left',
       ].join(' ')}
     >
       <span
-        className={`flex items-center gap-0.5 text-[11px] font-semibold text-gray-400 dark:text-white/40 ${isNext ? 'justify-end' : ''}`}
+        className={`flex items-center gap-0.5 text-[11px] lg:text-[13.5px] font-semibold text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55 ${isNext ? 'justify-end' : ''}`}
       >
         {!isNext && <Chevron dir="left" />}
         {isNext ? (ko ? '다음' : 'Next') : ko ? '이전' : 'Previous'}
         {isNext && <Chevron dir="right" />}
       </span>
-      <span className="mt-1 block text-[13.5px] font-bold text-ink-strong truncate group-hover:text-brand transition-colors">
+      <span className="mt-1 block text-[13.5px] lg:text-[16.5px] font-bold text-ink-strong truncate group-hover:text-brand transition-colors">
         <EduGlyph emoji={category.emoji} size={14} className="inline-block align-[-2px] mr-1" />
         {categoryText(category, 'name', language)}
       </span>
@@ -484,7 +484,7 @@ const Chevron = ({ dir }: { dir: 'left' | 'right' }) => (
 const QuickLink = ({ to, icon, label }: { to: string; icon: 'clock' | 'note'; label: string }) => (
   <Link
     to={to}
-    className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[12.5px] font-semibold text-gray-700 dark:text-white/75 bg-white/80 dark:bg-white/[0.05] border border-gray-200/80 dark:border-white/[0.08] hover:text-brand hover:border-[var(--brand-glow)] transition-colors"
+    className="inline-flex items-center gap-1.5 h-9 px-3.5 lg:h-11 lg:px-5 lg:text-[15px] rounded-full text-[12.5px] font-semibold text-gray-700 dark:text-white/75 bg-white/80 dark:bg-white/[0.05] border border-gray-200/80 dark:border-white/[0.08] hover:text-brand hover:border-[var(--brand-glow)] transition-colors"
   >
     {icon === 'clock' ? (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -537,13 +537,13 @@ const EmptyState = ({
 }) => (
   <div className="text-center py-16">
     <SproutIcon width={38} height={38} className="mx-auto mb-3 text-brand opacity-70" />
-    <p className="text-[15px] font-bold text-ink-strong">{title}</p>
-    <p className="text-[12.5px] text-gray-500 dark:text-white/50 mt-1">{hint}</p>
+    <p className="text-[15px] lg:text-[18px] font-bold text-ink-strong">{title}</p>
+    <p className="text-[12.5px] lg:text-[15px] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65 mt-1">{hint}</p>
     {isAdmin && (
       <button
         type="button"
         onClick={onGoAdmin}
-        className="mt-5 inline-flex items-center h-10 px-5 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)]"
+        className="mt-5 inline-flex items-center h-10 px-5 lg:h-12 lg:text-[15.5px] rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)]"
       >
         {ko ? '부서 등록하러 가기' : 'Add departments'}
       </button>

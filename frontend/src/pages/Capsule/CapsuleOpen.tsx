@@ -178,7 +178,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
           className={
             onSky
               ? `capsule-topbar ${scrolled ? 'is-scrolled' : ''}`
-              : 'sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2'
+              : 'sticky top-14 lg:static z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2'
           }
         >
           <button

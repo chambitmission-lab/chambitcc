@@ -200,7 +200,7 @@
    그 지점부터 크림 유리로 갈아입는다(뒤로가기를 잃지 않는다). */
 .capsule-topbar {
   position: sticky;
-  top: 0;
+  top: 3.5rem; /* 고정 앱 헤더(56px) 밑 — PC 는 카드(lg:overflow-hidden) 안이라 붙지 않는다 */
   z-index: 20;
   display: flex;
   align-items: center;

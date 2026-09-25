@@ -167,8 +167,8 @@ const TimerDisplay = ({
           </div>
           {statusLabel && (
             <div
-              className={`mt-3 text-[11px] tracking-[0.25em] uppercase transition-colors duration-500 ${
-                isPaused ? 'text-white/60 animate-pulse-slow' : 'text-white/35'
+              className={`mt-3 text-[11px] lg:text-[13.5px] tracking-[0.25em] uppercase transition-colors duration-500 ${
+                isPaused ? 'text-white/60 lg:text-white/75 animate-pulse-slow' : 'text-white/35 lg:text-white/60'
               }`}
             >
               {statusLabel}

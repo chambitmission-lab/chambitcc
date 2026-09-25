@@ -267,7 +267,7 @@ const AccountSettings = () => {
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
         {/* 헤더 — 뒤로 + 제목 (로그아웃은 오탭 방지를 위해 맨 아래로) */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
+        <div className="sticky top-14 lg:static z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
             className="flex items-center gap-1.5 -ml-1 px-1 py-1 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
             onClick={() => navigate(-1)}

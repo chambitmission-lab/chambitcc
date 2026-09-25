@@ -28,11 +28,11 @@ const ExitSheet = ({ show, elapsedSeconds, onStay, onSaveAndFinish, onDiscard }:
       {/* 배경 딤 — 탭하면 계속 기도 */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onStay} />
 
-      <div className="relative w-full max-w-md mx-auto px-5 pb-8">
-        <div className="rounded-3xl p-6 bg-[rgba(20,20,25,0.92)] backdrop-blur-xl border border-white/10 shadow-2xl text-center">
-          <p className="text-white/90 text-lg font-semibold">{t('exitSheetTitle')}</p>
+      <div className="relative w-full max-w-md lg:max-w-lg mx-auto px-5 pb-8">
+        <div className="rounded-3xl p-6 lg:p-8 bg-[rgba(20,20,25,0.92)] backdrop-blur-xl border border-white/10 shadow-2xl text-center">
+          <p className="text-white/90 text-lg lg:text-[22px] font-semibold">{t('exitSheetTitle')}</p>
           {canSave && (
-            <p className="text-white/50 text-sm mt-1.5">
+            <p className="text-white/50 text-sm lg:text-[16px] lg:text-white/70 mt-1.5">
               {(t('exitSheetElapsed') || '지금까지 {minutes}분 머물렀어요').replace('{minutes}', String(elapsedMinutes))}
             </p>
           )}
@@ -40,21 +40,21 @@ const ExitSheet = ({ show, elapsedSeconds, onStay, onSaveAndFinish, onDiscard }:
           <div className="mt-5 space-y-2.5">
             <button
               onClick={onStay}
-              className={`w-full py-3.5 rounded-xl font-semibold ${CANDLE_CLASS.primary} hover:brightness-105 transition-all`}
+              className={`w-full py-3.5 lg:py-4 lg:text-[17px] rounded-xl font-semibold ${CANDLE_CLASS.primary} hover:brightness-105 transition-all`}
             >
               {t('exitStayMore')}
             </button>
             {canSave && (
               <button
                 onClick={onSaveAndFinish}
-                className="w-full py-3.5 rounded-xl text-sm font-medium text-white/90 bg-white/10 border border-white/15 hover:bg-white/15 transition-all"
+                className="w-full py-3.5 lg:py-4 rounded-xl text-sm lg:text-[16px] font-medium text-white/90 bg-white/10 border border-white/15 hover:bg-white/15 transition-all"
               >
                 {t('exitSaveAndFinish')}
               </button>
             )}
             <button
               onClick={onDiscard}
-              className="w-full py-3 rounded-xl text-xs font-medium text-white/40 hover:text-white/60 transition-colors"
+              className="w-full py-3 lg:min-h-[48px] rounded-xl text-xs lg:text-[15px] font-medium text-white/40 lg:text-white/60 hover:text-white/60 lg:hover:text-white/80 transition-colors"
             >
               {t('exitWithoutSave')}
             </button>

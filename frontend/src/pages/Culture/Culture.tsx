@@ -194,37 +194,37 @@ const Culture = () => {
         {/* 헤더 — 오른쪽에 삽화(culture-hero.css)를 높이맞춤으로 깐다.
             안내 문구는 모바일에서 삽화 위를 지나가므로 폭을 묶어 두 줄로 접는다. */}
         <header className="culture-hero px-4 pt-5 pb-3">
-          <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+          <p className="text-brand text-[11.5px] lg:text-[13px] font-bold tracking-[0.12em] uppercase mb-1.5">
             CULTURE CLASS
           </p>
-          <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
+          <h1 className="text-ink-strong text-[26px] lg:text-[32px] font-bold leading-none tracking-[-0.02em]">
             문화교실
           </h1>
-          <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2 max-w-[62%] lg:max-w-none">
+          <p className="text-gray-500 dark:text-white/55 text-[13px] lg:text-[16px] lg:text-gray-600 lg:dark:text-white/70 mt-2 max-w-[62%] lg:max-w-none">
             아름다운 배움과 즐거운 만남이 있는 참빛 문화교실입니다
           </p>
         </header>
 
         {/* 칩 탭 — 강좌가 첫 화면의 주인공이 되도록 메뉴를 압축 */}
-        <nav className="sticky top-0 z-20 bg-surface/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
-          <div className="flex gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
+        <nav className="sticky top-14 z-20 bg-surface/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
+          <div className="flex gap-2 px-4 py-2.5 lg:px-5 lg:py-3 overflow-x-auto no-scrollbar">
             {SECTIONS.map((s) => {
               const active = section === s.key
               return (
                 <button
                   key={s.key}
                   onClick={() => setSection(s.key)}
-                  className={`relative flex items-center gap-1.5 flex-shrink-0 px-3.5 py-2 rounded-full border text-[13px] font-semibold transition-all ${
+                  className={`relative flex items-center gap-1.5 flex-shrink-0 px-3.5 py-2 lg:min-h-[44px] lg:px-5 lg:text-[15.5px] rounded-full border text-[13px] font-semibold transition-all ${
                     active
                       ? 'seal-chip border-transparent bg-brand text-white'
                       : 'border-gray-200/80 dark:border-white/[0.08] bg-white/80 dark:bg-card-dark text-gray-600 dark:text-white/65 hover:border-[var(--brand-soft-strong)]'
                   }`}
                 >
-                  <s.Icon width={15} height={15} className="shrink-0" />
+                  <s.Icon width={15} height={15} className="shrink-0 lg:w-[18px] lg:h-[18px]" />
                   {s.label}
                   {s.key === 'notice' && newNoticeCount > 0 && (
                     <span
-                      className={`min-w-[16px] h-4 px-1 rounded-full text-[9.5px] font-bold flex items-center justify-center ${
+                      className={`min-w-[16px] h-4 px-1 lg:min-w-[20px] lg:h-5 lg:text-[12px] rounded-full text-[9.5px] font-bold flex items-center justify-center ${
                         active ? 'bg-white text-brand' : 'bg-red-500 text-white'
                       }`}
                     >
@@ -238,7 +238,7 @@ const Culture = () => {
         </nav>
 
         {/* 섹션 콘텐츠 */}
-        <div className="px-4 pt-4 space-y-3">
+        <div className="px-4 pt-4 space-y-3 lg:px-5 lg:pt-5">
           {loading ? (
             <div className="flex justify-center py-16">
               <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
@@ -254,10 +254,10 @@ const Culture = () => {
                       <div className="absolute -top-6 -right-4 opacity-20 rotate-12 pointer-events-none select-none text-brand">
                         <HeroSeasonIcon width={78} height={78} strokeWidth={1.4} />
                       </div>
-                      <p className="text-[11px] font-bold tracking-[0.1em] text-brand uppercase">
+                      <p className="text-[11px] lg:text-[13px] font-bold tracking-[0.1em] text-brand uppercase">
                         Now Open
                       </p>
-                      <h2 className="text-[17px] font-bold text-ink-strong mt-1">
+                      <h2 className="text-[17px] lg:text-[21px] font-bold text-ink-strong mt-1">
                         <HeroSeasonIcon
                           width={17}
                           height={17}
@@ -265,7 +265,7 @@ const Culture = () => {
                         />
                         {heroQuarter ? `${heroQuarter} 수강생 모집 중` : '수강생 모집 중'}
                       </h2>
-                      <p className="text-[12.5px] text-gray-600 dark:text-white/60 mt-1">
+                      <p className="text-[12.5px] lg:text-[15.5px] text-gray-600 dark:text-white/60 lg:dark:text-white/70 mt-1">
                         {openClasses.length}개 강좌가 성도님을 기다리고 있어요
                       </p>
                     </div>
@@ -274,10 +274,10 @@ const Culture = () => {
                   {classes.length === 0 ? (
                     <div className={`${cardClass} py-14 text-center`}>
                       <SproutIcon width={34} height={34} className="mx-auto mb-2 text-brand opacity-70" />
-                      <p className="text-sm font-semibold text-gray-500 dark:text-white/50">
+                      <p className="text-sm lg:text-[17px] font-semibold text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65">
                         현재 개설된 강좌가 없습니다
                       </p>
-                      <p className="text-[12.5px] text-gray-400 dark:text-white/35 mt-1">
+                      <p className="text-[12.5px] lg:text-[15px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/55 mt-1">
                         다음 분기 강좌를 기대해 주세요
                       </p>
                     </div>
@@ -336,8 +336,8 @@ const Culture = () => {
               {/* ── 신청 확인 · 취소 ── */}
               {section === 'lookup' && (
                 <>
-                  <div className={`${cardClass} p-4 space-y-4`}>
-                    <p className="text-[13px] text-gray-600 dark:text-white/60 leading-relaxed">
+                  <div className={`${cardClass} p-4 space-y-4 lg:p-6 lg:space-y-5 lg:max-w-[640px]`}>
+                    <p className="text-[13px] lg:text-[16px] text-gray-600 dark:text-white/60 lg:dark:text-white/70 leading-relaxed">
                       신청 시 입력하신 전화번호와 생년월일로 신청 내역을 확인하고 취소할 수
                       있습니다.
                     </p>
@@ -368,7 +368,7 @@ const Culture = () => {
                     <button
                       onClick={handleLookup}
                       disabled={lookingUp}
-                      className="w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors"
+                      className="w-full py-3 text-sm lg:h-14 lg:py-0 lg:text-[17px] font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors"
                     >
                       {lookingUp ? '조회 중...' : '신청 내역 조회'}
                     </button>
@@ -378,10 +378,10 @@ const Culture = () => {
                     lookupResults.map((application) => {
                       const accent = getCultureAccent(application.class_title ?? '')
                       return (
-                        <div key={application.id} className={`${cardClass} p-4`}>
+                        <div key={application.id} className={`${cardClass} p-4 lg:p-5 lg:max-w-[640px]`}>
                           <div className="flex items-center gap-2.5">
                             <div
-                              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                              className="w-9 h-9 lg:w-11 lg:h-11 rounded-xl flex items-center justify-center shrink-0"
                               style={{
                                 background: withAlpha(accent.color, 0.14),
                                 color: accent.color,
@@ -391,16 +391,16 @@ const Culture = () => {
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
-                                <h3 className="text-[14px] font-bold text-gray-900 dark:text-white/90 truncate">
+                                <h3 className="text-[14px] lg:text-[17.5px] font-bold text-gray-900 dark:text-white/90 truncate">
                                   {application.class_title ?? '강좌'}
                                 </h3>
                                 <span
-                                  className={`flex-shrink-0 text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${STATUS_BADGE[application.status]}`}
+                                  className={`flex-shrink-0 text-[10.5px] lg:text-[13px] lg:px-2.5 font-bold px-2 py-0.5 rounded-full border ${STATUS_BADGE[application.status]}`}
                                 >
                                   {STATUS_LABEL[application.status]}
                                 </span>
                               </div>
-                              <p className="text-[12px] text-gray-400 dark:text-white/40 mt-0.5">
+                              <p className="text-[12px] lg:text-[14px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55 mt-0.5">
                                 {application.name} · {formatDate(application.created_at)} 신청
                               </p>
                             </div>
@@ -408,7 +408,7 @@ const Culture = () => {
                           {application.status !== 'cancelled' && (
                             <button
                               onClick={() => handleCancel(application)}
-                              className="mt-3 w-full py-2 text-[13px] font-semibold text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/25 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                              className="mt-3 w-full py-2 text-[13px] lg:h-12 lg:py-0 lg:text-[16px] font-semibold text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/25 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                             >
                               수강신청 취소
                             </button>
@@ -419,7 +419,7 @@ const Culture = () => {
                   {lookupResults !== null && lookupResults.length === 0 && (
                     <div className={`${cardClass} py-10 text-center`}>
                       <SearchIcon width={30} height={30} className="mx-auto mb-2 text-gray-300 dark:text-white/25" />
-                      <p className="text-sm text-gray-400 dark:text-white/35">
+                      <p className="text-sm lg:text-[16px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/55">
                         신청 내역이 없습니다
                       </p>
                     </div>
@@ -432,7 +432,7 @@ const Culture = () => {
                 (notices.length === 0 ? (
                   <div className={`${cardClass} py-14 text-center`}>
                     <EmptyMailIcon width={34} height={34} className="mx-auto mb-2 text-gray-300 dark:text-white/25" />
-                    <p className="text-sm text-gray-400 dark:text-white/35">
+                    <p className="text-sm lg:text-[16px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/55">
                       등록된 공지사항이 없습니다
                     </p>
                   </div>
@@ -443,28 +443,28 @@ const Culture = () => {
                       <button
                         key={notice.id}
                         onClick={() => setOpenNoticeId(open ? null : notice.id)}
-                        className={`${cardClass} w-full p-4 text-left`}
+                        className={`${cardClass} w-full p-4 lg:p-5 text-left`}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <h3 className="text-[14px] font-bold text-gray-900 dark:text-white/90 flex items-center gap-1.5 min-w-0">
+                          <h3 className="text-[14px] lg:text-[17.5px] font-bold text-gray-900 dark:text-white/90 flex items-center gap-1.5 min-w-0">
                             <span className="truncate">{notice.title}</span>
                             {isRecentNotice(notice.created_at) && (
-                              <span className="flex-shrink-0 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                              <span className="flex-shrink-0 w-4 h-4 lg:w-5 lg:h-5 lg:text-[11px] rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
                                 N
                               </span>
                             )}
                           </h3>
                           <span
-                            className={`material-icons-outlined text-[18px] text-gray-300 dark:text-white/25 transition-transform ${open ? 'rotate-180' : ''}`}
+                            className={`material-icons-outlined text-[18px] lg:text-[24px] text-gray-300 dark:text-white/25 lg:text-gray-400 lg:dark:text-white/40 transition-transform ${open ? 'rotate-180' : ''}`}
                           >
                             expand_more
                           </span>
                         </div>
-                        <p className="text-[11.5px] text-gray-400 dark:text-white/35 mt-1">
+                        <p className="text-[11.5px] lg:text-[14px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/55 mt-1">
                           {formatDate(notice.created_at)}
                         </p>
                         {open && (
-                          <p className="text-[13px] text-gray-600 dark:text-white/60 mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.06] leading-relaxed whitespace-pre-wrap">
+                          <p className="text-[13px] lg:text-[16.5px] text-gray-600 dark:text-white/60 lg:text-gray-700 lg:dark:text-white/75 mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.06] leading-relaxed whitespace-pre-wrap">
                             {notice.content}
                           </p>
                         )}
@@ -475,8 +475,8 @@ const Culture = () => {
 
               {/* ── 문의 ── */}
               {section === 'contact' && (
-                <div className={`${cardClass} p-4 space-y-4`}>
-                  <h2 className="text-[14px] font-bold text-gray-900 dark:text-white/90">
+                <div className={`${cardClass} p-4 space-y-4 lg:p-6 lg:space-y-5 lg:max-w-[640px]`}>
+                  <h2 className="text-[14px] lg:text-[18px] font-bold text-gray-900 dark:text-white/90">
                     강좌 문의
                   </h2>
                   {[
@@ -499,23 +499,23 @@ const Culture = () => {
                   ].map((row) => {
                     const content = (
                       <>
-                        <div className="w-9 h-9 rounded-full bg-[var(--brand-soft)] flex items-center justify-center flex-shrink-0">
-                          <span className="material-icons-outlined text-[18px] text-brand">
+                        <div className="w-9 h-9 lg:w-11 lg:h-11 rounded-full bg-[var(--brand-soft)] flex items-center justify-center flex-shrink-0">
+                          <span className="material-icons-outlined text-[18px] lg:text-[22px] text-brand">
                             {row.icon}
                           </span>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[13px] font-semibold text-gray-800 dark:text-white/80">
+                          <p className="text-[13px] lg:text-[16.5px] font-semibold text-gray-800 dark:text-white/80">
                             {row.title}
                           </p>
-                          <p className="text-[12.5px] text-gray-500 dark:text-white/50 mt-0.5 leading-relaxed">
+                          <p className="text-[12.5px] lg:text-[15.5px] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65 mt-0.5 leading-relaxed">
                             {row.desc}
                           </p>
                         </div>
                       </>
                     )
                     return row.href ? (
-                      <a key={row.title} href={row.href} className="flex items-start gap-3">
+                      <a key={row.title} href={row.href} className="flex items-start gap-3 lg:min-h-[44px]">
                         {content}
                       </a>
                     ) : (
@@ -528,16 +528,16 @@ const Culture = () => {
                   {/* 수강료 입금 계좌 — 복사 버튼 포함 */}
                   <div>
                     <div className="flex items-start gap-3 mb-2">
-                      <div className="w-9 h-9 rounded-full bg-[var(--brand-soft)] flex items-center justify-center flex-shrink-0">
-                        <span className="material-icons-outlined text-[18px] text-brand">
+                      <div className="w-9 h-9 lg:w-11 lg:h-11 rounded-full bg-[var(--brand-soft)] flex items-center justify-center flex-shrink-0">
+                        <span className="material-icons-outlined text-[18px] lg:text-[22px] text-brand">
                           account_balance
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[13px] font-semibold text-gray-800 dark:text-white/80">
+                        <p className="text-[13px] lg:text-[16.5px] font-semibold text-gray-800 dark:text-white/80">
                           수강료 입금 계좌
                         </p>
-                        <p className="text-[12.5px] text-gray-500 dark:text-white/50 mt-0.5">
+                        <p className="text-[12.5px] lg:text-[15px] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65 mt-0.5">
                           {BANK_ACCOUNT.holder}
                         </p>
                       </div>
@@ -553,25 +553,25 @@ const Culture = () => {
 
       {/* 우측 위젯 레일 (lg+) — 모집 현황·이용 안내·문의를 본문 밖으로 빼
           넓어진 본문은 강좌 카드에 집중하게 한다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
         {!loading && openClasses.length > 0 && (
           <section className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
             <div className="absolute -top-5 -right-3 opacity-20 rotate-12 pointer-events-none select-none text-brand">
               <HeroSeasonIcon width={64} height={64} strokeWidth={1.4} />
             </div>
-            <p className="text-[11px] font-bold tracking-[0.1em] text-brand uppercase">Now Open</p>
-            <p className="text-[15px] font-bold text-ink-strong mt-1">
+            <p className="text-[11px] lg:text-[12.5px] font-bold tracking-[0.1em] text-brand uppercase">Now Open</p>
+            <p className="text-[15px] lg:text-[18px] font-bold text-ink-strong mt-1">
               {heroQuarter ? `${heroQuarter} 모집 중` : '수강생 모집 중'}
             </p>
-            <p className="text-[12.5px] text-gray-600 dark:text-white/60 mt-1">
+            <p className="text-[12.5px] lg:text-[15px] text-gray-600 dark:text-white/60 lg:dark:text-white/70 mt-1">
               {openClasses.length}개 강좌가 성도님을 기다리고 있어요
             </p>
           </section>
         )}
 
         <section className={`${cardClass} p-4`}>
-          <p className="flex items-center gap-1.5 mb-2 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
-            <span className="material-icons-outlined text-[15px] text-brand">info</span>
+          <p className="flex items-center gap-1.5 mb-2 text-[11.5px] lg:text-[14px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65">
+            <span className="material-icons-outlined text-[15px] lg:text-[18px] text-brand">info</span>
             신청은 이렇게
           </p>
           <div className="space-y-1.5">
@@ -580,7 +580,7 @@ const Culture = () => {
               '② 수강료를 입금하시면 등록이 완료됩니다',
               '③ 12회 일괄 또는 5회 분할 입금이 가능합니다',
             ].map((step) => (
-              <p key={step} className="text-[12.5px] text-gray-600 dark:text-white/55 leading-[1.6]">
+              <p key={step} className="text-[12.5px] lg:text-[15px] text-gray-600 dark:text-white/55 lg:text-gray-700 lg:dark:text-white/70 leading-[1.6]">
                 {step}
               </p>
             ))}
@@ -588,18 +588,18 @@ const Culture = () => {
         </section>
 
         <section className={`${cardClass} p-4`}>
-          <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+          <p className="mb-2.5 text-[11.5px] lg:text-[14px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65">
             강좌 문의
           </p>
-          <a href="tel:010-7572-2949" className="flex items-center gap-2.5 group">
-            <span className="w-8 h-8 rounded-full bg-[var(--brand-soft)] flex items-center justify-center shrink-0">
-              <span className="material-icons-outlined text-[16px] text-brand">call</span>
+          <a href="tel:010-7572-2949" className="flex items-center gap-2.5 group lg:min-h-[44px]">
+            <span className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[var(--brand-soft)] flex items-center justify-center shrink-0">
+              <span className="material-icons-outlined text-[16px] lg:text-[20px] text-brand">call</span>
             </span>
             <span className="min-w-0">
-              <span className="block text-[12.5px] font-semibold text-gray-800 dark:text-white/80 group-hover:text-brand transition-colors">
+              <span className="block text-[12.5px] lg:text-[15.5px] font-semibold text-gray-800 dark:text-white/80 group-hover:text-brand transition-colors">
                 김정란 집사
               </span>
-              <span className="block text-[12px] text-gray-500 dark:text-white/50 tabular-nums">
+              <span className="block text-[12px] lg:text-[14.5px] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65 tabular-nums">
                 010-7572-2949
               </span>
             </span>
@@ -607,7 +607,7 @@ const Culture = () => {
           <button
             type="button"
             onClick={() => setSection('contact')}
-            className="mt-3 w-full h-9 rounded-xl border border-[var(--card-border)] text-[12.5px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+            className="mt-3 w-full h-9 lg:h-12 lg:text-[15px] rounded-xl border border-[var(--card-border)] text-[12.5px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
           >
             카카오 채널 · 입금 계좌 보기
           </button>

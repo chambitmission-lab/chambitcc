@@ -267,7 +267,7 @@ const Sermon = () => {
 
         {/* 우측 위젯 레일 (lg+) — 필터와 월별 아카이브를 본문 밖으로 빼
             넓어진 본문은 말씀 카드에만 집중하게 한다 */}
-        <aside className="sermon-rail hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <aside className="sermon-rail hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
           {!isLoading && !error && sermons.length > 0 && (
             <section className="feed-card rounded-2xl p-4">
               <p className="sermon-rail-title">말씀 찾기</p>

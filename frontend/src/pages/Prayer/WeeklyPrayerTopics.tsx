@@ -159,7 +159,7 @@ const WeeklyPrayerTopics = () => {
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-24 lg:max-w-[64rem] xl:max-w-[76rem] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:min-h-0">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2 lg:static lg:rounded-t-3xl lg:px-8 lg:py-4">
+        <div className="sticky top-14 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2 lg:static lg:rounded-t-3xl lg:px-8 lg:py-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors lg:-ml-2 lg:h-11 lg:px-2 lg:rounded-xl"
@@ -296,7 +296,7 @@ const WeeklyPrayerTopics = () => {
               </div>
 
               {/* 우: 이번 주 요약 + 지난 기도제목 (PC 전용) */}
-              <aside className="hidden lg:block lg:sticky lg:top-6 space-y-4">
+              <aside className="hidden lg:block lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide space-y-4">
                 <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-5">
                   {/* 주차·제목은 본문 첫머리(PC 주차 표시)에 크게 있으니 여기선 이번 주 숫자만 */}
                   <p className="text-[16px] font-bold text-ink-strong">이번 주 함께한 기도</p>

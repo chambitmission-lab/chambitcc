@@ -45,13 +45,13 @@ const SegmentGuide = ({ segment, accentText, visibleMs = 6000, onHide }: Segment
         mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       }`}
     >
-      <div className={`flex items-center gap-2 text-xs tracking-[0.35em] uppercase ${accentText}`}>
-        <span className="material-icons-outlined text-base">{segment.icon}</span>
+      <div className={`flex items-center gap-2 text-xs lg:text-[14px] tracking-[0.35em] uppercase ${accentText}`}>
+        <span className="material-icons-outlined text-base lg:text-xl">{segment.icon}</span>
         {tx(segment.labelKey)}
       </div>
       {/* 한글 안내문(18자 내외)이 좁은 폰에서 마지막 한 글자만 떨어지지 않도록
           폭에 맞춘 clamp 크기 + 단어 단위 줄바꿈(break-keep) + 줄 균형(text-balance) */}
-      <p className="mt-3 font-serif italic text-white/90 text-[clamp(0.875rem,4.1vw,1.125rem)] leading-relaxed max-w-md break-keep text-balance">
+      <p className="mt-3 font-serif italic text-white/90 text-[clamp(0.875rem,4.1vw,1.125rem)] lg:text-[22px] leading-relaxed max-w-md lg:max-w-xl break-keep text-balance">
         {tx(segment.guideKey)}
       </p>
     </div>

@@ -240,6 +240,16 @@ button.worship-rail-card {
     flex-shrink: 0;
     position: sticky;
     top: calc(4.5rem / var(--az, 1)); /* PC 글씨 크기 zoom 보정 */
+    /* 글씨를 키우면 레일이 화면보다 길어질 수 있다 — 아래 카드가 페이지 끝까지 가려지지 않게 레일만 스크롤 */
+    max-height: calc((100vh - 5.5rem) / var(--az, 1));
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .worship-rail::-webkit-scrollbar {
+    display: none;
+  }
+  .worship-rail > * {
+    flex-shrink: 0;
   }
   .worship-rail > .worship-note {
     display: block;

@@ -149,3 +149,175 @@
     padding-top: 2.25rem;
   }
 }
+
+/* ── PC 노안 패스(lg+) — 글씨·누르는 영역만 한 단계 올린다. 배치·색 방향은 그대로.
+   라우트가 zoom(--az) 을 받으므로 여기 값이 배율 1 기준이다.
+   본문 17~18px · 캡션 13.5px 이상 · 회색 캡션은 --text-body 로 한 단계 진하게, 버튼 44px 이상 */
+@media (min-width: 1024px) {
+  .gr-hero-badge {
+    font-size: 0.875rem;
+  }
+
+  .gr-hero-subtitle {
+    font-size: 1.125rem;
+  }
+
+  .gr-section-title {
+    font-size: 1.5rem;
+  }
+
+  /* 편지 */
+  .gr-role-chip {
+    font-size: 0.9rem;
+  }
+
+  .gr-letter-byline {
+    font-size: 1.0625rem;
+    color: var(--text-body);
+  }
+
+  .gr-letter-text,
+  .gr-enum-text {
+    font-size: 1.125rem;
+  }
+
+  .gr-signature {
+    font-size: 1.0625rem;
+  }
+
+  .gr-letter-action {
+    min-height: 48px;
+    font-size: 0.95rem;
+    color: var(--text-body);
+  }
+
+  /* 소개 · 약력 */
+  .gr-profile-headline {
+    font-size: 1.0625rem;
+  }
+
+  .gr-profile-intro {
+    font-size: 1rem;
+    color: var(--text-body);
+  }
+
+  .gr-credential-label {
+    font-size: 0.95rem;
+  }
+
+  .gr-cred-text {
+    font-size: 1rem;
+  }
+
+  .gr-cred-tag,
+  .gr-cred-now {
+    font-size: 0.8438rem;
+  }
+
+  .gr-cred-tag {
+    color: var(--text-body);
+  }
+
+  .gr-credential-empty {
+    font-size: 0.95rem;
+  }
+
+  /* 역대 목사 */
+  .gr-history-hint {
+    font-size: 0.875rem;
+    color: var(--text-body);
+  }
+
+  .gr-history-strip {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  }
+
+  .gr-history-name {
+    font-size: 1rem;
+  }
+
+  .gr-history-role,
+  .gr-history-term {
+    font-size: 0.8438rem;
+    color: var(--text-body);
+  }
+
+  .gr-history-badge {
+    font-size: 0.75rem;
+  }
+
+  .gr-history-more {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  /* 맺음 */
+  .gr-welcome-title {
+    font-size: 1.0625rem;
+  }
+
+  .gr-welcome-sub {
+    font-size: 0.875rem;
+    color: var(--text-body);
+  }
+
+  .gr-cta {
+    min-height: 48px;
+    padding: 0.75rem 1.35rem;
+    font-size: 1rem;
+  }
+
+  /* 우측 레일 */
+  .gr-next-title,
+  .gr-visit-title {
+    font-size: 13.5px;
+  }
+
+  .gr-next-title {
+    color: var(--text-body);
+  }
+
+  .gr-next-kind,
+  .gr-visit-next-label {
+    font-size: 13px;
+  }
+
+  .gr-next-name {
+    font-size: 15.5px;
+  }
+
+  .gr-next-meta,
+  .gr-visit-next-time {
+    font-size: 13.5px;
+    color: var(--text-body);
+  }
+
+  .gr-visit-lead {
+    font-size: 14.5px;
+  }
+
+  .gr-visit-next-name {
+    font-size: 16px;
+  }
+
+  .gr-visit-link {
+    min-height: 48px;
+    font-size: 14.5px;
+  }
+
+  /* 빈 상태 · 관리자 안내 */
+  .gr-empty-text {
+    font-size: 1rem;
+    color: var(--text-body);
+  }
+
+  .gr-empty-cta {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .gr-admin-hint p,
+  .gr-admin-hint button {
+    font-size: 0.9rem;
+  }
+}

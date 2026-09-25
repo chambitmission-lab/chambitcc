@@ -84,7 +84,13 @@ export const SurveyShell = ({
           rail ? 'lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0' : 'lg:w-full lg:max-w-[760px] lg:mx-0'
         }`}
       >
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2 lg:rounded-t-3xl">
+        {/* 모바일은 고정 헤더(56px) 밑에 붙는다. PC 는 pinRail 상자 안에서만 상자 맨 위(top-0)에 붙고,
+            아니면 예전처럼 페이지와 함께 흐른다 */}
+        <div
+          className={`sticky top-14 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2 lg:rounded-t-3xl ${
+            pinRail ? 'lg:top-0' : 'lg:static'
+          }`}
+        >
           <button
             type="button"
             onClick={onBack}
@@ -103,7 +109,7 @@ export const SurveyShell = ({
       {rail ? (
         <aside
           className={`hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky ${
-            pinRail ? 'lg:top-3' : 'lg:top-[4.5rem]'
+            pinRail ? 'lg:top-3' : 'lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0'
           }`}
         >
           {rail}

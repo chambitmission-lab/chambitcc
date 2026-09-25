@@ -358,7 +358,7 @@ export const Genealogy = () => {
 
             {/* 데스크톱(lg+): 우측 sticky 사이드 패널 */}
             <aside className="hidden lg:block lg:col-span-1 min-w-0">
-              <div className="sticky top-4">
+              <div className="sticky top-[4.5rem]">
                 <FigureDetailPanel
                   slug={selectedSlug}
                   summary={selectedSummary}

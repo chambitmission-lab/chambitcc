@@ -56,7 +56,7 @@ const CapsuleOpenRail = ({
     .join(' · ')
 
   return (
-    <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+    <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
       <section className={cardClass}>
         <p className={eyebrowClass}>{senderLine}</p>
         <p className="mt-1.5 text-[14.5px] font-extrabold text-ink-strong break-keep leading-[1.45]">

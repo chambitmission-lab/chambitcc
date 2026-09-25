@@ -548,4 +548,105 @@
   .mp-skeleton {
     height: 320px;
   }
+
+  /* ── 노안 패스 — 글씨 한 단계 위 + 회색 대비 상향 + 누르는 영역 44px 이상 ── */
+  .mp-bell {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mp-streak {
+    font-size: 0.95rem;
+    padding: 7px 14px;
+  }
+
+  .mp-emotions-title {
+    font-size: 1rem;
+    color: var(--text-body);
+  }
+
+  .mp-emotion-chip {
+    min-height: 44px;
+    padding: 8px 16px;
+    font-size: 1rem;
+  }
+
+  .mp-step-label {
+    font-size: 0.9rem;
+  }
+
+  .mp-verse-text {
+    font-size: 1.3rem;
+  }
+
+  .mp-verse-card cite {
+    font-size: 0.95rem;
+  }
+
+  .mp-chip-btn {
+    min-height: 44px;
+    padding: 9px 16px;
+    font-size: 0.95rem;
+  }
+
+  .mp-question {
+    font-size: 1.12rem;
+  }
+
+  .mp-note {
+    font-size: 0.97rem;
+    color: var(--text-body);
+  }
+
+  .mp-silence-desc {
+    font-size: 1rem;
+    color: var(--text-body);
+  }
+
+  .mp-silence-done {
+    font-size: 1.05rem;
+  }
+
+  .mp-prayer {
+    font-size: 1.06rem;
+  }
+
+  .mp-journal {
+    font-size: 1.05rem;
+    padding: 14px 16px;
+  }
+
+  .mp-record-date,
+  .mp-record-ref {
+    font-size: 0.86rem;
+  }
+
+  .mp-record-ref {
+    color: var(--text-body);
+  }
+
+  .mp-record-content {
+    font-size: 1rem;
+  }
+
+  .mp-primary-btn {
+    min-height: 52px;
+    font-size: 1.05rem;
+  }
+
+  .mp-secondary-btn {
+    min-height: 46px;
+    font-size: 1rem;
+  }
+
+  .mp-text-btn {
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 0.95rem;
+    color: var(--text-body);
+  }
+
+  .mp-error {
+    font-size: 1rem;
+  }
 }

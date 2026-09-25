@@ -152,10 +152,17 @@ html.theme-switching *::after {
   animation-timing-function: ease-out;
 }
 
+/* overflow-x: hidden 은 #root 를 (스크롤되지 않는) 스크롤 컨테이너로 만들어 그 아래 모든
+   position: sticky 를 죽였다 — 실제 스크롤 요소는 body. clip 은 가로만 자르고 스크롤 컨테이너를
+   만들지 않아 sticky 가 body 기준으로 산다. 페이지 흐름의 sticky 는 top-14(헤더 56px) 아래로 맞춰 두었다.
+   hidden 은 clip 미지원 브라우저(iOS 15 이하)용 폴백 — 압축기가 중복 선언을 합치지 않게 @supports 로 나눈다. */
 #root {
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;
+}
+@supports (overflow-x: clip) {
+  #root { overflow-x: clip; }
 }
 
 /* 헤더(3.5rem)를 뺀 "실제 보이는 높이"에 화면을 딱 맞추는 유틸.

@@ -299,13 +299,51 @@
     flex-shrink: 0;
   }
   .edu-hero-title {
-    font-size: 1.9rem;
+    font-size: 2.1rem;
+  }
+  /* ── PC 노안 패스: 글씨 한 단계·누르는 영역 44px 이상(모바일 무변경) ── */
+  .edu-hero-badge {
+    font-size: 0.9375rem;
+  }
+  .edu-hero-subtitle {
+    font-size: 1.0625rem;
+  }
+  .edu-stat {
+    padding: 0.9rem 1rem;
+  }
+  .edu-stat-icon {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+  .edu-stat-num {
+    font-size: 1.35rem;
+  }
+  .edu-stat-label {
+    font-size: 0.875rem;
   }
   .edu-chips {
     flex-wrap: wrap;
     justify-content: center;
     overflow: visible;
+    gap: 0.5rem;
     padding: 0.75rem 1.5rem 0.5rem;
+  }
+  .edu-chip {
+    height: 2.75rem;
+    padding: 0 1.15rem;
+    font-size: 0.975rem;
+  }
+  .edu-row-label {
+    min-width: 3.25rem;
+    height: 1.75rem;
+    font-size: 0.8125rem;
+  }
+  .edu-verse {
+    padding: 1.25rem 1.4rem 1.25rem 2.5rem;
+  }
+  .edu-card-tile {
+    width: 3rem;
+    height: 3rem;
   }
 }
 
