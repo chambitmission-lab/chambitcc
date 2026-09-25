@@ -1,85 +1,54 @@
-// 참빛교회 선교 현황 데이터
-// 이미지 자료 기준으로 작성되었습니다.
+// 참빛교회 선교 현황 — 명단은 DB(섬기는 사람들), 지리 정보·국내 협력처는 이 파일
 
 export type RegionKey = 'asia' | 'europe' | 'africa' | 'americas'
 
 export interface Missionary {
   country: string          // 파송국
   name: string             // 선교사 이름
-  note?: string            // 비고 (예: 주파송)
+  note?: string            // 비고 (예: 주파송 — DB group_ko '파송선교사')
 }
 
-/** 아시아 지역 선교사 */
-export const asiaMissionaries: Missionary[] = [
-  { country: '튀르키예', name: '곽성' },
-  { country: '베트남', name: '김삼성' },
-  { country: '태국', name: '김원희' },
-  { country: '미얀마', name: '김 인', note: '주파송' },
-  { country: '태국', name: '김주만' },
-  { country: '태국', name: '김지영' },
-  { country: '인도네시아', name: '박종덕' },
-  { country: '인도', name: '서근석' },
-  { country: '네팔', name: '서대우' },
-  { country: '인도', name: '송호완' },
-  { country: '미얀마', name: '신우영' },
-  { country: '말레이시아', name: '윤병국' },
-  { country: '말레이시아', name: '이경근' },
-  { country: '태국', name: '이규식' },
-  { country: '말레이시아', name: '이상민' },
-  { country: '필리핀', name: '이슬기', note: '주파송' },
-  { country: '말레이시아', name: '이산지' },
-  { country: '요르단', name: '조동성' },
-  { country: '미얀마', name: '조동제', note: '주파송' },
-  { country: '위구르', name: '최갈렙' },
-  { country: '일본', name: '최재현' },
-  { country: '미얀마', name: '최현' },
-  { country: '베트남', name: '허엽' },
-  { country: '인도네시아', name: '홍영화' },
-  { country: '중국', name: '박상웅' },
-  { country: '인도네시아', name: '오석재' },
-  { country: '캄보디아', name: '엄성일' },
-  { country: '베트남', name: '김형지', note: '주파송' },
-]
+// 선교사 명단은 섬기는 사람들(church_people, category=missionary)이 단일 출처다 — 관리자 화면에서
+// 추가·수정하면 이 화면과 챗봇 참비에 함께 반영된다(2026-09-25, 이전의 정적 명단은 DB 로 옮김).
+// 라우트 로더가 loadMissionRoster()(api/missionRoster.ts)로 명단을 먼저 채운 뒤 화면 청크를 연다.
+// 아래 값들은 ES 모듈 live binding 이라 채운 결과가 import 한 쪽에 그대로 보인다.
+//
+// 이 파일에 남는 것은 지리 정보(대륙·국기·현지 시간·좌표)뿐이다. 새 나라에 선교사를 보내면
+// countryCoordinates · countryCode · countryDetail 에 그 나라를 추가해야 지구본·국기·시계가 나온다.
 
-/** 유럽 지역 선교사 */
-export const europeMissionaries: Missionary[] = [
-  { country: '포르투갈', name: '김영기' },
-  { country: '키르기스스탄', name: '김평화' },
-  { country: '아제르바이잔', name: '김창수' },
-  { country: '독일', name: '박지원' },
-  { country: '코소보', name: '서원민' },
-  { country: '러시아', name: '이기영' },
-  { country: '러시아', name: '이전진' },
-  { country: '러시아 연해주', name: '이철신' },
-  { country: '알바니아', name: '이흔도' },
-  { country: '우크라이나', name: '정한규' },
-  { country: '러시아 연해주', name: '정명동' },
-  { country: '독일', name: '박오승' },
-]
+export let allMissionaries: Missionary[] = []
 
-/** 아프리카 지역 선교사 */
-export const africaMissionaries: Missionary[] = [
-  { country: '잠비아', name: '김지혜' },
-  { country: '우간다', name: '이상철' },
-  { country: '남아프리카공화국', name: '전성진' },
-  { country: '모로코', name: '정충호' },
-  { country: '남아프리카공화국', name: '천준혁', note: '주파송' },
-  { country: '탄자니아', name: '육지은', note: '주파송' },
-]
+export let missionaryByRegion: Record<RegionKey, Missionary[]> = {
+  asia: [],
+  europe: [],
+  africa: [],
+  americas: [],
+}
 
-/** 남미/중미 지역 선교사 */
-export const americasMissionaries: Missionary[] = [
-  { country: '파라과이', name: '박중민' },
-  { country: '페루', name: '방도초' },
-  { country: '파라과이', name: '이정건' },
-]
+/** 사역지 문자열 → 지리 표의 나라 이름 ("캄보디아 프놈펜" → "캄보디아"). 긴 이름부터 본다 */
+export const resolveCountry = (field: string): string | null => {
+  const text = field.trim()
+  if (countryCoordinates[text]) return text
+  const keys = Object.keys(countryCoordinates).sort((a, b) => b.length - a.length)
+  return keys.find((k) => text.startsWith(k)) ?? null
+}
 
-/** 지역별 묶음 */
-export const missionaryByRegion: Record<RegionKey, Missionary[]> = {
-  asia: asiaMissionaries,
-  europe: europeMissionaries,
-  africa: africaMissionaries,
-  americas: americasMissionaries,
+/** 명단 채우기 — 지리 표에 없는 나라는 총계에는 넣되 대륙 탭·지구본에는 그리지 않는다 */
+export const setMissionRoster = (roster: Missionary[]): void => {
+  const byRegion: Record<RegionKey, Missionary[]> = { asia: [], europe: [], africa: [], americas: [] }
+  const all = roster.map((m) => ({ ...m, country: resolveCountry(m.country) ?? m.country }))
+  for (const m of all) {
+    const region = countryCoordinates[m.country]?.region
+    if (region) byRegion[region].push(m)
+    else console.warn(`[mission] 지리 표에 없는 사역지: ${m.country} — missionData.ts 에 추가하세요`)
+  }
+  allMissionaries = all
+  missionaryByRegion = byRegion
+  missionStats = {
+    ...missionStats,
+    total: all.length,
+    countries: new Set(all.map((m) => m.country)).size,
+  }
 }
 
 /** 지역 메타 정보 */
@@ -320,20 +289,10 @@ export const domesticOrganizations: string[] = [
   '한국기독신문',
 ]
 
-/**
- * 모든 지역을 하나의 리스트로 — 통계 계산용
- */
-export const allMissionaries: Missionary[] = [
-  ...asiaMissionaries,
-  ...europeMissionaries,
-  ...africaMissionaries,
-  ...americasMissionaries,
-]
-
-/** 통계 계산 */
-export const missionStats = {
-  total: allMissionaries.length,
-  countries: new Set(allMissionaries.map(m => m.country)).size,
+/** 선교 통계 — total·countries 는 setMissionRoster 가 명단으로 채운다 */
+export let missionStats = {
+  total: 0,
+  countries: 0,
   regions: 4,
   domesticPartners: domesticChurches.length + domesticOrganizations.length,
 }

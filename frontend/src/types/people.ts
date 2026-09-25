@@ -13,7 +13,7 @@ export const PERSON_CATEGORIES: PersonCategory[] = ['pastor', 'missionary', 'eld
 
 export const CATEGORY_LABEL: Record<PersonCategory, { ko: string; en: string }> = {
   pastor: { ko: '교역자', en: 'Pastors' },
-  missionary: { ko: '파송선교사', en: 'Missionaries' },
+  missionary: { ko: '선교사', en: 'Missionaries' },
   elder: { ko: '장로', en: 'Elders' },
   staff: { ko: '교회직원', en: 'Staff' },
 }

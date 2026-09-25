@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkle, Check } from '../icons/phosphor'
 import { EmojiText } from '../common/EmojiText'
-import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
+import { getChatbotGreeting, prefetchChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import { tryGlossaryReply } from './localGlossary'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
@@ -310,6 +310,7 @@ const ChatbotWidget = () => {
 
   // 롱프레스 0.45초 → × 배지. 손을 떼면 타이머만 정리하고 배지는 남긴다.
   const startPress = useCallback(() => {
+    if (!greetedRef.current) prefetchChatbotGreeting()
     longPressedRef.current = false
     pressRef.current = window.setTimeout(() => {
       longPressedRef.current = true
@@ -452,6 +453,9 @@ const ChatbotWidget = () => {
               setOpen(true)
             }}
             onPointerDown={startPress}
+            onPointerEnter={(e) => {
+              if (e.pointerType === 'mouse' && !greetedRef.current) prefetchChatbotGreeting()
+            }}
             onPointerUp={endPress}
             onPointerLeave={endPress}
             onPointerCancel={endPress}

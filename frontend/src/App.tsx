@@ -21,7 +21,7 @@ import { ConfirmDialogHost } from './components/common/ConfirmDialog'
 const ChatbotWidget = lazy(() => import('./components/chatbot/ChatbotWidget'))
 // ⌘K 팔레트는 열 때만 필요 — lazy 로 분리해 메인 번들에서 제외 (트리거 호버 시 프리로드)
 const CommandPalette = lazy(() => import('./components/command/CommandPalette'))
-import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
+import { historyLabLoader, menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 import { healPushSubscription } from './utils/pushNotification'
 import { checkForAppUpdate } from './utils/appVersion'
 import { isAuthenticated, getCurrentUser } from './utils/auth'
@@ -118,7 +118,7 @@ const Visit = lazy(menuRouteLoaders['/visit'])
 const Organization = lazy(menuRouteLoaders['/organization'])
 const People = lazy(menuRouteLoaders['/people'])
 const History = lazy(menuRouteLoaders['/history'])
-const HistoryLab = lazy(() => import('./pages/History/labs/HistoryLab'))
+const HistoryLab = lazy(historyLabLoader)
 const TV = lazy(() => import('./pages/TV/TV'))
 const Education = lazy(menuRouteLoaders['/education'])
 const Mission = lazy(menuRouteLoaders['/mission'])

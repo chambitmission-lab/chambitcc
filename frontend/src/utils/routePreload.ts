@@ -2,8 +2,13 @@ import type { ComponentType } from 'react'
 import { tokenStore } from './tokenStore'
 import { preloadBudget, scheduleAfterFirstScreen } from './idlePreload'
 import { warmRouteThemeAssets } from './themeAssets'
+import { withChurchHistory } from '../api/churchHistory'
+import { withMissionRoster } from '../api/missionRoster'
 
 type RouteLoader = () => Promise<{ default: ComponentType }>
+
+// 발자취 시범 화면 — App.tsx lazy 와 딥링크 프리로드가 같은 로더를 쓴다
+export const historyLabLoader: RouteLoader = withChurchHistory(() => import('../pages/History/labs/HistoryLab'))
 
 // 햄버거 메뉴에서 진입하는 lazy 페이지들의 동적 import를 한곳에 모음.
 // App.tsx의 lazy()와 같은 함수를 공유해야 프리로드한 청크가 그대로 재사용된다.
@@ -13,7 +18,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/visit': () => import('../pages/Visit/Visit'),
   '/organization': () => import('../pages/Organization/Organization'),
   '/people': () => import('../pages/People/People'),
-  '/history': () => import('../pages/History/History'),
+  // 발자취 기록(백엔드 JSON)을 먼저 채우고 연다 — 화면 모듈이 로드 시점에 기록을 가공한다
+  '/history': withChurchHistory(() => import('../pages/History/History')),
   '/worship': () => import('../pages/Worship/Worship'),
   '/education': () => import('../pages/Education/Education'),
   '/events': () => import('../pages/Events/EventCalendar'),
@@ -22,7 +28,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/bible': () => import('../pages/Bible/BibleStudy'),
   '/ministry': () => import('../pages/Ministry/Ministry'),
   '/groups': () => import('../pages/Groups/MyGroups'),
-  '/mission': () => import('../pages/Mission/Mission'),
+  // 선교사 명단(섬기는 사람들 DB)을 먼저 채우고 연다 — 화면이 명단을 동기로 읽는다
+  '/mission': withMissionRoster(() => import('../pages/Mission/Mission')),
   '/news': () => import('../pages/News/News'),
   '/garden': () =>
     import('../pages/Garden/Garden').then((m) => ({ default: m.Garden })),
@@ -106,7 +113,7 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   // 프로필 스토리 카드 목적지 — 메뉴 테이블에 없어 청크 프리로드 대상이 아니었다
   { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
   // 발자취 시범 화면 — 기존 /history 상단 배너로만 들어오므로 메뉴 프리로드에 넣지 않는다
-  { key: 'history/new', match: /^\/history\/new$/, load: () => import('../pages/History/labs/HistoryLab') },
+  { key: 'history/new', match: /^\/history\/new$/, load: historyLabLoader },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
   { key: 'seats/detail', match: /^\/seats\/[^/]+$/, load: () => import('../pages/Seats/SeatEventDetail') },
   // 선거는 메뉴에 없다(선거인에게만 열림) — 홈 배너·링크로만 들어오므로 메뉴 프리로드에 넣지 않는다
