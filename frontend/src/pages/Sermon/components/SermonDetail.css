@@ -28,7 +28,7 @@
   max-width: 60rem;
   width: 100%;
   /* 헤더 아래 여백 + 하단 여백을 뺀 높이 (vh 대신 실측 --vvh 우선) */
-  max-height: calc(var(--vvh, 100dvh) - 3.5rem - 2.5rem);
+  max-height: calc((var(--vvh, 100dvh) - 3.5rem - 2.5rem) / var(--az, 1)); /* PC 글씨 크기 zoom 보정 */
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32);

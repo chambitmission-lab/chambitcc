@@ -298,3 +298,20 @@
   [data-feed-scale] .reply-composer-label { font-size: calc(15px * var(--fs, 1)); }
   [data-feed-scale] .reply-composer-submit { font-size: calc(15px * var(--fs, 1)); padding: 0.6em 1.4em; }
 }
+
+/* PC 글씨 크기 — 읽기·참여 화면 전체 확대 (utils/feedTextScale.ts, 대상은 utils/textScaleRoutes.ts).
+   <main> 에 data-app-scale 을 달고 라우트 최상위 요소(직계 자식)를 zoom 한다 — 사이에 래퍼를 끼우면
+   App.css `.main-content > *` 리셋 대상이 바뀌어 페이지 여백이 달라지므로 래퍼를 두지 않는다.
+   zoom 안에선 vh·sticky top 같은 "화면 기준" 길이도 함께 커진다. 그래서 --az(배율)를 두고
+   화면 높이에 맞춰야 하는 값은 calc(90vh / var(--az, 1)) 처럼 나눈다(모바일·배율 없음 = 1).
+   헤더(56px)·레일은 zoom 밖이라 그대로다. */
+@media (min-width: 1024px) {
+  .main-content[data-app-scale='large'] { --az: 1.15; }
+  .main-content[data-app-scale='xlarge'] { --az: 1.3; }
+  .main-content[data-app-scale] > * { zoom: var(--az, 1); }
+
+  /* 페이지 공통 유틸 — 화면 높이 채움·sticky 레일 위치를 배율로 되돌린다 */
+  .main-content[data-app-scale] .min-h-screen:not([class*='lg:min-h-']) { min-height: calc(100vh / var(--az, 1)); }
+  .main-content[data-app-scale] .lg\:top-\[4\.5rem\] { top: calc(4.5rem / var(--az, 1)); }
+  .main-content[data-app-scale] .lg\:top-\[4\.25rem\] { top: calc(4.25rem / var(--az, 1)); }
+}

@@ -72,7 +72,7 @@ const ReflectionSheet = ({
     >
       <div
         className="relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col"
-        style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.92)' }}
+        style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.92 / var(--az, 1))' }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

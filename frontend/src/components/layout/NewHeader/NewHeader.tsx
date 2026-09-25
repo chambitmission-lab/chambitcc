@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import { preloadMenuRoutes } from '../../../utils/routePreload'
@@ -31,6 +31,8 @@ const useIsDesktop = (): boolean => {
 import { SearchCapsule } from '../../command/SearchTrigger'
 import HeaderActions from './components/HeaderActions'
 import HeaderAccountCluster from './components/HeaderAccountCluster'
+import HeaderTextScale from './components/HeaderTextScale'
+import { hasTextScale } from '../../../utils/textScaleRoutes'
 import MobileMenu from './components/MobileMenu'
 import { useDesktopRailVisible } from '../DesktopNavRail/useDesktopRailVisible'
 import { useMenuState } from './hooks/useMenuState'
@@ -63,6 +65,9 @@ const NewHeader = () => {
   // 본문(main-content)은 좌측 레일만큼 밀린 영역의 가운데에 정렬되므로,
   // 헤더 인라인 메뉴도 같은 축(50% + 레일폭/2)에 맞춰야 위아래 중심이 일치한다
   const railVisible = useDesktopRailVisible()
+  // 글씨 크기 '가' — 눌러도 바뀌는 게 없는 화면(성경 본문·관리자 등)에선 숨긴다
+  const { pathname } = useLocation()
+  const showTextScale = hasTextScale(pathname, isLoggedIn)
 
   // 하단 경계선: 맨 위에선 지우고(헤더·레일이 한 덩어리 흰 크롬으로 읽힌다),
   // 스크롤이 시작되면 헤어라인 + 미세 그림자로 층을 세운다
@@ -148,33 +153,39 @@ const NewHeader = () => {
             {/* 전체 메뉴 버튼은 뺐다 — 4축 드롭다운이 교회 안내 페이지를 전부 담고,
                 개인 메뉴·관리자·설정은 좌측 레일 하단 ⋮ 가 같은 패널을 연다 */}
           </div>
-          {/* 비로그인 PC — 레일엔 로그인 진입이 없으니 우상단에 랜딩과 같은 두 갈래 CTA를 둔다 */}
-          {railVisible && !isLoggedIn && (
+          {/* PC 우상단 — 글씨 크기 '가'(적용되는 화면에서만) + 계정/비로그인 CTA */}
+          {railVisible && (
             <div className="hidden lg:flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => navigate('/login')}
-                className="h-9 px-3.5 rounded-full text-[13.5px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
-              >
-                {t('navCtaLogin')}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/register')}
-                className="brand-gradient h-9 px-4 rounded-full text-[13.5px] font-bold text-white shadow-[0_4px_12px_-4px_var(--brand-glow)] active:scale-[0.97] transition-transform"
-              >
-                {t('navCtaNewHere')}
-              </button>
+              {showTextScale && <HeaderTextScale />}
+              {/* 비로그인 PC — 레일엔 로그인 진입이 없으니 우상단에 랜딩과 같은 두 갈래 CTA를 둔다 */}
+              {!isLoggedIn && (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/login')}
+                    className="h-9 px-3.5 rounded-full text-[13.5px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                  >
+                    {t('navCtaLogin')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/register')}
+                    className="brand-gradient h-9 px-4 rounded-full text-[13.5px] font-bold text-white shadow-[0_4px_12px_-4px_var(--brand-glow)] active:scale-[0.97] transition-transform"
+                  >
+                    {t('navCtaNewHere')}
+                  </button>
+                </div>
+              )}
+              {/* 로그인 PC — 비로그인 CTA가 있던 그 자리를 알림 + 계정 아바타가 이어받는다.
+                  (레일 하단 유틸리티엔 "내가 누구인지" 보여주는 자리가 없었다) */}
+              {isLoggedIn && (
+                <HeaderAccountCluster
+                  unreadCount={unreadCount}
+                  onNotificationClick={openNotifications}
+                  onNotificationWarm={warmNotificationModal}
+                />
+              )}
             </div>
-          )}
-          {/* 로그인 PC — 비로그인 CTA가 있던 그 자리를 알림 + 계정 아바타가 이어받는다.
-              (레일 하단 유틸리티엔 "내가 누구인지" 보여주는 자리가 없었다) */}
-          {railVisible && isLoggedIn && (
-            <HeaderAccountCluster
-              unreadCount={unreadCount}
-              onNotificationClick={openNotifications}
-              onNotificationWarm={warmNotificationModal}
-            />
           )}
           {/* 우상단 액션 — 레일이 보이는 PC에선 레일 하단 유틸리티가 대신한다 */}
           <div className={railVisible ? 'lg:hidden' : ''}>

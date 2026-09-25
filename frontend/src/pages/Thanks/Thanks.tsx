@@ -474,7 +474,7 @@ const Thanks = () => {
   // lg 에서 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
   // sticky 가 전역으로 죽어 있어, 이 상자를 만들어야 우측 레일 sticky 가 산다.
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] page-stage lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+    <div className="min-h-screen bg-[var(--app-canvas)] page-stage lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto">
       <div className="max-w-md mx-auto min-h-screen bg-[var(--app-canvas)] lg:max-w-[1100px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-[var(--card-border)] lg:min-h-0">
         {/* 헤더 — 제목 + 한 줄 부제 */}
         <div

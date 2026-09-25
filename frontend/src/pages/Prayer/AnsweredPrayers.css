@@ -14,7 +14,7 @@
  * 처리하므로 여기서는 추가로 주지 않는다.
  */
 .answered-page {
-  min-height: 100vh;
+  min-height: calc(100vh / var(--az, 1)); /* PC 글씨 크기 zoom 보정 (common.css [data-app-scale]) */
   background-color: var(--surface);
   padding-bottom: 5rem;
 }
@@ -25,7 +25,7 @@
   background-color: var(--surface);
   border-left: 1px solid var(--card-border);
   border-right: 1px solid var(--card-border);
-  min-height: 100vh;
+  min-height: calc(100vh / var(--az, 1));
 }
 
 /* PC(lg+) 와이드 셸 — 2단 무대. 세부 배치는 파일 맨 아래 PC 블록 참고 */
@@ -366,7 +366,7 @@
      그래서 lg 에서만 이 페이지를 스스로 스크롤하는 상자로 만든다 — 헤더(56px)를 뺀
      높이를 갖는 순간 우측 레일 sticky 가 이 상자 기준으로 산다. */
   .answered-page {
-    height: calc(100vh - 56px);
+    height: calc((100vh - 56px) / var(--az, 1)); /* zoom 안에서도 화면 높이에 맞춘다 */
     min-height: 0;
     padding-bottom: 0;
     overflow-y: auto;

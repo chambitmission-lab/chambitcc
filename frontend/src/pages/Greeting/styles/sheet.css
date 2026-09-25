@@ -17,7 +17,7 @@
   position: relative;
   width: 100%;
   max-width: 32rem;
-  max-height: 88vh;
+  max-height: calc(88vh / var(--az, 1));
   display: flex;
   flex-direction: column;
   background: var(--surface-container);
@@ -37,7 +37,7 @@
   .gr-sheet {
     border-bottom: 1px solid var(--card-border);
     border-radius: 24px;
-    max-height: 84vh;
+    max-height: calc(84vh / var(--az, 1));
   }
 }
 

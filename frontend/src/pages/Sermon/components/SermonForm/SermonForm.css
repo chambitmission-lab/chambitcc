@@ -14,7 +14,7 @@
 .sf-modal {
   width: 100%;
   max-width: 42rem;
-  max-height: 90vh;
+  max-height: calc(90vh / var(--az, 1));
   display: flex;
   flex-direction: column;
   overflow: hidden;

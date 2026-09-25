@@ -25,6 +25,8 @@ import { historyLabLoader, menuRouteLoaders, schedulePreloadOnIdle } from './uti
 import { healPushSubscription } from './utils/pushNotification'
 import { checkForAppUpdate } from './utils/appVersion'
 import { isAuthenticated, getCurrentUser } from './utils/auth'
+import { useFeedTextScale } from './utils/feedTextScale'
+import { zoomsWithTextScale } from './utils/textScaleRoutes'
 import RouteDataPrefetch from './components/common/RouteDataPrefetch'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
@@ -260,8 +262,13 @@ const HomeGate = () => {
 
 const MainContent = ({ children }: { children: ReactNode }) => {
   const railVisible = useDesktopRailVisible()
+  const { pathname } = useLocation()
+  const textScale = useFeedTextScale()
+  // PC 글씨 크기 — 읽기·참여 화면은 페이지 전체를 zoom (common.css `[data-app-scale]`, lg+ 에서만)
+  const appScale = textScale !== 'base' && zoomsWithTextScale(pathname) ? textScale : undefined
   return (
     <main
+      data-app-scale={appScale}
       className={`main-content ${railVisible ? 'lg:pl-[76px] xl:pl-[248px]' : ''}`}
     >
       {children}

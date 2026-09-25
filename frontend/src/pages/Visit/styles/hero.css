@@ -1,13 +1,13 @@
 /* ── 페이지 셸 ─────────────────────────── */
 .visit-page {
-  min-height: 100vh;
+  min-height: calc(100vh / var(--az, 1)); /* PC 글씨 크기 zoom 보정 (common.css [data-app-scale]) */
   background: var(--app-canvas);
 }
 
 .visit-shell {
   max-width: 28rem;
   margin: 0 auto;
-  min-height: 100vh;
+  min-height: calc(100vh / var(--az, 1));
   background: var(--app-canvas);
   border-left: 1px solid var(--card-border);
   border-right: 1px solid var(--card-border);

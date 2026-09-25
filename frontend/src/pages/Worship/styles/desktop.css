@@ -239,7 +239,7 @@ button.worship-rail-card {
     border: 0;
     flex-shrink: 0;
     position: sticky;
-    top: 4.5rem;
+    top: calc(4.5rem / var(--az, 1)); /* PC 글씨 크기 zoom 보정 */
   }
   .worship-rail > .worship-note {
     display: block;

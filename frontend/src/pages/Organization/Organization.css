@@ -355,7 +355,7 @@
      높이를 갖는 순간 우측 레일 sticky 가 이 상자 기준으로 산다.
      (같은 이유로 .org-shell 에 lg:overflow-hidden 을 주면 안 된다) */
   .org-page {
-    height: calc(100vh - 56px);
+    height: calc((100vh - 56px) / var(--az, 1)); /* zoom 안에서도 화면 높이에 맞춘다 */
     min-height: 0;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -450,7 +450,7 @@
 /* 노트북처럼 세로가 짧은 PC — 고정된 레일이 잘리지 않게 스스로 스크롤하게 둔다 */
 @media (min-width: 1024px) and (max-height: 800px) {
   .org-col-side {
-    max-height: calc(100vh - 72px);
+    max-height: calc((100vh - 72px) / var(--az, 1));
     overflow-y: auto;
     scrollbar-width: thin;
   }

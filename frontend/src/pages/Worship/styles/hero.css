@@ -1,6 +1,6 @@
 /* ── 페이지 셸 ─────────────────────────── */
 .worship-page {
-  min-height: 100vh;
+  min-height: calc(100vh / var(--az, 1)); /* PC 글씨 크기 zoom 보정 (common.css [data-app-scale]) */
   background: var(--app-canvas);
 }
 
