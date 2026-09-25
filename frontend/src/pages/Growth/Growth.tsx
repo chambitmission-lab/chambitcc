@@ -157,7 +157,7 @@ const Growth = () => {
       {/* 우측 위젯 레일 (lg+) — 요약 지표는 옆에 고정하고, 본문은 발자취(타임라인)에 집중.
           카드가 길어질 수 있어 자체 스크롤을 준다 */}
       {isDesktop && (
-      <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
+      <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc((100vh-88px)/var(--az,1))] lg:overflow-y-auto scrollbar-hide">
         {!summary || summaryLoading ? <GrowthCardsSkeleton /> : (<>
         <JourneyInsightCard />
         {summary.has_activity && <GrowthStats summary={summary} />}

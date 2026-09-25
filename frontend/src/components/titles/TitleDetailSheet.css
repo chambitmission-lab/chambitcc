@@ -41,6 +41,18 @@
   }
 }
 
+/* PC(lg+) — body 포털이라 페이지의 <main data-app-scale> zoom 을 받지 않는다.
+   헤더 '가' 배율(data-scale)을 시트 자체 zoom 으로 주고, zoom 안에서 커지는 vh 는 배율로 나눈다. */
+@media (min-width: 1024px) {
+  .title-sheet {
+    --sheet-z: 1;
+    zoom: var(--sheet-z);
+    max-height: calc(88vh / var(--sheet-z));
+  }
+  .title-sheet[data-scale='large'] { --sheet-z: 1.15; }
+  .title-sheet[data-scale='xlarge'] { --sheet-z: 1.3; }
+}
+
 @keyframes title-sheet-fade {
   from { opacity: 0; }
 }

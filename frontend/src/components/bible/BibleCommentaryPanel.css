@@ -1,0 +1,35 @@
+/* 말씀 해석 패널 — PC(lg+) 노안 패스.
+   성경 본문과 같은 문법: zoom 이 아니라 글자 크기 값에 헤더 '가' 배율(--text-mul, 1 · 1.1 · 1.2)을 곱한다.
+   패널은 우측 도킹(fixed)이라 폭(400/430 — layout.css --commentary-dock-w)은 그대로 두고 글씨만 키운다.
+   ★(크기 × 굵기) 조합이 첫 열기 Layout 비용을 정한다([font-combo] useBibleCommentary PANEL_FONT_COMBOS_LG).
+   여기서 조합을 늘리거나 바꾸면 그 목록도 맞춘다. 두 클래스 선택자로 Tailwind 기본 크기를 덮는다. */
+@media (min-width: 1024px) {
+  .cmt-panel .cmt-kicker { font-size: calc(13px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-head-title { font-size: calc(21px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-close { width: 44px; height: 44px; }
+  .cmt-panel .cmt-close .material-icons-round { font-size: 24px; }
+
+  .cmt-panel .cmt-note { font-size: calc(13.5px * var(--text-mul, 1)); color: var(--text-body); }
+  .cmt-panel .cmt-empty { font-size: calc(17px * var(--text-mul, 1)); }
+
+  .cmt-panel .cmt-section { font-size: calc(13.5px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-section-count { font-size: calc(13.5px * var(--text-mul, 1)); color: var(--text-body); }
+
+  /* 절 범위·분류·"오늘의 적용" 라벨 — 11.5px 회색이던 캡션을 13.5px, 본문색으로 */
+  .cmt-panel .cmt-meta { font-size: calc(13.5px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-meta--soft { color: var(--text-body); }
+  .cmt-panel .cmt-meta .material-icons-round { font-size: 17px; }
+
+  .cmt-panel .cmt-item-title { font-size: calc(19px * var(--text-mul, 1)); }
+  /* 읽는 말씀 — 본문 칼럼(19px)보다 한 단계 작게 */
+  .cmt-panel .cmt-scripture { font-size: calc(18px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-expand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    font-size: calc(14px * var(--text-mul, 1));
+  }
+  .cmt-panel .cmt-lead { font-size: calc(17px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-prose { font-size: calc(17px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-obs-head { font-size: calc(16px * var(--text-mul, 1)); }
+}

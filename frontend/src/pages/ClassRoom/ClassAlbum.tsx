@@ -86,7 +86,7 @@ const ClassAlbum = () => {
           <img
             src={photos[viewer].url}
             alt=""
-            className="max-w-full max-h-[74vh] object-contain"
+            className="max-w-full max-h-[74vh] lg:max-h-[calc(74vh/var(--az,1))] object-contain"
             onClick={(e) => e.stopPropagation()}
           />
           {photos[viewer].caption && (

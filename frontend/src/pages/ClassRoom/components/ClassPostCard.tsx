@@ -651,7 +651,7 @@ const PhotoGrid = ({ urls }: { urls: string[] }) => {
           <img
             src={urls[viewer]}
             alt=""
-            className="max-w-full max-h-[80vh] object-contain"
+            className="max-w-full max-h-[80vh] lg:max-h-[calc(80vh/var(--az,1))] object-contain"
             onClick={(e) => e.stopPropagation()}
           />
           <div className="flex items-center gap-4 mt-4" onClick={(e) => e.stopPropagation()}>

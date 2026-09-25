@@ -42,7 +42,7 @@ const ScriptureBlock = ({ text }: { text: string }) => {
   return (
     <div className="mt-3 pl-3.5 border-l-[3px]" style={{ borderColor: 'var(--genre)' }}>
       <p
-        className={`commentary-scripture text-[15.5px] leading-[1.8] text-ink-strong ${
+        className={`commentary-scripture cmt-scripture text-[15.5px] leading-[1.8] text-ink-strong ${
           long && !expanded ? 'line-clamp-4' : ''
         }`}
       >
@@ -52,7 +52,7 @@ const ScriptureBlock = ({ text }: { text: string }) => {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-1 text-[12.5px] font-bold"
+          className="cmt-expand mt-1 text-[12.5px] font-bold"
           style={{ color: 'var(--genre)' }}
         >
           {expanded ? '본문 접기' : '본문 전체 보기'}
@@ -87,7 +87,7 @@ const BibleCommentaryItem = ({
       : null
 
   const prose = (source: string, extraClass: string) => (
-    <div className={`book-intro-prose text-[15px] leading-[1.85] text-ink ${extraClass}`}>
+    <div className={`book-intro-prose cmt-prose text-[15px] leading-[1.85] text-ink ${extraClass}`}>
       <Markdown
         source={commentary.title ? stripLeadingHeading(source) : source}
         emphasis="plain"
@@ -99,13 +99,13 @@ const BibleCommentaryItem = ({
     <article className="py-5 first:pt-1" data-commentary-id={commentary.id}>
       <div className="flex items-baseline gap-2">
         <span
-          className="text-[11.5px] font-bold tracking-[0.1em] shrink-0"
+          className="cmt-meta text-[11.5px] font-bold tracking-[0.1em] shrink-0"
           style={{ color: 'var(--genre)' }}
         >
           {formatRange(commentary)}
         </span>
         {commentary.category && (
-          <span className="text-[11.5px] font-semibold text-ink-muted">
+          <span className="cmt-meta cmt-meta--soft text-[11.5px] font-semibold text-ink-muted">
             {commentary.category}
           </span>
         )}
@@ -117,7 +117,7 @@ const BibleCommentaryItem = ({
       </div>
 
       {title && (
-        <h4 className="mt-1.5 text-[17px] font-bold tracking-[-0.02em] leading-[1.35] text-ink-strong">
+        <h4 className="cmt-item-title mt-1.5 text-[17px] font-bold tracking-[-0.02em] leading-[1.35] text-ink-strong">
           {title}
         </h4>
       )}
@@ -125,7 +125,7 @@ const BibleCommentaryItem = ({
       {scripture && <ScriptureBlock text={scripture} />}
 
       {parsed.lead && (
-        <p className="mt-3.5 text-[15px] leading-[1.7] font-semibold text-ink-strong">
+        <p className="cmt-lead mt-3.5 text-[15px] leading-[1.7] font-semibold text-ink-strong">
           {parsed.lead}
         </p>
       )}
@@ -137,18 +137,18 @@ const BibleCommentaryItem = ({
         <section key={`obs-${i}`} className="mt-4">
           <div className="flex items-baseline gap-1.5">
             <span
-              className="text-[14px] font-bold shrink-0 leading-[1.5]"
+              className="cmt-obs-head text-[14px] font-bold shrink-0 leading-[1.5]"
               style={{ color: 'var(--genre)' }}
             >
               {CIRCLED[i] ?? '·'}
             </span>
             {obs.heading && (
-              <h5 className="text-[14px] font-bold tracking-[-0.01em] text-ink-strong leading-[1.5]">
+              <h5 className="cmt-obs-head text-[14px] font-bold tracking-[-0.01em] text-ink-strong leading-[1.5]">
                 {obs.heading}
               </h5>
             )}
           </div>
-          <div className="book-intro-prose mt-1 pl-[1.35rem] text-[15px] leading-[1.85] text-ink">
+          <div className="book-intro-prose cmt-prose mt-1 pl-[1.35rem] text-[15px] leading-[1.85] text-ink">
             <Markdown source={obs.text} emphasis="plain" />
           </div>
         </section>
@@ -158,7 +158,7 @@ const BibleCommentaryItem = ({
 
       {parsed.closing && (
         <p
-          className="mt-4 pl-3 border-l-2 text-[15px] leading-[1.75] font-semibold text-ink-strong"
+          className="cmt-lead mt-4 pl-3 border-l-2 text-[15px] leading-[1.75] font-semibold text-ink-strong"
           style={{ borderColor: 'var(--genre-line)' }}
         >
           {parsed.closing}
@@ -171,13 +171,13 @@ const BibleCommentaryItem = ({
           style={{ background: 'var(--genre-soft)' }}
         >
           <p
-            className="flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.06em] mb-1"
+            className="cmt-meta flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.06em] mb-1"
             style={{ color: 'var(--genre)' }}
           >
             <span className="material-icons-round text-[15px]">wb_twilight</span>
             오늘의 적용
           </p>
-          <p className="text-[14.5px] leading-[1.7] text-ink">{parsed.application}</p>
+          <p className="cmt-prose text-[14.5px] leading-[1.7] text-ink">{parsed.application}</p>
         </section>
       )}
 

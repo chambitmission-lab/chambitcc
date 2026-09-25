@@ -799,3 +799,137 @@
     color: var(--brand);
   }
 }
+
+/* ── PC(lg+) 노안 패스 ─────────────────────────────────────────
+   읽기 화면(verse-display.css 끝 lg 블록)과 같은 문법 — zoom 이 아니라 글자 크기에 헤더 '가'
+   배율(--text-mul, 1 · 1.1 · 1.2)을 곱한다. 결과 카드는 2열 그리드라 본문은 읽기 화면(19px)보다
+   두 단계 작은 17px. 칩·아이콘 버튼은 누르는 영역을 44px 로. 모바일은 위 규칙 그대로. */
+@media (min-width: 1024px) {
+  .bible-search-section {
+    --chip-height: 2.75rem;
+  }
+
+  .search-input {
+    padding: 0.9375rem 1.125rem;
+    font-size: calc(1.125rem * var(--text-mul, 1));
+  }
+  .search-placeholder-rolling {
+    font-size: calc(1.0625rem * var(--text-mul, 1));
+  }
+  .search-clear-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .scope-chip,
+  .search-chip-label,
+  .search-chip--suggest {
+    font-size: calc(0.96875rem * var(--text-mul, 1));
+  }
+  .scope-chip {
+    padding: 0 1rem;
+  }
+  .search-chip-label {
+    color: var(--ig-primary-text);
+    padding-left: 1rem;
+  }
+  .search-chip--suggest {
+    color: var(--text-body, var(--ig-primary-text));
+  }
+  .search-chip-remove {
+    padding: 0 0.75rem 0 0.25rem;
+  }
+  .search-chip-remove .material-icons-round {
+    font-size: 1.0625rem;
+  }
+  .search-chip-group-header {
+    font-size: calc(0.90625rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .search-chip-clear {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-typeahead-label {
+    font-size: calc(0.875rem * var(--text-mul, 1));
+  }
+
+  .results-count {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+    margin-bottom: 0.75rem;
+  }
+  .search-notice {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+    padding: 0.75rem 0.875rem;
+  }
+  .search-notice .material-icons-round {
+    font-size: 1.125rem;
+  }
+
+  /* 책별 분포 칩 */
+  .scope-chip--sm {
+    height: 2.5rem;
+    padding: 0 0.875rem;
+    font-size: calc(0.90625rem * var(--text-mul, 1));
+  }
+  .search-book-chip-count {
+    font-size: calc(0.84375rem * var(--text-mul, 1));
+  }
+
+  /* 절 카드 — 쉬는 상태와 :hover 규칙이 둘 다 padding 을 박아 두므로 함께 바꾼다 */
+  .bible-verse-item--search,
+  .bible-verse-item.bible-verse-item--search:hover {
+    padding: 1.125rem 1.25rem;
+  }
+  .bible-verse-item--search .bible-verse-text {
+    font-size: calc(1.0625rem * var(--text-mul, 1));
+    line-height: 1.75;
+    color: var(--ig-primary-text);
+  }
+  .bible-verse-reference {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-verse-actions {
+    margin: -0.5rem -0.625rem -0.5rem 0;
+  }
+  .search-verse-action {
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .search-verse-action svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* 책 카드 + 장 그리드 */
+  .search-book-head__title {
+    font-size: calc(1.25rem * var(--text-mul, 1));
+  }
+  .search-book-head__en {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-book-head__meta {
+    font-size: calc(0.90625rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .chapter-grid-label {
+    font-size: calc(0.90625rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .chapter-legend {
+    font-size: calc(0.8125rem * var(--text-mul, 1));
+  }
+  .chapter-grid {
+    gap: 0.5rem;
+  }
+  .chapter-cell {
+    min-height: 2.75rem;
+    font-size: calc(1rem * var(--text-mul, 1));
+  }
+
+  .search-retry-button {
+    min-height: 44px;
+    font-size: calc(1rem * var(--text-mul, 1));
+  }
+}

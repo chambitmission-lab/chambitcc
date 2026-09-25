@@ -24,6 +24,23 @@ const PANEL_FONT_COMBOS: readonly FontCombo[] = [
   [11.5, 700], [11.5, 600], [11.5, 400], [12.5, 700], [15, 600], [19, 700],
 ]
 
+/**
+ * PC(lg+) 조합 — BibleCommentaryPanel.css 노안 패스. 헤더 '가' 배율(--text-mul)을 곱한 값으로 데운다.
+ * 크기를 줄인 대신 조합 수는 모바일과 같게(11개) 묶었다.
+ */
+const PANEL_FONT_COMBOS_LG: readonly FontCombo[] = [
+  [17, 400], [18, 400], [17, 600], [13.5, 400], [16, 700],
+  [13.5, 700], [13.5, 600], [14, 700], [13, 700], [19, 700], [21, 700],
+]
+
+/** 지금 화면에서 패널이 쓸 조합 — PC 에선 --text-mul 을 곱한다(common.css .main-content[data-text-scale]) */
+const panelFontCombos = (): readonly FontCombo[] => {
+  if (!window.matchMedia?.('(min-width: 1024px)').matches) return PANEL_FONT_COMBOS
+  const main = document.querySelector('.main-content')
+  const mul = main ? parseFloat(getComputedStyle(main).getPropertyValue('--text-mul')) || 1 : 1
+  return PANEL_FONT_COMBOS_LG.map(([size, weight]) => [Math.round(size * mul * 100) / 100, weight] as const)
+}
+
 const keys = {
   all: ['bibleCommentary'] as const,
   chapter: (book: number, chapter: number) =>
@@ -91,7 +108,7 @@ export const usePrefetchChapterCommentaries = (
           // ①②… 는 패널이 관찰 블록 머리에 붙이는 글자(BibleCommentaryItem)
           const text = data.items.map((c) => `${c.title ?? ''}${c.content}`).join('') + '①②③④⑤⑥'
           await document.fonts?.load?.('15px "Pretendard Variable"', text).catch(() => undefined)
-          if (!cancelled) cancelWarm = warmFontShaping(text, PANEL_FONT_COMBOS)
+          if (!cancelled) cancelWarm = warmFontShaping(text, panelFontCombos())
         })
         .catch(() => undefined)
     }

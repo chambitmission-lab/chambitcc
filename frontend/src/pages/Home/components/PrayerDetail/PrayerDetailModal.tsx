@@ -21,7 +21,8 @@ const PrayerDetailModal = ({ children, wide = false }: PrayerDetailModalProps) =
     <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-[3px] sheet-backdrop z-[110] flex items-stretch md:items-center justify-center p-0 md:p-4 lg:p-6">
       <div
         className={`bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-2xl md:h-auto md:max-h-[85vh] overflow-hidden md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)] md:border md:border-border-light md:dark:border-border-dark flex flex-col sheet-rise ${
-          wide ? 'lg:max-w-[1280px] lg:h-full lg:max-h-none lg:rounded-[28px]' : ''
+          // zoom 화면(기도방 등) 안에 뜨면 vh 도 커지므로 배율로 나눈다 — 그 밖에선 --az 가 없어 1
+          wide ? 'lg:max-w-[1280px] lg:h-full lg:max-h-none lg:rounded-[28px]' : 'lg:max-h-[calc(85vh/var(--az,1))]'
         }`}
         data-feed-scale={textScale}
       >

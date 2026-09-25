@@ -862,7 +862,7 @@ const CapsuleCreate = () => {
             </div>
             {presetKey === 'custom' && (
               <div className="mt-2.5">
-                <DatePicker value={customDate} onChange={setCustomDate} placeholder="개봉일을 선택하세요" />
+                <DatePicker value={customDate} onChange={setCustomDate} placeholder="개봉일을 선택하세요" large />
               </div>
             )}
             {openDate && (

@@ -422,7 +422,7 @@ const Profile = () => {
       {/* 우측 위젯 레일 (lg+) — 정체성·콘텐츠는 본문에 두고, 진입 카드와 설정을 옆에 고정.
           레일이 화면보다 길어질 수 있어 홈 사이드바와 같은 자체 스크롤을 준다 */}
       {isDesktop && (
-      <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
+      <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc((100vh-88px)/var(--az,1))] lg:overflow-y-auto scrollbar-hide">
         {/* 카드들은 자체 px-4 여백을 갖고 있어 레일 안에서도 같은 거터를 그대로 쓴다
             (음수 마진으로 상쇄하면 overflow-y-auto 컨테이너에 가로 스크롤이 생긴다) */}
         {!ready || !data ? <ProfileRailSkeleton /> : (

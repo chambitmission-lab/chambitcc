@@ -38,6 +38,14 @@ const ZOOM_ROUTES = [
   '/online',
   '/tv',
   '/participate',
+  // 개인·모임 (포인터 좌표 코드 없음 확인, vh·포털 시트는 --az/자체 zoom 으로 맞춤)
+  '/profile',
+  '/growth',
+  '/garden',
+  '/groups',
+  '/rooms',
+  '/classes',
+  '/capsule',
 ]
 
 // 대형 화면 송출용(이미 화면 크기에 맞춰 vw·vh 로 그린다)

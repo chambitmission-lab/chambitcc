@@ -1,0 +1,13 @@
+/* 묵상방 바텀시트(RoomBits Sheet) — body 포털이라 페이지의 <main data-app-scale> zoom 밖에 있다.
+ * PC 에선 헤더 '가' 배율을 패널 zoom 으로 따라가고, zoom 안에선 vh 도 커지므로 높이 상한을 배율로 나눈다.
+ * (Culture culture-apply.css 와 같은 방식) — 모바일 높이는 Tailwind 유틸(h-[94dvh]·max-h-[90dvh]) 그대로. */
+@media (min-width: 1024px) {
+  .room-sheet-panel[data-scale] {
+    --sheet-z: 1;
+    zoom: var(--sheet-z);
+    height: auto;
+    max-height: calc(88vh / var(--sheet-z));
+  }
+  .room-sheet-panel[data-scale='large'] { --sheet-z: 1.15; }
+  .room-sheet-panel[data-scale='xlarge'] { --sheet-z: 1.3; }
+}

@@ -279,6 +279,9 @@
 @media (min-width: 1024px) {
   [data-feed-scale='large'] { --fs: 1.15; --feed-clamp: 5; }
   [data-feed-scale='xlarge'] { --fs: 1.3; --feed-clamp: 5; }
+  /* zoom 화면(기도방 기도 탭 등) 안에 박힌 피드는 페이지 zoom 이 이미 키우므로 --fs 를 1로 되돌린다
+     (접는 줄 수 --feed-clamp 는 유지). 구체도 (0,3,0) 이 위 두 줄을 이긴다 */
+  .main-content[data-app-scale] [data-feed-scale] { --fs: 1; }
 
   /* 공용 댓글(ReplyList·ReplyComposer)은 교실·소식 시트도 같이 쓴다 — Tailwind 크기는 그대로 두고
      기도 화면(data-feed-scale) 안에서만 훅 클래스로 키운다. [attr] .class 라 유틸리티보다 우선한다 */

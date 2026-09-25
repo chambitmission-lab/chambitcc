@@ -416,7 +416,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
       <div className="absolute inset-0 bg-black/45" onClick={onClose} />
       <div
         className="relative w-full max-w-md overflow-y-auto rounded-t-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl"
-        style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.92)' }}
+        style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.92 / var(--az, 1))' }}
       >
         <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
         <h3 className="text-[17px] font-bold text-ink-strong mb-4">알림 쓰기</h3>
@@ -650,6 +650,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                     onChange={(date) => applyStart(joinDT(date, startParts.time || '11:00'))}
                     sundayMode
                     className={pickerCls}
+                    large
                   />
                 </div>
                 <div>
@@ -660,6 +661,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                       applyStart(joinDT(startParts.date || calendarDateKey(kstNow()), time))
                     }
                     className={pickerCls}
+                    large
                   />
                 </div>
               </div>
@@ -694,6 +696,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                         }
                         minDate={startParts.date || undefined}
                         className={pickerCls}
+                        large
                       />
                     </div>
                     <div>
@@ -704,6 +707,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                           setEndAt(joinDT(endParts.date || startParts.date, time))
                         }
                         className={pickerCls}
+                        large
                       />
                     </div>
                   </div>
@@ -760,6 +764,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                       }
                       maxDate={startParts.date || undefined}
                       className={pickerCls}
+                      large
                     />
                   </div>
                   <div>
@@ -770,6 +775,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                         setDeadline(joinDT(deadlineParts.date || startParts.date, time))
                       }
                       className={pickerCls}
+                      large
                     />
                   </div>
                 </div>
@@ -974,6 +980,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                   sundayMode
                   minDate={calendarDateKey(kstNow())}
                   className={pickerCls}
+                  large
                 />
               </div>
               <div>
@@ -984,6 +991,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                     setPublishAt(joinDT(publishParts.date || calendarDateKey(kstNow()), time))
                   }
                   className={pickerCls}
+                  large
                 />
               </div>
             </div>

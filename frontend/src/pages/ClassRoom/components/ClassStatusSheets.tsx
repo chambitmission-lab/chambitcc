@@ -40,7 +40,7 @@ const SheetShell = ({
       <div className="absolute inset-0 bg-black/45" />
       <div
         className="relative w-full max-w-md overflow-y-auto rounded-t-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl"
-        style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.85)' }}
+        style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.85 / var(--az, 1))' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />

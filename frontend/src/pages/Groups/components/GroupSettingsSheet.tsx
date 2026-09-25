@@ -110,7 +110,7 @@ const GroupSettingsSheet = ({ group, onClose }: GroupSettingsSheetProps) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] flex flex-col"
+        className="relative w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] lg:max-h-[calc(90vh/var(--az,1))] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">

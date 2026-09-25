@@ -51,7 +51,7 @@ const AnswerModal = ({
       onClick={onClose}
     >
       <div
-        className="relative rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto overflow-x-hidden"
+        className="relative rounded-2xl max-w-md w-full max-h-[90vh] lg:max-h-[calc(90vh/var(--az,1))] overflow-y-auto overflow-x-hidden"
         style={{
           background: 'var(--surface-container)',
           border: '1px solid var(--card-border)',

@@ -3,6 +3,8 @@
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
+import { useFeedTextScale } from '../../utils/feedTextScale'
+import './room-sheet.css'
 import type { RoomMember } from '../../types/meditationRoom'
 
 const AVATAR_COLORS = ['#3182f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#0ea5e9']
@@ -94,6 +96,8 @@ export const Sheet = ({
   ariaLabel?: string
 }) => {
   useModalBackButton(onClose)
+  // 시트는 body 포털이라 페이지 zoom 밖 — 헤더 '가' 배율은 패널 zoom 으로 따라간다(room-sheet.css)
+  const textScale = useFeedTextScale()
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-end lg:items-center justify-center">
       <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
@@ -101,8 +105,9 @@ export const Sheet = ({
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
-        className={`relative w-full ${wide ? 'lg:max-w-2xl' : 'max-w-md'} ${
-          tall ? 'h-[94dvh] lg:h-auto lg:max-h-[88vh]' : 'max-h-[90dvh]'
+        data-scale={textScale}
+        className={`room-sheet-panel relative w-full ${wide ? 'lg:max-w-2xl' : 'max-w-md'} ${
+          tall ? 'h-[94dvh]' : 'max-h-[90dvh]'
         } flex flex-col rounded-t-[26px] lg:rounded-[26px] bg-white dark:bg-[#15151d] shadow-2xl overflow-hidden`}
       >
         <div className="shrink-0 w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mt-2.5 mb-1 lg:hidden" />

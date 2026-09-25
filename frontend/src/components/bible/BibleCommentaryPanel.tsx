@@ -18,6 +18,7 @@ import BibleCommentaryItem from './BibleCommentaryItem'
 import { genreStyle } from './bookGenre'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import './BibleCommentaryPanel.css'
 
 interface BibleCommentaryPanelProps {
   bookNumber: number
@@ -200,7 +201,7 @@ const BibleCommentaryPanel = ({
         <section
           ref={panelRef}
           onMouseLeave={syncFollow}
-          className="sheet-rise relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col lg:pointer-events-auto lg:w-[400px] xl:w-[430px] lg:max-w-none lg:!max-h-none lg:rounded-none lg:border-0 lg:border-l lg:shadow-[-12px_0_40px_rgba(0,0,0,0.25)]"
+          className="cmt-panel sheet-rise relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col lg:pointer-events-auto lg:w-[400px] xl:w-[430px] lg:max-w-none lg:!max-h-none lg:rounded-none lg:border-0 lg:border-l lg:shadow-[-12px_0_40px_rgba(0,0,0,0.25)]"
           style={{ ...genreStyle(bookNumber), maxHeight: 'calc(var(--vvh, 100dvh) * 0.92)' }}
           onClick={(e) => e.stopPropagation()}
           role="dialog"
@@ -212,19 +213,19 @@ const BibleCommentaryPanel = ({
             <div className="w-9 h-1 rounded-full bg-[var(--text-muted)]/40 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
             <div className="min-w-0 flex-1">
               <p
-                className="text-[11px] font-bold tracking-[0.14em]"
+                className="cmt-kicker text-[11px] font-bold tracking-[0.14em]"
                 style={{ color: 'var(--genre)' }}
               >
                 말씀 해석
               </p>
-              <h3 className="text-ink-strong text-[19px] font-bold tracking-[-0.025em] truncate">
+              <h3 className="cmt-head-title text-ink-strong text-[19px] font-bold tracking-[-0.025em] truncate">
                 {headerLabel}
               </h3>
             </div>
             <button
               onClick={onClose}
               aria-label="닫기"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-ink-muted hover:bg-[var(--surface-inset)] transition-colors shrink-0"
+              className="cmt-close w-9 h-9 rounded-full flex items-center justify-center text-ink-muted hover:bg-[var(--surface-inset)] transition-colors shrink-0"
             >
               <span className="material-icons-round text-[20px]">close</span>
             </button>
@@ -235,14 +236,14 @@ const BibleCommentaryPanel = ({
             {isLoading && (
               <div className="text-center py-10 text-ink-muted">
                 <span className="material-icons-round animate-spin text-[28px]">refresh</span>
-                <p className="mt-2 text-[13.5px]">해석 불러오는 중...</p>
+                <p className="cmt-note mt-2 text-[13.5px]">해석 불러오는 중...</p>
               </div>
             )}
 
             {!isLoading && total === 0 && (
               <div className="text-center py-12 px-4 text-ink-muted">
                 <span className="material-icons-round text-[40px] opacity-40">auto_stories</span>
-                <p className="mt-2 text-[15px] text-ink">아직 등록된 해석이 없습니다</p>
+                <p className="cmt-empty mt-2 text-[15px] text-ink">아직 등록된 해석이 없습니다</p>
                 {admin && (
                   <p className="mt-1 text-[13px]">
                     아래 버튼으로 첫 해석을 추가해보세요
@@ -332,10 +333,10 @@ interface SectionLabelProps {
 /** 요약/절별 해석 그룹을 구분하는 규칙선 머리글 — 아이콘 칩 대신 지면 구분자로 */
 const SectionLabel = ({ text, count }: SectionLabelProps) => (
   <div className="flex items-center gap-2.5 pt-6 pb-1">
-    <span className="text-[12px] font-bold tracking-[0.08em] text-ink-strong shrink-0">
+    <span className="cmt-section text-[12px] font-bold tracking-[0.08em] text-ink-strong shrink-0">
       {text}
     </span>
-    <span className="text-[11.5px] text-ink-muted tabular-nums shrink-0">{count}</span>
+    <span className="cmt-section-count text-[11.5px] text-ink-muted tabular-nums shrink-0">{count}</span>
     <span className="flex-1 h-px" style={{ background: 'var(--genre-line)' }} />
   </div>
 )
