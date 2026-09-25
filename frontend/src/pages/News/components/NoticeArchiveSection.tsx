@@ -70,7 +70,7 @@ const NoticeArchiveSection = () => {
   const total = data?.pages[0]?.total ?? 0
 
   return (
-    <div className="px-4 pt-3 pb-8">
+    <div className="px-4 pt-3 pb-8 lg:px-6 lg:pt-4">
       {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--notice). 소식 탭과 같은 골격이다.
           다크 상단 광택 span 은 두지 않는다 — 삽화 위에 얹히면 뿌옇게 뜬다(소식 세 장과 같은 이유).
           PC 에서만 카드를 키운다(lg:min-h) — 136px 높이로는 삽화가 손톱만 해서 장면이 안 읽힌다.
@@ -82,10 +82,10 @@ const NoticeArchiveSection = () => {
               <NoticeBoardIcon width={23} height={23} />
             </div>
             <div>
-              <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
+              <p className="text-brand text-[10.5px] lg:text-[12.5px] font-bold tracking-[0.12em] uppercase">
                 NOTICE
               </p>
-              <h2 className="text-ink-strong text-[17px] lg:text-[19px] font-bold tracking-[-0.015em]">
+              <h2 className="text-ink-strong text-[17px] lg:text-[22px] font-bold tracking-[-0.015em]">
                 {t('newsNoticeTitle')}
               </h2>
             </div>
@@ -109,7 +109,7 @@ const NoticeArchiveSection = () => {
 
           {/* max-w 는 삽화와 짝이다 — 풀폭으로 두면 글줄이 양 위로 올라탄다.
               삽화를 다시 뽑아 장면 위치가 바뀌면 이 값도 같이 다시 볼 것. */}
-          <p className="max-w-[62%] lg:max-w-[60%] text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[13px] leading-[1.6]">
+          <p className="max-w-[62%] lg:max-w-[60%] text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] lg:text-gray-600 leading-[1.6]">
             {t('newsNoticeIntro')}
           </p>
         </div>
@@ -132,12 +132,12 @@ const NoticeArchiveSection = () => {
         />
       ) : (
         <>
-          <p className="px-1 pb-2 text-[11.5px] text-gray-500 dark:text-white/50">
+          <p className="px-1 pb-2 text-[11.5px] lg:text-[15px] lg:pb-3 text-gray-500 dark:text-white/50">
             {t('newsCountPrefix')}
             <span className="font-bold text-ink-strong">{total}</span>
             {t('newsCountSuffix')}
           </p>
-          <div className="space-y-2">
+          <div className="space-y-2 lg:space-y-3">
             {notices.map((notice) => (
               <NoticeRow
                 key={notice.id}
@@ -163,7 +163,7 @@ const NoticeArchiveSection = () => {
             type="button"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="px-5 h-10 rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
+            className="px-5 h-10 lg:h-12 lg:px-7 lg:text-[16px] rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
           >
             {isFetchingNextPage ? t('newsLoadingMore') : t('newsNoticeLoadMore')}
           </button>
@@ -210,28 +210,28 @@ const NoticeRow = ({
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="relative z-10 w-full flex items-start gap-3 p-3.5 text-left group"
+        className="relative z-10 w-full flex items-start gap-3 p-3.5 lg:gap-4 lg:p-5 text-left group"
       >
-        <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+        <span className="shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
           <NoticeBoardIcon width={19} height={19} />
         </span>
 
         <span className="flex-1 min-w-0">
           <span className="flex items-center gap-1.5">
-            <span className="text-[10.5px] font-bold text-gray-400 dark:text-white/40">
+            <span className="text-[10.5px] lg:text-[14px] font-bold text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55">
               {formatRelative(notice.created_at, t)}
             </span>
             {notice.image_url && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-brand">
+              <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-brand">
                 {t('newsNoticePoster')}
               </span>
             )}
           </span>
-          <span className="mt-0.5 block text-[14.5px] font-bold text-ink-strong leading-[1.35] group-hover:text-brand transition-colors">
+          <span className="mt-0.5 lg:mt-1 block text-[14.5px] lg:text-[19px] font-bold text-ink-strong leading-[1.35] group-hover:text-brand transition-colors">
             {notice.title}
           </span>
           {!expanded && preview && (
-            <span className="mt-0.5 block text-[12px] text-gray-500 dark:text-white/50 leading-[1.5] line-clamp-2">
+            <span className="mt-0.5 lg:mt-1.5 block text-[12px] lg:text-[15.5px] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65 leading-[1.5] line-clamp-2">
               {preview}
             </span>
           )}
@@ -255,8 +255,8 @@ const NoticeRow = ({
       </button>
 
       {expanded && (
-        <div className="relative z-10 px-3.5 pb-4 -mt-1">
-          <div className="pl-[52px]">
+        <div className="relative z-10 px-3.5 pb-4 -mt-1 lg:px-5 lg:pb-6">
+          <div className="pl-[52px] lg:pl-16">
             {notice.image_url && (
               <button
                 type="button"
@@ -269,10 +269,10 @@ const NoticeRow = ({
                   src={notice.image_url}
                   alt=""
                   loading="lazy"
-                  className="mx-auto block w-auto max-w-full max-h-[min(70vh,560px)] object-contain transition-transform duration-200 group-hover/poster:scale-[1.02]"
+                  className="mx-auto block w-auto max-w-full max-h-[min(calc(70vh/var(--az,1)),560px)] lg:max-h-[min(calc(80vh/var(--az,1)),760px)] object-contain transition-transform duration-200 group-hover/poster:scale-[1.02]"
                 />
                 {/* 눌러야 읽힌다는 걸 알려주는 손잡이 — 없으면 그냥 작은 그림으로 끝난다 */}
-                <span className="pointer-events-none absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-[2px]">
+                <span className="pointer-events-none absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[11px] lg:text-[14px] lg:px-3.5 lg:py-1.5 font-semibold text-white backdrop-blur-[2px]">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <circle cx="11" cy="11" r="7" />
                     <path d="M20 20l-3.2-3.2M11 8.5v5M8.5 11h5" />
@@ -282,9 +282,10 @@ const NoticeRow = ({
               </button>
             )}
 
-            <NoticeContent source={notice.content} />
+            {/* PC 는 읽기 칼럼 크기(18px·줄 폭 제한) — news-hero.css .news-notice-body */}
+            <NoticeContent source={notice.content} className="news-notice-body" />
 
-            <p className="mt-3 text-[11px] text-gray-400 dark:text-white/40">
+            <p className="mt-3 text-[11px] lg:text-[14px] lg:mt-4 text-gray-400 dark:text-white/40">
               {formatDate(notice.created_at, t)}
             </p>
 
@@ -292,7 +293,7 @@ const NoticeRow = ({
               <button
                 type="button"
                 onClick={() => onOpenLink(notice.link_url as string)}
-                className="mt-2.5 inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] hover:bg-brand-dim transition-colors"
+                className="mt-2.5 inline-flex items-center gap-1 h-9 px-4 lg:h-12 lg:px-6 lg:text-[16px] lg:mt-3.5 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] hover:bg-brand-dim transition-colors"
               >
                 {t('newsNoticeDetail')}
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">

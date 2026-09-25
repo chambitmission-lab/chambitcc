@@ -14,13 +14,13 @@ const CategoryPills = ({ value, onChange }: CategoryPillsProps) => {
   const t = translations[language]
 
   return (
-    <div className="px-4 pt-1 pb-3 overflow-x-auto scrollbar-hide">
+    <div className="px-4 pt-1 pb-3 lg:px-6 lg:pb-4 overflow-x-auto scrollbar-hide">
       <div className="flex gap-2 min-w-min">
         <button
           type="button"
           onClick={() => onChange(undefined)}
           className={[
-            'relative shrink-0 px-3.5 h-9 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all',
+            'relative shrink-0 px-3.5 h-9 lg:px-5 lg:h-11 rounded-full text-[13px] lg:text-[16px] font-semibold whitespace-nowrap transition-all',
             value === undefined
               ? 'seal-chip bg-brand text-white'
               : 'bg-gray-100 dark:bg-white/[0.04] text-gray-600 dark:text-white/70 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08] hover:text-gray-900 dark:hover:text-white',
@@ -37,7 +37,7 @@ const CategoryPills = ({ value, onChange }: CategoryPillsProps) => {
               type="button"
               onClick={() => onChange(cat)}
               className={[
-                'relative shrink-0 px-3.5 h-9 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all flex items-center gap-1.5',
+                'relative shrink-0 px-3.5 h-9 lg:px-5 lg:h-11 rounded-full text-[13px] lg:text-[16px] font-semibold whitespace-nowrap transition-all flex items-center gap-1.5',
                 active
                   ? `seal-chip bg-gradient-to-r ${v.gradient} text-white`
                   : 'bg-gray-100 dark:bg-white/[0.04] text-gray-600 dark:text-white/70 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08] hover:text-gray-900 dark:hover:text-white',

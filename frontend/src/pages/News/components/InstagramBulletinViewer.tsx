@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import type { Bulletin } from '../../../types/bulletin'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import './InstagramBulletinViewer.css'
 
 interface InstagramBulletinViewerProps {
@@ -10,12 +11,16 @@ interface InstagramBulletinViewerProps {
 }
 
 const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerProps) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const ko = language !== 'en'
   const [currentPage, setCurrentPage] = useState(0)
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [showControls, setShowControls] = useState(true)
+  // PC(lg+)는 마우스로 넘기는 자리라 버튼이 3초 뒤 사라지면 어르신이 넘기는 법을 잃는다 — 늘 보인다
+  const isLg = useMediaQuery('(min-width: 1024px)')
+  const controlsOn = showControls || isLg
   
   const containerRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
@@ -172,8 +177,8 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
   return (
     <div className="instagram-viewer" ref={containerRef}>
       {/* 헤더 */}
-      <div className={`instagram-header ${showControls ? 'visible' : 'hidden'}`}>
-        <button onClick={onClose} className="close-button">
+      <div className={`instagram-header ${controlsOn ? 'visible' : 'hidden'}`}>
+        <button onClick={onClose} className="close-button" aria-label={t('newsClose')} title={t('newsClose')}>
           <span className="material-icons-outlined">close</span>
         </button>
         <div className="header-info">
@@ -183,7 +188,7 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
       </div>
 
       {/* 프로그레스 바 */}
-      <div className={`progress-bars ${showControls ? 'visible' : 'hidden'}`}>
+      <div className={`progress-bars ${controlsOn ? 'visible' : 'hidden'}`}>
         {pages.map((_, index) => (
           <div key={index} className="progress-bar-container">
             <div 
@@ -216,7 +221,7 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
       </div>
 
       {/* 페이지 인디케이터 */}
-      <div className={`page-indicator ${showControls ? 'visible' : 'hidden'}`}>
+      <div className={`page-indicator ${controlsOn ? 'visible' : 'hidden'}`}>
         {currentPage + 1} / {totalPages}
       </div>
 
@@ -225,25 +230,29 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
         <>
           {currentPage > 0 && (
             <button 
-              className={`nav-button prev ${showControls ? 'visible' : 'hidden'}`}
+              className={`nav-button prev ${controlsOn ? 'visible' : 'hidden'}`}
               onClick={goToPreviousPage}
+              aria-label={ko ? '이전 쪽' : 'Previous page'}
             >
               <span className="material-icons-outlined">chevron_left</span>
+              <span className="nav-label">{ko ? '이전' : 'Prev'}</span>
             </button>
           )}
           {currentPage < totalPages - 1 && (
             <button 
-              className={`nav-button next ${showControls ? 'visible' : 'hidden'}`}
+              className={`nav-button next ${controlsOn ? 'visible' : 'hidden'}`}
               onClick={goToNextPage}
+              aria-label={ko ? '다음 쪽' : 'Next page'}
             >
               <span className="material-icons-outlined">chevron_right</span>
+              <span className="nav-label">{ko ? '다음' : 'Next'}</span>
             </button>
           )}
         </>
       )}
 
       {/* 줌 컨트롤 */}
-      <div className={`zoom-controls ${showControls ? 'visible' : 'hidden'}`}>
+      <div className={`zoom-controls ${controlsOn ? 'visible' : 'hidden'}`}>
         <button 
           onClick={() => {
             if (scale > 1) {

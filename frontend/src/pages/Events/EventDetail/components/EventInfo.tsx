@@ -21,12 +21,12 @@ const isSameKstDay = (a: string, b: string): boolean => {
 
 const InfoRow = ({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) => (
   <div className="flex items-start gap-3">
-    <div className="w-9 h-9 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center shrink-0">
+    <div className="w-9 h-9 lg:w-12 lg:h-12 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center shrink-0">
       {icon}
     </div>
     <div className="min-w-0 pt-0.5">
-      <div className="text-gray-400 dark:text-white/45 text-[11px] font-semibold mb-0.5">{label}</div>
-      <div className="text-ink-strong text-[14px] font-semibold leading-[1.45]">{children}</div>
+      <div className="text-gray-400 dark:text-white/45 text-[11px] lg:text-[14.5px] lg:text-gray-500 lg:dark:text-white/55 font-semibold mb-0.5">{label}</div>
+      <div className="text-ink-strong text-[14px] lg:text-[19px] font-semibold leading-[1.45]">{children}</div>
     </div>
   </div>
 )
@@ -39,8 +39,8 @@ export const EventInfo = ({ event, t }: EventInfoProps) => {
   const endTime = formatEventTime(event.end_datetime)
 
   return (
-    <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4">
-      <div className="flex flex-col gap-3.5">
+    <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4 lg:p-6">
+      <div className="flex flex-col gap-3.5 lg:gap-5">
         <InfoRow
           label={`${t.startDate} · ${t.endDate}`}
           icon={
@@ -78,7 +78,7 @@ export const EventInfo = ({ event, t }: EventInfoProps) => {
         )}
       </div>
 
-      <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-100 dark:border-white/[0.06] text-gray-500 dark:text-white/55 text-[12.5px] font-medium">
+      <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-100 dark:border-white/[0.06] text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] font-medium">
         <span className="inline-flex items-center gap-1">
           👥 {t.attendanceCount} <span className="text-brand font-bold">{event.attendance_count}</span>
         </span>

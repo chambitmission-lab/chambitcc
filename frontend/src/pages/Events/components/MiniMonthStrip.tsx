@@ -13,6 +13,13 @@ interface MiniMonthStripProps {
   onSelectDate?: (d: Date) => void
   /** 배치 여백 — 본문(mx-4)과 우측 레일(여백 없음)이 같은 컴포넌트를 공유한다 */
   className?: string
+  /** 고른 날(YYYY-MM-DD) — 테두리+바탕으로 표시 */
+  selectedKey?: string | null
+  /**
+   * PC 레일용 큰 달력 — 날짜 18px·칸 높이 70px, 일정은 점 대신 "N개" 글자로.
+   * 어르신이 모니터 거리에서 점 색을 구분하기 어렵다
+   */
+  large?: boolean
 }
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -28,6 +35,8 @@ const MiniMonthStrip = ({
   onToday,
   onSelectDate,
   className = 'mx-4 mb-4',
+  selectedKey = null,
+  large = false,
 }: MiniMonthStripProps) => {
   const eventMap = useMemo(() => buildEventDateMap(events), [events])
   const today = kstNow()  // 서울 기준 '오늘'
@@ -66,13 +75,13 @@ const MiniMonthStrip = ({
         style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }}
       />
       {/* 헤더 — 달력 제어(오늘/이전/다음)를 우측 한곳에 모아 위계를 정리 */}
-      <div className="flex items-center justify-between px-4 py-2.5">
-        <div className="text-ink-strong text-[15px] font-bold tracking-[-0.01em]">{monthLabel}</div>
+      <div className={`flex items-center justify-between ${large ? 'px-5 py-3.5' : 'px-4 py-2.5'}`}>
+        <div className={`text-ink-strong font-bold tracking-[-0.01em] ${large ? 'text-[21px]' : 'text-[15px]'}`}>{monthLabel}</div>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={onToday}
-            className="px-3 h-8 mr-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 text-[12px] font-semibold transition-colors"
+            className={`${large ? 'px-4 h-10 text-[15px]' : 'px-3 h-8 text-[12px]'} mr-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 font-semibold transition-colors`}
           >
             오늘
           </button>
@@ -82,7 +91,7 @@ const MiniMonthStrip = ({
             className="relative w-10 h-10 rounded-full bg-gray-100 dark:bg-white/[0.04] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 flex items-center justify-center transition-colors after:absolute after:-inset-1 after:content-['']"
             aria-label="이전 달"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <svg width={large ? 19 : 15} height={large ? 19 : 15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
@@ -92,7 +101,7 @@ const MiniMonthStrip = ({
             className="relative w-10 h-10 rounded-full bg-gray-100 dark:bg-white/[0.04] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 flex items-center justify-center transition-colors after:absolute after:-inset-1 after:content-['']"
             aria-label="다음 달"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <svg width={large ? 19 : 15} height={large ? 19 : 15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -105,7 +114,7 @@ const MiniMonthStrip = ({
           <div
             key={d}
             className={[
-              'text-center text-[11px] font-bold py-1',
+              `text-center font-bold py-1 ${large ? 'text-[14px]' : 'text-[11px]'}`,
               i === 0 ? 'text-rose-500 dark:text-rose-300/90' : i === 6 ? 'text-brand' : 'text-gray-400 dark:text-white/45',
             ].join(' ')}
           >
@@ -115,11 +124,12 @@ const MiniMonthStrip = ({
       </div>
 
       {/* 날짜 그리드 */}
-      <div className="grid grid-cols-7 gap-y-1 px-2 pb-3">
+      <div className={`grid grid-cols-7 px-2 pb-3 ${large ? 'gap-1' : 'gap-y-1'}`}>
         {cells.map(({ d, inMonth }, idx) => {
           const key = formatKey(d)
           const dayEvents = eventMap.get(key) ?? []
           const isToday = key === todayKey
+          const isSelected = inMonth && key === selectedKey
           const dow = d.getDay()
 
           return (
@@ -128,17 +138,25 @@ const MiniMonthStrip = ({
               type="button"
               disabled={!inMonth}
               onClick={() => inMonth && onSelectDate?.(d)}
+              aria-pressed={onSelectDate ? isSelected : undefined}
+              aria-label={
+                large && inMonth
+                  ? `${d.getMonth() + 1}월 ${d.getDate()}일${isToday ? ' 오늘' : ''}${dayEvents.length ? ` 일정 ${dayEvents.length}개` : ''}`
+                  : undefined
+              }
               className={[
-                'relative aspect-square flex flex-col items-center justify-center rounded-xl transition-colors',
+                'relative flex flex-col items-center rounded-xl transition-colors',
+                large ? 'h-[70px] justify-start pt-1.5 gap-1 border-2' : 'aspect-square justify-center',
+                large && (isSelected ? 'border-brand bg-[var(--brand-soft)]' : 'border-transparent'),
                 !inMonth && 'opacity-30 cursor-default',
-                inMonth && !isToday && 'hover:bg-gray-100 dark:hover:bg-white/[0.04]',
+                inMonth && !isToday && !isSelected && 'hover:bg-gray-100 dark:hover:bg-white/[0.04]',
               ]
                 .filter(Boolean)
                 .join(' ')}
             >
               <span
                 className={[
-                  'text-[13px] font-semibold leading-none',
+                  `${large ? 'text-[18px]' : 'text-[13px]'} font-semibold leading-none`,
                   isToday
                     ? 'text-white'
                     : dow === 0
@@ -149,15 +167,21 @@ const MiniMonthStrip = ({
                 ].join(' ')}
               >
                 {isToday ? (
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand text-white font-bold shadow-[0_4px_12px_-2px_var(--brand-glow)]">
+                  <span className={`inline-flex items-center justify-center ${large ? 'w-8 h-8' : 'w-7 h-7'} rounded-full bg-brand text-white font-bold shadow-[0_4px_12px_-2px_var(--brand-glow)]`}>
                     {d.getDate()}
                   </span>
                 ) : (
                   d.getDate()
                 )}
               </span>
+              {/* 큰 달력: 점 대신 "N개" 글자 — 색을 구분하지 않아도 읽힌다 */}
+              {large && dayEvents.length > 0 && (
+                <span className="px-1.5 rounded-md bg-brand text-white text-[12.5px] font-bold leading-[1.5] tabular-nums">
+                  {dayEvents.length}개
+                </span>
+              )}
               {/* 일정 dot — 네온 글로우로 다크 배경에서도 한눈에 보이도록 */}
-              {dayEvents.length > 0 && (
+              {!large && dayEvents.length > 0 && (
                 <div className="absolute bottom-1 flex items-center gap-[3px]">
                   {dayEvents.slice(0, 3).map((ev, i) => (
                     <span

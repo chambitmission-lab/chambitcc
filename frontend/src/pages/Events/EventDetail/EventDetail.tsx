@@ -16,9 +16,10 @@ import {
   SeatBookingLinkCard,
 } from './components'
 
+// lg: 어르신이 모니터로 보는 자리 — 폭(760px)과 각 카드 글씨를 키운다(카드별 lg: 클래스)
 const Shell = ({ children }: { children: React.ReactNode }) => (
   <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
-    <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
+    <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-[760px] lg:pb-10 lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
       {children}
     </div>
   </div>
@@ -44,11 +45,11 @@ const EventDetail = () => {
   } = useCommentActions(Number(id), refresh, t)
 
   const backButton = (
-    <div className="px-4 pt-4 pb-3">
+    <div className="px-4 pt-4 pb-3 lg:px-6 lg:pt-6">
       <button
         type="button"
         onClick={() => navigate('/events')}
-        className="inline-flex items-center gap-1 h-9 pl-1.5 pr-3 -ml-1.5 rounded-full text-ink-strong text-[14px] font-bold hover:bg-gray-100 dark:hover:bg-white/[0.06] active:scale-[0.97] transition-all"
+        className="inline-flex items-center gap-1 h-9 lg:h-11 pl-1.5 pr-3 lg:pr-4 -ml-1.5 rounded-full text-ink-strong text-[14px] lg:text-[17px] font-bold hover:bg-gray-100 dark:hover:bg-white/[0.06] active:scale-[0.97] transition-all"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />
@@ -103,7 +104,7 @@ const EventDetail = () => {
       <EventHero event={event} t={t} />
       <QuickActions event={event} t={t} />
 
-      <div className="px-4 mt-3 flex flex-col gap-3">
+      <div className="px-4 mt-3 flex flex-col gap-3 lg:px-6 lg:mt-4 lg:gap-4">
         <EventInfo event={event} t={t} />
 
         <EventDescription

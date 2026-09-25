@@ -72,10 +72,10 @@ const NewFamilySection = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
               <Lock size={30} weight="duotone" color="currentColor" aria-hidden="true" />
             </div>
-            <p className="text-ink-strong text-[15px] font-bold mb-1.5">
+            <p className="text-ink-strong text-[15px] lg:text-[18px] font-bold mb-1.5">
               {t('newsGateTitle')}
             </p>
-            <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.65] mb-5">
+            <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] leading-[1.65] mb-5">
               {t('newsGateNewFamilyLine1')}
               <br />
               {t('newsGateLine2')}
@@ -83,7 +83,7 @@ const NewFamilySection = () => {
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] active:scale-[0.98] transition-all"
+              className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] lg:text-[16.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] active:scale-[0.98] transition-all"
             >
               {t('newsGateCta')}
             </button>
@@ -104,17 +104,17 @@ const NewFamilySection = () => {
               <SproutIcon width={23} height={23} />
             </div>
             <div>
-              <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
+              <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] lg:text-[13px] font-bold tracking-[0.12em] uppercase">
                 NEW FAMILY
               </p>
-              <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
+              <h2 className="text-ink-strong text-[17px] lg:text-[22px] font-bold tracking-[-0.015em]">
                 {t('newsNfTitle')}
               </h2>
             </div>
           </div>
 
           {/* 글줄이 삽화 위로 넘어가지 않게 폭을 잡는다 — 삽화 위치가 바뀌면 이 값도 다시 볼 것 */}
-          <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
+          <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
             {t('newsNfIntro')}
           </p>
 
@@ -174,11 +174,11 @@ const NewFamilySection = () => {
                 </span>
               )}
               {post.photo_count > 1 && (
-                <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] lg:text-[11.5px] font-bold flex items-center justify-center">
                   {post.photo_count}
                 </span>
               )}
-              <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/75 to-transparent text-white text-[10px] font-bold truncate text-left">
+              <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/75 to-transparent text-white text-[10px] lg:text-[12.5px] font-bold truncate text-left">
                 {post.member_name}
               </span>
             </button>
@@ -207,7 +207,7 @@ const NewFamilySection = () => {
             type="button"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="px-5 h-10 rounded-full text-[12.5px] font-bold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
+            className="px-5 h-10 lg:h-12 lg:px-7 rounded-full text-[12.5px] lg:text-[15.5px] font-bold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
           >
             {isFetchingNextPage ? t('newsLoadingMore') : t('newsNfLoadMore')}
           </button>
@@ -231,8 +231,8 @@ const NewFamilySection = () => {
 // ── 작은 컴포넌트들 ────────────────────────────────────
 const HeroStat = ({ label, value }: { label: string; value: number }) => (
   <div>
-    <p className="text-[10.5px] font-semibold text-gray-400 dark:text-white/40 mb-0.5">{label}</p>
-    <p className="text-[20px] font-bold leading-none bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent tabular-nums">
+    <p className="text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/40 mb-0.5">{label}</p>
+    <p className="text-[20px] lg:text-[25px] font-bold leading-none bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent tabular-nums">
       {value}
     </p>
   </div>
@@ -287,10 +287,10 @@ const EmptyState = () => {
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <SproutIcon width={30} height={30} className="text-purple-500 dark:text-purple-300" />
     </div>
-    <p className="text-ink-strong text-[14.5px] font-bold mb-1">
+    <p className="text-ink-strong text-[14.5px] lg:text-[18px] font-bold mb-1">
       {t('newsNfEmptyTitle')}
     </p>
-    <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
+    <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] leading-[1.6]">
       {t('newsNfEmptyDesc')}
     </p>
   </div>
@@ -299,7 +299,7 @@ const EmptyState = () => {
 
 const ErrorState = ({ message }: { message: string }) => (
   <div className="rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 py-8 px-6 text-center">
-    <p className="text-red-600 dark:text-red-300 text-[13px] font-semibold">{message}</p>
+    <p className="text-red-600 dark:text-red-300 text-[13px] lg:text-[16px] font-semibold">{message}</p>
   </div>
 )
 

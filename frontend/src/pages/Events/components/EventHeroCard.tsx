@@ -90,11 +90,11 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
 
         <div className="relative">
           <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[12px] font-bold tracking-wide">
+            <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[12px] lg:text-[14.5px] lg:h-8 lg:px-3 font-bold tracking-wide">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               {dday}
             </span>
-            <span className="inline-flex items-center px-2.5 h-7 rounded-full bg-black/20 text-white text-[12px] font-semibold">
+            <span className="inline-flex items-center px-2.5 h-7 rounded-full bg-black/20 text-white text-[12px] lg:text-[14.5px] lg:h-8 lg:px-3 font-semibold">
               <CategoryIcon
                 category={event.category}
                 width={13}
@@ -105,11 +105,11 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
             </span>
           </div>
 
-          <h2 className="text-white text-[22px] font-bold leading-[1.25] tracking-[-0.015em] mb-3 line-clamp-2">
+          <h2 className="text-white text-[22px] lg:text-[30px] font-bold leading-[1.25] tracking-[-0.015em] mb-3 lg:mb-4 line-clamp-2">
             {event.title}
           </h2>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/90 text-[13px] font-medium">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/90 text-[13px] lg:text-[17px] font-medium">
             <span className="inline-flex items-center gap-1">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -131,7 +131,7 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
           </div>
 
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
-            <div className="flex items-center gap-3 text-white/90 text-[12.5px] font-medium">
+            <div className="flex items-center gap-3 text-white/90 text-[12.5px] lg:text-[15.5px] font-medium">
               <span className="inline-flex items-center gap-1">
                 👥 <span>{event.attendance_count}</span>
               </span>
@@ -139,7 +139,7 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
                 👁️ <span>{event.views}</span>
               </span>
             </div>
-            <span className="inline-flex items-center gap-1 text-white text-[13px] font-bold">
+            <span className="inline-flex items-center gap-1 text-white text-[13px] lg:text-[16px] font-bold">
               자세히 보기
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />

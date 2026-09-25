@@ -349,6 +349,22 @@ const PlanDetail = () => {
     />
   )
 
+  // PC(lg+) 본문 맨 위 '오늘 읽을 곳' — 레일의 진행 카드와 같은 일차(current_day)를 크게.
+  // 어르신이 일정 목록에서 오늘 줄을 찾지 않아도 들어오자마자 무엇을 읽을지 보이게 한다
+  const todayPlanDay =
+    subscribed && progress && progress.status !== 'completed'
+      ? plan.days.find((d) => d.day_number === (progress.current_day ?? 1)) ?? null
+      : null
+  const todayHeading = !progress
+    ? ''
+    : !calendar || progress.today_day != null
+      ? '오늘 읽을 곳'
+      : calendarUpcoming
+        ? `${formatPlanDay(plan.anchor_date)} 시작 · 미리 읽기`
+        : progress.catch_up_day
+          ? '밀린 분량'
+          : '다음 읽을 곳'
+
   const reflectionDay =
     openReflection !== null
       ? plan.days.find((d) => d.day_number === openReflection) ?? null
@@ -449,7 +465,7 @@ const PlanDetail = () => {
     <div className={cls}>
       {/* Hero — 옅은 브랜드 그라데이션 바탕. (오른쪽에 커버 사진을 두던 구성은
           플랜마다 배경이 바뀌어 산만하다는 피드백으로 폐기) */}
-      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 min-h-[152px] bg-white dark:bg-card-dark shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6),0_10px_30px_-18px_rgba(16,32,64,0.5)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07),0_10px_30px_-18px_rgba(0,0,0,0.6)]">
+      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 lg:mx-0 lg:mt-0 min-h-[152px] bg-white dark:bg-card-dark shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6),0_10px_30px_-18px_rgba(16,32,64,0.5)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07),0_10px_30px_-18px_rgba(0,0,0,0.6)]">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35" />
 
         <button
@@ -473,44 +489,44 @@ const PlanDetail = () => {
 
         <div className="relative z-10 p-5">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-[10.5px] font-bold text-brand">
+            <span className="inline-flex items-center gap-1 px-2 py-[3px] lg:px-2.5 lg:py-1 rounded-full bg-[var(--brand-soft-strong)] text-[10.5px] lg:text-[13px] font-bold text-brand">
               <BookOpenIcon size={12} />
               {plan.total_days}일 플랜
             </span>
             {calendar && (
-              <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+              <span className="text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/55">
                 · 교회 일정
               </span>
             )}
             {personal ? (
-              <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+              <span className="text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/55">
                 · {owner ? '내가 만든 플랜' : `${plan.owner_name ?? '친구'}님의 플랜`}
               </span>
             ) : (
               plan.level && (
-                <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                <span className="text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/55">
                   · {plan.level}
                 </span>
               )
             )}
             {(plan.participant_count ?? 0) > 0 && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+              <span className="inline-flex items-center gap-1 text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/55">
                 ·<UsersIcon size={12} />
                 {(plan.participant_count ?? 0).toLocaleString()}명
               </span>
             )}
             {(plan.completed_count ?? 0) > 0 && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+              <span className="inline-flex items-center gap-1 text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/55">
                 ·<FlagIcon size={12} />
                 {(plan.completed_count ?? 0).toLocaleString()}명 완주
               </span>
             )}
           </div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] leading-[1.28] text-ink-strong mt-1.5">
+          <h2 className="text-[22px] lg:text-[25px] font-bold tracking-[-0.02em] leading-[1.28] text-ink-strong mt-1.5 lg:mt-2">
             {plan.title}
           </h2>
           {plan.subtitle && (
-            <p className="text-[13px] font-medium text-gray-600 dark:text-white/65 mt-1">
+            <p className="text-[13px] lg:text-[15.5px] font-medium text-gray-600 dark:text-white/65 mt-1">
               {plan.subtitle}
             </p>
           )}
@@ -518,7 +534,7 @@ const PlanDetail = () => {
           {plan.description && (
             <>
               <span className="block h-px my-3.5 bg-gradient-to-r from-gray-200/90 dark:from-white/[0.1] to-transparent" />
-              <p className="text-[13px] leading-[1.75] text-gray-600 dark:text-white/70">
+              <p className="text-[13px] lg:text-[15px] leading-[1.75] text-gray-600 dark:text-white/70">
                 {plan.description}
               </p>
             </>
@@ -528,36 +544,36 @@ const PlanDetail = () => {
 
       {/* 진행 / 시작 */}
       {subscribed && progress ? (
-        <section className="mx-4 mt-3 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4">
+        <section className="mx-4 mt-3 lg:mx-0 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4">
           <div className="flex items-center gap-2">
             {/* 진행률 — 숫자만 있던 자리를 링으로 바꿔 "얼마나 걸어왔는지"가 한눈에 보이게 */}
             <div className="shrink-0 flex flex-col items-center gap-1.5">
               <ProgressRing percent={progress.percent} />
-              <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+              <span className="text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/55">
                 진행률
               </span>
             </div>
             <Divider />
             <div className="flex-1 min-w-0 flex items-center justify-around text-center">
               <div>
-                <p className="text-[19px] font-bold text-brand" style={numStyle}>
+                <p className="text-[19px] lg:text-[24px] font-bold text-brand" style={numStyle}>
                   {progress.completed_days}
-                  <span className="text-[13px] font-semibold text-gray-400 dark:text-white/40">
+                  <span className="text-[13px] lg:text-[15px] font-semibold text-gray-400 dark:text-white/40">
                     {' / '}
                     {progress.total_days}
                   </span>
                 </p>
-                <p className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45 mt-0.5">
+                <p className="text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/55 mt-0.5">
                   일자
                 </p>
               </div>
               <Divider />
               <div>
-                <p className="text-[19px] font-bold text-ink-strong inline-flex items-center gap-1" style={numStyle}>
+                <p className="text-[19px] lg:text-[24px] font-bold text-ink-strong inline-flex items-center gap-1" style={numStyle}>
                   <FlameIcon size={16} className="text-brand" />
                   {progress.streak_count}
                 </p>
-                <p className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45 mt-0.5">
+                <p className="text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/55 mt-0.5">
                   연속일
                 </p>
               </div>
@@ -571,7 +587,7 @@ const PlanDetail = () => {
             />
           </div>
           {(startLabel || endLabel) && (
-            <div className="mt-2 flex items-center justify-between gap-2 text-[10.5px] font-semibold text-gray-400 dark:text-white/40">
+            <div className="mt-2 flex items-center justify-between gap-2 text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55">
               <span>{startLabel ? `시작일 ${startLabel}` : ''}</span>
               <span>{endLabel ? `완료 예정일 ${endLabel}` : ''}</span>
             </div>
@@ -579,7 +595,7 @@ const PlanDetail = () => {
 
           {progress.status === 'completed' ? (
             <div className="mt-4 text-center">
-              <p className="text-[14px] font-bold text-ink-strong inline-flex items-center gap-1.5">
+              <p className="text-[14px] lg:text-[17px] font-bold text-ink-strong inline-flex items-center gap-1.5">
                 <PartyIcon size={16} className="text-brand" />
                 완주를 축하해요!
               </p>
@@ -593,7 +609,7 @@ const PlanDetail = () => {
           ) : (
             <button
               onClick={startTodaysReading}
-              className="relative mt-4 w-full flex items-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[14px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_8px_24px_-8px_var(--brand-glow)] hover:[--seal-drop:0_10px_28px_-6px_var(--brand-glow)] active:scale-[0.99] transition-[box-shadow,transform] duration-150"
+              className="relative mt-4 w-full flex items-center gap-2 px-4 py-3.5 lg:py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[14px] lg:text-[16px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_8px_24px_-8px_var(--brand-glow)] hover:[--seal-drop:0_10px_28px_-6px_var(--brand-glow)] active:scale-[0.99] transition-[box-shadow,transform] duration-150"
             >
               <BookOpenIcon size={17} className="shrink-0 opacity-90" />
               <span className="flex-1 text-center">
@@ -619,22 +635,22 @@ const PlanDetail = () => {
                   const day = plan.days.find((d) => d.day_number === progress.catch_up_day)
                   if (day) handleRead(day)
                 }}
-                className="mt-2 w-full py-2 rounded-xl text-[12.5px] font-semibold text-brand bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors"
+                className="mt-2 w-full py-2 lg:py-3 rounded-xl text-[12.5px] lg:text-[14.5px] font-semibold text-brand bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors"
               >
                 밀린 읽기 {progress.behind_days}일 · {progress.catch_up_day}일차부터 이어 읽기
               </button>
             )}
         </section>
       ) : (
-        <section className="mx-4 mt-3">
+        <section className="mx-4 mt-3 lg:mx-0">
           <button
             onClick={handleSubscribe}
             disabled={subscribe.isPending}
-            className={`relative w-full py-3.5 rounded-2xl bg-gradient-to-r ${grad} text-white text-[15px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)] hover:-translate-y-0.5 transition-all disabled:opacity-50`}
+            className={`relative w-full py-3.5 lg:py-4 rounded-2xl bg-gradient-to-r ${grad} text-white text-[15px] lg:text-[18px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)] hover:-translate-y-0.5 transition-all disabled:opacity-50`}
           >
             {subscribe.isPending ? '시작하는 중...' : '이 플랜 시작하기'}
           </button>
-          <p className="text-center text-[12px] text-gray-400 dark:text-white/45 mt-2">
+          <p className="text-center text-[12px] lg:text-[14px] text-gray-400 dark:text-white/45 mt-2">
             {calendar
               ? '교회 일정에 맞춰 오늘 본문부터 함께 읽어요'
               : (plan.participant_count ?? 0) > 0
@@ -666,9 +682,54 @@ const PlanDetail = () => {
     >
       {renderPlanIntro('lg:hidden')}
 
+      {todayPlanDay && (
+        <section className="hidden lg:block mx-5 mt-5 rounded-3xl border-2 border-blue-300/70 dark:border-blue-400/40 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/50 dark:to-[#1e3a8a]/30 p-6">
+          <p className="inline-flex items-center gap-1.5 text-[15px] font-bold text-brand">
+            <BookOpenIcon size={18} />
+            {todayHeading} · {todayPlanDay.day_number}일차
+            {formatPlanDay(todayPlanDay.scheduled_date) ? ` · ${formatPlanDay(todayPlanDay.scheduled_date)}` : ''}
+          </p>
+          {todayPlanDay.title && (
+            <p className="mt-2 text-[19px] font-bold text-ink-strong tracking-[-0.01em] break-keep">{todayPlanDay.title}</p>
+          )}
+          <p className="mt-1.5 text-[26px] font-extrabold tracking-[-0.02em] leading-[1.35] text-blue-700 dark:text-blue-200 break-keep">
+            {todayPlanDay.passages.map((p) => p.reference).filter(Boolean).join(' · ')}
+          </p>
+          <div className="mt-5 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => handleRead(todayPlanDay)}
+              className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[18px] font-bold inline-flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_var(--brand-glow)] active:scale-[0.99] transition-transform"
+            >
+              <BookOpenIcon size={20} />
+              읽으러 가기
+            </button>
+            <button
+              type="button"
+              onClick={() => handleToggleDay(todayPlanDay)}
+              disabled={completeDay.isPending || uncompleteDay.isPending}
+              aria-pressed={todayPlanDay.completed}
+              className={`h-14 px-6 rounded-2xl text-[17px] font-bold inline-flex items-center justify-center gap-2 border-2 transition-colors disabled:opacity-50 ${
+                todayPlanDay.completed
+                  ? 'border-brand bg-brand text-white'
+                  : 'border-blue-300 dark:border-blue-400/50 bg-white dark:bg-white/[0.06] text-blue-700 dark:text-blue-200 hover:border-brand'
+              }`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {todayPlanDay.completed ? '읽음' : '다 읽었어요'}
+            </button>
+          </div>
+          <p className="mt-3 text-[14px] text-gray-600 dark:text-white/60 break-keep">
+            본문을 끝까지 읽으면 자동으로 읽음 표시가 돼요.
+          </p>
+        </section>
+      )}
+
       {/* 일정 */}
-      <section className="px-4 pt-6 pb-4">
-        <h3 className="text-[13px] font-bold text-gray-500 dark:text-white/55 mb-3 px-1">
+      <section className="px-4 pt-6 pb-4 lg:px-5 lg:pt-7">
+        <h3 className="text-[13px] lg:text-[18px] font-bold text-gray-500 dark:text-white/55 lg:text-ink-strong mb-3 lg:mb-4 px-1">
           전체 일정 ({plan.days.length}일)
         </h3>
         {grouped ? (
@@ -687,7 +748,7 @@ const PlanDetail = () => {
                     onClick={() => toggleGroup(gi)}
                     aria-expanded={open}
                     className={[
-                      'w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl border transition-all text-left',
+                      'w-full flex items-center gap-3 px-3.5 py-3 lg:gap-4 lg:px-5 lg:py-4 rounded-2xl border transition-all text-left',
                       'bg-white/80 dark:bg-card-dark shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
                       isCurrentGroup
                         ? 'border-blue-300/60 dark:border-blue-400/40'
@@ -696,14 +757,14 @@ const PlanDetail = () => {
                   >
                     <span
                       className={[
-                        'shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold',
+                        'shrink-0 w-9 h-9 lg:w-12 lg:h-12 rounded-full flex items-center justify-center text-[12px] lg:text-[16px] font-bold',
                         groupDone
                           ? `bg-gradient-to-br ${grad} text-white`
                           : 'bg-blue-500/10 text-blue-600 dark:text-blue-300',
                       ].join(' ')}
                     >
                       {groupDone ? (
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <svg viewBox="0 0 24 24" className="w-[15px] h-[15px] lg:w-6 lg:h-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       ) : (
@@ -711,24 +772,25 @@ const PlanDetail = () => {
                       )}
                     </span>
                     <span className="flex-1 min-w-0">
-                      <span className="block text-[14px] font-bold tracking-[-0.01em] text-ink-strong">
+                      <span className="block text-[14px] lg:text-[19px] font-bold tracking-[-0.01em] text-ink-strong">
                         {gi + 1}개월차
                       </span>
-                      <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
+                      <span className="block text-[11.5px] lg:text-[15px] text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/60 mt-0.5 lg:mt-1">
                         {first}~{last}일차{subscribed ? ` · ${doneCount}/${groupDays.length} 완료` : ''}
                       </span>
                     </span>
                     <svg
-                      width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor"
                       strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
-                      className={`shrink-0 text-gray-400 dark:text-white/40 transition-transform ${open ? 'rotate-180' : ''}`}
+                      className={`shrink-0 w-4 h-4 lg:w-6 lg:h-6 text-gray-400 dark:text-white/40 transition-transform ${open ? 'rotate-180' : ''}`}
                     >
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </button>
                   {open && (
-                    // lg+: 펼친 일차 카드는 한 줄짜리라 2열로 훑는 편이 빠르다
-                    <div className="space-y-2.5 mt-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0 lg:items-start">
+                    // lg+: 펼친 일차 카드는 2열로 훑는 편이 빠르다 — 칸 수는 폭으로 정해
+                    // 글씨를 키우면(PC 글씨 크기 zoom) 한 열로 풀려 본문 범위가 잘리지 않는다
+                    <div className="space-y-2.5 mt-2.5 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:gap-3 lg:space-y-0 lg:items-start">
                       {groupDays.map(renderDay)}
                     </div>
                   )}
@@ -737,7 +799,7 @@ const PlanDetail = () => {
             })}
           </div>
         ) : (
-          <div className="space-y-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0 lg:items-start">
+          <div className="space-y-2.5 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:gap-3 lg:space-y-0 lg:items-start">
             {plan.days.map(renderDay)}
           </div>
         )}

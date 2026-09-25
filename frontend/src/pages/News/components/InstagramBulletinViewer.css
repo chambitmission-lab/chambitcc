@@ -327,6 +327,112 @@
   font-size: 1rem;
 }
 
+/* 넘기기 버튼 글자 — PC 에서만 보인다 */
+.nav-label {
+  display: none;
+}
+
+/* PC(lg+) — 어르신이 모니터로 보는 자리: 닫기 48px·넘기기 버튼·쪽 표시·확대 버튼을 크게.
+   이 뷰어는 /news 라우트 최상위라 PC 글씨 크기 zoom 도 함께 받는다 */
+@media (min-width: 1024px) {
+  .instagram-header {
+    padding: 1.25rem 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .close-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .close-button .material-icons-outlined {
+    font-size: 30px;
+  }
+
+  .header-info h2 {
+    font-size: 1.4rem;
+  }
+
+  .header-info p {
+    font-size: 1.05rem;
+    margin-top: 0.2rem;
+  }
+
+  .progress-bars {
+    top: 92px;
+    left: 1.5rem;
+    right: 1.5rem;
+  }
+
+  .progress-bar-container {
+    height: 4px;
+  }
+
+  .nav-button {
+    width: auto;
+    height: 72px;
+    padding: 0 1.25rem 0 0.75rem;
+    border-radius: 36px;
+    gap: 0.25rem;
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  .nav-button.next {
+    padding: 0 0.75rem 0 1.25rem;
+    flex-direction: row-reverse;
+  }
+
+  .nav-button.prev {
+    left: 1.5rem;
+  }
+
+  .nav-button.next {
+    right: 1.5rem;
+  }
+
+  .nav-button:hover {
+    background: rgba(0, 0, 0, 0.75);
+    transform: translateY(-50%);
+  }
+
+  .nav-button .material-icons-outlined {
+    font-size: 44px;
+  }
+
+  .nav-label {
+    display: inline;
+    color: white;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .page-indicator {
+    font-size: 1.2rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 999px;
+  }
+
+  .zoom-controls {
+    right: 1.5rem;
+    bottom: 6rem;
+    padding: 0.6rem;
+    border-radius: 32px;
+  }
+
+  .zoom-controls button {
+    width: 52px;
+    height: 52px;
+  }
+
+  .zoom-controls button .material-icons-outlined {
+    font-size: 28px;
+  }
+
+  .zoom-level {
+    font-size: 0.95rem;
+  }
+}
+
 /* 반응형 */
 @media (max-width: 768px) {
   .instagram-header {

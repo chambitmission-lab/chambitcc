@@ -100,18 +100,18 @@ export const AttendanceSection = ({
   }
 
   return (
-    <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4">
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <h2 className="text-ink-strong text-[15px] font-bold tracking-[-0.01em]">
+    <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4 lg:p-6">
+      <div className="flex items-center justify-between gap-2 mb-3 lg:mb-4">
+        <h2 className="text-ink-strong text-[15px] lg:text-[20px] font-bold tracking-[-0.01em]">
           ✋ {t.attend}
         </h2>
         {rsvpDeadline && isClosed && (
-          <span className="inline-flex items-center px-2 h-5 rounded-full bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-white/55 text-[10.5px] font-bold shrink-0">
+          <span className="inline-flex items-center px-2 h-5 rounded-full bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-white/55 text-[10.5px] lg:text-[14px] lg:h-7 lg:px-3 font-bold shrink-0">
             {t.rsvpClosedBadge}
           </span>
         )}
         {rsvpDeadline && !isClosed && showRemaining && (
-          <span className="inline-flex items-center px-2 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10.5px] font-bold shrink-0">
+          <span className="inline-flex items-center px-2 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10.5px] lg:text-[14px] lg:h-7 lg:px-3 font-bold shrink-0">
             {t.rsvpRemaining.replace('{time}', remaining as string)}
           </span>
         )}
@@ -119,7 +119,7 @@ export const AttendanceSection = ({
 
       {rsvpDeadline && (
         <p
-          className={`text-[12.5px] leading-[1.55] mb-3 ${
+          className={`text-[12.5px] lg:text-[16px] leading-[1.55] mb-3 lg:mb-4 ${
             isClosed ? 'text-rose-500 dark:text-rose-400' : 'text-gray-500 dark:text-white/55'
           }`}
         >
@@ -127,7 +127,7 @@ export const AttendanceSection = ({
             <>
               {t.rsvpClosed}
               <br />
-              <span className="text-[11.5px] text-gray-400 dark:text-white/45">
+              <span className="text-[11.5px] lg:text-[14.5px] text-gray-400 dark:text-white/45">
                 {userAttendanceStatus ? t.rsvpClosedForResponder : t.rsvpClosedForNewcomer}
               </span>
             </>
@@ -141,11 +141,11 @@ export const AttendanceSection = ({
 
       {userAttendanceStatus ? (
         <div className="flex flex-col gap-2.5">
-          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
-            <span className="text-[20px]" aria-hidden="true">
+          <div className="flex items-center gap-2.5 p-3 lg:p-4 lg:gap-3 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
+            <span className="text-[20px] lg:text-[28px]" aria-hidden="true">
               {STATUS_OPTIONS.find(o => o.value === userAttendanceStatus)?.emoji ?? '✓'}
             </span>
-            <p className="text-ink-strong text-[13.5px] font-semibold">
+            <p className="text-ink-strong text-[13.5px] lg:text-[18px] font-semibold">
               {t.currentStatus}:{' '}
               <span className="text-brand font-bold">
                 {t.attendanceStatus[userAttendanceStatus]}
@@ -160,7 +160,7 @@ export const AttendanceSection = ({
                 key={o.value}
                 type="button"
                 onClick={() => onAttend(o.value)}
-                className={`inline-flex items-center justify-center gap-1.5 h-10 rounded-xl border text-[12.5px] font-bold transition-colors ${o.idle}`}
+                className={`inline-flex items-center justify-center gap-1.5 h-10 lg:h-14 rounded-xl border text-[12.5px] lg:text-[16.5px] font-bold transition-colors ${o.idle}`}
               >
                 <span aria-hidden="true">{o.emoji}</span>
                 {t.changeTo.replace('{status}', t.attendanceStatus[o.value])}
@@ -171,13 +171,13 @@ export const AttendanceSection = ({
           <button
             type="button"
             onClick={handleCancel}
-            className="h-9 rounded-xl text-gray-400 dark:text-white/45 text-[12.5px] font-semibold hover:bg-gray-50 dark:hover:bg-white/[0.04] hover:text-gray-600 dark:hover:text-white/70 transition-colors"
+            className="h-9 lg:h-12 rounded-xl text-gray-400 dark:text-white/45 lg:text-gray-500 lg:dark:text-white/60 text-[12.5px] lg:text-[15.5px] font-semibold hover:bg-gray-50 dark:hover:bg-white/[0.04] hover:text-gray-600 dark:hover:text-white/70 transition-colors"
           >
             {t.cancelAttendance}
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 lg:gap-3">
           {STATUS_OPTIONS.map(o => (
             <button
               key={o.value}
@@ -185,9 +185,9 @@ export const AttendanceSection = ({
               onClick={() => onAttend(o.value)}
               disabled={isClosed}
               aria-disabled={isClosed}
-              className={`flex flex-col items-center gap-1.5 py-3.5 rounded-xl border text-[13px] font-bold transition-colors active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent ${o.idle}`}
+              className={`flex flex-col items-center justify-center gap-1.5 py-3.5 lg:py-0 lg:h-[92px] lg:gap-2 rounded-xl border text-[13px] lg:text-[18px] font-bold transition-colors active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent ${o.idle}`}
             >
-              <span className="text-[20px]" aria-hidden="true">{o.emoji}</span>
+              <span className="text-[20px] lg:text-[30px]" aria-hidden="true">{o.emoji}</span>
               {t.attendanceStatus[o.value]}
             </button>
           ))}

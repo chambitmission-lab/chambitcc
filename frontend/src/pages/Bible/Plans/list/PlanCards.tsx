@@ -5,7 +5,7 @@ import { accentGradient, gradientTextStyle, planHashtags } from '../planVisuals'
 import { FlameIcon, PartyIcon, PlanGlyph, PeopleIcon as UsersIcon } from '../PlanIcons'
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-5 px-0.5">
+  <h3 className="text-[15px] lg:text-[20px] lg:mb-6 font-extrabold text-ink-strong tracking-[-0.02em] mb-5 px-0.5">
     {children}
   </h3>
 )
@@ -19,7 +19,7 @@ const Hashtags = ({ plan }: { plan: PlanSummary }) => {
       {tags.map((t) => (
         <span
           key={t}
-          className="text-[11px] font-medium tracking-[-0.02em] text-brand"
+          className="text-[11px] lg:text-[13.5px] font-medium tracking-[-0.02em] text-brand"
         >
           #{t}
         </span>
@@ -85,7 +85,7 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
     <div className="flex-1 px-3.5 pt-3.5 pb-[18px] flex items-center gap-1.5">
       <div className="flex-1 min-w-0">
         {/* 제목은 1~2줄로 갈리므로 최소 2줄 높이를 확보해 해시태그 baseline 을 맞춘다 */}
-        <h4 className="min-h-[2.5em] text-[14px] font-bold text-ink-strong tracking-[-0.015em] leading-snug line-clamp-2">
+        <h4 className="min-h-[2.5em] text-[14px] lg:text-[18px] font-bold text-ink-strong tracking-[-0.015em] leading-snug line-clamp-2">
           {plan.title}
         </h4>
         <div className="mt-1">
@@ -93,7 +93,7 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
         </div>
         {/* 사회적 증거 — 몇 명이 함께 읽는지 보여 시작 문턱을 낮춘다 */}
         {(plan.participant_count ?? 0) > 0 && (
-          <p className="mt-1 text-[11px] font-medium tracking-[-0.01em] text-gray-400 dark:text-white/45">
+          <p className="mt-1 text-[11px] lg:text-[14px] font-medium tracking-[-0.01em] text-gray-400 dark:text-white/45">
             <UsersIcon size={12} className="inline-block -mt-px mr-1 align-middle" />
             {(plan.participant_count ?? 0).toLocaleString()}명 참여 중
           </p>
@@ -185,12 +185,12 @@ const FeaturedPlanCard = ({
             <PlanVisual plan={plan} size="thumb" />
           </span>
           <div className="flex-1 min-w-0">
-            <h4 className="text-[16px] font-bold text-ink-strong tracking-[-0.02em] leading-snug truncate">
+            <h4 className="text-[16px] lg:text-[20px] font-bold text-ink-strong tracking-[-0.02em] leading-snug truncate">
               {plan.title}
             </h4>
-            <p className="mt-0.5 flex items-center gap-1.5 flex-wrap text-[12px] tracking-[-0.01em] text-gray-500 dark:text-white/50">
+            <p className="mt-0.5 flex items-center gap-1.5 flex-wrap text-[12px] lg:text-[15px] tracking-[-0.01em] text-gray-500 dark:text-white/50">
               {plan.is_personal && (
-                <span className="inline-flex items-center px-1.5 py-[2px] rounded-md bg-[var(--brand-soft-strong)] text-brand text-[10.5px] font-bold leading-none">
+                <span className="inline-flex items-center px-1.5 py-[2px] rounded-md bg-[var(--brand-soft-strong)] text-brand text-[10.5px] lg:text-[13px] lg:px-2 lg:py-1 font-bold leading-none">
                   {plan.is_owner ? '내 플랜' : `${plan.owner_name ?? '친구'}님의 플랜`}
                   {(plan.participant_count ?? 0) > 1 && ` · ${plan.participant_count}명`}
                 </span>
@@ -206,17 +206,17 @@ const FeaturedPlanCard = ({
           </div>
           {subscribed && progress && (
             completed ? (
-              <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] font-extrabold leading-none">
+              <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] lg:text-[14.5px] font-extrabold leading-none">
                 <CheckMark size={11} />
                 완주
               </span>
             ) : (
               <span
-                className="shrink-0 text-[24px] font-extrabold leading-none tracking-[-0.03em]"
+                className="shrink-0 text-[24px] lg:text-[30px] font-extrabold leading-none tracking-[-0.03em]"
                 style={gradientTextStyle}
               >
                 {percent}
-                <span className="text-[13px] font-bold ml-px">%</span>
+                <span className="text-[13px] lg:text-[16px] font-bold ml-px">%</span>
               </span>
             )
           )}
@@ -237,7 +237,7 @@ const FeaturedPlanCard = ({
                 style={{ width: `${percent}%` }}
               />
             </div>
-            <div className="mt-1.5 flex items-center justify-between gap-2 text-[11.5px] tracking-[-0.01em] tabular-nums text-gray-500 dark:text-white/50">
+            <div className="mt-1.5 flex items-center justify-between gap-2 text-[11.5px] lg:text-[14px] tracking-[-0.01em] tabular-nums text-gray-500 dark:text-white/50">
               {completed ? (
                 <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300 font-semibold">
                   <PartyIcon size={12} />
@@ -264,7 +264,7 @@ const FeaturedPlanCard = ({
         {subscribed && !completed && todayDay != null && (
           doneToday ? (
             <div className="mt-3.5 rounded-xl bg-emerald-500/[0.07] dark:bg-emerald-400/[0.08] px-3.5 py-3">
-              <p className="inline-flex items-center gap-1.5 text-[12.5px] font-bold tracking-[-0.02em] text-emerald-600 dark:text-emerald-300">
+              <p className="inline-flex items-center gap-1.5 text-[12.5px] lg:text-[15.5px] font-bold tracking-[-0.02em] text-emerald-600 dark:text-emerald-300">
                 <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white">
                   <CheckMark size={9} />
                 </span>
@@ -274,7 +274,7 @@ const FeaturedPlanCard = ({
                 )}
               </p>
               <div className="mt-1.5 flex items-center justify-between gap-3">
-                <p className="min-w-0 text-[12.5px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
+                <p className="min-w-0 text-[12.5px] lg:text-[15.5px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
                   {plan.schedule_mode === 'calendar' ? (
                     // 달력 고정 — 오늘 본문이 곧 위 완료 일차라 '다음' 대신 밀린 읽기/내일 안내
                     (progress?.behind_days ?? 0) > 0
@@ -289,7 +289,7 @@ const FeaturedPlanCard = ({
                     </>
                   )}
                 </p>
-                <span className="shrink-0 inline-flex items-center gap-0.5 text-[12px] font-bold tracking-[-0.02em] text-brand transition-transform group-hover:translate-x-0.5">
+                <span className="shrink-0 inline-flex items-center gap-0.5 text-[12px] lg:text-[15px] font-bold tracking-[-0.02em] text-brand transition-transform group-hover:translate-x-0.5">
                   더 읽기
                   <Chevron size={11} />
                 </span>
@@ -297,21 +297,21 @@ const FeaturedPlanCard = ({
             </div>
           ) : (
             <div className="mt-3.5 rounded-xl bg-[var(--brand-soft)] px-3.5 py-3">
-              <p className="text-[11px] font-bold tracking-[-0.01em] text-brand">
+              <p className="text-[11px] lg:text-[14px] font-bold tracking-[-0.01em] text-brand">
                 오늘 읽을 말씀 · {todayDay}일차
               </p>
               <div className="mt-1 flex items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[17px] font-extrabold tracking-[-0.03em] leading-tight text-ink-strong line-clamp-2">
+                  <p className="text-[17px] lg:text-[22px] font-extrabold tracking-[-0.03em] leading-tight text-ink-strong line-clamp-2">
                     {headline}
                   </p>
                   {subline && (
-                    <p className="mt-0.5 text-[12px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
+                    <p className="mt-0.5 text-[12px] lg:text-[15px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
                       {subline}
                     </p>
                   )}
                 </div>
-                <span className="relative seal-chip shrink-0 inline-flex items-center gap-1 pl-3.5 pr-2.5 py-2 rounded-full bg-brand text-white text-[12.5px] font-bold tracking-[-0.02em] leading-none transition-transform group-hover:scale-[1.04]">
+                <span className="relative seal-chip shrink-0 inline-flex items-center gap-1 pl-3.5 pr-2.5 py-2 rounded-full bg-brand text-white text-[12.5px] lg:text-[15.5px] lg:py-2.5 font-bold tracking-[-0.02em] leading-none transition-transform group-hover:scale-[1.04]">
                   읽기
                   <Chevron size={12} />
                 </span>

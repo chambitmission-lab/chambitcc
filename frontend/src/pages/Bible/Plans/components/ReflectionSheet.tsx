@@ -71,7 +71,7 @@ const ReflectionSheet = ({
       role="presentation"
     >
       <div
-        className="relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col"
+        className="relative w-full sm:max-w-[560px] lg:max-w-[680px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col"
         style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.92 / var(--az, 1))' }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -87,7 +87,7 @@ const ReflectionSheet = ({
             }`}
           >
             <span className="material-icons-round text-[17px] text-brand">auto_awesome</span>
-            <p className="text-[14px] font-bold text-ink-strong truncate">
+            <p className="text-[14px] lg:text-[16px] font-bold text-ink-strong truncate">
               {dayNumber}일차 · {reference}
             </p>
           </div>
@@ -97,7 +97,7 @@ const ReflectionSheet = ({
             aria-label="닫기"
             className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center text-ink-muted hover:bg-[var(--surface-inset)] transition-colors"
           >
-            <span className="material-icons-round text-[20px]">close</span>
+            <span className="material-icons-round text-[20px] lg:text-[26px]">close</span>
           </button>
         </div>
 
@@ -106,21 +106,21 @@ const ReflectionSheet = ({
           className="flex-1 overflow-y-auto overscroll-contain px-6 pb-6"
         >
           {/* 표제 */}
-          <p className="flex items-center gap-1 text-[11.5px] font-bold tracking-[0.14em] text-brand">
+          <p className="flex items-center gap-1 text-[11.5px] lg:text-[14px] font-bold tracking-[0.14em] text-brand">
             <span className="material-icons-round text-[14px]">auto_awesome</span>
             AI 묵상 · {dayNumber}일차
           </p>
-          <h2 className="mt-1 text-[25px] font-bold tracking-[-0.03em] leading-[1.25] text-ink-strong">
+          <h2 className="mt-1 text-[25px] lg:text-[30px] font-bold tracking-[-0.03em] leading-[1.25] text-ink-strong">
             {reference}
           </h2>
           {dayTitle && dayTitle !== reference && (
-            <p className="mt-1 text-[14px] text-ink-muted">{dayTitle}</p>
+            <p className="mt-1 text-[14px] lg:text-[16.5px] text-ink-muted">{dayTitle}</p>
           )}
 
           {state?.loading ? (
             state.streamText ? (
               // SSE 스트리밍 중 — 도착한 본문을 실시간 표시 (타자기 효과)
-              <p className="mt-5 text-[15px] leading-[1.85] text-ink whitespace-pre-wrap break-keep">
+              <p className="mt-5 text-[15px] lg:text-[18px] leading-[1.85] text-ink whitespace-pre-wrap break-keep">
                 {normalizeReflection(state.streamText)}
                 <span
                   className="inline-block w-[2px] h-[1em] ml-0.5 align-[-0.15em] bg-brand animate-pulse"
@@ -136,33 +136,33 @@ const ReflectionSheet = ({
                     style={{ width: `${w}%` }}
                   />
                 ))}
-                <p className="pt-1 text-[12.5px] text-ink-muted">묵상을 준비하고 있어요…</p>
+                <p className="pt-1 text-[12.5px] lg:text-[15px] text-ink-muted">묵상을 준비하고 있어요…</p>
               </div>
             )
           ) : state?.error ? (
             authError ? (
               <div className="mt-6 rounded-2xl bg-[var(--surface-inset)] px-4 py-4">
-                <p className="text-[14px] font-semibold text-ink">로그인하면 AI 묵상을 읽을 수 있어요</p>
-                <p className="mt-1 text-[12.5px] text-ink-muted">
+                <p className="text-[14px] lg:text-[16.5px] font-semibold text-ink">로그인하면 AI 묵상을 읽을 수 있어요</p>
+                <p className="mt-1 text-[12.5px] lg:text-[15px] text-ink-muted">
                   로그인 후 다시 열어 주세요.
                 </p>
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-[var(--brand)] px-4 py-2 text-[13px] font-bold text-white"
+                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-[var(--brand)] px-4 py-2 text-[13px] lg:text-[15.5px] lg:px-5 lg:py-2.5 font-bold text-white"
                 >
                   <span className="material-icons-round text-[16px]" aria-hidden>login</span>
                   로그인하기
                 </button>
               </div>
             ) : (
-              <p className="mt-6 text-[13.5px] text-red-500 dark:text-red-300">{state.error}</p>
+              <p className="mt-6 text-[13.5px] lg:text-[16px] text-red-500 dark:text-red-300">{state.error}</p>
             )
           ) : parsed ? (
             <>
               {/* 리드 — 본문보다 반 단계 큰 활자로 오늘 본문을 소개 */}
               {parsed.lede && (
-                <p className="mt-4 text-[16px] leading-[1.75] text-ink break-keep">
+                <p className="mt-4 text-[16px] lg:text-[19px] leading-[1.75] text-ink break-keep">
                   {parsed.lede}
                 </p>
               )}
@@ -170,14 +170,14 @@ const ReflectionSheet = ({
               {/* 오늘의 흐름 — 리드에서 장별 주제가 잡혔을 때만 (개관 '책의 흐름' 축소판) */}
               {parsed.flow.length > 0 && (
                 <section className="mt-5 rounded-2xl bg-[var(--surface-inset)] px-4 py-3.5">
-                  <p className="text-[12px] font-bold text-ink-muted mb-2.5">오늘의 흐름</p>
+                  <p className="text-[12px] lg:text-[14.5px] font-bold text-ink-muted mb-2.5">오늘의 흐름</p>
                   <ul className="space-y-2">
                     {parsed.flow.map((f, i) => (
                       <li key={i} className="flex items-baseline gap-2.5">
-                        <span className="shrink-0 w-[58px] text-[12.5px] font-bold tabular-nums text-brand">
+                        <span className="shrink-0 w-[58px] text-[12.5px] lg:text-[15px] lg:w-[72px] font-bold tabular-nums text-brand">
                           {f.chapter}
                         </span>
-                        <span className="min-w-0 flex-1 text-[14px] leading-snug text-ink">
+                        <span className="min-w-0 flex-1 text-[14px] lg:text-[17px] leading-snug text-ink">
                           {f.label}
                         </span>
                       </li>
@@ -191,7 +191,7 @@ const ReflectionSheet = ({
               {/* 본문 — 색 없이 행간·문단 여백으로만 읽힘을 만든다. 따옴표 구절만 세미볼드 */}
               <div className="space-y-4">
                 {parsed.body.map((paragraph, i) => (
-                  <p key={i} className="text-[15px] leading-[1.85] text-ink break-keep">
+                  <p key={i} className="text-[15px] lg:text-[18px] leading-[1.85] text-ink break-keep">
                     {splitQuoted(paragraph).map((part, j) =>
                       j % 2 === 1 ? (
                         <strong key={j} className="font-semibold text-ink-strong">
@@ -208,18 +208,18 @@ const ReflectionSheet = ({
               {/* 오늘의 한 걸음 — 마지막 적용 문단을 따로 세워 "읽고 끝"이 되지 않게 */}
               {parsed.step && (
                 <section className="mt-6 rounded-2xl px-4 py-3.5 border-l-[3px] border-l-brand bg-[var(--brand-soft)]">
-                  <p className="flex items-center gap-1.5 text-[12px] font-bold mb-1.5 text-brand">
+                  <p className="flex items-center gap-1.5 text-[12px] lg:text-[14.5px] font-bold mb-1.5 text-brand">
                     <span className="material-icons-round text-[16px]">directions_walk</span>
                     오늘의 한 걸음
                   </p>
-                  <p className="text-[14.5px] leading-[1.8] text-ink break-keep">{parsed.step}</p>
+                  <p className="text-[14.5px] lg:text-[17.5px] leading-[1.8] text-ink break-keep">{parsed.step}</p>
                 </section>
               )}
 
               {/* 묵상 질문 — 나열 대신 카드로 한 개씩, 잠시 멈추게 */}
               {data && data.questions.length > 0 && (
                 <section className="mt-6">
-                  <p className="text-[12.5px] font-bold text-ink-strong mb-2.5">
+                  <p className="text-[12.5px] lg:text-[15px] font-bold text-ink-strong mb-2.5">
                     잠시 멈추고, 나에게 묻기
                   </p>
                   <ul className="space-y-2">
@@ -228,10 +228,10 @@ const ReflectionSheet = ({
                         key={i}
                         className="flex items-start gap-3 rounded-2xl bg-[var(--surface-inset)] px-4 py-3"
                       >
-                        <span className="shrink-0 w-6 h-6 rounded-full bg-[var(--brand-soft)] text-brand text-[11.5px] font-bold flex items-center justify-center mt-[1px]">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-[var(--brand-soft)] text-brand text-[11.5px] lg:text-[14px] lg:w-8 lg:h-8 font-bold flex items-center justify-center mt-[1px]">
                           {i + 1}
                         </span>
-                        <span className="min-w-0 flex-1 text-[14px] leading-[1.65] text-ink break-keep">
+                        <span className="min-w-0 flex-1 text-[14px] lg:text-[17px] leading-[1.65] text-ink break-keep">
                           {normalizeReflection(q)}
                         </span>
                       </li>
@@ -242,13 +242,13 @@ const ReflectionSheet = ({
 
               {admin && (
                 <div className="mt-7 pt-3.5 flex items-center gap-2 border-t border-[var(--card-border)]">
-                  <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand tracking-[0.06em]">
+                  <span className="text-[9.5px] lg:text-[12px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand tracking-[0.06em]">
                     ADMIN
                   </span>
                   <button
                     type="button"
                     onClick={onEdit}
-                    className="text-[12px] font-semibold text-brand hover:underline"
+                    className="text-[12px] lg:text-[14.5px] font-semibold text-brand hover:underline"
                   >
                     수정
                   </button>
@@ -257,7 +257,7 @@ const ReflectionSheet = ({
                     type="button"
                     onClick={onRegenerate}
                     disabled={regenerating}
-                    className="text-[12px] font-semibold text-ink-muted hover:text-brand disabled:opacity-50"
+                    className="text-[12px] lg:text-[14.5px] font-semibold text-ink-muted hover:text-brand disabled:opacity-50"
                   >
                     {regenerating ? '생성 중…' : 'AI로 다시 생성'}
                   </button>
@@ -272,7 +272,7 @@ const ReflectionSheet = ({
           <button
             type="button"
             onClick={onRead}
-            className="w-full h-12 rounded-2xl bg-brand text-white text-[15px] font-bold active:scale-[0.99] transition-transform"
+            className="w-full h-12 lg:h-14 rounded-2xl bg-brand text-white text-[15px] lg:text-[18px] font-bold active:scale-[0.99] transition-transform"
           >
             {reference ? `${reference} 읽기` : '본문 읽기'}
           </button>

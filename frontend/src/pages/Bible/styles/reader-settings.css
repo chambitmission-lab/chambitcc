@@ -245,3 +245,63 @@
   background: var(--brand-soft);
   color: #e7e7ec;
 }
+
+/* ── PC(lg+) 노안 패스 — 설정을 찾아 누르는 단계부터 어렵지 않게 ── */
+@media (min-width: 1024px) {
+  .reader-settings__btn {
+    width: 46px;
+    height: 46px;
+  }
+
+  .reader-settings__aa {
+    font-size: 1.125rem;
+  }
+
+  .reader-settings__panel {
+    width: 340px;
+    padding: 18px;
+    gap: 16px;
+  }
+
+  .reader-settings__label {
+    font-size: 15px;
+  }
+
+  .reader-settings__seg button {
+    padding: 8px 14px;
+    font-size: 15px;
+  }
+
+  .reader-settings__row--stack .reader-settings__seg button {
+    padding: 8px 4px;
+  }
+
+  .reader-settings__chips button {
+    padding: 8px 4px;
+    font-size: 14.5px;
+  }
+
+  .reader-settings__stepper {
+    gap: 10px;
+  }
+
+  .reader-settings__stepper button {
+    width: 48px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+
+  .reader-settings__dots span {
+    width: 7px;
+    height: 7px;
+  }
+
+  .reader-settings__hint {
+    font-size: 13.5px;
+  }
+
+  .reader-settings__preview {
+    font-size: 15px;
+  }
+}

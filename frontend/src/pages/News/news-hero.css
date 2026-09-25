@@ -84,3 +84,13 @@
     background-position: right 27.1%;
   }
 }
+
+/* 지난 공지 본문 — PC(lg+) 읽기 칼럼: 어르신 기준 18px·줄간 1.8·줄 폭 제한.
+   NoticeContent(.nm)의 기본 14.5px 을 이 화면에서만 키운다(홈 팝업 공지 등 다른 곳은 그대로) */
+@media (min-width: 1024px) {
+  .nm.news-notice-body {
+    font-size: 18px;
+    line-height: 1.8;
+    max-width: 42em;
+  }
+}

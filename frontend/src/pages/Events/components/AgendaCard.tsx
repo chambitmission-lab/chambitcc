@@ -47,17 +47,17 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
           }}
         />
 
-        <div className="relative pl-4 pr-4 py-3.5">
+        <div className="relative pl-4 pr-4 py-3.5 lg:pl-6 lg:pr-5 lg:py-5">
           {/* 상단: 날짜 + D-Day */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-gray-500 dark:text-white/55 text-[11.5px] font-semibold tracking-wide">
+          <div className="flex items-center gap-2 mb-1.5 lg:mb-2">
+            <span className="text-gray-500 dark:text-white/55 text-[11.5px] lg:text-[15.5px] lg:text-gray-600 lg:dark:text-white/70 font-semibold tracking-wide">
               {dateLabel}
             </span>
-            <span className="text-gray-300 dark:text-white/30 text-[11px]">·</span>
-            <span className="text-gray-600 dark:text-white/75 text-[11.5px] font-semibold">{time}</span>
+            <span className="text-gray-300 dark:text-white/30 text-[11px] lg:text-[15px]">·</span>
+            <span className="text-gray-600 dark:text-white/75 text-[11.5px] lg:text-[16.5px] lg:text-brand font-semibold lg:font-bold">{time}</span>
             {showDDay && (
               <span
-                className={`ml-auto inline-flex items-center px-2 h-5 rounded-full ${v.chipBg} ${v.chipText} text-[10.5px] font-bold tracking-wide`}
+                className={`ml-auto inline-flex items-center px-2 h-5 lg:px-2.5 lg:h-7 rounded-full ${v.chipBg} ${v.chipText} text-[10.5px] lg:text-[13.5px] font-bold tracking-wide`}
               >
                 {dday}
               </span>
@@ -65,7 +65,7 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
           </div>
 
           {/* 제목 */}
-          <h3 className="text-ink-strong text-[15.5px] font-bold leading-[1.35] tracking-[-0.012em] mb-2 line-clamp-2">
+          <h3 className="text-ink-strong text-[15.5px] lg:text-[20px] font-bold leading-[1.35] tracking-[-0.012em] mb-2 lg:mb-3 line-clamp-2">
             <CategoryIcon
               category={event.category}
               width={14}
@@ -76,14 +76,14 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
           </h3>
 
           {/* 메타 */}
-          <div className="flex items-center gap-3 text-gray-500 dark:text-white/55 text-[12px] font-medium">
+          <div className="flex items-center gap-3 text-gray-500 dark:text-white/55 text-[12px] lg:text-[15.5px] lg:text-gray-600 lg:dark:text-white/70 font-medium">
             <span
-              className={`inline-flex items-center px-1.5 h-5 rounded-md ${v.chipBg} ${v.chipText} text-[10.5px] font-bold`}
+              className={`inline-flex items-center px-1.5 h-5 lg:px-2 lg:h-7 rounded-md ${v.chipBg} ${v.chipText} text-[10.5px] lg:text-[13.5px] font-bold`}
             >
               {t.categories[event.category]}
             </span>
             {rsvpClosed && (
-              <span className="inline-flex items-center px-1.5 h-5 rounded-md bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-white/55 text-[10.5px] font-bold shrink-0">
+              <span className="inline-flex items-center px-1.5 h-5 lg:px-2 lg:h-7 rounded-md bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-white/55 text-[10.5px] lg:text-[13.5px] font-bold shrink-0">
                 {t.rsvpClosedBadge}
               </span>
             )}

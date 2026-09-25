@@ -784,3 +784,32 @@
 .focus-mode-btn .material-icons-round {
   font-size: 1.25rem;
 }
+
+/* ── PC(lg+) 노안 패스 — 장 이동 줄 ── */
+@media (min-width: 1024px) {
+  .nav-button {
+    width: 52px;
+    height: 52px;
+  }
+
+  .nav-button .material-icons-round {
+    font-size: 1.875rem;
+  }
+
+  .chapter-trigger {
+    max-width: 260px;
+  }
+
+  .chapter-trigger__num {
+    font-size: 1.25rem;
+  }
+
+  .chapter-trigger__total {
+    font-size: 0.9375rem;
+  }
+
+  .audio-settings__value,
+  .audio-settings__chip {
+    font-size: 0.9375rem;
+  }
+}

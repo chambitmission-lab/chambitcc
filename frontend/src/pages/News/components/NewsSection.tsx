@@ -77,20 +77,20 @@ const NewsSection = () => {
   }
 
   return (
-    <div className="px-4 pt-3 pb-8">
+    <div className="px-4 pt-3 pb-8 lg:px-6 lg:pt-4">
       {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--news).
           그림은 오른쪽 끝에 높이맞춤으로 서고, 왼쪽·아래(검색창 자리)는 알파로 카드에 녹는다 */}
-      <div className="nh-hero nh-hero--news relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
+      <div className="nh-hero nh-hero--news relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4 lg:p-7 lg:mb-5">
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-11 h-11 rounded-2xl bg-brand text-white flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)]">
               <MegaphoneIcon width={23} height={23} />
             </div>
             <div>
-              <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
+              <p className="text-brand text-[10.5px] lg:text-[12.5px] font-bold tracking-[0.12em] uppercase">
                 CHURCH NEWS
               </p>
-              <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
+              <h2 className="text-ink-strong text-[17px] lg:text-[22px] font-bold tracking-[-0.015em]">
                 {t('newsBoardTitle')}
               </h2>
             </div>
@@ -110,7 +110,7 @@ const NewsSection = () => {
           </div>
 
           {/* 글줄이 삽화 위로 넘어가지 않게 폭을 잡는다 — 삽화 위치가 바뀌면 이 값도 다시 볼 것 */}
-          <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
+          <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] lg:text-gray-600 leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
             {t('newsBoardIntro')}
           </p>
 
@@ -127,7 +127,7 @@ const NewsSection = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder={t('newsSearchPlaceholder')}
-              className="w-full pl-10 pr-3 h-11 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] backdrop-blur-sm text-[13.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
+              className="w-full pl-10 pr-3 h-11 lg:h-[52px] lg:pl-11 lg:text-[16.5px] rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] backdrop-blur-sm text-[13.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
             />
           </div>
         </div>
@@ -168,13 +168,14 @@ const NewsSection = () => {
         />
       ) : (
         <>
-          <p className="px-1 pb-2 text-[11.5px] text-gray-500 dark:text-white/50">
+          <p className="px-1 pb-2 text-[11.5px] lg:text-[15px] lg:pb-3 text-gray-500 dark:text-white/50">
             {t('newsCountPrefix')}
             <span className="font-bold text-ink-strong">{total}</span>
             {t('newsCountSuffix')}
           </p>
-          {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 */}
-          <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
+          {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 — 칸 수는 폭으로 정해
+              PC 글씨 크기(zoom)로 좁아지면 한 열로 풀린다(제목이 두 줄 안에 들어오게) */}
+          <div className="space-y-2 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:gap-3 lg:space-y-0">
             {items.map((news) => (
               <NewsCard key={news.id} news={news} onClick={() => openDetail(news)} />
             ))}
@@ -188,7 +189,7 @@ const NewsSection = () => {
             type="button"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="px-5 h-10 rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
+            className="px-5 h-10 lg:h-12 lg:px-7 lg:text-[16px] rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
           >
             {isFetchingNextPage ? t('newsLoadingMore') : t('newsLoadMore')}
           </button>
@@ -205,11 +206,11 @@ const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) =>
   <button
     type="button"
     onClick={onClick}
-    className="group relative w-full text-left overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-3.5 hover:border-[var(--brand-soft-strong)] transition-colors"
+    className="group relative w-full text-left overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-3.5 lg:p-5 hover:border-[var(--brand-soft-strong)] transition-colors"
   >
     <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-    <div className="relative z-10 flex gap-3">
-      <div className="shrink-0 w-[74px] h-[74px] rounded-xl overflow-hidden bg-[var(--brand-soft)] border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
+    <div className="relative z-10 flex gap-3 lg:gap-4">
+      <div className="shrink-0 w-[74px] h-[74px] lg:w-[92px] lg:h-[92px] rounded-xl overflow-hidden bg-[var(--brand-soft)] border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
         {news.thumbnail_url ? (
           <img
             src={news.thumbnail_url}
@@ -223,39 +224,39 @@ const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) =>
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-1 mb-1">
+        <div className="flex flex-wrap items-center gap-1 mb-1 lg:mb-1.5">
           {news.is_pinned && (
-            <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-brand text-white">
+            <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-brand text-white">
               {t('newsPinned')}
             </span>
           )}
           {news.category && (
-            <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand">
+            <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand">
               {news.category}
             </span>
           )}
           {isFresh(news.published_at) && (
-            <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-red-500/10 border border-red-400/30 text-red-500 dark:text-red-300">
+            <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-red-500/10 border border-red-400/30 text-red-500 dark:text-red-300">
               NEW
             </span>
           )}
           {!news.is_published && (
-            <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
+            <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
               {t('newsPrivate')}
             </span>
           )}
         </div>
 
-        <p className="text-[14.5px] font-bold text-ink-strong leading-[1.35] line-clamp-2 group-hover:text-brand transition-colors">
+        <p className="text-[14.5px] lg:text-[19px] font-bold text-ink-strong leading-[1.35] line-clamp-2 group-hover:text-brand transition-colors">
           {news.title}
         </p>
         {news.summary && (
-          <p className="mt-1 text-[12px] text-gray-500 dark:text-white/50 leading-[1.5] line-clamp-2">
+          <p className="mt-1 lg:mt-1.5 text-[12px] lg:text-[15.5px] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65 leading-[1.5] line-clamp-2">
             {news.summary}
           </p>
         )}
 
-        <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-white/40">
+        <div className="mt-1.5 lg:mt-2 flex items-center gap-1.5 text-[11px] lg:text-[14.5px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/50">
           <span>{formatDate(news.published_at)}</span>
           <span className="text-gray-300 dark:text-white/20">·</span>
           <span>{t('newsViewCount').replace('{n}', String(news.views))}</span>
@@ -291,7 +292,7 @@ const CategoryChip = ({
     type="button"
     onClick={onClick}
     className={[
-      'shrink-0 h-8 px-3.5 rounded-full text-[12px] font-bold border transition-colors',
+      'shrink-0 h-8 px-3.5 rounded-full text-[12px] lg:h-10 lg:px-[18px] lg:text-[15px] font-bold border transition-colors',
       active
         ? 'bg-brand text-white border-transparent shadow-[0_4px_14px_-6px_var(--brand-glow)]'
         : 'bg-white/70 dark:bg-white/[0.04] text-gray-600 dark:text-white/60 border-[var(--card-border)] hover:text-brand',

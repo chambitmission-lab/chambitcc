@@ -343,3 +343,127 @@ button.worship-rail-card {
     width: 312px;
   }
 }
+
+/* ── PC 노안 패스 (lg+) ───────────────────────────────
+ * 어르신이 모니터로 "몇 시에 어디서"를 한눈에 찾는 화면이라 PC에서만 크게 다시 잡는다.
+ * - 예배 목록은 2열 지그재그 대신 한 열 시간표: 한 줄에 이름(좌) · 시간/장소(우)가 나란히
+ *   놓여 표처럼 읽힌다. 2열은 글씨를 키우면(PC 글씨 크기 zoom) 이름·시간이 줄바꿈으로 흩어진다.
+ * - 상태(입장 가능·예배 중·곧 시작)는 이미 글자 배지라 크기만 키운다.
+ * 이 블록은 위 lg 규칙 뒤에 있어야 같은 특이도에서 이긴다. */
+@media (min-width: 1024px) {
+  /* 히어로 */
+  .worship-hero:has(.worship-live) {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 40%);
+  }
+  .worship-hero-title { font-size: 30px; }
+  .worship-hero-subtitle { font-size: 16.5px; margin-top: 4px; }
+  .worship-stat { padding: 14px 14px 12px; }
+  .worship-stat-num { font-size: 30px; }
+  .worship-stat-label { font-size: 15px; margin-top: 5px; }
+
+  /* 실시간 배너 — 지금 진행 중 / 다음 예배 */
+  .worship-live { padding: 18px 20px; gap: 10px; }
+  .worship-live-label { font-size: 15.5px; gap: 9px; }
+  .worship-live-label .worship-next-dot { width: 10px; height: 10px; }
+  .worship-live-name { font-size: 23px; }
+  .worship-live-time { font-size: 21px; font-weight: 800; }
+  .worship-live-narr { font-size: 16px; line-height: 1.6; }
+  .worship-cd-num { font-size: 34px; padding: 12px 0; }
+  .worship-cd-lab { font-size: 13px; }
+  .worship-cd-sep { height: 58px; font-size: 22px; }
+
+  /* 요일 스트립 + 필터 칩 */
+  .worship-week-day { width: 32px; height: 32px; font-size: 15px; }
+  .worship-week-dot { width: 6px; height: 6px; }
+  .worship-filter { padding: 12px 0; font-size: 16.5px; }
+
+  /* 섹션 제목 */
+  .worship-block-title { font-size: 21px; padding-left: 14px; margin-bottom: 6px; }
+  .worship-block-title::before { height: 20px; }
+
+  /* 한 열 시간표 — 위 lg 규칙의 2열·지그재그 레일을 되돌린다 */
+  .worship-block {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .worship-block--timeline {
+    padding-left: 30px;
+    column-gap: 0;
+  }
+  .worship-block--timeline::before {
+    left: 8px;
+    margin-left: 0;
+    top: 50px;
+  }
+  .worship-block--timeline .worship-block-title {
+    margin-left: -30px;
+  }
+  .worship-block--timeline .worship-item::before,
+  .worship-block--timeline .worship-item:nth-of-type(even)::before {
+    left: -27px;
+    right: auto;
+    width: 12px;
+    height: 12px;
+  }
+
+  /* 예배 카드 */
+  .worship-item { padding: 20px 24px; border-radius: 18px; }
+  .worship-item-left { gap: 16px; }
+  .worship-item-emblem { width: 56px; height: 56px; border-radius: 17px; font-size: 16px; }
+  .worship-item-emblem .material-icons-round,
+  .worship-item-emblem .material-icons-outlined { font-size: 27px; }
+  .worship-item-namewrap { gap: 10px; }
+  .worship-item-name { font-size: 21px; }
+  .worship-item-sub { font-size: 15px; margin-top: 4px; }
+  .worship-item-meta { max-width: 55%; }
+  .worship-item-time { font-size: 23px; font-weight: 800; }
+  .worship-item-loc { font-size: 15.5px; margin-top: 4px; }
+  .worship-item-loc--place { font-size: 17px; gap: 4px; margin-top: 6px; }
+  .worship-item-loc--place .material-icons-round { font-size: 20px; }
+
+  /* 평일 카드 — 이름 아래 일정 (emblem 56 + gap 16 = 72 로 이름과 정렬) */
+  .worship-item-schedule { margin-top: 12px; padding-left: 72px; gap: 5px; }
+  .worship-item-tagline { font-size: 15.5px; margin-bottom: 4px; }
+  .worship-sched-day { font-size: 14px; padding: 4px 12px; margin-bottom: 3px; }
+  .worship-sched-time { font-size: 21px; font-weight: 700; }
+
+  /* 상태 배지 — 글자로 상태를 말한다 */
+  .worship-status { font-size: 14.5px; padding: 4px 12px; gap: 7px; }
+  .worship-status-dot { width: 8px; height: 8px; }
+
+  /* 곧 시작 배너 · 끝난 예배 안내 */
+  .worship-next-banner { font-size: 16.5px; padding: 9px 16px; gap: 9px; margin-bottom: 14px; }
+  .worship-next-banner .worship-next-dot { width: 9px; height: 9px; }
+  .worship-ended-note { font-size: 15.5px; padding: 12px 16px; margin-top: 14px; }
+
+  /* 관리자 수정 버튼 · 편집 입력 */
+  .worship-edit-btn { width: 44px; height: 44px; }
+  .worship-edit-btn .material-icons-round,
+  .worship-edit-btn .material-icons-outlined { font-size: 22px; }
+  .worship-input { font-size: 16px; padding: 11px 14px; }
+  .worship-btn { font-size: 16px; padding: 11px 20px; }
+
+  /* 오늘 예배 없음 — 벤토 */
+  .worship-state { font-size: 16px; }
+  .worship-empty-lead { font-size: 16px; }
+  .worship-empty-label { font-size: 14px; }
+  .worship-empty-name { font-size: 25px; }
+  .worship-empty-time { font-size: 16.5px; }
+  .worship-empty-tag { font-size: 15px; }
+  .worship-empty-cta { font-size: 15px; }
+  .worship-empty-tile-title { font-size: 17.5px; }
+  .worship-empty-tile-desc { font-size: 15px; }
+
+  /* 우측 레일 */
+  .worship-rail-card { padding: 18px 20px; }
+  .worship-rail-title { font-size: 14.5px; letter-spacing: 0.02em; margin-bottom: 8px; }
+  .worship-rail-lead { font-size: 16px; margin-bottom: 14px; }
+  .worship-rail-cta { font-size: 16px; min-height: 50px; border-radius: 14px; }
+  .worship-rail-cta--primary::after { border-radius: 11px; }
+  .worship-rail-admin { font-size: 13px; }
+  .worship-rail-sermon-meta { font-size: 14px; }
+  .worship-rail-sermon-title { font-size: 18px; }
+  .worship-rail-sermon-verse { font-size: 15px; }
+  .worship-live-dot { width: 9px; height: 9px; }
+  .worship-note-line { font-size: 15.5px; }
+}

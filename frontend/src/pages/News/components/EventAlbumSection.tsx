@@ -125,10 +125,10 @@ const EventAlbumSection = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
               <Lock size={30} weight="duotone" color="currentColor" aria-hidden="true" />
             </div>
-            <p className="text-ink-strong text-[15px] font-bold mb-1.5">
+            <p className="text-ink-strong text-[15px] lg:text-[18px] font-bold mb-1.5">
               {t('newsGateTitle')}
             </p>
-            <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.65] mb-5">
+            <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] leading-[1.65] mb-5">
               {t('newsGateEventLine1')}
               <br />
               {t('newsGateLine2')}
@@ -136,7 +136,7 @@ const EventAlbumSection = () => {
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] active:scale-[0.98] transition-all"
+              className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] lg:text-[16.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] active:scale-[0.98] transition-all"
             >
               {t('newsGateCta')}
             </button>
@@ -160,17 +160,17 @@ const EventAlbumSection = () => {
               <AlbumIcon width={23} height={23} />
             </div>
             <div>
-              <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
+              <p className="text-brand text-[10.5px] lg:text-[13px] font-bold tracking-[0.12em] uppercase">
                 EVENT ALBUM
               </p>
-              <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
+              <h2 className="text-ink-strong text-[17px] lg:text-[22px] font-bold tracking-[-0.015em]">
                 {t('newsEaTitle')}
               </h2>
             </div>
           </div>
 
           {/* 글줄이 삽화 위로 넘어가지 않게 폭을 잡는다 — 삽화 위치가 바뀌면 이 값도 다시 볼 것 */}
-          <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
+          <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
             {t('newsEaIntro')}
           </p>
 
@@ -217,7 +217,7 @@ const EventAlbumSection = () => {
               <EventTagIcon tag={tag} width={14} height={14} className="mr-1 shrink-0" />
               {tag}
               {count > 0 && (
-                <span className="ml-1 text-[10.5px] font-bold tabular-nums opacity-70">
+                <span className="ml-1 text-[10.5px] lg:text-[13px] font-bold tabular-nums opacity-70">
                   {count}
                 </span>
               )}
@@ -287,11 +287,11 @@ const EventAlbumSection = () => {
                 </span>
               )}
               {post.photo_count > 1 && (
-                <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] lg:text-[11.5px] font-bold flex items-center justify-center">
                   {post.photo_count}
                 </span>
               )}
-              <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/75 to-transparent text-white text-[10px] font-bold truncate text-left">
+              <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/75 to-transparent text-white text-[10px] lg:text-[12.5px] font-bold truncate text-left">
                 {post.title}
               </span>
             </button>
@@ -322,7 +322,7 @@ const EventAlbumSection = () => {
             type="button"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="px-5 h-10 rounded-full text-[12.5px] font-bold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
+            className="px-5 h-10 lg:h-12 lg:px-7 rounded-full text-[12.5px] lg:text-[15.5px] font-bold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
           >
             {isFetchingNextPage ? t('newsLoadingMore') : t('newsEaLoadMore')}
           </button>
@@ -367,13 +367,13 @@ const OnThisDayCard = ({
 
     <div className="relative z-10">
       <div className="flex items-center gap-1.5 mb-2.5">
-        <span className="text-[15px]" aria-hidden="true">
+        <span className="text-[15px] lg:text-[18px]" aria-hidden="true">
           🕰️
         </span>
-        <p className="text-[12.5px] font-bold text-ink-strong tracking-[-0.01em]">
+        <p className="text-[12.5px] lg:text-[15.5px] font-bold text-ink-strong tracking-[-0.01em]">
           {t('newsEaMemoryTitle')}
         </p>
-        <p className="text-[11px] text-gray-400 dark:text-white/40 ml-auto">
+        <p className="text-[11px] lg:text-[13.5px] text-gray-400 dark:text-white/40 ml-auto">
           {t('newsEaMemorySubtitle')}
         </p>
       </div>
@@ -398,10 +398,10 @@ const OnThisDayCard = ({
                 <AlbumIcon width={22} height={22} />
               </span>
             )}
-            <span className="absolute top-1 left-1 inline-flex items-center px-1.5 h-5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold">
+            <span className="absolute top-1 left-1 inline-flex items-center px-1.5 h-5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[9px] lg:text-[11.5px] font-bold">
               {yearsAgoLabel(post.event_date, t)}
             </span>
-            <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/75 to-transparent text-white text-[9.5px] font-bold truncate text-left">
+            <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/75 to-transparent text-white text-[9.5px] lg:text-[12px] font-bold truncate text-left">
               {post.title}
             </span>
           </button>
@@ -415,8 +415,8 @@ const OnThisDayCard = ({
 // ── 작은 컴포넌트들 ────────────────────────────────────
 const HeroStat = ({ label, value }: { label: string; value: number }) => (
   <div>
-    <p className="text-[10.5px] font-semibold text-gray-400 dark:text-white/40 mb-0.5">{label}</p>
-    <p className="text-[20px] font-bold leading-none brand-text-gradient tabular-nums">
+    <p className="text-[10.5px] lg:text-[13px] font-semibold text-gray-400 dark:text-white/40 mb-0.5">{label}</p>
+    <p className="text-[20px] lg:text-[25px] font-bold leading-none brand-text-gradient tabular-nums">
       {value}
     </p>
   </div>
@@ -436,7 +436,7 @@ const FilterPill = ({
     onClick={onClick}
     aria-pressed={active}
     className={[
-      'shrink-0 inline-flex items-center px-3 h-8 rounded-full text-[11.5px] font-bold border whitespace-nowrap transition-colors',
+      'shrink-0 inline-flex items-center px-3 h-8 lg:h-10 lg:px-4 rounded-full text-[11.5px] lg:text-[14.5px] font-bold border whitespace-nowrap transition-colors',
       active
         ? 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
         : 'bg-white/80 dark:bg-white/[0.04] border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/60 hover:bg-[var(--brand-soft)] hover:text-brand',
@@ -495,10 +495,10 @@ const EmptyState = ({ filtered }: { filtered: boolean }) => {
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <AlbumIcon width={30} height={30} className="text-brand" />
     </div>
-    <p className="text-ink-strong text-[14.5px] font-bold mb-1">
+    <p className="text-ink-strong text-[14.5px] lg:text-[18px] font-bold mb-1">
       {t(filtered ? 'newsEaEmptyFilteredTitle' : 'newsEaEmptyTitle')}
     </p>
-    <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
+    <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] leading-[1.6]">
       {t(filtered ? 'newsEaEmptyFilteredDesc' : 'newsEaEmptyDesc')}
     </p>
   </div>
@@ -507,7 +507,7 @@ const EmptyState = ({ filtered }: { filtered: boolean }) => {
 
 const ErrorState = ({ message }: { message: string }) => (
   <div className="rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 py-8 px-6 text-center">
-    <p className="text-red-600 dark:text-red-300 text-[13px] font-semibold">{message}</p>
+    <p className="text-red-600 dark:text-red-300 text-[13px] lg:text-[16px] font-semibold">{message}</p>
   </div>
 )
 

@@ -11,7 +11,7 @@ interface QuickActionsProps {
 }
 
 const pillClass =
-  'flex-1 inline-flex items-center justify-center gap-1.5 h-10 rounded-xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] text-gray-700 dark:text-white/80 text-[12.5px] font-bold shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] hover:text-brand active:scale-[0.98] transition-all'
+  'flex-1 inline-flex items-center justify-center gap-1.5 h-10 lg:h-12 rounded-xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] text-gray-700 dark:text-white/80 text-[12.5px] lg:text-[15.5px] font-bold shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] hover:text-brand active:scale-[0.98] transition-all'
 
 export const QuickActions = ({ event, t }: QuickActionsProps) => {
   const { language } = useLanguage()
@@ -40,7 +40,7 @@ export const QuickActions = ({ event, t }: QuickActionsProps) => {
   }
 
   return (
-    <div className="flex gap-2 px-4 mt-3">
+    <div className="flex gap-2 px-4 mt-3 lg:px-6 lg:mt-4 lg:gap-3">
       <button type="button" onClick={() => downloadEventIcs(event)} className={pillClass}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" />

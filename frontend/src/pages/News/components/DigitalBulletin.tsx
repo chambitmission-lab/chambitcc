@@ -187,7 +187,7 @@ const DigitalBulletin = () => {
             }}
           />
           <div className="relative">
-            <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[11px] font-bold tracking-wide mb-3">
+            <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[11px] lg:text-[13.5px] font-bold tracking-wide mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               <EditableField
                 value={data.date}
@@ -198,7 +198,7 @@ const DigitalBulletin = () => {
                 {data.date}
               </EditableField>
             </span>
-            <h1 className="text-white text-[22px] font-bold leading-[1.25] tracking-[-0.015em] mb-3 whitespace-pre-line">
+            <h1 className="text-white text-[22px] lg:text-[28px] font-bold leading-[1.25] tracking-[-0.015em] mb-3 whitespace-pre-line">
               <EditableField
                 value={data.title}
                 isAdmin={isAdminUser}
@@ -209,7 +209,7 @@ const DigitalBulletin = () => {
                 {data.title}
               </EditableField>
             </h1>
-            <p className="text-white/90 text-[13px] leading-[1.65] font-medium">
+            <p className="text-white/90 text-[13px] lg:text-[16.5px] leading-[1.65] font-medium">
               <EditableField
                 value={data.subtitle}
                 isAdmin={isAdminUser}
@@ -236,7 +236,7 @@ const DigitalBulletin = () => {
             <ItemCard key={idx}>
               <RemoveItemButton isAdmin={isAdminUser} onClick={() => removeService(idx)} />
               <div className="flex items-baseline justify-between gap-2 mb-1">
-                <p className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em]">
+                <p className="text-[13.5px] lg:text-[17px] font-bold text-ink-strong tracking-[-0.01em]">
                   <EditableField
                     value={service.name}
                     isAdmin={isAdminUser}
@@ -246,7 +246,7 @@ const DigitalBulletin = () => {
                     {service.name}
                   </EditableField>
                 </p>
-                <span className="text-[11.5px] font-semibold text-brand shrink-0">
+                <span className="text-[11.5px] lg:text-[14.5px] font-semibold text-brand shrink-0">
                   <EditableField
                     value={service.time}
                     isAdmin={isAdminUser}
@@ -257,7 +257,7 @@ const DigitalBulletin = () => {
                   </EditableField>
                 </span>
               </div>
-              <p className="text-[12px] text-gray-500 dark:text-white/55">
+              <p className="text-[12px] lg:text-[15px] text-gray-500 dark:text-white/55">
                 {t('newsDbSermonBy')}
                 <EditableField
                   value={service.preacher}
@@ -304,11 +304,11 @@ const DigitalBulletin = () => {
 
           {/* 설교 카드 */}
           <div className="mt-2 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] p-3">
-            <p className="inline-flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-[0.1em] text-brand mb-1.5">
+            <p className="inline-flex items-center gap-1 text-[10.5px] lg:text-[13px] font-bold uppercase tracking-[0.1em] text-brand mb-1.5">
               <SparkleIcon width={13} height={13} className="shrink-0" />
               {t('newsDbSermon')}
             </p>
-            <p className="text-[14px] font-bold text-ink-strong leading-[1.4] tracking-[-0.01em] mb-0.5 whitespace-pre-line">
+            <p className="text-[14px] lg:text-[17.5px] font-bold text-ink-strong leading-[1.4] tracking-[-0.01em] mb-0.5 whitespace-pre-line">
               <EditableField
                 value={data.worship.sermon.title}
                 isAdmin={isAdminUser}
@@ -319,7 +319,7 @@ const DigitalBulletin = () => {
                 {data.worship.sermon.title}
               </EditableField>
             </p>
-            <p className="text-[12px] text-gray-600 dark:text-white/65 leading-[1.5]">
+            <p className="text-[12px] lg:text-[15px] text-gray-600 dark:text-white/65 leading-[1.5]">
               <EditableField
                 value={data.worship.sermon.subtitle}
                 isAdmin={isAdminUser}
@@ -344,7 +344,7 @@ const DigitalBulletin = () => {
           {data.announcements.map((item, idx) => (
             <ItemCard key={idx}>
               <RemoveItemButton isAdmin={isAdminUser} onClick={() => removeAnnouncement(idx)} />
-              <p className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em] mb-1.5">
+              <p className="text-[13.5px] lg:text-[17px] font-bold text-ink-strong tracking-[-0.01em] mb-1.5">
                 <EditableField
                   value={item.title}
                   isAdmin={isAdminUser}
@@ -354,7 +354,7 @@ const DigitalBulletin = () => {
                   {item.title}
                 </EditableField>
               </p>
-              <p className="text-[12.5px] text-gray-600 dark:text-white/70 leading-[1.65] whitespace-pre-line">
+              <p className="text-[12.5px] lg:text-[16px] text-gray-600 dark:text-white/70 leading-[1.65] whitespace-pre-line">
                 <EditableField
                   value={item.content}
                   isAdmin={isAdminUser}
@@ -383,10 +383,10 @@ const DigitalBulletin = () => {
             <ItemCard key={idx}>
               <RemoveItemButton isAdmin={isAdminUser} onClick={() => removeGroup(idx)} />
               <div className="flex items-center gap-2 mb-2">
-                <div className="shrink-0 w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-white text-[14px] font-bold shadow-[0_4px_12px_-4px_var(--brand-glow)]">
+                <div className="shrink-0 w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-white text-[14px] lg:text-[17.5px] font-bold shadow-[0_4px_12px_-4px_var(--brand-glow)]">
                   {(group.name || '?').slice(0, 1)}
                 </div>
-                <p className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em] truncate min-w-0">
+                <p className="text-[13.5px] lg:text-[17px] font-bold text-ink-strong tracking-[-0.01em] truncate min-w-0">
                   <EditableField
                     value={group.name}
                     isAdmin={isAdminUser}
@@ -397,7 +397,7 @@ const DigitalBulletin = () => {
                   </EditableField>
                 </p>
               </div>
-              <div className="space-y-1 text-[11.5px]">
+              <div className="space-y-1 text-[11.5px] lg:text-[14.5px]">
                 <DetailRow
                   size="sm"
                   label={t('newsDbFieldGroupLeader')}
@@ -461,7 +461,7 @@ const DigitalBulletin = () => {
               <RemoveItemButton isAdmin={isAdminUser} onClick={() => removeSchedule(idx)} />
               <div className="flex items-start gap-3">
                 {/* 요일 배지 */}
-                <div className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white text-[14px] font-bold shadow-[0_4px_12px_-4px_var(--brand-glow)]">
+                <div className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white text-[14px] lg:text-[17.5px] font-bold shadow-[0_4px_12px_-4px_var(--brand-glow)]">
                   <EditableField
                     value={item.day}
                     isAdmin={isAdminUser}
@@ -472,7 +472,7 @@ const DigitalBulletin = () => {
                   </EditableField>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em] mb-1">
+                  <p className="text-[13.5px] lg:text-[17px] font-bold text-ink-strong tracking-[-0.01em] mb-1">
                     <EditableField
                       value={item.event}
                       isAdmin={isAdminUser}
@@ -482,7 +482,7 @@ const DigitalBulletin = () => {
                       {item.event}
                     </EditableField>
                   </p>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-gray-500 dark:text-white/55">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] lg:text-[14.5px] text-gray-500 dark:text-white/55">
                     <span className="inline-flex items-center gap-1">
                       <ClockIcon width={12.5} height={12.5} className="shrink-0" />{' '}
                       <EditableField
@@ -517,7 +517,7 @@ const DigitalBulletin = () => {
 
       {isAdminUser && (
         <div className="mx-4 mt-2 px-3 py-2.5 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
-          <p className="text-[11.5px] text-brand leading-[1.6]">
+          <p className="text-[11.5px] lg:text-[14.5px] text-brand leading-[1.6]">
             {t('newsDbAdminHint')}
           </p>
         </div>
@@ -563,11 +563,11 @@ const SectionCard = ({ sectionKey, expanded, onToggle, badge, children }: Sectio
             <meta.Icon width={21} height={21} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
+            <p className="text-[15px] lg:text-[18.5px] font-bold text-ink-strong tracking-[-0.01em]">
               {t(meta.titleKey)}
             </p>
             {badge && (
-              <p className="text-[11px] text-gray-500 dark:text-white/55 mt-0.5">{badge}</p>
+              <p className="text-[11px] lg:text-[13.5px] text-gray-500 dark:text-white/55 mt-0.5">{badge}</p>
             )}
           </div>
           <svg
@@ -619,7 +619,7 @@ const DetailRow = ({
     <span
       className={[
         'text-gray-500 dark:text-white/50 shrink-0',
-        size === 'sm' ? 'text-[11.5px]' : 'text-[12.5px]',
+        size === 'sm' ? 'text-[11.5px] lg:text-[14.5px]' : 'text-[12.5px] lg:text-[16px]',
       ].join(' ')}
     >
       {label}
@@ -627,7 +627,7 @@ const DetailRow = ({
     <span
       className={[
         'text-gray-800 dark:text-white/85 font-medium text-right min-w-0',
-        size === 'sm' ? 'text-[11.5px]' : 'text-[12.5px]',
+        size === 'sm' ? 'text-[11.5px] lg:text-[14.5px]' : 'text-[12.5px] lg:text-[16px]',
       ].join(' ')}
     >
       {value}

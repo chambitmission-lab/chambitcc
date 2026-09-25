@@ -269,6 +269,8 @@ const MainContent = ({ children }: { children: ReactNode }) => {
   return (
     <main
       data-app-scale={appScale}
+      // 글자 크기 값만 키우는 화면(성경 본문)이 읽는 배율 — zoom 이 아니라 --text-mul 로 곱한다
+      data-text-scale={textScale !== 'base' ? textScale : undefined}
       className={`main-content ${railVisible ? 'lg:pl-[76px] xl:pl-[248px]' : ''}`}
     >
       {children}

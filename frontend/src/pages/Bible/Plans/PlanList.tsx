@@ -196,7 +196,7 @@ const PlanList = () => {
             <span className="mx-auto mb-3 block w-fit text-gray-300 dark:text-white/25">
               <CloudOffIcon size={38} />
             </span>
-            <p className="text-[13px] text-gray-500 dark:text-white/55">
+            <p className="text-[13px] lg:text-[16px] text-gray-500 dark:text-white/55">
               플랜을 불러오지 못했습니다
             </p>
             <button
@@ -213,7 +213,7 @@ const PlanList = () => {
             <span className="mx-auto mb-3 block w-fit text-gray-300 dark:text-white/25">
               <EmptyTrayIcon size={38} />
             </span>
-            <p className="text-[13px] text-gray-500 dark:text-white/55">
+            <p className="text-[13px] lg:text-[16px] text-gray-500 dark:text-white/55">
               아직 공개된 읽기 플랜이 없어요
             </p>
           </div>
@@ -222,7 +222,7 @@ const PlanList = () => {
             {activePlans.length > 0 && (
               <section className="px-4 pt-9">
                 <SectionTitle>이어서 읽기</SectionTitle>
-                <div className="space-y-3.5 lg:grid lg:grid-cols-2 lg:gap-3.5 lg:space-y-0 lg:items-start">
+                <div className="space-y-3.5 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:gap-3.5 lg:space-y-0 lg:items-start">
                   {activePlans.map((plan) => (
                     <FeaturedPlanCard
                       key={plan.id}
@@ -244,9 +244,9 @@ const PlanList = () => {
                   aria-expanded={showCompleted}
                   className="w-full flex items-center justify-between px-0.5 py-1"
                 >
-                  <span className="flex items-center gap-1.5 text-[15px] font-extrabold text-gray-500 dark:text-white/55 tracking-[-0.02em]">
+                  <span className="flex items-center gap-1.5 text-[15px] lg:text-[20px] font-extrabold text-gray-500 dark:text-white/55 tracking-[-0.02em]">
                     완주한 플랜
-                    <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300">
+                    <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] lg:text-[13px] lg:h-6 lg:min-w-[1.5rem] font-bold bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300">
                       {completedPlans.length}
                     </span>
                   </span>
@@ -265,7 +265,7 @@ const PlanList = () => {
                   </svg>
                 </button>
                 {showCompleted && (
-                  <div className="space-y-3.5 mt-4 lg:grid lg:grid-cols-2 lg:gap-3.5 lg:space-y-0 lg:items-start">
+                  <div className="space-y-3.5 mt-4 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:gap-3.5 lg:space-y-0 lg:items-start">
                     {completedPlans.map((plan) => (
                       /* 끝난 플랜은 채도까지 죽여 회색조에 가깝게 — 진행 중 카드만 화면의 주인공 */
                       <div key={plan.id} className="opacity-70 saturate-[0.35]">
@@ -313,11 +313,11 @@ const PlanList = () => {
                 </div>
               )}
               {visibleOtherPlans.length === 0 ? (
-                <p className="text-center text-[13px] text-gray-400 dark:text-white/45 py-10">
+                <p className="text-center text-[13px] lg:text-[16px] text-gray-400 dark:text-white/45 py-10">
                   이 태그의 플랜이 아직 없어요
                 </p>
               ) : (
-                <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] lg:gap-4">
                   {visibleOtherPlans.map((plan) => (
                     <FeedPlanCard
                       key={plan.id}
@@ -334,7 +334,7 @@ const PlanList = () => {
 
       {/* 우측 위젯 레일 (lg+) — 태그 필터를 본문 밖으로 빼 목록이 끊기지 않게 하고,
           공동 묵상방 진입을 항상 보이는 자리에 둔다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+      <aside className="hidden lg:flex lg:w-[340px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
         <button
           type="button"
           onClick={() => navigate('/rooms')}
@@ -346,10 +346,10 @@ const PlanList = () => {
             <DoveIcon size={21} />
           </span>
           <span className="flex-1 min-w-0">
-            <span className="block text-[14px] font-bold text-ink-strong tracking-[-0.015em]">
+            <span className="block text-[17px] font-bold text-ink-strong tracking-[-0.015em]">
               공동 묵상방
             </span>
-            <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
+            <span className="block text-[14px] text-gray-400 dark:text-white/45 mt-0.5">
               함께 같은 본문을 묵상해요
             </span>
           </span>
@@ -362,24 +362,24 @@ const PlanList = () => {
 
         {myPlans.length > 0 && (
           <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
-            <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            <p className="mb-2.5 text-[14px] font-bold tracking-[0.02em] text-gray-600 dark:text-white/60">
               나의 플랜
             </p>
             <div className="flex flex-col gap-1.5">
               <div className="flex items-baseline justify-between gap-2">
-                <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                <span className="text-[15px] font-semibold text-gray-500 dark:text-white/55">
                   읽는 중
                 </span>
-                <span className="text-[16px] font-bold text-brand tabular-nums">
+                <span className="text-[20px] font-bold text-brand tabular-nums">
                   {activePlans.length}
                 </span>
               </div>
               {completedPlans.length > 0 && (
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                  <span className="text-[15px] font-semibold text-gray-500 dark:text-white/55">
                     완주
                   </span>
-                  <span className="text-[16px] font-bold text-emerald-600 dark:text-emerald-300 tabular-nums">
+                  <span className="text-[20px] font-bold text-emerald-600 dark:text-emerald-300 tabular-nums">
                     {completedPlans.length}
                   </span>
                 </div>
@@ -390,7 +390,7 @@ const PlanList = () => {
 
         {filterTags.length > 0 && (
           <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
-            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            <p className="mb-1.5 text-[14px] font-bold tracking-[0.02em] text-gray-600 dark:text-white/60">
               플랜 찾기
             </p>
             <div className="flex flex-col -mx-1">
@@ -405,18 +405,18 @@ const PlanList = () => {
                     key={tag ?? '전체'}
                     type="button"
                     onClick={() => setTagFilter(tag)}
-                    className={`flex items-center justify-between gap-2 px-1 py-2 rounded-lg text-left transition-colors ${
+                    className={`flex items-center justify-between gap-2 px-2 py-2.5 rounded-xl text-left transition-colors ${
                       active ? 'bg-[var(--brand-soft-strong)]' : 'hover:bg-[var(--brand-soft)]'
                     }`}
                   >
                     <span
-                      className={`min-w-0 truncate text-[12.5px] ${
+                      className={`min-w-0 truncate text-[16px] ${
                         active ? 'font-bold text-brand' : 'font-semibold text-ink-strong'
                       }`}
                     >
                       {tag ? `#${tag}` : '전체'}
                     </span>
-                    <span className="shrink-0 text-[11.5px] font-semibold tabular-nums text-gray-400 dark:text-white/40">
+                    <span className="shrink-0 text-[14px] font-semibold tabular-nums text-gray-400 dark:text-white/40">
                       {count}
                     </span>
                   </button>

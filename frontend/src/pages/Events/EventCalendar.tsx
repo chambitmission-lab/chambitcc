@@ -10,7 +10,9 @@ import MiniMonthStrip from './components/MiniMonthStrip'
 import AgendaSection from './components/AgendaSection'
 import EmptyState from './components/EmptyState'
 import { preloadCategoryBackgrounds } from './utils/categoryConfig'
-import { getNextEvent, groupEventsByDate } from './utils/dateGrouping'
+import { CategoryIcon } from './components/CategoryIcons'
+import { buildEventDateMap, formatEventTime, getNextEvent, groupEventsByDate } from './utils/dateGrouping'
+import { CATEGORY_VISUAL } from './utils/categoryConfig'
 import { kstNow, toKstCalendarDate } from '../../utils/kstTime'
 import './styles/index.css'
 import { can } from '../../utils/access'
@@ -27,6 +29,8 @@ const EventCalendar = () => {
   // 달력의 '오늘'과 보이는 달은 기기 타임존이 아니라 서울 기준
   const [viewDate, setViewDate] = useState(() => kstNow())
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | undefined>()
+  // PC 레일 달력에서 고른 날(YYYY-MM-DD) — 그날 일정을 레일에 크게 펼친다. 달을 넘기면 비운다
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
 
   // 일정 API를 기다리는 동안 Hero 배경을 병렬로 받아둔다 (팝인 방지)
   useEffect(() => {
@@ -90,30 +94,52 @@ const EventCalendar = () => {
       .slice(0, 5)
   }, [events])
 
+  const eventMap = useMemo(() => buildEventDateMap(events), [events])
+  const selectedEvents = selectedKey ? (eventMap.get(selectedKey) ?? []) : []
+  const selectedLabel = selectedKey
+    ? (() => {
+        const [, m, d] = selectedKey.split('-').map(Number)
+        const dow = ['일', '월', '화', '수', '목', '금', '토'][new Date(Number(selectedKey.slice(0, 4)), m - 1, d).getDay()]
+        return `${m}월 ${d}일 (${dow})`
+      })()
+    : ''
+
   const handlePrevMonth = () => {
+    setSelectedKey(null)
     setViewDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
   }
   const handleNextMonth = () => {
+    setSelectedKey(null)
     setViewDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))
   }
-  const handleToday = () => setViewDate(kstNow())
+  const handleToday = () => {
+    const now = kstNow()
+    setViewDate(now)
+    setSelectedKey(formatYMD(now))
+  }
+  const handleSelectDate = (d: Date) => {
+    const key = formatYMD(d)
+    setSelectedKey(prev => (prev === key ? null : key))
+  }
 
   return (
-    <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
-      {/* lg+: 좁은 셸을 풀고 본문(일정 목록) + 우측 레일(달력·다가오는 일정) 2단 */}
-      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+    // lg: 이 페이지를 스스로 스크롤하는 상자로 만든다 — #root overflow 탓에 sticky 가 전역에서 죽어 있어,
+    // 이 상자가 있어야 우측 달력 레일이 화면에 붙어 있는다 (높이는 PC 글씨 크기 zoom 배율로 나눈다)
+    <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto">
+      {/* lg+: 좁은 셸을 풀고 본문(일정 목록) + 우측 레일(달력·고른 날·다가오는 일정) 2단 */}
+      <div className="lg:max-w-[1320px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
-        <header className="px-4 pt-5 pb-2">
+        <header className="px-4 pt-5 pb-2 lg:px-6 lg:pt-7 lg:pb-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+              <p className="text-brand text-[11.5px] lg:text-[14px] font-bold tracking-[0.12em] uppercase mb-1.5">
                 CALENDAR
               </p>
-              <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
+              <h1 className="text-ink-strong text-[26px] lg:text-[34px] font-bold leading-none tracking-[-0.02em]">
                 {t.title}
               </h1>
-              <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
+              <p className="text-gray-500 dark:text-white/55 text-[13px] lg:text-[17px] lg:text-gray-600 lg:dark:text-white/70 mt-2 lg:mt-3">
                 {loading || isPlaceholder ? '불러오는 중...' : `${totalCount}건의 일정이 예정되어 있어요`}
               </p>
             </div>
@@ -163,27 +189,77 @@ const EventCalendar = () => {
         ) : groups.length === 0 && !heroEvent ? (
           <EmptyState category={selectedCategory} />
         ) : (
-          // lg+: 넓어진 본문을 세로로만 쓰지 않도록 날짜 그룹을 2열로
-          <div className="lg:grid lg:grid-cols-2 lg:items-start">
+          // lg+: 넓어진 본문을 세로로만 쓰지 않도록 날짜 그룹을 2열로 — 칸 수는 폭으로 정해
+          // 글씨를 키우면(PC 글씨 크기 zoom) 한 열로 풀린다
+          <div className="lg:grid lg:grid-cols-[repeat(auto-fill,minmax(360px,1fr))] lg:items-start lg:px-2">
             {groups.map(group => <AgendaSection key={group.key} group={group} />)}
           </div>
         )}
       </div>
 
-      {/* 우측 위젯 레일 (lg+) — 달력을 옆에 고정해 목록과 함께 본다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+      {/* 우측 위젯 레일 (lg+) — 큰 달력 + 고른 날 일정 + 다가오는 일정. 페이지 상자 안 sticky 라 화면에 붙어 있다 */}
+      <aside className="hidden lg:flex lg:w-[400px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-3">
         <MiniMonthStrip
           date={viewDate}
           events={events}
           onPrev={handlePrevMonth}
           onNext={handleNextMonth}
           onToday={handleToday}
+          onSelectDate={handleSelectDate}
+          selectedKey={selectedKey}
+          large
           className=""
         />
 
+        {/* 고른 날 — 날짜를 누르면 그날 일정이 여기에 크게 펼쳐진다 */}
+        <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none p-5">
+          {selectedKey ? (
+            <>
+              <div className="flex items-baseline justify-between gap-2 mb-3">
+                <p className="text-ink-strong text-[20px] font-bold tracking-[-0.01em]">{selectedLabel}</p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedKey(null)}
+                  className="shrink-0 h-9 px-3 rounded-full text-[14px] font-semibold text-gray-500 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+                >
+                  닫기
+                </button>
+              </div>
+              {selectedEvents.length === 0 ? (
+                <p className="text-[16px] text-gray-500 dark:text-white/60 py-2">이날은 일정이 없어요</p>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {selectedEvents.map(ev => (
+                    <button
+                      key={ev.id}
+                      type="button"
+                      onClick={() => navigate(`/events/${ev.id}`)}
+                      className="relative text-left rounded-xl border border-gray-200/70 dark:border-white/[0.08] pl-5 pr-4 py-3.5 overflow-hidden hover:border-brand hover:bg-[var(--brand-soft)] transition-colors"
+                    >
+                      <span className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${CATEGORY_VISUAL[ev.category].gradient}`} />
+                      <p className="text-brand text-[18px] font-bold tabular-nums">{formatEventTime(ev.start_datetime)}</p>
+                      <p className="mt-1 text-ink-strong text-[20px] font-bold leading-[1.35] tracking-[-0.01em] line-clamp-2">
+                        <CategoryIcon category={ev.category} width={17} height={17} className="inline-block align-[-2px] mr-1.5 text-brand" />
+                        {ev.title}
+                      </p>
+                      {ev.location && (
+                        <p className="mt-1 text-[16px] text-gray-600 dark:text-white/70 truncate">📍 {ev.location}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-[16px] leading-relaxed text-gray-600 dark:text-white/65 break-keep">
+              달력에서 날짜를 누르면 그날 일정이 여기에 크게 나와요.
+            </p>
+          )}
+        </section>
+
         {upcomingList.length > 0 && (
-          <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none p-4">
-            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+          <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none p-5">
+            <p className="mb-2 text-[15px] font-bold text-gray-600 dark:text-white/65">
               다가오는 일정
             </p>
             <div className="flex flex-col -mx-1">
@@ -192,12 +268,12 @@ const EventCalendar = () => {
                   key={ev.id}
                   type="button"
                   onClick={() => navigate(`/events/${ev.id}`)}
-                  className="flex items-center gap-2.5 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
+                  className="flex items-center gap-3 px-2 py-2.5 rounded-xl text-left hover:bg-[var(--brand-soft)] transition-colors"
                 >
-                  <span className="shrink-0 w-10 text-[11px] font-bold tabular-nums text-gray-400 dark:text-white/40">
-                    {key.slice(5).replace('-', '.')}
+                  <span className="shrink-0 w-14 text-[15px] font-bold tabular-nums text-brand">
+                    {Number(key.slice(5, 7))}/{Number(key.slice(8, 10))}
                   </span>
-                  <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-ink-strong">
+                  <span className="flex-1 min-w-0 truncate text-[16.5px] font-semibold text-ink-strong">
                     {ev.title}
                   </span>
                 </button>

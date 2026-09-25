@@ -954,3 +954,42 @@
 @media (prefers-reduced-motion: reduce) {
   .verse-progress-pill--reveal { animation: none; }
 }
+
+/* ── PC(lg+) 노안 패스 ─────────────────────────────────────────
+   본문 기준을 17px → 19px 로 올리고, 헤더 '가' 전역 글씨 크기(--text-mul: 보통 1 · 크게 1.1 ·
+   아주 크게 1.2, common.css .main-content[data-text-scale])를 Aa 배율에 한 번 더 곱한다.
+   이 화면은 절 이동·낭독 따라가기·읽는 줄 판정이 화면 좌표로 계산돼(useVerseScroll·useAudioFollow·
+   useReadingLine) 다른 화면처럼 zoom 하지 않는다 — 글자 크기 값만 키우므로 좌표 코드는 그대로다.
+   절 번호는 13px 고정이던 것을 본문 배율을 따라가게 하고 대비를 올린다. */
+@media (min-width: 1024px) {
+  .bible-verse-item {
+    --verse-line-box: calc(
+      1.1875rem * var(--bible-font-scale, 1) * var(--text-mul, 1) * var(--bible-line-height, 2)
+    );
+  }
+
+  .bible-verse-text,
+  .verse-paragraph__body {
+    font-size: calc(1.1875rem * var(--bible-font-scale, 1) * var(--text-mul, 1));
+  }
+
+  .bible-verse-number {
+    width: 2.6rem;
+    font-size: calc(0.9375rem * var(--bible-font-scale, 1) * var(--text-mul, 1));
+    color: rgba(49, 130, 246, 0.85);
+  }
+
+  [data-theme="dark"] .bible-verse-number {
+    color: rgba(147, 197, 253, 0.85);
+  }
+
+  [data-theme="dark"][data-bible-warm="true"] .bible-verse-number {
+    color: rgba(219, 190, 133, 0.8);
+  }
+
+  .bible-verse-item:not(.bible-verse-item--flow) .bible-verse-number--range {
+    width: 3.6rem;
+    margin-left: -1rem;
+    font-size: calc(0.8125rem * var(--bible-font-scale, 1) * var(--text-mul, 1));
+  }
+}

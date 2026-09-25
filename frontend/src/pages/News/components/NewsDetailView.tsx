@@ -1,5 +1,6 @@
 // 교회소식 상세 — 제목/본문/사진/첨부파일
 // Single Responsibility: 소식 한 건을 읽는 화면(+ 사진 확대 라이트박스)
+// PC(lg+)는 설교 상세와 같은 읽기 칼럼 — 본문 18px·줄간 1.8·줄 폭 제한, 제목·첨부 버튼을 크게(어르신 기준)
 import { useState } from 'react'
 import { useNewsDetail } from '../../../hooks/useNews'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -46,13 +47,13 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
   const files = news?.attachments.filter((a) => a.kind === 'file') ?? []
 
   return (
-    <div className="px-4 pt-3 pb-10">
+    <div className="px-4 pt-3 pb-10 lg:px-6 lg:pt-5">
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-1.5 mb-3 h-9 pl-2 pr-3.5 rounded-full text-[12.5px] font-bold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+        className="inline-flex items-center gap-1.5 mb-3 h-9 pl-2 pr-3.5 lg:h-12 lg:pl-3 lg:pr-5 lg:mb-4 lg:text-[16px] rounded-full text-[12.5px] font-bold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
       >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className="lg:w-5 lg:h-5">
           <polyline points="15 18 9 12 15 6" />
         </svg>
         {t('newsDetailBack')}
@@ -67,7 +68,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
       ) : error || !news ? (
         <div className="rounded-2xl border border-[var(--card-border)] bg-white/80 dark:bg-card-dark px-6 py-12 text-center">
           <span className="text-3xl block mb-2">🕊️</span>
-          <p className="text-[13.5px] font-bold text-ink-strong mb-1">{t('newsDetailErrorTitle')}</p>
+          <p className="text-[13.5px] lg:text-[17px] font-bold text-ink-strong mb-1">{t('newsDetailErrorTitle')}</p>
           <p className="text-[12px] text-gray-500 dark:text-white/55">
             {t('newsDetailErrorDesc')}
           </p>
@@ -76,30 +77,30 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
         <article className="relative overflow-hidden rounded-3xl bg-white/80 dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(0,0,0,0.3)]">
           <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
-          <header className="relative z-10 px-5 pt-5 pb-4 border-b border-gray-200/60 dark:border-white/[0.06]">
-            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+          <header className="relative z-10 px-5 pt-5 pb-4 lg:px-10 lg:pt-9 lg:pb-7 border-b border-gray-200/60 dark:border-white/[0.06]">
+            <div className="flex flex-wrap items-center gap-1.5 mb-2 lg:mb-3.5">
               {news.is_pinned && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand text-white tracking-[0.04em]">
+                <span className="text-[10px] lg:text-[13px] lg:px-2.5 lg:py-1 font-bold px-2 py-0.5 rounded-full bg-brand text-white tracking-[0.04em]">
                   {t('newsPinned')}
                 </span>
               )}
               {news.category && (
-                <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand">
+                <span className="text-[10.5px] lg:text-[13px] lg:px-2.5 lg:py-1 font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand">
                   {news.category}
                 </span>
               )}
               {!news.is_published && (
-                <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
+                <span className="text-[10.5px] lg:text-[13px] lg:px-2.5 lg:py-1 font-bold px-2 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
                   {t('newsPrivate')}
                 </span>
               )}
             </div>
 
-            <h2 className="text-ink-strong text-[19px] font-bold leading-[1.35] tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[19px] lg:text-[30px] font-bold leading-[1.35] tracking-[-0.015em] lg:max-w-[42em] break-keep">
               {news.title}
             </h2>
 
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">
+            <div className="mt-2.5 lg:mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] lg:text-[15.5px] text-gray-500 dark:text-white/50 lg:dark:text-white/60">
               <span className="font-semibold">{news.author || t('newsDetailAuthorFallback')}</span>
               <span className="text-gray-300 dark:text-white/20">·</span>
               <span>{formatDateTime(news.published_at, language)}</span>
@@ -110,7 +111,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
 
           {/* 본문 사진 — 포스터 한 장짜리가 대부분이라 폭을 꽉 채운다 */}
           {images.length > 0 && (
-            <div className="relative z-10 px-5 pt-4 space-y-2.5">
+            <div className="relative z-10 px-5 pt-4 space-y-2.5 lg:px-10 lg:pt-7 lg:space-y-4">
               {images.map((image) => (
                 <button
                   key={image.id}
@@ -130,41 +131,45 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
             </div>
           )}
 
-          <div className="relative z-10 px-5 py-5 text-[14px] leading-[1.75] text-gray-800 dark:text-white/80 whitespace-pre-wrap break-words">
+          <div className="relative z-10 px-5 py-5 text-[14px] leading-[1.75] text-gray-800 dark:text-white/80 whitespace-pre-wrap break-words lg:px-10 lg:py-8 lg:text-[18px] lg:leading-[1.8] lg:max-w-[calc(42em+5rem)] lg:text-gray-900 lg:dark:text-white/85">
             {news.content}
           </div>
 
           {/* 첨부파일 — 안내문·신청서를 바로 내려받는 자리 */}
           {files.length > 0 && (
-            <div className="relative z-10 px-5 pb-5">
-              <p className="text-[11.5px] font-bold text-gray-500 dark:text-white/55 mb-2">
+            <div className="relative z-10 px-5 pb-5 lg:px-10 lg:pb-9">
+              <p className="text-[11.5px] lg:text-[16px] font-bold text-gray-500 dark:text-white/55 lg:text-ink-strong mb-2 lg:mb-3">
                 {t('newsDetailAttachments').replace('{n}', String(files.length))}
               </p>
-              <ul className="space-y-1.5">
+              <ul className="space-y-1.5 lg:space-y-2.5 lg:max-w-[640px]">
                 {files.map((file) => (
                   <li key={file.id}>
                     <a
                       href={file.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-[var(--card-border)] bg-gray-50 dark:bg-white/[0.03] hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2.5 lg:gap-4 lg:px-5 lg:py-4 lg:rounded-2xl rounded-xl border border-[var(--card-border)] bg-gray-50 dark:bg-white/[0.03] hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
                     >
-                      <span className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--brand-soft-strong)] text-brand text-[9.5px] font-bold tracking-[0.02em]">
+                      <span className="shrink-0 inline-flex items-center justify-center w-10 h-10 lg:w-14 lg:h-14 lg:rounded-xl lg:text-[13px] rounded-lg bg-[var(--brand-soft-strong)] text-brand text-[9.5px] font-bold tracking-[0.02em]">
                         {extensionOf(file)}
                       </span>
                       <span className="flex-1 min-w-0">
-                        <span className="block text-[13px] font-semibold text-ink-strong truncate">
+                        <span className="block text-[13px] lg:text-[17px] font-semibold text-ink-strong truncate">
                           {file.filename ?? t('newsDetailAttachmentFallback')}
                         </span>
-                        <span className="block text-[11px] text-gray-500 dark:text-white/45">
+                        <span className="block text-[11px] lg:text-[14px] lg:mt-0.5 text-gray-500 dark:text-white/45">
                           {formatSize(file.file_size)}
                         </span>
                       </span>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-400 dark:text-white/40">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
+                      <span className="shrink-0 inline-flex items-center gap-1.5 text-gray-400 dark:text-white/40 lg:h-11 lg:px-4 lg:rounded-full lg:bg-brand lg:text-white lg:text-[15px] lg:font-bold">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="lg:w-[18px] lg:h-[18px]">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        {/* PC — 아이콘만으론 "받기" 버튼인 줄 모르는 분이 많아 글자를 붙인다 */}
+                        <span className="hidden lg:inline">{language === 'en' ? 'Download' : '내려받기'}</span>
+                      </span>
                     </a>
                   </li>
                 ))}
@@ -194,9 +199,9 @@ const Lightbox = ({ src, onClose }: { src: string; onClose: () => void }) => {
         type="button"
         onClick={onClose}
         aria-label={t('newsClose')}
-        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center"
+        className="absolute top-4 right-4 w-10 h-10 lg:top-6 lg:right-6 lg:w-12 lg:h-12 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className="lg:w-6 lg:h-6">
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>

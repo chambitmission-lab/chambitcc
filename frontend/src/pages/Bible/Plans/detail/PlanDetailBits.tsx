@@ -79,7 +79,14 @@ const Shell = ({
   rail?: React.ReactNode
   children: React.ReactNode
 }) => (
-  <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+  // rail 이 있으면 lg 에서 이 페이지를 스스로 스크롤하는 상자로 만든다 — #root overflow 탓에 앱 전역에서
+  // position:sticky 가 죽어 있어, 상자를 만들어야 365일 일정을 내려도 진행률·'오늘 분량 읽기' 레일이 옆에 남는다.
+  // 높이는 PC 글씨 크기 zoom 안이라 var(--az) 로 나눈다
+  <div
+    className={`min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage ${
+      rail ? 'lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto' : ''
+    }`}
+  >
     <div
       className={
         rail ? 'lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12' : ''
@@ -102,7 +109,7 @@ const Shell = ({
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
-        <h1 className="flex-1 min-w-0 text-base font-bold tracking-[-0.015em] text-ink-strong truncate">
+        <h1 className="flex-1 min-w-0 text-base font-bold tracking-[-0.015em] text-ink-strong truncate lg:text-[20px]">
           {title}
         </h1>
         {actions}
@@ -111,7 +118,7 @@ const Shell = ({
     </div>
 
     {rail && (
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:sticky lg:top-[4.5rem]">
+      <aside className="hidden lg:flex lg:w-[340px] lg:shrink-0 lg:flex-col lg:sticky lg:top-3 lg:max-h-[calc((100vh-56px-24px)/var(--az,1))] lg:overflow-y-auto scrollbar-hide">
         {rail}
       </aside>
     )}

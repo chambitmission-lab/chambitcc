@@ -18,7 +18,7 @@ export const EventHero = ({ event, t }: EventHeroProps) => {
   return (
     <div
       className={[
-        'relative overflow-hidden rounded-3xl p-5 mx-4',
+        'relative overflow-hidden rounded-3xl p-5 mx-4 lg:p-8 lg:mx-6',
         'bg-gradient-to-br',
         v.gradient,
         'shadow-[0_18px_44px_-18px_var(--brand-glow)]',
@@ -54,11 +54,11 @@ export const EventHero = ({ event, t }: EventHeroProps) => {
 
       <div className="relative">
         <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[12px] font-bold tracking-wide">
+          <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[12px] lg:text-[14.5px] lg:h-8 lg:px-3 font-bold tracking-wide">
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             {dday}
           </span>
-          <span className="inline-flex items-center px-2.5 h-7 rounded-full bg-black/20 text-white text-[12px] font-semibold">
+          <span className="inline-flex items-center px-2.5 h-7 rounded-full bg-black/20 text-white text-[12px] lg:text-[14.5px] lg:h-8 lg:px-3 font-semibold">
             <CategoryIcon
               category={event.category}
               width={13}
@@ -69,7 +69,7 @@ export const EventHero = ({ event, t }: EventHeroProps) => {
           </span>
           {event.group && (
             <span
-              className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[12px] font-semibold"
+              className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[12px] lg:text-[14.5px] lg:h-8 lg:px-3 font-semibold"
               aria-label={t.groupOnlyBadge}
             >
               <span aria-hidden="true">{event.group.icon || '🔒'}</span>
@@ -78,11 +78,11 @@ export const EventHero = ({ event, t }: EventHeroProps) => {
           )}
         </div>
 
-        <h1 className="text-white text-[23px] font-bold leading-[1.28] tracking-[-0.015em] mb-3">
+        <h1 className="text-white text-[23px] lg:text-[34px] font-bold leading-[1.28] tracking-[-0.015em] mb-3 lg:mb-4">
           {event.title}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/90 text-[13px] font-medium">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-white/90 text-[13px] lg:text-[18px] font-medium">
           <span className="inline-flex items-center gap-1">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" />

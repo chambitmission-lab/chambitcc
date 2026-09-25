@@ -8,16 +8,16 @@ interface AgendaSectionProps {
 const AgendaSection = ({ group }: AgendaSectionProps) => {
   const isPast = group.key === 'past'
   return (
-    <section className={`px-4 mb-5 ${isPast ? 'opacity-70' : ''}`}>
-      <div className="flex items-center justify-between mb-2.5 px-0.5">
-        <h3 className={`text-[14px] font-bold tracking-[-0.01em] ${isPast ? 'text-gray-400 dark:text-white/45' : 'text-ink-strong'}`}>
+    <section className={`px-4 mb-5 lg:mb-7 ${isPast ? 'opacity-70' : ''}`}>
+      <div className="flex items-center justify-between mb-2.5 lg:mb-3 px-0.5">
+        <h3 className={`text-[14px] lg:text-[19px] font-bold tracking-[-0.01em] ${isPast ? 'text-gray-400 dark:text-white/45' : 'text-ink-strong'}`}>
           {group.label}
         </h3>
-        <span className="text-gray-400 dark:text-white/45 text-[11.5px] font-semibold">
+        <span className="text-gray-400 dark:text-white/45 text-[11.5px] lg:text-[15px] font-semibold">
           {group.events.length}건
         </span>
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 lg:gap-3">
         {group.events.map(ev => (
           <AgendaCard key={ev.id} event={ev} />
         ))}

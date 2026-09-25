@@ -3,7 +3,8 @@
 // 넣지 않은 화면과 이유:
 // - 홈 피드('/'·'/feed'): data-feed-scale 로 글씨만 키운다(3컬럼 레이아웃 보호)
 // - 목회자(/pastor): 자체 글씨 크기 토글(pages/Pastor/components/textScale.ts)
-// - 성경 본문·집중 읽기·낭독: 읽기 설정(ReaderSettings·가−/가+)이 따로 있다
+// - 성경 본문: 절 이동·낭독 따라가기가 화면 좌표로 계산돼 zoom 대신 글자 크기 값에 --text-mul 을 곱한다
+//   (hasTextScale 에는 넣어 헤더 '가'가 보인다). 집중 읽기·낭독 영화관은 자체 가−/가+
 // - 지도·지구본·캔버스(/bible/atlas·/mission·/bible/photo-verse): 포인터 좌표 계산이 zoom 과 어긋난다
 //   (/ministry 는 넣었다 — 좌표를 쓰는 칼럼 편집기만 body 포털로 zoom 밖에 띄운다)
 // - 자체 스크롤 좌표로 이동하는 화면(/history), 관리자 화면
@@ -48,6 +49,12 @@ const matches = (pathname: string, route: string) => pathname === route || pathn
 export const zoomsWithTextScale = (pathname: string): boolean =>
   !EXCLUDED.some(r => matches(pathname, r)) && ZOOM_ROUTES.some(r => matches(pathname, r))
 
+// 성경 본문 — /bible 허브는 책을 고르면 같은 주소에서 본문으로 바뀐다
+const BIBLE_READER = /^\/bible(\/\d+\/\d+)?$/
+
 /** 헤더 '가' 버튼을 보일 화면 — 눌러도 아무것도 안 바뀌는 화면에선 숨긴다 */
 export const hasTextScale = (pathname: string, isLoggedIn: boolean): boolean =>
-  zoomsWithTextScale(pathname) || pathname === '/feed' || (pathname === '/' && isLoggedIn)
+  zoomsWithTextScale(pathname) ||
+  BIBLE_READER.test(pathname) ||
+  pathname === '/feed' ||
+  (pathname === '/' && isLoggedIn)

@@ -1,3 +1,4 @@
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { buildReference, copyVerses, type VerseCopyTarget } from './verseCopy'
 
 interface VerseSelectionBarProps {
@@ -12,6 +13,7 @@ interface VerseSelectionBarProps {
 
 /**
  * 여러 절 선택 바 — 선택 중에만 하단에 떠서 개수/참조를 보여주고 복사·공유를 받는다.
+ * PC(lg+)는 글씨·버튼을 한 단계 키운다(노안 패스) — 인라인 스타일이라 미디어쿼리 대신 lg 로 값을 고른다.
  */
 const VerseSelectionBar = ({
   target,
@@ -21,6 +23,9 @@ const VerseSelectionBar = ({
   onExit,
 }: VerseSelectionBarProps) => {
   const selectedCount = target.verses.length
+  const lg = useMediaQuery('(min-width: 1024px)')
+  const btnSize = lg ? '2.875rem' : undefined // 모바일은 .verse-action-btn 기본 2.25rem
+  const iconSize = lg ? '1.375rem' : '1.0625rem'
 
   return (
     <div
@@ -32,11 +37,11 @@ const VerseSelectionBar = ({
         transform: 'translateX(-50%)',
         bottom: '5.5rem',
         width: 'calc(100% - 1.5rem)',
-        maxWidth: '32rem',
+        maxWidth: lg ? '40rem' : '32rem',
         display: 'flex',
         alignItems: 'center',
-        gap: '0.375rem',
-        padding: '0.5rem 0.5rem 0.5rem 0.875rem',
+        gap: lg ? '0.625rem' : '0.375rem',
+        padding: lg ? '0.75rem 0.75rem 0.75rem 1.25rem' : '0.5rem 0.5rem 0.5rem 0.875rem',
         borderRadius: '1rem',
         background: 'var(--ig-primary-background)',
         border: '1px solid var(--ig-border)',
@@ -46,13 +51,14 @@ const VerseSelectionBar = ({
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--ig-primary-text)' }}>
+        <div style={{ fontSize: lg ? '1.0625rem' : '0.8125rem', fontWeight: 700, color: 'var(--ig-primary-text)' }}>
           {selectedCount ? `${selectedCount}개 절 선택` : '담을 절을 탭하세요'}
         </div>
         {selectedCount > 0 && (
           <div
             style={{
-              fontSize: '0.75rem',
+              fontSize: lg ? '0.9375rem' : '0.75rem',
+              marginTop: lg ? '0.125rem' : undefined,
               color: 'var(--ig-secondary-text)',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -71,12 +77,12 @@ const VerseSelectionBar = ({
           onClick={onFillGap}
           style={{
             flexShrink: 0,
-            padding: '0.375rem 0.625rem',
+            padding: lg ? '0.625rem 1rem' : '0.375rem 0.625rem',
             borderRadius: '999px',
             border: '1px solid var(--brand-soft-strong)',
             background: 'var(--brand-soft)',
             color: 'var(--brand)',
-            fontSize: '0.75rem',
+            fontSize: lg ? '0.9375rem' : '0.75rem',
             fontWeight: 700,
             cursor: 'pointer',
             whiteSpace: 'nowrap',
@@ -94,13 +100,15 @@ const VerseSelectionBar = ({
         title="선택한 절 복사"
         aria-label="선택한 절 복사"
         style={{
+          width: btnSize,
+          height: btnSize,
           background: 'var(--brand-soft)',
           border: '1px solid var(--brand-soft-strong)',
           opacity: selectedCount ? 1 : 0.4,
           cursor: selectedCount ? 'pointer' : 'not-allowed',
         }}
       >
-        <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: 'var(--brand)' }}>
+        <span className="material-icons-round" style={{ fontSize: iconSize, color: 'var(--brand)' }}>
           content_copy
         </span>
       </button>
@@ -113,13 +121,15 @@ const VerseSelectionBar = ({
         title="선택한 절 공유"
         aria-label="선택한 절 공유"
         style={{
+          width: btnSize,
+          height: btnSize,
           background: 'var(--brand)',
           border: '1px solid var(--brand)',
           opacity: selectedCount ? 1 : 0.4,
           cursor: selectedCount ? 'pointer' : 'not-allowed',
         }}
       >
-        <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: '#fff' }}>
+        <span className="material-icons-round" style={{ fontSize: iconSize, color: '#fff' }}>
           share
         </span>
       </button>
@@ -131,13 +141,15 @@ const VerseSelectionBar = ({
         title="선택 취소"
         aria-label="선택 취소"
         style={{
+          width: btnSize,
+          height: btnSize,
           background: 'transparent',
           border: '1px solid var(--ig-border)',
         }}
       >
         <span
           className="material-icons-round"
-          style={{ fontSize: '1.0625rem', color: 'var(--ig-secondary-text)' }}
+          style={{ fontSize: iconSize, color: 'var(--ig-secondary-text)' }}
         >
           close
         </span>

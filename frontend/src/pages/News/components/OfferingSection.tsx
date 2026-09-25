@@ -90,21 +90,21 @@ const OfferingSection = () => {
               <OfferingBoxIcon width={23} height={23} />
             </div>
             <div>
-              <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
+              <p className="text-brand text-[10.5px] lg:text-[13px] font-bold tracking-[0.12em] uppercase">
                 OFFERING
               </p>
-              <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">{title}</h2>
+              <h2 className="text-ink-strong text-[17px] lg:text-[21px] font-bold tracking-[-0.015em]">{title}</h2>
             </div>
           </div>
 
           {intro && (
-            <p className="text-gray-600 dark:text-white/60 text-[13px] leading-[1.7] whitespace-pre-line">
+            <p className="text-gray-600 dark:text-white/60 text-[13px] lg:text-[16.5px] leading-[1.7] whitespace-pre-line">
               {intro}
             </p>
           )}
 
           {accounts.length > 0 && (
-            <p className="mt-3 inline-flex items-center gap-1.5 px-3 h-7 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[11.5px] font-bold">
+            <p className="mt-3 inline-flex items-center gap-1.5 px-3 h-7 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[11.5px] lg:text-[14.5px] font-bold">
               <BankIcon width={13} height={13} />
               {t('newsOfferingAccountCount').replace('{n}', String(accounts.length))}
             </p>
@@ -120,23 +120,23 @@ const OfferingSection = () => {
 
           <div className="relative z-10 pl-1">
             {methodTitle && (
-              <h3 className="text-ink-strong text-[15px] font-bold tracking-[-0.015em] mb-3">
+              <h3 className="text-ink-strong text-[15px] lg:text-[18.5px] font-bold tracking-[-0.015em] mb-3">
                 {methodTitle}
               </h3>
             )}
 
             {(depositFormat || depositDesc) && (
               <div className="rounded-2xl bg-gray-50/80 dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/[0.06] px-4 py-3.5">
-                <p className="text-[10.5px] font-bold tracking-[0.08em] text-gray-400 dark:text-white/40 mb-2">
+                <p className="text-[10.5px] lg:text-[13px] font-bold tracking-[0.08em] text-gray-400 dark:text-white/40 mb-2">
                   {t('newsOfferingDepositName')}
                 </p>
                 {depositFormat && (
-                  <p className="inline-flex items-center px-3 py-1.5 rounded-xl bg-brand text-white text-[13px] font-bold shadow-[0_6px_16px_-8px_var(--brand-glow)]">
+                  <p className="inline-flex items-center px-3 py-1.5 rounded-xl bg-brand text-white text-[13px] lg:text-[16.5px] font-bold shadow-[0_6px_16px_-8px_var(--brand-glow)]">
                     {depositFormat}
                   </p>
                 )}
                 {depositDesc && (
-                  <p className="text-gray-600 dark:text-white/60 text-[12.5px] leading-[1.7] mt-2.5 whitespace-pre-line">
+                  <p className="text-gray-600 dark:text-white/60 text-[12.5px] lg:text-[16px] leading-[1.7] mt-2.5 whitespace-pre-line">
                     {depositDesc}
                   </p>
                 )}
@@ -144,7 +144,7 @@ const OfferingSection = () => {
             )}
 
             {note && (
-              <p className="mt-3 text-gray-600 dark:text-white/60 text-[12.5px] leading-[1.7] whitespace-pre-line">
+              <p className="mt-3 text-gray-600 dark:text-white/60 text-[12.5px] lg:text-[16px] leading-[1.7] whitespace-pre-line">
                 {note}
               </p>
             )}
@@ -162,11 +162,11 @@ const OfferingSection = () => {
           <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
           <div className="relative z-10">
-            <h3 className="flex items-center gap-1.5 text-ink-strong text-[15px] font-bold tracking-[-0.015em] mb-1">
+            <h3 className="flex items-center gap-1.5 text-ink-strong text-[15px] lg:text-[18.5px] font-bold tracking-[-0.015em] mb-1">
               <BankIcon width={16} height={16} className="text-brand shrink-0" />
               {t('newsOfferingAccountNumber')}
             </h3>
-            <p className="text-gray-500 dark:text-white/50 text-[12px] mb-3.5">
+            <p className="text-gray-500 dark:text-white/50 text-[12px] lg:text-[15px] mb-3.5">
               {t('newsOfferingCopyHint')}
             </p>
 
@@ -189,11 +189,11 @@ const OfferingSection = () => {
       {/* 말씀 한 구절 */}
       {verseText && (
         <blockquote className="relative overflow-hidden rounded-3xl bg-[var(--brand-soft)] border border-[var(--brand-glow)] px-5 py-4 mt-3">
-          <p className="text-ink-strong text-[13px] leading-[1.8] tracking-[-0.01em]">
+          <p className="text-ink-strong text-[13px] lg:text-[16.5px] leading-[1.8] tracking-[-0.01em]">
             &ldquo;{verseText}&rdquo;
           </p>
           {verseRef && (
-            <cite className="not-italic block mt-2 text-brand text-[12px] font-bold">
+            <cite className="not-italic block mt-2 text-brand text-[12px] lg:text-[15px] font-bold">
               {verseRef}
             </cite>
           )}
@@ -204,7 +204,7 @@ const OfferingSection = () => {
         <button
           type="button"
           onClick={() => navigate('/admin/offering')}
-          className="mt-3 w-full h-11 rounded-2xl border border-dashed border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] text-brand text-[12.5px] font-bold transition-colors"
+          className="mt-3 w-full h-11 rounded-2xl border border-dashed border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] text-brand text-[12.5px] lg:text-[16px] font-bold transition-colors"
         >
           {t('newsOfferingAdminLink')}
         </button>
@@ -241,20 +241,20 @@ const AccountCard = ({
       <div className="flex items-center gap-2.5">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="inline-flex items-center px-2 h-[22px] rounded-lg bg-brand text-white text-[11px] font-bold shrink-0">
+            <span className="inline-flex items-center px-2 h-[22px] rounded-lg bg-brand text-white text-[11px] lg:text-[13.5px] font-bold shrink-0">
               {label}
             </span>
             {bank && (
-              <span className="text-[12px] font-semibold text-gray-500 dark:text-white/55">
+              <span className="text-[12px] lg:text-[15px] font-semibold text-gray-500 dark:text-white/55">
                 {bank}
               </span>
             )}
           </div>
-          <p className="mt-1.5 text-[15px] font-bold tabular-nums tracking-[-0.01em] text-ink-strong break-all">
+          <p className="mt-1.5 text-[15px] lg:text-[18.5px] font-bold tabular-nums tracking-[-0.01em] text-ink-strong break-all">
             {account.account_number}
           </p>
           {(holder || note) && (
-            <p className="mt-0.5 text-[11.5px] text-gray-500 dark:text-white/50 truncate">
+            <p className="mt-0.5 text-[11.5px] lg:text-[14.5px] text-gray-500 dark:text-white/50 truncate">
               {[holder && t('newsOfferingHolder').replace('{name}', holder), note]
             .filter(Boolean)
             .join(' · ')}
@@ -293,8 +293,8 @@ const ErrorState = () => {
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
       <SignalIcon width={28} height={28} />
     </div>
-    <p className="text-ink-strong text-[14.5px] font-bold mb-1">{t('newsOfferingErrorTitle')}</p>
-    <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
+    <p className="text-ink-strong text-[14.5px] lg:text-[18px] font-bold mb-1">{t('newsOfferingErrorTitle')}</p>
+    <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[16px] leading-[1.6]">
       {t('newsOfferingErrorDesc')}
     </p>
   </div>
@@ -308,15 +308,15 @@ const EmptyState = ({ admin, onGoAdmin }: { admin: boolean; onGoAdmin: () => voi
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
       <BankIcon width={28} height={28} />
     </div>
-    <p className="text-ink-strong text-[14.5px] font-bold mb-1">{t('newsOfferingEmptyTitle')}</p>
-    <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
+    <p className="text-ink-strong text-[14.5px] lg:text-[18px] font-bold mb-1">{t('newsOfferingEmptyTitle')}</p>
+    <p className="text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[16px] leading-[1.6]">
       {t(admin ? 'newsOfferingEmptyDescAdmin' : 'newsOfferingEmptyDesc')}
     </p>
     {admin && (
       <button
         type="button"
         onClick={onGoAdmin}
-        className="mt-4 inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] active:scale-[0.98] transition-all"
+        className="mt-4 inline-flex items-center gap-1.5 px-5 h-10 rounded-full bg-brand text-white text-[13px] lg:text-[16.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] active:scale-[0.98] transition-all"
       >
         {t('newsOfferingEmptyCta')}
       </button>

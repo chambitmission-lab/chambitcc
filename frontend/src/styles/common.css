@@ -315,3 +315,11 @@
   .main-content[data-app-scale] .lg\:top-\[4\.5rem\] { top: calc(4.5rem / var(--az, 1)); }
   .main-content[data-app-scale] .lg\:top-\[4\.25rem\] { top: calc(4.25rem / var(--az, 1)); }
 }
+
+/* PC 글씨 크기 — zoom 을 쓸 수 없는 화면(화면 좌표로 스크롤을 계산하는 성경 본문)은 글자 크기 값에
+   --text-mul 을 곱해 따라온다(pages/Bible/styles/verse-display.css). zoom 보다 한 단계 약하게 둔다 —
+   PC 본문 기준이 이미 모바일보다 크다. */
+@media (min-width: 1024px) {
+  .main-content[data-text-scale='large'] { --text-mul: 1.1; }
+  .main-content[data-text-scale='xlarge'] { --text-mul: 1.2; }
+}

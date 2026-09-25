@@ -147,20 +147,20 @@ const News = () => {
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
-        <header className="px-4 pt-5 pb-2">
-          <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+        <header className="px-4 pt-5 pb-2 lg:px-6 lg:pt-7 lg:pb-3">
+          <p className="text-brand text-[11.5px] lg:text-[13px] font-bold tracking-[0.12em] uppercase mb-1.5">
             NEWS
           </p>
-          <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
+          <h1 className="text-ink-strong text-[26px] lg:text-[34px] font-bold leading-none tracking-[-0.02em]">
             {t('newsPageTitle')}
           </h1>
-          <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
+          <p className="text-gray-500 dark:text-white/55 text-[13px] lg:text-[16px] lg:text-gray-600 lg:mt-3 mt-2">
             {t('newsPageSubtitle')}
           </p>
         </header>
 
         {/* 그룹 세그먼트 — 주보 / 새가족 */}
-        <div className="px-4 pt-2 pb-1">
+        <div className="px-4 pt-2 pb-1 lg:px-6">
           <SegmentTrack
             count={SECTIONS.length}
             index={SECTIONS.findIndex(s => s.key === section)}
@@ -181,14 +181,14 @@ const News = () => {
                 className={[
                   // 탭이 6개라 한 칸이 320px 폭에서 ~47px 밖에 안 된다. 가장 긴 '새가족'(3글자)이
                   // 기준 — 360px 미만에선 아이콘을 접고 글자만 남겨 줄이 깨지지 않게 한다.
-                  'relative z-10 flex-1 h-10 rounded-xl text-[11.5px] min-[380px]:text-[12px] font-bold transition-colors duration-200',
-                  'inline-flex items-center justify-center gap-0.5 min-[400px]:gap-1 whitespace-nowrap',
+                  'relative z-10 flex-1 h-10 rounded-xl text-[11.5px] min-[380px]:text-[12px] lg:h-12 lg:text-[15.5px] font-bold transition-colors duration-200',
+                  'inline-flex items-center justify-center gap-0.5 min-[400px]:gap-1 lg:gap-1.5 whitespace-nowrap',
                   section === s.key
                     ? 'text-white'
                     : 'text-gray-600 dark:text-white/60 hover:text-brand hover:bg-[var(--brand-soft)] dark:hover:text-white dark:hover:bg-white/[0.06] active:scale-[0.97]',
                 ].join(' ')}
               >
-                <s.Icon width={14} height={14} className="hidden min-[360px]:block shrink-0" />
+                <s.Icon width={14} height={14} className="hidden min-[360px]:block shrink-0 lg:w-[18px] lg:h-[18px]" />
                 {t(s.labelKey)}
               </button>
             ))}
@@ -212,7 +212,7 @@ const News = () => {
 
         {/* 주보 하위 탭 pill */}
         {section === 'bulletin' && (
-          <div className="px-4 pt-3 pb-1">
+          <div className="px-4 pt-3 pb-1 lg:px-6 lg:pt-4">
             <SegmentTrack
               count={2}
               index={tab === 'image' ? 0 : 1}
@@ -220,11 +220,11 @@ const News = () => {
               markerClassName="seal-marker rounded-full"
             >
               <TabPill active={tab === 'image'} onClick={() => setTab('image')}>
-                <ImagePageIcon width={15} height={15} className="shrink-0" />
+                <ImagePageIcon width={15} height={15} className="shrink-0 lg:w-[18px] lg:h-[18px]" />
                 {t('newsBulletinTabImage')}
               </TabPill>
               <TabPill active={tab === 'digital'} onClick={() => setTab('digital')}>
-                <ScreenPageIcon width={15} height={15} className="shrink-0" />
+                <ScreenPageIcon width={15} height={15} className="shrink-0 lg:w-[18px] lg:h-[18px]" />
                 {t('newsBulletinTabDigital')}
               </TabPill>
             </SegmentTrack>
@@ -233,7 +233,7 @@ const News = () => {
 
         {/* 이미지 주보 */}
         {section === 'bulletin' && tab === 'image' && (
-          <div className="px-4 pt-3 pb-8">
+          <div className="px-4 pt-3 pb-8 lg:px-6 lg:pt-4">
             {loading ? (
               <SkeletonCards />
             ) : bulletins.length === 0 ? (
@@ -253,11 +253,12 @@ const News = () => {
                 {/* 나머지 — 컴팩트 카드 */}
                 {bulletins.length > 1 && (
                   <div className="pt-1">
-                    <p className="text-[12px] font-bold text-gray-500 dark:text-white/55 mb-2 px-1">
+                    <p className="text-[12px] lg:text-[16px] lg:mb-3 lg:mt-2 font-bold text-gray-500 dark:text-white/55 lg:text-ink-strong mb-2 px-1">
                       {t('newsBulletinPast')}
                     </p>
-                    {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 그리드 */}
-                    <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
+                    {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 그리드. 칸 수는 폭으로 정해
+                        PC 글씨 크기(zoom)로 좁아지면 한 열로 풀린다 */}
+                    <div className="space-y-2 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(360px,1fr))] lg:gap-3 lg:space-y-0">
                       {bulletins.slice(1).map(b => (
                         <CompactCard
                           key={b.id}
@@ -348,7 +349,7 @@ const TabPill = ({
     type="button"
     onClick={onClick}
     className={[
-      'relative z-10 flex-1 px-4 h-9 rounded-full text-[12.5px] font-bold whitespace-nowrap transition-colors duration-200',
+      'relative z-10 flex-1 px-4 h-9 rounded-full text-[12.5px] lg:h-11 lg:px-6 lg:text-[15.5px] font-bold whitespace-nowrap transition-colors duration-200',
       'inline-flex items-center justify-center gap-1.5',
       active ? 'text-white' : 'text-gray-600 dark:text-white/65 hover:text-gray-900 dark:hover:text-white',
     ].join(' ')}
@@ -396,12 +397,12 @@ const FeaturedCard = ({
         {/* 상단 chip들 */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           {isThisMonth(bulletin.bulletin_date) && (
-            <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-brand text-white text-[10.5px] font-bold tracking-wide shadow-[0_4px_12px_-2px_var(--brand-glow)]">
+            <span className="inline-flex items-center gap-1 px-2 h-6 lg:h-8 lg:px-3 lg:text-[13.5px] rounded-full bg-brand text-white text-[10.5px] font-bold tracking-wide shadow-[0_4px_12px_-2px_var(--brand-glow)]">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               {t('newsBulletinLatest')}
             </span>
           )}
-          <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-black/45 backdrop-blur-sm text-white text-[10.5px] font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 h-6 lg:h-8 lg:px-3 lg:text-[13.5px] rounded-full bg-black/45 backdrop-blur-sm text-white text-[10.5px] font-semibold">
             <PagesIcon width={11.5} height={11.5} />
             {bulletin.page_count}P
           </span>
@@ -430,29 +431,29 @@ const FeaturedCard = ({
       </div>
 
       {/* 정보 패널 (lg — 썸네일 오른쪽) */}
-      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:flex-col lg:justify-center lg:gap-2 lg:p-7">
-        <p className="text-gray-500 dark:text-white/70 text-[12.5px] font-semibold">
+      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:flex-col lg:justify-center lg:gap-2.5 lg:p-8">
+        <p className="text-gray-500 dark:text-white/70 text-[15.5px] font-semibold">
           {formatLongDate(bulletin.bulletin_date, language)}
         </p>
-        <h2 className="text-gray-900 dark:text-white text-[22px] font-bold leading-[1.32] tracking-[-0.02em] line-clamp-2">
+        <h2 className="text-gray-900 dark:text-white text-[28px] font-bold leading-[1.32] tracking-[-0.02em] line-clamp-2">
           {bulletin.title}
         </h2>
         {bulletin.description && (
-          <p className="text-gray-600 dark:text-white/70 text-[13px] leading-[1.65] line-clamp-3">
+          <p className="text-gray-700 dark:text-white/75 text-[16.5px] leading-[1.7] line-clamp-3">
             {bulletin.description}
           </p>
         )}
-        <div className="flex items-center gap-3 text-gray-500 dark:text-white/60 text-[12px] pt-1">
+        <div className="flex items-center gap-3 text-gray-500 dark:text-white/60 text-[15px] pt-2">
           <span className="inline-flex items-center gap-1">
-            <PagesIcon width={13.5} height={13.5} />
+            <PagesIcon width={17} height={17} />
             {bulletin.page_count}P
           </span>
           <span className="text-gray-300 dark:text-white/25">·</span>
           <span className="inline-flex items-center gap-1">
-            <EyeIcon width={13.5} height={13.5} />
+            <EyeIcon width={17} height={17} />
             {bulletin.views}
           </span>
-          <span className="ml-auto inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
+          <span className="ml-auto inline-flex items-center gap-1.5 h-12 px-6 rounded-full bg-brand text-white text-[17px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
             {t('newsBulletinRead')}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
@@ -498,9 +499,9 @@ const CompactCard = ({
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-sky-400/60 to-blue-500/40" />
 
-      <div className="relative z-10 flex items-center gap-3 pl-3.5 pr-3 py-3">
+      <div className="relative z-10 flex items-center gap-3 pl-3.5 pr-3 py-3 lg:gap-4 lg:pl-5 lg:pr-4 lg:py-4">
         {/* 썸네일 */}
-        <div className="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500/15 to-sky-500/15 border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
+        <div className="shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500/15 to-sky-500/15 border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
           {bulletin.thumbnail_url ? (
             <img
               src={bulletin.thumbnail_url}
@@ -513,13 +514,13 @@ const CompactCard = ({
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
+          <p className="text-[14.5px] lg:text-[18.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
             {bulletin.title}
           </p>
-          <p className="text-[11.5px] text-gray-500 dark:text-white/55 truncate mt-0.5">
+          <p className="text-[11.5px] lg:text-[15px] text-gray-500 dark:text-white/55 lg:text-gray-600 truncate mt-0.5 lg:mt-1">
             {formatLongDate(bulletin.bulletin_date, language)}
           </p>
-          <div className="flex items-center gap-2.5 text-[11px] text-gray-400 dark:text-white/45 mt-0.5">
+          <div className="flex items-center gap-2.5 text-[11px] lg:text-[13.5px] text-gray-400 dark:text-white/45 lg:text-gray-500 mt-0.5 lg:mt-1">
             <span className="inline-flex items-center gap-1">
               <PagesIcon width={12.5} height={12.5} />
               {bulletin.page_count}P
@@ -552,7 +553,7 @@ const CompactCard = ({
 }
 
 // ── Desktop Sidebar (lg+) ────────────────────────
-// 넓어진 화면의 우측을 채우는 보조 위젯 열.
+// 넓어진 화면의 우측을 채우는 보조 위젯 열. PC 전용이라 글씨는 어르신 기준(본문 15px+)으로 잡는다.
 // 새 API 없이 이미 받아둔 목록(useBulletins)과 캐시된 말씀만 재사용한다.
 const NewsSidebar = ({
   bulletins,
@@ -582,13 +583,13 @@ const NewsSidebar = ({
             disabled={openingId === latest.id}
             className={`group w-full text-left ${openingId === latest.id ? 'opacity-60' : ''}`}
           >
-            <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/50">
+            <p className="text-[14.5px] font-semibold text-gray-500 dark:text-white/55">
               {formatLongDate(latest.bulletin_date, language)}
             </p>
-            <p className="mt-1 text-[14px] font-bold text-ink-strong leading-[1.4] line-clamp-2">
+            <p className="mt-1 text-[17.5px] font-bold text-ink-strong leading-[1.4] line-clamp-2">
               {latest.title}
             </p>
-            <span className="mt-2.5 inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
+            <span className="mt-3 inline-flex items-center gap-1 h-11 px-5 rounded-full bg-brand text-white text-[15.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
               {t('newsBulletinRead')}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />
@@ -608,17 +609,17 @@ const NewsSidebar = ({
                   type="button"
                   onClick={() => onBulletinClick(b)}
                   disabled={openingId === b.id}
-                  className={`w-full flex items-center gap-2 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors ${
+                  className={`w-full flex items-center gap-2.5 px-1.5 py-2.5 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors ${
                     openingId === b.id ? 'opacity-60' : ''
                   }`}
                 >
-                  <span className="shrink-0 text-[11px] font-bold tabular-nums text-gray-400 dark:text-white/40">
+                  <span className="shrink-0 text-[14px] font-bold tabular-nums text-gray-500 dark:text-white/50">
                     {new Date(b.bulletin_date).toLocaleDateString(localeOf(language), {
                       month: 'numeric',
                       day: 'numeric',
                     })}
                   </span>
-                  <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-ink-strong">
+                  <span className="flex-1 min-w-0 truncate text-[15.5px] font-semibold text-ink-strong">
                     {b.title}
                   </span>
                 </button>
@@ -636,9 +637,9 @@ const NewsSidebar = ({
               key={sec.key}
               type="button"
               onClick={() => onSectionChange(sec.key)}
-              className="flex items-center gap-2 h-10 px-3 rounded-xl border border-[var(--card-border)] text-[13px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+              className="flex items-center gap-2.5 h-12 px-3.5 rounded-xl border border-[var(--card-border)] text-[15.5px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
             >
-              <sec.Icon width={16} height={16} className="shrink-0 text-brand" />
+              <sec.Icon width={19} height={19} className="shrink-0 text-brand" />
               {t(sec.labelKey)}
               <svg
                 width="15"
@@ -675,9 +676,9 @@ const SidebarCard = ({
   Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
   children: React.ReactNode
 }) => (
-  <section className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-4">
-    <p className="flex items-center gap-1.5 mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
-      <Icon width={14} height={14} className="shrink-0 text-brand" />
+  <section className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-5">
+    <p className="flex items-center gap-1.5 mb-3 text-[14px] font-bold tracking-[0.02em] text-gray-600 dark:text-white/60">
+      <Icon width={17} height={17} className="shrink-0 text-brand" />
       {title}
     </p>
     {children}
@@ -689,7 +690,7 @@ const SkeletonCards = () => (
   <div className="space-y-3">
     {/* lg에선 히어로가 가로 분할이라 세로로 덜 길다 */}
     <div className="aspect-[4/3] lg:aspect-[16/6] rounded-3xl bg-gray-100 dark:bg-white/[0.04] animate-pulse" />
-    <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
+    <div className="space-y-2 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(360px,1fr))] lg:gap-3 lg:space-y-0">
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}

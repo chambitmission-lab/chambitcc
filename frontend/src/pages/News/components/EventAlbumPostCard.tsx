@@ -65,20 +65,20 @@ const EventAlbumPostCard = ({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
+            <span className="text-[14.5px] lg:text-[18px] font-bold text-ink-strong tracking-[-0.01em] truncate">
               {post.title}
             </span>
             {isAdmin && !post.is_published && (
-              <span className="shrink-0 inline-flex items-center px-2 h-5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60 text-[10.5px] font-bold">
+              <span className="shrink-0 inline-flex items-center px-2 h-5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60 text-[10.5px] lg:text-[13px] font-bold">
                 {t('newsPrivate')}
               </span>
             )}
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
-            <p className="text-[11.5px] text-gray-500 dark:text-white/50 truncate">
+            <p className="text-[11.5px] lg:text-[14.5px] text-gray-500 dark:text-white/50 truncate">
               {formatEventDate(post.event_date, t)}
             </p>
-            <span className="shrink-0 inline-flex items-center gap-0.5 px-2 h-5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[10.5px] font-bold">
+            <span className="shrink-0 inline-flex items-center gap-0.5 px-2 h-5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[10.5px] lg:text-[13px] font-bold">
               <EventTagIcon tag={post.tag} width={12} height={12} className="shrink-0" />
               {post.tag}
             </span>
@@ -89,7 +89,7 @@ const EventAlbumPostCard = ({
           <button
             type="button"
             onClick={() => onOpenEvent(post.event_id!)}
-            className="shrink-0 inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[11px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
+            className="shrink-0 inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[11px] lg:text-[13.5px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="5" width="18" height="16" rx="2.5" />
@@ -148,7 +148,7 @@ const EventAlbumPostCard = ({
               {count > 0 && (
                 <span
                   className={[
-                    'text-[12px] font-bold tabular-nums',
+                    'text-[12px] lg:text-[15px] font-bold tabular-nums',
                     active
                       ? 'text-[var(--brand)]'
                       : 'text-gray-600 dark:text-white/65',
@@ -170,13 +170,13 @@ const EventAlbumPostCard = ({
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
           </svg>
-          <span className="text-[12.5px] font-bold tabular-nums">{post.comment_count}</span>
+          <span className="text-[12.5px] lg:text-[15.5px] font-bold tabular-nums">{post.comment_count}</span>
         </button>
       </div>
 
       {/* 리액션 수 요약 */}
       {post.reaction_count > 0 && (
-        <p className="relative z-10 px-4 text-[12.5px] font-bold text-gray-700 dark:text-white/75">
+        <p className="relative z-10 px-4 text-[12.5px] lg:text-[15.5px] font-bold text-gray-700 dark:text-white/75">
           {t('newsEaReactedCount').replace('{n}', String(post.reaction_count))}
         </p>
       )}
@@ -186,13 +186,13 @@ const EventAlbumPostCard = ({
         <div className="relative z-10 px-4 pt-1.5">
           <AnimatedEmojiText
             content={shownCaption}
-            className="text-[13.5px] leading-[1.65] text-gray-700 dark:text-white/80 whitespace-pre-wrap break-words"
+            className="text-[13.5px] lg:text-[16.5px] leading-[1.65] text-gray-700 dark:text-white/80 whitespace-pre-wrap break-words"
           />
           {needsClamp && (
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              className="mt-0.5 text-[12.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-[var(--brand)] transition-colors"
+              className="mt-0.5 text-[12.5px] lg:text-[15.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-[var(--brand)] transition-colors"
             >
               {t('newsEaMore')}
             </button>
@@ -205,13 +205,13 @@ const EventAlbumPostCard = ({
         <button
           type="button"
           onClick={onOpenComments}
-          className="text-[12.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-[var(--brand)] transition-colors"
+          className="text-[12.5px] lg:text-[15.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-[var(--brand)] transition-colors"
         >
           {post.comment_count > 0
             ? t('newsEaAllComments').replace('{n}', String(post.comment_count))
             : t('newsEaFirstComment')}
         </button>
-        <p className="text-[10.5px] text-gray-400 dark:text-white/30 mt-1">{post.time_ago}</p>
+        <p className="text-[10.5px] lg:text-[13px] text-gray-400 dark:text-white/30 mt-1">{post.time_ago}</p>
       </div>
     </article>
   )
