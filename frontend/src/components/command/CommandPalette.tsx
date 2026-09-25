@@ -345,16 +345,114 @@ const CommandPalette = () => {
     : t('cmdkGroupAsk')
   const hints = ko ? ['요 3:16', '예배 시간', '바리새인', '사랑', '위로'] : ['John 3:16', 'service time', 'parking', 'love']
 
-  // 그룹 헤더는 같은 kind 가 처음 나올 때만
-  let lastGroup = ''
+  // 행 하나 — compact 는 PC 우측 "최근" 열처럼 한 줄에 많이 보여야 하는 곳
+  const renderRow = (row: Row, idx: number, compact = false) => {
+    const active = idx === cursor
+    const rowClass = `w-full flex items-center gap-3 lg:gap-4 px-3 lg:px-4 py-2.5 ${compact ? 'lg:py-2' : 'lg:py-3'} rounded-xl lg:rounded-2xl text-left transition-colors ${active ? 'bg-[var(--brand-soft)]' : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'}`
+    const iconBox = `w-9 h-9 ${compact ? 'lg:w-10 lg:h-10' : 'lg:w-12 lg:h-12'} rounded-xl lg:rounded-[14px] flex items-center justify-center shrink-0 ${active ? 'bg-[var(--brand-soft-strong)] text-brand' : 'bg-black/[0.04] dark:bg-white/[0.07] text-ink'}`
+    return (
+      <button
+        key={row.id}
+        type="button"
+        data-idx={idx}
+        onMouseEnter={() => setCursor(idx)}
+        onClick={() => run(row)}
+        className={rowClass}
+      >
+          {row.kind === 'page' ? (
+            <>
+              <span className={iconBox}>
+                {row.entry.icon
+                  ? (() => { const I = NAV_ICONS[row.entry.icon]; return <I className="w-[20px] h-[20px] lg:w-6 lg:h-6" /> })()
+                  : row.entry.glyph
+                    ? (() => { const G = row.entry.glyph; return <G size={20} className="lg:w-6 lg:h-6" weight="duotone" color="currentColor" aria-hidden="true" /> })()
+                    : null}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={`block text-[14px] lg:text-[18px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{ko ? row.entry.label.ko : row.entry.label.en}</span>
+                <span className="block mt-0.5 lg:mt-1 text-[12px] lg:text-[15px] text-ink-muted truncate">{ko ? row.entry.desc.ko : row.entry.desc.en}</span>
+              </span>
+            </>
+          ) : row.kind === 'recent' ? (
+            <>
+              <span className={iconBox}>
+                {(() => { const I = row.item.kind === 'sermon' ? NAV_ICONS.sermon : row.item.kind === 'page' ? NAV_ICONS.news : NAV_ICONS.bible; return <I className="w-[20px] h-[20px] lg:w-6 lg:h-6" /> })()}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={`block text-[14px] lg:text-[18px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{row.item.label}</span>
+                <span className="block mt-0.5 lg:mt-1 text-[12px] lg:text-[15px] text-ink-muted line-clamp-1">{row.item.desc}</span>
+              </span>
+            </>
+          ) : row.kind === 'glossary' ? (
+            <>
+              <span className={iconBox}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-[20px] h-[20px] lg:w-6 lg:h-6" aria-hidden>
+                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+                  <path d="M4 20.5V5.5M8 7.5h8M8 11h5" />
+                </svg>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={`block text-[14px] lg:text-[18px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>
+                  {row.entry.name}
+                  <span className="ml-1.5 text-[11px] lg:text-[13px] font-semibold text-ink-muted">{GLOSSARY_TYPE_LABEL[row.entry.type]}</span>
+                </span>
+                <span className="block mt-0.5 lg:mt-1 text-[12px] lg:text-[15px] text-ink-muted line-clamp-1">{row.entry.desc}</span>
+              </span>
+            </>
+          ) : row.kind === 'ask' ? (
+            <>
+              <img src={chambiAvatar} alt="" className="w-9 h-9 lg:w-12 lg:h-12 rounded-full shrink-0" draggable={false} />
+              <span className="min-w-0 flex-1">
+                <span className={`block text-[14px] lg:text-[18px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>
+                  {t('cmdkAskChambi')}: “{row.message}”
+                </span>
+                <span className="block mt-0.5 lg:mt-1 text-[12px] lg:text-[15px] text-ink-muted truncate">{t('cmdkAskChambiDesc')}</span>
+              </span>
+            </>
+          ) : (
+            <>
+              <span className={iconBox}>
+                {row.kind === 'sermon'
+                  ? (() => { const I = NAV_ICONS.sermon; return <I className="w-[20px] h-[20px] lg:w-6 lg:h-6" /> })()
+                  : (() => { const I = NAV_ICONS.bible; return <I className="w-[20px] h-[20px] lg:w-6 lg:h-6" /> })()}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={`block text-[14px] lg:text-[18px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{row.label}</span>
+                <span className="block mt-0.5 lg:mt-1 text-[12px] lg:text-[15px] text-ink-muted line-clamp-1">{row.desc}</span>
+              </span>
+            </>
+          )}
+        {active && <span className="cmdk-kbd shrink-0 hidden sm:inline-flex">↵</span>}
+      </button>
+    )
+  }
+  const sectionTitle = (text: string) => (
+    <p className="px-2 pt-2 pb-1 text-[11.5px] lg:text-[14px] font-bold tracking-[0.08em] uppercase text-ink-muted">{text}</p>
+  )
+
+  // 첫 화면 섹션별 행(커서 인덱스는 rows 기준 그대로)
+  const indexed = rows.map((row, idx) => ({ row, idx }))
+  const recentRows = indexed.filter((x) => x.row.kind === 'recent')
+  const quickRows = indexed.filter((x) => x.row.kind === 'page')
+  // 검색 결과 — 같은 그룹이 이어지는 구간을 블록으로 묶는다(PC 에선 두 단으로 흘림)
+  const groups: { label: string; items: typeof indexed }[] = []
+  if (debounced) {
+    indexed.forEach((x) => {
+      const g = groupLabel(x.row.kind)
+      const last = groups[groups.length - 1]
+      if (last && last.label === g) last.items.push(x)
+      else groups.push({ label: g, items: [x] })
+    })
+  }
+  const twoCol = rows.length > 6
 
   return createPortal(
-    <div className="fixed inset-0 z-[1100] flex items-start justify-center px-3 pt-[12vh] sm:pt-[16vh]" role="dialog" aria-modal="true" aria-label={t('cmdkTrigger')}>
+    <div className="fixed inset-0 z-[1100] flex items-start justify-center px-3 pt-[12vh] sm:pt-[16vh] lg:pt-[6vh] lg:px-8" role="dialog" aria-modal="true" aria-label={t('cmdkTrigger')}>
       <div className="absolute inset-0 bg-black/45 backdrop-blur-sm" onClick={close} />
-      <div className="cmdk-panel relative w-full max-w-[640px] rounded-2xl overflow-hidden bg-white dark:bg-[#1b1b1d] ring-1 ring-black/[0.08] dark:ring-white/[0.1] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
+      <div className="cmdk-panel relative w-full max-w-[640px] lg:max-w-[1120px] rounded-2xl lg:rounded-[22px] overflow-hidden bg-white dark:bg-[#1b1b1d] ring-1 ring-black/[0.08] dark:ring-white/[0.1] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
         {/* 입력 */}
-        <div className="flex items-center gap-3 px-4 h-14 border-b border-black/[0.06] dark:border-white/[0.08]">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="w-5 h-5 text-ink-muted shrink-0" aria-hidden>
+        <div className="flex items-center gap-3 lg:gap-4 px-4 lg:px-6 h-14 lg:h-[72px] border-b border-black/[0.06] dark:border-white/[0.08]">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="w-5 h-5 lg:w-6 lg:h-6 text-ink-muted shrink-0" aria-hidden>
             <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
           </svg>
           <input
@@ -363,20 +461,20 @@ const CommandPalette = () => {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder={t('cmdkPlaceholder')}
-            className="flex-1 min-w-0 bg-transparent outline-none text-[16px] text-ink-strong placeholder:text-ink-muted"
+            className="flex-1 min-w-0 bg-transparent outline-none text-[16px] lg:text-[21px] text-ink-strong placeholder:text-ink-muted"
             autoComplete="off"
             spellCheck={false}
           />
-          {loading && <span className="text-[12px] text-ink-muted shrink-0">{t('cmdkSearching')}</span>}
+          {loading && <span className="text-[12px] lg:text-[14px] text-ink-muted shrink-0">{t('cmdkSearching')}</span>}
           <button type="button" onClick={close} className="cmdk-kbd hidden sm:inline-flex" aria-label={t('cmdkClose')}>esc</button>
         </div>
 
         {/* 결과 */}
-        <div ref={listRef} className="max-h-[min(64vh,560px)] overflow-y-auto py-2">
+        <div ref={listRef} className="max-h-[min(64vh,560px)] lg:max-h-[calc(94vh-6vh-120px)] overflow-y-auto py-2 lg:py-3">
           {/* ── 커맨드 센터 첫 화면: 퀵 액션 타일(벤토) → 최근 → 빠른 이동 ── */}
           {!debounced && actions.length > 0 && (
-            <div className="px-3 pt-1 pb-2">
-              <p className="px-1 pb-1.5 text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkActionsTitle')}</p>
+            <div className="px-3 lg:px-5 pt-1 pb-2 lg:pb-3">
+              <p className="px-1 pb-1.5 text-[11.5px] lg:text-[14px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkActionsTitle')}</p>
               <div className="cmdk-actions">
                 {rows.map((row, idx) => {
                   if (row.kind !== 'action') return null
@@ -392,7 +490,7 @@ const CommandPalette = () => {
                       className={`cmdk-action${row.accent ? ' cmdk-action--accent' : ''}${active ? ' is-active' : ''}`}
                     >
                       <span className="cmdk-action-icon">
-                        {I ? <I className="w-[18px] h-[18px]" /> : <img src={chambiAvatar} alt="" className="w-7 h-7 rounded-full" draggable={false} />}
+                        {I ? <I className="w-[18px] h-[18px] lg:w-6 lg:h-6" /> : <img src={chambiAvatar} alt="" className="w-7 h-7 lg:w-9 lg:h-9 rounded-full" draggable={false} />}
                       </span>
                       <span className="cmdk-action-label">{row.label}</span>
                       <span className="cmdk-action-desc">{row.desc}</span>
@@ -402,124 +500,59 @@ const CommandPalette = () => {
               </div>
             </div>
           )}
-          {!debounced && recent.length > 0 && (
-            <div className="px-4 pt-1 pb-1 flex items-center justify-between">
-              <p className="text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkRecentTitle')}</p>
-              <button type="button" onClick={() => { clearRecent(); setRecentVersion((v) => v + 1) }} className="text-[11.5px] font-semibold text-ink-muted hover:text-brand">{t('cmdkRecentClear')}</button>
-            </div>
-          )}
-          {rows.map((row, idx) => {
-            if (row.kind === 'action') return null
-            const g = groupLabel(row.kind)
-            const showGroup = !!debounced && g !== lastGroup
-            lastGroup = g
-            // 첫 화면: 최근 다음에 오는 첫 메뉴 행 위에 "빠른 이동" 제목
-            const showQuick = !debounced && row.kind === 'page' && (idx === 0 || rows[idx - 1].kind !== 'page')
-            const active = idx === cursor
-            const rowClass = `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${active ? 'bg-[var(--brand-soft)]' : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'}`
-            const iconBox = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${active ? 'bg-[var(--brand-soft-strong)] text-brand' : 'bg-black/[0.04] dark:bg-white/[0.07] text-ink'}`
-            return (
-              <div key={row.id} className="px-2">
-                {showQuick && (
-                  <p className="px-2 pt-2 pb-1 text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkQuickTitle')}</p>
-                )}
-                {showGroup && (
-                  <p className="px-2 pt-2 pb-1 text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{g}</p>
-                )}
-                <button
-                  type="button"
-                  data-idx={idx}
-                  onMouseEnter={() => setCursor(idx)}
-                  onClick={() => run(row)}
-                  className={rowClass}
-                >
-                  {row.kind === 'page' ? (
-                    <>
-                      <span className={iconBox}>
-                        {row.entry.icon
-                          ? (() => { const I = NAV_ICONS[row.entry.icon]; return <I className="w-[20px] h-[20px]" /> })()
-                          : row.entry.glyph
-                            ? (() => { const G = row.entry.glyph; return <G size={20} weight="duotone" color="currentColor" aria-hidden="true" /> })()
-                            : null}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{ko ? row.entry.label.ko : row.entry.label.en}</span>
-                        <span className="block mt-0.5 text-[12px] text-ink-muted truncate">{ko ? row.entry.desc.ko : row.entry.desc.en}</span>
-                      </span>
-                    </>
-                  ) : row.kind === 'recent' ? (
-                    <>
-                      <span className={iconBox}>
-                        {(() => { const I = row.item.kind === 'sermon' ? NAV_ICONS.sermon : row.item.kind === 'page' ? NAV_ICONS.news : NAV_ICONS.bible; return <I className="w-[20px] h-[20px]" /> })()}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{row.item.label}</span>
-                        <span className="block mt-0.5 text-[12px] text-ink-muted line-clamp-1">{row.item.desc}</span>
-                      </span>
-                    </>
-                  ) : row.kind === 'glossary' ? (
-                    <>
-                      <span className={iconBox}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-[20px] h-[20px]" aria-hidden>
-                          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
-                          <path d="M4 20.5V5.5M8 7.5h8M8 11h5" />
-                        </svg>
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>
-                          {row.entry.name}
-                          <span className="ml-1.5 text-[11px] font-semibold text-ink-muted">{GLOSSARY_TYPE_LABEL[row.entry.type]}</span>
-                        </span>
-                        <span className="block mt-0.5 text-[12px] text-ink-muted line-clamp-1">{row.entry.desc}</span>
-                      </span>
-                    </>
-                  ) : row.kind === 'ask' ? (
-                    <>
-                      <img src={chambiAvatar} alt="" className="w-9 h-9 rounded-full shrink-0" draggable={false} />
-                      <span className="min-w-0 flex-1">
-                        <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>
-                          {t('cmdkAskChambi')}: “{row.message}”
-                        </span>
-                        <span className="block mt-0.5 text-[12px] text-ink-muted truncate">{t('cmdkAskChambiDesc')}</span>
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className={iconBox}>
-                        {row.kind === 'sermon'
-                          ? (() => { const I = NAV_ICONS.sermon; return <I className="w-[20px] h-[20px]" /> })()
-                          : (() => { const I = NAV_ICONS.bible; return <I className="w-[20px] h-[20px]" /> })()}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{row.label}</span>
-                        <span className="block mt-0.5 text-[12px] text-ink-muted line-clamp-1">{row.desc}</span>
-                      </span>
-                    </>
-                  )}
-                  {active && <span className="cmdk-kbd shrink-0 hidden sm:inline-flex">↵</span>}
-                </button>
-              </div>
-            )
-          })}
-          {debounced && rows.length === 1 && !loading && (
-            <p className="px-5 pt-1 pb-2 text-[12.5px] text-ink-muted">{t('cmdkNoResult')}</p>
-          )}
+          {/* 첫 화면(모바일): 최근 → 빠른 이동 → 추천 검색어 한 줄 흐름
+              PC(lg): 좌측 빠른 이동(2열 격자)+추천 검색어 / 우측 최근 — 스크롤 없이 한 화면 */}
           {!debounced && (
-            <div className="px-4 pt-3 pb-1">
-              <p className="text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted mb-1.5">{t('cmdkHintTitle')}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {hints.map((h) => (
-                  <button key={h} type="button" onClick={() => setQuery(h)} className="px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand text-[12.5px] font-semibold hover:bg-[var(--brand-soft-strong)]">
-                    {h}
-                  </button>
-                ))}
+            <div className={`grid grid-cols-1 lg:px-3 ${recentRows.length > 0 ? 'lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-x-3' : ''}`}>
+              {recentRows.length > 0 && (
+                <div className="order-1 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:pl-3 lg:border-l border-black/[0.06] dark:border-white/[0.08]">
+                  <div className="px-4 lg:px-2 pt-1 lg:pt-2 pb-1 flex items-center justify-between">
+                    <p className="text-[11.5px] lg:text-[14px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkRecentTitle')}</p>
+                    <button type="button" onClick={() => { clearRecent(); setRecentVersion((v) => v + 1) }} className="text-[11.5px] lg:text-[14px] font-semibold text-ink-muted hover:text-brand">{t('cmdkRecentClear')}</button>
+                  </div>
+                  <div className="px-2 lg:px-0">
+                    {recentRows.map((x) => renderRow(x.row, x.idx, true))}
+                  </div>
+                </div>
+              )}
+              {quickRows.length > 0 && (
+                <div className="order-2 lg:col-start-1 lg:row-start-1 px-2 lg:px-0">
+                  {sectionTitle(t('cmdkQuickTitle'))}
+                  <div className={`grid grid-cols-1 lg:grid-cols-2 lg:gap-x-1 ${recentRows.length > 0 ? '' : 'xl:grid-cols-3'}`}>
+                    {quickRows.map((x) => renderRow(x.row, x.idx))}
+                  </div>
+                </div>
+              )}
+              <div className="order-3 lg:col-start-1 lg:row-start-2 px-4 lg:px-2 pt-3 lg:pt-4 pb-1 lg:pb-2">
+                <p className="text-[11.5px] lg:text-[14px] font-bold tracking-[0.08em] uppercase text-ink-muted mb-1.5 lg:mb-2">{t('cmdkHintTitle')}</p>
+                <div className="flex flex-wrap gap-1.5 lg:gap-2">
+                  {hints.map((h) => (
+                    <button key={h} type="button" onClick={() => setQuery(h)} className="px-2.5 lg:px-4 py-1 lg:py-2 rounded-full bg-[var(--brand-soft)] text-brand text-[12.5px] lg:text-[15px] font-semibold hover:bg-[var(--brand-soft-strong)]">
+                      {h}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
+          )}
+          {/* 검색 결과 — 결과가 많으면 PC 에서 두 단(그룹은 쪼개지 않음, 읽는 순서 = ↑↓ 순서) */}
+          {debounced && (
+            <div className={twoCol ? 'lg:columns-2 lg:gap-x-3 lg:px-3' : 'lg:px-3'}>
+              {groups.map((g) => (
+                <div key={g.label + g.items[0].idx} className="px-2 lg:px-0 break-inside-avoid">
+                  {sectionTitle(g.label)}
+                  {g.items.map((x) => renderRow(x.row, x.idx))}
+                </div>
+              ))}
+            </div>
+          )}
+          {debounced && rows.length === 1 && !loading && (
+            <p className="px-5 lg:px-7 pt-1 pb-2 text-[12.5px] lg:text-[15px] text-ink-muted">{t('cmdkNoResult')}</p>
           )}
         </div>
 
         {/* 푸터 — 키 안내 (PC) */}
-        <div className="hidden sm:flex items-center gap-4 px-4 h-9 border-t border-black/[0.06] dark:border-white/[0.08] text-[11.5px] text-ink-muted">
+        <div className="hidden sm:flex items-center gap-4 lg:gap-6 px-4 lg:px-6 h-9 lg:h-12 border-t border-black/[0.06] dark:border-white/[0.08] text-[11.5px] lg:text-[14px] text-ink-muted">
           <span className="inline-flex items-center gap-1"><span className="cmdk-kbd">↑</span><span className="cmdk-kbd">↓</span>{t('cmdkNav')}</span>
           <span className="inline-flex items-center gap-1"><span className="cmdk-kbd">↵</span>{t('cmdkSelect')}</span>
           <span className="inline-flex items-center gap-1"><span className="cmdk-kbd">esc</span>{t('cmdkClose')}</span>

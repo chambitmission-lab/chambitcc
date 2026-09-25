@@ -149,3 +149,46 @@ button.cmdk-kbd:hover {
   border-color: transparent;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22), 0 0 0 3px var(--brand-soft-strong), 0 12px 24px -8px var(--brand-glow);
 }
+
+/* ── PC(lg) 노안 패스 — 모바일은 그대로, 넓은 화면에서만 글자·타일·키캡을 한 단계 키운다 ── */
+@media (min-width: 1024px) {
+  .cmdk-kbd {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .cmdk-actions {
+    gap: 12px;
+  }
+}
+/* 넓은 PC 는 바로 하기 6개를 한 줄로 — 세로 공간을 아래 목록에 돌려준다 */
+@media (min-width: 1280px) {
+  .cmdk-actions {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .cmdk-action {
+    gap: 4px;
+    min-height: 124px;
+    padding: 14px 16px;
+    border-radius: 18px;
+  }
+  .cmdk-action--accent::after {
+    border-radius: 14px;
+  }
+  .cmdk-action-icon {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 8px;
+    border-radius: 13px;
+  }
+  .cmdk-action-label {
+    font-size: 17px;
+  }
+  .cmdk-action-desc {
+    font-size: 14.5px;
+  }
+}
