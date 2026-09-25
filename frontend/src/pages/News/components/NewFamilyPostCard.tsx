@@ -1,7 +1,8 @@
 // 새가족 포스트 카드 (Single Responsibility: 인스타형 포스트 한 장 표시)
 import { useState } from 'react'
 import NewFamilyPhotoCarousel from './NewFamilyPhotoCarousel'
-import { WELCOME_EMOJI_META, WelcomeEmojiImg } from './welcomeEmoji'
+import { WelcomeEmojiImg } from './welcomeEmoji'
+import { WELCOME_EMOJI_META } from './welcomeEmojiMeta'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Translate } from '../../../locales'
 import { AnimatedEmojiText } from '../../../components/common/animatedEmoji'

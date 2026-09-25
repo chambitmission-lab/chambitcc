@@ -2,7 +2,7 @@
 // NewFamilyViewer 미러링 — 포스트 형태(제목·캡션)가 달라 복제했다.
 import { useEffect, useRef, useState } from 'react'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import { formatEventDate } from './EventAlbumPostCard'
+import { formatEventDate } from './eventAlbumDate'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { useLanguage } from '../../../contexts/LanguageContext'
 

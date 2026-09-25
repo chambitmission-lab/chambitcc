@@ -525,3 +525,11 @@
 .bible-books-section:not([data-animate]) :is(.bjp-row, .bjp-row--done .bjp-node) {
   animation: none;
 }
+
+/* ── PC(lg+) 노안 패스 — 성경 허브 book-selector/desktop.css 와 같은 문법(글자 크기 × --text-mul).
+   노드 좌표는 BookJourneyPath 가 실측하므로 흐름 안의 라벨·마일스톤 글씨만 키운다. */
+@media (min-width: 1024px) {
+  .bjp-label__name { font-size: calc(1.0625rem * var(--text-mul, 1)); }
+  .bjp-label__meta { font-size: calc(0.8125rem * var(--text-mul, 1)); }
+  .bjp-milestone__pill { font-size: calc(0.875rem * var(--text-mul, 1)); }
+}

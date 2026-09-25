@@ -1,37 +1,10 @@
-// 환영 리액션 이모지 메타 + 렌더러
+// 환영 리액션 이모지 렌더러 (메타는 welcomeEmojiMeta.ts)
 // 기도의 🙏 골드는 "기도하는 순간" 전용이라 새가족 환영은 별도 세트를 쓴다.
 // 코드는 Noto Animated Emoji의 코드포인트(소문자 hex, ZWJ는 '_' 결합).
 import { useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import type { Translation } from '../../../locales'
 import { animatedEmojiUrl } from '../../../components/common/animatedEmoji'
-import { WELCOME_EMOJIS } from '../../../types/newFamily'
-
-export interface WelcomeEmojiMeta {
-  char: string
-  code: string
-  labelKey: keyof Translation
-}
-
-export const WELCOME_EMOJI_META: WelcomeEmojiMeta[] = [
-  { char: '👋', code: '1f44b', labelKey: 'newsNfEmojiWelcome' },
-  { char: '❤️', code: '2764_fe0f', labelKey: 'newsNfEmojiLove' },
-  { char: '🙌', code: '1f64c', labelKey: 'newsNfEmojiTogether' },
-  { char: '🎉', code: '1f389', labelKey: 'newsNfEmojiCongrats' },
-]
-
-// types의 화이트리스트와 어긋나면 조용히 빠지는 대신 개발 중에 바로 드러나게 한다
-if (import.meta.env.DEV) {
-  const missing = WELCOME_EMOJIS.filter(
-    (c) => !WELCOME_EMOJI_META.some((m) => m.char === c),
-  )
-  if (missing.length > 0) {
-    console.warn('[welcomeEmoji] 메타가 빠진 이모지:', missing)
-  }
-}
-
-export const findWelcomeMeta = (char: string): WelcomeEmojiMeta | undefined =>
-  WELCOME_EMOJI_META.find((m) => m.char === char)
+import type { WelcomeEmojiMeta } from './welcomeEmojiMeta'
 
 interface WelcomeEmojiImgProps {
   meta: WelcomeEmojiMeta

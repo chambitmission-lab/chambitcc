@@ -7,3 +7,4 @@
 @import './book-selector/grid.css'; /* 책 카드 격자 */
 @import './book-selector/list.css'; /* 목록 보기 */
 @import './book-selector/stagger.css'; /* 진입 스태거 게이트 */
+@import './book-selector/desktop.css'; /* PC(lg+) 노안 패스 — 마지막에 둬서 위 규칙을 덮는다 */

@@ -182,3 +182,10 @@
   .title-unlock-burst,
   .title-unlock-card.is-legendary { animation: none; }
 }
+
+/* PC(lg+) 헤더 '가' 배율 — 앱 루트 오버레이라 <main data-app-scale> zoom 밖이다. 카드 자체를 zoom 한다
+   (TitleDetailSheet 와 같은 문법). 가로는 360px 상한이 먼저 걸려 vw 보정은 필요 없다. */
+@media (min-width: 1024px) {
+  .title-unlock-card[data-scale='large'] { zoom: 1.15; }
+  .title-unlock-card[data-scale='xlarge'] { zoom: 1.3; }
+}

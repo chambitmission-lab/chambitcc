@@ -1,0 +1,115 @@
+/* ── PC(lg+) 노안 패스 — 성경 허브(읽기 요약 · 신구약 탭 · 필터 칩 · 통독표 · 목록)
+   여정 보기는 book-journey.css 가 이 파일보다 뒤에 로드돼 그 파일 끝에 따로 둔다. ──
+   성경 본문(verse-display.css 끝 lg 블록)과 같은 문법: zoom 이 아니라 글자 크기에 헤더 '가' 배율
+   (--text-mul, 1 · 1.1 · 1.2)을 곱한다. 통독표 도장 격자는 확정 디자인 — 3열·620px 컬럼
+   (BibleStudy.tsx 주석)은 그대로 두고 글씨·인장·누르는 영역만 키운다. 책 이름은 키운 만큼
+   한 줄에 안 들어갈 수 있어 PC 에서만 두 줄까지 허용한다(같은 행 카드는 grid stretch 로 높이가 같다).
+   책 선택기 CSS 중 가장 마지막에 불러와(book-selector.css) 같은 명시도로 덮는다. */
+@media (min-width: 1024px) {
+  /* 읽기 진행 요약 */
+  .reading-summary__title { font-size: calc(1.125rem * var(--text-mul, 1)); }
+  .reading-summary__subtitle {
+    font-size: calc(0.84375rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .reading-summary__view {
+    min-height: 2.5rem;
+    padding: 0.5rem 0.875rem 0.5rem 0.7rem;
+    font-size: calc(0.875rem * var(--text-mul, 1));
+  }
+  .reading-hero__label { font-size: calc(0.9375rem * var(--text-mul, 1)); }
+  .reading-hero__cheer { font-size: calc(0.9375rem * var(--text-mul, 1)); }
+  .reading-hero__read,
+  .reading-hero__left { font-size: calc(0.84375rem * var(--text-mul, 1)); }
+  .reading-tile__label { font-size: calc(0.875rem * var(--text-mul, 1)); }
+  .reading-tile__value small { font-size: calc(0.84375rem * var(--text-mul, 1)); }
+  .reading-tile__detail {
+    font-size: calc(0.84375rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+
+  /* 신약/구약 탭 · 카테고리 칩 · 보기 토글 */
+  .testament-tab {
+    min-height: 3rem;
+    font-size: calc(1.0625rem * var(--text-mul, 1));
+  }
+  .testament-tab__icon { font-size: 1.25rem; }
+  .testament-tab__count {
+    height: 1.35rem;
+    min-width: 1.5rem;
+    font-size: calc(0.78125rem * var(--text-mul, 1));
+  }
+  .book-filter-chip {
+    min-height: 2.5rem;
+    padding: 0.5rem 1rem;
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .book-filter-chip__pct { font-size: calc(0.8125rem * var(--text-mul, 1)); }
+  .testament-title {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .view-toggle__btn {
+    width: 2.75rem;
+    height: 2.25rem;
+  }
+  .view-toggle__btn .material-icons-round { font-size: 1.25rem; }
+
+  /* 통독표 — 인장·원반은 한 치수씩, 글씨는 두 단계 */
+  .book-cell { padding: 0.95rem 0.9rem 0.85rem; }
+  .book-stamp-halo {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+  .book-stamp {
+    width: 34px;
+    height: 34px;
+    font-size: 0.74rem;
+  }
+  .book-cell__name {
+    font-size: calc(1rem * var(--text-mul, 1));
+    white-space: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .book-cell__meta {
+    font-size: calc(0.8125rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .book-cell__badge { font-size: calc(0.6875rem * var(--text-mul, 1)); }
+  .book-cell__pct { font-size: calc(0.84375rem * var(--text-mul, 1)); }
+  .books-grid .book-cell .book-progress-track { height: 6px; }
+
+  .unread-chip {
+    min-height: 2.5rem;
+    padding: 0.4rem 0.875rem;
+    font-size: calc(0.875rem * var(--text-mul, 1));
+  }
+  .books-list__empty { font-size: calc(0.9375rem * var(--text-mul, 1)); }
+
+  /* 목록 보기 */
+  .book-row { padding: 0.85rem 0.9rem 0.85rem 0.75rem; }
+  .book-row__num { font-size: calc(0.8125rem * var(--text-mul, 1)); }
+  .book-row__avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 0.78rem;
+  }
+  .book-row__avatar .material-icons-round { font-size: 1.25rem; }
+  .book-row__name { font-size: calc(1.0625rem * var(--text-mul, 1)); }
+  .book-row__badge { font-size: calc(0.6875rem * var(--text-mul, 1)); }
+  .book-row__frac,
+  .book-row__pct {
+    font-size: calc(0.8125rem * var(--text-mul, 1));
+    color: var(--text-body, var(--ig-secondary-text));
+  }
+  .book-row__track { height: 5px; }
+  .book-row__cta {
+    min-height: 2.25rem;
+    padding: 0.45rem 0.875rem;
+    font-size: calc(0.84375rem * var(--text-mul, 1));
+  }
+}

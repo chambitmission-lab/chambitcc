@@ -317,6 +317,16 @@
   .main-content[data-app-scale] .min-h-screen:not([class*='lg:min-h-']) { min-height: calc(100vh / var(--az, 1)); }
   .main-content[data-app-scale] .lg\:top-\[4\.5rem\] { top: calc(4.5rem / var(--az, 1)); }
   .main-content[data-app-scale] .lg\:top-\[4\.25rem\] { top: calc(4.25rem / var(--az, 1)); }
+  /* zoom 화면 안에 뜨는(포털 아닌) 모달·시트의 높이 상한 — 반응형 max-h 를 따로 준 요소는 그 값을 존중한다.
+     포털(body)로 뜨는 모달은 zoom 밖이라 이 규칙이 닿지 않고, 닿을 필요도 없다 */
+  .main-content[data-app-scale] .max-h-\[78vh\]:not([class*=':max-h-']) { max-height: calc(78vh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[80vh\]:not([class*=':max-h-']) { max-height: calc(80vh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[82vh\]:not([class*=':max-h-']) { max-height: calc(82vh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[85vh\]:not([class*=':max-h-']) { max-height: calc(85vh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[88vh\]:not([class*=':max-h-']) { max-height: calc(88vh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[90vh\]:not([class*=':max-h-']) { max-height: calc(90vh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[92vh\]:not([class*=':max-h-']) { max-height: calc(92vh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[94vh\]:not([class*=':max-h-']) { max-height: calc(94vh / var(--az, 1)); }
 }
 
 /* PC 글씨 크기 — zoom 을 쓸 수 없는 화면(화면 좌표로 스크롤을 계산하는 성경 본문)은 글자 크기 값에

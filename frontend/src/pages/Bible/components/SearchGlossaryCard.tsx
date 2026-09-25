@@ -31,37 +31,37 @@ const SearchGlossaryCard = ({ entry }: { entry: GlossaryEntry }) => {
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-black/[0.05] dark:border-white/[0.08] px-4 py-4 mb-4 lg:max-w-[680px]"
+      className="relative overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-black/[0.05] dark:border-white/[0.08] px-4 py-4 mb-4 lg:max-w-[680px] lg:px-5 lg:py-5"
       aria-label={`성경 사전 — ${entry.name}`}
     >
       <div className="absolute -top-8 -right-8 w-28 h-28 bg-[var(--brand-soft)] rounded-full blur-2xl pointer-events-none" />
       <div className="relative flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
-          <span className="material-icons-round text-[22px]">{TYPE_ICON[entry.type]}</span>
+        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
+          <span className="material-icons-round text-[22px] lg:text-[26px]">{TYPE_ICON[entry.type]}</span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
+          <p className="text-brand text-[10.5px] lg:text-[length:calc(13px*var(--text-mul,1))] font-bold tracking-[0.1em]">
             성경 사전 · {GLOSSARY_TYPE_LABEL[entry.type]}
           </p>
-          <h3 className="mt-0.5 text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
+          <h3 className="mt-0.5 text-ink-strong text-[17px] lg:text-[length:calc(20px*var(--text-mul,1))] font-bold tracking-[-0.015em]">
             {entry.name}
             {entry.alt?.length ? (
-              <span className="ml-1.5 text-[12px] font-semibold text-ink-muted">{entry.alt.join(' · ')}</span>
+              <span className="ml-1.5 text-[12px] lg:text-[length:calc(14px*var(--text-mul,1))] font-semibold text-ink-muted lg:text-ink">{entry.alt.join(' · ')}</span>
             ) : null}
           </h3>
-          <p className="mt-2 text-[14px] leading-relaxed text-ink break-keep">{entry.desc}</p>
+          <p className="mt-2 text-[14px] lg:text-[length:calc(17px*var(--text-mul,1))] leading-relaxed text-ink break-keep">{entry.desc}</p>
           {firstRef ? (
             <button
               type="button"
               onClick={goToFirstRef}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-soft)] px-3 py-1.5 text-[12.5px] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)]"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-soft)] px-3 py-1.5 lg:min-h-[44px] lg:px-4 text-[12.5px] lg:text-[length:calc(15px*var(--text-mul,1))] font-bold text-brand transition-colors hover:bg-[var(--brand-soft-strong)]"
             >
               <span className="material-icons-round text-[16px]">auto_stories</span>
               대표 구절 — {entry.first}
               <span className="material-icons-round text-[16px]">chevron_right</span>
             </button>
           ) : (
-            <p className="mt-2.5 text-[12px] text-ink-muted">{entry.first}</p>
+            <p className="mt-2.5 text-[12px] lg:text-[length:calc(14px*var(--text-mul,1))] text-ink-muted lg:text-ink">{entry.first}</p>
           )}
         </div>
       </div>

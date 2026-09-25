@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
@@ -21,12 +21,9 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
   const dateLabel = formatEventDateLabel(event.start_datetime)
 
   // 배경 로드 전엔 그라데이션만 보이다가 부드럽게 페이드인 (팝인 방지)
-  const imgRef = useRef<HTMLImageElement>(null)
-  const [imgLoaded, setImgLoaded] = useState(false)
-  useEffect(() => {
-    // 캐시 히트 시 onLoad가 이미 지나갔을 수 있어 complete로 보정
-    setImgLoaded(imgRef.current?.complete ?? false)
-  }, [v.bg])
+  // 어떤 배경이 로드됐는지로 기억해 카테고리(배경)가 바뀌면 자동으로 다시 페이드인한다
+  const [loadedBg, setLoadedBg] = useState<string | null>(null)
+  const imgLoaded = loadedBg === v.bg
 
   return (
     <button
@@ -48,13 +45,16 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
       >
         {/* 카테고리 배경 일러스트 — 우측 배치, 좌측은 그라데이션 여백 */}
         <img
-          ref={imgRef}
+          // 캐시 히트 시 onLoad가 이미 지나갔을 수 있어 complete로 보정
+          ref={(el) => {
+            if (el?.complete) setLoadedBg(v.bg)
+          }}
           src={v.bg}
           alt=""
           aria-hidden="true"
           decoding="async"
           fetchPriority="high"
-          onLoad={() => setImgLoaded(true)}
+          onLoad={() => setLoadedBg(v.bg)}
           className={[
             'absolute inset-0 w-full h-full object-cover object-right pointer-events-none',
             'transition-opacity duration-500',

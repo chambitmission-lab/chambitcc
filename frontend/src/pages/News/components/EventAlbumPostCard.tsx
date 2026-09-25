@@ -2,11 +2,12 @@
 // 새가족 카드(NewFamilyPostCard)를 미러링하되, 액센트는 브랜드 토큰(--brand)으로 통일한다.
 import { useMemo, useState } from 'react'
 import NewFamilyPhotoCarousel from './NewFamilyPhotoCarousel'
-import { EVENT_ALBUM_EMOJI_META, EventAlbumEmojiImg } from './eventAlbumEmoji'
+import { EventAlbumEmojiImg } from './eventAlbumEmoji'
+import { EVENT_ALBUM_EMOJI_META } from './eventAlbumEmojiMeta'
+import { formatEventDate } from './eventAlbumDate'
 import { AnimatedEmojiText } from '../../../components/common/animatedEmoji'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import type { Translate } from '../../../locales'
 import { AlbumIcon, EventTagIcon } from './NewsIcons'
 
 interface EventAlbumPostCardProps {
@@ -18,15 +19,6 @@ interface EventAlbumPostCardProps {
   onOpenEvent?: (eventId: number) => void
   isAdmin?: boolean
   onDelete?: () => void
-}
-
-export const formatEventDate = (value: string, t: Translate): string => {
-  // 'YYYY-MM-DD' — 타임존 보정 없이 그대로 읽는다 (행사일은 날짜 개념)
-  const [y, m, d] = value.split('-').map(Number)
-  if (!y || !m || !d) return value
-  const days = t('newsWeekdays').split(',')
-  const weekday = days[new Date(y, m - 1, d).getDay()]
-  return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${weekday})`
 }
 
 const CAPTION_CLAMP = 90
