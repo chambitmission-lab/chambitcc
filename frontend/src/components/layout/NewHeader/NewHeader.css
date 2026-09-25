@@ -255,3 +255,19 @@
 /* 메뉴 카드 글로우는 NavigationMenu.tsx 에서 Tailwind 토큰으로 직접 표현하므로
  * 별도 amber 네온 CSS는 두지 않는다.
  */
+
+/* PC 헤더 메뉴 글씨 — 노안 대응. 기본 16px(드롭다운 15.5px)에 헤더 '가'(utils/feedTextScale.ts) 배율을 곱한다.
+ * 헤더 높이(56px)는 그대로 둔다 — 페이지 sticky(top-14)가 이 높이를 기준으로 붙는다.
+ * --hn(가로 메뉴줄): 메뉴와 검색창이 화면 가운데 한 줄을 나눠 쓰므로 좁은 PC에서 우상단 계정 묶음과
+ *   부딪히지 않게 넓은 화면(1536px+)에서만 키운다.
+ * --hd(드롭다운): 가로 폭 제약이 없어 lg 전 구간에서 따라 커진다. */
+@media (min-width: 1024px) {
+  .desktop-nav[data-scale='large'] { --hd: 1.1; }
+  .desktop-nav[data-scale='xlarge'] { --hd: 1.2; }
+  /* 검색창 단축키 칩 — 캡슐 글씨(15px)에 맞춰 한 단계 */
+  .search-capsule .keycap { min-width: 22px; height: 22px; font-size: 12px; border-radius: 6px; }
+}
+@media (min-width: 1536px) {
+  .desktop-nav[data-scale='large'] { --hn: 1.08; }
+  .desktop-nav[data-scale='xlarge'] { --hn: 1.15; }
+}

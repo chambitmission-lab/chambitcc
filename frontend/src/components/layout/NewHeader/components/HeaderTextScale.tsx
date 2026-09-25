@@ -46,7 +46,7 @@ const HeaderTextScale = () => {
         aria-haspopup="true"
         aria-label={`${title} · ${names[scale]}`}
         title={title}
-        className={`relative flex h-9 items-center gap-1 rounded-full px-2.5 transition-colors duration-150 ${
+        className={`relative flex h-10 items-center gap-1 rounded-full px-3 transition-colors duration-150 ${
           open || scale !== 'base'
             ? 'bg-[var(--brand-soft)] text-brand'
             : 'text-gray-600 hover:bg-[var(--brand-soft)] hover:text-brand dark:text-white/75'
@@ -54,10 +54,10 @@ const HeaderTextScale = () => {
       >
         {/* 작은 가 + 큰 가 — 글씨 크기 버튼임을 글자만으로 */}
         <span className="chrome-type-off flex items-baseline font-bold leading-none" aria-hidden>
-          <span className="text-[12px]">가</span>
-          <span className="text-[18px]">가</span>
+          <span className="text-[13px]">가</span>
+          <span className="text-[20px]">가</span>
         </span>
-        <span className="hidden xl:inline text-[13px] font-semibold">{title}</span>
+        <span className="hidden xl:inline text-[15px] font-semibold">{title}</span>
       </button>
 
       {open && (

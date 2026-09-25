@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { Translation } from '../../../../locales'
 import { preloadMenuRoutes } from '../../../../utils/routePreload'
+import { useFeedTextScale } from '../../../../utils/feedTextScale'
 import { NAV_ICONS, Svg, type NavIconKey } from './NavIcons'
 
 // PC(lg+) 전용 헤더 메뉴 — 교회 안내 페이지를 4축(교회 · 예배·말씀 · 함께 · 소식)으로 묶고,
@@ -104,6 +105,8 @@ const DesktopNav = () => {
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const [open, setOpen] = useState<string | null>(null)
+  // 헤더 '가'(전역 글씨 크기)를 따라 메뉴·드롭다운도 커진다 — 배율은 NewHeader.css `.desktop-nav`
+  const textScale = useFeedTextScale()
   const closeTimer = useRef<number | null>(null)
   const navRef = useRef<HTMLElement>(null)
 
@@ -162,7 +165,7 @@ const DesktopNav = () => {
 
   // 내비 라벨은 전부 semibold 이상 — medium 회색은 "그냥 놓인 글자"로 읽힌다 (토스 문법)
   const topClass = (active: boolean, isOpen: boolean) =>
-    `relative flex items-center gap-1 h-9 px-3 rounded-full text-[14px] whitespace-nowrap transition-colors duration-150 ${
+    `relative flex items-center gap-1 h-10 px-3.5 rounded-full text-[length:calc(16px*var(--hn,1))] whitespace-nowrap transition-colors duration-150 ${
       active
         ? 'text-brand font-bold'
         : isOpen
@@ -182,7 +185,8 @@ const DesktopNav = () => {
   return (
     <nav
       ref={navRef}
-      className="hidden lg:flex items-center gap-0.5"
+      className="desktop-nav hidden lg:flex items-center gap-0.5"
+      data-scale={textScale}
       aria-label="주요 페이지"
       // 메뉴에 마우스가 올라온 순간 = 곧 이동한다는 신호 → lazy 청크 프리로드
       onMouseEnter={() => void preloadMenuRoutes()}
@@ -214,7 +218,7 @@ const DesktopNav = () => {
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`relative z-10 w-3 h-3 opacity-60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                className={`relative z-10 w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 aria-hidden
               >
                 <path d="m6 9 6 6 6-6" />
@@ -234,7 +238,7 @@ const DesktopNav = () => {
                   onMouseEnter={cancelClose}
                   onMouseLeave={scheduleClose}
                 >
-                  <div className="w-[300px] rounded-2xl p-2 bg-white dark:bg-[#1c1c1e] ring-1 ring-black/[0.06] dark:ring-white/[0.08] shadow-[0_18px_40px_-16px_rgba(0,0,0,0.35)]">
+                  <div className="w-[calc(340px*var(--hd,1))] rounded-2xl p-2 bg-white dark:bg-[#1c1c1e] ring-1 ring-black/[0.06] dark:ring-white/[0.08] shadow-[0_18px_40px_-16px_rgba(0,0,0,0.35)]">
                     {group.items.map((item) => {
                       const Icon = item.icon ? NAV_ICONS[item.icon] : null
                       const here = matches(item, pathname, search)
@@ -244,20 +248,20 @@ const DesktopNav = () => {
                           type="button"
                           role="menuitem"
                           onClick={() => go(item.to)}
-                          className={`w-full flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors duration-120 ${
+                          className={`w-full flex items-center gap-3.5 rounded-xl px-3 py-3 text-left transition-colors duration-120 ${
                             here ? 'bg-[var(--brand-soft)]' : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                           }`}
                         >
-                          <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          <span className={`w-[calc(40px*var(--hd,1))] h-[calc(40px*var(--hd,1))] rounded-xl flex items-center justify-center shrink-0 ${
                             here ? 'bg-[var(--brand-soft-strong)] text-brand' : 'bg-black/[0.04] dark:bg-white/[0.07] text-ink'
                           }`}>
                             {Icon ? <Icon className="w-[20px] h-[20px]" /> : item.iconFallback ? FALLBACK_ICONS[item.iconFallback] : null}
                           </span>
                           <span className="min-w-0">
-                            <span className={`block text-[13.5px] leading-tight ${here ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>
+                            <span className={`block text-[length:calc(15.5px*var(--hd,1))] leading-tight ${here ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>
                               {t(item.labelKey)}
                             </span>
-                            <span className="block mt-0.5 text-[12px] leading-snug text-ink-muted truncate">
+                            <span className="block mt-1 text-[length:calc(13.5px*var(--hd,1))] leading-snug text-ink-muted truncate">
                               {t(item.descKey)}
                             </span>
                           </span>
