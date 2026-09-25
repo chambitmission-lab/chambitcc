@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { HistoryGlyph } from '../HistoryIcons'
 import { LAB_MILESTONES, churchYearOf } from './labData'
-import { canSpeak, speak, stopSpeaking } from './speech'
 
 const AUTO_INTERVAL = 6000
 
@@ -12,7 +11,7 @@ const DECADE_STARTS = new Set(
   ),
 )
 
-/** ① 한 장씩 넘기는 이야기책 — 이정표 하나를 한 화면에 크게. ← → 키 · 읽어주기 · 자동 넘김 */
+/** ① 한 장씩 넘기는 이야기책 — 이정표 하나를 한 화면에 크게. ← → 키 · 자동 넘김 */
 export default function StoryBook() {
   const [idx, setIdx] = useState(0)
   const [auto, setAuto] = useState(false)
@@ -24,15 +23,10 @@ export default function StoryBook() {
   const go = useCallback(
     (next: number) => {
       if (next < 0 || next >= total) return
-      stopSpeaking()
       setIdx(next)
     },
     [total],
   )
-
-  const readAloud = useCallback(() => {
-    speak(`${m.year}년 ${m.month}월 ${m.day}일. ${m.title}. ${m.text}`)
-  }, [m])
 
   // 자동 넘김 — 마지막 장에서 멈춘다
   useEffect(() => {
@@ -44,7 +38,7 @@ export default function StoryBook() {
     return () => window.clearTimeout(t)
   }, [auto, idx, total])
 
-  // 키보드 ← → / 스페이스(읽어주기). 입력 중이거나 다른 탭일 땐 무시
+  // 키보드 ← →. 입력 중이거나 다른 탭일 땐 무시
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!rootRef.current?.offsetParent) return
@@ -61,8 +55,6 @@ export default function StoryBook() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [go, idx])
-
-  useEffect(() => () => stopSpeaking(), [])
 
   const toggleAuto = () => {
     if (auto) return setAuto(false)
@@ -108,11 +100,6 @@ export default function StoryBook() {
             >
               ◀ 이전
             </button>
-            {canSpeak() && (
-              <button type="button" className="hlab-btn hlab-btn--soft" onClick={readAloud}>
-                읽어주기
-              </button>
-            )}
             <button type="button" className="hlab-btn hlab-btn--soft" onClick={toggleAuto}>
               {auto ? '멈추기' : '자동으로 넘기기'}
             </button>

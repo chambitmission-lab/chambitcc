@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSurveys } from '../../../hooks/useSurvey'
 import { isAuthenticated } from '../../../utils/auth'
-import { stopSpeaking } from './speech'
 import StoryBook from './StoryBook'
 import Newspaper from './Newspaper'
 import MyJourney from './MyJourney'
@@ -22,7 +21,7 @@ const FEEDBACK_KEYWORD = '발자취'
 type TabKey = 'story' | 'paper' | 'me' | 'quiz'
 
 const TABS: { key: TabKey; label: string; desc: string }[] = [
-  { key: 'story', label: '이야기책', desc: '이정표를 한 장씩 크게 넘겨 보세요. 읽어주기도 됩니다.' },
+  { key: 'story', label: '이야기책', desc: '이정표를 한 장씩 크게 넘겨 보세요.' },
   { key: 'paper', label: '참빛신보', desc: '해를 고르면 그 해 소식이 옛날 신문 1면으로 나옵니다.' },
   { key: 'me', label: '나와 참빛', desc: '처음 오신 해를 고르면 함께 걸어온 길을 보여 드려요.' },
   { key: 'quiz', label: '역사 퀴즈', desc: '참빛의 역사, 얼마나 알고 계세요? 다섯 문제입니다.' },
@@ -69,12 +68,8 @@ export default function HistoryLab() {
 
   useEffect(() => writeStored(TAB_KEY, tab), [tab])
   useEffect(() => writeStored(SCALE_KEY, scaleIdx), [scaleIdx])
-  useEffect(() => () => stopSpeaking(), [])
 
-  const switchTab = (key: TabKey) => {
-    stopSpeaking()
-    setTab(key)
-  }
+  const switchTab = (key: TabKey) => setTab(key)
 
   const current = TABS.find((t) => t.key === tab) ?? TABS[0]
 
