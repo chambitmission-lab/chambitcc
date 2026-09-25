@@ -14,6 +14,7 @@ import ChatCommentaryBlock from './ChatCommentaryBlock'
 import { useChatbotHidden, hideChatbot, hideChatbotForever, showChatbot } from './chatbotVisibility'
 import './chatbot.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
+import { FEED_TEXT_SCALES, setFeedTextScale, useFeedTextScale, type FeedTextScale } from '../../utils/feedTextScale'
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
@@ -168,8 +169,8 @@ const BotBubble = ({
         {reply.text && <BotText text={reply.text} />}
         {reply.verses.map((v) => (
           <blockquote key={v.reference + v.text.slice(0, 8)} className="cb-verse-quote">
-            <p className="m-0 text-[13.5px] leading-relaxed text-ink">{v.text}</p>
-            <p className="m-0 mt-1.5 text-[12px] font-bold text-brand">{v.reference}</p>
+            <p className="cb-verse-text m-0 text-[13.5px] leading-relaxed text-ink">{v.text}</p>
+            <p className="cb-verse-ref m-0 mt-1.5 text-[12px] font-bold text-brand">{v.reference}</p>
           </blockquote>
         ))}
         {reply.commentary && (
@@ -199,6 +200,46 @@ const BotBubble = ({
   </div>
 )
 
+// ── PC(lg+) 노안 배려 ─────────────────────────────────────────
+// 글씨 크기는 기도 피드와 같은 저장소(utils/feedTextScale)를 쓴다 — 한 번 키우면 피드·참비가 함께 따라온다.
+// 실제 크기는 chatbot.css 의 `.cb-panel[data-cb-scale]` lg 블록이 --cbs 배율로 계산한다. 모바일은 그대로.
+const SCALE_GLYPH_PX: Record<FeedTextScale, number> = { base: 13, large: 16, xlarge: 19 }
+const SCALE_NAME: Record<FeedTextScale, string> = { base: '글씨 보통', large: '글씨 크게', xlarge: '글씨 아주 크게' }
+
+// 넓게 보기 — 코너 패널 대신 화면 가운데 큰 창. 이 기기에만 기억한다.
+const WIDE_KEY = 'chatbot-wide'
+const readWide = () => {
+  try {
+    return localStorage.getItem(WIDE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+const isDesktop = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+
+const ScaleToggle = () => {
+  const scale = useFeedTextScale()
+  return (
+    <div role="group" aria-label="글씨 크기" className="cb-scale hidden lg:flex">
+      {FEED_TEXT_SCALES.map((s) => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => setFeedTextScale(s)}
+          aria-pressed={scale === s}
+          aria-label={SCALE_NAME[s]}
+          title={SCALE_NAME[s]}
+          className="cb-scale-btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+          style={{ fontSize: SCALE_GLYPH_PX[s] }}
+        >
+          가
+        </button>
+      ))}
+    </div>
+  )
+}
+
 const TypingDots = () => (
   <div className="flex items-start gap-2.5">
     <BotAvatar src={avatarThinking} />
@@ -224,6 +265,18 @@ const ChatbotWidget = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const location = useLocation()
+  const textScale = useFeedTextScale()
+  const [wide, setWide] = useState(readWide)
+  const toggleWide = useCallback(() => {
+    setWide((v) => {
+      try {
+        localStorage.setItem(WIDE_KEY, v ? '0' : '1')
+      } catch {
+        /* 기억만 못 할 뿐 화면은 바뀐다 */
+      }
+      return !v
+    })
+  }, [])
 
   // 인증 화면에서는 위젯을 숨긴다
   const hidden = ['/login', '/register'].includes(location.pathname)
@@ -353,7 +406,12 @@ const ChatbotWidget = () => {
   useEffect(() => {
     const el = listRef.current
     if (el) el.scrollTop = welcomeReply ? 0 : el.scrollHeight
-  }, [msgs, loading, open, welcomeReply])
+  }, [msgs, loading, open, welcomeReply, textScale, wide])
+
+  // PC 는 열자마자 바로 타이핑할 수 있게 입력창에 포커스 (모바일은 키보드가 화면을 덮으니 하지 않는다)
+  useEffect(() => {
+    if (open && isDesktop()) inputRef.current?.focus({ preventScroll: true })
+  }, [open])
 
   // 새로 시작 — 대화를 비우고 인사(웰컴 화면)부터 다시 받는다
   const restart = useCallback(() => {
@@ -512,10 +570,10 @@ const ChatbotWidget = () => {
       )}
 
       {/* 뒤 배경 딤+블러 — 해석 패널과 같은 문법. 탭하면 닫힌다.
-          PC(lg+)는 코너 위젯이라 화면 전체를 어둡게 하지 않는다 */}
+          PC(lg+)는 코너 위젯이라 화면 전체를 어둡게 하지 않는다 — 넓게 보기일 때만 딤 */}
       {open && (
         <div
-          className="fixed inset-0 z-[98] bg-black/55 backdrop-blur-[2px] lg:hidden"
+          className={`fixed inset-0 z-[98] bg-black/55 backdrop-blur-[2px] ${wide ? 'lg:bg-black/40' : 'lg:hidden'}`}
           onClick={() => setOpen(false)}
           aria-hidden="true"
         />
@@ -526,7 +584,8 @@ const ChatbotWidget = () => {
         <div
           role="dialog"
           aria-label="참비"
-          className="fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none"
+          data-cb-scale={textScale}
+          className={`cb-panel ${wide ? 'is-wide' : ''} fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none`}
         >
           {/* 헤더 — 웰컴 화면에선 배경과 한 덩어리(투명), 대화 중엔 흰 크롬 */}
           <div
@@ -542,6 +601,25 @@ const ChatbotWidget = () => {
               <span className="cb-online">온라인</span>
             </div>
             <div className="flex items-center gap-1.5">
+              <ScaleToggle />
+              <button
+                type="button"
+                aria-label={wide ? '작게 보기' : '넓게 보기'}
+                aria-pressed={wide}
+                title={wide ? '작게 보기' : '넓게 보기'}
+                onClick={toggleWide}
+                className="cb-hbtn cb-hbtn-wide focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              >
+                {wide ? (
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+                    <path d="M8 3v5H3M12 17v-5h5M8 8 2.5 2.5M12 12l5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+                    <path d="M12 3h5v5M8 17H3v-5M17 3l-5.5 5.5M3 17l5.5-5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
               {!welcomeReply && (
                 <button
                   type="button"
@@ -618,13 +696,13 @@ const ChatbotWidget = () => {
               maxLength={300}
               // min-w-0 필수: input 은 size 속성(기본 20자) 기준 고유 폭이 있어 min-width:auto 로는
               // 좁은 화면에서 줄어들지 않는다 → 행이 넘쳐 전송 버튼이 패널(overflow-hidden) 밖으로 잘렸다
-              className="min-w-0 flex-1 rounded-full bg-surface-container px-4 py-2.5 text-[14px] text-ink placeholder:text-ink-muted outline-none border border-transparent transition-[border-color,box-shadow] duration-200 focus:border-[rgba(49,130,246,0.4)] focus:shadow-[0_0_0_3px_var(--brand-soft-strong),0_0_14px_var(--brand-glow)]"
+              className="cb-input min-w-0 flex-1 rounded-full bg-surface-container px-4 py-2.5 text-[14px] text-ink placeholder:text-ink-muted outline-none border border-transparent transition-[border-color,box-shadow] duration-200 focus:border-[rgba(49,130,246,0.4)] focus:shadow-[0_0_0_3px_var(--brand-soft-strong),0_0_14px_var(--brand-glow)]"
             />
             <button
               type="submit"
               aria-label="보내기"
               disabled={!input.trim() || loading}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-brand-on shadow-[0_3px_10px_var(--brand-soft-strong)] transition-opacity disabled:opacity-40 disabled:shadow-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              className="cb-send flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-brand-on shadow-[0_3px_10px_var(--brand-soft-strong)] transition-opacity disabled:opacity-40 disabled:shadow-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
               style={{ background: 'var(--brand)' }}
             >
               <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden>
