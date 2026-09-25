@@ -310,12 +310,69 @@
     opacity: 1;
   }
 
-  /* 지난 말씀 — 넓은 본문을 세로로만 쓰지 않도록 2열 */
+  /* 지난 말씀 — 노안 패스(2026-09-25): 2열에선 제목이 금방 말줄임돼 한 줄씩 크게 읽히도록 1열로.
+     행 자체가 커져(SermonRow.css) 넓은 본문 폭을 채운다 */
   .sermon-month-rows {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-    align-items: start;
+    gap: 0.625rem;
+  }
+
+  /* ── PC 노안 패스 — 제목·아카이브·레일 글씨를 한 단계씩 키운다 ── */
+  .sermon-page-header {
+    padding: 1.75rem 1.5rem 0.5rem;
+  }
+
+  .sermon-page-eyebrow {
+    font-size: 14px;
+  }
+
+  .sermon-page-title {
+    font-size: 34px;
+  }
+
+  .sermon-page-subtitle {
+    font-size: 16px;
+    margin-top: 0.75rem;
+  }
+
+  .sermon-add-btn {
+    padding: 0.6rem 1.15rem;
+    font-size: 1rem;
+  }
+
+  .sermon-archive-heading {
+    font-size: 1.375rem;
+  }
+
+  .sermon-month-label {
+    font-size: 1rem;
+  }
+
+  .sermon-filter-empty {
+    font-size: 1.0625rem;
+  }
+
+  .sermon-rail-title {
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  .sermon-rail-note {
+    font-size: 15.5px;
+  }
+
+  .sermon-rail-link {
+    padding: 10px 10px;
+    width: calc(100% + 20px);
+    margin: 0 -10px;
+    border-radius: 12px;
+  }
+
+  .sermon-rail-link-name {
+    font-size: 16.5px;
+  }
+
+  .sermon-rail-link-count {
+    font-size: 14.5px;
   }
 
   /* 스켈레톤도 같은 리듬 (히어로는 가로가 넓어 덜 높다) */

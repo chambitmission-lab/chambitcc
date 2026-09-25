@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
 import { deleteColumn } from '../../api/column'
@@ -142,14 +143,18 @@ const Ministry = () => {
             />
           )}
 
-          {editorDraft && (
-            <ColumnEditorModal
-              language={language}
-              initial={editorDraft}
-              onSaved={handleSaved}
-              onClose={() => setEditorDraft(null)}
-            />
-          )}
+          {/* 편집기는 body 포털 — PC 글씨 크기 zoom(<main data-app-scale>) 밖에 띄운다.
+              Tiptap 의 커서·팝오버 좌표 계산이 zoom 과 어긋나고, 편집기엔 자체 글자 크기 조절이 있다 */}
+          {editorDraft &&
+            createPortal(
+              <ColumnEditorModal
+                language={language}
+                initial={editorDraft}
+                onSaved={handleSaved}
+                onClose={() => setEditorDraft(null)}
+              />,
+              document.body,
+            )}
 
           {showDeleteConfirm && (
             <DeleteColumnDialog language={language} onConfirm={handleDelete} onClose={() => setShowDeleteConfirm(false)} />

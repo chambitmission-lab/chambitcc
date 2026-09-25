@@ -33,17 +33,17 @@ const SeatEventList = () => {
       <RailCard title="한눈에">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">예약 받는 행사</span>
-            <span className="text-[16px] font-bold text-brand tabular-nums">{openCount}</span>
+            <span className="text-[15px] font-semibold text-gray-500 dark:text-white/55">예약 받는 행사</span>
+            <span className="text-[20px] font-bold text-brand tabular-nums">{openCount}</span>
           </div>
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">내가 예약한 행사</span>
-            <span className="text-[16px] font-bold text-ink-strong tabular-nums">{mineCount}</span>
+            <span className="text-[15px] font-semibold text-gray-500 dark:text-white/55">내가 예약한 행사</span>
+            <span className="text-[20px] font-bold text-ink-strong tabular-nums">{mineCount}</span>
           </div>
         </div>
       </RailCard>
       <RailCard title="좌석 예약 안내">
-        <ul className="space-y-2 text-[12.5px] text-gray-500 dark:text-white/55 leading-relaxed">
+        <ul className="space-y-2 text-[15px] text-gray-600 dark:text-white/60 leading-relaxed break-keep">
           <li>· 배치도에서 원하는 자리를 직접 골라요.</li>
           <li>· 일행과 붙어 앉으려면 ‘나란히 N석’을 써보세요.</li>
           <li>· 공연 시작 전까지 일부 좌석만 취소할 수도 있어요.</li>
@@ -61,20 +61,20 @@ const SeatEventList = () => {
           <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-[#2563eb] dark:text-white/65">
             Seats
           </span>
-          <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] mt-3 whitespace-pre-line text-[#152648] dark:text-white dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+          <h2 className="text-[26px] lg:text-[32px] font-extrabold tracking-[-0.02em] leading-[1.25] mt-3 whitespace-pre-line text-[#152648] dark:text-white dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
             {mineCount > 0
               ? `예약한 행사\n${mineCount}개가 기다려요`
               : openCount > 0
                 ? `원하는 자리를\n직접 골라보세요`
                 : '지금은 예약 받는\n행사가 없어요'}
           </h2>
-          <p className="text-[13px] font-light leading-[1.7] text-[#41527a] dark:text-white/80 mt-3 max-w-[11rem] break-keep">
+          <p className="text-[13px] lg:text-[16px] lg:max-w-[18rem] font-light leading-[1.7] text-[#41527a] dark:text-white/80 mt-3 max-w-[11rem] break-keep">
             {openCount > 0 ? '콘서트·특별 행사 좌석을 앱에서 바로 예약해요.' : '새 행사가 열리면 일정에서 알려드릴게요.'}
           </p>
         </div>
       </section>
 
-      <div className="px-4 pt-6">
+      <div className="px-4 pt-6 lg:px-6">
         {isLoading ? (
           <Spinner />
         ) : !live.length && !past.length ? (

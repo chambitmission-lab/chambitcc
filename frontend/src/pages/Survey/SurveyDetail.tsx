@@ -3,10 +3,10 @@
 //
 // 한 화면, 두 배치 — 조각(안내·참여 완료·제출 바)은 한 번만 만들고 자리만 바꿔 끼운다.
 //   모바일: 안내 → 문항 → 화면 아래 고정 제출 바
-//   PC(lg+): 본문은 문항만, 안내·참여 완료는 우측 레일(312px)로 빼고 제출은 문항 끝에
-//   ★레일을 sticky 로 붙여 제출 버튼을 띄워 두려 했으나, 이 앱은 #root 의 overflow 때문에
-//     position:sticky 가 전역으로 pin 되지 않는다(자세한 사정은 History.tsx 의 pinned 참고).
-//     그래서 PC 제출 버튼은 "문항을 다 읽은 자리"인 본문 끝에 둔다.
+//   PC(lg+): 본문은 문항만, 진행·빠진 필수 문항·제출과 안내는 우측 레일(312px)로 뺀다.
+//   ★이 앱은 #root 의 overflow 때문에 position:sticky 가 전역으로 붙지 않는다 — 그래서 PC 에선
+//     SurveyShell pinRail 로 페이지를 스스로 스크롤하는 상자로 만들어 레일(=제출 버튼)을 화면에 붙여 둔다.
+//   PC 는 어르신이 큰 화면으로 답하는 자리라 문항·보기·입력칸을 크게 그린다(QuestionField large).
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSubmitSurvey, useSurvey, useSurveyStats } from '../../hooks/useSurvey'
@@ -19,6 +19,7 @@ import {
   draftsFromAnswers,
   draftsToAnswers,
   emptyDraft,
+  findAllMissingRequired,
   findMissingRequired,
   formatDate,
   formatDateTime,
@@ -73,6 +74,8 @@ const SurveyDetail = () => {
   // 필수 문항을 비우고 제출하면 그 문항으로 데려가 잠깐 테두리를 밝힌다
   const [flashId, setFlashId] = useState<number | null>(null)
   const questionRefs = useRef<Record<number, HTMLDivElement | null>>({})
+  // PC 에선 페이지 상자가 스크롤한다(SurveyShell pinRail) — 맨 위로 올리기는 이 상자와 window 둘 다
+  const scrollBoxRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (flashId === null) return
     const t = window.setTimeout(() => setFlashId(null), 1800)
@@ -94,16 +97,24 @@ const SurveyDetail = () => {
     return draftsToAnswers(survey.questions, drafts).length
   }, [survey, drafts])
 
+  // PC 레일의 "아직 답하지 않은 필수 문항" — 누르면 그 문항으로 데려간다
+  const missingRequired = useMemo(
+    () => (survey ? findAllMissingRequired(survey.questions, drafts) : []),
+    [survey, drafts]
+  )
+
+  // 문항으로 데려가 잠깐 테두리를 밝힌다 — 상자 스크롤이든 window 든 가운데로 맞춘다(헤더에 가리지 않게)
+  const jumpToQuestion = (questionId: number) => {
+    setFlashId(questionId)
+    questionRefs.current[questionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
   const handleSubmit = () => {
     if (!survey) return
     const missing = findMissingRequired(survey.questions, drafts)
     if (missing) {
       showToast(missing.message, 'error')
-      setFlashId(missing.question.id)
-      questionRefs.current[missing.question.id]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      })
+      jumpToQuestion(missing.question.id)
       return
     }
     const answers = draftsToAnswers(survey.questions, drafts)
@@ -119,6 +130,7 @@ const SurveyDetail = () => {
           setEdits(null)
           setTab('answer')
           window.scrollTo({ top: 0, behavior: 'smooth' })
+          scrollBoxRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
         },
       }
     )
@@ -167,7 +179,7 @@ const SurveyDetail = () => {
   const infoBlock = (
     <>
       <div className="flex items-start gap-2">
-        <h2 className="flex-1 min-w-0 text-[19px] font-extrabold text-ink-strong leading-snug tracking-[-0.02em] lg:text-[17px]">
+        <h2 className="flex-1 min-w-0 text-[19px] font-extrabold text-ink-strong leading-snug tracking-[-0.02em] lg:text-[20px]">
           {survey.title}
         </h2>
         <span className="shrink-0 mt-0.5">
@@ -175,11 +187,11 @@ const SurveyDetail = () => {
         </span>
       </div>
       {survey.description ? (
-        <p className="mt-2 text-[13.5px] text-ink-muted leading-relaxed whitespace-pre-wrap">
+        <p className="mt-2 text-[13.5px] text-ink-muted leading-relaxed whitespace-pre-wrap lg:text-[15px]">
           {survey.description}
         </p>
       ) : null}
-      <p className="mt-2.5 text-[12px] text-gray-400 dark:text-white/45">
+      <p className="mt-2.5 text-[12px] text-gray-400 dark:text-white/45 lg:text-[14px] lg:text-ink-muted">
         문항 {survey.questions.length}개
         {survey.response_count > 0 ? ` · ${survey.response_count}명 참여` : ''}
         {survey.ends_at ? ` · ${formatDate(survey.ends_at)}까지` : ''}
@@ -194,12 +206,12 @@ const SurveyDetail = () => {
         <CheckIcon size={20} />
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-[14.5px] font-bold text-ink-strong">참여해 주셔서 감사합니다</p>
-        <p className="mt-0.5 text-[12.5px] text-ink-muted whitespace-pre-wrap leading-relaxed">
+        <p className="text-[14.5px] font-bold text-ink-strong lg:text-[17px]">참여해 주셔서 감사합니다</p>
+        <p className="mt-0.5 text-[12.5px] text-ink-muted whitespace-pre-wrap leading-relaxed lg:mt-1 lg:text-[15px]">
           {survey.thank_you_message ?? '보내주신 의견은 소중히 살펴 반영하겠습니다'}
         </p>
         {survey.my_responded_at ? (
-          <p className="mt-1 text-[11.5px] text-gray-400 dark:text-white/40">
+          <p className="mt-1 text-[11.5px] text-gray-400 dark:text-white/40 lg:text-[13.5px]">
             {formatDateTime(survey.my_responded_at)} 제출
           </p>
         ) : null}
@@ -210,7 +222,7 @@ const SurveyDetail = () => {
               setEditing(true)
               setTab('answer')
             }}
-            className="mt-2.5 px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[13px] font-semibold text-ink hover:border-brand hover:text-brand transition-colors"
+            className="mt-2.5 px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[13px] font-semibold text-ink hover:border-brand hover:text-brand transition-colors lg:mt-3 lg:w-full lg:py-3 lg:rounded-2xl lg:text-[16px]"
           >
             응답 수정하기
           </button>
@@ -219,7 +231,7 @@ const SurveyDetail = () => {
     </div>
   )
 
-  // 남은 문항 수 + 제출 (모바일은 화면 아래 고정, PC는 문항 끝에)
+  // 남은 문항 수 + 제출 — 모바일 화면 아래 고정 바 (PC 는 레일의 progressCard)
   const submitBlock = (
     <>
       <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -258,13 +270,84 @@ const SurveyDetail = () => {
     </>
   )
 
+  // PC 레일 맨 위 — 몇 문항 답했는지, 빠진 필수 문항, 제출. 레일이 화면에 붙어 있어 늘 보인다
+  const total = survey.questions.length
+  const progressCard = (
+    <RailCard>
+      <p className="text-[15px] font-bold text-ink-muted">{answered ? '응답 수정 중' : '내 응답'}</p>
+      <p className="mt-1 text-ink-strong tabular-nums">
+        <b className="text-[40px] font-extrabold text-brand leading-none">{answeredCount}</b>
+        <span className="text-[20px] font-bold"> / {total}문항</span>
+      </p>
+      <div className="mt-3 h-3 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
+        <div
+          className="h-full rounded-full bg-brand transition-[width] duration-300"
+          style={{ width: `${total ? Math.round((answeredCount / total) * 100) : 0}%` }}
+        />
+      </div>
+
+      {missingRequired.length ? (
+        <div className="mt-4">
+          <p className="text-[15px] font-bold text-ink-strong">
+            꼭 답해야 할 문항 <span className="text-red-500 tabular-nums">{missingRequired.length}</span>
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {missingRequired.map((q) => (
+              <li key={q.id}>
+                <button
+                  type="button"
+                  onClick={() => jumpToQuestion(q.id)}
+                  className="w-full flex items-center gap-2.5 min-h-[48px] px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-left hover:border-red-400 dark:border-red-400/25 dark:bg-red-500/10 transition-colors"
+                >
+                  <span className="shrink-0 w-7 h-7 rounded-full bg-white dark:bg-white/10 text-red-500 text-[14px] font-bold flex items-center justify-center tabular-nums">
+                    {survey.questions.indexOf(q) + 1}
+                  </span>
+                  <span className="flex-1 min-w-0 text-[15px] font-semibold text-ink-strong line-clamp-2 break-keep">
+                    {q.title}
+                  </span>
+                  <span className="shrink-0 text-[13px] font-bold text-red-500">가기</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="mt-4 text-[15px] leading-relaxed text-ink break-keep">
+          꼭 답해야 할 문항은 모두 답했어요.
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={submit.isPending}
+        className="relative mt-4 w-full h-14 rounded-2xl bg-brand text-white text-[19px] font-bold disabled:opacity-60 transition-opacity seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]"
+      >
+        {submit.isPending ? '제출 중…' : answered ? '수정한 내용 제출' : '제출하기'}
+      </button>
+      {answered ? (
+        <button
+          type="button"
+          onClick={() => {
+            setEditing(false)
+            setEdits(null)
+          }}
+          className="mt-2 w-full h-11 rounded-2xl text-[15px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+        >
+          수정 취소
+        </button>
+      ) : null}
+    </RailCard>
+  )
+
   // PC 우측 레일 — 목록 화면과 같은 문법(312px)
   const rail = (
     <>
+      {showSubmit ? progressCard : null}
       <RailCard>{infoBlock}</RailCard>
       {answered && !editing ? <RailCard>{doneBlock}</RailCard> : null}
       <RailCard title="설문 안내">
-        <ul className="space-y-2 text-[12.5px] text-gray-500 dark:text-white/55 leading-relaxed">
+        <ul className="space-y-2 text-[12.5px] text-gray-500 dark:text-white/55 leading-relaxed lg:text-[14.5px] lg:text-ink-muted">
           <li>· 한 분이 한 번만 참여할 수 있어요.</li>
           <li>· 마감 전이라면 제출한 답을 다시 고칠 수 있어요.</li>
           {survey.is_result_public ? <li>· 참여하시면 전체 결과를 바로 볼 수 있어요.</li> : null}
@@ -274,7 +357,7 @@ const SurveyDetail = () => {
   )
 
   return (
-    <SurveyShell onBack={() => navigate('/survey')} title={survey.title} rail={rail}>
+    <SurveyShell onBack={() => navigate('/survey')} title={survey.title} rail={rail} pinRail scrollRef={scrollBoxRef}>
       <div className="px-4 pt-4 space-y-3 lg:px-5 lg:pb-4">
         {/* 안내·참여 완료는 PC에선 레일이 대신한다 */}
         <header className={`${cardCls} px-4 py-4 lg:hidden`}>{infoBlock}</header>
@@ -307,7 +390,7 @@ const SurveyDetail = () => {
                 key={key}
                 type="button"
                 onClick={() => setTab(key)}
-                className={`relative flex-1 py-2 rounded-xl text-[13.5px] font-bold transition-colors lg:flex-none lg:px-10 ${
+                className={`relative flex-1 py-2 rounded-xl text-[13.5px] font-bold transition-colors lg:flex-none lg:px-10 lg:py-3 lg:text-[16px] ${
                   tab === key
                     ? 'bg-brand text-white seal-chip [--seal-radius:0.75rem] [--seal-drop:none]'
                     : 'text-gray-500 dark:text-white/55'
@@ -332,7 +415,7 @@ const SurveyDetail = () => {
         {(!showTabs || tab === 'answer') && (accepting || answered) ? (
           <div className={`${cardCls} p-4 space-y-5 lg:p-7 lg:space-y-7`}>
             {readOnly ? (
-              <p className="text-[11.5px] font-bold tracking-[0.05em] text-ink-muted">내 응답</p>
+              <p className="text-[11.5px] font-bold tracking-[0.05em] text-ink-muted lg:text-[15px]">내 응답</p>
             ) : null}
             {survey.questions.map((question, i) => (
               <div
@@ -342,7 +425,7 @@ const SurveyDetail = () => {
                 }}
                 className={`${i > 0 ? 'pt-5 border-t border-gray-100 dark:border-white/[0.06] lg:pt-7' : ''} ${
                   flashId === question.id
-                    ? '-mx-2 px-2 rounded-xl ring-2 ring-red-400/70 dark:ring-red-400/50'
+                    ? '-mx-2 px-2 rounded-xl ring-2 ring-red-400/70 dark:ring-red-400/50 lg:-mx-3 lg:px-3 lg:py-2 lg:ring-4'
                     : ''
                 }`}
               >
@@ -351,6 +434,7 @@ const SurveyDetail = () => {
                   index={i + 1}
                   value={drafts[question.id] ?? emptyDraft()}
                   view={readOnly}
+                  large
                   onChange={(next) =>
                     setEdits((prev) => ({ ...(prev ?? serverDrafts), [question.id]: next }))
                   }
@@ -365,9 +449,18 @@ const SurveyDetail = () => {
           </div>
         ) : null}
 
-        {/* PC 제출 — 문항을 다 읽은 자리에 (모바일은 아래 고정 바가 맡는다) */}
+        {/* PC 제출 — 문항을 다 읽은 자리에도 한 번 더 (레일의 제출과 같은 동작) */}
         {showSubmit ? (
-          <div className="hidden lg:block w-full max-w-md mx-auto pt-1 pb-2">{submitBlock}</div>
+          <div className="hidden lg:block w-full max-w-md mx-auto pt-1 pb-2">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submit.isPending}
+              className="relative w-full h-14 rounded-2xl bg-brand text-white text-[19px] font-bold disabled:opacity-60 transition-opacity seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]"
+            >
+              {submit.isPending ? '제출 중…' : answered ? '수정한 내용 제출' : '제출하기'}
+            </button>
+          </div>
         ) : null}
       </div>
 

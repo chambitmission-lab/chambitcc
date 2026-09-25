@@ -4,14 +4,15 @@
 // - 홈 피드('/'·'/feed'): data-feed-scale 로 글씨만 키운다(3컬럼 레이아웃 보호)
 // - 목회자(/pastor): 자체 글씨 크기 토글(pages/Pastor/components/textScale.ts)
 // - 성경 본문·집중 읽기·낭독: 읽기 설정(ReaderSettings·가−/가+)이 따로 있다
-// - 지도·지구본·캔버스·에디터(/bible/atlas·/mission·/bible/photo-verse·/ministry 칼럼 편집기):
-//   포인터 좌표 계산이 zoom 과 어긋난다
+// - 지도·지구본·캔버스(/bible/atlas·/mission·/bible/photo-verse): 포인터 좌표 계산이 zoom 과 어긋난다
+//   (/ministry 는 넣었다 — 좌표를 쓰는 칼럼 편집기만 body 포털로 zoom 밖에 띄운다)
 // - 자체 스크롤 좌표로 이동하는 화면(/history), 관리자 화면
 // 새 화면을 넣을 땐 그 화면의 vh 높이·sticky top 을 var(--az) 로 나눠 두었는지 확인한다(common.css 주석).
 const ZOOM_ROUTES = [
   // 읽기
   '/worship',
   '/sermon',
+  '/ministry',
   '/news',
   '/prayer-topics',
   '/answered-prayers',

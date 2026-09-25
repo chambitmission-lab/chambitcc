@@ -181,3 +181,46 @@
 .sermon-hero-btn.secondary:hover {
   background: var(--brand-soft-strong);
 }
+
+/* ── PC(lg+) 노안 패스 — 이번 주 말씀을 가장 크게: 인용·제목·버튼 한 단계씩 ── */
+@media (min-width: 1024px) {
+  .sermon-hero-label {
+    font-size: 0.9rem;
+  }
+
+  .sermon-hero-date {
+    font-size: 0.95rem;
+  }
+
+  .sermon-hero-quote-text {
+    font-size: 1.3rem;
+  }
+
+  .sermon-hero-reference {
+    font-size: 1rem;
+  }
+
+  .sermon-hero-title {
+    font-size: 1.75rem;
+    line-height: 1.35;
+  }
+
+  .sermon-hero-pastor {
+    font-size: 1.0625rem;
+  }
+
+  .sermon-hero-actions {
+    gap: 0.625rem;
+  }
+
+  .sermon-hero-btn {
+    gap: 0.4rem;
+    padding: 0.8rem 1.35rem;
+    border-radius: 14px;
+    font-size: 1.0625rem;
+  }
+
+  .sermon-hero-btn .material-icons-outlined {
+    font-size: 1.4rem;
+  }
+}

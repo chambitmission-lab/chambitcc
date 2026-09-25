@@ -191,7 +191,7 @@ const ColumnLetter = ({ language, column, fontSize, placeholder = false }: Colum
       {column.image && <ColumnCover src={column.image} />}
 
       {/* 오버라인 → 세리프 대제목 → 짧은 악센트 룰 */}
-      <div className="text-[12.5px] text-gray-500 dark:text-gray-400">
+      <div className="text-[12.5px] lg:text-[15.5px] text-gray-500 dark:text-gray-400">
         {column.date ? formatLetterDate(column.date, language) : ''}
         {content && (
           <>
@@ -201,7 +201,7 @@ const ColumnLetter = ({ language, column, fontSize, placeholder = false }: Colum
         )}
       </div>
       <h2
-        className={`text-[24px] font-semibold tracking-[-0.01em] leading-[1.45] mt-3 ${WRAP} ${
+        className={`text-[24px] lg:text-[32px] font-semibold tracking-[-0.01em] leading-[1.45] mt-3 lg:mt-4 ${WRAP} ${
           column.title ? 'text-ink-strong' : 'text-gray-400 dark:text-gray-600'
         }`}
         style={{ fontFamily: SERIF }}
@@ -227,11 +227,11 @@ const ColumnLetter = ({ language, column, fontSize, placeholder = false }: Colum
         <img
           src={andongProfile}
           alt={author}
-          className="w-12 h-12 rounded-full object-cover ring-1 ring-black/[0.07] dark:ring-white/[0.12] flex-shrink-0"
+          className="w-12 h-12 lg:w-16 lg:h-16 rounded-full object-cover ring-1 ring-black/[0.07] dark:ring-white/[0.12] flex-shrink-0"
         />
         <div className="min-w-0">
           {ko ? (
-            <div className="text-[26px] leading-none text-ink-strong" style={{ fontFamily: PEN }}>
+            <div className="text-[26px] lg:text-[34px] leading-none text-ink-strong" style={{ fontFamily: PEN }}>
               {author} 드림
             </div>
           ) : (
@@ -239,7 +239,7 @@ const ColumnLetter = ({ language, column, fontSize, placeholder = false }: Colum
               {author}
             </div>
           )}
-          <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-2">{column.role}</div>
+          <div className="text-[12px] lg:text-[15px] text-gray-500 dark:text-gray-400 mt-2">{column.role}</div>
         </div>
       </div>
     </>

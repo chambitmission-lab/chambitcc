@@ -135,6 +135,8 @@ export const buildShareText = (column: Column, language: string): string => {
 
 // ── 본문 글자 크기 3단계 — 어르신 성도가 많은 교회 특성상 필수 ───────────
 export const FONT_STEPS = [15.5, 16.5, 18.5]
+/** PC(lg+) 읽기 글자 크기 — 같은 단계 번호를 쓰되 어르신이 모니터 거리에서 읽는 크기로 */
+export const FONT_STEPS_LG = [18, 20.5, 23]
 const FONT_STEP_KEY = 'ministry_font_step'
 
 export const loadFontStep = (): number => {

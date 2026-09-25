@@ -99,6 +99,28 @@ const SERMON_CONTENT_STYLES = `
     font-weight: 700;
     color: var(--text-strong);
   }
+
+  /* PC(lg+) 노안 패스 — 본문 18px·넉넉한 행간, 한 줄이 너무 길어 줄을 놓치지 않게 폭 제한 */
+  @media (min-width: 1024px) {
+    .sermon-section-header {
+      padding: 1rem 0;
+    }
+
+    .sermon-section-title {
+      font-size: 1.1875rem;
+    }
+
+    .sermon-section-arrow {
+      font-size: 0.85rem;
+    }
+
+    .sermon-section-text {
+      font-size: 18px;
+      line-height: 1.85;
+      letter-spacing: 0;
+      max-width: 42em;
+    }
+  }
 `
 
 const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content }) => {

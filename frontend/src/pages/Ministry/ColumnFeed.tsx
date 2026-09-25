@@ -1,5 +1,6 @@
 import type { Column } from '../../types/column'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import andongProfile from '../../assets/andong.webp'
 import { columnPlainText } from './blockFormat'
 import {
@@ -28,6 +29,7 @@ interface ColumnFeedProps {
 
 /** 목양칼럼 목록 — 인트로·피처드 카드·지난 편지 인덱스(월별 그룹) */
 const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, monthGroups, onOpen }: ColumnFeedProps) => {
+  const isLg = useMediaQuery('(min-width: 1024px)')
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -54,19 +56,19 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
 
   // 인덱스 행 — 일반 목록과 검색 결과가 공유
   const renderIndexRow = (column: Column) => (
-    <button key={column.id} className="w-full text-left py-4 group" onClick={() => onOpen(column)}>
+    <button key={column.id} className="w-full text-left py-4 lg:py-5 group" onClick={() => onOpen(column)}>
       <h3 className="min-w-0">
         <span
-          className="text-[16px] font-semibold text-ink-strong line-clamp-1 tracking-[-0.01em] leading-[1.4] group-hover:text-[var(--brand)] transition-colors"
+          className="text-[16px] lg:text-[20px] font-semibold text-ink-strong line-clamp-1 lg:line-clamp-2 tracking-[-0.01em] leading-[1.4] group-hover:text-[var(--brand)] transition-colors"
           style={{ fontFamily: SERIF }}
         >
           {highlightKeyword(column.title, appliedQuery)}
         </span>
       </h3>
-      <p className="text-[13px] text-gray-500 dark:text-gray-400 line-clamp-1 leading-[1.6] mt-1.5">
+      <p className="text-[13px] lg:text-[16px] text-gray-500 dark:text-gray-400 lg:text-gray-600 lg:dark:text-gray-300 line-clamp-1 lg:line-clamp-2 leading-[1.6] lg:leading-[1.7] mt-1.5 lg:mt-2">
         {highlightKeyword(columnPlainText(column.content), appliedQuery)}
       </p>
-      <div className="text-[11.5px] text-gray-400 dark:text-gray-500 mt-1.5">
+      <div className="text-[11.5px] lg:text-[14px] text-gray-400 dark:text-gray-500 lg:text-gray-500 lg:dark:text-gray-400 mt-1.5 lg:mt-2">
         {formatLetterDate(column.date, language)}
         <span className="mx-1.5 opacity-60">·</span>
         {readingLabel(column.content, language)}
@@ -111,11 +113,11 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
           <div className="relative z-10 p-6 lg:p-9 lg:max-w-[72ch]">
             <div>
               {isThisWeek(featured.date) && (
-                <span className="inline-flex items-center px-2.5 py-1 mb-3 rounded-full bg-[var(--brand-soft-strong)] text-[var(--brand)] text-[11px] font-semibold tracking-[-0.005em]">
+                <span className="inline-flex items-center px-2.5 py-1 mb-3 rounded-full bg-[var(--brand-soft-strong)] text-[var(--brand)] text-[11px] lg:text-[14px] lg:px-3.5 lg:py-1.5 lg:mb-4 font-semibold tracking-[-0.005em]">
                   {language === 'ko' ? '이번 주 편지' : "This Week's Letter"}
                 </span>
               )}
-              <div className="text-[12px] text-gray-500 dark:text-gray-400 mb-2.5">
+              <div className="text-[12px] lg:text-[15px] text-gray-500 dark:text-gray-400 mb-2.5 lg:mb-3">
                 {formatLetterDate(featured.date, language)}
                 <span className="mx-1.5 opacity-60">·</span>
                 {readingLabel(featured.content, language, true)}
@@ -124,14 +126,14 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
                   <>
                     <span className="mx-1.5 opacity-60">·</span>
                     <span className="inline-flex items-center gap-1 text-brand">
-                      <HandHeartIcon size={13} strokeWidth={1.9} />
+                      <HandHeartIcon size={isLg ? 16 : 13} strokeWidth={1.9} />
                       {featured.amen_count}
                     </span>
                   </>
                 )}
               </div>
               <h2
-                className="text-[21px] lg:text-[26px] font-semibold text-ink-strong mb-3 lg:mb-5 line-clamp-2 tracking-[-0.01em] leading-[1.4] break-keep"
+                className="text-[21px] lg:text-[31px] font-semibold text-ink-strong mb-3 lg:mb-5 line-clamp-2 tracking-[-0.01em] leading-[1.4] break-keep"
                 style={{ fontFamily: SERIF }}
               >
                 {featured.title}
@@ -144,18 +146,18 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
                 <>
                   <blockquote className="border-l-2 pl-4 py-0.5" style={{ borderColor: 'var(--brand-muted)' }}>
                     <p
-                      className="text-[15.5px] lg:text-[17px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em] break-keep"
+                      className="text-[15.5px] lg:text-[20px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em] break-keep"
                       style={{ fontFamily: SERIF }}
                     >
                       “{featuredQuote}”
                     </p>
                   </blockquote>
-                  <p className="text-[14px] text-gray-600 dark:text-gray-300 line-clamp-2 leading-[1.8] tracking-[-0.01em] mt-3.5 break-keep">
+                  <p className="text-[14px] lg:text-[17px] text-gray-600 dark:text-gray-300 line-clamp-2 lg:line-clamp-3 leading-[1.8] tracking-[-0.01em] mt-3.5 lg:mt-4 break-keep">
                     {columnPlainText(featured.content)}
                   </p>
                 </>
               ) : (
-                <p className="text-[15px] text-gray-600 dark:text-gray-300 line-clamp-4 leading-[1.8] tracking-[-0.01em] break-keep">
+                <p className="text-[15px] lg:text-[17px] text-gray-600 dark:text-gray-300 line-clamp-4 leading-[1.8] tracking-[-0.01em] break-keep">
                   {columnPlainText(featured.content)}
                 </p>
               )}
@@ -172,18 +174,18 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
           </div>
         ) : (
           <>
-            <div className="px-1 mt-8 mb-3 text-[13px] font-semibold text-gray-500 dark:text-gray-400 tracking-[-0.005em]">
+            <div className="px-1 mt-8 mb-3 text-[13px] lg:text-[18px] lg:mt-10 lg:mb-4 font-semibold text-gray-500 dark:text-gray-400 lg:text-ink-strong tracking-[-0.005em]">
               {language === 'ko' ? '지난 편지' : 'Earlier Letters'}
             </div>
-            {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 월 카드를 2열로
-                (한 달치뿐이면 그대로 한 줄) */}
-            <div className={monthGroups.length > 1 ? 'lg:grid lg:grid-cols-2 lg:gap-x-5 lg:gap-y-6 lg:items-start' : ''}>
+            {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 월 카드를 2열로 (한 달치뿐이면 그대로 한 줄).
+                칸 수는 폭으로 정한다 — 글씨를 키우면(PC 글씨 크기 zoom) 한 열로 풀려 제목이 잘리지 않는다 */}
+            <div className={monthGroups.length > 1 ? 'lg:grid lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:gap-x-5 lg:gap-y-6 lg:items-start' : ''}>
               {monthGroups.map((group, gi) => (
                 <div key={group.label} id={monthAnchorId(gi)} className="scroll-mt-20">
                   {/* 한 달치뿐이면 월 라벨은 소음 — 여러 달 쌓였을 때만 */}
                   {monthGroups.length > 1 && (
                     <div
-                      className={`px-1 mb-2 text-[12px] font-medium text-gray-400 dark:text-gray-500 lg:mt-0 ${gi > 0 ? 'mt-6' : ''}`}
+                      className={`px-1 mb-2 text-[12px] lg:text-[15px] lg:mb-2.5 font-medium lg:font-semibold text-gray-400 dark:text-gray-500 lg:mt-0 ${gi > 0 ? 'mt-6' : ''}`}
                     >
                       {group.label}
                     </div>

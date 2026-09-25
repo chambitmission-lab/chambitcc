@@ -187,24 +187,26 @@ export const draftsToAnswers = (
 }
 
 /** 제출 전 필수 문항 검사 — 비어 있는 첫 문항의 안내 문구를 돌려준다 */
+/** 필수 문항에 답이 채워졌는가 — '기타'만 켜고 비워 둔 것은 빈 답이다 */
+const isAnswered = (q: SurveyQuestion, draft: AnswerDraft): boolean =>
+  q.type === 'single' || q.type === 'multi'
+    ? draft.optionIds.some((id) => id !== OTHER_OPTION_ID) || draft.text.trim().length > 0
+    : q.type === 'number' || q.type === 'rating'
+      ? draft.number !== ''
+      : draft.text.trim().length > 0
+
+/** 아직 답하지 않은 필수 문항 전부 — PC 레일이 "빠진 문항" 목록으로 보여 준다 */
+export const findAllMissingRequired = (
+  questions: SurveyQuestion[],
+  drafts: Record<number, AnswerDraft>
+): SurveyQuestion[] => questions.filter((q) => q.is_required && !isAnswered(q, drafts[q.id] ?? emptyDraft()))
+
 export const findMissingRequired = (
   questions: SurveyQuestion[],
   drafts: Record<number, AnswerDraft>
 ): { question: SurveyQuestion; message: string } | null => {
-  for (const q of questions) {
-    if (!q.is_required) continue
-    const draft = drafts[q.id] ?? emptyDraft()
-    const filled =
-      q.type === 'single' || q.type === 'multi'
-        ? draft.optionIds.some((id) => id !== OTHER_OPTION_ID) || draft.text.trim().length > 0
-        : q.type === 'number' || q.type === 'rating'
-          ? draft.number !== ''
-          : draft.text.trim().length > 0
-    if (!filled) {
-      return { question: q, message: `'${q.title}' 에 답해주세요` }
-    }
-  }
-  return null
+  const [first] = findAllMissingRequired(questions, drafts)
+  return first ? { question: first, message: `'${first.title}' 에 답해주세요` } : null
 }
 
 /** 목록 카드·배너의 액션 문구 — 상태별로 말투가 흩어지지 않게 한곳에서 정한다 */

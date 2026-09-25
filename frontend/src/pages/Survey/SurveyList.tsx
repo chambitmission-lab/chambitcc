@@ -31,20 +31,20 @@ const SurveyCard = ({ survey, onOpen }: { survey: SurveySummary; onOpen: () => v
       onClick={onOpen}
       onMouseEnter={() => void preloadRoute(`/survey/${survey.id}`)}
       onTouchStart={() => void preloadRoute(`/survey/${survey.id}`)}
-      className={`w-full text-left p-4 rounded-2xl bg-white dark:bg-card-dark border shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] ${
+      className={`w-full text-left p-4 lg:p-5 rounded-2xl bg-white dark:bg-card-dark border shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] ${
         primary
           ? 'border-[var(--brand-soft-strong)]'
           : 'border-gray-200/70 dark:border-white/[0.07]'
       } ${accepting ? '' : 'opacity-90'}`}
     >
-      <div className="flex items-start gap-3">
-        <span className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+      <div className="flex items-start gap-3 lg:gap-4">
+        <span className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center lg:w-14 lg:h-14">
           <ClipboardIcon size={21} />
         </span>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start gap-2">
-            <h3 className="flex-1 min-w-0 text-[15px] font-bold text-ink-strong leading-snug tracking-[-0.015em]">
+            <h3 className="flex-1 min-w-0 text-[15px] font-bold text-ink-strong leading-snug tracking-[-0.015em] lg:text-[19px]">
               {survey.title}
             </h3>
             <span className="shrink-0 mt-0.5">
@@ -53,19 +53,19 @@ const SurveyCard = ({ survey, onOpen }: { survey: SurveySummary; onOpen: () => v
           </div>
 
           {survey.description ? (
-            <p className="mt-1 text-[12.5px] text-ink-muted leading-relaxed line-clamp-2">
+            <p className="mt-1 text-[12.5px] text-ink-muted leading-relaxed line-clamp-2 lg:mt-1.5 lg:text-[15px]">
               {survey.description}
             </p>
           ) : null}
 
-          <p className="mt-1.5 text-[12px] text-gray-400 dark:text-white/45">
+          <p className="mt-1.5 text-[12px] text-gray-400 dark:text-white/45 lg:mt-2 lg:text-[14px] lg:text-ink-muted">
             문항 {survey.question_count}개
             {survey.response_count > 0 ? ` · ${survey.response_count}명 참여` : ''}
             {survey.ends_at ? ` · ${formatDate(survey.ends_at)}까지` : ''}
           </p>
 
           <span
-            className={`mt-2 inline-flex items-center gap-0.5 text-[13px] font-bold ${
+            className={`mt-2 inline-flex items-center gap-0.5 text-[13px] font-bold lg:mt-3 lg:text-[16px] ${
               primary ? 'text-brand' : 'text-gray-400 dark:text-white/45'
             }`}
           >
@@ -111,22 +111,22 @@ const SurveyList = () => {
       <RailCard title="한눈에">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+            <span className="text-[15px] font-semibold text-gray-500 dark:text-white/55">
               참여를 기다리는 설문
             </span>
-            <span className="text-[16px] font-bold text-brand tabular-nums">{pending}</span>
+            <span className="text-[20px] font-bold text-brand tabular-nums">{pending}</span>
           </div>
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+            <span className="text-[15px] font-semibold text-gray-500 dark:text-white/55">
               참여한 설문
             </span>
-            <span className="text-[16px] font-bold text-ink-strong tabular-nums">{answered}</span>
+            <span className="text-[20px] font-bold text-ink-strong tabular-nums">{answered}</span>
           </div>
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+            <span className="text-[15px] font-semibold text-gray-500 dark:text-white/55">
               지난 설문
             </span>
-            <span className="text-[16px] font-bold text-ink-strong tabular-nums">{past.length}</span>
+            <span className="text-[20px] font-bold text-ink-strong tabular-nums">{past.length}</span>
           </div>
         </div>
 
@@ -135,15 +135,15 @@ const SurveyList = () => {
             type="button"
             onMouseEnter={() => void preloadRoute(`/survey/${closingSoon.id}`)}
             onClick={() => open(closingSoon.id)}
-            className="mt-3 w-full flex items-center gap-2 px-3 h-10 rounded-xl border border-[var(--card-border)] text-left hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+            className="mt-3 w-full flex items-center gap-2 px-3 h-12 rounded-xl border border-[var(--card-border)] text-left hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
           >
             <span className="shrink-0 text-brand">
               <ClipboardIcon size={14} />
             </span>
-            <span className="flex-1 min-w-0 truncate text-[12.5px] font-bold text-ink-strong">
+            <span className="flex-1 min-w-0 truncate text-[15px] font-bold text-ink-strong">
               {closingSoon.title}
             </span>
-            <span className="shrink-0 text-[11px] text-gray-400 dark:text-white/40">
+            <span className="shrink-0 text-[13px] text-gray-400 dark:text-white/40">
               {formatDate(closingSoon.ends_at)}까지
             </span>
           </button>
@@ -151,7 +151,7 @@ const SurveyList = () => {
       </RailCard>
 
       <RailCard title="설문 안내">
-        <ul className="space-y-2 text-[12.5px] text-gray-500 dark:text-white/55 leading-relaxed">
+        <ul className="space-y-2 text-[14.5px] text-ink-muted leading-relaxed">
           <li>· 한 분이 한 번만 참여할 수 있어요.</li>
           <li>· 마감 전이라면 제출한 답을 다시 고칠 수 있어요.</li>
           <li>· 결과를 공개한 설문은 참여 후 바로 확인할 수 있어요.</li>

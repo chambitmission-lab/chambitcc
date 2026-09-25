@@ -94,7 +94,7 @@ const MinistryHeader = ({ language, isAdminUser, onQueryChange, onAddNew, onHeig
         <div className="px-5 py-3.5 lg:px-1 lg:pt-4 lg:pb-5">
           <div className="flex items-center justify-between">
             <h1
-              className="text-[21px] lg:text-[26px] font-semibold text-ink-strong tracking-[-0.01em] leading-[1.2]"
+              className="text-[21px] lg:text-[32px] font-semibold text-ink-strong tracking-[-0.01em] leading-[1.2]"
               style={{ fontFamily: SERIF }}
             >
               {language === 'ko' ? '목양칼럼' : 'Pastoral Column'}
@@ -102,7 +102,7 @@ const MinistryHeader = ({ language, isAdminUser, onQueryChange, onAddNew, onHeig
             <div className="flex items-center gap-2">
               <button
                 onClick={toggleSearch}
-                className={`p-2 rounded-full transition-colors ${
+                className={`p-2 lg:p-2.5 rounded-full transition-colors ${
                   showSearch
                     ? 'bg-[var(--brand-soft-strong)] text-[var(--brand)]'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-[var(--brand-soft)]'
@@ -110,7 +110,7 @@ const MinistryHeader = ({ language, isAdminUser, onQueryChange, onAddNew, onHeig
                 aria-label={language === 'ko' ? '검색' : 'Search'}
                 title={language === 'ko' ? '검색' : 'Search'}
               >
-                <span className="material-icons-outlined text-xl">{showSearch ? 'close' : 'search'}</span>
+                <span className="material-icons-outlined text-xl lg:text-[26px]">{showSearch ? 'close' : 'search'}</span>
               </button>
               {isAdminUser && (
                 <button
@@ -134,7 +134,7 @@ const MinistryHeader = ({ language, isAdminUser, onQueryChange, onAddNew, onHeig
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={language === 'ko' ? '제목 또는 본문에서 검색…' : 'Search title or content…'}
-                className="w-full pl-10 pr-10 py-2.5 border border-border-light dark:border-white/[0.08] rounded-full bg-white dark:bg-white/[0.04] text-ink-strong text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
+                className="w-full pl-10 pr-10 py-2.5 lg:py-3.5 lg:pl-12 lg:text-[17px] border border-border-light dark:border-white/[0.08] rounded-full bg-white dark:bg-white/[0.04] text-ink-strong text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
               />
               {searchQuery && (
                 <button

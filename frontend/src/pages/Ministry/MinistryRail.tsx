@@ -22,6 +22,7 @@ interface MinistryRailProps {
 /**
  * 우측 위젯 레일 (lg+) — 편지의 '발신인·편지함·아카이브'.
  * 새 API 없이 이미 받아둔 목록만 재사용한다.
+ * PC 전용이라 글씨는 어르신 기준(본문 15px+)으로 잡는다.
  */
 const MinistryRail = ({ language, featured, totalLetters, railHighlights, monthGroups, topOffset, onOpen }: MinistryRailProps) => (
   <aside
@@ -34,12 +35,12 @@ const MinistryRail = ({ language, featured, totalLetters, railHighlights, monthG
         <img
           src={andongProfile}
           alt={featured.author}
-          className="w-16 h-16 rounded-full object-cover mx-auto ring-1 ring-black/[0.07] dark:ring-white/[0.12]"
+          className="w-20 h-20 rounded-full object-cover mx-auto ring-1 ring-black/[0.07] dark:ring-white/[0.12]"
         />
-        <p className="mt-3 text-[15px] font-semibold text-ink-strong tracking-[-0.01em]" style={{ fontFamily: SERIF }}>
+        <p className="mt-3 text-[18px] font-semibold text-ink-strong tracking-[-0.01em]" style={{ fontFamily: SERIF }}>
           {featured.author} {featured.role}
         </p>
-        <p className="mt-1.5 text-[12.5px] text-gray-500 dark:text-gray-400 leading-[1.6]">
+        <p className="mt-1.5 text-[15px] text-gray-600 dark:text-gray-300 leading-[1.6] break-keep">
           {language === 'ko'
             ? '매주 마음을 담아 성도님들께 띄우는 목회 서신입니다'
             : 'A weekly letter to our congregation, written with care'}
@@ -50,18 +51,18 @@ const MinistryRail = ({ language, featured, totalLetters, railHighlights, monthG
     {/* 편지함 — 지금까지 쌓인 편지 통수 */}
     {totalLetters > 0 && (
       <section className="feed-card rounded-2xl p-4">
-        <p className="mb-2 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-gray-400">
+        <p className="mb-2 text-[14px] font-bold tracking-[0.02em] text-gray-600 dark:text-gray-300">
           {language === 'ko' ? '편지함' : 'Letters'}
         </p>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[24px] font-semibold text-ink-strong tabular-nums leading-none">{totalLetters}</span>
-          <span className="text-[13px] text-gray-500 dark:text-gray-400">
+          <span className="text-[32px] font-semibold text-ink-strong tabular-nums leading-none">{totalLetters}</span>
+          <span className="text-[16px] text-gray-600 dark:text-gray-300">
             {language === 'ko' ? '통의 편지' : totalLetters === 1 ? 'letter' : 'letters'}
           </span>
         </div>
         {railHighlights.length > 0 && (
           <div className="mt-3.5 pt-3.5 border-t border-border-light dark:border-white/[0.08]">
-            <p className="mb-2 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-gray-400">
+            <p className="mb-2 text-[14px] font-bold tracking-[0.02em] text-gray-600 dark:text-gray-300">
               {language === 'ko' ? '밑줄 그은 문장' : 'Underlined'}
             </p>
             <div className="flex flex-col gap-1.5 -mx-1">
@@ -70,12 +71,12 @@ const MinistryRail = ({ language, featured, totalLetters, railHighlights, monthG
                   key={column.id}
                   type="button"
                   onClick={() => onOpen(column)}
-                  className="px-1 py-1 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors group"
+                  className="px-2 py-2 rounded-xl text-left hover:bg-[var(--brand-soft)] transition-colors group"
                 >
-                  <p className="text-[12.5px] text-ink-strong leading-[1.65] line-clamp-2" style={{ fontFamily: SERIF }}>
+                  <p className="text-[15.5px] text-ink-strong leading-[1.7] line-clamp-3" style={{ fontFamily: SERIF }}>
                     “{quote}”
                   </p>
-                  <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500 line-clamp-1 group-hover:text-[var(--brand)] transition-colors">
+                  <p className="mt-1 text-[13.5px] text-gray-500 dark:text-gray-400 line-clamp-1 group-hover:text-[var(--brand)] transition-colors">
                     {column.title}
                   </p>
                 </button>
@@ -89,7 +90,7 @@ const MinistryRail = ({ language, featured, totalLetters, railHighlights, monthG
     {/* 지난 편지 아카이브 — 월 카드로 바로 이동 */}
     {monthGroups.length > 1 && (
       <section className="feed-card rounded-2xl p-4">
-        <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-gray-400">
+        <p className="mb-1.5 text-[14px] font-bold tracking-[0.02em] text-gray-600 dark:text-gray-300">
           {language === 'ko' ? '지난 편지' : 'Earlier Letters'}
         </p>
         <div className="flex flex-col -mx-1">
@@ -100,10 +101,10 @@ const MinistryRail = ({ language, featured, totalLetters, railHighlights, monthG
               onClick={() =>
                 document.getElementById(monthAnchorId(gi))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
               }
-              className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
+              className="flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-xl text-left hover:bg-[var(--brand-soft)] transition-colors"
             >
-              <span className="text-[12.5px] font-semibold text-ink-strong truncate">{group.label}</span>
-              <span className="text-[11.5px] tabular-nums text-gray-400 dark:text-gray-500 shrink-0">{group.items.length}</span>
+              <span className="text-[16px] font-semibold text-ink-strong truncate">{group.label}</span>
+              <span className="text-[14px] tabular-nums text-gray-500 dark:text-gray-400 shrink-0">{group.items.length}</span>
             </button>
           ))}
         </div>

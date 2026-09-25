@@ -149,3 +149,57 @@
 .sermon-row-media-btn .material-icons-outlined {
   font-size: 1.05rem;
 }
+
+/* ── PC(lg+) 노안 패스 — 1열 큰 행: 제목은 두 줄까지 말줄임 없이, 미디어 버튼은 누르기 쉽게 ── */
+@media (min-width: 1024px) {
+  .sermon-row {
+    gap: 1.125rem;
+    padding: 1rem 1.25rem;
+    border-radius: 18px;
+  }
+
+  .sermon-row-date {
+    width: 60px;
+    padding: 0.55rem 0;
+    border-radius: 14px;
+  }
+
+  .sermon-row-day {
+    font-size: 1.5rem;
+  }
+
+  .sermon-row-weekday {
+    font-size: 0.875rem;
+    margin-top: 0.1rem;
+  }
+
+  .sermon-row-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-bottom: 0.3rem;
+    word-break: keep-all;
+  }
+
+  .sermon-row-sub {
+    gap: 0.45rem;
+    font-size: 1rem;
+  }
+
+  .sermon-row-media {
+    gap: 0.5rem;
+  }
+
+  .sermon-row-media-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .sermon-row-media-btn .material-icons-outlined {
+    font-size: 1.5rem;
+  }
+}

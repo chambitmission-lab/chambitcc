@@ -6,9 +6,12 @@
 // - 칠하기(paintable): 관리자 편집에서 누른 채 쓸면 여러 칸을 한 번에 바꾼다.
 //   ★pointerdown 에서 setPointerCapture 를 쓰지 않는다(클릭 대상이 바뀌는 버그 — pointer-capture-click-retarget).
 //   터치의 암묵적 캡처 때문에 pointermove 는 처음 칸에서만 오므로 elementFromPoint 로 칸을 찾는다.
+// - large(성도 예약 화면 PC): 좌석·번호를 크게 그리고, 상태를 색만이 아니라 표시로도 구분한다
+//   (고른 자리 ✓ 배지·예약된 자리 ✕). 관리자 현황·편집은 촘촘한 기본 그대로.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { SeatLayout } from '../../types/seatEvent'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { buildGrid } from './seatLayout'
 import './seat-map.css'
 
@@ -54,6 +57,25 @@ const AISLE = 14
 const MIN_SEAT = 12
 const MAX_SEAT = 34
 const ZOOM_SEAT = 32
+// large + PC — 어르신이 마우스로 정확히 누를 수 있는 크기
+const BIG_AXIS = 26
+const BIG_MIN_SEAT = 30
+const BIG_MAX_SEAT = 50
+const BIG_ZOOM_SEAT = 46
+
+/** 고른 자리 배지·범례에 같이 쓰는 체크 */
+const CheckMark = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+
+/** 예약된 자리 표시 — 색이 비슷해 보여도 "못 앉는 자리"임을 모양으로 */
+const CrossMark = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
+    <path d="M7 7l10 10M17 7L7 17" />
+  </svg>
+)
 
 interface SeatMapProps {
   layout: Pick<SeatLayout, 'sections' | 'labeling' | 'stage_label'>
@@ -71,6 +93,8 @@ interface SeatMapProps {
   /** 방금 바뀐 좌석 — 한 번 톡 튀는 애니메이션 */
   popLabels?: ReadonlySet<string>
   toolbarExtra?: ReactNode
+  /** 성도 예약 화면 PC(lg+) — 좌석·번호를 크게, 상태 표시(✓·✕)까지 */
+  large?: boolean
 }
 
 const SeatMap = ({
@@ -85,7 +109,11 @@ const SeatMap = ({
   showSectionNames = false,
   popLabels,
   toolbarExtra,
+  large = false,
 }: SeatMapProps) => {
+  const isLg = useMediaQuery('(min-width: 1024px)')
+  const big = large && isLg
+  const axis = big ? BIG_AXIS : AXIS
   const grid = useMemo(() => buildGrid(layout), [layout])
   const wrapRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
@@ -102,15 +130,18 @@ const SeatMap = ({
 
   const nSec = grid.sections.length
   const cols = Math.max(grid.totalCols, 1)
-  const fitSeat = Math.floor((width - AXIS - 6 - (nSec - 1) * AISLE - cols * 3) / cols)
-  const fit = Math.max(MIN_SEAT, Math.min(MAX_SEAT, fitSeat || MIN_SEAT))
-  const seat = zoomed ? Math.max(ZOOM_SEAT, fit) : fit
-  const gap = seat >= 24 ? 4 : 3
+  const minSeat = big ? BIG_MIN_SEAT : MIN_SEAT
+  const zoomSeat = big ? BIG_ZOOM_SEAT : ZOOM_SEAT
+  const fitSeat = Math.floor((width - axis - 6 - (nSec - 1) * AISLE - cols * (big ? 5 : 3)) / cols)
+  const fit = Math.max(minSeat, Math.min(big ? BIG_MAX_SEAT : MAX_SEAT, fitSeat || minSeat))
+  const seat = zoomed ? Math.max(zoomSeat, fit) : fit
+  const gap = big ? 6 : seat >= 24 ? 4 : 3
   const aisle = Math.max(AISLE, Math.round(seat * 0.7))
   const showLabels = seat >= 24
-  const headFont = Math.min(10.5, Math.max(8, seat * 0.5))
+  const headFont = big ? Math.min(16, Math.max(12, seat * 0.38)) : Math.min(10.5, Math.max(8, seat * 0.5))
+  const seatFont = big ? Math.max(12, seat * 0.34) : Math.max(8.5, seat * 0.33)
   // 폭에 딱 맞으면 확대 버튼이 필요 없다
-  const canZoom = fit < ZOOM_SEAT
+  const canZoom = fit < zoomSeat
 
   // ── 칠하기 ──
   const strokeRef = useRef<Set<string> | null>(null)
@@ -152,7 +183,7 @@ const SeatMap = ({
     : {}
 
   const contentWidth =
-    AXIS + 6 + grid.totalCols * seat + (grid.totalCols - nSec) * gap + (nSec - 1) * aisle
+    axis + 6 + grid.totalCols * seat + (grid.totalCols - nSec) * gap + (nSec - 1) * aisle
 
   return (
     <div ref={wrapRef} className="relative">
@@ -163,10 +194,12 @@ const SeatMap = ({
             <button
               type="button"
               onClick={() => setZoomed((v) => !v)}
-              className="inline-flex items-center gap-1 h-8 px-3 rounded-full border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.04] text-[12px] font-semibold text-ink hover:border-brand hover:text-brand transition-colors"
+              className={`inline-flex items-center gap-1 rounded-full border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.04] font-semibold text-ink hover:border-brand hover:text-brand transition-colors ${
+                big ? 'h-11 px-4 text-[15px]' : 'h-8 px-3 text-[12px]'
+              }`}
               aria-pressed={zoomed}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg width={big ? 18 : 14} height={big ? 18 : 14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="M20 20l-4.2-4.2" />
                 {zoomed ? <path d="M8.5 11h5" /> : <path d="M8.5 11h5M11 8.5v5" />}
@@ -181,8 +214,12 @@ const SeatMap = ({
       <div className="overflow-x-auto overscroll-x-contain pb-2 -mx-1 px-1">
         <div style={{ width: contentWidth }} className="mx-auto">
           {/* 무대 */}
-          <div className="flex justify-center mb-4" style={{ paddingLeft: AXIS + 6 }}>
-            <div className="seat-stage w-[78%] max-w-[420px] h-8 flex items-start justify-center pt-1 bg-[var(--brand-soft)] border-b-2 border-[var(--brand-soft-strong)] text-brand text-[11.5px] font-bold tracking-[0.3em]">
+          <div className={`flex justify-center ${big ? 'mb-6' : 'mb-4'}`} style={{ paddingLeft: axis + 6 }}>
+            <div
+              className={`seat-stage w-[78%] max-w-[420px] flex items-start justify-center pt-1 bg-[var(--brand-soft)] border-b-2 border-[var(--brand-soft-strong)] text-brand font-bold tracking-[0.3em] ${
+                big ? 'h-11 text-[16px]' : 'h-8 text-[11.5px]'
+              }`}
+            >
               {layout.stage_label || '무대'}
             </div>
           </div>
@@ -194,7 +231,7 @@ const SeatMap = ({
             aria-label="좌석 배치도"
           >
             {/* 행 머리글 */}
-            <div className="shrink-0 flex flex-col" style={{ width: AXIS, marginRight: 6, gap, paddingTop: seat * 0.55 + gap + (showSectionNames && nSec > 1 ? 16 : 0) }}>
+            <div className="shrink-0 flex flex-col" style={{ width: axis, marginRight: 6, gap, paddingTop: seat * 0.55 + gap + (showSectionNames && nSec > 1 ? 16 : 0) }}>
               {grid.rowHeads.map((head) => (
                 <span
                   key={head}
@@ -236,11 +273,30 @@ const SeatMap = ({
                           !paintable && !!onSeatPress && (canPress ? canPress(label) : !isDisabled)
                         const cls =
                           isDisabled && showDisabledSlots ? DISABLED_EDIT : VISUAL[visual]
-                        const style = { width: seat, height: seat, fontSize: Math.max(8.5, seat * 0.33) }
+                        const style = { width: seat, height: seat, fontSize: seatFont }
                         const common = `seat shrink-0 flex items-center justify-center font-bold tabular-nums leading-none ${cls} ${
                           popLabels?.has(label) ? 'seat-pop' : ''
-                        }`
-                        const text = showLabels && !isDisabled ? label : ''
+                        } ${big ? 'relative' : ''}`
+                        // large: 예약된 자리는 ✕(번호 대신), 고른 자리는 번호 + 모서리 ✓ 배지
+                        const text: ReactNode =
+                          big && visual === 'taken' ? (
+                            <span className="text-gray-400 dark:text-white/35">
+                              <CrossMark size={Math.round(seat * 0.46)} />
+                            </span>
+                          ) : showLabels && !isDisabled ? (
+                            big && visual === 'selected' ? (
+                              <>
+                                {label}
+                                <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] rounded-full bg-white text-brand ring-2 ring-brand flex items-center justify-center">
+                                  <CheckMark size={11} />
+                                </span>
+                              </>
+                            ) : (
+                              label
+                            )
+                          ) : (
+                            ''
+                          )
                         const title = titleOf?.(label) ?? label
 
                         if (pressable) {
@@ -293,13 +349,34 @@ export default SeatMap
 
 const LEGEND_SWATCH: Partial<Record<SeatVisual, string>> = VISUAL
 
-export const SeatLegend = ({ items }: { items: { visual: SeatVisual; label: string }[] }) => (
-  <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5">
-    {items.map((item) => (
-      <span key={item.visual} className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-gray-500 dark:text-white/55">
-        <span className={`seat w-3.5 h-3.5 ${LEGEND_SWATCH[item.visual] ?? ''}`} aria-hidden />
-        {item.label}
-      </span>
-    ))}
-  </div>
-)
+/** large: 성도 예약 화면 PC — 견본을 크게 그리고 배치도와 같은 ✓·✕ 표시를 얹는다 */
+export const SeatLegend = ({ items, large = false }: { items: { visual: SeatVisual; label: string }[]; large?: boolean }) => {
+  const isLg = useMediaQuery('(min-width: 1024px)')
+  const big = large && isLg
+  return (
+    <div className={`flex flex-wrap items-center ${big ? 'gap-x-5 gap-y-2.5' : 'gap-x-3.5 gap-y-1.5'}`}>
+      {items.map((item) => (
+        <span
+          key={item.visual}
+          className={`inline-flex items-center font-semibold text-gray-500 dark:text-white/55 ${
+            big ? 'gap-2 text-[15.5px] text-ink' : 'gap-1.5 text-[11.5px]'
+          }`}
+        >
+          <span
+            className={`seat flex items-center justify-center ${big ? 'relative w-7 h-7' : 'w-3.5 h-3.5'} ${LEGEND_SWATCH[item.visual] ?? ''}`}
+            aria-hidden
+          >
+            {big && item.visual === 'taken' ? (
+              <span className="text-gray-400 dark:text-white/35">
+                <CrossMark size={14} />
+              </span>
+            ) : big && item.visual === 'selected' ? (
+              <CheckMark size={14} />
+            ) : null}
+          </span>
+          {item.label}
+        </span>
+      ))}
+    </div>
+  )
+}

@@ -3,9 +3,11 @@ import type { Column } from '../../types/column'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import ColumnLetter from './ColumnLetter'
 import {
   FONT_STEPS,
+  FONT_STEPS_LG,
   SERIF,
   buildShareText,
   formatLetterDate,
@@ -28,7 +30,11 @@ interface ColumnReaderModalProps {
   onDeleteRequest: () => void
 }
 
-/** 편지 읽기 화면 — 진행 바·글자 크기·공유·아멘·이어 읽기. 관리자면 수정/삭제 메뉴. */
+/**
+ * 편지 읽기 화면 — 진행 바·글자 크기·공유·아멘·이어 읽기. 관리자면 수정/삭제 메뉴.
+ * PC(lg+)는 어르신이 모니터로 읽는 자리라 글자 단계(FONT_STEPS_LG)·창 폭·버튼을 키우고,
+ * 글자 크기는 눌러서 도는 아이콘 대신 '가 가 가' 세 칸을 펼쳐 지금 단계가 보이게 한다.
+ */
 const ColumnReaderModal = ({
   language,
   column,
@@ -45,6 +51,8 @@ const ColumnReaderModal = ({
   const [fontStep, setFontStep] = useState<number>(loadFontStep)
   const [showAdminMenu, setShowAdminMenu] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const isLg = useMediaQuery('(min-width: 1024px)')
+  const fontPx = (isLg ? FONT_STEPS_LG : FONT_STEPS)[fontStep]
 
   // 모바일 뒤로가기 → 페이지 이탈 대신 이 모달만 닫기
   useModalBackButton(onClose)
@@ -75,11 +83,12 @@ const ColumnReaderModal = ({
     })
   }
 
-  const cycleFontSize = () => {
-    const next = (fontStep + 1) % FONT_STEPS.length
+  const pickFontStep = (next: number) => {
     setFontStep(next)
     saveFontStep(next)
   }
+  const cycleFontSize = () => pickFontStep((fontStep + 1) % FONT_STEPS.length)
+  const stepNames = language === 'ko' ? ['보통', '크게', '아주 크게'] : ['Normal', 'Large', 'Extra large']
 
   // 공유 — 카톡 전달을 염두에 두고 편지 전문을 텍스트로
   const handleShare = async () => {
@@ -103,15 +112,15 @@ const ColumnReaderModal = ({
   }
 
   const renderNeighbor = (target: Column, label: string) => (
-    <button onClick={() => onNavigate(target)} className="feed-card w-full rounded-2xl px-5 py-4 text-left group">
-      <div className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 tracking-[0.03em]">{label}</div>
+    <button onClick={() => onNavigate(target)} className="feed-card w-full rounded-2xl px-5 py-4 lg:px-6 lg:py-5 text-left group">
+      <div className="text-[11px] lg:text-[14px] font-semibold text-gray-400 dark:text-gray-500 lg:text-gray-500 lg:dark:text-gray-400 tracking-[0.03em]">{label}</div>
       <div
-        className="text-[15px] font-semibold text-ink-strong line-clamp-1 tracking-[-0.01em] mt-1.5 group-hover:text-[var(--brand)] transition-colors"
+        className="text-[15px] lg:text-[20px] font-semibold text-ink-strong line-clamp-1 tracking-[-0.01em] mt-1.5 group-hover:text-[var(--brand)] transition-colors"
         style={{ fontFamily: SERIF }}
       >
         {target.title}
       </div>
-      <div className="text-[11.5px] text-gray-400 dark:text-gray-500 mt-1">{formatLetterDate(target.date, language)}</div>
+      <div className="text-[11.5px] lg:text-[14px] text-gray-400 dark:text-gray-500 mt-1">{formatLetterDate(target.date, language)}</div>
     </button>
   )
 
@@ -122,7 +131,7 @@ const ColumnReaderModal = ({
     >
       <div
         ref={scrollRef}
-        className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md lg:max-w-2xl md:h-auto md:max-h-[calc(100dvh-2rem)] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]"
+        className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md lg:max-w-[800px] md:h-auto md:max-h-[calc((100dvh-2rem)/var(--az,1))] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]"
         onClick={(e) => e.stopPropagation()}
         onScroll={handleScroll}
       >
@@ -132,14 +141,39 @@ const ColumnReaderModal = ({
             className="absolute top-0 left-0 h-[2.5px] bg-[var(--brand)] transition-[width] duration-150 ease-out"
             style={{ width: `${readProgress * 100}%` }}
           ></div>
-          <div className="flex items-center justify-between pl-5 pr-3 h-12">
-            <span className="text-[12px] font-semibold text-gray-400 dark:text-gray-500 tracking-[0.04em]">
+          <div className="flex items-center justify-between pl-5 pr-3 h-12 lg:h-16 lg:pl-8 lg:pr-4">
+            <span className="text-[12px] lg:text-[15px] font-semibold text-gray-400 dark:text-gray-500 tracking-[0.04em]">
               {language === 'ko' ? '목양칼럼' : 'Pastoral Column'}
             </span>
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-0.5 lg:gap-1">
+              {/* PC — 글자 크기 세 칸을 펼쳐 둔다 (버튼 글자 자체가 단계만큼 커진다) */}
+              <div
+                role="group"
+                aria-label={language === 'ko' ? '글자 크기' : 'Text size'}
+                className="hidden lg:flex items-center gap-0.5 mr-2 p-1 rounded-full bg-black/[0.05] dark:bg-white/[0.06]"
+              >
+                {FONT_STEPS_LG.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => pickFontStep(i)}
+                    aria-pressed={fontStep === i}
+                    aria-label={stepNames[i]}
+                    title={stepNames[i]}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold leading-none transition-colors ${
+                      fontStep === i
+                        ? 'text-brand bg-[var(--surface-container)] shadow-sm dark:bg-white/[0.12]'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    }`}
+                    style={{ fontSize: [14, 17, 20][i] }}
+                  >
+                    {language === 'ko' ? '가' : 'A'}
+                  </button>
+                ))}
+              </div>
               <button
                 onClick={cycleFontSize}
-                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
+                className="lg:hidden w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
                 aria-label={language === 'ko' ? '글자 크기 조절' : 'Adjust text size'}
                 title={language === 'ko' ? '글자 크기' : 'Text size'}
               >
@@ -147,25 +181,25 @@ const ColumnReaderModal = ({
               </button>
               <button
                 onClick={handleShare}
-                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
+                className="w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
                 aria-label={language === 'ko' ? '공유' : 'Share'}
                 title={language === 'ko' ? '공유' : 'Share'}
               >
-                <span className="material-icons-outlined text-[19px] text-gray-600 dark:text-gray-400">share</span>
+                <span className="material-icons-outlined text-[19px] lg:text-[23px] text-gray-600 dark:text-gray-400">share</span>
               </button>
               {isAdminUser && (
                 <div className="relative">
                   <button
                     onClick={() => setShowAdminMenu((v) => !v)}
-                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
+                    className="w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
                     aria-label={language === 'ko' ? '관리' : 'Manage'}
                   >
-                    <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">more_horiz</span>
+                    <span className="material-icons-outlined text-[20px] lg:text-[24px] text-gray-600 dark:text-gray-400">more_horiz</span>
                   </button>
                   {showAdminMenu && (
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setShowAdminMenu(false)}></div>
-                      <div className="absolute right-0 top-10 z-20 w-36 py-1.5 rounded-2xl bg-background-light dark:bg-background-dark border border-border-light dark:border-white/[0.1] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.25)] overflow-hidden">
+                      <div className="absolute right-0 top-10 lg:top-12 z-20 w-36 py-1.5 rounded-2xl bg-background-light dark:bg-background-dark border border-border-light dark:border-white/[0.1] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.25)] overflow-hidden">
                         <button
                           onClick={() => onEdit(column)}
                           className="w-full px-4 py-2.5 text-left text-sm font-medium text-ink-strong flex items-center gap-2.5 hover:bg-[var(--brand-soft)] transition-colors"
@@ -190,32 +224,33 @@ const ColumnReaderModal = ({
               )}
               <button
                 onClick={onClose}
-                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
+                className="w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
                 aria-label="닫기"
+                title={language === 'ko' ? '닫기' : 'Close'}
               >
-                <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">close</span>
+                <span className="material-icons-outlined text-[20px] lg:text-[28px] text-gray-600 dark:text-gray-400">close</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* 편지 본문 */}
-        <div className="px-6 pt-6 pb-12">
-          <ColumnLetter language={language} column={column} fontSize={FONT_STEPS[fontStep]} />
+        <div className="px-6 pt-6 pb-12 lg:px-14 lg:pt-10 lg:pb-16">
+          <ColumnLetter language={language} column={column} fontSize={fontPx} />
 
           {/* 아멘 — 편지를 다 읽고 조용히 화답하는 자리 (좋아요가 아니라 응답) */}
-          <div className="mt-9 flex flex-col items-center">
+          <div className="mt-9 lg:mt-12 flex flex-col items-center">
             <button
               type="button"
               onClick={() => onAmen(column)}
               aria-pressed={!!column.is_amened}
-              className={`relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[13.5px] font-semibold border transition-all active:scale-95 ${
+              className={`relative inline-flex items-center gap-2 px-5 py-2.5 lg:px-8 lg:py-4 lg:gap-2.5 rounded-full text-[13.5px] lg:text-[18px] font-semibold border transition-all active:scale-95 ${
                 column.is_amened
                   ? 'seal-chip bg-brand border-transparent text-white [--seal-drop:0_2px_10px_var(--brand-glow)]'
                   : 'bg-transparent border-gray-300 dark:border-white/[0.15] text-gray-600 dark:text-gray-300 hover:border-brand hover:text-brand'
               }`}
             >
-              <HandHeartIcon size={16} strokeWidth={1.9} filled={!!column.is_amened} />
+              <HandHeartIcon size={isLg ? 22 : 16} strokeWidth={1.9} filled={!!column.is_amened} />
               <span>
                 {language === 'ko'
                   ? column.is_amened
@@ -233,7 +268,7 @@ const ColumnReaderModal = ({
 
           {/* 이어 읽기 — 편지를 다 읽은 흐름 그대로 다음 글로 */}
           {(olderColumn || newerColumn) && (
-            <div className="mt-10 space-y-3">
+            <div className="mt-10 lg:mt-14 space-y-3">
               {olderColumn && renderNeighbor(olderColumn, language === 'ko' ? '이전 편지' : 'Previous letter')}
               {newerColumn && renderNeighbor(newerColumn, language === 'ko' ? '다음 편지' : 'Next letter')}
             </div>

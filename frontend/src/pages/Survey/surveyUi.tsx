@@ -1,7 +1,7 @@
 // 설문 화면 공통 UI — 목록·상세가 같은 껍데기(셸·헤더·칩·빈 상태)를 쓴다.
 // 앱의 다른 목록/상세 화면(/classes·/bible/plans)과 같은 문법을 그대로 따른다:
 // 캔버스 바탕 + sticky 상단 바 + 흰 카드, lg+ 에서는 본문 + 312px 우측 레일 2단.
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import type { SurveySummary } from '../../types/survey'
 import { STATUS_META, daysLeft, displayStatus, isAcceptingResponses } from './surveyShared'
 
@@ -42,19 +42,36 @@ export const Spinner = ({ size = 32 }: { size?: number }) => (
   </div>
 )
 
-/** 페이지 셸 — rail 을 주면 lg+ 에서 2단이 된다 (없으면 읽기 좋은 폭으로 가운데 정렬) */
+/**
+ * 페이지 셸 — rail 을 주면 lg+ 에서 2단이 된다 (없으면 읽기 좋은 폭으로 가운데 정렬)
+ *
+ * pinRail: PC 에서 이 페이지를 스스로 스크롤하는 상자로 만들어 우측 레일을 화면에 붙여 둔다.
+ *   이 앱은 #root 의 overflow-x:hidden 때문에 position:sticky 가 전역으로 붙지 않는다 —
+ *   페이지가 헤더(56px)를 뺀 높이의 스크롤 상자가 되는 순간 레일 sticky 가 이 상자 기준으로 산다
+ *   (/visit·/organization 과 같은 방식). 높이는 PC 글씨 크기 zoom(--az)으로 나눈다.
+ *   상자가 스크롤하므로 맨 위로 올리기는 window 가 아니라 scrollRef 로 한다.
+ */
 export const SurveyShell = ({
   onBack,
   title,
   rail,
+  pinRail = false,
+  scrollRef,
   children,
 }: {
   onBack: () => void
   title: ReactNode
   rail?: ReactNode
+  pinRail?: boolean
+  scrollRef?: Ref<HTMLDivElement>
   children: ReactNode
 }) => (
-  <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+  <div
+    ref={scrollRef}
+    className={`min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage ${
+      pinRail ? 'lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto' : ''
+    }`}
+  >
     <div
       className={
         rail
@@ -84,7 +101,11 @@ export const SurveyShell = ({
       </div>
 
       {rail ? (
-        <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <aside
+          className={`hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky ${
+            pinRail ? 'lg:top-3' : 'lg:top-[4.5rem]'
+          }`}
+        >
           {rail}
         </aside>
       ) : null}

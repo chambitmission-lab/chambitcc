@@ -198,3 +198,47 @@
     align-self: flex-start;
   }
 }
+
+/* ── PC(lg+) 노안 패스 — 설교 상세 안의 언급 구절 카드 글씨를 본문(18px)에 맞춰 키운다 ── */
+@media (min-width: 1024px) {
+  .bible-references-header .material-icons-outlined {
+    font-size: 1.5rem;
+  }
+
+  .bible-references-header h3 {
+    font-size: 1.1875rem;
+  }
+
+  .bible-references-count {
+    font-size: 0.9rem;
+  }
+
+  .bible-reference-book {
+    font-size: 1.0625rem;
+  }
+
+  .bible-reference-chapter-verse {
+    font-size: 0.9375rem;
+  }
+
+  .bible-reference-timestamp {
+    font-size: 0.9375rem;
+  }
+
+  .bible-reference-timestamp .material-icons-outlined {
+    font-size: 1.2rem;
+  }
+
+  .bible-reference-context p {
+    font-size: 1rem;
+  }
+
+  .bible-reference-text p {
+    font-size: 17.5px;
+    line-height: 1.8;
+  }
+
+  .bible-reference-action {
+    font-size: 1rem;
+  }
+}

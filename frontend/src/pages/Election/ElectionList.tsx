@@ -16,10 +16,10 @@ const ElectionCard = ({ election, onOpen }: { election: ElectionSummary; onOpen:
     onClick={onOpen}
     onMouseEnter={() => void preloadRoute(`/elections/${election.id}`)}
     onTouchStart={() => void preloadRoute(`/elections/${election.id}`)}
-    className={`${cardCls} w-full text-left p-4 transition-transform active:scale-[0.99]`}
+    className={`${cardCls} w-full text-left p-4 transition-transform active:scale-[0.99] lg:p-6 lg:hover:border-brand`}
   >
-    <div className="flex items-start gap-3">
-      <span className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+    <div className="flex items-start gap-3 lg:gap-4">
+      <span className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center lg:w-14 lg:h-14">
         <BallotIcon size={22} />
       </span>
       <div className="min-w-0 flex-1">
@@ -30,8 +30,8 @@ const ElectionCard = ({ election, onOpen }: { election: ElectionSummary; onOpen:
             <span className={`${chipCls} ${STATUS_META[election.status].badge}`}>{phaseLabel(election)}</span>
           )}
         </div>
-        <h3 className="text-[15.5px] font-bold text-ink-strong leading-snug">{election.title}</h3>
-        <p className="mt-1 text-[12px] text-ink-muted">
+        <h3 className="text-[15.5px] font-bold text-ink-strong leading-snug lg:text-[21px]">{election.title}</h3>
+        <p className="mt-1 text-[12px] text-ink-muted lg:mt-1.5 lg:text-[15.5px]">
           {election.seats}명 선출 · 후보 {election.candidate_count}명 · {thresholdText(election.rules)}
         </p>
       </div>
@@ -40,12 +40,12 @@ const ElectionCard = ({ election, onOpen }: { election: ElectionSummary; onOpen:
       </span>
     </div>
     {election.current_round_no ? (
-      <div className="mt-3">
-        <TurnoutBar voted={election.voted_count} total={election.voters_total} />
+      <div className="mt-3 lg:mt-4">
+        <TurnoutBar voted={election.voted_count} total={election.voters_total} large />
       </div>
     ) : null}
     {election.can_vote ? (
-      <p className="mt-3 py-2 rounded-xl bg-brand text-white text-center text-[13.5px] font-bold">
+      <p className="mt-3 py-2 rounded-xl bg-brand text-white text-center text-[13.5px] font-bold lg:mt-4 lg:py-3.5 lg:rounded-2xl lg:text-[18px]">
         지금 투표하기
       </p>
     ) : null}
@@ -63,7 +63,7 @@ const ElectionList = () => {
 
   return (
     <SurveyShell onBack={() => navigate('/')} title="선거">
-      <div className="px-4 pt-5">
+      <div className="px-4 pt-5 lg:px-6 lg:pt-6">
         {!loggedIn ? (
           <CenterNote
             title="로그인이 필요해요"
