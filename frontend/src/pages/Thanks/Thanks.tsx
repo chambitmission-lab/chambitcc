@@ -39,6 +39,7 @@ import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { THANKS_HERO } from '../../utils/themeAssets'
+import { smoothScrollToElement } from '../../utils/scrollTo'
 
 type ThanksWeeklyTop = ThanksWeeklyTopResponse['data']
 
@@ -313,7 +314,14 @@ const Thanks = () => {
       showToast(ko ? '목록에서 찾지 못했어요' : 'Not found in the feed', 'error')
       return
     }
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    // lg 는 이 페이지가 스스로 스크롤하는 상자라 scrollIntoView 가 통하지만,
+    // 모바일은 스크롤러가 body 라 scrollIntoView(smooth) 가 조용히 실패한다 → 공용 유틸로 민다
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else {
+      const offset = Math.max(72, (window.innerHeight - el.getBoundingClientRect().height) / 2)
+      smoothScrollToElement(el, { offset })
+    }
     setHighlightId(id)
     window.setTimeout(() => setHighlightId((cur) => (cur === id ? null : cur)), 1800)
   }
