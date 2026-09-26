@@ -21,23 +21,33 @@ export interface ProofIssue {
   reason: string
 }
 
-interface ProofState {
+export interface ProofState {
   issues: ProofIssue[]
   active: string | null
 }
 
+/** 플러그인 내부 상태 — 밑줄(decoration)은 제안이 바뀔 때만 다시 만들고, 타이핑 중엔 위치만 옮긴다 */
+interface ProofPluginState extends ProofState {
+  decorations: DecorationSet
+}
+
 type ProofMeta = { type: 'set'; issues: ProofIssue[] } | { type: 'remove'; key: string } | { type: 'active'; key: string | null }
 
-export const proofreadKey = new PluginKey<ProofState>('columnProofread')
+export const proofreadKey = new PluginKey<ProofPluginState>('columnProofread')
 
-export const getProofState = (state: EditorState): ProofState =>
-  proofreadKey.getState(state) ?? { issues: [], active: null }
+const EMPTY_STATE: ProofPluginState = { issues: [], active: null, decorations: DecorationSet.empty }
+
+export const getProofState = (state: EditorState): ProofState => proofreadKey.getState(state) ?? EMPTY_STATE
 
 // ── 1) 문단 뽑기 ────────────────────────────────────────────────────
 
 export interface ProofBlock extends ColumnProofreadParagraph {
-  /** text 의 각 글자(UTF-16 단위)가 문서의 어느 위치인지 */
-  map: number[]
+  /**
+   * text 의 첫 글자가 놓인 문서 위치. text 의 i 번째 글자는 start + i 에 있다 —
+   * 인라인 자식이 text(글자 수 = nodeSize)이거나, 그 밖의 자식은 nodeSize 만큼 자리 기호를 넣어
+   * "평문 인덱스 = 문서 오프셋" 이 항상 성립하도록 collectProofBlocks 가 맞춘다.
+   */
+  start: number
 }
 
 /** 한 문단의 한도 — 서버 스키마와 같다 */
@@ -50,19 +60,15 @@ export const collectProofBlocks = (doc: PMNode): ProofBlock[] => {
     if (node.type.name === 'blockquote' || node.type.name === 'columnImage') return false
     if (!node.isTextblock) return true
     let text = ''
-    const map: number[] = []
-    node.forEach((child, offset) => {
-      const at = pos + 1 + offset
+    node.forEach((child) => {
       if (child.isText && child.text) {
-        for (let i = 0; i < child.text.length; i++) map.push(at + i)
         text += child.text
       } else {
-        // 줄바꿈은 그대로, 그 밖의 인라인 조각은 자리만 차지하는 기호로(원문 조각에 끼면 버린다)
-        text += child.type.name === 'hardBreak' ? '\n' : '￼'
-        map.push(at)
+        // 줄바꿈은 그대로, 그 밖의 인라인 조각은 nodeSize 만큼 자리만 차지하는 기호로(원문 조각에 끼면 버린다)
+        text += child.type.name === 'hardBreak' && child.nodeSize === 1 ? '\n' : '￼'.repeat(child.nodeSize)
       }
     })
-    if (text.trim() && text.length <= MAX_BLOCK_LEN) blocks.push({ id: `b${blocks.length}`, text, map })
+    if (text.trim() && text.length <= MAX_BLOCK_LEN) blocks.push({ id: `b${blocks.length}`, text, start: pos + 1 })
     return false
   })
   return blocks
@@ -104,8 +110,8 @@ export const locateIssues = (sent: ProofBlock[], now: ProofBlock[], issues: Colu
     for (let idx = block.text.indexOf(issue.original); idx !== -1; idx = block.text.indexOf(issue.original, idx + issue.original.length)) {
       const end = idx + issue.original.length
       if (quotes.some(([s, e]) => idx < e && end > s)) continue
-      const from = block.map[idx]
-      const to = block.map[end - 1] + 1
+      const from = block.start + idx
+      const to = block.start + end
       // 같은 자리에 겹치는 제안은 먼저 온 것만(밑줄이 두 겹으로 그려지지 않게)
       if (out.some((o) => from < o.to && to > o.from)) continue
       out.push({ key: `${from}:${to}`, from, to, original: issue.original, suggestion: issue.suggestion, kind: issue.kind, reason: issue.reason })
@@ -116,6 +122,15 @@ export const locateIssues = (sent: ProofBlock[], now: ProofBlock[], issues: Colu
 
 // ── 고치기 ─────────────────────────────────────────────────────────
 
+/** 원문 a 와 제안 b 의 공통 머리(p 글자)·꼬리(s 글자) 길이 — 달라진 가운데만 [p, len-s) */
+export const diffCore = (a: string, b: string): { p: number; s: number } => {
+  let p = 0
+  while (p < a.length && p < b.length && a[p] === b[p]) p++
+  let s = 0
+  while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++
+  return { p, s }
+}
+
 /**
  * 조각 전체를 갈아 끼우지 않고 달라진 가운데만 바꾼다 — 띄어쓰기는 공백 한 칸만 넣고 빼므로
  * 형광펜·굵게 같은 서식이 조각 일부에만 걸려 있어도 그대로 남는다.
@@ -123,10 +138,7 @@ export const locateIssues = (sent: ProofBlock[], now: ProofBlock[], issues: Colu
 const applyOne = (tr: Transaction, issue: ProofIssue) => {
   const a = issue.original
   const b = issue.suggestion
-  let p = 0
-  while (p < a.length && p < b.length && a[p] === b[p]) p++
-  let s = 0
-  while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++
+  const { p, s } = diffCore(a, b)
   const from = issue.from + p
   const to = issue.to - s
   const insert = b.slice(p, b.length - s)
@@ -150,43 +162,54 @@ export const setProofMeta = (tr: Transaction, meta: ProofMeta) => tr.setMeta(pro
 
 // ── 3) 밑줄 확장 ───────────────────────────────────────────────────
 
+const buildDecorations = (doc: PMNode, issues: ProofIssue[], active: string | null): DecorationSet =>
+  issues.length
+    ? DecorationSet.create(
+        doc,
+        issues.map((i) =>
+          Decoration.inline(i.from, i.to, {
+            class: `ce-proof ce-proof--${i.kind}${i.key === active ? ' is-active' : ''}`,
+            'data-proof': i.key,
+          }),
+        ),
+      )
+    : DecorationSet.empty
+
 export const ColumnProofread = Extension.create({
   name: 'columnProofread',
   addProseMirrorPlugins() {
     return [
-      new Plugin<ProofState>({
+      new Plugin<ProofPluginState>({
         key: proofreadKey,
         state: {
-          init: () => ({ issues: [], active: null }),
+          init: () => EMPTY_STATE,
           apply: (tr, prev, _old, next) => {
-            let { issues, active } = prev
+            let { issues, active, decorations } = prev
             if (tr.docChanged && issues.length) {
               issues = issues
                 .map((i) => ({ ...i, from: tr.mapping.map(i.from, 1), to: tr.mapping.map(i.to, -1) }))
                 .filter((i) => i.to > i.from && next.doc.textBetween(i.from, i.to) === i.original)
+              // 밑줄도 같은 규칙(앞 1·뒤 -1)으로 옮겨지므로 위치만 따라가면 된다 — 글자가 달라져 사라진 제안이
+              // 있을 때만 다시 만든다(개수로 판단: 옮겨서 남은 밑줄은 항상 남은 제안의 상위집합이다)
+              decorations = decorations.map(tr.mapping, next.doc)
             }
             const meta = tr.getMeta(proofreadKey) as ProofMeta | undefined
             if (meta?.type === 'set') issues = meta.issues
             if (meta?.type === 'remove') issues = issues.filter((i) => i.key !== meta.key)
             if (meta?.type === 'active') active = meta.key
             if (active && !issues.some((i) => i.key === active)) active = null
-            return issues === prev.issues && active === prev.active ? prev : { issues, active }
+            if (issues === prev.issues && active === prev.active && decorations === prev.decorations) return prev
+            const rebuild =
+              active !== prev.active ||
+              meta?.type === 'set' ||
+              meta?.type === 'remove' ||
+              (tr.docChanged && issues.length !== prev.issues.length)
+            if (rebuild) decorations = buildDecorations(next.doc, issues, active)
+            return { issues, active, decorations }
           },
         },
         props: {
-          decorations: (state) => {
-            const { issues, active } = getProofState(state)
-            if (!issues.length) return null
-            return DecorationSet.create(
-              state.doc,
-              issues.map((i) =>
-                Decoration.inline(i.from, i.to, {
-                  class: `ce-proof ce-proof--${i.kind}${i.key === active ? ' is-active' : ''}`,
-                  'data-proof': i.key,
-                }),
-              ),
-            )
-          },
+          decorations: (state) => proofreadKey.getState(state)?.decorations ?? null,
           // 밑줄을 누르면 그 자리 제안 카드를 연다(커서도 그대로 옮겨 가게 false 반환)
           handleClick: (view, pos) => {
             const { issues, active } = getProofState(view.state)
@@ -212,6 +235,7 @@ export type ProofreadFailure = 'limit' | 'timeout' | 'network' | 'failed'
 
 export const proofreadFailureOf = (error: unknown): ProofreadFailure => {
   if (isApiError(error, 503) || isApiError(error, 429)) return 'limit'
+  if (isApiError(error, 504)) return 'timeout'
   if (error instanceof DOMException && (error.name === 'AbortError' || error.name === 'TimeoutError')) return 'timeout'
   if (error instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine)) return 'network'
   return 'failed'

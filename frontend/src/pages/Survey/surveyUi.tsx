@@ -3,6 +3,7 @@
 // 캔버스 바탕 + sticky 상단 바 + 흰 카드, lg+ 에서는 본문 + 312px 우측 레일 2단.
 import type { ReactNode, Ref } from 'react'
 import type { SurveySummary } from '../../types/survey'
+import { ClipboardIcon } from './surveyIcons'
 import { STATUS_META, daysLeft, displayStatus, isAcceptingResponses } from './surveyShared'
 
 export const ChevronLeft = ({ size = 18 }: { size?: number }) => (
@@ -23,15 +24,8 @@ export const CheckIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 )
 
-/** 설문지 한 장 — 목록 카드·히어로·홈 배너가 함께 쓰는 상징 */
-export const ClipboardIcon = ({ size = 22 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16" />
-    <rect x="8" y="2.6" width="8" height="3.2" rx="1.1" />
-    <polyline points="9.2 12 10.8 13.6 14.8 9.6" />
-    <path d="M9.2 17.4h5.6" />
-  </svg>
-)
+/** 설문지 한 장 — surveyIcons.tsx 로 뗐다(홈 배너가 이 파일 전체를 끌지 않도록). 여기서 재수출 */
+export { ClipboardIcon } from './surveyIcons'
 
 export const Spinner = ({ size = 32 }: { size?: number }) => (
   <div className="flex justify-center py-14">

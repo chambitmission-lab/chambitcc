@@ -37,7 +37,7 @@ import {
   type Icon,
 } from './phosphor'
 import type { JourneyStageKey, TimelineDomain, TimelineEvent } from '../../types/growth'
-import { EmotionGlyph } from '../../pages/Home/components/EmotionIcons'
+import { EmotionGlyph } from '../../pages/Home/components/EmotionGlyph'
 import { MeditationEmotionGlyph } from '../../pages/Bible/Meditation/MeditationIcons'
 import { ThanksIcon } from './ThanksIcons'
 import type { ThanksEmotion } from '../../types/thanks'

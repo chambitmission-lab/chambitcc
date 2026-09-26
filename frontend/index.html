@@ -72,6 +72,10 @@
           document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
             m.setAttribute('content', tc);
           });
+          // PC 글씨 크기('가') — 저장 키·값은 utils/feedTextScale.ts 와 동일. React 마운트 전에
+          // <html data-text-scale> 을 세워 헤더·레일이 첫 프레임부터 고른 배율로 그려진다.
+          var ts = localStorage.getItem('feed-text-scale');
+          if (ts === 'large' || ts === 'xlarge') document.documentElement.setAttribute('data-text-scale', ts);
         } catch (e) {}
 
         // 아이콘 폰트가 준비되기 전 ligature 원문("home" 등 글자)이 잠깐 보이는 것을 막는다.

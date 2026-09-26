@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   createNewFamilyPost,
   syncNewFamilyPhotos,
@@ -7,6 +7,9 @@ import {
 import { showToast } from '../../../utils/toast'
 import { resizeImageToBlob } from '../../../utils/imageResize'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { FieldGroup, QuickChip, dateTriggerClass } from '../../../components/common/ComposerFields'
+import AdminComposerShell from './AdminComposerShell'
+import { ComposerFooter } from './AdminFormBits'
 import DatePicker from '../../../components/common/DatePicker'
 import type { NewFamilyPost } from '../../../types/newFamily'
 
@@ -33,10 +36,6 @@ const GROUP_PRESETS = [
   '영아부', '유치부', '유년부', '초등부', '중등부', '고등부',
   '청년1부', '청년2부', '장년부', '새가족부',
 ]
-
-/* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다 */
-const datePickerTriggerClass =
-  'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-left text-ink-strong hover:border-brand focus:outline-none focus:border-brand transition-colors'
 
 const pad = (n: number) => n.toString().padStart(2, '0')
 const toDateInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -199,48 +198,26 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
   const isThisSunday = registeredAt === getThisSunday()
   const isLastSunday = registeredAt === getLastSunday()
 
+  // PC에선 좌(정보 입력) / 우(넓은 사진 영역) 2단으로 펼친다
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="hidden dark:block absolute inset-0 pointer-events-none">
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
-        </div>
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-
-        {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div>
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
-              ADMIN
-            </p>
-            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-              {isEdit ? '새가족 수정' : '새가족 등록'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
-            aria-label="닫기"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        {/* 본문 — PC에선 좌(정보 입력) / 우(넓은 사진 영역) 2단으로 펼친다 */}
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
-          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-          <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
+    <AdminComposerShell
+      title={isEdit ? '새가족 수정' : '새가족 등록'}
+      onClose={onClose}
+      as="form"
+      onSubmit={handleSubmit}
+      gridCols="lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]"
+      footer={
+        <ComposerFooter
+          onClose={onClose}
+          canSubmit={canSubmit}
+          submitting={submitting}
+          submitLabel={isEdit ? '수정 저장' : '새가족 등록'}
+          submittingLabel={isEdit && !photosChanged ? '저장 중...' : '업로드 중...'}
+          cancelDisabled
+        />
+      }
+      columns={[
+        <>
             {/* 이름 */}
             <FieldGroup label="이름" required>
               <input
@@ -270,7 +247,7 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                 value={registeredAt}
                 onChange={setRegisteredAt}
                 sundayMode
-                className={datePickerTriggerClass}
+                className={dateTriggerClass}
               />
             </FieldGroup>
 
@@ -311,10 +288,9 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
               </p>
             </FieldGroup>
 
-          </div>
-
-          {/* 우 — 사진 드롭존·썸네일 그리드 */}
-          <div className="px-5 pb-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
+        </>,
+        // 우 — 사진 드롭존·썸네일 그리드
+        <>
             {/* 사진 */}
             <FieldGroup label="사진" required>
               <p className="text-[11px] text-gray-400 dark:text-white/40 mb-2">
@@ -441,91 +417,13 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                 {error}
               </div>
             )}
-          </div>
-          </div>
-
-          {/* 푸터 */}
-          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={submitting}
-              className="px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-            >
-              {submitting ? (
-                <>
-                  <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                  {isEdit && !photosChanged ? '저장 중...' : '업로드 중...'}
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {isEdit ? '수정 저장' : '새가족 등록'}
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </>,
+      ]}
+    />
   )
 }
 
 // ── Helpers ──────────────────────────────────────────────
-const FieldGroup = ({
-  label,
-  required,
-  children,
-}: {
-  label: string
-  required?: boolean
-  children: ReactNode
-}) => (
-  <div>
-    <div className="flex items-center gap-1 mb-2">
-      <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
-        {label}
-      </p>
-      {required && <span className="text-brand text-[12px] font-bold">*</span>}
-    </div>
-    {children}
-  </div>
-)
-
-const QuickChip = ({
-  active,
-  onClick,
-  children,
-}: {
-  active?: boolean
-  onClick: () => void
-  children: ReactNode
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={[
-      'inline-flex items-center px-3 h-8 rounded-full text-[11.5px] font-bold border transition-colors',
-      active
-        ? 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
-        : 'bg-transparent border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/60 hover:bg-[var(--brand-soft)] hover:text-brand',
-    ].join(' ')}
-  >
-    {children}
-  </button>
-)
-
 interface PhotoPreviewItemProps {
   src: string
   index: number

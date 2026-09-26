@@ -1,11 +1,12 @@
 import type { NavIconKey } from '../layout/NewHeader/components/NavIcons'
+import { navEntry } from '../layout/navCatalog'
+import { translations, type Translation } from '../../locales'
 import {
   Books,
   CalendarDots,
   ChatCircleText,
   Files,
   Flower,
-  GlobeHemisphereEast,
   HandsPraying,
   Hourglass,
   ImageSquare,
@@ -18,8 +19,10 @@ import {
   type Icon,
 } from '../icons/phosphor'
 
-// ⌘K 팔레트의 정적 페이지 색인 — 라벨·설명은 두 언어를 직접 들고, 검색은 라벨+설명+키워드 전부를 본다.
-// 라우트가 생기면 여기에 한 줄 추가. (관리자 페이지는 넣지 않는다 — 관리자 메뉴가 따로 있다)
+// ⌘K 팔레트의 정적 페이지 색인 — 메뉴에 있는 페이지는 layout/navCatalog.ts 의 이름·설명·아이콘을
+// 그대로 쓰고(헤더·메가 메뉴와 같은 말), 여기엔 검색 키워드·빠른 이동·회원 전용 같은 팔레트 사정만 적는다.
+// 메뉴에 없는 페이지(성경 도구·기도 피드·프로필·로그인…)만 EXTRA_PAGES 에 두 언어를 직접 든다.
+// 라우트가 생기면 카탈로그에 한 줄 + 아래 키워드 한 줄. (관리자 페이지는 넣지 않는다 — 관리자 메뉴가 따로 있다)
 
 export interface PageEntry {
   to: string
@@ -35,23 +38,39 @@ export interface PageEntry {
   memberOnly?: boolean
 }
 
-export const PAGE_INDEX: PageEntry[] = [
-  { to: '/worship', label: { ko: '예배 안내', en: 'Worship' }, desc: { ko: '주일 7:30 · 9:20 · 11:20 · 1:30', en: 'Sunday service times' }, icon: 'worship', keywords: ['예배', '시간', '주일', '새벽', '수요', '금요', 'worship', 'service', 'time'], quick: true },
-  { to: '/visit', label: { ko: '오시는 길', en: 'Directions' }, desc: { ko: '7호선 상동역 · 주차 안내', en: 'Sangdong Stn. · parking' }, icon: 'visit', keywords: ['오시는길', '위치', '주소', '지도', '주차', '상동역', 'directions', 'map', 'parking', 'address'], quick: true },
-  { to: '/sermon', label: { ko: '설교', en: 'Sermons' }, desc: { ko: '주일 1~4부 설교 다시보기', en: 'Replay every Sunday sermon' }, icon: 'sermon', keywords: ['설교', '말씀', '다시보기', '영상', 'sermon', 'message', 'replay'], quick: true },
-  { to: '/bible', label: { ko: '성경', en: 'Bible' }, desc: { ko: '읽기 · 통독표 · 오디오북', en: 'Read · stamp chart · audiobook' }, icon: 'bible', keywords: ['성경', '읽기', '통독', '오디오', '낭독', 'bible', 'read', 'audio'], quick: true },
-  { to: '/events', label: { ko: '일정', en: 'Events' }, desc: { ko: '교회 캘린더 · 참석 신청', en: 'Church calendar · RSVP' }, icon: 'events', keywords: ['일정', '행사', '캘린더', '달력', '참석', 'events', 'calendar', 'rsvp'], quick: true },
-  { to: '/about', label: { ko: '교회 소개', en: 'About' }, desc: { ko: '참빛교회 이야기와 담임목사', en: 'Our story and senior pastor' }, icon: 'about', keywords: ['소개', '교회', '담임목사', '목사', '비전', 'about', 'pastor', 'church'] },
-  { to: '/greeting', label: { ko: '인사말', en: 'Greeting' }, desc: { ko: '담임목사가 전하는 환영 인사', en: 'A welcome from our senior pastor' }, icon: 'greeting', keywords: ['인사말', '인사', '담임목사', '목사', '환영', '역대', 'greeting', 'welcome', 'pastor'] },
-  { to: '/history', label: { ko: '발자취', en: 'History' }, desc: { ko: '걸어온 길, 주요 순간들', en: 'Milestones along the way' }, icon: 'history', keywords: ['발자취', '역사', '연혁', 'history', 'timeline'] },
-  { to: '/people', label: { ko: '섬기는 사람들', en: 'Our People' }, desc: { ko: '교역자 · 선교사 · 장로 · 직원', en: 'Pastors · missionaries · elders · staff' }, icon: 'people', keywords: ['섬기는사람들', '섬기는', '교역자', '부목사', '전도사', '선교사', '파송', '장로', '직원', '간사', '연락처', 'people', 'staff', 'pastor', 'missionary', 'elder'] },
-  { to: '/organization', label: { ko: '조직도', en: 'Organization' }, desc: { ko: '부서와 위원회 구조', en: 'Teams and committees' }, icon: 'organization', keywords: ['조직도', '부서', '위원회', '국', 'organization', 'committee'] },
-  { to: '/ministry', label: { ko: '목양칼럼', en: 'Pastoral Column' }, desc: { ko: '담임목사의 주간 편지', en: "The pastor's weekly letter" }, icon: 'ministry', keywords: ['칼럼', '목양', '편지', '목사님', 'column', 'letter'] },
-  { to: '/news?tab=bulletin', label: { ko: '주보', en: 'Bulletin' }, desc: { ko: '이번 주 주보 보기', en: "This week's bulletin" }, glyph: Files, keywords: ['주보', '순서지', 'bulletin'] },
-  { to: '/news', label: { ko: '교회 소식', en: 'News' }, desc: { ko: '소식과 공지', en: 'News and announcements' }, icon: 'news', keywords: ['소식', '공지', '뉴스', 'news', 'notice'] },
-  { to: '/news?tab=new-family', label: { ko: '새가족 앨범', en: 'Newcomers' }, desc: { ko: '새로 오신 분들을 환영해요', en: 'Welcoming those who just arrived' }, glyph: Plant, keywords: ['새가족', '새신자', '등록', '환영', 'newcomer', 'new family'] },
-  { to: '/mission', label: { ko: '선교', en: 'Mission' }, desc: { ko: '파송 선교사와 기도', en: 'Missionaries we send and pray for' }, glyph: GlobeHemisphereEast, keywords: ['선교', '선교사', '파송', 'mission', 'missionary'] },
-  { to: '/culture', label: { ko: '문화교실', en: 'Culture Classes' }, desc: { ko: '강좌 안내 · 신청', en: 'Classes · sign up' }, icon: 'culture', keywords: ['문화교실', '강좌', '수업', '신청', 'culture', 'class'] },
+type PaletteExtras = Pick<PageEntry, 'keywords' | 'quick' | 'memberOnly' | 'glyph'>
+
+// 카탈로그 경로 → 팔레트 사정. 순서가 팔레트의 기본 노출 순서다(빠른 이동은 quick 만)
+const CATALOG_PALETTE: [string, PaletteExtras][] = [
+  ['/worship', { keywords: ['예배', '시간', '주일', '새벽', '수요', '금요', 'worship', 'service', 'time'], quick: true }],
+  ['/visit', { keywords: ['오시는길', '위치', '주소', '지도', '주차', '상동역', 'directions', 'map', 'parking', 'address'], quick: true }],
+  ['/sermon', { keywords: ['설교', '말씀', '다시보기', '영상', 'sermon', 'message', 'replay'], quick: true }],
+  ['/bible', { keywords: ['성경', '읽기', '통독', '오디오', '낭독', 'bible', 'read', 'audio'], quick: true }],
+  ['/events', { keywords: ['일정', '행사', '캘린더', '달력', '참석', 'events', 'calendar', 'rsvp'], quick: true }],
+  ['/about', { keywords: ['소개', '교회', '담임목사', '목사', '비전', 'about', 'pastor', 'church'] }],
+  ['/greeting', { keywords: ['인사말', '인사', '담임목사', '목사', '환영', '역대', 'greeting', 'welcome', 'pastor'] }],
+  ['/history', { keywords: ['발자취', '역사', '연혁', 'history', 'timeline'] }],
+  ['/people', { keywords: ['섬기는사람들', '섬기는', '교역자', '부목사', '전도사', '선교사', '파송', '장로', '직원', '간사', '연락처', 'people', 'staff', 'pastor', 'missionary', 'elder'] }],
+  ['/organization', { keywords: ['조직도', '부서', '위원회', '국', 'organization', 'committee'] }],
+  ['/education', { keywords: ['교육', '훈련', '주일학교', '청년부', '양육', '제자', 'education', 'training', 'class'] }],
+  ['/ministry', { keywords: ['칼럼', '목양', '편지', '목사님', 'column', 'letter'] }],
+  ['/news?tab=bulletin', { keywords: ['주보', '순서지', 'bulletin'], glyph: Files }],
+  ['/news', { keywords: ['소식', '공지', '뉴스', 'news', 'notice'] }],
+  ['/news?tab=new-family', { keywords: ['새가족', '새신자', '등록', '환영', 'newcomer', 'new family'], glyph: Plant }],
+  ['/mission', { keywords: ['선교', '선교사', '파송', 'mission', 'missionary'] }],
+  ['/culture', { keywords: ['문화교실', '강좌', '수업', '신청', 'culture', 'class'] }],
+  ['/seats', { keywords: ['좌석', '자리', '예약', '콘서트', '행사', 'seat', 'booking', 'reserve'] }],
+  ['/survey', { keywords: ['설문', '설문조사', '의견', '투표', 'survey', 'poll', 'feedback'] }],
+  ['/groups', { keywords: ['모임', '소그룹', '기도방', '구역', 'group', 'room'], memberOnly: true }],
+  ['/classes', { keywords: ['알림장', '우리반', '교회학교', '주일학교', 'class', 'notice'], memberOnly: true }],
+  ['/garden', { keywords: ['칭호', '뱃지', '업적', 'title', 'badge'], memberOnly: true }],
+  ['/bluemarble', { keywords: ['퀘스트', '게임', '퀴즈', '보드', 'quest', 'quiz', 'game'], memberOnly: true }],
+  ['/answered-prayers', { keywords: ['응답', '간증', 'answered', 'testimony'] }],
+  ['/intercession', { keywords: ['누군가', '중보', '기도짝', '짝꿍', '마니또', 'intercession'] }],
+]
+
+// 메뉴에 없는 페이지 — 두 언어를 직접 든다
+const EXTRA_PAGES: PageEntry[] = [
   { to: '/bible/plans', label: { ko: '성경 읽기 플랜', en: 'Reading Plans' }, desc: { ko: '365 일독 · 주제별 플랜', en: '365-day & topical plans' }, glyph: CalendarDots, keywords: ['플랜', '일독', '365', '통독', 'plan', 'reading'] },
   { to: '/bible/story', label: { ko: '처음 만나는 성경', en: 'Meeting the Bible' }, desc: { ko: '초보자용 42화 스토리 모드', en: '42-episode story mode for beginners' }, glyph: Books, keywords: ['스토리', '처음', '초보', '입문', 'story', 'beginner'] },
   { to: '/bible/situation', label: { ko: '상황별 성구', en: 'Verses by Situation' }, desc: { ko: '지금 마음에 맞는 말씀', en: 'A verse for how you feel' }, glyph: ChatCircleText, keywords: ['상황', '위로', '불안', '감사', '성구', 'situation', 'comfort', 'anxiety'] },
@@ -59,18 +78,41 @@ export const PAGE_INDEX: PageEntry[] = [
   { to: '/bible/wordbook', label: { ko: '단어장', en: 'Wordbook' }, desc: { ko: '밑줄 친 단어 모음', en: 'Words you underlined' }, glyph: PencilLine, keywords: ['단어장', '단어', 'wordbook'], memberOnly: true },
   { to: '/feed', label: { ko: '기도 커뮤니티', en: 'Prayer Feed' }, desc: { ko: '기도제목 나누고 아멘하기', en: 'Share prayers, say amen' }, glyph: HandsPraying, keywords: ['기도', '커뮤니티', '피드', '아멘', 'prayer', 'feed', 'amen'], quick: true },
   { to: '/thanks', label: { ko: '오늘의 감사', en: 'Daily Thanks' }, desc: { ko: '감사 한 줄 남기기', en: 'One line of thanks' }, glyph: Flower, keywords: ['감사', 'thanks', 'gratitude'], memberOnly: true },
-  { to: '/groups', label: { ko: '모임', en: 'Groups' }, desc: { ko: '소그룹 · 기도방', en: 'Small groups · prayer rooms' }, icon: 'myGroups', keywords: ['모임', '소그룹', '기도방', '구역', 'group', 'room'], memberOnly: true },
-  { to: '/classes', label: { ko: '우리반 알림장', en: 'Class Notices' }, desc: { ko: '부서 공지 · 출석 · 앨범', en: 'Dept. notices · attendance · album' }, icon: 'classNote', keywords: ['알림장', '우리반', '교회학교', '주일학교', 'class', 'notice'], memberOnly: true },
   { to: '/growth', label: { ko: '신앙 여정', en: 'Faith Journey' }, desc: { ko: '타임라인 · 스트릭 · 통계', en: 'Timeline · streaks · stats' }, glyph: Thermometer, keywords: ['여정', '성장', '온도', '스트릭', 'journey', 'growth'], memberOnly: true },
-  { to: '/garden', label: { ko: '성경 칭호', en: 'Bible Titles' }, desc: { ko: '모은 칭호와 커버', en: 'Titles you earned' }, icon: 'garden', keywords: ['칭호', '뱃지', '업적', 'title', 'badge'], memberOnly: true },
-  { to: '/bluemarble', label: { ko: '바이블 퀘스트', en: 'Bible Quest' }, desc: { ko: '성경 보드게임 · 퀴즈', en: 'Bible board game · quiz' }, icon: 'bluemarble', keywords: ['퀘스트', '게임', '퀴즈', '보드', 'quest', 'quiz', 'game'], memberOnly: true },
-  { to: '/answered-prayers', label: { ko: '응답의 전당', en: 'Answered Prayers' }, desc: { ko: '응답받은 기도의 기록', en: 'Testimonies of answered prayer' }, icon: 'answeredPrayers', keywords: ['응답', '간증', 'answered', 'testimony'] },
-  { to: '/intercession', label: { ko: '누군가의 기도', en: "Someone's Prayer" }, desc: { ko: '서로를 위해 몰래 기도하는 짝', en: 'Pray in secret for one another' }, icon: 'intercession', keywords: ['누군가', '중보', '기도짝', '짝꿍', '마니또', 'intercession'] },
   { to: '/capsule', label: { ko: '타임캡슐', en: 'Time Capsule' }, desc: { ko: '미래의 나에게 봉인 편지', en: 'A sealed letter to future you' }, glyph: Hourglass, keywords: ['타임캡슐', '캡슐', '편지', 'capsule', 'letter'], memberOnly: true },
   { to: '/profile', label: { ko: '내 프로필', en: 'My Profile' }, desc: { ko: '프로필 · 칭호 · 설정', en: 'Profile · titles · settings' }, glyph: UserCircle, keywords: ['프로필', '내정보', '설정', 'profile', 'settings'], memberOnly: true },
   { to: '/login', label: { ko: '로그인', en: 'Log in' }, desc: { ko: '교인 로그인', en: 'Member login' }, glyph: Key, keywords: ['로그인', 'login', 'sign in'] },
   { to: '/register', label: { ko: '처음 오셨나요? 회원가입', en: 'New here? Sign up' }, desc: { ko: '1분이면 끝나요', en: 'Takes a minute' }, glyph: Sparkle, keywords: ['회원가입', '가입', '처음', 'register', 'sign up', 'join'] },
 ]
+
+// 사전 값 중엔 중첩 객체(카테고리 표)도 있어 문자열만 통과시킨다 — 카탈로그 키는 전부 문자열이다
+const word = (dict: Translation, key: keyof Translation): string => {
+  const v = dict[key]
+  return typeof v === 'string' ? v : String(key)
+}
+
+const catalogEntry = (path: string, extras: PaletteExtras): PageEntry => {
+  const nav = navEntry(path)
+  return {
+    to: nav.path,
+    // en 사전은 지연 로드 — 오기 전엔 ko 폴백(locales/index.ts). 호출 시점에 읽어야 교체가 반영된다
+    label: { ko: word(translations.ko, nav.labelKey), en: word(translations.en, nav.labelKey) },
+    desc: { ko: word(translations.ko, nav.descKey), en: word(translations.en, nav.descKey) },
+    icon: nav.icon ?? undefined,
+    ...extras,
+  }
+}
+
+// 사전 슬롯(en 로드)이 바뀔 때만 다시 만든다 — 팔레트가 열릴 때마다 33개를 새로 조립할 필요는 없다
+let cached: { en: Translation; index: PageEntry[] } | null = null
+
+/** 팔레트 페이지 색인 — 카탈로그 항목(현재 사전) + 팔레트 전용 항목 */
+export const getPageIndex = (): PageEntry[] => {
+  if (cached && cached.en === translations.en) return cached.index
+  const index = [...CATALOG_PALETTE.map(([path, extras]) => catalogEntry(path, extras)), ...EXTRA_PAGES]
+  cached = { en: translations.en, index }
+  return index
+}
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, '')
 

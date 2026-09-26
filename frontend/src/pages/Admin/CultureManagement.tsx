@@ -21,6 +21,7 @@ import type {
 } from '../../types/culture'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import AdminComposerShell from './components/AdminComposerShell'
 
 type TabKey = 'classes' | 'applications' | 'notices'
 
@@ -81,23 +82,31 @@ const ClassFormPanel = ({
   const set = (patch: Partial<ClassForm>) => setForm((f) => ({ ...f, ...patch }))
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end lg:items-center justify-center lg:p-8">
-      <div className="w-full max-w-md lg:max-w-[920px] bg-background-light dark:bg-background-dark rounded-t-2xl lg:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] lg:max-h-[860px] flex flex-col">
-        <div className="flex items-center justify-between px-5 lg:px-7 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
-          <h3 className="font-bold text-ink-strong text-[15px]">
-            {initial.title ? '강좌 수정' : '새 강좌'}
-          </h3>
+    <AdminComposerShell
+      title={initial.title ? '강좌 수정' : '새 강좌'}
+      onClose={onCancel}
+      width="lg"
+      density="compact"
+      closeOnBackdrop={false}
+      footer={
+        <div className="shrink-0 px-5 lg:px-7 py-4 border-t border-border-light dark:border-border-dark flex gap-2">
+          <button
+            onClick={() => onSave(form)}
+            disabled={isPending}
+            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors"
+          >
+            {isPending ? '저장 중...' : '저장'}
+          </button>
           <button
             onClick={onCancel}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+            className="px-5 py-2.5 text-sm text-gray-600 dark:text-white/60 border border-gray-200 dark:border-white/[0.08] rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors"
           >
-            <span className="material-icons-round text-[20px]">close</span>
+            취소
           </button>
         </div>
-
-        {/* PC에선 좌(강좌명·소개) / 우(운영 정보) 2단 */}
-        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4 lg:space-y-0 lg:px-7 lg:py-6 lg:grid lg:grid-cols-2 lg:gap-x-7 lg:items-start">
-          <div className="space-y-4">
+      }
+      columns={[
+        <>
           <div>
             <label className={labelClass}>강좌명 *</label>
             <input
@@ -117,8 +126,8 @@ const ClassFormPanel = ({
               className={`${inputClass} resize-none lg:min-h-[300px]`}
             />
           </div>
-          </div>
-          <div className="space-y-4">
+        </>,
+        <>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>강사명</label>
@@ -206,26 +215,9 @@ const ClassFormPanel = ({
               </label>
             ))}
           </div>
-          </div>
-        </div>
-
-        <div className="px-5 lg:px-7 py-4 border-t border-border-light dark:border-border-dark flex gap-2 flex-shrink-0">
-          <button
-            onClick={() => onSave(form)}
-            disabled={isPending}
-            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors"
-          >
-            {isPending ? '저장 중...' : '저장'}
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-5 py-2.5 text-sm text-gray-600 dark:text-white/60 border border-gray-200 dark:border-white/[0.08] rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors"
-          >
-            취소
-          </button>
-        </div>
-      </div>
-    </div>
+        </>,
+      ]}
+    />
   )
 }
 
@@ -246,21 +238,33 @@ const NoticeFormPanel = ({
   isPending: boolean
 }) => {
   const [form, setForm] = useState(initial)
-  return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end lg:items-center justify-center lg:p-8">
-      <div className="w-full max-w-md lg:max-w-[880px] bg-background-light dark:bg-background-dark rounded-t-2xl lg:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] lg:max-h-[860px] flex flex-col">
-        <div className="flex items-center justify-between px-5 lg:px-7 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
-          <h3 className="font-bold text-ink-strong text-[15px]">
-            {initial.title ? '공지 수정' : '새 공지'}
-          </h3>
+  const footer = (
+    <div className="shrink-0 px-5 lg:px-7 py-4 border-t border-border-light dark:border-border-dark flex gap-2">
+          <button
+            onClick={() => onSave(form)}
+            disabled={isPending}
+            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors"
+          >
+            {isPending ? '저장 중...' : '저장'}
+          </button>
           <button
             onClick={onCancel}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+            className="px-5 py-2.5 text-sm text-gray-600 dark:text-white/60 border border-gray-200 dark:border-white/[0.08] rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors"
           >
-            <span className="material-icons-round text-[20px]">close</span>
+            취소
           </button>
-        </div>
-        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4 lg:px-7 lg:py-6">
+    </div>
+  )
+
+  return (
+    <AdminComposerShell
+      title={initial.title ? '공지 수정' : '새 공지'}
+      onClose={onCancel}
+      width="md"
+      density="compact"
+      closeOnBackdrop={false}
+      footer={footer}
+    >
           <div>
             <label className={labelClass}>제목 *</label>
             <input
@@ -289,24 +293,7 @@ const NoticeFormPanel = ({
             </div>
             <span className="text-sm text-gray-700 dark:text-white/70">공개</span>
           </label>
-        </div>
-        <div className="px-5 lg:px-7 py-4 border-t border-border-light dark:border-border-dark flex gap-2 flex-shrink-0">
-          <button
-            onClick={() => onSave(form)}
-            disabled={isPending}
-            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors"
-          >
-            {isPending ? '저장 중...' : '저장'}
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-5 py-2.5 text-sm text-gray-600 dark:text-white/60 border border-gray-200 dark:border-white/[0.08] rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors"
-          >
-            취소
-          </button>
-        </div>
-      </div>
-    </div>
+    </AdminComposerShell>
   )
 }
 

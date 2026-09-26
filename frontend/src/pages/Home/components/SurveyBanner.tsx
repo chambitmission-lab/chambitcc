@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { useSurveyHomeBanner } from '../../../hooks/useSurvey'
 import { isAuthenticated } from '../../../utils/auth'
 import { preloadRoute } from '../../../utils/routePreload'
-import { daysLeft } from '../../Survey/surveyShared'
-import { ClipboardIcon } from '../../Survey/surveyUi'
+import { daysLeft } from '../../Survey/surveyDates'
+import { ClipboardIcon } from '../../Survey/surveyIcons'
 
 const SurveyBanner = () => {
   const navigate = useNavigate()

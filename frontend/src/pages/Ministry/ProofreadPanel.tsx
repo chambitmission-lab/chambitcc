@@ -1,9 +1,9 @@
 // 맞춤법 점검 결과 — 목록 패널(편지 정보 위)과, 본문 밑줄을 누르면 그 자리에 뜨는 카드.
 // 고치기는 한 곳씩 확인하거나 "모두 고치기" 한 번으로. AI 제안이라 자동으로 바꾸지는 않는다.
 
-import { useEffect, useReducer } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import type { ColumnProofreadIssue } from '../../types/column'
-import type { ProofIssue, ProofreadFailure } from './columnProofread'
+import { diffCore, type ProofIssue, type ProofreadFailure } from './columnProofread'
 
 /** 제목 칸 제안은 문서 위치가 없어 key 만 붙여 같은 목록에 섞는다 */
 export type PanelIssue = (ProofIssue | (ColumnProofreadIssue & { key: string })) & { inTitle?: boolean }
@@ -17,10 +17,7 @@ const kindColor = (kind: PanelIssue['kind']) => (kind === 'spacing' ? 'var(--bra
 
 /** 원문·제안에서 달라진 가운데만 색으로 짚는다 — 띄어쓰기 한 칸도 눈에 보이게 */
 const splitDiff = (a: string, b: string) => {
-  let p = 0
-  while (p < a.length && p < b.length && a[p] === b[p]) p++
-  let s = 0
-  while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++
+  const { p, s } = diffCore(a, b)
   return {
     head: a.slice(0, p),
     before: a.slice(p, a.length - s),
@@ -137,12 +134,14 @@ export const ProofreadPanel = ({ ko, issues, onFocus, onFix, onIgnore, onFixAll,
           </button>
 
           <ul className="mt-3 space-y-2">
-            {issues.map((issue) => (
+            {issues.map((issue) => {
+              const action = spacingAction(issue, ko)
+              return (
               <li key={issue.key} className="rounded-xl bg-[var(--surface-container)] border border-border-light dark:border-white/[0.08] px-3.5 py-3">
                 <button type="button" onClick={() => onFocus(issue)} className="block w-full text-left" title={ko ? '본문에서 보기' : 'Show in letter'}>
                   <span className="flex items-center gap-1.5 text-[11.5px] lg:text-[13px] font-semibold" style={{ color: kindColor(issue.kind) }}>
                     {KIND_LABEL[issue.kind][ko ? 0 : 1]}
-                    {spacingAction(issue, ko) && <span>· {spacingAction(issue, ko)}</span>}
+                    {action && <span>· {action}</span>}
                     {issue.inTitle && <span className="text-gray-500 dark:text-gray-400">· {ko ? '제목' : 'Title'}</span>}
                   </span>
                   <span className="block mt-1">
@@ -159,7 +158,8 @@ export const ProofreadPanel = ({ ko, issues, onFocus, onFix, onIgnore, onFixAll,
                   </button>
                 </div>
               </li>
-            ))}
+              )
+            })}
           </ul>
         </>
       ) : (
@@ -253,29 +253,48 @@ interface ProofIssueCardProps {
   onClose: () => void
 }
 
+type Anchor = { left: number; top: number; bottom: number }
+const sameAnchor = (a: Anchor | null, b: Anchor | null) => !!a && !!b && a.left === b.left && a.top === b.top && a.bottom === b.bottom
+
 /** 본문 밑줄을 누르면 그 바로 아래에 — 고치기 / 그대로 두기 */
 export const ProofIssueCard = ({ ko, issue, root, onFix, onIgnore, onClose }: ProofIssueCardProps) => {
-  // 편지지가 스크롤되면 카드도 따라간다 — 위치는 렌더 때마다 밑줄 좌표로 다시 잰다
-  const [, bump] = useReducer((n: number) => n + 1, 0)
+  // 편지지가 스크롤되면 카드도 따라간다 — 좌표는 렌더 밖(레이아웃 효과)에서 재고, 스크롤은 한 프레임에 한 번만 잰다
+  const [anchor, setAnchor] = useState<Anchor | null>(null)
+  useLayoutEffect(() => {
+    const measure = () => {
+      const rect = root.querySelector(`[data-proof="${issue.key}"]`)?.getBoundingClientRect()
+      const next = rect ? { left: rect.left, top: rect.top, bottom: rect.bottom } : null
+      setAnchor((prev) => (sameAnchor(prev, next) ? prev : next))
+    }
+    measure()
+    let frame = 0
+    const schedule = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(() => {
+        frame = 0
+        measure()
+      })
+    }
+    window.addEventListener('scroll', schedule, true)
+    window.addEventListener('resize', schedule)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', schedule, true)
+      window.removeEventListener('resize', schedule)
+    }
+  }, [issue, root])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('scroll', bump, true)
-    window.addEventListener('resize', bump)
     window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('scroll', bump, true)
-      window.removeEventListener('resize', bump)
-      window.removeEventListener('keydown', onKey)
-    }
+    return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const el = root.querySelector(`[data-proof="${issue.key}"]`)
-  const rect = el?.getBoundingClientRect()
-  if (!rect) return null
-  const left = Math.max(16, Math.min(rect.left, window.innerWidth - CARD_W - 16))
-  const below = rect.bottom + 10
+  if (!anchor) return null
+  const left = Math.max(16, Math.min(anchor.left, window.innerWidth - CARD_W - 16))
+  const below = anchor.bottom + 10
   const placeAbove = below + 200 > window.innerHeight
-  const style = placeAbove ? { left, bottom: window.innerHeight - rect.top + 10, width: CARD_W } : { left, top: below, width: CARD_W }
+  const style = placeAbove ? { left, bottom: window.innerHeight - anchor.top + 10, width: CARD_W } : { left, top: below, width: CARD_W }
+  const action = spacingAction(issue, ko)
 
   return (
     <div
@@ -288,7 +307,7 @@ export const ProofIssueCard = ({ ko, issue, root, onFix, onIgnore, onClose }: Pr
     >
       <p className="text-[13px] lg:text-[14px] font-bold" style={{ color: kindColor(issue.kind) }}>
         {KIND_LABEL[issue.kind][ko ? 0 : 1]}
-        {spacingAction(issue, ko) && ` · ${spacingAction(issue, ko)}`}
+        {action && ` · ${action}`}
       </p>
       <div className="mt-1.5">
         <DiffLine issue={issue} large />

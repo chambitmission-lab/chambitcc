@@ -18,9 +18,6 @@ export const navigation = {
   survey: '설문조사',
   seats: '좌석 예약',
   education: '교육과 훈련',
-  participate: '참여',
-  online: '온라인',
-  tv: 'TV',
   bible: '성경',
   events: '일정',
   allMenu: '전체 메뉴',
@@ -57,6 +54,10 @@ export const navigation = {
   navGroupMyFaith: '나의 신앙',
   navCtaNewHere: '처음 오셨나요?',
   navCtaLogin: '로그인',
+  // 전체 메뉴 패널 — 목회자 홈 카드·참비 버튼 토글
+  navPastorHome: '목회자 홈',
+  navPastorHomeDesc: '맡겨진 기도 · 돌봄이 필요한 성도 · 이번 주 교회',
+  navChatbotToggle: '참비 버튼',
   // ⌘K 검색 팔레트 (CommandPalette)
   cmdkTrigger: '무엇이든 찾기',
   cmdkPlaceholder: '메뉴 · 설교 · 성구 · 궁금한 것',

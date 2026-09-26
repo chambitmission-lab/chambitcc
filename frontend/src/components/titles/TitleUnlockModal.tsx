@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import type { TitleStatus } from '../../api/titles'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useFeedTextScale } from '../../utils/feedTextScale'
 import { localizeTitle } from './titleI18n'
 import { TIER_VISUALS } from './titleVisuals'
 import { TitleGlyph } from './TitleGlyph'
@@ -42,8 +41,7 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
   const { t, language } = useLanguage()
   const tier = TIER_VISUALS[title.tier]
   const isLegendary = title.tier === 'legendary'
-  // 앱 루트 오버레이라 페이지 zoom 밖 — 헤더 '가' 배율은 카드 자체 zoom 으로 따라간다(CSS lg)
-  const textScale = useFeedTextScale()
+  // 앱 루트 오버레이라 페이지 zoom 밖 — 헤더 '가' 배율은 카드 자체 zoom 으로 따라간다(CSS lg, --pc-zoom)
   const text = localizeTitle(title, language)
 
   useEffect(() => {
@@ -60,7 +58,6 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
     >
       <motion.div
         className={`title-unlock-card${isLegendary ? ' is-legendary' : ''}`}
-        data-scale={textScale}
         onClick={(e) => e.stopPropagation()}
         initial={{ scale: 0.78, y: 28, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}

@@ -54,7 +54,7 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
         "
       >
         <Sparkle size={18} weight="duotone" className="text-ink-muted" />
-        <span>참비 버튼</span>
+        <span>{t('navChatbotToggle')}</span>
         <span
           aria-hidden
           className={`ml-auto lg:ml-2 relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors duration-200 ${

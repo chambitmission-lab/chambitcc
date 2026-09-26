@@ -28,13 +28,17 @@ import { isAuthenticated, getCurrentUser } from './utils/auth'
 import { useFeedTextScale } from './utils/feedTextScale'
 import { zoomsWithTextScale } from './utils/textScaleRoutes'
 import RouteDataPrefetch from './components/common/RouteDataPrefetch'
-// 즉시 진입 가능성이 높은 페이지는 eager import 유지
-import NewHome from './pages/Home/NewHome'
 import { tokenStore, sessionStore } from './utils/tokenStore'
+import { loadHome } from './utils/homeChunk'
 
 // 보조/관리/대형 페이지는 lazy로 분리 → 메인 번들 축소
 // 햄버거 메뉴 페이지는 routePreload의 로더를 공유해 프리로드 청크를 재사용
 const Home = lazy(() => import('./pages/Home/Home'))
+// 로그인 홈 피드 — 비로그인 방문자(랜딩·딥링크)는 받을 필요가 없어 메인 번들에서 뗀다.
+// 토큰이 있으면 모듈 평가 직후 바로 받아 두어 라우트 진입 때 폭포수(메인 → 홈) 없이 그린다.
+// 로그인 화면은 마중 연출 동안 같은 로더로 선요청한다(utils/homeChunk).
+const NewHome = lazy(loadHome)
+if (tokenStore.getAccess()) void loadHome()
 // 비로그인 첫 화면 — 로그인 교인의 메인 번들에서 떼어내되, 비로그인이면 모듈 로드 즉시
 // 청크를 받아둬서 라우트 진입 시 폭포수(메인 → 랜딩) 없이 바로 그린다.
 const loadLanding = () => import('./pages/Landing/Landing')
@@ -268,9 +272,8 @@ const MainContent = ({ children }: { children: ReactNode }) => {
   const appScale = textScale !== 'base' && zoomsWithTextScale(pathname) ? textScale : undefined
   return (
     <main
+      // 배율 숫자(--az·--text-mul)는 <html data-text-scale> 이 준다 — 여기선 zoom 을 켤지만 정한다
       data-app-scale={appScale}
-      // 글자 크기 값만 키우는 화면(성경 본문)이 읽는 배율 — zoom 이 아니라 --text-mul 로 곱한다
-      data-text-scale={textScale !== 'base' ? textScale : undefined}
       className={`main-content ${railVisible ? 'lg:pl-[76px] xl:pl-[248px]' : ''}`}
     >
       {children}

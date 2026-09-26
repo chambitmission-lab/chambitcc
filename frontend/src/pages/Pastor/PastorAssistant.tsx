@@ -24,7 +24,8 @@ const PastorAssistant = () => {
     queryKey: ['pastor-suggestions'],
     queryFn: fetchSuggestions,
     enabled: pastor,
-    refetchOnMount: 'always',
+    // 전역 기본(5분 fresh, 만료 시 마운트 재조회)을 따른다 — 'always' 는 방금 본 화면도 매번 서버에 물어
+    // 집계 캐시가 식은 순간의 대기를 그대로 노출했다. 심방·할 일 저장은 invalidateQueries 로 즉시 갱신된다.
   })
 
   return (

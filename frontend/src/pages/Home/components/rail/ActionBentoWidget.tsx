@@ -3,7 +3,8 @@
 import { type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
-import { AlarmIcon, ImageIcon } from '../EmotionIcons'
+import { ImageIcon } from '../EmotionIcons'
+import { AlarmIcon } from './railIcons'
 import { ArrowUpRight } from '../../../../components/icons/phosphor'
 
 // ── 3. 액션 벤토 (말씀 알림 · 말씀 카드) ───────────────────────────────

@@ -153,57 +153,66 @@ const NewHeader = () => {
             {/* 전체 메뉴 버튼은 뺐다 — 4축 드롭다운이 교회 안내 페이지를 전부 담고,
                 개인 메뉴·관리자·설정은 좌측 레일 하단 ⋮ 가 같은 패널을 연다 */}
           </div>
-          {/* PC 우상단 — 글씨 크기 '가'(적용되는 화면에서만) + 계정/비로그인 CTA */}
-          {railVisible && (
-            <div className="hidden lg:flex items-center gap-1.5">
-              {showTextScale && <HeaderTextScale />}
-              {/* 비로그인 PC — 레일엔 로그인 진입이 없으니 우상단에 랜딩과 같은 두 갈래 CTA를 둔다 */}
-              {!isLoggedIn && (
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/login')}
-                    className="h-9 px-3.5 rounded-full text-[13.5px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
-                  >
-                    {t('navCtaLogin')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/register')}
-                    className="brand-gradient h-9 px-4 rounded-full text-[13.5px] font-bold text-white shadow-[0_4px_12px_-4px_var(--brand-glow)] active:scale-[0.97] transition-transform"
-                  >
-                    {t('navCtaNewHere')}
-                  </button>
-                </div>
-              )}
-              {/* 로그인 PC — 비로그인 CTA가 있던 그 자리를 알림 + 계정 아바타가 이어받는다.
-                  (레일 하단 유틸리티엔 "내가 누구인지" 보여주는 자리가 없었다) */}
-              {isLoggedIn && (
-                <HeaderAccountCluster
-                  unreadCount={unreadCount}
-                  onNotificationClick={openNotifications}
-                  onNotificationWarm={warmNotificationModal}
-                />
-              )}
+          {/* PC 우상단 — 글씨 크기 '가'(적용되는 화면에서만) + 계정/비로그인 CTA.
+              '가'는 레일이 숨는 화면(집중 기도)에서도 보여야 한다 — zoom 은 받는데 조절 버튼만
+              사라지면 다른 화면에서 키워 둔 값이 여기서만 조용히 적용된다 */}
+          <div className="flex items-center gap-1.5">
+            {showTextScale && (
+              <div className="hidden lg:flex items-center">
+                <HeaderTextScale />
+              </div>
+            )}
+            {railVisible && (
+              <div className="hidden lg:flex items-center gap-1.5">
+                {/* 비로그인 PC — 레일엔 로그인 진입이 없으니 우상단에 랜딩과 같은 두 갈래 CTA를 둔다 */}
+                {!isLoggedIn && (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/login')}
+                      className="h-9 px-3.5 rounded-full text-[13.5px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                    >
+                      {t('navCtaLogin')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/register')}
+                      className="brand-gradient h-9 px-4 rounded-full text-[13.5px] font-bold text-white shadow-[0_4px_12px_-4px_var(--brand-glow)] active:scale-[0.97] transition-transform"
+                    >
+                      {t('navCtaNewHere')}
+                    </button>
+                  </div>
+                )}
+                {/* 로그인 PC — 비로그인 CTA가 있던 그 자리를 알림 + 계정 아바타가 이어받는다.
+                    (레일 하단 유틸리티엔 "내가 누구인지" 보여주는 자리가 없었다) */}
+                {isLoggedIn && (
+                  <HeaderAccountCluster
+                    unreadCount={unreadCount}
+                    onNotificationClick={openNotifications}
+                    onNotificationWarm={warmNotificationModal}
+                  />
+                )}
+              </div>
+            )}
+            {/* 우상단 액션 — 레일이 보이는 PC에선 레일 하단 유틸리티가 대신한다 */}
+            <div className={railVisible ? 'lg:hidden' : ''}>
+              <HeaderActions
+                unreadCount={unreadCount}
+                isMenuOpen={isMenuOpen}
+                onNotificationClick={openNotifications}
+                onNotificationWarm={warmNotificationModal}
+                onMenuToggle={() => setIsMenuOpen(!isMenuOpen)}
+              />
             </div>
-          )}
-          {/* 우상단 액션 — 레일이 보이는 PC에선 레일 하단 유틸리티가 대신한다 */}
-          <div className={railVisible ? 'lg:hidden' : ''}>
-            <HeaderActions
-              unreadCount={unreadCount}
-              isMenuOpen={isMenuOpen}
-              onNotificationClick={openNotifications}
-              onNotificationWarm={warmNotificationModal}
-              onMenuToggle={() => setIsMenuOpen(!isMenuOpen)}
-            />
           </div>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <MobileMenu 
+          <MobileMenu
             isAdminUser={isAdminUser}
             isLoggedIn={isLoggedIn}
+            isDesktop={isDesktop}
             onLogout={handleLogout}
           />
         )}

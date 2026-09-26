@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   createNotification,
   updateNotification,
@@ -10,6 +10,9 @@ import type {
 } from '../../../types/notification'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { FieldGroup } from '../../../components/common/ComposerFields'
+import AdminComposerShell from './AdminComposerShell'
+import { ComposerFooter } from './AdminFormBits'
 import DatePicker from '../../../components/common/DatePicker'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import NoticeContent from '../../../components/common/NoticeContent'
@@ -214,50 +217,24 @@ const NotificationComposer = ({
     }
   }
 
+  // PC에선 좌(작성) / 우(미리보기·설정) 2단으로 펼친다
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
-      onClick={handleClose}
-    >
-      <div
-        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="hidden dark:block absolute inset-0 pointer-events-none">
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
-        </div>
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-
-        {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="w-10 h-1 rounded-full bg-white/15 absolute left-1/2 -translate-x-1/2 -top-3 sm:hidden" />
-          <div>
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
-              ADMIN
-            </p>
-            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-              {editingNotification ? '공지사항 수정' : '새 공지사항 작성'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
-            aria-label="닫기"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        {/* 본문 — PC에선 좌(작성) / 우(미리보기·설정) 2단으로 펼친다 */}
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
-          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
-            {/* 좌 — 제목·본문 */}
-            <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
+    <AdminComposerShell
+      title={editingNotification ? '공지사항 수정' : '새 공지사항 작성'}
+      onClose={handleClose}
+      as="form"
+      onSubmit={handleSubmit}
+      gridCols="lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]"
+      footer={
+        <ComposerFooter
+          onClose={handleClose}
+          canSubmit={canSubmit}
+          submitting={submitting}
+          submitLabel={editingNotification ? '수정 저장' : '등록하기'}
+        />
+      }
+      columns={[
+        <>
               <FieldGroup label="제목" required>
                 <input
                   type="text"
@@ -343,10 +320,9 @@ const NotificationComposer = ({
                   <div className="nme-preview lg:hidden">{previewBody}</div>
                 )}
               </FieldGroup>
-            </div>
-
-            {/* 우 — 성도 화면 미리보기와 노출 설정 */}
-            <div className="px-5 pb-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
+        </>,
+        // 우 — 성도 화면 미리보기와 노출 설정
+        <>
               {/* PC 전용 — 입력하는 대로 바로 비치는 미리보기 */}
               <div className="hidden lg:block">
                 <div className="flex items-baseline gap-1.5 mb-2">
@@ -518,65 +494,10 @@ const NotificationComposer = ({
                   {error}
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* 푸터 */}
-          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-            >
-              {submitting ? (
-                <>
-                  <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                  저장 중...
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {editingNotification ? '수정 저장' : '등록하기'}
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </>,
+      ]}
+    />
   )
 }
-
-interface FieldGroupProps {
-  label: string
-  required?: boolean
-  /** 라벨 오른쪽에 붙는 보조 조작(편집/미리보기 전환 등) */
-  action?: ReactNode
-  children: ReactNode
-}
-
-const FieldGroup = ({ label, required, action, children }: FieldGroupProps) => (
-  <div>
-    <div className="flex items-center gap-1 mb-2">
-      <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
-        {label}
-      </p>
-      {required && <span className="text-brand text-[12px] font-bold">*</span>}
-      {action && <div className="ml-auto">{action}</div>}
-    </div>
-    {children}
-  </div>
-)
 
 export default NotificationComposer

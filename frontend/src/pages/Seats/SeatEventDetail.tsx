@@ -8,7 +8,7 @@
 // 오른쪽 레일에 고른 좌석("B열 12번")·빼기·큰 예약 버튼이 스크롤과 상관없이 늘 보이고,
 // 배치도는 좌석·번호를 크게 + 상태를 ✓·✕ 표시로도 구분한다. 모바일은 하단 고정 바 그대로.
 // 예약·취소 확인은 공용 confirmDialog 대신 페이지 안 SeatConfirm(좌석을 크게, Enter 로 제출 안 됨).
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useBookSeats, useCancelMySeats, useSeatEvent } from '../../hooks/useSeatEvents'
 import { useThemeArt } from '../../hooks/useThemeArt'
@@ -83,43 +83,65 @@ const SeatEventDetail = () => {
   // 내 좌석이 없어지면 취소 모드도 끝
   const mode: Mode = mine.size ? modeState : 'book'
 
-  const isFree = (label: string) =>
-    !disabled.has(label) && !held.has(label) && !taken.has(label) && !mine.has(label)
+  // SeatMap 은 memo — 좌석 수백 개를 다시 그리는 일이라 아래 콜백은 관련 상태가 바뀔 때만 새로 만든다.
+  // (확인 시트 열기·인원 스테퍼·팝 타이머처럼 좌석과 무관한 상태 변화에 배치도가 통째로 리렌더되지 않게)
+  const isFree = useCallback(
+    (label: string) =>
+      !disabled.has(label) && !held.has(label) && !taken.has(label) && !mine.has(label),
+    [disabled, held, taken, mine]
+  )
 
-  const stateOf = (label: string): SeatVisual => {
-    if (disabled.has(label)) return 'disabled'
-    if (mine.has(label)) return toCancel.includes(label) ? 'mine-remove' : 'mine'
-    if (taken.has(label)) return 'taken'
-    if (held.has(label)) return 'held'
-    if (selected.includes(label)) return 'selected'
-    return 'available'
-  }
+  const stateOf = useCallback(
+    (label: string): SeatVisual => {
+      if (disabled.has(label)) return 'disabled'
+      if (mine.has(label)) return toCancel.includes(label) ? 'mine-remove' : 'mine'
+      if (taken.has(label)) return 'taken'
+      if (held.has(label)) return 'held'
+      if (selected.includes(label)) return 'selected'
+      return 'available'
+    },
+    [disabled, mine, toCancel, taken, held, selected]
+  )
 
-  const canPress = (label: string) =>
-    mode === 'cancel' ? mine.has(label) : bookingOpen && isFree(label)
+  const canPress = useCallback(
+    (label: string) => (mode === 'cancel' ? mine.has(label) : bookingOpen && isFree(label)),
+    [mode, mine, bookingOpen, isFree]
+  )
 
-  const pressSeat = (label: string) => {
-    if (mode === 'cancel') {
-      setToCancel((prev) => (prev.includes(label) ? prev.filter((s) => s !== label) : [...prev, label]))
-      return
-    }
-    if (selected.includes(label)) {
-      setSelected((prev) => prev.filter((s) => s !== label))
-      return
-    }
-    if (selected.length >= allowance) {
-      showToast(
-        mine.size
-          ? `한 분당 최대 ${event?.max_per_user}석이에요 (추가로 ${allowance}석 가능)`
-          : `한 분당 최대 ${event?.max_per_user}석까지 고를 수 있어요`,
-        'error'
-      )
-      return
-    }
-    navigator.vibrate?.(8)
-    setSelected((prev) => [...prev, label])
-    setPop(new Set([label]))
-  }
+  const titleOf = useCallback(
+    (label: string) => {
+      const v = stateOf(label)
+      return `${label} ${v === 'taken' ? '예약됨' : v === 'held' ? '예약 불가' : v === 'mine' ? '내 좌석' : ''}`.trim()
+    },
+    [stateOf]
+  )
+
+  const maxPerUser = event?.max_per_user
+  const pressSeat = useCallback(
+    (label: string) => {
+      if (mode === 'cancel') {
+        setToCancel((prev) => (prev.includes(label) ? prev.filter((s) => s !== label) : [...prev, label]))
+        return
+      }
+      if (selected.includes(label)) {
+        setSelected((prev) => prev.filter((s) => s !== label))
+        return
+      }
+      if (selected.length >= allowance) {
+        showToast(
+          mine.size
+            ? `한 분당 최대 ${maxPerUser}석이에요 (추가로 ${allowance}석 가능)`
+            : `한 분당 최대 ${maxPerUser}석까지 고를 수 있어요`,
+          'error'
+        )
+        return
+      }
+      navigator.vibrate?.(8)
+      setSelected((prev) => [...prev, label])
+      setPop(new Set([label]))
+    },
+    [mode, selected, allowance, mine, maxPerUser]
+  )
 
   const pickTogether = () => {
     if (!event) return
@@ -401,10 +423,7 @@ const SeatEventDetail = () => {
             onSeatPress={pressSeat}
             popLabels={pop}
             large
-            titleOf={(label) => {
-              const v = stateOf(label)
-              return `${label} ${v === 'taken' ? '예약됨' : v === 'held' ? '예약 불가' : v === 'mine' ? '내 좌석' : ''}`.trim()
-            }}
+            titleOf={titleOf}
           />
         </section>
 

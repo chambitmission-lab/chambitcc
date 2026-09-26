@@ -3,9 +3,13 @@
 // 교역자·선교사·장로·직원이 한 폼을 공유한다. 카테고리 pill 을 고르면 그 분류에만
 // 필요한 칸(선교사의 사역지·국가)이 나타난다 — 빈 칸이 늘어놓이지 않게.
 // 한/영은 필드마다 접히는 영문 입력으로. 영문은 선택이고 비우면 한국어로 폴백된다.
-import { useRef, useState, type ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { FieldGroup, dateTriggerClass } from '../../../components/common/ComposerFields'
+import AdminComposerShell from './AdminComposerShell'
+import { ComposerFooter, inputCls } from './AdminFormBits'
+import BilingualField, { type Bilingual } from './BilingualField'
 import DatePicker from '../../../components/common/DatePicker'
 import CountryFlag from '../../../components/common/CountryFlag'
 import {
@@ -54,19 +58,10 @@ const ROLE_PRESETS: Record<PersonCategory, string[]> = {
   staff: ['간사', '집사'],
 }
 
-/** ko/en 쌍을 한 덩어리로 다루는 폼 상태 */
-type Bilingual = { ko: string; en: string }
-
 const pair = (person: Person | undefined, field: PersonTextField): Bilingual => ({
   ko: (person?.[`${field}_ko` as keyof Person] as string | null) ?? '',
   en: (person?.[`${field}_en` as keyof Person] as string | null) ?? '',
 })
-
-const inputCls =
-  'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
-
-const datePickerTriggerClass =
-  'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-left text-ink-strong hover:border-brand focus:outline-none focus:border-brand transition-colors'
 
 const PersonComposer = ({
   person,
@@ -188,67 +183,52 @@ const PersonComposer = ({
     }
   }
 
+  const errorBox = error && (
+    <div className="px-3.5 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 text-red-600 dark:text-red-300 text-[12.5px] font-medium">
+      {error}
+    </div>
+  )
+
+  const stepTabs = (
+    <div className="flex gap-1.5 px-5 lg:px-7 py-3">
+      {STEPS.map((s) => (
+        <button
+          key={s.key}
+          type="button"
+          onClick={() => setStep(s.key)}
+          className={[
+            'flex-1 h-9 rounded-xl text-[12.5px] font-bold transition-colors',
+            step === s.key
+              ? 'bg-[var(--brand-soft-strong)] text-brand border border-[var(--brand-glow)]'
+              : 'text-gray-500 dark:text-white/45 border border-transparent hover:bg-gray-100/70 dark:hover:bg-white/[0.04]',
+          ].join(' ')}
+        >
+          {s.label}
+        </button>
+      ))}
+    </div>
+  )
+
+  // PC에선 기본 정보를 좌/우 2단(열별 스크롤)으로, 나머지 단계는 전폭으로 펼친다
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="hidden dark:block absolute inset-0 pointer-events-none">
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
-        </div>
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
-
-        {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div>
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
-            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-              {isEdit ? '인물 수정' : '인물 등록'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
-            aria-label="닫기"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        {/* 단계 탭 */}
-        <div className="relative z-10 flex gap-1.5 px-5 lg:px-7 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
-          {STEPS.map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => setStep(s.key)}
-              className={[
-                'flex-1 h-9 rounded-xl text-[12.5px] font-bold transition-colors',
-                step === s.key
-                  ? 'bg-[var(--brand-soft-strong)] text-brand border border-[var(--brand-glow)]'
-                  : 'text-gray-500 dark:text-white/45 border border-transparent hover:bg-gray-100/70 dark:hover:bg-white/[0.04]',
-              ].join(' ')}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-
-        {/* PC에선 단계마다 2단으로 펼친다 — 기본은 좌(분류·사진) / 우(이름·직분·공개) */}
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
-          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6">
-            {step === 'basic' && (
-              <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:items-start">
-              <div className="space-y-5">
+    <AdminComposerShell
+      title={isEdit ? '인물 수정' : '인물 등록'}
+      onClose={onClose}
+      as="form"
+      onSubmit={handleSubmit}
+      subheader={stepTabs}
+      footer={
+        <ComposerFooter
+          onClose={onClose}
+          canSubmit={canSubmit}
+          submitting={submitting}
+          submitLabel={isEdit ? '수정 저장' : '등록'}
+          submittingLabel={uploadMutation.isPending ? '사진 업로드 중...' : '저장 중...'}
+          cancelDisabled
+        />
+      }
+      columns={step === 'basic' ? [
+        <>
                 {/* 분류 — pill grid (native select 금지) */}
                 <FieldGroup label="분류" required>
                   <div className="grid grid-cols-1 gap-1.5">
@@ -335,9 +315,8 @@ const PersonComposer = ({
                     </div>
                   </div>
                 </FieldGroup>
-              </div>
-
-              <div className="space-y-5">
+        </>,
+        <>
                 <BilingualField label="이름" required value={name} onChange={setName} placeholder="예) 최요한" />
                 <BilingualField
                   label="직분 (이름 뒤에 붙는 말)"
@@ -398,10 +377,10 @@ const PersonComposer = ({
                     </span>
                   </button>
                 </FieldGroup>
-              </div>
-              </div>
-            )}
-
+          {errorBox}
+        </>,
+      ] : undefined}
+    >
             {step === 'ministry' && (
               <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:items-start">
                 <BilingualField
@@ -410,6 +389,7 @@ const PersonComposer = ({
                   onChange={setAssignments}
                   multiline
                   rows={6}
+                  lgMinH="lg:min-h-[200px]"
                   hint="한 줄에 하나씩 — 화면에서 칩으로 그려집니다. 예) 2교구 / 2청년부 / 참빛선교회"
                   placeholder={'2교구\n2청년부\n참빛선교회'}
                 />
@@ -419,6 +399,7 @@ const PersonComposer = ({
                   onChange={setBio}
                   multiline
                   rows={6}
+                  lgMinH="lg:min-h-[200px]"
                   placeholder="어떤 마음으로 섬기고 계신지 한 문단으로 소개해주세요."
                 />
                 <BilingualField
@@ -431,7 +412,7 @@ const PersonComposer = ({
                   <DatePicker
                     value={startedOn}
                     onChange={setStartedOn}
-                    className={datePickerTriggerClass}
+                    className={dateTriggerClass}
                     placeholder="선택"
                   />
                 </FieldGroup>
@@ -511,164 +492,8 @@ const PersonComposer = ({
               </div>
             )}
 
-            {error && (
-              <div className="px-3.5 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30 text-red-600 dark:text-red-300 text-[12.5px] font-medium">
-                {error}
-              </div>
-            )}
-          </div>
-          </div>
-
-          {/* 푸터 */}
-          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={submitting}
-              className="px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-            >
-              {submitting ? (
-                <>
-                  <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                  {uploadMutation.isPending ? '사진 업로드 중...' : '저장 중...'}
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {isEdit ? '수정 저장' : '등록'}
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-// ── Helpers ──────────────────────────────────────────────
-const FieldGroup = ({
-  label,
-  required,
-  children,
-}: {
-  label: string
-  required?: boolean
-  children: ReactNode
-}) => (
-  <div>
-    <div className="flex items-center gap-1 mb-2">
-      <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
-        {label}
-      </p>
-      {required && <span className="text-brand text-[12px] font-bold">*</span>}
-    </div>
-    {children}
-  </div>
-)
-
-/**
- * 한국어 입력이 기본, 영문은 접혀 있다(선택 입력이고 비면 한국어로 폴백된다).
- * presets 를 주면 자주 쓰는 값을 한 번에 넣는 칩이 아래 붙는다 — 직분·그룹처럼
- * 같은 문자열을 수십 번 타이핑하는 칸의 오타를 줄인다.
- */
-const BilingualField = ({
-  label,
-  required,
-  value,
-  onChange,
-  multiline,
-  rows = 4,
-  placeholder,
-  hint,
-  presets,
-}: {
-  label: string
-  required?: boolean
-  value: Bilingual
-  onChange: (next: Bilingual) => void
-  multiline?: boolean
-  rows?: number
-  placeholder?: string
-  hint?: string
-  presets?: string[]
-}) => {
-  // 영문이 이미 입력돼 있으면 펼친 채로 시작한다(수정 시 값이 숨겨지면 안 된다)
-  const [showEn, setShowEn] = useState(value.en.trim().length > 0)
-
-  const render = (lang: 'ko' | 'en') =>
-    multiline ? (
-      <textarea
-        value={value[lang]}
-        onChange={(e) => onChange({ ...value, [lang]: e.target.value })}
-        rows={rows}
-        placeholder={lang === 'ko' ? placeholder : 'English (optional)'}
-        className={`${inputCls} resize-none leading-[1.7] lg:min-h-[200px]`}
-      />
-    ) : (
-      <input
-        type="text"
-        value={value[lang]}
-        onChange={(e) => onChange({ ...value, [lang]: e.target.value })}
-        placeholder={lang === 'ko' ? placeholder : 'English (optional)'}
-        className={inputCls}
-      />
-    )
-
-  return (
-    <div>
-      <div className="flex items-center gap-1 mb-2">
-        <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
-          {label}
-        </p>
-        {required && <span className="text-brand text-[12px] font-bold">*</span>}
-        <button
-          type="button"
-          onClick={() => setShowEn((prev) => !prev)}
-          className={`ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
-            showEn
-              ? 'bg-[var(--brand-soft-strong)] text-brand'
-              : 'text-gray-400 dark:text-white/35 hover:text-brand hover:bg-[var(--brand-soft)]'
-          }`}
-        >
-          EN
-        </button>
-      </div>
-      {render('ko')}
-      {showEn && <div className="mt-1.5">{render('en')}</div>}
-      {presets && presets.length > 0 && (
-        <div className="flex gap-1.5 flex-wrap mt-1.5">
-          {presets.map((preset) => (
-            <button
-              key={preset}
-              type="button"
-              onClick={() => onChange({ ...value, ko: preset })}
-              className={`text-[11.5px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
-                value.ko === preset
-                  ? 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
-                  : 'bg-transparent border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/50 hover:bg-[var(--brand-soft)]'
-              }`}
-            >
-              {preset}
-            </button>
-          ))}
-        </div>
-      )}
-      {hint && (
-        <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1 leading-[1.5]">{hint}</p>
-      )}
-    </div>
+      {errorBox}
+    </AdminComposerShell>
   )
 }
 

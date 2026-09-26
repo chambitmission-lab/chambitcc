@@ -8,7 +8,7 @@
 //   터치의 암묵적 캡처 때문에 pointermove 는 처음 칸에서만 오므로 elementFromPoint 로 칸을 찾는다.
 // - large(성도 예약 화면 PC): 좌석·번호를 크게 그리고, 상태를 색만이 아니라 표시로도 구분한다
 //   (고른 자리 ✓ 배지·예약된 자리 ✕). 관리자 현황·편집은 촘촘한 기본 그대로.
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { SeatLayout } from '../../types/seatEvent'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
@@ -343,7 +343,8 @@ const SeatMap = ({
   )
 }
 
-export default SeatMap
+// 호출부(SeatEventDetail)가 콜백을 useCallback 으로 고정하므로 좌석과 무관한 상태 변화엔 다시 그리지 않는다
+export default memo(SeatMap)
 
 // ── 범례 ──────────────────────────────────────────────────────────────
 

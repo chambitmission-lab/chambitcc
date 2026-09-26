@@ -7,16 +7,9 @@ import { useSpeechRecognition } from '../../../../hooks/useSpeechRecognition'
 import { showToast } from '../../../../utils/toast'
 import type { PrayerEmotion } from '../../../../types/prayer'
 import type { PrayerComposerProps } from './types'
-import {
-  ClosetIcon,
-  DiceIcon,
-  EmotionGlyph,
-  EyeIcon,
-  GlobeIcon,
-  LockIcon,
-  PastorIcon,
-  PrayIcon,
-} from '../EmotionIcons'
+import { PastorIcon, PrayIcon } from '../EmotionIcons'
+import { EmotionGlyph } from '../EmotionGlyph'
+import { ClosetIcon, DiceIcon, EyeIcon, GlobeIcon, LockIcon } from './composerIcons'
 import { GroupGlyph } from '../../../Groups/GroupIcons'
 import '../ThanksThread/thanks.css'
 

@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom'
 import type { TitleStatus } from '../../api/titles'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
-import { useFeedTextScale } from '../../utils/feedTextScale'
 import { localizeTitle } from './titleI18n'
 import { TIER_VISUALS, CATEGORY_META } from './titleVisuals'
 import { TitleMedal } from './TitleMedal'
@@ -20,8 +19,7 @@ interface TitleDetailSheetProps {
 export const TitleDetailSheet: React.FC<TitleDetailSheetProps> = ({ title, onToggleEquip, busy, onClose }) => {
   const { t, language } = useLanguage()
   useModalBackButton(onClose)
-  // body 포털이라 /garden 페이지 zoom 밖 — 헤더 '가' 배율은 시트 자체 zoom 으로 따라간다(lg+, CSS)
-  const textScale = useFeedTextScale()
+  // body 포털이라 /garden 페이지 zoom 밖 — 헤더 '가' 배율은 시트 자체 zoom 으로 따라간다(lg+, CSS --pc-zoom)
 
   const tier = TIER_VISUALS[title.tier]
   const locked = !title.earned
@@ -35,7 +33,6 @@ export const TitleDetailSheet: React.FC<TitleDetailSheetProps> = ({ title, onTog
   return createPortal(
     <div className="title-sheet-overlay" onClick={onClose}>
       <div
-        data-scale={textScale}
         className={`title-sheet title-sheet-tier-${title.tier}${locked ? ' is-locked' : ''}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"

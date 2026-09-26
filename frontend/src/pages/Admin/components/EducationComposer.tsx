@@ -2,10 +2,14 @@
 //
 // 레거시가 이미지 한 장에 박아 두던 시간·담당·장소를 필드로 받는다.
 // 한/영은 필드마다 접히는 영문 입력 — 영문은 선택이고 비우면 한국어로 폴백된다.
-import { useRef, useState, type ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import { EduGlyph } from '../../Education/EduIcons'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { FieldGroup } from '../../../components/common/ComposerFields'
+import AdminComposerShell, { AdminComposerBody } from './AdminComposerShell'
+import { BlockFooter, Toggle, inputCls } from './AdminFormBits'
+import BilingualField, { type Bilingual } from './BilingualField'
 import {
   useCreateCategory,
   useCreateProgram,
@@ -20,15 +24,10 @@ import type {
   ProgramTextField,
 } from '../../../types/education'
 
-type Bilingual = { ko: string; en: string }
-
 const pair = (row: Record<string, unknown> | undefined, field: string): Bilingual => ({
   ko: (row?.[`${field}_ko`] as string | null | undefined) ?? '',
   en: (row?.[`${field}_en`] as string | null | undefined) ?? '',
 })
-
-const inputCls =
-  'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
 /** 카테고리 이름 → 키 초안 ("참빛 훈련 과정" → 사용자가 영문 슬러그로 다듬음) */
 const slugify = (value: string) =>
@@ -57,50 +56,19 @@ const EducationComposer = ({ target, categories, onClose, onSuccess }: Props) =>
     : editing ? '프로그램 수정' : '프로그램 추가'
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full sm:max-w-lg lg:max-w-[880px] max-h-[92vh] sm:max-h-[90vh] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="hidden dark:block absolute inset-0 pointer-events-none">
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
-        </div>
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div>
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
-            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">{title}</h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
-            aria-label="닫기"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        {target.kind === 'category' ? (
-          <CategoryForm category={target.category} onClose={onClose} onSuccess={onSuccess} />
-        ) : (
-          <ProgramForm
-            categoryId={target.categoryId}
-            program={target.program}
-            categories={categories}
-            onClose={onClose}
-            onSuccess={onSuccess}
-          />
-        )}
-      </div>
-    </div>
+    <AdminComposerShell title={title} onClose={onClose} width="md" bare>
+      {target.kind === 'category' ? (
+        <CategoryForm category={target.category} onClose={onClose} onSuccess={onSuccess} />
+      ) : (
+        <ProgramForm
+          categoryId={target.categoryId}
+          program={target.program}
+          categories={categories}
+          onClose={onClose}
+          onSuccess={onSuccess}
+        />
+      )}
+    </AdminComposerShell>
   )
 }
 
@@ -175,8 +143,11 @@ const CategoryForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden flex flex-col min-h-0">
-      <div className="px-5 py-5 space-y-5 flex-1 lg:px-7 lg:py-6">
+    <AdminComposerBody
+      as="form"
+      onSubmit={handleSubmit}
+      footer={<BlockFooter onClose={onClose} canSubmit={canSubmit} submitting={submitting} label={category ? '저장' : '추가'} />}
+    >
         <BilingualField label="이름" required value={name} onChange={handleNameEn} placeholder="예: 주일학교" />
 
         <div className="grid grid-cols-[1fr_88px] gap-3">
@@ -215,9 +186,7 @@ const CategoryForm = ({
         <Toggle checked={isActive} onChange={setIsActive} label="공개" desc="끄면 목록에서 사라집니다 (데이터는 보존)" />
 
         {error && <p className="text-[12.5px] text-red-500">{error}</p>}
-      </div>
-      <Footer onClose={onClose} canSubmit={canSubmit} submitting={submitting} label={category ? '저장' : '추가'} />
-    </form>
+    </AdminComposerBody>
   )
 }
 
@@ -328,8 +297,11 @@ const ProgramForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden flex flex-col min-h-0">
-      <div className="px-5 py-5 space-y-5 flex-1 lg:px-7 lg:py-6">
+    <AdminComposerBody
+      as="form"
+      onSubmit={handleSubmit}
+      footer={<BlockFooter onClose={onClose} canSubmit={canSubmit} submitting={submitting} label={program ? '저장' : '추가'} />}
+    >
         {/* 카테고리 — pill grid (native select 금지) */}
         <FieldGroup label="카테고리" required>
           <div className="flex flex-wrap gap-1.5">
@@ -418,149 +390,7 @@ const ProgramForm = ({
         <Toggle checked={isActive} onChange={setIsActive} label="공개" desc="끄면 목록에서 사라집니다 (데이터는 보존)" />
 
         {error && <p className="text-[12.5px] text-red-500">{error}</p>}
-      </div>
-      <Footer onClose={onClose} canSubmit={canSubmit} submitting={submitting} label={program ? '저장' : '추가'} />
-    </form>
-  )
-}
-
-// ── Helpers ───────────────────────────────────────────
-const Footer = ({
-  onClose,
-  canSubmit,
-  submitting,
-  label,
-}: {
-  onClose: () => void
-  canSubmit: boolean
-  submitting: boolean
-  label: string
-}) => (
-  <div className="sticky bottom-0 shrink-0 px-5 lg:px-7 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm flex gap-2">
-    <button
-      type="button"
-      onClick={onClose}
-      className="flex-1 h-11 rounded-xl text-[13.5px] font-semibold text-gray-600 dark:text-white/65 bg-gray-100 dark:bg-white/[0.05] hover:bg-gray-200 dark:hover:bg-white/[0.08] transition-colors"
-    >
-      취소
-    </button>
-    <button
-      type="submit"
-      disabled={!canSubmit}
-      className="flex-[2] h-11 rounded-xl text-[13.5px] font-bold text-white bg-brand hover:bg-brand-dim disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
-    >
-      {submitting ? '저장 중…' : label}
-    </button>
-  </div>
-)
-
-const Toggle = ({
-  checked,
-  onChange,
-  label,
-  desc,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-  label: string
-  desc: string
-}) => (
-  <button
-    type="button"
-    onClick={() => onChange(!checked)}
-    className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-gray-200/70 dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.03] text-left"
-    aria-pressed={checked}
-  >
-    <div>
-      <p className="text-[13px] font-bold text-ink-strong">{label}</p>
-      <p className="text-[11px] text-gray-400 dark:text-white/40 mt-0.5">{desc}</p>
-    </div>
-    <span
-      className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
-        checked ? 'bg-gradient-to-r from-brand to-[var(--brand-light,#4593fc)]' : 'bg-gray-300 dark:bg-white/15'
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-          checked ? 'translate-x-[22px]' : 'translate-x-0.5'
-        }`}
-      />
-    </span>
-  </button>
-)
-
-const FieldGroup = ({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) => (
-  <div>
-    <div className="flex items-center gap-1 mb-2">
-      <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">{label}</p>
-      {required && <span className="text-brand text-[12px] font-bold">*</span>}
-    </div>
-    {children}
-  </div>
-)
-
-const BilingualField = ({
-  label,
-  required,
-  value,
-  onChange,
-  multiline,
-  rows = 4,
-  placeholder,
-  hint,
-}: {
-  label: string
-  required?: boolean
-  value: Bilingual
-  onChange: (next: Bilingual) => void
-  multiline?: boolean
-  rows?: number
-  placeholder?: string
-  hint?: string
-}) => {
-  const [showEn, setShowEn] = useState(value.en.trim().length > 0)
-  const render = (lang: 'ko' | 'en') =>
-    multiline ? (
-      <textarea
-        value={value[lang]}
-        onChange={(e) => onChange({ ...value, [lang]: e.target.value })}
-        rows={rows}
-        placeholder={lang === 'ko' ? placeholder : 'English (optional)'}
-        className={`${inputCls} resize-none leading-[1.7]`}
-      />
-    ) : (
-      <input
-        type="text"
-        value={value[lang]}
-        onChange={(e) => onChange({ ...value, [lang]: e.target.value })}
-        placeholder={lang === 'ko' ? placeholder : 'English (optional)'}
-        className={inputCls}
-      />
-    )
-  return (
-    <div>
-      <div className="flex items-center gap-1 mb-2">
-        <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">{label}</p>
-        {required && <span className="text-brand text-[12px] font-bold">*</span>}
-        <button
-          type="button"
-          onClick={() => setShowEn((prev) => !prev)}
-          className={`ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
-            showEn
-              ? 'bg-[var(--brand-soft-strong)] text-brand'
-              : 'text-gray-400 dark:text-white/35 hover:text-brand hover:bg-[var(--brand-soft)]'
-          }`}
-        >
-          EN
-        </button>
-      </div>
-      {/* PC에선 한국어·영어를 좌우로 나란히 — 번역하며 대조하기 쉽게 */}
-      <div className={showEn ? 'lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start' : ''}>
-        {render('ko')}
-        {showEn && <div className="mt-1.5 lg:mt-0">{render('en')}</div>}
-      </div>
-      {hint && <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1 leading-[1.5]">{hint}</p>}
-    </div>
+    </AdminComposerBody>
   )
 }
 

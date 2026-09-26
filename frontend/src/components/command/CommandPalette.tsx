@@ -14,7 +14,7 @@ import { formatReference, matchBibleBooks, parseBibleReference, resolveBookNumbe
 import { preloadMenuRoutes } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { NAV_ICONS } from '../layout/NewHeader/components/NavIcons'
-import { PAGE_INDEX, scorePage, type PageEntry } from './commandIndex'
+import { getPageIndex, scorePage, type PageEntry } from './commandIndex'
 import chambiAvatar from '../chatbot/img/default.webp'
 import { loadGlossary, searchGlossary, GLOSSARY_TYPE_LABEL, type GlossaryEntry } from '../../pages/Bible/data/bibleGlossary'
 import './CommandPalette.css'
@@ -227,7 +227,8 @@ const CommandPalette = () => {
   }, [home, lastSunday, nextService, todayVerse, todayVerseTo, loggedIn, ko, t])
 
   const pages = useMemo(() => {
-    const visible = PAGE_INDEX.filter((p) => (loggedIn ? p.to !== '/login' && p.to !== '/register' : !p.memberOnly))
+    // t 를 deps 에 둔다 — en 사전이 도착하면 t 가 바뀌고, 색인도 그때 새 사전으로 다시 조립된다
+    const visible = getPageIndex().filter((p) => (loggedIn ? p.to !== '/login' && p.to !== '/register' : !p.memberOnly))
     if (!debounced) return visible.filter((p) => p.quick)
     return visible
       .map((entry) => ({ entry, score: scorePage(entry, debounced) }))
@@ -235,7 +236,8 @@ const CommandPalette = () => {
       .sort((a, b) => b.score - a.score)
       .slice(0, MAX_PAGES)
       .map((x) => x.entry)
-  }, [debounced, loggedIn])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t: 사전 교체 신호
+  }, [debounced, loggedIn, t])
 
   const rows: Row[] = useMemo(() => {
     const out: Row[] = []

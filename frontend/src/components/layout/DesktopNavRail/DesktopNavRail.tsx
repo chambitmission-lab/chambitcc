@@ -20,7 +20,6 @@ import { prewarmThemeToggle, pairSrc, RAIL_BOTTOM } from '../../../utils/themeAs
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
-import { useFeedTextScale } from '../../../utils/feedTextScale'
 
 // PC 전용 좌측 내비 레일 (lg+) — 모바일 하단 도크(BottomNavigation)의 데스크톱 대응물.
 // 홈 전용 컴포넌트였다가 전역 레이아웃으로 승격: 모든 페이지에서 App.tsx가 렌더링한다.
@@ -51,6 +50,14 @@ const useIsXl = (): boolean => {
 // 그 그림이 레일 경계에서 맞닿아 서로를 깎아 먹는다(/bible/atlas 의 성지 수채화).
 // 그림이 둘이면 하나는 져야 하고, 그 화면에서는 본문이 주인공이다.
 const ART_FREE_PATHS = ['/bible/atlas']
+
+// 활성 항목 좌측 바 — 컴포넌트 안에서 선언하면 렌더마다 새 타입이라 리마운트된다. 모듈 최상위에 고정
+const ActiveBar = () => (
+  <span
+    className="absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-full bg-brand"
+    aria-hidden
+  />
+)
 
 const RailSpinner = () => (
   <span className="w-6 h-6 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
@@ -109,8 +116,6 @@ const DesktopNavRail = () => {
   const showRailArt = useIsXl() && !ART_FREE_PATHS.some((p) => pathname.startsWith(p))
   const railArtReady = useThemeArt(RAIL_BOTTOM, showRailArt)
   const { t } = useLanguage()
-  // 헤더 '가'(전역 글씨 크기)를 레일도 따른다 — 배율은 DesktopNavRail.css
-  const textScale = useFeedTextScale()
 
   // 청크가 아직 안 왔으면 다운로드를 기다렸다가 이동한다 (startTransition 중엔
   // Suspense fallback이 뜨지 않아 "안 눌린 것처럼" 보이는 문제 방지).
@@ -179,13 +184,6 @@ const DesktopNavRail = () => {
         ? 'text-brand bg-[var(--brand-soft)]'
         : 'text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)]'
     }`
-  const ActiveBar = () => (
-    <span
-      className="absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-full bg-brand"
-      aria-hidden
-    />
-  )
-
   const labelClass = (active: boolean) =>
     `hidden xl:inline text-[length:calc(17px*var(--rl,1))] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`
 
@@ -195,7 +193,7 @@ const DesktopNavRail = () => {
       // 세로 헤어라인도, 흰 레일 vs 회색 캔버스의 세로 이음새도 없다(둘 다 어색하다는 피드백).
       // 화면의 층은 오직 "바닥(캔버스) / 떠 있는 흰 카드" 둘뿐이다.
       // chrome-type: 헤더와 함께 G마켓 산스로 그리는 "앱의 틀" (styles/gmarket-sans.css, lg+ 에서만)
-      data-scale={textScale}
+      // 헤더 '가' 배율은 <html data-text-scale> 에서 CSS 로 상속(DesktopNavRail.css --rl)
       className="desktop-rail chrome-type hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-[var(--desktop-chrome)] px-3 xl:px-4 pt-6 pb-5"
       aria-label={t('railAria')}
     >

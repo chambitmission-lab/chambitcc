@@ -6,27 +6,49 @@ import type { ReactNode } from 'react'
 interface FieldGroupProps {
   label: string
   required?: boolean
+  /** 라벨 오른쪽에 붙는 보조 조작(편집/미리보기 전환 등) */
+  action?: ReactNode
   children: ReactNode
 }
 
-export const FieldGroup = ({ label, required, children }: FieldGroupProps) => (
+export const FieldGroup = ({ label, required, action, children }: FieldGroupProps) => (
   <div>
     <div className="flex items-center gap-1 mb-2">
       <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
         {label}
       </p>
       {required && <span className="text-brand text-[12px] font-bold">*</span>}
+      {action && <div className="ml-auto">{action}</div>}
     </div>
     {children}
   </div>
 )
 
-/** 값을 한 번에 채워 넣는 제안 칩 (되돌릴 수 있는 지름길 — 항상 아웃라인) */
-export const QuickChip = ({ onClick, children }: { onClick: () => void; children: ReactNode }) => (
+/**
+ * 값을 한 번에 채워 넣는 제안 칩(되돌릴 수 있는 지름길).
+ * active 를 주지 않으면 항상 브랜드 아웃라인, boolean 이면 현재 값과 같은 칩만 켜진다
+ * (게시일 '오늘·내일·모레' 처럼 선택 상태를 비추는 경우).
+ */
+export const QuickChip = ({
+  active,
+  onClick,
+  children,
+}: {
+  active?: boolean
+  onClick: () => void
+  children: ReactNode
+}) => (
   <button
     type="button"
     onClick={onClick}
-    className="inline-flex items-center px-3 h-8 rounded-full bg-[var(--brand-soft)] text-brand text-[11.5px] font-bold border border-[var(--brand-glow)] hover:bg-[var(--brand-soft-strong)] transition-colors"
+    className={[
+      'inline-flex items-center px-3 h-8 rounded-full text-[11.5px] font-bold border transition-colors',
+      active === undefined
+        ? 'bg-[var(--brand-soft)] text-brand border-[var(--brand-glow)] hover:bg-[var(--brand-soft-strong)]'
+        : active
+          ? 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
+          : 'bg-transparent border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/60 hover:bg-[var(--brand-soft)] hover:text-brand',
+    ].join(' ')}
   >
     {children}
   </button>

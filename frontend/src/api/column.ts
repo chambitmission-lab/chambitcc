@@ -67,11 +67,17 @@ export const uploadColumnImage = async (file: File): Promise<string> => {
   return body.url as string
 }
 
-/** 맞춤법·띄어쓰기 점검 (관리자, Gemini) — 고칠 곳 제안만 받고 적용은 편집기가 한다 */
-export const proofreadColumn = async (paragraphs: ColumnProofreadParagraph[]): Promise<ColumnProofreadIssue[]> => {
+/**
+ * 맞춤법·띄어쓰기 점검 (관리자, Gemini) — 고칠 곳 제안만 받고 적용은 편집기가 한다.
+ * signal: 편집기를 닫으면 기다리던 요청도 함께 끊는다(응답이 와도 쓸 곳이 없다)
+ */
+export const proofreadColumn = async (paragraphs: ColumnProofreadParagraph[], signal?: AbortSignal): Promise<ColumnProofreadIssue[]> => {
   // AI 응답이 한없이 늦어지면 '점검 중…' 에 갇힌다 — 끊고 목사님께 알린다
   const controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), PROOFREAD_TIMEOUT_MS)
+  const abortFromOuter = () => controller.abort(signal?.reason)
+  if (signal?.aborted) abortFromOuter()
+  else signal?.addEventListener('abort', abortFromOuter, { once: true })
   try {
     const body = await request<{ issues: ColumnProofreadIssue[] }>('/columns/proofread', {
       method: 'POST',
@@ -82,6 +88,7 @@ export const proofreadColumn = async (paragraphs: ColumnProofreadParagraph[]): P
     return body.issues
   } finally {
     window.clearTimeout(timer)
+    signal?.removeEventListener('abort', abortFromOuter)
   }
 }
 const PROOFREAD_TIMEOUT_MS = 60_000

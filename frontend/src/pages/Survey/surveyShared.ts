@@ -92,14 +92,8 @@ export const formatDateTime = (iso?: string | null): string => {
   })
 }
 
-/** 마감일까지 남은 날 — 오늘 마감이면 0, 이미 지났으면 음수 */
-export const daysLeft = (endsAt?: string | null): number | null => {
-  if (!endsAt) return null
-  const end = new Date(endsAt)
-  if (Number.isNaN(end.getTime())) return null
-  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
-  return Math.round((startOfDay(end) - startOfDay(new Date())) / 86400000)
-}
+/** 마감일 계산은 surveyDates.ts — 홈 배너가 이 파일 전체를 끌지 않도록 떼어 두고 여기서 재수출 */
+export { daysLeft } from './surveyDates'
 
 /** 지금 응답을 받을 수 있는 설문인가 (마감일이 지났으면 상태와 무관하게 닫힘) */
 /**

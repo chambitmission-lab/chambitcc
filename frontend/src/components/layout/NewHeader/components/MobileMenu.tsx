@@ -3,22 +3,23 @@ import SettingsMenu from './SettingsMenu'
 import { Link } from 'react-router-dom'
 import { lazyModal } from '../../../../utils/lazyModal'
 import { isPastor } from '../../../../utils/access'
-import { useFeedTextScale } from '../../../../utils/feedTextScale'
+import { useLanguage } from '../../../../contexts/LanguageContext'
 // 관리자 메뉴(아이콘 세트 포함 18KB)는 관리자에게만 — 엔트리에서 분리
 const AdminMenu = lazyModal(() => import('./AdminMenu'))
 
 interface MobileMenuProps {
   isAdminUser: boolean
   isLoggedIn: boolean
+  /** lg+ 여부 — NavigationMenu 가 PC 메가 메뉴·모바일 런처 중 한쪽만 그리게 한다 */
+  isDesktop: boolean
   onLogout: () => void
 }
 
-const MobileMenu = ({ isAdminUser, isLoggedIn, onLogout }: MobileMenuProps) => {
-  // PC 글씨는 헤더 '가' 단계를 따른다 — 배율·카드 폭은 NewHeader.css `.mega-menu`
-  const textScale = useFeedTextScale()
+const MobileMenu = ({ isAdminUser, isLoggedIn, isDesktop, onLogout }: MobileMenuProps) => {
+  const { t } = useLanguage()
+  // PC 글씨는 헤더 '가' 단계를 따른다 — 배율(--mm)은 <html data-text-scale> 에서 상속(NewHeader.css `.mega-menu`)
   return (
     <div
-      data-scale={textScale}
       className="
         mega-menu absolute top-14 left-0 right-0 z-[60]
         bg-background-light dark:bg-background-dark
@@ -34,7 +35,7 @@ const MobileMenu = ({ isAdminUser, isLoggedIn, onLogout }: MobileMenuProps) => {
       {/* 모바일: 폰 폭 컬럼 / lg+: 메가 메뉴 카드 폭 전체 사용 */}
       <div className="max-w-md mx-auto pb-4 lg:max-w-none lg:pb-5">
         {/* 2열 그리드 메뉴 */}
-        <NavigationMenu />
+        <NavigationMenu isDesktop={isDesktop} />
 
         <div className="border-t border-border-light dark:border-border-dark" />
 
@@ -47,9 +48,9 @@ const MobileMenu = ({ isAdminUser, isLoggedIn, onLogout }: MobileMenuProps) => {
             >
               <span className="material-icons-outlined text-[22px] text-brand">dashboard</span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[14px] lg:text-[length:calc(16px*var(--mm,1))] font-bold text-ink-strong">목회자 홈</span>
+                <span className="block text-[14px] lg:text-[length:calc(16px*var(--mm,1))] font-bold text-ink-strong">{t('navPastorHome')}</span>
                 <span className="block text-[11.5px] lg:text-[length:calc(13.5px*var(--mm,1))] text-gray-500 dark:text-white/50">
-                  맡겨진 기도 · 돌봄이 필요한 성도 · 이번 주 교회
+                  {t('navPastorHomeDesc')}
                 </span>
               </span>
               <span className="material-icons-outlined text-[18px] text-gray-400 dark:text-white/40">chevron_right</span>

@@ -202,7 +202,8 @@ const BotBubble = ({
 
 // ── PC(lg+) 노안 배려 ─────────────────────────────────────────
 // 글씨 크기는 기도 피드와 같은 저장소(utils/feedTextScale)를 쓴다 — 한 번 키우면 피드·참비가 함께 따라온다.
-// 실제 크기는 chatbot.css 의 `.cb-panel[data-cb-scale]` lg 블록이 --cbs 배율로 계산한다. 모바일은 그대로.
+// 실제 크기는 chatbot.css 의 `.cb-panel[data-cb-scale]` lg 블록이 <html data-text-scale> 의 --pc-zoom 을
+// --cbs 배율로 받아 계산한다 — 패널은 구독하지 않고 속성은 "PC 규칙 적용" 표지로만 둔다. 모바일은 그대로.
 const SCALE_GLYPH_PX: Record<FeedTextScale, number> = { base: 13, large: 16, xlarge: 19 }
 const SCALE_NAME: Record<FeedTextScale, string> = { base: '글씨 보통', large: '글씨 크게', xlarge: '글씨 아주 크게' }
 
@@ -265,7 +266,6 @@ const ChatbotWidget = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const location = useLocation()
-  const textScale = useFeedTextScale()
   const [wide, setWide] = useState(readWide)
   const toggleWide = useCallback(() => {
     setWide((v) => {
@@ -406,7 +406,7 @@ const ChatbotWidget = () => {
   useEffect(() => {
     const el = listRef.current
     if (el) el.scrollTop = welcomeReply ? 0 : el.scrollHeight
-  }, [msgs, loading, open, welcomeReply, textScale, wide])
+  }, [msgs, loading, open, welcomeReply, wide])
 
   // PC 는 열자마자 바로 타이핑할 수 있게 입력창에 포커스 (모바일은 키보드가 화면을 덮으니 하지 않는다)
   useEffect(() => {
@@ -584,7 +584,7 @@ const ChatbotWidget = () => {
         <div
           role="dialog"
           aria-label="참비"
-          data-cb-scale={textScale}
+          data-cb-scale="" /* 값 없음 — 배율은 <html data-text-scale> 에서 CSS 로 상속 */
           className={`cb-panel ${wide ? 'is-wide' : ''} fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none`}
         >
           {/* 헤더 — 웰컴 화면에선 배경과 한 덩어리(투명), 대화 중엔 흰 크롬 */}

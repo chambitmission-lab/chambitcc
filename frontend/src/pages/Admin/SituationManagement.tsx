@@ -17,6 +17,7 @@ import { getAdminSettings, updateAdminSettings } from '../../api/user'
 import type { SituationCategory } from '../../types/situation'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import AdminComposerShell from './components/AdminComposerShell'
 
 const ICON_OPTIONS = [
   'shield','cloud_off','favorite_border','sentiment_very_dissatisfied',
@@ -157,21 +158,9 @@ const VersePanel = ({ category, onClose }: { category: SituationCategory; onClos
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end lg:items-center justify-center lg:p-8">
-      <div className="w-full max-w-md lg:max-w-[980px] bg-background-light dark:bg-background-dark rounded-t-2xl lg:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[780px] flex flex-col">
-        {/* 패널 헤더 */}
-        <div className="flex items-center justify-between px-5 lg:px-7 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
-          <div>
-            <h3 className="font-bold text-ink-strong text-[15px]">{category.name}</h3>
-            <p className="text-xs text-gray-400 dark:text-white/40 mt-0.5">구절 관리</p>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-            <span className="material-icons-round text-[20px]">close</span>
-          </button>
-        </div>
-
+    <AdminComposerShell title={category.name} eyebrow="구절 관리" onClose={onClose} width="lg" closeOnBackdrop={false} bare>
         {/* PC에선 좌(구절 추가) / 우(구절 목록) 2단 */}
-        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-[360px_minmax(0,1fr)]">
+        <div className="relative z-10 flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-[360px_minmax(0,1fr)]">
         {/* 구절 추가 입력 */}
         <div className="px-5 py-3 lg:px-6 lg:py-5 bg-gray-50 dark:bg-white/[0.03] border-b lg:border-b-0 lg:border-r border-border-light dark:border-border-dark flex-shrink-0 lg:min-h-0 lg:overflow-y-auto">
           <p className="text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-2">
@@ -255,8 +244,7 @@ const VersePanel = ({ category, onClose }: { category: SituationCategory; onClos
           ))}
         </div>
         </div>
-      </div>
-    </div>
+    </AdminComposerShell>
   )
 }
 
@@ -283,20 +271,24 @@ const CategoryForm = ({
         : [...f.emotion_keys, key],
     }))
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end lg:items-center justify-center lg:p-8">
-      <div className="w-full max-w-md lg:max-w-[960px] bg-background-light dark:bg-background-dark rounded-t-2xl lg:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] lg:max-h-[860px] flex flex-col">
-        <div className="flex items-center justify-between px-5 lg:px-7 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
-          <h3 className="font-bold text-ink-strong text-[15px]">
-            {initial.name ? '카테고리 수정' : '새 카테고리'}
-          </h3>
-          <button onClick={onCancel} className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-            <span className="material-icons-round text-[20px]">close</span>
+    <AdminComposerShell
+      title={initial.name ? '카테고리 수정' : '새 카테고리'}
+      onClose={onCancel}
+      width="lg"
+      closeOnBackdrop={false}
+      footer={
+        <div className="shrink-0 px-5 lg:px-7 py-4 border-t border-border-light dark:border-border-dark flex gap-2">
+          <button onClick={() => onSave(form)} disabled={isPending}
+            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors">
+            {isPending ? '저장 중...' : '저장'}
+          </button>
+          <button onClick={onCancel} className="px-5 py-2.5 text-sm text-gray-600 dark:text-white/60 border border-gray-200 dark:border-white/[0.08] rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors">
+            취소
           </button>
         </div>
-
-        {/* PC에선 좌(이름·아이콘·색상) / 우(매칭·옵션·미리보기) 2단 */}
-        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5 lg:space-y-0 lg:px-7 lg:py-6 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
-          <div className="space-y-5">
+      }
+      columns={[
+        <>
           {/* 이름 */}
           <div>
             <label className="text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block">상황 이름</label>
@@ -330,8 +322,8 @@ const CategoryForm = ({
             </div>
           </div>
 
-          </div>
-          <div className="space-y-5">
+        </>,
+        <>
           {/* 감정 묶음 — 기도 감정 태그와 매칭 */}
           <div>
             <label className="text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block">
@@ -403,20 +395,9 @@ const CategoryForm = ({
               <span className="text-sm font-semibold text-gray-800 dark:text-white/80">{form.name || '이름 없음'}</span>
             </div>
           </div>
-          </div>
-        </div>
-
-        <div className="px-5 lg:px-7 py-4 border-t border-border-light dark:border-border-dark flex gap-2 flex-shrink-0">
-          <button onClick={() => onSave(form)} disabled={isPending}
-            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors">
-            {isPending ? '저장 중...' : '저장'}
-          </button>
-          <button onClick={onCancel} className="px-5 py-2.5 text-sm text-gray-600 dark:text-white/60 border border-gray-200 dark:border-white/[0.08] rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors">
-            취소
-          </button>
-        </div>
-      </div>
-    </div>
+        </>,
+      ]}
+    />
   )
 }
 

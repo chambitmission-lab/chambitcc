@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { Translation } from '../../../../locales'
-import { preloadMenuRoutes } from '../../../../utils/routePreload'
-import { useFeedTextScale } from '../../../../utils/feedTextScale'
-import { NAV_ICONS, Svg, type NavIconKey } from './NavIcons'
+import { preloadMenuRoutes, preloadRoute } from '../../../../utils/routePreload'
+import { NAV_ICONS, Svg } from './NavIcons'
+import { navEntries, navEntry, navEntryMatches, type NavEntry } from '../../navCatalog'
 
 // PC(lg+) 전용 헤더 메뉴 — 교회 안내 페이지를 4축(교회 · 예배·말씀 · 함께 · 소식)으로 묶고,
 // 각 축은 호버/클릭 시 "아이콘 + 이름 + 한 줄 설명" 드롭다운을 연다 (Stripe·Linear 문법).
@@ -15,76 +15,43 @@ import { NAV_ICONS, Svg, type NavIconKey } from './NavIcons'
 
 type LabelKey = keyof Translation
 
-type Item = {
-  to: string // 경로 (+쿼리) — '/news?tab=bulletin' 처럼 탭 딥링크 허용
-  labelKey: LabelKey
-  descKey: LabelKey
-  icon?: NavIconKey
-  iconFallback?: 'bulletin' | 'mission' | 'newFamily'
-}
-
 type Group = {
   id: string
   labelKey: LabelKey
-  items: Item[]
+  items: NavEntry[]
 }
 
+// 항목의 이름·설명·아이콘은 layout/navCatalog.ts 한 곳 — 여기선 축과 순서만 고른다
 const GROUPS: Group[] = [
   {
     id: 'church',
     labelKey: 'navTopChurch',
-    items: [
-      { to: '/about', labelKey: 'about', descKey: 'navDescAbout', icon: 'about' },
-      { to: '/greeting', labelKey: 'greeting', descKey: 'navDescGreeting', icon: 'greeting' },
-      { to: '/visit', labelKey: 'visit', descKey: 'navDescVisit', icon: 'visit' },
-      { to: '/history', labelKey: 'history', descKey: 'navDescHistory', icon: 'history' },
-      { to: '/people', labelKey: 'people', descKey: 'navDescPeople', icon: 'people' },
-      { to: '/organization', labelKey: 'organization', descKey: 'navDescOrganization', icon: 'organization' },
-    ],
+    items: navEntries(['/about', '/greeting', '/visit', '/history', '/people', '/organization']),
   },
   {
     id: 'word',
     labelKey: 'navTopWord',
-    items: [
-      { to: '/worship', labelKey: 'worship', descKey: 'navDescWorship', icon: 'worship' },
-      { to: '/education', labelKey: 'education', descKey: 'navDescEducation', icon: 'education' },
-      { to: '/sermon', labelKey: 'sermon', descKey: 'navDescSermon', icon: 'sermon' },
-      { to: '/ministry', labelKey: 'ministry', descKey: 'navDescMinistry', icon: 'ministry' },
-      { to: '/news?tab=bulletin', labelKey: 'bulletin', descKey: 'navDescBulletin', iconFallback: 'bulletin' },
-    ],
+    items: navEntries(['/worship', '/education', '/sermon', '/ministry', '/news?tab=bulletin']),
   },
   {
     id: 'together',
     labelKey: 'navTopTogether',
-    items: [
-      { to: '/events', labelKey: 'events', descKey: 'navDescEvents', icon: 'events' },
-      { to: '/seats', labelKey: 'seats', descKey: 'navDescSeats', icon: 'seats' },
-      { to: '/mission', labelKey: 'mission', descKey: 'navDescMission', iconFallback: 'mission' },
-      { to: '/culture', labelKey: 'culture', descKey: 'navDescCulture', icon: 'culture' },
-      { to: '/survey', labelKey: 'survey', descKey: 'navDescSurvey', icon: 'survey' },
-      { to: '/news?tab=new-family', labelKey: 'navNewFamilyAlbum', descKey: 'navDescNewFamily', iconFallback: 'newFamily' },
-    ],
+    items: navEntries(['/events', '/seats', '/mission', '/culture', '/survey', '/news?tab=new-family']),
   },
 ]
 
 // 단독 링크 — 드롭다운 없이 바로 이동
-const NEWS: Item = { to: '/news', labelKey: 'news', descKey: 'navDescNews', icon: 'news' }
+const NEWS = navEntry('/news')
 
-// NAV_ICONS 에 없는 항목용 라인 아이콘 (같은 1.6 스트로크 문법)
-const FALLBACK_ICONS = {
-  bulletin: (
+// NAV_ICONS 에 없는 항목(카탈로그 icon: null)용 라인 아이콘 (같은 1.6 스트로크 문법)
+const FALLBACK_ICONS: Record<string, ReactElement> = {
+  '/news?tab=bulletin': (
     <Svg className="w-[20px] h-[20px]">
       <path d="M6 3.5h9l3.5 3.5v13.5H6z" />
       <path d="M15 3.5V7h3.5M9 11h6M9 14.5h6M9 18h4" />
     </Svg>
   ),
-  mission: (
-    <Svg className="w-[20px] h-[20px]">
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17" />
-    </Svg>
-  ),
-  newFamily: (
+  '/news?tab=new-family': (
     <Svg className="w-[20px] h-[20px]">
       <circle cx="9" cy="8" r="3.2" />
       <path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M17 8v6M14 11h6" />
@@ -94,19 +61,22 @@ const FALLBACK_ICONS = {
 
 const HOVER_CLOSE_DELAY = 120
 
-// 현재 위치가 이 항목과 일치하는지 — 쿼리 딥링크는 pathname+search 로, 일반 경로는 하위 경로까지 포함
-const matches = (item: Item, pathname: string, search: string) => {
-  if (item.to.includes('?')) return `${pathname}${search}`.startsWith(item.to)
-  return pathname === item.to || pathname.startsWith(`${item.to}/`)
-}
+// 활성 축 pill — 컴포넌트 안에서 선언하면 렌더마다 새 타입이 돼 React 가 pill 을 리마운트하고
+// layoutId 투영·스프링이 매번 다시 시작한다. 모듈 최상위에 고정한다.
+const ActivePill = () => (
+  <motion.span
+    layoutId="header-nav-pill"
+    className="absolute inset-0 rounded-full bg-[var(--brand-soft-strong)]"
+    transition={{ type: 'spring', bounce: 0.18, duration: 0.45 }}
+    aria-hidden
+  />
+)
 
 const DesktopNav = () => {
   const { t } = useLanguage()
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const [open, setOpen] = useState<string | null>(null)
-  // 헤더 '가'(전역 글씨 크기)를 따라 메뉴·드롭다운도 커진다 — 배율은 NewHeader.css `.desktop-nav`
-  const textScale = useFeedTextScale()
   const closeTimer = useRef<number | null>(null)
   const navRef = useRef<HTMLElement>(null)
 
@@ -160,8 +130,8 @@ const DesktopNav = () => {
 
   // 현재 페이지가 속한 축 (뉴스 탭 딥링크는 해당 축으로 귀속, 단순 /news 는 소식)
   const activeGroupId =
-    GROUPS.find((g) => g.items.some((it) => matches(it, pathname, search)))?.id ??
-    (matches(NEWS, pathname, search) ? 'news' : null)
+    GROUPS.find((g) => g.items.some((it) => navEntryMatches(it, pathname, search)))?.id ??
+    (navEntryMatches(NEWS, pathname, search) ? 'news' : null)
 
   // 내비 라벨은 전부 semibold 이상 — medium 회색은 "그냥 놓인 글자"로 읽힌다 (토스 문법)
   const topClass = (active: boolean, isOpen: boolean) =>
@@ -173,22 +143,13 @@ const DesktopNav = () => {
           : 'text-gray-600 dark:text-white/70 font-semibold hover:text-ink-strong hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
     }`
 
-  const ActivePill = () => (
-    <motion.span
-      layoutId="header-nav-pill"
-      className="absolute inset-0 rounded-full bg-[var(--brand-soft-strong)]"
-      transition={{ type: 'spring', bounce: 0.18, duration: 0.45 }}
-      aria-hidden
-    />
-  )
-
   return (
     <nav
       ref={navRef}
       className="desktop-nav hidden lg:flex items-center gap-0.5"
-      data-scale={textScale}
       aria-label="주요 페이지"
       // 메뉴에 마우스가 올라온 순간 = 곧 이동한다는 신호 → lazy 청크 프리로드
+      // (청크를 다 받은 뒤엔 즉시 돌아온다 — 데이터 선요청은 항목 호버 때 그 경로만)
       onMouseEnter={() => void preloadMenuRoutes()}
     >
       {GROUPS.map((group) => {
@@ -241,13 +202,15 @@ const DesktopNav = () => {
                   <div className="w-[calc(340px*var(--hd,1))] rounded-2xl p-2 bg-white dark:bg-[#1c1c1e] ring-1 ring-black/[0.06] dark:ring-white/[0.08] shadow-[0_18px_40px_-16px_rgba(0,0,0,0.35)]">
                     {group.items.map((item) => {
                       const Icon = item.icon ? NAV_ICONS[item.icon] : null
-                      const here = matches(item, pathname, search)
+                      const here = navEntryMatches(item, pathname, search)
                       return (
                         <button
-                          key={item.to}
+                          key={item.path}
                           type="button"
                           role="menuitem"
-                          onClick={() => go(item.to)}
+                          onClick={() => go(item.path)}
+                          // 항목에 머무는 순간 그 화면의 청크·데이터만 데운다
+                          onMouseEnter={() => void preloadRoute(item.path)}
                           className={`w-full flex items-center gap-3.5 rounded-xl px-3 py-3 text-left transition-colors duration-120 ${
                             here ? 'bg-[var(--brand-soft)]' : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                           }`}
@@ -255,7 +218,7 @@ const DesktopNav = () => {
                           <span className={`w-[calc(40px*var(--hd,1))] h-[calc(40px*var(--hd,1))] rounded-xl flex items-center justify-center shrink-0 ${
                             here ? 'bg-[var(--brand-soft-strong)] text-brand' : 'bg-black/[0.04] dark:bg-white/[0.07] text-ink'
                           }`}>
-                            {Icon ? <Icon className="w-[20px] h-[20px]" /> : item.iconFallback ? FALLBACK_ICONS[item.iconFallback] : null}
+                            {Icon ? <Icon className="w-[20px] h-[20px]" /> : FALLBACK_ICONS[item.path] ?? null}
                           </span>
                           <span className="min-w-0">
                             <span className={`block text-[length:calc(15.5px*var(--hd,1))] leading-tight ${here ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>
@@ -278,7 +241,7 @@ const DesktopNav = () => {
 
       {/* 소식 — 단독 링크 */}
       <NavLink
-        to={NEWS.to}
+        to={NEWS.path}
         end
         className={({ isActive }) => topClass(isActive, false)}
         // 드롭다운이 없는 항목이므로 호버·포커스·클릭 모두 열린 패널을 즉시 닫는다

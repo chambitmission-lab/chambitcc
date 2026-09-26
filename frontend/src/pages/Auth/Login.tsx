@@ -9,6 +9,7 @@ import { restorePushSubscriptionForUser } from '../../utils/pushNotification'
 import { playWelcomeTransition } from '../../utils/welcomeTransition'
 import { deriveTimeOfDay, prefetchTodayMeditation } from '../../hooks/useDailyMeditation'
 import { prefetchTodayReadings } from '../../hooks/useBiblePlan'
+import { loadHome } from '../../utils/homeChunk'
 import { EyeIcon, StatusIcon } from './AuthIcons'
 import { useCapsLock } from './useCapsLock'
 import './AuthForm.css'
@@ -131,6 +132,8 @@ const Login = () => {
         void prefetchTodayMeditation(queryClient)
         void prefetchTodayReadings(queryClient)
       }
+      // 홈 피드 청크는 메인 번들 밖 — 마중 연출이 도는 동안 받아 두면 도착 즉시 그린다
+      void loadHome()
 
       // 마중 모먼트 — 이름을 부르며 맞아주는 짧은 환대 연출.
       // 라우트 교체는 화면이 브랜드색으로 덮인 정점에 실행돼 보이지 않고,

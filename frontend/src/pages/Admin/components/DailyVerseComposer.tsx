@@ -1,20 +1,19 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { createDailyVerse, updateDailyVerse } from '../../../api/dailyVerse'
 import type { DailyVerse } from '../../../types/dailyVerse'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import DatePicker from '../../../components/common/DatePicker'
+import { FieldGroup, QuickChip, dateTriggerClass } from '../../../components/common/ComposerFields'
+import AdminComposerShell from './AdminComposerShell'
+import { ComposerFooter } from './AdminFormBits'
 
 interface DailyVerseComposerProps {
   editingVerse: DailyVerse | null
   onClose: () => void
   onSuccess: () => void
 }
-
-/* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다.
-   brand는 CSS 변수 색이라 border-brand/60 같은 투명도 수식자를 쓸 수 없다 */
-const datePickerTriggerClass =
-  'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-left text-ink-strong hover:border-brand focus:outline-none focus:border-brand transition-colors'
 
 const pad = (n: number) => n.toString().padStart(2, '0')
 const toDateInput = (d: Date) =>
@@ -88,6 +87,9 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
 
   const isToday = verseDate === toDateInput(new Date())
   const isTomorrow = verseDate === toDateInput(new Date(Date.now() + 86400000))
+  const hasPreview = verseReference.trim().length > 0 || verseText.trim().length > 0
+  // 미리보기 카드는 한 번만 마운트한다 — 모바일은 입력 위에(내용이 있을 때만), PC는 우측 열에 상시
+  const isLg = useMediaQuery('(min-width: 1024px)')
 
   const previewCard = (
     <div
@@ -126,55 +128,26 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
     </div>
   )
 
+  // PC에선 좌(입력) / 우(미리보기) 2단
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full sm:max-w-lg lg:max-w-[880px] max-h-[92vh] sm:max-h-[90vh] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* 카드 표면 그라데이션 */}
-        <div className="hidden dark:block absolute inset-0 pointer-events-none">
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
-        </div>
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-
-        {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="hidden absolute left-1/2 -translate-x-1/2 -top-3 sm:block" />
-          <div>
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
-              ADMIN
-            </p>
-            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-              {editingVerse ? '말씀 수정' : '새 말씀 등록'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
-            aria-label="닫기"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        {/* 본문 — PC에선 좌(입력) / 우(미리보기) 2단 */}
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
-          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
-          <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6 lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
-            {/* 미리보기 카드 — 모바일은 위에, PC는 오른쪽 열에 상시 */}
-            {(verseReference.trim() || verseText.trim()) && (
-              <div className="lg:hidden">{previewCard}</div>
-            )}
-
+    <AdminComposerShell
+      title={editingVerse ? '말씀 수정' : '새 말씀 등록'}
+      onClose={onClose}
+      width="md"
+      as="form"
+      onSubmit={handleSubmit}
+      gridCols="lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]"
+      rightFirstOnMobile
+      footer={
+        <ComposerFooter
+          onClose={onClose}
+          canSubmit={canSubmit}
+          submitting={submitting}
+          submitLabel={editingVerse ? '수정 저장' : '말씀 등록'}
+        />
+      }
+      columns={[
+        <>
             {/* 성경 구절 */}
             <FieldGroup label="성경 구절" required>
               <div className="relative">
@@ -238,7 +211,7 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
                 <DatePicker
                   value={verseDate}
                   onChange={setVerseDate}
-                  className={datePickerTriggerClass}
+                  className={dateTriggerClass}
                 />
                 <div className="mt-2.5 px-3 py-2 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-glow)]">
                   <p className="text-[11.5px] text-brand leading-[1.5]">
@@ -271,105 +244,28 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
                 {error}
               </div>
             )}
-          </div>
-
-          {/* 우 — PC 전용 상시 미리보기 */}
-          <div className="hidden lg:block px-7 py-6">
-            <div className="sticky top-0">
-              <div className="flex items-baseline gap-1.5 mb-2">
-                <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">미리보기</p>
-                <span className="text-[11px] text-gray-400 dark:text-white/35">입력하는 대로 반영됩니다</span>
-              </div>
-              {verseReference.trim() || verseText.trim() ? (
-                previewCard
-              ) : (
-                <div className="rounded-2xl border border-dashed border-gray-300 dark:border-white/[0.14] px-4 py-10 text-center text-[12.5px] text-gray-400 dark:text-white/40">
-                  성경 구절과 말씀을 입력하면 여기에 카드가 보여요
-                </div>
-              )}
+        </>,
+        // 우 — 미리보기: 모바일은 내용이 있을 때만 입력 위에, PC는 상시(빈 자리 안내 포함)
+        isLg ? (
+          <div className="sticky top-0">
+            <div className="flex items-baseline gap-1.5 mb-2">
+              <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">미리보기</p>
+              <span className="text-[11px] text-gray-400 dark:text-white/35">입력하는 대로 반영됩니다</span>
             </div>
+            {hasPreview ? (
+              previewCard
+            ) : (
+              <div className="rounded-2xl border border-dashed border-gray-300 dark:border-white/[0.14] px-4 py-10 text-center text-[12.5px] text-gray-400 dark:text-white/40">
+                성경 구절과 말씀을 입력하면 여기에 카드가 보여요
+              </div>
+            )}
           </div>
-          </div>
-
-          {/* 푸터 */}
-          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-            >
-              {submitting ? (
-                <>
-                  <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                  저장 중...
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {editingVerse ? '수정 저장' : '말씀 등록'}
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        ) : hasPreview ? (
+          previewCard
+        ) : null,
+      ]}
+    />
   )
 }
-
-// ── Helpers ──────────────────────────────────────────────
-const FieldGroup = ({
-  label,
-  required,
-  children,
-}: {
-  label: string
-  required?: boolean
-  children: ReactNode
-}) => (
-  <div>
-    <div className="flex items-center gap-1 mb-2">
-      <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
-        {label}
-      </p>
-      {required && <span className="text-brand text-[12px] font-bold">*</span>}
-    </div>
-    {children}
-  </div>
-)
-
-const QuickChip = ({
-  active,
-  onClick,
-  children,
-}: {
-  active?: boolean
-  onClick: () => void
-  children: ReactNode
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={[
-      'inline-flex items-center px-3 h-8 rounded-full text-[11.5px] font-bold border transition-colors',
-      active
-        ? 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
-        : 'bg-transparent border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/60 hover:bg-[var(--brand-soft)] hover:text-brand',
-    ].join(' ')}
-  >
-    {children}
-  </button>
-)
 
 export default DailyVerseComposer

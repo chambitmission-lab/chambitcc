@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useElections } from '../../../hooks/useElections'
 import { isAuthenticated } from '../../../utils/auth'
 import { preloadRoute } from '../../../utils/routePreload'
-import { BallotIcon } from '../../Election/electionUi'
+import { BallotIcon } from '../../Election/electionIcons'
 
 const ElectionBanner = () => {
   const navigate = useNavigate()

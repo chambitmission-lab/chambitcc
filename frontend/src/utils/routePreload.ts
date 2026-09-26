@@ -187,8 +187,13 @@ export const preloadNavRoutes = (): Promise<void> => {
   })
 }
 
-// 메뉴가 열리는 순간 호출 — 네트워크를 몰아치지 않게 순차로 받는다
+// 메뉴가 열리는 순간·헤더 메뉴에 마우스가 올라온 순간 호출 — 네트워크를 몰아치지 않게 순차로 받는다.
+// 청크를 전부 받은 뒤엔 즉시 돌아온다: 안 그러면 헤더 위를 지나갈 때마다 36개를 다시 훑으며
+// preloadRoute 가 staleTime 지난 데이터 선요청(/bible·/greeting·/bible/situation)을 재발사했다.
+// 특정 화면의 데이터를 데우는 건 그 항목을 호버할 때 preloadRoute(path) 하나만 한다.
+let menuChunksWarm = false
 export const preloadMenuRoutes = async (): Promise<void> => {
+  if (menuChunksWarm) return
   // 비로그인: 공개 페이지만 순차로 (로그인하면 HomeGate 가 다시 마운트되며 전체 프리로드)
   if (!tokenStore.getAccess()) {
     for (const path of PUBLIC_MENU_ROUTES) {
@@ -198,9 +203,12 @@ export const preloadMenuRoutes = async (): Promise<void> => {
   }
   // 네비 목적지를 먼저 확보한 뒤 나머지 메뉴 페이지를 채운다
   await preloadNavRoutes()
-  for (const path of Object.keys(menuRouteLoaders)) {
+  const all = [...NAV_ROUTES, ...Object.keys(menuRouteLoaders)]
+  for (const path of all) {
     await preloadRoute(path)
   }
+  // 실패(오프라인)한 청크가 있으면 다음 기회에 다시 돈다
+  menuChunksWarm = all.every((path) => loaded.has(path))
 }
 
 // 로그인 직후 유휴 시간에 미리 받아둘 "다음에 갈 확률이 높은" 곳만 — 하단 네비 3개 +

@@ -262,14 +262,14 @@
  *   부딪히지 않게 넓은 화면(1536px+)에서만 키운다.
  * --hd(드롭다운): 가로 폭 제약이 없어 lg 전 구간에서 따라 커진다. */
 @media (min-width: 1024px) {
-  .desktop-nav[data-scale='large'] { --hd: 1.1; }
-  .desktop-nav[data-scale='xlarge'] { --hd: 1.2; }
+  /* 배율은 <html data-text-scale> 의 --text-mul(1.1/1.2)을 그대로 — 컴포넌트가 따로 구독하지 않는다 */
+  .desktop-nav { --hd: var(--text-mul, 1); }
   /* 검색창 단축키 칩 — 캡슐 글씨(15px)에 맞춰 한 단계 */
   .search-capsule .keycap { min-width: 22px; height: 22px; font-size: 12px; border-radius: 6px; }
 }
 @media (min-width: 1536px) {
-  .desktop-nav[data-scale='large'] { --hn: 1.08; }
-  .desktop-nav[data-scale='xlarge'] { --hn: 1.15; }
+  html[data-text-scale='large'] .desktop-nav { --hn: 1.08; }
+  html[data-text-scale='xlarge'] .desktop-nav { --hn: 1.15; }
 }
 
 /* PC 전체 메뉴(메가 메뉴) — 폭은 화면에 맞춰 최대 1180px, 글씨는 헤더 '가' 단계(--mm)를 따른다.
@@ -281,6 +281,5 @@
     width: var(--mm-w);
     margin-left: calc(var(--mm-w) / -2);
   }
-  .mega-menu[data-scale='large'] { --mm: 1.1; }
-  .mega-menu[data-scale='xlarge'] { --mm: 1.2; }
+  .mega-menu { --mm: var(--text-mul, 1); }
 }

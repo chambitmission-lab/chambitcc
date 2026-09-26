@@ -48,10 +48,9 @@
 }
 
 /* ── 레일 글씨 크기 — 노안 대응 ─────────────────────────────────────
-   기본 라벨 17px·글리프 26px로 올렸고, 헤더 '가'(utils/feedTextScale.ts) 단계에 따라 --rl 배율을 곱한다.
+   기본 라벨 17px·글리프 26px로 올렸고, 헤더 '가' 단계(<html data-text-scale> 의 --text-mul)를 --rl 로 곱한다.
    ★ 레일 폭(76/248px)은 그대로 둔다 — 모든 화면의 본문 시작점이 이 폭에 맞춰져 있다.
      가장 긴 라벨('말씀 카드'·'Focused Prayer')도 1.2배에서 248px 안에 들어간다. */
 @media (min-width: 1024px) {
-  .desktop-rail[data-scale='large'] { --rl: 1.1; }
-  .desktop-rail[data-scale='xlarge'] { --rl: 1.2; }
+  .desktop-rail { --rl: var(--text-mul, 1); }
 }

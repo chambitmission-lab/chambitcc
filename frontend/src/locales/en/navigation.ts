@@ -18,9 +18,6 @@ export const navigation = {
   survey: 'Surveys',
   seats: 'Seat Booking',
   education: 'Education & Training',
-  participate: 'Participate',
-  online: 'Online',
-  tv: 'TV',
   bible: 'Bible',
   events: 'Events',
   allMenu: 'All Menu',
@@ -57,6 +54,10 @@ export const navigation = {
   navGroupMyFaith: 'My Faith',
   navCtaNewHere: 'New here?',
   navCtaLogin: 'Log in',
+  // All-menu panel — pastor home card · Chambi button toggle
+  navPastorHome: 'Pastor Home',
+  navPastorHomeDesc: 'Entrusted prayers · members needing care · this week',
+  navChatbotToggle: 'Chambi button',
   // ⌘K command palette
   cmdkTrigger: 'Search anything',
   cmdkPlaceholder: 'Pages · sermons · verses · questions',

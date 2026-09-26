@@ -2,9 +2,10 @@
 //
 // 문항 id 를 살려서 보내는 게 핵심이다(백엔드 _sync_questions). 이미 응답이 들어온
 // 설문에서 문항을 지우면 그 문항의 답변도 함께 사라지므로 삭제 시 경고한다.
-import { useMemo, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import DatePicker from '../../../components/common/DatePicker'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import AdminComposerShell from './AdminComposerShell'
 import { useCreateSurvey, useUpdateSurvey } from '../../../hooks/useSurvey'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { showToast, toastFeedback } from '../../../utils/toast'
@@ -138,44 +139,63 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
   const update = useUpdateSurvey(toastFeedback({ success: '설문을 저장했습니다' }))
   const saving = create.isPending || update.isPending
 
-  const patchQuestion = (key: string, patch: Partial<DraftQuestion>) =>
-    setQuestions((prev) => prev.map((q) => (q.key === key ? { ...q, ...patch } : q)))
+  // 문항 편집 콜백은 전부 key 기반·안정 참조 — QuestionEditor(memo)가 다른 문항 입력에 리렌더되지 않게
+  const patchQuestion = useCallback(
+    (key: string, patch: Partial<DraftQuestion>) =>
+      setQuestions((prev) => prev.map((q) => (q.key === key ? { ...q, ...patch } : q))),
+    [],
+  )
 
-  const move = (index: number, delta: number) =>
-    setQuestions((prev) => {
-      const next = [...prev]
-      const target = index + delta
-      if (target < 0 || target >= next.length) return prev
-      ;[next[index], next[target]] = [next[target], next[index]]
-      return next
-    })
+  const move = useCallback(
+    (key: string, delta: number) =>
+      setQuestions((prev) => {
+        const index = prev.findIndex((q) => q.key === key)
+        const target = index + delta
+        if (index < 0 || target < 0 || target >= prev.length) return prev
+        const next = [...prev]
+        ;[next[index], next[target]] = [next[target], next[index]]
+        return next
+      }),
+    [],
+  )
 
-  const removeQuestion = async (question: DraftQuestion) => {
-    if (question.id && hasResponses) {
-      const ok = await confirmDialog({
-        title: '문항을 삭제할까요?',
-        message: '이미 들어온 이 문항의 응답도 함께 사라집니다.',
-        confirmText: '삭제',
-        tone: 'danger',
-      })
-      if (!ok) return
-    }
-    setQuestions((prev) => prev.filter((q) => q.key !== question.key))
-  }
-
-  const duplicate = (question: DraftQuestion) =>
-    setQuestions((prev) => {
-      const index = prev.findIndex((q) => q.key === question.key)
-      const copy: DraftQuestion = {
-        ...question,
-        key: newKey(),
-        id: undefined, // 새 문항으로 저장된다
-        options: question.options.map((o) => ({ ...o, id: newOptionId() })),
+  const removeQuestion = useCallback(
+    async (question: DraftQuestion) => {
+      if (question.id && hasResponses) {
+        const ok = await confirmDialog({
+          title: '문항을 삭제할까요?',
+          message: '이미 들어온 이 문항의 응답도 함께 사라집니다.',
+          confirmText: '삭제',
+          tone: 'danger',
+        })
+        if (!ok) return
       }
-      const next = [...prev]
-      next.splice(index + 1, 0, copy)
-      return next
-    })
+      setQuestions((prev) => prev.filter((q) => q.key !== question.key))
+    },
+    [hasResponses],
+  )
+
+  const duplicate = useCallback(
+    (question: DraftQuestion) =>
+      setQuestions((prev) => {
+        const index = prev.findIndex((q) => q.key === question.key)
+        const copy: DraftQuestion = {
+          ...question,
+          key: newKey(),
+          id: undefined, // 새 문항으로 저장된다
+          options: question.options.map((o) => ({ ...o, id: newOptionId() })),
+        }
+        const next = [...prev]
+        next.splice(index + 1, 0, copy)
+        return next
+      }),
+    [],
+  )
+
+  const togglePreview = useCallback(
+    (key: string) => setPreviewKey((prev) => (prev === key ? null : key)),
+    [],
+  )
 
   const loadTemplate = () => {
     const template = shuttleTemplate()
@@ -183,23 +203,6 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
     if (!description.trim()) setDescription(template.description)
     setQuestions((prev) => [...prev, ...template.questions])
   }
-
-  const payloadQuestions = useMemo(
-    () =>
-      questions.map((q, order) => ({
-        id: q.id,
-        type: q.type,
-        title: q.title.trim(),
-        description: q.description.trim() || null,
-        is_required: q.is_required,
-        display_order: order,
-        options: QUESTION_TYPE_META[q.type].hasOptions
-          ? q.options.filter((o) => o.label.trim()).map((o) => ({ id: o.id, label: o.label.trim() }))
-          : null,
-        settings: Object.keys(q.settings).length ? q.settings : null,
-      })),
-    [questions]
-  )
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -233,7 +236,19 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
       is_result_public: resultPublic,
       allow_edit: allowEdit,
       show_on_home: showOnHome,
-      questions: payloadQuestions,
+      // 제출 순간에만 정리한다 — 키 입력마다 전 문항을 trim 할 이유가 없다
+      questions: questions.map((q, order) => ({
+        id: q.id,
+        type: q.type,
+        title: q.title.trim(),
+        description: q.description.trim() || null,
+        is_required: q.is_required,
+        display_order: order,
+        options: QUESTION_TYPE_META[q.type].hasOptions
+          ? q.options.filter((o) => o.label.trim()).map((o) => ({ id: o.id, label: o.label.trim() }))
+          : null,
+        settings: Object.keys(q.settings).length ? q.settings : null,
+      })),
     }
 
     if (survey) {
@@ -243,39 +258,37 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
     }
   }
 
-  return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full sm:max-w-2xl lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
+  const footer = (
+    <div className="shrink-0 px-5 lg:px-7 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] flex gap-2">
+      <button
+        type="button"
+        onClick={onClose}
+        className="px-4 py-3 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[14px] font-semibold text-ink"
       >
-        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div>
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
-            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-              {survey ? '설문 수정' : '새 설문 만들기'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
-            aria-label="닫기"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
+        취소
+      </button>
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={saving}
+        className="flex-1 py-3 rounded-xl bg-brand text-white text-[14.5px] font-bold disabled:opacity-60"
+      >
+        {saving ? '저장 중…' : survey ? '저장' : '설문 만들기'}
+      </button>
+    </div>
+  )
 
-        {/* 본문 — PC에선 좌(기본 정보·공개 설정) / 우(문항 빌더) 2단으로 펼친다 */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4 lg:p-0 lg:space-y-0 lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
-          {/* 좌 — 기본 정보·공개 설정 */}
-          <div className="space-y-4 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
+  // PC에선 좌(기본 정보·공개 설정) / 우(문항 빌더) 2단으로 펼친다
+  return (
+    <AdminComposerShell
+      title={survey ? '설문 수정' : '새 설문 만들기'}
+      onClose={onClose}
+      smWidth="2xl"
+      density="compact"
+      gridCols="lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]"
+      footer={footer}
+      columns={[
+        <>
           {/* 기본 정보 */}
           <section className="space-y-3">
             <div>
@@ -371,10 +384,9 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
             />
           </section>
 
-          </div>
-
-          {/* 우 — 문항 빌더 */}
-          <div className="lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
+        </>,
+        // 우 — 문항 빌더
+        <>
           <section className="space-y-2.5">
             <div className="flex items-center justify-between">
               <p className="text-[13px] font-bold text-ink-strong">문항 {questions.length}개</p>
@@ -396,13 +408,11 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
                 index={index}
                 total={questions.length}
                 preview={previewKey === question.key}
-                onTogglePreview={() =>
-                  setPreviewKey(previewKey === question.key ? null : question.key)
-                }
-                onPatch={(patch) => patchQuestion(question.key, patch)}
-                onMove={(delta) => move(index, delta)}
-                onDuplicate={() => duplicate(question)}
-                onRemove={() => void removeQuestion(question)}
+                onTogglePreview={togglePreview}
+                onPatch={patchQuestion}
+                onMove={move}
+                onDuplicate={duplicate}
+                onRemove={removeQuestion}
               />
             ))}
 
@@ -437,28 +447,9 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
               ) : null}
             </div>
           </section>
-          </div>
-        </div>
-
-        <div className="shrink-0 px-5 lg:px-7 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] flex gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-3 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[14px] font-semibold text-ink"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1 py-3 rounded-xl bg-brand text-white text-[14.5px] font-bold disabled:opacity-60"
-          >
-            {saving ? '저장 중…' : survey ? '저장' : '설문 만들기'}
-          </button>
-        </div>
-      </div>
-    </div>
+        </>,
+      ]}
+    />
   )
 }
 
@@ -497,8 +488,8 @@ const ToggleRow = ({
   </button>
 )
 
-/* 문항 하나 편집 */
-const QuestionEditor = ({
+/* 문항 하나 편집 — memo: 다른 문항의 키 입력에 이 카드가 다시 그려지지 않는다(콜백은 전부 key 기반·안정 참조) */
+const QuestionEditor = memo(function QuestionEditor({
   question,
   index,
   total,
@@ -513,21 +504,22 @@ const QuestionEditor = ({
   index: number
   total: number
   preview: boolean
-  onTogglePreview: () => void
-  onPatch: (patch: Partial<DraftQuestion>) => void
-  onMove: (delta: number) => void
-  onDuplicate: () => void
-  onRemove: () => void
-}) => {
+  onTogglePreview: (key: string) => void
+  onPatch: (key: string, patch: Partial<DraftQuestion>) => void
+  onMove: (key: string, delta: number) => void
+  onDuplicate: (question: DraftQuestion) => void
+  onRemove: (question: DraftQuestion) => void
+}) {
   const meta = QUESTION_TYPE_META[question.type]
   const settings = question.settings
 
-  const patchSettings = (patch: Partial<SurveyQuestionSettings>) =>
-    onPatch({ settings: { ...settings, ...patch } })
+  const patch = (next: Partial<DraftQuestion>) => onPatch(question.key, next)
+  const patchSettings = (next: Partial<SurveyQuestionSettings>) =>
+    patch({ settings: { ...settings, ...next } })
 
   const changeType = (type: SurveyQuestionType) => {
     const needsOptions = QUESTION_TYPE_META[type].hasOptions
-    onPatch({
+    patch({
       type,
       options:
         needsOptions && question.options.length === 0
@@ -545,17 +537,17 @@ const QuestionEditor = ({
       <div className="flex items-center justify-between gap-2 mb-2.5">
         <span className="text-[11.5px] font-bold text-brand tabular-nums">문항 {index + 1}</span>
         <div className="flex items-center gap-0.5 text-ink-muted">
-          <IconButton label="위로" disabled={index === 0} onClick={() => onMove(-1)}>
+          <IconButton label="위로" disabled={index === 0} onClick={() => onMove(question.key, -1)}>
             <polyline points="18 15 12 9 6 15" />
           </IconButton>
-          <IconButton label="아래로" disabled={index === total - 1} onClick={() => onMove(1)}>
+          <IconButton label="아래로" disabled={index === total - 1} onClick={() => onMove(question.key, 1)}>
             <polyline points="6 9 12 15 18 9" />
           </IconButton>
-          <IconButton label="복제" onClick={onDuplicate}>
+          <IconButton label="복제" onClick={() => onDuplicate(question)}>
             <rect x="9" y="9" width="11" height="11" rx="2" />
             <path d="M5 15V5.5A1.5 1.5 0 0 1 6.5 4H15" />
           </IconButton>
-          <IconButton label="삭제" onClick={onRemove} danger>
+          <IconButton label="삭제" onClick={() => void onRemove(question)} danger>
             <polyline points="3 6 5 6 21 6" />
             <path d="M8 6V4.5A1.5 1.5 0 0 1 9.5 3h5A1.5 1.5 0 0 1 16 4.5V6" />
             <path d="M6.5 6l1 14h9l1-14" />
@@ -578,14 +570,14 @@ const QuestionEditor = ({
       <input
         type="text"
         value={question.title}
-        onChange={(e) => onPatch({ title: e.target.value })}
+        onChange={(e) => patch({ title: e.target.value })}
         placeholder="질문을 입력하세요"
         className={`${inputCls} mb-2`}
       />
       <input
         type="text"
         value={question.description}
-        onChange={(e) => onPatch({ description: e.target.value })}
+        onChange={(e) => patch({ description: e.target.value })}
         placeholder="보조 설명 (선택)"
         className={`${inputCls} mb-2`}
       />
@@ -602,7 +594,7 @@ const QuestionEditor = ({
                 type="text"
                 value={option.label}
                 onChange={(e) =>
-                  onPatch({
+                  patch({
                     options: question.options.map((o) =>
                       o.id === option.id ? { ...o, label: e.target.value } : o
                     ),
@@ -614,7 +606,7 @@ const QuestionEditor = ({
               <button
                 type="button"
                 onClick={() =>
-                  onPatch({ options: question.options.filter((o) => o.id !== option.id) })
+                  patch({ options: question.options.filter((o) => o.id !== option.id) })
                 }
                 className="shrink-0 w-8 h-8 rounded-lg text-ink-muted hover:text-red-500 transition-colors"
                 aria-label="보기 삭제"
@@ -626,7 +618,7 @@ const QuestionEditor = ({
           <button
             type="button"
             onClick={() =>
-              onPatch({ options: [...question.options, { id: newOptionId(), label: '' }] })
+              patch({ options: [...question.options, { id: newOptionId(), label: '' }] })
             }
             className="ml-6 text-[12.5px] font-semibold text-brand"
           >
@@ -641,7 +633,7 @@ const QuestionEditor = ({
           <input
             type="checkbox"
             checked={question.is_required}
-            onChange={(e) => onPatch({ is_required: e.target.checked })}
+            onChange={(e) => patch({ is_required: e.target.checked })}
             className="accent-[var(--brand)]"
           />
           필수 응답
@@ -741,7 +733,7 @@ const QuestionEditor = ({
 
         <button
           type="button"
-          onClick={onTogglePreview}
+          onClick={() => onTogglePreview(question.key)}
           className="ml-auto text-[12px] font-semibold text-brand"
         >
           {preview ? '미리보기 닫기' : '미리보기'}
@@ -770,7 +762,7 @@ const QuestionEditor = ({
       ) : null}
     </div>
   )
-}
+})
 
 const IconButton = ({
   label,

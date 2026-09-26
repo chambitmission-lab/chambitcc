@@ -78,6 +78,8 @@ const readEditorFont = (): number => {
 const isImageFile = (f: File) => /^image\/(jpeg|png|webp)$/.test(f.type)
 /** 한 번에 점검할 글자 수 한도 — 칼럼 한 편은 보통 3~5천 자 */
 const PROOFREAD_MAX_CHARS = 30000
+/** "그대로 두기" 기억 열쇠 — 문단 id 와 무관하게 같은 조각·같은 제안이면 같은 것 */
+const proofIgnoreKey = (i: { original: string; suggestion: string }) => `${i.original}→${i.suggestion}`
 
 /**
  * 컬럼 등록/수정 폼 (관리자).
@@ -116,6 +118,13 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   const [titleIssues, setTitleIssues] = useState<ColumnProofreadIssue[]>([])
   // 점검을 못 했을 때(무료 한도·네트워크 등) — 결과 패널 자리에 안내를 남긴다
   const [proofFailure, setProofFailure] = useState<ProofreadFailure | null>(null)
+  // "그대로 두기" 한 제안은 다시 점검해도 되살리지 않는다(고유명사·문체) — 저장하면 잊는다
+  const ignoredProofRef = useRef(new Set<string>())
+  // 문단 평문별 점검 결과 — 다시 점검할 때 안 바뀐 문단은 서버에 보내지 않는다
+  const proofCacheRef = useRef(new Map<string, Omit<ColumnProofreadIssue, 'id'>[]>())
+  // 기다리는 중인 점검 요청 — 편집기를 닫으면 끊는다
+  const proofAbortRef = useRef<AbortController | null>(null)
+  useEffect(() => () => proofAbortRef.current?.abort(), [])
 
   const { pendingRestore, dismissRestore, clearDraft, savedAt } = useColumnDraft(initial, draft)
 
@@ -190,7 +199,11 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   useEffect(() => () => window.clearTimeout(contentSyncTimer.current), [])
   const proof = useEditorState({
     editor,
-    selector: ({ editor: e }) => (e ? getProofState(e.state) : null),
+    selector: ({ editor: e }) => {
+      if (!e) return null
+      const { issues, active } = getProofState(e.state)
+      return { issues, active }
+    },
   })
 
   /** 미뤄 둔 본문 동기화를 지금 끝내고 최신 본문을 돌려준다 */
@@ -243,11 +256,13 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
         const updated = await updateColumn(draft.id, payload)
         showToast(ko ? '목양컬럼이 수정되었습니다' : 'Column updated', 'success')
         clearDraft()
+        ignoredProofRef.current.clear()
         onSaved(updated, false)
       } else {
         const created = await createColumn(payload as CreateColumnRequest)
         showToast(ko ? '목양컬럼이 추가되었습니다' : 'Column added', 'success')
         clearDraft()
+        ignoredProofRef.current.clear()
         onSaved(created, true)
       }
     } catch (error) {
@@ -368,7 +383,10 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   }, [])
 
   // ── 맞춤법 점검 ──────────────────────────────────────────────────
-  /** 다 쓴 뒤 한 번 — 문단별 평문을 보내고 제안을 밑줄·목록으로 보여 준다(고치기는 하나씩 확인) */
+  /**
+   * 다 쓴 뒤 한 번 — 문단별 평문을 보내고 제안을 밑줄·목록으로 보여 준다(고치기는 하나씩 확인).
+   * 한 번 점검한 문단은 평문 그대로면 결과를 다시 쓰고, 바뀐 문단만 서버에 보낸다.
+   */
   const runProofread = async () => {
     const e = editorRef.current
     if (!e || proofreading) return
@@ -384,12 +402,29 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
       showToast(ko ? '글이 너무 길어 한 번에 점검할 수 없어요' : 'Too long to check at once', 'error')
       return
     }
+    const cache = proofCacheRef.current
+    const toSend = paragraphs.filter((p) => !cache.has(p.text))
     setProofreading(true)
     setProofFailure(null)
+    const controller = new AbortController()
+    proofAbortRef.current = controller
     try {
-      const issues = await proofreadColumn(paragraphs)
+      if (toSend.length) {
+        const fetched = await proofreadColumn(toSend, controller.signal)
+        // 같은 평문 문단이 둘이면 제안을 합쳐 한 항목으로(모델이 한쪽에만 달아 줄 수 있다)
+        for (const p of toSend) {
+          const own = fetched.filter((i) => i.id === p.id).map(({ id: _id, ...rest }) => rest)
+          const prev = cache.get(p.text) ?? []
+          const merged = [...prev, ...own.filter((i) => !prev.some((q) => q.original === i.original && q.suggestion === i.suggestion))]
+          cache.set(p.text, merged)
+        }
+      }
       const cur = editorRef.current
-      if (!cur) return
+      if (!cur || cur.isDestroyed) return
+      const ignored = ignoredProofRef.current
+      const issues: ColumnProofreadIssue[] = paragraphs.flatMap((p) =>
+        (cache.get(p.text) ?? []).filter((i) => !ignored.has(proofIgnoreKey(i))).map((i) => ({ ...i, id: p.id })),
+      )
       // 기다리는 동안 고친 문단은 위치가 어긋나므로 locateIssues 가 그 문단 제안을 버린다
       const located = locateIssues(sent, collectProofBlocks(cur.state.doc), issues.filter((i) => i.id !== 'title'))
       cur.view.dispatch(setProofMeta(cur.state.tr, { type: 'set', issues: located }))
@@ -408,11 +443,14 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
         'success',
       )
     } catch (error) {
+      // 편집기를 닫아서 끊긴 요청이면 알릴 곳이 없다
+      if (!editorRef.current || editorRef.current.isDestroyed) return
       console.error('Failed to proofread column:', error)
       // 이전 점검 결과(밑줄·목록)는 그대로 두고, 안내는 결과 패널 자리에 남긴다
       setProofFailure(proofreadFailureOf(error))
       showToast(ko ? '지금은 맞춤법 점검을 할 수 없어요' : 'Spelling check is unavailable right now', 'error')
     } finally {
+      if (proofAbortRef.current === controller) proofAbortRef.current = null
       setProofreading(false)
     }
   }
@@ -440,6 +478,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   }
 
   const ignoreIssue = (issue: PanelIssue) => {
+    ignoredProofRef.current.add(proofIgnoreKey(issue))
     if (issue.inTitle) {
       setTitleIssues((list) => list.filter((i) => i.original !== issue.original))
       return
