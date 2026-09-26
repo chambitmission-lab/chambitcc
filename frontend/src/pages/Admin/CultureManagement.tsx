@@ -81,9 +81,9 @@ const ClassFormPanel = ({
   const set = (patch: Partial<ClassForm>) => setForm((f) => ({ ...f, ...patch }))
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
-      <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end lg:items-center justify-center lg:p-8">
+      <div className="w-full max-w-md lg:max-w-[920px] bg-background-light dark:bg-background-dark rounded-t-2xl lg:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] lg:max-h-[860px] flex flex-col">
+        <div className="flex items-center justify-between px-5 lg:px-7 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
           <h3 className="font-bold text-ink-strong text-[15px]">
             {initial.title ? '강좌 수정' : '새 강좌'}
           </h3>
@@ -95,7 +95,9 @@ const ClassFormPanel = ({
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+        {/* PC에선 좌(강좌명·소개) / 우(운영 정보) 2단 */}
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4 lg:space-y-0 lg:px-7 lg:py-6 lg:grid lg:grid-cols-2 lg:gap-x-7 lg:items-start">
+          <div className="space-y-4">
           <div>
             <label className={labelClass}>강좌명 *</label>
             <input
@@ -112,9 +114,11 @@ const ClassFormPanel = ({
               onChange={(e) => set({ description: e.target.value })}
               rows={3}
               placeholder="강좌에 대한 간단한 소개"
-              className={`${inputClass} resize-none`}
+              className={`${inputClass} resize-none lg:min-h-[300px]`}
             />
           </div>
+          </div>
+          <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>강사명</label>
@@ -202,9 +206,10 @@ const ClassFormPanel = ({
               </label>
             ))}
           </div>
+          </div>
         </div>
 
-        <div className="px-5 py-4 border-t border-border-light dark:border-border-dark flex gap-2 flex-shrink-0">
+        <div className="px-5 lg:px-7 py-4 border-t border-border-light dark:border-border-dark flex gap-2 flex-shrink-0">
           <button
             onClick={() => onSave(form)}
             disabled={isPending}
@@ -242,9 +247,9 @@ const NoticeFormPanel = ({
 }) => {
   const [form, setForm] = useState(initial)
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
-      <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end lg:items-center justify-center lg:p-8">
+      <div className="w-full max-w-md lg:max-w-[880px] bg-background-light dark:bg-background-dark rounded-t-2xl lg:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] lg:max-h-[860px] flex flex-col">
+        <div className="flex items-center justify-between px-5 lg:px-7 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
           <h3 className="font-bold text-ink-strong text-[15px]">
             {initial.title ? '공지 수정' : '새 공지'}
           </h3>
@@ -255,7 +260,7 @@ const NoticeFormPanel = ({
             <span className="material-icons-round text-[20px]">close</span>
           </button>
         </div>
-        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4 lg:px-7 lg:py-6">
           <div>
             <label className={labelClass}>제목 *</label>
             <input
@@ -270,7 +275,7 @@ const NoticeFormPanel = ({
               value={form.content}
               onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
               rows={6}
-              className={`${inputClass} resize-none`}
+              className={`${inputClass} resize-none lg:min-h-[400px]`}
             />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
@@ -285,7 +290,7 @@ const NoticeFormPanel = ({
             <span className="text-sm text-gray-700 dark:text-white/70">공개</span>
           </label>
         </div>
-        <div className="px-5 py-4 border-t border-border-light dark:border-border-dark flex gap-2 flex-shrink-0">
+        <div className="px-5 lg:px-7 py-4 border-t border-border-light dark:border-border-dark flex gap-2 flex-shrink-0">
           <button
             onClick={() => onSave(form)}
             disabled={isPending}

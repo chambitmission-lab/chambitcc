@@ -206,11 +206,11 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
@@ -219,7 +219,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
         <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
@@ -241,8 +241,10 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5">
+        {/* 본문 — PC에선 좌(기본 정보) / 우(진행 방식·일정) 2단으로 펼친다 */}
+        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="px-5 pt-5 lg:pb-6 space-y-5 lg:px-7 lg:pt-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
             {/* 제목 */}
             <FieldGroup label="제목" required>
               <input
@@ -370,6 +372,10 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
               </div>
             </FieldGroup>
 
+          </div>
+
+          {/* 우 — 진행 방식·일정·공개 */}
+          <div className="px-5 pt-5 pb-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
             {/* 진행 방식 */}
             <FieldGroup label="진행 방식">
               <div className="grid grid-cols-2 gap-1.5">
@@ -529,9 +535,10 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
               </div>
             )}
           </div>
+          </div>
 
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}

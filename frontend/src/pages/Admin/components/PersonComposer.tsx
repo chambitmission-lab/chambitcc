@@ -190,11 +190,11 @@ const PersonComposer = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
@@ -203,7 +203,7 @@ const PersonComposer = ({
         <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
@@ -224,7 +224,7 @@ const PersonComposer = ({
         </div>
 
         {/* 단계 탭 */}
-        <div className="relative z-10 flex gap-1.5 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex gap-1.5 px-5 lg:px-7 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
           {STEPS.map((s) => (
             <button
               key={s.key}
@@ -242,10 +242,13 @@ const PersonComposer = ({
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5">
+        {/* PC에선 단계마다 2단으로 펼친다 — 기본은 좌(분류·사진) / 우(이름·직분·공개) */}
+        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6">
             {step === 'basic' && (
-              <>
+              <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:items-start">
+              <div className="space-y-5">
                 {/* 분류 — pill grid (native select 금지) */}
                 <FieldGroup label="분류" required>
                   <div className="grid grid-cols-1 gap-1.5">
@@ -332,7 +335,9 @@ const PersonComposer = ({
                     </div>
                   </div>
                 </FieldGroup>
+              </div>
 
+              <div className="space-y-5">
                 <BilingualField label="이름" required value={name} onChange={setName} placeholder="예) 최요한" />
                 <BilingualField
                   label="직분 (이름 뒤에 붙는 말)"
@@ -393,11 +398,12 @@ const PersonComposer = ({
                     </span>
                   </button>
                 </FieldGroup>
-              </>
+              </div>
+              </div>
             )}
 
             {step === 'ministry' && (
-              <>
+              <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:items-start">
                 <BilingualField
                   label="담당 사역"
                   value={assignments}
@@ -429,11 +435,11 @@ const PersonComposer = ({
                     placeholder="선택"
                   />
                 </FieldGroup>
-              </>
+              </div>
             )}
 
             {step === 'contact' && (
-              <>
+              <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-5 lg:items-start">
                 <FieldGroup label="전화번호">
                   <input
                     type="tel"
@@ -502,7 +508,7 @@ const PersonComposer = ({
                     placeholder="예) 참빛선교회"
                   />
                 )}
-              </>
+              </div>
             )}
 
             {error && (
@@ -511,9 +517,10 @@ const PersonComposer = ({
               </div>
             )}
           </div>
+          </div>
 
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
@@ -607,7 +614,7 @@ const BilingualField = ({
         onChange={(e) => onChange({ ...value, [lang]: e.target.value })}
         rows={rows}
         placeholder={lang === 'ko' ? placeholder : 'English (optional)'}
-        className={`${inputCls} resize-none leading-[1.7]`}
+        className={`${inputCls} resize-none leading-[1.7] lg:min-h-[200px]`}
       />
     ) : (
       <input

@@ -89,13 +89,50 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
   const isToday = verseDate === toDateInput(new Date())
   const isTomorrow = verseDate === toDateInput(new Date(Date.now() + 86400000))
 
+  const previewCard = (
+    <div
+      className="relative overflow-hidden rounded-2xl p-4 bg-brand shadow-[0_18px_44px_-18px_var(--brand-glow)]"
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,0.15) 100%)',
+        }}
+      />
+      <div
+        className="absolute -top-6 -right-6 w-32 h-32 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '12px 12px',
+        }}
+      />
+      <div className="relative">
+        <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-white/25 backdrop-blur-sm text-white text-[10.5px] font-bold tracking-[0.05em] mb-2.5">
+          📖 미리보기
+        </span>
+        {verseReference.trim() && (
+          <h3 className="text-white text-[15px] font-bold mb-2 leading-[1.3]">
+            {verseReference}
+          </h3>
+        )}
+        {verseText.trim() && (
+          <p className="text-white/95 text-[13.5px] leading-[1.7] font-medium whitespace-pre-wrap">
+            "{verseText}"
+          </p>
+        )}
+      </div>
+    </div>
+  )
+
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[880px] max-h-[92vh] sm:max-h-[90vh] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 카드 표면 그라데이션 */}
@@ -106,7 +143,7 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
         <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="hidden absolute left-1/2 -translate-x-1/2 -top-3 sm:block" />
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
@@ -129,45 +166,13 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
           </button>
         </div>
 
-        {/* 본문 */}
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5">
-            {/* 미리보기 카드 */}
+        {/* 본문 — PC에선 좌(입력) / 우(미리보기) 2단 */}
+        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+          <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6 lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
+            {/* 미리보기 카드 — 모바일은 위에, PC는 오른쪽 열에 상시 */}
             {(verseReference.trim() || verseText.trim()) && (
-              <div
-                className="relative overflow-hidden rounded-2xl p-4 bg-brand shadow-[0_18px_44px_-18px_var(--brand-glow)]"
-              >
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,0.15) 100%)',
-                  }}
-                />
-                <div
-                  className="absolute -top-6 -right-6 w-32 h-32 opacity-20 pointer-events-none"
-                  style={{
-                    backgroundImage:
-                      'radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px)',
-                    backgroundSize: '12px 12px',
-                  }}
-                />
-                <div className="relative">
-                  <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-white/25 backdrop-blur-sm text-white text-[10.5px] font-bold tracking-[0.05em] mb-2.5">
-                    📖 미리보기
-                  </span>
-                  {verseReference.trim() && (
-                    <h3 className="text-white text-[15px] font-bold mb-2 leading-[1.3]">
-                      {verseReference}
-                    </h3>
-                  )}
-                  {verseText.trim() && (
-                    <p className="text-white/95 text-[13.5px] leading-[1.7] font-medium whitespace-pre-wrap">
-                      "{verseText}"
-                    </p>
-                  )}
-                </div>
-              </div>
+              <div className="lg:hidden">{previewCard}</div>
             )}
 
             {/* 성경 구절 */}
@@ -200,7 +205,7 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
                 rows={5}
                 required
                 maxLength={800}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7] lg:min-h-[200px]"
               />
               <div className="flex items-center justify-between mt-1.5 pl-0.5">
                 <p className="text-[11px] text-gray-400 dark:text-white/40">
@@ -268,8 +273,26 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
             )}
           </div>
 
+          {/* 우 — PC 전용 상시 미리보기 */}
+          <div className="hidden lg:block px-7 py-6">
+            <div className="sticky top-0">
+              <div className="flex items-baseline gap-1.5 mb-2">
+                <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">미리보기</p>
+                <span className="text-[11px] text-gray-400 dark:text-white/35">입력하는 대로 반영됩니다</span>
+              </div>
+              {verseReference.trim() || verseText.trim() ? (
+                previewCard
+              ) : (
+                <div className="rounded-2xl border border-dashed border-gray-300 dark:border-white/[0.14] px-4 py-10 text-center text-[12.5px] text-gray-400 dark:text-white/40">
+                  성경 구절과 말씀을 입력하면 여기에 카드가 보여요
+                </div>
+              )}
+            </div>
+          </div>
+          </div>
+
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}

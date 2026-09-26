@@ -282,11 +282,11 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
@@ -295,7 +295,7 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
         <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
@@ -315,8 +315,10 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5">
+        {/* 본문 — PC에선 좌(글) / 우(사진·첨부·옵션) 2단으로 펼친다 */}
+        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+          <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
             {loadingDetail && (
               <p className="text-[12.5px] font-semibold text-brand">내용을 불러오는 중...</p>
             )}
@@ -372,12 +374,16 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
                 placeholder="성도들에게 전할 안내 내용을 적어주세요."
                 rows={7}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7] lg:min-h-[420px] lg:text-[15px]"
               />
               <p className="text-[11px] font-semibold text-gray-400 dark:text-white/40 mt-1 text-right tabular-nums">
                 {content.length}/5000
               </p>
             </FieldGroup>
+          </div>
+
+          {/* 우 — 사진·첨부·게시 옵션 */}
+          <div className="px-5 pb-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
 
             {/* 이미지 */}
             <FieldGroup label="사진 · 포스터">
@@ -399,7 +405,7 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
               </label>
 
               {images.length > 0 && (
-                <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="mt-3 grid grid-cols-3 lg:grid-cols-4 gap-2">
                   {images.map((slot, idx) => (
                     <div
                       key={slot.kind === 'existing' ? `e${slot.id}` : slot.url}
@@ -559,9 +565,10 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
               </div>
             )}
           </div>
+          </div>
 
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}

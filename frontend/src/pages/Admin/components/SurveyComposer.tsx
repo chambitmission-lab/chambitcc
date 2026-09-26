@@ -245,14 +245,14 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
+        className="relative w-full sm:max-w-2xl lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
@@ -272,7 +272,10 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        {/* 본문 — PC에선 좌(기본 정보·공개 설정) / 우(문항 빌더) 2단으로 펼친다 */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4 lg:p-0 lg:space-y-0 lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+          {/* 좌 — 기본 정보·공개 설정 */}
+          <div className="space-y-4 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
           {/* 기본 정보 */}
           <section className="space-y-3">
             <div>
@@ -368,7 +371,10 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
             />
           </section>
 
-          {/* 문항 */}
+          </div>
+
+          {/* 우 — 문항 빌더 */}
+          <div className="lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
           <section className="space-y-2.5">
             <div className="flex items-center justify-between">
               <p className="text-[13px] font-bold text-ink-strong">문항 {questions.length}개</p>
@@ -410,7 +416,7 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
                 + 문항 추가
               </button>
               {typeMenuOpen ? (
-                <div className="mt-2 rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark overflow-hidden">
+                <div className="mt-2 rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark overflow-hidden lg:grid lg:grid-cols-2">
                   {QUESTION_TYPE_ORDER.map((type) => (
                     <button
                       key={type}
@@ -431,9 +437,10 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
               ) : null}
             </div>
           </section>
+          </div>
         </div>
 
-        <div className="px-5 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] flex gap-2">
+        <div className="shrink-0 px-5 lg:px-7 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] flex gap-2">
           <button
             type="button"
             onClick={onClose}

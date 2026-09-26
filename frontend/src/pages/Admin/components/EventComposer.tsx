@@ -280,11 +280,11 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 카드 표면 그라데이션 */}
@@ -295,7 +295,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
         <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="flex items-center gap-2 sm:hidden">
             <div className="w-10 h-1 rounded-full bg-white/15 absolute left-1/2 -translate-x-1/2 -top-3" />
           </div>
@@ -320,9 +320,10 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
           </button>
         </div>
 
-        {/* 본문 */}
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5">
+        {/* 본문 — PC에선 좌(무엇·언제·어디) / 우(설명·반복·마감·공개) 2단으로 펼친다 */}
+        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:overflow-hidden lg:grid lg:grid-cols-2">
+          <div className="px-5 pt-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
             {/* 제목 */}
             <FieldGroup label="제목" required>
               <input
@@ -478,6 +479,10 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
               </div>
             </FieldGroup>
 
+          </div>
+
+          {/* 우 — 설명·반복·RSVP·첨부·공개 */}
+          <div className="px-5 pt-5 pb-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
             {/* 설명 */}
             <FieldGroup label="설명">
               <textarea
@@ -485,7 +490,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="모임 안내, 준비물, 참고사항 등을 자유롭게 적어주세요."
                 rows={4}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.6]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.6] lg:min-h-[200px]"
               />
             </FieldGroup>
 
@@ -635,9 +640,10 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
               </div>
             )}
           </div>
+          </div>
 
           {/* 푸터 액션 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}

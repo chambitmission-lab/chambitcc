@@ -220,11 +220,11 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
@@ -234,7 +234,7 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
         <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
@@ -256,8 +256,10 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5">
+        {/* 본문 — PC에선 좌(정보 입력) / 우(넓은 사진 영역) 2단으로 펼친다 */}
+        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+          <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-black/[0.04] dark:lg:border-white/[0.06]">
             {/* 제목 */}
             <FieldGroup label="행사 제목" required>
               <input
@@ -386,13 +388,17 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
               )}
             </FieldGroup>
 
+          </div>
+
+          {/* 우 — 사진 드롭존·썸네일 그리드 */}
+          <div className="px-5 pb-5 space-y-5 lg:px-7 lg:py-6 lg:min-h-0 lg:overflow-y-auto">
             {/* 사진 */}
             <FieldGroup label="사진" required>
               <p className="text-[11px] text-gray-400 dark:text-white/40 mb-2">
                 첫 번째 사진이 대표 이미지가 돼요. 최대 {MAX_PHOTOS}장, 업로드 전 자동으로 줄여서 올립니다.
               </p>
 
-              <label className="relative block rounded-2xl border-2 border-dashed border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors cursor-pointer p-5 text-center">
+              <label className="relative block rounded-2xl border-2 border-dashed border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors cursor-pointer p-5 lg:py-9 text-center">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -423,7 +429,7 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
                       {slots.length}장
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-3">
                     {slots.map((slot, idx) => (
                       <PhotoPreviewItem
                         key={slot.kind === 'existing' ? `e${slot.id}` : slot.url}
@@ -454,9 +460,10 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
               </div>
             )}
           </div>
+          </div>
 
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}

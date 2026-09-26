@@ -58,11 +58,11 @@ const EducationComposer = ({ target, categories, onClose, onSuccess }: Props) =>
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[880px] max-h-[92vh] sm:max-h-[90vh] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
@@ -70,7 +70,7 @@ const EducationComposer = ({ target, categories, onClose, onSuccess }: Props) =>
         </div>
         <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">{title}</h2>
@@ -176,7 +176,7 @@ const CategoryForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden flex flex-col min-h-0">
-      <div className="px-5 py-5 space-y-5 flex-1">
+      <div className="px-5 py-5 space-y-5 flex-1 lg:px-7 lg:py-6">
         <BilingualField label="이름" required value={name} onChange={handleNameEn} placeholder="예: 주일학교" />
 
         <div className="grid grid-cols-[1fr_88px] gap-3">
@@ -329,7 +329,7 @@ const ProgramForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden flex flex-col min-h-0">
-      <div className="px-5 py-5 space-y-5 flex-1">
+      <div className="px-5 py-5 space-y-5 flex-1 lg:px-7 lg:py-6">
         {/* 카테고리 — pill grid (native select 금지) */}
         <FieldGroup label="카테고리" required>
           <div className="flex flex-wrap gap-1.5">
@@ -436,7 +436,7 @@ const Footer = ({
   submitting: boolean
   label: string
 }) => (
-  <div className="sticky bottom-0 px-5 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm flex gap-2">
+  <div className="sticky bottom-0 shrink-0 px-5 lg:px-7 py-3.5 border-t border-black/[0.04] dark:border-white/[0.06] bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm flex gap-2">
     <button
       type="button"
       onClick={onClose}
@@ -554,8 +554,11 @@ const BilingualField = ({
           EN
         </button>
       </div>
-      {render('ko')}
-      {showEn && <div className="mt-1.5">{render('en')}</div>}
+      {/* PC에선 한국어·영어를 좌우로 나란히 — 번역하며 대조하기 쉽게 */}
+      <div className={showEn ? 'lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start' : ''}>
+        {render('ko')}
+        {showEn && <div className="mt-1.5 lg:mt-0">{render('en')}</div>}
+      </div>
       {hint && <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1 leading-[1.5]">{hint}</p>}
     </div>
   )

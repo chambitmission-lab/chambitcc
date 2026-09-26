@@ -169,11 +169,11 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 lg:p-8 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg lg:max-w-[1060px] max-h-[92vh] sm:max-h-[90vh] lg:h-[calc(100dvh-4rem)] lg:max-h-[860px] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
@@ -182,7 +182,7 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
         <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center justify-between px-5 lg:px-7 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
@@ -203,7 +203,7 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
         </div>
 
         {/* 단계 탭 */}
-        <div className="relative z-10 flex gap-1.5 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex gap-1.5 px-5 lg:px-7 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
           {STEPS.map((s) => (
             <button
               key={s.key}
@@ -221,10 +221,14 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-5 py-5 space-y-5">
+        {/* PC에선 기본 정보는 좌(사진·이름) / 우(상태·기간·공개) 2단,
+            인사말·약력은 전폭에 한/영을 나란히 펼친다 */}
+        <form onSubmit={handleSubmit} className="relative z-10 flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          <div className="px-5 py-5 space-y-5 lg:px-7 lg:py-6">
             {step === 'basic' && (
-              <>
+              <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+              <div className="space-y-5">
                 {/* 사진 */}
                 <FieldGroup label="사진">
                   <p className="text-[11px] text-gray-400 dark:text-white/40 mb-2">
@@ -279,7 +283,9 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
                   onChange={setNickname}
                   placeholder="예) 복있는 사람"
                 />
+              </div>
 
+              <div className="space-y-5">
                 {/* 상태 — pill grid (native select 금지) */}
                 <FieldGroup label="상태" required>
                   <div className="grid grid-cols-1 gap-1.5">
@@ -372,7 +378,8 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
                     </span>
                   </button>
                 </FieldGroup>
-              </>
+              </div>
+              </div>
             )}
 
             {step === 'greeting' && (
@@ -389,6 +396,7 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
                   onChange={setGreetingBody}
                   multiline
                   rows={12}
+                  lgMinH="lg:min-h-[380px]"
                   hint="빈 줄로 문단을 나누면 화면에도 그대로 반영됩니다."
                   placeholder="성도와 방문자에게 건네는 인사말 전문을 입력하세요."
                 />
@@ -415,6 +423,7 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
                   onChange={setIntro}
                   multiline
                   rows={7}
+                  lgMinH="lg:min-h-[220px]"
                   placeholder="목사님이 걸어오신 사역과 마음을 소개해주세요."
                 />
                 <BilingualField
@@ -450,9 +459,10 @@ const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => 
               </div>
             )}
           </div>
+          </div>
 
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="shrink-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 lg:px-7 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
@@ -524,6 +534,7 @@ const BilingualField = ({
   rows = 4,
   placeholder,
   hint,
+  lgMinH = '',
 }: {
   label: string
   required?: boolean
@@ -533,6 +544,8 @@ const BilingualField = ({
   rows?: number
   placeholder?: string
   hint?: string
+  /** PC에서 긴 원고 칸을 넉넉히 — 예) 'lg:min-h-[380px]' */
+  lgMinH?: string
 }) => {
   // 영문이 이미 입력돼 있으면 펼친 채로 시작한다(수정 시 값이 숨겨지면 안 된다)
   const [showEn, setShowEn] = useState(value.en.trim().length > 0)
@@ -544,7 +557,7 @@ const BilingualField = ({
         onChange={(e) => onChange({ ...value, [lang]: e.target.value })}
         rows={rows}
         placeholder={lang === 'ko' ? placeholder : 'English (optional)'}
-        className={`${inputCls} resize-none leading-[1.7]`}
+        className={`${inputCls} resize-none leading-[1.7] ${lgMinH}`}
       />
     ) : (
       <input
@@ -575,8 +588,11 @@ const BilingualField = ({
           EN
         </button>
       </div>
-      {render('ko')}
-      {showEn && <div className="mt-1.5">{render('en')}</div>}
+      {/* PC에선 영문을 옆에 나란히 — 번역하며 대조하기 쉽게 */}
+      <div className={showEn ? 'lg:grid lg:grid-cols-2 lg:gap-2.5' : ''}>
+        {render('ko')}
+        {showEn && <div className="mt-1.5 lg:mt-0">{render('en')}</div>}
+      </div>
       {hint && (
         <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1 leading-[1.5]">{hint}</p>
       )}

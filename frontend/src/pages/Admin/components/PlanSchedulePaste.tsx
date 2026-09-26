@@ -69,7 +69,7 @@ const PlanSchedulePaste = ({ anchorDate, onParsed }: Props) => {
         rows={6}
         placeholder={EXAMPLE}
         spellCheck={false}
-        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] leading-[1.7] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand resize-y font-mono"
+        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] leading-[1.7] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand resize-y font-mono lg:min-h-[260px] lg:text-[13px]"
       />
       <ul className="mt-1.5 space-y-0.5 text-[11px] leading-[1.55] text-gray-500 dark:text-white/45">
         <li>· 한 줄에 하루. 날짜를 적으면 1일차 날짜 기준으로 일차가 정해져요</li>
@@ -125,7 +125,7 @@ const PlanSchedulePaste = ({ anchorDate, onParsed }: Props) => {
           )}
 
           {result.days.length > 0 && (
-            <ul className="rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] divide-y divide-gray-100 dark:divide-white/[0.05]">
+            <ul className="rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] lg:max-h-[420px] lg:overflow-y-auto divide-y divide-gray-100 dark:divide-white/[0.05]">
               {result.days.slice(0, PREVIEW_LIMIT).map((d) => {
                 const dateLabel = anchor ? formatPlanDay(dayDate(anchor, d.day_number)) : null
                 const sermonRef = result.sermon_references[String(d.day_number)]
