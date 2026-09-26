@@ -13,6 +13,7 @@ import type { CSSProperties } from 'react'
 import { DEFAULT_HIGHLIGHT, highlightStyle, type HighlightOptions } from './highlightMarkup'
 import ColumnImageView from './ColumnImageView'
 import { VerseSuggestion, type VerseSuggestBridge } from './verseSuggestion'
+import { ColumnProofread } from './columnProofread'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -251,4 +252,5 @@ export const buildColumnExtensions = (
   CiteDecoration,
   EnterAsLineBreak,
   VerseSuggestion.configure({ bridge: verseBridge }),
+  ColumnProofread,
 ]

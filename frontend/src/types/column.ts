@@ -57,3 +57,18 @@ export interface UpdateColumnRequest {
   image?: string
   is_active?: boolean
 }
+
+/** 맞춤법 점검 — 편집기가 매긴 문단 id 와 평문 */
+export interface ColumnProofreadParagraph {
+  id: string
+  text: string
+}
+
+/** 고칠 곳 하나 — original 은 그 문단 안에 글자 그대로 있는 조각 */
+export interface ColumnProofreadIssue {
+  id: string
+  original: string
+  suggestion: string
+  kind: 'spacing' | 'spelling'
+  reason: string
+}

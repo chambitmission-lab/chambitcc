@@ -13,6 +13,9 @@ interface ColumnToolbarProps {
   onHighlight: () => void
   /** 성구 찾아 넣기 */
   onVerse: () => void
+  /** 맞춤법·띄어쓰기 점검 */
+  onProofread: () => void
+  proofreading?: boolean
   /** 업로드 중이면 사진 버튼을 잠근다 */
   uploading?: boolean
   /** 하이라이트 팝오버 — 버튼 기준으로 위치를 잡아야 해서 부모가 넘긴다 */
@@ -82,6 +85,12 @@ const ICONS: Record<string, ReactNode> = {
       <path d="M3.4 13.6l3.7-3.2 3.1 2.6 2.3-1.8 4.1 3.4" />
     </>
   ),
+  proofread: (
+    <>
+      <path d="M3.5 5h9M3.5 9.5h6.5M3.5 14h4" />
+      <path d="M11 13.6l2.4 2.4 4.2-5" />
+    </>
+  ),
   highlight: (
     <>
       <path d="M4.5 13.2l1-3.2 5.6-5.6 2.5 2.5-5.6 5.6z" />
@@ -98,7 +107,18 @@ const Glyph = ({ name }: { name: string }) => (
 
 const Sep = () => <span className="w-px h-8 lg:h-10 bg-border-light dark:bg-white/[0.1] mx-1 lg:mx-2 flex-shrink-0"></span>
 
-const ColumnToolbar = ({ language, editor, onImage, onHighlight, onVerse, uploading, highlightSlot, trailing }: ColumnToolbarProps) => {
+const ColumnToolbar = ({
+  language,
+  editor,
+  onImage,
+  onHighlight,
+  onVerse,
+  onProofread,
+  proofreading,
+  uploading,
+  highlightSlot,
+  trailing,
+}: ColumnToolbarProps) => {
   const ko = language === 'ko'
 
   // 커서가 어느 블록에 있는지 — 해당 버튼을 눌린 상태로 보여 준다
@@ -237,6 +257,13 @@ const ColumnToolbar = ({ language, editor, onImage, onHighlight, onVerse, upload
       </div>
       {button('verse', ko ? '성구 찾기' : 'Verse', onVerse, {
         title: ko ? '성구 찾아 넣기 — "요 3:16"·"시 23"·"사랑" 으로 찾기' : 'Find & insert a Bible verse',
+      })}
+
+      <Sep />
+
+      {button('proofread', proofreading ? (ko ? '점검 중…' : 'Checking…') : ko ? '맞춤법' : 'Spelling', onProofread, {
+        disabled: proofreading,
+        title: ko ? '맞춤법·띄어쓰기 점검 — 다 쓴 뒤 한 번 눌러 고칠 곳을 확인하세요' : 'Check spelling & spacing',
       })}
 
       {trailing && <div className="hidden lg:flex ml-auto items-center pl-3">{trailing}</div>}

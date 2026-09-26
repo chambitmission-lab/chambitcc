@@ -3,8 +3,8 @@ import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/r
 import type { EditorOptions } from '@tiptap/core'
 import { BubbleMenu } from '@tiptap/react/menus'
 import { NodeSelection } from '@tiptap/pm/state'
-import type { Column, CreateColumnRequest } from '../../types/column'
-import { createColumn, updateColumn, uploadColumnImage } from '../../api/column'
+import type { Column, ColumnProofreadIssue, CreateColumnRequest } from '../../types/column'
+import { createColumn, proofreadColumn, updateColumn, uploadColumnImage } from '../../api/column'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import DatePicker from '../../components/common/DatePicker'
 import { showToast } from '../../utils/toast'
@@ -29,6 +29,17 @@ import VerseFinderDialog, { type PickedPassage } from './VerseFinderDialog'
 import VerseSuggestCard from './VerseSuggestCard'
 import { verseSuggestionKey, type VerseSuggestBridge, type VerseSuggestState } from './verseSuggestion'
 import { exitSuggestion } from '@tiptap/suggestion'
+import {
+  applyIssues,
+  collectProofBlocks,
+  getProofState,
+  locateIssues,
+  proofreadFailureOf,
+  setProofMeta,
+  type ProofIssue,
+  type ProofreadFailure,
+} from './columnProofread'
+import { ProofIssueCard, ProofreadNotice, ProofreadPanel, type PanelIssue } from './ProofreadPanel'
 import './columnEditor.css'
 
 interface ColumnEditorModalProps {
@@ -65,6 +76,8 @@ const readEditorFont = (): number => {
 }
 
 const isImageFile = (f: File) => /^image\/(jpeg|png|webp)$/.test(f.type)
+/** 한 번에 점검할 글자 수 한도 — 칼럼 한 편은 보통 3~5천 자 */
+const PROOFREAD_MAX_CHARS = 30000
 
 /**
  * 컬럼 등록/수정 폼 (관리자).
@@ -97,6 +110,12 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   const [verseSuggest, setVerseSuggest] = useState<VerseSuggestState | null>(null)
   const readyPassageRef = useRef<PickedPassage | null>(null)
   const verseBridge = useRef<VerseSuggestBridge | null>(null)
+  // 맞춤법 점검 — 본문 제안은 편집기 플러그인 상태에, 제목 칸 제안만 여기에 둔다
+  const [proofreading, setProofreading] = useState(false)
+  const [proofOpen, setProofOpen] = useState(false)
+  const [titleIssues, setTitleIssues] = useState<ColumnProofreadIssue[]>([])
+  // 점검을 못 했을 때(무료 한도·네트워크 등) — 결과 패널 자리에 안내를 남긴다
+  const [proofFailure, setProofFailure] = useState<ProofreadFailure | null>(null)
 
   const { pendingRestore, dismissRestore, clearDraft, savedAt } = useColumnDraft(initial, draft)
 
@@ -169,6 +188,10 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   editorRef.current = editor
   const contentSyncTimer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(contentSyncTimer.current), [])
+  const proof = useEditorState({
+    editor,
+    selector: ({ editor: e }) => (e ? getProofState(e.state) : null),
+  })
 
   /** 미뤄 둔 본문 동기화를 지금 끝내고 최신 본문을 돌려준다 */
   function flushContent(): string {
@@ -343,6 +366,116 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   const onSuggestReady = useCallback((p: PickedPassage | null) => {
     readyPassageRef.current = p
   }, [])
+
+  // ── 맞춤법 점검 ──────────────────────────────────────────────────
+  /** 다 쓴 뒤 한 번 — 문단별 평문을 보내고 제안을 밑줄·목록으로 보여 준다(고치기는 하나씩 확인) */
+  const runProofread = async () => {
+    const e = editorRef.current
+    if (!e || proofreading) return
+    const sent = collectProofBlocks(e.state.doc)
+    const title = (draft.title || '').trim()
+    const paragraphs = sent.map(({ id, text }) => ({ id, text }))
+    if (title) paragraphs.unshift({ id: 'title', text: title })
+    if (!paragraphs.length) {
+      showToast(ko ? '먼저 편지를 써 주세요' : 'Write your letter first', 'error')
+      return
+    }
+    if (paragraphs.reduce((n, p) => n + p.text.length, 0) > PROOFREAD_MAX_CHARS) {
+      showToast(ko ? '글이 너무 길어 한 번에 점검할 수 없어요' : 'Too long to check at once', 'error')
+      return
+    }
+    setProofreading(true)
+    setProofFailure(null)
+    try {
+      const issues = await proofreadColumn(paragraphs)
+      const cur = editorRef.current
+      if (!cur) return
+      // 기다리는 동안 고친 문단은 위치가 어긋나므로 locateIssues 가 그 문단 제안을 버린다
+      const located = locateIssues(sent, collectProofBlocks(cur.state.doc), issues.filter((i) => i.id !== 'title'))
+      cur.view.dispatch(setProofMeta(cur.state.tr, { type: 'set', issues: located }))
+      const forTitle = issues.filter((i) => i.id === 'title')
+      setTitleIssues(forTitle)
+      const total = located.length + forTitle.length
+      setProofOpen(total > 0)
+      showToast(
+        total
+          ? ko
+            ? `고칠 만한 곳 ${total}군데를 찾았어요`
+            : `Found ${total} suggestion${total > 1 ? 's' : ''}`
+          : ko
+            ? '맞춤법·띄어쓰기 틀린 곳을 찾지 못했어요'
+            : 'No spelling or spacing issues found',
+        'success',
+      )
+    } catch (error) {
+      console.error('Failed to proofread column:', error)
+      // 이전 점검 결과(밑줄·목록)는 그대로 두고, 안내는 결과 패널 자리에 남긴다
+      setProofFailure(proofreadFailureOf(error))
+      showToast(ko ? '지금은 맞춤법 점검을 할 수 없어요' : 'Spelling check is unavailable right now', 'error')
+    } finally {
+      setProofreading(false)
+    }
+  }
+
+  // 제목 제안은 제목을 고치다 조각이 사라지면 함께 사라진다
+  const liveTitleIssues: PanelIssue[] = titleIssues
+    .filter((i) => (draft.title || '').includes(i.original))
+    .map((i, n) => ({ ...i, key: `title:${n}`, inTitle: true }))
+  const panelIssues: PanelIssue[] = [...liveTitleIssues, ...(proof?.issues ?? [])]
+  const activeIssue = proof?.active ? proof.issues.find((i) => i.key === proof.active) : undefined
+
+  const setActiveIssue = (key: string | null) => {
+    const e = editorRef.current
+    if (e) e.view.dispatch(setProofMeta(e.state.tr, { type: 'active', key }))
+  }
+
+  const fixIssue = (issue: PanelIssue) => {
+    if (issue.inTitle) {
+      patch({ title: (draft.title || '').replace(issue.original, issue.suggestion) })
+      setTitleIssues((list) => list.filter((i) => i.original !== issue.original))
+      return
+    }
+    const e = editorRef.current
+    if (e) e.view.dispatch(applyIssues(e.state, [issue as ProofIssue]))
+  }
+
+  const ignoreIssue = (issue: PanelIssue) => {
+    if (issue.inTitle) {
+      setTitleIssues((list) => list.filter((i) => i.original !== issue.original))
+      return
+    }
+    const e = editorRef.current
+    if (e) e.view.dispatch(setProofMeta(e.state.tr, { type: 'remove', key: issue.key }))
+  }
+
+  const fixAllIssues = () => {
+    const n = panelIssues.length
+    if (liveTitleIssues.length) {
+      patch({ title: liveTitleIssues.reduce((t, i) => t.replace(i.original, i.suggestion), draft.title || '') })
+      setTitleIssues([])
+    }
+    const e = editorRef.current
+    if (e && proof?.issues.length) e.view.dispatch(applyIssues(e.state, proof.issues))
+    showToast(ko ? `${n}곳을 고쳤어요 — 되돌리기로 원래대로 돌릴 수 있어요` : `Fixed ${n} — undo to revert`, 'success')
+  }
+
+  /** 목록에서 누르면 본문의 그 자리로 스크롤하고 카드를 띄운다 */
+  const focusIssue = (issue: PanelIssue) => {
+    if (issue.inTitle) {
+      titleRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      return
+    }
+    setActiveIssue(issue.key)
+    editorRef.current?.view.dom.querySelector(`[data-proof="${issue.key}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }
+
+  const closeProofread = () => {
+    const e = editorRef.current
+    if (e) e.view.dispatch(setProofMeta(e.state.tr, { type: 'set', issues: [] }))
+    setTitleIssues([])
+    setProofOpen(false)
+  }
+  const closeIssueCard = useCallback(() => setActiveIssue(null), [])
 
   // ── 사진 ──────────────────────────────────────────────────────────
   const pickImage = (target: 'cover' | 'body') => {
@@ -809,6 +942,8 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
                 setHighlight(null)
                 setVerseOpen(true)
               }}
+              onProofread={() => void runProofread()}
+              proofreading={proofreading}
               uploading={uploading}
               highlightSlot={highlightPopover('toolbar')}
               trailing={fontControl}
@@ -831,6 +966,28 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
               view === 'preview' ? 'hidden lg:block' : ''
             }`}
           >
+            {proofFailure && (
+              <ProofreadNotice
+                ko={ko}
+                failure={proofFailure}
+                onRetry={() => void runProofread()}
+                onClose={() => setProofFailure(null)}
+                checking={proofreading}
+              />
+            )}
+            {proofOpen && !proofFailure && (
+              <ProofreadPanel
+                ko={ko}
+                issues={panelIssues}
+                onFocus={focusIssue}
+                onFix={fixIssue}
+                onIgnore={ignoreIssue}
+                onFixAll={fixAllIssues}
+                onRecheck={() => void runProofread()}
+                onClose={closeProofread}
+                checking={proofreading}
+              />
+            )}
             {meta}
           </aside>
         </div>
@@ -901,6 +1058,17 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
           onInline={(p) => acceptSuggest(p, 'inline')}
           onQuote={(p) => acceptSuggest(p, 'quote')}
           onDismiss={() => editor && exitSuggestion(editor.view, verseSuggestionKey)}
+        />
+      )}
+
+      {activeIssue && editor && view === 'write' && (
+        <ProofIssueCard
+          ko={ko}
+          issue={activeIssue}
+          root={editor.view.dom}
+          onFix={() => fixIssue(activeIssue)}
+          onIgnore={() => ignoreIssue(activeIssue)}
+          onClose={closeIssueCard}
         />
       )}
 

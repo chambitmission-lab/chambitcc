@@ -1,5 +1,12 @@
 // 목양컬럼 API
-import type { Column, ColumnEngagement, CreateColumnRequest, UpdateColumnRequest } from '../types/column'
+import type {
+  Column,
+  ColumnEngagement,
+  ColumnProofreadIssue,
+  ColumnProofreadParagraph,
+  CreateColumnRequest,
+  UpdateColumnRequest,
+} from '../types/column'
 import { request, requestRaw, type UntypedJson } from './utils/request'
 
 // 목양컬럼 목록 조회 (인증 불필요, 선택적 키워드 검색)
@@ -59,3 +66,22 @@ export const uploadColumnImage = async (file: File): Promise<string> => {
   })
   return body.url as string
 }
+
+/** 맞춤법·띄어쓰기 점검 (관리자, Gemini) — 고칠 곳 제안만 받고 적용은 편집기가 한다 */
+export const proofreadColumn = async (paragraphs: ColumnProofreadParagraph[]): Promise<ColumnProofreadIssue[]> => {
+  // AI 응답이 한없이 늦어지면 '점검 중…' 에 갇힌다 — 끊고 목사님께 알린다
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), PROOFREAD_TIMEOUT_MS)
+  try {
+    const body = await request<{ issues: ColumnProofreadIssue[] }>('/columns/proofread', {
+      method: 'POST',
+      json: { paragraphs },
+      signal: controller.signal,
+      errorMessage: '맞춤법 점검에 실패했습니다',
+    })
+    return body.issues
+  } finally {
+    window.clearTimeout(timer)
+  }
+}
+const PROOFREAD_TIMEOUT_MS = 60_000
