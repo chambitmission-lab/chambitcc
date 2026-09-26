@@ -35,16 +35,19 @@ export const AdminPageHeader = ({
 }
 
 export const SectionCard = ({
+  id,
   title,
   action,
   children,
 }: {
+  /** 같은 화면 안에서 스크롤 앵커로 쓸 때 (선택) */
+  id?: string
   title: string
   /** 제목 오른쪽에 붙는 보조 텍스트/버튼 (선택) */
   action?: ReactNode
   children: ReactNode
 }) => (
-  <div className="px-4 pt-4">
+  <div id={id} className="px-4 pt-4">
     <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       <div className="relative z-10 space-y-3">

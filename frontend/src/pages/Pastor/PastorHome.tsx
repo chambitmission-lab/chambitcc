@@ -108,11 +108,12 @@ const PastorHome = () => {
 const Greeting = ({ data }: { data: PastorHomeData }) => {
   const name = sessionStore.get('fullName') || sessionStore.get('username') || ''
   const now = new Date()
-  const stats = [
-    { label: '맡겨진 기도', value: data.pastoral.waiting_count, unit: '건' },
-    { label: '돌봄이 필요한 성도', value: data.care.quiet_count, unit: '명' },
-    { label: '정착 중인 새가족', value: data.care.newcomer_count, unit: '명' },
-    { label: '이번 주 일정', value: data.week.events.length, unit: '건' },
+  // 지표는 곧 입구 — 맡겨진 기도는 이 화면 아래 카드로, 나머지는 해당 섹션으로 보낸다
+  const stats: Array<{ label: string; value: number; unit: string; to?: string; anchor?: string }> = [
+    { label: '맡겨진 기도', value: data.pastoral.waiting_count, unit: '건', anchor: INBOX_ID },
+    { label: '돌봄이 필요한 성도', value: data.care.quiet_count, unit: '명', to: '/pastor/care' },
+    { label: '정착 중인 새가족', value: data.care.newcomer_count, unit: '명', to: '/pastor/care?tab=newcomers' },
+    { label: '이번 주 일정', value: data.week.events.length, unit: '건', to: '/pastor/schedule' },
   ]
   return (
     <div className="px-4 pt-4">
@@ -131,18 +132,28 @@ const Greeting = ({ data }: { data: PastorHomeData }) => {
             </p>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 lg:mt-0 lg:grid-cols-4 lg:shrink-0">
-            {stats.map(s => (
-              <div
-                key={s.label}
-                className="rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] px-3.5 py-2.5 lg:min-w-[118px]"
-              >
-                <p className="text-[13px] font-semibold text-gray-600 dark:text-white/65 whitespace-nowrap">{s.label}</p>
-                <p className="mt-0.5 text-[22px] lg:text-[26px] font-bold tracking-[-0.02em] leading-tight">
-                  <span className="brand-text-gradient">{s.value.toLocaleString()}</span>
-                  <span className="text-[12px] font-semibold text-gray-500 dark:text-white/55 ml-0.5">{s.unit}</span>
-                </p>
-              </div>
-            ))}
+            {stats.map(s => {
+              const body = (
+                <>
+                  <p className="text-[13px] font-semibold text-gray-600 dark:text-white/65 whitespace-nowrap">{s.label}</p>
+                  <p className="mt-0.5 text-[22px] lg:text-[26px] font-bold tracking-[-0.02em] leading-tight">
+                    <span className="brand-text-gradient">{s.value.toLocaleString()}</span>
+                    <span className="text-[12px] font-semibold text-gray-500 dark:text-white/55 ml-0.5">{s.unit}</span>
+                  </p>
+                </>
+              )
+              const cls =
+                'block text-left rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] px-3.5 py-2.5 lg:min-w-[118px] transition-colors hover:border-brand active:bg-[var(--brand-soft)]'
+              return s.to ? (
+                <Link key={s.label} to={s.to} className={cls}>
+                  {body}
+                </Link>
+              ) : (
+                <button key={s.label} type="button" onClick={() => scrollToAnchor(s.anchor)} className={cls}>
+                  {body}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -169,6 +180,7 @@ const PastoralInbox = ({ data, onOpen }: { data: PastorHomeData; onOpen: (id: nu
   const { pastoral } = data
   return (
     <SectionCard
+      id={INBOX_ID}
       title={`목사님께 맡겨진 기도 ${pastoral.waiting_count > 0 ? pastoral.waiting_count : ''}`.trim()}
       action={
         <span className="text-[12px] text-gray-500 dark:text-white/50">
@@ -519,6 +531,17 @@ const PulseCard = ({ data }: { data: PastorHomeData }) => {
 }
 
 // ── 공용 ─────────────────────────────────────────────
+const INBOX_ID = 'pastor-inbox'
+
+// 인사 카드 지표 → 같은 화면의 카드로 (헤더 56px + 섹션 내비 아래에 카드 머리가 오도록 여유를 둔다)
+const scrollToAnchor = (id?: string) => {
+  if (!id) return
+  const el = document.getElementById(id)
+  if (!el) return
+  const top = el.getBoundingClientRect().top + window.scrollY - 72
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+}
+
 const formatTime = (d: Date): string => {
   const h = d.getHours()
   const m = d.getMinutes()

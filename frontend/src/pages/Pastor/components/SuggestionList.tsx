@@ -1,5 +1,6 @@
 // 오늘 연락하면 좋은 분 — 목회 비서 화면과 목회자 홈이 공유.
 // 이유(reason) 칩이 곧 '왜 이분인가'의 설명이다. 기록을 남기면 다음 조회부터 해당 이유가 풀린다.
+// compact(홈)에서도 전화·기록 버튼은 그대로 — 홈에서 이름을 보고 성도 상세까지 들어가지 않고 바로 연락이 끝나야 한다.
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ReasonTone, Suggestion } from '../../../api/pastor'
@@ -59,7 +60,7 @@ const SuggestionList = ({ items, compact = false }: { items: Suggestion[]; compa
               </div>
             </div>
             <div className="shrink-0 flex items-center gap-1 self-center">
-              {s.phone && !compact && (
+              {s.phone && (
                 <a
                   href={`tel:${s.phone}`}
                   className="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 dark:text-white/65 hover:bg-[var(--brand-soft)] hover:text-brand"

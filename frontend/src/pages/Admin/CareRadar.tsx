@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { showToast } from '../../utils/toast'
 import {
@@ -50,7 +50,9 @@ const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
   const pastorScope = scope === 'pastor'
   const admin = pastorScope ? isPastor() : can('admin:access')
   const [quietDays, setQuietDays] = useState(21)
-  const [tab, setTab] = useState<Tab>('quiet')
+  // 목회자 홈 '정착 중인 새가족' 지표에서 오면 새가족 탭으로 바로 연다 (?tab=newcomers)
+  const [searchParams] = useSearchParams()
+  const [tab, setTab] = useState<Tab>(() => (searchParams.get('tab') === 'newcomers' ? 'newcomers' : 'quiet'))
 
   useEffect(() => {
     if (!admin) {
