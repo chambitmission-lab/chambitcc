@@ -602,7 +602,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
   // 날짜 오버라인·세리프 대제목·악센트 룰·본문까지 읽기 화면과 같은 순서
   const paper = (
     <div
-      className="ce-editor bg-[var(--surface-container)] lg:rounded-[28px] lg:border lg:border-black/[0.05] lg:dark:border-white/[0.06] lg:shadow-[0_1px_3px_rgba(15,23,42,0.05),0_12px_40px_-16px_rgba(15,23,42,0.14)] lg:dark:shadow-none px-5 py-6 lg:px-16 lg:py-14"
+      className="ce-editor bg-[var(--surface-container)] lg:rounded-[28px] lg:border lg:border-black/[0.05] lg:dark:border-white/[0.06] lg:shadow-[0_1px_3px_rgba(15,23,42,0.05),0_12px_40px_-16px_rgba(15,23,42,0.14)] lg:dark:shadow-none px-5 py-6 lg:px-12 xl:px-16 lg:py-12 xl:py-14"
       style={{ ['--ce-fs' as string]: `${fontPx}px` }}
     >
       {restoreBanner}
@@ -958,7 +958,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
             className="lg:flex-1 lg:min-w-0 lg:overflow-y-auto bg-[var(--app-canvas)] order-2 lg:order-1"
           >
             {/* 편집기는 미리보기 동안에도 마운트해 둔다(되돌리기 기록·커서 유지) */}
-            <div className={`lg:max-w-[880px] lg:mx-auto lg:px-8 lg:py-10 ${view === 'write' ? '' : 'hidden'}`}>{paper}</div>
+            <div className={`lg:max-w-[1320px] lg:mx-auto lg:px-8 xl:px-10 lg:py-8 xl:py-10 ${view === 'write' ? '' : 'hidden'}`}>{paper}</div>
             {view === 'preview' && preview}
           </div>
           <aside
