@@ -106,7 +106,7 @@ const pushRecent = (path: string) => {
 }
 
 const SectionTitle = ({ children }: { children: string }) => (
-  <h4 className="px-1.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
+  <h4 className="px-1.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted lg:px-3 lg:normal-case lg:tracking-normal lg:text-[length:calc(13.5px*var(--mm,1))] lg:font-bold">
     {children}
   </h4>
 )
@@ -132,12 +132,14 @@ const AdminLauncherItem = ({
         rounded-2xl px-1 py-2.5
         transition-colors duration-150
         hover:bg-[var(--brand-soft)] active:bg-[var(--brand-soft-strong)]
+        lg:flex-row lg:gap-3 lg:px-3 lg:py-2 lg:rounded-xl
       "
     >
       <span
         className={`
-          flex items-center justify-center w-11 h-11 rounded-2xl
+          flex items-center justify-center w-11 h-11 rounded-2xl shrink-0
           transition-colors duration-150
+          lg:w-[calc(38px*var(--mm,1))] lg:h-[calc(38px*var(--mm,1))] lg:rounded-xl
           ${accent
             ? 'bg-[var(--brand-soft)] text-brand group-hover:bg-[var(--brand-soft-strong)]'
             : 'bg-surface-high text-ink group-hover:text-brand'}
@@ -145,7 +147,7 @@ const AdminLauncherItem = ({
       >
         <Icon />
       </span>
-      <span className="text-[11.5px] font-medium leading-tight text-center text-ink">
+      <span className="text-[11.5px] font-medium leading-tight text-center text-ink lg:text-left lg:text-[length:calc(15px*var(--mm,1))] lg:truncate lg:group-hover:text-brand">
         {label}
       </span>
     </Link>
@@ -190,10 +192,10 @@ const AdminMenu = () => {
           <IconShield className="w-5 h-5" />
         </span>
         <span className="flex flex-col items-start min-w-0">
-          <span className="text-[13.5px] font-semibold text-ink-strong tracking-[-0.01em]">
+          <span className="text-[13.5px] lg:text-[length:calc(16px*var(--mm,1))] font-semibold text-ink-strong tracking-[-0.01em]">
             {t('adminMenu')}
           </span>
-          <span className="text-[11px] text-ink-muted leading-tight">
+          <span className="text-[11px] lg:text-[length:calc(13px*var(--mm,1))] lg:mt-0.5 text-ink-muted leading-tight">
             {TOTAL_ITEMS}{t('adminMenuHint')}
           </span>
         </span>
@@ -209,7 +211,7 @@ const AdminMenu = () => {
           {recentItems.length > 0 && (
             <div>
               <SectionTitle>{t('adminGroupRecent')}</SectionTitle>
-              <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-8">
+              <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-5 lg:gap-1">
                 {recentItems.map(item => (
                   <AdminLauncherItem key={`recent-${item.path}`} item={item} label={t(item.key)} accent />
                 ))}
@@ -220,7 +222,7 @@ const AdminMenu = () => {
           {ADMIN_GROUPS.map(group => (
             <div key={group.titleKey}>
               <SectionTitle>{t(group.titleKey)}</SectionTitle>
-              <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-8">
+              <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-5 lg:gap-1">
                 {group.items.map(item => (
                   <AdminLauncherItem key={item.path} item={item} label={t(item.key)} />
                 ))}

@@ -3,6 +3,7 @@ import SettingsMenu from './SettingsMenu'
 import { Link } from 'react-router-dom'
 import { lazyModal } from '../../../../utils/lazyModal'
 import { isPastor } from '../../../../utils/access'
+import { useFeedTextScale } from '../../../../utils/feedTextScale'
 // 관리자 메뉴(아이콘 세트 포함 18KB)는 관리자에게만 — 엔트리에서 분리
 const AdminMenu = lazyModal(() => import('./AdminMenu'))
 
@@ -13,16 +14,18 @@ interface MobileMenuProps {
 }
 
 const MobileMenu = ({ isAdminUser, isLoggedIn, onLogout }: MobileMenuProps) => {
+  // PC 글씨는 헤더 '가' 단계를 따른다 — 배율·카드 폭은 NewHeader.css `.mega-menu`
+  const textScale = useFeedTextScale()
   return (
     <div
+      data-scale={textScale}
       className="
-        absolute top-14 left-0 right-0 z-[60]
+        mega-menu absolute top-14 left-0 right-0 z-[60]
         bg-background-light dark:bg-background-dark
         border-b border-border-light dark:border-border-dark
         shadow-lg
         screen-cap-minus-header overflow-y-auto overscroll-contain
-        lg:top-[4.25rem] lg:left-1/2 lg:right-auto lg:-ml-[470px]
-        lg:w-[940px]
+        lg:top-[4.25rem] lg:left-1/2 lg:right-auto
         lg:rounded-2xl lg:border lg:border-black/[0.06] lg:dark:border-white/[0.08]
         lg:shadow-2xl lg:!max-h-[calc(100vh-6rem)]
         lg:origin-top lg:animate-pop-in
@@ -44,8 +47,8 @@ const MobileMenu = ({ isAdminUser, isLoggedIn, onLogout }: MobileMenuProps) => {
             >
               <span className="material-icons-outlined text-[22px] text-brand">dashboard</span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[14px] font-bold text-ink-strong">목회자 홈</span>
-                <span className="block text-[11.5px] text-gray-500 dark:text-white/50">
+                <span className="block text-[14px] lg:text-[length:calc(16px*var(--mm,1))] font-bold text-ink-strong">목회자 홈</span>
+                <span className="block text-[11.5px] lg:text-[length:calc(13.5px*var(--mm,1))] text-gray-500 dark:text-white/50">
                   맡겨진 기도 · 돌봄이 필요한 성도 · 이번 주 교회
                 </span>
               </span>

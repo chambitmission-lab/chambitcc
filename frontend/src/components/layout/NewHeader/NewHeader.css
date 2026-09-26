@@ -271,3 +271,16 @@
   .desktop-nav[data-scale='large'] { --hn: 1.08; }
   .desktop-nav[data-scale='xlarge'] { --hn: 1.15; }
 }
+
+/* PC 전체 메뉴(메가 메뉴) — 폭은 화면에 맞춰 최대 1180px, 글씨는 헤더 '가' 단계(--mm)를 따른다.
+ * ★가운데 정렬은 translate 가 아니라 음수 margin 으로 — pop-in keyframes 의 transform 이
+ *   translate 를 덮어써 "오른쪽에 떴다가 가운데로 튀는" 버그가 있었다. */
+@media (min-width: 1024px) {
+  .mega-menu {
+    --mm-w: min(1180px, calc(100vw - 48px));
+    width: var(--mm-w);
+    margin-left: calc(var(--mm-w) / -2);
+  }
+  .mega-menu[data-scale='large'] { --mm: 1.1; }
+  .mega-menu[data-scale='xlarge'] { --mm: 1.2; }
+}

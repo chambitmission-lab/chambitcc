@@ -20,6 +20,7 @@ import { prewarmThemeToggle, pairSrc, RAIL_BOTTOM } from '../../../utils/themeAs
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
+import { useFeedTextScale } from '../../../utils/feedTextScale'
 
 // PC 전용 좌측 내비 레일 (lg+) — 모바일 하단 도크(BottomNavigation)의 데스크톱 대응물.
 // 홈 전용 컴포넌트였다가 전역 레이아웃으로 승격: 모든 페이지에서 App.tsx가 렌더링한다.
@@ -52,11 +53,12 @@ const useIsXl = (): boolean => {
 const ART_FREE_PATHS = ['/bible/atlas']
 
 const RailSpinner = () => (
-  <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
+  <span className="w-6 h-6 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
 )
 
-/** 내비 글리프 공통 크기 — 활성만 duotone 으로 면이 차오른다 */
-const GLYPH = 24
+/** 내비 글리프 공통 크기 — 활성만 duotone 으로 면이 차오른다.
+    노안 대응으로 24 → 26(레일 글씨 크기 배율은 DesktopNavRail.css `--rl`) */
+const GLYPH = 26
 
 // 나누기 다이얼 인사 — 모바일 홈 FAB(BottomNavigation)과 같은 문구 로테이션
 const DIAL_GREETING_KEYS = [
@@ -82,7 +84,7 @@ const RailTip = ({
 }) => (
   <span
     role="tooltip"
-    className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg bg-[var(--text-strong)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--surface-container)] shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 ${
+    className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg bg-[var(--text-strong)] px-3 py-2 text-[length:calc(14px*var(--rl,1))] font-semibold text-[var(--surface-container)] shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 ${
       placement === 'right'
         ? 'left-[calc(100%_+_10px)] top-1/2 -translate-y-1/2 xl:hidden'
         : `bottom-[calc(100%_+_8px)] left-1/2 -translate-x-1/2${hideAtXl ? ' xl:hidden' : ''}`
@@ -107,6 +109,8 @@ const DesktopNavRail = () => {
   const showRailArt = useIsXl() && !ART_FREE_PATHS.some((p) => pathname.startsWith(p))
   const railArtReady = useThemeArt(RAIL_BOTTOM, showRailArt)
   const { t } = useLanguage()
+  // 헤더 '가'(전역 글씨 크기)를 레일도 따른다 — 배율은 DesktopNavRail.css
+  const textScale = useFeedTextScale()
 
   // 청크가 아직 안 왔으면 다운로드를 기다렸다가 이동한다 (startTransition 중엔
   // Suspense fallback이 뜨지 않아 "안 눌린 것처럼" 보이는 문제 방지).
@@ -170,20 +174,20 @@ const DesktopNavRail = () => {
 
   // 하단 도크와 같은 가벼운 아이콘 언어 유지. 활성은 브랜드 연한 배경 + 좌측 바 인디케이터만
   const itemClass = (active: boolean) =>
-    `group relative flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-xl px-0 xl:px-3 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
+    `group relative flex items-center justify-center xl:justify-start gap-3.5 h-[52px] rounded-xl px-0 xl:px-3 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
       active
         ? 'text-brand bg-[var(--brand-soft)]'
         : 'text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)]'
     }`
   const ActiveBar = () => (
     <span
-      className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-brand"
+      className="absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-full bg-brand"
       aria-hidden
     />
   )
 
   const labelClass = (active: boolean) =>
-    `hidden xl:inline text-[15px] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`
+    `hidden xl:inline text-[length:calc(17px*var(--rl,1))] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`
 
   return (
     <aside
@@ -191,7 +195,8 @@ const DesktopNavRail = () => {
       // 세로 헤어라인도, 흰 레일 vs 회색 캔버스의 세로 이음새도 없다(둘 다 어색하다는 피드백).
       // 화면의 층은 오직 "바닥(캔버스) / 떠 있는 흰 카드" 둘뿐이다.
       // chrome-type: 헤더와 함께 G마켓 산스로 그리는 "앱의 틀" (styles/gmarket-sans.css, lg+ 에서만)
-      className="chrome-type hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-[var(--desktop-chrome)] px-3 xl:px-4 pt-6 pb-5"
+      data-scale={textScale}
+      className="desktop-rail chrome-type hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-[var(--desktop-chrome)] px-3 xl:px-4 pt-6 pb-5"
       aria-label={t('railAria')}
     >
       <nav className="flex flex-col gap-1">
@@ -354,17 +359,17 @@ const DesktopNavRail = () => {
             <div
               role="menu"
               aria-label={t('railShareMenuAria')}
-              className="absolute z-50 bottom-[calc(100%_+_10px)] left-0 w-[236px] feed-card rounded-2xl p-2 shadow-xl origin-bottom-left"
+              className="absolute z-50 bottom-[calc(100%_+_10px)] left-0 w-[calc(272px*var(--rl,1))] feed-card rounded-2xl p-2 shadow-xl origin-bottom-left"
               style={{ animation: 'scale-in 0.16s ease-out both' }}
             >
               {/* 모바일 FAB과 같은 다정한 인사 — 열 때마다 로테이션 */}
-              <p className="px-2.5 pt-1.5 pb-1 text-[11.5px] text-ink-muted">
+              <p className="px-3 pt-2 pb-1.5 text-[length:calc(13px*var(--rl,1))] text-ink-muted">
                 {t(DIAL_GREETING_KEYS[dialNonce % DIAL_GREETING_KEYS.length])}
               </p>
               {[
                 {
                   key: 'prayer',
-                  icon: <PrayIcon size={19} />,
+                  icon: <PrayIcon size={22} />,
                   label: t('railSharePrayer'),
                   tint: 'bg-[var(--brand-soft-strong)]',
                   // 각 액션의 색은 그 화면의 액센트를 그대로 가져온다(기도=브랜드,
@@ -374,7 +379,7 @@ const DesktopNavRail = () => {
                 },
                 {
                   key: 'thanks',
-                  icon: <ThanksHandIcon size={19} />,
+                  icon: <ThanksHandIcon size={22} />,
                   label: t('railShareThanks'),
                   tint: 'bg-[rgba(236,95,143,0.12)]',
                   colorClass: 'text-[#ec5f8f] dark:text-[#f38cb2]',
@@ -382,7 +387,7 @@ const DesktopNavRail = () => {
                 },
                 {
                   key: 'verse-card',
-                  icon: <ImageIcon size={19} />,
+                  icon: <ImageIcon size={22} />,
                   label: t('railShareVerseCard'),
                   tint: 'bg-[rgba(124,102,217,0.14)]',
                   colorClass: 'text-[#7c66d9] dark:text-[#b7a8f2]',
@@ -401,16 +406,16 @@ const DesktopNavRail = () => {
                       ? () => void preloadRoute('/bible/photo-verse')
                       : undefined
                   }
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-[var(--brand-soft)] active:scale-[0.98] transition-[background-color,transform] duration-150"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-[var(--brand-soft)] active:scale-[0.98] transition-[background-color,transform] duration-150"
                   style={{ animation: 'fade-in 0.22s ease-out both', animationDelay: `${i * 45}ms` }}
                 >
                   <span
-                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${action.tint} ${action.colorClass}`}
+                    className={`w-[calc(40px*var(--rl,1))] h-[calc(40px*var(--rl,1))] rounded-full flex items-center justify-center shrink-0 ${action.tint} ${action.colorClass}`}
                     aria-hidden
                   >
                     {action.icon}
                   </span>
-                  <span className="text-[13.5px] font-semibold text-ink-strong whitespace-nowrap">
+                  <span className="text-[length:calc(15.5px*var(--rl,1))] font-semibold text-ink-strong whitespace-nowrap">
                     {action.label}
                   </span>
                 </button>
@@ -429,15 +434,15 @@ const DesktopNavRail = () => {
           aria-label={t('railShare')}
           aria-haspopup="menu"
           aria-expanded={dialOpen}
-          className="group relative w-12 h-12 xl:w-auto xl:h-auto xl:pl-3 xl:pr-5 xl:py-3 rounded-full flex items-center justify-center gap-2 text-white bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%),linear-gradient(155deg,#4593fc,var(--brand-dim))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.12),0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
+          className="group relative w-[52px] h-[52px] xl:w-auto xl:h-auto xl:pl-3.5 xl:pr-6 xl:py-3.5 rounded-full flex items-center justify-center gap-2 text-white bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%),linear-gradient(155deg,#4593fc,var(--brand-dim))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.12),0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
         >
           {/* 인장 문법(도크 FAB·완독 도장과 동일): 안쪽 점선 압인 링 */}
           <span aria-hidden className="absolute inset-[3px] rounded-full border border-dashed border-white/30 pointer-events-none" />
           {/* 도크 FAB와 같은 하늘 편지 — 평소엔 땅을 향해 있다가(rotate-90) 열리면 하늘로 날아오른다 */}
           <HeavenLetterIcon
-            className={`w-6 h-6 shrink-0 transition-transform duration-300 ease-out ${dialOpen ? '' : 'rotate-90'}`}
+            className={`w-[26px] h-[26px] shrink-0 transition-transform duration-300 ease-out ${dialOpen ? '' : 'rotate-90'}`}
           />
-          <span className="hidden xl:inline text-[14.5px] font-bold whitespace-nowrap">
+          <span className="hidden xl:inline text-[length:calc(16.5px*var(--rl,1))] font-bold whitespace-nowrap">
             {t('railShare')}
           </span>
           {!dialOpen && <RailTip label={t('railShare')} />}
@@ -466,12 +471,12 @@ const DesktopNavRail = () => {
           onPointerEnter={prewarmThemeToggle}
           onFocus={prewarmThemeToggle}
           aria-label={t('themeToggleAria')}
-          className="group relative w-11 h-11 xl:w-auto xl:px-3 xl:gap-2 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+          className="group relative w-12 h-12 xl:w-auto xl:px-3 xl:gap-2 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
         >
-          <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden shrink-0">
+          <span className="material-icons-outlined text-[26px] leading-none inline-flex items-center justify-center w-[26px] h-[26px] overflow-hidden shrink-0">
             {theme === 'dark' ? 'light_mode' : 'dark_mode'}
           </span>
-          <span className="hidden xl:inline text-[13px] font-semibold whitespace-nowrap">
+          <span className="hidden xl:inline text-[length:calc(15px*var(--rl,1))] font-semibold whitespace-nowrap">
             {theme === 'dark' ? t('railThemeDay') : t('railThemeNight')}
           </span>
           <RailTip
@@ -484,9 +489,9 @@ const DesktopNavRail = () => {
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('chambit:open-menu'))}
           aria-label={t('allMenu')}
-          className="group relative w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+          className="group relative w-12 h-12 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
         >
-          <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">
+          <span className="material-icons-outlined text-[26px] leading-none inline-flex items-center justify-center w-[26px] h-[26px] overflow-hidden">
             more_vert
           </span>
           <RailTip label={t('allMenu')} placement="top" />

@@ -25,7 +25,7 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
             to="/account"
             className="
               w-full flex items-center gap-2 px-3 py-3 rounded-xl
-              text-[14px] font-medium text-gray-900 dark:text-white/85
+              text-[14px] lg:text-[length:calc(15.5px*var(--mm,1))] font-medium text-gray-900 dark:text-white/85
               hover:bg-gray-100/60 dark:hover:bg-white/[0.04]
               transition-colors
               lg:w-auto lg:py-2.5
@@ -47,7 +47,7 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
         onClick={toggleChatbot}
         className="
           w-full flex items-center gap-2 px-3 py-3 rounded-xl
-          text-[14px] font-medium text-gray-900 dark:text-white/85
+          text-[14px] lg:text-[length:calc(15.5px*var(--mm,1))] font-medium text-gray-900 dark:text-white/85
           hover:bg-gray-100/60 dark:hover:bg-white/[0.04]
           transition-colors
           lg:w-auto lg:py-2.5
@@ -77,7 +77,7 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
           onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
           className="
             flex items-center gap-1.5 px-3 py-2.5 rounded-xl
-            text-[13px] font-medium text-gray-500 dark:text-white/55
+            text-[13px] lg:text-[length:calc(14.5px*var(--mm,1))] font-medium text-gray-500 dark:text-white/55
             hover:bg-gray-100/60 dark:hover:bg-white/[0.04]
             hover:text-gray-900 dark:hover:text-white/85
             transition-colors
@@ -92,7 +92,7 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
           <button
             onClick={onLogout}
             className="
-              px-3 py-2.5 rounded-xl text-[14px] font-bold tracking-[-0.01em]
+              px-3 py-2.5 rounded-xl text-[14px] lg:text-[length:calc(15.5px*var(--mm,1))] font-bold tracking-[-0.01em]
               text-brand
               hover:bg-[var(--brand-soft)]
               transition-colors
@@ -104,7 +104,7 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
           <Link
             to="/login"
             className="
-              px-3 py-2.5 rounded-xl text-[14px] font-bold tracking-[-0.01em]
+              px-3 py-2.5 rounded-xl text-[14px] lg:text-[length:calc(15.5px*var(--mm,1))] font-bold tracking-[-0.01em]
               text-brand
               hover:bg-[var(--brand-soft)]
               transition-colors
