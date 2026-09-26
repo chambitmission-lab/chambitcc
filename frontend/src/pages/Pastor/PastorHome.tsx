@@ -51,8 +51,9 @@ const PastorHome = () => {
     queryKey: ['pastor-home'],
     queryFn: fetchPastorHome,
     enabled: pastor,
-    // 답글을 달고 돌아오면 대기 목록이 바로 줄어야 한다 — 전역 캐시 우선 설정을 덮어쓴다
-    refetchOnMount: 'always',
+    // 전역 기본(5분 fresh, 만료 시 마운트 재조회)을 따른다 — 'always' 는 섹션 탭을 오갈 때마다
+    // 서버 집계를 다시 물었다. 답글·기도하기(useReplies·usePrayerToggle)와 심방·명부 저장은
+    // ['pastor-home'] 을 invalidate 하므로 다른 화면에서 답하고 돌아와도 대기 목록이 맞는다.
   })
 
   useEffect(() => {

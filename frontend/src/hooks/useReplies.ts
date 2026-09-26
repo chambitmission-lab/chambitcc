@@ -171,6 +171,9 @@ export const useCreateReply = ({ prayerId, onSuccess, feedback }: UseCreateReply
         queryClient.invalidateQueries({
           queryKey: profileKeys.all,
         })
+        // 목회자 홈 '맡겨진 기도' 대기 목록 — 목회자 답글이 달리면 빠진다. 열려 있는 홈은
+        // 상세 모달을 닫을 때 refetch 하므로 여기서는 stale 표시만
+        queryClient.invalidateQueries({ queryKey: ['pastor-home'], refetchType: 'none' })
       }, 0)
       feedback?.onSuccess?.(response, variables)
     },
@@ -313,6 +316,8 @@ export const useDeleteReply = ({ prayerId, onSuccess, feedback }: UseDeleteReply
         queryClient.invalidateQueries({ queryKey: prayerKeys.detailPrefix(prayerId) })
         // 'profile' 전체 — 프로필 탭 무한 목록(my-replies 등)도 stale 처리
         queryClient.invalidateQueries({ queryKey: profileKeys.all })
+        // 목회자 답글을 지우면 그 기도는 다시 '맡겨진 기도' 대기로 돌아간다
+        queryClient.invalidateQueries({ queryKey: ['pastor-home'], refetchType: 'none' })
       }, 0)
       feedback?.onSuccess?.(response, variables)
     },
