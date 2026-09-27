@@ -289,9 +289,11 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
       )}
 
       {/* 작성 중 실수로 닫히지 않도록 배경 클릭으로는 닫지 않는다(X·다음에·뒤로가기만) */}
-      <div className="thanks-backdrop fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/55 backdrop-blur-[2px] sm:p-4 overflow-hidden">
+      {/* PC(lg+)에선 노안 성도를 위해 화면을 거의 다 쓰는 큰 작성 화면으로 펼친다 —
+          글씨·버튼·타일을 키우고, 작성 칸이 남는 높이를 전부 차지한다. 모바일은 그대로 */}
+      <div className="thanks-backdrop fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/55 backdrop-blur-[2px] sm:p-4 lg:p-6 overflow-hidden">
         <div
-          className="thanks-sheet relative w-full sm:max-w-[440px] lg:max-w-[900px] max-h-[92vh] lg:max-h-[calc(92vh/var(--az,1))] overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
+          className="thanks-sheet relative w-full sm:max-w-[440px] lg:max-w-[1320px] lg:w-[calc(94vw/var(--az,1))] max-h-[92vh] lg:max-h-none lg:h-[calc(92vh/var(--az,1))] lg:flex lg:flex-col overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
           role="dialog"
           aria-modal="true"
         >
@@ -304,31 +306,31 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
           </div>
 
           {/* 헤더 */}
-          <div className="px-5 lg:px-7 pt-2.5 lg:pt-4 pb-3 flex items-start justify-between gap-3">
+          <div className="px-5 lg:px-10 pt-2.5 lg:pt-7 pb-3 lg:pb-5 flex items-start justify-between gap-3 lg:shrink-0">
             <div className="min-w-0">
-              <h2 className="text-[19px] font-extrabold tracking-[-0.02em] text-ink-strong">
+              <h2 className="text-[19px] lg:text-[28px] font-extrabold tracking-[-0.02em] text-ink-strong">
                 {ko ? '기도제목 나누기' : 'Share a prayer request'}
               </h2>
-              <p className="mt-0.5 text-[12.5px] leading-snug text-ink-muted">{subtitle}</p>
+              <p className="mt-0.5 lg:mt-1.5 text-[12.5px] lg:text-[16px] leading-snug text-ink-muted">{subtitle}</p>
             </div>
             <button
               type="button"
               onClick={onClose}
               aria-label={ko ? '닫기' : 'Close'}
-              className="shrink-0 w-9 h-9 -mr-1 flex items-center justify-center rounded-full text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+              className="shrink-0 w-9 h-9 lg:w-12 lg:h-12 -mr-1 flex items-center justify-center rounded-full text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
             >
-              <span className="material-icons-outlined text-[22px]">close</span>
+              <span className="material-icons-outlined text-[22px] lg:text-[30px]">close</span>
             </button>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            {/* PC에선 좌(미리보기·설정) / 우(작성) 2단으로 펼친다 */}
-            <div className="lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-7 lg:px-7 lg:pt-1 lg:items-start">
+          <form onSubmit={handleSubmit} className="lg:flex-1 lg:flex lg:flex-col">
+            {/* PC에선 좌(미리보기·설정) / 우(작성) 2단으로 펼친다. 우측 작성 칸은 높이를 끝까지 채운다 */}
+            <div className="lg:flex-1 lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 lg:px-10 lg:pt-1 lg:items-stretch">
               <div className="lg:min-w-0">
                 {/* 미리보기 — 지금 쓰는 게 피드에 어떻게 보일지 실시간으로 */}
                 <div className="px-5 lg:px-0">
                   <div
-                    className="relative overflow-hidden rounded-2xl border p-4 transition-colors duration-300"
+                    className="relative overflow-hidden rounded-2xl border p-4 lg:p-6 transition-colors duration-300"
                     style={{
                       borderColor: meta
                         ? `color-mix(in srgb, ${accent} 32%, transparent)`
@@ -338,13 +340,13 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                         : 'var(--surface-inset)',
                     }}
                   >
-                    <span className="absolute right-3 top-3 text-[9.5px] font-bold tracking-[0.1em] text-ink-muted">
+                    <span className="absolute right-3 top-3 lg:right-5 lg:top-4 text-[9.5px] lg:text-[13px] font-bold tracking-[0.1em] text-ink-muted">
                       {ko ? '미리보기' : 'PREVIEW'}
                     </span>
 
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 lg:gap-4">
                       <div
-                        className="shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-[22px] transition-all duration-300"
+                        className="shrink-0 w-11 h-11 lg:w-14 lg:h-14 rounded-2xl flex items-center justify-center text-[22px] transition-all duration-300 lg:[&_svg]:w-[28px] lg:[&_svg]:h-[28px]"
                         style={{
                           background: meta
                             ? `color-mix(in srgb, ${accent} 18%, transparent)`
@@ -371,20 +373,20 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
 
                       <div className="min-w-0 flex-1 pt-0.5">
                         {title.trim() && (
-                          <p className="text-[14.5px] font-bold leading-snug text-ink-strong break-words line-clamp-1 mb-0.5">
+                          <p className="text-[14.5px] lg:text-[18px] font-bold leading-snug text-ink-strong break-words line-clamp-1 mb-0.5">
                             {title}
                           </p>
                         )}
                         {content.trim() ? (
-                          <p className="text-[14.5px] leading-[1.6] text-ink-strong break-words whitespace-pre-wrap line-clamp-3">
+                          <p className="text-[14.5px] lg:text-[17px] leading-[1.6] text-ink-strong break-words whitespace-pre-wrap line-clamp-3">
                             {content}
                           </p>
                         ) : (
-                          <p className="text-[14px] leading-[1.6] text-ink-muted">
+                          <p className="text-[14px] lg:text-[17px] leading-[1.6] text-ink-muted">
                             {ko ? '여기에 오늘의 기도가 담겨요' : 'Your prayer will show up here'}
                           </p>
                         )}
-                        <div className="mt-2 flex items-center gap-1.5 text-[11.5px] text-ink-muted">
+                        <div className="mt-2 flex items-center gap-1.5 text-[11.5px] lg:text-[14.5px] text-ink-muted lg:[&>span:first-child]:w-7 lg:[&>span:first-child]:h-7 lg:[&>img]:w-7 lg:[&>img]:h-7">
                           {onlyMe ? (
                             <>
                               <span
@@ -435,10 +437,10 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                   </div>
 
                   {/* 공개 범위 — 전체 공개 / 나만 보기 / 목사님과 함께 / 소그룹. 하나만 고른다 */}
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-[11.5px] font-bold text-ink-strong">{t('prayerVisibilityLabel')}</span>
+                  <div className="mt-3 lg:mt-7 flex items-center justify-between">
+                    <span className="text-[11.5px] lg:text-[17px] font-bold text-ink-strong">{t('prayerVisibilityLabel')}</span>
                   </div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <div className="mt-1.5 lg:mt-3 flex flex-wrap items-center gap-1.5 lg:gap-2.5 lg:[&>button]:px-5 lg:[&>button]:py-3 lg:[&>button]:text-[16px] lg:[&>button]:gap-2 lg:[&_svg]:w-[19px] lg:[&_svg]:h-[19px]">
                     {[
                       { key: 'public', Icon: GlobeIcon, label: t('prayerVisibilityPublic'), active: !isPrivate && selectedGroupId === null, onClick: () => { setIsPrivate(false); setSelectedGroupId(null) } },
                       { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: onlyMe, onClick: () => setIsPrivate(true) },
@@ -512,7 +514,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
 
                   <p
                     key={sharedWithPastor ? (isAnonymous ? 'pastor-anon' : 'pastor-real') : isPrivate ? 'private' : selectedGroupId ? 'group' : isAnonymous ? 'anon' : 'real'}
-                    className="thanks-swap mt-1.5 text-[11px] leading-snug"
+                    className="thanks-swap mt-1.5 lg:mt-3 text-[11px] lg:text-[14.5px] leading-snug"
                     style={{ color: isPrivate ? 'var(--brand)' : 'var(--text-muted)' }}
                   >
                     {sharedWithPastor
@@ -532,17 +534,17 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                 </div>
 
                 {/* 오늘의 마음 */}
-                <div className="px-5 lg:px-0 pt-4">
-                  <div className="flex items-baseline justify-between mb-2.5">
-                    <label className="text-[12.5px] font-bold tracking-[-0.01em] text-ink-strong">
+                <div className="px-5 lg:px-0 pt-4 lg:pt-8">
+                  <div className="flex items-baseline justify-between mb-2.5 lg:mb-3.5">
+                    <label className="text-[12.5px] lg:text-[17px] font-bold tracking-[-0.01em] text-ink-strong">
                       {ko ? '지금 마음은 어떠세요?' : 'How is your heart?'}
                     </label>
-                    <span className="text-[11px] text-ink-muted">
+                    <span className="text-[11px] lg:text-[14px] text-ink-muted">
                       {ko ? '골라도 되고 안 골라도 돼요' : 'optional'}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-4 gap-1.5 lg:gap-3">
                     {EMOTIONS.map((item) => {
                       const active = emotion === item.key
                       return (
@@ -551,7 +553,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                           type="button"
                           onClick={() => setEmotion(active ? null : item.key)}
                           aria-pressed={active}
-                          className="group flex flex-col items-center gap-1 py-2.5 rounded-2xl border transition-all active:scale-95"
+                          className="group flex flex-col items-center gap-1 lg:gap-2 py-2.5 lg:py-4 rounded-2xl border transition-all active:scale-95 lg:[&_svg]:w-[34px] lg:[&_svg]:h-[34px]"
                           style={
                             active
                               ? {
@@ -574,7 +576,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                             <EmotionGlyph emotion={item.key} fallback={item.emoji} size={24} />
                           </span>
                           <span
-                            className="text-[10.5px] font-bold"
+                            className="text-[10.5px] lg:text-[15.5px] font-bold"
                             style={{ color: active ? item.hue : 'var(--text-muted)' }}
                           >
                             {ko ? item.label : item.labelEn}
@@ -586,7 +588,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
 
                   <p
                     key={emotion ?? 'none'}
-                    className="thanks-swap mt-2 text-[12px] leading-snug"
+                    className="thanks-swap mt-2 lg:mt-3 text-[12px] lg:text-[15px] leading-snug"
                     style={{ color: meta ? accent : 'var(--text-muted)' }}
                   >
                     {meta
@@ -600,16 +602,16 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                 </div>
               </div>
 
-              <div className="lg:min-w-0">
-                {/* 기도 내용 */}
-                <div className="px-5 lg:px-0 pt-4 lg:pt-0">
+              <div className="lg:min-w-0 lg:flex lg:flex-col">
+                {/* 기도 내용 — PC에선 남는 높이를 전부 채운다 */}
+                <div className="px-5 lg:px-0 pt-4 lg:pt-0 lg:flex-1 lg:flex lg:flex-col">
                   <div
-                    className="rounded-2xl border px-4 pt-3.5 pb-2.5 transition-colors focus-within:border-brand"
+                    className="rounded-2xl border px-4 pt-3.5 pb-2.5 lg:px-7 lg:pt-5 lg:pb-4 lg:flex-1 lg:flex lg:flex-col transition-colors focus-within:border-brand lg:focus-within:shadow-[0_0_0_3px_var(--brand-soft)]"
                     style={{ background: 'var(--surface-inset)', borderColor: 'var(--card-border)' }}
                   >
                     {/* 제목은 선택 — 기본은 숨기고 칩으로 필요할 때만 펼친다 */}
                     {showTitle ? (
-                      <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-[var(--card-border)]">
+                      <div className="flex items-center gap-1.5 mb-2 pb-2 lg:mb-3 lg:pb-3 border-b border-[var(--card-border)] lg:[&>button]:w-10 lg:[&>button]:h-10 lg:[&_.material-icons-outlined]:text-[22px]">
                         <input
                           type="text"
                           value={title}
@@ -617,7 +619,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                           placeholder={t('prayerComposerTitlePlaceholder')}
                           maxLength={TITLE_MAX}
                           autoFocus
-                          className={`flex-1 min-w-0 bg-transparent outline-none text-[15.5px] font-bold tracking-[-0.015em] text-ink-strong placeholder:text-[13px] placeholder:font-normal placeholder:text-ink-muted ${
+                          className={`flex-1 min-w-0 bg-transparent outline-none text-[15.5px] lg:text-[21px] font-bold tracking-[-0.015em] text-ink-strong placeholder:text-[13px] lg:placeholder:text-[17px] placeholder:font-normal placeholder:text-ink-muted ${
                             titleVoice.isListening ? 'animate-pulse' : ''
                           }`}
                         />
@@ -652,9 +654,9 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                       <button
                         type="button"
                         onClick={() => setShowTitle(true)}
-                        className="inline-flex items-center gap-0.5 mb-1 -ml-1 px-2 py-1 rounded-full text-[11.5px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                        className="self-start inline-flex items-center gap-0.5 lg:gap-1 mb-1 lg:mb-2 -ml-1 lg:-ml-2 px-2 py-1 lg:px-3 lg:py-2 rounded-full text-[11.5px] lg:text-[15.5px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
                       >
-                        <span className="material-icons-outlined text-[13px]">add</span>
+                        <span className="material-icons-outlined text-[13px] lg:text-[19px]">add</span>
                         {t('prayerComposerAddTitle')} {t('prayerComposerTitleOptional')}
                       </button>
                     )}
@@ -666,23 +668,23 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                       rows={4}
                       maxLength={MAX_LEN}
                       placeholder={placeholder}
-                      className={`w-full bg-transparent resize-none outline-none text-[15px] lg:text-[16px] leading-[1.65] text-ink-strong placeholder:text-[13.5px] placeholder:text-ink-muted lg:min-h-[280px] ${
+                      className={`w-full bg-transparent resize-none outline-none text-[15px] lg:text-[20px] leading-[1.65] lg:leading-[1.8] text-ink-strong placeholder:text-[13.5px] lg:placeholder:text-[17px] placeholder:text-ink-muted lg:flex-1 lg:min-h-[260px] ${
                         contentVoice.isListening ? 'animate-pulse' : ''
                       }`}
                     />
 
-                    <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center justify-between pt-1 lg:pt-3">
                       {contentVoice.isSupported ? (
                         <button
                           type="button"
                           onClick={toggleVoice}
-                          className={`inline-flex items-center gap-1 -ml-1 px-2 py-1 rounded-full text-[11.5px] font-semibold transition-colors ${
+                          className={`inline-flex items-center gap-1 lg:gap-1.5 -ml-1 px-2 py-1 lg:px-4 lg:py-2.5 rounded-full text-[11.5px] lg:text-[16px] font-semibold transition-colors lg:border lg:border-[var(--card-border)] ${
                             contentVoice.isListening
                               ? 'text-red-500 bg-red-500/10 animate-pulse'
                               : 'text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)]'
                           }`}
                         >
-                          <span className="material-icons-outlined text-[15px]">
+                          <span className="material-icons-outlined text-[15px] lg:text-[21px]">
                             {contentVoice.isListening ? 'stop_circle' : 'mic'}
                           </span>
                           {contentVoice.isListening
@@ -694,13 +696,13 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                               : 'Speak'}
                         </button>
                       ) : (
-                        <span className="text-[11.5px] text-ink-muted">
+                        <span className="text-[11.5px] lg:text-[15px] text-ink-muted">
                           {ko ? '길게 써도, 한 줄만 써도 돼요' : 'Long or short — both are fine'}
                         </span>
                       )}
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 lg:gap-2 lg:[&>svg]:w-7 lg:[&>svg]:h-7">
                         <span
-                          className="text-[11px] font-bold tabular-nums"
+                          className="text-[11px] lg:text-[14.5px] font-bold tabular-nums"
                           style={{ color: nearLimit ? 'var(--amber)' : 'var(--text-muted)' }}
                         >
                           {content.length}/{MAX_LEN}
@@ -733,15 +735,15 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                 </div>
 
                 {/* 기도 씨앗 — 첫 문장 도우미 */}
-                <div className="px-5 lg:px-0 pt-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[12px] font-bold text-ink-strong">
+                <div className="px-5 lg:px-0 pt-4 lg:pt-6 lg:shrink-0">
+                  <div className="flex items-center justify-between mb-2 lg:mb-3">
+                    <span className="text-[12px] lg:text-[17px] font-bold text-ink-strong">
                       {ko ? '막막할 땐, 이렇게 시작해봐요' : 'Stuck? Start like this'}
                     </span>
                     <button
                       type="button"
                       onClick={rollSeeds}
-                      className="flex items-center gap-1 px-2 py-1 rounded-full text-[11.5px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                      className="flex items-center gap-1 lg:gap-1.5 px-2 py-1 lg:px-3.5 lg:py-2 rounded-full text-[11.5px] lg:text-[15px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors lg:[&_svg]:w-[19px] lg:[&_svg]:h-[19px]"
                     >
                       <span className={rolling ? 'thanks-roll inline-flex' : 'inline-flex'}>
                         <DiceIcon size={14} />
@@ -749,13 +751,13 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                       {ko ? '다른 문장' : 'Shuffle'}
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1.5 lg:gap-2.5">
                     {seeds.map((seed) => (
                       <button
                         key={seed}
                         type="button"
                         onClick={() => applySeed(seed)}
-                        className="px-3 py-1.5 rounded-full border border-dashed text-[12.5px] text-ink hover:text-brand hover:border-brand active:scale-95 transition-all"
+                        className="px-3 py-1.5 lg:px-5 lg:py-3 rounded-full border border-dashed text-[12.5px] lg:text-[16.5px] text-ink hover:text-brand hover:border-brand active:scale-95 transition-all"
                         style={{ borderColor: 'var(--card-border)', background: 'transparent' }}
                       >
                         {seed.trim()}
@@ -768,30 +770,30 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
 
             {/* 에러 */}
             {error && (
-              <div className="px-5 lg:px-7 pt-3">
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/25">
-                  <p className="text-[12.5px] leading-snug text-red-500">{error}</p>
+              <div className="px-5 lg:px-10 pt-3 lg:pt-5">
+                <div className="p-3 lg:p-4 rounded-xl bg-red-500/10 border border-red-500/25">
+                  <p className="text-[12.5px] lg:text-[16px] leading-snug text-red-500">{error}</p>
                 </div>
               </div>
             )}
 
             {/* 액션 */}
             <div
-              className="sticky bottom-0 mt-5 px-5 lg:px-7 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pb-5 flex gap-2 lg:justify-end border-t border-[var(--card-border)]"
+              className="sticky bottom-0 mt-5 lg:mt-7 px-5 lg:px-10 pt-3 lg:pt-5 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pb-6 flex gap-2 lg:gap-3 lg:justify-end border-t border-[var(--card-border)]"
               style={{ background: 'var(--surface-container)' }}
             >
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isCreating}
-                className="px-5 py-3 rounded-2xl text-[14px] font-semibold text-ink border border-[var(--card-border)] hover:text-brand hover:border-brand transition-colors disabled:opacity-50"
+                className="px-5 py-3 lg:px-8 lg:py-4 rounded-2xl text-[14px] lg:text-[17px] font-semibold text-ink border border-[var(--card-border)] hover:text-brand hover:border-brand transition-colors disabled:opacity-50"
               >
                 {ko ? '다음에' : 'Later'}
               </button>
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="flex-1 lg:flex-none lg:min-w-[260px] lg:px-10 py-3 rounded-2xl bg-brand text-[var(--on-brand)] text-[15px] font-extrabold tracking-[-0.01em] shadow-[0_8px_20px_var(--brand-glow)] hover:bg-brand-dim active:scale-[0.98] transition-all disabled:opacity-40 disabled:shadow-none disabled:active:scale-100 flex items-center justify-center gap-1.5"
+                className="flex-1 lg:flex-none lg:min-w-[340px] lg:px-12 py-3 lg:py-4 rounded-2xl bg-brand text-[var(--on-brand)] text-[15px] lg:text-[19px] font-extrabold tracking-[-0.01em] shadow-[0_8px_20px_var(--brand-glow)] hover:bg-brand-dim active:scale-[0.98] transition-all disabled:opacity-40 disabled:shadow-none disabled:active:scale-100 flex items-center justify-center gap-1.5 lg:gap-2 lg:[&_svg]:w-[22px] lg:[&_svg]:h-[22px]"
               >
                 <span className="inline-flex leading-none">
                   {meta ? (
