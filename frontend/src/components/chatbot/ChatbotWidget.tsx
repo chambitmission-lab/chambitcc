@@ -6,6 +6,7 @@ import { chatViewerKey, getChatbotGreeting, prefetchChatbotGreeting, sendChatbot
 import { tryGlossaryReply } from './localGlossary'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
+import { isRoutePreloaded, preloadRoute } from '../../utils/routePreload'
 import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
 // 환영 장면은 패널을 열어야 보인다 — lazy 로 분리해 위젯 버튼만 첫 로드에 남긴다
 const WelcomeScene = lazy(() => import('./WelcomeScene'))
@@ -497,11 +498,25 @@ const ChatbotWidget = () => {
     void send(msg)
   }, [open, loading, send])
 
+  // 링크 이동 — 라우터(v7)는 화면 전환을 startTransition 으로 돌려 lazy 청크가 올 때까지 이전 화면을
+  // 붙잡는다. 패널부터 닫으면 그 사이 뒤의 화면(예: 프로필)이 드러나 "프로필 갔다가 /growth" 처럼
+  // 두 번 이동해 보였다 — 청크를 먼저 받고 닫는다. 받는 동안 연타는 한 번만.
+  const linkPendingRef = useRef(false)
   const onAction = useCallback(
-    (a: ChatAction) => {
+    async (a: ChatAction) => {
       if (a.type === 'link') {
+        if (linkPendingRef.current) return
+        linkPendingRef.current = true
+        try {
+          if (!isRoutePreloaded(a.value)) await preloadRoute(a.value)
+        } finally {
+          linkPendingRef.current = false
+        }
+        // 패널이 쌓아 둔 뒤로가기 엔트리(같은 화면)를 목적지로 바꿔 끼운다 — push 하면 그 엔트리가
+        // 고아로 남아 목적지에서 뒤로가기를 두 번 눌러야 원래 화면으로 돌아간다
+        const replace = window.history.state?.modalBack != null
         setOpen(false)
-        navigate(a.value)
+        navigate(a.value, { replace })
       } else {
         void send(a.value)
       }
