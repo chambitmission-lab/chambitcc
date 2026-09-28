@@ -14,6 +14,7 @@ import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
 const loadWelcomeScene = () => import('./WelcomeScene')
 const WelcomeScene = lazy(loadWelcomeScene)
 import { RECOMMENDED } from './recommended'
+import { nextQuip } from './waitQuips'
 import ChatCommentaryBlock from './ChatCommentaryBlock'
 import ChatPastorCard from './ChatPastorCard'
 import ChatBriefList from './ChatBriefList'
@@ -255,34 +256,56 @@ const ScaleToggle = () => {
   )
 }
 
-const TypingDots = () => (
-  <div className="flex items-start gap-2.5">
-    <BotAvatar src={avatarThinking} />
-    <div className="cb-msg flex items-center gap-1 !py-3.5 w-fit">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-bounce"
-          style={{ animationDelay: `${i * 0.15}s` }}
-        />
-      ))}
+// 답변 대기 — 점 세 개 옆에 참비 상황극 한 줄(C안). 문구는 항상 렌더하되 opacity 만 지연 페이드라
+// 늦게 드러나도 말풍선 높이가 변하지 않는다(맨 아래 스크롤 유지).
+const TypingDots = () => {
+  const [quip] = useState(() => nextQuip('think'))
+  return (
+    <div className="flex items-start gap-2.5">
+      <BotAvatar src={avatarThinking} />
+      <div className="cb-msg cb-typing w-fit" aria-label="참비가 답을 찾고 있어요">
+        <span className="cb-typing-dots" aria-hidden>
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-bounce"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            />
+          ))}
+        </span>
+        <span className="cb-think-quip" aria-hidden>
+          참비가 {quip}
+        </span>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 // 첫 오픈 스켈레톤 — 인사 API·WelcomeScene 청크가 오는 동안 웰컴 화면과 같은 골격(히어로·3열 카드·스트립)을
 // 먼저 그린다. 전에는 이 구간이 빈 패널 + 점 세 개라 실제보다 훨씬 길게 느껴졌다.
-const WelcomeSkeleton = () => (
+const WelcomeSkeleton = () => {
+  const [quip] = useState(() => nextQuip('wake'))
+  return (
   <div className="cb-welcome cb-welcome-skel" aria-busy="true" aria-label="참비가 준비하고 있어요">
+    {/* 히어로 — 회색 블록 대신 "참비를 깨우는 중" 상황극(A안). 인사 두 줄 자리에 라벨+문구, 참비 원판 자리에 자는 참비 */}
     <section className="cb-hero">
-      <div className="cb-hero-copy flex flex-col gap-2 pt-1">
-        <span className="cb-skel h-[22px] w-[72%]" />
-        <span className="cb-skel h-[22px] w-[48%]" />
-        <span className="cb-skel mt-2 h-3 w-[88%]" />
-        <span className="cb-skel h-3 w-[62%]" />
+      <div className="cb-hero-copy cb-wake" aria-hidden>
+        <span className="cb-wake-label">참비를 깨우는 중</span>
+        <p className="cb-wake-text">{quip}</p>
+        <span className="cb-wake-dots">
+          <i />
+          <i />
+          <i />
+        </span>
       </div>
-      <div className="cb-hero-art">
-        <span className="cb-skel cb-skel-chambi" />
+      <div className="cb-hero-art" aria-hidden>
+        <span className="cb-orb" />
+        <img src={avatarThinking} alt="" className="cb-chambi cb-chambi-asleep" draggable={false} />
+        <span className="cb-zz">
+          <i>z</i>
+          <i>z</i>
+          <i>Z</i>
+        </span>
       </div>
       <span className="cb-skel cb-skel-pill" />
     </section>
@@ -304,7 +327,8 @@ const WelcomeSkeleton = () => (
       </span>
     </div>
   </div>
-)
+  )
+}
 
 // 퇴장 애니메이션 길이(chatbot.css cb-pop-out) — animationend 가 안 오는 경우(motion-reduce)의 보험
 const CLOSE_MS = 200

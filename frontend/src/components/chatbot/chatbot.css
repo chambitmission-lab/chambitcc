@@ -990,6 +990,10 @@ html.dark .cb-scale-btn[aria-pressed='true'] { background: rgba(255, 255, 255, 0
   }
   .cb-panel[data-cb-scale] .cb-headline { font-size: calc(26px * var(--cbs)); }
   .cb-panel[data-cb-scale] .cb-sub { margin-top: 10px; font-size: calc(15.5px * var(--cbs)); line-height: 1.65; }
+  .cb-panel[data-cb-scale] .cb-wake-label { font-size: calc(14px * var(--cbs)); }
+  .cb-panel[data-cb-scale] .cb-wake-text { font-size: calc(18px * var(--cbs)); }
+  .cb-panel[data-cb-scale] .cb-zz { bottom: calc(90px * var(--cbs)); }
+  .cb-panel[data-cb-scale] .cb-think-quip { font-size: calc(15px * var(--cbs)); }
   .cb-panel[data-cb-scale] .cb-hero-art { width: calc(140px * var(--cbs)); min-height: calc(178px * var(--cbs)); }
   .cb-panel[data-cb-scale] .cb-bubble { font-size: calc(20px * var(--cbs)); }
   .cb-panel[data-cb-scale] .cb-orb { width: calc(130px * var(--cbs)); height: calc(130px * var(--cbs)); }
@@ -1129,3 +1133,103 @@ html.dark .cb-skel::after { background: linear-gradient(90deg, transparent, rgba
 .cb-skel-chambi { position: absolute; right: 2px; bottom: 0; width: 90px; height: 90px; border-radius: 999px; }
 .cb-skel-pill { grid-column: 1 / span 2; grid-row: 2; height: 34px; margin-top: 14px; margin-right: 82px; border-radius: 999px; }
 .cb-welcome-skel .cb-card, .cb-welcome-skel .cb-together { box-shadow: none; }
+
+/* ── 참비를 깨우는 중 (첫 열기 대기, A안) ─────────────────
+ * 인사 두 줄 자리에 라벨+상황극 한 줄. 문구는 항상 자리를 차지하고 opacity 만 400ms 뒤에 올라와
+ * 빨리 채워지면 보이기 전에 끝난다. 참비 원판은 살짝 기울여 재우고 zZ 를 띄운다. */
+.cb-wake { display: flex; flex-direction: column; gap: 6px; padding-top: 2px; }
+.cb-wake-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--brand);
+}
+.cb-wake-text {
+  margin: 0;
+  min-height: calc(2 * 1.45em);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: var(--cb-ink);
+  word-break: keep-all;
+}
+.cb-wake-dots { display: inline-flex; gap: 4px; height: 6px; margin-top: 2px; }
+.cb-wake-dots i {
+  width: 6px; height: 6px;
+  border-radius: 999px;
+  background: var(--brand);
+  opacity: 0.35;
+  animation: cb-wake-dot 1.1s ease-in-out infinite;
+}
+.cb-wake-dots i:nth-child(2) { animation-delay: 0.18s; }
+.cb-wake-dots i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes cb-wake-dot { 40% { opacity: 1; transform: translateY(-2px); } }
+.cb-wake-label, .cb-wake-text {
+  opacity: 0;
+  animation: cb-wake-in 0.32s ease 0.4s forwards;
+}
+.cb-wake-text { animation-delay: 0.5s; }
+@keyframes cb-wake-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+/* 자는 참비 — 기울이고 채도를 살짝 빼고 숨 쉬듯 느리게 */
+.cb-chambi-asleep {
+  transform: rotate(9deg);
+  filter: saturate(0.82) brightness(0.98);
+  animation: cb-breathe 2.6s ease-in-out infinite;
+}
+@keyframes cb-breathe {
+  0%, 100% { transform: rotate(9deg) scale(1); }
+  50% { transform: rotate(9deg) scale(1.035); }
+}
+.cb-zz {
+  position: absolute;
+  right: 2px; bottom: 74px;
+  display: flex; flex-direction: column-reverse; align-items: flex-start;
+  pointer-events: none;
+}
+.cb-zz i {
+  display: block;
+  font-family: 'Nanum Pen Script', cursive;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--brand);
+  opacity: 0;
+  animation: cb-zz-float 2.1s ease-out infinite;
+}
+.cb-zz i:nth-child(1) { font-size: 13px; }
+.cb-zz i:nth-child(2) { font-size: 16px; margin-left: 8px; animation-delay: 0.5s; }
+.cb-zz i:nth-child(3) { font-size: 20px; margin-left: 16px; animation-delay: 1s; }
+@keyframes cb-zz-float {
+  0% { opacity: 0; transform: translate(0, 6px) scale(0.8); }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(6px, -14px) scale(1.05); }
+}
+
+/* 깨어남 한 컷 — 웰컴 씬이 스켈레톤 자리에 들어올 때 참비가 살짝 통통 */
+.cb-chambi-wake { animation: cb-wake-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@keyframes cb-wake-pop {
+  0% { transform: rotate(9deg) scale(0.96); }
+  55% { transform: rotate(-3deg) scale(1.08); }
+  100% { transform: none; }
+}
+
+/* ── 답변 대기 (C안) — 점 세 개 + 참비 상황극 한 줄 ────────── */
+.cb-typing { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px !important; }
+.cb-typing-dots { display: inline-flex; align-items: center; gap: 4px; height: 8px; }
+.cb-think-quip {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--cb-ink-2);
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  opacity: 0;
+  animation: cb-wake-in 0.3s ease 0.5s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cb-wake-label, .cb-wake-text, .cb-think-quip { animation: none; opacity: 1; }
+  .cb-wake-dots i, .cb-chambi-asleep, .cb-zz i, .cb-chambi-wake { animation: none; }
+  .cb-zz i { opacity: 0.7; }
+}

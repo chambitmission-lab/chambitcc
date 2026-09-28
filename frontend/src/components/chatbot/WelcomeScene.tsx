@@ -303,7 +303,8 @@ const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
             물어보세요!
           </span>
           <span className="cb-orb" aria-hidden />
-          <img src={avatarJoy} alt="" className="cb-chambi" draggable={false} />
+          {/* 스켈레톤의 자는 참비 자리에 그대로 들어오며 "깨어남" 한 컷(살짝 통통) — chatbot.css cb-chambi-wake */}
+          <img src={avatarJoy} alt="" className="cb-chambi cb-chambi-wake" draggable={false} />
         </div>
 
         {/* 오늘의 말씀 필 — 카드 아래 줄, 참비 원판 앞에서 끝난다 */}
