@@ -511,6 +511,8 @@ export interface NoteRef {
   book_number: number
   chapter: number
   verse: number | null
+  /** passage — '더 이을 본문' 칸에 적은 것 / body — 메모 글에서 자동으로 읽은 것 */
+  origin: 'passage' | 'body'
   /** 상세·미리보기에서만 — 앞의 몇 절 */
   text?: string | null
 }

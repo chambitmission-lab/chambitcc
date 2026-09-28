@@ -83,6 +83,7 @@ const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) =
     staleTime: 60_000,
   })
   const names = dBody === body.trim() ? analysis?.names ?? [] : []
+  const bodyRefs = (analysis?.refs ?? []).filter(r => r.origin === 'body')
 
   // 성경 사전 — 앱에 이미 있는 표제어(인물·지명·용어)를 메모 글에서 찾는다. 첫 본문의 책 기준으로 동명이인을 거른다
   const [glossaryReady, setGlossaryReady] = useState(isGlossaryReady())
@@ -244,16 +245,34 @@ const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) =
             </div>
           )}
 
-          <label className="block">
-            <FieldLabel hint="선택 · 메모 속 본문은 자동으로 읽어요">관련 본문</FieldLabel>
-            <input
-              className={`${inputCls} lg:px-5 lg:py-3 lg:text-[16px]`}
-              value={passage}
-              maxLength={100}
-              placeholder="예: 빌 4:6-7, 시편 23편"
-              onChange={e => setPassage(e.target.value)}
-            />
-          </label>
+          <div>
+            {/* 메모 글 속 본문은 서버가 스스로 읽는다 — 이 칸은 글에 없는 본문을 덧붙일 때만 */}
+            {bodyRefs.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                <span className="text-[12px] lg:text-[13.5px] font-semibold text-gray-600 dark:text-white/60">메모에서 찾은 본문</span>
+                {bodyRefs.map(r => (
+                  <span
+                    key={r.label}
+                    className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand text-[12.5px] lg:text-[14px] font-bold"
+                  >
+                    <span className="material-icons-outlined text-[15px] lg:text-[17px]">check_circle</span>
+                    {r.label}
+                  </span>
+                ))}
+                <span className="text-[12px] lg:text-[13.5px] text-gray-500 dark:text-white/50">자동 연결됨</span>
+              </div>
+            )}
+            <label className="block">
+              <FieldLabel hint="선택 · 메모에 없는 본문을 덧붙일 때">더 이을 본문</FieldLabel>
+              <input
+                className={`${inputCls} lg:px-5 lg:py-3 lg:text-[16px]`}
+                value={passage}
+                maxLength={100}
+                placeholder={bodyRefs.length ? '다른 본문도 잇고 싶을 때 — 예: 빌 4:6-7' : '예: 빌 4:6-7, 시편 23편'}
+                onChange={e => setPassage(e.target.value)}
+              />
+            </label>
+          </div>
 
           {(kind === 'quote' || kind === 'illustration' || source) && (
             <label className="block">
@@ -359,7 +378,7 @@ const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) =
             <>
               {analysis.refs.length > 0 && (
                 <div className="space-y-1.5">
-                  <p className="text-[12px] font-bold text-gray-600 dark:text-white/65">적은 본문</p>
+                  <p className="text-[12px] font-bold text-gray-600 dark:text-white/65">이어진 본문</p>
                   {analysis.refs.map(r => (
                     <Link
                       key={r.label}
