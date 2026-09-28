@@ -111,7 +111,7 @@ const PlanList = () => {
           하단 도크는 lg에서 숨고 좌측 레일이 섹션 내비를 맡는다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
       <BibleSideRail active="plans" />
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-8 lg:overflow-hidden">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-8 lg:overflow-clip">
         {/* 헤더 — PC에선 좌측 레일이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
         <div className="sticky top-14 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -166,7 +166,7 @@ const PlanList = () => {
           onClick={() => navigate('/rooms')}
           onPointerEnter={warmRooms}
           onTouchStart={warmRooms}
-          className="lg:hidden mx-4 mt-3.5 w-[calc(100%-2rem)] flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
+          className="lg:hidden zoom-narrow-show-flex mx-4 mt-3.5 w-[calc(100%-2rem)] flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
         >
           <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
             <DoveIcon size={21} />
@@ -185,7 +185,7 @@ const PlanList = () => {
         </button>
 
         {/* 나만의 플랜 — 관리자 큐레이션이 아니라 성도가 직접 범위·기간을 정하는 플랜 (모바일) */}
-        <div className="lg:hidden mx-4 mt-3">{personalEntry}</div>
+        <div className="lg:hidden zoom-narrow-show mx-4 mt-3">{personalEntry}</div>
 
         {/* 본문 — 에러여도 캐시된 목록이 있으면 그대로 보여준다
             (일시적 실패가 멀쩡한 데이터를 가리는 게 이 화면의 간헐적 에러 원인이었음) */}
@@ -288,7 +288,7 @@ const PlanList = () => {
                   우측 페이드로 "밀어서 더 볼 수 있음"을 힌트하고, 그리드를 내려
                   보는 동안에도 앱바(56)+상단 헤더(48) 아래 붙어 즉시 필터를 바꿀 수 있다 */}
               {filterTags.length > 0 && (
-                <div className="lg:hidden sticky top-[104px] z-10 -mx-4 mb-4 pt-2 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+                <div className="lg:hidden zoom-narrow-show sticky top-[104px] z-10 -mx-4 mb-4 pt-2 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
                   <div className="flex gap-2 overflow-x-auto pb-1 px-4 pr-10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {[null, ...filterTags].map((tag) => {
                       const active = tagFilter === tag
@@ -334,7 +334,7 @@ const PlanList = () => {
 
       {/* 우측 위젯 레일 (lg+) — 태그 필터를 본문 밖으로 빼 목록이 끊기지 않게 하고,
           공동 묵상방 진입을 항상 보이는 자리에 둔다 */}
-      <aside className="hidden lg:flex lg:w-[340px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+      <aside className="hidden lg:flex lg:w-[340px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
         <button
           type="button"
           onClick={() => navigate('/rooms')}

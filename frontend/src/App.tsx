@@ -26,7 +26,7 @@ import { healPushSubscription } from './utils/pushNotification'
 import { checkForAppUpdate } from './utils/appVersion'
 import { isAuthenticated, getCurrentUser } from './utils/auth'
 import { useFeedTextScale } from './utils/feedTextScale'
-import { zoomsWithTextScale } from './utils/textScaleRoutes'
+import { usePageZoomRequest, zoomsWithTextScale } from './utils/textScaleRoutes'
 import RouteDataPrefetch from './components/common/RouteDataPrefetch'
 import { tokenStore, sessionStore } from './utils/tokenStore'
 import { loadHome } from './utils/homeChunk'
@@ -271,8 +271,10 @@ const MainContent = ({ children }: { children: ReactNode }) => {
   const railVisible = useDesktopRailVisible()
   const { pathname } = useLocation()
   const textScale = useFeedTextScale()
-  // PC 글씨 크기 — 읽기·참여 화면은 페이지 전체를 zoom (common.css `[data-app-scale]`, lg+ 에서만)
-  const appScale = textScale !== 'base' && zoomsWithTextScale(pathname) ? textScale : undefined
+  const pageZoom = usePageZoomRequest()
+  // PC 글씨 크기 — 읽기·참여 화면은 페이지 전체를 zoom (common.css `[data-app-scale]`, lg+ 에서만).
+  // /bible 허브처럼 주소로 갈리지 않는 화면은 페이지가 requestPageZoom 으로 켠다
+  const appScale = textScale !== 'base' && (pageZoom || zoomsWithTextScale(pathname)) ? textScale : undefined
   return (
     <main
       // 배율 숫자(--az·--text-mul)는 <html data-text-scale> 이 준다 — 여기선 zoom 을 켤지만 정한다

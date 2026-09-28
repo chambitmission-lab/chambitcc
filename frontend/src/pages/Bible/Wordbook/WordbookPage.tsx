@@ -49,7 +49,7 @@ const WordbookPage = () => {
           하단 도크는 lg에서 숨고 좌측 레일이 섹션 내비를 맡는다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
       <BibleSideRail active="wordbook" />
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-8 lg:overflow-hidden">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-8 lg:overflow-clip">
         {/* 헤더 — PC에선 좌측 레일이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
         <div className="sticky top-14 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -77,7 +77,7 @@ const WordbookPage = () => {
         ) : (
           <>
             {/* 검색 + 개수 — lg에선 우측 레일의 같은 검색창이 대신한다 */}
-            <div className="px-4 pt-4 pb-1 lg:hidden">
+            <div className="px-4 pt-4 pb-1 lg:hidden zoom-narrow-show">
               <div className="flex items-center gap-2 px-3.5 h-11 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] focus-within:border-brand transition-colors">
                 <span className="material-icons-round text-[20px] text-gray-400 dark:text-white/35">search</span>
                 <input
@@ -210,7 +210,7 @@ const WordbookPage = () => {
       </div>
 
       {/* 우측 위젯 레일 (lg+) — 검색을 항상 보이는 자리에 두고, 단어를 모으는 방법을 곁들인다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
         {loggedIn && (
           <>
             <section className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark p-4 shadow-sm dark:shadow-none">

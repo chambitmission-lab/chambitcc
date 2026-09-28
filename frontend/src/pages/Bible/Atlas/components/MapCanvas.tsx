@@ -155,6 +155,7 @@ const MapCanvas = ({
     ]
   }, [night])
   const [size, setSize] = useState({ w: 0, h: 0 })
+  const azRef = useRef(1) // PC 글씨 크기 zoom 배율 — 화면 px → 레이아웃 px
   const [view, setView] = useState<ViewBox>({
     x: 0,
     y: 0,
@@ -194,10 +195,15 @@ const MapCanvas = ({
     const el = wrapRef.current
     if (!el) return
     const update = () => {
+      // 크기는 레이아웃 px 로 잰다 — PC 글씨 크기 zoom(--az) 안에선 rect(화면 px)가 배율만큼 크다.
+      // 레이아웃 px 기준이어야 "화면 px 로 일정"하게 그리는 핀·지명·선이 페이지 글씨와 함께 커진다.
+      // 대신 포인터 이동(화면 px)은 onPointerMove 에서 azRef 로 나눠 레이아웃 px 로 맞춘다
       const rect = el.getBoundingClientRect()
-      setSize((prev) =>
-        prev.w === rect.width && prev.h === rect.height ? prev : { w: rect.width, h: rect.height }
-      )
+      const az = parseFloat(getComputedStyle(el).getPropertyValue('--az')) || 1
+      azRef.current = az
+      const w = rect.width / az
+      const h = rect.height / az
+      setSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }))
     }
     update()
     const ro = new ResizeObserver(update)
@@ -392,8 +398,9 @@ const MapCanvas = ({
       draggedRef.current = true
       capturePointer(e)
     }
-    pendingRef.current.dx += dx
-    pendingRef.current.dy += dy
+    // 지도가 손가락을 그대로 따라오게 — 화면 px 를 size 와 같은 레이아웃 px 로
+    pendingRef.current.dx += dx / azRef.current
+    pendingRef.current.dy += dy / azRef.current
     scheduleFlush()
   }
 

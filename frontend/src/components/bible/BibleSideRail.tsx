@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { BibleNavKey } from './BibleBottomNav'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
+import { useFeedTextScale } from '../../utils/feedTextScale'
 import { PLAN_HERO, alarmArtPair, warmPair, warmRouteThemeAssets } from '../../utils/themeAssets'
 import './BibleSideRail.css'
 
@@ -112,10 +113,15 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
     })
   }
 
-  // 슬롯의 화면상 left를 따라간다 — 전역 레일 폭(lg/xl)·창 크기·접힘에 따라 바뀐다
+  // 슬롯의 화면상 left를 따라간다 — 전역 레일 폭(lg/xl)·창 크기·접힘에 따라 바뀐다.
+  // PC 글씨 크기 zoom 화면(/bible/plans 등, common.css `[data-app-scale]`)에선 rect 는 확대된 화면 좌표인데
+  // style.left 는 zoom 안에서 다시 곱해진다 — --az 로 나누지 않으면 레일이 본문 카드 위로 밀려 겹친다
   const measure = useCallback(() => {
-    const rect = slotRef.current?.getBoundingClientRect()
-    if (rect) setSlotLeft((prev) => (prev === rect.left ? prev : rect.left))
+    const slot = slotRef.current
+    if (!slot) return
+    const az = parseFloat(getComputedStyle(slot).getPropertyValue('--az')) || 1
+    const left = slot.getBoundingClientRect().left / az
+    setSlotLeft((prev) => (prev === left ? prev : left))
   }, [])
 
   useEffect(() => {
@@ -139,10 +145,11 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
 
   // 접힘/펼침·내용 유무로 슬롯 폭이 바뀌면 다음 프레임에 다시 잰다
   const hasBody = !!children
+  const textScale = useFeedTextScale()
   useEffect(() => {
     const raf = requestAnimationFrame(measure)
     return () => cancelAnimationFrame(raf)
-  }, [collapsed, hasBody, measure])
+  }, [collapsed, hasBody, textScale, measure])
 
   const variant = collapsed ? 'corl--collapsed' : hasBody ? '' : 'corl--nav'
   const slotVariant = collapsed ? 'corl-slot--collapsed' : hasBody ? '' : 'corl-slot--nav'

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
 import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import { useBibleBooks, useBibleChapterInfinite, prefetchBibleChapter } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress, BIBLE_HUB_RESUME_LIMIT } from '../../hooks/useBibleReading'
@@ -39,6 +39,7 @@ import { getReaderIntroCards, subscribeReaderIntroCards } from './data/readerInt
 import { AtlasIcon, StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon } from './components/BibleToolIcons'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../components/bible/BibleSideRail'
+import { requestPageZoom } from '../../utils/textScaleRoutes'
 // 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
 import { useStoryProgress } from './Story/storyProgress'
 import './BibleStudy.css'
@@ -58,6 +59,15 @@ const BibleStudy = () => {
     searchParams.get('tab') === 'search' ? 'search' : 'read'
   )
   const [showBookList, setShowBookList] = useState<boolean>(true)
+  // PC 글씨 크기 — 허브(책 목록·검색)는 플랜 화면처럼 페이지 전체를 zoom, 본문은 글자만(--text-mul).
+  // 본문은 절 이동·낭독 따라가기가 화면 좌표라 zoom 을 쓸 수 없다(utils/textScaleRoutes.ts).
+  // /bible/:book/:chapter 로 바로 들어오면 첫 렌더에 showBookList 가 잠깐 true 라 주소로도 거른다.
+  // 페인트 전에 켜고 꺼야 허브↔본문 전환에서 한 프레임 배율이 튀지 않는다
+  const hubZoom = location.pathname === '/bible' && (activeTab === 'search' || showBookList)
+  useLayoutEffect(() => {
+    requestPageZoom(hubZoom)
+  }, [hubZoom])
+  useLayoutEffect(() => () => requestPageZoom(false), [])
   // 본문 화면이 "이 페이지 안에서 책 목록을 눌러" 열렸는지. 홈의 [오늘 본문 읽기]처럼
   // 다른 화면에서 /bible/:book/:chapter 로 바로 들어온 경우와 구분해, 뒤로가기를
   // 책 목록으로 가로챌지 결정한다(아래 useModalBackButton).
@@ -643,7 +653,7 @@ const BibleStudy = () => {
                         bookNameEn={books?.find(b => b.book_number === resumeData.latest!.book_number)?.book_name_en}
                       />
                     )}
-                    <div className="lg:hidden">{dashToolTiles}</div>
+                    <div className="lg:hidden zoom-narrow-show">{dashToolTiles}</div>
                   </div>
 
                   {/* 책 선택 */}
@@ -660,7 +670,7 @@ const BibleStudy = () => {
 
                 {/* PC 사이드바 — 성경 공부 도구 모음 */}
                 {/* 스크롤해도 도구가 따라오도록 sticky — 다른 페이지 레일과 같은 top 값 */}
-                <aside className="hidden lg:block lg:w-[312px] lg:shrink-0 lg:pt-7 lg:sticky lg:top-[4.5rem]">
+                <aside className="hidden lg:block lg:w-[312px] lg:shrink-0 lg:pt-7 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
                   <p className="px-1 mb-2 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
                     성경 공부 도구
                   </p>

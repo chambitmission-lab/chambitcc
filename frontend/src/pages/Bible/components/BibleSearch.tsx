@@ -600,7 +600,7 @@ const BibleSearch = () => {
           </div>
         )}
 
-        <div className="search-scope-filter lg:hidden" role="radiogroup" aria-label={t.scopeLabel}>
+        <div className="search-scope-filter lg:hidden zoom-narrow-show-flex" role="radiogroup" aria-label={t.scopeLabel}>
           {(['ALL', 'OLD', 'NEW'] as const).map(s => (
             <button
               key={s}
@@ -733,7 +733,7 @@ const BibleSearch = () => {
       </div>{/* /본문 컬럼 */}
 
       {/* 우측 레일 (lg+) — 범위 필터 + 최근·추천 검색어를 항상 보이는 자리에 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-4 lg:sticky lg:top-[4.5rem]">
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-4 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
         <div className="search-chip-group">
           <div className="search-chip-group-header">
             <span>{t.scopeLabel}</span>

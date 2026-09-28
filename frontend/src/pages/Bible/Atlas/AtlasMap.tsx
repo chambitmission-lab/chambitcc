@@ -107,7 +107,9 @@ const AtlasMap = () => {
       : Math.max(box.top, stickyRef.current?.getBoundingClientRect().bottom ?? box.top)
     const bottom = desktop ? box.bottom : box.bottom - 96
     if (item.top >= top - 2 && item.bottom <= bottom + 2) return
-    scroller.scrollBy({ top: item.top - top - 8, behavior: 'smooth' })
+    // rect 는 화면 px, scrollBy 는 스크롤러 자신의 px — PC 글씨 크기 zoom(--az) 안에선 둘이 다르다
+    const az = parseFloat(getComputedStyle(scroller).getPropertyValue('--az')) || 1
+    scroller.scrollBy({ top: (item.top - top - 8) / az, behavior: 'smooth' })
   }, [player.index, journey.id])
 
   const currentStop = journey.stops[player.index]
