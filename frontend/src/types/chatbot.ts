@@ -21,11 +21,34 @@ export interface ChatCommentary {
   category?: string | null
 }
 
+export interface ChatPastorLink {
+  title: string
+  meta?: string | null
+  link: string
+}
+
+// 담임목사 프로필 카드 — 있으면 text 대신 카드로 그린다(text 는 옛 앱용 글자판)
+export interface ChatPastorCard {
+  name: string
+  role: string
+  nickname?: string | null
+  photo_url?: string | null
+  headline?: string | null
+  intro?: string | null
+  quote?: string | null
+  years_label?: string | null
+  education: string[]
+  career: string[]
+  sermon?: ChatPastorLink | null
+  column?: ChatPastorLink | null
+}
+
 export interface ChatReply {
   kind: string
   text?: string | null
   verses: ChatVerseCard[]
   commentary?: ChatCommentary | null
+  pastor?: ChatPastorCard | null
   actions: ChatAction[]
   // 아바타 표정: default|talking|thinking|joy|comfort|sorry|praying
   expression?: string | null

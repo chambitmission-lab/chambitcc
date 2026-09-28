@@ -11,6 +11,7 @@ import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
 const WelcomeScene = lazy(() => import('./WelcomeScene'))
 import { RECOMMENDED } from './recommended'
 import ChatCommentaryBlock from './ChatCommentaryBlock'
+import ChatPastorCard from './ChatPastorCard'
 import { useChatbotHidden, hideChatbot, hideChatbotForever, showChatbot } from './chatbotVisibility'
 import './chatbot.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
@@ -166,7 +167,12 @@ const BotBubble = ({
     <BotAvatar src={avatarFor(reply.expression)} />
     <div className="flex flex-col items-start gap-2 min-w-0">
       <div className="cb-msg">
-        {reply.text && <BotText text={reply.text} />}
+        {/* 담임목사 카드가 오면 글자판(text)은 옛 앱용이라 그리지 않는다 */}
+        {reply.pastor ? (
+          <ChatPastorCard card={reply.pastor} onAction={onAction} />
+        ) : (
+          reply.text && <BotText text={reply.text} />
+        )}
         {reply.verses.map((v) => (
           <blockquote key={v.reference + v.text.slice(0, 8)} className="cb-verse-quote">
             <p className="cb-verse-text m-0 text-[13.5px] leading-relaxed text-ink">{v.text}</p>
