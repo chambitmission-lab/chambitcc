@@ -1,11 +1,14 @@
 import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
-import { STORY_ACTS, TOTAL_EPISODES, nextUnread } from './data'
+import { ALL_EPISODES, STORY_ACTS, TOTAL_EPISODES, nextUnread } from './data'
 import { useStoryProgress, hasCelebrated, markCelebrated } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
 import { ArrowRight, BookOpen, Sparkle } from '../../../components/icons/phosphor'
 import './Story.css'
+
+// 화 번호(1~42) — 맵의 카드 격자와 레일에서 순서를 보여 준다
+const EPISODE_NO = new Map(ALL_EPISODES.map((e, i) => [e.id, i + 1]))
 
 /**
  * 처음 만나는 성경 — 여정 맵.
@@ -37,7 +40,7 @@ const StoryMap = () => {
     })
   }, [completed])
 
-  // 히어로(진행·이어보기 CTA) — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다
+  // 히어로(진행·이어보기 CTA) — 본문 맨 위. lg+ 에선 가로 배너로 펼쳐진다(Story.css)
   const renderStoryHero = (cls: string) => (
     <div className={cls}>
           {/* 히어로 — 진행 상태에 따라 3가지 얼굴 */}
@@ -98,6 +101,8 @@ const StoryMap = () => {
             </div>
           ) : (
             <div className="story-hero">
+              {/* lg+ 에선 __main(글)·__side(버튼·진행)가 좌우로 선다 — 모바일은 그대로 위아래 */}
+              <div className="story-hero__main">
               <span className="story-hero__eyebrow">
                 <span className="material-icons-round text-[14px]">auto_stories</span>
                 성경이 처음이신가요?
@@ -112,6 +117,8 @@ const StoryMap = () => {
                   ? `지금까지 ${readCount}화를 읽으셨어요. 하나로 이어지는 이야기라, 순서대로 읽으면 더 재미있어요.`
                   : '성경은 66권의 책이 모인 도서관이자, 처음과 끝이 이어지는 한 편의 거대한 이야기입니다. 본문을 펴기 전에, 그 줄거리를 42개의 짧은 이야기로 먼저 만나 보세요. 한 편에 3분이면 충분해요.'}
               </p>
+              </div>
+              <div className="story-hero__side">
               {next && (
                 <button
                   className="story-hero__cta"
@@ -140,42 +147,48 @@ const StoryMap = () => {
                   <div className="story-progress__fill" style={{ width: `${pct}%` }} />
                 </div>
               </div>
+              </div>
             </div>
           )}
     </div>
   )
 
+  // 지금 이어 읽을 화가 속한 막 — 우측 바로가기에서 강조한다
+  const currentAct = next ? STORY_ACTS.find(a => a.episodes.some(e => e.id === next.id))?.act : undefined
+
   return (
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
-      {/* lg+: 본문 + 우측 레일 2단. 본문은 680px 고정 — 화(에피소드)를 잇는 세로 점선
-          경로가 이 화면의 메타포라 2열로 쪼개거나 폭을 늘리면 길이 끊긴다 */}
-      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:w-[680px] lg:max-w-none lg:mx-0 lg:shrink-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden">
+      {/* lg+: 본문(가변 폭) + 우측 레일 2단. 예전엔 본문을 680px 로 묶고 히어로를 312px 레일에
+          넣어 PC 가 휴대폰 화면을 옆에 붙여 둔 듯 답답했다. 이제 히어로는 본문 맨 위 가로 배너,
+          화 목록은 번호 붙은 카드 격자(Story.css lg 블록)라 점선 경로 대신 "N화" 번호가 순서를 잇는다.
+          폭을 px 로 고정하지 않는 건 헤더 '가' 글씨 크기(zoom)를 키워도 옆으로 넘치지 않게 하려는 것 */}
+      <div className="lg:max-w-[1280px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-6 lg:pt-4 lg:pb-16">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-none lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden">
         {/* 헤더 */}
         {/* 하단 실선을 두지 않는다 — 예전 #root overflow-x:hidden 시절 sticky 가 붙지 않아 바가 반투명
             앱 헤더 밑을 지날 때 실선만 비쳐 "중간에 끊긴 선"처럼 보였다. 모바일은 헤더 바로 아래(top-14)에 붙는다.
             lg+ 는 static — 카드의 overflow-hidden 이 sticky 기준 상자가 되는데 그 상자는 스크롤하지
             않으니, top-14 만큼 바가 그대로 56px 밀려 내려와 1막 머리글을 덮었다 */}
         <div className="sticky top-14 lg:static z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm lg:rounded-t-3xl">
-          <div className="flex items-center gap-3 px-4 h-14">
+          <div className="flex items-center gap-3 px-4 h-14 lg:h-20 lg:px-8 lg:gap-4">
             <button
               onClick={() => navigate('/bible')}
-              className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full"
+              className="w-8 h-8 lg:w-11 lg:h-11 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full lg:hover:bg-[var(--brand-soft)] lg:hover:text-brand transition-colors"
               aria-label="성경으로 돌아가기"
             >
-              <span className="material-icons-round text-[22px]">arrow_back</span>
+              <span className="material-icons-round text-[22px] lg:text-[26px]">arrow_back</span>
             </button>
             <div>
-              <h1 className="text-[17px] font-bold text-ink-strong">처음 만나는 성경</h1>
-              <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
+              <h1 className="text-[17px] lg:text-[24px] font-bold text-ink-strong">처음 만나는 성경</h1>
+              <p className="text-[12px] lg:text-[15px] text-gray-500 dark:text-gray-400 mt-0.5">
                 성경 전체를 한 편의 이야기로
               </p>
             </div>
           </div>
         </div>
 
-        <div className="px-4 pt-5">
-          {renderStoryHero('lg:hidden')}
+        <div className="px-4 pt-5 lg:px-8 lg:pt-2">
+          {renderStoryHero('')}
 
           {/* 10막 여정 */}
           {STORY_ACTS.map(act => {
@@ -221,6 +234,10 @@ const StoryMap = () => {
                           )}
                         </span>
                         <span className="story-node__body">
+                          {/* 화 번호 — lg 격자에서 점선 경로 대신 순서를 알려 준다 (모바일은 숨김) */}
+                          <span className="story-node__no">
+                            {EPISODE_NO.get(ep.id)}화{read ? ' · 읽음' : ''}
+                          </span>
                           <span className="story-node__title">{ep.title}</span>
                           <span className="story-node__hook">{ep.hook}</span>
                         </span>
@@ -241,19 +258,57 @@ const StoryMap = () => {
         </div>
       </div>
 
-      {/* 우측 위젯 레일 (lg+) — 진행·이어보기와 10막 인덱스를 옆에 고정한다.
-          42화가 세로로 길게 이어지는 화면이라 "지금 어디쯤"이 계속 보여야 한다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
-        {renderStoryHero('')}
+      {/* 우측 위젯 레일 (lg+) — 42화가 길게 이어지는 화면이라 스크롤해 내려가도
+          "지금 어디쯤·이어 읽기"와 10막 바로가기가 계속 보여야 한다. 레일이 화면보다 길어지면
+          (글씨 '아주 크게') 레일 안에서만 스크롤한다 */}
+      <aside
+        className="hidden lg:flex lg:w-[300px] xl:w-[330px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:overflow-y-auto lg:pb-2"
+        style={{ maxHeight: 'calc((100vh - 5.5rem) / var(--az, 1))' }}
+      >
+        <section className="rounded-2xl p-5 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-[14px] font-bold text-gray-600 dark:text-white/60">전체 여정</span>
+            <span className="text-[16px] font-extrabold text-brand tabular-nums">
+              {readCount} / {TOTAL_EPISODES}화
+            </span>
+          </div>
+          <div className="mt-2.5 h-2 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-brand transition-[width] duration-500"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          {next && (
+            <button
+              type="button"
+              onClick={() => navigate(`/bible/story/${next.id}`)}
+              className="mt-4 w-full flex items-center gap-3 rounded-xl px-3.5 py-3 bg-brand text-white text-left shadow-[0_10px_24px_-12px_var(--brand-glow)] hover:brightness-110 transition"
+            >
+              <span className="shrink-0 w-9 h-9 rounded-full bg-white/20 grid place-items-center">
+                <StoryGlyph emoji={next.emoji} size={18} />
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block text-[12.5px] font-bold text-white/80">
+                  {started ? `이어서 읽기 · ${EPISODE_NO.get(next.id)}화` : '1화부터 시작하기'}
+                </span>
+                <span className="block text-[15.5px] font-bold leading-snug [word-break:keep-all]">
+                  {next.title}
+                </span>
+              </span>
+              <span className="material-icons-round shrink-0 text-[22px]">arrow_forward</span>
+            </button>
+          )}
+        </section>
 
-        <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
-          <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
-            10막 여정
+        <section className="rounded-2xl p-3 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+          <p className="px-2 pt-1 pb-2 text-[14px] font-bold text-gray-600 dark:text-white/60">
+            10막 바로가기
           </p>
-          <div className="flex flex-col -mx-1">
+          <div className="flex flex-col">
             {STORY_ACTS.map((act) => {
               const done = act.episodes.filter((e) => readIds.has(e.id)).length
               const allDone = done === act.episodes.length
+              const isCurrentAct = act.act === currentAct
               return (
                 <button
                   key={act.act}
@@ -263,18 +318,29 @@ const StoryMap = () => {
                       .getElementById(`story-act-${act.act}`)
                       ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                   }
-                  className="flex items-center gap-2 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
+                  className={`flex items-center gap-3 px-2 py-2.5 rounded-xl text-left transition-colors ${
+                    isCurrentAct ? 'bg-[var(--brand-soft)]' : 'hover:bg-[var(--brand-soft)]'
+                  }`}
                 >
-                  <span className="shrink-0 w-5 grid place-items-center text-brand"><StoryGlyph emoji={act.emoji} size={15} /></span>
-                  <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-ink-strong">
-                    {act.title}
+                  <span className="shrink-0 w-9 h-9 rounded-lg grid place-items-center bg-[var(--brand-soft)] text-brand">
+                    <StoryGlyph emoji={act.emoji} size={18} />
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-[12px] font-bold text-brand">{act.act}막</span>
+                    <span className="block text-[15px] font-semibold leading-snug text-ink-strong [word-break:keep-all]">
+                      {act.title}
+                    </span>
                   </span>
                   <span
-                    className={`shrink-0 text-[11px] font-bold tabular-nums ${
-                      allDone ? 'text-emerald-600 dark:text-emerald-300' : 'text-gray-400 dark:text-white/40'
+                    className={`shrink-0 text-[13.5px] font-bold tabular-nums ${
+                      allDone ? 'text-emerald-600 dark:text-emerald-300' : 'text-gray-500 dark:text-white/50'
                     }`}
                   >
-                    {done}/{act.episodes.length}
+                    {allDone ? (
+                      <span className="material-icons-round text-[20px] align-middle">check_circle</span>
+                    ) : (
+                      `${done}/${act.episodes.length}`
+                    )}
                   </span>
                 </button>
               )

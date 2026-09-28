@@ -131,6 +131,31 @@ const StoryEpisode = () => {
     return () => window.clearTimeout(timer)
   }, [found?.index])
 
+  // PC 키보드 넘기기 — ← 이전 화, → 다음 화(다음 이야기 버튼과 같이 읽음 처리), Esc 용어 닫기.
+  // 입력 중이거나 조합키를 누른 경우엔 건드리지 않는다
+  const prevId = found && found.index > 0 ? ALL_EPISODES[found.index - 1].id : null
+  const nextId =
+    found && found.index + 1 < ALL_EPISODES.length ? ALL_EPISODES[found.index + 1].id : null
+  const foundId = found?.episode.id
+  useEffect(() => {
+    if (!foundId) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.defaultPrevented) return
+      const t = e.target as HTMLElement | null
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return
+      if (e.key === 'Escape') {
+        setOpenTermFor(null)
+      } else if (e.key === 'ArrowLeft' && prevId) {
+        navigate(`/bible/story/${prevId}`)
+      } else if (e.key === 'ArrowRight') {
+        markRead(foundId)
+        navigate(nextId ? `/bible/story/${nextId}` : '/bible/story')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [foundId, prevId, nextId, markRead, navigate])
+
   const { data: fetchedRefs, isLoading: versesLoading } = useEpisodeVerses(
     episodeId,
     found?.episode.verseRefs ?? []
@@ -142,6 +167,7 @@ const StoryEpisode = () => {
   const atlasPlaceId = placeForEpisode(episode.id)
   const isRead = readIds.has(episode.id)
   const nextEp = index + 1 < ALL_EPISODES.length ? ALL_EPISODES[index + 1] : null
+  const prevEp = index > 0 ? ALL_EPISODES[index - 1] : null
 
   const goRead = () => {
     const { book, chapter, verse } = episode.readLink
@@ -156,29 +182,32 @@ const StoryEpisode = () => {
 
   return (
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
-      {/* lg+: 읽는 화면이라 본문 폭(620px)은 유지하고, 옆에 여정 목차 레일을 둔다.
+      {/* lg+: 읽는 화면. 본문은 한 줄이 너무 길어지지 않게 760px 까지만 넓히고(글씨는 Story.css lg
+          블록에서 19px 로 키운다), 옆에 여정 목차 레일을 둔다. 폭을 px 로 못박지 않는 건 헤더 '가'
+          글씨 크기(zoom)를 키워도 옆으로 넘치지 않게 하려는 것.
           overflow-hidden은 주지 않는다 — 하단 CTA 바가 sticky로 붙어야 하기 때문 */}
-      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-32 lg:max-w-[620px] lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
+      <div className="lg:max-w-[1180px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-6 lg:pt-4 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-32 lg:max-w-[760px] lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
         {/* 헤더 */}
         {/* 하단 실선을 두지 않는다 — 예전 #root overflow-x:hidden 시절 sticky 가 붙지 않아 바가 반투명
             앱 헤더 밑을 지날 때 실선만 비쳐 "중간에 끊긴 선"처럼 보였다. 이제 헤더 바로 아래(top-14)에 붙는다 */}
         <div className="sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm lg:rounded-t-3xl">
-          <div className="flex items-center gap-3 px-4 h-14">
+          <div className="flex items-center gap-3 px-4 h-14 lg:h-16 lg:px-6">
             <button
               onClick={() => navigate('/bible/story')}
-              className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full"
+              className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full lg:hover:bg-[var(--brand-soft)] lg:hover:text-brand transition-colors"
               aria-label="여정 지도로 돌아가기"
             >
-              <span className="material-icons-round text-[22px]">arrow_back</span>
+              <span className="material-icons-round text-[22px] lg:text-[24px]">arrow_back</span>
             </button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-[15px] font-bold text-ink-strong truncate">
+              <h1 className="text-[15px] lg:text-[18px] font-bold text-ink-strong truncate">
                 {act.act}막 · {act.title}
               </h1>
             </div>
-            <span className="flex-shrink-0 text-[12px] font-bold tabular-nums text-gray-400 dark:text-white/45">
+            <span className="flex-shrink-0 text-[12px] lg:text-[15px] font-bold tabular-nums text-gray-400 dark:text-white/45 lg:text-gray-500">
               {index + 1} / {TOTAL_EPISODES}
+              <span className="hidden lg:inline">화</span>
             </span>
           </div>
         </div>
@@ -285,6 +314,17 @@ const StoryEpisode = () => {
         {/* 하단 고정 바 */}
         <div className="story-ep__bar">
           <div className="story-ep__bar-inner">
+            {/* 이전 이야기 — PC 에서만. 모바일은 지도로 돌아가 고르는 흐름을 유지한다 */}
+            {prevEp && (
+              <button
+                className="story-ep__bar-prev"
+                onClick={() => navigate(`/bible/story/${prevEp.id}`)}
+                title={`이전 이야기 · ${prevEp.title}`}
+              >
+                <span className="material-icons-round text-[20px]">arrow_back</span>
+                이전
+              </button>
+            )}
             <button
               className="story-ep__bar-map"
               onClick={() => navigate('/bible/story')}
@@ -296,6 +336,8 @@ const StoryEpisode = () => {
               {nextEp ? (
                 <>
                   다음 이야기
+                  {/* PC 는 바가 넓어 다음 화 제목까지 보여 준다 */}
+                  <span className="story-ep__bar-next-title">· {nextEp.title}</span>
                   <span className="material-icons-round text-[18px]">arrow_forward</span>
                 </>
               ) : (
@@ -320,18 +362,22 @@ const StoryEpisode = () => {
         )}
       </div>
 
-      {/* 우측 위젯 레일 (lg+) — 전자책 목차처럼 이 막의 화 목록과 여정 진행을 옆에 둔다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
-        <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+      {/* 우측 위젯 레일 (lg+) — 전자책 목차처럼 이 막의 화 목록과 여정 진행을 옆에 둔다.
+          글씨 '아주 크게'에서 화면보다 길어지면 레일 안에서만 스크롤한다 */}
+      <aside
+        className="hidden lg:flex lg:w-[300px] xl:w-[320px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:overflow-y-auto lg:pb-2"
+        style={{ maxHeight: 'calc((100vh - 5.5rem) / var(--az, 1))' }}
+      >
+        <section className="rounded-2xl p-5 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            <span className="text-[14px] font-bold text-gray-600 dark:text-white/60">
               전체 여정
             </span>
-            <span className="text-[12.5px] font-bold text-brand tabular-nums">
+            <span className="text-[16px] font-extrabold text-brand tabular-nums">
               {readIds.size} / {TOTAL_EPISODES}화
             </span>
           </div>
-          <div className="mt-2 h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
+          <div className="mt-2.5 h-2 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
             <div
               className="h-full rounded-full bg-brand transition-[width] duration-500"
               style={{ width: `${Math.round((readIds.size / TOTAL_EPISODES) * 100)}%` }}
@@ -340,17 +386,18 @@ const StoryEpisode = () => {
           <button
             type="button"
             onClick={() => navigate('/bible/story')}
-            className="mt-3 w-full h-9 rounded-xl border border-[var(--card-border)] text-[12.5px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+            className="mt-4 w-full h-11 rounded-xl border border-[var(--card-border)] text-[15px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors inline-flex items-center justify-center gap-1.5"
           >
+            <span className="material-icons-round text-[19px]">map</span>
             여정 지도 보기
           </button>
         </section>
 
-        <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
-          <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+        <section className="rounded-2xl p-3 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+          <p className="px-2 pt-1 pb-2 text-[14px] font-bold text-gray-600 dark:text-white/60 [word-break:keep-all]">
             {act.act}막 · {act.title}
           </p>
-          <div className="flex flex-col -mx-1">
+          <div className="flex flex-col">
             {act.episodes.map((ep) => {
               const current = ep.id === episode.id
               const read = readIds.has(ep.id)
@@ -359,20 +406,21 @@ const StoryEpisode = () => {
                   key={ep.id}
                   type="button"
                   onClick={() => navigate(`/bible/story/${ep.id}`)}
-                  className={`flex items-center gap-2 px-1 py-2 rounded-lg text-left transition-colors ${
+                  aria-current={current ? 'page' : undefined}
+                  className={`flex items-center gap-2.5 px-2 py-2.5 rounded-xl text-left transition-colors ${
                     current ? 'bg-[var(--brand-soft-strong)]' : 'hover:bg-[var(--brand-soft)]'
                   }`}
                 >
-                  <span className="shrink-0 w-5 grid place-items-center text-brand"><StoryGlyph emoji={ep.emoji} size={15} /></span>
+                  <span className="shrink-0 w-6 grid place-items-center text-brand"><StoryGlyph emoji={ep.emoji} size={18} /></span>
                   <span
-                    className={`flex-1 min-w-0 truncate text-[12.5px] ${
+                    className={`flex-1 min-w-0 text-[15px] leading-snug [word-break:keep-all] ${
                       current ? 'font-bold text-brand' : 'font-semibold text-ink-strong'
                     }`}
                   >
                     {ep.title}
                   </span>
                   {read && !current && (
-                    <span className="material-icons-round shrink-0 text-[14px] text-emerald-500">
+                    <span className="material-icons-round shrink-0 text-[18px] text-emerald-500">
                       check
                     </span>
                   )}
@@ -381,6 +429,13 @@ const StoryEpisode = () => {
             })}
           </div>
         </section>
+
+        {/* 키보드 넘기기 안내 — 마우스 없이도 한 화씩 넘길 수 있다는 걸 알려 준다 */}
+        <p className="px-2 text-[13px] leading-relaxed text-gray-500 dark:text-white/50 flex items-center gap-1.5 flex-wrap">
+          <kbd className="px-1.5 py-0.5 rounded-md border border-gray-300 dark:border-white/20 bg-white dark:bg-white/5 font-sans text-[12px] font-bold">←</kbd>
+          <kbd className="px-1.5 py-0.5 rounded-md border border-gray-300 dark:border-white/20 bg-white dark:bg-white/5 font-sans text-[12px] font-bold">→</kbd>
+          키로 이전·다음 이야기
+        </p>
       </aside>
       </div>
     </div>

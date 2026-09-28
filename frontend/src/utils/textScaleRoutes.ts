@@ -24,6 +24,7 @@ const ZOOM_ROUTES = [
   '/thanks',
   '/bible/plans',
   '/bible/meditation',
+  '/bible/story', // 처음 만나는 성경 — 맵·에피소드 모두 (지도 카드는 클릭만 해 좌표 계산 없음)
   // 참여
   '/events',
   '/elections',
