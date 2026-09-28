@@ -76,9 +76,11 @@ interface ModalShellProps {
   title: string
   onClose: () => void
   children: ReactNode
+  /** PC(lg+)에서 넓은 2단 폼으로 쓰는 모달 — 모바일은 그대로 */
+  wide?: boolean
 }
 
-const ModalShell = ({ title, onClose, children }: ModalShellProps) => {
+const ModalShell = ({ title, onClose, children, wide }: ModalShellProps) => {
   // 뒤로가기 → 모달만 닫기 (Create/Join 공통)
   useModalBackButton(onClose)
 
@@ -88,7 +90,7 @@ const ModalShell = ({ title, onClose, children }: ModalShellProps) => {
     onClick={onClose}
   >
     <div
-      className="relative w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] lg:max-h-[calc(90vh/var(--az,1))] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+      className={`relative w-full sm:max-w-md ${wide ? 'lg:max-w-[960px]' : ''} max-h-[92vh] sm:max-h-[90vh] lg:max-h-[calc(90vh/var(--az,1))] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="hidden dark:block absolute inset-0 pointer-events-none">
@@ -97,8 +99,8 @@ const ModalShell = ({ title, onClose, children }: ModalShellProps) => {
       <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/15 to-sky-400/10 dark:from-blue-500/15 dark:to-sky-500/8 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-sky-400/10 to-blue-400/10 dark:from-sky-500/10 dark:to-blue-500/8 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-        <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
+      <div className={`relative z-10 flex items-center justify-between px-5 py-4 ${wide ? 'lg:px-8 lg:py-5' : ''} border-b border-black/[0.04] dark:border-white/[0.06]`}>
+        <h2 className={`text-ink-strong text-[17px] ${wide ? 'lg:text-[21px]' : ''} font-bold tracking-[-0.015em]`}>
           {title}
         </h2>
         <button
@@ -244,6 +246,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
     <ModalShell
       title={createdGroup ? t('groupCreatedTitle') : t('createGroupTitle')}
       onClose={handleClose}
+      wide={!createdGroup}
     >
       {createdGroup ? (
         <div className="px-5 py-5">
@@ -359,7 +362,8 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
-          <div className="flex-1 px-5 py-5 space-y-5">
+          <div className="flex-1 px-5 py-5 space-y-5 lg:space-y-0 lg:px-8 lg:py-7 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:items-start">
+           <div className="space-y-5 lg:space-y-6">
             {errorMessage && (
               <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-400/30">
                 <span className="text-red-500 text-[15px] shrink-0">⚠️</span>
@@ -370,15 +374,15 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
             )}
 
             {/* 미리보기 */}
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
-              <div className="shrink-0 w-11 h-11 rounded-xl bg-brand flex items-center justify-center text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]">
+            <div className="flex items-center gap-3 p-3 lg:p-4 lg:gap-4 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
+              <div className="shrink-0 w-11 h-11 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-brand flex items-center justify-center text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]">
                 <GroupGlyph emoji={icon} size={24} />
               </div>
               <div className="min-w-0">
-                <p className="text-[13.5px] font-bold text-ink-strong truncate">
+                <p className="text-[13.5px] lg:text-[16px] font-bold text-ink-strong truncate">
                   {name.trim() || '그룹 이름'}
                 </p>
-                <p className="text-[11.5px] text-gray-500 dark:text-white/55 truncate">
+                <p className="text-[11.5px] lg:text-[13px] text-gray-500 dark:text-white/55 truncate lg:whitespace-normal lg:line-clamp-2 lg:leading-[1.5] lg:mt-0.5">
                   {description.trim() || '아래에 설명을 적어주세요'}
                 </p>
               </div>
@@ -386,7 +390,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
 
             {/* 템플릿 — 고르면 아이콘·설명이 채워져 3탭이면 완성 */}
             <FieldGroup label="어떤 모임인가요? (선택)">
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 lg:gap-2">
                 {TEMPLATES.map((tpl) => {
                   const active = templateKey === tpl.key
                   return (
@@ -395,7 +399,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                       type="button"
                       onClick={() => applyTemplate(tpl.key)}
                       className={[
-                        'inline-flex items-center gap-1 px-2.5 h-8 rounded-full text-[12px] font-semibold transition-all border',
+                        'inline-flex items-center gap-1 lg:gap-1.5 px-2.5 h-8 lg:px-3.5 lg:h-10 rounded-full text-[12px] lg:text-[14px] font-semibold transition-all border',
                         active
                           ? 'bg-brand text-white border-transparent shadow-sm'
                           : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/65 hover:bg-gray-100 dark:hover:bg-white/[0.06]',
@@ -421,7 +425,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 placeholder={template?.namePlaceholder ?? t('groupNamePlaceholder')}
                 required
                 maxLength={50}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
+                className="w-full px-3.5 py-2.5 lg:px-4 lg:py-3.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] lg:text-[16px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
               />
             </FieldGroup>
 
@@ -433,20 +437,23 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 placeholder={t('groupDescriptionPlaceholder')}
                 rows={3}
                 maxLength={200}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.6]"
+                className="w-full px-3.5 py-2.5 lg:px-4 lg:py-3.5 lg:min-h-[150px] rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] lg:text-[15.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.6]"
               />
-              <p className="text-[11px] font-semibold text-gray-400 dark:text-white/40 mt-1 text-right tabular-nums">
+              <p className="text-[11px] lg:text-[12.5px] font-semibold text-gray-400 dark:text-white/40 mt-1 text-right tabular-nums">
                 {description.length}/200
               </p>
             </FieldGroup>
 
+           </div>
+
+           <div className="space-y-5 lg:space-y-6">
             {/* 기도방 테마 (선택) — 테마를 고르면 상황별 성구가 방의 오늘의 성구로 이어진다 */}
             {themeCategories && themeCategories.length > 0 && (
               <FieldGroup label="기도방 테마 (선택)">
-                <p className="text-[11.5px] text-gray-500 dark:text-white/50 -mt-1 mb-2 leading-[1.5]">
+                <p className="text-[11.5px] lg:text-[13px] text-gray-500 dark:text-white/50 -mt-1 mb-2 lg:mb-3 leading-[1.5]">
                   테마를 고르면 매일 그 상황에 맞는 성경 구절이 방에 함께 보여요
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 lg:gap-2">
                   {themeCategories.map((cat) => {
                     const active = themeCategoryId === cat.id
                     return (
@@ -455,14 +462,14 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                         type="button"
                         onClick={() => setThemeCategoryId(active ? null : cat.id)}
                         className={[
-                          'inline-flex items-center gap-1 px-2.5 h-8 rounded-full text-[12px] font-semibold transition-all border',
+                          'inline-flex items-center gap-1 lg:gap-1.5 px-2.5 h-8 lg:px-3.5 lg:h-10 rounded-full text-[12px] lg:text-[14px] font-semibold transition-all border',
                           active
                             ? 'text-white border-transparent shadow-sm'
                             : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/65 hover:bg-gray-100 dark:hover:bg-white/[0.06]',
                         ].join(' ')}
                         style={active ? { backgroundColor: cat.color } : undefined}
                       >
-                        <span className="material-icons-round text-[14px]">{cat.icon}</span>
+                        <span className="material-icons-round text-[14px] lg:text-[17px]">{cat.icon}</span>
                         {cat.name}
                       </button>
                     )
@@ -473,7 +480,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
 
             {/* 공개 설정 — 둘러보기 노출 여부 */}
             <FieldGroup label="공개 설정">
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-1.5 lg:gap-2">
                 {VISIBILITY_CHOICES.map((opt) => {
                   const active = visibility === opt.value
                   return (
@@ -482,30 +489,30 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                       type="button"
                       onClick={() => setVisibility(opt.value)}
                       className={[
-                        'px-2 py-2 rounded-xl border text-center transition-all',
+                        'px-2 py-2 lg:py-3.5 rounded-xl border text-center transition-all',
                         active
                           ? 'bg-[var(--brand-soft)] border-[var(--brand-soft-strong)]'
                           : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08]',
                       ].join(' ')}
                     >
-                      <span className={`block text-[12.5px] font-bold ${active ? 'text-brand' : 'text-ink-strong'}`}>
+                      <span className={`block text-[12.5px] lg:text-[15px] font-bold ${active ? 'text-brand' : 'text-ink-strong'}`}>
                         {opt.label}
                       </span>
-                      <span className="block text-[10.5px] text-gray-500 dark:text-white/50 mt-0.5">
+                      <span className="block text-[10.5px] lg:text-[12.5px] text-gray-500 dark:text-white/50 mt-0.5">
                         {opt.desc}
                       </span>
                     </button>
                   )
                 })}
               </div>
-              <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1.5 leading-[1.5]">
+              <p className="text-[11px] lg:text-[12.5px] text-gray-400 dark:text-white/40 mt-1.5 lg:mt-2 leading-[1.5]">
                 공개·승인제로 하면 [내 그룹 → 둘러보기]에 소개돼 초대 없이도 성도들이 찾아올 수 있어요
               </p>
             </FieldGroup>
 
             {/* 아이콘 선택 */}
             <FieldGroup label={t('groupIcon')}>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-2 lg:gap-2.5">
                 {ICON_OPTIONS.map((opt) => {
                   const active = icon === opt
                   return (
@@ -526,21 +533,22 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 })}
               </div>
             </FieldGroup>
+           </div>
           </div>
 
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="sticky bottom-0 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 lg:px-8 lg:py-4 flex items-center gap-2">
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
+              className="px-4 h-11 lg:h-12 lg:px-5 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] lg:text-[15px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
             >
               {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={!name.trim() || createMutation.isPending}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 lg:h-12 lg:px-8 rounded-full bg-brand text-white text-[13.5px] lg:text-[15px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {createMutation.isPending ? (
                 <>
@@ -675,7 +683,7 @@ const FieldGroup = ({
 }) => (
   <div>
     <div className="flex items-center gap-1 mb-2">
-      <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
+      <p className="text-[12px] lg:text-[14px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
         {label}
       </p>
       {required && <span className="text-rose-500 text-[12px] font-bold">*</span>}
