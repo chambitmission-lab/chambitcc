@@ -872,6 +872,29 @@ html.dark .cb-snack { background: #2a2a2a; }
   .cb-snack { animation: none; }
 }
 
+/* ── 패널 퇴장 — 열릴 때의 pop-in(tailwind)과 짝. 링크 액션은 라우트를 먼저 바꾸고 이 애니메이션으로
+   패널이 걷히며 새 화면이 드러난다(패널이 뚝 사라진 뒤 화면이 바뀌면 두 박자로 어색했다).
+   .cb-panel.is-closing 은 .animate-pop-in 보다 특이도가 높아 진입 애니메이션을 덮는다. */
+.cb-panel.is-closing {
+  animation: cb-pop-out 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+}
+.cb-backdrop.is-closing {
+  animation: cb-fade-out 0.2s ease-in forwards;
+  pointer-events: none;
+}
+@keyframes cb-pop-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.97); }
+}
+@keyframes cb-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb-panel.is-closing, .cb-backdrop.is-closing { animation: none; opacity: 0; }
+}
+
 .cb-snack-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .cb-snack-text strong { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
 .cb-snack-text span { font-size: 12px; color: rgba(255, 255, 255, 0.6); }

@@ -306,8 +306,14 @@ const WelcomeSkeleton = () => (
   </div>
 )
 
+// 퇴장 애니메이션 길이(chatbot.css cb-pop-out) — animationend 가 안 오는 경우(motion-reduce)의 보험
+const CLOSE_MS = 200
+
 const ChatbotWidget = () => {
   const [open, setOpen] = useState(false)
+  // 닫히는 중 — open 은 false 지만 패널을 한 박자 더 그려 페이드아웃한다
+  const [closing, setClosing] = useState(false)
+  const closeTimerRef = useRef<number | null>(null)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -332,6 +338,27 @@ const ChatbotWidget = () => {
 
   // 인증 화면에서는 위젯을 숨긴다
   const hidden = ['/login', '/register'].includes(location.pathname)
+
+  // 닫기 — 즉시 언마운트하지 않고 퇴장 애니메이션(is-closing)을 재생한 뒤 내린다.
+  // 모든 닫기 경로(×, 배경, Escape, 뒤로가기, 링크 이동)가 이 함수를 지난다.
+  const finishClose = useCallback(() => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = null
+    setClosing(false)
+  }, [])
+  const closePanel = useCallback(() => {
+    setOpen(false)
+    setClosing(true)
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current)
+    closeTimerRef.current = window.setTimeout(finishClose, CLOSE_MS + 40)
+  }, [finishClose])
+  const openPanel = useCallback(() => {
+    finishClose()
+    setOpen(true)
+  }, [finishClose])
+  useEffect(() => () => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current)
+  }, [])
 
   const appendReplies = useCallback((replies: ChatReply[]) => {
     setMsgs((prev) => [
@@ -382,11 +409,11 @@ const ChatbotWidget = () => {
     const onOpen = (e: Event) => {
       const message = (e as CustomEvent<{ message?: string }>).detail?.message?.trim()
       if (message) pendingRef.current = message
-      setOpen(true)
+      openPanel()
     }
     window.addEventListener(OPEN_CHATBOT_EVENT, onOpen)
     return () => window.removeEventListener(OPEN_CHATBOT_EVENT, onOpen)
-  }, [])
+  }, [openPanel])
 
   // 모바일에서 아래로 스크롤하는 동안 FAB을 오른쪽으로 접어둔다 — 읽는 화면을 가리지 않게.
   // 위로 올리거나 최상단이면 다시 나온다. PC(lg+)는 코너 위젯이라 항상 노출.
@@ -490,17 +517,17 @@ const ChatbotWidget = () => {
   }, [loading, loadGreeting])
 
   // 뒤로가기(안드로이드/브라우저)는 앱 종료·페이지 이동 대신 패널만 닫는다
-  useModalBackButton(() => setOpen(false), open)
+  useModalBackButton(closePanel, open)
 
   // Escape로 닫기
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') closePanel()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, [open, closePanel])
 
   const send = useCallback(
     async (text: string) => {
@@ -546,7 +573,9 @@ const ChatbotWidget = () => {
 
   // 링크 이동 — 라우터(v7)는 화면 전환을 startTransition 으로 돌려 lazy 청크가 올 때까지 이전 화면을
   // 붙잡는다. 패널부터 닫으면 그 사이 뒤의 화면(예: 프로필)이 드러나 "프로필 갔다가 /growth" 처럼
-  // 두 번 이동해 보였다 — 청크를 먼저 받고 닫는다. 받는 동안 연타는 한 번만.
+  // 두 번 이동해 보였다 — 청크를 먼저 받고, 라우트를 바꾼 다음 패널을 걷는다. 패널은 퇴장
+  // 애니메이션(closePanel) 동안 남아 있어 그 아래서 새 화면이 자리 잡고, 걷히면서 바로 드러난다
+  // ("패널 닫힘 → 잠깐 이전 화면 → 새 화면" 두 박자가 아니라 한 동작). 받는 동안 연타는 한 번만.
   const linkPendingRef = useRef(false)
   const onAction = useCallback(
     async (a: ChatAction) => {
@@ -561,13 +590,13 @@ const ChatbotWidget = () => {
         // 패널이 쌓아 둔 뒤로가기 엔트리(같은 화면)를 목적지로 바꿔 끼운다 — push 하면 그 엔트리가
         // 고아로 남아 목적지에서 뒤로가기를 두 번 눌러야 원래 화면으로 돌아간다
         const replace = window.history.state?.modalBack != null
-        setOpen(false)
         navigate(a.value, { replace })
+        closePanel()
       } else {
         void send(a.value)
       }
     },
-    [navigate, send],
+    [navigate, send, closePanel],
   )
 
   if (hidden) return null
@@ -576,7 +605,7 @@ const ChatbotWidget = () => {
     <>
       {/* 플로팅 버튼 — 모바일에선 하단 독 위, 데스크톱에선 우하단.
           롱프레스(모바일)/hover(PC)로 × 배지가 나오고, 누르면 이번 방문 동안 숨긴다 */}
-      {!open && !fabHidden && (
+      {!open && !closing && !fabHidden && (
         <div
           className={`cb-fab-wrap fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom)+var(--chat-fab-lift,0rem))] lg:bottom-6 lg:right-6 z-[95] transition-[bottom,transform,opacity] duration-300 motion-reduce:transition-none ${
             tucked ? 'translate-x-[130%] opacity-0 pointer-events-none' : ''
@@ -591,7 +620,7 @@ const ChatbotWidget = () => {
                 longPressedRef.current = false
                 return
               }
-              setOpen(true)
+              openPanel()
             }}
             onPointerDown={startPress}
             onPointerEnter={(e) => {
@@ -657,21 +686,25 @@ const ChatbotWidget = () => {
 
       {/* 뒤 배경 딤+블러 — 해석 패널과 같은 문법. 탭하면 닫힌다.
           PC(lg+)는 코너 위젯이라 화면 전체를 어둡게 하지 않는다 — 넓게 보기일 때만 딤 */}
-      {open && (
+      {(open || closing) && (
         <div
-          className={`fixed inset-0 z-[98] bg-black/55 backdrop-blur-[2px] ${wide ? 'lg:bg-black/40' : 'lg:hidden'}`}
-          onClick={() => setOpen(false)}
+          className={`cb-backdrop ${closing ? 'is-closing' : ''} fixed inset-0 z-[98] bg-black/55 backdrop-blur-[2px] ${wide ? 'lg:bg-black/40' : 'lg:hidden'}`}
+          onClick={closePanel}
           aria-hidden="true"
         />
       )}
 
-      {/* 채팅 패널 */}
-      {open && (
+      {/* 채팅 패널 — 닫히는 동안(closing)도 한 박자 남아 페이드아웃한다 */}
+      {(open || closing) && (
         <div
           role="dialog"
           aria-label="참비"
+          aria-hidden={closing || undefined}
           data-cb-scale="" /* 값 없음 — 배율은 <html data-text-scale> 에서 CSS 로 상속 */
-          className={`cb-panel ${wide ? 'is-wide' : ''} fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none`}
+          onAnimationEnd={(e) => {
+            if (closing && e.target === e.currentTarget) finishClose()
+          }}
+          className={`cb-panel ${wide ? 'is-wide' : ''} ${closing ? 'is-closing' : ''} fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none`}
         >
           {/* 헤더 — 웰컴 화면에선 배경과 한 덩어리(투명), 대화 중엔 흰 크롬 */}
           <div
@@ -723,7 +756,7 @@ const ChatbotWidget = () => {
               <button
                 type="button"
                 aria-label="챗봇 닫기"
-                onClick={() => setOpen(false)}
+                onClick={closePanel}
                 className="cb-hbtn focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
               >
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
