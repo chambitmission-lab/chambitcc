@@ -1081,3 +1081,28 @@ html.dark .cb-scale-btn[aria-pressed='true'] { background: rgba(255, 255, 255, 0
   .cb-panel[data-cb-scale] .cb-send { width: 50px; height: 50px; }
   .cb-panel[data-cb-scale] .cb-send svg { width: 21px; height: 21px; }
 }
+
+/* ── 첫 오픈 스켈레톤 — 인사 API·WelcomeScene 청크를 기다리는 동안 웰컴 화면의 골격 ───────── */
+.cb-skel {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(49, 130, 246, 0.10);
+}
+.cb-skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: cb-skel-sweep 1.3s ease-in-out infinite;
+}
+html.dark .cb-skel { background: rgba(255, 255, 255, 0.07); }
+html.dark .cb-skel::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent); }
+@keyframes cb-skel-sweep { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .cb-skel::after { animation: none; } }
+/* 히어로 안 자리표시자 — 실제 참비 원(.cb-chambi)·오늘의 말씀 필(.cb-verse-pill)과 같은 자리·크기 */
+.cb-skel-chambi { position: absolute; right: 2px; bottom: 0; width: 90px; height: 90px; border-radius: 999px; }
+.cb-skel-pill { grid-column: 1 / span 2; grid-row: 2; height: 34px; margin-top: 14px; margin-right: 82px; border-radius: 999px; }
+.cb-welcome-skel .cb-card, .cb-welcome-skel .cb-together { box-shadow: none; }

@@ -8,8 +8,11 @@ import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { isRoutePreloaded, preloadRoute } from '../../utils/routePreload'
 import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
-// 환영 장면은 패널을 열어야 보인다 — lazy 로 분리해 위젯 버튼만 첫 로드에 남긴다
-const WelcomeScene = lazy(() => import('./WelcomeScene'))
+// 환영 장면은 패널을 열어야 보인다 — lazy 로 분리해 위젯 버튼만 첫 로드에 남긴다.
+// 다만 import 는 인사 API 응답을 기다리지 않고 버튼에 손이 갈 때(hover/pointerdown)·여는 즉시 시작한다 —
+// 첫 오픈이 "인사 왕복 → 청크 왕복" 직렬이라 두 배로 길었다. 같은 모듈 promise 라 lazy 가 그대로 받아 쓴다.
+const loadWelcomeScene = () => import('./WelcomeScene')
+const WelcomeScene = lazy(loadWelcomeScene)
 import { RECOMMENDED } from './recommended'
 import ChatCommentaryBlock from './ChatCommentaryBlock'
 import ChatPastorCard from './ChatPastorCard'
@@ -267,6 +270,42 @@ const TypingDots = () => (
   </div>
 )
 
+// 첫 오픈 스켈레톤 — 인사 API·WelcomeScene 청크가 오는 동안 웰컴 화면과 같은 골격(히어로·3열 카드·스트립)을
+// 먼저 그린다. 전에는 이 구간이 빈 패널 + 점 세 개라 실제보다 훨씬 길게 느껴졌다.
+const WelcomeSkeleton = () => (
+  <div className="cb-welcome cb-welcome-skel" aria-busy="true" aria-label="참비가 준비하고 있어요">
+    <section className="cb-hero">
+      <div className="cb-hero-copy flex flex-col gap-2 pt-1">
+        <span className="cb-skel h-[22px] w-[72%]" />
+        <span className="cb-skel h-[22px] w-[48%]" />
+        <span className="cb-skel mt-2 h-3 w-[88%]" />
+        <span className="cb-skel h-3 w-[62%]" />
+      </div>
+      <div className="cb-hero-art">
+        <span className="cb-skel cb-skel-chambi" />
+      </div>
+      <span className="cb-skel cb-skel-pill" />
+    </section>
+    <span className="cb-skel mt-4 mb-2.5 h-3.5 w-[44%]" />
+    <div className="cb-grid" aria-hidden>
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={i} className="cb-card pointer-events-none">
+          <span className="cb-skel h-[38px] w-[38px] !rounded-[12px]" />
+          <span className="cb-skel mt-2.5 h-3 w-[70%]" />
+          <span className="cb-skel mt-1.5 h-2.5 w-[88%]" />
+        </div>
+      ))}
+    </div>
+    <div className="cb-together pointer-events-none" aria-hidden>
+      <span className="cb-skel h-9 w-9 !rounded-full" />
+      <span className="flex flex-1 flex-col gap-1.5">
+        <span className="cb-skel h-3 w-[38%]" />
+        <span className="cb-skel h-2.5 w-[74%]" />
+      </span>
+    </div>
+  </div>
+)
+
 const ChatbotWidget = () => {
   const [open, setOpen] = useState(false)
   const [msgs, setMsgs] = useState<Msg[]>([])
@@ -305,6 +344,7 @@ const ChatbotWidget = () => {
   const loadGreeting = useCallback(() => {
     greetedRef.current = true
     greetedWhoRef.current = chatViewerKey()
+    void loadWelcomeScene()
     setLoading(true)
     getChatbotGreeting()
       .then((res) => appendReplies(res.replies))
@@ -386,7 +426,10 @@ const ChatbotWidget = () => {
 
   // 롱프레스 0.45초 → × 배지. 손을 떼면 타이머만 정리하고 배지는 남긴다.
   const startPress = useCallback(() => {
-    if (!greetedRef.current) prefetchChatbotGreeting()
+    if (!greetedRef.current) {
+      prefetchChatbotGreeting()
+      void loadWelcomeScene()
+    }
     longPressedRef.current = false
     pressRef.current = window.setTimeout(() => {
       longPressedRef.current = true
@@ -424,6 +467,9 @@ const ChatbotWidget = () => {
     msgs.length === 1 && msgs[0].role === 'bot' && msgs[0].reply.actions.length >= 2
       ? msgs[0].reply
       : null
+  // 첫 인사를 기다리는 중 — 웰컴 화면 자리에 스켈레톤을 두고 크롬도 웰컴 모양으로 맞춘다
+  const welcomePending = loading && msgs.length === 0
+  const welcomeChrome = welcomeReply !== null || welcomePending
 
   // 새 메시지·로딩 변화 시 맨 아래로 (환영 화면은 씬이 보이도록 맨 위)
   useEffect(() => {
@@ -549,7 +595,10 @@ const ChatbotWidget = () => {
             }}
             onPointerDown={startPress}
             onPointerEnter={(e) => {
-              if (e.pointerType === 'mouse' && !greetedRef.current) prefetchChatbotGreeting()
+              if (e.pointerType === 'mouse' && !greetedRef.current) {
+                prefetchChatbotGreeting()
+                void loadWelcomeScene()
+              }
             }}
             onPointerUp={endPress}
             onPointerLeave={endPress}
@@ -627,7 +676,7 @@ const ChatbotWidget = () => {
           {/* 헤더 — 웰컴 화면에선 배경과 한 덩어리(투명), 대화 중엔 흰 크롬 */}
           <div
             className={`flex items-center justify-between px-3.5 py-3 ${
-              welcomeReply ? 'cb-header-welcome' : 'cb-header-welcome cb-header-chat'
+              welcomeChrome ? 'cb-header-welcome' : 'cb-header-welcome cb-header-chat'
             }`}
           >
             <div className="flex min-w-0 items-center gap-2.5">
@@ -657,7 +706,7 @@ const ChatbotWidget = () => {
                   </svg>
                 )}
               </button>
-              {!welcomeReply && (
+              {!welcomeChrome && (
                 <button
                   type="button"
                   aria-label="대화 새로 시작"
@@ -687,10 +736,12 @@ const ChatbotWidget = () => {
           {/* 메시지 목록 */}
           <div
             ref={listRef}
-            className={`flex-1 overflow-y-auto flex flex-col ${welcomeReply ? '' : 'cb-chat gap-3.5 px-3.5 py-4'}`}
+            className={`flex-1 overflow-y-auto flex flex-col ${welcomeChrome ? '' : 'cb-chat gap-3.5 px-3.5 py-4'}`}
           >
-            {welcomeReply ? (
-              <Suspense fallback={null}>
+            {welcomePending ? (
+              <WelcomeSkeleton />
+            ) : welcomeReply ? (
+              <Suspense fallback={<WelcomeSkeleton />}>
                 <WelcomeScene reply={welcomeReply} onAction={onAction} onAsk={(q) => void send(q)} />
               </Suspense>
             ) : (
@@ -711,12 +762,12 @@ const ChatbotWidget = () => {
                 ),
               )
             )}
-            {loading && <div className={welcomeReply ? 'px-3 py-3' : ''}><TypingDots /></div>}
+            {loading && !welcomePending && <div className={welcomeReply ? 'px-3 py-3' : ''}><TypingDots /></div>}
           </div>
 
           {/* 입력창 */}
           <form
-            className={`cb-inputbar flex items-center gap-2 px-3 py-2.5 ${welcomeReply ? 'is-welcome' : ''}`}
+            className={`cb-inputbar flex items-center gap-2 px-3 py-2.5 ${welcomeChrome ? 'is-welcome' : ''}`}
             onSubmit={(e) => {
               e.preventDefault()
               void send(input)

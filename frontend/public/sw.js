@@ -314,7 +314,77 @@ self.addEventListener('notificationclose', (event) => {
 // ─────────────────────────────────────────────────────────────
 const APP_SHELL_CACHE = 'chambit-app-shell-v1';
 const ASSETS_CACHE = 'chambit-assets-v1';
-const ASSET_MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30일 — 재배포로 안 쓰게 된 옛 번들 정리 기준
+
+// ── 번들 캐시 세대(generation) ──────────────────────────────
+// 옛 번들 정리를 "캐시한 지 30일"로 했더니 하루 여러 번 배포하는 이 앱에선 30일치 배포가
+// 전부 살아남아 JS 청크가 1만 개 넘게 쌓였다(2026-09 실측 11,192개).
+// 대신 index.html 이 참조하는 엔트리 번들 목록의 서명을 "현재 세대"로 삼고,
+// 번들을 캐시에 넣을 때 그때의 세대를 헤더로 찍어 둔다. 재배포되면 엔트리 해시가 바뀌어 세대가 바뀌고
+// (Rollup 은 lazy 청크 하나만 바뀌어도 그걸 import 하는 쪽까지 해시가 번진다),
+// 이전 세대 번들은 세대가 바뀐 뒤 ASSET_GEN_GRACE 가 지나면 지운다 — 아직 열려 있는 옛 탭이
+// lazy 청크를 늦게 요청할 수 있어 즉시 지우지 않는다.
+// 세대 헤더가 없는 항목(이 코드 이전에 캐시된 것)은 응답 Date 기준으로 같은 유예를 적용한다.
+const ASSET_GEN_HEADER = 'x-sw-asset-gen';
+const ASSET_GEN_GRACE = 1000 * 60 * 60 * 24 * 3; // 3일
+const SW_ASSET_GEN_KEY = '/__sw_asset_gen';
+let assetGen = null;        // { gen: string, since: number } — SW 프로세스 메모리 (재시작 시 config 캐시에서 복원)
+
+const extractAssetUrls = (html) => {
+  const matches = html.match(/(?:src|href)="([^"]*\/assets\/[^"]+)"/g) || [];
+  return [...new Set(matches.map((m) => m.replace(/^(?:src|href)="/, '').replace(/"$/, '')))];
+};
+
+// 엔트리 번들 목록 → 짧은 서명 (djb2). 순서 무관하게 정렬해서 만든다.
+const signAssetUrls = (urls) => {
+  const text = [...urls].sort().join('|');
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36) + '-' + urls.length;
+};
+
+const loadAssetGen = async () => {
+  if (assetGen) return assetGen;
+  try {
+    const cache = await caches.open(SW_CONFIG_CACHE);
+    const res = await cache.match(SW_ASSET_GEN_KEY);
+    if (res) {
+      const parsed = JSON.parse(await res.text());
+      if (parsed && typeof parsed.gen === 'string') assetGen = parsed;
+    }
+  } catch (e) { /* 모르면 정리를 미룬다 */ }
+  return assetGen;
+};
+
+// index.html 을 새로 받을 때마다 호출 — 세대가 바뀌었으면 기록하고 유예 시계를 시작한다
+const noteAssetGen = async (html) => {
+  const urls = extractAssetUrls(html);
+  if (urls.length === 0) return;
+  const gen = signAssetUrls(urls);
+  const prev = await loadAssetGen();
+  if (prev && prev.gen === gen) return;
+  assetGen = { gen, since: Date.now() };
+  try {
+    const cache = await caches.open(SW_CONFIG_CACHE);
+    await cache.put(SW_ASSET_GEN_KEY, new Response(JSON.stringify(assetGen), { headers: { 'Content-Type': 'application/json' } }));
+  } catch (e) { /* 메모리 값으로라도 동작한다 */ }
+};
+
+// 번들 응답에 현재 세대를 찍어서 캐시에 넣는다 (같은 출처 응답만 오므로 헤더 복사가 가능하다)
+const putAssetWithGen = async (cache, request, response) => {
+  const gen = await loadAssetGen();
+  if (!gen) {
+    await cache.put(request, response);
+    return;
+  }
+  const headers = new Headers(response.headers);
+  headers.set(ASSET_GEN_HEADER, gen.gen);
+  const stamped = new Response(await response.arrayBuffer(), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+  await cache.put(request, stamped);
+};
 
 // 설치 시 index.html 과 그것이 참조하는 엔트리 번들을 미리 캐싱한다.
 // (첫 방문의 자산 요청은 아직 SW 통제 밖이라 런타임 캐싱만으로는
@@ -329,14 +399,14 @@ const precacheAppShell = async () => {
   // index.html 이 참조하는 /assets/ 번들(src/href 속성)을 추출해 프리캐시
   try {
     const html = await res.text();
-    const matches = html.match(/(?:src|href)="([^"]*\/assets\/[^"]+)"/g) || [];
-    const assetUrls = [...new Set(matches.map((m) => m.replace(/^(?:src|href)="/, '').replace(/"$/, '')))];
+    await noteAssetGen(html);
+    const assetUrls = extractAssetUrls(html);
     const assetsCache = await caches.open(ASSETS_CACHE);
     await Promise.all(
       assetUrls.map(async (u) => {
         try {
           const r = await fetch(u);
-          if (r && r.ok) await assetsCache.put(u, r);
+          if (r && r.ok) await putAssetWithGen(assetsCache, u, r);
         } catch (e) {
           // 개별 자산 실패는 무시 — 런타임 캐싱이 다음 방문에 채운다
         }
@@ -362,21 +432,38 @@ const precacheAppShell = async () => {
   } catch (e) { /* 무시 */ }
 };
 
-// date 헤더 기준으로 오래된 번들 캐시 제거.
+// 현재 세대가 아닌 번들 캐시 제거 (세대 바뀐 뒤 유예 경과분만).
 // activate 는 sw.js 자체가 바뀔 때만 돌므로, 온라인 앱 시작 때도 호출한다.
+// 세대를 아직 모르면(첫 설치 직후 등) 아무것도 지우지 않는다 — 추측으로 현재 번들을 지우지 않게.
 const pruneOldAssets = async () => {
+  const current = await loadAssetGen();
+  if (!current) return;
+  const now = Date.now();
   const cache = await caches.open(ASSETS_CACHE);
   const requests = await cache.keys();
-  const now = Date.now();
-  await Promise.all(
-    requests.map(async (request) => {
-      const response = await cache.match(request);
-      const dateHeader = response && response.headers.get('date');
-      if (dateHeader && now - new Date(dateHeader).getTime() > ASSET_MAX_AGE) {
-        await cache.delete(request);
-      }
-    })
-  );
+  let removed = 0;
+  // 항목이 수천 개일 수 있어(정리 전 첫 실행) 한 번에 다 열지 않고 묶음으로 돈다
+  const BATCH = 50;
+  for (let i = 0; i < requests.length; i += BATCH) {
+    await Promise.all(
+      requests.slice(i, i + BATCH).map(async (request) => {
+        const response = await cache.match(request);
+        if (!response) return;
+        const gen = response.headers.get(ASSET_GEN_HEADER);
+        let stale;
+        if (gen) {
+          // 세대가 찍힌 항목: 다른 세대이고, 세대가 바뀐 지 유예가 지났으면 제거
+          stale = gen !== current.gen && now - current.since > ASSET_GEN_GRACE;
+        } else {
+          // 세대 없는 옛 항목: 받은 지 유예가 지났으면 제거 (현재 번들이면 다음 요청 때 다시 받아 세대가 찍힌다)
+          const dateHeader = response.headers.get('date');
+          stale = !dateHeader || now - new Date(dateHeader).getTime() > ASSET_GEN_GRACE;
+        }
+        if (stale && (await cache.delete(request))) removed += 1;
+      })
+    );
+  }
+  if (removed) console.log('🧹 옛 번들 캐시 ' + removed + '개 정리 (현재 세대 ' + current.gen + ')');
 };
 
 let lastAssetPruneAt = 0;
@@ -396,20 +483,21 @@ self.addEventListener('activate', (event) => {
   console.log('✅ Service Worker 활성화됨');
   const KNOWN_CACHES = [CACHE_NAME, HERO_CACHE_NAME, SW_CONFIG_CACHE, APP_SHELL_CACHE, ASSETS_CACHE];
   event.waitUntil(
-    Promise.all([
-      // 오래된 API 캐시 항목 정리
-      pruneOldApiCache().catch(() => {}),
-      // 오래된 번들 캐시 정리
-      pruneOldAssets().catch(() => {}),
-      // 더 이상 안 쓰는 chambit-* 캐시 통째로 정리
-      caches.keys().then((names) =>
+    // 더 이상 안 쓰는 chambit-* 캐시 통째로 정리 → 바로 제어권 획득
+    caches
+      .keys()
+      .then((names) =>
         Promise.all(
           names
             .filter((n) => n.startsWith('chambit-') && !KNOWN_CACHES.includes(n))
             .map((n) => caches.delete(n))
         )
-      ),
-    ]).then(() => self.clients.claim())
+      )
+      .then(() => self.clients.claim())
+      .then(() =>
+        // 항목 단위 정리는 claim 뒤에 — 옛 번들이 수천 개 쌓인 기기에서 첫 화면을 막지 않게
+        Promise.all([pruneOldApiCache().catch(() => {}), pruneOldAssets().catch(() => {})])
+      )
   );
 });
 
@@ -548,6 +636,8 @@ self.addEventListener('fetch', (event) => {
           if (response && response.ok && !response.redirected && url.pathname === BASE_PATH) {
             const copy = response.clone();
             caches.open(APP_SHELL_CACHE).then((cache) => cache.put(BASE_PATH, copy));
+            // 배포가 바뀌었는지(엔트리 번들 서명) 기록 — 옛 번들 정리의 기준
+            response.clone().text().then(noteAssetGen).catch(() => {});
           }
           // 온라인 앱 시작을 계기로 오래된 번들·API 캐시 정리 (SW 프로세스당 1시간에 1회).
           // activate 는 sw.js 내용이 바뀔 때만 돌아서, 여기 안 걸면 성경 장(6~29KB)을
@@ -582,7 +672,7 @@ self.addEventListener('fetch', (event) => {
           if (cached) return cached;
           return fetch(event.request).then((response) => {
             if (response && response.ok) {
-              cache.put(event.request, response.clone());
+              putAssetWithGen(cache, event.request, response.clone()).catch(() => {});
             }
             return response;
           });
