@@ -340,6 +340,52 @@ html.dark .cb-together { background: linear-gradient(180deg, #232323 0%, #201f1f
   font-size: 10.5px; font-weight: 800;
 }
 
+/* ── 오늘 챙길 것 (로그인 성도 브리핑) ─────────────────────
+   웰컴: 히어로 아래 흰 카드 한 장에 줄 목록. 말풍선: 본문 아래 얇은 줄 목록.
+   숫자·날짜만 담긴 한 줄들이라 아이콘 원 + 문장 + 셰브론으로 가볍게. 색은 브랜드 토큰만. */
+.cb-brief--welcome {
+  margin-top: 12px !important;
+  border-radius: 16px;
+  background: var(--cb-card);
+  border: 1px solid var(--cb-line);
+  box-shadow: var(--cb-shadow);
+  overflow: hidden;
+}
+html.dark .cb-brief--welcome { background: linear-gradient(180deg, #232323 0%, #201f1f 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
+.cb-brief--welcome li + li { border-top: 1px solid var(--cb-line); }
+.cb-brief--bubble { margin-top: 10px !important; display: flex; flex-direction: column; gap: 6px; }
+.cb-brief-row {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  text-align: left;
+  color: var(--cb-ink);
+}
+.cb-brief--welcome .cb-brief-row { padding: 10px 12px; }
+.cb-brief--bubble .cb-brief-row {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+}
+html.dark .cb-brief--bubble .cb-brief-row { background: rgba(255,255,255,0.05); }
+button.cb-brief-row { transition: background-color 0.15s ease; }
+.cb-brief--welcome button.cb-brief-row:hover { background: var(--brand-soft); }
+.cb-brief--bubble button.cb-brief-row:hover { background: rgba(49, 130, 246, 0.14); }
+html.dark .cb-brief--welcome button.cb-brief-row:hover,
+html.dark .cb-brief--bubble button.cb-brief-row:hover { background: rgba(255,255,255,0.08); }
+.cb-brief-icon {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 30px; height: 30px; border-radius: 999px;
+  background: var(--brand-soft); color: var(--brand);
+}
+.cb-brief--bubble .cb-brief-icon { width: 26px; height: 26px; background: var(--cb-card); }
+.cb-brief-text {
+  flex: 1; min-width: 0;
+  font-size: 13px; font-weight: 600; line-height: 1.45;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+.cb-brief-chev { flex-shrink: 0; color: var(--cb-ink-2); }
+
 /* ── 추천 질문 칩 줄 (입력창 아래) ─────────────────────── */
 .cb-chips {
   display: flex;
@@ -944,6 +990,11 @@ html.dark .cb-scale-btn[aria-pressed='true'] { background: rgba(255, 255, 255, 0
   .cb-panel[data-cb-scale] .cb-together-sub { font-size: calc(13.5px * var(--cbs)); }
   .cb-panel[data-cb-scale] .cb-together-dot { width: 30px; height: 30px; }
   .cb-panel[data-cb-scale] .cb-together-count { height: 30px; font-size: 12px; }
+  .cb-panel[data-cb-scale] .cb-brief--welcome { margin-top: 16px !important; border-radius: 18px; }
+  .cb-panel[data-cb-scale] .cb-brief--welcome .cb-brief-row { padding: 13px 16px; gap: 12px; }
+  .cb-panel[data-cb-scale] .cb-brief-icon { width: 38px; height: 38px; }
+  .cb-panel[data-cb-scale] .cb-brief-icon svg { width: calc(20px * var(--cbs)); height: calc(20px * var(--cbs)); }
+  .cb-panel[data-cb-scale] .cb-brief-text { font-size: calc(15.5px * var(--cbs)); }
 
   /* 추천 질문 — 마우스로는 가로 스크롤이 안 보이니 PC 에선 줄바꿈해 전부 펼친다 */
   .cb-panel[data-cb-scale] .cb-chips { flex-wrap: wrap; overflow: visible; gap: 8px; padding: 2px 18px 16px; }

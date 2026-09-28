@@ -6,29 +6,42 @@ import type {
   ChatbotUnanswered,
 } from '../types/chatbot'
 import { request, requestRaw } from './utils/request'
+import { sessionStore, tokenStore } from '../utils/tokenStore'
 
 const BASE = `${API_V1}/chatbot`
 
 const fetchGreeting = () =>
   request<ChatbotAnswer>(`${BASE}/menu`, { errorMessage: '챗봇 연결에 실패했습니다' })
 
+/**
+ * 지금 챗봇을 보는 사람 — 로그인 성도의 인사에는 이름·오늘 브리핑이 실리므로
+ * 계정이 바뀌면 미리 받은 인사와 대화를 버려야 한다(위젯이 이 값을 비교한다).
+ */
+export const chatViewerKey = (): string =>
+  tokenStore.hasAccess() ? `u:${sessionStore.get('username') ?? ''}` : 'anon'
+
 // 버튼을 누르기 시작(모바일)·올리는(PC) 순간 미리 받아 둔 인사 — 패널이 열릴 때 왕복 없이 쓴다.
 // 인사는 시간대 문구라 오래 두지 않고, 한 번 쓰면 버린다("새로 시작"은 새로 받는다).
 const GREETING_PREFETCH_TTL_MS = 60_000
-let prefetched: { at: number; promise: Promise<ChatbotAnswer> } | null = null
+let prefetched: { at: number; who: string; promise: Promise<ChatbotAnswer> } | null = null
+
+const freshPrefetch = () =>
+  prefetched && Date.now() - prefetched.at < GREETING_PREFETCH_TTL_MS && prefetched.who === chatViewerKey()
+    ? prefetched
+    : null
 
 export const prefetchChatbotGreeting = (): void => {
-  if (prefetched && Date.now() - prefetched.at < GREETING_PREFETCH_TTL_MS) return
+  if (freshPrefetch()) return
   const promise = fetchGreeting()
   promise.catch(() => {
     if (prefetched?.promise === promise) prefetched = null
   })
-  prefetched = { at: Date.now(), promise }
+  prefetched = { at: Date.now(), who: chatViewerKey(), promise }
 }
 
-/** 위젯을 열었을 때의 첫 인사 + 메뉴 칩 */
+/** 위젯을 열었을 때의 첫 인사 + 메뉴 칩 (로그인 시 이름·오늘 브리핑 포함) */
 export const getChatbotGreeting = async (): Promise<ChatbotAnswer> => {
-  const hit = prefetched && Date.now() - prefetched.at < GREETING_PREFETCH_TTL_MS ? prefetched.promise : null
+  const hit = freshPrefetch()?.promise ?? null
   prefetched = null
   return hit ?? fetchGreeting()
 }

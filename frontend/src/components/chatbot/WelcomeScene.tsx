@@ -6,10 +6,11 @@ import { useDailyVerse } from '../../hooks/useDailyVerse'
 import { getCurrentWeeklyPrayer } from '../../api/weeklyPrayer'
 import './chatbot.css'
 import { weeklyPrayerKeys } from '../../hooks/queryKeys'
+import ChatBriefList from './ChatBriefList'
 
 /**
  * 챗봇을 처음 열었을 때의 환영 화면 — 브랜드 블루 안개 배경 위
- * 흰 히어로 카드(인사 + 오늘의 말씀 필 + 참비) → "참비가 도와드릴게요" 3열 카드 → 함께하는 우리 스트립.
+ * 흰 히어로 카드(인사 + 오늘의 말씀 필 + 참비) → (로그인 시) 오늘 챙길 것 → "참비가 도와드릴게요" 3열 카드 → 함께하는 우리 스트립.
  * 추천 질문 칩(RECOMMENDED)은 위젯 입력창 아래에서 그린다.
  * 백엔드 인사(reply.actions)를 그대로 받아 메뉴 카드 그리드로 그린다 —
  * 라벨 키워드로 시각 프리셋을 고르므로 관리자가 메뉴를 늘려도 기본 카드로 안전하게 떨어진다.
@@ -321,6 +322,11 @@ const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
           </button>
         )}
       </section>
+
+      {/* 오늘 챙길 것 — 로그인 성도에게만 백엔드가 채운다(플랜·편지·캡슐·연속 읽기…). 히어로 보조 문구가 제목 역할 */}
+      {reply.brief && reply.brief.length > 0 && (
+        <ChatBriefList items={reply.brief} onAction={onAction} variant="welcome" />
+      )}
 
       {/* 메뉴 카드 */}
       <h3 className="cb-section-title m-0">

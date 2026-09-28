@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkle, Check } from '../icons/phosphor'
 import { EmojiText } from '../common/EmojiText'
-import { getChatbotGreeting, prefetchChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
+import { chatViewerKey, getChatbotGreeting, prefetchChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import { tryGlossaryReply } from './localGlossary'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
@@ -12,6 +12,7 @@ const WelcomeScene = lazy(() => import('./WelcomeScene'))
 import { RECOMMENDED } from './recommended'
 import ChatCommentaryBlock from './ChatCommentaryBlock'
 import ChatPastorCard from './ChatPastorCard'
+import ChatBriefList from './ChatBriefList'
 import { useChatbotHidden, hideChatbot, hideChatbotForever, showChatbot } from './chatbotVisibility'
 import './chatbot.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
@@ -173,6 +174,9 @@ const BotBubble = ({
         ) : (
           reply.text && <BotText text={reply.text} />
         )}
+        {reply.brief && reply.brief.length > 0 && (
+          <ChatBriefList items={reply.brief} onAction={onAction} variant="bubble" />
+        )}
         {reply.verses.map((v) => (
           <blockquote key={v.reference + v.text.slice(0, 8)} className="cb-verse-quote">
             <p className="cb-verse-text m-0 text-[13.5px] leading-relaxed text-ink">{v.text}</p>
@@ -268,6 +272,8 @@ const ChatbotWidget = () => {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const greetedRef = useRef(false)
+  // 인사를 받을 때의 사람 — 로그인·로그아웃·계정 전환을 알아채 이전 사람의 개인 답을 지운다
+  const greetedWhoRef = useRef<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
@@ -297,6 +303,7 @@ const ChatbotWidget = () => {
   // 인사 + 메뉴 — 처음 열 때, 그리고 "새로 시작"에서 다시 받아온다
   const loadGreeting = useCallback(() => {
     greetedRef.current = true
+    greetedWhoRef.current = chatViewerKey()
     setLoading(true)
     getChatbotGreeting()
       .then((res) => appendReplies(res.replies))
@@ -318,6 +325,15 @@ const ChatbotWidget = () => {
     if (!open || greetedRef.current) return
     loadGreeting()
   }, [open, loadGreeting])
+
+  // 계정이 바뀌었으면(로그인 화면을 다녀오면 라우트가 바뀐다) 대화를 비운다 — 인사의 이름·브리핑,
+  // "내 기도" 같은 답이 다음 사람 화면에 남지 않게. 열려 있으면 새 사람 기준으로 다시 인사한다
+  useEffect(() => {
+    if (!greetedRef.current || greetedWhoRef.current === chatViewerKey()) return
+    setMsgs([])
+    greetedRef.current = false
+    if (open) loadGreeting()
+  }, [open, location.pathname, loadGreeting])
 
   // 외부(⌘K 팔레트 등)에서 "참비에게 물어보기" — 패널을 열고, 인사가 끝나면 질문을 보낸다
   const pendingRef = useRef<string | null>(null)
