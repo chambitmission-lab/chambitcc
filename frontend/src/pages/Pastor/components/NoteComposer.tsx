@@ -6,7 +6,7 @@
 // 메모는 목사님만 봅니다(서버도 작성자 외엔 404).
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../../utils/toast'
 import {
   NOTE_KIND_ICON,
@@ -81,8 +81,11 @@ const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) =
     queryFn: () => analyzeNote(dBody, dPassage || null),
     enabled: dBody.length >= 2 || dPassage.length >= 2,
     staleTime: 60_000,
+    // 글자마다 키가 바뀌어도 새 답이 올 때까지 앞 결과를 그대로 둔다 — 비워 두면 오른쪽 말씀 칸이 깜빡인다
+    placeholderData: keepPreviousData,
   })
-  const names = dBody === body.trim() ? analysis?.names ?? [] : []
+  // 지금 글에 아직 남아 있는 실명만 — 타자 중에도 경고가 사라졌다 나타나지 않게
+  const names = (analysis?.names ?? []).filter(n => body.includes(n.match))
   const bodyRefs = (analysis?.refs ?? []).filter(r => r.origin === 'body')
 
   // 성경 사전 — 앱에 이미 있는 표제어(인물·지명·용어)를 메모 글에서 찾는다. 첫 본문의 책 기준으로 동명이인을 거른다
@@ -364,7 +367,7 @@ const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) =
         </div>
 
         {/* 오른쪽: 이어지는 말씀 */}
-        <div className="space-y-4 lg:min-w-0 lg:border-l lg:border-gray-100 dark:lg:border-white/[0.06] lg:pl-8">
+        <div className={`space-y-4 lg:min-w-0 lg:border-l lg:border-gray-100 dark:lg:border-white/[0.06] lg:pl-8 transition-opacity duration-200 ${analyzing ? 'opacity-70' : ''}`}>
           <div className="flex items-center justify-between">
             <p className="text-[13px] lg:text-[15px] font-bold text-ink-strong">이 메모와 이어지는 말씀</p>
             {analyzing && <span className="text-[12px] text-gray-500">찾는 중...</span>}
