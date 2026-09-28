@@ -1,7 +1,20 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
-import { checkPassage, fetchSermonPrep, type PassageCheck, type SermonPrep } from '../../api/pastor'
+import { Link, useNavigate } from 'react-router-dom'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  checkPassage,
+  createOutline,
+  fetchNotes,
+  fetchRelatedNotes,
+  fetchSermonPrep,
+  type PassageCheck,
+  type SermonNote,
+  type SermonPrep,
+} from '../../api/pastor'
+import { showToast } from '../../utils/toast'
+import NoteComposer from './components/NoteComposer'
+import { NoteCard, SermonTabs } from './components/sermonNotes'
+import { noteListKey } from './components/sermonNoteUtils'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import EmotionFlowCard from './components/EmotionFlowCard'
@@ -10,6 +23,7 @@ import { agoLabel, daysSince, formatDay, inputCls, usePastorGate } from './compo
 // 설교 준비 도우미 — 좌: 본문 중복 확인 · 66권 커버리지 · 오래 설교하지 않은 권
 //                    우: 이번 주 성도의 마음 · 성도들이 머문 말씀 · 최근 설교
 // 모두 규칙·집계(AI 미사용). 본문은 설교 등록 때 적은 '본문' 칸을 읽어 권·장으로 센다.
+// 본문 확인은 '본문 워크벤치' — 지난 설교와 함께 그 본문·주제와 이어지는 내 설교 메모를 꺼내 온다.
 
 const PERIODS = [
   { years: 1, label: '최근 1년' },
@@ -47,6 +61,7 @@ const PastorSermon = () => {
 
   return (
     <PastorShell>
+      <SermonTabs />
       {isPending && !data ? (
         <StatSpinner label="설교 준비 자료를 모으는 중..." />
       ) : !data ? (
@@ -58,6 +73,7 @@ const PastorSermon = () => {
             <CoverageCard data={data} years={years} onYears={setYears} openBook={openBook} onOpenBook={setOpenBook} />
           </div>
           <div className="contents lg:block">
+            <NotesPeekCard />
             <EmotionFlowCard emotions={data.heart} title="이번 주 성도의 마음" />
             <EngagementCard data={data} />
             <RecentCard data={data} />
@@ -73,6 +89,7 @@ const PassageCheckCard = () => {
   const [ref, setRef] = useState('')
   const check = useMutation<PassageCheck, Error, string>({ mutationFn: checkPassage })
   const result = check.data
+  const checkedRef = check.variables ?? ''
 
   return (
     <SectionCard title="본문 확인">
@@ -130,6 +147,110 @@ const PassageCheckCard = () => {
             </ul>
           </div>
         ))}
+      {result && result.parsed.length > 0 && <RelatedNotes passage={checkedRef} />}
+    </SectionCard>
+  )
+}
+
+// ── 본문과 이어지는 내 메모 (본문 워크벤치) ─────────────────
+const RelatedNotes = ({ passage }: { passage: string }) => {
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  const [open, setOpen] = useState<SermonNote | null>(null)
+  const { data, isPending } = useQuery({
+    queryKey: ['pastor-note-related', passage],
+    queryFn: () => fetchRelatedNotes(passage),
+  })
+  const start = useMutation({
+    mutationFn: () =>
+      createOutline({
+        title: `${passage} 설교`,
+        passage,
+        note_ids: (data?.items ?? []).filter(n => n.reasons?.includes('같은 본문') && !n.used_on).map(n => n.id),
+      }),
+    onSuccess: o => {
+      void qc.invalidateQueries({ queryKey: ['pastor-outlines'] })
+      navigate(`/pastor/sermon/outlines/${o.id}`)
+    },
+    onError: (e: Error) => showToast(e.message, 'error'),
+  })
+  const items = data?.items ?? []
+  return (
+    <div className="pt-3 border-t border-gray-100 dark:border-white/[0.06] space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[12.5px] font-bold text-ink-strong">
+          이 본문과 이어지는 내 메모 {items.length > 0 && <span className="text-brand">{items.length}</span>}
+        </p>
+        <button
+          type="button"
+          disabled={start.isPending}
+          onClick={() => start.mutate()}
+          className="shrink-0 flex items-center gap-0.5 text-[12px] font-bold text-brand hover:underline disabled:opacity-40"
+        >
+          <span className="material-icons-outlined text-[16px]">view_agenda</span>이 본문으로 개요 시작
+        </button>
+      </div>
+      {data?.topics && data.topics.length > 0 && (
+        <p className="text-[12px] text-gray-600 dark:text-white/60">본문의 주제: {data.topics.join(' · ')}</p>
+      )}
+      {isPending ? (
+        <p className="text-[12px] text-gray-500">메모를 찾는 중...</p>
+      ) : items.length === 0 ? (
+        <p className="text-[12px] text-gray-600 dark:text-white/60">
+          아직 이어지는 메모가 없습니다.{' '}
+          <Link to="/pastor/sermon/notes" className="font-semibold text-brand hover:underline">
+            설교 메모
+          </Link>
+          에 평소 생각을 모아 두면 여기서 다시 만납니다.
+        </p>
+      ) : (
+        <ul className="space-y-1.5">
+          {items.map(n => (
+            <li key={n.id}>
+              <NoteCard note={n} compact onOpen={() => setOpen(n)} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {open && <NoteComposer note={open} onClose={() => setOpen(null)} />}
+    </div>
+  )
+}
+
+// ── 내 설교 메모 요약 ──────────────────────────────────
+const NotesPeekCard = () => {
+  const [writing, setWriting] = useState(false)
+  const [open, setOpen] = useState<SermonNote | null>(null)
+  const { data } = useQuery({ queryKey: noteListKey({}), queryFn: () => fetchNotes({}) })
+  return (
+    <SectionCard
+      title="내 설교 메모"
+      action={
+        <Link to="/pastor/sermon/notes" className="text-[12px] font-semibold text-brand hover:underline">
+          메모장 열기
+        </Link>
+      }
+    >
+      <p className="text-[12px] text-gray-600 dark:text-white/60">
+        {data ? `모아 둔 메모 ${data.total}개 · 아직 안 쓴 것 ${data.unused}개` : '평소 떠오른 생각과 들은 이야기를 모아 두는 곳'}
+      </p>
+      {data && data.resurface.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-[12px] font-bold text-gray-600 dark:text-white/65">오늘 다시 꺼내 볼 메모</p>
+          {data.resurface.map(n => (
+            <NoteCard key={n.id} note={n} compact onOpen={() => setOpen(n)} />
+          ))}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => setWriting(true)}
+        className="w-full py-2.5 rounded-xl bg-brand text-white text-[13.5px] font-bold"
+      >
+        메모 쓰기
+      </button>
+      {writing && <NoteComposer onClose={() => setWriting(false)} />}
+      {open && <NoteComposer note={open} onClose={() => setOpen(null)} />}
     </SectionCard>
   )
 }

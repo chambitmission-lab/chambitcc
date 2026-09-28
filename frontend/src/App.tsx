@@ -231,6 +231,9 @@ const PastorAssistant = lazy(() => import('./pages/Pastor/PastorAssistant'))
 const PastorReport = lazy(() => import('./pages/Pastor/PastorReport'))
 const PastorSchedule = lazy(() => import('./pages/Pastor/PastorSchedule'))
 const PastorSermon = lazy(() => import('./pages/Pastor/PastorSermon'))
+const PastorSermonNotes = lazy(() => import('./pages/Pastor/PastorSermonNotes'))
+const PastorSermonOutlines = lazy(() => import('./pages/Pastor/PastorSermonOutlines'))
+const PastorSermonOutline = lazy(() => import('./pages/Pastor/PastorSermonOutline'))
 const BibleEngagementManagement = lazy(() => import('./pages/Admin/BibleEngagementManagement'))
 const WeeklyPrayerManagement = lazy(() => import('./pages/Admin/WeeklyPrayerManagement'))
 const ChatbotManagement = lazy(() => import('./pages/Admin/ChatbotManagement'))
@@ -424,6 +427,9 @@ function App() {
                 <Route path="/pastor/report" element={<PastorReport />} />
                 <Route path="/pastor/schedule" element={<PastorSchedule />} />
                 <Route path="/pastor/sermon" element={<PastorSermon />} />
+                <Route path="/pastor/sermon/notes" element={<PastorSermonNotes />} />
+                <Route path="/pastor/sermon/outlines" element={<PastorSermonOutlines />} />
+                <Route path="/pastor/sermon/outlines/:id" element={<PastorSermonOutline />} />
                 <Route path="/admin/notifications" element={<NotificationManagement />} />
                 <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
                 <Route path="/admin/bulletins" element={<BulletinManagement />} />

@@ -13,6 +13,8 @@ import {
   fetchAgenda,
   fetchMemberDetail,
   fetchMyVisits,
+  fetchNotes,
+  fetchOutlines,
   fetchPastorHome,
   fetchRoster,
   fetchSermonPrep,
@@ -21,6 +23,7 @@ import {
 } from '../../api/pastor'
 import { fetchPastorCareRadar } from '../../api/admin'
 import { isPastor } from '../../utils/access'
+import { noteListKey } from './components/sermonNoteUtils'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 
 // 각 화면의 기본 필터값 — 화면 useState 초기값과 맞춰야 캐시가 이어진다
@@ -66,6 +69,14 @@ const SECTIONS: Record<string, SectionPrefetch> = {
         queryKey: ['pastor-sermon-prep', SERMON_YEARS],
         queryFn: () => fetchSermonPrep(SERMON_YEARS),
       }),
+  },
+  '/pastor/sermon/notes': {
+    chunk: () => import('./PastorSermonNotes'),
+    data: qc => qc.prefetchQuery({ queryKey: noteListKey({}), queryFn: () => fetchNotes({}) }),
+  },
+  '/pastor/sermon/outlines': {
+    chunk: () => import('./PastorSermonOutlines'),
+    data: qc => qc.prefetchQuery({ queryKey: ['pastor-outlines'], queryFn: fetchOutlines }),
   },
   '/pastor/report': {
     chunk: () => import('./PastorReport'),

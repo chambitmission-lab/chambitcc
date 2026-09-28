@@ -20,6 +20,7 @@ import {
 import DatePicker from '../../../components/common/DatePicker'
 import TimePicker from '../../../components/common/TimePicker'
 import { FieldLabel, GhostButton, PastorModal, PrimaryButton } from './ui'
+import NoteComposer from './NoteComposer'
 import { inputCls, pickerCls, todayIso } from './pastorUtils'
 
 const KINDS = Object.keys(VISIT_KIND_LABEL) as VisitKind[]
@@ -88,6 +89,7 @@ const VisitComposer = ({ memberId, memberName, visit, initialStatus = 'done', co
   const [followDate, setFollowDate] = useState(visit?.follow_up_date ?? '')
   const [followDone, setFollowDone] = useState(visit?.follow_up_done ?? false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [toSermon, setToSermon] = useState(false)
 
   const planned = status === 'planned'
   const wasPlan = visit?.status === 'planned'
@@ -295,6 +297,18 @@ const VisitComposer = ({ memberId, memberName, visit, initialStatus = 'done', co
         />
       </label>
 
+      {/* 저장된 다녀온 기록만 — 옮길 때 익명화 단계를 거친다(NoteComposer) */}
+      {visit?.status === 'done' && visit.summary && !planned && (
+        <button
+          type="button"
+          onClick={() => setToSermon(true)}
+          className="lg:shrink-0 self-start flex items-center gap-1.5 px-3.5 py-2 lg:py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[12.5px] lg:text-[15px] font-semibold text-gray-600 dark:text-white/70 hover:border-brand hover:text-brand"
+        >
+          <span className="material-icons-outlined text-[17px] lg:text-[20px]">sticky_note_2</span>
+          설교 재료로 옮기기 (이름은 가려서)
+        </button>
+      )}
+
       {!planned && (
         <div className="lg:shrink-0">
           <FieldLabel hint="목사님 홈에 알려 드려요">후속 할 일</FieldLabel>
@@ -342,6 +356,13 @@ const VisitComposer = ({ memberId, memberName, visit, initialStatus = 'done', co
       )}
       </div>{/* /오른쪽: 나눈 이야기·후속 할 일 */}
       </div>
+      {toSermon && visit && (
+        <NoteComposer
+          fromVisitId={visit.id}
+          initial={{ kind: 'life', body: visit.summary ?? '' }}
+          onClose={() => setToSermon(false)}
+        />
+      )}
     </PastorModal>
   )
 }

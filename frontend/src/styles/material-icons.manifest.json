@@ -86,6 +86,7 @@
     "favorite",
     "favorite_border",
     "feed",
+    "feedback",
     "female",
     "filter",
     "filter_center_focus",
@@ -135,6 +136,7 @@
     "light_mode",
     "lightbulb",
     "link",
+    "link_off",
     "list",
     "local_fire_department",
     "local_hospital",
@@ -195,10 +197,12 @@
     "print",
     "priority_high",
     "public",
+    "push_pin",
     "quiz",
     "radio",
     "radio_button_unchecked",
     "record_voice_over",
+    "redo",
     "refresh",
     "remove",
     "remove_done",
@@ -257,6 +261,7 @@
     "tips_and_updates",
     "title",
     "today",
+    "topic",
     "touch_app",
     "tour",
     "transform",
@@ -292,10 +297,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 23076
+    "bytes": 23516
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 25632
+    "bytes": 26172
   }
 }
