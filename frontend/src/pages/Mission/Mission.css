@@ -1161,7 +1161,8 @@ img.sheet-flag {
   /* #root 에 overflow-y:auto 가 걸려 있어 sticky 가 전역으로 죽어 있다 —
      lg 에서만 이 페이지를 스스로 스크롤하는 상자로 만든다 (헤더 56px 제외). */
   .mission-page {
-    height: calc(100vh - 56px);
+    /* PC 글씨 크기 zoom 안에서도 화면 높이에 맞게 — 헤더(56px)는 zoom 밖이다 */
+    height: calc((100vh - 56px) / var(--az, 1));
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-gutter: stable;
@@ -1186,7 +1187,7 @@ img.sheet-flag {
 
   .hero-verse {
     max-width: 30rem;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
   }
 
   .mission-stats {
@@ -1258,6 +1259,66 @@ img.sheet-flag {
   .domestic-header { grid-column: 1 / -1; }
   .domestic-group { margin-bottom: 0; }
   .mission-footer { margin-top: 3.5rem; }
+
+  /* 노안 대응 글씨 — 모바일 기준 9~12px 이던 보조 글자를 PC에선 최소 12.5px 선으로 올린다.
+     헤더 '가' zoom(textScaleRoutes)은 이 위에 한 번 더 곱해진다 */
+  .hero-eyebrow,
+  .featured-eyebrow,
+  .featured-locate,
+  .region-eyebrow,
+  .domestic-eyebrow,
+  .map-hint,
+  .map-zoom-toggle,
+  .group-count,
+  .stat-desc,
+  .footer-sign,
+  .mission-section-title span { font-size: 0.82rem; }
+
+  .hero-verse-ref,
+  .cta-sub,
+  .cta-btn.done,
+  .sheet-country,
+  .sheet-row-label,
+  .domestic-chip { font-size: 0.88rem; }
+
+  .stat-label,
+  .cta-btn,
+  .sheet-row-value,
+  .sheet-close,
+  .sheet-locate-btn,
+  .region-tab,
+  .group-desc,
+  .domestic-group-title { font-size: 0.92rem; }
+
+  .tab-count { font-size: 0.78rem; }
+  .member-note,
+  .sheet-note { font-size: 0.72rem; }
+
+  .map-title,
+  .footer-text,
+  .mission-pray-btn { font-size: 1rem; }
+
+  .cta-title { font-size: 1.05rem; }
+  .featured-sentence { font-size: 1.08rem; }
+  .sheet-row-value.strong { font-size: 1.08rem; }
+  .group-country { font-size: 1.1rem; }
+  .sheet-name { font-size: 1.3rem; }
+  .region-label { font-size: 1.75rem; }
+  .domestic-title { font-size: 1.6rem; }
+
+  /* 선교사 아바타 — 이름이 커진 만큼 칸도 넓힌다 */
+  .member-avatar-item { width: 4.4rem; }
+  .member-avatar { width: 3.1rem; height: 3.1rem; font-size: 1.12rem; }
+  .member-name { font-size: 0.84rem; }
+}
+
+/* 좁은 PC 폭 + 글씨 크기 zoom — 명단 칸이 ~300px 로 줄어 2열 국가 카드가 찌그러진다 → 1열.
+   기준 폭은 common.css 의 .zoom-narrow-* 와 같다 */
+@media (min-width: 1024px) and (max-width: 1639px) {
+  .main-content[data-app-scale='xlarge'] .mission-col-main > .country-groups { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 1024px) and (max-width: 1479px) {
+  .main-content[data-app-scale='large'] .mission-col-main > .country-groups { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* 노트북처럼 세로가 짧은 PC — 고정된 지구본 카드가 대륙 탭까지 한 화면에 들어오게 */

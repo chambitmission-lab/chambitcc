@@ -11,7 +11,8 @@ import { useSyncExternalStore } from 'react'
 //   null : 눌러도 아무것도 안 바뀌는 화면 — 헤더 '가' 버튼을 숨긴다
 // zoom 에 넣지 않은 화면과 이유:
 // - 목회자(/pastor): 자체 글씨 크기 토글(pages/Pastor/components/textScale.ts)
-// - 지구본·캔버스(/mission·/bible/photo-verse): 포인터 좌표 계산이 zoom 과 어긋난다
+// - 캔버스(/bible/photo-verse): 포인터 좌표 계산이 zoom 과 어긋난다
+//   (/mission 은 넣었다 — 지구본 hitTest 만 화면 폭 ÷ 캔버스 폭으로 되돌렸다)
 //   (/bible/atlas 는 넣었다 — 지도 캔버스가 화면 px 를 컨테이너 rect 비율로만 바꿔 zoom 과 무관하다.
 //    PC 목록 판 높이·목록 따라가기 스크롤만 --az 로 나눴다)
 //   (/ministry 는 넣었다 — 좌표를 쓰는 칼럼 편집기만 body 포털로 zoom 밖에 띄운다)
@@ -41,6 +42,7 @@ const ZOOM_ROUTES = [
   '/seats',
   '/culture',
   '/education',
+  '/mission',
   // 교회 안내
   '/about',
   '/greeting',

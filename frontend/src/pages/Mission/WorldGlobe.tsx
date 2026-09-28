@@ -408,6 +408,15 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
       return best
     }
 
+    // PC 글씨 크기 zoom 안에선 화면 px(clientX·rect) 와 캔버스 css px(cssW) 가 배율만큼 어긋난다 —
+    // 화면에 그려진 폭 ÷ 레이아웃 폭으로 되돌린다(zoom 없음 = 1)
+    const screenScale = (rect: DOMRect) => (cssW > 0 ? rect.width / cssW : 1) || 1
+    const localHit = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect()
+      const k = screenScale(rect)
+      return hitTest((e.clientX - rect.left) / k, (e.clientY - rect.top) / k)
+    }
+
     const onPointerDown = (e: PointerEvent) => {
       dragging = true
       moved = 0
@@ -416,9 +425,8 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
       canvas.setPointerCapture(e.pointerId)
     }
     const onPointerMove = (e: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect()
       if (!dragging) {
-        const hit = hitTest(e.clientX - rect.left, e.clientY - rect.top)
+        const hit = localHit(e)
         canvas.style.cursor = hit ? 'pointer' : 'grab'
         onHoverRef.current?.(hit?.country ?? null)
         return
@@ -442,8 +450,7 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
       if (!dragging) return
       dragging = false
       if (moved <= 6) {
-        const rect = canvas.getBoundingClientRect()
-        const hit = hitTest(e.clientX - rect.left, e.clientY - rect.top)
+        const hit = localHit(e)
         if (hit) onSelectRef.current?.(hit.country)
       }
     }
