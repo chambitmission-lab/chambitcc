@@ -144,6 +144,8 @@
   position: relative;
   user-select: none;
   -webkit-user-select: none;
+  /* 위: 헤더+진행 막대, 아래: 쪽 표시 자리를 비워 주보 윗단·아랫단이 가려지지 않게 */
+  padding: 84px 0 76px;
 }
 
 .bulletin-image {
@@ -358,6 +360,10 @@
     margin-top: 0.2rem;
   }
 
+  .image-container {
+    padding: 110px 0 92px;
+  }
+
   .progress-bars {
     top: 92px;
     left: 1.5rem;
@@ -449,6 +455,10 @@
 
   .progress-bars {
     top: 60px;
+  }
+
+  .image-container {
+    padding: 74px 0 72px;
   }
 
   .nav-button {
