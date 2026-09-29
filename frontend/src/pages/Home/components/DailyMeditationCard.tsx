@@ -35,6 +35,8 @@ import heroAutumnEvening from '../../../assets/hero/autumn-evening.webp'
 import heroWinterMorning from '../../../assets/hero/winter-morning.webp'
 import heroWinterAfternoon from '../../../assets/hero/winter-afternoon.webp'
 import heroWinterEvening from '../../../assets/hero/winter-evening.webp'
+import heroSpringNight from '../../../assets/hero/spring-night.webp'
+import heroAutumnNight from '../../../assets/hero/autumn-night.webp'
 import WaitingQuipLoader from './WaitingQuipLoader'
 import './DailyMeditationCard.css'
 
@@ -44,29 +46,43 @@ const GREETING_KEYS = {
   evening: 'homeGreetingEvening',
 } as const satisfies Record<TimeOfDay, string>
 
-/* 계절 × 시간대 히어로 — 이미지·이모지·헤드라인이 함께 바뀌며 분위기를 만든다.
- * CSS 배경으로만 참조되므로 실제 다운로드는 현재 계절·시간대 1장뿐이다.
- * (아래 preloadCurrentHero 가 그 한 장을 엔트리 실행 시점에 high 우선순위로 미리 받는다) */
-const HERO_IMAGES: Record<NaturalSeason, Record<TimeOfDay, string>> = {
+/* 히어로 사진 슬롯 — 묵상 시간대(아침·낮·저녁)에 '밤'을 하나 더 얹는다.
+ * '저녁'은 17시~새벽 4시까지 11시간이라, 해넘이 사진(가을·봄)이 밤 11시 다크 테마
+ * 위에 혼자 밝게 뜬다. 20시~4시는 밤 사진으로 갈아끼우되 인사말·헤드라인·API 의
+ * time_of_day 는 그대로 '저녁'을 쓴다(백엔드 무변경, "하루의 끝" 문구는 밤에도 맞다). */
+type HeroSlot = TimeOfDay | 'night'
+const deriveHeroSlot = (hour: number): HeroSlot =>
+  hour >= 20 || hour < 4 ? 'night' : deriveTimeOfDay(hour)
+
+/* 계절 × 슬롯 히어로 — 이미지·이모지·헤드라인이 함께 바뀌며 분위기를 만든다.
+ * CSS 배경으로만 참조되므로 실제 다운로드는 현재 계절·슬롯 1장뿐이다.
+ * (아래 preloadCurrentHero 가 그 한 장을 엔트리 실행 시점에 high 우선순위로 미리 받는다)
+ * 밤: 봄=달빛 벚꽃(교토), 가을=안개 숲 위 보름달 — 둘 다 남색 하늘이라 다크 바탕에 녹는다.
+ *     여름·겨울 저녁 사진은 이미 은하수 별하늘이라 밤 슬롯에 그대로 재사용한다. */
+const HERO_IMAGES: Record<NaturalSeason, Record<HeroSlot, string>> = {
   spring: {
     morning: heroSpringMorning,
     afternoon: heroSpringAfternoon,
     evening: heroSpringEvening,
+    night: heroSpringNight,
   },
   summer: {
     morning: heroSummerMorning,
     afternoon: heroSummerAfternoon,
     evening: heroSummerEvening,
+    night: heroSummerEvening,
   },
   autumn: {
     morning: heroAutumnMorning,
     afternoon: heroAutumnAfternoon,
     evening: heroAutumnEvening,
+    night: heroAutumnNight,
   },
   winter: {
     morning: heroWinterMorning,
     afternoon: heroWinterAfternoon,
     evening: heroWinterEvening,
+    night: heroWinterEvening,
   },
 }
 
@@ -139,7 +155,7 @@ const preloadCurrentHero = () => {
   const isHome = !!tokenStore.getAccess() || /^#\/feed(\?|$)/.test(window.location.hash)
   if (!isHome) return
   const now = new Date()
-  const src = HERO_IMAGES[getNaturalSeason(now)][deriveTimeOfDay(now.getHours())]
+  const src = HERO_IMAGES[getNaturalSeason(now)][deriveHeroSlot(now.getHours())]
   if (document.querySelector(`link[rel="preload"][href="${src}"]`)) return
   const link = document.createElement('link')
   link.rel = 'preload'
@@ -275,6 +291,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const season = getCurrentSeason(today)
   /* 자연 계절 — 히어로 배경·앰비언트 연출용 (교회력 절기와 별개) */
   const naturalSeason = getNaturalSeason(today)
+  /* 히어로 사진만 밤 슬롯을 따로 본다 — 서버가 준 time_of_day 와 무관하게 로컬 시각 기준 */
+  const heroSlot = deriveHeroSlot(today.getHours())
 
   /* ── 날씨 연출 ──
    * 앰비언트는 실제 하늘(비·눈)일 때만 흐른다 — 계절 배경 사진은 그대로 두되
@@ -361,7 +379,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
          * 이미지는 ::before 레이어에서 하단 마스크로 카드 배경에 녹아든다 (Apple TV/Netflix식 페이드) */}
         <div
           className="meditation-hero"
-          style={{ '--hero-image': `url(${HERO_IMAGES[naturalSeason][timeOfDay]})` } as React.CSSProperties}
+          style={{ '--hero-image': `url(${HERO_IMAGES[naturalSeason][heroSlot]})` } as React.CSSProperties}
         >
           <div className="meditation-hero-overlay" aria-hidden />
           {/* 비 앰비언트 — 비·가랑비·뇌우일 때 계절 연출 대신 빗줄기가 흐른다 */}
