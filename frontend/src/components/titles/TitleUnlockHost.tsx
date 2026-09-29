@@ -4,13 +4,14 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { subscribeTitleUnlocks } from '../../utils/titleUnlockBus'
-import { equipTitle, type TitleStatus } from '../../api/titles'
-import { titleKeys } from '../../hooks/useTitles'
+import type { TitleStatus } from '../../api/titles'
+import { titleKeys, useEquipTitle } from '../../hooks/useTitles'
 
 const TitleUnlockOverlay = lazy(() => import('./TitleUnlockOverlay'))
 
 export const TitleUnlockHost: React.FC = () => {
   const qc = useQueryClient()
+  const equipMut = useEquipTitle()
   const [queue, setQueue] = useState<TitleStatus[]>([])
   // 한 번이라도 해금이 발생하면 오버레이를 마운트 상태로 유지해
   // 마지막 팝업이 닫힐 때의 exit 애니메이션이 정상 재생되게 한다.
@@ -38,8 +39,10 @@ export const TitleUnlockHost: React.FC = () => {
 
   const handleEquip = async (title: TitleStatus) => {
     try {
-      await equipTitle(title.key)
-      qc.invalidateQueries({ queryKey: titleKeys.all })
+      // useEquipTitle 을 거쳐야 장착 캐시(equipped)가 setQueryData 로 즉시 바뀐다.
+      // invalidate 만 하면 /profile 밖에선 equipped 쿼리가 비활성이라 재조회되지 않고,
+      // 이전 칭호가 캐시(persist 포함)에 남아 프로필 진입 시 옛 배너가 먼저 번쩍인다.
+      await equipMut.mutateAsync(title.key)
     } catch {
       // 장착 실패해도 팝업은 닫는다
     } finally {
