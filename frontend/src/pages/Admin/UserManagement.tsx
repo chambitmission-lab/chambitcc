@@ -362,7 +362,7 @@ const UserManagement = () => {
 
             {/* 가입 승인제 토글 */}
             <div className="px-4 pt-3 lg:px-0">
-              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+              <div className="relative isolate overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
                 <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
 
                 <div className="relative z-10 flex items-start gap-3">
@@ -413,7 +413,7 @@ const UserManagement = () => {
 
             {/* 검색 + 필터 카드 */}
             <div className="px-4 py-3 lg:px-0">
-              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+              <div className="relative isolate overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
                 <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
 
                 <div className="relative z-10 space-y-3">
@@ -581,7 +581,7 @@ const UserRow = ({
   formatRelative,
 }: UserRowProps) => (
   <div
-    className={`relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 ${
+    className={`relative isolate overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 ${
       user.approval_status === 'pending'
         ? 'border-amber-300 dark:border-amber-400/40'
         : 'border-gray-200/70 dark:border-white/[0.08]'

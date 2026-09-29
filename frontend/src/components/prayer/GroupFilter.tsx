@@ -1,5 +1,6 @@
 // 소그룹 필터 컴포넌트
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useMyGroups } from '../../hooks/useGroups'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
@@ -79,14 +80,29 @@ const GroupFilter = ({
     return () => window.removeEventListener('keydown', onKey)
   }, [isExpanded])
   
+  // 모바일은 fixed 시트 — 페이지 쌓임 맥락에 갇히면 하단 도크(z-100)·챗봇 FAB(z-95)가 딤 위로
+  // 떠 버리므로, 다른 바텀시트들처럼 body 로 포털해 z-[110] 딤이 도크까지 덮게 한다.
+  // PC 는 세그먼트 아래 absolute 팝오버라 제자리 렌더를 유지한다.
+  const isMobileSheet = dropdownStyle.position === 'fixed'
+  const renderLayer = (panel: React.ReactElement) =>
+    isMobileSheet
+      ? createPortal(
+          <div className="fixed inset-0 z-[110]">
+            <div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setIsExpanded(false)}
+            />
+            {panel}
+          </div>,
+          document.body,
+        )
+      : panel
+
   return (
     <div className="relative">
-      {/* Backdrop */}
-      {isExpanded && (
-        <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:bg-transparent lg:backdrop-blur-none"
-          onClick={() => setIsExpanded(false)}
-        />
+      {/* Backdrop — PC 팝오버는 바깥 클릭 감지용 투명 막만 (모바일 딤은 아래 포털에서) */}
+      {isExpanded && !isMobileSheet && (
+        <div className="fixed inset-0 z-40" onClick={() => setIsExpanded(false)} />
       )}
       
       {/* 언더라인 탭 스타일 */}
@@ -212,7 +228,7 @@ const GroupFilter = ({
         </div>
       </div>
       
-      {isExpanded && (
+      {isExpanded && renderLayer(
         <div 
           style={dropdownStyle}
           className="bg-white/95 dark:bg-[#201f1f]/95 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto lg:animate-pop-in"
