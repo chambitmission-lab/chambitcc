@@ -62,13 +62,18 @@
  * 삽화는 높이에 맞춰 커지고 오른쪽 끝에 붙으므로, 말씀이 길어져 박스가 자라도
  * 인물은 항상 우측에 온전히 서고 왼쪽 하늘만 더 잘려 나간다. */
 .meditation-verse-quote {
-  --verse-scene-scrim: #ffffff;
+  /* 스크림은 순백이 아니라 삽화의 아침 빛(따뜻한 크림) — 흰 안개가 아니라 햇살로 읽힌다 */
+  --verse-scene-scrim: #f7f3ea;
   --verse-scene-base: #eaf1fb; /* 삽화 도착 전 바탕 — 삽화 하늘의 평균색 */
-  /* 글자 후광 — 장면 위에 글이 "떠" 보이게 하는 빛 번짐. 좁은 테두리 + 넓은 번짐 두 겹 */
-  --verse-halo:
-    0 0 2px rgba(255, 255, 255, 0.95),
-    0 0 10px rgba(255, 255, 255, 0.9),
-    0 0 22px rgba(255, 255, 255, 0.7);
+  /* 글자 잉크 — 그림에서 빌린 색. 원경 산의 청회색을 짙게 뺀 톤이라 하늘·들판
+   * 어디에도 튀지 않는다(순검정·브랜드 블루 모두 그림의 문법이 아니다).
+   * 글리프·출처도 같은 잉크의 투명도 변주로만 구분한다. */
+  --verse-ink: #2f4358;
+  --verse-ink-soft: rgba(47, 67, 88, 0.72);
+  --verse-ink-faint: rgba(47, 67, 88, 0.38);
+  /* 글자 후광 — 테두리(2px) 없이 넓은 번짐 한 겹만. 테두리는 글자를 스티커처럼
+   * 오려 붙인 인상을 만든다. 대비는 스크림이 이미 맡고 있다. */
+  --verse-halo: 0 0 18px rgba(255, 250, 240, 0.55);
   /* 스크림이 걷히기 시작하는 지점 — 말씀 폭이 넓어지는 밀도 단계에서 함께 밀린다 */
   --verse-scrim-solid: 42%;
   --verse-scrim-soft: 54%;
@@ -87,10 +92,11 @@
 .dark .meditation-verse-quote {
   --verse-scene-scrim: #0e1b2d;
   --verse-scene-base: #0f1a2c;
-  --verse-halo:
-    0 1px 2px rgba(6, 12, 26, 0.9),
-    0 0 12px rgba(6, 12, 26, 0.85),
-    0 0 26px rgba(6, 12, 26, 0.6);
+  /* 다크 잉크는 순백이 아니라 달빛 크림 */
+  --verse-ink: #f0e8d6;
+  --verse-ink-soft: rgba(240, 232, 214, 0.74);
+  --verse-ink-faint: rgba(240, 232, 214, 0.4);
+  --verse-halo: 0 0 18px rgba(6, 12, 26, 0.7);
   border-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -156,9 +162,9 @@
 }
 .meditation-verse-quote.is-long .meditation-verse-body { max-width: 68%; }
 .meditation-verse-quote.is-long .meditation-verse-text {
-  font-size: 16px;
-  line-height: 1.68;
-  letter-spacing: -0.012em;
+  font-size: 16.5px;
+  line-height: 1.75;
+  letter-spacing: -0.005em;
 }
 
 .meditation-verse-quote.is-xlong {
@@ -170,8 +176,8 @@
 .meditation-verse-quote.is-xlong .meditation-verse-body { max-width: 70%; }
 .meditation-verse-quote.is-xlong .meditation-verse-text {
   font-size: 15px;
-  line-height: 1.62;
-  letter-spacing: -0.018em;
+  line-height: 1.66;
+  letter-spacing: -0.012em;
 }
 .meditation-verse-quote.is-xlong .meditation-verse-glyph {
   width: 18px;
@@ -191,26 +197,28 @@
   float: left;
   width: 20px;
   height: 20px;
-  margin: 5px 7px 0 0;
-  color: var(--brand);
-  opacity: 0.8;
+  margin: 6px 7px 0 0;
+  color: var(--verse-ink-faint);
 }
 .meditation-verse-glyph svg { width: 100%; height: 100%; }
 
-/* 말씀만 명조(Noto Serif KR) — "지금 읽는 것이 성경 본문"임을 서체가 먼저 말한다.
-   명조는 굵기 대신 크기·행간으로 무게를 만든다(400). */
+/* 말씀만 명조 — "지금 읽는 것이 성경 본문"임을 서체가 먼저 말한다.
+   본문이 아니라 제사(epigraph) 조판: 반 단계 크게, 행간은 넉넉히, 자간은 조이지 않는다.
+   서체는 Noto Serif KR(2026-09-29 고운바탕과 비교 후 확정).
+   모바일(본문 폭 ~170px)에서는 18px 이 한계 — 19px 이면 "성령이 하나 되게 하신" 같은
+   12자 줄이 넘쳐 줄 수가 늘고 박스가 자라 삽화가 확대·잘린다. 19px 은 sm 이상에서만. */
 .meditation-verse-text {
   font-family: var(--font-serif-kr);
-  font-size: 17.5px;
-  line-height: 1.75;
+  font-size: 18px;
+  line-height: 1.85;
   font-weight: 400;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   /* 어절 단위 줄바꿈 — 단어 중간이 잘리지 않게. 공백 없는 긴 문자열 안전판 포함 */
   word-break: keep-all;
   overflow-wrap: break-word;
   /* 마지막 줄에 한 어절만 남는 고아 줄을 브라우저가 알아서 피하게 한다 */
   text-wrap: pretty;
-  color: var(--text-strong);
+  color: var(--verse-ink);
   text-shadow: var(--verse-halo);
   margin: 0;
 }
@@ -220,29 +228,34 @@
 @media (max-width: 360px) {
   .meditation-verse-quote { padding-left: 14px; padding-right: 14px; }
   .meditation-verse-body { max-width: 68%; }
-  .meditation-verse-text { font-size: 17px; letter-spacing: -0.015em; }
+  .meditation-verse-text { font-size: 17.5px; letter-spacing: -0.01em; }
   .meditation-verse-quote.is-long .meditation-verse-body { max-width: 71%; }
-  .meditation-verse-quote.is-long .meditation-verse-text { font-size: 15.5px; }
+  .meditation-verse-quote.is-long .meditation-verse-text { font-size: 16px; }
   .meditation-verse-quote.is-xlong .meditation-verse-body { max-width: 73%; }
   .meditation-verse-quote.is-xlong .meditation-verse-text { font-size: 14.5px; }
 }
 
-/* 출처는 본문이 아니라 꼬리표 — 고딕으로 되돌리고 한 단계 더 작고 흐리게.
- * 오른쪽 끝은 삽화(인물)의 자리라, 시안대로 말씀 아래 왼쪽에 서명처럼 붙인다. */
+/* 넓은 화면(sm 이상)은 본문 폭이 충분하므로 제사 조판을 한 단계 더 연다 */
+@media (min-width: 640px) {
+  .meditation-verse-text { font-size: 19px; line-height: 1.9; letter-spacing: 0.005em; }
+  .meditation-verse-quote.is-long .meditation-verse-text { font-size: 17px; line-height: 1.78; letter-spacing: 0; }
+  .meditation-verse-quote.is-xlong .meditation-verse-text { font-size: 15.5px; line-height: 1.68; letter-spacing: -0.008em; }
+}
+
+/* 출처는 그림 아래 서명 — 굵은 고딕(UI 문법) 대신 같은 명조를 작게, 자간을 벌려
+ * 새긴 글씨처럼. 색은 본문 잉크의 흐린 변주. 오른쪽 끝은 삽화(인물)의 자리라 왼쪽에 둔다. */
 .meditation-verse-reference {
   display: block;
   clear: both;
-  margin-top: 10px;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--brand-muted);
+  margin-top: 12px;
+  font-family: var(--font-serif-kr);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--verse-ink-soft);
   text-shadow: var(--verse-halo);
   text-align: left;
   font-style: normal;
-}
-.dark .meditation-verse-reference {
-  color: rgba(186, 214, 255, 0.82);
 }
 
 /* ── 오늘의 질문 — 박스가 아니라 인용구(pull-quote) 문법 ──
