@@ -36,7 +36,6 @@ import { loadBookOutline, peekBookOutline, type BookOutline, type OutlineSection
 import { bibleKeys } from '../../../hooks/queryKeys'
 import { prefetchAdjacentChapters } from '../../../hooks/useBible'
 import { preloadBudget } from '../../../utils/idlePreload'
-import { can } from '../../../utils/access'
 // 함께 읽기 — 읽는 줄 감지 → 하트비트 → presence/묵상 요약 캐시 → 절 칩·장 pill·배너·시트
 import { useReadingLine } from '../hooks/useReadingLine'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
@@ -414,8 +413,7 @@ const VerseList = ({
   // 수동 읽음 처리 중인 절 — 중복 클릭 방지
   const [togglingVerseId, setTogglingVerseId] = useState<number | null>(null)
 
-  // ---------- 관리자 전용: 장 일괄 읽음/취소 (업적 테스트용, 본인 계정) ----------
-  const isAdminUser = can('bible:edit')
+  // ---------- 장 끝 일괄 읽음/취소 — 눈으로 끝까지 읽은 성도가 한 번에 완료 표시 (본인 계정) ----------
   const markChapterMutation = useMarkChapterAsRead()
   const unmarkChapterMutation = useUnmarkChapterAsRead()
   // 실수 방지 2탭 확인 — 한 번 탭하면 확인 문구로 바뀌고 3초 내 재탭 시 실행
@@ -430,7 +428,7 @@ const VerseList = ({
     }
   }, [bookNumber, selectedChapter])
 
-  const handleAdminBulkTap = async (action: 'mark' | 'unmark') => {
+  const handleBulkTap = async (action: 'mark' | 'unmark') => {
     if (bulkPending) return
     if (bulkConfirm !== action) {
       setBulkConfirm(action)
@@ -1004,78 +1002,6 @@ const VerseList = ({
         mePending={mePending}
       />
 
-      {/* 관리자 전용: 장 일괄 읽음/취소 — 업적·칭호 테스트용, 본인 계정에만 적용 */}
-      {isAdminUser && isLoggedIn() && readStatusData && (() => {
-        const total = readStatusData.total_verses ?? 0
-        const unread = Math.max(0, total - (readStatusData.read_verses ?? 0))
-        const action: 'mark' | 'unmark' = unread > 0 ? 'mark' : 'unmark'
-        const confirming = bulkConfirm === action
-        const label = bulkPending
-          ? '처리 중...'
-          : confirming
-            ? (action === 'mark' ? `한 번 더 탭하면 ${unread}개 절 읽음 처리` : '한 번 더 탭하면 전체 취소')
-            : (action === 'mark' ? `이 장 전체 읽음 (미읽음 ${unread}절)` : '이 장 전체 읽음 취소')
-        return (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.375rem 0.5rem 0.375rem 0.625rem',
-            marginBottom: '0.875rem',
-            background: 'var(--ig-secondary-background)',
-            border: '1px dashed var(--brand-soft-strong)',
-            borderRadius: '999px',
-            fontSize: '0.8125rem',
-            maxWidth: '42rem',
-            marginInline: 'auto',
-          }}>
-            <span style={{
-              flexShrink: 0,
-              padding: '0.125rem 0.5rem',
-              borderRadius: '999px',
-              background: 'var(--brand-soft)',
-              color: 'var(--brand)',
-              fontWeight: 800,
-              fontSize: '0.6875rem',
-              letterSpacing: '0.04em',
-            }}>
-              ADMIN
-            </span>
-            <button
-              type="button"
-              onClick={() => handleAdminBulkTap(action)}
-              disabled={bulkPending}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.375rem',
-                padding: '0.375rem 0.625rem',
-                borderRadius: '999px',
-                border: 'none',
-                background: confirming ? 'var(--brand)' : 'transparent',
-                color: confirming ? 'white' : (action === 'mark' ? 'var(--brand)' : 'var(--ig-secondary-text)'),
-                fontWeight: 700,
-                fontSize: '0.8125rem',
-                cursor: bulkPending ? 'wait' : 'pointer',
-                opacity: bulkPending ? 0.6 : 1,
-                transition: 'all 0.15s ease',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              <span className="material-icons-round" style={{ fontSize: '1rem', flexShrink: 0 }}>
-                {action === 'mark' ? 'done_all' : 'remove_done'}
-              </span>
-              {label}
-            </button>
-          </div>
-        )
-      })()}
-
       {/* 길게 누르기 안내 — 로그인 사용자에게 처음 한 번만 */}
       {showHoldHint && isLoggedIn() && (
         <div
@@ -1178,10 +1104,107 @@ const VerseList = ({
             color: 'var(--ig-secondary-text)',
             fontSize: '0.875rem'
           }}>
-            <span className="material-icons-round" style={{ fontSize: '2rem', opacity: 0.3 }}>
-              check_circle
-            </span>
-            
+            {isLoggedIn() && readStatusData ? (() => {
+              // 장 끝 읽음 완료 — 끝까지 읽고 스크롤을 되올리지 않도록 여기서 한 번에 처리
+              const total = readStatusData.total_verses ?? 0
+              const unread = Math.max(0, total - (readStatusData.read_verses ?? 0))
+              if (unread > 0) {
+                const confirming = bulkConfirm === 'mark'
+                return (
+                  <div style={{
+                    maxWidth: '26rem',
+                    margin: '0 auto 1.25rem',
+                    padding: '1rem',
+                    borderRadius: '1rem',
+                    background: 'var(--brand-soft)',
+                    border: '1px solid var(--brand-soft-strong)',
+                  }}>
+                    <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: 'var(--ig-secondary-text)', lineHeight: 1.5 }}>
+                      {unread === total
+                        ? '끝까지 읽으셨나요?'
+                        : <>끝까지 읽으셨나요? 아직 표시 안 된 절이 <strong style={{ color: 'var(--brand)', fontWeight: 700 }}>{unread}절</strong> 있어요</>}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleBulkTap('mark')}
+                      disabled={bulkPending}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.375rem',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '0.75rem',
+                        border: confirming ? '1px solid var(--brand)' : '1px solid transparent',
+                        background: confirming ? 'var(--ig-primary-background)' : 'var(--brand)',
+                        color: confirming ? 'var(--brand)' : 'white',
+                        fontWeight: 700,
+                        fontSize: '0.9375rem',
+                        cursor: bulkPending ? 'wait' : 'pointer',
+                        opacity: bulkPending ? 0.6 : 1,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span className="material-icons-round" style={{ fontSize: '1.125rem', flexShrink: 0 }}>
+                        done_all
+                      </span>
+                      {bulkPending
+                        ? '처리 중...'
+                        : confirming
+                          ? `한 번 더 누르면 ${unread}절 읽음 처리`
+                          : '이 장 다 읽었어요'}
+                    </button>
+                  </div>
+                )
+              }
+              const confirming = bulkConfirm === 'unmark'
+              return (
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.375rem',
+                    color: 'var(--brand)',
+                    fontWeight: 700,
+                    fontSize: '0.9375rem',
+                  }}>
+                    <span className="material-icons-round" style={{ fontSize: '1.375rem' }}>
+                      check_circle
+                    </span>
+                    이 장을 모두 읽었어요
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => handleBulkTap('unmark')}
+                      disabled={bulkPending}
+                      style={{
+                        marginTop: '0.25rem',
+                        padding: '0.25rem 0.5rem',
+                        border: 'none',
+                        borderRadius: '999px',
+                        background: confirming ? 'var(--ig-secondary-background)' : 'transparent',
+                        color: 'var(--ig-secondary-text)',
+                        fontSize: '0.75rem',
+                        fontWeight: confirming ? 700 : 500,
+                        textDecoration: confirming ? 'none' : 'underline',
+                        textUnderlineOffset: '2px',
+                        cursor: bulkPending ? 'wait' : 'pointer',
+                        opacity: bulkPending ? 0.6 : 1,
+                      }}
+                    >
+                      {bulkPending ? '처리 중...' : confirming ? '한 번 더 누르면 이 장 읽음 전체 취소' : '읽음 취소'}
+                    </button>
+                  </div>
+                </div>
+              )
+            })() : (
+              <span className="material-icons-round" style={{ fontSize: '2rem', opacity: 0.3 }}>
+                check_circle
+              </span>
+            )}
+
             {/* 장 끝 텍스트와 네비게이션을 한 줄에 배치 */}
             <div style={{ 
               marginTop: '0.5rem',
