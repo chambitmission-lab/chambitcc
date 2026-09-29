@@ -299,6 +299,16 @@ export const prayer = {
   // 그룹 모달 / 짧은 버튼 라벨
   createGroupShort: '만들기',
   joinGroupShort: '가입하기',
+  // 내 그룹 시트 — 스토리 링
+  ringNewBadge: '새 {n}',
+  ringPrayedToday: '✓ 오늘 기도함',
+  ringTodayCount: '오늘 {n}명',
+  ringQuiet: '조용해요',
+  ringWaiting: '오늘 {n}곳의 방이 아직 기도를 기다려요',
+  ringAllDone: '오늘 모든 방에서 기도했어요',
+  ringAllDoneSub: '내일도 함께해요',
+  ringGoPray: '중보하러 가기',
+  joinByInviteCode: '초대 코드로 참여',
   createGroupTitle: '새 그룹 만들기',
   groupCreatedTitle: '그룹 생성 완료',
   groupCreatedMessage: '그룹이 생성되었습니다! 아래 초대 코드를 공유하여 멤버를 초대하세요.',

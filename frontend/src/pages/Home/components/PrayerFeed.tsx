@@ -4,6 +4,7 @@ import PrayerArticle from './PrayerArticle'
 import { calendarDateKey, kstDateKey, kstNow } from '../../../utils/kstTime'
 import type { Prayer } from '../../../types/prayer'
 import { useFeedTextScale } from '../../../utils/feedTextScale'
+import { PrayIcon } from '../../Groups/GroupIcons'
 
 // 시간순 피드의 스캔성 — 카드가 쌓여도 "언제의 기도인지"가 한눈에 보이게
 // 오늘 / 어제 / 이번 주 / M월 네 단계로만 끊는다 (더 잘게 쪼개면 헤더가 소음이 된다)
@@ -133,7 +134,10 @@ const PrayerFeed = ({
       {/* Empty State */}
       {!loading && prayers.length === 0 && (
         <div className="py-12 text-center">
-          <span className="text-6xl mb-4 block">🙏</span>
+          {/* 스토리 링과 같은 선화 기도 아이콘 — 이모지는 OS마다 그림이 달라 톤이 깨진다 */}
+          <span className="inline-grid place-items-center w-20 h-20 mb-4 rounded-full text-brand" style={{ background: 'var(--brand-soft)' }}>
+            <PrayIcon size={40} />
+          </span>
           <p className="text-gray-500 dark:text-gray-400">{emptyText?.title ?? t('noPrayersYet')}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{emptyText?.desc ?? t('firstPrayerRequest')}</p>
         </div>

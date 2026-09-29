@@ -298,6 +298,16 @@ export const prayer = {
   // Group modals / short button labels
   createGroupShort: 'Create',
   joinGroupShort: 'Join',
+  // My groups sheet — story rings
+  ringNewBadge: '{n} new',
+  ringPrayedToday: '✓ Prayed today',
+  ringTodayCount: '{n} today',
+  ringQuiet: 'Quiet',
+  ringWaiting: '{n} rooms are still waiting for your prayer today',
+  ringAllDone: 'You prayed in every room today',
+  ringAllDoneSub: 'See you tomorrow',
+  ringGoPray: 'Go pray',
+  joinByInviteCode: 'Join with invite code',
   createGroupTitle: 'Create New Group',
   groupCreatedTitle: 'Group Created',
   groupCreatedMessage: 'Your group has been created! Share the invite code below to invite members.',

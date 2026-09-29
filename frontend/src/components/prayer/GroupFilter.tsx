@@ -4,8 +4,8 @@ import { createPortal } from 'react-dom'
 import { useMyGroups } from '../../hooks/useGroups'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
-import { getGroupColorTheme } from '../../utils/groupColors'
-import { GroupGlyph, PrayIcon } from '../../pages/Groups/GroupIcons'
+import { PrayIcon } from '../../pages/Groups/GroupIcons'
+import GroupStoryRings from './GroupStoryRings'
 import { isPastor } from '../../utils/access'
 import type { PrayerFilterType } from '../../types/prayer'
 
@@ -241,13 +241,13 @@ const GroupFilter = ({
               <p className="text-gray-600 dark:text-gray-400 text-xs mb-3">{t('noGroupsYet')}</p>
               <div className="flex gap-2">
                 <button
-                  onClick={() => requireAuth(onCreateGroup)}
+                  onClick={() => { setIsExpanded(false); requireAuth(onCreateGroup) }}
                   className="flex-1 px-3 py-2 brand-gradient font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
                   + {t('createGroupShort')}
                 </button>
                 <button
-                  onClick={() => requireAuth(onJoinGroup)}
+                  onClick={() => { setIsExpanded(false); requireAuth(onJoinGroup) }}
                   className="flex-1 px-3 py-2 outline-button font-semibold text-xs rounded-full hover:bg-[var(--brand-soft-strong)] transition-all"
                 >
                   {t('joinGroupShort')}
@@ -255,106 +255,17 @@ const GroupFilter = ({
               </div>
             </div>
           ) : (
-            <>
-              <div className="p-3">
-                {/* 그룹 칩 리스트 - 컴팩트 */}
-                <div className="flex flex-wrap gap-2">
-                  {groups.map(group => {
-                    const colorTheme = getGroupColorTheme(group.name)
-                    const isSelected = selectedGroupId === group.id
-                    
-                    return (
-                      <button
-                        key={group.id}
-                        className="group relative flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-200 hover:scale-105 text-gray-700 dark:text-gray-200"
-                        style={{
-                          background: isSelected 
-                            ? colorTheme.gradient
-                            : 'rgba(0,0,0,0.03)',
-                          border: isSelected 
-                            ? `1.5px solid ${colorTheme.primary}`
-                            : '1.5px solid transparent',
-                          boxShadow: isSelected 
-                            ? `0 2px 12px ${colorTheme.glow}`
-                            : 'none'
-                        }}
-                        onClick={() => {
-                          onGroupChange(group.id)
-                          onFilterChange('all')
-                          setIsExpanded(false)
-                        }}
-                      >
-                        {/* 아이콘 */}
-                        <span
-                          className="inline-flex items-center leading-none"
-                          style={{ color: isSelected ? '#3D2817' : 'var(--brand)' }}
-                        >
-                          <GroupGlyph emoji={group.icon} size={17} />
-                        </span>
-                        
-                        {/* 그룹명 - 다크모드 대응 */}
-                        <span 
-                          className="text-xs font-bold"
-                          style={{
-                            color: isSelected 
-                              ? '#3D2817' 
-                              : undefined,
-                            textShadow: isSelected ? '0 1px 2px rgba(255,255,255,0.5)' : 'none'
-                          }}
-                        >
-                          {group.name}
-                        </span>
-                        
-                        {/* 통계 - 다크모드 대응 */}
-                        <div 
-                          className="flex items-center gap-1 text-[10px] font-semibold"
-                          style={{
-                            color: isSelected 
-                              ? '#3D2817' 
-                              : 'rgba(156, 163, 175, 1)', // gray-400
-                            textShadow: isSelected ? '0 1px 2px rgba(255,255,255,0.5)' : 'none'
-                          }}
-                        >
-                          <span>{group.member_count}</span>
-                          <span>·</span>
-                          <span>{group.prayer_count}</span>
-                        </div>
-                        
-                        {/* 선택 표시 */}
-                        {isSelected && (
-                          <div 
-                            className="w-3 h-3 rounded-full flex items-center justify-center ml-0.5"
-                            style={{
-                              background: 'rgba(255,255,255,0.95)',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-                            }}
-                          >
-                            <svg className="w-2 h-2" fill={colorTheme.accent} viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-              
-              <div className="px-3 pb-3 pt-2 border-t border-[var(--card-border)] flex gap-2">
-                <button
-                  onClick={() => requireAuth(onCreateGroup)}
-                  className="flex-1 px-3 py-2 brand-gradient font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
-                >
-                  + {t('createGroupShort')}
-                </button>
-                <button
-                  onClick={() => requireAuth(onJoinGroup)}
-                  className="flex-1 px-3 py-2 outline-button font-semibold text-xs rounded-full hover:bg-[var(--brand-soft-strong)] transition-all"
-                >
-                  {t('joinGroupShort')}
-                </button>
-              </div>
-            </>
+            <GroupStoryRings
+              groups={groups}
+              selectedGroupId={selectedGroupId}
+              onSelect={(id) => {
+                onGroupChange(id)
+                onFilterChange('all')
+                setIsExpanded(false)
+              }}
+              onCreate={() => { setIsExpanded(false); requireAuth(onCreateGroup) }}
+              onJoin={() => { setIsExpanded(false); requireAuth(onJoinGroup) }}
+            />
           )}
         </div>
       )}

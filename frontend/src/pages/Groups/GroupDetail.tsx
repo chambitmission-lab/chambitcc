@@ -4,7 +4,7 @@
 // 기도: 그룹 피드 임베드 + 은혜의 기록 / 우리: 멤버·초대(QR)·가입 신청·케어
 // "오늘의 중보" 가이드 모드: 기도제목을 한 장씩 넘기며 기도 → 마지막 장에서 체크인 자동 기록
 // PC: 상단바에 탭을 인라인으로 올리고, 우측 레일에 방 카드·최근 기도·최근 활동·멤버 미리보기
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useGroup, useGroupMembers, useGroupDigest } from '../../hooks/useGroups'
@@ -69,6 +69,15 @@ const GroupDetail = () => {
   const [showCreate, setShowCreate] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showIntercession, setShowIntercession] = useState(false)
+  // 홈 '내 그룹' 시트의 "중보하러 가기" — ?pray=1 로 들어오면 중보 모드를 바로 열고 파라미터는 지운다
+  useEffect(() => {
+    if (searchParams.get('pray') !== '1') return
+    setShowIntercession(true)
+    const next = new URLSearchParams(searchParams)
+    next.delete('pray')
+    setSearchParams(next, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 오늘 탭의 중보 릴레이·멤버 미리보기용 멤버 목록 (멤버 탭과 캐시 공유)
   const { data: membersData } = useGroupMembers(groupId, !!group?.is_member)
