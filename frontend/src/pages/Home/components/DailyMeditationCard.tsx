@@ -22,6 +22,8 @@ import type { TimeOfDay } from '../../../types/meditation'
 import { getNaturalSeason, type NaturalSeason } from '../../../utils/naturalSeason'
 import { tokenStore } from '../../../utils/tokenStore'
 import { useThemeArt } from '../../../hooks/useThemeArt'
+import { useTheme } from '../../../contexts/ThemeContext'
+import { currentTheme } from '../../../utils/themeAssets'
 import { VERSE_SCENE } from '../../../utils/themeAssets'
 import heroSummerMorning from '../../../assets/hero/morning.webp'
 import heroSummerAfternoon from '../../../assets/hero/afternoon.webp'
@@ -49,10 +51,12 @@ const GREETING_KEYS = {
 /* 히어로 사진 슬롯 — 묵상 시간대(아침·낮·저녁)에 '밤'을 하나 더 얹는다.
  * '저녁'은 17시~새벽 4시까지 11시간이라, 해넘이 사진(가을·봄)이 밤 11시 다크 테마
  * 위에 혼자 밝게 뜬다. 20시~4시는 밤 사진으로 갈아끼우되 인사말·헤드라인·API 의
- * time_of_day 는 그대로 '저녁'을 쓴다(백엔드 무변경, "하루의 끝" 문구는 밤에도 맞다). */
+ * time_of_day 는 그대로 '저녁'을 쓴다(백엔드 무변경, "하루의 끝" 문구는 밤에도 맞다).
+ * ★밤 사진은 다크 테마에서만 — 라이트 테마의 흰 카드 위에 남색 밤하늘은 언밸런스라
+ *   (2026-09-29 사용자 확인) 라이트는 밤에도 저녁 사진을 그대로 쓴다. */
 type HeroSlot = TimeOfDay | 'night'
-const deriveHeroSlot = (hour: number): HeroSlot =>
-  hour >= 20 || hour < 4 ? 'night' : deriveTimeOfDay(hour)
+const deriveHeroSlot = (hour: number, isDark: boolean): HeroSlot =>
+  isDark && (hour >= 20 || hour < 4) ? 'night' : deriveTimeOfDay(hour)
 
 /* 계절 × 슬롯 히어로 — 이미지·이모지·헤드라인이 함께 바뀌며 분위기를 만든다.
  * CSS 배경으로만 참조되므로 실제 다운로드는 현재 계절·슬롯 1장뿐이다.
@@ -155,7 +159,8 @@ const preloadCurrentHero = () => {
   const isHome = !!tokenStore.getAccess() || /^#\/feed(\?|$)/.test(window.location.hash)
   if (!isHome) return
   const now = new Date()
-  const src = HERO_IMAGES[getNaturalSeason(now)][deriveHeroSlot(now.getHours())]
+  // 테마는 index.html 선적용 스크립트가 이미 .dark 를 붙인 뒤라 DOM 에서 바로 읽는다
+  const src = HERO_IMAGES[getNaturalSeason(now)][deriveHeroSlot(now.getHours(), currentTheme() === 'dark')]
   if (document.querySelector(`link[rel="preload"][href="${src}"]`)) return
   const link = document.createElement('link')
   link.rel = 'preload'
@@ -254,6 +259,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   /* 핵심 절 박스 뒤 장면(예수님과 어린양) — 테마 쌍을 마운트 동안 등록해 토글 직전
    * 선요청이 반대 테마 파일을 챙기게 하고, 도착 전엔 바탕색만 두었다가 페이드인한다 */
   const sceneReady = useThemeArt(VERSE_SCENE)
+  /* 히어로 밤 슬롯 판정용 — 테마 토글 시 사진도 즉시 따라간다 */
+  const { theme } = useTheme()
   /* 말씀 길이에 따른 밀도 단계 — 절이 길수록 글자를 한 단계씩 줄인다.
    * 박스가 세로로 자라면 뒤에 깔린 들판 장면도 같이 확대돼(cover) 어린양이
    * 클로즈업처럼 잘려 보이기 때문에, "글자를 줄이고 장면은 그대로" 쪽으로 간다.
@@ -291,8 +298,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const season = getCurrentSeason(today)
   /* 자연 계절 — 히어로 배경·앰비언트 연출용 (교회력 절기와 별개) */
   const naturalSeason = getNaturalSeason(today)
-  /* 히어로 사진만 밤 슬롯을 따로 본다 — 서버가 준 time_of_day 와 무관하게 로컬 시각 기준 */
-  const heroSlot = deriveHeroSlot(today.getHours())
+  /* 히어로 사진만 밤 슬롯을 따로 본다 — 서버가 준 time_of_day 와 무관하게 로컬 시각·테마 기준 */
+  const heroSlot = deriveHeroSlot(today.getHours(), theme === 'dark')
 
   /* ── 날씨 연출 ──
    * 앰비언트는 실제 하늘(비·눈)일 때만 흐른다 — 계절 배경 사진은 그대로 두되
