@@ -709,10 +709,12 @@ const ChatbotWidget = () => {
       )}
 
       {/* 뒤 배경 딤+블러 — 해석 패널과 같은 문법. 탭하면 닫힌다.
-          PC(lg+)는 코너 위젯이라 화면 전체를 어둡게 하지 않는다 — 넓게 보기일 때만 딤 */}
+          PC(lg+)는 코너 위젯이라 화면 전체를 어둡게 하지 않는다 — 넓게 보기일 때만 딤.
+          z 는 모바일 하단 독(NewHome .bottom-dock-anchor z-100)보다 위여야 독까지 덮인다 —
+          98/99 였을 때 독만 딤 위로 떠 활성처럼 보였다. 헤더 메뉴 드로어(z-105)보다는 아래. */}
       {(open || closing) && (
         <div
-          className={`cb-backdrop ${closing ? 'is-closing' : ''} fixed inset-0 z-[98] bg-black/55 backdrop-blur-[2px] ${wide ? 'lg:bg-black/40' : 'lg:hidden'}`}
+          className={`cb-backdrop ${closing ? 'is-closing' : ''} fixed inset-0 z-[102] bg-black/55 backdrop-blur-[2px] ${wide ? 'lg:bg-black/40' : 'lg:hidden'}`}
           onClick={closePanel}
           aria-hidden="true"
         />
@@ -728,7 +730,7 @@ const ChatbotWidget = () => {
           onAnimationEnd={(e) => {
             if (closing && e.target === e.currentTarget) finishClose()
           }}
-          className={`cb-panel ${wide ? 'is-wide' : ''} ${closing ? 'is-closing' : ''} fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none`}
+          className={`cb-panel ${wide ? 'is-wide' : ''} ${closing ? 'is-closing' : ''} fixed z-[103] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none`}
         >
           {/* 헤더 — 웰컴 화면에선 배경과 한 덩어리(투명), 대화 중엔 흰 크롬 */}
           <div
