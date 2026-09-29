@@ -4,24 +4,24 @@
    (★막대형 프로그레스 바로 바꿨다가 사용자가 오솔길로 원복 — 재제안 금지)
 
    색은 위 묵상 카드와 같은 브랜드 블루 단일 톤 — 앰버 길/오렌지 불꽃은
-   카드 하나만 다른 세계처럼 보이게 해서(파편화) 걷어냈다. */
+   카드 하나만 다른 세계처럼 보이게 해서(파편화) 걷어냈다.
+
+   2026-09-29 "길 위의 핀" 개편(사용자가 3안 중 A 선택): 알약 4개(D-day·연속·일차·CTA 킥커)와
+   "246일차" 3중 반복이 시선을 흩어서, 일차는 등불 위 말풍선 하나로 합치고 D-day·연속은
+   조용한 텍스트 한 줄, 완료+미리 읽기는 하단 한 줄로 정리. 길 양 끝에 1일·N일을 달아
+   선이 떠 보이지 않게 했다. 카드·CTA 그라데이션은 토스 플랫으로. */
 
 .plan-card {
   border-radius: 24px;
   border: 1px solid var(--card-border);
-  background:
-    linear-gradient(160deg, var(--brand-soft) 0%, rgba(49, 130, 246, 0) 48%),
-    linear-gradient(180deg, var(--surface-container) 0%, var(--surface-container-high) 100%);
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
-    var(--card-shadow);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .plan-card:hover {
   transform: translateY(-2px);
   box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
     0 14px 30px -14px var(--brand-glow),
     var(--card-shadow);
 }
@@ -30,23 +30,10 @@
   transform: translateY(0) scale(0.995);
 }
 
-/* 일차 칩 — 본문 범위에 시선을 양보하는 작은 배지 */
-.plan-day-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--brand-soft-strong);
-  color: var(--brand);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
 .plan-trail {
   position: relative;
-  margin-top: 10px;
+  /* 위 공간은 말풍선 자리 */
+  margin-top: 30px;
 }
 
 .plan-trail__svg {
@@ -125,104 +112,176 @@
   }
 }
 
-/* 진행률 — 길 오른쪽 아래에 조용한 숫자로만 */
-.plan-trail__pct {
+/* 지금 선 자리 — 일차 말풍선. 등불 x 비율(--pin-r)만큼 왼쪽으로 밀려
+   0%면 왼쪽 정렬, 100%면 오른쪽 정렬이 되어 카드 밖으로 넘치지 않는다. 꼬리는 늘 등불 위 */
+.plan-pin {
   position: absolute;
-  right: 2px;
-  bottom: 0;
-  /* 진행률은 이 카드의 유일한 "수치" — 주변 칩(10.5~11px)과 같은 크기면 묻힌다 */
-  font-size: 14px;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  transform: translate(calc(var(--pin-r, 0.5) * -100%), calc(-100% - 9px));
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px;
   font-weight: 800;
+  line-height: 1.35;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 4px 10px -4px var(--brand-glow);
+  pointer-events: none;
+}
+
+.plan-pin::after {
+  content: '';
+  position: absolute;
+  left: clamp(8px, calc(var(--pin-r, 0.5) * 100%), calc(100% - 8px));
+  bottom: -3.5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--brand);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* 길 양 끝 — 출발(1일)과 완주(N일) */
+.plan-trail__ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 헤더 우측 진행률 — 이 카드의 유일한 수치 */
+.plan-pct {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   color: var(--brand);
   font-variant-numeric: tabular-nums;
 }
 
-/* 이어 읽기 스트릭 — 게임의 불(🔥)이 아니라 꺼지지 않은 등불. 채운 알약으로 승격 */
-.plan-streak {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  padding: 3px 8px 3px 6px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--brand-dim), var(--brand) 60%, #6cb0ff);
-  color: #fff;
+.plan-pct small {
+  margin-right: 4px;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 보조 정보 한 줄 — 연속·완주까지·밀린 읽기·외 N개 */
+.plan-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 6px 14px -6px var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
-.plan-streak__flame path:first-child {
-  fill: #fff;
+.plan-meta b {
+  font-weight: 800;
+  color: var(--brand);
 }
 
-.plan-streak__flame path:last-child {
+.plan-meta__dot {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+/* 이어 읽기 스트릭 — 게임의 불(🔥)이 아니라 꺼지지 않은 등불 */
+.plan-meta__flame {
+  display: block;
+}
+
+.plan-meta__flame path:first-child {
   fill: var(--brand);
 }
 
-/* 완주 D-day — 스트릭 옆의 조용한 틴트 칩 */
-.plan-dday {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
-  color: var(--brand);
-  font-size: 11px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+.plan-meta__flame path:last-child {
+  fill: var(--surface-container);
 }
 
-/* 주요 CTA — 카드 전폭, 일차 킥커 + 본문 라벨 + 화살표 */
+/* 오늘 분량을 마친 뒤 — 헤어라인 아래 완료 확인 + 미리 읽기 텍스트 링크 */
+.plan-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 14px -16px -16px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--card-border);
+}
+
+.plan-foot__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-body);
+}
+
+.plan-foot__done i {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+}
+
+.plan-foot__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.plan-foot__link svg {
+  transition: transform 0.15s ease;
+}
+
+.plan-foot__link:hover svg {
+  transform: translateX(2px);
+}
+
+/* 주요 CTA — 카드 전폭 플랫 솔리드 */
 .plan-cta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
-  margin-top: 12px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--brand-dim), var(--brand) 60%, #6cb0ff);
-  color: #fff;
-  text-align: left;
-  box-shadow: 0 10px 22px -10px var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  margin-top: 14px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: var(--brand-gradient);
+  color: var(--on-brand, #fff);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 .plan-cta:hover {
-  filter: brightness(1.04);
-  box-shadow: 0 14px 28px -12px var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  filter: brightness(1.05);
 }
 
 .plan-cta:active {
   transform: scale(0.985);
-}
-
-.plan-cta__kicker {
-  flex-shrink: 0;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
-  font-size: 10.5px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.plan-cta__label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
 }
 
 .plan-cta__arrow {
@@ -232,29 +291,6 @@
 
 .plan-cta:hover .plan-cta__arrow {
   transform: translateX(2px);
-}
-
-/* 오늘 분량을 마친 뒤 — 다음 일차 미리 읽기는 보조 톤 */
-.plan-cta--secondary {
-  background: var(--brand-soft);
-  color: var(--brand);
-  border: 1px solid var(--brand-soft-strong);
-  box-shadow: none;
-}
-
-.plan-cta--secondary:hover {
-  background: var(--brand-soft-strong);
-  filter: none;
-  box-shadow: none;
-}
-
-.plan-cta--secondary .plan-cta__kicker {
-  background: var(--brand-soft-strong);
-}
-
-.plan-streak__flame {
-  display: block;
-  filter: drop-shadow(0 0 3px var(--brand-glow));
 }
 
 @media (prefers-reduced-motion: reduce) {
