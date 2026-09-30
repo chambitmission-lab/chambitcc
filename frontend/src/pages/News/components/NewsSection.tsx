@@ -98,7 +98,7 @@ const NewsSection = () => {
               <button
                 type="button"
                 onClick={() => navigate('/admin/news')}
-                className="ml-auto inline-flex items-center gap-1 h-8 px-3 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[11.5px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
+                className="relative z-[1] ml-auto inline-flex items-center gap-1 h-8 lg:h-9 px-3 lg:px-3.5 rounded-full bg-brand text-white text-[11.5px] lg:text-[13px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] hover:brightness-110 active:scale-[0.97] transition"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
