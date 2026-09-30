@@ -332,13 +332,17 @@ const PAINTERS: Record<string, Painter> = {
 
 const bgImageCache = new Map<string, Promise<HTMLImageElement>>()
 
-/** 배경 장면을 4:5 이미지로 만든다 — 이후 사진과 동일한 파이프라인을 탄다. 한 번 만든 장면은 재사용한다 */
-export const createBackgroundImage = (bg: VerseBackground): Promise<HTMLImageElement> => {
-  const cached = bgImageCache.get(bg.id)
+/**
+ * 배경 장면을 이미지로 만든다 — 이후 사진과 동일한 파이프라인을 탄다. 한 번 만든 장면은 재사용한다.
+ * 기본은 4:5, tall 이면 잠금화면용 9:19.5 — 4:5를 잘라 쓰면 세로가 모자라 흐릿해진다
+ */
+export const createBackgroundImage = (bg: VerseBackground, tall = false): Promise<HTMLImageElement> => {
+  const key = tall ? `${bg.id}:tall` : bg.id
+  const cached = bgImageCache.get(key)
   if (cached) return cached
   const job = (async () => {
     const W = 1080
-    const H = 1350
+    const H = tall ? 2340 : 1350
     const canvas = document.createElement('canvas')
     canvas.width = W
     canvas.height = H
@@ -372,8 +376,8 @@ export const createBackgroundImage = (bg: VerseBackground): Promise<HTMLImageEle
     await img.decode()
     return img
   })()
-  bgImageCache.set(bg.id, job)
-  job.catch(() => bgImageCache.delete(bg.id))
+  bgImageCache.set(key, job)
+  job.catch(() => bgImageCache.delete(key))
   return job
 }
 

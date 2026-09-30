@@ -3,7 +3,7 @@
 import { dayOfYear, getSeasonSegments } from '../../../../utils/churchCalendar'
 import type { ChurchSeason } from '../../../../utils/churchCalendar'
 import { FONT_STACKS, minPx, setTracking } from './cardStyle'
-import type { CardFrameId } from './cardStyle'
+import type { CardFrameId, CardRatioId } from './cardStyle'
 import { roundRect } from './text'
 // ── 프레임 레이아웃 — 폴라로이드는 사진 주위에 여백이 붙어 canvas가 커진다 ──
 const POLAROID = { side: 0.06, bottom: 0.2 } // 사진 너비 대비 비율
@@ -32,6 +32,18 @@ const frameLayout = (photoW: number, photoH: number, frame: CardFrameId): FrameL
   }
   return { canvasW: Math.round(photoW), canvasH: Math.round(photoH), px: 0, py: 0, pw: photoW, ph: photoH }
 }
+
+/**
+ * 잠금화면 글 자리 — 위쪽 날짜·시계·위젯, 아래쪽 손전등·카메라 버튼과 홈 막대를 피한다.
+ * iOS·안드로이드 잠금화면을 겹쳐 본 어림값 (사진 높이 대비 비율)
+ */
+const LOCK_SAFE = { top: 0.37, bottom: 0.86 }
+
+/** 잠금화면이면 글이 놓일 영역만 잘라낸 레이아웃, 아니면 사진 영역 그대로 */
+const textAreaLayout = (l: FrameLayout, ratio: CardRatioId): FrameLayout =>
+  ratio === 'lock'
+    ? { ...l, py: l.py + l.ph * LOCK_SAFE.top, ph: l.ph * (LOCK_SAFE.bottom - LOCK_SAFE.top) }
+    : l
 
 /** canvas 크기에서 사진 영역을 역산한다 (frameLayout의 역함수) */
 const layoutFromCanvas = (canvasW: number, canvasH: number, frame: CardFrameId): FrameLayout => {
@@ -316,5 +328,5 @@ const drawSeasonFrame = (ctx: CanvasRenderingContext2D, l: FrameLayout, lang: 'k
 
 
 // ── photoVerseCanvas 내부 공유 ──
-export { POLAROID, frameLayout, layoutFromCanvas, drawDateStamp, drawVignette, getGrainTile, drawGrain, drawLightLeak, SEASON_THEMES, KO_ORDINALS, drawSeasonSymbol, drawSeasonFrame }
+export { LOCK_SAFE, textAreaLayout, POLAROID, frameLayout, layoutFromCanvas, drawDateStamp, drawVignette, getGrainTile, drawGrain, drawLightLeak, SEASON_THEMES, KO_ORDINALS, drawSeasonSymbol, drawSeasonFrame }
 export type { FrameLayout, SeasonTheme }

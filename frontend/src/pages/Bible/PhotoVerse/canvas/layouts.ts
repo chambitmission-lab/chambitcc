@@ -45,7 +45,12 @@ const pickEmphasisWord = (text: string): string => {
 
 interface TypeContext {
   ctx: CanvasRenderingContext2D
+  /** 글이 놓일 영역 — 보통 사진 영역, 잠금화면이면 시계·버튼을 피한 가운데 띠 */
   l: FrameLayout
+  /** 사진 영역 전체 — 스크림·그라데이션은 글 영역에서 끊기지 않고 사진 끝까지 번진다 */
+  full: FrameLayout
+  /** 스크림 세기를 잴 사진 — 글만 따로 그릴 때(움직이는 카드)는 사진 층 캔버스 */
+  sample: HTMLCanvasElement
   text: string
   refLabel: string
   style: VerseCardStyle
@@ -97,12 +102,12 @@ const drawSoftScrim = (
   blockW: number,
   blockH: number,
 ) => {
-  const { ctx, l, lightText, fontPx } = tc
+  const { ctx, full: l, lightText, fontPx } = tc
   const sx = Math.max(l.px, cx - blockW / 2)
   const sy = Math.max(l.py, cy - blockH / 2)
   const sw = Math.min(l.px + l.pw, cx + blockW / 2) - sx
   const sh = Math.min(l.py + l.ph, cy + blockH / 2) - sy
-  const lum = sampleLuminance(ctx.canvas, sx, sy, sw, sh)
+  const lum = sampleLuminance(tc.sample, sx, sy, sw, sh)
   // 밝은 글자: 사진이 밝을수록 더 어둡게 / 어두운 글자: 사진이 어두울수록 더 밝게
   const need = lightText ? lum : 1 - lum
   const strength = Math.min(0.55, 0.08 + need * 0.6)
@@ -216,6 +221,65 @@ const drawSeal = (ctx: CanvasRenderingContext2D, cx: number, cy: number, s: numb
   ctx.restore()
 }
 
+// ── 자동 맞춤 — 긴 구절(여러 절·가로 사진)이 사진 밖으로 넘치지 않게 글자를 줄인다 ──
+// 각 레이아웃의 조판 수치(본문 배율·줄 폭·위아래 장식)를 그대로 옮겨 블록 높이를 어림한다.
+// 레이아웃 수치를 바꾸면 여기도 함께 맞춰야 한다.
+const countLines = (tc: TypeContext, px: number, maxW: number) => {
+  const { ctx, text, family, tuning } = tc
+  ctx.font = `${tuning.weight} ${px}px ${family}`
+  setTracking(ctx, px * tuning.tracking)
+  const n = wrapVerseText(ctx, text, maxW).length
+  setTracking(ctx, 0)
+  return n
+}
+
+/** 주어진 글자 크기에서 블록 높이와 쓸 수 있는 높이 — 세로쓰기는 스스로 맞추므로 제외 */
+const measureFit = (tc: TypeContext, f: number): { need: number; avail: number } => {
+  const { l, style, tuning, refOnPhoto } = tc
+  const lh = (px: number) => px * tuning.lineHeight
+  const textH = (px: number, maxW: number) => (countLines(tc, px, maxW) - 1) * lh(px) + px
+  switch (style.layout) {
+    case 'gallery': {
+      const b = f * 0.82
+      return { need: textH(b, l.pw * 0.82) + (refOnPhoto ? b * 1.8 : 0), avail: l.ph * 0.8 }
+    }
+    case 'quote':
+      return { need: f * 1.85 + textH(f, l.pw * 0.76) + (refOnPhoto ? f * 2.46 : 0), avail: l.ph * 0.84 }
+    case 'focus': {
+      const b = f * 0.76
+      return { need: f * 3.1 + textH(b, l.pw * 0.78) + (refOnPhoto ? f * 1.15 : 0), avail: l.ph * 0.88 }
+    }
+    case 'poster': {
+      const inset = l.pw * 0.07
+      return {
+        need: f * 2.1 + textH(f, l.pw - inset * 2 - f * 1.6) + (refOnPhoto ? f * 1.94 : 0),
+        avail: (l.ph - inset * 2) * 0.86,
+      }
+    }
+    default: {
+      const pad = style.textBg === 'scrim' ? f * 0.85 : style.textBg === 'marker' ? f * 0.4 : 0
+      return {
+        need: textH(f, l.pw * 0.82) + (refOnPhoto ? f * 1.41 : 0),
+        avail: l.ph - 2 * (l.pw * 0.05 + pad),
+      }
+    }
+  }
+}
+
+/** 블록이 사진 안에 들어올 때까지 글자 크기를 8%씩 줄인 값 (이미 들어오면 그대로) */
+const fitFontPx = (tc: TypeContext): number => {
+  if (tc.style.layout === 'vertical' || !tc.text) return tc.fontPx
+  let f = tc.fontPx
+  // 썸네일은 최소 크기 없이 구도대로 축소, 실제 카드는 10px 아래로는 줄이지 않는다
+  const floor = tc.l.pw < 300 ? 1 : 10
+  for (let i = 0; i < 14; i++) {
+    const { need, avail } = measureFit(tc, f)
+    if (need <= avail || f * 0.92 < floor) break
+    f *= 0.92
+  }
+  return f
+}
+
 /** 자유 레이아웃 — 드래그로 위치를 정하는 기존 방식 + 은은한 스크림/박스/형광펜 배경 */
 const drawClassicLayout = (tc: TypeContext) => {
   const { ctx, l, text, refLabel, style, family, tuning, fontPx, refOnPhoto, lightText } = tc
@@ -321,18 +385,21 @@ const drawGalleryLayout = (tc: TypeContext) => {
 
   // 하단 그라데이션 — 어떤 사진에서도 텍스트가 읽히게 한다. 세기는 아래쪽 밝기에 맞춘다
   if (style.textBg !== 'none') {
-    const lum = sampleLuminance(ctx.canvas, l.px, l.py + l.ph * 0.55, l.pw, l.ph * 0.45)
+    // 그라데이션은 사진 맨 아래까지 — 잠금화면에서 글 영역 끝에서 잘리면 띠처럼 보인다
+    const gTop = l.py + l.ph * 0.38
+    const gBottom = tc.full.py + tc.full.ph
+    const lum = sampleLuminance(tc.sample, l.px, l.py + l.ph * 0.55, l.pw, l.ph * 0.45)
     const need = lightText ? lum : 1 - lum
     const strength = Math.min(0.72, 0.28 + need * 0.6)
     const tint = lightText ? '0,0,0' : '255,255,255'
-    const g = ctx.createLinearGradient(0, l.py + l.ph * 0.38, 0, l.py + l.ph)
+    const g = ctx.createLinearGradient(0, gTop, 0, gBottom)
     g.addColorStop(0, `rgba(${tint},0)`)
     g.addColorStop(0.35, `rgba(${tint},${strength * 0.22})`)
     g.addColorStop(0.7, `rgba(${tint},${strength * 0.7})`)
     g.addColorStop(1, `rgba(${tint},${strength})`)
     ctx.save()
     ctx.fillStyle = g
-    ctx.fillRect(l.px, l.py + l.ph * 0.38, l.pw, l.ph * 0.62)
+    ctx.fillRect(l.px, gTop, l.pw, gBottom - gTop)
     ctx.restore()
   }
 
@@ -553,8 +620,11 @@ const drawPosterLayout = (tc: TypeContext) => {
 const drawVerticalLayout = (tc: TypeContext) => {
   const { ctx, l, text, refLabel, style, family, tuning, refOnPhoto } = tc
   let fontPx = tc.fontPx
-  const chars = Array.from(text)
+  // 세로쓰기에서 줄바꿈은 새 열 — 열 균형 계산은 글자만 센다
+  const chars = Array.from(text.replace(/[ \t]*\n+[ \t]*/g, '\n').trim())
   const brush = style.fontFamily === 'brush'
+  const paras = chars.join('').split('\n').map((p) => Array.from(p))
+  const hasBreaks = paras.length > 1
 
   // 글이 길면 폭 안에 들어올 때까지 글자를 줄인다
   const usableH = l.ph * 0.74
@@ -568,15 +638,17 @@ const drawVerticalLayout = (tc: TypeContext) => {
     charStep = fontPx * stepMul
     colStep = fontPx * colMul
     const perCol = Math.max(4, Math.floor(usableH / charStep))
-    cols = Math.ceil(chars.length / perCol)
+    cols = paras.reduce((n, p) => n + Math.max(1, Math.ceil(p.length / perCol)), 0)
     if (cols * colStep <= l.pw * 0.76 || fontPx <= 12) break
     fontPx *= 0.88
   }
 
   // 열 균형 — 마지막 열에 한두 글자만 남지 않게 글자 수를 열마다 고르게 나눈다 (띄어쓰기는 반 칸)
-  const effLen = chars.reduce((n, ch) => n + (ch === ' ' ? 0.5 : 1), 0)
+  const effLen = chars.reduce((n, ch) => n + (ch === ' ' ? 0.5 : ch === '\n' ? 0 : 1), 0)
   const perColSteps = Math.max(1, Math.ceil(effLen / cols))
-  const colH = Math.min(usableH, perColSteps * charStep)
+  // 줄바꿈이 있으면 가장 긴 문단이 열 높이를 정한다 (균형 배분은 줄바꿈 없는 글에만)
+  const longest = Math.max(...paras.map((p) => p.reduce((n, ch) => n + (ch === ' ' ? 0.5 : 1), 0)))
+  const colH = Math.min(usableH, (hasBreaks ? Math.ceil(longest) : perColSteps) * charStep)
 
   const right = l.px + l.pw - l.pw * 0.11
   if (style.textBg !== 'none') {
@@ -594,6 +666,13 @@ const drawVerticalLayout = (tc: TypeContext) => {
   let y = topY + charStep / 2
   const maxY = topY + colH
   for (const ch of chars) {
+    if (ch === '\n') {
+      if (y > topY + charStep / 2) {
+        x -= colStep
+        y = topY + charStep / 2
+      }
+      continue
+    }
     if (ch === ' ') {
       y += charStep * 0.5
       if (y > maxY) {
@@ -686,5 +765,5 @@ const drawSignature = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
 
 
 // ── photoVerseCanvas 내부 공유 ──
-export { KEYWORDS_KO, KEYWORDS_EN, pickEmphasisWord, setTextShadow, setInkBleed, setTypeShadow, clearTextShadow, drawSoftScrim, setRefFont, drawOrnamentRule, drawSmallCross, drawSeal, drawClassicLayout, drawGalleryLayout, drawQuoteLayout, drawFocusLayout, drawPosterLayout, drawVerticalLayout, drawSignature }
+export { fitFontPx, KEYWORDS_KO, KEYWORDS_EN, pickEmphasisWord, setTextShadow, setInkBleed, setTypeShadow, clearTextShadow, drawSoftScrim, setRefFont, drawOrnamentRule, drawSmallCross, drawSeal, drawClassicLayout, drawGalleryLayout, drawQuoteLayout, drawFocusLayout, drawPosterLayout, drawVerticalLayout, drawSignature }
 export type { TypeContext }

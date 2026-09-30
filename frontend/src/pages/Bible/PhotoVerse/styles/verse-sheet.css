@@ -170,6 +170,16 @@
   cursor: pointer;
 }
 
+/* 올해의 말씀 — 오늘의 말씀과 나란히 쌓이되, 교회 표어라 면은 흰색으로 한 톤 구분 */
+.pv-today--theme {
+  background: var(--surface-container);
+  border-width: 1px;
+}
+
+.pv-today--theme + .pv-today {
+  margin-top: 10px;
+}
+
 .pv-today__badge {
   display: inline-flex;
   align-items: center;

@@ -42,6 +42,18 @@ const wrapGreedy = (ctx: CanvasRenderingContext2D, text: string, maxWidth: numbe
  * "…하리라 / 참으로" 같은 마지막 줄 고아 단어가 사라져 시(詩)처럼 읽힌다.
  */
 const wrapVerseText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+  // 사용자가 '문구 다듬기'에서 넣은 줄바꿈은 그대로 지키고, 문단마다 따로 균형을 맞춘다
+  if (text.includes('\n')) {
+    return text
+      .split('\n')
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .flatMap((p) => wrapParagraph(ctx, p, maxWidth))
+  }
+  return wrapParagraph(ctx, text, maxWidth)
+}
+
+const wrapParagraph = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
   const greedy = wrapGreedy(ctx, text, maxWidth)
   if (greedy.length < 2) return greedy
   const target = greedy.length

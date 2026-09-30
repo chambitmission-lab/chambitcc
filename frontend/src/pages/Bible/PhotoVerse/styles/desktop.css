@@ -47,15 +47,22 @@
     max-height: calc(100vh - 15rem);
   }
 
-  .pv-drag-hint {
+  .pv-drag-hint,
+  .pv-pager {
     grid-column: 1;
     grid-row: 2;
+  }
+
+  /* 끌기 안내는 넘겨 보기 아래 줄 (넘겨 보기가 없으면 2행은 높이 0) */
+  .pv-drag-row {
+    grid-column: 1;
+    grid-row: 3;
   }
 
   .pv-side {
     display: block;
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1 / span 3;
   }
 
   /* 우측 열 안에서는 첫 요소이므로 위 여백을 줄인다 */

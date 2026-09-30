@@ -7,6 +7,7 @@ const RATIO_VALUES: Record<Exclude<CardRatioId, 'original'>, number> = {
   '1:1': 1,
   '4:5': 4 / 5,
   '9:16': 9 / 16,
+  lock: 9 / 19.5,
 }
 
 interface CropRect {
@@ -16,7 +17,14 @@ interface CropRect {
   sh: number
 }
 
-const cropRect = (img: HTMLImageElement, ratio: CardRatioId): CropRect => {
+/** 크롭 기준점 — 0~1. 기본은 가운데, 사진을 드래그하면 잘리는 자리가 옮겨간다 */
+interface CropFocus {
+  x: number
+  y: number
+}
+const CENTER: CropFocus = { x: 0.5, y: 0.5 }
+
+const cropRect = (img: HTMLImageElement, ratio: CardRatioId, focus: CropFocus = CENTER): CropRect => {
   const iw = img.naturalWidth
   const ih = img.naturalHeight
   if (ratio === 'original') return { sx: 0, sy: 0, sw: iw, sh: ih }
@@ -24,10 +32,10 @@ const cropRect = (img: HTMLImageElement, ratio: CardRatioId): CropRect => {
   const current = iw / ih
   if (current > target) {
     const sw = ih * target
-    return { sx: (iw - sw) / 2, sy: 0, sw, sh: ih }
+    return { sx: (iw - sw) * focus.x, sy: 0, sw, sh: ih }
   }
   const sh = iw / target
-  return { sx: 0, sy: (ih - sh) / 2, sw: iw, sh }
+  return { sx: 0, sy: (ih - sh) * focus.y, sw: iw, sh }
 }
 
 // ── 사진 베이스 레이어 캐시 — 크롭+필터 결과를 재사용해 드래그·슬라이더 중 LUT 루프를 반복하지 않는다 ──
@@ -51,8 +59,9 @@ const getBaseLayer = (
   ratio: CardRatioId,
   w: number,
   h: number,
+  focus: CropFocus = CENTER,
 ): HTMLCanvasElement => {
-  const key = `${imgId(img)}|${filter}|${ratio}|${w}x${h}`
+  const key = `${imgId(img)}|${filter}|${ratio}|${w}x${h}|${focus.x.toFixed(3)},${focus.y.toFixed(3)}`
   const hit = baseCache.get(key)
   if (hit) {
     // LRU — 최근 사용을 뒤로
@@ -60,7 +69,7 @@ const getBaseLayer = (
     baseCache.set(key, hit)
     return hit
   }
-  const crop = cropRect(img, ratio)
+  const crop = cropRect(img, ratio, focus)
   const canvas = document.createElement('canvas')
   canvas.width = w
   canvas.height = h
@@ -104,4 +113,4 @@ const sampleLuminance = (source: HTMLCanvasElement, x: number, y: number, w: num
 
 // ── photoVerseCanvas 내부 공유 ──
 export { RATIO_VALUES, cropRect, imgIds, imgId, BASE_CACHE_MAX, baseCache, getBaseLayer, PROBE, sampleLuminance }
-export type { CropRect }
+export type { CropRect, CropFocus }

@@ -14,7 +14,8 @@ export type CardFilterId =
 export type CardFrameId = 'none' | 'season' | 'polaroid' | 'film'
 export type CardLayoutId = 'classic' | 'gallery' | 'quote' | 'focus' | 'poster' | 'vertical'
 export type CardTextureId = 'grain' | 'leak' | 'vignette' | 'stamp'
-export type CardRatioId = 'original' | '1:1' | '4:5' | '9:16'
+/** 'lock' = 휴대폰 잠금화면(9:19.5) — 시계·버튼 자리를 피해 글을 놓는다 */
+export type CardRatioId = 'original' | '1:1' | '4:5' | '9:16' | 'lock'
 export type CardTextBg = 'none' | 'soft' | 'scrim' | 'marker'
 
 export interface VerseCardStyle {
@@ -39,6 +40,8 @@ export interface VerseCardStyle {
   textures: CardTextureId[]
   /** 캔버스 비율 — 사진을 센터 크롭한다 */
   ratio: CardRatioId
+  /** 크롭 기준점(0~1) — 비율을 바꿔 잘릴 때 사진의 어느 쪽을 남길지 */
+  focus: { x: number; y: number }
   /** 절기 스탬프·서명 언어 */
   lang: 'ko' | 'en'
   /** 모서리의 작은 교회 서명 — 공유된 카드가 어디서 왔는지 조용히 말해준다 */
@@ -58,6 +61,7 @@ export const DEFAULT_CARD_STYLE: VerseCardStyle = {
   layout: 'classic',
   textures: [],
   ratio: 'original',
+  focus: { x: 0.5, y: 0.5 },
   lang: 'ko',
   signature: true,
 }

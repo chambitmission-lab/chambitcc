@@ -53,6 +53,7 @@
     "copy",
     "create",
     "crisis_alert",
+    "crop_portrait",
     "dark_mode",
     "dashboard",
     "date_range",
@@ -92,6 +93,7 @@
     "filter_center_focus",
     "flag",
     "flare",
+    "flashlight_on",
     "flood",
     "format_align_center",
     "format_align_left",
@@ -158,6 +160,7 @@
     "more_horiz",
     "more_vert",
     "mouse",
+    "movie",
     "music_note",
     "my_location",
     "navigation",
@@ -172,6 +175,7 @@
     "opacity",
     "pages",
     "palette",
+    "pan_tool",
     "park",
     "password",
     "paste",
@@ -189,6 +193,7 @@
     "photo_filter",
     "piano",
     "pin",
+    "pinch",
     "place",
     "play_arrow",
     "play_circle",
@@ -234,6 +239,7 @@
     "skip_next",
     "skip_previous",
     "smart_display",
+    "smartphone",
     "sms",
     "spa",
     "speed",
@@ -255,6 +261,7 @@
     "tag",
     "task_alt",
     "terminal",
+    "text_fields",
     "theaters",
     "timeline",
     "timer",
@@ -283,6 +290,7 @@
     "view_list",
     "vignette",
     "visibility",
+    "visibility_off",
     "volume_off",
     "volume_up",
     "volunteer_activism",
@@ -297,10 +305,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 23516
+    "bytes": 24036
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 26172
+    "bytes": 26724
   }
 }

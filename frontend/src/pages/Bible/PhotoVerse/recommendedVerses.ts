@@ -6,6 +6,10 @@ export interface PickedVerse {
   text: string
   /** "요한복음 3:16" 또는 "요한복음 3:16-17" */
   refLabel: string
+  /** 절마다 나뉜 본문 — 피커에서 고른 경우만. '여러 장으로 나누기'가 절 경계에서 자른다 */
+  parts?: { verse: number; text: string }[]
+  /** 문구 다듬기 전 원문 — 되돌리기용 */
+  originalText?: string
 }
 
 // 검색 없이 한 번에 고를 수 있는 애송 성구 (개역개정) — 하루 단위로 "오늘의 말씀"이 바뀐다
@@ -22,6 +26,17 @@ export const RECOMMENDED: PickedVerse[] = [
   { refLabel: '여호수아 1:9', text: '내가 네게 명령한 것이 아니냐 강하고 담대하라 두려워하지 말며 놀라지 말라 네가 어디로 가든지 네 하나님 여호와가 너와 함께 하느니라' },
 ]
 
+// 한국 시간 자정에 날짜가 넘어가게 +9h — UTC 그대로 나누면 오전 9시에 바뀐다
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000
+
+/** 한국 시간 기준 오늘의 말씀 인덱스 */
+export const getTodayRecommendedIndex = (nowMs: number): number =>
+  Math.floor((nowMs + KST_OFFSET_MS) / 86_400_000) % RECOMMENDED.length
+
 /** 하루 단위로 순환하는 오늘의 말씀 — 인트로 예시 카드와 피커의 피처드 카드가 같은 절을 보여준다 */
 export const getTodayRecommended = (nowMs: number): PickedVerse =>
-  RECOMMENDED[Math.floor(nowMs / 86_400_000) % RECOMMENDED.length]
+  RECOMMENDED[getTodayRecommendedIndex(nowMs)]
+
+/** "에스겔 37장 5,10절" → "에스겔 37:5,10" (형식이 다르면 원문 그대로) — 올해의 말씀 출처 표기 */
+export const compactReference = (ref: string) =>
+  ref.replace(/(\d+)\s*장\s*/, '$1:').replace(/\s*절$/, '')

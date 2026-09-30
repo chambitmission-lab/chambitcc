@@ -30,7 +30,8 @@ export type {
 export { DEFAULT_CARD_STYLE } from './canvas/cardStyle'
 export { CARD_FILTERS } from './canvas/filters'
 export { CARD_LAYOUTS } from './canvas/layouts'
-export { getSeasonStamp } from './canvas/frames'
+export { getSeasonStamp, LOCK_SAFE } from './canvas/frames'
+export { cropRect } from './canvas/baseLayer'
 export type { SeasonStamp } from './canvas/frames'
 export { BACKGROUNDS, backgroundCss, createBackgroundImage } from './canvas/backgrounds'
 export type { VerseBackground } from './canvas/backgrounds'
@@ -47,6 +48,7 @@ import {
   drawVignette,
   frameLayout,
   layoutFromCanvas,
+  textAreaLayout,
 } from './canvas/frames'
 import {
   drawClassicLayout,
@@ -56,6 +58,7 @@ import {
   drawQuoteLayout,
   drawSignature,
   drawVerticalLayout,
+  fitFontPx,
 } from './canvas/layouts'
 import type { TypeContext } from './canvas/layouts'
 
@@ -74,49 +77,52 @@ export const measureImageLuminance = (img: HTMLImageElement): number => {
   return sampleLuminance(c, 0, 0, 32, 32)
 }
 
+/**
+ * 그릴 층 — 움직이는 카드는 사진(base)과 글(text)을 따로 그려 사진만 천천히 확대하고
+ * 글은 한 줄씩 드러낸다. 평소 저장·미리보기는 'all'.
+ */
+export type CardLayer = 'all' | 'base' | 'text'
+
+export interface DrawCardOptions {
+  layer?: CardLayer
+  /** 'text' 층을 투명 캔버스에 그릴 때 스크림 세기를 잴 사진 — 없으면 그리는 캔버스 자신 */
+  sampleFrom?: HTMLCanvasElement
+}
+
 /** 사진 + 말씀 텍스트를 canvas에 합성한다. canvas 크기는 호출자가 정한다. */
 export const drawVerseCard = (
   canvas: HTMLCanvasElement,
   img: HTMLImageElement,
   text: string,
   refLabel: string,
-  style: VerseCardStyle
+  style: VerseCardStyle,
+  opts: DrawCardOptions = {},
 ) => {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
+  const layer = opts.layer ?? 'all'
+  const withBase = layer !== 'text'
+  const withText = layer !== 'base'
 
   const l = layoutFromCanvas(canvas.width, canvas.height, style.frame)
   ctx.clearRect(0, 0, canvas.width, canvas.height)
+  // 잠금화면은 시계·버튼 자리를 비우고 가운데 띠에만 글을 놓는다
+  const textArea = textAreaLayout(l, style.ratio)
 
-  if (style.frame === 'polaroid') {
-    ctx.fillStyle = '#fbfaf5'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-  }
-
-  const pw = Math.max(1, Math.round(l.pw))
-  const ph = Math.max(1, Math.round(l.ph))
-  const base = getBaseLayer(img, style.filter, style.ratio, pw, ph)
-  ctx.drawImage(base, l.px, l.py, l.pw, l.ph)
-
-  // 비네트는 텍스트 아래(가독성), 그레인·빛샘은 텍스트 위(인화지의 물성)
-  if (style.frame === 'film' || style.textures.includes('vignette')) drawVignette(ctx, l)
-  if (style.frame === 'polaroid') {
-    // 사진과 여백 사이 미세한 경계선 — 실물 인화지 느낌
-    ctx.strokeStyle = 'rgba(0,0,0,0.08)'
-    ctx.lineWidth = Math.max(1, l.pw * 0.0015)
-    ctx.strokeRect(l.px, l.py, l.pw, l.ph)
-  }
+  if (withBase) drawBaseUnder(ctx, canvas, l, img, style)
 
   // 폴라로이드에서는 출처를 하단 여백에 손글씨로 적는다 (사진 위에는 생략)
   const refOnPhoto = style.showRef && !!refLabel && style.frame !== 'polaroid'
 
-  if (text) {
+  if (text && withText) {
     const family = FONT_STACKS[style.fontFamily]
     const tuning = FONT_TUNING[style.fontFamily]
     const fontPx = minPx(l.pw, style.fontScale * l.pw * tuning.sizeMul, 12)
     const tc: TypeContext = {
       ctx,
-      l,
+      l: textArea,
+      full: l,
+      sample: opts.sampleFrom ?? canvas,
       text,
       refLabel,
       style,
@@ -126,6 +132,7 @@ export const drawVerseCard = (
       refOnPhoto,
       lightText: isLightColor(style.color),
     }
+    tc.fontPx = fitFontPx(tc)
     switch (style.layout) {
       case 'gallery':
         drawGalleryLayout(tc)
@@ -147,6 +154,49 @@ export const drawVerseCard = (
     }
   }
 
+  if (withBase) drawBaseOver(ctx, canvas, l, refLabel, style)
+
+  if (style.signature && text && withText) drawSignature(ctx, canvas, textArea, style)
+}
+
+type Layout = ReturnType<typeof layoutFromCanvas>
+
+/** 사진 층(글 아래) — 사진·비네트·인화지 경계 */
+const drawBaseUnder = (
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  l: Layout,
+  img: HTMLImageElement,
+  style: VerseCardStyle,
+) => {
+  if (style.frame === 'polaroid') {
+    ctx.fillStyle = '#fbfaf5'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  }
+
+  const pw = Math.max(1, Math.round(l.pw))
+  const ph = Math.max(1, Math.round(l.ph))
+  const base = getBaseLayer(img, style.filter, style.ratio, pw, ph, style.focus)
+  ctx.drawImage(base, l.px, l.py, l.pw, l.ph)
+
+  // 비네트는 텍스트 아래(가독성), 그레인·빛샘은 텍스트 위(인화지의 물성)
+  if (style.frame === 'film' || style.textures.includes('vignette')) drawVignette(ctx, l)
+  if (style.frame === 'polaroid') {
+    // 사진과 여백 사이 미세한 경계선 — 실물 인화지 느낌
+    ctx.strokeStyle = 'rgba(0,0,0,0.08)'
+    ctx.lineWidth = Math.max(1, l.pw * 0.0015)
+    ctx.strokeRect(l.px, l.py, l.pw, l.ph)
+  }
+}
+
+/** 사진 층(글 위) — 빛샘·그레인·절기 프레임·폴라로이드 출처·날짜 스탬프 */
+const drawBaseOver = (
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  l: Layout,
+  refLabel: string,
+  style: VerseCardStyle,
+) => {
   if (style.textures.includes('leak')) drawLightLeak(ctx, l)
   if (style.textures.includes('grain')) drawGrain(ctx, l)
 
@@ -166,8 +216,6 @@ export const drawVerseCard = (
   }
 
   if (style.frame === 'film' || style.textures.includes('stamp')) drawDateStamp(ctx, l)
-
-  if (style.signature && text) drawSignature(ctx, canvas, l, style)
 }
 
 /** 필터 선택 썸네일 — 사진 중앙을 정사각형으로 잘라 필터를 입혀 그린다 */

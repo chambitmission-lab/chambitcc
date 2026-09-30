@@ -1,0 +1,502 @@
+/* ── 카드/잠금화면 모드 · 나누기 · 움직이는 카드 · 문구 다듬기 · 이어서 만들기 ── */
+
+/* 캔버스 상자 — 잠금화면 겹침이 캔버스 크기를 정확히 따라가게 캔버스를 감싼다 */
+.pv-canvas-stage {
+  position: relative;
+  display: flex;
+  max-width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* 잠금화면은 세로로 길어 같은 높이 제한이면 너무 가늘다 — 조금 더 키운다 */
+.pv-canvas-stage--lock .pv-canvas {
+  max-height: 64vh;
+}
+
+/* 잠금화면 겹침 — 시계·날짜·위젯·하단 버튼. 위치는 canvas/frames.ts LOCK_SAFE 와 짝 */
+.pv-lock-guide {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+  font-family: -apple-system, 'SF Pro Display', 'Pretendard Variable', sans-serif;
+}
+
+.pv-lock-guide__date {
+  position: absolute;
+  top: 8.5cqh;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 5.2cqw;
+  font-weight: 600;
+}
+
+.pv-lock-guide__time {
+  position: absolute;
+  top: 11cqh;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 25cqw;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.pv-lock-guide__widgets {
+  position: absolute;
+  top: 27.5cqh;
+  left: 12cqw;
+  right: 12cqw;
+  display: flex;
+  gap: 4cqw;
+}
+
+.pv-lock-guide__widgets > span {
+  flex: 1;
+  height: 7cqh;
+  border-radius: 4cqw;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.pv-lock-guide__btn {
+  position: absolute;
+  bottom: 6.5cqh;
+  width: 13cqw;
+  height: 13cqw;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+}
+
+.pv-lock-guide__btn .material-icons-round {
+  font-size: 6.5cqw;
+}
+
+.pv-lock-guide__btn--left {
+  left: 12cqw;
+}
+
+.pv-lock-guide__btn--right {
+  right: 12cqw;
+}
+
+.pv-lock-guide__home {
+  position: absolute;
+  bottom: 1.6cqh;
+  left: 50%;
+  width: 36cqw;
+  height: 1.2cqw;
+  min-height: 3px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.pv-lock-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+/* 카드 ↔ 잠금화면 */
+.pv-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 3px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+.pv-mode__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pv-mode__item--active {
+  background: var(--surface-container);
+  color: var(--brand);
+  box-shadow: var(--card-shadow);
+}
+
+/* 나눈 장 넘겨 보기 */
+.pv-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.pv-pager__arrow {
+  display: flex;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+}
+
+.pv-pager__arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.pv-pager__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 999px;
+  border: none;
+  background: var(--card-border);
+  cursor: pointer;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.pv-pager__dot--active {
+  width: 22px;
+  background: var(--brand);
+}
+
+/* 끌기 대상 · 안내 */
+.pv-drag-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.pv-drag-row .pv-drag-hint {
+  margin-top: 0;
+}
+
+.pv-drag-hint__sub {
+  display: block;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.pv-seg--small .pv-seg__item {
+  gap: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.pv-seg--wide {
+  display: flex;
+}
+
+.pv-seg--wide .pv-seg__item {
+  flex: 1;
+}
+
+/* 권하는 장 수 — 아직 한 장일 때만 살짝 표시 */
+.pv-seg__item--hint {
+  color: var(--brand);
+}
+
+.pv-section__note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 문구 다듬기 칩 */
+.pv-edit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--card-border);
+  background: transparent;
+  color: var(--text-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pv-edit-chip .material-icons-round {
+  color: var(--brand);
+}
+
+.pv-edit-chip__badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pv-edit__textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-strong);
+  font-size: 15px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.pv-edit__textarea:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: -1px;
+}
+
+.pv-edit__reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 움직이는 카드 진입 */
+.pv-motion-cta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pv-motion-cta__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.pv-motion-cta__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pv-motion-cta__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.pv-motion-cta__body {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pv-motion-cta__chevron {
+  color: var(--text-muted);
+}
+
+/* 움직이는 카드 시트 */
+.pv-motion__body {
+  padding: 8px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.pv-motion__stage,
+.pv-motion__video {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-height: 52vh;
+  border-radius: 14px;
+  background: #000;
+  object-fit: contain;
+  overflow: hidden;
+}
+
+.pv-motion__live {
+  display: block;
+  max-width: 100%;
+  max-height: 52vh;
+  width: auto;
+  height: auto;
+}
+
+.pv-motion__status {
+  margin-top: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.pv-motion__hint {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pv-motion__bar {
+  width: 100%;
+  height: 4px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+
+.pv-motion__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  transform-origin: left center;
+}
+
+.pv-motion__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pv-motion__actions .pv-confirm {
+  flex: 1;
+}
+
+.pv-motion__ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 이어서 만들기 */
+.pv-resume {
+  width: 100%;
+  max-width: 360px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.pv-resume__main {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--brand);
+  background: var(--brand-soft);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pv-resume__icon {
+  color: var(--brand);
+}
+
+.pv-resume__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pv-resume__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.pv-resume__ref {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pv-resume__chevron {
+  color: var(--brand);
+}
+
+.pv-resume__dismiss {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.pv-print__hint--strong {
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-pager__dot {
+    transition: none;
+  }
+}

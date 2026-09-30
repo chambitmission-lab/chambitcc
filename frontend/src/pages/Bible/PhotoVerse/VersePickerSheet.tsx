@@ -2,10 +2,11 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleBooks, useBibleSearch } from '../../../hooks/useBible'
+import { useDailyVerse } from '../../../hooks/useDailyVerse'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useNowMs } from '../../../hooks/useNowMs'
 import type { BibleVerse } from '../../../types/bible'
-import { RECOMMENDED } from './recommendedVerses'
+import { RECOMMENDED, compactReference, getTodayRecommendedIndex } from './recommendedVerses'
 import type { PickedVerse } from './recommendedVerses'
 
 export type { PickedVerse }
@@ -32,6 +33,10 @@ const VersePickerSheet = ({ onPick, onClose }: VersePickerSheetProps) => {
 
   const { data: results, isLoading } = useBibleSearch(query)
   const { data: allBooks } = useBibleBooks()
+  // 교회가 정한 올해의 표어 말씀 — 등록돼 있을 때만 맨 위에 띄운다
+  const { data: themeVerse } = useDailyVerse()
+  const themeText = themeVerse?.verse_text?.trim() ?? ''
+  const themeRef = themeVerse?.verse_reference ? compactReference(themeVerse.verse_reference) : ''
 
   useModalBackButton(onClose)
 
@@ -42,6 +47,7 @@ const VersePickerSheet = ({ onPick, onClose }: VersePickerSheetProps) => {
       hint: '키워드나 "책 장"(예: 시 23)으로 검색한 뒤, 사진에 올릴 절을 선택하세요. 같은 장의 이어지는 절은 함께 담을 수 있어요.',
       suggested: ['사랑', '믿음', '소망', '위로', '평안', '감사', '은혜'],
       todayBadge: '오늘의 말씀',
+      themeBadge: `${new Date().getFullYear()} 올해의 말씀`,
       recommendTitle: '이런 말씀은 어때요?',
       noResults: '검색 결과가 없습니다',
       bookOnly: '책 이름만으로는 절을 고를 수 없어요. "요한복음 3"처럼 장까지 검색해보세요.',
@@ -54,6 +60,7 @@ const VersePickerSheet = ({ onPick, onClose }: VersePickerSheetProps) => {
       hint: 'Search by keyword or "book chapter", then tap verses to select. Consecutive verses in the same chapter can be combined.',
       suggested: ['love', 'faith', 'hope', 'comfort', 'peace', 'grace'],
       todayBadge: "Today's Verse",
+      themeBadge: `${new Date().getFullYear()} Theme Verse`,
       recommendTitle: 'How about these?',
       noResults: 'No results found',
       bookOnly: 'Search with a chapter (e.g. "John 3") to pick verses.',
@@ -107,11 +114,12 @@ const VersePickerSheet = ({ onPick, onClose }: VersePickerSheetProps) => {
     onPick({
       text: selected.map((s) => s.text.trim()).join(' '),
       refLabel: buildRefLabel(selected),
+      parts: selected.map((s) => ({ verse: s.verse, text: s.text.trim() })),
     })
   }
 
-  // 하루 단위로 순환하는 오늘의 말씀 인덱스
-  const todayIndex = Math.floor(useNowMs() / 86_400_000) % RECOMMENDED.length
+  // 하루 단위(한국 시간 자정)로 순환하는 오늘의 말씀 인덱스
+  const todayIndex = getTodayRecommendedIndex(useNowMs())
 
   const isBookOnlySearch = !!(
     results?.is_book_search && (results.books?.length || results.book)
@@ -165,6 +173,22 @@ const VersePickerSheet = ({ onPick, onClose }: VersePickerSheetProps) => {
                   </button>
                 ))}
               </div>
+
+              {/* 올해의 말씀 — 교회 표어. 한 해 동안 가장 많이 나눌 말씀이라 맨 위 */}
+              {themeText && (
+                <button
+                  type="button"
+                  className="pv-today pv-today--theme"
+                  onClick={() => onPick({ text: themeText, refLabel: themeRef || t.themeBadge })}
+                >
+                  <span className="pv-today__badge">
+                    <span className="material-icons-round text-[13px]">workspace_premium</span>
+                    {t.themeBadge}
+                  </span>
+                  <span className="pv-today__text">{themeText}</span>
+                  {themeRef && <span className="pv-today__ref">{themeRef}</span>}
+                </button>
+              )}
 
               {/* 오늘의 말씀 — 날짜 기준으로 하나를 골라 맨 위에 띄운다 */}
               <button
