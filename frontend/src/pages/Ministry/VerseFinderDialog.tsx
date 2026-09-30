@@ -12,6 +12,7 @@ import { useBibleBooks, useBibleChapter, useBibleSearchInfinite } from '../../ho
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { formatReference, matchBibleBooks, parseBibleReference } from '../Sermon/utils/sermonMeta'
 import { SERIF } from './letterFormat'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 
 export interface PickedPassage {
   /** 고른 절 본문을 이어 붙인 것 */
@@ -27,15 +28,6 @@ interface VerseFinderDialogProps {
 }
 
 const EXAMPLES = ['요 3:16', '시 23', '롬 8:28', '빌 4:6-7', '사랑', '평안']
-
-const useDebounced = (value: string, ms: number) => {
-  const [v, setV] = useState(value)
-  useEffect(() => {
-    const id = window.setTimeout(() => setV(value), ms)
-    return () => window.clearTimeout(id)
-  }, [value, ms])
-  return v
-}
 
 /** 입력 → 펼칠 장(있으면)과 미리 고를 절 범위 */
 const resolveQuery = (q: string) => {
@@ -66,7 +58,7 @@ type Range = { from: number; to: number } | null
 const VerseFinderDialog = ({ language, onInsert, onClose }: VerseFinderDialogProps) => {
   const ko = language === 'ko'
   const [input, setInput] = useState('')
-  const query = useDebounced(input.trim(), 250)
+  const query = useDebouncedValue(input.trim(), 250)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 

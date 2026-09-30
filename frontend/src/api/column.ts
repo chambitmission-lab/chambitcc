@@ -17,19 +17,9 @@ export const getColumns = async (q?: string): Promise<Column[]> => {
   return request<Column[]>(`/columns${qs ? `?${qs}` : ''}`, { errorMessage: 'Failed to fetch columns' })
 }
 
-// 목양컬럼 상세 조회 (인증 불필요)
-export const getColumn = async (id: number): Promise<Column> => {
-  return request<Column>(`/columns/${id}`, { errorMessage: 'Failed to fetch column' })
-}
-
 // 편지에 아멘 토글 (로그인 필수)
 export const toggleColumnAmen = async (id: number): Promise<ColumnEngagement> => {
   return request<ColumnEngagement>(`/columns/${id}/amen`, { method: 'POST', errorMessage: 'Failed to toggle amen' })
-}
-
-// 편지를 끝까지 읽었음을 기록 (로그인 필수, 1인 1회 — 멱등)
-export const markColumnRead = async (id: number): Promise<ColumnEngagement> => {
-  return request<ColumnEngagement>(`/columns/${id}/read`, { method: 'POST', errorMessage: 'Failed to mark column as read' })
 }
 
 // 목양컬럼 생성 (관리자)

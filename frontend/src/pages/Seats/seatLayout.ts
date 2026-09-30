@@ -74,12 +74,6 @@ export const buildGrid = (layout: Pick<SeatLayout, 'sections' | 'labeling'>): Se
   return { sections, rowHeads, maxRows, totalCols: offset, allLabels }
 }
 
-/** 실제로 존재하는 좌석 (막힌 칸 제외) */
-export const seatSet = (layout: SeatLayout): Set<string> => {
-  const disabled = new Set(layout.disabled)
-  return new Set(buildGrid(layout).allLabels.filter((l) => !disabled.has(l)))
-}
-
 const sortKey = (label: string): [number, string, number] => {
   const m = /^([A-Z]+)(\d+)$/.exec(label)
   if (!m) return [99, label, 0]
@@ -93,13 +87,6 @@ export const sortSeats = (labels: Iterable<string>): string[] =>
     const [lb, hb, nb] = sortKey(b)
     return la - lb || ha.localeCompare(hb) || na - nb
   })
-
-/** 좌석 번호의 "줄" 이름 — 예약 요약에서 "3번 줄 D·E·F" 처럼 묶을 때 */
-export const seatLine = (labeling: SeatLabeling, label: string): string => {
-  const m = /^([A-Z]+)(\d+)$/.exec(label)
-  if (!m) return label
-  return labeling === 'col_letter' ? `${m[2]}번 줄` : `${m[1]}열`
-}
 
 // ── 배치 프리셋 ───────────────────────────────────────────────────────
 

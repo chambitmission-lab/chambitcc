@@ -55,17 +55,6 @@ export function SneakerIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-/** 지폐 — 헌금 부담 */
-export function MoneyIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...props}>
-      <rect x="2.8" y="6.4" width="18.4" height="11.2" rx="2" />
-      <circle cx="12" cy="12" r="2.6" />
-      <path d="M6.2 9.6h.01M17.8 14.4h.01" strokeWidth={2.3} />
-    </svg>
-  )
-}
-
 /** 두 사람 — 아는 사람 없이 혼자 오는 걱정 */
 export function PeopleIcon(props: SVGProps<SVGSVGElement>) {
   return (

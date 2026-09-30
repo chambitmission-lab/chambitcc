@@ -11,6 +11,7 @@ import {
 } from '../../../hooks/useBibleBookmark'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
+import { formatClock } from '../../../utils/formatClock'
 
 interface FavoritesPlaylistModalProps {
   onClose: () => void
@@ -25,13 +26,6 @@ const VOICE = 'male'
 const loadRate = (): number => {
   const r = Number(localStorage.getItem(RATE_STORAGE_KEY))
   return RATE_OPTIONS.includes(r) ? r : 1
-}
-
-const formatTime = (sec: number): string => {
-  if (!Number.isFinite(sec) || sec < 0) return '0:00'
-  const m = Math.floor(sec / 60)
-  const s = Math.floor(sec % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 const shuffledIds = (ids: number[], keepFirst?: number): number[] => {
@@ -487,7 +481,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
               </div>
 
               <div className="flex items-center justify-between text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45 mb-2">
-                <span>{formatTime(currentTime)}</span>
+                <span>{formatClock(currentTime)}</span>
                 <span className="text-brand font-semibold">{statusText}</span>
                 {liveStream ? (
                   <span className="flex items-center gap-1 font-semibold text-brand">
@@ -495,7 +489,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                     생성 중
                   </span>
                 ) : (
-                  <span>{formatTime(duration)}</span>
+                  <span>{formatClock(duration)}</span>
                 )}
               </div>
 

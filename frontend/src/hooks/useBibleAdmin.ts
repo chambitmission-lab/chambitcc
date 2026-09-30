@@ -1,37 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { updateBibleVerse } from '../api/bible'
-import type { UpdateBibleVerseRequest, BibleChapterPaginatedResponse } from '../types/bible'
+import type { BibleChapterPaginatedResponse } from '../types/bible'
 import type { InfiniteData } from '@tanstack/react-query'
 import { bibleKeys } from './queryKeys'
-
-/**
- * 성경 구절 수정 Mutation (관리자 전용)
- */
-export const useUpdateBibleVerse = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ verseId, data }: { verseId: number; data: UpdateBibleVerseRequest }) =>
-      updateBibleVerse(verseId, data),
-    onSuccess: (_, variables) => {
-      const { verseId, data } = variables
-      
-      // 모든 성경 관련 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: bibleKeys.all })
-      
-      // 특별히 무한 스크롤 캐시 강제 새로고침
-      queryClient.refetchQueries({ 
-        queryKey: bibleKeys.chapterInfinites(),
-        type: 'active'
-      })
-      
-      console.log('✅ Bible verse updated and cache invalidated:', { verseId, newText: data.text })
-    },
-    onError: (error) => {
-      console.error('❌ Failed to update bible verse:', error)
-    }
-  })
-}
 
 /**
  * 성경 구절 수정 (낙관적 업데이트 포함)

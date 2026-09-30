@@ -1,16 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
-import {
-  markVerseAsRead,
-  getReadVerses,
-  getChapterReadStatus,
-  getReadingProgress,
-  getBookReadingProgress,
-  getResumeReading,
-  unmarkVerseAsRead,
-  markChapterAsRead,
-  unmarkChapterAsRead
-} from '../api/bibleReading'
+import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import type { RequestPriority } from '../api/utils/request'
 import type { ProfileDetail } from '../types/profile'
@@ -82,24 +72,6 @@ export const useMarkVerseAsRead = () => {
         })
       }, 0)
     },
-  })
-}
-
-/**
- * 읽은 구절 목록 조회
- */
-export const useReadVerses = (params?: {
-  book_id?: number
-  chapter?: number
-  start_date?: string
-  end_date?: string
-  page?: number
-  page_size?: number
-}) => {
-  return useQuery({
-    queryKey: bibleReadingKeys.readVerses(params),
-    queryFn: () => getReadVerses(params),
-    staleTime: 1000 * 60 * 5, // 5분
   })
 }
 

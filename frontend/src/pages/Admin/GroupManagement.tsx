@@ -15,6 +15,7 @@ import { groupInviteUrl } from '../../utils/inviteLink'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import { InfoRow } from './components/AdminListBits'
 
 type AdminGroup = AdminGroupListResponse['data']['items'][number]
 
@@ -526,15 +527,6 @@ const StatChip = ({
     </span>
   )
 }
-
-const InfoRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-center justify-between gap-2">
-    <span className="text-gray-500 dark:text-white/50 shrink-0">{label}</span>
-    <span className="text-gray-800 dark:text-white/85 font-medium truncate text-right min-w-0">
-      {value}
-    </span>
-  </div>
-)
 
 const SkeletonRows = () => (
   <div className="space-y-2">

@@ -12,6 +12,7 @@ import AdminComposerShell from './AdminComposerShell'
 import { ComposerFooter } from './AdminFormBits'
 import DatePicker from '../../../components/common/DatePicker'
 import type { NewFamilyPost } from '../../../types/newFamily'
+import { calendarDateKey as toDateInput } from '../../../utils/kstTime'
 
 interface NewFamilyComposerProps {
   /** 넘기면 수정 모드, 없으면 등록 모드 */
@@ -37,8 +38,6 @@ const GROUP_PRESETS = [
   '청년1부', '청년2부', '장년부', '새가족부',
 ]
 
-const pad = (n: number) => n.toString().padStart(2, '0')
-const toDateInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
 /** 이번 주 일요일(오늘 포함, 지난 일요일) */
 const getThisSunday = (): string => {

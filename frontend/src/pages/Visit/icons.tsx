@@ -81,17 +81,6 @@ export const CarIcon = (props: IconProps) => (
   </Svg>
 )
 
-/** 걷는 사람 — "처음이에요" / 마지막 100m */
-export const WalkIcon = (props: IconProps) => (
-  <Svg {...props}>
-    <circle cx="13" cy="4" r="1.7" />
-    <path d="M11.5 21l1.2-5.4-2.4-2 .8-4.4" />
-    <path d="M11.1 9.2 8 11l-1 3" />
-    <path d="m12.7 15.6 2.6 2 .9 3.4" />
-    <path d="m13.8 10.4 2.7 1.3 1.6-1.7" />
-  </Svg>
-)
-
 /** 주차 P */
 export const ParkingIcon = (props: IconProps) => (
   <Svg {...props}>

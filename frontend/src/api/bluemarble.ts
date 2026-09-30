@@ -1,19 +1,8 @@
 import { API_V1 } from '../config/api'
-import type {
-  GameState,
-  AdvanceResult,
-  AnswerResult,
-  Leaderboard,
-  BluemarbleStats,
-  Tile,
-} from '../types/bluemarble'
+import type { GameState, AdvanceResult, AnswerResult, Leaderboard, BluemarbleStats } from '../types/bluemarble'
 import { request, requestRaw } from './utils/request'
 
 const BASE = `${API_V1}/bluemarble`
-
-export const fetchTiles = async (): Promise<Tile[]> => {
-  return request<Tile[]>(`${BASE}/tiles`, { errorMessage: '보드 정보를 불러오지 못했습니다' })
-}
 
 export const startGame = async (restart = false): Promise<GameState> => {
   return request<GameState>(`${BASE}/start`, {

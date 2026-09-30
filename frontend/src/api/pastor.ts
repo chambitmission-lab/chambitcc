@@ -610,9 +610,6 @@ const noteQuery = (f: NoteFilters): string => {
 export const fetchNotes = (filters: NoteFilters = {}): Promise<NoteListData> =>
   pastorGet(`/pastor/notes${noteQuery(filters)}`, '설교 메모를 불러오는데 실패했습니다')
 
-export const fetchNote = (id: number): Promise<SermonNote> =>
-  pastorGet(`/pastor/notes/${id}`, '메모를 불러오는데 실패했습니다')
-
 export const analyzeNote = (body: string, passage: string | null): Promise<NoteAnalysis> =>
   pastorSend('/pastor/notes/analyze', 'POST', { body, passage }, '말씀 연결을 확인하지 못했습니다')
 

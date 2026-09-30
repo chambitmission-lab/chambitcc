@@ -93,6 +93,8 @@ createRoot(document.getElementById('root')!).render(
               // 목회자 영역은 persist 제외 — 맡긴 기도·심방 메모·연락처가 localStorage 에 남으면 안 된다
               // (공용 PC 에서 로그아웃 뒤에도 남는다). 목회자는 소수라 콜드 스타트 비용도 작다.
               if (Array.isArray(key) && typeof key[0] === 'string' && key[0].startsWith('pastor-')) return false
+              // 같은 돌봄 레이더의 관리자 화면 키도 같은 이유로 제외 (CareRadar.tsx)
+              if (Array.isArray(key) && key[0] === 'admin-care-radar') return false
               // pageParams가 있는 infinite query도 제외 (커뮤니티, 기도, 댓글 등)
               if (query.state.data && typeof query.state.data === 'object' && 'pageParams' in query.state.data) {
                 const pageParams = (query.state.data as { pageParams?: unknown }).pageParams

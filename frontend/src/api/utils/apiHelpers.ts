@@ -21,25 +21,6 @@ export class ApiError extends Error {
 }
 
 /**
- * 인증 토큰을 포함한 헤더 생성
- * (신규 코드는 api/utils/request 의 request()/requestRaw() 를 쓴다 — 헤더를 직접 만들 일이 없다)
- */
-export const getAuthHeaders = (includeContentType = false): Record<string, string> => {
-  const headers: Record<string, string> = {}
-
-  const token = tokenStore.getAccess()
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  if (includeContentType) {
-    headers['Content-Type'] = 'application/json'
-  }
-
-  return headers
-}
-
-/**
  * 인증 토큰 확인 (로그인 필수 API용)
  */
 export const requireAuth = (): string => {
@@ -48,18 +29,4 @@ export const requireAuth = (): string => {
     throw new ApiError(401, '로그인이 필요합니다')
   }
   return token
-}
-
-/**
- * API 에러 처리 — 실패 응답을 status 가 담긴 ApiError 로 던진다.
- */
-export const handleApiError = async (response: Response, defaultMessage: string): Promise<never> => {
-  let message = defaultMessage
-  try {
-    const error = await response.json()
-    if (typeof error?.detail === 'string' && error.detail) message = error.detail
-  } catch {
-    /* 본문이 JSON 이 아니면 기본 메시지 */
-  }
-  throw new ApiError(response.status, message)
 }

@@ -54,12 +54,6 @@ export const calendarDateKey = (d: Date): string =>
 export const kstDateKey = (value: string | Date): string =>
   calendarDateKey(toKstCalendarDate(value))
 
-/** 'YYYY-MM-DDTHH:mm' — datetime-local 입력값 (서울 기준). 인자 주의사항은 kstDateKey 와 동일 */
-export const kstDatetimeInputValue = (value: string | Date): string => {
-  const d = toKstCalendarDate(value)
-  return `${calendarDateKey(d)}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`
-}
-
 type Lang = 'ko' | 'en'
 
 /** 서울 기준으로 포맷 (기기 타임존과 무관하게 교회 현지 시각). 예: 8/5(화) 오후 6:00 */

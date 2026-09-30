@@ -64,18 +64,6 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
 };
 
 /**
- * 푸시 알림 권한 요청
- */
-export const requestNotificationPermission = async (): Promise<NotificationPermission> => {
-  if (!('Notification' in window)) {
-    throw new Error('이 브라우저는 알림을 지원하지 않습니다.');
-  }
-
-  const permission = await Notification.requestPermission();
-  return permission;
-};
-
-/**
  * 푸시 알림 권한 확인
  */
 export const checkNotificationPermission = (): NotificationPermission => {
@@ -229,25 +217,6 @@ export const unsubscribeFromPushNotifications = async (
     return true;
   } catch (error) {
     console.error('❌ 푸시 알림 구독 해제 실패:', error);
-    return false;
-  }
-};
-
-/**
- * 현재 푸시 구독 상태 확인
- */
-export const isPushSubscribed = async (): Promise<boolean> => {
-  try {
-    if (!('serviceWorker' in navigator)) {
-      return false;
-    }
-
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
-
-    return subscription !== null;
-  } catch (error) {
-    console.error('❌ 푸시 구독 상태 확인 실패:', error);
     return false;
   }
 };

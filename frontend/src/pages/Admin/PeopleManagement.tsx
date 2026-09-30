@@ -27,6 +27,7 @@ import type { Person, PersonCategory } from '../../types/people'
 import PersonComposer from './components/PersonComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { can } from '../../utils/access'
+import { InfoRow, StatChip } from './components/AdminListBits'
 
 type CategoryFilter = 'all' | PersonCategory
 
@@ -552,41 +553,11 @@ const PersonRow = ({
 }
 
 // ── 작은 컴포넌트들 ──────────────────────────────────────
-const StatChip = ({
-  label,
-  value,
-  accent,
-}: {
-  label: string
-  value: number
-  accent?: boolean
-}) => (
-  <span
-    className={
-      accent
-        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-[12px] font-semibold text-brand'
-        : 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-[12px] font-semibold text-gray-700 dark:text-white/75'
-    }
-  >
-    {label}
-    <span className="font-bold">{value}</span>
-  </span>
-)
-
 const SkeletonRows = () => (
   <div className="space-y-2">
     {Array.from({ length: 4 }).map((_, i) => (
       <div key={i} className="h-[86px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
     ))}
-  </div>
-)
-
-const InfoRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-center justify-between gap-2">
-    <span className="text-gray-500 dark:text-white/50 shrink-0">{label}</span>
-    <span className="text-gray-800 dark:text-white/85 font-medium truncate text-right min-w-0">
-      {value}
-    </span>
   </div>
 )
 

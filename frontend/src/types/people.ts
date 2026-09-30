@@ -146,13 +146,6 @@ export const assignmentList = (person: Person, language: 'ko' | 'en'): string[] 
     .map((line) => line.trim())
     .filter(Boolean)
 
-/** 이름 + 직분 — '최요한 목사' (직분이 없으면 이름만) */
-export const personTitle = (person: Person, language: 'ko' | 'en'): string => {
-  const name = personText(person, 'name', language)
-  const role = personText(person, 'role', language)
-  return role ? `${name} ${role}` : name
-}
-
 /** '2019-03-01' → '2019.03' — 카드/시트의 시작일 표기 */
 export const personDateLabel = (value?: string | null): string => {
   if (!value) return ''

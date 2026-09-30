@@ -18,6 +18,7 @@ import { EVENT_ALBUM_TAGS } from '../../../types/eventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import type { Event } from '../../../types/event'
 import { EventTagIcon } from '../../News/components/NewsIcons'
+import { calendarDateKey as toDateInput } from '../../../utils/kstTime'
 
 interface EventAlbumComposerProps {
   /** 넘기면 수정 모드, 없으면 등록 모드 */
@@ -38,8 +39,6 @@ const MAX_PHOTOS = 20
 /** 업로드 전 클라이언트 리사이즈 — 피드는 1080px이면 충분 */
 const UPLOAD_MAX_SIZE = 1080
 
-const pad = (n: number) => n.toString().padStart(2, '0')
-const toDateInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
 const getToday = (): string => toDateInput(new Date())
 

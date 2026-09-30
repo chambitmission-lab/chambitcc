@@ -71,14 +71,6 @@ export const toggleRetweet = async (postId: number) => {
   })
 }
 
-// 댓글 목록 조회
-export const getReplies = async (postId: number, page = 1, limit = 20) => {
-  return request<UntypedJson>(`/community/posts/${postId}/replies`, {
-    query: { page, limit },
-    errorMessage: '댓글을 불러오지 못했습니다',
-  })
-}
-
 // 댓글 작성
 export const createReply = async (postId: number, content: string) => {
   return request<UntypedJson>(`/community/posts/${postId}/replies`, {

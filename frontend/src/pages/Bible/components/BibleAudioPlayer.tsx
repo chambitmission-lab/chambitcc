@@ -17,6 +17,7 @@ import AudioSettingsMenu from './AudioSettingsMenu'
 import { lazyModal } from '../../../utils/lazyModal'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { AUDIO_RIDGE } from '../../../utils/themeAssets'
+import { formatClock } from '../../../utils/formatClock'
 // 열 때만 받는 오버레이·시트 — 읽기 화면 청크에서 분리
 const AudioSleepSheet = lazyModal(() => import('./AudioSleepSheet'))
 const CinemaReading = lazyModal(() => import('./CinemaReading'))
@@ -67,13 +68,6 @@ const ensurePreconnect = (origin: string) => {
   link.rel = 'preconnect'
   link.href = origin
   document.head.appendChild(link)
-}
-
-const formatTime = (sec: number): string => {
-  if (!Number.isFinite(sec) || sec < 0) return '0:00'
-  const m = Math.floor(sec / 60)
-  const s = Math.floor(sec % 60)
-  return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 /**
@@ -556,7 +550,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
             <span className="ml-auto flex flex-shrink-0 items-center gap-1 pl-1">
               {started && !loading && !liveStream && duration > 0 && (
                 <span className="text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
-                  {formatTime(currentTime)}
+                  {formatClock(currentTime)}
                 </span>
               )}
               <span className="material-icons-round text-[18px] leading-none text-gray-400 dark:text-white/40">
@@ -762,7 +756,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
             </div>
 
             <div className="mt-1 flex items-center justify-between text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
-              <span>{formatTime(currentTime)}</span>
+              <span>{formatClock(currentTime)}</span>
               {loading ? (
                 /* 힌트를 별도 줄이 아닌 이 자리(총길이 자리)에 보여 카드 높이가 변하지 않는다 */
                 <span className="flex items-center gap-1">
@@ -775,7 +769,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                   실시간 생성 중
                 </span>
               ) : (
-                <span>{formatTime(duration)}</span>
+                <span>{formatClock(duration)}</span>
               )}
             </div>
           </div>
@@ -939,7 +933,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                 오디오북 <span className="font-medium text-gray-400 dark:text-white/45">· {statusText}</span>
               </span>
               <span className="flex-shrink-0 text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
-                {liveStream ? '실시간 생성 중' : `${formatTime(currentTime)} / ${formatTime(duration)}`}
+                {liveStream ? '실시간 생성 중' : `${formatClock(currentTime)} / ${formatClock(duration)}`}
               </span>
             </div>
             {/* 얇은 진행바 (미니에서는 seek 없이 상태 표시만) */}

@@ -11,6 +11,7 @@ import { getSundayServices, getWeekdayServices } from '../../../api/worship'
 import { DAY_CHARS, soonestService } from '../../../utils/worshipSchedule'
 import { ChevronRightIcon } from '../icons'
 import { sermonKeys, columnKeys, worshipKeys } from '../../../hooks/queryKeys'
+import { kstNow } from '../../../utils/kstTime'
 
 interface Props {
   ko: boolean
@@ -60,7 +61,7 @@ export default function GreetingRail({ ko }: Props) {
     },
     staleTime: 1000 * 60 * 30,
   })
-  const seoulNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  const seoulNow = kstNow()
   const next = services ? soonestService(services, seoulNow) : null
   const nextDay = next
     ? next.occ.dayOffset === 0

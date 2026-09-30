@@ -8,6 +8,7 @@ import DatePicker from '../../../components/common/DatePicker'
 import { FieldGroup, QuickChip, dateTriggerClass } from '../../../components/common/ComposerFields'
 import AdminComposerShell from './AdminComposerShell'
 import { ComposerFooter } from './AdminFormBits'
+import { calendarDateKey as toDateInput } from '../../../utils/kstTime'
 
 interface DailyVerseComposerProps {
   editingVerse: DailyVerse | null
@@ -15,9 +16,6 @@ interface DailyVerseComposerProps {
   onSuccess: () => void
 }
 
-const pad = (n: number) => n.toString().padStart(2, '0')
-const toDateInput = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
 const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComposerProps) => {
   const [verseReference, setVerseReference] = useState('')

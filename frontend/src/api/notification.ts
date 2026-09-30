@@ -1,7 +1,7 @@
 // 공지사항 API
 import type { Notification, NotificationsResponse, CreateNotificationRequest, UpdateNotificationRequest } from '../types/notification'
-import { tokenStore } from '../utils/tokenStore'
-import { request, requestRaw, isApiError, type UntypedJson } from './utils/request'
+
+import { request, requestRaw, type UntypedJson } from './utils/request'
 
 /**
  * 공지사항 목록 조회 (페이지네이션)
@@ -82,41 +82,6 @@ export const uploadNotificationImage = async (file: File): Promise<string> => {
     errorMessage: '이미지 업로드에 실패했습니다',
   })
   return data.url as string
-}
-
-/**
- * 공지사항 상세 조회 (모든 사용자)
- */
-export const getNotificationDetail = async (id: number): Promise<Notification> => {
-  return request<Notification>(`/notifications/${id}`, { errorMessage: '공지사항을 불러오는데 실패했습니다' })
-}
-
-/**
- * 읽지 않은 알림 개수 조회 (로그인 필수)
- */
-export const getUnreadCount = async (): Promise<number> => {
-  if (!tokenStore.hasAccess()) {
-    return 0
-  }
-
-  let data: UntypedJson
-  try {
-    data = await request<UntypedJson>('/notifications/unread-count', { auth: 'required' })
-  } catch (error) {
-    if (isApiError(error)) return 0
-    throw error
-  }
-  
-  // 응답 형식 확인
-  if (typeof data === 'number') {
-    return data
-  } else if (data && typeof data.unread_count === 'number') {
-    return data.unread_count
-  } else if (data && typeof data.count === 'number') {
-    return data.count
-  }
-  
-  return 0
 }
 
 /**

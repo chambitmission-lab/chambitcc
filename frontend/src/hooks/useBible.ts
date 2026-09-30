@@ -1,7 +1,7 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import type { InfiniteData, QueryClient } from '@tanstack/react-query'
 import type { BibleSearchResult } from '../types/bible'
-import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible, getBibleChapterPaginated } from '../api/bible'
+import { getBibleBooks, getBibleChapter, searchBible, getBibleChapterPaginated } from '../api/bible'
 import { bibleKeys } from './queryKeys'
 import { prefetchChapterReadStatus } from './useBibleReading'
 import { isAuthenticated } from '../utils/auth'
@@ -22,17 +22,6 @@ export const useBibleChapter = (bookId: number, chapter: number, enabled: boolea
     queryKey: bibleKeys.chapter(bookId, chapter),
     queryFn: () => getBibleChapter(bookId, chapter),
     enabled: enabled && bookId > 0 && chapter > 0,
-    staleTime: 1000 * 60 * 60 * 24, // 24시간
-    gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
-  })
-}
-
-// 특정 구절 조회
-export const useBibleVerse = (book: string, chapter: number, verse: number, enabled: boolean = true) => {
-  return useQuery({
-    queryKey: bibleKeys.verse(book, chapter, verse),
-    queryFn: () => getBibleVerse(book, chapter, verse),
-    enabled: enabled && !!book && chapter > 0 && verse > 0,
     staleTime: 1000 * 60 * 60 * 24, // 24시간
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
   })

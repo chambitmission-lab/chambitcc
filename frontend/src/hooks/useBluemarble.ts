@@ -1,14 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  fetchState,
-  fetchTiles,
-  startGame,
-  advanceStep,
-  submitAnswer,
-  fetchLeaderboard,
-  fetchBluemarbleStats,
-  abandonGame,
-} from '../api/bluemarble'
+import { fetchState, startGame, advanceStep, submitAnswer, fetchLeaderboard, fetchBluemarbleStats, abandonGame } from '../api/bluemarble'
 
 export const QK_BM_STATE = ['bluemarble', 'state'] as const
 export const QK_BM_TILES = ['bluemarble', 'tiles'] as const
@@ -25,13 +16,6 @@ export const useBluemarbleState = (enabled = true) =>
     // 갱신되지 않는다. 게임 상태는 서버 권위 데이터이므로 마운트마다 새로 가져온다.
     refetchOnMount: 'always',
     refetchOnWindowFocus: false,
-  })
-
-export const useBluemarbleTiles = () =>
-  useQuery({
-    queryKey: QK_BM_TILES,
-    queryFn: fetchTiles,
-    staleTime: 60 * 60 * 1000,
   })
 
 export const useStartGame = () => {

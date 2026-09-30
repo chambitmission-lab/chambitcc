@@ -24,6 +24,3 @@ if (import.meta.env.DEV) {
     console.warn('[welcomeEmoji] 메타가 빠진 이모지:', missing)
   }
 }
-
-export const findWelcomeMeta = (char: string): WelcomeEmojiMeta | undefined =>
-  WELCOME_EMOJI_META.find((m) => m.char === char)

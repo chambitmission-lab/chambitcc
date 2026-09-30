@@ -3,7 +3,7 @@
      내부 경로는 /#/... 해시라 구글이 별도 페이지로 색인하지 않으므로 홈만 등록한다. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://chambitcc.vercel.app/</loc>
+    <loc>https://chambitcc.kro.kr/</loc>
     <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>

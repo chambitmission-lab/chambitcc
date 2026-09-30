@@ -62,5 +62,3 @@ export const getCurrentMood = (date: Date = new Date()): MoodPalette => {
   if (h >= 17 && h < 20) return PALETTES.dusk
   return PALETTES.night
 }
-
-export const MOOD_PALETTES = PALETTES

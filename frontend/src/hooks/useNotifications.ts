@@ -104,14 +104,6 @@ export const useNotificationStream = (enabled: boolean) => {
 }
 
 /**
- * 읽지 않은 알림 개수 (첫 페이지 응답 기준 — 전체 카운트)
- */
-export const useUnreadCount = () => {
-  const { data } = useNotifications()
-  return data?.pages[0]?.unread_count ?? 0
-}
-
-/**
  * 알림 읽음 처리
  */
 export const useMarkAsRead = () => {
@@ -137,15 +129,4 @@ export const useMarkAllAsRead = () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
     },
   })
-}
-
-/**
- * 알림 목록 수동 갱신
- */
-export const useRefreshNotifications = () => {
-  const queryClient = useQueryClient()
-
-  return () => {
-    queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
-  }
 }

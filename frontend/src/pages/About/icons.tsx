@@ -3,31 +3,7 @@
 // (예전 자체 인라인 선화 SVG 와 export 이름·props 를 그대로 유지해 호출부 무변경)
 // 화살표 셰브런만 안내 기호라 duotone 대신 bold 로 또렷하게.
 import type { CSSProperties } from 'react'
-import {
-  BookOpen,
-  Briefcase,
-  Camera,
-  CaretDown,
-  CaretRight,
-  Clock,
-  Flag,
-  GraduationCap,
-  Heart,
-  MapPin,
-  Medal,
-  MoonStars,
-  Phone,
-  Plant,
-  PlayCircle,
-  Sun,
-  SunDim,
-  SunHorizon,
-  TreeStructure,
-  UsersThree,
-  X,
-  type Icon,
-  type IconWeight,
-} from '../../components/icons/phosphor'
+import { BookOpen, Briefcase, Camera, CaretDown, CaretRight, Clock, Flag, GraduationCap, Heart, MapPin, Medal, MoonStars, Phone, Plant, PlayCircle, Sun, SunDim, SunHorizon, UsersThree, X, type Icon, type IconWeight } from '../../components/icons/phosphor'
 
 interface IconProps {
   size?: number
@@ -68,8 +44,6 @@ export const BookOpenIcon = make(BookOpen)
 export const PlayCircleIcon = make(PlayCircle)
 /** 깃발 — 발자취 */
 export const FlagIcon = make(Flag)
-/** 조직도 */
-export const OrgChartIcon = make(TreeStructure)
 /** 섬기는 사람들 */
 export const PeopleIcon = make(UsersThree)
 /** 하트 — 손수건 만남 */

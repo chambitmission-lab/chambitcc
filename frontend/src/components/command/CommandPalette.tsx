@@ -26,6 +26,8 @@ import './CommandPalette.css'
 import { OPEN_CHATBOT_EVENT, OPEN_SEARCH_EVENT, isMacLike } from './commandEvents'
 import { tokenStore } from '../../utils/tokenStore'
 import { sermonKeys, dailyVerseKeys, worshipKeys } from '../../hooks/queryKeys'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { kstNow } from '../../utils/kstTime'
 
 type Row =
   | { kind: 'action'; id: string; label: string; desc: string; icon: keyof typeof NAV_ICONS | 'chambi'; to?: string; ask?: boolean; accent?: boolean }
@@ -40,15 +42,6 @@ type Row =
 const DEBOUNCE_MS = 180
 const MAX_PAGES = 5
 
-const useDebounced = (value: string, ms: number) => {
-  const [v, setV] = useState(value)
-  useEffect(() => {
-    const id = window.setTimeout(() => setV(value), ms)
-    return () => window.clearTimeout(id)
-  }, [value, ms])
-  return v
-}
-
 const CommandPalette = () => {
   const { language, t } = useLanguage()
   const ko = language === 'ko'
@@ -59,7 +52,7 @@ const CommandPalette = () => {
   const [cursorState, setCursorState] = useState<{ key: string; idx: number }>({ key: '', idx: 0 })
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const debounced = useDebounced(query.trim(), DEBOUNCE_MS)
+  const debounced = useDebouncedValue(query.trim(), DEBOUNCE_MS)
   const loggedIn = !!tokenStore.getAccess()
   // 최근 항목 — 열릴 때 읽고, 실행할 때 갱신
   const [recentVersion, setRecentVersion] = useState(0)
@@ -181,7 +174,7 @@ const CommandPalette = () => {
   })
   const nextService = useMemo(() => {
     if (!services) return null
-    const seoulNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+    const seoulNow = kstNow()
     const next = soonestService(services, seoulNow)
     if (!next) return null
     const h = Math.floor(next.occ.startMin / 60)

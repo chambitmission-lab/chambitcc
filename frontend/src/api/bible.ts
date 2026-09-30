@@ -1,17 +1,8 @@
 import type { BibleBook, BibleChapterResponse, BibleChapterPaginatedResponse, BibleVerse, BibleSearchResult, UpdateBibleVerseRequest, UpdateBibleVerseResponse } from '../types/bible'
-// Mock 데이터 import (개발/테스트용)
-import { getMockBibleBooks, getMockBibleChapter, getMockBibleSearch } from './bible.mock'
 import { request } from './utils/request'
-
-// Mock 모드 활성화 여부 (백엔드 API가 준비되면 false로 변경)
-const USE_MOCK_DATA = false
 
 // 성경 책 목록 조회
 export const getBibleBooks = async (): Promise<BibleBook[]> => {
-  if (USE_MOCK_DATA) {
-    return getMockBibleBooks()
-  }
-  
   // 'high': 첫 화면 우선순위 게이트(utils/requestPriority)를 거치지 않는다.
   // 책 목록은 /bible 허브를 그리는 데 꼭 필요한 유일한 데이터인데, 콜드 진입에서
   // 진행률(critical) 응답이 올 때까지 게이트 뒤에 묶여 스피너만 떠 있었다.
@@ -24,10 +15,6 @@ export const getBibleBooks = async (): Promise<BibleBook[]> => {
 
 // 특정 장 읽기 - 책 ID 사용
 export const getBibleChapter = async (bookId: number, chapter: number): Promise<BibleChapterResponse> => {
-  if (USE_MOCK_DATA) {
-    return getMockBibleChapter(bookId, chapter)
-  }
-  
   return request<BibleChapterResponse>(`/bible/chapter/${bookId}/${chapter}`, { errorMessage: 'Failed to fetch bible chapter' })
 }
 
@@ -43,10 +30,6 @@ export const searchBible = async (
   keyword: string,
   options: { limit?: number; offset?: number; testament?: 'OLD' | 'NEW'; bookNumber?: number } = {}
 ): Promise<BibleSearchResult> => {
-  if (USE_MOCK_DATA) {
-    return getMockBibleSearch(keyword)
-  }
-
   const { limit = 30, offset = 0, testament, bookNumber } = options
   const params = new URLSearchParams({
     keyword,

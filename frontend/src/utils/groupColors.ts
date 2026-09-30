@@ -119,23 +119,6 @@ export const getGroupColorTheme = (groupName?: string): GroupColorTheme => {
   return groupColorThemes.default
 }
 
-// 그룹 ID로 색상 테마 가져오기 (해시 기반)
-export const getGroupColorThemeById = (groupId?: number, groupName?: string): GroupColorTheme => {
-  // 이름이 있으면 이름 우선
-  if (groupName) {
-    return getGroupColorTheme(groupName)
-  }
-  
-  // ID만 있으면 해시로 색상 선택
-  if (groupId) {
-    const themes = Object.values(groupColorThemes).filter(t => t.name !== '참빛')
-    const index = groupId % themes.length
-    return themes[index]
-  }
-  
-  return groupColorThemes.default
-}
-
 // CSS 변수로 변환
 export const getGroupColorCSSVars = (theme: GroupColorTheme) => ({
   '--group-primary': theme.primary,

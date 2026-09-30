@@ -79,7 +79,7 @@ FRONTEND_URL=http://localhost:5173
 
 ## 배포
 
-- Frontend: GitHub Pages
+- Frontend: Cloudflare Pages (main 푸시 시 자동 배포, chambitcc.kro.kr)
 - Backend: 클라우드타입
 - Database: 클라우드타입 MariaDB
 

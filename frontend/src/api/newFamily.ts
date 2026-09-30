@@ -27,11 +27,6 @@ export const fetchNewFamilyStats = async (): Promise<NewFamilyStats> => {
   return body.data
 }
 
-export const fetchNewFamilyPost = async (postId: number): Promise<NewFamilyPost> => {
-  const body = await request<UntypedJson>(`${BASE}/${postId}`, { errorMessage: '새가족 소식을 불러오지 못했습니다' })
-  return body.data
-}
-
 // ── 관리자 ────────────────────────────────────────────
 export const createNewFamilyPost = async (payload: {
   memberName: string

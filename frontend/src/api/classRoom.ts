@@ -61,17 +61,6 @@ export const getClass = async (classId: number): Promise<ClassDetail> => {
   return request<ClassDetail>(`${BASE}/${classId}`, { errorMessage: '반을 불러오지 못했습니다' })
 }
 
-export const updateClass = async (
-  classId: number,
-  payload: Partial<ClassCreateRequest>,
-): Promise<ClassDetail> => {
-  return request<ClassDetail>(`${BASE}/${classId}`, {
-    method: 'PATCH',
-    json: payload,
-    errorMessage: '반 정보 수정에 실패했습니다',
-  })
-}
-
 export const leaveClass = async (classId: number): Promise<void> => {
   await requestRaw(`${BASE}/${classId}/leave`, { method: 'DELETE', errorMessage: '나가기에 실패했습니다' })
 }

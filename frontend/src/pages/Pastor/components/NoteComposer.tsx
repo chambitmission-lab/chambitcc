@@ -30,6 +30,7 @@ import { FieldLabel, GhostButton, PastorModal, PrimaryButton } from './ui'
 import { inputCls } from './pastorUtils'
 import { SermonPicker, UsedBadge } from './sermonNotes'
 import { bibleLink, chipCls, invalidateNoteQueries } from './sermonNoteUtils'
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue'
 
 const KINDS = Object.keys(NOTE_KIND_LABEL) as NoteKind[]
 
@@ -50,16 +51,6 @@ interface Props {
   onSaved?: (note: SermonNote) => void
 }
 
-/** 입력이 멈춘 뒤에만 서버에 묻는다 */
-const useDebounced = <T,>(value: T, ms: number): T => {
-  const [v, setV] = useState(value)
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), ms)
-    return () => clearTimeout(t)
-  }, [value, ms])
-  return v
-}
-
 const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) => {
   const qc = useQueryClient()
   const fromVisit = fromVisitId != null || !!note?.from_visit
@@ -74,8 +65,8 @@ const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) =
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [pickingSermon, setPickingSermon] = useState(false)
 
-  const dBody = useDebounced(body.trim(), 600)
-  const dPassage = useDebounced(passage.trim(), 600)
+  const dBody = useDebouncedValue(body.trim(), 600)
+  const dPassage = useDebouncedValue(passage.trim(), 600)
   const { data: analysis, isFetching: analyzing } = useQuery<NoteAnalysis>({
     queryKey: ['pastor-note-analyze', dBody, dPassage],
     queryFn: () => analyzeNote(dBody, dPassage || null),

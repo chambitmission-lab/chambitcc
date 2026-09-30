@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { kstNow } from '../../../utils/kstTime'
 
 /** 숫자 카운트업 — active 가 true 가 된 시점부터 duration 동안 0→target */
 export const useCountUp = (target: number, active: boolean, duration = 1400) => {
@@ -21,8 +22,7 @@ export const useCountUp = (target: number, active: boolean, duration = 1400) => 
 
 
 /** 서울 기준 현재 시각 (예배 카운트다운용) */
-export const seoulNow = (): Date =>
-  new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+export const seoulNow = kstNow
 
 export const fmtNum = (n: number, ko: boolean) =>
   ko ? n.toLocaleString('ko-KR') : n.toLocaleString('en-US')

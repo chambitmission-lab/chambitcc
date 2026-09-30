@@ -21,6 +21,7 @@ import { can } from '../../utils/access'
 import { CountdownClock, MOOD_ICON, StatusChip } from './components/WorshipBits'
 import { DAY_NAMES_EN, FILTER_KEY, NARRATIVE_KEY, OPEN_BEFORE_MIN, RECOMMEND_LEAD_MIN, dayLabel, formatRemaining, formatTimeLabel, liturgicalSeason, moodOfTime, orderLabel, pick, serviceStatusToday, taglineKey, weekdayIcon } from './components/worshipTime'
 import type { DayFilter, Mood } from './components/worshipTime'
+import { toKstCalendarDate } from '../../utils/kstTime'
 
 
 const Worship = () => {
@@ -123,7 +124,7 @@ const Worship = () => {
   const activeWeekday = weekdayServices.filter(s => s.is_active)
 
   // 예배는 서울에서 열리므로 기기 시간대와 무관하게 항상 Asia/Seoul 기준으로 판정
-  const seoulNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  const seoulNow = toKstCalendarDate(now)
   const todayDay = seoulNow.getDay()
 
   // 지금 이후 가장 가까운 예배 (주일+평일 통합).

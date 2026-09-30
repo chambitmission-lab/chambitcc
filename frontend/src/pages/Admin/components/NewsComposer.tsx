@@ -11,6 +11,7 @@ import AdminComposerShell from './AdminComposerShell'
 import { ComposerFooter } from './AdminFormBits'
 import DatePicker from '../../../components/common/DatePicker'
 import type { NewsDetail, NewsItem } from '../../../types/news'
+import { calendarDateKey as toDateInput } from '../../../utils/kstTime'
 
 interface NewsComposerProps {
   /** 넘기면 수정 모드, 없으면 등록 모드 */
@@ -41,8 +42,6 @@ const FILE_ACCEPT = '.pdf,.hwp,.hwpx,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip'
 /** 알림함·팝업에 실을 미리보기 길이 — 전문은 소식 원문에서 읽게 한다 */
 const NOTICE_PREVIEW_LIMIT = 280
 
-const pad = (n: number) => n.toString().padStart(2, '0')
-const toDateInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 const today = () => toDateInput(new Date())
 
 const toDateOnly = (value: string | null): string => {

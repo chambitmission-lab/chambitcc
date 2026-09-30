@@ -36,14 +36,6 @@ export const listChapterCommentaries = async (
   return request<BibleCommentaryListResponse>(`${BASE}/chapter/${bookNumber}/${chapter}`, { errorMessage: '해석을 불러오지 못했습니다' })
 }
 
-export const listVerseCommentaries = async (
-  bookNumber: number,
-  chapter: number,
-  verse: number,
-): Promise<BibleCommentaryListResponse> => {
-  return request<BibleCommentaryListResponse>(`${BASE}/verse/${bookNumber}/${chapter}/${verse}`, { errorMessage: '해석을 불러오지 못했습니다' })
-}
-
 export const createCommentary = async (
   payload: BibleCommentaryCreateRequest,
 ): Promise<BibleCommentary> => {

@@ -10,6 +10,7 @@ import { daysUntil } from './capsuleDates'
 import { ArrivedRow, SealedRow } from './CapsuleMailRows'
 import { defaultOpenKeys, groupByMonth } from './capsuleGroups'
 import type { CapsuleGroup } from './capsuleGroups'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 
 // 이 수보다 적으면 검색창은 도움이 아니라 소음이다
 const SEARCH_MIN_ITEMS = 4
@@ -20,15 +21,6 @@ export interface CapsulePaging {
   hasMore: boolean
   loadingMore: boolean
   onLoadMore: () => void
-}
-
-const useDebounced = (value: string, ms: number) => {
-  const [v, setV] = useState(value)
-  useEffect(() => {
-    const id = window.setTimeout(() => setV(value), ms)
-    return () => window.clearTimeout(id)
-  }, [value, ms])
-  return v
 }
 
 const Chevron = ({ open }: { open: boolean }) => (
@@ -337,7 +329,7 @@ const CapsuleMailbox = ({
 }) => {
   const { sealed, arrived, arrivedTotal, unreadTotal } = data
   const [rawQuery, setRawQuery] = useState('')
-  const query = useDebounced(rawQuery.trim(), DEBOUNCE_MS)
+  const query = useDebouncedValue(rawQuery.trim(), DEBOUNCE_MS)
   const searching = query.length > 0
 
   const search = useCapsuleSearch(query)

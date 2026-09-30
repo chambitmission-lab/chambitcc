@@ -5,30 +5,7 @@
  * 매핑에 없는 이모지는 원래 글자를 그대로 출력한다.
  */
 import type { CSSProperties, ReactElement } from 'react'
-import {
-  ArrowsClockwise,
-  CalendarBlank,
-  Check,
-  DotsThree,
-  Feather,
-  FlowerTulip,
-  GearSix,
-  BookOpen,
-  Church,
-  Cross,
-  HandsPraying,
-  Heart,
-  House,
-  MusicNote,
-  Plant,
-  ShareNetwork,
-  Sparkle,
-  Star,
-  Ticket,
-  User,
-  Users,
-  type Icon,
-} from '../../components/icons/phosphor'
+import { CalendarBlank, Check, DotsThree, Feather, FlowerTulip, GearSix, BookOpen, Church, Cross, HandsPraying, Heart, MusicNote, Plant, ShareNetwork, Sparkle, Star, Ticket, User, Users, type Icon } from '../../components/icons/phosphor'
 
 export type GroupIconProps = { size?: number; className?: string; style?: CSSProperties }
 
@@ -51,16 +28,12 @@ export const HeartIcon = duotone(Heart)
 export const SproutIcon = duotone(Plant)
 export const TicketIcon = duotone(Ticket)
 export const TulipIcon = duotone(FlowerTulip)
-
-// 방 홈 UI용 (탭·상단 액션·레일) — 데이터 이모지 매핑과 무관
-export const HomeIcon = duotone(House)
 export const CalendarIcon = duotone(CalendarBlank)
 export const ShareIcon = duotone(ShareNetwork)
 export const MoreIcon = duotone(DotsThree)
 export const GearIcon = duotone(GearSix)
 export const CheckIcon = duotone(Check)
 export const SparkleIcon = duotone(Sparkle)
-export const RelayIcon = duotone(ArrowsClockwise)
 
 const GLYPHS: Record<string, (p: GroupIconProps) => ReactElement> = {
   '🙏': PrayIcon,

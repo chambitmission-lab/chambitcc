@@ -19,13 +19,6 @@ export const gradientTextStyle: CSSProperties = {
   fontVariantNumeric: 'tabular-nums',
 }
 
-export const LEVEL_LABEL: Record<string, string> = {
-  입문: '입문',
-  초급: '초급',
-  중급: '중급',
-  고급: '고급',
-}
-
 // 플랜 메타 → 인스타 해시태그 스타일 토큰들 (#7일완성 #입문 …)
 export const planHashtags = (plan: {
   total_days?: number | null

@@ -116,12 +116,3 @@ export const recordLocalSession = (data: CreatePrayerSessionRequest): void => {
     // 저장 실패는 무시
   }
 }
-
-export const getLocalSessions = (): LocalSession[] => {
-  try {
-    const raw = localStorage.getItem(LOCAL_KEY)
-    return raw ? (JSON.parse(raw) as LocalSession[]) : []
-  } catch {
-    return []
-  }
-}

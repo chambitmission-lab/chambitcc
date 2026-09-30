@@ -205,33 +205,6 @@ export const unmarkChapterAsRead = async (
 }
 
 /**
- * 읽은 구절 목록 조회
- */
-export const getReadVerses = async (params?: {
-  book_id?: number
-  chapter?: number
-  start_date?: string
-  end_date?: string
-  page?: number
-  page_size?: number
-}): Promise<ReadVersesResponse['data']> => {
-  
-  const queryParams = new URLSearchParams()
-  
-  if (params?.book_id) queryParams.append('book_id', params.book_id.toString())
-  if (params?.chapter) queryParams.append('chapter', params.chapter.toString())
-  if (params?.start_date) queryParams.append('start_date', params.start_date)
-  if (params?.end_date) queryParams.append('end_date', params.end_date)
-  if (params?.page) queryParams.append('page', params.page.toString())
-  if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
-  
-  const url = `/bible/verses/read${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-  
-  const result: ReadVersesResponse = await request<ReadVersesResponse>(url, { auth: 'required', errorMessage: '읽은 구절 목록을 불러오는데 실패했습니다' })
-  return result.data
-}
-
-/**
  * 특정 장의 읽음 상태 조회
  */
 export const getChapterReadStatus = async (

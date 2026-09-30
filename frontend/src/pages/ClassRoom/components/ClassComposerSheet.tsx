@@ -23,6 +23,7 @@ import type { ClassPostCreateRequest, ClassPostType } from '../../../types/class
 import { resizeImageToBlob } from '../../../utils/imageResize'
 import { calendarDateKey, formatKstDateTime, kstNow } from '../../../utils/kstTime'
 import { showToast } from '../../../utils/toast'
+import { addMinutes, joinDT, splitDT, toLocalDatetimeInput } from '../../../utils/datetimeParts'
 
 const MAX_PHOTOS = 10
 const MAX_POLL_OPTIONS = 8
@@ -66,26 +67,6 @@ const TYPE_TABS: { value: ClassPostType; label: string; icon: IconFn }[] = [
   { value: 'photo', label: '사진', icon: CameraIcon },
   { value: 'poll', label: '투표', icon: BallotIcon },
 ]
-
-/* ── 일정·예약 시각 도우미 (EventComposer와 동일 방식) ── */
-const pad = (n: number) => n.toString().padStart(2, '0')
-
-const toLocalDatetimeInput = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-
-const addMinutes = (input: string, minutes: number): string => {
-  if (!input) return ''
-  const d = new Date(input)
-  d.setMinutes(d.getMinutes() + minutes)
-  return toLocalDatetimeInput(d)
-}
-
-/** 'YYYY-MM-DDTHH:mm' ↔ 날짜/시간 조각 */
-const splitDT = (v: string) => {
-  const [date = '', time = ''] = v.split('T')
-  return { date, time }
-}
-const joinDT = (date: string, time: string) => (date && time ? `${date}T${time}` : '')
 
 /* 종료는 "얼마나 하는지"로 받는다 — 반 일정은 종료 미정도 흔해서 '미정'이 기본 */
 type EndMode = 'none' | '1h' | '90m' | '2h' | 'custom'

@@ -1,13 +1,6 @@
 import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  createCommentary,
-  deleteCommentary,
-  listChapterCommentaries,
-  listChapterCommentarySummaries,
-  listVerseCommentaries,
-  updateCommentary,
-} from '../api/bibleCommentary'
+import { createCommentary, deleteCommentary, listChapterCommentaries, listChapterCommentarySummaries, updateCommentary } from '../api/bibleCommentary'
 import type {
   BibleCommentaryCreateRequest,
   BibleCommentaryUpdateRequest,
@@ -131,20 +124,6 @@ export const usePrefetchChapterCommentaries = (
       window.clearTimeout(id)
     }
   }, [queryClient, bookNumber, chapter, enabled])
-}
-
-export const useVerseCommentaries = (
-  bookNumber: number,
-  chapter: number,
-  verse: number,
-  enabled: boolean = true,
-) => {
-  return useQuery({
-    queryKey: keys.verse(bookNumber, chapter, verse),
-    queryFn: () => listVerseCommentaries(bookNumber, chapter, verse),
-    enabled: enabled && bookNumber > 0 && chapter > 0 && verse > 0,
-    staleTime: 60_000,
-  })
 }
 
 const invalidateForCommentary = (

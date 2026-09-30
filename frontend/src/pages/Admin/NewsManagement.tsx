@@ -11,6 +11,7 @@ import NewsComposer from './components/NewsComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import ChannelGuideNote from './components/ChannelGuideNote'
 import { can } from '../../utils/access'
+import { InfoRow } from './components/AdminListBits'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'views'
@@ -507,15 +508,6 @@ const SkeletonRows = () => (
     {Array.from({ length: 5 }).map((_, i) => (
       <div key={i} className="h-[86px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
     ))}
-  </div>
-)
-
-const InfoRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-center justify-between gap-2">
-    <span className="text-gray-500 dark:text-white/50 shrink-0">{label}</span>
-    <span className="text-gray-800 dark:text-white/85 font-medium truncate text-right min-w-0">
-      {value}
-    </span>
   </div>
 )
 

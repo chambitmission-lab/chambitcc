@@ -31,9 +31,6 @@ export const EVENT_ALBUM_TAG_EMOJI: Record<EventAlbumTag, string> = {
   기타: '📷',
 }
 
-export const eventAlbumTagEmoji = (tag: string): string =>
-  EVENT_ALBUM_TAG_EMOJI[tag as EventAlbumTag] ?? '📷'
-
 export interface EventAlbumPhoto {
   id: number
   url: string

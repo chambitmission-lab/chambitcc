@@ -6,41 +6,7 @@ import {
   type InfiniteData,
   type QueryClient,
 } from '@tanstack/react-query'
-import {
-  addClassMembers,
-  cancelClassPostRsvp,
-  createClass,
-  createClassPost,
-  createClassPostComment,
-  deleteClassPost,
-  deleteClassPostComment,
-  getClass,
-  getClassAttendanceMonth,
-  getClassPollDetail,
-  getClassPostChecks,
-  getClassPostRsvps,
-  getClassReport,
-  getClassStars,
-  getMyClassGrowth,
-  joinClass,
-  leaveClass,
-  listClassPostComments,
-  listClassPostRecitations,
-  listClassPosts,
-  listMyClasses,
-  previewClass,
-  remindClassPost,
-  setClassPostRsvp,
-  setMemberTeacher,
-  toggleClassAttendance,
-  toggleClassPostCheck,
-  toggleClassPostRecite,
-  updateClass,
-  updateClassPost,
-  updateClassPostComment,
-  updateMyChildName,
-  voteClassPoll,
-} from '../api/classRoom'
+import { addClassMembers, cancelClassPostRsvp, createClass, createClassPost, createClassPostComment, deleteClassPost, deleteClassPostComment, getClass, getClassAttendanceMonth, getClassPollDetail, getClassPostChecks, getClassPostRsvps, getClassReport, getClassStars, getMyClassGrowth, joinClass, leaveClass, listClassPostComments, listClassPostRecitations, listClassPosts, listMyClasses, previewClass, remindClassPost, setClassPostRsvp, setMemberTeacher, toggleClassAttendance, toggleClassPostCheck, toggleClassPostRecite, updateClassPost, updateClassPostComment, updateMyChildName, voteClassPoll } from '../api/classRoom'
 import type {
   ClassCreateRequest,
   ClassDetail,
@@ -189,17 +155,6 @@ export const useLeaveClass = () => {
   return useMutation({
     mutationFn: (classId: number) => leaveClass(classId),
     onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all }),
-  })
-}
-
-export const useUpdateClass = (classId: number) => {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (payload: Partial<ClassCreateRequest>) => updateClass(classId, payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: classKeys.detail(classId) })
-      qc.invalidateQueries({ queryKey: classKeys.list() })
-    },
   })
 }
 

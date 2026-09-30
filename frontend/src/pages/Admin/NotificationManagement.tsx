@@ -9,6 +9,7 @@ import ChannelGuideNote from './components/ChannelGuideNote'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
+import { InfoRow } from './components/AdminListBits'
 
 type ActiveFilter = 'all' | 'active' | 'inactive'
 type SortKey = 'recent' | 'oldest' | 'title'
@@ -493,15 +494,6 @@ const SkeletonRows = () => (
         className="h-[72px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
       />
     ))}
-  </div>
-)
-
-const InfoRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-center justify-between gap-2">
-    <span className="text-gray-500 dark:text-white/50 shrink-0">{label}</span>
-    <span className="text-gray-800 dark:text-white/85 font-medium truncate text-right min-w-0">
-      {value}
-    </span>
   </div>
 )
 

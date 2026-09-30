@@ -31,9 +31,6 @@ const merge = (): Record<string, AtlasPlace> => {
 
 export const PLACES: Record<string, AtlasPlace> = merge()
 
-/** 슬러그로 장소 찾기 */
-export const getPlace = (id: string): AtlasPlace | undefined => PLACES[id]
-
 /** 표시용 이름 — 같은 이름이 여럿인 곳은 괄호로 구분한다 (안디옥(수리아) / 안디옥(비시디아)) */
 export const placeLabel = (place: AtlasPlace): string =>
   place.qualifier ? `${place.name}(${place.qualifier})` : place.name

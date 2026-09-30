@@ -14,6 +14,7 @@ import { FieldGroup, QuickChip, dateTriggerClass } from '../../../components/com
 import AdminComposerShell from './AdminComposerShell'
 import { ComposerFooter } from './AdminFormBits'
 import DatePicker from '../../../components/common/DatePicker'
+import { calendarDateKey as toDateInput } from '../../../utils/kstTime'
 
 interface BulletinComposerProps {
   onClose: () => void
@@ -31,9 +32,6 @@ type PageItem =
   | { kind: 'existing'; id: number; src: string }
   | { kind: 'new'; file: File; src: string }
 
-const pad = (n: number) => n.toString().padStart(2, '0')
-const toDateInput = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
 // 주보는 "다가오는 주일"에 발행한다. 이번 주 일요일 = 오늘 이후 가장 가까운 일요일
 // (오늘이 일요일이면 오늘), 다음 주 일요일 = 그로부터 7일 뒤.

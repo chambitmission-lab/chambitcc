@@ -9,17 +9,7 @@ let permissionRequestPromise: Promise<{
   error?: string
 }> | null = null
 let lastRequestTimestamp = 0
-const MIN_REQUEST_INTERVAL = 500 // 최소 500ms 간격
-
-/**
- * 캐시된 스트림 정리
- */
-export const clearCachedStream = () => {
-  if (cachedStream) {
-    cachedStream.getTracks().forEach(track => track.stop())
-    cachedStream = null
-  }
-}
+const MIN_REQUEST_INTERVAL = 500
 
 /**
  * 마이크 권한 요청 및 스트림 획득
@@ -112,26 +102,4 @@ export const requestMicrophonePermission = async (): Promise<{
   })()
   
   return permissionRequestPromise
-}
-
-/**
- * 권한 상태 확인 (프롬프트 없이)
- * 
- * 주의: 일부 모바일 브라우저에서는 permissions.query()가
- * 지원되지 않거나 프롬프트를 트리거할 수 있습니다.
- * 따라서 이 함수는 선택적으로만 사용하세요.
- */
-export const checkMicrophonePermission = async (): Promise<PermissionState | null> => {
-  if (!navigator.permissions?.query) {
-    return null
-  }
-
-  try {
-    const status = await navigator.permissions.query({ 
-      name: 'microphone' as PermissionName 
-    })
-    return status.state
-  } catch {
-    return null
-  }
 }
