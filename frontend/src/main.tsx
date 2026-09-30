@@ -78,6 +78,8 @@ createRoot(document.getElementById('root')!).render(
               if (Array.isArray(key) && key[0] === 'bluemarble' && key[1] !== 'stats') return false
               // 실황 날씨는 persist 제외 — 저장하면 다음 실행 때 며칠 전 기온이 먼저 뜬다
               if (Array.isArray(key) && key[0] === 'weather') return false
+              // 관리 도구 '할 일' 배지도 제외 — 복원된 옛 배지('이번 주 미등록')가 먼저 떴다 바뀌면 헷갈린다
+              if (Array.isArray(key) && key[0] === 'adminMenuStatus') return false
               // 함께 읽기 실시간 현황도 제외 — 복원되면 지난 세션의 '나'가 유령처럼
               // "1명이 함께 읽는 중"으로 떠 있다가 응답이 오면 사라지며 화면이 흔들린다
               if (Array.isArray(key) && key[0] === 'readingTogether' && (key[1] === 'presence' || key[1] === 'live')) return false

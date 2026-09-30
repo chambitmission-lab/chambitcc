@@ -14,6 +14,7 @@ import {
 import type { WeeklyPrayerItem, WeeklyPrayerListItem } from '../../types/weeklyPrayer'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
 
 // 다가오는 주일(일요일) 날짜 — 오늘이 일요일이면 오늘
 const upcomingSunday = (): string => {
@@ -84,6 +85,9 @@ const WeeklyPrayerManagement = () => {
     setPasteText('')
     setShowComposer(true)
   }
+
+  // 전체 메뉴 > 관리 도구 '빠른 작업' → ?new=1 로 들어오면 등록 창부터 연다
+  useOpenComposerFromUrl(openNew)
 
   const openEdit = async (id: number) => {
     try {

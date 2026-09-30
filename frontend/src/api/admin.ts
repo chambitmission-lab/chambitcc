@@ -176,3 +176,17 @@ export const deleteAdminGroup = async (groupId: number): Promise<void> => {
     errorMessage: '그룹 삭제에 실패했습니다',
   })
 }
+
+// ── 관리자 메뉴 '할 일' 배지 ─────────────────────────────
+/** urgent(지금) · warn(곧) · info(쌓여 있음) — 관리자 홈 액션 카드와 같은 등급 */
+export interface AdminMenuBadge {
+  /** 빠른 작업 카드·말풍선용 전체 문구 ("이번 주 미등록", "승인 대기 2") */
+  text: string
+  /** 좁은 목록 행에 붙는 짧은 꼴 ("미등록", "2") */
+  short: string
+  tone: 'urgent' | 'warn' | 'info'
+}
+
+/** 키는 관리자 메뉴 항목 path — 할 일이 없는 항목은 빠져 있다 */
+export const fetchAdminMenuStatus = (): Promise<{ badges: Record<string, AdminMenuBadge> }> =>
+  adminGet('/admin/menu-status', '관리 도구 현황을 불러오지 못했습니다')

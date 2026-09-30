@@ -72,7 +72,7 @@ const MobileMenu = ({ isAdminUser, isLoggedIn, isDesktop, onLogout }: MobileMenu
         bg-background-light dark:bg-background-dark
         border-b border-border-light dark:border-border-dark
         shadow-lg
-        screen-cap-minus-header overflow-y-auto overscroll-contain
+        screen-cap-minus-header overflow-y-auto overflow-x-hidden overscroll-contain
         lg:top-[4.25rem] lg:left-1/2 lg:right-auto
         lg:rounded-2xl lg:border lg:border-black/[0.06] lg:dark:border-white/[0.08]
         lg:shadow-2xl lg:!max-h-[calc(100vh-6rem)]

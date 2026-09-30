@@ -8,6 +8,7 @@ import { FilterChip, FilterRow } from './components/FilterControls'
 import ChannelGuideNote from './components/ChannelGuideNote'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
 
 type ActiveFilter = 'all' | 'active' | 'inactive'
 type SortKey = 'recent' | 'oldest' | 'title'
@@ -76,6 +77,9 @@ const NotificationManagement = () => {
     setEditingNotification(null)
     setComposerOpen(true)
   }
+
+  // 전체 메뉴 > 관리 도구 '빠른 작업' → ?new=1 로 들어오면 등록 창부터 연다
+  useOpenComposerFromUrl(handleCreate)
 
   const handleComposerClose = () => {
     setComposerOpen(false)

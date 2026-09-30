@@ -84,7 +84,7 @@ const FeaturedCard = ({ item, label, desc }: { item: NavEntry; label: string; de
 }
 
 /* 목록 행 — 작은 단색 아이콘 + 이름만. 설명은 호버(0.3초 뒤)/키보드 포커스 때 아래 말풍선으로 */
-const DesktopItem = ({ item, label, desc }: { item: NavEntry; label: string; desc: string }) => {
+const DesktopItem = ({ item, label, desc, tipRight = false }: { item: NavEntry; label: string; desc: string; tipRight?: boolean }) => {
   const Icon = item.icon ? NAV_ICONS[item.icon] : null
   return (
     <Link
@@ -99,15 +99,15 @@ const DesktopItem = ({ item, label, desc }: { item: NavEntry; label: string; des
       </span>
       <span
         role="tooltip"
-        className="
-          pointer-events-none absolute left-2 top-full z-10 mt-0.5
+        className={`
+          pointer-events-none absolute top-full z-10 mt-0.5 ${tipRight ? 'right-2' : 'left-2'}
           rounded-lg px-2.5 py-1.5 shadow-lg whitespace-nowrap
           bg-gray-900 text-white dark:bg-white dark:text-gray-900
           text-[length:calc(12.5px*var(--mm,1))] leading-snug
           opacity-0 translate-y-0.5 transition duration-150
           group-hover:opacity-100 group-hover:translate-y-0 group-hover:delay-300
           group-focus-visible:opacity-100 group-focus-visible:translate-y-0
-        "
+        `}
       >
         {desc}
       </span>
@@ -235,14 +235,21 @@ const DesktopMegaMenu = ({ visible }: { visible: (item: NavEntry) => boolean }) 
 
           {/* 4칸 목록 — 제목은 진하게 + 밑줄로 칸이 한 묶음으로 읽히게 */}
           <nav className="grid grid-cols-4 gap-x-4 items-start">
-            {DESKTOP_SECTIONS.map(section => (
+            {DESKTOP_SECTIONS.map((section, si) => (
               <div key={section.titleKey} className="min-w-0">
                 <h3 className="mx-3 mb-1.5 pb-2 border-b border-border-light dark:border-border-dark text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">
                   {t(section.titleKey)}
                 </h3>
                 <div className="flex flex-col">
                   {section.items.filter(visible).map(item => (
-                    <DesktopItem key={item.path} item={item} label={t(item.labelKey)} desc={t(item.descKey)} />
+                    <DesktopItem
+                      key={item.path}
+                      item={item}
+                      label={t(item.labelKey)}
+                      desc={t(item.descKey)}
+                      // 맨 오른쪽 칸은 말풍선을 오른쪽 끝에 맞춘다 — 메뉴 밖으로 잘리지 않게
+                      tipRight={si === DESKTOP_SECTIONS.length - 1}
+                    />
                   ))}
                 </div>
               </div>

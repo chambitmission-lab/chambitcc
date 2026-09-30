@@ -14,6 +14,7 @@ import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { CategoryIcon } from '../Events/components/CategoryIcons'
 import { can } from '../../utils/access'
+import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
 
 type PublishFilter = 'all' | 'published' | 'draft'
 type SortKey = 'upcoming' | 'recent' | 'attendance'
@@ -83,6 +84,9 @@ const EventManagement = () => {
     setEditingEvent(null)
     setComposerOpen(true)
   }
+
+  // 전체 메뉴 > 관리 도구 '빠른 작업' → ?new=1 로 들어오면 등록 창부터 연다
+  useOpenComposerFromUrl(handleCreate)
 
   const handleComposerClose = () => {
     setComposerOpen(false)

@@ -7,6 +7,7 @@ import BulletinComposer from './components/BulletinComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
 
 type TimeFilter = 'all' | 'thisMonth' | 'past'
 type SortKey = 'recent' | 'oldest' | 'views'
@@ -90,6 +91,9 @@ const BulletinManagement = () => {
     setEditing(null)
     setComposerOpen(true)
   }
+
+  // 전체 메뉴 > 관리 도구 '빠른 작업' → ?new=1 로 들어오면 등록 창부터 연다
+  useOpenComposerFromUrl(openCreate)
 
   const openEdit = (bulletin: Bulletin) => {
     setEditing(bulletin)

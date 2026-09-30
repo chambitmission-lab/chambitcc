@@ -17,6 +17,7 @@ import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { EventTagIcon } from '../News/components/NewsIcons'
 import { can } from '../../utils/access'
+import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'reaction'
@@ -45,6 +46,9 @@ const EventAlbumManagement = () => {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   // null = 닫힘, 'new' = 등록, EventAlbumPost = 수정
   const [composer, setComposer] = useState<'new' | EventAlbumPost | null>(null)
+
+  // 전체 메뉴 > 관리 도구 '빠른 작업' → ?new=1 로 들어오면 등록 창부터 연다
+  useOpenComposerFromUrl(() => setComposer('new'))
 
   useEffect(() => {
     if (!can('admin:access')) {
