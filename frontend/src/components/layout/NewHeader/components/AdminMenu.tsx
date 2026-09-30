@@ -154,7 +154,12 @@ const AdminLauncherItem = ({
   )
 }
 
-const AdminMenu = () => {
+/**
+ * panelOnly — PC 전체 메뉴용. 큰 파란 토글 카드 없이 도구 목록만 그린다(열고 닫기는 MobileMenu 푸터 링크가
+ * 같은 OPEN_KEY 로 한다 — 이 파일은 lazy 청크라 상수를 import 하지 않고 키 문자열을 양쪽에 둔다).
+ * 관리 도구는 보조 영역이라 본 메뉴보다 먼저 눈에 띄면 안 된다.
+ */
+const AdminMenu = ({ panelOnly = false }: { panelOnly?: boolean }) => {
   const { t } = useLanguage()
   const [isOpen, setIsOpen] = useState(() => localStorage.getItem(OPEN_KEY) === '1')
   const [recent] = useState(readRecent)
@@ -173,6 +178,34 @@ const AdminMenu = () => {
   const recentItems = recent.length >= 2
     ? recent.map(path => ALL_ITEMS.find(i => i.path === path)!).slice(0, RECENT_MAX)
     : []
+
+  const panel = (
+    <div className={`space-y-4 animate-pop-in ${panelOnly ? '' : 'mt-2'}`}>
+      {recentItems.length > 0 && (
+        <div>
+          <SectionTitle>{t('adminGroupRecent')}</SectionTitle>
+          <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-5 lg:gap-1">
+            {recentItems.map(item => (
+              <AdminLauncherItem key={`recent-${item.path}`} item={item} label={t(item.key)} accent />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {ADMIN_GROUPS.map(group => (
+        <div key={group.titleKey}>
+          <SectionTitle>{t(group.titleKey)}</SectionTitle>
+          <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-5 lg:gap-1">
+            {group.items.map(item => (
+              <AdminLauncherItem key={item.path} item={item} label={t(item.key)} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  if (panelOnly) return <div className="mx-5 mb-4 pt-4 border-t border-border-light dark:border-border-dark">{panel}</div>
 
   return (
     <div className="px-3 pt-3 pb-2 lg:px-5">
@@ -206,31 +239,7 @@ const AdminMenu = () => {
         />
       </button>
 
-      {isOpen && (
-        <div className="mt-2 space-y-4 animate-pop-in">
-          {recentItems.length > 0 && (
-            <div>
-              <SectionTitle>{t('adminGroupRecent')}</SectionTitle>
-              <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-5 lg:gap-1">
-                {recentItems.map(item => (
-                  <AdminLauncherItem key={`recent-${item.path}`} item={item} label={t(item.key)} accent />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {ADMIN_GROUPS.map(group => (
-            <div key={group.titleKey}>
-              <SectionTitle>{t(group.titleKey)}</SectionTitle>
-              <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-5 lg:gap-1">
-                {group.items.map(item => (
-                  <AdminLauncherItem key={item.path} item={item} label={t(item.key)} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {isOpen && panel}
 
       <div className="border-t border-border-light dark:border-border-dark mt-3"></div>
     </div>

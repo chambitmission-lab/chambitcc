@@ -76,7 +76,12 @@ const CommandPalette = () => {
         setOpen((o) => !o)
       }
     }
-    const onOpen = () => setOpen(true)
+    // detail.query — 전체 메뉴 검색에서 못 찾은 검색어를 이어받아 연다
+    const onOpen = (e: Event) => {
+      const q = (e as CustomEvent<{ query?: string } | undefined>).detail?.query
+      if (q) setQuery(q)
+      setOpen(true)
+    }
     window.addEventListener('keydown', onKey)
     window.addEventListener(OPEN_SEARCH_EVENT, onOpen)
     return () => {

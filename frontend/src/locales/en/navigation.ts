@@ -58,6 +58,12 @@ export const navigation = {
   navPastorHome: 'Pastor Home',
   navPastorHomeDesc: 'Entrusted prayers · members needing care · this week',
   navChatbotToggle: 'Chambi button',
+  // PC mega menu — featured cards · in-menu search
+  navMenuFeatured: 'Popular',
+  navMenuSearchPlaceholder: 'Find a menu (e.g. parking, sermon)',
+  navMenuNoResult: 'Not in the menu',
+  navMenuSearchAll: 'Search everything instead',
+  navMenuAdminTools: 'Admin tools',
   // ⌘K command palette
   cmdkTrigger: 'Search anything',
   cmdkPlaceholder: 'Pages · sermons · verses · questions',

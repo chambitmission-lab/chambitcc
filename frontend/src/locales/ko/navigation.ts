@@ -58,6 +58,12 @@ export const navigation = {
   navPastorHome: '목회자 홈',
   navPastorHomeDesc: '맡겨진 기도 · 돌봄이 필요한 성도 · 이번 주 교회',
   navChatbotToggle: '참비 버튼',
+  // PC 메가 메뉴 — 자주 찾는 카드 · 메뉴 안 검색
+  navMenuFeatured: '자주 찾는',
+  navMenuSearchPlaceholder: '메뉴 찾기 (예: 주차, 주보, 설교)',
+  navMenuNoResult: '메뉴에 없어요',
+  navMenuSearchAll: '무엇이든 찾기로 더 찾아보기',
+  navMenuAdminTools: '관리 도구',
   // ⌘K 검색 팔레트 (CommandPalette)
   cmdkTrigger: '무엇이든 찾기',
   cmdkPlaceholder: '메뉴 · 설교 · 성구 · 궁금한 것',

@@ -7,7 +7,7 @@ export const SearchCapsule = () => {
   return (
     <button
       type="button"
-      onClick={openCommandPalette}
+      onClick={() => openCommandPalette()}
       onMouseEnter={preloadCommandPalette}
       onFocus={preloadCommandPalette}
       className="search-capsule group flex items-center gap-2 h-10 min-w-[236px] xl:min-w-[276px] pl-4 pr-2 rounded-full text-[15px] whitespace-nowrap"
@@ -32,7 +32,7 @@ export const SearchCapsule = () => {
 export const SearchIconButton = ({ className }: { className?: string }) => {
   const { t } = useLanguage()
   return (
-    <button type="button" onClick={openCommandPalette} onTouchStart={preloadCommandPalette} onFocus={preloadCommandPalette} className={className} aria-label={t('cmdkTrigger')}>
+    <button type="button" onClick={() => openCommandPalette()} onTouchStart={preloadCommandPalette} onFocus={preloadCommandPalette} className={className} aria-label={t('cmdkTrigger')}>
       <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">search</span>
     </button>
   )

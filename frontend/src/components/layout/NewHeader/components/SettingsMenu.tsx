@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Sparkle } from '../../../icons/phosphor'
 import { useLanguage } from '../../../../contexts/LanguageContext'
@@ -8,16 +9,18 @@ import { useChatbotVisibility } from '../../../chatbot/chatbotVisibility'
 interface SettingsMenuProps {
   isLoggedIn: boolean
   onLogout: () => void
+  /** PC 푸터 한 줄에 끼워 넣을 보조 링크(목회자 홈 · 관리 도구) — 참비 토글 뒤에 붙는다 */
+  extra?: ReactNode
 }
 
-const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
+const SettingsMenu = ({ isLoggedIn, onLogout, extra }: SettingsMenuProps) => {
   const { language, setLanguage, t } = useLanguage()
   // 참비 플로팅 버튼 노출 — FAB 의 × 로 "계속 숨기기"를 고른 뒤 되살리는 유일한 경로다
   const { visible: chatbotVisible, toggle: toggleChatbot } = useChatbotVisibility()
 
   return (
     // lg+: 메가 메뉴 카드의 한 줄 푸터 — 내 정보(좌) · 언어/로그아웃(우)
-    <div className="py-2 px-3 lg:px-5 lg:flex lg:items-center lg:justify-between lg:gap-4">
+    <div className="py-2 px-3 lg:px-5 lg:flex lg:items-center lg:justify-between lg:gap-1">
       {/* 내 정보 (로그인 상태에서만) — 하단 탭바 마이페이지와 동선 일치 */}
       {isLoggedIn && (
         <>
@@ -68,6 +71,8 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
           />
         </span>
       </button>
+
+      {extra}
 
       <div className="border-t border-border-light dark:border-border-dark my-2 mx-1 lg:hidden" />
 
