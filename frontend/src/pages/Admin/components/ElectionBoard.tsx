@@ -239,7 +239,7 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
                   {hideTally && round.status === 'open' ? (
                     <p className="py-10 text-center text-[14px] text-ink-muted">투표가 끝나면 결과를 공개합니다</p>
                   ) : round.result ? (
-                    <TallyBars result={round.result} candidates={election.candidates} />
+                    <TallyBars result={round.result} candidates={election.candidates} basis={round.rules.threshold_basis} />
                   ) : null}
                 </div>
               </>

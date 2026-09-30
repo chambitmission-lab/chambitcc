@@ -237,7 +237,7 @@ const RoundResultCard = ({ round, candidates }: { round: ElectionRound; candidat
       </span>
     </div>
     {round.result ? (
-      <TallyBars result={round.result} candidates={candidates} large />
+      <TallyBars result={round.result} candidates={candidates} basis={round.rules.threshold_basis} large />
     ) : (
       <TurnoutBar voted={round.voted_count} total={round.voters_total} large />
     )}
