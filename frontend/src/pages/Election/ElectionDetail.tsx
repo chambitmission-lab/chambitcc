@@ -7,10 +7,15 @@
 // PC(lg+)는 어르신이 큰 화면으로 투표하는 자리라 따로 다듬었다: 오른쪽 "내 투표용지" 레일에
 // 고른 후보·남은 칸·투표하기가 스크롤과 상관없이 늘 보이고, 후보 카드는 이름·기호를 크게,
 // 고른 카드엔 글자로 "선택함"을 붙인다(색·링만으론 구분이 어렵다). 모바일은 하단 고정 바 그대로.
+//
+// 현장 QR(관리자 현황판 '투표 QR')로 곧장 들어오는 화면이다. 로그인 안 한 폰이면 선거를 묻기 전에
+// 로그인부터 청하고, 로그인 뒤 이 주소로 돌아온다(redirect_after_login). 투표 자격(선거인 명부)은
+// 서버가 가른다 — 명부 밖이면 403 → 아래 "참여할 수 없어요" 안내.
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCastVote, useElection } from '../../hooks/useElections'
 import { showToast } from '../../utils/toast'
+import { isAuthenticated } from '../../utils/auth'
 import type { ElectionCandidate, ElectionDetail as ElectionDetailData, ElectionRound } from '../../types/election'
 import { CenterNote, CheckIcon, RailCard, Spinner, SurveyShell } from '../Survey/surveyUi'
 import { cardCls, phaseLabel, thresholdText } from './electionShared'
@@ -272,7 +277,8 @@ const ElectedStrip = ({ election }: { election: ElectionDetailData }) => {
 const ElectionDetail = () => {
   const navigate = useNavigate()
   const id = Number(useParams().id) || 0
-  const { data: election, isLoading, error } = useElection(id)
+  const loggedIn = isAuthenticated()
+  const { data: election, isLoading, error } = useElection(id, loggedIn)
   const [selected, setSelected] = useState<number[]>([])
   const [confirming, setConfirming] = useState(false)
   const isLg = useMediaQuery('(min-width: 1024px)')
@@ -305,6 +311,22 @@ const ElectionDetail = () => {
 
   const back = () => navigate('/elections')
 
+  if (!loggedIn) {
+    const goLogin = () => {
+      sessionStorage.setItem('redirect_after_login', `/elections/${id}`)
+      navigate('/login')
+    }
+    return (
+      <SurveyShell onBack={back} title="선거">
+        <CenterNote
+          title="투표하려면 로그인해 주세요"
+          hint="로그인하면 이 선거 화면으로 바로 돌아와요. 선거인 명부에 있는 분만 투표할 수 있어요."
+          actionLabel="로그인하기"
+          onAction={goLogin}
+        />
+      </SurveyShell>
+    )
+  }
   if (isLoading) {
     return (
       <SurveyShell onBack={back} title="선거">

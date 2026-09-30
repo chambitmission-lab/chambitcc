@@ -15,6 +15,7 @@ import { showToast } from '../../../utils/toast'
 import type { ElectionAdminDetail, ElectionRound } from '../../../types/election'
 import { STATUS_META, phaseLabel, thresholdText, turnoutPercent } from '../../Election/electionShared'
 import { CandidateAvatar, TallyBars } from '../../Election/electionUi'
+import ElectionQrModal from './ElectionQrModal'
 import ElectionStage from './ElectionStage'
 import { CloseButton, Stepper } from './SeatEventComposer'
 
@@ -40,6 +41,7 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
   const { data: election, isLoading } = useElectionAdmin(electionId, true)
   const [presenting, setPresenting] = useState(false)
   const [hideTally, setHideTally] = useState(false)
+  const [showQr, setShowQr] = useState(false)
   const [viewRoundNo, setViewRoundNo] = useState<number | null>(null)
 
   const lastRound = election?.rounds.length ? election.rounds[election.rounds.length - 1] : null
@@ -177,6 +179,9 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
             {election.title}
           </h2>
         </div>
+        <button type="button" onClick={() => setShowQr(true)} className={chipBtn(false)}>
+          투표 QR
+        </button>
         <button type="button" onClick={() => setHideTally((v) => !v)} className={chipBtn(hideTally)}>
           득표 가리기
         </button>
@@ -306,6 +311,8 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
           ) : null}
         </aside>
       </div>
+
+      {showQr ? <ElectionQrModal electionId={election.id} title={election.title} onClose={() => setShowQr(false)} /> : null}
     </div>
   )
 }

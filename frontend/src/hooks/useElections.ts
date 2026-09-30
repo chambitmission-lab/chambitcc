@@ -51,11 +51,11 @@ export const useElections = (enabled = true) =>
     staleTime: 1000 * 60,
   })
 
-export const useElection = (id: number) =>
+export const useElection = (id: number, enabled = true) =>
   useQuery({
     queryKey: electionKeys.detail(id),
     queryFn: () => getElection(id),
-    enabled: id > 0,
+    enabled: enabled && id > 0,
     staleTime: 1000 * 5,
     refetchInterval: () => (notificationStream.connected ? 1000 * 60 : 1000 * 15),
     refetchIntervalInBackground: false,
