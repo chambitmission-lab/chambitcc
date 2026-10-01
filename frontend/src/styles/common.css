@@ -326,8 +326,10 @@
   /* 페이지 공통 유틸 — 화면 높이 채움·sticky 레일 위치를 배율로 되돌린다 */
   .main-content[data-app-scale] .min-h-screen:not([class*='lg:min-h-']) { min-height: calc(100vh / var(--az, 1)); }
   .main-content[data-app-scale] .screen-fit-minus-header { min-height: calc((var(--vvh, 100dvh) - 3.5rem) / var(--az, 1)); }
-  /* sticky top-14(헤더 56px 바로 아래) — zoom 안에선 56px 도 커져 헤더 아래 틈으로 본문이 비친다 */
-  .main-content[data-app-scale] .sticky.top-14 { top: calc(3.5rem / var(--az, 1)); }
+  /* sticky top-14(헤더 56px 바로 아래) — zoom 안에선 56px 도 커져 헤더 아래 틈으로 본문이 비친다.
+     lg:top-* 을 따로 준 요소는 제외 — 이 규칙(특이도 0,4,0)이 lg:top-0 같은 PC 값을 덮어,
+     스스로 스크롤하는 상자(/survey/:id 의 SurveyShell pinRail) 안 헤더가 상자 맨 위가 아닌 56px 아래에 붙던 버그 */
+  .main-content[data-app-scale] .sticky.top-14:not([class*='lg:top-']) { top: calc(3.5rem / var(--az, 1)); }
   .main-content[data-app-scale] .lg\:top-\[4\.5rem\] { top: calc(4.5rem / var(--az, 1)); }
   .main-content[data-app-scale] .lg\:top-\[4\.25rem\] { top: calc(4.25rem / var(--az, 1)); }
   /* zoom 화면 안에 뜨는(포털 아닌) 모달·시트의 높이 상한 — 반응형 max-h 를 따로 준 요소는 그 값을 존중한다.
