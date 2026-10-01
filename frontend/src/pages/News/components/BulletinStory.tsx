@@ -7,13 +7,14 @@ import type { BulletinData, ExtraBlock } from '../../../types/digitalBulletin'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { useThemeArt } from '../../../hooks/useThemeArt'
-import { NEWS_HERO, WORSHIP_HERO } from '../../../utils/themeAssets'
+import { WORSHIP_HERO } from '../../../utils/themeAssets'
 import { getNaturalSeason, type NaturalSeason } from '../../../utils/naturalSeason'
 import { copyToClipboard } from '../../../utils/clipboard'
 import { showToast } from '../../../utils/toast'
 import { HandHeartIcon } from '../../../components/icons/ActionIcons'
 import { CalendarIcon, ChurchIcon, CopyIcon, MegaphoneIcon, PeopleIcon, SparkleIcon } from './NewsIcons'
 import { extrasOf } from './bulletinExtras'
+import { bulletinCoverArt, bulletinSeasonArt, bulletinSeasonThumb } from './bulletinSeasonArt'
 import coverSpring from '../../../assets/hero/spring-morning.webp'
 import coverSummer from '../../../assets/hero/morning.webp'
 import coverAutumn from '../../../assets/hero/autumn-morning.webp'
@@ -123,9 +124,7 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   useThemeArt(WORSHIP_HERO)
-  useThemeArt(NEWS_HERO.news)
   const sheepChurch = isDark ? WORSHIP_HERO.dark : WORSHIP_HERO.light
-  const sheepNews = isDark ? NEWS_HERO.news.dark : NEWS_HERO.news.light
 
   const [cur, setCur] = useState(0)
   const [seen, setSeen] = useState<Set<number>>(() => new Set([0]))
@@ -145,6 +144,9 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
   }, [])
 
   const now = new Date()
+  const season = getNaturalSeason(now)
+  // 설교 장에 계절 배경이 깔리면 양 교회 삽화는 뺀다 — 배경 장면과 한 화면에서 부딪친다
+  const sermonArt = bulletinSeasonArt(season, 'sermon', isDark)
   const isSunday = now.getDay() === 0
   const nowMin = now.getHours() * 60 + now.getMinutes()
 
@@ -314,7 +316,7 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
             </span>
             {sermon.title && <h2 className="bs-heading bs-serif">{sermon.title}</h2>}
             {sermon.subtitle && <p className="bs-sub">{sermon.subtitle}</p>}
-            <img className="bs-sermon-art" src={sheepChurch} alt="" aria-hidden="true" />
+            {!sermonArt && <img className="bs-sermon-art" src={sheepChurch} alt="" aria-hidden="true" />}
             {hymns.length > 0 ? (
               <div className="bs-hymns" aria-label={t('newsStoryHymnTitle')}>
                 <span className="bs-hymns-label">{t('newsStoryHymnTitle')}</span>
@@ -489,7 +491,22 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
       body: (
         <div className={`bs-end${solved ? ' is-won' : ''}`}>
           <div className="bs-medal" aria-hidden="true">
-            <span className="bs-medal-face" style={{ backgroundImage: `url(${sheepNews})` }} />
+            {/* 찬송 퀴즈 메달 — 금화 위에 돋을새김한 음표 */}
+            <span className="bs-medal-face">
+              <svg viewBox="0 0 64 64" width="58%" height="58%">
+                <path
+                  d="M24 46.5V17.2c0-1.3.9-2.4 2.2-2.7l22-5c1.7-.4 3.3.9 3.3 2.7v28.3"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M24 24.5l27.5-6.2" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                <ellipse cx="17.5" cy="47" rx="7.5" ry="6" fill="currentColor" />
+                <ellipse cx="45" cy="41" rx="7.5" ry="6" fill="currentColor" />
+              </svg>
+            </span>
           </div>
           {!solved ? (
             <>
@@ -536,7 +553,7 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
     return out
     // 아래 값들은 모두 data·t 에서 매 렌더 다시 계산되는 파생값이다
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, t, sheepChurch, sheepNews, openNews, prayed, quiz, liveIdx, nextIdx, worshipHeading, go])
+  }, [data, t, sheepChurch, sermonArt, openNews, prayed, quiz, liveIdx, nextIdx, worshipHeading, go])
 
   const total = slides.length
   totalRef.current = total
@@ -599,7 +616,22 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
     go(cur + (p.clientX - box.left < box.width * 0.3 ? -1 : 1))
   }
 
-  const coverImg = COVER[getNaturalSeason(now)]
+  const coverArt = bulletinCoverArt(season, isDark)
+  const coverImg = coverArt ?? COVER[season]
+  /** 목차 썸네일 — 계절 썸네일이 있으면 그것, 없으면 표지만 사진, 나머지는 톤 색 */
+  const thumbStyle = (s: Slide) => {
+    const thumb = bulletinSeasonThumb(season, s.key, isDark)
+    if (thumb) return { backgroundImage: `url(${thumb})` }
+    return s.tone === 'cover' ? { backgroundImage: `url(${coverImg})` } : undefined
+  }
+  /** 장 배경 — 지금 장 ±1 과 이미 본 장만 붙인다(16장을 한꺼번에 받지 않게) */
+  const slideStyle = (s: Slide, i: number) => {
+    // 표지 삽화는 장면을 위쪽에 두고 아래로 들판을 늘려 구웠다 — 위 기준으로 깔아야 글줄 위로 양이 올라온다
+    if (s.tone === 'cover') return { backgroundImage: `url(${coverImg})`, backgroundPosition: coverArt ? 'center top' : undefined }
+    if (Math.abs(i - cur) > 1 && !seen.has(i)) return undefined
+    const art = bulletinSeasonArt(season, s.key, isDark)
+    return art ? { backgroundImage: `url(${art})` } : undefined
+  }
   const isDone = doneDate === data.date
 
   return (
@@ -622,7 +654,7 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
           >
             <span
               className={`bs-thumb bs-tone-${s.tone}`}
-              style={s.tone === 'cover' ? { backgroundImage: `url(${coverImg})` } : undefined}
+              style={thumbStyle(s)}
             />
             <span className="bs-ch-text">
               <span className="bs-ch-no">{i + 1}</span>
@@ -661,9 +693,13 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
               className={[
                 'bs-slide',
                 `bs-tone-${s.tone}`,
+                s.tone !== 'cover' && bulletinSeasonArt(season, s.key, isDark) && 'has-art',
+                s.tone === 'cover' && coverArt && !isDark && 'bs-cover-light',
                 i === cur ? 'is-on' : i < cur ? 'is-past' : 'is-ahead',
-              ].join(' ')}
-              style={s.tone === 'cover' ? { backgroundImage: `url(${coverImg})` } : undefined}
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              style={slideStyle(s, i)}
               aria-hidden={i !== cur}
               inert={i !== cur}
             >

@@ -64,6 +64,11 @@
   background-position: center;
   border: 1px solid var(--card-border);
 }
+/* 그림 썸네일 — 아래 .bs-tone-* 의 background 단축 속성이 크기를 auto 로 되돌리므로 한 단계 세게 */
+.bs-thumb[style] {
+  background-size: cover;
+  background-position: center;
+}
 .bs-ch.is-seen .bs-thumb::after {
   content: '✓';
   position: absolute;
@@ -245,6 +250,56 @@
   background: linear-gradient(180deg, rgba(8, 20, 48, 0.1) 0%, rgba(8, 20, 48, 0.25) 40%, rgba(8, 20, 48, 0.86) 100%);
   pointer-events: none;
 }
+/* 계절 배경(bulletinSeasonArt) — 정사각형 그림을 아래 가운데 기준으로 채운다.
+ * 모바일은 좌우가, PC 는 위가 잘린다. 장면은 그림 아래쪽에만 그려 두었다.
+ * 톤의 그라데이션은 그림이 덮으므로, 그림을 받기 전 바탕은 톤의 가운데 색으로 둔다. */
+.bs-slide.has-art {
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+.bs-tone-blue.has-art {
+  background-color: #1d4fb8;
+}
+.bs-tone-deep.has-art {
+  background-color: #0f2350;
+}
+.bs-tone-end.has-art {
+  background-color: #0d1f47;
+}
+/* 반투명 흰 카드는 그림(꽃·바구니) 위로 지나가면 글자가 묻힌다 — 남색 유리로 받친다 */
+.has-art .bs-time:not(.is-live):not(.is-next),
+.has-art .bs-person,
+.has-art .bs-day,
+.has-art .bs-choice:not(:hover) {
+  background: rgba(12, 32, 84, 0.42);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* 라이트 표지 삽화 — 사진용 남색 그늘을 깔면 한낮 들판이 저녁처럼 어두워진다.
+ * 크림색으로 아래를 밝히고 글씨를 남색으로 뒤집는다. 다크·사진 표지는 위 규칙 그대로 */
+.bs-slide.bs-cover-light {
+  color: #142445;
+}
+.bs-slide.bs-cover-light::before {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 249, 236, 0) 0%,
+    rgba(255, 249, 236, 0) 36%,
+    rgba(255, 249, 236, 0.72) 58%,
+    rgba(255, 249, 236, 0.94) 100%
+  );
+}
+.bs-cover-light .bs-motto {
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.7);
+}
+.bs-cover-light .bs-start {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 10px 26px -12px rgba(49, 130, 246, 0.8);
+}
+
 /* 짙은 장은 내용을 가운데로 모은다 — 위아래로 벌어지면 PC 에서 가운데가 휑하다 */
 .bs-tone-blue .bs-slide-inner,
 .bs-tone-deep .bs-slide-inner {
@@ -689,6 +744,12 @@
   transition: opacity 1s;
   pointer-events: none;
 }
+/* 빛살 판은 돌 때 모서리가 비지 않게 사방 40% 크게 깔린다. 그대로 두면 장(.bs-slide)의
+ * 스크롤 높이에 잡혀 마무리 장만 혼자 위아래로 밀린다 — 장 안쪽 상자에서 잘라 낸다 */
+.bs-tone-end .bs-slide-inner {
+  overflow: hidden;
+  overflow: clip;
+}
 .bs-end.is-won::before {
   opacity: 1;
   animation: bs-spin 40s linear infinite;
@@ -726,15 +787,21 @@
   transform: scale(1);
   filter: none;
 }
-/* 소식 삽화(양 무리)에서 확성기 든 양 쪽만 메달 안에 담는다 */
+/* 금화 안쪽 — 남색 바탕에 금빛 음표를 돋을새김. 맞히기 전엔 메달 전체가 바랜 색(filter) */
 .bs-medal-face {
-  display: block;
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background-color: #f6f1e6;
-  background-size: 260%;
-  background-position: 50% 42%;
+  background: radial-gradient(circle at 38% 32%, #2a5fc4, #163a86 55%, #0d1f47);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 236, 190, 0.55),
+    inset 0 6px 16px rgba(0, 0, 0, 0.45);
+  color: #f3d58c;
+}
+.bs-medal-face svg {
+  filter: drop-shadow(0 2px 0 rgba(90, 60, 10, 0.55)) drop-shadow(0 0 10px rgba(255, 214, 120, 0.35));
 }
 .bs-choices {
   display: flex;
