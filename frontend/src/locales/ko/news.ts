@@ -133,7 +133,9 @@ export const news = {
   newsDbFieldScheduleTime: '시간',
   newsDbFieldScheduleLocation: '장소',
   newsDbAddSchedule: '일정 추가',
-  newsDbAdminHint: '✏️ 텍스트 옆 연필로 수정 · ➕ 항목 추가 · 🗑️ 항목 삭제 · 변경은 즉시 저장됩니다.',
+  newsDbDeskOpen: 'PC 편집기로 한 번에 작성하기',
+  newsDbDeskOpenHint: '전 섹션을 한 화면에서 고치고 미리보기로 확인한 뒤 한 번에 저장해요. 엑셀·한글 표 붙여넣기 지원',
+  newsDbAdminHint:'✏️ 텍스트 옆 연필로 수정 · ➕ 항목 추가 · 🗑️ 항목 삭제 · 변경은 즉시 저장됩니다.',
 
   // ── 로그인 게이트(새가족 · 행사 앨범 공용) ──
   newsGateTitle: '성도님만 볼 수 있어요',

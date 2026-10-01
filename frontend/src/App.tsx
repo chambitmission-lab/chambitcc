@@ -118,6 +118,10 @@ const LogoPreview = import.meta.env.DEV
 const ElectionStagePreview = import.meta.env.DEV
   ? lazy(() => import('./pages/dev/ElectionStagePreview'))
   : null
+// 디지털 주보 PC 편집기 — 관리자 로그인 없이 배치·붙여넣기 확인
+const BulletinDeskPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/dev/BulletinDeskPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -552,6 +556,9 @@ function App() {
                 )}
                 {ElectionStagePreview && (
                   <Route path="/dev/election-stage" element={<ElectionStagePreview />} />
+                )}
+                {BulletinDeskPreview && (
+                  <Route path="/dev/bulletin-desk" element={<BulletinDeskPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />

@@ -131,7 +131,9 @@ export const news = {
   newsDbFieldScheduleTime: 'Time',
   newsDbFieldScheduleLocation: 'Place',
   newsDbAddSchedule: 'Add event',
-  newsDbAdminHint: '✏️ Edit with the pencil · ➕ Add an item · 🗑️ Remove an item · Changes save instantly.',
+  newsDbDeskOpen: 'Edit the whole bulletin in the desktop editor',
+  newsDbDeskOpenHint: 'Edit every section on one screen, check the live preview, then save once. Paste tables from Excel or Hangul.',
+  newsDbAdminHint:'✏️ Edit with the pencil · ➕ Add an item · 🗑️ Remove an item · Changes save instantly.',
 
   // ── Sign-in gate (New Family · Events) ───────
   newsGateTitle: 'For members only',

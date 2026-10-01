@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { showToast } from '../../../utils/toast'
 import {
   useDigitalBulletin,
@@ -24,6 +24,8 @@ import {
 import { can } from '../../../utils/access'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Translation } from '../../../locales'
+
+const BulletinDeskEditor = lazy(() => import('./BulletinDeskEditor'))
 
 type SectionKey = 'worship' | 'announcements' | 'groups' | 'schedule'
 
@@ -57,12 +59,22 @@ const SECTION_META: Record<
   },
 }
 
-const DigitalBulletin = () => {
+interface DigitalBulletinProps {
+  /** PC 편집기 미리보기 — 넘기면 이 초안을 읽기 전용·전 섹션 펼침으로 그린다 */
+  previewData?: BulletinData
+}
+
+const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
   const { t } = useLanguage()
-  const isAdminUser = can('content:manage')
-  const { data } = useDigitalBulletin()
+  const isPreview = previewData != null
+  const isAdminUser = !isPreview && can('content:manage')
+  const { data: fetched } = useDigitalBulletin()
+  const data = previewData ?? fetched
   const replaceMutation = useReplaceDigitalBulletin()
-  const [expanded, setExpanded] = useState<Set<SectionKey>>(new Set(['worship']))
+  const [expanded, setExpanded] = useState<Set<SectionKey>>(
+    () => new Set<SectionKey>(isPreview ? ['worship', 'announcements', 'groups', 'schedule'] : ['worship']),
+  )
+  const [deskOpen, setDeskOpen] = useState(false)
 
   const toggle = (key: SectionKey) => {
     setExpanded(prev => {
@@ -169,6 +181,33 @@ const DigitalBulletin = () => {
 
   return (
     <div className="space-y-3">
+      {/* PC 편집기 진입 — 관리자 · lg+ 전용(모바일은 아래 인라인 편집) */}
+      {isAdminUser && (
+        <div className="hidden lg:block px-4">
+          <button
+            type="button"
+            onClick={() => setDeskOpen(true)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-dashed border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] text-left transition-colors hover:border-[var(--brand)]"
+          >
+            <span className="shrink-0 w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="13" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[16px] font-bold text-brand">{t('newsDbDeskOpen')}</span>
+              <span className="block text-[13.5px] text-gray-600 dark:text-white/60">{t('newsDbDeskOpenHint')}</span>
+            </span>
+          </button>
+        </div>
+      )}
+      {deskOpen && (
+        <Suspense fallback={null}>
+          <BulletinDeskEditor initial={data} onClose={() => setDeskOpen(false)} />
+        </Suspense>
+      )}
+
       {/* Hero — 표어 카드 */}
       <div className="px-4">
         <div className="relative overflow-hidden rounded-3xl p-5 bg-brand shadow-[0_18px_44px_-18px_var(--brand-glow)]">
