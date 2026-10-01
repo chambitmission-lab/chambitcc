@@ -638,8 +638,8 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
   return (
     <div className="bs-root" ref={rootRef}>
       {/* PC 목차 */}
-      {/* 지금 장 표시 — 가을엔 단풍잎이 모서리에 걸리고, 그 밖엔 가름끈 리본 */}
-      <nav className={`bs-rail${season === 'autumn' ? ' bs-mark-leaf' : ''}`} aria-label={t('newsStoryToc')}>
+      {/* 지금 장 표시 — 계절 것(벚꽃·클로버·단풍잎·눈송이)이 썸네일 모서리에 내려앉는다. 클래스를 빼면 가름끈 리본 */}
+      <nav className={`bs-rail bs-mark bs-mark-${season}`} aria-label={t('newsStoryToc')}>
         <div className="bs-rail-head">
           <b>{t('newsStoryToc')}</b>
           <span>

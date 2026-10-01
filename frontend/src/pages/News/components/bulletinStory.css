@@ -116,19 +116,25 @@
   }
 }
 
-/* 가을 — 가름끈 대신 단풍잎 한 장이 썸네일 오른쪽 위 모서리에 꼭지째 걸린다.
- * 장을 옮기면 위에서 팔랑 떨어져 내려앉고, 걸린 채로 꼭지를 축 삼아 살랑인다 */
-.bs-mark-leaf .bs-ch.is-on .bs-thumb::before {
+/* 계절 표시 — 가름끈 대신 그 계절 것 하나가 썸네일 오른쪽 위 모서리에 내려앉는다.
+ * 장을 옮기면 위에서 떨어져 내려와 앉고, 앉은 뒤엔 계절마다 다르게 살랑인다.
+ * 봄=벚꽃(빙글 내려앉아 하늘하늘) · 여름=네잎클로버(통 튀어 줄기째 걸림) · 가을=단풍잎(팔랑) · 겨울=눈송이(사뿐히, 천천히 돈다)
+ * 라이트 바탕이 흰색이라 눈송이·벚꽃도 테두리 색을 넣어 두 테마에서 다 보이게 했다 */
+.bs-mark .bs-ch.is-on .bs-thumb::before {
   content: none;
 }
-.bs-mark-leaf .bs-ch.is-on .bs-thumb::after {
+.bs-mark .bs-ch.is-on .bs-thumb::after {
   top: -15px;
   right: -9px;
   width: 22px;
   height: 22px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f7a548'/%3E%3Cstop offset='.55' stop-color='%23e8623a'/%3E%3Cstop offset='1' stop-color='%23c4362a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M12 1l1.6 4.2L16 4l-.8 5 3.6-2 1.2 2.2 3-.6-1.6 3.8 1.6 1.2-5 3.4.6 2-5.6-1-.4 5h-1.2l-.4-5-5.6 1 .6-2-5-3.4 1.6-1.2L1 8.6l3 .6L5.2 7l3.6 2L8 4l2.4 1.2z'/%3E%3Cpath d='M12 22.4V8.5M12 14.5l-5-3.6M12 14.5l5-3.6M12 18l-4.2-.6M12 18l4.2-.6' fill='none' stroke='%238f2a1c' stroke-opacity='.45' stroke-width='.7' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
   clip-path: none;
-  filter: drop-shadow(0 1.5px 1.5px rgba(80, 20, 0, 0.35));
+  filter: drop-shadow(0 1.5px 1.5px rgba(40, 20, 0, 0.3));
+}
+
+/* 가을 — 단풍잎이 꼭지째 걸려 꼭지를 축으로 살랑인다 */
+.bs-mark-autumn .bs-ch.is-on .bs-thumb::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f7a548'/%3E%3Cstop offset='.55' stop-color='%23e8623a'/%3E%3Cstop offset='1' stop-color='%23c4362a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M12 1l1.6 4.2L16 4l-.8 5 3.6-2 1.2 2.2 3-.6-1.6 3.8 1.6 1.2-5 3.4.6 2-5.6-1-.4 5h-1.2l-.4-5-5.6 1 .6-2-5-3.4 1.6-1.2L1 8.6l3 .6L5.2 7l3.6 2L8 4l2.4 1.2z'/%3E%3Cpath d='M12 22.4V8.5M12 14.5l-5-3.6M12 14.5l5-3.6M12 18l-4.2-.6M12 18l4.2-.6' fill='none' stroke='%238f2a1c' stroke-opacity='.45' stroke-width='.7' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
   transform: rotate(22deg);
   transform-origin: 50% 96%;
   animation:
@@ -166,8 +172,122 @@
     transform: rotate(14deg);
   }
 }
+
+/* 봄 — 벚꽃 한 송이가 빙글 돌며 내려앉아 하늘하늘 흔들린다 */
+.bs-mark-spring .bs-ch.is-on .bs-thumb::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3CradialGradient id='p' cx='12' cy='12' r='10' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%23f27aa3'/%3E%3Cstop offset='.45' stop-color='%23f9a9c4'/%3E%3Cstop offset='1' stop-color='%23ffe0ea'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M12 12C9.2 9.6 9 5.6 10.6 3.2L12 4.5l1.4-1.3C15 5.6 14.8 9.6 12 12z' fill='url(%23p)' stroke='%23e2759b' stroke-width='.45' transform='rotate(0 12 12)'/%3E%3Cpath d='M12 12C9.2 9.6 9 5.6 10.6 3.2L12 4.5l1.4-1.3C15 5.6 14.8 9.6 12 12z' fill='url(%23p)' stroke='%23e2759b' stroke-width='.45' transform='rotate(72 12 12)'/%3E%3Cpath d='M12 12C9.2 9.6 9 5.6 10.6 3.2L12 4.5l1.4-1.3C15 5.6 14.8 9.6 12 12z' fill='url(%23p)' stroke='%23e2759b' stroke-width='.45' transform='rotate(144 12 12)'/%3E%3Cpath d='M12 12C9.2 9.6 9 5.6 10.6 3.2L12 4.5l1.4-1.3C15 5.6 14.8 9.6 12 12z' fill='url(%23p)' stroke='%23e2759b' stroke-width='.45' transform='rotate(216 12 12)'/%3E%3Cpath d='M12 12C9.2 9.6 9 5.6 10.6 3.2L12 4.5l1.4-1.3C15 5.6 14.8 9.6 12 12z' fill='url(%23p)' stroke='%23e2759b' stroke-width='.45' transform='rotate(288 12 12)'/%3E%3Cpath d='M12 12V8.6' stroke='%23e05584' stroke-width='.5' stroke-linecap='round' transform='rotate(36 12 12)'/%3E%3Ccircle cx='12' cy='8.3' r='.65' fill='%23f6c445' transform='rotate(36 12 12)'/%3E%3Cpath d='M12 12V8.6' stroke='%23e05584' stroke-width='.5' stroke-linecap='round' transform='rotate(108 12 12)'/%3E%3Ccircle cx='12' cy='8.3' r='.65' fill='%23f6c445' transform='rotate(108 12 12)'/%3E%3Cpath d='M12 12V8.6' stroke='%23e05584' stroke-width='.5' stroke-linecap='round' transform='rotate(180 12 12)'/%3E%3Ccircle cx='12' cy='8.3' r='.65' fill='%23f6c445' transform='rotate(180 12 12)'/%3E%3Cpath d='M12 12V8.6' stroke='%23e05584' stroke-width='.5' stroke-linecap='round' transform='rotate(252 12 12)'/%3E%3Ccircle cx='12' cy='8.3' r='.65' fill='%23f6c445' transform='rotate(252 12 12)'/%3E%3Cpath d='M12 12V8.6' stroke='%23e05584' stroke-width='.5' stroke-linecap='round' transform='rotate(324 12 12)'/%3E%3Ccircle cx='12' cy='8.3' r='.65' fill='%23f6c445' transform='rotate(324 12 12)'/%3E%3Ccircle cx='12' cy='12' r='1.3' fill='%23f6c445'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: rotate(-12deg);
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 1.5px 1.5px rgba(150, 40, 80, 0.28));
+  animation:
+    bs-blossom-fall 1s cubic-bezier(0.3, 0.6, 0.35, 1) both,
+    bs-blossom-sway 4s ease-in-out 1s infinite;
+}
+@keyframes bs-blossom-fall {
+  0% {
+    transform: translate(-16px, -30px) rotate(-200deg) scale(0.8);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(8px, -15px) rotate(-60deg) scale(0.95);
+  }
+  75% {
+    transform: translate(-3px, -4px) rotate(-25deg);
+  }
+  100% {
+    transform: rotate(-12deg);
+    opacity: 1;
+  }
+}
+@keyframes bs-blossom-sway {
+  0%,
+  100% {
+    transform: rotate(-12deg) translateY(0);
+  }
+  50% {
+    transform: rotate(6deg) translateY(-1.5px);
+  }
+}
+
+/* 여름 — 네잎클로버가 통 튀어 앉고, 줄기 끝을 축으로 산들거린다 */
+.bs-mark-summer .bs-ch.is-on .bs-thumb::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='c' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%239ad86f'/%3E%3Cstop offset='1' stop-color='%233f9a3c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M12 10.5Q12.7 17 14.6 22.6' fill='none' stroke='%234a9638' stroke-width='1.3' stroke-linecap='round'/%3E%3Cg transform='rotate(45 12 10.5)'%3E%3Cpath d='M12 10.5C10.1 9.1 8.7 7.8 9 5.9 9.3 4.4 11.1 4 12 5.3 12.9 4 14.7 4.4 15 5.9 15.3 7.8 13.9 9.1 12 10.5z' fill='url(%23c)' stroke='%233a8a32' stroke-width='.4'/%3E%3Cpath d='M12 9.6V6.4' stroke='%23e2f7cf' stroke-opacity='.75' stroke-width='.55' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='rotate(135 12 10.5)'%3E%3Cpath d='M12 10.5C10.1 9.1 8.7 7.8 9 5.9 9.3 4.4 11.1 4 12 5.3 12.9 4 14.7 4.4 15 5.9 15.3 7.8 13.9 9.1 12 10.5z' fill='url(%23c)' stroke='%233a8a32' stroke-width='.4'/%3E%3Cpath d='M12 9.6V6.4' stroke='%23e2f7cf' stroke-opacity='.75' stroke-width='.55' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='rotate(225 12 10.5)'%3E%3Cpath d='M12 10.5C10.1 9.1 8.7 7.8 9 5.9 9.3 4.4 11.1 4 12 5.3 12.9 4 14.7 4.4 15 5.9 15.3 7.8 13.9 9.1 12 10.5z' fill='url(%23c)' stroke='%233a8a32' stroke-width='.4'/%3E%3Cpath d='M12 9.6V6.4' stroke='%23e2f7cf' stroke-opacity='.75' stroke-width='.55' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='rotate(315 12 10.5)'%3E%3Cpath d='M12 10.5C10.1 9.1 8.7 7.8 9 5.9 9.3 4.4 11.1 4 12 5.3 12.9 4 14.7 4.4 15 5.9 15.3 7.8 13.9 9.1 12 10.5z' fill='url(%23c)' stroke='%233a8a32' stroke-width='.4'/%3E%3Cpath d='M12 9.6V6.4' stroke='%23e2f7cf' stroke-opacity='.75' stroke-width='.55' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+  transform: rotate(16deg);
+  transform-origin: 61% 94%;
+  filter: drop-shadow(0 1.5px 1.5px rgba(20, 60, 10, 0.3));
+  animation:
+    bs-clover-drop 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both,
+    bs-clover-sway 3.2s ease-in-out 0.7s infinite;
+}
+@keyframes bs-clover-drop {
+  0% {
+    transform: translateY(-26px) rotate(-30deg) scale(0.6);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(16deg);
+    opacity: 1;
+  }
+}
+@keyframes bs-clover-sway {
+  0%,
+  100% {
+    transform: rotate(16deg);
+  }
+  30% {
+    transform: rotate(24deg);
+  }
+  65% {
+    transform: rotate(9deg);
+  }
+}
+
+/* 겨울 — 눈송이가 좌우로 살짝 흔들리며 사뿐히 내려와 앉아 천천히 돈다 */
+.bs-mark-winter .bs-ch.is-on .bs-thumb::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%235f9fd8' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='rotate(0 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(60 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(120 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(180 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(240 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(300 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3C/g%3E%3Cg fill='none' stroke='%23e9f5ff' stroke-width='.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='rotate(0 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(60 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(120 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(180 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(240 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3Cg transform='rotate(300 12 12)'%3E%3Cpath d='M12 12V2.2M12 6.2L9.6 3.9M12 6.2l2.4-2.3M12 9.1l-1.5-1.4M12 9.1l1.5-1.4'/%3E%3C/g%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%23e9f5ff' stroke='%235f9fd8' stroke-width='.8'/%3E%3C/svg%3E") center / contain no-repeat;
+  width: 20px;
+  height: 20px;
+  top: -13px;
+  right: -8px;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 1px 2px rgba(30, 80, 140, 0.35));
+  animation:
+    bs-snow-fall 1.4s cubic-bezier(0.35, 0.5, 0.4, 1) both,
+    bs-snow-spin 14s linear 1.4s infinite;
+}
+@keyframes bs-snow-fall {
+  0% {
+    transform: translate(-5px, -32px) rotate(-60deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(4px, -17px) rotate(-30deg);
+  }
+  75% {
+    transform: translate(-2px, -5px) rotate(-8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+@keyframes bs-snow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bs-mark-leaf .bs-ch.is-on .bs-thumb::after {
+  .bs-mark .bs-ch.is-on .bs-thumb::after {
     animation: none;
   }
 }
