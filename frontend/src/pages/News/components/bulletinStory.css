@@ -1,0 +1,819 @@
+/* 디지털 주보 넘겨보기(BulletinStory) — bs- 접두사.
+ * /news 는 PC 글씨 크기 zoom 화면이라 vh 높이는 var(--az) 로 나눈다(textScaleRoutes.ts). */
+
+.bs-root {
+  --bs-gold: #e8c06a;
+  display: grid;
+  gap: 1.25rem;
+  padding: 0 1rem;
+}
+@media (min-width: 1024px) {
+  .bs-root {
+    grid-template-columns: 236px minmax(0, 1fr);
+    padding: 0 1.5rem;
+    align-items: start;
+  }
+}
+
+/* ── PC 목차 ───────────────────────── */
+.bs-rail {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .bs-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+.bs-rail-head {
+  padding: 0.25rem 0.5rem 0.75rem;
+}
+.bs-rail-head b {
+  display: block;
+  font-size: 17px;
+  color: var(--text-strong);
+}
+.bs-rail-head span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.bs-ch {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.55rem;
+  border-radius: 14px;
+  text-align: left;
+  transition: background-color 0.15s;
+}
+.bs-ch:hover {
+  background: var(--surface-container);
+}
+.bs-ch.is-on {
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+}
+.bs-thumb {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 30px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--card-border);
+}
+.bs-ch.is-seen .bs-thumb::after {
+  content: '✓';
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+.bs-ch-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.bs-ch-no {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.bs-ch-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bs-ch.is-on .bs-ch-title {
+  color: var(--brand);
+}
+.bs-done-chip {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 800;
+  color: #a87a1f;
+  background: rgba(232, 192, 106, 0.18);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* ── 무대 ──────────────────────────── */
+.bs-stage {
+  min-width: 0;
+}
+.bs-bars {
+  display: flex;
+  gap: 4px;
+}
+.bs-bar {
+  flex: 1;
+  padding: 6px 0;
+}
+.bs-bar i {
+  display: block;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--brand-soft-strong);
+  position: relative;
+  overflow: hidden;
+}
+.bs-bar i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 0;
+  background: var(--brand);
+  transition: width 0.35s ease;
+}
+.bs-bar.is-done i::after {
+  width: 100%;
+}
+.bs-pos {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.15rem 0 0.6rem;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.bs-pos b {
+  color: var(--text-strong);
+  font-size: 14px;
+}
+@media (min-width: 1024px) {
+  .bs-pos {
+    font-size: 14px;
+  }
+  .bs-pos b {
+    font-size: 16px;
+  }
+}
+
+.bs-deck {
+  position: relative;
+  height: clamp(520px, calc(100svh - 210px), 760px);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 26px 56px -30px rgba(10, 30, 70, 0.45);
+  isolation: isolate;
+}
+@media (min-width: 1024px) {
+  .bs-deck {
+    height: clamp(560px, calc((100vh - 220px) / var(--az, 1)), 800px);
+    border-radius: 30px;
+  }
+}
+
+.bs-slide {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transform: translateX(36px) scale(0.985);
+  transition:
+    opacity 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+.bs-slide.is-past {
+  transform: translateX(-36px) scale(0.985);
+}
+.bs-slide.is-on {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bs-slide {
+    transition: opacity 0.2s;
+    transform: none !important;
+  }
+}
+.bs-slide-inner {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 1.6rem 1.4rem 4.2rem;
+}
+@media (min-width: 1024px) {
+  .bs-slide-inner {
+    padding: 3rem 4.75rem 3.2rem;
+  }
+}
+
+/* 톤 — 썸네일과 장 배경이 같이 쓴다 */
+.bs-tone-paper {
+  background: var(--surface-container);
+  color: var(--text-body);
+}
+.bs-tone-blue {
+  background: linear-gradient(150deg, #3182f6, #1d4fb8 70%, #163a86);
+  color: #fff;
+}
+.bs-tone-deep {
+  background: radial-gradient(120% 90% at 85% 0%, #2a5fc4 0%, #0f2350 55%, #0a1733 100%);
+  color: #fff;
+}
+.bs-tone-end {
+  background: radial-gradient(100% 80% at 50% 0%, #2d5fc0, #0d1f47 70%);
+  color: #fff;
+}
+.bs-tone-cover {
+  background-color: #0c1c3a;
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+}
+.bs-slide.bs-tone-cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8, 20, 48, 0.1) 0%, rgba(8, 20, 48, 0.25) 40%, rgba(8, 20, 48, 0.86) 100%);
+  pointer-events: none;
+}
+/* 짙은 장은 내용을 가운데로 모은다 — 위아래로 벌어지면 PC 에서 가운데가 휑하다 */
+.bs-tone-blue .bs-slide-inner,
+.bs-tone-deep .bs-slide-inner {
+  justify-content: center;
+}
+.bs-tone-cover .bs-slide-inner {
+  position: relative;
+  justify-content: flex-end;
+}
+
+/* ── 공통 글자 ─────────────────────── */
+.bs-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+}
+.bs-tone-paper .bs-kicker {
+  color: var(--brand);
+  opacity: 1;
+}
+.bs-gold {
+  color: var(--bs-gold);
+}
+.bs-heading {
+  margin: 0.5rem 0 1.2rem;
+  font-size: clamp(26px, 3.4vw, 44px);
+  font-weight: 800;
+  line-height: 1.32;
+  letter-spacing: -0.035em;
+  word-break: keep-all;
+}
+.bs-tone-paper .bs-heading {
+  color: var(--text-strong);
+}
+.bs-serif {
+  font-family: var(--font-serif-kr);
+  font-weight: 700;
+}
+.bs-sub {
+  margin: -0.6rem 0 1rem;
+  font-size: 17px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+.bs-tone-end .bs-sub,
+.bs-tone-blue .bs-sub {
+  color: rgba(255, 255, 255, 0.8);
+}
+.bs-strong {
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+/* ── 표지 ──────────────────────────── */
+.bs-motto {
+  margin: 0.7rem 0 0.5rem;
+  font-family: var(--font-serif-kr);
+  font-weight: 900;
+  font-size: clamp(32px, 5.2vw, 68px);
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+  white-space: pre-line;
+  word-break: keep-all;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
+}
+.bs-verse-ref {
+  margin: 0;
+  font-family: var(--font-serif-kr);
+  font-size: 17px;
+  opacity: 0.88;
+}
+.bs-start {
+  align-self: flex-start;
+  margin-top: 1.6rem;
+  background: #fff;
+  color: #163a86;
+  font-weight: 800;
+  font-size: 17px;
+  padding: 0.9rem 1.4rem;
+  border-radius: 999px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s;
+}
+.bs-start:active {
+  transform: scale(0.97);
+}
+
+/* ── 예배 시간 ─────────────────────── */
+.bs-times {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 0.75rem;
+}
+.bs-time {
+  border-radius: 20px;
+  padding: 1.1rem 1.15rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.bs-time.is-live,
+.bs-time.is-next {
+  background: #fff;
+  color: #163a86;
+  border-color: #fff;
+}
+.bs-time-name {
+  font-weight: 700;
+  font-size: 15px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.bs-time-at {
+  font-size: clamp(24px, 2.5vw, 34px);
+  white-space: nowrap;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.15rem;
+}
+.bs-time-by {
+  font-size: 14px;
+  opacity: 0.8;
+}
+.bs-live,
+.bs-next {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+}
+.bs-next {
+  background: var(--brand);
+}
+
+/* ── 말씀·찬송 ─────────────────────── */
+.bs-sermon-art {
+  width: min(100%, 480px);
+  align-self: flex-end;
+  margin: auto 0 -0.3rem;
+  /* 삽화 자체의 하늘 면이 네모로 드러나지 않게 가장자리를 녹인다 */
+  -webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 55%, #000 50%, transparent 100%);
+  mask-image: radial-gradient(ellipse 72% 70% at 50% 55%, #000 50%, transparent 100%);
+}
+.bs-hymns-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+.bs-hymns-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.bs-hymn {
+  flex: 1;
+  min-width: 120px;
+  white-space: nowrap;
+  border-radius: 22px;
+  background: var(--brand-soft);
+  padding: 1rem 1.3rem;
+}
+.bs-hymn b {
+  font-size: clamp(44px, 7vw, 84px);
+  font-weight: 900;
+  color: var(--brand);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bs-hymn span {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--brand);
+  margin-left: 2px;
+}
+
+/* ── 기도 ──────────────────────────── */
+.bs-people {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.7rem;
+}
+.bs-person {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 0.9rem 1rem;
+}
+.bs-avatar {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #fff;
+  color: #163a86;
+  font-weight: 900;
+  font-size: 19px;
+  display: grid;
+  place-items: center;
+}
+.bs-person-name {
+  font-size: clamp(18px, 2vw, 22px);
+  min-width: 0;
+}
+.bs-pray {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.5rem 0.85rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+.bs-pray.is-on {
+  background: var(--bs-gold);
+  color: #3b2a07;
+}
+
+/* ── 목록·소식 ─────────────────────── */
+.bs-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bs-item {
+  display: flex;
+  gap: 0.75rem;
+  border-radius: 18px;
+  background: var(--surface-container-high);
+  padding: 1rem 1.1rem;
+  line-height: 1.65;
+  font-size: 16.5px;
+}
+.bs-item-text {
+  flex: 1;
+  min-width: 0;
+  word-break: keep-all;
+}
+.bs-no {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 14px;
+  display: grid;
+  place-items: center;
+  margin-top: 1px;
+}
+.bs-acc {
+  display: block;
+  padding: 0;
+}
+.bs-acc-head {
+  width: 100%;
+  display: flex;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 1rem 1.1rem;
+  align-items: flex-start;
+}
+.bs-chev {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin-top: 8px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+}
+.bs-acc.is-open .bs-chev {
+  transform: rotate(-135deg);
+  margin-top: 12px;
+}
+.bs-acc-body {
+  display: none;
+  padding: 0 1.1rem 1.05rem 3.35rem;
+  white-space: pre-line;
+  color: var(--text-body);
+}
+.bs-acc.is-open .bs-acc-body {
+  display: block;
+}
+.bs-note {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+.bs-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+.bs-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-radius: 16px;
+  background: var(--surface-container-high);
+  padding: 0.9rem 1rem;
+}
+.bs-cell-label {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.bs-cell-value {
+  font-size: 17px;
+  color: var(--text-strong);
+}
+.bs-table-wrap {
+  overflow-x: auto;
+}
+.bs-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 15.5px;
+}
+.bs-table th {
+  background: var(--brand-soft);
+  color: var(--brand);
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  white-space: nowrap;
+}
+.bs-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--card-border);
+  color: var(--text-strong);
+}
+.bs-account {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.15rem;
+  border-radius: 18px;
+  background: var(--brand-soft);
+  transition: background-color 0.15s;
+}
+.bs-account:hover {
+  background: var(--brand-soft-strong);
+}
+.bs-account-label {
+  flex: none;
+  min-width: 3.5rem;
+  font-weight: 900;
+  color: var(--brand);
+  font-size: 17px;
+}
+.bs-account-value {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  color: var(--text-strong);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+.bs-account-copy {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+}
+
+/* ── 이번 주 ───────────────────────── */
+.bs-week {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+.bs-day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background: rgba(255, 255, 255, 0.11);
+  border-radius: 18px;
+  padding: 0.95rem 1rem;
+  font-size: 16px;
+  word-break: keep-all;
+}
+.bs-day-d {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.bs-day-meta {
+  font-size: 14px;
+  opacity: 0.78;
+}
+
+/* ── 마무리 · 퀴즈 ─────────────────── */
+.bs-end {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+.bs-end::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: repeating-conic-gradient(from 0deg at 50% 45%, rgba(255, 214, 120, 0.1) 0 6deg, transparent 6deg 18deg);
+  opacity: 0;
+  transition: opacity 1s;
+  pointer-events: none;
+}
+.bs-end.is-won::before {
+  opacity: 1;
+  animation: bs-spin 40s linear infinite;
+}
+@keyframes bs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bs-end.is-won::before {
+    animation: none;
+  }
+}
+.bs-end > * {
+  position: relative;
+}
+.bs-medal {
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  margin-bottom: 1.1rem;
+  padding: 7px;
+  background: radial-gradient(circle at 35% 30%, #fff6d8, #e8c06a 45%, #b8862b);
+  box-shadow:
+    0 0 0 6px rgba(255, 214, 120, 0.22),
+    0 20px 40px -12px rgba(0, 0, 0, 0.5);
+  transform: scale(0.82);
+  filter: grayscale(0.6) brightness(0.85);
+  transition:
+    transform 0.6s cubic-bezier(0.2, 1.7, 0.4, 1),
+    filter 0.6s;
+}
+.bs-end.is-won .bs-medal {
+  transform: scale(1);
+  filter: none;
+}
+/* 소식 삽화(양 무리)에서 확성기 든 양 쪽만 메달 안에 담는다 */
+.bs-medal-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #f6f1e6;
+  background-size: 260%;
+  background-position: 50% 42%;
+}
+.bs-choices {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.bs-choice {
+  min-width: 108px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-weight: 800;
+  padding: 0.85rem 1.4rem;
+  border-radius: 999px;
+  font-size: 20px;
+  transition: background-color 0.15s;
+}
+.bs-choice:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.bs-choice.is-wrong {
+  border-color: #e5484d;
+  animation: bs-shake 0.3s;
+}
+@keyframes bs-shake {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+.bs-quiz-msg {
+  margin: 0.8rem 0 0;
+  font-size: 15px;
+  color: #ffb3b5;
+  min-height: 1.4em;
+}
+.bs-restart {
+  align-self: center;
+}
+
+/* ── 이전·다음 ─────────────────────── */
+.bs-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface-container) 88%, transparent);
+  color: var(--text-strong);
+  font-size: 26px;
+  line-height: 1;
+  box-shadow: var(--card-shadow);
+  display: none;
+  transition: opacity 0.2s;
+}
+.bs-nav:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.bs-nav-prev {
+  left: 14px;
+}
+.bs-nav-next {
+  right: 14px;
+}
+@media (min-width: 1024px) {
+  .bs-nav {
+    display: grid;
+    place-items: center;
+  }
+}
+.bs-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0.6rem 0 0;
+}

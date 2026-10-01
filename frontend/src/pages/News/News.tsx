@@ -11,6 +11,9 @@ import { showToast } from '../../utils/toast'
 import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
+import BulletinStory from './components/BulletinStory'
+import { useDigitalBulletin } from '../../hooks/useDigitalBulletin'
+import { can } from '../../utils/access'
 import NewsSection from './components/NewsSection'
 import NoticeArchiveSection from './components/NoticeArchiveSection'
 import NewFamilySection from './components/NewFamilySection'
@@ -278,7 +281,7 @@ const News = () => {
         {/* 디지털 주보 */}
         {section === 'bulletin' && tab === 'digital' && (
           <div className="pt-3 pb-8">
-            <DigitalBulletin />
+            <DigitalBulletinTab />
           </div>
         )}
       </div>
@@ -288,6 +291,8 @@ const News = () => {
       {/* sticky top 은 본문 열의 실제 top(고정 헤더 56px + 컨테이너 lg:pt-3 12px = 68px)과
           같아야 한다. 72px(4.5rem)로 두면 sticky 가 정적 위치보다 아래로 밀어내서
           우측 열만 4px 내려앉는다 */}
+      {/* 넘겨보는 주보는 자체 목차를 가지니 PC 폭을 무대에 다 준다 */}
+      {!(section === 'bulletin' && tab === 'digital') && (
       <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.25rem] lg:max-h-[calc((100vh-5.25rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
         <NewsSidebar
           bulletins={bulletins}
@@ -297,6 +302,7 @@ const News = () => {
           onBulletinClick={handleBulletinClick}
         />
       </aside>
+      )}
       </div>
     </div>
   )
@@ -686,6 +692,47 @@ const SidebarCard = ({
 )
 
 // ── Skeleton / Empty ─────────────────────────────
+/** 디지털 주보 — 모두에게 넘겨보기, 관리자는 편집 화면(인라인 편집·PC 편집기)으로 바꿔 볼 수 있다 */
+const DigitalBulletinTab = () => {
+  const { t } = useLanguage()
+  const { data, isLoading } = useDigitalBulletin()
+  const isAdmin = can('content:manage')
+  const [mode, setMode] = useState<'read' | 'edit'>('read')
+
+  if (isLoading) {
+    return (
+      <div className="px-4 lg:px-6">
+        <div className="h-[520px] rounded-3xl bg-gray-200/70 dark:bg-white/[0.06] animate-pulse" />
+      </div>
+    )
+  }
+  return (
+    <>
+      {isAdmin && (
+        <div className="px-4 lg:px-6 mb-3 flex justify-end">
+          <div className="inline-flex p-1 rounded-full bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07]">
+            {(['read', 'edit'] as const).map(m => (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={mode === m}
+                onClick={() => setMode(m)}
+                className={[
+                  'px-3.5 h-8 lg:h-9 rounded-full text-[12.5px] lg:text-[14px] font-bold transition-colors',
+                  mode === m ? 'bg-brand text-white' : 'text-gray-600 dark:text-white/60 hover:text-brand',
+                ].join(' ')}
+              >
+                {t(m === 'read' ? 'newsStoryReadView' : 'newsStoryEditView')}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {mode === 'edit' && isAdmin ? <DigitalBulletin /> : <BulletinStory data={data} />}
+    </>
+  )
+}
+
 const SkeletonCards = () => (
   <div className="space-y-3">
     {/* lg에선 히어로가 가로 분할이라 세로로 덜 길다 */}
