@@ -13,7 +13,7 @@
 
 | # | 장 (`key`) | 톤 | 위에 얹히는 글자 | 내용 배치 | 배경 파일 슬롯 |
 |---|---|---|---|---|---|
-| 1 | 표지 `cover` | cover | 흰 글씨 | **아래쪽** 표어·말씀 | (선택) 지금은 계절 사진 `autumn-morning.webp` |
+| 1 | 표지 `cover` | cover | 흰 글씨 | **아래쪽** 표어·말씀 | `cover-{light,dark}` — ★풀블리드 판으로 다시 받기(A-1) |
 | 2 | 예배 `worship` | blue | 흰 글씨 (라이트·다크 모두) | **가운데** 예배 시간 카드 | `worship-{light,dark}` |
 | 3 | 설교 `sermon` | paper | 라이트=진한 글씨 / 다크=흰 글씨 | 위→아래, 중간에 양 교회 삽화 | `sermon-{light,dark}` |
 | 4 | 기도 `prayer` | deep | 흰 글씨 | **가운데** 기도자 아바타 | `prayer-{light,dark}` |
@@ -390,29 +390,116 @@ still sitting in the basket, now dozing contentedly on top of the persimmons.
 Muted, warm, low contrast. Follow all layout rules from the style guide.
 ```
 
-## A-1 표지 `cover` (선택)
+## A-1 표지 `cover` — 전체 배경(풀블리드) 판
 
-지금 계절 사진이 잘 어울리면 건너뛴다. 삽화 표지로 통일하고 싶을 때만.
-표지는 **글이 아래**에 얹히고 위에서 아래로 어두운 스크림이 깔린다 → 장면을 **위·가운데**로.
+> **2026-10-01 다시 씀.** 첫 판은 "장면을 가로 가운데 절반 안에"라고 시켜서 Gemini 가 **가운데 액자 그림 + 바깥 단색 여백**으로
+> 그렸고, 그걸 가로로 늘려 구운 탓에 PC 표지에서 네모 이음새·지평선 어긋남이 보였다.
+> 이번 판은 **하늘·언덕·들판이 네 모서리까지 끊김 없이 이어지는 한 장의 풍경**으로 받는다. 늘려 굽기(아웃페인팅) 금지.
 
-```
-Scene 0 (optional cover) — LIGHT MODE. EXCEPTION to the layout rules for this
-one image only: white text will be laid over the BOTTOM 40%, which will be
-darkened by an overlay, so place the scene in the middle of the image (between
-40% and 80% from the bottom), inside the middle half of the width, and keep the
-bottom 40% a calm, simple golden field. Scene: a wide view of a gentle hill
-covered in golden rice fields under a high blue autumn sky, a small white
-countryside church with a tiny cross far away on the hill, and a family of
-sheep standing together on a path looking toward it, morning sunlight.
-```
+**무대·크롭 (코드 기준)**: 표지는 다른 장과 달리 `background-position: center top` + `cover`.
+- 모바일(세로 0.5~0.7:1) → **좌우가 잘려 가운데 50~70% 폭만** 보인다.
+- PC(가로 1.1~1.6:1) → **아래가 잘려 위쪽 60~90% 높이만** 보인다.
+- 글(표어·말씀·시작 버튼)은 무대 **아래쪽**에 얹히고 그 위로 스크림(다크=남색, 라이트=크림)이 깔린다.
 
 ```
-Scene 0 (optional cover) — DARK MODE. Same exception: scene between 40% and 80%
-from the bottom, inside the middle half, bottom 40% calm and simple. The same
-hill and the same small church far away at dusk, its windows glowing warm
-amber, under a deep blue sky with a soft harvest moon. The sheep family on the
-path, wool in soft warm grey. Muted and low contrast.
+ ┌───────────────────────────────┐  ← 위 10%: 하늘만
+ │        (달 / 아침 햇무리)        │
+ │   하늘 — 네 모서리까지 이어짐      │
+ │            ⛪ 작은 교회           │  ← 60~70%: 먼 언덕 위 교회 (가로 40~60%)
+ │━━━━━━ 지평선·언덕 능선(가로 전체) ━━━━│  ← 55~62%: 왼쪽 끝~오른쪽 끝 한 줄
+ │  들판   🐑🐑 양 가족 🐑🐑   들판   │  ← 40~55%: 양 가족 (가로 30~70%)
+ │                               │
+ │  고요한 황금 들판 (글자 구역)       │  ← 아래 40%: 무늬 적고 잔잔하게
+ │▁▁▁▁▁▁▁▁ 평평한 바닥 ▁▁▁▁▁▁▁▁│  ← 아래 6%: 워터마크 ✦ 자리
+ └───────────────────────────────┘
 ```
+
+**보내는 법**: 새 채팅 → 다른 장들과 같은 양으로 맞추려면 `public/images/title-bg/` 양 그림 한 장
+(예: `attendance_king.webp`)을 첨부 → 아래 **라이트 블록** → 받은 뒤 같은 채팅에서 **다크 블록**.
+(지금 표지 파일은 액자 구도라 첨부하지 않는다 — 구도까지 따라 그린다.)
+
+### cover-light
+
+```
+Please create ONE full-bleed square (1:1) background illustration for the cover
+page of a church app's digital Sunday bulletin. Use the attached image only as a
+reference for the sheep character and the drawing style — do not copy its
+composition.
+
+STYLE: cozy children's storybook illustration — soft flat shapes, subtle
+paper-grain texture, rounded friendly forms, gentle light, warm and tender
+autumn mood. Small chubby white sheep: stubby legs, tiny round black hooves,
+serene slightly smug smiles. Autumn palette: golden rice-field ochre, ginkgo
+yellow, maple red, persimmon orange, with a high soft sky blue.
+
+COMPOSITION — FULL BLEED (most important):
+- This is ONE continuous landscape painting that fills the ENTIRE canvas edge to
+  edge. The sky, the rolling hills and the golden fields all run uninterrupted
+  to the left, right, top and bottom edges.
+- Do NOT draw a picture inside a picture: no central framed scene, no inset, no
+  rectangle or oval of a different colour, no plain or blank margins around a
+  centre illustration, no vignette, no soft-faded edges.
+- ONE continuous horizon / hill ridge line runs across the FULL width, at about
+  55–62% from the bottom edge, at the same height on the left and right sides.
+- The rice fields keep the same texture and colour all the way to both side
+  edges; the sky is one smooth gradient across the whole width.
+
+SCENE: a wide, peaceful view of gentle rolling hills covered in golden rice
+fields under a high clear blue autumn sky, soft morning sunlight glowing low
+behind the hill. Far away on the central hilltop (60–70% from the bottom,
+horizontally centred) stands a small white countryside church with a tiny cross.
+A winding dirt path leads from the foreground up the hill toward it. On the path,
+a family of sheep — two adults and three lambs — stands close together looking
+happy, placed between 40% and 55% from the bottom and inside the central part of
+the width (30%–70%). A few maple leaves drift in the air on both sides.
+
+TEXT AREA: the bottom 40% of the image will be covered by text, so keep it a
+calm, simple golden field with soft gentle texture and no strong details. The
+very bottom 6% is plain flat ground.
+
+ALWAYS: no text, letters, numbers, logos or signs. No frames, borders, rounded
+corners or vignette. No user-interface elements, cards, buttons or panels.
+Bright, airy, high-key and low-contrast.
+```
+
+### cover-dark (같은 채팅에서 이어서)
+
+```
+Now the DARK MODE version of exactly the same picture: the same full-bleed
+composition, same hills, same path, same church and same sheep family in the
+same positions — again filling the entire canvas edge to edge with one
+continuous horizon across the full width and no framed or inset scene.
+
+Change only the time of day: dusk turning to night. A deep blue sky that fades
+smoothly to a soft dusky violet near the horizon, a few faint stars, and a soft
+glowing harvest moon in the upper-left part of the sky. The little church's
+windows glow warm amber. The rice fields are muted golden-ochre fading to warm
+brown in the foreground. The sheep's wool is soft warm grey, never bright white.
+Muted, low contrast, warm glow accents only. The bottom 40% stays a calm, simple
+dark field for text; the very bottom 6% is plain.
+
+Same rules: no text, no frames, no vignette, no UI elements, square 1:1.
+```
+
+### 표지 전용 실패 → 다시 요청할 문장
+
+| 증상 | Gemini 에 이어서 보낼 문장 |
+|---|---|
+| 또 가운데 네모 그림 + 바깥 여백 | `This is still a framed picture in the centre. Redraw it as one landscape that fills the whole canvas: the hills, fields and sky must continue all the way to every edge with no box, inset or blank margin.` |
+| 좌우 지평선 높이가 다르다 | `The horizon must be one straight continuous line across the full width, at the same height on the left and right edges.` |
+| 가장자리가 흐려지거나 뿌옇다 | `No vignette and no faded edges — the corners must be as sharp and detailed as the centre.` |
+| 양이 너무 아래(글 구역)로 내려왔다 | `Move the sheep family up so they stand between 40% and 55% from the bottom edge; the bottom 40% must be a calm empty field.` |
+| 양·교회가 한쪽으로 쏠렸다 | `Keep the church and the sheep family horizontally centred, inside the middle 30%–70% of the width.` |
+| 다크인데 구도가 바뀌었다 | `Keep exactly the same composition as the previous light image — change only the time of day and the colours.` |
+
+### 표지 후처리 · 적용
+
+1. 워터마크 제거(`docs/gemini-unwatermark.py`) → **늘리지 말고 그대로** 1400×1400 webp(품질 80 전후).
+2. `src/assets/bulletin/autumn/cover-{light,dark}.webp` 덮어쓰기. 코드(`bulletinSeasonArt.ts`·`center top`)는 그대로 쓴다.
+   - 받은 그림의 양 위치가 모바일에서 글에 가리면 `backgroundPosition` 만 `center 20%` 식으로 조정.
+   - `bulletinSeasonArt.ts` 의 COVER_ART 주석("액자 테두리를 녹여 구웠다")은 새 그림으로 바꿀 때 고친다.
+3. PC 목차 썸네일 `thumb/cover-{light,dark}.webp`(132×90, 장면 띠 크롭)도 새 그림에서 다시 자른다.
+4. 확인: 라이트·다크 × 모바일(390)·PC(1440) — PC 양 끝까지 이음새 없는지, 모바일에서 양 얼굴이 글에 안 가리는지.
 
 ---
 

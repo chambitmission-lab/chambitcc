@@ -626,8 +626,9 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
   }
   /** 장 배경 — 지금 장 ±1 과 이미 본 장만 붙인다(16장을 한꺼번에 받지 않게) */
   const slideStyle = (s: Slide, i: number) => {
-    // 표지 삽화는 장면을 위쪽에 두고 아래로 들판을 늘려 구웠다 — 위 기준으로 깔아야 글줄 위로 양이 올라온다
-    if (s.tone === 'cover') return { backgroundImage: `url(${coverImg})`, backgroundPosition: coverArt ? 'center top' : undefined }
+    // 표지 삽화는 정사각형 위쪽에 장면, 아래 40%는 글 자리 들판이다. 아래 기준으로 깔면 PC(가로로 넓음)에서
+    // 잘리는 쪽이 빈 하늘이 되고 양은 글줄 위로 올라간다. 모바일은 높이가 꽉 차 세로 기준이 상관없다
+    if (s.tone === 'cover') return { backgroundImage: `url(${coverImg})`, backgroundPosition: coverArt ? 'center bottom' : undefined }
     if (Math.abs(i - cur) > 1 && !seen.has(i)) return undefined
     const art = bulletinSeasonArt(season, s.key, isDark)
     return art ? { backgroundImage: `url(${art})` } : undefined
@@ -693,7 +694,7 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
               className={[
                 'bs-slide',
                 `bs-tone-${s.tone}`,
-                s.tone !== 'cover' && bulletinSeasonArt(season, s.key, isDark) && 'has-art',
+                s.tone !== 'cover' && bulletinSeasonArt(season, s.key, isDark) && `has-art bs-art-${s.key}`,
                 s.tone === 'cover' && coverArt && !isDark && 'bs-cover-light',
                 i === cur ? 'is-on' : i < cur ? 'is-past' : 'is-ahead',
               ]

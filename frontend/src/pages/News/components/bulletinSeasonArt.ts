@@ -36,7 +36,7 @@ const AUTUMN: Record<ArtKey, ArtPair> = {
   end: { light: endLight, dark: endDark },
 }
 
-/** 표지 — 가운데 액자처럼 그려 온 장면의 테두리를 바깥 하늘·들판으로 녹여 구웠다 */
+/** 표지 — 하늘·들판이 네 모서리까지 이어지는 풀블리드 정사각형(문서 A-1). 늘려 굽지 않는다 */
 const COVER_ART: Partial<Record<NaturalSeason, ArtPair>> = {
   autumn: { light: coverLight, dark: coverDark },
 }
