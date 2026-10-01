@@ -459,8 +459,9 @@ export const PushNotificationManagement = () => {
         </div>
       </div>
 
-      {/* sticky 발송 바 */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
+      {/* sticky 발송 바 — fixed 라 뷰포트 기준이므로, 본문(.main-content)이 좌측 레일만큼
+          들어간 오프셋을 똑같이 줘야 위 카드 열과 정렬된다. */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none lg:pl-[76px] xl:pl-[248px]">
         <div className="max-w-md mx-auto pointer-events-auto lg:max-w-[1100px] lg:px-5">
           <div className="m-3 lg:mx-0 lg:mr-[364px] rounded-2xl border border-white/[0.08] bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.18)] p-3 flex items-center gap-2">
             <button
