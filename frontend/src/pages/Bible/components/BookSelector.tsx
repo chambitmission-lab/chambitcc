@@ -5,6 +5,7 @@ import type { ReadingProgressResponse, ResumePosition } from '../../../api/bible
 import { parseApiDate } from '../../../utils/dateUtils'
 import { lazyModal } from '../../../utils/lazyModal'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
+import { readingSceneFor } from '../../../utils/themeAssets'
 // 지도 보기는 토글해야 나온다 — 기본 뷰(여정)만 정적으로 둔다.
 // 단, 청크는 요약 카드가 뜬 뒤 유휴 시간에(그리고 버튼에 손이 닿는 순간) 미리 받아 둔다 —
 // 예전엔 "지도"를 누른 뒤에야 청크 왕복이 시작돼 fallback(null) 빈 화면이 한 박자 끼었다
@@ -78,6 +79,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 서브 필터가 어느 방향에서 슬라이드 인 될지 — OT→NT는 우측(forward), NT→OT는 좌측(back)에서 들어온다
   const [dir, setDir] = useState<'forward' | 'back'>('forward')
   const [showMap, setShowMap] = useState(false)
+  // 진행률 카드 배경 장면 — 낮은 "함께 걷는 길", 저녁·밤은 "함께 읽기"(진입 시각 기준, 머무는 동안 고정)
+  const [readingScene] = useState(() => readingSceneFor(new Date().getHours()))
 
   // 지도 청크 선로드 — 요약 카드(토글 버튼)가 보이는 동안 3G 이하가 아니면 유휴 시간에 받는다
   useEffect(() => {
@@ -522,7 +525,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           링 3개 대신 "숫자 하나가 먼저 읽히고" 그 아래 구약/신약이 나뉘는 위계로 재구성했다.
           탭 안에 %를 넣지 않는 이유: 탭은 선택 컨트롤이고, 비활성 탭의 수치는 가려지기 때문 */}
       {summaryStats.length === 0 && progressPending && (
-        <div className="reading-summary" aria-hidden="true">
+        <div className="reading-summary" data-scene={readingScene} aria-hidden="true">
           <div className="reading-summary__head">
             <div className="reading-summary__heading">
               <span className="bib-skel bib-skel--badge" />
@@ -555,7 +558,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         </div>
       )}
       {summaryStats.length > 0 && overallStat && (
-        <section className="reading-summary" aria-label={t.summaryTitle}>
+        <section className="reading-summary" data-scene={readingScene} aria-label={t.summaryTitle}>
           <div className="reading-summary__head">
             <div className="reading-summary__heading">
               <span className="reading-summary__badge" aria-hidden="true">

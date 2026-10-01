@@ -167,3 +167,6 @@ No text, no numbers, no letters, no bars, no frames, no borders.
   글자 칸 `.reading-hero__stat` 는 `max-width: 56%`. 예전 책 오브제(`.reading-hero__art`, `reading-hero-*.webp`)는 삭제.
 - `themeAssets.ts READING_HERO` 가 새 파일을 가리킨다(테마 전환 선로딩).
 - 넓은 폭(≥480px)은 `cover` 대신 높이 기준 `auto 112%`·아래 붙임 — 폭 기준이면 PC에서 인물이 카드를 다 덮었다. 그림 왼쪽 빈자리는 삽화 왼쪽 가장자리 색을 높이별로 잰 세로 그라데이션으로 이음(삽화 교체 시 재측정).
+- **시간대 2장면(2026-10-01)**: 낮(4~17시) = 시안 D "함께 걷는 길" `reading-walk-{light,dark}.webp`(원본 사방 흰 찢긴 종이 테두리 44px 크롭,
+  다크는 ✦ 자리 과보정 얼룩 300px만 cv2 inpaint), 저녁·밤 = 시안 A `reading-scene-*`. 판정은 `themeAssets.ts readingSceneFor`
+  → `.reading-summary[data-scene="day"|"evening"]`. 낮 장면은 분홍·보라 톤이라 매트·PC 이음 그라데이션도 따로 잰 값.

@@ -2,10 +2,12 @@
  * /dev/reading-hero — 성경 읽기 현황 히어로(전체 진행률) 시안 확인용.
  * 백엔드·로그인 없이 표본 수치로 진행 단계별(초반·중반·완독) 배치를 본다.
  * 실물과 같은 클래스를 쓰므로 book-selector/summary.css 를 고치면 그대로 반영된다.
+ * 배경 장면은 시간대로 갈린다(낮 "함께 걷는 길" / 저녁·밤 "함께 읽기") — 위 토글로 둘 다 본다.
  */
 import { useState } from 'react'
 import { BookOpen, ChartPieSlice, MapTrifold, HandsPraying, Scroll, Cross } from '@phosphor-icons/react'
 import '../Bible/BibleStudy.css'
+import { readingSceneFor, type ReadingScene } from '../../utils/themeAssets'
 
 const TOTAL = 1189
 
@@ -17,13 +19,13 @@ const SAMPLES: Sample[] = [
   { label: '완독', read: TOTAL, cheerHead: '성경 66권을 모두 ', cheerTail: '읽었어요' },
 ]
 
-function Card({ sample }: { sample: Sample }) {
+function Card({ sample, scene }: { sample: Sample; scene: ReadingScene }) {
   const read = sample.read
   const rate = Math.round((read / TOTAL) * 100)
   const left = TOTAL - read
 
   return (
-    <section className="reading-summary" aria-label="성경 읽기 현황">
+    <section className="reading-summary" data-scene={scene} aria-label="성경 읽기 현황">
       <div className="reading-summary__head">
         <div className="reading-summary__heading">
           <span className="reading-summary__badge" aria-hidden="true">
@@ -121,10 +123,31 @@ function Card({ sample }: { sample: Sample }) {
 
 export default function ReadingHeroPreview() {
   const [width, setWidth] = useState(420)
+  const [scene, setScene] = useState<ReadingScene>(() => readingSceneFor(new Date().getHours()))
 
   return (
     <div style={{ padding: '1.25rem 1rem 4rem', background: 'var(--ig-secondary-background)', minHeight: '100vh' }}>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        {(['day', 'evening'] as const).map(n => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => setScene(n)}
+            style={{
+              padding: '0.4rem 0.7rem',
+              borderRadius: 10,
+              border: '1px solid var(--ig-border)',
+              background: scene === n ? 'var(--brand-soft-strong)' : 'transparent',
+              color: scene === n ? 'var(--brand)' : 'var(--text-muted)',
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+            }}
+          >
+            {n === 'day' ? '낮 · 함께 걷는 길' : '저녁 · 함께 읽기'}
+          </button>
+        ))}
+        <span style={{ width: 1, height: 18, background: 'var(--ig-border)', margin: '0 0.25rem' }} />
         {[360, 420, 620].map(w => (
           <button
             key={w}
@@ -153,7 +176,7 @@ export default function ReadingHeroPreview() {
               {s.label}
             </p>
             <div className="bible-books-section" style={{ borderRadius: 16 }}>
-              <Card sample={s} />
+              <Card sample={s} scene={scene} />
             </div>
           </div>
         ))}

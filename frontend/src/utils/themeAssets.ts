@@ -124,10 +124,23 @@ export const RAIL_BOTTOM: ThemePair = {
 }
 /** 홈 공지 배너 마스코트 (HomeNotice.tsx 인라인 스타일) */
 export const NOTICE_BANNER: ThemePair = { light: '/images/notice/banner-light.webp', dark: '/images/notice/banner-dark.webp' }
-/** /bible 성경 읽기 현황 카드 배경 — 예수님·어린양 치비 삽화 (book-selector/summary.css .reading-hero) */
+/** /bible 성경 읽기 현황 카드 배경 — 예수님·어린양 치비 삽화 (book-selector/summary.css .reading-hero)
+ *  낮(4~17시)은 "함께 걷는 길", 저녁·밤은 "함께 읽기". .reading-summary[data-scene] 와 같은 판정 */
+export type ReadingScene = 'day' | 'evening'
+export const readingSceneFor = (hour: number): ReadingScene =>
+  deriveTimeOfDay(hour) === 'evening' ? 'evening' : 'day'
+export const READING_HERO_BY_SCENE: Record<ReadingScene, ThemePair> = {
+  day: { light: '/images/bible/reading-walk-light.webp', dark: '/images/bible/reading-walk-dark.webp' },
+  evening: { light: '/images/bible/reading-scene-light.webp', dark: '/images/bible/reading-scene-dark.webp' },
+}
+/** 지금 시간대의 쌍만 노출(GROWTH_HERO 와 같은 getter 방식) — 두 장면을 다 받지 않는다 */
 export const READING_HERO: ThemePair = {
-  light: '/images/bible/reading-scene-light.webp',
-  dark: '/images/bible/reading-scene-dark.webp',
+  get light() {
+    return READING_HERO_BY_SCENE[readingSceneFor(new Date().getHours())].light
+  },
+  get dark() {
+    return READING_HERO_BY_SCENE[readingSceneFor(new Date().getHours())].dark
+  },
 }
 /** /bible 이어읽기 카드 (dashboard.css .dash-card--resume) */
 export const RESUME_CARD: ThemePair = { light: '/images/bible/resume-light.webp', dark: '/images/bible/resume-dark.webp' }
