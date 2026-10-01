@@ -76,7 +76,7 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
     className="group relative flex h-full w-full flex-col text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.97]"
   >
     {/* 정사각 → 5:4로 살짝 낮춰 무게중심을 텍스트 쪽으로 — 글씨가 먼저 읽힌다 */}
-    <div className="relative aspect-[5/4] shrink-0">
+    <div className="relative aspect-[5/4] lg:aspect-[16/10] shrink-0">
       <PlanVisual plan={plan} size="feed" />
     </div>
     {/* 텍스트와 화살표를 한 flex 행으로 완전히 분리 — 제목·태그가 길어져도
@@ -325,15 +325,15 @@ const FeaturedPlanCard = ({
 }
 
 const PlanSkeletons = () => (
-  <div className="px-4 pt-9">
+  <div className="px-4 pt-9 lg:px-7">
     <div className="h-4 w-24 rounded bg-gray-100 dark:bg-white/[0.06] animate-pulse mb-5" />
-    <div className="grid grid-cols-2 gap-3.5">
+    <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] lg:gap-5">
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
           className="rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse overflow-hidden"
         >
-          <div className="aspect-[5/4]" />
+          <div className="aspect-[5/4] lg:aspect-[16/10]" />
           <div className="p-3 space-y-2">
             <div className="h-3.5 w-3/4 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
             <div className="h-2.5 w-1/2 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
