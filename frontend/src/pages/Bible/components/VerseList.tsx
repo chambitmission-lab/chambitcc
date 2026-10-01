@@ -8,6 +8,7 @@ import { VerseListProvider } from './verse/VerseListProvider'
 import VerseSheets from './verse/VerseSheets'
 import type { VerseListActions, VerseListSettings } from './verse/VerseListContext'
 import ChapterLoader from './ChapterLoader'
+import ChapterSealStamp from './ChapterSealStamp'
 import { useChapterReadStatus, useMarkVerseAsRead, useUnmarkVerseAsRead, useMarkChapterAsRead, useUnmarkChapterAsRead } from '../../../hooks/useBibleReading'
 import { biblePlanKeys } from '../../../hooks/useBiblePlan'
 import { lazyModal } from '../../../utils/lazyModal'
@@ -428,10 +429,26 @@ const VerseList = ({
     }
   }, [bookNumber, selectedChapter])
 
-  const handleBulkTap = async (action: 'mark' | 'unmark') => {
+  // 장 전체 읽음 — 장 끝 도장(ChapterSealStamp)은 꾹 누르기가 곧 확인이라 바로 실행한다.
+  // 도장이 찍히는 연출이 완료 피드백이므로 꽃 효과·성공 토스트는 띄우지 않는다.
+  const stampChapter = async (): Promise<boolean> => {
+    if (bulkPending) return false
+    try {
+      await markChapterMutation.mutateAsync({ bookNumber, chapter: selectedChapter })
+      await refetchReadStatus()
+      return true
+    } catch (error) {
+      console.error('Failed to mark chapter read:', error)
+      showToast('장 전체 읽음 처리에 실패했습니다', 'error')
+      return false
+    }
+  }
+
+  // 장 전체 읽음 취소 — 실수 방지 2탭 확인
+  const handleUnmarkTap = async () => {
     if (bulkPending) return
-    if (bulkConfirm !== action) {
-      setBulkConfirm(action)
+    if (bulkConfirm !== 'unmark') {
+      setBulkConfirm('unmark')
       if (bulkConfirmTimer.current) window.clearTimeout(bulkConfirmTimer.current)
       bulkConfirmTimer.current = window.setTimeout(() => setBulkConfirm(null), 3000)
       return
@@ -439,21 +456,12 @@ const VerseList = ({
     if (bulkConfirmTimer.current) window.clearTimeout(bulkConfirmTimer.current)
     setBulkConfirm(null)
     try {
-      if (action === 'mark') {
-        const res = await markChapterMutation.mutateAsync({ bookNumber, chapter: selectedChapter })
-        celebrateFlowerBloom()
-        showToast(`${res.marked_verses}개 절을 읽음 처리했습니다`, 'success')
-      } else {
-        const res = await unmarkChapterMutation.mutateAsync({ bookNumber, chapter: selectedChapter })
-        showToast(`${res.deleted_records}개 읽음 기록을 취소했습니다`, 'info')
-      }
+      const res = await unmarkChapterMutation.mutateAsync({ bookNumber, chapter: selectedChapter })
+      showToast(`${res.deleted_records}개 읽음 기록을 취소했습니다`, 'info')
       await refetchReadStatus()
     } catch (error) {
-      console.error('Failed to bulk toggle chapter read:', error)
-      showToast(
-        action === 'mark' ? '장 전체 읽음 처리에 실패했습니다' : '장 전체 읽음 취소에 실패했습니다',
-        'error'
-      )
+      console.error('Failed to unmark chapter read:', error)
+      showToast('장 전체 읽음 취소에 실패했습니다', 'error')
     }
   }
 
@@ -1108,79 +1116,23 @@ const VerseList = ({
               // 장 끝 읽음 완료 — 끝까지 읽고 스크롤을 되올리지 않도록 여기서 한 번에 처리
               const total = readStatusData.total_verses ?? 0
               const unread = Math.max(0, total - (readStatusData.read_verses ?? 0))
-              if (unread > 0) {
-                const confirming = bulkConfirm === 'mark'
-                return (
-                  <div style={{
-                    maxWidth: '26rem',
-                    margin: '0 auto 1.25rem',
-                    padding: '1rem',
-                    borderRadius: '1rem',
-                    background: 'var(--brand-soft)',
-                    border: '1px solid var(--brand-soft-strong)',
-                  }}>
-                    <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', color: 'var(--ig-secondary-text)', lineHeight: 1.5 }}>
-                      {unread === total
-                        ? '끝까지 읽으셨나요?'
-                        : <>끝까지 읽으셨나요? 아직 표시 안 된 절이 <strong style={{ color: 'var(--brand)', fontWeight: 700 }}>{unread}절</strong> 있어요</>}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => handleBulkTap('mark')}
-                      disabled={bulkPending}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.375rem',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '0.75rem',
-                        border: confirming ? '1px solid var(--brand)' : '1px solid transparent',
-                        background: confirming ? 'var(--ig-primary-background)' : 'var(--brand)',
-                        color: confirming ? 'var(--brand)' : 'white',
-                        fontWeight: 700,
-                        fontSize: '0.9375rem',
-                        cursor: bulkPending ? 'wait' : 'pointer',
-                        opacity: bulkPending ? 0.6 : 1,
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span className="material-icons-round" style={{ fontSize: '1.125rem', flexShrink: 0 }}>
-                        done_all
-                      </span>
-                      {bulkPending
-                        ? '처리 중...'
-                        : confirming
-                          ? `한 번 더 누르면 ${unread}절 읽음 처리`
-                          : '이 장 다 읽었어요'}
-                    </button>
-                  </div>
-                )
-              }
               const confirming = bulkConfirm === 'unmark'
               return (
                 <div style={{ marginBottom: '0.5rem' }}>
-                  <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.375rem',
-                    color: 'var(--brand)',
-                    fontWeight: 700,
-                    fontSize: '0.9375rem',
-                  }}>
-                    <span className="material-icons-round" style={{ fontSize: '1.375rem' }}>
-                      check_circle
-                    </span>
-                    이 장을 모두 읽었어요
-                  </div>
-                  <div>
+                  <ChapterSealStamp
+                    bookName={chapterData.pages[0].book_name_ko}
+                    chapter={selectedChapter}
+                    totalVerses={total}
+                    unread={unread}
+                    pending={bulkPending}
+                    onStamp={stampChapter}
+                  />
+                  {unread === 0 && (
                     <button
                       type="button"
-                      onClick={() => handleBulkTap('unmark')}
+                      onClick={handleUnmarkTap}
                       disabled={bulkPending}
                       style={{
-                        marginTop: '0.25rem',
                         padding: '0.25rem 0.5rem',
                         border: 'none',
                         borderRadius: '999px',
@@ -1196,7 +1148,7 @@ const VerseList = ({
                     >
                       {bulkPending ? '처리 중...' : confirming ? '한 번 더 누르면 이 장 읽음 전체 취소' : '읽음 취소'}
                     </button>
-                  </div>
+                  )}
                 </div>
               )
             })() : (
