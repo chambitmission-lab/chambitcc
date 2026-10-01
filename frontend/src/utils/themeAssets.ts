@@ -124,10 +124,10 @@ export const RAIL_BOTTOM: ThemePair = {
 }
 /** 홈 공지 배너 마스코트 (HomeNotice.tsx 인라인 스타일) */
 export const NOTICE_BANNER: ThemePair = { light: '/images/notice/banner-light.webp', dark: '/images/notice/banner-dark.webp' }
-/** /bible 통독표 히어로 (book-selector.css) — 테마 쌍 중 가장 큰 파일(71~92KB) */
+/** /bible 성경 읽기 현황 카드 배경 — 예수님·어린양 치비 삽화 (book-selector/summary.css .reading-hero) */
 export const READING_HERO: ThemePair = {
-  light: '/images/bible/reading-hero-light.webp',
-  dark: '/images/bible/reading-hero-dark.webp',
+  light: '/images/bible/reading-scene-light.webp',
+  dark: '/images/bible/reading-scene-dark.webp',
 }
 /** /bible 이어읽기 카드 (dashboard.css .dash-card--resume) */
 export const RESUME_CARD: ThemePair = { light: '/images/bible/resume-light.webp', dark: '/images/bible/resume-dark.webp' }

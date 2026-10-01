@@ -62,7 +62,6 @@ function Card({ sample }: { sample: Sample }) {
               </span>
             </p>
           </div>
-          <span className="reading-hero__art" aria-hidden="true" />
         </div>
 
         <div className="reading-hero__gauge">

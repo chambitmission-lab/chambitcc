@@ -540,7 +540,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                 <span className="bib-skel bib-skel--number" />
                 <span className="bib-skel bib-skel--cheer" />
               </div>
-              <span className="reading-hero__art" />
             </div>
             <div className="reading-hero__gauge">
               <span className="reading-hero__track" />
@@ -621,7 +620,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                   </span>
                 </p>
               </div>
-              <span className="reading-hero__art" aria-hidden="true" />
             </div>
 
             <div className="reading-hero__gauge">

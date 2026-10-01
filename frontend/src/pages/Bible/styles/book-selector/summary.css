@@ -114,15 +114,12 @@
 }
 
 /* ── 히어로: 전체 진행률 ─────────────────────────────────────────
-   위 칸은 "숫자 + 격려 | 삽화" 2열, 아래 칸은 카드 폭을 다 쓰는 게이지.
-   삽화를 배경으로 깔고 글자에 padding-right 로 자리를 비워 주던 예전 방식은
-   카드 폭이 조금만 달라져도 책이 오른쪽에서 잘리거나 문장에 올라탔다 —
-   삽화에 자기 칸을 주어 겹침 자체를 없앴다. contain 으로 담고 왼쪽 가장자리는
-   mask 로 흐려, 에셋에 구워진 광륜이 원형 스티커처럼 도드라지지 않게 한다.
-
-   면은 옅은 블루 틴트 그대로 둔다 — 딥 블루/브랜드 블루로 채워 봤지만,
-   책 삽화 에셋에 "흰 배경용 광륜"이 구워져 있어 색이 있는 면 위에서는 책이 푸르게 뭉개진다.
-   삽화를 살리려면 면은 흰색에 가까워야 한다(2026-09 검증). */
+   카드 전체에 "예수님과 어린양이 함께 성경을 읽는" 삽화를 깐다(2026-10-01, 제미나이 치비 판,
+   docs/reading-hero-bg-prompts.md). 인물은 우하단, 왼쪽은 빈 하늘 — 숫자·격려는 왼쪽에 서고
+   진행 바는 카드 폭 그대로 그림 위에 얹는다.
+   워시(덧칠) 없이 원색 그대로 — 왼쪽은 원래 빈 하늘이라 글자 대비가 충분하다(2026-10-01 사용자 확인).
+   cover + right 72% — 모바일(≈1.8:1)은 그림이 거의 다 보이고, PC(≈2.8:1)는 위 하늘만 잘린다.
+   예전 "빛나는 책" 오브제 칸(.reading-hero__art, reading-hero-*.webp)은 이걸로 대체됐다. */
 .reading-hero {
   position: relative;
   display: flex;
@@ -130,18 +127,17 @@
   gap: 0.85rem;
   padding: 0.95rem 1rem 0.9rem;
   border-radius: 16px;
-  /* 평평한 단색 대신 우상단으로 아주 얕게 기우는 그라데이션 + 1px 빛줄 */
   background:
-    radial-gradient(130% 110% at 100% 0%, rgba(49, 130, 246, 0.16), transparent 62%),
-    linear-gradient(168deg, #f3f8ff 0%, #e7f0ff 100%);
+    url('/images/bible/reading-scene-light.webp') right 72% / cover no-repeat,
+    #e3e7f1;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   overflow: hidden;
 }
 
 [data-theme="dark"] .reading-hero {
   background:
-    radial-gradient(130% 110% at 100% 0%, rgba(69, 147, 252, 0.2), transparent 62%),
-    linear-gradient(168deg, #1c2532 0%, #151b25 100%);
+    url('/images/bible/reading-scene-dark.webp') right 72% / cover no-repeat,
+    #232c39;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -151,34 +147,14 @@
   gap: 0.5rem;
 }
 
+/* 글자는 왼쪽 빈 하늘 안에서만 — 어린양(가로 55% 부근)에 문장이 올라타지 않게 폭을 묶는다 */
 .reading-hero__stat {
   display: flex;
-  flex: 1;
+  flex: 0 1 auto;
   flex-direction: column;
   gap: 0.15rem;
   min-width: 0;
-}
-
-/* 삽화 칸 — 글자 칸과 겹치지 않는 자기 자리. 높이는 글자 칸을 따라간다 */
-.reading-hero__art {
-  flex: 0 0 auto;
-  align-self: stretch;
-  width: 118px;
-  min-height: 88px;
-  /* 카드 안쪽 여백만큼 살짝 내밀어, 에셋에 구워진 광륜의 오른쪽 끝이 카드 밖으로 나간다 —
-     원 테두리가 안 보이니 책만 놓인 것처럼 읽힌다(책 자체는 contain 이라 잘리지 않는다) */
-  margin-right: -0.6rem;
-  /* 에셋의 광륜이 면 색과 같은 계열이어야 자연스럽다 — 테마별로 짝을 맞춘다 */
-  background-image: url('/images/bible/reading-hero-light.webp');
-  background-size: contain;
-  background-position: right center;
-  background-repeat: no-repeat;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%);
-  mask-image: linear-gradient(to right, transparent 0%, #000 38%);
-}
-
-[data-theme="dark"] .reading-hero__art {
-  background-image: url('/images/bible/reading-hero-dark.webp');
+  max-width: 56%;
 }
 
 /* 라벨은 한 단 물러서고(muted) 숫자가 앞으로 — 셋이 같은 굵기로 늘어서 있던 예전 위계를 정리 */
@@ -432,15 +408,22 @@
     padding: 1rem 1rem 1rem;
   }
 
+  /* 넓은 카드(≈2.8:1)에서 cover 는 폭에 맞춰 그림을 키워 인물이 카드를 다 덮는다 —
+     높이 기준(auto 112%, 아래 붙임)으로 바꿔 인물을 오른쪽 1/3 크기로 묶고,
+     그림 왼쪽에 남는 자리는 삽화 왼쪽 가장자리 색을 높이별로 잰 세로 그라데이션으로 이어 붙인다.
+     삽화를 다시 구우면 이 색 띠도 다시 잴 것(112% 창 기준: 이미지 y = (카드 y + 0.12) / 1.12). */
   .reading-hero {
     gap: 1rem;
     padding: 1.15rem 1.2rem 1.05rem;
+    background:
+      url('/images/bible/reading-scene-light.webp') right bottom / auto 112% no-repeat,
+      linear-gradient(180deg, #d1d7ea 0%, #d7daee 15%, #eaebef 30%, #f1f2ef 45%, #f6f5ef 60%, #f2f4ec 75%, #f5f7f2 90%, #f7f8f1 100%);
   }
 
-  .reading-hero__art {
-    width: 150px;
-    min-height: 106px;
-    margin-right: -0.7rem;
+  [data-theme="dark"] .reading-hero {
+    background:
+      url('/images/bible/reading-scene-dark.webp') right bottom / auto 112% no-repeat,
+      linear-gradient(180deg, #1f2b38 0%, #202e39 15%, #2b3743 30%, #2e3b45 45%, #2f3a44 60%, #1a242c 75%, #17212a 90%, #162026 100%);
   }
 
   .reading-hero__value {
