@@ -47,6 +47,7 @@ const isEmptyData = (data?: BulletinData): boolean => {
     !data.subtitle &&
     data.worship.schedule.length === 0 &&
     data.announcements.length === 0 &&
+    (data.extras ?? []).length === 0 &&
     data.groups.length === 0 &&
     data.weeklySchedule.length === 0
   )

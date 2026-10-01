@@ -15,20 +15,24 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type {
   AnnouncementItem,
   BulletinData,
+  ExtraBlock,
+  ExtraBlockKind,
   GroupItem,
   WeeklyScheduleItem,
   WorshipServiceItem,
 } from '../../../types/digitalBulletin'
 import DigitalBulletin from './DigitalBulletin'
+import { EXTRA_KIND_LABEL, EXTRA_PRESETS, extrasOf, fitRows, newExtraBlock, parseListItems } from './bulletinExtras'
 
 const DRAFT_KEY = 'digital-bulletin-desk-draft'
 const DAYS = ['월', '화', '수', '목', '금', '토', '주일'] as const
 
-type SectionId = 'basic' | 'worship' | 'announcements' | 'groups' | 'schedule'
+type SectionId = 'basic' | 'worship' | 'announcements' | 'extras' | 'groups' | 'schedule'
 const SECTIONS: { id: SectionId; label: string }[] = [
   { id: 'basic', label: '기본 정보' },
   { id: 'worship', label: '주일오전예배' },
   { id: 'announcements', label: '교회 소식' },
+  { id: 'extras', label: '추가 안내' },
   { id: 'groups', label: '구역 보고' },
   { id: 'schedule', label: '이번 주 일정' },
 ]
@@ -225,6 +229,7 @@ const BulletinDeskEditor = ({ initial, onClose }: BulletinDeskEditorProps) => {
     basic: draft.date || '날짜 없음',
     worship: `${draft.worship.schedule.length}개 예배`,
     announcements: `${draft.announcements.length}건`,
+    extras: `${extrasOf(draft).length}개 블록`,
     groups: `${draft.groups.length}구역`,
     schedule: `${draft.weeklySchedule.length}개 일정`,
   }
@@ -382,6 +387,10 @@ const BulletinDeskEditor = ({ initial, onClose }: BulletinDeskEditorProps) => {
                 <AnnouncementsEditor rows={draft.announcements} onChange={rows => set('announcements', rows)} />
               </Section>
 
+              <Section id="extras" title="추가 안내" hint="당회 결정사항·봉사표·헌금 계좌처럼 종이 주보 하단에 싣던 요약 — 교회 소식 아래에 보여요">
+                <ExtrasEditor blocks={extrasOf(draft)} onChange={blocks => set('extras', blocks)} />
+              </Section>
+
               <Section id="groups" title="구역 보고">
                 <RowTable<GroupItem>
                   tableId="groups"
@@ -462,11 +471,13 @@ const BulletinDeskEditor = ({ initial, onClose }: BulletinDeskEditorProps) => {
 const Section = ({
   id,
   title,
+  hint,
   action,
   children,
 }: {
   id: SectionId
   title: string
+  hint?: string
   action?: ReactNode
   children: ReactNode
 }) => (
@@ -474,6 +485,7 @@ const Section = ({
     <div className="flex items-center gap-2 mb-3">
       <span className="w-1 h-5 rounded-full bg-[var(--brand)]" />
       <h2 className="text-[19px] font-bold text-ink-strong tracking-[-0.01em]">{title}</h2>
+      {hint && <span className="min-w-0 truncate text-[12.5px] text-gray-400 dark:text-white/40">{hint}</span>}
       {action && <div className="ml-auto">{action}</div>}
     </div>
     <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] p-5 space-y-4">
@@ -776,6 +788,229 @@ const AnnouncementsEditor = ({ rows, onChange }: { rows: AnnouncementItem[]; onC
           onCancel={() => setPasteOpen(false)}
         />
       )}
+    </div>
+  )
+}
+
+// ── 추가 안내 블록 편집 ──────────────────────────
+const KINDS: ExtraBlockKind[] = ['list', 'table', 'note']
+
+/** 종류만 바꿀 때 써 둔 글을 버리지 않는다 — 목록↔안내 글은 줄 단위로, 표는 첫 열로 옮긴다 */
+const convertKind = (b: ExtraBlock, kind: ExtraBlockKind): ExtraBlock => {
+  const lines =
+    b.kind === 'list' ? b.items : b.kind === 'note' ? b.content.split('\n') : b.rows.map(r => r.filter(Boolean).join(' / '))
+  const text = lines.filter(l => l.trim())
+  if (kind === 'list') return { ...b, kind, items: text.length ? text : [''] }
+  if (kind === 'note') return { ...b, kind, content: text.join('\n') }
+  return { ...b, kind, columns: b.columns.length ? b.columns : ['내용'], rows: b.rows.length ? b.rows : (text.length ? text : ['']).map(l => [l]) }
+}
+
+const ExtrasEditor = ({ blocks, onChange }: { blocks: ExtraBlock[]; onChange: (blocks: ExtraBlock[]) => void }) => {
+  const setBlock = (i: number, next: ExtraBlock) => onChange(blocks.map((b, j) => (j === i ? next : b)))
+  return (
+    <div>
+      <div className="space-y-3">
+        {blocks.map((block, i) => (
+          <div key={i} className="group rounded-xl border border-gray-200/70 dark:border-white/[0.07] bg-gray-50/60 dark:bg-white/[0.02] p-3 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <div className="shrink-0 inline-flex p-0.5 rounded-lg bg-gray-100 dark:bg-white/[0.05]">
+                {KINDS.map(k => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => k !== block.kind && setBlock(i, convertKind(block, k))}
+                    className={[
+                      'h-8 px-2.5 rounded-md text-[12.5px] font-bold transition-colors',
+                      block.kind === k
+                        ? 'bg-white dark:bg-white/[0.12] text-brand shadow-sm'
+                        : 'text-gray-500 dark:text-white/55 hover:text-brand',
+                    ].join(' ')}
+                  >
+                    {EXTRA_KIND_LABEL[k]}
+                  </button>
+                ))}
+              </div>
+              <input
+                className={inputCls + ' font-semibold'}
+                value={block.title}
+                placeholder="제목 (예: 정기당회 결정사항)"
+                onChange={e => setBlock(i, { ...block, title: e.target.value })}
+              />
+              <div className="shrink-0">
+                <RowActions
+                  index={i}
+                  count={blocks.length}
+                  onMove={to => onChange(move(blocks, i, to))}
+                  onDuplicate={() => onChange([...blocks.slice(0, i + 1), structuredClone(block), ...blocks.slice(i + 1)])}
+                  onRemove={() => onChange(blocks.filter((_, j) => j !== i))}
+                />
+              </div>
+            </div>
+
+            {block.kind === 'list' && <ListItemsInput items={block.items} onChange={items => setBlock(i, { ...block, items })} />}
+            {block.kind === 'table' && <ExtraTableEditor tableId={`extra${i}`} block={block} onChange={next => setBlock(i, next)} />}
+            {block.kind === 'note' && (
+              <textarea
+                className={textareaCls}
+                rows={3}
+                value={block.content}
+                placeholder={'예) 십일조 / 농협 301-0270-5923-91\n감사 / 농협 301-0252-3538-91'}
+                onChange={e => setBlock(i, { ...block, content: e.target.value })}
+              />
+            )}
+          </div>
+        ))}
+        {blocks.length === 0 && (
+          <p className="px-2 py-4 text-center text-[13.5px] text-gray-400 dark:text-white/40">
+            아직 추가 안내가 없어요. 아래 틀에서 골라 시작해 보세요.
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 mt-3">
+        {KINDS.map(k => (
+          <button key={k} type="button" className={chipCls} onClick={() => onChange([...blocks, newExtraBlock(k)])}>
+            <Icon d={ICON.plus} size={14} />
+            {EXTRA_KIND_LABEL[k]}
+          </button>
+        ))}
+        <span className="mx-1 w-px h-5 bg-gray-200 dark:bg-white/[0.1]" />
+        <span className="text-[12.5px] text-gray-400 dark:text-white/40">자주 쓰는 틀</span>
+        {EXTRA_PRESETS.map(p => (
+          <button key={p.label} type="button" className={chipCls} onClick={() => onChange([...blocks, p.make()])}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** 한 줄 = 한 항목. 원고를 붙여넣으면 "1." "①" "-" 머리표는 떼고 줄바꿈으로 끊긴 문장은 이어 붙인다 */
+const ListItemsInput = ({ items, onChange }: { items: string[]; onChange: (items: string[]) => void }) => {
+  const onPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const text = e.clipboardData.getData('text/plain')
+    if (!text.includes('\n')) return
+    e.preventDefault()
+    const el = e.currentTarget
+    const before = el.value.slice(0, el.selectionStart)
+    const after = el.value.slice(el.selectionEnd)
+    onChange((before + parseListItems(text).join('\n') + after).split('\n'))
+  }
+  return (
+    <div>
+      <textarea
+        className={textareaCls + ' min-h-[110px]'}
+        rows={4}
+        value={items.join('\n')}
+        placeholder={'한 줄에 한 항목씩 적어요. 번호는 자동으로 붙어요.\n예) ICRC 준비소위원회로부터 방문행사 계획과 예산안에 대해 보고를 받다.'}
+        onChange={e => onChange(e.target.value.split('\n'))}
+        onPaste={onPaste}
+      />
+      <p className="mt-1 text-[12px] text-gray-400 dark:text-white/40">
+        {items.filter(s => s.trim()).length}개 항목 · 원고를 붙여넣으면 앞 번호는 떼고 정리돼요
+      </p>
+    </div>
+  )
+}
+
+const ExtraTableEditor = ({ tableId, block, onChange }: { tableId: string; block: ExtraBlock; onChange: (next: ExtraBlock) => void }) => {
+  const { columns, rows } = block
+  const grid = `repeat(${columns.length}, minmax(110px, 1fr)) 36px`
+
+  const update = (cols: string[], rs: string[][]) => onChange({ ...block, columns: cols, rows: fitRows(rs, cols.length) })
+
+  /** 표 붙여넣기 — 머리줄(r=-1)에 붙이면 첫 줄이 열 이름, 나머지는 행. 칸이 모자라면 열·행을 늘린다 */
+  const onPaste = (e: React.ClipboardEvent, r: number, c0: number) => {
+    const text = e.clipboardData.getData('text/plain')
+    if (!text.includes('\t') && !text.trim().includes('\n')) return
+    e.preventDefault()
+    const cells = parseTable(text)
+    const width = Math.max(columns.length, c0 + Math.max(...cells.map(l => l.length)))
+    const cols = Array.from({ length: width }, (_, i) => columns[i] ?? '')
+    const rs = fitRows(rows, width)
+    const put = (target: string[], line: string[]) => line.forEach((v, j) => (target[c0 + j] = v))
+    let body = cells
+    if (r === -1) {
+      put(cols, cells[0])
+      body = cells.slice(1)
+    }
+    const start = Math.max(r, 0)
+    body.forEach((line, i) => {
+      rs[start + i] = rs[start + i] ?? Array(width).fill('')
+      put(rs[start + i], line)
+    })
+    update(cols, rs)
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent, r: number, c: number) => {
+    if (e.key !== 'Enter' || e.nativeEvent.isComposing) return
+    e.preventDefault()
+    if (r === rows.length - 1) update(columns, [...rows, columns.map(() => '')])
+    focusCell(tableId, r + 1, c)
+  }
+
+  return (
+    <div>
+      <div className="overflow-x-auto pb-1">
+        <div className="space-y-1.5" style={{ minWidth: columns.length * 116 + 36 }}>
+          <div className="grid gap-1.5" style={{ gridTemplateColumns: grid }}>
+            {columns.map((col, c) => (
+              <div key={c} className="relative">
+                <input
+                  data-cell={`${tableId}:-1:${c}`}
+                  className={inputCls + ' pr-8 font-bold text-brand bg-[var(--brand-soft)] dark:bg-[var(--brand-soft)]'}
+                  value={col}
+                  placeholder={`열 ${c + 1}`}
+                  onChange={e => update(columns.map((x, j) => (j === c ? e.target.value : x)), rows)}
+                  onPaste={e => onPaste(e, -1, c)}
+                  onKeyDown={e => onKeyDown(e, -1, c)}
+                />
+                {columns.length > 1 && (
+                  <button
+                    type="button"
+                    title="열 삭제"
+                    className="absolute right-1 top-1 w-8 h-8 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500"
+                    onClick={() => update(columns.filter((_, j) => j !== c), rows.map(row => row.filter((_, j) => j !== c)))}
+                  >
+                    <Icon d={ICON.close} size={13} />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button type="button" className={iconBtnCls + ' h-10'} title="열 추가" onClick={() => update([...columns, ''], rows)}>
+              <Icon d={ICON.plus} />
+            </button>
+          </div>
+          {rows.map((row, r) => (
+            <div key={r} className="group/row grid gap-1.5" style={{ gridTemplateColumns: grid }}>
+              {columns.map((_, c) => (
+                <input
+                  key={c}
+                  data-cell={`${tableId}:${r}:${c}`}
+                  className={inputCls}
+                  value={row[c] ?? ''}
+                  onChange={e => update(columns, rows.map((x, i) => (i === r ? columns.map((_, j) => (j === c ? e.target.value : x[j] ?? '')) : x)))}
+                  onPaste={e => onPaste(e, r, c)}
+                  onKeyDown={e => onKeyDown(e, r, c)}
+                />
+              ))}
+              <button type="button" className={iconBtnCls + ' h-10 hover:!text-red-500'} title="행 삭제" onClick={() => update(columns, rows.filter((_, i) => i !== r))}>
+                <Icon d={ICON.trash} size={15} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-2 mt-2">
+        <button type="button" className={chipCls} onClick={() => update(columns, [...rows, columns.map(() => '')])}>
+          <Icon d={ICON.plus} size={14} />
+          행 추가
+        </button>
+        <span className="text-[12px] text-gray-400 dark:text-white/40">
+          엑셀·한글 표를 머리줄에 붙여넣으면 열 이름까지, 아래 칸에 붙여넣으면 내용만 채워져요
+        </span>
+      </div>
     </div>
   )
 }

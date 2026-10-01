@@ -14,6 +14,7 @@ const EMPTY_RESPONSE: DigitalBulletinResponse = {
       sermon: { title: '', subtitle: '' },
     },
     announcements: [],
+    extras: [],
     groups: [],
     weeklySchedule: [],
   },

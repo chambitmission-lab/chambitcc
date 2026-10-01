@@ -8,6 +8,8 @@ import { EditableField, AddItemButton, RemoveItemButton } from '../../../compone
 import type {
   AnnouncementItem,
   BulletinData,
+  ExtraBlock,
+  ExtraBlockKind,
   GroupItem,
   WeeklyScheduleItem,
   WorshipServiceItem,
@@ -21,6 +23,7 @@ import {
   PinIcon,
   SparkleIcon,
 } from './NewsIcons'
+import { extrasOf, newExtraBlock } from './bulletinExtras'
 import { can } from '../../../utils/access'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Translation } from '../../../locales'
@@ -144,6 +147,25 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
     })
   const removeAnnouncement = (idx: number) =>
     save({ ...data, announcements: data.announcements.filter((_, i) => i !== idx) })
+
+  const extras = extrasOf(data)
+  const setExtra = (idx: number, next: ExtraBlock) =>
+    save({ ...data, extras: extras.map((b, i) => (i === idx ? next : b)) })
+  const addExtra = (kind: ExtraBlockKind) =>
+    save({
+      ...data,
+      extras: [
+        ...extras,
+        newExtraBlock(kind, {
+          title: '새 안내',
+          items: kind === 'list' ? ['내용을 입력하세요.'] : [],
+          content: kind === 'note' ? '내용을 입력하세요.' : '',
+          columns: kind === 'table' ? ['항목', '내용'] : [],
+          rows: kind === 'table' ? [['-', '-']] : [],
+        }),
+      ],
+    })
+  const removeExtra = (idx: number) => save({ ...data, extras: extras.filter((_, i) => i !== idx) })
 
   const updateGroupField = (idx: number, key: keyof GroupItem) => (value: string) => {
     const next = [...data.groups]
@@ -377,7 +399,10 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
         sectionKey="announcements"
         expanded={expanded.has('announcements')}
         onToggle={() => toggle('announcements')}
-        badge={t('newsDbBadgeAnnouncements').replace('{n}', String(data.announcements.length))}
+        badge={
+          t('newsDbBadgeAnnouncements').replace('{n}', String(data.announcements.length)) +
+          (extras.length ? t('newsDbBadgeExtras').replace('{n}', String(extras.length)) : '')
+        }
       >
         <div className="space-y-2">
           {data.announcements.map((item, idx) => (
@@ -408,6 +433,28 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
           ))}
           <AddItemButton isAdmin={isAdminUser} onClick={addAnnouncement} label={t('newsDbAddAnnouncement')} />
         </div>
+
+        {/* 자유 안내 블록 — 당회 결정사항·봉사표·헌금 계좌 같은 종이 주보 하단 요약 */}
+        {(extras.length > 0 || isAdminUser) && (
+          <div className="mt-4 pt-3 border-t border-gray-200/60 dark:border-white/[0.05] space-y-2.5">
+            {extras.map((block, idx) => (
+              <ExtraBlockView
+                key={idx}
+                block={block}
+                isAdmin={isAdminUser}
+                onChange={next => setExtra(idx, next)}
+                onRemove={() => removeExtra(idx)}
+              />
+            ))}
+            {isAdminUser && (
+              <div className="grid grid-cols-3 gap-2 [&_.ef-add-btn]:my-0">
+                <AddItemButton isAdmin onClick={() => addExtra('list')} label={t('newsDbAddExtraList')} />
+                <AddItemButton isAdmin onClick={() => addExtra('table')} label={t('newsDbAddExtraTable')} />
+                <AddItemButton isAdmin onClick={() => addExtra('note')} label={t('newsDbAddExtraNote')} />
+              </div>
+            )}
+          </div>
+        )}
       </SectionCard>
 
       {/* 구역 보고 */}
@@ -633,6 +680,169 @@ const SectionCard = ({ sectionKey, expanded, onToggle, badge, children }: Sectio
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// ── Extra Block ──────────────────────────────────
+// 모바일 관리자도 고칠 수 있게 칸마다 EditableField. 열 추가·표 붙여넣기 같은 큰 손질은 PC 편집기에서.
+const ExtraBlockView = ({
+  block,
+  isAdmin,
+  onChange,
+  onRemove,
+}: {
+  block: ExtraBlock
+  isAdmin: boolean
+  onChange: (next: ExtraBlock) => void
+  onRemove: () => void
+}) => {
+  const { t } = useLanguage()
+  const setItem = (i: number) => (v: string) =>
+    onChange({ ...block, items: block.items.map((x, j) => (j === i ? v : x)) })
+  const setColumn = (c: number) => (v: string) =>
+    onChange({ ...block, columns: block.columns.map((x, j) => (j === c ? v : x)) })
+  const setCell = (r: number, c: number) => (v: string) =>
+    onChange({
+      ...block,
+      rows: block.rows.map((row, i) => (i === r ? block.columns.map((_, j) => (j === c ? v : row[j] ?? '')) : row)),
+    })
+  const cell = (r: number, c: number) => (
+    <EditableField
+      value={block.rows[r][c] ?? ''}
+      isAdmin={isAdmin}
+      label={block.columns[c] || t('newsDbFieldExtraCell')}
+      onSave={setCell(r, c)}
+    >
+      {block.rows[r][c] || (isAdmin ? '—' : '')}
+    </EditableField>
+  )
+
+  return (
+    <div className="relative rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/[0.06] px-3 py-3">
+      <RemoveItemButton isAdmin={isAdmin} onClick={onRemove} />
+      {(block.title || isAdmin) && (
+        <p className="flex items-center gap-1.5 text-[13.5px] lg:text-[17px] font-bold text-ink-strong tracking-[-0.01em] mb-2 pr-7">
+          <span className="w-1 h-3.5 lg:h-4 rounded-full bg-[var(--brand)] shrink-0" />
+          <EditableField
+            value={block.title}
+            isAdmin={isAdmin}
+            label={t('newsDbFieldExtraTitle')}
+            onSave={v => onChange({ ...block, title: v })}
+          >
+            {block.title}
+          </EditableField>
+        </p>
+      )}
+
+      {block.kind === 'list' && (
+        <>
+          <ol className="space-y-1.5">
+            {block.items.map((item, i) =>
+              !isAdmin && !item.trim() ? null : (
+                <li key={i} className="flex gap-2 text-[12.5px] lg:text-[16px] text-gray-700 dark:text-white/75 leading-[1.6]">
+                  <span className="shrink-0 mt-[0.2em] w-[1.35em] h-[1.35em] rounded-full bg-[var(--brand-soft)] text-brand text-[0.78em] font-bold flex items-center justify-center tabular-nums">
+                    {i + 1}
+                  </span>
+                  <span className="flex-1 min-w-0 whitespace-pre-line">
+                    <EditableField
+                      value={item}
+                      isAdmin={isAdmin}
+                      multiline
+                      label={t('newsDbFieldExtraItem')}
+                      onSave={setItem(i)}
+                    >
+                      {item}
+                    </EditableField>
+                  </span>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      className="shrink-0 self-start px-1 text-[12px] text-gray-400 hover:text-red-500"
+                      onClick={() => onChange({ ...block, items: block.items.filter((_, j) => j !== i) })}
+                      aria-label="remove"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </li>
+              ),
+            )}
+          </ol>
+          {isAdmin && (
+            <AddItemButton
+              isAdmin
+              onClick={() => onChange({ ...block, items: [...block.items, '내용을 입력하세요.'] })}
+              label={t('newsDbAddExtraItem')}
+            />
+          )}
+        </>
+      )}
+
+      {block.kind === 'table' && block.columns.length > 0 && (
+        <>
+          {/* 좁은 화면: 행마다 '열 이름 — 값' 카드. 다섯 칸짜리 봉사표도 가로 스크롤 없이 읽힌다 */}
+          <div className="sm:hidden space-y-2">
+            {block.rows.map((_, r) => (
+              <div
+                key={r}
+                className="rounded-lg bg-white dark:bg-white/[0.03] border border-gray-200/60 dark:border-white/[0.05] px-2.5 py-2 space-y-1"
+              >
+                {block.columns.map((col, c) => (
+                  <DetailRow key={c} size="sm" label={col} value={cell(r, c)} />
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="hidden sm:block overflow-x-auto rounded-lg border border-gray-200/70 dark:border-white/[0.07]">
+            <table className="w-full text-center text-[12.5px] lg:text-[15px] break-keep">
+              <thead>
+                <tr className="bg-[var(--brand-soft)]">
+                  {block.columns.map((col, c) => (
+                    <th key={c} className="px-2 py-1.5 font-bold text-brand">
+                      <EditableField value={col} isAdmin={isAdmin} label={t('newsDbFieldExtraColumn')} onSave={setColumn(c)}>
+                        {col}
+                      </EditableField>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {block.rows.map((_, r) => (
+                  <tr key={r} className="border-t border-gray-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-transparent">
+                    {block.columns.map((_, c) => (
+                      <td key={c} className="px-2 py-1.5 font-medium text-gray-800 dark:text-white/85">
+                        {cell(r, c)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {isAdmin && (
+            <AddItemButton
+              isAdmin
+              onClick={() => onChange({ ...block, rows: [...block.rows, block.columns.map(() => '')] })}
+              label={t('newsDbAddExtraRow')}
+            />
+          )}
+        </>
+      )}
+
+      {block.kind === 'note' && (
+        <p className="text-[12.5px] lg:text-[16px] text-gray-700 dark:text-white/75 leading-[1.65] whitespace-pre-line">
+          <EditableField
+            value={block.content}
+            isAdmin={isAdmin}
+            multiline
+            label={t('newsDbFieldExtraContent')}
+            onSave={v => onChange({ ...block, content: v })}
+          >
+            {block.content}
+          </EditableField>
+        </p>
+      )}
     </div>
   )
 }
