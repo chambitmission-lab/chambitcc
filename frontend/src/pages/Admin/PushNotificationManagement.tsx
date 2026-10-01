@@ -209,11 +209,43 @@ export const PushNotificationManagement = () => {
 
   const canSend = title.trim().length > 0 && body.trim().length > 0 && !isSending && audienceCount > 0
 
+  // 발송 버튼 묶음 — 모바일 하단 고정 바와 PC 우측 레일 카드가 공유한다.
+  const sendActions = (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={handleReset}
+        disabled={isSending}
+        className="px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 text-[12.5px] font-semibold border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08] disabled:opacity-50"
+      >
+        초기화
+      </button>
+      <button
+        type="button"
+        onClick={handleSend}
+        disabled={!canSend}
+        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13.5px] font-semibold bg-brand hover:bg-brand-dim text-white disabled:opacity-50 transition-all"
+      >
+        {isSending ? (
+          <>
+            <span className="w-[16px] h-[16px] rounded-full border-2 border-white/40 border-t-white animate-spin" />
+            전송 중…
+          </>
+        ) : (
+          <>
+            <span className="material-icons-outlined text-[18px]">send</span>
+            {audienceLabel}에게 전송
+          </>
+        )}
+      </button>
+    </div>
+  )
+
   return (
     // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
     // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-28 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-28 lg:pb-6 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
         {/* 헤더 — lg 에선 템플릿이 우측 레일에 고정되므로 sticky 를 풀어 둔다 */}
         <div className="sticky top-14 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
@@ -232,7 +264,10 @@ export const PushNotificationManagement = () => {
         {/* PC(lg+) 2단 — 좌: 작성·대상·결과 / 우: 통계·빠른 템플릿이 sticky.
             래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
         <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-2">
-          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3">
+          {/* 레일은 스크롤 상자 높이에 맞춰 세로로 접고, 템플릿만 안에서 스크롤 —
+              발송 카드가 항상 레일 바닥에 보이도록. */}
+          <div className="contents lg:flex lg:flex-col lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:max-h-[calc(100vh-56px-1.5rem)]">
+            <div className="contents lg:block lg:min-h-0 lg:overflow-y-auto">
             {/* 통계 칩 */}
             <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
               <StatChip label="회원" value={picker.users.length} />
@@ -259,7 +294,23 @@ export const PushNotificationManagement = () => {
                 ))}
               </div>
             </SectionCard>
+            </div>
 
+            {/* PC 발송 카드 — 모바일은 하단 고정 바를 쓴다 */}
+            <div className="hidden lg:block lg:shrink-0 px-4 pt-1 pb-3">
+              <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+                <div className="flex items-baseline justify-between gap-2 mb-3">
+                  <span className="text-[11.5px] text-gray-500 dark:text-white/55">받는 사람</span>
+                  <span className="text-[14px] font-bold text-ink-strong truncate">{audienceLabel}</span>
+                </div>
+                {sendActions}
+                {!canSend && !isSending && (
+                  <p className="mt-2 text-[11px] text-gray-500 dark:text-white/50">
+                    {audienceCount === 0 ? '받는 사람을 선택해 주세요' : '제목과 내용을 입력해 주세요'}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
@@ -459,37 +510,11 @@ export const PushNotificationManagement = () => {
         </div>
       </div>
 
-      {/* sticky 발송 바 — fixed 라 뷰포트 기준이므로, 본문(.main-content)이 좌측 레일만큼
-          들어간 오프셋을 똑같이 줘야 위 카드 열과 정렬된다. */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none lg:pl-[76px] xl:pl-[248px]">
-        <div className="max-w-md mx-auto pointer-events-auto lg:max-w-[1100px] lg:px-5">
-          <div className="m-3 lg:mx-0 lg:mr-[364px] rounded-2xl border border-white/[0.08] bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.18)] p-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleReset}
-              disabled={isSending}
-              className="px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 text-[12.5px] font-semibold border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08] disabled:opacity-50"
-            >
-              초기화
-            </button>
-            <button
-              type="button"
-              onClick={handleSend}
-              disabled={!canSend}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13.5px] font-semibold bg-brand hover:bg-brand-dim text-white disabled:opacity-50 transition-all"
-            >
-              {isSending ? (
-                <>
-                  <span className="w-[16px] h-[16px] rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                  전송 중…
-                </>
-              ) : (
-                <>
-                  <span className="material-icons-outlined text-[18px]">send</span>
-                  {audienceLabel}에게 전송
-                </>
-              )}
-            </button>
+      {/* 모바일 하단 고정 발송 바 — PC 는 우측 레일의 발송 카드를 쓴다 */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none lg:hidden">
+        <div className="max-w-md mx-auto pointer-events-auto">
+          <div className="m-3 rounded-2xl border border-white/[0.08] bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.18)] p-3">
+            {sendActions}
           </div>
         </div>
       </div>
