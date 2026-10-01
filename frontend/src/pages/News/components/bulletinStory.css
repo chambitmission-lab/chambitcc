@@ -530,8 +530,9 @@
  * 크림색으로 아래를 밝히고 글씨를 남색으로 뒤집는다. 다크·사진 표지는 위 규칙 그대로.
  * 크림은 글 자리(아래 들판)에만 옅게 — 중간부터 진하게 깔면 양·교회가 통째로 하얗게 묻힌다.
  * 들판 자체가 밝은 황금색이라 남색 글씨는 옅은 크림만으로 읽힌다 */
+/* 글씨는 남색 대신 들판과 한 식구인 밤색 잉크 — 검은 남색은 황금 들판 위에서 따로 논다 */
 .bs-slide.bs-cover-light {
-  color: #142445;
+  color: #5b3416;
 }
 .bs-slide.bs-cover-light::before {
   background: linear-gradient(
@@ -542,8 +543,23 @@
     rgba(255, 249, 236, 0.7) 100%
   );
 }
+/* 표어 — 밤껍질 밤색에서 잘 익은 감빛으로 아래로 번지는 잉크. 그라데이션 글씨는 color 가 투명이라
+ * text-shadow 가 글자 안으로 비쳐 뿌옇게 되므로, 크림빛 번짐은 filter drop-shadow 로 준다 */
 .bs-cover-light .bs-motto {
-  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.7);
+  background: linear-gradient(180deg, #5b3416 0%, #7c4119 55%, #b4561f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 1px 14px rgba(255, 246, 222, 0.85));
+}
+.bs-cover-light .bs-kicker {
+  color: #8a5520;
+  opacity: 1;
+}
+.bs-cover-light .bs-verse-ref {
+  color: #7a4a1e;
+  opacity: 1;
 }
 .bs-cover-light .bs-start {
   background: var(--brand);
