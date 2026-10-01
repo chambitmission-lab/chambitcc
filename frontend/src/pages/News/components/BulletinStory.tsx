@@ -638,7 +638,8 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
   return (
     <div className="bs-root" ref={rootRef}>
       {/* PC 목차 */}
-      <nav className="bs-rail" aria-label={t('newsStoryToc')}>
+      {/* 지금 장 표시 — 가을엔 단풍잎이 모서리에 걸리고, 그 밖엔 가름끈 리본 */}
+      <nav className={`bs-rail${season === 'autumn' ? ' bs-mark-leaf' : ''}`} aria-label={t('newsStoryToc')}>
         <div className="bs-rail-head">
           <b>{t('newsStoryToc')}</b>
           <span>
@@ -651,7 +652,12 @@ const BulletinStory = ({ data }: BulletinStoryProps) => {
             type="button"
             className={['bs-ch', i === cur && 'is-on', seen.has(i) && i !== cur && 'is-seen'].filter(Boolean).join(' ')}
             aria-current={i === cur ? 'step' : undefined}
-            onClick={() => go(i)}
+            onClick={(e) => {
+              go(i)
+              // 마우스로 누른 목차 버튼에 포커스가 남으면 이어서 ← → 로 넘길 때 브라우저가
+              // 키보드 조작으로 보고 그 버튼에 포커스 링을 띄운다(지금 장과 엇갈림). Enter·Space(detail 0)는 유지
+              if (e.detail > 0) e.currentTarget.blur()
+            }}
           >
             <span
               className={`bs-thumb bs-tone-${s.tone}`}

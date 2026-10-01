@@ -39,6 +39,7 @@
   color: var(--text-muted);
 }
 .bs-ch {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -50,10 +51,127 @@
 .bs-ch:hover {
   background: var(--surface-container);
 }
+/* 지금 보는 장 — 주보를 책처럼 넘기니 "가름끈"을 꽂는다. 썸네일 위로 삐죽 나와 살랑 흔들리고,
+ * 장을 옮기면 새 장으로 툭 떨어진다. 읽음 ✓ 는 그대로 — 끈은 "여기까지 읽는 중", 체크는 "읽음" */
 .bs-ch.is-on {
-  background: var(--surface-container);
-  box-shadow: var(--card-shadow);
+  background: color-mix(in srgb, var(--brand) 12%, var(--surface-container));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 28%, transparent);
 }
+.bs-ch.is-on .bs-thumb::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 7px;
+  width: 9px;
+  height: 40px;
+  /* 공단 결 — 가운데 살짝 밝게 */
+  background: linear-gradient(90deg, #a92a24, #e1574b 45%, #c43a32 60%, #a92a24);
+  /* 끝은 V 로 갈라진 제비꼬리 */
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 5px), 0 100%);
+  transform-origin: 50% 0;
+  animation:
+    bs-ribbon-drop 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) both,
+    bs-ribbon-sway 3.4s ease-in-out 0.55s infinite;
+}
+/* 썸네일 윗변에서 끈이 빠져나오는 자리 — 끈 뿌리에 작은 그늘 */
+.bs-ch.is-on .bs-thumb::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: 6px;
+  width: 11px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.28);
+  z-index: 1;
+}
+@keyframes bs-ribbon-drop {
+  0% {
+    transform: translateY(-14px) scaleY(0.35);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes bs-ribbon-sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(3.5deg);
+  }
+  70% {
+    transform: rotate(-2.5deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bs-ch.is-on .bs-thumb::after {
+    animation: none;
+  }
+}
+
+/* 가을 — 가름끈 대신 단풍잎 한 장이 썸네일 오른쪽 위 모서리에 꼭지째 걸린다.
+ * 장을 옮기면 위에서 팔랑 떨어져 내려앉고, 걸린 채로 꼭지를 축 삼아 살랑인다 */
+.bs-mark-leaf .bs-ch.is-on .bs-thumb::before {
+  content: none;
+}
+.bs-mark-leaf .bs-ch.is-on .bs-thumb::after {
+  top: -15px;
+  right: -9px;
+  width: 22px;
+  height: 22px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f7a548'/%3E%3Cstop offset='.55' stop-color='%23e8623a'/%3E%3Cstop offset='1' stop-color='%23c4362a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M12 1l1.6 4.2L16 4l-.8 5 3.6-2 1.2 2.2 3-.6-1.6 3.8 1.6 1.2-5 3.4.6 2-5.6-1-.4 5h-1.2l-.4-5-5.6 1 .6-2-5-3.4 1.6-1.2L1 8.6l3 .6L5.2 7l3.6 2L8 4l2.4 1.2z'/%3E%3Cpath d='M12 22.4V8.5M12 14.5l-5-3.6M12 14.5l5-3.6M12 18l-4.2-.6M12 18l4.2-.6' fill='none' stroke='%238f2a1c' stroke-opacity='.45' stroke-width='.7' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  clip-path: none;
+  filter: drop-shadow(0 1.5px 1.5px rgba(80, 20, 0, 0.35));
+  transform: rotate(22deg);
+  transform-origin: 50% 96%;
+  animation:
+    bs-leaf-fall 0.9s cubic-bezier(0.25, 0.7, 0.35, 1) both,
+    bs-leaf-sway 3.6s ease-in-out 0.9s infinite;
+}
+@keyframes bs-leaf-fall {
+  0% {
+    transform: translate(-18px, -30px) rotate(-70deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(7px, -16px) rotate(45deg);
+  }
+  70% {
+    transform: translate(-3px, -5px) rotate(4deg);
+  }
+  100% {
+    transform: rotate(22deg);
+    opacity: 1;
+  }
+}
+@keyframes bs-leaf-sway {
+  0%,
+  100% {
+    transform: rotate(22deg);
+  }
+  35% {
+    transform: rotate(31deg);
+  }
+  70% {
+    transform: rotate(14deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bs-mark-leaf .bs-ch.is-on .bs-thumb::after {
+    animation: none;
+  }
+}
+
 .bs-thumb {
   position: relative;
   flex: none;
@@ -103,6 +221,10 @@
 }
 .bs-ch.is-on .bs-ch-title {
   color: var(--brand);
+}
+.bs-ch.is-on .bs-ch-no {
+  color: var(--brand);
+  font-weight: 700;
 }
 .bs-done-chip {
   margin-left: auto;
