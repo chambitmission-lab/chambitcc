@@ -57,6 +57,8 @@
   position: absolute;
   inset: 0;
   overflow-y: auto;
+  /* 가로 전환 중 translateX가 가로 스크롤 범위를 만들지 않게 */
+  overflow-x: hidden;
   scroll-snap-type: y mandatory;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -861,5 +863,37 @@
   .focus-slide__inner {
     transition: opacity 0.2s ease;
     transform: none;
+  }
+}
+
+/* ── 가로 제자리 전환 (화살표 클릭·←→ 키) ─────────────────────────
+   지금 절은 누른 반대쪽으로 살짝 밀리며 사라지고, 순간 이동 후 다음 절이 누른 쪽에서 스르르 들어온다.
+   --hdir: 1 = 다음, -1 = 이전. 시간은 FocusReading.tsx LEAVE_MS/ENTER_MS와 짝 */
+.focus-overlay.is-hstep .focus-slide__inner {
+  /* 세로 스냅용 등장 전환(translateY·흐림)이 가로 움직임과 섞이지 않게 잠시 끈다 */
+  transition: none;
+}
+
+.focus-slide.is-hleave {
+  animation: focus-h-leave 0.14s ease-in forwards;
+}
+
+.focus-slide.is-henter {
+  animation: focus-h-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes focus-h-leave {
+  to { opacity: 0; transform: translateX(calc(var(--hdir, 1) * -28px)); }
+}
+
+@keyframes focus-h-enter {
+  from { opacity: 0; transform: translateX(calc(var(--hdir, 1) * 36px)); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-slide.is-hleave,
+  .focus-slide.is-henter {
+    animation: none;
   }
 }

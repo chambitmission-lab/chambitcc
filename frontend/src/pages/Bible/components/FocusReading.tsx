@@ -48,6 +48,9 @@ interface FocusReadingProps {
 /** 이 시간 이상 머문 절만 "읽었다"로 본다 — 눈금자 스크럽·빠른 플링은 걸리지 않는다 */
 const DWELL_MS = 2200
 const HINT_KEY = 'bible-focus-hint-v1'
+// 화살표·←→ 가로 전환 — 지우기/들이기 시간 (focus-reading.css 애니메이션과 짝)
+const LEAVE_MS = 140
+const ENTER_MS = 520
 /** 마우스·트랙패드 환경 — 첫 진입 힌트를 스와이프 대신 키보드·휠 안내로 바꾼다 */
 const hasFinePointer = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
@@ -234,6 +237,65 @@ const FocusReading = ({
     el.scrollTo({ top: clamped * el.clientHeight, behavior: smooth ? 'smooth' : 'auto' })
   }, [])
 
+  // ── 가로 제자리 전환 — 화살표 클릭·←→ 키 전용 ──
+  // 세로 스크롤로 넘기면 "오른쪽을 눌렀는데 글이 위로 올라가는" 방향 불일치가 생겨,
+  // 지금 절을 누른 반대쪽으로 살짝 밀며 지우고(LEAVE_MS) 순간 이동한 뒤 다음 절을 누른 쪽에서 들인다.
+  // 스와이프·휠·↓·스페이스는 손 방향과 움직임이 이미 맞아 세로 스냅 그대로 둔다.
+  const [hstep, setHstep] = useState<{ leave?: number; enter?: number; dir: 1 | -1 } | null>(null)
+  const hLeaveTimerRef = useRef(0)
+  const hEndTimerRef = useRef(0)
+  const hTargetRef = useRef<number | null>(null)
+
+  const stepHorizontal = useCallback(
+    (dir: 1 | -1) => {
+      const max = versesRef.current.length // 마지막 인덱스 = 장 끝 카드
+      const from = hTargetRef.current ?? indexRef.current
+      const to = Math.max(0, Math.min(max, from + dir))
+      if (to === from) return
+
+      const jump = () => {
+        hLeaveTimerRef.current = 0
+        hTargetRef.current = null
+        const el = scrollerRef.current
+        if (!el || !el.clientHeight) return
+        if (to !== indexRef.current) {
+          commitDwell()
+          indexRef.current = to
+          setActiveIndex(to)
+          setHint(h => (h === 'on' ? 'leaving' : h))
+        }
+        el.scrollTo({ top: to * el.clientHeight, behavior: 'auto' })
+        setHstep({ enter: to, dir })
+        window.clearTimeout(hEndTimerRef.current)
+        hEndTimerRef.current = window.setTimeout(() => setHstep(null), ENTER_MS)
+      }
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        jump()
+        setHstep(null)
+        return
+      }
+      // 연타 — 지우는 중이면 기다리지 않고 바로 다음 목적지로
+      if (hLeaveTimerRef.current) {
+        window.clearTimeout(hLeaveTimerRef.current)
+        jump()
+        return
+      }
+      hTargetRef.current = to
+      setHstep({ leave: indexRef.current, dir })
+      hLeaveTimerRef.current = window.setTimeout(jump, LEAVE_MS)
+    },
+    [commitDwell]
+  )
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(hLeaveTimerRef.current)
+      window.clearTimeout(hEndTimerRef.current)
+    },
+    []
+  )
+
   const handleScroll = useCallback(() => {
     if (rafRef.current) return
     rafRef.current = requestAnimationFrame(() => {
@@ -270,10 +332,13 @@ const FocusReading = ({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (showBookmarkRef.current || commentaryOpenRef.current) return
-      if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].includes(e.key)) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault()
+        stepHorizontal(e.key === 'ArrowRight' ? 1 : -1)
+      } else if (['ArrowDown', ' ', 'PageDown'].includes(e.key)) {
         e.preventDefault()
         scrollToIndex(indexRef.current + 1)
-      } else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
+      } else if (['ArrowUp', 'PageUp'].includes(e.key)) {
         e.preventDefault()
         scrollToIndex(indexRef.current - 1)
       } else if (e.key === 'Escape') {
@@ -282,7 +347,7 @@ const FocusReading = ({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [scrollToIndex, requestClose])
+  }, [scrollToIndex, stepHorizontal, requestClose])
 
   const goToChapter = useCallback(
     (ch: number) => {
@@ -326,14 +391,17 @@ const FocusReading = ({
     setShowBookmark(true)
   }
 
+  const hstepClass = (i: number) =>
+    hstep?.leave === i ? ' is-hleave' : hstep?.enter === i ? ' is-henter' : ''
+
   // 눈금자 간격 — 절 수가 많은 장(시 119편 176절)도 한 줄에 들어가게 좁힌다
   const tickGap = totalVerses > 90 ? 0 : totalVerses > 45 ? 1 : 2
 
   return createPortal(
     <div
-      className="focus-overlay"
+      className={`focus-overlay${hstep ? ' is-hstep' : ''}`}
       data-tint={tint}
-      style={{ '--focus-scale': IMMERSIVE_SCALES[scaleIdx] } as CSSProperties}
+      style={{ '--focus-scale': IMMERSIVE_SCALES[scaleIdx], '--hdir': hstep?.dir ?? 1 } as CSSProperties}
       role="dialog"
       aria-label="집중 읽기"
     >
@@ -353,7 +421,7 @@ const FocusReading = ({
             v.text.length > 150 ? ' is-vlong' : v.text.length > 90 ? ' is-long' : ''
           const hasCommentary = commentaryVerseSet.has(v.verse)
           return (
-            <section key={v.id} className="focus-slide">
+            <section key={v.id} className={`focus-slide${hstepClass(i)}`}>
               <div className={`focus-slide__inner${i === activeIndex ? ' is-active' : ''}`}>
                 {/* 절 번호는 작고 연하게 — 본문보다 먼저 시선을 끌지 않도록 라벨 수준으로.
                     읽음 표시는 번호 옆에 점 하나로만 */}
@@ -403,7 +471,7 @@ const FocusReading = ({
 
         {/* 장 끝 카드 — 마지막 절에서 한 번 더 쓸어올리면 도착한다 */}
         {totalVerses > 0 && (
-          <section className="focus-slide">
+          <section className={`focus-slide${hstepClass(verses.length)}`}>
             <div className={`focus-slide__inner${isEndSlide ? ' is-active' : ''}`}>
               <div className="focus-end__icon">
                 <span className="material-icons-round" aria-hidden>
@@ -491,7 +559,7 @@ const FocusReading = ({
       <button
         type="button"
         className="focus-arrow focus-arrow--prev"
-        onClick={() => scrollToIndex(activeIndex - 1)}
+        onClick={() => stepHorizontal(-1)}
         disabled={activeIndex === 0}
         aria-label="이전 절"
       >
@@ -500,7 +568,7 @@ const FocusReading = ({
       <button
         type="button"
         className="focus-arrow focus-arrow--next"
-        onClick={() => scrollToIndex(activeIndex + 1)}
+        onClick={() => stepHorizontal(1)}
         disabled={isEndSlide}
         aria-label="다음 절"
       >
