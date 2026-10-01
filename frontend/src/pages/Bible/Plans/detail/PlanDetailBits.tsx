@@ -99,7 +99,13 @@ const Shell = ({
           : ''
       }`}
     >
-      <div className="sticky top-14 lg:top-[calc(3.5rem/var(--az,1))] z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
+      {/* rail 이면 PC 는 페이지 상자가 스크롤한다 — 헤더는 상자 맨 위(top-0)에 붙어야 한다.
+          헤더 높이(56px)만큼 띄우면 그 틈으로 본문이 비친다(/survey/:id 와 같은 버그) */}
+      <div
+        className={`sticky top-14 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2 ${
+          rail ? 'lg:top-0' : 'lg:top-[calc(3.5rem/var(--az,1))]'
+        }`}
+      >
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-blue-600 dark:hover:text-blue-300 transition-colors"
