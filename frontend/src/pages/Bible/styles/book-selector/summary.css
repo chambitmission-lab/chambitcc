@@ -8,17 +8,20 @@
    39개 카드를 훑지 않고도 "어디가 비었나"를 먼저 알려주는 오리엔테이션 영역이다.
    색은 토스 블루 한 계열만 쓰고, 구약/신약은 두루마리·십자가 아이콘으로 나눈다.
    수치는 장 기준(완독한 장/전체 장). */
+/* 바깥 카드는 삽화를 끼운 "매트(passepartout)" — 순백+회색 테두리 위에 파스텔 그림이 놓이면
+   흰 종이에 사진을 붙인 듯 뜬다(2026-10-01). 그림의 하늘(위, 라벤더 블루)→들판(아래, 크림)
+   색을 아주 옅게 받아 매트 면을 만들고, 테두리도 같은 계열로 낮춘다. */
 .reading-summary {
   margin-bottom: 1.25rem;
   padding: 0.875rem 0.875rem 0.875rem;
-  background: var(--ig-primary-background);
-  border: 1px solid var(--ig-border);
+  background: linear-gradient(180deg, #f1f2f9 0%, #f6f5f0 100%);
+  border: 1px solid rgba(118, 126, 168, 0.16);
   border-radius: 18px;
 }
 
 [data-theme="dark"] .reading-summary {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #1b222c 0%, #191d23 100%);
+  border-color: rgba(255, 255, 255, 0.07);
 }
 
 .reading-summary__head {
@@ -130,7 +133,12 @@
   background:
     url('/images/bible/reading-scene-light.webp') right 72% / cover no-repeat,
     #e3e7f1;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  /* 매트를 칼로 따낸 창에 그림이 앉은 결 — 안쪽 가장자리 빛선 + 위쪽만 살짝 들어간 그늘,
+     바깥은 매트 위에 얇게 눌린 그림자. 덧칠 없이 가장자리만 다룬다 */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    inset 0 2px 4px rgba(52, 60, 100, 0.1),
+    0 1px 2px rgba(52, 60, 100, 0.08);
   overflow: hidden;
 }
 
@@ -138,7 +146,10 @@
   background:
     url('/images/bible/reading-scene-dark.webp') right 72% / cover no-repeat,
     #232c39;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 2px 4px rgba(0, 0, 0, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .reading-hero__top {
@@ -306,14 +317,15 @@
   gap: 0.6rem;
   padding: 0.75rem 0.8rem 0.8rem;
   border-radius: 14px;
-  border: 1px solid var(--ig-border);
-  background: var(--ig-primary-background);
+  /* 매트 위에 얹힌 반투명 종이 — 순백 박스가 매트 톤을 끊지 않게 */
+  border: 1px solid rgba(118, 126, 168, 0.14);
+  background: rgba(255, 255, 255, 0.7);
   min-width: 0;
 }
 
 [data-theme="dark"] .reading-tile {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.07);
 }
 
 .reading-tile__head {
