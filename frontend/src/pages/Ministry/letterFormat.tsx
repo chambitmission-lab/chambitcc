@@ -3,7 +3,7 @@
 
 import type { Column } from '../../types/column'
 import { columnPlainText } from './blockFormat'
-import { removeHighlightTags } from './highlightMarkup'
+import { parseHighlightToken, removeHighlightTags, swatchColor } from './highlightMarkup'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
@@ -79,6 +79,12 @@ export const firstHighlight = (content: string): string | null => {
   // [[문구|yellow|wavy]] 처럼 옵션이 붙어 있으면 문구만. 안쪽 **굵게** 같은 서식 기호도 걷어낸다
   const text = m?.[1] ? removeHighlightTags(m[1].split('|')[0]).trim() : undefined
   return text ? stripOuterQuotes(text) || null : null
+}
+
+/** 첫 하이라이트의 형광펜 색 → 인용구 세로선 색. 카드엔 형광펜을 칠하지 않고 색으로만 본문과 잇는다 */
+export const firstHighlightAccent = (content: string): string => {
+  const m = content.match(/\[\[(.*?)\]\]/)
+  return swatchColor(m?.[1] ? parseHighlightToken(m[1]).options.color : 'brand')
 }
 
 /* 쓰는 쪽(ColumnFeed·MinistryRail)이 문구를 “…” 로 감싸 보여 준다. 형광펜 친 문장이

@@ -6,6 +6,7 @@ import { columnPlainText } from './blockFormat'
 import {
   SERIF,
   firstHighlight,
+  firstHighlightAccent,
   formatLetterDate,
   highlightKeyword,
   isThisWeek,
@@ -53,6 +54,7 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
   }
 
   const featuredQuote = featured ? firstHighlight(featured.content) : null
+  const featuredQuoteAccent = featured ? firstHighlightAccent(featured.content) : undefined
 
   // 인덱스 행 — 일반 목록과 검색 결과가 공유
   const renderIndexRow = (column: Column) => (
@@ -144,7 +146,7 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
               {featuredQuote ? (
                 // 목사님이 하이라이트한 문장을 인용구로 — 편지의 핵심 한 줄이 먼저 닿게
                 <>
-                  <blockquote className="border-l-2 pl-4 py-0.5" style={{ borderColor: 'var(--brand-muted)' }}>
+                  <blockquote className="border-l-2 pl-4 py-0.5" style={{ borderColor: featuredQuoteAccent }}>
                     <p
                       className="text-[15.5px] lg:text-[20px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em] break-keep"
                       style={{ fontFamily: SERIF }}
