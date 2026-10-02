@@ -113,18 +113,31 @@
 .ic-votive.is-future {
   opacity: 0.4;
 }
-/* 이번 주 — 유리컵 밑 브랜드 점 */
+/* 이번 주 — 글자·점 없이, 그 초 밑 창턱에만 은은한 빛 웅덩이(스포트라이트).
+   빛 중심은 유리컵 밑면 = 창턱 윗면(초 SVG 높이의 95%). z-index -1 은 Hero 의 isolate 안에서
+   창턱 그림(.ic-hero-scene, 먼저 그려짐) 위·초 아래에 깔린다.
+   .ic-votive__mark 는 빈 간격(5px + 6px)으로 남겨 둔다 — 아래 안내 문구 위치가 이 높이에 맞춰져 있다. */
 .ic-votive__mark {
   display: block;
   width: 5px;
   height: 5px;
   margin-top: 6px;
-  border-radius: 999px;
-  background: transparent;
 }
-.ic-votive.is-current .ic-votive__mark {
-  background: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+.ic-votive.is-current::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 71px; /* 초 SVG 75px × 0.95 */
+  width: 128px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 252, 240, 0.95), rgba(255, 246, 225, 0.55) 45%, rgba(255, 246, 225, 0) 100%);
+  pointer-events: none;
+}
+html.dark .ic-votive.is-current::before {
+  background: radial-gradient(closest-side, rgba(214, 228, 255, 0.34), rgba(190, 210, 255, 0.14) 50%, rgba(190, 210, 255, 0) 100%);
 }
 
 /* 켜질 때: 빛은 서서히 번지고, 불꽃은 심지에서 천천히 키를 올린다 (튀어나오는 스케일 팝 금지) */
@@ -209,7 +222,7 @@ html.dark .ic-votive__streak {
 /* ── 등불 히어로 창턱 장면 (src/assets/intercession/hero-*.webp, 1376x768) ──
    카드가 아니라 촛불 줄 컨테이너에 붙인다: 그림 속 창턱 윗면(세로 72.9% = 560/768)을
    유리컵 밑면(초 SVG 높이의 95%)에 맞춘다. 그래서 제목 줄 수가 바뀌어도 초는 늘 창턱 위.
-   폭은 카드보다 넓게 — 남는 쪽은 Hero 의 overflow-hidden 이 자르고, 좌우 커튼은 넓은 PC에서만 보인다.
+   폭은 카드 폭과 같게 — 좌우 커튼·창문이 모바일·PC 모두 보인다.
    z-index -1 은 Hero 의 isolate 덕에 카드 바탕 위·글자 아래에 깔린다.
    아래 끝은 마스크로 흐려 카드가 그림보다 길어도 이음새가 안 보이게 한다.
    안내 문구(mt-7 / lg:mt-9)는 창턱 앞면을 지나 바닥 면에 오도록 맞춘 값 — 앵커를 바꾸면 같이 볼 것. */
@@ -218,13 +231,16 @@ html.dark .ic-votive__streak {
   z-index: -1;
   left: 50%;
   top: 71px; /* 초 SVG 75px × 0.95 */
-  width: max(calc(100% + 300px), 720px);
+  /* 모바일·태블릿: 그림 폭 = 카드 폭(Hero px-6 좌우 24px) — 좌우 커튼·창문이 온전히 보인다.
+     카드가 세로로 길어 그림 윗변이 카드 윗변보다 아래에 오므로(모바일 약 60px),
+     윗변을 마스크로 흐려 하늘이 카드 바탕에 스며들게 한다 (띠가 보이지 않게). PC 는 아래 lg 에서 다시 잡는다. */
+  width: calc(100% + 48px);
   transform: translate(-50%, -72.9%);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.6s ease;
-  -webkit-mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 86%, transparent 100%);
 }
 .ic-hero-scene.is-loaded {
   opacity: 1;
@@ -454,6 +470,11 @@ html.dark .ic-paper__input::placeholder {
     width: 60px;
     height: 90px;
   }
+  .ic-votive.is-current::before {
+    top: 85.5px; /* 초 SVG 90px × 0.95 */
+    width: 152px;
+    height: 36px;
+  }
   /* PC 카드는 그림(1376:768)보다 훨씬 납작해서, 모바일처럼 폭을 +300px 키우면 그림 키가 커져
      창턱 위 하늘·창문 윗부분·커튼이 카드 위로 잘려 나간다. PC에선 그림 폭 = 카드 폭(좌우 커튼·창문 온전히)으로 두고,
      촛불 줄을 내려 그림 윗변이 카드 윗변에 닿게 한다.
@@ -467,5 +488,8 @@ html.dark .ic-paper__input::placeholder {
   .ic-hero-scene {
     top: 85.5px; /* 초 SVG 90px × 0.95 */
     width: calc(100% + 64px); /* Hero lg:px-8 좌우 패딩만큼 = 카드 폭 */
+    /* PC 는 그림 윗변이 카드 위로 넘치므로 윗변 흐림이 필요 없다 — 창틀 윗부분을 살린다 */
+    -webkit-mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
   }
 }
