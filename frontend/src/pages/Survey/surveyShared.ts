@@ -2,6 +2,7 @@
 //
 // 성도용(SurveyDetail)·관리자용(SurveyManagement) 두 화면이 같은 문항 정의를 다루므로
 // "문항 종류가 무엇을 뜻하는가"는 여기 한 곳에만 둔다.
+import { formatLongDate, formatLongDateTime } from '../../utils/dateUtils'
 import type {
   SurveyAnswerValue,
   SurveyQuestion,
@@ -73,24 +74,11 @@ export const cardCls =
 export const newOptionId = (): string =>
   `o${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 
-export const formatDate = (iso?: string | null): string => {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
-}
+const valid = (iso?: string | null): iso is string => !!iso && !Number.isNaN(new Date(iso).getTime())
 
-export const formatDateTime = (iso?: string | null): string => {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleString('ko-KR', {
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+export const formatDate = (iso?: string | null): string => (valid(iso) ? formatLongDate(iso) : '')
+
+export const formatDateTime = (iso?: string | null): string => (valid(iso) ? formatLongDateTime(iso) : '')
 
 /** 마감일 계산은 surveyDates.ts — 홈 배너가 이 파일 전체를 끌지 않도록 떼어 두고 여기서 재수출 */
 export { daysLeft } from './surveyDates'

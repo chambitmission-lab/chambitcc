@@ -1,3 +1,4 @@
+import { formatNumericDate } from '../../../utils/dateUtils'
 import { useSermons } from '../../../hooks/useSermons'
 
 const LatestSermon = () => {
@@ -23,15 +24,6 @@ const LatestSermon = () => {
     return null
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    })
-  }
-
   if (isLoading || !latestSermon) {
     return null
   }
@@ -50,7 +42,7 @@ const LatestSermon = () => {
             <div className="sermon-meta">
               <span>{latestSermon.pastor}</span>
               <span>•</span>
-              <span>{formatDate(latestSermon.sermon_date)}</span>
+              <span>{formatNumericDate(latestSermon.sermon_date)}</span>
             </div>
             {latestSermon.video_url && (
               <div className="sermon-actions">

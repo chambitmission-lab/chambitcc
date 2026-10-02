@@ -1,3 +1,4 @@
+import { formatDotDateWeekday } from '../../utils/dateUtils'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -37,10 +38,7 @@ const getVerseStatus = (verseDate: string | null | undefined): 'today' | 'upcomi
 
 const formatDateLabel = (verseDate: string | null | undefined) => {
   if (!verseDate) return '날짜 없음'
-  const d = new Date(verseDate)
-  if (!isValidDate(d)) return '날짜 없음'
-  const days = ['일', '월', '화', '수', '목', '금', '토']
-  return `${d.getFullYear()}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getDate().toString().padStart(2, '0')} (${days[d.getDay()]})`
+  return formatDotDateWeekday(verseDate) || '날짜 없음'
 }
 
 const formatRelativeLabel = (verseDate: string | null | undefined): string => {

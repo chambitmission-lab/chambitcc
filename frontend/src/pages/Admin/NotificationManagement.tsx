@@ -1,3 +1,4 @@
+import { formatDotDate, formatDotDateTime } from '../../utils/dateUtils'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAdminNotifications, deleteNotification } from '../../api/notification'
@@ -326,16 +327,6 @@ interface NotificationRowProps {
   onDelete: () => void
 }
 
-const formatDate = (iso: string) => {
-  const d = new Date(iso)
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
-}
-
-const formatDateTime = (iso: string) => {
-  const d = new Date(iso)
-  return `${formatDate(iso)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
-
 const NotificationRow = ({
   notification,
   expanded,
@@ -344,7 +335,7 @@ const NotificationRow = ({
   onDelete,
 }: NotificationRowProps) => {
   const active = notification.is_active
-  const dateLabel = formatDate(notification.created_at)
+  const dateLabel = formatDotDate(notification.created_at)
   // 활성 공지만 브랜드 솔리드, 비활성은 중립 회색
   const barTone = active ? 'bg-brand' : 'bg-gray-300 dark:bg-white/10'
 
@@ -438,9 +429,9 @@ const NotificationRow = ({
         <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-2.5">
           <div className="space-y-1.5 text-[12.5px]">
             <InfoRow label="상태" value={active ? '공개 중' : '비공개'} />
-            <InfoRow label="등록일" value={formatDateTime(notification.created_at)} />
+            <InfoRow label="등록일" value={formatDotDateTime(notification.created_at)} />
             {notification.updated_at && notification.updated_at !== notification.created_at && (
-              <InfoRow label="수정일" value={formatDateTime(notification.updated_at)} />
+              <InfoRow label="수정일" value={formatDotDateTime(notification.updated_at)} />
             )}
           </div>
 

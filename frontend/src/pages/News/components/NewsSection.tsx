@@ -1,5 +1,6 @@
 // 교회소식 게시판 섹션 (/news 의 '소식' 탭 본문)
 // Single Responsibility: 소식 목록(분류·검색·더보기)과 상세 열람 전환
+import { formatDotDate } from '../../../utils/dateUtils'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -11,14 +12,7 @@ import type { NewsItem } from '../../../types/news'
 import '../news-hero.css'
 import { can } from '../../../utils/access'
 
-const formatDate = (value: string | null) => {
-  if (!value) return ''
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return ''
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
-    d.getDate(),
-  ).padStart(2, '0')}`
-}
+const formatDate = (value: string | null) => (value ? formatDotDate(value) : '')
 
 /** 최근 7일 안에 올라온 글 — 목록에서 NEW로 표시 */
 const isFresh = (value: string | null): boolean => {

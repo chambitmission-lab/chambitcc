@@ -1,3 +1,4 @@
+import { formatLongDate, timeAgo } from '../../utils/dateUtils'
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
@@ -311,20 +312,10 @@ const UserManagement = () => {
   const activeCount = users.filter(u => u.is_active).length
   const pendingCount = users.filter(u => u.approval_status === 'pending').length
 
-  const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+  const formatDate = (d: string) => formatLongDate(d)
 
-  const formatRelative = (d?: string) => {
-    if (!d) return '로그인 기록 없음'
-    const diff = Date.now() - new Date(d).getTime()
-    const min = 60 * 1000
-    const hour = 60 * min
-    const day = 24 * hour
-    if (diff < hour) return `${Math.max(1, Math.floor(diff / min))}분 전`
-    if (diff < day) return `${Math.floor(diff / hour)}시간 전`
-    if (diff < 7 * day) return `${Math.floor(diff / day)}일 전`
-    return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
-  }
+  const formatRelative = (d?: string) =>
+    d ? timeAgo(d, { maxDays: 7, beyond: x => formatLongDate(x.toISOString()) }) : '로그인 기록 없음'
 
   return (
     // lg 에서 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에

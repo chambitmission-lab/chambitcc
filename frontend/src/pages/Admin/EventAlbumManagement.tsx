@@ -1,5 +1,6 @@
 // 행사 앨범 관리 (NewFamilyManagement 미러링)
 // 컴팩트 한 줄 행 + accordion expand + 검색/필터/정렬 한 카드 + 통계 chip + FAB composer
+import { formatYmdWeekday } from '../../utils/dateUtils'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -22,14 +23,6 @@ import { InfoRow, StatChip } from './components/AdminListBits'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'reaction'
-
-const formatDateLabel = (value: string) => {
-  const [y, m, d] = value.split('-').map(Number)
-  if (!y || !m || !d) return value
-  const days = ['일', '월', '화', '수', '목', '금', '토']
-  const weekday = days[new Date(y, m - 1, d).getDay()]
-  return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${weekday})`
-}
 
 const isThisYear = (value: string): boolean =>
   Number(value.slice(0, 4)) === new Date().getFullYear()
@@ -415,7 +408,7 @@ const PostRow = ({
             )}
           </div>
           <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
-            {formatDateLabel(post.event_date)}
+            {formatYmdWeekday(post.event_date)}
             <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
             <EventTagIcon
               tag={post.tag}
@@ -484,7 +477,7 @@ const PostRow = ({
           )}
 
           <div className="space-y-1.5 text-[12.5px]">
-            <InfoRow label="행사 날짜" value={formatDateLabel(post.event_date)} />
+            <InfoRow label="행사 날짜" value={formatYmdWeekday(post.event_date)} />
             <InfoRow label="태그" value={post.tag} />
             <InfoRow label="사진" value={`${post.photo_count}장`} />
             <InfoRow label="반응" value={`${post.reaction_count}명`} />

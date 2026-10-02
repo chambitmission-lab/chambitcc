@@ -1,3 +1,4 @@
+import { formatLongDate } from '../../utils/dateUtils'
 import { useEffect, useState } from 'react'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CULTURE_HERO } from '../../utils/themeAssets'
@@ -55,13 +56,6 @@ const STATUS_BADGE: Record<CultureApplicationStatus, string> = {
     'bg-gray-100 text-gray-500 border-gray-200 dark:bg-white/[0.06] dark:text-white/40 dark:border-white/[0.08]',
 }
 
-
-const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 
 const isRecentNotice = (createdAt: string) =>
   Date.now() - new Date(createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
@@ -401,7 +395,7 @@ const Culture = () => {
                                 </span>
                               </div>
                               <p className="text-[12px] lg:text-[14px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55 mt-0.5">
-                                {application.name} · {formatDate(application.created_at)} 신청
+                                {application.name} · {formatLongDate(application.created_at)} 신청
                               </p>
                             </div>
                           </div>
@@ -461,7 +455,7 @@ const Culture = () => {
                           </span>
                         </div>
                         <p className="text-[11.5px] lg:text-[14px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/55 mt-1">
-                          {formatDate(notice.created_at)}
+                          {formatLongDate(notice.created_at)}
                         </p>
                         {open && (
                           <p className="text-[13px] lg:text-[16.5px] text-gray-600 dark:text-white/60 lg:text-gray-700 lg:dark:text-white/75 mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.06] leading-relaxed whitespace-pre-wrap">

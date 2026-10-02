@@ -1,6 +1,7 @@
 // 교회소식 상세 — 제목/본문/사진/첨부파일
 // Single Responsibility: 소식 한 건을 읽는 화면(+ 사진 확대 라이트박스)
 // PC(lg+)는 설교 상세와 같은 읽기 칼럼 — 본문 18px·줄간 1.8·줄 폭 제한, 제목·첨부 버튼을 크게(어르신 기준)
+import { formatLongDate } from '../../../utils/dateUtils'
 import { useState } from 'react'
 import { useNewsDetail } from '../../../hooks/useNews'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -13,16 +14,8 @@ interface NewsDetailViewProps {
   onBack: () => void
 }
 
-const formatDateTime = (value: string | null, lang: Language) => {
-  if (!value) return ''
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
+const formatDateTime = (value: string | null, lang: Language) =>
+  value && !Number.isNaN(new Date(value).getTime()) ? formatLongDate(value, lang === 'en' ? 'en-US' : 'ko-KR') : ''
 
 const formatSize = (bytes: number | null) => {
   if (!bytes || bytes <= 0) return ''

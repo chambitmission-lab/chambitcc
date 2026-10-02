@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatDotDate } from '../../utils/dateUtils'
 import { Markdown } from '../../utils/markdown'
 import {
   parseCommentary,
@@ -14,15 +15,6 @@ interface BibleCommentaryItemProps {
   scriptureText?: string | null
   onEdit?: (commentary: BibleCommentary) => void
   onDelete?: (commentary: BibleCommentary) => void
-}
-
-const formatDate = (iso: string) => {
-  try {
-    const d = new Date(iso)
-    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
-  } catch {
-    return ''
-  }
 }
 
 const formatRange = (c: BibleCommentary) =>
@@ -111,7 +103,7 @@ const BibleCommentaryItem = ({
         )}
         {isAdmin && (
           <span className="ml-auto text-[11px] text-ink-muted tabular-nums shrink-0">
-            {formatDate(commentary.updated_at)}
+            {formatDotDate(commentary.updated_at)}
           </span>
         )}
       </div>

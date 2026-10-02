@@ -6,6 +6,7 @@
  * 공지사항 관리와 같은 구조(스티키 헤더 · 통계 칩 · 검색/필터 카드 · 접히는 행)를
  * 써서 어드민 화면끼리 조작법이 같게 유지한다.
  */
+import { calendarDaysSince, formatDotDate } from '../../utils/dateUtils'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
@@ -29,17 +30,6 @@ const MAX_PAGES = 10
 
 /** 기도가 하나도 없고 멤버도 혼자면 '조용한 그룹' — 정리 후보 */
 const isQuiet = (g: AdminGroup) => g.prayer_count === 0 && g.member_count <= 1
-
-const formatDate = (iso: string) => {
-  const d = new Date(iso)
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
-}
-
-/** 만든 지 얼마나 됐는지 — 날짜만으로는 감이 안 오는 '방치 기간'을 보여준다 */
-const daysSince = (iso: string) => {
-  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
-  return Math.round((startOf(new Date()) - startOf(new Date(iso))) / 86_400_000)
-}
 
 const copyText = async (text: string): Promise<boolean> => {
   try {
@@ -356,7 +346,7 @@ const GroupRow = ({
   onDelete,
 }: GroupRowProps) => {
   const quiet = isQuiet(group)
-  const age = daysSince(group.created_at)
+  const age = calendarDaysSince(group.created_at)
 
   return (
     <div
@@ -461,10 +451,10 @@ const GroupRow = ({
             <InfoRow label="생성자" value={group.creator_name} />
             <InfoRow
               label="생성일"
-              value={`${formatDate(group.created_at)}${age > 0 ? ` (${age}일 전)` : ' (오늘)'}`}
+              value={`${formatDotDate(group.created_at)}${age > 0 ? ` (${age}일 전)` : ' (오늘)'}`}
             />
             {group.updated_at !== group.created_at && (
-              <InfoRow label="수정일" value={formatDate(group.updated_at)} />
+              <InfoRow label="수정일" value={formatDotDate(group.updated_at)} />
             )}
             <InfoRow label="그룹 ID" value={`#${group.id}`} />
           </div>

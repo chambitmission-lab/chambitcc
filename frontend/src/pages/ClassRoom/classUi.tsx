@@ -1,4 +1,5 @@
 // 우리반 알림장 공용 소품 — 아바타·부서 배지·시간 표기·페이지 셸
+import { timeAgo as relativeTime } from '../../utils/dateUtils'
 
 export const DEPARTMENTS = ['유치부', '유년부', '초등부', '중등부', '고등부', '청년부']
 
@@ -22,18 +23,8 @@ export const DeptBadge = ({ department }: { department: string }) => (
   </span>
 )
 
-export const timeAgo = (iso: string): string => {
-  const diff = Date.now() - new Date(iso).getTime()
-  const min = Math.floor(diff / 60000)
-  if (min < 1) return '방금 전'
-  if (min < 60) return `${min}분 전`
-  const hr = Math.floor(min / 60)
-  if (hr < 24) return `${hr}시간 전`
-  const day = Math.floor(hr / 24)
-  if (day < 7) return `${day}일 전`
-  const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()}`
-}
+export const timeAgo = (iso: string): string =>
+  relativeTime(iso, { maxDays: 7, beyond: d => `${d.getMonth() + 1}/${d.getDate()}` })
 
 /** 멤버 라벨 — 자녀 이름이 있으면 "이름 (다솔)" 처럼 붙인다 */
 export const memberLabel = (name: string, childName?: string | null): string =>

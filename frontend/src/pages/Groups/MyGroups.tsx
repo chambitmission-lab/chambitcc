@@ -3,6 +3,7 @@
 // 매번 똑같아 보이던 목록에 다시 들어올 이유를 준다. 정렬은 최근 활동순(백엔드).
 // 만들기·참여 큰 카드 2장은 헤더의 + 버튼 하나로 접고, 그 자리를 그룹 카드에 양보.
 // 그룹이 없는 새가족에게는 둘러보기를 맨 위로 올린다.
+import { timeAgo as relativeTime } from '../../utils/dateUtils'
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -26,14 +27,8 @@ const timeAgo = (iso?: string | null): string | null => {
   if (!iso) return null
   const diff = Date.now() - new Date(iso).getTime()
   if (Number.isNaN(diff) || diff < 0) return null
-  const min = Math.floor(diff / 60000)
-  if (min < 1) return '방금 전'
-  if (min < 60) return `${min}분 전`
-  const hour = Math.floor(min / 60)
-  if (hour < 24) return `${hour}시간 전`
-  const day = Math.floor(hour / 24)
-  if (day < 30) return `${day}일 전`
-  return null // 한 달 넘은 활동은 굳이 강조하지 않는다
+  // 한 달 넘은 활동은 굳이 강조하지 않는다
+  return relativeTime(iso, { maxDays: 30, beyond: () => '' }) || null
 }
 
 const MyGroups = () => {

@@ -1,3 +1,4 @@
+import { formatDotDateWeekday, formatLongDate } from '../../utils/dateUtils'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
@@ -12,19 +13,6 @@ import { InfoRow, StatChip } from './components/AdminListBits'
 
 type TimeFilter = 'all' | 'thisMonth' | 'past'
 type SortKey = 'recent' | 'oldest' | 'views'
-
-const formatDateLabel = (date: string) => {
-  const d = new Date(date)
-  const days = ['일', '월', '화', '수', '목', '금', '토']
-  return `${d.getFullYear()}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getDate().toString().padStart(2, '0')} (${days[d.getDay()]})`
-}
-
-const formatLongDate = (date: string) =>
-  new Date(date).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 
 const isThisMonth = (date: string): boolean => {
   const d = new Date(date)
@@ -396,7 +384,7 @@ const BulletinRow = ({
             )}
           </div>
           <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
-            {formatDateLabel(bulletin.bulletin_date)}
+            {formatDotDateWeekday(bulletin.bulletin_date)}
             <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
             📄 {bulletin.page_count ?? 0}P
             <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
@@ -440,7 +428,7 @@ const BulletinRow = ({
           )}
 
           <div className="space-y-1.5 text-[12.5px]">
-            <InfoRow label="주보 날짜" value={formatDateLabel(bulletin.bulletin_date)} />
+            <InfoRow label="주보 날짜" value={formatDotDateWeekday(bulletin.bulletin_date)} />
             <InfoRow label="페이지" value={`${bulletin.page_count ?? 0}장`} />
             <InfoRow label="조회수" value={`${bulletin.views ?? 0}회`} />
             <InfoRow label="등록일" value={formatLongDate(bulletin.created_at)} />

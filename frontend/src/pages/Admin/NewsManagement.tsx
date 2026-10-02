@@ -1,5 +1,6 @@
 // 교회소식 관리 (관리자)
 // Single Responsibility: 소식 목록 조회·필터와 등록/수정/공개·고정/삭제 액션
+import { formatDotDateWeekday } from '../../utils/dateUtils'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
@@ -16,15 +17,7 @@ import { InfoRow } from './components/AdminListBits'
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'views'
 
-const formatDate = (value: string | null) => {
-  if (!value) return '—'
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return '—'
-  const days = ['일', '월', '화', '수', '목', '금', '토']
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
-    d.getDate(),
-  ).padStart(2, '0')} (${days[d.getDay()]})`
-}
+const formatDate = (value: string | null) => (value && formatDotDateWeekday(value)) || '—'
 
 const timeOf = (news: NewsItem) => new Date(news.published_at ?? news.created_at ?? 0).getTime()
 

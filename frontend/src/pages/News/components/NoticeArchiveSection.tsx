@@ -4,6 +4,7 @@
 // 홈 배너는 "지금 띄울 것"(is_popup + 기간 안 지남)만 보여주고, 알림함은 개인 알림과
 // 섞여 있어 지난 안내를 되찾아 읽기 어려웠다. 여기가 공지의 보관함이다 —
 // 읽음 상태 없이(알림함의 안 읽음 뱃지와 성격이 다르다) 최신순으로만 쌓는다.
+import { formatDotDateWeekday, relativeDayLabel } from '../../../utils/dateUtils'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNoticeArchive } from '../../../hooks/useNotifications'
@@ -19,25 +20,11 @@ import type { Translate } from '../../../locales'
 // 포스터 확대 보기는 탭해야 열린다 — lazy 로 분리 (홈 공지와 같은 청크)
 const ImageLightbox = lazy(() => import('../../../components/common/ImageLightbox'))
 
-const formatDate = (iso: string, t: Translate) => {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const days = t('newsWeekdays').split(',')
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
-    d.getDate(),
-  ).padStart(2, '0')} (${days[d.getDay()]})`
-}
+const formatDate = (iso: string, t: Translate) => formatDotDateWeekday(iso, t('newsWeekdays').split(','))
 
 /** 오늘·어제는 날짜 대신 사람 말로 — 방금 올라온 공지라는 게 먼저 읽힌다 */
-const formatRelative = (iso: string, t: Translate) => {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
-  const days = Math.round((startOf(new Date()) - startOf(d)) / 86_400_000)
-  if (days <= 0) return t('newsNoticeToday')
-  if (days === 1) return t('newsNoticeYesterday')
-  return formatDate(iso, t)
-}
+const formatRelative = (iso: string, t: Translate) =>
+  relativeDayLabel(iso, { today: t('newsNoticeToday'), yesterday: t('newsNoticeYesterday') }, x => formatDate(x, t))
 
 /**
  * 공지 링크 → 실제 이동 대상.

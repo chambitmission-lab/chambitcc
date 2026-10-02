@@ -1,3 +1,4 @@
+import { formatYmdWeekday } from '../../utils/dateUtils'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -17,14 +18,6 @@ import { InfoRow, StatChip } from './components/AdminListBits'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'welcome'
-
-const formatDateLabel = (value: string) => {
-  const [y, m, d] = value.split('-').map(Number)
-  if (!y || !m || !d) return value
-  const days = ['일', '월', '화', '수', '목', '금', '토']
-  const weekday = days[new Date(y, m - 1, d).getDay()]
-  return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${weekday})`
-}
 
 const isThisMonth = (value: string): boolean => {
   const [y, m] = value.split('-').map(Number)
@@ -396,7 +389,7 @@ const PostRow = ({
             )}
           </div>
           <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
-            {formatDateLabel(post.registered_at)}
+            {formatYmdWeekday(post.registered_at)}
             {post.group_name && (
               <>
                 <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
@@ -457,7 +450,7 @@ const PostRow = ({
           )}
 
           <div className="space-y-1.5 text-[12.5px]">
-            <InfoRow label="등록 주일" value={formatDateLabel(post.registered_at)} />
+            <InfoRow label="등록 주일" value={formatYmdWeekday(post.registered_at)} />
             <InfoRow label="부서" value={post.group_name || '—'} />
             <InfoRow label="사진" value={`${post.photo_count}장`} />
             <InfoRow label="환영" value={`${post.welcome_count}명`} />

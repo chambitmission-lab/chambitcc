@@ -8,6 +8,7 @@
  * '오늘 하루 안 보기 / 다시 안 보기'는 기기 로컬 설정(utils/noticeDismiss)이라
  * 서버에 남지 않는다 — 비로그인 방문자도 동일하게 동작한다.
  */
+import { relativeDayLabel } from '../../../utils/dateUtils'
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMarkAsRead, usePopupNotices } from '../../../hooks/useNotifications'
@@ -45,14 +46,7 @@ const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
 
 /** 오늘/어제는 날짜 대신 사람 말로 — 방금 올라온 공지라는 게 먼저 읽힌다 */
-const formatRelative = (iso: string) => {
-  const d = new Date(iso)
-  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
-  const days = Math.round((startOf(new Date()) - startOf(d)) / 86_400_000)
-  if (days <= 0) return '오늘'
-  if (days === 1) return '어제'
-  return formatDate(iso)
-}
+const formatRelative = (iso: string) => relativeDayLabel(iso, { today: '오늘', yesterday: '어제' }, formatDate)
 
 /** 배너 미리보기 — 서식을 벗기고 한 줄로 눕혀 truncate가 자연스럽게 걸리도록 */
 const previewOf = (content: string) => noticePreviewText(content)

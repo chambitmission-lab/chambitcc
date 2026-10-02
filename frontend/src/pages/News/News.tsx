@@ -21,6 +21,7 @@ import EventAlbumSection from './components/EventAlbumSection'
 import OfferingSection from './components/OfferingSection'
 // 올해의 말씀 — 홈과 같은 쿼리(24h 캐시)라 /news에서 다시 불러오지 않는다
 import AnnualThemeVerse from '../Home/components/AnnualThemeVerse'
+import { formatLongDate } from '../../utils/dateUtils'
 import {
   MegaphoneIcon,
   NoticeBoardIcon,
@@ -77,12 +78,7 @@ const isSectionKey = (value: string | null): value is SectionKey =>
 
 const localeOf = (lang: Language) => (lang === 'en' ? 'en-US' : 'ko-KR')
 
-const formatLongDate = (date: string, lang: Language) =>
-  new Date(date).toLocaleDateString(localeOf(lang), {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+const formatBulletinDate = (date: string, lang: Language) => formatLongDate(date, localeOf(lang))
 
 const isThisMonth = (date: string): boolean => {
   const d = new Date(date)
@@ -416,7 +412,7 @@ const FeaturedCard = ({
         {/* 하단 텍스트 (모바일 — 사진 위 오버레이) */}
         <div className="absolute inset-x-0 bottom-0 p-4 z-10 lg:hidden">
           <p className="text-white/80 text-[11.5px] font-semibold mb-1">
-            {formatLongDate(bulletin.bulletin_date, language)}
+            {formatBulletinDate(bulletin.bulletin_date, language)}
           </p>
           <h2 className="text-white text-[18px] font-bold leading-[1.3] tracking-[-0.015em] line-clamp-2 mb-1.5">
             {bulletin.title}
@@ -439,7 +435,7 @@ const FeaturedCard = ({
       {/* 정보 패널 (lg — 썸네일 오른쪽) */}
       <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:flex-col lg:justify-center lg:gap-2.5 lg:p-8">
         <p className="text-gray-500 dark:text-white/70 text-[15.5px] font-semibold">
-          {formatLongDate(bulletin.bulletin_date, language)}
+          {formatBulletinDate(bulletin.bulletin_date, language)}
         </p>
         <h2 className="text-gray-900 dark:text-white text-[28px] font-bold leading-[1.32] tracking-[-0.02em] line-clamp-2">
           {bulletin.title}
@@ -524,7 +520,7 @@ const CompactCard = ({
             {bulletin.title}
           </p>
           <p className="text-[11.5px] lg:text-[15px] text-gray-500 dark:text-white/55 lg:text-gray-600 truncate mt-0.5 lg:mt-1">
-            {formatLongDate(bulletin.bulletin_date, language)}
+            {formatBulletinDate(bulletin.bulletin_date, language)}
           </p>
           <div className="flex items-center gap-2.5 text-[11px] lg:text-[13.5px] text-gray-400 dark:text-white/45 lg:text-gray-500 mt-0.5 lg:mt-1">
             <span className="inline-flex items-center gap-1">
@@ -590,7 +586,7 @@ const NewsSidebar = ({
             className={`group w-full text-left ${openingId === latest.id ? 'opacity-60' : ''}`}
           >
             <p className="text-[14.5px] font-semibold text-gray-500 dark:text-white/55">
-              {formatLongDate(latest.bulletin_date, language)}
+              {formatBulletinDate(latest.bulletin_date, language)}
             </p>
             <p className="mt-1 text-[17.5px] font-bold text-ink-strong leading-[1.4] line-clamp-2">
               {latest.title}
