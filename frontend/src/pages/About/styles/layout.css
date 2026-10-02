@@ -21,8 +21,10 @@
   margin-bottom: 0.9rem;
 }
 
-/* Section Title */
-.section-title {
+/* Section Title — .section-title 은 성경·홈 등에서도 쓰는 범용 이름이라 반드시 .about-content 안으로 묶는다.
+   맨 선택자로 두면 헤더 메뉴 호버 프리로드(preloadMenuRoutes)가 이 CSS 를 주입하는 순간
+   /bible 섹션 제목이 18→28px 로 커져 아래 화면이 27px 밀렸다(2026-10-02). */
+.about-content .section-title {
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--text-strong);
