@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import NewFamilyPostCard from './NewFamilyPostCard'
 import NewFamilyCommentSheet from './NewFamilyCommentSheet'
 import NewFamilyViewer from './NewFamilyViewer'
-import { useNewFamilyPosts, useNewFamilyStats, useToggleWelcome } from '../../../hooks/useNewFamily'
+import { invalidateNewFamily, useNewFamilyPosts, useNewFamilyStats, useToggleWelcome } from '../../../hooks/useNewFamily'
 import { deleteNewFamilyPost } from '../../../api/newFamily'
 import { showToast, toastFeedback } from '../../../utils/toast'
 import type { NewFamilyPost } from '../../../types/newFamily'
@@ -56,7 +56,7 @@ const NewFamilySection = () => {
     try {
       await deleteNewFamilyPost(post.id)
       showToast(t('newsNfDeleted'), 'success')
-      queryClient.invalidateQueries({ queryKey: ['new-family'] })
+      invalidateNewFamily(queryClient)
     } catch (err) {
       showToast(err instanceof Error ? err.message : t('newsNfDeleteFailed'), 'error')
     }

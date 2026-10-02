@@ -1,4 +1,5 @@
 // 기도 토글 로직을 담당하는 커스텀 훅 (Single Responsibility)
+import { pastorKeys } from '../hooks/queryKeys'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addPrayer, removePrayer } from '../api/prayer'
 import { prayerKeys } from './usePrayersQuery'
@@ -197,7 +198,7 @@ export const usePrayerToggle = ({
       })
 
       // 목회자 홈 '맡겨진 기도'의 prayed_by_me — 열려 있는 홈은 상세 모달을 닫을 때 refetch 한다
-      queryClient.invalidateQueries({ queryKey: ['pastor-home'], refetchType: 'none' })
+      queryClient.invalidateQueries({ queryKey: pastorKeys.home(), refetchType: 'none' })
 
       // 다른 상세 캐시들도 백그라운드 무효화
       if (!detailPrayerId) {

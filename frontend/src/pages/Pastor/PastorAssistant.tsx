@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useQuery } from '@tanstack/react-query'
 import { fetchSuggestions, type SuggestionData } from '../../api/pastor'
 import { SectionCard, StatSpinner } from '../Admin/components/StatCards'
@@ -21,7 +22,7 @@ const RULES: Array<{ icon: string; title: string; desc: string }> = [
 const PastorAssistant = () => {
   const pastor = usePastorGate()
   const { data, isPending } = useQuery<SuggestionData>({
-    queryKey: ['pastor-suggestions'],
+    queryKey: pastorKeys.suggestions(),
     queryFn: fetchSuggestions,
     enabled: pastor,
     // 전역 기본(5분 fresh, 만료 시 마운트 재조회)을 따른다 — 'always' 는 방금 본 화면도 매번 서버에 물어

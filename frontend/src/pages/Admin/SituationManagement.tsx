@@ -14,6 +14,7 @@ import {
   useSeedSituations,
 } from '../../hooks/useSituation'
 import { getAdminSettings, updateAdminSettings } from '../../api/user'
+import { adminKeys } from '../../hooks/queryKeys'
 import type { SituationCategory } from '../../types/situation'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
@@ -51,14 +52,14 @@ const emotionLabel = (key: string) =>
 const RecommendationModeCard = () => {
   const qc = useQueryClient()
   const { data: settings } = useQuery({
-    queryKey: ['adminSettings'],
+    queryKey: adminKeys.settings(),
     queryFn: getAdminSettings,
     staleTime: 0,
   })
   const mutation = useMutation({
     mutationFn: (mode: 'ai' | 'admin') => updateAdminSettings({ verse_recommendation_mode: mode }),
     onSuccess: data => {
-      qc.setQueryData(['adminSettings'], data)
+      qc.setQueryData(adminKeys.settings(), data)
       showToast(
         data.verse_recommendation_mode === 'ai'
           ? 'AI 우선 모드로 변경되었습니다 (실패 시 관리자 구절 폴백)'

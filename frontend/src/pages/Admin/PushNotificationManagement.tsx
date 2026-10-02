@@ -8,6 +8,7 @@ import AudiencePicker from './components/AudiencePicker'
 import { FilterChip } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
+import { adminKeys } from '../../hooks/queryKeys'
 
 const TITLE_MAX = 50
 const BODY_MAX = 200
@@ -78,7 +79,7 @@ const URL_OPTIONS: Array<{ label: string; value: string }> = [
 ]
 
 const HISTORY_PAGE_SIZE = 10
-const pushHistoryKey = ['admin', 'push-history'] as const
+const pushHistoryKey = adminKeys.pushHistory()
 
 export const PushNotificationManagement = () => {
   const navigate = useNavigate()

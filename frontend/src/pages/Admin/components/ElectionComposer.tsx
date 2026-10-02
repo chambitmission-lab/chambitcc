@@ -10,6 +10,7 @@ import { uploadCandidatePhoto } from '../../../api/election'
 import { getUserList } from '../../../api/user'
 import { useDefaultElectionRules, useSaveElection } from '../../../hooks/useElections'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { adminKeys } from '../../../hooks/queryKeys'
 import { showToast } from '../../../utils/toast'
 import type {
   ElectionAdminDetail,
@@ -176,7 +177,7 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
 
   const { data: defaultRules } = useDefaultElectionRules(!election)
   const { data: userData, isLoading: usersLoading } = useQuery({
-    queryKey: ['admin', 'users', 'election-roster'],
+    queryKey: adminKeys.electionRoster(),
     queryFn: getUserList,
     staleTime: 1000 * 60,
   })

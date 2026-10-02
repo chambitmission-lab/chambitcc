@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import DailyMeditationCard from './DailyMeditationCard'
 import { deriveTimeOfDay } from '../../../hooks/useDailyMeditation'
+import { meditationKeys } from '../../../hooks/queryKeys'
 import type { MeditationCard } from '../../../types/meditation'
 import '../Home.css'
 
@@ -67,7 +68,7 @@ const DailyMeditationCardPreview = () => {
   const [mountKey, setMountKey] = useState(0)
   const [loadingDemo, setLoadingDemo] = useState(false)
   const replayLoading = () => {
-    qc.removeQueries({ queryKey: ['meditation', 'today'] })
+    qc.removeQueries({ queryKey: meditationKeys.today() })
     setLoadingDemo(true)
     setMountKey((k) => k + 1)
   }
@@ -77,7 +78,7 @@ const DailyMeditationCardPreview = () => {
     const now = new Date()
     const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     const s = VERSE_SAMPLES[sample]
-    qc.setQueryData(['meditation', 'today', dateKey, deriveTimeOfDay(now.getHours()), null], {
+    qc.setQueryData(meditationKeys.card(dateKey, deriveTimeOfDay(now.getHours())), {
       ...MOCK,
       verse: { ...MOCK.verse, reference: s.reference, text: s.text },
     })

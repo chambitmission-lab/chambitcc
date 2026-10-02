@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -35,13 +36,13 @@ const PastorMemberDetail = () => {
   const [openPrayerId, setOpenPrayerId] = useState<number | null>(null)
 
   const { data, isPending, refetch } = useQuery<MemberDetail>({
-    queryKey: ['pastor-member', memberId],
+    queryKey: pastorKeys.member(memberId),
     queryFn: () => fetchMemberDetail(memberId),
     enabled: pastor && Number.isFinite(memberId),
     refetchOnMount: 'always',
   })
   // 구역 입력 제안용 — 명부 화면에서 왔으면 캐시가 이미 있다
-  const { data: roster } = useQuery({ queryKey: ['pastor-roster'], queryFn: fetchRoster, enabled: editing })
+  const { data: roster } = useQuery({ queryKey: pastorKeys.roster(), queryFn: fetchRoster, enabled: editing })
 
   return (
     <PastorShell>
@@ -361,7 +362,7 @@ const BRIEF_ICON: Record<Briefing['points'][number]['kind'], string> = {
 
 const BriefingCard = ({ memberId, enabled }: { memberId: number; enabled: boolean }) => {
   const { data } = useQuery({
-    queryKey: ['pastor-briefing', memberId],
+    queryKey: pastorKeys.briefing(memberId),
     queryFn: () => fetchBriefing(memberId),
     enabled,
     refetchOnMount: 'always',

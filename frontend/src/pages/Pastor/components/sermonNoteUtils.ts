@@ -1,14 +1,10 @@
-// 설교 메모장 공용 헬퍼 — 쿼리 키 · 무효화 · 칩 스타일 · 성경 링크
+// 설교 메모장 공용 헬퍼 — 무효화 · 칩 스타일 · 성경 링크 (쿼리 키는 hooks/queryKeys 의 pastorKeys)
 import type { QueryClient } from '@tanstack/react-query'
-import type { NoteFilters } from '../../../api/pastor'
-
-/** 메모 목록 쿼리 키 — 설교 준비 화면의 요약 카드와 메모장 첫 화면이 같은 캐시를 쓴다 */
-export const noteListKey = (f: NoteFilters = {}) =>
-  ['pastor-notes', f.q?.trim() ?? '', f.kind ?? null, f.tag ?? null, f.topic ?? null, f.book ?? null, !!f.unused] as const
+import { pastorKeys } from '../../../hooks/queryKeys'
 
 /** 메모·개요를 바꾼 뒤 — 메모가 보이는 모든 곳 */
 export const invalidateNoteQueries = (qc: QueryClient) => {
-  for (const key of [['pastor-notes'], ['pastor-note-related'], ['pastor-outline'], ['pastor-outlines'], ['pastor-note']]) {
+  for (const key of [pastorKeys.notes(), pastorKeys.relatedNotes(), pastorKeys.outlineAll(), pastorKeys.outlines()]) {
     void qc.invalidateQueries({ queryKey: key })
   }
 }

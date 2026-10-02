@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -14,7 +15,6 @@ import {
 import { showToast } from '../../utils/toast'
 import NoteComposer from './components/NoteComposer'
 import { NoteCard, SermonTabs } from './components/sermonNotes'
-import { noteListKey } from './components/sermonNoteUtils'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import EmotionFlowCard from './components/EmotionFlowCard'
@@ -53,7 +53,7 @@ const PastorSermon = () => {
   const [openBook, setOpenBook] = useState<number | null>(null)
 
   const { data, isPending } = useQuery<SermonPrep>({
-    queryKey: ['pastor-sermon-prep', years],
+    queryKey: pastorKeys.sermonPrep(years),
     queryFn: () => fetchSermonPrep(years),
     enabled: pastor,
     placeholderData: keepPreviousData,
@@ -158,7 +158,7 @@ const RelatedNotes = ({ passage }: { passage: string }) => {
   const qc = useQueryClient()
   const [open, setOpen] = useState<SermonNote | null>(null)
   const { data, isPending } = useQuery({
-    queryKey: ['pastor-note-related', passage],
+    queryKey: pastorKeys.relatedNotesFor(passage),
     queryFn: () => fetchRelatedNotes(passage),
   })
   const start = useMutation({
@@ -169,7 +169,7 @@ const RelatedNotes = ({ passage }: { passage: string }) => {
         note_ids: (data?.items ?? []).filter(n => n.reasons?.includes('같은 본문') && !n.used_on).map(n => n.id),
       }),
     onSuccess: o => {
-      void qc.invalidateQueries({ queryKey: ['pastor-outlines'] })
+      void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
       navigate(`/pastor/sermon/outlines/${o.id}`)
     },
     onError: (e: Error) => showToast(e.message, 'error'),
@@ -221,7 +221,7 @@ const RelatedNotes = ({ passage }: { passage: string }) => {
 const NotesPeekCard = () => {
   const [writing, setWriting] = useState(false)
   const [open, setOpen] = useState<SermonNote | null>(null)
-  const { data } = useQuery({ queryKey: noteListKey({}), queryFn: () => fetchNotes({}) })
+  const { data } = useQuery({ queryKey: pastorKeys.noteList({}), queryFn: () => fetchNotes({}) })
   return (
     <SectionCard
       title="내 설교 메모"

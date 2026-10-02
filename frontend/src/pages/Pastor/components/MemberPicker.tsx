@@ -1,4 +1,5 @@
 // 성도 고르기 — 목회 일정에서 '심방 예약하기'를 누르면 먼저 누구를 찾아갈지 고른다
+import { pastorKeys } from '../../../hooks/queryKeys'
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchRoster, type RosterData, type RosterMember } from '../../../api/pastor'
@@ -13,7 +14,7 @@ interface Props {
 
 const MemberPicker = ({ title = '누구를 찾아갈까요', onPick, onClose }: Props) => {
   const [q, setQ] = useState('')
-  const { data, isPending } = useQuery<RosterData>({ queryKey: ['pastor-roster'], queryFn: fetchRoster })
+  const { data, isPending } = useQuery<RosterData>({ queryKey: pastorKeys.roster(), queryFn: fetchRoster })
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase()

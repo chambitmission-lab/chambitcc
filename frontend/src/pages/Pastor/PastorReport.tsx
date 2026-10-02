@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
@@ -16,7 +17,7 @@ const PastorReport = () => {
   const [week, setWeek] = useState(0)
 
   const { data, isPending } = useQuery<WeeklyReport>({
-    queryKey: ['pastor-report', week],
+    queryKey: pastorKeys.report(week),
     queryFn: () => fetchWeeklyReport(week),
     enabled: pastor,
     // 주를 넘길 때 스피너 대신 이전 주를 잠깐 유지 — 화면이 덜컹이지 않게

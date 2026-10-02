@@ -6,6 +6,7 @@ import {
   type MeditationRecordCreatePayload,
 } from '../api/meditationRecord'
 import { isAuthenticated } from '../utils/auth'
+import { growthKeys } from './queryKeys'
 
 const RECORDS_KEY = ['meditation-records']
 const STREAK_KEY = ['meditation-streak']
@@ -37,7 +38,7 @@ export const useCreateMeditationRecord = () => {
       queryClient.invalidateQueries({ queryKey: RECORDS_KEY })
       queryClient.invalidateQueries({ queryKey: STREAK_KEY })
       // 묵상 기록은 프로필 "나의 신앙 여정" 요약·타임라인에도 집계된다
-      queryClient.invalidateQueries({ queryKey: ['growth'] })
+      queryClient.invalidateQueries({ queryKey: growthKeys.all })
     },
   })
 }

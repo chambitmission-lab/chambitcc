@@ -1,4 +1,5 @@
 // 성도 명부 편집 — 교역자 공동 편집. 성도 본인에게는 보이지 않는 목양 정보.
+import { pastorKeys } from '../../../hooks/queryKeys'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../../utils/toast'
@@ -48,11 +49,11 @@ const ProfileEditor = ({ memberId, memberName, profile, districtSuggestions, onC
       }),
     onSuccess: () => {
       showToast('명부를 저장했습니다', 'success')
-      void qc.invalidateQueries({ queryKey: ['pastor-member', memberId] })
-      void qc.invalidateQueries({ queryKey: ['pastor-roster'] })
-      void qc.invalidateQueries({ queryKey: ['pastor-home'] })
-      void qc.invalidateQueries({ queryKey: ['pastor-suggestions'] })
-      void qc.invalidateQueries({ queryKey: ['pastor-briefing', memberId] })
+      void qc.invalidateQueries({ queryKey: pastorKeys.member(memberId) })
+      void qc.invalidateQueries({ queryKey: pastorKeys.roster() })
+      void qc.invalidateQueries({ queryKey: pastorKeys.home() })
+      void qc.invalidateQueries({ queryKey: pastorKeys.suggestions() })
+      void qc.invalidateQueries({ queryKey: pastorKeys.briefing(memberId) })
       onClose()
     },
     onError: (e: Error) => showToast(e.message, 'error'),

@@ -9,15 +9,11 @@ import {
 import { tokenStore } from '../utils/tokenStore'
 import { notificationStream } from '../utils/notificationStream'
 import { refetchIfFewPages } from '../utils/infiniteQueryTrim'
+import { notificationKeys } from './queryKeys'
+
+export { notificationKeys }
 
 const PAGE_SIZE = 20
-
-export const notificationKeys = {
-  all: ['notifications'] as const,
-  list: () => [...notificationKeys.all, 'infinite'] as const,
-  popups: () => [...notificationKeys.all, 'popups'] as const,
-  archive: () => [...notificationKeys.all, 'archive'] as const,
-}
 
 /**
  * 공지사항 무한 스크롤 조회

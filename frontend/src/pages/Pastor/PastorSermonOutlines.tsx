@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -21,7 +22,7 @@ const nextSunday = (): string => {
 const PastorSermonOutlines = () => {
   const pastor = usePastorGate()
   const { data, isPending } = useQuery<OutlineSummary[]>({
-    queryKey: ['pastor-outlines'],
+    queryKey: pastorKeys.outlines(),
     queryFn: fetchOutlines,
     enabled: pastor,
     refetchOnMount: 'always',
@@ -88,7 +89,7 @@ const NewOutlineCard = () => {
   const create = useMutation({
     mutationFn: () => createOutline({ title: title.trim(), passage: passage.trim() || null, preach_on: preachOn || null }),
     onSuccess: o => {
-      void qc.invalidateQueries({ queryKey: ['pastor-outlines'] })
+      void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
       navigate(`/pastor/sermon/outlines/${o.id}`)
     },
     onError: (e: Error) => showToast(e.message, 'error'),

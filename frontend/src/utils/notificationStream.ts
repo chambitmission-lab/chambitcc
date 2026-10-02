@@ -13,6 +13,7 @@ import { applyElectionUpdate } from './electionLiveSync'
 import { trimInfiniteQuery } from './infiniteQueryTrim'
 import { tokenStore } from './tokenStore'
 import { prayerKeys } from '../hooks/usePrayersQuery'
+import { notificationKeys } from '../hooks/queryKeys'
 
 const INITIAL_RETRY_MS = 5_000
 const MAX_RETRY_MS = 60_000
@@ -90,10 +91,9 @@ class NotificationStreamManager {
 
   private invalidate(): void {
     if (!this.queryClient) return
-    // notificationKeys.all과 동일한 키 — hooks 모듈과의 순환 import를 피해 리터럴 사용.
     // 무한 목록은 invalidate 시 받은 페이지 전부를 순차 재요청하므로 앞 2페이지만 남기고 자른다
-    trimInfiniteQuery(this.queryClient, ['notifications', 'infinite'], 2)
-    this.queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    trimInfiniteQuery(this.queryClient, notificationKeys.list(), 2)
+    this.queryClient.invalidateQueries({ queryKey: notificationKeys.all })
   }
 
   /** 다른 사용자의 기도 반응/댓글 — 캐시된 카운트만 서버 값으로 동기화한다.

@@ -6,7 +6,12 @@
  * - setQueryData/getQueryData 는 화면 쿼리와 "완전히 같은" 키 팩토리로.
  *   (일부 인자를 빼먹은 짧은 키에 setQueryData 하면 존재하지 않는 쿼리에 써져 조용히 무효가 된다)
  * 기도(prayerKeys)·그룹(groupKeys)·커뮤니티(communityKeys) 등은 각 훅 파일의 팩토리를 쓴다.
+ *
+ * 이 파일은 런타임 import 가 없다(타입만). utils 모듈(notificationStream 등)이 훅 모듈과의
+ * 순환 import 걱정 없이 키를 가져다 쓸 수 있게 유지한다.
  */
+import type { NoteFilters } from '../api/pastor'
+import type { EmotionTag, TimeOfDay } from '../types/meditation'
 
 export const profileKeys = {
   all: ['profile'] as const,
@@ -89,4 +94,73 @@ export const prayerStatsKeys = {
 export const worshipKeys = {
   all: ['worship-services'] as const,
   services: () => [...worshipKeys.all, 'all'] as const,
+}
+
+export const notificationKeys = {
+  all: ['notifications'] as const,
+  list: () => [...notificationKeys.all, 'infinite'] as const,
+  popups: () => [...notificationKeys.all, 'popups'] as const,
+  archive: () => [...notificationKeys.all, 'archive'] as const,
+}
+
+/** 신앙 여정 — 묵상 기록 등 다른 도메인의 쓰기가 `all` 로 통째 무효화한다 */
+export const growthKeys = {
+  all: ['growth'] as const,
+  summary: ['growth', 'summary'] as const,
+  timeline: ['growth', 'timeline'] as const,
+  recent: ['growth', 'recent'] as const,
+  insight: ['growth', 'insight'] as const,
+}
+
+/** 홈 오늘의 묵상 카드 — 날짜·시간대·감정까지 모두 키에 들어간다(setQueryData 는 card 로) */
+export const meditationKeys = {
+  today: () => ['meditation', 'today'] as const,
+  card: (dateKey: string, timeOfDay: TimeOfDay, emotion?: EmotionTag) =>
+    [...meditationKeys.today(), dateKey, timeOfDay, emotion ?? null] as const,
+}
+
+export const accountKeys = {
+  all: ['account'] as const,
+  me: () => [...accountKeys.all, 'me'] as const,
+}
+
+export const adminKeys = {
+  all: ['admin'] as const,
+  pushHistory: () => [...adminKeys.all, 'push-history'] as const,
+  electionRoster: () => [...adminKeys.all, 'users', 'election-roster'] as const,
+  /** 기도 묵상 구절 추천 모드 등 서버 설정 */
+  settings: () => ['adminSettings'] as const,
+  /** 돌봄 레이더(관리자 범위) — main.tsx 가 이 루트를 persist 에서 제외한다 */
+  careRadar: (quietDays: number) => ['admin-care-radar', quietDays] as const,
+}
+
+/**
+ * 목회자 영역(/pastor). 루트는 전부 'pastor-' 로 시작해야 한다 — main.tsx 의 persist 필터가
+ * 이 접두사로 localStorage 저장을 제외한다(맡긴 기도·심방 메모·연락처 보호).
+ * 인자 없는 팩토리(members·outlineAll·reports…)는 invalidate 용 prefix 다.
+ */
+export const pastorKeys = {
+  home: () => ['pastor-home'] as const,
+  careRadar: (quietDays: number) => ['pastor-care-radar', quietDays] as const,
+  roster: () => ['pastor-roster'] as const,
+  members: () => ['pastor-member'] as const,
+  member: (memberId: number) => [...pastorKeys.members(), memberId] as const,
+  briefing: (memberId: number) => ['pastor-briefing', memberId] as const,
+  visits: () => ['pastor-visits'] as const,
+  agenda: () => ['pastor-agenda'] as const,
+  suggestions: () => ['pastor-suggestions'] as const,
+  reports: () => ['pastor-report'] as const,
+  report: (week: number) => [...pastorKeys.reports(), week] as const,
+  sermonPrep: (years: number) => ['pastor-sermon-prep', years] as const,
+  sermonOptions: () => ['pastor-sermon-options'] as const,
+  /** 설교 메모 목록 — 설교 준비 요약 카드와 메모장 첫 화면이 같은 캐시를 쓴다 */
+  notes: () => ['pastor-notes'] as const,
+  noteList: (f: NoteFilters = {}) =>
+    [...pastorKeys.notes(), f.q?.trim() ?? '', f.kind ?? null, f.tag ?? null, f.topic ?? null, f.book ?? null, !!f.unused] as const,
+  relatedNotes: () => ['pastor-note-related'] as const,
+  relatedNotesFor: (passage: string) => [...pastorKeys.relatedNotes(), passage] as const,
+  noteAnalyze: (body: string, passage: string) => ['pastor-note-analyze', body, passage] as const,
+  outlines: () => ['pastor-outlines'] as const,
+  outlineAll: () => ['pastor-outline'] as const,
+  outline: (outlineId: number) => [...pastorKeys.outlineAll(), outlineId] as const,
 }

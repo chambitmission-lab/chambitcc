@@ -1,4 +1,5 @@
 // 후속 할 일 목록 — 심방 기록 화면과 목회자 홈이 공유. 체크하면 마친 일로.
+import { pastorKeys } from '../../../hooks/queryKeys'
 import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../../utils/toast'
@@ -12,7 +13,7 @@ const FollowUpList = ({ items, compact = false }: { items: FollowUp[]; compact?:
     mutationFn: (visitId: number) => updateVisit(visitId, { follow_up_done: true }),
     onSuccess: () => {
       showToast('마친 일로 표시했습니다', 'success')
-      for (const key of [['pastor-visits'], ['pastor-home'], ['pastor-member'], ['pastor-suggestions'], ['pastor-agenda'], ['pastor-report']]) {
+      for (const key of [pastorKeys.visits(), pastorKeys.home(), pastorKeys.members(), pastorKeys.suggestions(), pastorKeys.agenda(), pastorKeys.reports()]) {
         void qc.invalidateQueries({ queryKey: key })
       }
     },

@@ -4,6 +4,7 @@
 //   done    — 다녀온 기록 (오늘까지의 날짜, 후속 할 일 가능)
 //   planned — 예약 (오늘부터의 날짜·시간, 메모만). 다른 교역자에게는 '누가·언제·누구·방식'만 보인다.
 // 예약을 열어 '다녀왔어요'를 누르면 같은 기록이 done 으로 바뀐다(날짜가 앞날이면 오늘로).
+import { pastorKeys } from '../../../hooks/queryKeys'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../../utils/toast'
@@ -103,14 +104,14 @@ const VisitComposer = ({ memberId, memberName, visit, initialStatus = 'done', co
 
   const refresh = () => {
     for (const key of [
-      ['pastor-member', memberId],
-      ['pastor-roster'],
-      ['pastor-visits'],
-      ['pastor-home'],
-      ['pastor-suggestions'],
-      ['pastor-briefing', memberId],
-      ['pastor-agenda'],
-      ['pastor-report'],
+      pastorKeys.member(memberId),
+      pastorKeys.roster(),
+      pastorKeys.visits(),
+      pastorKeys.home(),
+      pastorKeys.suggestions(),
+      pastorKeys.briefing(memberId),
+      pastorKeys.agenda(),
+      pastorKeys.reports(),
     ]) {
       void qc.invalidateQueries({ queryKey: key })
     }

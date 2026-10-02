@@ -1,4 +1,5 @@
 // 설교 메모장 공용 조각 — 설교 준비 하위 탭 · 메모 카드 · 설교 고르기 (훅 밖 헬퍼는 ./sermonNoteUtils)
+import { pastorKeys } from '../../../hooks/queryKeys'
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -173,7 +174,7 @@ export const SermonPicker = ({
   onPick: (choice: { sermon: SermonOption | null; date: string }) => void
   pending?: boolean
 }) => {
-  const { data, isPending } = useQuery({ queryKey: ['pastor-sermon-options'], queryFn: fetchSermonOptions })
+  const { data, isPending } = useQuery({ queryKey: pastorKeys.sermonOptions(), queryFn: fetchSermonOptions })
   const [q, setQ] = useState('')
   const list = (data ?? []).filter(s => !q.trim() || `${s.title} ${s.bible_verse ?? ''}`.includes(q.trim()))
   return (

@@ -38,7 +38,7 @@ import {
   type AccountIconProps,
 } from './AccountIcons'
 import { tokenStore, sessionStore } from '../../utils/tokenStore'
-import { meKeys, profileKeys } from '../../hooks/queryKeys'
+import { accountKeys, meKeys, profileKeys } from '../../hooks/queryKeys'
 
 // 가입 화면·백엔드 auth.py와 같은 값
 const FULL_NAME_MAX_LENGTH = 15
@@ -64,7 +64,7 @@ const AccountSettings = () => {
   }, [navigate])
 
   const { data: me, isLoading, error, refetch } = useQuery({
-    queryKey: ['account', 'me'],
+    queryKey: accountKeys.me(),
     queryFn: getMe,
     enabled: !!tokenStore.getAccess(),
     staleTime: 1000 * 60,
@@ -167,7 +167,7 @@ const AccountSettings = () => {
       await updateName(nameTrimmed)
       // 기도/답글 작성 시 참조하는 로컬 이름도 동기화
       sessionStore.set('fullName', nameTrimmed)
-      queryClient.invalidateQueries({ queryKey: ['account', 'me'] })
+      queryClient.invalidateQueries({ queryKey: accountKeys.me() })
       // 헤더(useMyIdentity)·프로필은 서버 full_name 을 우선 표시한다 — 같이 갱신하지 않으면
       // staleTime 동안 옛 이름이 남는다
       queryClient.invalidateQueries({ queryKey: meKeys.all, refetchType: 'all' })

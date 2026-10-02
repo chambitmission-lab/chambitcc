@@ -7,6 +7,7 @@
 //   2. 목회자 영역에 들어오면 유휴 시간에 나머지 섹션 청크·데이터를 미리 받아 둔다
 // 키·queryFn 은 각 화면의 useQuery 와 같아 진입 시 캐시를 그대로 이어받는다.
 // 목회자 쿼리는 persist 되지 않으므로(main.tsx) 세션 메모리에만 남는다.
+import { pastorKeys } from '../../hooks/queryKeys'
 import type { QueryClient } from '@tanstack/react-query'
 import { queryClient } from '../../config/queryClient'
 import {
@@ -23,7 +24,6 @@ import {
 } from '../../api/pastor'
 import { fetchPastorCareRadar } from '../../api/admin'
 import { isPastor } from '../../utils/access'
-import { noteListKey } from './components/sermonNoteUtils'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 
 // 각 화면의 기본 필터값 — 화면 useState 초기값과 맞춰야 캐시가 이어진다
@@ -40,55 +40,55 @@ interface SectionPrefetch {
 const SECTIONS: Record<string, SectionPrefetch> = {
   '/pastor': {
     chunk: () => import('./PastorHome'),
-    data: qc => qc.prefetchQuery({ queryKey: ['pastor-home'], queryFn: fetchPastorHome }),
+    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.home(), queryFn: fetchPastorHome }),
   },
   '/pastor/care': {
     chunk: () => import('../Admin/CareRadar'),
     data: qc =>
       qc.prefetchQuery({
-        queryKey: ['pastor-care-radar', CARE_QUIET_DAYS],
+        queryKey: pastorKeys.careRadar(CARE_QUIET_DAYS),
         queryFn: () => fetchPastorCareRadar(CARE_QUIET_DAYS),
       }),
   },
   '/pastor/members': {
     chunk: () => import('./PastorMembers'),
-    data: qc => qc.prefetchQuery({ queryKey: ['pastor-roster'], queryFn: fetchRoster }),
+    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.roster(), queryFn: fetchRoster }),
   },
   '/pastor/visits': {
     chunk: () => import('./PastorVisits'),
-    data: qc => qc.prefetchQuery({ queryKey: ['pastor-visits'], queryFn: fetchMyVisits }),
+    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.visits(), queryFn: fetchMyVisits }),
   },
   '/pastor/schedule': {
     chunk: () => import('./PastorSchedule'),
-    data: qc => qc.prefetchQuery({ queryKey: ['pastor-agenda'], queryFn: fetchAgenda }),
+    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.agenda(), queryFn: fetchAgenda }),
   },
   '/pastor/sermon': {
     chunk: () => import('./PastorSermon'),
     data: qc =>
       qc.prefetchQuery({
-        queryKey: ['pastor-sermon-prep', SERMON_YEARS],
+        queryKey: pastorKeys.sermonPrep(SERMON_YEARS),
         queryFn: () => fetchSermonPrep(SERMON_YEARS),
       }),
   },
   '/pastor/sermon/notes': {
     chunk: () => import('./PastorSermonNotes'),
-    data: qc => qc.prefetchQuery({ queryKey: noteListKey({}), queryFn: () => fetchNotes({}) }),
+    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.noteList({}), queryFn: () => fetchNotes({}) }),
   },
   '/pastor/sermon/outlines': {
     chunk: () => import('./PastorSermonOutlines'),
-    data: qc => qc.prefetchQuery({ queryKey: ['pastor-outlines'], queryFn: fetchOutlines }),
+    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.outlines(), queryFn: fetchOutlines }),
   },
   '/pastor/report': {
     chunk: () => import('./PastorReport'),
     data: qc =>
       qc.prefetchQuery({
-        queryKey: ['pastor-report', REPORT_WEEK],
+        queryKey: pastorKeys.report(REPORT_WEEK),
         queryFn: () => fetchWeeklyReport(REPORT_WEEK),
       }),
   },
   '/pastor/assistant': {
     chunk: () => import('./PastorAssistant'),
-    data: qc => qc.prefetchQuery({ queryKey: ['pastor-suggestions'], queryFn: fetchSuggestions }),
+    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.suggestions(), queryFn: fetchSuggestions }),
   },
 }
 
@@ -100,7 +100,7 @@ export const prefetchPastorRoute = (pathname: string, qc: QueryClient = queryCli
   const member = MEMBER_DETAIL.exec(pathname)
   if (member) {
     const id = Number(member[1])
-    void qc.prefetchQuery({ queryKey: ['pastor-member', id], queryFn: () => fetchMemberDetail(id) })
+    void qc.prefetchQuery({ queryKey: pastorKeys.member(id), queryFn: () => fetchMemberDetail(id) })
     return
   }
   void SECTIONS[pathname]?.data(qc)

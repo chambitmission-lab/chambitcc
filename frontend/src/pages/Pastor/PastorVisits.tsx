@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -23,7 +24,7 @@ const PastorVisits = () => {
   const [editing, setEditing] = useState<PastoralVisit | null>(null)
 
   const { data, isPending } = useQuery({
-    queryKey: ['pastor-visits'],
+    queryKey: pastorKeys.visits(),
     queryFn: fetchMyVisits,
     enabled: pastor,
     refetchOnMount: 'always',

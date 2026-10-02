@@ -2,6 +2,7 @@ import { useQuery, useQueryClient, keepPreviousData, type QueryClient } from '@t
 import { useEffect } from 'react'
 import { getTodayMeditation } from '../api/meditation'
 import type { EmotionTag, TimeOfDay } from '../types/meditation'
+import { meditationKeys } from './queryKeys'
 
 export const deriveTimeOfDay = (hour: number): TimeOfDay => {
   if (hour >= 4 && hour < 11) return 'morning'
@@ -15,8 +16,7 @@ const STALE = 1000 * 60 * 30
 const localDateKey = (now: Date) =>
   `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
-const meditationKey = (dateKey: string, timeOfDay: TimeOfDay, emotion?: EmotionTag) =>
-  ['meditation', 'today', dateKey, timeOfDay, emotion ?? null] as const
+const meditationKey = meditationKeys.card
 
 // 이번 세션에서 노출 기록(preview 아님)으로 받은 카드 키. 감정 카드는 preview 로
 // 프리패치되므로, 실제로 고른 순간 캐시 히트면 서버 호출이 없어 노출이 안 남는다 →

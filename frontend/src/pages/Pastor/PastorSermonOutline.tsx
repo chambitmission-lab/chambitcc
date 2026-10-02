@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -19,7 +20,7 @@ import PastorShell from './components/PastorShell'
 import NoteComposer from './components/NoteComposer'
 import { GhostButton, PastorModal, PrimaryButton } from './components/ui'
 import { IconButton, NoteCard, SermonPicker, SermonTabs } from './components/sermonNotes'
-import { invalidateNoteQueries, noteListKey } from './components/sermonNoteUtils'
+import { invalidateNoteQueries } from './components/sermonNoteUtils'
 import { formatDay, inputCls, pickerCls, usePastorGate } from './components/pastorUtils'
 
 // 설교 개요 보드 — 칸(서론·본론·적용·결론…)마다 글을 쓰고 메모 카드를 붙여 배치한다.
@@ -49,7 +50,7 @@ const PastorSermonOutline = () => {
   const qc = useQueryClient()
 
   const { data, isPending } = useQuery<SermonOutline>({
-    queryKey: ['pastor-outline', id],
+    queryKey: pastorKeys.outline(id),
     queryFn: () => fetchOutline(id),
     enabled: pastor && !!id,
     refetchOnMount: 'always',
@@ -85,8 +86,8 @@ const PastorSermonOutline = () => {
         sections: d.sections,
       }),
     onSuccess: saved => {
-      qc.setQueryData(['pastor-outline', id], saved)
-      void qc.invalidateQueries({ queryKey: ['pastor-outlines'] })
+      qc.setQueryData(pastorKeys.outline(id), saved)
+      void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
     },
     onError: (e: Error) => showToast(e.message, 'error'),
   })
@@ -116,7 +117,7 @@ const PastorSermonOutline = () => {
         preach_on: d.preach_on || null,
         sections: d.sections,
       })
-        .then(() => qc.invalidateQueries({ queryKey: ['pastor-outlines'] }))
+        .then(() => qc.invalidateQueries({ queryKey: pastorKeys.outlines() }))
         .catch(() => undefined)
     },
     [id, qc],
@@ -177,7 +178,7 @@ const PastorSermonOutline = () => {
   const remove = useMutation({
     mutationFn: () => deleteOutline(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['pastor-outlines'] })
+      void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
       showToast('개요를 지웠습니다', 'success')
       navigate('/pastor/sermon/outlines', { replace: true })
     },
@@ -191,7 +192,7 @@ const PastorSermonOutline = () => {
       return finishOutline(id, { sermon_id: choice.sermonId, preached_on: choice.sermonId ? null : choice.date })
     },
     onSuccess: saved => {
-      qc.setQueryData(['pastor-outline', id], saved)
+      qc.setQueryData(pastorKeys.outline(id), saved)
       setNotes(prev => ({ ...prev, ...Object.fromEntries(saved.notes.map(n => [n.id, n])) }))
       invalidateNoteQueries(qc)
       setFinishing(false)
@@ -437,7 +438,7 @@ const RelatedPanel = ({
 }) => {
   const ref = passage.trim()
   const { data, isFetching } = useQuery({
-    queryKey: ['pastor-note-related', ref],
+    queryKey: pastorKeys.relatedNotesFor(ref),
     queryFn: () => fetchRelatedNotes(ref),
     enabled: ref.length >= 2,
     staleTime: 30_000,
@@ -492,11 +493,11 @@ const NotePicker = ({
   const [picked, setPicked] = useState<Record<number, SermonNote>>({})
   const ref = passage.trim()
   const related = useQuery({
-    queryKey: ['pastor-note-related', ref],
+    queryKey: pastorKeys.relatedNotesFor(ref),
     queryFn: () => fetchRelatedNotes(ref),
     enabled: ref.length >= 2,
   })
-  const all = useQuery({ queryKey: noteListKey({ q }), queryFn: () => fetchNotes({ q }) })
+  const all = useQuery({ queryKey: pastorKeys.noteList({ q }), queryFn: () => fetchNotes({ q }) })
 
   const relatedItems = (related.data?.items ?? []).filter(n => !exclude.has(n.id))
   const relatedIds = new Set(relatedItems.map(n => n.id))

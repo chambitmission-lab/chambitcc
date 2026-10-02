@@ -15,7 +15,8 @@ import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCar
 import PastorShell from './components/PastorShell'
 import NoteComposer from './components/NoteComposer'
 import { NoteCard, SermonTabs } from './components/sermonNotes'
-import { chipCls, invalidateNoteQueries, noteListKey } from './components/sermonNoteUtils'
+import { pastorKeys } from '../../hooks/queryKeys'
+import { chipCls, invalidateNoteQueries } from './components/sermonNoteUtils'
 import { inputCls, usePastorGate } from './components/pastorUtils'
 
 // 설교 메모장 — 좌: 빠른 메모 · 찾기 · 메모 목록 / 우: 다시 꺼내 볼 메모 · 안내
@@ -32,7 +33,7 @@ const PastorSermonNotes = () => {
   const [editing, setEditing] = useState<Editing>(null)
 
   const { data, isPending } = useQuery<NoteListData>({
-    queryKey: noteListKey(filters),
+    queryKey: pastorKeys.noteList(filters),
     queryFn: () => fetchNotes(filters),
     enabled: pastor,
     placeholderData: keepPreviousData,

@@ -12,6 +12,7 @@ import {
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { AdminPageHeader, EmptyHint, SectionCard, StatSpinner } from './components/StatCards'
 import { can, isPastor } from '../../utils/access'
+import { adminKeys, pastorKeys } from '../../hooks/queryKeys'
 import { PastorSectionNav } from '../Pastor/components/PastorShell'
 import TextScaleToggle from '../Pastor/components/TextScaleToggle'
 import { pastorScaleProps, usePastorTextScale } from '../Pastor/components/textScale'
@@ -62,7 +63,7 @@ const CareRadar = ({ scope = 'admin' }: { scope?: 'admin' | 'pastor' }) => {
   }, [admin, pastorScope, navigate])
 
   const { data, isPending, isError } = useQuery<CareRadarData>({
-    queryKey: [pastorScope ? 'pastor-care-radar' : 'admin-care-radar', quietDays],
+    queryKey: pastorScope ? pastorKeys.careRadar(quietDays) : adminKeys.careRadar(quietDays),
     queryFn: () => (pastorScope ? fetchPastorCareRadar : fetchCareRadar)(quietDays),
     enabled: admin,
     // 기준 기간을 바꿀 때 스피너 대신 이전 목록을 유지해 깜빡임 방지

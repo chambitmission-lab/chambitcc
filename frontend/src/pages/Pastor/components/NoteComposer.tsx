@@ -4,6 +4,7 @@
 //   1) 회원 실명이 보이면 저장이 막히고 '이름 가리기'로 ○○ 처리
 //   2) '누군지 알 수 없게 고쳤습니다' 확인을 눌러야 저장 — 이름 말고도 직장·병명·동네처럼 알아볼 단서가 있어서
 // 메모는 목사님만 봅니다(서버도 작성자 외엔 404).
+import { pastorKeys } from '../../../hooks/queryKeys'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -68,7 +69,7 @@ const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) =
   const dBody = useDebouncedValue(body.trim(), 600)
   const dPassage = useDebouncedValue(passage.trim(), 600)
   const { data: analysis, isFetching: analyzing } = useQuery<NoteAnalysis>({
-    queryKey: ['pastor-note-analyze', dBody, dPassage],
+    queryKey: pastorKeys.noteAnalyze(dBody, dPassage),
     queryFn: () => analyzeNote(dBody, dPassage || null),
     enabled: dBody.length >= 2 || dPassage.length >= 2,
     staleTime: 60_000,

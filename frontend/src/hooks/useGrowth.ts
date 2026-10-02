@@ -12,12 +12,9 @@ import type {
   GrowthTimelineResponse,
 } from '../types/growth'
 
-export const growthKeys = {
-  summary: ['growth', 'summary'] as const,
-  timeline: ['growth', 'timeline'] as const,
-  recent: ['growth', 'recent'] as const,
-  insight: ['growth', 'insight'] as const,
-}
+import { growthKeys } from './queryKeys'
+
+export { growthKeys }
 
 // gcTime 은 전역 기본(7일)을 따른다 — 예전엔 네 쿼리 모두 30분이라, 여정 화면을 떠나고 30분이
 // 지나면 캐시·persist 스냅샷에서 빠져 다음 진입이 매번 콜드(전체 로딩)였다.

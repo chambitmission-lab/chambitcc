@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -78,7 +79,7 @@ const PastorSchedule = () => {
   >(null)
 
   const { data, isPending } = useQuery<AgendaData>({
-    queryKey: ['pastor-agenda'],
+    queryKey: pastorKeys.agenda(),
     queryFn: fetchAgenda,
     enabled: pastor,
   })

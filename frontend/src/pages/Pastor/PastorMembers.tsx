@@ -1,3 +1,4 @@
+import { pastorKeys } from '../../hooks/queryKeys'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -42,7 +43,7 @@ const PastorMembers = () => {
   const [sort, setSort] = useState<Sort>('name')
 
   const { data, isPending } = useQuery<RosterData>({
-    queryKey: ['pastor-roster'],
+    queryKey: pastorKeys.roster(),
     queryFn: fetchRoster,
     enabled: pastor,
   })
