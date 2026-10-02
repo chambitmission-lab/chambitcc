@@ -44,10 +44,11 @@ export const TIER_VISUALS: Record<TitleTier, TierVisual> = {
   },
 }
 
-export const CATEGORY_ORDER: TitleCategory[] = ['time', 'pattern', 'hidden']
+export const CATEGORY_ORDER: TitleCategory[] = ['time', 'pattern', 'typing', 'hidden']
 
 export const CATEGORY_META: Record<TitleCategory, { icon: string; labelKey: LocaleKey }> = {
   time: { icon: '📅', labelKey: 'titleCatTime' },
   pattern: { icon: '📖', labelKey: 'titleCatPattern' },
+  typing: { icon: '✍️', labelKey: 'titleCatTyping' },
   hidden: { icon: '🎉', labelKey: 'titleCatHidden' },
 }

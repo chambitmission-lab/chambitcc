@@ -10,11 +10,13 @@
  * - PhotoVerseIcon : 사진 프레임 (말씀 사진 카드)
  * - ListenIcon     : 헤드폰 (즐겨찾기 구절 듣기)
  * - BibleBookIcon  : 책갈피 꽂힌 책 (이어 읽기 = 읽던 자리)
+ * - TypingIcon     : 깃펜 (말씀 필사 = 따라 쓰며 새기기)
  */
 import type { CSSProperties } from 'react'
 import {
   BookBookmark,
   BookOpenText,
+  Feather,
   HandHeart,
   Headphones,
   ImageSquare,
@@ -48,3 +50,4 @@ export const SituationIcon = duotone(HandHeart)
 export const PhotoVerseIcon = duotone(ImageSquare)
 export const ListenIcon = duotone(Headphones)
 export const BibleBookIcon = duotone(BookBookmark)
+export const TypingIcon = duotone(Feather)

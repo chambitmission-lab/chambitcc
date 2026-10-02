@@ -28,7 +28,7 @@ const MENU_SECTIONS: NavSection[] = [
 ]
 
 // 게임·이벤트성 메뉴 — 구조는 같게 두고 아이콘 색으로만 톤을 분리한다
-const ACTIVITY_ITEMS = navEntries(['/garden', '/bluemarble', '/answered-prayers', '/intercession'])
+const ACTIVITY_ITEMS = navEntries(['/garden', '/bluemarble', '/bible/typing', '/answered-prayers', '/intercession'])
 
 // PC(lg+) 메가 메뉴 — "자주 찾는" 큰 카드 3장(시선의 출발점) + 이름만 있는 4칸 목록 + 상단 메뉴 찾기.
 // 전엔 23개 항목이 전부 "아이콘 칩 + 이름 + 설명" 같은 무게라 회색 글자 벽처럼 읽혔다.
@@ -40,7 +40,7 @@ const DESKTOP_SECTIONS: NavSection[] = [
   { titleKey: 'navTopChurch', items: navEntries(['/about', '/greeting', '/visit', '/people', '/organization', '/history']) },
   { titleKey: 'navTopWord', items: navEntries(['/sermon', '/ministry', '/education']) },
   { titleKey: 'navTopTogether', items: navEntries(['/news', '/seats', '/culture', '/mission', '/survey']) },
-  { titleKey: 'navGroupMyFaith', items: navEntries(['/groups', '/classes', '/garden', '/bluemarble', '/answered-prayers', '/intercession']) },
+  { titleKey: 'navGroupMyFaith', items: navEntries(['/groups', '/classes', '/garden', '/bluemarble', '/bible/typing', '/answered-prayers', '/intercession']) },
 ]
 
 const IconSearch = ({ className }: { className?: string }) => (

@@ -5,7 +5,8 @@ import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload
 import { PLAN_HERO, warmPair, warmRouteThemeAssets } from '../../utils/themeAssets'
 
 /** 'alarm'(구절 알람)·'meditation'(오늘의 묵상)은 목적지로만 존재한다 —
-    도크/레일 항목에는 없어 활성 표시가 붙지 않는다 */
+    도크/레일 항목에는 없어 활성 표시가 붙지 않는다.
+    'typing'(말씀 필사)은 PC 레일에만 있다 — 모바일은 /bible 허브 타일·나의 신앙 메뉴로 들어온다 */
 export type BibleNavKey =
   | 'read'
   | 'search'
@@ -15,6 +16,7 @@ export type BibleNavKey =
   | 'genealogy'
   | 'alarm'
   | 'meditation'
+  | 'typing'
 
 interface BibleBottomNavProps {
   active: BibleNavKey
@@ -102,6 +104,7 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       genealogy: '/bible/genealogy',
       alarm: '/bible/alarm',
       meditation: '/bible/meditation',
+      typing: '/bible/typing',
     }
     navigate(paths[key])
   }

@@ -34,6 +34,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/garden': () =>
     import('../pages/Garden/Garden').then((m) => ({ default: m.Garden })),
   '/bluemarble': () => import('../pages/Bluemarble/Bluemarble'),
+  // 나의 신앙 메뉴·성경 좌측 레일 "필사"
+  '/bible/typing': () => import('../pages/Bible/Typing/TypingHome'),
   '/answered-prayers': () => import('../pages/Prayer/AnsweredPrayers'),
   '/intercession': () => import('../pages/Intercession/Intercession'),
   '/account': () => import('../pages/Account/AccountSettings'),

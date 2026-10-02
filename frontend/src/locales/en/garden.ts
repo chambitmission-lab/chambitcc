@@ -22,6 +22,7 @@ export const garden = {
 
   // Categories / tiers
   titleCatTime: 'Time & Consistency',
+  titleCatTyping: 'Scripture Typing',
   titleCatPattern: 'Reading Journey',
   titleCatHidden: 'Hidden',
   titleTierBronze: 'Bronze',

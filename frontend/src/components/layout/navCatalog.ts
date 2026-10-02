@@ -50,6 +50,7 @@ export const NAV_CATALOG: NavEntry[] = [
   { path: '/classes', labelKey: 'classNote', descKey: 'navDescClassNote', icon: 'classNote', group: 'faith' },
   { path: '/garden', labelKey: 'garden', descKey: 'navDescGarden', icon: 'garden', group: 'faith', accent: true },
   { path: '/bluemarble', labelKey: 'bluemarble', descKey: 'navDescBluemarble', icon: 'bluemarble', group: 'faith', accent: true },
+  { path: '/bible/typing', labelKey: 'bibleTyping', descKey: 'navDescBibleTyping', icon: 'bibleTyping', group: 'faith', accent: true },
   { path: '/answered-prayers', labelKey: 'answeredPrayers', descKey: 'navDescAnsweredPrayers', icon: 'answeredPrayers', group: 'faith', accent: true },
   { path: '/intercession', labelKey: 'intercession', descKey: 'navDescIntercession', icon: 'intercession', group: 'faith', accent: true },
 ]

@@ -49,6 +49,7 @@ export const navigation = {
   navDescClassNote: 'Class notices and updates',
   navDescGarden: 'Titles earned by reading',
   navDescBluemarble: 'A Bible journey by dice',
+  navDescBibleTyping: 'Type Scripture to learn it by heart',
   navDescAnsweredPrayers: 'Testimonies of answered prayer',
   navDescIntercession: "Pray along with someone",
   navGroupMyFaith: 'My Faith',
@@ -136,6 +137,7 @@ export const navigation = {
   // Emoji replaced by line icons (NavIcons.tsx) — keep the label text only
   garden: 'Bible Titles',
   bluemarble: 'Bible Quest',
+  bibleTyping: 'Scripture Typing',
   answeredPrayers: 'Answered Prayers',
   intercession: "Someone's Prayer",
   classNote: 'Class Notes',

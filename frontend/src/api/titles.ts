@@ -1,7 +1,7 @@
 // 성경 칭호 API — 칭호 컬렉션 조회 / 획득 평가(해금) / 장착
 import { request, requestRaw, isApiError, type UntypedJson } from './utils/request'
 
-export type TitleCategory = 'time' | 'pattern' | 'hidden'
+export type TitleCategory = 'time' | 'pattern' | 'typing' | 'hidden'
 export type TitleTier = 'bronze' | 'silver' | 'gold' | 'legendary'
 
 export interface TitleProgress {

@@ -148,6 +148,16 @@ const IconDice = (p: IconProps) => (
   </Svg>
 )
 
+/* 말씀 필사 — 깃펜과 써 내려간 줄 */
+const IconQuill = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M20 3.5c-6.5.6-11.4 5.3-12.7 12.2L6.4 20" />
+    <path d="M20 3.5c-.8 4.7-3.6 8.4-8.4 10.3" />
+    <path d="M9.4 12.4h4.2" />
+    <path d="M4 20.5h7" />
+  </Svg>
+)
+
 /* 응답의 전당 — 반짝임 */
 const IconSparkle = (p: IconProps) => (
   <Svg {...p}>
@@ -260,6 +270,7 @@ export const NAV_ICONS = {
   news: IconMegaphone,
   garden: IconMedal,
   bluemarble: IconDice,
+  bibleTyping: IconQuill,
   answeredPrayers: IconSparkle,
   intercession: IconCandle,
   survey: IconSurvey,

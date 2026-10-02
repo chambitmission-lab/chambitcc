@@ -49,6 +49,7 @@ export const navigation = {
   navDescClassNote: '부서 알림장 · 공지 확인',
   navDescGarden: '말씀 읽고 모으는 칭호',
   navDescBluemarble: '주사위로 떠나는 성경 여행',
+  navDescBibleTyping: '따라 쓰며 새기는 말씀 · 타자 기록',
   navDescAnsweredPrayers: '응답받은 기도의 간증',
   navDescIntercession: '누군가의 기도에 함께하기',
   navGroupMyFaith: '나의 신앙',
@@ -137,6 +138,7 @@ export const navigation = {
   // 이모지는 라인 아이콘(NavIcons.tsx)으로 대체됐다 — 라벨엔 텍스트만 둔다
   garden: '성경 칭호',
   bluemarble: '바이블 퀘스트',
+  bibleTyping: '말씀 필사',
   answeredPrayers: '응답의 전당',
   intercession: '누군가의 기도',
   classNote: '우리반 알림장',

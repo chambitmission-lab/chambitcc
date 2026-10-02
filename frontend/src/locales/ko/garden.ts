@@ -22,6 +22,7 @@ export const garden = {
 
   // 카테고리 / 티어
   titleCatTime: '시간과 꾸준함',
+  titleCatTyping: '말씀 필사',
   titleCatPattern: '읽기 여정',
   titleCatHidden: '히든',
   titleTierBronze: '브론즈',

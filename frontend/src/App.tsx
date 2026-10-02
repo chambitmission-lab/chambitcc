@@ -215,6 +215,9 @@ const Growth = lazy(() => import('./pages/Growth/Growth'))
 const SituationBible = lazy(menuRouteLoaders['/bible/situation'])
 const BibleStoryMap = lazy(() => import('./pages/Bible/Story/StoryMap'))
 const BibleStoryEpisode = lazy(() => import('./pages/Bible/Story/StoryEpisode'))
+const BibleTypingHome = lazy(menuRouteLoaders['/bible/typing'])
+const BibleTypingSprint = lazy(() => import('./pages/Bible/Typing/TypingSprint'))
+const BibleTypingSession = lazy(() => import('./pages/Bible/Typing/TypingSession'))
 const PhotoVerse = lazy(() => import('./pages/Bible/PhotoVerse/PhotoVerse'))
 const MeditationPage = lazy(() => import('./pages/Bible/Meditation/MeditationPage'))
 const VerseAlarmPage = lazy(() => import('./pages/Bible/VerseAlarm/VerseAlarmPage'))
@@ -500,6 +503,9 @@ function App() {
                 <Route path="/bible/photo-verse" element={<PhotoVerse />} />
                 <Route path="/bible/meditation" element={<MeditationPage />} />
                 <Route path="/bible/alarm" element={<VerseAlarmPage />} />
+                <Route path="/bible/typing" element={<BibleTypingHome />} />
+                <Route path="/bible/typing/sprint" element={<BibleTypingSprint />} />
+                <Route path="/bible/typing/:book/:chapter" element={<BibleTypingSession />} />
                 <Route path="/bible/:bookNumber/:chapter" element={<BibleStudy />} />
                 <Route path="/garden" element={<Garden />} />
                 <Route path="/bluemarble" element={<Bluemarble />} />
