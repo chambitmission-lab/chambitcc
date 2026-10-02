@@ -69,12 +69,12 @@ const LetterReports = ({ enabled }: { enabled: boolean }) => {
               {r.report_reason ? (
                 <p className="mt-1 text-[12px] text-gray-500 dark:text-white/50">신고 사유: {r.report_reason}</p>
               ) : null}
-              <div className="mt-2.5 flex gap-2">
+              <div className="mt-2.5 flex gap-2 lg:justify-end">
                 <button
                   type="button"
                   disabled={resolve.isPending}
                   onClick={() => resolve.mutate({ id: r.id, restore: true })}
-                  className="flex-1 h-9 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[12.5px] font-bold text-ink-strong"
+                  className="flex-1 lg:flex-none lg:px-4 h-9 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.04] text-[12.5px] font-bold text-ink-strong"
                 >
                   문제없음 · 되돌리기
                 </button>
@@ -82,7 +82,7 @@ const LetterReports = ({ enabled }: { enabled: boolean }) => {
                   type="button"
                   disabled={resolve.isPending}
                   onClick={() => resolve.mutate({ id: r.id, restore: false })}
-                  className="flex-1 h-9 rounded-lg bg-[var(--brand)] text-[var(--on-brand)] text-[12.5px] font-bold"
+                  className="flex-1 lg:flex-none lg:px-4 h-9 rounded-lg bg-[var(--brand)] text-[var(--on-brand)] text-[12.5px] font-bold"
                 >
                   숨김 확정
                 </button>
@@ -148,7 +148,7 @@ const IntercessionManagement = () => {
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-[760px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
         <AdminPageHeader title="누군가의 기도" />
 
         {isPending && !data ? (
@@ -158,89 +158,96 @@ const IntercessionManagement = () => {
             현황을 불러오지 못했습니다
           </p>
         ) : (
-          <>
-            <SectionCard title="운영">
-              <div className="flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-bold text-ink-strong">
-                    {data.open ? '열려 있어요' : '닫혀 있어요'}
-                  </p>
-                  <p className="mt-0.5 text-[12px] leading-relaxed text-gray-500 dark:text-white/50 break-keep">
-                    열면 메뉴·홈 카드가 보이고 신청을 받습니다. 첫 짝 배정은{' '}
-                    {formatDay(data.first_cycle_date)} 아침 7시에 자동으로 이뤄집니다.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={data.open}
-                  aria-label="누군가의 기도 운영"
-                  disabled={setOpen.isPending}
-                  onClick={() => void onToggle()}
-                  className={`relative shrink-0 w-[52px] h-[30px] rounded-full transition-all duration-200 disabled:opacity-50 ${
-                    data.open ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]' : 'bg-gray-300 dark:bg-white/[0.12]'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-1/2 -translate-y-1/2 w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-all duration-200 ${
-                      data.open ? 'left-[25px]' : 'left-[3px]'
-                    }`}
-                  />
-                </button>
-              </div>
-            </SectionCard>
-
-            <SectionCard
-              title={data.cycle ? '이번 주기' : '다음 주기'}
-              action={
-                data.cycle ? (
-                  <span className="text-[11px] text-gray-400 dark:text-white/40">
-                    {data.cycle.current_week + 1}/{data.cycle.week_count}주차
-                  </span>
-                ) : null
-              }
-            >
-              {data.cycle ? (
-                <p className="text-[13px] text-ink-strong">
-                  {formatDay(data.cycle.start_date)} ~ {formatDay(data.cycle.end_date)} 전날까지
-                </p>
-              ) : (
-                <>
-                  <p className="text-[13px] text-ink-strong">
-                    {data.next_start_date ? `${formatDay(data.next_start_date)} 아침 7시에 짝이 정해집니다` : '예정 없음'}
-                  </p>
+          // PC: 오른쪽 360px 에 운영·주기(조작), 왼쪽 넓은 칸에 현황·신고(읽기). 모바일은 DOM 순서대로 쌓인다.
+          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+            <div className="lg:col-start-2 lg:row-start-1">
+              <SectionCard title="운영">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-bold text-ink-strong">
+                      {data.open ? '열려 있어요' : '닫혀 있어요'}
+                    </p>
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-gray-500 dark:text-white/50 break-keep">
+                      열면 메뉴·홈 카드가 보이고 신청을 받습니다. 첫 짝 배정은{' '}
+                      {formatDay(data.first_cycle_date)} 아침 7시에 자동으로 이뤄집니다.
+                    </p>
+                  </div>
                   <button
                     type="button"
-                    disabled={!data.open || startNow.isPending}
-                    onClick={() => void onStartNow()}
-                    className="w-full h-11 rounded-xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] text-brand text-[13.5px] font-bold disabled:opacity-50"
+                    role="switch"
+                    aria-checked={data.open}
+                    aria-label="누군가의 기도 운영"
+                    disabled={setOpen.isPending}
+                    onClick={() => void onToggle()}
+                    className={`relative shrink-0 w-[52px] h-[30px] rounded-full transition-all duration-200 disabled:opacity-50 ${
+                      data.open ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]' : 'bg-gray-300 dark:bg-white/[0.12]'
+                    }`}
                   >
-                    지금 바로 시작하기
+                    <span
+                      className={`absolute top-1/2 -translate-y-1/2 w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-all duration-200 ${
+                        data.open ? 'left-[25px]' : 'left-[3px]'
+                      }`}
+                    />
                   </button>
-                  {!data.open ? (
-                    <p className="text-[11.5px] text-gray-400 dark:text-white/40">먼저 운영을 열어야 시작할 수 있어요</p>
-                  ) : null}
-                </>
-              )}
+                </div>
+              </SectionCard>
 
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                <Stat label="함께하는 성도" value={data.active_participants} accent />
-                <Stat label="쉬는 중" value={data.paused_participants} />
-                <Stat label="짝이 정해진 성도" value={data.linked_givers} />
-                <Stat label="짝을 기다리는 성도" value={data.unlinked_active} />
-                <Stat label="이번 주기 기도" value={data.cycle_prayers} accent />
-                <Stat label="오늘 기도한 성도" value={data.today_givers} />
-                <Stat label="이번 주기 편지" value={data.cycle_letters} />
-                <Stat label="신고 대기" value={data.pending_reports} />
-              </div>
-              <p className="text-[11.5px] leading-relaxed text-gray-400 dark:text-white/40 break-keep">
-                누적 기도 {(data.total_prayers ?? 0).toLocaleString()}번 · 누가 누구를 위해 기도하는지는 관리자에게도
-                표시하지 않습니다. 짝은 세 분 이상 모여야 정해집니다.
-              </p>
-            </SectionCard>
+              <SectionCard
+                title={data.cycle ? '이번 주기' : '다음 주기'}
+                action={
+                  data.cycle ? (
+                    <span className="text-[11px] text-gray-400 dark:text-white/40">
+                      {data.cycle.current_week + 1}/{data.cycle.week_count}주차
+                    </span>
+                  ) : null
+                }
+              >
+                {data.cycle ? (
+                  <p className="text-[13px] text-ink-strong">
+                    {formatDay(data.cycle.start_date)} ~ {formatDay(data.cycle.end_date)} 전날까지
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-[13px] text-ink-strong">
+                      {data.next_start_date ? `${formatDay(data.next_start_date)} 아침 7시에 짝이 정해집니다` : '예정 없음'}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={!data.open || startNow.isPending}
+                      onClick={() => void onStartNow()}
+                      className="w-full h-11 rounded-xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] text-brand text-[13.5px] font-bold disabled:opacity-50"
+                    >
+                      지금 바로 시작하기
+                    </button>
+                    {!data.open ? (
+                      <p className="text-[11.5px] text-gray-400 dark:text-white/40">먼저 운영을 열어야 시작할 수 있어요</p>
+                    ) : null}
+                  </>
+                )}
+              </SectionCard>
+            </div>
 
-            <LetterReports enabled={admin} />
-          </>
+            <div className="lg:col-start-1 lg:row-start-1">
+              <SectionCard title="현황">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  <Stat label="함께하는 성도" value={data.active_participants} accent />
+                  <Stat label="쉬는 중" value={data.paused_participants} />
+                  <Stat label="짝이 정해진 성도" value={data.linked_givers} />
+                  <Stat label="짝을 기다리는 성도" value={data.unlinked_active} />
+                  <Stat label="이번 주기 기도" value={data.cycle_prayers} accent />
+                  <Stat label="오늘 기도한 성도" value={data.today_givers} />
+                  <Stat label="이번 주기 편지" value={data.cycle_letters} />
+                  <Stat label="신고 대기" value={data.pending_reports} />
+                </div>
+                <p className="text-[11.5px] leading-relaxed text-gray-400 dark:text-white/40 break-keep">
+                  누적 기도 {(data.total_prayers ?? 0).toLocaleString()}번 · 누가 누구를 위해 기도하는지는 관리자에게도
+                  표시하지 않습니다. 짝은 세 분 이상 모여야 정해집니다.
+                </p>
+              </SectionCard>
+
+              <LetterReports enabled={admin} />
+            </div>
+          </div>
         )}
       </div>
     </div>

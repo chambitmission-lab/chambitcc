@@ -1,5 +1,6 @@
 /* 누군가의 기도 — 등불(초)과 불꽃. 클래스는 ic- 접두사.
-   불꽃은 켜질 때 한 번만 피어오른다 (무한 깜빡임·글로우 애니메이션은 쓰지 않는다). */
+   큰 등불(lg)은 유리컵 촛불(.ic-votive) — 켜질 때 차례로 천천히 피어오르고, 이후엔 불꽃만 아주 작게 흔들린다.
+   빛무리·글로우는 정적이다 (무한 글로우 펄스는 쓰지 않는다). 작은 등불(sm)은 막대 초(.ic-candle). */
 
 .ic-lamp {
   display: flex;
@@ -84,6 +85,155 @@
   }
 }
 
+/* ── 큰 등불: 유리컵 촛불 ─────────────────────────────── */
+.ic-lamp--lg {
+  gap: 12px;
+}
+.ic-votive {
+  --ic-glass-tint: #6b84b8;
+  --ic-glass-edge: rgba(65, 90, 140, 0.34);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ic-votive__svg {
+  display: block;
+  width: 50px;
+  height: 75px;
+  overflow: visible;
+}
+.ic-votive__edge {
+  stroke: var(--ic-glass-edge);
+}
+.ic-votive__streak {
+  fill: #ffffff;
+  opacity: 0.75;
+}
+.ic-votive.is-future {
+  opacity: 0.4;
+}
+/* 이번 주 — 유리컵 밑 브랜드 점 */
+.ic-votive__mark {
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: transparent;
+}
+.ic-votive.is-current .ic-votive__mark {
+  background: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+}
+
+/* 켜질 때: 빛은 서서히 번지고, 불꽃은 심지에서 천천히 키를 올린다 (튀어나오는 스케일 팝 금지) */
+.ic-votive__light {
+  animation: ic-votive-glow 1.6s ease-out both;
+}
+@keyframes ic-votive-glow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.ic-votive__flame-in {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ic-votive-kindle 1.4s cubic-bezier(0.25, 0.8, 0.35, 1) both;
+}
+@keyframes ic-votive-kindle {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.25) scaleX(0.7);
+  }
+  45% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* 불꽃 흔들림 — 집중 기도 촛불과 같은 결, 크기만 작게 */
+.ic-votive__flame,
+.ic-votive__core {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.ic-votive__flame {
+  filter: drop-shadow(0 0 4px rgba(255, 170, 80, 0.75)) drop-shadow(0 0 10px rgba(251, 146, 60, 0.3));
+  animation: ic-votive-flicker 3.2s ease-in-out infinite;
+}
+.ic-votive__core {
+  opacity: 0.9;
+  filter: blur(0.5px);
+  animation: ic-votive-flicker 2.6s ease-in-out infinite reverse;
+}
+/* 초마다 흔들림 박자를 어긋나게 */
+.ic-votive:nth-child(2n) .ic-votive__flame {
+  animation-delay: -1.1s;
+}
+.ic-votive:nth-child(3n) .ic-votive__flame {
+  animation-delay: -2s;
+}
+@keyframes ic-votive-flicker {
+  0%,
+  100% {
+    transform: scaleY(1) rotate(-1.2deg);
+  }
+  20% {
+    transform: scaleY(1.07) rotate(1.5deg);
+  }
+  40% {
+    transform: scaleY(0.95) rotate(-0.8deg);
+  }
+  60% {
+    transform: scaleY(1.04) rotate(0.8deg);
+  }
+  80% {
+    transform: scaleY(0.97) rotate(-1.5deg);
+  }
+}
+
+html.dark .ic-votive {
+  --ic-glass-tint: #ffffff;
+  --ic-glass-edge: rgba(255, 255, 255, 0.32);
+}
+html.dark .ic-votive__streak {
+  opacity: 0.4;
+}
+
+/* ── 등불 히어로 창턱 장면 (src/assets/intercession/hero-*.webp, 1376x768) ──
+   카드가 아니라 촛불 줄 컨테이너에 붙인다: 그림 속 창턱 윗면(세로 72.9% = 560/768)을
+   유리컵 밑면(초 SVG 높이의 95%)에 맞춘다. 그래서 제목 줄 수가 바뀌어도 초는 늘 창턱 위.
+   폭은 카드보다 넓게 — 남는 쪽은 Hero 의 overflow-hidden 이 자르고, 좌우 커튼은 넓은 PC에서만 보인다.
+   z-index -1 은 Hero 의 isolate 덕에 카드 바탕 위·글자 아래에 깔린다.
+   아래 끝은 마스크로 흐려 카드가 그림보다 길어도 이음새가 안 보이게 한다.
+   안내 문구(mt-7 / lg:mt-9)는 창턱 앞면을 지나 바닥 면에 오도록 맞춘 값 — 앵커를 바꾸면 같이 볼 것. */
+.ic-hero-scene {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 71px; /* 초 SVG 75px × 0.95 */
+  width: max(calc(100% + 300px), 720px);
+  transform: translate(-50%, -72.9%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  -webkit-mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
+}
+.ic-hero-scene.is-loaded {
+  opacity: 1;
+}
+.ic-hero-scene img {
+  width: 100%;
+  height: auto;
+}
+
 /* 오늘 기도 버튼을 누른 직후 — 한 번 피어나는 빛 */
 .ic-pray-burst {
   animation: ic-burst 0.9s ease-out both;
@@ -99,8 +249,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ic-flame.is-lit,
-  .ic-pray-burst {
+  .ic-pray-burst,
+  .ic-votive__light,
+  .ic-votive__flame-in,
+  .ic-votive__flame,
+  .ic-votive__core {
     animation: none;
+  }
+  .ic-hero-scene {
+    transition: none;
   }
 }
 
@@ -291,10 +448,13 @@ html.dark .ic-paper__input::placeholder {
   }
   /* 등불 — 한 단계 크게 */
   .ic-lamp--lg {
-    gap: 22px;
+    gap: 18px;
   }
-  .ic-lamp--lg .ic-candle__stick {
-    width: 17px;
-    height: 40px;
+  .ic-votive__svg {
+    width: 60px;
+    height: 90px;
+  }
+  .ic-hero-scene {
+    top: 85.5px; /* 초 SVG 90px × 0.95 */
   }
 }

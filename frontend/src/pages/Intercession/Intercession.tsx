@@ -24,6 +24,8 @@ import { FlameGlyph, Lamp } from './intercessionUi'
 import { cycleMonthLabel, daysUntil, formatDay } from './intercessionDates'
 import { LetterEntry, LetterInbox } from './Letters'
 import { RecapCard } from './Recap'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { INTERCESSION_HERO } from '../../utils/themeAssets'
 import './intercession.css'
 
 const LINE_MAX = 80
@@ -31,7 +33,7 @@ const LINE_MAX = 80
 // ── 조각 ────────────────────────────────────────────────────────────────
 
 const Hero = ({ label, title, children }: { label: string; title: string; children?: ReactNode }) => (
-  <section className="relative overflow-hidden mx-4 mt-5 px-6 pt-7 pb-6 lg:px-8 lg:pt-9 lg:pb-8 rounded-[26px] bg-[linear-gradient(135deg,#e3efff_0%,#eef5ff_60%,#f6f9ff_120%)] ring-1 ring-[rgba(49,130,246,0.14)] shadow-[0_10px_30px_-16px_rgba(49,130,246,0.45)] dark:bg-[linear-gradient(135deg,#0a1830_0%,#0d1d3a_60%,#101a2e_120%)] dark:ring-white/[0.08] dark:shadow-[0_10px_34px_-12px_rgba(0,0,0,0.6)]">
+  <section className="relative isolate overflow-hidden mx-4 mt-5 px-6 pt-7 pb-6 lg:px-8 lg:pt-9 lg:pb-8 rounded-[26px] bg-[linear-gradient(135deg,#e3efff_0%,#eef5ff_60%,#f6f9ff_120%)] ring-1 ring-[rgba(49,130,246,0.14)] shadow-[0_10px_30px_-16px_rgba(49,130,246,0.45)] dark:bg-[linear-gradient(135deg,#0a1830_0%,#0d1d3a_60%,#101a2e_120%)] dark:ring-white/[0.08] dark:shadow-[0_10px_34px_-12px_rgba(0,0,0,0.6)]">
     <span className="flex items-center gap-1.5 text-[12px] lg:text-[14px] font-bold tracking-[0.02em] text-brand">
       <FlameGlyph size={14} />
       {label}
@@ -236,6 +238,7 @@ const LampHero = ({ state }: { state: IntercessionState }) => {
   const lamp = state.lamp!
   const month = cycleMonthLabel(state.cycle!.start_date)
   const anyLit = lamp.weeks.some((w) => w.lit)
+  const sceneReady = useThemeArt(INTERCESSION_HERO)
   const title = lamp.received_today
     ? '오늘도 누군가\n당신을 위해 기도했어요'
     : anyLit
@@ -243,10 +246,16 @@ const LampHero = ({ state }: { state: IntercessionState }) => {
       : '누군가 당신을 위해\n기도할 거예요'
   return (
     <Hero label="누군가의 기도" title={title}>
-      <div className="mt-6">
+      {/* 창턱 장면은 카드가 아니라 촛불 줄에 붙인다 — 제목 줄 수·안내 문구로 카드 높이가 달라져도
+          초가 늘 창턱 위에 놓인다. 그림이 카드보다 커서 남는 부분은 Hero 의 overflow-hidden 이 자른다. */}
+      <div className="relative mt-6">
+        <div className={`ic-hero-scene${sceneReady ? ' is-loaded' : ''}`} aria-hidden>
+          <img src={INTERCESSION_HERO.light} alt="" className="dark:hidden" decoding="async" />
+          <img src={INTERCESSION_HERO.dark} alt="" className="hidden dark:block" decoding="async" />
+        </div>
         <Lamp weeks={lamp.weeks} />
       </div>
-      <p className="mt-4 text-center text-[12.5px] lg:text-[15.5px] leading-relaxed text-[#41527a] dark:text-white/70 break-keep">
+      <p className="mt-7 lg:mt-9 text-center text-[12.5px] lg:text-[15.5px] leading-relaxed text-[#41527a] dark:text-white/75 break-keep">
         누군가의 기도가 닿은 주마다 초가 하나씩 켜져요
         {lamp.months_received > 1 ? (
           <>
