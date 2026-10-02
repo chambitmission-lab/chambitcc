@@ -691,6 +691,8 @@ const VerseList = ({
 
   const readCount = readStatusData?.read_verses || 0
   const progress = readStatusData?.progress || 0
+  // pill 분모는 장 전체 절 수 — 로드된 페이지(20절) 합계를 쓰면 첫 읽음이 1/20으로 보임
+  const pillTotal = readStatusData?.total_verses || chapterData?.pages[0]?.total_verses || totalVerses
 
   // 장이 바뀌면 자동 완료 발동 플래그 초기화
   useEffect(() => {
@@ -959,7 +961,7 @@ const VerseList = ({
     <VerseListProvider actions={verseActions} settings={verseSettings}>
     <div className="bible-content">
       {/* 진행률 pill - 읽은 절이 있을 때만 컴팩트하게 표시 */}
-      {readCount > 0 && totalVerses > 0 && (
+      {readCount > 0 && pillTotal > 0 && (
         <div className={pillReveal ? 'verse-progress-pill--reveal' : undefined} style={{
           display: 'flex',
           alignItems: 'center',
@@ -976,7 +978,7 @@ const VerseList = ({
             auto_stories
           </span>
           <span style={{ color: 'var(--ig-secondary-text)', fontWeight: 500 }}>
-            {readCount} / {totalVerses}
+            {readCount} / {pillTotal}
           </span>
           <div style={{
             flex: 1,
