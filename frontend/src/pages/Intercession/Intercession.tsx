@@ -26,7 +26,11 @@ import { LetterEntry, LetterInbox } from './Letters'
 import { RecapCard } from './Recap'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { INTERCESSION_HERO } from '../../utils/themeAssets'
+import { ensureFontFamily } from '../../utils/deferredFonts'
 import './intercession.css'
+
+// 등불 아래 쪽지 손글씨 — 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
+ensureFontFamily('nanumPen')
 
 const LINE_MAX = 80
 
@@ -238,6 +242,7 @@ const LampHero = ({ state }: { state: IntercessionState }) => {
   const lamp = state.lamp!
   const month = cycleMonthLabel(state.cycle!.start_date)
   const anyLit = lamp.weeks.some((w) => w.lit)
+  const thisWeekLit = lamp.weeks.some((w) => w.is_current && w.lit)
   const sceneReady = useThemeArt(INTERCESSION_HERO)
   const title = lamp.received_today
     ? '오늘도 누군가\n당신을 위해 기도했어요'
@@ -255,13 +260,26 @@ const LampHero = ({ state }: { state: IntercessionState }) => {
         </div>
         <Lamp weeks={lamp.weeks} />
       </div>
-      <p className="mt-7 lg:mt-9 text-center text-[12.5px] lg:text-[15.5px] leading-relaxed text-[#41527a] dark:text-white/75 break-keep">
-        누군가의 기도가 닿은 주마다 초가 하나씩 켜져요
-        {lamp.months_received > 1 ? (
+      {/* 창가에 남긴 쪽지 — 손글씨 서체. 오늘 받은 기도는 저녁 8시(DIGEST_HOUR)에 불이 켜지므로
+          아직 안 켜진 주엔 그 시각을 기다리는 설렘으로, 켜진 주엔 다녀간 기도로 말한다 */}
+      <p className="ic-note mt-6 lg:mt-8 text-center break-keep">
+        {thisWeekLit ? (
           <>
-            <br />
-            지금까지 <strong className="text-brand tabular-nums">{lamp.months_received}</strong>달 동안 기도가 이어졌어요
+            <span className="ic-note__spark" aria-hidden>✦</span>
+            이번 주에도 누군가 당신 이름을 불렀어요
+            <span className="ic-note__spark" aria-hidden>✦</span>
           </>
+        ) : (
+          <>
+            <span className="ic-note__spark" aria-hidden>✦</span>
+            누군가의 기도가 닿으면 저녁 8시에 살며시 불이 켜져요
+            <span className="ic-note__spark" aria-hidden>✦</span>
+          </>
+        )}
+        {lamp.months_received > 1 ? (
+          <span className="ic-note__sub">
+            벌써 <strong className="tabular-nums">{lamp.months_received}</strong>달째, 기도가 끊이지 않았어요
+          </span>
         ) : null}
       </p>
     </Hero>

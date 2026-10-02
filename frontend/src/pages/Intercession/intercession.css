@@ -250,6 +250,52 @@ html.dark .ic-votive__streak {
   height: auto;
 }
 
+/* 등불 아래 쪽지 — 창가에 남긴 손글씨 메모. 좌우 ✦ 는 정적(무한 반짝임 금지) */
+.ic-note {
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: 19px;
+  line-height: 1.35;
+  letter-spacing: 0;
+  color: #5b4a3c;
+  animation: ic-note-in 0.9s 0.5s ease-out both;
+}
+.ic-note__spark {
+  display: inline-block;
+  margin: 0 6px;
+  font-size: 0.6em;
+  vertical-align: 0.25em;
+  color: #e8a24a;
+}
+.ic-note__sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85em;
+  color: #7a6a5c;
+}
+.ic-note__sub strong {
+  font-weight: 400;
+  color: var(--brand);
+}
+html.dark .ic-note {
+  color: rgba(255, 238, 214, 0.9);
+}
+html.dark .ic-note__spark {
+  color: #ffc478;
+}
+html.dark .ic-note__sub {
+  color: rgba(255, 238, 214, 0.65);
+}
+@keyframes ic-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* 오늘 기도 버튼을 누른 직후 — 한 번 피어나는 빛 */
 .ic-pray-burst {
   animation: ic-burst 0.9s ease-out both;
@@ -274,6 +320,9 @@ html.dark .ic-votive__streak {
   }
   .ic-hero-scene {
     transition: none;
+  }
+  .ic-note {
+    animation: none;
   }
 }
 
@@ -469,6 +518,9 @@ html.dark .ic-paper__input::placeholder {
   .ic-votive__svg {
     width: 60px;
     height: 90px;
+  }
+  .ic-note {
+    font-size: 24px;
   }
   .ic-votive.is-current::before {
     top: 85.5px; /* 초 SVG 90px × 0.95 */
