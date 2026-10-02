@@ -3,6 +3,7 @@
 
 import type { Column } from '../../types/column'
 import { columnPlainText } from './blockFormat'
+import { removeHighlightTags } from './highlightMarkup'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
@@ -75,8 +76,8 @@ export const isThisWeek = (dateStr: string): boolean => {
 /** 본문의 첫 하이라이트 문장 — 피처드 카드에서 인용구로 노출 */
 export const firstHighlight = (content: string): string | null => {
   const m = content.match(/\[\[(.*?)\]\]/)
-  // [[문구|yellow|wavy]] 처럼 옵션이 붙어 있으면 문구만
-  const text = m?.[1]?.split('|')[0]?.trim()
+  // [[문구|yellow|wavy]] 처럼 옵션이 붙어 있으면 문구만. 안쪽 **굵게** 같은 서식 기호도 걷어낸다
+  const text = m?.[1] ? removeHighlightTags(m[1].split('|')[0]).trim() : undefined
   return text ? stripOuterQuotes(text) || null : null
 }
 

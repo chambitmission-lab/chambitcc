@@ -166,7 +166,8 @@ export const renderHighlightedText = (text: string): ReactNode[] =>
     if (marks.strike) node = <s className="decoration-[1.5px]">{node}</s>
     if (marks.underline) node = <u className="underline-offset-[4px] decoration-[1.5px]">{node}</u>
     if (marks.italic) node = <em>{node}</em>
-    if (marks.bold) node = <strong className="font-semibold text-ink-strong">{node}</strong>
+    // 형광펜 안이면 색은 바깥 span(글자색 스타일 등)을 따라야 한다 — 여기서 덮으면 '글자색'이 검정으로 바뀐다
+    if (marks.bold) node = <strong className={highlight ? 'font-semibold' : 'font-semibold text-ink-strong'}>{node}</strong>
     if (highlight) {
       node = (
         <span className="text-ink-strong" style={highlightStyle(highlight)}>
