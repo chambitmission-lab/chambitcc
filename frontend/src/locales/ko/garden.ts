@@ -37,15 +37,15 @@ export const garden = {
   // 칭호 카드
   titleConcealedName: '??? 칭호',
   titleConcealedDesc: '숨겨진 칭호 — 조건을 달성하면 공개됩니다',
-  titleHiddenHint: '🎁 히든 칭호',
+  titleHiddenHint: '히든 칭호',
   titleEquippedChip: '장착중',
   titleEquip: '장착',
   titleUnequip: '해제',
   titleEarnedDone: '획득 완료',
 
   // 해금 팝업
-  titleUnlockEyebrow: '✨ 새로운 칭호 획득',
-  titleUnlockEyebrowLegendary: '🏆 전설 칭호 획득!',
+  titleUnlockEyebrow: '새로운 칭호 획득',
+  titleUnlockEyebrowLegendary: '전설 칭호 획득!',
   titleUnlockCongrats: '축하합니다! 칭호를 획득하셨습니다',
   titleUnlockEquipNow: '바로 장착하기',
   titleUnlockLater: '나중에',

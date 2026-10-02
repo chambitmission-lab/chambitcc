@@ -37,15 +37,15 @@ export const garden = {
   // Title card
   titleConcealedName: '??? Title',
   titleConcealedDesc: 'A hidden title — revealed once you meet the condition',
-  titleHiddenHint: '🎁 Hidden title',
+  titleHiddenHint: 'Hidden title',
   titleEquippedChip: 'Equipped',
   titleEquip: 'Equip',
   titleUnequip: 'Unequip',
   titleEarnedDone: 'Earned',
 
   // Unlock popup
-  titleUnlockEyebrow: '✨ New Title Unlocked',
-  titleUnlockEyebrowLegendary: '🏆 Legendary Title Unlocked!',
+  titleUnlockEyebrow: 'New Title Unlocked',
+  titleUnlockEyebrowLegendary: 'Legendary Title Unlocked!',
   titleUnlockCongrats: 'Congratulations! You earned a new title',
   titleUnlockEquipNow: 'Equip Now',
   titleUnlockLater: 'Later',

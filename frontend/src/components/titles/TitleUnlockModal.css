@@ -72,7 +72,9 @@
 
 .title-unlock-eyebrow {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -187,4 +189,10 @@
    (TitleDetailSheet 와 같은 문법). 가로는 360px 상한이 먼저 걸려 vw 보정은 필요 없다. */
 @media (min-width: 1024px) {
   .title-unlock-card { zoom: var(--pc-zoom, 1); }
+}
+
+.title-unlock-eyebrow-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }

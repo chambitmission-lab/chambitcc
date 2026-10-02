@@ -136,6 +136,56 @@ const EN: Record<string, TitleText> = {
     description: 'Psalm 119, the Everest of the Bible — all 176 verses climbed, no oxygen tank needed! How was the view of the Word from the top?',
     hint: 'Finish Psalm 119, the longest chapter in the Bible',
   },
+  typing_first: {
+    name: 'Novice Scribe',
+    description: 'Your first verse, copied out letter by letter. Every scribe starts with a single stroke.',
+    hint: 'Complete 1 verse in Scripture Typing',
+  },
+  typing_one_chapter: {
+    name: 'A Whole Chapter',
+    description: 'From the first verse to the last, a whole chapter traced by your fingertips. The Word feels different when you write it.',
+    hint: 'Type out an entire chapter',
+  },
+  typing_shepherd: {
+    name: "Keeper of the Shepherd's Song",
+    description: 'The Lord is my shepherd… while you set down those six verses, you were already lying in green pastures.',
+    hint: 'Type out all of Psalm 23',
+  },
+  typing_hundred: {
+    name: 'Diligent Scribe',
+    description: '100 verses copied! Your scroll is getting thick. Stretch those wrists before you go on.',
+    hint: 'Type 100 verses',
+  },
+  typing_ezra: {
+    name: 'Heir of Ezra',
+    description: 'Like Ezra, a scribe skilled in the Law (Ezra 7:6) — 1,000 verses copied, and the Word has soaked into your fingertips.',
+    hint: 'Type 1,000 verses',
+  },
+  typing_swift_pen: {
+    name: 'Pen of a Ready Writer',
+    description: 'My tongue is the pen of a ready writer (Ps 45:1) — 300 keystrokes a minute! The Word flows right off your fingertips.',
+    hint: 'Reach 300 keystrokes per minute with 95%+ accuracy',
+  },
+  typing_lightning: {
+    name: 'Lightning Fingers',
+    description: "500 keystrokes a minute — sparks flying off the keys! Just don't forget the Word is best savored slowly.",
+    hint: 'Reach 500 keystrokes per minute with 95%+ accuracy',
+  },
+  typing_heart_tablet: {
+    name: 'Written on the Heart',
+    description: 'Write them on the tablet of your heart (Prov 3:3) — 50 verses typed without looking. The Word now lives in your heart, not on a screen.',
+    hint: 'Type 50 verses in memorize mode',
+  },
+  typing_daily_line: {
+    name: 'A Line Each Day',
+    description: 'Even one verse a day is enough — seven days of copying the Word. Your notebook is filling up like a diary.',
+    hint: 'Type on 7 different days in total',
+  },
+  typing_jot_and_tittle: {
+    name: 'Not One Jot or Tittle',
+    description: 'One jot or one tittle shall in no wise pass (Matt 5:18) — 30 verses at 100% accuracy! Typos keep their distance from you.',
+    hint: 'Type 30 verses with 100% accuracy',
+  },
   living_legend: {
     name: 'Living Legend',
     description: "Dawn and midnight, a hundred days and sixty-six books — every title in the collection has gathered before you. The titles aren't the legend anymore. You are.",

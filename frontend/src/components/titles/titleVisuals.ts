@@ -46,9 +46,10 @@ export const TIER_VISUALS: Record<TitleTier, TierVisual> = {
 
 export const CATEGORY_ORDER: TitleCategory[] = ['time', 'pattern', 'typing', 'hidden']
 
-export const CATEGORY_META: Record<TitleCategory, { icon: string; labelKey: LocaleKey }> = {
-  time: { icon: '📅', labelKey: 'titleCatTime' },
-  pattern: { icon: '📖', labelKey: 'titleCatPattern' },
-  typing: { icon: '✍️', labelKey: 'titleCatTyping' },
-  hidden: { icon: '🎉', labelKey: 'titleCatHidden' },
+// glyph = TitleGlyph 의 key — OS마다 다르게 그려지는 이모지 대신 칭호 메달과 같은 선화로 그린다
+export const CATEGORY_META: Record<TitleCategory, { glyph: string; labelKey: LocaleKey }> = {
+  time: { glyph: 'cat_time', labelKey: 'titleCatTime' },
+  pattern: { glyph: 'cat_pattern', labelKey: 'titleCatPattern' },
+  typing: { glyph: 'cat_typing', labelKey: 'titleCatTyping' },
+  hidden: { glyph: 'cat_hidden', labelKey: 'titleCatHidden' },
 }

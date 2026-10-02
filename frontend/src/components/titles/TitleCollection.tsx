@@ -10,6 +10,7 @@ import { TitleMedal, TitleMedalTile } from './TitleMedal'
 import { TitleDetailSheet } from './TitleDetailSheet'
 import { localizeTitle } from './titleI18n'
 import { CATEGORY_ORDER, CATEGORY_META } from './titleVisuals'
+import { TitleGlyph } from './TitleGlyph'
 import './TitleCollection.css'
 
 const progressPct = (title: TitleStatus): number =>
@@ -104,7 +105,9 @@ export const TitleCollection: React.FC = () => {
   if (error || !data) {
     return (
       <div className="title-collection-state">
-        <div className="title-collection-state-icon">😢</div>
+        <div className="title-collection-state-icon" aria-hidden>
+          <TitleGlyph titleKey="ui_sad" />
+        </div>
         <p>{t('titleCollectionError')}</p>
       </div>
     )
@@ -190,7 +193,9 @@ export const TitleCollection: React.FC = () => {
             return (
               <section key={cat} className="title-section">
                 <div className="title-section-head">
-                  <span className="title-section-icon">{meta.icon}</span>
+                  <span className="title-section-icon" aria-hidden>
+                    <TitleGlyph titleKey={meta.glyph} />
+                  </span>
                   <h2 className="title-section-title">{t(meta.labelKey)}</h2>
                   <span className="title-section-count">{earnedCount}/{items.length}</span>
                 </div>

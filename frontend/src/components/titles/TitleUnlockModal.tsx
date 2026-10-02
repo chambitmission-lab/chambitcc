@@ -73,6 +73,7 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12 }}
         >
+          <TitleGlyph titleKey={isLegendary ? 'bible_conqueror' : 'ui_sparkle'} className="title-unlock-eyebrow-icon" />
           {isLegendary ? t('titleUnlockEyebrowLegendary') : t('titleUnlockEyebrow')}
         </motion.span>
 

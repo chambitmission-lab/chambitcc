@@ -6,6 +6,7 @@ import { Feather } from '../../../components/icons/phosphor'
 import { useBibleBooks } from '../../../hooks/useBible'
 import { useTypingStats, useTypingWeekly } from '../../../hooks/useBibleTyping'
 import { useTitles } from '../../../hooks/useTitles'
+import { TitleGlyph } from '../../../components/titles/TitleGlyph'
 import { tokenStore } from '../../../utils/tokenStore'
 import type { TypingMode } from '../../../api/bibleTyping'
 import { sessionPath, useIgnorePunct, useTypingMode } from './typingPrefs'
@@ -255,7 +256,7 @@ const TypingHome = () => {
                   return (
                     <li key={t.key} className={`bt-title${t.earned ? ' is-earned' : ''}`}>
                       <span className="bt-title__icon" aria-hidden>
-                        {t.icon}
+                        <TitleGlyph titleKey={t.key} fallback={t.icon} />
                       </span>
                       <span className="bt-title__body">
                         <span className="bt-title__name">{t.name}</span>

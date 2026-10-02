@@ -93,7 +93,9 @@
 }
 
 .title-section-icon {
-  font-size: 18px;
+  display: inline-flex;
+  font-size: 20px;
+  color: var(--brand);
 }
 
 .title-section-title {
@@ -230,7 +232,9 @@
 }
 
 .title-collection-state-icon {
-  font-size: 34px;
+  display: inline-flex;
+  font-size: 38px;
+  color: var(--text-muted);
 }
 
 @keyframes title-bob {
