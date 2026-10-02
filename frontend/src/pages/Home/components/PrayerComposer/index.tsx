@@ -11,6 +11,8 @@ import { PastorIcon, PrayIcon } from '../EmotionIcons'
 import { EmotionGlyph } from '../EmotionGlyph'
 import { ClosetIcon, DiceIcon, EyeIcon, GlobeIcon, LockIcon } from './composerIcons'
 import { GroupGlyph } from '../../../Groups/GroupIcons'
+import { VerseSlashPanel } from './VerseSlashPanel'
+import { findSlashMatch, useVerseSlash } from './verseSlash'
 import '../ThanksThread/thanks.css'
 
 const MAX_LEN = 1000
@@ -224,6 +226,74 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
   const handleManualContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (voiceActiveRef.current && contentVoice.isListening) return
     setContent(e.target.value.slice(0, MAX_LEN))
+    setCaret(e.target.selectionStart ?? e.target.value.length)
+  }
+
+  // ── "/말씀" 넣기 — `/창 1:1` 을 치면 아래에 구절 미리보기, Enter·탭으로 본문에 넣는다 ──
+  const [caret, setCaret] = useState(0)
+  const [slashDismissedAt, setSlashDismissedAt] = useState<number | null>(null)
+  const slashMatch = useMemo(() => {
+    if (contentVoice.isListening) return null
+    const m = findSlashMatch(content, caret)
+    return m && m.start !== slashDismissedAt ? m : null
+  }, [content, caret, slashDismissedAt, contentVoice.isListening])
+  const slash = useVerseSlash(slashMatch?.query ?? null)
+
+  const syncCaret = (e: React.SyntheticEvent<HTMLTextAreaElement>) =>
+    setCaret(e.currentTarget.selectionStart ?? 0)
+
+  const insertSlashVerse = () => {
+    if (!slashMatch || slash?.kind !== 'ready') return
+    const head = content.slice(0, slashMatch.start)
+    const tail = content.slice(caret)
+    const piece = tail.startsWith(' ') || tail.startsWith('\n') ? slash.insert : `${slash.insert} `
+    if (head.length + piece.length + tail.length > MAX_LEN) {
+      showToast(ko ? '글자 수가 넘쳐서 말씀을 넣지 못했어요' : 'Too long to insert this verse', 'error')
+      return
+    }
+    const next = head + piece + tail
+    const pos = head.length + piece.length
+    setContent(next)
+    setCaret(pos)
+    requestAnimationFrame(() => {
+      const el = textareaRef.current
+      if (!el) return
+      el.focus()
+      el.setSelectionRange(pos, pos)
+    })
+  }
+
+  const handleContentKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!slashMatch || e.nativeEvent.isComposing) return
+    if (e.key === 'Escape') {
+      // 모달 닫기(Esc)보다 말씀 찾기 닫기가 먼저
+      e.preventDefault()
+      e.stopPropagation()
+      setSlashDismissedAt(slashMatch.start)
+    } else if (e.key === 'Enter' && !e.shiftKey && slash?.kind === 'ready') {
+      e.preventDefault()
+      insertSlashVerse()
+    }
+  }
+
+  // 도구줄 "말씀 넣기" — 커서 자리에 '/' 를 넣어 같은 흐름을 연다(한글 자판에서 '/' 찾기 번거로움)
+  const startVerseSlash = () => {
+    const el = textareaRef.current
+    const at = el ? el.selectionStart ?? content.length : content.length
+    const before = content.slice(0, at)
+    const lead = before && !/\s$/.test(before) ? ' ' : ''
+    const piece = `${lead}/`
+    if (content.length + piece.length > MAX_LEN) return
+    const pos = at + piece.length
+    setContent(before + piece + content.slice(at))
+    setCaret(pos)
+    setSlashDismissedAt(null)
+    requestAnimationFrame(() => {
+      const node = textareaRef.current
+      if (!node) return
+      node.focus()
+      node.setSelectionRange(pos, pos)
+    })
   }
 
   const handleManualTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -665,6 +735,9 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                       ref={textareaRef}
                       value={content}
                       onChange={handleManualContentChange}
+                      onKeyDown={handleContentKeyDown}
+                      onSelect={syncCaret}
+                      onClick={syncCaret}
                       rows={4}
                       maxLength={MAX_LEN}
                       placeholder={placeholder}
@@ -673,12 +746,32 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                       }`}
                     />
 
+                    {slash && (
+                      <VerseSlashPanel
+                        state={slash}
+                        ko={ko}
+                        onInsert={insertSlashVerse}
+                        onDismiss={() => slashMatch && setSlashDismissedAt(slashMatch.start)}
+                      />
+                    )}
+
                     <div className="flex items-center justify-between pt-1 lg:pt-3">
+                      <div className="flex items-center gap-0.5 lg:gap-2 -ml-1">
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={startVerseSlash}
+                        title={ko ? '본문에 / 를 치고 창 1:1 처럼 적어도 돼요' : 'Or type / then a reference like 창 1:1'}
+                        className="inline-flex items-center gap-1 lg:gap-1.5 px-2 py-1 lg:px-4 lg:py-2.5 rounded-full text-[11.5px] lg:text-[16px] font-semibold transition-colors lg:border lg:border-[var(--card-border)] text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)]"
+                      >
+                        <span className="material-icons-outlined text-[15px] lg:text-[21px]">menu_book</span>
+                        {ko ? '말씀 넣기' : 'Add verse'}
+                      </button>
                       {contentVoice.isSupported ? (
                         <button
                           type="button"
                           onClick={toggleVoice}
-                          className={`inline-flex items-center gap-1 lg:gap-1.5 -ml-1 px-2 py-1 lg:px-4 lg:py-2.5 rounded-full text-[11.5px] lg:text-[16px] font-semibold transition-colors lg:border lg:border-[var(--card-border)] ${
+                          className={`inline-flex items-center gap-1 lg:gap-1.5 px-2 py-1 lg:px-4 lg:py-2.5 rounded-full text-[11.5px] lg:text-[16px] font-semibold transition-colors lg:border lg:border-[var(--card-border)] ${
                             contentVoice.isListening
                               ? 'text-red-500 bg-red-500/10 animate-pulse'
                               : 'text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)]'
@@ -696,10 +789,11 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                               : 'Speak'}
                         </button>
                       ) : (
-                        <span className="text-[11.5px] lg:text-[15px] text-ink-muted">
+                        <span className="hidden sm:inline text-[11.5px] lg:text-[15px] text-ink-muted">
                           {ko ? '길게 써도, 한 줄만 써도 돼요' : 'Long or short — both are fine'}
                         </span>
                       )}
+                      </div>
                       <div className="flex items-center gap-1.5 lg:gap-2 lg:[&>svg]:w-7 lg:[&>svg]:h-7">
                         <span
                           className="text-[11px] lg:text-[14.5px] font-bold tabular-nums"
