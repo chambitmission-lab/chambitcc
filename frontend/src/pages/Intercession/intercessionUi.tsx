@@ -214,7 +214,7 @@ export const Lamp = ({
         }`}
       >
         <span className="ic-candle__glow" aria-hidden />
-        <Flame lit={w.lit} size={size === 'lg' ? 22 : 11} />
+        <Flame lit={w.lit} size={11} />
         <span className="ic-candle__stick" aria-hidden />
       </span>
     ))}
