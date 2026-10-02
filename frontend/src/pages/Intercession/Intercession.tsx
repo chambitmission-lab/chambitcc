@@ -248,7 +248,7 @@ const LampHero = ({ state }: { state: IntercessionState }) => {
     <Hero label="누군가의 기도" title={title}>
       {/* 창턱 장면은 카드가 아니라 촛불 줄에 붙인다 — 제목 줄 수·안내 문구로 카드 높이가 달라져도
           초가 늘 창턱 위에 놓인다. 그림이 카드보다 커서 남는 부분은 Hero 의 overflow-hidden 이 자른다. */}
-      <div className="relative mt-6">
+      <div className="ic-hero-stage relative mt-6">
         <div className={`ic-hero-scene${sceneReady ? ' is-loaded' : ''}`} aria-hidden>
           <img src={INTERCESSION_HERO.light} alt="" className="dark:hidden" decoding="async" />
           <img src={INTERCESSION_HERO.dark} alt="" className="hidden dark:block" decoding="async" />
