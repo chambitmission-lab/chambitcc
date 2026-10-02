@@ -81,7 +81,17 @@ const Profile = () => {
   // bluemarble=0 으로 낮게 계산된 양이 먼저 떴다가 점프하는 플래시가 생긴다.
   const { data: bmStats, isLoading: bmLoading } = useBluemarbleStats(hasToken)
   // 아래 카드들이 쓰는 쿼리 — 같은 키라 요청은 하나. 여기선 "도착했는지"만 본다(ready 참고)
-  const { data: equipped, isLoading: equippedLoading } = useEquippedTitle(hasToken)
+  // 장착 칭호는 isLoading 이 아니라 isFetching 까지 본다 — 커버 배너의 출처라서,
+  // 캐시(persist 7일·stale 5분)에 남은 옛 칭호로 먼저 그리면 다른 기기에서 바꾼 뒤
+  // 진입할 때 옛 배경이 한 번 뜬 다음 재조회 응답으로 바뀌어 보였다. 단건 조회라
+  // detail 을 기다리는 시간 안에 끝나므로 최종 배경으로 한 번에 그려도 체감 지연이 없다.
+  const { data: equipped, isFetching: equippedFetching, dataUpdatedAt: equippedUpdatedAt } =
+    useEquippedTitle(hasToken)
+  // 단, 기다리는 건 진입 시 한 번만 — 머무는 동안의 재조회(재연결·칭호 해금 invalidate)에
+  // 본문이 스켈레톤으로 되돌아가면 안 된다. "이 마운트 이전에 받은 데이터로 재조회 중"일 때만
+  // 기다린다(persist 복원분도 갱신 시각이 과거라 포함). 새 응답이 한 번 오면 그 뒤로는 막지 않는다.
+  const [mountedAt] = useState(() => Date.now())
+  const equippedPending = equippedFetching && equippedUpdatedAt < mountedAt
   const { isLoading: summaryLoading } = useGrowthSummary(hasToken)
   const { isLoading: recentLoading } = useGrowthRecentDays(14, hasToken)
 
@@ -252,7 +262,8 @@ const Profile = () => {
   // 커버 배너(16:9)와 인사이트 카드가 하나씩 끼어들며 아래를 밀어내 "자라나는" 것처럼 보인다.
   // 전부 prefetch.ts 가 같은 시점에 띄운 요청이라 기다림은 가장 느린 하나(detail)만큼이고,
   // isLoading 기준이라 실패한 요청은 막지 않는다(그 카드만 빠진다).
-  const cardsLoading = hasToken && (equippedLoading || summaryLoading || recentLoading)
+  // 장착 칭호만은 재조회(isFetching)까지 — 옛 배너가 먼저 뜨지 않게(위 useEquippedTitle 참고)
+  const cardsLoading = hasToken && (equippedPending || summaryLoading || recentLoading)
   const ready = !!data && !isLoading && !(hasToken && bmLoading) && !cardsLoading
 
   return (
