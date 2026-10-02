@@ -84,6 +84,14 @@ const TILE_TONE: Record<'brand' | 'soft' | 'accent', string> = {
 // target_user_id 가 없으면 전체 공지 — 배지로 갈라 줘야 어느 쪽인지 한눈에 읽힌다.
 const isNotice = (n: Notification) => n.target_user_id == null
 
+// 공지/내 알림 칩 — 모바일은 본문 앞, PC 는 시각 옆에 같은 모양으로 둔다
+const kindChipClass = (notice: boolean) =>
+  `px-1.5 py-[1px] lg:px-2 lg:py-0.5 rounded-md text-[10px] lg:text-[12.5px] font-bold tracking-tight ${
+    notice
+      ? 'bg-[var(--brand-soft-strong)] text-brand'
+      : 'bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-gray-400'
+  }`
+
 // 서식이 쓰였으면 접힌 줄에서는 카드·정보 박스가 눕혀지므로 항상 펼칠 수 있어야 한다
 const needsExpand = (content: string) => {
   const plain = noticePreviewText(content)
@@ -294,6 +302,10 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+        /* PC: 폭이 넓어진 만큼 접힌 본문도 세 줄까지 — 두 줄이면 문장 중간에서 끊긴다 */
+        @media (min-width: 1024px) {
+          .notification-modal .content-clamp { -webkit-line-clamp: 3; }
+        }
       `}</style>
 
       <div
@@ -301,37 +313,37 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
         onClick={onClose}
       />
 
-      <div className="notification-modal fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100vh-100px)] z-[1000] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      <div className="notification-modal notif-panel fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100vh-100px)] z-[1000] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-ink-strong tracking-tight">
+        <div className="flex items-center justify-between px-5 py-4 lg:px-7 lg:py-5 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-2 lg:gap-2.5">
+            <h2 className="text-base lg:text-[21px] font-bold text-ink-strong tracking-tight">
               알림
             </h2>
             <span
-              className="w-6 h-6 rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-brand"
+              className="w-6 h-6 lg:w-8 lg:h-8 lg:[&_svg]:w-[18px] lg:[&_svg]:h-[18px] rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-brand"
               aria-hidden
             >
               <BellIcon size={14} strokeWidth={2} />
             </span>
             {unreadCount > 0 && (
-              <span className="text-xs font-semibold text-brand">
+              <span className="text-xs lg:text-[15px] font-semibold text-brand">
                 {unreadCount}
               </span>
             )}
             {total > 0 && (
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs lg:text-[15px] text-gray-500 dark:text-gray-400">
                 총 {total}건
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 lg:gap-2">
             {isLoggedIn && unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={markAllAsReadMutation.isPending}
-                className="px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-brand rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-2.5 py-1.5 lg:px-4 lg:h-11 lg:text-[15px] lg:font-semibold lg:rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-brand rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 모두 읽음
               </button>
@@ -340,7 +352,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
             <button
               onClick={onClose}
               aria-label="닫기"
-              className="w-11 h-11 -my-1.5 -mr-2 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 active:bg-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:active:bg-gray-800 rounded-full transition-colors"
+              className="w-11 h-11 lg:w-12 lg:h-12 -my-1.5 -mr-2 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 active:bg-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:active:bg-gray-800 rounded-full transition-colors"
             >
               <svg
                 width="22"
@@ -349,6 +361,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.2"
+                className="lg:w-[26px] lg:h-[26px]"
                 strokeLinecap="round"
                 aria-hidden
               >
@@ -369,14 +382,14 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
               <span className="mb-3 w-14 h-14 rounded-2xl flex items-center justify-center bg-gray-50 dark:bg-white/[0.04] text-gray-300 dark:text-gray-600">
                 <BellIcon size={26} strokeWidth={1.6} />
               </span>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm lg:text-[17px] text-gray-500 dark:text-gray-400">
                 새로운 알림이 없습니다
               </p>
             </div>
           ) : (
             <div>
               {hero && (
-                <div className="px-3 pt-3">
+                <div className="px-3 pt-3 lg:px-5 lg:pt-5">
                   <button
                     type="button"
                     onClick={() => handleItemClick(hero)}
@@ -472,16 +485,16 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
 
                 return (
                   <div key={group}>
-                    <div className="sticky top-0 z-10 px-5 pt-4 pb-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
-                      <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 tracking-wider">
+                    <div className="sticky top-0 z-10 px-5 pt-4 pb-2 lg:px-7 lg:pt-6 lg:pb-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
+                      <span className="text-[11px] lg:text-[15px] font-semibold lg:font-bold text-gray-500 dark:text-gray-400 lg:text-gray-700 lg:dark:text-gray-300 tracking-wider lg:tracking-normal">
                         {GROUP_LABELS[group]}
-                        <span className="ml-1.5 font-normal text-gray-500 dark:text-gray-400">
+                        <span className="ml-1.5 lg:ml-2 font-normal text-gray-500 dark:text-gray-400">
                           {items.length}건
                         </span>
                       </span>
                     </div>
 
-                    <ul className="px-3 pb-1 space-y-2">
+                    <ul className="px-3 pb-1 space-y-2 lg:px-5 lg:space-y-3">
                       {items.map((notification) => {
                         const unread = !notification.is_read
                         const expanded = expandedIds.has(notification.id)
@@ -500,34 +513,34 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                               onClick={() => handleItemClick(notification)}
                               aria-busy={navigating}
                               aria-expanded={!hasLink && expandable ? expanded : undefined}
-                              className={`group relative w-full text-left px-4 py-3 rounded-xl border transition-colors ${
+                              className={`group relative w-full text-left px-4 py-3 lg:px-5 lg:py-[18px] rounded-xl lg:rounded-2xl border transition-colors ${
                                 unread
                                   ? 'border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] active:bg-[var(--brand-glow)]'
                                   : 'border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 hover:bg-gray-100/70 dark:hover:bg-gray-800/50 active:bg-gray-200/60 dark:active:bg-gray-800/70'
                               }`}
                             >
-                              <div className="flex items-start gap-2.5">
+                              <div className="flex items-start gap-2.5 lg:gap-4">
                                 {/* 안 읽음 점은 자리를 차지하지 않게 띄워서, 아이콘 타일이
                                     카드 왼쪽 여백에 그대로 붙게 한다 */}
                                 {unread && (
                                   <span
-                                    className="absolute left-[7px] top-[27px] w-1.5 h-1.5 rounded-full bg-brand"
+                                    className="absolute left-[7px] top-[27px] lg:left-[7px] lg:top-[39px] w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-brand"
                                     aria-hidden
                                   />
                                 )}
 
                                 {/* 제목 앞 이모지 대신 같은 뜻의 라인 아이콘 타일 */}
                                 <span
-                                  className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${TILE_TONE[visual.tone]}`}
+                                  className={`flex-shrink-0 w-9 h-9 lg:w-12 lg:h-12 lg:rounded-2xl lg:[&_svg]:w-6 lg:[&_svg]:h-6 rounded-xl flex items-center justify-center ${TILE_TONE[visual.tone]}`}
                                   aria-hidden
                                 >
                                   {visual.icon}
                                 </span>
 
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-baseline justify-between gap-2.5">
+                                  <div className="flex items-baseline justify-between gap-2.5 lg:gap-3">
                                     <h3
-                                      className={`text-[14.5px] leading-snug truncate ${
+                                      className={`text-[14.5px] lg:text-[17.5px] leading-snug truncate ${
                                         unread
                                           ? 'font-bold text-ink-strong'
                                           : 'font-semibold text-gray-700 dark:text-gray-300'
@@ -535,26 +548,27 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                     >
                                       {stripLeadingEmoji(notification.title)}
                                     </h3>
-                                    <span className="flex-shrink-0 text-[11px] text-gray-500 dark:text-gray-400 tabular-nums">
+                                    <span className="flex-shrink-0 flex items-center gap-2 text-[11px] lg:text-[14px] text-gray-500 dark:text-gray-400 tabular-nums">
+                                      {/* PC: 종류 칩은 시각 옆으로 — 본문 앞에 두면 둘째 줄부터
+                                          들여쓰기가 생겨 넓어진 폭을 못 쓰고 답답하게 꺾인다 */}
+                                      <span className={`hidden lg:inline-flex ${kindChipClass(notice)}`}>
+                                        {notice ? '공지' : '내 알림'}
+                                      </span>
                                       {formatDate(notification.created_at)}
                                     </span>
                                   </div>
 
                                   {/* 종류 칩 + 본문 — 접힌 상태는 line-clamp가 걸린 인라인이어야
                                       해서 블록(카드·정보 박스)은 눕히고 강조만 살린다 */}
-                                  <div className="mt-1 flex items-start gap-1.5">
+                                  <div className="mt-1 lg:mt-1.5 flex items-start gap-1.5">
                                     <span
-                                      className={`flex-shrink-0 mt-[1px] px-1.5 py-[1px] rounded-md text-[10px] font-bold tracking-tight ${
-                                        notice
-                                          ? 'bg-[var(--brand-soft-strong)] text-brand'
-                                          : 'bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-gray-400'
-                                      }`}
+                                      className={`lg:hidden flex-shrink-0 mt-[1px] ${kindChipClass(notice)}`}
                                     >
                                       {notice ? '공지' : '내 알림'}
                                     </span>
                                     <div className="flex-1 min-w-0">
                                       {expandable && !expanded ? (
-                                        <p className="content-clamp text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed break-words">
+                                        <p className="content-clamp text-[13px] lg:text-[16px] text-gray-600 dark:text-gray-400 lg:text-gray-700 lg:dark:text-gray-300 leading-relaxed lg:leading-[1.7] break-words">
                                           <NoticeInline source={notification.content} />
                                         </p>
                                       ) : (
@@ -571,7 +585,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                       src={notification.image_url}
                                       alt=""
                                       loading="lazy"
-                                      className="mt-2.5 w-full max-h-64 object-contain rounded-xl bg-gray-50 dark:bg-gray-800/50"
+                                      className="mt-2.5 lg:mt-3.5 w-full max-h-64 lg:max-h-96 object-contain rounded-xl bg-gray-50 dark:bg-gray-800/50"
                                     />
                                   )}
 
@@ -593,7 +607,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                         }
                                       }}
                                       aria-expanded={expanded}
-                                      className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-gray-500 dark:text-gray-400 hover:text-brand"
+                                      className="mt-1.5 lg:mt-2 lg:-ml-2 lg:px-2 lg:py-1.5 lg:rounded-lg lg:hover:bg-black/[0.04] lg:dark:hover:bg-white/[0.06] inline-flex items-center gap-1 text-[12px] lg:text-[14.5px] font-medium lg:font-semibold text-gray-500 dark:text-gray-400 hover:text-brand"
                                     >
                                       <span>{expanded ? '접기' : '더 보기'}</span>
                                       <svg
@@ -605,7 +619,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                         strokeWidth="2.5"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
-                                        className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                                        className={`lg:w-[15px] lg:h-[15px] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
                                         aria-hidden
                                       >
                                         <path d="M6 9l6 6 6-6" />
@@ -635,8 +649,8 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                         strokeLinejoin="round"
                                         className={
                                           hasLink
-                                            ? ''
-                                            : `transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`
+                                            ? 'lg:w-5 lg:h-5'
+                                            : `lg:w-5 lg:h-5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`
                                         }
                                       >
                                         <path d={hasLink ? 'M9 18l6-6-6-6' : 'M6 9l6 6 6-6'} />
@@ -662,9 +676,9 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                   </div>
                 )}
                 {!hasNextPage && notifications.length > 0 && (
-                  <div className="flex items-center gap-3 px-8 py-4">
+                  <div className="flex items-center gap-3 px-8 py-4 lg:py-6">
                     <span className="flex-1 h-px bg-gray-200/70 dark:bg-gray-800" aria-hidden />
-                    <span className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    <span className="text-[11px] lg:text-[14px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       모든 알림을 확인했습니다
                     </span>
                     <span className="flex-1 h-px bg-gray-200/70 dark:bg-gray-800" aria-hidden />

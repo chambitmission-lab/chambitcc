@@ -372,6 +372,23 @@
   .pc-scale-sheet.sm\:max-h-\[90vh\] { max-height: calc(90vh / var(--pc-zoom, 1)); }
 }
 
+/* PC 알림 모달(헤더 종) — 모바일 400px 드롭다운 그대로면 본문이 두 줄씩 꺾이고 글씨가 13px대라 어르신이
+   읽기 버겁다. PC 에선 폭 560px 패널로 넓히고, 헤더 '가' 배율은 패널 자체 zoom 으로 따른다.
+   zoom 안에선 top·right·vh 도 함께 커지므로 배율로 나눈다. 본체(NotificationModal)와 청크 대기 뼈대
+   (NotificationModalFallback)가 같은 클래스를 써야 교체 순간 자리가 튀지 않아 전역 CSS 에 둔다.
+   div 를 붙인 건 Tailwind top-[60px]·w-[400px] 같은 단일 클래스보다 확실히 이기기 위해서다. */
+@media (min-width: 1024px) {
+  div.notif-panel {
+    zoom: var(--pc-zoom, 1);
+    top: calc(64px / var(--pc-zoom, 1));
+    right: calc(24px / var(--pc-zoom, 1));
+    width: min(560px, calc((100vw - 48px) / var(--pc-zoom, 1)));
+    max-width: none;
+    max-height: calc((100vh - 88px) / var(--pc-zoom, 1));
+    border-radius: 1.5rem;
+  }
+}
+
 /* PC 글씨 크기 — zoom 을 쓸 수 없는 화면(화면 좌표로 스크롤을 계산하는 성경 본문)은 글자 크기 값에
    --text-mul 을 곱해 따라온다(pages/Bible/styles/verse-display.css). zoom 보다 한 단계 약하게 둔다 —
    PC 본문 기준이 이미 모바일보다 크다. 값은 위 `html[data-text-scale]` 에서 상속된다. */

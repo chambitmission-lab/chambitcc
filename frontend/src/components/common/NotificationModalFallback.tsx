@@ -9,12 +9,12 @@ import { BellIcon } from '../icons/NotificationIcons'
 const NotificationModalFallback = ({ onClose }: { onClose: () => void }) => (
   <>
     <div className="fixed inset-0 bg-black/40 z-[999]" onClick={onClose} />
-    <div className="fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100vh-100px)] z-[1000] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+    <div className="notif-panel fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100vh-100px)] z-[1000] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      <div className="flex items-center justify-between px-5 py-4 lg:px-7 lg:py-5 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-2">
-          <h2 className="text-base font-bold text-ink-strong tracking-tight">알림</h2>
+          <h2 className="text-base lg:text-[21px] font-bold text-ink-strong tracking-tight">알림</h2>
           <span
-            className="w-6 h-6 rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-brand"
+            className="w-6 h-6 lg:w-8 lg:h-8 lg:[&_svg]:w-[18px] lg:[&_svg]:h-[18px] rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-brand"
             aria-hidden
           >
             <BellIcon size={14} strokeWidth={2} />
@@ -24,7 +24,7 @@ const NotificationModalFallback = ({ onClose }: { onClose: () => void }) => (
           type="button"
           onClick={onClose}
           aria-label="닫기"
-          className="w-11 h-11 -my-1.5 -mr-2 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full"
+          className="w-11 h-11 lg:w-12 lg:h-12 -my-1.5 -mr-2 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
             <path d="M18 6L6 18M6 6l12 12" />

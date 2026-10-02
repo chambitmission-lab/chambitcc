@@ -226,6 +226,107 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+/* PC(lg+) — 알림 패널이 560px 로 넓어지는 만큼 히어로도 노안 기준으로 키운다(패널 자체 zoom 은 '가' 배율만 담당).
+   마감 줄·버튼은 13px 아래로 내려가지 않게, 버튼은 누르는 높이 44px */
+@media (min-width: 1024px) {
+  .notif-hero {
+    padding: 1.35rem 1.5rem 1.2rem;
+    border-radius: 1.5rem;
+  }
+  .notif-hero__chip {
+    gap: 0.45rem;
+    padding: 0.3rem 0.8rem 0.3rem 0.65rem;
+    font-size: 13.5px;
+  }
+  .notif-hero__pulse {
+    width: 7px;
+    height: 7px;
+  }
+  .notif-hero__time {
+    font-size: 14px;
+  }
+  .notif-hero__body {
+    gap: 1.1rem;
+    margin-top: 1.05rem;
+  }
+  .notif-hero__img {
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 1.2rem;
+  }
+  .notif-hero__title {
+    font-size: 21px;
+    line-height: 1.35;
+  }
+  .notif-hero__preview {
+    margin-top: 0.4rem;
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+  .notif-hero__foot {
+    margin-top: 1.15rem;
+    padding-top: 1rem;
+  }
+  .notif-hero__until {
+    gap: 0.4rem;
+    font-size: 14.5px;
+  }
+  .notif-hero__action {
+    min-height: 44px;
+    gap: 0.35rem;
+    padding: 0 1rem 0 1.15rem;
+    font-size: 15.5px;
+  }
+  .notif-hero__action svg {
+    width: 16px;
+    height: 16px;
+  }
+  .notif-hero__expanded {
+    margin-top: 1.1rem;
+  }
+  .notif-hero__expanded-img {
+    margin-top: 1rem;
+    max-height: 26rem;
+  }
+
+  /* 펼친 공지 본문(NoticeContent compact) — 알림 패널 안에서만 PC 크기로. 공용 compact 는 다른 좁은 자리도 써서 건드리지 않는다 */
+  .notif-panel .nm--compact {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  .notif-panel .nm--compact > * + * {
+    margin-top: 10px;
+  }
+  .notif-panel .nm--compact .nm-h2 {
+    font-size: 17.5px;
+  }
+  .notif-panel .nm--compact .nm-h3 {
+    font-size: 16px;
+  }
+  .notif-panel .nm--compact .nm-callout,
+  .notif-panel .nm--compact .nm-info {
+    padding: 13px 15px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+  .notif-panel .nm--compact .nm-callout-body,
+  .notif-panel .nm--compact .nm-info-value {
+    font-size: 15.5px;
+  }
+  .notif-panel .nm--compact .nm-callout-label,
+  .notif-panel .nm--compact .nm-info-label {
+    font-size: 13px;
+  }
+  .notif-panel .nm--compact .nm-info-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+  }
+  .notif-panel .nm--compact .nm-hr {
+    margin: 14px 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .notif-hero__pulse::after {
     animation: none;
