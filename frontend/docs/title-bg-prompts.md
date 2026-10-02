@@ -9,15 +9,15 @@
    **캐릭터 일치 꿀팁**: 기존 이미지(`public/images/title-bg/` 중 아무거나 한 장)를 함께 첨부하고
    "이 양 캐릭터와 완전히 같은 캐릭터로"라고 덧붙이면 시리즈가 정확히 이어진다.
 2. 결과물은 `frontend/public/images/title-bg/<key>.webp` 로 저장 (예: `dawn_riser.webp`).
-   기존 25장은 전부 **1376×768** — 같은 규격으로 맞춘다. (`cwebp -q 78 원본.png -o <key>.webp`, 20~50KB)
+   기존 26장은 전부 **1376×768** — 같은 규격으로 맞춘다. (`cwebp -q 78 원본.png -o <key>.webp`, 20~50KB)
 3. 비율은 16:9 (모바일 프로필 헤더 뒤에 깔고 하단은 그라데이션으로 녹일 예정).
 4. **새로 추가하는 칭호라면** 이미지를 넣은 뒤 `src/components/titles/TitleBackdrop.tsx` 의
    `TITLE_BG_KEYS` 에 key 를 추가해야 프로필에 실제로 깔린다 (미등록 키는 배너 없이 기본 레이아웃).
-   칭호 자체(획득 조건)는 백엔드 `app/services/title_service.py` 의 `TITLE_REGISTRY` 에 등록한다.
+   칭호 자체(획득 조건)는 백엔드 `app/services/titles/registry.py` 의 `TITLE_REGISTRY` 에 등록한다.
 
 ## 일관성 규칙 (모든 이미지 공통)
 
-- **주인공은 항상 같은 양 한 마리** — 통통하고 하얀 아기 양, 평온하고 뿌듯한 미소. 26장 전부 같은 캐릭터가 다른 상황을 연기한다.
+- **주인공은 항상 같은 양 한 마리** — 통통하고 하얀 아기 양, 평온하고 뿌듯한 미소. 시리즈 전부 같은 캐릭터가 다른 상황을 연기한다.
 - **양의 몸은 진짜 양** — 짧은 네 다리는 하얀 털에 덮이고 끝은 작고 둥근 검은 발굽. 사람 손·손가락·팔·맨살 금지.
   물건을 들어야 하면 **"upright on its two hind legs, both front hooves holding..."** 처럼 두발 자세를 명시할 것
   (네발 서기인데 뭔가 들라고 하면 팔이 새로 돋는다 — 에피소드 일러스트에서 겪은 사고).
@@ -50,7 +50,7 @@ Scene:
 
 ---
 
-## 칭호별 장면 (26종)
+## 칭호별 장면 (36종)
 
 ### 시간 카테고리
 
@@ -237,6 +237,136 @@ golden dust motes drift in the spotlight beam. Epic award-ceremony composition,
 one small sheep who collected an entire legend.
 ```
 
+### 필사 카테고리 (`/bible/typing`)
+
+> 필사 칭호 공통 소품 규칙 — 시리즈 세계관(동화책·밤하늘)을 지키기 위해 **필기구는 깃펜·두루마리·양피지·작은 나무 책상**으로 통일한다.
+> 휴대폰·모니터·현대 키보드는 그리지 않는다(예외: `typing_lightning` 의 앤티크 타자기, 자판은 글자 없는 민무늬).
+> 두루마리·종이 위의 "글씨"는 반드시 **장식용 물결 잉크 선(decorative wavy ink lines)**으로 묘사해야 글자가 생기지 않는다.
+> 깃펜·두루마리를 드는 장면은 전부 **두발 자세 + 두 앞발굽**을 명시했다 — 문구를 줄이다가 이 부분을 빼면 팔이 돋는다.
+> **캐릭터 일치용 첨부 추천**: `story_graduate.webp`(두발로 선 포즈) + `night_owl.webp`(불빛 아래 책 장면) 두 장.
+
+**typing_first · ✍️ 새내기 서기관 (bronze)** — 말씀 필사로 1절 완성
+```
+Night hilltop scene, the sheep placed on the left side of the frame: it sits upright
+on its two hind legs at a tiny wooden writing desk, both front hooves gripping an
+enormous feather quill nearly twice its own height, tongue poking out in fierce
+concentration and a small smudge of ink on its nose. On the desk lies a very long
+blank parchment scroll that spills off the edge and rolls far away down the hill —
+and at the very top of it the sheep has just finished one single, slightly wobbly
+stroke of decorative wavy ink that glows softly warm amber. A little ink pot sits
+tipped over beside it. The sheep looks up with the enormous pride of a creature who
+has just written its very first stroke. One small amber candle on the desk is the
+only warm light; deep navy sky with tiny blue-white stars above.
+```
+
+**typing_one_chapter · 📄 한 장을 온전히 (silver)** — 한 장 전체를 필사
+```
+Dramatic night cliff scene in the upper right of the frame: the sheep stands upright
+on its two hind legs at the edge of a rocky ledge, both front hooves lifting a single
+finished parchment page high above its head toward the sky, presenting it to the
+world like a royal newborn in a grand movie moment. The page is covered top to bottom
+in neat rows of decorative wavy ink lines and glows warmly amber from within, the
+only warm light in the scene, its glow catching the sheep's proud, misty-eyed face.
+On the rock around its hooves lie a few worn-down little stubs of feather quills and
+an empty ink pot. Below the cliff a calm sea of soft navy mist; deep navy sky with
+tiny blue-white stars.
+```
+
+**typing_shepherd · 🐑 목자의 노래를 새긴 자 (silver)** — 시편 23편 전체 필사
+> 목자는 인물로 그리지 않고 **지팡이 + 등불**로만 암시한다(하나님을 형상으로 그리지 않는 교회 노선 — 돌아온 탕자의 '아버지'는 비유 속 인물이라 예외였다).
+```
+A peaceful moonlit meadow of soft green pasture beside a perfectly still, mirror-calm
+stream that reflects the stars. The sheep lies comfortably on its belly in the deep
+grass in the upper left area, a small parchment scroll spread out in front of it,
+a feather quill resting loosely between its two front hooves — it has drifted into
+the coziest half-asleep smile mid-writing, eyes gently closed, completely at rest.
+Just behind it a tall wooden shepherd's crook is planted in the ground, and a small
+lantern hanging from the crook casts the one warm amber glow over the sheep like a
+quiet guardian. Fireflies drift above the grass. Deep navy sky with tiny blue-white
+stars; the stream and bottom-center of the frame stay calm and empty.
+```
+
+**typing_hundred · 📜 부지런한 서기관 (silver)** — 말씀 100절 필사
+```
+Cozy night scene inside a small wooden scribe's nook with a round window showing the
+navy starry sky. The sheep sits upright on its two hind legs on a little stool on the
+right side of the frame, taking a well-earned break: it stretches one front leg out
+straight in a comical wrist-stretching pose, eyes squeezed shut with a satisfied
+groan-smile, a tiny sparkle of relief beside it. Next to the stool stands the scroll
+it has written, rolled up into a big, fat, round roll almost as tall as the sheep
+itself, its loose end trailing decorative wavy ink lines. A feather quill rests in an
+ink pot and a small cup of tea steams on the desk. One warm amber oil lamp lights the
+corner; everything else is soft navy shadow.
+```
+
+**typing_ezra · 🪶 에스라의 후예 (gold)** — 말씀 1,000절 필사
+```
+Grand night scene in the square of an ancient walled city with tall stone gates.
+In the upper center the sheep stands upright on its two hind legs atop a tall wooden
+platform with a few steps, wearing a slightly-too-big scholar's turban and a small
+scribe's robe, a feather quill tucked behind one ear. With both front hooves it
+unrolls an immensely long scroll it has copied by hand, and the scroll cascades down
+the steps and flows away across the stone square like a gentle river of warm amber
+light, covered in decorative wavy ink lines. On the far left and right edges of the
+square small woodland animals (rabbits, a fox, a hedgehog, birds) stand at a
+respectful distance gazing up in awe. Warm golden light rises from the scroll;
+deep navy sky full of tiny blue-white stars. Epic scale, humble tiny scholar; the
+bottom-center of the square stays dim and empty.
+```
+
+**typing_swift_pen · 🖋️ 필객의 붓 (silver)** — 정확도 95% 이상으로 분당 300타
+```
+Night scene on a breezy hilltop: the sheep stands upright on its two hind legs in the
+upper left of the frame, holding a feather quill in both front hooves and sweeping it
+through the air like a calm orchestra conductor in perfect flow, eyes half-closed,
+a serene little smile, wool fluttering in the wind. From the tip of the quill a long,
+graceful ribbon of glowing warm amber ink streams out and swirls in elegant loops and
+curves across the upper sky like a ribbon dance, sprinkling tiny sparkles as it flows.
+A small parchment scroll on a rock beside it is filled with neat decorative wavy ink
+lines. Deep navy sky with tiny blue-white stars; the bottom of the frame stays quiet
+dark grass.
+```
+
+**typing_lightning · ⚡ 번개 손가락 (gold)** — 정확도 95% 이상으로 분당 500타
+```
+Night scene in a small cozy study, the sheep sitting upright on its two hind legs on
+the right side of the frame at a small antique typewriter with plain round blank
+keycaps. Its two front hooves are a comical motion blur over the keys, tiny crackling
+blue-white sparks and little zigzag lightning bolts leaping off the keyboard, its wool
+puffed up and frizzy from static electricity like a fluffy cloud, a thin wisp of smoke
+curling from the machine, and a long sheet of paper with decorative wavy lines
+shooting out of the top. Yet right beside the typewriter a single cup of tea sits
+perfectly still and calm under the warm amber desk lamp — the one quiet thing in the
+storm. Deep navy shadows fill the room; a round window shows the navy starry sky.
+Epic speed, tiny flustered-proud typist.
+```
+
+**typing_heart_tablet · 💗 마음판에 새긴 자 (gold)** — 암송 모드로 50절 필사
+```
+Quiet night scene on a soft hill under a vast starry sky. In the upper center the
+sheep sits upright on its two hind legs on a small cushion, wearing a cozy sleep mask
+pulled over its eyes, writing calmly on a long parchment scroll with a feather quill
+held in both front hooves — and the decorative wavy ink lines it writes are perfectly
+neat and even. A closed book lies shut beside it, untouched. From the middle of the
+sheep's chest a soft heart-shaped warm amber glow shines through its white wool —
+the only warm light in the scene — gently lighting the scroll. The sheep wears a
+completely serene, peaceful smile. Deep navy sky with tiny blue-white stars and a few
+drifting sparkles; the lower part of the hill stays dim and empty.
+```
+
+**typing_daily_line · 🗓️ 날마다 한 줄 (silver)** — 여러 날에 걸쳐 총 7일 필사
+```
+Cozy night treehouse scene: the sheep sits upright on its two hind legs on the wide
+windowsill of a small wooden treehouse on the left side of the frame, writing one
+neat line of decorative wavy ink in a small leather journal with a feather quill held
+in both front hooves, a peaceful content smile. Strung across the upper part of the
+frame from the treehouse to a far branch is a long clothesline, and pinned along it
+with little wooden clothespins hang small handwritten journal pages drying like
+laundry, each covered in wavy ink lines and glowing faintly. A warm amber lantern
+hangs by the window as the one warm light. A crescent moon and tiny blue-white stars
+in the deep navy sky; the bottom-center stays dark, quiet leaves.
+```
+
 ### 히든 카테고리
 
 **returned_prodigal · 🫂 돌아온 탕자 (silver)**
@@ -309,4 +439,62 @@ sipping from a small steaming cup as if this was nothing at all. A tiny ice axe
 is planted in the snow beside it. The summit glows with one warm amber light
 against the vast navy sky, wisps of thin cloud drifting far below the peak —
 enormous mountain, tiny unbothered conqueror.
+```
+
+**typing_jot_and_tittle · 🔍 일점일획도 (gold)** — 정확도 100%로 30절 필사 (히든, 필사 연작)
+> `obadiah_finder` 가 이미 돋보기·탐정 모자를 썼으므로 여기선 돋보기 금지. 유머의 핵심은 설명 문구 "오타가 당신을 피해 다닙니다" — 겁먹고 도망치는 잉크 얼룩 꼬마들.
+> **캐릭터·소품 일치용 첨부 추천**: 이미 만든 필사 연작 `typing_first.webp`(깃펜·작은 책상) + `typing_hundred.webp`(둥근 창·찻잔·잉크병) 두 장.
+> 첨부한 뒤 프롬프트 맨 앞에 "첨부한 그림들과 완전히 같은 양 캐릭터와 같은 화풍으로" 한 줄을 덧붙인다. 공통 스타일 블록까지 합친 완성본은 이 문서 맨 아래 **일점일획도 한 번에 붙여넣기**에 있다.
+```
+Night scene at a small wooden writing desk in the upper right of the frame: the sheep
+sits upright on its two hind legs, holding a feather quill in both front hooves with
+absolute calm precision, eyes focused and serene, the tip of the quill glowing with a
+single tiny jewel-like point of warm amber light. Across the parchment in front of it
+runs a flawless line of decorative wavy ink. All around the edges of the parchment,
+a little crowd of tiny round black ink-blot creatures with big panicked eyes and
+stubby legs are fleeing in comical terror — leaping off the edge of the desk,
+hiding behind the ink pot, one diving into a teacup — scattering away from the sheep
+as if it were a legendary hero they dare not approach. The glowing quill tip is the
+one warm light, catching the sheep's face; deep navy shadows fill the room and tiny
+blue-white stars show through a round window behind. Epic hero standoff, adorably
+tiny opponents.
+```
+
+---
+
+## 일점일획도 한 번에 붙여넣기 (`typing_jot_and_tittle`)
+
+첨부: `public/images/title-bg/typing_first.webp`, `public/images/title-bg/typing_hundred.webp`
+결과 저장: `public/images/title-bg/typing_jot_and_tittle.webp` (1376×768) → `TitleBackdrop.tsx` 의 `TITLE_BG_KEYS` 히든 묶음에 키 추가
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Night scene at a small wooden writing desk in the upper right of the frame: the sheep
+sits upright on its two hind legs, holding a feather quill in both front hooves with
+absolute calm precision, eyes focused and serene, the tip of the quill glowing with a
+single tiny jewel-like point of warm amber light. Across the parchment in front of it
+runs a flawless line of decorative wavy ink. All around the edges of the parchment,
+a little crowd of tiny round black ink-blot creatures with big panicked eyes and
+stubby legs are fleeing in comical terror — leaping off the edge of the desk,
+hiding behind the ink pot, one diving into a teacup — scattering away from the sheep
+as if it were a legendary hero they dare not approach. The glowing quill tip is the
+one warm light, catching the sheep's face; deep navy shadows fill the room and tiny
+blue-white stars show through a round window behind. Epic hero standoff, adorably
+tiny opponents.
 ```

@@ -481,33 +481,60 @@
      높이 기준(auto 112%, 아래 붙임)으로 바꿔 인물을 오른쪽 1/3 크기로 묶고,
      그림 왼쪽에 남는 자리는 삽화 왼쪽 가장자리 색을 높이별로 잰 세로 그라데이션으로 이어 붙인다.
      삽화를 다시 구우면 이 색 띠도 다시 잴 것(112% 창 기준: 이미지 y = (카드 y + 0.12) / 1.12). */
+  /* 그림은 ::before 로 따로 띄워 왼쪽 가장자리를 마스크로 페더링한다 — 그림은 가장자리 바로 안쪽부터
+     빠르게 어두워지고 언덕 띠가 있어 세로 색 띠(8단)가 못 따라가므로, 맞닿는 선이 세로 잔상으로 보였다
+     (2026-10-02). 박스 크기·위치는 예전 background 값(auto 112% / right bottom 등)을 그대로 옮긴 것:
+     높이 = --hero-art-h, top = -(높이-100%) × 세로 위치%. */
   .reading-hero {
+    --hero-art: url('/images/bible/reading-scene-light.webp');
+    --hero-art-ratio: 1200 / 670;
+    --hero-art-h: 112%;
+    --hero-art-top: -12%;
     gap: 1rem;
     padding: 1.15rem 1.2rem 1.05rem;
-    background:
-      url('/images/bible/reading-scene-light.webp') right bottom / auto 112% no-repeat,
-      linear-gradient(180deg, #d1d7ea 0%, #d7daee 15%, #eaebef 30%, #f1f2ef 45%, #f6f5ef 60%, #f2f4ec 75%, #f5f7f2 90%, #f7f8f1 100%);
+    background: linear-gradient(180deg, #d1d7ea 0%, #d7daee 15%, #eaebef 30%, #f1f2ef 45%, #f6f5ef 60%, #f2f4ec 75%, #f5f7f2 90%, #f7f8f1 100%);
   }
 
-  /* 밤 판은 우상단 달(그림 y 7.5~15.7%)이 위 12% 잘림에 걸린다 — 아래 붙임 대신 right 30%로
+  .reading-hero::before {
+    content: '';
+    position: absolute;
+    top: var(--hero-art-top);
+    right: 0;
+    height: var(--hero-art-h);
+    aspect-ratio: var(--hero-art-ratio);
+    background: var(--hero-art) center / 100% 100% no-repeat;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+    pointer-events: none;
+  }
+
+  .reading-hero > * {
+    position: relative;
+  }
+
+  /* 밤 판은 우상단 달(그림 y 7.5~15.7%)이 위 12% 잘림에 걸린다 — 아래 붙임 대신 30% 위치로
      내려 위는 3.6%만 자르고(달 온전) 나머지는 아래 풀밭에서 덜어낸다. 색 띠도 이 창 기준으로 다시 잼
      (이미지 y = (카드 y + 0.036) / 1.12) */
   [data-theme="dark"] .reading-hero {
-    background:
-      url('/images/bible/reading-scene-dark.webp') right 30% / auto 112% no-repeat,
-      linear-gradient(180deg, #262e3c 0%, #1e2c37 15%, #2a3340 30%, #2e3a46 45%, #303d46 60%, #1e2833 75%, #19222d 90%, #17222a 100%);
+    --hero-art: url('/images/bible/reading-scene-dark.webp');
+    --hero-art-top: -3.6%;
+    background: linear-gradient(180deg, #262e3c 0%, #1e2c37 15%, #2a3340 30%, #2e3a46 45%, #303d46 60%, #1e2833 75%, #19222d 90%, #17222a 100%);
   }
 
   .reading-summary[data-scene="day"] .reading-hero {
-    background:
-      url('/images/bible/reading-walk-light.webp') right bottom / auto 112% no-repeat,
-      linear-gradient(180deg, #e2d7e0 0%, #f0e0e1 15%, #f6e7de 30%, #f8ede1 45%, #e7dde3 60%, #e7dcdb 75%, #f2eeea 90%, #f5f3ef 100%);
+    --hero-art: url('/images/bible/reading-walk-light.webp');
+    --hero-art-ratio: 1200 / 634;
+    background: linear-gradient(180deg, #e2d7e0 0%, #f0e0e1 15%, #f6e7de 30%, #f8ede1 45%, #e7dde3 60%, #e7dcdb 75%, #f2eeea 90%, #f5f3ef 100%);
   }
 
+  /* 낮·다크 판도 우상단 초승달(그림 y 4.1%~)이 아래 붙임(위 10.7% 잘림)에 걸린다 — 106%로 살짝 줄이고
+     25% 위치로 내려 위는 1.4%만 자르고(달 온전) 발치는 4.5%만 덜어낸다. 색 띠도 이 창 기준으로 다시 잼
+     (이미지 y = (카드 y + 0.015) / 1.06) */
   [data-theme="dark"] .reading-summary[data-scene="day"] .reading-hero {
-    background:
-      url('/images/bible/reading-walk-dark.webp') right bottom / auto 112% no-repeat,
-      linear-gradient(180deg, #262442 0%, #333150 15%, #3b3956 30%, #454361 45%, #242139 60%, #2b2533 75%, #2e2e3d 90%, #313340 100%);
+    --hero-art: url('/images/bible/reading-walk-dark.webp');
+    --hero-art-h: 106%;
+    --hero-art-top: -1.5%;
+    background: linear-gradient(180deg, #2e304f 0%, #272644 15%, #363050 30%, #484564 45%, #4c4a6c 60%, #312f41 75%, #2a2630 90%, #2d2f3c 100%);
   }
 
   .reading-hero__value {

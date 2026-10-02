@@ -1,4 +1,4 @@
-// 장착 칭호 → 프로필 커버 배너 일러스트 매핑 (코지-에픽 시리즈, 26종 전체).
+// 장착 칭호 → 프로필 커버 배너 일러스트 매핑 (코지-에픽 시리즈, 36종 전체).
 // 이미지는 public/images/title-bg/<key>.webp — 새 칭호는 docs/title-bg-prompts.md 의
 // 프롬프트로 이미지를 만들어 저장한 뒤 여기에 키를 추가
 // (미등록 칭호는 배너 없이 기존 프로필 레이아웃 그대로)
@@ -26,6 +26,16 @@ const TITLE_BG_KEYS = [
   'plan_collector',
   'word_marathoner',
   'bible_conqueror',
+  // 필사
+  'typing_first',
+  'typing_one_chapter',
+  'typing_shepherd',
+  'typing_hundred',
+  'typing_ezra',
+  'typing_swift_pen',
+  'typing_lightning',
+  'typing_heart_tablet',
+  'typing_daily_line',
   // 히든
   'returned_prodigal',
   'streak_breaker',
@@ -33,6 +43,7 @@ const TITLE_BG_KEYS = [
   'eutychus_escape',
   'obadiah_finder',
   'everest_climber',
+  'typing_jot_and_tittle',
   'living_legend',
 ] as const
 
