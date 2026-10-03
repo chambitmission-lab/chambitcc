@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { TimelineDomain, TimelineEvent } from '../../../types/growth'
 import { TimelineEventGlyph } from '../../../components/icons/GrowthIcons'
+import { DOMAIN_META, DOMAIN_ORDER, dayAnchorId, dayLabel } from './timelineMeta'
 import './ActivityTimeline.css'
 
 interface ActivityTimelineProps {
@@ -11,28 +12,12 @@ interface ActivityTimelineProps {
   hasMore: boolean
   isLoadingMore: boolean
   onLoadMore: () => void
+  /** 돌아보기 달력에서 고른 날 — nonce 가 바뀔 때마다 그날로 스크롤한다 */
+  jumpTo?: { date: string; nonce: number } | null
 }
 
-const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
-
-/** 도메인 → 색 변수·라벨. 색은 ActivityTimeline.css 의 --atl-* 를 가리킨다 */
-const DOMAIN_META: Record<TimelineDomain, { label: string; color: string }> = {
-  prayer: { label: '기도', color: 'var(--atl-prayer)' },
-  bible: { label: '말씀', color: 'var(--atl-bible)' },
-  devotional: { label: '묵상', color: 'var(--atl-devotional)' },
-  thanks: { label: '감사', color: 'var(--atl-thanks)' },
-  community: { label: '나눔', color: 'var(--atl-community)' },
-  game: { label: '게임', color: 'var(--atl-game)' },
-}
-
-const DOMAIN_ORDER: TimelineDomain[] = [
-  'prayer',
-  'bible',
-  'devotional',
-  'thanks',
-  'community',
-  'game',
-]
+/** 하루에 기록이 많으면 처음 몇 개만 펼쳐 두고 나머지는 접는다 — 하루가 화면을 다 덮지 않게 */
+const DAY_PREVIEW = 3
 
 /** 상단 유형 필터 — '전체' 또는 도메인 하나 */
 type TimelineFilter = 'all' | TimelineDomain
@@ -46,22 +31,6 @@ const FILTER_OPTIONS: { key: TimelineFilter; label: string; color: string }[] = 
     기록이 몇 년치여도 무한정 페이지를 긁지 않도록 상한을 두고, 그 뒤엔
     '이전 기록 더 보기' 버튼으로 사용자가 직접 이어간다 */
 const AUTO_LOAD_LIMIT = 3
-
-const ymdLocal = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate(),
-  ).padStart(2, '0')}`
-
-const dayLabel = (dateStr: string): string => {
-  const today = new Date()
-  const yesterday = new Date()
-  yesterday.setDate(today.getDate() - 1)
-  if (dateStr === ymdLocal(today)) return '오늘'
-  if (dateStr === ymdLocal(yesterday)) return '어제'
-  const [y, m, d] = dateStr.split('-').map(Number)
-  const wd = WEEKDAY_KO[new Date(y, m - 1, d).getDay()]
-  return `${m}월 ${d}일 (${wd})`
-}
 
 const monthLabel = (dateStr: string): string => {
   const [y, m] = dateStr.split('-').map(Number)
@@ -168,8 +137,13 @@ const ActivityTimeline = ({
   hasMore,
   isLoadingMore,
   onLoadMore,
+  jumpTo,
 }: ActivityTimelineProps) => {
   const [filter, setFilter] = useState<TimelineFilter>('all')
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
+  const [flashDate, setFlashDate] = useState<string | null>(null)
+  const expand = (date: string) =>
+    setExpanded((prev) => (prev.has(date) ? prev : new Set(prev).add(date)))
   const filtered = useMemo(
     () => (filter === 'all' ? events : events.filter((e) => e.domain === filter)),
     [events, filter],
@@ -202,6 +176,30 @@ const ActivityTimeline = ({
     onLoadMore()
   }, [filter, filtered.length, hasMore, isLoadingMore, onLoadMore, autoLoadExhausted])
 
+  // 달력에서 고른 날로 이동 — 필터가 그날을 가리고 있을 수 있어 '전체'로 되돌리고,
+  // 접혀 있던 하루는 펼친다(렌더 중 상태 조정). 스크롤은 그 렌더가 커밋된 뒤 effect 에서 —
+  // 헤더 높이는 .atl-day 의 scroll-margin 이 맡는다
+  const [handledJump, setHandledJump] = useState(0)
+  if (jumpTo && jumpTo.nonce !== handledJump) {
+    setHandledJump(jumpTo.nonce)
+    setFilter('all')
+    setExpanded((prev) => (prev.has(jumpTo.date) ? prev : new Set(prev).add(jumpTo.date)))
+    setFlashDate(jumpTo.date)
+  }
+  useEffect(() => {
+    if (!jumpTo) return
+    const raf = requestAnimationFrame(() => {
+      document
+        .getElementById(dayAnchorId(jumpTo.date))
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    const t = window.setTimeout(() => setFlashDate(null), 2200)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.clearTimeout(t)
+    }
+  }, [jumpTo])
+
   return (
     // lg+: 한 줄짜리 이벤트 카드라 폭을 다 주면 글이 왼쪽에 몰린다 —
     // 다른 피드형 화면과 같은 읽기 폭으로 묶어 가운데 배치한다
@@ -210,7 +208,7 @@ const ActivityTimeline = ({
         <span className="material-icons-outlined text-xl text-brand">
           history
         </span>
-        활동 기록
+        하루하루의 발자취
       </h3>
 
       {/* 유형별 필터 탭 — 기록이 길어지면 말씀만·기도만 골라 복기할 수 있게.
@@ -284,28 +282,47 @@ const ActivityTimeline = ({
                   </div>
                 )}
 
-                {/* 하루 헤더 — 날짜 + 그날 무엇을 했는지 한 줄 요약.
+                {/* 하루 헤더 — 큰 날짜 숫자 + 그날 무엇을 했는지 한 줄 요약.
                     색 이름이 곧 범례 역할을 해서 아래 카드 액센트 바의 색이 저절로 읽힌다 */}
-                <div className="pl-1 mb-1.5 mt-4 first:mt-0 flex items-baseline gap-2 flex-wrap">
-                  <span className="text-[12px] font-semibold text-gray-500 dark:text-white/55">
-                    {dayLabel(group.date)}
-                  </span>
-                  <span className="atl-day-domains">
-                    {group.domainCounts.map(({ domain, count }) => (
-                      <span
-                        key={domain}
-                        className="atl-day-domain"
-                        style={{ ['--atl-dot' as string]: DOMAIN_META[domain].color }}
-                      >
-                        {DOMAIN_META[domain].label} {count}
-                      </span>
-                    ))}
-                  </span>
-                </div>
+                <div
+                  id={dayAnchorId(group.date)}
+                  className={'atl-day' + (flashDate === group.date ? ' is-flash' : '')}
+                >
+                  <div className="atl-day-head">
+                    <span className="atl-day-num" aria-hidden="true">
+                      {Number(group.date.slice(8))}
+                    </span>
+                    <span className="atl-day-label">{dayLabel(group.date)}</span>
+                    <span className="atl-day-domains">
+                      {group.domainCounts.map(({ domain, count }) => (
+                        <span
+                          key={domain}
+                          className="atl-day-domain"
+                          style={{ ['--atl-dot' as string]: DOMAIN_META[domain].color }}
+                        >
+                          {DOMAIN_META[domain].label} {count}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
 
-                {group.events.map((event) => (
-                  <EventRow key={event.id} event={event} />
-                ))}
+                  {(expanded.has(group.date)
+                    ? group.events
+                    : group.events.slice(0, DAY_PREVIEW)
+                  ).map((event) => (
+                    <EventRow key={event.id} event={event} />
+                  ))}
+                  {!expanded.has(group.date) && group.events.length > DAY_PREVIEW && (
+                    <button
+                      type="button"
+                      className="atl-day-more"
+                      onClick={() => expand(group.date)}
+                    >
+                      이날 기록 {group.events.length - DAY_PREVIEW}개 더 보기
+                      <span className="material-icons-outlined" aria-hidden="true">expand_more</span>
+                    </button>
+                  )}
+                </div>
               </Fragment>
           ))}
         </div>

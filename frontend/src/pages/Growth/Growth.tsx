@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGrowthSummary, useGrowthTimeline } from '../../hooks/useGrowth'
 import type { TimelineEvent } from '../../types/growth'
@@ -6,6 +6,7 @@ import GrowthHero from './components/GrowthHero'
 import JourneyInsightCard from './components/JourneyInsightCard'
 import GrowthStats from './components/GrowthStats'
 import ActivityTimeline from './components/ActivityTimeline'
+import GrowthRecap from './components/GrowthRecap'
 import { tokenStore } from '../../utils/tokenStore'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 
@@ -56,6 +57,13 @@ const Growth = () => {
   } = useGrowthTimeline(hasToken)
 
   const summary = summaryRes?.data ?? null
+
+  // 돌아보기 달력에서 고른 날 → 아래 발자취의 그날로 이동 (같은 날을 다시 눌러도 움직이게 nonce)
+  const [jumpTo, setJumpTo] = useState<{ date: string; nonce: number } | null>(null)
+  const jumpToDay = useCallback(
+    (date: string) => setJumpTo((prev) => ({ date, nonce: (prev?.nonce ?? 0) + 1 })),
+    [],
+  )
 
   const events = useMemo<TimelineEvent[]>(
     () => timelineData?.pages.flatMap((p) => p.data.events) ?? [],
@@ -117,6 +125,9 @@ const Growth = () => {
         {!summary || summaryLoading ? <GrowthSkeleton withCards={!isDesktop} /> : (<>
         <GrowthHero summary={summary} />
 
+        {/* 지난 8주 돌아보기 — 발자국 달력·기록의 결·한 줄 회고 (모바일·PC 공통 본문) */}
+        <GrowthRecap events={events} onJumpToDay={jumpToDay} />
+
         {/* 말씀 여정 인사이트 · 통계 — lg에선 우측 레일이 대신한다 */}
         {!isDesktop && (
           <div>
@@ -150,6 +161,7 @@ const Growth = () => {
           hasMore={!!hasNextPage}
           isLoadingMore={isFetchingNextPage || timelineLoading}
           onLoadMore={() => fetchNextPage()}
+          jumpTo={jumpTo}
         />
         </>)}
       </div>

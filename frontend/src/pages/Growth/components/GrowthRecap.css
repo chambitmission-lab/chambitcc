@@ -1,0 +1,557 @@
+/* 지난 8주 돌아보기 — 토스 플랫 카드 한 장 안에 달력·결·한 줄 회고.
+   도장 농도는 브랜드 블루 한 색의 단계(1~4). 도메인 색(--atl-*)은 결 띠·점에만 쓴다. */
+
+.grc-card {
+  border-radius: 1.25rem;
+  padding: 1.25rem 1rem 1rem;
+  background: #fff;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='dark'] .grc-card {
+  background: var(--surface-container);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ── 머리말 ── */
+.grc-head {
+  padding: 0 0.25rem;
+}
+
+.grc-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.grc-title {
+  margin-top: 0.375rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+
+.grc-title em {
+  font-style: normal;
+  color: var(--brand);
+}
+
+.grc-sub {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+[data-theme='dark'] .grc-sub {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── 발자국 달력 ── 요일 라벨 1열 + 8주 */
+.grc-board {
+  margin-top: 1rem;
+  --grc-cols: 1.25rem repeat(8, minmax(0, 1fr));
+}
+
+.grc-month-row {
+  display: grid;
+  grid-template-columns: var(--grc-cols);
+  gap: 0.25rem;
+  height: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.grc-month {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.grc-grid {
+  display: grid;
+  grid-template-columns: var(--grc-cols);
+  gap: 0.25rem;
+}
+
+.grc-weekdays,
+.grc-col {
+  display: grid;
+  grid-template-rows: repeat(7, auto);
+  gap: 0.25rem;
+}
+
+.grc-weekdays span {
+  display: flex;
+  align-items: center;
+  aspect-ratio: 1 / 1;
+  max-height: 2.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.grc-weekdays span.is-sun {
+  color: #e0446a;
+}
+
+.grc-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  max-height: 2.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #9ca3af;
+  background: #f2f4f6;
+  transition: transform 0.15s ease;
+  animation: grc-stamp 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  animation-delay: calc(var(--grc-i, 0) * 9ms);
+}
+
+button.grc-cell:active {
+  transform: scale(0.92);
+}
+
+.grc-cell[data-level='1'] { background: rgba(49, 130, 246, 0.22); color: #1b64da; }
+.grc-cell[data-level='2'] { background: rgba(49, 130, 246, 0.45); color: #fff; }
+.grc-cell[data-level='3'] { background: rgba(49, 130, 246, 0.72); color: #fff; }
+.grc-cell[data-level='4'] { background: #1b64da; color: #fff; }
+
+.grc-cell.is-future {
+  background: transparent;
+  border: 1px dashed rgba(156, 163, 175, 0.35);
+  animation: none;
+}
+
+/* 오늘 — 바깥 링 */
+.grc-cell.is-today {
+  box-shadow: 0 0 0 1.5px var(--brand);
+}
+
+/* 고른 날 — 진한 테두리 + 살짝 띄움 */
+.grc-cell.is-picked {
+  box-shadow: 0 0 0 2px var(--text-strong);
+  z-index: 1;
+}
+
+.grc-cell.is-picked.is-today {
+  box-shadow: 0 0 0 2px var(--brand), 0 0 0 4px var(--brand-soft-strong);
+}
+
+[data-theme='dark'] .grc-cell { background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.35); }
+[data-theme='dark'] .grc-cell[data-level='1'] { background: rgba(69, 147, 252, 0.22); color: #9cc4ff; }
+[data-theme='dark'] .grc-cell[data-level='2'] { background: rgba(69, 147, 252, 0.42); color: #fff; }
+[data-theme='dark'] .grc-cell[data-level='3'] { background: rgba(69, 147, 252, 0.68); color: #fff; }
+[data-theme='dark'] .grc-cell[data-level='4'] { background: #3182f6; color: #fff; }
+[data-theme='dark'] .grc-cell.is-future { background: transparent; border-color: rgba(255, 255, 255, 0.1); }
+[data-theme='dark'] .grc-month,
+[data-theme='dark'] .grc-weekdays span { color: rgba(255, 255, 255, 0.45); }
+[data-theme='dark'] .grc-weekdays span.is-sun { color: #ff859c; }
+
+@keyframes grc-stamp {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.grc-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  color: #9ca3af;
+}
+
+.grc-legend-cell {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.1875rem;
+  animation: none;
+}
+
+/* ── 고른 날 미리보기 ──
+   토스 거래내역식: 중성 회색 인셋 + 도메인 틴트 아이콘 행 + 우측 시각.
+   "외 N개"는 별도 줄 대신 하단 꽉 찬 버튼 문구로 흡수 */
+.grc-day {
+  margin-top: 0.875rem;
+  padding: 1rem 1rem 0.875rem;
+  border-radius: 1rem;
+  background: #f7f8fa;
+  animation: grc-rise 0.28s ease both;
+}
+
+.grc-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.grc-day-head strong {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+
+.grc-day-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8b95a1;
+  font-variant-numeric: tabular-nums;
+}
+
+.grc-day-domains {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.grc-day-domains span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--grc-dot);
+  background: color-mix(in srgb, var(--grc-dot) 12%, transparent);
+}
+
+.grc-day-domains b {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.grc-mix-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--grc-dot);
+}
+
+.grc-mix-legend span::before {
+  content: '';
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--grc-dot);
+}
+
+.grc-day-list {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.625rem;
+}
+
+.grc-day-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.grc-day-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+  color: var(--grc-dot);
+  background: color-mix(in srgb, var(--grc-dot) 14%, #fff);
+}
+
+.grc-day-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #333d4b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grc-day-time {
+  flex: none;
+  font-size: 0.75rem;
+  color: #8b95a1;
+  font-variant-numeric: tabular-nums;
+}
+
+.grc-day-jump {
+  margin-top: 0.875rem;
+  width: 100%;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  border-radius: 0.75rem;
+  background: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #4e5968;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.grc-day-jump:hover { background: #eef1f4; }
+.grc-day-jump:active { transform: scale(0.98); }
+
+.grc-day-jump .material-icons-outlined {
+  font-size: 1.125rem;
+  color: #b0b8c1;
+}
+
+.grc-day-empty {
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+[data-theme='dark'] .grc-day { background: rgba(255, 255, 255, 0.04); }
+[data-theme='dark'] .grc-day-count,
+[data-theme='dark'] .grc-day-time { color: rgba(255, 255, 255, 0.5); }
+[data-theme='dark'] .grc-day-domains span { background: color-mix(in srgb, var(--grc-dot) 18%, transparent); }
+[data-theme='dark'] .grc-day-icon { background: color-mix(in srgb, var(--grc-dot) 18%, transparent); }
+[data-theme='dark'] .grc-day-title { color: rgba(255, 255, 255, 0.85); }
+[data-theme='dark'] .grc-day-jump { background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.8); }
+[data-theme='dark'] .grc-day-jump:hover { background: rgba(255, 255, 255, 0.1); }
+[data-theme='dark'] .grc-day-jump .material-icons-outlined { color: rgba(255, 255, 255, 0.4); }
+[data-theme='dark'] .grc-day-empty { color: rgba(255, 255, 255, 0.5); }
+
+@keyframes grc-rise {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── 기록의 결 ── */
+.grc-mix {
+  margin-top: 1.25rem;
+  padding: 0 0.25rem;
+}
+
+.grc-mix-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.grc-mix-total {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.grc-mix-bar {
+  display: flex;
+  gap: 2px;
+  height: 0.625rem;
+  margin-top: 0.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.grc-mix-bar span {
+  flex-basis: 0;
+  min-width: 4px;
+  background: var(--grc-dot);
+  transform-origin: left;
+  animation: grc-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both 0.2s;
+}
+
+@keyframes grc-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.grc-mix-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.875rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.grc-mix-legend b {
+  margin-left: 0.125rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 돌아보는 한 줄 ── 장부처럼 라벨 왼쪽, 값 오른쪽 */
+.grc-facts {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(229, 231, 235, 0.8);
+}
+
+.grc-facts li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+}
+
+.grc-facts li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0.25rem;
+}
+
+.grc-fact-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 0.625rem;
+  color: var(--grc-dot, var(--brand));
+  background: color-mix(in srgb, var(--grc-dot, var(--brand)) 10%, transparent);
+}
+
+.grc-fact-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: #4b5563;
+}
+
+.grc-fact-value {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  text-align: right;
+}
+
+.grc-fact-value small {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.grc-fact-value.is-link {
+  color: var(--brand);
+  text-decoration: underline;
+  text-decoration-color: var(--brand-soft-strong);
+  text-underline-offset: 3px;
+}
+
+[data-theme='dark'] .grc-facts,
+[data-theme='dark'] .grc-facts li { border-color: rgba(255, 255, 255, 0.07); }
+[data-theme='dark'] .grc-fact-label { color: rgba(255, 255, 255, 0.65); }
+[data-theme='dark'] .grc-fact-icon { background: color-mix(in srgb, var(--grc-dot, var(--brand)) 16%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .grc-cell,
+  .grc-day,
+  .grc-mix-bar span {
+    animation: none;
+  }
+}
+
+/* 모바일 폭에서 칸이 정사각형으로 맞도록 달력 폭 상한 */
+.grc-board {
+  max-width: 24rem;
+}
+
+/* PC — 본문 칸이 넓어 한 줄로 쌓으면 칸이 가로로 늘어나고, 단순 2단은 한쪽이 비어 보인다.
+   머리말은 위 전체, 달력(좌) 옆에 고른 날·기록의 결(우), 한 줄 회고는 아래 4칸 가로 줄.
+   grc-main/grc-side 래퍼는 display:contents 로 풀어 자식들이 바로 그리드 칸이 된다 */
+@media (min-width: 1024px) {
+  .grc-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'head head'
+      'board day'
+      'board mix'
+      'facts facts';
+    grid-template-rows: auto auto 1fr auto;
+    column-gap: 2rem;
+    padding: 1.5rem;
+  }
+
+  .grc-main,
+  .grc-side {
+    display: contents;
+  }
+
+  .grc-head { grid-area: head; }
+
+  .grc-board {
+    grid-area: board;
+    width: 22rem;
+  }
+
+  .grc-day {
+    grid-area: day;
+    margin-top: 1rem;
+    align-self: start;
+  }
+
+  .grc-mix {
+    grid-area: mix;
+    align-self: end;
+    margin-top: 1.25rem;
+  }
+
+  .grc-facts {
+    grid-area: facts;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+  }
+
+  .grc-facts li,
+  .grc-facts li:last-child {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 0;
+    border-radius: 1rem;
+    background: #f7f8fa;
+  }
+
+  .grc-fact-label {
+    flex: none;
+  }
+
+  .grc-fact-value {
+    margin-top: auto;
+    align-items: flex-start;
+    text-align: left;
+    font-size: 1.0625rem;
+  }
+
+  [data-theme='dark'] .grc-facts li {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}

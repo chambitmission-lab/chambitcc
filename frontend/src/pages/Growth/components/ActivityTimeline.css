@@ -145,3 +145,84 @@
   background: color-mix(in srgb, var(--atl-accent, var(--brand)) 16%, transparent);
   border-color: color-mix(in srgb, var(--atl-accent, var(--brand)) 40%, transparent);
 }
+
+/* 하루 묶음 — 큰 날짜 숫자 + 라벨 + 도메인 요약. 달력에서 이동해 오면 잠깐 브랜드 틴트로 반짝인다.
+   scroll-margin 은 상단 sticky(앱 헤더 56px + 화면 헤더) 아래에 멈추게 하는 여백 */
+.atl-day {
+  margin-top: 1rem;
+  scroll-margin-top: 8rem;
+  border-radius: 1rem;
+  transition: background-color 0.6s ease, box-shadow 0.6s ease;
+}
+
+.atl-day:first-child {
+  margin-top: 0;
+}
+
+.atl-day.is-flash {
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 0.5rem var(--brand-soft);
+}
+
+.atl-day-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  padding-left: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.atl-day-num {
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--text-strong, #191f28);
+  font-variant-numeric: tabular-nums;
+}
+
+.atl-day-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+[data-theme='dark'] .atl-day-num {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+[data-theme='dark'] .atl-day-label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* 하루 접기 — 카드 아래 얇은 점선 버튼 */
+.atl-day-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: 0.75rem;
+  border: 1px dashed rgba(156, 163, 175, 0.5);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.atl-day-more .material-icons-outlined {
+  font-size: 1.125rem;
+}
+
+[data-theme='dark'] .atl-day-more {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atl-day {
+    transition: none;
+  }
+}
