@@ -91,3 +91,16 @@ export const labelCls =
 
 export const cardCls =
   'rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm'
+
+/** 티켓 꼬리표용 날짜 조각 — { month: '9월', day: '20', weekday: '일' } */
+export const stubDate = (iso?: string | null): { month: string; day: string; weekday: string } | null => {
+  if (!iso) return null
+  const parts = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    month: 'numeric',
+    day: 'numeric',
+    weekday: 'short',
+  }).formatToParts(parseKstDate(iso))
+  const get = (t: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === t)?.value ?? ''
+  return { month: `${get('month')}월`, day: get('day'), weekday: get('weekday') }
+}

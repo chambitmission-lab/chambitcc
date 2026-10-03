@@ -1,0 +1,62 @@
+/* 좌석 행사 목록 카드 — 입장권 모양.
+   종이(.seat-ticket__paper)를 mask 로 뚫는다: 양옆 가운데 펀칭 + 꼬리표 절취선 위·아래 홈.
+   배경색을 칠해 흉내 내지 않으므로 목록·일정 상세 어느 바탕에 놓여도 진짜 구멍이다.
+   그림자는 mask 에 잘리지 않게 바깥 버튼의 drop-shadow 로 준다(구멍 모양을 따라감). */
+
+.seat-ticket {
+  --stub: 76px;
+  --punch: 9px;
+  --perf: 7px;
+  filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.07)) drop-shadow(0 8px 16px rgba(15, 23, 42, 0.06));
+}
+html.dark .seat-ticket {
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+}
+@media (min-width: 1024px) {
+  .seat-ticket--lg {
+    --stub: 104px;
+    --punch: 12px;
+    --perf: 9px;
+  }
+}
+
+.seat-ticket__paper {
+  --hole: #0000 var(--punch), #000 calc(var(--punch) + 0.5px);
+  --notch: #0000 var(--perf), #000 calc(var(--perf) + 0.5px);
+  -webkit-mask:
+    radial-gradient(circle at 0 50%, var(--hole)),
+    radial-gradient(circle at 100% 50%, var(--hole)),
+    radial-gradient(circle at calc(100% - var(--stub)) 0, var(--notch)),
+    radial-gradient(circle at calc(100% - var(--stub)) 100%, var(--notch));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at 0 50%, var(--hole)),
+    radial-gradient(circle at 100% 50%, var(--hole)),
+    radial-gradient(circle at calc(100% - var(--stub)) 0, var(--notch)),
+    radial-gradient(circle at calc(100% - var(--stub)) 100%, var(--notch));
+  mask-composite: intersect;
+}
+
+.seat-ticket__stub {
+  width: var(--stub);
+}
+/* 절취선 — 위·아래 홈 사이만 */
+.seat-ticket__stub::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: calc(var(--perf) + 5px);
+  bottom: calc(var(--perf) + 5px);
+  border-left: 2px dashed var(--seat-perf, rgba(15, 23, 42, 0.14));
+}
+html.dark .seat-ticket__stub::before {
+  border-left-color: rgba(255, 255, 255, 0.14);
+}
+
+/* 지난 행사 — 꼬리표에 찍힌 고무 도장 */
+.seat-ticket__stamp {
+  transform: rotate(-14deg);
+  border: 2px solid currentColor;
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+}
