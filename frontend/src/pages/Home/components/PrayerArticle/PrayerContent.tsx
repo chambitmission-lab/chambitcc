@@ -62,7 +62,9 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
       <p
         ref={contentRef}
         className={`text-[15px] lg:text-[length:calc(17px*var(--fs,1))] text-gray-800 dark:text-gray-300 dark:lg:text-gray-200 leading-[1.75] lg:leading-[1.8] font-normal tracking-[-0.015em] text-left ${
-          expanded ? '' : 'line-clamp-3 lg:[-webkit-line-clamp:var(--feed-clamp,3)]'
+          // 펼쳤을 때는 상세 화면처럼 작성자의 줄바꿈·문단을 살린다.
+          // 접힌 미리보기는 줄바꿈을 무시해야 3줄 안에 본문이 더 많이 담긴다.
+          expanded ? 'whitespace-pre-wrap' : 'line-clamp-3 lg:[-webkit-line-clamp:var(--feed-clamp,3)]'
         }`}
         style={transitionStyles}
       >
