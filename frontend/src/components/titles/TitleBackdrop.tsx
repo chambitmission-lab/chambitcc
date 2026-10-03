@@ -51,6 +51,12 @@ const TITLE_BG: Record<string, string> = Object.fromEntries(
   TITLE_BG_KEYS.map((key) => [key, `/images/title-bg/${key}.webp`]),
 )
 
+// 원본 구도가 천장에 붙은 그림은 자르는 기준점을 위로 올린다(기본은 정중앙).
+// PC 는 21:9 로 납작하게 잘라 위아래가 함께 깎이는데, 창문 같은 윗부분이 잘리면 답답해 보임
+const TITLE_BG_POSITION: Record<string, string> = {
+  typing_jot_and_tittle: '50% 15%',
+}
+
 /** 이 칭호에 커버 배너가 등록돼 있는지 — 프로필 스켈레톤이 배너 자리를 미리 잡을 때 쓴다 */
 export const hasTitleBackdrop = (key: string): boolean => key in TITLE_BG
 
@@ -58,4 +64,10 @@ export const hasTitleBackdrop = (key: string): boolean => key in TITLE_BG
 export const useTitleBackdropSrc = (): string | undefined => {
   const { data: equipped } = useEquippedTitle()
   return equipped ? TITLE_BG[equipped.key] : undefined
+}
+
+/** 장착 칭호 배너의 object-position(기본 정중앙이면 undefined) */
+export const useTitleBackdropPosition = (): string | undefined => {
+  const { data: equipped } = useEquippedTitle()
+  return equipped ? TITLE_BG_POSITION[equipped.key] : undefined
 }

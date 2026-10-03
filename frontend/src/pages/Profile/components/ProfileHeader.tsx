@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { TitleGlyph } from '../../../components/titles/TitleGlyph'
 import { useNavigate } from 'react-router-dom'
-import { useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
+import { useTitleBackdropPosition, useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
 import { useEquippedTitle } from '../../../hooks/useTitles'
 import { localizeTitle } from '../../../components/titles/titleI18n'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -42,6 +42,7 @@ const ProfileHeader = ({
   const avatarBusy = uploadAvatar.isPending || deleteAvatar.isPending
   const auraColor = glowLevel.glowColor
   const backdropSrc = useTitleBackdropSrc()
+  const backdropPosition = useTitleBackdropPosition()
   const navigate = useNavigate()
   const { t, language } = useLanguage()
   const { data: equipped } = useEquippedTitle()
@@ -103,6 +104,7 @@ const ProfileHeader = ({
             alt=""
             draggable={false}
             className="h-full w-full select-none object-cover"
+            style={backdropPosition ? { objectPosition: backdropPosition } : undefined}
           />
           {/* 하단 구름 — 직선 그라데이션 대신 페이지색 구름 뭉치가 그림을 삼키며
               아바타를 받친다. 색은 아래 정보 영역 시작색과 동일(라이트 페이지색 / 다크 네이비 이음색) */}
