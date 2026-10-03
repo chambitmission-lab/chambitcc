@@ -17,7 +17,7 @@ import {
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { toastFeedback } from '../../utils/toast'
-import { cycleMonthLabel, formatDay } from './intercessionDates'
+import { cycleMonthLabel, daysUntil, formatDay } from './intercessionDates'
 import { FlameGlyph } from './intercessionUi'
 
 const LETTER_MAX = 500
@@ -160,28 +160,46 @@ export const LetterEntry = ({ target, deliverOn }: { target: IntercessionTarget;
   return (
     <>
       {letter ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="mt-3 w-full text-left rounded-xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-3.5 py-3 lg:px-4 lg:py-3.5"
-        >
-          <span className="flex items-center gap-1.5 text-[12px] lg:text-[14px] font-bold text-brand">
-            <EnvelopeGlyph size={14} />
-            봉인해 둔 편지 · {formatDay(deliverOn)} 아침 도착
+        // 봉인된 편지 — 봉투 덮개 + 밀랍 봉인. 열면(눌러서) 고칠 수 있다
+        <button type="button" onClick={() => setOpen(true)} className="ic-envelope mt-3 lg:mt-4">
+          <span className="ic-envelope__seal" aria-hidden>
+            <FlameGlyph size={15} />
           </span>
-          <span className="mt-1 block text-[13px] lg:text-[16px] leading-relaxed text-[var(--text-body)] line-clamp-2 whitespace-pre-line">
-            {letter.body}
+          <span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[12px] lg:text-[14px] font-bold">
+            <span className="text-[var(--amber)]">봉인해 둔 편지</span>
+            <span className="rounded-full bg-[var(--amber-soft)] px-2 py-0.5 text-[11px] lg:text-[13px] text-[var(--amber)] tabular-nums">
+              {daysUntil(deliverOn) > 0 ? `D-${daysUntil(deliverOn)} · ` : ''}
+              {formatDay(deliverOn)} 아침 도착
+            </span>
           </span>
-          <span className="mt-1 block text-[12px] lg:text-[14.5px] font-bold text-brand">고치기</span>
+          <span className="ic-envelope__body">{letter.body}</span>
+          <span className="mt-2 inline-flex items-center gap-1 text-[12.5px] lg:text-[15px] font-bold text-brand">
+            열어서 고치기
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+              <path d="m4.5 2.5 3.5 3.5-3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
         </button>
       ) : (
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-3 w-full h-11 lg:h-14 rounded-xl border border-gray-200 dark:border-white/10 flex items-center justify-center gap-1.5 text-[13.5px] lg:text-[16px] font-bold text-[var(--text-body)] hover:border-[var(--brand-soft-strong)] hover:text-brand transition-colors"
+          className="mt-3 lg:mt-4 w-full flex items-center gap-3 lg:gap-4 rounded-2xl border border-dashed border-[var(--brand-soft-strong)] px-4 py-3.5 lg:px-5 lg:py-4 text-left hover:bg-[var(--brand-soft)] transition-colors"
         >
-          <EnvelopeGlyph size={16} />
-          {target.display_name} 님께 익명 편지 남기기
+          <span className="shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+            <EnvelopeGlyph size={19} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] lg:text-[16.5px] font-bold text-ink-strong">
+              {target.display_name} 님께 익명 편지 남기기
+            </span>
+            <span className="mt-0.5 block text-[12px] lg:text-[14.5px] text-[var(--text-muted)] lg:text-[var(--text-body)] break-keep">
+              {formatDay(deliverOn)} 아침, 보낸 사람 없이 도착해요
+            </span>
+          </span>
+          <svg className="shrink-0 text-[var(--text-muted)]" width="16" height="16" viewBox="0 0 12 12" fill="none" aria-hidden>
+            <path d="m4.5 2.5 3.5 3.5-3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       )}
       {open ? <LetterComposer target={target} onClose={() => setOpen(false)} /> : null}

@@ -453,3 +453,258 @@ html.dark .ic-paper__input::placeholder {
     mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
   }
 }
+
+/* ── 기도할 분 카드 (TargetCard.tsx) ──────────────────────────── */
+
+/* 머리 — 위에서 내려오는 옅은 브랜드 물결. 아래는 카드 바탕으로 녹아든다 */
+.ic-target__head {
+  background: linear-gradient(180deg, rgba(49, 130, 246, 0.07) 0%, rgba(49, 130, 246, 0.03) 60%, transparent 100%);
+}
+html.dark .ic-target__head {
+  background: linear-gradient(180deg, rgba(69, 147, 252, 0.1) 0%, rgba(69, 147, 252, 0.04) 60%, transparent 100%);
+}
+
+/* 얼굴 — 오늘 기도하면 따뜻한 빛무리가 둘러진다 */
+.ic-portrait {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--brand-soft-strong);
+  transition: background 0.6s ease, box-shadow 0.6s ease;
+}
+.ic-portrait__img {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+}
+html.dark .ic-portrait__img {
+  border-color: #1c1c22;
+}
+/* 사진 없는 분의 첫 글자 — 불투명 바탕이어야 켜진 빛무리가 비쳐 들지 않는다 */
+.ic-portrait__img--initial {
+  background: #e6effd;
+}
+html.dark .ic-portrait__img--initial {
+  background: #1d2a40;
+}
+.ic-portrait.is-lit {
+  background: linear-gradient(140deg, #ffd58a, #f59e0b 55%, #fb923c);
+  box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.12), 0 8px 22px -8px rgba(245, 158, 11, 0.6);
+}
+.ic-portrait__badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(160deg, #fbbf24, #f97316);
+  border: 2px solid #fff;
+  animation: ic-note-in 0.6s ease-out both;
+}
+html.dark .ic-portrait__badge {
+  border-color: #1c1c22;
+}
+
+/* 그분이 남긴 한 줄 — 미색 쪽지 위 손글씨. 큰 따옴표는 장식 */
+.ic-request {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 14px 18px 16px 18px;
+  border-radius: 16px;
+  background: #fffaf0;
+  box-shadow: inset 0 0 0 1px rgba(180, 150, 90, 0.2);
+}
+html.dark .ic-request {
+  background: #24232a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+.ic-request__mark {
+  position: absolute;
+  right: 12px;
+  top: -14px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 96px;
+  line-height: 1;
+  color: #e8a24a;
+  opacity: 0.22;
+  pointer-events: none;
+}
+.ic-request__label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--amber);
+}
+.ic-request__text {
+  position: relative;
+  margin: 6px 0 0;
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: 23px;
+  line-height: 1.35;
+  color: #3b2f24;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+html.dark .ic-request__text {
+  color: rgba(255, 238, 214, 0.92);
+}
+
+/* 오늘 기도한 뒤 — 따뜻한 빛이 머무는 띠 */
+.ic-prayed {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(120deg, #fff4df 0%, #fff8ec 60%, #fffaf3 100%);
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.22);
+}
+html.dark .ic-prayed {
+  background: linear-gradient(120deg, rgba(251, 191, 36, 0.14), rgba(251, 191, 36, 0.05));
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.2);
+}
+.ic-prayed__flame {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: radial-gradient(circle at 50% 35%, #fcd34d, #f59e0b 60%, #ea7a1c);
+  box-shadow: 0 6px 16px -6px rgba(245, 158, 11, 0.8);
+}
+
+/* 봉인된 편지 — 봉투 덮개(삼각) + 밀랍 봉인 */
+.ic-envelope {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 50px 18px 16px;
+  border-radius: 18px;
+  overflow: hidden;
+  text-align: center;
+  background: #fffaf0;
+  box-shadow: inset 0 0 0 1px rgba(180, 150, 90, 0.24), 0 6px 18px -12px rgba(120, 90, 40, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ic-envelope:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 0 0 1px rgba(180, 150, 90, 0.3), 0 10px 22px -12px rgba(120, 90, 40, 0.45);
+}
+.ic-envelope::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 34px;
+  background: linear-gradient(180deg, #f3e6cf, #f8eedc);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+html.dark .ic-envelope {
+  background: #24232a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+html.dark .ic-envelope::before {
+  background: linear-gradient(180deg, #34323b, #2c2a33);
+}
+.ic-envelope__seal {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  width: 30px;
+  height: 30px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff3dc;
+  background: radial-gradient(circle at 40% 35%, #e0893a, #b85d1c 70%);
+  box-shadow: 0 2px 5px rgba(120, 60, 10, 0.35), inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+.ic-envelope__body {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-top: 8px;
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: 21px;
+  line-height: 1.3;
+  white-space: pre-line;
+  color: #3b2f24;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+html.dark .ic-envelope__body {
+  color: rgba(255, 238, 214, 0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ic-portrait,
+  .ic-envelope {
+    transition: none;
+  }
+  .ic-portrait__badge {
+    animation: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ic-portrait__img {
+    width: 80px;
+    height: 80px;
+  }
+  .ic-portrait__badge {
+    width: 28px;
+    height: 28px;
+  }
+  .ic-request {
+    padding: 18px 24px 20px;
+  }
+  .ic-request__label {
+    font-size: 14px;
+  }
+  .ic-request__text {
+    font-size: 28px;
+  }
+  .ic-request__mark {
+    font-size: 120px;
+  }
+  .ic-prayed {
+    gap: 16px;
+    padding: 18px 22px;
+  }
+  .ic-prayed__flame {
+    width: 50px;
+    height: 50px;
+  }
+  .ic-envelope {
+    padding: 60px 24px 20px;
+  }
+  .ic-envelope::before {
+    height: 40px;
+  }
+  .ic-envelope__seal {
+    top: 22px;
+    width: 36px;
+    height: 36px;
+  }
+  .ic-envelope__body {
+    font-size: 25px;
+  }
+}

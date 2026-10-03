@@ -313,7 +313,7 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
             </span>
           </div>
 
-          <div className="grid grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-4 gap-1.5">
             {EMOTION_KEYS.map((key) => {
               const item = THANKS_EMOTIONS[key]
               const active = emotion === key

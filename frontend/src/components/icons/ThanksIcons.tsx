@@ -8,7 +8,7 @@
 import React from 'react'
 import type { ThanksEmotion } from '../../types/thanks'
 
-/** 감정 5종 + 감정 미선택(thanks) + 빈 상태(jar) */
+/** 감정 8종 + 감정 미선택(thanks) + 빈 상태(jar) */
 export type ThanksIconName = ThanksEmotion | 'thanks' | 'jar'
 
 interface ThanksIconProps {
@@ -21,6 +21,15 @@ interface ThanksIconProps {
 
 /** 이름 → path 조합. 모두 24×24 그리드, 채움 없이 스트로크만 쓴다. */
 const SHAPES: Record<ThanksIconName, React.ReactNode> = {
+  // 감사 — 리본 묶인 선물 상자 (받은 은혜)
+  grateful: (
+    <>
+      <path d="M3.5 8.5h17v3.6h-17Z" />
+      <path d="M5 12.1v7.4a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5v-7.4" />
+      <path d="M12 8.5V21" />
+      <path d="M12 8.5C10.6 5.4 7 4.6 7 6.6c0 1.4 2.4 1.9 5 1.9Zm0 0c1.4-3.1 5-3.9 5-1.9 0 1.4-2.4 1.9-5 1.9Z" />
+    </>
+  ),
   // 기쁨 — 떠오른 해
   joy: (
     <>
@@ -51,6 +60,23 @@ const SHAPES: Record<ThanksIconName, React.ReactNode> = {
     <>
       <path d="M21 11.8a8.2 8.2 0 0 1-8.4 8.1 8.7 8.7 0 0 1-3.6-.8L3.6 21l1.9-5.2a8 8 0 0 1-.9-3.7A8.2 8.2 0 0 1 12.8 4 8.2 8.2 0 0 1 21 11.8Z" />
       <path d="M9.3 10.9c.8 1.1 2 1.8 3.4 1.8s2.6-.7 3.4-1.8" />
+    </>
+  ),
+  // 소망 — 흙을 뚫고 올라온 새싹
+  hopeful: (
+    <>
+      <path d="M12 21v-9" />
+      <path d="M12 12.5C12 8.6 9.4 6.6 5.2 6.8c-.1 4 2.4 6 6.8 5.7Z" />
+      <path d="M12 10.8c0-3.8 2.4-6.2 6.8-6.3.2 4.3-2.4 6.6-6.8 6.3Z" />
+      <path d="M7 21h10" />
+    </>
+  ),
+  // 위로 — 김이 오르는 따뜻한 찻잔
+  comfort: (
+    <>
+      <path d="M4.5 10.5h12v4.2a5.3 5.3 0 0 1-5.3 5.3H9.8a5.3 5.3 0 0 1-5.3-5.3Z" />
+      <path d="M16.5 11.8h1.3a2.5 2.5 0 0 1 0 5h-1.6" />
+      <path d="M8.3 3.6c-.7.8-.7 1.7 0 2.5s.7 1.7 0 2.5M12.3 3.6c-.7.8-.7 1.7 0 2.5s.7 1.7 0 2.5" />
     </>
   ),
   // 감정을 안 고른 감사 — 한 줄을 담은 따옴표

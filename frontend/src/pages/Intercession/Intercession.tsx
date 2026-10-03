@@ -12,17 +12,17 @@ import {
   useJoinIntercession,
   useMyIntercession,
   usePauseIntercession,
-  usePrayIntercession,
   useUpdateIntercessionLine,
 } from '../../hooks/useIntercession'
-import type { IntercessionState, IntercessionTarget } from '../../api/intercession'
+import type { IntercessionState } from '../../api/intercession'
 import { isAuthenticated } from '../../utils/auth'
 import { toastFeedback } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { RailCard, SurveyShell } from '../Survey/surveyUi'
 import { FlameGlyph, Lamp } from './intercessionUi'
 import { cycleMonthLabel, daysUntil, formatDay } from './intercessionDates'
-import { LetterEntry, LetterInbox } from './Letters'
+import { LetterInbox } from './Letters'
+import { TargetCard } from './TargetCard'
 import { RecapCard } from './Recap'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { INTERCESSION_HERO } from '../../utils/themeAssets'
@@ -122,15 +122,6 @@ const LineInput = ({ value, onChange }: { value: string; onChange: (v: string) =
   </div>
 )
 
-const Avatar = ({ name, url }: { name: string; url: string | null }) =>
-  url ? (
-    <img src={url} alt="" className="w-14 h-14 lg:w-16 lg:h-16 rounded-full object-cover ring-2 ring-white dark:ring-white/10" />
-  ) : (
-    <span className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand text-[20px] lg:text-[23px] font-bold flex items-center justify-center">
-      {name.slice(0, 1)}
-    </span>
-  )
-
 // ── 상태별 본문 ──────────────────────────────────────────────────────────
 
 const JoinPanel = ({ rejoin }: { rejoin: boolean }) => {
@@ -153,87 +144,6 @@ const JoinPanel = ({ rejoin }: { rejoin: boolean }) => {
       >
         {join.isPending ? '잠시만요…' : rejoin ? '다시 함께하기' : '누군가의 기도에 함께하기'}
       </PrimaryButton>
-    </Card>
-  )
-}
-
-const TargetCard = ({
-  target,
-  month,
-  deliverOn,
-}: {
-  target: IntercessionTarget
-  month: string
-  deliverOn: string
-}) => {
-  const [burst, setBurst] = useState(false)
-  const pray = usePrayIntercession(
-    toastFeedback({ success: '기도가 조용히 전해질 거예요', error: '기도를 기록하지 못했습니다' }),
-  )
-  const done = target.prayed_today
-
-  return (
-    <Card title={`${month}에 내가 기도할 분`}>
-      <div className="flex items-center gap-3.5">
-        <Avatar name={target.display_name} url={target.avatar_url} />
-        <div className="min-w-0">
-          <p className="text-[17px] lg:text-[21px] font-extrabold text-ink-strong tracking-[-0.02em] truncate">
-            {target.display_name} <span className="text-[14px] lg:text-[16px] font-semibold text-[var(--text-muted)] lg:text-[var(--text-body)]">성도님</span>
-          </p>
-          <p className="mt-0.5 text-[12.5px] lg:text-[15px] text-[var(--text-muted)] lg:text-[var(--text-body)]">
-            이번 달 <strong className="text-brand tabular-nums">{target.prayed_days}</strong>일 기도했어요
-          </p>
-        </div>
-      </div>
-
-      {target.request_line ? (
-        <blockquote className="mt-4 rounded-xl bg-[var(--brand-soft)] px-4 py-3 lg:px-5 lg:py-4 text-[14px] lg:text-[17px] leading-relaxed text-ink-strong break-keep">
-          “{target.request_line}”
-        </blockquote>
-      ) : (
-        <p className="mt-4 rounded-xl bg-gray-50 dark:bg-white/[0.03] px-4 py-3 lg:px-5 lg:py-4 text-[13px] lg:text-[16px] leading-relaxed text-[var(--text-muted)] lg:text-[var(--text-body)] break-keep">
-          따로 남긴 기도제목은 없어요. 이분의 한 달을 하나님께 맡겨 드려요.
-        </p>
-      )}
-
-      {target.recent_prayers.length > 0 ? (
-        <div className="mt-3">
-          <p className="mb-1.5 lg:mb-2 text-[11.5px] lg:text-[14px] font-bold text-[var(--text-muted)] lg:text-[var(--text-body)]">최근에 나눈 기도</p>
-          <ul className="space-y-1.5">
-            {target.recent_prayers.map((p) => (
-              <li
-                key={p.id}
-                className="rounded-xl border border-gray-100 dark:border-white/[0.06] px-3.5 py-2.5 lg:px-4 lg:py-3 text-[12.5px] lg:text-[15.5px] leading-relaxed text-[var(--text-body)]"
-              >
-                {p.title ? <strong className="block text-ink-strong">{p.title}</strong> : null}
-                <span className="line-clamp-2">{p.preview}</span>
-                <span className="mt-0.5 block text-[11px] lg:text-[13.5px] text-[var(--text-muted)]">{p.time_ago}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {done ? (
-        <div
-          className={`mt-4 h-12 lg:h-14 rounded-2xl flex items-center justify-center gap-1.5 bg-[var(--amber-soft)] text-[var(--amber)] text-[14.5px] lg:text-[17px] font-bold ${
-            burst ? 'ic-pray-burst' : ''
-          }`}
-        >
-          <FlameGlyph size={17} />
-          오늘 기도했어요 · 내일 또 만나요
-        </div>
-      ) : (
-        <PrimaryButton
-          className="mt-4"
-          disabled={pray.isPending}
-          onClick={() => pray.mutate(undefined, { onSuccess: () => setBurst(true) })}
-        >
-          🙏 오늘 기도했어요
-        </PrimaryButton>
-      )}
-
-      <LetterEntry target={target} deliverOn={deliverOn} />
     </Card>
   )
 }
@@ -448,8 +358,6 @@ const Body = ({ state, loggedIn }: { state: IntercessionState; loggedIn: boolean
     )
   }
 
-  const month = state.cycle ? cycleMonthLabel(state.cycle.start_date) : ''
-
   return (
     <>
       {/* 지난달 마무리 — 주기가 끝나고 두 주 동안, 새 달 등불보다 먼저 */}
@@ -480,7 +388,7 @@ const Body = ({ state, loggedIn }: { state: IntercessionState; loggedIn: boolean
       <LetterInbox enabled={loggedIn} />
 
       {state.target && state.cycle ? (
-        <TargetCard target={state.target} month={month} deliverOn={state.cycle.end_date} />
+        <TargetCard target={state.target} cycle={state.cycle} />
       ) : state.cycle && state.waiting_reason === 'gathering' ? (
         <Card>
           <p className="text-[13px] lg:text-[16px] leading-relaxed text-[var(--text-body)] break-keep">

@@ -1,6 +1,14 @@
 // 오늘의 감사 (Small Thanks Thread) 타입 정의
 
-export type ThanksEmotion = 'joy' | 'peace' | 'awe' | 'love' | 'laugh'
+export type ThanksEmotion =
+  | 'grateful'
+  | 'joy'
+  | 'peace'
+  | 'awe'
+  | 'love'
+  | 'laugh'
+  | 'hopeful'
+  | 'comfort'
 
 interface ThanksEmotionMeta {
   label: string
@@ -17,6 +25,13 @@ interface ThanksEmotionMeta {
  * <ThanksIcon name={emotionKey} />가 그린다(키 이름이 곧 아이콘 이름).
  */
 export const THANKS_EMOTIONS: Record<ThanksEmotion, ThanksEmotionMeta> = {
+  grateful: {
+    label: '감사',
+    labelEn: 'Grateful',
+    hue: '#9b6cf0',
+    hint: '고맙다는 말이 절로 나왔던 순간',
+    hintEn: 'When “thank you” just slipped out',
+  },
   joy: {
     label: '기쁨',
     labelEn: 'Joy',
@@ -51,6 +66,20 @@ export const THANKS_EMOTIONS: Record<ThanksEmotion, ThanksEmotionMeta> = {
     hue: '#ff8a3d',
     hint: '혼자 빵 터졌던 순간',
     hintEn: 'That thing you laughed at alone',
+  },
+  hopeful: {
+    label: '소망',
+    labelEn: 'Hope',
+    hue: '#3fae6a',
+    hint: '내일이 조금 기대됐던 순간',
+    hintEn: 'When tomorrow felt a little brighter',
+  },
+  comfort: {
+    label: '위로',
+    labelEn: 'Comfort',
+    hue: '#a07a5c',
+    hint: '마음이 살며시 녹았던 순간',
+    hintEn: 'When your heart was gently held',
   },
 }
 
