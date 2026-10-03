@@ -40,7 +40,12 @@ interface SectionPrefetch {
 const SECTIONS: Record<string, SectionPrefetch> = {
   '/pastor': {
     chunk: () => import('./PastorHome'),
-    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.home(), queryFn: fetchPastorHome }),
+    // 홈 우측 맨 위 '이번 주일 설교' 카드가 개요 목록을 함께 쓴다
+    data: qc =>
+      Promise.all([
+        qc.prefetchQuery({ queryKey: pastorKeys.home(), queryFn: fetchPastorHome }),
+        qc.prefetchQuery({ queryKey: pastorKeys.outlines(), queryFn: fetchOutlines }),
+      ]).then(() => undefined),
   },
   '/pastor/care': {
     chunk: () => import('../Admin/CareRadar'),

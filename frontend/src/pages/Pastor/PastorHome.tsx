@@ -2,6 +2,7 @@ import { pastorKeys } from '../../hooks/queryKeys'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { showToast } from '../../utils/toast'
 import { sessionStore } from '../../utils/tokenStore'
 import { lazyModal } from '../../utils/lazyModal'
@@ -10,6 +11,7 @@ import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCar
 import PastorShell from './components/PastorShell'
 import FollowUpList from './components/FollowUpList'
 import SuggestionList from './components/SuggestionList'
+import SundaySermonCard from './components/SundaySermonCard'
 import { Avatar } from './components/ui'
 import { formatDay as formatIsoDay, usePastorGate } from './components/pastorUtils'
 
@@ -47,6 +49,8 @@ const waitLabel = (days: number | null): string => {
 const PastorHome = () => {
   const pastor = usePastorGate()
   const [openPrayerId, setOpenPrayerId] = useState<number | null>(null)
+  // 이번 주일 설교 — PC 는 우측 열 맨 위, 모바일은 인사 바로 아래(한 줄 흐름에선 우측 열이 뒤로 밀리므로)
+  const isDesk = useMediaQuery('(min-width: 1024px)')
 
   const { data, isPending, isError, refetch } = useQuery<PastorHomeData>({
     queryKey: pastorKeys.home(),
@@ -80,8 +84,9 @@ const PastorHome = () => {
       ) : (
         <>
           <Greeting data={data} />
+          {!isDesk && <SundaySermonCard />}
 
-          {/* PC(lg+) 2단 — 좌: 맡겨진 기도·응답의 은혜 / 우: 돌봄·이번 주·교회 흐름.
+          {/* PC(lg+) 2단 — 좌: 맡겨진 기도·응답의 은혜 / 우: 이번 주일 설교·돌봄·이번 주·교회 흐름.
               래퍼는 lg 미만에서 display:contents 라 모바일은 한 줄 흐름 그대로. */}
           <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
             <div className="contents lg:block lg:min-w-0">
@@ -90,6 +95,7 @@ const PastorHome = () => {
               <GraceCard data={data} />
             </div>
             <div className="contents lg:block">
+              {isDesk && <SundaySermonCard />}
               <ShepherdCard data={data} />
               <CareCard data={data} />
               <WeekCard data={data} />
