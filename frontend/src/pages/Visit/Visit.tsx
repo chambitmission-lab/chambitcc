@@ -12,18 +12,13 @@ import { soonestService } from '../../utils/worshipSchedule'
 import { writeToClipboard } from '../Bible/components/verseCopy'
 import ChurchMap from './components/ChurchMap'
 import TransportInfo from './components/TransportInfo'
+import HeroWalk from './components/HeroWalk'
 import InviteCard from './components/InviteCard'
 import LeaveNowCard from './components/LeaveNowCard'
 import { parseCoords } from './geo'
 import { ChurchIcon, CopyIcon, KakaoMapIcon, NaverMapIcon, PhoneIcon, PinIcon, StoreIcon, SubwayIcon, TmapIcon } from './icons'
 import './Visit.css'
 import { can } from '../../utils/access'
-
-/** 히어로 걷는 길 — 역(19,64)에서 내려와 바닥을 따라 골목(42,88)을 지나 입구(71.5,94)로 옆에서 들어간다.
- *  출입구가 1층이라 위에서 내리꽂으면 어색했다(2026-10-03) — 지면 높이로 수평 접근.
- *  좌표는 무대 % (viewBox 100×100, preserveAspectRatio none) — 글씨 크기로 무대 비율이 달라져도 칩(%)과 어긋나지 않는다.
- *  desktop.css 의 % 와 짝 */
-const WALK_PATH = 'M19 64 C 27 64, 31 88, 42 88 C 55 88, 64 93, 71.5 94'
 
 /** 히어로 하늘 — /worship 과 같은 --worship-sky-* 토큰을 시각으로 고른다 */
 const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
@@ -166,48 +161,8 @@ const Visit = () => {
                   <img className="visit-hero-img" src={heroImage} alt="" decoding="async" fetchPriority="high" />
                 </div>
               )}
-              {/* 걷는 길(PC 만) — 길찾기 버튼 옆 역에서 완만한 곡선으로 골목을 지나 교회 입구로.
-                  역·골목·소요 시간은 아래 경로 레일과 같은 편집 문구를 쓴다.
-                  움직임은 진입 때 한 번 그려지는 것뿐(걷는 점은 "유치하다"로 제거) */}
-              {heroImage && (
-                <div className="visit-hero-walk" aria-hidden="true">
-                  <svg className="visit-hero-walk-path" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    {/* 처음 한 번 역 → 입구로 그려지고 멈춘다 — 점선은 그대로 두고 굵은 실선 마스크를 펼친다 */}
-                    <mask id="visit-walk-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-                      <path className="visit-hero-walk-reveal" d={WALK_PATH} pathLength={1} />
-                    </mask>
-                    <path className="visit-hero-walk-dots" d={WALK_PATH} mask="url(#visit-walk-reveal)" />
-                  </svg>
-                  {walkStation && (
-                    <span className="visit-hero-walk-station">
-                      <span className="visit-hero-walk-line">
-                        {walkLine ?? <SubwayIcon size={12} strokeWidth={2.4} />}
-                      </span>
-                      <span className="visit-hero-walk-label">{walkStation}</span>
-                    </span>
-                  )}
-                  {walkAlley && (
-                    <span className="visit-hero-walk-stop">
-                      <span className="visit-hero-walk-label">{walkAlley}</span>
-                      <span className="visit-hero-walk-stop-dot">
-                        <StoreIcon size={13} strokeWidth={2.2} />
-                      </span>
-                    </span>
-                  )}
-                  {walkTime && (
-                    <span className="visit-hero-walk-time">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="13" cy="4" r="2" />
-                        <path d="M9 21l2.5-6.5L14 17v4" />
-                        <path d="M7 12l3-4.5 4 1.5 2.5 3.5" />
-                        <path d="M11.5 14.5L10 8" />
-                      </svg>
-                      {walkTime}
-                    </span>
-                  )}
-                  <span className="visit-hero-walk-goal" />
-                </div>
-              )}
+              {/* 걷는 길(PC 만) — 역 → 골목 → 1층 입구를 발자국으로. 문구는 아래 경로 레일과 같은 편집 문구 */}
+              {heroImage && <HeroWalk station={walkStation} line={walkLine} alley={walkAlley} time={walkTime} />}
               <div className="visit-hero-body">
                 <span className="visit-hero-label">
                   <PinIcon size={13} strokeWidth={2.2} />

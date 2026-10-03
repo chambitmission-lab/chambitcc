@@ -68,8 +68,9 @@
      2판 아치는 "너무 곡선"이고 글씨가 커지면 제목을 가로질렀다 →
      3판 노선도 꺾임은 "각도 어색", 걷는 점은 "유치" →
      4판: 완만한 곡선 하나 + 진입 때 역→입구로 한 번 그려지고 멈춤, 칩은 선이 닿는 순서대로 떠오른다.
-     5판: 1층 출입구를 위에서 내리꽂는 게 어색 → 선을 바닥으로 내려 지면 높이로 옆에서 들어간다.
-     좌표는 무대 %(Visit.tsx WALK_PATH): 역(19,64) · 골목(42,88) · 시간(58.8,90.6) · 입구(71.5,94) */
+     5판: 1층 출입구를 위에서 내리꽂는 게 어색 → 선을 바닥으로 내려 지면 높이로 옆에서 들어간다(사용자 "완벽").
+     6판: 점선 → 발자국(왼발·오른발 번갈아, 한 걸음씩 찍힘).
+     좌표는 무대 %(components/HeroWalk.tsx WALK_SEGMENTS): 역(19,64) · 골목(42,88) · 시간(58.8,90.6) · 입구(71.5,94) */
   .visit-hero-walk {
     --walk-ink: rgba(49, 130, 246, 0.6);
     --walk-dot: var(--brand);
@@ -87,32 +88,26 @@
     --walk-chip-border: rgba(217, 184, 119, 0.35);
   }
 
-  .visit-hero-walk-path {
+  /* 발자국 — 위치·방향·등장 시각은 HeroWalk.tsx 가 계산(인라인 left/top·--step-angle·animation-delay).
+     역에서 입구까지 한 걸음씩 찍히고 멈춘다 */
+  .visit-hero-walk-step {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
+    width: 12px;
+    height: 28px;
+    margin: -14px 0 0 -6px;
+    color: var(--walk-ink);
+    transform: rotate(var(--step-angle, 0deg));
+    animation: visit-walk-step 0.35s ease-out both;
   }
-  .visit-hero-walk-dots {
-    fill: none;
-    stroke: var(--walk-ink);
-    stroke-width: 5;
-    stroke-linecap: round;
-    stroke-dasharray: 0.1 13;   /* 둥근 캡 → 점(비균등 확대라 px 단위로 고정) */
-    vector-effect: non-scaling-stroke;
+  .visit-hero-walk-step.is-left svg {
+    transform: scaleX(-1);
   }
-  /* 마스크 실선 — pathLength 1 로 정규화해 dashoffset 1→0 이 곧 "역에서 입구까지" */
-  .visit-hero-walk-reveal {
-    fill: none;
-    stroke: #fff;
-    stroke-width: 12;
-    stroke-dasharray: 1 1;
-    stroke-dashoffset: 1;
-    animation: visit-walk-draw 1.6s cubic-bezier(0.45, 0, 0.25, 1) 0.3s forwards;
+  .visit-hero-walk-step svg {
+    display: block;
   }
-  @keyframes visit-walk-draw {
-    to { stroke-dashoffset: 0; }
+  @keyframes visit-walk-step {
+    from { opacity: 0; scale: 1.25; }
+    to { opacity: 1; scale: 1; }
   }
 
   /* 칩 — 선이 닿는 순간 살짝 떠오른다(transform 은 위치용이라 translate 속성을 따로 쓴다) */
@@ -123,8 +118,8 @@
     animation: visit-walk-in 0.45s ease-out both;
   }
   .visit-hero-walk-station { animation-delay: 0.15s; }
-  .visit-hero-walk-stop { animation-delay: 0.85s; }
-  .visit-hero-walk-time { animation-delay: 1.3s; }
+  .visit-hero-walk-stop { animation-delay: 1s; }
+  .visit-hero-walk-time { animation-delay: 1.4s; }
   .visit-hero-walk-goal { animation-delay: 1.8s; }
   @keyframes visit-walk-in {
     from { opacity: 0; translate: 0 6px; }
@@ -239,10 +234,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .visit-hero-walk-reveal {
-      animation: none;
-      stroke-dashoffset: 0;
-    }
+    .visit-hero-walk-step,
     .visit-hero-walk-station,
     .visit-hero-walk-stop,
     .visit-hero-walk-time,
