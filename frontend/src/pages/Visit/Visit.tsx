@@ -19,8 +19,11 @@ import { ChurchIcon, CopyIcon, KakaoMapIcon, NaverMapIcon, PhoneIcon, PinIcon, S
 import './Visit.css'
 import { can } from '../../utils/access'
 
-/** 히어로 걷는 길(viewBox 1300×500) — 역(235,321) → 골목(520,172, 아치 꼭대기) → 입구(930,470). 좌표는 desktop.css 의 % 와 짝 */
-const WALK_PATH = 'M235 321 C 300 220, 400 168, 520 172 C 680 178, 820 300, 930 470'
+/** 히어로 걷는 길 — 역(19,64)에서 내려와 바닥을 따라 골목(42,88)을 지나 입구(71.5,94)로 옆에서 들어간다.
+ *  출입구가 1층이라 위에서 내리꽂으면 어색했다(2026-10-03) — 지면 높이로 수평 접근.
+ *  좌표는 무대 % (viewBox 100×100, preserveAspectRatio none) — 글씨 크기로 무대 비율이 달라져도 칩(%)과 어긋나지 않는다.
+ *  desktop.css 의 % 와 짝 */
+const WALK_PATH = 'M19 64 C 27 64, 31 88, 42 88 C 55 88, 64 93, 71.5 94'
 
 /** 히어로 하늘 — /worship 과 같은 --worship-sky-* 토큰을 시각으로 고른다 */
 const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
@@ -163,20 +166,17 @@ const Visit = () => {
                   <img className="visit-hero-img" src={heroImage} alt="" decoding="async" fetchPriority="high" />
                 </div>
               )}
-              {/* 걷는 길(PC 만) — 길찾기 버튼 옆 역에서 출발해 빈 무대 위로 아치를 그리며 골목을 지나 교회 입구로.
-                  무대가 13:5 고정이라 viewBox 1300×500 과 1:1 — 점선이 늘어나지 않는다.
+              {/* 걷는 길(PC 만) — 길찾기 버튼 옆 역에서 완만한 곡선으로 골목을 지나 교회 입구로.
                   역·골목·소요 시간은 아래 경로 레일과 같은 편집 문구를 쓴다.
-                  걷는 점은 SMIL animateMotion — viewBox 좌표로 움직여 무대 크기와 무관하다 */}
+                  움직임은 진입 때 한 번 그려지는 것뿐(걷는 점은 "유치하다"로 제거) */}
               {heroImage && (
                 <div className="visit-hero-walk" aria-hidden="true">
-                  <svg className="visit-hero-walk-path" viewBox="0 0 1300 500">
-                    <path id="visit-walk-route" d={WALK_PATH} />
-                    <circle className="visit-hero-walker" r="7">
-                      <animateMotion dur="7s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.08;0.82;1" calcMode="linear">
-                        <mpath href="#visit-walk-route" />
-                      </animateMotion>
-                      <animate attributeName="opacity" dur="7s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.08;0.8;0.88;1" />
-                    </circle>
+                  <svg className="visit-hero-walk-path" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    {/* 처음 한 번 역 → 입구로 그려지고 멈춘다 — 점선은 그대로 두고 굵은 실선 마스크를 펼친다 */}
+                    <mask id="visit-walk-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+                      <path className="visit-hero-walk-reveal" d={WALK_PATH} pathLength={1} />
+                    </mask>
+                    <path className="visit-hero-walk-dots" d={WALK_PATH} mask="url(#visit-walk-reveal)" />
                   </svg>
                   {walkStation && (
                     <span className="visit-hero-walk-station">
