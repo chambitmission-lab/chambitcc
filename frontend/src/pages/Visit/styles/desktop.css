@@ -38,14 +38,17 @@
     border-radius: 24px;
   }
 
+  /* 2:1 이면 1200px 폭에서 무대가 600px — 첫 화면을 히어로가 다 먹었다(2026-10-03 "높이가 크다").
+     2.6:1(≈460px)로 낮춘다. 건물은 자산의 오른쪽 47%에 위아래 꽉 차 있어 cover 로는 지붕이 잘리므로
+     아래 사진은 contain + 오른쪽 아래 정렬 — 건물 전체가 그대로, 왼쪽은 무대 배경이 이어 받는다 */
   .visit-hero-stage {
-    aspect-ratio: 2 / 1;
+    aspect-ratio: 13 / 5;
     min-height: 0;
-    padding: 40px 48px;
+    padding: 32px 48px;
     justify-content: center;
   }
 
-  /* 사진은 무대 전체(자산도 2:1) — 알파 램프만으로 배경에서 스며 나온다 */
+  /* 사진은 무대 전체 높이 — 알파 램프만으로 배경에서 스며 나온다 */
   .visit-hero-photo {
     height: 100%;
   }
@@ -55,7 +58,8 @@
     height: 15%;
   }
   .visit-hero-img {
-    object-position: right center;
+    object-fit: contain;
+    object-position: right bottom;
   }
 
   .visit-hero-branch {
