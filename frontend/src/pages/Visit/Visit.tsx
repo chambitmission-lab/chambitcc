@@ -19,6 +19,9 @@ import { ChurchIcon, CopyIcon, KakaoMapIcon, NaverMapIcon, PhoneIcon, PinIcon, S
 import './Visit.css'
 import { can } from '../../utils/access'
 
+/** 히어로 걷는 길(viewBox 1300×500) — 역(235,321) → 골목(520,172, 아치 꼭대기) → 입구(930,470). 좌표는 desktop.css 의 % 와 짝 */
+const WALK_PATH = 'M235 321 C 300 220, 400 168, 520 172 C 680 178, 820 300, 930 470'
+
 /** 히어로 하늘 — /worship 과 같은 --worship-sky-* 토큰을 시각으로 고른다 */
 const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
   if (h < 8) return 'dawn'
@@ -134,6 +137,14 @@ const Visit = () => {
     .filter((s) => s.title || isAdminUser)
     .map((s, i, arr) => ({ ...s, last: i === arr.length - 1 }))
 
+  const walkStation = routeSteps.find((s) => s.key === 1)?.title
+  const walkLine = routeSteps.find((s) => s.key === 1)?.desc.match(/\d+/)?.[0]
+  const walkAlley = (() => {
+    const step = routeSteps.find((s) => s.key === 2)
+    return step?.desc || step?.title
+  })()
+  const walkTime = routeSteps.find((s) => s.key === 3)?.desc
+
   const mood = moodOfHour(next ? Math.floor(next.occ.startMin / 60) : now.getHours())
 
   return (
@@ -150,6 +161,51 @@ const Visit = () => {
               {heroImage && (
                 <div className="visit-hero-photo" aria-hidden="true">
                   <img className="visit-hero-img" src={heroImage} alt="" decoding="async" fetchPriority="high" />
+                </div>
+              )}
+              {/* 걷는 길(PC 만) — 길찾기 버튼 옆 역에서 출발해 빈 무대 위로 아치를 그리며 골목을 지나 교회 입구로.
+                  무대가 13:5 고정이라 viewBox 1300×500 과 1:1 — 점선이 늘어나지 않는다.
+                  역·골목·소요 시간은 아래 경로 레일과 같은 편집 문구를 쓴다.
+                  걷는 점은 SMIL animateMotion — viewBox 좌표로 움직여 무대 크기와 무관하다 */}
+              {heroImage && (
+                <div className="visit-hero-walk" aria-hidden="true">
+                  <svg className="visit-hero-walk-path" viewBox="0 0 1300 500">
+                    <path id="visit-walk-route" d={WALK_PATH} />
+                    <circle className="visit-hero-walker" r="7">
+                      <animateMotion dur="7s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.08;0.82;1" calcMode="linear">
+                        <mpath href="#visit-walk-route" />
+                      </animateMotion>
+                      <animate attributeName="opacity" dur="7s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.08;0.8;0.88;1" />
+                    </circle>
+                  </svg>
+                  {walkStation && (
+                    <span className="visit-hero-walk-station">
+                      <span className="visit-hero-walk-line">
+                        {walkLine ?? <SubwayIcon size={12} strokeWidth={2.4} />}
+                      </span>
+                      <span className="visit-hero-walk-label">{walkStation}</span>
+                    </span>
+                  )}
+                  {walkAlley && (
+                    <span className="visit-hero-walk-stop">
+                      <span className="visit-hero-walk-label">{walkAlley}</span>
+                      <span className="visit-hero-walk-stop-dot">
+                        <StoreIcon size={13} strokeWidth={2.2} />
+                      </span>
+                    </span>
+                  )}
+                  {walkTime && (
+                    <span className="visit-hero-walk-time">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="13" cy="4" r="2" />
+                        <path d="M9 21l2.5-6.5L14 17v4" />
+                        <path d="M7 12l3-4.5 4 1.5 2.5 3.5" />
+                        <path d="M11.5 14.5L10 8" />
+                      </svg>
+                      {walkTime}
+                    </span>
+                  )}
+                  <span className="visit-hero-walk-goal" />
                 </div>
               )}
               <div className="visit-hero-body">

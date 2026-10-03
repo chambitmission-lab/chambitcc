@@ -276,3 +276,8 @@
   outline-offset: 3px;
 }
 
+
+/* 걷는 길 — PC(lg+) 전용, 배치는 desktop.css. 모바일은 무대가 세로 구도라 빈자리가 없다 */
+.visit-hero-walk {
+  display: none;
+}
