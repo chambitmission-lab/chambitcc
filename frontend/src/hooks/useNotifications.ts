@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import {
   getNotifications,
   getPopupNotifications,
   markAsRead,
   markAllAsRead,
+  deleteMyNotification,
 } from '../api/notification'
+import type { NotificationsResponse } from '../types/notification'
 import { tokenStore } from '../utils/tokenStore'
 import { notificationStream } from '../utils/notificationStream'
 import { refetchIfFewPages } from '../utils/infiniteQueryTrim'
@@ -123,6 +125,43 @@ export const useMarkAllAsRead = () => {
     mutationFn: markAllAsRead,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
+    },
+  })
+}
+
+/**
+ * 내 개인 알림 삭제 — 목록에서 먼저 빼고(낙관적), 실패하면 되돌린다.
+ * 안 읽은 알림을 지우면 뱃지 수도 함께 줄인다.
+ */
+export const useDeleteMyNotification = () => {
+  const queryClient = useQueryClient()
+  const key = notificationKeys.list()
+
+  return useMutation({
+    mutationFn: deleteMyNotification,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const prev = queryClient.getQueryData<InfiniteData<NotificationsResponse>>(key)
+      if (prev) {
+        const target = prev.pages.flatMap((p) => p.notifications).find((n) => n.id === id)
+        const unreadDelta = target && !target.is_read ? 1 : 0
+        queryClient.setQueryData<InfiniteData<NotificationsResponse>>(key, {
+          ...prev,
+          pages: prev.pages.map((p) => ({
+            ...p,
+            notifications: p.notifications.filter((n) => n.id !== id),
+            total: Math.max(0, p.total - 1),
+            unread_count: Math.max(0, p.unread_count - unreadDelta),
+          })),
+        })
+      }
+      return { prev }
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(key, ctx.prev)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: key })
     },
   })
 }

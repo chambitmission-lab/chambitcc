@@ -6,6 +6,7 @@ import {
   useNotifications,
   useMarkAsRead,
   useMarkAllAsRead,
+  useDeleteMyNotification,
 } from '../../hooks/useNotifications'
 import { tokenStore } from '../../utils/tokenStore'
 import { prefetchCapsule } from '../../hooks/useTimeCapsule'
@@ -155,6 +156,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
 
   const markAsReadMutation = useMarkAsRead()
   const markAllAsReadMutation = useMarkAllAsRead()
+  const deleteMutation = useDeleteMyNotification()
 
   // 스크롤 끝 감지 → 다음 페이지 로드
   useEffect(() => {
@@ -284,6 +286,16 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
       return
     }
     void toggleExpand(notification)
+  }
+
+  // 개인 알림만 지울 수 있다 (전체 공지는 모두가 공유하는 행이라 서버가 막는다).
+  // 목록에서는 먼저 빠지고, 실패하면 훅이 되돌린 뒤 토스트로 알린다.
+  const handleDelete = (notification: Notification) => {
+    deleteMutation.mutate(notification.id, {
+      onSuccess: () => showToast('알림을 삭제했어요', 'success'),
+      onError: (error) =>
+        showToast(error instanceof Error ? error.message : '알림을 삭제하지 못했습니다', 'error'),
+    })
   }
 
   const handleMarkAllAsRead = async () => {
@@ -610,6 +622,30 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                         className="font-semibold text-gray-600 dark:text-gray-300 hover:text-brand"
                                       >
                                         {expanded ? '접기' : '더 보기'}
+                                      </span>
+                                    </>
+                                  )}
+                                  {isLoggedIn && !notice && (
+                                    <>
+                                      <span aria-hidden>·</span>
+                                      <span
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleDelete(notification)
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            handleDelete(notification)
+                                          }
+                                        }}
+                                        aria-label={`'${stripLeadingEmoji(notification.title)}' 알림 삭제`}
+                                        className="font-semibold text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                                      >
+                                        삭제
                                       </span>
                                     </>
                                   )}

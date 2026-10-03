@@ -107,6 +107,17 @@ export const markAllAsRead = async (): Promise<void> => {
 }
 
 /**
+ * 내 개인 알림 삭제 (로그인 필수) — 전체 공지는 서버가 404 로 막는다
+ */
+export const deleteMyNotification = async (id: number): Promise<void> => {
+  await requestRaw(`/notifications/${id}/mine`, {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '알림을 삭제하지 못했습니다',
+  })
+}
+
+/**
  * 공지사항 생성 (관리자 전용)
  */
 export const createNotification = async (data: CreateNotificationRequest): Promise<Notification> => {
