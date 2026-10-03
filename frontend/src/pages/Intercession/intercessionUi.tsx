@@ -5,39 +5,6 @@
 import { useId } from 'react'
 import type { IntercessionLampWeek } from '../../api/intercession'
 
-/** 불꽃 하나 — lit 이면 따뜻한 불꽃, 아니면 꺼진 심지 */
-export const Flame = ({ lit, size = 22 }: { lit: boolean; size?: number }) => {
-  const id = useId().replace(/:/g, '')
-  return (
-    <svg
-      width={size}
-      height={size * 1.35}
-      viewBox="0 0 20 27"
-      className={`ic-flame${lit ? ' is-lit' : ''}`}
-      aria-hidden
-    >
-      <defs>
-        <linearGradient id={`ic-f-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fff3c4" />
-          <stop offset="45%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#f97316" />
-        </linearGradient>
-      </defs>
-      {lit ? (
-        <>
-          <path
-            d="M10 1.5C12.8 6 16.5 9.2 16.5 15.2A6.5 6.5 0 0 1 3.5 15.2C3.5 11 6.4 9 7.6 5.6 8.6 7.6 9.4 8.3 10.3 8.6 10.6 6 10.4 3.8 10 1.5Z"
-            fill={`url(#ic-f-${id})`}
-          />
-          <path d="M10 12.2c1.5 1.8 2.6 3 2.6 4.7a2.6 2.6 0 0 1-5.2 0c0-1.5 1.2-2.7 2.6-4.7Z" fill="#fffbeb" opacity="0.9" />
-        </>
-      ) : (
-        <path d="M10 19.5v5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      )}
-    </svg>
-  )
-}
-
 /**
  * 유리컵 속 초(votive) 하나 — 집중 기도 CandleHero 를 등불 줄 크기로 옮긴 것.
  * 켜진 초는 촛농이 속에서 빛나고 불꽃이 천천히 흔들린다. 꺼진 초는 식은 촛농 + 그을린 심지.
@@ -181,45 +148,23 @@ const Votive = ({ lit, order }: { lit: boolean; order: number }) => {
 /**
  * 나를 위한 기도 등불 — 이번 주기의 주마다 초 하나.
  * 켜진 초 = 그 주에 누군가 나를 위해 기도했다. 횟수는 보여 주지 않는다.
- * lg(히어로·월말 회고)는 유리컵 촛불, sm(홈 카드)은 작은 막대 초.
+ * 히어로·월말 회고에 쓰는 유리컵 촛불 줄.
  */
-export const Lamp = ({
-  weeks,
-  size = 'lg',
-}: {
-  weeks: IntercessionLampWeek[]
-  size?: 'lg' | 'sm'
-}) =>
-  size === 'lg' ? (
-    <div className="ic-lamp ic-lamp--lg" role="img" aria-label={lampLabel(weeks)}>
-      {weeks.map((w, i) => (
-        <span
-          key={w.start}
-          className={`ic-votive${w.lit ? ' is-lit' : ''}${w.is_current ? ' is-current' : ''}${
-            w.is_future ? ' is-future' : ''
-          }`}
-        >
-          <Votive lit={w.lit} order={i} />
-          <span className="ic-votive__mark" aria-hidden />
-        </span>
-      ))}
-    </div>
-  ) : (
-  <div className={`ic-lamp ic-lamp--${size}`} role="img" aria-label={lampLabel(weeks)}>
-    {weeks.map((w) => (
+export const Lamp = ({ weeks }: { weeks: IntercessionLampWeek[] }) => (
+  <div className="ic-lamp ic-lamp--lg" role="img" aria-label={lampLabel(weeks)}>
+    {weeks.map((w, i) => (
       <span
         key={w.start}
-        className={`ic-candle${w.lit ? ' is-lit' : ''}${w.is_current ? ' is-current' : ''}${
+        className={`ic-votive${w.lit ? ' is-lit' : ''}${w.is_current ? ' is-current' : ''}${
           w.is_future ? ' is-future' : ''
         }`}
       >
-        <span className="ic-candle__glow" aria-hidden />
-        <Flame lit={w.lit} size={11} />
-        <span className="ic-candle__stick" aria-hidden />
+        <Votive lit={w.lit} order={i} />
+        <span className="ic-votive__mark" aria-hidden />
       </span>
     ))}
   </div>
-  )
+)
 
 const lampLabel = (weeks: IntercessionLampWeek[]) => {
   const lit = weeks.filter((w) => w.lit).length

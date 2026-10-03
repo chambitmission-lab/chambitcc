@@ -1,14 +1,14 @@
 // 홈 '누군가의 기도' 카드 — 운영이 열려 있을 때만 뜬다.
 //   미참여/비로그인 → 소개 한 줄 + 함께하기
 //   대기 중        → 첫 짝이 정해지는 날 D-day / 인원 모으는 중
-//   진행 중        → 오늘 기도할 분 + 나를 위한 등불(작게)
+//   진행 중        → 오늘 기도할 분 (나를 위한 등불은 /intercession 히어로에서만)
 //   쉬는 중        → 띄우지 않는다 (쉬기로 한 분을 홈에서 조르지 않는다)
 //   안 읽은 편지   → 위 상태보다 먼저 "누군가의 편지가 도착했어요" (쉬는 중이어도)
 //   지난달 마무리  → 고마움을 아직 안 전했으면 그다음으로 "M월의 기도를 마무리해요"
 import { useNavigate } from 'react-router-dom'
 import { useMyIntercession } from '../../../hooks/useIntercession'
 import { preloadRoute } from '../../../utils/routePreload'
-import { FlameGlyph, Lamp } from '../../Intercession/intercessionUi'
+import { FlameGlyph } from '../../Intercession/intercessionUi'
 import { cycleMonthLabel, daysUntil, formatDay } from '../../Intercession/intercessionDates'
 import '../../Intercession/intercession.css'
 
@@ -71,10 +71,6 @@ const IntercessionCard = () => {
         </span>
         {unread > 0 ? (
           <span className="shrink-0 w-2.5 h-2.5 rounded-full bg-[var(--brand)]" aria-label="새 편지" />
-        ) : data.lamp && data.target ? (
-          <span className="shrink-0 pl-1">
-            <Lamp weeks={data.lamp.weeks} size="sm" />
-          </span>
         ) : (
           <span className="material-icons-outlined shrink-0 text-[20px] text-gray-400 dark:text-white/35" aria-hidden>
             chevron_right
