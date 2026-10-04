@@ -44,6 +44,7 @@ export const worship = {
   worshipStatusEnded: 'Ended',
   worshipLiveNow: 'Service you can join now',
   worshipLiveNext: 'Next upcoming service',
+  worshipLiveFollowing: 'Next',
   worshipStartsNow: '⏳ Starting now!',
   worshipStartsIn: '⏳ Starts in {time}!',
   worshipCountdownAria: 'Time until start',
@@ -68,6 +69,7 @@ export const worship = {
   worshipTaglineDefault: 'A time to gather and pray',
   // Narrative countdown — phrase shifts with time remaining
   worshipNarrativeOngoing: 'Worship is being held in the sanctuary right now',
+  worshipNarrativeJustStarted: 'Just started. You can still come in',
   worshipNarrativeOpen: 'The sanctuary doors are open. Welcome!',
   worshipNarrativeSoon: 'Starting soon. Shall we prepare our hearts?',
   worshipNarrativeDawn: 'In the quiet dawn, open the day with the Word',

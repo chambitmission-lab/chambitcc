@@ -44,6 +44,7 @@ export const worship = {
   worshipStatusEnded: '종료',
   worshipLiveNow: '지금 참석 가능한 예배',
   worshipLiveNext: '다가오는 가장 빠른 예배',
+  worshipLiveFollowing: '다음 예배',
   worshipStartsNow: '⏳ 지금 시작해요!',
   worshipStartsIn: '⏳ 시작까지 {time} 남았어요!',
   worshipCountdownAria: '시작까지 남은 시간',
@@ -68,6 +69,7 @@ export const worship = {
   worshipTaglineDefault: '함께 모여 기도하는 시간',
   // 서사형 카운트다운 — 남은 시간·상태에 따라 문구가 바뀐다
   worshipNarrativeOngoing: '지금 본당에서 예배가 드려지고 있어요',
+  worshipNarrativeJustStarted: '방금 시작했어요. 지금 들어오셔도 괜찮아요',
   worshipNarrativeOpen: '본당 문이 열려 있어요. 어서 오세요',
   worshipNarrativeSoon: '곧 시작돼요. 마음을 준비해 볼까요?',
   worshipNarrativeDawn: '고요한 새벽, 말씀으로 하루를 열어요',

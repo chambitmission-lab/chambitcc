@@ -19,7 +19,7 @@ import { BookOpenIcon, ChevronRightIcon, ClockIcon, MapPinIcon, PlayCircleIcon }
 import './Worship.css'
 import { can } from '../../utils/access'
 import { CountdownClock, MOOD_ICON, StatusChip } from './components/WorshipBits'
-import { DAY_NAMES_EN, FILTER_KEY, NARRATIVE_KEY, OPEN_BEFORE_MIN, RECOMMEND_LEAD_MIN, dayLabel, formatRemaining, formatTimeLabel, liturgicalSeason, moodOfTime, orderLabel, pick, serviceStatusToday, taglineKey, weekdayIcon } from './components/worshipTime'
+import { DAY_NAMES_EN, FILTER_KEY, NARRATIVE_KEY, OPEN_AFTER_MIN, OPEN_BEFORE_MIN, dayLabel, formatRemaining, formatTimeLabel, liturgicalSeason, moodOfTime, orderLabel, pick, serviceStatusToday, taglineKey, weekdayIcon } from './components/worshipTime'
 import type { DayFilter, Mood } from './components/worshipTime'
 import { toKstCalendarDate } from '../../utils/kstTime'
 
@@ -128,14 +128,17 @@ const Worship = () => {
   const todayDay = seoulNow.getDay()
 
   // 지금 이후 가장 가까운 예배 (주일+평일 통합).
-  // 시작이 임박(15분 미만)하면 다음 예배로 넘어가되, 넘어갈 곳이 없으면 임박한 예배라도 보여준다.
-  const upcoming = (() => {
-    const candidates = [...activeSunday, ...activeWeekday]
-      .map(service => ({ service, occ: nextOccurrence(service, seoulNow) }))
-      .filter((c): c is { service: WorshipService; occ: Occurrence } => c.occ !== null)
-      .sort((a, b) => a.occ.minutes - b.occ.minutes)
-    return candidates.find(c => c.occ.minutes >= RECOMMEND_LEAD_MIN) ?? candidates[0] ?? null
-  })()
+  // 시작이 임박해도 건너뛰지 않는다 — 입장 가능 배지와 배너가 같은 예배를 가리켜야 하고,
+  // 이 화면은 이미 교회에 와 있거나 곧 도착하는 성도가 주로 연다.
+  const candidates = [...activeSunday, ...activeWeekday]
+    .map(service => ({ service, occ: nextOccurrence(service, seoulNow) }))
+    .filter((c): c is { service: WorshipService; occ: Occurrence } => c.occ !== null)
+    .sort((a, b) => a.occ.minutes - b.occ.minutes)
+  const upcoming = candidates[0] ?? null
+  // 임박한(입장 가능 구간) 오늘 예배 아래에 보조로 알려 줄 그다음 예배 — 지금 못 가는 사람용
+  const following = upcoming && upcoming.occ.dayOffset === 0 && upcoming.occ.minutes <= OPEN_BEFORE_MIN
+    ? candidates.find(c => c.occ.minutes > upcoming.occ.minutes) ?? null
+    : null
 
   const upcomingRemainSec = upcoming
     ? upcoming.occ.minutes * 60 - seoulNow.getSeconds()
@@ -148,9 +151,13 @@ const Worship = () => {
   const ongoingNow = (() => {
     const nowMin = seoulNow.getHours() * 60 + seoulNow.getMinutes()
     for (const service of [...activeSunday, ...activeWeekday]) {
-      if (serviceStatusToday(service, seoulNow) !== 'ongoing') continue
+      // 막 시작한 예배(시작 후 10분 이내 '입장 가능')도 라이브로 본다 — 다음 예배로 넘기지 않는다
+      const status = serviceStatusToday(service, seoulNow)
+      if (status !== 'ongoing' && status !== 'open') continue
       const started = parseServiceTimes(service.time).filter(t => t <= nowMin).pop()
-      if (started !== undefined) return { service, startMin: started }
+      if (started === undefined) continue
+      if (status === 'open' && nowMin - started > OPEN_AFTER_MIN) continue
+      return { service, startMin: started, justStarted: status === 'open' }
     }
     return null
   })()
@@ -166,7 +173,7 @@ const Worship = () => {
 
   // 서사형 카운트다운 문구 — 정보(숫자)는 유지하고 그 위에 초대의 언어를 얹는다
   const narrativeText = (() => {
-    if (ongoingNow) return t('worshipNarrativeOngoing')
+    if (ongoingNow) return t(ongoingNow.justStarted ? 'worshipNarrativeJustStarted' : 'worshipNarrativeOngoing')
     if (!upcoming) return null
     if (upcoming.occ.dayOffset === 0) {
       if (upcoming.occ.minutes <= OPEN_BEFORE_MIN) return t('worshipNarrativeOpen')
@@ -329,6 +336,13 @@ const Worship = () => {
                 {narrativeText && <span className="worship-live-narr">{narrativeText}</span>}
                 {upcoming.occ.dayOffset === 0 && (
                   <CountdownClock deadlineTs={Date.now() + upcomingRemainSec * 1000} />
+                )}
+                {following && (
+                  <span className="worship-live-follow">
+                    {t('worshipLiveFollowing')} · {pick(language, following.service.name, following.service.name_en)}{' '}
+                    {dayLabel(following.occ, seoulNow, language, t('worshipToday'), t('worshipTomorrow'))}{' '}
+                    {formatTimeLabel(following.occ.startMin, language)}
+                  </span>
                 )}
               </button>
             )}

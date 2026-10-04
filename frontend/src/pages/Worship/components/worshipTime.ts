@@ -25,9 +25,6 @@ const orderLabel = (order: number, language: Language): string => {
   return `${order}${suffix}`
 }
 
-// 추천 배너는 시작 15분 전까지만 해당 예배를 노출한다.
-// 그 이후엔 이동 시간을 고려해 다음 예배를 추천하는 편이 현실적이기 때문.
-const RECOMMEND_LEAD_MIN = 15
 // 예배 진행 시간 가정치 — '예배 중' 표시 판정에만 사용
 const SERVICE_DURATION_MIN = 60
 // 시작 30분 전 ~ 시작 10분 후까지를 '입장 가능'으로 본다
@@ -180,5 +177,5 @@ const FILTER_KEY = {
 } as const
 
 // ── 같은 화면의 형제 모듈이 쓴다 ──
-export { weekdayIcon, DAY_NAMES_EN, pick, orderLabel, RECOMMEND_LEAD_MIN, OPEN_BEFORE_MIN, serviceStatusToday, formatRemaining, formatTimeLabel, dayLabel, moodOfTime, NARRATIVE_KEY, taglineKey, liturgicalSeason, FILTER_KEY }
+export { weekdayIcon, DAY_NAMES_EN, pick, orderLabel, OPEN_BEFORE_MIN, OPEN_AFTER_MIN, serviceStatusToday, formatRemaining, formatTimeLabel, dayLabel, moodOfTime, NARRATIVE_KEY, taglineKey, liturgicalSeason, FILTER_KEY }
 export type { ServiceStatus, Mood, DayFilter }

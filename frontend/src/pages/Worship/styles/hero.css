@@ -323,6 +323,15 @@
   color: var(--text-body);
 }
 
+/* 임박한 예배 아래 보조 줄 — 지금 못 가는 사람을 위한 그다음 예배 */
+.worship-live-follow {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  word-break: keep-all;
+  color: var(--text-muted);
+}
+
 /* 예배 중 라이브 모드 — 카운트다운 대신 조용한 숨쉬기. 라이브 시그널만 레드 */
 .worship-live--ongoing {
   border-color: rgba(239, 68, 68, 0.35);
