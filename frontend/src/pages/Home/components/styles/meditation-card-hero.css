@@ -59,6 +59,12 @@
   );
 }
 
+/* 가을 밤 보름달은 사진 위쪽(21%)에 있다 — 넓은 PC 카드(cover가 위아래를 자름)에서도
+ * 달이 잘리지 않게 위쪽을 더 보여준다. 모바일은 세로 여유가 없어 영향 없음. */
+.meditation-hero[data-hero='autumn-night']::before {
+  background-position: center 25%;
+}
+
 .meditation-hero-overlay {
   position: absolute;
   inset: 0;

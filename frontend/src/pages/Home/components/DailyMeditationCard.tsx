@@ -386,6 +386,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
          * 이미지는 ::before 레이어에서 하단 마스크로 카드 배경에 녹아든다 (Apple TV/Netflix식 페이드) */}
         <div
           className="meditation-hero"
+          data-hero={`${naturalSeason}-${heroSlot}`}
           style={{ '--hero-image': `url(${HERO_IMAGES[naturalSeason][heroSlot]})` } as React.CSSProperties}
         >
           <div className="meditation-hero-overlay" aria-hidden />
