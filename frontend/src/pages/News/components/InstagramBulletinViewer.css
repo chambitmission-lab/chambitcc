@@ -185,7 +185,7 @@
 }
 
 /* 네비게이션 버튼 */
-.nav-button {
+.instagram-viewer .nav-button {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -203,29 +203,29 @@
   backdrop-filter: blur(10px);
 }
 
-.nav-button.visible {
+.instagram-viewer .nav-button.visible {
   opacity: 1;
 }
 
-.nav-button.hidden {
+.instagram-viewer .nav-button.hidden {
   opacity: 0;
   pointer-events: none;
 }
 
-.nav-button:hover {
+.instagram-viewer .nav-button:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-50%) scale(1.1);
 }
 
-.nav-button.prev {
+.instagram-viewer .nav-button.prev {
   left: 1rem;
 }
 
-.nav-button.next {
+.instagram-viewer .nav-button.next {
   right: 1rem;
 }
 
-.nav-button .material-icons-outlined {
+.instagram-viewer .nav-button .material-icons-outlined {
   color: white;
   font-size: 32px;
 }
@@ -330,7 +330,7 @@
 }
 
 /* 넘기기 버튼 글자 — PC 에서만 보인다 */
-.nav-label {
+.instagram-viewer .nav-label {
   display: none;
 }
 
@@ -374,7 +374,7 @@
     height: 4px;
   }
 
-  .nav-button {
+  .instagram-viewer .nav-button {
     width: auto;
     height: 72px;
     padding: 0 1.25rem 0 0.75rem;
@@ -383,29 +383,29 @@
     background: rgba(0, 0, 0, 0.55);
   }
 
-  .nav-button.next {
+  .instagram-viewer .nav-button.next {
     padding: 0 0.75rem 0 1.25rem;
     flex-direction: row-reverse;
   }
 
-  .nav-button.prev {
+  .instagram-viewer .nav-button.prev {
     left: 1.5rem;
   }
 
-  .nav-button.next {
+  .instagram-viewer .nav-button.next {
     right: 1.5rem;
   }
 
-  .nav-button:hover {
+  .instagram-viewer .nav-button:hover {
     background: rgba(0, 0, 0, 0.75);
     transform: translateY(-50%);
   }
 
-  .nav-button .material-icons-outlined {
+  .instagram-viewer .nav-button .material-icons-outlined {
     font-size: 44px;
   }
 
-  .nav-label {
+  .instagram-viewer .nav-label {
     display: inline;
     color: white;
     font-size: 1.15rem;
@@ -461,12 +461,12 @@
     padding: 74px 0 72px;
   }
 
-  .nav-button {
+  .instagram-viewer .nav-button {
     width: 40px;
     height: 40px;
   }
 
-  .nav-button .material-icons-outlined {
+  .instagram-viewer .nav-button .material-icons-outlined {
     font-size: 28px;
   }
 
@@ -483,7 +483,7 @@
 
 /* 터치 디바이스 최적화 */
 @media (hover: none) and (pointer: coarse) {
-  .nav-button:hover {
+  .instagram-viewer .nav-button:hover {
     transform: translateY(-50%);
   }
 

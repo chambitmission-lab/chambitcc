@@ -1,0 +1,242 @@
+/* 마지막 — 다시 1막의 하늘(.ab-sky, 테마별): 초대 + 한눈에 정보(예배·길·전화), 그 아래 더 알아보기 */
+
+.ab-invite {
+  position: relative;
+  margin-top: var(--ab-gap);
+  padding: 2.5rem 1.375rem 1.375rem;
+  overflow: hidden;
+  border-radius: 28px;
+}
+
+/* 모서리에서 번지는 빛 */
+.ab-invite::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ab-glow-2), var(--ab-glow-3) 45%, transparent 70%);
+  pointer-events: none;
+}
+
+.ab-invite-head,
+.ab-info {
+  position: relative;
+}
+
+.ab-invite-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+  color: var(--ab-ink);
+}
+
+.ab-invite-text {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  white-space: pre-line;
+  color: var(--ab-ink-2);
+}
+
+.ab-invite-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 54px;
+  margin-top: 1.25rem;
+  border: 0;
+  border-radius: 14px;
+  background: #3182f6;
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.ab-invite-cta:hover {
+  background: #1b6ef3;
+  transform: translateY(-1px);
+}
+
+.ab-info {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.ab-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 1.125rem;
+  border-radius: 16px;
+  background: var(--ab-row-bg);
+  border: 1px solid var(--ab-row-border);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease;
+}
+
+.ab-info-row:hover,
+.ab-info-row:focus-visible {
+  background: var(--ab-row-bg-hover);
+}
+
+.ab-info-icon {
+  flex: none;
+  color: var(--ab-light);
+}
+
+.ab-info-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ab-info-main small {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ab-ink-3);
+}
+
+.ab-info-main b {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.97rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.ab-info-main b.is-empty {
+  color: var(--ab-ink-4);
+  font-weight: 500;
+}
+
+.ab-info-chevron {
+  flex: none;
+  color: var(--ab-ink-4);
+}
+
+.ab-info-admin {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-radius: 12px;
+  border: 1px dashed var(--ab-ink-4);
+  font-size: 0.8rem;
+  color: var(--ab-ink-2);
+}
+
+/* ── 더 알아보기 — 설교·발자취·사람들 ── */
+.ab-more {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.ab-more-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 1rem 0.875rem;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.ab-more-link:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-soft-strong);
+}
+
+.ab-more-icon {
+  margin-bottom: 0.4rem;
+  color: var(--brand);
+}
+
+.ab-more-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.ab-more-desc {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.ab-thanks {
+  margin-top: 2rem;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  white-space: pre-line;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@media (min-width: 1024px) {
+  .ab-invite {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    align-items: center;
+    padding: 3.5rem;
+  }
+
+  .ab-invite-title {
+    font-size: 2.375rem;
+  }
+
+  .ab-invite-text {
+    font-size: 1.0625rem;
+  }
+
+  .ab-invite-cta {
+    width: auto;
+    padding: 0 1.75rem;
+  }
+
+  .ab-info {
+    margin-top: 0;
+  }
+
+  .ab-more {
+    gap: 0.75rem;
+  }
+
+  .ab-more-link {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    column-gap: 0.75rem;
+    padding: 1.25rem 1.375rem;
+  }
+
+  .ab-more-icon {
+    margin-bottom: 0;
+  }
+
+  .ab-more-title {
+    font-size: 1rem;
+  }
+
+  .ab-more-desc {
+    flex-basis: 100%;
+    padding-left: 2rem;
+    font-size: 0.8125rem;
+  }
+}

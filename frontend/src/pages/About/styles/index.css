@@ -1,11 +1,122 @@
-/* About Page - Main Import File */
+/* About Page — "참 빛" 스크롤 서사
+   어둠(요 1:9) → 빛을 받는 사진 → 이야기·만남 → 약속 → 담임목사 → 다시 밤하늘의 초대 */
 
-@import './hero.css';
-@import './quickinfo.css';
-@import './intro.css';
-@import './meeting.css';
-@import './cta.css';
+@import './dawn.css';
+@import './story.css';
 @import './pastor.css';
-@import './responsive.css';
-/* lg+ 그리드 규칙이 각 섹션 기본값을 이기도록 맨 마지막에 */
-@import './layout.css';
+@import './invite.css';
+
+/* 페이지 공통 토큰 — 하늘(1막·초대 카드)은 테마를 따른다.
+   라이트 = 이미 빛이 비추는 새벽 하늘(옅은 회청 + 금빛 무리 + 진한 잉크 글씨)
+   다크   = 앱과 같은 무채색 밤(#131313 계열, 남색 금지) + 푸른 빛
+   전면 풀블리드가 아니라 본문 폭 안의 라운드 카드라 흰 크롬·레일과 따로 놀지 않는다.
+   (채도 높은 하늘색 띠는 가로 줄무늬처럼 끊겨 보였다 → 하늘은 저채도로만) */
+.about-page {
+  --ab-night: #0b1220; /* 무대(꺼진 장면) 바탕 — 사진이 덮어 거의 안 보인다 */
+  --ab-sky-1: #cfdaea;
+  --ab-sky-2: #e3e9f2;
+  --ab-sky-3: #f3f1ec;
+  --ab-sky-border: rgba(25, 23, 34, 0.06);
+  --ab-ink: #182235;
+  --ab-ink-2: rgba(24, 34, 53, 0.72);
+  --ab-ink-3: rgba(24, 34, 53, 0.55);
+  --ab-ink-4: rgba(24, 34, 53, 0.42);
+  --ab-light: #2f6fd8; /* 하늘 위 강조색(요 1:9 마지막 줄·아이콘) */
+  --ab-beam: rgba(214, 160, 70, 0.75);
+  --ab-glow-1: rgba(255, 255, 255, 0.95);
+  --ab-glow-2: rgba(255, 224, 160, 0.6);
+  --ab-glow-3: rgba(255, 196, 110, 0.2);
+  --ab-dot: #fff;
+  --ab-dot-glow: rgba(240, 180, 80, 0.85);
+  --ab-row-bg: rgba(255, 255, 255, 0.55);
+  --ab-row-bg-hover: rgba(255, 255, 255, 0.8);
+  --ab-row-border: rgba(24, 34, 53, 0.06);
+  --ab-hl: rgba(255, 205, 110, 0.5); /* '빛' 형광펜 */
+  --ab-halo:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 2px 10px rgba(0, 0, 0, 0.65),
+    0 8px 28px rgba(0, 0, 0, 0.55);
+  --ab-serif: 'Noto Serif KR', serif;
+  --ab-gutter: 1.25rem;
+  --ab-gap: 4rem;
+  min-height: 100vh;
+  background: var(--app-canvas);
+  color: var(--text-strong);
+}
+
+.dark .about-page {
+  --ab-sky-1: #0b0b0d;
+  --ab-sky-2: #101012;
+  --ab-sky-3: #19191c;
+  --ab-sky-border: rgba(255, 255, 255, 0.06);
+  --ab-ink: #f1efee;
+  --ab-ink-2: rgba(241, 239, 238, 0.72);
+  --ab-ink-3: rgba(241, 239, 238, 0.55);
+  --ab-ink-4: rgba(241, 239, 238, 0.42);
+  --ab-light: #9cc8ff;
+  --ab-beam: rgba(160, 205, 255, 0.8);
+  --ab-glow-1: rgba(255, 255, 255, 0.9);
+  --ab-glow-2: rgba(146, 196, 255, 0.45);
+  --ab-glow-3: rgba(49, 130, 246, 0.16);
+  --ab-dot-glow: rgba(160, 205, 255, 0.9);
+  --ab-row-bg: rgba(255, 255, 255, 0.05);
+  --ab-row-bg-hover: rgba(255, 255, 255, 0.1);
+  --ab-row-border: rgba(255, 255, 255, 0.07);
+  --ab-hl: rgba(156, 200, 255, 0.26);
+}
+
+/* 하늘 카드 공통 바탕 */
+.ab-sky {
+  background: linear-gradient(to bottom, var(--ab-sky-1), var(--ab-sky-2) 55%, var(--ab-sky-3));
+  box-shadow: inset 0 0 0 1px var(--ab-sky-border);
+  color: var(--ab-ink);
+}
+
+.ab-body {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 var(--ab-gutter) 5rem;
+}
+
+.ab-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* 작은 빛 — 페이지 전체의 모티프를 라벨 점에도 */
+.ab-eyebrow::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 4px var(--brand-soft-strong);
+}
+
+.ab-admin-hint {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px dashed var(--brand-soft-strong);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .about-page {
+    --ab-gap: 6rem;
+  }
+
+  .ab-body {
+    padding-bottom: 6rem;
+  }
+}

@@ -12,6 +12,7 @@ import { scheduleAfterFirstScreen } from './idlePreload'
 //      Orbitron          : 말씀 카드(photoVerseCanvas) 날짜 스탬프
 //      Nanum Pen Script  : 타임캡슐·인사말 편지·목양칼럼 손글씨, 챗봇 말풍선
 //      Nanum Brush Script: 말씀 카드 붓글씨(세로쓰기 족자 프리셋)
+//      Gowun Dodum       : /about 첫 화면 말씀(요 1:9) — 둥글고 다정한 획
 const ALWAYS_SHEETS = [
   // 700 은 홈 '올해의 말씀' 대형 인용과 말씀 카드(photoVerseCanvas)가 실제로 요청하는 웨이트다
   // — 없으면 브라우저가 600 을 가짜 볼드로 늘려 획이 뭉갠다.
@@ -19,12 +20,13 @@ const ALWAYS_SHEETS = [
   'https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap',
 ]
 
-export type DeferredFontFamily = 'orbitron' | 'nanumPen' | 'nanumBrush'
+export type DeferredFontFamily = 'orbitron' | 'nanumPen' | 'nanumBrush' | 'gowunDodum'
 
 const ON_DEMAND_SHEETS: Record<DeferredFontFamily, string> = {
   orbitron: 'https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap',
   nanumPen: 'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap',
   nanumBrush: 'https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap',
+  gowunDodum: 'https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap',
 }
 
 // href → 스타일시트가 CSSOM 에 들어간(또는 실패한) 시점에 resolve 되는 Promise.

@@ -1,0 +1,262 @@
+/* 이야기 + 다섯 만남 + 약속
+   만남은 "꺼진 전구 넷 + 켜진 장면 하나". 꺼진 전구를 누르면 무대가 그 장면으로 어두워지고,
+   다시 누르거나 '우리가 바라는 만남 보기'로 손수건 장면에 불이 들어온다. */
+
+.ab-story {
+  margin-top: 2.5rem;
+}
+
+.ab-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.38;
+  letter-spacing: -0.03em;
+  white-space: pre-line;
+  color: var(--text-strong);
+}
+
+.ab-lead {
+  margin-top: 0.875rem;
+  font-size: 1.03rem;
+  line-height: 1.75;
+  white-space: pre-line;
+  color: var(--text-body);
+}
+
+.ab-meetings {
+  margin-top: 2rem;
+}
+
+.ab-meetings-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* ── 꺼진 전구 넷 ── */
+.ab-bulbs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.ab-bulb {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 92px;
+  padding: 1.125rem 1rem;
+  border-radius: 18px;
+  background: var(--surface-container);
+  border: 1.5px solid var(--card-border);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+  /* 한글이 글자 단위로 끊겨 "만 / 남"처럼 갈리지 않게 — 어절 단위로 넘기고 두 줄 길이를 맞춘다 */
+  word-break: keep-all;
+  text-wrap: balance;
+  color: var(--text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.18s ease, color 0.18s ease, transform 0.15s ease;
+}
+
+.ab-bulb:hover {
+  transform: translateY(-2px);
+}
+
+.ab-bulb:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.ab-bulb-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-muted) 40%, transparent);
+}
+
+/* 고른 전구 — 불은 여전히 꺼져 있다(점은 진한 회색). 테두리만 또렷하게 */
+.ab-bulb.is-selected {
+  border-color: var(--text-muted);
+  color: var(--text-strong);
+}
+
+.ab-bulb.is-selected .ab-bulb-dot {
+  background: var(--text-muted);
+}
+
+/* ── 무대 — 켜진 손수건 장면 / 고른 꺼진 장면 ── */
+.ab-stage {
+  position: relative;
+  margin-top: 0.625rem;
+  min-height: 220px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--ab-night);
+  color: #fff;
+  animation: ab-stage-in 0.45s ease-out;
+}
+
+@keyframes ab-stage-in {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}
+
+.ab-stage-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+/* 꺼진 장면 — 빛이 빠진 듯 채도·밝기를 낮춘다 */
+.ab-stage:not(.is-lit) .ab-stage-img {
+  filter: grayscale(0.85) brightness(0.55);
+}
+
+.ab-stage-cap {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 3.75rem 1.25rem 1.25rem;
+  background: linear-gradient(transparent, rgba(11, 18, 32, 0.88));
+}
+
+.ab-stage-cap small {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ab-light);
+}
+
+.ab-stage-text {
+  margin: 0;
+  font-family: var(--ab-serif);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.ab-stage-text .ab-line {
+  display: block;
+}
+
+.ab-stage:not(.is-lit) .ab-stage-text {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ab-stage-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ab-stage-back:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ── 약속 — 카드 한가운데 빛 번짐, 마지막 줄이 빛 ── */
+.ab-promise {
+  position: relative;
+  margin-top: var(--ab-gap);
+  padding: 2.75rem 1.5rem;
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  text-align: center;
+}
+
+.ab-promise::before {
+  content: '';
+  position: absolute;
+  inset: -40% -10% auto;
+  height: 120%;
+  background: radial-gradient(closest-side, var(--brand-soft-strong), transparent);
+  pointer-events: none;
+}
+
+.ab-promise-text {
+  position: relative;
+  margin: 0;
+  font-family: var(--ab-serif);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.75;
+  color: var(--text-strong);
+}
+
+.ab-promise-text .ab-line {
+  display: block;
+}
+
+.ab-promise-text .ab-line.is-last {
+  color: var(--brand);
+}
+
+.ab-promise-author {
+  position: relative;
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+@media (min-width: 1024px) {
+  .ab-story {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 3.5rem;
+    align-items: start;
+    margin-top: var(--ab-gap);
+  }
+
+  .ab-title {
+    font-size: 2.375rem;
+  }
+
+  .ab-lead {
+    font-size: 1.125rem;
+  }
+
+  .ab-meetings {
+    margin-top: 0;
+  }
+
+  .ab-bulbs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .ab-stage-img {
+    aspect-ratio: 16 / 9;
+  }
+
+  .ab-stage-text {
+    font-size: 1.625rem;
+  }
+
+  .ab-promise {
+    padding: 5rem;
+  }
+
+  .ab-promise-text {
+    font-size: 2rem;
+  }
+}

@@ -1,5 +1,9 @@
 // About page translations
 export const about = {
+  // Night-sky opening — the meaning of the church's name (John 1:9). The last line is lit
+  aboutDawnVerse: 'The true light that gives light to everyone\nwas coming into the world',
+  aboutDawnRef: 'John 1:9',
+  aboutDawnKicker: 'People who met that light',
   aboutChurchName: 'Chambit Church',
   aboutTagline: 'Life is about meeting',
   aboutOurStory: 'Our Story',
@@ -18,7 +22,7 @@ export const about = {
   aboutMeetingBad3: 'A meeting discarded when drained',
   aboutMeetingBad4: 'A meeting erased when not needed',
   aboutMeetingGood: 'A meeting like a handkerchief\nthat wipes away sweat and tears',
-  aboutCtaTitle: 'Will you join us?',
+  aboutCtaTitle: "Now it's your turn",
   aboutCtaText: 'We invite you to a wonderful journey\nof building the glorious Kingdom of God\ntogether',
   aboutCtaBadge: '✝️ Chambit Church is with you',
   aboutPastorBadge: 'Senior Pastor',
