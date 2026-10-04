@@ -80,25 +80,23 @@
   text-shadow: 0 0 14px var(--ab-sky-2), 0 0 28px var(--ab-sky-2);
 }
 
-/* '빛' 형광펜 — 첫 화면에서 왼쪽부터 쓱 칠해진다 */
+/* '빛' — 글자 자체가 은은하게 빛난다(첫 화면에서 한 번 켜짐).
+   예전 형광펜(아래쪽 띠)은 한글 받침 자리에만 걸려 '빛'의 ㅊ만 칠한 것처럼 보였다 → 띠·배경 칠 금지 */
 .ab-hl {
-  /* 칠은 글자 밖으로 살짝 번지되 자리는 차지하지 않는다 — 패딩만 주면 "빛 이"처럼 띄어 보였다 */
-  margin: 0 -0.06em;
-  padding: 0 0.06em;
-  border-radius: 0.2em;
-  color: inherit;
-  background: linear-gradient(transparent 58%, var(--ab-hl) 58%, var(--ab-hl) 94%, transparent 94%)
-    no-repeat left / 100% 100%;
-  animation: ab-hl-draw 0.7s cubic-bezier(0.3, 0, 0.2, 1) 0.6s both;
+  background: none;
+  color: var(--ab-hl-ink);
+  text-shadow: var(--ab-hl-glow);
+  animation: ab-hl-light 1.1s ease-out 0.6s both;
 }
 
 .ab-line + .ab-line .ab-hl {
   animation-delay: 1s;
 }
 
-@keyframes ab-hl-draw {
-  from { background-size: 0% 100%; }
-  to { background-size: 100% 100%; }
+@keyframes ab-hl-light {
+  from {
+    text-shadow: 0 0 0 transparent, 0 0 0 transparent;
+  }
 }
 
 .ab-dawn-verse .ab-line {
