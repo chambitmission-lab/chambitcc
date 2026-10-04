@@ -446,7 +446,8 @@
 @media (min-width: 1024px) {
   .mp-stage {
     display: block;
-    padding: 8px 20px 48px;
+    /* 좌우 여백은 셸 안쪽(.mp-shell padding)에 둔다 — 다른 성경 화면(1240 셸 · lg:px-5)과 레일 위치를 맞춤 */
+    padding: 8px 0 48px;
   }
 
   .mp-shell {
@@ -455,6 +456,7 @@
     gap: 24px;
     max-width: 1240px;
     margin: 0 auto;
+    padding: 0 20px;
   }
 
   /* 시간대 워시는 넓어진 무대 전체에 — 라운드 패널로 담는다 */

@@ -425,7 +425,7 @@ const TypingSession = () => {
 
   return (
     <div className="bt-page bg-[var(--app-canvas)] dark:bg-background-dark page-stage">
-      <div className="lg:max-w-[1180px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
         <BibleSideRail active="typing" />
 
         <main className={`bt-shell bt-shell--session${isDesk ? ' bt-shell--desk' : ''}`}>

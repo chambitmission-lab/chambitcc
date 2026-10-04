@@ -117,7 +117,7 @@ const PlanList = () => {
           ★2026-10: 우측 위젯 레일을 본문 카드 밖에 따로 세우던 3단은 가운데 목록이 ~480px로 눌려
           둘러보기 카드가 한 줄에 한 장씩 거대한 정사각형으로 늘어섰다. 이제 위젯은 본문 카드 안
           '위쪽 2단'(히어로·이어서 읽기 | 위젯)에만 두고, 둘러보기·완주는 카드 전체 폭 격자로 편다 */}
-      <div className="lg:max-w-[1320px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
       <BibleSideRail active="plans" />
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-10 lg:overflow-clip">
         {/* 헤더 — PC에선 좌측 레일이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
