@@ -1,11 +1,6 @@
-/* 1막 — 어둠 속 한 줄기 빛 + 빛을 받는 사진
-   ┌ 하늘 카드(테마별) ─────────────┐
-   │  빛줄기 → 빛 무리(스크롤로 커짐) │
-   │  요 1:9 · 참빛교회              │
-   │  흐르는 빛 선 ↓                 │
-   │   ┌──────────────────────┐    │ ← 아래 padding 자리에 사진이 들여 앉아
-   └───│        사진          │────┘    카드 경계를 넘어 내려온다
-       └──────────────────────┘ */
+/* 첫 화면 — 어둠 속 한 줄기 빛
+   하늘 카드(테마별) 하나가 첫 화면을 채운다: 빛줄기 → 빛 무리(진입 때 한 번 개화) → 요 1:9 · 참빛교회
+   → 카드 아래 "다섯 장의 이야기"로 흘러내리는 빛 선. 사진은 아래 고정 그림의 첫 장면이 된다. */
 
 .ab-dawn {
   position: relative;
@@ -16,11 +11,11 @@
   /* 본문 폭(.ab-body 와 같은 1240 - 좌우 거터) 안의 라운드 카드 */
   width: min(100% - 2 * var(--ab-gutter), 1240px - 2 * var(--ab-gutter));
   margin: 1rem auto 0;
-  /* 첫 화면을 거의 채우고, 사진 윗부분이 첫 화면 끝에 걸치도록.
+  /* 첫 화면을 채우되 아래 이야기 첫머리가 살짝 보이게.
      PC 는 zoom(--az) 안이라 vh 가 함께 커진다 → 나눠서 되돌린다 */
-  min-height: 560px;
-  min-height: calc((100svh - 56px) / var(--az, 1) + 40px);
-  padding: 4rem 1.5rem 15rem;
+  min-height: 520px;
+  min-height: calc((100svh - 56px) / var(--az, 1) - 4.5rem);
+  padding: 4rem 1.5rem 8rem;
   overflow: hidden;
   border-radius: 28px;
   text-align: center;
@@ -156,16 +151,29 @@
   text-shadow: var(--ab-name-glow);
 }
 
-/* "아래로" 글자 대신 — 빛 알갱이가 사진 쪽으로 흘러내리는 선 */
-.ab-dawn-stream {
+/* 카드 아래 — "다섯 장의 이야기" 안내 + 빛 알갱이가 흘러내리는 선 */
+.ab-dawn-hint {
   position: absolute;
   left: 50%;
-  bottom: 150px;
-  width: 1.5px;
-  height: 120px;
+  bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
   transform: translateX(-50%);
-  background: linear-gradient(to bottom, transparent, var(--ab-beam));
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--ab-ink-3);
   pointer-events: none;
+}
+
+.ab-dawn-stream {
+  position: relative;
+  order: -1;
+  width: 1.5px;
+  height: var(--ab-stream-h, 64px);
+  background: linear-gradient(to bottom, transparent, var(--ab-beam));
 }
 
 .ab-dawn-stream::after {
@@ -186,72 +194,13 @@
   0% { transform: translateY(0); opacity: 0; }
   15% { opacity: 1; }
   85% { opacity: 1; }
-  100% { transform: translateY(var(--ab-stream-h, 120px)); opacity: 0; }
-}
-
-/* ── 사진 — 어둠과 빛의 경계에 걸쳐, 위쪽 후광으로 내려온 빛을 받는다 ── */
-.ab-photo {
-  position: relative;
-  z-index: 1;
-  /* 하늘 카드 아래 경계에 걸쳐, 카드보다 안쪽으로 들여 앉힌다 */
-  margin: -13rem 0.875rem 0;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  border-radius: 24px;
-  /* 사진 도착 전 폴백. LQIP 가 있으면 About.tsx 가 인라인 background-image 로 덮는다 */
-  background-color: #35569b;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 -18px 60px rgba(255, 214, 150, 0.35),
-    0 24px 50px rgba(24, 34, 53, 0.16);
-}
-
-.dark .ab-photo {
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 -18px 70px rgba(146, 196, 255, 0.2),
-    0 24px 50px rgba(0, 0, 0, 0.5);
-}
-
-.ab-photo-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transition: opacity 260ms ease-out;
-}
-
-.ab-photo-img.is-loaded {
-  opacity: 1;
-}
-
-/* 라이트·다크 공통: 스크림 없이 사진 원색 + 흰 글씨 3겹 halo (히어로 확정 문법) */
-.ab-photo-cap {
-  position: absolute;
-  left: 1.25rem;
-  bottom: 1.125rem;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: var(--ab-halo);
+  100% { transform: translateY(var(--ab-stream-h, 64px)); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ab-hl {
-    animation: none;
-  }
-
+  .ab-hl,
   .ab-dawn-glow {
     animation: none;
-  }
-
-  .ab-photo-img {
-    transition: none;
   }
 
   .ab-dawn-stream::after {
@@ -262,7 +211,7 @@
 
 @media (min-width: 1024px) {
   .ab-dawn {
-    padding-bottom: 17.5rem;
+    --ab-stream-h: 80px;
   }
 
   .ab-dawn-verse {
@@ -277,20 +226,8 @@
     font-size: 3.5rem;
   }
 
-  .ab-dawn-stream {
-    --ab-stream-h: 110px;
-    bottom: 170px;
-    height: 110px;
-  }
-
-  .ab-photo {
-    margin: -14.5rem 3rem 0;
-    aspect-ratio: 21 / 9;
-  }
-
-  .ab-photo-cap {
-    left: 2rem;
-    bottom: 1.75rem;
-    font-size: 1.25rem;
+  .ab-dawn-hint {
+    bottom: 2rem;
+    font-size: 0.875rem;
   }
 }

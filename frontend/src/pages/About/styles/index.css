@@ -1,10 +1,8 @@
-/* About Page — "참 빛" 스크롤 서사
-   어둠(요 1:9) → 빛을 받는 사진 → 이야기·만남 → 약속 → 담임목사 → 다시 밤하늘의 초대 */
+/* About Page — "참 빛" 스티키 스크롤 이야기
+   하늘 카드(요 1:9) → 고정 그림 + 다섯 장(만남 · 다섯 만남 · 약속 · 담임목사 · 초대) */
 
 @import './dawn.css';
-@import './story.css';
-@import './pastor.css';
-@import './invite.css';
+@import './scrolly.css';
 
 /* 페이지 공통 토큰 — 하늘(1막·초대 카드)은 테마를 따른다.
    라이트 = 이미 빛이 비추는 새벽 하늘(옅은 회청 + 금빛 무리 + 진한 잉크 글씨)
@@ -12,7 +10,7 @@
    전면 풀블리드가 아니라 본문 폭 안의 라운드 카드라 흰 크롬·레일과 따로 놀지 않는다.
    (채도 높은 하늘색 띠는 가로 줄무늬처럼 끊겨 보였다 → 하늘은 저채도로만) */
 .about-page {
-  --ab-night: #0b1220; /* 무대(꺼진 장면) 바탕 — 사진이 덮어 거의 안 보인다 */
+  --ab-night: #0b1220; /* 고정 그림 바탕 — 장면이 덮어 거의 안 보인다 */
   --ab-sky-1: #cfdaea;
   --ab-sky-2: #e3e9f2;
   --ab-sky-3: #f3f1ec;
@@ -41,7 +39,6 @@
   /* 말씀·인용 서체 — 첫 화면 말씀·무대 문구·약속을 하나로(고운돋움은 400 한 웨이트뿐) */
   --ab-verse: 'Gowun Dodum', 'Pretendard Variable', sans-serif;
   --ab-gutter: 1.25rem;
-  --ab-gap: 4rem;
   min-height: 100vh;
   background: var(--app-canvas);
   color: var(--text-strong);
@@ -83,27 +80,6 @@
   padding: 0 var(--ab-gutter) 5rem;
 }
 
-.ab-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--brand);
-}
-
-/* 작은 빛 — 페이지 전체의 모티프를 라벨 점에도 */
-.ab-eyebrow::before {
-  content: '';
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--brand);
-  box-shadow: 0 0 0 4px var(--brand-soft-strong);
-}
-
 .ab-admin-hint {
   margin-top: 1.5rem;
   padding: 0.75rem 1rem;
@@ -116,10 +92,6 @@
 }
 
 @media (min-width: 1024px) {
-  .about-page {
-    --ab-gap: 6rem;
-  }
-
   .ab-body {
     padding-bottom: 6rem;
   }

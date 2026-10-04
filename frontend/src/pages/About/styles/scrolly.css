@@ -1,0 +1,834 @@
+/* 스티키 스크롤 — 고정 그림 + 다섯 장
+   PC     ┌ 고정 그림(sticky) ┬ 01 만남        ┐   지금 읽는 장(화면 가운데 선에 걸린 장)의
+          │  장면 크로스페이드  │ 02 다섯 만남   │   장면으로 그림이 바뀐다
+          │  01 · ● ○ ○ ○ ○    │ …            │
+   모바일  고정 그림이 헤더 아래 위쪽에 붙고, 글이 그 밑으로 흘러 들어간다(판정선은 화면 68%). */
+
+.ab-scrolly {
+  position: relative;
+  margin-top: 1rem;
+}
+
+/* ── 고정 그림 ── */
+.ab-visual-wrap {
+  position: sticky;
+  top: 3.5rem; /* 헤더 56px 아래 */
+  z-index: 2;
+  /* 위 틈으로 글이 비치지 않게 캔버스색으로 막고, 아래로는 글이 부드럽게 사라지게 */
+  margin: 0 calc(-1 * var(--ab-gutter));
+  padding: 0.75rem var(--ab-gutter) 0;
+  background: var(--app-canvas);
+}
+
+.ab-visual-wrap::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 1.75rem;
+  background: linear-gradient(var(--app-canvas), transparent);
+  pointer-events: none;
+}
+
+.ab-visual {
+  position: relative;
+  height: clamp(220px, 40svh, 380px);
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--ab-night);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 16px 40px -24px rgba(0, 0, 0, 0.45);
+}
+
+.dark .ab-visual {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 16px 40px -24px rgba(0, 0, 0, 0.8);
+}
+
+/* 장면 레이어 — 지금 장만 보인다(나머지는 inert) */
+.ab-scene {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  /* 히어로 사진 LQIP 가 인라인 background-image 로 깔린다 */
+  background-size: cover;
+  background-position: center;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+
+.ab-scene.is-on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ab-scene-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.06);
+  transition: transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.ab-scene.is-on .ab-scene-img {
+  transform: none;
+}
+
+/* 히어로 사진은 도착하면 LQIP 위로 페이드 */
+.ab-hero-img {
+  opacity: 0;
+  transition: opacity 260ms ease-out, transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.ab-hero-img.is-loaded {
+  opacity: 1;
+}
+
+/* 만남 장면 — 4:3 삽화(960×717)를 원본 비율 카드로 띄운다.
+   세로로 긴 틀에 cover 로 채우면 좌우(손·고양이)가 잘리고 원본보다 커져 흐려졌다.
+   카드 폭 = 틀 폭 · (틀 높이 − 캡션 자리)×비율 · 원본 960px 중 가장 작은 값 → 잘림·확대 없음 */
+.ab-scene.is-meet {
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2.75rem 1rem 0.875rem;
+  overflow: hidden;
+  --ab-meet-cap: 5.5rem; /* 캡션(작은 줄 + 문구 두 줄) + 간격 */
+}
+
+/* 남는 자리 — 같은 그림을 크게 흐려 깐다 */
+.ab-meet-backdrop {
+  position: absolute;
+  inset: -10%;
+  width: 120%;
+  height: 120%;
+  object-fit: cover;
+  filter: blur(32px) brightness(0.55) saturate(1.25);
+  pointer-events: none;
+}
+
+.ab-meet-frame {
+  position: relative;
+  flex: none;
+  width: min(100%, (100cqh - var(--ab-meet-cap)) * 960 / 717, 960px);
+  aspect-ratio: 960 / 717;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 18px 40px -12px rgba(0, 0, 0, 0.6);
+  animation: ab-scene-in 0.5s ease-out;
+}
+
+/* 캡션은 카드 아래 제자리(겹치지 않게) */
+.ab-scene.is-meet .ab-scene-cap {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: 100%;
+  text-align: center;
+}
+
+@keyframes ab-scene-in {
+  from {
+    opacity: 0.3;
+    transform: scale(1.04);
+  }
+}
+
+.ab-pastor-img {
+  object-position: center 20%;
+}
+
+/* 예배당 — 테마별 낮·밤 (display:none 쪽은 lazy 라 받지 않는다) */
+.ab-church-day,
+.ab-church-night {
+  object-position: 72% center;
+}
+
+.ab-church-night {
+  display: none;
+}
+
+.dark .ab-church-day {
+  display: none;
+}
+
+.dark .ab-church-night {
+  display: block;
+}
+
+/* EditableImage 래퍼(inline-block)가 그림을 가두지 않게 장면을 꽉 채운다 */
+.ab-scene .about-editable-wrapper {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.ab-scene .about-editable-wrapper .about-edit-btn {
+  top: 12px;
+  right: 12px;
+}
+
+/* 장면 위 글씨 — 스크림 없이 흰 글씨 + 3겹 halo (히어로 확정 문법) */
+.ab-scene-cap {
+  position: absolute;
+  left: 1.125rem;
+  right: 1.125rem;
+  bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #fff;
+  text-shadow: var(--ab-halo);
+}
+
+.ab-scene-cap small {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f5cf86; /* 파랑은 라이트 장면에서 묻힌다 */
+}
+
+.ab-scene-quote {
+  display: block;
+  font-family: var(--ab-verse);
+  font-size: 1.1875rem;
+  font-weight: 400;
+}
+
+.ab-scene-quote .ab-line {
+  display: block;
+}
+
+.ab-pastor-nickname {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  padding: 0.25rem 0.875rem 0.375rem;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: 1.375rem;
+  line-height: 1.3;
+  color: #fff;
+}
+
+/* 장 번호 + 진행 점 */
+.ab-visual-no {
+  position: absolute;
+  top: 0.875rem;
+  left: 1.125rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  text-shadow: var(--ab-halo);
+  pointer-events: none;
+}
+
+.ab-visual-dots {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.125rem;
+  display: flex;
+  gap: 5px;
+  pointer-events: none;
+}
+
+.ab-visual-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+.ab-visual-dots i.is-on {
+  width: 20px;
+  background: #fff;
+}
+
+/* ── 다섯 장 ── */
+.ab-chapters {
+  position: relative;
+}
+
+.ab-chapter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 62svh;
+  padding: 2.75rem 0.25rem;
+  opacity: 0.32;
+  transition: opacity 0.5s ease;
+}
+
+.ab-chapter.is-on {
+  opacity: 1;
+}
+
+.ab-chapter-no {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.ab-chapter-no i {
+  width: 18px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.ab-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+  white-space: pre-line;
+  word-break: keep-all;
+  color: var(--text-strong);
+}
+
+.ab-lead {
+  margin-top: 0.875rem;
+  font-size: 1.03rem;
+  line-height: 1.75;
+  white-space: pre-line;
+  word-break: keep-all;
+  color: var(--text-body);
+}
+
+/* 02 — 꺼진 전구 넷 + 켜진 손수건 하나 */
+.ab-bulbs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.ab-bulb {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1.5px solid var(--card-border);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: keep-all;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.ab-bulb:hover {
+  transform: translateY(-2px);
+}
+
+.ab-bulb:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.ab-bulb-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-muted) 40%, transparent);
+}
+
+/* 고른 전구 — 불은 여전히 꺼져 있다. 테두리만 또렷하게 */
+.ab-bulb.is-selected {
+  border-color: var(--text-muted);
+  color: var(--text-strong);
+}
+
+.ab-bulb.is-selected .ab-bulb-dot {
+  background: var(--text-muted);
+}
+
+/* 다섯째 켜진 전구(손수건) — 한 줄 전체, 점에 불이 들어와 있다 */
+.ab-bulb.is-on {
+  grid-column: 1 / -1;
+  color: var(--text-strong);
+}
+
+.ab-bulb.is-on .ab-bulb-dot {
+  background: var(--ab-dot);
+  box-shadow: 0 0 0 1px var(--ab-dot-glow), 0 0 12px 3px var(--ab-dot-glow);
+}
+
+.ab-bulb.is-on.is-selected {
+  border-color: var(--ab-dot-glow);
+}
+
+/* 03 — 약속 */
+.ab-promise-text {
+  margin: 0;
+  font-family: var(--ab-verse);
+  font-size: 1.625rem;
+  font-weight: 400;
+  line-height: 1.65;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  color: var(--text-strong);
+}
+
+.ab-promise-text .ab-line {
+  display: block;
+}
+
+.ab-promise-text .ab-line.is-last {
+  color: var(--brand);
+}
+
+.ab-promise-author {
+  display: block;
+  margin-top: 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 04 — 담임목사 편지 */
+.ab-pastor-text {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.8;
+  white-space: pre-line;
+  word-break: keep-all;
+  color: var(--text-body);
+}
+
+.ab-pastor-text.is-lead {
+  margin-top: 1rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.ab-pastor-sign {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+/* 손글씨 사인 — 인사말(.gr-signature-ink)과 같은 잉크 PNG, 다크는 필터로 반전 */
+.ab-pastor-sign-ink {
+  display: inline-block;
+  width: 5.1em;
+  height: 2.1em;
+  margin: 0 0.25em;
+  vertical-align: middle;
+  object-fit: contain;
+  opacity: 0.92;
+  user-select: none;
+  filter: var(--ink-glyph-filter, none);
+}
+
+.ab-facts {
+  margin: 1.25rem 0 0;
+  border-top: 1px solid var(--card-border);
+}
+
+.ab-fact {
+  display: flex;
+  gap: 0.875rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.ab-fact dt {
+  flex: none;
+  width: 4.25rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ab-fact dd {
+  margin: 0;
+  color: var(--text-strong);
+}
+
+/* 글자 링크 버튼 — 인사말 전문 · 앱 가입 */
+.ab-link-btn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.125rem;
+  min-height: 44px;
+  margin-top: 0.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ab-link-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 05 — 초대 + 한눈에 정보 */
+.ab-info {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.ab-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 1.125rem;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.ab-info-row:hover,
+.ab-info-row:focus-visible {
+  border-color: var(--brand-soft-strong);
+  transform: translateY(-1px);
+}
+
+.ab-info-icon {
+  flex: none;
+  color: var(--brand);
+}
+
+.ab-info-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ab-info-main small {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ab-info-main b {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.97rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--text-strong);
+}
+
+.ab-info-main b.is-empty {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.ab-info-chevron {
+  flex: none;
+  color: var(--text-muted);
+}
+
+.ab-info-admin {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-radius: 12px;
+  border: 1px dashed var(--card-border);
+  font-size: 0.8rem;
+  color: var(--text-body);
+}
+
+.ab-invite-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: 1.25rem;
+}
+
+.ab-invite-actions .ab-link-btn {
+  align-self: center;
+  margin-top: 0.25rem;
+}
+
+.ab-invite-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 54px;
+  padding: 0 1.75rem;
+  border: 0;
+  border-radius: 14px;
+  background: #3182f6;
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.ab-invite-cta:hover {
+  background: #1b6ef3;
+  transform: translateY(-1px);
+}
+
+/* ── 이야기 뒤 — 더 알아보기 · 감사 ── */
+.ab-more {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.ab-more-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 1rem 0.875rem;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.ab-more-link:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-soft-strong);
+}
+
+.ab-more-icon {
+  margin-bottom: 0.4rem;
+  color: var(--brand);
+}
+
+.ab-more-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.ab-more-desc {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.ab-thanks {
+  margin-top: 2rem;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  white-space: pre-line;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ab-scene,
+  .ab-scene-img,
+  .ab-chapter {
+    transition: none;
+  }
+
+  .ab-scene-img {
+    transform: none;
+  }
+
+  .ab-meet-frame {
+    animation: none;
+  }
+}
+
+/* ── PC: 왼쪽 고정 그림 · 오른쪽 다섯 장 ── */
+@media (min-width: 1024px) {
+  .ab-scrolly {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 4.5rem;
+    margin-top: 2.5rem;
+  }
+
+  /* zoom(--az) 안이라 top·vh 가 함께 커진다 → 나눠서 되돌린다 */
+  .ab-visual-wrap {
+    top: calc(4.5rem / var(--az, 1));
+    align-self: start;
+    height: calc((100vh - 6rem) / var(--az, 1));
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .ab-visual-wrap::after {
+    content: none;
+  }
+
+  .ab-visual {
+    height: 100%;
+    border-radius: 28px;
+  }
+
+  .ab-scene-cap {
+    left: 2rem;
+    right: 2rem;
+    bottom: 1.75rem;
+    font-size: 1.25rem;
+  }
+
+  .ab-scene-cap small {
+    font-size: 0.875rem;
+  }
+
+  .ab-scene.is-meet {
+    gap: 1.25rem;
+    padding: 5rem 2.5rem 1.75rem;
+    --ab-meet-cap: 8.5rem;
+  }
+
+  .ab-meet-frame {
+    border-radius: 20px;
+  }
+
+  .ab-scene-quote {
+    font-size: 1.75rem;
+    line-height: 1.5;
+  }
+
+  .ab-pastor-nickname {
+    left: 1.5rem;
+    bottom: 1.5rem;
+    font-size: 1.75rem;
+  }
+
+  .ab-visual-no {
+    top: 1.25rem;
+    left: 1.75rem;
+    font-size: 3rem;
+  }
+
+  .ab-visual-dots {
+    top: 50%;
+    right: 1.25rem;
+    flex-direction: column;
+    transform: translateY(-50%);
+  }
+
+  .ab-visual-dots i {
+    transition: height 0.4s ease, background 0.4s ease;
+  }
+
+  .ab-visual-dots i.is-on {
+    width: 6px;
+    height: 24px;
+  }
+
+  .ab-chapters {
+    padding-bottom: calc(12vh / var(--az, 1));
+  }
+
+  .ab-chapter {
+    min-height: calc(78vh / var(--az, 1));
+    padding: 4rem 0;
+  }
+
+  .ab-chapter-no {
+    font-size: 0.875rem;
+  }
+
+  .ab-title {
+    font-size: 2.5rem;
+    line-height: 1.28;
+  }
+
+  .ab-lead {
+    font-size: 1.125rem;
+    line-height: 1.8;
+  }
+
+  .ab-promise-text {
+    font-size: 2.25rem;
+    line-height: 1.6;
+  }
+
+  .ab-pastor-text {
+    font-size: 1.0625rem;
+  }
+
+  .ab-invite-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .ab-invite-actions .ab-link-btn {
+    margin-top: 0;
+  }
+
+  .ab-more {
+    gap: 0.75rem;
+    margin-top: 3rem;
+  }
+
+  .ab-more-link {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    column-gap: 0.75rem;
+    padding: 1.25rem 1.375rem;
+  }
+
+  .ab-more-icon {
+    margin-bottom: 0;
+  }
+
+  .ab-more-title {
+    font-size: 1rem;
+  }
+
+  .ab-more-desc {
+    flex-basis: 100%;
+    padding-left: 2rem;
+    font-size: 0.8125rem;
+  }
+}
