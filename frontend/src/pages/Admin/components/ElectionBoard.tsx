@@ -23,7 +23,7 @@ const panelCls = 'rounded-2xl bg-white dark:bg-card-dark border border-gray-200/
 const ghostBtn =
   'px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[13px] font-semibold text-ink hover:border-brand hover:text-brand transition-colors disabled:opacity-40'
 const chipBtn = (active: boolean) =>
-  `px-2.5 py-1.5 rounded-full text-[12.5px] font-bold border transition-colors ${
+  `shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-full text-[12.5px] font-bold border transition-colors ${
     active
       ? 'bg-brand text-white border-transparent'
       : 'border-gray-200 dark:border-white/[0.1] text-ink-muted hover:border-brand hover:text-brand'
@@ -162,10 +162,11 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
   return (
     <div className="fixed inset-0 z-[110] bg-[var(--app-canvas)] dark:bg-background-dark flex flex-col">
       {/* 상단 바 */}
-      <div className="shrink-0 flex items-center gap-3 px-5 py-3.5 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark">
-        <div className="min-w-0 flex-1">
+      {/* 모바일은 버튼 셋이 제목 칸을 짓눌러 배지가 한 글자씩 꺾였다 — 좁은 화면에선 버튼을 둘째 줄로 내린다 */}
+      <div className="shrink-0 flex flex-wrap items-center gap-x-3 gap-y-2.5 px-5 py-3.5 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark">
+        <div className="min-w-0 flex-1 basis-0">
           <div className="flex items-center gap-1.5">
-            <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${STATUS_META[election.status].badge}`}>
+            <span className={`shrink-0 whitespace-nowrap text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${STATUS_META[election.status].badge}`}>
               {phaseLabel(election)}
             </span>
             {isOpen ? (
@@ -179,15 +180,17 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
             {election.title}
           </h2>
         </div>
-        <button type="button" onClick={() => setShowQr(true)} className={chipBtn(false)}>
-          투표 QR
-        </button>
-        <button type="button" onClick={() => setHideTally((v) => !v)} className={chipBtn(hideTally)}>
-          득표 가리기
-        </button>
-        <button type="button" onClick={togglePresenting} className={chipBtn(false)}>
-          발표 화면
-        </button>
+        <div className="order-last sm:order-none w-full sm:w-auto flex items-center gap-1.5 sm:gap-3">
+          <button type="button" onClick={() => setShowQr(true)} className={chipBtn(false)}>
+            투표 QR
+          </button>
+          <button type="button" onClick={() => setHideTally((v) => !v)} className={chipBtn(hideTally)}>
+            득표 가리기
+          </button>
+          <button type="button" onClick={togglePresenting} className={chipBtn(false)}>
+            발표 화면
+          </button>
+        </div>
         <CloseButton onClick={onClose} />
       </div>
 
