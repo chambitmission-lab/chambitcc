@@ -5,7 +5,7 @@
  * 배경 장면은 시간대로 갈린다(낮 "함께 걷는 길" / 저녁·밤 "함께 읽기") — 위 토글로 둘 다 본다.
  */
 import { useState } from 'react'
-import { BookOpen, ChartPieSlice, MapTrifold, HandsPraying, Scroll, Cross } from '@phosphor-icons/react'
+import { BookOpen, ChartPieSlice, MapTrifold, HandsPraying, Scroll, Cross } from '../../components/icons/phosphor'
 import '../Bible/BibleStudy.css'
 import { readingSceneFor, type ReadingScene } from '../../utils/themeAssets'
 

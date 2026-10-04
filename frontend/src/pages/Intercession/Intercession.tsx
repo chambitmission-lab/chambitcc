@@ -25,6 +25,7 @@ import { LetterInbox } from './Letters'
 import { TargetCard } from './TargetCard'
 import { RecapCard } from './Recap'
 import { useThemeArt } from '../../hooks/useThemeArt'
+import { useTheme } from '../../contexts/ThemeContext'
 import { INTERCESSION_HERO } from '../../utils/themeAssets'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 import './intercession.css'
@@ -154,6 +155,7 @@ const LampHero = ({ state }: { state: IntercessionState }) => {
   const anyLit = lamp.weeks.some((w) => w.lit)
   const thisWeekLit = lamp.weeks.some((w) => w.is_current && w.lit)
   const sceneReady = useThemeArt(INTERCESSION_HERO)
+  const isDark = useTheme().theme === 'dark'
   const title = lamp.received_today
     ? '오늘도 누군가\n당신을 위해 기도했어요'
     : anyLit
@@ -165,8 +167,9 @@ const LampHero = ({ state }: { state: IntercessionState }) => {
           초가 늘 창턱 위에 놓인다. 그림이 카드보다 커서 남는 부분은 Hero 의 overflow-hidden 이 자른다. */}
       <div className="ic-hero-stage relative mt-6">
         <div className={`ic-hero-scene${sceneReady ? ' is-loaded' : ''}`} aria-hidden>
-          <img src={INTERCESSION_HERO.light} alt="" className="dark:hidden" decoding="async" />
-          <img src={INTERCESSION_HERO.dark} alt="" className="hidden dark:block" decoding="async" />
+          {/* 두 장을 두고 CSS 로 가리면 브라우저가 둘 다 받는다 — 현재 테마 한 장만 그린다.
+              반대 테마는 useThemeArt 가 유휴 시간에 미리 받아 두므로 전환 때도 바로 뜬다. */}
+          <img src={isDark ? INTERCESSION_HERO.dark : INTERCESSION_HERO.light} alt="" decoding="async" />
         </div>
         <Lamp weeks={lamp.weeks} />
       </div>

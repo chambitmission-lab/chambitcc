@@ -96,6 +96,13 @@ export const worshipKeys = {
   services: () => [...worshipKeys.all, 'all'] as const,
 }
 
+/** ⌘K 커맨드 팔레트 검색 — main.tsx 가 'cmdk' 루트를 persist 에서 제외한다 */
+export const cmdkKeys = {
+  all: ['cmdk'] as const,
+  bible: (q: string) => [...cmdkKeys.all, 'bible', q] as const,
+  sermon: (q: string) => [...cmdkKeys.all, 'sermon', q] as const,
+}
+
 export const notificationKeys = {
   all: ['notifications'] as const,
   list: () => [...notificationKeys.all, 'infinite'] as const,

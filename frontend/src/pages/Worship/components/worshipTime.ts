@@ -3,6 +3,7 @@
 import type { Language } from '../../../locales'
 import type { WorshipService } from '../../../types/worship'
 import { DAY_CHARS, parseServiceTimes, serviceDays, type Occurrence } from '../../../utils/worshipSchedule'
+import { computeAdventStart, computeEaster } from '../../../utils/churchCalendar'
 
 // 평일 예배 종류별 emblem 아이콘 (새벽/수요/금요·기타)
 const weekdayIcon = (name: string): string => {
@@ -113,25 +114,6 @@ interface LiturgicalSeason {
   tone: 'violet' | 'amber'
 }
 
-// 부활절 날짜 — 그레고리력 컴퓨투스 (Anonymous Gregorian algorithm)
-const easterOf = (y: number): Date => {
-  const a = y % 19
-  const b = Math.floor(y / 100)
-  const c = y % 100
-  const d = Math.floor(b / 4)
-  const e = b % 4
-  const f = Math.floor((b + 8) / 25)
-  const g = Math.floor((b - f + 1) / 3)
-  const h = (19 * a + b - d - g + 15) % 30
-  const i = Math.floor(c / 4)
-  const k = c % 4
-  const l = (32 + 2 * e + 2 * i - h - k) % 7
-  const m = Math.floor((a + 11 * h + 22 * l) / 451)
-  const month = Math.floor((h + l - 7 * m + 114) / 31)
-  const day = ((h + l - 7 * m + 114) % 31) + 1
-  return new Date(y, month - 1, day)
-}
-
 const DAY_MS = 86_400_000
 
 const liturgicalSeason = (now: Date): LiturgicalSeason | null => {
@@ -143,13 +125,11 @@ const liturgicalSeason = (now: Date): LiturgicalSeason | null => {
   if (ts >= at(y, 11, 25) || ts <= at(y, 0, 6)) {
     return { labelKey: 'worshipSeasonChristmas', emoji: '⭐', tone: 'amber' }
   }
-  // 대림절: 성탄 전 네 번째 주일 ~ 12/24
-  const christmasDow = new Date(y, 11, 25).getDay()
-  const adventStart = at(y, 11, 25 - (christmasDow === 0 ? 7 : christmasDow) - 21)
-  if (ts >= adventStart) {
+  // 대림절: 성탄 전 네 번째 주일 ~ 12/24 (계산은 묵상 카드 절기 리본과 같은 churchCalendar)
+  if (ts >= computeAdventStart(y).getTime()) {
     return { labelKey: 'worshipSeasonAdvent', emoji: '🕯️', tone: 'violet' }
   }
-  const easter = easterOf(y).getTime()
+  const easter = computeEaster(y).getTime()
   // 사순절: 재의 수요일(부활절 46일 전) ~ 부활절 전날
   if (ts >= easter - 46 * DAY_MS && ts < easter) {
     return { labelKey: 'worshipSeasonLent', emoji: '✝️', tone: 'violet' }

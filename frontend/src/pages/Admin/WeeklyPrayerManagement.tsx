@@ -32,12 +32,18 @@ const formatWeekLabel = (weekDate: string): string => {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} (${days[d.getDay()]})`
 }
 
+// 편집 중인 항목의 안정적인 key — index 를 key 로 쓰면 ↑↓·삭제 뒤 포커스와 한글 조합 중인
+// 글자가 "그 자리의 input" 에 남아 엉뚱한 항목으로 들어간다. 저장 payload 에는 싣지 않는다.
+type ComposerItem = WeeklyPrayerItem & { _id: string }
+let itemSeq = 0
+const withId = (item: WeeklyPrayerItem): ComposerItem => ({ ...item, _id: `wp-${++itemSeq}` })
+
 interface ComposerState {
   editingId: number | null
   weekDate: string
   title: string
   isPublished: boolean
-  items: WeeklyPrayerItem[]
+  items: ComposerItem[]
 }
 
 const emptyComposer = (): ComposerState => ({
@@ -97,7 +103,7 @@ const WeeklyPrayerManagement = () => {
         weekDate: p.week_date,
         title: p.title,
         isPublished: p.is_published,
-        items: p.items.map(({ title, body, scripture }) => ({ title, body, scripture })),
+        items: p.items.map(({ title, body, scripture }) => withId({ title, body, scripture })),
       })
       setPasteText('')
       setShowComposer(true)
@@ -114,7 +120,7 @@ const WeeklyPrayerManagement = () => {
       setComposer({
         ...emptyComposer(),
         title: p.title,
-        items: p.items.map(({ title, body, scripture }) => ({ title, body, scripture })),
+        items: p.items.map(({ title, body, scripture }) => withId({ title, body, scripture })),
       })
       setPasteText('')
       setShowComposer(true)
@@ -136,7 +142,7 @@ const WeeklyPrayerManagement = () => {
         showToast('항목을 찾지 못했습니다. 직접 추가해 주세요', 'error')
         return
       }
-      setComposer((c) => ({ ...c, items }))
+      setComposer((c) => ({ ...c, items: items.map(withId) }))
       showToast(`${items.length}개 항목으로 정리했습니다`, 'success')
     } catch {
       showToast('파싱에 실패했습니다', 'error')
@@ -167,7 +173,7 @@ const WeeklyPrayerManagement = () => {
   }
 
   const addItem = () => {
-    setComposer((c) => ({ ...c, items: [...c.items, { title: '', body: '', scripture: '' }] }))
+    setComposer((c) => ({ ...c, items: [...c.items, withId({ title: '', body: '', scripture: '' })] }))
   }
 
   const handleSave = async () => {
@@ -380,7 +386,7 @@ const WeeklyPrayerManagement = () => {
                     <div className="space-y-2.5">
                       {composer.items.map((item, i) => (
                         <div
-                          key={i}
+                          key={item._id}
                           className="rounded-xl border border-gray-200 dark:border-white/[0.08] p-3 space-y-2 bg-gray-50/60 dark:bg-white/[0.02]"
                         >
                           <div className="flex items-center justify-between">

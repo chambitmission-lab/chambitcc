@@ -1,6 +1,7 @@
 // 선교사 상세 바텀시트 — 현지 시간·시차·거리로 그곳과의 연결감을 만든다.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useTickingNow } from '../../../hooks/useTickingNow'
 import { countryDetail, SEOUL_GEO, type Missionary } from '../missionData'
 import CountryFlag from '../CountryFlag'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -56,13 +57,9 @@ const MissionarySheet = ({
 }) => {
   const { t, language } = useLanguage()
   const detail = countryDetail[missionary.country]
-  const [now, setNow] = useState(() => new Date())
-
-  // 시트가 열려 있는 동안 현지 시간을 30초마다 갱신
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000)
-    return () => clearInterval(id)
-  }, [])
+  // 시트가 열려 있는 동안 현지 시간을 30초마다 갱신 (탭 숨김 땐 멈춤)
+  const nowMs = useTickingNow(30_000)
+  const now = useMemo(() => new Date(nowMs), [nowMs])
 
   // 배경 스크롤 잠금 — PC(lg+)에선 .mission-page 가 스스로 스크롤하는 상자라
   // body 만 잠그면 시트 뒤가 그대로 굴러간다. 둘 다 잠근다.

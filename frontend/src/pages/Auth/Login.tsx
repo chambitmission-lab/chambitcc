@@ -13,6 +13,7 @@ import { loadHome } from '../../utils/homeChunk'
 import { EyeIcon, StatusIcon } from './AuthIcons'
 import { useCapsLock } from './useCapsLock'
 import './AuthForm.css'
+import { safeStorage } from '../../utils/safeStorage'
 
 /* 아이디 저장 — 사용자가 명시적으로 켰을 때만 남긴다.
    (로그인 성공 시 저장되는 last_cached_username은 캐시 분리용이라 별개) */
@@ -29,7 +30,7 @@ const Login = () => {
   const queryClient = useQueryClient()
   const { t, language } = useLanguage()
   const [formData, setFormData] = useState({
-    username: localStorage.getItem(REMEMBER_KEY) || '',
+    username: safeStorage.get(REMEMBER_KEY) || '',
     password: ''
   })
   const [error, setError] = useState('')
@@ -42,7 +43,7 @@ const Login = () => {
   const submitRef = useRef<HTMLButtonElement>(null)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [remember, setRemember] = useState(() => !!localStorage.getItem(REMEMBER_KEY))
+  const [remember, setRemember] = useState(() => !!safeStorage.get(REMEMBER_KEY))
   const [showForgotHelp, setShowForgotHelp] = useState(false)
   const { capsOn, capsLockProps } = useCapsLock()
 
@@ -100,9 +101,9 @@ const Login = () => {
 
       // 아이디 저장 — 체크했을 때만 다음 방문에 프리필한다 (비밀번호는 저장하지 않음)
       if (remember) {
-        localStorage.setItem(REMEMBER_KEY, formData.username)
+        safeStorage.set(REMEMBER_KEY, formData.username)
       } else {
-        localStorage.removeItem(REMEMBER_KEY)
+        safeStorage.remove(REMEMBER_KEY)
       }
 
       // 토큰·세션 사용자 정보 저장 + 이전 사용자 캐시 제거

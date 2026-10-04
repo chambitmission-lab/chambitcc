@@ -1,5 +1,6 @@
 // 알림장 글 카드 — 공지/암송요절/일정/사진/투표 유형별 렌더링 + 확인·암송·RSVP·투표 액션
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useTickingNow } from '../../../hooks/useTickingNow'
 import { useNavigate } from 'react-router-dom'
 import { CommentIcon } from '../../../components/icons/ActionIcons'
 import {
@@ -505,12 +506,7 @@ const EventSection = ({
   const event = post.event!
 
   // 마감 카운트다운 — 30초마다 갱신 (열어둔 화면에서 마감이 지나는 경우 대응)
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    if (!event.rsvp_deadline) return
-    const t = setInterval(() => setNow(Date.now()), 30_000)
-    return () => clearInterval(t)
-  }, [event.rsvp_deadline])
+  const now = useTickingNow(30_000, Boolean(event.rsvp_deadline))
 
   const deadlineAt = event.rsvp_deadline ? parseKstDate(event.rsvp_deadline).getTime() : null
   const isClosed = deadlineAt !== null && now >= deadlineAt

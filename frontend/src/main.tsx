@@ -90,6 +90,9 @@ createRoot(document.getElementById('root')!).render(
               // 수 MB 로 불어 매 persist·부팅 복원을 무겁게 만든다. 오프라인 읽기는
               // 서비스워커의 API 캐시(network-first)가 이미 담당한다.
               if (Array.isArray(key) && key[0] === 'bible' && (key[1] === 'chapter' || key[1] === 'search')) return false
+              // ⌘K 팔레트 검색 결과도 제외 — 디바운스된 검색어마다 항목이 생겨 7일간 쌓이고,
+              // 사용자가 무엇을 찾았는지가 기기에 남는다. 열려 있는 동안만 메모리에 두면 충분.
+              if (Array.isArray(key) && key[0] === 'cmdk') return false
               // 목회자 영역은 persist 제외 — 맡긴 기도·심방 메모·연락처가 localStorage 에 남으면 안 된다
               // (공용 PC 에서 로그아웃 뒤에도 남는다). 목회자는 소수라 콜드 스타트 비용도 작다.
               if (Array.isArray(key) && typeof key[0] === 'string' && key[0].startsWith('pastor-')) return false

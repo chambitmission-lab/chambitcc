@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react'
+import { safeStorage } from '../utils/safeStorage'
 
 // Web Audio API 로 즉석 합성 — 외부 mp3 파일 불필요.
 // 첫 사용자 제스처 이후에 AudioContext 가 생성/resume 됩니다.
@@ -204,7 +205,7 @@ const SOUNDS: Record<SfxKey, (ctx: AudioContext) => void> = {
 
 export const useSfx = () => {
   const mutedRef = useRef<boolean>(
-    typeof window !== 'undefined' && localStorage.getItem(MUTE_KEY) === '1',
+    typeof window !== 'undefined' && safeStorage.get(MUTE_KEY) === '1',
   )
 
   const play = useCallback((key: SfxKey) => {
@@ -221,7 +222,7 @@ export const useSfx = () => {
   const setMuted = useCallback((m: boolean) => {
     mutedRef.current = m
     if (typeof window !== 'undefined') {
-      localStorage.setItem(MUTE_KEY, m ? '1' : '0')
+      safeStorage.set(MUTE_KEY, m ? '1' : '0')
     }
   }, [])
 

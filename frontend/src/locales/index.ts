@@ -1,5 +1,6 @@
 // 다국어 지원 메인 파일
 import { ko } from './ko'
+import { safeStorage } from '../utils/safeStorage'
 
 export type Language = 'ko' | 'en'
 
@@ -49,11 +50,11 @@ export const detectLanguage = (): Language => {
 
 // 로컬 스토리지에서 언어 가져오기
 export const getStoredLanguage = (): Language => {
-  const stored = localStorage.getItem('language') as Language
+  const stored = safeStorage.get('language') as Language | null
   return stored || detectLanguage()
 }
 
 // 로컬 스토리지에 언어 저장
 export const setStoredLanguage = (lang: Language): void => {
-  localStorage.setItem('language', lang)
+  safeStorage.set('language', lang)
 }

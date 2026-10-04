@@ -152,7 +152,7 @@ export const parseKeyChapters = (raw: string | null | undefined): KeyChapterItem
   const items: KeyChapterItem[] = []
   marks.forEach((mark, i) => {
     const stop = i + 1 < marks.length ? marks[i + 1].start : text.length
-    const desc = text.slice(mark.end, stop).trim().replace(/[,;·\/]$/, '').trim()
+    const desc = text.slice(mark.end, stop).trim().replace(/[,;·/]$/, '').trim()
     if (desc) items.push({ range: mark.range, desc })
   })
   return items

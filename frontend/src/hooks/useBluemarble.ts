@@ -12,8 +12,8 @@ export const useBluemarbleState = (enabled = true) =>
     queryFn: fetchState,
     enabled,
     staleTime: 0,
-    // 전역 기본값이 refetchOnMount: false 라 staleTime: 0 만으로는 재진입 시
-    // 갱신되지 않는다. 게임 상태는 서버 권위 데이터이므로 마운트마다 새로 가져온다.
+    // 전역 기본값(refetchOnMount: true)은 stale 일 때만 다시 받는데, 게임 상태는 서버 권위
+    // 데이터이므로 'always' 로 마운트마다 새로 가져온다.
     refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   })

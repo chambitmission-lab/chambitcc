@@ -1,8 +1,12 @@
 import { Info, MapPin } from '../../components/icons/phosphor'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
-import { getSundayServices, getWeekdayServices, updateWorshipService } from '../../api/worship'
+import { updateWorshipService } from '../../api/worship'
+import { useWorshipServices } from '../../hooks/useWorshipServices'
+import { useTickingNow } from '../../hooks/useTickingNow'
+import { worshipKeys } from '../../hooks/queryKeys'
 import type { WorshipService } from '../../types/worship'
 // 시간표 파싱은 /visit(오시는 길)과 공유한다 — 두 화면의 "다음 예배"가 어긋나면 안 된다
 import {
@@ -33,40 +37,23 @@ const Worship = () => {
   const hasLive = /^https?:\/\//i.test(liveUrl)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingData, setEditingData] = useState<WorshipService | null>(null)
-  const [sundayServices, setSundayServices] = useState<WorshipService[]>([])
-  const [weekdayServices, setWeekdayServices] = useState<WorshipService[]>([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<DayFilter>('today')
-  const [now, setNow] = useState(() => new Date())
+  const queryClient = useQueryClient()
 
-  // 예배 시간 데이터 로드
+  // 예배 시간표 — 홈 레일·⌘K·랜딩과 같은 캐시(worshipKeys.services()). 다른 화면에서
+  // 먼저 받아 뒀으면 여기선 즉시 그려지고, 아래 수정도 그 캐시에 바로 반영된다.
+  const { data: services, isPending: loading, isError } = useWorshipServices()
+  const sundayServices = services?.filter((s) => s.service_type === 'sunday') ?? []
+  const weekdayServices = services?.filter((s) => s.service_type !== 'sunday') ?? []
   useEffect(() => {
-    loadServices()
-  }, [])
+    if (isError) showToast(t('worshipLoadFailed'), 'error')
+  }, [isError, t])
 
   // 예배 목록/배너 갱신용 — 초 단위 표시는 CountdownClock 이 자체 처리하므로
-  // 페이지 전체 재렌더는 15초 간격이면 충분하다 (분 단위 문구·다음 예배 전환용)
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 15_000)
-    return () => clearInterval(timer)
-  }, [])
-
-  const loadServices = async () => {
-    try {
-      setLoading(true)
-      const [sundayData, weekdayData] = await Promise.all([
-        getSundayServices(),
-        getWeekdayServices()
-      ])
-      setSundayServices(sundayData)
-      setWeekdayServices(weekdayData)
-    } catch (error) {
-      console.error('Failed to load services:', error)
-      showToast(t('worshipLoadFailed'), 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // 페이지 전체 재렌더는 15초 간격이면 충분하다 (분 단위 문구·다음 예배 전환용).
+  // 탭이 숨겨진 동안은 멈추고 돌아올 때 즉시 맞춘다.
+  const nowMs = useTickingNow(15_000)
+  const now = new Date(nowMs)
 
   const handleEditClick = (service: WorshipService) => {
     setEditingId(service.id!)
@@ -95,16 +82,10 @@ const Worship = () => {
         is_active: editingData.is_active
       })
 
-      // 주일 예배인지 평일 예배인지 확인하여 업데이트
-      if (updatedService.service_type === 'sunday') {
-        setSundayServices(prev =>
-          prev.map(s => s.id === updatedService.id ? updatedService : s)
-        )
-      } else {
-        setWeekdayServices(prev =>
-          prev.map(s => s.id === updatedService.id ? updatedService : s)
-        )
-      }
+      // 공유 캐시에 바로 반영 — 홈 레일·⌘K 등 같은 키를 보는 화면도 함께 바뀐다
+      queryClient.setQueryData<WorshipService[]>(worshipKeys.services(), (prev) =>
+        prev?.map((s) => (s.id === updatedService.id ? updatedService : s)),
+      )
 
       setEditingId(null)
       setEditingData(null)

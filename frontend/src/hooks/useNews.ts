@@ -9,6 +9,8 @@ export const newsKeys = {
     ['church-news', 'list', category ?? '', search ?? ''] as const,
   categories: ['church-news', 'categories'] as const,
   detail: (id: number) => ['church-news', 'detail', id] as const,
+  /** 홈 레일 '오늘의 일정' 빈자리용 최신 소식 1건 — 같은 루트라 등록·수정 invalidate 가 닿는다 */
+  latestOne: ['church-news', 'latest-one'] as const,
 }
 
 export const useNewsList = (

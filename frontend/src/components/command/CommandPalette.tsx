@@ -7,7 +7,6 @@ import { searchBible } from '../../api/bible'
 import { useBibleBooks } from '../../hooks/useBible'
 import { getSermons, searchSermons } from '../../api/sermon'
 import { getTodayVerse } from '../../api/dailyVerse'
-import { getSundayServices, getWeekdayServices } from '../../api/worship'
 import { DAY_CHARS, soonestService } from '../../utils/worshipSchedule'
 import { pushRecent, readRecent, clearRecent, type RecentItem } from './commandRecent'
 import { formatReference, matchBibleBooks, parseBibleReference, resolveBookNumber } from '../../pages/Sermon/utils/sermonMeta'
@@ -25,7 +24,8 @@ import './CommandPalette.css'
 
 import { OPEN_CHATBOT_EVENT, OPEN_SEARCH_EVENT, isMacLike } from './commandEvents'
 import { tokenStore } from '../../utils/tokenStore'
-import { sermonKeys, dailyVerseKeys, worshipKeys } from '../../hooks/queryKeys'
+import { sermonKeys, dailyVerseKeys, cmdkKeys } from '../../hooks/queryKeys'
+import { useWorshipServices } from '../../hooks/useWorshipServices'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { kstNow } from '../../utils/kstTime'
 
@@ -135,17 +135,20 @@ const CommandPalette = () => {
     return m
   }, [books, ko])
   const { data: verses, isFetching: versesLoading } = useQuery({
-    queryKey: ['cmdk', 'bible', debounced],
+    queryKey: cmdkKeys.bible(debounced),
     queryFn: () => searchBible(debounced, { limit: 4 }),
     enabled: open && textSearchable,
     staleTime: 1000 * 60 * 5,
+    // 검색어마다 생기는 항목이라 전역 gcTime(7일) 대신 짧게 — persist 도 main.tsx 에서 제외
+    gcTime: 1000 * 60 * 5,
     retry: false,
   })
   const { data: sermons, isFetching: sermonsLoading } = useQuery({
-    queryKey: ['cmdk', 'sermon', debounced],
+    queryKey: cmdkKeys.sermon(debounced),
     queryFn: () => searchSermons(debounced, 4),
     enabled: open && debounced.length >= 2,
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 5,
     retry: false,
   })
 
@@ -162,16 +165,7 @@ const CommandPalette = () => {
     recentSermons?.find((x) => /3\s*부/.test(x.title)) ??
     recentSermons?.find((x) => /주일|성수/.test(x.title)) ??
     recentSermons?.[0]
-  const { data: services } = useQuery({
-    queryKey: worshipKeys.services(),
-    queryFn: async () => {
-      const [sun, week] = await Promise.all([getSundayServices(), getWeekdayServices()])
-      return [...sun, ...week]
-    },
-    enabled: home,
-    staleTime: 1000 * 60 * 30,
-    retry: false,
-  })
+  const { data: services } = useWorshipServices({ enabled: home })
   const nextService = useMemo(() => {
     if (!services) return null
     const seoulNow = kstNow()

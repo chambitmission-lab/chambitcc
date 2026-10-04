@@ -250,6 +250,7 @@ const WeeklyPrayerScreen = lazy(() => import('./pages/Prayer/WeeklyPrayerScreen'
 import './App.css'
 import './styles/common.css'
 import { prayerKeys } from './hooks/usePrayersQuery'
+import { safeStorage } from './utils/safeStorage'
 
 const RouteFallback = () => (
   <div className="min-h-[50vh] flex items-center justify-center">
@@ -301,8 +302,8 @@ function App() {
   useEffect(() => {
     const checkCacheConsistency = () => {
       const currentUsername = sessionStore.get('username')
-      const lastCachedUsername = localStorage.getItem('last_cached_username')
-      const lastAppOpenTime = localStorage.getItem('last_app_open_time')
+      const lastCachedUsername = safeStorage.get('last_cached_username')
+      const lastAppOpenTime = safeStorage.get('last_app_open_time')
       const now = Date.now()
 
       // 사용자가 변경되었거나 처음 실행인 경우
@@ -313,9 +314,9 @@ function App() {
 
         // 현재 사용자 기록
         if (currentUsername) {
-          localStorage.setItem('last_cached_username', currentUsername)
+          safeStorage.set('last_cached_username', currentUsername)
         } else {
-          localStorage.removeItem('last_cached_username')
+          safeStorage.remove('last_cached_username')
         }
       }
       // 같은 사용자지만 30분 이상 지났으면 기도 목록 캐시만 무효화
@@ -334,7 +335,7 @@ function App() {
       }
 
       // 현재 시간 기록
-      localStorage.setItem('last_app_open_time', now.toString())
+      safeStorage.set('last_app_open_time', now.toString())
     }
 
     checkCacheConsistency()

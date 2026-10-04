@@ -7,10 +7,10 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getColumns } from '../../../api/column'
 import { getSermons } from '../../../api/sermon'
-import { getSundayServices, getWeekdayServices } from '../../../api/worship'
 import { DAY_CHARS, soonestService } from '../../../utils/worshipSchedule'
 import { ChevronRightIcon } from '../icons'
-import { sermonKeys, columnKeys, worshipKeys } from '../../../hooks/queryKeys'
+import { sermonKeys, columnKeys } from '../../../hooks/queryKeys'
+import { useWorshipServices } from '../../../hooks/useWorshipServices'
 import { kstNow } from '../../../utils/kstTime'
 
 interface Props {
@@ -53,14 +53,7 @@ export default function GreetingRail({ ko }: Props) {
   })
   const latestSermon = sermons?.[0]
 
-  const { data: services } = useQuery({
-    queryKey: worshipKeys.services(),
-    queryFn: async () => {
-      const [sun, week] = await Promise.all([getSundayServices(), getWeekdayServices()])
-      return [...sun, ...week]
-    },
-    staleTime: 1000 * 60 * 30,
-  })
+  const { data: services } = useWorshipServices()
   const seoulNow = kstNow()
   const next = services ? soonestService(services, seoulNow) : null
   const nextDay = next

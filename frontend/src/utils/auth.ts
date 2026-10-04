@@ -3,6 +3,7 @@ import { clearAllPersistedCache } from '../config/persister'
 import { unsubscribeFromPushNotifications } from './pushNotification'
 import { tokenStore, sessionStore } from './tokenStore'
 import { getRole } from './access'
+import { safeStorage } from './safeStorage'
 
 /**
  * 로그아웃 처리
@@ -31,7 +32,7 @@ export const logout = async (tokenOverride?: string | null) => {
   // 토큰 및 사용자 정보 제거 (동기 · 즉시)
   tokenStore.clear()
   sessionStore.clear()
-  localStorage.removeItem('last_cached_username')
+  safeStorage.remove('last_cached_username')
 
   // React Query 캐시 제거 (모든 사용자의 캐시 - 프로필 포함)
   clearAllPersistedCache()
@@ -65,7 +66,7 @@ export const establishSession = (
   // 백엔드에서 username을 반환하지 않으면 입력한 값 사용
   const username = data.username || fallbackUsername
   sessionStore.set('username', username)
-  localStorage.setItem('last_cached_username', username)
+  safeStorage.set('last_cached_username', username)
   if (data.full_name) sessionStore.set('fullName', data.full_name)
   sessionStore.set('isPastor', data.is_pastor ? '1' : null)
 

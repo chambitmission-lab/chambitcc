@@ -1,31 +1,26 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { getSundayServices } from '../../../api/worship'
+import { useWorshipServices } from '../../../hooks/useWorshipServices'
+import { useTickingNow } from '../../../hooks/useTickingNow'
+import { toKstCalendarDate } from '../../../utils/kstTime'
 import type { Event } from '../../../types/event'
+import type { WorshipService } from '../../../types/worship'
 import { DAY_CHARS, parseServiceTimes, serviceDays, soonestService } from '../../../utils/worshipSchedule'
 import { ChevronRightIcon, ClockIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
-import { seoulNow } from './landingUtils'
 
 // "이번 주 참빛" — 다음 예배까지 살아있는 카운트다운 + 다가오는 일정.
 // 예배 시간 파싱은 /worship·/visit 과 같은 utils/worshipSchedule 을 쓴다.
 
 const pad = (n: number) => `${n}`.padStart(2, '0')
+const selectSunday = (all: WorshipService[]) => all.filter((s) => s.service_type === 'sunday')
 
 const ThisWeekSection = ({ ko, events }: { ko: boolean; events: Event[] }) => {
   const navigate = useNavigate()
-  const { data: services } = useQuery({
-    queryKey: ['worship', 'sunday'],
-    queryFn: getSundayServices,
-    staleTime: 1000 * 60 * 30,
-    retry: false,
-  })
-  const [now, setNow] = useState(() => seoulNow())
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(seoulNow()), 30_000)
-    return () => window.clearInterval(id)
-  }, [])
+  // 예배 시간표는 /worship·홈 레일과 같은 캐시(worshipKeys.services()) — 여기선 주일만 쓴다
+  const { data: services } = useWorshipServices({ select: selectSunday })
+  const nowMs = useTickingNow(30_000)
+  const now = useMemo(() => toKstCalendarDate(new Date(nowMs)), [nowMs])
 
   const next = useMemo(() => (services ? soonestService(services, now) : null), [services, now])
   // 지금 진행 중인 예배(시작 후 60분 이내) — nextOccurrence 는 이미 시작한 회차를 건너뛰므로 따로 본다

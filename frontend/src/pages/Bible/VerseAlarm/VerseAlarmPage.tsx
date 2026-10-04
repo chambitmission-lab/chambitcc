@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTickingNow } from '../../../hooks/useTickingNow'
 import {
   useVerseAlarms,
   useCreateVerseAlarm,
@@ -115,11 +116,8 @@ const countdownLabel = (from: Date, to: Date): string => {
 
 /* ── 메인 히어로 — 뽀모도로풍 다이얼: 틱 + 알람 마커 + 남은 시간 아크 ── */
 const AlarmDial = ({ alarms }: { alarms: VerseAlarm[] }) => {
-  const [now, setNow] = useState(() => new Date())
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 30_000)
-    return () => clearInterval(timer)
-  }, [])
+  const nowMs = useTickingNow(30_000)
+  const now = useMemo(() => new Date(nowMs), [nowMs])
 
   const next = useMemo(() => findNextAlarm(alarms, now), [alarms, now])
   const activeAlarms = alarms.filter((a) => a.is_active)

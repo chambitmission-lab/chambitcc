@@ -62,12 +62,9 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
   const togglePresenting = () => {
     const next = !presenting
     setPresenting(next)
-    try {
-      if (next) void document.documentElement.requestFullscreen?.()
-      else if (document.fullscreenElement) void document.exitFullscreen?.()
-    } catch {
-      // 전체 화면을 못 쓰는 환경(iOS 등) — 도구만 숨긴 채로 보여 준다
-    }
+    // 전체 화면을 못 쓰는 환경(iOS·권한 거부)은 promise 거부로 알려 온다 — 도구만 숨긴 채로 보여 준다
+    if (next) document.documentElement.requestFullscreen?.()?.catch(() => {})
+    else if (document.fullscreenElement) document.exitFullscreen?.()?.catch(() => {})
   }
   useEffect(() => {
     const onChange = () => {
@@ -76,7 +73,7 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
     document.addEventListener('fullscreenchange', onChange)
     return () => {
       document.removeEventListener('fullscreenchange', onChange)
-      if (document.fullscreenElement) void document.exitFullscreen?.()
+      if (document.fullscreenElement) document.exitFullscreen?.()?.catch(() => {})
     }
   }, [])
 
@@ -184,7 +181,7 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
           <button type="button" onClick={() => setShowQr(true)} className={chipBtn(false)}>
             투표 QR
           </button>
-          <button type="button" onClick={() => setHideTally((v) => !v)} className={chipBtn(hideTally)}>
+          <button type="button" onClick={() => setHideTally((v) => !v)} aria-pressed={hideTally} className={chipBtn(hideTally)}>
             득표 가리기
           </button>
           <button type="button" onClick={togglePresenting} className={chipBtn(false)}>
@@ -201,7 +198,7 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
             {election.rounds.length > 1 ? (
               <div className="flex gap-1.5 mb-4">
                 {election.rounds.map((r) => (
-                  <button key={r.id} type="button" onClick={() => setViewRoundNo(r.round_no)} className={chipBtn(round?.id === r.id)}>
+                  <button key={r.id} type="button" onClick={() => setViewRoundNo(r.round_no)} aria-pressed={round?.id === r.id} className={chipBtn(round?.id === r.id)}>
                     {r.round_no}차
                   </button>
                 ))}
@@ -497,7 +494,7 @@ const PaperPanel = ({
       </p>
       <div className="mt-2.5 flex flex-wrap gap-1.5">
         {candidates.map((c) => (
-          <button key={c.id} type="button" onClick={() => toggle(c.id)} className={chipBtn(picked.includes(c.id))}>
+          <button key={c.id} type="button" onClick={() => toggle(c.id)} aria-pressed={picked.includes(c.id)} className={chipBtn(picked.includes(c.id))}>
             {c.number}. {c.name}
           </button>
         ))}

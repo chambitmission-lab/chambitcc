@@ -6,13 +6,13 @@ import { useNavigate } from 'react-router-dom'
 import { fetchNewsList } from '../../../../api/news'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useEvents } from '../../../../hooks/useEvents'
-import { getSundayServices, getWeekdayServices } from '../../../../api/worship'
 import { parseServiceTimes, serviceDays } from '../../../../utils/worshipSchedule'
 import { CATEGORY_VISUAL } from '../../../Events/utils/categoryConfig'
 import { CalendarIcon } from './railIcons'
 import { Megaphone } from '../../../../components/icons/phosphor'
 import type { Event } from '../../../../types/event'
-import { worshipKeys } from '../../../../hooks/queryKeys'
+import { useWorshipServices } from '../../../../hooks/useWorshipServices'
+import { newsKeys } from '../../../../hooks/useNews'
 import { pick } from './shared'
 
 const todayStr = () => {
@@ -26,19 +26,7 @@ const todayStr = () => {
 
 // 예배 시간표(/worship과 같은 데이터·파서) — 오늘 요일에 열리는 고정 예배를
 // 일정 위젯에 자동 합류시킨다. 관리자가 일정으로 따로 등록할 필요 없음.
-const useWorshipServicesAll = () =>
-  useQuery({
-    queryKey: worshipKeys.services(),
-    queryFn: async () => {
-      const [sunday, weekday] = await Promise.all([
-        getSundayServices(),
-        getWeekdayServices(),
-      ])
-      return [...sunday, ...weekday]
-    },
-    // 예배 시간표는 사실상 고정 데이터
-    staleTime: 1000 * 60 * 30,
-  })
+const useWorshipServicesAll = useWorshipServices
 
 const minutesToLabel = (min: number) =>
   `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`
@@ -63,7 +51,7 @@ interface ScheduleItem {
 // 소식도 없으면 그때만 빈 문구로 돌아간다. (이번 주 설교 카드는 사용자 요청으로 제외)
 const useLatestNewsOne = (enabled: boolean) =>
   useQuery({
-    queryKey: ['news', 'rail-latest-one'],
+    queryKey: newsKeys.latestOne,
     queryFn: async () => (await fetchNewsList(1, 1)).data.items[0] ?? null,
     enabled,
     staleTime: 1000 * 60 * 15,

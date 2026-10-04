@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, useEffect, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { isOppositeThemeWarm, warmOppositeTheme } from '../utils/themeAssets'
+import { safeStorage } from '../utils/safeStorage'
 
 // 토글 직전 반대 테마 배경 이미지를 기다리는 최대 시간. 캐시에 있으면 0ms 로 지나가고,
 // 없어도 이 안에 도착한 파일은 크로스페이드에 함께 실린다 — 그 뒤는 기다리지 않고 전환한다
@@ -30,12 +31,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme')
+    const saved = safeStorage.get('theme')
     return (saved as Theme) || 'light'
   })
 
   useEffect(() => {
-    localStorage.setItem('theme', theme)
+    safeStorage.set('theme', theme)
     // Tailwind dark class + data-theme (toggleTheme가 이미 반영했어도 멱등)
     applyDomTheme(theme)
 

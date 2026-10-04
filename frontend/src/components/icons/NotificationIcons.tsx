@@ -124,7 +124,7 @@ const LINK_MAP: Array<[RegExp, NotificationVisual]> = [
 
 // 이모지 + 이어 붙는 변형 선택자(VS16)·ZWJ 조합까지 한 덩어리로 떼어낸다
 const LEADING_EMOJI =
-  /^([\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]+)\s*/u
+  /^((?:[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]|\u{FE0F}|\u{200D})+)\s*/u
 
 /** 제목 앞 이모지 (없으면 빈 문자열) */
 const leadingEmoji = (title: string) => title.match(LEADING_EMOJI)?.[1]?.trim() ?? ''
