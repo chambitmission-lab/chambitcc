@@ -90,6 +90,27 @@
   background: var(--text-muted);
 }
 
+/* 다섯째 켜진 전구(손수건) — 한 줄 전체, 점에 불이 들어와 있다 */
+.ab-bulb.is-on {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 0;
+  color: var(--text-strong);
+}
+
+.ab-bulb.is-on .ab-bulb-dot,
+.ab-bulb.is-on.is-selected .ab-bulb-dot {
+  flex: none;
+  background: var(--ab-dot);
+  box-shadow: 0 0 0 1px var(--ab-dot-glow), 0 0 12px 3px var(--ab-dot-glow);
+}
+
+.ab-bulb.is-on.is-selected {
+  border-color: var(--ab-dot-glow);
+}
+
 /* ── 무대 — 켜진 손수건 장면 / 고른 꺼진 장면 ── */
 .ab-stage {
   position: relative;
@@ -132,15 +153,16 @@
   margin-bottom: 0.25rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--ab-light);
+  /* 무대는 테마와 무관하게 늘 어두운 그라데이션 위 — 파란 강조(--ab-light)는 라이트에서 묻힌다 */
+  color: #f5cf86;
 }
 
 .ab-stage-text {
   margin: 0;
-  font-family: var(--ab-serif);
+  font-family: var(--ab-verse);
   font-size: 1.375rem;
-  font-weight: 700;
-  line-height: 1.45;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .ab-stage-text .ab-line {
@@ -171,33 +193,33 @@
   background: rgba(255, 255, 255, 0.22);
 }
 
-/* ── 약속 — 카드 한가운데 빛 번짐, 마지막 줄이 빛 ── */
+/* ── 약속 — 카드 없이 캔버스 위 큰 인용. 마지막 줄만 빛(브랜드색) ──
+   덩어리는 하늘 카드 둘 + 무대뿐 — 질감 종류를 줄여 리듬을 잇는다 */
 .ab-promise {
   position: relative;
   margin-top: var(--ab-gap);
-  padding: 2.75rem 1.5rem;
-  overflow: hidden;
-  border-radius: 28px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
+  padding: 0 0.5rem;
   text-align: center;
 }
 
+/* 인용 위 작은 빛 하나 — 페이지 모티프 */
 .ab-promise::before {
   content: '';
-  position: absolute;
-  inset: -40% -10% auto;
-  height: 120%;
-  background: radial-gradient(closest-side, var(--brand-soft-strong), transparent);
-  pointer-events: none;
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 5px var(--brand-soft-strong);
 }
 
 .ab-promise-text {
   position: relative;
   margin: 0;
-  font-family: var(--ab-serif);
+  font-family: var(--ab-verse);
   font-size: 1.375rem;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.75;
   color: var(--text-strong);
 }
@@ -253,7 +275,7 @@
   }
 
   .ab-promise {
-    padding: 5rem;
+    padding: 0 3rem;
   }
 
   .ab-promise-text {

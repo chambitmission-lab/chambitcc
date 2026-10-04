@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useAuth } from '../../hooks/useAuth'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { EditableText, EditableImage, HeroEditButton } from '../../components/AboutEditor'
 import { captureAboutHeroLqip, readAboutHeroLqip } from '../../utils/aboutHeroLqip'
@@ -21,12 +22,13 @@ import './styles/index.css'
 import { can } from '../../utils/access'
 
 /* /about — "참 빛" 스크롤 서사.
-   교회 이름의 뜻(요 1:9)으로 어둠에서 시작해, 스크롤할수록 빛이 커지며 밝은 화면으로
-   넘어간다. 빛줄기가 사진으로 흘러내리고, 사진은 어둠과 빛의 경계에 걸쳐 그 빛을 받는다.
+   교회 이름의 뜻(요 1:9)으로 시작해, 첫 화면이 열릴 때 빛 무리가 한 번 피어난다
+   (스크롤 연동은 카드가 화면 밖으로 나간 뒤에야 최대가 돼 체감이 안 됐다). 빛줄기가 사진으로 흘러내리고, 사진은 어둠과 빛의 경계에 걸쳐 그 빛을 받는다.
    만남은 꺼진 전구 넷 + 켜진 손수건 장면, 끝은 다시 밤하늘의 초대 카드. */
 
-// 펜 서체 — 목사님 별칭(.ab-pastor-nickname, 인사말 페이지와 같은 문법)·첫 화면 손글씨 쪽지
-// 고운돋움 — 첫 화면 말씀(요 1:9)
+// 서체는 셋만 — 교회 이름 G마켓 · 말씀·인용 고운돋움(--ab-verse) · 손글씨는 목사님 별칭에만
+// 펜 서체 — 목사님 별칭(.ab-pastor-nickname, 인사말 페이지와 같은 문법)
+// 고운돋움 — 첫 화면 말씀(요 1:9)·무대 문구·약속
 ensureFontFamily('nanumPen')
 ensureFontFamily('gowunDodum')
 
@@ -87,6 +89,7 @@ const bareName = (displayName: string): string => displayName.trim().split(/\s+/
 const About = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
+  const { isLoggedIn } = useAuth()
   const { tx, heroBackgroundUrl } = useAboutContent()
   const isAdminUser = can('content:manage')
   const ko = language === 'ko'
@@ -108,33 +111,6 @@ const About = () => {
     },
     [handleHeroLoaded],
   )
-
-  // ── 스크롤할수록 빛이 커진다 ──
-  // 이 앱의 스크롤러는 화면마다(body·#root·내부 상자) 달라 window scroll 만 들으면 놓친다.
-  // scroll 은 버블링하지 않지만 capture 단계에서는 어느 스크롤러든 document 를 지난다.
-  // 진행도는 scrollTop 이 아니라 어둠 구역의 화면상 위치로 잰다 — PC zoom 아래서도 같은 값.
-  const dawnRef = useRef<HTMLElement>(null)
-  useEffect(() => {
-    const dawn = dawnRef.current
-    if (!dawn) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let frame = 0
-    const update = () => {
-      frame = 0
-      const rect = dawn.getBoundingClientRect()
-      const t = Math.min(1, Math.max(0, -rect.top / (rect.height * 0.8)))
-      dawn.style.setProperty('--ab-glow', (0.35 + t * 1.8).toFixed(3))
-    }
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update)
-    }
-    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
-    update()
-    return () => {
-      document.removeEventListener('scroll', onScroll, { capture: true })
-      if (frame) cancelAnimationFrame(frame)
-    }
-  }, [])
 
   // ── 다섯 만남 — 기본은 손수건(켜진 장면). 꺼진 전구를 누르면 무대가 그 장면으로 어두워진다 ──
   const [meetingKey, setMeetingKey] = useState<MeetingKey>('handkerchief')
@@ -167,7 +143,7 @@ const About = () => {
   return (
     <div className="about-page page-stage">
       {/* ── 1막: 한 줄기 빛 — 본문 폭 하늘 카드(라이트 새벽·다크 무채색 밤) ── */}
-      <section className="ab-dawn ab-sky" ref={dawnRef} aria-label={tx('aboutChurchName')}>
+      <section className="ab-dawn ab-sky" aria-label={tx('aboutChurchName')}>
         <span className="ab-dawn-beam" aria-hidden="true" />
         <span className="ab-dawn-glow" aria-hidden="true" />
         <p className="ab-dawn-verse">
@@ -275,6 +251,18 @@ const About = () => {
                   </div>
                 )
               })}
+              {/* 다섯째 — 단 하나 켜진 전구. 넷과 같은 줄에 두어 "꺼짐 넷 · 켜짐 하나"가 설명 없이 읽힌다 */}
+              <div
+                className={`ab-bulb is-on${lit ? ' is-selected' : ''}`}
+                role="tab"
+                aria-selected={lit}
+                tabIndex={0}
+                onClick={() => setMeetingKey('handkerchief')}
+                onKeyDown={rowKeyDown(() => setMeetingKey('handkerchief'))}
+              >
+                <i className="ab-bulb-dot" aria-hidden="true" />
+                <span>{toLines(tx('aboutMeetingGood')).join(' ')}</span>
+              </div>
             </div>
 
             <div className={`ab-stage${lit ? ' is-lit' : ''}`} key={meetingKey}>
@@ -410,9 +398,19 @@ const About = () => {
                 {tx('aboutCtaText')}
               </EditableText>
             </p>
-            <button type="button" className="ab-invite-cta" onClick={() => navigate('/register')}>
-              {ko ? '처음 오셨나요? 등록하기' : 'New here? Join us'}
-            </button>
+            {/* 교회에서 "등록"은 새가족 등록으로 읽힌다 — 방문자에겐 주일 예배 길 안내가 먼저,
+                앱 가입은 비로그인일 때만 보조 링크로 */}
+            <div className="ab-invite-actions">
+              <button type="button" className="ab-invite-cta" onClick={() => navigate('/visit')}>
+                {ko ? '이번 주일, 함께 예배드려요' : 'Join us this Sunday'}
+              </button>
+              {!isLoggedIn && (
+                <button type="button" className="ab-invite-sub" onClick={() => navigate('/register')}>
+                  <span>{ko ? '참빛 앱 가입하기' : 'Sign up for the app'}</span>
+                  <ChevronRightIcon size={15} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="ab-info" aria-label={ko ? '한눈에 정보' : 'Quick info'}>

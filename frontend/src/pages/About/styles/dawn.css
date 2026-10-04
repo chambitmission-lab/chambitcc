@@ -32,13 +32,14 @@
   top: 0;
   left: 50%;
   width: 2px;
-  height: 30%;
+  height: 22%;
   transform: translateX(-50%);
-  background: linear-gradient(to bottom, transparent, var(--ab-beam));
+  /* 말씀에 닿기 전에 사그라든다 — 글자를 관통하지 않게 */
+  background: linear-gradient(to bottom, transparent, var(--ab-beam) 55%, transparent);
   pointer-events: none;
 }
 
-/* 빛 무리 — About.tsx 가 스크롤 진행도로 --ab-glow 를 키운다 */
+/* 빛 무리 — 첫 화면이 열릴 때 한 번 피어나 그대로 머문다 */
 .ab-dawn-glow {
   position: absolute;
   top: 30%;
@@ -46,7 +47,7 @@
   width: 520px;
   height: 520px;
   border-radius: 50%;
-  transform: translate(-50%, -50%) scale(var(--ab-glow, 0.35));
+  transform: translate(-50%, -50%) scale(1.35);
   background: radial-gradient(
     circle,
     var(--ab-glow-1) 0,
@@ -54,24 +55,40 @@
     var(--ab-glow-3) 38%,
     transparent 68%
   );
-  transition: transform 0.2s linear;
+  animation: ab-glow-bloom 1.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both;
   pointer-events: none;
+}
+
+@keyframes ab-glow-bloom {
+  from {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0.4;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 1;
+  }
 }
 
 /* 말씀 — 딱딱한 명조 대신 둥근 고운돋움(한 웨이트뿐이라 400) */
 .ab-dawn-verse {
   position: relative;
   max-width: 22em;
-  font-family: 'Gowun Dodum', 'Pretendard Variable', sans-serif;
+  font-family: var(--ab-verse);
   font-size: 1.5rem;
   font-weight: 400;
   line-height: 1.75;
   letter-spacing: -0.01em;
   word-break: keep-all;
+  /* 빛줄기·빛 무리 위로, 하늘색 번짐을 글자 뒤에 깔아 또렷하게 */
+  z-index: 1;
+  text-shadow: 0 0 14px var(--ab-sky-2), 0 0 28px var(--ab-sky-2);
 }
 
 /* '빛' 형광펜 — 첫 화면에서 왼쪽부터 쓱 칠해진다 */
 .ab-hl {
+  /* 칠은 글자 밖으로 살짝 번지되 자리는 차지하지 않는다 — 패딩만 주면 "빛 이"처럼 띄어 보였다 */
+  margin: 0 -0.06em;
   padding: 0 0.06em;
   border-radius: 0.2em;
   color: inherit;
@@ -100,8 +117,9 @@
 /* 출처 — 작은 알약 */
 .ab-dawn-ref {
   position: relative;
-  margin-top: 1rem;
-  padding: 0.3rem 0.8rem;
+  z-index: 1;
+  margin-top: 1.625rem;
+  padding: 0.4rem 0.95rem;
   border-radius: 999px;
   background: var(--ab-row-bg);
   box-shadow: inset 0 0 0 1px var(--ab-row-border);
@@ -112,18 +130,18 @@
 
 .ab-dawn-name {
   position: relative;
-  margin-top: 3.5rem;
+  z-index: 1;
+  margin-top: 4rem;
 }
 
-/* 손글씨 쪽지 — 살짝 기울여 붙인 메모처럼 */
+/* 키커 — 교회 이름 위 작은 본문 글씨(손글씨는 목사님 별칭에만 남겨 첫 화면 서체를 줄였다) */
 .ab-dawn-kicker {
   display: inline-block;
-  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
-  font-size: 1.75rem;
-  line-height: 1.1;
-  letter-spacing: 0;
-  color: var(--ab-light);
-  transform: rotate(-3deg);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--ab-ink-3);
 }
 
 /* 교회 이름 — 크롬·로그인과 같은 G마켓 산스(둥근 기하 획). "참빛교회"는 서브셋에 있다 */
@@ -135,6 +153,7 @@
   letter-spacing: -0.01em;
   line-height: 1.2;
   color: var(--ab-ink);
+  text-shadow: var(--ab-name-glow);
 }
 
 /* "아래로" 글자 대신 — 빛 알갱이가 사진 쪽으로 흘러내리는 선 */
@@ -227,7 +246,10 @@
     animation: none;
   }
 
-  .ab-dawn-glow,
+  .ab-dawn-glow {
+    animation: none;
+  }
+
   .ab-photo-img {
     transition: none;
   }
@@ -248,7 +270,7 @@
   }
 
   .ab-dawn-kicker {
-    font-size: 2.25rem;
+    font-size: 1.125rem;
   }
 
   .ab-dawn-name h1 {
