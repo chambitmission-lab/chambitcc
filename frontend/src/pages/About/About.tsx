@@ -324,10 +324,10 @@ const About = () => {
                 </span>
               </figure>
 
-              {/* 05 초대 — 예배당(테마별 낮·밤). display:none 쪽은 lazy 라 받지 않는다 */}
+              {/* 05 초대 — 해 뜨는 들판 사이로 난 길("이제, 당신 차례입니다").
+                  /visit 의 예배당 이미지는 배경 위에 겹치려고 건물만 오려낸 합성이라 단독 장면으론 테두리가 드러났다 */}
               <figure {...layer('invite')}>
-                <img className="ab-scene-img ab-church-day" src="/images/visit/church-day.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
-                <img className="ab-scene-img ab-church-night" src="/images/visit/church-night.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+                <img className="ab-scene-img ab-invite-img" src="/images/history/verse-path.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
               </figure>
 
               <span className="ab-visual-no" aria-hidden="true">

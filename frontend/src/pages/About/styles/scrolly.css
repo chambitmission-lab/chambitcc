@@ -150,22 +150,13 @@
   object-position: center 20%;
 }
 
-/* 예배당 — 테마별 낮·밤 (display:none 쪽은 lazy 라 받지 않는다) */
-.ab-church-day,
-.ab-church-night {
-  object-position: 72% center;
+/* 초대 — 길이 왼쪽 앞에서 시작해 해 쪽으로 난다. 세로 틀에서 길과 해가 함께 남도록 */
+.ab-invite-img {
+  object-position: 38% center;
 }
 
-.ab-church-night {
-  display: none;
-}
-
-.dark .ab-church-day {
-  display: none;
-}
-
-.dark .ab-church-night {
-  display: block;
+.dark .ab-invite-img {
+  filter: brightness(0.82);
 }
 
 /* EditableImage 래퍼(inline-block)가 그림을 가두지 않게 장면을 꽉 채운다 */
