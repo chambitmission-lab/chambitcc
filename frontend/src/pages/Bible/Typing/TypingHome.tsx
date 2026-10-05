@@ -4,7 +4,8 @@ import BibleSideRail from '../../../components/bible/BibleSideRail'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import { Feather } from '../../../components/icons/phosphor'
 import { useBibleBooks } from '../../../hooks/useBible'
-import { useTypingStats, useTypingWeekly } from '../../../hooks/useBibleTyping'
+import { useBookReadingProgress, useReadingProgress } from '../../../hooks/useBibleReading'
+import { useBookTyping, useTypingStats, useTypingWeekly } from '../../../hooks/useBibleTyping'
 import { useTitles } from '../../../hooks/useTitles'
 import { TitleGlyph } from '../../../components/titles/TitleGlyph'
 import { tokenStore } from '../../../utils/tokenStore'
@@ -32,6 +33,8 @@ const TypingHome = () => {
   const loggedIn = !!tokenStore.getAccess()
   const { data: books } = useBibleBooks()
   const { data: stats } = useTypingStats()
+  // 책별 전체 절 수는 읽기 진행률 응답에서 빌린다 (books[].book_id = book_number)
+  const { data: reading } = useReadingProgress(loggedIn)
   const { data: weekly } = useTypingWeekly()
   const { data: titles } = useTitles(loggedIn)
   const [mode, setMode] = useTypingMode()
@@ -41,7 +44,25 @@ const TypingHome = () => {
 
   const bookList = useMemo(() => (books ?? []).filter((b) => b.testament === testament), [books, testament])
   const picked = books?.find((b) => b.book_number === pickedBook) ?? null
+  // 고른 책의 장별 필사 절 수 + 장별 전체 절 수(읽기 진행률 응답에서 빌림)
+  const { data: bookTyping } = useBookTyping(pickedBook)
+  const { data: bookReading } = useBookReadingProgress(pickedBook ?? 0, loggedIn)
+  const chapterTotals = useMemo(
+    () => new Map((bookReading?.chapters ?? []).map((c) => [c.chapter, c.total_verses])),
+    [bookReading]
+  )
   const bookName = (n: number) => books?.find((b) => b.book_number === n)?.book_name_ko ?? ''
+  const bookTotals = useMemo(
+    () => new Map((reading?.books ?? []).map((b) => [b.book_id, b.total_verses])),
+    [reading]
+  )
+  /** 필사 진행 라벨 — 전체 절 수를 모르면 절 수로, 다 쓰면 '완필', 조금이라도 썼으면 최소 1% */
+  const progressLabel = (n: number, total: number) => {
+    if (!total) return `${n}절`
+    if (n >= total) return '완필'
+    return `${Math.max(1, Math.floor((n / total) * 100))}%`
+  }
+  const typedLabel = (bookNumber: number, n: number) => progressLabel(n, bookTotals.get(bookNumber) ?? 0)
 
   const typingTitles = useMemo(() => (titles?.titles ?? []).filter((t) => t.category === 'typing'), [titles])
   const earnedCount = typingTitles.filter((t) => t.earned).length
@@ -180,26 +201,45 @@ const TypingHome = () => {
                       </span>
                     </div>
                     <div className="bt-chapters">
-                      {Array.from({ length: picked.chapter_count }, (_, i) => i + 1).map((c) => (
-                        <button key={c} type="button" className="bt-chapter" onClick={() => go(picked.book_number, c)}>
-                          {c}
-                        </button>
-                      ))}
+                      {Array.from({ length: picked.chapter_count }, (_, i) => i + 1).map((c) => {
+                        const n = bookTyping?.[String(c)] ?? 0
+                        const label = n > 0 ? progressLabel(n, chapterTotals.get(c) ?? 0) : null
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            className={`bt-chapter${label === '완필' ? ' is-done' : ''}`}
+                            onClick={() => go(picked.book_number, c)}
+                          >
+                            {c}
+                            {label && (
+                              <span className="bt-book__pct" aria-label={`${n}절 필사`}>
+                                {label}
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
                     </div>
                   </>
                 ) : (
                   <div className="bt-books">
                     {bookList.map((b) => {
                       const n = stats?.books[String(b.book_number)] ?? 0
+                      const label = n > 0 ? typedLabel(b.book_number, n) : null
                       return (
                         <button
                           key={b.book_number}
                           type="button"
-                          className={`bt-book${n ? ' has-typed' : ''}`}
+                          className={`bt-book${n ? ' has-typed' : ''}${label === '완필' ? ' is-done' : ''}`}
                           onClick={() => setPickedBook(b.book_number)}
                         >
-                          {b.book_name_ko}
-                          {n > 0 && <span className="bt-book__dot" aria-label={`${n}절 필사`} />}
+                          <span className="bt-book__name">{b.book_name_ko}</span>
+                          {label && (
+                            <span className="bt-book__pct" aria-label={`${n}절 필사`}>
+                              {label}
+                            </span>
+                          )}
                         </button>
                       )
                     })}

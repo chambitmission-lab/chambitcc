@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  getBookTyping,
   getChapterTyping,
   getTypingStats,
   getTypingWeekly,
@@ -15,6 +16,7 @@ export const bibleTypingKeys = {
   all: ['bibleTyping'] as const,
   stats: () => [...bibleTypingKeys.all, 'stats'] as const,
   chapter: (bookNumber: number, chapter: number) => [...bibleTypingKeys.all, 'chapter', bookNumber, chapter] as const,
+  book: (bookNumber: number) => [...bibleTypingKeys.all, 'book', bookNumber] as const,
   weekly: () => [...bibleTypingKeys.all, 'weekly'] as const,
 }
 
@@ -36,6 +38,16 @@ export const useChapterTyping = (bookNumber: number, chapter: number) =>
     queryKey: bibleTypingKeys.chapter(bookNumber, chapter),
     queryFn: () => getChapterTyping(bookNumber, chapter),
     enabled: loggedIn() && bookNumber > 0 && chapter > 0,
+    staleTime: 1000 * 30,
+    refetchOnMount: 'always',
+  })
+
+/** 이 책의 장별 필사 절 수 — 허브 장 그리드 진행 표시 */
+export const useBookTyping = (bookNumber: number | null) =>
+  useQuery({
+    queryKey: bibleTypingKeys.book(bookNumber ?? 0),
+    queryFn: () => getBookTyping(bookNumber ?? 0),
+    enabled: loggedIn() && !!bookNumber,
     staleTime: 1000 * 30,
     refetchOnMount: 'always',
   })

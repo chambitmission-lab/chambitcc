@@ -378,13 +378,22 @@
 }
 .bt-book {
   position: relative;
-  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: 46px;
   padding: 0 6px;
   border-radius: 12px;
   background: var(--surface-inset);
   color: var(--text-body);
   font-size: 13.5px;
   font-weight: 600;
+  line-height: 1.2;
+}
+.bt-book__name {
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -392,14 +401,17 @@
 .bt-book.has-typed {
   color: var(--text-strong);
 }
-.bt-book__dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--brand);
+/* 필사 진행 — 책 이름 아래 작은 숫자. 다 쓴 책은 '완필' */
+.bt-book__pct {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.bt-book.is-done,
+.bt-chapter.is-done {
+  background: var(--brand-soft-strong);
 }
 .bt-picker__head {
   display: flex;
@@ -431,7 +443,13 @@
   }
 }
 .bt-chapter {
-  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: 46px;
+  line-height: 1.2;
   border-radius: 12px;
   background: var(--surface-inset);
   color: var(--text-strong);

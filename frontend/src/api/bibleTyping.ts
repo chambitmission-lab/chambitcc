@@ -97,6 +97,15 @@ export const getChapterTyping = async (bookNumber: number, chapter: number): Pro
   return res.data.verse_ids
 }
 
+/** 이 책의 장별 필사를 마친 절 수 — 키는 장 번호(문자열) */
+export const getBookTyping = async (bookNumber: number): Promise<Record<string, number>> => {
+  const res = await request<Envelope<{ chapters: Record<string, number> }>>(`/bible-typing/books/${bookNumber}`, {
+    auth: 'required',
+    errorMessage: '필사 진행을 불러오지 못했어요',
+  })
+  return res.data.chapters
+}
+
 export const getTypingWeekly = async (): Promise<TypingWeekly> => {
   const res = await request<Envelope<TypingWeekly>>('/bible-typing/weekly', {
     auth: 'required',
