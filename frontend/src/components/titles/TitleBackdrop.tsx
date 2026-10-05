@@ -55,6 +55,7 @@ const TITLE_BG: Record<string, string> = Object.fromEntries(
 // PC 는 21:9 로 납작하게 잘라 위아래가 함께 깎이는데, 창문 같은 윗부분이 잘리면 답답해 보임
 const TITLE_BG_POSITION: Record<string, string> = {
   typing_jot_and_tittle: '50% 15%',
+  typing_one_chapter: '50% 10%', // 치켜든 두루마리 윗끝이 원본 y≈72px
 }
 
 /** 이 칭호에 커버 배너가 등록돼 있는지 — 프로필 스켈레톤이 배너 자리를 미리 잡을 때 쓴다 */
