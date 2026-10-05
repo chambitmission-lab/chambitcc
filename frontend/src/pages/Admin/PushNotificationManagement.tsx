@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import { getPushHistory, sendPush, type PushPayload, type PushSendLog, type SendPushResult } from '../../api/push'
+import { getPushHistory, sendPush, PushResultUnavailableError, type PushPayload, type PushSendLog, type SendPushResult } from '../../api/push'
 import { useAudiencePicker } from '../../hooks/useAudiencePicker'
 import { showToast } from '../../utils/toast'
 import AudiencePicker from './components/AudiencePicker'
@@ -104,6 +104,7 @@ export const PushNotificationManagement = () => {
   const [isSending, setIsSending] = useState(false)
   const [result, setResult] = useState<
     | { ok: true; data: SendPushResult; audienceLabel: string }
+    | { ok: 'pending'; audienceLabel: string }
     | { ok: false; message: string }
     | null
   >(null)
@@ -161,12 +162,16 @@ export const PushNotificationManagement = () => {
         url: url.trim() || '/',
         tag: tag.trim() || 'notification',
       }
-      const data = await sendPush({
-        payload,
-        user_ids: audienceUserIds,
-        audience_mode: audienceMode,
-        audience_label: audienceLabel,
-      })
+      const data = await sendPush(
+        {
+          payload,
+          user_ids: audienceUserIds,
+          audience_mode: audienceMode,
+          audience_label: audienceLabel,
+        },
+        // 서버가 발송을 받아 백그라운드로 보내는 동안 — 창을 닫아도 발송은 계속된다
+        { onStarted: () => setResult({ ok: 'pending', audienceLabel }) }
+      )
       setResult({ ok: true, data, audienceLabel })
       void queryClient.invalidateQueries({ queryKey: pushHistoryKey })
       if (data.failed === 0 && data.sent > 0) {
@@ -177,6 +182,13 @@ export const PushNotificationManagement = () => {
         showToast(`${data.sent}명 성공 · ${data.failed}명 실패`, 'success')
       }
     } catch (error) {
+      if (error instanceof PushResultUnavailableError) {
+        // 발송은 나갔거나 진행 중이고 결과만 못 받은 경우 — 실패로 보이지 않게 이력으로 안내
+        setResult(null)
+        void queryClient.invalidateQueries({ queryKey: pushHistoryKey })
+        showToast(error.message, 'info')
+        return
+      }
       const message =
         error instanceof Error ? error.message : '푸시 알림 전송에 실패했습니다'
       setResult({ ok: false, message })
@@ -423,7 +435,17 @@ export const PushNotificationManagement = () => {
             {/* 전송 결과 */}
             {result && (
               <SectionCard title="전송 결과">
-                {result.ok ? (
+                {result.ok === 'pending' ? (
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 w-[18px] h-[18px] shrink-0 rounded-full border-2 border-brand/30 border-t-brand animate-spin" />
+                    <div className="flex-1">
+                      <p className="text-[13px] font-semibold text-ink-strong">{result.audienceLabel} 대상 발송 중…</p>
+                      <p className="text-[12px] text-gray-600 dark:text-white/65 mt-1">
+                        서버가 백그라운드로 보내고 있습니다. 이 화면을 닫아도 발송은 계속되며, 결과는 아래 발송 이력에 남습니다.
+                      </p>
+                    </div>
+                  </div>
+                ) : result.ok ? (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <span

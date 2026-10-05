@@ -1,6 +1,6 @@
 import { API_V1 } from '../config/api'
 import { tokenStore } from '../utils/tokenStore'
-import { request, type UntypedJson } from './utils/request'
+import { isApiError, request, type UntypedJson } from './utils/request'
 
 export interface PushSubscriptionKeys {
   p256dh: string;
@@ -148,15 +148,47 @@ export const getMySubscriptions = async (): Promise<PushSubscriptionData[]> => {
   return request<PushSubscriptionData[]>('/push/subscriptions', { errorMessage: '구독 목록을 가져올 수 없습니다.' })
 };
 
+/** 서버가 발송은 받았지만 결과를 돌려줄 수 없을 때(재시작·만료·시간 초과). 결과는 발송 이력에 남는다. */
+export class PushResultUnavailableError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'PushResultUnavailableError'
+  }
+}
+
+export interface SendPushOptions {
+  /** 서버가 발송을 시작했을 때(202) 한 번 불린다 — 폴링 동안 '발송 중' 표시용 */
+  onStarted?: () => void
+}
+
+const JOB_POLL_INTERVAL_MS = 1000
+const JOB_POLL_TIMEOUT_MS = 5 * 60 * 1000
+const JOB_POLL_MAX_CONSECUTIVE_ERRORS = 3
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+const toSendPushResult = (result: UntypedJson | null | undefined): SendPushResult => ({
+  sent: result?.sent ?? 0,
+  failed: result?.failed ?? 0,
+  users_notified: result?.users_notified ?? 0,
+  recorded: result?.recorded ?? 0,
+  success: result?.success,
+  message: result?.message
+})
+
 /**
  * 푸시 전송 (관리자 전용)
  *
- * 결과 객체(sent/failed/users_notified)를 그대로 반환한다.
+ * 서버는 202 + job_id 로 발송을 백그라운드에서 시작하고, 여기서는 작업이 끝날 때까지
+ * 1초 간격으로 상태를 폴링해 최종 결과(sent/failed/users_notified)를 돌려준다.
  * HTTP 에러는 throw 하지만, sent===0 같은 부분 실패는 UI에서 결과 카드로 표시하도록
- * throw 하지 않고 그대로 결과를 돌려준다.
+ * throw 하지 않고 그대로 결과를 돌려준다. (구버전 서버가 결과를 바로 주면 그대로 쓴다)
  */
-export const sendPush = async (payload: SendPushRequest): Promise<SendPushResult> => {
-  const result: UntypedJson = await request<UntypedJson>('/push/send', {
+export const sendPush = async (
+  payload: SendPushRequest,
+  options: SendPushOptions = {}
+): Promise<SendPushResult> => {
+  const started: UntypedJson | null = await request<UntypedJson>('/push/send', {
     method: 'POST',
     json: payload,
     errorMessage: '푸시 전송에 실패했습니다.',
@@ -164,14 +196,32 @@ export const sendPush = async (payload: SendPushRequest): Promise<SendPushResult
     if (error instanceof SyntaxError) return null // 본문이 JSON 이 아니면 결과 없음으로
     throw error
   });
-  return {
-    sent: result?.sent ?? 0,
-    failed: result?.failed ?? 0,
-    users_notified: result?.users_notified ?? 0,
-    recorded: result?.recorded ?? 0,
-    success: result?.success,
-    message: result?.message
-  };
+  const jobId: unknown = started?.job_id
+  if (typeof jobId !== 'string') return toSendPushResult(started)
+
+  options.onStarted?.()
+  const deadline = Date.now() + JOB_POLL_TIMEOUT_MS
+  let consecutiveErrors = 0
+  while (Date.now() < deadline) {
+    await sleep(JOB_POLL_INTERVAL_MS)
+    let job: UntypedJson
+    try {
+      job = await request<UntypedJson>(`/push/send/${jobId}`, { errorMessage: '발송 상태를 확인할 수 없습니다.' })
+      consecutiveErrors = 0
+    } catch (error) {
+      // 서버가 재시작돼 작업을 잊었다 — 발송 자체는 이력에 남는다
+      if (isApiError(error, 404)) {
+        throw new PushResultUnavailableError('발송 결과를 받지 못했습니다. 아래 발송 이력에서 확인해 주세요.')
+      }
+      if (++consecutiveErrors >= JOB_POLL_MAX_CONSECUTIVE_ERRORS) throw error
+      continue
+    }
+    if (job?.status === 'done') return toSendPushResult(job.result)
+    if (job?.status === 'failed') {
+      throw new Error(typeof job.error === 'string' && job.error ? `발송 중 오류: ${job.error}` : '푸시 전송에 실패했습니다.')
+    }
+  }
+  throw new PushResultUnavailableError('발송이 아직 진행 중입니다. 아래 발송 이력에서 결과를 확인해 주세요.')
 };
 
 /**
