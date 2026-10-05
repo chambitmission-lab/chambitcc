@@ -72,10 +72,11 @@ export const useRoomPreview = (inviteCode: string) =>
     retry: false,
   })
 
-export const useRoomPosts = (roomId: number, dayNumber?: number, enabled = true) =>
+export const useRoomPosts = (roomId: number, dayNumber?: number, enabled = true, limit?: number) =>
   useQuery({
-    queryKey: roomKeys.posts(roomId, dayNumber),
-    queryFn: () => listRoomPosts(roomId, dayNumber),
+    // limit 이 없으면 기존 키 그대로 — 무효화는 [...all, 'posts', roomId] 접두사로 하므로 둘 다 잡힌다
+    queryKey: limit ? [...roomKeys.posts(roomId, dayNumber), limit] : roomKeys.posts(roomId, dayNumber),
+    queryFn: () => listRoomPosts(roomId, dayNumber, limit),
     enabled: enabled && roomId > 0,
     // 같은 방을 여러 명이 보는 실시간성 — 포커스 복귀·재진입 시 재조회
     refetchOnWindowFocus: true,

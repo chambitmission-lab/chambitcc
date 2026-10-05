@@ -71,9 +71,13 @@ export const markRoomDayRead = async (
 export const listRoomPosts = async (
   roomId: number,
   dayNumber?: number,
+  limit?: number,
 ): Promise<RoomPostListResponse> => {
-  const qs = dayNumber != null ? `?day_number=${dayNumber}` : ''
-  return request<RoomPostListResponse>(`${BASE}/${roomId}/posts${qs}`, { errorMessage: '묵상 피드를 불러오지 못했습니다' })
+  // 서버 기본 100개·최대 200개. total 은 전체 수라 더 있는지 알 수 있다.
+  return request<RoomPostListResponse>(`${BASE}/${roomId}/posts`, {
+    query: { day_number: dayNumber, limit },
+    errorMessage: '묵상 피드를 불러오지 못했습니다',
+  })
 }
 
 export const createRoomPost = async (

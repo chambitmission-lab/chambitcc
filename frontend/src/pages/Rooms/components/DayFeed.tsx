@@ -11,9 +11,15 @@ import { HandHeartIcon, ReactionGlyph, SproutIcon } from '../RoomIcons'
 import { REACTIONS, pickDailyQuestion, reactionMeta } from '../roomCourses'
 import { timeAgo } from './roomHomeUtils'
 
+// 한 날의 나눔은 보통 수십 개 안이다. 그 이상이면 '더 보기'로 늘려 받는다 (서버 상한 200).
+const FEED_PAGE = 50
+const FEED_MAX = 200
+
 // ── 나눔 카드 + 피드 ──
 export const DayFeed = ({ room, day }: { room: RoomDetail; day: number }) => {
-  const { data: feed, isLoading } = useRoomPosts(room.id, day)
+  const [feedLimit, setFeedLimit] = useState(FEED_PAGE)
+  const { data: feed, isLoading } = useRoomPosts(room.id, day, true, feedLimit)
+  const hiddenCount = feed ? Math.max(0, feed.total - feed.items.length) : 0
   const { data: detail } = useRoomDay(room.id, day)
   const setReaction = useSetDayReaction(room.id, day)
   const createPost = useCreateRoomPost(room.id)
@@ -189,6 +195,21 @@ export const DayFeed = ({ room, day }: { room: RoomDetail; day: number }) => {
           </p>
         ) : (
           feed.items.map((post) => <PostCard key={post.id} post={post} roomAdmin={room.is_admin} />)
+        )}
+        {hiddenCount > 0 && (
+          feedLimit < FEED_MAX ? (
+            <button
+              type="button"
+              onClick={() => setFeedLimit((n) => Math.min(FEED_MAX, n + FEED_PAGE))}
+              className="w-full py-2.5 rounded-xl text-[13px] font-medium text-brand bg-brand/5 hover:bg-brand/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.07] transition-colors"
+            >
+              이전 나눔 더 보기 ({hiddenCount}개)
+            </button>
+          ) : (
+            <p className="text-center text-[12px] text-gray-400 dark:text-white/40 py-2">
+              최근 {FEED_MAX}개까지 표시합니다
+            </p>
+          )
         )}
       </div>
     </section>
