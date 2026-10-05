@@ -21,6 +21,30 @@
   text-align: center;
 }
 
+/* 그림 — 위 가운데 빛기둥 + 아래 안개 낀 마을(창마다 불). 아래 그라데이션(.ab-sky)이 로딩 전 자리를 지킨다.
+   CSS 배경은 preload 스캐너 사각지대라 선요청은 themeAssets.ts 의 ABOUT_DAWN_* 가 맡는다 */
+.ab-dawn-art {
+  position: absolute;
+  inset: 0;
+  background: url('../../../assets/about/dawn-light-m.webp') center bottom / cover no-repeat;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+.ab-dawn-art.is-loaded {
+  opacity: 1;
+}
+
+.dark .ab-dawn-art {
+  background-image: url('../../../assets/about/dawn-dark-m.webp');
+}
+
+/* 그림에 빛기둥이 그려져 있다 — CSS 빛줄기를 겹치면 두 줄이 된다 */
+.ab-dawn-art.is-loaded ~ .ab-dawn-beam {
+  opacity: 0;
+}
+
 /* 위에서 내려오는 빛줄기 */
 .ab-dawn-beam {
   position: absolute;
@@ -201,6 +225,10 @@
     animation: none;
   }
 
+  .ab-dawn-art {
+    transition: none;
+  }
+
   .ab-dawn-stream::after {
     animation: none;
     opacity: 0;
@@ -210,6 +238,14 @@
 @media (min-width: 1024px) {
   .ab-dawn {
     --ab-stream-h: 80px;
+  }
+
+  .ab-dawn-art {
+    background-image: url('../../../assets/about/dawn-light.webp');
+  }
+
+  .dark .ab-dawn-art {
+    background-image: url('../../../assets/about/dawn-dark.webp');
   }
 
   .ab-dawn-verse {

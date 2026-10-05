@@ -20,6 +20,8 @@ import { ensureFontFamily } from '../../utils/deferredFonts'
 import pastorPhoto from '../../assets/about-pastor/pastor.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC } from '../../utils/themeAssets'
 
 /* /about — "참 빛" 스티키 스크롤 이야기.
    첫 화면은 요 1:9 하늘 카드. 그 아래는 한쪽에 고정된 그림(PC 왼쪽 · 모바일 위)과
@@ -139,6 +141,9 @@ const About = () => {
   const isAdminUser = can('content:manage')
   const ko = language === 'ko'
   const { active, register } = useActiveChapter()
+  // 하늘 카드 그림 — 지금 폭의 한 쌍만 받는다(CSS 가 같은 폭 기준으로 고른다)
+  const [dawnPair] = useState(() => (ABOUT_DAWN_PC.when?.() ? ABOUT_DAWN_PC : ABOUT_DAWN_MOBILE))
+  const dawnArtReady = useThemeArt(dawnPair)
   const activeIndex = CHAPTERS.indexOf(active)
 
   // ── 사진: CSS 배경이 아니라 <img> + onLoad 페이드, 첫 프레임엔 지난 방문의 LQIP ──
@@ -210,6 +215,8 @@ const About = () => {
     <div className="about-page page-stage">
       {/* ── 첫 화면: 한 줄기 빛 — 본문 폭 하늘 카드(라이트 새벽·다크 무채색 밤) ── */}
       <section className="ab-dawn ab-sky" aria-label={tx('aboutChurchName')}>
+        {/* 그림 — 위 가운데에서 내려온 빛이 아래 마을 창마다 하나씩 닿는다("각 사람에게 비추는 빛") */}
+        <span className={`ab-dawn-art${dawnArtReady ? ' is-loaded' : ''}`} aria-hidden="true" />
         <span className="ab-dawn-beam" aria-hidden="true" />
         <span className="ab-dawn-glow" aria-hidden="true" />
         <p className="ab-dawn-verse">

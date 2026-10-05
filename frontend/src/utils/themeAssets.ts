@@ -53,6 +53,10 @@ import atlasBgMobileLight from '../assets/atlas/bg-mobile.webp'
 import atlasBgMobileDark from '../assets/atlas/bg-mobile-night.webp'
 import atlasBgPcLight from '../assets/atlas/bg-pc.webp'
 import atlasBgPcDark from '../assets/atlas/bg-pc-night.webp'
+import aboutDawnPcLight from '../assets/about/dawn-light.webp'
+import aboutDawnPcDark from '../assets/about/dawn-dark.webp'
+import aboutDawnMobileLight from '../assets/about/dawn-light-m.webp'
+import aboutDawnMobileDark from '../assets/about/dawn-dark-m.webp'
 
 export type ThemeName = 'light' | 'dark'
 
@@ -226,6 +230,17 @@ export const ATLAS_BG_PC: ThemePair = {
   when: atlasWide,
 }
 
+/** /about 첫 화면 하늘 카드(dawn.css .ab-dawn-art) — 요 1:9 "위에서 내려온 빛이 마을 창마다 닿는" 장면.
+ *  PC 는 가로 그림, 모바일은 세로 그림(카드가 약 1:2). dawn.css 의 @media (min-width: 1024px) 와 짝 */
+const aboutWide = (): boolean =>
+  typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+export const ABOUT_DAWN_PC: ThemePair = { light: aboutDawnPcLight, dark: aboutDawnPcDark, when: aboutWide }
+export const ABOUT_DAWN_MOBILE: ThemePair = {
+  light: aboutDawnMobileLight,
+  dark: aboutDawnMobileDark,
+  when: () => !aboutWide(),
+}
+
 /** 장면 한 장을 통째로 까는 폭인가 — VerseAlarmPage.css 의 @media (min-width: 1440px) 와 짝 */
 const alarmWideScene = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(min-width: 1440px)').matches
@@ -261,6 +276,7 @@ interface RouteAssets {
 // 홈('/')은 적지 않는다 — 비로그인 랜딩엔 카드가 없고, 로그인 홈의 배너·카드는 조건부라
 // 각 컴포넌트(TimeCapsuleCard·HomeNotice·LiveReadingCard)가 뜰 때 useThemeArt 로 등록한다.
 const ROUTE_ASSETS: RouteAssets[] = [
+  { match: /^\/about$/, pairs: [ABOUT_DAWN_PC, ABOUT_DAWN_MOBILE] },
   { match: /^\/greeting$/, pairs: [GREETING_HERO] },
   { match: /^\/visit$/, pairs: [VISIT_HERO] },
   { match: /^\/worship$/, pairs: [WORSHIP_HERO] },
