@@ -159,14 +159,15 @@
   filter: brightness(0.82);
 }
 
-/* EditableImage 래퍼(inline-block)가 그림을 가두지 않게 장면을 꽉 채운다 */
-.ab-scene .about-editable-wrapper {
+/* EditableImage 래퍼(inline-block)가 그림을 가두지 않게 장면을 꽉 채운다.
+   직계 자식만 — 캡션·별칭 안의 EditableText 래퍼까지 잡으면 글이 0높이 상자 밖으로 흘러 아래가 잘린다 */
+.ab-scene > .about-editable-wrapper {
   position: absolute;
   inset: 0;
   display: block;
 }
 
-.ab-scene .about-editable-wrapper .about-edit-btn {
+.ab-scene > .about-editable-wrapper > .about-edit-btn {
   top: 12px;
   right: 12px;
 }
@@ -258,6 +259,8 @@
 /* ── 다섯 장 ── */
 .ab-chapters {
   position: relative;
+  /* 쌓임 맥락을 만들어 장 안의 편집 연필(z-index 5)이 고정 그림(z-index 2) 위로 뚫고 나오지 않게 */
+  z-index: 1;
 }
 
 .ab-chapter {
