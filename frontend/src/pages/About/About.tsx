@@ -65,27 +65,67 @@ const toLines = (value: string): string[] =>
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
 
-// 줄마다 span — 마지막 줄만 강조(.is-last). 말씀의 둘째 줄, 장면 문구의 결론 줄
-// glow: '빛' 글자마다 형광펜 칠(.ab-hl) — 첫 화면 말씀에서만
-const Lines = ({ text, glow = false }: { text: string; glow?: boolean }) => (
+// 줄마다 span — 마지막 줄만 강조(.is-last). 장면 문구·약속의 결론 줄
+const Lines = ({ text }: { text: string }) => (
   <>
     {toLines(text).map((line, i, all) => (
       <span className={`ab-line${i === all.length - 1 ? ' is-last' : ''}`} key={`${i}-${line}`}>
-        {glow
-          ? line.split(/(빛)/).map((part, j) =>
-              part === '빛' ? (
-                <mark className="ab-hl" key={j}>
-                  {part}
-                </mark>
-              ) : (
-                part
-              ),
-            )
-          : line}
+        {line}
       </span>
     ))}
   </>
 )
+
+// 첫 화면 말씀 — 시처럼 짧게 끊은 줄이 '빛'에서부터 한 글자씩 켜진다.
+// 켜지는 순서 = 줄을 이어 붙인 글자열에서 가장 가까운 '빛'까지의 거리 → 첫 줄·끝 줄의 '빛'이 먼저,
+// 빛이 양쪽에서 번져 가운데 줄에서 만난다. '빛'이 없으면(영어 등 'light' 도 없으면) 앞에서부터.
+const LIGHT_RE = /빛|light/gi
+const CHAR_STEP = 0.075 // 거리 한 칸당 지연(s)
+const CHAR_START = 0.35
+
+const DawnVerse = ({ text }: { text: string }) => {
+  const lines = toLines(text)
+  // 줄마다 '빛' 글자 자리(줄 안 인덱스)와 이어 붙인 글자열에서의 시작 위치 — 줄바꿈도 한 칸
+  const lightAt = lines.map((line) => {
+    const at = new Set<number>()
+    for (const m of line.matchAll(LIGHT_RE)) {
+      for (let k = 0; k < m[0].length; k++) at.add((m.index ?? 0) + k)
+    }
+    return at
+  })
+  const starts = lines.map((_, i) => lines.slice(0, i).reduce((sum, l) => sum + l.length + 1, 0))
+  const seeds = lightAt.flatMap((at, i) => [...at].map((j) => starts[i] + j))
+  if (seeds.length === 0) seeds.push(0)
+
+  return (
+    <>
+      {/* 화면 낭독기는 글자 조각 대신 줄 단위 문장을 읽는다 */}
+      <span className="sr-only">{lines.join(' ')}</span>
+      {lines.map((line, i) => {
+        const start = starts[i]
+        const isLight = lightAt[i]
+        // 여러 줄일 때 첫 줄은 한 호흡 크게(.is-lead)
+        const lead = i === 0 && lines.length > 1 ? ' is-lead' : ''
+        return (
+          <span className={`ab-line${lead}`} aria-hidden="true" key={`${i}-${line}`}>
+            {Array.from(line).map((ch, j) => {
+              const d = Math.min(...seeds.map((s) => Math.abs(s - (start + j))))
+              return (
+                <span
+                  key={j}
+                  className={`ab-ch${isLight.has(j) ? ' ab-hl' : ''}`}
+                  style={{ animationDelay: `${(CHAR_START + d * CHAR_STEP).toFixed(2)}s` }}
+                >
+                  {ch}
+                </span>
+              )
+            })}
+          </span>
+        )
+      })}
+    </>
+  )
+}
 
 // 사인 잉크는 이름(성+이름)으로 찾는다 — 표시용 이름은 "안동철 담임목사" 처럼 직함이 붙는다
 const bareName = (displayName: string): string => displayName.trim().split(/\s+/)[0] ?? ''
@@ -221,7 +261,7 @@ const About = () => {
         <span className="ab-dawn-glow" aria-hidden="true" />
         <p className="ab-dawn-verse">
           <EditableText fieldKey="aboutDawnVerse" multiline isAdmin={isAdminUser}>
-            <Lines text={tx('aboutDawnVerse')} glow />
+            <DawnVerse text={tx('aboutDawnVerse')} />
           </EditableText>
         </p>
         <p className="ab-dawn-ref">

@@ -1,9 +1,9 @@
 // 소개 페이지 번역
 export const about = {
-  // 첫 화면 밤하늘 — 교회 이름의 뜻(요 1:9). 마지막 줄이 빛 색으로 강조된다
-  aboutDawnVerse: '참 빛 곧 세상에 와서\n각 사람에게 비추는 빛이 있었나니',
+  // 첫 화면 밤하늘 — 교회 이름의 뜻(요 1:9). 줄마다 한 호흡, '빛'부터 글자가 켜진다
+  aboutDawnVerse: '참 빛,\n곧 세상에 와서\n각 사람에게 비추는\n빛이 있었나니',
   aboutDawnRef: '요한복음 1:9',
-  aboutDawnKicker: '그 빛을 만난 사람들',
+  aboutDawnKicker: '그 빛이 머무는 곳',
   aboutChurchName: '참빛교회',
   aboutTagline: '인생은 만남입니다',
   aboutOurStory: '참빛교회 이야기',

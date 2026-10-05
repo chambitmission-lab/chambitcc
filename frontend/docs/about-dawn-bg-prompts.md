@@ -14,7 +14,8 @@
 처음 온 사람이 "아, 그래서 *참빛*교회구나"까지 가려면 말씀을 읽고 해석해야 한다.
 
 > **2026-10-05 2차:** 1차 A안(시골 마을)을 적용해 보니 시대감이 옛날이라, 아래에 **[2차 — 현대적 버전](#2차--현대적-버전-2026-10-05)**을 추가했다.
-> 새로 뽑을 때는 그 섹션부터 본다.
+> 2차도 "느낌이 이상하다"(빛기둥이 SF 광선처럼 읽힘)여서 **[3차 — 현대 건축 버전](#3차--현대-건축-버전-2026-10-05--지금은-여기부터)**을 추가했다.
+> 새로 뽑을 때는 **3차부터** 본다.
 
 그림이 해야 할 일은 하나 — **요 1:9의 두 반쪽을 한눈에 보여 주기.**
 
@@ -263,7 +264,7 @@ the top center; each tiny sheep glows softly where the light touches its wool.
 
 ---
 
-## 2차 — 현대적 버전 (2026-10-05)
+## 2차 — 현대적 버전 (2026-10-05) — 3차로 대체됨
 
 1차로 컨셉 A(창마다 불)를 적용해 보니 **구도와 의미는 맞는데 시대감이 옛날**이었다.
 원인은 소재와 화풍 두 가지다.
@@ -491,6 +492,201 @@ the top center.
 추천은 **M1**이고, 둘을 비교해 보고 싶으면 **M1과 M2**를 나란히 뽑아 본다.
 M1은 시네마틱 사진풍이 너무 실사로 가면 글자와 다투므로, 결과가 너무 사진 같으면
 "more stylized, softer, less detailed" 한 줄을 덧붙여 다시 뽑는다.
+
+---
+
+## 3차 — 현대 건축 버전 (2026-10-05) — **지금은 여기부터**
+
+2차(도시·프리즘·항공·입자)도 "느낌이 이상하다"는 피드백을 받았다. 원인을 다시 짚으면:
+
+| 이상하게 만든 것 | 왜 | 3차에서는 |
+|---|---|---|
+| 하늘에서 **레이저 같은 빛기둥**이 땅에 꽂힘 | 도시·건물 위에 수직 광선이 떨어지면 **SF 트랙터 빔·UFO**로 읽힌다 | 빛은 **건축이 받아들이는 자연광**으로 — 천창(스카이라이트)·높은 슬릿 창·유리 지붕으로 들어오는 햇빛 |
+| 아래 띠의 도시가 **작고 일반적인 스카이라인** | 성냥갑 실루엣이라 특징이 없고, 오히려 옛날 일러스트처럼 보인다 | **건물 하나를 크게, 가까이** — 재료(노출 콘크리트·흰 석고·유리·목재)가 보이는 거리 |
+| 그림풍(디지털 아트·동화) | 현대 건축은 그림보다 **건축 시각화 렌더**에서 현대적으로 보인다 | **건축 시각화(archviz) 사진풍** — 잡지 화보 같은 미니멀 렌더, 부드러운 확산광 |
+
+**핵심 아이디어:** "참 빛이 세상에 와서" = **위에서 공간 안으로 들어오는 한 줄기 자연광**,
+"각 사람에게 비추는" = 그 빛이 공간 바닥의 **여러 자리(빈 의자들, 계단 단마다, 창마다)**에 하나씩 닿는다.
+사람을 그리지 않고 **사람이 앉을 자리**로 "각 사람"을 말한다 — 처음 온 사람이 "내 자리도 있구나"로 읽는다.
+
+**그대로 지키는 것:** 위 70%는 글자 자리(벽·천장·하늘의 **매끈한 면**), 광원은 위쪽 가운데 하나, 이야기는 아래 25~30%,
+가운데 세로 띠만 남겨도 성립, 라이트는 하이키 미색·금빛, 다크는 무채색 숯빛(남색 금지), 글자·십자가 금지.
+★ **십자가 금지는 특히 주의** — 안도 다다오 "빛의 교회"류 레퍼런스를 넣으면 제미나이가 십자 슬릿을 그린다. 이름을 넣지 않는다.
+
+### 3차 사용법
+
+1. **건축 공통 블록** + 컨셉 하나의 **라이트 PC**를 붙여 요청.
+2. 마음에 들면 같은 대화에서 라이트 모바일 → 다크 PC → 다크 모바일. 매번 직전 결과를 첨부하고 "same space, same camera".
+3. `~/Downloads/1.png`~`4.png`(라이트 PC · 라이트 모바일 · 다크 PC · 다크 모바일)로 저장 → 같은 파일명으로 교체(코드 무변경).
+   - 그림에 뚜렷한 빛기둥이 없으면 CSS 빛줄기(2px)를 다시 살릴지 그때 함께 본다.
+
+### 건축 공통 블록 (매번 맨 앞에 붙여넣기)
+
+```
+A background image for the first screen of a modern church's app and website,
+behind the Bible verse John 1:9 — "The true light, which gives light to everyone,
+was coming into the world."
+
+Style: high-end architectural visualization, photorealistic but calm and
+minimal, like a photo in an architecture magazine. Contemporary architecture:
+exposed smooth concrete, white plaster, pale oak wood, large glass. Soft natural
+light, gentle bounce light, clean lines, generous empty surfaces. Modern,
+quiet, premium. NOT sci-fi, NOT a laser beam, NOT rustic, NOT a painting,
+NOT fantasy.
+
+The idea in one glance: ONE natural light enters the space from above, and that
+same light falls on many individual places below, one by one.
+
+Composition rules (very important — large centered text will be overlaid):
+- The upper 70% is a smooth, almost featureless surface (plain wall, ceiling or
+  sky) with very little detail. Five lines of text sit there.
+- The only light source is an opening at the top center (skylight / slit /
+  glass roof). Light falls softly and naturally from there. No visible sun disk.
+- The story (seats, steps, windows catching light) lives only in the bottom
+  25–30% of the image.
+- The image must still work if only the central vertical strip (about 30% of the
+  width) is kept — put lit details near the center as well, not only at the edges.
+- The bottom center stays simple (the UI draws a thin vertical line of light there).
+- Symmetrical, centered, eye-level or slightly low camera, straight verticals.
+- No people. No text, no letters, no numbers, no signs, no logos, no crosses,
+  no religious symbols, no altar, no pulpit, no stained glass, no frames or borders.
+```
+
+---
+
+### N1. 천창 아래 빈 의자들 — **추천**
+> 높은 흰 벽·노출 콘크리트의 미니멀한 홀. 천장 가운데 긴 천창에서 햇빛이 비스듬히 내려와
+> 바닥에 놓인 **나무 의자 여러 개 하나하나에 빛 조각이 앉는다**. 의자 = "각 사람의 자리".
+> 위 70%는 매끈한 높은 벽이라 글자 자리가 자연스럽게 생긴다.
+
+**라이트 PC (16:9)**
+```
+Scene: a tall, minimal contemporary hall with smooth white plaster and pale
+exposed-concrete walls, seen straight on and symmetrical. High at the top center
+of the ceiling is a long, narrow skylight. Soft morning sunlight pours down from
+it in a gentle, wide, hazy shaft and spreads across the floor. On the pale oak
+floor in the bottom quarter of the image, a loose arrangement of simple modern
+wooden chairs faces forward, spaced apart, spread across the width and also near
+the center. Each chair has its own small patch of warm sunlight resting on it.
+The upper 70% is the tall plain wall, almost empty. Palette: high-key, pale
+blue-grey at the top (#cfdaea) warming to soft white (#e3e9f2) and warm ivory near
+the floor (#f3f1ec); sunlight white-gold (#ffd68c). Bright, airy, peaceful. 16:9.
+```
+
+**라이트 모바일 (9:16)**
+```
+Same hall, same skylight, same chairs, same style, now 9:16 vertical with the
+camera centered. The tall plain wall fills the upper 75%; the chairs sit only in
+the bottom 25%, several close to the center, each with its own patch of sunlight.
+Keep the center bottom slightly open between chairs.
+```
+
+**다크 PC (16:9)**
+```
+The same hall at night. The walls are deep neutral charcoal (#0b0b0d to #19191c),
+absolutely no navy or blue tint. From the skylight at the top center, a soft pale
+white light with a very faint cool edge (#92c4ff) falls gently into the space.
+Each wooden chair on the floor is touched by its own small pool of warm amber
+light — the only color in the image comes from the light. Calm, quiet, minimal. 16:9.
+```
+
+**다크 모바일 (9:16)**
+```
+Same night hall, 9:16 vertical. Upper 75% dark charcoal wall (no navy) with the
+soft light falling from the skylight at the top center; chairs in the bottom 25%,
+several near the center, each in its own small pool of warm amber light.
+```
+
+### N2. 빛이 내려앉는 넓은 계단
+> 현대 건축의 넓은 앉음 계단(라운지 스탠드·도서관 계단). 위에서 들어온 빛이 **계단 단마다 한 줄씩** 내려앉는다.
+> 사람 대신 "누구나 앉을 수 있는 자리"가 층층이 있어 "각 사람"이 넓게 읽힌다. 요즘 감성 공간(별마당 도서관류)이라 친근하다.
+
+**라이트 PC (16:9)**
+```
+Scene: a wide, shallow set of seating steps made of pale oak and smooth concrete
+in a bright contemporary atrium, seen head-on and symmetrical. The steps occupy
+only the bottom quarter of the image. Above them rises a tall, plain white wall
+up to a glass roof at the top center. Soft morning light comes down through the
+glass roof and lands on the steps as gentle horizontal bands of warm light, one
+on each step, across the whole width including the center. The upper 70% is the
+plain wall and soft light, almost empty. High-key palette: #cfdaea at the top,
+#e3e9f2 in the middle, warm #f3f1ec near the steps, sunlight #ffd68c. 16:9.
+```
+
+**라이트 모바일 (9:16)**
+```
+Same atrium and steps, same style, 9:16 vertical, centered. Plain wall in the
+upper 75%, the steps in the bottom 25% with a warm band of light on each step,
+clearly visible at the center.
+```
+
+**다크 PC (16:9)**
+```
+The same atrium at night: deep neutral charcoal walls and steps (#0b0b0d to
+#19191c, no navy). Soft pale white light with a faint cool edge (#92c4ff) comes
+down through the glass roof at the top center, and each step holds one thin band
+of warm amber light. Minimal and calm. 16:9.
+```
+
+**다크 모바일 (9:16)**
+```
+Same night atrium, 9:16 vertical. Upper 75% dark charcoal (no navy) with soft
+light from the glass roof at the top center; steps in the bottom 25% with a warm
+amber band on each step, visible at the center.
+```
+
+### N3. 새벽 하늘 아래 현대 건물의 유리 창들
+> 바깥에서 본 판. 낮고 넓은 현대 건물(유리 커튼월 + 흰 수평 슬래브)이 아래 띠에 정면으로 서 있고,
+> 위 하늘에서 내려오는 부드러운 새벽빛이 **유리창 한 칸 한 칸에 따뜻하게 비친다**. 1차 "창마다 불"의 현대판.
+> 하늘이 위 70%라 1차 레이아웃과 가장 가깝다. 빛은 기둥이 아니라 **하늘 위쪽 가운데가 밝아지는 빛 무리**로.
+
+**라이트 PC (16:9)**
+```
+Scene: exterior, at dawn. A low, wide contemporary building with a facade of
+tall glass panels between thin white horizontal concrete slabs stands straight
+on, symmetrical, occupying only the bottom quarter of the image, with a calm
+reflecting pool or smooth stone plaza in front. Above it, a vast, clean, almost
+empty dawn sky. At the top center the sky is brightest — a soft white-gold glow,
+no visible sun — and that light reflects in the glass, each individual glass
+panel catching its own warm gold highlight, across the whole facade including the
+center. Sky: pale blue-grey at the top (#cfdaea), misty white (#e3e9f2), warm ivory
+near the building (#f3f1ec). High-key, serene, architectural photography. 16:9.
+```
+
+**라이트 모바일 (9:16)**
+```
+Same building and sky, same style, 9:16 vertical. Camera centered on the middle
+of the facade so several glass panels with warm highlights sit at the center.
+Building only in the bottom 25%; the upper 75% is empty dawn sky with the brightest
+glow at the top center.
+```
+
+**다크 PC (16:9)**
+```
+The same building at night under a deep neutral charcoal sky (#0b0b0d to
+#19191c, no navy, no blue tint). A faint soft white glow at the top center of the
+sky. Inside the building, the glass panels glow one by one with warm amber light
+from within, reflected softly in the pool in front. The only color comes from
+the light. Calm, minimal. 16:9.
+```
+
+**다크 모바일 (9:16)**
+```
+Same building at night, 9:16 vertical, centered. Upper 75% empty deep charcoal
+sky (no navy) with a faint glow at the top center; building in the bottom 25%
+with warm amber glass panels near the center and their soft reflections.
+```
+
+### 3차 고르는 기준
+
+| 컨셉 | 현대 건축감 | "각 사람에게" | 글자 자리 | 메모 |
+|---|---|---|---|---|
+| **N1 천창 아래 의자** | ★★★ | ★★★ | ★★★ (높은 벽) | 의자 = 각 사람의 자리. 가장 분명하고 조용하다 |
+| N2 빛 내려앉는 계단 | ★★★ | ★★☆ | ★★★ | 요즘 공간 감성. 계단이 강당처럼 보이면 다시 뽑기 |
+| N3 유리 창들 (외관) | ★★☆ | ★★☆ | ★★★ (하늘) | 지금 레이아웃·빛 무리와 가장 잘 맞고 교체 위험이 작다 |
+
+추천은 **N1**, 비교용으로 **N3**. 결과가 너무 어둡거나 대비가 세면 `brighter, lower contrast, more empty wall`을 덧붙인다.
+의자가 교회 장의자처럼 줄지어 나오면 `loosely scattered individual chairs, not rows, not pews`를 덧붙인다.
 
 ---
 
