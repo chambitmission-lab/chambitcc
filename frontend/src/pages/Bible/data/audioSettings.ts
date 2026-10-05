@@ -5,7 +5,8 @@
 import { useSyncExternalStore } from 'react'
 import type { BibleTTSVoice } from '../../../types/bible'
 
-export const RATE_OPTIONS = [0.75, 1, 1.25, 1.5, 1.75, 2]
+// 1.5× 이상은 말씀 듣기엔 너무 빨라 뺐다. 저장된 값이 목록 밖이면 loadRate가 1로 되돌린다.
+export const RATE_OPTIONS = [1, 1.2, 1.25]
 
 export interface AudioSettings {
   voice: BibleTTSVoice

@@ -12,6 +12,8 @@ import {
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 import { formatClock } from '../../../utils/formatClock'
+// 배속 목록은 장 오디오북과 공유(같은 bible-tts-rate 키를 쓰므로 목록도 하나로)
+import { RATE_OPTIONS } from '../data/audioSettings'
 
 interface FavoritesPlaylistModalProps {
   onClose: () => void
@@ -19,7 +21,6 @@ interface FavoritesPlaylistModalProps {
 
 const RATE_STORAGE_KEY = 'bible-tts-rate'
 const COLLAPSE_STORAGE_KEY = 'bible-playlist-collapsed'
-const RATE_OPTIONS = [0.75, 1, 1.25, 1.5]
 // 음성은 장 오디오북과 동일하게 남성 고정(여성 토글은 추후 노출용으로 보존)
 const VOICE = 'male'
 
