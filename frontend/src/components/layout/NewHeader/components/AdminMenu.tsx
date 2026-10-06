@@ -275,8 +275,8 @@ const ToolRow = ({
         title={t(pinned ? 'adminFavoriteRemove' : 'adminFavoriteAdd')}
         className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition-opacity ${
           pinned
-            ? 'text-[var(--amber)] opacity-100'
-            : 'text-ink-muted opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[var(--amber)]'
+            ? 'text-[var(--amber-icon)] opacity-100'
+            : 'text-ink-muted opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[var(--amber-icon)]'
         }`}
       >
         <IconStar filled={pinned} />
@@ -401,7 +401,7 @@ const AdminDesktopPanel = () => {
           </div>
 
           {/* 즐겨찾기 — 내가 고른 도구만. 순서는 고정한 순서 그대로(손이 위치를 외우게) */}
-          <h4 className="mt-5 mb-2 px-1 text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">★ {t('adminFavorites')}</h4>
+          <h4 className="mt-5 mb-2 px-1 text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong"><span className="text-[var(--amber-icon)]">★</span> {t('adminFavorites')}</h4>
           {favoriteItems.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {favoriteItems.map(item => {
