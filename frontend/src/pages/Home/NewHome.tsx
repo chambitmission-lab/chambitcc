@@ -383,8 +383,10 @@ const NewHome = () => {
             카드 경계가 사라진다. 캔버스를 한 톤 낮춰 카드가 떠 보이게 한다 */}
         <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative lg:max-w-none">
 
-          {/* lg+: 레일 오프셋은 전역 main(App.tsx)이 처리 — 피드+사이드바를 남은 공간 중앙에 배치 */}
-          <main ref={mainRef} className="pb-dock-safe lg:pb-12">
+          {/* lg+: 레일 오프셋은 전역 main(App.tsx)이 처리 — 피드+사이드바를 남은 공간 중앙에 배치.
+              home-wide-zoom: 2200px+ 대형 모니터에서 이 main 만 zoom 해 빈 좌우 여백을 채운다(common.css).
+              모달은 이 main 밖에 있어 확대되지 않는다 */}
+          <main ref={mainRef} className="home-wide-zoom pb-dock-safe lg:pb-12">
             {/* 오프라인 배너 - 캐시된 데이터를 보여주면서 알림 */}
             {prayerHook.error && prayerHook.prayers.length > 0 && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2">

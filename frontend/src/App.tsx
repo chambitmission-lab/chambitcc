@@ -280,9 +280,12 @@ const MainContent = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation()
   const textScale = useFeedTextScale()
   const pageZoom = usePageZoomRequest()
+  // 2200px+ 대형 모니터 — 기본 글씨에서도 zoom 을 켜 빈 좌우 여백을 채운다(배율은 common.css --wide-zoom)
+  const wideScreen = useMediaQuery('(min-width: 2200px)')
   // PC 글씨 크기 — 읽기·참여 화면은 페이지 전체를 zoom (common.css `[data-app-scale]`, lg+ 에서만).
   // /bible 허브처럼 주소로 갈리지 않는 화면은 페이지가 requestPageZoom 으로 켠다
-  const appScale = textScale !== 'base' && (pageZoom || zoomsWithTextScale(pathname)) ? textScale : undefined
+  const appScale =
+    (textScale !== 'base' || wideScreen) && (pageZoom || zoomsWithTextScale(pathname)) ? textScale : undefined
   return (
     <main
       // 배율 숫자(--az·--text-mul)는 <html data-text-scale> 이 준다 — 여기선 zoom 을 켤지만 정한다

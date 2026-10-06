@@ -48,17 +48,22 @@ export const useBottomStickyRail = (topOffsetPx: number) => {
         return rect.top + (parseFloat(getComputedStyle(parent).paddingTop) || 0)
       }
 
+      // zoom 안(홈 대형 모니터 확대 등 --az)에선 rect·innerHeight 는 화면 px, style.top·offsetHeight 는
+      // 레이아웃 px 다. 계산은 화면 px 로 하고 style.top 에 쓸 때만 배율로 나눈다
+      let az = 1
+      const px = (screenPx: number) => `${screenPx / az}px`
+
       const setSticky = (next: Exclude<Mode, 'free'>, top: number) => {
         mode = next
         el.style.position = '' // 클래스의 (lg:)sticky 로 복귀
-        el.style.top = `${top}px`
+        el.style.top = px(top)
       }
       const setFree = () => {
         // 지금 보이는 자리를 그대로 유지한 채 흐름에 되돌린다
         const rel = el.getBoundingClientRect().top - staticTop()
         mode = 'free'
         el.style.position = 'relative'
-        el.style.top = `${Math.max(0, Math.round(rel))}px`
+        el.style.top = px(Math.max(0, Math.round(rel)))
       }
       const clear = () => {
         mode = 'top'
@@ -73,12 +78,13 @@ export const useBottomStickyRail = (topOffsetPx: number) => {
           if (el.style.top !== '') clear()
           return
         }
-        const height = el.offsetHeight
+        az = parseFloat(getComputedStyle(el).getPropertyValue('--az')) || 1
+        const height = el.offsetHeight * az
         const viewport = window.innerHeight
 
         // 화면 안에 다 들어오면 예전처럼 상단 고정으로 끝
         if (height + topOffsetPx <= viewport) {
-          if (mode !== 'top' || el.style.top !== `${topOffsetPx}px`) setSticky('top', topOffsetPx)
+          if (mode !== 'top' || el.style.top !== px(topOffsetPx)) setSticky('top', topOffsetPx)
           lastY = -staticTop()
           return
         }
@@ -91,13 +97,13 @@ export const useBottomStickyRail = (topOffsetPx: number) => {
         if (dir === 'down') {
           if (mode === 'top') setFree()
           else if (mode === 'free' && rect.bottom <= viewport) setSticky('bottom', viewport - height)
-          else if (mode === 'bottom') el.style.top = `${viewport - height}px`
+          else if (mode === 'bottom') el.style.top = px(viewport - height)
         } else if (dir === 'up') {
           if (mode === 'bottom') setFree()
           else if (mode === 'free' && rect.top >= topOffsetPx) setSticky('top', topOffsetPx)
         } else if (mode === 'bottom') {
           // 스크롤 없이 높이·뷰포트만 바뀐 경우(카드 로드, 창 크기) 바닥 기준을 다시 맞춘다
-          el.style.top = `${viewport - height}px`
+          el.style.top = px(viewport - height)
         } else if (mode === 'top' && el.style.top === '') {
           setSticky('top', topOffsetPx)
         }
