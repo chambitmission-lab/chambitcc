@@ -1,11 +1,16 @@
-import { useEffect, useMemo, useRef } from 'react'
-import * as d3 from 'd3'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useTheme } from '../../../../contexts/ThemeContext'
-import type {
-  BibleFigureSummary,
-  GenealogyLink,
-  RelationshipType,
-} from '../../../../types/bibleFigure'
+import type { BibleFigureSummary, GenealogyLink } from '../../../../types/bibleFigure'
+import {
+  FIGURE_HOOK,
+  JESUS_SLUG,
+  MATTHEW_WOMEN,
+  SKY_ERA_START,
+  SKY_GAP_AFTER,
+  SKY_MT_MARK,
+  type GenGap,
+  type SkyEra,
+} from '../genealogyStory'
 
 interface GenealogyTreeProps {
   nodes: BibleFigureSummary[]
@@ -20,19 +25,38 @@ interface GenealogyTreeProps {
   highlightSlugs: Set<string> | null
 }
 
-interface TreeDatum {
-  slug: string
-  figure: BibleFigureSummary
-  children?: TreeDatum[]
-  spouses: BibleFigureSummary[]
+/** 계보 한 칸 — 인물이거나, 성경이 건너뛴 세대 묶음 */
+type Slot =
+  | {
+      kind: 'fig'
+      id: string
+      figure: BibleFigureSummary
+      spouses: BibleFigureSummary[]
+      /** 계보에서 갈라진 자녀(현재 데이터엔 없음 — 생기면 이름 칩으로만) */
+      branches: BibleFigureSummary[]
+      gen: number
+      viaMother: boolean
+    }
+  | { kind: 'gap'; id: string; gap: GenGap; gen: number }
+
+interface Placed {
+  slot: Slot
+  x: number
+  y: number
+  /** 라벨이 뻗는 쪽: 1 = 오른쪽, -1 = 왼쪽, 0 = 가운데(예수) */
+  side: 1 | -1 | 0
+  era?: SkyEra
+  headerY?: number
+  lineX?: number
 }
 
 /* ── 별자리 레이아웃 상수 ─────────────────────────────────────────── */
-const COL_W = 210 // 형제 노드 간격 (이름 라벨이 별 우측으로 뻗으므로 넉넉히)
-const ROW_H = 104 // 세대 간격
-const LABEL_DX = 16 // 별 → 이름 라벨 간격
-const SPOUSE_DX = 26 // 별 → 배우자 별 간격(좌측)
-const STAR_R_MAX = 7 // 메시아 라인 별 최대 반지름
+const TOP = 20
+const STEP = 64 // 한 세대 세로 간격 — 같은 쪽 라벨끼리는 2배(128px) 떨어진다
+const HEAD = 72 // 시대가 바뀌는 굽이에 더하는 간격
+const FINALE_GAP = 44 // 예수 앞 여백
+const LABEL_DX = 18 // 별 → 라벨 간격
+const EDGE = 10 // 라벨 ↔ 하늘 가장자리
 
 // 4각 반짝임(스파클) 패스
 const sparklePath = (r: number) => {
@@ -40,7 +64,7 @@ const sparklePath = (r: number) => {
   return `M0,${-r} C0,${-c} ${c},0 ${r},0 C${c},0 0,${c} 0,${r} C0,${c} ${-c},0 ${-r},0 C${-c},0 0,${-c} 0,${-r}Z`
 }
 
-// 결정적 난수 — 리렌더마다 별무리가 흔들리지 않게
+// 결정적 난수 — 리렌더마다 별무리·굽이가 흔들리지 않게
 const mulberry32 = (seed: number) => () => {
   let t = (seed += 0x6d2b79f5)
   t = Math.imul(t ^ (t >>> 15), t | 1)
@@ -48,62 +72,44 @@ const mulberry32 = (seed: number) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
-/* 테마별 하늘 팔레트 — 다크: 밤하늘, 라이트: 새벽 하늘(잉크 남색 별) */
+/* 테마별 하늘 팔레트(SVG 전용) — 다크: 밤하늘, 라이트: 새벽 하늘(잉크 남색 별). 글자색은 Genealogy.css 토큰 */
 interface SkyPalette {
-  name: string; nameSide: string; nameJesus: string
-  gen: string; genMother: string
-  role: string; roleJesus: string
   star: string; starSide: string; starJesus: string
   starShadow: string; jesusShadow: string
   glow: [string, string, string]
   jesusGlow: [string, string, string]
   spine: [string, string, string]
-  link: string; linkMother: string
-  flow: string; rays: string
-  spouseGlow: [string, string]; spouseStar: string; spouseText: string; spouseTextMatch: string; spouseLine: string; spouseRing: string
+  link: string; flow: string; rays: string; eraMark: string
   matchRing: string; matchFill: string; selectRing: string
   bgStar: string
 }
 const NIGHT: SkyPalette = {
-  name: '#f4f8ff', nameSide: 'rgba(255,255,255,0.72)', nameJesus: '#fff3c4',
-  gen: 'rgba(255,255,255,0.38)', genMother: 'rgba(244,114,182,0.85)',
-  role: 'rgba(255,255,255,0.45)', roleJesus: 'rgba(255,236,180,0.8)',
   star: '#f4f8ff', starSide: '#e6eeff', starJesus: '#fff3c4',
   starShadow: 'drop-shadow(0 0 4px rgba(156,196,255,0.9))', jesusShadow: 'drop-shadow(0 0 10px rgba(255,214,102,0.9))',
   glow: ['#dbe9ff', '#7fb2ff', '#3182f6'],
   jesusGlow: ['#fff7d6', '#ffe08a', '#ffd166'],
   spine: ['rgba(156,196,255,0.35)', 'rgba(143,184,255,0.75)', 'rgba(255,224,138,0.95)'],
-  link: 'rgba(255,255,255,0.18)', linkMother: 'rgba(244,114,182,0.45)',
-  flow: 'rgba(255,255,255,0.9)', rays: 'rgba(255,224,138,0.5)',
-  spouseGlow: ['#ffd6ea', '#f472b6'], spouseStar: '#ffd6ea', spouseText: 'rgba(255,214,234,0.85)', spouseTextMatch: '#ffe3f0', spouseLine: 'rgba(244,114,182,0.55)', spouseRing: 'rgba(244,114,182,0.75)',
+  link: 'rgba(255,255,255,0.32)', flow: 'rgba(255,255,255,0.9)', rays: 'rgba(255,224,138,0.5)', eraMark: '#9cc4ff',
   matchRing: 'rgba(156,196,255,0.7)', matchFill: 'rgba(156,196,255,0.10)', selectRing: '#9cc4ff',
   bgStar: '#ffffff',
 }
 const DAWN: SkyPalette = {
-  name: '#0f1f4d', nameSide: 'rgba(15,31,77,0.62)', nameJesus: '#7a4b00',
-  gen: 'rgba(15,31,77,0.38)', genMother: '#be185d',
-  role: 'rgba(15,31,77,0.5)', roleJesus: 'rgba(122,75,0,0.8)',
   star: '#1d4ed8', starSide: '#3b5bb5', starJesus: '#f59e0b',
   starShadow: 'drop-shadow(0 0 4px rgba(49,130,246,0.7))', jesusShadow: 'drop-shadow(0 0 10px rgba(245,158,11,0.7))',
   glow: ['#bfdbfe', '#60a5fa', '#3182f6'],
   jesusGlow: ['#fde68a', '#fbbf24', '#f59e0b'],
   spine: ['rgba(49,130,246,0.25)', 'rgba(49,130,246,0.7)', 'rgba(245,158,11,0.95)'],
-  link: 'rgba(15,31,77,0.18)', linkMother: 'rgba(219,39,119,0.45)',
-  flow: 'rgba(49,130,246,0.95)', rays: 'rgba(245,158,11,0.45)',
-  spouseGlow: ['#fbcfe8', '#ec4899'], spouseStar: '#db2777', spouseText: 'rgba(157,23,77,0.85)', spouseTextMatch: '#9d174d', spouseLine: 'rgba(219,39,119,0.5)', spouseRing: 'rgba(219,39,119,0.7)',
+  link: 'rgba(15,31,77,0.3)', flow: 'rgba(49,130,246,0.95)', rays: 'rgba(245,158,11,0.45)', eraMark: '#3182f6',
   matchRing: 'rgba(49,130,246,0.7)', matchFill: 'rgba(49,130,246,0.10)', selectRing: '#3182f6',
   bgStar: '#1e3a8a',
 }
 
-const roleText = (fig: BibleFigureSummary) => {
-  if (fig.slug === 'jesus_christ') return '메시아 · 약속의 성취'
-  return fig.role || fig.era || ''
-}
+const shortName = (name: string) => name.replace(/\s*\(.*\)\s*$/, '')
 
 /**
  * 메시아 직계 라인 — 별자리(Constellation) 렌더.
- * 인물은 밤하늘의 별, 메시아 라인은 별자리 선으로 이어진다.
- * 별의 크기·밝기 = 통독 진도, 배경 별무리는 스크롤 패럴랙스.
+ * 데이터는 가지 없는 한 줄기라 트리 대신 시대마다 좌우로 굽이치는 지그재그로 놓는다.
+ * 별의 크기·밝기 = 통독 진도, 성경이 건너뛴 세대는 점선 칸, 마태복음 1장의 여인은 분홍 카드.
  */
 export const GenealogyTree = ({
   nodes,
@@ -116,40 +122,32 @@ export const GenealogyTree = ({
   highlightSlugs,
 }: GenealogyTreeProps) => {
   const { theme } = useTheme()
-  const svgRef = useRef<SVGSVGElement | null>(null)
-  const gRef = useRef<SVGGElement | null>(null)
-  const scrollRef = useRef<HTMLDivElement | null>(null)
-  const skyRef = useRef<HTMLDivElement | null>(null)
-  const farRef = useRef<SVGGElement | null>(null)
-  const nearRef = useRef<SVGGElement | null>(null)
-  const spineOffsetRef = useRef<number>(0)
-  const prevHighlightRef = useRef<Set<string> | null>(null)
+  const sky = theme === 'dark' ? NIGHT : DAWN
+  const canvasRef = useRef<HTMLDivElement | null>(null)
+  const [width, setWidth] = useState(0)
 
-  const { root, parentLinkType } = useMemo(() => {
-    const nodeBySlug = new Map<string, BibleFigureSummary>(nodes.map((n) => [n.slug, n]))
-
+  /* ── 한 줄기 계보 + 건너뛴 세대 ── */
+  const slots = useMemo<Slot[]>(() => {
+    const bySlug = new Map<string, BibleFigureSummary>(nodes.map((n) => [n.slug, n]))
     const parentOf = new Map<string, string>()
-    const parentLinkType = new Map<string, RelationshipType>()
+    const viaMother = new Set<string>()
     for (const link of links) {
-      if (link.type === 'father') {
-        parentOf.set(link.target, link.source)
-        parentLinkType.set(link.target, 'father')
-      }
+      if (link.type === 'father') parentOf.set(link.target, link.source)
     }
     for (const link of links) {
       if (link.type === 'mother' && !parentOf.has(link.target)) {
         parentOf.set(link.target, link.source)
-        parentLinkType.set(link.target, 'mother')
+        viaMother.add(link.target)
       }
     }
 
-    const sm = new Map<string, BibleFigureSummary[]>()
+    const spousesOf = new Map<string, BibleFigureSummary[]>()
     const addSpouse = (a: string, b: string) => {
-      const bFig = nodeBySlug.get(b)
-      if (!nodeBySlug.has(a) || !bFig) return
-      const list = sm.get(a) || []
+      const bFig = bySlug.get(b)
+      if (!bySlug.has(a) || !bFig) return
+      const list = spousesOf.get(a) || []
       if (!list.find((f) => f.slug === b)) list.push(bFig)
-      sm.set(a, list)
+      spousesOf.set(a, list)
     }
     for (const link of links) {
       if (link.type === 'spouse') {
@@ -158,32 +156,11 @@ export const GenealogyTree = ({
       }
     }
 
-    const childrenOf = new Map<string, string[]>()
+    const childrenOf = new Map<string, BibleFigureSummary[]>()
     for (const [child, parent] of parentOf) {
-      const arr = childrenOf.get(parent) || []
-      arr.push(child)
-      childrenOf.set(parent, arr)
-    }
-
-    const buildNode = (slug: string, visited: Set<string>): TreeDatum | null => {
-      if (visited.has(slug)) return null
-      visited.add(slug)
-      const fig = nodeBySlug.get(slug)
-      if (!fig) return null
-      const childSlugs = (childrenOf.get(slug) || []).slice().sort((a, b) => {
-        const fa = nodeBySlug.get(a)?.sort_order ?? 0
-        const fb = nodeBySlug.get(b)?.sort_order ?? 0
-        return fa - fb
-      })
-      const children = childSlugs
-        .map((c) => buildNode(c, visited))
-        .filter((c): c is TreeDatum => c !== null)
-      return {
-        slug,
-        figure: fig,
-        children: children.length > 0 ? children : undefined,
-        spouses: (sm.get(slug) || []).filter((s) => !parentOf.has(s.slug)),
-      }
+      const fig = bySlug.get(child)
+      if (!fig) continue
+      childrenOf.set(parent, [...(childrenOf.get(parent) || []), fig])
     }
 
     const rootSlug =
@@ -191,407 +168,119 @@ export const GenealogyTree = ({
       nodes.find((n) => !parentOf.has(n.slug))?.slug ||
       nodes[0]?.slug
 
-    const tree = rootSlug ? buildNode(rootSlug, new Set<string>()) : null
-    return { root: tree, parentLinkType }
+    const out: Slot[] = []
+    const seen = new Set<string>()
+    let gen = 1
+    let cur = rootSlug
+    while (cur && !seen.has(cur)) {
+      seen.add(cur)
+      const figure = bySlug.get(cur)
+      if (!figure) break
+      const kids = (childrenOf.get(cur) || []).slice().sort((a, b) => a.sort_order - b.sort_order)
+      const next = kids.find((k) => k.is_messianic_line) ?? kids[0]
+      out.push({
+        kind: 'fig',
+        id: cur,
+        figure,
+        spouses: (spousesOf.get(cur) || []).filter((s) => !parentOf.has(s.slug)),
+        branches: kids.filter((k) => k !== next),
+        gen,
+        viaMother: viaMother.has(cur),
+      })
+      gen += 1
+      const gap = SKY_GAP_AFTER[cur]
+      if (gap && next?.slug === gap.until) {
+        out.push({ kind: 'gap', id: `gap:${cur}`, gap, gen })
+        gen += gap.count
+      }
+      cur = next?.slug
+    }
+    return out
   }, [nodes, links])
 
-  /* ── 배경 별무리 (패럴랙스 두 겹) ── */
-  const sky = theme === 'dark' ? NIGHT : DAWN
-
-  useEffect(() => {
-    const far = farRef.current
-    const near = nearRef.current
-    if (!far || !near) return
-    const rnd = mulberry32(20260828)
-    const make = (g: SVGGElement, count: number, rMin: number, rMax: number, twinkleEvery: number) => {
-      const sel = d3.select(g)
-      sel.selectAll('*').remove()
-      for (let i = 0; i < count; i++) {
-        const c = sel
-          .append('circle')
-          .attr('cx', rnd() * 1000)
-          .attr('cy', rnd() * 2000)
-          .attr('r', rMin + rnd() * (rMax - rMin))
-          .attr('fill', sky.bgStar)
-          .attr('opacity', 0.25 + rnd() * 0.6)
-        if (i % twinkleEvery === 0) {
-          c.attr('class', 'gen-twinkle').style('animation-delay', `${(rnd() * 4).toFixed(2)}s`)
-        }
-      }
-    }
-    make(far, 160, 0.4, 1.1, 5)
-    make(near, 70, 0.9, 1.9, 3)
-  }, [sky])
-
-  // 스크롤 패럴랙스 + 하늘 높이 동기화
-  useEffect(() => {
-    const container = scrollRef.current
-    const sky = skyRef.current
-    if (!container || !sky) return
-    const sync = () => {
-      sky.style.setProperty('--sky-h', `${container.clientHeight}px`)
-    }
-    const onScroll = () => {
-      const y = container.scrollTop
-      if (farRef.current) farRef.current.style.transform = `translateY(${(-y * 0.08).toFixed(1)}px)`
-      if (nearRef.current) nearRef.current.style.transform = `translateY(${(-y * 0.18).toFixed(1)}px)`
-    }
+  // 하늘 폭을 재서 그 폭 안에 굽이를 그린다 — 가로 스크롤 없음
+  const hasSlots = slots.length > 0
+  useLayoutEffect(() => {
+    const el = canvasRef.current
+    if (!el) return
+    const sync = () => setWidth(Math.round(el.clientWidth))
     sync()
     const ro = new ResizeObserver(sync)
-    ro.observe(container)
-    container.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      ro.disconnect()
-      container.removeEventListener('scroll', onScroll)
-    }
-  }, [root])
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [hasSlots])
 
-  /* ── 별자리 본체 ── */
-  useEffect(() => {
-    if (!root || !svgRef.current || !gRef.current) return
-    const svg = d3.select(svgRef.current)
-    const g = d3.select(gRef.current)
-    g.selectAll('*').remove()
-    svg.selectAll('defs').remove()
-
-    const defs = svg.append('defs')
-    const starGlow = defs.append('radialGradient').attr('id', 'genStarGlow')
-    starGlow.append('stop').attr('offset', '0%').attr('stop-color', sky.glow[0]).attr('stop-opacity', 0.9)
-    starGlow.append('stop').attr('offset', '45%').attr('stop-color', sky.glow[1]).attr('stop-opacity', 0.28)
-    starGlow.append('stop').attr('offset', '100%').attr('stop-color', sky.glow[2]).attr('stop-opacity', 0)
-
-    const jesusGlow = defs.append('radialGradient').attr('id', 'genJesusGlow')
-    jesusGlow.append('stop').attr('offset', '0%').attr('stop-color', sky.jesusGlow[0]).attr('stop-opacity', 1)
-    jesusGlow.append('stop').attr('offset', '35%').attr('stop-color', sky.jesusGlow[1]).attr('stop-opacity', 0.35)
-    jesusGlow.append('stop').attr('offset', '100%').attr('stop-color', sky.jesusGlow[2]).attr('stop-opacity', 0)
-
-    const spouseGlow = defs.append('radialGradient').attr('id', 'genSpouseGlow')
-    spouseGlow.append('stop').attr('offset', '0%').attr('stop-color', sky.spouseGlow[0]).attr('stop-opacity', 0.9)
-    spouseGlow.append('stop').attr('offset', '100%').attr('stop-color', sky.spouseGlow[1]).attr('stop-opacity', 0)
-
-    const hierarchy = d3.hierarchy<TreeDatum>(root)
-    const laidOut = d3.tree<TreeDatum>().nodeSize([COL_W, ROW_H])(hierarchy)
-    const allNodes = laidOut.descendants() as d3.HierarchyPointNode<TreeDatum>[]
-    const hierarchyLinks = laidOut.links() as d3.HierarchyPointLink<TreeDatum>[]
-
-    const spineGrad = defs
-      .append('linearGradient')
-      .attr('id', 'genSpineGrad')
-      .attr('gradientUnits', 'userSpaceOnUse')
-      .attr('x1', 0).attr('y1', 0)
-      .attr('x2', 0).attr('y2', (hierarchy.height + 1) * ROW_H)
-    spineGrad.append('stop').attr('offset', '0%').attr('stop-color', sky.spine[0])
-    spineGrad.append('stop').attr('offset', '80%').attr('stop-color', sky.spine[1])
-    spineGrad.append('stop').attr('offset', '100%').attr('stop-color', sky.spine[2])
-
-    // viewBox — spine(x=0)이 가로 정중앙
-    const xs = allNodes.map((n) => n.x)
-    const minX = Math.min(...xs)
-    const maxX = Math.max(...xs)
-    const LABEL_W = 150
-    const SPOUSE_W = 90
-    const PAD = 50
-    const halfWidth = Math.max(Math.abs(minX) + SPOUSE_W, maxX + LABEL_W) + PAD
-    const viewBoxWidth = halfWidth * 2
-    const viewBoxStartX = -halfWidth
-    const treeHeight = (hierarchy.height + 1) * ROW_H
-    const viewBoxHeight = treeHeight + 140
-
-    svg
-      .attr('viewBox', `${viewBoxStartX} -70 ${viewBoxWidth} ${viewBoxHeight}`)
-      .attr('width', viewBoxWidth)
-      .attr('height', viewBoxHeight)
-      .style('width', `${viewBoxWidth}px`)
-      .style('height', `${viewBoxHeight}px`)
-      .style('max-width', 'none')
-    spineOffsetRef.current = viewBoxWidth / 2
-
-    const progressOf = (slug: string) => (isLoggedIn ? Math.min(1, readingProgress[slug] ?? 0) : 1)
-    const dimmed = (slug: string) => !!highlightSlugs && !highlightSlugs.has(slug)
-    const matched = (slug: string) => !!highlightSlugs && highlightSlugs.has(slug)
-    const isJesus = (f: BibleFigureSummary) => f.slug === 'jesus_christ'
-    const isSpine = (d: d3.HierarchyPointLink<TreeDatum>) =>
-      d.source.data.figure.is_messianic_line && d.target.data.figure.is_messianic_line
-
-    /* 별자리 선 — 별 가장자리에서 시작/끝, 살짝만 휘어지게 */
-    const linkPath = (d: d3.HierarchyPointLink<TreeDatum>) => {
-      const sx = d.source.x, sy = d.source.y + 10
-      const tx = d.target.x, ty = d.target.y - 10
-      const my = (sy + ty) / 2
-      return `M${sx},${sy}C${sx},${my},${tx},${my},${tx},${ty}`
-    }
-    const linkG = g.append('g').attr('fill', 'none')
-    linkG
-      .selectAll('path.base')
-      .data(hierarchyLinks)
-      .join('path')
-      .attr('class', 'base')
-      .attr('d', linkPath)
-      .attr('stroke', (d) => {
-        if (isSpine(d)) return 'url(#genSpineGrad)'
-        if (parentLinkType.get(d.target.data.slug) === 'mother') return sky.linkMother
-        return sky.link
-      })
-      .attr('stroke-width', (d) => (isSpine(d) ? 1.6 : 1))
-      .attr('stroke-linecap', 'round')
-      .attr('stroke-dasharray', (d) =>
-        parentLinkType.get(d.target.data.slug) === 'mother' ? '1 5' : isSpine(d) ? null : '1 4',
-      )
-      .attr('opacity', (d) => (dimmed(d.target.data.slug) ? 0.25 : 1))
-
-    // spine 위를 타고 내려오는 빛
-    linkG
-      .selectAll('path.flow')
-      .data(hierarchyLinks.filter(isSpine))
-      .join('path')
-      .attr('class', 'gen-flow')
-      .attr('d', linkPath)
-      .attr('stroke', sky.flow)
-      .attr('stroke-width', 1.6)
-      .attr('stroke-linecap', 'round')
-      .attr('stroke-dasharray', '2 30')
-
-    /* 노드 = 별 */
-    const nodeG = g
-      .append('g')
-      .selectAll('g.node')
-      .data(allNodes)
-      .join('g')
-      .attr('class', 'node')
-      .attr('transform', (d) => `translate(${d.x},${d.y})`)
-      .style('cursor', 'pointer')
-      .attr('opacity', (d) => (dimmed(d.data.slug) ? 0.12 : 1))
-      .on('click', (_e, d) => onSelect(d.data.slug))
-      .on('pointerenter', (_e, d) => onHover?.(d.data.slug))
-      .on('touchstart', (_e, d) => onHover?.(d.data.slug), { passive: true })
-
-    // 큰 히트 영역 (별이 작아서)
-    nodeG.append('circle').attr('r', 22).attr('fill', 'transparent')
-
-    // 필터 매칭 강조 — 은은한 링 + 글로우 부스트
-    nodeG
-      .filter((d) => matched(d.data.slug))
-      .append('circle')
-      .attr('class', 'gen-match-ring')
-      .attr('r', 15)
-      .attr('fill', sky.matchFill)
-      .attr('stroke', sky.matchRing)
-      .attr('stroke-width', 1)
-      .attr('stroke-dasharray', '2 3')
-
-    // 선택 링
-    nodeG
-      .filter((d) => d.data.slug === selectedSlug)
-      .append('circle')
-      .attr('class', 'gen-select-ring')
-      .attr('r', 18)
-      .attr('fill', 'none')
-      .attr('stroke', sky.selectRing)
-      .attr('stroke-width', 1.2)
-      .attr('opacity', 0.9)
-
-    // 예수: 넓은 금빛 후광 + 빛살
-    const jesusG = nodeG.filter((d) => isJesus(d.data.figure))
-    jesusG.append('circle').attr('class', 'gen-halo').attr('r', 54).attr('fill', 'url(#genJesusGlow)')
-    jesusG
-      .append('g')
-      .attr('class', 'gen-rays')
-      .selectAll('line')
-      .data([0, 45, 90, 135])
-      .join('line')
-      .attr('x1', 0).attr('y1', -30).attr('x2', 0).attr('y2', 30)
-      .attr('transform', (a) => `rotate(${a})`)
-      .attr('stroke', sky.rays)
-      .attr('stroke-width', (a) => (a % 90 === 0 ? 1.2 : 0.6))
-      .attr('stroke-linecap', 'round')
-
-    // 별 글로우 (진도에 따라 커진다)
-    nodeG
-      .filter((d) => !isJesus(d.data.figure))
-      .append('circle')
-      .attr('class', 'gen-star-glow')
-      .attr('r', (d) => {
-        const p = progressOf(d.data.slug)
-        return d.data.figure.is_messianic_line ? 12 + 16 * p : 6 + 8 * p
-      })
-      .attr('fill', 'url(#genStarGlow)')
-      .attr('opacity', (d) => (matched(d.data.slug) ? 1 : 0.4 + 0.6 * progressOf(d.data.slug)))
-
-    // 별 본체 — 메시아 라인은 스파클, 곁가지는 작은 점
-    nodeG
-      .filter((d) => d.data.figure.is_messianic_line)
-      .append('path')
-      .attr('class', 'gen-star')
-      .attr('d', (d) => {
-        if (isJesus(d.data.figure)) return sparklePath(13)
-        return sparklePath(3.5 + (STAR_R_MAX - 3.5) * progressOf(d.data.slug))
-      })
-      .attr('fill', (d) => (isJesus(d.data.figure) ? sky.starJesus : sky.star))
-      .attr('opacity', (d) => 0.65 + 0.35 * progressOf(d.data.slug))
-      .style('filter', (d) =>
-        isJesus(d.data.figure)
-          ? sky.jesusShadow
-          : sky.starShadow,
-      )
-    nodeG
-      .filter((d) => !d.data.figure.is_messianic_line)
-      .append('circle')
-      .attr('class', 'gen-star')
-      .attr('r', (d) => 2 + 1.5 * progressOf(d.data.slug))
-      .attr('fill', sky.starSide)
-      .attr('opacity', (d) => 0.55 + 0.45 * progressOf(d.data.slug))
-
-    /* 라벨 — 별 우측. 이름 + 세대, 아래에 역할 */
-    const label = nodeG.append('g').attr('pointer-events', 'none')
-    label
-      .append('text')
-      .attr('x', (d) => (isJesus(d.data.figure) ? LABEL_DX + 14 : LABEL_DX))
-      .attr('y', -2)
-      .attr('font-size', (d) => (isJesus(d.data.figure) ? 20 : d.data.figure.is_messianic_line ? 15 : 13.5))
-      .attr('font-weight', (d) => (d.data.figure.is_messianic_line ? 700 : 500))
-      .attr('letter-spacing', '-0.02em')
-      .attr('fill', (d) =>
-        isJesus(d.data.figure) ? sky.nameJesus : d.data.figure.is_messianic_line ? sky.name : sky.nameSide,
-      )
-      .attr('opacity', (d) => (d.data.figure.is_messianic_line ? 0.75 + 0.25 * progressOf(d.data.slug) : 0.85))
-      .text((d) => d.data.figure.name_ko)
-
-    // 세대 — 이름 뒤 얇은 숫자
-    label.each(function (d) {
-      const fig = d.data.figure
-      if (isJesus(fig)) return
-      const nameW = fig.name_ko.length * (fig.is_messianic_line ? 15 : 13.5) * 0.98
-      const ltype = parentLinkType.get(fig.slug)
-      d3.select(this)
-        .append('text')
-        .attr('x', LABEL_DX + nameW + 6)
-        .attr('y', -2)
-        .attr('font-size', 10)
-        .attr('font-weight', 500)
-        .attr('letter-spacing', '0.04em')
-        .attr('fill', ltype === 'mother' ? sky.genMother : sky.gen)
-        .text(`${ltype === 'mother' ? '母 ' : ''}${d.depth + 1}대`)
-    })
-
-    label
-      .append('text')
-      .attr('x', (d) => (isJesus(d.data.figure) ? LABEL_DX + 14 : LABEL_DX))
-      .attr('y', 14)
-      .attr('font-size', (d) => (isJesus(d.data.figure) ? 12 : 11))
-      .attr('font-weight', 400)
-      .attr('letter-spacing', '-0.01em')
-      .attr('fill', (d) => (isJesus(d.data.figure) ? sky.roleJesus : sky.role))
-      .text((d) => {
-        const t = roleText(d.data.figure)
-        return t.length > 16 ? `${t.slice(0, 15)}…` : t
-      })
-
-    /* 배우자 — 별 좌측의 작은 분홍 별. 노드 그룹 바깥의 별도 레이어(부모 노드가 흐려져도 독립) */
-    const spouseLayer = g.append('g')
-    allNodes.forEach((d) => {
-      const spouses = d.data.spouses
-      if (!spouses || spouses.length === 0) return
-      spouses.forEach((sp, i) => {
-        const y = d.y + i * 24 - ((spouses.length - 1) * 24) / 2
-        const x = d.x - SPOUSE_DX
-        const dim = dimmed(sp.slug)
-        const spMatched = matched(sp.slug)
-        spouseLayer
-          .append('line')
-          .attr('x1', x + 6).attr('y1', y).attr('x2', d.x - 8).attr('y2', d.y)
-          .attr('stroke', sky.spouseLine)
-          .attr('stroke-width', 1)
-          .attr('stroke-dasharray', '1 4')
-          .attr('stroke-linecap', 'round')
-          .attr('opacity', dim ? 0.12 : 1)
-        const grp = spouseLayer
-          .append('g')
-          .attr('transform', `translate(${x},${y})`)
-          .style('cursor', 'pointer')
-          .attr('opacity', dim ? 0.12 : 1)
-          .on('click', (event) => {
-            event.stopPropagation()
-            onSelect(sp.slug)
-          })
-          .on('pointerenter', () => onHover?.(sp.slug))
-          .on('touchstart', () => onHover?.(sp.slug), { passive: true })
-        if (spMatched) {
-          grp
-            .append('circle')
-            .attr('class', 'gen-match-ring')
-            .attr('r', 11)
-            .attr('fill', sky.matchFill)
-            .attr('stroke', sky.spouseRing)
-            .attr('stroke-width', 1)
-            .attr('stroke-dasharray', '2 3')
-        }
-        grp.append('circle').attr('r', 14).attr('fill', 'transparent')
-        grp.append('circle').attr('r', (spMatched ? 14 : 7) + 5 * progressOf(sp.slug)).attr('fill', 'url(#genSpouseGlow)')
-        grp
-          .append('circle')
-          .attr('r', (spMatched ? 3.4 : 2.2) + 1.2 * progressOf(sp.slug))
-          .attr('fill', sky.spouseStar)
-          .attr('stroke', sp.slug === selectedSlug ? sky.selectRing : 'none')
-          .attr('stroke-width', 1.5)
-        grp
-          .append('text')
-          .attr('x', -10)
-          .attr('y', 0)
-          .attr('text-anchor', 'end')
-          .attr('dominant-baseline', 'central')
-          .attr('font-size', spMatched ? 13.5 : 12)
-          .attr('font-weight', spMatched ? 700 : 500)
-          .attr('letter-spacing', '-0.01em')
-          .attr('fill', spMatched ? sky.spouseTextMatch : sky.spouseText)
-          .attr('pointer-events', 'none')
-          .text(sp.name_ko)
-      })
-    })
-
-    /* zoom/pan — Ctrl+휠·핀치만 */
-    const zoomBehavior = d3
-      .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.5, 2.5])
-      .filter((event) => {
-        if (event.type === 'wheel') return event.ctrlKey || event.metaKey
-        if (event.type === 'touchstart') return !!event.touches && event.touches.length >= 2
-        return !event.button
-      })
-      .on('zoom', (event) => {
-        g.attr('transform', event.transform.toString())
-      })
-    svg.call(zoomBehavior)
-    svg.call(zoomBehavior.transform, d3.zoomIdentity)
-
-    if (scrollRef.current) {
-      const container = scrollRef.current
-      const target = spineOffsetRef.current + 16 - container.clientWidth / 2
-      container.scrollLeft = Math.max(0, target)
-
-      // 필터가 바뀌었으면 첫 매칭 인물(배우자 포함)의 세로 위치로 스크롤
-      if (highlightSlugs !== prevHighlightRef.current) {
-        prevHighlightRef.current = highlightSlugs
-        if (highlightSlugs && highlightSlugs.size > 0) {
-          // 트리 상자가 폴드 아래에 있으면 내부만 스크롤돼도 보이지 않는다 — 페이지도 끌어온다
-          container.scrollIntoView({ block: 'start', behavior: 'smooth' })
-          let firstY: number | null = null
-          for (const n of allNodes) {
-            const hit = highlightSlugs.has(n.data.slug) || n.data.spouses.some((sp) => highlightSlugs.has(sp.slug))
-            if (hit) { firstY = n.y; break }
-          }
-          if (firstY !== null) {
-            // svg 는 viewBox y=-70 부터, 래퍼 py-2(8px) 보정
-            const top = firstY + 70 + 8 - container.clientHeight * 0.35
-            container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
-          }
-        } else {
-          container.scrollTo({ top: 0, behavior: 'smooth' })
-        }
+  /* ── 지그재그 배치: 시대 안에서는 좌우 교대, 시대가 바뀌면 같은 쪽으로 내려와 굽이 머리를 단다 ── */
+  const layout = useMemo(() => {
+    if (!width || slots.length === 0) return null
+    const cx = width / 2
+    const amp = Math.min(110, Math.max(34, width * 0.1))
+    const placed: Placed[] = []
+    let y = 0
+    let side: 1 | -1 = -1
+    slots.forEach((slot, i) => {
+      const isJesus = slot.kind === 'fig' && slot.id === JESUS_SLUG
+      const era = isJesus ? undefined : SKY_ERA_START[slot.id]
+      if (i === 0) {
+        y = TOP + (era ? HEAD : 0)
+      } else {
+        y += STEP + (era ? HEAD : 0) + (isJesus ? FINALE_GAP : 0)
+        if (!era && !isJesus) side = side === 1 ? -1 : 1
       }
-    }
-  }, [root, selectedSlug, readingProgress, isLoggedIn, onSelect, onHover, parentLinkType, sky, highlightSlugs])
+      if (isJesus) {
+        placed.push({ slot, x: cx, y, side: 0 })
+        return
+      }
+      const rnd = mulberry32(i * 7919 + 11)
+      const x = cx + side * amp + (rnd() - 0.5) * amp * 0.3
+      const yy = y + (rnd() - 0.5) * 6
+      const p: Placed = { slot, x, y: yy, side, era }
+      if (era) {
+        const headerY = yy - HEAD / 2 - 14
+        const prev = placed[placed.length - 1]
+        p.headerY = headerY
+        p.lineX = prev ? prev.x + ((x - prev.x) * (headerY - prev.y)) / (yy - prev.y) : x
+      }
+      placed.push(p)
+    })
+    const last = placed[placed.length - 1]
+    const height = last.y + (last.side === 0 ? 190 : 110)
+    return { placed, height }
+  }, [slots, width])
 
-  if (!root) {
+  const height = layout?.height ?? 0
+
+  /* ── 배경 별무리 — 하늘 크기에 맞춰 뿌린다 ── */
+  const bgStars = useMemo(() => {
+    if (!width || !height) return []
+    const rnd = mulberry32(20260828)
+    const count = Math.min(700, Math.round((width * height) / 7000))
+    return Array.from({ length: count }, (_, i) => ({
+      x: rnd() * width,
+      y: rnd() * height,
+      r: 0.4 + rnd() * 1.3,
+      o: 0.2 + rnd() * 0.55,
+      twinkle: i % 5 === 0,
+      delay: (rnd() * 4).toFixed(2),
+    }))
+  }, [width, height])
+
+  // 필터가 바뀌면 첫 매칭 인물(배우자 포함)로 페이지를 데려간다
+  const prevHighlightRef = useRef<Set<string> | null>(null)
+  useEffect(() => {
+    if (!layout || highlightSlugs === prevHighlightRef.current) return
+    prevHighlightRef.current = highlightSlugs
+    if (!highlightSlugs || highlightSlugs.size === 0) return
+    const first = slots.find(
+      (s) => s.kind === 'fig' && (highlightSlugs.has(s.id) || s.spouses.some((sp) => highlightSlugs.has(sp.slug))),
+    )
+    if (!first) return
+    canvasRef.current
+      ?.querySelector(`[data-slug="${first.id}"]`)
+      ?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }, [highlightSlugs, slots, layout])
+
+  if (!hasSlots) {
     return (
       <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
         가계도를 그릴 데이터가 없습니다.
@@ -599,23 +288,357 @@ export const GenealogyTree = ({
     )
   }
 
+  const progressOf = (slug: string) => (isLoggedIn ? Math.min(1, readingProgress[slug] ?? 0) : 1)
+  const dimmed = (slug: string) => !!highlightSlugs && !highlightSlugs.has(slug)
+  const matched = (slug: string) => !!highlightSlugs && highlightSlugs.has(slug)
+
+  const segmentPath = (a: Placed, b: Placed) => {
+    if (b.side === 0) {
+      // 예수로 내려오는 마지막 획 — 곡선으로 가운데에 내려앉는다
+      const my = (a.y + b.y) / 2
+      return `M${a.x},${a.y + 10}C${a.x},${my + 10},${b.x},${my - 10},${b.x},${b.y - 18}`
+    }
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    const len = Math.hypot(dx, dy) || 1
+    const ux = dx / len
+    const uy = dy / len
+    return `M${a.x + ux * 10},${a.y + uy * 10}L${b.x - ux * 10},${b.y - uy * 10}`
+  }
+
+  const labelStyle = (p: Placed): CSSProperties => {
+    if (p.side === 0) return { left: EDGE, right: EDGE, top: p.y + 36 }
+    if (p.side === 1) {
+      const left = p.x + LABEL_DX
+      return { left, width: width - left - EDGE, top: p.y - 11 }
+    }
+    const right = p.x - LABEL_DX
+    return { right: width - right, width: right - EDGE, top: p.y - 11 }
+  }
+
+  const select = (slug: string) => () => onSelect(slug)
+  const hover = (slug: string) => () => onHover?.(slug)
+
   return (
-    <div ref={scrollRef} className="gen-sky-wrap w-full max-h-[78vh] overflow-auto rounded-[22px] relative">
-      {/* 배경 하늘 — sticky 로 화면에 고정, 별무리는 스크롤에 따라 패럴랙스 */}
-      <div ref={skyRef} className="gen-sky" aria-hidden>
-        <svg className="gen-sky__stars" viewBox="0 0 1000 2000" preserveAspectRatio="xMidYMin slice">
-          <g ref={farRef} />
-          <g ref={nearRef} />
-        </svg>
+    <div className="gen-sky-wrap w-full rounded-[22px] relative">
+      <div className="gen-sky" aria-hidden>
         <div className="gen-sky__nebula gen-sky__nebula--a" />
         <div className="gen-sky__nebula gen-sky__nebula--b" />
+        <div className="gen-sky__nebula gen-sky__nebula--c" />
       </div>
-      <div className="flex justify-center min-w-min relative py-2 px-4">
-        <svg ref={svgRef} preserveAspectRatio="xMidYMin meet" style={{ display: 'block', flexShrink: 0 }}>
-          <g ref={gRef} />
-        </svg>
+
+      <div className="gsky-legend">
+        <span><i className="gsky-legend__star" />메시아 계보</span>
+        <span><i className="gsky-legend__woman" />마태복음 1장의 다섯 여인</span>
+        <span><i className="gsky-legend__gap" />성경이 건너뛴 세대</span>
+        {isLoggedIn && <span className="gsky-legend__hint">밝은 별 = 많이 읽은 인물</span>}
       </div>
-      <div className="gen-sky__caption">아담에서 예수까지 · 하늘의 별과 같이</div>
+
+      <div ref={canvasRef} className="gsky" style={{ height }}>
+        {layout && (
+          <>
+            <svg className="gsky__svg" width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+              <defs>
+                <radialGradient id="genStarGlow">
+                  <stop offset="0%" stopColor={sky.glow[0]} stopOpacity={0.9} />
+                  <stop offset="45%" stopColor={sky.glow[1]} stopOpacity={0.28} />
+                  <stop offset="100%" stopColor={sky.glow[2]} stopOpacity={0} />
+                </radialGradient>
+                <radialGradient id="genJesusGlow">
+                  <stop offset="0%" stopColor={sky.jesusGlow[0]} stopOpacity={1} />
+                  <stop offset="35%" stopColor={sky.jesusGlow[1]} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={sky.jesusGlow[2]} stopOpacity={0} />
+                </radialGradient>
+                <linearGradient id="genSpineGrad" gradientUnits="userSpaceOnUse" x1={0} y1={0} x2={0} y2={height}>
+                  <stop offset="0%" stopColor={sky.spine[0]} />
+                  <stop offset="80%" stopColor={sky.spine[1]} />
+                  <stop offset="100%" stopColor={sky.spine[2]} />
+                </linearGradient>
+              </defs>
+
+              {/* 배경 별무리 */}
+              <g aria-hidden>
+                {bgStars.map((s, i) => (
+                  <circle
+                    key={i}
+                    cx={s.x}
+                    cy={s.y}
+                    r={s.r}
+                    fill={sky.bgStar}
+                    opacity={s.o}
+                    className={s.twinkle ? 'gen-twinkle' : undefined}
+                    style={s.twinkle ? { animationDelay: `${s.delay}s` } : undefined}
+                  />
+                ))}
+              </g>
+
+              {/* 별자리 선 — 건너뛴 세대 구간은 점선 */}
+              <g fill="none" strokeLinecap="round">
+                {layout.placed.map((b, i) => {
+                  if (i === 0) return null
+                  const a = layout.placed[i - 1]
+                  const gapped = a.slot.kind === 'gap' || b.slot.kind === 'gap'
+                  const d = segmentPath(a, b)
+                  const faded = b.slot.kind === 'fig' && dimmed(b.slot.id)
+                  return (
+                    <g key={b.slot.id} opacity={faded ? 0.3 : 1}>
+                      <path
+                        d={d}
+                        stroke={gapped ? sky.link : 'url(#genSpineGrad)'}
+                        strokeWidth={gapped ? 1.2 : 1.6}
+                        strokeDasharray={gapped ? '2 5' : undefined}
+                      />
+                      {!gapped && <path className="gen-flow" d={d} stroke={sky.flow} strokeWidth={1.6} strokeDasharray="2 30" />}
+                    </g>
+                  )
+                })}
+              </g>
+
+              {/* 시대 굽이 표식 — 선 위 마름모 + 머리글 쪽으로 짧은 눈금 */}
+              {layout.placed.map((p) => {
+                if (!p.era || p.headerY === undefined || p.lineX === undefined || p.side === 0) return null
+                const inward = -p.side
+                return (
+                  <g key={`era-${p.slot.id}`} opacity={highlightSlugs ? 0.4 : 1}>
+                    <rect
+                      x={p.lineX - 3.5}
+                      y={p.headerY - 3.5}
+                      width={7}
+                      height={7}
+                      fill={sky.eraMark}
+                      transform={`rotate(45 ${p.lineX} ${p.headerY})`}
+                    />
+                    <line
+                      x1={p.lineX + inward * 8}
+                      y1={p.headerY}
+                      x2={p.lineX + inward * 15}
+                      y2={p.headerY}
+                      stroke={sky.eraMark}
+                      strokeWidth={1}
+                      strokeLinecap="round"
+                    />
+                  </g>
+                )
+              })}
+
+              {/* 별 */}
+              {layout.placed.map((p) => {
+                const { slot } = p
+                if (slot.kind === 'gap') {
+                  return (
+                    <g key={slot.id} transform={`translate(${p.x},${p.y})`} opacity={highlightSlugs ? 0.3 : 1}>
+                      <circle r={8} fill="none" stroke={sky.link} strokeWidth={1.2} strokeDasharray="2 3" />
+                      {[-3, 0, 3].map((dx) => (
+                        <circle key={dx} cx={dx} r={0.9} fill={sky.link} />
+                      ))}
+                    </g>
+                  )
+                }
+                const fig = slot.figure
+                const isJesus = slot.id === JESUS_SLUG
+                const prog = progressOf(slot.id)
+                return (
+                  <g
+                    key={slot.id}
+                    className="node"
+                    transform={`translate(${p.x},${p.y})`}
+                    opacity={dimmed(slot.id) ? 0.15 : 1}
+                    style={{ cursor: 'pointer' }}
+                    onClick={select(slot.id)}
+                    onPointerEnter={hover(slot.id)}
+                    onTouchStart={hover(slot.id)}
+                  >
+                    <circle r={22} fill="transparent" />
+                    {matched(slot.id) && (
+                      <circle
+                        className="gen-match-ring"
+                        r={15}
+                        fill={sky.matchFill}
+                        stroke={sky.matchRing}
+                        strokeWidth={1}
+                        strokeDasharray="2 3"
+                      />
+                    )}
+                    {slot.id === selectedSlug && (
+                      <circle className="gen-select-ring" r={18} fill="none" stroke={sky.selectRing} strokeWidth={1.2} opacity={0.9} />
+                    )}
+                    {isJesus ? (
+                      <>
+                        <circle className="gen-halo" r={54} fill="url(#genJesusGlow)" />
+                        <g className="gen-rays">
+                          {[0, 45, 90, 135].map((a) => (
+                            <line
+                              key={a}
+                              x1={0}
+                              y1={-30}
+                              x2={0}
+                              y2={30}
+                              transform={`rotate(${a})`}
+                              stroke={sky.rays}
+                              strokeWidth={a % 90 === 0 ? 1.2 : 0.6}
+                              strokeLinecap="round"
+                            />
+                          ))}
+                        </g>
+                      </>
+                    ) : (
+                      <circle
+                        className="gen-star-glow"
+                        r={fig.is_messianic_line ? 12 + 16 * prog : 6 + 8 * prog}
+                        fill="url(#genStarGlow)"
+                        opacity={matched(slot.id) ? 1 : 0.4 + 0.6 * prog}
+                      />
+                    )}
+                    {fig.is_messianic_line ? (
+                      <path
+                        className="gen-star"
+                        d={isJesus ? sparklePath(13) : sparklePath(3.5 + 3.5 * prog)}
+                        fill={isJesus ? sky.starJesus : sky.star}
+                        opacity={0.65 + 0.35 * prog}
+                        style={{ filter: isJesus ? sky.jesusShadow : sky.starShadow }}
+                      />
+                    ) : (
+                      <circle className="gen-star" r={2 + 1.5 * prog} fill={sky.starSide} opacity={0.55 + 0.45 * prog} />
+                    )}
+                  </g>
+                )
+              })}
+            </svg>
+
+            {/* 시대 머리글 — 선의 안쪽(가운데 쪽)에 붙는다 */}
+            {layout.placed.map((p) => {
+              if (!p.era || p.headerY === undefined || p.lineX === undefined || p.side === 0) return null
+              const style: CSSProperties =
+                p.side === 1
+                  ? { right: width - (p.lineX - 20), maxWidth: p.lineX - 20 - EDGE, top: p.headerY }
+                  : { left: p.lineX + 20, maxWidth: width - p.lineX - 20 - EDGE, top: p.headerY }
+              return (
+                <div
+                  key={`eh-${p.slot.id}`}
+                  className={`gsky-era${highlightSlugs ? ' is-dim' : ''}`}
+                  data-side={p.side === 1 ? 'r' : 'l'}
+                  style={style}
+                >
+                  <span className="gsky-era__label">{p.era.label}</span>
+                  <span className="gsky-era__meta">{p.era.meta}</span>
+                </div>
+              )
+            })}
+
+            {/* 라벨 — 별의 바깥쪽 */}
+            {layout.placed.map((p) => {
+              const { slot } = p
+              const side = p.side === 1 ? 'r' : p.side === -1 ? 'l' : 'c'
+              const mark = SKY_MT_MARK[slot.id]
+
+              if (slot.kind === 'gap') {
+                return (
+                  <div
+                    key={`lb-${slot.id}`}
+                    className={`gsky-label gsky-gap${highlightSlugs ? ' is-dim' : ''}`}
+                    data-side={side}
+                    style={labelStyle(p)}
+                  >
+                    <span className="gsky-gap__count">
+                      ⋯ {slot.gap.count}대
+                      <span className="gsky-gen">{slot.gen}–{slot.gen + slot.gap.count - 1}대</span>
+                      {mark && <span className="gsky-mark">{mark}</span>}
+                    </span>
+                    <span className="gsky-gap__names">{slot.gap.names}</span>
+                    <span className="gsky-gap__names">{slot.gap.ref} · 이 화면엔 별로 넣지 않았어요</span>
+                  </div>
+                )
+              }
+
+              const fig = slot.figure
+              const isJesus = slot.id === JESUS_SLUG
+              const dim = dimmed(slot.id)
+              const role = isJesus ? '메시아 · 약속의 성취' : FIGURE_HOOK[slot.id] ?? fig.role ?? fig.era ?? ''
+              const finale = isJesus ? SKY_ERA_START[JESUS_SLUG] : undefined
+              return (
+                <div
+                  key={`lb-${slot.id}`}
+                  data-slug={slot.id}
+                  className={`gsky-label${isJesus ? ' gsky-finale' : ''}`}
+                  data-side={side}
+                  style={labelStyle(p)}
+                >
+                  <button
+                    type="button"
+                    className={`gsky-name${dim ? ' is-dim' : ''}${slot.id === selectedSlug ? ' is-sel' : ''}`}
+                    onClick={select(slot.id)}
+                    onPointerEnter={hover(slot.id)}
+                  >
+                    <span className="gsky-name__text">{fig.name_ko}</span>
+                    <span className="gsky-gen">
+                      {slot.viaMother ? '母 ' : ''}
+                      {slot.gen}대
+                    </span>
+                    {mark && <span className="gsky-mark">{mark}</span>}
+                  </button>
+                  {role && <span className={`gsky-role${dim ? ' is-dim' : ''}`}>{role}</span>}
+                  {finale && (
+                    <span className="gsky-finale__era">
+                      {finale.label} · {finale.meta}
+                    </span>
+                  )}
+
+                  {slot.spouses.length > 0 && (
+                    <div className="gsky-pair">
+                      {slot.spouses.map((sp) => {
+                        const note = MATTHEW_WOMEN[sp.slug]
+                        const cls = `${dimmed(sp.slug) ? ' is-dim' : ''}${matched(sp.slug) ? ' is-hit' : ''}${sp.slug === selectedSlug ? ' is-sel' : ''}`
+                        return note ? (
+                          <button
+                            key={sp.slug}
+                            type="button"
+                            data-slug={sp.slug}
+                            className={`gsky-woman${cls}`}
+                            onClick={select(sp.slug)}
+                            onPointerEnter={hover(sp.slug)}
+                          >
+                            <span className="gsky-woman__name">{shortName(sp.name_ko)}</span>
+                            <span className="gsky-woman__note">{note}</span>
+                          </button>
+                        ) : (
+                          <button
+                            key={sp.slug}
+                            type="button"
+                            data-slug={sp.slug}
+                            className={`gsky-spouse${cls}`}
+                            onClick={select(sp.slug)}
+                            onPointerEnter={hover(sp.slug)}
+                          >
+                            {shortName(sp.name_ko)}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {slot.branches.length > 0 && (
+                    <div className="gsky-pair">
+                      {slot.branches.map((b) => (
+                        <button
+                          key={b.slug}
+                          type="button"
+                          data-slug={b.slug}
+                          className={`gsky-branch${dimmed(b.slug) ? ' is-dim' : ''}`}
+                          onClick={select(b.slug)}
+                          onPointerEnter={hover(b.slug)}
+                        >
+                          ↳ {shortName(b.name_ko)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </>
+        )}
+      </div>
+      <div className="gen-sky__caption">아담에서 예수까지 · 하늘의 별과 같이 (창 15:5)</div>
     </div>
   )
 }

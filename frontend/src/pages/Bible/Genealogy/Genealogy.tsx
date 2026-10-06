@@ -330,21 +330,16 @@ export const Genealogy = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <div className="lg:col-span-2 min-w-0">
               {viewMode === 'tree' ? (
-                <>
-                  <GenealogyTree
-                    nodes={data.nodes}
-                    links={data.links}
-                    readingProgress={data.reading_progress}
-                    selectedSlug={selectedSlug}
-                    onSelect={setSelectedSlug}
-                    onHover={prefetchFigure}
-                    isLoggedIn={isLoggedIn}
-                    highlightSlugs={query || roleFilter !== 'all' ? matchedSlugs : null}
-                  />
-                  <p className="mt-2 text-[11.5px] text-gray-400 dark:text-white/40 text-center">
-                    Ctrl(⌘)+휠 또는 두 손가락 핀치로 확대·축소
-                  </p>
-                </>
+                <GenealogyTree
+                  nodes={data.nodes}
+                  links={data.links}
+                  readingProgress={data.reading_progress}
+                  selectedSlug={selectedSlug}
+                  onSelect={setSelectedSlug}
+                  onHover={prefetchFigure}
+                  isLoggedIn={isLoggedIn}
+                  highlightSlugs={query || roleFilter !== 'all' ? matchedSlugs : null}
+                />
               ) : (
                 <EraTimeline
                   nodes={filteredNodes}
