@@ -513,14 +513,15 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                   <div className="mt-1.5 lg:mt-3 flex flex-wrap items-center gap-1.5 lg:gap-2.5 lg:[&>button]:px-5 lg:[&>button]:py-3 lg:[&>button]:text-[16px] lg:[&>button]:gap-2 lg:[&_svg]:w-[19px] lg:[&_svg]:h-[19px]">
                     {[
                       { key: 'public', Icon: GlobeIcon, label: t('prayerVisibilityPublic'), active: !isPrivate && selectedGroupId === null, onClick: () => { setIsPrivate(false); setSelectedGroupId(null) } },
-                      { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: onlyMe, onClick: () => setIsPrivate(true) },
-                      { key: 'pastor', Icon: PastorIcon, label: t('prayerVisibilityPastor'), active: sharedWithPastor, onClick: setSharedWithPastor },
+                      { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: onlyMe, onClick: () => setIsPrivate(true), tooltip: t('privateChipTooltip') },
+                      { key: 'pastor', Icon: PastorIcon, label: t('prayerVisibilityPastor'), active: sharedWithPastor, onClick: setSharedWithPastor, tooltip: t('pastorChipTooltip'), lockBadge: true },
                     ].map((opt) => (
                       <button
                         key={opt.key}
                         type="button"
                         onClick={opt.onClick}
                         aria-pressed={opt.active}
+                        title={opt.tooltip}
                         className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all active:scale-95 ${
                           opt.active
                             ? 'border-transparent bg-brand text-[var(--on-brand)] shadow-[0_4px_12px_var(--brand-glow)]'
@@ -529,11 +530,30 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                         style={
                           opt.active
                             ? undefined
-                            : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
+                            : opt.tooltip
+                              // 비밀 칩(나만 보기·목사님과 함께) — 고르기 전에도 은은한 브랜드 테두리로 구분
+                              ? { borderColor: 'color-mix(in srgb, var(--brand) 30%, var(--card-border))', background: 'color-mix(in srgb, var(--brand) 5%, var(--surface-inset))' }
+                              : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
                         }
                       >
-                        <opt.Icon size={14} />
-                        {opt.label}
+                        {opt.lockBadge ? (
+                          // 목사님 아이콘 + 작은 자물쇠 — 목사님만 읽는 비밀 기도라는 표시
+                          <span className="relative inline-flex">
+                            <opt.Icon size={14} />
+                            <span
+                              className="absolute -right-1.5 -bottom-1 w-[11px] h-[11px] lg:w-[13px] lg:h-[13px] rounded-full flex items-center justify-center lg:[&_svg]:!w-[9px] lg:[&_svg]:!h-[9px]"
+                              style={{
+                                background: opt.active ? 'var(--on-brand)' : 'var(--brand)',
+                                color: opt.active ? 'var(--brand)' : 'var(--on-brand)',
+                              }}
+                            >
+                              <LockIcon size={7} />
+                            </span>
+                          </span>
+                        ) : (
+                          <opt.Icon size={14} />
+                        )}
+                        <span className={opt.lockBadge ? 'ml-0.5' : undefined}>{opt.label}</span>
                       </button>
                     ))}
 
@@ -601,6 +621,25 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                           ? t('anonymousNotice')
                           : t('realNameNotice')}
                   </p>
+
+                  {/* 비밀 기도 안내 — 공개로 두고 있을 때만. 은밀한 기도제목이 있는 성도가 '목사님과 함께'를 바로 찾도록 */}
+                  {!isPrivate && (
+                    <button
+                      type="button"
+                      onClick={setSharedWithPastor}
+                      className="mt-2 lg:mt-3.5 w-full flex items-start gap-2 lg:gap-3 rounded-xl px-3 py-2 lg:px-4 lg:py-3 text-left transition-colors hover:bg-[var(--brand-soft)]"
+                      style={{ background: 'color-mix(in srgb, var(--brand) 6%, var(--surface-inset))' }}
+                    >
+                      <span className="shrink-0 mt-px inline-flex text-brand lg:[&_svg]:w-[18px] lg:[&_svg]:h-[18px]">
+                        <LockIcon size={13} />
+                      </span>
+                      <span className="text-[11px] lg:text-[14.5px] leading-snug text-ink-muted">
+                        {t('secretPrayerHintBefore')}
+                        <b className="font-bold text-brand">{t('prayerVisibilityPastor')}</b>
+                        {t('secretPrayerHintAfter')}
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* 오늘의 마음 */}

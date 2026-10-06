@@ -38,6 +38,10 @@ export const prayer = {
   // 목사님과 함께 (목양 기도) — 성도에게는 없는 글, 목회자만 읽고 기도·답글한다
   prayerVisibilityPastor: '목사님과 함께',
   pastorPrayerBadge: '목사님과 함께',
+  privateChipTooltip: '🔒 하나님과 나만 아는 기도 — 아무에게도 보이지 않아요',
+  pastorChipTooltip: '🔒 목사님만 확인하실 수 있는 비밀 기도 — 성도님들 피드에는 올라가지 않아요',
+  secretPrayerHintBefore: '비밀스러운 개인 기도제목이나 상담이 필요한 내용은 ',
+  secretPrayerHintAfter: '를 선택하시면 목사님만 확인하실 수 있어요.',
   pastorPrayerNoticeRealName: '목사님만 볼 수 있어요. 성도님들 피드에는 올라가지 않고, 목사님께는 내 이름이 보여요.',
   pastorPrayerNoticeAnonymous: '목사님만 볼 수 있어요. 성도님들 피드에는 올라가지 않고, 목사님께도 이름은 가려져요.',
   pastorPrayerSubmit: '목사님께 나누기',
