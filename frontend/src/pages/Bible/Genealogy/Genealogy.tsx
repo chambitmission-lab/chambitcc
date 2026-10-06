@@ -348,10 +348,12 @@ export const Genealogy = () => {
               ) : (
                 <EraTimeline
                   nodes={filteredNodes}
+                  links={data.links}
                   readingProgress={data.reading_progress}
                   selectedSlug={selectedSlug}
                   onSelect={setSelectedSlug}
                   isLoggedIn={isLoggedIn}
+                  isFiltered={!!query.trim() || roleFilter !== 'all'}
                 />
               )}
             </div>

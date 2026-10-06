@@ -1,72 +1,133 @@
-import { useMemo } from 'react'
-import type { BibleFigureSummary } from '../../../../types/bibleFigure'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import type { BibleFigureSummary, GenealogyLink } from '../../../../types/bibleFigure'
+import { StoryGlyph } from '../../Story/StoryIcons'
+import { ERAS, FIGURE_HOOK, JESUS_SLUG, MAJOR_GLYPH, MAJOR_REF, type EraInfo } from '../genealogyStory'
 
 interface EraTimelineProps {
   nodes: BibleFigureSummary[]
+  links: GenealogyLink[]
   readingProgress: Record<string, number>
   selectedSlug: string | null
   onSelect: (slug: string) => void
   isLoggedIn: boolean
+  /** 검색·역할 필터가 걸려 있으면 세대를 접지 않고 여정 지도도 숨긴다 */
+  isFiltered: boolean
 }
 
 interface EraGroup {
   key: string
-  label: string
-  minOrder: number
+  era: EraInfo
   figures: BibleFigureSummary[]
 }
 
-const ERA_ALIAS: { match: (era: string) => boolean; label: string; order: number }[] = [
-  { match: (e) => /창조|에덴|아담|홍수|노아 이전/.test(e), label: '창조 · 홍수 이전', order: 0 },
-  { match: (e) => /족장/.test(e), label: '족장 시대', order: 1 },
-  { match: (e) => /출애굽|광야/.test(e), label: '출애굽 · 광야', order: 2 },
-  { match: (e) => /가나안|사사|정복/.test(e), label: '정복 · 사사', order: 3 },
-  { match: (e) => /통일왕국|왕정|초기왕국/.test(e), label: '통일 왕국', order: 4 },
-  { match: (e) => /분열|남유다|북이스라엘/.test(e), label: '분열 왕국', order: 5 },
-  { match: (e) => /포로|귀환/.test(e), label: '포로 · 귀환', order: 6 },
-  { match: (e) => /중간기/.test(e), label: '중간기', order: 7 },
-  { match: (e) => /신약|예수|초대교회|사도/.test(e), label: '신약 · 메시아', order: 8 },
-]
+/** 레일 위에 한 줄씩 쌓이는 항목 — 위/아래 선분 색을 앞뒤 항목으로 정확히 칠하려고 평평하게 편다 */
+type Item =
+  | { kind: 'era'; key: string; group: EraGroup; index: number; done: number; total: number; read: boolean; partial: boolean }
+  | { kind: 'major' | 'notable'; key: string; figure: BibleFigureSummary; read: boolean }
+  | { kind: 'run'; key: string; figures: BibleFigureSummary[]; read: boolean }
+  | { kind: 'finale'; key: string; figure: BibleFigureSummary; read: boolean }
 
-const eraGroupFor = (figure: BibleFigureSummary): { key: string; label: string; order: number } => {
+const FALLBACK_ERA: EraInfo = { label: '기타', short: '기타', order: 100, meta: '', story: '', match: () => false }
+const NT_ERA = ERAS.find((e) => e.order === 8) ?? FALLBACK_ERA
+
+const eraFor = (figure: BibleFigureSummary): EraInfo => {
   const era = figure.era || ''
   if (era) {
-    const found = ERA_ALIAS.find((g) => g.match(era))
-    if (found) return { key: found.label, label: found.label, order: found.order }
-    return { key: era, label: era, order: 99 }
+    const found = ERAS.find((e) => e.match(era))
+    if (found) return found
+    return { ...FALLBACK_ERA, label: era, short: era, order: 99 }
   }
-  if (figure.testament === 'NEW') return { key: '신약 · 메시아', label: '신약 · 메시아', order: 8 }
-  return { key: '기타', label: '기타', order: 100 }
+  return figure.testament === 'NEW' ? NT_ERA : FALLBACK_ERA
 }
+
+const shortName = (name: string) => name.replace(/\s*\(.+\)/, '')
 
 export const EraTimeline = ({
   nodes,
+  links,
   readingProgress,
   selectedSlug,
   onSelect,
   isLoggedIn,
+  isFiltered,
 }: EraTimelineProps) => {
+  const [openRuns, setOpenRuns] = useState<Set<string>>(() => new Set())
+
+  const isRead = (slug: string) => isLoggedIn && (readingProgress[slug] ?? 0) >= 0.999
+
   const groups = useMemo<EraGroup[]>(() => {
     const map = new Map<string, EraGroup>()
     for (const figure of nodes) {
-      const { key, label, order } = eraGroupFor(figure)
-      let group = map.get(key)
+      const era = eraFor(figure)
+      let group = map.get(era.label)
       if (!group) {
-        group = { key, label, minOrder: order, figures: [] }
-        map.set(key, group)
+        group = { key: era.label, era, figures: [] }
+        map.set(era.label, group)
       }
       group.figures.push(figure)
-      if ((figure.sort_order ?? 0) < group.minOrder) {
-        group.minOrder = figure.sort_order ?? group.minOrder
-      }
     }
     const arr = Array.from(map.values())
-    arr.sort((a, b) => a.minOrder - b.minOrder)
-    for (const g of arr) {
-      g.figures.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-    }
+    for (const g of arr) g.figures.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    arr.sort((a, b) => a.era.order - b.era.order || (a.figures[0]?.sort_order ?? 0) - (b.figures[0]?.sort_order ?? 0))
     return arr
   }, [nodes])
+
+  // 아내·어머니는 남편이 화면에 있으면 남편 줄의 칩으로 붙고, 없으면(필터 등) 제 줄로 선다
+  const { wivesByHusband, attachedWives } = useMemo(() => {
+    const shown = new Map(nodes.map((n) => [n.slug, n]))
+    const byHusband = new Map<string, BibleFigureSummary[]>()
+    const attached = new Set<string>()
+    for (const l of links) {
+      if (l.type !== 'spouse') continue
+      const wife = shown.get(l.target)
+      if (!wife || wife.is_messianic_line || !shown.has(l.source)) continue
+      byHusband.set(l.source, [...(byHusband.get(l.source) ?? []), wife])
+      attached.add(wife.slug)
+    }
+    return { wivesByHusband: byHusband, attachedWives: attached }
+  }, [nodes, links])
+
+  // 이어 읽을 자리 — 시대순으로 처음 만나는 아직 다 읽지 않은 메시아 라인 인물
+  const hereSlug = useMemo(() => {
+    if (!isLoggedIn) return null
+    const line = groups.flatMap((g) => g.figures).filter((f) => f.is_messianic_line)
+    return line.find((f) => (readingProgress[f.slug] ?? 0) < 0.999)?.slug ?? null
+  }, [groups, readingProgress, isLoggedIn])
+
+  const items = useMemo<Item[]>(() => {
+    const out: Item[] = []
+    groups.forEach((group, index) => {
+      const figs = group.figures.filter((f) => !attachedWives.has(f.slug))
+      const done = isLoggedIn ? group.figures.filter((f) => isRead(f.slug)).length : 0
+      const total = group.figures.length
+      out.push({ kind: 'era', key: `era-${group.key}`, group, index, done, total, read: isLoggedIn && done === total, partial: done > 0 && done < total })
+      let run: BibleFigureSummary[] = []
+      const flush = () => {
+        if (!run.length) return
+        out.push({ kind: 'run', key: `run-${run[0].slug}`, figures: run, read: run.every((f) => isRead(f.slug)) })
+        run = []
+      }
+      for (const f of figs) {
+        if (f.slug === JESUS_SLUG) {
+          flush()
+          out.push({ kind: 'finale', key: f.slug, figure: f, read: isRead(f.slug) })
+          continue
+        }
+        // 이름만 남은 세대 — 필터 중이면 찾은 사람을 접어 숨기지 않는다
+        if (!isFiltered && f.is_messianic_line && !FIGURE_HOOK[f.slug]) {
+          run.push(f)
+          continue
+        }
+        flush()
+        out.push({ kind: MAJOR_GLYPH[f.slug] ? 'major' : 'notable', key: f.slug, figure: f, read: isRead(f.slug) })
+      }
+      flush()
+    })
+    return out
+    // isRead 는 readingProgress·isLoggedIn 에서만 파생된다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groups, attachedWives, isFiltered, isLoggedIn, readingProgress])
 
   if (nodes.length === 0) {
     return (
@@ -76,189 +137,288 @@ export const EraTimeline = ({
     )
   }
 
-  return (
-    <div className="flex flex-col gap-5">
-      {groups.map((group, gi) => {
-        const total = group.figures.length
-        const completed = isLoggedIn
-          ? group.figures.filter((f) => (readingProgress[f.slug] ?? 0) >= 1).length
-          : 0
-        return (
-          <section key={group.key} className="relative">
-            {/* 시대 헤더 */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand text-white text-[12px] font-bold shadow-[0_4px_12px_-2px_var(--brand-glow)]">
-                {gi + 1}
-              </span>
-              <h3 className="text-[15.5px] font-bold tracking-[-0.01em] text-ink-strong">
-                {group.label}
-              </h3>
-              <span className="text-[11.5px] font-semibold text-gray-500 dark:text-white/45">
-                {total}명{isLoggedIn && total > 0 ? ` · ${completed}/${total}` : ''}
-              </span>
-            </div>
+  const toggleRun = (key: string) =>
+    setOpenRuns((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
 
-            {/* 인물 카드 그리드 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {group.figures.map((fig) => (
-                <FigureRow
-                  key={fig.slug}
-                  figure={fig}
-                  selected={fig.slug === selectedSlug}
-                  progress={readingProgress[fig.slug] ?? 0}
-                  isLoggedIn={isLoggedIn}
-                  onSelect={() => onSelect(fig.slug)}
-                />
-              ))}
+  const lineAll = nodes.filter((n) => n.is_messianic_line)
+  const lineDone = lineAll.filter((n) => isRead(n.slug)).length
+  const hereEra = hereSlug ? groups.findIndex((g) => g.figures.some((f) => f.slug === hereSlug)) : groups.length - 1
+
+  return (
+    <div>
+      {!isFiltered && groups.length > 1 && (
+        <JourneyMap
+          groups={groups}
+          hereEra={isLoggedIn ? hereEra : null}
+          done={lineDone}
+          total={lineAll.length}
+          isLoggedIn={isLoggedIn}
+        />
+      )}
+
+      {items.map((it, i) => {
+        const next = items[i + 1]
+        const topOn = it.read || (it.kind === 'era' && it.partial)
+        const botOn = !!next && (next.read || (next.kind === 'era' && next.partial))
+        const isHere = 'figure' in it && it.figure.slug === hereSlug
+        return (
+          <div
+            key={it.key}
+            className={[
+              'gtl-item',
+              `gtl-item--${it.kind}`,
+              it.read ? 'is-read' : '',
+              it.kind === 'era' && it.partial ? 'is-partial' : '',
+              isHere ? 'is-here' : '',
+            ].join(' ')}
+          >
+            <div className="gtl-rail" aria-hidden>
+              {i > 0 && <span className={`gtl-rail__top${topOn ? ' is-on' : ''}`} />}
+              {next && <span className={`gtl-rail__bot${botOn ? ' is-on' : ''}`} />}
+              <span className="gtl-dot">
+                {it.kind === 'era' ? it.index + 1 : it.kind === 'finale' ? '✦' : null}
+              </span>
             </div>
-          </section>
+            <div className="gtl-body">
+              {it.kind === 'era' && <EraHead item={it} isLoggedIn={isLoggedIn} />}
+
+              {it.kind === 'run' && (
+                <div className="gtl-run">
+                  <span>
+                    ⋯ <b>{it.figures.length}대</b>가 더 이어져요
+                  </span>
+                  <span>{it.figures.map((f) => shortName(f.name_ko)).join(' · ')}</span>
+                  <button type="button" onClick={() => toggleRun(it.key)} aria-expanded={openRuns.has(it.key)}>
+                    {openRuns.has(it.key) ? '접기' : '펼치기'}
+                  </button>
+                  {openRuns.has(it.key) && (
+                    <div className="gtl-run__list">
+                      {it.figures.map((f) => (
+                        <button
+                          key={f.slug}
+                          type="button"
+                          onClick={() => onSelect(f.slug)}
+                          className={f.slug === selectedSlug ? 'is-selected' : ''}
+                        >
+                          {shortName(f.name_ko)}
+                          {isRead(f.slug) ? ' ✓' : ''}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(it.kind === 'major' || it.kind === 'notable') && (
+                <>
+                  {isHere && (
+                    <div>
+                      <button type="button" className="gtl-here" onClick={() => onSelect(it.figure.slug)}>
+                        지금 여기 · 이어 읽기
+                      </button>
+                    </div>
+                  )}
+                  <FigureEntry
+                    figure={it.figure}
+                    major={it.kind === 'major'}
+                    read={it.read}
+                    progress={isLoggedIn ? readingProgress[it.figure.slug] ?? 0 : 0}
+                    wives={wivesByHusband.get(it.figure.slug) ?? []}
+                    selectedSlug={selectedSlug}
+                    onSelect={onSelect}
+                  />
+                </>
+              )}
+
+              {it.kind === 'finale' && (
+                <div className={`gtl-finale${it.figure.slug === selectedSlug ? ' is-selected' : ''}`}>
+                  <button type="button" className="gtl-finale__main" onClick={() => onSelect(it.figure.slug)}>
+                    <small>이 계보가 향하던 곳</small>
+                    <span className="gtl-finale__name">{shortName(it.figure.name_ko)}</span>
+                    <p>
+                      “여자의 후손이 네 머리를 상하게 할 것이요”(창 3:15) — 에덴에서 하신 첫 약속이
+                      세대를 지나 마침내 이루어졌어요.
+                    </p>
+                  </button>
+                  <Link to="/bible/40/1" className="gtl-finale__cta">
+                    마태복음 1장 읽기 →
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         )
       })}
     </div>
   )
 }
 
-interface FigureRowProps {
-  figure: BibleFigureSummary
-  selected: boolean
-  progress: number
+const JourneyMap = ({
+  groups,
+  hereEra,
+  done,
+  total,
+  isLoggedIn,
+}: {
+  groups: EraGroup[]
+  hereEra: number | null
+  done: number
+  total: number
   isLoggedIn: boolean
-  onSelect: () => void
+}) => {
+  const pos = (i: number) => (groups.length > 1 ? (i / (groups.length - 1)) * 100 : 0)
+  return (
+    <div className="gtl-map">
+      <div className="gtl-map__top">
+        <b>아담에서 예수까지</b>
+        <span>
+          {isLoggedIn ? (
+            <>
+              <em>{done}</em> / {total}명 만났어요
+            </>
+          ) : (
+            <>{total}명의 약속의 계보</>
+          )}
+        </span>
+      </div>
+      <div className="gtl-track">
+        <span className="gtl-track__base" />
+        {hereEra !== null && <span className="gtl-track__fill" style={{ width: `${pos(hereEra)}%` }} />}
+        {groups.map((g, i) => (
+          <span
+            key={g.key}
+            className={`gtl-tick${hereEra !== null && i <= hereEra ? ' is-on' : ''}`}
+            style={{ left: `${pos(i)}%` }}
+          >
+            <i />
+            <span>{g.era.short}</span>
+          </span>
+        ))}
+        {hereEra !== null && (
+          <span className="gtl-you" style={{ left: `${pos(hereEra)}%` }}>
+            나
+          </span>
+        )}
+      </div>
+    </div>
+  )
 }
 
-const FigureRow = ({ figure, selected, progress, isLoggedIn, onSelect }: FigureRowProps) => {
-  const isJesus = figure.slug === 'jesus_christ'
-  const isMessianic = figure.is_messianic_line
-  const isFemale = figure.gender === 'female'
-  const isKing = (figure.role || '').includes('왕')
-  const isProphet = (figure.role || '').includes('선지자')
+const EraHead = ({ item, isLoggedIn }: { item: Extract<Item, { kind: 'era' }>; isLoggedIn: boolean }) => {
+  const { era } = item.group
+  return (
+    <>
+      <div className="gtl-era__over">
+        ERA {String(item.index + 1).padStart(2, '0')}
+        {era.meta ? ` · ${era.meta}` : ''}
+      </div>
+      <h3 className="gtl-era__title">{era.label}</h3>
+      {era.story && <p className="gtl-era__story">{era.story}</p>}
+      {isLoggedIn ? (
+        <div className="gtl-era__prog">
+          <span className="gtl-era__bar">
+            <i style={{ width: `${item.total ? (item.done / item.total) * 100 : 0}%` }} />
+          </span>
+          <span>
+            {item.total}명 중 {item.done}명 읽음
+          </span>
+        </div>
+      ) : (
+        <div className="gtl-era__prog">
+          <span>{item.total}명</span>
+        </div>
+      )}
+    </>
+  )
+}
 
-  const tagLabel = isJesus
-    ? '메시아'
-    : isKing
-      ? '왕'
-      : isProphet
-        ? '선지자'
-        : isFemale
-          ? '여인'
-          : figure.role || '족장'
+interface FigureEntryProps {
+  figure: BibleFigureSummary
+  major: boolean
+  read: boolean
+  progress: number
+  wives: BibleFigureSummary[]
+  selectedSlug: string | null
+  onSelect: (slug: string) => void
+}
+
+const FigureEntry = ({ figure, major, read, progress, wives, selectedSlug, onSelect }: FigureEntryProps) => {
+  const isWoman = !figure.is_messianic_line && figure.gender === 'female'
+  const hook = FIGURE_HOOK[figure.slug] ?? figure.role ?? ''
+  const ref = MAJOR_REF[figure.slug]
+  const selected = figure.slug === selectedSlug
+
+  const tags = (
+    <>
+      {read ? (
+        <span className="gtl-tag gtl-tag--ok">✓ 읽음</span>
+      ) : progress > 0 ? (
+        <span className="gtl-tag gtl-tag--ok">진도 {Math.round(progress * 100)}%</span>
+      ) : null}
+      {isWoman && <span className="gtl-tag gtl-tag--w">아내·어머니</span>}
+      {ref && <span className="gtl-tag">{ref}</span>}
+    </>
+  )
+  // 아내 칩은 카드 버튼 안에 중첩할 수 없어 카드 밖 별도 줄로 둔다
+  const wifeChips = wives.length > 0 && (
+    <div className={`gtl-wives${major ? ' gtl-wives--card' : ''}`}>
+      {wives.map((w) => (
+        <button
+          key={w.slug}
+          type="button"
+          onClick={() => onSelect(w.slug)}
+          className={`gtl-tag gtl-tag--w${w.slug === selectedSlug ? ' is-selected' : ''}`}
+        >
+          ♥ {shortName(w.name_ko)}
+        </button>
+      ))}
+    </div>
+  )
+  const hasTags = read || progress > 0 || isWoman || !!ref
+
+  const names = (
+    <span className="gtl-name-row">
+      <span className="gtl-name">{shortName(figure.name_ko)}</span>
+      {figure.name_en && <span className="gtl-en">{figure.name_en}</span>}
+    </span>
+  )
+
+  if (major) {
+    return (
+      <div className={`gtl-card${selected ? ' is-selected' : ''}`}>
+        <button type="button" className="gtl-card__main" onClick={() => onSelect(figure.slug)}>
+          <span className="gtl-glyph">
+            <StoryGlyph emoji={MAJOR_GLYPH[figure.slug]} size={28} />
+          </span>
+          <span className="min-w-0 flex-1">
+            {names}
+            {hook && <span className="gtl-hook">{hook}</span>}
+            {hasTags && <span className="gtl-tags">{tags}</span>}
+          </span>
+        </button>
+        {wifeChips}
+      </div>
+    )
+  }
 
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={[
-        'relative w-full text-left rounded-2xl px-3.5 py-3 border transition-all group overflow-hidden',
-        isJesus
-          ? 'bg-brand border-transparent shadow-[0_10px_28px_-12px_var(--brand-glow)]'
-          : selected
-            ? 'bg-[var(--brand-soft)] border-[color:var(--brand)]'
-            : isMessianic
-              ? 'bg-white dark:bg-card-dark border-[var(--brand-soft-strong)] hover:border-[color:var(--brand)]'
-              : 'bg-white dark:bg-card-dark border-gray-200 dark:border-white/[0.06] hover:border-gray-300 dark:hover:border-white/[0.15]',
-      ].join(' ')}
-    >
-      {/* 다크 카드 미세 광택 */}
-      {!isJesus && (
-        <div className="absolute inset-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-white/[0.04] via-transparent to-white/[0.01]" />
-      )}
-
-      <div className="relative flex items-center gap-3">
-        {/* 아바타: 첫 글자 */}
-        <div
-          className={[
-            'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-[15px] font-bold',
-            isJesus
-              ? 'bg-white/25 text-white backdrop-blur-sm'
-              : isMessianic
-                ? 'bg-[var(--brand-soft)] text-brand ring-1 ring-[var(--brand-soft-strong)]'
-                : isFemale
-                  ? 'bg-pink-50 dark:bg-pink-500/10 text-pink-700 dark:text-pink-300'
-                  : 'bg-gray-100 dark:bg-white/[0.05] text-gray-600 dark:text-white/70',
-          ].join(' ')}
-        >
-          {figure.name_ko.charAt(0)}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span
-              className={[
-                'text-[14.5px] font-bold tracking-[-0.01em] truncate',
-                isJesus ? 'text-white' : 'text-ink-strong',
-              ].join(' ')}
-            >
-              {figure.name_ko}
-            </span>
-            {isMessianic && !isJesus && (
-              <span
-                className="w-1.5 h-1.5 rounded-full bg-brand flex-shrink-0"
-                title="메시아 직계"
-              />
-            )}
-          </div>
-          <div
-            className={[
-              'flex items-center gap-1.5 text-[11.5px] truncate',
-              isJesus ? 'text-white/85' : 'text-gray-500 dark:text-white/55',
-            ].join(' ')}
-          >
-            <span
-              className={[
-                'inline-flex items-center px-1.5 h-[18px] rounded-md text-[10.5px] font-semibold',
-                isJesus
-                  ? 'bg-white/25 text-white'
-                  : isFemale
-                    ? 'bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300'
-                    : isMessianic
-                      ? 'bg-[var(--brand-soft)] text-brand'
-                      : 'bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/60',
-              ].join(' ')}
-            >
-              {tagLabel}
-            </span>
-            {figure.name_en && (
-              <span className="truncate opacity-80">{figure.name_en}</span>
-            )}
-          </div>
-          {isLoggedIn && (
-            <div
-              className={[
-                'mt-2 h-1 rounded-full overflow-hidden',
-                isJesus ? 'bg-white/20' : 'bg-gray-100 dark:bg-white/[0.06]',
-              ].join(' ')}
-            >
-              <div
-                className={[
-                  'h-full rounded-full transition-all duration-500',
-                  isJesus
-                    ? 'bg-white'
-                    : 'bg-brand',
-                ].join(' ')}
-                style={{ width: `${Math.max(progress > 0 ? 4 : 0, progress * 100)}%` }}
-              />
-            </div>
-          )}
-        </div>
-
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={[
-            'flex-shrink-0 transition-transform group-hover:translate-x-0.5',
-            isJesus ? 'text-white/90' : 'text-gray-400 dark:text-white/35',
-          ].join(' ')}
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </div>
-    </button>
+    <div className="gtl-row-wrap">
+      <button
+        type="button"
+        className={`gtl-row${selected ? ' is-selected' : ''}${isWoman ? ' is-woman' : ''}`}
+        onClick={() => onSelect(figure.slug)}
+      >
+        {names}
+        {hook && <span className="gtl-hook">{hook}</span>}
+        {hasTags && <span className="gtl-tags">{tags}</span>}
+      </button>
+      {wifeChips}
+    </div>
   )
 }
 
