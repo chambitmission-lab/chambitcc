@@ -33,6 +33,8 @@ interface BookJourneyPathProps {
   /** 진행 기록이 하나도 없으면 이정표의 0%는 노이즈이므로 숨긴다 */
   showRates: boolean
   language: 'ko' | 'en'
+  /** 마우스 호버 시 권 개관 미리보기 핸들러 (BookSelector 의 useBookIntroPeek) */
+  peekProps?: (book: BibleBook) => object
 }
 
 /** 노드 지름·행 높이 — CSS(.bjp-node 등)와 함께 맞춰야 한다.
@@ -68,6 +70,7 @@ const BookJourneyPath = ({
   milestones,
   showRates,
   language,
+  peekProps,
 }: BookJourneyPathProps) => {
   const wrapRef = useRef<HTMLDivElement>(null)
   const currentNodeRef = useRef<HTMLButtonElement>(null)
@@ -417,6 +420,7 @@ const BookJourneyPath = ({
             }}
             aria-label={`${language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko} · ${meta}${isCurrent ? ` · ${t.here}` : ''}${isNext ? ` · ${t.next}` : ''}`}
             onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+            {...peekProps?.(book)}
           >
             <span
               className="bjp-node"

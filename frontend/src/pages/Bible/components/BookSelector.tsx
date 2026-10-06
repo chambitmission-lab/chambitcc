@@ -12,6 +12,7 @@ import { readingSceneFor } from '../../../utils/themeAssets'
 const BibleProgressMap = lazyModal(() => import('./BibleProgressMap'))
 const preloadProgressMap = () => void BibleProgressMap.preload()
 import BookJourneyPath from './BookJourneyPath'
+import { useBookIntroPeek, type PeekBook } from '../../../components/bible/BookIntroPeek'
 import { aggregateRange, buildBookInfoMap } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
 import {
@@ -111,6 +112,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   }
 
   const infoMap = useMemo(() => buildBookInfoMap(books, progress), [books, progress])
+
+  // 책에 마우스를 올리면 권 개관 미리보기 — 마우스 기기에서만 동작한다
+  const { peekProps, peekNode } = useBookIntroPeek()
+  const peekBook = (book: BibleBook): PeekBook => ({
+    bookNumber: book.book_number,
+    bookName: language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko,
+    totalChapters: book.chapter_count,
+  })
 
   // 지금 읽는 책 — 가장 최근에 펼친 책. 여정 보기(BookJourneyPath)의 '지금 여기'와 같은 규칙이라
   // 보기를 바꿔도 강조되는 책이 달라지지 않는다.
@@ -340,6 +349,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           .filter(Boolean)
           .join(' · ')}
         onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+        {...peekProps(peekBook(book))}
       >
         {/* 지금 읽는 책은 표 전체에서 딱 한 칸 — 배지 하나로 시선을 먼저 잡는다 */}
         {isCurrent && !isComplete && <span className="book-cell__badge">{t.reading}</span>}
@@ -427,6 +437,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           .filter(Boolean)
           .join(' · ')}
         onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+        {...peekProps(peekBook(book))}
       >
         <span className="book-row__num" aria-hidden="true">
           {book.book_number}
@@ -826,6 +837,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             }
             showRates={hasAnyProgress}
             language={language}
+            peekProps={book => peekProps(peekBook(book))}
           />
         ) : viewMode === 'list' ? (
           <>
@@ -859,6 +871,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           </div>
         )}
       </div>
+      {peekNode}
     </div>
   )
 }

@@ -1,0 +1,221 @@
+/* /bible 책 목록 호버 미리보기 — bip- 접두사 (BookIntroPeek). 마우스 기기 전용, 읽기 전용 말풍선 */
+
+.bip {
+  position: fixed;
+  z-index: 60;
+  box-sizing: border-box;
+  padding: 14px 16px 15px;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 2px 4px rgba(24, 26, 40, 0.06), 0 18px 40px -12px rgba(24, 26, 40, 0.28);
+  color: var(--text-body);
+  font-size: 13px;
+  line-height: 1.55;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px) scale(0.98);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.bip.is-placed {
+  opacity: 1;
+  transform: none;
+}
+.bip[data-side='right'].is-placed { animation: bip-in-r 0.18s ease; }
+.bip[data-side='left'].is-placed { animation: bip-in-l 0.18s ease; }
+@keyframes bip-in-r { from { opacity: 0; transform: translateX(-6px); } }
+@keyframes bip-in-l { from { opacity: 0; transform: translateX(6px); } }
+
+/* 위쪽 1px 빛줄 — 다크 카드 합의 */
+.bip::before {
+  content: '';
+  position: absolute;
+  inset: 0 16px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--genre) 45%, transparent), transparent);
+}
+
+.bip-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--genre);
+  margin-bottom: 6px;
+}
+.bip-eyebrow__icon { font-size: 15px; }
+.bip-eyebrow__dot { color: var(--text-muted); font-weight: 400; }
+.bip-eyebrow__ch { color: var(--text-muted); font-weight: 600; }
+
+.bip-title {
+  margin: 0 0 2px;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+}
+
+.bip-oneliner {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+  line-height: 1.45;
+  word-break: keep-all;
+}
+.bip-theme {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--genre-soft);
+  font-size: 12.5px;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+
+/* 작은 소제목 — 한글이라 uppercase·자간 과장 없이 */
+.bip-cap {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* 구조 막대 */
+.bip-struct { margin-top: 12px; }
+.bip-struct__bar {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bip-struct__seg { flex-basis: 0; background: var(--genre); }
+.bip-struct__labels {
+  display: flex;
+  gap: 2px;
+  margin-top: 5px;
+}
+.bip-struct__label {
+  flex-basis: 0;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bip-struct__label b {
+  display: block;
+  font-weight: 700;
+  color: var(--text-body);
+}
+
+/* 단락이 많을 때 — 두 칸 범례 */
+.bip-struct__legend {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 10px;
+}
+.bip-struct__legend li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.bip-struct__legend b { flex: 0 0 auto; color: var(--text-body); font-weight: 700; }
+.bip-struct__legend span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bip-struct__dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--genre);
+}
+
+.bip-keys {
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px dashed var(--card-border);
+}
+.bip-keys ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.bip-keys li {
+  display: flex;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.bip-keys b {
+  flex: 0 0 auto;
+  min-width: 48px;
+  color: var(--genre);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.bip-keys span {
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bip-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.bip-foot__author {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bip-foot__author .material-icons-round { font-size: 15px; flex: 0 0 auto; }
+.bip-foot__hint {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 700;
+}
+
+/* 불러오는 중 */
+.bip-skel { display: grid; gap: 8px; padding: 2px 0; }
+.bip-skel span {
+  height: 11px;
+  border-radius: 6px;
+  background: var(--surface-inset);
+  animation: bip-pulse 1s ease-in-out infinite alternate;
+}
+.bip-skel span:nth-child(1) { width: 40%; }
+.bip-skel span:nth-child(2) { width: 92%; }
+.bip-skel span:nth-child(3) { width: 70%; }
+@keyframes bip-pulse { to { opacity: 0.45; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bip, .bip.is-placed { animation: none; transition: opacity 0.12s; transform: none; }
+  .bip-skel span { animation: none; }
+}
