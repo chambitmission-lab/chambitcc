@@ -18,6 +18,12 @@ export const getBookIntro = async (
   return (data as BibleBookIntro | null) ?? null
 }
 
+/** 66권 개관 전체 (공개) — 책 목록 호버 미리보기가 한 번에 받아 책별 캐시를 채운다 */
+export const listBookIntros = async (): Promise<BibleBookIntro[]> => {
+  const data = await request<UntypedJson>(BASE, { errorMessage: '권 개관 목록을 불러오지 못했습니다' })
+  return Array.isArray(data) ? (data as BibleBookIntro[]) : []
+}
+
 /** 책 개관 등록/수정 (관리자 전용). 책당 1행이라 PUT 으로 upsert. */
 export const upsertBookIntro = async (
   bookNumber: number,

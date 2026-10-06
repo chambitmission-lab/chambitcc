@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useBookIntro } from '../../hooks/useBibleBookIntro'
-import { getBookIntro } from '../../api/bibleBookIntro'
+import { listBookIntros } from '../../api/bibleBookIntro'
+import type { BibleBookIntro } from '../../types/bibleBookIntro'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 import { getBookGenre, genreStyle, parseBookStructure, parseKeyChapters } from './bookGenre'
 import './BookIntroPeek.css'
 
@@ -11,15 +13,18 @@ import './BookIntroPeek.css'
  * /bible 책 목록(여정·격자·목록)에서 책에 마우스를 올리면 '권 개관'을 미리 보여주는 말풍선.
  *
  * 마우스가 있는 기기(hover: hover + pointer: fine)에서만 켠다 — 터치는 탭이 곧 진입이라
- * 미리보기가 끼어들 틈이 없다. 목록을 훑고 지나갈 때마다 66권 요청이 나가지 않게
- * 머문 지 PREFETCH_MS 뒤에야 받고, OPEN_MS 뒤에 띄운다.
+ * 미리보기가 끼어들 틈이 없다.
+ *
+ * 데이터는 66권을 한 번에(gzip 50KB 남짓) 첫 화면이 끝난 뒤 유휴 시간에 받아 둔다.
+ * 책마다 호버할 때 받으면 첫 호버는 매번 스켈레톤부터 보였다. 유휴 예약 전에 먼저
+ * 호버하면 그 순간 바로 출발한다. 일괄 요청이 실패했을 때만 책별 조회로 물러선다.
+ * 일괄 캐시 키(BOOK_INTRO_ALL_KEY)는 크기 때문에 persist 에서 뺀다(main.tsx).
  *
  * 말풍선은 읽기 전용(pointer-events: none)이라 아래 요소의 클릭을 가로막지 않는다.
  */
 
 const WIDTH = 340
-const OPEN_MS = 380
-const PREFETCH_MS = 140
+const OPEN_MS = 300
 const CLOSE_MS = 140
 const GAP = 12
 const SCROLL_QUIET_MS = 400
@@ -34,23 +39,41 @@ interface PeekTarget {
   rect: DOMRect
 }
 
+/** main.tsx persist 제외 목록과 짝 — 키를 바꾸면 거기도 같이 */
+export const BOOK_INTRO_ALL_KEY = ['bibleBookIntro', 'all'] as const
+
 export interface PeekBook {
   bookNumber: number
   bookName: string
   totalChapters: number
 }
 
+// select 는 참조가 같아야 결과를 다시 계산하지 않는다 — 컴포넌트 밖에 둔다
+const toIntroMap = (list: BibleBookIntro[]) => new Map(list.map(i => [i.book_number, i]))
+
 export const useBookIntroPeek = () => {
-  const qc = useQueryClient()
   const [target, setTarget] = useState<PeekTarget | null>(null)
   const openTimer = useRef<number | undefined>(undefined)
-  const prefetchTimer = useRef<number | undefined>(undefined)
   const closeTimer = useRef<number | undefined>(undefined)
-  const enabled = useRef(canHover())
+  // 마우스 기기 여부는 화면이 떠 있는 동안 바뀌지 않는다고 보고 처음 한 번만 잰다
+  const [enabled] = useState(canHover)
+
+  // 66권 일괄 — 첫 화면이 끝난 뒤 유휴 시간에, 혹은 그 전에 호버하면 즉시 받는다
+  const [wantAll, setWantAll] = useState(false)
+  useEffect(() => {
+    if (!enabled || preloadBudget() === 'none') return
+    return scheduleAfterFirstScreen(() => setWantAll(true), { settleMs: 1200 })
+  }, [enabled])
+  const all = useQuery({
+    queryKey: BOOK_INTRO_ALL_KEY,
+    queryFn: listBookIntros,
+    enabled: enabled && wantAll,
+    staleTime: 1000 * 60 * 30,
+    select: toIntroMap,
+  })
 
   const clearAll = () => {
     window.clearTimeout(openTimer.current)
-    window.clearTimeout(prefetchTimer.current)
     window.clearTimeout(closeTimer.current)
   }
 
@@ -61,7 +84,6 @@ export const useBookIntroPeek = () => {
 
   const scheduleClose = useCallback(() => {
     window.clearTimeout(openTimer.current)
-    window.clearTimeout(prefetchTimer.current)
     window.clearTimeout(closeTimer.current)
     closeTimer.current = window.setTimeout(() => setTarget(null), CLOSE_MS)
   }, [])
@@ -70,7 +92,7 @@ export const useBookIntroPeek = () => {
   // 휠로 굴리는 동안 커서 밑을 지나가는 책마다 열리지 않도록, 직전 스크롤 시각도 기억해 둔다
   const lastScrollAt = useRef(0)
   useEffect(() => {
-    if (!enabled.current) return
+    if (!enabled) return
     const onScroll = () => {
       lastScrollAt.current = performance.now()
       clearAll()
@@ -82,24 +104,18 @@ export const useBookIntroPeek = () => {
       window.removeEventListener('scroll', onScroll, { capture: true })
       window.removeEventListener('resize', onScroll)
     }
-  }, [])
+  }, [enabled])
 
   useEffect(() => clearAll, [])
 
   const peekProps = (book: PeekBook) => {
-    if (!enabled.current) return {}
+    if (!enabled) return {}
     return {
       onPointerEnter: (e: ReactPointerEvent<HTMLElement>) => {
         if (e.pointerType !== 'mouse') return
         const el = e.currentTarget
         clearAll()
-        prefetchTimer.current = window.setTimeout(() => {
-          void qc.prefetchQuery({
-            queryKey: ['bibleBookIntro', 'book', book.bookNumber],
-            queryFn: () => getBookIntro(book.bookNumber),
-            staleTime: 1000 * 60 * 10,
-          })
-        }, PREFETCH_MS)
+        setWantAll(true)
         // 이미 다른 책 말풍선이 떠 있으면 기다리지 않고 바로 옮겨 탄다 — 훑어보기가 끊기지 않게
         const delay = target ? 60 : OPEN_MS
         openTimer.current = window.setTimeout(() => {
@@ -116,6 +132,8 @@ export const useBookIntroPeek = () => {
     <BookIntroPeekBubble
       key={target.bookNumber}
       target={target}
+      allIntros={all.data}
+      allFailed={all.isError}
     />
   ) : null
 
@@ -124,6 +142,10 @@ export const useBookIntroPeek = () => {
 
 interface BubbleProps {
   target: PeekTarget
+  /** 66권 일괄 캐시 — 아직 안 왔으면 undefined */
+  allIntros?: Map<number, BibleBookIntro>
+  /** 일괄 요청이 실패했으면 책별 조회로 물러선다 */
+  allFailed: boolean
 }
 
 /** 구조 단락이 이보다 많으면 막대 아래 한 줄 라벨이 뭉개져서, 두 칸 범례로 바꿔 보여준다 */
@@ -132,8 +154,10 @@ const STRUCT_INLINE_MAX = 4
 /** 개관은 마크다운으로 저장된 필드가 있다 — 말풍선은 평문이라 굵게 표시만 걷어낸다 */
 const plain = (text: string) => text.replace(/\*\*/g, '').trim()
 
-const BookIntroPeekBubble = ({ target }: BubbleProps) => {
-  const { data: intro, isLoading } = useBookIntro(target.bookNumber)
+const BookIntroPeekBubble = ({ target, allIntros, allFailed }: BubbleProps) => {
+  const single = useBookIntro(target.bookNumber, allFailed)
+  const intro = allIntros ? (allIntros.get(target.bookNumber) ?? null) : allFailed ? single.data : undefined
+  const isLoading = allIntros ? false : allFailed ? single.isLoading : true
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ left: number; top: number; side: 'right' | 'left' | 'below' } | null>(null)
 
@@ -251,15 +275,12 @@ const BookIntroPeekBubble = ({ target }: BubbleProps) => {
             </div>
           )}
 
-          <div className="bip-foot">
-            {intro.author_period && (
-              <span className="bip-foot__author">
-                <span className="material-icons-round">edit_note</span>
-                {plain(intro.author_period)}
-              </span>
-            )}
-            <span className="bip-foot__hint">눌러서 읽기</span>
-          </div>
+          {intro.author_period && (
+            <p className="bip-foot">
+              <span className="material-icons-round">edit_note</span>
+              {plain(intro.author_period)}
+            </p>
+          )}
         </>
       )}
     </div>,

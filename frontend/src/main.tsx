@@ -93,6 +93,9 @@ createRoot(document.getElementById('root')!).render(
               // ⌘K 팔레트 검색 결과도 제외 — 디바운스된 검색어마다 항목이 생겨 7일간 쌓이고,
               // 사용자가 무엇을 찾았는지가 기기에 남는다. 열려 있는 동안만 메모리에 두면 충분.
               if (Array.isArray(key) && key[0] === 'cmdk') return false
+              // 66권 권 개관 일괄(책 목록 호버 미리보기, BookIntroPeek)도 제외 — 개관 본문까지 실려
+              // 150KB 남짓이라 매 persist 쓰기가 무거워진다. /bible 진입 뒤 유휴 시간에 다시 받는다
+              if (Array.isArray(key) && key[0] === 'bibleBookIntro' && key[1] === 'all') return false
               // 목회자 영역은 persist 제외 — 맡긴 기도·심방 메모·연락처가 localStorage 에 남으면 안 된다
               // (공용 PC 에서 로그아웃 뒤에도 남는다). 목회자는 소수라 콜드 스타트 비용도 작다.
               if (Array.isArray(key) && typeof key[0] === 'string' && key[0].startsWith('pastor-')) return false

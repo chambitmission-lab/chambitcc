@@ -175,32 +175,15 @@
 
 .bip-foot {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 12px 0 0;
   font-size: 11.5px;
+  line-height: 1.45;
   color: var(--text-muted);
+  word-break: keep-all;
 }
-.bip-foot__author {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.bip-foot__author .material-icons-round { font-size: 15px; flex: 0 0 auto; }
-.bip-foot__hint {
-  flex: 0 0 auto;
-  margin-left: auto;
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: var(--brand-soft);
-  color: var(--brand);
-  font-weight: 700;
-}
+.bip-foot .material-icons-round { font-size: 15px; flex: 0 0 auto; margin-top: 1px; }
 
 /* 불러오는 중 */
 .bip-skel { display: grid; gap: 8px; padding: 2px 0; }
