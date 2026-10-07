@@ -1,11 +1,10 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
+import { CareRadar } from './sharedPages'
 
 // 목회자 영역 /pastor — 브리핑·돌봄·명부·심방·일정·설교 준비·리포트·비서
 
 const PastorHome = lazy(() => import('../pages/Pastor/PastorHome'))
-// 돌봄 레이더는 관리자 화면(/admin/care)과 같은 모듈 — scope 만 다르다
-const CareRadar = lazy(() => import('../pages/Admin/CareRadar'))
 const PastorMembers = lazy(() => import('../pages/Pastor/PastorMembers'))
 const PastorMemberDetail = lazy(() => import('../pages/Pastor/PastorMemberDetail'))
 const PastorVisits = lazy(() => import('../pages/Pastor/PastorVisits'))

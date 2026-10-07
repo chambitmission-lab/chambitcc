@@ -1,10 +1,10 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
+import { CareRadar } from './sharedPages'
 
 // 관리자 화면 /admin/*
 
 const AdminDashboard = lazy(() => import('../pages/Admin/AdminDashboard'))
-const CareRadar = lazy(() => import('../pages/Admin/CareRadar'))
 const NotificationManagement = lazy(() => import('../pages/Admin/NotificationManagement'))
 const DailyVerseManagement = lazy(() => import('../pages/Admin/DailyVerseManagement'))
 const BulletinManagement = lazy(() => import('../pages/Admin/BulletinManagement'))
