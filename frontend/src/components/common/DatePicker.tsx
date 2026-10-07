@@ -2,9 +2,10 @@
 // 네이티브 <input type="date">는 브라우저 로케일을 따라 08/02/2026처럼
 // 미국식으로 보이고 달력 디자인도 OS 기본이라, 앱 전역에서 이 컴포넌트를 쓴다.
 // 앱 언어(ko/en)를 따라 라벨·표기가 바뀐다 — 영어 화면에서도 그대로 쓸 수 있게.
-import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { Fragment, useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useHolidayMap, yearsForMonthView } from '../../hooks/useHolidays'
 
 interface DatePickerProps {
   value: string // YYYY-MM-DD 형식
@@ -254,6 +255,18 @@ const DatePicker = ({
   }, [isOpen])
 
   const cells = useMemo(() => buildGrid(view.y, view.m), [view])
+
+  // 법정 공휴일(임시·대체공휴일 포함) — 일 격자를 열었을 때만 받는다. 생년월일은 먼 과거라 부르지 않는다
+  const holidayYears = useMemo(
+    () => (isOpen && panel === 'days' && !birthMode ? yearsForMonthView(new Date(view.y, view.m, 1)) : []),
+    [isOpen, panel, birthMode, view],
+  )
+  const holidays = useHolidayMap(holidayYears)
+  // 칸이 작아 이름은 격자 아래 한 줄로 — 이번 달 것만
+  const monthHolidays = useMemo(
+    () => cells.filter((c) => c.inMonth && holidays.has(c.iso)).map((c) => ({ d: c.d, name: holidays.get(c.iso) as string })),
+    [cells, holidays],
+  )
   const today = todayISO()
   const triggerParts = dateParts(value, isEn)
 
@@ -508,13 +521,17 @@ const DatePicker = ({
                   const col = i % 7
                   const selected = c.iso === value
                   const isToday = c.iso === today
+                  const holidayName = holidays.get(c.iso)
 
                   // 일요일은 빨강·토요일은 파랑 — 한국 달력 관례.
                   // 주일 모드에서는 여기에 더해 일요일을 굵게 하고 평일·토요일을
                   // 한 단계 물러나게 해서, 색을 바꾸지 않고도 주일이 먼저 눈에 들어온다.
                   let tone = 'text-gray-300 dark:text-white/20' // 앞뒤 달 날짜
                   if (c.inMonth) {
-                    if (col === 0) {
+                    if (holidayName && col !== 0) {
+                      // 공휴일은 요일과 상관없이 일요일과 같은 빨강
+                      tone = 'text-rose-500 dark:text-rose-400'
+                    } else if (col === 0) {
                       tone = `text-rose-500 dark:text-rose-400${sundayMode ? ' font-bold' : ''}`
                     } else if (col === 6) {
                       tone = sundayMode
@@ -533,7 +550,8 @@ const DatePicker = ({
                       type="button"
                       disabled={disabled}
                       onClick={() => pick(c.iso)}
-                      aria-label={formatFull(c.iso, isEn)}
+                      aria-label={holidayName ? `${formatFull(c.iso, isEn)} ${holidayName}` : formatFull(c.iso, isEn)}
+                      title={holidayName}
                       aria-pressed={selected}
                       {...(isToday ? { 'aria-current': 'date' as const } : {})}
                       className={`relative mx-auto grid h-9 w-9 place-items-center rounded-full text-[13px] tabular-nums transition-all active:scale-90${lg.day} ${
@@ -553,6 +571,20 @@ const DatePicker = ({
                   )
                 })}
               </div>
+
+              {monthHolidays.length > 0 && (
+                <div className={`mt-2 rounded-lg bg-rose-50/70 px-2.5 py-1.5 text-[11.5px] leading-[1.6] text-rose-600 break-keep dark:bg-rose-400/[0.07] dark:text-rose-300${large ? ' lg:text-[14px]' : ''}`}>
+                  {/* 항목 사이 공백이 줄바꿈 자리 — 항목 안(날짜+이름)은 끊지 않는다 */}
+                  {monthHolidays.map((h, i) => (
+                    <Fragment key={h.d}>
+                      {i > 0 && <span className="text-rose-300 dark:text-rose-300/40"> · </span>}
+                      <span className="whitespace-nowrap">
+                        <span className="font-bold tabular-nums">{isEn ? h.d : `${h.d}일`}</span> {h.name}
+                      </span>
+                    </Fragment>
+                  ))}
+                </div>
+              )}
             </>
           )}
 
