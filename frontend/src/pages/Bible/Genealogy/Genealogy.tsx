@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMessianicGenealogy, usePrefetchBibleFigure } from '../../../hooks/useBibleFigure'
@@ -13,6 +13,7 @@ import { tokenStore } from '../../../utils/tokenStore'
 
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { GENEALOGY_HERO } from '../../../utils/themeAssets'
+import { warmGenealogySerif } from './warmSerifGlyphs'
 
 const encouragement = (p: number) => {
   if (p >= 1) return '완독했어요!'
@@ -59,6 +60,29 @@ export const Genealogy = () => {
   // 받는다 — 현재 테마를 받아 페이드인하고, 반대 테마는 유휴 시간에 데운다(themeAssets.ts)
   const heroReady = useThemeArt(GENEALOGY_HERO)
   const prefetchFigure = usePrefetchBibleFigure()
+
+  // 상세 요청은 FigureDetailPanel 이 마운트돼야 출발했다 — 탭 → 타임라인·시트 렌더가 끝난 뒤.
+  // 선택과 동시에 프리페치해 렌더와 네트워크를 겹친다(같은 쿼리 키라 패널의 useQuery 가 그대로 이어받는다).
+  const selectFigure = useCallback(
+    (slug: string | null) => {
+      if (slug) prefetchFigure(slug)
+      setSelectedSlug(slug)
+    },
+    [prefetchFigure],
+  )
+
+  // 인물 상세의 명조 제목·소개에 쓰일 Noto Serif KR 조각을 유휴 시간에 미리 받아 둔다
+  useEffect(() => {
+    if (!data) return
+    const nodes = data.nodes
+    const run = () => void warmGenealogySerif(nodes)
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(run, { timeout: 3000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const t = window.setTimeout(run, 300)
+    return () => window.clearTimeout(t)
+  }, [data])
 
   const isLoggedIn = !!tokenStore.getAccess()
 
@@ -335,7 +359,7 @@ export const Genealogy = () => {
                   links={data.links}
                   readingProgress={data.reading_progress}
                   selectedSlug={selectedSlug}
-                  onSelect={setSelectedSlug}
+                  onSelect={selectFigure}
                   onHover={prefetchFigure}
                   isLoggedIn={isLoggedIn}
                   highlightSlugs={query || roleFilter !== 'all' ? matchedSlugs : null}
@@ -346,7 +370,8 @@ export const Genealogy = () => {
                   links={data.links}
                   readingProgress={data.reading_progress}
                   selectedSlug={selectedSlug}
-                  onSelect={setSelectedSlug}
+                  onSelect={selectFigure}
+                  onPrefetch={prefetchFigure}
                   isLoggedIn={isLoggedIn}
                   isFiltered={!!query.trim() || roleFilter !== 'all'}
                 />
@@ -359,7 +384,7 @@ export const Genealogy = () => {
                 <FigureDetailPanel
                   slug={selectedSlug}
                   summary={selectedSummary}
-                  onSelect={setSelectedSlug}
+                  onSelect={selectFigure}
                   onClose={() => setSelectedSlug(null)}
                 />
               </div>
@@ -394,7 +419,7 @@ export const Genealogy = () => {
                 <FigureDetailPanel
                   slug={selectedSlug}
                   summary={selectedSummary}
-                  onSelect={setSelectedSlug}
+                  onSelect={selectFigure}
                   onClose={() => setSelectedSlug(null)}
                   variant="sheet"
                 />

@@ -63,6 +63,13 @@ export const loadDeferredFonts = (): void => {
 /** 명조 읽기처럼 사용자가 방금 고른 서체는 기다리지 않고 즉시 붙인다 */
 export const ensureDeferredFontsNow = (): void => appendAlways()
 
+/**
+ * Noto Serif KR @font-face 가 CSSOM 에 들어간 뒤 resolve — document.fonts.load() 로 특정 글자의
+ * unicode-range 조각을 미리 받아 두려는 화면(가계도 인물 상세 등)이 먼저 await 한다.
+ */
+export const ensureSerifKr = (): Promise<void> =>
+  typeof document === 'undefined' ? Promise.resolve() : appendSheet(ALWAYS_SHEETS[0])
+
 /** 특정 화면 전용 서체 — 쓰는 모듈이 로드될 때 호출한다(중복 호출은 무시). */
 export const ensureFontFamily = (family: DeferredFontFamily): Promise<void> =>
   typeof document === 'undefined' ? Promise.resolve() : appendSheet(ON_DEMAND_SHEETS[family])

@@ -35,6 +35,8 @@ interface EraTimelineProps {
   readingProgress: Record<string, number>
   selectedSlug: string | null
   onSelect: (slug: string) => void
+  /** 손가락이 닿는 순간(pointerdown)·마우스 올림에 상세를 미리 받아 둔다 — click 보다 50~150ms 앞선다 */
+  onPrefetch?: (slug: string) => void
   isLoggedIn: boolean
   /** 검색·역할 필터가 걸려 있으면 세대를 접지 않고 시대 징검다리도 숨긴다 */
   isFiltered: boolean
@@ -99,6 +101,7 @@ export const EraTimeline = ({
   readingProgress,
   selectedSlug,
   onSelect,
+  onPrefetch,
   isLoggedIn,
   isFiltered,
 }: EraTimelineProps) => {
@@ -224,6 +227,12 @@ export const EraTimeline = ({
     )
   }
 
+  // 인물 버튼 공통 — 누르기 시작하는 순간 상세 요청을 출발시킨다(시트 렌더와 겹쳐 돈다)
+  const warm = (slug: string) => ({
+    onPointerDown: () => onPrefetch?.(slug),
+    onMouseEnter: () => onPrefetch?.(slug),
+  })
+
   const toggleRun = (key: string) =>
     setOpenRuns((prev) => {
       const next = new Set(prev)
@@ -344,7 +353,7 @@ export const EraTimeline = ({
                   return (
                     <div key={step.key} className="gtr-node gtr-node--finale" style={style} data-lit={!isLoggedIn || isRead(f.slug) || f.slug === hereSlug || undefined}>
                       <div className={`gtr-finale${f.slug === selectedSlug ? ' is-selected' : ''}`}>
-                        <button type="button" className="gtr-finale__star gtr-anchor" onClick={() => onSelect(f.slug)} aria-label={shortName(f.name_ko)}>
+                        <button type="button" className="gtr-finale__star gtr-anchor" onClick={() => onSelect(f.slug)} {...warm(f.slug)} aria-label={shortName(f.name_ko)}>
                           <StarFour size={44} weight="duotone" />
                         </button>
                         <small>이 계보가 향하던 곳</small>
@@ -388,6 +397,7 @@ export const EraTimeline = ({
                               key={f.slug}
                               type="button"
                               onClick={() => onSelect(f.slug)}
+                              {...warm(f.slug)}
                               className={f.slug === selectedSlug ? 'is-selected' : ''}
                             >
                               {shortName(f.name_ko)}
@@ -415,6 +425,7 @@ export const EraTimeline = ({
                     <button
                       type="button"
                       onClick={() => onSelect(f.slug)}
+                      {...warm(f.slug)}
                       aria-label={shortName(f.name_ko)}
                       className={[
                         'gtr-btn gtr-anchor',
@@ -451,6 +462,7 @@ export const EraTimeline = ({
                             key={w.slug}
                             type="button"
                             onClick={() => onSelect(w.slug)}
+                            {...warm(w.slug)}
                             className={w.slug === selectedSlug ? 'is-selected' : ''}
                           >
                             ♥ {shortName(w.name_ko)}
