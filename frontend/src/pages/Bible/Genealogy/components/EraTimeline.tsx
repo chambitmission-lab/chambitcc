@@ -20,6 +20,7 @@ import {
   type Icon,
 } from '../../../../components/icons/phosphor'
 import chambiJoy from '../../../../components/chatbot/img/joy.webp'
+import { smoothScrollToElement } from '../../../../utils/scrollTo'
 import { ERAS, FIGURE_HOOK, JESUS_SLUG, MAJOR_GLYPH, MAJOR_REF, type EraInfo } from '../genealogyStory'
 
 /**
@@ -235,7 +236,12 @@ export const EraTimeline = ({
   const lineDone = lineAll.filter((n) => isRead(n.slug)).length
   const hereEra = hereSlug ? sections.findIndex((s) => s.group.figures.some((f) => f.slug === hereSlug)) : -1
 
-  const jumpTo = (i: number) => sectionRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  // scrollIntoView(smooth) 는 body 스크롤 구조에서 모바일이 조용히 실패한다 — 스크롤러를 직접 민다.
+  // 배너가 붙은 징검다리 바로 아래(헤더 56 + 간격 8 + 바 높이 + 12)에 오게 한다
+  const jumpTo = (i: number) =>
+    smoothScrollToElement(sectionRefs.current[i], {
+      offset: 64 + (barRef.current?.getBoundingClientRect().height ?? 100) + 12,
+    })
 
   return (
     <div ref={rootRef} className="gtr">

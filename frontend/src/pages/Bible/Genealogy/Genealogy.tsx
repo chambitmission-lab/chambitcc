@@ -1,5 +1,4 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { useSheetPullToClose } from '../../../hooks/useSheetPullToClose'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMessianicGenealogy, usePrefetchBibleFigure } from '../../../hooks/useBibleFigure'
@@ -391,7 +390,7 @@ export const Genealogy = () => {
               transition={{ type: 'spring', damping: 32, stiffness: 280 }}
               className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
             >
-              <FigureSheet onClose={() => setSelectedSlug(null)}>
+              <FigureSheet>
                 <FigureDetailPanel
                   slug={selectedSlug}
                   summary={selectedSummary}
@@ -411,18 +410,16 @@ export const Genealogy = () => {
   )
 }
 
-/** 모바일 시트 본체 — 본문이 맨 위일 때 아래로 끌어내리면 닫힌다(바깥 motion.div 가 퇴장 애니메이션 담당) */
-const FigureSheet = ({ onClose, children }: { onClose: () => void; children: ReactNode }) => {
-  const { sheetRef, scrollRef } = useSheetPullToClose(onClose)
+/** 모바일 시트 본체 — 닫기는 X 버튼·바깥 딤 탭으로만(끌어내려 닫기 없음, 바깥 motion.div 가 퇴장 애니메이션 담당) */
+const FigureSheet = ({ children }: { children: ReactNode }) => {
   return (
     <div
-      ref={sheetRef}
       className="max-h-[88vh] bg-white dark:bg-card-dark rounded-t-[28px] shadow-[0_-20px_60px_-10px_var(--brand-glow)] border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden"
     >
       <div className="flex-shrink-0 flex justify-center py-2.5">
         <div className="w-10 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full" />
       </div>
-      <div ref={scrollRef} className="overflow-y-auto overscroll-contain">
+      <div className="overflow-y-auto overscroll-contain">
         {children}
       </div>
     </div>
