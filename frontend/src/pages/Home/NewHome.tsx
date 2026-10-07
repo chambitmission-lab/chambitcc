@@ -41,7 +41,6 @@ import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 // 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
 // import ThanksThread from './components/ThanksThread'
 import SortTabs, { DesktopSortToggle } from './components/SortTabs'
-import FeedTextScaleToggle from './components/FeedTextScaleToggle'
 import { useFeedTextScale, type FeedTextScale } from '../../utils/feedTextScale'
 import DesktopComposerCard from './components/DesktopComposerCard'
 import PrayerFeed from './components/PrayerFeed'
@@ -532,11 +531,7 @@ const NewHome = () => {
             
             <SortTabs currentSort={sort} onSortChange={setSort} />
 
-            {/* PC 글씨 크기 — 노안인 성도를 위해. 툴바는 이미 세그먼트 탭으로 차 있어 따로 한 줄 */}
-            <div className="hidden lg:flex justify-end px-4 pt-1">
-              <FeedTextScaleToggle />
-            </div>
-
+            {/* PC 글씨 크기는 정렬 메뉴(DesktopSortToggle) 안 + 헤더 '가' — 피드 위 별도 줄은 두지 않는다 */}
             {showOfflineWithoutCache ? (
               <div className="px-4 py-12 text-center">
                 <span className="text-5xl mb-3 block">📡</span>

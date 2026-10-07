@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { SortType } from '../../../types/prayer'
+import { FEED_TEXT_SCALES, setFeedTextScale, useFeedTextScale, type FeedTextScale } from '../../../utils/feedTextScale'
 
 interface SortTabsProps {
   currentSort: SortType
@@ -43,7 +44,8 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
   )
 }
 
-// PC 전용 정렬 메뉴 — 탭 줄 오른쪽 끝 "따뜻한 관심순 ▾" 글자 드롭다운.
+// PC 전용 정렬 메뉴 — 탭 줄 오른쪽 끝 "따뜻한 관심순 ▾" 글자 드롭다운. 기도 글씨 크기도 이 안에서 고른다
+// (피드 위에 따로 있던 글씨 크기 줄을 없애려는 것 — 헤더 '가'와 같은 저장소라 어디서 바꿔도 함께 따라간다).
 // 아이콘 2칸(하트·시계)은 정렬이라는 게 읽히지 않았다. 글자 수 차이로 폭이 출렁여 옆 탭 트랙을
 // 밀지 않도록, 버튼 안에 모든 라벨을 같은 칸에 겹쳐 두고 가장 긴 라벨 폭으로 고정한다.
 const SORT_OPTIONS: { sort: SortType; descKey: 'popularDesc' | 'latestDesc'; icon: React.ReactNode }[] = [
@@ -64,6 +66,9 @@ const SORT_OPTIONS: { sort: SortType; descKey: 'popularDesc' | 'latestDesc'; ico
   },
 ]
 
+// 버튼 글자 자체가 단계별로 커져 "누르면 이만큼 커진다"가 설명 없이 보인다 (FeedTextScaleToggle과 같은 문법)
+const GLYPH_PX: Record<FeedTextScale, number> = { base: 13, large: 16, xlarge: 19 }
+
 const LineIcon = ({ className, children }: { className: string; children: React.ReactNode }) => (
   <svg
     className={className}
@@ -80,7 +85,8 @@ const LineIcon = ({ className, children }: { className: string; children: React.
 )
 
 export const DesktopSortToggle = ({ currentSort, onSortChange }: SortTabsProps) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const textScale = useFeedTextScale()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const menuId = useId()
@@ -106,7 +112,7 @@ export const DesktopSortToggle = ({ currentSort, onSortChange }: SortTabsProps) 
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         className={`h-10 pl-3.5 pr-2.5 rounded-full flex items-center gap-1 text-[13px] font-semibold whitespace-nowrap transition-colors duration-150 ${
@@ -135,7 +141,7 @@ export const DesktopSortToggle = ({ currentSort, onSortChange }: SortTabsProps) 
       {open && (
         <div
           id={menuId}
-          role="menu"
+          role="dialog"
           aria-label={t('sortMenuLabel')}
           className="absolute right-0 top-full mt-1.5 z-50 min-w-[220px] p-1.5 rounded-2xl bg-[var(--surface-container)] border border-[var(--card-border)] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6)]"
         >
@@ -148,8 +154,7 @@ export const DesktopSortToggle = ({ currentSort, onSortChange }: SortTabsProps) 
               <button
                 key={sort}
                 type="button"
-                role="menuitemradio"
-                aria-checked={active}
+                aria-pressed={active}
                 onClick={() => {
                   onSortChange(sort)
                   setOpen(false)
@@ -171,6 +176,43 @@ export const DesktopSortToggle = ({ currentSort, onSortChange }: SortTabsProps) 
               </button>
             )
           })}
+
+          <div className="mx-1.5 my-1.5 border-t border-[var(--card-border)]" />
+          <p className="px-2.5 pt-0.5 pb-1.5 text-[11.5px] font-medium text-gray-400 dark:text-gray-500">
+            {language === 'ko' ? '글씨 크기' : 'Text size'}
+          </p>
+          {/* 고른 뒤에도 메뉴를 닫지 않는다 — 피드 글씨가 바뀌는 걸 보면서 맞출 수 있게 */}
+          <div
+            role="group"
+            aria-label={language === 'ko' ? '기도 글씨 크기' : 'Prayer text size'}
+            className="flex gap-1 px-1.5 pb-1"
+          >
+            {FEED_TEXT_SCALES.map((s) => {
+              const active = textScale === s
+              const name =
+                language === 'ko'
+                  ? { base: '보통', large: '크게', xlarge: '아주 크게' }[s]
+                  : { base: 'Normal', large: 'Large', xlarge: 'Extra large' }[s]
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setFeedTextScale(s)}
+                  aria-pressed={active}
+                  aria-label={name}
+                  title={name}
+                  className={`flex-1 h-10 rounded-xl flex items-center justify-center font-bold leading-none transition-colors duration-150 ${
+                    active
+                      ? 'bg-[var(--brand-soft-strong)] text-brand'
+                      : 'bg-black/[0.04] text-gray-500 hover:text-gray-700 dark:bg-white/[0.06] dark:text-gray-400 dark:hover:text-gray-200'
+                  }`}
+                  style={{ fontSize: GLYPH_PX[s] }}
+                >
+                  {language === 'ko' ? '가' : 'A'}
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>
