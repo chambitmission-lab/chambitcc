@@ -1567,7 +1567,8 @@
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 5px;
-    max-height: min(46vh, 380px);
+    /* zoom 화면(PC 글씨 크기·대형 모니터) 안에선 vh 도 커진다 — 배율로 되돌린다 */
+    max-height: min(calc(46vh / var(--az, 1)), 380px);
     overflow-y: auto;
     padding: 4px;
     scrollbar-width: thin;
