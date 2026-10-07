@@ -65,6 +65,8 @@ export const sermonKeys = {
   infinite: () => [...sermonKeys.all, 'infinite'] as const,
   detail: (sermonId: number) => ['sermon', sermonId] as const,
   bibleReferences: (sermonId: number | null) => ['sermon-bible-references', sermonId] as const,
+  /** 내가 붙잡은 한 줄 전체 — sermonKeys.all 무효화(설교 등록·수정)에 휩쓸리지 않게 별도 루트 */
+  takeaways: () => ['sermon-takeaways'] as const,
 }
 
 export const columnKeys = {
