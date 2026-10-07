@@ -1,6 +1,6 @@
 // 설교 상세 모달 — 와이드 시네마 레이아웃:
 //   헤더(날짜·예배구분·액션) → 사진 리드(제목·성구 인용) → 메타 스트립 → 플레이어 → 본문 카드
-// 색·질감은 theme.css 토큰만 참조하고, 문법은 목록(SermonHero)의 편집 위계를 잇는다.
+// 색·질감은 theme.css 토큰만 참조하고, 문법은 목록(SermonLetterHero)의 편집 위계를 잇는다.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Sermon } from '../../../types/sermon'

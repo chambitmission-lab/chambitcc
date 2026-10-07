@@ -135,11 +135,6 @@
   padding-left: 0.25rem;
 }
 
-.sermon-month-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
 
 /* 무한 스크롤 */
 .sermon-load-more {
@@ -284,36 +279,6 @@
   /* 예배 유형 칩은 레일의 목록이 대신한다 */
   .sermon-filter-chips {
     display: none;
-  }
-
-  /* 히어로 — 지금까지 8% 투명도 배경으로만 쓰던 썸네일을 우측 사진 패널로.
-     넓어진 폭을 채우면서 본문(성구·제목)은 읽기 좋은 폭으로 유지된다.
-     썸네일이 없는 설교(.has-thumb 없음)는 기존 한 단 그대로. */
-  .sermon-hero {
-    padding: 1.5rem 1.5rem 1.375rem;
-  }
-
-  .sermon-hero.has-thumb {
-    padding-right: calc(38% + 1.5rem);
-  }
-
-  .sermon-hero.has-thumb .sermon-hero-thumb {
-    inset: 1.5rem 1.5rem 1.5rem auto;
-    width: calc(38% - 1.5rem);
-    opacity: 1;
-    border-radius: 14px;
-    border: 1px solid var(--card-border);
-    filter: var(--media-dim);
-  }
-
-  [data-theme="dark"] .sermon-hero.has-thumb .sermon-hero-thumb {
-    opacity: 1;
-  }
-
-  /* 지난 말씀 — 노안 패스(2026-09-25): 2열에선 제목이 금방 말줄임돼 한 줄씩 크게 읽히도록 1열로.
-     행 자체가 커져(SermonRow.css) 넓은 본문 폭을 채운다 */
-  .sermon-month-rows {
-    gap: 0.625rem;
   }
 
   /* ── PC 노안 패스 — 제목·아카이브·레일 글씨를 한 단계씩 키운다 ── */

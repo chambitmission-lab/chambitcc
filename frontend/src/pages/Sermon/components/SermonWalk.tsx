@@ -1,6 +1,6 @@
 // 이번 주 말씀과 동행하기 — 본문 읽기 → 설교 듣기 → 한 줄 붙잡기
 // 1·2단계는 기기 편의 기록(localStorage), 3단계 '한 줄'만 서버에 남아 지난 편지 위에 손글씨로 다시 보인다.
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
@@ -39,16 +39,12 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
   const [draft, setDraft] = useState('')
   const [editing, setEditing] = useState(false)
 
-  useEffect(() => {
-    setWalk(readWalk(sermon.id))
-    setPassageOpen(false)
-    setEditing(false)
-    setDraft('')
-  }, [sermon.id])
-
-  useEffect(() => {
-    if (passageSignal > 0) setPassageOpen(true)
-  }, [passageSignal])
+  // 히어로 '본문 읽기' 신호가 바뀌면 1단계를 펼친다 (렌더 중 조정 — 설교가 바뀌면 부모가 key 로 새로 그린다)
+  const [seenSignal, setSeenSignal] = useState(passageSignal)
+  if (passageSignal !== seenSignal) {
+    setSeenSignal(passageSignal)
+    setPassageOpen(true)
+  }
 
   const mark = (patch: Partial<WalkState>) => {
     setWalk((prev) => {

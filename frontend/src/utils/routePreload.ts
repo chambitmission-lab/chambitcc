@@ -9,6 +9,8 @@ type RouteLoader = () => Promise<{ default: ComponentType }>
 
 // 발자취 시범 화면 — App.tsx lazy 와 딥링크 프리로드가 같은 로더를 쓴다
 export const historyLabLoader: RouteLoader = withChurchHistory(() => import('../pages/History/labs/HistoryLab'))
+// 설교 시범 화면(영상 히어로) — /sermon 상단 배너로만 들어온다
+export const sermonLabLoader: RouteLoader = () => import('../pages/Sermon/SermonLab')
 
 // 햄버거 메뉴에서 진입하는 lazy 페이지들의 동적 import를 한곳에 모음.
 // App.tsx의 lazy()와 같은 함수를 공유해야 프리로드한 청크가 그대로 재사용된다.
@@ -116,6 +118,7 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
   // 발자취 시범 화면 — 기존 /history 상단 배너로만 들어오므로 메뉴 프리로드에 넣지 않는다
   { key: 'history/new', match: /^\/history\/new$/, load: historyLabLoader },
+  { key: 'sermon/new', match: /^\/sermon\/new$/, load: sermonLabLoader },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
   { key: 'seats/detail', match: /^\/seats\/[^/]+$/, load: () => import('../pages/Seats/SeatEventDetail') },
   // 선거는 메뉴에 없다(선거인에게만 열림) — 홈 배너·링크로만 들어오므로 메뉴 프리로드에 넣지 않는다

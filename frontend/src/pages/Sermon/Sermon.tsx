@@ -28,8 +28,9 @@ import './Sermon.css'
 import './components/SermonLetter.css'
 import { can } from '../../utils/access'
 
-// 소인·서명·붙잡은 한 줄의 손글씨
+// 소인·서명·붙잡은 한 줄의 손글씨 + 인용 구절의 고운바탕
 void ensureFontFamily('nanumPen')
+void ensureFontFamily('gowunBatang')
 
 /* 시범 화면 의견은 기존 설문으로 받는다 — 제목에 이 말이 든 진행 중 설문이 있으면 그리로,
  * 없으면 설문 목록으로 (설문 id 를 코드에 박지 않기 위함, /history/new 와 같은 방식) */
@@ -173,7 +174,7 @@ const Sermon = ({ variant = 'light' }: SermonProps) => {
 
   return (
     <ErrorBoundary>
-      <div className="bg-[var(--app-canvas)] min-h-screen page-stage">
+      <div className="sl-page bg-[var(--app-canvas)] min-h-screen page-stage">
         {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/ministry·/worship과 같은 문법) */}
         <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
         <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
@@ -283,6 +284,7 @@ const Sermon = ({ variant = 'light' }: SermonProps) => {
                     onReadPassage={readPassage}
                   />
                   <SermonWalk
+                    key={heroSermon.id}
                     sermon={heroSermon}
                     variant={variant}
                     passageSignal={passageSignal}
