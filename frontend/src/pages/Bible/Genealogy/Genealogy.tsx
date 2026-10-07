@@ -414,10 +414,10 @@ export const Genealogy = () => {
 const FigureSheet = ({ children }: { children: ReactNode }) => {
   return (
     <div
-      className="max-h-[88vh] bg-white dark:bg-card-dark rounded-t-[28px] shadow-[0_-20px_60px_-10px_var(--brand-glow)] border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden"
+      className="gfd-paper max-h-[88vh] rounded-t-[28px] shadow-[0_-20px_60px_-10px_var(--brand-glow)] border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden"
     >
       <div className="flex-shrink-0 flex justify-center py-2.5">
-        <div className="w-10 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full" />
+        <div className="w-10 h-1.5 bg-black/15 dark:bg-white/20 rounded-full" />
       </div>
       <div className="overflow-y-auto overscroll-contain">
         {children}

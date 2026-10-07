@@ -475,3 +475,91 @@
 @media (prefers-reduced-motion: reduce) {
   .gtr-here, .gtr-mascot, .gtr-stone__me, .gtr-btn.is-here::before { animation: none; }
 }
+
+/* ── 인물 상세 (FigureDetailPanel) — 말씀 에디토리얼 ─────────────────────
+   매거진 인물 기사 문법: 명조 큰 제목·히브리어 워터마크·드롭캡·풀쿼트·각주식 대표 구절.
+   계보는 시대순 오솔길의 두께 그림자 버튼을 가져온 미니 가계도(부모 → 나 + 배우자 → 자녀).
+   --era / --era-deep 은 인물의 시대(ERAS)에서 꽂힌다. 없으면 브랜드 색. */
+.gfd-paper {
+  --gfd-paper: #fbf9f4; --gfd-ink: #2a2620; --gfd-ink-2: #5b544a; --gfd-ink-3: #9a9184; --gfd-line: #e7e1d5;
+  --gfd-chip: #f1ece2; --gfd-chip-deep: #ddd5c6;
+  background: var(--gfd-paper); color: var(--gfd-ink);
+}
+.dark .gfd-paper, [data-theme="dark"] .gfd-paper {
+  --gfd-paper: #1b1a17; --gfd-ink: #ece6da; --gfd-ink-2: #b9b1a3; --gfd-ink-3: #847c70; --gfd-line: #33302a;
+  --gfd-chip: #2a2824; --gfd-chip-deep: #12110f;
+}
+.gfd { --era: var(--brand); --era-deep: var(--brand); position: relative; overflow: hidden; }
+.gfd.is-card { border-radius: 20px; border: 1px solid var(--gfd-line); box-shadow: var(--card-shadow); }
+.gfd-scroll { overflow-y: auto; overscroll-behavior: contain; }
+.gfd-x {
+  position: absolute; top: 12px; right: 12px; z-index: 2; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--gfd-ink-3); transition: background .15s, color .15s;
+}
+.gfd-x:hover { color: var(--gfd-ink); background: var(--gfd-chip); }
+.gfd-faint { color: var(--gfd-ink-3); }
+
+.gfd-cover { position: relative; padding: 34px 24px 0; overflow: hidden; }
+.gfd.is-sheet .gfd-cover { padding-top: 18px; }
+.gfd-heb {
+  position: absolute; right: -4px; top: 0; font-family: var(--font-serif-kr); font-size: 112px; line-height: 1;
+  color: var(--era); opacity: 0.13; pointer-events: none; white-space: nowrap;
+}
+.gfd-kicker { position: relative; padding-right: 36px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.12em; color: var(--era); }
+.gfd-title { position: relative; margin-top: 10px; font-size: 42px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.08; word-break: keep-all; padding-right: 24px; }
+.gfd-title small { display: inline-block; margin-left: 10px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; color: var(--gfd-ink-3); vertical-align: 0.35em; white-space: nowrap; }
+.gfd-en { position: relative; margin-top: 8px; font-size: 13px; color: var(--gfd-ink-3); font-style: italic; letter-spacing: 0; }
+.gfd-deck { position: relative; margin-top: 14px; font-size: 18px; font-weight: 500; line-height: 1.55; }
+.gfd-meta { position: relative; margin-top: 18px; display: flex; font-size: 12px; color: var(--gfd-ink-2); border-top: 1px solid var(--gfd-line); }
+.gfd-meta div { flex: 1; padding: 10px 0; text-align: center; }
+.gfd-meta div + div { border-left: 1px solid var(--gfd-line); }
+.gfd-meta b { display: block; font-size: 15px; font-weight: 700; color: var(--gfd-ink); }
+.gfd-progress { margin: 0 24px; height: 2px; background: var(--gfd-line); position: relative; }
+.gfd-progress i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--era); transition: width .6s; }
+.gfd-cover:not(:has(.gfd-meta)) { padding-bottom: 18px; }
+
+.gfd-art { padding: 20px 24px 0; }
+.gfd-art p { font-size: 16px; line-height: 1.95; color: var(--gfd-ink-2); white-space: pre-line; }
+.gfd-art p.is-drop::first-letter {
+  float: left; font-family: var(--font-serif-kr); font-size: 50px; line-height: 0.95; font-weight: 900;
+  margin: 6px 8px 0 0; color: var(--era);
+}
+.gfd-pull { margin: 24px 24px 0; padding: 16px 0 16px 18px; border-left: 3px solid var(--era); }
+.gfd-pull blockquote { font-size: 18px; line-height: 1.7; font-weight: 700; color: var(--gfd-ink); }
+.gfd-pull figcaption { margin-top: 8px; font-size: 12.5px; color: var(--gfd-ink-3); }
+.gfd-pull figcaption a { font-weight: 700; color: var(--gfd-ink-2); }
+.gfd-read { color: var(--era); font-weight: 700; }
+
+.gfd-h {
+  margin: 32px 24px 14px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.14em; color: var(--gfd-ink-3);
+  display: flex; align-items: center; gap: 10px;
+}
+.gfd-h::after { content: ""; flex: 1; height: 1px; background: var(--gfd-line); }
+
+.gfd-tree { margin: 0 24px; display: flex; flex-direction: column; align-items: center; }
+.gfd-lvl { display: flex; flex-wrap: wrap; gap: 10px 8px; justify-content: center; align-items: center; }
+.gfd-stem { width: 3px; height: 18px; margin: 4px 0 0; background: var(--era); border-radius: 2px; opacity: 0.7; }
+.gfd-stem + .gfd-lvl { margin-top: 4px; }
+.gfd-chunk {
+  min-width: 60px; height: 42px; padding: 0 14px; border-radius: 14px;
+  background: var(--gfd-chip); box-shadow: 0 4px 0 var(--gfd-chip-deep); color: var(--gfd-ink);
+  font-size: 15px; font-weight: 800; letter-spacing: -0.03em;
+  display: inline-flex; align-items: center; justify-content: center; transition: transform .12s, box-shadow .12s;
+}
+button.gfd-chunk:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--gfd-chip-deep); }
+.gfd-chunk.is-me { background: var(--era); color: #fff; box-shadow: 0 4px 0 var(--era-deep); }
+.gfd-chunk.is-line { background: var(--brand); color: #fff; box-shadow: 0 4px 0 color-mix(in srgb, var(--brand) 70%, #000); }
+button.gfd-chunk.is-line:active { box-shadow: 0 1px 0 color-mix(in srgb, var(--brand) 70%, #000); }
+.gfd-plus { color: var(--gfd-ink-3); font-weight: 800; }
+.gfd-legend { margin: 14px 24px 0; text-align: center; font-size: 12px; font-weight: 600; color: var(--gfd-ink-3); }
+.gfd-legend b { color: var(--brand); }
+
+.gfd-notes { margin: 0 24px; list-style: none; padding: 0; }
+.gfd-note { display: grid; grid-template-columns: 20px 1fr; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--gfd-line); }
+.gfd-note:first-child { padding-top: 2px; }
+.gfd-no { font-size: 13px; font-weight: 700; color: var(--era); padding-top: 1px; }
+.gfd-note__ref { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; font-weight: 700; }
+.gfd-note__ref a:hover { color: var(--era); }
+.gfd-note__ref span { font-family: Pretendard, sans-serif; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.gfd-note__label { margin-top: 3px; font-size: 12px; font-weight: 600; color: var(--gfd-ink-3); }
+.gfd-note p { margin-top: 6px; font-size: 15px; line-height: 1.75; color: var(--gfd-ink-2); }

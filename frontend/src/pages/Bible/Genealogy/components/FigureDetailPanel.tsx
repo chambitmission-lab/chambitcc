@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { useBibleFigureDetail, usePrefetchBibleFigure } from '../../../../hooks/useBibleFigure'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
-import type { BibleFigureSummary } from '../../../../types/bibleFigure'
+import type { BibleFigureSummary, KeyVerseRef } from '../../../../types/bibleFigure'
+import { ERAS, FIGURE_HOOK } from '../genealogyStory'
 
 interface FigureDetailPanelProps {
   slug: string | null
@@ -76,216 +77,201 @@ export const FigureDetailPanel = ({
     )
   }
 
-  const renderRelations = (label: string, list: BibleFigureSummary[]) => {
-    if (list.length === 0) return null
-    return (
-      <div className="mb-4">
-        <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-gray-400 dark:text-white/40 mb-2">
-          {label}
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {list.map((p) => {
-            const isMessianic = p.is_messianic_line
-            return (
-              <button
-                key={p.slug}
-                type="button"
-                onClick={() => onSelect(p.slug)}
-                className={[
-                  'inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[12px] font-semibold transition-all',
-                  isMessianic
-                    ? 'bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft-strong)]'
-                    : 'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 border border-transparent hover:bg-gray-200 dark:hover:bg-white/[0.10]',
-                ].join(' ')}
-              >
-                {isMessianic && (
-                  <span className="w-1 h-1 rounded-full bg-brand" />
-                )}
-                {p.name_ko}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
+  const era = data.era ? ERAS.find((e) => e.match(data.era as string)) : undefined
+  const eraStyle = (era ? { '--era': era.color, '--era-deep': era.deep } : {}) as CSSProperties
+  const deck = FIGURE_HOOK[data.slug] ?? data.description_short
+  const name = splitName(data.name_ko)
+  const loggedIn = data.reading_progress !== null
+  const verses = data.key_verses ?? []
+  const readCount = verses.filter((kv) => kv.is_read).length
+  // 가장 긴 본문을 가진 구절을 풀쿼트로 세우고, 나머지는 각주 목록으로
+  const pullIdx = verses.reduce((best, kv, i) => ((kv.text?.length ?? 0) > (verses[best]?.text?.length ?? 0) ? i : best), 0)
+  const pull = verses[pullIdx]?.text ? verses[pullIdx] : null
+  const notes = verses.filter((_, i) => !pull || i !== pullIdx)
+  const [lead, rest] = splitStory(data.description_long)
+  const hasFamily = data.parents.length + data.spouses.length + data.children.length > 0
+  const anyLine = [...data.parents, ...data.children].some((f) => f.is_messianic_line)
+  const meta = [
+    era && { v: era.short, k: '시대' },
+    data.children.length > 0 && { v: `${data.children.length}명`, k: '자녀' },
+    loggedIn && verses.length > 0 && { v: `${readCount}/${verses.length}`, k: '읽은 구절' },
+  ].filter(Boolean) as { v: string; k: string }[]
+
+  const chunk = (f: BibleFigureSummary) => (
+    <button
+      key={f.slug}
+      type="button"
+      onClick={() => onSelect(f.slug)}
+      className={`gfd-chunk${f.is_messianic_line ? ' is-line' : ''}`}
+    >
+      {f.name_ko}
+    </button>
+  )
 
   return (
-    <div className={`${shellBase} ${shellShadow}`}>
-      <div className="absolute inset-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02]" />
-
-      {/* 헤더 */}
-      <div className="relative px-5 pt-5 pb-4 border-b border-gray-100 dark:border-white/[0.05]">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong">
-                {data.name_ko}
-              </h2>
-              {data.is_messianic_line && (
-                <span
-                  className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[11px] font-bold bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)]"
-                  title="메시아 직계 라인"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand" />
-                  메시아 라인
-                </span>
-              )}
-            </div>
-            {(data.name_en || data.name_hebrew) && (
-              <div className="text-[12px] text-gray-500 dark:text-white/50 mt-1">
-                {[data.name_en, data.name_hebrew].filter(Boolean).join(' · ')}
-              </div>
-            )}
-            {(data.era || data.role) && (
-              <div className="text-[12.5px] text-gray-600 dark:text-white/65 mt-0.5 font-medium">
-                {[data.era, data.role].filter(Boolean).join(' · ')}
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="닫기"
-            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/45 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-      </div>
+    <div className={`gfd gfd-paper ${variant === 'card' ? 'is-card' : 'is-sheet'}`} style={eraStyle}>
+      <button type="button" onClick={onClose} aria-label="닫기" className="gfd-x">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
 
       <div
-        className={`relative p-5 overflow-y-auto ${
-          variant === 'card' ? 'max-h-[68vh]' : 'max-h-[70vh]'
-        }`}
+        className={`gfd-scroll${variant === 'card' ? '' : ' max-h-[82vh]'}`}
+        // PC 사이드 카드는 sticky(top 4.5rem) 아래 화면을 채운다 — 글씨 크기 zoom 배율로 나눈다
+        style={variant === 'card' ? { maxHeight: 'calc((100vh - 6rem) / var(--az, 1))' } : undefined}
       >
-        {data.reading_progress !== null && (
-          <div className="mb-5">
-            <div className="flex justify-between items-baseline text-[12px] mb-1.5">
-              <span className="text-gray-500 dark:text-white/55 font-medium">
-                키 구절 통독 진도
-              </span>
-              <span className="font-bold text-brand">
-                {Math.round((data.reading_progress || 0) * 100)}%
-              </span>
+        {/* 표지 — 명조 제목 + 히브리어 워터마크 */}
+        <header className="gfd-cover">
+          {data.name_hebrew && (
+            <div className="gfd-heb" aria-hidden>
+              {data.name_hebrew}
             </div>
-            <div className="h-2 bg-gray-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-brand transition-all duration-500"
-                style={{
-                  width: `${Math.max(
-                    (data.reading_progress || 0) > 0 ? 3 : 0,
-                    (data.reading_progress || 0) * 100,
-                  )}%`,
-                }}
-              />
+          )}
+          <div className="gfd-kicker">
+            {[era?.label ?? data.era, data.is_messianic_line ? '메시아 라인' : null].filter(Boolean).join(' — ')}
+          </div>
+          <h2 className="gfd-title font-serif-kr">
+            {name.base}
+            {name.qualifier && <small>{name.qualifier}</small>}
+          </h2>
+          {(data.name_en || data.role) && (
+            <div className="gfd-en">{[data.name_en, data.role].filter(Boolean).join(' · ')}</div>
+          )}
+          {deck && <p className="gfd-deck font-serif-kr">{deck}</p>}
+          {meta.length > 0 && (
+            <div className="gfd-meta">
+              {meta.map((m) => (
+                <div key={m.k}>
+                  <b>{m.v}</b>
+                  {m.k}
+                </div>
+              ))}
             </div>
+          )}
+        </header>
+        {loggedIn && (
+          <div className="gfd-progress" aria-label={`키 구절 통독 ${Math.round((data.reading_progress || 0) * 100)}%`}>
+            <i style={{ width: `${(data.reading_progress || 0) * 100}%` }} />
           </div>
         )}
 
         {isPlaceholderData ? (
-          <div className="fig-body-in">
-            {data.description_short && (
-              <p className="text-[14px] leading-[1.75] text-gray-700 dark:text-white/80 mb-4">
-                {data.description_short}
-              </p>
-            )}
-            <div className="space-y-2.5 animate-pulse" aria-hidden>
-              <div className="h-3.5 w-full bg-gray-100 dark:bg-white/[0.06] rounded" />
-              <div className="h-3.5 w-11/12 bg-gray-100 dark:bg-white/[0.06] rounded" />
-              <div className="h-3.5 w-4/5 bg-gray-100 dark:bg-white/[0.06] rounded" />
-              <div className="h-3.5 w-2/3 bg-gray-100 dark:bg-white/[0.06] rounded" />
+          <div className="gfd-art fig-body-in">
+            {data.description_short && <p className="is-drop">{data.description_short}</p>}
+            <div className="space-y-2.5 animate-pulse mt-4" aria-hidden>
+              <div className="h-3.5 w-full bg-black/[0.05] dark:bg-white/[0.06] rounded" />
+              <div className="h-3.5 w-11/12 bg-black/[0.05] dark:bg-white/[0.06] rounded" />
+              <div className="h-3.5 w-4/5 bg-black/[0.05] dark:bg-white/[0.06] rounded" />
             </div>
-            <div className="mt-6 flex gap-1.5 animate-pulse" aria-hidden>
-              <div className="h-7 w-16 bg-gray-100 dark:bg-white/[0.06] rounded-full" />
-              <div className="h-7 w-14 bg-gray-100 dark:bg-white/[0.06] rounded-full" />
-            </div>
-            <p className="mt-6 text-[11.5px] text-gray-400 dark:text-white/35">
-              이야기와 대표 구절을 불러오는 중…
-            </p>
+            <p className="mt-6 text-[11.5px] gfd-faint">이야기와 대표 구절을 불러오는 중…</p>
           </div>
         ) : (
-          data.description_long && (
-            <p className="fig-body-in text-[14px] leading-[1.75] text-gray-700 dark:text-white/80 mb-6 whitespace-pre-line">
-              {data.description_long}
-            </p>
-          )
-        )}
+          <div className="fig-body-in">
+            {lead && (
+              <div className="gfd-art">
+                <p className="is-drop">{lead}</p>
+              </div>
+            )}
 
-        {renderRelations('부모', data.parents)}
-        {renderRelations('배우자', data.spouses)}
-        {renderRelations('자녀', data.children)}
+            {pull && (
+              <figure className="gfd-pull">
+                <blockquote className="font-serif-kr">“{pull.text}”</blockquote>
+                <figcaption>
+                  <Link to={verseLink(pull)}>{verseRef(pull)} ›</Link>
+                  {pull.label && <span> — {pull.label}</span>}
+                  {pull.is_read && <span className="gfd-read"> · ✓ 읽음</span>}
+                </figcaption>
+              </figure>
+            )}
 
-        {data.key_verses && data.key_verses.length > 0 && (
-          <div className="mt-5 fig-body-in">
-            <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-gray-400 dark:text-white/40 mb-2.5">
-              대표 구절
-            </div>
-            <div className="space-y-2">
-              {data.key_verses.map((kv, idx) => {
-                const ref = kv.book_name_ko
-                  ? `${kv.book_name_ko} ${kv.chapter}${kv.verse ? `:${kv.verse}` : '장'}`
-                  : `${kv.chapter}${kv.verse ? `:${kv.verse}` : '장'}`
-                const linkTo = kv.book_number
-                  ? `/bible/${kv.book_number}/${kv.chapter}`
-                  : '#'
-                return (
-                  <div
-                    key={idx}
-                    className={[
-                      'relative rounded-xl border p-3.5 transition-all overflow-hidden',
-                      kv.is_read
-                        ? 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)]'
-                        : 'border-gray-200 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.03]',
-                    ].join(' ')}
-                  >
-                    {kv.is_read && (
-                      <div
-                        className="absolute left-0 top-0 bottom-0 w-1 bg-brand"
-                        aria-hidden
-                      />
-                    )}
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <Link
-                        to={linkTo}
-                        className="inline-flex items-center gap-1 text-[12.5px] font-bold text-brand hover:underline"
-                      >
-                        {ref}
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                      </Link>
-                      {kv.is_read && (
-                        <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-brand">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                          읽음
-                        </span>
-                      )}
-                    </div>
-                    {kv.label && (
-                      <div className="text-[11.5px] text-gray-500 dark:text-white/55 mb-1 font-medium">
-                        {kv.label}
-                      </div>
-                    )}
-                    {kv.text && (
-                      <div className="text-[13.5px] text-gray-700 dark:text-white/80 leading-[1.65]">
-                        {kv.text}
-                      </div>
-                    )}
+            {rest && (
+              <div className="gfd-art">
+                <p>{rest}</p>
+              </div>
+            )}
+
+            {/* 계보 — 부모 → 나 + 배우자 → 자녀 미니 가계도. 파란 버튼이 메시아 줄기 */}
+            {hasFamily && (
+              <>
+                <div className="gfd-h">계보</div>
+                <div className="gfd-tree">
+                  {data.parents.length > 0 && (
+                    <>
+                      <div className="gfd-lvl">{data.parents.map(chunk)}</div>
+                      <div className="gfd-stem" />
+                    </>
+                  )}
+                  <div className="gfd-lvl">
+                    <span className="gfd-chunk is-me">{data.name_ko}</span>
+                    {data.spouses.length > 0 && <span className="gfd-plus">+</span>}
+                    {data.spouses.map(chunk)}
                   </div>
-                )
-              })}
-            </div>
+                  {data.children.length > 0 && (
+                    <>
+                      <div className="gfd-stem" />
+                      <div className="gfd-lvl">{data.children.map(chunk)}</div>
+                    </>
+                  )}
+                </div>
+                {anyLine && (
+                  <p className="gfd-legend">
+                    <b>파란 이름</b>을 따라가면 예수님까지 이어져요
+                  </p>
+                )}
+              </>
+            )}
+
+            {notes.length > 0 && (
+              <>
+                <div className="gfd-h">대표 구절</div>
+                <ol className="gfd-notes">
+                  {notes.map((kv, idx) => (
+                    <li key={`${kv.book_number}-${kv.chapter}-${kv.verse ?? 0}-${idx}`} className="gfd-note">
+                      <span className="gfd-no">{idx + 1}</span>
+                      <div className="min-w-0">
+                        <div className="gfd-note__ref font-serif-kr">
+                          <Link to={verseLink(kv)}>{verseRef(kv)} ›</Link>
+                          {loggedIn && (kv.is_read ? <span className="gfd-read">✓ 읽음</span> : <span className="gfd-faint">아직</span>)}
+                        </div>
+                        {kv.label && <div className="gfd-note__label">{kv.label}</div>}
+                        {kv.text && <p className="font-serif-kr">{kv.text}</p>}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </>
+            )}
+            <div className="h-6" />
           </div>
         )}
       </div>
     </div>
   )
+}
+
+/** "요셉 (예수의 양부)" → 큰 제목은 이름만, 괄호 속 구분어는 옆에 작게 */
+const splitName = (full: string) => {
+  const m = full.match(/^(.+?)\s*\((.+)\)\s*$/)
+  return m ? { base: m[1], qualifier: m[2] } : { base: full, qualifier: '' }
+}
+
+const verseRef = (kv: KeyVerseRef) => {
+  const cv = `${kv.chapter}${kv.verse ? `:${kv.verse}` : '장'}`
+  return kv.book_name_ko ? `${kv.book_name_ko} ${cv}` : cv
+}
+const verseLink = (kv: KeyVerseRef) => (kv.book_number ? `/bible/${kv.book_number}/${kv.chapter}` : '#')
+
+/** 본문을 풀쿼트 앞·뒤 두 덩이로 — 문단이 여럿이면 첫 문단, 한 문단이면 문장 절반에서 자른다 */
+const splitStory = (text: string | null): [string, string] => {
+  if (!text) return ['', '']
+  const paras = text.split(/\n+/).map((p) => p.trim()).filter(Boolean)
+  if (paras.length > 1) return [paras[0], paras.slice(1).join('\n\n')]
+  const sentences = text.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g)?.map((t) => t.trim()).filter(Boolean) ?? [text]
+  if (sentences.length < 3) return [text.trim(), '']
+  const mid = Math.ceil(sentences.length / 2)
+  return [sentences.slice(0, mid).join(' '), sentences.slice(mid).join(' ')]
 }
 
 export default FigureDetailPanel
