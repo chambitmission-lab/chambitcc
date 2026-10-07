@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef, useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { SortType } from '../../../types/prayer'
 
@@ -42,16 +43,18 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
   )
 }
 
-// PC 전용 정렬 스위치 — 탭 줄 오른쪽 끝의 아이콘 2칸 미니 세그먼트.
-// 라벨을 품은 토글은 "따뜻한 관심순"↔"최신순" 글자 수 차이로 폭이 출렁여 옆 탭 트랙까지 밀었다.
-// 아이콘 칸은 폭이 고정이고 두 선택지가 항상 보인다. 이름은 호버 툴팁·aria-label로 전달.
-const SORT_OPTIONS: { sort: SortType; icon: React.ReactNode }[] = [
+// PC 전용 정렬 메뉴 — 탭 줄 오른쪽 끝 "따뜻한 관심순 ▾" 글자 드롭다운.
+// 아이콘 2칸(하트·시계)은 정렬이라는 게 읽히지 않았다. 글자 수 차이로 폭이 출렁여 옆 탭 트랙을
+// 밀지 않도록, 버튼 안에 모든 라벨을 같은 칸에 겹쳐 두고 가장 긴 라벨 폭으로 고정한다.
+const SORT_OPTIONS: { sort: SortType; descKey: 'popularDesc' | 'latestDesc'; icon: React.ReactNode }[] = [
   {
     sort: 'popular',
+    descKey: 'popularDesc',
     icon: <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />,
   },
   {
     sort: 'latest',
+    descKey: 'latestDesc',
     icon: (
       <>
         <circle cx="12" cy="12" r="8" />
@@ -61,48 +64,115 @@ const SORT_OPTIONS: { sort: SortType; icon: React.ReactNode }[] = [
   },
 ]
 
+const LineIcon = ({ className, children }: { className: string; children: React.ReactNode }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.8}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    {children}
+  </svg>
+)
+
 export const DesktopSortToggle = ({ currentSort, onSortChange }: SortTabsProps) => {
   const { t } = useLanguage()
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const menuId = useId()
+
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
 
   return (
-    <div
-      role="group"
-      className="hidden lg:flex shrink-0 items-center gap-0.5 p-1 rounded-full bg-black/[0.05] dark:bg-white/[0.06]"
-    >
-      {SORT_OPTIONS.map(({ sort, icon }) => {
-        const active = currentSort === sort
-        return (
-          <button
-            key={sort}
-            type="button"
-            onClick={() => onSortChange(sort)}
-            aria-label={t(sort)}
-            aria-pressed={active}
-            className={`group relative w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-150 ${
-              active
-                ? 'text-brand bg-[var(--surface-container)] shadow-sm dark:bg-white/[0.12]'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-            }`}
-          >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
+    <div ref={rootRef} className="hidden lg:block relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        className={`h-10 pl-3.5 pr-2.5 rounded-full flex items-center gap-1 text-[13px] font-semibold whitespace-nowrap transition-colors duration-150 ${
+          open
+            ? 'bg-black/[0.07] text-ink-strong dark:bg-white/[0.1]'
+            : 'text-gray-500 dark:text-gray-400 hover:bg-black/[0.05] hover:text-gray-700 dark:hover:bg-white/[0.06] dark:hover:text-gray-200'
+        }`}
+      >
+        {/* 라벨을 한 칸에 겹쳐 가장 긴 폭을 차지 — 선택이 바뀌어도 버튼 폭이 그대로 */}
+        <span className="grid text-right">
+          {SORT_OPTIONS.map(({ sort }) => (
+            <span
+              key={sort}
+              className={`[grid-area:1/1] ${currentSort === sort ? '' : 'invisible'}`}
+              aria-hidden={currentSort !== sort}
             >
-              {icon}
-            </svg>
-            {/* 호버 툴팁 — 오른쪽 끝 칸이 컬럼 밖으로 넘치지 않게 우측 정렬 */}
-            <span className="pointer-events-none absolute top-full right-0 mt-2 px-2 py-1 rounded-md bg-gray-900 text-white dark:bg-white dark:text-gray-900 text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150">
               {t(sort)}
             </span>
-          </button>
-        )
-      })}
+          ))}
+        </span>
+        <LineIcon className={`w-3.5 h-3.5 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}>
+          <path d="m6 9 6 6 6-6" />
+        </LineIcon>
+      </button>
+
+      {open && (
+        <div
+          id={menuId}
+          role="menu"
+          aria-label={t('sortMenuLabel')}
+          className="absolute right-0 top-full mt-1.5 z-50 min-w-[220px] p-1.5 rounded-2xl bg-[var(--surface-container)] border border-[var(--card-border)] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6)]"
+        >
+          <p className="px-2.5 pt-1.5 pb-1 text-[11.5px] font-medium text-gray-400 dark:text-gray-500">
+            {t('sortMenuLabel')}
+          </p>
+          {SORT_OPTIONS.map(({ sort, descKey, icon }) => {
+            const active = currentSort === sort
+            return (
+              <button
+                key={sort}
+                type="button"
+                role="menuitemradio"
+                aria-checked={active}
+                onClick={() => {
+                  onSortChange(sort)
+                  setOpen(false)
+                }}
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left transition-colors duration-150 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] ${
+                  active ? 'text-brand' : 'text-gray-700 dark:text-gray-200'
+                }`}
+              >
+                <LineIcon className="w-4 h-4 shrink-0">{icon}</LineIcon>
+                <span className="flex-1 min-w-0">
+                  <span className={`block text-[13.5px] ${active ? 'font-bold' : 'font-medium'}`}>{t(sort)}</span>
+                  <span className="block text-[11.5px] text-gray-500 dark:text-gray-400 mt-0.5">{t(descKey)}</span>
+                </span>
+                {active && (
+                  <LineIcon className="w-4 h-4 shrink-0">
+                    <path d="m5 12.5 4.5 4.5L19 7.5" />
+                  </LineIcon>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

@@ -23,6 +23,9 @@ export const prayer = {
   consecutivePrayers: '연속 기도',
   popular: '따뜻한 관심순',
   latest: '최신순',
+  popularDesc: '기도와 공감이 모이는 글 먼저',
+  latestDesc: '방금 올라온 글 먼저',
+  sortMenuLabel: '정렬',
   
   // 기도 작성
   prayerComposerTitle: '기도제목 나누기',

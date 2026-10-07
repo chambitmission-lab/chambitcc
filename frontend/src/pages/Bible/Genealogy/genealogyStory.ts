@@ -10,19 +10,22 @@ export interface EraInfo {
   meta: string
   story: string
   order: number
+  /** 말씀 오솔길(EraTimeline)의 시대 색 — 배너·버튼 면(color)과 버튼 아래 두께(deep) */
+  color: string
+  deep: string
   match: (era: string) => boolean
 }
 
 export const ERAS: EraInfo[] = [
-  { label: '창조 · 홍수 이전', short: '창조', order: 0, meta: '연대 미상 · 창세기 1–11장', story: '하나님이 세상을 지으시고, 죄가 들어오고, 홍수로 새 출발하기까지.', match: (e) => /창조|에덴|아담|홍수|노아 이전/.test(e) },
-  { label: '족장 시대', short: '족장', order: 1, meta: '약 BC 2100–1800 · 창세기 12–50장', story: '한 사람 아브라함을 부르셔서, 한 가족을 통해 약속을 이어 가신 시대.', match: (e) => /족장/.test(e) },
-  { label: '출애굽 · 광야', short: '출애굽', order: 2, meta: '약 BC 1450 · 출애굽기–신명기', story: '이집트 종살이에서 건져 내 광야 40년을 함께 걸으신 시대.', match: (e) => /출애굽|광야/.test(e) },
-  { label: '정복 · 사사', short: '사사', order: 3, meta: '약 BC 1400–1050 · 여호수아·사사기·룻기', story: '가나안에 들어가 살던 혼란의 시대. 라합과 룻, 이방 여인들이 계보에 들어왔어요.', match: (e) => /가나안|사사|정복/.test(e) },
-  { label: '통일 왕국', short: '왕국', order: 4, meta: '약 BC 1050–930 · 사무엘서–열왕기상', story: '다윗에게 “네 왕위가 영원하리라” 약속하신 시대.', match: (e) => /통일왕국|왕정|초기왕국/.test(e) },
-  { label: '분열 왕국', short: '분열', order: 5, meta: 'BC 930–586 · 열왕기·역대기', story: '나라가 남북으로 갈라지고, 선지자들이 돌아오라 외친 시대.', match: (e) => /분열|남유다|북이스라엘/.test(e) },
-  { label: '포로 · 귀환', short: '포로', order: 6, meta: 'BC 586–430 · 열왕기하·에스라·느헤미야', story: '나라를 잃고 바벨론에 끌려갔다가, 돌아와 성전을 다시 지은 시대.', match: (e) => /포로|귀환/.test(e) },
-  { label: '중간기', short: '중간기', order: 7, meta: 'BC 430–4 · 400년의 침묵', story: '선지자의 목소리가 끊긴 채 약속을 기다린 시대.', match: (e) => /중간기/.test(e) },
-  { label: '메시아의 오심', short: '메시아', order: 8, meta: '약 BC 4 – · 복음서', story: '수천 년 이어 온 약속이 마침내 한 아기로 오신 시대.', match: (e) => /신약|예수|초대교회|사도/.test(e) },
+  { label: '창조 · 홍수 이전', short: '창조', order: 0, color: '#12b886', deep: '#0c8a64', meta: '연대 미상 · 창세기 1–11장', story: '하나님이 세상을 지으시고, 죄가 들어오고, 홍수로 새 출발하기까지.', match: (e) => /창조|에덴|아담|홍수|노아 이전/.test(e) },
+  { label: '족장 시대', short: '족장', order: 1, color: '#f59f00', deep: '#c47f00', meta: '약 BC 2100–1800 · 창세기 12–50장', story: '한 사람 아브라함을 부르셔서, 한 가족을 통해 약속을 이어 가신 시대.', match: (e) => /족장/.test(e) },
+  { label: '출애굽 · 광야', short: '출애굽', order: 2, color: '#ff6b4a', deep: '#d24a2c', meta: '약 BC 1450 · 출애굽기–신명기', story: '이집트 종살이에서 건져 내 광야 40년을 함께 걸으신 시대.', match: (e) => /출애굽|광야/.test(e) },
+  { label: '정복 · 사사', short: '사사', order: 3, color: '#74b816', deep: '#558a0f', meta: '약 BC 1400–1050 · 여호수아·사사기·룻기', story: '가나안에 들어가 살던 혼란의 시대. 라합과 룻, 이방 여인들이 계보에 들어왔어요.', match: (e) => /가나안|사사|정복/.test(e) },
+  { label: '통일 왕국', short: '왕국', order: 4, color: '#3182f6', deep: '#1b64da', meta: '약 BC 1050–930 · 사무엘서–열왕기상', story: '다윗에게 “네 왕위가 영원하리라” 약속하신 시대.', match: (e) => /통일왕국|왕정|초기왕국/.test(e) },
+  { label: '분열 왕국', short: '분열', order: 5, color: '#7950f2', deep: '#5a35cc', meta: 'BC 930–586 · 열왕기·역대기', story: '나라가 남북으로 갈라지고, 선지자들이 돌아오라 외친 시대.', match: (e) => /분열|남유다|북이스라엘/.test(e) },
+  { label: '포로 · 귀환', short: '포로', order: 6, color: '#0ca5b0', deep: '#08808a', meta: 'BC 586–430 · 열왕기하·에스라·느헤미야', story: '나라를 잃고 바벨론에 끌려갔다가, 돌아와 성전을 다시 지은 시대.', match: (e) => /포로|귀환/.test(e) },
+  { label: '중간기', short: '중간기', order: 7, color: '#5c6bc0', deep: '#3f4d9c', meta: 'BC 430–4 · 400년의 침묵', story: '선지자의 목소리가 끊긴 채 약속을 기다린 시대.', match: (e) => /중간기/.test(e) },
+  { label: '메시아의 오심', short: '메시아', order: 8, color: '#e8a900', deep: '#b88600', meta: '약 BC 4 – · 복음서', story: '수천 년 이어 온 약속이 마침내 한 아기로 오신 시대.', match: (e) => /신약|예수|초대교회|사도/.test(e) },
 ]
 
 /** 큰 카드로 세우는 주요 인물 — 값은 StoryGlyph 이모지 키(렌더 시점에 Phosphor duotone 으로 바뀐다) */

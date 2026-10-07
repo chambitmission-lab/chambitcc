@@ -45,6 +45,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['election-stage', () => import('../pages/dev/ElectionStagePreview')],
       // 디지털 주보 PC 편집기 — 관리자 로그인 없이 배치·붙여넣기
       ['bulletin-desk', () => import('../pages/dev/BulletinDeskPreview')],
+      // 가계도 시대순 "말씀 오솔길" — 진도 표본(?read=0.3)으로 로그인 없이
+      ['genealogy-trail', () => import('../pages/dev/GenealogyTrailPreview')],
     ]
   : []
 

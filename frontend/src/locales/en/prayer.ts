@@ -23,6 +23,9 @@ export const prayer = {
   consecutivePrayers: 'Streak Days',
   popular: 'Most Supported',
   latest: 'Latest',
+  popularDesc: 'Most prayed-for and loved first',
+  latestDesc: 'Newest posts first',
+  sortMenuLabel: 'Sort',
   
   // Prayer composer
   prayerComposerTitle: 'Share a prayer request',
