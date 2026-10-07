@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvents } from '../../hooks/useEvents'
+import { useHolidayMap, yearsForMonthView } from '../../hooks/useHolidays'
 import { translations } from '../../locales'
 import type { EventCategory } from '../../types/event'
 import CategoryPills from './components/CategoryPills'
@@ -73,6 +74,10 @@ const EventCalendar = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, loading, loadingMore, isPlaceholder])
 
+  // 법정 공휴일(임시·대체공휴일 포함) — 달력 칸을 붉게, 이름은 큰 달력 칸·작은 달력 아래 줄에
+  const holidayYears = useMemo(() => yearsForMonthView(viewDate), [viewDate])
+  const holidays = useHolidayMap(holidayYears)
+
   const heroEvent = useMemo(() => getNextEvent(events), [events])
   const groups = useMemo(() => {
     // Hero에 표시된 이벤트는 어젠다에서 제외 (단, 오늘 여러 건 있으면 모두 보여줌)
@@ -96,6 +101,7 @@ const EventCalendar = () => {
 
   const eventMap = useMemo(() => buildEventDateMap(events), [events])
   const selectedEvents = selectedKey ? (eventMap.get(selectedKey) ?? []) : []
+  const selectedHoliday = selectedKey ? holidays.get(selectedKey) : undefined
   const selectedLabel = selectedKey
     ? (() => {
         const [, m, d] = selectedKey.split('-').map(Number)
@@ -173,6 +179,7 @@ const EventCalendar = () => {
         <MiniMonthStrip
           date={viewDate}
           events={events}
+          holidays={holidays}
           onPrev={handlePrevMonth}
           onNext={handleNextMonth}
           onToday={handleToday}
@@ -202,6 +209,7 @@ const EventCalendar = () => {
         <MiniMonthStrip
           date={viewDate}
           events={events}
+          holidays={holidays}
           onPrev={handlePrevMonth}
           onNext={handleNextMonth}
           onToday={handleToday}
@@ -216,7 +224,14 @@ const EventCalendar = () => {
           {selectedKey ? (
             <>
               <div className="flex items-baseline justify-between gap-2 mb-3">
-                <p className="text-ink-strong text-[20px] font-bold tracking-[-0.01em]">{selectedLabel}</p>
+                <p className="text-ink-strong text-[20px] font-bold tracking-[-0.01em]">
+                  {selectedLabel}
+                  {selectedHoliday && (
+                    <span className="ml-2 align-[2px] inline-block px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-400/10 text-[14px] font-bold text-rose-600 dark:text-rose-300">
+                      {selectedHoliday}
+                    </span>
+                  )}
+                </p>
                 <button
                   type="button"
                   onClick={() => setSelectedKey(null)}

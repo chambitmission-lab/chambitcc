@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
 import { buildEventDateMap } from '../utils/dateGrouping'
@@ -20,9 +20,14 @@ interface MiniMonthStripProps {
    * 어르신이 모니터 거리에서 점 색을 구분하기 어렵다
    */
   large?: boolean
+  /** 공휴일 'YYYY-MM-DD' → 이름 (임시·대체공휴일 포함). 일요일처럼 붉게, 큰 달력은 이름까지 */
+  holidays?: Map<string, string>
 }
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
+
+// 큰 달력 칸(폭 ~50px)용 짧은 이름 — '대체공휴일(개천절)' 은 칸에 '대체휴일', 전체는 title·고른 날 패널에
+const shortHolidayName = (name: string) => (name.startsWith('대체공휴일') ? '대체휴일' : name)
 
 const formatKey = (d: Date) =>
   `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
@@ -37,6 +42,7 @@ const MiniMonthStrip = ({
   className = 'mx-4 mb-4',
   selectedKey = null,
   large = false,
+  holidays,
 }: MiniMonthStripProps) => {
   const eventMap = useMemo(() => buildEventDateMap(events), [events])
   const today = kstNow()  // 서울 기준 '오늘'
@@ -67,6 +73,14 @@ const MiniMonthStrip = ({
   }, [date])
 
   const monthLabel = `${date.getFullYear()}년 ${date.getMonth() + 1}월`
+
+  // 작은 달력은 칸에 이름이 안 들어가 아래에 이번 달 공휴일을 한 줄로 모아 보여 준다
+  const monthHolidays = useMemo(() => {
+    if (large || !holidays) return []
+    return cells
+      .filter(c => c.inMonth && holidays.has(formatKey(c.d)))
+      .map(c => ({ day: c.d.getDate(), name: holidays.get(formatKey(c.d)) as string }))
+  }, [cells, holidays, large])
 
   return (
     <div className={`relative rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none overflow-hidden ${className}`}>
@@ -131,6 +145,9 @@ const MiniMonthStrip = ({
           const isToday = key === todayKey
           const isSelected = inMonth && key === selectedKey
           const dow = d.getDay()
+          const holidayName = holidays?.get(key)
+          // 공휴일은 요일과 상관없이 일요일과 같은 붉은색
+          const isRedDay = dow === 0 || !!holidayName
 
           return (
             <button
@@ -141,12 +158,13 @@ const MiniMonthStrip = ({
               aria-pressed={onSelectDate ? isSelected : undefined}
               aria-label={
                 large && inMonth
-                  ? `${d.getMonth() + 1}월 ${d.getDate()}일${isToday ? ' 오늘' : ''}${dayEvents.length ? ` 일정 ${dayEvents.length}개` : ''}`
+                  ? `${d.getMonth() + 1}월 ${d.getDate()}일${isToday ? ' 오늘' : ''}${holidayName ? ` ${holidayName}` : ''}${dayEvents.length ? ` 일정 ${dayEvents.length}개` : ''}`
                   : undefined
               }
+              title={holidayName}
               className={[
                 'relative flex flex-col items-center rounded-xl transition-colors',
-                large ? 'h-[70px] justify-start pt-1.5 gap-1 border-2' : 'aspect-square justify-center',
+                large ? 'min-h-[70px] justify-start pt-1.5 pb-1 gap-1 border-2' : 'aspect-square justify-center',
                 large && (isSelected ? 'border-brand bg-[var(--brand-soft)]' : 'border-transparent'),
                 !inMonth && 'opacity-30 cursor-default',
                 inMonth && !isToday && !isSelected && 'hover:bg-gray-100 dark:hover:bg-white/[0.04]',
@@ -159,7 +177,7 @@ const MiniMonthStrip = ({
                   `${large ? 'text-[18px]' : 'text-[13px]'} font-semibold leading-none`,
                   isToday
                     ? 'text-white'
-                    : dow === 0
+                    : isRedDay
                       ? 'text-rose-500 dark:text-rose-300'
                       : dow === 6
                         ? 'text-brand'
@@ -174,6 +192,12 @@ const MiniMonthStrip = ({
                   d.getDate()
                 )}
               </span>
+              {/* 큰 달력: 공휴일 이름 — 칸 폭에 맞춰 말줄임(전체는 title·aria-label) */}
+              {large && holidayName && (
+                <span className="max-w-full px-0.5 truncate text-[11.5px] font-semibold leading-none text-rose-500 dark:text-rose-300">
+                  {shortHolidayName(holidayName)}
+                </span>
+              )}
               {/* 큰 달력: 점 대신 "N개" 글자 — 색을 구분하지 않아도 읽힌다 */}
               {large && dayEvents.length > 0 && (
                 <span className="px-1.5 rounded-md bg-brand text-white text-[12.5px] font-bold leading-[1.5] tabular-nums">
@@ -195,6 +219,20 @@ const MiniMonthStrip = ({
           )
         })}
       </div>
+
+      {monthHolidays.length > 0 && (
+        <div className="mx-3 mb-3 -mt-1 px-3 py-2 rounded-xl bg-rose-50/70 dark:bg-rose-400/[0.07] text-[12px] leading-[1.6] text-rose-600 dark:text-rose-300 break-keep">
+          {/* 항목 사이 공백이 줄바꿈 자리 — 항목 안(날짜+이름)은 끊지 않는다 */}
+          {monthHolidays.map((h, i) => (
+            <Fragment key={h.day}>
+              {i > 0 && <span className="text-rose-300 dark:text-rose-300/40"> · </span>}
+              <span className="whitespace-nowrap">
+                <span className="font-bold tabular-nums">{h.day}일</span> {h.name}
+              </span>
+            </Fragment>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
