@@ -3,11 +3,14 @@ import { createPortal } from 'react-dom'
 import { useSituationVerses } from '../../../hooks/useSituation'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { SituationCategory, SituationVerse } from '../../../types/situation'
-import { empathyFor, toneForCategory } from './situationMoods'
+import { empathyFor, toneForCategory, type MoodArt } from './situationMoods'
+import { coverArtBox, moodArtVars, tileArtBox, type ArtBox } from './moodArt'
 
 // 숨 고르기는 한 세션에 한 번 — 급할 때 매번 3초씩 기다리게 하지 않는다
 const BREATH_SEEN_KEY = 'sb-breath-seen'
 const BREATH_MS = 3200
+/** 그림이 펼쳐지는 동안(≈1.6s)은 숨 고르기 문구가 늦게 뜨므로 그만큼 더 머문다 */
+const ART_BREATH_EXTRA_MS = 1400
 const CLOSE_MS = 420
 
 const readBreathSeen = () => {
@@ -31,6 +34,8 @@ const prefersReducedMotion = () =>
 export interface ImmersiveOrigin {
   x: number
   y: number
+  /** 누른 타일의 자리 — 감정 그림이 그 타일 모양에서 화면 전체로 물러나며 열린다 */
+  rect?: { left: number; top: number; width: number; height: number }
 }
 
 interface Props {
@@ -43,6 +48,8 @@ interface Props {
   breathe?: boolean
   /** 말로 꺼내기로 들어왔으면 그 문장 — 첫 장에 따옴표로 되돌려 준다 */
   sentence?: string | null
+  /** 감정 타일 그림 — 있으면 색 화면 대신 그 장면이 배경이 된다 */
+  art?: MoodArt | null
   /** 끝 장면 '이런 마음도 있나요?' */
   related: SituationCategory[]
   /** 위에 공유 시트가 떠 있으면 키보드(←→·Esc)를 그쪽에 양보한다 */
@@ -60,6 +67,7 @@ const SituationImmersive = ({
   origin,
   breathe = false,
   sentence,
+  art = null,
   related,
   paused = false,
   onClose,
@@ -85,9 +93,35 @@ const SituationImmersive = ({
   useEffect(() => {
     if (!breathing) return
     markBreathSeen()
-    const t = window.setTimeout(() => setBreathing(false), BREATH_MS)
+    const t = window.setTimeout(() => setBreathing(false), BREATH_MS + (art ? ART_BREATH_EXTRA_MS : 0))
     return () => window.clearTimeout(t)
-  }, [breathing])
+  }, [breathing, art])
+
+  // ── 감정 그림: 타일 클로즈업 → 카메라가 물러나며 장면 전체 ──────────────
+  // 그림 상자는 '다 펼쳐진' 크기로 깔고, 처음엔 transform 으로 타일 안 클로즈업과 똑같이 줄여 둔다.
+  // 화면 테두리(clip-path)도 타일 모양에서 시작해 함께 넓어진다. 닫을 때는 같은 길을 되짚는다.
+  const tileRect = origin?.rect ?? null
+  const [viewport, setViewport] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }))
+  useEffect(() => {
+    if (!art) return
+    const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [art])
+  const artCover: ArtBox | null = art ? coverArtBox(viewport.w, viewport.h, art) : null
+  const artFrom = (() => {
+    if (!art || !artCover || !tileRect) return 'none'
+    const t = tileArtBox(tileRect.width, tileRect.height, art)
+    const scale = t.width / artCover.width
+    const dx = tileRect.left + t.left - artCover.left
+    const dy = tileRect.top + t.top - artCover.top
+    return `translate(${dx}px, ${dy}px) scale(${scale})`
+  })()
+  const clipFrom = tileRect
+    ? `inset(${tileRect.top}px ${viewport.w - tileRect.left - tileRect.width}px ${
+        viewport.h - tileRect.top - tileRect.height
+      }px ${tileRect.left}px round 22px)`
+    : 'inset(50% 50% 50% 50% round 22px)'
 
   // 뒤 페이지 스크롤 잠금 (body 가 실제 스크롤러)
   useEffect(() => {
@@ -157,11 +191,12 @@ const SituationImmersive = ({
   const style = {
     '--sbi-x': origin ? `${origin.x}px` : '50%',
     '--sbi-y': origin ? `${origin.y}px` : '50%',
+    ...(art ? { '--sbi-clip-from': clipFrom, '--sbi-art-from': artFrom } : null),
   } as React.CSSProperties
 
   return createPortal(
     <div
-      className={`sbi sb-tone--${tone}${open ? ' is-open' : ''}`}
+      className={`sbi sb-tone--${tone}${art ? ' sbi--art' : ''}${open ? ' is-open' : ''}`}
       style={style}
       role="dialog"
       aria-modal="true"
@@ -169,6 +204,22 @@ const SituationImmersive = ({
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
     >
+      {art && artCover && (
+        <>
+          <div
+            className="sbi__art"
+            style={{
+              ...moodArtVars(art, 'full'),
+              left: artCover.left,
+              top: artCover.top,
+              width: artCover.width,
+              height: artCover.height,
+            }}
+            aria-hidden="true"
+          />
+          <div className="sbi__scrim" aria-hidden="true" />
+        </>
+      )}
       <div className="sbi__col">
         {/* 진행 막대 — 구절 수 + 끝 장면 1칸 */}
         <div className="sbi__bars" aria-hidden="true">

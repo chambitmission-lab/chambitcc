@@ -145,6 +145,44 @@
   opacity: 0.55;
 }
 
+/* 감정 그림 타일 — 장면 중 양 + 금빛만 클로즈업 (위치·배율은 moodArt.tileArtStyle) */
+.sb-mood__art {
+  position: absolute;
+  background-image: var(--art-light);
+  background-size: 100% 100%;
+  transition: transform 0.6s ease;
+}
+
+.dark .sb-mood__art {
+  background-image: var(--art-dark);
+}
+
+/* 라벨이 앉는 왼쪽만 살짝 가라앉혀 흰 글씨를 받친다 */
+.sb-mood--art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, rgba(10, 12, 20, 0.44) 0%, rgba(10, 12, 20, 0.14) 48%, rgba(10, 12, 20, 0) 72%);
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .sb-mood--art:hover .sb-mood__art {
+    transform: scale(1.04);
+  }
+}
+
+.sb-mood--art .sb-mood__label,
+.sb-mood--art .sb-mood__count {
+  z-index: 1;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sb-mood--art .sb-mood__count {
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .sb-mood__label {
   position: relative;
   font-size: 15.5px;
@@ -985,4 +1023,113 @@
 
 .dark .sbi__related button {
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* ═════ 몰입 화면 — 감정 그림 모드 ═══════════════════════════════
+   타일 클로즈업(--sbi-art-from, --sbi-clip-from)에서 카메라가 물러나며 장면 전체가 드러나고,
+   다 펼쳐진 뒤에야 장면이 살짝 가라앉으며 말씀이 떠오른다. 닫을 때는 짧게 타일로 되돌아간다. */
+.sbi--art {
+  color: #fff;
+  background: #0d0f14;
+  clip-path: var(--sbi-clip-from);
+  transition: clip-path 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sbi--art.is-open {
+  clip-path: inset(0px 0px 0px 0px round 0px);
+  transition: clip-path 1.6s cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.sbi__art {
+  position: absolute;
+  transform-origin: 0 0;
+  transform: var(--sbi-art-from);
+  background-image: var(--art-light-full), var(--art-light);
+  background-size: 100% 100%;
+  transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.dark .sbi__art {
+  background-image: var(--art-dark-full), var(--art-dark);
+}
+
+.sbi--art.is-open .sbi__art {
+  transform: none;
+  transition: transform 1.7s cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.sbi__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 12, 20, 0.5) 0%, rgba(10, 12, 20, 0.34) 45%, rgba(10, 12, 20, 0.62) 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.sbi--art.is-open .sbi__scrim {
+  opacity: 1;
+  transition: opacity 1.4s ease 1.3s;
+}
+
+.sbi--art .sbi__col {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sbi--art.is-open .sbi__col {
+  opacity: 1;
+  transition: opacity 0.9s ease 1.1s;
+}
+
+.sbi--art .sbi__lead,
+.sbi--art .sbi__said,
+.sbi--art .sbi__verse,
+.sbi--art .sbi__ref,
+.sbi--art .sbi__breath p,
+.sbi--art .sbi__end {
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.35);
+}
+
+.sbi--art .sbi__lead {
+  opacity: 0.9;
+}
+
+/* 장면의 양·빛은 아래쪽에 있다 — 글자는 하늘 쪽에 앉혀 금빛을 가리지 않는다 */
+.sbi--art .sbi__body {
+  justify-content: flex-start;
+  padding-top: clamp(36px, 9vh, 96px);
+}
+
+.sbi--art .sbi__tag,
+.sbi--art .sbi__icon-btn,
+.sbi--art .sbi__actions button,
+.sbi--art .sbi__cta button,
+.sbi--art .sbi__related button {
+  background: rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.sbi--art .sbi__actions button.is-next,
+.sbi--art .sbi__cta button.is-primary {
+  background: #fff;
+  color: #1d2330;
+}
+
+.sbi--art .sbi__breath-orb {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 18px rgba(255, 255, 255, 0.07), 0 0 0 42px rgba(255, 255, 255, 0.035);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sbi--art,
+  .sbi--art.is-open {
+    clip-path: none;
+  }
+  .sbi__art,
+  .sbi--art.is-open .sbi__art {
+    transform: none;
+    transition: none;
+  }
 }

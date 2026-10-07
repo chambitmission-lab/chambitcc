@@ -8,25 +8,38 @@ export type MoodTone =
   | 'sky' | 'mist' | 'peach' | 'slate' | 'lilac' | 'rose'
   | 'mint' | 'storm' | 'amber' | 'blue' | 'sand' | 'teal'
 
+/**
+ * 감정 타일 배경 그림 (docs/situation-mood-tile-art-prompts.md).
+ * 타일은 양 + 금빛('참빛')만 클로즈업하고, 누르면 그 자리에서 카메라가 물러나며 장면 전체가 드러난다.
+ * fx·fy = 클로즈업 초점(그림 폭·높이 비율, 라이트·다크 구도 동일), zoom = 타일 높이 대비 그림 높이 배율.
+ */
+export interface MoodArt {
+  key: string
+  fx: number
+  fy: number
+  zoom: number
+}
+
 export interface Mood {
   label: string
   names: string[]
   tone: MoodTone
+  art?: MoodArt
 }
 
 export const MOODS: Mood[] = [
-  { label: '불안해요', names: ['두려울 때', '걱정될 때'], tone: 'sky' },
-  { label: '지쳤어요', names: ['괴로울 때', '낙심될 때'], tone: 'peach' },
-  { label: '우울해요', names: ['우울할 때', '낙심될 때'], tone: 'slate' },
-  { label: '슬퍼요', names: ['슬플 때'], tone: 'lilac' },
-  { label: '외로워요', names: ['고독할 때'], tone: 'rose' },
-  { label: '아파요', names: ['몸이 아플 때'], tone: 'mint' },
-  { label: '막막해요', names: ['위기일 때', '재난·재해시'], tone: 'storm' },
-  { label: '길을 모르겠어요', names: ['인도가 필요할 때'], tone: 'amber' },
-  { label: '하나님이 멀어요', names: ['하나님과 멀어졌을 때', '하나님을 의심할 때'], tone: 'blue' },
-  { label: '용서가 안 돼요', names: ['용서가 어려울 때'], tone: 'sand' },
-  { label: '쉬고 싶어요', names: ['평안이 필요할 때'], tone: 'teal' },
-  { label: '감사해요', names: ['감사할 때'], tone: 'amber' },
+  { label: '불안해요', names: ['두려울 때', '걱정될 때'], tone: 'sky', art: { key: 'anxious', fx: 0.76, fy: 0.58, zoom: 2.2 } },
+  { label: '지쳤어요', names: ['괴로울 때', '낙심될 때'], tone: 'peach', art: { key: 'weary', fx: 0.75, fy: 0.62, zoom: 2.0 } },
+  { label: '우울해요', names: ['우울할 때', '낙심될 때'], tone: 'slate', art: { key: 'down', fx: 0.74, fy: 0.6, zoom: 1.9 } },
+  { label: '슬퍼요', names: ['슬플 때'], tone: 'lilac', art: { key: 'sad', fx: 0.7, fy: 0.56, zoom: 2.0 } },
+  { label: '외로워요', names: ['고독할 때'], tone: 'rose', art: { key: 'lonely', fx: 0.71, fy: 0.58, zoom: 2.0 } },
+  { label: '아파요', names: ['몸이 아플 때'], tone: 'mint', art: { key: 'sick', fx: 0.64, fy: 0.68, zoom: 1.9 } },
+  { label: '막막해요', names: ['위기일 때', '재난·재해시'], tone: 'storm', art: { key: 'overwhelmed', fx: 0.69, fy: 0.42, zoom: 2.0 } },
+  { label: '길을 모르겠어요', names: ['인도가 필요할 때'], tone: 'amber', art: { key: 'lost', fx: 0.67, fy: 0.64, zoom: 2.1 } },
+  { label: '하나님이 멀어요', names: ['하나님과 멀어졌을 때', '하나님을 의심할 때'], tone: 'blue', art: { key: 'far', fx: 0.7, fy: 0.62, zoom: 1.9 } },
+  { label: '용서가 안 돼요', names: ['용서가 어려울 때'], tone: 'sand', art: { key: 'forgive', fx: 0.7, fy: 0.64, zoom: 2.2 } },
+  { label: '쉬고 싶어요', names: ['평안이 필요할 때'], tone: 'teal', art: { key: 'rest', fx: 0.7, fy: 0.62, zoom: 1.9 } },
+  { label: '감사해요', names: ['감사할 때'], tone: 'amber', art: { key: 'thankful', fx: 0.75, fy: 0.48, zoom: 2.0 } },
 ]
 
 /** 카테고리 → 몰입 화면 색 — 감정 타일에 없는(어드민 추가) 카테고리는 차분한 블루 */

@@ -7,6 +7,7 @@ import type { VerseCopyTarget } from './components/verseCopy'
 import SituationImmersive, { type ImmersiveOrigin } from './situation/SituationImmersive'
 import SituationAsk from './situation/SituationAsk'
 import { MOODS, timeGreeting, type Mood } from './situation/situationMoods'
+import { moodArtVars, tileArtStyle } from './situation/moodArt'
 import './SituationBible.css'
 
 const VerseShareSheet = lazy(() => import('./components/VerseShareSheet'))
@@ -29,7 +30,11 @@ interface ImmersiveState {
 const originOf = (el: Element | null): ImmersiveOrigin | null => {
   if (!el) return null
   const r = el.getBoundingClientRect()
-  return { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+  return {
+    x: r.left + r.width / 2,
+    y: r.top + r.height / 2,
+    rect: { left: r.left, top: r.top, width: r.width, height: r.height },
+  }
 }
 
 const verseRef = (v: SituationVerse) => `${v.book_name_ko} ${v.chapter}:${v.verse}`
@@ -225,12 +230,17 @@ const SituationBible = () => {
                     <button
                       key={mood.label}
                       type="button"
-                      className={`sb-mood sb-tone--${mood.tone}`}
+                      className={`sb-mood sb-tone--${mood.tone}${mood.art ? ' sb-mood--art' : ''}`}
+                      style={mood.art ? moodArtVars(mood.art, 'sm') : undefined}
                       onClick={(e) =>
                         openCategory(cats[0], { origin: originOf(e.currentTarget), breathe: true, mood })
                       }
                     >
-                      <span className="sb-mood__orb" aria-hidden="true" />
+                      {mood.art ? (
+                        <span className="sb-mood__art" style={tileArtStyle(mood.art)} aria-hidden="true" />
+                      ) : (
+                        <span className="sb-mood__orb" aria-hidden="true" />
+                      )}
                       <span className="sb-mood__label">{mood.label}</span>
                       <span className="sb-mood__count">말씀 {count}</span>
                     </button>
@@ -267,6 +277,8 @@ const SituationBible = () => {
           origin={immersive.origin}
           breathe={immersive.breathe}
           sentence={immersive.sentence}
+          // 타일에서 연 첫 장면만 그림이 펼쳐진다 — '이런 마음도 있나요?'로 옮기면 origin 이 비어 색 화면으로
+          art={immersive.origin && immersive.mood?.art ? immersive.mood.art : null}
           related={related}
           paused={!!shareVerse}
           onClose={() => setImmersive(null)}
