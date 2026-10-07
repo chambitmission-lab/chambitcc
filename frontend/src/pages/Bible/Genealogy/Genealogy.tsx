@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { useSheetPullToClose } from '../../../hooks/useSheetPullToClose'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMessianicGenealogy, usePrefetchBibleFigure } from '../../../hooks/useBibleFigure'
@@ -388,12 +389,9 @@ export const Genealogy = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 32, stiffness: 280 }}
-              className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-h-[88vh] bg-white dark:bg-card-dark rounded-t-[28px] shadow-[0_-20px_60px_-10px_var(--brand-glow)] border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden"
+              className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
             >
-              <div className="flex-shrink-0 flex justify-center py-2.5">
-                <div className="w-10 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full" />
-              </div>
-              <div className="overflow-y-auto">
+              <FigureSheet onClose={() => setSelectedSlug(null)}>
                 <FigureDetailPanel
                   slug={selectedSlug}
                   summary={selectedSummary}
@@ -401,7 +399,7 @@ export const Genealogy = () => {
                   onClose={() => setSelectedSlug(null)}
                   variant="sheet"
                 />
-              </div>
+              </FigureSheet>
             </motion.div>
           </>
         )}
@@ -409,6 +407,24 @@ export const Genealogy = () => {
 
       {/* 성경 섹션 하단 네비게이션 */}
       <BibleBottomNav active="genealogy" />
+    </div>
+  )
+}
+
+/** 모바일 시트 본체 — 본문이 맨 위일 때 아래로 끌어내리면 닫힌다(바깥 motion.div 가 퇴장 애니메이션 담당) */
+const FigureSheet = ({ onClose, children }: { onClose: () => void; children: ReactNode }) => {
+  const { sheetRef, scrollRef } = useSheetPullToClose(onClose)
+  return (
+    <div
+      ref={sheetRef}
+      className="max-h-[88vh] bg-white dark:bg-card-dark rounded-t-[28px] shadow-[0_-20px_60px_-10px_var(--brand-glow)] border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden"
+    >
+      <div className="flex-shrink-0 flex justify-center py-2.5">
+        <div className="w-10 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full" />
+      </div>
+      <div ref={scrollRef} className="overflow-y-auto overscroll-contain">
+        {children}
+      </div>
     </div>
   )
 }
