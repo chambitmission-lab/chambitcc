@@ -266,6 +266,21 @@ export const GREETING_HERO: ThemePair = {
   dark: heroWinterEvening,
 }
 
+/** /bible/situation 감정 타일 그림(-sm, SituationBible.css .sb-mood__art) — 타일은 카테고리 API 가
+ *  돌아온 뒤에야 렌더돼 그림 요청이 API 뒤로 밀렸다. 청크·API 와 나란히 받는다.
+ *  moodArt.ts 와 같은 파일이라 URL(해시)이 같다. 몰입 화면 원본은 타일 hover/누름에서 데운다. */
+const SITUATION_TILE_FILES = import.meta.glob<string>('../assets/situation-moods/*-sm.webp', {
+  eager: true,
+  import: 'default',
+})
+export const SITUATION_MOOD_TILES: ThemePair[] = Object.keys(SITUATION_TILE_FILES)
+  .filter((path) => path.endsWith('-light-sm.webp'))
+  .map((path) => ({
+    light: SITUATION_TILE_FILES[path],
+    dark: SITUATION_TILE_FILES[path.replace('-light-sm.webp', '-dark-sm.webp')],
+  }))
+  .filter((pair) => !!pair.dark)
+
 // ── 라우트 매니페스트 ─────────────────────────────────────────
 // 경로는 HashRouter 의 '#' 뒤 pathname(쿼리 제외). 첫 화면에 "항상" 뜨는 배경만 적는다.
 interface RouteAssets {
@@ -300,6 +315,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/bible\/photo-verse$/, pairs: [PHOTO_VERSE_INTRO] },
   { match: /^\/bible\/alarm$/, pairs: [ALARM_HERO, ALARM_BAND] },
   { match: /^\/bible\/atlas$/, pairs: [ATLAS_BG_MOBILE, ATLAS_BG_PC] },
+  { match: /^\/bible\/situation$/, pairs: SITUATION_MOOD_TILES },
 ]
 
 const cleanPath = (path: string): string => path.split(/[?#]/)[0].replace(/\/+$/, '') || '/'

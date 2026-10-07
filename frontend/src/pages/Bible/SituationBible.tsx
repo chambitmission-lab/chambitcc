@@ -7,7 +7,7 @@ import type { VerseCopyTarget } from './components/verseCopy'
 import SituationImmersive, { type ImmersiveOrigin } from './situation/SituationImmersive'
 import SituationAsk from './situation/SituationAsk'
 import { MOODS, timeGreeting, type Mood } from './situation/situationMoods'
-import { moodArtVars, tileArtStyle } from './situation/moodArt'
+import { moodArtVars, tileArtStyle, warmMoodArtFull } from './situation/moodArt'
 import './SituationBible.css'
 
 const VerseShareSheet = lazy(() => import('./components/VerseShareSheet'))
@@ -232,6 +232,9 @@ const SituationBible = () => {
                       type="button"
                       className={`sb-mood sb-tone--${mood.tone}${mood.art ? ' sb-mood--art' : ''}`}
                       style={mood.art ? moodArtVars(mood.art, 'sm') : undefined}
+                      onPointerEnter={mood.art ? () => warmMoodArtFull(mood.art!) : undefined}
+                      onPointerDown={mood.art ? () => warmMoodArtFull(mood.art!) : undefined}
+                      onFocus={mood.art ? () => warmMoodArtFull(mood.art!) : undefined}
                       onClick={(e) =>
                         openCategory(cats[0], { origin: originOf(e.currentTarget), breathe: true, mood })
                       }

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { MoodArt } from './situationMoods'
+import { currentTheme, warmImage } from '../../../utils/themeAssets'
 
 // 감정 타일 배경 그림 — src/assets/situation-moods/{key}-{light|dark}[-sm].webp
 // 타일은 720px(-sm), 몰입 화면은 원본(1376px). public/ 이 아니라 assets 라 교체해도 SW 캐시에 안 걸린다.
@@ -22,6 +23,12 @@ export const moodArtVars = (art: MoodArt, size: 'sm' | 'full') => {
     vars['--art-dark-full'] = `url(${urlOf(`${art.key}-dark`)})`
   }
   return vars
+}
+
+/** 몰입 화면 원본(현재 테마)을 미리 받는다 — 타일 hover·focus·누름에서 호출해 열릴 때 바로 선명하게 */
+export const warmMoodArtFull = (art: MoodArt): void => {
+  const src = urlOf(`${art.key}-${currentTheme()}`)
+  if (src) void warmImage(src, 'high')
 }
 
 /** 원본 그림 비율 (1376×768) */
