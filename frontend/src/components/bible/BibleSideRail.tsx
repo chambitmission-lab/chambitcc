@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import type { BibleNavKey } from './BibleBottomNav'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 import { useFeedTextScale } from '../../utils/feedTextScale'
+import { usePageZoomRequest } from '../../utils/textScaleRoutes'
 import { PLAN_HERO, alarmArtPair, warmPair, warmRouteThemeAssets } from '../../utils/themeAssets'
 import './BibleSideRail.css'
 
@@ -145,13 +146,16 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
     }
   }, [measure])
 
-  // 접힘/펼침·내용 유무로 슬롯 폭이 바뀌면 다음 프레임에 다시 잰다
+  // 접힘/펼침·내용 유무로 슬롯 폭이 바뀌면 다음 프레임에 다시 잰다.
+  // zoom 이 켜지고 꺼질 때도 — /bible 허브는 마운트 뒤 requestPageZoom 으로 zoom 을 켜고,
+  // 2200px+ 대형 모니터에선 기본 글씨에서도 켜져 textScale 이 그대로라 이것만으론 다시 재지 않는다
   const hasBody = !!children
   const textScale = useFeedTextScale()
+  const pageZoom = usePageZoomRequest()
   useEffect(() => {
     const raf = requestAnimationFrame(measure)
     return () => cancelAnimationFrame(raf)
-  }, [collapsed, hasBody, textScale, measure])
+  }, [collapsed, hasBody, textScale, pageZoom, measure])
 
   const variant = collapsed ? 'corl--collapsed' : hasBody ? '' : 'corl--nav'
   const slotVariant = collapsed ? 'corl-slot--collapsed' : hasBody ? '' : 'corl-slot--nav'
