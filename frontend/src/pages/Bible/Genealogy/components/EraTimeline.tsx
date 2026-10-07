@@ -265,10 +265,21 @@ export const EraTimeline = ({
                   title={`${s.group.era.label}${isLoggedIn ? ` · ${s.done}/${s.total}명` : ''}`}
                   aria-label={`${s.group.era.label}로 이동`}
                   className={['gtr-stone', full ? 'is-full' : '', i === viewEra ? 'is-view' : ''].join(' ')}
-                  style={{ '--era': s.group.era.color, '--era-deep': s.group.era.deep } as CSSProperties}
+                  style={
+                    {
+                      '--era': s.group.era.color,
+                      '--era-deep': s.group.era.deep,
+                      '--p': `${(isLoggedIn ? ratio : 0) * 100}%`,
+                    } as CSSProperties
+                  }
                 >
-                  <span className="gtr-stone__fill" style={{ width: `${(isLoggedIn ? ratio : 0) * 100}%` }} />
+                  <span className="gtr-stone__fill" />
                   <span className="gtr-stone__label">
+                    {full && <Check size={10} weight="bold" />}
+                    {s.group.era.short}
+                  </span>
+                  {/* 채움이 덮은 구간만 흰 글자로 — 시대 색 위 회색 글자 대비 보정 */}
+                  <span className="gtr-stone__label is-on" aria-hidden>
                     {full && <Check size={10} weight="bold" />}
                     {s.group.era.short}
                   </span>

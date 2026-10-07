@@ -323,8 +323,12 @@
   transition: transform .12s, box-shadow .12s;
 }
 .gtr-stone:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--gtr-off-deep); }
-.gtr-stone__fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 10px; background: var(--era); transition: width .6s; }
+.gtr-stone__fill { position: absolute; left: 0; top: 0; bottom: 0; width: var(--p, 0%); border-radius: 10px; background: var(--era); transition: width .6s; }
 .gtr-stone__label { position: relative; display: flex; align-items: center; justify-content: center; gap: 1px; height: 100%; white-space: nowrap; overflow: hidden; }
+.gtr-stone__label.is-on {
+  position: absolute; inset: 0; color: #fff; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+  clip-path: inset(0 calc(100% - var(--p, 0%)) 0 0); transition: clip-path .6s;
+}
 .gtr-stone.is-full { color: #fff; box-shadow: 0 3px 0 var(--era-deep); }
 .gtr-stone.is-view { outline: 2px solid var(--text-strong); outline-offset: 2px; }
 .gtr-stone__me {
