@@ -35,6 +35,7 @@ const ZOOM_ROUTES = [
   '/bible/wordbook',
   '/bible/genealogy', // 트리 스크롤은 컨테이너 안쪽 좌표끼리만 계산한다
   '/bible/atlas',
+  '/bible/alarm', // 구절 알람 — 시계 다이얼은 clientX 와 rect 를 둘 다 화면 px 로 빼 각도만 쓴다(zoom 무관)
   '/bible/typing', // 필사 — 커서·입력칸은 offsetLeft/Top(레이아웃 px)으로 옮겨 zoom 과 어긋나지 않는다
   // 참여
   '/events',

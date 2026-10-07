@@ -16,7 +16,8 @@
   border-radius: 24px 24px 0 0;
   padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
   animation: va-sheet-up 0.25s ease;
-  max-height: calc(100dvh - 32px);
+  /* 시트는 페이지 안(포털 아님)이라 zoom 화면(PC 글씨 크기·대형 모니터)에선 vh 도 커진다 — 배율로 되돌린다 */
+  max-height: calc((100dvh - 32px) / var(--az, 1));
   overflow-y: auto;
 }
 
