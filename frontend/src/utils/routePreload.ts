@@ -92,6 +92,10 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
     Promise.all([import('../hooks/useSituation'), import('../config/queryClient')]).then(
       ([m, q]) => m.prefetchSituation(q.queryClient),
     ),
+  // 설교 — 목록 첫 페이지 + 최신 설교 인용절. 청크만 받아 두면 진입 시 목록 → 인용절 두 왕복이 직렬로 남았다
+  '/sermon': () => import('../pages/Sermon/prefetch').then((m) => m.prefetchSermonPage()),
+  // 시범 화면도 같은 목록·인용절을 쓴다 (키는 deepLinkRouteLoaders 의 key)
+  'sermon/new': () => import('../pages/Sermon/prefetch').then((m) => m.prefetchSermonPage()),
 }
 
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다
@@ -220,12 +224,12 @@ export const preloadMenuRoutes = async (): Promise<void> => {
 // 홈에서 한 탭 거리인 화면. 25개 메뉴 청크(~1MB)를 통째로 받으면 홈 API 요청과
 // 대역폭을 다투고 모바일 데이터를 태운다. 나머지는 메뉴를 여는 순간(preloadMenuRoutes)
 // 이나 링크 호버/터치 때 받는다.
-const IDLE_PRELOAD_ROUTES = [...NAV_ROUTES, '/events', '/news', '/groups', '/growth']
+const IDLE_PRELOAD_ROUTES = [...NAV_ROUTES, '/sermon', '/events', '/news', '/groups', '/growth']
 
 // 비로그인 방문자가 랜딩에서 실제로 누르는 곳만 — 공개 메뉴 9개(성경 청크만 gz 120KB 등
 // 합계 JS 1.5MB)를 첫 방문마다 받는 건 랜딩 히어로·API 와 대역폭을 다투는 낭비였다.
 // 나머지 공개 페이지는 메뉴를 여는 순간(preloadMenuRoutes) 받는다.
-const GUEST_IDLE_ROUTES = ['/about', '/worship', '/visit', '/bible']
+const GUEST_IDLE_ROUTES = ['/about', '/worship', '/sermon', '/visit', '/bible']
 
 const preloadLikelyRoutes = async (): Promise<void> => {
   const budget = preloadBudget()

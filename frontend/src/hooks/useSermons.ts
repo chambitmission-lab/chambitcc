@@ -15,7 +15,9 @@ export const useSermons = (skip = 0, limit = 10, includeContent = true) => {
   })
 }
 
-const SERMON_PAGE_SIZE = 10
+// prefetch(pages/Sermon/prefetch.ts)가 같은 값을 써야 진입 시 캐시를 그대로 이어받는다
+export const SERMON_PAGE_SIZE = 10
+export const SERMON_STALE_MS = 1000 * 60 * 5
 
 // 설교 목록 무한 스크롤 — skip/limit 기반, 마지막 페이지가 꽉 차지 않으면 종료
 export const useInfiniteSermons = () => {
@@ -25,7 +27,7 @@ export const useInfiniteSermons = () => {
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.length === SERMON_PAGE_SIZE ? allPages.length * SERMON_PAGE_SIZE : undefined,
-    staleTime: 1000 * 60 * 5,
+    staleTime: SERMON_STALE_MS,
   })
 }
 

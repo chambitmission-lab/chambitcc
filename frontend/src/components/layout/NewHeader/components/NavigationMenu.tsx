@@ -6,6 +6,15 @@ import { useIntercessionSummary } from '../../../../hooks/useIntercession'
 import type { Translation } from '../../../../locales'
 import { NAV_CATALOG, navEntries, type NavEntry } from '../../navCatalog'
 import { openCommandPalette, preloadCommandPalette } from '../../../command/commandEvents'
+import { preloadRoute } from '../../../../utils/routePreload'
+
+// 항목에 손이 닿는 순간 그 화면의 청크·데이터를 띄운다. 메뉴가 열릴 때 전체를 순차로 받고 있지만
+// 뒤쪽 항목은 아직 차례가 안 왔을 수 있다 — 모바일은 호버가 없으니 pointerdown(탭 시작)에 건다.
+// 이미 받았거나 받는 중이면 preloadRoute 가 그대로 돌려주므로 중복 요청은 없다.
+const warmOnTouch = (path: string) => ({
+  onPointerEnter: () => void preloadRoute(path),
+  onPointerDown: () => void preloadRoute(path),
+})
 
 // 항목의 이름·설명·아이콘은 layout/navCatalog.ts 한 곳 — 여기선 묶음과 순서만 고른다.
 
@@ -66,6 +75,7 @@ const FeaturedCard = ({ item, label, desc }: { item: NavEntry; label: string; de
   return (
     <Link
       to={item.path}
+      {...warmOnTouch(item.path)}
       className="group flex items-center gap-3.5 rounded-2xl px-4 py-3.5 bg-[var(--brand-soft)] transition-colors duration-150 hover:bg-[var(--brand-soft-strong)]"
     >
       <span className="flex items-center justify-center w-[calc(44px*var(--mm,1))] h-[calc(44px*var(--mm,1))] rounded-xl shrink-0 bg-background-light dark:bg-background-dark text-brand">
@@ -89,6 +99,7 @@ const DesktopItem = ({ item, label, desc, tipRight = false }: { item: NavEntry; 
   return (
     <Link
       to={item.path}
+      {...warmOnTouch(item.path)}
       className="group relative flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors duration-150 hover:bg-[var(--brand-soft)] focus-visible:bg-[var(--brand-soft)] outline-none"
     >
       <span className="shrink-0 text-ink-muted group-hover:text-brand transition-colors">
@@ -277,6 +288,7 @@ const LauncherItem = ({
   return (
     <Link
       to={item.path}
+      {...warmOnTouch(item.path)}
       className="
         group flex flex-col items-center gap-1.5
         rounded-2xl px-1 py-2.5

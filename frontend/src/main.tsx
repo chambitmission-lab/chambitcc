@@ -70,7 +70,11 @@ createRoot(document.getElementById('root')!).render(
               // 남기는 일은 아래 serializeData 가 한다.
               const key = query.queryKey
               const isThanks = Array.isArray(key) && key[0] === 'thanks'
-              if (Array.isArray(key) && key.includes('infinite') && !isThanks) return false
+              // 설교 목록도 예외 — 10건 gzip 1.3KB 남짓인데 제외하면 앱을 켤 때마다 /sermon 이
+              // 콜드(스켈레톤)로 시작했다. 첫 페이지만 남기는 일은 아래 serializeData 가 한다.
+              const isSermons = Array.isArray(key) && key[0] === 'sermons' && key[1] === 'infinite'
+              const keepFirstPage = isThanks || isSermons
+              if (Array.isArray(key) && key.includes('infinite') && !keepFirstPage) return false
               // 발자취 게임 상태는 서버 권위 데이터이므로 persist 제외
               // (stale pending_quiz가 캐시되면 진입 시 잘못된 퀴즈가 뜸)
               // 단, 통계(stats)는 복원한다 — /profile이 레벨 계산에 쓰는데,
@@ -105,11 +109,11 @@ createRoot(document.getElementById('root')!).render(
               if (query.state.data && typeof query.state.data === 'object' && 'pageParams' in query.state.data) {
                 const pageParams = (query.state.data as { pageParams?: unknown }).pageParams
                 // 첫 페이지만 있으면 persist 허용, 2페이지 이상이면 제외 (thanks 는 위 참고)
-                if (Array.isArray(pageParams) && pageParams.length > 1 && !isThanks) return false
+                if (Array.isArray(pageParams) && pageParams.length > 1 && !keepFirstPage) return false
               }
               return true
             },
-            // 여기까지 온 무한 쿼리 데이터 중 2페이지 이상인 것은 thanks 뿐(나머지는 위에서 걸렀다).
+            // 여기까지 온 무한 쿼리 데이터 중 2페이지 이상인 것은 thanks·sermons 뿐(나머지는 위에서 걸렀다).
             // 저장은 첫 페이지만 — 티커는 첫 페이지만 쓰고, /thanks 는 스크롤하면 다시 받는다.
             serializeData: (data: unknown) => {
               if (data && typeof data === 'object' && 'pages' in data && 'pageParams' in data) {

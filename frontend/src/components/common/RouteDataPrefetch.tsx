@@ -47,6 +47,13 @@ const RouteDataPrefetch = () => {
     if (pathname === '/weekly-story' && tokenStore.getAccess()) prefetchWeeklyStory(queryClient)
     // 상황별 성구 — 청크 → 카테고리 → 히어로 구절 3단 직렬을 청크와 나란히 한 번에 띄운다
     if (pathname === '/bible/situation') prefetchSituation(queryClient)
+    // 설교 — 목록 첫 페이지 + 최신 설교 인용절을 청크와 나란히 (딥링크·새로고침 진입용.
+    // 설교 유틸이 메인 번들에 섞이지 않게 동적 import — 페이지 청크와 나란히 온다)
+    if (pathname === '/sermon' || pathname === '/sermon/new') {
+      void import('../../pages/Sermon/prefetch')
+        .then((m) => m.prefetchSermonPage(queryClient))
+        .catch(() => undefined)
+    }
     // 비로그인 랜딩 — 히어로 사진 URL 이 /about-content 응답에 있어 청크 뒤에 API, 그 뒤에
     // 이미지가 오는 3단 체인이었다. API 를 청크와 같은 시점에 띄운다.
     if ((pathname === '/' || pathname === '/welcome') && !tokenStore.getAccess()) {
