@@ -1,82 +1,79 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { pickSituationHero, situationHeroDateSeed, useSituationCategories, useSituationVerses } from '../../hooks/useSituation'
+import { useAuth } from '../../hooks/useAuth'
 import type { SituationCategory, SituationVerse } from '../../types/situation'
+import type { VerseCopyTarget } from './components/verseCopy'
+import SituationImmersive, { type ImmersiveOrigin } from './situation/SituationImmersive'
+import SituationAsk from './situation/SituationAsk'
+import { MOODS, timeGreeting, type Mood } from './situation/situationMoods'
 import './SituationBible.css'
 
-// 대분류 그룹 — 씨드 카테고리 이름 기준. 어드민이 새로 추가한 카테고리는 '전체' 탭에서 노출된다.
-const GROUPS: { label: string; names: string[] }[] = [
-  {
-    label: '마음이 힘들 때',
-    names: ['우울할 때', '괴로울 때', '슬플 때', '낙심될 때', '고독할 때'],
-  },
-  {
-    label: '불안과 위기',
-    names: ['두려울 때', '걱정될 때', '위기일 때', '재난·재해시', '몸이 아플 때'],
-  },
-  {
-    label: '관계와 영성',
-    names: [
-      '하나님과 멀어졌을 때',
-      '하나님을 의심할 때',
-      '용서가 어려울 때',
-      '인도가 필요할 때',
-      '평안이 필요할 때',
-      '감사할 때',
-    ],
-  },
-]
+const VerseShareSheet = lazy(() => import('./components/VerseShareSheet'))
 
-// 검색 동의어 + 카드 해시태그 (카테고리 이름 기준)
-const KEYWORDS: Record<string, string[]> = {
-  '두려울 때': ['불안', '공포', '무서움'],
-  '걱정될 때': ['염려', '근심', '불안'],
-  '하나님과 멀어졌을 때': ['회복', '돌아옴', '신앙'],
-  '괴로울 때': ['고통', '아픔', '힘듦'],
-  '위기일 때': ['시련', '환난', '어려움'],
-  '우울할 때': ['무기력', '침체', '위로'],
-  '재난·재해시': ['재난', '사고', '보호'],
-  '낙심될 때': ['실망', '좌절', '용기'],
-  '하나님을 의심할 때': ['의심', '믿음', '확신'],
-  '고독할 때': ['외로움', '혼자', '동행'],
-  '인도가 필요할 때': ['진로', '취업', '결정'],
-  '평안이 필요할 때': ['평화', '안식', '쉼'],
-  '몸이 아플 때': ['질병', '치유', '건강'],
-  '슬플 때': ['눈물', '상실', '위로'],
-  '감사할 때': ['찬양', '기쁨', '은혜'],
-  '용서가 어려울 때': ['용서', '화해', '관계'],
+// 상황별 성구 — 두 갈래로 말씀까지 한 번에 닿는다.
+//   A. 마음 체크인: 감정 타일을 누르면 그 색이 화면을 채우고 한 절씩 머무는 몰입 화면
+//   C. 말로 꺼내기: 고르기 어려우면 한 문장 → 공감 한 줄 + 말씀 (규칙 기반, 저장 안 함)
+// 카테고리 이름을 다 아는 사람을 위해 '상황으로 찾기' 전체 목록은 아래(PC는 우측 레일)에 둔다.
+
+interface ImmersiveState {
+  category: SituationCategory
+  startIndex: number
+  origin: ImmersiveOrigin | null
+  breathe: boolean
+  sentence: string | null
+  /** 감정 타일로 열었으면 같은 감정의 다른 상황을 끝 장면에 먼저 */
+  mood: Mood | null
 }
 
-// "오늘 마음이 어떠세요?" 무드 태그 — 감정을 먼저 고르면 맞는 카테고리로 필터링.
-// 검색창 아래 추천 태그 형태로 텍스트만 배치해 시각 부담을 줄인다.
-const MOODS: { label: string; names: string[] }[] = [
-  { label: '힘들어요', names: ['우울할 때', '괴로울 때', '낙심될 때'] },
-  { label: '불안해요', names: ['두려울 때', '걱정될 때', '위기일 때', '재난·재해시'] },
-  { label: '슬퍼요', names: ['슬플 때', '고독할 때'] },
-  { label: '아파요', names: ['몸이 아플 때'] },
-  { label: '멀게 느껴져요', names: ['하나님과 멀어졌을 때', '하나님을 의심할 때', '용서가 어려울 때'] },
-  { label: '쉬고 싶어요', names: ['평안이 필요할 때', '인도가 필요할 때'] },
-  { label: '감사해요', names: ['감사할 때'] },
-]
-
-const matchesQuery = (cat: SituationCategory, q: string) => {
-  if (cat.name.includes(q)) return true
-  return (KEYWORDS[cat.name] ?? []).some((k) => k.includes(q) || q.includes(k))
+const originOf = (el: Element | null): ImmersiveOrigin | null => {
+  if (!el) return null
+  const r = el.getBoundingClientRect()
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 }
 }
+
+const verseRef = (v: SituationVerse) => `${v.book_name_ko} ${v.chapter}:${v.verse}`
 
 const SituationBible = () => {
   const navigate = useNavigate()
-  const [selected, setSelected] = useState<SituationCategory | null>(null)
-  const [query, setQuery] = useState('')
-  const [activeGroup, setActiveGroup] = useState('전체')
-  const [mood, setMood] = useState<string | null>(null)
+  const location = useLocation()
+  const { requireAuth } = useAuth()
+  const [immersive, setImmersive] = useState<ImmersiveState | null>(null)
+  const [shareVerse, setShareVerse] = useState<SituationVerse | null>(null)
   const [heroNonce, setHeroNonce] = useState(0)
 
   const { data: categories = [], isLoading } = useSituationCategories()
+  const byName = useMemo(() => new Map(categories.map((c) => [c.name, c])), [categories])
+
+  // 감정 타일 — 해당 카테고리가 하나도 없거나 구절이 비면 타일을 숨긴다
+  const moodTiles = useMemo(
+    () =>
+      MOODS.map((mood) => {
+        const cats = mood.names
+          .map((n) => byName.get(n))
+          .filter((c): c is SituationCategory => !!c && c.verse_count > 0)
+        const count = cats.reduce((sum, c) => sum + c.verse_count, 0)
+        return { mood, cats, count }
+      }).filter((t) => t.cats.length > 0),
+    [byName],
+  )
+  const listCategories = useMemo(() => categories.filter((c) => c.verse_count > 0), [categories])
+
+  const openCategory = useCallback(
+    (category: SituationCategory, opts: Partial<Omit<ImmersiveState, 'category'>> = {}) =>
+      setImmersive({
+        category,
+        startIndex: opts.startIndex ?? 0,
+        origin: opts.origin ?? null,
+        breathe: opts.breathe ?? false,
+        sentence: opts.sentence ?? null,
+        mood: opts.mood ?? null,
+      }),
+    [],
+  )
 
   // 홈 우측 레일 태그 칩 딥링크 — ?c=<카테고리ID> 로 진입하면 해당 상황을 바로 연다.
   // 카테고리 로드 후 최초 1회만 적용 (뒤로가기·직접 탐색을 덮어쓰지 않도록)
-  const location = useLocation()
   const deepLinkApplied = useRef(false)
   useEffect(() => {
     if (deepLinkApplied.current || categories.length === 0) return
@@ -85,362 +82,208 @@ const SituationBible = () => {
     const id = raw ? Number(raw) : NaN
     if (!Number.isFinite(id)) return
     const cat = categories.find((c) => c.id === id)
-    if (cat) setSelected(cat)
-  }, [categories, location.search])
-  const { data: detail, isLoading: versesLoading } = useSituationVerses(
-    selected?.id ?? 0,
-    !!selected,
-  )
+    if (cat) openCategory(cat)
+  }, [categories, location.search, openCategory])
 
-  const q = query.trim()
-
-  // ── 오늘의 추천 성구 (날짜 기반 + 새로고침 버튼) ──────────────────
+  // ── 오늘의 위로 말씀 (날짜 기반 + 새로고침 버튼) ──────────────────
   // 카테고리 선택 로직은 훅 파일과 공유 — 라우트 진입 선요청(prefetchSituation)이 같은
-  // 카테고리의 구절을 미리 받아 두므로 첫 화면에서 히어로가 곧바로 그려진다
+  // 카테고리의 구절을 미리 받아 두므로 첫 화면에서 곧바로 그려진다
   const dateSeed = useMemo(situationHeroDateSeed, [])
   const heroCat = useMemo(
     () => pickSituationHero(categories, heroNonce, dateSeed),
     [categories, heroNonce, dateSeed],
   )
+  const { data: heroDetail } = useSituationVerses(heroCat?.id ?? 0, !!heroCat)
+  const heroIndex = heroDetail?.verses.length ? (dateSeed + heroNonce * 13) % heroDetail.verses.length : 0
+  const heroVerse = heroDetail?.verses[heroIndex] ?? null
 
-  const { data: heroDetail } = useSituationVerses(
-    heroCat?.id ?? 0,
-    !!heroCat && !selected,
-  )
-  const heroVerse = heroDetail?.verses.length
-    ? heroDetail.verses[(dateSeed + heroNonce * 13) % heroDetail.verses.length]
-    : null
-
-  // ── 검색 / 그룹 필터 ───────────────────────────────────────────────
-  const visibleCategories = useMemo(() => {
-    if (q) return categories.filter((c) => matchesQuery(c, q))
-    if (mood) {
-      const m = MOODS.find((x) => x.label === mood)
-      if (m) return categories.filter((c) => m.names.includes(c.name))
-    }
-    if (activeGroup === '전체') return categories
-    const group = GROUPS.find((g) => g.label === activeGroup)
-    return group ? categories.filter((c) => group.names.includes(c.name)) : categories
-  }, [categories, q, mood, activeGroup])
-
-  const handleVerseClick = (v: SituationVerse) => {
+  // ── 몰입 화면·대답 카드 공통 동작 ────────────────────────────────
+  const goRead = (v: SituationVerse) => {
     // 상황별 성구는 "그 한 절"을 보여준 카드라, 장 첫머리가 아니라 그 절로 데려간다.
     // BibleStudy가 ?verse=N 을 받아 스크롤+하이라이트한다.
     navigate(`/bible/${v.book_number}/${v.chapter}${v.verse > 0 ? `?verse=${v.verse}` : ''}`)
   }
 
-  // 오늘의 위로 말씀 히어로 — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다
-  const renderComfortHero = (cls: string) => (
-    <div className={cls}>
-                {/* 오늘의 위로 말씀 — 화면의 중심. 최상단에 크고 여유 있게 (검색 중에는 숨김) */}
-                {!q && heroCat && (
-                  <div className="px-4 pt-5">
-                    {heroVerse ? (
-                      <div
-                        className="situation-hero"
-                        onClick={() => handleVerseClick(heroVerse)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && handleVerseClick(heroVerse)}
-                      >
-                        <div className="situation-hero__top">
-                          <span className="situation-hero__label">
-                            <span className="material-icons-round text-[14px]">auto_awesome</span>
-                            오늘의 위로 말씀
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setHeroNonce((n) => n + 1)
-                            }}
-                            className="situation-hero__shuffle"
-                            aria-label="다른 말씀 보기"
-                          >
-                            <span className="material-icons-round text-[16px]">refresh</span>
-                          </button>
-                        </div>
-                        <p className="situation-hero__text">{heroVerse.text}</p>
-                        <div className="situation-hero__bottom">
-                          <span className="situation-hero__ref">
-                            {heroVerse.book_name_ko} {heroVerse.chapter}:{heroVerse.verse}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setSelected(heroCat)
-                            }}
-                            className="situation-hero__cat"
-                            aria-label={`${heroCat.name} 말씀 전체 보기`}
-                          >
-                            {heroCat.name}
-                            <span className="material-icons-round text-[13px]">chevron_right</span>
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="situation-hero situation-hero--skeleton" />
-                    )}
-                  </div>
-                )}
-    </div>
+  const goPray = (v: SituationVerse, sentence?: string | null) => {
+    const said = sentence?.trim()
+    const draft = `${said ? `${said}\n\n` : ''}“${v.text}” (${verseRef(v)})\n\n`
+    requireAuth(() => navigate('/', { state: { openComposer: true, composerPrefill: draft } }))
+  }
+
+  const shareTarget: VerseCopyTarget | null = shareVerse
+    ? {
+        bookNameKo: shareVerse.book_name_ko,
+        bookNumber: shareVerse.book_number,
+        chapter: shareVerse.chapter,
+        verses: [{ verse: shareVerse.verse, text: shareVerse.text }],
+      }
+    : null
+
+  const related = useMemo(() => {
+    if (!immersive) return []
+    const cur = immersive.category.id
+    const siblings = (immersive.mood?.names ?? [])
+      .map((n) => byName.get(n))
+      .filter((c): c is SituationCategory => !!c && c.id !== cur && c.verse_count > 0)
+    const rest = listCategories.filter((c) => c.id !== cur && !siblings.includes(c))
+    // 같은 감정의 다른 상황 먼저, 나머지는 날마다 조금씩 다르게
+    const offset = rest.length ? dateSeed % rest.length : 0
+    return [...siblings, ...rest.slice(offset), ...rest.slice(0, offset)].slice(0, 4)
+  }, [immersive, byName, listCategories, dateSeed])
+
+  // 오늘의 위로 말씀 — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다
+  const renderComfort = (cls: string) =>
+    heroCat && (
+      <div className={cls}>
+        {heroVerse ? (
+          <div
+            className="sb-comfort"
+            role="button"
+            tabIndex={0}
+            onClick={(e) =>
+              openCategory(heroCat, { startIndex: heroIndex, origin: originOf(e.currentTarget) })
+            }
+            onKeyDown={(e) => e.key === 'Enter' && openCategory(heroCat, { startIndex: heroIndex })}
+          >
+            <div className="sb-comfort__top">
+              <span className="sb-comfort__label">
+                <span className="material-icons-round">wb_twilight</span>
+                오늘의 위로 말씀
+              </span>
+              <button
+                type="button"
+                className="sb-comfort__shuffle"
+                aria-label="다른 말씀 보기"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setHeroNonce((n) => n + 1)
+                }}
+              >
+                <span className="material-icons-round">refresh</span>
+              </button>
+            </div>
+            <p className="sb-comfort__text">{heroVerse.text}</p>
+            <div className="sb-comfort__foot">
+              <span>{verseRef(heroVerse)}</span>
+              <span className="sb-comfort__cat">{heroCat.name}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="sb-comfort sb-comfort--skeleton" />
+        )}
+      </div>
+    )
+
+  const renderAllSituations = (variant: 'chips' | 'list') => (
+    <section className={`sb-all sb-all--${variant}`} aria-label="상황으로 찾기">
+      <h2 className="sb-section-title">상황으로 찾기</h2>
+      <div className="sb-all__items">
+        {listCategories.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            className="sb-all__item"
+            onClick={(e) => openCategory(cat, { origin: originOf(e.currentTarget) })}
+          >
+            <span className="material-icons-round" aria-hidden="true">
+              {cat.icon}
+            </span>
+            <span className="sb-all__name">{cat.name}</span>
+            {variant === 'list' && <span className="sb-all__count">{cat.verse_count}</span>}
+          </button>
+        ))}
+      </div>
+    </section>
   )
 
   return (
     <div className="situation-bible bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
-      {/* lg+: 좁은 셸을 풀고 본문 + 우측 레일 2단.
-          레일 내용은 화면 상태에 따라 다르다 — 목록에선 오늘의 위로 말씀,
-          구절을 펼친 뒤엔 다른 상황으로 건너뛰는 바로가기 */}
+      {/* lg+: 좁은 셸을 풀고 본문 + 우측 레일 2단 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-clip">
-
-        {/* Header */}
-        <div className="situation-header sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
-          <div className="flex items-center gap-3 px-4 h-14">
-            {selected && (
-              <button
-                onClick={() => setSelected(null)}
-                className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 rounded-full transition-colors"
-              >
-                <span className="material-icons-round text-[22px]">arrow_back</span>
-              </button>
-            )}
-            <div>
-              <h1 className="text-[17px] font-bold text-ink-strong">
-                {selected ? selected.name : '상황별 성구'}
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-clip">
+          <div className="sb-page">
+            {/* 인사 + 질문 하나 — 화면의 첫 문장 */}
+            <header className="sb-hello">
+              <p className="sb-hello__time">{timeGreeting()}</p>
+              <h1>
+                지금 마음이
+                <br />
+                <em>어떤가요?</em>
               </h1>
-              {!selected && (
-                <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
-                  지금 내 마음에 맞는 말씀을 찾아보세요
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+            </header>
 
-        {/* 카테고리 화면 */}
-        {!selected && (
-          <div className="pb-8">
             {isLoading ? (
-              // 콜드 진입(배포 직후 persist 캐시가 비었을 때)엔 스피너 대신 실제 레이아웃 모양의
-              // 스켈레톤 — 라우트 스피너 → 페이지 스피너 → 본문으로 세 번 바뀌던 화면을 한 번으로 줄인다
-              <div className="situation-skeleton" aria-hidden="true">
-                <div className="px-4 pt-5 lg:hidden">
-                  <div className="situation-hero situation-hero--skeleton" />
-                </div>
-                <div className="px-4 pt-5">
-                  <div className="situation-search situation-search--skeleton" />
-                </div>
-                <div className="px-4 pt-6">
-                  <div className="situation-list">
-                    {Array.from({ length: 8 }, (_, i) => (
-                      <div key={i} className="situation-row situation-row--skeleton" style={{ animationDelay: `${i * 40}ms` }}>
-                        <span className="situation-row__icon-wrap" />
-                        <span className="situation-row__name">
-                          <span className="situation-skeleton__bar" style={{ width: `${44 + ((i * 17) % 30)}%` }} />
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="sb-moods" aria-hidden="true">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <span key={i} className="sb-mood sb-mood--skeleton" style={{ animationDelay: `${i * 40}ms` }} />
+                ))}
               </div>
             ) : (
               <>
-                {renderComfortHero('lg:hidden')}
-
-                {/* 검색창 */}
-                <div className="px-4 pt-5">
-                  <div className="situation-search">
-                    <span className="material-icons-round situation-search__icon">search</span>
-                    <input
-                      type="text"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="외로움, 취업, 위로… 마음을 검색해보세요"
-                      className="situation-search__input"
-                    />
-                    {query && (
-                      <button
-                        onClick={() => setQuery('')}
-                        className="situation-search__clear"
-                        aria-label="검색어 지우기"
-                      >
-                        <span className="material-icons-round text-[16px]">close</span>
-                      </button>
-                    )}
-                  </div>
+                <div className="sb-moods">
+                  {moodTiles.map(({ mood, cats, count }) => (
+                    <button
+                      key={mood.label}
+                      type="button"
+                      className={`sb-mood sb-tone--${mood.tone}`}
+                      onClick={(e) =>
+                        openCategory(cats[0], { origin: originOf(e.currentTarget), breathe: true, mood })
+                      }
+                    >
+                      <span className="sb-mood__orb" aria-hidden="true" />
+                      <span className="sb-mood__label">{mood.label}</span>
+                      <span className="sb-mood__count">말씀 {count}</span>
+                    </button>
+                  ))}
                 </div>
 
-                {/* 오늘 마음이 어떠세요? — 검색창 아래 추천 태그 (한 줄 스크롤) */}
-                {!q && (
-                  <div className="situation-mood">
-                    <span className="situation-mood__label">오늘 마음이 어떠세요?</span>
-                    <div className="situation-mood__row">
-                      {MOODS.map((m) => (
-                        <button
-                          key={m.label}
-                          onClick={() => {
-                            setMood((prev) => (prev === m.label ? null : m.label))
-                            setActiveGroup('전체')
-                          }}
-                          className={`situation-mood-chip${
-                            mood === m.label ? ' is-active' : mood ? ' is-dimmed' : ''
-                          }`}
-                        >
-                          {m.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <SituationAsk
+                  categories={categories}
+                  onMore={(cat, sentence, from) => openCategory(cat, { startIndex: from, sentence })}
+                  onPray={goPray}
+                  onShare={setShareVerse}
+                  onRead={goRead}
+                />
 
-                {/* 그룹 탭 (검색·무드 선택 중에는 숨김) */}
-                {!q && !mood && (
-                  <div className="situation-tabs">
-                    {['전체', ...GROUPS.map((g) => g.label)].map((label) => (
-                      <button
-                        key={label}
-                        onClick={() => setActiveGroup(label)}
-                        className={`situation-tab${activeGroup === label ? ' is-active' : ''}`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* 카테고리 리스트 */}
-                <div className="px-4 pt-2">
-                  {visibleCategories.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                      <span className="material-icons-outlined text-[44px] text-gray-300 dark:text-gray-600 mb-3">
-                        search_off
-                      </span>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {q ? `'${q}'에 맞는 상황을 찾지 못했어요` : '표시할 상황이 없습니다'}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="situation-list" key={`${q}|${mood ?? ''}|${activeGroup}`}>
-                      {visibleCategories.map((cat) => (
-                        <button
-                          key={cat.id}
-                          onClick={() => setSelected(cat)}
-                          className="situation-row"
-                        >
-                          <span className="situation-row__icon-wrap">
-                            <span className="material-icons-round situation-row__icon">
-                              {cat.icon}
-                            </span>
-                          </span>
-                          <span className="situation-row__name">{cat.name}</span>
-                          <span className="material-icons-round situation-row__chevron">
-                            chevron_right
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {renderComfort('sb-block lg:hidden')}
+                <div className="lg:hidden">{renderAllSituations('chips')}</div>
               </>
             )}
           </div>
-        )}
+        </div>
 
-        {/* 구절 목록 */}
-        {selected && (
-          <div className="pb-8">
-            {versesLoading ? (
-              <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-gray-400 dark:border-t-gray-300 rounded-full animate-spin" />
-              </div>
-            ) : !detail || detail.verses.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-                <span className="material-icons-outlined text-[48px] text-gray-300 dark:text-gray-600 mb-3">
-                  menu_book
-                </span>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  아직 등록된 구절이 없습니다
-                </p>
-              </div>
-            ) : (
-              // lg+: 구절은 읽는 글이라 폭을 다 주지 않고 가운데로 모은다
-              <ul className="divide-y divide-gray-100 dark:divide-gray-800 lg:max-w-[680px] lg:mx-auto">
-                {detail.verses.map((v, idx) => (
-                  <li key={v.id}>
-                    <button
-                      onClick={() => handleVerseClick(v)}
-                      className="w-full text-left px-5 py-5 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors group"
-                    >
-                      {/* 참조 배지 */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="situation-verse__badge">
-                          {v.book_name_ko} {v.chapter}:{v.verse}
-                        </span>
-                        <span className="text-[11px] text-gray-300 dark:text-gray-600 tabular-nums">
-                          {idx + 1}/{detail.verses.length}
-                        </span>
-                      </div>
-
-                      {/* 구절 텍스트 */}
-                      <p className="text-[15px] leading-relaxed text-gray-800 dark:text-gray-200 break-words">
-                        {v.text}
-                      </p>
-
-                      {/* 성경 바로가기 */}
-                      <div className="situation-verse__more flex items-center gap-1 mt-3 text-[12px] font-medium transition-colors">
-                        <span>본문 보기</span>
-                        <span className="material-icons-outlined text-[14px]">chevron_right</span>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
+        {/* 우측 위젯 레일 (lg+) — 오늘의 위로 말씀 + 상황 전체 목록 */}
+        <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+          {renderComfort('')}
+          {listCategories.length > 0 && <div className="sb-rail-card">{renderAllSituations('list')}</div>}
+        </aside>
       </div>
 
-      {/* 우측 위젯 레일 (lg+) */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
-        {/* 목록 화면 — 오늘의 위로 말씀 (검색 중에는 본문과 같은 규칙으로 숨김) */}
-        {!selected && !q && heroCat && renderComfortHero('')}
+      {immersive && (
+        <SituationImmersive
+          key={immersive.category.id}
+          category={immersive.category}
+          startIndex={immersive.startIndex}
+          origin={immersive.origin}
+          breathe={immersive.breathe}
+          sentence={immersive.sentence}
+          related={related}
+          paused={!!shareVerse}
+          onClose={() => setImmersive(null)}
+          onSwitch={(cat) =>
+            setImmersive((prev) => prev && { ...prev, category: cat, startIndex: 0, sentence: null, breathe: false, origin: null })
+          }
+          onPray={(v) => goPray(v, immersive.sentence)}
+          onShare={setShareVerse}
+          onRead={goRead}
+        />
+      )}
 
-        {/* 구절을 펼친 화면 — 다른 상황으로 바로 건너뛰기 */}
-        {selected && categories.length > 0 && (
-          <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
-            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
-              다른 상황 보기
-            </p>
-            <div className="flex flex-col -mx-1 max-h-[60vh] overflow-y-auto scrollbar-hide">
-              {categories.map((cat) => {
-                const active = cat.id === selected.id
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setSelected(cat)}
-                    className={`flex items-center gap-2 px-1 py-2 rounded-lg text-left transition-colors ${
-                      active ? 'bg-[var(--brand-soft-strong)]' : 'hover:bg-[var(--brand-soft)]'
-                    }`}
-                  >
-                    <span className="material-icons-round shrink-0 text-[16px] text-gray-400 dark:text-white/40">
-                      {cat.icon}
-                    </span>
-                    <span
-                      className={`flex-1 min-w-0 truncate text-[12.5px] ${
-                        active ? 'font-bold text-brand' : 'font-semibold text-ink-strong'
-                      }`}
-                    >
-                      {cat.name}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-        )}
-      </aside>
-      </div>
+      {shareTarget && (
+        <Suspense fallback={null}>
+          <VerseShareSheet target={shareTarget} onClose={() => setShareVerse(null)} />
+        </Suspense>
+      )}
     </div>
   )
 }

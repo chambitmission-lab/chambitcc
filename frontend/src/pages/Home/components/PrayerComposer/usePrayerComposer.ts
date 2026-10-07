@@ -12,12 +12,13 @@ interface UsePrayerComposerProps {
   onSuccess?: (prayer: Prayer) => void
   sort: SortType
   groupId?: number | null  // ✅ 초기 groupId 추가
+  initialContent?: string
 }
 
-export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePrayerComposerProps) => {
+export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId, initialContent }: UsePrayerComposerProps) => {
   const { createPrayer, isCreating } = usePrayersInfinite(sort, groupId, undefined, undefined, prayerToastFeedback)  // ✅ groupId 전달
   const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState(initialContent ?? '')
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [selectedGroupId, setSelectedGroupIdRaw] = useState<number | null>(groupId || null)  // ✅ 초기값 설정
   // 나만 보기(비밀기도) — 그룹과 배타적. 하나를 고르면 다른 쪽은 풀린다

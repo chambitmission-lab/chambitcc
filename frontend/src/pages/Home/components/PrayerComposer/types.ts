@@ -6,6 +6,8 @@ export interface PrayerComposerProps {
   onSuccess?: (prayer: Prayer) => void
   sort?: SortType
   groupId?: number | null  // ✅ groupId 추가
+  /** 다른 화면에서 이어 쓰기 — 상황별 성구의 '이 마음으로 기도하기'(문장 + 붙든 말씀) */
+  initialContent?: string
 }
 
 export interface PrayerFormData {

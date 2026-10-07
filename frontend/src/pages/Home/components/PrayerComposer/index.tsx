@@ -135,7 +135,7 @@ const makeBurst = (accent: string): BurstPiece[] =>
     }
   })
 
-const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: PrayerComposerProps) => {
+const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initialContent }: PrayerComposerProps) => {
   const { t, language } = useLanguage()
   const ko = language === 'ko'
   const {
@@ -164,7 +164,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     setEmotion,
     handleSubmit,
     handleVersesModalClose,
-  } = usePrayerComposer({ onClose, onSuccess, sort, groupId })
+  } = usePrayerComposer({ onClose, onSuccess, sort, groupId, initialContent })
 
   const { data: groupsData } = useMyGroups()
   const groups = groupsData?.data.items || []

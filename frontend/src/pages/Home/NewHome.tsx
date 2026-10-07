@@ -95,6 +95,8 @@ const NewHome = () => {
   const { requireAuth, requireAuthWithRedirect, isLoggedIn } = useAuth()
   const { t } = useLanguage()
   const [showComposer, setShowComposer] = useState(false)
+  // 다른 화면에서 넘겨준 기도 초안 (상황별 성구 '이 마음으로 기도하기')
+  const [composerPrefill, setComposerPrefill] = useState<string | undefined>()
   // FAB 스피드 다이얼·전역 레일 → 감사 한 줄 작성 (티커와 같은 캐시라 등록 즉시 반영)
   const [showThanksComposer, setShowThanksComposer] = useState(false)
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
@@ -210,6 +212,7 @@ const NewHome = () => {
       openPrayerId?: number
       openReplies?: boolean
       openComposer?: boolean
+      composerPrefill?: string
       openThanks?: boolean
     } | null
     if (!state) return
@@ -217,7 +220,10 @@ const NewHome = () => {
       setSelectedPrayerId(state.openPrayerId)
       setOpenReplies(!!state.openReplies)
     }
-    if (state.openComposer) setShowComposer(true)
+    if (state.openComposer) {
+      setComposerPrefill(state.composerPrefill)
+      setShowComposer(true)
+    }
     if (state.openThanks) setShowThanksComposer(true)
     if (state.openPrayerId || state.openComposer || state.openThanks) {
       // state 초기화 (뒤로가기 시 다시 열리지 않도록) — 라우터 히스토리 state(idx/key)를
@@ -582,7 +588,11 @@ const NewHome = () => {
             <PrayerComposer
               sort={sort}
               groupId={selectedGroupId}  // ✅ selectedGroupId 전달
-              onClose={() => setShowComposer(false)}
+              initialContent={composerPrefill}
+              onClose={() => {
+                setShowComposer(false)
+                setComposerPrefill(undefined)
+              }}
               onSuccess={(prayer) => {
                 // Optimistic Update가 자동으로 처리됨
                 // 성경 구절 모달이 있을 수 있으므로 PrayerComposer가 자체적으로 닫힘 처리

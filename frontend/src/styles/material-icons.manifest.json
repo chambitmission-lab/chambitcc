@@ -44,7 +44,6 @@
     "chevron_left",
     "chevron_right",
     "church",
-    "circle",
     "class",
     "clear",
     "close",
@@ -112,7 +111,6 @@
     "handshake",
     "headphones",
     "healing",
-    "height",
     "help",
     "help_outline",
     "highlight",
@@ -173,7 +171,6 @@
     "notifications",
     "notifications_active",
     "notifications_off",
-    "opacity",
     "pages",
     "palette",
     "pan_tool",
@@ -272,7 +269,6 @@
     "topic",
     "touch_app",
     "tour",
-    "transform",
     "translate",
     "travel_explore",
     "trending_down",
@@ -306,10 +302,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 23956
+    "bytes": 23816
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 26740
+    "bytes": 26520
   }
 }
