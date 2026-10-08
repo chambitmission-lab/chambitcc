@@ -1,5 +1,4 @@
 // API 공통 유틸리티 함수들
-import { tokenStore } from '../../utils/tokenStore'
 
 /**
  * HTTP 상태를 들고 다니는 에러.
@@ -20,13 +19,3 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * 인증 토큰 확인 (로그인 필수 API용)
- */
-export const requireAuth = (): string => {
-  const token = tokenStore.getAccess()
-  if (!token) {
-    throw new ApiError(401, '로그인이 필요합니다')
-  }
-  return token
-}

@@ -219,26 +219,6 @@ export const UsersIcon = ({ size = 14, strokeWidth = 1.9, className, style }: Ic
   </svg>
 )
 
-/** 결승 깃발 — 완주 */
-export const FlagIcon = ({ size = 14, strokeWidth = 1.9, className, style }: IconProps) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    style={style}
-    aria-hidden="true"
-  >
-    <path d="M5.4 21V3.6" />
-    <path d="M5.4 4.4c3.6-1.6 6.6 1.6 10.2 0v8.4c-3.6 1.6-6.6-1.6-10.2 0z" />
-  </svg>
-)
-
 /** 반짝이는 사진 카드 — 말씀 사진 카드 만들기 */
 export const VerseCardIcon = ({ size = 18, strokeWidth = 1.8, className, style }: IconProps) => (
   <svg

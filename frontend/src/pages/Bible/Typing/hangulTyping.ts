@@ -66,13 +66,6 @@ export interface NormalizeOptions {
   ignorePunct: boolean
 }
 
-/** 목표 본문 정규화 — 공백 한 칸으로, 앞뒤 공백 제거 */
-export const normalizeTarget = (text: string, opts: NormalizeOptions): string => {
-  let t = text.replace(/\s+/g, ' ')
-  if (opts.ignorePunct) t = t.replace(PUNCT_RE, '').replace(/\s+/g, ' ')
-  return t.trim()
-}
-
 /** 입력 정규화 — 끝 공백은 남긴다(지금 막 띄어쓴 것도 진행이다) */
 export const normalizeTyped = (text: string, opts: NormalizeOptions): string => {
   let t = text.replace(/[\r\n]+/g, '').replace(/\s+/g, ' ')

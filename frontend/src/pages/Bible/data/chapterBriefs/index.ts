@@ -90,8 +90,6 @@ export interface LoadedBriefs {
 
 const cache = new Map<number, LoadedBriefs>()
 
-export const hasChapterBriefs = (bookNumber: number) => bookNumber in loaders
-
 export const loadBookBriefs = async (bookNumber: number): Promise<LoadedBriefs | null> => {
   const cached = cache.get(bookNumber)
   if (cached) return cached

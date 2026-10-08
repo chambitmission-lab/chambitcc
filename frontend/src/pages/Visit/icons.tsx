@@ -104,14 +104,6 @@ export const CopyIcon = (props: IconProps) => (
   </Svg>
 )
 
-/** 나침반 — 길찾기 */
-export const CompassIcon = (props: IconProps) => (
-  <Svg {...props}>
-    <circle cx="12" cy="12" r="9.5" />
-    <path d="m15.5 8.5-2 5.2-5.2 2 2-5.2 5.2-2Z" />
-  </Svg>
-)
-
 /** 시계 */
 export const ClockIcon = (props: IconProps) => (
   <Svg {...props}>
@@ -162,19 +154,6 @@ export const SproutIcon = (props: IconProps) => (
 export const ChevronRightIcon = (props: IconProps) => (
   <Svg {...props}>
     <polyline points="9 5 16 12 9 19" />
-  </Svg>
-)
-
-export const XIcon = (props: IconProps) => (
-  <Svg {...props}>
-    <path d="M18 6 6 18M6 6l12 12" />
-  </Svg>
-)
-
-/** 아래 화살표 — 접이식 안내의 열림/닫힘 */
-export const ChevronDownIcon = (props: IconProps) => (
-  <Svg {...props}>
-    <polyline points="5 9 12 16 19 9" />
   </Svg>
 )
 

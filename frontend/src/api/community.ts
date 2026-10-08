@@ -70,22 +70,3 @@ export const toggleRetweet = async (postId: number) => {
     errorMessage: '리트윗 처리에 실패했습니다',
   })
 }
-
-// 댓글 작성
-export const createReply = async (postId: number, content: string) => {
-  return request<UntypedJson>(`/community/posts/${postId}/replies`, {
-    method: 'POST',
-    auth: 'required',
-    json: { content },
-    errorMessage: '댓글 작성에 실패했습니다',
-  })
-}
-
-// 게시물 삭제
-export const deletePost = async (postId: number) => {
-  return request<UntypedJson>(`/community/posts/${postId}`, {
-    method: 'DELETE',
-    auth: 'required',
-    errorMessage: '게시물 삭제에 실패했습니다',
-  })
-}

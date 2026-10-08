@@ -3,7 +3,7 @@
 // (예전 자체 인라인 선화 SVG 와 export 이름·props 를 그대로 유지해 호출부 무변경)
 // 화살표 셰브런만 안내 기호라 duotone 대신 bold 로 또렷하게.
 import type { CSSProperties } from 'react'
-import { BookOpen, Briefcase, Camera, CaretDown, CaretRight, Clock, Flag, GraduationCap, Heart, MapPin, Medal, MoonStars, Phone, Plant, PlayCircle, Sun, SunDim, SunHorizon, UsersThree, X, type Icon, type IconWeight } from '../../components/icons/phosphor'
+import { BookOpen, CaretDown, CaretRight, Clock, Flag, Heart, MapPin, MoonStars, Phone, Plant, PlayCircle, Sun, SunDim, SunHorizon, UsersThree, type Icon, type IconWeight } from '../../components/icons/phosphor'
 
 interface IconProps {
   size?: number
@@ -48,16 +48,6 @@ export const FlagIcon = make(Flag)
 export const PeopleIcon = make(UsersThree)
 /** 하트 — 손수건 만남 */
 export const HeartIcon = make(Heart)
-/** X — 스쳐가는 만남 */
-export const XIcon = make(X, 'bold')
-/** 카메라 — 사진 등록 */
-export const CameraIcon = make(Camera)
-/** 학사모 — 학력 */
-export const GraduationCapIcon = make(GraduationCap)
-/** 서류가방 — 경력 */
-export const BriefcaseIcon = make(Briefcase)
-/** 메달 — 수상 */
-export const MedalIcon = make(Medal)
 
 /* ── 시간대 무드 (/worship) ── 예배 시각의 '빛'을 나타낸다.
    컬러 이모지(🌅 ☀️ 🌇 🌙)는 12px 문장 안에서 작은 색 사각형처럼 뭉개져 교체했다 */

@@ -19,18 +19,6 @@ export const EVENT_ALBUM_TAGS = [
 ] as const
 export type EventAlbumTag = (typeof EVENT_ALBUM_TAGS)[number]
 
-/** 태그 칩에 곁들일 이모지 아이콘 */
-export const EVENT_ALBUM_TAG_EMOJI: Record<EventAlbumTag, string> = {
-  부활절: '🌷',
-  성탄: '🎄',
-  추수감사: '🌾',
-  수련회: '⛺',
-  야유회: '🧺',
-  예배: '⛪',
-  절기: '🕊️',
-  기타: '📷',
-}
-
 export interface EventAlbumPhoto {
   id: number
   url: string

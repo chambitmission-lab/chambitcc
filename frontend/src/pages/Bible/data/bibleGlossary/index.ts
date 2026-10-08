@@ -272,9 +272,6 @@ export const searchGlossary = (query: string, limit = 4): GlossaryEntry[] => {
   return [...exact, ...prefix, ...contains].slice(0, limit)
 }
 
-/** 사전 표제어 수 — 안내 문구용 */
-export const glossarySize = () => entries?.length ?? 0
-
 /** 시트에 보여줄 구분 라벨 */
 export const GLOSSARY_TYPE_LABEL: Record<GlossaryType, string> = {
   person: '인물',

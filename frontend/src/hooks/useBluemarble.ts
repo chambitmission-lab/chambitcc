@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchState, startGame, advanceStep, submitAnswer, fetchLeaderboard, fetchBluemarbleStats, abandonGame } from '../api/bluemarble'
 
 export const QK_BM_STATE = ['bluemarble', 'state'] as const
-export const QK_BM_TILES = ['bluemarble', 'tiles'] as const
 export const QK_BM_LEADERBOARD = ['bluemarble', 'leaderboard'] as const
 export const QK_BM_STATS = ['bluemarble', 'stats'] as const
 

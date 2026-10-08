@@ -5,7 +5,7 @@
  * 매핑에 없는 이모지는 원래 글자를 그대로 출력한다.
  */
 import type { CSSProperties, ReactElement } from 'react'
-import { CalendarBlank, Check, DotsThree, Feather, FlowerTulip, GearSix, BookOpen, Church, Cross, HandsPraying, Heart, MusicNote, Plant, ShareNetwork, Sparkle, Star, Ticket, User, Users, type Icon } from '../../components/icons/phosphor'
+import { CalendarBlank, Check, Feather, FlowerTulip, GearSix, BookOpen, Church, Cross, HandsPraying, Heart, MusicNote, Plant, ShareNetwork, Sparkle, Star, Ticket, User, Users, type Icon } from '../../components/icons/phosphor'
 
 export type GroupIconProps = { size?: number; className?: string; style?: CSSProperties }
 
@@ -30,7 +30,6 @@ export const TicketIcon = duotone(Ticket)
 export const TulipIcon = duotone(FlowerTulip)
 export const CalendarIcon = duotone(CalendarBlank)
 export const ShareIcon = duotone(ShareNetwork)
-export const MoreIcon = duotone(DotsThree)
 export const GearIcon = duotone(GearSix)
 export const CheckIcon = duotone(Check)
 export const SparkleIcon = duotone(Sparkle)

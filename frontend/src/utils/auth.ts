@@ -2,7 +2,6 @@
 import { clearAllPersistedCache } from '../config/persister'
 import { unsubscribeFromPushNotifications } from './pushNotification'
 import { tokenStore, sessionStore } from './tokenStore'
-import { getRole } from './access'
 import { safeStorage } from './safeStorage'
 
 /**
@@ -126,11 +125,6 @@ export const getCurrentUser = () => {
     fullName: sessionStore.get('fullName'),
   }
 }
-
-/**
- * 관리자 권한 확인 — 화면에서는 utils/access 의 can('...') 을 쓴다 (역할 확장 대비)
- */
-export const isAdmin = (): boolean => getRole() === 'admin'
 
 /**
  * Access Token 갱신

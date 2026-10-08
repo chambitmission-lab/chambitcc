@@ -47,13 +47,6 @@ export const MicGlyph = () => (
   </>
 )
 
-export const EnvelopeGlyph = () => (
-  <>
-    <rect x="3" y="5" width="18" height="14" rx="2.5" />
-    <path d="m3.5 6.5 8.5 6 8.5-6" />
-  </>
-)
-
 /** 마음을 담은 편지 — 💌 대신. 봉투 날개는 하트를 피해 중간에서 끊는다. */
 export const LetterHeartGlyph = () => (
   <>

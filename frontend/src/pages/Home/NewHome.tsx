@@ -20,8 +20,6 @@ const JoinGroupModal = lazyModal<ComponentProps<typeof GroupModals.JoinGroupModa
   import('../../components/prayer/GroupModals').then((m) => ({ default: m.JoinGroupModal })),
 )
 const AnswerModal = lazyModal(() => import('../../components/prayer/AnswerModal'))
-// TodaysVerse — AnnualThemeVerse 전용 카드로 대체. 다시 살리려면 아래 import와 <TodaysVerse /> 주석을 해제하세요.
-// import TodaysVerse from './components/TodaysVerse'
 import AnnualThemeVerse from './components/AnnualThemeVerse'
 // 감사 작성 — 래퍼는 가볍고(useThanks 는 티커가 이미 씀) 시트 본체만 ThanksComposerLazy 청크
 import GlobalThanksComposer from './components/GlobalThanksComposer'
