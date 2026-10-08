@@ -1,7 +1,7 @@
 // 1. 이번주 기도 현황 — 통계 타일 · 요일 바 · 아멘 목표.
 
 import { useQuery } from '@tanstack/react-query'
-import { API_V1, apiFetch } from '../../../../config/api'
+import { request } from '../../../../api/utils/request'
 import { fetchPrayers } from '../../../../api/prayer'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { PrayIcon } from '../EmotionIcons'
@@ -25,10 +25,10 @@ const usePrayerStatsSummary = (enabled: boolean) =>
   useQuery({
     queryKey: prayerStatsKeys.summary(),
     queryFn: async (): Promise<PrayerStatsSummary> => {
-      const res = await apiFetch(`${API_V1}/prayers/stats/summary`)
-      if (!res.ok) throw new Error('기도 통계를 불러오지 못했습니다')
-      const json = await res.json()
-      return json.data as PrayerStatsSummary
+      const json = await request<{ data: PrayerStatsSummary }>('/prayers/stats/summary', {
+        errorMessage: '기도 통계를 불러오지 못했습니다',
+      })
+      return json.data
     },
     staleTime: 1000 * 60 * 15,
     enabled,

@@ -22,14 +22,14 @@ export const bibleTypingKeys = {
 
 const loggedIn = () => !!tokenStore.getAccess()
 
-/** 내 필사 통계 — 다른 화면(필사 세션)에서 쌓인 기록이 허브에 바로 보이도록 마운트마다 갱신 */
+/** 내 필사 통계 — 필사 세션의 기록은 useSubmitTyping 이 bibleTypingKeys.all 을 무효화해 허브에 바로 반영되므로
+ *  마운트마다 강제 재조회하지 않는다(허브 재진입·뒤로가기마다 3요청이 나가던 것). 30초 지나면 stale 재조회 */
 export const useTypingStats = () =>
   useQuery({
     queryKey: bibleTypingKeys.stats(),
     queryFn: getTypingStats,
     enabled: loggedIn(),
     staleTime: 1000 * 30,
-    refetchOnMount: 'always',
   })
 
 /** 이 장에서 필사를 마친 절 id */
@@ -39,7 +39,6 @@ export const useChapterTyping = (bookNumber: number, chapter: number) =>
     queryFn: () => getChapterTyping(bookNumber, chapter),
     enabled: loggedIn() && bookNumber > 0 && chapter > 0,
     staleTime: 1000 * 30,
-    refetchOnMount: 'always',
   })
 
 /** 이 책의 장별 필사 절 수 — 허브 장 그리드 진행 표시 */
@@ -49,7 +48,6 @@ export const useBookTyping = (bookNumber: number | null) =>
     queryFn: () => getBookTyping(bookNumber ?? 0),
     enabled: loggedIn() && !!bookNumber,
     staleTime: 1000 * 30,
-    refetchOnMount: 'always',
   })
 
 /** 이번 주 교회 필사 현황 */
@@ -59,7 +57,6 @@ export const useTypingWeekly = () =>
     queryFn: getTypingWeekly,
     enabled: loggedIn(),
     staleTime: 1000 * 60,
-    refetchOnMount: 'always',
   })
 
 /**

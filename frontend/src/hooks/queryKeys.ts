@@ -85,7 +85,9 @@ export const dailyVerseKeys = {
 
 export const weeklyPrayerKeys = {
   all: ['weeklyPrayer'] as const,
-  homeBanner: () => [...weeklyPrayerKeys.all, 'current', 'homeBanner'] as const,
+  current: () => [...weeklyPrayerKeys.all, 'current'] as const,
+  list: () => [...weeklyPrayerKeys.all, 'list'] as const,
+  detail: (id: number) => [...weeklyPrayerKeys.all, 'detail', id] as const,
 }
 
 export const prayerStatsKeys = {

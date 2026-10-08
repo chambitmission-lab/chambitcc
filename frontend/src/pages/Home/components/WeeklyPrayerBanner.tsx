@@ -2,27 +2,17 @@
 // 이번 주 기도제목이 있으면 제목들이 잔잔히 순환하며 살아있는 느낌을 준다.
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { getCurrentWeeklyPrayer } from '../../../api/weeklyPrayer'
 import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
 import { GraceIcon } from '../../../components/icons/GraceIcons'
-import { weeklyPrayerKeys } from '../../../hooks/queryKeys'
+import { useCurrentWeeklyPrayer } from '../../../hooks/useWeeklyPrayer'
 
 const ROTATE_MS = 4200
 
 const WeeklyPrayerBanner = () => {
   const navigate = useNavigate()
 
-  // 홈 진입마다 두드리지 않게 길게 캐시 — 주간 단위 데이터라 신선도 부담이 없다
-  const { data } = useQuery({
-    queryKey: weeklyPrayerKeys.homeBanner(),
-    // 'high': 콜드 홈에서 기도 목록 게이트를 기다리지 않는다(1KB 남짓, utils/requestPriority)
-    queryFn: () => getCurrentWeeklyPrayer({ priority: 'high' }),
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    retry: false,
-    refetchOnWindowFocus: false,
-  })
+  // 'high': 콜드 홈에서 기도 목록 게이트를 기다리지 않는다(1KB 남짓, utils/requestPriority)
+  const { data } = useCurrentWeeklyPrayer({ priority: 'high' })
 
   const itemTitles = (data?.items ?? []).map((i) => i.title).filter(Boolean)
   const prayedCount = data?.prayed_user_count ?? 0

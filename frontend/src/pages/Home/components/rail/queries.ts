@@ -1,7 +1,7 @@
 // 레일 위젯이 함께 쓰는 이번주 기도 통계 쿼리.
 
 import { useQuery } from '@tanstack/react-query'
-import { API_V1, apiFetch } from '../../../../config/api'
+import { request } from '../../../../api/utils/request'
 import { prayerStatsKeys } from '../../../../hooks/queryKeys'
 
 interface WeeklyPrayerStats {
@@ -22,10 +22,10 @@ const useWeeklyPrayerStats = () =>
   useQuery({
     queryKey: prayerStatsKeys.weekly(),
     queryFn: async (): Promise<WeeklyPrayerStats> => {
-      const res = await apiFetch(`${API_V1}/prayers/stats/weekly`)
-      if (!res.ok) throw new Error('주간 기도 현황을 불러오지 못했습니다')
-      const json = await res.json()
-      return json.data as WeeklyPrayerStats
+      const json = await request<{ data: WeeklyPrayerStats }>('/prayers/stats/weekly', {
+        errorMessage: '주간 기도 현황을 불러오지 못했습니다',
+      })
+      return json.data
     },
     // 서버도 5분 캐시라 더 자주 물어봐야 새 숫자가 없다 — 15분이면 충분
     staleTime: 1000 * 60 * 15,

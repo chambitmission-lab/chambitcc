@@ -1,11 +1,9 @@
 import type { CSSProperties, ReactElement } from 'react'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import avatarJoy from './img/joy.webp'
-import { useQuery } from '@tanstack/react-query'
 import { useDailyVerse } from '../../hooks/useDailyVerse'
-import { getCurrentWeeklyPrayer } from '../../api/weeklyPrayer'
 import './chatbot.css'
-import { weeklyPrayerKeys } from '../../hooks/queryKeys'
+import { useCurrentWeeklyPrayer } from '../../hooks/useWeeklyPrayer'
 import ChatBriefList from './ChatBriefList'
 
 /**
@@ -267,14 +265,7 @@ const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
   const cards = reply.actions.filter((a) => a !== verseAction).slice(0, GRID_MAX)
 
   // 함께하는 우리 — 이번 주 공동 기도에 함께한 실제 인원 (홈 배너와 같은 캐시)
-  const { data: weekly } = useQuery({
-    queryKey: weeklyPrayerKeys.homeBanner(),
-    queryFn: () => getCurrentWeeklyPrayer(),
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    retry: false,
-    refetchOnWindowFocus: false,
-  })
+  const { data: weekly } = useCurrentWeeklyPrayer()
   const prayedCount = weekly?.prayed_user_count ?? 0
 
   return (

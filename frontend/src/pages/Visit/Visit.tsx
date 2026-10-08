@@ -6,8 +6,7 @@ import { useThemeArt } from '../../hooks/useThemeArt'
 import { VISIT_HERO } from '../../utils/themeAssets'
 import { EditableText } from '../../components/AboutEditor'
 import { showToast } from '../../utils/toast'
-import { getSundayServices, getWeekdayServices } from '../../api/worship'
-import type { WorshipService } from '../../types/worship'
+import { useWorshipServices } from '../../hooks/useWorshipServices'
 import { soonestService } from '../../utils/worshipSchedule'
 import { writeToClipboard } from '../Bible/components/verseCopy'
 import ChurchMap from './components/ChurchMap'
@@ -51,21 +50,10 @@ const Visit = () => {
   useThemeArt(VISIT_HERO)
   const isAdminUser = can('content:manage')
 
-  const [services, setServices] = useState<WorshipService[]>([])
+  // 예배 시간표는 홈·/worship 과 같은 캐시(useWorshipServices) — 못 불러와도 오시는 길 자체는
+  // 쓸 수 있어야 하므로 실패하면 빈 배열로 조용히 넘긴다
+  const { data: services = [] } = useWorshipServices()
   const [now, setNow] = useState(() => new Date())
-
-  useEffect(() => {
-    let alive = true
-    Promise.all([getSundayServices(), getWeekdayServices()])
-      .then(([sunday, weekday]) => {
-        if (alive) setServices([...sunday, ...weekday])
-      })
-      // 예배 시간을 못 불러와도 오시는 길 자체는 쓸 수 있어야 하므로 조용히 넘긴다
-      .catch(() => {})
-    return () => {
-      alive = false
-    }
-  }, [])
 
   // "다음 예배까지" 문구는 분 단위라 30초 갱신이면 충분하다
   useEffect(() => {

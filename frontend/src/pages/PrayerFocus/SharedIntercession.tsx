@@ -2,9 +2,9 @@
 // 기도 화면 하단에 한 개씩 잔잔히 순환하며 띄운다.
 // 중보 주제를 골랐거나 ACTS 간구 구간에 들어왔을 때만 표시.
 // 공개 API(비로그인 가능)이며 실패하면 조용히 아무것도 그리지 않는다.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { getCurrentWeeklyPrayer } from '../../api/weeklyPrayer'
+import { useCurrentWeeklyPrayer } from '../../hooks/useWeeklyPrayer'
 
 interface SharedIntercessionProps {
   show: boolean
@@ -18,24 +18,16 @@ const FADE_MS = 1200
 
 const SharedIntercession = ({ show, accentText, rotateMs = 18000 }: SharedIntercessionProps) => {
   const { t } = useLanguage()
-  const [titles, setTitles] = useState<string[] | null>(null)
   const [index, setIndex] = useState(0)
   const [visible, setVisible] = useState(false)
-  const fetchedRef = useRef(false)
 
-  // 처음 보여질 때 한 번만 로드
-  useEffect(() => {
-    if (!show || fetchedRef.current) return
-    fetchedRef.current = true
-    getCurrentWeeklyPrayer()
-      .then((wp) => {
-        const list = (wp.items || []).map((item) => item.title).filter(Boolean)
-        if (list.length > 0) setTitles(list)
-      })
-      .catch(() => {
-        // 이번 주 기도제목이 없거나 네트워크 실패 — 표시하지 않음
-      })
-  }, [show])
+  // 처음 보여질 때 로드 — 홈 배너와 같은 캐시라 보통은 요청 없이 바로 온다.
+  // 이번 주 기도제목이 없거나(404) 네트워크 실패면 data 가 없어 표시하지 않는다.
+  const { data } = useCurrentWeeklyPrayer({ enabled: show })
+  const titles = useMemo(() => {
+    const list = (data?.items || []).map((item) => item.title).filter(Boolean)
+    return list.length > 0 ? list : null
+  }, [data])
 
   // 순환 — fade-out → 다음 항목 → fade-in
   useEffect(() => {

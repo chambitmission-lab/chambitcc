@@ -3,14 +3,11 @@
 // 번호와 본문 대비 상향·버튼 누르는 영역 확대. 모바일은 그대로.
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
-import {
-  getCurrentWeeklyPrayer,
-  getWeeklyPrayer,
-  getWeeklyPrayerList,
-  toggleWeeklyPrayerAmen,
-} from '../../api/weeklyPrayer'
+import { getWeeklyPrayer, toggleWeeklyPrayerAmen } from '../../api/weeklyPrayer'
+import { currentWeeklyPrayerQuery, weeklyPrayerListQuery } from '../../hooks/useWeeklyPrayer'
 import type { WeeklyPrayer, WeeklyPrayerListItem } from '../../types/weeklyPrayer'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
 
@@ -22,6 +19,7 @@ const formatWeekLabel = (weekDate: string): string => {
 
 const WeeklyPrayerTopics = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [prayer, setPrayer] = useState<WeeklyPrayer | null>(null)
   const [archive, setArchive] = useState<WeeklyPrayerListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,12 +32,13 @@ const WeeklyPrayerTopics = () => {
     const load = async () => {
       try {
         setLoading(true)
+        // 홈 배너가 받아 둔 이번 주 기도제목이 신선하면 요청 없이 그대로 쓴다
         const [current, list] = await Promise.all([
-          getCurrentWeeklyPrayer().catch((e: Error) => {
+          queryClient.fetchQuery(currentWeeklyPrayerQuery()).catch((e: Error) => {
             if (e.message === 'NOT_FOUND') return null
             throw e
           }),
-          getWeeklyPrayerList().catch(() => [] as WeeklyPrayerListItem[]),
+          queryClient.fetchQuery(weeklyPrayerListQuery()).catch(() => [] as WeeklyPrayerListItem[]),
         ])
         setPrayer(current)
         setEmpty(!current)
@@ -51,7 +50,7 @@ const WeeklyPrayerTopics = () => {
       }
     }
     void load()
-  }, [])
+  }, [queryClient])
 
   const handleAmen = async (itemId: number | undefined) => {
     if (!itemId) return

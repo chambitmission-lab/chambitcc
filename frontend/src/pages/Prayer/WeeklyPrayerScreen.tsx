@@ -1,29 +1,17 @@
 // 예배 스크린용 공동 기도제목 전체화면 뷰 — PPT 슬라이드 대체
 // /prayer-topics/screen (최신) 또는 /prayer-topics/screen?id=3 (특정 주차)
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { getCurrentWeeklyPrayer, getWeeklyPrayer } from '../../api/weeklyPrayer'
-import type { WeeklyPrayer } from '../../types/weeklyPrayer'
+import { useCurrentWeeklyPrayer, useWeeklyPrayerDetail } from '../../hooks/useWeeklyPrayer'
 
 const WeeklyPrayerScreen = () => {
   const [searchParams] = useSearchParams()
-  const [prayer, setPrayer] = useState<WeeklyPrayer | null>(null)
-  const [error, setError] = useState(false)
-
-  useEffect(() => {
-    const idParam = searchParams.get('id')
-    const load = async () => {
-      try {
-        const data = idParam
-          ? await getWeeklyPrayer(Number(idParam))
-          : await getCurrentWeeklyPrayer()
-        setPrayer(data)
-      } catch {
-        setError(true)
-      }
-    }
-    void load()
-  }, [searchParams])
+  const idParam = searchParams.get('id')
+  const weekId = idParam ? Number(idParam) : null
+  // 최신 주차는 홈 배너와 같은 캐시, 특정 주차는 id 로 따로 묻는다
+  const current = useCurrentWeeklyPrayer({ enabled: weekId == null })
+  const detail = useWeeklyPrayerDetail(weekId)
+  const { data: prayer, isError: error } = weekId == null ? current : detail
 
   // 스크린 모드 동안 전역 스크롤 배경을 어둡게
   useEffect(() => {

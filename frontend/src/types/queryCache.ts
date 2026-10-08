@@ -3,13 +3,9 @@
 // 잘못 적으면 any 로 도망가게 된다. 자주 쓰는 것만 여기 모아 둔다.
 import type { InfiniteData } from '@tanstack/react-query'
 import type { PrayerListResponse } from './prayer'
-import type { PostsResponse } from '../api/community'
 
 /** 기도 목록 무한 스크롤 (prayerKeys.list(...)) */
 export type PrayerListCache = InfiniteData<PrayerListResponse>
-
-/** 커뮤니티 게시물 무한 스크롤 (communityKeys.posts(sort)) */
-export type CommunityPostsCache = InfiniteData<PostsResponse>
 
 /** API 계층(request)이 던지는 에러 — status 로 분기하려면 isApiError(e, 401) 을 쓴다 */
 export type { ApiError } from '../api/utils/apiHelpers'
