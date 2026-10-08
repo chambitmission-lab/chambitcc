@@ -85,9 +85,9 @@
 /* ── 가계도 = 밤하늘 별자리 ────────────────────────────────────────── */
 .gen-sky-wrap {
   /* 라이트: 새벽 하늘(옅은 파랑→아이보리), 다크: 깊은 밤 */
-  --sky-top: #dfeaff;
-  --sky-mid: #eef4ff;
-  --sky-bottom: #fbf7ee;
+  --sky-top: #f7faff;
+  --sky-mid: #fcfdff;
+  --sky-bottom: #fffbf3;
   /* 별자리 글자 토큰 */
   --gsky-name: #0f1f4d;
   --gsky-sub: rgba(15,31,77,.62);
@@ -100,14 +100,19 @@
   --gsky-gold: #92400e;
   --gsky-gold-soft: rgba(245,158,11,.16);
   --gsky-jesus: #7a4b00;
-  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 50%, var(--sky-bottom) 100%);
+  /* 라이트: 흰 종이 위 위쪽만 옅은 새벽빛, 아래로 따뜻한 미색 — 전면 파랑 틴트는 탁해 보여 걷어냄 */
+  background:
+    radial-gradient(130% 360px at 50% 0%, rgba(222,235,255,.55) 0%, rgba(222,235,255,0) 100%),
+    radial-gradient(120% 680px at 50% 100%, rgba(253,232,188,.62) 0%, rgba(253,232,188,0) 100%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bottom) 100%);
   border: 1px solid var(--card-border);
-  box-shadow: inset 0 0 60px rgba(49,130,246,0.06);
+  box-shadow: 0 1px 2px rgba(15,31,77,0.04);
   color: #0f1f4d;
   font-family: inherit;
   overflow: hidden;
 }
 .dark .gen-sky-wrap {
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 50%, var(--sky-bottom) 100%);
   --sky-top: #0b1030;
   --sky-mid: #070b22;
   --sky-bottom: #04061a;
@@ -138,7 +143,7 @@
 .gen-sky__nebula--b { right: -25%; top: 40%; background: radial-gradient(circle, rgba(139,92,246,.35), transparent 65%); }
 .gen-sky__nebula--c { left: 50%; bottom: -6%; transform: translateX(-50%); background: radial-gradient(circle, rgba(255,209,102,.3), transparent 65%); }
 /* 라이트: screen 블렌드는 흰 바탕에서 안 보임 → multiply 로 옅은 구름 느낌 */
-:root:not(.dark) .gen-sky__nebula { mix-blend-mode: multiply; opacity: .35; }
+:root:not(.dark) .gen-sky__nebula { mix-blend-mode: multiply; opacity: .18; }
 :root:not(.dark) .gen-sky__nebula--a { background: radial-gradient(circle, rgba(147,197,253,.6), transparent 65%); }
 :root:not(.dark) .gen-sky__nebula--b { background: radial-gradient(circle, rgba(253,224,171,.55), transparent 65%); }
 :root:not(.dark) .gen-sky__nebula--c { background: radial-gradient(circle, rgba(253,230,138,.6), transparent 65%); }
@@ -253,6 +258,12 @@
   50%      { opacity: .9; }
 }
 .gen-twinkle { animation: gen-twinkle 3.6s ease-in-out infinite; }
+/* 라이트: 남색 점이 '먼지'처럼 보이지 않게 반짝임 상한을 낮춘다 */
+@keyframes gen-twinkle-dawn {
+  0%, 100% { opacity: .1; }
+  50%      { opacity: .45; }
+}
+:root:not(.dark) .gen-twinkle { animation-name: gen-twinkle-dawn; }
 
 /* 메시아 라인 별 — 미세한 호흡 */
 @keyframes gen-star-breathe {

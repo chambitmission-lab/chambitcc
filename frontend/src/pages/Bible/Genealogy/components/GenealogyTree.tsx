@@ -101,7 +101,7 @@ const DAWN: SkyPalette = {
   spine: ['rgba(49,130,246,0.25)', 'rgba(49,130,246,0.7)', 'rgba(245,158,11,0.95)'],
   link: 'rgba(15,31,77,0.3)', flow: 'rgba(49,130,246,0.95)', rays: 'rgba(245,158,11,0.45)', eraMark: '#3182f6',
   matchRing: 'rgba(49,130,246,0.7)', matchFill: 'rgba(49,130,246,0.10)', selectRing: '#3182f6',
-  bgStar: '#1e3a8a',
+  bgStar: '#7ea6e8',
 }
 
 const shortName = (name: string) => name.replace(/\s*\(.*\)\s*$/, '')
