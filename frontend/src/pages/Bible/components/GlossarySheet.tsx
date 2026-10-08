@@ -5,6 +5,7 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { GLOSSARY_TYPE_LABEL, type GlossaryEntry } from '../data/bibleGlossary'
 import { parseBibleReference } from '../../Sermon/utils/sermonMeta'
 import { useFeedTextScale, type FeedTextScale } from '../../../utils/feedTextScale'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 // 시트는 body 포털이라 <main data-text-scale> 의 --text-mul 을 상속받지 못한다 — 같은 저장소에서 읽어
 // 직접 세팅한다(common.css .main-content[data-text-scale] 와 같은 값). PC(lg:) 글자 크기만 이 값을 곱한다.
@@ -58,7 +59,7 @@ const GlossarySheet = ({ entry, onClose }: { entry: GlossaryEntry; onClose: () =
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-        <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
+        <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
 
         <div className="relative z-10 px-5 pt-6 pb-5 lg:px-6 lg:pt-7 lg:pb-6">
           <div className="flex items-center gap-3">

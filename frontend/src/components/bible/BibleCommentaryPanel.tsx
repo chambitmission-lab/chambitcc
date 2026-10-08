@@ -19,6 +19,7 @@ import { genreStyle } from './bookGenre'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import './BibleCommentaryPanel.css'
+import { SheetGrabber } from '../common/SheetGrabber'
 
 interface BibleCommentaryPanelProps {
   bookNumber: number
@@ -210,7 +211,7 @@ const BibleCommentaryPanel = ({
         >
           {/* 헤더 — 색은 책 장르 액센트 하나로 통일해서 권 개관 시트와 같은 결로 읽힌다 */}
           <div className="relative shrink-0 flex items-center gap-3 px-5 pt-5 pb-3.5 border-b border-[var(--card-border)]">
-            <div className="w-9 h-1 rounded-full bg-[var(--text-muted)]/40 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
+            <SheetGrabber onClose={onClose} className="w-9 h-1 rounded-full bg-[var(--text-muted)]/40 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
             <div className="min-w-0 flex-1">
               <p
                 className="cmt-kicker text-[11px] font-bold tracking-[0.14em]"

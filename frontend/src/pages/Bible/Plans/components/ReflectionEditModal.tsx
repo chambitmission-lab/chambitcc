@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import type { PlanReflection } from '../../../../types/biblePlan'
 import { normalizeReflection } from '../reflectionText'
+import { SheetGrabber } from '../../../../components/common/SheetGrabber'
 
 const ReflectionEditModal = ({
   dayNumber,
@@ -70,7 +71,7 @@ const ReflectionEditModal = ({
       <div className="relative w-full max-w-md max-h-[calc(88vh/var(--az,1))] overflow-y-auto rounded-t-3xl bg-white dark:bg-[#1c1c26] border-t border-x border-gray-200 dark:border-white/[0.08] shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.4)]">
         {/* 핸들바 */}
         <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm pt-2.5 pb-3 px-5 border-b border-gray-100 dark:border-white/[0.06]">
-          <div className="mx-auto w-10 h-1 rounded-full bg-gray-300 dark:bg-white/15 mb-3" />
+          <SheetGrabber onClose={() => { if (!saving) onClose() }} className="mx-auto w-10 h-1 rounded-full bg-gray-300 dark:bg-white/15 mb-3" />
           <div className="flex items-center justify-between gap-2">
             <div>
               <h3 className="text-[20px] font-bold tracking-[-0.015em] text-ink-strong">

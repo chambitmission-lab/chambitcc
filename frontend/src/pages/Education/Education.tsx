@@ -38,6 +38,7 @@ import {
   whenLabel,
 } from './eduSchedule'
 import type { EduSession } from './eduSchedule'
+import { SheetGrabber } from '../../components/common/SheetGrabber'
 
 type Lang = 'ko' | 'en'
 
@@ -886,7 +887,7 @@ const ProgramSheet = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-        <div className="sm:hidden mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-gray-300 dark:bg-white/20" aria-hidden="true" />
+        <SheetGrabber onClose={onClose} className="sm:hidden mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-gray-300 dark:bg-white/20" />
         <button
           type="button"
           onClick={onClose}

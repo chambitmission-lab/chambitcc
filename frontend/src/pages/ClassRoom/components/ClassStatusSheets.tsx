@@ -21,6 +21,7 @@ import { Avatar, memberLabel, timeAgo } from '../classUi'
 import { BallotIcon, CheckCircleIcon, ClipboardIcon, OpenBookIcon, SproutIcon, StarIcon, UserIcon } from '../ClassIcons'
 import MemberSearchInput from '../../../components/common/MemberSearchInput'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 // ── 공용 시트 껍데기 ──
 const SheetShell = ({
@@ -43,7 +44,7 @@ const SheetShell = ({
         style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.85 / var(--az, 1))' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
+        <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
         <h3 className="text-[17px] font-bold text-ink-strong">{title}</h3>
         {subtitle && (
           <p className="text-[12px] text-gray-400 dark:text-white/45 mt-0.5">{subtitle}</p>

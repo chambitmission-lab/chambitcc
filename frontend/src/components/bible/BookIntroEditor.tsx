@@ -8,6 +8,7 @@ import type {
   BibleBookIntroUpsertRequest,
 } from '../../types/bibleBookIntro'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { SheetGrabber } from '../common/SheetGrabber'
 
 interface BookIntroEditorProps {
   bookNumber: number
@@ -142,7 +143,7 @@ const BookIntroEditor = ({
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
+          <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
               Admin · {bookNameKo}

@@ -14,6 +14,7 @@ import { useMyIdentity } from '../../../hooks/useProfile'
 import type { Reply } from '../../../types/prayer'
 import type { ClassPost } from '../../../types/classRoom'
 import { timeAgo } from '../classUi'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 const MAX_LENGTH = 500
 
@@ -72,7 +73,7 @@ const ClassCommentSheet = ({ post, isTeacher, onClose }: ClassCommentSheetProps)
         {/* 핸들 + 헤더 */}
         <div className="relative z-10 shrink-0">
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
-            <span className="w-10 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
+            <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
           </div>
           <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
             <div className="min-w-0">

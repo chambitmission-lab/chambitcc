@@ -6,6 +6,7 @@ import { AdminPageHeader } from '../../Admin/components/StatCards'
 import TextScaleToggle from './TextScaleToggle'
 import { warmPastorSections } from '../prefetch'
 import { pastorScaleProps, usePastorTextScale } from './textScale'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 // 목회자 영역 공용 껍데기 — 관리자 화면과 같은 와이드 셸 + 목회자 섹션 내비.
 // 준비 중인 섹션도 자리를 보여 둔다: 목양 → 심방 → AI 비서로 이어지는 로드맵이 한눈에 보이게.
@@ -65,7 +66,7 @@ const SectionSheet = ({ pathname, onClose }: { pathname: string; onClose: () => 
         role="dialog"
         aria-label="목회자 메뉴"
       >
-        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-300 dark:bg-white/20" />
+        <SheetGrabber onClose={onClose} className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-300 dark:bg-white/20" />
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-ink-strong text-[16px] font-bold">목회자 메뉴</h2>
           <button

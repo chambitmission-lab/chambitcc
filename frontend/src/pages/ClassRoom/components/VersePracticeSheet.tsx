@@ -7,6 +7,7 @@ import { useToggleClassPostRecite } from '../../../hooks/useClassRoom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { ClassPost } from '../../../types/classRoom'
 import { showToast } from '../../../utils/toast'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 // 단계별 가림 비율
 const LEVELS = [
@@ -91,7 +92,7 @@ const VersePracticeSheet = ({
         style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.9 / var(--az, 1))' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
+        <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
         <h3 className="text-[17px] font-bold text-ink-strong">
           <TargetIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />
           가리고 외우기

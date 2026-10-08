@@ -9,6 +9,7 @@ import type { CultureClass, CultureApplication } from '../../types/culture'
 import { getCultureAccent, withAlpha } from './cultureAccents'
 import { useFeedTextScale } from '../../utils/feedTextScale'
 import './culture-apply.css'
+import { SheetGrabber } from '../../components/common/SheetGrabber'
 
 // 수강료 입금 계좌 — 문의 섹션과 신청 완료 화면에서 함께 사용
 export const BANK_ACCOUNT = {
@@ -143,7 +144,7 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
 
         {/* 헤더 — 선택한 강좌 요약 고정 */}
         <div className="relative z-10 flex items-center gap-3 px-5 py-4 lg:px-6 lg:py-5 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
+          <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div
             className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
             style={{

@@ -24,6 +24,7 @@ import { resizeImageToBlob } from '../../../utils/imageResize'
 import { calendarDateKey, formatKstDateTime, kstNow } from '../../../utils/kstTime'
 import { showToast } from '../../../utils/toast'
 import { addMinutes, joinDT, splitDT, toLocalDatetimeInput } from '../../../utils/datetimeParts'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 const MAX_PHOTOS = 10
 const MAX_POLL_OPTIONS = 8
@@ -399,7 +400,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
         className="relative w-full max-w-md overflow-y-auto rounded-t-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl"
         style={{ maxHeight: 'calc(var(--vvh, 100dvh) * 0.92 / var(--az, 1))' }}
       >
-        <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
+        <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
         <h3 className="text-[17px] font-bold text-ink-strong mb-4">알림 쓰기</h3>
 
         {/* 유형 탭 */}

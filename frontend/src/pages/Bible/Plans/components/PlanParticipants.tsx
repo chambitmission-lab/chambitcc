@@ -10,6 +10,7 @@ import MemberSearchInput from '../../../../components/common/MemberSearchInput'
 import { useAddPlanMembers } from '../../../../hooks/useBiblePlan'
 import { showToast } from '../../../../utils/toast'
 import { FlameIcon, PartyIcon, PeopleIcon as UsersIcon } from '../PlanIcons'
+import { SheetGrabber } from '../../../../components/common/SheetGrabber'
 
 const numStyle: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
 
@@ -135,7 +136,7 @@ const PlanParticipants = ({
       <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
         <div className="absolute inset-0 bg-black/45" onClick={() => setInviteOpen(false)} />
         <div className="relative w-full max-w-md max-h-[calc(88vh/var(--az,1))] overflow-y-auto rounded-t-[24px] lg:rounded-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
-          <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4 lg:hidden" />
+          <SheetGrabber onClose={() => setInviteOpen(false)} className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4 lg:hidden" />
           <h3 className="text-[17px] font-bold text-ink-strong">함께 읽을 사람 초대</h3>
           <p className="text-[12.5px] text-gray-500 dark:text-white/55 mt-1 mb-4 leading-[1.6]">
             이름을 검색해 고르면 바로 함께 읽게 되고, 그분에게 알림이 가요.

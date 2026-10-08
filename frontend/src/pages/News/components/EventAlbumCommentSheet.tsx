@@ -15,6 +15,7 @@ import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { toastFeedback } from '../../../utils/toast'
 import { can } from '../../../utils/access'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 interface EventAlbumCommentSheetProps {
   post: EventAlbumPost
@@ -64,7 +65,7 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
         {/* 핸들 + 헤더 */}
         <div className="relative z-10 shrink-0">
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
-            <span className="w-10 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
+            <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
           </div>
           <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
             <div className="min-w-0">

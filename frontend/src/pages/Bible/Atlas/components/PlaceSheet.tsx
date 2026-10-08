@@ -4,6 +4,7 @@ import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import type { AtlasPlace } from '../atlasTypes'
 import { placeLabel } from '../data/places'
 import { journeysAtPlace } from '../data/journeys'
+import { SheetGrabber } from '../../../../components/common/SheetGrabber'
 
 interface PlaceSheetProps {
   place: AtlasPlace
@@ -58,7 +59,7 @@ const PlaceSheet = ({
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-center gap-3 px-5 pt-5 pb-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
+          <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <span
             className="atl-sheet__badge"
             style={{ background: color }}

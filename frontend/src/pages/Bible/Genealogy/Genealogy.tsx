@@ -14,6 +14,7 @@ import { tokenStore } from '../../../utils/tokenStore'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { GENEALOGY_HERO } from '../../../utils/themeAssets'
 import { warmGenealogySerif } from './warmSerifGlyphs'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 const encouragement = (p: number) => {
   if (p >= 1) return '완독했어요!'
@@ -415,7 +416,7 @@ export const Genealogy = () => {
               transition={{ type: 'spring', damping: 32, stiffness: 280 }}
               className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
             >
-              <FigureSheet>
+              <FigureSheet onClose={() => setSelectedSlug(null)}>
                 <FigureDetailPanel
                   slug={selectedSlug}
                   summary={selectedSummary}
@@ -435,14 +436,14 @@ export const Genealogy = () => {
   )
 }
 
-/** 모바일 시트 본체 — 닫기는 X 버튼·바깥 딤 탭으로만(끌어내려 닫기 없음, 바깥 motion.div 가 퇴장 애니메이션 담당) */
-const FigureSheet = ({ children }: { children: ReactNode }) => {
+/** 모바일 시트 본체 — 닫기는 X 버튼·바깥 딤 탭·손잡이 끌어내리기(본문 끌어닫기는 없음, 바깥 motion.div 가 퇴장 애니메이션 담당) */
+const FigureSheet = ({ children, onClose }: { children: ReactNode; onClose: () => void }) => {
   return (
     <div
       className="gfd-paper max-h-[88vh] rounded-t-[28px] shadow-[0_-20px_60px_-10px_var(--brand-glow)] border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden"
     >
       <div className="flex-shrink-0 flex justify-center py-2.5">
-        <div className="w-10 h-1.5 bg-black/15 dark:bg-white/20 rounded-full" />
+        <SheetGrabber onClose={onClose} className="w-10 h-1.5 bg-black/15 dark:bg-white/20 rounded-full" />
       </div>
       <div className="overflow-y-auto overscroll-contain">
         {children}

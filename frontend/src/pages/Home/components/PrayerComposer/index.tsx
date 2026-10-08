@@ -14,6 +14,7 @@ import { GroupGlyph } from '../../../Groups/GroupIcons'
 import { VerseSlashPanel } from './VerseSlashPanel'
 import { findSlashMatch, useVerseSlash } from './verseSlash'
 import '../ThanksThread/thanks.css'
+import { SheetGrabber } from '../../../../components/common/SheetGrabber'
 
 const MAX_LEN = 1000
 const TITLE_MAX = 100
@@ -369,10 +370,8 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
         >
           {/* 손잡이 — 시트라는 걸 알려주는 표시 */}
           <div className="sm:hidden pt-2.5 pb-1 flex justify-center">
-            <div
-              className="w-10 h-1 rounded-full"
-              style={{ background: 'var(--text-muted)', opacity: 0.35 }}
-            />
+            <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full"
+              style={{ background: 'var(--text-muted)', opacity: 0.35 }} />
           </div>
 
           {/* 헤더 */}

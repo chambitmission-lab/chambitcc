@@ -8,6 +8,7 @@ import { THANKS_EMOTIONS, type ThanksEmotion } from '../../../../types/thanks'
 import { ThanksIcon, type ThanksIconName } from '../../../../components/icons/ThanksIcons'
 import ThanksAvatar from './ThanksAvatar'
 import './thanks.css'
+import { SheetGrabber } from '../../../../components/common/SheetGrabber'
 
 const MAX_LEN = 100
 const EMOTION_KEYS = Object.keys(THANKS_EMOTIONS) as ThanksEmotion[]
@@ -215,10 +216,8 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
       >
         {/* 손잡이 — 시트라는 걸 알려주는 표시 */}
         <div className="sm:hidden pt-2.5 pb-1 flex justify-center">
-          <div
-            className="w-10 h-1 rounded-full"
-            style={{ background: 'var(--text-muted)', opacity: 0.35 }}
-          />
+          <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full"
+            style={{ background: 'var(--text-muted)', opacity: 0.35 }} />
         </div>
 
         {/* 헤더 */}

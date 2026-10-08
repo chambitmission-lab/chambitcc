@@ -20,6 +20,7 @@ import { BellIcon, KeyIcon, PeopleIcon, SchoolIcon, type IconFn } from './ClassI
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CLASS_HERO } from '../../utils/themeAssets'
 import './class-hero.css'
+import { SheetGrabber } from '../../components/common/SheetGrabber'
 
 const ClassList = () => {
   const navigate = useNavigate()
@@ -434,7 +435,7 @@ const CreateClassSheet = ({ onClose }: { onClose: () => void }) => {
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/45" onClick={onClose} />
       <div className="relative w-full max-w-md max-h-[88vh] lg:max-h-[calc(88vh/var(--az,1))] overflow-y-auto rounded-t-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
-        <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
+        <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
         <h3 className="text-[17px] font-bold text-ink-strong mb-1">우리 반 만들기</h3>
         <p className="text-[12px] text-gray-400 dark:text-white/45 mb-4">
           반을 만든 분이 담당 선생님이 돼요. 알림장 글은 선생님만 쓸 수 있어요.

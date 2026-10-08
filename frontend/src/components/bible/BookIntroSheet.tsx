@@ -4,6 +4,7 @@ import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { getBookGenre, genreStyle, parseBookStructure, parseKeyChapters } from './bookGenre'
 import type { KeyChapterItem } from './bookGenre'
 import type { BibleBookIntro } from '../../types/bibleBookIntro'
+import { SheetGrabber } from '../common/SheetGrabber'
 
 interface BookIntroSheetProps {
   intro: BibleBookIntro
@@ -88,7 +89,7 @@ const BookIntroSheet = ({
       >
         {/* 그래버 + 스크롤 시 나타나는 미니 헤더 — 어느 책을 읽는 중인지 잃지 않게 */}
         <div className="relative shrink-0 pt-2.5 pb-1">
-          <div className="mx-auto w-9 h-1 rounded-full bg-[var(--text-muted)]/40" />
+          <SheetGrabber onClose={onClose} className="mx-auto w-9 h-1 rounded-full bg-[var(--text-muted)]/40" />
           <div
             className={`flex items-center gap-2 px-5 h-9 transition-opacity duration-200 ${
               scrolled ? 'opacity-100' : 'opacity-0 pointer-events-none'

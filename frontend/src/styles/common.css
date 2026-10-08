@@ -90,6 +90,23 @@
 .p-3 { padding: 1.5rem; }
 .p-4 { padding: 2rem; }
 
+/* 바텀시트 손잡이 — 끌어내려 닫기(SheetGrabber). 눈에 보이는 막대는 작아도 잡는 영역은 넉넉히 */
+.sheet-grabber {
+  touch-action: none;
+  cursor: grab;
+}
+.sheet-grabber:not(.absolute) {
+  position: relative;
+}
+.sheet-grabber:active {
+  cursor: grabbing;
+}
+.sheet-grabber::before {
+  content: '';
+  position: absolute;
+  inset: -14px -48px;
+}
+
 /* 인장(도장) 문법 — 블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링.
    /bible 구약·신약 마커와 같은 감각을 다른 화면의 세그먼트 마커에서도 쓴다.
    모서리가 둥근 트랙에서는 --seal-radius 로 바깥 반경을 알려주면 점선 링이 곡률을 따라간다. */

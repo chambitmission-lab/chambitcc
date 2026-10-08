@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { BibleBook } from '../../../types/bible'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 interface BookQuickPickerProps {
   books: BibleBook[]
@@ -52,7 +53,7 @@ const BookQuickPicker = ({ books, currentBookNumber, onPick, onClose }: BookQuic
       >
         {/* 헤더 */}
         <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
+          <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
             <span className="material-icons-round text-[22px]">auto_stories</span>
           </div>

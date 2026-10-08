@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { ALL_JOURNEY_PLACE_IDS, JOURNEYS, uniquePlaceIds } from '../data/journeys'
 import { PLACES } from '../data/places'
+import { SheetGrabber } from '../../../../components/common/SheetGrabber'
 
 interface PassportSheetProps {
   visitedIds: Set<string>
@@ -44,7 +45,7 @@ const PassportSheet = ({ visitedIds, onOpenJourney, onClose }: PassportSheetProp
         <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-3 px-5 pt-5 pb-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
+          <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div className="min-w-0 flex-1">
             <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">지도여행 여권</p>
             <h3 className="text-ink-strong text-[19px] font-bold tracking-[-0.015em]">
