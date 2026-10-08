@@ -1,7 +1,7 @@
 // 이번 주 말씀과 동행하기 — 본문 읽기 → 설교 듣기 → 한 줄 붙잡기
 // 1·2단계는 기기 편의 기록(localStorage), 3단계 '한 줄'만 서버에 남아 지난 편지 위에 손글씨로 다시 보인다.
 // 한 줄은 '목사님께 이름 없이 전하기'를 켜면 /pastor 설교의 메아리에 이름 없이 모인다.
-// 목사님이 나눔 질문을 공개하면 맨 아래에 소그룹 나눔 질문이 붙는다.
+// 목사님이 나눔 질문을 공개하면 맨 아래에 함께 나눌 질문이 붙는다.
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -256,7 +256,7 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
                 <input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} />
                 <span>
                   목사님께 이름 없이 전하기
-                  <small>이름 없이 한 줄만 전해져요. 설교 준비와 소그룹 나눔에 쓰여요</small>
+                  <small>이름 없이 한 줄만 전해져요. 설교 준비와 함께 나눌 질문에 쓰여요</small>
                 </span>
               </label>
               <div className="sl-step-actions">

@@ -13,7 +13,7 @@ import { showToast } from '../../../utils/toast'
 import { EmptyHint, SectionCard } from '../../Admin/components/StatCards'
 import { formatDay } from './pastorUtils'
 
-// 설교의 메아리 — 지난 주일 설교에서 성도들이 붙잡은 한 줄과, 그걸로 만드는 소그룹 나눔 질문.
+// 설교의 메아리 — 지난 주일 설교에서 성도들이 붙잡은 한 줄과, 그걸로 만드는 함께 나눌 질문.
 // 개인정보 경계: 몇 명이 적었는지는 숫자만, 본문은 성도가 '목사님께 이름 없이 전하기'를 켠 것만
 // (서버가 이름·시각 없이 섞어서, 최소 인원 미만이면 아예 내려보내지 않는다).
 
@@ -160,7 +160,7 @@ const DiscussionEditor = ({
   return (
     <div className="rounded-xl border border-gray-200/80 dark:border-white/[0.08] p-3.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[13.5px] font-bold text-ink-strong">소그룹 나눔 질문</p>
+        <p className="text-[13.5px] font-bold text-ink-strong">함께 나눌 질문</p>
         {discussion && (
           <span
             className={`px-2 py-0.5 rounded-md text-[12px] font-bold ${
@@ -175,8 +175,8 @@ const DiscussionEditor = ({
       {questions.length === 0 ? (
         <div className="mt-2">
           <p className="text-[12.5px] leading-relaxed text-gray-500 dark:text-white/50">
-            설교 원고와 성도들이 전한 한 줄로 구역·목장에서 나눌 질문 3개를 만들어 드려요. 다듬어서 공개하면
-            설교 화면 아래에 보이고, 구역장이 단톡방으로 바로 나눌 수 있어요.
+            설교 원고와 성도들이 전한 한 줄로 함께 나눌 질문 3개를 만들어 드려요. 다듬어서 공개하면
+            설교 화면 아래에 보이고, 성도들이 모임이나 단톡방에서 바로 나눌 수 있어요.
           </p>
           <div className="mt-2.5 flex flex-wrap gap-2">
             <button
