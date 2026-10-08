@@ -1,9 +1,30 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 
+const LIGHT_CHAR = '빛'
+
+/* "빛" 위 햇살 — 앱 아이콘 엠블럼의 햇살을 다섯 가닥으로 줄였다.
+   금빛은 엠블럼에서 온 장식이라 --amber-icon(장식용 토큰)을 쓴다. */
+const LightRays = () => (
+  <svg
+    aria-hidden
+    viewBox="0 0 30 14"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.9"
+    strokeLinecap="round"
+    className="pointer-events-none absolute left-1/2 -top-[9px] h-[14px] w-[30px] -translate-x-1/2 text-[var(--amber-icon)]"
+  >
+    <path d="M15 1.2v4.2M7.2 4l2.2 3.4M22.8 4l-2.2 3.4M1.8 9.6l3.6 1.6M28.2 9.6l-3.6 1.6" />
+  </svg>
+)
+
 const Logo = () => {
   const location = useLocation()
   const { t } = useLanguage()
+  const name = t('churchName')
+  // 영문 등 '빛'이 없는 언어는 장식 없이 이름만
+  const lightIdx = name.indexOf(LIGHT_CHAR)
 
   const handleLogoClick = (e: React.MouseEvent) => {
     if (location.pathname === '/') {
@@ -28,16 +49,28 @@ const Logo = () => {
         style={{ background: 'radial-gradient(ellipse at center, var(--brand-glow) 0%, transparent 68%)' }}
       />
 
-      {/* 서체를 지정하지 않는다 — 헤더 루트의 .chrome-type(G마켓 산스, lg+)을 상속받아
-          우측 인라인 메뉴와 같은 획으로 읽힌다. 모바일은 지금처럼 Pretendard 로 떨어진다.
-          자간: 전역 -0.02em / tracking-tighter(-0.05em) 는 한글 네 글자를 한 덩어리로
-          붙여버려서 로고에서만 되돌린다.
+      {/* 워드마크 — "빛" 한 글자만 브랜드 블루, 그 위로 교회 엠블럼의 햇살 다섯 가닥.
+          심볼 없이 이름의 뜻(요 8:12 세상의 빛)이 그림이 된다.
+          서체는 G마켓 산스를 직접 지정 — 모바일에서도 같은 얼굴이어야 해서 .chrome-type(lg+)
+          상속에 기대지 않는다. 서브셋에 "참빛교회" 글자가 들어 있다(Bold 한 벌만 받음).
+          자간: 전역 -0.02em 은 한글 네 글자를 한 덩어리로 붙여서 로고에서만 되돌린다.
           라이트 글자는 차콜 그레이 — 새까만 글자는 푸른 빛무리 위에서 딱딱해 보인다. */}
       <h1
-        className="text-[1.34rem] font-bold select-none text-[#2b3542] dark:text-ink-strong relative z-10 whitespace-nowrap"
-        style={{ letterSpacing: '-0.012em' }}
+        className="flex text-[1.3rem] font-bold select-none text-[#2b3542] dark:text-ink-strong relative z-10 whitespace-nowrap pt-1"
+        style={{ fontFamily: "'Gmarket Sans', 'Pretendard Variable', 'Pretendard', sans-serif", letterSpacing: '-0.005em' }}
       >
-        {t('churchName')}
+        {lightIdx >= 0 ? (
+          <>
+            {name.slice(0, lightIdx)}
+            <span className="relative text-brand">
+              <LightRays />
+              {LIGHT_CHAR}
+            </span>
+            {name.slice(lightIdx + 1)}
+          </>
+        ) : (
+          name
+        )}
       </h1>
     </Link>
   )
