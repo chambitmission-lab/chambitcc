@@ -3,7 +3,6 @@
     "account_balance",
     "account_tree",
     "add",
-    "add_circle_outline",
     "add_photo_alternate",
     "admin_panel_settings",
     "air",
@@ -148,6 +147,7 @@
     "male",
     "manage_accounts",
     "map",
+    "mark_email_read",
     "menu",
     "menu_book",
     "message",
@@ -233,6 +233,7 @@
     "shield",
     "short_text",
     "shuffle",
+    "sick",
     "signpost",
     "skip_next",
     "skip_previous",
@@ -302,10 +303,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 23816
+    "bytes": 24076
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 26520
+    "bytes": 26848
   }
 }

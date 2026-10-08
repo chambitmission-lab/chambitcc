@@ -67,6 +67,8 @@ export const sermonKeys = {
   bibleReferences: (sermonId: number | null) => ['sermon-bible-references', sermonId] as const,
   /** 내가 붙잡은 한 줄 전체 — sermonKeys.all 무효화(설교 등록·수정)에 휩쓸리지 않게 별도 루트 */
   takeaways: () => ['sermon-takeaways'] as const,
+  /** 목사님이 공개한 소그룹 나눔 질문 */
+  discussion: (sermonId: number) => ['sermon-discussion', sermonId] as const,
 }
 
 export const columnKeys = {
@@ -172,4 +174,6 @@ export const pastorKeys = {
   outlines: () => ['pastor-outlines'] as const,
   outlineAll: () => ['pastor-outline'] as const,
   outline: (outlineId: number) => [...pastorKeys.outlineAll(), outlineId] as const,
+  /** 설교의 메아리 — null 은 '가장 최근 설교' */
+  sermonEcho: (sermonId: number | null) => ['pastor-sermon-echo', sermonId] as const,
 }

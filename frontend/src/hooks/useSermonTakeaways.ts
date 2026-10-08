@@ -30,7 +30,8 @@ export const useSermonTakeaways = () => {
 export const useSaveSermonTakeaway = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ sermonId, text }: { sermonId: number; text: string }) => saveSermonTakeaway(sermonId, text),
+    mutationFn: ({ sermonId, text, shared }: { sermonId: number; text: string; shared: boolean }) =>
+      saveSermonTakeaway(sermonId, text, shared),
     onSuccess: (saved) => {
       // 최근 수정순 — 방금 붙잡은 한 줄을 맨 앞으로
       qc.setQueryData<SermonTakeaway[]>(sermonKeys.takeaways(), (prev = []) => [

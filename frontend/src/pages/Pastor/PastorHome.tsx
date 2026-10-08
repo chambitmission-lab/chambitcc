@@ -12,6 +12,7 @@ import PastorShell from './components/PastorShell'
 import FollowUpList from './components/FollowUpList'
 import SuggestionList from './components/SuggestionList'
 import SundaySermonCard from './components/SundaySermonCard'
+import SermonEchoCard from './components/SermonEchoCard'
 import { Avatar } from './components/ui'
 import { formatDay as formatIsoDay, usePastorGate } from './components/pastorUtils'
 
@@ -86,12 +87,13 @@ const PastorHome = () => {
           <Greeting data={data} />
           {!isDesk && <SundaySermonCard />}
 
-          {/* PC(lg+) 2단 — 좌: 맡겨진 기도·응답의 은혜 / 우: 이번 주일 설교·돌봄·이번 주·교회 흐름.
+          {/* PC(lg+) 2단 — 좌: 맡겨진 기도·설교의 메아리·응답의 은혜 / 우: 이번 주일 설교·돌봄·이번 주·교회 흐름.
               래퍼는 lg 미만에서 display:contents 라 모바일은 한 줄 흐름 그대로. */}
           <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
             <div className="contents lg:block lg:min-w-0">
               <AssistantCard data={data} />
               <PastoralInbox data={data} onOpen={setOpenPrayerId} />
+              <SermonEchoCard />
               <GraceCard data={data} />
             </div>
             <div className="contents lg:block">

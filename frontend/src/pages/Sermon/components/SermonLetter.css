@@ -531,3 +531,60 @@
 }
 .sl-feedback h2 { font-size: 16px; font-weight: 800; color: var(--text-strong); }
 .sl-feedback p { margin-top: 4px; font-size: 13.5px; line-height: 1.6; color: var(--text-body); word-break: keep-all; }
+
+/* 한 줄 — 목사님께 이름 없이 전하기 */
+.sl-share {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.sl-share input { flex: none; width: 17px; height: 17px; margin-top: 1px; accent-color: var(--brand); }
+.sl-share small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.sl-share-note {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.sl-share-note .material-icons-outlined { font-size: 15px; }
+
+/* 소그룹 나눔 질문 */
+.sl-discuss {
+  margin: 4px 6px 6px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+}
+.sl-discuss-head { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-strong); }
+.sl-discuss-head .material-icons-outlined { font-size: 18px; color: var(--brand); }
+.sl-discuss ol { display: grid; gap: 10px; margin-top: 12px; }
+.sl-discuss li { display: flex; gap: 10px; }
+.sl-discuss-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 800;
+}
+.sl-discuss li p { font-size: 14.5px; line-height: 1.6; color: var(--text-body); word-break: keep-all; }

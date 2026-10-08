@@ -1,5 +1,7 @@
 // 이번 주 말씀과 동행하기 — 본문 읽기 → 설교 듣기 → 한 줄 붙잡기
 // 1·2단계는 기기 편의 기록(localStorage), 3단계 '한 줄'만 서버에 남아 지난 편지 위에 손글씨로 다시 보인다.
+// 한 줄은 '목사님께 이름 없이 전하기'를 켜면 /pastor 설교의 메아리에 이름 없이 모인다.
+// 목사님이 나눔 질문을 공개하면 맨 아래에 소그룹 나눔 질문이 붙는다.
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -15,6 +17,7 @@ import {
 import { formatReference, parseBibleReference } from '../utils/sermonMeta'
 import { primaryMedia, readWalk, writeWalk, type WalkState } from '../utils/sermonLetter'
 import type { SermonHeroVariant } from './SermonLetterHero'
+import SermonDiscussionBlock from './SermonDiscussionBlock'
 
 interface SermonWalkProps {
   sermon: Sermon
@@ -38,6 +41,8 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
   const [passageOpen, setPassageOpen] = useState(false)
   const [draft, setDraft] = useState('')
   const [editing, setEditing] = useState(false)
+  // 목사님께 이름 없이 전하기 — 새 한 줄은 켠 채로 시작, 고쳐 쓸 땐 저장된 값에서
+  const [share, setShare] = useState(true)
 
   // 히어로 '본문 읽기' 신호가 바뀌면 1단계를 펼친다 (렌더 중 조정 — 설교가 바뀌면 부모가 key 로 새로 그린다)
   const [seenSignal, setSeenSignal] = useState(passageSignal)
@@ -81,7 +86,7 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
   const submit = () => {
     const text = draft.trim()
     if (!text) return
-    save.mutate({ sermonId: sermon.id, text }, { onSuccess: () => { setEditing(false); setDraft('') } })
+    save.mutate({ sermonId: sermon.id, text, shared: share }, { onSuccess: () => { setEditing(false); setDraft('') } })
   }
 
   const media = primaryMedia(sermon)
@@ -207,12 +212,19 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
           {loggedIn && saved && !editing && (
             <div className="sl-kept">
               <p className="sl-pen">{saved.text}</p>
+              <p className="sl-share-note">
+                <span className="material-icons-outlined" aria-hidden>
+                  {saved.shared ? 'mark_email_read' : 'lock'}
+                </span>
+                {saved.shared ? '목사님께 이름 없이 전했어요' : '나만 보는 한 줄이에요'}
+              </p>
               <div className="sl-step-actions">
                 <button
                   type="button"
                   className="sl-btn sl-btn--plain"
                   onClick={() => {
                     setDraft(saved.text)
+                    setShare(saved.shared)
                     setEditing(true)
                   }}
                 >
@@ -240,6 +252,13 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
                 placeholder="오늘 마음에 남은 한 문장을 적어 보세요"
                 onChange={(e) => setDraft(e.target.value)}
               />
+              <label className="sl-share">
+                <input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} />
+                <span>
+                  목사님께 이름 없이 전하기
+                  <small>이름 없이 한 줄만 전해져요. 설교 준비와 소그룹 나눔에 쓰여요</small>
+                </span>
+              </label>
               <div className="sl-step-actions">
                 <button
                   type="button"
@@ -260,6 +279,8 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
           )}
         </div>
       </div>
+
+      <SermonDiscussionBlock sermon={sermon} />
     </section>
   )
 }

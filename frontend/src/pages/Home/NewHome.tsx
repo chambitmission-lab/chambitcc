@@ -32,6 +32,7 @@ import IntercessionCard from './components/IntercessionCardGate'
 import SurveyBanner from './components/SurveyBanner'
 import ElectionBanner from './components/ElectionBanner'
 import TodayPlanCard from './components/TodayPlanCard'
+import SermonTakeawayEcho from './components/SermonTakeawayEcho'
 import LiveReadingCard from './components/LiveReadingCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
@@ -432,6 +433,9 @@ const NewHome = () => {
             <div id={HOME_CARD_IDS.plan}>
               <TodayPlanCard />
             </div>
+
+            {/* 주일에 붙잡은 말씀 — 지난 주일 설교에서 내가 적은 한 줄(월~토만) */}
+            <SermonTakeawayEcho />
 
             {/* 지금 함께 읽는 말씀 — 성도들이 지금 모여 있는 장(실시간) 또는 오늘 가장 많이
                 읽힌 장. 아무도 없으면 렌더하지 않는다 */}
