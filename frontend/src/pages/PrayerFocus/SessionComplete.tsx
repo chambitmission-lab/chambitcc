@@ -13,6 +13,11 @@ import {
   type PrayerSessionStats,
 } from '../../api/prayerSession'
 import { tokenStore } from '../../utils/tokenStore'
+import { useQueryClient } from '@tanstack/react-query'
+import { addPrayer } from '../../api/prayer'
+import { prayerKeys } from '../../hooks/usePrayersQuery'
+import { prayerFocusKeys, profileKeys } from '../../hooks/queryKeys'
+import type { CarryItem } from './carryPrayers'
 
 interface SessionCompleteProps {
   duration: number  // 분 단위
@@ -23,6 +28,8 @@ interface SessionCompleteProps {
   verseText?: string
   verseRef?: string
   ambienceId?: string
+  /** 이 세션에 품은 기도제목 — 아직 기도하지 않은 남의 기도는 '기도했어요'로 남긴다 */
+  carried?: CarryItem[]
   onRestart: () => void
   onClose: () => void
 }
@@ -55,6 +62,7 @@ const SessionComplete = ({
   verseText,
   verseRef,
   ambienceId,
+  carried = [],
   onRestart,
   onClose,
 }: SessionCompleteProps) => {
@@ -70,6 +78,9 @@ const SessionComplete = ({
   const [noteSaved, setNoteSaved] = useState(false)
   const [amenPressed, setAmenPressed] = useState(false)
   const [recordError, setRecordError] = useState<string | null>(null)
+  // 이번에 새로 '기도했어요'가 남은 기도제목 id
+  const [prayedNow, setPrayedNow] = useState<Set<number>>(() => new Set())
+  const queryClient = useQueryClient()
 
   // 마운트 시 세션 기록 + 통계 조회 (중복 적재 방지는 위 isDuplicateRecord 주석 참고)
   const recordedRef = useRef(false)
@@ -102,6 +113,7 @@ const SessionComplete = ({
           const session = await createPrayerSession(payload)
           setSessionId(session.id)
         }
+        if (!alreadyRecorded) void recordCarried()
         const s = await getPrayerSessionStats()
         setStats(s)
       } catch (err) {
@@ -114,6 +126,21 @@ const SessionComplete = ({
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // 품은 기도제목 중 아직 기도하지 않은 것에 '기도했어요' — 시간은 개수만큼 나눠 남긴다.
+  // 서버가 멱등이라 겹쳐 불려도 두 번 세지 않는다. 하나가 실패해도 나머지는 남긴다.
+  const recordCarried = async () => {
+    const targets = carried.filter((c) => !c.alreadyPrayed)
+    if (targets.length === 0) return
+    const perItem = Math.max(1, Math.round(duration / carried.length))
+    const results = await Promise.allSettled(targets.map((c) => addPrayer(c.id, perItem)))
+    const ok = targets.filter((_, i) => results[i].status === 'fulfilled').map((c) => c.id)
+    if (ok.length === 0) return
+    setPrayedNow(new Set(ok))
+    void queryClient.invalidateQueries({ queryKey: prayerKeys.all })
+    void queryClient.invalidateQueries({ queryKey: profileKeys.all })
+    void queryClient.invalidateQueries({ queryKey: prayerFocusKeys.all })
+  }
 
   const handleSaveNote = async () => {
     const trimmed = note.trim()
@@ -184,6 +211,33 @@ const SessionComplete = ({
             </div>
           </div>
         </div>
+
+        {/* 함께 품은 기도제목 */}
+        {carried.length > 0 && (
+          <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-5 border border-white/8 text-left">
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`material-icons-outlined text-sm ${CANDLE_CLASS.accentText}`}>volunteer_activism</span>
+              <h3 className={`text-xs lg:text-[14px] font-bold tracking-widest ${CANDLE_CLASS.accentText}`}>
+                {t('carryCompleteTitle').replace('{n}', String(carried.length))}
+              </h3>
+            </div>
+            <ul className="space-y-2.5">
+              {carried.map((c) => (
+                <li key={c.id} className="flex items-start gap-2.5">
+                  <span className="material-icons-outlined text-[15px] lg:text-[18px] mt-0.5 text-white/40">
+                    {prayedNow.has(c.id) ? 'check_circle' : 'favorite_border'}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] lg:text-[16px] text-white/80 lg:text-white/90 leading-snug line-clamp-2 break-keep">{c.text}</p>
+                    {prayedNow.has(c.id) && (
+                      <p className={`mt-0.5 text-[11px] lg:text-[13.5px] ${CANDLE_CLASS.accentText} opacity-80`}>{t('carryPrayedRecorded')}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* 영적 흔적 (통계) */}
         {isLoggedIn() && (

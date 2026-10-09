@@ -148,6 +148,15 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
                     성경에서 이어 읽기
                     <span className="material-icons-outlined">arrow_forward</span>
                   </Link>
+                  {/* 마음에 남은 절을 골라 카드로 — 한 주 동안 단톡방·프로필로 말씀이 이어지게 */}
+                  <Link
+                    className="sl-btn sl-btn--plain"
+                    to="/bible/photo-verse"
+                    state={{ sermonPassage: { ref: sermon.bible_verse, title: sermon.title } }}
+                  >
+                    말씀 카드로 담기
+                    <span className="material-icons-outlined">photo_filter</span>
+                  </Link>
                 </div>
               </div>
             )}

@@ -53,12 +53,14 @@ import {
 import {
   drawClassicLayout,
   drawFocusLayout,
+  drawGreeting,
   drawGalleryLayout,
   drawPosterLayout,
   drawQuoteLayout,
   drawSignature,
   drawVerticalLayout,
   fitFontPx,
+  greetingBand,
 } from './canvas/layouts'
 import type { TypeContext } from './canvas/layouts'
 
@@ -87,6 +89,8 @@ export interface DrawCardOptions {
   layer?: CardLayer
   /** 'text' 층을 투명 캔버스에 그릴 때 스크림 세기를 잴 사진 — 없으면 그리는 캔버스 자신 */
   sampleFrom?: HTMLCanvasElement
+  /** 맨 위 손글씨 인사말(상황별 카드) — 잠금화면에서는 시계 자리라 그리지 않는다 */
+  greeting?: string
 }
 
 /** 사진 + 말씀 텍스트를 canvas에 합성한다. canvas 크기는 호출자가 정한다. */
@@ -107,7 +111,11 @@ export const drawVerseCard = (
   const l = layoutFromCanvas(canvas.width, canvas.height, style.frame)
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   // 잠금화면은 시계·버튼 자리를 비우고 가운데 띠에만 글을 놓는다
-  const textArea = textAreaLayout(l, style.ratio)
+  const lockArea = textAreaLayout(l, style.ratio)
+  // 인사말이 있으면 맨 위 띠를 내주고 말씀은 그 아래 영역에 구도를 잡는다
+  const greeting = style.ratio === 'lock' ? '' : (opts.greeting?.trim() ?? '')
+  const band = greeting ? greetingBand(l, style.layout).height : 0
+  const textArea = band ? { ...lockArea, py: lockArea.py + band, ph: lockArea.ph - band } : lockArea
 
   if (withBase) drawBaseUnder(ctx, canvas, l, img, style)
 
@@ -122,6 +130,7 @@ export const drawVerseCard = (
       ctx,
       l: textArea,
       full: l,
+      box: lockArea,
       sample: opts.sampleFrom ?? canvas,
       text,
       refLabel,
@@ -153,6 +162,8 @@ export const drawVerseCard = (
         drawClassicLayout(tc)
     }
   }
+
+  if (greeting && text && withText) drawGreeting(ctx, l, greeting, style)
 
   if (withBase) drawBaseOver(ctx, canvas, l, refLabel, style)
 

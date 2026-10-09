@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useDailyVerse } from '../../hooks/useDailyVerse'
 import { usePrayerTimer } from './usePrayerTimer'
@@ -24,14 +24,30 @@ import { ACTS_SEGMENTS } from './actsSegments'
 import SegmentGuide from './SegmentGuide'
 import { warmupChime, playChime } from './chime'
 import { saveLastSetup, loadLastSetup } from './lastSetup'
+import CarryPicker from './CarryPicker'
+import CarryCards from './CarryCards'
+import { CARRY_MAX, useCarryCandidates, type CarryItem } from './carryPrayers'
+import { tokenStore } from '../../utils/tokenStore'
 
 type Stage = 'setup' | 'ritual' | 'praying'
+
+/** 묵상 화면에서 이어 들어올 때 넘겨받는 말씀·기도 (location.state.meditation) */
+interface MeditationCarry {
+  verseText: string
+  verseRef: string
+  prayerText?: string
+}
+
+// 기도방에서 들어오면 미리 담아 두는 기도제목 수 — 다 고르게 하기보다 바로 시작할 수 있게
+const GROUP_PRESELECT = 3
 
 // 무접촉 시 화면을 추가로 어둡게 하기까지의 대기 시간
 const DIM_AFTER_MS = 20000
 
 const PrayerFocus = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { t } = useLanguage()
   const tx = t as unknown as (k: string) => string
   const { data: verseData } = useDailyVerse()
@@ -40,13 +56,23 @@ const PrayerFocus = () => {
     ? { content: verseData.verse_text, reference: verseData.verse_reference, id: verseData.id }
     : null
 
+  // 들어온 자리의 맥락 — 기도방(?group=ID) 또는 묵상(state.meditation)
+  const groupParam = Number(searchParams.get('group'))
+  const entryGroupId = Number.isInteger(groupParam) && groupParam > 0 ? groupParam : null
+  const meditation = (location.state as { meditation?: MeditationCarry } | null)?.meditation ?? null
+
   const mood = useMemo(() => getCurrentMood(), [])
   const lastSetup = useMemo(() => loadLastSetup(), [])
 
   const [stage, setStage] = useState<Stage>('setup')
   // 시간은 항상 선택돼 있다 — 마지막 설정 또는 15분(조용히 집중하기)이 기본
   const [selectedMinutes, setSelectedMinutes] = useState<number>(lastSetup?.minutes ?? 15)
-  const [selectedTheme, setSelectedTheme] = useState<PrayerTheme | null>(null)
+  const [selectedTheme, setSelectedTheme] = useState<PrayerTheme | null>(() =>
+    entryGroupId ? findTheme('intercession') : null,
+  )
+  // 오늘 품을 기도제목 — 기도 중 한 장씩 곁에 머물고, 마치면 '기도했어요'로 남는다
+  const [carried, setCarried] = useState<CarryItem[]>([])
+  const { data: carryCandidates } = useCarryCandidates(entryGroupId, !!tokenStore.getAccess())
   const [ambienceId, setAmbienceId] = useState<string>('silent')
   const [helpersOpen, setHelpersOpen] = useState(false)
   const [showMidVerse, setShowMidVerse] = useState(false)
@@ -60,6 +86,25 @@ const PrayerFocus = () => {
   const [dimmed, setDimmed] = useState(false)
 
   const ambience = useAmbience(ambienceId)
+
+  // 기도방에서 들어왔으면 아직 기도하지 않은 그 방의 기도제목을 몇 개 미리 담아 둔다 (한 번만)
+  const preselectedRef = useRef(false)
+  useEffect(() => {
+    if (preselectedRef.current || !entryGroupId || !carryCandidates) return
+    preselectedRef.current = true
+    const fresh = carryCandidates.group.filter((g) => !g.alreadyPrayed).slice(0, GROUP_PRESELECT)
+    if (fresh.length > 0) setCarried(fresh)
+  }, [entryGroupId, carryCandidates])
+
+  const toggleCarry = useCallback((item: CarryItem) => {
+    setCarried((prev) =>
+      prev.some((p) => p.id === item.id)
+        ? prev.filter((p) => p.id !== item.id)
+        : prev.length >= CARRY_MAX
+          ? prev
+          : [...prev, item],
+    )
+  }, [])
 
   const {
     timeLeft,
@@ -152,7 +197,7 @@ const PrayerFocus = () => {
     }
   }, [ambienceId, stage, ambience])
 
-  // 주제별 시작 멘트(없으면 기본 골방 말씀)
+  // 주제별 시작 멘트(없으면 기본 골방 말씀) — 묵상에서 이어 왔으면 그 말씀이 먼저
   const ritualQuoteKey = selectedTheme?.startQuoteKey
   const ritualQuoteRefKey = selectedTheme?.startQuoteRefKey
 
@@ -263,9 +308,11 @@ const PrayerFocus = () => {
     navigate(-1)
   }
 
-  // 기도 화면/완료 화면에 쓰이는 세션 말씀 (주제 중간 말씀 > 오늘의 말씀)
-  const sessionVerseText = selectedTheme?.midVerseTextKey ? tx(selectedTheme.midVerseTextKey) : verse?.content
-  const sessionVerseRef = selectedTheme?.midVerseRefKey ? tx(selectedTheme.midVerseRefKey) : verse?.reference
+  // 기도 화면/완료 화면에 쓰이는 세션 말씀 (묵상 말씀 > 주제 중간 말씀 > 오늘의 말씀)
+  const sessionVerseText =
+    meditation?.verseText ?? (selectedTheme?.midVerseTextKey ? tx(selectedTheme.midVerseTextKey) : verse?.content)
+  const sessionVerseRef =
+    meditation?.verseRef ?? (selectedTheme?.midVerseRefKey ? tx(selectedTheme.midVerseRefKey) : verse?.reference)
 
   // 완료 화면 (정상 완료 또는 중도 종료 부분 기록)
   if ((isComplete || earlyFinishSeconds !== null) && selectedMinutes) {
@@ -278,8 +325,10 @@ const PrayerFocus = () => {
         duration={durationMinutes}
         theme={selectedTheme}
         mood={mood}
-        verseId={verse?.id}
+        // verse_id 는 오늘의 말씀 행을 가리킨다 — 묵상 말씀으로 기도했으면 남기지 않는다
+        verseId={meditation ? undefined : verse?.id}
         verseText={sessionVerseText}
+        carried={carried}
         verseRef={sessionVerseRef}
         ambienceId={ambienceId}
         onRestart={handleReset}
@@ -295,6 +344,8 @@ const PrayerFocus = () => {
         mood={mood}
         themeQuoteKey={ritualQuoteKey}
         themeQuoteRefKey={ritualQuoteRefKey}
+        quoteText={meditation?.verseText}
+        quoteRef={meditation?.verseRef}
         onEnter={handleRitualEnter}
       />
     )
@@ -339,11 +390,22 @@ const PrayerFocus = () => {
           />
         )}
 
-        {/* 중보 기도 — 이번 주 공동 기도제목을 하단에 잔잔히 순환 표시 */}
-        <SharedIntercession
-          show={selectedTheme?.id === 'intercession' || (guidedMode && actsIndex === 3)}
-          accentText={CANDLE_CLASS.accentText}
-        />
+        {/* 품은 기도제목이 있으면 그 카드가, 없으면 이번 주 공동 기도제목이 하단 자리를 쓴다 */}
+        {carried.length > 0 ? (
+          <CarryCards
+            items={carried}
+            elapsedSeconds={totalSeconds - timeLeft}
+            totalSeconds={totalSeconds}
+            guidedMode={guidedMode}
+            dimmed={dimmed}
+            accentText={CANDLE_CLASS.accentText}
+          />
+        ) : (
+          <SharedIntercession
+            show={selectedTheme?.id === 'intercession' || (guidedMode && actsIndex === 3)}
+            accentText={CANDLE_CLASS.accentText}
+          />
+        )}
 
         {/* 포모도로 다이얼 — 화면 가운데. 무접촉 시 은은하게 디밍 */}
         <div
@@ -471,6 +533,18 @@ const PrayerFocus = () => {
           </button>
         )}
 
+        {/* 묵상에서 이어 온 기도 — 오늘 받은 말씀을 품고 들어간다 */}
+        {meditation && (
+          <div className="w-full mb-8 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 lg:px-5 lg:py-4 text-left animate-fade-in">
+            <p className="text-[11px] lg:text-[13.5px] tracking-wide mb-1.5" style={{ color: CANDLE_TONE.textMuted }}>
+              {t('fromMeditationLabel')} · {meditation.verseRef}
+            </p>
+            <p className="font-serif-kr text-[13.5px] lg:text-[16.5px] text-white/80 lg:text-white/90 leading-relaxed line-clamp-3 break-keep">
+              {meditation.prayerText || meditation.verseText}
+            </p>
+          </div>
+        )}
+
         {/* ① 마음 — 주제 선택 */}
         <div className="w-full mb-8">
           <p className="text-white/55 text-[13px] lg:text-[16px] lg:text-white/75 mb-3 text-center font-serif-kr">{t('selectPrayerTheme')}</p>
@@ -509,6 +583,9 @@ const PrayerFocus = () => {
             {selectedTheme ? tx(selectedTheme.descKey) : t('prayerThemeOptional')}
           </p>
         </div>
+
+        {/* 오늘 품을 기도제목 — 내 기도·함께 기도 중·들어온 기도방 */}
+        <CarryPicker candidates={carryCandidates} selected={carried} onToggle={toggleCarry} />
 
         {/* ② 머무는 시간 */}
         <div className="w-full mb-8">
@@ -690,8 +767,13 @@ const PrayerFocus = () => {
               {t('enterPrayerCta')}
             </div>
             <div className="text-[11px] lg:text-[14px] text-[rgba(43,27,12,0.6)] lg:text-[rgba(43,27,12,0.75)] mt-0.5">
-              {`${selectedMinutes}${t('minutes')}`} ·{' '}
-              {selectedTheme ? tx(selectedTheme.labelKey) : t('freePrayerFallback')}
+              {[
+                `${selectedMinutes}${t('minutes')}`,
+                selectedTheme ? tx(selectedTheme.labelKey) : t('freePrayerFallback'),
+                carried.length > 0 ? t('carryCtaCount').replace('{n}', String(carried.length)) : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </div>
           </button>
         </div>

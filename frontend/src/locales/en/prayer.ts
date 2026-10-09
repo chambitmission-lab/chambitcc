@@ -132,6 +132,20 @@ export const prayer = {
 
   // Intercession — this week's shared prayers
   intercessionSharedTitle: "This week's prayers together",
+  carryTitle: 'Prayers to carry today',
+  carryHint: "Pick some and they'll stay with you, one at a time",
+  carrySelectedCount: '{n} carried · up to {max}',
+  carrySourceGroup: 'Prayer room',
+  carrySourcePraying: "I'm praying for",
+  carrySourceMine: 'My prayers',
+  carryShowMore: 'Show {n} more',
+  carryShowLess: 'Show less',
+  carryCtaCount: '{n} prayers',
+  carryCardLabel: 'Carrying',
+  carryNext: 'Next prayer',
+  carryCompleteTitle: 'Prayers you carried · {n}',
+  carryPrayedRecorded: 'Marked as prayed',
+  fromMeditationLabel: 'From your meditation',
 
   // Completion — verse card link + week dots
   makeVerseCard: 'Make a verse card with this',

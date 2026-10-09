@@ -19,6 +19,8 @@ const ZOOM = 0.07
 export interface MotionSlide {
   text: string
   refLabel: string
+  /** 맨 위 인사말 — 상황별 카드의 첫 장에만 */
+  greeting?: string
 }
 
 export interface MotionResult {
@@ -132,7 +134,7 @@ export const recordMotionCard = async ({
   drawVerseCard(base, img, '', '', style, { layer: 'base' })
   const textLayers = slides.map((s) => {
     const c = make()
-    drawVerseCard(c, img, s.text, s.refLabel, style, { layer: 'text', sampleFrom: base })
+    drawVerseCard(c, img, s.text, s.refLabel, style, { layer: 'text', sampleFrom: base, greeting: s.greeting })
     return c
   })
   const ctx = out.getContext('2d')

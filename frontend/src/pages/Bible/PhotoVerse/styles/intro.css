@@ -88,6 +88,69 @@
   transform: scale(0.97);
 }
 
+/* 인트로 — 상황별 카드 "누구에게 보내요?" (탭 한 번에 말씀·인사말·배경이 채워진다) */
+.pv-intro__occasions {
+  width: 100%;
+  margin-top: 30px;
+}
+
+.pv-occasions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 6px;
+}
+
+.pv-occasion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.pv-occasion:active {
+  transform: scale(0.95);
+}
+
+.pv-occasion__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 24px;
+}
+
+.pv-occasion__name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+
+/* 인트로 — 이번 주 우리 교회 말씀 (설교 본문 · 올해의 말씀) */
+.pv-intro__church {
+  width: 100%;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px dashed var(--card-border);
+}
+
+.pv-intro__church .pv-today {
+  margin-top: 0;
+}
+
+.pv-intro__church .pv-today + .pv-today {
+  margin-top: 10px;
+}
+
 /* 인트로 — 예시 카드 캐러셀. 만들어 보기 전에 결과물을 먼저 보여준다 (템플릿 스트립의 문법) */
 .pv-intro__samples {
   width: 100%;

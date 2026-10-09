@@ -424,7 +424,7 @@ const GroupDetail = () => {
                     </p>
                   </div>
                   <Link
-                    to="/prayer-focus"
+                    to={`/prayer-focus?group=${groupId}`}
                     className="shrink-0 px-3 h-8 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[11.5px] font-bold inline-flex items-center"
                   >
                     골방 기도
@@ -627,7 +627,7 @@ const GroupDetail = () => {
               <p className="text-[12.5px] font-bold text-ink-strong">
                 매일 {group.prayer_time} 함께 기도
               </p>
-              <Link to="/prayer-focus" className="text-[11.5px] font-bold text-brand">
+              <Link to={`/prayer-focus?group=${groupId}`} className="text-[11.5px] font-bold text-brand">
                 골방 기도 →
               </Link>
             </div>

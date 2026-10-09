@@ -179,3 +179,9 @@ export const pastorKeys = {
   /** 설교의 메아리 — null 은 '가장 최근 설교' */
   sermonEcho: (sermonId: number | null) => ['pastor-sermon-echo', sermonId] as const,
 }
+
+/** 집중 기도 '오늘 품을 기도제목' 후보 — 내 기도·함께 기도 중·(들어온) 기도방을 한 번에 */
+export const prayerFocusKeys = {
+  all: ['prayer-focus'] as const,
+  carry: (groupId: number | null) => [...prayerFocusKeys.all, 'carry', groupId ?? 'none'] as const,
+}

@@ -6,6 +6,8 @@ import type { PickedVerse } from './recommendedVerses'
 export interface CardSlide {
   text: string
   refLabel: string
+  /** 맨 위 인사말 — 상황별 카드의 첫 장에만 (PhotoVerse 가 채운다) */
+  greeting?: string
 }
 
 export const MAX_SLIDES = 4

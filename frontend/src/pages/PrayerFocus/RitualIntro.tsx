@@ -10,12 +10,15 @@ interface RitualIntroProps {
   /** 주제별 시작 멘트(옵션). 없으면 기본 골방 말씀 표시 */
   themeQuoteKey?: string
   themeQuoteRefKey?: string
+  /** 그대로 보일 시작 말씀(묵상에서 이어 온 말씀 등) — 있으면 주제 멘트보다 먼저 */
+  quoteText?: string
+  quoteRef?: string
   /** 자동 진입 시간(ms). 0 또는 미지정이면 자동 진입 없이 사용자 터치만 기다림 */
   autoAdvanceMs?: number
   onEnter: () => void
 }
 
-const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 0, onEnter }: RitualIntroProps) => {
+const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, quoteText, quoteRef, autoAdvanceMs = 0, onEnter }: RitualIntroProps) => {
   const { t } = useLanguage()
   const tx = t as unknown as (k: string) => string
   const [step, setStep] = useState(0) // 0: 어두움 → 1: 말씀 → 2: 호흡 멘트 → 3: 터치 안내
@@ -34,8 +37,8 @@ const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 0,
     }
   }, [autoAdvanceMs, onEnter])
 
-  const verseText = themeQuoteKey ? tx(themeQuoteKey) : t('ritualRoomVerse')
-  const verseRef = themeQuoteRefKey ? tx(themeQuoteRefKey) : t('ritualRoomVerseRef')
+  const verseText = quoteText ?? (themeQuoteKey ? tx(themeQuoteKey) : t('ritualRoomVerse'))
+  const verseRef = quoteText ? (quoteRef ?? '') : themeQuoteRefKey ? tx(themeQuoteRefKey) : t('ritualRoomVerseRef')
 
   return (
     <div

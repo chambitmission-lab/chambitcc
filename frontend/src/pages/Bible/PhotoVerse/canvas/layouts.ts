@@ -49,6 +49,8 @@ interface TypeContext {
   l: FrameLayout
   /** 사진 영역 전체 — 스크림·그라데이션은 글 영역에서 끊기지 않고 사진 끝까지 번진다 */
   full: FrameLayout
+  /** 인사말 띠를 내주기 전의 글 영역 — 엽서 괘선 액자는 인사말까지 감싸도록 여기에 그린다 */
+  box?: FrameLayout
   /** 스크림 세기를 잴 사진 — 글만 따로 그릴 때(움직이는 카드)는 사진 층 캔버스 */
   sample: HTMLCanvasElement
   text: string
@@ -579,14 +581,15 @@ const drawPosterLayout = (tc: TypeContext) => {
   ctx.fillStyle = style.color
   setTypeShadow(tc, fontPx)
 
-  // 괘선 액자 — 바깥 가는 선 하나, 안쪽 더 가는 선 하나
+  // 괘선 액자 — 바깥 가는 선 하나, 안쪽 더 가는 선 하나. 인사말이 있으면 그것까지 감싼다
+  const fb = tc.box ?? l
   ctx.globalAlpha = 0.72
   ctx.lineWidth = Math.max(0.8, l.pw * 0.0018)
-  ctx.strokeRect(l.px + inset, l.py + inset, l.pw - inset * 2, l.ph - inset * 2)
+  ctx.strokeRect(fb.px + inset, fb.py + inset, fb.pw - inset * 2, fb.ph - inset * 2)
   ctx.globalAlpha = 0.4
   ctx.lineWidth = Math.max(0.6, l.pw * 0.0009)
   const in2 = inset + l.pw * 0.012
-  ctx.strokeRect(l.px + in2, l.py + in2, l.pw - in2 * 2, l.ph - in2 * 2)
+  ctx.strokeRect(fb.px + in2, fb.py + in2, fb.pw - in2 * 2, fb.ph - in2 * 2)
 
   ctx.globalAlpha = 0.85
   drawSmallCross(ctx, cx, y + crossS, crossS)
@@ -704,6 +707,54 @@ const drawVerticalLayout = (tc: TypeContext) => {
   clearTextShadow(ctx)
 }
 
+/**
+ * 인사말 띠 — 사진 영역 맨 위 한 줄. 상황별 카드("생일을 축하해요")의 손글씨 인사.
+ * 말씀 구도는 이 띠 높이만큼 아래 영역에 그린다(drawVerseCard 가 글 영역을 줄인다).
+ */
+const greetingBand = (l: FrameLayout, layout: CardLayoutId) => {
+  const px = minPx(l.pw, l.pw * 0.07, 16)
+  // 엽서는 괘선 액자(사진 너비 7%) 안쪽에 들어가야 한다
+  const top = l.pw * (layout === 'poster' ? 0.115 : 0.075)
+  return { px, top, height: top + px * 1.35 }
+}
+
+const drawGreeting = (ctx: CanvasRenderingContext2D, l: FrameLayout, greeting: string, style: VerseCardStyle) => {
+  const band = greetingBand(l, style.layout)
+  const maxW = l.pw * (style.layout === 'poster' ? 0.7 : 0.84)
+  ctx.save()
+  let px = band.px
+  ctx.font = `400 ${px}px ${FONT_STACKS.hand}`
+  const w = ctx.measureText(greeting).width
+  // 한 줄에 안 들어가면 줄바꿈 대신 글자를 줄인다 — 인사는 한 호흡이다
+  if (w > maxW) {
+    px *= maxW / w
+    ctx.font = `400 ${px}px ${FONT_STACKS.hand}`
+  }
+  const cx = l.px + l.pw / 2
+  const baseY = l.py + band.top + band.px * 0.8
+  const lightText = isLightColor(style.color)
+
+  // 형광펜 룩이면 인사말에도 같은 마커 자국 — 어두운 글자가 사진 위에서 읽히게
+  if (style.textBg === 'marker') {
+    const tw = ctx.measureText(greeting).width
+    ctx.fillStyle = 'rgba(255, 222, 89, 0.62)'
+    ctx.save()
+    ctx.translate(cx, baseY - px * 0.3)
+    ctx.rotate((-0.35 * Math.PI) / 180)
+    roundRect(ctx, -tw / 2 - px * 0.3, -px * 0.5, tw + px * 0.6, px * 0.95, px * 0.3)
+    ctx.fill()
+    ctx.restore()
+  } else {
+    setTextShadow(ctx, px, lightText)
+  }
+
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = style.color
+  ctx.fillText(greeting, cx, baseY)
+  ctx.restore()
+}
+
 /** 모서리 서명 — 작은 십자 + 교회 이름. 공유된 카드가 어디서 왔는지 조용히 말해준다 */
 const drawSignature = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, l: FrameLayout, style: VerseCardStyle) => {
   // 세로쓰기는 글자 서명 대신 낙관 — 출처 위, 왼쪽 아래
@@ -765,5 +816,5 @@ const drawSignature = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
 
 
 // ── photoVerseCanvas 내부 공유 ──
-export { fitFontPx, KEYWORDS_KO, KEYWORDS_EN, pickEmphasisWord, setTextShadow, setInkBleed, setTypeShadow, clearTextShadow, drawSoftScrim, setRefFont, drawOrnamentRule, drawSmallCross, drawSeal, drawClassicLayout, drawGalleryLayout, drawQuoteLayout, drawFocusLayout, drawPosterLayout, drawVerticalLayout, drawSignature }
+export { fitFontPx, KEYWORDS_KO, KEYWORDS_EN, pickEmphasisWord, setTextShadow, setInkBleed, setTypeShadow, clearTextShadow, drawSoftScrim, setRefFont, drawOrnamentRule, drawSmallCross, drawSeal, drawClassicLayout, drawGalleryLayout, drawQuoteLayout, drawFocusLayout, drawPosterLayout, drawVerticalLayout, drawSignature, greetingBand, drawGreeting }
 export type { TypeContext }

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleBooks } from '../../../hooks/useBible'
+import { useDailyVerse } from '../../../hooks/useDailyVerse'
 import { ensureFontFamily } from '../../../utils/deferredFonts'
 
 // 카드 전용 서체(붓글씨·손글씨·날짜 스탬프)는 이 화면 청크가 로드될 때 받기 시작한다
@@ -10,7 +11,7 @@ ensureFontFamily('nanumBrush')
 ensureFontFamily('nanumPen')
 ensureFontFamily('orbitron')
 import VersePickerSheet from './VersePickerSheet'
-import { getTodayRecommended } from './recommendedVerses'
+import { compactReference, getTodayRecommended } from './recommendedVerses'
 import type { PickedVerse } from './recommendedVerses'
 import { CARD_PRESETS } from './cardPresets'
 import type { CardPreset } from './cardPresets'
@@ -26,6 +27,10 @@ import { pickMotionMime } from './motionCard'
 import { MAX_SLIDES, canSplit, splitIntoSlides, suggestedSlideCount } from './slides'
 import { verseLinkFromRef } from './verseLink'
 import { isResumable, loadDraft, saveDraft } from './draft'
+import { GREETING_MAX, OCCASIONS, findOccasion } from './occasions'
+import type { CardOccasion } from './occasions'
+import { passageLabel, useRecentSermonPassage } from './churchVerses'
+import type { SermonPassage } from './churchVerses'
 import './PhotoVerse.css'
 
 // 미리보기는 화면용으로 캡, 저장본은 원본 해상도(최대 2048px)로 다시 그린다
@@ -46,6 +51,13 @@ const COLOR_SWATCHES = [
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max)
 
+// 우리 교회 말씀(설교 본문·올해의 말씀)으로 시작할 때의 룩 — 종이 배경 + 절기 에디션 프레임
+const CHURCH_BG_ID = 'cream'
+const CHURCH_PRESET_ID = 'season'
+
+/** 한국 시간 기준 날짜 번호 — 상황별 말씀을 하루 단위로 돌려 쓴다 */
+const kstDayNumber = (ms: number) => Math.floor((ms + 9 * 60 * 60 * 1000) / 86_400_000)
+
 
 const PhotoVerse = () => {
   const navigate = useNavigate()
@@ -53,8 +65,10 @@ const PhotoVerse = () => {
   const { language } = useLanguage()
   const lang: 'ko' | 'en' = language === 'en' ? 'en' : 'ko'
 
-  // 다른 화면(예: 기도 완료)에서 말씀을 미리 실어 보낼 수 있다
-  const presetVerse = (location.state as { presetVerse?: PickedVerse } | null)?.presetVerse
+  // 다른 화면(예: 기도 완료)에서 말씀을, 설교 화면에서 본문을 미리 실어 보낼 수 있다
+  const routeState = location.state as { presetVerse?: PickedVerse; sermonPassage?: SermonPassage } | null
+  const presetVerse = routeState?.presetVerse
+  const routeSermon = routeState?.sermonPassage
 
   const [photo, setPhoto] = useState<{ url: string; img: HTMLImageElement } | null>(null)
   const [bgId, setBgId] = useState<string | null>(null)
@@ -66,8 +80,22 @@ const PhotoVerse = () => {
   // 지난번에 만들던 카드 — 스타일은 곧바로 이어 쓰고, 말씀·배경은 '이어서 만들기'로 권한다
   const [draft] = useState(() => loadDraft())
   const [resumeOffer, setResumeOffer] = useState(() =>
-    !presetVerse && isResumable(draft, Date.now()) ? draft : null,
+    !presetVerse && !routeSermon && isResumable(draft, Date.now()) ? draft : null,
   )
+  // 상황별 카드 — 맨 위 손글씨 인사말과, '다른 말씀'으로 돌려 볼 상황의 말씀 순번
+  const [greeting, setGreeting] = useState('')
+  const [greetingEditing, setGreetingEditing] = useState(false)
+  const [occasionId, setOccasionId] = useState<string | null>(null)
+  const [occasionVerseIdx, setOccasionVerseIdx] = useState(0)
+  const occasion = findOccasion(occasionId)
+  // 우리 교회 말씀 — 최근 주일 설교 본문(설교 화면에서 실어 보냈으면 그 본문)과 올해의 말씀
+  const recentSermon = useRecentSermonPassage(lang)
+  const sermon = routeSermon ?? recentSermon
+  const { data: themeVerseData } = useDailyVerse()
+  const themeText = themeVerseData?.verse_text?.trim() ?? ''
+  const themeRef = themeVerseData?.verse_reference ? compactReference(themeVerseData.verse_reference) : ''
+  // 피커를 설교 본문 목록이 펼쳐진 채로 열지
+  const [pickerPassage, setPickerPassage] = useState(false)
   const [style, setStyle] = useState<VerseCardStyle>(() => ({
     ...DEFAULT_CARD_STYLE,
     ...(draft?.style ?? {}),
@@ -176,6 +204,18 @@ const PhotoVerse = () => {
       resumeBody: '지난번 만들던 말씀 카드가 있어요',
       resumeDismiss: '새로 시작',
       savedMany: (n: number) => `${n}장의 이미지가 저장되었어요`,
+      occasionTitle: '누구에게 보내요?',
+      occasionBody: '고르면 말씀과 인사말이 함께 채워져요',
+      churchTitle: '이번 주 우리 교회 말씀',
+      churchBody: '온 교회가 함께 붙잡는 말씀으로 만들어요',
+      themeBadge: `${new Date().getFullYear()} 올해의 말씀`,
+      sermonPick: '본문에서 고르기',
+      greetingAdd: '인사말 넣기',
+      greetingPlaceholder: '예) 김○○ 집사님, 생일 축하해요',
+      greetingHint: '받는 분 이름을 넣으면 더 따뜻해요',
+      greetingLockNote: '잠금화면에는 인사말이 들어가지 않아요',
+      greetingRemove: '인사말 지우기',
+      otherVerse: '다른 말씀',
     },
     en: {
       title: 'Verse Photo Card',
@@ -238,6 +278,18 @@ const PhotoVerse = () => {
       resumeBody: 'You have a verse card in progress',
       resumeDismiss: 'Start new',
       savedMany: (n: number) => `${n} images saved`,
+      occasionTitle: 'Who is it for?',
+      occasionBody: 'Pick one and the verse and greeting are filled in',
+      churchTitle: "Our church's word this week",
+      churchBody: 'Make a card with the word the whole church is holding',
+      themeBadge: `${new Date().getFullYear()} Theme Verse`,
+      sermonPick: 'Pick from passage',
+      greetingAdd: 'Add a greeting',
+      greetingPlaceholder: 'e.g. Happy birthday, Grace',
+      greetingHint: 'Add their name to make it personal',
+      greetingLockNote: 'Greetings are left off lock screens',
+      greetingRemove: 'Remove greeting',
+      otherVerse: 'Another verse',
     },
   }
   const t = texts[language]
@@ -249,13 +301,13 @@ const PhotoVerse = () => {
   useEffect(() => {
     let cancelled = false
     const v = verse ?? todayVerse
-    ensureCardFonts(`${v.text} ${v.refLabel}`).then(() => {
+    ensureCardFonts(`${v.text} ${v.refLabel} ${greeting}`).then(() => {
       if (!cancelled) setFontsReady((n) => n + 1)
     })
     return () => {
       cancelled = true
     }
-  }, [verse, todayVerse])
+  }, [verse, todayVerse, greeting])
 
   // 절기 스탬프·서명 언어를 앱 언어와 맞춘다
   useEffect(() => {
@@ -283,7 +335,13 @@ const PhotoVerse = () => {
   }, [photo])
 
   // 여러 장으로 나누기 — 미리보기·저장·영상이 같은 조각을 쓴다
-  const slides = useMemo(() => (verse ? splitIntoSlides(verse, slideCount) : []), [verse, slideCount])
+  // 인사말은 첫 장에만 — 넘겨 보는 카드의 표지처럼. 타이핑 중엔 프리셋 썸네일까지 다시 그리니 한 박자 늦춘다
+  const drawnGreeting = useDeferredValue(greeting.trim())
+  const slides = useMemo(() => {
+    if (!verse) return []
+    const list = splitIntoSlides(verse, slideCount)
+    return drawnGreeting ? list.map((sl, i) => (i === 0 ? { ...sl, greeting: drawnGreeting } : sl)) : list
+  }, [verse, slideCount, drawnGreeting])
   const slideIdx = Math.min(previewSlide, Math.max(0, slides.length - 1))
   const current = slides[slideIdx]
   const isLock = style.ratio === 'lock'
@@ -306,15 +364,18 @@ const PhotoVerse = () => {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || !photo) return
-    drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style)
+    drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style, { greeting: current?.greeting })
   }, [photo, current, style, fontsReady])
 
   // 만들던 카드 기억 — 드래그 중 매 프레임 쓰지 않게 잠깐 모았다가 저장한다
   useEffect(() => {
     if (!verse && !photo) return
-    const id = window.setTimeout(() => saveDraft({ style, activePreset, verse, bgId, slideCount }), 400)
+    const id = window.setTimeout(
+      () => saveDraft({ style, activePreset, verse, bgId, slideCount, greeting, occasionId }),
+      400,
+    )
     return () => window.clearTimeout(id)
-  }, [style, activePreset, verse, bgId, slideCount, photo])
+  }, [style, activePreset, verse, bgId, slideCount, photo, greeting, occasionId])
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -389,6 +450,59 @@ const PhotoVerse = () => {
     void pickBackground(bg, preset, true)
   }
 
+  // 상황별 카드 — 말씀·인사말·스타일을 한 번에. 내 사진이면 사진은 두고 룩만, 아니면 상황의 배경으로
+  const startOccasion = (o: CardOccasion) => {
+    const idx = kstDayNumber(Date.now()) % o.verses.length
+    setOccasionId(o.id)
+    setOccasionVerseIdx(idx)
+    chooseVerse(o.verses[idx])
+    setGreeting(lang === 'en' ? o.greetingEn : o.greetingKo)
+    setGreetingEditing(false)
+    setResumeOffer(null)
+    const preset = CARD_PRESETS.find((p) => p.id === o.presetId)
+    // 잠금화면에는 인사말이 들어가지 않으니 카드로 돌아간다
+    if (isLock) setStyle((s) => ({ ...s, ratio: cardRatioRef.current }))
+    if (photo && !bgId) {
+      if (preset) applyPreset(preset)
+      return
+    }
+    const bg = BACKGROUNDS.find((b) => b.id === o.bgId)
+    if (bg) void pickBackground(bg, preset, true, false)
+    else if (preset) applyPreset(preset)
+  }
+
+  // 같은 상황의 다음 말씀으로 — 인사말은 그대로
+  const nextOccasionVerse = () => {
+    if (!occasion) return
+    const n = (occasionVerseIdx + 1) % occasion.verses.length
+    setOccasionVerseIdx(n)
+    chooseVerse(occasion.verses[n])
+  }
+
+  // 우리 교회 말씀으로 시작 — 말씀이 정해져 있으면(올해의 말씀) 곧바로, 설교면 본문에서 고르게 한다
+  const startChurchVerse = (v?: PickedVerse) => {
+    setOccasionId(null)
+    setGreeting('')
+    setResumeOffer(null)
+    if (v) chooseVerse(v)
+    const bg = BACKGROUNDS.find((b) => b.id === CHURCH_BG_ID)
+    const preset = CARD_PRESETS.find((p) => p.id === CHURCH_PRESET_ID)
+    if (bg) void pickBackground(bg, preset, true)
+    if (!v) {
+      setPickerPassage(true)
+      setPickerOpen(true)
+    }
+  }
+
+  // 설교 화면 '말씀 카드로 담기'로 들어오면 곧바로 본문 고르기부터
+  const routeSermonStarted = useRef(false)
+  useEffect(() => {
+    if (!routeSermon || routeSermonStarted.current) return
+    routeSermonStarted.current = true
+    startChurchVerse()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeSermon])
+
   // 이어서 만들기 — 지난 말씀·나누기를 되살리고, 배경이었으면 그 배경으로 바로, 사진이었으면 사진부터 고른다
   const resumeDraft = () => {
     const d = resumeOffer
@@ -397,6 +511,10 @@ const PhotoVerse = () => {
     setVerse(d.verse)
     setSlideCount(d.slideCount)
     setPreviewSlide(0)
+    setGreeting(d.greeting ?? '')
+    const o = findOccasion(d.occasionId)
+    setOccasionId(o ? o.id : null)
+    setOccasionVerseIdx(o ? Math.max(0, o.verses.findIndex((v) => v.refLabel === d.verse.refLabel)) : 0)
     const bg = d.bgId ? BACKGROUNDS.find((b) => b.id === d.bgId) : undefined
     if (bg) void pickBackground(bg, undefined, true)
     else fileInputRef.current?.click()
@@ -435,7 +553,7 @@ const PhotoVerse = () => {
     if (canvas.width !== sized.width || canvas.height !== sized.height) {
       canvas.width = sized.width
       canvas.height = sized.height
-      drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style)
+      drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style, { greeting: current?.greeting })
     }
   }, [photo, current, style])
 
@@ -522,21 +640,21 @@ const PhotoVerse = () => {
   // ── 저장/공유 — 원본 해상도로 다시 그려 JPEG 파일 생성 (나누기면 장마다 한 장씩) ──
   const buildCardFiles = useCallback(async (): Promise<File[]> => {
     if (!photo || !verse || !slides.length) return []
-    await ensureCardFonts(`${verse.text} ${verse.refLabel}`)
+    await ensureCardFonts(`${verse.text} ${verse.refLabel} ${greeting}`)
     const maxSide = style.ratio === 'lock' ? EXPORT_MAX_SIDE_LOCK : EXPORT_MAX_SIDE
     const prefix = style.ratio === 'lock' ? '잠금화면' : '말씀카드'
     const base = `${prefix}_${verse.refLabel.replace(/[\s:]/g, '_')}`
     const files: File[] = []
     for (let i = 0; i < slides.length; i++) {
       const canvas = createCardCanvas(photo.img, maxSide, style.frame, style.ratio)
-      drawVerseCard(canvas, photo.img, slides[i].text, slides[i].refLabel, style)
+      drawVerseCard(canvas, photo.img, slides[i].text, slides[i].refLabel, style, { greeting: slides[i].greeting })
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.94))
       if (!blob) return []
       const name = slides.length > 1 ? `${base}_${i + 1}.jpg` : `${base}.jpg`
       files.push(new File([blob], name, { type: 'image/jpeg' }))
     }
     return files
-  }, [photo, verse, slides, style])
+  }, [photo, verse, slides, style, greeting])
 
   // 저장 — 파일 다운로드 (모바일은 다운로드 폴더/파일 앱, 데스크톱은 다운로드 폴더)
   const handleDownload = useCallback(async () => {
@@ -739,6 +857,55 @@ const PhotoVerse = () => {
               </div>
             )}
 
+            {/* 상황별 카드 — 카드를 만드는 이유는 대개 누군가에게 마음을 보내는 것이다 */}
+            <div className="pv-intro__occasions">
+              <p className="pv-intro__bg-title">{t.occasionTitle}</p>
+              <p className="pv-intro__bg-body">{t.occasionBody}</p>
+              <div className="pv-occasions">
+                {OCCASIONS.map((o) => (
+                  <button key={o.id} type="button" className="pv-occasion" onClick={() => startOccasion(o)}>
+                    <span className="material-icons-round pv-occasion__icon" aria-hidden="true">{o.icon}</span>
+                    <span className="pv-occasion__name">{language === 'ko' ? o.nameKo : o.nameEn}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 우리 교회 말씀 — 이번 주 설교 본문과 올해의 말씀. 온 교회가 같은 말씀으로 카드를 만든다 */}
+            {(sermon || themeText) && (
+              <div className="pv-intro__church">
+                <p className="pv-intro__bg-title">{t.churchTitle}</p>
+                <p className="pv-intro__bg-body">{t.churchBody}</p>
+                {sermon && (
+                  <button type="button" className="pv-today pv-today--theme" onClick={() => startChurchVerse()}>
+                    <span className="pv-today__badge">
+                      <span className="material-icons-round text-[13px]">church</span>
+                      {sermon.badge ?? (lang === 'en' ? 'Sermon passage' : '설교 본문')}
+                    </span>
+                    {sermon.title && <span className="pv-today__text">「{sermon.title}」</span>}
+                    <span className="pv-today__ref">
+                      {passageLabel(sermon.ref)} · {t.sermonPick}
+                      <span className="material-icons-round text-[15px] align-[-3px]">chevron_right</span>
+                    </span>
+                  </button>
+                )}
+                {themeText && (
+                  <button
+                    type="button"
+                    className="pv-today pv-today--theme"
+                    onClick={() => startChurchVerse({ text: themeText, refLabel: themeRef || t.themeBadge })}
+                  >
+                    <span className="pv-today__badge">
+                      <span className="material-icons-round text-[13px]">workspace_premium</span>
+                      {t.themeBadge}
+                    </span>
+                    <span className="pv-today__text">{themeText}</span>
+                    {themeRef && <span className="pv-today__ref">{themeRef}</span>}
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* 예시 카드 — 만들어 보기 전에는 재미를 알 수 없으니 결과물을 먼저 보여준다 */}
             <div className="pv-intro__samples">
               <p className="pv-intro__bg-title">{t.samplesTitle}</p>
@@ -902,6 +1069,68 @@ const PhotoVerse = () => {
             {/* 스타일 컨트롤 */}
             {verse && (
               <div className="pv-controls">
+                {/* 상황 · 인사말 — 상황을 고르면 말씀·인사말·룩이 함께 바뀐다. 인사말은 직접 고칠 수 있다 */}
+                <div className="pv-section">
+                  <p className="pv-section__title">{t.occasionTitle}</p>
+                  <div className="pv-occasion-row" role="radiogroup" aria-label={t.occasionTitle}>
+                    {OCCASIONS.map((o) => (
+                      <button
+                        key={o.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={occasionId === o.id}
+                        className={`pv-occasion-chip${occasionId === o.id ? ' pv-occasion-chip--active' : ''}`}
+                        onClick={() => startOccasion(o)}
+                      >
+                        <span className="material-icons-round text-[16px]" aria-hidden="true">{o.icon}</span>
+                        {language === 'ko' ? o.nameKo : o.nameEn}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pv-greeting">
+                    {greetingEditing ? (
+                      <input
+                        type="text"
+                        className="pv-greeting__input"
+                        value={greeting}
+                        maxLength={GREETING_MAX}
+                        placeholder={t.greetingPlaceholder}
+                        enterKeyHint="done"
+                        autoFocus
+                        onChange={(e) => setGreeting(e.target.value)}
+                        onBlur={() => setGreetingEditing(false)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') setGreetingEditing(false)
+                        }}
+                      />
+                    ) : (
+                      <button type="button" className="pv-greeting__chip" onClick={() => setGreetingEditing(true)}>
+                        <span className="material-icons-round text-[16px]">draw</span>
+                        <span className="pv-greeting__text">{greeting.trim() || t.greetingAdd}</span>
+                      </button>
+                    )}
+                    {greeting && !greetingEditing && (
+                      <button
+                        type="button"
+                        className="pv-greeting__remove"
+                        aria-label={t.greetingRemove}
+                        onClick={() => setGreeting('')}
+                      >
+                        <span className="material-icons-round text-[16px]">close</span>
+                      </button>
+                    )}
+                    {occasion && occasion.verses.length > 1 && (
+                      <button type="button" className="pv-greeting__chip pv-greeting__chip--plain" onClick={nextOccasionVerse}>
+                        <span className="material-icons-round text-[16px]">autorenew</span>
+                        {t.otherVerse}
+                      </button>
+                    )}
+                  </div>
+                  {greeting.trim() && (
+                    <p className="pv-section__note">{isLock ? t.greetingLockNote : t.greetingHint}</p>
+                  )}
+                </div>
+
                 {/* 스타일 프리셋 — 내 사진으로 그린 실사 썸네일. 한 탭에 완성된 룩 */}
                 <div className="pv-section">
                   <p className="pv-section__title">{t.presetTitle}</p>
@@ -913,6 +1142,7 @@ const PhotoVerse = () => {
                     language={language}
                     active={activePreset}
                     fontsReady={fontsReady}
+                    greeting={current?.greeting}
                     onSelect={(p) => applyPreset(p)}
                   />
                 </div>
@@ -1194,11 +1424,19 @@ const PhotoVerse = () => {
 
         {pickerOpen && (
           <VersePickerSheet
+            sermon={sermon}
+            startInPassage={pickerPassage}
             onPick={(picked) => {
               chooseVerse(picked)
+              // 직접 고른 말씀은 상황의 '다른 말씀' 순환에서 벗어난다 (인사말은 그대로)
+              setOccasionId(null)
               setPickerOpen(false)
+              setPickerPassage(false)
             }}
-            onClose={() => setPickerOpen(false)}
+            onClose={() => {
+              setPickerOpen(false)
+              setPickerPassage(false)
+            }}
           />
         )}
 

@@ -133,6 +133,20 @@ export const prayer = {
 
   // 중보 — 이번 주 공동 기도제목
   intercessionSharedTitle: '이번 주 함께 드리는 기도',
+  carryTitle: '오늘 품을 기도제목',
+  carryHint: '고르면 기도하는 동안 한 장씩 곁에 머물러요',
+  carrySelectedCount: '{n}개 품었어요 · 최대 {max}개',
+  carrySourceGroup: '기도방',
+  carrySourcePraying: '함께 기도 중',
+  carrySourceMine: '내 기도',
+  carryShowMore: '{n}개 더 보기',
+  carryShowLess: '접기',
+  carryCtaCount: '기도제목 {n}개',
+  carryCardLabel: '품은 기도',
+  carryNext: '다음 기도제목',
+  carryCompleteTitle: '함께 품은 기도제목 {n}',
+  carryPrayedRecorded: '기도했어요가 남았어요',
+  fromMeditationLabel: '묵상에서 이어서',
 
   // 완료 화면 — 말씀 카드 연결 + 주간 도트
   makeVerseCard: '이 말씀으로 카드 만들기',

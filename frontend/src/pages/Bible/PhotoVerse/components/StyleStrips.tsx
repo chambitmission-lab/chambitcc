@@ -67,6 +67,7 @@ const PresetStrip = ({
   language,
   active,
   fontsReady,
+  greeting,
   onSelect,
 }: {
   img: HTMLImageElement
@@ -76,6 +77,8 @@ const PresetStrip = ({
   language: string
   active: string | null
   fontsReady: number
+  /** 상황별 카드의 인사말 — 썸네일도 실제 카드와 같은 구도로 */
+  greeting?: string
   onSelect: (preset: CardPreset) => void
 }) => {
   const thumbRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
@@ -96,9 +99,9 @@ const PresetStrip = ({
         canvas.width = sized.width
         canvas.height = sized.height
       }
-      drawVerseCard(canvas, img, verse.text, verse.refLabel, style)
+      drawVerseCard(canvas, img, verse.text, verse.refLabel, style, { greeting })
     }
-  }, [img, verse, baseColor, lang, fontsReady])
+  }, [img, verse, baseColor, lang, fontsReady, greeting])
 
   return (
     <div className="pv-presets" role="radiogroup" aria-label="스타일">

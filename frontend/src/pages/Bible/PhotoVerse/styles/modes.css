@@ -500,3 +500,104 @@
     transition: none;
   }
 }
+
+/* 상황 · 인사말 — 편집기 맨 위. 상황 칩(가로 스크롤) + 손글씨 인사말 한 줄 */
+.pv-occasion-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pv-occasion-row::-webkit-scrollbar {
+  display: none;
+}
+
+.pv-occasion-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pv-occasion-chip .material-icons-round {
+  color: var(--brand);
+}
+
+.pv-occasion-chip--active {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.pv-greeting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pv-greeting__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--card-border);
+  background: transparent;
+  color: var(--text-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pv-greeting__chip .material-icons-round {
+  color: var(--brand);
+}
+
+.pv-greeting__chip--plain {
+  border-style: solid;
+}
+
+.pv-greeting__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pv-greeting__input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--brand);
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font-size: 16px; /* iOS 입력 확대 방지 */
+  outline: none;
+}
+
+.pv-greeting__remove {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}

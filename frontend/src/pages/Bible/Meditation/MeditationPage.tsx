@@ -280,7 +280,14 @@ const MeditationPage = () => {
             <button
               type="button"
               className="mp-secondary-btn"
-              onClick={() => navigate('/prayer-focus')}
+              onClick={() =>
+                navigate('/prayer-focus', {
+                  // 오늘 받은 말씀과 기도문을 품고 들어간다 — 진입 의식·중간 말씀·말씀 카드가 이 말씀을 쓴다
+                  state: data
+                    ? { meditation: { verseText: data.verse.text, verseRef: data.verse.reference, prayerText } }
+                    : undefined,
+                })
+              }
             >
               <span className="material-icons-round" aria-hidden>self_improvement</span>
               집중 기도하러 가기
