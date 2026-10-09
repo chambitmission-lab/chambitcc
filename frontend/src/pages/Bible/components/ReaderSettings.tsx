@@ -262,7 +262,7 @@ const ReaderSettings = () => {
           </div>
           <p className="reader-settings__hint">
             단락마다 오늘의 말로 푼 풀이, 복음서의 예수님 말씀 붉은 글씨, 구약 인용·같은 사건을 기록한
-            다른 복음서로 건너가는 칩이에요. 풀이는 일부 책부터 차례로 채워지고 있어요.
+            다른 복음서로 건너가는 칩이에요.
           </p>
 
           <div className="reader-settings__divider" aria-hidden />

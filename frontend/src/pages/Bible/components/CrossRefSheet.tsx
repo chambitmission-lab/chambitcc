@@ -13,7 +13,7 @@ const TEXT_MUL: Record<FeedTextScale, number> = { base: 1, large: 1.1, xlarge: 1
 const KIND_LABEL: Record<CrossLink['kind'], string> = {
   quotes: '이 말씀이 인용한 구약',
   quotedBy: '이 말씀을 인용한 신약',
-  parallel: '같은 이야기, 다른 복음서',
+  parallel: '같은 사건을 기록한 다른 복음서',
 }
 
 const KIND_ICON: Record<CrossLink['kind'], string> = {

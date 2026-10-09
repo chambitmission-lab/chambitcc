@@ -3,7 +3,7 @@ import { formatRef, type CrossLink } from '../../data/crossRefs'
 const KIND_PREFIX: Record<CrossLink['kind'], string> = {
   quotes: '구약 인용',
   quotedBy: '신약에서 인용',
-  parallel: '같은 이야기',
+  parallel: '다른 복음서',
 }
 
 interface VerseCrossLinksProps {
@@ -14,7 +14,7 @@ interface VerseCrossLinksProps {
 }
 
 /**
- * 절 아래 연결 구절 칩 — "구약 인용 · 이사야 7:14", "같은 이야기 · 마가복음 4:35-41".
+ * 절 아래 연결 구절 칩 — "구약 인용 · 이사야 7:14", "다른 복음서 · 마가복음 4:35-41".
  * 이어읽기에선 절 끝에 작은 고리 아이콘만 두고, 누르면 첫 연결을 연다(나머지는 절별 보기에서).
  */
 const VerseCrossLinks = ({ links, inline, onOpen }: VerseCrossLinksProps) => {
