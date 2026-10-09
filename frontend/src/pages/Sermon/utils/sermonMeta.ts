@@ -91,6 +91,9 @@ const CANONICAL_BOOK_NAME: ReadonlyMap<number, string> = new Map(
   BIBLE_BOOKS.map(([num, name]) => [num, name]),
 )
 
+/** 책 번호 → 정식 이름 ("창세기"). 모르는 번호면 빈 문자열 */
+export const canonicalBookName = (bookNumber: number): string => CANONICAL_BOOK_NAME.get(bookNumber) ?? ''
+
 export const resolveBookNumber = (name: string): number | null =>
   BOOK_NUMBER_BY_NAME.get(name.replace(/\s+/g, '')) ?? null
 

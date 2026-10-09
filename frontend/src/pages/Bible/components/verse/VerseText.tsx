@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
 import type { GlossaryEntry, GlossaryMatch } from '../../data/bibleGlossary'
-import { rangesOverlap, type NoteSegment, type WordToken } from './verseTextSegments'
+import { rangesOverlap, type NoteSegment, type TextRange, type WordToken } from './verseTextSegments'
 
 interface VerseTextProps {
   text: string
@@ -15,6 +15,8 @@ interface VerseTextProps {
   wordTokens: WordToken[]
   noteSegments: NoteSegment[]
   glossarySegments: GlossaryMatch[]
+  /** 예수님 말씀 구간 — 글자색만 바꾼다 (밑줄·칩 장식과 겹쳐도 함께 칠한다) */
+  jesusRanges: TextRange[]
   onTokenTap: (token: WordToken) => void
   onNoteTap: (seg: NoteSegment) => void
   onGlossaryTap: (entry: GlossaryEntry) => void
@@ -34,10 +36,32 @@ const VerseText = ({
   wordTokens,
   noteSegments,
   glossarySegments,
+  jesusRanges,
   onTokenTap,
   onNoteTap,
   onGlossaryTap,
 }: VerseTextProps) => {
+  // 절 전체가 말씀이면 바깥 span 색만 바꾸고, 일부면 글자 구간을 쪼개 칠한다
+  const jesusWhole = jesusRanges.length === 1 && jesusRanges[0].start === 0 && jesusRanges[0].end >= text.length
+  const jesusPartial = jesusWhole ? [] : jesusRanges
+
+  /** text[start, end) 를 예수님 말씀 경계에서 쪼개 그린다 */
+  const paint = (start: number, end: number, key: string): ReactNode => {
+    if (!jesusPartial.length) return text.slice(start, end)
+    const parts: ReactNode[] = []
+    let cursor = start
+    for (const r of jesusPartial) {
+      const s = Math.max(r.start, start)
+      const e = Math.min(r.end, end)
+      if (s >= e) continue
+      if (s > cursor) parts.push(<Fragment key={`${key}-p${cursor}`}>{text.slice(cursor, s)}</Fragment>)
+      parts.push(<span key={`${key}-j${s}`} className="verse-jesus-words">{text.slice(s, e)}</span>)
+      cursor = e
+    }
+    if (cursor < end) parts.push(<Fragment key={`${key}-p${cursor}`}>{text.slice(cursor, end)}</Fragment>)
+    return parts
+  }
+
   const renderKaraoke = () => (
     <>
       <span
@@ -91,7 +115,7 @@ const VerseText = ({
   // 저장된 단어(형광펜+실선)와 사전 칩(옅은 점선)을 위치순으로 합성한다.
   // 두 장식은 훅 단계에서 겹침을 제거했으므로 여기선 정렬만 하면 된다.
   const renderDecorated = () => {
-    if (!noteSegments.length && !glossarySegments.length) return text
+    if (!noteSegments.length && !glossarySegments.length) return paint(0, text.length, 'all')
     const decorations = [
       ...noteSegments.map((seg) => ({ kind: 'note' as const, seg })),
       ...glossarySegments.map((seg) => ({ kind: 'chip' as const, seg })),
@@ -102,7 +126,7 @@ const VerseText = ({
     decorations.forEach((deco, i) => {
       const { seg } = deco
       if (seg.start > cursor) {
-        parts.push(<Fragment key={`plain-${i}`}>{text.slice(cursor, seg.start)}</Fragment>)
+        parts.push(<Fragment key={`plain-${i}`}>{paint(cursor, seg.start, `plain-${i}`)}</Fragment>)
       }
       if (deco.kind === 'chip') {
         parts.push(
@@ -122,7 +146,7 @@ const VerseText = ({
               cursor: 'pointer',
             }}
           >
-            {text.slice(seg.start, seg.end)}
+            {paint(seg.start, seg.end, `chip-${i}`)}
           </span>
         )
       } else {
@@ -148,21 +172,21 @@ const VerseText = ({
               cursor: 'pointer',
             }}
           >
-            {text.slice(seg.start, seg.end)}
+            {paint(seg.start, seg.end, `note-${i}`)}
           </span>
         )
       }
       cursor = seg.end
     })
     if (cursor < text.length) {
-      parts.push(<Fragment key="tail">{text.slice(cursor)}</Fragment>)
+      parts.push(<Fragment key="tail">{paint(cursor, text.length, 'tail')}</Fragment>)
     }
     return parts
   }
 
   return (
     <span
-      className={`bible-verse-text ${isHighlighted ? 'is-highlighted' : ''}`}
+      className={`bible-verse-text ${isHighlighted ? 'is-highlighted' : ''} ${jesusWhole && !isReading ? 'verse-jesus-words' : ''}`}
       style={isFlow ? undefined : { flex: 1, minWidth: 0 }}
     >
       {!text

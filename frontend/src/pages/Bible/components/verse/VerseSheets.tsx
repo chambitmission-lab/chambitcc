@@ -1,11 +1,13 @@
 import type { VerseBookmark } from '../../../../api/bibleBookmark'
 import type { GlossaryEntry } from '../../data/bibleGlossary'
+import type { CrossLink } from '../../data/crossRefs'
 import { lazyModal } from '../../../../utils/lazyModal'
 // 전부 "탭해야 열리는" 시트·모달 — 절마다 렌더되는 컴포넌트라 읽기 화면 청크에서 뗀다
 const VerseBookmarkModal = lazyModal(() => import('../VerseBookmarkModal'))
 const VerseNoteSheet = lazyModal(() => import('../VerseNoteSheet'))
 const WordNoteSheet = lazyModal(() => import('../WordNoteSheet'))
 const GlossarySheet = lazyModal(() => import('../GlossarySheet'))
+const CrossRefSheet = lazyModal(() => import('../CrossRefSheet'))
 import type { WordSheetState } from './useWordSelection'
 
 interface VerseSheetsProps {
@@ -23,6 +25,9 @@ interface VerseSheetsProps {
 
   glossaryEntry: GlossaryEntry | null
   onCloseGlossary: () => void
+
+  crossLink: CrossLink | null
+  onCloseCrossLink: () => void
 
   showNoteSheet: boolean
   onCloseNoteSheet: () => void
@@ -42,6 +47,8 @@ const VerseSheets = ({
   onCloseWordSheet,
   glossaryEntry,
   onCloseGlossary,
+  crossLink,
+  onCloseCrossLink,
   showNoteSheet,
   onCloseNoteSheet,
   onEditNote,
@@ -75,6 +82,9 @@ const VerseSheets = ({
     {/* 인물·지명 사전 시트 — 점선 칩을 탭했을 때 */}
     {glossaryEntry && <GlossarySheet entry={glossaryEntry} onClose={onCloseGlossary} />}
 
+    {/* 연결 구절 시트 — 구약 인용·평행 본문 칩을 탭했을 때 */}
+    {crossLink && <CrossRefSheet link={crossLink} onClose={onCloseCrossLink} />}
+
     {/* 묵상 노트 읽기 시트 - 수정 누르면 편집 모달로 전환 */}
     {showNoteSheet && bookmark?.note && (
       <VerseNoteSheet
@@ -95,6 +105,7 @@ const VerseSheets = ({
  */
 VerseSheets.preload = () => {
   void GlossarySheet.preload()
+  void CrossRefSheet.preload()
   void WordNoteSheet.preload()
   void VerseNoteSheet.preload()
   void VerseBookmarkModal.preload()

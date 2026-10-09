@@ -8,6 +8,10 @@ import { isAuthenticated } from '../../../utils/auth'
 import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
 import { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import { useGlossaryChips } from '../hooks/useGlossaryChips'
+import { useJesusWords } from '../hooks/useJesusWords'
+import { useCrossLinks } from '../hooks/useCrossLinks'
+import type { CrossLink } from '../data/crossRefs'
+import VerseCrossLinks from './verse/VerseCrossLinks'
 import type { GlossaryEntry } from '../data/bibleGlossary'
 import { HeartIcon } from '../../../components/icons/ActionIcons'
 import type { VerseCopyTarget } from './verseCopy'
@@ -92,6 +96,8 @@ const VerseItem = ({
   const [showNoteSheet, setShowNoteSheet] = useState(false)
   // 인물·지명 사전 칩을 탭하면 열리는 한 줄 설명 시트
   const [glossaryEntry, setGlossaryEntry] = useState<GlossaryEntry | null>(null)
+  // 연결 구절(구약 인용·평행 본문) 칩을 탭하면 열리는 본문 미리보기 시트
+  const [crossLink, setCrossLink] = useState<CrossLink | null>(null)
   // 선택 모드에선 액션바가 뜨지 않는다 (탭은 선택 토글에 쓰인다)
   const showActions = actionsOpen && !selectionMode
   const isAdminUser = can('bible:edit')
@@ -137,6 +143,12 @@ const VerseItem = ({
   )
   const glossarySegments = useGlossarySegments(glossaryMatches, noteSegments)
   const wordTokens = useWordTokens(verse.text)
+  const crossLinks = useCrossLinks(
+    bookNumber ?? verse.book_number,
+    chapter ?? verse.chapter,
+    verse.merged_verses ?? [verse.verse],
+  )
+  const jesusRanges = useJesusWords(bookNumber ?? verse.book_number, chapter ?? verse.chapter, verse.verse, verse.text)
   const words = useWordSelection({ noteSegments, wordNotes })
 
   // ── 절 번호 길게 누르기 = 읽음 표시
@@ -232,6 +244,7 @@ const VerseItem = ({
       wordTokens={wordTokens}
       noteSegments={noteSegments}
       glossarySegments={glossarySegments}
+      jesusRanges={jesusRanges}
       onTokenTap={words.openForToken}
       onNoteTap={words.openForNote}
       onGlossaryTap={setGlossaryEntry}
@@ -285,6 +298,8 @@ const VerseItem = ({
       onCloseWordSheet={words.closeSheet}
       glossaryEntry={glossaryEntry}
       onCloseGlossary={() => setGlossaryEntry(null)}
+      crossLink={crossLink}
+      onCloseCrossLink={() => setCrossLink(null)}
       showNoteSheet={showNoteSheet}
       onCloseNoteSheet={() => setShowNoteSheet(false)}
       onEditNote={() => {
@@ -334,6 +349,7 @@ const VerseItem = ({
           {!selectionMode && (
             <VerseTogetherChip reflectionCount={reflectionCount} inline onOpen={openReflections} />
           )}
+          {!selectionMode && <VerseCrossLinks links={crossLinks} inline onOpen={setCrossLink} />}
         </span>
         {/* 묵상 노트 — 문단을 어지럽히지 않게 아이콘 칩만, 누르면 읽기 시트 */}
         {hasNote && (
@@ -526,6 +542,9 @@ const VerseItem = ({
           </button>
         </div>
       )}
+
+      {/* 연결 구절 칩 — 구약 인용·신약의 인용·같은 이야기를 담은 다른 복음서 */}
+      {!selectionMode && <VerseCrossLinks links={crossLinks} onOpen={setCrossLink} />}
 
       {/* 액션 메뉴 — 절 아래 인라인(in-flow)으로 펼쳐진다 (다른 절을 탭하면 부모가 닫는다) */}
       {popoverEl}

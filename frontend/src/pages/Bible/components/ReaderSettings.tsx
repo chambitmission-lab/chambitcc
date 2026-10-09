@@ -8,6 +8,7 @@ import {
   setReaderIntroCard,
   type ReaderIntroCards,
 } from '../data/readerIntroCards'
+import { getReadingAids, setReadingAid, type ReadingAids } from '../data/readingAids'
 import { isPresenceSharingEnabled, setPresenceSharingEnabled } from '../data/presenceSharing'
 import { ensureDeferredFontsNow } from '../../../utils/deferredFonts'
 
@@ -75,6 +76,13 @@ const INTRO_CARD_OPTIONS: { key: keyof ReaderIntroCards; label: string }[] = [
   { key: 'brief', label: '길잡이' },
 ]
 
+// 읽기 도움 — 본문 이해를 돕는 장치. 책마다 데이터가 있는 것만 실제로 나타난다
+const READING_AID_OPTIONS: { key: keyof ReadingAids; label: string }[] = [
+  { key: 'paraphrase', label: '쉽게 풀면' },
+  { key: 'jesusWords', label: '예수님 말씀 색' },
+  { key: 'crossRefs', label: '연결 구절' },
+]
+
 const COPY_STYLE_OPTIONS: { key: CopyStyle; label: string }[] = [
   { key: 'refAfter', label: '본문+출처' },
   { key: 'refBefore', label: '출처+본문' },
@@ -94,6 +102,8 @@ const ReaderSettings = () => {
   const [headingsOn, setHeadingsOn] = useState(isSectionHeadingsEnabled)
   // 본문 앞 안내 세 줄 — readerIntroCards 모듈이 저장·전파 (BibleStudy가 구독)
   const [introCards, setIntroCards] = useState<ReaderIntroCards>(getReaderIntroCards)
+  // 읽기 도움 세 가지 — readingAids 모듈이 저장·전파 (VerseList·VerseItem이 구독)
+  const [aids, setAids] = useState<ReadingAids>(getReadingAids)
   // 함께 읽기 — 내 읽기 위치 공유 (presenceSharing 모듈이 저장·전파, VerseList 하트비트가 구독)
   const [sharingOn, setSharingOn] = useState(isPresenceSharingEnabled)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -227,6 +237,32 @@ const ReaderSettings = () => {
           <p className="reader-settings__hint">
             본문 위에 쌓이는 줄이에요. 끄면 말씀이 그만큼 위로 올라와요. 오디오북을 꺼도 절을
             길게 눌러 '여기부터 듣기'를 고르면 다시 나타나요.
+          </p>
+
+          {/* 읽기 도움 — 단락 풀이 / 예수님 말씀 색 / 연결 구절 칩. 각각 독립 토글 */}
+          <div className="reader-settings__row reader-settings__row--stack">
+            <span className="reader-settings__label">읽기 도움</span>
+            <div className="reader-settings__chips">
+              {READING_AID_OPTIONS.map(opt => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  className={aids[opt.key] ? 'active' : ''}
+                  aria-pressed={aids[opt.key]}
+                  onClick={() => {
+                    const next = !aids[opt.key]
+                    setReadingAid(opt.key, next)
+                    setAids(prev => ({ ...prev, [opt.key]: next }))
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="reader-settings__hint">
+            단락마다 오늘의 말로 푼 풀이, 복음서의 예수님 말씀 붉은 글씨, 구약 인용·같은 사건을 기록한
+            다른 복음서로 건너가는 칩이에요. 풀이는 일부 책부터 차례로 채워지고 있어요.
           </p>
 
           <div className="reader-settings__divider" aria-hidden />

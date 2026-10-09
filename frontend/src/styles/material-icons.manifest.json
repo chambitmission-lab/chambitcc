@@ -289,6 +289,7 @@
     "verified",
     "verified_user",
     "view_agenda",
+    "view_column",
     "view_list",
     "vignette",
     "visibility",
@@ -308,10 +309,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 24796
+    "bytes": 24960
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 27272
+    "bytes": 27368
   }
 }

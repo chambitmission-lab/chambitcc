@@ -37,6 +37,9 @@ import { useChapterTogether } from '../hooks/useChapterTogether'
 import { getReaderLayout, subscribeReaderLayout } from '../data/readerLayout'
 import { isSectionHeadingsEnabled, subscribeSectionHeadings } from '../data/sectionHeadings'
 import { loadBookOutline, peekBookOutline, type BookOutline } from '../data/chapterOutlines'
+import { loadBookParaphrase, peekBookParaphrase, type BookParaphrase } from '../data/paraphrase'
+import { getReadingAids, subscribeReadingAids } from '../data/readingAids'
+import SectionParaphrase from './SectionParaphrase'
 // 열 때만 받는 패널 — 읽기 화면 청크에서 분리
 const BibleCommentaryPanel = lazyModal(() => import('../../../components/bible/BibleCommentaryPanel'))
 
@@ -172,6 +175,28 @@ const VerseList = ({
       alive = false
     }
   }, [bookNumber])
+  // 단락 "쉽게 풀면" — 풀이가 있는 책만 받는다(없으면 null). 키는 단락 시작 절
+  const readingAids = useSyncExternalStore(subscribeReadingAids, getReadingAids)
+  const [bookParaphrase, setBookParaphrase] = useState<BookParaphrase | null>(() => peekBookParaphrase(bookNumber))
+  useEffect(() => {
+    if (!readingAids.paraphrase) return
+    const cached = peekBookParaphrase(bookNumber)
+    setBookParaphrase(cached)
+    if (cached) return
+    let alive = true
+    loadBookParaphrase(bookNumber).then((p) => {
+      if (alive) setBookParaphrase(p)
+    })
+    return () => {
+      alive = false
+    }
+  }, [bookNumber, readingAids.paraphrase])
+  const chapterParaphrase = readingAids.paraphrase ? bookParaphrase?.[selectedChapter] : undefined
+  const renderParaphrase = (para: FlowParagraph) => {
+    const text = para.range && chapterParaphrase?.[para.range[0]]
+    return text ? <SectionParaphrase text={text} range={para.range} /> : null
+  }
+
   const flowParagraphs = useMemo<FlowParagraph[]>(() => {
     if (!chapterData) return []
     // 병합 구간의 자리표시자 절(신 6:19)은 그리지 않는다 — 앞 절이 '18-19'로 품는다
@@ -602,6 +627,7 @@ const VerseList = ({
                   {showHeadings && para.title && (
                     <h3 className="verse-paragraph__title">{para.title}</h3>
                   )}
+                  {renderParaphrase(para)}
                   <div className="verse-paragraph__body">
                     {para.verses.map((verse) => renderVerse(verse, 'flow'))}
                   </div>
@@ -622,6 +648,7 @@ const VerseList = ({
                       )}
                     </h3>
                   )}
+                  {renderParaphrase(para)}
                   {para.verses.map((verse) => renderVerse(verse, 'list'))}
                 </div>
               ))}
