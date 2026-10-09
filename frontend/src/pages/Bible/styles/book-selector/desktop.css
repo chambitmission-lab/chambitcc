@@ -112,4 +112,8 @@
     padding: 0.45rem 0.875rem;
     font-size: calc(0.84375rem * var(--text-mul, 1));
   }
+
+  /* 구약/신약 완독 축하 줄 */
+  .testament-celebrate__text { font-size: calc(0.9375rem * var(--text-mul, 1)); }
+  .testament-celebrate__text strong { font-size: calc(1.0625rem * var(--text-mul, 1)); }
 }

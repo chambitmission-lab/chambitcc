@@ -6,6 +6,7 @@ import { parseApiDate } from '../../../utils/dateUtils'
 import { lazyModal } from '../../../utils/lazyModal'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
 import { readingSceneFor } from '../../../utils/themeAssets'
+import { safeStorage } from '../../../utils/safeStorage'
 // 지도 보기는 토글해야 나온다 — 기본 뷰(여정)만 정적으로 둔다.
 // 단, 청크는 요약 카드가 뜬 뒤 유휴 시간에(그리고 버튼에 손이 닿는 순간) 미리 받아 둔다 —
 // 예전엔 "지도"를 누른 뒤에야 청크 왕복이 시작돼 fallback(null) 빈 화면이 한 박자 끼었다
@@ -42,6 +43,22 @@ type BookViewMode = 'journey' | 'grid' | 'list'
 /** 보기 방식 선택 저장 키 — 여정(경로)·격자·목록은 취향 문제라 사용자별로 기억한다 */
 const VIEW_MODE_KEY = 'bible-book-view-mode'
 
+/** 사용자가 직접 고른 구약/신약 탭 — 책에 들어갔다 돌아와도 그 탭이 유지되도록 세션 동안만 기억한다.
+ *  앱을 새로 열면 다시 "지금 읽는 쪽" 자동 선택으로 돌아간다 */
+const TESTAMENT_SESSION_KEY = 'bible-testament-tab'
+
+/** 구약/신약 완독 축하 문구를 이미 보여 줬는지 — 기기에 한 번만 */
+const celebratedKey = (tm: Testament) => `bible-testament-complete-seen-${tm}`
+
+const loadChosenTestament = (): Testament | null => {
+  try {
+    const saved = sessionStorage.getItem(TESTAMENT_SESSION_KEY)
+    return saved === 'OT' || saved === 'NT' ? saved : null
+  } catch {
+    return null
+  }
+}
+
 const loadViewMode = (): BookViewMode => {
   try {
     const saved = localStorage.getItem(VIEW_MODE_KEY)
@@ -75,7 +92,8 @@ const gaugeWidth = (rate: number) => (rate > 0 ? Math.max(3, rate) : 0)
 
 const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progress, progressPending }: BookSelectorProps) => {
   const { language } = useLanguage()
-  const [testament, setTestament] = useState<Testament>('OT')
+  // 직접 고른 탭(세션 한정). null이면 진행 상황에서 자동으로 고른 탭을 쓴다
+  const [chosenTestament, setChosenTestament] = useState<Testament | null>(loadChosenTestament)
   const [filter, setFilter] = useState<string>('all')
   // 서브 필터가 어느 방향에서 슬라이드 인 될지 — OT→NT는 우측(forward), NT→OT는 좌측(back)에서 들어온다
   const [dir, setDir] = useState<'forward' | 'back'>('forward')
@@ -173,6 +191,13 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       ctaStart: '읽기',
       unreadOnly: '안 읽은 책만',
       allDone: '이 분류는 모두 완독했어요 🎉',
+      nextUp: '다음',
+      testamentDone: '완독',
+      celebrateOT: '구약 39권을 모두 읽었어요 🎉',
+      celebrateOTNext: '이제 신약으로 넘어가요',
+      celebrateNT: '신약 27권을 모두 읽었어요 🎉',
+      celebrateNTNext: '이제 구약으로 넘어가요',
+      close: '닫기',
     },
     en: {
       selectBook: 'Select Book',
@@ -207,21 +232,17 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       ctaStart: 'Read',
       unreadOnly: 'Unread only',
       allDone: 'Everything here is complete 🎉',
+      nextUp: 'Next',
+      testamentDone: 'complete',
+      celebrateOT: 'You finished all 39 books of the Old Testament 🎉',
+      celebrateOTNext: 'On to the New Testament',
+      celebrateNT: 'You finished all 27 books of the New Testament 🎉',
+      celebrateNTNext: 'On to the Old Testament',
+      close: 'Close',
     }
   }
 
   const t = texts[language]
-
-  const handleTestamentChange = (next: Testament) => {
-    if (next === testament) return
-    setInteracted(true)
-    setDir(next === 'NT' ? 'forward' : 'back')
-    setTestament(next)
-    setFilter('all')
-  }
-
-  const categories = testament === 'OT' ? OT_CATEGORIES : NT_CATEGORIES
-  const activeCategory = categories.find(c => c.id === filter) ?? categories[0]
 
   // 분류별 합산 진행률 — "어느 분류를 덜 읽었나"가 칩 한 줄로 보이게 한다.
   // 진행 기록이 아예 없으면(비로그인·첫 사용) 0%가 5개 늘어서는 것 자체가 노이즈이므로 숨긴다.
@@ -234,6 +255,55 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   }, [books, infoMap])
 
   const hasAnyProgress = (progress?.overall?.read_verses ?? 0) > 0
+  const testamentRate: Record<Testament, number> = {
+    OT: categoryStats.get('1-39') ?? 0,
+    NT: categoryStats.get('40-66') ?? 0,
+  }
+  const otDone = testamentRate.OT >= 100
+  const ntDone = testamentRate.NT >= 100
+
+  // 기본 탭 = 지금 읽고 있는 쪽. 가장 최근에 읽은 책이 속한 쪽을 펼치되,
+  // 그쪽을 이미 다 읽었고 반대쪽이 남아 있으면 반대쪽으로 넘겨 준다
+  // (구약을 다 읽었으면 신약 — 읽은 기록이 없어도 같은 규칙이 적용된다)
+  const autoTestament = useMemo<Testament>(() => {
+    const base: Testament = currentBookNumber !== undefined && currentBookNumber >= 40 ? 'NT' : 'OT'
+    const baseDone = base === 'OT' ? otDone : ntDone
+    const otherDone = base === 'OT' ? ntDone : otDone
+    if (baseDone && !otherDone) return base === 'OT' ? 'NT' : 'OT'
+    return base
+  }, [currentBookNumber, otDone, ntDone])
+  const testament = chosenTestament ?? autoTestament
+
+  const handleTestamentChange = (next: Testament) => {
+    if (next === testament) return
+    setInteracted(true)
+    setDir(next === 'NT' ? 'forward' : 'back')
+    setChosenTestament(next)
+    try {
+      sessionStorage.setItem(TESTAMENT_SESSION_KEY, next)
+    } catch {
+      // 저장 실패해도 이번 화면에서는 상태로 동작한다
+    }
+    setFilter('all')
+  }
+
+  const categories = testament === 'OT' ? OT_CATEGORIES : NT_CATEGORIES
+  const activeCategory = categories.find(c => c.id === filter) ?? categories[0]
+
+  // 구약/신약 완독 축하 — 한쪽을 다 읽고 반대쪽이 남았을 때 기기당 딱 한 번만 띄운다.
+  // 탭이 저절로 넘어간 이유도 이 한 줄이 설명해 준다. "본 적 있나"는 진입 시점 값으로 고정해
+  // 기록한 직후에도 이번 화면에서는 닫기 전까지 남아 있게 한다
+  const [seenAtMount] = useState(() => ({
+    OT: !!safeStorage.get(celebratedKey('OT')),
+    NT: !!safeStorage.get(celebratedKey('NT')),
+  }))
+  const [celebrateClosed, setCelebrateClosed] = useState(false)
+  const doneSide: Testament | null = otDone && !ntDone ? 'OT' : ntDone && !otDone ? 'NT' : null
+  const celebrate = doneSide && !seenAtMount[doneSide] && !celebrateClosed ? doneSide : null
+  useEffect(() => {
+    if (celebrate) safeStorage.set(celebratedKey(celebrate), '1')
+  }, [celebrate])
+
 
   // 전체/구약/신약 요약 — 장 기준을 주 지표로 쓰고, 장 집계가 없는 구버전 응답에서는 절 기준으로 폴백.
   // 링 색은 셋을 구분하는 용도라 전체=브랜드, 구약=딥 틸(선지서 토큰), 신약=로얄 퍼플(계시록 토큰)로 고정
@@ -309,6 +379,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     const hasProgress = rate > 0
 
     const isCurrent = book.book_number === currentBookNumber
+    const isNext = book.book_number === nextBookNumber
 
     let metaText: string | null = null
     if (isComplete) {
@@ -337,13 +408,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       <button
         key={book.id}
         className={`book-cell${isComplete ? ' is-complete' : ''}${isCurrent ? ' is-current' : ''}${
-          hasProgress ? '' : ' is-untouched'
-        }`}
+          isNext ? ' is-next' : ''
+        }${hasProgress ? '' : ' is-untouched'}`}
         // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 칸은 딜레이 상한으로 묶는다
         style={{ animationDelay: `${Math.min(index * 14, 320)}ms` }}
         aria-label={[
           language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko,
           isCurrent ? t.reading : null,
+          isNext ? t.nextUp : null,
           metaText,
         ]
           .filter(Boolean)
@@ -353,6 +425,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       >
         {/* 지금 읽는 책은 표 전체에서 딱 한 칸 — 배지 하나로 시선을 먼저 잡는다 */}
         {isCurrent && !isComplete && <span className="book-cell__badge">{t.reading}</span>}
+        {isNext && <span className="book-cell__badge book-cell__badge--next">{t.nextUp}</span>}
         <span className="book-cell__top">
           {/* 인장은 옅은 원반(할로) 위에 — 카드 왼편의 시각적 닻 */}
           <span className="book-stamp-halo" aria-hidden="true">
@@ -407,6 +480,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     const isComplete = rate >= 100
     const hasProgress = rate > 0
     const isCurrent = book.book_number === currentBookNumber && !isComplete
+    const isNext = book.book_number === nextBookNumber
     const bookName = language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko
 
     // 이어 읽기 위치가 읽은 양보다 앞설 때만 연한 구간 — 격자·최근 읽은 책 칩과 같은 규칙
@@ -424,13 +498,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         key={book.id}
         type="button"
         className={`book-row${isComplete ? ' is-complete' : ''}${isCurrent ? ' is-current' : ''}${
-          hasProgress ? ' has-progress' : ''
-        }`}
+          isNext ? ' is-next' : ''
+        }${hasProgress ? ' has-progress' : ''}`}
         // 격자와 같은 스태거 — 목록은 행이 많아 딜레이 상한을 더 낮게 묶는다
         style={{ animationDelay: `${Math.min(index * 12, 280)}ms` }}
         aria-label={[
           bookName,
           isCurrent ? t.reading : null,
+          isNext ? t.nextUp : null,
           `${readChapters}/${totalChapters}${t.chapterUnit}`,
           isComplete ? t.complete : `${pctLabel(rate)}%`,
         ]
@@ -453,6 +528,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           <span className="book-row__name">
             {bookName}
             {isCurrent && <span className="book-row__badge">{t.reading}</span>}
+            {isNext && <span className="book-row__badge book-row__badge--next">{t.nextUp}</span>}
           </span>
           <span className="book-row__meta" aria-hidden="true">
             {/* 분수는 "0/50장"까지 그대로 — 열이 흔들리지 않아야 표처럼 훑어진다 */}
@@ -527,6 +603,34 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 칩이 숨은 상태에서 unreadOnly가 켜져 있어도 remaining === filtered라 목록은 그대로다
   const showUnreadChip = remainingBooks.length < filteredBooks.length
   const listBooks = unreadOnly ? remainingBooks : filteredBooks
+
+  // 다음 읽을 책 — 여정 보기의 '다음 정거장'과 같은 규칙(지금 읽는 책 바로 뒤의 첫 미완독 책,
+  // 지금 읽는 책이 이 목록에 없으면 첫 미완독 책). 격자·목록에서는 읽는 중인 책이 이미
+  // 보이면 그게 곧 갈 곳이라, 그런 책이 없을 때만 '다음' 배지로 출발점을 집어 준다
+  const nextBookNumber = (() => {
+    if (!hasAnyProgress) return undefined
+    const curIdx = filteredBooks.findIndex(b => b.book_number === currentBookNumber)
+    if (curIdx >= 0 && (infoMap.get(filteredBooks[curIdx].book_number)?.rate ?? 0) < 100) return undefined
+    return filteredBooks.slice(curIdx + 1).find(b => (infoMap.get(b.book_number)?.rate ?? 0) < 100)
+      ?.book_number
+  })()
+
+  // 탭 배지 — 진행 기록이 없으면 권수, 읽는 중이면 %, 다 읽었으면 체크.
+  // 탭을 누르기 전에 양쪽이 어디까지 왔는지 보인다
+  const renderTabBadge = (tm: Testament, bookCount: number) => {
+    const rate = testamentRate[tm]
+    if (hasAnyProgress && rate >= 100) {
+      return (
+        <span className="testament-tab__count testament-tab__count--done" aria-label={t.testamentDone}>
+          <span className="material-icons-round">check</span>
+        </span>
+      )
+    }
+    if (hasAnyProgress && rate > 0) {
+      return <span className="testament-tab__count">{pctLabel(rate)}%</span>
+    }
+    return <span className="testament-tab__count">{bookCount}</span>
+  }
 
   return (
     <div className="bible-books-section" data-animate={interacted ? '' : undefined}>
@@ -707,6 +811,23 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
 
       {/* 구약/신약 탭 + 서브 카테고리 칩 — 한 패널로 묶어 "칩은 탭에 종속"임을 시각적으로 표현.
           탭 전환 시 key가 바뀌며 칩들이 순차적으로 슬라이드 인 된다. */}
+      {/* 완독 축하 — sticky 탭 바깥에 둬 스크롤을 따라다니지 않게 한다 */}
+      {celebrate && (
+        <div className="testament-celebrate" role="status">
+          <span className="testament-celebrate__text">
+            <strong>{celebrate === 'OT' ? t.celebrateOT : t.celebrateNT}</strong>
+            <span>{celebrate === 'OT' ? t.celebrateOTNext : t.celebrateNTNext}</span>
+          </span>
+          <button
+            type="button"
+            className="testament-celebrate__close"
+            aria-label={t.close}
+            onClick={() => setCelebrateClosed(true)}
+          >
+            <span className="material-icons-round">close</span>
+          </button>
+        </div>
+      )}
       <div className="book-nav">
         <div className="testament-tabs" role="tablist" data-active={testament}>
           {/* 슬라이딩 선택 마커 — 트랙 위를 부드럽게 이동한다 */}
@@ -720,7 +841,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           >
             <span className="material-icons-round testament-tab__icon">auto_stories</span>
             <span className="testament-tab__label">{t.oldTestament}</span>
-            <span className="testament-tab__count">39</span>
+            {renderTabBadge('OT', 39)}
           </button>
           <button
             type="button"
@@ -731,7 +852,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           >
             <span className="material-icons-round testament-tab__icon">menu_book</span>
             <span className="testament-tab__label">{t.newTestament}</span>
-            <span className="testament-tab__count">27</span>
+            {renderTabBadge('NT', 27)}
           </button>
         </div>
 

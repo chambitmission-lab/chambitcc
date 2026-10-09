@@ -455,3 +455,88 @@
   }
 }
 
+
+/* 탭 배지 — 읽는 중이면 %가 들어가 폭이 늘고, 다 읽은 쪽은 체크 */
+.testament-tab__count--done .material-icons-round {
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.testament-tab:not(.active) .testament-tab__count--done {
+  background: var(--brand-soft);
+  color: var(--brand);
+  opacity: 1;
+}
+
+[data-theme="dark"] .testament-tab:not(.active) .testament-tab__count--done {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+/* 구약/신약 완독 축하 — 탭 위 한 줄. 한 번만 뜨는 모먼트라 살짝 떠오르며 등장 */
+.testament-celebrate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 0.5rem 0.75rem 1rem;
+  border-radius: 14px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  animation: testament-celebrate-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.testament-celebrate__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.testament-celebrate__text strong {
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.testament-celebrate__text span {
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.testament-celebrate__close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.testament-celebrate__close .material-icons-round {
+  font-size: 1.1rem;
+}
+
+.testament-celebrate__close:hover {
+  opacity: 1;
+}
+
+@keyframes testament-celebrate-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testament-celebrate {
+    animation: none;
+  }
+}

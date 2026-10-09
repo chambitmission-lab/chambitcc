@@ -361,3 +361,14 @@
   color: var(--ig-secondary-text);
 }
 
+
+/* 다음 읽을 책 — 읽는 중인 책이 안 보일 때만 하나. 채운 "읽는 중"과 구분해 점선 테두리+외곽선 배지 */
+.book-cell.is-next {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--brand) 60%, var(--td-line));
+}
+
+.book-cell__badge--next {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
