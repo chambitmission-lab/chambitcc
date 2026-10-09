@@ -160,12 +160,17 @@
   mask-image: linear-gradient(to bottom, transparent 0, #000 36px);
 }
 
-/* 다크 — 삽화 밤하늘은 왼쪽 #071126 → 오른쪽 #3f5876 으로 밝아지는데 띠 위
- * 바탕이 단색 남색이면 상단만 평평하게 진한 판으로 읽힌다. 바탕을 삽화 상단
- * 하늘색을 가로로 실측한 그라데이션으로 이어 붙이고, 경계 마스크도 길게 녹인다. */
-.dark .meditation-verse-quote.is-long,
-.dark .meditation-verse-quote.is-xlong {
+/* 다크 — 삽화 밤하늘은 왼쪽 #071126 → 오른쪽 #3f5876 으로 밝아지는데 바탕이
+ * 단색 남색이면 상단만 평평하게 진한 판으로 읽힌다. 바탕을 삽화 상단 하늘색을
+ * 가로로 실측한 그라데이션으로 두고, 삽화 맨 위(잘린 달빛 번짐·가장자리)는
+ * 말씀 길이와 무관하게 늘 마스크로 녹인다 — 짧은 절(전체 cover)과 긴 절(바닥 띠)이
+ * 같은 상단으로 보이도록. */
+.dark .meditation-verse-quote {
   background: linear-gradient(100deg, #0a142c 0%, #161d38 32%, #263a62 64%, #3c5272 100%);
+}
+.dark .meditation-verse-quote::before {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
 }
 .dark .meditation-verse-quote.is-long::before,
 .dark .meditation-verse-quote.is-xlong::before {
