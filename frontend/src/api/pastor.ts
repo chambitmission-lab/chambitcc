@@ -144,6 +144,8 @@ export interface RosterMember {
   last_visit: string | null
   last_visit_by: string | null
   visit_count: number
+  /** 지금 겪는 일(마치지 않은 것)의 종류 */
+  situations: SituationKind[]
 }
 
 export interface RosterData {
@@ -151,6 +153,8 @@ export interface RosterData {
   with_profile: number
   districts: Array<{ value: string; count: number }>
   titles: Array<{ value: string; count: number }>
+  /** 지금 겪는 일이 하나라도 있는 성도 수 */
+  in_care: number
   items: RosterMember[]
 }
 
@@ -211,6 +215,8 @@ export interface MemberDetail {
   profile: MemberProfile | null
   activity: { last_seen: string | null; days_since: number | null; total_year: number }
   visits: PastoralVisit[]
+  /** 지금 겪는 일 — 마치지 않은 것 먼저(시작 최신순), 그 뒤 지나간 것 몇 건 */
+  situations: MemberSituation[]
   shared_prayers: Array<{
     id: number
     title: string | null
@@ -219,6 +225,83 @@ export interface MemberDetail {
     pastor_replied: boolean
     is_answered: boolean
   }>
+}
+
+// ── 지금 겪는 일 (돌봄 상태) ─────────────────────────────
+// 명부와 같은 권한 — 교역자끼리 함께 보고 고친다. 시작일로 목회 비서가 안부 여쭐 때를 짚는다
+export type SituationKind = 'illness' | 'bereavement' | 'birth' | 'move' | 'job' | 'family' | 'other'
+
+export interface MemberSituation {
+  id: number
+  kind: SituationKind
+  started_on: string
+  note: string | null
+  /** null 이면 지금 겪는 중 */
+  ended_on: string | null
+  created_by_name: string | null
+}
+
+export const SITUATION_KIND_LABEL: Record<SituationKind, string> = {
+  illness: '투병·입원',
+  bereavement: '사별',
+  birth: '출산',
+  move: '이사',
+  job: '실직·구직',
+  family: '가정의 어려움',
+  other: '기타',
+}
+
+export const SITUATION_KIND_ICON: Record<SituationKind, string> = {
+  illness: 'local_hospital',
+  bereavement: 'local_florist',
+  birth: 'child_friendly',
+  move: 'local_shipping',
+  job: 'work_outline',
+  family: 'home',
+  other: 'more_horiz',
+}
+
+/** 시작일을 무엇이라 부를지 — 입력 칸 이름 */
+export const SITUATION_START_LABEL: Record<SituationKind, string> = {
+  illness: '입원·진단한 날',
+  bereavement: '장례일',
+  birth: '출산일',
+  move: '이사한 날',
+  job: '일을 놓은 날',
+  family: '알게 된 날',
+  other: '시작한 날',
+}
+
+/** 목회 비서가 언제 짚어 드리는지 — 고를 때 한 줄로 알려 준다 (서버 SITUATION_RULES 와 같은 내용) */
+export const SITUATION_RULE_HINT: Record<SituationKind, string> = {
+  illness: '겪는 동안 2주마다 심방이 없으면 알려 드려요',
+  bereavement: '장례 후 한 주 · 한 달 · 1주기에 알려 드려요',
+  birth: '출산 2주 · 아기 백일에 알려 드려요',
+  move: '이사 직후 이사 심방 때를 알려 드려요',
+  job: '겪는 동안 3주마다 심방이 없으면 알려 드려요',
+  family: '겪는 동안 3주마다 심방이 없으면 알려 드려요',
+  other: '겪는 동안 한 달마다 심방이 없으면 알려 드려요',
+}
+
+export interface SituationInput {
+  kind?: SituationKind
+  started_on?: string
+  note?: string
+  /** true: 지나갔어요(오늘로 마침) · false: 다시 겪는 중 */
+  ended?: boolean
+}
+
+export const createSituation = (
+  memberId: number,
+  data: { kind: SituationKind; started_on: string; note?: string },
+): Promise<MemberSituation> =>
+  pastorSend(`/pastor/members/${memberId}/situations`, 'POST', data, '저장하지 못했습니다')
+
+export const updateSituation = (id: number, data: SituationInput): Promise<MemberSituation> =>
+  pastorSend(`/pastor/situations/${id}`, 'PATCH', data, '저장하지 못했습니다')
+
+export const deleteSituation = async (id: number): Promise<void> => {
+  await requestRaw(`/pastor/situations/${id}`, { method: 'DELETE', auth: 'required', errorMessage: '지우지 못했습니다' })
 }
 
 export interface VisitInput {
@@ -298,7 +381,7 @@ export interface SuggestionData {
 export interface Briefing {
   headline: string
   points: Array<{
-    kind: 'visit' | 'plan' | 'memo' | 'follow_up' | 'activity' | 'prayer' | 'birthday' | 'family' | 'note'
+    kind: 'situation' | 'visit' | 'plan' | 'memo' | 'follow_up' | 'activity' | 'prayer' | 'birthday' | 'family' | 'note'
     text: string
     tone: 'info' | 'urgent' | 'care' | 'joy'
   }>

@@ -66,3 +66,11 @@ export const daysSince = (iso: string | null | undefined): number | null => {
   t.setHours(0, 0, 0, 0)
   return Math.round((t.getTime() - d.getTime()) / 86400000)
 }
+
+/** 시작한 지 얼마 → '3일째' / '6주째' / '4개월째' (서버 브리핑 문구와 같은 규칙) */
+export const elapsedLabel = (days: number | null | undefined): string => {
+  if (days == null) return ''
+  if (days < 14) return `${Math.max(days, 0) + 1}일째`
+  if (days < 60) return `${Math.floor(days / 7)}주째`
+  return `${Math.floor(days / 30)}개월째`
+}

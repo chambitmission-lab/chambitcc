@@ -2,7 +2,7 @@ import { pastorKeys } from '../../hooks/queryKeys'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { fetchRoster, type RosterData, type RosterMember } from '../../api/pastor'
+import { SITUATION_KIND_ICON, SITUATION_KIND_LABEL, fetchRoster, type RosterData, type RosterMember } from '../../api/pastor'
 import { SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import { Avatar } from './components/ui'
@@ -12,7 +12,7 @@ import { agoLabel, daysSince, formatDay, usePastorGate } from './components/past
 // 인원이 수백 명 수준이라 필터·정렬은 전부 클라이언트에서 한다.
 
 type Sort = 'name' | 'visit' | 'quiet'
-type Quick = 'all' | 'no_profile' | 'no_visit' | 'birthday'
+type Quick = 'all' | 'care' | 'no_profile' | 'no_visit' | 'birthday'
 
 const SORTS: Array<{ key: Sort; label: string }> = [
   { key: 'name', label: '이름순' },
@@ -22,6 +22,7 @@ const SORTS: Array<{ key: Sort; label: string }> = [
 
 const QUICKS: Array<{ key: Quick; label: string }> = [
   { key: 'all', label: '전체' },
+  { key: 'care', label: '돌봄 중' },
   { key: 'no_profile', label: '명부 미작성' },
   { key: 'no_visit', label: '심방 90일+' },
   { key: 'birthday', label: '이번 달 생일' },
@@ -55,6 +56,7 @@ const PastorMembers = () => {
     const list = data.items.filter(m => {
       if (district && m.district !== district) return false
       if (title && m.church_title !== title) return false
+      if (quick === 'care' && m.situations.length === 0) return false
       if (quick === 'no_profile' && m.has_profile) return false
       if (quick === 'no_visit') {
         const d = daysSince(m.last_visit)
@@ -114,6 +116,7 @@ const PastorMembers = () => {
               {QUICKS.map(x => (
                 <button key={x.key} type="button" className={chip(quick === x.key)} onClick={() => setQuick(x.key)}>
                   {x.label}
+                  {x.key === 'care' && data.in_care > 0 && <span className="ml-1 opacity-80">{data.in_care}</span>}
                 </button>
               ))}
             </div>
@@ -196,6 +199,17 @@ const MemberRow = ({ m }: { m: RosterMember }) => {
                   미작성
                 </span>
               )}
+              {/* 지금 겪는 일 — 아이콘만 (이름은 툴팁·스크린리더로) */}
+              {[...new Set(m.situations)].map(k => (
+                <span
+                  key={k}
+                  title={SITUATION_KIND_LABEL[k]}
+                  aria-label={SITUATION_KIND_LABEL[k]}
+                  className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--brand-soft)] text-brand"
+                >
+                  <span className="material-icons-outlined text-[13px]" aria-hidden>{SITUATION_KIND_ICON[k]}</span>
+                </span>
+              ))}
             </span>
             {/* 모바일 한 줄 요약 */}
             <span className="lg:hidden block text-[12px] text-gray-600 dark:text-white/60 truncate">

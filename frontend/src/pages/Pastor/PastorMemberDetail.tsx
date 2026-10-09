@@ -3,6 +3,8 @@ import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
+  SITUATION_KIND_ICON,
+  SITUATION_KIND_LABEL,
   VISIT_KIND_ICON,
   VISIT_KIND_LABEL,
   fetchBriefing,
@@ -10,15 +12,17 @@ import {
   fetchRoster,
   type Briefing,
   type MemberDetail,
+  type MemberSituation,
   type PastoralVisit,
 } from '../../api/pastor'
 import { lazyModal } from '../../utils/lazyModal'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import ProfileEditor from './components/ProfileEditor'
+import SituationComposer from './components/SituationComposer'
 import VisitComposer from './components/VisitComposer'
 import { Avatar } from './components/ui'
-import { agoLabel, formatDay, todayIso, usePastorGate } from './components/pastorUtils'
+import { agoLabel, daysSince, elapsedLabel, formatDay, todayIso, usePastorGate } from './components/pastorUtils'
 
 // 성도 한 사람 — 좌: 명부·심방 기록 / 우: 활동·맡긴 기도.
 // 심방 내용은 내가 쓴 기록만 펼쳐진다(서버가 남의 기록 내용은 아예 보내지 않는다).
@@ -26,6 +30,7 @@ import { agoLabel, formatDay, todayIso, usePastorGate } from './components/pasto
 const PrayerDetail = lazyModal(() => import('../Home/components/PrayerDetail'))
 
 type VisitTarget = { visit?: PastoralVisit; initialStatus?: 'done' | 'planned'; completing?: boolean } | null
+type SituationTarget = { situation?: MemberSituation } | null
 
 const PastorMemberDetail = () => {
   const pastor = usePastorGate()
@@ -34,6 +39,7 @@ const PastorMemberDetail = () => {
   const [editing, setEditing] = useState(false)
   const [visitTarget, setVisitTarget] = useState<VisitTarget>(null)
   const [openPrayerId, setOpenPrayerId] = useState<number | null>(null)
+  const [situationTarget, setSituationTarget] = useState<SituationTarget>(null)
 
   const { data, isPending, refetch } = useQuery<MemberDetail>({
     queryKey: pastorKeys.member(memberId),
@@ -61,6 +67,11 @@ const PastorMemberDetail = () => {
         <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
           <div className="contents lg:block lg:min-w-0">
             <ProfileCard data={data} onEdit={() => setEditing(true)} />
+            <SituationsCard
+              situations={data.situations}
+              onNew={() => setSituationTarget({})}
+              onEdit={situation => setSituationTarget({ situation })}
+            />
             <VisitsCard
               data={data}
               onNew={() => setVisitTarget({})}
@@ -94,6 +105,14 @@ const PastorMemberDetail = () => {
           initialStatus={visitTarget.initialStatus}
           completing={visitTarget.completing}
           onClose={() => setVisitTarget(null)}
+        />
+      )}
+      {situationTarget && data && (
+        <SituationComposer
+          memberId={memberId}
+          memberName={data.name}
+          situation={situationTarget.situation}
+          onClose={() => setSituationTarget(null)}
         />
       )}
       {openPrayerId && (
@@ -191,6 +210,108 @@ const Info = ({ label, children, wide }: { label: string; children: ReactNode; w
     <dd className="mt-0.5 text-[13px] text-ink-strong whitespace-pre-wrap">{children}</dd>
   </div>
 )
+
+// ── 지금 겪는 일 ─────────────────────────────────────
+// 시작일이 있어 목회 비서가 '사별 한 달'·'투병 2주째 연락 없음' 같은 때를 짚는다.
+// 지나간 일은 접어 두고 필요할 때 펼친다 — 다음 심방에서 "어머님 1주기 지나셨죠"의 맥락이 된다.
+const situationName = (s: MemberSituation) => (s.kind === 'other' && s.note ? s.note : SITUATION_KIND_LABEL[s.kind])
+
+const SituationsCard = ({
+  situations,
+  onNew,
+  onEdit,
+}: {
+  situations: MemberSituation[]
+  onNew: () => void
+  onEdit: (s: MemberSituation) => void
+}) => {
+  const [showEnded, setShowEnded] = useState(false)
+  const active = situations.filter(s => !s.ended_on)
+  const ended = situations.filter(s => s.ended_on)
+  return (
+    <SectionCard
+      title="지금 겪는 일"
+      action={
+        <button
+          type="button"
+          onClick={onNew}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-brand text-brand text-[12.5px] font-bold hover:bg-[var(--brand-soft)]"
+        >
+          <span className="material-icons-outlined text-[16px]">add</span>
+          남기기
+        </button>
+      }
+    >
+      {active.length === 0 ? (
+        <p className="text-[12.5px] text-gray-500 dark:text-white/55 leading-relaxed">
+          투병·사별·출산·이사처럼 마음 쓸 일을 시작일과 함께 남겨 두면, 목회 비서가 안부 여쭐 때를 짚어 드려요.
+        </p>
+      ) : (
+        <ul className="space-y-1.5">
+          {active.map(s => (
+            <li key={s.id}>
+              <button
+                type="button"
+                onClick={() => onEdit(s)}
+                className="w-full flex items-start gap-3 px-3.5 py-3 rounded-xl text-left bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] hover:border-brand transition-colors"
+              >
+                <span className="material-icons-outlined text-[20px] text-brand mt-px">{SITUATION_KIND_ICON[s.kind]}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-[13.5px] font-bold text-ink-strong">{situationName(s)}</span>
+                    <span className="text-[12px] font-semibold text-brand">{elapsedLabel(daysSince(s.started_on))}</span>
+                  </span>
+                  {s.note && s.kind !== 'other' && (
+                    <span className="block mt-0.5 text-[12.5px] text-[#4b5563] dark:text-white/70">{s.note}</span>
+                  )}
+                  <span className="block mt-0.5 text-[12px] text-gray-500 dark:text-white/55">
+                    {formatDay(s.started_on, false)}부터{s.created_by_name ? ` · ${s.created_by_name} 남김` : ''}
+                  </span>
+                </span>
+                <span className="material-icons-outlined text-[16px] text-gray-400 dark:text-white/40 mt-0.5">edit</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {ended.length > 0 && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowEnded(v => !v)}
+            aria-expanded={showEnded}
+            className="flex items-center gap-0.5 text-[12px] font-semibold text-gray-500 dark:text-white/55 hover:text-brand"
+          >
+            지나간 일 {ended.length}
+            <span className="material-icons-outlined text-[16px]">{showEnded ? 'expand_less' : 'expand_more'}</span>
+          </button>
+          {showEnded && (
+            <ul className="mt-1.5 space-y-1">
+              {ended.map(s => (
+                <li key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() => onEdit(s)}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-white/[0.03]"
+                  >
+                    <span className="material-icons-outlined text-[17px] text-gray-400 dark:text-white/40">{SITUATION_KIND_ICON[s.kind]}</span>
+                    <span className="flex-1 min-w-0 truncate text-[12.5px] text-gray-600 dark:text-white/65">
+                      {situationName(s)}
+                      {s.note && s.kind !== 'other' ? ` · ${s.note}` : ''}
+                    </span>
+                    <span className="shrink-0 text-[12px] text-gray-500 dark:text-white/50">
+                      {formatDay(s.started_on, false).replace(/^\d+년 /, '')} ~ {formatDay(s.ended_on, false).replace(/^\d+년 /, '')}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </SectionCard>
+  )
+}
 
 // ── 심방 기록 ────────────────────────────────────────
 const VisitsCard = ({
@@ -349,6 +470,7 @@ const BRIEF_TONE: Record<Briefing['points'][number]['tone'], string> = {
 
 // 아이콘 이름은 화면이 들고 있어야 아이콘 서브셋 생성기가 글리프를 챙긴다
 const BRIEF_ICON: Record<Briefing['points'][number]['kind'], string> = {
+  situation: 'healing',
   visit: 'event_note',
   plan: 'event_available',
   memo: 'sticky_note_2',
