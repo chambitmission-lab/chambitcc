@@ -2,76 +2,67 @@
    색은 theme.css 토큰이 단일 출처. 손수 쓰는 CSS라 var(--text-body)/var(--text-muted) 를 쓴다
    (--ink-* 는 Tailwind 색 이름이라 CSS 변수로 참조하면 다크에서 조용히 사라진다). */
 
-/* ── Hero ───────────────────────────────────────────────
-   배경은 '새벽하늘' 한 겹 — 위는 새벽 푸름, 아래 지평선은 해뜨기 직전의 온기.
-   그 위에 거친 입자(::after)를 한 켜 얹어 평면 그라데이션 티를 지운다.
-   전부 CSS라 이미지 파일도, SW 캐시로 그림이 안 바뀌는 문제도 없다.
-   하늘은 히어로 바닥에서 카드색으로 녹아 사라진다(mask) — 아래 인물 격자와
-   경계선이 생기지 않게. 움직이는 효과는 넣지 않는다. */
+/* ── Hero — 사진첩 ─────────────────────────────────────────
+   교회 로비 게시판에 붙여 둔 사진 같은 무드: 줄 노트 종이 + 마스킹테이프 폴라로이드 +
+   명조 제목 + 손글씨 한 줄. 사진 고르는 규칙은 PeopleAlbum.tsx 머리말.
+   모바일은 사진첩이 위, 글이 아래인 라운드 카드 / PC 는 셸 카드 안 상단 띠로 글 왼쪽·사진첩 오른쪽.
+   종이색은 이 화면 전용 토큰(--ppl-paper…)이라 여기서만 정의한다. */
 .ppl-hero {
+  --ppl-paper: #fbf8f2;
+  --ppl-paper-line: rgba(120, 90, 40, 0.09);
+  --ppl-amber: #b8742a;
+  --ppl-frame: #ffffff;
+  --ppl-pen: #3a3226;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   /* 모바일은 카드 — 좌우 1rem 은 아래 탭·격자의 padding 과 같은 기준선 */
   margin: 0.75rem 1rem 0.35rem;
-  padding: 1.9rem 1.25rem 1.6rem;
+  padding: 0 0 1.5rem;
   border-radius: 1.5rem;
-  background-color: var(--surface-container);
+  background-color: var(--ppl-paper);
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 1.95rem,
+    var(--ppl-paper-line) 1.95rem 2rem
+  );
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
-  text-align: center;
 }
 
 [data-theme='dark'] .ppl-hero {
+  /* 남색 밤 금지 — 따뜻한 차콜 종이 + 바닥의 앰버 불빛 */
+  --ppl-paper: #24211e;
+  --ppl-paper-line: rgba(255, 200, 130, 0.05);
+  --ppl-amber: #e8a55a;
+  --ppl-frame: #ece6dc;
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 26px rgba(0, 0, 0, 0.32);
 }
 
-/* PC 와이드 셸은 이미 라운드 카드라, 히어로는 그 안의 상단 띠로 둔다(카드 안 카드 방지) */
-@media (min-width: 1024px) {
-  .ppl-hero {
-    margin: 0;
-    padding: 2.5rem 1.5rem 2.25rem;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-}
-
-.ppl-hero::before {
+[data-theme='dark'] .ppl-hero::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(150% 62% at 50% 100%, rgba(255, 176, 118, 0.44), rgba(255, 202, 166, 0.16) 44%, transparent 72%),
-    linear-gradient(180deg, rgba(118, 170, 245, 0.34) 0%, rgba(178, 205, 248, 0.20) 32%, rgba(255, 226, 205, 0.18) 62%, transparent 88%);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0, 0, 0, 0.55) 88%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0, 0, 0, 0.55) 88%, transparent 100%);
+  background: radial-gradient(90% 55% at 70% 100%, rgba(232, 165, 90, 0.14), transparent 70%);
 }
 
-[data-theme='dark'] .ppl-hero::before {
-  background:
-    radial-gradient(150% 62% at 50% 100%, rgba(255, 138, 58, 0.34), rgba(255, 118, 60, 0.10) 44%, transparent 72%),
-    linear-gradient(180deg, rgba(56, 90, 166, 0.44) 0%, rgba(42, 64, 122, 0.22) 34%, rgba(90, 62, 74, 0.16) 62%, transparent 88%);
-}
-
-/* 필름 입자 — 라이트는 곱하기(어둡게), 다크는 스크린(밝게) 으로 얹어야
-   두 테마 모두에서 입자가 '떠 보이지' 않고 하늘에 섞인다 */
+/* 종이 입자 — 라이트는 곱하기, 다크는 스크린 */
 .ppl-hero::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.35;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
 }
 
 [data-theme='dark'] .ppl-hero::after {
-  opacity: 0.42;
+  opacity: 0.3;
   mix-blend-mode: screen;
 }
 
@@ -80,17 +71,30 @@
   z-index: 1;
 }
 
-.ppl-hero-emblem {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: 1.15rem;
-  color: var(--brand);
-  background: var(--brand-soft-strong);
-  border: 1px solid var(--brand-glow);
-  box-shadow: 0 8px 22px -12px var(--brand-glow);
+/* PC 와이드 셸은 이미 라운드 카드라, 히어로는 그 안의 상단 띠로 둔다(카드 안 카드 방지) */
+@media (min-width: 1024px) {
+  .ppl-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 2.25rem 2.5rem 2.25rem 3.5rem;
+    border: 0;
+    border-bottom: 1px solid var(--card-border);
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.ppl-hero-text {
+  padding: 0 1.4rem;
+}
+
+@media (min-width: 1024px) {
+  .ppl-hero-text {
+    padding: 0;
+  }
 }
 
 /* 관리자 chip — 히어로 카드 우상단. 아래에 버튼 한 줄을 더 쌓지 않아
@@ -99,7 +103,7 @@
   position: absolute;
   top: 0.65rem;
   right: 0.65rem;
-  z-index: 2;
+  z-index: 6;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -110,7 +114,7 @@
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--brand);
-  background: var(--brand-soft-strong);
+  background: var(--surface-container);
   border: 1px solid var(--brand-glow);
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
@@ -119,107 +123,349 @@
 
 @media (hover: hover) and (pointer: fine) {
   .ppl-hero .ppl-hero-admin:hover {
-    background: var(--brand-soft);
+    background: var(--brand-soft-strong);
   }
 }
 
 .ppl-hero-badge {
   display: block;
-  margin-top: 0.85rem;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--brand);
+  letter-spacing: 0.04em;
+  color: var(--ppl-amber);
 }
 
 .ppl-hero-title {
-  margin-top: 0.35rem;
-  font-size: 1.6rem;
-  font-weight: 800;
-  line-height: 1.4;
-  letter-spacing: -0.02em;
+  margin-top: 0.4rem;
+  font-family: var(--font-serif-kr);
+  font-size: 1.85rem;
+  /* 지연 로드 웨이트는 400~700 — 900 이면 가짜 볼드로 획이 뭉갠다 */
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
   color: var(--text-strong);
-  /* 한글 단어가 음절 단위로 쪼개지지 않게 */
   word-break: keep-all;
-  overflow-wrap: break-word;
-  text-wrap: balance;
 }
 
 .ppl-hero-subtitle {
-  margin-top: 0.6rem;
-  max-width: 26rem;
-  margin-left: auto;
-  margin-right: auto;
+  margin-top: 0.7rem;
+  max-width: 24rem;
   font-size: 0.875rem;
-  line-height: 1.65;
-  color: var(--text-muted);
+  line-height: 1.75;
+  color: var(--text-body);
   /* '담/당' 처럼 단어 중간에서 끊기지 않고, 줄 길이도 고르게 */
   word-break: keep-all;
   overflow-wrap: break-word;
   text-wrap: pretty;
 }
 
-/* 한눈에 보기 — 실제 등록된 인원만 센다 */
-.ppl-stats {
-  margin-top: 1rem;
-  display: flex;
-  /* 모바일에서 2줄로 접히면 숫자가 흘러내리는 느낌이 난다 —
-     한 줄로 고정하고, 그래도 넘치면 가로로만 쓸어 보게 한다 */
-  flex-wrap: nowrap;
-  justify-content: safe center;
-  gap: 0.32rem;
-  /* 칩이 카드 가장자리까지 쓸 수 있게 허리통 패딩을 잠시 풀어준다 */
-  margin-inline: -0.75rem;
-  padding-inline: 0.75rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+.ppl-hero-hand {
+  display: inline-block;
+  margin-top: 0.7rem;
+  font-family: 'Nanum Pen Script', var(--font-serif-kr);
+  font-size: 1.4rem;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--ppl-amber);
+  transform: rotate(-2deg);
 }
 
-.ppl-stats::-webkit-scrollbar {
-  display: none;
+/* 숫자 한 줄 — 칩이 아니라 글줄. 바로 아래 탭이 같은 숫자를 버튼으로 갖고 있어 여기선 낮게 */
+.ppl-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 1rem;
 }
 
 .ppl-stat {
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: baseline;
-  gap: 0.24rem;
-  padding: 0.38rem 0.62rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
+  gap: 0.2rem;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
   color: var(--text-muted);
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  /* 카드도 흰색이라 테두리만으로는 묻힌다 — 아주 얕게 띄워 읽히게 */
-  box-shadow: 0 1px 2px rgba(24, 26, 40, 0.06);
-}
-
-[data-theme='dark'] .ppl-stat {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: none;
 }
 
 .ppl-stat-num {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--brand);
-  letter-spacing: -0.01em;
+  font-family: var(--font-serif-kr);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
 }
 
-/* 폭이 넓어지면 원래 여유 있는 크기로 돌린다 */
-@media (min-width: 480px) {
-  .ppl-stats {
-    gap: 0.4rem;
+/* ── 사진첩 ──
+   자리는 슬롯마다 --x(left %) · --y(top) · --r(기울기) · --w(폭)로 준다.
+   모바일은 담임목사 + 2장 + 엽서, PC 는 6장 + 엽서. */
+.ppl-album {
+  order: -1;
+  position: relative;
+  height: 12.75rem;
+  margin: 0.5rem 0.75rem 0.9rem;
+}
+
+@media (min-width: 1024px) {
+  .ppl-album {
+    order: 0;
+    height: 24rem;
+    margin: 0;
+  }
+}
+
+.ppl-pola,
+.ppl-postcard {
+  --x: 0%;
+  --y: 0rem;
+  --r: 0deg;
+  --w: 6.2rem;
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  transform: rotate(var(--r));
+  -webkit-tap-highlight-color: transparent;
+  /* backwards — 끝난 뒤엔 애니메이션이 transform 을 붙잡지 않아 hover 전환이 살아 있다 */
+  animation: ppl-pin 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s;
+}
+
+@keyframes ppl-pin {
+  from {
+    opacity: 0;
+    transform: translateY(-0.9rem) rotate(calc(var(--r) * 2));
+  }
+}
+
+.ppl-pola {
+  display: block;
+  padding: 0.4rem 0.4rem 0;
+  background: var(--ppl-frame);
+  box-shadow: 0 14px 28px -14px rgba(60, 40, 10, 0.5), 0 2px 4px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.ppl-pola.is-lead {
+  z-index: 3;
+  --w: 7.2rem;
+}
+
+.ppl-pola-tape {
+  position: absolute;
+  top: -0.6rem;
+  left: 50%;
+  width: 2.9rem;
+  height: 1.05rem;
+  transform: translateX(-50%) rotate(-4deg);
+  background: rgba(255, 226, 160, 0.72);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] .ppl-pola-tape {
+  background: rgba(232, 190, 120, 0.6);
+}
+
+.ppl-pola-photo {
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.ppl-pola-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 증명사진형 세로 원본 — 얼굴이 위쪽에 있다 */
+  object-position: 50% 22%;
+  /* 찍은 곳·화질이 제각각인 사진을 한 앨범처럼 */
+  filter: sepia(0.12) saturate(0.92) contrast(0.98);
+}
+
+.ppl-pola-cap {
+  display: block;
+  padding: 0.25rem 0 0.35rem;
+  font-family: 'Nanum Pen Script', var(--font-serif-kr);
+  font-size: 1rem;
+  line-height: 1.15;
+  letter-spacing: 0;
+  color: var(--ppl-pen);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 모바일 자리 — 4·5번 슬롯은 PC 전용 */
+.ppl-pola[data-slot='0'] { --x: 31%; --y: 0.6rem; --r: -2deg; }
+.ppl-pola[data-slot='1'] { --x: 2%; --y: 2.1rem; --r: -8deg; }
+.ppl-pola[data-slot='2'] { --x: 59%; --y: 1.6rem; --r: 6deg; }
+.ppl-pola[data-slot='3'],
+.ppl-pola[data-slot='4'],
+.ppl-pola[data-slot='5'] { display: none; }
+
+/* 엽서 — 선교사는 얼굴 대신 국기 우표 + 나라 수 소인 */
+.ppl-postcard {
+  --x: 58%;
+  --y: 6.9rem;
+  --r: -5deg;
+  --w: 8.6rem;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.55rem 0.6rem 0.5rem;
+  text-align: left;
+  background: #fffaf0;
+  border-radius: 0.2rem;
+  box-shadow: 0 14px 28px -14px rgba(60, 40, 10, 0.5), 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] .ppl-postcard {
+  background: #efe6d6;
+}
+
+.ppl-postcard-stamp {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 1.7rem;
+  background: #fff;
+  /* 우표 톱니 */
+  outline: 2px dotted rgba(120, 90, 40, 0.35);
+  outline-offset: -1px;
+  font-size: 1.05rem;
+}
+
+.ppl-postcard-mark {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.6rem;
+  padding: 0.3rem 0.35rem;
+  border: 1.5px solid rgba(184, 116, 42, 0.55);
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: rgba(184, 116, 42, 0.85);
+  transform: rotate(-14deg);
+  white-space: nowrap;
+}
+
+.ppl-postcard-hand {
+  margin-top: 1.55rem;
+  font-family: 'Nanum Pen Script', var(--font-serif-kr);
+  font-size: 1.1rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+  color: var(--ppl-pen);
+}
+
+.ppl-postcard-flags {
+  display: none;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.ppl-postcard-sub {
+  margin-top: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #8a7a62;
+}
+
+@media (min-width: 1024px) {
+  .ppl-pola {
+    --w: 9rem;
+    padding: 0.55rem 0.55rem 0;
   }
 
-  .ppl-stat {
-    gap: 0.3rem;
-    padding: 0.42rem 0.8rem;
-    font-size: 0.75rem;
+  .ppl-pola.is-lead {
+    --w: 10.5rem;
+  }
+
+  .ppl-pola-tape {
+    width: 3.8rem;
+    height: 1.3rem;
+    top: -0.7rem;
+  }
+
+  .ppl-pola-cap {
+    font-size: 1.3rem;
+    padding: 0.35rem 0 0.45rem;
+  }
+
+  .ppl-pola[data-slot='0'] { --x: 40%; --y: 3.4rem; --r: -2deg; }
+  .ppl-pola[data-slot='1'] { --x: 1%; --y: 1.2rem; --r: -7deg; }
+  .ppl-pola[data-slot='2'] { --x: 22%; --y: 0.3rem; --r: 4deg; }
+  .ppl-pola[data-slot='3'] { --x: 70%; --y: 0.6rem; --r: 6deg; display: block; }
+  .ppl-pola[data-slot='4'] { --x: 5%; --y: 12.2rem; --r: 4deg; display: block; }
+  .ppl-pola[data-slot='5'] { --x: 24%; --y: 12.8rem; --r: -5deg; display: block; }
+
+  .ppl-postcard {
+    --x: 68%;
+    --y: 13.2rem;
+    --r: -4deg;
+    --w: 12rem;
+    padding: 0.8rem 0.85rem 0.7rem;
+  }
+
+  .ppl-postcard-stamp {
+    width: 2.8rem;
+    height: 2.2rem;
+    font-size: 1.4rem;
+  }
+
+  .ppl-postcard-mark {
+    top: 1.9rem;
+    right: 2.3rem;
+    font-size: 0.72rem;
+  }
+
+  .ppl-postcard-hand {
+    margin-top: 2.1rem;
+    font-size: 1.45rem;
+  }
+
+  .ppl-postcard-flags {
+    display: flex;
+  }
+
+  .ppl-postcard-sub {
+    font-size: 0.8rem;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.ppl-pola:hover,
+  .ppl-postcard:hover {
+    z-index: 8;
+    transform: translateY(-0.25rem) rotate(0deg) scale(1.05);
+    box-shadow: 0 22px 36px -16px rgba(60, 40, 10, 0.55), 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+}
+
+button.ppl-pola:focus-visible,
+.ppl-postcard:focus-visible {
+  z-index: 8;
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+button.ppl-pola:active,
+.ppl-postcard:active {
+  transform: rotate(var(--r)) scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ppl-pola,
+  .ppl-postcard {
+    animation: none;
+    transition: none;
   }
 }
 
@@ -959,12 +1205,15 @@
   }
 
   .ppl-hero-title {
-    font-size: 1.9rem;
+    font-size: 2.5rem;
   }
 
   .ppl-hero-subtitle {
     font-size: 1.0625rem;
-    color: var(--text-body);
+  }
+
+  .ppl-hero-hand {
+    font-size: 1.75rem;
   }
 
   .ppl-hero .ppl-hero-admin {
@@ -972,14 +1221,18 @@
     font-size: 0.875rem;
   }
 
+  .ppl-stats {
+    gap: 0.35rem 1.4rem;
+    margin-top: 1.4rem;
+  }
+
   .ppl-stat {
-    padding: 0.5rem 0.85rem;
     font-size: 0.875rem;
     color: var(--text-body);
   }
 
   .ppl-stat-num {
-    font-size: 1.125rem;
+    font-size: 1.5rem;
   }
 
   /* 탭 · 검색 */

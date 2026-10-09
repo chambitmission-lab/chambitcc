@@ -36,6 +36,7 @@ import {
   withoutLeaderPeople,
 } from '../../types/people'
 import type { LeaderSlot, Person, PersonCategory } from '../../types/people'
+import PeopleAlbum from './PeopleAlbum'
 import PersonSheet from './PersonSheet'
 import './people.css'
 
@@ -141,6 +142,13 @@ const People = () => {
     setSearchParams({ tab: key }, { replace: true })
   }
 
+  // 엽서를 누르면 선교사 탭으로 바꾸고 목록 머리까지 내려간다
+  const tabsRef = useRef<HTMLElement>(null)
+  const openMissionaries = () => {
+    selectTab('missionary')
+    requestAnimationFrame(() => tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+
   const totalPeople = people.length
   const showSearch = active !== null && counts[active] >= 6
 
@@ -160,34 +168,54 @@ const People = () => {
                 {ko ? '인물 관리' : 'Manage'}
               </button>
             )}
-            <span className="ppl-hero-emblem">
-              <UsersThree size={28} weight="duotone" />
-            </span>
-            <span className="ppl-hero-badge">{ko ? '섬기는 사람들' : 'Our People'}</span>
-            <h1 className="ppl-hero-title">
-              {ko ? '함께 섬기는 얼굴들' : 'The faces who serve'}
-            </h1>
-            <p className="ppl-hero-subtitle">
-              {ko
-                ? '말씀과 기도로 참빛교회를 함께 세워가는 분들입니다. 궁금한 분을 누르면 담당 사역과 연락처를 볼 수 있어요.'
-                : 'Those who build Chambit Church together in word and prayer. Tap a card to see what they serve and how to reach them.'}
-            </p>
+            <div className="ppl-hero-text">
+              <span className="ppl-hero-badge">{ko ? '섬기는 사람들' : 'Our People'}</span>
+              <h1 className="ppl-hero-title">
+                {ko ? (
+                  <>
+                    함께 섬기는
+                    <br />
+                    얼굴들
+                  </>
+                ) : (
+                  <>
+                    The faces
+                    <br />
+                    who serve
+                  </>
+                )}
+              </h1>
+              <p className="ppl-hero-subtitle">
+                {ko
+                  ? '강단에서, 선교지에서, 주일 아침 문 앞에서. 참빛교회를 함께 세워가는 고마운 분들이에요.'
+                  : 'At the pulpit, in the mission field, at the door on Sunday morning — the people who build Chambit Church together.'}
+              </p>
+              <span className="ppl-hero-hand">{ko ? '늘 고맙습니다 ♡' : 'Thank you, always ♡'}</span>
 
-            {(totalPeople > 0 || leaderSlots.length > 0) && (
-              <div className="ppl-stats" aria-label={ko ? '한눈에 보기' : 'At a glance'}>
-                {PERSON_CATEGORIES.filter((c) => totalFor(c) > 0).map((c) => (
-                  <span key={c} className="ppl-stat">
-                    <strong className="ppl-stat-num">{totalFor(c)}</strong>
-                    {CATEGORY_LABEL[c][ko ? 'ko' : 'en']}
-                  </span>
-                ))}
-              </div>
-            )}
+              {(totalPeople > 0 || leaderSlots.length > 0) && (
+                <div className="ppl-stats" aria-label={ko ? '한눈에 보기' : 'At a glance'}>
+                  {PERSON_CATEGORIES.filter((c) => totalFor(c) > 0).map((c) => (
+                    <span key={c} className="ppl-stat">
+                      <strong className="ppl-stat-num">{totalFor(c)}</strong>
+                      {CATEGORY_LABEL[c][ko ? 'ko' : 'en']}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <PeopleAlbum
+              leaderSlots={leaderSlots}
+              people={people}
+              language={language}
+              onOpenPerson={setSelected}
+              onOpenMissionaries={openMissionaries}
+            />
           </header>
 
           {/* 탭 */}
           {tabs.length > 1 && (
-            <nav className="ppl-tabs" aria-label={ko ? '분류' : 'Categories'}>
+            <nav ref={tabsRef} className="ppl-tabs" aria-label={ko ? '분류' : 'Categories'}>
               {tabs.map((c) => {
                 const TabIcon = CATEGORY_ICON[c]
                 const count = totalFor(c)
