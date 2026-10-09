@@ -340,10 +340,11 @@
   font-size: 1.05rem;
 }
 
+/* 소인은 우표 왼쪽 위 — 아래 손글씨 줄과 겹치지 않게 엽서 윗단에만 */
 .ppl-postcard-mark {
   position: absolute;
-  top: 1.4rem;
-  right: 1.6rem;
+  top: 0.3rem;
+  right: 2.85rem;
   padding: 0.3rem 0.35rem;
   border: 1.5px solid rgba(184, 116, 42, 0.55);
   border-radius: 999px;
@@ -351,7 +352,7 @@
   font-weight: 800;
   letter-spacing: 0;
   color: rgba(184, 116, 42, 0.85);
-  transform: rotate(-14deg);
+  transform: rotate(-10deg);
   white-space: nowrap;
 }
 
@@ -421,8 +422,8 @@
   }
 
   .ppl-postcard-mark {
-    top: 1.9rem;
-    right: 2.3rem;
+    top: 0.5rem;
+    right: 3.75rem;
     font-size: 0.72rem;
   }
 
