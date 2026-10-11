@@ -62,7 +62,29 @@
     /* 띠의 바닥 — 붙었을 때 컨트롤이 목록에 바짝 붙지 않게 */
     padding-bottom: 0.6rem;
   }
-  .atl-sticky--stuck {
+  /* ★붙었을 때의 유리는 래퍼 전체가 아니라 ::before 한 장이다 — 래퍼는 화면 폭
+     그대로라, 거기에 배경을 깔면 안쪽(--atl-gut)에 들어앉은 지도 카드보다 양옆으로
+     1rem 씩 넓은 각진 "사각 박스"가 됐다(걸어보기가 목록을 따라 스크롤하면 바로 켜짐).
+     유리는 카드 좌우선보다 살짝(--atl-rim)만 넓게, 아래 모서리는 판처럼 둥글게.
+     목록 카드(.atl-stops)도 같은 --atl-gut 안쪽이라 이 폭으로 충분히 가려진다.
+     색은 테마 파일(light-art / dark-art)이 ::before 에 칠한다 */
+  .atl-sticky::before {
+    content: '';
+    position: absolute;
+    --atl-rim: 0.375rem;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--atl-gut) - var(--atl-rim));
+    right: calc(var(--atl-gut) - var(--atl-rim));
+    z-index: -1;
+    border-radius: 0 0 calc(var(--atl-panel-r) + var(--atl-rim))
+      calc(var(--atl-panel-r) + var(--atl-rim));
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+  }
+  .atl-sticky--stuck::before {
+    opacity: 1;
     box-shadow: 0 10px 18px -14px rgba(0, 0, 0, 0.5);
   }
 }

@@ -62,11 +62,12 @@
 @media (max-width: 1023px) {
   /* 고정된 지도 덩어리 — 목록이 밑으로 흘러 들어올 때(--stuck)만 유리를 켜 가린다.
      쉬고 있을 땐 투명해서 지도 카드가 그림 위에 그대로 선다 */
-  :root:not([data-theme='dark']) .atl-sticky--stuck {
+  :root:not([data-theme='dark']) .atl-sticky::before {
     background: rgba(255, 255, 255, 0.86);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(31, 50, 72, 0.1);
+    border: 1px solid rgba(31, 50, 72, 0.1);
+    border-top: 0;
   }
 
   /* 지점 목록 — 배경 위에 뜬 한 장의 카드.

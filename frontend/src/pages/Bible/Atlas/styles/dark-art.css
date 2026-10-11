@@ -40,11 +40,12 @@
 /* 헤드 유리판 없음 — 라이트와 같다(밤하늘 위 흰 글자 + 어두운 halo) */
 
 @media (max-width: 1023px) {
-  [data-theme='dark'] .atl-sticky--stuck {
+  [data-theme='dark'] .atl-sticky::before {
     background: rgba(19, 19, 19, 0.88);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 0;
   }
   [data-theme='dark'] .atl-stops {
     margin: 0.5rem var(--atl-gut) 0;
