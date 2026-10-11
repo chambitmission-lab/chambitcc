@@ -199,7 +199,7 @@ const DiscussionEditor = ({
         </div>
       ) : (
         <>
-          <ol className="mt-2.5 grid gap-2">
+          <ol className="mt-2.5 grid grid-cols-1 gap-2">
             {questions.map((q, i) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="mt-2 grid h-[22px] w-[22px] flex-none place-items-center rounded-full bg-[var(--brand-soft)] text-[12px] font-extrabold text-brand">
@@ -211,7 +211,7 @@ const DiscussionEditor = ({
                   maxLength={200}
                   aria-label={`나눔 질문 ${i + 1}`}
                   onChange={e => setQuestions(prev => prev.map((p, j) => (j === i ? e.target.value : p)))}
-                  className="min-w-0 flex-1 resize-none rounded-lg border border-gray-200 dark:border-white/[0.1] bg-transparent px-2.5 py-2 text-[14px] leading-relaxed text-gray-800 dark:text-white/85 focus:outline-none focus:ring-2 focus:ring-brand"
+                  className="w-full min-w-0 flex-1 resize-none rounded-lg border border-gray-200 dark:border-white/[0.1] bg-transparent px-2.5 py-2 text-[14px] leading-relaxed text-gray-800 dark:text-white/85 focus:outline-none focus:ring-2 focus:ring-brand"
                 />
                 <button
                   type="button"
