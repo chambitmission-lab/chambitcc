@@ -369,8 +369,14 @@ const noteAssetGen = async (html) => {
   } catch (e) { /* 메모리 값으로라도 동작한다 */ }
 };
 
+// /assets/ 자리에 온 HTML — 배포 직후 엣지에 아직 없는 청크를 Pages 가 SPA 폴백(index.html, 200)으로
+// 돌려준 것이다. 이걸 JS 로 캐시하면 그 화면은 새로고침해도 MIME 오류로 계속 깨진다.
+const isHtmlResponse = (response) =>
+  (response.headers.get('content-type') || '').includes('text/html');
+
 // 번들 응답에 현재 세대를 찍어서 캐시에 넣는다 (같은 출처 응답만 오므로 헤더 복사가 가능하다)
 const putAssetWithGen = async (cache, request, response) => {
+  if (isHtmlResponse(response)) return;
   const gen = await loadAssetGen();
   if (!gen) {
     await cache.put(request, response);
@@ -669,7 +675,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.open(ASSETS_CACHE).then((cache) =>
         cache.match(event.request).then((cached) => {
-          if (cached) return cached;
+          // 예전 SW 가 잘못 넣어 둔 HTML 은 버리고 다시 받는다
+          if (cached && !isHtmlResponse(cached)) return cached;
+          if (cached) cache.delete(event.request).catch(() => {});
           return fetch(event.request).then((response) => {
             if (response && response.ok) {
               putAssetWithGen(cache, event.request, response.clone()).catch(() => {});

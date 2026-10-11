@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { getAuthReason, login } from '../../api/auth'
+import { getAuthReason, getLoginRemaining, login } from '../../api/auth'
 import { establishSession } from '../../utils/auth'
 import { isApiError } from '../../api/utils/request'
 import { restorePushSubscriptionForUser } from '../../utils/pushNotification'
@@ -85,6 +85,10 @@ const Login = () => {
         let message = t('loginFailed')
         if (loginError.status === 401) {
           message = t('loginInvalidCredentials')
+          const remaining = getLoginRemaining(loginError)
+          if (remaining !== null) {
+            message += ' ' + t('loginRemainingAttempts').replace('{count}', String(remaining))
+          }
         } else if (loginError.status === 403) {
           const reason = getAuthReason(loginError)
           message =
@@ -92,7 +96,9 @@ const Login = () => {
               ? t('loginPendingApproval')
               : reason === 'rejected'
                 ? t('loginRejectedAccount')
-                : t('loginInactiveAccount')
+                : reason === 'locked'
+                  ? t('loginLockedAccount')
+                  : t('loginInactiveAccount')
           // 승인 대기는 "기다리면 되는 상태"라 경고가 아닌 안내 톤으로
           if (reason === 'pending_approval') setErrorTone('info')
         }

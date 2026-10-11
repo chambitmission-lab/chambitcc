@@ -24,7 +24,7 @@ export interface SignupPolicy {
 }
 
 /** 로그인 사유 코드 — 403 일 때 백엔드가 X-Auth-Reason 헤더로 구분해 준다 */
-export type AuthReason = 'pending_approval' | 'rejected' | 'inactive' | null
+export type AuthReason = 'pending_approval' | 'rejected' | 'locked' | 'inactive' | null
 
 /**
  * 로그인. 백엔드 detail 문구는 언어가 고정돼 있어 화면에서 status/reason 으로
@@ -48,8 +48,16 @@ export const login = (username: string, password: string): Promise<LoginResponse
 export const getAuthReason = (error: unknown): AuthReason => {
   if (!isApiError(error, 403)) return null
   const reason = error.response?.headers.get('X-Auth-Reason')
-  if (reason === 'pending_approval' || reason === 'rejected') return reason
+  if (reason === 'pending_approval' || reason === 'rejected' || reason === 'locked') return reason
   return 'inactive'
+}
+
+/** 401(비밀번호 틀림) 응답의 남은 시도 횟수 — 이만큼 더 틀리면 로그인이 잠긴다. 모르면 null */
+export const getLoginRemaining = (error: unknown): number | null => {
+  if (!isApiError(error, 401)) return null
+  const raw = error.response?.headers.get('X-Login-Remaining')
+  const n = raw == null ? NaN : Number(raw)
+  return Number.isFinite(n) ? n : null
 }
 
 export const register = (payload: RegisterPayload): Promise<RegisterResponse> =>

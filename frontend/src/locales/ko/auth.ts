@@ -14,6 +14,8 @@ export const auth = {
   loginFailed: '로그인에 실패했습니다',
   loginInvalidCredentials: '아이디 또는 비밀번호가 올바르지 않습니다',
   loginInactiveAccount: '비활성화된 계정입니다. 관리자에게 문의해주세요.',
+  loginRemainingAttempts: '{count}번 더 틀리면 로그인이 잠깁니다.',
+  loginLockedAccount: '비밀번호를 5번 틀려 로그인이 잠겼습니다. 관리자에게 비밀번호 초기화를 요청한 뒤 다시 로그인해주세요.',
   loginPendingApproval: '가입 승인 대기 중입니다. 관리자 승인 후 로그인할 수 있어요.',
   loginRejectedAccount: '가입이 승인되지 않았습니다. 관리자에게 문의해주세요.',
   loginNoAccount: '계정이 없으신가요?',

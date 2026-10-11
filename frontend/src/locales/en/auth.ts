@@ -14,6 +14,8 @@ export const auth = {
   loginFailed: 'Login failed',
   loginInvalidCredentials: 'Incorrect username or password',
   loginInactiveAccount: 'This account has been deactivated. Please contact an administrator.',
+  loginRemainingAttempts: '{count} more failed attempt(s) will lock your login.',
+  loginLockedAccount: 'Login is locked after 5 wrong passwords. Please ask an administrator to reset your password, then log in again.',
   loginPendingApproval: 'Your sign-up is awaiting approval. You can log in once an administrator approves it.',
   loginRejectedAccount: 'Your sign-up was not approved. Please contact an administrator.',
   loginNoAccount: "Don't have an account?",
