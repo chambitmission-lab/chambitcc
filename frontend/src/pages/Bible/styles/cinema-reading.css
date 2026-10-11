@@ -120,6 +120,17 @@
   text-shadow: 0 0 22px rgba(255, 240, 200, 0.22);
 }
 
+/* 예수님 말씀 — 본문(/bible)의 붉은 글씨와 같은 뜻. 영화관은 늘 어두우니 살구빛 붉은색,
+   낭독이 지나가기 전엔 다른 어절처럼 흐리게 두었다가 같은 박자로 밝아진다 */
+.cinema-word.is-jesus {
+  color: rgba(244, 169, 159, 0.4);
+}
+
+.cinema-word.is-jesus.is-lit {
+  color: #f6b0a6;
+  text-shadow: 0 0 22px rgba(255, 170, 150, 0.22);
+}
+
 .cinema-verse__ref {
   display: inline-block;
   margin-top: 1.75rem;

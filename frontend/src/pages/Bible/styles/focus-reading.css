@@ -153,6 +153,12 @@
   margin: 0;
 }
 
+/* 예수님 말씀 — 본문(/bible)의 붉은 글씨와 같은 뜻. 몰입 화면은 앱 테마와 무관하게
+   늘 어두운 하늘이라 다크 톤(살구빛 붉은색)으로 고정한다 */
+.focus-jesus-words {
+  color: #f4a99f;
+}
+
 /* 긴 절은 화면을 넘기지 않도록 단계적으로 줄인다 */
 .focus-slide__text.is-long {
   font-size: calc(1.1875rem * var(--bible-font-scale, 1) * var(--focus-scale, 1));

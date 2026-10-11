@@ -16,6 +16,7 @@ import {
   saveImmersiveScaleIdx,
   stepImmersiveScaleIdx,
 } from './immersiveScale'
+import { useChapterJesusWords } from '../hooks/useJesusWords'
 import '../styles/cinema-reading.css'
 
 /**
@@ -245,6 +246,24 @@ const CinemaReading = ({
     [currentVerseObj]
   )
 
+  // 예수님 말씀인 어절 — 낭독 하이라이트가 어절 단위라 어절마다 표시한다
+  // (읽기 설정 "예수님 말씀 색"을 따른다)
+  const jesusRangesOf = useChapterJesusWords(bookNumber, chapter)
+  const jesusWordSet = useMemo(() => {
+    const set = new Set<number>()
+    if (!currentVerseObj) return set
+    const ranges = jesusRangesOf(currentVerseObj.verse, currentVerseObj.text)
+    if (!ranges.length) return set
+    const re = /\S+/g
+    let m: RegExpExecArray | null
+    for (let i = 0; (m = re.exec(currentVerseObj.text)); i++) {
+      const start = m.index
+      const end = start + m[0].length
+      if (ranges.some(r => r.start < end && r.end > start)) set.add(i)
+    }
+    return set
+  }, [currentVerseObj, jesusRangesOf])
+
   // ── 단어 보간 하이라이트 — 절 시작~다음 절 시작 사이를 글자 수 비례로 나눈다 ──
   const [litCount, setLitCount] = useState(0)
   useEffect(() => {
@@ -388,7 +407,10 @@ const CinemaReading = ({
           <div key={`${chapter}-${currentVerseObj.verse}`} className="cinema-verse">
             <p className="cinema-verse__text">
               {words.map((w, i) => (
-                <span key={i} className={`cinema-word${i < effectiveLit ? ' is-lit' : ''}`}>
+                <span
+                  key={i}
+                  className={`cinema-word${jesusWordSet.has(i) ? ' is-jesus' : ''}${i < effectiveLit ? ' is-lit' : ''}`}
+                >
                   {w}
                   {i < words.length - 1 ? ' ' : ''}
                 </span>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { visibleVerses, verseNumberLabel } from './mergedVerses'
 import { useBibleChapter } from '../../../hooks/useBible'
@@ -11,6 +11,8 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useWakeLock } from '../../PrayerFocus/useWakeLock'
 import { showToast } from '../../../utils/toast'
 import VerseBookmarkModal from './VerseBookmarkModal'
+import { useChapterJesusWords } from '../hooks/useJesusWords'
+import type { TextRange } from './verse/verseTextSegments'
 import type { BibleVerse } from '../../../types/bible'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
 import {
@@ -20,6 +22,24 @@ import {
   stepImmersiveScaleIdx,
 } from './immersiveScale'
 import '../styles/focus-reading.css'
+
+/** 예수님 말씀 구간만 span 으로 감싸 칠한다 (읽기 설정 "예수님 말씀 색"을 따른다) */
+const paintJesusWords = (text: string, ranges: TextRange[]): ReactNode => {
+  if (!ranges.length) return text
+  const parts: ReactNode[] = []
+  let cursor = 0
+  for (const r of ranges) {
+    if (r.start > cursor) parts.push(text.slice(cursor, r.start))
+    parts.push(
+      <span key={r.start} className="focus-jesus-words">
+        {text.slice(r.start, r.end)}
+      </span>
+    )
+    cursor = r.end
+  }
+  if (cursor < text.length) parts.push(text.slice(cursor))
+  return parts
+}
 
 /**
  * 집중 읽기 — 한 화면에 한 절만 띄우고 위로 쓸어올려 다음 절로 넘어가는 몰입 모드.
@@ -86,6 +106,7 @@ const FocusReading = ({
   // 해석이 있는 장이면 본문을 idle에 미리 받아 둔다 (패널은 이 화면에선 정적 import)
   usePrefetchChapterCommentaries(bookNumber, chapter, (chapterCommentaries?.items.length ?? 0) > 0)
   const markAsRead = useMarkVerseAsRead()
+  const jesusRangesOf = useChapterJesusWords(bookNumber, chapter)
 
   const [activeIndex, setActiveIndex] = useState(0)
   // 본문을 탭하면 열리는 보조 도구(해석). 기본은 접힘 — 본문 외 요소가 시선을 끌지 않게.
@@ -441,7 +462,7 @@ const FocusReading = ({
                   className={`focus-slide__text${lengthClass}${hasCommentary ? ' has-tools' : ''}`}
                   onClick={hasCommentary && i === activeIndex ? () => setToolsOpen(o => !o) : undefined}
                 >
-                  {v.text}
+                  {paintJesusWords(v.text, jesusRangesOf(v.verse, v.text))}
                 </p>
                 {/* 역본 라벨은 두지 않는다 — 개역개정 단일 역본이라 무정보 반복.
                     역본 표기는 본문이 앱 밖으로 나가는 복사·공유 경로에서만 붙는다 */}
