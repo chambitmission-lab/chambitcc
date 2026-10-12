@@ -3,6 +3,7 @@
 //  - jesusWords: 복음서 등에서 예수님이 하신 말씀을 다른 색으로 (data/jesusWords)
 //  - crossRefs: 신약의 구약 인용·복음서 평행 본문 칩 (data/crossRefs)
 // 저장·전파 방식은 readerIntroCards 와 같다 — 바꾸는 즉시 열린 본문에 반영.
+// 기본은 셋 다 끔 — 처음 보는 분들이 칩·색·풀이를 헷갈려 해서, 원하는 분만 Aa에서 켜도록.
 
 export interface ReadingAids {
   paraphrase: boolean
@@ -11,7 +12,7 @@ export interface ReadingAids {
 }
 
 const STORAGE_KEY = 'bible-reading-aids'
-const DEFAULTS: ReadingAids = { paraphrase: true, jesusWords: true, crossRefs: true }
+const DEFAULTS: ReadingAids = { paraphrase: false, jesusWords: false, crossRefs: false }
 
 let cache: ReadingAids | null = null
 const listeners = new Set<() => void>()
@@ -22,9 +23,9 @@ export const getReadingAids = (): ReadingAids => {
       const raw = localStorage.getItem(STORAGE_KEY)
       const p = raw ? JSON.parse(raw) : {}
       cache = {
-        paraphrase: p.paraphrase !== false,
-        jesusWords: p.jesusWords !== false,
-        crossRefs: p.crossRefs !== false,
+        paraphrase: p.paraphrase === true,
+        jesusWords: p.jesusWords === true,
+        crossRefs: p.crossRefs === true,
       }
     } catch {
       cache = DEFAULTS
