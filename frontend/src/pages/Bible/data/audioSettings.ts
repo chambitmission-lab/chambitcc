@@ -5,13 +5,14 @@
 import { useSyncExternalStore } from 'react'
 import type { BibleTTSVoice } from '../../../types/bible'
 
-// 1.5× 이상은 말씀 듣기엔 너무 빨라 뺐다. 저장된 값이 목록 밖이면 loadRate가 1로 되돌린다.
+// 1.5× 이상은 말씀 듣기엔 너무 빨라 뺐다. 저장값이 없거나 목록 밖이면 기본 배속(1.2×)으로 둔다.
 export const RATE_OPTIONS = [1, 1.2, 1.25]
+export const DEFAULT_RATE = 1.2
 
 export interface AudioSettings {
   voice: BibleTTSVoice
   rate: number
-  /** 장이 끝나면 다음 장을 자동 재생 (기본 켬) */
+  /** 장이 끝나면 다음 장을 자동 재생 (기본 끔 — 이 장만) */
   autoNext: boolean
   /** 플레이어 카드 접힘 — 기본은 펼침(기능 발견성). 한 번 접으면 장을 옮겨도 기억 */
   collapsed: boolean
@@ -47,13 +48,13 @@ const loadVoice = (): BibleTTSVoice => 'male'
 
 const loadRate = (): number => {
   const r = Number(read(KEYS.rate))
-  return RATE_OPTIONS.includes(r) ? r : 1
+  return RATE_OPTIONS.includes(r) ? r : DEFAULT_RATE
 }
 
 const load = (): AudioSettings => ({
   voice: loadVoice(),
   rate: loadRate(),
-  autoNext: read(KEYS.autoNext) !== 'off',
+  autoNext: read(KEYS.autoNext) === 'on',
   collapsed: read(KEYS.collapsed) === 'on',
 })
 
