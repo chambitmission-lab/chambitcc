@@ -59,6 +59,8 @@ import { confirmDialog } from '../../utils/confirmDialog'
 import { prayerToastFeedback } from '../../components/prayer/prayerFeedback'
 import { holdSecondaryRequests, releaseSecondaryRequests } from '../../utils/requestPriority'
 
+const PRAYER_SORT_KEY = 'home-prayer-sort'
+
 // PC 피드 컬럼 폭 — 글씨를 키우면 한 줄에 담기는 글자가 줄어(480px·17px ≈ 24자) 줄바꿈이 잦아진다.
 // 배율만큼 컬럼도 넓혀 한 줄 글자 수를 비슷하게 지킨다. 위 공지 배너 폭도 같은 차이만큼 맞춘다
 // (컬럼 합계 + lg:px-6 — 피드 480 + 사이드바 368 + 레일 312, gap 32).
@@ -99,7 +101,24 @@ const NewHome = () => {
   const [showThanksComposer, setShowThanksComposer] = useState(false)
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
   const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
-  const [sort, setSort] = useState<SortType>('popular')
+  // 정렬은 마지막 선택을 이 기기에 기억한다(개인 편의) — 다시 들어와도 고른 순서 그대로
+  const [sort, setSortState] = useState<SortType>(() => {
+    try {
+      const v = localStorage.getItem(PRAYER_SORT_KEY)
+      if (v === 'popular' || v === 'latest') return v
+    } catch {
+      /* 저장소를 못 쓰는 환경 — 기본값 */
+    }
+    return 'popular'
+  })
+  const setSort = useCallback((next: SortType) => {
+    setSortState(next)
+    try {
+      localStorage.setItem(PRAYER_SORT_KEY, next)
+    } catch {
+      /* 저장 실패는 무시 — 이번 방문엔 그대로 적용 */
+    }
+  }, [])
   // 기도방 홈에서 "이 방의 기도 보러 가기"로 진입하면 ?group=ID 로 필터를 미리 선택
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(() => {
     const g = new URLSearchParams(location.search).get('group')
