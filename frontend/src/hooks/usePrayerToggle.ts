@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addPrayer, removePrayer } from '../api/prayer'
 import { prayerKeys } from './usePrayersQuery'
 import { groupKeys } from './useGroups'
-import type { Prayer, SortType } from '../types/prayer'
+import type { Prayer } from '../types/prayer'
 import type { PrayerListCache } from '../types/queryCache'
 import type { ProfileDetail } from '../types/profile'
 import { profileKeys } from './queryKeys'
@@ -75,9 +75,6 @@ export const usePrayerToggle = ({
     const previousListEntries = queryClient.getQueriesData({ queryKey: prayerKeys.lists() })
 
     previousListEntries.forEach(([listKey]) => {
-      // prayerKeys.list 구조: ['prayers', 'list', sort, groupId, filter, username, answered]
-      const listSort = listKey[2] as SortType | undefined
-
       queryClient.setQueryData<PrayerListCache>(listKey, (old) => {
         if (!old) return old
 
@@ -100,13 +97,9 @@ export const usePrayerToggle = ({
           },
         }))
 
-        // 따뜻한 관심순일 때만 정렬 (prayer_count 내림차순)
-        if (listSort === 'popular') {
-          updatedPages.forEach((page) => {
-            page.data.items.sort((a: Prayer, b: Prayer) => b.prayer_count - a.prayer_count)
-          })
-        }
-
+        // 순서는 건드리지 않는다 — 따뜻한 관심순은 서버의 score(작성 부스트+반응+시간 감쇠)
+        // 정렬이라 prayer_count 로 다시 줄 세우면 오래된 인기 글이 맨 위로 튀어 올라온다.
+        // 카드가 손가락 밑에서 자리를 옮기지 않게 카운트만 바꾸고, 새 순서는 다음 재조회 때 반영된다.
         return {
           ...old,
           pages: updatedPages,
