@@ -22,6 +22,8 @@ export const homeRoutes = (
     <Route path="/feed" element={<NewHome />} />
     {/* 로그인(관리자) 상태에서도 비로그인 랜딩을 열어 카피를 편집·미리보기 */}
     <Route path="/welcome" element={<Landing />} />
+    {/* 첫 화면 개편 비교 — 예전 랜딩(히어로·FAQ)을 성도 의견 수렴 동안 남겨 둔다 */}
+    <Route path="/welcome/classic" element={<Landing variant="classic" />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
     <Route path="/profile" element={<Profile />} />

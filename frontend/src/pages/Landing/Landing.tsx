@@ -3,22 +3,30 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useSermons } from '../../hooks/useSermons'
 import { useEvents } from '../../hooks/useEvents'
 import HeroSection from './components/HeroSection'
+import SundayStory from './components/SundayStory'
 import FaqSection from './components/FaqSection'
 import PillarsSection from './components/PillarsSection'
 import DemoSection from './components/DemoSection'
 import QuizSection from './components/QuizSection'
 import ThisWeekSection from './components/ThisWeekSection'
 import ClosingCta from './components/ClosingCta'
+import { CompareFeedback, CompareNotice, type LandingVariant } from './components/LandingCompare'
+import ClassicHeroSection from './classic/ClassicHeroSection'
+import ClassicFaqSection from './classic/ClassicFaqSection'
 import './Landing.css'
 import { can } from '../../utils/access'
 
 // 비로그인 방문자용 메인 — 로그인 교인은 App의 HomeGate가 기도 피드 홈(NewHome)을 보여준다.
 //
-// "교회 홈페이지" 문법(정보 나열)이 아니라 제품 랜딩 문법으로 구성한다:
-//   히어로(큰 약속 + 살아있는 숫자) → 유머 FAQ(첫 방문 불안 해소) → 3기둥(설교·성경공부·스마트)
+// "교회 홈페이지" 문법(정보 나열)이 아니라 처음 오는 사람의 하루로 구성한다:
+//   히어로(예배당 사진 + 한 문장) → 주일 아침 한 장면씩(도착~커피 90분 미리 겪기)
+//   → 솔직히, 걱정되는 것들(유머 FAQ, 짙은 면) → 3기둥(설교·성경공부·스마트)
 //   → 직접 써보기(참비·통독표 도장·말씀 카드) → 성도 테스트(공유) → 이번 주(예배 카운트다운·일정)
 //   → 마무리 두 갈래(와보세요 / 앱으로). 가입 CTA는 마지막에서만 주연이다.
 // 히어로·FAQ 카피는 about_content.fields 에 저장돼 관리자가 화면에서 바로 고친다.
+//
+// 2026-10 시범: 예전 첫 화면(히어로 사진+숫자 띠 → 아코디언 FAQ)을 /welcome/classic 에 남겨
+// 성도가 두 화면을 오가며 고르게 한다. 히어로·FAQ 자리만 갈리고 아래 섹션은 같다.
 
 const toDateString = (d: Date) => {
   const y = d.getFullYear()
@@ -27,7 +35,7 @@ const toDateString = (d: Date) => {
   return `${y}-${m}-${day}`
 }
 
-const Landing = () => {
+const Landing = ({ variant = 'new' }: { variant?: LandingVariant }) => {
   const { language } = useLanguage()
   const ko = language === 'ko'
   const isAdminUser = can('content:manage')
@@ -37,8 +45,8 @@ const Landing = () => {
   const rangeEnd = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000)
   const { events } = useEvents(toDateString(today), toDateString(rangeEnd))
 
-  const scrollToTour = useCallback(() => {
-    const el = document.getElementById('tour')
+  const scrollToId = useCallback((id: string) => {
+    const el = document.getElementById(id)
     if (!el) return
     // 이 앱은 window가 아니라 #root가 스크롤 컨테이너라 window.scrollTo는 아무 일도 하지 않는다.
     // 컨테이너를 가리지 않는 scrollIntoView만 쓴다 (헤더 오프셋은 섹션의 scroll-mt-20이 처리).
@@ -53,13 +61,23 @@ const Landing = () => {
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen page-stage">
-      <HeroSection isAdmin={isAdminUser} ko={ko} onTour={scrollToTour} />
+      <CompareNotice variant={variant} ko={ko} />
+      {variant === 'classic' ? (
+        <ClassicHeroSection isAdmin={isAdminUser} ko={ko} onTour={() => scrollToId('tour')} />
+      ) : (
+        <>
+          <HeroSection isAdmin={isAdminUser} ko={ko} onStory={() => scrollToId('sunday')} />
+          <SundayStory isAdmin={isAdminUser} ko={ko} />
+          <FaqSection isAdmin={isAdminUser} ko={ko} onAsk={() => scrollToId('tour')} />
+        </>
+      )}
       <div className="max-w-[1040px] mx-auto px-5 pb-20">
-        <FaqSection isAdmin={isAdminUser} ko={ko} onAsk={scrollToTour} />
+        {variant === 'classic' && <ClassicFaqSection isAdmin={isAdminUser} ko={ko} onAsk={() => scrollToId('tour')} />}
         <PillarsSection ko={ko} sermons={sermons ?? []} />
         <DemoSection ko={ko} />
         <QuizSection ko={ko} />
         <ThisWeekSection ko={ko} events={events} />
+        <CompareFeedback variant={variant} ko={ko} />
         <ClosingCta ko={ko} />
       </div>
     </div>

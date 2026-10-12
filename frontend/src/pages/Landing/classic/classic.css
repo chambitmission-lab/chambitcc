@@ -1,0 +1,124 @@
+/* 예전 첫 화면 전용 — 히어로 강조 밑줄·FAQ 카드 (/welcome/classic) */
+
+/* 히어로 타이틀 강조 밑줄 — 브랜드 블루 번짐 */
+.ld-hero-title em {
+  font-style: normal;
+  background: linear-gradient(transparent 62%, rgba(49, 130, 246, 0.45) 62%);
+  border-radius: 2px;
+}
+/* PC 2단: 사진이 아니라 캔버스 위라 형광 밑줄 대신 브랜드 블루 글씨 + 손그림 밑줄 */
+@media (min-width: 1024px) {
+  .ld-hero-title em {
+    background: none;
+    color: var(--brand);
+    position: relative;
+    display: inline-block;
+  }
+  /* 박음질(running stitch) 밑줄 — /worship '오늘' 칩의 인장 문법(안쪽 점선 압인 링)을
+     밑줄로 옮긴 것. 옅은 시접 물결 위에 점선 실땀이 얹힌다.
+     색은 마스크 + currentColor 라 라이트/다크의 --brand 를 그대로 따라간다. */
+  .ld-hero-title em::after {
+    content: '';
+    position: absolute;
+    left: 0.02em;
+    right: 0.02em;
+    bottom: -0.16em;
+    height: 0.3em;
+    pointer-events: none;
+    background-color: currentColor;
+    -webkit-mask: var(--ld-stitch) no-repeat left center / 100% 100%;
+    mask: var(--ld-stitch) no-repeat left center / 100% 100%;
+    /* 왼쪽에서 오른쪽으로 한 땀씩 꿰매지듯 들어온다(1회) */
+    animation: ld-stitch-in 0.85s 0.3s cubic-bezier(0.22, 0.85, 0.25, 1) both;
+  }
+}
+
+/* 실땀(점선, 진하게) + 그 아래 시접(굵고 옅게) 두 겹 */
+.ld-hero-title em {
+  --ld-stitch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M3 11.5 C 40 5, 80 16.5, 120 10 S 180 5, 197 11' fill='none' stroke='%23fff' stroke-width='4.6' stroke-linecap='round' opacity='0.16'/%3E%3Cpath d='M3 8 C 40 1.5, 80 13, 120 6.5 S 180 1.5, 197 7.5' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-dasharray='9 6.5'/%3E%3C/svg%3E");
+}
+@keyframes ld-stitch-in {
+  from { -webkit-mask-size: 0% 100%; mask-size: 0% 100%; }
+  to { -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ld-hero-title em::after { animation: none; }
+}
+
+/* 히어로 라이트 가독성 — 스크림 없는 원색 사진 위의 흰 글씨를 받치는 그림자.
+   밝은 하늘·흰 셔츠 위에서도 윤곽이 살도록 가까운 진한 그림자 + 넓은 번짐을 겹친다.
+   다크는 검정 스크림이 있어 끈다. */
+.ld-hero-halo {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 2px 10px rgba(0, 0, 0, 0.65),
+    0 8px 28px rgba(0, 0, 0, 0.55);
+}
+:where(.dark) .ld-hero-halo { text-shadow: none; }
+/* PC 2단: 글씨가 캔버스 위라 그림자 불필요. 기본 규칙보다 뒤에 있어야 이긴다(같은 특이도). */
+@media (min-width: 1024px) { .ld-hero-halo { text-shadow: none; } }
+
+/* 히어로 숫자 티커 */
+.ld-ticker-num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* FAQ 펼침 — grid-template-rows 트릭으로 높이 애니메이션 */
+.ld-faq-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ld-faq-body.is-open { grid-template-rows: 1fr; }
+.ld-faq-body > div { overflow: hidden; }
+
+/* FAQ 카드 — 닫힘은 평범한 피드 카드, 열림은 유리 질감 + 1px 포인트 테두리 + 브랜드 후광 */
+.ld-faq-card {
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.2s ease;
+}
+.ld-faq-card:hover {
+  border-color: var(--brand-soft-strong);
+}
+.ld-faq-card.is-open {
+  border-color: var(--brand);
+  background: linear-gradient(180deg, var(--brand-soft), transparent 55%), var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
+    0 0 0 3px var(--brand-soft-strong),
+    0 14px 30px -14px var(--brand-glow);
+}
+
+/* 6번째 칸 — 참비 CTA 타일 (브랜드 반전, 히어로 버튼과 같은 인장 문법) */
+.ld-faq-cta {
+  position: relative;
+  color: #fff;
+  border: 1px solid transparent;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.22), transparent 42%),
+    linear-gradient(150deg, #4593fc, #2b78ee 70%, #1b6ef3);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 10px 24px -10px var(--brand-glow);
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ld-faq-cta::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+.ld-faq-cta:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 16px 30px -10px var(--brand-glow);
+}

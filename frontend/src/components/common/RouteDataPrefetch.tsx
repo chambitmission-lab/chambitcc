@@ -56,7 +56,7 @@ const RouteDataPrefetch = () => {
     }
     // 비로그인 랜딩 — 히어로 사진 URL 이 /about-content 응답에 있어 청크 뒤에 API, 그 뒤에
     // 이미지가 오는 3단 체인이었다. API 를 청크와 같은 시점에 띄운다.
-    if ((pathname === '/' || pathname === '/welcome') && !tokenStore.getAccess()) {
+    if ((pathname === '/' || pathname.startsWith('/welcome')) && !tokenStore.getAccess()) {
       prefetchAboutContent(queryClient)
     }
     // 테마별 히어로 삽화(CSS 배경)는 엘리먼트가 렌더된 뒤에야 요청이 나간다 — 청크와 나란히

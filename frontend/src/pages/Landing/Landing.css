@@ -14,127 +14,348 @@
   .ld-reveal { opacity: 1; transform: none; transition: none; }
 }
 
-/* 히어로 타이틀 강조 밑줄 — 브랜드 블루 번짐 */
-.ld-hero-title em {
-  font-style: normal;
-  background: linear-gradient(transparent 62%, rgba(49, 130, 246, 0.45) 62%);
-  border-radius: 2px;
+/* ── 히어로: 예배당 사진 한 장 + 한 문장 ──
+   모바일은 풀블리드(헤더 56px 를 뺀 한 화면), PC 는 1240px 라운드 무대(사진 원본 폭을 넘겨 늘리지 않는다).
+   사진 위 글씨라 라이트/다크 모두 같은 어두운 스크림 — 테마에 따라 바뀌지 않는 '영화 첫 장면'. */
+.ld-cine-wrap {
+  position: relative;
 }
-/* PC 2단: 사진이 아니라 캔버스 위라 형광 밑줄 대신 브랜드 블루 글씨 + 손그림 밑줄 */
+.ld-cine {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  min-height: 560px;
+  height: calc(100svh - 56px);
+  max-height: 860px;
+  background: #0b1324;
+  isolation: isolate;
+}
 @media (min-width: 1024px) {
-  .ld-hero-title em {
-    background: none;
-    color: var(--brand);
-    position: relative;
-    display: inline-block;
-  }
-  /* 박음질(running stitch) 밑줄 — /worship '오늘' 칩의 인장 문법(안쪽 점선 압인 링)을
-     밑줄로 옮긴 것. 옅은 시접 물결 위에 점선 실땀이 얹힌다.
-     색은 마스크 + currentColor 라 라이트/다크의 --brand 를 그대로 따라간다. */
-  .ld-hero-title em::after {
-    content: '';
-    position: absolute;
-    left: 0.02em;
-    right: 0.02em;
-    bottom: -0.16em;
-    height: 0.3em;
-    pointer-events: none;
-    background-color: currentColor;
-    -webkit-mask: var(--ld-stitch) no-repeat left center / 100% 100%;
-    mask: var(--ld-stitch) no-repeat left center / 100% 100%;
-    /* 왼쪽에서 오른쪽으로 한 땀씩 꿰매지듯 들어온다(1회) */
-    animation: ld-stitch-in 0.85s 0.3s cubic-bezier(0.22, 0.85, 0.25, 1) both;
+  .ld-cine-wrap { max-width: 1240px; margin: 0 auto; padding: 20px 20px 0; }
+  .ld-cine {
+    height: min(calc(100vh - 96px), 760px);
+    min-height: 600px;
+    border-radius: 28px;
+    box-shadow: 0 30px 60px -36px rgba(8, 15, 30, 0.6);
   }
 }
-
-/* 실땀(점선, 진하게) + 그 아래 시접(굵고 옅게) 두 겹 */
-.ld-hero-title em {
-  --ld-stitch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M3 11.5 C 40 5, 80 16.5, 120 10 S 180 5, 197 11' fill='none' stroke='%23fff' stroke-width='4.6' stroke-linecap='round' opacity='0.16'/%3E%3Cpath d='M3 8 C 40 1.5, 80 13, 120 6.5 S 180 1.5, 197 7.5' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-dasharray='9 6.5'/%3E%3C/svg%3E");
+.ld-cine-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 55%;
+  z-index: -2;
+  transform: scale(1.07);
+  animation: ld-cine-settle 14s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
-@keyframes ld-stitch-in {
-  from { -webkit-mask-size: 0% 100%; mask-size: 0% 100%; }
-  to { -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+.ld-cine-photo--empty {
+  background: radial-gradient(120% 90% at 70% 10%, #2b5aa6 0%, #12294f 45%, #0b1324 100%);
+}
+@keyframes ld-cine-settle { to { transform: scale(1); } }
+.ld-cine-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(8, 15, 30, 0.35) 0%, rgba(8, 15, 30, 0.12) 30%, rgba(8, 15, 30, 0.55) 62%, rgba(8, 15, 30, 0.9) 100%),
+    linear-gradient(90deg, rgba(8, 15, 30, 0.45) 0%, rgba(8, 15, 30, 0) 60%);
+}
+.ld-cine-copy {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px 44px;
+  color: #fff;
+}
+@media (min-width: 1024px) { .ld-cine-copy { padding: 0 64px 56px; margin: 0; } }
+.ld-cine-title {
+  font-family: 'Gowun Batang', var(--font-serif-kr);
+  font-weight: 700;
+  font-size: clamp(44px, 11vw, 60px);
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+  word-break: keep-all;
+}
+@media (min-width: 1024px) { .ld-cine-title { font-size: clamp(64px, 6vw, 92px); line-height: 1.1; } }
+/* 스크롤 안내 — 위에서 아래로 흘러내리는 실선 */
+.ld-cine-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+}
+.ld-cine-hint:hover { color: #fff; }
+.ld-cine-hint i {
+  width: 1px;
+  height: 34px;
+  background: currentColor;
+  animation: ld-drip 1.9s ease-in-out infinite;
+}
+@keyframes ld-drip {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  50.1% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ld-hero-title em::after { animation: none; }
+  .ld-cine-photo { animation: none; transform: none; }
+  .ld-cine-hint i { animation: none; }
 }
 
-/* 히어로 라이트 가독성 — 스크림 없는 원색 사진 위의 흰 글씨를 받치는 그림자.
-   밝은 하늘·흰 셔츠 위에서도 윤곽이 살도록 가까운 진한 그림자 + 넓은 번짐을 겹친다.
-   다크는 검정 스크림이 있어 끈다. */
-.ld-hero-halo {
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.8),
-    0 2px 10px rgba(0, 0, 0, 0.65),
-    0 8px 28px rgba(0, 0, 0, 0.55);
+/* ── 주일 아침, 한 장면씩 ── */
+.ld-story {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
-:where(.dark) .ld-hero-halo { text-shadow: none; }
-/* PC 2단: 글씨가 캔버스 위라 그림자 불필요. 기본 규칙보다 뒤에 있어야 이긴다(같은 특이도). */
-@media (min-width: 1024px) { .ld-hero-halo { text-shadow: none; } }
+.ld-story-grid { display: block; }
+/* 모바일: 헤더(56px) 바로 아래 붙는 시계 띠 */
+.ld-clock {
+  position: sticky;
+  top: 56px;
+  z-index: 5;
+  margin: 0 -20px;
+  padding: 14px 20px 12px;
+  background: rgba(241, 243, 246, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+:where(.dark) .ld-clock { background: rgba(19, 19, 19, 0.9); }
+.ld-clock-basis { display: none; }
+.ld-clock-row { display: flex; align-items: baseline; gap: 12px; }
+.ld-clock-time {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+  animation: ld-tick 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes ld-tick { from { opacity: 0; transform: translateY(8px); } }
+.ld-clock-label { font-size: 16px; font-weight: 700; color: var(--text-strong); }
+.ld-clock-bar { margin-top: 10px; height: 3px; border-radius: 3px; background: rgba(0, 0, 0, 0.08); overflow: hidden; }
+:where(.dark) .ld-clock-bar { background: rgba(255, 255, 255, 0.1); }
+.ld-clock-bar i { display: block; height: 100%; background: var(--brand); border-radius: 3px; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+.ld-clock-steps { display: none; }
+
+.ld-scene { padding: 28px 0 44px; }
+.ld-scene-art {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.05);
+}
+/* 교회 외관은 세로 사진 — 4:3 에 넣으면 건물 위아래가 잘려 사진 비율 그대로 보여준다 */
+.ld-scene-art--tall {
+  aspect-ratio: 570 / 776;
+  width: min(100%, 400px);
+}
+.ld-scene-tag {
+  margin-top: 22px;
+  display: flex;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.ld-scene-title {
+  margin-top: 8px;
+  font-family: 'Gowun Batang', var(--font-serif-kr);
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  white-space: pre-line;
+  word-break: keep-all;
+}
+.ld-scene-body {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--text-muted);
+  white-space: pre-line;
+  word-break: keep-all;
+}
+.ld-scene-link {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .ld-story { padding: 0 40px; }
+  .ld-story-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 72px;
+    padding-top: 40px;
+  }
+  .ld-clock {
+    top: 22vh;
+    height: fit-content;
+    margin: 0;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  :where(.dark) .ld-clock { background: none; }
+  .ld-clock-basis { display: block; font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; }
+  .ld-clock-row { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .ld-clock-time { font-size: clamp(88px, 9vw, 128px); }
+  .ld-clock-label { font-size: 22px; }
+  .ld-clock-bar { margin-top: 28px; height: 4px; }
+  .ld-clock-steps {
+    display: grid;
+    gap: 10px;
+    margin-top: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .ld-clock-steps li { display: flex; gap: 12px; transition: color 0.3s, opacity 0.3s; opacity: 0.5; }
+  .ld-clock-steps li span { width: 44px; font-variant-numeric: tabular-nums; }
+  .ld-clock-steps li.is-past { opacity: 0.8; }
+  .ld-clock-steps li.is-on { opacity: 1; color: var(--brand); }
+
+  .ld-scene {
+    min-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 0;
+    opacity: 0.28;
+    transition: opacity 0.5s ease;
+  }
+  .ld-scene.is-on { opacity: 1; }
+  .ld-scene-tag { display: none; }
+  .ld-scene-art { border-radius: 24px; }
+  .ld-scene-title { margin-top: 28px; font-size: 32px; }
+  .ld-scene-body { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ld-clock-time { animation: none; }
+  .ld-scene { transition: none; }
+}
+
+.ld-story-end {
+  text-align: center;
+  padding: 48px 0 88px;
+}
+.ld-story-end-title {
+  font-family: 'Gowun Batang', var(--font-serif-kr);
+  font-weight: 700;
+  font-size: clamp(32px, 8vw, 56px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  white-space: pre-line;
+  word-break: keep-all;
+}
+@media (min-width: 1024px) { .ld-story-end { padding: 96px 0 120px; } }
+
+/* ── 솔직히, 걱정되는 것들 — 잡지 각주 ──
+   짙은 면이 화면 끝까지. 라이트에선 유일한 어두운 띠라 시선이 멈추고, 다크에선 배경보다 한 단 띄운 면. */
+.ld-worry {
+  background: #0e1626;
+  color: #eef2f8;
+}
+:where(.dark) .ld-worry {
+  background: #1b1a1a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+}
+.ld-worry-in {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 72px 24px 64px;
+}
+.ld-worry-title {
+  font-family: var(--font-serif-kr);
+  font-weight: 700;
+  font-size: clamp(32px, 8.4vw, 54px);
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+.ld-worry-list { margin-top: 28px; list-style: none; padding: 0; }
+.ld-worry-list > li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.ld-worry-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  padding-top: 5px;
+  font-variant-numeric: tabular-nums;
+}
+.ld-worry-q {
+  font-family: var(--font-serif-kr);
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.45;
+  color: #fff;
+  word-break: keep-all;
+}
+.ld-worry-a {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(238, 242, 248, 0.68);
+  white-space: pre-line;
+  word-break: keep-all;
+}
+.ld-worry-ask {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  font-size: 18px;
+  font-weight: 700;
+  color: #8fb8ff;
+  cursor: pointer;
+}
+.ld-worry-ask:hover { color: #b5d0ff; }
+@media (min-width: 1024px) {
+  .ld-worry-in {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr);
+    gap: 72px;
+    padding: 112px 40px;
+  }
+  .ld-worry-list { margin-top: 0; }
+  .ld-worry-list > li { grid-template-columns: 48px minmax(0, 1fr); padding: 26px 0; }
+  .ld-worry-q { font-size: 21px; }
+  .ld-worry-a { font-size: 16px; }
+}
 
 /* 히어로 숫자 티커 */
 .ld-ticker-num {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-}
-
-/* FAQ 펼침 — grid-template-rows 트릭으로 높이 애니메이션 */
-.ld-faq-body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.ld-faq-body.is-open { grid-template-rows: 1fr; }
-.ld-faq-body > div { overflow: hidden; }
-
-/* FAQ 카드 — 닫힘은 평범한 피드 카드, 열림은 유리 질감 + 1px 포인트 테두리 + 브랜드 후광 */
-.ld-faq-card {
-  transition: border-color 0.2s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.2s ease;
-}
-.ld-faq-card:hover {
-  border-color: var(--brand-soft-strong);
-}
-.ld-faq-card.is-open {
-  border-color: var(--brand);
-  background: linear-gradient(180deg, var(--brand-soft), transparent 55%), var(--glass-bg);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
-    0 0 0 3px var(--brand-soft-strong),
-    0 14px 30px -14px var(--brand-glow);
-}
-
-/* 6번째 칸 — 참비 CTA 타일 (브랜드 반전, 히어로 버튼과 같은 인장 문법) */
-.ld-faq-cta {
-  position: relative;
-  color: #fff;
-  border: 1px solid transparent;
-  background:
-    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.22), transparent 42%),
-    linear-gradient(150deg, #4593fc, #2b78ee 70%, #1b6ef3);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 10px 24px -10px var(--brand-glow);
-  font-family: inherit;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.ld-faq-cta::after {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.32);
-  pointer-events: none;
-}
-.ld-faq-cta:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 16px 30px -10px var(--brand-glow);
 }
 
 /* 통독표 도장 체험 — BookSelector 의 인장 문법(기울기·압인 궤적)을 축소 재현 */
@@ -601,4 +822,70 @@
   .ld-cta-primary {
     animation: none;
   }
+}
+
+/* ── 첫 화면 비교(시범) — /sermon·/history 시범 띠와 같은 문법 ── */
+.ld-compare-wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 12px 16px 0;
+}
+.ld-compare {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 16px;
+  background: var(--brand-soft);
+  color: var(--text-strong);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.ld-compare:hover { background: var(--brand-soft-strong); }
+.ld-compare-badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-brand, #fff);
+  font-size: 12px;
+  font-weight: 800;
+}
+.ld-compare-text { flex: 1; min-width: 0; word-break: keep-all; }
+.ld-compare-go { flex: none; color: var(--brand); font-weight: 800; }
+@media (min-width: 1024px) {
+  .ld-compare-wrap { padding: 20px 20px 0; }
+  .ld-compare { padding: 14px 18px; font-size: 15px; }
+}
+
+.ld-compare-feedback {
+  margin-top: 56px;
+  padding: 24px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.ld-compare-feedback h2 { font-size: 20px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.02em; }
+.ld-compare-feedback p { margin-top: 8px; font-size: 14.5px; line-height: 1.65; color: var(--text-muted); word-break: keep-all; }
+.ld-compare-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ld-compare-btn {
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+:where(.dark) .ld-compare-btn { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15); }
+.ld-compare-btn--solid { background: var(--brand); color: var(--on-brand, #fff); box-shadow: none; }
+:where(.dark) .ld-compare-btn--solid { box-shadow: none; }
+@media (min-width: 1024px) {
+  .ld-compare-feedback { flex-direction: row; align-items: center; justify-content: space-between; padding: 28px 32px; }
+  .ld-compare-actions { flex: none; }
 }

@@ -1,13 +1,34 @@
 // 비로그인 랜딩 번역 — 관리자 인라인 편집(about_content.fields)으로 덮어쓸 수 있는 기본값
 export const landing = {
-  landingHeroKicker: '부천 · 7호선 상동역',
-  landingHeroTitle: '교회 앱이\n*이렇게까지* 해도 되나 싶을 겁니다.',
-  landingHeroSub: '주일엔 예배, 나머지 6일은 이 앱이 챙깁니다.\n성경 읽고, 기도 나누고, 설교 다시 듣고 — 전부 한 곳에서.',
+  // 히어로 — 풀블리드 예배당 사진 위 한 문장. 옛 landingHero* 키는 DB에 예전 문구가 남아 있어 새 키를 쓴다.
+  landingCineKicker: '부천 상동 · 처음 오시는 분께',
+  landingCineTitle: '처음이어도,\n괜찮아요.',
+  landingCineSub: '이번 주일 아침이 어떻게 흘러가는지 미리 보여드릴게요.\n도착부터 커피 한 잔까지, 1시간 30분.',
   landingCtaVisit: '이번 주일에 가볼게요',
-  landingCtaTour: '교회 둘러보기',
+  landingCineHint: '주일 아침 미리 걸어보기',
+
+  // 주일 아침 타임라인 — 시각은 3부 예배 기준. 예배 시간이 바뀌면 관리자가 시각도 함께 고친다.
+  landingStoryBasis: '이번 주일, 3부 예배 기준',
+  landingStory1Time: '11:05',
+  landingStory1Label: '상동역 도착',
+  landingStory1Title: '7호선 상동역에서\n걸어서 5분이면 됩니다.',
+  landingStory1Body: '큰길 따라 쭉 오시면 하얀 건물이 보여요. 차로 오시면 주차도 됩니다.',
+  landingStory2Time: '11:10',
+  landingStory2Label: '입구에서',
+  landingStory2Title: '"처음 왔어요"\n그 한마디면 충분해요.',
+  landingStory2Body: '안내하는 분이 자리까지 같이 가 드려요. 혼자 조용히 앉고 싶으시면 그것도 괜찮아요. 아무도 붙잡지 않습니다.',
+  landingStory3Time: '11:20',
+  landingStory3Label: '예배 시작',
+  landingStory3Title: '앉아서 듣기만\n하셔도 됩니다.',
+  landingStory3Body: '찬양 가사와 성경 본문은 화면에 다 나와요. 앞에 불려 나가거나 자기소개하는 일은 없습니다.',
+  landingStory4Time: '12:30',
+  landingStory4Label: '새가족실 커피',
+  landingStory4Title: '따뜻한 커피 한 잔,\n그리고 다음 주에 또.',
+  landingStory4Body: '원하시면 새가족실에서 잠깐 쉬어 가세요. 바로 가셔도 됩니다. 놓친 설교는 앱에서 다시 들을 수 있어요.',
+  landingStoryEnd: '이번 주일,\n자리 하나 비워둘게요.',
 
   landingFaqKicker: '처음 오시는 분께',
-  landingFaqTitle: '솔직히, 교회 처음 가면\n이런 게 걱정되죠',
+  landingWorryTitle: '솔직히,\n걱정되는 것들.',
   landingFaq1Q: '앞으로 불려 나가서 자기소개 시키나요?',
   landingFaq1A: '안 시킵니다. 대신 새가족실에서 따뜻한 커피 한 잔 드려요.\n(하고 싶으시면 말리진 않습니다.)',
   landingFaq2Q: '옷은 어떻게 입고 가요?',
@@ -18,4 +39,10 @@ export const landing = {
   landingFaq4A: '다들 그렇게 시작했습니다. 혼자 앉았다 조용히 가셔도 아무도 안 붙잡아요.\n안내가 필요하면 입구에서 말씀만 주세요.',
   landingFaq5Q: '늦잠 자서 1부를 놓쳤어요.',
   landingFaq5A: '4부까지 있습니다. 그래도 놓치면 설교 다시보기가 있어요.\n설교는 도망 안 갑니다.',
+  // 예전 첫 화면(/welcome/classic) — DB에 관리자가 고친 값이 남아 있어 키를 그대로 둔다
+  landingHeroKicker: '부천 · 7호선 상동역',
+  landingHeroTitle: '교회 앱이\n*이렇게까지* 해도 되나 싶을 겁니다.',
+  landingHeroSub: '주일엔 예배, 나머지 6일은 이 앱이 챙깁니다.\n성경 읽고, 기도 나누고, 설교 다시 듣고 — 전부 한 곳에서.',
+  landingCtaTour: '교회 둘러보기',
+  landingFaqTitle: '솔직히, 교회 처음 가면\n이런 게 걱정되죠',
 } as const
