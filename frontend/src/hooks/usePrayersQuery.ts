@@ -16,6 +16,7 @@ import type { PrayerListCache } from '../types/queryCache'
 import { getCurrentUser } from '../utils/auth'
 import { createRetry } from '../config/queryClient'
 import { refetchIfFewPages, trimInfiniteQuery } from '../utils/infiniteQueryTrim'
+import { preserveListOrder } from '../utils/preserveListOrder'
 import type { SortType, Prayer, CreatePrayerRequest, PrayerFilterType } from '../types/prayer'
 import { profileKeys } from './queryKeys'
 
@@ -80,20 +81,40 @@ export const usePrayersInfinite = (
 
   const infiniteListKey = prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered)
 
+  // 첫 페이지를 다시 받을 때 서버 순서를 그대로 쓸지(true) 화면 순서를 지킬지(false).
+  // 기본은 "지킨다" — 복원된 캐시 뒤의 백그라운드 재조회, 탭 복귀, 다른 훅의 invalidate 는
+  // 모두 카운트·기도 여부만 맞추면 되고 읽던 카드가 자리를 바꾸면 안 된다.
+  // 사용자가 직접 새로 받는 refresh() 와 이 훅의 등록·응답 뮤테이션만 서버 순서를 요청한다.
+  // (정렬·필터 전환은 키가 바뀌어 캐시가 없으므로 자연히 서버 순서)
+  const useServerOrderRef = useRef(false)
+  const requestServerOrder = () => {
+    useServerOrderRef.current = true
+  }
+
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
     queryKey: infiniteListKey,
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async ({ pageParam = 1, queryKey }) => {
       // 첫 화면의 핵심 요청 — 홈 콜드 마운트에서 다른 위젯 요청보다 먼저 나간다(utils/requestPriority)
       const response = await fetchPrayers(pageParam, 20, sort, groupId, filter, isAnswered, {
         priority: 'critical',
       })
       
       // 클라이언트에서 is_owner 재계산 (보안 강화)
-      const itemsWithRecalculatedOwner = response.data.items.map((prayer: Prayer) => ({
+      let itemsWithRecalculatedOwner: Prayer[] = response.data.items.map((prayer: Prayer) => ({
         ...prayer,
         is_owner: currentUser.username ? prayer.is_owner : false,
       }))
+
+      // 첫 페이지 재조회: 화면에 있던 순서를 지킨다(utils/preserveListOrder 참고).
+      // 뒤 페이지는 스크롤로 받는 새 데이터라 그대로 둔다.
+      if (pageParam === 1) {
+        const cachedFirstPage = queryClient.getQueryData<PrayerListCache>(queryKey)?.pages?.[0]?.data?.items
+        if (cachedFirstPage && cachedFirstPage.length > 0 && !useServerOrderRef.current) {
+          itemsWithRecalculatedOwner = preserveListOrder(cachedFirstPage, itemsWithRecalculatedOwner)
+        }
+        useServerOrderRef.current = false
+      }
       
       return {
         ...response,
@@ -211,7 +232,8 @@ export const usePrayersInfinite = (
     onSuccess: (data, variables) => {
       feedback?.create?.onSuccess?.(data, variables)
 
-      // 실제 데이터로 갱신 (모든 사용자의 캐시)
+      // 실제 데이터로 갱신 (모든 사용자의 캐시) — 내 글이 제자리에 서도록 서버 순서로 받는다
+      requestServerOrder()
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
 
       // 기도방 통계(기도 수·응답률) 캐시 무효화 — 방 홈에 즉시 반영
@@ -254,6 +276,7 @@ export const usePrayersInfinite = (
       //   refetch하고 비활성 쿼리는 stale 마크만 되며, useInfiniteQuery
       //   의 refetchOnMount:false 와 결합되면 다음 마운트에도 옛 캐시가
       //   그대로 노출되는 문제가 있었다.
+      requestServerOrder()
       queryClient.invalidateQueries({
         queryKey: prayerKeys.lists(),
         refetchType: 'all',
@@ -288,6 +311,7 @@ export const usePrayersInfinite = (
 
       // refetchType: 'all' — answerMutation 참조. 응답 취소 후
       // 다른 페이지(메인 홈/응답의 전당)로 이동했을 때도 즉시 반영되도록.
+      requestServerOrder()
       queryClient.invalidateQueries({
         queryKey: prayerKeys.lists(),
         refetchType: 'all',
@@ -345,10 +369,13 @@ export const usePrayersInfinite = (
       cancelAnswerMutation.mutateAsync({ prayerId }),
     isAnswering: answerMutation.isPending,
     isCancellingAnswer: cancelAnswerMutation.isPending,
-    refresh: () =>
-      queryClient.invalidateQueries({
+    // 사용자가 직접 새로 받는 경우 — 이때만 관심순이 실제 순서로 다시 선다
+    refresh: () => {
+      requestServerOrder()
+      return queryClient.invalidateQueries({
         queryKey: prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered),
-      }),
+      })
+    },
   }
 }
 
