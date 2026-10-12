@@ -66,6 +66,13 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   // 하단 네비 목적지 — 캐시가 아예 없을 때만(coldOnly) 받아 둔다. 무거운 집계 API 라
   // 앱을 켤 때마다 부르진 않고, 재로그인·배포 직후 같은 콜드 진입의 전체 로딩만 없앤다
   '/profile': () => import('../pages/Profile/prefetch').then((m) => m.prefetchProfile(undefined, true)),
+  // 교육과 훈련 트리(공개, 8KB gzip) — 청크·히어로는 미리 받는데 트리가 빠져 있어 진입 시
+  // 히어로 → 스켈레톤 → 본문의 두 박자가 남았다. 같이 쓰는 useAboutContent 는 로컬
+  // placeholder 캐시가 있어 화면을 막지 않는다.
+  '/education': () =>
+    Promise.all([import('../hooks/useEducation'), import('../config/queryClient')]).then(
+      ([m, q]) => m.prefetchEducationTree(q.queryClient),
+    ),
   // 카테고리 목록 + 오늘의 위로 말씀 구절 — 청크만 받아 두면 진입 시 API 두 왕복이 직렬로 남는다
   // 칭호 도감 — 프로필 칭호 필·메뉴 목적지. GET /titles 는 평가까지 도는 무거운 요청이라 coldOnly
   '/garden': () =>

@@ -1,5 +1,5 @@
 // 교육과 훈련 훅 - React Query
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import {
   createCategory,
   createProgram,
@@ -28,12 +28,23 @@ export const educationKeys = {
 
 const EMPTY: EducationTree = { categories: [] }
 
+const TREE_STALE_MS = 1000 * 60 * 5
+
+/**
+ * /education 데이터 선요청 — 청크 프리로드(메뉴 열림·호버·유휴)와 같은 시점에 routePreload 가 부른다.
+ * 청크·히어로 삽화만 미리 받아 두면 진입 시 히어로는 즉시 뜨는데 본문은 API 왕복만큼 늦게
+ * 스켈레톤 뒤에 따라왔다(두 박자). 훅과 같은 키·staleTime 이라 캐시가 신선하면 요청이 나가지 않는다.
+ */
+export const prefetchEducationTree = (qc: QueryClient): void => {
+  void qc.prefetchQuery({ queryKey: educationKeys.all, queryFn: fetchEducationTree, staleTime: TREE_STALE_MS })
+}
+
 /** /education 공개 조회 */
 export const useEducationTree = () => {
   const query = useQuery({
     queryKey: educationKeys.all,
     queryFn: fetchEducationTree,
-    staleTime: 1000 * 60 * 5,
+    staleTime: TREE_STALE_MS,
   })
   return {
     categories: (query.data ?? EMPTY).categories,
