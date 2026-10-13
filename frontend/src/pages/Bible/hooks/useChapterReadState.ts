@@ -80,7 +80,6 @@ export const useChapterReadState = ({
   const {
     data: status,
     isLoading: statusLoading,
-    refetch: refetchStatus,
   } = useChapterReadStatus(bookNumber, chapter, loggedIn)
 
   const readVerses = useMemo(() => {
@@ -174,18 +173,16 @@ export const useChapterReadState = ({
             markVerse({ verseId: id, similarity }),
           ),
         )
+        // 장 상태 캐시는 mutation 이 직접 고친다(재조회 없음) — useBibleReading syncAfterVerseToggle
         celebrateFlowerBloom()
-        await refetchStatus()
       } catch (error) {
-        // 이미 읽음 처리된 경우는 에러로 처리하지 않음
-        if (error instanceof Error && error.message === 'ALREADY_READ') {
-          await refetchStatus()
-        } else {
+        // 이미 읽음(409)은 실패가 아니다 — 화면 동기화는 mutation onError 가 맡는다
+        if (!(error instanceof Error && error.message === 'ALREADY_READ')) {
           console.error('Failed to save reading record:', error)
         }
       }
     },
-    [markVerse, refetchStatus],
+    [markVerse],
   )
 
   /**
@@ -209,12 +206,10 @@ export const useChapterReadState = ({
           await settleReadCalls(ids.map((id) => unmarkVerse(id)))
           showToast(`${label}절 읽음을 취소했습니다`, 'info')
         }
-        await refetchStatus()
+        // 장 상태 캐시는 mutation 이 직접 고친다(재조회 없음)
       } catch (error) {
-        // 이미 읽음 상태면 화면만 동기화하면 된다
-        if (error instanceof Error && error.message === 'ALREADY_READ') {
-          await refetchStatus()
-        } else {
+        // 이미 읽음 상태면 화면 동기화는 mutation onError 가 맡는다
+        if (!(error instanceof Error && error.message === 'ALREADY_READ')) {
           console.error('Failed to toggle read state:', error)
           showToast(nextRead ? '읽음 처리에 실패했습니다' : '읽음 취소에 실패했습니다', 'error')
         }
@@ -223,7 +218,7 @@ export const useChapterReadState = ({
         setTogglingVerseId(null)
       }
     },
-    [markVerse, unmarkVerse, refetchStatus, onManualReadDone],
+    [markVerse, unmarkVerse, onManualReadDone],
   )
 
   // ── 장 끝 일괄 읽음/취소 — 눈으로 끝까지 읽은 성도가 한 번에 완료 표시 (본인 계정) ──
@@ -254,8 +249,8 @@ export const useChapterReadState = ({
   const stampChapter = async (): Promise<boolean> => {
     if (bulkPending) return false
     try {
+      // mutation 이 이 장 상태 재조회까지 기다린 뒤 돌아온다
       await markChapterMutation.mutateAsync({ bookNumber, chapter })
-      await refetchStatus()
       return true
     } catch (error) {
       console.error('Failed to mark chapter read:', error)
@@ -278,7 +273,6 @@ export const useChapterReadState = ({
     try {
       const res = await unmarkChapterMutation.mutateAsync({ bookNumber, chapter })
       showToast(`${res.deleted_records}개 읽음 기록을 취소했습니다`, 'info')
-      await refetchStatus()
     } catch (error) {
       console.error('Failed to unmark chapter read:', error)
       showToast('장 전체 읽음 취소에 실패했습니다', 'error')

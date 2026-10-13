@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
 import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead } from '../api/bibleReading'
+import type { ChapterReadStatusResponse } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import type { RequestPriority } from '../api/utils/request'
 import type { ProfileDetail } from '../types/profile'
@@ -30,6 +31,61 @@ export const bibleReadingKeys = {
   resume: (limit: number) => [...bibleReadingKeys.all, 'resume', limit] as const,
 }
 
+type ChapterStatusData = ChapterReadStatusResponse['data']
+const chapterStatusPrefix = [...bibleReadingKeys.all, 'chapterStatus'] as const
+const isChapterStatusKey = (key: readonly unknown[]) => key[1] === 'chapterStatus'
+
+/**
+ * 절 하나를 읽음/안 읽음으로 바꾼 뒤의 캐시 동기화 — 서버 재조회 없이.
+ *
+ * 예전엔 bibleReadingKeys.all 을 통째로 무효화해, 절을 꾹 누를 때마다 지금 장 상태(호출부의
+ * refetch 까지 2회)·허브 진행률(내 기록 전체 GROUP BY)·이어읽기가 매번 다시 나갔다.
+ *  - 장 상태: 그 절이 든 캐시만 직접 고친다 (read_verses·progress 는 백엔드와 같은 공식)
+ *  - 나머지(진행률·이어읽기·책 진행률): stale 표시만 — 읽는 동안엔 화면에 없고, 허브로 돌아갈 때
+ *    (BibleStudy) 또는 다음 마운트(refetchOnMount)에서 한 번만 받는다
+ * 장 상태를 받아오는 중이었다면 그 응답이 고친 값을 덮을 수 있어, 그때만 다시 받는다.
+ */
+const syncAfterVerseToggle = (
+  qc: QueryClient,
+  verseId: number,
+  record: { similarity: number; read_at: string } | null,
+) => {
+  qc.setQueriesData<ChapterStatusData>({ queryKey: chapterStatusPrefix }, (old) => {
+    // undefined 를 돌려주면 그 캐시는 건드리지 않는다(다른 장)
+    if (!old) return undefined
+    const idx = old.verses.findIndex((v) => v.verse_id === verseId)
+    if (idx < 0) return undefined
+    const nextRead = record !== null
+    if (old.verses[idx].is_read === nextRead) return undefined
+    const verses = old.verses.slice()
+    verses[idx] = {
+      ...verses[idx],
+      is_read: nextRead,
+      similarity: record?.similarity ?? null,
+      read_at: record?.read_at ?? null,
+    }
+    const read_verses = Math.max(0, old.read_verses + (nextRead ? 1 : -1))
+    const progress = old.total_verses > 0 ? Math.round((read_verses / old.total_verses) * 10000) / 100 : 0
+    return { ...old, verses, read_verses, progress }
+  })
+  if (qc.isFetching({ queryKey: chapterStatusPrefix }) > 0) {
+    void qc.invalidateQueries({ queryKey: chapterStatusPrefix })
+  }
+  void qc.invalidateQueries({
+    queryKey: bibleReadingKeys.all,
+    predicate: (q) => !isChapterStatusKey(q.queryKey),
+    refetchType: 'none',
+  })
+}
+
+/**
+ * 절 읽음 처리/취소가 실패했을 때(이미 읽음 409·기록 없음 404 등) — 캐시가 서버와 어긋났다는 뜻이라
+ * 보이는 장 상태만 다시 받는다. 묶음 처리(병합 구간)에서 일부만 이미 읽힌 경우도 여기서 맞춰진다.
+ */
+const resyncChapterStatus = (qc: QueryClient) => {
+  void qc.invalidateQueries({ queryKey: chapterStatusPrefix })
+}
+
 /**
  * 구절 읽음 처리 Mutation
  */
@@ -39,9 +95,9 @@ export const useMarkVerseAsRead = () => {
   return useMutation({
     mutationFn: ({ verseId, similarity }: { verseId: number; similarity: number }) =>
       markVerseAsRead(verseId, similarity),
-    onSuccess: () => {
-      // 관련된 모든 쿼리 무효화
-      queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
+    onError: () => resyncChapterStatus(queryClient),
+    onSuccess: (record, { verseId }) => {
+      syncAfterVerseToggle(queryClient, verseId, { similarity: record.similarity, read_at: record.read_at })
 
       // 성경 칭호 평가 예약(디바운스) — 읽기 세션 끝에 새 칭호 해금 팝업
       scheduleTitleEvaluation()
@@ -180,6 +236,19 @@ export const prefetchReadingState = (qc: QueryClient): void => {
 }
 
 /**
+ * 장 일괄 읽음/취소 뒤 — 절이 여럿 바뀌어 캐시를 직접 고치지 않고 그 장 상태만 받아 온다.
+ * 진행률·이어읽기는 절 단위와 같이 stale 표시만 (syncAfterVerseToggle 참고)
+ */
+const syncAfterChapterBulk = (qc: QueryClient, bookNumber: number, chapter: number) => {
+  void qc.invalidateQueries({
+    queryKey: bibleReadingKeys.all,
+    predicate: (q) => !isChapterStatusKey(q.queryKey),
+    refetchType: 'none',
+  })
+  return qc.invalidateQueries({ queryKey: bibleReadingKeys.chapterStatus(bookNumber, chapter) })
+}
+
+/**
  * 장 전체 읽음 처리 Mutation (관리자 전용 — 업적 테스트용)
  * 절 수가 많아 낙관적 +1 대신 invalidate로만 동기화한다.
  */
@@ -189,11 +258,12 @@ export const useMarkChapterAsRead = () => {
   return useMutation({
     mutationFn: ({ bookNumber, chapter }: { bookNumber: number; chapter: number }) =>
       markChapterAsRead(bookNumber, chapter),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
+    onSuccess: (_data, { bookNumber, chapter }) => {
       queryClient.invalidateQueries({ queryKey: profileKeys.detail() })
       // 일괄 처리 후 칭호 평가는 한 번만 — 개별 절처럼 절마다 부르지 않는다
       scheduleTitleEvaluation()
+      // 반환한 promise 를 mutateAsync 가 기다린다 — 끝나면 이 장 상태가 이미 새 값이다
+      return syncAfterChapterBulk(queryClient, bookNumber, chapter)
     },
   })
 }
@@ -207,9 +277,9 @@ export const useUnmarkChapterAsRead = () => {
   return useMutation({
     mutationFn: ({ bookNumber, chapter }: { bookNumber: number; chapter: number }) =>
       unmarkChapterAsRead(bookNumber, chapter),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
+    onSuccess: (_data, { bookNumber, chapter }) => {
       queryClient.invalidateQueries({ queryKey: profileKeys.detail() })
+      return syncAfterChapterBulk(queryClient, bookNumber, chapter)
     },
   })
 }
@@ -222,9 +292,9 @@ export const useUnmarkVerseAsRead = () => {
 
   return useMutation({
     mutationFn: (verseId: number) => unmarkVerseAsRead(verseId),
-    onSuccess: () => {
-      // 관련된 모든 쿼리 무효화
-      queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
+    onError: () => resyncChapterStatus(queryClient),
+    onSuccess: (_data, verseId) => {
+      syncAfterVerseToggle(queryClient, verseId, null)
       
       // 프로필 캐시 즉시 업데이트 (구절 읽기 -1P)
       queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {

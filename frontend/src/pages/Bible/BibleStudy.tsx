@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef, useSyncExternalStore } from 'react'
 import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import { useBibleBooks, useBibleChapterInfinite, prefetchBibleChapter } from '../../hooks/useBible'
-import { useResumeReading, useReadingProgress, BIBLE_HUB_RESUME_LIMIT } from '../../hooks/useBibleReading'
+import { useResumeReading, useReadingProgress, BIBLE_HUB_RESUME_LIMIT, bibleReadingKeys } from '../../hooks/useBibleReading'
 import { useQueryClient, useIsRestoring } from '@tanstack/react-query'
 import { biblePlanKeys, useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
@@ -314,6 +314,18 @@ const BibleStudy = () => {
     planId > 0 && planDayNumber > 0 && !!planDay && !planDay.completed && planChapterInDay
 
   const qc = useQueryClient()
+
+  // 본문 → 허브로 돌아올 때 읽는 동안 쌓인 변경을 한 번에 반영한다. 절 읽음 처리는 진행률·이어읽기를
+  // stale 표시만 하고 다시 받지 않는다(이 컴포넌트가 본문도 그려 허브 쿼리가 읽는 내내 살아 있어,
+  // 예전엔 절마다 전체 진행률을 다시 받았다 — hooks/useBibleReading syncAfterVerseToggle).
+  // 첫 마운트는 훅 자체 정책을 따르도록 '본문 → 허브' 전환에서만.
+  const prevShowBookListRef = useRef(showBookList)
+  useEffect(() => {
+    const returnedToHub = showBookList && !prevShowBookListRef.current
+    prevShowBookListRef.current = showBookList
+    if (!returnedToHub || !isLoggedIn()) return
+    void qc.refetchQueries({ queryKey: bibleReadingKeys.all, type: 'active', stale: true })
+  }, [showBookList, isLoggedIn, qc])
 
   // 허브 → 본문은 URL 이 아니라 state 전환이라 라우트 선요청(RouteDataPrefetch)을 타지 않는다.
   // 그대로 두면 본문·읽음 상태 요청이 읽기 화면이 다 그려진 뒤(effect)에야 출발하는데, 본문은
