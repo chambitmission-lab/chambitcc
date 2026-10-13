@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, type ComponentProps } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useIsRestoring } from '@tanstack/react-query'
+import { useIsRestoring, useQueryClient } from '@tanstack/react-query'
+import { scheduleAfterFirstScreen, preloadBudget } from '../../utils/idlePreload'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import { lazyModal } from '../../utils/lazyModal'
 import type * as GroupModals from '../../components/prayer/GroupModals'
@@ -47,7 +48,7 @@ import HomeQuickStrip, { HOME_CARD_IDS } from './components/HomeQuickStrip'
 import BottomNavigation from './components/BottomNavigation'
 import FeedBackToTop from './components/FeedBackToTop'
 import GroupFilter from '../../components/prayer/GroupFilter'
-import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
+import { usePrayersInfinite, prefetchOtherSortFirstPage } from '../../hooks/usePrayersQuery'
 import { usePrayerVisibility } from '../../hooks/usePrayerVisibility'
 import { useBottomStickyRail } from '../../hooks/useBottomStickyRail'
 import { useAuth } from '../../hooks/useAuth'
@@ -133,6 +134,7 @@ const NewHome = () => {
   // 하단 네비에서 lazy 청크를 받는 중인 경로 — 해당 아이콘에 스피너를 띄운다
   const [navPending, setNavPending] = useState<string | null>(null)
   const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter, undefined, prayerToastFeedback)  // ✅ selectedFilter 전달
+  const queryClient = useQueryClient()
 
   // 기도 목록 우선 출발 게이트 — 캐시 없이(콜드) 뜨는 첫 마운트에만 건다.
   // 반드시 렌더 단계에서: 자식 위젯들의 useQuery 는 effect 에서 fetch 를 시작하는데 effect 는
@@ -213,6 +215,18 @@ const NewHome = () => {
     if (isLoggedIn()) void preloadNavRoutes()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // 반대쪽 정렬(관심순↔최신순) 첫 페이지 미리 받기 — 목록이 그려진 뒤 첫 화면 요청이 가라앉고
+  // 유휴해지면 한 번. 전환을 누를 때 스켈레톤 없이 즉시 바뀐다(hooks/usePrayersQuery 참고).
+  // 절약 모드·2G 는 건너뛴다. 정렬·그룹·필터가 바뀌면 그 조합의 반대쪽을 다시 예약한다.
+  const prayerListReady = !prayerHook.loading && !prayerHook.error
+  useEffect(() => {
+    if (!prayerListReady || preloadBudget() === 'none') return
+    return scheduleAfterFirstScreen(
+      () => { void prefetchOtherSortFirstPage(queryClient, sort, selectedGroupId, selectedFilter) },
+      { settleMs: 1500 },
+    )
+  }, [prayerListReady, queryClient, sort, selectedGroupId, selectedFilter])
 
   // 로그인 상태 변경 시 필터 초기화
   useEffect(() => {

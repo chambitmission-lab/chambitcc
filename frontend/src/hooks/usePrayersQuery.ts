@@ -17,6 +17,7 @@ import { getCurrentUser } from '../utils/auth'
 import { createRetry } from '../config/queryClient'
 import { refetchIfFewPages, trimInfiniteQuery } from '../utils/infiniteQueryTrim'
 import { preserveListOrder } from '../utils/preserveListOrder'
+import type { RequestPriority } from '../api/utils/request'
 import type { SortType, Prayer, CreatePrayerRequest, PrayerFilterType } from '../types/prayer'
 import { profileKeys } from './queryKeys'
 
@@ -49,6 +50,59 @@ export const prayerKeys = {
   verses: (prayerId: number) => [...prayerKeys.detailPrefix(prayerId), 'verses'] as const,
   answeredCount: () => [...prayerKeys.all, 'answeredCount'] as const,
   mineLatest: () => [...prayerKeys.all, 'mine', 'latest-one'] as const,
+}
+
+const PAGE_SIZE = 20
+const LIST_STALE_MS = 1000 * 60 * 5
+const LIST_GC_MS = 1000 * 60 * 60 * 2
+
+/**
+ * 목록 한 페이지를 받아 캐시에 넣을 모양으로 다듬는다 — 훅의 queryFn 과 아래 prefetch 가 공유.
+ * is_owner 는 서버 값을 믿지 않고 로그인 여부로 한 번 더 깎는다(비로그인은 항상 false).
+ */
+const fetchPrayerListPage = async (
+  pageParam: number,
+  sort: SortType,
+  groupId: number | null | undefined,
+  filter: PrayerFilterType | null | undefined,
+  isAnswered: boolean | undefined,
+  username: string | null | undefined,
+  priority: RequestPriority,
+) => {
+  const response = await fetchPrayers(pageParam, PAGE_SIZE, sort, groupId, filter, isAnswered, { priority })
+  const items: Prayer[] = response.data.items.map((prayer: Prayer) => ({
+    ...prayer,
+    is_owner: username ? prayer.is_owner : false,
+  }))
+  return { ...response, data: { ...response.data, items } }
+}
+
+/**
+ * 지금 보고 있는 정렬의 반대쪽(관심순↔최신순) 첫 페이지를 미리 받아 둔다.
+ *
+ * 배경: 정렬 전환은 쿼리 키가 바뀌어 캐시가 없으므로 매번 서버 왕복이다. 요청 단독은 100ms
+ * 남짓이지만 홈 마운트 직후·탭 복귀처럼 위젯 요청이 몰린 틈에 누르면 백엔드(단일 프로세스)
+ * 큐 뒤에 서서 1.5초 넘게 스켈레톤이 떴다. 목록이 그려진 뒤 한가할 때 11KB 를 받아 두면
+ * 전환이 즉시 된다. 'normal' 우선순위라 콜드 진입의 핵심 요청 게이트는 그대로 기다린다.
+ * 이미 캐시가 있고 아직 fresh 면 react-query 가 요청을 내지 않는다.
+ */
+export const prefetchOtherSortFirstPage = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  sort: SortType,
+  groupId?: number | null,
+  filter?: PrayerFilterType | null,
+  isAnswered?: boolean,
+): Promise<void> => {
+  const otherSort: SortType = sort === 'popular' ? 'latest' : 'popular'
+  const { username } = getCurrentUser()
+  return queryClient.prefetchInfiniteQuery({
+    queryKey: prayerKeys.list(otherSort, groupId, filter, username, isAnswered),
+    queryFn: () => fetchPrayerListPage(1, otherSort, groupId, filter, isAnswered, username, 'normal'),
+    initialPageParam: 1,
+    staleTime: LIST_STALE_MS,
+    gcTime: LIST_GC_MS,
+    // pages 를 안 주면 첫 페이지 하나만 받는다
+  })
 }
 
 // Infinite Query Hook
@@ -96,15 +150,10 @@ export const usePrayersInfinite = (
     queryKey: infiniteListKey,
     queryFn: async ({ pageParam = 1, queryKey }) => {
       // 첫 화면의 핵심 요청 — 홈 콜드 마운트에서 다른 위젯 요청보다 먼저 나간다(utils/requestPriority)
-      const response = await fetchPrayers(pageParam, 20, sort, groupId, filter, isAnswered, {
-        priority: 'critical',
-      })
-      
-      // 클라이언트에서 is_owner 재계산 (보안 강화)
-      let itemsWithRecalculatedOwner: Prayer[] = response.data.items.map((prayer: Prayer) => ({
-        ...prayer,
-        is_owner: currentUser.username ? prayer.is_owner : false,
-      }))
+      const response = await fetchPrayerListPage(
+        pageParam, sort, groupId, filter, isAnswered, currentUser.username, 'critical',
+      )
+      let itemsWithRecalculatedOwner: Prayer[] = response.data.items
 
       // 첫 페이지 재조회: 화면에 있던 순서를 지킨다(utils/preserveListOrder 참고).
       // 뒤 페이지는 스크롤로 받는 새 데이터라 그대로 둔다.
