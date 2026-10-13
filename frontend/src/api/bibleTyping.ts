@@ -235,6 +235,25 @@ export const getChurchBible = async (): Promise<ChurchBible> => {
   return res.data
 }
 
+/** 필사 허브 묶음 — 허브가 따로 보내던 5~6개 요청을 한 번에. 각 조각은 단건 응답과 같은 모양 */
+export interface TypingHomeBundle {
+  stats: TypingStats
+  calendar: TypingCalendar
+  daily: TypingDaily
+  church_bible: ChurchBible
+  relays: TypingRelaySummary[]
+  /** stats.next_position 자리의 본문(이어 쓸 말씀 미리보기). 전권을 다 썼으면 null */
+  next_verse_text: string | null
+}
+
+export const getTypingHome = async (): Promise<TypingHomeBundle> => {
+  const res = await request<Envelope<TypingHomeBundle>>('/bible-typing/home', {
+    auth: 'required',
+    errorMessage: '필사 기록을 불러오지 못했어요',
+  })
+  return res.data
+}
+
 export const getTypingRelays = async (): Promise<TypingRelaySummary[]> => {
   const res = await request<Envelope<TypingRelaySummary[]>>('/bible-typing/relays', {
     auth: 'required',

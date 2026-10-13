@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useCreateTypingRelay, useTypingRelays } from '../../../../hooks/useBibleTyping'
+import { useCreateTypingRelay } from '../../../../hooks/useBibleTyping'
 import { useBibleBooks } from '../../../../hooks/useBible'
+import type { TypingRelaySummary } from '../../../../api/bibleTyping'
 import { showToast } from '../../../../utils/toast'
 
 // 함께 나눠 쓰기 좋은 장 — 한 번에 고르는 칩
@@ -109,9 +110,8 @@ const RelayCreateSheet = ({ onClose }: { onClose: () => void }) => {
   )
 }
 
-/** 릴레이 필사 — 내가 참여한 방 목록 + 만들기 */
-const RelayCard = () => {
-  const { data: relays } = useTypingRelays()
+/** 릴레이 필사 — 내가 참여한 방 목록 + 만들기. 목록은 허브 묶음(useTypingHome)에서 받아 내려온다 */
+const RelayCard = ({ relays }: { relays?: TypingRelaySummary[] }) => {
   const [creating, setCreating] = useState(false)
 
   return (

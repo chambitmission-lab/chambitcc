@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import { useBibleBooks } from '../../../hooks/useBible'
-import { useChurchBible, useTypingCalendar, useTypingDaily, useTypingStats } from '../../../hooks/useBibleTyping'
+import { useTypingHome } from '../../../hooks/useBibleTyping'
 import { useTitles } from '../../../hooks/useTitles'
 import { tokenStore } from '../../../utils/tokenStore'
 import { sessionPath, useIgnorePunct, useTypingMode } from './typingPrefs'
@@ -25,10 +25,12 @@ const TypingHome = () => {
   const navigate = useNavigate()
   const loggedIn = !!tokenStore.getAccess()
   const { data: books } = useBibleBooks()
-  const { data: stats } = useTypingStats()
-  const { data: calendar } = useTypingCalendar()
-  const { data: daily } = useTypingDaily()
-  const { data: church } = useChurchBible()
+  // 허브 데이터는 요청 하나(묶음)로 — 조각별 요청 6개가 홈의 요청들과 섞여 줄을 서던 것을 줄인다
+  const { data: home } = useTypingHome()
+  const stats = home?.stats
+  const calendar = home?.calendar
+  const daily = home?.daily
+  const church = home?.church_bible
   const { data: titles } = useTitles(loggedIn)
   const [mode, setMode] = useTypingMode()
   const [ignorePunct, setIgnorePunct] = useIgnorePunct()
@@ -54,6 +56,7 @@ const TypingHome = () => {
               ignorePunct={ignorePunct}
               setIgnorePunct={setIgnorePunct}
               bookName={bookName}
+              nextVerseText={home ? home.next_verse_text : undefined}
               onGo={go}
             />
 
@@ -61,7 +64,7 @@ const TypingHome = () => {
 
             {loggedIn && <InkCalendar calendar={calendar} stats={stats} />}
 
-            <BookSection loggedIn={loggedIn} stats={stats} onGo={go} />
+            <BookSection loggedIn={loggedIn} stats={stats} bookTotals={church?.book_totals} onGo={go} />
 
             <button type="button" className="bt-card bt-sprint-entry" onClick={() => navigate('/bible/typing/sprint')}>
               <span className="material-icons-round bt-sprint-entry__icon" aria-hidden>
@@ -81,7 +84,7 @@ const TypingHome = () => {
 
           <div className="bt-home-side">
             {loggedIn && <ChurchBibleCard data={church} bookName={bookName} />}
-            {loggedIn && <RelayCard />}
+            {loggedIn && <RelayCard relays={home?.relays} />}
             {loggedIn && <NextTitleCard titles={typingTitles} />}
           </div>
         </main>

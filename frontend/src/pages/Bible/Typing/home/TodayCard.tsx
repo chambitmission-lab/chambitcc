@@ -28,6 +28,8 @@ interface TodayCardProps {
   ignorePunct: boolean
   setIgnorePunct: (v: boolean) => void
   bookName: (n: number) => string
+  /** 이어 쓸 절 본문 — 허브 묶음이 함께 준다(null = 전권 완필). undefined(묶음 없음·비로그인)면 직접 받는다 */
+  nextVerseText?: string | null
   onGo: (book: number, chapter: number, verse?: number) => void
 }
 
@@ -65,17 +67,20 @@ const TodayCard = ({
   ignorePunct,
   setIgnorePunct,
   bookName,
+  nextVerseText,
   onGo,
 }: TodayCardProps) => {
   const [editingGoal, setEditingGoal] = useState(false)
   const updateGoal = useUpdateTypingGoal()
 
   const spot = stats?.next_position ?? FIRST_SPOT
-  const { data: nextVerse } = useQuery({
+  const { data: fetchedVerse } = useQuery({
     queryKey: bibleKeys.verse(spot.book_number, spot.chapter, spot.verse),
     queryFn: () => getBibleVerse(spot.book_number, spot.chapter, spot.verse),
     staleTime: 1000 * 60 * 60 * 24,
+    enabled: nextVerseText === undefined,
   })
+  const nextVerse = nextVerseText !== undefined ? (nextVerseText ? { text: nextVerseText } : undefined) : fetchedVerse
 
   const goal = stats?.daily_goal ?? 3
   const today = stats?.today_verses ?? 0

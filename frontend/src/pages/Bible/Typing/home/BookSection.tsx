@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useBibleBooks } from '../../../../hooks/useBible'
-import { useBookReadingProgress, useReadingProgress } from '../../../../hooks/useBibleReading'
+import { useBookReadingProgress } from '../../../../hooks/useBibleReading'
 import { useBookTyping } from '../../../../hooks/useBibleTyping'
 import type { TypingStats } from '../../../../api/bibleTyping'
 
@@ -24,6 +24,8 @@ const progressLabel = (n: number, total: number) => {
 interface BookSectionProps {
   loggedIn: boolean
   stats?: TypingStats
+  /** 책 번호(문자열 키) → 전체 절 수. 허브 묶음의 교회 성경 조각(book_totals)에서 내려온다 */
+  bookTotals?: Record<string, number>
   onGo: (book: number, chapter: number, verse?: number) => void
 }
 
@@ -31,16 +33,18 @@ interface BookSectionProps {
  * 어디를 쓸까요 — 쓰는 중인 책만 앞에 두고, 66권 통독표는 접어 둔다.
  * (0% 칸 66개를 펼쳐 두면 성취감보다 '갈 길이 멀다'는 느낌이 먼저 온다)
  */
-const BookSection = ({ loggedIn, stats, onGo }: BookSectionProps) => {
+const BookSection = ({ loggedIn, stats, bookTotals: totalsByBook, onGo }: BookSectionProps) => {
   const { data: books } = useBibleBooks()
-  // 책별 전체 절 수는 읽기 진행률 응답에서 빌린다 (books[].book_id = book_number)
-  const { data: reading } = useReadingProgress(loggedIn)
   const [open, setOpen] = useState(false)
   const [testament, setTestament] = useState<'OLD' | 'NEW'>('NEW')
   const [pickedBook, setPickedBook] = useState<number | null>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
 
-  const bookTotals = useMemo(() => new Map((reading?.books ?? []).map((b) => [b.book_id, b.total_verses])), [reading])
+  // 책별 전체 절 수 — 전에는 읽기 진행률(/bible/reading-progress, 12KB 집계)을 따로 받아 빌렸다
+  const bookTotals = useMemo(
+    () => new Map(Object.entries(totalsByBook ?? {}).map(([k, n]) => [Number(k), n])),
+    [totalsByBook],
+  )
   const bookList = useMemo(() => (books ?? []).filter((b) => b.testament === testament), [books, testament])
   const picked = books?.find((b) => b.book_number === pickedBook) ?? null
   const { data: bookTyping } = useBookTyping(pickedBook)
