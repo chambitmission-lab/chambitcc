@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties, RefObject } from 'react'
-import { visibleVerses, verseNumberLabel } from './mergedVerses'
+import { isOmittedVerseText, visibleVerses, verseNumberLabel } from './mergedVerses'
 import { useBibleChapter } from '../../../hooks/useBible'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { useAuth } from '../../../hooks/useAuth'
@@ -156,6 +156,18 @@ const CinemaReading = ({
     () => (activeVerse != null ? verses.find(v => v.verse === activeVerse) ?? null : null),
     [verses, activeVerse]
   )
+
+  // 바로 뒤따르는 '(없음)' 절 — 낭독이 건너뛰어 화면에 올라올 차례가 없으므로
+  // 앞 절 아래에 흐리게 적어 둔다 (막 11:25 아래 "26 (없음)")
+  const omittedAfter = useMemo(() => {
+    if (!currentVerseObj) return []
+    const out: number[] = []
+    for (let i = verses.indexOf(currentVerseObj) + 1; i < verses.length; i++) {
+      if (!isOmittedVerseText(verses[i].text)) break
+      out.push(verses[i].verse)
+    }
+    return out
+  }, [verses, currentVerseObj])
 
   // 화면 맞춤 — 절이 무대보다 길면(특히 가로 모드) 글자를 단계적으로 줄여 한 화면에 담는다.
   // 0.5까지 줄여도 안 들어가면 그대로 두고 스크롤(CSS overflow)에 맡긴다.
@@ -345,7 +357,14 @@ const CinemaReading = ({
   const maxTimedVerse = timings && timings.length > 0 ? timings[timings.length - 1].verse : 0
   const stepVerse = (dir: 1 | -1) => {
     const cur = activeVerse ?? 0
-    const target = Math.max(1, Math.min(maxTimedVerse || cur + dir, cur + dir))
+    // 타이밍이 있으면 타이밍 있는 절로만 — '(없음)'·병합 자리표시자 절은 낭독
+    // 구간이 없어 그리로 이동하면 seek이 실패해 화살표가 그 자리에 멈춘다
+    const target =
+      timings && timings.length > 0
+        ? dir === 1
+          ? timings.find(t => t.verse > cur)?.verse ?? cur
+          : [...timings].reverse().find(t => t.verse < cur)?.verse ?? timings[0].verse
+        : Math.max(1, cur + dir)
     if (target !== cur || dir === -1) onSeekToVerse(target)
     pokeUi()
   }
@@ -419,6 +438,11 @@ const CinemaReading = ({
             <span className="cinema-verse__ref">
               {bookName} {chapter}:{verseNumberLabel(currentVerseObj)}
             </span>
+            {omittedAfter.length > 0 && (
+              <span className="cinema-verse__omitted">
+                {omittedAfter.map(v => `${v}절 (없음)`).join(' · ')}
+              </span>
+            )}
           </div>
         ) : (
           /* 머리말 낭독·준비 중 — 영화 타이틀 카드 */

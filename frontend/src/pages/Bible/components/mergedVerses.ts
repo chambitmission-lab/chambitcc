@@ -24,3 +24,11 @@ export const verseNumberLabel = (v: VerseLike): string =>
 
 /** 묶음에서 이어지는 절(렘 32:4) — 번호를 다시 찍지 않는다 */
 export const isMergedContinuation = (v: VerseLike): boolean => v.verse_label === ''
+
+/**
+ * '(없음)' 절 — 개역개정이 오래된 사본에 없는 절(막 11:26 등 신약 13곳)의
+ * 번호만 남기고 본문 자리에 적어 둔 표기. 본문이 아니라서 낭독은 건너뛰고
+ * (백엔드 bible_reading_text.is_omitted_verse_text) 화면에서는 흐리게 둔다.
+ */
+export const isOmittedVerseText = (text: string | null | undefined): boolean =>
+  !!text && /^\(\s*없\s*음\s*\)$/.test(text.trim())

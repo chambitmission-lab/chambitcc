@@ -141,6 +141,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 뒤따르는 '(없음)' 절 — 낭독하지 않는 편집자 표기라 출처보다 한 단계 더 흐리게 */
+.cinema-verse__omitted {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(246, 242, 232, 0.24);
+  font-variant-numeric: tabular-nums;
+}
+
 /* 가로 화면 — 자막처럼 넓고 큼직하게.
    세로보다 작아지면 가로로 돌린 의미가 없으므로 기본 크기는 세로(1.5rem)보다 크게
    시작하고(폭 기준 3.4vw, 상한 2.4rem), 짧은 폰 높이에서는 --vvh 8%로만 살짝 제한한다.
