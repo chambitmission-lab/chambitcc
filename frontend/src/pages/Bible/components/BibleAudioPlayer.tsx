@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
 import { getTtsStreamUrl, prewarmTts } from '../../../api/bibleTts'
@@ -428,24 +428,44 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const liveStream = started && !loading && !isError && duration <= 0
   const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
-  // 진행바·별은 재생 중 매 프레임 실제 재생 위치로 DOM 을 직접 갱신한다.
-  // currentTime 상태는 초 단위로만 바뀌어(리렌더 절약) 그대로 그리면 1초마다 뚝뚝 끊기고,
-  // 1초 선형 전환은 배속(1.2× 등)에서 실제 속도와 어긋난다. 리렌더 없이 부드럽게.
+  // 진행바·별은 리렌더 없이 DOM 을 직접 움직인다(재생 중엔 매 프레임).
+  // - currentTime 상태는 초 단위로만 바뀌어(리렌더 절약) 그대로 그리면 1초마다 뚝뚝 끊긴다.
+  // - width/left 는 정수 픽셀로 스냅돼 장 하나(수 분)를 수백 px 에 그리면 초당 1~2px 씩
+  //   계단처럼 움직인다 → transform(translateX)으로 서브픽셀 합성 이동.
+  // - audio.currentTime 은 브라우저에 따라 수십~수백 ms 단위로만 갱신돼 → 값이 그대로인
+  //   프레임은 마지막 값에서 경과 시간 × 배속으로 보간한다.
   const fillRef = useRef<HTMLDivElement>(null)
   const starRef = useRef<HTMLDivElement>(null)
   const collapsedFillRef = useRef<HTMLSpanElement>(null)
   const miniFillRef = useRef<HTMLDivElement>(null)
+  const applyProgress = (p: number) => {
+    const fill = `translate3d(${(p - 1) * 100}%,0,0)`
+    if (fillRef.current) fillRef.current.style.transform = fill
+    if (collapsedFillRef.current) collapsedFillRef.current.style.transform = fill
+    if (miniFillRef.current) miniFillRef.current.style.transform = fill
+    if (starRef.current) starRef.current.style.transform = `translate3d(${p * 100}%,0,0)`
+  }
+  // 멈춰 있을 때(일시정지·위치 이동·마운트)는 상태값으로 맞춘다
+  useLayoutEffect(() => {
+    if (!isPlaying) applyProgress(pct / 100)
+  })
   useEffect(() => {
     if (!isPlaying || duration <= 0) return
     let raf = 0
-    const tick = () => {
+    let lastMedia = -1
+    let lastAt = 0
+    const tick = (now: number) => {
       const a = audioRef.current
       if (a) {
-        const w = `${Math.min(100, (a.currentTime / duration) * 100)}%`
-        if (fillRef.current) fillRef.current.style.width = w
-        if (starRef.current) starRef.current.style.left = w
-        if (collapsedFillRef.current) collapsedFillRef.current.style.width = w
-        if (miniFillRef.current) miniFillRef.current.style.width = w
+        let t = a.currentTime
+        if (t !== lastMedia) {
+          lastMedia = t
+          lastAt = now
+        } else if (!a.paused) {
+          // 갱신 주기 사이 보간 — 최대 0.5초까지만(버퍼링 멈춤 시 앞서 달리지 않게)
+          t += Math.min(0.5, ((now - lastAt) / 1000) * a.playbackRate)
+        }
+        applyProgress(Math.min(1, Math.max(0, t / duration)))
       }
       raf = requestAnimationFrame(tick)
     }
@@ -586,12 +606,12 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
 
           {/* 접혀 있어도 어디까지 왔는지는 보이게 — 카드 아래 실선 한 줄 */}
           {started && (
-            <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-black/[0.06] dark:bg-white/[0.08]">
-              <span
-                ref={collapsedFillRef}
-                className={`block h-full rounded-r-full bg-brand ${liveStream ? 'w-full animate-pulse' : ''}`}
-                style={liveStream ? undefined : { width: `${pct}%` }}
-              />
+            <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden bg-black/[0.06] dark:bg-white/[0.08]">
+              {liveStream ? (
+                <span className="block h-full w-full animate-pulse bg-brand" />
+              ) : (
+                <span ref={collapsedFillRef} className="block h-full w-full rounded-r-full bg-brand will-change-transform" />
+              )}
             </span>
           )}
         </div>
@@ -730,11 +750,9 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                 </div>
               ) : (
                 <>
-                  <div
-                    ref={fillRef}
-                    className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-brand"
-                    style={{ width: `${pct}%` }}
-                  />
+                  <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 overflow-hidden rounded-full">
+                    <div ref={fillRef} className="h-full w-full rounded-full bg-brand will-change-transform" />
+                  </div>
 
                   {/* 시작점 — 함께 출발한 자리 */}
                   <span className="pointer-events-none absolute left-0 top-1/2 h-1 w-1 -translate-y-1/2 rounded-full bg-brand" />
@@ -750,11 +768,9 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                   </span>
 
                   {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 별빛 동행 */}
-                  <div
-                    ref={starRef}
-                    className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-                    style={{ left: `${pct}%` }}
-                  >
+                  {/* 트랙 폭 래퍼를 translateX(진행률%)로 밀어 별을 서브픽셀로 이동(카드가 overflow-hidden) */}
+                  <div ref={starRef} className="pointer-events-none absolute inset-0 will-change-transform">
+                  <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     {isPlaying && (
                       <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
                     )}
@@ -767,6 +783,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                     >
                       <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
                     </svg>
+                  </div>
                   </div>
                   <input
                     type="range"
@@ -969,11 +986,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
               {liveStream ? (
                 <div className="h-full w-full animate-pulse bg-brand" />
               ) : (
-                <div
-                  ref={miniFillRef}
-                  className="h-full rounded-full bg-brand"
-                  style={{ width: `${pct}%` }}
-                />
+                <div ref={miniFillRef} className="h-full w-full rounded-full bg-brand will-change-transform" />
               )}
             </div>
           </div>
