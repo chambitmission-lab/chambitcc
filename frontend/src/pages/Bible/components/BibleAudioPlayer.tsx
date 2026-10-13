@@ -428,6 +428,31 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const liveStream = started && !loading && !isError && duration <= 0
   const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
+  // 진행바·별은 재생 중 매 프레임 실제 재생 위치로 DOM 을 직접 갱신한다.
+  // currentTime 상태는 초 단위로만 바뀌어(리렌더 절약) 그대로 그리면 1초마다 뚝뚝 끊기고,
+  // 1초 선형 전환은 배속(1.2× 등)에서 실제 속도와 어긋난다. 리렌더 없이 부드럽게.
+  const fillRef = useRef<HTMLDivElement>(null)
+  const starRef = useRef<HTMLDivElement>(null)
+  const collapsedFillRef = useRef<HTMLSpanElement>(null)
+  const miniFillRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!isPlaying || duration <= 0) return
+    let raf = 0
+    const tick = () => {
+      const a = audioRef.current
+      if (a) {
+        const w = `${Math.min(100, (a.currentTime / duration) * 100)}%`
+        if (fillRef.current) fillRef.current.style.width = w
+        if (starRef.current) starRef.current.style.left = w
+        if (collapsedFillRef.current) collapsedFillRef.current.style.width = w
+        if (miniFillRef.current) miniFillRef.current.style.width = w
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [isPlaying, duration])
+
   // 연속 재생 다음 장 준비: 현재 장을 절반(총길이 모르는 스트리밍이면 30초) 넘게 들었으면
   // 다음 장을 백엔드에 미리 생성시키고, 캐시 URL 이 생길 때까지 resolve 를 다시 묻는다.
   // 장이 끝나는 순간 생성 지연 없이 R2 파일로 바로 이어진다.
@@ -563,7 +588,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
           {started && (
             <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-black/[0.06] dark:bg-white/[0.08]">
               <span
-                className={`block h-full rounded-r-full bg-brand ${liveStream ? 'w-full animate-pulse' : 'transition-[width] duration-1000 ease-linear'}`}
+                ref={collapsedFillRef}
+                className={`block h-full rounded-r-full bg-brand ${liveStream ? 'w-full animate-pulse' : ''}`}
                 style={liveStream ? undefined : { width: `${pct}%` }}
               />
             </span>
@@ -705,6 +731,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
               ) : (
                 <>
                   <div
+                    ref={fillRef}
                     className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-brand"
                     style={{ width: `${pct}%` }}
                   />
@@ -724,6 +751,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
 
                   {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 별빛 동행 */}
                   <div
+                    ref={starRef}
                     className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
                     style={{ left: `${pct}%` }}
                   >
@@ -942,7 +970,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                 <div className="h-full w-full animate-pulse bg-brand" />
               ) : (
                 <div
-                  className="h-full rounded-full bg-brand transition-[width] duration-1000 ease-linear"
+                  ref={miniFillRef}
+                  className="h-full rounded-full bg-brand"
                   style={{ width: `${pct}%` }}
                 />
               )}
