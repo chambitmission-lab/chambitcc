@@ -11,7 +11,7 @@
  */
 import { API_V1, apiFetch } from '../../config/api'
 import { tokenStore } from '../../utils/tokenStore'
-import { releaseSecondaryRequests, waitForCriticalRequests } from '../../utils/requestPriority'
+import { acquireRequestSlot, releaseSecondaryRequests, waitForCriticalRequests } from '../../utils/requestPriority'
 import { ApiError } from './apiHelpers'
 
 export type QueryValue = string | number | boolean | null | undefined
@@ -44,8 +44,9 @@ export interface RequestOptions {
    *   끝나는 순간 게이트를 열어 미뤄 둔 요청들을 출발시킨다.
    * 'high': 게이트를 기다리지 않되 열지도 않는다 — 핵심 요청과 나란히 나가야 하는
    *   화면 렌더 조건(성경 장 읽음 상태)용. 게이트는 여전히 critical 이 끝날 때 열린다.
-   * 'normal'(기본): 홈 콜드 마운트 중이면 핵심 요청이 끝날 때까지 출발을 미룬다.
-   *   (utils/requestPriority 참고 — 웜 진입·다른 페이지에서는 게이트가 없어 즉시 나간다)
+   * 'normal'(기본): 홈 콜드 마운트 중이면 핵심 요청이 끝날 때까지 출발을 미루고, 그 뒤에도
+   *   동시 요청 한도(3개) 안에서 차례로 나간다. GET 이 아닌 요청·keepalive 는 줄을 서지 않는다.
+   *   (utils/requestPriority 참고 — 백엔드가 직렬에 가까워 한꺼번에 보내면 전부 느려진다)
    */
   priority?: 'critical' | 'high' | 'normal'
 }
@@ -146,11 +147,17 @@ export const requestRaw = async (path: string, options: RequestOptions = {}): Pr
   const url = resolveUrl(path) + buildQuery(options.query)
   const init = buildInit(options)
   const critical = options.priority === 'critical'
-  if (!critical && options.priority !== 'high') await waitForCriticalRequests()
+  // 줄을 서지 않는 것: 첫 화면 핵심·high, 사용자 행동(GET 아닌 요청), 이탈 신호(keepalive)
+  const bypassQueue =
+    critical || options.priority === 'high' || (options.method !== undefined && options.method !== 'GET') || !!options.keepalive
+  if (!bypassQueue) await waitForCriticalRequests()
+  // 동시 요청 제한 — 백엔드가 직렬에 가까워 한꺼번에 보내면 전부 느려진다(utils/requestPriority)
+  const releaseSlot = await acquireRequestSlot(bypassQueue, options.signal)
   let response: Response
   try {
     response = await apiFetch(url, init)
   } finally {
+    releaseSlot()
     // 성공이든 실패든 핵심 요청이 끝나면 나머지를 풀어 준다
     if (critical) releaseSecondaryRequests()
   }
