@@ -45,6 +45,93 @@ export interface TypingStats {
   last_position: { book_number: number; chapter: number; verse: number } | null
   /** 이어 쓸 자리 — 장 끝이면 다음 장 1절, 책 끝이면 다음 책. 전권을 다 썼으면 null */
   next_position: { book_number: number; chapter: number; verse: number } | null
+  /** 연속 기록을 이어 준 쉼표(한 주에 하루 쉰 날, YYYY-MM-DD) */
+  rest_days: string[]
+  rest_used_this_week: boolean
+  /** 고른 하루 목표(절). 아직 안 골랐으면 null */
+  daily_goal: number | null
+}
+
+/** 하루 목표로 고를 수 있는 절 수 */
+export const DAILY_GOALS = [1, 3, 5, 10] as const
+
+export interface TypingCalendar {
+  start: string
+  today: string
+  /** YYYY-MM-DD → 그날 필사한 절 수 (쓴 날만) */
+  days: Record<string, number>
+}
+
+export interface TypingDaily {
+  date: string
+  verse: {
+    id: number
+    book_number: number
+    book_name: string
+    chapter: number
+    verse: number
+    label: string
+    text: string
+    merged_ids: number[]
+  } | null
+  done_count: number
+  recent: { user_id: number; name: string; avatar_url: string | null }[]
+  me: { rank: number; duration_ms: number; accuracy: number; cpm: number } | null
+}
+
+export interface ChurchBible {
+  total_verses: number
+  typed_verses: number
+  week_added: number
+  week_people: number
+  contributors: number
+  my_verses: number
+  /** 교회 성경에서 내가 처음 채운 칸 수 */
+  my_first: number
+  books: Record<string, number>
+  book_totals: Record<string, number>
+}
+
+export interface TypingRelaySummary {
+  id: number
+  title: string
+  book_number: number
+  book_name: string
+  chapter: number
+  done: number
+  total: number
+  members: number
+  my_verses: number
+  completed: boolean
+}
+
+export interface TypingRelayPreview extends TypingRelaySummary {
+  owner_name: string | null
+  is_member: boolean
+}
+
+export interface TypingRelayDetail {
+  id: number
+  title: string
+  book_number: number
+  book_name: string
+  chapter: number
+  invite_code: string
+  is_owner: boolean
+  completed: boolean
+  done: number
+  total: number
+  members: {
+    user_id: number
+    name: string
+    avatar_url: string | null
+    verses: number
+    is_me: boolean
+    is_owner: boolean
+  }[]
+  verses: { id: number; verse: number; label: string; by: { user_id: number; name: string } | null }[]
+  /** 아직 아무도 안 쓴 첫 절 — 다 채웠으면 null */
+  next_verse: number | null
 }
 
 export interface TypingWeeklyItem {
@@ -112,4 +199,93 @@ export const getTypingWeekly = async (): Promise<TypingWeekly> => {
     errorMessage: '이번 주 필사 현황을 불러오지 못했어요',
   })
   return res.data
+}
+
+export const updateTypingGoal = async (dailyGoal: number): Promise<number> => {
+  const res = await request<Envelope<{ daily_goal: number }>>('/bible-typing/prefs', {
+    method: 'PUT',
+    auth: 'required',
+    json: { daily_goal: dailyGoal },
+    errorMessage: '하루 목표를 저장하지 못했어요',
+  })
+  return res.data.daily_goal
+}
+
+export const getTypingCalendar = async (days = 182): Promise<TypingCalendar> => {
+  const res = await request<Envelope<TypingCalendar>>(`/bible-typing/calendar?days=${days}`, {
+    auth: 'required',
+    errorMessage: '필사 달력을 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const getTypingDaily = async (): Promise<TypingDaily> => {
+  const res = await request<Envelope<TypingDaily>>('/bible-typing/daily', {
+    auth: 'required',
+    errorMessage: '오늘의 한 절을 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const getChurchBible = async (): Promise<ChurchBible> => {
+  const res = await request<Envelope<ChurchBible>>('/bible-typing/church-bible', {
+    auth: 'required',
+    errorMessage: '우리 교회 필사 성경을 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const getTypingRelays = async (): Promise<TypingRelaySummary[]> => {
+  const res = await request<Envelope<TypingRelaySummary[]>>('/bible-typing/relays', {
+    auth: 'required',
+    errorMessage: '릴레이 필사를 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const createTypingRelay = async (input: {
+  book_number: number
+  chapter: number
+  title?: string
+}): Promise<{ id: number; invite_code: string }> => {
+  const res = await request<Envelope<{ id: number; invite_code: string }>>('/bible-typing/relays', {
+    method: 'POST',
+    auth: 'required',
+    json: input,
+    errorMessage: '릴레이를 만들지 못했어요',
+  })
+  return res.data
+}
+
+export const getTypingRelay = async (id: number): Promise<TypingRelayDetail> => {
+  const res = await request<Envelope<TypingRelayDetail>>(`/bible-typing/relays/${id}`, {
+    auth: 'required',
+    errorMessage: '릴레이를 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const previewTypingRelay = async (code: string): Promise<TypingRelayPreview> => {
+  const res = await request<Envelope<TypingRelayPreview>>(`/bible-typing/relays/invite/${encodeURIComponent(code)}`, {
+    auth: 'required',
+    errorMessage: '초대 링크를 확인하지 못했어요',
+  })
+  return res.data
+}
+
+export const joinTypingRelay = async (code: string): Promise<number> => {
+  const res = await request<Envelope<{ id: number }>>(`/bible-typing/relays/join/${encodeURIComponent(code)}`, {
+    method: 'POST',
+    auth: 'required',
+    errorMessage: '릴레이에 참여하지 못했어요',
+  })
+  return res.data.id
+}
+
+export const leaveTypingRelay = async (id: number): Promise<void> => {
+  await request<Envelope<null>>(`/bible-typing/relays/${id}/members/me`, {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '릴레이에서 나가지 못했어요',
+  })
 }

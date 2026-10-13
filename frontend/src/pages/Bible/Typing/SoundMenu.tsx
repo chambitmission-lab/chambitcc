@@ -1,0 +1,87 @@
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import {
+  SOUND_THEMES,
+  getSoundTheme,
+  isAmbientOn,
+  pauseAmbient,
+  resumeAmbient,
+  setAmbient,
+  setSoundTheme,
+  subscribeSound,
+} from './typingSound'
+
+/** 쓰기 화면 머리의 소리 버튼 — 타건음 테마·빗소리. 화면을 떠나면 빗소리를 멈춘다 */
+const SoundMenu = () => {
+  const theme = useSyncExternalStore(subscribeSound, getSoundTheme)
+  const ambient = useSyncExternalStore(subscribeSound, isAmbientOn)
+  const [open, setOpen] = useState(false)
+  const boxRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    // 켜 둔 빗소리는 첫 입력 때 다시 튼다(자동 재생 정책) — 떠날 때 끈다
+    const kick = () => resumeAmbient()
+    document.addEventListener('keydown', kick, { once: true })
+    document.addEventListener('pointerdown', kick, { once: true })
+    return () => {
+      document.removeEventListener('keydown', kick)
+      document.removeEventListener('pointerdown', kick)
+      pauseAmbient()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: PointerEvent) => {
+      if (!boxRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const on = theme !== 'off' || ambient
+  return (
+    <div className="bt-sound" ref={boxRef}>
+      <button
+        type="button"
+        className={`bt-icon-btn${on ? ' is-on' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label="쓰는 소리 고르기"
+        title="쓰는 소리"
+      >
+        <span className="material-icons-round">{on ? 'music_note' : 'music_off'}</span>
+      </button>
+      {open && (
+        <div className="bt-sound__menu" role="menu">
+          <p className="bt-sound__title">쓰는 소리</p>
+          {SOUND_THEMES.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="menuitemradio"
+              aria-checked={theme === t.key}
+              className={`bt-sound__item${theme === t.key ? ' is-on' : ''}`}
+              onClick={() => setSoundTheme(t.key)}
+            >
+              <span className="bt-sound__label">{t.label}</span>
+              <span className="bt-sound__desc">{t.desc}</span>
+            </button>
+          ))}
+          <label className="bt-sound__ambient">
+            <input type="checkbox" checked={ambient} onChange={(e) => setAmbient(e.target.checked)} />
+            <span>잔잔한 빗소리 깔기</span>
+          </label>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default SoundMenu

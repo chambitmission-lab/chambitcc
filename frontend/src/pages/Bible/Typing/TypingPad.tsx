@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { compare, countKeystrokes, cpmOf, finalAccuracy, initialOf, isHangul, normalizeTyped, type CharState } from './hangulTyping'
 import type { TypingMode } from '../../../api/bibleTyping'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
+import { playTypingSound } from './typingSound'
 
 export interface TypingFinish {
   accuracy: number
@@ -242,6 +243,12 @@ const TypingPad = ({ text, mode, ignorePunct, onFinish, onStart, autoFocus = tru
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // 타건음 — 조합 중(229·Process)도 한 번 누를 때마다 한 번
+    if (!disabled && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat) {
+      if (e.key === 'Backspace') playTypingSound('back')
+      else if (e.key === ' ' || e.code === 'Space') playTypingSound('space')
+      else if (e.key.length === 1 || e.key === 'Process' || e.keyCode === 229) playTypingSound('key')
+    }
     // 암송 도구 단축키 — 한글 입력 상태에서도 잡히도록 e.code 로 본다
     if (memorize && e.altKey && !e.ctrlKey && !e.metaKey) {
       if (e.code === 'KeyH') {
@@ -354,7 +361,11 @@ const TypingPad = ({ text, mode, ignorePunct, onFinish, onStart, autoFocus = tru
   )
 
   return (
-    <div className={`bt-pad${disabled ? ' is-disabled' : ''}${focused ? ' is-focused' : ''}`}>
+    <div
+      className={`bt-pad${disabled ? ' is-disabled' : ''}${focused ? ' is-focused' : ''}${
+        startedAt !== null && !disabled ? ' is-typing' : ''
+      }`}
+    >
       <p
         ref={targetRef}
         className={`bt-target${memorize ? ' is-memorize' : ''}${hint ? ' has-hint' : ''}`}

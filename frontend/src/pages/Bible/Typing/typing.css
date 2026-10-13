@@ -38,8 +38,7 @@
   border-radius: 20px;
   box-shadow: var(--card-shadow);
 }
-.dark .bt-card,
-.dark .bt-hero {
+.dark .bt-card {
   background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 42%);
   box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
@@ -186,150 +185,29 @@
   accent-color: var(--brand);
 }
 
-/* ── Hero ───────────────────────────────────────── */
-.bt-hero {
-  padding: 20px 18px 18px;
-  border-radius: 24px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--card-shadow);
-}
-.bt-hero__top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.bt-hero__emblem {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: var(--brand-soft-strong);
-  color: var(--brand);
-  font-size: 30px;
-  flex-shrink: 0;
-}
-.bt-hero__label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--brand);
-}
-.bt-hero__title {
-  margin-top: 2px;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-strong);
-  letter-spacing: -0.01em;
-}
-.bt-hero__desc {
-  margin-top: 12px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-body);
-  word-break: keep-all;
-}
-.bt-hero__stats,
+/* ── 결과 숫자 칸(장 완료·스프린트) ─────────────── */
 .bt-summary__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: 16px;
 }
-.bt-hero__stats > div,
 .bt-summary__stats > div {
   padding: 10px 6px;
   border-radius: 14px;
   background: var(--surface-inset);
   text-align: center;
 }
-.bt-hero__stats dt,
 .bt-summary__stats dt {
   font-size: 12px;
   color: var(--text-muted);
 }
-.bt-hero__stats dd,
 .bt-summary__stats dd {
   margin-top: 2px;
   font-size: 22px;
   font-weight: 800;
   color: var(--text-strong);
   font-variant-numeric: tabular-nums;
-}
-.bt-note--hero {
-  margin-top: 12px;
-}
-
-/* ── 이어서 쓰기 ─────────────────────────────────── */
-.bt-continue {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  margin-top: 12px;
-  padding: 14px 16px;
-  text-align: left;
-  color: var(--text-muted);
-}
-.bt-continue__icon {
-  color: var(--brand);
-  font-size: 26px;
-}
-.bt-continue__body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.bt-continue__eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--brand);
-}
-.bt-continue__title {
-  font-size: 15.5px;
-  font-weight: 700;
-  color: var(--text-strong);
-}
-
-/* ── 모드 ───────────────────────────────────────── */
-.bt-modes {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-.bt-mode {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1.5px solid var(--card-border);
-  background: var(--surface-container);
-  text-align: left;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-.bt-mode.is-on {
-  border-color: var(--brand);
-  background: var(--brand-soft);
-}
-.bt-mode__icon {
-  font-size: 22px;
-  color: var(--brand);
-  margin-bottom: 4px;
-}
-.bt-mode__title {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--text-strong);
-}
-.bt-mode__desc {
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--text-muted);
-  word-break: keep-all;
 }
 
 /* ── 장 고르기 ───────────────────────────────────── */
@@ -546,67 +424,23 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── 필사 칭호 ───────────────────────────────────── */
-.bt-titles {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-@media (min-width: 640px) {
-  .bt-titles {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-.bt-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 16px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-}
+/* ── 필사 칭호 아이콘·진행 막대(다음 칭호 카드) ───── */
 .bt-title__icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--surface-inset);
-  color: var(--text-muted);
-  font-size: 22px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  font-size: 24px;
   flex-shrink: 0;
 }
-.bt-title.is-earned .bt-title__icon {
-  color: var(--brand);
-  background: var(--brand-soft-strong);
-  box-shadow: 0 0 0 2px var(--brand-soft-strong);
-}
-.bt-title__body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.bt-title__name {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--text-strong);
-}
-.bt-title__hint {
-  font-size: 12px;
-  color: var(--text-muted);
-  word-break: keep-all;
-}
-.bt-title.is-earned .bt-title__hint {
-  color: var(--brand);
-  font-weight: 600;
-}
 .bt-title__bar {
-  height: 4px;
-  margin-top: 4px;
+  display: block;
+  height: 5px;
+  margin-top: 6px;
   border-radius: 999px;
   background: var(--surface-inset);
   overflow: hidden;
@@ -1168,30 +1002,12 @@
     display: block;
     min-width: 0;
   }
-  /* 오른쪽 칸 첫 섹션은 히어로와 윗선을 맞춘다 */
+  /* 오른쪽 칸 첫 섹션은 오늘의 필사 카드와 윗선을 맞춘다 */
   .bt-home-side > .bt-section:first-child {
     margin-top: 0;
   }
-  .bt-home-side .bt-titles {
-    grid-template-columns: 1fr;
-  }
   .bt-books {
     grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-  .bt-mode {
-    padding: 16px;
-    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  .bt-mode:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--card-shadow);
-  }
-  .bt-continue {
-    transition: transform 0.15s ease, border-color 0.15s ease;
-  }
-  .bt-continue:hover {
-    transform: translateY(-1px);
-    border-color: color-mix(in srgb, var(--brand) 40%, var(--card-border));
   }
 }
 
@@ -1622,5 +1438,1340 @@
     .bt-refocus {
       animation: none;
     }
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   2026-10 허브 개편 — 오늘의 필사·등잔·잉크 달력·함께 쓰기
+   ══════════════════════════════════════════════════ */
+.bt-page {
+  --bt-oil: #f2b448;
+  --bt-oil-line: #ffd27a;
+  --bt-clay: color-mix(in srgb, var(--text-muted) 34%, var(--surface-container));
+  --bt-ink: var(--brand);
+}
+.dark .bt-page {
+  --bt-oil: #d9982f;
+  --bt-oil-line: #f3bf5c;
+  --bt-clay: color-mix(in srgb, var(--text-muted) 30%, var(--surface-container));
+}
+
+.bt-section__sub {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.bt-chip--sm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+.bt-icon-btn.is-on {
+  color: var(--brand);
+}
+
+/* ── 등잔 ───────────────────────────────────────── */
+.bt-lamp {
+  display: inline-block;
+  flex-shrink: 0;
+}
+.bt-lamp svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.bt-lamp__body {
+  fill: var(--bt-clay);
+}
+.bt-lamp__rim {
+  fill: none;
+  stroke: color-mix(in srgb, var(--text-strong) 22%, transparent);
+  stroke-width: 1.4;
+}
+.bt-lamp__handle {
+  fill: none;
+  stroke: var(--bt-clay);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.bt-lamp__oil {
+  fill: var(--bt-oil);
+  transition: y 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bt-lamp__oil-line {
+  stroke: var(--bt-oil-line);
+  stroke-width: 2;
+}
+.bt-lamp__hole {
+  fill: color-mix(in srgb, var(--text-strong) 30%, transparent);
+}
+.bt-lamp__wick {
+  stroke: color-mix(in srgb, var(--text-strong) 55%, transparent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.bt-lamp__flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bt-flicker 2.6s ease-in-out infinite;
+}
+.bt-lamp__glow {
+  fill: #ffb547;
+  opacity: 0.22;
+  filter: blur(6px);
+}
+.bt-lamp.is-full .bt-lamp__glow {
+  opacity: 0.34;
+  animation: bt-glow 3s ease-in-out infinite;
+}
+.bt-lamp.is-full .bt-lamp__flame {
+  animation-duration: 1.8s;
+}
+@keyframes bt-flicker {
+  0%, 100% { transform: scale(1, 1) rotate(0deg); }
+  30% { transform: scale(0.96, 1.05) rotate(-2deg); }
+  55% { transform: scale(1.03, 0.97) rotate(1.5deg); }
+  80% { transform: scale(0.98, 1.03) rotate(-1deg); }
+}
+@keyframes bt-glow {
+  50% { opacity: 0.2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bt-lamp__flame,
+  .bt-lamp.is-full .bt-lamp__glow {
+    animation: none;
+  }
+}
+
+/* ── 오늘의 필사 ─────────────────────────────────── */
+.bt-today {
+  position: relative;
+  padding: 20px 18px 16px;
+  border-radius: 24px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+.dark .bt-today {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 42%);
+  box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.bt-today.is-met::before {
+  content: '';
+  position: absolute;
+  inset: -40% -20% auto auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 181, 71, 0.18), transparent 70%);
+  pointer-events: none;
+}
+.bt-today__top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.bt-today__lamp {
+  width: 84px;
+}
+.bt-today__head {
+  min-width: 0;
+}
+.bt-today__eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.bt-today__title {
+  margin-top: 2px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+.bt-today__title b {
+  font-size: 1.3em;
+  font-weight: 800;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.bt-today__sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.bt-today__sub b {
+  color: var(--text-strong);
+  font-weight: 800;
+}
+.bt-today__sub a {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+/* 이번 주 7칸 */
+.bt-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 16px;
+}
+.bt-week__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bt-week__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-inset);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.bt-week__label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.bt-week__day.is-done .bt-week__dot {
+  background: color-mix(in srgb, var(--bt-oil) 45%, var(--surface-inset));
+}
+.bt-week__day.is-full .bt-week__dot {
+  background: radial-gradient(circle at 50% 60%, #ffe08a, var(--bt-oil) 70%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bt-oil) 22%, transparent);
+}
+.bt-week__day.is-rest .bt-week__dot {
+  background: transparent;
+  border: 1.5px dashed color-mix(in srgb, var(--text-muted) 55%, transparent);
+  padding-bottom: 8px;
+}
+.bt-week__day.is-today .bt-week__dot {
+  background: transparent;
+  border: 2px solid var(--brand);
+}
+.bt-week__day.is-future .bt-week__dot {
+  opacity: 0.45;
+}
+.bt-week__day.is-now .bt-week__label {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+/* 하루 목표 고르기 */
+.bt-today__goal {
+  margin-top: 16px;
+}
+.bt-today__goal-q {
+  margin: 0 2px 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.bt-goal {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.bt-goal__opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  border: 1.5px solid var(--card-border);
+  background: var(--surface-container);
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.12s ease;
+}
+.bt-goal__opt:active {
+  transform: scale(0.97);
+}
+.bt-goal__opt.is-on {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+.bt-goal__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.bt-goal__opt b {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+.bt-goal__hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* 이어 쓸 말씀 */
+.bt-today__next {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--surface-inset);
+  text-align: left;
+}
+.bt-today__ref {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.bt-today__verse {
+  display: -webkit-box;
+  margin-top: 4px;
+  font-family: var(--font-serif-kr);
+  font-size: 15.5px;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  word-break: keep-all;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bt-today__verse.is-masked {
+  color: var(--text-muted);
+}
+.bt-today__cta {
+  margin-top: 10px;
+  min-height: 52px;
+  font-size: 16px;
+  border-radius: 16px;
+}
+.bt-today__cta .material-icons-round {
+  font-size: 20px;
+}
+.bt-today__opts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.bt-mini-seg {
+  display: inline-grid;
+  grid-auto-flow: column;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+}
+.bt-mini-seg button {
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.bt-mini-seg button.is-on {
+  background: var(--surface-container);
+  color: var(--text-strong);
+  box-shadow: var(--card-shadow);
+}
+.bt-today__goal-link {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── 얼굴 줄 ─────────────────────────────────────── */
+.bt-faces {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.bt-faces__item {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--surface-container);
+  background: var(--surface-inset);
+}
+.bt-faces__item + .bt-faces__item {
+  margin-left: -7px;
+}
+.bt-faces__item--initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+}
+
+/* ── 오늘의 한 절(허브 카드) ──────────────────────── */
+.bt-daily {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px 14px 14px 16px;
+  color: var(--text-muted);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.bt-daily:active {
+  transform: scale(0.99);
+}
+.bt-daily__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bt-oil) 22%, var(--surface-inset));
+  color: #c97a12;
+  flex-shrink: 0;
+}
+.dark .bt-daily__badge {
+  color: var(--bt-oil-line);
+}
+.bt-daily.is-done .bt-daily__badge {
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+}
+.bt-daily__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.bt-daily__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.bt-daily__text {
+  font-family: var(--font-serif-kr);
+  font-size: 15px;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bt-daily__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+}
+.bt-daily__meta b {
+  color: var(--text-strong);
+}
+.bt-daily__go {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+  white-space: nowrap;
+}
+.bt-daily__go .material-icons-round {
+  font-size: 18px;
+}
+
+/* ── 잉크 달력 ───────────────────────────────────── */
+.bt-ink {
+  padding: 14px 14px 12px;
+}
+.bt-ink__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.bt-ink__stats > div {
+  text-align: center;
+}
+.bt-ink__stats dt {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.bt-ink__stats dd {
+  margin-top: 1px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.bt-ink__months,
+.bt-ink__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--weeks), minmax(0, 1fr));
+  column-gap: 3px;
+}
+.bt-ink__months {
+  margin-bottom: 4px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.bt-ink__months span {
+  grid-row: 1;
+}
+.bt-ink__grid {
+  grid-template-rows: repeat(7, auto);
+  grid-auto-flow: column;
+  row-gap: 3px;
+}
+.bt-ink__cell {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 35%;
+  background: var(--surface-inset);
+}
+.bt-ink__cell.lv-1 {
+  background: radial-gradient(circle at 45% 55%, color-mix(in srgb, var(--bt-ink) 38%, transparent), color-mix(in srgb, var(--bt-ink) 18%, transparent) 75%);
+}
+.bt-ink__cell.lv-2 {
+  background: radial-gradient(circle at 45% 55%, color-mix(in srgb, var(--bt-ink) 60%, transparent), color-mix(in srgb, var(--bt-ink) 32%, transparent) 78%);
+}
+.bt-ink__cell.lv-3 {
+  background: radial-gradient(circle at 45% 55%, color-mix(in srgb, var(--bt-ink) 82%, transparent), color-mix(in srgb, var(--bt-ink) 50%, transparent) 80%);
+}
+.bt-ink__cell.lv-4 {
+  background: radial-gradient(circle at 45% 55%, var(--bt-ink), color-mix(in srgb, var(--bt-ink) 72%, #001a4d) 85%);
+}
+/* 잉크가 칸마다 조금씩 다르게 번진다 */
+.bt-ink__cell.blot-0 { border-radius: 42% 58% 50% 50% / 55% 45% 55% 45%; }
+.bt-ink__cell.blot-1 { border-radius: 55% 45% 40% 60% / 45% 55% 50% 50%; }
+.bt-ink__cell.blot-2 { border-radius: 50% 50% 60% 40% / 60% 40% 45% 55%; }
+.bt-ink__cell.blot-3 { border-radius: 45% 55% 55% 45% / 50% 60% 40% 50%; }
+.bt-ink__cell.lv-0 {
+  border-radius: 30%;
+}
+.bt-ink__cell.is-future {
+  opacity: 0.35;
+}
+.bt-ink__cell.is-rest {
+  background: transparent;
+  border: 1.5px dashed color-mix(in srgb, var(--text-muted) 55%, transparent);
+  border-radius: 50%;
+}
+.bt-ink__cell.is-today {
+  outline: 1.5px solid var(--brand);
+  outline-offset: 1px;
+}
+.bt-ink__legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.bt-ink__legend .bt-ink__cell {
+  width: 11px;
+}
+.bt-ink__legend-rest {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+/* ── 쓰는 중인 책 ────────────────────────────────── */
+.bt-shelf {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (min-width: 640px) {
+  .bt-shelf {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.bt-shelf__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  text-align: left;
+}
+.bt-shelf__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.bt-shelf__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.bt-shelf__bar {
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+.bt-shelf__bar span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  border-radius: inherit;
+}
+.bt-disclose {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px dashed var(--card-border);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+.bt-disclose .material-icons-round {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+.bt-disclose__chev {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+.bt-disclose[aria-expanded='true'] .bt-disclose__chev {
+  transform: rotate(180deg);
+}
+.bt-disclose + .bt-picker {
+  margin-top: 8px;
+}
+
+/* ── 스프린트 입구 ───────────────────────────────── */
+.bt-sprint-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 22px;
+  padding: 14px 16px;
+  text-align: left;
+  color: var(--text-muted);
+}
+.bt-sprint-entry__icon {
+  font-size: 26px;
+  color: var(--brand);
+}
+.bt-sprint-entry__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.bt-sprint-entry__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.bt-sprint-entry__desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ── 우리 교회 손글씨 성경 ──────────────────────── */
+.bt-church {
+  padding: 16px;
+}
+.bt-church__lead {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.bt-church__lead b {
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bt-church__pct {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.bt-church__bar {
+  height: 8px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+.bt-church__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 60%, #7dd3fc));
+}
+.bt-church__week {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.bt-church__week b {
+  color: var(--brand);
+}
+.bt-church__books {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 3px;
+  margin-top: 14px;
+}
+.bt-church__book {
+  aspect-ratio: 3 / 4;
+  border-radius: 3px;
+  background: var(--surface-inset);
+}
+.bt-church__book.sh-1 { background: color-mix(in srgb, var(--bt-ink) 20%, var(--surface-inset)); }
+.bt-church__book.sh-2 { background: color-mix(in srgb, var(--bt-ink) 42%, var(--surface-inset)); }
+.bt-church__book.sh-3 { background: color-mix(in srgb, var(--bt-ink) 70%, var(--surface-inset)); }
+.bt-church__book.sh-4 { background: var(--bt-ink); }
+.bt-church__legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.bt-church__mine {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+.bt-church__mine > div {
+  text-align: center;
+}
+.bt-church__mine dt {
+  font-size: 11px;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.bt-church__mine dd {
+  margin-top: 1px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 릴레이 필사(허브) ───────────────────────────── */
+.bt-relays {
+  padding: 12px;
+}
+.bt-relays__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.bt-relays__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+}
+.bt-relays__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bt-relays__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bt-relays__count {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.bt-relays__bar {
+  display: block;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 16%, transparent);
+  overflow: hidden;
+}
+.bt-relays__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+  transition: width 0.6s ease;
+}
+.bt-relays__item.is-done .bt-relays__bar span {
+  background: var(--bt-oil);
+}
+.bt-relays__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.bt-relays__empty {
+  margin: 2px 2px 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.bt-relays__new .material-icons-round {
+  font-size: 20px;
+}
+
+/* 릴레이 만들기 시트 */
+.bt-relay-new {
+  text-align: left;
+}
+.bt-relay-new .bt-summary__eyebrow {
+  margin-top: 0;
+}
+.bt-relay-new__desc {
+  margin: 6px 0 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.bt-quick--wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+  padding-bottom: 6px;
+}
+.bt-relay-new__row {
+  display: flex;
+  gap: 8px;
+}
+.bt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.bt-field--narrow {
+  flex: 0 0 96px;
+}
+.bt-field select,
+.bt-field input {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-strong);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* ── 다음 칭호 ───────────────────────────────────── */
+.bt-nexttitle {
+  padding: 14px;
+}
+.bt-nexttitle__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.bt-nexttitle__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.bt-nexttitle__eyebrow {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.bt-nexttitle__name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.bt-nexttitle__hint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.bt-nexttitle__hint b {
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.bt-nexttitle__all {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.bt-nexttitle__earned {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+.bt-nexttitle__earned li {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  font-size: 18px;
+}
+
+/* ── 쓰는 소리 메뉴 ──────────────────────────────── */
+.bt-sound {
+  position: relative;
+}
+.bt-sound__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  width: 230px;
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  animation: bt-rise 0.2s ease;
+}
+.bt-sound__title {
+  padding: 4px 8px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.bt-sound__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  text-align: left;
+}
+.bt-sound__item:hover {
+  background: var(--surface-inset);
+}
+.bt-sound__item.is-on {
+  background: var(--brand-soft);
+}
+.bt-sound__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.bt-sound__item.is-on .bt-sound__label {
+  color: var(--brand);
+}
+.bt-sound__desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.bt-sound__ambient {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 10px 10px 4px;
+  border-top: 1px solid var(--card-border);
+  font-size: 13px;
+  color: var(--text-body);
+  cursor: pointer;
+}
+.bt-sound__ambient input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand);
+}
+
+/* ── 목표 달성 모먼트 ────────────────────────────── */
+.bt-goalmoment__lamp {
+  width: 120px;
+  margin: -4px auto 0;
+  display: block;
+}
+.bt-goalmoment__streak {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--text-body);
+}
+.bt-goalmoment__streak b {
+  color: var(--brand);
+  font-size: 1.2em;
+}
+.bt-goalmoment__tomorrow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+  text-align: left;
+}
+.bt-goalmoment__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.bt-goalmoment__text {
+  font-family: var(--font-serif-kr);
+  font-size: 16px;
+  color: var(--text-strong);
+}
+
+/* ── 오늘의 한 절 화면 ───────────────────────────── */
+.bt-daily-write__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.bt-daily-write__people {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.bt-daily-result {
+  margin-top: 4px;
+}
+.bt-daily-paper {
+  position: relative;
+  padding: 28px 24px 20px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fbf8f1, #efe8d8);
+  color: #1f2430;
+  box-shadow: 0 14px 40px rgba(60, 50, 30, 0.16);
+  overflow: hidden;
+  animation: bt-rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bt-daily-paper::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(49, 130, 246, 0.16), transparent 70%);
+  pointer-events: none;
+}
+.bt-daily-paper__eyebrow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3182f6;
+}
+.bt-daily-paper__eyebrow span {
+  font-weight: 500;
+  color: #8a8270;
+}
+.bt-daily-paper__text {
+  margin-top: 18px;
+  font-family: var(--font-serif-kr);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.75;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+.bt-daily-paper__ref {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b6352;
+}
+.bt-daily-paper__stat {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(60, 50, 30, 0.16);
+  font-size: 13px;
+  color: #3a3426;
+}
+.bt-daily-paper__stat b {
+  font-size: 1.25em;
+  color: #3182f6;
+}
+.bt-daily-result__people {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--text-body);
+}
+.bt-daily-result__people b {
+  color: var(--brand);
+}
+.bt-daily-result__next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.bt-daily-result__next .material-icons-round {
+  font-size: 16px;
+}
+.bt-outcome--saving {
+  color: var(--text-muted);
+}
+
+/* ── 릴레이 상세 ─────────────────────────────────── */
+.bt-relay {
+  padding: 18px 16px 16px;
+}
+.bt-relay__ref {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.bt-relay__lead {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.bt-relay__lead b {
+  font-size: 28px;
+  font-weight: 800;
+}
+.bt-relay__lead span {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.bt-relay.is-done .bt-relay__lead {
+  font-size: 20px;
+}
+.bt-relay__bar {
+  height: 8px;
+  margin-top: 10px;
+}
+.bt-relay__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+  margin: 16px 0 4px;
+}
+.bt-relay__cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 1.5px dashed var(--card-border);
+  background: transparent;
+  transition: transform 0.12s ease;
+}
+.bt-relay__cell:active {
+  transform: scale(0.95);
+}
+.bt-relay__no {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.bt-relay__who {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--hue);
+}
+.bt-relay__cell.is-filled {
+  border: none;
+  background: color-mix(in srgb, var(--hue) 20%, var(--surface-container));
+}
+.bt-relay__cell.is-filled .bt-relay__no {
+  font-size: 10.5px;
+}
+.bt-hue-0 { --hue: #3182f6; }
+.bt-hue-1 { --hue: #12b886; }
+.bt-hue-2 { --hue: #e8890c; }
+.bt-hue-3 { --hue: #e64980; }
+.bt-hue-4 { --hue: #7950f2; }
+.bt-hue-5 { --hue: #15aabf; }
+.bt-relay__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--hue);
+  flex-shrink: 0;
+}
+.bt-relay-hello {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-color: color-mix(in srgb, var(--brand) 35%, var(--card-border));
+  background: var(--brand-soft);
+}
+.bt-relay-hello p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.bt-relay-hello p b {
+  color: var(--text-strong);
+}
+.bt-relay-hello__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.bt-relay-members {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 12px;
+}
+.bt-relay-members li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+.bt-relay-members li + li {
+  border-top: 1px solid var(--card-border);
+}
+.bt-relay-members .bt-faces__item {
+  width: 30px;
+  height: 30px;
+  font-size: 13px;
+}
+.bt-relay-members__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.bt-relay-members__name small {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.bt-relay-members li.is-me .bt-relay-members__name {
+  color: var(--brand);
+}
+.bt-relay-members__value {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.bt-relay-members__value b {
+  font-size: 16px;
+  color: var(--text-strong);
+}
+.bt-relay__leave {
+  margin-top: 10px;
+  font-size: 13.5px;
+}
+.bt-relay-invite .bt-summary__title {
+  margin-bottom: 4px;
+}
+.bt-relay-invite .bt-relay__bar {
+  margin: 14px 0 16px;
+}
+.bt-board__value small {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ── 몰입 — 쓰는 동안 곁의 것들이 물러난다(PC 책상) ── */
+@media (min-width: 1024px) {
+  .bt-desk__side,
+  .bt-page .corl-slot,
+  .bt-keys {
+    transition: opacity 0.6s ease;
+  }
+  .bt-page:has(.bt-pad.is-typing.is-focused) .bt-desk__side,
+  .bt-page:has(.bt-pad.is-typing.is-focused) .corl-slot,
+  .bt-page:has(.bt-pad.is-typing.is-focused) .bt-keys {
+    opacity: 0.28;
+  }
+  .bt-page:has(.bt-pad.is-typing.is-focused) .bt-desk__side:hover,
+  .bt-page:has(.bt-pad.is-typing.is-focused) .corl-slot:hover {
+    opacity: 1;
+  }
+
+  .bt-today {
+    padding: 24px 24px 18px;
+  }
+  .bt-today__lamp {
+    width: 104px;
+  }
+  .bt-today__title {
+    font-size: 23px;
+  }
+  .bt-week__dot {
+    width: 36px;
+    height: 36px;
+  }
+  .bt-daily:hover,
+  .bt-sprint-entry:hover,
+  .bt-shelf__item:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--brand) 40%, var(--card-border));
+  }
+  .bt-sprint-entry,
+  .bt-shelf__item {
+    transition: transform 0.15s ease, border-color 0.15s ease;
   }
 }

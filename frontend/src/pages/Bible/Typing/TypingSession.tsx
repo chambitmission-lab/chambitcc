@@ -4,13 +4,17 @@ import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { useBibleBooks, useBibleChapter } from '../../../hooks/useBible'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
-import { useChapterTyping, useSubmitTyping } from '../../../hooks/useBibleTyping'
+import { useChapterTyping, useSubmitTyping, useTypingStats } from '../../../hooks/useBibleTyping'
 import { tokenStore } from '../../../utils/tokenStore'
 import type { TypingMode } from '../../../api/bibleTyping'
 import type { BibleVerse } from '../../../types/bible'
 import TypingPad, { type TypingFinish } from './TypingPad'
 import { PASS_ACCURACY, cpmOf } from './hangulTyping'
 import { formatDuration, sessionPath, useIgnorePunct } from './typingPrefs'
+import { playTypingSound } from './typingSound'
+import SoundMenu from './SoundMenu'
+import Lamp from './home/Lamp'
+import { teaser } from './home/teaser'
 import './typing.css'
 
 interface SessionVerse {
@@ -76,7 +80,17 @@ const TypingSession = () => {
   const { data: chapterData, isLoading, error } = useBibleChapter(bookNumber, chapter)
   const { data: typedIds } = useChapterTyping(bookNumber, chapter)
   const submit = useSubmitTyping()
+  const { data: stats } = useTypingStats()
   const [ignorePunct, setIgnorePunct] = useIgnorePunct()
+  // 오늘 목표 달성 모먼트 — 세션을 열 때 이미 채웠으면 띄우지 않고, 넘는 순간 한 번만
+  const goal = stats?.daily_goal ?? 3
+  const startTodayRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (startTodayRef.current === null && stats) startTodayRef.current = stats.today_verses
+  }, [stats])
+  const goalShownRef = useRef(false)
+  /** 목표를 채운 순간 — next 는 이어 쓸 절 인덱스(장 끝이면 null) */
+  const [goalMoment, setGoalMoment] = useState<{ next: number | null } | null>(null)
 
   const book = books?.find((b) => b.book_number === bookNumber)
   const bookName = chapterData?.book_name_ko ?? book?.book_name_ko ?? ''
@@ -182,6 +196,7 @@ const TypingSession = () => {
     }
     let passed = r.accuracy >= PASS_ACCURACY
     let next: Outcome = { status: 'saving', accuracy: r.accuracy, cpm }
+    let reachedGoal = false
     setOutcome(next)
     if (loggedIn) {
       try {
@@ -195,6 +210,12 @@ const TypingSession = () => {
           merged_verse_ids: sv.extraIds,
         })
         passed = res.passed
+        reachedGoal =
+          res.passed &&
+          !goalShownRef.current &&
+          (startTodayRef.current ?? 0) < goal &&
+          res.today_verses >= goal
+        if (reachedGoal) goalShownRef.current = true
         next = {
           status: passed ? 'passed' : 'failed',
           accuracy: res.accuracy,
@@ -220,6 +241,7 @@ const TypingSession = () => {
     }
     setOutcome(next)
     if (!passed) return
+    playTypingSound('done')
 
     setResults((prev) => [
       ...prev,
@@ -246,6 +268,16 @@ const TypingSession = () => {
     const ni = wasComplete ? (idx < verses.length - 1 ? idx + 1 : null) : nextIndex(idx, newDone)
     advanceTimer.current = setTimeout(
       () => {
+        if (reachedGoal) {
+          setGoalMoment({ next: ni })
+          confetti({
+            particleCount: 60,
+            spread: 60,
+            origin: { y: 0.6 },
+            colors: ['#ffb547', '#ffe08a', '#3182f6', '#93c5fd'],
+          })
+          return
+        }
         if (ni === null) {
           setShowSummary(true)
           confetti({
@@ -295,16 +327,17 @@ const TypingSession = () => {
     current,
     outcome,
     showSummary,
+    goalOpen: goalMoment !== null,
     count: verses.length,
     goTo,
   })
   useEffect(() => {
-    keyState.current = { current, outcome, showSummary, count: verses.length, goTo }
+    keyState.current = { current, outcome, showSummary, goalOpen: goalMoment !== null, count: verses.length, goTo }
   })
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const st = keyState.current
-      if (st.showSummary || st.current === null) return
+      if (st.showSummary || st.goalOpen || st.current === null) return
       const cur = st.current
       if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
         const ni = e.shiftKey ? cur - 1 : cur + 1
@@ -448,6 +481,7 @@ const TypingSession = () => {
             >
               부호 무시
             </button>
+            <SoundMenu />
           </header>
 
           {!isDesk && (
@@ -638,6 +672,51 @@ const TypingSession = () => {
           )}
         </main>
       </div>
+
+      {goalMoment && (
+        <div className="bt-summary" role="dialog" aria-modal="true" aria-labelledby="bt-goal-title">
+          <div className="bt-summary__card bt-goalmoment">
+            <Lamp fill={1} lit full className="bt-goalmoment__lamp" />
+            <p className="bt-summary__eyebrow">오늘의 목표 {goal}절 달성</p>
+            <h2 id="bt-goal-title" className="bt-summary__title">
+              오늘의 등잔이 가득 찼어요
+            </h2>
+            {stats && stats.current_streak > 0 && (
+              <p className="bt-goalmoment__streak">
+                <b>{stats.current_streak}</b>일째 등불이 이어지고 있어요
+              </p>
+            )}
+            {(() => {
+              const nv = goalMoment.next !== null ? verses[goalMoment.next] : null
+              const ref = nv ? `${bookName} ${chapter}:${nv.label}` : nextChapter ? `${nextChapter.name} ${nextChapter.chapter}장` : null
+              if (!ref) return null
+              return (
+                <div className="bt-goalmoment__tomorrow">
+                  <span className="bt-goalmoment__eyebrow">내일 이어질 말씀 · {ref}</span>
+                  <span className="bt-goalmoment__text">{nv ? `“${teaser(nv.text, 3)}”` : '새 장이 기다리고 있어요'}</span>
+                </div>
+              )
+            })()}
+            <div className="bt-summary__actions">
+              <button
+                type="button"
+                className="bt-btn bt-btn--primary bt-btn--block"
+                onClick={() => {
+                  const ni = goalMoment.next
+                  setGoalMoment(null)
+                  if (ni === null) setShowSummary(true)
+                  else goTo(ni)
+                }}
+              >
+                조금 더 쓰기
+              </button>
+              <button type="button" className="bt-btn bt-btn--ghost bt-btn--block" onClick={() => navigate('/bible/typing')}>
+                오늘은 여기까지
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showSummary && (
         <div className="bt-summary" role="dialog" aria-modal="true" aria-labelledby="bt-summary-title">

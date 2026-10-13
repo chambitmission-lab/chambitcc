@@ -5,12 +5,15 @@ import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { getBibleVerse } from '../../../api/bible'
 import { bibleKeys } from '../../../hooks/queryKeys'
-import { useSubmitTyping, useTypingStats } from '../../../hooks/useBibleTyping'
+import { useSubmitTyping, useTypingStats, useTypingWeekly } from '../../../hooks/useBibleTyping'
 import { useBibleBooks } from '../../../hooks/useBible'
 import { tokenStore } from '../../../utils/tokenStore'
 import TypingPad, { type TypingFinish } from './TypingPad'
 import { PASS_ACCURACY, cpmOf } from './hangulTyping'
 import { formatDuration, useIgnorePunct } from './typingPrefs'
+import { playTypingSound } from './typingSound'
+import SoundMenu from './SoundMenu'
+import WeeklyBoard from './home/WeeklyBoard'
 import './typing.css'
 
 // 말씀 스프린트 — 성도들이 잘 아는 구절 다섯 개를 빠르고 정확하게.
@@ -47,6 +50,7 @@ const TypingSprint = () => {
   const loggedIn = !!tokenStore.getAccess()
   const [ignorePunct, setIgnorePunct] = useIgnorePunct()
   const { data: stats } = useTypingStats()
+  const { data: weekly } = useTypingWeekly()
   // 단일 절 응답엔 책 이름이 없다 — 책 목록(24시간 캐시)에서 찾는다
   const { data: books } = useBibleBooks()
   const submit = useSubmitTyping()
@@ -118,6 +122,7 @@ const TypingSprint = () => {
       return
     }
     setRetryNote(null)
+    playTypingSound('done')
     const lap: LapResult = { accuracy: r.accuracy, keystrokes: r.keystrokes, durationMs: r.durationMs, personalBest: false }
     setLaps((prev) => [...prev, lap])
     if (loggedIn) {
@@ -180,6 +185,7 @@ const TypingSprint = () => {
               <span className="bt-head__eyebrow">말씀 스프린트</span>
               <h1 className="bt-head__title">익숙한 말씀 {SPRINT_SIZE}절, 빠르고 정확하게</h1>
             </div>
+            <SoundMenu />
           </header>
 
           {phase === 'ready' && (
@@ -286,6 +292,9 @@ const TypingSprint = () => {
               </div>
             </section>
           )}
+
+          {/* 순위는 경주 안에서만 — 허브 첫 화면에선 뺐다 */}
+          {loggedIn && (phase === 'ready' || phase === 'done') && <WeeklyBoard weekly={weekly} />}
         </main>
       </div>
     </div>

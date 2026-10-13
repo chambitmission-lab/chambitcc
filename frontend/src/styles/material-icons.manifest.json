@@ -165,6 +165,7 @@
     "mouse",
     "movie",
     "music_note",
+    "music_off",
     "my_location",
     "navigation",
     "nightlight",
@@ -187,6 +188,7 @@
     "pending",
     "people",
     "person",
+    "person_add",
     "person_off",
     "person_remove",
     "phone",
@@ -309,10 +311,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 24960
+    "bytes": 24976
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 27368
+    "bytes": 27484
   }
 }
