@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, type InfiniteData, type Query } from '@tanstack/react-query'
 import './PullToRefresh.css'
 
 /* 토스 스타일 커스텀 당겨서 새로고침.
@@ -9,10 +9,26 @@ import './PullToRefresh.css'
 
 // 감쇠(고무줄) 적용 후 버블이 내려올 수 있는 최대 거리
 const MAX_PULL = 110
-// 이 거리 이상 당긴 채 놓으면 새로고침 발동
-const THRESHOLD = 72
+// 감쇠 거리 기준 발동 임계점. 감쇠식(MAX_PULL·(1-e^(-dy/140)))을 거꾸로 풀면
+// 손가락 실제 이동 약 100px — 72 였을 때는 150px 을 끌어야 해서 "당겼는데 안 된다"가 잦았다
+const THRESHOLD = 56
+// 새로고침 중 버블이 머무는 자리(헤더 바로 아래). 임계점과 분리해 둬야 임계점을 낮춰도 위치가 안 올라간다
+const REST_Y = 88
 // 스피너 최소 표시 시간 — 캐시 히트로 즉시 끝나면 깜빡임처럼 보여서 되려 어색하다
-const MIN_SPIN_MS = 800
+const MIN_SPIN_MS = 500
+// 체크마크가 보이는 시간
+const DONE_MS = 400
+// 요청이 매달려도 스피너가 이보다 오래 돌지 않는다 — 나머지는 뒤에서 조용히 끝난다
+const MAX_WAIT_MS = 3000
+
+/* 새로고침을 두 단계로 나눈다.
+   백엔드(단일 uvicorn)는 동시 요청을 거의 순서대로 처리해서, 홈의 20여 개 쿼리를 한꺼번에
+   다시 받으면 단독 100ms 짜리 기도 목록이 맨 뒤로 밀려 1초 넘게 걸린다(utils/requestPriority 와
+   같은 현상). 그래서 화면의 중심 목록(기도·감사·알림)만 먼저 받아 스피너를 거기에 묶고,
+   끝난 뒤에 나머지 위젯 쿼리를 출발시켜 뒤에서 갈아끼운다.
+   이 접두사가 활성 쿼리에 하나도 없는 화면(성경·소식 등)은 예전처럼 전부 기다린다. */
+const PRIMARY_KEY_PREFIXES = new Set(['prayers', 'thanks', 'notifications'])
+const isPrimaryQuery = (query: Query) => PRIMARY_KEY_PREFIXES.has(String(query.queryKey[0]))
 
 const ARC_RADIUS = 7.5
 const ARC_LEN = 2 * Math.PI * ARC_RADIUS
@@ -36,6 +52,15 @@ function canStartPull(target: EventTarget | null): boolean {
   }
   return true
 }
+
+const isInfiniteData = (data: unknown): data is InfiniteData<unknown> =>
+  !!data &&
+  typeof data === 'object' &&
+  Array.isArray((data as InfiniteData<unknown>).pages) &&
+  Array.isArray((data as InfiniteData<unknown>).pageParams)
+
+const withTimeout = (pending: Promise<unknown>, ms: number) =>
+  Promise.race([pending, new Promise((resolve) => setTimeout(resolve, ms))])
 
 export default function PullToRefresh() {
   const queryClient = useQueryClient()
@@ -92,9 +117,40 @@ export default function PullToRefresh() {
       if (bubble) {
         bubble.style.transition = 'transform 0.3s ease, opacity 0.25s ease'
         bubble.style.opacity = '0'
-        bubble.style.transform = `translate3d(0, ${8 + THRESHOLD}px, 0) scale(0.5)`
+        bubble.style.transform = `translate3d(0, ${REST_Y - 8}px, 0) scale(0.5)`
       }
       window.setTimeout(() => setPhase('idle'), 300)
+    }
+
+    /* 무한 쿼리는 refetch 때 받아 둔 페이지를 전부 "순차로" 다시 요청한다 — 5페이지 내려갔다
+       올라와 당기면 5번 왕복. usePrayersQuery 의 refetchIfFewPages 가드는 refetchQueries 에는
+       적용되지 않으므로 여기서 첫 페이지만 남기고 자른다. 당김은 항상 최상단에서만 시작되니
+       뒷 페이지가 사라져도 화면에 보이던 것은 그대로고, 내려가면 다시 채워진다. */
+    const trimActiveInfiniteQueries = () => {
+      for (const query of queryClient.getQueryCache().findAll({ type: 'active' })) {
+        const data = query.state.data
+        if (!isInfiniteData(data) || data.pages.length <= 1) continue
+        queryClient.setQueryData(query.queryKey, {
+          pages: data.pages.slice(0, 1),
+          pageParams: data.pageParams.slice(0, 1),
+        })
+      }
+    }
+
+    const refetchInStages = async () => {
+      trimActiveInfiniteQueries()
+      const active = queryClient.getQueryCache().findAll({ type: 'active' })
+      const staged = active.some(isPrimaryQuery)
+      const primary = staged
+        ? queryClient.refetchQueries({ type: 'active', predicate: isPrimaryQuery })
+        : queryClient.refetchQueries({ type: 'active' })
+      await withTimeout(primary.catch(() => undefined), MAX_WAIT_MS)
+      // 중심 목록이 도착한 뒤에야 나머지를 보낸다 — 기다리지 않고 뒤에서 갈아끼운다
+      if (staged) {
+        void queryClient
+          .refetchQueries({ type: 'active', predicate: (q) => !isPrimaryQuery(q) })
+          .catch(() => undefined)
+      }
     }
 
     const startRefresh = async () => {
@@ -106,7 +162,7 @@ export default function PullToRefresh() {
         bubble.style.transition =
           'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease'
         bubble.style.opacity = '1'
-        bubble.style.transform = `translate3d(0, ${16 + THRESHOLD}px, 0) scale(1)`
+        bubble.style.transform = `translate3d(0, ${REST_Y}px, 0) scale(1)`
       }
       if (arc) {
         // 이후 모양은 CSS 클래스(스피너/체크)가 담당하므로 인라인 값 제거
@@ -116,11 +172,11 @@ export default function PullToRefresh() {
       // react-query를 안 쓰는 화면도 각자 갱신할 수 있게 이벤트로 알린다
       window.dispatchEvent(new CustomEvent('app:pull-to-refresh'))
       await Promise.allSettled([
-        queryClient.refetchQueries({ type: 'active' }),
+        refetchInStages(),
         new Promise((resolve) => setTimeout(resolve, MIN_SPIN_MS)),
       ])
       setPhase('done') // 원이 완성되며 체크마크가 그려진다
-      window.setTimeout(exitAfterDone, 550)
+      window.setTimeout(exitAfterDone, DONE_MS)
     }
 
     const onTouchStart = (e: TouchEvent) => {
