@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import { useBibleBooks } from '../../../hooks/useBible'
-import { useTypingHome } from '../../../hooks/useBibleTyping'
+import { useTypingHome, useTypingRelayLive } from '../../../hooks/useBibleTyping'
 import { useTitles } from '../../../hooks/useTitles'
 import { tokenStore } from '../../../utils/tokenStore'
 import { sessionPath, useIgnorePunct, useTypingMode } from './typingPrefs'
@@ -27,6 +27,8 @@ const TypingHome = () => {
   const { data: books } = useBibleBooks()
   // 허브 데이터는 요청 하나(묶음)로 — 조각별 요청 6개가 홈의 요청들과 섞여 줄을 서던 것을 줄인다
   const { data: home } = useTypingHome()
+  // 내 릴레이 카드의 진행 칸도 다른 멤버가 쓰면 바로 바뀌게(SSE)
+  useTypingRelayLive()
   const stats = home?.stats
   const calendar = home?.calendar
   const daily = home?.daily

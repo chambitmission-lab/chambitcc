@@ -15,6 +15,8 @@ export interface TypingRecordInput {
 }
 
 export interface TypingRecordResult {
+  book_number?: number
+  chapter?: number
   verse_id: number
   cpm: number
   accuracy: number

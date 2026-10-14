@@ -23,12 +23,26 @@
 
 .history-nav.is-pinned {
   position: fixed;
-  top: 56px; /* 고정 헤더 높이 */
+  top: calc(56px / var(--az, 1)); /* 고정 헤더 높이 — 헤더는 zoom 밖이라 배율로 되돌린다 */
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100vw - 24px), 424px);
   margin: 0;
   box-shadow: 0 8px 24px rgba(28, 25, 45, 0.14);
+}
+
+/* PC: 화면 정중앙이 아니라 원래 자리(본문 카드 칼럼) 위에 그대로 고정한다.
+   --slot-* 는 JS 가 잰 화면 px 라 zoom(--az) 안에선 배율로 나눠 되돌린다. */
+@media (min-width: 1024px) {
+  .history-nav-slot {
+    --slot-margin: 12px;
+  }
+
+  .history-nav.is-pinned {
+    left: calc(var(--slot-left, 0px) / var(--az, 1) + var(--slot-margin));
+    width: calc(var(--slot-width, 100vw) / var(--az, 1) - var(--slot-margin) * 2);
+    transform: none;
+  }
 }
 
 :root[data-theme='dark'] .history-nav.is-pinned,

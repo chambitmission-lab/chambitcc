@@ -14,7 +14,8 @@
     width: 312px;
     flex-shrink: 0;
     position: sticky;
-    top: 4.5rem;
+    /* PC 글씨 크기 zoom 안 — 화면 기준 길이는 배율로 되돌린다(common.css --az) */
+    top: calc(4.5rem / var(--az, 1));
   }
 
   .history-rail-card {
@@ -52,7 +53,7 @@
 
   /* 이정표는 수가 많아 레일 안에서만 스크롤 */
   .history-rail-list--scroll {
-    max-height: 40vh;
+    max-height: calc(40vh / var(--az, 1));
     overflow-y: auto;
     /* 링크가 hover 필 때문에 좌우로 8px씩 삐져나오는데(음수 margin),
        스크롤 상자 안에서는 그게 가로 스크롤바로 나타난다 — 가로는 잘라낸다 */

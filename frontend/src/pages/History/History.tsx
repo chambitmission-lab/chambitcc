@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { DECADES, HISTORY_EVENTS, decadeOf } from './historyData'
@@ -63,6 +64,9 @@ const History = () => {
   const navRef = useRef<HTMLDivElement | null>(null)
   const navSentinelRef = useRef<HTMLDivElement | null>(null)
   const [pinned, setPinned] = useState(false)
+  /** 네비 자리(흐름 안 slot)의 화면 좌표 — PC 에선 고정돼도 본문 카드 칼럼 위에 그대로 붙인다 */
+  const navSlotRef = useRef<HTMLDivElement | null>(null)
+  const [slotBox, setSlotBox] = useState<{ left: number; width: number } | null>(null)
   const [navHeight, setNavHeight] = useState(0)
 
   const journeyYears = new Date().getFullYear() - 1994
@@ -181,6 +185,15 @@ const History = () => {
       // 레이아웃이 1~2px씩 떨려 스크롤이 목적지 근처에서 진동한다.
       const top = sentinel.getBoundingClientRect().top
       setPinned((prev) => (prev ? top < HEADER_H + 12 : top < HEADER_H))
+      const slot = navSlotRef.current
+      if (slot) {
+        const r = slot.getBoundingClientRect()
+        setSlotBox((prev) =>
+          prev && Math.abs(prev.left - r.left) < 0.5 && Math.abs(prev.width - r.width) < 0.5
+            ? prev
+            : { left: r.left, width: r.width },
+        )
+      }
     }
     const onScroll = () => {
       if (frame) return
@@ -348,8 +361,14 @@ const History = () => {
           {/* 렌즈 전환 + 연대 칩 (헤더 아래 고정) */}
           <div ref={navSentinelRef} className="history-nav-sentinel" aria-hidden="true" />
           <div
+            ref={navSlotRef}
             className="history-nav-slot"
-            style={pinned ? { height: navHeight } : undefined}
+            style={
+              {
+                ...(pinned ? { height: navHeight } : null),
+                ...(slotBox ? { '--slot-left': `${slotBox.left}px`, '--slot-width': `${slotBox.width}px` } : null),
+              } as CSSProperties
+            }
           >
           <div ref={navRef} className={`history-nav glass-card ${pinned ? 'is-pinned' : ''}`}>
             <div className="history-lens-toggle" role="tablist">

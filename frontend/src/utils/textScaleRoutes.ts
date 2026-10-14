@@ -16,7 +16,9 @@ import { useSyncExternalStore } from 'react'
 //   (/bible/atlas 는 넣었다 — 지도 캔버스가 화면 px 를 컨테이너 rect 비율로만 바꿔 zoom 과 무관하다.
 //    PC 목록 판 높이·목록 따라가기 스크롤만 --az 로 나눴다)
 //   (/ministry 는 넣었다 — 좌표를 쓰는 칼럼 편집기만 body 포털로 zoom 밖에 띄운다)
-// - 자체 스크롤 좌표로 이동하는 화면(/history), 관리자 화면
+// - 관리자 화면
+//   (/history 는 넣었다 — 자체 스크롤은 화면 px(getBoundingClientRect·body scrollTop)끼리만 계산하고,
+//    고정 네비 top·레일 sticky top·vh 만 --az 로 나눴다)
 // 새 화면을 넣을 땐 그 화면의 vh 높이·sticky top 을 var(--az) 로 나눠 두었는지 확인한다(common.css 주석).
 const ZOOM_ROUTES = [
   // 읽기
@@ -49,6 +51,7 @@ const ZOOM_ROUTES = [
   '/about',
   '/greeting',
   '/visit',
+  '/history',
   '/organization',
   '/people',
   '/online',

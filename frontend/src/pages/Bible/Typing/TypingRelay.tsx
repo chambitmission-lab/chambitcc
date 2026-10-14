@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
-import { useLeaveTypingRelay, useTypingRelay } from '../../../hooks/useBibleTyping'
+import { useLeaveTypingRelay, useTypingRelay, useTypingRelayLive } from '../../../hooks/useBibleTyping'
 import { safeStorage } from '../../../utils/safeStorage'
 import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
@@ -25,6 +25,8 @@ const TypingRelay = () => {
   const id = Number(params.id) || 0
   const loggedIn = !!tokenStore.getAccess()
   const { data: relay, isLoading, error } = useTypingRelay(id)
+  // 다른 멤버가 칸을 채우면 새로고침 없이 바로 반영(SSE)
+  useTypingRelayLive(id)
   const leave = useLeaveTypingRelay()
   const [mode] = useTypingMode()
   const isNew = search.get('new') === '1'

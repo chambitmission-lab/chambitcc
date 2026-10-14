@@ -1,6 +1,6 @@
 
 .history-page {
-  min-height: 100vh;
+  min-height: calc(100vh / var(--az, 1));
   background: var(--app-canvas);
   color: var(--text-body);
   padding-bottom: 48px;
