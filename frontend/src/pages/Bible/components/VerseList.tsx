@@ -21,6 +21,7 @@ import VerseSheets from './verse/VerseSheets'
 import VerseListSheets from './verse/VerseListSheets'
 import type { VerseListActions, VerseListSettings } from './verse/VerseListContext'
 import ChapterLoader from './ChapterLoader'
+import ChapterQuipLoader from './ChapterQuipLoader'
 import ChapterSealStamp from './ChapterSealStamp'
 import VerseSelectionBar from './VerseSelectionBar'
 import AudioFollowLayer from './AudioFollowLayer'
@@ -493,7 +494,7 @@ const VerseList = ({
   // 같이 기다리고, 그 뒤엔 본문을 먼저 그리고 읽음 표시는 도착 시 색만 입힌다
   // (팝 애니메이션은 사용자가 직접 바꾼 절만 — VerseItem.readPop).
   if (isLoading || read.holdingForReadStatus) {
-    return <ChapterLoader size="lg" />
+    return <ChapterQuipLoader />
   }
 
   if (!chapterData) {

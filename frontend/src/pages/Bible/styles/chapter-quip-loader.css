@@ -1,0 +1,253 @@
+/* 장 본문 첫 로딩 — 장면 카드 (ChapterQuipLoader)
+ * 위: 풍경 장면(components/chapterLoaderScenes.ts, 사람·소품 없이 풍경과 빛만)
+ * 아래: 성경 속 기다림 유머(utils/waitingQuips). 로딩 한 번에 장면 하나, 5초 넘으면 다음 장면.
+ * 0.4초 지연은 컴포넌트가 마운트를 늦추는 방식 — 장면 애니메이션이 안 보이는 동안 흘러가 버리지 않게.
+ * 장면 클래스·색 변수는 cqs- 접두사 — 다른 화면 CSS와 섞이지 않게. */
+
+.cql {
+  --cqs-sky-top: #a9d0ff;
+  --cqs-sky-bot: #eaf4ff;
+  --cqs-cloud: #ffffff;
+  --cqs-sea: #2f7ef0;
+  --cqs-sea-2: #5f9ff8;
+  --cqs-sea-3: #9cc6fc;
+  --cqs-foam: #ffffff;
+  --cqs-sand: #f2d79f;
+  --cqs-sand-2: #e3b96c;
+  --cqs-sand-3: #cf9c4c;
+  --cqs-hill: #6f9fd8;
+  --cqs-hill-2: #4e82c4;
+  --cqs-rock: #8c96a8;
+  --cqs-rock-2: #6b7587;
+  --cqs-wood: #c0834f;
+  --cqs-wood-2: #8e5733;
+  --cqs-sun: #ffc94d;
+  --cqs-leaf: #5bb47a;
+  --cqs-leaf-2: #3f9460;
+  padding: 1.75rem 0.25rem 2.5rem;
+  display: flex;
+  justify-content: center;
+}
+[data-theme="dark"] .cql {
+  --cqs-sky-top: #102442;
+  --cqs-sky-bot: #26395a;
+  --cqs-cloud: #3b4b66;
+  --cqs-sea: #1f5fc4;
+  --cqs-sea-2: #2f74de;
+  --cqs-sea-3: #2b4f86;
+  --cqs-foam: #cfe0ff;
+  --cqs-sand: #9a8058;
+  --cqs-sand-2: #7d6441;
+  --cqs-sand-3: #634d30;
+  --cqs-hill: #2d4670;
+  --cqs-hill-2: #223757;
+  --cqs-rock: #4b5466;
+  --cqs-rock-2: #3a4252;
+  --cqs-wood: #9a6640;
+  --cqs-wood-2: #6e4527;
+  --cqs-sun: #ffd36b;
+  --cqs-leaf: #3f8a5a;
+  --cqs-leaf-2: #2d6a43;
+}
+
+.cql-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.cql-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--surface-container);
+  border: 1px solid var(--brand-soft-strong);
+  box-shadow: 0 18px 40px -24px rgba(49, 130, 246, 0.6);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  animation: cql-card-in 0.5s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+[data-theme="dark"] .cql-card { box-shadow: none; }
+@keyframes cql-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.cql-scene {
+  position: relative;
+  aspect-ratio: 300 / 170;
+  max-width: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--cqs-sky-top), var(--cqs-sky-bot));
+}
+.cql-scene svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* 카메라가 살짝 다가가며 자리 잡는다 */
+  transform-origin: 50% 70%;
+  animation: cql-dolly 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes cql-dolly {
+  from { transform: scale(1.12); }
+  to { transform: none; }
+}
+
+.cql-chip {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(12, 28, 60, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 4px 10px;
+  border-radius: 999px;
+  animation: cql-chip 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) 0.2s both;
+}
+@keyframes cql-chip {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.cql-big {
+  position: absolute;
+  right: 12px;
+  top: 4px;
+  font-weight: 900;
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(12, 28, 60, 0.5);
+  font-variant-numeric: tabular-nums;
+  animation: cql-big 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) 0.3s both;
+}
+.cql-big small { font-size: 14px; font-weight: 800; margin-left: 2px; }
+@keyframes cql-big {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.cql-text {
+  padding: 15px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.cql-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.cql-dots { display: inline-flex; gap: 3px; }
+.cql-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.25;
+  animation: cql-dot 1.2s ease-in-out infinite;
+}
+.cql-dots i:nth-child(2) { animation-delay: 0.2s; }
+.cql-dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes cql-dot {
+  0%, 100% { opacity: 0.25; transform: none; }
+  40% { opacity: 0.95; transform: translateY(-2px); }
+}
+/* 2줄 높이를 미리 잡아 문구 길이가 달라도 카드가 출렁이지 않는다 */
+.cql-quip {
+  margin: 0;
+  min-height: calc(1.6em * 2);
+  font-family: var(--font-serif-kr);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+/* 어절마다 차례로 올라온다 */
+.cql-w {
+  display: inline-block;
+  animation: cql-w 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  animation-delay: calc(0.25s + var(--i) * 45ms);
+}
+@keyframes cql-w {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.cql-ref {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-inset);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* ── 장면 움직임 (첫 1초 안에 눈에 띄게) ── */
+.cqs-drift { animation: cqs-drift 30s linear infinite; } .cqs-drift.cqs-slow { animation-duration: 55s; }
+@keyframes cqs-drift { to { transform: translateX(-300px); } }
+.cqs-s1 { animation: cqs-seam 2.4s linear infinite; } .cqs-s2 { animation: cqs-seam 3.8s linear infinite reverse; } .cqs-s3 { animation: cqs-seam 6s linear infinite; }
+@keyframes cqs-seam { to { transform: translateX(-60px); } }
+.cqs-rise { animation: cqs-rise 1s cubic-bezier(.2,.9,.3,1.15) .1s both; transform-box: fill-box; transform-origin: center bottom; }
+@keyframes cqs-rise { from { transform: translateY(40px); } to { transform: none; } }
+.cqs-bob { animation: cqs-rise 1s cubic-bezier(.2,.9,.3,1.15) .1s both, cqs-bob 2.2s ease-in-out 1.1s infinite alternate; transform-box: fill-box; transform-origin: center bottom; }
+@keyframes cqs-bob { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-4px) rotate(2deg); } }
+.cqs-glide { offset-path: path("M -40 70 C 60 30, 170 80, 340 36"); offset-rotate: 0deg; animation: cqs-path 5.5s linear infinite; }
+.cqs-glide.cqs-early { animation-delay: -1.6s; }
+@keyframes cqs-path { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+.cqs-flap { animation: cqs-flap .3s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center bottom; }
+@keyframes cqs-flap { from { transform: scaleY(1); } to { transform: scaleY(-.65); } }
+.cqs-soar { offset-path: path("M 150 64 m -60 0 a 60 16 0 1 0 120 0 a 60 16 0 1 0 -120 0"); offset-rotate: 0deg; animation: cqs-path 9s linear infinite; animation-delay: -2.2s; }
+.cqs-wingL, .cqs-wingR { animation: cqs-wing 1.8s ease-in-out infinite alternate; transform-box: fill-box; }
+.cqs-wingL { transform-origin: right center; } .cqs-wingR { transform-origin: left center; }
+@keyframes cqs-wing { from { transform: rotate(0) scaleY(1); } to { transform: rotate(var(--wr, 6deg)) scaleY(.92); } }
+.cqs-wingR { --wr: -6deg; }
+.cqs-tw { animation: cqs-tw 2.2s ease-in-out infinite; }
+@keyframes cqs-tw { 50% { opacity: .25; } }
+.cqs-pop-star { animation: cqs-popstar .5s ease-out both; transform-box: fill-box; transform-origin: center; }
+@keyframes cqs-popstar { from { transform: scale(0); opacity: 0; } to { transform: none; opacity: 1; } }
+.cqs-shoot { animation: cqs-shoot 2.8s ease-in .5s infinite; }
+@keyframes cqs-shoot { 0% { transform: translate(0, 0); opacity: 0; } 8% { opacity: 1; } 30%, 100% { transform: translate(-120px, 60px); opacity: 0; } }
+.cqs-glow { animation: cqs-glow 2.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes cqs-glow { from { opacity: .55; transform: scale(.95); } to { opacity: 1; transform: scale(1.06); } }
+.cqs-sunup { animation: cqs-sunup 1.4s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes cqs-sunup { from { transform: translateY(46px); } to { transform: none; } }
+.cqs-dawn { animation: cqs-dawn 1.4s ease-out both; }
+@keyframes cqs-dawn { from { opacity: 0; } to { opacity: 1; } }
+.cqs-flicker { animation: cqs-flicker .9s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center bottom; }
+@keyframes cqs-flicker { from { transform: scale(1); opacity: .85; } to { transform: scale(.85, 1.12); opacity: 1; } }
+.cqs-pillar { animation: cqs-pillar 3.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center bottom; }
+@keyframes cqs-pillar { from { transform: scaleX(1) translateY(0); } to { transform: scaleX(1.05) translateY(-3px); } }
+.cqs-haze { animation: cqs-haze 1.8s ease-in-out infinite alternate; }
+@keyframes cqs-haze { from { transform: translateY(0); opacity: .2; } to { transform: translateY(-3px); opacity: .5; } }
+.cqs-ripple { animation: cqs-ripple 2.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.cqs-ripple.cqs-r2 { animation-delay: -1.3s; }
+@keyframes cqs-ripple { from { transform: scale(.4); opacity: .9; } to { transform: scale(1.4); opacity: 0; } }
+.cqs-mist { animation: cqs-mist 9s ease-in-out infinite alternate; }
+@keyframes cqs-mist { to { transform: translateX(-24px); } }
+
+.cqs-giraffe { animation: cqs-giraffe 3s ease-in-out .6s infinite; transform-box: fill-box; transform-origin: center bottom; transform: translateY(26px); }
+@keyframes cqs-giraffe { 0%, 30%, 100% { transform: translateY(26px); } 45%, 85% { transform: translateY(0); } 60% { transform: translateY(0) rotate(-6deg); } }
+.cqs-drop { animation: cqs-drop 1.4s cubic-bezier(.3,.1,.6,1) infinite; transform-box: fill-box; }
+.cqs-drop:nth-of-type(2) { animation-delay: -.35s; --sx: -18px; } .cqs-drop:nth-of-type(3) { animation-delay: -.7s; --sx: 18px; } .cqs-drop:nth-of-type(4) { animation-delay: -1.05s; --sx: -8px; }
+@keyframes cqs-drop { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: 1; } 50% { transform: translate(calc(var(--sx, 8px) * .6), -40px); } 100% { transform: translate(var(--sx, 8px), 6px); opacity: 0; } }
+.cqs-bubble { animation: cqs-bubble 2.4s ease-in infinite; transform-box: fill-box; }
+.cqs-bubble:nth-of-type(2) { animation-delay: -.8s; } .cqs-bubble:nth-of-type(3) { animation-delay: -1.6s; }
+@keyframes cqs-bubble { from { transform: translateY(0); opacity: .9; } to { transform: translateY(-30px); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cql *, .cql *::before, .cql *::after, .cql-card { animation: none !important; }
+}
