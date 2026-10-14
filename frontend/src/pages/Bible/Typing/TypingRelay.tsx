@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
@@ -7,7 +7,8 @@ import { safeStorage } from '../../../utils/safeStorage'
 import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
 import { sessionPath, useTypingMode } from './typingPrefs'
-import { relayHueMap, shareRelayInvite } from './relayShare'
+import { relayHueMap } from './relayShare'
+import RelayInviteSheet from './RelayInviteSheet'
 import Faces from './home/Faces'
 import './typing.css'
 
@@ -27,6 +28,7 @@ const TypingRelay = () => {
   const leave = useLeaveTypingRelay()
   const [mode] = useTypingMode()
   const isNew = search.get('new') === '1'
+  const [inviting, setInviting] = useState(false)
 
   const hueOf = useMemo(() => relayHueMap(relay?.members), [relay])
 
@@ -86,7 +88,7 @@ const TypingRelay = () => {
                     <b>릴레이를 만들었어요!</b> 함께 쓸 사람을 초대해 보세요. 초대받은 사람이 이 장을 쓰면 빈칸이 하나씩 채워져요.
                   </p>
                   <div className="bt-relay-hello__actions">
-                    <button type="button" className="bt-btn bt-btn--primary" onClick={() => void shareRelayInvite(relay)}>
+                    <button type="button" className="bt-btn bt-btn--primary" onClick={() => setInviting(true)}>
                       초대하기
                     </button>
                     <button
@@ -159,7 +161,7 @@ const TypingRelay = () => {
                       필사 홈으로
                     </button>
                   )}
-                  <button type="button" className="bt-btn bt-btn--block" onClick={() => void shareRelayInvite(relay)}>
+                  <button type="button" className="bt-btn bt-btn--block" onClick={() => setInviting(true)}>
                     <span className="material-icons-round" aria-hidden>
                       person_add
                     </span>
@@ -193,6 +195,8 @@ const TypingRelay = () => {
           )}
         </main>
       </div>
+
+      {inviting && relay && <RelayInviteSheet relay={relay} onClose={() => setInviting(false)} />}
     </div>
   )
 }

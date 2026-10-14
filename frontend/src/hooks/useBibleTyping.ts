@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  addTypingRelayMembers,
   createTypingRelay,
   getBookTyping,
   getChapterTyping,
@@ -404,6 +405,17 @@ export const useJoinTypingRelay = () => {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: bibleTypingKeys.relays() })
       void qc.invalidateQueries({ queryKey: bibleTypingKeys.home() })
+    },
+  })
+}
+
+export const useAddTypingRelayMembers = (id: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (userIds: number[]) => addTypingRelayMembers(id, userIds),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.relay(id) })
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.relays() })
     },
   })
 }

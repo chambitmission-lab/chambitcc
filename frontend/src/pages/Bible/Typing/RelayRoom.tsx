@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { TypingCheerKind, TypingRelayDetail, TypingRelayLive } from '../../../api/bibleTyping'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import { CHEER_LABEL, shareRelayInvite } from './relayShare'
+import { CHEER_LABEL } from './relayShare'
+import RelayInviteSheet from './RelayInviteSheet'
 import './relayRoom.css'
 
 /**
@@ -262,85 +263,89 @@ export const BatonSheet = ({
     .sort((a, b) => Number(liveIds.has(b.user_id)) - Number(liveIds.has(a.user_id)))
   const [to, setTo] = useState<number | null>(others[0]?.user_id ?? null)
   const [message, setMessage] = useState('')
+  const [inviting, setInviting] = useState(false)
   const toMember = others.find((m) => m.user_id === to)
   const text = message.trim()
   const unit = relay.book_number === 19 ? '편' : '장'
 
   return (
-    <div className="bt-summary bt-baton" role="dialog" aria-modal="true" aria-labelledby="bt-baton-title" onClick={onClose}>
-      <div className="bt-summary__card bt-baton__card" onClick={(e) => e.stopPropagation()}>
-        <span className="bt-baton__torch" aria-hidden />
-        <h2 id="bt-baton-title" className="bt-summary__title">
-          {verseLabel}절을 이어 썼어요!
-        </h2>
-        <p className="bt-baton__sub">
-          {others.length
-            ? '다음 바통은 누구에게 넘길까요? 알림과 함께 내 한마디가 전해져요.'
-            : `${relay.book_name} ${relay.chapter}${unit}, 함께 쓸 친구를 불러 볼까요?`}
-        </p>
+    <>
+      <div className="bt-summary bt-baton" role="dialog" aria-modal="true" aria-labelledby="bt-baton-title" onClick={onClose}>
+        <div className="bt-summary__card bt-baton__card" onClick={(e) => e.stopPropagation()}>
+          <span className="bt-baton__torch" aria-hidden />
+          <h2 id="bt-baton-title" className="bt-summary__title">
+            {verseLabel}절을 이어 썼어요!
+          </h2>
+          <p className="bt-baton__sub">
+            {others.length
+              ? '다음 바통은 누구에게 넘길까요? 알림과 함께 내 한마디가 전해져요.'
+              : `${relay.book_name} ${relay.chapter}${unit}, 함께 쓸 친구를 불러 볼까요?`}
+          </p>
 
-        <div className="bt-baton__friends" role="radiogroup" aria-label="바통 받을 사람">
-          {others.map((m) => (
-            <button
-              key={m.user_id}
-              type="button"
-              role="radio"
-              aria-checked={to === m.user_id}
-              className={`bt-baton__friend${to === m.user_id ? ' is-on' : ''}`}
-              onClick={() => setTo(to === m.user_id ? null : m.user_id)}
-            >
-              <Avatar m={m} hue={hueOf.get(m.user_id) ?? 0} live={liveIds.has(m.user_id)} size={46} />
-              <span>{m.name}</span>
+          <div className="bt-baton__friends" role="radiogroup" aria-label="바통 받을 사람">
+            {others.map((m) => (
+              <button
+                key={m.user_id}
+                type="button"
+                role="radio"
+                aria-checked={to === m.user_id}
+                className={`bt-baton__friend${to === m.user_id ? ' is-on' : ''}`}
+                onClick={() => setTo(to === m.user_id ? null : m.user_id)}
+              >
+                <Avatar m={m} hue={hueOf.get(m.user_id) ?? 0} live={liveIds.has(m.user_id)} size={46} />
+                <span>{m.name}</span>
+              </button>
+            ))}
+            <button type="button" className="bt-baton__friend bt-baton__friend--invite" onClick={() => setInviting(true)}>
+              <span className="bt-room-av bt-room-av--add" style={{ width: 46, height: 46 }}>
+                <span className="material-icons-round">person_add</span>
+              </span>
+              <span>초대하기</span>
             </button>
-          ))}
-          <button type="button" className="bt-baton__friend bt-baton__friend--invite" onClick={() => void shareRelayInvite(relay)}>
-            <span className="bt-room-av bt-room-av--add" style={{ width: 46, height: 46 }}>
-              <span className="material-icons-round">person_add</span>
-            </span>
-            <span>초대하기</span>
-          </button>
-        </div>
+          </div>
 
-        {others.length > 0 && (
-          <>
-            <div className="bt-baton__presets">
-              {PRESETS.map((p) => (
-                <button key={p} type="button" className={text === p ? 'is-on' : ''} onClick={() => setMessage(text === p ? '' : p)}>
-                  {p}
-                </button>
-              ))}
-            </div>
-            <input
-              className="bt-baton__input"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              maxLength={60}
-              placeholder="한마디 남기기 (선택)"
-              aria-label="바통과 함께 남길 한마디"
-            />
-          </>
-        )}
-
-        <div className="bt-summary__actions">
-          {others.length > 0 ? (
-            <button
-              type="button"
-              className="bt-btn bt-btn--primary bt-btn--block"
-              disabled={sending || (!toMember && !text)}
-              onClick={() => onPass(toMember?.user_id ?? null, text || null)}
-            >
-              {sending ? '보내는 중…' : toMember ? `${toMember.name}님에게 바통 넘기기` : text ? '한마디만 남기기' : '받을 사람을 골라 주세요'}
-            </button>
-          ) : (
-            <button type="button" className="bt-btn bt-btn--primary bt-btn--block" onClick={() => void shareRelayInvite(relay)}>
-              함께 쓸 친구 초대하기
-            </button>
+          {others.length > 0 && (
+            <>
+              <div className="bt-baton__presets">
+                {PRESETS.map((p) => (
+                  <button key={p} type="button" className={text === p ? 'is-on' : ''} onClick={() => setMessage(text === p ? '' : p)}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+              <input
+                className="bt-baton__input"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                maxLength={60}
+                placeholder="한마디 남기기 (선택)"
+                aria-label="바통과 함께 남길 한마디"
+              />
+            </>
           )}
-          <button type="button" className="bt-btn bt-btn--ghost bt-btn--block" onClick={onClose}>
-            {hasNext ? '내가 다음 절도 이어 쓰기' : '닫기'}
-          </button>
+
+          <div className="bt-summary__actions">
+            {others.length > 0 ? (
+              <button
+                type="button"
+                className="bt-btn bt-btn--primary bt-btn--block"
+                disabled={sending || (!toMember && !text)}
+                onClick={() => onPass(toMember?.user_id ?? null, text || null)}
+              >
+                {sending ? '보내는 중…' : toMember ? `${toMember.name}님에게 바통 넘기기` : text ? '한마디만 남기기' : '받을 사람을 골라 주세요'}
+              </button>
+            ) : (
+              <button type="button" className="bt-btn bt-btn--primary bt-btn--block" onClick={() => setInviting(true)}>
+                함께 쓸 친구 초대하기
+              </button>
+            )}
+            <button type="button" className="bt-btn bt-btn--ghost bt-btn--block" onClick={onClose}>
+              {hasNext ? '내가 다음 절도 이어 쓰기' : '닫기'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+      {inviting && <RelayInviteSheet relay={relay} onClose={() => setInviting(false)} />}
+    </>
   )
 }

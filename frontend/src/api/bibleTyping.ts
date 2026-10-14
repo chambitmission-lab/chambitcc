@@ -331,6 +331,17 @@ export const joinTypingRelay = async (code: string): Promise<number> => {
   return res.data.id
 }
 
+/** 앱 사용자를 초대 링크 없이 바로 넣기 — 들어온 사람에겐 알림이 간다. 이미 함께하는 사람은 건너뛴다 */
+export const addTypingRelayMembers = async (id: number, userIds: number[]): Promise<number> => {
+  const res = await request<Envelope<{ added_count: number }>>(`/bible-typing/relays/${id}/members`, {
+    method: 'POST',
+    auth: 'required',
+    json: { user_ids: userIds },
+    errorMessage: '초대하지 못했어요',
+  })
+  return res.data.added_count
+}
+
 export const leaveTypingRelay = async (id: number): Promise<void> => {
   await request<Envelope<null>>(`/bible-typing/relays/${id}/members/me`, {
     method: 'DELETE',
