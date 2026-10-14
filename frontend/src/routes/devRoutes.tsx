@@ -9,8 +9,6 @@ type Loader = () => Promise<{ default: ComponentType }>
 
 const previews: [path: string, load: Loader][] = import.meta.env.DEV
   ? [
-      // /bible 장 첫 로딩 장면 카드(풍경 장면 + 기다림 유머)
-      ['chapter-loader', () => import('../pages/dev/ChapterLoaderPreview')],
       // 업적 모달
       ['achievements', () => import('../pages/Profile/components/AchievementModalPreview')],
       // 구절 공유 시트 — 포맷/카드
