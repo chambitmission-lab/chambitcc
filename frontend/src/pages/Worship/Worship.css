@@ -1,16 +1,9 @@
-/* Worship 예배 안내 — 메인 테마(토스 블루 플랫) 버전
+/* Worship 예배 안내 — 2026-10 '주일 중심' 개편
  * 원칙 (src/styles/theme.css):
  *   1. 색은 하드코딩하지 않고 --brand-* / --surface-* / --text-* 토큰만 참조
  *   2. 라이트/다크 분기는 theme.css 토큰이 담당 — 여기서는 [data-theme] 분기 금지
- *      (예외: '예배 중' 라이브 레드는 토큰이 없어 양 테마에서 읽히는 단일 값 사용)
- * 보라→핑크 그라데이션은 전부 플랫 브랜드 블루로 교체.
- * 주일 emblem 은 솔리드 블루, 평일 emblem 은 soft 틴트로 위계만 구분한다.
- *
- * 섹션별로 styles/ 아래에 나뉘어 있다. @import 순서 = 원본 순서.
+ *      (예외: '예배 중' 라이브 레드·전례 보라는 토큰이 없어 양 테마에서 읽히는 단일 값 사용)
  */
 
-@import './styles/hero.css'; /* 페이지 셸 · Hero 카드 · 통계 · 실시간 배너 · 카운트다운 */
-@import './styles/filters.css'; /* 주간 리듬 스트립 · 요일 필터 · 예배 상태 배지 */
-@import './styles/cards.css'; /* 섹션 · 예배 카드 · 다음 예배 강조 · 편집 모드 */
-@import './styles/states.css'; /* 로딩/빈 상태 · 타임라인 전환 · 안내 노트 */
-@import './styles/desktop.css'; /* PC 2단(lg+) — 본문 + 우측 레일 */
+@import './styles/hero.css'; /* 페이지 셸 · Hero · 오늘 카드 · 주일 시간 타일 · 다음 예배 줄 */
+@import './styles/sections.css'; /* 평일 예배 · 더 알아보기 · 안내 · 상태 배지 · 관리자 수정 시트 */

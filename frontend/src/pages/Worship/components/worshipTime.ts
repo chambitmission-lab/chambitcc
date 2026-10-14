@@ -1,4 +1,4 @@
-// 예배 시간 계산 — 요일·차수 라벨 · 진행 상태 판정 · 무드 · 교회력 절기 · 필터 키.
+// 예배 시간 계산 — 요일·차수 라벨 · 진행 상태 판정 · 무드 · 교회력 절기.
 
 import type { Language } from '../../../locales'
 import type { WorshipService } from '../../../types/worship'
@@ -77,7 +77,7 @@ const dayLabel = (occ: Occurrence, seoulNow: Date, language: Language, today: st
 }
 
 /* ── 감성 레이어: 시간대 무드 ─────────────────────────────
- * 예배 시작 시각 → 그 시간의 '빛'. 히어로 하늘·서사 문구·이모지가 이 무드를 따른다.
+ * 예배 시작 시각 → 그 시간의 '빛'. 히어로 하늘이 이 무드를 따른다.
  * 새벽기도회(5:30)=여명, 주일 낮=낮, 수요 저녁(19:30)=노을, 금요(20:30)=밤 */
 type Mood = 'dawn' | 'day' | 'dusk' | 'night'
 
@@ -88,13 +88,6 @@ const moodOfTime = (startMin: number): Mood => {
   if (h < 20) return 'dusk'
   return 'night'
 }
-
-const NARRATIVE_KEY = {
-  dawn: 'worshipNarrativeDawn',
-  day: 'worshipNarrativeDay',
-  dusk: 'worshipNarrativeDusk',
-  night: 'worshipNarrativeNight'
-} as const
 
 // 예배별 한 줄 초대 문구 — 이름 기반 프리셋
 const taglineKey = (service: WorshipService) => {
@@ -147,15 +140,6 @@ const liturgicalSeason = (now: Date): LiturgicalSeason | null => {
   return null
 }
 
-type DayFilter = 'today' | 'all' | 'sunday' | 'weekday'
-
-const FILTER_KEY = {
-  today: 'worshipFilterToday',
-  all: 'worshipFilterAll',
-  sunday: 'worshipFilterSunday',
-  weekday: 'worshipFilterWeekday'
-} as const
-
 // ── 같은 화면의 형제 모듈이 쓴다 ──
-export { weekdayIcon, DAY_NAMES_EN, pick, orderLabel, OPEN_BEFORE_MIN, OPEN_AFTER_MIN, serviceStatusToday, formatRemaining, formatTimeLabel, dayLabel, moodOfTime, NARRATIVE_KEY, taglineKey, liturgicalSeason, FILTER_KEY }
-export type { ServiceStatus, Mood, DayFilter }
+export { weekdayIcon, DAY_NAMES_EN, pick, orderLabel, OPEN_BEFORE_MIN, OPEN_AFTER_MIN, serviceStatusToday, formatRemaining, formatTimeLabel, dayLabel, moodOfTime, taglineKey, liturgicalSeason }
+export type { ServiceStatus, Mood }
