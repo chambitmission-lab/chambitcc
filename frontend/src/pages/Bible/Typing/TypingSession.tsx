@@ -111,7 +111,7 @@ const TypingSessionView = () => {
   const { data: myRelays } = useTypingRelays()
   const autoRelayId =
     myRelays?.find((r) => !r.completed && r.book_number === bookNumber && r.chapter === chapter)?.id ?? 0
-  const { data: relay } = useTypingRelay(relayParam || autoRelayId)
+  const { data: relay, refetch: refetchRelay } = useTypingRelay(relayParam || autoRelayId)
   // 다른 장의 릴레이 링크로 들어온 경우(주소를 손으로 바꾼 등)는 방으로 보지 않는다
   const room = relay && relay.book_number === bookNumber && relay.chapter === chapter ? relay : null
   const roomId = room?.id ?? 0
@@ -141,6 +141,8 @@ const TypingSessionView = () => {
   const batonAutoShown = useRef(false)
   /** 이번에 마지막으로 다 쓴 절 — '바통' 버튼으로 나중에 넘길 때 쓴다 */
   const [lastWritten, setLastWritten] = useState<SessionVerse | null>(null)
+  /** 내가 마지막 빈칸을 채워 릴레이가 완성된 순간 — personalNext 는 내가 아직 안 써 본 절(더 써 보기용) */
+  const [relayDone, setRelayDone] = useState<{ personalNext: number | null } | null>(null)
   // 오늘 목표 달성 모먼트 — 세션을 열 때 이미 채웠으면 띄우지 않고, 넘는 순간 한 번만
   const goal = stats?.daily_goal ?? 3
   const startTodayRef = useRef<number | null>(null)
@@ -383,9 +385,9 @@ const TypingSessionView = () => {
     const idx = verses.findIndex((v) => v.id === sv.id)
     const ni = wasComplete ? (idx < verses.length - 1 ? idx + 1 : null) : nextIndex(idx, newDone)
     setLastWritten(sv)
-    const proceed = () => {
+    const proceed = (to: number | null) => {
       if (reachedGoal) {
-        setGoalMoment({ next: ni })
+        setGoalMoment({ next: to })
         confetti({
           particleCount: 60,
           spread: 60,
@@ -394,7 +396,7 @@ const TypingSessionView = () => {
         })
         return
       }
-      if (ni === null) {
+      if (to === null) {
         setShowSummary(true)
         confetti({
           particleCount: 90,
@@ -403,18 +405,41 @@ const TypingSessionView = () => {
           colors: ['#3182f6', '#60a5fa', '#38bdf8', '#93c5fd'],
         })
       } else {
-        goTo(ni)
+        goTo(to)
       }
     }
+    // 진행 중인 릴레이 방에서 '다음 칸'은 내가 안 쓴 절이 아니라 릴레이의 빈칸이다
+    // (남이 채운 칸으로 보내면 다 채운 뒤에도 1절부터 다시 쓰라고 하게 된다)
+    const inRoom = !!room && loggedIn && !room.completed
+    const written = new Set(sessionDone)
+    written.add(sv.id)
+    sv.extraIds.forEach((id) => written.add(id))
+    const relayNext = inRoom ? relayNextIndex(sv.id, written) : null
     advanceTimer.current = setTimeout(
       () => {
-        // 릴레이 방에서는 처음 쓴 칸(그리고 장의 마지막 칸)에 바통 시트를 연다 — 매 절마다 막지는 않는다
-        if (roomId && loggedIn && (!batonAutoShown.current || ni === null)) {
-          batonAutoShown.current = true
-          setBaton({ verse: sv, hasNext: ni !== null, then: proceed, reachedGoal })
+        if (inRoom) {
+          if (relayNext === null) {
+            // 마지막 빈칸을 내가 채웠다 — 바통 대신 함께 완성한 순간
+            setRelayDone({ personalNext: ni })
+            void refetchRelay()
+            confetti({
+              particleCount: 140,
+              spread: 95,
+              origin: { y: 0.55 },
+              colors: ['#3182f6', '#60a5fa', '#ffb547', '#ffe08a'],
+            })
+            return
+          }
+          // 처음 쓴 칸에만 바통 시트를 자동으로 연다 — 매 절마다 막지는 않는다
+          if (!batonAutoShown.current) {
+            batonAutoShown.current = true
+            setBaton({ verse: sv, hasNext: true, then: () => proceed(relayNext), reachedGoal })
+            return
+          }
+          proceed(relayNext)
           return
         }
-        proceed()
+        proceed(ni)
       },
       next.personalBest ? 1400 : 900,
     )
@@ -437,13 +462,17 @@ const TypingSessionView = () => {
     then?.()
   }
 
-  // 방금 쓴 칸 다음의 빈칸(없으면 앞쪽 빈칸) — 바통이 가리키는 칸. 방 정보가 아직 새로 오기 전이라 쓴 칸은 직접 뺀다
-  const nextOpenLabel = (verseId: number): string | null => {
+  // 방금 쓴 칸 다음의 릴레이 빈칸(없으면 앞쪽 빈칸) → 세션 절 인덱스. 바통이 가리키는 칸이기도 하다.
+  // 방 정보가 아직 새로 오기 전일 수 있어 이번에 쓴 칸(written)은 직접 뺀다
+  function relayNextIndex(fromId: number, written: Set<number>): number | null {
     if (!room) return null
     const slots = room.verses
-    const idx = slots.findIndex((v) => v.id === verseId)
-    const ordered = [...slots.slice(idx + 1), ...slots.slice(0, Math.max(idx, 0))]
-    return ordered.find((v) => !v.by && v.id !== verseId && !done.has(v.id))?.label ?? null
+    const at = slots.findIndex((v) => v.id === fromId)
+    const ordered = [...slots.slice(at + 1), ...slots.slice(0, Math.max(at, 0))]
+    const slot = ordered.find((v) => !v.by && !written.has(v.id))
+    if (!slot) return null
+    const i = verses.findIndex((v) => v.id === slot.id)
+    return i < 0 ? null : i
   }
 
   const onPassBaton = (toUserId: number | null, message: string | null) => {
@@ -461,8 +490,10 @@ const TypingSessionView = () => {
           }
           // 바통을 넘겼으면 그 칸은 받은 사람 차례 — 내 화면은 다음 절로 넘어가지 않고 기다린다
           setBaton(null)
-          const idx = verses.findIndex((v) => v.id === b.verse.id)
-          setHandoff({ toUserId, label: nextOpenLabel(b.verse.id), next: nextIndex(idx, done) })
+          const written = new Set(sessionDone)
+          written.add(b.verse.id)
+          const ni = relayNextIndex(b.verse.id, written)
+          setHandoff({ toUserId, label: ni !== null ? verses[ni].label : null, next: ni })
           if (b.reachedGoal) {
             setGoalMoment({ next: null })
             confetti({
@@ -511,7 +542,7 @@ const TypingSessionView = () => {
     current,
     outcome,
     showSummary,
-    goalOpen: goalMoment !== null || baton !== null,
+    goalOpen: goalMoment !== null || baton !== null || relayDone !== null,
     count: verses.length,
     goTo,
   })
@@ -520,7 +551,7 @@ const TypingSessionView = () => {
       current,
       outcome,
       showSummary,
-      goalOpen: goalMoment !== null || baton !== null,
+      goalOpen: goalMoment !== null || baton !== null || relayDone !== null,
       count: verses.length,
       goTo,
     }
@@ -615,7 +646,7 @@ const TypingSessionView = () => {
             live={live}
             hueOf={hueOf}
             ticker={ticker}
-            canPass={lastWritten !== null && baton === null && !handoff}
+            canPass={lastWritten !== null && baton === null && !handoff && !room.completed && room.verses.some((rv) => !rv.by)}
             onCheer={onCheer}
             onPass={() => lastWritten && setBaton({ verse: lastWritten, hasNext: true, then: () => undefined })}
           />
@@ -1014,6 +1045,55 @@ const TypingSessionView = () => {
               <button type="button" className="bt-btn bt-btn--ghost bt-btn--block" onClick={() => navigate('/bible/typing')}>
                 오늘은 여기까지
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {relayDone && room && (
+        <div className="bt-summary" role="dialog" aria-modal="true" aria-labelledby="bt-relaydone-title">
+          <div className="bt-summary__card bt-relaydone">
+            <span className="bt-baton__torch" aria-hidden />
+            <p className="bt-summary__eyebrow">릴레이 완성 · 마지막 칸을 내가 채웠어요</p>
+            <h2 id="bt-relaydone-title" className="bt-summary__title">
+              {room.book_name} {room.chapter}
+              {room.book_number === 19 ? '편' : '장'}을 함께 완성했어요!
+            </h2>
+            <ul className="bt-relaydone__members">
+              {[...room.members]
+                .sort((a, b) => b.verses - a.verses)
+                .map((m) => (
+                  <li key={m.user_id} className={`bt-hue-${hueOf.get(m.user_id) ?? 0}`}>
+                    <span className="bt-relay__swatch" aria-hidden />
+                    {m.is_me ? '나' : m.name}
+                    <b>{m.verses}칸</b>
+                  </li>
+                ))}
+            </ul>
+            <div className="bt-summary__actions">
+              <button
+                type="button"
+                className="bt-btn bt-btn--primary bt-btn--block"
+                onClick={() => navigate(`/bible/typing/relay/${room.id}`)}
+              >
+                릴레이 현황 보기
+              </button>
+              <button type="button" className="bt-btn bt-btn--block" onClick={() => navigate('/bible/typing')}>
+                필사 홈으로
+              </button>
+              {relayDone.personalNext !== null && (
+                <button
+                  type="button"
+                  className="bt-btn bt-btn--ghost bt-btn--block"
+                  onClick={() => {
+                    const ni = relayDone.personalNext!
+                    setRelayDone(null)
+                    goTo(ni)
+                  }}
+                >
+                  친구가 쓴 절도 내 손으로 써 보기
+                </button>
+              )}
             </div>
           </div>
         </div>
