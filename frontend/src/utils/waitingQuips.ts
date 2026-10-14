@@ -1,5 +1,5 @@
 /* 성경 속 "기다림" 한 줄 유머 — 로딩이 길어질 때 빈 스켈레톤 대신 보여 준다.
- * 묵상 카드의 핵심 절 대기(WaitingQuipLoader)와 전역 로딩 말풍선(LoadingVerseToast)이 같은 목록을 쓴다.
+ * 묵상 카드의 핵심 절 대기(WaitingQuipLoader)가 쓴다.
  * 등장할 때마다 다음 문구로 넘어가(저장소 순번) 같은 농담이 연달아 나오지 않는다. */
 
 export interface WaitingQuip {

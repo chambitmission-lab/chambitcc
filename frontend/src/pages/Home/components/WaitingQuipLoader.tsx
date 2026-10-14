@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { nextWaitingQuip } from '../../../utils/waitingQuips'
 
-/* 핵심 절 대기 — 성경 속 "기다림" 한 줄 유머(목록은 utils/waitingQuips, 전역 로딩 말풍선과 공유).
+/* 핵심 절 대기 — 성경 속 "기다림" 한 줄 유머(목록은 utils/waitingQuips).
  * 스켈레톤 quote 와 같은 높이·radius 라 도착 순간 레이아웃이 밀리지 않고,
  * 400ms 안에 채워지면 문구가 드러나기 전에 끝난다(CSS animation-delay). */
 

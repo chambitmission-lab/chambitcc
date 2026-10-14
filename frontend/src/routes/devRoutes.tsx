@@ -47,8 +47,6 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['bulletin-desk', () => import('../pages/dev/BulletinDeskPreview')],
       // 가계도 시대순 "말씀 오솔길" — 진도 표본(?read=0.3)으로 로그인 없이
       ['genealogy-trail', () => import('../pages/dev/GenealogyTrailPreview')],
-      // 전역 "불러오는 중" 말풍선(요청 큐 구독) — 문구 목록·바닥 자리
-      ['loading-verse', () => import('../pages/dev/LoadingVersePreview')],
       // 따라쓰기 릴레이 방 — 칸 판·소식 띠·응원·바통 시트(표본 방)
       ['typing-relay', () => import('../pages/dev/TypingRelayRoomPreview')],
     ]

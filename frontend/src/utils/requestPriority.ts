@@ -70,20 +70,6 @@ let generation = 0
 let seq = 0
 const waiting: Waiter[] = []
 
-// 줄 서는 요청(bypass 아닌 것)의 진행 중+대기 수 — 전역 "불러오는 중" 말풍선(LoadingVerseToast)이 구독한다.
-// bypass 요청(핵심·사용자 행동)은 저마다 스피너·버튼 상태가 있어 세지 않는다.
-let queuedInFlight = 0
-const listeners = new Set<() => void>()
-const notify = () => listeners.forEach((l) => l())
-
-export const getPendingRequestCount = (): number => queuedInFlight + waiting.length
-export const subscribeRequestQueue = (listener: () => void): (() => void) => {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
 if (typeof window !== 'undefined') {
   window.addEventListener('hashchange', () => {
     generation += 1
@@ -107,20 +93,17 @@ const pump = (): void => {
       continue
     }
     inFlight += 1
-    queuedInFlight += 1
     next.resolve()
   }
-  notify()
 }
 
-const takeSlot = (counted: boolean): (() => void) => {
+const takeSlot = (): (() => void) => {
   let released = false
   const release = () => {
     if (released) return
     released = true
     clearTimeout(lease)
     inFlight -= 1
-    if (counted) queuedInFlight -= 1
     pump()
   }
   const lease = setTimeout(release, SLOT_LEASE_MS)
@@ -134,18 +117,15 @@ const takeSlot = (counted: boolean): (() => void) => {
 export const acquireRequestSlot = async (bypass: boolean, signal?: AbortSignal): Promise<() => void> => {
   if (bypass) {
     inFlight += 1
-    return takeSlot(false)
+    return takeSlot()
   }
   if (inFlight < MAX_IN_FLIGHT && waiting.length === 0) {
     inFlight += 1
-    queuedInFlight += 1
-    notify()
-    return takeSlot(true)
+    return takeSlot()
   }
   if (signal?.aborted) throw abortError()
   await new Promise<void>((resolve, reject) => {
     waiting.push({ generation, seq: seq++, signal, resolve, reject })
-    notify()
   })
-  return takeSlot(true)
+  return takeSlot()
 }

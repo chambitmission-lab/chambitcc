@@ -28,7 +28,6 @@ import { isAuthenticated, getCurrentUser } from './utils/auth'
 import { useFeedTextScale } from './utils/feedTextScale'
 import { usePageZoomRequest, zoomsWithTextScale } from './utils/textScaleRoutes'
 import RouteDataPrefetch from './components/common/RouteDataPrefetch'
-import LoadingVerseToast from './components/common/LoadingVerseToast'
 import { sessionStore } from './utils/tokenStore'
 
 // 라우트는 영역별 파일(routes/*)에 lazy 선언과 함께 모아 둔다 — 새 화면은 해당 영역 파일에만 추가
@@ -190,8 +189,6 @@ function App() {
           <PullToRefresh />
           {/* PWA 설치 버튼 */}
           <PWAInstallButton />
-          {/* 화면이 카드 하나씩 채워지는 동안 바닥에 "불러오는 중" + 성경 속 기다림 한 줄 (요청 큐 구독) */}
-          <LoadingVerseToast />
           {/* 성경 칭호 해금 팝업 호스트 — 읽기 후 새 칭호를 축하 */}
           <TitleUnlockHost />
           {/* 공통 확인/안내 모달 호스트 — 브라우저 기본 confirm()/alert() 대체 */}
