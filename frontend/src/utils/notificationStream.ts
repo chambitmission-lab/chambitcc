@@ -14,6 +14,7 @@ import { trimInfiniteQuery } from './infiniteQueryTrim'
 import { tokenStore } from './tokenStore'
 import { prayerKeys } from '../hooks/usePrayersQuery'
 import { notificationKeys } from '../hooks/queryKeys'
+import { applyReadingSync, resyncReadingAfterReconnect } from '../hooks/useBibleReading'
 
 const INITIAL_RETRY_MS = 5_000
 const MAX_RETRY_MS = 60_000
@@ -35,6 +36,8 @@ class NotificationStreamManager {
   private running = false
   private controller: AbortController | null = null
   private retryMs = INITIAL_RETRY_MS
+  // 첫 연결과 재연결을 구분 — 재연결 때만 끊긴 사이 다른 기기에서 바뀐 읽음을 다시 맞춘다
+  private everConnected = false
   private queryClient: QueryClient | null = null
   // stop() 직후 start() 되어도(StrictMode의 mount→cleanup→mount 등)
   // 이전 루프가 계속 돌지 않도록 세대 번호로 구분한다
@@ -171,6 +174,8 @@ class NotificationStreamManager {
               this.retryMs = INITIAL_RETRY_MS
               // 끊겨 있던 사이의 변경분 동기화
               this.invalidate()
+              if (this.everConnected && this.queryClient) resyncReadingAfterReconnect(this.queryClient)
+              this.everConnected = true
             } else if (event === 'notification' || event === 'refresh') {
               this.invalidate()
             } else if (event === 'prayer_reaction' || event === 'prayer_reply') {
@@ -179,6 +184,9 @@ class NotificationStreamManager {
               // 표가 들어오거나 회차가 열리고 닫혔다 — 투표율은 캐시에 바로 반영하고,
               // 득표가 보이는 화면만 몰아서 다시 받는다 (utils/electionLiveSync.ts)
               if (this.queryClient) applyElectionUpdate(this.queryClient, data)
+            } else if (event === 'reading_sync') {
+              // 같은 계정의 다른 기기에서 절·장 읽음이 바뀌었다 — 장 상태 캐시만 고친다
+              if (this.queryClient) applyReadingSync(this.queryClient, data)
             }
             this.dispatch(event, data)
           },

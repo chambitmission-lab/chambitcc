@@ -78,6 +78,71 @@ const syncAfterVerseToggle = (
   })
 }
 
+/** SSE reading_sync 페이로드 — 백엔드 bible_reading_service._publish_reading_sync */
+export interface ReadingSyncEvent {
+  book_number: number
+  chapter: number
+  /** null 이면 그 장 전체(장 일괄 읽음/취소) */
+  verse_ids: number[] | null
+  is_read: boolean
+  read_at: string | null
+  similarity: number | null
+}
+
+/**
+ * 같은 계정의 다른 기기(휴대폰↔PC)에서 읽음이 바뀌었을 때 — 서버 재조회 없이 장 상태 캐시만 고친다.
+ * 보낸 기기 자신도 이 이벤트를 받지만 mutation 이 이미 같은 값으로 고쳐 둬서 바뀌는 게 없다(멱등).
+ * 그 장 캐시가 없으면(아직 안 연 장) 할 일이 없다 — 열 때 서버에서 받는다.
+ */
+export const applyReadingSync = (qc: QueryClient, raw: string) => {
+  let ev: ReadingSyncEvent
+  try {
+    ev = JSON.parse(raw)
+  } catch {
+    return
+  }
+  if (!(ev?.book_number > 0 && ev.chapter > 0)) return
+  const key = bibleReadingKeys.chapterStatus(ev.book_number, ev.chapter)
+  const targets = ev.verse_ids ? new Set(ev.verse_ids) : null
+  let changed = false
+  qc.setQueryData<ChapterStatusData>(key, (old) => {
+    if (!old) return old
+    let delta = 0
+    const verses = old.verses.map((v) => {
+      if ((targets && !targets.has(v.verse_id)) || v.is_read === ev.is_read) return v
+      delta += ev.is_read ? 1 : -1
+      return {
+        ...v,
+        is_read: ev.is_read,
+        similarity: ev.is_read ? ev.similarity : null,
+        read_at: ev.is_read ? ev.read_at : null,
+      }
+    })
+    if (delta === 0) return old
+    changed = true
+    const read_verses = Math.min(old.total_verses, Math.max(0, old.read_verses + delta))
+    const progress = old.total_verses > 0 ? Math.round((read_verses / old.total_verses) * 10000) / 100 : 0
+    return { ...old, verses, read_verses, progress }
+  })
+  if (!changed) return
+  // 받아오는 중이던 응답이 고친 값을 덮을 수 있다 — 그때만 다시 받는다
+  if (qc.isFetching({ queryKey: key }) > 0) void qc.invalidateQueries({ queryKey: key })
+  // 진행률·이어읽기·책 진행률은 stale 표시만 — 허브로 돌아갈 때 한 번 받는다
+  void qc.invalidateQueries({
+    queryKey: bibleReadingKeys.all,
+    predicate: (q) => !isChapterStatusKey(q.queryKey),
+    refetchType: 'none',
+  })
+}
+
+/**
+ * SSE 가 끊겨 있던 사이 다른 기기에서 바뀐 읽음은 이벤트로 오지 않는다 — 재연결 때 장 상태만
+ * 다시 맞춘다. 보고 있는 장(활성 쿼리)만 재조회되고 나머지는 stale 표시만 된다.
+ */
+export const resyncReadingAfterReconnect = (qc: QueryClient) => {
+  void qc.invalidateQueries({ queryKey: chapterStatusPrefix })
+}
+
 /**
  * 절 읽음 처리/취소가 실패했을 때(이미 읽음 409·기록 없음 404 등) — 캐시가 서버와 어긋났다는 뜻이라
  * 보이는 장 상태만 다시 받는다. 묶음 처리(병합 구간)에서 일부만 이미 읽힌 경우도 여기서 맞춰진다.
@@ -133,6 +198,12 @@ export const useMarkVerseAsRead = () => {
 
 /** 장 읽음 상태 신선도 — 훅과 선요청(prefetchChapterReadStatus)이 반드시 같은 값 */
 export const CHAPTER_STATUS_STALE_MS = 1000 * 60 * 5
+/**
+ * 창으로 돌아왔을 때 이 시간보다 오래된 장 상태면 staleTime 과 무관하게 다시 받는다.
+ * 다른 기기 변경은 SSE reading_sync 가 즉시 고치지만, 이벤트를 놓친 경우(큐 넘침·연결 전)의
+ * 안전장치다. 탭을 잠깐 오가는 정도로는 요청이 나가지 않게 1분 간격을 둔다.
+ */
+const CHAPTER_STATUS_FOCUS_REFETCH_MS = 1000 * 60
 
 /**
  * 특정 장의 읽음 상태 조회
@@ -151,6 +222,10 @@ export const useChapterReadStatus = (
     // 비활성 쿼리를 stale 마크만 하므로, true(=stale이면 refetch)가 없으면
     // 다른 장으로 이동했을 때 옛 읽음 표시가 그대로 남는다
     refetchOnMount: true,
+    // 전역 refetchOnWindowFocus:false 예외 — 휴대폰에서 읽고 PC 탭으로 돌아온 경우.
+    // 'always' 여야 staleTime(5분) 안이어도 받는다
+    refetchOnWindowFocus: (query) =>
+      Date.now() - query.state.dataUpdatedAt > CHAPTER_STATUS_FOCUS_REFETCH_MS ? 'always' : false,
   })
 }
 
