@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { TypingRelayDetail, TypingRelayLive } from '../../api/bibleTyping'
 import TypingPad from '../Bible/Typing/TypingPad'
-import { BatonSheet, RelayBoard, RelayLine, RelayPrevNote } from '../Bible/Typing/RelayRoom'
+import { BatonSheet, RelayBoard, RelayHandoff, RelayLine, RelayPrevNote } from '../Bible/Typing/RelayRoom'
 import { CHEER_LABEL, relayHueMap } from '../Bible/Typing/relayShare'
 import '../Bible/Typing/typing.css'
 
@@ -17,7 +17,7 @@ const MEMBERS: TypingRelayDetail['members'] = [
 ]
 const FILLED: Record<number, number> = { 1: 2, 2: 2, 5: 3, 6: 4 }
 
-const makeRelay = (mine: boolean): TypingRelayDetail => ({
+const makeRelay = (mine: boolean, passed: boolean): TypingRelayDetail => ({
   id: 1,
   title: '청년부 새벽 릴레이',
   book_number: 19,
@@ -42,24 +42,33 @@ const makeRelay = (mine: boolean): TypingRelayDetail => ({
   }),
   next_verse: 3,
   live: [],
-  baton: { from_user_id: 2, name: '지민', message: '다음 절 부탁해요', verse: 2, label: '2' },
+  // 바통을 넘긴 뒤엔 4절이 현우 차례, 그 전엔 지민이 내게 넘긴 3절이 내 차례
+  turn: passed
+    ? { user_id: 3, name: '현우', from_user_id: 1, from_name: '나', message: '힘내요!', verse: 4, label: '4' }
+    : { user_id: 1, name: '나', from_user_id: 2, from_name: '지민', message: '다음 절 부탁해요', verse: 3, label: '3' },
+  baton: passed ? null : { from_user_id: 2, name: '지민', message: '다음 절 부탁해요', verse: 3, label: '3' },
 })
 
 const TEXT = '여호와의 산에 오를 자가 누구며 그의 거룩한 곳에 설 자가 누구인가'
 
 const TypingRelayRoomPreview = () => {
   const [mine, setMine] = useState(false)
+  const [passed, setPassed] = useState(false)
   const [solo, setSolo] = useState(false)
   const [sheet, setSheet] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const [cheers, setCheers] = useState<{ id: number; text: string; hue: number }[]>([])
   const relay = useMemo(() => {
-    const r = makeRelay(mine)
+    const r = makeRelay(mine || passed, passed)
     return solo ? { ...r, members: r.members.filter((m) => m.is_me), baton: null } : r
-  }, [mine, solo])
+  }, [mine, passed, solo])
   const hueOf = useMemo(() => relayHueMap(relay.members), [relay])
   const live: TypingRelayLive[] = solo ? [] : [{ user_id: 4, verse: 7 }]
-  const ticker = solo ? '아직 나 혼자예요 · 함께 쓸 친구를 불러 봐요' : '지민님이 내게 바통을 넘겼어요 · “다음 절 부탁해요”'
+  const ticker = solo
+    ? '아직 나 혼자예요 · 함께 쓸 친구를 불러 봐요'
+    : passed
+      ? '현우님이 4절을 이어 쓸 차례예요'
+      : '지민님이 내게 바통을 넘겼어요 · “다음 절 부탁해요”'
 
   const cheer = () => {
     const id = Date.now()
@@ -76,6 +85,7 @@ const TypingRelayRoomPreview = () => {
             ['바통 시트', () => setSheet(true)],
             [mine ? '내 칸 비우기' : '3절 채움', () => setMine(!mine)],
             [solo ? '친구 있음' : '혼자인 방', () => setSolo(!solo)],
+            [passed ? '바통 전' : '바통 넘긴 뒤', () => setPassed(!passed)],
           ].map(([label, fn]) => (
             <button
               key={label as string}
@@ -100,10 +110,24 @@ const TypingRelayRoomPreview = () => {
             onCheer={() => undefined}
             onPass={() => setSheet(true)}
           />
-          <RelayPrevNote relay={relay} verse={3} hueOf={hueOf} />
-          <div className="bt-card__label">
-            <span className="bt-verse-no bt-room-turn">내 차례 · 3절</span>
-          </div>
+          {passed ? (
+            <RelayHandoff
+              toName="현우"
+              hue={hueOf.get(3) ?? 0}
+              label="4"
+              onCheer={cheer}
+              onOpenRelay={() => undefined}
+              onHome={() => undefined}
+              onContinue={() => setPassed(false)}
+            />
+          ) : (
+            <>
+              <RelayPrevNote relay={relay} verse={3} hueOf={hueOf} />
+              <div className="bt-card__label">
+                <span className="bt-verse-no bt-room-turn">내 차례 · 3절</span>
+              </div>
+            </>
+          )}
           {cheers.length > 0 && (
             <div className="bt-room-floats">
               {cheers.map((c) => (
@@ -113,6 +137,7 @@ const TypingRelayRoomPreview = () => {
               ))}
             </div>
           )}
+          {!passed && (
           <TypingPad
             key={attempt}
             text={TEXT}
@@ -125,6 +150,7 @@ const TypingRelayRoomPreview = () => {
               setAttempt((n) => n + 1)
             }}
           />
+          )}
         </div>
       </main>
       {sheet && (
@@ -135,7 +161,10 @@ const TypingRelayRoomPreview = () => {
           hueOf={hueOf}
           hasNext
           sending={false}
-          onPass={() => setSheet(false)}
+          onPass={(to) => {
+            setSheet(false)
+            if (to) setPassed(true)
+          }}
           onClose={() => setSheet(false)}
         />
       )}

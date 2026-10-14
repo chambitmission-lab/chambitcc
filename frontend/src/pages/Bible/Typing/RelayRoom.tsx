@@ -36,6 +36,7 @@ export const RelayBoard = ({
 }) => {
   const mine = relay.members.find((m) => m.is_me)?.verses ?? 0
   const typingAt = new Map(live.map((l) => [l.verse, l.user_id]))
+  const turn = relay.turn
   return (
     <section className="bt-card bt-room-board" aria-label="함께 채운 칸">
       <div className="bt-room-board__top">
@@ -57,6 +58,10 @@ export const RelayBoard = ({
             'bt-room-cell',
             filledHue !== null ? `is-filled bt-hue-${filledHue}` : '',
             typer !== undefined && filledHue === null ? `is-typing bt-hue-${hueOf.get(typer) ?? 0}` : '',
+            // 바통이 가리키는 칸 — 받은 사람 색 테두리(쓰는 중이면 점선 링이 우선)
+            typer === undefined && filledHue === null && turn?.verse === v.verse
+              ? `is-turn bt-hue-${hueOf.get(turn.user_id) ?? 0}`
+              : '',
             v.verse === currentVerse ? 'is-now' : '',
           ].join(' ')
           const who = v.by ? v.by.name : typer !== undefined ? relay.members.find((m) => m.user_id === typer)?.name : null
@@ -67,7 +72,15 @@ export const RelayBoard = ({
               role="listitem"
               className={cls}
               onClick={() => onPick(v.verse)}
-              title={v.by ? `${v.label}절 · ${v.by.name}` : who ? `${v.label}절 · ${who}님이 쓰는 중` : `${v.label}절 · 빈칸`}
+              title={
+                v.by
+                  ? `${v.label}절 · ${v.by.name}`
+                  : who
+                    ? `${v.label}절 · ${who}님이 쓰는 중`
+                    : turn?.verse === v.verse
+                      ? `${v.label}절 · ${turn.name}님 차례`
+                      : `${v.label}절 · 빈칸`
+              }
             >
               {v.label}
             </button>
@@ -148,6 +161,53 @@ export const RelayLine = ({
     </div>
   )
 }
+
+/** 바통을 넘긴 뒤 — 그 칸은 받은 사람 차례. 기다리며 응원하거나, 원하면 내가 이어 쓴다 */
+export const RelayHandoff = ({
+  toName,
+  hue,
+  label,
+  onCheer,
+  onOpenRelay,
+  onHome,
+  onContinue,
+}: {
+  toName: string
+  hue: number
+  /** 받은 사람이 이어 쓸 칸(없으면 null) */
+  label: string | null
+  onCheer: () => void
+  onOpenRelay: () => void
+  onHome: () => void
+  /** 기다리지 않고 내가 이어 쓰기 — 이어 쓸 칸이 없으면 null */
+  onContinue: (() => void) | null
+}) => (
+  <div className={`bt-room-handoff bt-hue-${hue}`} role="status">
+    <span className="bt-baton__torch bt-room-handoff__torch" aria-hidden />
+    <p className="bt-room-handoff__title">{toName}님에게 바통을 넘겼어요</p>
+    <p className="bt-room-handoff__sub">
+      {label ? `${label}절은 이제 ${toName}님 차례예요. 이어 쓰면 여기서 바로 알려 드릴게요.` : `${toName}님이 이어 쓰면 알려 드릴게요.`}
+    </p>
+    <div className="bt-room-handoff__actions">
+      <button type="button" className="bt-btn bt-btn--primary bt-btn--block" onClick={onCheer}>
+        {toName}님에게 “{CHEER_LABEL.pray}” 보내기
+      </button>
+      <div className="bt-room-handoff__row">
+        <button type="button" className="bt-btn bt-btn--block" onClick={onOpenRelay}>
+          릴레이 현황
+        </button>
+        <button type="button" className="bt-btn bt-btn--block" onClick={onHome}>
+          필사 홈으로
+        </button>
+      </div>
+      {onContinue && (
+        <button type="button" className="bt-room-handoff__more" onClick={onContinue}>
+          기다리지 않고 내가 이어 쓰기
+        </button>
+      )}
+    </div>
+  </div>
+)
 
 export const RelayPrevNote = ({
   relay,

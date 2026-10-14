@@ -379,6 +379,61 @@
 .bt-baton__input:focus {
   border-color: var(--brand);
 }
+
+/* 바통이 가리키는 칸 — 받은 사람 색의 실선 테두리(쓰는 중 점선 링과 구분) */
+.bt-room-cell.is-turn {
+  box-shadow: inset 0 0 0 2px var(--hue);
+  background: color-mix(in srgb, var(--hue) 12%, transparent);
+  color: var(--hue);
+}
+
+/* 바통을 넘긴 뒤 기다리는 카드 */
+.bt-room-handoff {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px 2px;
+  text-align: center;
+}
+.bt-room-handoff__torch {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+}
+.bt-room-handoff__title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+.bt-room-handoff__sub {
+  margin: 4px 0 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.bt-room-handoff__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.bt-room-handoff__row {
+  display: flex;
+  gap: 8px;
+}
+.bt-room-handoff__more {
+  margin-top: 2px;
+  padding: 6px;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bt-room-cell.is-typing::after,
   .bt-room-line__pulse.is-on,

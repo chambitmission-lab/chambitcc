@@ -26,7 +26,7 @@ import { playTypingSound } from './typingSound'
 import SoundMenu from './SoundMenu'
 import Lamp from './home/Lamp'
 import { teaser } from './home/teaser'
-import { BatonSheet, RelayBoard, RelayLine, RelayPrevNote } from './RelayRoom'
+import { BatonSheet, RelayBoard, RelayHandoff, RelayLine, RelayPrevNote } from './RelayRoom'
 import { CHEER_LABEL, relayHueMap } from './relayShare'
 import './typing.css'
 
@@ -127,7 +127,15 @@ const TypingSession = () => {
   const [cheers, setCheers] = useState<CheerFloat[]>([])
   const cheerSeq = useRef(0)
   /** 내 칸을 쓴 직후 여는 바통 시트 — then 은 시트를 닫은 뒤 이어 갈 흐름(다음 절·목표 축하·마무리) */
-  const [baton, setBaton] = useState<{ verse: SessionVerse; hasNext: boolean; then: () => void } | null>(null)
+  const [baton, setBaton] = useState<{
+    verse: SessionVerse
+    hasNext: boolean
+    then: () => void
+    /** 이 칸으로 오늘 목표를 채웠는지 — 바통을 넘겨도 축하는 띄운다 */
+    reachedGoal?: boolean
+  } | null>(null)
+  /** 바통을 넘긴 뒤 — 그 칸은 받은 사람 차례라 내 화면은 다음 절로 가지 않고 기다린다 */
+  const [handoff, setHandoff] = useState<{ toUserId: number; label: string | null; next: number | null } | null>(null)
   const batonAutoShown = useRef(false)
   /** 이번에 마지막으로 다 쓴 절 — '바통' 버튼으로 나중에 넘길 때 쓴다 */
   const [lastWritten, setLastWritten] = useState<SessionVerse | null>(null)
@@ -249,6 +257,7 @@ const TypingSession = () => {
     setActive(idx)
     setAttempt((n) => n + 1)
     setOutcome(null)
+    setHandoff(null)
   }
 
   const nextIndex = (from: number, doneSet: Set<number>) => {
@@ -369,7 +378,7 @@ const TypingSession = () => {
         // 릴레이 방에서는 처음 쓴 칸(그리고 장의 마지막 칸)에 바통 시트를 연다 — 매 절마다 막지는 않는다
         if (roomId && loggedIn && (!batonAutoShown.current || ni === null)) {
           batonAutoShown.current = true
-          setBaton({ verse: sv, hasNext: ni !== null, then: proceed })
+          setBaton({ verse: sv, hasNext: ni !== null, then: proceed, reachedGoal })
           return
         }
         proceed()
@@ -395,14 +404,41 @@ const TypingSession = () => {
     then?.()
   }
 
+  // 방금 쓴 칸 다음의 빈칸(없으면 앞쪽 빈칸) — 바통이 가리키는 칸. 방 정보가 아직 새로 오기 전이라 쓴 칸은 직접 뺀다
+  const nextOpenLabel = (verseId: number): string | null => {
+    if (!room) return null
+    const slots = room.verses
+    const idx = slots.findIndex((v) => v.id === verseId)
+    const ordered = [...slots.slice(idx + 1), ...slots.slice(0, Math.max(idx, 0))]
+    return ordered.find((v) => !v.by && v.id !== verseId && !done.has(v.id))?.label ?? null
+  }
+
   const onPassBaton = (toUserId: number | null, message: string | null) => {
     if (!baton || !roomId) return
+    const b = baton
     passBaton.mutate(
-      { id: roomId, verse_id: baton.verse.id, to_user_id: toUserId, message },
+      { id: roomId, verse_id: b.verse.id, to_user_id: toUserId, message },
       {
         onSuccess: () => {
-          showFlash(toUserId ? `바통이 ${memberName(toUserId)}님에게 넘어갔어요` : '한마디를 남겼어요')
-          closeBaton()
+          if (!toUserId || !b.hasNext) {
+            // 한마디만 남겼거나 이어 쓸 칸이 없으면 원래 흐름대로(다음 절·마무리)
+            showFlash(toUserId ? `바통이 ${memberName(toUserId)}님에게 넘어갔어요` : '한마디를 남겼어요')
+            closeBaton()
+            return
+          }
+          // 바통을 넘겼으면 그 칸은 받은 사람 차례 — 내 화면은 다음 절로 넘어가지 않고 기다린다
+          setBaton(null)
+          const idx = verses.findIndex((v) => v.id === b.verse.id)
+          setHandoff({ toUserId, label: nextOpenLabel(b.verse.id), next: nextIndex(idx, done) })
+          if (b.reachedGoal) {
+            setGoalMoment({ next: null })
+            confetti({
+              particleCount: 60,
+              spread: 60,
+              origin: { y: 0.6 },
+              colors: ['#ffb547', '#ffe08a', '#3182f6', '#93c5fd'],
+            })
+          }
         },
         onError: (e) => showToast(e instanceof Error ? e.message : '바통을 넘기지 못했어요', 'error'),
       },
@@ -513,6 +549,7 @@ const TypingSession = () => {
     if (flash) return flash
     if (room.baton)
       return `${room.baton.name}님이 내게 바통을 넘겼어요${room.baton.message ? ` · “${room.baton.message}”` : ''}`
+    if (room.turn) return `${room.turn.name}님이 ${room.turn.label}절을 이어 쓸 차례예요`
     if (live.length) {
       const first = live[0]
       const label = room.verses.find((v) => v.verse === first.verse)?.label ?? first.verse
@@ -545,17 +582,43 @@ const TypingSession = () => {
             live={live}
             hueOf={hueOf}
             ticker={ticker}
-            canPass={lastWritten !== null && baton === null}
+            canPass={lastWritten !== null && baton === null && !handoff}
             onCheer={onCheer}
             onPass={() => lastWritten && setBaton({ verse: lastWritten, hasNext: true, then: () => undefined })}
           />
         )}
-        {room && <RelayPrevNote relay={room} verse={v.verse} hueOf={hueOf} />}
-        <div className="bt-card__label">
+        {room && handoff && (
+          <RelayHandoff
+            toName={memberName(handoff.toUserId)}
+            hue={hueOf.get(handoff.toUserId) ?? 0}
+            label={handoff.label}
+            onCheer={() => onCheer({ user_id: handoff.toUserId, name: memberName(handoff.toUserId) }, 'pray')}
+            onOpenRelay={() => navigate(`/bible/typing/relay/${room.id}`)}
+            onHome={() => navigate('/bible/typing')}
+            onContinue={handoff.next !== null ? () => goTo(handoff.next!) : null}
+          />
+        )}
+        {room && !handoff && <RelayPrevNote relay={room} verse={v.verse} hueOf={hueOf} />}
+        <div className="bt-card__label" hidden={!!handoff}>
           {room ? (
             (() => {
               const slot = room.verses.find((rv) => rv.id === v.id)
-              if (!slot?.by) return <span className="bt-verse-no bt-room-turn">내 차례 · {v.label}절</span>
+              if (!slot?.by) {
+                const turn = room.turn
+                // '내 차례'는 실제로 내게 바통이 왔을 때만. 남의 차례인 칸도 막지는 않는다
+                if (turn && turn.verse === v.verse && turn.user_id !== myId)
+                  return (
+                    <>
+                      <span className="bt-verse-no">
+                        {turn.name}님 차례 · {v.label}절
+                      </span>
+                      <span className="bt-badge">먼저 써도 괜찮아요</span>
+                    </>
+                  )
+                if (turn && turn.verse === v.verse)
+                  return <span className="bt-verse-no bt-room-turn">내 차례 · {v.label}절</span>
+                return <span className="bt-verse-no">빈칸 · {v.label}절</span>
+              }
               return (
                 <>
                   <span className="bt-verse-no">{v.label}절</span>
@@ -579,6 +642,7 @@ const TypingSession = () => {
             ))}
           </div>
         )}
+        {!handoff && (
         <TypingPad
           key={`${v.id}-${attempt}-${ignorePunct ? 1 : 0}`}
           text={v.text}
@@ -588,7 +652,8 @@ const TypingSession = () => {
           onStart={() => setActive(i)}
           onFinish={(r) => void handleFinish(v, r)}
         />
-        {outcome && (
+        )}
+        {outcome && !handoff && (
           <div className={`bt-outcome bt-outcome--${outcome.status}`} role="status">
             {outcome.status === 'saving' && <span>기록하는 중…</span>}
             {outcome.status === 'passed' && (
@@ -905,11 +970,13 @@ const TypingSession = () => {
                 onClick={() => {
                   const ni = goalMoment.next
                   setGoalMoment(null)
+                  // 바통을 넘기고 기다리는 중이면 그 화면으로 돌아간다
+                  if (handoff) return
                   if (ni === null) setShowSummary(true)
                   else goTo(ni)
                 }}
               >
-                조금 더 쓰기
+                {handoff ? '확인' : '조금 더 쓰기'}
               </button>
               <button type="button" className="bt-btn bt-btn--ghost bt-btn--block" onClick={() => navigate('/bible/typing')}>
                 오늘은 여기까지

@@ -143,7 +143,17 @@ export interface TypingRelayDetail {
   next_verse: number | null
   /** 지금 이 방에서 쓰고 있는 다른 멤버와 그 절 */
   live: TypingRelayLive[]
-  /** 내게 넘어온 바통 — 이어받으면(이 장을 한 절 쓰면) 사라진다 */
+  /** 지금 누구 차례인지 — 마지막 바통을 받은 사람이 아직 이어받지 않았으면 그 사람과 가리키는 빈칸 */
+  turn: {
+    user_id: number
+    name: string
+    from_user_id: number
+    from_name: string
+    message: string | null
+    verse: number
+    label: string
+  } | null
+  /** 내게 넘어온 바통(turn 이 나일 때) — 이어받으면(이 장을 한 절 쓰면) 사라진다 */
   baton: { from_user_id: number; name: string; message: string | null; verse: number | null; label: string | null } | null
 }
 
