@@ -62,6 +62,8 @@ const STAGE_AHEAD = 2
 const RING_C = 2 * Math.PI * 44
 // 릴레이 소식 띠에 잠깐 띄우는 소식(칸 채움·바통·응원 보냄)이 머무는 시간
 const FLASH_MS = 6000
+// 주소로 정해진 절에 처음 내려앉은 뒤, 늦게 도착한 내용에 밀려도 자리를 다시 맞추는 시간
+const LAND_HOLD_MS = 1500
 
 interface CheerFloat {
   id: number
@@ -85,7 +87,7 @@ const toSessionVerses = (verses: BibleVerse[]): SessionVerse[] => {
     }))
 }
 
-const TypingSession = () => {
+const TypingSessionView = () => {
   const navigate = useNavigate()
   const params = useParams()
   const [search] = useSearchParams()
@@ -219,10 +221,41 @@ const TypingSession = () => {
   const scrollToActive = useCallback(() => {
     activeRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }, [])
+  // 주소로 정해진 절(?v=, 알림·릴레이에서 들어옴)에 처음 내려앉을 때는 smooth 한 번으로 끝내지 않는다.
+  // 모바일은 본문 뒤로 릴레이 칸 판·소식 띠가 늦게 도착해 레이아웃이 밀리고, 그 사이 smooth 스크롤이
+  // 취소돼 맨 위에 머물렀다. 즉시 이동 후 잠깐 동안 자리를 다시 맞추고, 사용자가 만지면 바로 멈춘다
+  const landedRef = useRef(false)
   useEffect(() => {
     if (current === null || isDesk) return
-    const t = setTimeout(scrollToActive, 60)
-    return () => clearTimeout(t)
+    if (landedRef.current) {
+      const t = setTimeout(scrollToActive, 60)
+      return () => clearTimeout(t)
+    }
+    landedRef.current = true
+    const until = performance.now() + LAND_HOLD_MS
+    let stopped = false
+    let raf = 0
+    const stop = () => {
+      stopped = true
+      cancelAnimationFrame(raf)
+      window.removeEventListener('touchstart', stop, true)
+      window.removeEventListener('wheel', stop, true)
+    }
+    window.addEventListener('touchstart', stop, { passive: true, capture: true })
+    window.addEventListener('wheel', stop, { passive: true, capture: true })
+    const pin = () => {
+      if (stopped) return
+      const el = activeRef.current
+      if (el) {
+        const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
+        if (Math.abs(el.getBoundingClientRect().top - margin) > 4)
+          el.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior })
+      }
+      if (performance.now() < until) raf = requestAnimationFrame(pin)
+      else stop()
+    }
+    raf = requestAnimationFrame(pin)
+    return stop
   }, [current, scrollToActive, isDesk])
   // PC 장 지도 — 지금 절 칩이 지도 상자 안에 보이도록(페이지는 건드리지 않는다)
   useEffect(() => {
@@ -1043,6 +1076,17 @@ const TypingSession = () => {
       )}
     </div>
   )
+}
+
+/**
+ * 화면을 연 채로 다른 주소로 다시 들어오면(알림을 눌러 장·?v= 만 바뀜) 라우트 컴포넌트가 재사용돼
+ * 쓰던 절·바통 대기 상태가 그대로 남았다. 책·장·시작 절을 key 로 걸어 새 주소마다 새로 연다
+ * (세션 안의 절 이동은 주소를 바꾸지 않으니 영향이 없다).
+ */
+const TypingSession = () => {
+  const { book, chapter } = useParams()
+  const [search] = useSearchParams()
+  return <TypingSessionView key={`${book}:${chapter}:${search.get('v') ?? ''}`} />
 }
 
 export default TypingSession
