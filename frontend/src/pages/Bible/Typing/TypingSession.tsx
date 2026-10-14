@@ -4,9 +4,20 @@ import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { useBibleBooks, useBibleChapter } from '../../../hooks/useBible'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
-import { useChapterTyping, useSubmitTyping, useTypingStats } from '../../../hooks/useBibleTyping'
+import {
+  useChapterTyping,
+  usePassTypingBaton,
+  useSendTypingCheer,
+  useSubmitTyping,
+  useTypingRelay,
+  useTypingRelayLive,
+  useTypingRelayRoom,
+  useTypingRelays,
+  useTypingStats,
+} from '../../../hooks/useBibleTyping'
+import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
-import type { TypingMode } from '../../../api/bibleTyping'
+import type { TypingCheerKind, TypingMode } from '../../../api/bibleTyping'
 import type { BibleVerse } from '../../../types/bible'
 import TypingPad, { type TypingFinish } from './TypingPad'
 import { PASS_ACCURACY, cpmOf } from './hangulTyping'
@@ -15,6 +26,8 @@ import { playTypingSound } from './typingSound'
 import SoundMenu from './SoundMenu'
 import Lamp from './home/Lamp'
 import { teaser } from './home/teaser'
+import { BatonSheet, RelayBoard, RelayLine, RelayPrevNote } from './RelayRoom'
+import { CHEER_LABEL, relayHueMap } from './relayShare'
 import './typing.css'
 
 interface SessionVerse {
@@ -47,6 +60,14 @@ interface SessionResult {
 const STAGE_AHEAD = 2
 // 장 지도 링 — r=44 원의 둘레
 const RING_C = 2 * Math.PI * 44
+// 릴레이 소식 띠에 잠깐 띄우는 소식(칸 채움·바통·응원 보냄)이 머무는 시간
+const FLASH_MS = 6000
+
+interface CheerFloat {
+  id: number
+  text: string
+  hue: number
+}
 
 const toSessionVerses = (verses: BibleVerse[]): SessionVerse[] => {
   const byNumber = new Map(verses.map((v) => [v.verse, v.id]))
@@ -82,6 +103,34 @@ const TypingSession = () => {
   const submit = useSubmitTyping()
   const { data: stats } = useTypingStats()
   const [ignorePunct, setIgnorePunct] = useIgnorePunct()
+
+  // ── 릴레이 방 — ?relay= 로 들어왔거나, 이 장으로 진행 중인 내 릴레이가 있으면 함께 쓰는 화면이 된다
+  const relayParam = Number(search.get('relay')) || 0
+  const { data: myRelays } = useTypingRelays()
+  const autoRelayId =
+    myRelays?.find((r) => !r.completed && r.book_number === bookNumber && r.chapter === chapter)?.id ?? 0
+  const { data: relay } = useTypingRelay(relayParam || autoRelayId)
+  // 다른 장의 릴레이 링크로 들어온 경우(주소를 손으로 바꾼 등)는 방으로 보지 않는다
+  const room = relay && relay.book_number === bookNumber && relay.chapter === chapter ? relay : null
+  const roomId = room?.id ?? 0
+  useTypingRelayLive(roomId || undefined)
+  const hueOf = useMemo(() => relayHueMap(room?.members), [room])
+  const sendCheer = useSendTypingCheer()
+  const passBaton = usePassTypingBaton()
+  const [flash, setFlash] = useState<string | null>(null)
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const showFlash = useCallback((text: string) => {
+    if (flashTimer.current) clearTimeout(flashTimer.current)
+    setFlash(text)
+    flashTimer.current = setTimeout(() => setFlash(null), FLASH_MS)
+  }, [])
+  const [cheers, setCheers] = useState<CheerFloat[]>([])
+  const cheerSeq = useRef(0)
+  /** 내 칸을 쓴 직후 여는 바통 시트 — then 은 시트를 닫은 뒤 이어 갈 흐름(다음 절·목표 축하·마무리) */
+  const [baton, setBaton] = useState<{ verse: SessionVerse; hasNext: boolean; then: () => void } | null>(null)
+  const batonAutoShown = useRef(false)
+  /** 이번에 마지막으로 다 쓴 절 — '바통' 버튼으로 나중에 넘길 때 쓴다 */
+  const [lastWritten, setLastWritten] = useState<SessionVerse | null>(null)
   // 오늘 목표 달성 모먼트 — 세션을 열 때 이미 채웠으면 띄우지 않고, 넘는 순간 한 번만
   const goal = stats?.daily_goal ?? 3
   const startTodayRef = useRef<number | null>(null)
@@ -124,10 +173,35 @@ const TypingSession = () => {
     return idx < 0 ? 0 : idx
   }, [verses, typedIds, startVerse, loggedIn])
   const current = active ?? defaultIdx
+  const memberName = (uid: number) => room?.members.find((m) => m.user_id === uid)?.name ?? '친구'
+  const live = useTypingRelayRoom(roomId, current !== null ? (verses[current]?.verse ?? null) : null, {
+    onCheer: (ev) => {
+      const id = ++cheerSeq.current
+      setCheers((prev) => [
+        ...prev.slice(-3),
+        { id, text: `${ev.name} · ${CHEER_LABEL[ev.kind]}`, hue: hueOf.get(ev.from_user_id) ?? 0 },
+      ])
+      setTimeout(() => setCheers((prev) => prev.filter((c) => c.id !== id)), 2200)
+    },
+    onFill: (ev) => {
+      const label = room?.verses.find((v) => v.id === ev.verse_id)?.label
+      if (ev.baton_to) {
+        const me = room?.members.find((m) => m.is_me)?.user_id
+        showFlash(
+          ev.baton_to === me
+            ? `${memberName(ev.by)}님이 내게 바통을 넘겼어요`
+            : `${memberName(ev.by)}님이 ${memberName(ev.baton_to)}님에게 바통을 넘겼어요`,
+        )
+      } else if (label) {
+        showFlash(`${memberName(ev.by)}님이 방금 ${label}절을 채웠어요`)
+      }
+    },
+  })
 
   useEffect(
     () => () => {
       if (advanceTimer.current) clearTimeout(advanceTimer.current)
+      if (flashTimer.current) clearTimeout(flashTimer.current)
     },
     [],
   )
@@ -266,31 +340,72 @@ const TypingSession = () => {
     })
     const idx = verses.findIndex((v) => v.id === sv.id)
     const ni = wasComplete ? (idx < verses.length - 1 ? idx + 1 : null) : nextIndex(idx, newDone)
+    setLastWritten(sv)
+    const proceed = () => {
+      if (reachedGoal) {
+        setGoalMoment({ next: ni })
+        confetti({
+          particleCount: 60,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ['#ffb547', '#ffe08a', '#3182f6', '#93c5fd'],
+        })
+        return
+      }
+      if (ni === null) {
+        setShowSummary(true)
+        confetti({
+          particleCount: 90,
+          spread: 75,
+          origin: { y: 0.7 },
+          colors: ['#3182f6', '#60a5fa', '#38bdf8', '#93c5fd'],
+        })
+      } else {
+        goTo(ni)
+      }
+    }
     advanceTimer.current = setTimeout(
       () => {
-        if (reachedGoal) {
-          setGoalMoment({ next: ni })
-          confetti({
-            particleCount: 60,
-            spread: 60,
-            origin: { y: 0.6 },
-            colors: ['#ffb547', '#ffe08a', '#3182f6', '#93c5fd'],
-          })
+        // 릴레이 방에서는 처음 쓴 칸(그리고 장의 마지막 칸)에 바통 시트를 연다 — 매 절마다 막지는 않는다
+        if (roomId && loggedIn && (!batonAutoShown.current || ni === null)) {
+          batonAutoShown.current = true
+          setBaton({ verse: sv, hasNext: ni !== null, then: proceed })
           return
         }
-        if (ni === null) {
-          setShowSummary(true)
-          confetti({
-            particleCount: 90,
-            spread: 75,
-            origin: { y: 0.7 },
-            colors: ['#3182f6', '#60a5fa', '#38bdf8', '#93c5fd'],
-          })
-        } else {
-          goTo(ni)
-        }
+        proceed()
       },
       next.personalBest ? 1400 : 900,
+    )
+  }
+
+  const onCheer = (to: { user_id: number; name: string }, kind: TypingCheerKind) => {
+    if (!roomId) return
+    sendCheer.mutate(
+      { id: roomId, to_user_id: to.user_id, kind },
+      {
+        onSuccess: () => showFlash(`${to.name}님에게 “${CHEER_LABEL[kind]}” 응원을 보냈어요`),
+        onError: (e) => showToast(e instanceof Error ? e.message : '응원을 보내지 못했어요', 'error'),
+      },
+    )
+  }
+
+  const closeBaton = () => {
+    const then = baton?.then
+    setBaton(null)
+    then?.()
+  }
+
+  const onPassBaton = (toUserId: number | null, message: string | null) => {
+    if (!baton || !roomId) return
+    passBaton.mutate(
+      { id: roomId, verse_id: baton.verse.id, to_user_id: toUserId, message },
+      {
+        onSuccess: () => {
+          showFlash(toUserId ? `바통이 ${memberName(toUserId)}님에게 넘어갔어요` : '한마디를 남겼어요')
+          closeBaton()
+        },
+        onError: (e) => showToast(e instanceof Error ? e.message : '바통을 넘기지 못했어요', 'error'),
+      },
     )
   }
 
@@ -327,12 +442,19 @@ const TypingSession = () => {
     current,
     outcome,
     showSummary,
-    goalOpen: goalMoment !== null,
+    goalOpen: goalMoment !== null || baton !== null,
     count: verses.length,
     goTo,
   })
   useEffect(() => {
-    keyState.current = { current, outcome, showSummary, goalOpen: goalMoment !== null, count: verses.length, goTo }
+    keyState.current = {
+      current,
+      outcome,
+      showSummary,
+      goalOpen: goalMoment !== null || baton !== null,
+      count: verses.length,
+      goTo,
+    }
   })
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -383,21 +505,80 @@ const TypingSession = () => {
     })
   }
 
-  const modeLabel = mode === 'memorize' ? '암송 쓰기' : '따라 쓰기'
+  const modeLabel = room ? `릴레이 · ${room.title}` : mode === 'memorize' ? '암송 쓰기' : '따라 쓰기'
+
+  // 릴레이 소식 띠 — 방금 일어난 일 > 내게 온 바통 > 지금 쓰는 친구 > 혼자일 때 안내
+  const ticker = (() => {
+    if (!room) return ''
+    if (flash) return flash
+    if (room.baton)
+      return `${room.baton.name}님이 내게 바통을 넘겼어요${room.baton.message ? ` · “${room.baton.message}”` : ''}`
+    if (live.length) {
+      const first = live[0]
+      const label = room.verses.find((v) => v.verse === first.verse)?.label ?? first.verse
+      return `${memberName(first.user_id)}님이 지금 ${label}절을 쓰고 있어요${live.length > 1 ? ` 외 ${live.length - 1}명` : ''}`
+    }
+    if (room.completed) return '함께 이 장을 다 채웠어요!'
+    return room.members.length > 1 ? '친구 얼굴을 누르면 응원을 보낼 수 있어요' : '아직 나 혼자예요 · 함께 쓸 친구를 불러 봐요'
+  })()
+  const goToVerse = (verseNo: number) => {
+    const i = verses.findIndex((v) => v.verse === verseNo)
+    if (i >= 0) goTo(i)
+  }
+  const myId = room?.members.find((m) => m.is_me)?.user_id
 
   const renderActive = (v: SessionVerse, i: number) => {
     const isDone = done.has(v.id)
     return (
-      <div ref={activeRef} className={`bt-card bt-active${outcome?.status === 'passed' ? ' is-sealed' : ''}`}>
+      <div
+        ref={activeRef}
+        className={`bt-card bt-active${outcome?.status === 'passed' ? ' is-sealed' : ''}${room ? ' bt-active--room' : ''}`}
+      >
         {outcome?.status === 'passed' && (
           <span className="bt-seal" aria-hidden>
             새김
           </span>
         )}
+        {room && (
+          <RelayLine
+            relay={room}
+            live={live}
+            hueOf={hueOf}
+            ticker={ticker}
+            canPass={lastWritten !== null && baton === null}
+            onCheer={onCheer}
+            onPass={() => lastWritten && setBaton({ verse: lastWritten, hasNext: true, then: () => undefined })}
+          />
+        )}
+        {room && <RelayPrevNote relay={room} verse={v.verse} hueOf={hueOf} />}
         <div className="bt-card__label">
-          <span className="bt-verse-no">{v.label}절</span>
-          {isDone && outcome?.status !== 'passed' && <span className="bt-badge">이미 쓴 절</span>}
+          {room ? (
+            (() => {
+              const slot = room.verses.find((rv) => rv.id === v.id)
+              if (!slot?.by) return <span className="bt-verse-no bt-room-turn">내 차례 · {v.label}절</span>
+              return (
+                <>
+                  <span className="bt-verse-no">{v.label}절</span>
+                  <span className="bt-badge">{slot.by.user_id === myId ? '내가 채운 칸' : `${slot.by.name}님이 채운 칸`}</span>
+                </>
+              )
+            })()
+          ) : (
+            <>
+              <span className="bt-verse-no">{v.label}절</span>
+              {isDone && outcome?.status !== 'passed' && <span className="bt-badge">이미 쓴 절</span>}
+            </>
+          )}
         </div>
+        {cheers.length > 0 && (
+          <div className="bt-room-floats" aria-live="polite">
+            {cheers.map((c) => (
+              <span key={c.id} className={`bt-room-float bt-hue-${c.hue}`}>
+                {c.text}
+              </span>
+            ))}
+          </div>
+        )}
         <TypingPad
           key={`${v.id}-${attempt}-${ignorePunct ? 1 : 0}`}
           text={v.text}
@@ -499,6 +680,10 @@ const TypingSession = () => {
             </div>
           )}
 
+          {room && !isDesk && (
+            <RelayBoard relay={room} live={live} hueOf={hueOf} currentVerse={curVerse?.verse ?? null} onPick={goToVerse} />
+          )}
+
           {!loggedIn && (
             <p className="bt-note">
               지금은 연습으로만 쓸 수 있어요. <Link to="/login">로그인</Link>
@@ -575,6 +760,9 @@ const TypingSession = () => {
               </section>
 
               <aside className="bt-desk__side" aria-label="장 진행">
+                {room && (
+                  <RelayBoard relay={room} live={live} hueOf={hueOf} currentVerse={curVerse.verse} onPick={goToVerse} />
+                )}
                 <div className="bt-card bt-ringcard">
                   <div className="bt-ring" role="img" aria-label={`${verses.length}절 중 ${doneCount}절 필사`}>
                     <svg viewBox="0 0 100 100" aria-hidden>
@@ -672,6 +860,19 @@ const TypingSession = () => {
           )}
         </main>
       </div>
+
+      {baton && room && (
+        <BatonSheet
+          relay={room}
+          verseLabel={baton.verse.label}
+          liveIds={new Set(live.map((l) => l.user_id))}
+          hueOf={hueOf}
+          hasNext={baton.hasNext}
+          sending={passBaton.isPending}
+          onPass={onPassBaton}
+          onClose={closeBaton}
+        />
+      )}
 
       {goalMoment && (
         <div className="bt-summary" role="dialog" aria-modal="true" aria-labelledby="bt-goal-title">

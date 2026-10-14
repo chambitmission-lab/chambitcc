@@ -40,8 +40,9 @@ export const useTypingMode = (): [TypingMode, (v: TypingMode) => void] => {
   return [value, set]
 }
 
-export const sessionPath = (bookNumber: number, chapter: number, mode: TypingMode, verse?: number) =>
-  `/bible/typing/${bookNumber}/${chapter}?mode=${mode}${verse ? `&v=${verse}` : ''}`
+/** relayId 를 넘기면 따라쓰기 화면이 그 릴레이 방이 된다(친구·칸·바통) */
+export const sessionPath = (bookNumber: number, chapter: number, mode: TypingMode, verse?: number, relayId?: number) =>
+  `/bible/typing/${bookNumber}/${chapter}?mode=${mode}${verse ? `&v=${verse}` : ''}${relayId ? `&relay=${relayId}` : ''}`
 
 export const formatDuration = (ms: number): string => {
   const s = Math.max(0, Math.round(ms / 100) / 10)

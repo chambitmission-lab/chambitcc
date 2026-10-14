@@ -7,12 +7,9 @@ import { safeStorage } from '../../../utils/safeStorage'
 import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
 import { sessionPath, useTypingMode } from './typingPrefs'
-import { shareRelayInvite } from './relayShare'
+import { relayHueMap, shareRelayInvite } from './relayShare'
 import Faces from './home/Faces'
 import './typing.css'
-
-// 멤버별 칸 색 — 들어온 순서대로 돌려 쓴다
-const HUES = 6
 
 /**
  * 릴레이 필사 상세 — 한 장의 칸들이 누구 손으로 채워졌는지.
@@ -31,11 +28,7 @@ const TypingRelay = () => {
   const [mode] = useTypingMode()
   const isNew = search.get('new') === '1'
 
-  const hueOf = useMemo(() => {
-    const m = new Map<number, number>()
-    relay?.members.forEach((mem, i) => m.set(mem.user_id, i % HUES))
-    return m
-  }, [relay])
+  const hueOf = useMemo(() => relayHueMap(relay?.members), [relay])
 
   // 완성 축하는 이 기기에서 한 번만
   useEffect(() => {
@@ -139,7 +132,7 @@ const TypingRelay = () => {
                         role="listitem"
                         className={`bt-relay__cell${v.by ? ` is-filled bt-hue-${hue}` : ''}`}
                         title={v.by ? `${v.label}절 · ${v.by.name}` : `${v.label}절 · 빈칸`}
-                        onClick={() => navigate(sessionPath(relay.book_number, relay.chapter, mode, v.verse))}
+                        onClick={() => navigate(sessionPath(relay.book_number, relay.chapter, mode, v.verse, relay.id))}
                       >
                         <span className="bt-relay__no">{v.label}</span>
                         {v.by && <span className="bt-relay__who">{v.by.name.slice(0, 1)}</span>}
@@ -153,7 +146,7 @@ const TypingRelay = () => {
                     <button
                       type="button"
                       className="bt-btn bt-btn--primary bt-btn--block"
-                      onClick={() => navigate(sessionPath(relay.book_number, relay.chapter, mode, relay.next_verse ?? undefined))}
+                      onClick={() => navigate(sessionPath(relay.book_number, relay.chapter, mode, relay.next_verse ?? undefined, relay.id))}
                     >
                       빈칸 채우러 가기 · {relay.next_verse}절부터
                     </button>

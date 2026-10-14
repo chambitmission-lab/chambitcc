@@ -131,10 +131,28 @@ export interface TypingRelayDetail {
     is_me: boolean
     is_owner: boolean
   }[]
-  verses: { id: number; verse: number; label: string; by: { user_id: number; name: string } | null }[]
+  verses: {
+    id: number
+    verse: number
+    label: string
+    by: { user_id: number; name: string } | null
+    /** 이 칸을 쓰고 남긴 한마디(가장 최근 것) */
+    note: { user_id: number; name: string; message: string } | null
+  }[]
   /** 아직 아무도 안 쓴 첫 절 — 다 채웠으면 null */
   next_verse: number | null
+  /** 지금 이 방에서 쓰고 있는 다른 멤버와 그 절 */
+  live: TypingRelayLive[]
+  /** 내게 넘어온 바통 — 이어받으면(이 장을 한 절 쓰면) 사라진다 */
+  baton: { from_user_id: number; name: string; message: string | null; verse: number | null; label: string | null } | null
 }
+
+export interface TypingRelayLive {
+  user_id: number
+  verse: number
+}
+
+export type TypingCheerKind = 'pray' | 'cheer' | 'amen'
 
 export interface TypingWeeklyItem {
   rank: number
@@ -308,5 +326,39 @@ export const leaveTypingRelay = async (id: number): Promise<void> => {
     method: 'DELETE',
     auth: 'required',
     errorMessage: '릴레이에서 나가지 못했어요',
+  })
+}
+
+/** 지금 쓰는 절 하트비트(null = 화면을 떠남) — 나를 뺀 지금 접속한 멤버를 돌려준다 */
+export const sendTypingRelayPresence = async (id: number, verse: number | null): Promise<TypingRelayLive[]> => {
+  const res = await request<Envelope<{ live: TypingRelayLive[] }>>(`/bible-typing/relays/${id}/presence`, {
+    method: 'POST',
+    auth: 'required',
+    json: { verse },
+    errorMessage: '접속 표시를 보내지 못했어요',
+  })
+  return res.data.live
+}
+
+export const sendTypingRelayCheer = async (input: { id: number; to_user_id: number; kind: TypingCheerKind }): Promise<void> => {
+  await request<Envelope<null>>(`/bible-typing/relays/${input.id}/cheer`, {
+    method: 'POST',
+    auth: 'required',
+    json: { to_user_id: input.to_user_id, kind: input.kind },
+    errorMessage: '응원을 보내지 못했어요',
+  })
+}
+
+export const passTypingRelayBaton = async (input: {
+  id: number
+  verse_id: number
+  to_user_id: number | null
+  message: string | null
+}): Promise<void> => {
+  await request<Envelope<null>>(`/bible-typing/relays/${input.id}/baton`, {
+    method: 'POST',
+    auth: 'required',
+    json: { verse_id: input.verse_id, to_user_id: input.to_user_id, message: input.message },
+    errorMessage: '바통을 넘기지 못했어요',
   })
 }

@@ -49,6 +49,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['genealogy-trail', () => import('../pages/dev/GenealogyTrailPreview')],
       // 전역 "불러오는 중" 말풍선(요청 큐 구독) — 문구 목록·바닥 자리
       ['loading-verse', () => import('../pages/dev/LoadingVersePreview')],
+      // 따라쓰기 릴레이 방 — 칸 판·소식 띠·응원·바통 시트(표본 방)
+      ['typing-relay', () => import('../pages/dev/TypingRelayRoomPreview')],
     ]
   : []
 

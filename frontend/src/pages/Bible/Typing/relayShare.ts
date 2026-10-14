@@ -24,3 +24,13 @@ export const shareRelayInvite = async (relay: { title: string; book_name: string
     showToast('복사에 실패했어요. 링크를 직접 알려주세요: ' + url, 'error')
   }
 }
+
+// 멤버별 칸 색 — 들어온 순서대로 돌려 쓴다(릴레이 상세·따라쓰기 방이 같은 색을 쓴다)
+export const RELAY_HUES = 6
+export const relayHueMap = (members: { user_id: number }[] | undefined): Map<number, number> => {
+  const m = new Map<number, number>()
+  members?.forEach((mem, i) => m.set(mem.user_id, i % RELAY_HUES))
+  return m
+}
+
+export const CHEER_LABEL = { pray: '함께 기도해요', cheer: '힘내요!', amen: '아멘' } as const

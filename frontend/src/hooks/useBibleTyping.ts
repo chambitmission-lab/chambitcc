@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createTypingRelay,
@@ -14,11 +14,16 @@ import {
   getTypingWeekly,
   joinTypingRelay,
   leaveTypingRelay,
+  passTypingRelayBaton,
   previewTypingRelay,
+  sendTypingRelayCheer,
+  sendTypingRelayPresence,
   submitTypingRecord,
   updateTypingGoal,
+  type TypingCheerKind,
   type TypingHomeBundle,
   type TypingRecordInput,
+  type TypingRelayLive,
   type TypingStats,
 } from '../api/bibleTyping'
 import { getBibleVerse } from '../api/bible'
@@ -204,6 +209,8 @@ export const useTypingRelay = (id: number) =>
     queryFn: () => getTypingRelay(id),
     enabled: loggedIn() && id > 0,
     staleTime: 1000 * 15,
+    // 전역 refetchOnMount:false 라 복원된 옛 칸·바통이 그대로 남는다 — 방에 들어올 때마다 새로 받는다
+    refetchOnMount: 'always',
     retry: false,
   })
 
@@ -214,6 +221,8 @@ interface TypingRelayEvent {
   chapter: number
   verse_id: number
   by: number
+  /** 바통을 넘긴 경우 받은 사람 */
+  baton_to?: number | null
 }
 
 /**
@@ -252,6 +261,120 @@ export const useTypingRelayLive = (relayId?: number) => {
       offConnected()
     }
   }, [qc, relayId])
+}
+
+interface TypingCheerEvent {
+  relay_id: number
+  from_user_id: number
+  name: string
+  kind: TypingCheerKind
+}
+
+// 하트비트 간격 — 서버는 70초 끊기면 떠난 것으로 본다
+const PRESENCE_BEAT_MS = 25_000
+
+/**
+ * 따라쓰기 화면 = 릴레이 방. 내가 쓰는 절을 알리고(하트비트), 다른 멤버가 쓰는 절·응원·칸 채움을 받는다.
+ *
+ * 접속 현황은 '지금'의 신호라 쿼리 캐시(persist)에 두지 않고 이 훅의 상태로만 든다 —
+ * 복원된 지난 세션의 친구가 유령처럼 떠 있지 않게. 화면을 가리면 떠남으로 알리고, 돌아오면 다시 알린다.
+ *
+ * @param relayId 0 이면 아무것도 하지 않는다(릴레이 없이 혼자 쓰는 중)
+ * @param verse 지금 쓰는 절 번호(아직 모르면 null)
+ */
+export const useTypingRelayRoom = (
+  relayId: number,
+  verse: number | null,
+  handlers: {
+    onCheer?: (ev: TypingCheerEvent) => void
+    onFill?: (ev: TypingRelayEvent) => void
+  } = {},
+) => {
+  const [live, setLive] = useState<TypingRelayLive[]>([])
+  const handlersRef = useRef(handlers)
+  useEffect(() => {
+    handlersRef.current = handlers
+  })
+  const verseRef = useRef(verse)
+  useEffect(() => {
+    verseRef.current = verse
+  })
+
+  // 내가 쓰는 절 알리기 — 절이 바뀔 때 + 주기적으로, 화면을 가리면 떠남
+  useEffect(() => {
+    if (!loggedIn() || !relayId || verse === null) return
+    let alive = true
+    const beat = (v: number | null) =>
+      sendTypingRelayPresence(relayId, v)
+        .then((rows) => {
+          if (alive && v !== null) setLive(rows)
+        })
+        .catch(() => undefined)
+    void beat(verse)
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void beat(verseRef.current)
+    }, PRESENCE_BEAT_MS)
+    const onVis = () => void beat(document.visibilityState === 'visible' ? verseRef.current : null)
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      alive = false
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [relayId, verse])
+  // 방을 떠날 때 한 번만 '떠남' — 절이 바뀔 때마다 떠났다 들어오면 친구 화면이 깜빡인다
+  useEffect(() => {
+    if (!loggedIn() || !relayId) return
+    return () => {
+      void sendTypingRelayPresence(relayId, null).catch(() => undefined)
+    }
+  }, [relayId])
+
+  useEffect(() => {
+    if (!loggedIn() || !relayId) return
+    const parse = <T,>(raw: string): T | null => {
+      try {
+        return JSON.parse(raw) as T
+      } catch {
+        return null
+      }
+    }
+    const offLive = notificationStream.on('typing_relay_live', (raw) => {
+      const ev = parse<{ relay_id: number; user_id: number; verse: number | null }>(raw)
+      if (!ev || ev.relay_id !== relayId) return
+      setLive((prev) => {
+        const rest = prev.filter((r) => r.user_id !== ev.user_id)
+        return ev.verse === null ? rest : [...rest, { user_id: ev.user_id, verse: ev.verse }]
+      })
+    })
+    const offCheer = notificationStream.on('typing_relay_cheer', (raw) => {
+      const ev = parse<TypingCheerEvent>(raw)
+      if (ev && ev.relay_id === relayId) handlersRef.current.onCheer?.(ev)
+    })
+    const offFill = notificationStream.on('typing_relay', (raw) => {
+      const ev = parse<TypingRelayEvent>(raw)
+      if (ev && ev.relay_id === relayId) handlersRef.current.onFill?.(ev)
+    })
+    return () => {
+      offLive()
+      offCheer()
+      offFill()
+    }
+  }, [relayId])
+
+  return live
+}
+
+export const useSendTypingCheer = () => useMutation({ mutationFn: sendTypingRelayCheer })
+
+export const usePassTypingBaton = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: passTypingRelayBaton,
+    onSuccess: (_, input) => {
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.relay(input.id) })
+    },
+  })
 }
 
 export const useTypingRelayInvite = (code: string) =>
