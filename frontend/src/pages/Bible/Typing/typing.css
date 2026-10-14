@@ -2249,6 +2249,84 @@
   font-size: 12px;
   color: var(--text-muted);
 }
+.bt-relays__meta--alone {
+  color: var(--brand);
+  font-weight: 600;
+}
+/* 진행 중 더 보기 · 완성한 릴레이 접기 */
+.bt-relays__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  margin: -4px 0 8px;
+  padding: 6px;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.bt-relays__toggle .material-icons-round,
+.bt-relays__done-head .material-icons-round {
+  font-size: 20px;
+  transition: transform 0.2s ease;
+}
+.bt-relays .material-icons-round.is-up {
+  transform: rotate(180deg);
+}
+.bt-relays__done {
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+}
+.bt-relays__done-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  text-align: left;
+}
+.bt-relays__trophy.material-icons-round {
+  color: var(--bt-oil);
+}
+.bt-relays__done-label {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.bt-relays__done-label b {
+  margin-left: 2px;
+  color: var(--bt-oil);
+  font-variant-numeric: tabular-nums;
+}
+.bt-relays__done-list {
+  padding: 0 12px 6px;
+}
+.bt-relays__done-list li + li {
+  border-top: 1px solid var(--card-border);
+}
+.bt-relays__done-list a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 0;
+}
+.bt-relays__done-list .bt-relays__name {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.bt-relays__done-meta {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
 .bt-relays__empty {
   margin: 2px 2px 10px;
   font-size: 13px;

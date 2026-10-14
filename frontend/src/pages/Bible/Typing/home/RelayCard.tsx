@@ -110,9 +110,50 @@ const RelayCreateSheet = ({ onClose }: { onClose: () => void }) => {
   )
 }
 
-/** 릴레이 필사 — 내가 참여한 방 목록 + 만들기. 목록은 허브 묶음(useTypingHome)에서 받아 내려온다 */
+// 진행 중 릴레이를 처음에 보여 줄 개수 — 나머지는 '더 보기'로 펼친다
+const OPEN_SHOWN = 3
+
+const OpenRelayItem = ({ r }: { r: TypingRelaySummary }) => {
+  const alone = r.members <= 1
+  return (
+    <li>
+      <Link to={`/bible/typing/relay/${r.id}`} className="bt-relays__item">
+        <span className="bt-relays__top">
+          <span className="bt-relays__name">{r.title}</span>
+          <span className="bt-relays__count">
+            {r.done}/{r.total}
+          </span>
+        </span>
+        <span className="bt-relays__bar" aria-hidden>
+          <span style={{ width: `${r.total ? (r.done / r.total) * 100 : 0}%` }} />
+        </span>
+        {alone ? (
+          <span className="bt-relays__meta bt-relays__meta--alone">아직 혼자예요 · 친구를 불러 보세요</span>
+        ) : (
+          <span className="bt-relays__meta">
+            {r.members}명 함께 · 내가 {r.my_verses}절
+          </span>
+        )}
+      </Link>
+    </li>
+  )
+}
+
+/**
+ * 릴레이 필사 — 내가 참여한 방 목록 + 만들기. 목록은 허브 묶음(useTypingHome)에서 받아 내려온다.
+ * 방이 쌓여도 허브가 길어지지 않게: 진행 중은 몇 개만(함께 쓰는 방 먼저), 완성한 방은 한 줄로 접어 둔다.
+ */
 const RelayCard = ({ relays }: { relays?: TypingRelaySummary[] }) => {
   const [creating, setCreating] = useState(false)
+  const [showAllOpen, setShowAllOpen] = useState(false)
+  const [showDone, setShowDone] = useState(false)
+  // 서버 순서(최근 만든 순)는 지키되, 친구와 함께 쓰는 방을 혼자인 방보다 위로
+  const open = useMemo(
+    () => (relays ?? []).filter((r) => !r.completed).sort((a, b) => Number(b.members > 1) - Number(a.members > 1)),
+    [relays],
+  )
+  const done = useMemo(() => (relays ?? []).filter((r) => r.completed), [relays])
+  const shownOpen = showAllOpen ? open : open.slice(0, OPEN_SHOWN)
 
   return (
     <section className="bt-section" aria-labelledby="bt-relay-title">
@@ -121,30 +162,62 @@ const RelayCard = ({ relays }: { relays?: TypingRelaySummary[] }) => {
       </h2>
       <div className="bt-card bt-relays">
         {relays && relays.length > 0 ? (
-          <ul className="bt-relays__list">
-            {relays.map((r) => (
-              <li key={r.id}>
-                <Link to={`/bible/typing/relay/${r.id}`} className={`bt-relays__item${r.completed ? ' is-done' : ''}`}>
-                  <span className="bt-relays__top">
-                    <span className="bt-relays__name">{r.title}</span>
-                    {r.completed ? (
-                      <span className="bt-badge bt-badge--best">완성</span>
-                    ) : (
-                      <span className="bt-relays__count">
-                        {r.done}/{r.total}
-                      </span>
-                    )}
+          <>
+            {open.length > 0 && (
+              <ul className="bt-relays__list">
+                {shownOpen.map((r) => (
+                  <OpenRelayItem key={r.id} r={r} />
+                ))}
+              </ul>
+            )}
+            {open.length > OPEN_SHOWN && (
+              <button
+                type="button"
+                className="bt-relays__toggle"
+                aria-expanded={showAllOpen}
+                onClick={() => setShowAllOpen(!showAllOpen)}
+              >
+                {showAllOpen ? '접기' : `진행 중 ${open.length - OPEN_SHOWN}개 더 보기`}
+                <span className={`material-icons-round${showAllOpen ? ' is-up' : ''}`} aria-hidden>
+                  expand_more
+                </span>
+              </button>
+            )}
+            {done.length > 0 && (
+              <div className="bt-relays__done">
+                <button
+                  type="button"
+                  className="bt-relays__done-head"
+                  aria-expanded={showDone}
+                  onClick={() => setShowDone(!showDone)}
+                >
+                  <span className="material-icons-round bt-relays__trophy" aria-hidden>
+                    emoji_events
                   </span>
-                  <span className="bt-relays__bar" aria-hidden>
-                    <span style={{ width: `${r.total ? (r.done / r.total) * 100 : 0}%` }} />
+                  <span className="bt-relays__done-label">
+                    완성한 릴레이 <b>{done.length}</b>
                   </span>
-                  <span className="bt-relays__meta">
-                    {r.members}명 함께 · 내가 {r.my_verses}절
+                  <span className={`material-icons-round${showDone ? ' is-up' : ''}`} aria-hidden>
+                    expand_more
                   </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                </button>
+                {showDone && (
+                  <ul className="bt-relays__done-list">
+                    {done.map((r) => (
+                      <li key={r.id}>
+                        <Link to={`/bible/typing/relay/${r.id}`}>
+                          <span className="bt-relays__name">{r.title}</span>
+                          <span className="bt-relays__done-meta">
+                            {r.members}명 · 내가 {r.my_verses}절
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </>
         ) : (
           <p className="bt-relays__empty">소그룹·가족과 한 장을 나눠 써 보세요. 다 채우면 함께 완성을 축하해요.</p>
         )}

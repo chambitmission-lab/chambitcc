@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { TypingRelayDetail, TypingRelayLive } from '../../api/bibleTyping'
 import TypingPad from '../Bible/Typing/TypingPad'
+import RelayCard from '../Bible/Typing/home/RelayCard'
 import { BatonSheet, RelayBoard, RelayHandoff, RelayLine, RelayPrevNote } from '../Bible/Typing/RelayRoom'
 import { CHEER_LABEL, relayHueMap } from '../Bible/Typing/relayShare'
 import '../Bible/Typing/typing.css'
@@ -48,6 +49,28 @@ const makeRelay = (mine: boolean, passed: boolean): TypingRelayDetail => ({
     : { user_id: 1, name: '나', from_user_id: 2, from_name: '지민', message: '다음 절 부탁해요', verse: 3, label: '3' },
   baton: passed ? null : { from_user_id: 2, name: '지민', message: '다음 절 부탁해요', verse: 3, label: '3' },
 })
+
+// 허브 릴레이 카드 — 쌓였을 때 접힘(진행 중 3개 + 더 보기, 완성은 한 줄)
+const HUB_RELAYS = [
+  ['느헤미야 1장 릴레이', 0, 11, 1, 0, false],
+  ['시편 84장 릴레이', 0, 12, 1, 0, false],
+  ['로마서 8장 릴레이', 7, 39, 3, 2, false],
+  ['마태복음 5장 릴레이', 0, 48, 1, 0, false],
+  ['청년부 새벽 릴레이', 4, 10, 4, 1, false],
+  ['고린도전서 13장 릴레이', 13, 13, 3, 6, true],
+  ['시편 23장 릴레이', 6, 6, 2, 4, true],
+].map(([title, done, total, members, mine, completed], i) => ({
+  id: i + 1,
+  title: title as string,
+  book_number: 1,
+  book_name: '',
+  chapter: 1,
+  done: done as number,
+  total: total as number,
+  members: members as number,
+  my_verses: mine as number,
+  completed: completed as boolean,
+}))
 
 const TEXT = '여호와의 산에 오를 자가 누구며 그의 거룩한 곳에 설 자가 누구인가'
 
@@ -151,6 +174,9 @@ const TypingRelayRoomPreview = () => {
             }}
           />
           )}
+        </div>
+        <div className="mt-6">
+          <RelayCard relays={HUB_RELAYS} />
         </div>
       </main>
       {sheet && (
