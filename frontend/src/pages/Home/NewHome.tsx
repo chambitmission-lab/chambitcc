@@ -55,6 +55,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
 import { preloadNavRoutes, preloadRoute, isRoutePreloaded } from '../../utils/routePreload'
+import { warmPair, PRAYER_WEEK_WINDOW } from '../../utils/themeAssets'
 import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { prayerToastFeedback } from '../../components/prayer/prayerFeedback'
@@ -171,6 +172,11 @@ const NewHome = () => {
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
   }, [railQuery])
+  // 레일 맨 위 '이번주 기도' 카드의 창가 삽화 — 레일 청크와 나란히 받는다. 위젯이 마운트돼서야
+  // 요청하면 청크 왕복만큼 늦게 떠서 하늘색 빈 칸이 먼저 보인다. 반대 테마는 warmPair 가 유휴 시간에.
+  useEffect(() => {
+    if (railWide) void warmPair(PRAYER_WEEK_WINDOW)
+  }, [railWide])
 
   // 기도 작성·상세·감사 시트 청크 선로드 — 첫 화면이 그려진 뒤 한가할 때 받아 두어 첫 탭이 즉시 열리게 한다.
   // 감사 시트는 FAB 다이얼·티커가 공유. preload 가 끝난 lazyModal 은 Suspense 없이 곧장 그린다
