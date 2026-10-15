@@ -594,3 +594,21 @@
 .bt-pad .bt-refocus {
   pointer-events: none;
 }
+
+/* 새김 도장은 절 번호 줄 오른쪽 끝에 — 줄 높이는 그대로 두고 도장만 살짝 걸쳐 둔다 */
+.bt-card__label {
+  position: relative;
+  min-height: 24px;
+}
+.bt-card__label .bt-seal {
+  top: 50%;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  font-size: 12px;
+}
+/* 바통을 넘긴 뒤 숨긴 절 번호 줄 — display:flex 가 hidden 속성을 이기던 것 */
+.bt-card__label[hidden] {
+  display: none;
+}

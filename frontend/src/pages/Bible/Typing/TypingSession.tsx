@@ -806,11 +806,6 @@ const TypingSessionView = () => {
         ref={activeRef}
         className={`bt-card bt-active${outcome?.status === 'passed' ? ' is-sealed' : ''}${room ? ' bt-active--room' : ''}`}
       >
-        {outcome?.status === 'passed' && (
-          <span className="bt-seal" aria-hidden>
-            새김
-          </span>
-        )}
         {room && !isDesk && (
           <RelayLine
             relay={room}
@@ -875,6 +870,12 @@ const TypingSessionView = () => {
               <span className="bt-verse-no">{v.label}절</span>
               {isDone && outcome?.status !== 'passed' && <span className="bt-badge">이미 쓴 절</span>}
             </>
+          )}
+          {/* 새김 도장 — 카드 모서리가 아니라 절 번호 줄에 붙인다(위에 함께 쓰는 줄이 와도 겹치지 않게) */}
+          {outcome?.status === 'passed' && (
+            <span className="bt-seal" aria-hidden>
+              새김
+            </span>
           )}
         </div>
         {cheers.length > 0 && (
