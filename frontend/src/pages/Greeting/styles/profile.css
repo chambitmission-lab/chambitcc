@@ -19,6 +19,11 @@
   color: var(--text-strong);
   letter-spacing: -0.01em;
   margin-bottom: 1.25rem;
+  /* 모바일 폭에서 "좋아합니 / 다." 처럼 글자 단위로 갈라져 마지막 줄에 한 글자만 남던 자리.
+     어절 단위로만 넘기고, 가운데 정렬 제목이라 balance 로 두 줄 길이를 고르게 맞춘다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: balance;
 }
 
 .gr-profile-intro {
@@ -26,6 +31,10 @@
   line-height: 1.9;
   color: var(--text-body);
   margin: 0;
+  /* 본문도 "수많 / 은" 처럼 어절 중간에서 끊기지 않게 — 편지 본문·약력과 같은 규칙 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 
 .gr-credentials {
