@@ -595,7 +595,18 @@ export const useSendTogetherCheer = () => useMutation({ mutationFn: sendTypingTo
 // ── 알아두면 좋은 말 — 성도들이 남긴 한 줄 ────────────────────
 
 export const useGlossaryLines = (terms: string[]) => {
+  const qc = useQueryClient()
   const key = [...terms].sort().join(',')
+  // 누가 이 말들에 한 줄을 남기거나 지우면(SSE `typing_glossary_line`) 바로 다시 받는다 — 표제어 기준이라
+  // 다른 장에서 남긴 한 줄도 해당된다. 내 저장은 mutation 이 이미 무효화하므로 한 번 더 받을 뿐 해는 없다
+  useEffect(() => {
+    if (!loggedIn() || !key) return
+    const watching = new Set(key.split(','))
+    return notificationStream.on('typing_glossary_line', (raw) => {
+      const ev = parseJson<{ term: string }>(raw)
+      if (ev && watching.has(ev.term)) void qc.invalidateQueries({ queryKey: bibleTypingKeys.glossaryLines(key) })
+    })
+  }, [key, qc])
   return useQuery({
     queryKey: bibleTypingKeys.glossaryLines(key),
     queryFn: () => getGlossaryLines(terms),
