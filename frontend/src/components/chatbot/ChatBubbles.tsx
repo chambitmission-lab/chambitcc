@@ -131,10 +131,11 @@ export const BotBubble = ({
   reply: ChatReply
   onAction: (a: ChatAction) => void
 }) => (
-  <div className="flex items-start gap-2.5 max-w-[94%]">
+  // 담임목사 카드는 말줄임(nowrap) 줄이 있어 내용 폭에 맞추면 말풍선이 화면 밖으로 밀린다 — 폭을 고정한다
+  <div className={`flex items-start gap-2.5 max-w-[94%] ${reply.pastor ? 'w-full' : ''}`}>
     <BotAvatar src={avatarFor(reply.expression)} />
-    <div className="flex flex-col items-start gap-2 min-w-0">
-      <div className="cb-msg">
+    <div className={`flex flex-col items-start gap-2 min-w-0 ${reply.pastor ? 'flex-1' : ''}`}>
+      <div className={`cb-msg ${reply.pastor ? 'self-stretch' : ''}`}>
         {/* 담임목사 카드가 오면 글자판(text)은 옛 앱용이라 그리지 않는다 */}
         {reply.pastor ? (
           <ChatPastorCard card={reply.pastor} onAction={onAction} />
