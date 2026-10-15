@@ -4,6 +4,7 @@ import {
   getSoundTheme,
   isAmbientOn,
   pauseAmbient,
+  preloadTypingSound,
   resumeAmbient,
   setAmbient,
   setSoundTheme,
@@ -18,6 +19,7 @@ const SoundMenu = () => {
   const boxRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    preloadTypingSound()
     // 켜 둔 빗소리는 첫 입력 때 다시 튼다(자동 재생 정책) — 떠날 때 끈다
     const kick = () => resumeAmbient()
     document.addEventListener('keydown', kick, { once: true })

@@ -1,8 +1,13 @@
-// 타건음 테마 — 음원 파일 없이 Web Audio 로 합성한다(번들·네트워크 0).
+// 타건음 테마 — 만년필·타자기·키보드는 Web Audio 로 합성하고(번들·네트워크 0),
+// '실제 키보드' 두 가지는 녹음한 짧은 음원(assets/typing-sounds, 합 ~40KB)을 그 테마를 고를 때만 받아 디코딩한다.
 // 설정은 기기별 편의라 localStorage 에 두고, 패드는 이 모듈의 현재 테마만 본다(prop 을 내리지 않는다).
 // 오디오 컨텍스트는 첫 소리 때(=사용자 입력 안에서) 만든다 — 자동 재생 정책 때문.
 
-export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys'
+import clickUrl from '../../../assets/typing-sounds/click.wav'
+import thockDownUrl from '../../../assets/typing-sounds/thock-down.wav'
+import thockUpUrl from '../../../assets/typing-sounds/thock-up.wav'
+
+export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click'
 export type SoundKind = 'key' | 'space' | 'back' | 'done'
 
 export const SOUND_THEMES: { key: SoundTheme; label: string; desc: string }[] = [
@@ -10,6 +15,8 @@ export const SOUND_THEMES: { key: SoundTheme; label: string; desc: string }[] = 
   { key: 'pen', label: '만년필', desc: '종이 위 사각사각' },
   { key: 'typewriter', label: '타자기', desc: '탁탁, 줄 끝엔 종소리' },
   { key: 'keys', label: '기계식 키보드', desc: '낮고 둥근 타건음' },
+  { key: 'real-thock', label: '실제 키보드 · 도각', desc: '녹음한 묵직한 타건음' },
+  { key: 'real-click', label: '실제 키보드 · 찰칵', desc: '녹음한 가볍고 맑은 타건음' },
 ]
 
 const THEME_KEY = 'bt-sound'
@@ -30,7 +37,7 @@ const write = (key: string, value: string) => {
   }
 }
 
-const isTheme = (v: string | null): v is SoundTheme => v === 'pen' || v === 'typewriter' || v === 'keys' || v === 'off'
+const isTheme = (v: string | null): v is SoundTheme => SOUND_THEMES.some((t) => t.key === v)
 
 let theme: SoundTheme = (() => {
   const v = read(THEME_KEY)
@@ -54,7 +61,10 @@ export const setSoundTheme = (t: SoundTheme) => {
   theme = t
   write(THEME_KEY, t)
   emit()
-  if (t !== 'off') playTypingSound('key')
+  if (isRecorded(t)) {
+    // 미리 듣기는 음원이 준비된 뒤에 — 처음 고를 땐 받는 동안 잠깐 비어도 합성음으로 새지 않게
+    void loadSamples(t).then(() => theme === t && playTypingSound('key'))
+  } else if (t !== 'off') playTypingSound('key')
 }
 
 // ── 오디오 ───────────────────────────────────────────
@@ -122,11 +132,82 @@ const tone = (ac: AudioContext, { freq, dur, gain, at = 0, type = 'sine' }: { fr
   o.stop(t + dur + 0.02)
 }
 
+// ── 녹음 음원 ─────────────────────────────────────────
+type RecordedTheme = 'real-thock' | 'real-click'
+const isRecorded = (t: SoundTheme): t is RecordedTheme => t === 'real-thock' || t === 'real-click'
+
+// down = 누를 때, up = 뗄 때(없으면 생략)
+const SAMPLE_URLS: Record<RecordedTheme, { down: string; up?: string }> = {
+  'real-thock': { down: thockDownUrl, up: thockUpUrl },
+  'real-click': { down: clickUrl },
+}
+const samples: Partial<Record<RecordedTheme, { down: AudioBuffer; up?: AudioBuffer }>> = {}
+const loading: Partial<Record<RecordedTheme, Promise<void>>> = {}
+
+const decode = async (ac: AudioContext, url: string) => {
+  const res = await fetch(url)
+  const data = await res.arrayBuffer()
+  // 옛 Safari 는 Promise 형 decodeAudioData 가 없다
+  return new Promise<AudioBuffer>((resolve, reject) => ac.decodeAudioData(data, resolve, reject))
+}
+
+const loadSamples = (t: RecordedTheme): Promise<void> => {
+  const ac = audio()
+  if (!ac) return Promise.resolve()
+  loading[t] ??= (async () => {
+    const urls = SAMPLE_URLS[t]
+    const [down, up] = await Promise.all([decode(ac, urls.down), urls.up ? decode(ac, urls.up) : undefined])
+    samples[t] = { down, up }
+  })().catch(() => {
+    delete loading[t] // 다음 입력 때 다시 시도
+  })
+  return loading[t]!
+}
+
+const playBuffer = (ac: AudioContext, buf: AudioBuffer, { rate, gain, at = 0 }: { rate: number; gain: number; at?: number }) => {
+  const src = ac.createBufferSource()
+  src.buffer = buf
+  src.playbackRate.value = rate
+  const g = ac.createGain()
+  g.gain.value = gain
+  src.connect(g).connect(ac.destination)
+  src.start(ac.currentTime + at)
+}
+
+/** 같은 녹음이 기계처럼 반복되지 않게 음높이·세기를 조금씩 흔든다. 스페이스는 낮고 크게, 지우기는 살짝 높고 작게 */
+const playRecorded = (ac: AudioContext, t: RecordedTheme, kind: SoundKind) => {
+  const s = samples[t]
+  if (!s) {
+    void loadSamples(t)
+    return
+  }
+  const jitter = () => 0.96 + Math.random() * 0.08
+  const base = kind === 'space' ? 0.84 : kind === 'back' ? 1.06 : 1
+  const vol = (kind === 'space' ? 0.95 : kind === 'back' ? 0.6 : 0.8) * (0.85 + Math.random() * 0.15)
+  playBuffer(ac, s.down, { rate: base * jitter(), gain: vol })
+  // 실제 타건처럼 손을 떼는 소리는 조금 뒤에 — 키업 이벤트를 기다리지 않는다(모바일 키보드는 키업 시점이 부정확)
+  if (s.up) playBuffer(ac, s.up, { rate: base * jitter(), gain: vol * 0.75, at: 0.07 + Math.random() * 0.04 })
+}
+
+/** 필사 화면에 들어올 때 — 녹음 테마를 골라 둔 사람은 첫 글자부터 소리가 나도록 미리 받아 둔다 */
+export const preloadTypingSound = () => {
+  if (isRecorded(theme)) void loadSamples(theme)
+}
+
 export const playTypingSound = (kind: SoundKind) => {
   if (theme === 'off') return
   const ac = audio()
   if (!ac) return
   try {
+    if (isRecorded(theme)) {
+      if (kind === 'done') {
+        tone(ac, { freq: 660, dur: 0.35, gain: 0.05 })
+        tone(ac, { freq: 990, dur: 0.45, gain: 0.04, at: 0.08 })
+        return
+      }
+      playRecorded(ac, theme, kind)
+      return
+    }
     if (theme === 'pen') {
       if (kind === 'done') {
         tone(ac, { freq: 880, dur: 0.5, gain: 0.05 })

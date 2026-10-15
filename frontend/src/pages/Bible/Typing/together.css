@@ -464,12 +464,19 @@
 .bt-studyroom.has-pass {
   --relay-art-right: 266px;
 }
-.bt-studyroom::before {
+/* 라이트(::before)·다크(::after) 삽화를 둘 다 늘 깔아 두고 opacity 만 바꾼다.
+   .dark 에서만 다크 그림을 참조하면 첫 테마 전환 때 그제서야 받아·디코딩해 한 박자 늦게 바뀐다 */
+.bt-studyroom::before,
+.bt-studyroom::after {
   content: '';
   position: absolute;
   inset: 0;
   background: var(--relay-art-light) right var(--relay-art-right) center / auto 100% no-repeat;
   pointer-events: none;
+}
+.bt-studyroom::after {
+  background-image: var(--relay-art-dark);
+  opacity: 0;
 }
 .bt-studyroom > * {
   position: relative;
@@ -480,16 +487,21 @@
   background: linear-gradient(135deg, #0f2150, #142a5b 55%, #1f3f80);
 }
 .dark .bt-studyroom::before {
-  background-image: var(--relay-art-dark);
+  opacity: 0;
+}
+.dark .bt-studyroom::after {
+  opacity: 1;
 }
 /* 배너가 좁으면 삽화가 제목 자리까지 밀려온다(제목 끝 ≈ 380px + 삽화 224px + 버튼) */
 @container (max-width: 760px) {
-  .bt-studyroom::before {
+  .bt-studyroom::before,
+  .bt-studyroom::after {
     display: none;
   }
 }
 @container (max-width: 880px) {
-  .bt-studyroom.has-pass::before {
+  .bt-studyroom.has-pass::before,
+  .bt-studyroom.has-pass::after {
     display: none;
   }
 }

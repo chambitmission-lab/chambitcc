@@ -34,6 +34,15 @@ const MemberAvatar = ({ m, hue, live, size = 36 }: { m: Member; hue: number; liv
 // 배너 삽화 — 원고지 위 연필 바통 이어달리기(docs/typing-relay-banner-bg-prompts.md)
 const BANNER_ART = { '--relay-art-light': `url(${artLight})`, '--relay-art-dark': `url(${artDark})` } as CSSProperties
 
+// 가려진 쪽 그림도 미리 디코딩 — 테마 전환 첫 순간에 빈 배너가 비치지 않게
+if (typeof Image !== 'undefined') {
+  for (const src of [artLight, artDark]) {
+    const img = new Image()
+    img.src = src
+    img.decode?.().catch(() => {})
+  }
+}
+
 export const RoomBanner = ({
   relay,
   canPass,
