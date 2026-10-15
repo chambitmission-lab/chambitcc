@@ -10,7 +10,8 @@ import thockUpUrl from '../../../assets/typing-sounds/thock-up.wav'
 import typewriterUrl from '../../../assets/typing-sounds/typewriter.mp3'
 import customUrl from '../../../assets/typing-sounds/real-custom.mp3'
 import ibmUrl from '../../../assets/typing-sounds/real-ibm.mp3'
-import rainUrl from '../../../assets/typing-sounds/ambient-rain.mp3'
+import pianoGentleUrl from '../../../assets/typing-sounds/ambient-piano-gentle.mp3'
+import pianoSoftUrl from '../../../assets/typing-sounds/ambient-piano-soft.mp3'
 import { SPRITE_ANCHOR_RATIO, TYPING_SPRITES } from './typingSprites'
 import { TYPING_AMBIENTS } from './typingAmbients'
 
@@ -27,6 +28,15 @@ export const SOUND_THEMES: { key: SoundTheme; label: string; desc: string }[] = 
   { key: 'real-thock', label: '실제 키보드 · 도각', desc: '녹음한 묵직한 타건음' },
   { key: 'real-click', label: '실제 키보드 · 찰칵', desc: '녹음한 가볍고 맑은 타건음' },
   { key: 'real-ibm', label: '옛날 IBM 키보드', desc: '스프링이 철컥철컥' },
+]
+
+export type AmbientKind = 'off' | 'piano-gentle' | 'piano-soft'
+type AmbientTrack = Exclude<AmbientKind, 'off'>
+
+export const AMBIENTS: { key: AmbientKind; label: string }[] = [
+  { key: 'off', label: '없음' },
+  { key: 'piano-gentle', label: '따스한 피아노' },
+  { key: 'piano-soft', label: '잔잔한 피아노' },
 ]
 
 const THEME_KEY = 'bt-sound'
@@ -53,7 +63,11 @@ let theme: SoundTheme = (() => {
   const v = read(THEME_KEY)
   return isTheme(v) ? v : 'off'
 })()
-let ambientOn = read(AMBIENT_KEY) === '1'
+let ambient: AmbientKind = (() => {
+  const v = read(AMBIENT_KEY)
+  // 예전 빗소리 저장값('1'·'rain')은 빗소리를 걷어 내며 '없음'으로
+  return AMBIENTS.some((a) => a.key === v) ? (v as AmbientKind) : 'off'
+})()
 
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach((fn) => fn())
@@ -65,7 +79,7 @@ export const subscribeSound = (fn: () => void) => {
 }
 
 export const getSoundTheme = () => theme
-export const isAmbientOn = () => ambientOn
+export const getAmbient = () => ambient
 
 export const setSoundTheme = (t: SoundTheme) => {
   theme = t
@@ -302,43 +316,32 @@ export const playTypingSound = (kind: SoundKind) => {
   }
 }
 
-// ── 빗소리(배경) ─────────────────────────────────────
-// 창에 듣는 실제 빗소리 녹음(scripts/gen-typing-ambient.py). 못 받으면 예전 갈색 잡음으로 대신한다
-const RAIN_GAIN = 0.55
-let rain: { src: AudioBufferSourceNode; gain: GainNode } | null = null
-let rainBuffer: AudioBuffer | null = null
-let rainLoading: Promise<AudioBuffer | null> | null = null
-let rainToken = 0 // 받는 사이 껐다 켰다 해도 마지막 요청만 소리 나게
-
-const loadRain = (ac: AudioContext) => {
-  rainLoading ??= decode(ac, rainUrl)
-    .then((buf) => (rainBuffer = buf))
-    .catch(() => {
-      rainLoading = null
-      return null
-    })
-  return rainLoading
+// ── 배경(피아노) ─────────────────────────────────────
+// 녹음은 scripts/gen-typing-ambient.py 가 이음매 없이 반복되게 굽는다. 빗소리는 크고 어울리지 않아 걷어 냈다(2026-10)
+// 음악은 타건음을 덮지 않게 낮게 깐다
+const AMBIENT_SRC: Record<AmbientTrack, { url: string; gain: number }> = {
+  'piano-gentle': { url: pianoGentleUrl, gain: 0.4 },
+  'piano-soft': { url: pianoSoftUrl, gain: 0.45 },
 }
 
-const synthRain = (ac: AudioContext) => {
-  // 갈색 잡음 — 낮게 깔리는 빗소리
-  const len = ac.sampleRate * 4
-  const buf = ac.createBuffer(2, len, ac.sampleRate)
-  for (let ch = 0; ch < 2; ch++) {
-    const d = buf.getChannelData(ch)
-    let last = 0
-    for (let i = 0; i < len; i++) {
-      const w = Math.random() * 2 - 1
-      last = (last + 0.035 * w) / 1.035
-      d[i] = last * 3.2
-    }
-  }
-  return buf
+let playing: { src: AudioBufferSourceNode; gain: GainNode } | null = null
+const ambientBuffers: Partial<Record<AmbientTrack, AudioBuffer | null>> = {}
+const ambientLoading: Partial<Record<AmbientTrack, Promise<AudioBuffer | null>>> = {}
+let ambientToken = 0 // 받는 사이 다른 배경을 고르거나 꺼도 마지막 요청만 소리 나게
+
+const loadAmbient = (ac: AudioContext, kind: AmbientTrack) => {
+  ambientLoading[kind] ??= decode(ac, AMBIENT_SRC[kind].url)
+    .then((buf) => (ambientBuffers[kind] = buf))
+    .catch(() => {
+      delete ambientLoading[kind]
+      return null
+    })
+  return ambientLoading[kind]!
 }
 
 /** 표지음으로 디코더 지연을 재서 반복 구간을 잡는다 — 표지음은 loopStart 앞이라 들리지 않는다 */
-const rainLoop = (buf: AudioBuffer) => {
-  const { marker, loopStart, loopLength } = TYPING_AMBIENTS.rain
+const loopRange = (buf: AudioBuffer, kind: AmbientTrack) => {
+  const { marker, loopStart, loopLength } = TYPING_AMBIENTS[kind]
   const d = buf.getChannelData(0)
   const limit = Math.min(d.length, Math.round(buf.sampleRate * (loopStart - 0.02)))
   let i = 0
@@ -347,69 +350,59 @@ const rainLoop = (buf: AudioBuffer) => {
   return { start: loopStart + shift, end: loopStart + shift + loopLength }
 }
 
-const playRain = (ac: AudioContext, buf: AudioBuffer | null) => {
+const playAmbient = (ac: AudioContext, kind: AmbientTrack, buf: AudioBuffer) => {
   const src = ac.createBufferSource()
   const gain = ac.createGain()
-  let target = RAIN_GAIN
-  let offset = 0
-  if (buf) {
-    const { start, end } = rainLoop(buf)
-    src.buffer = buf
-    src.loopStart = start
-    src.loopEnd = end
-    offset = start + Math.random() * (end - start) // 매번 같은 자리에서 시작하지 않게
-    src.connect(gain)
-  } else {
-    src.buffer = synthRain(ac)
-    const f = ac.createBiquadFilter()
-    f.type = 'lowpass'
-    f.frequency.value = 1400
-    src.connect(f).connect(gain)
-    target = 0.22
-  }
+  const { start, end } = loopRange(buf, kind)
+  src.buffer = buf
   src.loop = true
+  src.loopStart = start
+  src.loopEnd = end
+  src.connect(gain)
   gain.gain.setValueAtTime(0.0001, ac.currentTime)
-  gain.gain.exponentialRampToValueAtTime(target, ac.currentTime + 1.5)
+  gain.gain.exponentialRampToValueAtTime(AMBIENT_SRC[kind].gain, ac.currentTime + 2.5)
   gain.connect(ac.destination)
-  src.start(0, offset)
-  rain = { src, gain }
+  src.start(0, start) // 곡 처음부터
+  playing = { src, gain }
 }
 
-const startRain = () => {
+const stopAmbient = () => {
+  ambientToken++
+  if (!playing || !ctx) return
+  const { src, gain } = playing
+  playing = null
+  gain.gain.cancelScheduledValues(ctx.currentTime)
+  gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), ctx.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8)
+  src.stop(ctx.currentTime + 0.9)
+}
+
+const startAmbient = () => {
+  const kind = ambient
+  if (kind === 'off' || playing) return
   const ac = audio()
-  if (!ac || rain) return
-  const token = ++rainToken
-  if (rainBuffer) {
-    playRain(ac, rainBuffer)
+  if (!ac) return
+  const token = ++ambientToken
+  const ready = ambientBuffers[kind]
+  if (ready) {
+    playAmbient(ac, kind, ready)
     return
   }
-  void loadRain(ac).then((buf) => {
-    if (token !== rainToken || rain || !ambientOn) return
-    playRain(ac, buf)
+  void loadAmbient(ac, kind).then((buf) => {
+    if (token !== ambientToken || playing || ambient !== kind) return
+    if (buf) playAmbient(ac, kind, buf)
   })
 }
 
-const stopRain = () => {
-  rainToken++
-  if (!rain || !ctx) return
-  const { src, gain } = rain
-  rain = null
-  gain.gain.cancelScheduledValues(ctx.currentTime)
-  gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), ctx.currentTime)
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6)
-  src.stop(ctx.currentTime + 0.7)
-}
-
-export const setAmbient = (on: boolean) => {
-  ambientOn = on
-  write(AMBIENT_KEY, on ? '1' : '0')
+export const setAmbient = (kind: AmbientKind) => {
+  if (kind === ambient) return
+  ambient = kind
+  write(AMBIENT_KEY, kind)
   emit()
-  if (on) startRain()
-  else stopRain()
+  stopAmbient() // 바꿀 땐 앞 소리를 천천히 줄이며 새 소리를 올린다
+  startAmbient()
 }
 
-/** 필사 화면에 들어왔을 때 켜 둔 빗소리를 다시 튼다(첫 입력 때 — 자동 재생 정책) */
-export const resumeAmbient = () => {
-  if (ambientOn) startRain()
-}
-export const pauseAmbient = () => stopRain()
+/** 필사 화면에 들어왔을 때 골라 둔 배경을 다시 튼다(첫 입력 때 — 자동 재생 정책) */
+export const resumeAmbient = () => startAmbient()
+export const pauseAmbient = () => stopAmbient()

@@ -2,5 +2,6 @@
 // marker = 표지음 시각(디코더 지연 보정), loopStart·loopLength = 반복 구간(초)
 
 export const TYPING_AMBIENTS = {
-  rain: { marker: 0.05, loopStart: 0.25, loopLength: 28.51771 },
+  'piano-gentle': { marker: 0.05, loopStart: 0.25, loopLength: 49.23077 },
+  'piano-soft': { marker: 0.05, loopStart: 0.25, loopLength: 98.63637 },
 } as const

@@ -2499,20 +2499,31 @@
   color: var(--text-muted);
 }
 .bt-sound__ambient {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin-top: 6px;
-  padding: 10px 10px 4px;
+  padding-top: 6px;
   border-top: 1px solid var(--card-border);
-  font-size: 13px;
-  color: var(--text-body);
-  cursor: pointer;
 }
-.bt-sound__ambient input {
-  width: 17px;
-  height: 17px;
-  accent-color: var(--brand);
+.bt-sound__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 6px 4px;
+}
+.bt-sound__chip {
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+.bt-sound__chip:hover {
+  background: var(--surface-inset);
+}
+.bt-sound__chip.is-on {
+  background: var(--brand-soft);
+  border-color: transparent;
+  color: var(--brand);
 }
 
 /* ── 목표 달성 모먼트 ────────────────────────────── */

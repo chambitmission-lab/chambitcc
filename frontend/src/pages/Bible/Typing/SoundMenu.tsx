@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import {
+  AMBIENTS,
   SOUND_THEMES,
+  getAmbient,
   getSoundTheme,
-  isAmbientOn,
   pauseAmbient,
   preloadTypingSound,
   resumeAmbient,
@@ -11,16 +12,16 @@ import {
   subscribeSound,
 } from './typingSound'
 
-/** 쓰기 화면 머리의 소리 버튼 — 타건음 테마·빗소리. 화면을 떠나면 빗소리를 멈춘다 */
+/** 쓰기 화면 머리의 소리 버튼 — 타건음 테마·배경(피아노). 화면을 떠나면 배경을 멈춘다 */
 const SoundMenu = () => {
   const theme = useSyncExternalStore(subscribeSound, getSoundTheme)
-  const ambient = useSyncExternalStore(subscribeSound, isAmbientOn)
+  const ambient = useSyncExternalStore(subscribeSound, getAmbient)
   const [open, setOpen] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     preloadTypingSound()
-    // 켜 둔 빗소리는 첫 입력 때 다시 튼다(자동 재생 정책) — 떠날 때 끈다
+    // 골라 둔 배경은 첫 입력 때 다시 튼다(자동 재생 정책) — 떠날 때 끈다
     const kick = () => resumeAmbient()
     document.addEventListener('keydown', kick, { once: true })
     document.addEventListener('pointerdown', kick, { once: true })
@@ -47,7 +48,7 @@ const SoundMenu = () => {
     }
   }, [open])
 
-  const on = theme !== 'off' || ambient
+  const on = theme !== 'off' || ambient !== 'off'
   return (
     <div className="bt-sound" ref={boxRef}>
       <button
@@ -76,10 +77,23 @@ const SoundMenu = () => {
               <span className="bt-sound__desc">{t.desc}</span>
             </button>
           ))}
-          <label className="bt-sound__ambient">
-            <input type="checkbox" checked={ambient} onChange={(e) => setAmbient(e.target.checked)} />
-            <span>잔잔한 빗소리 깔기</span>
-          </label>
+          <div className="bt-sound__ambient">
+            <p className="bt-sound__title">배경</p>
+            <div className="bt-sound__chips" role="radiogroup" aria-label="배경 소리">
+              {AMBIENTS.map((a) => (
+                <button
+                  key={a.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={ambient === a.key}
+                  className={`bt-sound__chip${ambient === a.key ? ' is-on' : ''}`}
+                  onClick={() => setAmbient(a.key)}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-"""필사 화면 배경 소리(빗소리 등) 굽기 — 이음매 없이 반복되는 MP3 + typingAmbients.ts.
+"""필사 화면 배경 소리(피아노 등) 굽기 — 이음매 없이 반복되는 MP3 + typingAmbients.ts.
 
   python -I frontend/scripts/gen-typing-ambient.py <원본 폴더>
 
@@ -21,9 +21,13 @@ OUT_DIR = ROOT / 'src' / 'assets' / 'typing-sounds'
 MANIFEST = ROOT / 'src' / 'pages' / 'Bible' / 'Typing' / 'typingAmbients.ts'
 MARKER_AT, LOOP_AT = 0.05, 0.25
 
-# 배경: 원본, 겹칠 길이(초), 목표 RMS
+# 배경: 원본, 목표 RMS, 이음 방식
+#   crossfade=초 — 끝을 처음에 겹친다(빗소리처럼 일정한 소리)
+#   exact      — 처음부터 반복용으로 만든 곡(박 단위로 딱 떨어짐) 그대로
+#   gap=초     — 페이드가 있는 한 곡. 앞뒤 무음을 걷고 끝나면 잠깐 쉬었다 다시
 AMBIENTS = {
-    'rain': dict(file='rain_on_window.wav', crossfade=3.0, rms=0.07),
+    'piano-gentle': dict(file='gentle-piano-music-loop.wav', rms=0.07, exact=True),  # 117bpm 96박 = 49.23초
+    'piano-soft': dict(file='soft piano ambient.mp3', rms=0.07, gap=2.5),
 }
 
 
@@ -38,22 +42,38 @@ def load_stereo(path: Path) -> np.ndarray:
     return x - x.mean(axis=0)
 
 
-def make_loop(x: np.ndarray, crossfade: float, rms: float) -> np.ndarray:
-    """끝 crossfade 초를 처음에 겹쳐, 마지막 샘플 다음에 첫 샘플이 자연스럽게 오도록"""
-    c = int(crossfade * SR)
-    body = x[: len(x) - c].copy()
-    t = np.linspace(0, np.pi / 2, c)[:, None]
-    body[:c] = body[:c] * np.sin(t) + x[len(x) - c :] * np.cos(t)
-    return body * (rms / np.sqrt((body**2).mean()))
+def make_loop(x: np.ndarray, cfg: dict) -> np.ndarray:
+    if 'crossfade' in cfg:
+        # 끝 crossfade 초를 처음에 등전력으로 겹쳐, 마지막 샘플 다음에 첫 샘플이 자연스럽게 오도록
+        c = int(cfg['crossfade'] * SR)
+        body = x[: len(x) - c].copy()
+        t = np.linspace(0, np.pi / 2, c)[:, None]
+        body[:c] = body[:c] * np.sin(t) + x[len(x) - c :] * np.cos(t)
+        level = np.sqrt((body**2).mean())
+    elif 'gap' in cfg:
+        loud = np.where(np.abs(x).max(axis=1) > 0.003)[0]
+        song = x[max(0, loud[0] - int(0.05 * SR)) : loud[-1] + int(0.3 * SR)].copy()
+        fo = int(0.3 * SR)
+        song[-fo:] *= np.linspace(1, 0, fo)[:, None]
+        # 음량은 소리 나는 구간 기준(쉼표까지 평균 내면 너무 커진다)
+        e = np.sqrt((song**2).mean(axis=1))
+        level = np.sqrt((song[e > np.percentile(e, 30)] ** 2).mean())
+        body = np.concatenate([song, np.zeros((int(cfg['gap'] * SR), 2))])
+    else:
+        body = x.copy()
+        level = np.sqrt((body**2).mean())
+    body *= cfg['rms'] / level
+    peak = np.abs(body).max()
+    return body * (0.95 / peak) if peak > 0.95 else body
 
 
 def main() -> None:
     src_dir = Path(sys.argv[1])
     manifest = {}
     for name, cfg in AMBIENTS.items():
-        loop = make_loop(load_stereo(src_dir / cfg['file']), cfg['crossfade'], cfg['rms'])
+        loop = make_loop(load_stereo(src_dir / cfg['file']), cfg)
         head = np.zeros((int(LOOP_AT * SR), 2))
-        head[int(MARKER_AT * SR) : int(MARKER_AT * SR) + int(0.002 * SR)] = 0.95
+        head[int(MARKER_AT * SR) : int(MARKER_AT * SR) + int(0.002 * SR)] = 0.98
         # 반복 구간 뒤에 처음 1초를 한 번 더 — 디코더 끝 패딩이 반복 구간을 깎지 않게
         audio = np.concatenate([head, loop, loop[:SR]])
         out = OUT_DIR / f'ambient-{name}.mp3'
@@ -64,7 +84,8 @@ def main() -> None:
         manifest[name] = dict(marker=MARKER_AT, loopStart=LOOP_AT, loopLength=round(len(loop) / SR, 5))
         print(f'ambient-{name}: loop {len(loop) / SR:.1f}s - {out.stat().st_size // 1024}KB')
 
-    lines = ['  ' + k + ': { ' + ', '.join(f'{f}: {n}' for f, n in v.items()) + ' },' for k, v in manifest.items()]
+    fields = lambda v: ', '.join(f'{f}: {n}' for f, n in v.items())  # noqa: E731
+    lines = [f"  '{k}': {{ {fields(v)} }}," for k, v in manifest.items()]
     MANIFEST.write_text(
         '// scripts/gen-typing-ambient.py 가 만든다 — 손으로 고치지 말 것.\n'
         '// marker = 표지음 시각(디코더 지연 보정), loopStart·loopLength = 반복 구간(초)\n\n'
