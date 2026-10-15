@@ -1,22 +1,29 @@
-// 타건음 테마 — 만년필·타자기·키보드는 Web Audio 로 합성하고(번들·네트워크 0),
-// '실제 키보드' 두 가지는 녹음한 짧은 음원(assets/typing-sounds, 합 ~40KB)을 그 테마를 고를 때만 받아 디코딩한다.
+// 타건음 테마 — 만년필·기계식 키보드는 Web Audio 로 합성하고(번들·네트워크 0),
+// 타자기·실제 키보드는 녹음한 음원(assets/typing-sounds, 테마당 10~80KB)을 그 테마를 고를 때만 받아 디코딩한다.
+// 긴 녹음에서 한 타씩 잘라 붙인 스프라이트는 scripts/gen-typing-sounds.py 가 굽고 위치는 typingSprites.ts 에 있다.
 // 설정은 기기별 편의라 localStorage 에 두고, 패드는 이 모듈의 현재 테마만 본다(prop 을 내리지 않는다).
 // 오디오 컨텍스트는 첫 소리 때(=사용자 입력 안에서) 만든다 — 자동 재생 정책 때문.
 
 import clickUrl from '../../../assets/typing-sounds/click.wav'
 import thockDownUrl from '../../../assets/typing-sounds/thock-down.wav'
 import thockUpUrl from '../../../assets/typing-sounds/thock-up.wav'
+import typewriterUrl from '../../../assets/typing-sounds/typewriter.mp3'
+import customUrl from '../../../assets/typing-sounds/real-custom.mp3'
+import ibmUrl from '../../../assets/typing-sounds/real-ibm.mp3'
+import { SPRITE_ANCHOR_RATIO, TYPING_SPRITES } from './typingSprites'
 
-export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click'
+export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm'
 export type SoundKind = 'key' | 'space' | 'back' | 'done'
 
 export const SOUND_THEMES: { key: SoundTheme; label: string; desc: string }[] = [
   { key: 'off', label: '소리 끄기', desc: '조용히' },
   { key: 'pen', label: '만년필', desc: '종이 위 사각사각' },
-  { key: 'typewriter', label: '타자기', desc: '탁탁, 줄 끝엔 종소리' },
+  { key: 'typewriter', label: '타자기', desc: '진짜 타자기 녹음, 다 쓰면 종소리' },
   { key: 'keys', label: '기계식 키보드', desc: '낮고 둥근 타건음' },
   { key: 'real-thock', label: '실제 키보드 · 도각', desc: '녹음한 묵직한 타건음' },
   { key: 'real-click', label: '실제 키보드 · 찰칵', desc: '녹음한 가볍고 맑은 타건음' },
+  { key: 'real-custom', label: '커스텀 키보드', desc: '깊게 울리는 도독도독' },
+  { key: 'real-ibm', label: '옛날 IBM 키보드', desc: '스프링이 철컥철컥' },
 ]
 
 const THEME_KEY = 'bt-sound'
@@ -133,16 +140,13 @@ const tone = (ac: AudioContext, { freq, dur, gain, at = 0, type = 'sine' }: { fr
 }
 
 // ── 녹음 음원 ─────────────────────────────────────────
-type RecordedTheme = 'real-thock' | 'real-click'
-const isRecorded = (t: SoundTheme): t is RecordedTheme => t === 'real-thock' || t === 'real-click'
+type RecordedTheme = 'typewriter' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm'
+const isRecorded = (t: SoundTheme): t is RecordedTheme =>
+  t === 'typewriter' || t === 'real-thock' || t === 'real-click' || t === 'real-custom' || t === 'real-ibm'
 
-// down = 누를 때, up = 뗄 때(없으면 생략)
-const SAMPLE_URLS: Record<RecordedTheme, { down: string; up?: string }> = {
-  'real-thock': { down: thockDownUrl, up: thockUpUrl },
-  'real-click': { down: clickUrl },
-}
-const samples: Partial<Record<RecordedTheme, { down: AudioBuffer; up?: AudioBuffer }>> = {}
-const loading: Partial<Record<RecordedTheme, Promise<void>>> = {}
+// 누를 때 소리 여러 벌(돌려 가며) · 뗄 때 · 스페이스 · 완료음. 없는 건 합성/변주로 대신한다
+type SampleSet = { key: AudioBuffer[]; up?: AudioBuffer[]; space?: AudioBuffer[]; done?: AudioBuffer }
+type SpriteMap = { anchor: number; key: readonly (readonly number[])[]; space?: readonly (readonly number[])[]; done?: readonly (readonly number[])[] }
 
 const decode = async (ac: AudioContext, url: string) => {
   const res = await fetch(url)
@@ -151,16 +155,51 @@ const decode = async (ac: AudioContext, url: string) => {
   return new Promise<AudioBuffer>((resolve, reject) => ac.decodeAudioData(data, resolve, reject))
 }
 
+const slice = (ac: AudioContext, buf: AudioBuffer, start: number, dur: number) => {
+  const from = Math.max(0, Math.round(start * buf.sampleRate))
+  const len = Math.max(1, Math.min(buf.length - from, Math.round(dur * buf.sampleRate)))
+  const out = ac.createBuffer(1, len, buf.sampleRate)
+  out.copyToChannel(buf.getChannelData(0).subarray(from, from + len), 0)
+  return out
+}
+
+/** 스프라이트를 조각으로 — MP3 디코더마다 앞 지연이 달라 첫 소리 위치(anchor)로 어긋남을 맞춘다 */
+const loadSprite = async (ac: AudioContext, url: string, map: SpriteMap): Promise<SampleSet> => {
+  const buf = await decode(ac, url)
+  const data = buf.getChannelData(0)
+  let max = 0
+  for (let i = 0; i < data.length; i++) max = Math.max(max, Math.abs(data[i]))
+  let first = 0
+  while (first < data.length && Math.abs(data[first]) <= max * SPRITE_ANCHOR_RATIO) first++
+  const shift = first / buf.sampleRate - map.anchor
+  const cut = (list: readonly (readonly number[])[]) => list.map(([a, d]) => slice(ac, buf, a + shift, d))
+  return { key: cut(map.key), space: map.space && cut(map.space), done: map.done && cut(map.done)[0] }
+}
+
+const LOADERS: Record<RecordedTheme, (ac: AudioContext) => Promise<SampleSet>> = {
+  'real-thock': async (ac) => {
+    const [down, up] = await Promise.all([decode(ac, thockDownUrl), decode(ac, thockUpUrl)])
+    return { key: [down], up: [up] }
+  },
+  'real-click': async (ac) => ({ key: [await decode(ac, clickUrl)] }),
+  typewriter: (ac) => loadSprite(ac, typewriterUrl, TYPING_SPRITES.typewriter),
+  'real-custom': (ac) => loadSprite(ac, customUrl, TYPING_SPRITES['real-custom']),
+  'real-ibm': (ac) => loadSprite(ac, ibmUrl, TYPING_SPRITES['real-ibm']),
+}
+
+const samples: Partial<Record<RecordedTheme, SampleSet>> = {}
+const loading: Partial<Record<RecordedTheme, Promise<void>>> = {}
+
 const loadSamples = (t: RecordedTheme): Promise<void> => {
   const ac = audio()
   if (!ac) return Promise.resolve()
-  loading[t] ??= (async () => {
-    const urls = SAMPLE_URLS[t]
-    const [down, up] = await Promise.all([decode(ac, urls.down), urls.up ? decode(ac, urls.up) : undefined])
-    samples[t] = { down, up }
-  })().catch(() => {
-    delete loading[t] // 다음 입력 때 다시 시도
-  })
+  loading[t] ??= LOADERS[t](ac)
+    .then((set) => {
+      samples[t] = set
+    })
+    .catch(() => {
+      delete loading[t] // 다음 입력 때 다시 시도
+    })
   return loading[t]!
 }
 
@@ -174,19 +213,25 @@ const playBuffer = (ac: AudioContext, buf: AudioBuffer, { rate, gain, at = 0 }: 
   src.start(ac.currentTime + at)
 }
 
-/** 같은 녹음이 기계처럼 반복되지 않게 음높이·세기를 조금씩 흔든다. 스페이스는 낮고 크게, 지우기는 살짝 높고 작게 */
-const playRecorded = (ac: AudioContext, t: RecordedTheme, kind: SoundKind) => {
-  const s = samples[t]
-  if (!s) {
-    void loadSamples(t)
-    return
-  }
+// 같은 조각이 연달아 나오지 않게 고른다
+let lastPick = -1
+const pickOne = (list: AudioBuffer[]) => {
+  if (list.length === 1) return list[0]
+  let i = Math.floor(Math.random() * list.length)
+  if (i === lastPick) i = (i + 1) % list.length
+  lastPick = i
+  return list[i]
+}
+
+/** 녹음을 돌려 가며 쓰고 음높이·세기도 조금씩 흔든다. 스페이스 녹음이 없으면 낮고 크게, 지우기는 살짝 높고 작게 */
+const playRecorded = (ac: AudioContext, s: SampleSet, kind: SoundKind) => {
+  const ownSpace = kind === 'space' && s.space?.length ? s.space : null
   const jitter = () => 0.96 + Math.random() * 0.08
-  const base = kind === 'space' ? 0.84 : kind === 'back' ? 1.06 : 1
+  const base = ownSpace ? 1 : kind === 'space' ? 0.84 : kind === 'back' ? 1.06 : 1
   const vol = (kind === 'space' ? 0.95 : kind === 'back' ? 0.6 : 0.8) * (0.85 + Math.random() * 0.15)
-  playBuffer(ac, s.down, { rate: base * jitter(), gain: vol })
+  playBuffer(ac, pickOne(ownSpace ?? s.key), { rate: base * jitter(), gain: vol })
   // 실제 타건처럼 손을 떼는 소리는 조금 뒤에 — 키업 이벤트를 기다리지 않는다(모바일 키보드는 키업 시점이 부정확)
-  if (s.up) playBuffer(ac, s.up, { rate: base * jitter(), gain: vol * 0.75, at: 0.07 + Math.random() * 0.04 })
+  if (s.up) playBuffer(ac, pickOne(s.up), { rate: base * jitter(), gain: vol * 0.75, at: 0.07 + Math.random() * 0.04 })
 }
 
 /** 필사 화면에 들어올 때 — 녹음 테마를 골라 둔 사람은 첫 글자부터 소리가 나도록 미리 받아 둔다 */
@@ -200,13 +245,24 @@ export const playTypingSound = (kind: SoundKind) => {
   if (!ac) return
   try {
     if (isRecorded(theme)) {
-      if (kind === 'done') {
-        tone(ac, { freq: 660, dur: 0.35, gain: 0.05 })
-        tone(ac, { freq: 990, dur: 0.45, gain: 0.04, at: 0.08 })
+      const set = samples[theme]
+      if (!set) void loadSamples(theme)
+      if (set?.done && kind === 'done') {
+        playBuffer(ac, set.done, { rate: 1, gain: 0.9 })
         return
       }
-      playRecorded(ac, theme, kind)
-      return
+      if (set && kind !== 'done') {
+        playRecorded(ac, set, kind)
+        return
+      }
+      // 아직 받는 중이면 타자기만 아래 합성음으로 잇고, 나머지는 완료음만 합성 종소리로
+      if (theme !== 'typewriter') {
+        if (kind === 'done') {
+          tone(ac, { freq: 660, dur: 0.35, gain: 0.05 })
+          tone(ac, { freq: 990, dur: 0.45, gain: 0.04, at: 0.08 })
+        }
+        return
+      }
     }
     if (theme === 'pen') {
       if (kind === 'done') {

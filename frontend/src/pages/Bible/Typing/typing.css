@@ -2455,6 +2455,9 @@
   right: 0;
   z-index: 40;
   width: 230px;
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 8px;
   border-radius: 16px;
   background: var(--surface-container);
