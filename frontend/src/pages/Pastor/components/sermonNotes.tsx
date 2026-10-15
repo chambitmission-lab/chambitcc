@@ -15,6 +15,7 @@ import { formatDay, todayIso } from './pastorUtils'
 // ── 설교 준비 하위 탭 ─────────────────────────────────────
 const TABS = [
   { path: '/pastor/sermon', icon: 'insights', label: '준비 도우미' },
+  { path: '/pastor/sermon/study', icon: 'travel_explore', label: '본문 작업대' },
   { path: '/pastor/sermon/notes', icon: 'sticky_note_2', label: '설교 메모' },
   { path: '/pastor/sermon/outlines', icon: 'view_agenda', label: '개요 보드' },
 ]
@@ -24,7 +25,7 @@ export const SermonTabs = () => {
   const active = (p: string) => (p === '/pastor/sermon' ? pathname === p : pathname.startsWith(p))
   return (
     <div className="px-4 pt-4">
-      <div className="grid grid-cols-3 gap-1 p-1 lg:p-1.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] lg:max-w-[520px]" role="tablist">
+      <div className="grid grid-cols-4 gap-1 p-1 lg:p-1.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] lg:max-w-[680px]" role="tablist">
         {TABS.map(t => (
           <Link
             key={t.path}
@@ -35,7 +36,7 @@ export const SermonTabs = () => {
               active(t.path) ? 'bg-white dark:bg-white/[0.12] text-brand shadow-sm' : 'text-gray-600 dark:text-white/65'
             }`}
           >
-            <span className="material-icons-outlined text-[17px] lg:text-[19px]">{t.icon}</span>
+            <span className="hidden sm:inline material-icons-outlined text-[17px] lg:text-[19px]">{t.icon}</span>
             {t.label}
           </Link>
         ))}

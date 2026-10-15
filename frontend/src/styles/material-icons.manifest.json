@@ -19,6 +19,7 @@
     "auto_stories",
     "autorenew",
     "badge",
+    "balance",
     "ballot",
     "bedtime",
     "block",
@@ -47,6 +48,7 @@
     "class",
     "clear",
     "close",
+    "close_fullscreen",
     "cloud_off",
     "content_copy",
     "copy",
@@ -176,6 +178,7 @@
     "notifications",
     "notifications_active",
     "notifications_off",
+    "open_in_full",
     "pages",
     "palette",
     "pan_tool",
@@ -267,6 +270,7 @@
     "task_alt",
     "terminal",
     "text_fields",
+    "text_increase",
     "theaters",
     "timeline",
     "timer",
@@ -311,10 +315,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 24976
+    "bytes": 25300
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 27484
+    "bytes": 27856
   }
 }

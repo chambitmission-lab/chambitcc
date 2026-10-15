@@ -176,6 +176,8 @@ export const pastorKeys = {
   outlines: () => ['pastor-outlines'] as const,
   outlineAll: () => ['pastor-outline'] as const,
   outline: (outlineId: number) => [...pastorKeys.outlineAll(), outlineId] as const,
+  /** 본문 작업대 — 본문 표기별 */
+  sermonStudy: (ref: string) => ['pastor-sermon-study', ref] as const,
   /** 설교의 메아리 — null 은 '가장 최근 설교' */
   sermonEcho: (sermonId: number | null) => ['pastor-sermon-echo', sermonId] as const,
 }

@@ -718,7 +718,10 @@ export const deleteNote = async (id: number): Promise<void> => {
 export interface OutlineSection {
   id: string
   label: string
+  /** 개요 — 이 칸에서 전할 요지 */
   text: string
+  /** 원고 — 실제로 말할 글. 강단 보기는 빈 줄로 나눠 한 장씩 넘긴다(예전 개요엔 없을 수 있다) */
+  manuscript?: string
   note_ids: number[]
 }
 
@@ -764,6 +767,91 @@ export const finishOutline = (
   id: number,
   data: { sermon_id?: number | null; preached_on?: string | null },
 ): Promise<SermonOutline> => pastorSend(`/pastor/outlines/${id}/finish`, 'POST', data, '설교 마침을 기록하지 못했습니다')
+
+// ── 설교 본문 작업대 ──────────────────────────────────────────
+export interface StudyVerse {
+  id: number
+  chapter: number
+  verse: number
+  /** 개역 병합 구간의 첫 절 '18-19' */
+  verse_label?: string | null
+  text: string
+  underline_users: number
+  favorite_users: number
+  cross_ref_count: number
+}
+
+export interface CrossRef {
+  id: number
+  chapter: number
+  verse: number
+  label: string
+  target: { book_number: number; chapter: number; verse: number; verse_end: number | null }
+  text: string | null
+  note: string | null
+  author: string | null
+  mine: boolean
+}
+
+export interface StudyCommentary {
+  id: number
+  chapter: number
+  verse_start: number
+  verse_end: number
+  scope: string
+  title: string | null
+  category: string | null
+  excerpt: string
+}
+
+export interface StudyOutline {
+  id: number
+  title: string
+  passage: string | null
+  preach_on: string | null
+  status: 'draft' | 'done'
+  updated_at: string | null
+}
+
+export interface SermonStudy {
+  query: string
+  found: boolean
+  label?: string
+  book_number?: number
+  book_name?: string
+  clipped?: boolean
+  verses?: StudyVerse[]
+  keywords?: { word: string; count: number }[]
+  book_intro?: {
+    one_liner: string
+    theme: string | null
+    author_period: string | null
+    key_chapters: string | null
+    overview: string
+    christ_connection: string | null
+  } | null
+  commentaries?: StudyCommentary[]
+  cross_refs?: CrossRef[]
+  notes?: (SermonNote & { reasons?: string[] })[]
+  topics?: string[]
+  past_sermons?: SermonRef[]
+  outlines?: StudyOutline[]
+}
+
+export const fetchSermonStudy = (ref: string): Promise<SermonStudy> =>
+  pastorGet(`/pastor/sermon-study?ref=${encodeURIComponent(ref)}`, '본문 자료를 불러오지 못했습니다')
+
+export const addCrossRef = (data: {
+  book_number: number
+  chapter: number
+  verse: number
+  target: string
+  note?: string | null
+}): Promise<CrossRef> => pastorSend('/pastor/cross-refs', 'POST', data, '관주를 잇지 못했습니다')
+
+export const deleteCrossRef = async (id: number): Promise<void> => {
+  await requestRaw(`/pastor/cross-refs/${id}`, { method: 'DELETE', auth: 'required', errorMessage: '관주를 지우지 못했습니다' })
+}
 
 // ── 설교의 메아리 (성도가 붙잡은 한 줄 · 소그룹 나눔 질문) ──────────
 export interface SermonEchoSermon {

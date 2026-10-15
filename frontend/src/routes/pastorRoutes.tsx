@@ -15,6 +15,8 @@ const PastorSermon = lazy(() => import('../pages/Pastor/PastorSermon'))
 const PastorSermonNotes = lazy(() => import('../pages/Pastor/PastorSermonNotes'))
 const PastorSermonOutlines = lazy(() => import('../pages/Pastor/PastorSermonOutlines'))
 const PastorSermonOutline = lazy(() => import('../pages/Pastor/PastorSermonOutline'))
+const PastorSermonStudy = lazy(() => import('../pages/Pastor/PastorSermonStudy'))
+const PastorPulpit = lazy(() => import('../pages/Pastor/PastorPulpit'))
 
 export const pastorRoutes = (
   <>
@@ -27,8 +29,10 @@ export const pastorRoutes = (
     <Route path="/pastor/report" element={<PastorReport />} />
     <Route path="/pastor/schedule" element={<PastorSchedule />} />
     <Route path="/pastor/sermon" element={<PastorSermon />} />
+    <Route path="/pastor/sermon/study" element={<PastorSermonStudy />} />
     <Route path="/pastor/sermon/notes" element={<PastorSermonNotes />} />
     <Route path="/pastor/sermon/outlines" element={<PastorSermonOutlines />} />
     <Route path="/pastor/sermon/outlines/:id" element={<PastorSermonOutline />} />
+    <Route path="/pastor/sermon/outlines/:id/pulpit" element={<PastorPulpit />} />
   </>
 )

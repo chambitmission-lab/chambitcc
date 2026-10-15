@@ -53,6 +53,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['typing-together', () => import('../pages/dev/TypingTogetherPreview')],
       // 공동 기도제목(/prayer-topics) 개편 시안 비교 — ?v=a|b|c
       ['prayer-topics', () => import('../pages/dev/PrayerTopicsPreview')],
+      // 설교 본문 작업대 · 원고 쓰기 · 강단 보기 — 표본 데이터(?v=study|manuscript|pulpit)
+      ['sermon-desk', () => import('../pages/dev/SermonDeskPreview')],
     ]
   : []
 

@@ -1,6 +1,6 @@
 import { pastorKeys } from '../../hooks/queryKeys'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   deleteOutline,
@@ -18,6 +18,7 @@ import DatePicker from '../../components/common/DatePicker'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import NoteComposer from './components/NoteComposer'
+import ManuscriptEditor from './components/ManuscriptEditor'
 import { GhostButton, PastorModal, PrimaryButton } from './components/ui'
 import { IconButton, NoteCard, SermonPicker, SermonTabs } from './components/sermonNotes'
 import { invalidateNoteQueries } from './components/sermonNoteUtils'
@@ -26,6 +27,7 @@ import { formatDay, inputCls, pickerCls, usePastorGate } from './components/past
 // 설교 개요 보드 — 칸(서론·본론·적용·결론…)마다 글을 쓰고 메모 카드를 붙여 배치한다.
 // 입력이 멈추면 1초 뒤 저장. PC 오른쪽엔 '이 본문과 이어지는 메모'가 있어 누르면 지금 고른 칸에 붙는다.
 // 설교를 마치면 붙인 메모가 모두 '설교에 씀'으로 표시된다(같은 예화 되풀이 방지).
+// ?mode=manuscript — 같은 칸에 실제로 말할 원고를 쓰는 화면(ManuscriptEditor). 강단 보기는 /pulpit.
 
 interface Draft {
   title: string
@@ -38,7 +40,8 @@ const toDraft = (o: SermonOutline): Draft => ({
   title: o.title,
   passage: o.passage ?? '',
   preach_on: o.preach_on ?? '',
-  sections: o.sections,
+  // 원고 칸이 생기기 전 개요엔 manuscript 가 없다
+  sections: o.sections.map(s => ({ ...s, manuscript: s.manuscript ?? '' })),
 })
 
 const newSectionId = () => `s${Date.now().toString(36)}`
@@ -48,6 +51,9 @@ const PastorSermonOutline = () => {
   const id = Number(useParams().id)
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const [params, setParams] = useSearchParams()
+  const mode = params.get('mode') === 'manuscript' ? 'manuscript' : 'outline'
+  const setMode = (m: 'outline' | 'manuscript') => setParams(m === 'manuscript' ? { mode: m } : {}, { replace: true })
 
   const { data, isPending } = useQuery<SermonOutline>({
     queryKey: pastorKeys.outline(id),
@@ -224,169 +230,210 @@ const PastorSermonOutline = () => {
         </span>
       </div>
 
-      <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-        <div className="contents lg:block lg:min-w-0">
-          <SectionCard
-            title={data.status === 'done' ? '마친 설교' : '설교 개요'}
-            action={
-              <span className="flex items-center gap-0.5">
-                <IconButton
-                  icon="content_copy"
-                  label="글로 복사"
-                  onClick={() =>
-                    void navigator.clipboard
-                      .writeText(outlineText())
-                      .then(() => showToast('개요를 복사했습니다', 'success'))
-                      .catch(() => showToast('복사하지 못했습니다', 'error'))
-                  }
-                />
-                <IconButton icon="print" label="인쇄" onClick={() => printOutline(draft.title, outlineText())} />
-                <IconButton
-                  icon="delete_outline"
-                  label={confirmDelete ? '한 번 더 누르면 지웁니다' : '개요 지우기'}
-                  danger
-                  onClick={() => (confirmDelete ? remove.mutate() : setConfirmDelete(true))}
-                />
-              </span>
-            }
-          >
-            <input
-              className={`${inputCls} text-[16px] lg:text-[18px] font-bold`}
-              value={draft.title}
-              maxLength={200}
-              placeholder="설교 제목"
-              onChange={e => edit({ title: e.target.value })}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <input
-                className={inputCls}
-                value={draft.passage}
-                maxLength={100}
-                placeholder="본문 — 예: 빌 4:4-7"
-                onChange={e => edit({ passage: e.target.value })}
-              />
-              <DatePicker value={draft.preach_on} onChange={v => edit({ preach_on: v })} placeholder="설교할 날" className={pickerCls} />
-            </div>
-            {data.status === 'done' ? (
-              <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-brand">
-                <span className="material-icons-outlined text-[17px]">task_alt</span>
-                {data.preach_on ? `${formatDay(data.preach_on)} 설교를 마쳤습니다` : '설교를 마쳤습니다'} · 붙인 메모는 '설교에 씀'으로 남았습니다
-              </p>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setFinishing(true)}
-                className="w-full py-2.5 rounded-xl border border-brand text-brand text-[13.5px] font-bold hover:bg-[var(--brand-soft)]"
-              >
-                설교를 마쳤어요
-              </button>
-            )}
-          </SectionCard>
+      <div className="px-4 pt-3 flex items-center gap-2">
+        <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-gray-100 dark:bg-white/[0.05] w-[220px] lg:w-[260px]" role="tablist">
+          {(
+            [
+              ['outline', 'view_agenda', '개요'],
+              ['manuscript', 'edit_note', '원고'],
+            ] as const
+          ).map(([m, icon, label]) => (
+            <button
+              key={m}
+              type="button"
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => setMode(m)}
+              className={`flex items-center justify-center gap-1 py-1.5 lg:py-2 rounded-lg text-[13px] lg:text-[15px] font-bold transition-colors ${
+                mode === m ? 'bg-white dark:bg-white/[0.12] text-brand shadow-sm' : 'text-gray-600 dark:text-white/65'
+              }`}
+            >
+              <span className="material-icons-outlined text-[17px]">{icon}</span>
+              {label}
+            </button>
+          ))}
+        </div>
+        <Link
+          to={`/pastor/sermon/outlines/${id}/pulpit`}
+          className="ml-auto inline-flex items-center gap-1 px-3.5 py-2 rounded-full bg-ink-strong text-white dark:bg-white dark:text-black text-[13px] lg:text-[14px] font-bold"
+        >
+          <span className="material-icons-outlined text-[17px]">menu_book</span>강단 보기
+        </Link>
+      </div>
 
-          {draft.sections.map((s, si) => (
-            <div key={s.id} className="px-4 pt-4" onFocusCapture={() => setActive(s.id)} onClick={() => setActive(s.id)}>
-              <div
-                className={`rounded-2xl border bg-white/80 dark:bg-card-dark p-4 space-y-3 transition-colors ${
-                  active === s.id ? 'border-brand' : 'border-gray-200/70 dark:border-white/[0.08]'
-                }`}
-              >
-                <div className="flex items-center gap-1">
-                  <input
-                    className="flex-1 min-w-0 bg-transparent text-[14.5px] lg:text-[16px] font-bold text-ink-strong focus:outline-none border-b border-transparent focus:border-brand"
-                    value={s.label}
-                    maxLength={30}
-                    onChange={e => editSections(list => list.map(x => (x.id === s.id ? { ...x, label: e.target.value } : x)))}
-                    aria-label="칸 이름"
-                  />
-                  <IconButton icon="arrow_upward" label="칸 위로" disabled={si === 0} onClick={() => moveSection(si, -1)} />
-                  <IconButton icon="arrow_downward" label="칸 아래로" disabled={si === draft.sections.length - 1} onClick={() => moveSection(si, 1)} />
+      {mode === 'manuscript' ? (
+        <ManuscriptEditor
+          outlineId={id}
+          draft={draft}
+          status={data.status}
+          notes={notes}
+          onChange={(sid, manuscript) => editSections(list => list.map(x => (x.id === sid ? { ...x, manuscript } : x)))}
+        />
+      ) : (
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          <div className="contents lg:block lg:min-w-0">
+            <SectionCard
+              title={data.status === 'done' ? '마친 설교' : '설교 개요'}
+              action={
+                <span className="flex items-center gap-0.5">
                   <IconButton
-                    icon="close"
-                    label="칸 지우기"
-                    danger
-                    disabled={draft.sections.length <= 1}
-                    onClick={() => {
-                      if ((s.text.trim() || s.note_ids.length) && !window.confirm(`'${s.label}' 칸의 글과 메모 배치를 지울까요?`)) return
-                      editSections(list => list.filter(x => x.id !== s.id))
-                    }}
+                    icon="content_copy"
+                    label="글로 복사"
+                    onClick={() =>
+                      void navigator.clipboard
+                        .writeText(outlineText())
+                        .then(() => showToast('개요를 복사했습니다', 'success'))
+                        .catch(() => showToast('복사하지 못했습니다', 'error'))
+                    }
                   />
-                </div>
-                <textarea
-                  className={`${inputCls} min-h-[96px] resize-y lg:text-[15.5px] lg:leading-[1.8]`}
-                  value={s.text}
-                  maxLength={6000}
-                  placeholder={`${s.label}에서 전할 내용`}
-                  onChange={e => editSections(list => list.map(x => (x.id === s.id ? { ...x, text: e.target.value } : x)))}
+                  <IconButton icon="print" label="인쇄" onClick={() => printOutline(draft.title, outlineText())} />
+                  <IconButton
+                    icon="delete_outline"
+                    label={confirmDelete ? '한 번 더 누르면 지웁니다' : '개요 지우기'}
+                    danger
+                    onClick={() => (confirmDelete ? remove.mutate() : setConfirmDelete(true))}
+                  />
+                </span>
+              }
+            >
+              <input
+                className={`${inputCls} text-[16px] lg:text-[18px] font-bold`}
+                value={draft.title}
+                maxLength={200}
+                placeholder="설교 제목"
+                onChange={e => edit({ title: e.target.value })}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  className={inputCls}
+                  value={draft.passage}
+                  maxLength={100}
+                  placeholder="본문 — 예: 빌 4:4-7"
+                  onChange={e => edit({ passage: e.target.value })}
                 />
-                {s.note_ids.length > 0 && (
-                  <ul className="space-y-1.5">
-                    {s.note_ids.map((nid, ni) => {
-                      const n = notes[nid]
-                      if (!n) return null
-                      const first = si === 0 && ni === 0
-                      const last = si === draft.sections.length - 1 && ni === s.note_ids.length - 1
-                      return (
-                        <li key={nid}>
-                          <NoteCard
-                            note={n}
-                            compact
-                            onOpen={() => setOpenNote(n)}
-                            trailing={
-                              <>
-                                <IconButton icon="arrow_upward" label="위로" disabled={first} onClick={() => moveNote(si, ni, -1)} />
-                                <IconButton icon="arrow_downward" label="아래로" disabled={last} onClick={() => moveNote(si, ni, 1)} />
-                                <IconButton
-                                  icon="link_off"
-                                  label="이 칸에서 빼기"
-                                  danger
-                                  onClick={() =>
-                                    editSections(list => list.map(x => (x.id === s.id ? { ...x, note_ids: x.note_ids.filter(v => v !== nid) } : x)))
-                                  }
-                                />
-                              </>
-                            }
-                          />
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
+                <DatePicker value={draft.preach_on} onChange={v => edit({ preach_on: v })} placeholder="설교할 날" className={pickerCls} />
+              </div>
+              {data.status === 'done' ? (
+                <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-brand">
+                  <span className="material-icons-outlined text-[17px]">task_alt</span>
+                  {data.preach_on ? `${formatDay(data.preach_on)} 설교를 마쳤습니다` : '설교를 마쳤습니다'} · 붙인 메모는 '설교에 씀'으로 남았습니다
+                </p>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => setPicking(s.id)}
-                  className="w-full py-2 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.15] text-[12.5px] lg:text-[14px] font-semibold text-gray-600 dark:text-white/65 hover:border-brand hover:text-brand"
+                  onClick={() => setFinishing(true)}
+                  className="w-full py-2.5 rounded-xl border border-brand text-brand text-[13.5px] font-bold hover:bg-[var(--brand-soft)]"
                 >
-                  + 메모 넣기
+                  설교를 마쳤어요
                 </button>
+              )}
+            </SectionCard>
+
+            {draft.sections.map((s, si) => (
+              <div key={s.id} className="px-4 pt-4" onFocusCapture={() => setActive(s.id)} onClick={() => setActive(s.id)}>
+                <div
+                  className={`rounded-2xl border bg-white/80 dark:bg-card-dark p-4 space-y-3 transition-colors ${
+                    active === s.id ? 'border-brand' : 'border-gray-200/70 dark:border-white/[0.08]'
+                  }`}
+                >
+                  <div className="flex items-center gap-1">
+                    <input
+                      className="flex-1 min-w-0 bg-transparent text-[14.5px] lg:text-[16px] font-bold text-ink-strong focus:outline-none border-b border-transparent focus:border-brand"
+                      value={s.label}
+                      maxLength={30}
+                      onChange={e => editSections(list => list.map(x => (x.id === s.id ? { ...x, label: e.target.value } : x)))}
+                      aria-label="칸 이름"
+                    />
+                    <IconButton icon="arrow_upward" label="칸 위로" disabled={si === 0} onClick={() => moveSection(si, -1)} />
+                    <IconButton icon="arrow_downward" label="칸 아래로" disabled={si === draft.sections.length - 1} onClick={() => moveSection(si, 1)} />
+                    <IconButton
+                      icon="close"
+                      label="칸 지우기"
+                      danger
+                      disabled={draft.sections.length <= 1}
+                      onClick={() => {
+                        if ((s.text.trim() || s.manuscript?.trim() || s.note_ids.length) && !window.confirm(`'${s.label}' 칸의 글·원고와 메모 배치를 지울까요?`)) return
+                        editSections(list => list.filter(x => x.id !== s.id))
+                      }}
+                    />
+                  </div>
+                  <textarea
+                    className={`${inputCls} min-h-[96px] resize-y lg:text-[15.5px] lg:leading-[1.8]`}
+                    value={s.text}
+                    maxLength={6000}
+                    placeholder={`${s.label}에서 전할 내용`}
+                    onChange={e => editSections(list => list.map(x => (x.id === s.id ? { ...x, text: e.target.value } : x)))}
+                  />
+                  {s.note_ids.length > 0 && (
+                    <ul className="space-y-1.5">
+                      {s.note_ids.map((nid, ni) => {
+                        const n = notes[nid]
+                        if (!n) return null
+                        const first = si === 0 && ni === 0
+                        const last = si === draft.sections.length - 1 && ni === s.note_ids.length - 1
+                        return (
+                          <li key={nid}>
+                            <NoteCard
+                              note={n}
+                              compact
+                              onOpen={() => setOpenNote(n)}
+                              trailing={
+                                <>
+                                  <IconButton icon="arrow_upward" label="위로" disabled={first} onClick={() => moveNote(si, ni, -1)} />
+                                  <IconButton icon="arrow_downward" label="아래로" disabled={last} onClick={() => moveNote(si, ni, 1)} />
+                                  <IconButton
+                                    icon="link_off"
+                                    label="이 칸에서 빼기"
+                                    danger
+                                    onClick={() =>
+                                      editSections(list => list.map(x => (x.id === s.id ? { ...x, note_ids: x.note_ids.filter(v => v !== nid) } : x)))
+                                    }
+                                  />
+                                </>
+                              }
+                            />
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setPicking(s.id)}
+                    className="w-full py-2 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.15] text-[12.5px] lg:text-[14px] font-semibold text-gray-600 dark:text-white/65 hover:border-brand hover:text-brand"
+                  >
+                    + 메모 넣기
+                  </button>
+                </div>
               </div>
+            ))}
+            <div className="px-4 pt-3">
+              <button
+                type="button"
+                disabled={draft.sections.length >= 12}
+                onClick={() => {
+                  const sid = newSectionId()
+                  editSections(list => [...list, { id: sid, label: '새 칸', text: '', manuscript: '', note_ids: [] }])
+                  setActive(sid)
+                }}
+                className="w-full py-2.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-[13px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand disabled:opacity-40"
+              >
+                + 칸 추가 (예: 본론 2, 예화, 기도)
+              </button>
             </div>
-          ))}
-          <div className="px-4 pt-3">
-            <button
-              type="button"
-              disabled={draft.sections.length >= 12}
-              onClick={() => {
-                const sid = newSectionId()
-                editSections(list => [...list, { id: sid, label: '새 칸', text: '', note_ids: [] }])
-                setActive(sid)
-              }}
-              className="w-full py-2.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-[13px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand disabled:opacity-40"
-            >
-              + 칸 추가 (예: 본론 2, 예화, 기도)
-            </button>
+          </div>
+
+          <div className="contents lg:block">
+            <RelatedPanel
+              passage={draft.passage}
+              used={allNoteIds}
+              activeLabel={draft.sections.find(x => x.id === active)?.label ?? null}
+              onAdd={n => active && attach(active, [n])}
+              onOpen={setOpenNote}
+            />
           </div>
         </div>
-
-        <div className="contents lg:block">
-          <RelatedPanel
-            passage={draft.passage}
-            used={allNoteIds}
-            activeLabel={draft.sections.find(x => x.id === active)?.label ?? null}
-            onAdd={n => active && attach(active, [n])}
-            onOpen={setOpenNote}
-          />
-        </div>
-      </div>
+      )}
 
       {picking && (
         <NotePicker
@@ -576,6 +623,11 @@ const buildOutlineText = (d: Draft, notes: Record<number, SermonNote>): string =
   if (meta) lines.push(meta)
   for (const s of d.sections) {
     lines.push('', `■ ${s.label}`)
+    // 원고를 쓴 칸은 원고를 — 인쇄해 강단에 들고 가는 용도
+    if (s.manuscript?.trim()) {
+      lines.push(s.manuscript.trim())
+      continue
+    }
     if (s.text.trim()) lines.push(s.text.trim())
     for (const nid of s.note_ids) {
       const n = notes[nid]

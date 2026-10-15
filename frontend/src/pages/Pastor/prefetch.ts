@@ -75,6 +75,10 @@ const SECTIONS: Record<string, SectionPrefetch> = {
         queryFn: () => fetchSermonPrep(SERMON_YEARS),
       }),
   },
+  '/pastor/sermon/study': {
+    chunk: () => import('./PastorSermonStudy'),
+    data: qc => qc.prefetchQuery({ queryKey: pastorKeys.outlines(), queryFn: fetchOutlines }),
+  },
   '/pastor/sermon/notes': {
     chunk: () => import('./PastorSermonNotes'),
     data: qc => qc.prefetchQuery({ queryKey: pastorKeys.noteList({}), queryFn: () => fetchNotes({}) }),

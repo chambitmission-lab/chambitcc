@@ -181,14 +181,22 @@ const RelatedNotes = ({ passage }: { passage: string }) => {
         <p className="text-[12.5px] font-bold text-ink-strong">
           이 본문과 이어지는 내 메모 {items.length > 0 && <span className="text-brand">{items.length}</span>}
         </p>
-        <button
-          type="button"
-          disabled={start.isPending}
-          onClick={() => start.mutate()}
-          className="shrink-0 flex items-center gap-0.5 text-[12px] font-bold text-brand hover:underline disabled:opacity-40"
-        >
-          <span className="material-icons-outlined text-[16px]">view_agenda</span>이 본문으로 개요 시작
-        </button>
+        <span className="shrink-0 flex items-center gap-3">
+          <Link
+            to={`/pastor/sermon/study?ref=${encodeURIComponent(passage)}`}
+            className="flex items-center gap-0.5 text-[12px] font-bold text-brand hover:underline"
+          >
+            <span className="material-icons-outlined text-[16px]">travel_explore</span>작업대에서 열기
+          </Link>
+          <button
+            type="button"
+            disabled={start.isPending}
+            onClick={() => start.mutate()}
+            className="flex items-center gap-0.5 text-[12px] font-bold text-brand hover:underline disabled:opacity-40"
+          >
+            <span className="material-icons-outlined text-[16px]">view_agenda</span>이 본문으로 개요 시작
+          </button>
+        </span>
       </div>
       {data?.topics && data.topics.length > 0 && (
         <p className="text-[12px] text-gray-600 dark:text-white/60">본문의 주제: {data.topics.join(' · ')}</p>
