@@ -51,7 +51,6 @@ const EventAlbumManagement = () => {
       return
     }
     loadPosts()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate])
 
   const loadPosts = async () => {
