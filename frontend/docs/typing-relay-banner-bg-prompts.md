@@ -273,8 +273,9 @@ behind it, open and ready to receive the baton. Everything else must stay pixel-
   채웠는데, 워터마크가 오른쪽 띠(≈1672,472)에 떨어졌다. `(300,100)-(1492,530)` 크롭이면 띠째 사라진다.
 - **하늘을 투명으로 뺐다** — 위쪽 30px 중앙값을 하늘색으로 잡고 색 거리 22~70 을 알파 램프로,
   반투명 픽셀은 하늘색을 언믹스. 하늘 네모를 그대로 두면 배너 그라데이션과 색이 달라 상자가 보였다.
-  가장자리 페이드도 함께 구움(좌 30 · 우 120 · 위 20 · 아래 24px, 원본 기준).
-- 최종 `src/assets/typing-relay/banner-{light,dark}.webp` 665×240, 각 ≈30KB.
+  가장자리 페이드도 함께 구움(좌 30 · 우 26 · 위 20 · 아래 24px, 원본 기준) + 오른쪽에 투명 여백 24px.
+  **우측 페이드를 넓히면(120px) 받는 양 얼굴이 흐려져 잘려 보인다** — 양 코끝이 원본 x≈1462 라 26px 이내로.
+- 최종 `src/assets/typing-relay/banner-{light,dark}.webp` 679×240, 각 ≈30KB.
 - **배치**: `.bt-studyroom::before` 에 `auto 100%` 높이맞춤, `right var(--relay-art-right)` —
   버튼 폭만큼 비켜 선다(기본 146px, 바통 버튼 있으면 `.has-pass` 266px).
   배너 자신이 `container-type: inline-size` 라 폭 760px(바통 있으면 880px) 아래에선 삽화를 숨긴다.
