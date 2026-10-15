@@ -157,6 +157,35 @@
   box-shadow: 0 6px 20px -8px rgba(49, 130, 246, 0.35);
 }
 
+/* 키보드(Tab) 포커스 — 안쪽 본문 div에 브라우저 기본 검은 외곽선이 각지게 붙어
+   카드 모서리와 어긋나 보였다. 외곽선은 끄고, 카드 전체를 hover와 같은
+   지오메트리로 띄운 뒤 브랜드 블루 링을 둥글게 두른다(레이아웃 이동 없음). */
+.bible-verse-body:focus,
+.bible-verse-flow-body:focus {
+  outline: none;
+}
+
+.bible-verse-item:not(.bible-verse-item--flow):has(> .bible-verse-body:focus-visible) {
+  background: rgba(49, 130, 246, 0.06);
+  margin: 0 -0.75rem;
+  /* 상하 패딩은 화면 폭별 기본값을 그대로 쓴다(모바일 1rem) — 좌우만 hover와 맞춤 */
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  border-radius: 12px;
+  border-bottom: 1px solid transparent;
+  box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.45);
+}
+
+.bible-verse-item:has(> .bible-verse-body:focus-visible) .bible-verse-number {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+[data-theme="dark"] .bible-verse-item:not(.bible-verse-item--flow):has(> .bible-verse-body:focus-visible) {
+  background: rgba(69, 147, 252, 0.08);
+  box-shadow: 0 0 0 2px rgba(69, 147, 252, 0.55);
+}
+
 /* 읽는 중 상태도 selected/hover와 동일한 지오메트리라 별도 hover 보정이 필요 없다.
    (예전엔 margin -1rem로 덮어써서 음성 시작 시 폭이 바뀌는 원인이었음) */
 
@@ -902,6 +931,12 @@
 .bible-verse-item--flow.verse-selected .bible-verse-flow-body {
   background: rgba(49, 130, 246, 0.1);
   box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.1);
+}
+
+/* 이어읽기 Tab 포커스 — 줄마다 끊겨도 둥근 형광펜처럼 (box-decoration-break: clone) */
+.bible-verse-flow-body:focus-visible {
+  background: rgba(49, 130, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.4);
 }
 
 .bible-verse-item--flow.verse-reading .bible-verse-flow-body {

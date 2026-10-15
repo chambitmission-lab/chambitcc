@@ -1,0 +1,64 @@
+/* 홈 우측 레일 '이번주 기도' 카드 — 창가 삽화 머리 + 빛 알갱이. 접두사 pw-.
+   삽화(src/assets/prayer-week/window-*.webp, 960x644)는 위 45% 가 빈 하늘(제목 자리),
+   창턱 가운데 빛 웅덩이(세로 ~80%)가 빛 알갱이의 출발점, 맨 아래 12% 가 카드 바탕색으로
+   녹아 있다. 아래쪽 흰 띠는 보여줄 필요가 없어 비율을 960x600 으로 잘라 쓴다. */
+
+.pw-art {
+  position: relative;
+  aspect-ratio: 960 / 600;
+  /* 그림이 오기 전엔 맨 위 하늘색으로 자리를 지킨다 */
+  background-color: #caebfa;
+  overflow: hidden;
+}
+:root.dark .pw-art {
+  background-color: #0c1831;
+}
+.pw-art-img {
+  position: absolute;
+  inset: 0;
+  background-size: 100% auto;
+  background-position: top center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+/* 파일이 도착한 뒤 그림을 띄운다 — 빈 하늘에서 그림이 툭 튀어나오지 않게 */
+.pw-art-img.is-loaded {
+  opacity: 1;
+}
+
+/* 빛 알갱이 — 아멘이 많은 주일수록 창턱에서 더 많이 떠오른다 */
+.pw-mote {
+  position: absolute;
+  bottom: 16%;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 8px 2px rgba(150, 200, 255, 0.85);
+  opacity: 0;
+  animation: pw-rise linear infinite;
+  pointer-events: none;
+}
+:root.dark .pw-mote {
+  background: #dfeeff;
+  box-shadow: 0 0 10px 3px rgba(120, 180, 255, 0.7);
+}
+@keyframes pw-rise {
+  0% { opacity: 0; transform: translate(0, 0); }
+  15% { opacity: 0.95; }
+  80% { opacity: 0.55; }
+  100% { opacity: 0; transform: translate(var(--pw-dx), -110px); }
+}
+
+/* 요일 막대 — 아래에서 자라 오른다 */
+.pw-bar {
+  transform-origin: bottom;
+  animation: pw-grow 0.8s cubic-bezier(0.3, 1.25, 0.5, 1) both;
+}
+@keyframes pw-grow {
+  from { transform: scaleY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pw-mote { display: none; }
+  .pw-bar { animation: none; }
+}

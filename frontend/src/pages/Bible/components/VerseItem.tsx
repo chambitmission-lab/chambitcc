@@ -419,6 +419,7 @@ const VerseItem = ({
     >
       {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
       <div
+        className="bible-verse-body"
         onClick={handleBodyActivate}
         {...bodyA11y}
         style={{

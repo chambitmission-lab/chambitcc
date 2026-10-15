@@ -4,15 +4,11 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useSituationCategories } from '../../../../hooks/useSituation'
-import { EmotionGlyph } from '../EmotionGlyph'
-import { TagIcon } from './railIcons'
 import type { SituationCategory } from '../../../../types/situation'
 import { EMOTION_META, pick } from './shared'
-import { RailLabel } from './RailLabel'
 import { useWeeklyPrayerStats } from './queries'
 
 // ── 2. 기도 태그 ──────────────────────────────────────────────────────
-
 
 const SituationTagsWidget = () => {
   const navigate = useNavigate()
@@ -42,79 +38,79 @@ const SituationTagsWidget = () => {
 
   if (!showReal && curated.length === 0) return null
 
+  // 이번주 실측이면 감정 이름 + 위첨자 횟수, 폴백이면 큐레이션 카테고리 이름만
+  const words = showReal
+    ? weeklyEmotions.flatMap(({ emotion, count }) => {
+        const meta = EMOTION_META[emotion]
+        if (!meta) return []
+        const cat = categoryForEmotion(emotion)
+        return [
+          {
+            key: emotion,
+            label: pick(language, meta.label, meta.labelEn),
+            count: count as number | undefined,
+            to: cat ? `/bible/situation?c=${cat.id}` : '/bible/situation',
+          },
+        ]
+      })
+    : curated.map((cat) => ({
+        key: String(cat.id),
+        label: cat.name,
+        count: undefined as number | undefined,
+        to: `/bible/situation?c=${cat.id}`,
+      }))
+
   return (
     <section className="px-4 pt-3">
-      <RailLabel>
-        <TagIcon size={14} className="shrink-0" />
-        {showReal ? t('homeRailTagsWeekTitle') : t('homeRailTagsCuratedTitle')}
-      </RailLabel>
-      <div className="feed-card rounded-2xl p-3.5">
-        {showReal && (
-          <p className="px-0.5 mb-2 text-[11.5px] text-gray-400 dark:text-white/45">
-            {t('homeRailTagsHint')}
-          </p>
-        )}
-        <div className="flex flex-wrap gap-1.5">
-          {showReal
-            ? weeklyEmotions.map(({ emotion, count }, idx) => {
-                const meta = EMOTION_META[emotion]
-                if (!meta) return null
-                const cat = categoryForEmotion(emotion)
-                // 이번주 1위 감정은 브랜드로 채운 히어로 칩 — 통계 카드의 히어로 타일과 같은 문법
-                const top = idx === 0
-                return (
-                  <button
-                    key={emotion}
-                    type="button"
-                    onClick={() =>
-                      navigate(cat ? `/bible/situation?c=${cat.id}` : '/bible/situation')
-                    }
-                    className={`inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1.5 rounded-full text-[12px] font-semibold active:scale-[0.97] transition-[background-color,transform,box-shadow] duration-150 ${
-                      top
-                        ? 'text-white shadow-[0_6px_14px_-6px_var(--brand-glow)]'
-                        : 'bg-[var(--brand-soft)] text-brand hover:bg-[var(--brand-soft-strong)]'
-                    }`}
-                    style={
-                      top
-                        ? { background: 'linear-gradient(135deg, var(--brand-dim), var(--brand) 60%, #6cb0ff)' }
-                        : undefined
-                    }
-                  >
-                    <EmotionGlyph emotion={emotion} fallback={meta.emoji} size={14} className="shrink-0" />
-                    {pick(language, meta.label, meta.labelEn)}
-                    {/* --brand는 CSS 변수라 /70 투명도 수식자가 조용히 미생성 → 인라인 알파 배지로 */}
-                    <span
-                      className={`ml-0.5 min-w-[18px] px-1.5 py-px rounded-full text-[10.5px] font-bold tabular-nums text-center ${
-                        top ? 'bg-white/20 text-white' : 'bg-[var(--brand-soft-strong)]'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                )
-              })
-            : curated.map((cat) => (
+      <div className="feed-card rounded-2xl px-[18px] pt-4 pb-4">
+        <p className="text-[12px] font-semibold text-[var(--text-muted)]">
+          {showReal ? t('homeRailTagsWeekTitle') : t('homeRailTagsCuratedTitle')}
+        </p>
+        {/* 태그를 칩이 아니라 한 문장으로 읽힌다 — "혼란¹, 감사¹, 외로움¹ 의 마음이 모였어요".
+            단어마다 밑줄 링크라 누르면 그 마음에 맞는 상황별 말씀으로 간다 */}
+        <p className="mt-2 break-keep text-[16.5px] font-bold leading-[1.7] tracking-[-0.02em] text-ink-strong">
+          {words.map((w, i) => (
+            <span key={w.key}>
+              {i > 0 && ', '}
+              {/* 단어와 위첨자 횟수는 한 덩어리 — 줄이 바뀌어도 숫자만 떨어지지 않게 */}
+              <span className="whitespace-nowrap">
                 <button
-                  key={cat.id}
                   type="button"
-                  onClick={() => navigate(`/bible/situation?c=${cat.id}`)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--brand-soft)] text-brand text-[12px] font-semibold hover:bg-[var(--brand-soft-strong)] active:scale-[0.97] transition-[background-color,transform] duration-150"
+                  onClick={() => navigate(w.to)}
+                  className="border-b-[1.5px] border-[var(--brand-soft-strong)] pb-px text-brand transition-colors duration-150 hover:border-[var(--brand)]"
                 >
-                  {/* icon은 Material Icons 리가처 이름 — 텍스트로 찍히지 않게 아이콘 폰트로 렌더 */}
-                  <span className="material-icons-round text-[13px]" aria-hidden>
-                    {cat.icon}
-                  </span>
-                  {cat.name}
+                  {w.label}
                 </button>
-              ))}
-          <button
-            type="button"
-            onClick={() => navigate('/bible/situation')}
-            className="px-2.5 py-1.5 rounded-full border border-[var(--card-border)] text-[12px] font-semibold text-ink-muted hover:text-brand hover:border-[var(--brand-glow)] active:scale-[0.97] transition-colors duration-150"
+                {w.count !== undefined && (
+                  <sup className="ml-0.5 text-[10px] font-bold tabular-nums text-[var(--text-muted)]">
+                    {w.count}
+                  </sup>
+                )}
+              </span>
+            </span>
+          ))}
+          {showReal && <span className="ml-1 whitespace-nowrap">{t('homeRailTagsSentenceTail')}</span>}
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/bible/situation')}
+          className="mt-3 flex w-full items-center justify-between rounded-xl bg-[var(--brand-soft)] px-3.5 py-[11px] text-[13px] font-bold text-brand transition-colors duration-150 hover:bg-[var(--brand-soft-strong)] active:scale-[0.99]"
+        >
+          {t('homeRailTagsCta')}
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
           >
-            {t('homeRailMore')}
-          </button>
-        </div>
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </button>
       </div>
     </section>
   )

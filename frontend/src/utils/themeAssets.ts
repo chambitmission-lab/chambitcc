@@ -38,6 +38,8 @@ import thanksHeroLight from '../assets/thanks/hero-light.webp'
 import thanksHeroDark from '../assets/thanks/hero-dark.webp'
 import intercessionHeroLight from '../assets/intercession/hero-light.webp'
 import intercessionHeroDark from '../assets/intercession/hero-dark.webp'
+import prayerWeekWindowLight from '../assets/prayer-week/window-light.webp'
+import prayerWeekWindowDark from '../assets/prayer-week/window-dark.webp'
 import growthHeroMorningLight from '../assets/growth/hero-morning-light.webp'
 import growthHeroMorningDark from '../assets/growth/hero-morning-dark.webp'
 import growthHeroAfternoonLight from '../assets/growth/hero-afternoon-light.webp'
@@ -128,6 +130,8 @@ export const RAIL_BOTTOM: ThemePair = {
   light: '/images/rail/bottom-light.webp',
   dark: '/images/rail/bottom-dark.webp',
 }
+/** 홈 PC 우측 레일 '이번주 기도' 카드 머리 — 창가 삽화 (rail/PrayerStatsWidget.tsx) */
+export const PRAYER_WEEK_WINDOW: ThemePair = { light: prayerWeekWindowLight, dark: prayerWeekWindowDark }
 /** 홈 공지 배너 마스코트 (HomeNotice.tsx 인라인 스타일) */
 export const NOTICE_BANNER: ThemePair = { light: '/images/notice/banner-light.webp', dark: '/images/notice/banner-dark.webp' }
 /** /bible 성경 읽기 현황 카드 배경 — 예수님·어린양 치비 삽화 (book-selector/summary.css .reading-hero)
