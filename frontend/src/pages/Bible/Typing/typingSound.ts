@@ -10,19 +10,22 @@ import thockUpUrl from '../../../assets/typing-sounds/thock-up.wav'
 import typewriterUrl from '../../../assets/typing-sounds/typewriter.mp3'
 import customUrl from '../../../assets/typing-sounds/real-custom.mp3'
 import ibmUrl from '../../../assets/typing-sounds/real-ibm.mp3'
+import rainUrl from '../../../assets/typing-sounds/ambient-rain.mp3'
 import { SPRITE_ANCHOR_RATIO, TYPING_SPRITES } from './typingSprites'
+import { TYPING_AMBIENTS } from './typingAmbients'
 
 export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm'
 export type SoundKind = 'key' | 'space' | 'back' | 'done'
 
 export const SOUND_THEMES: { key: SoundTheme; label: string; desc: string }[] = [
+  // 가장 반응이 좋은 소리라 맨 위에
+  { key: 'real-custom', label: '커스텀 키보드', desc: '깊게 울리는 도독도독' },
   { key: 'off', label: '소리 끄기', desc: '조용히' },
   { key: 'pen', label: '만년필', desc: '종이 위 사각사각' },
   { key: 'typewriter', label: '타자기', desc: '진짜 타자기 녹음, 다 쓰면 종소리' },
   { key: 'keys', label: '기계식 키보드', desc: '낮고 둥근 타건음' },
   { key: 'real-thock', label: '실제 키보드 · 도각', desc: '녹음한 묵직한 타건음' },
   { key: 'real-click', label: '실제 키보드 · 찰칵', desc: '녹음한 가볍고 맑은 타건음' },
-  { key: 'real-custom', label: '커스텀 키보드', desc: '깊게 울리는 도독도독' },
   { key: 'real-ibm', label: '옛날 IBM 키보드', desc: '스프링이 철컥철컥' },
 ]
 
@@ -300,11 +303,24 @@ export const playTypingSound = (kind: SoundKind) => {
 }
 
 // ── 빗소리(배경) ─────────────────────────────────────
+// 창에 듣는 실제 빗소리 녹음(scripts/gen-typing-ambient.py). 못 받으면 예전 갈색 잡음으로 대신한다
+const RAIN_GAIN = 0.55
 let rain: { src: AudioBufferSourceNode; gain: GainNode } | null = null
+let rainBuffer: AudioBuffer | null = null
+let rainLoading: Promise<AudioBuffer | null> | null = null
+let rainToken = 0 // 받는 사이 껐다 켰다 해도 마지막 요청만 소리 나게
 
-const startRain = () => {
-  const ac = audio()
-  if (!ac || rain) return
+const loadRain = (ac: AudioContext) => {
+  rainLoading ??= decode(ac, rainUrl)
+    .then((buf) => (rainBuffer = buf))
+    .catch(() => {
+      rainLoading = null
+      return null
+    })
+  return rainLoading
+}
+
+const synthRain = (ac: AudioContext) => {
   // 갈색 잡음 — 낮게 깔리는 빗소리
   const len = ac.sampleRate * 4
   const buf = ac.createBuffer(2, len, ac.sampleRate)
@@ -317,21 +333,64 @@ const startRain = () => {
       d[i] = last * 3.2
     }
   }
+  return buf
+}
+
+/** 표지음으로 디코더 지연을 재서 반복 구간을 잡는다 — 표지음은 loopStart 앞이라 들리지 않는다 */
+const rainLoop = (buf: AudioBuffer) => {
+  const { marker, loopStart, loopLength } = TYPING_AMBIENTS.rain
+  const d = buf.getChannelData(0)
+  const limit = Math.min(d.length, Math.round(buf.sampleRate * (loopStart - 0.02)))
+  let i = 0
+  while (i < limit && Math.abs(d[i]) < 0.5) i++
+  const shift = i < limit ? i / buf.sampleRate - marker : 0
+  return { start: loopStart + shift, end: loopStart + shift + loopLength }
+}
+
+const playRain = (ac: AudioContext, buf: AudioBuffer | null) => {
   const src = ac.createBufferSource()
-  src.buffer = buf
-  src.loop = true
-  const f = ac.createBiquadFilter()
-  f.type = 'lowpass'
-  f.frequency.value = 1400
   const gain = ac.createGain()
+  let target = RAIN_GAIN
+  let offset = 0
+  if (buf) {
+    const { start, end } = rainLoop(buf)
+    src.buffer = buf
+    src.loopStart = start
+    src.loopEnd = end
+    offset = start + Math.random() * (end - start) // 매번 같은 자리에서 시작하지 않게
+    src.connect(gain)
+  } else {
+    src.buffer = synthRain(ac)
+    const f = ac.createBiquadFilter()
+    f.type = 'lowpass'
+    f.frequency.value = 1400
+    src.connect(f).connect(gain)
+    target = 0.22
+  }
+  src.loop = true
   gain.gain.setValueAtTime(0.0001, ac.currentTime)
-  gain.gain.exponentialRampToValueAtTime(0.22, ac.currentTime + 1.2)
-  src.connect(f).connect(gain).connect(ac.destination)
-  src.start()
+  gain.gain.exponentialRampToValueAtTime(target, ac.currentTime + 1.5)
+  gain.connect(ac.destination)
+  src.start(0, offset)
   rain = { src, gain }
 }
 
+const startRain = () => {
+  const ac = audio()
+  if (!ac || rain) return
+  const token = ++rainToken
+  if (rainBuffer) {
+    playRain(ac, rainBuffer)
+    return
+  }
+  void loadRain(ac).then((buf) => {
+    if (token !== rainToken || rain || !ambientOn) return
+    playRain(ac, buf)
+  })
+}
+
 const stopRain = () => {
+  rainToken++
   if (!rain || !ctx) return
   const { src, gain } = rain
   rain = null
