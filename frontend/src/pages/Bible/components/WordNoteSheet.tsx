@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
 import type { WordNote } from '../../../api/bibleWordNote'
 import {
@@ -57,6 +57,11 @@ const WordNoteSheet = ({
   useLayoutEffect(() => {
     const el = noteRef.current
     if (mode !== 'edit' || !el) return
+    // PC(lg+)는 오른쪽 칸을 꽉 채우는 고정 높이 + 내부 스크롤 — 자동 높이 끔
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      el.style.height = ''
+      return
+    }
     el.style.height = 'auto'
     el.style.height = `${el.scrollHeight + 2}px`
   }, [mode, note])
@@ -136,6 +141,14 @@ const WordNoteSheet = ({
     }
   }
 
+  // PC 편의 — Ctrl/⌘ + Enter 로 저장
+  const onSaveShortcut = (e: ReactKeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !isBusy) {
+      e.preventDefault()
+      void handleSave()
+    }
+  }
+
   const handleDelete = async () => {
     if (!existing) return
     try {
@@ -158,7 +171,10 @@ const WordNoteSheet = ({
       onClick={onClose}
     >
       <div
-        className="pc-scale-sheet relative w-full sm:max-w-md sheet-rise max-h-[94vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className={`pc-scale-sheet relative w-full sm:max-w-md ${
+          // PC(lg+): 좁은 시트 대신 2칸 편집 책상 — 왼쪽 말씀·단어, 오른쪽 넓은 메모
+          mode === 'edit' ? 'lg:max-w-[1000px] lg:h-[min(86vh,820px)]' : 'lg:max-w-[880px]'
+        } sheet-rise max-h-[94vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 표면 그라데이션 + 글로우 */}
@@ -166,7 +182,7 @@ const WordNoteSheet = ({
         <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
-        <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="relative z-10 flex items-center gap-3 px-5 py-4 lg:px-7 border-b border-black/[0.04] dark:border-white/[0.06]">
           <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
             <span className="material-icons-round text-[22px]">spellcheck</span>
@@ -187,9 +203,11 @@ const WordNoteSheet = ({
         </div>
 
         {/* 본문 */}
-        <div className="relative z-10 flex-1 overflow-y-auto px-5 py-5 space-y-5">
+        {/* 모바일: 한 줄로 쌓여 본문 전체 스크롤 / PC(lg+): 좌우 2칸, 칸마다 따로 스크롤 */}
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-5 py-5 space-y-5 lg:space-y-0 lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-7 lg:px-7 lg:py-6">
+          <div className="space-y-5 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
           {/* 말씀 본문 — 선택한 단어 강조 */}
-          <div className="rounded-xl border-l-[3px] border-brand bg-gray-50 dark:bg-white/[0.03] px-4 py-3 text-[14.5px] leading-[1.7] text-gray-700 dark:text-white/80">
+          <div className="rounded-xl border-l-[3px] border-brand bg-gray-50 dark:bg-white/[0.03] px-4 py-3 text-[14.5px] leading-[1.7] lg:text-[15.5px] lg:leading-[1.8] text-gray-700 dark:text-white/80">
             {validRange ? (
               <>
                 {verseText.slice(0, start!)}
@@ -211,20 +229,8 @@ const WordNoteSheet = ({
             )}
           </div>
 
-          {mode === 'view' ? (
-            /* 읽기 모드 — 단어 + 메모를 편안한 본문 타이포로 */
-            <div className="rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] px-4 py-4">
-              <div className="flex items-center gap-1.5 mb-2 text-brand">
-                <span className="material-icons-round text-[16px]">spellcheck</span>
-                <span className="text-[15px] font-bold tracking-[-0.01em]">{word}</span>
-              </div>
-              <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.8] text-gray-800 dark:text-white/90">
-                {existing?.note}
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* 단어 */}
+          {mode === 'edit' && (
+              /* 단어 */
               <div>
                 <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em] mb-2">
                   단어 <span className="font-medium text-gray-400 dark:text-white/40">(조사를 지우면 밑줄도 그만큼만 남아요)</span>
@@ -233,13 +239,28 @@ const WordNoteSheet = ({
                   type="text"
                   value={word}
                   onChange={(e) => setWord(e.target.value.slice(0, 100))}
+                  onKeyDown={onSaveShortcut}
                   placeholder="예: 긍휼"
                   className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[16px] font-bold text-ink-strong placeholder:font-normal placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
                 />
               </div>
+          )}
+          </div>
 
-              {/* 뜻/메모 */}
-              <div>
+          {mode === 'view' ? (
+            /* 읽기 모드 — 단어 + 메모를 편안한 본문 타이포로 */
+            <div className="rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] px-4 py-4 lg:px-6 lg:py-5 lg:min-h-0 lg:overflow-y-auto">
+              <div className="flex items-center gap-1.5 mb-2 text-brand">
+                <span className="material-icons-round text-[16px]">spellcheck</span>
+                <span className="text-[15px] lg:text-[17px] font-bold tracking-[-0.01em]">{word}</span>
+              </div>
+              <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.8] lg:text-[16px] lg:leading-[1.85] text-gray-800 dark:text-white/90">
+                {existing?.note}
+              </p>
+            </div>
+          ) : (
+              /* 뜻/메모 — PC 에선 오른쪽 칸 전체를 채우는 넓은 쓰기 면 */
+              <div className="lg:min-h-0 lg:flex lg:flex-col">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
                     뜻 · 메모 <span className="font-medium text-gray-400 dark:text-white/40">(선택)</span>
@@ -250,17 +271,17 @@ const WordNoteSheet = ({
                   ref={noteRef}
                   value={note}
                   onChange={(e) => setNote(e.target.value.slice(0, 2000))}
+                  onKeyDown={onSaveShortcut}
                   rows={4}
                   placeholder="찾아본 뜻이나 기억하고 싶은 내용을 적어보세요..."
-                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-none min-h-[100px] overflow-hidden focus:outline-none focus:border-brand transition-colors"
+                  className="w-full px-3.5 py-3 lg:px-5 lg:py-4 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] lg:text-[15.5px] lg:leading-[1.8] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-none min-h-[100px] overflow-hidden lg:flex-1 lg:min-h-0 lg:overflow-y-auto focus:outline-none focus:border-brand transition-colors"
                 />
               </div>
-            </>
           )}
         </div>
 
         {/* 푸터 */}
-        <div className="relative z-10 sticky bottom-0 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+        <div className="relative z-10 sticky bottom-0 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 lg:px-7 flex items-center gap-2">
           {existing ? (
             <button
               onClick={handleDelete}
@@ -293,6 +314,9 @@ const WordNoteSheet = ({
             </>
           ) : (
             <>
+              <span className="hidden lg:inline ml-auto text-[12px] text-gray-400 dark:text-white/40">
+                Ctrl + Enter 로 저장
+              </span>
               <button
                 onClick={() => {
                   // 읽기 모드에서 들어온 편집이면 취소는 닫지 않고 읽기로 복귀
@@ -305,7 +329,7 @@ const WordNoteSheet = ({
                   }
                 }}
                 disabled={isBusy}
-                className="ml-auto px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+                className="ml-auto lg:ml-2 px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
               >
                 취소
               </button>

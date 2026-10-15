@@ -51,6 +51,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['typing-relay', () => import('../pages/dev/TypingRelayRoomPreview')],
       // 필사 화면 개편 — 혼자 쓸 때(같은 장 사람·알아두면 좋은 말) / 릴레이 방 독서실(?room=1)
       ['typing-together', () => import('../pages/dev/TypingTogetherPreview')],
+      // 공동 기도제목(/prayer-topics) 개편 시안 비교 — ?v=a|b|c
+      ['prayer-topics', () => import('../pages/dev/PrayerTopicsPreview')],
     ]
   : []
 
