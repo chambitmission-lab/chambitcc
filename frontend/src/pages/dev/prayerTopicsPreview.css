@@ -1,4 +1,4 @@
-/* /#/dev/prayer-topics 시안 — pt- (공용) / pta- / ptb- / ptc- */
+/* /#/dev/prayer-topics 시안 — pt- 공용 / ptb- / ptd- / pte- / ptf- / ptg- */
 
 .pt-card {
   border-radius: 1.25rem;
@@ -6,287 +6,16 @@
   border: 1px solid rgba(229, 231, 235, 0.8);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
-:root.dark .pt-card {
-  background: #201f1f;
-  border-color: rgba(255, 255, 255, 0.08);
-}
+:root.dark .pt-card { background: #201f1f; border-color: rgba(255, 255, 255, 0.08); }
 
-/* ── A ─────────────────────────────────────────── */
-.pta-hero {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.5rem;
-  background-color: #caebfa;
-}
-:root.dark .pta-hero {
-  background-color: #0c1831;
-}
-.pta-hero-img {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center 70%;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-.pta-hero-img.is-loaded {
-  opacity: 1;
-}
-.pta-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--brand);
-  background: var(--brand-soft-strong);
-  transition: background 0.25s, color 0.25s;
-}
-.pta-dot.is-on {
-  background: var(--brand);
-  color: #fff;
-}
-
-.pta-path {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-.pta-step {
-  position: relative;
-  display: flex;
-  gap: 14px;
-}
-/* 번호를 잇는 선 */
-.pta-step:not(:last-child)::before {
-  content: '';
-  position: absolute;
-  left: 17px;
-  top: 40px;
-  bottom: -18px;
-  width: 2px;
-  background: linear-gradient(var(--brand-soft-strong), var(--brand-soft-strong));
-}
-.pta-step.is-done:not(:last-child)::before {
-  background: var(--brand);
-}
-.pta-node {
-  position: relative;
-  z-index: 1;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--brand);
-  background: var(--background-light, #fff);
-  border: 2px solid var(--brand);
-  transition: background 0.3s, color 0.3s;
-}
-:root.dark .pta-node {
-  background: #131313;
-}
-.pta-step.is-done .pta-node {
-  background: var(--brand);
-  color: #fff;
-}
-.pta-card {
-  flex: 1;
-  min-width: 0;
-  border-radius: 1.25rem;
-  background: #fff;
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  padding: 18px 18px 16px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: border-color 0.3s, background 0.3s;
-}
-:root.dark .pta-card {
-  background: linear-gradient(180deg, #232222, #1f1e1e);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-.pta-step.is-done .pta-card {
-  border-color: color-mix(in srgb, var(--brand) 35%, transparent);
-  background: color-mix(in srgb, var(--brand) 4%, #fff);
-}
-:root.dark .pta-step.is-done .pta-card {
-  background: color-mix(in srgb, var(--brand) 8%, #201f1f);
-}
-@media (min-width: 1024px) {
-  .pta-path { gap: 22px; }
-  .pta-step { gap: 20px; }
-  .pta-step:not(:last-child)::before { left: 21px; top: 48px; bottom: -22px; }
-  .pta-node { width: 44px; height: 44px; font-size: 19px; }
-  .pta-card { padding: 26px 28px 22px; border-radius: 1.5rem; }
-}
-.pta-amen {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border-radius: 9999px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  background: var(--brand);
-  transition: transform 0.12s, background 0.25s, color 0.25s;
-}
-.pta-amen:active { transform: scale(0.96); }
-.pta-amen.is-on {
-  color: var(--brand);
-  background: var(--brand-soft-strong);
-}
-@media (min-width: 1024px) {
-  .pta-amen { padding: 13px 24px; font-size: 16px; }
-}
-.pta-finish {
-  margin-top: 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  border-radius: 1.25rem;
-  padding: 22px 16px;
-  text-align: center;
-  color: #6b7280;
-  border: 1.5px dashed rgba(156, 163, 175, 0.5);
-  transition: all 0.4s;
-}
-:root.dark .pta-finish { color: rgba(255, 255, 255, 0.5); border-color: rgba(255, 255, 255, 0.15); }
-.pta-finish.is-done {
-  color: #fff;
-  border: 1.5px solid transparent;
-  background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 70%, #7cc4ff));
-}
-.pta-week {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-radius: 0.9rem;
-  padding: 8px 0 6px;
-  color: #374151;
-  background: #f3f4f6;
-  transition: background 0.2s;
-}
-.pta-week:hover { background: #e5e7eb; }
-:root.dark .pta-week { color: rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.05); }
-.pta-week.is-on { color: #fff; background: var(--brand); }
-
-/* ── B ─────────────────────────────────────────── */
-.ptb-seg {
-  flex: 1;
-  height: 5px;
-  border-radius: 9999px;
-  overflow: hidden;
-  background: var(--brand-soft-strong);
-}
-.ptb-seg > span {
-  display: block;
-  height: 100%;
-  background: var(--brand);
-  transition: width 0.3s ease;
-}
-.ptb-seg > span.is-holding { transition: width 1.2s linear; }
-.ptb-stage {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.75rem;
-  padding: 28px 22px 20px;
-  background:
-    radial-gradient(120% 70% at 100% 0%, var(--brand-soft-strong), transparent 60%),
-    #fff;
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  box-shadow: 0 10px 30px -18px rgba(49, 130, 246, 0.35);
-  animation: ptb-in 0.4s ease both;
-}
-:root.dark .ptb-stage {
-  background: radial-gradient(120% 70% at 100% 0%, rgba(69, 147, 252, 0.16), transparent 60%), #201f1f;
-  border-color: rgba(255, 255, 255, 0.08);
-}
-.ptb-stage--done { padding-top: 44px; padding-bottom: 36px; }
-@media (min-width: 1024px) {
-  .ptb-stage { padding: 44px 48px 28px; min-height: 520px; }
-}
-@keyframes ptb-in {
-  from { opacity: 0; transform: translateY(10px); }
+.pt-fade { animation: pt-fade 0.6s ease both; }
+@keyframes pt-fade {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
 }
-.ptb-num {
-  position: absolute;
-  right: 18px;
-  top: -10px;
-  font-size: 110px;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  color: var(--brand);
-  opacity: 0.08;
-  pointer-events: none;
-}
-@media (min-width: 1024px) { .ptb-num { font-size: 170px; right: 32px; } }
-.ptb-hold {
-  position: relative;
-  width: 88px;
-  height: 88px;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--brand);
-  background: var(--brand-soft);
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: transform 0.2s, background 0.3s, color 0.3s;
-}
-.ptb-hold.is-holding { transform: scale(0.94); }
-.ptb-hold.is-on { color: #fff; background: var(--brand); }
-@media (min-width: 1024px) { .ptb-hold { width: 104px; height: 104px; } }
-.ptb-ring {
-  position: absolute;
-  inset: -6px;
-  width: calc(100% + 12px);
-  height: calc(100% + 12px);
-  transform: rotate(-90deg);
-}
-.ptb-ring circle {
-  fill: none;
-  stroke: var(--brand-soft-strong);
-  stroke-width: 3;
-}
-.ptb-ring .ptb-ring-fill {
-  stroke: var(--brand);
-  stroke-linecap: round;
-  stroke-dasharray: 289;
-  stroke-dashoffset: 289;
-  transition: stroke-dashoffset 0.25s ease;
-}
-.ptb-hold.is-holding .ptb-ring-fill {
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset var(--hold) linear;
-}
-.ptb-hold.is-on .ptb-ring-fill { stroke-dashoffset: 0; }
-.ptb-nav {
-  display: inline-flex;
-  border-radius: 9999px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #4b5563;
-  background: rgba(243, 244, 246, 0.9);
-}
-.ptb-nav:disabled { opacity: 0.35; }
-:root.dark .ptb-nav { color: rgba(255, 255, 255, 0.75); background: rgba(255, 255, 255, 0.07); }
-@media (min-width: 1024px) { .ptb-nav { padding: 11px 22px; font-size: 16px; } }
-.ptb-row {
+
+/* 우측 레일 행 */
+.pt-row {
   width: 100%;
   display: flex;
   align-items: flex-start;
@@ -296,11 +25,11 @@
   color: #4b5563;
   transition: background 0.2s;
 }
-:root.dark .ptb-row { color: rgba(255, 255, 255, 0.7); }
-.ptb-row:hover { background: rgba(243, 244, 246, 0.8); }
-:root.dark .ptb-row:hover { background: rgba(255, 255, 255, 0.05); }
-.ptb-row.is-cur { background: var(--brand-soft); color: var(--text-body, #111827); }
-.ptb-row-mark {
+:root.dark .pt-row { color: rgba(255, 255, 255, 0.7); }
+.pt-row:hover { background: rgba(243, 244, 246, 0.8); }
+:root.dark .pt-row:hover { background: rgba(255, 255, 255, 0.05); }
+.pt-row.is-cur { background: var(--brand-soft); color: var(--text-body, #111827); }
+.pt-row-mark {
   flex-shrink: 0;
   margin-top: 1px;
   width: 22px;
@@ -314,148 +43,472 @@
   color: var(--brand);
   border: 1.5px solid var(--brand);
 }
-.ptb-row-mark.is-on { color: #fff; background: var(--brand); }
+.pt-row-mark.is-on { color: #fff; background: var(--brand); }
 
-/* ── C ─────────────────────────────────────────── */
-.ptc-strip {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 2px;
-}
-.ptc-strip::-webkit-scrollbar { display: none; }
-.ptc-chip {
-  flex-shrink: 0;
-  width: 54px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  border-radius: 1rem;
-  padding: 8px 0 9px;
-  color: #4b5563;
-  background: #fff;
-  border: 1px solid rgba(229, 231, 235, 0.9);
-}
-:root.dark .ptc-chip { color: rgba(255, 255, 255, 0.75); background: #201f1f; border-color: rgba(255, 255, 255, 0.08); }
-.ptc-chip.is-on { color: #fff; background: var(--brand); border-color: var(--brand); }
-@media (min-width: 1024px) { .ptc-chip { width: 64px; } }
-.ptc-letter {
-  position: relative;
-  border-radius: 1.75rem;
-  padding: 30px 20px 28px;
-  background: #fff;
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 20px 40px -30px rgba(15, 23, 42, 0.25);
-}
-/* 편지지 위쪽 브랜드 빛줄 */
-.ptc-letter::before {
-  content: '';
-  position: absolute;
-  inset: 0 28px auto;
-  height: 3px;
-  border-radius: 0 0 4px 4px;
-  background: var(--brand);
-}
-:root.dark .ptc-letter {
-  background: linear-gradient(180deg, #232222, #1f1e1e);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-@media (min-width: 1024px) { .ptc-letter { padding: 48px 56px 40px; } }
-.ptc-faces { display: inline-flex; }
-.ptc-faces i {
-  width: 20px;
-  height: 20px;
-  border-radius: 9999px;
-  margin-left: -6px;
-  border: 2px solid #fff;
-  background: linear-gradient(135deg, #9cc3ff, var(--brand));
-}
-.ptc-faces i:first-child { margin-left: 0; }
-:root.dark .ptc-faces i { border-color: #201f1f; }
-.ptc-rule {
-  margin: 22px auto 6px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--brand);
-  max-width: 240px;
-}
-.ptc-rule::before,
-.ptc-rule::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(156, 163, 175, 0.35);
-}
-.ptc-stanza {
-  display: flex;
-  gap: 14px;
-  padding: 22px 0;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
-}
-:root.dark .ptc-stanza { border-color: rgba(255, 255, 255, 0.07); }
-.ptc-stanza:last-of-type { border-bottom: 0; }
-.ptc-numeral {
-  flex-shrink: 0;
-  width: 34px;
-  font-size: 34px;
-  font-weight: 900;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--brand);
-  transition: color 0.3s;
-}
-.ptc-stanza.is-done .ptc-numeral { color: var(--brand); }
-@media (min-width: 1024px) {
-  .ptc-stanza { gap: 22px; padding: 28px 0; }
-  .ptc-numeral { width: 44px; font-size: 46px; }
-}
-.ptc-amen {
+/* 이전/다음 */
+.pt-nav {
   display: inline-flex;
-  align-items: center;
-  gap: 5px;
   border-radius: 9999px;
-  padding: 5px 12px;
-  font-size: 12.5px;
+  padding: 8px 16px;
+  font-size: 14px;
   font-weight: 700;
   color: #4b5563;
-  border: 1.5px solid rgba(209, 213, 219, 1);
-  transition: all 0.2s;
+  background: rgba(243, 244, 246, 0.9);
 }
-.ptc-amen:hover { border-color: var(--brand); color: var(--brand); }
-:root.dark .ptc-amen { color: rgba(255, 255, 255, 0.7); border-color: rgba(255, 255, 255, 0.15); }
-.ptc-amen.is-on { color: #fff; background: var(--brand); border-color: var(--brand); }
-@media (min-width: 1024px) { .ptc-amen { padding: 8px 16px; font-size: 15px; } }
-.ptc-bar {
-  position: sticky;
-  bottom: 16px;
-  z-index: 10;
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-radius: 1.25rem;
-  padding: 12px 12px 12px 18px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(229, 231, 235, 0.9);
-  box-shadow: 0 12px 30px -16px rgba(15, 23, 42, 0.35);
+.pt-nav:disabled { opacity: 0.35; }
+:root.dark .pt-nav { color: rgba(255, 255, 255, 0.75); background: rgba(255, 255, 255, 0.07); }
+.pt-nav--light, :root.dark .pt-nav--light {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
 }
-:root.dark .ptc-bar { background: rgba(32, 31, 31, 0.88); border-color: rgba(255, 255, 255, 0.08); }
-.ptc-all {
-  flex-shrink: 0;
+@media (min-width: 1024px) { .pt-nav { padding: 11px 22px; font-size: 16px; } }
+
+/* 길게 눌러 아멘 */
+.pt-hold {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: 9999px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.25s, background 0.4s, color 0.4s, box-shadow 0.4s;
+}
+.pt-hold.is-holding { transform: scale(0.93); }
+@media (min-width: 1024px) { .pt-hold { width: 100px; height: 100px; } }
+.pt-hold-ring {
+  position: absolute;
+  inset: -7px;
+  width: calc(100% + 14px);
+  height: calc(100% + 14px);
+  transform: rotate(-90deg);
+}
+.pt-hold-ring circle { fill: none; stroke-width: 3; }
+.pt-hold-fill {
+  stroke-linecap: round;
+  stroke-dasharray: 289;
+  stroke-dashoffset: 289;
+  transition: stroke-dashoffset 0.25s ease;
+}
+.pt-hold.is-holding .pt-hold-fill { stroke-dashoffset: 0; transition: stroke-dashoffset var(--hold) linear; }
+.pt-hold.is-on .pt-hold-fill { stroke-dashoffset: 0; }
+.pt-hold-hint { font-size: 13px; font-weight: 600; text-align: center; }
+@media (min-width: 1024px) { .pt-hold-hint { font-size: 16px; } }
+
+.pt-hold--brand { color: var(--brand); background: var(--brand-soft); }
+.pt-hold--brand .pt-hold-ring circle { stroke: var(--brand-soft-strong); }
+.pt-hold--brand .pt-hold-fill { stroke: var(--brand) !important; }
+.pt-hold--brand.is-on { color: #fff; background: var(--brand); }
+.pt-hold--brand + .pt-hold-hint { color: #6b7280; }
+:root.dark .pt-hold--brand + .pt-hold-hint { color: rgba(255, 255, 255, 0.55); }
+
+.pt-hold--glass {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.pt-hold--glass .pt-hold-ring circle { stroke: rgba(255, 255, 255, 0.18); }
+.pt-hold--glass .pt-hold-fill { stroke: #fff !important; }
+.pt-hold--glass.is-on { color: #1d3d78; background: #fff; box-shadow: 0 0 40px 6px rgba(255, 230, 190, 0.45); }
+.pt-hold--glass + .pt-hold-hint { color: rgba(255, 255, 255, 0.8); }
+
+.pt-hold--ember {
+  color: #ffd38a;
+  background: rgba(255, 190, 100, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 200, 120, 0.25);
+}
+.pt-hold--ember .pt-hold-ring circle { stroke: rgba(255, 200, 120, 0.15); }
+.pt-hold--ember .pt-hold-fill { stroke: #ffc56e !important; }
+.pt-hold--ember.is-holding { box-shadow: 0 0 30px 2px rgba(255, 180, 80, 0.35); }
+.pt-hold--ember.is-on { color: #3a2508; background: #ffc56e; box-shadow: 0 0 44px 8px rgba(255, 180, 80, 0.45); }
+.pt-hold--ember + .pt-hold-hint { color: rgba(233, 220, 196, 0.75); }
+
+/* 아멘 순간 빛 알갱이 — 한 번만 */
+.pt-burst {
+  position: absolute;
+  left: 50%;
+  top: 42px;
+  pointer-events: none;
+}
+@media (min-width: 1024px) { .pt-burst { top: 50px; } }
+.pt-burst i {
+  position: absolute;
   border-radius: 9999px;
-  padding: 11px 20px;
-  font-size: 14px;
+  box-shadow: 0 0 10px 3px rgba(255, 220, 160, 0.7);
+  opacity: 0;
+  animation: pt-burst 1.5s ease-out forwards;
+}
+@keyframes pt-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1); }
+}
+
+/* ── B ─────────────────────────────────────────── */
+.ptb-seg { flex: 1; height: 5px; border-radius: 9999px; overflow: hidden; background: var(--brand-soft-strong); }
+.ptb-seg > span { display: block; height: 100%; background: var(--brand); transition: width 0.3s ease; }
+.ptb-seg > span.is-holding { transition: width 1.3s linear; }
+.ptb-stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  padding: 28px 22px 20px;
+  background: radial-gradient(120% 70% at 100% 0%, var(--brand-soft-strong), transparent 60%), #fff;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 10px 30px -18px rgba(49, 130, 246, 0.35);
+  animation: pt-fade 0.4s ease both;
+}
+:root.dark .ptb-stage {
+  background: radial-gradient(120% 70% at 100% 0%, rgba(69, 147, 252, 0.16), transparent 60%), #201f1f;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+@media (min-width: 1024px) { .ptb-stage { padding: 44px 48px 28px; min-height: 520px; } }
+.ptb-num {
+  position: absolute; right: 18px; top: -10px;
+  font-size: 110px; font-weight: 900; line-height: 1; letter-spacing: -0.05em;
+  color: var(--brand); opacity: 0.08; pointer-events: none;
+}
+@media (min-width: 1024px) { .ptb-num { font-size: 170px; right: 32px; } }
+
+/* ── D 새벽을 깨우는 기도 ───────────────────────── */
+.ptd-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: 640px;
+  display: flex;
+  border-radius: 1.75rem;
+  background: #0a1533;
+  box-shadow: 0 30px 60px -36px rgba(10, 21, 51, 0.7);
+}
+.ptd-stage > div:last-child { flex: 1; }
+@media (min-width: 1024px) { .ptd-stage { min-height: 680px; border-radius: 2rem; } }
+.ptd-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: 22% 40%;
+  transform: scale(calc(1.04 + var(--night) * 0.06));
+  transition: transform 2.4s ease;
+}
+.ptd-night {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #02061a 0%, #08132f 50%, #18203d 100%);
+  opacity: var(--night);
+  transition: opacity 2.2s ease;
+}
+.ptd-stars {
+  position: absolute;
+  inset: 0;
+  opacity: calc(var(--night) * 1.15);
+  transition: opacity 2.2s ease;
+}
+.ptd-stars i { position: absolute; border-radius: 9999px; background: #fff; box-shadow: 0 0 4px rgba(255, 255, 255, 0.8); }
+.ptd-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, transparent 25%, transparent 40%, rgba(5, 8, 20, 0.72) 100%);
+}
+.ptd-text { text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45); }
+.ptd-pip {
+  width: 8px; height: 8px; border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.4s;
+}
+.ptd-pip.is-cur { width: 22px; background: rgba(255, 255, 255, 0.6); }
+.ptd-pip.is-on { background: #ffd9a0; box-shadow: 0 0 10px rgba(255, 210, 150, 0.8); }
+
+/* ── E 등불 길 ──────────────────────────────────
+   data-look: dark(어둠이 물러남) / mist(라이트 L1 크림 종이) / frame(라이트 L2 그림 액자) */
+.pte-stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  background: linear-gradient(180deg, #17150f 0%, #110f0c 100%);
+  box-shadow: 0 30px 60px -36px rgba(30, 20, 5, 0.8), inset 0 1px 0 rgba(255, 220, 160, 0.06);
+  --pte-fade: #17150f;
+  --pte-cover: rgba(14, 12, 9, 0.97);
+  --pte-cover-2: rgba(14, 12, 9, 0.95);
+}
+@media (min-width: 1024px) { .pte-stage { border-radius: 2rem; min-height: 680px; } }
+.pte-art { position: relative; height: 210px; overflow: hidden; }
+@media (min-width: 1024px) { .pte-art { height: auto; aspect-ratio: 1536 / 425; } }
+.pte-art::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 40%;
+  background: linear-gradient(transparent, var(--pte-fade));
+}
+.pte-art-img { position: absolute; inset: 0; background-size: cover; background-position: 78% 40%; }
+@media (min-width: 1024px) { .pte-art-img { background-size: 100% auto; background-position: center; } }
+/* 아직 기도하지 않은 길을 덮는 어둠(다크)·안개(라이트) — 먼 길부터 덮고 기도할수록 줄어든다 */
+.pte-dark {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--pte-cover) 0%, var(--pte-cover-2) 72%, transparent 100%);
+  transition: width 2s ease;
+}
+.pte-panel { position: relative; padding: 20px 24px 24px; }
+@media (min-width: 1024px) { .pte-panel { padding: 32px 48px 32px; } }
+
+.pte-kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: rgba(243, 217, 166, 0.8); }
+.pte-title { margin-top: 4px; font-size: 18px; font-weight: 800; color: #fff4dc; }
+.pte-meta { font-size: 12.5px; font-weight: 600; color: rgba(233, 220, 196, 0.6); }
+.pte-body { font-size: 19px; font-weight: 500; line-height: 1.85; letter-spacing: -0.015em; color: #f6efe3; word-break: keep-all; }
+.pte-scripture { margin-top: 12px; font-size: 13px; font-weight: 600; color: #e7b866; }
+.pte-end-title { font-size: 24px; font-weight: 800; line-height: 1.45; color: #fff4dc; }
+.pte-end-sub { font-size: 14px; color: rgba(233, 220, 196, 0.75); }
+@media (min-width: 1024px) {
+  .pte-kicker { font-size: 14px; }
+  .pte-title { font-size: 24px; }
+  .pte-meta { font-size: 15px; }
+  .pte-body { font-size: 25px; line-height: 1.8; }
+  .pte-scripture { font-size: 16px; }
+  .pte-end-title { font-size: 32px; }
+  .pte-end-sub { font-size: 17px; }
+}
+.pte-lamp {
+  width: 30px; height: 30px; border-radius: 9999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800;
+  color: rgba(233, 220, 196, 0.45);
+  border: 1.5px solid rgba(233, 200, 140, 0.22);
+  transition: all 0.6s;
+}
+.pte-lamp.is-cur { color: #f3d9a6; border-color: rgba(243, 200, 130, 0.6); }
+.pte-lamp.is-on { color: #3a2508; background: #ffc56e; border-color: #ffc56e; box-shadow: 0 0 18px 3px rgba(255, 180, 80, 0.45); }
+
+/* 라이트 공통 — 새벽 안개, 크림 종이, 갈색 잉크, 호박빛 등불 */
+.pte-stage[data-look='mist'],
+.pte-stage[data-look='frame'] {
+  background: linear-gradient(180deg, #fbf8f1 0%, #f6efe3 100%);
+  box-shadow: 0 30px 60px -42px rgba(120, 85, 30, 0.45), inset 0 0 0 1px rgba(205, 175, 125, 0.28);
+  --pte-fade: #fbf8f1;
+  --pte-cover: rgba(244, 242, 236, 0.97);
+  --pte-cover-2: rgba(244, 242, 236, 0.9);
+}
+.pte-stage:not([data-look='dark']) .pte-kicker { color: #8a6a3c; }
+.pte-stage:not([data-look='dark']) .pte-title { color: #3d2c17; }
+.pte-stage:not([data-look='dark']) .pte-meta { color: #9a7f5a; }
+.pte-stage:not([data-look='dark']) .pte-body { color: #33281c; font-weight: 500; }
+.pte-stage:not([data-look='dark']) .pte-scripture { color: #b0742a; }
+.pte-stage:not([data-look='dark']) .pte-end-title { color: #3d2c17; }
+.pte-stage:not([data-look='dark']) .pte-end-sub { color: #8a6a3c; }
+.pte-stage:not([data-look='dark']) .pte-lamp { color: #b89a6e; border-color: rgba(190, 150, 90, 0.35); background: rgba(255, 255, 255, 0.6); }
+.pte-stage:not([data-look='dark']) .pte-lamp.is-cur { color: #9a6a24; border-color: #d9a65a; }
+.pte-stage:not([data-look='dark']) .pte-lamp.is-on { color: #fff; background: #f2b450; border-color: #f2b450; box-shadow: 0 0 16px 2px rgba(242, 180, 80, 0.45); }
+
+/* L1 새벽 안개 — 위쪽 그림 띠를 조금 더 크게, 아래는 크림 종이 */
+@media (min-width: 1024px) {
+  .pte-stage[data-look='mist'] .pte-art { aspect-ratio: auto; height: 250px; }
+  .pte-stage[data-look='mist'] .pte-art-img { background-size: cover; background-position: 80% 45%; }
+}
+
+/* L2 안개 액자 — 그림을 크게 걸고, 기도문은 그 위에 얹힌 종이 한 장 */
+.pte-stage[data-look='frame'] { display: flex; flex-direction: column; }
+.pte-stage[data-look='frame'] .pte-art { height: 300px; }
+.pte-stage[data-look='frame'] .pte-art::after { height: 55%; }
+.pte-stage[data-look='frame'] .pte-panel {
+  margin: -96px 12px 12px;
+  padding: 22px 20px 20px;
+  border-radius: 1.4rem;
+  background: rgba(255, 252, 246, 0.86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px -26px rgba(120, 85, 30, 0.5), inset 0 0 0 1px rgba(205, 175, 125, 0.3);
+}
+@media (min-width: 1024px) {
+  .pte-stage[data-look='frame'] .pte-art { aspect-ratio: auto; height: 400px; }
+  .pte-stage[data-look='frame'] .pte-art-img { background-size: cover; background-position: 82% 40%; }
+  .pte-stage[data-look='frame'] .pte-panel { margin: -130px 24px 24px; padding: 32px 40px 28px; }
+}
+
+/* 라이트용 아멘 버튼 */
+.pt-hold--dawn { color: #b0742a; background: rgba(242, 180, 80, 0.13); box-shadow: inset 0 0 0 1px rgba(214, 160, 80, 0.3); }
+.pt-hold--dawn .pt-hold-ring circle { stroke: rgba(214, 160, 80, 0.2); }
+.pt-hold--dawn .pt-hold-fill { stroke: #e9a23b !important; }
+.pt-hold--dawn.is-holding { box-shadow: 0 0 30px 2px rgba(242, 180, 80, 0.35); }
+.pt-hold--dawn.is-on { color: #fff; background: #f2b450; box-shadow: 0 0 36px 6px rgba(242, 180, 80, 0.4); }
+.pt-hold--dawn + .pt-hold-hint { color: #9a7f5a; }
+
+/* ── F 별이 된 기도 ─────────────────────────────── */
+.ptf-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: 720px;
+  display: flex;
+  border-radius: 1.75rem;
+  background: radial-gradient(120% 60% at 50% 0%, #142a5c 0%, #0a1430 45%, #050a1a 100%);
+  box-shadow: 0 30px 60px -36px rgba(5, 10, 26, 0.8);
+}
+.ptf-stage > div:last-child { flex: 1; }
+@media (min-width: 1024px) { .ptf-stage { min-height: 760px; border-radius: 2rem; } }
+.ptf-church {
+  position: absolute;
+  inset: 34% 0 0;
+  background-size: cover;
+  background-position: center 18%;
+  opacity: 0.7;
+  -webkit-mask-image: linear-gradient(transparent 0%, #000 22%);
+  mask-image: linear-gradient(transparent 0%, #000 22%);
+}
+.ptf-church::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 10, 26, 0.2) 0%, rgba(5, 10, 26, 0.6) 40%, rgba(5, 10, 26, 0.92) 75%);
+}
+@media (min-width: 1024px) { .ptf-church { inset: 30% 0 0; background-position: center 22%; } }
+/* 먼 잔별 */
+.ptf-dust {
+  position: absolute;
+  inset: 0 0 50%;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 28% 8%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 44% 26%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1px 1px at 63% 12%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 78% 30%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1px 1px at 90% 6%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1px 1px at 6% 40%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1px 1px at 55% 44%, rgba(255,255,255,.4), transparent),
+    radial-gradient(1px 1px at 35% 52%, rgba(255,255,255,.3), transparent),
+    radial-gradient(1px 1px at 85% 50%, rgba(255,255,255,.35), transparent);
+}
+.ptf-sky { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+.ptf-line {
+  fill: none;
+  stroke: rgba(190, 215, 255, 0.45);
+  stroke-width: 1;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: ptf-draw 1.6s 1s ease forwards;
+}
+@keyframes ptf-draw { to { stroke-dashoffset: 0; } }
+.ptf-star {
+  position: absolute;
+  z-index: 1;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 10px 3px rgba(170, 205, 255, 0.65);
+  opacity: 0;
+  animation: ptf-pop 0.8s ease forwards;
+}
+.ptf-star.is-mine {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  background: #fff6dc;
+  box-shadow: 0 0 18px 6px rgba(255, 220, 150, 0.7);
+}
+.ptf-star em {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffe6b5;
+  white-space: nowrap;
+}
+@keyframes ptf-pop {
+  0% { opacity: 0; transform: scale(0.2); }
+  60% { opacity: 1; transform: scale(1.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+/* 내 별이 아멘 버튼 자리에서 하늘로 */
+.ptf-rise {
+  position: absolute;
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 9999px;
+  background: #fff6dc;
+  box-shadow: 0 0 20px 8px rgba(255, 220, 150, 0.6);
+  animation: ptf-rise 1s cubic-bezier(0.3, 0.1, 0.2, 1) forwards;
+}
+@keyframes ptf-rise {
+  0% { left: 50%; top: 82%; opacity: 1; }
+  90% { opacity: 1; }
+  100% { left: var(--tx); top: var(--ty); opacity: 0; }
+}
+
+/* ── G 올려드리는 카드 ──────────────────────────── */
+.ptg-deck { position: relative; height: 600px; }
+@media (min-width: 1024px) { .ptg-deck { height: 640px; } }
+.ptg-card {
+  position: absolute;
+  inset: 0 0 32px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  background: #fffdf9;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 24px 50px -30px rgba(15, 23, 42, 0.45);
+  transform: translateY(calc(var(--k) * 16px)) scale(calc(1 - var(--k) * 0.05));
+  transform-origin: 50% 100%;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s;
+}
+:root.dark .ptg-card { background: #201f1f; border-color: rgba(255, 255, 255, 0.08); }
+.ptg-card.is-flying {
+  transform: translateY(-115%) rotate(-7deg) scale(0.9);
+  opacity: 0;
+  transition: transform 1s cubic-bezier(0.5, 0, 0.3, 1) 0.15s, opacity 0.8s ease 0.35s;
+}
+.ptg-photo {
+  position: relative;
+  flex: 0 0 42%;
+  background-size: cover;
+  background-position: center;
+}
+.ptg-photo::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 45%;
+  background: linear-gradient(transparent, #fffdf9);
+}
+:root.dark .ptg-photo::after { background: linear-gradient(transparent, #201f1f); }
+.ptg-badge {
+  position: absolute;
+  left: 18px;
+  top: 16px;
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 12px;
   font-weight: 800;
   color: #fff;
-  background: var(--brand);
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(8px);
 }
-.ptc-all.is-on { color: var(--brand); background: var(--brand-soft-strong); }
-@media (min-width: 1024px) { .ptc-all { padding: 13px 26px; font-size: 16px; } }
+@media (min-width: 1024px) { .ptg-badge { font-size: 14px; left: 28px; top: 24px; } }
+.ptg-body { flex: 1; padding: 6px 22px 22px; display: flex; flex-direction: column; }
+.ptg-body > div:last-child { margin-top: auto; }
+@media (min-width: 1024px) { .ptg-body { padding: 8px 40px 32px; } }
+.ptg-done { text-align: center; padding-top: 60px; }
+.ptg-done-thumbs { position: relative; height: 170px; display: flex; justify-content: center; }
+.ptg-done-thumbs span {
+  width: 110px;
+  height: 150px;
+  margin: 0 -18px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  border: 3px solid #fff;
+  box-shadow: 0 14px 30px -14px rgba(15, 23, 42, 0.5);
+  transform: rotate(var(--r));
+}
+.ptg-done-thumbs span.is-off { filter: grayscale(1); opacity: 0.4; }
+:root.dark .ptg-done-thumbs span { border-color: #2a2929; }

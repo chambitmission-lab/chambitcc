@@ -1,6 +1,8 @@
 // 공동 기도제목 — 이번 주 교회가 함께 드리는 기도 (교인용)
-// PC(lg+)는 어르신이 소리 내어 따라 읽기 좋게: 한 줄 한 폭(두 폭 벽 대신)·본문 19px/줄간 1.8·
-// 번호와 본문 대비 상향·버튼 누르는 영역 확대. 모바일은 그대로.
+// 한 화면에 기도 하나, 다 읽고 길게 눌러 아멘 → 다음 기도로. 테마마다 화면이 다르다:
+//   라이트 = 올려드리는 카드(weeklyTopics/OfferingCards) · 다크 = 등불 길(weeklyTopics/LanternPath)
+// 진행 위치(idx)는 여기서 들고 있어 테마를 바꿔도 몇 번째 기도인지 이어진다.
+// PC(lg+)는 어르신이 소리 내어 따라 읽기 좋게 본문 22~25px, 우측 레일에 순서·지난 주.
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -10,6 +12,13 @@ import { getWeeklyPrayer, toggleWeeklyPrayerAmen } from '../../api/weeklyPrayer'
 import { currentWeeklyPrayerQuery, weeklyPrayerListQuery } from '../../hooks/useWeeklyPrayer'
 import type { WeeklyPrayer, WeeklyPrayerListItem } from '../../types/weeklyPrayer'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
+import { useTheme } from '../../contexts/ThemeContext'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { WEEKLY_PRAYER_ART } from '../../utils/themeAssets'
+import LanternPath from './weeklyTopics/LanternPath'
+import OfferingCards from './weeklyTopics/OfferingCards'
+import { CheckIcon } from './weeklyTopics/HoldAmen'
+import './weeklyTopics/weeklyTopics.css'
 
 const formatWeekLabel = (weekDate: string): string => {
   const d = new Date(`${weekDate}T00:00:00`)
@@ -25,6 +34,13 @@ const WeeklyPrayerTopics = () => {
   const [loading, setLoading] = useState(true)
   const [empty, setEmpty] = useState(false)
   const [showArchive, setShowArchive] = useState(false)
+  // 지금 보고 있는 기도 순서 — 항목 수와 같으면 마침 화면
+  const [step, setStep] = useState(0)
+  const { theme } = useTheme()
+  // 테마별 그림을 마운트 동안 등록 — 현재 테마를 먼저, 반대 테마는 유휴 시간·토글 직전에 받아 둔다
+  const lanternReady = useThemeArt(WEEKLY_PRAYER_ART[0])
+  useThemeArt(WEEKLY_PRAYER_ART[1])
+  useThemeArt(WEEKLY_PRAYER_ART[2])
   // 항목별 토글 요청 중복 방지
   const pendingAmens = useRef<Set<number>>(new Set())
 
@@ -121,6 +137,7 @@ const WeeklyPrayerTopics = () => {
   const selectWeek = async (id: number) => {
     try {
       setPrayer(await getWeeklyPrayer(id))
+      setStep(0)
       setShowArchive(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch {
@@ -129,6 +146,21 @@ const WeeklyPrayerTopics = () => {
   }
 
   const totalAmen = prayer?.items.reduce((sum, it) => sum + (it.amen_count ?? 0), 0) ?? 0
+
+  // 길게 눌러 아멘 — 이미 아멘한 항목은 그대로 두고, 로그인 전이면 false 를 돌려 다음으로 넘기지 않는다
+  const amenItem = (itemId: number | undefined): boolean => {
+    const target = prayer?.items.find((it) => it.id === itemId)
+    if (!target) return false
+    if (!isAuthenticated()) {
+      void handleAmen(itemId)
+      return false
+    }
+    if (!target.is_amened) void handleAmen(itemId)
+    return true
+  }
+  const unamenItem = (itemId: number | undefined) => {
+    if (prayer?.items.find((it) => it.id === itemId)?.is_amened) void handleAmen(itemId)
+  }
 
   // 지난 주 목록 — 모바일은 헤더 토글, PC는 우측 레일에 상시 노출
   const archiveList = (
@@ -200,110 +232,47 @@ const WeeklyPrayerTopics = () => {
           </div>
         ) : (
           <div className="px-4 py-5 lg:px-8 lg:py-8">
-            <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8 lg:items-start">
-              {/* 좌: 기도제목 */}
-              <div className="contents lg:block">
-                {/* 주차 표시 (모바일) — PC는 우측 레일이 대신한다 */}
-                <div className="text-center mb-6 lg:hidden">
-                  <p className="text-xs font-semibold tracking-[0.1em] text-brand mb-1">
-                    {formatWeekLabel(prayer.week_date)}
+            <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8 lg:items-start">
+              {/* 좌: 한 화면에 기도 하나 — 라이트는 카드, 다크는 등불 길 */}
+              <div>
+                {theme === 'dark' ? (
+                  <LanternPath
+                    weekId={prayer.id}
+                    items={prayer.items}
+                    weekLabel={formatWeekLabel(prayer.week_date)}
+                    idx={step}
+                    setIdx={setStep}
+                    onAmen={amenItem}
+                    onUnamen={unamenItem}
+                    totalAmen={totalAmen}
+                    art={WEEKLY_PRAYER_ART[0].dark}
+                    artReady={lanternReady}
+                  />
+                ) : (
+                  <OfferingCards
+                    weekId={prayer.id}
+                    items={prayer.items}
+                    weekLabel={formatWeekLabel(prayer.week_date)}
+                    idx={step}
+                    setIdx={setStep}
+                    onAmen={amenItem}
+                    onUnamen={unamenItem}
+                    totalAmen={totalAmen}
+                    arts={WEEKLY_PRAYER_ART.map((p) => p.light)}
+                  />
+                )}
+                {(prayer.prayed_user_count ?? 0) > 0 && (
+                  <p className="mt-6 text-center text-xs text-gray-500 dark:text-white/50 lg:hidden">
+                    이번 주 <span className="font-bold text-brand">{prayer.prayed_user_count}명</span>이 함께 기도했어요
                   </p>
-                  <h2 className="text-xl font-extrabold text-ink-strong tracking-[-0.02em] break-keep">{prayer.title}</h2>
-                  {(prayer.prayed_user_count ?? 0) > 0 && (
-                    <p className="mt-1.5 text-xs text-gray-500 dark:text-white/50">
-                      이번 주 <span className="font-bold text-brand">{prayer.prayed_user_count}명</span>이 함께 기도했어요
-                    </p>
-                  )}
-                </div>
-
-                {/* 주차 표시 (PC) — 따라 읽기 전에 "몇 월 며칠 기도"인지 본문 첫머리에서 바로 보이게 */}
-                <div className="hidden lg:block mb-7">
-                  <p className="text-[16px] font-bold text-brand">{formatWeekLabel(prayer.week_date)}</p>
-                  <h2 className="mt-1.5 text-[30px] font-extrabold text-ink-strong tracking-[-0.025em] leading-[1.35] break-keep">
-                    {prayer.title}
-                  </h2>
-                </div>
-
-                {/* 기도제목 카드 — PC 도 한 폭: 두 폭 벽은 읽는 순서(1→2→3)가 눈으로 따라가기 어렵다 */}
-                <div className="space-y-4 lg:space-y-5">
-                  {prayer.items.map((item, i) => (
-                    <div
-                      key={item.id ?? i}
-                      className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-5 lg:rounded-3xl lg:p-7"
-                    >
-                      <div className="flex gap-3 lg:gap-4">
-                        <span className="shrink-0 w-7 h-7 rounded-full bg-[var(--brand-soft-strong)] text-brand text-sm font-bold flex items-center justify-center lg:w-10 lg:h-10 lg:bg-brand lg:text-white lg:text-[19px] lg:font-extrabold">
-                          {i + 1}
-                        </span>
-                        {item.title ? (
-                          // 한글은 어절 단위로 끊어야 마지막 한 글자만 넘어가는 줄바꿈을 막을 수 있음
-                          <p className="text-[15px] font-bold leading-[1.55] text-ink-strong pt-0.5 break-keep lg:text-[22px] lg:leading-[1.55] lg:pt-1 lg:tracking-[-0.02em]">
-                            {item.title}
-                          </p>
-                        ) : (
-                          // 제목 없는 통문단 형태 — 기도문 자체를 본문으로
-                          <p className="text-[14.5px] leading-[1.8] text-ink-strong pt-0.5 break-keep lg:text-[19px] lg:pt-1.5">
-                            {item.body}
-                          </p>
-                        )}
-                      </div>
-                      {item.title && item.body && (
-                        <p className="mt-3 pl-10 text-[14px] leading-[1.8] text-gray-600 dark:text-white/70 break-keep lg:mt-4 lg:pl-14 lg:text-[19px] lg:text-gray-800 dark:lg:text-white/85">
-                          “{item.body}”
-                        </p>
-                      )}
-                      {item.scripture && (
-                        <p className="mt-2 pl-10 text-xs font-semibold text-brand lg:mt-3 lg:pl-14 lg:text-[16px]">
-                          {item.scripture}
-                        </p>
-                      )}
-
-                      {/* 함께 기도했어요 */}
-                      <div className="mt-3.5 pl-10 lg:mt-5 lg:pl-14">
-                        <button
-                          type="button"
-                          onClick={() => void handleAmen(item.id)}
-                          aria-pressed={item.is_amened ?? false}
-                          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 lg:gap-2 lg:px-5 lg:py-2.5 lg:text-[15.5px] lg:border-2 ${
-                            item.is_amened
-                              ? 'bg-brand border-brand text-white shadow-sm'
-                              : 'bg-transparent border-gray-300 dark:border-white/[0.15] text-gray-600 dark:text-white/70 hover:border-brand hover:text-brand'
-                          }`}
-                        >
-                          <HandHeartIcon
-                            size={14}
-                            strokeWidth={2}
-                            filled={item.is_amened ?? false}
-                            className="lg:w-[19px] lg:h-[19px]"
-                          />
-                          {item.is_amened ? '함께 기도했어요' : '함께 기도해요'}
-                          {(item.amen_count ?? 0) > 0 && (
-                            <span className={item.is_amened ? 'text-white/90' : 'text-brand'}>
-                              {item.amen_count}
-                            </span>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-xs text-gray-400 dark:text-white/40 lg:mt-10 lg:text-[15px] lg:text-gray-500 dark:lg:text-white/50">
-                  이번 주에도 한마음으로 함께 기도해요
-                  <HandHeartIcon size={14} strokeWidth={1.8} />
-                </p>
+                )}
               </div>
 
-              {/* 우: 이번 주 요약 + 지난 기도제목 (PC 전용) */}
+              {/* 우: 이번 주 숫자 + 기도 순서 + 지난 기도제목 (PC 전용) */}
               <aside className="hidden lg:block lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide space-y-4">
                 <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-5">
-                  {/* 주차·제목은 본문 첫머리(PC 주차 표시)에 크게 있으니 여기선 이번 주 숫자만 */}
                   <p className="text-[16px] font-bold text-ink-strong">이번 주 함께한 기도</p>
-                  <div className="mt-4 grid grid-cols-3 gap-2 pt-4 border-t border-gray-200/70 dark:border-white/[0.08]">
-                    <div className="text-center">
-                      <p className="text-[28px] leading-tight font-extrabold brand-text-gradient tabular-nums">{prayer.items.length}</p>
-                      <p className="mt-1 text-[14px] text-gray-600 dark:text-white/60">기도제목</p>
-                    </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2 pt-4 border-t border-gray-200/70 dark:border-white/[0.08]">
                     <div className="text-center">
                       <p className="text-[28px] leading-tight font-extrabold brand-text-gradient tabular-nums">{prayer.prayed_user_count ?? 0}</p>
                       <p className="mt-1 text-[14px] text-gray-600 dark:text-white/60">함께한 성도</p>
@@ -316,8 +285,31 @@ const WeeklyPrayerTopics = () => {
                 </div>
 
                 <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-4">
+                  <p className="px-1 pb-2 text-[16px] font-bold text-ink-strong">이번 주 기도 순서</p>
+                  {prayer.items.map((item, i) => (
+                    <button
+                      key={item.id ?? i}
+                      type="button"
+                      onClick={() => setStep(i)}
+                      className={`w-full flex items-start gap-2.5 rounded-xl p-2.5 text-left transition-colors ${
+                        i === step ? 'bg-[var(--brand-soft)]' : 'hover:bg-gray-100 dark:hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <span
+                        className={`mt-0.5 shrink-0 w-6 h-6 rounded-full border-[1.5px] border-brand text-[12px] font-extrabold flex items-center justify-center ${
+                          item.is_amened ? 'bg-brand text-white' : 'text-brand'
+                        }`}
+                      >
+                        {item.is_amened ? <CheckIcon size={12} /> : i + 1}
+                      </span>
+                      <span className="line-clamp-2 text-[15px] leading-[1.55] text-gray-700 dark:text-white/75">{item.title || item.body}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-4">
                   <p className="px-1 pb-2.5 text-[16px] font-bold text-ink-strong">지난 기도제목</p>
-                  <div className="max-h-[calc(46vh/var(--az,1))] overflow-y-auto pr-0.5">{archiveList}</div>
+                  <div className="max-h-[calc(36vh/var(--az,1))] overflow-y-auto pr-0.5">{archiveList}</div>
                 </div>
               </aside>
             </div>

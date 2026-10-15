@@ -51,6 +51,9 @@ import heroSummerDay from '../assets/hero/afternoon.webp'
 import heroAutumnDay from '../assets/hero/autumn-afternoon.webp'
 import heroWinterDay from '../assets/hero/winter-afternoon.webp'
 import heroWinterEvening from '../assets/hero/winter-evening.webp'
+import heroAutumnMorning from '../assets/hero/autumn-morning.webp'
+import heroWinterMorning from '../assets/hero/winter-morning.webp'
+import heroSpringMorning from '../assets/hero/spring-morning.webp'
 import atlasBgMobileLight from '../assets/atlas/bg-mobile.webp'
 import atlasBgMobileDark from '../assets/atlas/bg-mobile-night.webp'
 import atlasBgPcLight from '../assets/atlas/bg-pc.webp'
@@ -132,6 +135,13 @@ export const RAIL_BOTTOM: ThemePair = {
 }
 /** 홈 PC 우측 레일 '이번주 기도' 카드 머리 — 창가 삽화 (rail/PrayerStatsWidget.tsx) */
 export const PRAYER_WEEK_WINDOW: ThemePair = { light: prayerWeekWindowLight, dark: prayerWeekWindowDark }
+/** 공동 기도제목(/prayer-topics) — 라이트는 '올려드리는 카드' 사진(기도 순서대로 돌려 씀),
+ *  다크는 '등불 길' 삽화 한 장. 테마마다 화면 자체가 달라 쌍이 "같은 자리"는 아니지만,
+ *  토글 직전 선요청(ThemeContext)이 반대 테마 그림을 챙기도록 같은 틀로 등록한다. */
+export const WEEKLY_PRAYER_ART: ThemePair[] = [heroAutumnMorning, heroWinterMorning, heroSpringMorning].map((light) => ({
+  light,
+  dark: growthHeroEveningDark,
+}))
 /** 홈 공지 배너 마스코트 (HomeNotice.tsx 인라인 스타일) */
 export const NOTICE_BANNER: ThemePair = { light: '/images/notice/banner-light.webp', dark: '/images/notice/banner-dark.webp' }
 /** /bible 성경 읽기 현황 카드 배경 — 예수님·어린양 치비 삽화 (book-selector/summary.css .reading-hero)
