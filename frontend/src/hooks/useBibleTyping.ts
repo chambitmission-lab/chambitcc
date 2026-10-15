@@ -197,7 +197,7 @@ export const useTypingDaily = () =>
     staleTime: 1000 * 30,
   })
 
-/** 우리 교회 손글씨 성경 */
+/** 우리 교회가 함께 쓰는 성경 */
 export const useChurchBible = () =>
   useQuery({
     queryKey: bibleTypingKeys.churchBible(),

@@ -262,7 +262,7 @@ export const getTypingDaily = async (): Promise<TypingDaily> => {
 export const getChurchBible = async (): Promise<ChurchBible> => {
   const res = await request<Envelope<ChurchBible>>('/bible-typing/church-bible', {
     auth: 'required',
-    errorMessage: '우리 교회 필사 성경을 불러오지 못했어요',
+    errorMessage: '우리 교회가 함께 쓰는 성경을 불러오지 못했어요',
   })
   return res.data
 }

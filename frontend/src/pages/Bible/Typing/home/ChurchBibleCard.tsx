@@ -15,7 +15,7 @@ interface ChurchBibleCardProps {
 }
 
 /**
- * 우리 교회 손글씨 성경 — 교회가 함께 채워 가는 성경 한 권.
+ * 우리 교회가 함께 쓰는 성경 — 교회가 함께 채워 가는 성경 한 권.
  * 내가 쓴 절이 그 성경의 한 칸이 된다. 순위 대신 '함께 채운 양'을 보여 주어
  * 참여자가 적어도 쓸쓸하지 않게 한다.
  */
@@ -25,7 +25,7 @@ const ChurchBibleCard = ({ data, bookName }: ChurchBibleCardProps) => {
   return (
     <section className="bt-section" aria-labelledby="bt-church-title">
       <h2 id="bt-church-title" className="bt-section__title">
-        우리 교회 손글씨 성경
+        우리 교회가 함께 쓰는 성경
       </h2>
       <div className="bt-card bt-church">
         <p className="bt-church__lead">

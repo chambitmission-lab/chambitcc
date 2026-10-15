@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
+import artLight from '../../../assets/typing-relay/banner-light.webp'
+import artDark from '../../../assets/typing-relay/banner-dark.webp'
 import type { TypingCheerKind, TypingRelayDetail, TypingRelayLive } from '../../../api/bibleTyping'
 import { CHEER_LABEL } from './relayShare'
 
@@ -29,6 +31,9 @@ const MemberAvatar = ({ m, hue, live, size = 36 }: { m: Member; hue: number; liv
   </span>
 )
 
+// 배너 삽화 — 원고지 위 연필 바통 이어달리기(docs/typing-relay-banner-bg-prompts.md)
+const BANNER_ART = { '--relay-art-light': `url(${artLight})`, '--relay-art-dark': `url(${artDark})` } as CSSProperties
+
 export const RoomBanner = ({
   relay,
   canPass,
@@ -44,7 +49,7 @@ export const RoomBanner = ({
 }) => {
   const unit = relay.book_number === 19 ? '편' : '장'
   return (
-    <section className="bt-studyroom" aria-label="릴레이 방">
+    <section className={`bt-studyroom${canPass ? ' has-pass' : ''}`} style={BANNER_ART} aria-label="릴레이 방">
       <span className="bt-studyroom__ic material-icons-round" aria-hidden>
         menu_book
       </span>

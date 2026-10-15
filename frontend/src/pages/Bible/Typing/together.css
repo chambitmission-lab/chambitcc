@@ -446,6 +446,10 @@
 
 /* ── 방 배너(PC 독서실) ── */
 .bt-studyroom {
+  /* 삽화는 버튼 바로 왼쪽에 높이맞춤으로 선다(cover 금지 — 배너가 12:1 이라 확대된다).
+     좌우·위아래 페이드는 에셋에 구워 두었다. 오프셋 = 버튼 묶음 폭 */
+  --relay-art-right: 146px;
+  container-type: inline-size;
   position: relative;
   display: flex;
   align-items: center;
@@ -457,16 +461,37 @@
   color: #fff;
   background: linear-gradient(135deg, #1b64da, var(--brand) 60%, #5aa2ff);
 }
-.bt-studyroom::after {
+.bt-studyroom.has-pass {
+  --relay-art-right: 266px;
+}
+.bt-studyroom::before {
   content: '';
   position: absolute;
-  right: -40px;
-  top: -70px;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  inset: 0;
+  background: var(--relay-art-light) right var(--relay-art-right) center / auto 100% no-repeat;
   pointer-events: none;
+}
+.bt-studyroom > * {
+  position: relative;
+  z-index: 1;
+}
+/* 다크 = 밤 독서실. 삽화 하늘(#142a5b)에 바탕을 맞췄다 */
+.dark .bt-studyroom {
+  background: linear-gradient(135deg, #0f2150, #142a5b 55%, #1f3f80);
+}
+.dark .bt-studyroom::before {
+  background-image: var(--relay-art-dark);
+}
+/* 배너가 좁으면 삽화가 제목 자리까지 밀려온다(제목 끝 ≈ 380px + 삽화 224px + 버튼) */
+@container (max-width: 760px) {
+  .bt-studyroom::before {
+    display: none;
+  }
+}
+@container (max-width: 880px) {
+  .bt-studyroom.has-pass::before {
+    display: none;
+  }
 }
 .bt-studyroom__ic {
   display: inline-flex;
