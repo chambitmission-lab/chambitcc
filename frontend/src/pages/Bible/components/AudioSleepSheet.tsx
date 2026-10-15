@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 interface AudioSleepSheetProps {
   bookName: string
@@ -66,7 +67,7 @@ const AudioSleepSheet = ({
         aria-modal="true"
         aria-label="잠들기 전 듣기 설정"
       >
-        <span className="chapter-sheet__grip" aria-hidden="true" />
+        <SheetGrabber onClose={onClose} className="chapter-sheet__grip" />
 
         <div className="chapter-sheet__head">
           <div className="chapter-sheet__head-body">

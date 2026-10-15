@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 interface AudioSettingsMenuProps {
   /** 톱니 버튼 — PC에서는 이 아래에 팝오버를 붙인다 */
@@ -164,7 +165,7 @@ const AudioSettingsMenu = ({
         aria-modal="true"
         aria-label="오디오 설정"
       >
-        <span className="chapter-sheet__grip" aria-hidden="true" />
+        <SheetGrabber onClose={onClose} className="chapter-sheet__grip" />
         <div className="chapter-sheet__head">
           <div className="chapter-sheet__head-body">
             <h3 className="chapter-sheet__title">

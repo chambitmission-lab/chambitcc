@@ -6,6 +6,7 @@ import { useBookReadingProgress } from '../../../hooks/useBibleReading'
 import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
 import { useBookWordNotes } from '../../../hooks/useBibleWordNote'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
 interface ChapterPickerSheetProps {
   bookNameKo: string
@@ -156,7 +157,7 @@ const ChapterPickerSheet = ({
         aria-modal="true"
         aria-label={t.title(bookNameKo)}
       >
-        <span className="chapter-sheet__grip" aria-hidden="true" />
+        <SheetGrabber onClose={onClose} className="chapter-sheet__grip" />
 
         <div className="chapter-sheet__head">
           <div className="chapter-sheet__head-body">
