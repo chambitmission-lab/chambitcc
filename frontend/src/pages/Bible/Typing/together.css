@@ -1,0 +1,596 @@
+/* 필사 화면의 '함께' 조각 — 알아두면 좋은 말(bt-gloss), 같은 장 사람·방 친구(bt-tg), 방 배너(bt-studyroom),
+   방 소식(bt-feed), 친구랑 같이 쓰기(bt-tg-invite).
+   알아두면 좋은 말은 '배우는 순간'이라 따뜻한 금빛을 쓴다(브랜드 블루의 의도된 예외 — 2026-10 시안 B+C 합의). */
+
+.bt-page {
+  --bt-gold: #b7791f;
+  --bt-gold-line: #e2b04a;
+  --bt-gold-soft: #fff7e3;
+  --bt-gold-border: #f3dfa8;
+  --bt-gold-hl: #ffefc4;
+}
+.dark .bt-page {
+  --bt-gold: #f0b54a;
+  --bt-gold-line: #c99536;
+  --bt-gold-soft: rgba(240, 181, 74, 0.1);
+  --bt-gold-border: rgba(240, 181, 74, 0.28);
+  --bt-gold-hl: rgba(240, 181, 74, 0.22);
+}
+
+/* ── 본문 위 점선 밑줄 ── */
+.bt-ch--gloss {
+  text-decoration: underline dotted var(--bt-gold-line);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  cursor: pointer;
+}
+.bt-ch--gloss.bt-ch--correct {
+  text-decoration-color: var(--bt-gold);
+}
+.bt-ch--gloss.is-gloss-on {
+  background: var(--bt-gold-hl);
+  border-radius: 0;
+}
+
+/* ── 알아두면 좋은 말 ── */
+.bt-gloss {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--card-border);
+}
+.bt-gloss__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--bt-gold);
+}
+.bt-gloss__head .material-icons-round {
+  font-size: 16px;
+}
+.bt-gloss__head em {
+  margin-left: auto;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.bt-gloss__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+}
+.bt-gloss__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--bt-gold-border);
+  background: var(--bt-gold-soft);
+  color: var(--bt-gold);
+  font-size: 13px;
+  font-weight: 700;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.bt-gloss__chip .material-icons-round {
+  font-size: 16px;
+}
+.bt-gloss__chip i {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--bt-gold);
+}
+.bt-gloss__chip.is-on {
+  background: var(--bt-gold);
+  border-color: var(--bt-gold);
+  color: #fff;
+}
+.dark .bt-gloss__chip.is-on {
+  color: #1c1a16;
+}
+.bt-gloss__panel {
+  margin-top: 10px;
+  padding: 13px 15px;
+  border-radius: 16px;
+  border: 1px solid var(--bt-gold-border);
+  background: var(--bt-gold-soft);
+  animation: bt-gloss-in 0.22s ease;
+}
+@keyframes bt-gloss-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.bt-gloss__desc {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.bt-gloss__desc b {
+  color: var(--text-strong);
+}
+.bt-gloss__type {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--surface-container);
+  color: var(--bt-gold);
+  font-size: 11px;
+  font-weight: 800;
+  vertical-align: 2px;
+}
+.bt-gloss__ref,
+.bt-gloss__seen {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.bt-gloss__ref .material-icons-round {
+  font-size: 15px;
+  color: var(--bt-gold);
+}
+.bt-gloss__seen {
+  color: var(--bt-gold);
+  font-weight: 700;
+}
+.bt-gloss__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bt-gold-border);
+}
+.bt-gloss__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-body);
+}
+.bt-gloss__av {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bt-gold);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  overflow: hidden;
+}
+.bt-gloss__av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.bt-gloss__line.is-mine .bt-gloss__av {
+  background: var(--brand);
+}
+.bt-gloss__msg {
+  min-width: 0;
+  flex: 1;
+  word-break: keep-all;
+}
+.bt-gloss__msg q {
+  quotes: '“' '”';
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.bt-gloss__mine-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.bt-gloss__mine-actions button,
+.bt-gloss__more {
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.bt-gloss__mine-actions button:hover,
+.bt-gloss__more:hover {
+  background: var(--surface-container);
+}
+.bt-gloss__more {
+  align-self: flex-start;
+}
+.bt-gloss__write {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--bt-gold);
+}
+.bt-gloss__write .material-icons-round {
+  font-size: 15px;
+}
+.bt-gloss__form {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.bt-gloss__form input {
+  flex: 1;
+  min-width: 180px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--bt-gold-border);
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font-size: 14px;
+}
+.bt-gloss__form input:focus {
+  outline: 2px solid var(--bt-gold-line);
+  outline-offset: 0;
+}
+.bt-gloss__form .bt-btn {
+  height: 38px;
+}
+
+/* ── 사람 패널(같은 장 사람 · 방 친구) ── */
+.bt-tg {
+  padding: 14px 12px 12px;
+}
+.bt-tg__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+.bt-tg__head em {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.bt-tg__head em i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  opacity: 0.5;
+}
+.bt-tg__head em.is-live {
+  color: #12b886;
+}
+.bt-tg__head em.is-live i {
+  background: #12b886;
+  opacity: 1;
+  animation: bt-tg-pulse 1.8s ease-out infinite;
+}
+@keyframes bt-tg-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(18, 184, 134, 0.5);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px rgba(18, 184, 134, 0);
+  }
+}
+.bt-tg__empty {
+  margin: 0;
+  padding: 6px 4px 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.bt-tg__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bt-tg__person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 6px;
+  border-radius: 12px;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+.bt-tg__person:hover,
+.bt-tg__person.is-on {
+  background: var(--surface-inset);
+}
+.bt-tg__person.is-away .bt-room-av {
+  opacity: 0.55;
+}
+.bt-tg__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.bt-tg__who b {
+  font-size: 14px;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bt-tg__who span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.bt-tg__cheer-ic {
+  font-size: 18px;
+  color: var(--brand);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.bt-tg__person:hover .bt-tg__cheer-ic,
+.bt-tg__person.is-on .bt-tg__cheer-ic,
+.bt-tg__person:focus-visible .bt-tg__cheer-ic {
+  opacity: 1;
+}
+.bt-tg .bt-room-cheers {
+  padding: 0 4px;
+}
+.bt-tg-av--anon {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+.bt-tg__ticker {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface-inset);
+  font-size: 12.5px;
+  color: var(--text-body);
+  word-break: keep-all;
+  animation: bt-gloss-in 0.3s ease;
+}
+.bt-tg__anon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 4px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.bt-tg__anon input {
+  accent-color: var(--brand);
+}
+
+/* 모바일 카드 위 한 줄 — 릴레이 방 줄(bt-room-line)과 같은 몸, 혼자일 땐 조금 더 담백하게 */
+.bt-tg-strip {
+  background: var(--surface-inset);
+}
+
+/* ── 친구랑 같이 쓰기 ── */
+.bt-tg-invite {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 14px 16px;
+  border-radius: 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #1b64da, var(--brand) 60%, #5aa2ff);
+}
+.bt-shell--session > .bt-tg-invite {
+  margin-top: 16px;
+}
+.bt-tg-invite__ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 21px;
+}
+.bt-tg-invite__txt {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.bt-tg-invite__txt b {
+  font-size: 15px;
+}
+.bt-tg-invite__txt span {
+  font-size: 12px;
+  opacity: 0.85;
+  word-break: keep-all;
+}
+.bt-tg-invite button {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 9px 13px;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 800;
+}
+.bt-tg-invite button:disabled {
+  opacity: 0.7;
+}
+
+/* ── 방 배너(PC 독서실) ── */
+.bt-studyroom {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(135deg, #1b64da, var(--brand) 60%, #5aa2ff);
+}
+.bt-studyroom::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: -70px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+.bt-studyroom__ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 24px;
+}
+.bt-studyroom__txt {
+  min-width: 0;
+}
+.bt-studyroom__txt h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bt-studyroom__txt p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  opacity: 0.88;
+}
+.bt-studyroom__actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.bt-studyroom__actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+.bt-studyroom__actions button:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.bt-studyroom__actions button.is-strong {
+  background: #fff;
+  color: var(--brand);
+}
+.bt-studyroom__actions .material-icons-round {
+  font-size: 18px;
+}
+
+/* ── 방 소식 ── */
+.bt-feed__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bt-feed__list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-body);
+  word-break: keep-all;
+  animation: bt-gloss-in 0.3s ease;
+}
+.bt-feed__list li i {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--hue, var(--text-muted));
+  transform: translateY(-1px);
+}
+.bt-feed__list li span {
+  flex: 1;
+  min-width: 0;
+}
+.bt-feed__list time {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── 진행 카드·장 지도 보탬 ── */
+.bt-ringcard__today {
+  display: block;
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.bt-ringcard__today b {
+  color: var(--brand);
+}
+.bt-map__chip {
+  position: relative;
+}
+.bt-map__dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-container);
+  background: var(--hue, var(--brand));
+}
+.bt-map__dot.is-anon {
+  background: var(--text-muted);
+}
+
+/* '이어 써요' 덮개는 안내일 뿐 — 클릭은 아래 글자(밑줄 단어 포함)로 그대로 내려간다 */
+.bt-pad .bt-refocus {
+  pointer-events: none;
+}

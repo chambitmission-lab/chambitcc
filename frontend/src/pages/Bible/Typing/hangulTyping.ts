@@ -157,3 +157,9 @@ export const initialOf = (ch: string): string => {
   if (!isSyllable(ch)) return ch
   return CHO[Math.floor((ch.charCodeAt(0) - SYLLABLE_START) / 588)]
 }
+
+/**
+ * 필사 판이 화면에 그리는 원문 — 공백을 한 칸으로 줄이고 앞뒤를 다듬은 것.
+ * 판 바깥에서 본문 위치(사전 밑줄 등)를 계산할 때도 이 문자열 기준이어야 글자 칸과 맞는다.
+ */
+export const typingSource = (raw: string) => raw.replace(/\s+/g, ' ').trim()

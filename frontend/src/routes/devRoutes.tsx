@@ -49,6 +49,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['genealogy-trail', () => import('../pages/dev/GenealogyTrailPreview')],
       // 따라쓰기 릴레이 방 — 칸 판·소식 띠·응원·바통 시트(표본 방)
       ['typing-relay', () => import('../pages/dev/TypingRelayRoomPreview')],
+      // 필사 화면 개편 — 혼자 쓸 때(같은 장 사람·알아두면 좋은 말) / 릴레이 방 독서실(?room=1)
+      ['typing-together', () => import('../pages/dev/TypingTogetherPreview')],
     ]
   : []
 

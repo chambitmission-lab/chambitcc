@@ -6,7 +6,10 @@ import { useBibleBooks, useBibleChapter } from '../../../hooks/useBible'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import {
   useChapterTyping,
+  useCreateTypingRelay,
   usePassTypingBaton,
+  useSendRelayGlossView,
+  useSendTogetherCheer,
   useSendTypingCheer,
   useSubmitTyping,
   useTypingRelay,
@@ -14,21 +17,28 @@ import {
   useTypingRelayRoom,
   useTypingRelays,
   useTypingStats,
+  useTypingTogether,
 } from '../../../hooks/useBibleTyping'
 import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
-import type { TypingCheerKind, TypingMode } from '../../../api/bibleTyping'
+import type { TypingChapterPerson, TypingCheerKind, TypingMode } from '../../../api/bibleTyping'
 import type { BibleVerse } from '../../../types/bible'
-import TypingPad, { type TypingFinish } from './TypingPad'
-import { PASS_ACCURACY, cpmOf } from './hangulTyping'
+import TypingPad, { type TypingFinish, type TypingMark } from './TypingPad'
+import { PASS_ACCURACY, cpmOf, typingSource } from './hangulTyping'
 import { formatDuration, sessionPath, useIgnorePunct } from './typingPrefs'
 import { playTypingSound } from './typingSound'
 import SoundMenu from './SoundMenu'
 import Lamp from './home/Lamp'
 import { teaser } from './home/teaser'
 import { BatonSheet, RelayBoard, RelayHandoff, RelayLine, RelayPrevNote } from './RelayRoom'
-import { CHEER_LABEL, relayHueMap } from './relayShare'
+import RelayInviteSheet from './RelayInviteSheet'
+import { RoomBanner, RoomFeed, RoomMembers, type RoomFeedItem } from './RelayStudyRoom'
+import TypingGlossary, { type GlossaryViewer } from './TypingGlossary'
+import { InviteCard, TogetherPanel, TogetherStrip } from './TypingTogether'
+import { CHEER_LABEL, hueOfKey, relayHueMap } from './relayShare'
+import { isGlossaryReady, loadGlossary, matchGlossary, type GlossaryEntry } from '../data/bibleGlossary'
 import './typing.css'
+import './together.css'
 
 interface SessionVerse {
   id: number
@@ -64,6 +74,17 @@ const RING_C = 2 * Math.PI * 44
 const FLASH_MS = 6000
 // 주소로 정해진 절에 처음 내려앉은 뒤, 늦게 도착한 내용에 밀려도 자리를 다시 맞추는 시간
 const LAND_HOLD_MS = 1500
+// 방 소식에 남겨 두는 개수
+const FEED_MAX = 8
+// '내 이름 숨기고 쓰기' — 기기별 기억
+const ANON_KEY = 'bt-together-anon'
+const readAnon = () => {
+  try {
+    return localStorage.getItem(ANON_KEY) === '1'
+  } catch {
+    return false
+  }
+}
 
 interface CheerFloat {
   id: number
@@ -90,7 +111,7 @@ const toSessionVerses = (verses: BibleVerse[]): SessionVerse[] => {
 const TypingSessionView = () => {
   const navigate = useNavigate()
   const params = useParams()
-  const [search] = useSearchParams()
+  const [search, setSearch] = useSearchParams()
   const bookNumber = Number(params.book) || 0
   const chapter = Number(params.chapter) || 0
   const mode: TypingMode = search.get('mode') === 'memorize' ? 'memorize' : 'copy'
@@ -128,6 +149,50 @@ const TypingSessionView = () => {
   }, [])
   const [cheers, setCheers] = useState<CheerFloat[]>([])
   const cheerSeq = useRef(0)
+  const floatCheer = useCallback((text: string, hue: number) => {
+    const id = ++cheerSeq.current
+    setCheers((prev) => [...prev.slice(-3), { id, text, hue }])
+    setTimeout(() => setCheers((prev) => prev.filter((c) => c.id !== id)), 2200)
+  }, [])
+  // 방 소식(PC 독서실) — 이 화면에 있는 동안 일어난 일
+  const [feed, setFeed] = useState<RoomFeedItem[]>([])
+  const feedSeq = useRef(0)
+  const pushFeed = useCallback((text: string, hue: number | null) => {
+    const id = ++feedSeq.current
+    setFeed((prev) => [{ id, text, hue, at: Date.now() }, ...prev].slice(0, FEED_MAX))
+  }, [])
+  const [clock, setClock] = useState(() => Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setClock(Date.now()), 30_000)
+    return () => clearInterval(t)
+  }, [])
+  const [inviting, setInviting] = useState(false)
+  const createRelay = useCreateTypingRelay()
+  const sendGlossView = useSendRelayGlossView()
+  const sendTogetherCheer = useSendTogetherCheer()
+  const [anon, setAnonState] = useState(readAnon)
+  const setAnon = (v: boolean) => {
+    setAnonState(v)
+    try {
+      localStorage.setItem(ANON_KEY, v ? '1' : '0')
+    } catch {
+      /* noop */
+    }
+  }
+  // 알아두면 좋은 말 — 사전은 코드 분할이라 처음 필요할 때 받는다
+  const [glossReady, setGlossReady] = useState(isGlossaryReady)
+  useEffect(() => {
+    if (glossReady) return
+    let alive = true
+    loadGlossary()
+      .then(() => alive && setGlossReady(true))
+      .catch(() => undefined)
+    return () => {
+      alive = false
+    }
+  }, [glossReady])
+  // 펼친 풀이는 절에 묶는다 — 다른 절로 가면 저절로 접힌다
+  const [glossState, setGlossState] = useState<{ verseId: number; term: string } | null>(null)
   /** 내 칸을 쓴 직후 여는 바통 시트 — then 은 시트를 닫은 뒤 이어 갈 흐름(다음 절·목표 축하·마무리) */
   const [baton, setBaton] = useState<{
     verse: SessionVerse
@@ -188,27 +253,98 @@ const TypingSessionView = () => {
   const memberName = (uid: number) => room?.members.find((m) => m.user_id === uid)?.name ?? '친구'
   const live = useTypingRelayRoom(roomId, current !== null ? (verses[current]?.verse ?? null) : null, {
     onCheer: (ev) => {
-      const id = ++cheerSeq.current
-      setCheers((prev) => [
-        ...prev.slice(-3),
-        { id, text: `${ev.name} · ${CHEER_LABEL[ev.kind]}`, hue: hueOf.get(ev.from_user_id) ?? 0 },
-      ])
-      setTimeout(() => setCheers((prev) => prev.filter((c) => c.id !== id)), 2200)
+      const hue = hueOf.get(ev.from_user_id) ?? 0
+      floatCheer(`${ev.name} · ${CHEER_LABEL[ev.kind]}`, hue)
+      pushFeed(`${ev.name}님이 내게 “${CHEER_LABEL[ev.kind]}”`, hue)
     },
     onFill: (ev) => {
       const label = room?.verses.find((v) => v.id === ev.verse_id)?.label
+      const hue = hueOf.get(ev.by) ?? null
       if (ev.baton_to) {
         const me = room?.members.find((m) => m.is_me)?.user_id
-        showFlash(
+        const text =
           ev.baton_to === me
             ? `${memberName(ev.by)}님이 내게 바통을 넘겼어요`
-            : `${memberName(ev.by)}님이 ${memberName(ev.baton_to)}님에게 바통을 넘겼어요`,
-        )
+            : `${memberName(ev.by)}님이 ${memberName(ev.baton_to)}님에게 바통을 넘겼어요`
+        showFlash(text)
+        pushFeed(text, hue)
       } else if (label) {
         showFlash(`${memberName(ev.by)}님이 방금 ${label}절을 채웠어요`)
+        pushFeed(`${memberName(ev.by)}님이 ${label}절을 채웠어요`, hue)
       }
     },
+    onGloss: (ev) => {
+      pushFeed(`${memberName(ev.user_id)}님이 ‘${ev.term}’ 풀이를 열어 봤어요`, hueOf.get(ev.user_id) ?? null)
+    },
   })
+
+  // 혼자 쓸 때 — 지금 이 장을 쓰는 사람. 릴레이 방이면(또는 방인지 아직 모르면) 켜지 않는다
+  const roomPending = loggedIn && (myRelays === undefined || (!!relayParam && relay === undefined))
+  const together = useTypingTogether(bookNumber, chapter, current !== null ? (verses[current]?.verse ?? null) : null, {
+    enabled: loggedIn && !room && !roomPending,
+    anon,
+    onCheer: (ev) => {
+      const who = ev.name ?? '익명 성도'
+      floatCheer(`${who} · ${CHEER_LABEL[ev.kind]}`, ev.name ? hueOfKey(ev.from_key) : 0)
+      showFlash(`${who}님이 내게 “${CHEER_LABEL[ev.kind]}” 응원을 보냈어요`)
+    },
+    onWritten: (ev) => {
+      showFlash(`방금 ${ev.name ?? '익명 성도'}님이 ${ev.verse}절을 다 썼어요`)
+    },
+  })
+  const onTogetherCheer = (to: TypingChapterPerson, kind: TypingCheerKind) =>
+    sendTogetherCheer.mutate(
+      { book_number: bookNumber, chapter, to_key: to.key, kind },
+      {
+        onSuccess: () => showFlash(`${to.name ?? '익명 성도'}님에게 “${CHEER_LABEL[kind]}” 응원을 보냈어요`),
+        onError: (e) => showToast(e instanceof Error ? e.message : '응원을 보내지 못했어요', 'error'),
+      },
+    )
+
+  // 방에 처음 들어왔을 때 — 바통 한마디를 방 소식의 바닥으로 깔아 둔다(언제였는지는 모른다)
+  const feedSeeded = useRef(0)
+  useEffect(() => {
+    if (!room || feedSeeded.current === room.id) return
+    feedSeeded.current = room.id
+    const notes = room.verses
+      .filter((v) => v.note)
+      .slice(-3)
+      .reverse()
+      .map((v) => ({
+        id: ++feedSeq.current,
+        hue: hueOf.get(v.note!.user_id) ?? null,
+        text: `${v.note!.name} · ${v.label}절 “${v.note!.message}”`,
+        at: null,
+      }))
+    setFeed((prev) => [...prev, ...notes].slice(0, FEED_MAX))
+  }, [room, hueOf])
+
+  // 방 만들기로 들어왔으면(?invite=1) 초대 시트를 연다 — 닫을 때 주소에서 뺀다
+  const inviteFromUrl = !!room && search.get('invite') === '1'
+  const showInvite = inviting || inviteFromUrl
+  const closeInvite = () => {
+    setInviting(false)
+    if (!inviteFromUrl) return
+    const next = new URLSearchParams(search)
+    next.delete('invite')
+    setSearch(next, { replace: true })
+  }
+
+  const onCreateRoom = () => {
+    if (!loggedIn) return
+    createRelay.mutate(
+      { book_number: bookNumber, chapter },
+      {
+        onSuccess: (r) => {
+          const next = new URLSearchParams(search)
+          next.set('relay', String(r.id))
+          next.set('invite', '1')
+          setSearch(next, { replace: true })
+        },
+        onError: (e) => showToast(e instanceof Error ? e.message : '방을 만들지 못했어요', 'error'),
+      },
+    )
+  }
 
   useEffect(
     () => () => {
@@ -450,7 +586,10 @@ const TypingSessionView = () => {
     sendCheer.mutate(
       { id: roomId, to_user_id: to.user_id, kind },
       {
-        onSuccess: () => showFlash(`${to.name}님에게 “${CHEER_LABEL[kind]}” 응원을 보냈어요`),
+        onSuccess: () => {
+          showFlash(`${to.name}님에게 “${CHEER_LABEL[kind]}” 응원을 보냈어요`)
+          pushFeed(`내가 ${to.name}님에게 “${CHEER_LABEL[kind]}”`, null)
+        },
         onError: (e) => showToast(e instanceof Error ? e.message : '응원을 보내지 못했어요', 'error'),
       },
     )
@@ -560,6 +699,9 @@ const TypingSessionView = () => {
     const onKey = (e: KeyboardEvent) => {
       const st = keyState.current
       if (st.showSummary || st.goalOpen || st.current === null) return
+      // 한 줄 남기기 입력칸에서는 절 이동·처음부터 단축키를 쓰지 않는다
+      const focusEl = document.activeElement
+      if (focusEl instanceof HTMLInputElement && focusEl.closest('.bt-gloss')) return
       const cur = st.current
       if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
         const ni = e.shiftKey ? cur - 1 : cur + 1
@@ -627,6 +769,35 @@ const TypingSessionView = () => {
     if (i >= 0) goTo(i)
   }
   const myId = room?.members.find((m) => m.is_me)?.user_id
+  const unit = bookNumber === 19 ? '편' : '장'
+
+  // 지금 절의 알아두면 좋은 말 — 필사 판이 그리는 원문(typingSource) 기준으로 찾는다
+  const activeVerse = current !== null ? verses[current] : null
+  const gloss = useMemo((): { entries: GlossaryEntry[]; marks: TypingMark[] } => {
+    if (!glossReady || !activeVerse || mode === 'memorize') return { entries: [], marks: [] }
+    const found = matchGlossary(bookNumber, typingSource(activeVerse.text))
+    const entries: GlossaryEntry[] = []
+    found.forEach((m) => {
+      if (!entries.includes(m.entry)) entries.push(m.entry)
+    })
+    return { entries, marks: found.map((m) => ({ id: m.entry.name, start: m.start, end: m.end })) }
+  }, [glossReady, activeVerse, mode, bookNumber])
+  const glossOpen = glossState && glossState.verseId === activeVerse?.id ? glossState.term : null
+  const toggleGloss = (term: string) => {
+    const opening = glossOpen !== term
+    setGlossState(opening && activeVerse ? { verseId: activeVerse.id, term } : null)
+    if (opening && room && myId !== undefined && !(room.gloss_views?.[term] ?? []).includes(myId))
+      sendGlossView.mutate({ id: room.id, term })
+  }
+  const viewersOf = room
+    ? (term: string): GlossaryViewer[] =>
+        (room.gloss_views?.[term] ?? [])
+          .filter((uid) => uid !== myId)
+          .map((uid) => ({ user_id: uid, name: memberName(uid), hue: hueOf.get(uid) ?? 0 }))
+    : undefined
+  const canPassBaton =
+    !!room && lastWritten !== null && baton === null && !handoff && !room.completed && room.verses.some((rv) => !rv.by)
+  const openBaton = () => lastWritten && setBaton({ verse: lastWritten, hasNext: true, then: () => undefined })
 
   const renderActive = (v: SessionVerse, i: number) => {
     const isDone = done.has(v.id)
@@ -640,15 +811,24 @@ const TypingSessionView = () => {
             새김
           </span>
         )}
-        {room && (
+        {room && !isDesk && (
           <RelayLine
             relay={room}
             live={live}
             hueOf={hueOf}
             ticker={ticker}
-            canPass={lastWritten !== null && baton === null && !handoff && !room.completed && room.verses.some((rv) => !rv.by)}
+            canPass={canPassBaton}
             onCheer={onCheer}
-            onPass={() => lastWritten && setBaton({ verse: lastWritten, hasNext: true, then: () => undefined })}
+            onPass={openBaton}
+          />
+        )}
+        {!room && !isDesk && loggedIn && (
+          <TogetherStrip
+            people={together.people}
+            todayWriters={together.todayWriters}
+            ticker={flash}
+            unit={unit}
+            onCheer={onTogetherCheer}
           />
         )}
         {room && handoff && (
@@ -715,6 +895,9 @@ const TypingSessionView = () => {
           disabled={outcome !== null && outcome.status !== 'failed'}
           onStart={() => setActive(i)}
           onFinish={(r) => void handleFinish(v, r)}
+          marks={gloss.marks}
+          activeMark={glossOpen}
+          onMarkClick={toggleGloss}
         />
         )}
         {outcome && !handoff && (
@@ -755,6 +938,16 @@ const TypingSessionView = () => {
             )}
             {outcome.status === 'passed' && outcome.note && <span className="bt-outcome__note">{outcome.note}</span>}
           </div>
+        )}
+        {!handoff && (
+          <TypingGlossary
+            entries={gloss.entries}
+            active={glossOpen}
+            onToggle={toggleGloss}
+            where={{ book_number: bookNumber, chapter, verse_id: v.id }}
+            loggedIn={loggedIn}
+            viewersOf={viewersOf}
+          />
         )}
       </div>
     )
@@ -823,6 +1016,16 @@ const TypingSessionView = () => {
           {isLoading && <p className="bt-empty">말씀을 불러오는 중…</p>}
           {error && <p className="bt-empty">말씀을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
 
+          {isDesk && room && (
+            <RoomBanner
+              relay={room}
+              canPass={canPassBaton}
+              onInvite={() => setInviting(true)}
+              onPass={openBaton}
+              onOpenRelay={() => navigate(`/bible/typing/relay/${room.id}`)}
+            />
+          )}
+
           {isDesk && curVerse ? (
             <div className="bt-desk">
               <section className="bt-stage" style={{ ['--bt-dir' as string]: dir }}>
@@ -890,8 +1093,13 @@ const TypingSessionView = () => {
 
               <aside className="bt-desk__side" aria-label="장 진행">
                 {room && (
-                  <RelayBoard relay={room} live={live} hueOf={hueOf} currentVerse={curVerse.verse} onPick={goToVerse} />
+                  <>
+                    <RoomMembers relay={room} live={live} hueOf={hueOf} onCheer={onCheer} />
+                    <RelayBoard relay={room} live={live} hueOf={hueOf} currentVerse={curVerse.verse} onPick={goToVerse} />
+                    <RoomFeed items={feed} now={clock} />
+                  </>
                 )}
+                {!room && (
                 <div className="bt-card bt-ringcard">
                   <div className="bt-ring" role="img" aria-label={`${verses.length}절 중 ${doneCount}절 필사`}>
                     <svg viewBox="0 0 100 100" aria-hidden>
@@ -917,28 +1125,30 @@ const TypingSessionView = () => {
                     <span className="bt-ringcard__sub">
                       {doneCount === verses.length && verses.length > 0 ? '이 장을 다 새겼어요' : `${verses.length - doneCount}절 남았어요`}
                     </span>
+                    {stats && (
+                      <span className="bt-ringcard__today">
+                        오늘 <b>{stats.today_verses}절</b> · 목표 {goal}절
+                        {stats.current_streak > 0 && <> · {stats.current_streak}일째</>}
+                      </span>
+                    )}
                   </div>
                 </div>
+                )}
 
-                <dl className="bt-card bt-sessionstats">
-                  <div>
-                    <dt>이번에 쓴 절</dt>
-                    <dd>{summary.count}</dd>
-                  </div>
-                  <div>
-                    <dt>평균 타수</dt>
-                    <dd>{summary.cpm}</dd>
-                  </div>
-                  <div>
-                    <dt>정확도</dt>
-                    <dd>{summary.count ? `${Math.round(summary.acc * 100)}%` : '–'}</dd>
-                  </div>
-                  <div>
-                    <dt>최고 연속</dt>
-                    <dd>{summary.bestCombo}</dd>
-                  </div>
-                </dl>
+                {!room && loggedIn && (
+                  <TogetherPanel
+                    people={together.people}
+                    todayWriters={together.todayWriters}
+                    ticker={flash}
+                    unit={unit}
+                    onCheer={onTogetherCheer}
+                    anon={anon}
+                    onAnon={setAnon}
+                  />
+                )}
+                {!room && loggedIn && <InviteCard unit={unit} busy={createRelay.isPending} onCreate={onCreateRoom} />}
 
+                {!room && (
                 <div className="bt-card bt-map">
                   <p className="bt-map__title">장 지도</p>
                   <div ref={mapRef} className="bt-map__grid">
@@ -957,10 +1167,17 @@ const TypingSessionView = () => {
                         title={mode === 'memorize' && !done.has(v.id) ? `${v.label}절` : `${v.label}절 · ${v.text}`}
                       >
                         {v.label}
+                        {(() => {
+                          const p = together.people.find((pp) => pp.verse === v.verse)
+                          return p ? (
+                            <i className={`bt-map__dot${p.name ? ` bt-hue-${hueOfKey(p.key)}` : ' is-anon'}`} aria-hidden />
+                          ) : null
+                        })()}
                       </button>
                     ))}
                   </div>
                 </div>
+                )}
               </aside>
             </div>
           ) : (
@@ -987,8 +1204,13 @@ const TypingSessionView = () => {
               })}
             </ol>
           )}
+          {!isDesk && !room && loggedIn && verses.length > 0 && (
+            <InviteCard unit={unit} busy={createRelay.isPending} onCreate={onCreateRoom} />
+          )}
         </main>
       </div>
+
+      {showInvite && room && <RelayInviteSheet relay={room} onClose={closeInvite} />}
 
       {baton && room && (
         <BatonSheet

@@ -155,6 +155,8 @@ export interface TypingRelayDetail {
   } | null
   /** 내게 넘어온 바통(turn 이 나일 때) — 이어받으면(이 장을 한 절 쓰면) 사라진다 */
   baton: { from_user_id: number; name: string; message: string | null; verse: number | null; label: string | null } | null
+  /** '알아두면 좋은 말' 풀이를 열어 본 멤버 — 표제어 → user_id(서버 메모리, 옛 백엔드면 없음) */
+  gloss_views?: Record<string, number[]>
 }
 
 export interface TypingRelayLive {
@@ -381,5 +383,119 @@ export const passTypingRelayBaton = async (input: {
     auth: 'required',
     json: { verse_id: input.verse_id, to_user_id: input.to_user_id, message: input.message },
     errorMessage: '바통을 넘기지 못했어요',
+  })
+}
+
+/** 릴레이 방 — 알아두면 좋은 말 풀이를 열어 봤다(처음이면 같은 방 사람들에게 알림) */
+export const sendTypingRelayGlossView = async (input: { id: number; term: string }): Promise<void> => {
+  await request<Envelope<null>>(`/bible-typing/relays/${input.id}/gloss`, {
+    method: 'POST',
+    auth: 'required',
+    json: { term: input.term },
+    errorMessage: '풀이 열람을 알리지 못했어요',
+  })
+}
+
+// ── 혼자 쓸 때도 함께 — 지금 이 장을 쓰는 사람 ────────────────
+
+/** 같은 장을 지금 쓰는 사람. 익명이면 user_id·name·avatar_url 이 null — key 로만 가리킨다 */
+export interface TypingChapterPerson {
+  key: string
+  user_id: number | null
+  name: string | null
+  avatar_url: string | null
+  verse: number
+}
+
+export interface TypingTogetherSnapshot {
+  /** 내 key — 명단에서 나를 빼는 데 쓴다 */
+  me_key: string
+  people: TypingChapterPerson[]
+  /** 오늘 이 장을 (통과로) 쓴 성도 수 */
+  today_writers: number
+}
+
+export const sendTypingTogetherPresence = async (input: {
+  book_number: number
+  chapter: number
+  verse: number
+  anon: boolean
+}): Promise<TypingTogetherSnapshot> => {
+  const res = await request<Envelope<TypingTogetherSnapshot>>('/bible-typing/together/presence', {
+    method: 'POST',
+    auth: 'required',
+    json: input,
+    errorMessage: '접속 표시를 보내지 못했어요',
+  })
+  return res.data
+}
+
+export const leaveTypingTogether = async (): Promise<void> => {
+  await request<Envelope<null>>('/bible-typing/together/presence', {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '접속 표시를 지우지 못했어요',
+  })
+}
+
+export const sendTypingTogetherCheer = async (input: {
+  book_number: number
+  chapter: number
+  to_key: string
+  kind: TypingCheerKind
+}): Promise<void> => {
+  await request<Envelope<null>>('/bible-typing/together/cheer', {
+    method: 'POST',
+    auth: 'required',
+    json: input,
+    errorMessage: '응원을 보내지 못했어요',
+  })
+}
+
+// ── 알아두면 좋은 말 — 성도들이 남긴 한 줄 ────────────────────
+
+export interface GlossaryLine {
+  id: number
+  name: string
+  avatar_url: string | null
+  message: string
+  mine: boolean
+  created_at: string
+}
+
+export interface GlossaryLineBucket {
+  count: number
+  lines: GlossaryLine[]
+}
+
+export const getGlossaryLines = async (terms: string[]): Promise<Record<string, GlossaryLineBucket>> => {
+  const res = await request<Envelope<Record<string, GlossaryLineBucket>>>(
+    `/bible-typing/glossary-lines?terms=${encodeURIComponent(terms.join(','))}`,
+    { auth: 'required', errorMessage: '한 줄을 불러오지 못했어요' },
+  )
+  return res.data
+}
+
+export const saveGlossaryLine = async (input: {
+  term: string
+  message: string
+  book_number?: number
+  chapter?: number
+  verse_id?: number
+}): Promise<{ id: number; term: string; message: string }> => {
+  const res = await request<Envelope<{ id: number; term: string; message: string }>>('/bible-typing/glossary-lines', {
+    method: 'PUT',
+    auth: 'required',
+    json: input,
+    errorMessage: '한 줄을 남기지 못했어요',
+  })
+  return res.data
+}
+
+export const deleteGlossaryLine = async (id: number): Promise<void> => {
+  await request<Envelope<null>>(`/bible-typing/glossary-lines/${id}`, {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '한 줄을 지우지 못했어요',
   })
 }

@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
-import { compare, countKeystrokes, cpmOf, finalAccuracy, initialOf, isHangul, normalizeTyped, type CharState } from './hangulTyping'
+import {
+  compare,
+  countKeystrokes,
+  cpmOf,
+  finalAccuracy,
+  initialOf,
+  isHangul,
+  normalizeTyped,
+  typingSource,
+  type CharState,
+} from './hangulTyping'
 import type { TypingMode } from '../../../api/bibleTyping'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { playTypingSound } from './typingSound'
@@ -25,6 +35,17 @@ interface TypingPadProps {
   onStart?: () => void
   autoFocus?: boolean
   disabled?: boolean
+  /** 본문 위 밑줄 구간(알아두면 좋은 말) — 위치는 typingSource(text) 기준 */
+  marks?: TypingMark[]
+  /** 지금 풀이를 펼친 밑줄 — 형광펜처럼 칠한다 */
+  activeMark?: string | null
+  onMarkClick?: (id: string) => void
+}
+
+export interface TypingMark {
+  id: string
+  start: number
+  end: number
 }
 
 // 문장부호 무시일 때 표시에서 "비교 대상이 아닌" 글자
@@ -44,7 +65,7 @@ interface DisplayItem {
 const buildDisplay = (raw: string, ignorePunct: boolean): { target: string; items: DisplayItem[] } => {
   const items: DisplayItem[] = []
   let target = ''
-  const src = raw.replace(/\s+/g, ' ').trim()
+  const src = typingSource(raw)
   for (const ch of src) {
     if (ch === ' ') {
       if (target.length > 0 && !target.endsWith(' ')) {
@@ -98,8 +119,28 @@ const NAV_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Ho
 // 한 번에 이만큼 넘게 늘어나면 붙여넣기·자동 입력으로 본다(예측 단어 선택은 이보다 짧다)
 const BULK_INPUT_CHARS = 12
 
-const TypingPad = ({ text, mode, ignorePunct, onFinish, onStart, autoFocus = true, disabled = false }: TypingPadProps) => {
+const TypingPad = ({
+  text,
+  mode,
+  ignorePunct,
+  onFinish,
+  onStart,
+  autoFocus = true,
+  disabled = false,
+  marks,
+  activeMark = null,
+  onMarkClick,
+}: TypingPadProps) => {
   const { target, items } = useMemo(() => buildDisplay(text, ignorePunct), [text, ignorePunct])
+  // 글자 칸(items 는 원문 한 글자에 하나) → 그 칸을 덮는 밑줄. 암송 모드는 본문을 가리므로 밑줄도 없다
+  const markAt = useMemo(() => {
+    const m = new Map<number, TypingMark>()
+    if (mode === 'memorize') return m
+    marks?.forEach((mk) => {
+      for (let i = mk.start; i < mk.end; i++) m.set(i, mk)
+    })
+    return m
+  }, [marks, mode])
   const [value, setValue] = useState('')
   const [hint, setHint] = useState(false)
   const [peek, setPeek] = useState(false)
@@ -370,15 +411,30 @@ const TypingPad = ({ text, mode, ignorePunct, onFinish, onStart, autoFocus = tru
         ref={targetRef}
         className={`bt-target${memorize ? ' is-memorize' : ''}${hint ? ' has-hint' : ''}`}
         aria-label={memorize ? '암송할 말씀(가려짐)' : text}
-        onClick={() => inputRef.current?.focus({ preventScroll: true })}
+        // 밑줄 단어를 눌러도 입력칸 포커스를 뺏지 않는다 — 뺏기면 '이어 써요' 덮개가 떠서 클릭이 엇나간다
+        onMouseDown={(e) => {
+          if ((e.target as HTMLElement).closest('[data-gloss]')) e.preventDefault()
+        }}
+        onClick={(e) => {
+          const g = (e.target as HTMLElement).closest<HTMLElement>('[data-gloss]')
+          if (g?.dataset.gloss && onMarkClick) onMarkClick(g.dataset.gloss)
+          inputRef.current?.focus({ preventScroll: true })
+        }}
       >
         {items.map((it, i) => {
           const state = it.idx === null ? null : cmp.states[it.idx]
+          const mk = markAt.get(i)
           return (
             <span
               key={i}
               data-idx={it.idx ?? undefined}
-              className={['bt-ch', it.idx === null ? 'bt-ch--skip' : `bt-ch--${state}`, it.ch === ' ' ? 'bt-ch--space' : ''].join(' ')}
+              data-gloss={mk?.id}
+              className={[
+                'bt-ch',
+                it.idx === null ? 'bt-ch--skip' : `bt-ch--${state}`,
+                it.ch === ' ' ? 'bt-ch--space' : '',
+                mk ? `bt-ch--gloss${mk.id === activeMark ? ' is-gloss-on' : ''}` : '',
+              ].join(' ')}
             >
               {glyph(it, state)}
             </span>

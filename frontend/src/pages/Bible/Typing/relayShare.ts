@@ -34,3 +34,10 @@ export const relayHueMap = (members: { user_id: number }[] | undefined): Map<num
 }
 
 export const CHEER_LABEL = { pray: '함께 기도해요', cheer: '힘내요!', amen: '아멘' } as const
+
+/** 같은 장을 쓰는 사람(접속 key)의 얼굴 색 — 명단 순서가 바뀌어도 같은 사람은 같은 색 */
+export const hueOfKey = (key: string) => {
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0
+  return Math.abs(h) % RELAY_HUES
+}
