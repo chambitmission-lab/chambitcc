@@ -5,11 +5,13 @@
 
   python -I frontend/scripts/gen-typing-sounds.py <원본 폴더>
 
-원본 폴더에 thocky.mp3 · typewriter.wav · buckling.ogg 가 있어야 한다.
+원본 폴더에 thocky.mp3 · typewriter.wav · buckling.ogg · blue.flac · jade.wav 를 둔다.
+없는 원본은 건너뛰고 그 테마는 typingSprites.ts 의 기존 값을 그대로 둔다(한 테마만 다시 굽기).
 MP3 는 인코더 지연만큼 앞이 밀리므로, 런타임이 디코딩한 버퍼에서 첫 소리(anchor)를 다시 찾아 어긋남을 보정한다.
 """
 
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -30,7 +32,24 @@ SOURCES = {
     'typewriter': dict(file='typewriter.wav', keys=10, space=0, done=[(20.03, 20.75), (17.85, 19.55)]),
     'real-custom': dict(file='thocky.mp3', keys=10, space=3),
     'real-ibm': dict(file='buckling.ogg', keys=10, space=3),
+    'real-blue': dict(file='blue.flac', keys=10, space=3),  # 청축(Cherry MX Blue)
+    # Kailh Box Jade — 누를 때·뗄 때 둘 다 딸깍이라 천천히 누르고 뗀 쌍을 key·up 으로 나눈다
+    'real-jade': dict(file='jade.wav', pairs=True),
 }
+
+
+def existing_manifest() -> dict:
+    """이미 구운 typingSprites.ts 를 다시 읽는다 — 이 스크립트가 쓴 모양 그대로라는 전제"""
+    if not MANIFEST.exists():
+        return {}
+    out: dict[str, dict] = {}
+    cur = None
+    for line in MANIFEST.read_text(encoding='utf-8').splitlines():
+        if m := re.match(r"  '([\w-]+)': \{$", line):
+            cur = out[m.group(1)] = {}
+        elif cur is not None and (m := re.match(r'    (\w+): (.+),$', line)):
+            cur[m.group(1)] = json.loads(m.group(2))
+    return out
 
 
 def load(path: Path) -> np.ndarray:
@@ -96,6 +115,38 @@ def strokes(x: np.ndarray) -> list[dict]:
     return out
 
 
+def press_release(x: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    """조용함 → 누름 → 0.12~0.35초 뒤 뗌 → 다시 조용함, 인 쌍만 골라 누름·뗌 조각으로"""
+    hop = int(SR * 0.002)
+    env = envelope(x, hop)
+    floor, peak = np.percentile(env, 20), np.percentile(env, 99.5)
+    hi, lo = floor + (peak - floor) * 0.12, floor + (peak - floor) * 0.04
+    quiet = floor + (peak - floor) * 0.06
+    onsets, armed = [], True
+    for i, v in enumerate(env):
+        if armed and v > hi:
+            onsets.append(i)
+            armed = False
+        elif not armed and v < lo:
+            armed = True
+    calm = [i for i in onsets if i >= 50 and env[i - 50 : i - 2].max() <= quiet]
+
+    def clip(i: int, stop: int) -> np.ndarray:
+        stop = min(stop, i + int(0.25 * SR / hop))  # 잔향까지 길게 끌지 않는다
+        loud = np.where(env[i:stop] > floor + (peak - floor) * 0.02)[0]
+        end = i + (loud[-1] + 5 if len(loud) else stop - i)
+        return x[max(0, i * hop - int(0.002 * SR)) : min(stop, end) * hop]
+
+    downs, ups = [], []
+    for a, b in zip(calm, calm[1:]):
+        gap = (b - a) * hop / SR
+        later = [o for o in onsets if o > b]
+        if 0.12 <= gap <= 0.35 and (not later or (later[0] - b) * hop / SR > 0.3):
+            downs.append(clip(a, b - 2))
+            ups.append(clip(b, later[0] - 2 if later else len(env)))
+    return downs, ups
+
+
 def shape(seg: np.ndarray) -> np.ndarray:
     y = seg.copy()
     fi = int(0.0008 * SR)
@@ -132,14 +183,24 @@ def level(clips: list[np.ndarray], target: float) -> list[np.ndarray]:
 def main() -> None:
     src_dir = Path(sys.argv[1])
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    manifest = {}
+    manifest = existing_manifest()
     for theme, cfg in SOURCES.items():
+        if not (src_dir / cfg['file']).exists():
+            print(f'{theme}: 원본 없음 - 기존 값 유지')
+            continue
         x = load(src_dir / cfg['file'])
-        keys, space = pick(strokes(x), cfg['keys'], cfg['space'])
-        groups: dict[str, list[np.ndarray]] = {
-            'key': level([shape(q['seg']) for q in keys], 0.6),
-            'space': level([shape(q['seg']) for q in space], 0.7) if space else [],
-        }
+        if cfg.get('pairs'):
+            downs, ups = press_release(x)
+            groups: dict[str, list[np.ndarray]] = {
+                'key': level([shape(y) for y in downs], 0.6),
+                'up': level([shape(y) for y in ups], 0.45),  # 뗄 때는 조금 작게
+            }
+        else:
+            keys, space = pick(strokes(x), cfg['keys'], cfg['space'])
+            groups = {
+                'key': level([shape(q['seg']) for q in keys], 0.6),
+                'space': level([shape(q['seg']) for q in space], 0.7) if space else [],
+            }
         if 'done' in cfg:
             parts = [shape(x[int(a * SR) : int(b * SR)]) for a, b in cfg['done']]
             parts[0] *= 0.55 / np.abs(parts[0]).max()
@@ -173,7 +234,7 @@ def main() -> None:
     for theme, m in manifest.items():
         lines.append(f"  '{theme}': {{")
         lines.append(f"    anchor: {m['anchor']},")
-        for k in ('key', 'space', 'done'):
+        for k in ('key', 'up', 'space', 'done'):
             if k in m:
                 lines.append(f"    {k}: {json.dumps(m[k], separators=(', ', ': '))},")
         lines.append('  },')

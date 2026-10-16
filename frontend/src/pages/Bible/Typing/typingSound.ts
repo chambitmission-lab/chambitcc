@@ -10,12 +10,14 @@ import thockUpUrl from '../../../assets/typing-sounds/thock-up.wav'
 import typewriterUrl from '../../../assets/typing-sounds/typewriter.mp3'
 import customUrl from '../../../assets/typing-sounds/real-custom.mp3'
 import ibmUrl from '../../../assets/typing-sounds/real-ibm.mp3'
+import blueUrl from '../../../assets/typing-sounds/real-blue.mp3'
+import jadeUrl from '../../../assets/typing-sounds/real-jade.mp3'
 import pianoGentleUrl from '../../../assets/typing-sounds/ambient-piano-gentle.mp3'
 import pianoSoftUrl from '../../../assets/typing-sounds/ambient-piano-soft.mp3'
 import { SPRITE_ANCHOR_RATIO, TYPING_SPRITES } from './typingSprites'
 import { TYPING_AMBIENTS } from './typingAmbients'
 
-export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm'
+export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
 export type SoundKind = 'key' | 'space' | 'back' | 'done'
 
 export const SOUND_THEMES: { key: SoundTheme; label: string; desc: string }[] = [
@@ -28,6 +30,8 @@ export const SOUND_THEMES: { key: SoundTheme; label: string; desc: string }[] = 
   { key: 'real-thock', label: '실제 키보드 · 도각', desc: '녹음한 묵직한 타건음' },
   { key: 'real-click', label: '실제 키보드 · 찰칵', desc: '녹음한 가볍고 맑은 타건음' },
   { key: 'real-ibm', label: '옛날 IBM 키보드', desc: '스프링이 철컥철컥' },
+  { key: 'real-blue', label: '청축 키보드', desc: '또렷하게 딸깍딸깍' },
+  { key: 'real-jade', label: '박스 제이드', desc: '누를 때도 뗄 때도 딸깍' },
 ]
 
 export type AmbientKind = 'off' | 'piano-gentle' | 'piano-soft'
@@ -157,13 +161,19 @@ const tone = (ac: AudioContext, { freq, dur, gain, at = 0, type = 'sine' }: { fr
 }
 
 // ── 녹음 음원 ─────────────────────────────────────────
-type RecordedTheme = 'typewriter' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm'
+type RecordedTheme = 'typewriter' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
 const isRecorded = (t: SoundTheme): t is RecordedTheme =>
-  t === 'typewriter' || t === 'real-thock' || t === 'real-click' || t === 'real-custom' || t === 'real-ibm'
+  t === 'typewriter' || t === 'real-thock' || t === 'real-click' || t === 'real-custom' || t === 'real-ibm' || t === 'real-blue' || t === 'real-jade'
 
 // 누를 때 소리 여러 벌(돌려 가며) · 뗄 때 · 스페이스 · 완료음. 없는 건 합성/변주로 대신한다
 type SampleSet = { key: AudioBuffer[]; up?: AudioBuffer[]; space?: AudioBuffer[]; done?: AudioBuffer }
-type SpriteMap = { anchor: number; key: readonly (readonly number[])[]; space?: readonly (readonly number[])[]; done?: readonly (readonly number[])[] }
+type SpriteMap = {
+  anchor: number
+  key: readonly (readonly number[])[]
+  up?: readonly (readonly number[])[]
+  space?: readonly (readonly number[])[]
+  done?: readonly (readonly number[])[]
+}
 
 const decode = async (ac: AudioContext, url: string) => {
   const res = await fetch(url)
@@ -190,7 +200,7 @@ const loadSprite = async (ac: AudioContext, url: string, map: SpriteMap): Promis
   while (first < data.length && Math.abs(data[first]) <= max * SPRITE_ANCHOR_RATIO) first++
   const shift = first / buf.sampleRate - map.anchor
   const cut = (list: readonly (readonly number[])[]) => list.map(([a, d]) => slice(ac, buf, a + shift, d))
-  return { key: cut(map.key), space: map.space && cut(map.space), done: map.done && cut(map.done)[0] }
+  return { key: cut(map.key), up: map.up && cut(map.up), space: map.space && cut(map.space), done: map.done && cut(map.done)[0] }
 }
 
 const LOADERS: Record<RecordedTheme, (ac: AudioContext) => Promise<SampleSet>> = {
@@ -202,6 +212,8 @@ const LOADERS: Record<RecordedTheme, (ac: AudioContext) => Promise<SampleSet>> =
   typewriter: (ac) => loadSprite(ac, typewriterUrl, TYPING_SPRITES.typewriter),
   'real-custom': (ac) => loadSprite(ac, customUrl, TYPING_SPRITES['real-custom']),
   'real-ibm': (ac) => loadSprite(ac, ibmUrl, TYPING_SPRITES['real-ibm']),
+  'real-blue': (ac) => loadSprite(ac, blueUrl, TYPING_SPRITES['real-blue']),
+  'real-jade': (ac) => loadSprite(ac, jadeUrl, TYPING_SPRITES['real-jade']),
 }
 
 const samples: Partial<Record<RecordedTheme, SampleSet>> = {}
