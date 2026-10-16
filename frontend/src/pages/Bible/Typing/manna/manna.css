@@ -4,11 +4,11 @@
 .mn-shell,
 .mn-game {
   /* 하늘 — 시작(어스름)과 새벽(가나안 무렵) 두 벌을 --mn-dawn 으로 섞는다 */
-  --mn-sky-1: #c9d3f6;
-  --mn-sky-2: #e7d9f2;
-  --mn-sky-3: #fbe3d6;
-  --mn-dawn-1: #a9d6ff;
-  --mn-dawn-2: #ffe3cf;
+  --mn-sky-1: #d8e7fb;
+  --mn-sky-2: #ecf2fa;
+  --mn-sky-3: #fdf1e3;
+  --mn-dawn-1: #bcdcff;
+  --mn-dawn-2: #fff1e2;
   --mn-dawn-3: #ffd08f;
   --mn-star: rgba(255, 255, 255, 0);
   --mn-sun: #ffb84d;
@@ -16,56 +16,56 @@
   --mn-dune-back: #f0c98f;
   --mn-dune-front: #f7dcb0;
 
-  --mn-text: #1d1830;
-  --mn-muted: #645d7c;
-  --mn-faint: rgba(29, 24, 48, 0.42);
-  --mn-line: rgba(29, 24, 48, 0.1);
+  --mn-text: #191f28;
+  --mn-muted: #6b7684;
+  --mn-faint: rgba(25, 31, 40, 0.38);
+  --mn-line: rgba(25, 31, 40, 0.1);
 
   --mn-glass: rgba(255, 255, 255, 0.62);
   --mn-glass-strong: rgba(255, 255, 255, 0.86);
   --mn-glass-line: rgba(255, 255, 255, 0.9);
-  --mn-glass-shadow: 0 8px 24px -10px rgba(60, 40, 100, 0.28);
+  --mn-glass-shadow: 0 8px 24px -10px rgba(20, 30, 50, 0.22);
 
   --mn-accent: #ffae1a;          /* 만나 금빛 — 차례·CTA·콤보 */
   --mn-accent-deep: #c27800;
   --mn-accent-ink: #2a1a00;
   --mn-accent-soft: rgba(255, 174, 26, 0.16);
-  --mn-violet: #7b5cff;          /* 여섯째 날·보조 액센트 */
-  --mn-violet-soft: rgba(123, 92, 255, 0.14);
+  --mn-blue: var(--brand);       /* 보조 액센트는 앱 브랜드 블루 */
+  --mn-blue-soft: var(--brand-soft-strong);
 
   --mn-manna: #ffffff;
   --mn-manna-edge: #f1e3c4;
-  --mn-manna-ink: #2b2140;
+  --mn-manna-ink: #2b2418;
   --mn-manna-shadow: 0 6px 16px -6px rgba(120, 80, 20, 0.35), 0 0 0 1px rgba(214, 186, 130, 0.55);
 
   --mn-bad: #e5484d;
   --mn-good: #1f9cf0;
   --mn-seal: #d6453b;
-  --mn-overlay: rgba(40, 30, 70, 0.42);
+  --mn-overlay: rgba(20, 24, 32, 0.4);
 
   --mn-serif: var(--font-serif-kr, 'Noto Serif KR'), 'AppleMyungjo', serif;
 }
 .dark .mn-shell,
 .dark .mn-game {
-  --mn-sky-1: #070917;
-  --mn-sky-2: #141637;
-  --mn-sky-3: #2b2152;
-  --mn-dawn-1: #1b2a63;
-  --mn-dawn-2: #6c4a86;
-  --mn-dawn-3: #d98a6c;
+  --mn-sky-1: #0e1014;
+  --mn-sky-2: #151820;
+  --mn-sky-3: #1f232c;
+  --mn-dawn-1: #18202e;
+  --mn-dawn-2: #3a3a42;
+  --mn-dawn-3: #8c6648;
   --mn-star: rgba(255, 255, 255, 0.9);
   --mn-sun: #ffb257;
   --mn-sun-glow: rgba(255, 150, 70, 0.4);
-  --mn-dune-back: #2a2147;
-  --mn-dune-front: #3a2d5c;
+  --mn-dune-back: #24262b;
+  --mn-dune-front: #2d3036;
 
-  --mn-text: #f4f1ff;
-  --mn-muted: #aaa3c8;
-  --mn-faint: rgba(244, 241, 255, 0.36);
+  --mn-text: #eceef1;
+  --mn-muted: #9ca3ad;
+  --mn-faint: rgba(236, 238, 241, 0.34);
   --mn-line: rgba(255, 255, 255, 0.1);
 
-  --mn-glass: rgba(26, 22, 52, 0.55);
-  --mn-glass-strong: rgba(30, 26, 58, 0.9);
+  --mn-glass: rgba(32, 32, 36, 0.6);
+  --mn-glass-strong: rgba(38, 39, 44, 0.92);
   --mn-glass-line: rgba(255, 255, 255, 0.1);
   --mn-glass-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
 
@@ -73,18 +73,18 @@
   --mn-accent-deep: #ffb21e;
   --mn-accent-ink: #231500;
   --mn-accent-soft: rgba(255, 201, 77, 0.14);
-  --mn-violet: #a18bff;
-  --mn-violet-soft: rgba(161, 139, 255, 0.16);
+  --mn-blue: var(--brand);
+  --mn-blue-soft: var(--brand-soft-strong);
 
   --mn-manna: #fff8e6;
   --mn-manna-edge: #ead6a6;
-  --mn-manna-ink: #2b2140;
+  --mn-manna-ink: #2b2418;
   --mn-manna-shadow: 0 0 20px rgba(255, 236, 190, 0.32), 0 2px 0 rgba(0, 0, 0, 0.3);
 
   --mn-bad: #ff8a80;
   --mn-good: #7cd2ff;
   --mn-seal: #ff6b5e;
-  --mn-overlay: rgba(6, 5, 18, 0.66);
+  --mn-overlay: rgba(0, 0, 0, 0.62);
 }
 
 /* 공통 — 하늘 그라데이션(시작 카드·게임·결과가 같이 쓴다) */
@@ -229,7 +229,7 @@
 }
 .mn-cta--ghost:active { transform: scale(0.98); }
 .mn-cta:focus-visible, .mn-seg__btn:focus-visible, .mn-mode:focus-visible, .mn-hud__btn:focus-visible, .mn-send:focus-visible {
-  outline: 3px solid var(--mn-violet); outline-offset: 2px;
+  outline: 3px solid var(--mn-blue); outline-offset: 2px;
 }
 
 .mn-hero__meta { margin: 10px 0 0; text-align: center; font-size: 12px; color: var(--mn-muted); }
@@ -256,7 +256,7 @@
 .mn-legend b { color: var(--mn-text); }
 .mn-legend__wide { grid-column: 1 / -1; }
 .mn-legend__wide { flex-direction: row !important; align-items: center !important; gap: 8px !important; }
-.mn-legend__wide .material-icons-round { font-size: 20px; color: var(--mn-violet); }
+.mn-legend__wide .material-icons-round { font-size: 20px; color: var(--mn-blue); }
 
 /* ── 떨어지는 만나(무대·미리보기·도감이 함께 쓴다) ── */
 .mn-m {
@@ -283,7 +283,7 @@
   padding: 4px 7px; border-radius: 999px; box-shadow: 0 3px 8px -2px rgba(0, 0, 0, 0.25);
 }
 .mn-m--static.is-turn::after { top: -16px; }
-.mn-m.is-aim { box-shadow: 0 0 0 3px var(--mn-violet), 0 0 28px var(--mn-violet-soft), 0 8px 20px -6px var(--mn-violet); }
+.mn-m.is-aim { box-shadow: 0 0 0 3px var(--mn-blue), 0 0 28px var(--mn-blue-soft), 0 8px 20px -6px var(--mn-blue); }
 .mn-m--decoy {
   background:
     radial-gradient(2px 2px at 22% 40%, #5b3a1e 60%, transparent 61%),
@@ -326,7 +326,7 @@
 .mn-game > .mn-sun { bottom: 40px; width: 180px; height: 180px; }
 .mn-game__glow {
   position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background: radial-gradient(120% 70% at 50% 0%, var(--mn-violet-soft), transparent 70%), radial-gradient(80% 50% at 50% 0%, var(--mn-accent-soft), transparent 70%);
+  background: radial-gradient(120% 70% at 50% 0%, var(--mn-accent-soft), transparent 70%);
   opacity: 0; transition: opacity 0.6s;
 }
 .mn-game.is-fever .mn-game__glow { opacity: 1; animation: mn-glow 1.4s ease-in-out infinite alternate; }
@@ -378,7 +378,7 @@
 .mn-track__rail::before, .mn-track__fill {
   content: ''; position: absolute; left: 4px; right: 4px; top: 50%; height: 4px; margin-top: -2px; border-radius: 99px; background: var(--mn-line);
 }
-.mn-track__fill { right: auto; background: linear-gradient(90deg, var(--mn-violet), var(--mn-accent)); transition: width 0.6s cubic-bezier(0.3, 1.2, 0.5, 1); }
+.mn-track__fill { right: auto; background: var(--mn-accent); transition: width 0.6s cubic-bezier(0.3, 1.2, 0.5, 1); }
 .mn-track__dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--mn-glass-strong); box-shadow: 0 0 0 1.5px var(--mn-faint); }
 .mn-track__dot.is-done { background: var(--mn-accent); box-shadow: none; }
 .mn-track__dot.is-now { width: 14px; height: 14px; background: var(--mn-accent); box-shadow: 0 0 0 4px var(--mn-accent-soft), 0 0 14px var(--mn-accent); }
@@ -386,7 +386,7 @@
 
 .mn-chips { display: flex; justify-content: center; gap: 6px; min-height: 0; }
 .mn-chip { font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px; animation: mn-combo 0.3s cubic-bezier(0.3, 1.6, 0.5, 1); }
-.mn-chip--fever { background: linear-gradient(90deg, var(--mn-violet), #ff6fb5); color: #fff; box-shadow: 0 4px 14px -4px var(--mn-violet); }
+.mn-chip--fever { background: var(--mn-accent); color: var(--mn-accent-ink); box-shadow: 0 4px 14px -4px var(--mn-accent); }
 .mn-chip--slow { background: var(--mn-glass-strong); color: var(--mn-text); border: 1px solid var(--mn-glass-line); }
 
 .mn-verse { padding-block: 6px 6px; }
@@ -526,7 +526,7 @@
 }
 .mn-badge {
   font-size: 11px; font-weight: 900; padding: 4px 9px; border-radius: 999px;
-  background: linear-gradient(90deg, var(--mn-violet), #ff6fb5); color: #fff;
+  background: var(--brand); color: var(--on-brand);
   animation: mn-stamp-in 0.5s 0.6s both cubic-bezier(0.3, 1.8, 0.5, 1);
 }
 @keyframes mn-stamp-in { from { opacity: 0; transform: scale(1.8) rotate(-8deg); } }
