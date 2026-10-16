@@ -13,6 +13,7 @@ import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
 import PullToRefresh from './components/common/PullToRefresh'
 import ScrollRestoration from './components/common/ScrollRestoration'
+import { RouteMeta } from './seo/RouteMeta'
 import OpenFromQuery from './components/common/OpenFromQuery'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 import { ConfirmDialogHost } from './components/common/ConfirmDialog'
@@ -152,6 +153,8 @@ function App() {
     <ThemeProvider>
       <Router>
         <ScrollRestoration />
+        {/* 라우트별 탭 제목(document.title) — 문구는 src/seo/publicPages.json */}
+        <RouteMeta />
         {/* ?open=notifications 등 URL 로 전역 UI 열기 (푸시 클릭 → 알림함) */}
         <OpenFromQuery />
         {/* lazy 청크와 나란히 라우트 데이터를 미리 받는다 (Suspense 바깥이라 청크를 기다리지 않는다) */}

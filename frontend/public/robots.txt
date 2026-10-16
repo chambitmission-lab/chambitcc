@@ -1,6 +1,9 @@
-# 개발/테스트 기간 색인 차단 중.
-# 주의: 여기에 Disallow: / 를 넣으면 안 된다.
-# 크롤을 막으면 봇이 index.html 의 noindex 메타와 X-Robots-Tag 헤더를 읽지 못해
-# 이미 등록된 검색 결과가 오히려 그대로 남는다. 크롤은 열어두고 noindex 로 빼내야 한다.
+# 정식 오픈(2026-10-16) — 전체 크롤·색인 허용.
+# 색인을 막아야 할 때도 Disallow: / 는 쓰지 않는다: 크롤을 막으면 봇이 index.html 의 noindex 메타를
+# 읽지 못해 이미 등록된 검색 결과가 그대로 남는다. 크롤은 열어두고 noindex 로 빼내야 한다.
 User-agent: *
 Allow: /
+
+# 교인 전용·관리 화면은 해시 라우트(/#/...)라 별도 URL 로 크롤되지 않는다.
+# 공개 페이지 목록(sitemap)은 빌드 시 scripts/prerender-seo.mjs 가 dist/ 에 생성한다.
+Sitemap: https://chambitcc.kro.kr/sitemap.xml

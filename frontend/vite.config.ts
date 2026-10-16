@@ -1,5 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
+
+// SEO 단일 출처(src/seo/publicPages.json)의 JSON-LD 를 index.html 의 자리표시자에 심는다.
+// 프리렌더 정적 페이지(scripts/prerender-seo.mjs)와 같은 객체를 써서 두 곳이 어긋나지 않는다.
+const seo = JSON.parse(readFileSync(new URL('./src/seo/publicPages.json', import.meta.url), 'utf8'))
 
 // 빌드마다 고유한 버전 문자열.
 // 설치형 PWA는 강력 새로고침이 없어 옛 번들이 며칠씩 살아남을 수 있다.
@@ -12,6 +17,12 @@ const appVersion = Date.now().toString()
 export default defineConfig(({ command }) => ({
   plugins: [
     react(),
+    {
+      name: 'inject-seo-jsonld',
+      transformIndexHtml(html) {
+        return html.replace('<!--SEO_JSONLD-->', JSON.stringify(seo.jsonLd))
+      },
+    },
     // VitePWA 제거 - 푸시 알림 충돌 방지
     // 수동 Service Worker (public/sw.js) 사용
     {

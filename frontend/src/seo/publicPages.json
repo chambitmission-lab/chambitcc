@@ -1,0 +1,270 @@
+{
+  "$comment": "SEO 단일 출처. (1) scripts/prerender-seo.mjs 가 빌드 뒤 pages[] 를 정적 HTML(dist/<slug>.html)과 sitemap.xml 로 굽고, (2) vite.config.ts 가 jsonLd 를 index.html 에 심고, (3) src/seo/RouteMeta.tsx 가 routeTitles 로 탭 제목을 바꾼다. 예배 시간·주소·전화는 DB(worship_services / about_content)와 같은 값을 손으로 미러링한 것 — 바뀌면 여기도 고칠 것.",
+  "site": {
+    "origin": "https://chambitcc.kro.kr",
+    "name": "부천참빛교회",
+    "titleSuffix": "부천참빛교회",
+    "defaultTitle": "부천참빛교회 | 상동 참빛교회 공식 홈페이지",
+    "defaultDescription": "부천참빛교회(상동 참빛교회) 공식 홈페이지. 예배 안내, 교회 소개, 성경 읽기와 묵상, 교회 소식을 만나보세요.",
+    "ogImage": "/og-image.jpg",
+    "phone": "032-323-1004",
+    "address": "경기도 부천시 송내대로265번길 29 (상동)",
+    "postcode": "14542",
+    "subway": "지하철 7호선 상동역에서 도보 5분",
+    "sundayServices": [
+      { "name": "주일낮예배 1부 (이른예배)", "time": "오전 7시 30분", "place": "오렌엘 홀" },
+      { "name": "주일낮예배 2부 (밝은예배)", "time": "오전 9시 20분", "place": "본당" },
+      { "name": "주일낮예배 3부 (깊은예배)", "time": "오전 11시 20분", "place": "본당" },
+      { "name": "주일낮예배 4부 (열린예배)", "time": "오후 1시 30분", "place": "본당" }
+    ],
+    "weekdayServices": [
+      { "name": "새벽기도회", "time": "매일 오전 5시 30분", "place": "" },
+      { "name": "수요기도회", "time": "오전 10시 30분 · 오후 7시 30분", "place": "본당" },
+      { "name": "금요기도회", "time": "오후 8시 30분", "place": "" }
+    ]
+  },
+  "pages": [
+    {
+      "path": "/about",
+      "title": "교회 소개",
+      "description": "부천 상동에 있는 참빛교회를 소개합니다. 인생은 만남입니다. 참빛이신 예수님과의 만남이 당신의 인생을 바꿉니다. 대한예수교장로회(고신) 소속.",
+      "h1": "인생은 만남입니다",
+      "lead": "누구를 만나느냐가 우리 인생을 바꿉니다. 참빛이신 예수님과의 만남은 당신의 인생 궤도를 완전히 바꿀 것입니다.",
+      "paragraphs": [
+        "부천참빛교회는 경기도 부천시 상동에 있는 대한예수교장로회(고신) 소속 교회입니다. 예배와 말씀으로 하나님을 만나고, 기도와 사랑으로 서로를 세워갑니다.",
+        "힘들 때는 땀을 닦아주고, 슬플 때는 눈물을 닦아주는 손수건 같은 교회가 되기를 소망합니다.",
+        "처음 오시는 분은 예배 15분 전쯤 도착하시면 가장 여유롭습니다. 입구에서 「처음 왔어요」라고 말씀해 주시면 안내해 드립니다. 복장은 편하신 대로 오셔도 괜찮습니다."
+      ],
+      "facts": ["sunday", "address", "phone"]
+    },
+    {
+      "path": "/worship",
+      "title": "예배 안내",
+      "description": "부천참빛교회 예배 시간 안내. 주일낮예배 오전 7:30 · 9:20 · 11:20 · 오후 1:30, 새벽기도회 오전 5:30, 수요기도회, 금요기도회.",
+      "h1": "예배 안내",
+      "lead": "주일에는 네 번의 낮예배로, 주중에는 새벽·수요·금요 기도회로 하나님을 예배합니다.",
+      "paragraphs": [
+        "예배 시간은 사정에 따라 바뀔 수 있습니다. 홈페이지 예배 안내 화면에서 최신 시간표를 확인해 주세요."
+      ],
+      "facts": ["sunday", "weekday", "address", "phone"]
+    },
+    {
+      "path": "/visit",
+      "title": "오시는 길",
+      "description": "부천참빛교회 오시는 길. 경기도 부천시 송내대로265번길 29 (상동), 지하철 7호선 상동역 도보 5분. 전화 032-323-1004.",
+      "h1": "오시는 길",
+      "lead": "지하철 7호선 상동역에서 도보 5분. 큰길을 따라 걷다 편의점 골목으로 들어오시면 교회 건물이 보입니다.",
+      "paragraphs": [
+        "자가용으로 오실 때는 내비게이션에 「참빛교회」 또는 「송내대로265번길 29」를 입력하시면 됩니다."
+      ],
+      "facts": ["address", "subway", "phone", "sunday"]
+    },
+    {
+      "path": "/greeting",
+      "title": "담임목사 인사말",
+      "description": "부천참빛교회 안동철 담임목사 인사말. 하나님을 뜨겁게 사랑하고 한 영혼의 소중함을 아는 목회.",
+      "h1": "담임목사 인사말",
+      "lead": "참빛교회 홈페이지를 찾아 주신 모든 분들을 환영합니다.",
+      "paragraphs": [
+        "안동철 담임목사는 고신대학교와 고려신학대학원, Liberty Seminary(S.T.M.)에서 공부했으며, 총회교육원 수석연구원과 「복있는 사람」 편집장으로 섬겼습니다.",
+        "하나님을 뜨겁게 사랑하고, 진실하고 겸손하며, 한 영혼의 소중함을 아는 목회를 지향합니다."
+      ],
+      "facts": ["sunday", "address"]
+    },
+    {
+      "path": "/people",
+      "title": "섬기는 사람들",
+      "description": "부천참빛교회를 섬기는 교역자와 직분자들을 소개합니다.",
+      "h1": "섬기는 사람들",
+      "lead": "말씀과 기도, 교육과 돌봄으로 교회를 섬기는 교역자와 직분자들입니다.",
+      "paragraphs": [
+        "담임목사와 교역자, 장로·권사·집사 등 섬기는 이들의 소개와 연락처는 홈페이지 「섬기는 사람들」 화면에서 보실 수 있습니다."
+      ],
+      "facts": ["phone"]
+    },
+    {
+      "path": "/education",
+      "title": "교육과 훈련",
+      "description": "부천참빛교회 교육과 훈련 안내. 어린이부터 어른까지, 말씀으로 배우고 훈련으로 자라는 배움의 자리.",
+      "h1": "말씀으로 배우고, 훈련으로 자랍니다",
+      "lead": "어린이부터 어른까지, 참빛교회의 배움과 훈련의 자리를 소개합니다.",
+      "paragraphs": [
+        "주일학교와 청소년·청년 부서, 성인 성경공부와 제자훈련 등 각 과정의 시간표와 신청 안내는 홈페이지 「교육과 훈련」 화면에서 확인하실 수 있습니다."
+      ],
+      "facts": ["phone"]
+    },
+    {
+      "path": "/sermon",
+      "title": "설교 말씀",
+      "description": "부천참빛교회 주일 설교 말씀과 한 줄 붙잡기. 지난 설교를 다시 읽고 묵상합니다.",
+      "h1": "설교 말씀",
+      "lead": "주일에 선포된 말씀을 다시 읽고, 한 문장으로 붙잡아 한 주를 살아갑니다.",
+      "paragraphs": [
+        "설교 본문과 요약, 영상은 홈페이지 「설교 말씀」 화면에서 보실 수 있습니다."
+      ],
+      "facts": ["sunday"]
+    },
+    {
+      "path": "/news",
+      "title": "교회 소식",
+      "description": "부천참빛교회 소식. 디지털 주보, 새가족 소개, 행사 앨범, 공지 아카이브, 온라인 헌금 안내.",
+      "h1": "교회 소식",
+      "lead": "이번 주 주보와 새가족 소개, 행사 사진과 공지를 한곳에서 만나보세요.",
+      "paragraphs": [
+        "디지털 주보는 매주 갱신되며, 온라인 헌금 계좌 안내도 함께 제공합니다."
+      ],
+      "facts": ["phone"]
+    },
+    {
+      "path": "/events",
+      "title": "교회 일정",
+      "description": "부천참빛교회 교회 일정과 행사 안내. 예배, 교육, 행사, 절기 일정을 확인하세요.",
+      "h1": "교회 일정",
+      "lead": "오늘과 이번 주, 이번 달의 교회 일정을 한눈에 확인하세요.",
+      "paragraphs": [],
+      "facts": ["sunday", "phone"]
+    },
+    {
+      "path": "/history",
+      "title": "교회 연혁",
+      "description": "부천참빛교회가 걸어온 길. 교회의 연혁과 발자취를 소개합니다.",
+      "h1": "교회 연혁",
+      "lead": "참빛교회가 걸어온 길과 하나님의 인도하심을 기록합니다.",
+      "paragraphs": [],
+      "facts": ["address"]
+    },
+    {
+      "path": "/bible",
+      "title": "성경 읽기",
+      "description": "부천참빛교회 온라인 성경. 개역개정 성경 읽기, 읽기 플랜, 묵상, 필사, 성경 지도여행과 가계도.",
+      "h1": "성경 읽기",
+      "lead": "개역개정 성경을 읽고, 플랜을 따라 통독하고, 말씀을 필사하며 묵상합니다.",
+      "paragraphs": [
+        "성경 지도여행, 인물 가계도, 처음 만나는 성경 스토리, 상황별 성구 등 말씀을 가까이하는 여러 길을 제공합니다."
+      ],
+      "facts": []
+    }
+  ],
+  "routeTitles": [
+    ["/", "부천참빛교회 | 상동 참빛교회 공식 홈페이지"],
+    ["/feed", "기도 피드"],
+    ["/welcome", "환영합니다"],
+    ["/welcome/classic", "환영합니다"],
+    ["/login", "로그인"],
+    ["/register", "회원가입"],
+    ["/profile", "내 프로필"],
+    ["/account", "계정 설정"],
+    ["/about", "교회 소개"],
+    ["/greeting", "담임목사 인사말"],
+    ["/visit", "오시는 길"],
+    ["/organization", "교회 조직"],
+    ["/people", "섬기는 사람들"],
+    ["/history", "교회 연혁"],
+    ["/history/new", "교회 연혁"],
+    ["/tv", "참빛 TV"],
+    ["/education", "교육과 훈련"],
+    ["/mission", "선교"],
+    ["/ministry", "목회 칼럼"],
+    ["/news", "교회 소식"],
+    ["/participate", "참여"],
+    ["/online", "온라인"],
+    ["/culture", "문화"],
+    ["/survey", "설문"],
+    ["/survey/*", "설문"],
+    ["/seats", "좌석 신청"],
+    ["/seats/*", "좌석 신청"],
+    ["/elections", "선거"],
+    ["/elections/*", "선거"],
+    ["/worship", "예배 안내"],
+    ["/sermon", "설교 말씀"],
+    ["/sermon/new", "설교 말씀"],
+    ["/events", "교회 일정"],
+    ["/events/*", "교회 일정"],
+    ["/prayer-focus", "집중 기도"],
+    ["/prayer-topics", "공동 기도제목"],
+    ["/prayer-topics/screen", "공동 기도제목"],
+    ["/answered-prayers", "응답된 기도"],
+    ["/intercession", "익명 중보"],
+    ["/thanks", "감사"],
+    ["/groups", "내 그룹"],
+    ["/groups/*", "그룹"],
+    ["/classes", "반"],
+    ["/classes/*", "반"],
+    ["/rooms", "묵상방"],
+    ["/rooms/*", "묵상방"],
+    ["/join/*", "초대"],
+    ["/capsule", "타임캡슐"],
+    ["/capsule/*", "타임캡슐"],
+    ["/garden", "칭호"],
+    ["/bluemarble", "바이블 퀘스트"],
+    ["/bluemarble/*", "바이블 퀘스트"],
+    ["/weekly-story", "한 주 이야기"],
+    ["/growth", "신앙 여정"],
+    ["/bible", "성경 읽기"],
+    ["/bible/genealogy", "성경 가계도"],
+    ["/bible/plans", "읽기 플랜"],
+    ["/bible/plans/*", "읽기 플랜"],
+    ["/bible/wordbook", "성경 단어장"],
+    ["/bible/situation", "상황별 성구"],
+    ["/bible/story", "처음 만나는 성경"],
+    ["/bible/story/*", "처음 만나는 성경"],
+    ["/bible/atlas", "성경 지도여행"],
+    ["/bible/photo-verse", "말씀 카드"],
+    ["/bible/meditation", "오늘의 묵상"],
+    ["/bible/alarm", "말씀 알람"],
+    ["/bible/typing", "말씀 필사"],
+    ["/bible/typing/*", "말씀 필사"],
+    ["/bible/*", "성경 읽기"],
+    ["/pastor", "목회자"],
+    ["/pastor/*", "목회자"],
+    ["/admin", "관리"],
+    ["/admin/*", "관리"]
+  ],
+  "jsonLd": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Church",
+        "@id": "https://chambitcc.kro.kr/#church",
+        "name": "부천참빛교회",
+        "alternateName": ["참빛교회", "상동 참빛교회", "Chambit Church"],
+        "description": "경기도 부천시 상동에 있는 대한예수교장로회(고신) 소속 교회. 주일낮예배 오전 7:30 · 9:20 · 11:20 · 오후 1:30.",
+        "url": "https://chambitcc.kro.kr/",
+        "logo": "https://chambitcc.kro.kr/pwa-512x512.png",
+        "image": "https://chambitcc.kro.kr/og-image.jpg",
+        "telephone": "+82-32-323-1004",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "송내대로265번길 29 (상동)",
+          "addressLocality": "부천시",
+          "addressRegion": "경기도",
+          "postalCode": "14542",
+          "addressCountry": "KR"
+        },
+        "geo": { "@type": "GeoCoordinates", "latitude": 37.50705, "longitude": 126.75687 },
+        "hasMap": "https://map.kakao.com/link/map/%EC%B0%B8%EB%B9%9B%EA%B5%90%ED%9A%8C,37.50705,126.75687",
+        "openingHoursSpecification": [
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Sunday", "opens": "07:30", "closes": "15:00" },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": ["https://schema.org/Monday", "https://schema.org/Tuesday", "https://schema.org/Wednesday", "https://schema.org/Thursday", "https://schema.org/Friday", "https://schema.org/Saturday"], "opens": "05:30", "closes": "06:30" },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Wednesday", "opens": "10:30", "closes": "12:00" },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Wednesday", "opens": "19:30", "closes": "21:00" },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Friday", "opens": "20:30", "closes": "22:00" }
+        ],
+        "event": [
+          { "@type": "Event", "name": "주일낮예배 1부 (이른예배)", "eventSchedule": { "@type": "Schedule", "byDay": "https://schema.org/Sunday", "startTime": "07:30", "repeatFrequency": "P1W" }, "location": { "@id": "https://chambitcc.kro.kr/#church" } },
+          { "@type": "Event", "name": "주일낮예배 2부 (밝은예배)", "eventSchedule": { "@type": "Schedule", "byDay": "https://schema.org/Sunday", "startTime": "09:20", "repeatFrequency": "P1W" }, "location": { "@id": "https://chambitcc.kro.kr/#church" } },
+          { "@type": "Event", "name": "주일낮예배 3부 (깊은예배)", "eventSchedule": { "@type": "Schedule", "byDay": "https://schema.org/Sunday", "startTime": "11:20", "repeatFrequency": "P1W" }, "location": { "@id": "https://chambitcc.kro.kr/#church" } },
+          { "@type": "Event", "name": "주일낮예배 4부 (열린예배)", "eventSchedule": { "@type": "Schedule", "byDay": "https://schema.org/Sunday", "startTime": "13:30", "repeatFrequency": "P1W" }, "location": { "@id": "https://chambitcc.kro.kr/#church" } }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://chambitcc.kro.kr/#website",
+        "url": "https://chambitcc.kro.kr/",
+        "name": "부천참빛교회",
+        "inLanguage": "ko-KR",
+        "publisher": { "@id": "https://chambitcc.kro.kr/#church" }
+      }
+    ]
+  }
+}

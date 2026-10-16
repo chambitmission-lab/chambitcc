@@ -1,8 +1,8 @@
 # Cloudflare Pages 헤더 설정 — vercel.json 의 headers 를 대체.
 # 정적 자산에만 적용된다 (Pages Function 응답에는 미적용).
 
-/*
-  X-Robots-Tag: noindex, nofollow, noarchive
+# 색인 차단(X-Robots-Tag: noindex)은 2026-10-16 정식 오픈과 함께 해제했다.
+# 다시 막아야 하면 /* 블록에 `X-Robots-Tag: noindex, nofollow` 를 넣고 index.html 의 robots 메타 3줄도 함께 바꿀 것.
 
 /sw.js
   Cache-Control: public, max-age=0, must-revalidate
