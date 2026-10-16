@@ -3,6 +3,7 @@
 // (가입순 정렬 → ISO 주차 % 인원수)
 import { useMemo } from 'react'
 import type { GroupMember } from '../../../types/prayer'
+import { KST_OFFSET_MS } from '../../../utils/kstTime'
 
 interface IntercessionRelayCardProps {
   members: GroupMember[]
@@ -12,7 +13,7 @@ interface IntercessionRelayCardProps {
 // KST 기준 주차 인덱스 — 연도 경계에서도 연속 증가하는 epoch 주 번호
 // (1970-01-01이 목요일이라 +3일 보정하면 월요일 시작 주가 된다)
 const kstWeekIndex = (): number => {
-  const kstMs = Date.now() + 9 * 3600 * 1000
+  const kstMs = Date.now() + KST_OFFSET_MS
   const days = Math.floor(kstMs / 86400000)
   return Math.floor((days + 3) / 7)
 }

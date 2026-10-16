@@ -66,7 +66,7 @@ export const useBluemarbleGame = () => {
     null,
   )
   const [pendingLap, setPendingLap] = useState<LapEvent | null>(null)
-  // 보스 진행 상태 — 마지막 답변에서 받은 boss_state. 다음 문제 출제 시 QuizModal에 전달.
+  // 보스 진행 상태 — 마지막 답변에서 받은 boss_state. 다음 문제 출제 시 SceneQuiz 에 전달.
   const [bossState, setBossState] = useState<BossState | null>(null)
   // 보스 클리어 결과 (보너스/정답 수) — 클리어 모달 트리거
   const [bossClear, setBossClear] = useState<BossState | null>(null)
@@ -321,7 +321,7 @@ export const useBluemarbleGame = () => {
       return
     }
 
-    // 정답이었고 도착한 칸이 있으면 NarrativeCard 자동 표시
+    // 정답이었고 도착한 칸이 있으면 장면 카드(StoryCard) 자동 표시
     if (lastResult?.is_correct && lastResult.arrived_tile) {
       setActiveNarrative({
         tile: lastResult.arrived_tile as Tile,
@@ -342,7 +342,7 @@ export const useBluemarbleGame = () => {
   const handleBossNext = () => {
     const next = answerMutation.data?.next_boss_quiz
     if (next) {
-      // QuizModal이 quiz.id 변경을 감지하여 자체 상태(answer/timer)를 리셋
+      // SceneQuiz 가 quiz.id 변경을 감지하여 자체 상태(answer/timer)를 리셋
       setActiveQuiz(next)
     }
   }

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
+import { useTickingNow } from '../../hooks/useTickingNow'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -53,13 +54,9 @@ const Visit = () => {
   // 예배 시간표는 홈·/worship 과 같은 캐시(useWorshipServices) — 못 불러와도 오시는 길 자체는
   // 쓸 수 있어야 하므로 실패하면 빈 배열로 조용히 넘긴다
   const { data: services = [] } = useWorshipServices()
-  const [now, setNow] = useState(() => new Date())
-
-  // "다음 예배까지" 문구는 분 단위라 30초 갱신이면 충분하다
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 30_000)
-    return () => clearInterval(timer)
-  }, [])
+  // "다음 예배까지" 문구는 분 단위라 30초 갱신이면 충분하다(탭이 숨겨진 동안은 멈춤)
+  const nowMs = useTickingNow(30_000)
+  const now = useMemo(() => new Date(nowMs), [nowMs])
 
   const next = useMemo(() => soonestService(services, now), [services, now])
 

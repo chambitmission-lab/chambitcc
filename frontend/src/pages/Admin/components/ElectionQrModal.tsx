@@ -6,6 +6,7 @@
 import { useMemo, useState } from 'react'
 import { renderSVG } from 'uqr'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { escapeHtml } from '../../../utils/escapeHtml'
 import { electionVoteUrl } from '../../../utils/inviteLink'
 import { showToast } from '../../../utils/toast'
 import { CloseButton } from './SeatEventComposer'
@@ -15,9 +16,6 @@ interface Props {
   title: string
   onClose: () => void
 }
-
-const escapeHtml = (s: string) =>
-  s.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!)
 
 const ElectionQrModal = ({ electionId, title, onClose }: Props) => {
   useModalBackButton(onClose)

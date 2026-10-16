@@ -5,10 +5,8 @@
 // 담는 것: 선거 개요, 회차별 재적·투표수(앱/종이)·유효/기권/무효·성원·기준·후보별 득표·판정,
 // 당선자 총괄, 운영 기록, 서명란. 연습 회차는 넣지 않는다.
 import type { ElectionAdminDetail, ElectionAuditLog, ElectionRound } from '../../../types/election'
+import { escapeHtml as esc } from '../../../utils/escapeHtml'
 import { quorumText, thresholdText } from '../../Election/electionShared'
-
-const esc = (s: string) =>
-  s.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!)
 
 const fmt = (iso?: string | null) =>
   iso

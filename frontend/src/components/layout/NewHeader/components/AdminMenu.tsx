@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { Translation } from '../../../../locales'
 import { fetchAdminMenuStatus, type AdminMenuBadge } from '../../../../api/admin'
+import { adminKeys } from '../../../../hooks/queryKeys'
 import { sessionStore } from '../../../../utils/tokenStore'
 import { ADMIN_ICONS, IconChevron, IconShield, type AdminIconKey } from './AdminIcons'
 import { Svg } from './NavIcons'
@@ -305,7 +306,7 @@ const AdminDesktopPanel = () => {
   // 배지는 메뉴를 열 때마다 새로 — 주보를 올리고 돌아오면 '미등록'이 바로 사라져야 한다.
   // persist 제외(main.tsx) — 복원된 옛 배지가 먼저 떴다가 바뀌면 오히려 헷갈린다
   const { data: status } = useQuery({
-    queryKey: ['adminMenuStatus'],
+    queryKey: adminKeys.menuStatus(),
     queryFn: fetchAdminMenuStatus,
     staleTime: 30_000,
     refetchOnMount: 'always',

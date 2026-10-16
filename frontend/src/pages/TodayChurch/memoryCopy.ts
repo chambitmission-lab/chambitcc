@@ -1,4 +1,4 @@
-// 작년 오늘의 편지 문구 — 홈 첫 카드와 /today 상세가 함께 쓴다
+// 작년 오늘의 편지 문구 — /today 상세와 홈 봉투 버튼(열어 봤는지 표시)이 함께 쓴다
 import type { MemoryKind, MemoryOffset, TodayMemory } from '../../api/todayChurch'
 import { useStillPraying } from '../../hooks/useTodayChurch'
 import { safeStorage } from '../../utils/safeStorage'

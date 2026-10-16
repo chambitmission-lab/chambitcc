@@ -4,6 +4,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { pad2 } from '../../utils/dateUtils'
 
 interface TimePickerProps {
   value: string // 'HH:mm' 또는 ''
@@ -23,8 +24,6 @@ const PANEL_MAX_H_LARGE = 420
 const LG_MIN = 1024
 const PANEL_GAP = 8
 const VIEWPORT_PAD = 12
-
-const pad2 = (n: number) => String(n).padStart(2, '0')
 
 /** 'HH:mm' → '오전/오후 h:mm' (en이면 'h:mm AM/PM') */
 const label12 = (hm: string, isEn: boolean) => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { showToast } from '../../utils/toast'
+import { adminKeys } from '../../hooks/queryKeys'
 import {
   fetchBibleEngagement,
   type BibleEngagementData,
@@ -72,7 +73,7 @@ const BibleEngagementManagement = () => {
   }, [admin, navigate])
 
   const { data, isPending, isError } = useQuery<BibleEngagementData>({
-    queryKey: ['admin-bible-engagement', period],
+    queryKey: adminKeys.bibleEngagement(period),
     queryFn: () => fetchBibleEngagement(period === 'all' ? undefined : Number(period)),
     enabled: admin,
     // 기간 전환 시 스피너 대신 이전 데이터를 유지해 깜빡임 방지

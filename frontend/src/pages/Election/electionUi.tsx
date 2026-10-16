@@ -1,6 +1,6 @@
 // 선거 화면 공통 UI — 성도 투표 화면·홈 배너·관리자 현황판이 같은 조각을 쓴다
-import { useEffect, useState } from 'react'
 import type { ElectionCandidate, ElectionRoundResult, ThresholdBasis } from '../../types/election'
+import { useTickingNow } from '../../hooks/useTickingNow'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { closesAtLabel, remainingLabel, turnoutPercent } from './electionShared'
 
@@ -215,19 +215,10 @@ export const ResultBreakdown = ({ result, large = false }: { result: ElectionRou
   )
 }
 
-/** 30초마다 다시 그려 남은 시간을 맞춘다 */
-const useTick = (ms: number) => {
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    const t = window.setInterval(() => setNow(Date.now()), ms)
-    return () => window.clearInterval(t)
-  }, [ms])
-  return now
-}
-
 /** 예약 마감 안내 — "오후 3:00에 마감 · 12분 남음" */
 export const ClosesAtNote = ({ closesAt, className = '' }: { closesAt: string; className?: string }) => {
-  const now = useTick(30_000)
+  // 30초마다 다시 그려 남은 시간을 맞춘다(탭이 숨겨진 동안은 멈춤)
+  const now = useTickingNow(30_000)
   const left = remainingLabel(closesAt, now)
   return (
     <span className={`inline-flex items-center gap-1.5 font-semibold tabular-nums ${className}`}>

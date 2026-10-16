@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCreateTypingRelay } from '../../../../hooks/useBibleTyping'
 import { useBibleBooks } from '../../../../hooks/useBible'
 import type { TypingRelaySummary } from '../../../../api/bibleTyping'
+import { chapterLabel, chapterUnit } from '../../../../utils/bibleLabels'
 import { showToast } from '../../../../utils/toast'
 
 // 함께 나눠 쓰기 좋은 장 — 한 번에 고르는 칩
@@ -78,7 +79,7 @@ const RelayCreateSheet = ({ onClose }: { onClose: () => void }) => {
             </select>
           </label>
           <label className="bt-field bt-field--narrow">
-            <span>{book === 19 ? '편' : '장'}</span>
+            <span>{chapterUnit(book)}</span>
             <select value={chapter} onChange={(e) => setChapter(Number(e.target.value))}>
               {chapters.map((c) => (
                 <option key={c} value={c}>
@@ -93,7 +94,7 @@ const RelayCreateSheet = ({ onClose }: { onClose: () => void }) => {
           <input
             value={title}
             maxLength={80}
-            placeholder={`${picked?.book_name_ko ?? ''} ${chapter}${book === 19 ? '편' : '장'} 릴레이`}
+            placeholder={`${picked?.book_name_ko ?? ''} ${chapterLabel(book, chapter)} 릴레이`}
             onChange={(e) => setTitle(e.target.value)}
           />
         </label>

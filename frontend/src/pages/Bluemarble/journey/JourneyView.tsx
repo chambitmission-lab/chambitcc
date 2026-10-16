@@ -1,9 +1,11 @@
 // 발자취 여행 탭 — 수채화 지도(한 장씩) + 오늘의 걸음 + 장면 카드.
 // 게임 상태 전이는 기존 useBluemarbleGame 그대로, 이 컴포넌트는 그리기만 한다.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBluemarbleGame } from '../useBluemarbleGame'
+import { useDismissOnOutside } from '../../../hooks/useDismissOnOutside'
+import { useNowMs } from '../../../hooks/useNowMs'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { canonicalBookName } from '../../Sermon/utils/sermonMeta'
 import BmIcon from '../components/BluemarbleIcons'
@@ -22,9 +24,9 @@ import { useQuestBgStyle } from './useQuestBg'
 
 type Game = ReturnType<typeof useBluemarbleGame>
 
-const timeUntil = (iso?: string) => {
+const timeUntil = (iso: string | undefined, nowMs: number) => {
   if (!iso) return ''
-  const ms = new Date(iso).getTime() - Date.now()
+  const ms = new Date(iso).getTime() - nowMs
   if (ms <= 0) return '곧'
   const h = Math.floor(ms / 3_600_000)
   const m = Math.floor((ms % 3_600_000) / 60_000)
@@ -39,21 +41,10 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
   const [menuOpen, setMenuOpen] = useState(false)
   // 더보기 메뉴 — 바깥을 누르거나 Esc 로 닫힌다
   const menuRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!menuOpen) return
-    const onDown = (e: PointerEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false)
-    }
-    document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [menuOpen])
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
+  useDismissOnOutside(menuRef, menuOpen, closeMenu)
+  // 걸음이 다시 차는 시각까지 남은 시간 — 렌더마다 Date.now() 를 부르지 않고 진입 시점 기준
+  const nowMs = useNowMs()
   const [muted, setMuted] = useState<boolean>(sfx.isMuted())
 
   const chapters = useMemo(() => buildChapters(tiles), [tiles])
@@ -231,7 +222,7 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
                 <>
                   <p className="qj-panel-kicker">오늘의 걸음을 다 썼어요</p>
                   <h3>토끼가 쉬고 있어요</h3>
-                  <p className="qj-panel-sub">{timeUntil(steps?.resets_at)} 다섯 걸음이 다시 채워져요. 그동안 말씀 리그에서 부서에 점수를 보태 볼까요?</p>
+                  <p className="qj-panel-sub">{timeUntil(steps?.resets_at, nowMs)} 다섯 걸음이 다시 채워져요. 그동안 말씀 리그에서 부서에 점수를 보태 볼까요?</p>
                   <button type="button" className="qj-go" onClick={onGoLeague}>
                     말씀 리그로 <BmIcon name="bolt" size={17} />
                   </button>

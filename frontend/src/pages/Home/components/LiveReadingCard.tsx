@@ -16,6 +16,7 @@ import { LIVE_READING_CARD } from '../../../utils/themeAssets'
 import { useBibleBooks } from '../../../hooks/useBible'
 import { useLiveReading } from '../../../hooks/useLiveReading'
 import { isAuthenticated } from '../../../utils/auth'
+import { chapterLabel } from '../../../utils/bibleLabels'
 import { ChevronRightIcon, UsersIcon } from '../../../components/icons/ActionIcons'
 import './LiveReadingCard.css'
 
@@ -23,9 +24,6 @@ import './LiveReadingCard.css'
 const LIVE_MIN = 2
 /** 오늘 바닥으로 보여 주는 최소 독자 수 */
 const TODAY_MIN = 2
-
-const chapterLabel = (bookNumber: number, chapter: number) =>
-  bookNumber === 19 ? `${chapter}편` : `${chapter}장`
 
 const LiveReadingCard = () => {
   const navigate = useNavigate()

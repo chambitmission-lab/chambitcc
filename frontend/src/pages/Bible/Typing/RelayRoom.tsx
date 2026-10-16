@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { TypingCheerKind, TypingRelayDetail, TypingRelayLive } from '../../../api/bibleTyping'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { chapterUnit } from '../../../utils/bibleLabels'
 import { CHEER_LABEL } from './relayShare'
 import RelayInviteSheet from './RelayInviteSheet'
 import './relayRoom.css'
@@ -15,7 +16,8 @@ import './relayRoom.css'
 
 type Member = TypingRelayDetail['members'][number]
 
-const Avatar = ({ m, hue, live, size = 28 }: { m: Member; hue: number; live?: boolean; size?: number }) => (
+/** 멤버 얼굴(색 링 + 접속 점) — RelayStudyRoom 도 같은 조각을 쓴다 */
+export const Avatar = ({ m, hue, live, size = 28 }: { m: Member; hue: number; live?: boolean; size?: number }) => (
   <span className={`bt-room-av bt-hue-${hue}`} style={{ width: size, height: size, fontSize: Math.round(size * 0.42) }}>
     {m.avatar_url ? <img src={m.avatar_url} alt="" loading="lazy" /> : m.name.slice(0, 1)}
     {live && <i className="bt-room-av__dot" aria-hidden />}
@@ -266,7 +268,7 @@ export const BatonSheet = ({
   const [inviting, setInviting] = useState(false)
   const toMember = others.find((m) => m.user_id === to)
   const text = message.trim()
-  const unit = relay.book_number === 19 ? '편' : '장'
+  const unit = chapterUnit(relay.book_number)
 
   return (
     <>

@@ -10,6 +10,7 @@ import {
   useUpsertBookmark,
 } from '../../../hooks/useBibleBookmark'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { shuffle } from '../../../utils/random'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 import { formatClock } from '../../../utils/formatClock'
 // 배속 목록은 장 오디오북과 공유(같은 bible-tts-rate 키를 쓰므로 목록도 하나로)
@@ -31,11 +32,7 @@ const loadRate = (): number => {
 }
 
 const shuffledIds = (ids: number[], keepFirst?: number): number[] => {
-  const rest = ids.filter((id) => id !== keepFirst)
-  for (let i = rest.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[rest[i], rest[j]] = [rest[j], rest[i]]
-  }
+  const rest = shuffle(ids.filter((id) => id !== keepFirst))
   return keepFirst !== undefined ? [keepFirst, ...rest] : rest
 }
 

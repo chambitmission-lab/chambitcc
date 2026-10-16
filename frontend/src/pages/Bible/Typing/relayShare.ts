@@ -1,7 +1,7 @@
 // 릴레이 필사 초대 링크·공유 — 컴포넌트가 아닌 순수 함수라 별도 파일 (fast refresh 규칙)
 import { showToast } from '../../../utils/toast'
 
-export const relayInviteUrl = (code: string) => `${window.location.origin}${window.location.pathname}#/bible/typing/relay/join/${code}`
+const relayInviteUrl = (code: string) => `${window.location.origin}${window.location.pathname}#/bible/typing/relay/join/${code}`
 
 export const shareRelayInvite = async (relay: { title: string; book_name: string; chapter: number; total: number; invite_code: string }) => {
   const url = relayInviteUrl(relay.invite_code)
@@ -26,7 +26,7 @@ export const shareRelayInvite = async (relay: { title: string; book_name: string
 }
 
 // 멤버별 칸 색 — 들어온 순서대로 돌려 쓴다(릴레이 상세·따라쓰기 방이 같은 색을 쓴다)
-export const RELAY_HUES = 6
+const RELAY_HUES = 6
 export const relayHueMap = (members: { user_id: number }[] | undefined): Map<number, number> => {
   const m = new Map<number, number>()
   members?.forEach((mem, i) => m.set(mem.user_id, i % RELAY_HUES))

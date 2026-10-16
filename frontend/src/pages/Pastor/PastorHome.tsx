@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { useNowMs } from '../../hooks/useNowMs'
 import { showToast } from '../../utils/toast'
 import { sessionStore } from '../../utils/tokenStore'
 import { lazyModal } from '../../utils/lazyModal'
@@ -119,7 +120,7 @@ const PastorHome = () => {
 // ── 인사 · 이번 주 요약 ───────────────────────────────
 const Greeting = ({ data }: { data: PastorHomeData }) => {
   const name = sessionStore.get('fullName') || sessionStore.get('username') || ''
-  const now = new Date()
+  const now = new Date(useNowMs())
   // 지표는 곧 입구 — 맡겨진 기도는 이 화면 아래 카드로, 나머지는 해당 섹션으로 보낸다
   const stats: Array<{ label: string; value: number; unit: string; to?: string; anchor?: string }> = [
     { label: '맡겨진 기도', value: data.pastoral.waiting_count, unit: '건', anchor: INBOX_ID },

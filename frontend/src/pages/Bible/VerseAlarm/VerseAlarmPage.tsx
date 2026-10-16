@@ -10,6 +10,7 @@ import {
 import { usePushNotification } from '../../../hooks/usePushNotification'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { isAuthenticated } from '../../../utils/auth'
+import { isIOS, isStandalonePWA } from '../../../utils/pwa'
 import { showToast } from '../../../utils/toast'
 import type { VerseAlarm } from '../../../api/verseAlarm'
 import './VerseAlarmPage.css'
@@ -286,10 +287,8 @@ const ClockDial = ({ mode, hour12, minute, onPick, onRelease }: ClockDialProps) 
 }
 
 /* iOS Safari(미설치)에서는 웹 푸시 API 자체가 없다 — 홈 화면 추가 안내가 필요 */
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-const isStandalone =
-  window.matchMedia('(display-mode: standalone)').matches ||
-  (navigator as unknown as { standalone?: boolean }).standalone === true
+const onIOS = isIOS()
+const isStandalone = isStandalonePWA()
 const pushSupported =
   'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
 
@@ -413,7 +412,7 @@ const VerseAlarmPage = () => {
   /* ── 푸시 수신 가능 상태 배너 ── */
   const renderPushBanner = () => {
     if (!pushSupported) {
-      if (isIOS && !isStandalone) {
+      if (onIOS && !isStandalone) {
         return (
           <div className="va-banner va-banner--guide">
             <div className="va-banner-title">

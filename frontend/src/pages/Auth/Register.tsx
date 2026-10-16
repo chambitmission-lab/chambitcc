@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { authKeys } from '../../hooks/queryKeys'
 import { useNavigate, Link } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { getSignupPolicy, register } from '../../api/auth'
@@ -33,19 +35,16 @@ const Register = () => {
   // 비밀번호·확인 칸 각각 — 경고는 지금 치고 있는 칸 아래에만 뜬다
   const { capsOn: capsOnPassword, capsLockProps: passwordCapsProps } = useCapsLock()
   const { capsOn: capsOnConfirm, capsLockProps: confirmCapsProps } = useCapsLock()
-  // 관리자가 가입 승인제를 켰는지 — 가입 전에 미리 안내하기 위해 조회한다
-  const [requireApproval, setRequireApproval] = useState(false)
+  // 관리자가 가입 승인제를 켰는지 — 가입 전에 미리 안내하기 위해 조회한다.
+  // 정책 조회 실패는 가입 자체를 막지 않는다 — 안내만 생략된다
+  const { data: signupPolicy } = useQuery({
+    queryKey: authKeys.signupPolicy(),
+    queryFn: getSignupPolicy,
+    staleTime: Infinity,
+    retry: false,
+  })
+  const requireApproval = !!signupPolicy?.require_approval
   const fieldsRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    getSignupPolicy()
-      .then(data => {
-        if (data) setRequireApproval(!!data.require_approval)
-      })
-      .catch(() => {
-        // 정책 조회 실패는 가입 자체를 막지 않는다 — 안내만 생략된다
-      })
-  }, [])
 
   /* 가입 실패 시 흔들림 재생. 리마운트(key 교체)로 처리하면 입력 포커스가
      날아가므로, 클래스를 뗐다 붙이며 reflow로 애니메이션만 다시 돌린다. */

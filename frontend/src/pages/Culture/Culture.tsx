@@ -1,4 +1,6 @@
 import { formatLongDate } from '../../utils/dateUtils'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { cultureKeys } from '../../hooks/queryKeys'
 import { useEffect, useState } from 'react'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CULTURE_HERO } from '../../utils/themeAssets'
@@ -33,6 +35,8 @@ import { cardClass, datePickerTriggerClass, inputClass, labelClass } from './com
 import './culture-hero.css'
 
 type SectionKey = 'classes' | 'lookup' | 'notice' | 'contact'
+const EMPTY_CLASSES: CultureClass[] = []
+const EMPTY_NOTICES: CultureNotice[] = []
 
 const SECTIONS: { key: SectionKey; label: string; Icon: IconComponent }[] = [
   { key: 'classes', label: '강좌', Icon: PaletteIcon },
@@ -65,9 +69,21 @@ const isRecentNotice = (createdAt: string) =>
 
 const Culture = () => {
   const [section, setSection] = useState<SectionKey>('classes')
-  const [classes, setClasses] = useState<CultureClass[]>([])
-  const [notices, setNotices] = useState<CultureNotice[]>([])
-  const [loading, setLoading] = useState(true)
+  // 강좌·공지는 React Query 로 — 다시 들어올 때 캐시를 먼저 그리고(persist 복원 포함) 뒤에서 갱신한다
+  const qc = useQueryClient()
+  const classesQuery = useQuery({ queryKey: cultureKeys.classes(), queryFn: getCultureClasses })
+  const noticesQuery = useQuery({ queryKey: cultureKeys.notices(), queryFn: getCultureNotices })
+  const classes = classesQuery.data ?? EMPTY_CLASSES
+  const notices = noticesQuery.data ?? EMPTY_NOTICES
+  const loading = classesQuery.isPending || noticesQuery.isPending
+  const loadError = classesQuery.error ?? noticesQuery.error
+  useEffect(() => {
+    if (!loadError) return
+    showToast(loadError instanceof Error ? loadError.message : '문화교실 정보를 불러오지 못했습니다', 'error')
+  }, [loadError])
+  // 신청·취소 직후 잔여석을 캐시에 바로 반영(서버 재조회 없이)
+  const setClasses = (update: (prev: CultureClass[]) => CultureClass[]) =>
+    qc.setQueryData<CultureClass[]>(cultureKeys.classes(), (prev) => update(prev ?? []))
 
   // 수강신청 바텀시트
   const [applyTarget, setApplyTarget] = useState<CultureClass | null>(null)
@@ -85,28 +101,6 @@ const Culture = () => {
   // 테마를 토글하는 순간 반대 테마 파일을 맨땅에서 받기 시작해 밴드가 빈 채로 남으므로,
   // 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다 (themeAssets.ts)
   useThemeArt(CULTURE_HERO)
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true)
-        const [classData, noticeData] = await Promise.all([
-          getCultureClasses(),
-          getCultureNotices(),
-        ])
-        setClasses(classData)
-        setNotices(noticeData)
-      } catch (error) {
-        showToast(
-          error instanceof Error ? error.message : '문화교실 정보를 불러오지 못했습니다',
-          'error'
-        )
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
 
   const openClasses = classes.filter((c) => c.is_open)
   const heroQuarter = openClasses.find((c) => c.quarter)?.quarter ?? null

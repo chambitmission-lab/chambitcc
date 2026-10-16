@@ -63,6 +63,14 @@ export const bibleTypingKeys = {
 
 const loggedIn = () => !!tokenStore.getAccess()
 
+const parseJson = <T,>(raw: string): T | null => {
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    return null
+  }
+}
+
 /**
  * 필사 허브 묶음 — 통계·달력·오늘의 한 절·교회 성경·릴레이·이어 쓸 절 본문을 요청 하나로.
  * 허브가 요청 8개를 한꺼번에 보내면 홈에서 넘어올 때 홈의 요청 10여 개 뒤에 줄을 서서
@@ -151,10 +159,19 @@ export const useSubmitTyping = () => {
   return useMutation({
     mutationFn: (input: TypingRecordInput) => submitTypingRecord(input),
     onSuccess: (result) => {
-      // 화면에 떠 있는 것(세션의 통계·이 장의 필사 절)만 지금 다시 받고, 허브 묶음 등 나머지는
-      // stale 로만 표시해 돌아가 마운트될 때 받는다(refetchOnMount 기본 true). 전부('all') 다시 받으면
-      // 절 하나 쓸 때마다 허브 조각 6~7개가 뒤에서 나가 필사 중 백엔드를 계속 두드렸다
-      void qc.invalidateQueries({ queryKey: bibleTypingKeys.all })
+      // 세션 화면에 떠 있는 것 중 이 절로 바뀌는 것(통계·이 장의 필사 절·릴레이 방 칸)만 지금 다시 받는다.
+      // 나머지(허브 묶음·내 릴레이 목록·달력·오늘의 한 절·교회 성경·책 진행률)는 stale 로만 표시해
+      // 돌아가 마운트될 때 받는다. 세션은 방 자동 감지용으로 relays() 도 들고 있어 전부 active 로
+      // 무효화하면 절 하나마다 요청이 4개 나갔다 — 그 목록은 세션 안에서 바뀔 일이 없다
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.all, refetchType: 'none' })
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.stats() })
+      void qc.invalidateQueries({
+        queryKey:
+          result.book_number != null && result.chapter != null
+            ? bibleTypingKeys.chapter(result.book_number, result.chapter)
+            : [...bibleTypingKeys.all, 'chapter'],
+      })
+      void qc.invalidateQueries({ queryKey: [...bibleTypingKeys.all, 'relay'] })
       if (result.marked_read_ids.length > 0) {
         // 읽기 화면은 다른 라우트라 비활성 — refetchType 'all' 로 돌아갔을 때 바로 맞게
         void qc.invalidateQueries({ queryKey: bibleReadingKeys.all, refetchType: 'all' })
@@ -179,14 +196,6 @@ export const useUpdateTypingGoal = () => {
   })
 }
 
-/** 잉크 달력 — 최근 26주 날짜별 필사한 절 수 */
-export const useTypingCalendar = () =>
-  useQuery({
-    queryKey: bibleTypingKeys.calendar(),
-    queryFn: () => getTypingCalendar(182),
-    enabled: loggedIn(),
-    staleTime: 1000 * 60,
-  })
 
 /** 오늘의 한 절 — 날짜가 바뀌면 새 절이라 오래 들고 있지 않는다 */
 export const useTypingDaily = () =>
@@ -197,14 +206,6 @@ export const useTypingDaily = () =>
     staleTime: 1000 * 30,
   })
 
-/** 우리 교회가 함께 쓰는 성경 */
-export const useChurchBible = () =>
-  useQuery({
-    queryKey: bibleTypingKeys.churchBible(),
-    queryFn: getChurchBible,
-    enabled: loggedIn(),
-    staleTime: 1000 * 60,
-  })
 
 /** 내가 참여한 릴레이 필사 */
 export const useTypingRelays = () =>
@@ -252,8 +253,11 @@ export const useTypingRelayLive = (relayId?: number) => {
     if (!loggedIn()) return
     const refresh = (id: number) => {
       void qc.invalidateQueries({ queryKey: bibleTypingKeys.relay(id) })
-      void qc.invalidateQueries({ queryKey: bibleTypingKeys.relays() })
-      void qc.invalidateQueries({ queryKey: bibleTypingKeys.home() })
+      // 세션(relayId 있음)은 방 자동 감지용 relays() 도 들고 있다 — 친구가 한 절 쓸 때마다 목록까지
+      // 다시 받을 이유는 없으니 그땐 stale 로만 두고, 허브처럼 목록을 보는 화면에서만 바로 받는다
+      const listRefetch = relayId ? 'none' : undefined
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.relays(), refetchType: listRefetch })
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.home(), refetchType: listRefetch })
     }
     const offEvent = notificationStream.on('typing_relay', (raw) => {
       try {
@@ -346,15 +350,8 @@ export const useTypingRelayRoom = (
 
   useEffect(() => {
     if (!loggedIn() || !relayId) return
-    const parse = <T,>(raw: string): T | null => {
-      try {
-        return JSON.parse(raw) as T
-      } catch {
-        return null
-      }
-    }
     const offLive = notificationStream.on('typing_relay_live', (raw) => {
-      const ev = parse<{ relay_id: number; user_id: number; verse: number | null }>(raw)
+      const ev = parseJson<{ relay_id: number; user_id: number; verse: number | null }>(raw)
       if (!ev || ev.relay_id !== relayId) return
       setLive((prev) => {
         const rest = prev.filter((r) => r.user_id !== ev.user_id)
@@ -362,16 +359,16 @@ export const useTypingRelayRoom = (
       })
     })
     const offCheer = notificationStream.on('typing_relay_cheer', (raw) => {
-      const ev = parse<TypingCheerEvent>(raw)
+      const ev = parseJson<TypingCheerEvent>(raw)
       if (ev && ev.relay_id === relayId) handlersRef.current.onCheer?.(ev)
     })
     const offFill = notificationStream.on('typing_relay', (raw) => {
-      const ev = parse<TypingRelayEvent>(raw)
+      const ev = parseJson<TypingRelayEvent>(raw)
       if (ev && ev.relay_id === relayId) handlersRef.current.onFill?.(ev)
     })
     // 친구가 '알아두면 좋은 말' 풀이를 열어 봤다 — 상세 캐시의 gloss_views 에 바로 얹는다(재조회 없이)
     const offGloss = notificationStream.on('typing_relay_gloss', (raw) => {
-      const ev = parse<{ relay_id: number; user_id: number; term: string }>(raw)
+      const ev = parseJson<{ relay_id: number; user_id: number; term: string }>(raw)
       if (!ev || ev.relay_id !== relayId) return
       qc.setQueryData<TypingRelayDetail>(bibleTypingKeys.relay(relayId), (prev) => {
         if (!prev) return prev
@@ -490,13 +487,6 @@ export interface TypingWrittenEvent {
   verse: number
 }
 
-const parseJson = <T,>(raw: string): T | null => {
-  try {
-    return JSON.parse(raw) as T
-  } catch {
-    return null
-  }
-}
 
 /**
  * 혼자 쓰는 필사 화면의 '지금 이 장을 쓰는 사람'. 쓰는 절을 알리고(하트비트), 같은 장 사람 명단·응원·

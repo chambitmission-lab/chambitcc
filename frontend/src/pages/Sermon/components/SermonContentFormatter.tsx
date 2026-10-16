@@ -1,5 +1,6 @@
 // 설교 내용 포맷터 - 섹션별 접기/펼치기 기능
 import React, { useState } from 'react'
+import { escapeHtml } from '../../../utils/escapeHtml'
 
 interface SermonContentFormatterProps {
   content: string
@@ -191,14 +192,7 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
   
   // HTML 이스케이프 — dangerouslySetInnerHTML에 넣기 전에 원문의 태그를 무력화해
   // 본문에 섞인 <script> 등이 실행되는 저장형 XSS를 차단한다.
-  // 이스케이프 후에 하이라이트 span을 입히므로 주입되는 HTML은 우리가 만든 span뿐이다.
-  const escapeHtml = (text: string) =>
-    text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
+  // 이스케이프 후에 하이라이트 span을 입히므로 주입되는 HTML은 우리가 만든 span뿐이다(utils/escapeHtml).
 
   // 중요 키워드 하이라이트
   const highlightKeywords = (text: string) => {

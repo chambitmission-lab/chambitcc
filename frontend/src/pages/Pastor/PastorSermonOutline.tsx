@@ -23,6 +23,7 @@ import { GhostButton, PastorModal, PrimaryButton } from './components/ui'
 import { IconButton, NoteCard, SermonPicker, SermonTabs } from './components/sermonNotes'
 import { invalidateNoteQueries } from './components/sermonNoteUtils'
 import { formatDay, inputCls, pickerCls, usePastorGate } from './components/pastorUtils'
+import { escapeHtml } from '../../utils/escapeHtml'
 
 // 설교 개요 보드 — 칸(서론·본론·적용·결론…)마다 글을 쓰고 메모 카드를 붙여 배치한다.
 // 입력이 멈추면 1초 뒤 저장. PC 오른쪽엔 '이 본문과 이어지는 메모'가 있어 누르면 지금 고른 칸에 붙는다.
@@ -637,8 +638,6 @@ const buildOutlineText = (d: Draft, notes: Record<number, SermonNote>): string =
   }
   return lines.join('\n')
 }
-
-const escapeHtml = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 
 const printOutline = (title: string, text: string) => {
   const w = window.open('', '_blank', 'width=800,height=900')

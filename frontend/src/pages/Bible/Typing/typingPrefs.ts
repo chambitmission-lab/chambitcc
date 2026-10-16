@@ -1,24 +1,13 @@
 import { useCallback, useState } from 'react'
 import type { TypingMode } from '../../../api/bibleTyping'
+import { safeStorage } from '../../../utils/safeStorage'
 
 // 기기별 편의 설정 — 저장소가 막혀도(사생활 보호 모드 등) 기본값으로 동작한다
 const PUNCT_KEY = 'bt-ignore-punct'
 const MODE_KEY = 'bt-mode'
 
-const read = (key: string): string | null => {
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
-const write = (key: string, value: string) => {
-  try {
-    localStorage.setItem(key, value)
-  } catch {
-    /* noop */
-  }
-}
+const read = safeStorage.get
+const write = safeStorage.set
 
 /** 문장부호 무시(기본 켬) */
 export const useIgnorePunct = (): [boolean, (v: boolean) => void] => {

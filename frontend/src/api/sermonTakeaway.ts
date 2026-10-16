@@ -1,6 +1,6 @@
 // 설교 '한 줄 붙잡기' API — /sermon 말씀 편지의 3단계. 본인 것만 읽고 쓴다(로그인 필수).
 // 목회자 설교 메모장(/pastor/sermon/notes)과는 별개다.
-import { request, requestRaw, type UntypedJson } from './utils/request'
+import { request, requestRaw } from './utils/request'
 
 export interface SermonTakeaway {
   sermon_id: number
@@ -15,7 +15,7 @@ export interface SermonTakeaway {
 }
 
 export const getMySermonTakeaways = async (): Promise<SermonTakeaway[]> => {
-  const data = await request<UntypedJson>('/sermon-takeaways', {
+  const data = await request<{ data: { items: SermonTakeaway[] } }>('/sermon-takeaways', {
     auth: 'required',
     errorMessage: '말씀 노트를 불러오지 못했습니다',
   })
@@ -27,7 +27,7 @@ export const saveSermonTakeaway = async (
   text: string,
   shared: boolean,
 ): Promise<SermonTakeaway> => {
-  const data = await request<UntypedJson>(`/sermon-takeaways/${sermonId}`, {
+  const data = await request<{ data: SermonTakeaway }>(`/sermon-takeaways/${sermonId}`, {
     method: 'PUT',
     auth: 'required',
     json: { text, shared },
@@ -46,7 +46,7 @@ export const deleteSermonTakeaway = async (sermonId: number): Promise<void> => {
 
 /** 목사님이 공개한 소그룹 나눔 질문 — 없으면 null (로그인 불필요) */
 export const getSermonDiscussion = async (sermonId: number): Promise<string[] | null> => {
-  const data = await request<UntypedJson>(`/sermons/${sermonId}/discussion`, {
+  const data = await request<{ data: { questions?: string[] | null } }>(`/sermons/${sermonId}/discussion`, {
     errorMessage: '나눔 질문을 불러오지 못했습니다',
   })
   return data.data.questions ?? null

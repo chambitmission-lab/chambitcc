@@ -1,4 +1,4 @@
-// /today — 오늘의 교회 상세. 홈 맨 위 봉투 한 줄(TodayChurchCard)을 누르면 온다.
+// /today — 오늘의 교회 상세. 홈 묵상 히어로 우상단 봉투 버튼을 누르면 온다.
 //   탭 1 작년 오늘의 나: 1년·6개월·1개월 전 오늘의 기록 + 작년 이맘때 응답된 기도
 //   탭 2 어제 우리 교회: 어제 하루 익명 집계(지난 7일 평균 대비) · 기도한 시간 · 많이 읽힌 장 · 기도에 담긴 마음
 // ?tab=church 면 두 번째 탭이 먼저 열린다.
@@ -7,6 +7,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { AnsweredEcho, ChurchDay, ChurchMetricKey, TodayChurch as TodayChurchData, TodayMemory } from '../../api/todayChurch'
 import type { PrayerEmotion } from '../../types/prayer'
 import { useTodayChurch } from '../../hooks/useTodayChurch'
+import { chapterLabel } from '../../utils/bibleLabels'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 import { AnswerAsk, MemoryQuote } from './MemoryLetter'
 import { formatKoreanDate, markTodayChurchOpened, memoryMeta, memoryWhen } from './memoryCopy'
 
@@ -16,10 +18,9 @@ const TABS = [
   ['church', '어제 우리 교회'],
 ] as const
 
-const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토']
 const dayLabel = (ymd: string) => {
   const [y, m, d] = ymd.split('-').map(Number)
-  return `${m}월 ${d}일 (${WEEKDAY[new Date(y, m - 1, d).getDay()]})`
+  return `${m}월 ${d}일 (${KO_WEEKDAYS[new Date(y, m - 1, d).getDay()]})`
 }
 
 const EMOTION_LABEL: Record<PrayerEmotion, string> = {
@@ -41,8 +42,6 @@ const hourLabel = (h: number) => {
   if (h < 21) return `저녁 ${h - 12}시`
   return `밤 ${h - 12}시`
 }
-
-const chapterLabel = (bookNumber: number, chapter: number) => (bookNumber === 19 ? `${chapter}편` : `${chapter}장`)
 
 // ── 탭 1: 작년 오늘의 나 ──────────────────────────────
 const MemoryCard = ({ memory }: { memory: TodayMemory }) => {

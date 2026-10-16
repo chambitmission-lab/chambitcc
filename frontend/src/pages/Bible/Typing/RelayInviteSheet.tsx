@@ -4,6 +4,7 @@ import MemberSearchInput from '../../../components/common/MemberSearchInput'
 import { useAddTypingRelayMembers } from '../../../hooks/useBibleTyping'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { CapsuleRecipient } from '../../../types/timeCapsule'
+import { chapterUnit } from '../../../utils/bibleLabels'
 import { showToast } from '../../../utils/toast'
 import { shareRelayInvite } from './relayShare'
 
@@ -15,7 +16,7 @@ const RelayInviteSheet = ({ relay, onClose }: { relay: TypingRelayDetail; onClos
   useModalBackButton(onClose)
   const add = useAddTypingRelayMembers(relay.id)
   const [picked, setPicked] = useState<CapsuleRecipient[]>([])
-  const unit = relay.book_number === 19 ? '편' : '장'
+  const unit = chapterUnit(relay.book_number)
 
   const onInvite = () => {
     if (!picked.length) return

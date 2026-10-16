@@ -1,5 +1,13 @@
 // PWA 캐시 관리 유틸리티
 
+/** iPhone·iPad·iPod — 웹 푸시는 홈 화면에 추가한 뒤에만 된다 */
+export const isIOS = (): boolean => /iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+/** 홈 화면 앱(standalone)으로 열렸는가 — iOS Safari 는 navigator.standalone 으로만 알 수 있다 */
+export const isStandalonePWA = (): boolean =>
+  window.matchMedia('(display-mode: standalone)').matches ||
+  (navigator as Navigator & { standalone?: boolean }).standalone === true
+
 /** 아직 표준 lib.dom 에 없는 설치 프롬프트 이벤트 — 우리가 쓰는 부분만 선언 */
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>

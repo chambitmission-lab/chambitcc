@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { useLeaveTypingRelay, useTypingRelay, useTypingRelayLive } from '../../../hooks/useBibleTyping'
+import { chapterUnit } from '../../../utils/bibleLabels'
 import { safeStorage } from '../../../utils/safeStorage'
 import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
@@ -41,7 +42,7 @@ const TypingRelay = () => {
     confetti({ particleCount: 120, spread: 90, origin: { y: 0.55 }, colors: ['#3182f6', '#60a5fa', '#ffb547', '#ffe08a'] })
   }, [relay])
 
-  const unit = relay?.book_number === 19 ? '편' : '장'
+  const unit = chapterUnit(relay?.book_number)
   const ranked = useMemo(() => [...(relay?.members ?? [])].sort((a, b) => b.verses - a.verses), [relay])
 
   const onLeave = () => {

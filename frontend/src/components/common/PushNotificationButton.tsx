@@ -2,6 +2,7 @@ import { usePushNotification } from '../../hooks/usePushNotification';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { showToast } from '../../utils/toast';
 import { alertDialog } from '../../utils/confirmDialog'
+import { isIOS, isStandalonePWA } from '../../utils/pwa'
 
 type Translate = ReturnType<typeof useLanguage>['t'];
 
@@ -12,14 +13,10 @@ type Translate = ReturnType<typeof useLanguage>['t'];
  * - 그 외 데스크톱/기타 브라우저: 주소창 자물쇠 → 사이트 설정
  */
 const getDeniedGuide = (t: Translate): string => {
-  const ua = navigator.userAgent;
-  const isIOS = /iPhone|iPad|iPod/i.test(ua);
-  const isAndroid = /Android/i.test(ua);
-  const isStandalone =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isStandalone = isStandalonePWA();
 
-  if (isIOS && isStandalone) return t('pushDeniedIosPwa');
+  if (isIOS() && isStandalone) return t('pushDeniedIosPwa');
   if (isAndroid) return isStandalone ? t('pushDeniedAndroidPwa') : t('pushDeniedAndroid');
   return t('pushDeniedDesktop');
 };

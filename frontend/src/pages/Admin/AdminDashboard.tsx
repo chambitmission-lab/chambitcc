@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { showToast } from '../../utils/toast'
+import { adminKeys } from '../../hooks/queryKeys'
 import { fetchAdminDashboard, type AdminDashboardData, type DashboardAction } from '../../api/admin'
 import { AdminPageHeader, SectionCard, StatSpinner } from './components/StatCards'
 import { can } from '../../utils/access'
@@ -40,7 +41,7 @@ const AdminDashboard = () => {
   }, [admin, navigate])
 
   const { data, isPending, isError } = useQuery<AdminDashboardData>({
-    queryKey: ['admin-dashboard'],
+    queryKey: adminKeys.dashboard(),
     queryFn: fetchAdminDashboard,
     enabled: admin,
   })

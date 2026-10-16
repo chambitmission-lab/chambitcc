@@ -16,6 +16,7 @@ import pianoGentleUrl from '../../../assets/typing-sounds/ambient-piano-gentle.m
 import pianoSoftUrl from '../../../assets/typing-sounds/ambient-piano-soft.mp3'
 import { SPRITE_ANCHOR_RATIO, TYPING_SPRITES } from './typingSprites'
 import { TYPING_AMBIENTS } from './typingAmbients'
+import { safeStorage } from '../../../utils/safeStorage'
 
 export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
 export type SoundKind = 'key' | 'space' | 'back' | 'done'
@@ -46,20 +47,8 @@ export const AMBIENTS: { key: AmbientKind; label: string }[] = [
 const THEME_KEY = 'bt-sound'
 const AMBIENT_KEY = 'bt-ambient'
 
-const read = (key: string): string | null => {
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
-const write = (key: string, value: string) => {
-  try {
-    localStorage.setItem(key, value)
-  } catch {
-    /* noop */
-  }
-}
+const read = safeStorage.get
+const write = safeStorage.set
 
 const isTheme = (v: string | null): v is SoundTheme => v === 'off' || SOUND_THEMES.some((t) => t.key === v)
 

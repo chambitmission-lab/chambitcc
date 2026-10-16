@@ -9,6 +9,7 @@ import { ThanksIcon, type ThanksIconName } from '../../../../components/icons/Th
 import ThanksAvatar from './ThanksAvatar'
 import './thanks.css'
 import { SheetGrabber } from '../../../../components/common/SheetGrabber'
+import { pickRandom } from '../../../../utils/random'
 
 const MAX_LEN = 100
 const EMOTION_KEYS = Object.keys(THANKS_EMOTIONS) as ThanksEmotion[]
@@ -84,8 +85,6 @@ const SEEDS = {
 /** 등록 폭죽에 흩뿌릴 모양 — 감정 아이콘과 같은 문법이라 따로 이모지를 섞지 않는다 */
 const BURST_ICONS: ThanksIconName[] = ['love', 'awe', 'peace', 'joy', 'thanks']
 
-const pickRandom = <T,>(list: T[]): T => list[Math.floor(Math.random() * list.length)]
-
 const pickSeeds = (pool: string[], count = 3): string[] => {
   const shuffled = [...pool].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, count)
@@ -102,7 +101,7 @@ const makeBurst = (accent: ThanksIconName): BurstPiece[] =>
     const angle = (Math.PI * 2 * i) / 14 + Math.random() * 0.4
     const distance = 90 + Math.random() * 110
     return {
-      icon: i % 3 === 0 ? accent : pickRandom(BURST_ICONS),
+      icon: i % 3 === 0 ? accent : (pickRandom(BURST_ICONS) ?? accent),
       style: {
         '--bx': `${Math.cos(angle) * distance}px`,
         '--by': `${Math.sin(angle) * distance - 40}px`,

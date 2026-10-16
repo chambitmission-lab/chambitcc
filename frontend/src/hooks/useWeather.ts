@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { weatherKeys } from './queryKeys'
 
 /* 교회(부천 상동) 좌표 고정 — 위치 권한 팝업 없이 교인 생활권 날씨를 보여준다.
  * Open-Meteo는 API 키 없이 CORS 허용이라 프론트에서 직접 호출한다. */
@@ -131,7 +132,7 @@ export interface CurrentWeatherState {
  * (persist 제외는 main.tsx의 shouldDehydrateQuery에서 처리) */
 export const useCurrentWeather = (): CurrentWeatherState => {
   const { data, isLoading } = useQuery({
-    queryKey: ['weather', 'current'],
+    queryKey: weatherKeys.current(),
     queryFn: fetchCurrentWeather,
     staleTime: WEATHER_REFRESH_MS,
     gcTime: 1000 * 60 * 60,
@@ -182,7 +183,7 @@ export const useSundayRain = (): number | null => {
   const { data } = useQuery({
     /* remaining이 키에 들어가 날짜가 넘어가면 자동으로 새 예보를 받는다 —
      * 토요일에 받아둔 값이 주일 아침까지 남지 않는다. */
-    queryKey: ['weather', 'sunday', remaining],
+    queryKey: weatherKeys.sunday(remaining),
     queryFn: () => fetchSundayPop(remaining),
     enabled: isNear,
     /* 일별 예보는 실황만큼 자주 바뀌지 않는다 */

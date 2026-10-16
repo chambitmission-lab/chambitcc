@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { useSubmitTyping, useTypingDaily } from '../../../hooks/useBibleTyping'
 import { useTickingNow } from '../../../hooks/useTickingNow'
+import { KST_OFFSET_MS } from '../../../utils/kstTime'
 import { tokenStore } from '../../../utils/tokenStore'
 import { showToast } from '../../../utils/toast'
 import TypingPad, { type TypingFinish } from './TypingPad'
@@ -16,11 +17,10 @@ import Faces from './home/Faces'
 import './typing.css'
 
 const DAY_MS = 24 * 3600 * 1000
-const KST_MS = 9 * 3600 * 1000
 
 /** KST 자정까지 남은 시간 'H시간 M분' */
 const untilMidnight = (now: number) => {
-  const left = DAY_MS - ((now + KST_MS) % DAY_MS)
+  const left = DAY_MS - ((now + KST_OFFSET_MS) % DAY_MS)
   const h = Math.floor(left / 3600000)
   const m = Math.floor((left % 3600000) / 60000)
   return h > 0 ? `${h}시간 ${m}분` : `${m}분`

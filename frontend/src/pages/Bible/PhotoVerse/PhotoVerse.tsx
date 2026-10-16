@@ -5,6 +5,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleBooks } from '../../../hooks/useBible'
 import { useDailyVerse } from '../../../hooks/useDailyVerse'
 import { ensureFontFamily } from '../../../utils/deferredFonts'
+import { KST_OFFSET_MS } from '../../../utils/kstTime'
 
 // 카드 전용 서체(붓글씨·손글씨·날짜 스탬프)는 이 화면 청크가 로드될 때 받기 시작한다
 ensureFontFamily('nanumBrush')
@@ -56,7 +57,7 @@ const CHURCH_BG_ID = 'cream'
 const CHURCH_PRESET_ID = 'season'
 
 /** 한국 시간 기준 날짜 번호 — 상황별 말씀을 하루 단위로 돌려 쓴다 */
-const kstDayNumber = (ms: number) => Math.floor((ms + 9 * 60 * 60 * 1000) / 86_400_000)
+const kstDayNumber = (ms: number) => Math.floor((ms + KST_OFFSET_MS) / 86_400_000)
 
 
 const PhotoVerse = () => {

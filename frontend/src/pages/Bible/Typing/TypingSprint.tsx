@@ -7,6 +7,7 @@ import { getBibleVerse } from '../../../api/bible'
 import { bibleKeys } from '../../../hooks/queryKeys'
 import { useSubmitTyping, useTypingStats, useTypingWeekly } from '../../../hooks/useBibleTyping'
 import { useBibleBooks } from '../../../hooks/useBible'
+import { shuffle } from '../../../utils/random'
 import { tokenStore } from '../../../utils/tokenStore'
 import TypingPad, { type TypingFinish } from './TypingPad'
 import { PASS_ACCURACY, cpmOf } from './hangulTyping'
@@ -27,14 +28,7 @@ const SPRINT_POOL: [number, number, number][] = [
 ]
 const SPRINT_SIZE = 5
 
-const pickSet = (): [number, number, number][] => {
-  const pool = [...SPRINT_POOL]
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[pool[i], pool[j]] = [pool[j], pool[i]]
-  }
-  return pool.slice(0, SPRINT_SIZE)
-}
+const pickSet = (): [number, number, number][] => shuffle(SPRINT_POOL).slice(0, SPRINT_SIZE)
 
 type Phase = 'ready' | 'countdown' | 'running' | 'done'
 

@@ -2,7 +2,9 @@ import { useState, type CSSProperties } from 'react'
 import artLight from '../../../assets/typing-relay/banner-light.webp'
 import artDark from '../../../assets/typing-relay/banner-dark.webp'
 import type { TypingCheerKind, TypingRelayDetail, TypingRelayLive } from '../../../api/bibleTyping'
+import { chapterUnit } from '../../../utils/bibleLabels'
 import { CHEER_LABEL } from './relayShare'
+import { Avatar as MemberAvatar } from './RelayRoom'
 
 /**
  * 릴레이 방 = '말씀 독서실'(PC). 세션 화면이 쓰는 조각들:
@@ -23,13 +25,6 @@ export interface RoomFeedItem {
   /** 언제 일어났는지 — 방에 들어오기 전 일(바통 한마디)은 모르므로 null */
   at: number | null
 }
-
-const MemberAvatar = ({ m, hue, live, size = 36 }: { m: Member; hue: number; live?: boolean; size?: number }) => (
-  <span className={`bt-room-av bt-hue-${hue}`} style={{ width: size, height: size, fontSize: Math.round(size * 0.42) }}>
-    {m.avatar_url ? <img src={m.avatar_url} alt="" loading="lazy" /> : m.name.slice(0, 1)}
-    {live && <i className="bt-room-av__dot" aria-hidden />}
-  </span>
-)
 
 // 배너 삽화 — 원고지 위 연필 바통 이어달리기(docs/typing-relay-banner-bg-prompts.md)
 const BANNER_ART = { '--relay-art-light': `url(${artLight})`, '--relay-art-dark': `url(${artDark})` } as CSSProperties
@@ -56,7 +51,7 @@ export const RoomBanner = ({
   onPass: () => void
   onOpenRelay: () => void
 }) => {
-  const unit = relay.book_number === 19 ? '편' : '장'
+  const unit = chapterUnit(relay.book_number)
   return (
     <section className={`bt-studyroom${canPass ? ' has-pass' : ''}`} style={BANNER_ART} aria-label="릴레이 방">
       <span className="bt-studyroom__ic material-icons-round" aria-hidden>
@@ -137,7 +132,7 @@ export const RoomMembers = ({
                   aria-expanded={target === m.user_id}
                   title="눌러서 응원 보내기"
                 >
-                  <MemberAvatar m={m} hue={hueOf.get(m.user_id) ?? 0} live={at !== undefined} />
+                  <MemberAvatar m={m} hue={hueOf.get(m.user_id) ?? 0} live={at !== undefined} size={36} />
                   <span className="bt-tg__who">
                     <b>{m.name}</b>
                     <span>

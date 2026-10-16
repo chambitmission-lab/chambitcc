@@ -39,6 +39,9 @@ import { CHEER_LABEL, hueOfKey, relayHueMap } from './relayShare'
 import { isGlossaryReady, loadGlossary, matchGlossary, type GlossaryEntry } from '../data/bibleGlossary'
 import './typing.css'
 import './together.css'
+import { useTickingNow } from '../../../hooks/useTickingNow'
+import { safeStorage } from '../../../utils/safeStorage'
+import { chapterUnit } from '../../../utils/bibleLabels'
 
 interface SessionVerse {
   id: number
@@ -78,13 +81,7 @@ const LAND_HOLD_MS = 1500
 const FEED_MAX = 8
 // '내 이름 숨기고 쓰기' — 기기별 기억
 const ANON_KEY = 'bt-together-anon'
-const readAnon = () => {
-  try {
-    return localStorage.getItem(ANON_KEY) === '1'
-  } catch {
-    return false
-  }
-}
+const readAnon = () => safeStorage.get(ANON_KEY) === '1'
 
 interface CheerFloat {
   id: number
@@ -161,11 +158,8 @@ const TypingSessionView = () => {
     const id = ++feedSeq.current
     setFeed((prev) => [{ id, text, hue, at: Date.now() }, ...prev].slice(0, FEED_MAX))
   }, [])
-  const [clock, setClock] = useState(() => Date.now())
-  useEffect(() => {
-    const t = setInterval(() => setClock(Date.now()), 30_000)
-    return () => clearInterval(t)
-  }, [])
+  // 방 소식의 "n분 전"은 PC 독서실에서만 보인다 — 그때만, 탭이 보일 때만 흐른다
+  const clock = useTickingNow(30_000, isDesk && !!room)
   const [inviting, setInviting] = useState(false)
   const createRelay = useCreateTypingRelay()
   const sendGlossView = useSendRelayGlossView()
@@ -173,11 +167,7 @@ const TypingSessionView = () => {
   const [anon, setAnonState] = useState(readAnon)
   const setAnon = (v: boolean) => {
     setAnonState(v)
-    try {
-      localStorage.setItem(ANON_KEY, v ? '1' : '0')
-    } catch {
-      /* noop */
-    }
+    safeStorage.set(ANON_KEY, v ? '1' : '0')
   }
   // 알아두면 좋은 말 — 사전은 코드 분할이라 처음 필요할 때 받는다
   const [glossReady, setGlossReady] = useState(isGlossaryReady)
@@ -769,7 +759,7 @@ const TypingSessionView = () => {
     if (i >= 0) goTo(i)
   }
   const myId = room?.members.find((m) => m.is_me)?.user_id
-  const unit = bookNumber === 19 ? '편' : '장'
+  const unit = chapterUnit(bookNumber)
 
   // 지금 절의 알아두면 좋은 말 — 필사 판이 그리는 원문(typingSource) 기준으로 찾는다
   const activeVerse = current !== null ? verses[current] : null
@@ -1280,7 +1270,7 @@ const TypingSessionView = () => {
             <p className="bt-summary__eyebrow">릴레이 완성 · 마지막 칸을 내가 채웠어요</p>
             <h2 id="bt-relaydone-title" className="bt-summary__title">
               {room.book_name} {room.chapter}
-              {room.book_number === 19 ? '편' : '장'}을 함께 완성했어요!
+              {chapterUnit(room.book_number)}을 함께 완성했어요!
             </h2>
             <ul className="bt-relaydone__members">
               {[...room.members]

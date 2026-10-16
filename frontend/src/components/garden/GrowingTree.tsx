@@ -1,7 +1,8 @@
 // 성장하는 나무 컴포넌트
 
-import { useMemo, useState, useEffect } from 'react'
-import { getGardenTheme, type GardenTheme } from '../../api/garden'
+import { useMemo } from 'react'
+import { useGardenTheme, DEFAULT_GARDEN_THEME } from '../../hooks/useGardenTheme'
+import { useTickingNow } from '../../hooks/useTickingNow'
 import { TreeSVG } from './TreeSVG'
 import './GrowingTree.css'
 
@@ -46,8 +47,8 @@ const STAGE_VISUAL = [0, 0.1, 0.22, 0.42, 0.62, 0.82, 1.0]
 type TimeOfDay = 'dawn' | 'day' | 'dusk' | 'night'
 
 // 한국 시간 기준으로 시간대 계산
-const getTimeOfDay = (): TimeOfDay => {
-  const now = new Date()
+const getTimeOfDay = (nowMs: number): TimeOfDay => {
+  const now = new Date(nowMs)
   // 한국 시간으로 변환 (UTC+9)
   const koreaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
   const hour = koreaTime.getHours()
@@ -59,8 +60,10 @@ const getTimeOfDay = (): TimeOfDay => {
 }
 
 export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, totalVerses, showInfo = true }) => {
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay())
-  const [gardenTheme, setGardenTheme] = useState<GardenTheme | null>(null)
+  // 1분마다 시간대 갱신(탭이 숨겨진 동안은 멈춤)
+  const nowMs = useTickingNow(60_000)
+  const timeOfDay = useMemo(() => getTimeOfDay(nowMs), [nowMs])
+  const { data: gardenTheme = DEFAULT_GARDEN_THEME } = useGardenTheme()
 
   // 백엔드에서 내려준 총 구절 수를 우선 사용, 없으면 기본값
   const totalBibleVerses = totalVerses && totalVerses > 0 ? totalVerses : DEFAULT_TOTAL_BIBLE_VERSES
@@ -71,38 +74,6 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, totalVerse
     stages[stages.length - 1].minVerses = totalBibleVerses
     return stages
   }, [totalBibleVerses])
-  
-  // 정원 테마 불러오기
-  useEffect(() => {
-    const loadTheme = async () => {
-      try {
-        console.log('Loading garden theme...')
-        const theme = await getGardenTheme()
-        console.log('Loaded theme:', theme)
-        setGardenTheme(theme)
-      } catch (err) {
-        console.error('테마 불러오기 실패:', err)
-        // 에러 시 기본 테마 사용
-        setGardenTheme({
-          theme_type: 'preset',
-          preset_name: 'classic',
-          moon_image_url: null,
-          sun_image_url: null,
-        })
-      }
-    }
-    
-    loadTheme()
-  }, [])
-  
-  // 1분마다 시간대 업데이트
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeOfDay(getTimeOfDay())
-    }, 60000) // 1분
-    
-    return () => clearInterval(interval)
-  }, [])
   
   // 현재 나무 단계 계산
   const currentStage = useMemo(() => {

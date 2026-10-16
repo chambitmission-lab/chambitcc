@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { useJoinTypingRelay, useTypingRelayInvite } from '../../../hooks/useBibleTyping'
+import { chapterUnit } from '../../../utils/bibleLabels'
 import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
 import './typing.css'
@@ -31,7 +32,7 @@ const TypingRelayJoin = () => {
       onError: (e) => showToast(e instanceof Error ? e.message : '참여하지 못했어요', 'error'),
     })
 
-  const unit = preview?.book_number === 19 ? '편' : '장'
+  const unit = chapterUnit(preview?.book_number)
 
   return (
     <div className="bt-page bg-[var(--app-canvas)] dark:bg-background-dark page-stage">

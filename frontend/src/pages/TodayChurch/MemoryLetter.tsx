@@ -1,4 +1,4 @@
-// 작년 오늘의 편지 — 홈 첫 카드와 /today 상세가 함께 쓰는 '그날의 나' 한 장.
+// 작년 오늘의 편지 — /today 상세(작년 오늘의 나 탭)가 쓰는 '그날의 나' 한 장.
 // 기도는 손글씨, 필사는 명조(말씀이라서), 묵상·감사는 손글씨. 응답 전 기도에만
 // '응답받았어요 / 아직 기도 중이에요'를 붙인다 — 응답받았어요는 기존 간증 모달로 이어진다.
 import { useState } from 'react'
@@ -11,16 +11,14 @@ const AnswerModal = lazyModal(() => import('../../components/prayer/AnswerModal'
 
 interface MemoryQuoteProps {
   memory: TodayMemory
-  /** 홈 카드는 3줄에서 자르고, 상세는 전부 보여 준다 */
-  clamp?: boolean
   className?: string
 }
 
-export const MemoryQuote = ({ memory, clamp = false, className = '' }: MemoryQuoteProps) => {
+export const MemoryQuote = ({ memory, className = '' }: MemoryQuoteProps) => {
   const verse = memory.kind === 'typing'
   return (
     <p
-      className={`break-keep text-ink-strong ${clamp ? 'line-clamp-3' : ''} ${
+      className={`break-keep text-ink-strong ${
         verse
           ? 'text-[15px] leading-[1.75] font-serif-kr lg:text-[19px] lg:leading-[1.8]'
           : 'text-[24px] leading-[1.25] lg:text-[32px] lg:leading-[1.3]'
@@ -33,7 +31,7 @@ export const MemoryQuote = ({ memory, clamp = false, className = '' }: MemoryQuo
 }
 
 /** 응답 질문 두 버튼 + 간증 모달. 부모 카드가 링크여도 눌림이 새지 않게 전파를 막는다 */
-export const AnswerAsk = ({ memory, size = 'md' }: { memory: TodayMemory; size?: 'sm' | 'md' }) => {
+export const AnswerAsk = ({ memory }: { memory: TodayMemory }) => {
   const [open, setOpen] = useState(false)
   const answer = useAnswerMemoryPrayer()
   const { isStillPraying, markStillPraying } = useStillPraying()
@@ -53,7 +51,7 @@ export const AnswerAsk = ({ memory, size = 'md' }: { memory: TodayMemory; size?:
     )
   }
 
-  const btn = size === 'sm' ? 'px-3 py-2 text-[13px]' : 'px-3.5 py-2.5 text-[14px] lg:h-12 lg:px-5 lg:py-0 lg:text-[16px]'
+  const btn = 'px-3.5 py-2.5 text-[14px] lg:h-12 lg:px-5 lg:py-0 lg:text-[16px]'
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
   return (
     <div className="mt-3 flex gap-2 lg:mt-5 lg:gap-2.5" onClick={stop} onKeyDown={stop}>

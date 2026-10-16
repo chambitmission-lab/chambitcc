@@ -1,5 +1,6 @@
 // 사진 카드에 올릴 말씀 타입과 애송 성구 목록 — 피커 시트와 인트로 예시 카드가 함께 쓴다.
 // (컴포넌트 파일에서 상수를 export 하면 Fast refresh 가 깨져 따로 둔다)
+import { KST_OFFSET_MS } from '../../../utils/kstTime'
 
 /** 사진 카드에 올릴 말씀 — 같은 장의 연속된 절 묶음 */
 export interface PickedVerse {
@@ -27,8 +28,6 @@ export const RECOMMENDED: PickedVerse[] = [
 ]
 
 // 한국 시간 자정에 날짜가 넘어가게 +9h — UTC 그대로 나누면 오전 9시에 바뀐다
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000
-
 /** 한국 시간 기준 오늘의 말씀 인덱스 */
 export const getTodayRecommendedIndex = (nowMs: number): number =>
   Math.floor((nowMs + KST_OFFSET_MS) / 86_400_000) % RECOMMENDED.length

@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import type { AtlasJourney, AtlasRef } from './atlasTypes'
 import { PLACES } from './data/places'
 import { uniquePlaceIds } from './data/journeys'
+import { shuffle } from '../../../utils/random'
 
 // 지도 퀴즈 — "이 일이 일어난 곳은 어디일까요?"
 //
@@ -24,15 +25,6 @@ export interface QuizQuestion {
   prompt: string
   /** 해설에 붙일 본문 */
   ref: AtlasRef
-}
-
-const shuffle = <T,>(list: T[]): T[] => {
-  const out = [...list]
-  for (let i = out.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
-  }
-  return out
 }
 
 /** 이 여정으로 낼 수 있는 문제 만들기 */

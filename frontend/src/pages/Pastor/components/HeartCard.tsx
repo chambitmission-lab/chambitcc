@@ -4,6 +4,7 @@
 // 월요일엔 비어 보여서, 홈은 '지난 7일'로 굴린다(백엔드 pastor_home_service._heart).
 import { Link } from 'react-router-dom'
 import type { PastorHeart } from '../../../api/pastor'
+import { chapterLabel } from '../../../utils/bibleLabels'
 import { SectionCard } from '../../Admin/components/StatCards'
 
 const BRIGHT = new Set(['hopeful', 'grateful'])
@@ -27,8 +28,6 @@ const peakHours = (hours: number[]): number[] => {
   }
   return picks.sort((a, b) => a - b)
 }
-
-const chapterLabel = (bookNumber: number, chapter: number) => (bookNumber === 19 ? `${chapter}편` : `${chapter}장`)
 
 const HeartCard = ({ heart }: { heart: PastorHeart }) => {
   const { emotions: e, chapters, hours } = heart

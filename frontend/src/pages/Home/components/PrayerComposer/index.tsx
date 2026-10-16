@@ -15,6 +15,7 @@ import { VerseSlashPanel } from './VerseSlashPanel'
 import { findSlashMatch, useVerseSlash } from './verseSlash'
 import '../ThanksThread/thanks.css'
 import { SheetGrabber } from '../../../../components/common/SheetGrabber'
+import { pickRandom } from '../../../../utils/random'
 
 const MAX_LEN = 1000
 const TITLE_MAX = 100
@@ -108,8 +109,6 @@ const EMOTIONS: Array<{
 
 const BURST_EMOJIS = ['🙏', '🕊️', '✨', '💛', '🌱', '💗', '☁️', '🌟']
 
-const pickRandom = <T,>(list: T[]): T => list[Math.floor(Math.random() * list.length)]
-
 const pickSeeds = (pool: string[], count = 3): string[] => {
   const shuffled = [...pool].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, count)
@@ -125,7 +124,7 @@ const makeBurst = (accent: string): BurstPiece[] =>
     const angle = (Math.PI * 2 * i) / 14 + Math.random() * 0.4
     const distance = 90 + Math.random() * 110
     return {
-      emoji: i % 3 === 0 ? accent : pickRandom(BURST_EMOJIS),
+      emoji: i % 3 === 0 ? accent : (pickRandom(BURST_EMOJIS) ?? accent),
       style: {
         '--bx': `${Math.cos(angle) * distance}px`,
         '--by': `${Math.sin(angle) * distance - 40}px`,

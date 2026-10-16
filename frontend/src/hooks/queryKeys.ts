@@ -139,6 +139,10 @@ export const accountKeys = {
 
 export const adminKeys = {
   all: ['admin'] as const,
+  /** 관리 메뉴 '할 일' 배지 — main.tsx 가 이 루트를 persist 에서 제외한다 */
+  menuStatus: () => ['adminMenuStatus'] as const,
+  dashboard: () => ['admin-dashboard'] as const,
+  bibleEngagement: (period: string) => ['admin-bible-engagement', period] as const,
   pushHistory: () => [...adminKeys.all, 'push-history'] as const,
   electionRoster: () => [...adminKeys.all, 'users', 'election-roster'] as const,
   /** 기도 묵상 구절 추천 모드 등 서버 설정 */
@@ -182,6 +186,25 @@ export const pastorKeys = {
   sermonEcho: (sermonId: number | null) => ['pastor-sermon-echo', sermonId] as const,
 }
 
+/** 비로그인 랜딩 통계 티커 */
+export const landingKeys = {
+  stats: () => ['landing-stats'] as const,
+}
+
+/** 날씨 — main.tsx 가 'weather' 루트를 persist 에서 제외한다(며칠 전 기온이 먼저 뜨지 않게) */
+export const weatherKeys = {
+  all: ['weather'] as const,
+  current: () => [...weatherKeys.all, 'current'] as const,
+  sunday: (remaining: number) => [...weatherKeys.all, 'sunday', remaining] as const,
+}
+
+/** 장 오디오북 캐시 상태 — main.tsx 가 'bibleTts' 루트를 persist 에서 제외한다 */
+export const bibleTtsKeys = {
+  all: ['bibleTts'] as const,
+  resolve: (bookNumber: number, chapter: number, voice: string) =>
+    [...bibleTtsKeys.all, 'resolve', bookNumber, chapter, voice] as const,
+}
+
 /** 집중 기도 '오늘 품을 기도제목' 후보 — 내 기도·함께 기도 중·(들어온) 기도방을 한 번에 */
 export const prayerFocusKeys = {
   all: ['prayer-focus'] as const,
@@ -192,4 +215,23 @@ export const prayerFocusKeys = {
 export const todayChurchKeys = {
   all: ['today-church'] as const,
   today: () => [...todayChurchKeys.all, 'today'] as const,
+}
+
+/** 가입 정책(승인제 여부) — 가입 화면에서 한 번 */
+export const authKeys = {
+  all: ['auth'] as const,
+  signupPolicy: () => [...authKeys.all, 'signup-policy'] as const,
+}
+
+/** 정원 테마 — 나무 화면·꾸미기 모달이 같은 캐시 */
+export const gardenKeys = {
+  all: ['garden'] as const,
+  theme: () => [...gardenKeys.all, 'theme'] as const,
+}
+
+/** 문화교실 강좌·공지 */
+export const cultureKeys = {
+  all: ['culture'] as const,
+  classes: () => [...cultureKeys.all, 'classes'] as const,
+  notices: () => [...cultureKeys.all, 'notices'] as const,
 }

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchTtsResolve } from '../../../api/bibleTts'
+import { bibleTtsKeys } from '../../../hooks/queryKeys'
 import type { BibleTTSVoice } from '../../../types/bible'
 
 interface UseTtsResolveOptions {
@@ -22,7 +23,7 @@ const POLL_MS = 5000
  */
 export const useTtsResolve = ({ bookNumber, chapter, voice, enabled = true, pollUntilCached = false }: UseTtsResolveOptions) => {
   const { data } = useQuery({
-    queryKey: ['bibleTts', 'resolve', bookNumber, chapter, voice],
+    queryKey: bibleTtsKeys.resolve(bookNumber, chapter, voice),
     queryFn: ({ signal }) => fetchTtsResolve(bookNumber, chapter, voice, signal),
     enabled: enabled && bookNumber > 0 && chapter > 0,
     staleTime: 60 * 60 * 1000,

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react'
+import { useDismissOnOutside } from '../../../hooks/useDismissOnOutside'
 import {
   AMBIENTS,
   SOUND_THEMES,
@@ -38,21 +39,8 @@ const SoundMenu = () => {
     }
   }, [])
 
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e: PointerEvent) => {
-      if (!boxRef.current?.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
+  useDismissOnOutside(boxRef, open, close)
 
   const on = theme !== 'off' || ambient !== 'off'
 

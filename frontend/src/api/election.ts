@@ -9,7 +9,7 @@ import type {
   OpenRoundPayload,
   RosterPoolMember,
 } from '../types/election'
-import { request, requestRaw, type UntypedJson } from './utils/request'
+import { request, requestRaw } from './utils/request'
 
 // ── 성도 ──────────────────────────────────────────────────────────────
 
@@ -163,7 +163,7 @@ export const cancelPaperIssue = (id: number, userId: number) =>
 export const uploadCandidatePhoto = async (file: File): Promise<string> => {
   const formData = new FormData()
   formData.append('file', file)
-  const body = await request<UntypedJson>('/elections/upload-photo', {
+  const body = await request<{ url: string }>('/elections/upload-photo', {
     method: 'POST',
     auth: 'required',
     body: formData,

@@ -13,6 +13,7 @@ import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { formatReference, matchBibleBooks, parseBibleReference } from '../Sermon/utils/sermonMeta'
 import { SERIF } from './letterFormat'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { chapterUnit } from '../../utils/bibleLabels'
 
 export interface PickedPassage {
   /** 고른 절 본문을 이어 붙인 것 */
@@ -249,7 +250,7 @@ const VerseFinderDialog = ({ language, onInsert, onClose }: VerseFinderDialogPro
                 </button>
                 <p className="flex-1 text-center text-[18px] lg:text-[21px] font-bold text-ink-strong" style={{ fontFamily: SERIF }}>
                   {target.book} {target.chapter}
-                  {target.bookNumber === 19 ? '편' : '장'}
+                  {chapterUnit(target.bookNumber)}
                 </p>
                 <button
                   type="button"

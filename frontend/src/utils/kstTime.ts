@@ -6,6 +6,8 @@
  * RSVP 마감처럼 "실제로 지났는가"가 중요한 곳에서는 반드시 여기서 KST로 못 박아 파싱한다.
  */
 
+import { pad2 } from './dateUtils'
+
 const KST_OFFSET = '+09:00'
 
 /** 오프셋 없는 KST 문자열을 실제 시각(Date)으로 파싱. 오프셋이 이미 있으면 그대로 존중한다. */
@@ -15,7 +17,8 @@ export const parseKstDate = (value: string): Date => {
   return new Date(hasOffset ? normalized : `${normalized}${KST_OFFSET}`)
 }
 
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000
+/** 서울 = UTC+9 — 자정 경계를 서울 기준으로 자를 때 ms 에 더한다 */
+export const KST_OFFSET_MS = 9 * 60 * 60 * 1000
 
 /**
  * 서울 벽시계 필드(연·월·일·요일·시·분)를 그대로 담은 기기 로컬 Date.
@@ -41,8 +44,6 @@ export const toKstCalendarDate = (value: string | Date): Date => {
 
 /** 지금(서울 기준)을 담은 캘린더 Date */
 export const kstNow = (): Date => toKstCalendarDate(new Date())
-
-const pad2 = (n: number) => n.toString().padStart(2, '0')
 
 /** 캘린더 Date(이미 서울 기준 필드) → 'YYYY-MM-DD' */
 export const calendarDateKey = (d: Date): string =>

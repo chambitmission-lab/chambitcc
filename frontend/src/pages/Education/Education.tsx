@@ -9,6 +9,7 @@
 // 시간표·다음 모임은 meeting_time/description 문장을 읽어 계산한다(eduSchedule.ts) — 읽히지
 // 않는 문장은 시간표에 올리지 않을 뿐 지어내지 않는다. 빈 값('') = 미확인 → 줄을 숨긴다.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useTickingNow } from '../../hooks/useTickingNow'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import type React from 'react'
@@ -61,16 +62,6 @@ const toneVars = (i: number) => {
 // 주일학교·청년부처럼 '부서'로 부르는 분야 — 나머지는 '과정'
 const DEPARTMENT_KEYS = new Set(['sunday-school', 'youth'])
 
-/** 1분마다 다시 그려 '지금 진행 중'·'오늘 N개'가 낡지 않게 */
-const useNow = () => {
-  const [now, setNow] = useState(() => new Date())
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 60_000)
-    return () => window.clearInterval(id)
-  }, [])
-  return now
-}
-
 const Education = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
@@ -79,7 +70,9 @@ const Education = () => {
   const { categories, isLoading } = useEducationTree()
   const isAdminUser = can('content:manage')
   const [params, setSearchParams] = useSearchParams()
-  const now = useNow()
+  // 1분마다 다시 그려 '지금 진행 중'·'오늘 N개'가 낡지 않게(탭이 숨겨진 동안은 멈춤)
+  const nowMs = useTickingNow(60_000)
+  const now = useMemo(() => new Date(nowMs), [nowMs])
   const [openProgramId, setOpenProgramId] = useState<number | null>(null)
 
   const visible = useMemo(

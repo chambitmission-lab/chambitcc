@@ -1,7 +1,10 @@
 // 정원 꾸미기 모달
 
 import { useState, useEffect } from 'react'
-import { getGardenTheme, saveGardenTheme, uploadGardenImage, type PresetName } from '../../api/garden'
+import { useQueryClient } from '@tanstack/react-query'
+import { saveGardenTheme, uploadGardenImage, type PresetName } from '../../api/garden'
+import { useGardenTheme } from '../../hooks/useGardenTheme'
+import { gardenKeys } from '../../hooks/queryKeys'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import './GardenCustomizeModal.css'
 
@@ -49,37 +52,25 @@ export const GardenCustomizeModal: React.FC<GardenCustomizeModalProps> = ({ onCl
   const [customSunFile, setCustomSunFile] = useState<File | null>(null)
   const [moonPreview, setMoonPreview] = useState<string | null>(null)
   const [sunPreview, setSunPreview] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)
+  const qc = useQueryClient()
 
-  // 현재 테마 설정 불러오기
+  // 현재 테마 설정 — 나무 화면과 같은 캐시(useGardenTheme)에서 읽어 와 편집 상태로 옮긴다
+  const { data: theme, isLoading } = useGardenTheme()
   useEffect(() => {
-    const loadTheme = async () => {
-      try {
-        setIsLoading(true)
-        const theme = await getGardenTheme()
-        
-        if (theme.theme_type === 'preset' && theme.preset_name) {
-          setSelectedTheme(theme.preset_name)
-        } else if (theme.theme_type === 'custom') {
-          setSelectedTheme('custom')
-          setMoonPreview(theme.moon_image_url)
-          setSunPreview(theme.sun_image_url)
-        }
-      } catch (err) {
-        console.error('테마 불러오기 실패:', err)
-        // 에러 시 기본 테마 사용
-      } finally {
-        setIsLoading(false)
-      }
+    if (!theme) return
+    if (theme.theme_type === 'preset' && theme.preset_name) {
+      setSelectedTheme(theme.preset_name)
+    } else if (theme.theme_type === 'custom') {
+      setSelectedTheme('custom')
+      setMoonPreview(theme.moon_image_url)
+      setSunPreview(theme.sun_image_url)
     }
-
-    loadTheme()
-  }, [])
+  }, [theme])
 
   const handleMoonFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -176,8 +167,8 @@ export const GardenCustomizeModal: React.FC<GardenCustomizeModalProps> = ({ onCl
         console.log('Theme saved:', savedTheme)
       }
 
-      // 저장 성공 후 콜백 호출
-      console.log('Calling onSave callback')
+      // 저장 성공 — 나무 화면이 같은 캐시를 보므로 다시 받게 한다
+      void qc.invalidateQueries({ queryKey: gardenKeys.theme() })
       onSave?.()
       onClose()
     } catch (err) {

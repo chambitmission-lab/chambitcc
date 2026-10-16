@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getBibleVerse } from '../../../../api/bible'
 import { bibleKeys } from '../../../../hooks/queryKeys'
 import { useUpdateTypingGoal } from '../../../../hooks/useBibleTyping'
+import { chapterLabel } from '../../../../utils/bibleLabels'
 import { DAILY_GOALS, type TypingCalendar, type TypingMode, type TypingStats } from '../../../../api/bibleTyping'
 import Lamp from './Lamp'
 import { WEEKDAYS, addDays, kstToday, mondayOf } from './dates'
@@ -110,7 +111,7 @@ const TodayCard = ({
     return { date, label, n, state, isToday: date === todayStr }
   })
 
-  const ref = `${bookName(spot.book_number)} ${spot.chapter}${spot.book_number === 19 ? '편' : '장'} ${spot.verse}절`
+  const ref = `${bookName(spot.book_number)} ${chapterLabel(spot.book_number, spot.chapter)} ${spot.verse}절`
   const isFirst = !stats?.next_position
 
   const cta = !loggedIn
