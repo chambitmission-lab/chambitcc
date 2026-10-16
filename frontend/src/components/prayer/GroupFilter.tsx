@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useMyGroups } from '../../hooks/useGroups'
+import { useHomeBundlePending } from '../../hooks/useHomeSummary'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
 import { PrayIcon } from '../../pages/Groups/GroupIcons'
@@ -30,7 +31,9 @@ const GroupFilter = ({
   onCreateGroup,
   onJoinGroup
 }: GroupFilterProps) => {
-  const { data: groupsData, isLoading } = useMyGroups()
+  // 홈 묶음(useHomeSummary.my_groups)이 심어 줄 때까지 미룬다 — 홈 밖에선 게이트가 항상 꺼져 있다
+  const bundlePending = useHomeBundlePending()
+  const { data: groupsData, isLoading } = useMyGroups(!bundlePending)
   const { t } = useLanguage()
   const { requireAuth } = useAuth()
   const [isExpanded, setIsExpanded] = useState(false)

@@ -275,10 +275,11 @@ export const useMyBookmarks = (
 /**
  * 북마크 통계 조회
  */
-export const useBookmarkStats = () => {
+export const useBookmarkStats = (enabled: boolean = true) => {
   return useQuery({
     queryKey: bookmarkKeys.stats(),
     queryFn: () => getBookmarkStats(),
+    enabled,
     staleTime: 1000 * 60 * 5,
     // 목록과 같은 이유(persist 복원 쿼리는 무효화로 재요청 불가) — 마운트 시 갱신
     refetchOnMount: true,

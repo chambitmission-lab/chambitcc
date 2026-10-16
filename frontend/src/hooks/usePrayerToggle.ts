@@ -3,7 +3,7 @@ import { pastorKeys } from '../hooks/queryKeys'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addPrayer, removePrayer } from '../api/prayer'
 import { prayerKeys } from './usePrayersQuery'
-import { groupKeys } from './useGroups'
+import { invalidateGroupStats } from './useGroups'
 import type { Prayer } from '../types/prayer'
 import type { PrayerListCache } from '../types/queryCache'
 import type { ProfileDetail } from '../types/profile'
@@ -208,7 +208,7 @@ export const usePrayerToggle = ({
       })
 
       // 기도방 통계('함께 기도한 횟수') 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      invalidateGroupStats(queryClient)
     } catch (error) {
       // 에러 시 롤백 — 순회하며 갱신했던 모든 목록 캐시를 스냅샷으로 복원
       previousListEntries.forEach(([listKey, previousData]) => {

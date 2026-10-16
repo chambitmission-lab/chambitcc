@@ -152,15 +152,24 @@ const BibleStudy = () => {
     },
   }
   const dt = dashTexts[language]
-  const { data: bookmarkStats } = useBookmarkStats()
+  // 허브(책 목록)에서만 쓰는 데이터 — 장 화면(/bible/:book/:chapter)에선 요청하지 않는다.
+  // 전엔 장을 열 때마다 북마크 통계·진행률·스토리 진도까지 4건이 본문 요청과 경쟁했고,
+  // 진행률이 끝날 때까지 본문 요청을 게이트로 막기까지 했다. 허브로 돌아오면 그때 받는다.
+  // hubZoom 과 같은 이유로 주소도 본다(딥링크 첫 렌더엔 showBookList 가 잠깐 true).
+  const isHub = showBookList && location.pathname === '/bible'
+  const hubAuthed = isHub && isLoggedIn()
+  const { data: bookmarkStats } = useBookmarkStats(isHub)
   const favoritesCount = bookmarkStats?.favorites_count ?? 0
   // isPending까지 받는 이유: 요약 카드가 데이터 도착 전엔 자리 없이 숨어 있다가
   // 늦게 나타나면 아래 목록이 밀려 새로고침처럼 보인다 — 로딩 동안 스켈레톤으로 자리를 잡는다.
   // 비로그인 시 쿼리가 disabled라 isPending이 영원히 true이므로 isLoggedIn()과 함께 판정해야 한다.
   // 진행률·이어읽기는 /bible 첫 화면의 핵심 요청 — 콜드 마운트에서 북마크 통계·스토리 진도 등
   // 부가 요청보다 먼저 나간다 (utils/requestPriority, 홈 기도 목록과 같은 게이트)
-  const { data: resumeData, isPending: resumePending } = useResumeReading(BIBLE_HUB_RESUME_LIMIT, isLoggedIn(), { priority: 'critical' })
-  const { data: progressData, isPending: progressPending } = useReadingProgress(isLoggedIn(), { priority: 'critical' })
+  // 이어읽기는 장 화면도 쓴다(현재 장의 이어읽기 표시) — 거기선 핵심이 아니라 보통 우선순위로 줄을 선다
+  const { data: resumeData, isPending: resumePending } = useResumeReading(
+    BIBLE_HUB_RESUME_LIMIT, isLoggedIn(), { priority: isHub ? 'critical' : 'normal' }
+  )
+  const { data: progressData, isPending: progressPending } = useReadingProgress(hubAuthed, { priority: 'critical' })
 
   // 게이트는 캐시 없이(콜드) 뜨는 첫 마운트에만, 렌더 단계에서 건다 — NewHome 과 같은 이유:
   // 자식 위젯의 fetch 가 부모 effect 보다 먼저 돌고, persist 복원 중엔 어떤 쿼리도 출발하지 않는다.
@@ -169,7 +178,7 @@ const BibleStudy = () => {
   const priorityArmedRef = useRef(false)
   if (!isRestoring && !priorityArmedRef.current) {
     priorityArmedRef.current = true
-    if (isLoggedIn() && progressPending) holdSecondaryRequests()
+    if (hubAuthed && progressPending) holdSecondaryRequests()
   }
   useEffect(() => releaseSecondaryRequests, [])
 
@@ -193,7 +202,7 @@ const BibleStudy = () => {
   const selectedBookData = books?.find(b => b.id === selectedBookId)
 
   // 처음 만나는 성경(스토리 모드) 진행 — 로그인 시 서버 저장분을 공유 캐시로 읽는다
-  const { readIds: storyReadIds } = useStoryProgress()
+  const { readIds: storyReadIds } = useStoryProgress(isHub)
   const storyReadCount = storyReadIds.size
   
   // URL 파라미터로 책과 장이 전달된 경우 자동으로 선택.
@@ -770,6 +779,7 @@ const BibleStudy = () => {
                   onAutoNextChapter={() => handleChapterChange(selectedChapter + 1)}
                   totalChapters={selectedBookData.chapter_count}
                   bookName={selectedBook}
+                  visible={introCards.audio || audioRevealed}
                 />
                 </div>
 

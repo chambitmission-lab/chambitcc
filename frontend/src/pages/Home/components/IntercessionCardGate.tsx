@@ -3,11 +3,13 @@
 // 떼어 두고, 운영이 닫힌 교회(대부분의 첫 로드)에서는 요청 자체가 없다. 열려 있으면 캐시된 쿼리로 곧장 그린다.
 import { lazy, Suspense } from 'react'
 import { useMyIntercession } from '../../../hooks/useIntercession'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 
 const IntercessionCard = lazy(() => import('./IntercessionCard'))
 
 const IntercessionCardGate = () => {
-  const { data } = useMyIntercession()
+  const bundlePending = useHomeBundlePending()
+  const { data } = useMyIntercession(!bundlePending)
   if (!data?.open) return null
   return (
     <Suspense fallback={null}>

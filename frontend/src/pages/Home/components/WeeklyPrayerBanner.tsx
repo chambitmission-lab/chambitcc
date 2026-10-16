@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
 import { GraceIcon } from '../../../components/icons/GraceIcons'
 import { useCurrentWeeklyPrayer } from '../../../hooks/useWeeklyPrayer'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 
 const ROTATE_MS = 4200
 
@@ -12,7 +13,8 @@ const WeeklyPrayerBanner = () => {
   const navigate = useNavigate()
 
   // 'high': 콜드 홈에서 기도 목록 게이트를 기다리지 않는다(1KB 남짓, utils/requestPriority)
-  const { data } = useCurrentWeeklyPrayer({ priority: 'high' })
+  const bundlePending = useHomeBundlePending()
+  const { data } = useCurrentWeeklyPrayer({ priority: 'high', enabled: !bundlePending })
 
   const itemTitles = (data?.items ?? []).map((i) => i.title).filter(Boolean)
   const prayedCount = data?.prayed_user_count ?? 0

@@ -2,10 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { getTodayVerse } from '../api/dailyVerse'
 import { dailyVerseKeys } from './queryKeys'
 
-export const useDailyVerse = () => {
+export const useDailyVerse = (enabled = true) => {
   return useQuery({
     queryKey: dailyVerseKeys.today(),
     queryFn: getTodayVerse,
+    enabled,
     staleTime: 1000 * 60 * 60 * 24, // 24시간 동안 캐시 유지 (하루 1회 변경되는 데이터)
     retry: false, // 404 에러 시 재시도 안 함
   })

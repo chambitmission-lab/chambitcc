@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { deletePrayer } from '../api/prayer'
 import { getCurrentUser } from '../utils/auth'
 import { prayerKeys } from './usePrayersQuery'
-import { groupKeys } from './useGroups'
+import { invalidateGroupStats } from './useGroups'
 import type { PrayerListCache } from '../types/queryCache'
 import type { MutationFeedback } from './mutationFeedback'
 import { profileKeys } from './queryKeys'
@@ -76,7 +76,7 @@ export const usePrayerDelete = ({ onSuccess, onError, feedback }: UsePrayerDelet
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
 
       // 그룹 캐시 무효화 — 그룹방 기도 개수 등 (생성/응답 뮤테이션과 대칭)
-      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      invalidateGroupStats(queryClient)
 
       // 백그라운드에서 프로필 캐시 무효화 (내 기도 -1)
       setTimeout(() => {

@@ -10,7 +10,7 @@ import {
   cancelPrayerAnswer,
 } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
-import { groupKeys } from './useGroups'
+import { invalidateGroupStats } from './useGroups'
 import type { MutationFeedback } from './mutationFeedback'
 import type { PrayerListCache } from '../types/queryCache'
 import { getCurrentUser } from '../utils/auth'
@@ -286,7 +286,7 @@ export const usePrayersInfinite = (
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
 
       // 기도방 통계(기도 수·응답률) 캐시 무효화 — 방 홈에 즉시 반영
-      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      invalidateGroupStats(queryClient)
 
       // 프로필 캐시 무효화 (내 기도 +1)
       // 'profile' 전체 — detail뿐 아니라 프로필 탭 무한 목록(my-prayers 등)도
@@ -337,7 +337,7 @@ export const usePrayersInfinite = (
       })
 
       // 기도방 통계(응답률 진행바) 캐시 무효화 — 방 홈에 즉시 반영
-      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      invalidateGroupStats(queryClient)
 
       // 프로필 캐시도 무효화 (응답한 기도 수가 통계에 영향)
       // 'profile' 전체 — detail뿐 아니라 프로필 탭 무한 목록(my-prayers 등)도
@@ -369,7 +369,7 @@ export const usePrayersInfinite = (
         queryKey: prayerKeys.detail(variables.prayerId, currentUser.username),
       })
       // 기도방 통계(응답률 진행바) 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      invalidateGroupStats(queryClient)
       // 'profile' 전체 — detail뿐 아니라 프로필 탭 무한 목록(my-prayers 등)도
       // stale 처리해야 다음 방문 때 새 항목이 반영된다
       queryClient.invalidateQueries({

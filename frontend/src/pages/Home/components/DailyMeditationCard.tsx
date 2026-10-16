@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDailyMeditation, deriveTimeOfDay } from '../../../hooks/useDailyMeditation'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
 import {
@@ -40,6 +41,7 @@ import heroWinterEvening from '../../../assets/hero/winter-evening.webp'
 import heroSpringNight from '../../../assets/hero/spring-night.webp'
 import heroAutumnNight from '../../../assets/hero/autumn-night.webp'
 import WaitingQuipLoader from './WaitingQuipLoader'
+import { WeatherGlyph, type WeatherGlyphName } from './WeatherIcons'
 import './DailyMeditationCard.css'
 
 const GREETING_KEYS = {
@@ -139,7 +141,7 @@ const SUNDAY_RAIN_WHISPER_KEYS = [
   'homeWeatherSundayRain3',
 ] as const
 
-/* 젖은 하늘일 때만 칩에 한 단어를 붙인다 — 맑음·흐림·안개는 이모지로 충분 */
+/* 젖은 하늘일 때만 칩에 한 단어를 붙인다 — 맑음·흐림·안개는 아이콘으로 충분 */
 const WEATHER_LABEL_KEYS = {
   drizzle: 'homeWeatherDrizzle',
   rain: 'homeWeatherRain',
@@ -171,10 +173,11 @@ const preloadCurrentHero = () => {
 }
 preloadCurrentHero()
 
-const HERO_EMOJI: Record<TimeOfDay, string> = {
-  morning: '☀️',
-  afternoon: '🌤️',
-  evening: '🌙',
+/* 날씨 조회 실패 시 인사말 끝에 붙는 시간대 아이콘 */
+const HERO_FALLBACK_GLYPH: Record<TimeOfDay, WeatherGlyphName> = {
+  morning: 'sun',
+  afternoon: 'cloudSun',
+  evening: 'moon',
 }
 
 /* 헤드라인 강조 — 번역 문자열의 [[…]] 구간만 빛을 머금은 액센트로 칠한다.
@@ -243,14 +246,16 @@ interface DailyMeditationCardProps {
 const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
-  const { data, error } = useDailyMeditation()
+  // 홈 묶음(useHomeSummary)이 카드를 심어 줄 때까지 단건 요청은 미룬다
+  const bundlePending = useHomeBundlePending()
+  const { data, error } = useDailyMeditation({ enabled: !bundlePending })
   /* 스켈레톤을 거쳐 데이터가 채워진 경우에만 본문을 페이드인한다 —
    * 캐시로 즉시 그려질 때(재방문)는 애니메이션 없이 바로 완성형으로.
    * lazy initializer라 마운트 첫 렌더의 상태가 그대로 고정된다. */
   const [enteredFromSkeleton] = useState(() => !data)
-  /* 실황 날씨(이모지+기온) — 못 불러오면 null: 칩을 숨기고 인사말 이모지로 폴백.
+  /* 실황 날씨(아이콘+기온) — 못 불러오면 null: 칩을 숨기고 인사말 아이콘으로 폴백.
    * 로딩 중(isWeatherLoading)에는 폴백을 띄우지 않는다 — 띄우면 응답이 도착하는
-   * 순간 사라져 새로고침마다 이모지가 깜빡인다. 대신 칩 자리에 스켈레톤을 둔다. */
+   * 순간 사라져 새로고침마다 아이콘이 깜빡인다. 대신 칩 자리에 스켈레톤을 둔다. */
   const { weather, isLoading: isWeatherLoading } = useCurrentWeather()
   /* 다가오는 주일의 강수확률 — 주일이 3일 안으로 들어왔을 때만 조회된다 */
   const sundayPop = useSundayRain()
@@ -452,9 +457,9 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             * 알람이 사진 하단에 홀로 떠 있으면 덩그러니 보여, 같은 유리 재질끼리
             * 모아 한 쌍으로 읽히게 했다. */}
           <div className="meditation-hero-top">
-          {/* 실황 날씨 칩 — 유리 칩(이모지+기온). 맑으면 시간대 이모지,
+          {/* 실황 날씨 칩 — 유리 칩(라인 아이콘+기온). 맑으면 해/달,
            * 비·눈이면 한 단어 라벨, 강수확률 40% 이상이면 확률까지 붙는다.
-           * API 실패 시엔 칩을 숨기고 인사말 끝 이모지로 폴백한다. */}
+           * API 실패 시엔 칩을 숨기고 인사말 끝 아이콘으로 폴백한다. */}
           {/* 로딩 동안은 칩 크기의 스켈레톤으로 자리를 잡아둔다 — 칩이 뒤늦게
             * 나타나며 히어로 우측이 흔들리는 것을 막는다 */}
           {isWeatherLoading && (
@@ -473,16 +478,15 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
                 .filter(Boolean)
                 .join(', ')}
             >
-              <span aria-hidden>{weather.emoji ?? HERO_EMOJI[timeOfDay]}</span>
+              <WeatherGlyph name={weather.icon} className="meditation-weather-icon" />
               {weatherLabel && (
                 <span className="meditation-weather-label">{weatherLabel}</span>
               )}
               <span className="meditation-weather-temp">{weather.temperature}°</span>
               {showPop && (
                 <span className="meditation-weather-pop" aria-hidden>
-                  {/* 비·눈 라벨이 없으면(맑음·흐림인데 확률만 높음) 숫자가 습도로
-                    * 오독되기 쉽다 — 그때만 ☔로 강수확률임을 못박는다 */}
-                  {!weatherLabel && '☔ '}
+                  {/* 숫자만 있으면 습도·기온으로 오독되기 쉽다 — 물방울로 강수확률임을 못박는다 */}
+                  <WeatherGlyph name="drop" size={12} strokeWidth={2} />
                   {t('homeWeatherPop').replace('{n}', String(pop))}
                 </span>
               )}
@@ -507,12 +511,11 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
                 {t(SEASON_LABEL_KEYS[season])}
               </span>
               {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)}
-              {/* 날씨 조회가 끝났는데도 값이 없을 때(실패)만 폴백 이모지.
+              {/* 날씨 조회가 끝났는데도 값이 없을 때(실패)만 폴백 아이콘.
                 * 타임아웃(4초) 뒤에 붙을 수 있어 살짝 페이드인시킨다 */}
               {!weather && !isWeatherLoading && (
                 <span className="meditation-hero-greeting-emoji" aria-hidden>
-                  {' '}
-                  {HERO_EMOJI[timeOfDay]}
+                  <WeatherGlyph name={HERO_FALLBACK_GLYPH[timeOfDay]} size={15} />
                 </span>
               )}
             </p>
@@ -526,7 +529,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               * 이 카드에서 날씨가 하는 일은 예보가 아니라 예배 가는 길을 챙기는 것. */}
             {showSundayRain && (
               <p className="meditation-hero-whisper">
-                <span aria-hidden>☔</span>
+                <WeatherGlyph name="umbrella" size={14} />
                 {t(SUNDAY_RAIN_WHISPER_KEYS[todayDoy % SUNDAY_RAIN_WHISPER_KEYS.length])}
               </p>
             )}

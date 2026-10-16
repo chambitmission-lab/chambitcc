@@ -2,6 +2,7 @@
 // 참여하면 서버가 더 이상 내려주지 않으므로(응답 제출 시 홈배너 쿼리 무효화) 자연히 사라진다.
 import { useNavigate } from 'react-router-dom'
 import { useSurveyHomeBanner } from '../../../hooks/useSurvey'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { isAuthenticated } from '../../../utils/auth'
 import { preloadRoute } from '../../../utils/routePreload'
 import { daysLeft } from '../../Survey/surveyDates'
@@ -9,7 +10,8 @@ import { ClipboardIcon } from '../../Survey/surveyIcons'
 
 const SurveyBanner = () => {
   const navigate = useNavigate()
-  const { data: survey } = useSurveyHomeBanner(isAuthenticated())
+  const bundlePending = useHomeBundlePending()
+  const { data: survey } = useSurveyHomeBanner(isAuthenticated() && !bundlePending)
 
   if (!survey) return null
 

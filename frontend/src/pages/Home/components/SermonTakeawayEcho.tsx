@@ -2,6 +2,7 @@
 // 설교가 주일에 끝나지 않고 한 주 내내 이어지게. 비로그인·한 줄이 없으면 아무것도 그리지 않는다.
 import { Link } from 'react-router-dom'
 import { useSermonTakeaways } from '../../../hooks/useSermonTakeaways'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { todayYmd } from '../../Bible/Plans/planSchedule'
 
 const DAY_MS = 86_400_000
@@ -11,7 +12,8 @@ const daysBetween = (a: string, b: string): number =>
   Math.round((Date.parse(`${b}T00:00:00`) - Date.parse(`${a}T00:00:00`)) / DAY_MS)
 
 const SermonTakeawayEcho = () => {
-  const { loggedIn, data } = useSermonTakeaways()
+  const bundlePending = useHomeBundlePending()
+  const { loggedIn, data } = useSermonTakeaways(!bundlePending)
   if (!loggedIn || !data?.length) return null
 
   // 설교 다음 날부터 엿새째(다음 주일 전날)까지 — 가장 최근 설교의 한 줄 하나

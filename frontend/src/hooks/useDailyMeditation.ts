@@ -13,7 +13,7 @@ export const deriveTimeOfDay = (hour: number): TimeOfDay => {
 const ALL_EMOTIONS: EmotionTag[] = ['weary', 'anxious', 'lonely', 'grateful', 'joyful', 'peaceful']
 const STALE = 1000 * 60 * 30
 
-const localDateKey = (now: Date) =>
+export const localDateKey = (now: Date) =>
   `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
 const meditationKey = meditationKeys.card
@@ -27,6 +27,8 @@ interface UseDailyMeditationOptions {
   emotion?: EmotionTag
   /** override 시간대 (테스트/수동 전환용) */
   timeOfDay?: TimeOfDay
+  /** false 면 요청을 미룬다(홈 묶음 useHomeSummary 가 심어 줄 때까지) — 캐시가 있으면 그대로 보인다 */
+  enabled?: boolean
 }
 
 export const useDailyMeditation = (options: UseDailyMeditationOptions = {}) => {
@@ -48,6 +50,7 @@ export const useDailyMeditation = (options: UseDailyMeditationOptions = {}) => {
       recordedKeys.add(keyStr)
       return getTodayMeditation({ time_of_day: timeOfDay, emotion })
     },
+    enabled: options.enabled ?? true,
     staleTime: STALE,
     retry: false,
     // 감정 칩을 바꿔 키가 달라져도 이전 카드를 그대로 두고 조용히 갈아끼운다.

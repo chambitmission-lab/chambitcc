@@ -44,8 +44,9 @@ const useLiveStream = (qc: QueryClient, enabled: boolean) => {
           /* 깨진 페이로드는 무시 — 다음 방송이 바로잡는다 */
         }
       })
-      // 재연결 직후엔 끊긴 사이의 방송을 놓쳤을 수 있다 — 한 번 새로 받는다
-      const offConnected = notificationStream.on('connected', () => {
+      // 재연결 직후엔 끊긴 사이의 방송을 놓쳤을 수 있다 — 한 번 새로 받는다.
+      // 첫 연결('connected')엔 받지 않는다 — 마운트 쿼리가 막 나간 참이라 중복 요청만 됐다.
+      const offConnected = notificationStream.on('reconnected', () => {
         void qc.invalidateQueries({ queryKey: readingTogetherKeys.live() })
       })
       unsubscribe = () => {

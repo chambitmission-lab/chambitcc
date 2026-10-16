@@ -69,14 +69,15 @@ export const markCelebrated = () => {
  * 서버 목록은 React Query 캐시를 공유하므로 지도/에피소드/성경 허브가 같은 값을 본다.
  * 읽음 처리는 낙관적 반영 후 POST(멱등) — 실패 시 재조회로 서버 상태에 맞춘다.
  */
-export const useStoryProgress = () => {
+export const useStoryProgress = (enabled: boolean = true) => {
   const authed = isAuthenticated()
   const queryClient = useQueryClient()
 
   const { data: serverIds } = useQuery({
     queryKey: STORY_PROGRESS_KEY,
     queryFn: getStoryProgress,
-    enabled: authed,
+    // enabled=false 면 서버 조회만 미룬다(캐시가 있으면 그대로 보인다) — /bible 장 화면처럼 진도를 안 쓰는 곳
+    enabled: authed && enabled,
     staleTime: 1000 * 60 * 5,
   })
 

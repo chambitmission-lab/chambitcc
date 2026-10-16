@@ -72,10 +72,11 @@ export const useNoticeArchive = (enabled = true) =>
  * 방금 올라온 공지를 놓치지 않도록 30초만 지나면 홈에 들어올 때마다/앱으로 돌아올 때마다 다시 확인한다.
  * 응답은 최대 5건이라 비용이 거의 없고, 실시간 갱신은 SSE(['notifications'] invalidate)가 함께 돕는다.
  */
-export const usePopupNotices = () =>
+export const usePopupNotices = (enabled = true) =>
   useQuery({
     queryKey: notificationKeys.popups(),
     queryFn: getPopupNotifications,
+    enabled,
     staleTime: 1000 * 30, // 짧은 중복 진입만 캐시로 흡수
     refetchOnMount: true,
     refetchOnWindowFocus: true,

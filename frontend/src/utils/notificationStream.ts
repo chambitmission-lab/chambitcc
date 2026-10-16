@@ -172,10 +172,16 @@ class NotificationStreamManager {
             if (event === 'connected') {
               this.connected = true
               this.retryMs = INITIAL_RETRY_MS
-              // 끊겨 있던 사이의 변경분 동기화
-              this.invalidate()
-              if (this.everConnected && this.queryClient) resyncReadingAfterReconnect(this.queryClient)
+              const reconnect = this.everConnected
               this.everConnected = true
+              // 끊겨 있던 사이의 변경분 동기화 — 재연결일 때만. 첫 연결은 홈 쿼리들이 막
+              // 출발한 직후라 여기서 invalidate 하면 알림 목록·팝업이 곧바로 한 번 더 요청됐다.
+              if (reconnect) {
+                this.invalidate()
+                if (this.queryClient) resyncReadingAfterReconnect(this.queryClient)
+                // 'connected' 는 첫 연결에도 오므로(presence 재전송 등이 쓴다) 재조회 전용 이벤트를 따로 낸다
+                this.dispatch('reconnected', data)
+              }
             } else if (event === 'notification' || event === 'refresh') {
               this.invalidate()
             } else if (event === 'prayer_reaction' || event === 'prayer_reply') {

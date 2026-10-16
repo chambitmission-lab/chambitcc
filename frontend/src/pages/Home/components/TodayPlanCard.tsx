@@ -8,6 +8,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTodayReadings } from '../../../hooks/useBiblePlan'
 import { isAuthenticated } from '../../../utils/auth'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import {
   SERMON_DEFAULT_LABEL,
   formatPlanDay,
@@ -24,7 +25,8 @@ const TRAIL_D = 'M4 32 C 60 14, 118 42, 178 24 C 232 9, 286 30, 322 15'
 const TodayPlanCard = () => {
   const navigate = useNavigate()
   const authed = isAuthenticated()
-  const { data } = useTodayReadings(authed)
+  const bundlePending = useHomeBundlePending()
+  const { data } = useTodayReadings(authed && !bundlePending)
 
   const items = data?.items ?? []
   const percent = Math.max(0, Math.min(100, items[0]?.percent ?? 0))

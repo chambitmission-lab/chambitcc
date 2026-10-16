@@ -76,8 +76,17 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* 강수확률 — 기온과 구분되게 얇은 세로선 뒤 작은 숫자 */
+/* 하늘 아이콘 — 이모지 대신 흰 라인. 글자 그림자와 같은 결의 그림자로 사진 위에서 뜨게 */
+.meditation-weather-icon {
+  flex: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* 강수확률 — 기온과 구분되게 얇은 세로선 뒤 물방울 + 작은 숫자 */
 .meditation-weather-pop {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   padding-left: 6px;
   border-left: 1px solid rgba(255, 255, 255, 0.24);
   font-size: 11px;
@@ -112,6 +121,11 @@
 
 /* 날씨 실패 시에만 붙는 폴백 이모지 — 늦게 나타나도 튀지 않게 부드럽게 */
 .meditation-hero-greeting-emoji {
+  display: inline-flex;
+  margin-left: 5px;
+  vertical-align: -2px;
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   animation: meditation-emoji-in 0.35s ease-out both;
 }
 

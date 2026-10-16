@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense, type ComponentProps } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useIsRestoring, useQueryClient } from '@tanstack/react-query'
+import { armHomeBundle, useHomeSummary } from '../../hooks/useHomeSummary'
 import { scheduleAfterFirstScreen, preloadBudget } from '../../utils/idlePreload'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import { lazyModal } from '../../utils/lazyModal'
@@ -146,8 +147,12 @@ const NewHome = () => {
   if (!isRestoring && !priorityArmedRef.current) {
     priorityArmedRef.current = true
     if (prayerHook.loading) holdSecondaryRequests()
+    // 홈 묶음(useHomeSummary)이 없거나 오래됐으면 위젯들의 단건 요청을 묶음이 심어 줄 때까지 멈춘다 —
+    // 같은 이유로 렌더 단계에서. 위젯 10여 개의 요청이 묶음 하나로 줄어든다.
+    armHomeBundle(queryClient)
   }
   useEffect(() => releaseSecondaryRequests, [])
+  useHomeSummary()
   const mainRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
   // PC "맨 위로" 알약을 가로 가운데 맞추는 기준 — 피드 컬럼

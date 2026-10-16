@@ -12,6 +12,7 @@ import { relativeDayLabel } from '../../../utils/dateUtils'
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMarkAsRead, usePopupNotices } from '../../../hooks/useNotifications'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 // 포스터 확대 보기는 탭해야 열린다 — lazy 로 분리
 const ImageLightbox = lazy(() => import('../../../components/common/ImageLightbox'))
@@ -105,7 +106,8 @@ const BannerSkeleton = () => (
 
 const HomeNotice = () => {
   const navigate = useNavigate()
-  const { data, isPending } = usePopupNotices()
+  const bundlePending = useHomeBundlePending()
+  const { data, isPending } = usePopupNotices(!bundlePending)
   const markAsRead = useMarkAsRead()
   const isLoggedIn = !!tokenStore.getAccess()
 

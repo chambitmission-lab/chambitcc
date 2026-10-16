@@ -40,9 +40,21 @@ export type WeatherCondition =
   | 'snow'
   | 'thunder'
 
+/* 칩 라인 아이콘 키 — 그림은 Home/components/WeatherIcons.tsx 가 그린다 */
+export type WeatherIconKey =
+  | 'sun'
+  | 'moon'
+  | 'cloudSun'
+  | 'cloudMoon'
+  | 'cloud'
+  | 'fog'
+  | 'drizzle'
+  | 'rain'
+  | 'snow'
+  | 'thunder'
+
 export interface CurrentWeather {
-  /* null이면 맑음 — 호출부가 시간대 이모지(☀️/🌤️/🌙)로 대신한다 */
-  emoji: string | null
+  icon: WeatherIconKey
   /* 섭씨 반올림 */
   temperature: number
   condition: WeatherCondition
@@ -65,28 +77,20 @@ const classifyWeatherCode = (code: number): WeatherCondition => {
   return 'clear'
 }
 
-/* 맑음은 null을 돌려 기존 시간대 이모지(☀️/🌤️/🌙)를 그대로 쓰게 한다. */
-const conditionToEmoji = (
+/* 맑음은 해/달, 부분 구름(2)만 해·달이 걸친 구름 — 완전 흐림(3)은 구름만 */
+const conditionToIcon = (
   condition: WeatherCondition,
   code: number,
   isDay: boolean,
-): string | null => {
+): WeatherIconKey => {
   switch (condition) {
     case 'clear':
-      return null
-    /* 부분 구름(2)만 낮에 ⛅ — 완전 흐림(3)과 밤은 ☁️ */
+      return isDay ? 'sun' : 'moon'
     case 'cloudy':
-      return code === 2 && isDay ? '⛅' : '☁️'
-    case 'fog':
-      return '🌫️'
-    case 'drizzle':
-      return '🌦️'
-    case 'rain':
-      return '🌧️'
-    case 'snow':
-      return '❄️'
-    case 'thunder':
-      return '⛈️'
+      if (code !== 2) return 'cloud'
+      return isDay ? 'cloudSun' : 'cloudMoon'
+    default:
+      return condition
   }
 }
 
@@ -102,7 +106,7 @@ const fetchCurrentWeather = async (): Promise<CurrentWeather | null> => {
   const condition = classifyWeatherCode(code)
   const probability = data.hourly?.precipitation_probability?.[0]
   return {
-    emoji: conditionToEmoji(condition, code, isDay),
+    icon: conditionToIcon(condition, code, isDay),
     temperature: Math.round(temperature),
     condition,
     precipitationProbability: typeof probability === 'number' ? probability : null,
@@ -114,12 +118,12 @@ export interface CurrentWeatherState {
   /* 아직 못 받았거나 실패하면 null */
   weather: CurrentWeather | null
   /* 첫 조회가 진행 중. 실패와 반드시 구분해야 한다 — 둘 다 null로 뭉뚱그리면
-   * 호출부의 폴백 이모지가 로딩 동안 떴다가 응답 도착과 함께 사라진다. */
+   * 호출부의 폴백 아이콘이 로딩 동안 떴다가 응답 도착과 함께 사라진다. */
   isLoading: boolean
 }
 
-/* 현재 날씨(이모지+기온+강수). 호출부는 weather가 null이고 로딩도 끝났을 때만
- * 날씨 칩 대신 시간대 이모지로 폴백해 화면이 끊기지 않는다.
+/* 현재 날씨(아이콘+기온+강수). 호출부는 weather가 null이고 로딩도 끝났을 때만
+ * 날씨 칩 대신 시간대 아이콘으로 폴백해 화면이 끊기지 않는다.
  *
  * 전역 기본값(refetchOnMount: false, gcTime 7일 + localStorage persist)은
  * 오프라인 PWA용 캐시 우선 전략이라 날씨엔 맞지 않는다 — 그대로 두면 며칠 전

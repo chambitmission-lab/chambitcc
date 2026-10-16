@@ -3,13 +3,15 @@
 // 투표하면 can_vote 가 꺼지므로(투표 시 목록 쿼리 무효화) 자연히 사라진다.
 import { useNavigate } from 'react-router-dom'
 import { useElections } from '../../../hooks/useElections'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { isAuthenticated } from '../../../utils/auth'
 import { preloadRoute } from '../../../utils/routePreload'
 import { BallotIcon } from '../../Election/electionIcons'
 
 const ElectionBanner = () => {
   const navigate = useNavigate()
-  const { data } = useElections(isAuthenticated())
+  const bundlePending = useHomeBundlePending()
+  const { data } = useElections(isAuthenticated() && !bundlePending)
 
   const election = data?.find((e) => e.can_vote)
   if (!election) return null

@@ -11,12 +11,12 @@ import { sermonKeys } from './queryKeys'
 import { tokenStore } from '../utils/tokenStore'
 import { showToast } from '../utils/toast'
 
-export const useSermonTakeaways = () => {
+export const useSermonTakeaways = (enabled = true) => {
   const loggedIn = !!tokenStore.getAccess()
   const query = useQuery({
     queryKey: sermonKeys.takeaways(),
     queryFn: getMySermonTakeaways,
-    enabled: loggedIn,
+    enabled: loggedIn && enabled,
     staleTime: 1000 * 60 * 5,
   })
   const bySermon = useMemo(() => {

@@ -49,6 +49,9 @@ interface BibleAudioPlayerProps {
   // 잠들기 전 듣기(수면 타이머·듣기 범위) 시트용 — 없으면 달 버튼을 숨긴다
   totalChapters?: number
   bookName?: string
+  // 플레이어가 실제로 보이는지. 설정에서 오디오북을 꺼 두면 hidden 으로 마운트만 되는데,
+  // 그때는 장마다 resolve 를 묻지 않는다(재생을 시작했다면 보이지 않아도 계속 받는다).
+  visible?: boolean
 }
 
 // 첫 생성(몇 초) 동안 번갈아 보여줄 잔잔한 대기 문구
@@ -84,7 +87,7 @@ const ensurePreconnect = (origin: string) => {
  * 호출해야 하는데, 모바일 자동재생 정책상 "한 번 재생했던 그 <audio> 요소"를
  * 재사용해야 허용되기 때문 — key 리마운트로 요소를 새로 만들면 iOS에서 막힌다.
  */
-const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter, totalChapters, bookName }: BibleAudioPlayerProps) => {
+const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter, totalChapters, bookName, visible = true }: BibleAudioPlayerProps) => {
   // 능선 띠는 CSS 배경(audio-player.css)이라 테마 토글 순간 반대 테마 파일을 새로 받는다 —
   // 플레이어가 떠 있는 동안 등록해 두면 토글 직전 선요청이 챙긴다(themeAssets.ts)
   useThemeArt(AUDIO_RIDGE)
@@ -106,8 +109,9 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const [play, setPlay] = useState<{ key: string; url: string } | null>(null)
   const started = play?.key === chapterKey
   const streamUrl = getTtsStreamUrl(bookNumber, chapter, voice)
-  // 장을 열 때 캐시 상태를 미리 묻는다 — 캐시된 장은 재생 순간 백엔드 왕복 없이 R2 로 직행
-  const resolved = useTtsResolve({ bookNumber, chapter, voice })
+  // 장을 열 때 캐시 상태를 미리 묻는다 — 캐시된 장은 재생 순간 백엔드 왕복 없이 R2 로 직행.
+  // 숨겨진 플레이어(설정 off)는 묻지 않는다 — 안 듣는 사람도 장마다 요청 하나씩 냈다.
+  const resolved = useTtsResolve({ bookNumber, chapter, voice, enabled: visible || started })
   const [isPlaying, setIsPlaying] = useState(false)
   const [preparing, setPreparing] = useState(false) // 첫 소리가 나기 전 대기 상태
   const [isError, setIsError] = useState(false)

@@ -16,6 +16,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { useMyCapsules } from '../../../hooks/useTimeCapsule'
 import { useTodayReadings } from '../../../hooks/useBiblePlan'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { isAuthenticated } from '../../../utils/auth'
 import { smoothScrollToElement } from '../../../utils/scrollTo'
 import { daysUntil } from '../../Capsule/capsuleDates'
@@ -140,7 +141,8 @@ const MobileStrip = ({ feedAnchorRef }: Props) => {
 
   const authed = isAuthenticated()
   const { data: capsules } = useMyCapsules(authed)
-  const { data: readings } = useTodayReadings(authed)
+  const bundlePending = useHomeBundlePending()
+  const { data: readings } = useTodayReadings(authed && !bundlePending)
 
   // 칩 보조 문구 — 카드와 같은 데이터(같은 쿼리 캐시)라 추가 요청은 없다
   const capsuleHint = (() => {

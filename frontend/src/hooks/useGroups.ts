@@ -1,5 +1,5 @@
 // Prayer Group 관리 Hook
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import {
   fetchMyGroups,
   fetchAllGroups,
@@ -41,10 +41,27 @@ export const groupKeys = {
 }
 
 // 내 그룹 목록 조회
-export const useMyGroups = () => {
+/**
+ * 기도 생성·응답·삭제·"기도했어요" 뒤 그룹 통계(기도 수·응답률·함께 기도한 횟수)를 stale 처리한다.
+ *
+ * 내 그룹 목록(myGroups)은 홈 GroupFilter 가 항상 active 로 들고 있어서 groupKeys.all 을 그냥
+ * 무효화하면 "기도했어요" 한 번마다 /groups/my 가 다시 나갔다(홈에서 가장 잦은 행동). 목록엔
+ * 이름·멤버 수뿐이라 즉시 갱신이 필요 없다 — stale 만 표시해 다음 마운트(refetchOnMount)에 맡기고,
+ * 방 홈(detail·digest 등)처럼 수치가 보이는 쿼리만 active 면 바로 다시 받는다.
+ */
+export const invalidateGroupStats = (queryClient: QueryClient) => {
+  queryClient.invalidateQueries({ queryKey: groupKeys.myGroups(), refetchType: 'none' })
+  queryClient.invalidateQueries({
+    queryKey: groupKeys.all,
+    predicate: (q) => q.queryKey[1] !== 'my',
+  })
+}
+
+export const useMyGroups = (enabled = true) => {
   return useQuery({
     queryKey: groupKeys.myGroups(),
     queryFn: fetchMyGroups,
+    enabled,
     staleTime: 1000 * 60 * 5, // 5분
     // 가입·탈퇴 시점엔 이 쿼리가 비활성이라 stale 마크만 되는데,
     // 전역 refetchOnMount:false와 겹치면 목록 재진입 시에도 옛 캐시가 보인다

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDailyVerse } from '../../../hooks/useDailyVerse'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import './AnnualThemeVerse.css'
 
 // "에스겔 37장 5,10절" → "에스겔 37:5,10" (형식이 다르면 원문 그대로)
@@ -31,7 +32,8 @@ type PreviewVerse = { verse_text: string; verse_reference: string }
 
 const AnnualThemeVerse = ({ preview }: { preview?: PreviewVerse }) => {
   const navigate = useNavigate()
-  const query = useDailyVerse()
+  const bundlePending = useHomeBundlePending()
+  const query = useDailyVerse(!bundlePending)
   const verse = preview ?? query.data
   const isLoading = preview ? false : query.isLoading
   const error = preview ? undefined : query.error

@@ -7,16 +7,20 @@ import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
 import { GraceIcon } from '../../../components/icons/GraceIcons'
 import './AnsweredPrayersBanner.css'
 import { prayerKeys } from '../../../hooks/usePrayersQuery'
+import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 
 const AnsweredPrayersBanner = () => {
   const navigate = useNavigate()
 
   // 개수만 필요하므로 limit=1로 total만 받아온다.
   // 'high': 콜드 홈에서 기도 목록 게이트를 기다리지 않는다(응답 100B 남짓, utils/requestPriority)
+  const bundlePending = useHomeBundlePending()
   const { data: answeredTotal } = useQuery({
     queryKey: prayerKeys.answeredCount(),
     queryFn: async () =>
       (await fetchPrayers(1, 1, 'latest', null, null, true, { priority: 'high' })).data.total,
+    // 홈 묶음(useHomeSummary.answered_total)이 심어 줄 때까지 미룬다
+    enabled: !bundlePending,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: false,

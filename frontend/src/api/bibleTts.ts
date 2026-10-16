@@ -1,5 +1,6 @@
 import { API_V1 } from '../config/api'
 import type { BibleTTSVoice } from '../types/bible'
+import { isApiError, request, requestRaw } from './utils/request'
 
 /** 절별 낭독 시작 시각(초) — 백엔드가 mp3 생성 시 WordBoundary로 산출해 캐시 */
 export interface VerseTiming {
@@ -30,8 +31,14 @@ export const fetchTtsTimings = async (
   voice: BibleTTSVoice,
   signal?: AbortSignal
 ): Promise<TtsTimingsResponse | null> => {
-  const res = await fetch(`${API_V1}/bible/tts/${bookNumber}/${chapter}/timings?voice=${voice}`, { signal })
-  if (!res.ok) return null
+  // 공용 request 경로를 탄다 — 동시 요청 제한(utils/requestPriority)에 줄을 서야 본문 요청과 경쟁하지 않는다
+  let res: Response
+  try {
+    res = await requestRaw(`/bible/tts/${bookNumber}/${chapter}/timings`, { query: { voice }, signal, auth: false })
+  } catch (e) {
+    if (isApiError(e)) return null
+    throw e
+  }
   const data = await res.json()
   const verses: VerseTiming[] = Array.isArray(data?.verses) ? data.verses : []
   return { verses, partial: !!data?.partial }
@@ -50,9 +57,8 @@ export const fetchTtsResolve = async (
   voice: BibleTTSVoice,
   signal?: AbortSignal
 ): Promise<TtsResolveResponse> => {
-  const res = await fetch(`${API_V1}/bible/tts/${bookNumber}/${chapter}/resolve?voice=${voice}`, { signal })
-  if (!res.ok) throw new Error(`tts resolve failed: ${res.status}`)
-  const data = await res.json()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = await request<any>(`/bible/tts/${bookNumber}/${chapter}/resolve`, { query: { voice }, signal, auth: false })
   return {
     url: typeof data?.url === 'string' && data.url ? data.url : null,
     timings: Array.isArray(data?.timings?.verses) ? { verses: data.timings.verses } : null,
@@ -68,8 +74,12 @@ export const prewarmTts = async (
   chapter: number,
   voice: BibleTTSVoice
 ): Promise<'cached' | 'started' | 'in_progress' | null> => {
-  const res = await fetch(`${API_V1}/bible/tts/${bookNumber}/${chapter}/prewarm?voice=${voice}`, { method: 'POST' })
-  if (!res.ok) return null
-  const data = await res.json()
-  return data?.status ?? null
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await request<any>(`/bible/tts/${bookNumber}/${chapter}/prewarm`, { method: 'POST', query: { voice }, auth: false })
+    return data?.status ?? null
+  } catch (e) {
+    if (isApiError(e)) return null
+    throw e
+  }
 }
