@@ -1,5 +1,5 @@
 // 타건음 테마 — 만년필·기계식 키보드는 Web Audio 로 합성하고(번들·네트워크 0),
-// 타자기·실제 키보드는 녹음한 음원(assets/typing-sounds, 테마당 10~80KB)을 그 테마를 고를 때만 받아 디코딩한다.
+// 타자기·연필·실제 키보드는 녹음한 음원(assets/typing-sounds, 테마당 10~80KB)을 그 테마를 고를 때만 받아 디코딩한다.
 // 긴 녹음에서 한 타씩 잘라 붙인 스프라이트는 scripts/gen-typing-sounds.py 가 굽고 위치는 typingSprites.ts 에 있다.
 // 설정은 기기별 편의라 localStorage 에 두고, 패드는 이 모듈의 현재 테마만 본다(prop 을 내리지 않는다).
 // 오디오 컨텍스트는 첫 소리 때(=사용자 입력 안에서) 만든다 — 자동 재생 정책 때문.
@@ -12,14 +12,18 @@ import customUrl from '../../../assets/typing-sounds/real-custom.mp3'
 import ibmUrl from '../../../assets/typing-sounds/real-ibm.mp3'
 import blueUrl from '../../../assets/typing-sounds/real-blue.mp3'
 import jadeUrl from '../../../assets/typing-sounds/real-jade.mp3'
+import pencilUrl from '../../../assets/typing-sounds/pencil.mp3'
+import chimeVerseUrl from '../../../assets/typing-sounds/chime-verse.mp3'
+import chimeFinishUrl from '../../../assets/typing-sounds/chime-finish.mp3'
 import pianoGentleUrl from '../../../assets/typing-sounds/ambient-piano-gentle.mp3'
 import pianoSoftUrl from '../../../assets/typing-sounds/ambient-piano-soft.mp3'
 import { SPRITE_ANCHOR_RATIO, TYPING_SPRITES } from './typingSprites'
 import { TYPING_AMBIENTS } from './typingAmbients'
 import { safeStorage } from '../../../utils/safeStorage'
 
-export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
-export type SoundKind = 'key' | 'space' | 'back' | 'done'
+export type SoundTheme = 'off' | 'pen' | 'pencil' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
+// done = 한 절 새김(짧은 종) · finish = 한 장 마침·목표·오늘의 한 절처럼 큰 마무리(길게 울리는 종)
+export type SoundKind = 'key' | 'space' | 'back' | 'done' | 'finish'
 
 // 메뉴의 키캡 한 장씩 — 짧은 이름·의성어·축 색(실제 스위치 색을 따랐다)·판. 메뉴 순서도 이 순서
 export const SOUND_THEMES: { key: Exclude<SoundTheme, 'off'>; label: string; desc: string; stem: string; group: 'keys' | 'analog' }[] = [
@@ -32,7 +36,8 @@ export const SOUND_THEMES: { key: Exclude<SoundTheme, 'off'>; label: string; des
   { key: 'real-ibm', label: 'IBM', desc: '옛날 스프링 철컥', stem: '#d4a24c', group: 'keys' },
   { key: 'keys', label: '기계식', desc: '낮고 둥근 합성음', stem: '#e5484d', group: 'keys' },
   { key: 'typewriter', label: '타자기', desc: '다 쓰면 종소리', stem: '#8a8f98', group: 'analog' },
-  { key: 'pen', label: '만년필', desc: '사각사각', stem: '#3b4a6b', group: 'analog' },
+  { key: 'pencil', label: '연필', desc: '사각사각', stem: '#e0a100', group: 'analog' },
+  { key: 'pen', label: '만년필', desc: '매끈하게', stem: '#3b4a6b', group: 'analog' },
 ]
 
 export type AmbientKind = 'off' | 'piano-gentle' | 'piano-soft'
@@ -78,6 +83,7 @@ export const setSoundTheme = (t: SoundTheme) => {
   theme = t
   write(THEME_KEY, t)
   emit()
+  if (t !== 'off') void loadChimes()
   if (isRecorded(t)) {
     // 미리 듣기는 음원이 준비된 뒤에 — 처음 고를 땐 받는 동안 잠깐 비어도 합성음으로 새지 않게
     void loadSamples(t).then(() => theme === t && playTypingSound('key'))
@@ -150,9 +156,9 @@ const tone = (ac: AudioContext, { freq, dur, gain, at = 0, type = 'sine' }: { fr
 }
 
 // ── 녹음 음원 ─────────────────────────────────────────
-type RecordedTheme = 'typewriter' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
+type RecordedTheme = 'typewriter' | 'pencil' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
 const isRecorded = (t: SoundTheme): t is RecordedTheme =>
-  t === 'typewriter' || t === 'real-thock' || t === 'real-click' || t === 'real-custom' || t === 'real-ibm' || t === 'real-blue' || t === 'real-jade'
+  t === 'typewriter' || t === 'pencil' || t === 'real-thock' || t === 'real-click' || t === 'real-custom' || t === 'real-ibm' || t === 'real-blue' || t === 'real-jade'
 
 // 누를 때 소리 여러 벌(돌려 가며) · 뗄 때 · 스페이스 · 완료음. 없는 건 합성/변주로 대신한다
 type SampleSet = { key: AudioBuffer[]; up?: AudioBuffer[]; space?: AudioBuffer[]; done?: AudioBuffer }
@@ -199,6 +205,7 @@ const LOADERS: Record<RecordedTheme, (ac: AudioContext) => Promise<SampleSet>> =
   },
   'real-click': async (ac) => ({ key: [await decode(ac, clickUrl)] }),
   typewriter: (ac) => loadSprite(ac, typewriterUrl, TYPING_SPRITES.typewriter),
+  pencil: (ac) => loadSprite(ac, pencilUrl, TYPING_SPRITES.pencil),
   'real-custom': (ac) => loadSprite(ac, customUrl, TYPING_SPRITES['real-custom']),
   'real-ibm': (ac) => loadSprite(ac, ibmUrl, TYPING_SPRITES['real-ibm']),
   'real-blue': (ac) => loadSprite(ac, blueUrl, TYPING_SPRITES['real-blue']),
@@ -254,14 +261,48 @@ const playRecorded = (ac: AudioContext, s: SampleSet, kind: SoundKind) => {
 
 /** 필사 화면에 들어올 때 — 녹음 테마를 골라 둔 사람은 첫 글자부터 소리가 나도록 미리 받아 둔다 */
 export const preloadTypingSound = () => {
+  if (theme !== 'off') void loadChimes()
   if (isRecorded(theme)) void loadSamples(theme)
 }
 
-export const playTypingSound = (kind: SoundKind) => {
+// ── 마무리 종 ─────────────────────────────────────────
+// 모든 테마가 같이 쓴다(타자기만 녹음에 든 제 종소리·줄 넘김을 그대로). 받는 중이면 아래 합성 종소리로 대신한다
+let chimes: { verse: AudioBuffer; finish: AudioBuffer } | null = null
+let chimesLoading: Promise<void> | null = null
+
+const loadChimes = (): Promise<void> => {
+  const ac = audio()
+  if (!ac) return Promise.resolve()
+  chimesLoading ??= Promise.all([decode(ac, chimeVerseUrl), decode(ac, chimeFinishUrl)])
+    .then(([verse, finish]) => {
+      chimes = { verse, finish }
+    })
+    .catch(() => {
+      chimesLoading = null // 다음 마무리 때 다시 시도
+    })
+  return chimesLoading
+}
+
+/** 녹음 종이 있으면 울리고 true — 매 절 울리는 새김 종은 작게, 큰 마무리 종은 조금 크게 */
+const playChime = (ac: AudioContext, kind: 'done' | 'finish') => {
+  if (!chimes) {
+    void loadChimes()
+    return false
+  }
+  if (kind === 'done') playBuffer(ac, chimes.verse, { rate: 0.98 + Math.random() * 0.04, gain: 0.5 })
+  else playBuffer(ac, chimes.finish, { rate: 1, gain: 0.6 })
+  return true
+}
+
+export const playTypingSound = (requested: SoundKind) => {
   if (theme === 'off') return
   const ac = audio()
   if (!ac) return
   try {
+    // 타자기는 다 쓴 절마다 녹음된 종소리가 제 맛 — 큰 마무리만 공용 종으로
+    const ownBell = theme === 'typewriter' && requested === 'done'
+    if ((requested === 'done' || requested === 'finish') && !ownBell && playChime(ac, requested)) return
+    const kind = requested === 'finish' ? 'done' : requested // 종을 아직 못 받았으면 테마의 완료음으로
     if (isRecorded(theme)) {
       const set = samples[theme]
       if (!set) void loadSamples(theme)

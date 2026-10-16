@@ -5,7 +5,7 @@
 
   python -I frontend/scripts/gen-typing-sounds.py <원본 폴더>
 
-원본 폴더에 thocky.mp3 · typewriter.wav · buckling.ogg · blue.flac · jade.wav 를 둔다.
+원본 폴더에 thocky.mp3 · typewriter.wav · buckling.ogg · blue.flac · jade.wav · pencil.wav 를 둔다.
 없는 원본은 건너뛰고 그 테마는 typingSprites.ts 의 기존 값을 그대로 둔다(한 테마만 다시 굽기).
 MP3 는 인코더 지연만큼 앞이 밀리므로, 런타임이 디코딩한 버퍼에서 첫 소리(anchor)를 다시 찾아 어긋남을 보정한다.
 """
@@ -35,6 +35,8 @@ SOURCES = {
     'real-blue': dict(file='blue.flac', keys=10, space=3),  # 청축(Cherry MX Blue)
     # Kailh Box Jade — 누를 때·뗄 때 둘 다 딸깍이라 천천히 누르고 뗀 쌍을 key·up 으로 나눈다
     'real-jade': dict(file='jade.wav', pairs=True),
+    # 연필 — 쉬지 않고 긁은 녹음이라 조용한 틈이 없다. 소리가 잦아드는 골짜기마다 끊어 한 획씩
+    'pencil': dict(file='pencil.wav', scratches=True),
 }
 
 
@@ -147,9 +149,22 @@ def press_release(x: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
     return downs, ups
 
 
-def shape(seg: np.ndarray) -> np.ndarray:
+def scratches(x: np.ndarray) -> list[np.ndarray]:
+    """이어 긁은 녹음을 앞뒤 40ms 안에서 가장 잦아든 지점마다 잘라 한 획씩 — 가장 긴 획은 스페이스로 맨 뒤에"""
+    hop = int(SR * 0.002)
+    env = np.sqrt(np.convolve(x**2, np.ones(hop * 10) / (hop * 10), 'same'))[::hop]
+    peak = np.percentile(env, 98)
+    w = 20
+    cuts = [i for i in range(w, len(env) - w) if env[i] == env[i - w : i + w].min() and env[i] < peak * 0.45]
+    loud = np.where(env > peak * 0.1)[0]
+    bounds = [loud[0], *cuts, loud[-1]]
+    segs = [x[a * hop : b * hop] for a, b in zip(bounds, bounds[1:]) if 0.06 <= (b - a) * hop / SR <= 0.25]
+    return sorted(segs, key=len)
+
+
+def shape(seg: np.ndarray, fade_in: float = 0.0008) -> np.ndarray:
     y = seg.copy()
-    fi = int(0.0008 * SR)
+    fi = int(fade_in * SR)
     y[:fi] *= np.linspace(0, 1, fi)
     fo = min(int(0.015 * SR), len(y) // 3)
     y[-fo:] *= np.linspace(1, 0, fo) ** 2
@@ -189,7 +204,11 @@ def main() -> None:
             print(f'{theme}: 원본 없음 - 기존 값 유지')
             continue
         x = load(src_dir / cfg['file'])
-        if cfg.get('pairs'):
+        if cfg.get('scratches'):
+            # 이어진 소리를 자른 자리라 앞도 살짝 올리고, 긁는 소리는 타건보다 꽉 차 들리니 낮게 맞춘다
+            segs = [shape(y, fade_in=0.006) for y in scratches(x)]
+            groups = {'key': level(segs[:-1], 0.4), 'space': level(segs[-1:], 0.45)}
+        elif cfg.get('pairs'):
             downs, ups = press_release(x)
             groups: dict[str, list[np.ndarray]] = {
                 'key': level([shape(y) for y in downs], 0.6),

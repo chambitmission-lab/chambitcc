@@ -116,7 +116,8 @@ const TypingSprint = () => {
       return
     }
     setRetryNote(null)
-    playTypingSound('done')
+    // 마지막 절은 스프린트를 다 마친 순간이라 큰 종으로
+    playTypingSound(index + 1 >= set.length ? 'finish' : 'done')
     const lap: LapResult = { accuracy: r.accuracy, keystrokes: r.keystrokes, durationMs: r.durationMs, personalBest: false }
     setLaps((prev) => [...prev, lap])
     if (loggedIn) {

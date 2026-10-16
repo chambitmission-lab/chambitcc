@@ -514,6 +514,7 @@ const TypingSessionView = () => {
     const proceed = (to: number | null) => {
       if (reachedGoal) {
         setGoalMoment({ next: to })
+        playTypingSound('finish')
         confetti({
           particleCount: 60,
           spread: 60,
@@ -524,6 +525,7 @@ const TypingSessionView = () => {
       }
       if (to === null) {
         setShowSummary(true)
+        playTypingSound('finish')
         confetti({
           particleCount: 90,
           spread: 75,
@@ -548,6 +550,7 @@ const TypingSessionView = () => {
             // 마지막 빈칸을 내가 채웠다 — 바통 대신 함께 완성한 순간
             setRelayDone({ personalNext: ni })
             void refetchRelay()
+            playTypingSound('finish')
             confetti({
               particleCount: 140,
               spread: 95,
@@ -625,6 +628,7 @@ const TypingSessionView = () => {
           setHandoff({ toUserId, label: ni !== null ? verses[ni].label : null, next: ni })
           if (b.reachedGoal) {
             setGoalMoment({ next: null })
+            playTypingSound('finish')
             confetti({
               particleCount: 60,
               spread: 60,

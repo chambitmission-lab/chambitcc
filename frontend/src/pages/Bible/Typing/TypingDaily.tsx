@@ -77,7 +77,7 @@ const TypingDaily = () => {
         setNote(res.counted ? '정확도가 조금 모자라요 — 다시 써 볼까요?' : '너무 빠른 입력이라 기록으로 인정되지 않았어요')
         return
       }
-      playTypingSound('done')
+      playTypingSound('finish')
       confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 }, colors: ['#3182f6', '#60a5fa', '#ffb547', '#ffe08a'] })
       // 결과(순번)는 기록 저장 뒤 오늘의 한 절이 다시 불러와지며 채워진다
     } catch {
