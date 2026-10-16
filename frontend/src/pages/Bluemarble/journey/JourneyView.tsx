@@ -102,6 +102,8 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
 
   return (
     <div className="qj" style={{ ['--qj-bg' as string]: `url(${bg.pc})`, ['--qj-bg-m' as string]: `url(${bg.m})` }}>
+      {/* PC 지도 판 — 카드 폭에 맞춘 원본 비율 그림이 스크롤 내내 제자리에 머문다(모바일은 .qj 고정 배경) */}
+      <div className="qj-backdrop" aria-hidden />
       <div className="qj-stage">
         {header}
         {/* 상단 띠 — 지금 장 · 오늘의 걸음 · 더보기 */}

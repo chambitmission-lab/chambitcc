@@ -84,6 +84,59 @@
   .qj { background-image: var(--qj-bg); }
 }
 [data-theme='dark'] .qj { --qj-ground: #1c2738; }
+.qj-backdrop { display: none; }
+
+/* PC — 창 전체에 cover 로 깔면 넓은 화면에서 1376px 원본이 1.5배 가까이 늘어 흐릿하고 위아래가 잘렸다.
+   둥근 카드 안에 넣고, 그림은 카드 폭에 맞춘 원본 비율(거의 1배)로 위에 붙여 아래는 땅 색으로 번지게 한다.
+   지도 판은 sticky 로 화면에 머물고 그 위로 길만 스크롤된다(#root 가 clip 이라 sticky 가 body 기준으로 동작). */
+@media (min-width: 1024px) {
+  .qj {
+    --qj-card-gap: 14px;
+    --qj-view: calc(100vh - 56px - var(--qj-card-gap) * 2);
+    max-width: 1480px;
+    margin: var(--qj-card-gap) auto calc(var(--qj-card-gap) * 2);
+    border-radius: 28px;
+    overflow: clip;
+    isolation: isolate;
+    /* 지도 아래 땅 — 넓은 모니터에서 그림이 다 덮지 못한 아래쪽이 민무늬로 비지 않게 수채 종이 결을 깐다 */
+    background: url('../../assets/atlas/parchment.webp') center top / 768px auto repeat, var(--qj-ground);
+    background-blend-mode: multiply;
+    min-height: var(--qj-view);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 18px 40px -28px rgba(60, 45, 20, 0.45);
+    --qj-ground: #eadcbf;
+  }
+  [data-theme='dark'] .qj {
+    --qj-ground: #333f4f;
+    background: url('../../assets/atlas/parchment-night.webp') center top / 768px auto repeat, var(--qj-ground);
+    background-blend-mode: soft-light;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 18px 40px -28px rgba(0, 0, 0, 0.7);
+  }
+  .qj-backdrop {
+    display: block;
+    position: sticky;
+    top: calc(56px + var(--qj-card-gap));
+    z-index: 0;
+    height: var(--qj-view);
+    /* .qj 안쪽 여백을 걷어 카드 끝까지 닿게, 아래 음수 여백으로 흐름에서 높이를 빼 콘텐츠가 그 위에 겹친다 */
+    margin: -18px -16px calc(-1 * var(--qj-view) + 18px);
+    pointer-events: none;
+  }
+  /* 그림 폭 = min(카드를 덮는 폭, max(카드 폭, 원본 1376px)) —
+     좁은 창은 덮되 원본보다 키우지 않고, 넓은 모니터는 폭에 맞춰 1배 언저리에서 멈춘 뒤 아래를 땅 색으로 번지게 */
+  .qj-backdrop::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(max(100%, calc(var(--qj-view) * 1376 / 768)), max(100%, 1376px));
+    aspect-ratio: 1376 / 768;
+    transform: translateX(-50%);
+    background: var(--qj-bg) center / cover no-repeat;
+    -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+  }
+  .qj-stage { position: relative; z-index: 1; }
+}
 .qj-stage { max-width: 76rem; margin: 0 auto; }
 
 .qj-bar {
