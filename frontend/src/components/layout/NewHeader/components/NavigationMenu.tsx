@@ -33,7 +33,7 @@ const MENU_SECTIONS: NavSection[] = [
     ]),
   },
   { titleKey: 'navGroupContent', items: navEntries(['/sermon', '/bible', '/ministry']) },
-  { titleKey: 'navGroupCommunity', items: navEntries(['/groups', '/classes', '/mission', '/survey', '/news']) },
+  { titleKey: 'navGroupCommunity', items: navEntries(['/today', '/groups', '/classes', '/mission', '/survey', '/news']) },
 ]
 
 // 게임·이벤트성 메뉴 — 구조는 같게 두고 아이콘 색으로만 톤을 분리한다
@@ -49,7 +49,7 @@ const DESKTOP_SECTIONS: NavSection[] = [
   { titleKey: 'navTopChurch', items: navEntries(['/about', '/greeting', '/visit', '/people', '/organization', '/history']) },
   { titleKey: 'navTopWord', items: navEntries(['/sermon', '/ministry', '/education']) },
   { titleKey: 'navTopTogether', items: navEntries(['/news', '/seats', '/culture', '/mission', '/survey']) },
-  { titleKey: 'navGroupMyFaith', items: navEntries(['/groups', '/classes', '/garden', '/bluemarble', '/bible/typing', '/answered-prayers', '/intercession']) },
+  { titleKey: 'navGroupMyFaith', items: navEntries(['/today', '/groups', '/classes', '/garden', '/bluemarble', '/bible/typing', '/answered-prayers', '/intercession']) },
 ]
 
 const IconSearch = ({ className }: { className?: string }) => (

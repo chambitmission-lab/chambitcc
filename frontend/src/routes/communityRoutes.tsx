@@ -31,6 +31,7 @@ const Bluemarble = lazy(menuRouteLoaders['/bluemarble'])
 const RabbitGallery = lazy(() => import('../pages/Bluemarble/RabbitGallery'))
 const WeeklyStory = lazy(() => import('../pages/WeeklyStory/WeeklyStory'))
 const Growth = lazy(() => import('../pages/Growth/Growth'))
+const TodayChurch = lazy(() => import('../pages/TodayChurch/TodayChurch'))
 
 export const communityRoutes = (
   <>
@@ -61,5 +62,6 @@ export const communityRoutes = (
     <Route path="/bluemarble/rabbit" element={<RabbitGallery />} />
     <Route path="/weekly-story" element={<WeeklyStory />} />
     <Route path="/growth" element={<Growth />} />
+    <Route path="/today" element={<TodayChurch />} />
   </>
 )

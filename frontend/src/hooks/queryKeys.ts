@@ -187,3 +187,9 @@ export const prayerFocusKeys = {
   all: ['prayer-focus'] as const,
   carry: (groupId: number | null) => [...prayerFocusKeys.all, 'carry', groupId ?? 'none'] as const,
 }
+
+/** 오늘의 교회 — 작년 오늘의 나 + 어제 우리 교회 (홈 묶음 today_church 조각이 심는다) */
+export const todayChurchKeys = {
+  all: ['today-church'] as const,
+  today: () => [...todayChurchKeys.all, 'today'] as const,
+}

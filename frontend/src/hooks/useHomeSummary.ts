@@ -3,7 +3,7 @@ import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-quer
 import { getHomeSummary, type HomeSummary } from '../api/home'
 import { isApiError } from '../api/utils/request'
 import { tokenStore } from '../utils/tokenStore'
-import { dailyVerseKeys, meditationKeys, notificationKeys, sermonKeys, weeklyPrayerKeys } from './queryKeys'
+import { dailyVerseKeys, meditationKeys, notificationKeys, sermonKeys, todayChurchKeys, weeklyPrayerKeys } from './queryKeys'
 import { biblePlanKeys } from './useBiblePlan'
 import { deriveTimeOfDay, localDateKey } from './useDailyMeditation'
 import { electionKeys } from './useElections'
@@ -81,11 +81,12 @@ const seedPieces = (qc: QueryClient, s: HomeSummary) => {
   if (ok('elections')) qc.setQueryData(electionKeys.list(), s.elections)
   if (ok('popup_notices')) qc.setQueryData(notificationKeys.popups(), s.popup_notices)
   if (ok('my_groups')) qc.setQueryData(groupKeys.myGroups(), s.my_groups)
+  if (ok('today_church')) qc.setQueryData(todayChurchKeys.today(), s.today_church)
 }
 
 /**
  * 홈 묶음 — 묵상·오늘의 읽기·설교 한 줄·올해의 말씀·이번 주 기도제목·응답 수·중보 짝·설문·선거·팝업 공지·
- * 내 그룹을 요청 하나로 받아 단건 키에 심는다(필사 허브 useTypingHome 과 같은 방식).
+ * 내 그룹·오늘의 교회를 요청 하나로 받아 단건 키에 심는다(필사 허브 useTypingHome 과 같은 방식).
  * 홈은 콜드 마운트에 GET 18개를 보냈고 백엔드는 단일 워커라 요청 수 자체가 비용이었다.
  */
 export const useHomeSummary = () => {

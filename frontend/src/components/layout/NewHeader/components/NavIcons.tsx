@@ -241,6 +241,15 @@ const IconSurvey = (p: IconProps) => (
   </Svg>
 )
 
+/* 오늘의 교회 — 작년 오늘에서 도착한 편지(봉투 + 반짝임) */
+const IconTodayLetter = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="7" width="15" height="12" rx="2.2" />
+    <path d="m3.5 8.6 6.4 4.5a1.8 1.8 0 0 0 2.1 0l6.4-4.5" />
+    <path d="M19.5 2.5v4M17.5 4.5h4" />
+  </Svg>
+)
+
 /* 좌석 예약 — 극장 의자 */
 const IconSeat = (p: IconProps) => (
   <Svg {...p}>
@@ -275,6 +284,7 @@ export const NAV_ICONS = {
   intercession: IconCandle,
   survey: IconSurvey,
   seats: IconSeat,
+  todayChurch: IconTodayLetter,
 } as const
 
 export type NavIconKey = keyof typeof NAV_ICONS

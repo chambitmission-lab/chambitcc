@@ -17,6 +17,20 @@ export interface PastoralPrayerItem {
   is_answered: boolean
 }
 
+export interface PastorHeart {
+  days: number
+  emotions: {
+    min_sample: number
+    enough: boolean
+    total: number
+    items: Array<{ key: string; label: string; count: number; prev: number }>
+    rising: { key: string; label: string; delta: number } | null
+  }
+  chapters: Array<{ book_number: number; chapter: number; book_name: string; readers: number }>
+  /** 0~23시 기도 등록 + '기도했어요' 수 — 표본이 적으면 null */
+  hours: number[] | null
+}
+
 export interface PastorHomeData {
   generated_at: string
   pastoral: {
@@ -83,6 +97,8 @@ export interface PastorHomeData {
     weekly: DashboardMetric[]
     trend: Array<{ date: string; active: number }>
   }
+  /** 이번 주 성도들의 마음(익명 집계) — 옛 백엔드는 없다 */
+  heart?: PastorHeart
   shepherd: {
     birthdays: Array<{
       user_id: number

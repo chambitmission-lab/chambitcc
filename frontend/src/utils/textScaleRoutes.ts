@@ -65,6 +65,7 @@ const ZOOM_ROUTES = [
   '/rooms',
   '/classes',
   '/capsule',
+  '/today', // 오늘의 교회 — 차트는 SVG viewBox(좌표 계산 없음), 간증 모달은 body 포털(다른 화면과 같음)
 ]
 
 // 대형 화면 송출용(이미 화면 크기에 맞춰 vw·vh 로 그린다)

@@ -8,6 +8,7 @@ import type { SurveySummary } from '../types/survey'
 import type { WeeklyPrayer } from '../types/weeklyPrayer'
 import type { IntercessionState } from './intercession'
 import type { SermonTakeaway } from './sermonTakeaway'
+import type { TodayChurch } from './todayChurch'
 import { request } from './utils/request'
 
 /**
@@ -28,6 +29,7 @@ export interface HomeSummary {
   elections: ElectionSummary[] | null
   popup_notices: Notification[] | null
   my_groups: GroupListResponse | null
+  today_church: TodayChurch | null
   failed: string[]
 }
 

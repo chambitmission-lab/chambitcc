@@ -4,6 +4,7 @@ import { translations, type Translation } from '../../locales'
 import {
   Books,
   CalendarDots,
+  EnvelopeSimple,
   ChatCircleText,
   Files,
   Flower,
@@ -79,6 +80,7 @@ const EXTRA_PAGES: PageEntry[] = [
   { to: '/bible/wordbook', label: { ko: '단어장', en: 'Wordbook' }, desc: { ko: '밑줄 친 단어 모음', en: 'Words you underlined' }, glyph: PencilLine, keywords: ['단어장', '단어', 'wordbook'], memberOnly: true },
   { to: '/feed', label: { ko: '기도 커뮤니티', en: 'Prayer Feed' }, desc: { ko: '기도제목 나누고 아멘하기', en: 'Share prayers, say amen' }, glyph: HandsPraying, keywords: ['기도', '커뮤니티', '피드', '아멘', 'prayer', 'feed', 'amen'], quick: true },
   { to: '/thanks', label: { ko: '오늘의 감사', en: 'Daily Thanks' }, desc: { ko: '감사 한 줄 남기기', en: 'One line of thanks' }, glyph: Flower, keywords: ['감사', 'thanks', 'gratitude'], memberOnly: true },
+  { to: '/today', label: { ko: '오늘의 교회', en: 'Today at Church' }, desc: { ko: '작년 오늘의 나 · 어제 우리 교회', en: 'You a year ago · our church yesterday' }, glyph: EnvelopeSimple, keywords: ['오늘', '작년', '1년 전', '추억', '어제', '교회', '통계', 'today', 'memory'], memberOnly: true },
   { to: '/growth', label: { ko: '신앙 여정', en: 'Faith Journey' }, desc: { ko: '타임라인 · 스트릭 · 통계', en: 'Timeline · streaks · stats' }, glyph: Thermometer, keywords: ['여정', '성장', '온도', '스트릭', 'journey', 'growth'], memberOnly: true },
   { to: '/capsule', label: { ko: '타임캡슐', en: 'Time Capsule' }, desc: { ko: '미래의 나에게 봉인 편지', en: 'A sealed letter to future you' }, glyph: Hourglass, keywords: ['타임캡슐', '캡슐', '편지', 'capsule', 'letter'], memberOnly: true },
   { to: '/profile', label: { ko: '내 프로필', en: 'My Profile' }, desc: { ko: '프로필 · 칭호 · 설정', en: 'Profile · titles · settings' }, glyph: UserCircle, keywords: ['프로필', '내정보', '설정', 'profile', 'settings'], memberOnly: true },

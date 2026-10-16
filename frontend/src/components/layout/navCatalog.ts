@@ -46,6 +46,7 @@ export const NAV_CATALOG: NavEntry[] = [
   { path: '/news', labelKey: 'news', descKey: 'navDescNews', icon: 'news', group: 'together' },
   { path: '/news?tab=new-family', labelKey: 'navNewFamilyAlbum', descKey: 'navDescNewFamily', icon: null, group: 'together' },
   // 나의 신앙
+  { path: '/today', labelKey: 'todayChurch', descKey: 'navDescTodayChurch', icon: 'todayChurch', group: 'faith' },
   { path: '/groups', labelKey: 'myGroups', descKey: 'navDescMyGroups', icon: 'myGroups', group: 'faith' },
   { path: '/classes', labelKey: 'classNote', descKey: 'navDescClassNote', icon: 'classNote', group: 'faith' },
   { path: '/garden', labelKey: 'garden', descKey: 'navDescGarden', icon: 'garden', group: 'faith', accent: true },
