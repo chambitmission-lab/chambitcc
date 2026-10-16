@@ -103,10 +103,10 @@
     background-blend-mode: multiply;
     min-height: var(--qj-view);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 18px 40px -28px rgba(60, 45, 20, 0.45);
-    --qj-ground: #eadcbf;
+    --qj-ground: #e2cf9f;
   }
   [data-theme='dark'] .qj {
-    --qj-ground: #333f4f;
+    --qj-ground: #2c3b42;
     background: url('../../assets/atlas/parchment-night.webp') center top / 768px auto repeat, var(--qj-ground);
     background-blend-mode: soft-light;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 18px 40px -28px rgba(0, 0, 0, 0.7);
@@ -121,15 +121,16 @@
     margin: -18px -16px calc(-1 * var(--qj-view) + 18px);
     pointer-events: none;
   }
-  /* 그림 폭 = min(카드를 덮는 폭, max(카드 폭, 원본 1376px)) —
+  /* PC 지도는 5:4(1152×928) — 카드 비율(약 1.2:1)에 맞춰 다시 그렸다.
+     그림 폭 = min(카드를 덮는 폭, max(카드 폭, 원본 1152px)) —
      좁은 창은 덮되 원본보다 키우지 않고, 넓은 모니터는 폭에 맞춰 1배 언저리에서 멈춘 뒤 아래를 땅 색으로 번지게 */
   .qj-backdrop::before {
     content: '';
     position: absolute;
     top: 0;
     left: 50%;
-    width: min(max(100%, calc(var(--qj-view) * 1376 / 768)), max(100%, 1376px));
-    aspect-ratio: 1376 / 768;
+    width: min(max(100%, calc(var(--qj-view) * 1152 / 928)), max(100%, 1152px));
+    aspect-ratio: 1152 / 928;
     transform: translateX(-50%);
     background: var(--qj-bg) center / cover no-repeat;
     -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
