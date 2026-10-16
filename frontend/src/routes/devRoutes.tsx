@@ -57,6 +57,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['sermon-desk', () => import('../pages/dev/SermonDeskPreview')],
       // 바이블 퀘스트 첫 진입 준비 중 화면(스켈레톤) — ?error=1 이면 실패 상태
       ['quest-skeleton', () => import('../pages/dev/QuestSkeletonPreview')],
+      // 전신갑주 토끼 — 단계·장비·표정별 지도 위(58px) / 내 토끼 히어로(200px)
+      ['rabbit', () => import('../pages/dev/RabbitPreview')],
     ]
   : []
 
