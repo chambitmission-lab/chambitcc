@@ -1,6 +1,6 @@
 // 발자취 여행 탭 — 수채화 지도(한 장씩) + 오늘의 걸음 + 장면 카드.
 // 게임 상태 전이는 기존 useBluemarbleGame 그대로, 이 컴포넌트는 그리기만 한다.
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBluemarbleGame } from '../useBluemarbleGame'
@@ -40,6 +40,23 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
   const { state, session, tiles, pendingQuiz, isGameDone, currentTile, startMutation, abandonMutation, advanceMutation, rabbitQuery, sfx } = game
   const [showLb, setShowLb] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  // 더보기 메뉴 — 바깥을 누르거나 Esc 로 닫힌다
+  const menuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!menuOpen) return
+    const onDown = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
   const [muted, setMuted] = useState<boolean>(sfx.isMuted())
 
   const chapters = useMemo(() => buildChapters(tiles), [tiles])
@@ -105,7 +122,7 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
               </span>
             ))}
           </div>
-          <div className="qj-menu-wrap">
+          <div className="qj-menu-wrap" ref={menuRef}>
             <button type="button" className="qj-icon-btn" onClick={() => setMenuOpen((v) => !v)} aria-label="더보기" aria-expanded={menuOpen}>
               <span className="material-icons-round">more_horiz</span>
             </button>

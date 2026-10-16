@@ -95,6 +95,10 @@
 .qj-stage { max-width: 76rem; margin: 0 auto; }
 
 .qj-bar {
+  /* backdrop-filter 가 쌓임 맥락을 만들어 더보기 메뉴의 z-index 가 띠 안에 갇힌다 —
+     띠 자체를 아래 장 칩·지도·옆 패널(역시 backdrop-filter)보다 위로 올린다 */
+  position: relative;
+  z-index: 20;
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 12px 14px 12px 18px;
   border-radius: 20px;
