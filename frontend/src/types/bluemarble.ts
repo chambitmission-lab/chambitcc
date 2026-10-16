@@ -73,11 +73,20 @@ export interface GameSession {
   completed_at: string | null
 }
 
+/** 발자취 여행 — 오늘의 걸음(하루 한도, 자정 KST 리셋) */
+export interface DailySteps {
+  used: number
+  limit: number
+  remaining: number
+  resets_at: string
+}
+
 export interface GameState {
   session: GameSession
   tiles: Tile[]
   current_tile: Tile | null
   pending_quiz: QuizPublic | null
+  daily_steps?: DailySteps | null
 }
 
 export type AdvanceEventType =
@@ -139,6 +148,7 @@ export interface AdvanceResult {
   message: string
   verse_text: string | null
   lap_event?: LapEvent | null
+  daily_steps?: DailySteps | null
 }
 
 export interface AnswerResult {
@@ -162,6 +172,8 @@ export interface AnswerResult {
   time_bonus_ratio: number
   time_bonus: number
   streak_flat_bonus: number
+  // 은혜의 순간 — 정답 시 낮은 확률로 점수 2배. 미발동이면 null
+  grace_event?: { multiplier: number; bonus: number } | null
   // 보스 진행 상태
   boss_state?: BossState | null
   next_boss_quiz?: QuizPublic | null
