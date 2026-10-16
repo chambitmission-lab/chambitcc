@@ -20,18 +20,18 @@ import { TYPING_AMBIENTS } from './typingAmbients'
 export type SoundTheme = 'off' | 'pen' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
 export type SoundKind = 'key' | 'space' | 'back' | 'done'
 
-export const SOUND_THEMES: { key: SoundTheme; label: string; desc: string }[] = [
-  // 가장 반응이 좋은 소리라 맨 위에
-  { key: 'real-custom', label: '커스텀 키보드', desc: '깊게 울리는 도독도독' },
-  { key: 'off', label: '소리 끄기', desc: '조용히' },
-  { key: 'pen', label: '만년필', desc: '종이 위 사각사각' },
-  { key: 'typewriter', label: '타자기', desc: '진짜 타자기 녹음, 다 쓰면 종소리' },
-  { key: 'keys', label: '기계식 키보드', desc: '낮고 둥근 타건음' },
-  { key: 'real-thock', label: '실제 키보드 · 도각', desc: '녹음한 묵직한 타건음' },
-  { key: 'real-click', label: '실제 키보드 · 찰칵', desc: '녹음한 가볍고 맑은 타건음' },
-  { key: 'real-ibm', label: '옛날 IBM 키보드', desc: '스프링이 철컥철컥' },
-  { key: 'real-blue', label: '청축 키보드', desc: '또렷하게 딸깍딸깍' },
-  { key: 'real-jade', label: '박스 제이드', desc: '누를 때도 뗄 때도 딸깍' },
+// 메뉴의 키캡 한 장씩 — 짧은 이름·의성어·축 색(실제 스위치 색을 따랐다)·판. 메뉴 순서도 이 순서
+export const SOUND_THEMES: { key: Exclude<SoundTheme, 'off'>; label: string; desc: string; stem: string; group: 'keys' | 'analog' }[] = [
+  // 가장 반응이 좋은 소리라 맨 앞에
+  { key: 'real-custom', label: '커스텀', desc: '깊은 도독도독', stem: '#7c5cff', group: 'keys' },
+  { key: 'real-blue', label: '청축', desc: '또렷한 딸깍딸깍', stem: '#2f7cf6', group: 'keys' },
+  { key: 'real-jade', label: '박스 제이드', desc: '누를 때도 뗄 때도', stem: '#16b37e', group: 'keys' },
+  { key: 'real-thock', label: '도각', desc: '묵직한 타건', stem: '#a0673a', group: 'keys' },
+  { key: 'real-click', label: '찰칵', desc: '가볍고 맑게', stem: '#94a3b8', group: 'keys' },
+  { key: 'real-ibm', label: 'IBM', desc: '옛날 스프링 철컥', stem: '#d4a24c', group: 'keys' },
+  { key: 'keys', label: '기계식', desc: '낮고 둥근 합성음', stem: '#e5484d', group: 'keys' },
+  { key: 'typewriter', label: '타자기', desc: '다 쓰면 종소리', stem: '#8a8f98', group: 'analog' },
+  { key: 'pen', label: '만년필', desc: '사각사각', stem: '#3b4a6b', group: 'analog' },
 ]
 
 export type AmbientKind = 'off' | 'piano-gentle' | 'piano-soft'
@@ -61,7 +61,7 @@ const write = (key: string, value: string) => {
   }
 }
 
-const isTheme = (v: string | null): v is SoundTheme => SOUND_THEMES.some((t) => t.key === v)
+const isTheme = (v: string | null): v is SoundTheme => v === 'off' || SOUND_THEMES.some((t) => t.key === v)
 
 let theme: SoundTheme = (() => {
   const v = read(THEME_KEY)
