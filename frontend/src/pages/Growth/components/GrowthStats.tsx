@@ -33,10 +33,18 @@ type StatTone = 'top' | 'zero' | 'normal'
 
 const toneNum: Record<StatTone, string> = {
   // 가장 활발한 항목 — 브랜드 블루 + 글로우
-  top: 'text-[22px] text-brand drop-shadow-[0_0_10px_var(--brand-glow)]',
+  top: 'text-brand drop-shadow-[0_0_10px_var(--brand-glow)]',
   // 아직 0인 항목 — 톤다운
-  zero: 'text-[20px] text-gray-300 dark:text-white/25',
-  normal: `text-[20px] ${gradientNum}`,
+  zero: 'text-gray-300 dark:text-white/25',
+  normal: gradientNum,
+}
+
+// 3열 좁은 칸 — 자릿수가 길어지면(25,863 등) 글씨를 줄여 칸 안에 다 들어오게
+const numSize = (value: string, tone: StatTone) => {
+  if (value.length >= 8) return 'text-[14px]'
+  if (value.length >= 6) return 'text-[16px]'
+  if (value.length >= 5) return 'text-[18px]'
+  return tone === 'top' ? 'text-[22px]' : 'text-[20px]'
 }
 
 const StatCell = ({
@@ -63,7 +71,9 @@ const StatCell = ({
     >
       {icon}
     </div>
-    <div className={`relative z-10 font-bold tracking-[-0.015em] ${toneNum[tone]}`}>
+    <div
+      className={`relative z-10 font-bold tracking-[-0.02em] tabular-nums whitespace-nowrap ${numSize(value, tone)} ${toneNum[tone]}`}
+    >
       {value}
     </div>
     <div
