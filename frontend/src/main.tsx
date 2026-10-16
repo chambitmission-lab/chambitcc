@@ -79,7 +79,8 @@ createRoot(document.getElementById('root')!).render(
               // (stale pending_quiz가 캐시되면 진입 시 잘못된 퀴즈가 뜸)
               // 단, 통계(stats)는 복원한다 — /profile이 레벨 계산에 쓰는데,
               // 제외하면 앱을 켤 때마다 이 요청을 기다리며 전체 스피너가 떴다
-              if (Array.isArray(key) && key[0] === 'bluemarble' && key[1] !== 'stats') return false
+              // 120칸 타일(tiles)도 복원한다 — 고정 데이터라 다음 실행에서 지도를 바로 그릴 수 있다
+              if (Array.isArray(key) && key[0] === 'bluemarble' && key[1] !== 'stats' && key[1] !== 'tiles') return false
               // 실황 날씨는 persist 제외 — 저장하면 다음 실행 때 며칠 전 기온이 먼저 뜬다
               if (Array.isArray(key) && key[0] === 'weather') return false
               // 관리 도구 '할 일' 배지도 제외 — 복원된 옛 배지('이번 주 미등록')가 먼저 떴다 바뀌면 헷갈린다

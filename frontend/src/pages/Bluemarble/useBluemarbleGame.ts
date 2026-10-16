@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import confetti from 'canvas-confetti'
 import {
   useBluemarbleState,
+  useBluemarbleTiles,
   useStartGame,
   useAdvanceStep,
   useSubmitAnswer,
@@ -48,15 +49,11 @@ export const useBluemarbleGame = () => {
   const answerMutation = useSubmitAnswer()
   const abandonMutation = useAbandonGame()
   const stateQuery = useBluemarbleState(isAuthenticated)
+  const tilesQuery = useBluemarbleTiles(isAuthenticated)
   const rabbitQuery = useMyRabbit(isAuthenticated)
   const sfx = useSfx()
-
-  // 마운트 시 캐시된 상태 무효화 → 항상 서버에서 fresh fetch
-  // (이전 세션의 stale pending_quiz가 잘못 표시되는 것을 방지)
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: QK_BM_STATE })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // 마운트 때 invalidate 로 다시 받던 것은 뺐다 — useBluemarbleState 가 stale(2초) 이면 마운트에서
+  // 알아서 다시 받고, 선요청이 진행 중이면 그 요청에 합류한다(같은 요청이 두 번 나가지 않는다).
 
   const [showQuiz, setShowQuiz] = useState(false)
   const [activeQuiz, setActiveQuiz] = useState<QuizPublic | null>(null)
@@ -78,7 +75,13 @@ export const useBluemarbleGame = () => {
 
   const state = stateQuery.data
   const session = state?.session
-  const tiles = useMemo(() => state?.tiles ?? [], [state?.tiles])
+  // 칸은 /tiles 캐시가 기본. /start 응답이나 옛 백엔드의 /state 처럼 tiles 가 실려 오면 그것도 쓴다
+  const stateTiles = state?.tiles
+  const cachedTiles = tilesQuery.data
+  const tiles = useMemo(
+    () => (stateTiles && stateTiles.length > 0 ? stateTiles : cachedTiles ?? []),
+    [stateTiles, cachedTiles],
+  )
   const pendingQuiz = state?.pending_quiz
 
   const isGameDone = session?.status === 'completed'
@@ -408,6 +411,7 @@ export const useBluemarbleGame = () => {
     isGameDone,
     currentTile,
     stateQuery,
+    tilesQuery,
     startMutation,
     advanceMutation,
     abandonMutation,

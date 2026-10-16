@@ -1,5 +1,5 @@
 import { API_V1 } from '../config/api'
-import type { GameState, AdvanceResult, AnswerResult, Leaderboard, BluemarbleStats } from '../types/bluemarble'
+import type { GameState, AdvanceResult, AnswerResult, Leaderboard, BluemarbleStats, Tile } from '../types/bluemarble'
 import { request, requestRaw } from './utils/request'
 
 const BASE = `${API_V1}/bluemarble`
@@ -13,8 +13,21 @@ export const startGame = async (restart = false): Promise<GameState> => {
   })
 }
 
+// 화면 전체가 이 응답을 기다리므로 'high' — 홈이 남긴 뒷순위 GET 줄을 건너뛴다.
+// 타일 120칸은 fetchTiles 가 따로(길게 캐시) 받으므로 세션·걸음만 달라고 한다.
+// 옛 백엔드는 include_tiles 를 모르고 tiles 를 그대로 실어 보내는데, 훅이 그것도 그대로 쓴다.
 export const fetchState = async (): Promise<GameState> => {
-  return request<GameState>(`${BASE}/state`, { auth: 'required', errorMessage: '게임 상태를 불러오지 못했습니다' })
+  return request<GameState>(`${BASE}/state`, {
+    auth: 'required',
+    priority: 'high',
+    query: { include_tiles: false },
+    errorMessage: '게임 상태를 불러오지 못했습니다',
+  })
+}
+
+/** 120 발자취 칸 — 고정 데이터(인증 불필요). 하루 단위로 캐시한다 */
+export const fetchTiles = async (): Promise<Tile[]> => {
+  return request<Tile[]>(`${BASE}/tiles`, { auth: false, priority: 'high', errorMessage: '발자취 칸을 불러오지 못했습니다' })
 }
 
 export const advanceStep = async (): Promise<AdvanceResult> => {

@@ -3,6 +3,7 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useBluemarbleGame } from './useBluemarbleGame'
 import JourneyView from './journey/JourneyView'
+import JourneySkeleton from './journey/JourneySkeleton'
 import LeagueView from './league/LeagueView'
 import BmIcon from './components/BluemarbleIcons'
 import './Bluemarble.css'
@@ -52,22 +53,46 @@ export default function Bluemarble() {
     )
   }
 
-  if (game.stateQuery.isLoading || game.startMutation.isPending || !game.session) {
+  // 준비 중 — 지도 배경·탭·틀은 바로 깔고 숫자 자리만 비워 둔다(JourneySkeleton).
+  // 상태(세션)와 칸(/tiles) 둘 다 와야 길을 그릴 수 있다.
+  const tilesReady = game.tiles.length > 0
+  const preparing =
+    game.stateQuery.isLoading ||
+    game.startMutation.isPending ||
+    (!!game.session && !tilesReady && game.tilesQuery.isLoading)
+  if (preparing) {
+    return (
+      <div className="quest quest--journey">
+        <JourneySkeleton header={tabs} />
+      </div>
+    )
+  }
+
+  if (!game.session) {
     return (
       <div className="quest">
         {tabs}
         <div className="quest-gate">
-          {game.stateQuery.isLoading || game.startMutation.isPending ? (
-            <p>발자취를 준비하고 있어요…</p>
-          ) : (
-            <>
-              <h2>예수님의 발자취</h2>
-              <button type="button" className="qj-go" onClick={() => game.startMutation.mutate(false)}>
-                여행 시작하기
-              </button>
-            </>
-          )}
+          <h2>예수님의 발자취</h2>
+          <button type="button" className="qj-go" onClick={() => game.startMutation.mutate(false)}>
+            여행 시작하기
+          </button>
         </div>
+      </div>
+    )
+  }
+
+  if (!tilesReady) {
+    const err = game.tilesQuery.error
+    return (
+      <div className="quest quest--journey">
+        <JourneySkeleton
+          header={tabs}
+          error={{
+            message: err instanceof Error ? err.message : '발자취 칸을 불러오지 못했습니다',
+            onRetry: () => void game.tilesQuery.refetch(),
+          }}
+        />
       </div>
     )
   }

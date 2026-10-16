@@ -81,6 +81,13 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
         if (a.isAuthenticated()) m.prefetchTitles(q.queryClient, true)
       },
     ),
+  // 바이블 퀘스트 — 화면 전체가 /state 응답을 기다리므로 청크와 나란히 상태·칸·토끼를 띄운다
+  '/bluemarble': () =>
+    Promise.all([import('../hooks/useBluemarble'), import('../config/queryClient'), import('./auth')]).then(
+      ([m, q, a]) => {
+        if (a.isAuthenticated()) m.prefetchQuest(q.queryClient)
+      },
+    ),
   // 주간 스토리 — 프로필 스토리 카드 목적지 (키는 deepLinkRouteLoaders 의 key)
   'weekly-story': () =>
     Promise.all([import('../hooks/useWeeklyStory'), import('../config/queryClient'), import('./auth')]).then(

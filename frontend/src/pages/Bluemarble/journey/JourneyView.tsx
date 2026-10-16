@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useBluemarbleGame } from '../useBluemarbleGame'
-import { useTheme } from '../../../contexts/ThemeContext'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { canonicalBookName } from '../../Sermon/utils/sermonMeta'
 import BmIcon from '../components/BluemarbleIcons'
@@ -18,8 +17,8 @@ import SceneQuiz from './SceneQuiz'
 import StoryCard from './StoryCard'
 import { sceneCardMotion } from './sceneMotion'
 import { buildChapters, chapterOf } from './chapters'
-// 성지 조감 지도(라이트·다크 같은 구도) — 테마 전환 선요청 매니페스트(themeAssets)가 단일 출처
-import { QUEST_MAP_MOBILE, QUEST_MAP_PC } from '../../../utils/themeAssets'
+// 성지 조감 지도(라이트·다크 같은 구도) — 스켈레톤과 같은 배경을 깐다(useQuestBg)
+import { useQuestBgStyle } from './useQuestBg'
 
 type Game = ReturnType<typeof useBluemarbleGame>
 
@@ -34,7 +33,7 @@ const timeUntil = (iso?: string) => {
 
 export default function JourneyView({ game, onGoLeague, header }: { game: Game; onGoLeague: () => void; header?: ReactNode }) {
   const navigate = useNavigate()
-  const { theme } = useTheme()
+  const bgStyle = useQuestBgStyle()
   const { state, session, tiles, pendingQuiz, isGameDone, currentTile, startMutation, abandonMutation, advanceMutation, rabbitQuery, sfx } = game
   const [showLb, setShowLb] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -98,10 +97,8 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
             ? 'done'
             : null
 
-  const bg = theme === 'dark' ? { pc: QUEST_MAP_PC.dark, m: QUEST_MAP_MOBILE.dark } : { pc: QUEST_MAP_PC.light, m: QUEST_MAP_MOBILE.light }
-
   return (
-    <div className="qj" style={{ ['--qj-bg' as string]: `url(${bg.pc})`, ['--qj-bg-m' as string]: `url(${bg.m})` }}>
+    <div className="qj" style={bgStyle}>
       {/* PC 지도 판 — 카드 폭에 맞춘 원본 비율 그림이 스크롤 내내 제자리에 머문다(모바일은 .qj 고정 배경) */}
       <div className="qj-backdrop" aria-hidden />
       <div className="qj-stage">

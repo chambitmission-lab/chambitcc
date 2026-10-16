@@ -9,6 +9,7 @@ import { prefetchTitles } from '../../hooks/useTitles'
 import { prefetchWeeklyStory } from '../../hooks/useWeeklyStory'
 import { prefetchAboutContent } from '../../hooks/useAboutContent'
 import { prefetchSituation } from '../../hooks/useSituation'
+import { prefetchQuest } from '../../hooks/useBluemarble'
 import { tokenStore } from '../../utils/tokenStore'
 import { isPastor } from '../../utils/access'
 import { warmRouteThemeAssets } from '../../utils/themeAssets'
@@ -45,6 +46,9 @@ const RouteDataPrefetch = () => {
     // 칭호 도감·주간 스토리 — 청크와 나란히
     if (pathname === '/garden' && tokenStore.getAccess()) prefetchTitles(queryClient)
     if (pathname === '/weekly-story' && tokenStore.getAccess()) prefetchWeeklyStory(queryClient)
+    // 바이블 퀘스트 — 딥링크·새로고침 진입도 청크와 나란히 상태·칸·토끼를 띄운다
+    // (useBluemarble 은 프로필 선요청이 이미 메인 번들에 넣고 있어 정적 import 로 충분하다)
+    if (pathname === '/bluemarble' && tokenStore.getAccess()) prefetchQuest(queryClient)
     // 상황별 성구 — 청크 → 카테고리 → 히어로 구절 3단 직렬을 청크와 나란히 한 번에 띄운다
     if (pathname === '/bible/situation') prefetchSituation(queryClient)
     // 설교 — 목록 첫 페이지 + 최신 설교 인용절을 청크와 나란히 (딥링크·새로고침 진입용.
