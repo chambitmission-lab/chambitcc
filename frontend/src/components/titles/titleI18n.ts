@@ -186,6 +186,31 @@ const EN: Record<string, TitleText> = {
     description: 'One jot or one tittle shall in no wise pass (Matt 5:18) — 30 verses at 100% accuracy! Typos keep their distance from you.',
     hint: 'Type 30 verses with 100% accuracy',
   },
+  manna_first: {
+    name: 'First Manna Gathered',
+    description: 'What is it? (Ex 16:15) — you gathered the Word falling from heaven and inscribed your first verse.',
+    hint: 'Inscribe one verse in Manna Rain',
+  },
+  manna_canaan: {
+    name: 'Entering Canaan',
+    description: 'From Rameses to Canaan — you crossed the wilderness inscribing all eight verses. The quill key sound is now unlocked!',
+    hint: 'Inscribe all eight verses in a single Manna Rain run',
+  },
+  manna_omer: {
+    name: 'A Full Omer',
+    description: 'An omer for every man (Ex 16:16) — thirty verses inscribed without dropping a single word.',
+    hint: 'Inscribe 30 verses perfectly in Manna Rain',
+  },
+  manna_every_morning: {
+    name: 'Gathered Every Morning',
+    description: 'They gathered it every morning (Ex 16:21) — seven days of Today’s Manna.',
+    hint: 'Play Today’s Manna on 7 days',
+  },
+  manna_crown: {
+    name: 'First of the Gatherers',
+    description: 'You gathered the most in church that day. He that gathered much had nothing over (Ex 16:18) — but today, you’re first!',
+    hint: 'Finish 1st in Today’s Manna (a day and level with 3+ players)',
+  },
   living_legend: {
     name: 'Living Legend',
     description: "Dawn and midnight, a hundred days and sixty-six books — every title in the collection has gathered before you. The titles aren't the legend anymore. You are.",

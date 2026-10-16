@@ -2628,13 +2628,23 @@
 }
 
 /* 아날로그 — 쇠테 두른 둥근 타자기 키 */
+/* 타자기·연필·만년필·깃펜 — 2×2 */
 .bt-sound__plate--analog {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1fr;
+}
+.bt-cap.is-locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.bt-cap__lock {
+  font-size: 12px;
+  margin-right: 2px;
+  vertical-align: -1px;
 }
 .bt-sound__plate--analog .bt-cap__top {
   align-items: center;
   min-height: 52px;
-  padding: 8px 6px;
+  padding: 8px 10px;
   border-radius: 999px;
   border: 2px solid color-mix(in srgb, var(--stem) 45%, var(--cap-edge));
   text-align: center;

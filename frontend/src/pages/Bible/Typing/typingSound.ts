@@ -21,12 +21,21 @@ import { SPRITE_ANCHOR_RATIO, TYPING_SPRITES } from './typingSprites'
 import { TYPING_AMBIENTS } from './typingAmbients'
 import { safeStorage } from '../../../utils/safeStorage'
 
-export type SoundTheme = 'off' | 'pen' | 'pencil' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
+export type SoundTheme = 'off' | 'pen' | 'quill' | 'pencil' | 'typewriter' | 'keys' | 'real-thock' | 'real-click' | 'real-custom' | 'real-ibm' | 'real-blue' | 'real-jade'
 // done = 한 절 새김(짧은 종) · finish = 한 장 마침·목표·오늘의 한 절처럼 큰 마무리(길게 울리는 종)
 export type SoundKind = 'key' | 'space' | 'back' | 'done' | 'finish'
 
-// 메뉴의 키캡 한 장씩 — 짧은 이름·의성어·축 색(실제 스위치 색을 따랐다)·판. 메뉴 순서도 이 순서
-export const SOUND_THEMES: { key: Exclude<SoundTheme, 'off'>; label: string; desc: string; stem: string; group: 'keys' | 'analog' }[] = [
+// 메뉴의 키캡 한 장씩 — 짧은 이름·의성어·축 색(실제 스위치 색을 따랐다)·판. 메뉴 순서도 이 순서.
+// unlock = 이 칭호를 받아야 열리는 보상 소리(잠긴 동안 메뉴에 자물쇠와 lockedDesc)
+export const SOUND_THEMES: {
+  key: Exclude<SoundTheme, 'off'>
+  label: string
+  desc: string
+  stem: string
+  group: 'keys' | 'analog'
+  unlock?: string
+  lockedDesc?: string
+}[] = [
   // 가장 반응이 좋은 소리라 맨 앞에
   { key: 'real-custom', label: '커스텀', desc: '깊은 도독도독', stem: '#7c5cff', group: 'keys' },
   { key: 'real-blue', label: '청축', desc: '또렷한 딸깍딸깍', stem: '#2f7cf6', group: 'keys' },
@@ -38,6 +47,8 @@ export const SOUND_THEMES: { key: Exclude<SoundTheme, 'off'>; label: string; des
   { key: 'typewriter', label: '타자기', desc: '다 쓰면 종소리', stem: '#8a8f98', group: 'analog' },
   { key: 'pencil', label: '연필', desc: '사각사각', stem: '#e0a100', group: 'analog' },
   { key: 'pen', label: '만년필', desc: '매끈하게', stem: '#3b4a6b', group: 'analog' },
+  // 만나 내리기 '가나안 입성' 보상 — 서기관의 깃펜
+  { key: 'quill', label: '깃펜', desc: '서기관의 사각', stem: '#8a5a2b', group: 'analog', unlock: 'manna_canaan', lockedDesc: '만나 내리기 가나안 입성' },
 ]
 
 export type AmbientKind = 'off' | 'piano-gentle' | 'piano-soft'
@@ -333,6 +344,19 @@ export const playTypingSound = (requested: SoundKind) => {
       const dur = kind === 'space' ? 0.09 : 0.05 + Math.random() * 0.03
       burst(ac, { type: 'bandpass', freq: 3800, q: 0.9, dur, gain: kind === 'back' ? 0.02 : 0.045 })
       if (kind !== 'back') burst(ac, { type: 'bandpass', freq: 5200, q: 1.2, dur: dur * 0.6, gain: 0.02, at: dur * 0.5 })
+      return
+    }
+    if (theme === 'quill') {
+      if (kind === 'done') {
+        tone(ac, { freq: 784, dur: 0.5, gain: 0.05 })
+        tone(ac, { freq: 1175, dur: 0.6, gain: 0.035, at: 0.09 })
+        return
+      }
+      // 깃펜 — 펜촉이 종이에 닿는 작은 '톡' 뒤로 날카롭게 짧게 긁힌다(만년필보다 높고 거칠게)
+      const dur = kind === 'space' ? 0.12 : 0.035 + Math.random() * 0.025
+      tone(ac, { freq: 2300 + Math.random() * 300, dur: 0.012, gain: kind === 'back' ? 0.008 : 0.016, type: 'triangle' })
+      burst(ac, { type: 'bandpass', freq: 5200, q: 2.2, dur, gain: kind === 'back' ? 0.018 : 0.04, at: 0.004 })
+      if (kind !== 'back') burst(ac, { type: 'highpass', freq: 7000, dur: dur * 0.5, gain: 0.014, at: dur * 0.6 })
       return
     }
     if (theme === 'typewriter') {

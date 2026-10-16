@@ -499,3 +499,149 @@ export const deleteGlossaryLine = async (id: number): Promise<void> => {
     errorMessage: '한 줄을 지우지 못했어요',
   })
 }
+
+// ── 만나 내리기(필사 미니게임) ─────────────────────────────
+
+export type MannaKind = 'daily' | 'free'
+export type MannaMode = 'easy' | 'normal' | 'hard'
+
+export interface MannaVerse {
+  id: number
+  book_number: number
+  chapter: number
+  verse: number
+  /** "요한복음 3:16" */
+  ref: string
+  text: string
+}
+
+/** 한 판에 쓸 말씀 여덟 절(짧은 절부터). daily 는 오늘 교회 전체가 같은 판, seed 로 끼어드는 만나까지 같게 */
+export interface MannaSet {
+  kind: MannaKind
+  date: string
+  seed: number
+  verses: MannaVerse[]
+}
+
+export interface MannaRunInput {
+  kind: MannaKind
+  mode: MannaMode
+  set_date: string
+  score: number
+  verses_done: number
+  perfect_verses: number
+  words_caught: number
+  words_missed: number
+  max_combo: number
+  duration_ms: number
+}
+
+export interface MannaRunResult {
+  run_id: number
+  /** 어제 판을 자정 넘어 보내면 free 로 바뀐다 */
+  kind: MannaKind
+  mode: MannaMode
+  /** false 면 사람이 낼 수 없는 기록으로 판정돼 순위·칭호에서 빠졌다 */
+  counted: boolean
+  score: number
+  is_best: boolean
+  best: number
+  /** 오늘의 만나 그 난이도 순위(연습 판이면 null) */
+  rank: number | null
+  players: number
+}
+
+export interface MannaBoardEntry {
+  rank: number
+  user_id: number
+  name: string
+  avatar_url: string | null
+  team_key: string | null
+  score: number
+  verses_done: number
+  reached_canaan: boolean
+  is_me: boolean
+}
+
+export interface MannaBoard {
+  date: string
+  mode: MannaMode
+  players: number
+  entries: MannaBoardEntry[]
+  me: { rank: number; score: number } | null
+}
+
+export interface MannaTeamStanding {
+  key: string
+  name: string
+  color: string
+  /** 1인당 평균 점수(부서 점수) */
+  score: number
+  total: number
+  members: number
+  participants: number
+  rank: number
+}
+
+export interface MannaTeams {
+  week_start: string
+  week_ends_at: string
+  teams: MannaTeamStanding[]
+  team_options: { key: string; name: string; color: string }[]
+  me: { team_key: string | null; points: number }
+  team_top: { user_id: number; name: string; avatar_url: string | null; points: number; is_me: boolean }[]
+  weights: Record<MannaMode, number>
+}
+
+export interface MannaSummary {
+  date: string
+  best: Record<MannaMode, number>
+  runs: number
+  perfect_total: number
+  canaan_count: number
+  today: { mode: MannaMode; score: number; rank: number | null; players: number } | null
+  players_today: number
+  team_key: string | null
+}
+
+/** 로그인 없이도 받을 수 있다(연습은 누구나) — 토큰이 있으면 붙는다 */
+export const getMannaSet = async (kind: MannaKind): Promise<MannaSet> => {
+  const res = await request<Envelope<MannaSet>>(`/bible-typing/manna/set?kind=${kind}`, {
+    errorMessage: '오늘의 만나를 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const submitMannaRun = async (input: MannaRunInput): Promise<MannaRunResult> => {
+  const res = await request<Envelope<MannaRunResult>>('/bible-typing/manna/runs', {
+    method: 'POST',
+    auth: 'required',
+    json: input,
+    errorMessage: '기록을 저장하지 못했어요',
+  })
+  return res.data
+}
+
+export const getMannaBoard = async (mode: MannaMode): Promise<MannaBoard> => {
+  const res = await request<Envelope<MannaBoard>>(`/bible-typing/manna/board?mode=${mode}`, {
+    auth: 'required',
+    errorMessage: '오늘의 만나 순위를 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const getMannaTeams = async (): Promise<MannaTeams> => {
+  const res = await request<Envelope<MannaTeams>>('/bible-typing/manna/teams', {
+    auth: 'required',
+    errorMessage: '부서 대항전을 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const getMannaSummary = async (): Promise<MannaSummary> => {
+  const res = await request<Envelope<MannaSummary>>('/bible-typing/manna/summary', {
+    auth: 'required',
+    errorMessage: '만나 내리기 기록을 불러오지 못했어요',
+  })
+  return res.data
+}

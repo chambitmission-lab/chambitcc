@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import { useBibleBooks } from '../../../hooks/useBible'
-import { useTypingHome, useTypingRelayLive } from '../../../hooks/useBibleTyping'
+import { useMannaSummary, useTypingHome, useTypingRelayLive } from '../../../hooks/useBibleTyping'
 import { useTitles } from '../../../hooks/useTitles'
 import { tokenStore } from '../../../utils/tokenStore'
 import { sessionPath, useIgnorePunct, useTypingMode } from './typingPrefs'
@@ -34,6 +34,7 @@ const TypingHome = () => {
   const daily = home?.daily
   const church = home?.church_bible
   const { data: titles } = useTitles(loggedIn)
+  const { data: manna } = useMannaSummary()
   const [mode, setMode] = useTypingMode()
   const [ignorePunct, setIgnorePunct] = useIgnorePunct()
 
@@ -76,6 +77,25 @@ const TypingHome = () => {
                 <span className="bt-sprint-entry__title">말씀 스프린트</span>
                 <span className="bt-sprint-entry__desc">
                   익숙한 5절 시간 경주{stats?.best_cpm ? ` · 나의 최고 ${stats.best_cpm}타` : ''} · 이번 주 순위
+                </span>
+              </span>
+              <span className="material-icons-round" aria-hidden>
+                chevron_right
+              </span>
+            </button>
+
+            <button type="button" className="bt-card bt-sprint-entry bt-manna-entry" onClick={() => navigate('/bible/typing/manna')}>
+              <span className="material-icons-round bt-sprint-entry__icon" aria-hidden>
+                grain
+              </span>
+              <span className="bt-sprint-entry__body">
+                <span className="bt-sprint-entry__title">만나 내리기</span>
+                <span className="bt-sprint-entry__desc">
+                  {manna?.today?.rank
+                    ? `오늘의 만나 ${manna.today.rank}위 · ${manna.today.score.toLocaleString('ko-KR')}점`
+                    : manna && manna.players_today > 0
+                      ? `오늘 ${manna.players_today}명이 거뒀어요 · 부서 대항전`
+                      : '내려오는 말씀을 순서대로 거두는 게임 · 부서 대항전'}
                 </span>
               </span>
               <span className="material-icons-round" aria-hidden>

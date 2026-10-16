@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react'
 import { useDismissOnOutside } from '../../../hooks/useDismissOnOutside'
+import { useTitles } from '../../../hooks/useTitles'
+import { tokenStore } from '../../../utils/tokenStore'
 import {
   AMBIENTS,
   SOUND_THEMES,
@@ -25,6 +27,10 @@ const SoundMenu = () => {
   const ambient = useSyncExternalStore(subscribeSound, getAmbient)
   const [open, setOpen] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
+  // 보상 소리(깃펜 등)는 칭호를 받아야 열린다 — 메뉴를 열었을 때만 칭호를 받아 온다
+  const { data: titles } = useTitles(open && !!tokenStore.getAccess())
+  const earned = new Set((titles?.titles ?? []).filter((t) => t.earned).map((t) => t.key))
+  const isLocked = (c: Cap) => !!c.unlock && !earned.has(c.unlock)
 
   useEffect(() => {
     preloadTypingSound()
@@ -44,23 +50,35 @@ const SoundMenu = () => {
 
   const on = theme !== 'off' || ambient !== 'off'
 
-  const renderCap = (c: Cap) => (
-    <button
-      key={c.key}
-      type="button"
-      role="menuitemradio"
-      aria-checked={theme === c.key}
-      className={`bt-cap${theme === c.key ? ' is-on' : ''}`}
-      style={{ '--stem': c.stem } as CSSProperties}
-      onClick={() => setSoundTheme(c.key)}
-    >
-      <span className="bt-cap__top">
-        <span className="bt-cap__stem" aria-hidden />
-        <span className="bt-cap__label">{c.label}</span>
-        <span className="bt-cap__sub">{c.desc}</span>
-      </span>
-    </button>
-  )
+  const renderCap = (c: Cap) => {
+    const locked = isLocked(c)
+    return (
+      <button
+        key={c.key}
+        type="button"
+        role="menuitemradio"
+        aria-checked={theme === c.key}
+        aria-disabled={locked || undefined}
+        title={locked ? `${c.lockedDesc} 보상` : undefined}
+        className={`bt-cap${theme === c.key ? ' is-on' : ''}${locked ? ' is-locked' : ''}`}
+        style={{ '--stem': c.stem } as CSSProperties}
+        onClick={() => !locked && setSoundTheme(c.key)}
+      >
+        <span className="bt-cap__top">
+          <span className="bt-cap__stem" aria-hidden />
+          <span className="bt-cap__label">
+            {locked && (
+              <span className="material-icons-round bt-cap__lock" aria-hidden>
+                lock
+              </span>
+            )}
+            {c.label}
+          </span>
+          <span className="bt-cap__sub">{locked ? c.lockedDesc : c.desc}</span>
+        </span>
+      </button>
+    )
+  }
 
   return (
     <div className="bt-sound" ref={boxRef}>

@@ -28,6 +28,11 @@ import {
   sendTypingRelayPresence,
   submitTypingRecord,
   updateTypingGoal,
+  getMannaBoard,
+  getMannaSummary,
+  getMannaTeams,
+  submitMannaRun,
+  type MannaMode,
   type TypingCheerKind,
   type TypingHomeBundle,
   type TypingRecordInput,
@@ -37,6 +42,8 @@ import {
   type TypingStats,
 } from '../api/bibleTyping'
 import { getBibleVerse } from '../api/bible'
+import { chooseLeagueTeam } from '../api/bibleLeague'
+import { QK_LEAGUE } from './useBibleLeague'
 import { isApiError } from '../api/utils/request'
 import { bibleReadingKeys } from './useBibleReading'
 import { profileKeys } from './queryKeys'
@@ -59,6 +66,10 @@ export const bibleTypingKeys = {
   relayInvite: (code: string) => [...bibleTypingKeys.all, 'relayInvite', code] as const,
   glossaryLinesAll: () => [...bibleTypingKeys.all, 'glossaryLines'] as const,
   glossaryLines: (terms: string) => [...bibleTypingKeys.all, 'glossaryLines', terms] as const,
+  manna: () => [...bibleTypingKeys.all, 'manna'] as const,
+  mannaSummary: () => [...bibleTypingKeys.manna(), 'summary'] as const,
+  mannaBoard: (mode: MannaMode) => [...bibleTypingKeys.manna(), 'board', mode] as const,
+  mannaTeams: () => [...bibleTypingKeys.manna(), 'teams'] as const,
 }
 
 const loggedIn = () => !!tokenStore.getAccess()
@@ -620,5 +631,57 @@ export const useDeleteGlossaryLine = () => {
   return useMutation({
     mutationFn: deleteGlossaryLine,
     onSuccess: () => void qc.invalidateQueries({ queryKey: bibleTypingKeys.glossaryLinesAll() }),
+  })
+}
+
+// ── 만나 내리기 ─────────────────────────────────────────
+
+/** 허브 카드·시작 화면 — 난이도별 최고·오늘의 만나 내 순위 */
+export const useMannaSummary = () =>
+  useQuery({
+    queryKey: bibleTypingKeys.mannaSummary(),
+    queryFn: getMannaSummary,
+    enabled: loggedIn(),
+    staleTime: 1000 * 30,
+  })
+
+/** 오늘의 만나 순위(난이도별) */
+export const useMannaBoard = (mode: MannaMode, enabled = true) =>
+  useQuery({
+    queryKey: bibleTypingKeys.mannaBoard(mode),
+    queryFn: () => getMannaBoard(mode),
+    enabled: loggedIn() && enabled,
+    staleTime: 1000 * 20,
+  })
+
+/** 이번 주 부서 대항전 */
+export const useMannaTeams = (enabled = true) =>
+  useQuery({
+    queryKey: bibleTypingKeys.mannaTeams(),
+    queryFn: getMannaTeams,
+    enabled: loggedIn() && enabled,
+    staleTime: 1000 * 30,
+  })
+
+export const useSubmitManna = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: submitMannaRun,
+    onSuccess: (result) => {
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.manna() })
+      if (result.counted) scheduleTitleEvaluation()
+    },
+  })
+}
+
+/** 부서 고르기 — 말씀 리그의 팀을 그대로 쓴다(한 주에 한 번 바꿀 수 있다) */
+export const useChooseMannaTeam = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: chooseLeagueTeam,
+    onSuccess: (league) => {
+      qc.setQueryData(QK_LEAGUE, league)
+      void qc.invalidateQueries({ queryKey: bibleTypingKeys.manna() })
+    },
   })
 }
