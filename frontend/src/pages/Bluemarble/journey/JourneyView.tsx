@@ -70,6 +70,7 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
 
   const steps = state?.daily_steps
   const stepsLeft = steps?.remaining ?? 5
+  const stepsLimit = steps?.limit ?? 5
   const busy = !!game.activeNarrative || game.showQuiz || advanceMutation.isPending
   const canWalk = !isGameDone && !busy && (!!pendingQuiz || stepsLeft > 0) && viewIdx == null
   const nextTile = tiles.find((t) => t.position === targetPos) ?? null
@@ -111,10 +112,11 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
             </p>
             <p className="qj-bar-title">{liveChapter?.name}</p>
           </div>
-          <div className="qj-steps" aria-label={`오늘 남은 걸음 ${stepsLeft}`}>
+          {/* 걸은 만큼 발자국이 찍힌다(앞에서부터 채움) — 남은 칸은 점선. 남은 걸음을 채움으로 그리면 걸을수록 비어 "체크가 안 된다"로 읽혔다 */}
+          <div className="qj-steps" aria-label={`오늘 걸은 걸음 ${stepsLimit - stepsLeft}/${stepsLimit}`}>
             <span className="qj-steps-label">오늘의 걸음</span>
-            {Array.from({ length: steps?.limit ?? 5 }).map((_, i) => (
-              <span key={i} className={`qj-step ${i < stepsLeft ? 'is-full' : ''}`}>
+            {Array.from({ length: stepsLimit }).map((_, i) => (
+              <span key={i} className={`qj-step ${i < stepsLimit - stepsLeft ? 'is-full' : ''}`}>
                 <BmIcon name="footprints" size={14} strokeWidth={1.8} />
               </span>
             ))}
