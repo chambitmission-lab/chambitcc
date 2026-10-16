@@ -34,7 +34,6 @@ import IntercessionCard from './components/IntercessionCardGate'
 import SurveyBanner from './components/SurveyBanner'
 import ElectionBanner from './components/ElectionBanner'
 import TodayPlanCard from './components/TodayPlanCard'
-import TodayChurchCard from './components/TodayChurchCard'
 import SermonTakeawayEcho from './components/SermonTakeawayEcho'
 import LiveReadingCard from './components/LiveReadingCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
@@ -467,10 +466,6 @@ const NewHome = () => {
               ref={sidebarStickyRef}
               className="lg:order-2 lg:w-[368px] lg:shrink-0 lg:sticky lg:self-start lg:pb-4"
             >
-
-            {/* 오늘의 교회 — 기념일(1년·6개월·한 달 전 오늘 기록)이 있는 날만 봉투 한 줄. 열어 본 날·평소엔
-                렌더하지 않아 묵상 히어로가 그대로 첫 카드가 된다 */}
-            <TodayChurchCard />
 
             {/* 오늘의 묵상 카드 — 시간대별 히어로가 홈의 첫인사 역할 */}
             {/* 카드 래퍼 id 는 모바일 요약 스트립(HomeQuickStrip)의 바로가기 목적지 */}

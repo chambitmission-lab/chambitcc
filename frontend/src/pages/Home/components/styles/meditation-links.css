@@ -56,3 +56,40 @@
 .meditation-deepen-link:hover .material-icons-round {
   transform: translateX(3px);
 }
+
+/* ── 오늘의 교회 봉투 (우상단 클러스터 맨 앞, TodayChurchEnvelope) ──
+   알람 버튼과 같은 유리 원 + 안 읽은 편지 금색 점. 처음 뜰 때 한 번만 부드럽게 맥박친다 —
+   계속 깜빡이면 사진 위에서 시선을 빼앗는다 */
+.today-envelope-btn {
+  position: relative;
+  animation: today-envelope-in 0.5s ease-out both;
+}
+
+.today-envelope-dot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--amber-icon);
+  box-shadow: 0 0 0 2px rgba(20, 24, 32, 0.55);
+  animation: today-envelope-pulse 1.6s ease-out 0.5s 2;
+}
+
+@keyframes today-envelope-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes today-envelope-pulse {
+  0% { box-shadow: 0 0 0 2px rgba(20, 24, 32, 0.55), 0 0 0 0 rgba(245, 158, 11, 0.55); }
+  100% { box-shadow: 0 0 0 2px rgba(20, 24, 32, 0.55), 0 0 0 9px rgba(245, 158, 11, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today-envelope-btn,
+  .today-envelope-dot {
+    animation: none;
+  }
+}
