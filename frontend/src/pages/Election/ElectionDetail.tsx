@@ -11,7 +11,7 @@
 // 현장 QR(관리자 현황판 '투표 QR')로 곧장 들어오는 화면이다. 로그인 안 한 폰이면 선거를 묻기 전에
 // 로그인부터 청하고, 로그인 뒤 이 주소로 돌아온다(redirect_after_login). 투표 자격(선거인 명부)은
 // 서버가 가른다 — 명부 밖이면 403 → 아래 "참여할 수 없어요" 안내.
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCastVote, useElection } from '../../hooks/useElections'
 import { showToast } from '../../utils/toast'
@@ -20,7 +20,10 @@ import type { ElectionCandidate, ElectionDetail as ElectionDetailData, ElectionR
 import { CenterNote, CheckIcon, RailCard, Spinner, SurveyShell } from '../Survey/surveyUi'
 import { cardCls, phaseLabel, thresholdText } from './electionShared'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
-import { CandidateAvatar, TallyBars, TurnoutBar } from './electionUi'
+import { CandidateAvatar, ClosesAtNote, PracticeBanner, ResultBreakdown, TallyBars, TurnoutBar } from './electionUi'
+
+// 선거관리위원만 여는 현황판 — 성도 대부분은 받지 않도록 따로 나눠 싣는다
+const ElectionBoard = lazy(() => import('../Admin/components/ElectionBoard'))
 
 /** 투표용 후보 카드 — 사진이 주인공, 고르면 브랜드 링 + 체크 (PC 는 "선택함" 띠까지) */
 const CandidateBallotCard = ({
@@ -87,20 +90,26 @@ const BallotRail = ({
   max,
   picked,
   pending,
+  closesAt,
   onRemove,
   onSubmit,
+  onAbstain,
 }: {
   roundNo: number
   max: number
   picked: ElectionCandidate[]
   pending: boolean
+  closesAt?: string | null
   onRemove: (id: number) => void
   onSubmit: () => void
+  /** 기권을 받는 선거만 */
+  onAbstain?: () => void
 }) => {
   const empty = Math.max(0, max - picked.length)
   return (
     <RailCard>
       <p className="text-[15px] font-bold text-ink-muted">{roundNo}차 · 내 투표용지</p>
+      {closesAt ? <ClosesAtNote closesAt={closesAt} className="mt-1 text-[14px] text-ink-muted" /> : null}
       <p className="mt-1 text-ink-strong tabular-nums">
         <b className="text-[40px] font-extrabold text-brand leading-none">{picked.length}</b>
         <span className="text-[20px] font-bold"> / {max}명</span>
@@ -147,6 +156,16 @@ const BallotRail = ({
         {pending ? '제출하는 중…' : '투표하기'}
       </button>
       <p className="mt-2.5 text-[13.5px] text-ink-muted text-center">무기명이라 제출하면 고칠 수 없어요</p>
+      {onAbstain ? (
+        <button
+          type="button"
+          onClick={onAbstain}
+          disabled={pending}
+          className="mt-3 w-full h-12 rounded-2xl border border-gray-200 dark:border-white/[0.12] text-[16px] font-bold text-ink-muted hover:text-ink-strong transition-colors disabled:opacity-40"
+        >
+          기권하기
+        </button>
+      ) : null}
     </RailCard>
   )
 }
@@ -158,12 +177,15 @@ const BallotRail = ({
 const BallotConfirm = ({
   picked,
   max,
+  abstain,
   pending,
   onCancel,
   onConfirm,
 }: {
   picked: ElectionCandidate[]
   max: number
+  /** 기권 표 — 후보 없이 "기권"으로 낸다 */
+  abstain: boolean
   pending: boolean
   onCancel: () => void
   onConfirm: () => void
@@ -190,12 +212,14 @@ const BallotConfirm = ({
         className="w-full sm:max-w-md lg:max-w-[560px] max-h-[calc(90vh/var(--az,1))] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] sm:pb-5 lg:p-8 shadow-2xl animate-pop-in"
       >
         <h3 id="ballot-confirm-title" className="text-[19px] lg:text-[26px] font-extrabold text-ink-strong tracking-[-0.02em]">
-          이대로 투표할까요?
+          {abstain ? '기권할까요?' : '이대로 투표할까요?'}
         </h3>
         <p className="mt-1.5 text-[13.5px] lg:text-[16px] text-ink-muted leading-relaxed break-keep">
-          {picked.length < max
-            ? `${max}명까지 고를 수 있는데 ${picked.length}명만 골랐어요. `
-            : ''}
+          {abstain
+            ? '아무 후보도 고르지 않은 기권 표로 들어가요. 투표에 참여한 것으로 세어져요. '
+            : picked.length < max
+              ? `${max}명까지 고를 수 있는데 ${picked.length}명만 골랐어요. `
+              : ''}
           무기명 투표라 제출하면 고칠 수 없어요.
         </p>
         <ul className="mt-4 lg:mt-6 space-y-2 lg:space-y-3">
@@ -222,7 +246,7 @@ const BallotConfirm = ({
             disabled={pending}
             className="h-12 lg:h-16 rounded-2xl bg-brand text-white text-[15px] lg:text-[19px] font-bold disabled:opacity-50"
           >
-            {pending ? '제출하는 중…' : '투표하기'}
+            {pending ? '제출하는 중…' : abstain ? '기권하기' : '투표하기'}
           </button>
         </div>
       </div>
@@ -235,6 +259,7 @@ const RoundResultCard = ({ round, candidates }: { round: ElectionRound; candidat
   <section className={`${cardCls} p-4 lg:p-6`}>
     <div className="flex items-baseline justify-between gap-2 mb-3 lg:mb-5">
       <h3 className="text-[14.5px] font-extrabold text-ink-strong lg:text-[20px]">
+        {round.is_practice ? '연습 ' : ''}
         {round.round_no}차 {round.status === 'closed' ? '결과' : '현황'}
       </h3>
       <span className="text-[11.5px] text-ink-muted tabular-nums lg:text-[14.5px]">
@@ -242,7 +267,14 @@ const RoundResultCard = ({ round, candidates }: { round: ElectionRound; candidat
       </span>
     </div>
     {round.result ? (
-      <TallyBars result={round.result} candidates={candidates} basis={round.rules.threshold_basis} large />
+      <>
+        <TallyBars result={round.result} candidates={candidates} basis={round.rules.threshold_basis} large />
+        {round.status === 'closed' ? (
+          <div className="mt-3 lg:mt-4">
+            <ResultBreakdown result={round.result} large />
+          </div>
+        ) : null}
+      </>
     ) : (
       <TurnoutBar voted={round.voted_count} total={round.voters_total} large />
     )}
@@ -281,6 +313,8 @@ const ElectionDetail = () => {
   const { data: election, isLoading, error } = useElection(id, loggedIn)
   const [selected, setSelected] = useState<number[]>([])
   const [confirming, setConfirming] = useState(false)
+  const [abstaining, setAbstaining] = useState(false)
+  const [showBoard, setShowBoard] = useState(false)
   const isLg = useMediaQuery('(min-width: 1024px)')
 
   const round = election?.rounds.length ? election.rounds[election.rounds.length - 1] : null
@@ -301,10 +335,10 @@ const ElectionDetail = () => {
   }, [election, openRound])
 
   const vote = useCastVote({
-    onSuccess: () => {
+    onSuccess: (_r, vars) => {
       setConfirming(false)
       setSelected([])
-      showToast('투표를 마쳤어요. 참여해 주셔서 감사합니다', 'success')
+      showToast(vars.abstain ? '기권 표를 냈어요. 참여해 주셔서 감사합니다' : '투표를 마쳤어요. 참여해 주셔서 감사합니다', 'success')
     },
     onError: (e) => showToast(e.message, 'error'),
   })
@@ -359,8 +393,15 @@ const ElectionDetail = () => {
   const picked = ballotCandidates.filter((c) => selected.includes(c.id))
   const submit = () => {
     if (!openRound || !selected.length) return
+    setAbstaining(false)
     setConfirming(true)
   }
+  const abstain = () => {
+    if (!openRound) return
+    setAbstaining(true)
+    setConfirming(true)
+  }
+  const allowAbstain = !!openRound?.rules.allow_abstain
 
   const canVote = election.can_vote && !!openRound
   const pastRounds = election.rounds.filter((r) => r !== openRound)
@@ -378,13 +419,35 @@ const ElectionDetail = () => {
             max={max}
             picked={picked}
             pending={vote.isPending}
+            closesAt={openRound.closes_at}
             onRemove={toggle}
             onSubmit={submit}
+            onAbstain={allowAbstain ? abstain : undefined}
           />
         ) : undefined
       }
     >
       <div className={`px-4 pt-5 space-y-4 lg:px-6 lg:pt-6 lg:space-y-5 ${canVote ? 'pb-28 lg:pb-8' : 'lg:pb-4'}`}>
+        {round?.is_practice ? <PracticeBanner large /> : null}
+
+        {election.is_manager ? (
+          <section className={`${cardCls} p-4 lg:p-5 flex items-center gap-3`}>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-bold tracking-[0.08em] text-brand lg:text-[13px]">선거관리위원</p>
+              <p className="mt-0.5 text-[14px] font-bold text-ink-strong break-keep lg:text-[17px]">
+                현황판에서 투표 시작·마감, 종이 표와 투표용지 교부를 다뤄요
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowBoard(true)}
+              className="shrink-0 px-4 py-2.5 rounded-xl bg-brand text-white text-[13.5px] font-bold lg:text-[15px]"
+            >
+              현황판 열기
+            </button>
+          </section>
+        ) : null}
+
         <section className={`${cardCls} p-4 lg:p-6`}>
           <p className="text-[11px] font-bold tracking-[0.1em] text-brand uppercase lg:text-[14px]">{phaseLabel(election)}</p>
           <h2 className="mt-1 text-[19px] font-extrabold tracking-[-0.02em] text-ink-strong leading-snug break-keep lg:mt-1.5 lg:text-[28px]">
@@ -414,6 +477,9 @@ const ElectionDetail = () => {
                 <h2 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] lg:text-[24px]">
                   {openRound.round_no}차 투표 — {max}명까지 골라주세요
                 </h2>
+                {openRound.closes_at ? (
+                  <ClosesAtNote closesAt={openRound.closes_at} className="mt-1 text-[12.5px] text-ink-muted lg:hidden" />
+                ) : null}
                 <p className="hidden lg:block mt-1.5 text-[16px] text-ink-muted break-keep">
                   후보 사진을 누르면 골라지고, 다시 누르면 빠져요. 다 고르면 오른쪽 <b className="text-ink-strong">투표하기</b>를 누르세요.
                 </p>
@@ -429,6 +495,16 @@ const ElectionDetail = () => {
                   />
                 ))}
               </div>
+              {allowAbstain ? (
+                <button
+                  type="button"
+                  onClick={abstain}
+                  disabled={vote.isPending}
+                  className="lg:hidden mt-3 w-full py-3 rounded-2xl border border-gray-200 dark:border-white/[0.12] text-[14px] font-bold text-ink-muted disabled:opacity-40"
+                >
+                  아무도 고르지 않고 기권하기
+                </button>
+              ) : null}
             </section>
           ) : (
             <>
@@ -484,12 +560,25 @@ const ElectionDetail = () => {
 
       {confirming && canVote ? (
         <BallotConfirm
-          picked={picked}
+          picked={abstaining ? [] : picked}
           max={max}
+          abstain={abstaining}
           pending={vote.isPending}
           onCancel={() => setConfirming(false)}
-          onConfirm={() => vote.mutate({ id: election.id, candidateIds: selected })}
+          onConfirm={() =>
+            vote.mutate(
+              abstaining
+                ? { id: election.id, candidateIds: [], abstain: true }
+                : { id: election.id, candidateIds: selected }
+            )
+          }
         />
+      ) : null}
+
+      {showBoard ? (
+        <Suspense fallback={null}>
+          <ElectionBoard electionId={election.id} onClose={() => setShowBoard(false)} />
+        </Suspense>
       ) : null}
     </SurveyShell>
   )

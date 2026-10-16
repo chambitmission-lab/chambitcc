@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 import { getStoredLanguage } from '../../locales'
 import {
   bufferedRequests,
+  promptValid,
   setDialogEmitter,
   type DialogRequest,
 } from '../../utils/confirmDialog'
@@ -71,21 +72,30 @@ export const ConfirmDialogHost = () => {
   }, [])
 
   const current = queue[0]
+  // promptDialog 입력란 — 대화상자가 바뀌면 비운다(렌더 중 상태 조정)
+  const [text, setText] = useState('')
+  const [textFor, setTextFor] = useState(current?.id)
+  if (textFor !== current?.id) {
+    setTextFor(current?.id)
+    setText('')
+  }
+  const canConfirm = promptValid(current?.input, text)
 
   const close = useCallback((result: boolean) => {
     setQueue((q) => {
       const [head, ...rest] = q
+      if (result) head?.onText?.(text)
       head?.resolve(result)
       return rest
     })
-  }, [])
+  }, [text])
 
-  // ESC = 취소 / Enter = 확인, 열려 있는 동안 배경 스크롤 잠금
+  // ESC = 취소 / Enter = 확인(입력 조건을 채웠을 때만), 열려 있는 동안 배경 스크롤 잠금
   useEffect(() => {
     if (!current) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close(false)
-      else if (e.key === 'Enter') close(true)
+      else if (e.key === 'Enter' && !e.isComposing && canConfirm) close(true)
     }
     window.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
@@ -94,7 +104,7 @@ export const ConfirmDialogHost = () => {
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [current, close])
+  }, [current, close, canConfirm])
 
   if (!current) return null
 
@@ -135,7 +145,7 @@ export const ConfirmDialogHost = () => {
           {current.highlight && (
             <>
               <span className={`font-semibold ${tone.highlight}`}>
-                {current.highlight}
+                {renderLines(current.highlight)}
               </span>
               <br />
             </>
@@ -148,6 +158,16 @@ export const ConfirmDialogHost = () => {
             </>
           )}
         </p>
+        {current.input ? (
+          <input
+            autoFocus
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={current.input.placeholder ?? current.input.mustMatch}
+            maxLength={current.input.maxLength ?? 300}
+            className="-mt-3 mb-5 w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.04] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand"
+          />
+        ) : null}
         <div className="flex gap-3">
           {!current.alertOnly && (
             <button
@@ -158,9 +178,10 @@ export const ConfirmDialogHost = () => {
             </button>
           )}
           <button
-            autoFocus
+            autoFocus={!current.input}
             onClick={() => close(true)}
-            className={`flex-1 py-3 px-4 rounded-2xl font-semibold text-sm transition-all ${tone.confirm}`}
+            disabled={!canConfirm}
+            className={`flex-1 py-3 px-4 rounded-2xl font-semibold text-sm transition-all disabled:opacity-40 disabled:shadow-none ${tone.confirm}`}
           >
             {current.confirmText ?? labels.confirm}
           </button>

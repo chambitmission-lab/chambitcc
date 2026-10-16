@@ -1,21 +1,26 @@
-// 선거 만들기/고치기 — ① 선거 정보·당선 기준 ② 후보(사진·기호) ③ 선거인 명부.
+// 선거 만들기/고치기 — ① 선거 정보·선관위원·당선 기준 ② 후보(사진·기호) ③ 선거인 명부.
 //
 // 기준의 기본값은 서버(election_rules.DEFAULT_RULES)에서 받아 온다 — 이 화면에는 숫자를
 // 박아 두지 않는다. 투표가 시작된 뒤에는 후보를 넣고 뺄 수 없고(이름·사진 오타만),
 // 이미 투표한 선거인은 명부에서 뺄 수 없다(서버가 거절한다).
+// 명부는 직분·구역·나이로 거르고, 지난 선거 명부를 불러오거나 이름 명단을 붙여 넣어 채운다.
+// 회원 목록(roster-pool)에는 동명이인을 가를 단서(직분·구역·출생 연도·전화 끝자리)가 함께 온다.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Reorder, motion, useDragControls } from 'framer-motion'
-import { uploadCandidatePhoto } from '../../../api/election'
-import { getUserList } from '../../../api/user'
-import { useDefaultElectionRules, useSaveElection } from '../../../hooks/useElections'
+import { getElectionAdmin, uploadCandidatePhoto } from '../../../api/election'
+import {
+  useAdminElections,
+  useDefaultElectionRules,
+  useElectionRosterPool,
+  useSaveElection,
+} from '../../../hooks/useElections'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import { adminKeys } from '../../../hooks/queryKeys'
 import { showToast } from '../../../utils/toast'
 import type {
   ElectionAdminDetail,
   ElectionRules,
   ResultVisibility,
+  RosterPoolMember,
   RunoffRule,
 } from '../../../types/election'
 import {
@@ -62,6 +67,28 @@ const chipBtn = (active: boolean) =>
       ? 'bg-brand text-white border-transparent'
       : 'border-gray-200 dark:border-white/[0.1] text-ink-muted hover:border-brand hover:text-brand'
   }`
+
+/** 명부 한 줄의 단서 — "집사 · 3구역 · 1962년생 · ☎5678" */
+const memberHint = (m: RosterPoolMember) =>
+  [m.church_title, m.district, m.birth_year ? `${m.birth_year}년생` : null, m.phone_tail ? `☎${m.phone_tail}` : null]
+    .filter(Boolean)
+    .join(' · ')
+
+const AGE_LIMITS = [0, 18, 20] as const
+const NO_TITLE = '(직분 없음)'
+
+/** 붙여 넣은 명단 → 이름 목록 (줄·쉼표·탭으로 나눔, 앞 번호 제거) */
+const parseNames = (text: string) =>
+  text
+    .split(/[\n,\t;]+/)
+    .map((t) => t.replace(/^\s*\d+[.)\s]*/, '').trim())
+    .filter(Boolean)
+
+const QUORUM_PRESETS: { key: string; label: string; num: number; den: number }[] = [
+  { key: 'none', label: '확인 안 함', num: 0, den: 2 },
+  { key: 'half', label: '재적 1/2 이상', num: 1, den: 2 },
+  { key: 'two-thirds', label: '재적 2/3 이상', num: 2, den: 3 },
+]
 
 const StepTitle = ({ n, children, aside }: { n: number; children: string; aside?: string }) => (
   <div className="flex items-center gap-2">
@@ -176,11 +203,12 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
   useModalBackButton(onClose)
 
   const { data: defaultRules } = useDefaultElectionRules(!election)
-  const { data: userData, isLoading: usersLoading } = useQuery({
-    queryKey: adminKeys.electionRoster(),
-    queryFn: getUserList,
-    staleTime: 1000 * 60,
-  })
+  const { data: pool, isLoading: usersLoading } = useElectionRosterPool()
+  const { data: allElections } = useAdminElections()
+  const pastElections = useMemo(
+    () => (allElections ?? []).filter((e) => e.id !== election?.id).slice(0, 6),
+    [allElections, election?.id]
+  )
 
   const [title, setTitle] = useState(election?.title ?? '')
   const [description, setDescription] = useState(election?.description ?? '')
@@ -199,8 +227,17 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
     })) ?? [newDraft(), newDraft()]
   )
   const [voterIds, setVoterIds] = useState<Set<number>>(new Set(election?.voters.map((v) => v.user_id) ?? []))
+  const [managerIds, setManagerIds] = useState<Set<number>>(new Set(election?.managers?.map((m) => m.user_id) ?? []))
+  const [managerSearch, setManagerSearch] = useState('')
   const [search, setSearch] = useState('')
   const [onlySelected, setOnlySelected] = useState(false)
+  const [titleFilter, setTitleFilter] = useState<Set<string>>(new Set())
+  const [districtFilter, setDistrictFilter] = useState<Set<string>>(new Set())
+  const [minAge, setMinAge] = useState<number>(0)
+  const [pasteOpen, setPasteOpen] = useState(false)
+  const [pasteText, setPasteText] = useState('')
+  const [pasteReport, setPasteReport] = useState<{ added: number; ambiguous: string[]; missing: string[] } | null>(null)
+  const [importingFrom, setImportingFrom] = useState<number | null>(null)
 
   // 새 선거: 서버 기본 기준이 도착하면 폼의 출발값으로
   useEffect(() => {
@@ -307,25 +344,108 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
 
   // ── 선거인 명부 ─────────────────────────────────────────────────────
 
-  const users = useMemo(
-    () =>
-      (userData?.users ?? [])
-        .filter((u) => (u.is_active && u.approval_status === 'approved') || voterIds.has(u.id))
-        .map((u) => ({ id: u.id, name: u.full_name || u.username, username: u.username }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'ko')),
-    // voterIds 는 처음 명부에 있던 비활성 회원을 목록에 남기려는 것이라 의존성에서 뺀다
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userData]
+  // 승인된 활성 회원 + (이미 명부에 있지만 지금은 비활성인 회원 — 목록에서 사라지지 않게)
+  const users = useMemo<RosterPoolMember[]>(() => {
+    const list = [...(pool ?? [])]
+    const known = new Set(list.map((u) => u.id))
+    for (const v of election?.voters ?? []) {
+      if (!known.has(v.user_id)) list.push({ id: v.user_id, name: v.name, username: '' })
+    }
+    return list.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+  }, [pool, election?.voters])
+
+  const titleOptions = useMemo(() => {
+    const set = new Set(users.map((u) => u.church_title || NO_TITLE))
+    return [...set].sort((a, b) => (a === NO_TITLE ? 1 : b === NO_TITLE ? -1 : a.localeCompare(b, 'ko')))
+  }, [users])
+  const districtOptions = useMemo(
+    () => [...new Set(users.map((u) => u.district).filter((d): d is string => !!d))].sort((a, b) => a.localeCompare(b, 'ko')),
+    [users]
   )
+  const thisYear = new Date().getFullYear()
 
   const visibleUsers = useMemo(() => {
     const q = search.trim().toLowerCase()
     return users.filter(
       (u) =>
         (!onlySelected || voterIds.has(u.id)) &&
+        (!titleFilter.size || titleFilter.has(u.church_title || NO_TITLE)) &&
+        (!districtFilter.size || (u.district != null && districtFilter.has(u.district))) &&
+        // 나이는 아는 사람만 거른다 — 출생 연도를 모르는 분은 남기고 아래에 따로 알린다
+        (!minAge || !u.birth_year || thisYear - u.birth_year >= minAge) &&
         (!q || u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q))
     )
-  }, [users, search, onlySelected, voterIds])
+  }, [users, search, onlySelected, voterIds, titleFilter, districtFilter, minAge, thisYear])
+  const unknownAge = minAge ? visibleUsers.filter((u) => !u.birth_year).length : 0
+
+  const toggleIn = (setter: typeof setTitleFilter, value: string) =>
+    setter((prev) => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+
+  // 지난 선거 명부 더하기 — 지우지 않고 합친다
+  const importRoster = async (id: number) => {
+    try {
+      setImportingFrom(id)
+      const past = await getElectionAdmin(id)
+      let added = 0
+      setVoterIds((prev) => {
+        const next = new Set(prev)
+        for (const v of past.voters) {
+          if (!next.has(v.user_id) && users.some((u) => u.id === v.user_id)) {
+            next.add(v.user_id)
+            added += 1
+          }
+        }
+        return next
+      })
+      showToast(`'${past.title}' 명부에서 ${added}명을 더했어요`, 'success')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '명부를 불러오지 못했어요', 'error')
+    } finally {
+      setImportingFrom(null)
+    }
+  }
+
+  // 붙여 넣은 이름 명단 맞추기 — 이름이 하나뿐이면 넣고, 동명이인·없는 이름은 따로 알린다
+  const applyPaste = () => {
+    const names = parseNames(pasteText)
+    if (!names.length) return
+    const byName = new Map<string, RosterPoolMember[]>()
+    for (const u of users) byName.set(u.name, [...(byName.get(u.name) ?? []), u])
+    const ambiguous: string[] = []
+    const missing: string[] = []
+    const picked: number[] = []
+    for (const name of names) {
+      const hits = byName.get(name) ?? []
+      if (hits.length === 1) picked.push(hits[0].id)
+      else if (hits.length > 1) ambiguous.push(name)
+      else missing.push(name)
+    }
+    const before = voterIds.size
+    const next = new Set([...voterIds, ...picked])
+    setVoterIds(next)
+    setPasteReport({ added: next.size - before, ambiguous: [...new Set(ambiguous)], missing: [...new Set(missing)] })
+    setPasteText('')
+  }
+
+  // 동명이인은 검색창에 이름을 넣어 단서를 보고 직접 고른다
+  const showAmbiguous = (name: string) => {
+    setSearch(name)
+    setOnlySelected(false)
+    setTitleFilter(new Set())
+    setDistrictFilter(new Set())
+    setMinAge(0)
+  }
+
+  const managerMatches = useMemo(() => {
+    const q = managerSearch.trim().toLowerCase()
+    if (!q) return []
+    return users.filter((u) => !managerIds.has(u.id) && u.name.toLowerCase().includes(q)).slice(0, 6)
+  }, [users, managerSearch, managerIds])
 
   const toggleVoter = (id: number) =>
     setVoterIds((prev) => {
@@ -379,6 +499,7 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
           photo_url: c.photo_url,
         })),
         voter_ids: [...voterIds],
+        manager_ids: [...managerIds],
       },
     })
   }
@@ -431,11 +552,79 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
                 </div>
                 <Stepper value={seats} min={1} max={50} onChange={setSeats} suffix="명" />
               </div>
+              <div>
+                <p className="text-[13.5px] font-bold text-ink-strong">선거관리위원 (선택)</p>
+                <p className="text-[11.5px] text-ink-muted break-keep">
+                  관리자가 아니어도 이 선거의 현황판에서 투표 시작·마감, 종이 표·투표용지 교부를 할 수 있어요. 기준·명부는 못 고쳐요.
+                </p>
+                {managerIds.size ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {users
+                      .filter((u) => managerIds.has(u.id))
+                      .map((u) => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => setManagerIds((prev) => new Set([...prev].filter((x) => x !== u.id)))}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand text-[12.5px] font-bold"
+                          aria-label={`${u.name} 선관위원 해제`}
+                        >
+                          {u.name} <span aria-hidden>✕</span>
+                        </button>
+                      ))}
+                  </div>
+                ) : null}
+                <input
+                  value={managerSearch}
+                  onChange={(e) => setManagerSearch(e.target.value)}
+                  placeholder="이름으로 찾아 지정"
+                  className={`${inputCls} mt-2`}
+                />
+                {managerMatches.length ? (
+                  <div className="mt-1.5 rounded-xl border border-gray-200/70 dark:border-white/[0.06] divide-y divide-gray-100 dark:divide-white/[0.05]">
+                    {managerMatches.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => {
+                          setManagerIds((prev) => new Set([...prev, u.id]))
+                          setManagerSearch('')
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/[0.03]"
+                      >
+                        <span className="text-[13.5px] font-semibold text-ink-strong">{u.name}</span>
+                        <span className="min-w-0 truncate text-[11.5px] text-ink-muted">{memberHint(u)}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </section>
 
             {rules ? (
               <section className="space-y-4">
                 <StepTitle n={2}>당선 기준</StepTitle>
+                {pastElections.length ? (
+                  <div>
+                    <label className={labelCls}>지난 선거 기준 가져오기</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {pastElections.map((e) => (
+                        <button
+                          key={e.id}
+                          type="button"
+                          onClick={() => {
+                            setRules({ ...e.rules })
+                            setCustomThreshold(matchPreset(e.rules) === 'custom')
+                            showToast(`'${e.title}'의 기준을 가져왔어요`, 'success')
+                          }}
+                          className={chipBtn(false)}
+                        >
+                          {e.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div>
                   <label className={labelCls}>득표 기준</label>
@@ -542,6 +731,63 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
                 </div>
 
                 <div>
+                  <label className={labelCls}>성원 (정족수)</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {QUORUM_PRESETS.map((q) => (
+                      <button
+                        key={q.key}
+                        type="button"
+                        onClick={() => patchRules({ quorum_num: q.num, quorum_den: q.den })}
+                        className={chipBtn(
+                          q.num === 0 ? rules.quorum_num === 0 : rules.quorum_num === q.num && rules.quorum_den === q.den
+                        )}
+                      >
+                        {q.label}
+                      </button>
+                    ))}
+                  </div>
+                  {rules.quorum_num > 0 && !QUORUM_PRESETS.some((q) => q.num === rules.quorum_num && q.den === rules.quorum_den) ? (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-[12.5px] text-ink">재적의</span>
+                      <NumberBox value={rules.quorum_num} min={1} max={100} onChange={(v) => patchRules({ quorum_num: v })} />
+                      <span className="text-[15px] font-bold text-ink-muted">/</span>
+                      <NumberBox value={rules.quorum_den} min={1} max={100} onChange={(v) => patchRules({ quorum_den: v })} />
+                      <span className="text-[12.5px] text-ink">이상</span>
+                    </div>
+                  ) : null}
+                  <p className="mt-1.5 text-[11.5px] text-ink-muted break-keep">
+                    투표에 참여한 인원으로 셈해요. 미달이면 마감 전에 경고하고 결과서에 &lsquo;성원 미달&rsquo;로 남겨요(판정은 그대로).
+                  </p>
+                </div>
+
+                <div>
+                  <label className={labelCls}>기권 · 무효표</label>
+                  <label className="flex items-center gap-2.5 text-[13px] font-semibold text-ink cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rules.allow_abstain}
+                      onChange={(e) => patchRules({ allow_abstain: e.target.checked })}
+                      className="w-[18px] h-[18px] accent-[var(--brand)]"
+                    />
+                    앱에서 &lsquo;기권&rsquo; 표를 낼 수 있게 하기
+                  </label>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <button type="button" onClick={() => patchRules({ blank_in_base: true })} className={chipBtn(rules.blank_in_base)}>
+                      투표수에 넣기
+                    </button>
+                    <button type="button" onClick={() => patchRules({ blank_in_base: false })} className={chipBtn(!rules.blank_in_base)}>
+                      투표수에서 빼기
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-[11.5px] text-ink-muted break-keep">
+                    {rules.blank_in_base
+                      ? '기권·무효표도 당선 기준의 분모(투표수)에 들어가요 — 기준이 더 엄격해져요.'
+                      : '기권·무효표를 뺀 유효표로 당선 기준을 계산해요.'}{' '}
+                    교회 규정에 맞춰 골라 주세요.
+                  </p>
+                </div>
+
+                <div>
                   <label className={labelCls}>성도 화면에 결과 공개</label>
                   <div className="flex flex-wrap gap-1.5">
                     {(Object.keys(VISIBILITY_META) as ResultVisibility[]).map((key) => (
@@ -551,7 +797,7 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
                     ))}
                   </div>
                   <p className="mt-1.5 text-[11.5px] text-ink-muted break-keep">
-                    {VISIBILITY_META[rules.result_visibility].hint}. 관리자 현황판에는 늘 실시간으로 보여요.
+                    {VISIBILITY_META[rules.result_visibility].hint}. 현황판에서는 진행 중 득표가 기본으로 가려져 있어요.
                   </p>
                 </div>
 
@@ -653,12 +899,101 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
             <p className="text-[12px] text-ink-muted break-keep">
               여기서 고른 성도만 투표할 수 있어요. 다른 성도에게는 선거가 보이지 않아요.
             </p>
+            <div className="flex flex-wrap gap-1.5">
+              <button type="button" onClick={() => setPasteOpen((v) => !v)} className={chipBtn(pasteOpen)}>
+                명단 붙여넣기
+              </button>
+              {pastElections.map((e) => (
+                <button
+                  key={e.id}
+                  type="button"
+                  onClick={() => void importRoster(e.id)}
+                  disabled={importingFrom !== null}
+                  className={chipBtn(false)}
+                  title="이 선거의 명부를 지금 명부에 더해요"
+                >
+                  {importingFrom === e.id ? '불러오는 중…' : `+ ${e.title} 명부`}
+                </button>
+              ))}
+            </div>
+            {pasteOpen ? (
+              <div className="rounded-2xl border border-gray-200/70 dark:border-white/[0.08] p-3 space-y-2">
+                <textarea
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  rows={4}
+                  placeholder={'엑셀·한글에서 이름 열을 복사해 붙여 넣으세요\n김하나\n이두리, 박세찬'}
+                  className={`${inputCls} resize-none`}
+                />
+                <button
+                  type="button"
+                  onClick={applyPaste}
+                  disabled={!pasteText.trim()}
+                  className="w-full py-2 rounded-xl bg-[var(--brand-soft)] text-brand text-[13px] font-bold disabled:opacity-50"
+                >
+                  이름 맞춰서 명부에 넣기
+                </button>
+                {pasteReport ? (
+                  <div className="text-[12px] leading-relaxed text-ink break-keep">
+                    <p className="font-bold text-emerald-600 dark:text-emerald-300">{pasteReport.added}명을 넣었어요</p>
+                    {pasteReport.ambiguous.length ? (
+                      <p className="mt-1">
+                        동명이인이라 직접 골라 주세요:{' '}
+                        {pasteReport.ambiguous.map((n) => (
+                          <button key={n} type="button" onClick={() => showAmbiguous(n)} className="mr-1.5 font-bold text-brand underline">
+                            {n}
+                          </button>
+                        ))}
+                      </p>
+                    ) : null}
+                    {pasteReport.missing.length ? (
+                      <p className="mt-1 text-ink-muted">
+                        회원이 아닌 이름 {pasteReport.missing.length}명: {pasteReport.missing.join(', ')} — 앱을 안 쓰는 분이면 아래 &lsquo;앱을 안 쓰는 선거인&rsquo; 수에 더해 주세요.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <div className="flex items-center gap-2">
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="이름으로 찾기" className={inputCls} />
               <button type="button" onClick={() => setOnlySelected((v) => !v)} className={`shrink-0 ${chipBtn(onlySelected)}`}>
                 고른 사람만
               </button>
             </div>
+            {titleOptions.length > 1 ? (
+              <div className="flex flex-wrap gap-1.5">
+                <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">직분</span>
+                {titleOptions.map((t) => (
+                  <button key={t} type="button" onClick={() => toggleIn(setTitleFilter, t)} className={chipBtn(titleFilter.has(t))}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {districtOptions.length ? (
+              <div className="flex flex-wrap gap-1.5">
+                <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">구역</span>
+                {districtOptions.map((d) => (
+                  <button key={d} type="button" onClick={() => toggleIn(setDistrictFilter, d)} className={chipBtn(districtFilter.has(d))}>
+                    {d}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="flex flex-wrap gap-1.5">
+              <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">나이</span>
+              {AGE_LIMITS.map((age) => (
+                <button key={age} type="button" onClick={() => setMinAge(age)} className={chipBtn(minAge === age)}>
+                  {age ? `${age}세 이상` : '제한 없음'}
+                </button>
+              ))}
+            </div>
+            {unknownAge ? (
+              <p className="text-[11.5px] text-amber-700 dark:text-amber-300 break-keep">
+                출생 연도를 모르는 {unknownAge}명은 나이와 상관없이 목록에 남아 있어요. 확인 후 골라 주세요.
+              </p>
+            ) : null}
             <div className="flex items-center justify-between text-[12px] font-semibold text-ink-muted">
               <span className="tabular-nums">{visibleUsers.length}명 표시</span>
               <span className="flex gap-3">
@@ -684,8 +1019,13 @@ const ElectionComposer = ({ election, onClose, onSaved }: Props) => {
                         onChange={() => toggleVoter(u.id)}
                         className="w-[18px] h-[18px] accent-[var(--brand)]"
                       />
-                      <span className="min-w-0 flex-1 text-[14px] font-semibold text-ink-strong truncate">{u.name}</span>
-                      <span className="shrink-0 text-[11.5px] text-ink-muted truncate max-w-[40%]">
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[14px] font-semibold text-ink-strong truncate">{u.name}</span>
+                        {memberHint(u) ? (
+                          <span className="block text-[11.5px] text-ink-muted truncate">{memberHint(u)}</span>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0 text-[11.5px] text-ink-muted truncate max-w-[30%]">
                         {locked ? '투표함' : u.username}
                       </span>
                     </label>

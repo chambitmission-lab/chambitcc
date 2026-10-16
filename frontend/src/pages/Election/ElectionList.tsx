@@ -29,6 +29,9 @@ const ElectionCard = ({ election, onOpen }: { election: ElectionSummary; onOpen:
           ) : (
             <span className={`${chipCls} ${STATUS_META[election.status].badge}`}>{phaseLabel(election)}</span>
           )}
+          {election.is_manager ? (
+            <span className={`${chipCls} border-[var(--brand-soft-strong)] text-brand`}>선거관리위원</span>
+          ) : null}
         </div>
         <h3 className="text-[15.5px] font-bold text-ink-strong leading-snug lg:text-[21px]">{election.title}</h3>
         <p className="mt-1 text-[12px] text-ink-muted lg:mt-1.5 lg:text-[15.5px]">

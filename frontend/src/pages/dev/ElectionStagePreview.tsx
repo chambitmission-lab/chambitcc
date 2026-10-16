@@ -23,6 +23,10 @@ const RULES: ElectionRules = {
   runoff_min_num: 1,
   runoff_min_den: 10,
   result_visibility: 'after_close',
+  quorum_num: 0,
+  quorum_den: 2,
+  allow_abstain: false,
+  blank_in_base: true,
 }
 
 const NAMES = ['김민수', '이희선', '정민수', '김휘선']

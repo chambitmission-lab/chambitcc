@@ -1,7 +1,8 @@
 // 선거 화면 공통 UI — 성도 투표 화면·홈 배너·관리자 현황판이 같은 조각을 쓴다
+import { useEffect, useState } from 'react'
 import type { ElectionCandidate, ElectionRoundResult, ThresholdBasis } from '../../types/election'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
-import { turnoutPercent } from './electionShared'
+import { closesAtLabel, remainingLabel, turnoutPercent } from './electionShared'
 
 /** 투표함 — electionIcons.tsx 로 뗐다(홈 배너가 이 파일 전체를 끌지 않도록). 여기서 재수출 */
 export { BallotIcon } from './electionIcons'
@@ -113,7 +114,11 @@ export const TallyBars = ({
               당선 기준 통과
             </p>
             <p className={`mt-0.5 text-ink-muted tabular-nums ${big ? 'text-[14px]' : 'text-[11.5px]'}`}>
-              {basis === 'voters' ? `재적 선거인 ${result.base}명 기준` : `지금까지 투표 ${result.base}표 기준`}
+              {basis === 'voters'
+                ? `재적 선거인 ${result.base}명 기준`
+                : result.base !== result.ballots
+                  ? `유효표 ${result.base}표 기준 (기권·무효 제외)`
+                  : `지금까지 투표 ${result.base}표 기준`}
               {moving ? ' · 표가 늘면 기준도 함께 올라가요' : ''}
               {linePercent !== null ? ' · 주황 선이 기준선' : ''}
             </p>
@@ -178,3 +183,71 @@ export const TallyBars = ({
     </div>
   )
 }
+
+/**
+ * 표 내역 한 줄 — 앱·종이, 유효·기권·무효, 성원. 2026-10 이전에 마감된 회차 사본에는 내역이 없어 그리지 않는다.
+ * 결과서(인쇄)·현황판·성도 화면이 같은 말을 쓴다.
+ */
+export const ResultBreakdown = ({ result, large = false }: { result: ElectionRoundResult; large?: boolean }) => {
+  if (result.app_ballots == null) return null
+  const chip = `inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-white/[0.06] px-2.5 py-1 font-semibold text-ink tabular-nums ${
+    large ? 'lg:text-[14px] lg:px-3' : ''
+  }`
+  const quorum = result.quorum_required ?? 0
+  return (
+    <div className={`flex flex-wrap gap-1.5 text-[11.5px] ${large ? 'lg:gap-2' : ''}`}>
+      <span className={chip}>앱 {result.app_ballots} · 종이 {result.paper_ballots}</span>
+      <span className={chip}>유효 {result.valid_ballots}</span>
+      {result.abstain_ballots ? <span className={chip}>기권 {result.abstain_ballots}</span> : null}
+      {result.invalid_ballots ? <span className={chip}>무효 {result.invalid_ballots}</span> : null}
+      {quorum > 0 ? (
+        <span
+          className={`${chip} ${
+            result.quorum_met
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+              : 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300'
+          }`}
+        >
+          {result.quorum_met ? '성원 충족' : `성원 미달 · ${quorum}명 필요`}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+/** 30초마다 다시 그려 남은 시간을 맞춘다 */
+const useTick = (ms: number) => {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), ms)
+    return () => window.clearInterval(t)
+  }, [ms])
+  return now
+}
+
+/** 예약 마감 안내 — "오후 3:00에 마감 · 12분 남음" */
+export const ClosesAtNote = ({ closesAt, className = '' }: { closesAt: string; className?: string }) => {
+  const now = useTick(30_000)
+  const left = remainingLabel(closesAt, now)
+  return (
+    <span className={`inline-flex items-center gap-1.5 font-semibold tabular-nums ${className}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" aria-hidden />
+      {closesAtLabel(closesAt)}에 마감
+      {left ? <span className="text-amber-600 dark:text-amber-300">· {left} 남음</span> : <span>· 곧 닫혀요</span>}
+    </span>
+  )
+}
+
+/** 연습 투표 띠 — 실제 선거로 오해하지 않게 화면 맨 위에 */
+export const PracticeBanner = ({ large = false }: { large?: boolean }) => (
+  <div
+    className={`rounded-2xl border border-dashed border-amber-400/70 bg-amber-50/80 dark:bg-amber-500/[0.08] dark:border-amber-400/40 px-4 py-3 text-amber-800 dark:text-amber-200 ${
+      large ? 'lg:px-5 lg:py-4' : ''
+    }`}
+  >
+    <p className={`text-[14px] font-extrabold ${large ? 'lg:text-[18px]' : ''}`}>연습 투표예요</p>
+    <p className={`mt-0.5 text-[12.5px] leading-relaxed break-keep ${large ? 'lg:text-[15px]' : ''}`}>
+      실제 선거가 아니에요. 투표 방법을 익히는 시간이고, 연습이 끝나면 표는 모두 지워져요.
+    </p>
+  </div>
+)

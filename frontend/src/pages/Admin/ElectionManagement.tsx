@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { getElectionAdmin } from '../../api/election'
 import { useAdminElections, useDeleteElection } from '../../hooks/useElections'
 import { can } from '../../utils/access'
-import { confirmDialog } from '../../utils/confirmDialog'
+import { confirmDialog, promptDialog } from '../../utils/confirmDialog'
 import { showToast, toastFeedback } from '../../utils/toast'
 import type { ElectionAdminDetail, ElectionSummary } from '../../types/election'
 import { STATUS_META, phaseLabel, thresholdText, turnoutPercent } from '../Election/electionShared'
@@ -139,17 +139,33 @@ const ElectionManagement = () => {
     }
   }
 
+  // 투표가 한 번이라도 열린 선거는 제목을 다시 적어야 지워진다 — 결과는 회의록의 근거라 실수로 날리면 안 된다
   const confirmDelete = async (e: ElectionSummary) => {
-    const ok = await confirmDialog({
+    if (e.current_round_status === 'open') {
+      showToast('진행 중인 투표를 먼저 마감해주세요', 'error')
+      return
+    }
+    if (!e.current_round_no) {
+      const ok = await confirmDialog({
+        title: '선거를 삭제할까요?',
+        message: `'${e.title}'`,
+        description: '복구할 수 없습니다.',
+        confirmText: '삭제',
+        tone: 'danger',
+      })
+      if (ok) remove.mutate(e.id)
+      return
+    }
+    const typed = await promptDialog({
       title: '선거를 삭제할까요?',
-      message: `'${e.title}'`,
-      description: e.current_round_no
-        ? '들어온 표와 회차별 결과가 모두 사라집니다. 복구할 수 없습니다.'
-        : '복구할 수 없습니다.',
-      confirmText: '삭제',
+      message: '들어온 표와 회차별 결과가 모두 사라지고 복구할 수 없어요. 결과서를 먼저 인쇄해 두세요.',
+      description: '지우려면 아래에 선거 제목을 그대로 적어주세요. (운영 기록은 남아요)',
+      highlight: e.title,
+      confirmText: '영구 삭제',
       tone: 'danger',
+      input: { mustMatch: e.title },
     })
-    if (ok) remove.mutate(e.id)
+    if (typed !== null) remove.mutate(e.id)
   }
 
   const copyLink = async (e: ElectionSummary) => {

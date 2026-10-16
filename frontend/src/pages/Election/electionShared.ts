@@ -48,6 +48,37 @@ export const thresholdText = (rules: ElectionRules): string => {
 export const turnoutPercent = (voted: number, total: number): number =>
   total > 0 ? Math.min(100, Math.round((voted / total) * 100)) : 0
 
+/** "재적의 1/2 이상" — 성원을 따지지 않으면 null */
+export const quorumText = (rules: ElectionRules): string | null =>
+  rules.quorum_num > 0 ? `재적의 ${rules.quorum_num}/${rules.quorum_den} 이상 투표` : null
+
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+
+/** 예약 마감 시각 — 오늘이면 "오후 3:00", 아니면 "10/18(토) 오후 3:00" */
+export const closesAtLabel = (iso: string, now = new Date()): string => {
+  const d = new Date(iso)
+  const time = d.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })
+  const sameDay = d.toDateString() === now.toDateString()
+  return sameDay ? time : `${d.getMonth() + 1}/${d.getDate()}(${WEEKDAYS[d.getDay()]}) ${time}`
+}
+
+/** 남은 시간 — "12분", "1시간 5분". 지났으면 null */
+export const remainingLabel = (iso: string, now = Date.now()): string | null => {
+  const ms = new Date(iso).getTime() - now
+  if (ms <= 0) return null
+  const minutes = Math.ceil(ms / 60000)
+  if (minutes < 60) return `${minutes}분`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m ? `${h}시간 ${m}분` : `${h}시간`
+}
+
+/** datetime-local 입력값(로컬 시각) ↔ ISO */
+export const toLocalInputValue = (date: Date): string => {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 // ── 관리 화면 프리셋 ──────────────────────────────────────────────────
 
 export interface ThresholdPreset {
@@ -78,7 +109,10 @@ export const RUNOFF_META: Record<RunoffRule, { label: string; hint: string }> = 
 
 export const VISIBILITY_META: Record<ResultVisibility, { label: string; hint: string }> = {
   after_close: { label: '마감 후 공개', hint: '투표 중에는 투표율만, 마감하면 득표까지 보여요' },
-  live: { label: '실시간 공개', hint: '투표 중에도 성도 화면에 득표가 보여요' },
+  live: {
+    label: '실시간 공개',
+    hint: '투표 중에도 성도 화면에 득표가 보여요. 투표가 뜸할 때는 누가 누구를 찍었는지 짐작될 수 있어 권하지 않아요',
+  },
   admin_only: { label: '공개 안 함', hint: '성도 화면에는 결과가 뜨지 않아요 (현장 발표)' },
 }
 

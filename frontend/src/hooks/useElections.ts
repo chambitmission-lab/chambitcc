@@ -7,6 +7,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addPaperBallots,
+  announceElection,
+  cancelPaperIssue,
   castVote,
   closeElectionRound,
   createElection,
@@ -17,9 +19,15 @@ import {
   getDefaultElectionRules,
   getElection,
   getElectionAdmin,
+  getElectionAudit,
+  getElectionRosterPool,
   getElections,
+  issuePaperBallot,
   openElectionRound,
+  remindElectionVoters,
   reopenElectionRound,
+  resetElectionPractice,
+  setElectionSchedule,
   updateElection,
 } from '../api/election'
 import type {
@@ -38,6 +46,8 @@ export const electionKeys = {
   detail: (id: number) => [...electionKeys.all, 'detail', id] as const,
   adminDetail: (id: number) => [...electionKeys.all, 'admin-detail', id] as const,
   defaultRules: () => [...electionKeys.all, 'default-rules'] as const,
+  audit: (id: number) => [...electionKeys.all, 'audit', id] as const,
+  rosterPool: () => [...electionKeys.all, 'roster-pool'] as const,
 }
 
 // ── 성도 ──────────────────────────────────────────────────────────────
@@ -62,13 +72,12 @@ export const useElection = (id: number, enabled = true) =>
     retry: false, // 명부 밖(403)·없는 선거(404)는 다시 물어도 같다
   })
 
-export const useCastVote = (
-  feedback?: MutationFeedback<ElectionDetail, { id: number; candidateIds: number[] }>
-) => {
+type CastVoteVars = { id: number; candidateIds: number[]; abstain?: boolean }
+
+export const useCastVote = (feedback?: MutationFeedback<ElectionDetail, CastVoteVars>) => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, candidateIds }: { id: number; candidateIds: number[] }) =>
-      castVote(id, candidateIds),
+    mutationFn: ({ id, candidateIds, abstain }: CastVoteVars) => castVote(id, candidateIds, abstain),
     onSuccess: (result, variables) => {
       qc.setQueryData(electionKeys.detail(variables.id), result)
       void qc.invalidateQueries({ queryKey: electionKeys.list() })
@@ -103,6 +112,24 @@ export const useElectionAdmin = (id: number, live = false) =>
     refetchIntervalInBackground: false,
   })
 
+/** 운영 기록 — 펼쳤을 때만 받는다. 현황판 조작 뒤에는 applyAdminDetail 이 무효화한다 */
+export const useElectionAudit = (id: number, enabled: boolean) =>
+  useQuery({
+    queryKey: electionKeys.audit(id),
+    queryFn: () => getElectionAudit(id),
+    enabled: enabled && id > 0,
+    staleTime: 0,
+  })
+
+/** 명부 작성용 회원 목록 (관리자) */
+export const useElectionRosterPool = (enabled = true) =>
+  useQuery({
+    queryKey: electionKeys.rosterPool(),
+    queryFn: getElectionRosterPool,
+    enabled,
+    staleTime: 1000 * 60 * 5,
+  })
+
 /** 새 선거 폼의 출발값 (서버 기본 기준) */
 export const useDefaultElectionRules = (enabled = true) =>
   useQuery({
@@ -117,6 +144,7 @@ const applyAdminDetail = (qc: ReturnType<typeof useQueryClient>, result: Electio
   void qc.invalidateQueries({ queryKey: electionKeys.adminList() })
   void qc.invalidateQueries({ queryKey: electionKeys.list() })
   void qc.invalidateQueries({ queryKey: electionKeys.detail(result.id) })
+  void qc.invalidateQueries({ queryKey: electionKeys.audit(result.id) })
 }
 
 export const useSaveElection = (
@@ -150,10 +178,16 @@ export const useDeleteElection = (feedback?: MutationFeedback<void, number>) => 
 export type ElectionAdminAction =
   | { kind: 'open'; id: number; data?: OpenRoundPayload }
   | { kind: 'close'; id: number }
-  | { kind: 'reopen'; id: number }
+  | { kind: 'reopen'; id: number; reason: string }
   | { kind: 'finish'; id: number }
-  | { kind: 'paper-add'; id: number; candidateIds: number[]; count?: number }
+  | { kind: 'schedule'; id: number; closesAt: string | null }
+  | { kind: 'practice-reset'; id: number }
+  | { kind: 'remind'; id: number }
+  | { kind: 'announce'; id: number; audience: 'roster' | 'all' }
+  | { kind: 'paper-add'; id: number; candidateIds: number[]; count?: number; blankKind?: 'invalid' | 'abstain' }
   | { kind: 'paper-delete'; id: number; ballotId: number }
+  | { kind: 'paper-issue'; id: number; userId: number }
+  | { kind: 'paper-issue-cancel'; id: number; userId: number }
 
 export const useElectionAdminAction = (
   feedback?: MutationFeedback<ElectionAdminDetail, ElectionAdminAction>
@@ -167,13 +201,25 @@ export const useElectionAdminAction = (
         case 'close':
           return closeElectionRound(action.id)
         case 'reopen':
-          return reopenElectionRound(action.id)
+          return reopenElectionRound(action.id, action.reason)
         case 'finish':
           return finishElection(action.id)
+        case 'schedule':
+          return setElectionSchedule(action.id, action.closesAt)
+        case 'practice-reset':
+          return resetElectionPractice(action.id)
+        case 'remind':
+          return remindElectionVoters(action.id)
+        case 'announce':
+          return announceElection(action.id, action.audience)
         case 'paper-add':
-          return addPaperBallots(action.id, action.candidateIds, action.count)
+          return addPaperBallots(action.id, action.candidateIds, action.count, action.blankKind)
         case 'paper-delete':
           return deletePaperBallot(action.id, action.ballotId)
+        case 'paper-issue':
+          return issuePaperBallot(action.id, action.userId)
+        case 'paper-issue-cancel':
+          return cancelPaperIssue(action.id, action.userId)
       }
     },
     onSuccess: (result, action) => {
