@@ -18,10 +18,8 @@ import SceneQuiz from './SceneQuiz'
 import StoryCard from './StoryCard'
 import { sceneCardMotion } from './sceneMotion'
 import { buildChapters, chapterOf } from './chapters'
-import bgPc from '../../../assets/atlas/bg-pc.webp'
-import bgPcNight from '../../../assets/atlas/bg-pc-night.webp'
-import bgMobile from '../../../assets/atlas/bg-mobile.webp'
-import bgMobileNight from '../../../assets/atlas/bg-mobile-night.webp'
+// 성지 조감 지도(라이트·다크 같은 구도) — 테마 전환 선요청 매니페스트(themeAssets)가 단일 출처
+import { QUEST_MAP_MOBILE, QUEST_MAP_PC } from '../../../utils/themeAssets'
 
 type Game = ReturnType<typeof useBluemarbleGame>
 
@@ -100,7 +98,7 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
             ? 'done'
             : null
 
-  const bg = theme === 'dark' ? { pc: bgPcNight, m: bgMobileNight } : { pc: bgPc, m: bgMobile }
+  const bg = theme === 'dark' ? { pc: QUEST_MAP_PC.dark, m: QUEST_MAP_MOBILE.dark } : { pc: QUEST_MAP_PC.light, m: QUEST_MAP_MOBILE.light }
 
   return (
     <div className="qj" style={{ ['--qj-bg' as string]: `url(${bg.pc})`, ['--qj-bg-m' as string]: `url(${bg.m})` }}>

@@ -76,22 +76,14 @@
   position: relative;
   padding: 18px 16px 90px;
   min-height: calc(100vh - 56px);
-  --qj-sky: #dcebf3;
-  /* 위쪽은 하늘색으로 덮는다 — PC 수채화 원본 왼쪽 위에 번진 자국이 있어 넓은 화면에서 비친다 */
-  background:
-    linear-gradient(180deg, var(--qj-sky) 0%, var(--qj-sky) 18%, transparent 52%) fixed,
-    var(--qj-bg-m) center bottom / cover no-repeat fixed,
-    #f6efe3;
+  /* 지도는 화면에 고정, 아래 기준으로 꽉 채운다 — 그림 위쪽이 하늘이라 덧칠 없이 탭·상단 띠가 얹힌다 */
+  background: var(--qj-bg-m) center bottom / cover no-repeat fixed, var(--qj-ground);
+  --qj-ground: #f1ece0;
 }
 @media (min-width: 768px) {
-  .qj {
-    background:
-      linear-gradient(180deg, var(--qj-sky) 0%, var(--qj-sky) 18%, transparent 52%) fixed,
-      var(--qj-bg) center bottom / cover no-repeat fixed,
-      #f6efe3;
-  }
+  .qj { background-image: var(--qj-bg); }
 }
-[data-theme='dark'] .qj { --qj-sky: #1a2234; background-color: #141a26; }
+[data-theme='dark'] .qj { --qj-ground: #1c2738; }
 .qj-stage { max-width: 76rem; margin: 0 auto; }
 
 .qj-bar {

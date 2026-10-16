@@ -58,6 +58,10 @@ import atlasBgMobileLight from '../assets/atlas/bg-mobile.webp'
 import atlasBgMobileDark from '../assets/atlas/bg-mobile-night.webp'
 import atlasBgPcLight from '../assets/atlas/bg-pc.webp'
 import atlasBgPcDark from '../assets/atlas/bg-pc-night.webp'
+import questMapPcLight from '../assets/journey/map-pc-light.webp'
+import questMapPcDark from '../assets/journey/map-pc-dark.webp'
+import questMapMobileLight from '../assets/journey/map-mobile-light.webp'
+import questMapMobileDark from '../assets/journey/map-mobile-dark.webp'
 import aboutDawnPcLight from '../assets/about/dawn-light.webp'
 import aboutDawnPcDark from '../assets/about/dawn-dark.webp'
 import aboutDawnMobileLight from '../assets/about/dawn-light-m.webp'
@@ -244,6 +248,16 @@ export const ATLAS_BG_PC: ThemePair = {
   when: atlasWide,
 }
 
+/** 바이블 퀘스트 발자취 여행의 성지 조감 지도 — quest.css .qj 의 @media (min-width: 768px) 와 짝 */
+const questWide = (): boolean =>
+  typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+export const QUEST_MAP_PC: ThemePair = { light: questMapPcLight, dark: questMapPcDark, when: questWide }
+export const QUEST_MAP_MOBILE: ThemePair = {
+  light: questMapMobileLight,
+  dark: questMapMobileDark,
+  when: () => !questWide(),
+}
+
 /** /about 첫 화면 하늘 카드(dawn.css .ab-dawn-art) — 요 1:9 "위에서 내려온 빛이 마을 창마다 닿는" 장면.
  *  PC 는 가로 그림, 모바일은 세로 그림(카드가 약 1:2). dawn.css 의 @media (min-width: 1024px) 와 짝 */
 const aboutWide = (): boolean =>
@@ -329,6 +343,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/bible\/photo-verse$/, pairs: [PHOTO_VERSE_INTRO] },
   { match: /^\/bible\/alarm$/, pairs: [ALARM_HERO, ALARM_BAND] },
   { match: /^\/bible\/atlas$/, pairs: [ATLAS_BG_MOBILE, ATLAS_BG_PC] },
+  { match: /^\/bluemarble$/, pairs: [QUEST_MAP_PC, QUEST_MAP_MOBILE] },
   { match: /^\/bible\/situation$/, pairs: SITUATION_MOOD_TILES },
 ]
 
