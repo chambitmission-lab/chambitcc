@@ -2,7 +2,7 @@
 // 게임 상태 전이는 기존 useBluemarbleGame 그대로, 이 컴포넌트는 그리기만 한다.
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useBluemarbleGame } from '../useBluemarbleGame'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { confirmDialog } from '../../../utils/confirmDialog'
@@ -16,6 +16,7 @@ import LapCompletionModal from '../../../components/rabbit/LapCompletionModal'
 import JourneyMap from './JourneyMap'
 import SceneQuiz from './SceneQuiz'
 import StoryCard from './StoryCard'
+import { sceneCardMotion } from './sceneMotion'
 import { buildChapters, chapterOf } from './chapters'
 import bgPc from '../../../assets/atlas/bg-pc.webp'
 import bgPcNight from '../../../assets/atlas/bg-pc-night.webp'
@@ -70,6 +71,17 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
   const walk = () => game.handleAdvance()
   // 보스 5문제 동안 pending_tile 은 보스 칸에 머문다
   const isBoss = pendingTile?.tile_type === 'boss' || !!game.bossState?.in_boss
+  // 지금 떠 있어야 할 장면 카드 하나 — 문제가 끝나기 전엔 보스 클리어도 기다린다
+  const layer: 'quiz' | 'story' | 'boss' | 'done' | null =
+    game.showQuiz && game.activeQuiz
+      ? 'quiz'
+      : game.activeNarrative
+        ? 'story'
+        : game.bossClear
+          ? 'boss'
+          : isGameDone && !game.pendingLap
+            ? 'done'
+            : null
 
   const bg = theme === 'dark' ? { pc: bgPcNight, m: bgMobileNight } : { pc: bgPc, m: bgMobile }
 
@@ -256,70 +268,83 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
         </div>
       </div>
 
-      {/* 장면 카드(문제) */}
-      {game.showQuiz && game.activeQuiz && (
-        <SceneQuiz
-          quiz={game.activeQuiz}
-          tile={pendingTile ?? (isBoss ? currentTile : nextTile)}
-          isBoss={isBoss}
-          bossState={game.bossState}
-          onSubmit={game.handleAnswerSubmit}
-          onClose={game.handleQuizClose}
-          onBossNext={game.handleBossNext}
-        />
-      )}
-
-      {/* 보스 클리어 */}
-      {game.bossClear && (
-        <div className="qj-scrim">
+      {/* 장면 레이어 — 문제·이야기·보스 클리어·완주가 배경 하나를 함께 쓰고 카드만 바뀐다.
+          카드마다 배경을 따로 두면 문제→이야기로 넘어갈 때 배경이 꺼졌다 켜져 "모달이 순간 닫히는" 깜빡임이 났다. */}
+      <AnimatePresence>
+        {layer && (
           <motion.div
-            className="qj-scene qj-trophy"
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+            key="scene-layer"
+            className="qj-scrim"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, pointerEvents: 'auto' }}
+            // 닫히기 시작하는 순간 클릭을 통과시킨다 — 투명해진 배경이 DOM 에서 빠지기 전까지
+            // "걸어가기" 같은 뒤 버튼 클릭을 삼키던 문제(닫은 직후 눌러도 반응 없음) 방지.
+            // 애니메이션할 수 없는 값이라 exit 시작과 동시에 즉시 적용된다
+            exit={{ opacity: 0, pointerEvents: 'none' }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget && layer === 'story') game.handleNarrativeClose()
+            }}
           >
-            <div className="qj-trophy-icon">
-              <BmIcon name={game.bossClear.is_perfect ? 'crown' : 'swords'} size={48} strokeWidth={1.6} />
-            </div>
-            <h3>{game.bossClear.is_perfect ? '완벽한 승리!' : '보스 클리어!'}</h3>
-            <p className="qj-trophy-frac">
-              {game.bossClear.boss_correct} / {game.bossClear.boss_total} 정답
-            </p>
-            <p className="qj-story-score">+{game.bossClear.boss_clear_bonus.toLocaleString()}점</p>
-            <button type="button" className="qj-go" onClick={game.closeBossClear}>
-              계속 걷기 <BmIcon name="footprints" size={17} />
-            </button>
+            {/* 카드는 같은 격자 칸에 겹쳐 교차 페이드 — mode="wait" 는 퇴장 완료 감지가 늦어
+                카드 사이에 빈 배경만 1~2초 남는 틈이 생겼다 */}
+            <AnimatePresence>
+              {layer === 'quiz' && game.activeQuiz && (
+                <SceneQuiz
+                  key="quiz"
+                  quiz={game.activeQuiz}
+                  tile={pendingTile ?? (isBoss ? currentTile : nextTile)}
+                  isBoss={isBoss}
+                  bossState={game.bossState}
+                  onSubmit={game.handleAnswerSubmit}
+                  onClose={game.handleQuizClose}
+                  onBossNext={game.handleBossNext}
+                />
+              )}
+              {layer === 'story' && game.activeNarrative && (
+                <StoryCard
+                  key={`story-${game.activeNarrative.tile.id}`}
+                  tile={game.activeNarrative.tile}
+                  verseText={game.activeNarrative.verseText}
+                  onClose={game.handleNarrativeClose}
+                  variant={game.activeNarrative.variant}
+                  scoreDelta={game.activeNarrative.scoreDelta}
+                />
+              )}
+              {layer === 'boss' && game.bossClear && (
+                <motion.div key="boss" {...sceneCardMotion} className="qj-scene qj-trophy">
+                  <div className="qj-trophy-icon">
+                    <BmIcon name={game.bossClear.is_perfect ? 'crown' : 'swords'} size={48} strokeWidth={1.6} />
+                  </div>
+                  <h3>{game.bossClear.is_perfect ? '완벽한 승리!' : '보스 클리어!'}</h3>
+                  <p className="qj-trophy-frac">
+                    {game.bossClear.boss_correct} / {game.bossClear.boss_total} 정답
+                  </p>
+                  <p className="qj-story-score">+{game.bossClear.boss_clear_bonus.toLocaleString()}점</p>
+                  <button type="button" className="qj-go" onClick={game.closeBossClear}>
+                    계속 걷기 <BmIcon name="footprints" size={17} />
+                  </button>
+                </motion.div>
+              )}
+              {layer === 'done' && (
+                <motion.div key="done" {...sceneCardMotion} className="qj-scene qj-trophy">
+                  <div className="qj-trophy-icon">
+                    <BmIcon name="crown" size={48} strokeWidth={1.6} />
+                  </div>
+                  <h3>발자취 완주!</h3>
+                  <p className="qj-story-score">{session.total_score.toLocaleString()}점</p>
+                  <p className="qj-trophy-frac">
+                    정답 {session.correct_count} · 오답 {session.wrong_count}
+                  </p>
+                  <button type="button" className="qj-go" onClick={() => startMutation.mutate(true)}>
+                    다시 걷기
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
-        </div>
-      )}
-
-      {/* 게임 완료 */}
-      {isGameDone && !game.activeNarrative && !game.pendingLap && (
-        <div className="qj-scrim">
-          <div className="qj-scene qj-trophy">
-            <div className="qj-trophy-icon">
-              <BmIcon name="crown" size={48} strokeWidth={1.6} />
-            </div>
-            <h3>발자취 완주!</h3>
-            <p className="qj-story-score">{session.total_score.toLocaleString()}점</p>
-            <p className="qj-trophy-frac">
-              정답 {session.correct_count} · 오답 {session.wrong_count}
-            </p>
-            <button type="button" className="qj-go" onClick={() => startMutation.mutate(true)}>
-              다시 걷기
-            </button>
-          </div>
-        </div>
-      )}
-
-      <StoryCard
-        tile={game.activeNarrative?.tile ?? null}
-        verseText={game.activeNarrative?.verseText}
-        open={!!game.activeNarrative}
-        onClose={game.handleNarrativeClose}
-        variant={game.activeNarrative?.variant ?? 'arrival'}
-        scoreDelta={game.activeNarrative?.scoreDelta}
-      />
+        )}
+      </AnimatePresence>
 
       <div className="bm-toast-container">
         {game.toasts.map((t) => (
@@ -329,8 +354,11 @@ export default function JourneyView({ game, onGoLeague, header }: { game: Game; 
 
       <Leaderboard open={showLb} onClose={() => setShowLb(false)} />
 
-      {game.pendingTreasures.length > 0 && <TreasureRevealModal treasures={game.pendingTreasures} onClose={game.closeTreasures} />}
-      {game.pendingEvolution && (
+      {/* 보물·진화는 해설을 다 읽고 문제 카드를 닫은 뒤에 — 채점 직후 해설 위로 덮이면 어수선했다 */}
+      {game.pendingTreasures.length > 0 && layer !== 'quiz' && (
+        <TreasureRevealModal treasures={game.pendingTreasures} onClose={game.closeTreasures} />
+      )}
+      {game.pendingEvolution && layer !== 'quiz' && (
         <EvolutionModal
           fromStage={game.pendingEvolution.from}
           toStage={game.pendingEvolution.to}

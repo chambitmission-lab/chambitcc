@@ -1,10 +1,12 @@
 // 장면 카드 — 양피지 위 한 문제. 고르는 즉시 채점되고, 도장·구절·해설이 이어진다.
 // 보스 칸이면 5문제 연속(진행 점 표시), 마지막 답 뒤엔 보스 클리어 모달로 넘어간다.
 import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import { useSfx } from '../../../hooks/useSfx'
 import type { AnswerResult, BossState, QuizPublic, Tile } from '../../../types/bluemarble'
 import { canonicalBookName } from '../../Sermon/utils/sermonMeta'
 import BmIcon from '../components/BluemarbleIcons'
+import { sceneCardMotion } from './sceneMotion'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
@@ -73,76 +75,81 @@ export default function SceneQuiz({ quiz, tile: tileProp, isBoss: isBossProp, bo
   }
 
   return (
-    <div className="qj-scrim">
-      <div className={`qj-scene ${isBoss ? 'is-boss' : ''}`} role="dialog" aria-modal="true" aria-label={tile?.title ?? '장면 문제'}>
-        <div className="qj-scene-head">
-          <span className="qj-scene-place">{isBoss ? '보스 도전' : tile?.phase ?? '발자취'}</span>
-          <h3>{tile?.title ?? '말씀 장면'}</h3>
-          {isBoss && (
-            <div className="qj-boss-dots" aria-label={`보스 ${bossDone}/${bossTotal}`}>
-              {Array.from({ length: bossTotal }).map((_, i) => (
-                <span key={i} className={i < bossDone ? 'is-done' : i === bossDone && !result ? 'is-now' : ''} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <p className="qj-scene-q">{quiz.question}</p>
-
-        <div className="qj-scene-choices">
-          {quiz.choices.map((c, i) => {
-            let st = ''
-            if (result) st = i === result.correct_index ? 'is-answer' : i === picked ? 'is-wrong' : 'is-dim'
-            else if (busy && i === picked) st = 'is-picked'
-            return (
-              <button key={`${quiz.id}-${i}`} type="button" className={`qj-choice ${st}`} onClick={() => choose(i)} disabled={busy || !!result}>
-                <span>{LETTERS[i]}</span>
-                {c}
-              </button>
-            )
-          })}
-        </div>
-
-        {!result && quiz.hint && (
-          <button type="button" className="qj-hint-btn" onClick={() => setHint((v) => !v)}>
-            <BmIcon name="bulb" size={15} /> {hint ? quiz.hint : '힌트 보기'}
-          </button>
-        )}
-
-        {result && (
-          <div className="qj-reveal">
-            <div className={`qj-stamp ${correct ? 'is-ok' : 'is-no'}`}>{correct ? `+${result.score_delta}` : '다시 와요'}</div>
-            {result.related_verse_text && (
-              <figure>
-                <blockquote>{result.related_verse_text}</blockquote>
-                {ref && <figcaption>{ref}</figcaption>}
-              </figure>
-            )}
-            {result.explanation && <p className="qj-insight">{result.explanation}</p>}
-            {!correct && <p className="qj-insight qj-insight--soft">이 칸은 다음 걸음에 새 문제로 다시 열려요.</p>}
-            {chips.length > 0 && (
-              <div className="qj-chips">
-                {chips.map((c) => (
-                  <span key={c}>{c}</span>
-                ))}
-                {result.grace_event && <span className="is-grace">은혜의 순간 ×2</span>}
-              </div>
-            )}
-            <button
-              type="button"
-              className="qj-go"
-              onClick={() => {
-                sfx.play('click')
-                if (bossContinues) onBossNext()
-                else onClose()
-              }}
-            >
-              {bossContinues ? `다음 보스 문제 (${(result.boss_state?.boss_index ?? 0) + 1}/${bossTotal})` : correct ? '다음 장면으로' : '지도로 돌아가기'}
-              <BmIcon name="footprints" size={17} />
-            </button>
+    <motion.div
+      {...sceneCardMotion}
+      className={`qj-scene ${isBoss ? 'is-boss' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={tile?.title ?? '장면 문제'}
+    >
+      <div className="qj-scene-head">
+        <span className="qj-scene-place">{isBoss ? '보스 도전' : tile?.phase ?? '발자취'}</span>
+        <h3>{tile?.title ?? '말씀 장면'}</h3>
+        {isBoss && (
+          <div className="qj-boss-dots" aria-label={`보스 ${bossDone}/${bossTotal}`}>
+            {Array.from({ length: bossTotal }).map((_, i) => (
+              <span key={i} className={i < bossDone ? 'is-done' : i === bossDone && !result ? 'is-now' : ''} />
+            ))}
           </div>
         )}
       </div>
-    </div>
+
+      <p className="qj-scene-q">{quiz.question}</p>
+
+      <div className="qj-scene-choices">
+        {quiz.choices.map((c, i) => {
+          let st = ''
+          if (result) st = i === result.correct_index ? 'is-answer' : i === picked ? 'is-wrong' : 'is-dim'
+          else if (busy && i === picked) st = 'is-picked'
+          return (
+            <button key={`${quiz.id}-${i}`} type="button" className={`qj-choice ${st}`} onClick={() => choose(i)} disabled={busy || !!result}>
+              <span>{LETTERS[i]}</span>
+              {c}
+            </button>
+          )
+        })}
+      </div>
+
+      {!result && quiz.hint && (
+        <button type="button" className="qj-hint-btn" onClick={() => setHint((v) => !v)}>
+          <BmIcon name="bulb" size={15} /> {hint ? quiz.hint : '힌트 보기'}
+        </button>
+      )}
+
+      {result && (
+        <div className="qj-reveal">
+          <div className={`qj-stamp ${correct ? 'is-ok' : 'is-no'}`}>{correct ? `+${result.score_delta}` : isBoss ? '아쉬워요' : '다시 와요'}</div>
+          {result.related_verse_text && (
+            <figure>
+              <blockquote>{result.related_verse_text}</blockquote>
+              {ref && <figcaption>{ref}</figcaption>}
+            </figure>
+          )}
+          {result.explanation && <p className="qj-insight">{result.explanation}</p>}
+          {!correct && !isBoss && <p className="qj-insight qj-insight--soft">이 칸은 다음 걸음에 새 문제로 다시 열려요.</p>}
+          {!correct && bossContinues && <p className="qj-insight qj-insight--soft">보스 도전은 끝까지 이어져요. 맞힌 만큼 보너스를 받아요.</p>}
+          {chips.length > 0 && (
+            <div className="qj-chips">
+              {chips.map((c) => (
+                <span key={c}>{c}</span>
+              ))}
+              {result.grace_event && <span className="is-grace">은혜의 순간 ×2</span>}
+            </div>
+          )}
+          <button
+            type="button"
+            className="qj-go"
+            onClick={() => {
+              sfx.play('click')
+              if (bossContinues) onBossNext()
+              else onClose()
+            }}
+          >
+            {bossContinues ? `다음 보스 문제 (${(result.boss_state?.boss_index ?? 0) + 1}/${bossTotal})` : correct ? '다음 장면으로' : '지도로 돌아가기'}
+            <BmIcon name="footprints" size={17} />
+          </button>
+        </div>
+      )}
+    </motion.div>
   )
 }
