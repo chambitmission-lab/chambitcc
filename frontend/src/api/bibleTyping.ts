@@ -534,6 +534,8 @@ export interface MannaRunInput {
   words_missed: number
   max_combo: number
   duration_ms: number
+  /** 절마다의 누적 점수 — 고스트 라이벌 비교용 */
+  checkpoints?: number[]
 }
 
 export interface MannaRunResult {
@@ -547,6 +549,72 @@ export interface MannaRunResult {
   is_best: boolean
   best: number
   /** 오늘의 만나 그 난이도 순위(연습 판이면 null) */
+  rank: number | null
+  players: number
+  /** 이 판으로 앞지른 사람 이름(1위였던 사람·바로 앞 사람) — 알림이 갔다 */
+  overtook: string[]
+  /** 라이브 창 안에서 친 판이면 라이브 순위 */
+  live: { key: string; rank: number | null; players: number } | null
+}
+
+/** 고스트 라이벌 — 오늘 같은 판을 친 사람의 절별 누적 점수 */
+export interface MannaRivalEntry extends MannaBoardEntry {
+  checkpoints: number[]
+}
+export type MannaRivalRelation = 'leader' | 'above' | 'below' | 'self'
+export interface MannaRival {
+  date: string
+  mode: MannaMode
+  players: number
+  rival: (MannaRivalEntry & { relation: MannaRivalRelation }) | null
+  leader: MannaRivalEntry | null
+  me: MannaRivalEntry | null
+}
+
+export interface MannaLiveWindow {
+  key: string
+  starts_at: string
+  ends_at: string
+  /** 요일 한 글자(수·일) */
+  weekday: string
+}
+export interface MannaLiveBoard {
+  key: string
+  players: number
+  entries: MannaBoardEntry[]
+  me: { rank: number; score: number } | null
+}
+export interface MannaLive {
+  now: string
+  mode: MannaMode
+  minutes: number
+  current: (MannaLiveWindow & { board: MannaLiveBoard }) | null
+  next: MannaLiveWindow | null
+  last: (MannaLiveWindow & { board: MannaLiveBoard }) | null
+}
+
+export interface MannaChampion {
+  week_start: string
+  week_end: string
+  team: MannaTeamStanding | null
+  person: { user_id: number; name: string; avatar_url: string | null; points: number; team_key: string | null } | null
+  is_my_team: boolean
+  is_me: boolean
+}
+export interface MannaHome {
+  now: string
+  live: (MannaLiveWindow & { state: 'live' | 'soon'; players: number }) | null
+  champion: MannaChampion | null
+}
+
+/** 라이브 한 판 SSE — 창 안에서 한 판을 마친 사람 */
+export interface MannaLiveEvent {
+  live_key: string
+  user_id: number
+  name: string
+  score: number
+  verses_done: number
+  reached_canaan: boolean
   rank: number | null
   players: number
 }
@@ -586,6 +654,8 @@ export interface MannaTeamStanding {
 export interface MannaTeams {
   week_start: string
   week_ends_at: string
+  /** 서버 KST 현재 시각 — 광야 지도의 선두 위치(주가 얼마나 흘렀나) */
+  now: string
   teams: MannaTeamStanding[]
   team_options: { key: string; name: string; color: string }[]
   me: { team_key: string | null; points: number }
@@ -634,6 +704,30 @@ export const getMannaTeams = async (): Promise<MannaTeams> => {
   const res = await request<Envelope<MannaTeams>>('/bible-typing/manna/teams', {
     auth: 'required',
     errorMessage: '부서 대항전을 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const getMannaRival = async (mode: MannaMode): Promise<MannaRival> => {
+  const res = await request<Envelope<MannaRival>>(`/bible-typing/manna/rival?mode=${mode}`, {
+    auth: 'required',
+    errorMessage: '오늘의 라이벌을 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const getMannaLive = async (): Promise<MannaLive> => {
+  const res = await request<Envelope<MannaLive>>('/bible-typing/manna/live', {
+    auth: 'required',
+    errorMessage: '라이브 정보를 불러오지 못했어요',
+  })
+  return res.data
+}
+
+export const getMannaHome = async (): Promise<MannaHome> => {
+  const res = await request<Envelope<MannaHome>>('/bible-typing/manna/home', {
+    auth: 'required',
+    errorMessage: '만나 소식을 불러오지 못했어요',
   })
   return res.data
 }

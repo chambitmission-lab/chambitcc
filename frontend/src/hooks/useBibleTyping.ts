@@ -29,6 +29,9 @@ import {
   submitTypingRecord,
   updateTypingGoal,
   getMannaBoard,
+  getMannaHome,
+  getMannaLive,
+  getMannaRival,
   getMannaSummary,
   getMannaTeams,
   submitMannaRun,
@@ -70,6 +73,9 @@ export const bibleTypingKeys = {
   mannaSummary: () => [...bibleTypingKeys.manna(), 'summary'] as const,
   mannaBoard: (mode: MannaMode) => [...bibleTypingKeys.manna(), 'board', mode] as const,
   mannaTeams: () => [...bibleTypingKeys.manna(), 'teams'] as const,
+  mannaRival: (mode: MannaMode) => [...bibleTypingKeys.manna(), 'rival', mode] as const,
+  mannaLive: () => [...bibleTypingKeys.manna(), 'live'] as const,
+  mannaHome: () => [...bibleTypingKeys.manna(), 'home'] as const,
 }
 
 const loggedIn = () => !!tokenStore.getAccess()
@@ -661,6 +667,34 @@ export const useMannaTeams = (enabled = true) =>
     queryFn: getMannaTeams,
     enabled: loggedIn() && enabled,
     staleTime: 1000 * 30,
+  })
+
+/** 고스트 라이벌 — 오늘 그 난이도에서 바로 위 사람(없으면 1위)의 절별 누적 점수 */
+export const useMannaRival = (mode: MannaMode, enabled = true) =>
+  useQuery({
+    queryKey: bibleTypingKeys.mannaRival(mode),
+    queryFn: () => getMannaRival(mode),
+    enabled: loggedIn() && enabled,
+    staleTime: 1000 * 20,
+  })
+
+/** 라이브 한 판 — 진행 중인 창·다음 창·오늘 끝난 창. 진행 중엔 자주 새로 받는다 */
+export const useMannaLive = (enabled = true) =>
+  useQuery({
+    queryKey: bibleTypingKeys.mannaLive(),
+    queryFn: getMannaLive,
+    enabled: loggedIn() && enabled,
+    staleTime: 1000 * 15,
+    refetchInterval: (q) => (q.state.data?.current ? 1000 * 20 : false),
+  })
+
+/** 홈 배너 — 지금(또는 2시간 안) 라이브와 지난주 광야 챔피언 */
+export const useMannaHome = (enabled = true) =>
+  useQuery({
+    queryKey: bibleTypingKeys.mannaHome(),
+    queryFn: getMannaHome,
+    enabled: loggedIn() && enabled,
+    staleTime: 1000 * 60 * 3,
   })
 
 export const useSubmitManna = () => {

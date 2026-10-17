@@ -6,8 +6,12 @@
 // - 놓친 단어는 다시 내려오지 않는다 — 말씀 줄에 흐린 취소선으로 남고, 오멜 항아리 하나가 빈다.
 // - 한 절을 다 지나면 새겨지고(한 단어도 안 놓쳤으면 '온전히 새김' 보너스) 다음 노정으로. 여덟 절이면 가나안.
 // - 사이사이 벌레 먹은 만나(치면 감점, 두면 +20)와 아이템(메추라기·반석·구름기둥·불기둥)이 끼어든다.
+//   벌레 먹은 만나는 지금 내려오는 말씀과 한 글자만 다른 '닮은꼴'(여호와→여호아) — 말씀을 정확히 읽어야 가려낸다.
+// - 절마다 한 단어는 금빛 '핵심 말씀'(여호와·사랑…) — 거두면 3배.
+// - 땅에 닿기 직전(아슬아슬 구간)에 거두면 1.5배 — 위험을 감수하면 보상.
 // - 세 절마다 '여섯째 날' 10초 — 말씀이 촘촘히, 점수 두 배.
-// 오늘의 만나는 서버가 준 seed 로 끼어드는 만나·자리까지 같게 굴려 모두가 같은 판을 친다.
+// - 절을 새길 때마다 누적 점수를 checkpoints 에 남긴다 — 같은 판을 친 사람끼리(고스트 라이벌) 절 단위로 겨룬다.
+// 오늘의 만나는 서버가 준 seed 로 끼어드는 만나·자리·핵심 말씀까지 같게 굴려 모두가 같은 판을 친다.
 
 import { getSoundTheme, playTypingSound } from '../typingSound'
 
@@ -22,8 +26,51 @@ export const MANNA_MODES: { key: MannaMode; label: string; desc: string }[] = [
 // 출애굽 노정 — 판의 여덟 절을 새길 때마다 한 곳씩, 마지막이 가나안
 export const PLACES = ['라암셋', '숙곳', '마라', '엘림', '신 광야', '르비딤', '시내산', '가데스', '가나안']
 
-// 광야에서 이스라엘이 품었던 것들 — 거두면 안 되는 만나
+// 광야에서 이스라엘이 품었던 것들 — 닮은꼴을 못 만들 때(한 글자 단어·한글 아님) 쓰는 벌레 먹은 만나
 const DECOYS = ['원망', '불평', '욕심', '염려', '교만', '시기', '거짓', '게으름']
+
+// 절마다 하나 금빛으로 내려오는 '핵심 말씀' — 앞머리가 이 중 하나면 우선, 없으면 가장 긴 단어
+const KEYWORDS = [
+  '여호와', '하나님', '예수', '그리스도', '주님', '주께', '주의', '성령', '사랑', '믿음', '은혜', '말씀', '생명', '소망',
+  '평안', '구원', '기도', '진리', '능력', '영광', '거룩', '축복', '긍휼', '자비', '의인', '천국', '복음', '십자가', '빛',
+]
+
+// ── 한글 닮은꼴 — 한 글자의 모음이나 받침만 바꾼다(여호와→여호아, 사랑→사람) ──
+const H_BASE = 0xac00
+const VOWEL_PAIRS: [number, number][] = [[0, 4], [1, 5], [2, 6], [8, 13], [12, 17], [18, 20], [9, 14], [11, 16], [3, 7]]
+const FINAL_PAIRS: [number, number][] = [[4, 21], [1, 2], [19, 20], [8, 4], [16, 17], [0, 21], [0, 4], [7, 19]]
+const pairOf = (pairs: [number, number][], v: number): number | null => {
+  for (const [a, b] of pairs) {
+    if (v === a) return b
+    if (v === b) return a
+  }
+  return null
+}
+/** 단어에서 한 글자만 바꾼 닮은꼴 — 못 만들면 null */
+export const lookalike = (word: string, rand: () => number, avoid: Set<string>): string | null => {
+  const chars = Array.from(word)
+  const idxs = chars.map((_, i) => i).filter((i) => {
+    const code = chars[i].charCodeAt(0) - H_BASE
+    return code >= 0 && code <= 11171
+  })
+  if (!idxs.length) return null
+  for (let k = 0; k < 6; k++) {
+    const i = idxs[Math.floor(rand() * idxs.length)]
+    const code = chars[i].charCodeAt(0) - H_BASE
+    const l = Math.floor(code / 588)
+    const v = Math.floor((code % 588) / 28)
+    const t = code % 28
+    const useVowel = rand() < 0.6
+    const nv = useVowel ? pairOf(VOWEL_PAIRS, v) : null
+    const nt = useVowel ? null : pairOf(FINAL_PAIRS, t)
+    if (nv === null && nt === null) continue
+    const next = [...chars]
+    next[i] = String.fromCharCode(H_BASE + l * 588 + (nv ?? v) * 28 + (nt ?? t))
+    const out = next.join('')
+    if (out !== word && !avoid.has(out)) return out
+  }
+  return null
+}
 
 type ItemKey = 'quail' | 'water' | 'cloud' | 'fire'
 export const ITEMS: Record<ItemKey, { text: string; tag: string; desc: string }> = {
@@ -50,6 +97,9 @@ const PERFECT_BONUS = 500
 const QUAIL_POINTS = 300
 const DECOY_PENALTY = 50
 const DECOY_AVOID = 20
+const GOLD_MULT = 3 // 핵심 말씀
+const CLOSE_MULT = 1.5 // 아슬아슬 — 땅에 닿기 직전에 거둠
+const CLOSE_ZONE = 0.16 // 무대 높이 대비 아슬아슬 구간(최소 44px)
 const GROUND_OFFSET = 30 // 무대 바닥에서 모래 언덕 윗면까지
 
 /** 판에 쓸 단어 — 문장부호는 떼어 내고(치기 어렵다) 빈 조각은 버린다 */
@@ -81,6 +131,8 @@ export interface MannaVerseView {
   turn: number
   /** 방금 거둔 단어 — 반짝 효과 */
   fresh: number
+  /** 이 절의 핵심 말씀(금빛, 3배) */
+  gold: number
 }
 
 export interface MannaBanner {
@@ -91,6 +143,10 @@ export interface MannaBanner {
   bonus: number
   nextPlace: string
   last: boolean
+  /** 이 절까지의 누적 점수 — 고스트 라이벌과 같은 자리에서 비교 */
+  score: number
+  /** 새긴 절 수(1부터) */
+  done: number
 }
 
 export interface MannaResult {
@@ -103,6 +159,10 @@ export interface MannaResult {
   durationMs: number
   reachedCanaan: boolean
   refs: string[]
+  /** 절마다의 누적 점수(길이 = versesDone) */
+  checkpoints: number[]
+  goldCaught: number
+  closeCalls: number
 }
 
 export interface MannaCallbacks {
@@ -128,6 +188,8 @@ interface Falling {
   ph: number
   seed: number
   p: string | null
+  /** 아슬아슬 구간에 들어왔는지(클래스 토글용) */
+  low: boolean
 }
 
 /** 시드 고정 난수(mulberry32) — 같은 seed 면 같은 판 */
@@ -204,6 +266,11 @@ const sfx = {
   miss: thud,
   bad: () => tone(130, 0.24, 0.09, 0, 'sawtooth'),
   item: () => [880, 1100, 1320, 1760].forEach((f, i) => tone(f, 0.22, 0.06, i * 0.05)),
+  gold: () => [1047, 1319, 1568, 2093].forEach((f, i) => tone(f, 0.3, 0.07, i * 0.07, 'triangle')),
+  close: () => {
+    tone(520, 0.08, 0.09)
+    tone(1040, 0.2, 0.08, 0.06)
+  },
 }
 
 export class MannaGame {
@@ -232,10 +299,14 @@ export class MannaGame {
   private wordsCaught = 0
   private wordsMissed = 0
   private refs: string[] = []
+  private checkpoints: number[] = []
+  private goldCaught = 0
+  private closeCalls = 0
 
   private vi = 0
   private caught = new Set<number>()
   private missed = new Set<number>()
+  private gold = -1
   private seq = 0
   private cursorX = 8
   private fresh = -1
@@ -312,7 +383,25 @@ export class MannaGame {
     this.seq = 0
     this.fresh = -1
     this.cursorX = 8 + this.rand() * 40
+    this.gold = this.pickGold()
     this.emitVerse()
+  }
+
+  /** 이 절의 핵심 말씀 — 앞머리가 KEYWORDS 인 단어 중 하나(시드), 없으면 가장 긴 단어 */
+  private pickGold() {
+    const w = this.words
+    if (w.length < 2) return -1
+    const hits = w.map((t, i) => (KEYWORDS.some((k) => t.startsWith(k)) ? i : -1)).filter((i) => i >= 0)
+    if (hits.length) return hits[Math.floor(this.rand() * hits.length)]
+    let best = 0
+    w.forEach((t, i) => {
+      if (t.length > w[best].length) best = i
+    })
+    return best
+  }
+
+  private closeLine() {
+    return this.groundY - Math.max(44, this.H * CLOSE_ZONE)
   }
 
   private get words() {
@@ -343,6 +432,7 @@ export class MannaGame {
       states: v.words.map((_, i) => (this.caught.has(i) ? 'got' : this.missed.has(i) ? 'miss' : 'blank')),
       turn: this.turnIdx(),
       fresh: this.fresh,
+      gold: this.gold,
     })
     this.markTurn()
   }
@@ -366,8 +456,10 @@ export class MannaGame {
   // ── 떨어지는 만나 ──
   private make(kind: Falling['kind'], text: string, item?: ItemKey, idx = -1) {
     const el = document.createElement('div')
-    el.className = `mn-m${kind === 'decoy' ? ' mn-m--decoy' : ''}${kind === 'item' ? ` mn-m--item mn-m--${item}` : ''}`
+    const gold = kind === 'word' && idx === this.gold
+    el.className = `mn-m${kind === 'decoy' ? ' mn-m--decoy' : ''}${kind === 'item' ? ` mn-m--item mn-m--${item}` : ''}${gold ? ' mn-m--gold' : ''}`
     if (kind === 'item' && item) el.dataset.tag = ITEMS[item].tag
+    if (gold) el.dataset.tag = `핵심 ×${GOLD_MULT}`
     el.textContent = text
     this.stage.appendChild(el)
     const w = el.offsetWidth
@@ -407,6 +499,7 @@ export class MannaGame {
       ph: 0,
       seed: this.rand() * 6,
       p: null,
+      low: false,
     }
     el.style.transform = `translate(${x}px, ${f.y}px)`
     this.falling.push(f)
@@ -429,7 +522,17 @@ export class MannaGame {
       const k = keys[Math.floor(this.rand() * keys.length)]
       this.make('item', ITEMS[k].text, k)
     } else if (r < m.item + m.decoy) {
-      const free = DECOYS.filter((d) => !this.falling.some((f) => f.text === d))
+      // 지금 내려오는(또는 곧 내려올) 말씀의 닮은꼴 — 진짜와 나란히 떨어져 정확히 읽어야 가려낸다
+      const w = this.words
+      const turn = this.turnIdx()
+      const src = w[Math.min(this.seq, w.length - 1)] ?? (turn >= 0 ? w[turn] : undefined)
+      const onStage = new Set([...w, ...this.falling.map((f) => f.text)])
+      const fake = src ? lookalike(src, this.rand, onStage) : null
+      if (fake) {
+        this.make('decoy', fake)
+        return
+      }
+      const free = DECOYS.filter((d) => !onStage.has(d))
       if (free.length) this.make('decoy', free[Math.floor(this.rand() * free.length)])
     }
   }
@@ -504,9 +607,19 @@ export class MannaGame {
     this.combo++
     this.wordsCaught++
     this.maxCombo = Math.max(this.maxCombo, this.combo)
-    const pts = Math.round(f.text.length * 20 * this.comboMult() * (this.isFever() ? 2 : 1))
+    const gold = f.idx === this.gold
+    // 불기둥으로 쓸어 담은 건 아슬아슬이 아니다
+    const close = !viaFire && f.y + f.h >= this.closeLine()
+    if (gold) this.goldCaught++
+    if (close) this.closeCalls++
+    const pts = Math.round(
+      f.text.length * 20 * this.comboMult() * (this.isFever() ? 2 : 1) * (gold ? GOLD_MULT : 1) * (close ? CLOSE_MULT : 1),
+    )
     this.score += pts
-    this.popAt(f, `+${pts}`, viaFire ? '불기둥' : undefined, viaFire ? 'good' : '')
+    const tags = [gold ? `핵심 말씀 ×${GOLD_MULT}` : '', close ? `아슬아슬 ×${CLOSE_MULT}` : '', viaFire ? '불기둥' : ''].filter(Boolean)
+    this.popAt(f, `+${pts}`, tags.join(' · ') || undefined, gold ? 'gold' : close ? 'close' : viaFire ? 'good' : '')
+    if (gold) sfx.gold()
+    else if (close) sfx.close()
     this.remove(f, true)
     this.fresh = f.idx
     this.emitVerse()
@@ -615,6 +728,7 @@ export class MannaGame {
     if (!missed) this.perfect++
     this.refs.push(v.ref)
     this.score += bonus
+    this.checkpoints.push(this.score)
     this.falling.slice().forEach((f) => this.remove(f, true))
     playTypingSound('done')
     this.holdUntil = this.clock + HOLD_SECONDS
@@ -634,6 +748,8 @@ export class MannaGame {
       bonus,
       nextPlace: PLACES[Math.min(this.done, PLACES.length - 1)],
       last,
+      score: this.score,
+      done: this.done,
     })
     this.emitHud()
   }
@@ -654,6 +770,9 @@ export class MannaGame {
       durationMs: Math.round(this.clock * 1000),
       reachedCanaan: canaan,
       refs: this.refs,
+      checkpoints: this.checkpoints.slice(),
+      goldCaught: this.goldCaught,
+      closeCalls: this.closeCalls,
     })
   }
 
@@ -693,11 +812,18 @@ export class MannaGame {
         }
       }
       const v = this.H * m.fall * (1 + this.done * m.ramp) * (this.clock < this.slowUntil ? 0.4 : 1)
+      const closeLine = this.closeLine()
       for (const f of this.falling.slice()) {
         f.y += v * dt * f.spd
         f.ph += dt
         const sway = Math.sin(f.ph * 1.3 + f.seed) * 6
         f.el.style.transform = `translate(${f.x + sway}px, ${f.y}px)`
+        // 아슬아슬 구간 — 말씀 단어만 떨리며 알린다(거두면 1.5배)
+        const low = f.kind === 'word' && f.y + f.h >= closeLine
+        if (low !== f.low) {
+          f.low = low
+          f.el.classList.toggle('is-low', low)
+        }
         if (f.y + f.h >= this.groundY) this.land(f)
         if (!this.running) return
       }

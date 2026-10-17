@@ -4,11 +4,24 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../../components/bible/BibleSideRail'
-import { getMannaSet, type MannaKind, type MannaRunResult, type MannaSet } from '../../../../api/bibleTyping'
-import { bibleTypingKeys, useMannaSummary, useSubmitManna } from '../../../../hooks/useBibleTyping'
+import {
+  getMannaSet,
+  type MannaKind,
+  type MannaLive,
+  type MannaLiveEvent,
+  type MannaRival,
+  type MannaRunResult,
+  type MannaSet,
+} from '../../../../api/bibleTyping'
+import { bibleTypingKeys, useMannaLive, useMannaRival, useMannaSummary, useSubmitManna } from '../../../../hooks/useBibleTyping'
+import { useTickingNow } from '../../../../hooks/useTickingNow'
 import { safeStorage } from '../../../../utils/safeStorage'
+import { MANNA_HERO } from '../../../../utils/themeAssets'
+import { useThemeArt } from '../../../../hooks/useThemeArt'
 import { tokenStore } from '../../../../utils/tokenStore'
 import { showToast } from '../../../../utils/toast'
+import { notificationStream } from '../../../../utils/notificationStream'
+import { parseApiDate } from '../../../../utils/dateUtils'
 import { shareOrDownload } from '../dailyCard'
 import { playTypingSound } from '../typingSound'
 import SoundMenu from '../SoundMenu'
@@ -32,9 +45,13 @@ import './manna.css'
 const MODE_KEY = 'manna-mode'
 const KIND_KEY = 'manna-kind'
 const modeLabel = (m: MannaMode) => MANNA_MODES.find((x) => x.key === m)?.label ?? ''
+const fmt = (n: number) => n.toLocaleString('ko-KR')
+const RELATION_LABEL = { leader: '오늘 1위', above: '바로 위', below: '바로 아래 · 추격 중', self: '오늘의 나' } as const
 
 // 시작 카드에서 순서대로 내려오는 미리보기(요 3:16 앞머리)
 const PREVIEW_WORDS = ['하나님이', '세상을', '이처럼', '사랑하사']
+
+type Rival = NonNullable<MannaRival['rival']>
 
 const Dunes = () => (
   <svg className="mn-dunes" viewBox="0 0 400 56" preserveAspectRatio="none" aria-hidden>
@@ -42,6 +59,34 @@ const Dunes = () => (
     <path className="mn-dunes__front" d="M0 38 C 80 24, 150 48, 240 34 S 360 26, 400 36 V56 H0Z" />
   </svg>
 )
+
+const Avatar = ({ name, url, className = '' }: { name: string; url: string | null; className?: string }) =>
+  url ? (
+    <img className={`mn-ava ${className}`} src={url} alt="" loading="lazy" />
+  ) : (
+    <span className={`mn-ava ${className}`} aria-hidden>
+      {name.trim().charAt(0) || '?'}
+    </span>
+  )
+
+/** "n분 남음" 같은 남은 시간 — 1분 미만은 초 */
+const leftLabel = (ms: number) => {
+  if (ms <= 0) return '곧 마감'
+  const m = Math.floor(ms / 60000)
+  if (m >= 1) return `${m}분 남음`
+  return `${Math.max(1, Math.floor(ms / 1000))}초 남음`
+}
+const untilLabel = (ms: number) => {
+  const m = Math.ceil(ms / 60000)
+  if (m < 60) return `${Math.max(1, m)}분 뒤`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}시간 ${m % 60 ? `${m % 60}분 ` : ''}뒤`
+  return `${Math.floor(h / 24)}일 뒤`
+}
+const hhmm = (iso: string) => {
+  const d = parseApiDate(iso)
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+}
 
 type Phase = 'start' | 'loading' | 'playing' | 'over'
 
@@ -51,11 +96,14 @@ interface Finished {
   result: MannaResult
   saved: MannaRunResult | null
   saveFailed: boolean
+  rival: Rival | null
+  liveKey: string | null
 }
 
 /**
  * 만나 내리기 — 하늘에서 순서대로 내려오는 말씀 단어를 쳐서 거두고, 한 절씩 새겨 가나안까지.
  * 오늘의 만나(교회 전체가 같은 판·난이도별 순위·부서 대항전)와 연습 판.
+ * 고스트 라이벌(같은 판을 친 바로 위 사람과 절 단위로 겨룸)·라이브 한 판(정해진 창에 교회 전체가 동시에).
  */
 const MannaPage = () => {
   const navigate = useNavigate()
@@ -63,6 +111,7 @@ const MannaPage = () => {
   const loggedIn = !!tokenStore.getAccess()
   const { data: summary } = useMannaSummary()
   const submit = useSubmitManna()
+  const artReady = useThemeArt(MANNA_HERO)
 
   const [mode, setModeState] = useState<MannaMode>(() => {
     const v = safeStorage.get(MODE_KEY)
@@ -81,17 +130,36 @@ const MannaPage = () => {
   const [phase, setPhase] = useState<Phase>('start')
   const [set, setSet] = useState<MannaSet | null>(null)
   const [finished, setFinished] = useState<Finished | null>(null)
+  // 이번 판의 라이벌·라이브는 시작 순간에 고정한다(플레이 중 재조회로 바뀌지 않게)
+  const [playing, setPlaying] = useState<{ rival: Rival | null; liveKey: string | null }>({ rival: null, liveKey: null })
 
-  const start = async () => {
+  const { data: rivalData } = useMannaRival(mode, loggedIn && kind === 'daily' && phase !== 'playing')
+  const { data: live } = useMannaLive(loggedIn)
+  const liveNow = live?.current ?? null
+  // 라이브는 오늘의 만나 · 보통 난이도로만 들어간다
+  const liveEligible = !!liveNow && kind === 'daily' && mode === (live?.mode ?? 'normal')
+
+  const start = async (opts?: { live?: boolean }) => {
+    if (opts?.live && live) {
+      setKind('daily')
+      setMode(live.mode)
+    }
+    const k: MannaKind = opts?.live ? 'daily' : kind
+    const m: MannaMode = opts?.live && live ? live.mode : mode
     setPhase('loading')
     try {
       const data = await qc.fetchQuery({
-        queryKey: [...bibleTypingKeys.manna(), 'set', kind],
-        queryFn: () => getMannaSet(kind),
+        queryKey: [...bibleTypingKeys.manna(), 'set', k],
+        queryFn: () => getMannaSet(k),
         // 오늘의 만나는 하루 같은 판 — 잠깐은 캐시로, 연습 판은 매번 새로
-        staleTime: kind === 'daily' ? 60_000 : 0,
+        staleTime: k === 'daily' ? 60_000 : 0,
       })
       if (!data.verses.length) throw new Error('empty')
+      setPlaying({
+        // 라이벌은 지금 난이도 것만(라이브로 난이도가 바뀌면 다음 판부터)
+        rival: k === 'daily' && loggedIn && rivalData?.mode === m ? (rivalData.rival ?? null) : null,
+        liveKey: k === 'daily' && (opts?.live || liveEligible) ? (liveNow?.key ?? null) : null,
+      })
       setSet(data)
       setPhase('playing')
     } catch {
@@ -104,7 +172,7 @@ const MannaPage = () => {
     (result: MannaResult) => {
       if (!set) return
       const playedMode = mode
-      setFinished({ set, mode: playedMode, result, saved: null, saveFailed: false })
+      setFinished({ set, mode: playedMode, result, saved: null, saveFailed: false, rival: playing.rival, liveKey: playing.liveKey })
       setPhase('over')
       window.scrollTo({ top: 0 })
       if (result.reachedCanaan) {
@@ -123,6 +191,7 @@ const MannaPage = () => {
           words_missed: result.wordsMissed,
           max_combo: result.maxCombo,
           duration_ms: result.durationMs,
+          checkpoints: result.checkpoints,
         },
         {
           onSuccess: (saved) => setFinished((f) => (f ? { ...f, saved } : f)),
@@ -132,11 +201,13 @@ const MannaPage = () => {
     },
     // submit.mutate 는 안정적이다
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [set, mode, loggedIn],
+    [set, mode, loggedIn, playing],
   )
 
   const best = summary?.best[mode] ?? 0
   const today = summary?.today
+  const rival = kind === 'daily' ? (rivalData?.rival ?? null) : null
+  const myToday = rivalData?.me ?? null
 
   return (
     <div className="bt-page bg-[var(--app-canvas)] dark:bg-background-dark page-stage">
@@ -166,8 +237,7 @@ const MannaPage = () => {
           ) : (
             <section className="mn-hero">
               <div className="mn-hero__stage">
-                <div className="mn-sky" aria-hidden />
-                <div className="mn-sun" aria-hidden />
+                <div className={`mn-hero__art${artReady ? ' is-ready' : ''}`} aria-hidden />
                 <div className="mn-rain" aria-hidden>
                   {PREVIEW_WORDS.map((w, i) => (
                     <span
@@ -179,7 +249,6 @@ const MannaPage = () => {
                     </span>
                   ))}
                 </div>
-                <Dunes />
                 <div className="mn-hero__top">
                   <span className="mn-pill">
                     <span className="material-icons-round" style={{ fontSize: 14 }} aria-hidden>
@@ -202,10 +271,14 @@ const MannaPage = () => {
                   단어가 <b>순서대로</b> 내려와요. 땅에 닿기 전에 차례대로 쳐서 거두고, 여덟 절을 새겨 <b>가나안</b>까지.
                 </p>
 
+                {loggedIn && live && (liveNow || live.next) && (
+                  <LiveCallout live={live} onJoin={() => void start({ live: true })} disabled={phase === 'loading'} />
+                )}
+
                 {loggedIn && (
                   <div className="mn-kpis">
                     <div className="mn-kpi">
-                      <b>{best > 0 ? best.toLocaleString('ko-KR') : '–'}</b>
+                      <b>{best > 0 ? fmt(best) : '–'}</b>
                       <span>{modeLabel(mode)} 최고점</span>
                     </div>
                     <div className="mn-kpi">
@@ -252,12 +325,39 @@ const MannaPage = () => {
                   ))}
                 </div>
 
+                {loggedIn && rival && (
+                  <div className={`mn-rivalcard is-${rival.relation}`}>
+                    <Avatar name={rival.name} url={rival.avatar_url} className="mn-rivalcard__ava" />
+                    <div className="mn-rivalcard__body">
+                      <span className="mn-rivalcard__eyebrow">
+                        {rival.relation === 'self' ? '오늘의 라이벌 없음' : '오늘의 라이벌'} · {RELATION_LABEL[rival.relation]} {rival.rank}위
+                      </span>
+                      <strong className="mn-rivalcard__name">
+                        {rival.name}
+                        {rival.is_me ? ' (나)' : ''} <em>{fmt(rival.score)}점</em>
+                      </strong>
+                      <span className="mn-rivalcard__sub">
+                        {rival.relation === 'self'
+                          ? '아직 다른 사람이 없어요 · 오늘의 나와 절마다 겨뤄요'
+                          : rival.relation === 'below'
+                            ? `내가 1위예요 · ${fmt(rival.score)}점으로 뒤쫓고 있어요`
+                            : myToday
+                              ? `${fmt(Math.max(0, rival.score - myToday.score + 1))}점만 더 거두면 앞서요 · 절마다 비교해 드려요`
+                              : '같은 판이라 절마다 점수를 비교해 드려요'}
+                      </span>
+                    </div>
+                    <span className="mn-rivalcard__vs" aria-hidden>
+                      VS
+                    </span>
+                  </div>
+                )}
+
                 <button type="button" className="mn-cta" disabled={phase === 'loading'} onClick={() => void start()}>
                   {phase === 'loading' ? (
                     '만나를 준비하는 중…'
                   ) : (
                     <>
-                      광야로 나가기
+                      {liveEligible ? '라이브로 광야에 나가기' : '광야로 나가기'}
                       <span className="material-icons-round" aria-hidden>
                         arrow_forward
                       </span>
@@ -284,8 +384,16 @@ const MannaPage = () => {
                       금빛 <b>차례</b> 단어를 치고 스페이스나 엔터. 놓치면 항아리 하나가 비어요(모두 {MAX_JARS}개)
                     </li>
                     <li>
-                      <span className="mn-m mn-m--static mn-m--decoy">원망</span>
-                      벌레 먹은 만나 — 치면 감점, 그냥 두면 +20
+                      <span className="mn-m mn-m--static mn-m--decoy">여호아</span>
+                      벌레 먹은 만나 — 말씀과 <b>한 글자만</b> 달라요. 치면 감점, 그냥 두면 +20
+                    </li>
+                    <li>
+                      <span className="mn-m mn-m--static mn-m--gold">여호와</span>
+                      <b>핵심 말씀</b> — 절마다 하나, 거두면 점수 3배
+                    </li>
+                    <li>
+                      <span className="mn-m mn-m--static is-low">말씀을</span>
+                      <b>아슬아슬</b> — 땅에 닿기 직전에 거두면 1.5배
                     </li>
                     {(Object.keys(ITEMS) as (keyof typeof ITEMS)[]).map((k) => (
                       <li key={k}>
@@ -301,13 +409,21 @@ const MannaPage = () => {
                         한 절을 하나도 놓치지 않으면 <b>온전히 새김</b> +500 · 세 절마다 <b>여섯째 날</b> 10초 동안 점수 두 배
                       </span>
                     </li>
+                    <li className="mn-legend__wide">
+                      <span className="material-icons-round" aria-hidden>
+                        groups
+                      </span>
+                      <span>
+                        <b>고스트 라이벌</b> — 오늘 바로 위 사람과 절마다 점수를 비교해요 · 앞지르면 그 사람에게 알림이 가요
+                      </span>
+                    </li>
                   </ul>
                 </details>
               </div>
             </section>
           )}
 
-          {loggedIn && <MannaBoards mode={finished && phase === 'over' ? finished.mode : mode} onModeChange={setMode} />}
+          {loggedIn && <MannaBoards mode={finished && phase === 'over' ? finished.mode : mode} onModeChange={setMode} live={live ?? null} />}
         </main>
       </div>
 
@@ -315,10 +431,53 @@ const MannaPage = () => {
         <MannaGameLayer
           set={set}
           mode={mode}
+          rival={playing.rival}
+          liveKey={playing.liveKey}
+          liveEndsAt={playing.liveKey && liveNow ? liveNow.ends_at : null}
           onOver={onOver}
           onQuitEarly={() => setPhase('start')}
         />
       )}
+    </div>
+  )
+}
+
+// ── 라이브 한 판 안내(시작 카드) ─────────────────────────
+
+const LiveCallout = ({ live, onJoin, disabled }: { live: MannaLive; onJoin: () => void; disabled: boolean }) => {
+  const now = useTickingNow(1000, !!live.current)
+  if (live.current) {
+    const left = parseApiDate(live.current.ends_at).getTime() - now
+    return (
+      <div className="mn-live mn-live--on">
+        <span className="mn-live__dot" aria-hidden />
+        <div className="mn-live__body">
+          <strong>만나 라이브 진행 중 · {leftLabel(left)}</strong>
+          <span>
+            교회 전체가 지금 같은 판을 쳐요 · {modeLabel(live.mode)} · 지금 {live.current.board.players}명
+          </span>
+        </div>
+        <button type="button" className="mn-live__btn" disabled={disabled} onClick={onJoin}>
+          참여
+        </button>
+      </div>
+    )
+  }
+  if (!live.next) return null
+  const until = parseApiDate(live.next.starts_at).getTime() - now
+  return (
+    <div className="mn-live">
+      <span className="material-icons-round mn-live__icon" aria-hidden>
+        podcasts
+      </span>
+      <div className="mn-live__body">
+        <strong>
+          다음 만나 라이브 · {live.next.weekday}요일 {hhmm(live.next.starts_at)}
+        </strong>
+        <span>
+          {untilLabel(until)} · {live.minutes}분 동안 교회 전체가 동시에 · 끝난 사람 점수가 실시간으로 흘러요
+        </span>
+      </div>
     </div>
   )
 }
@@ -328,11 +487,17 @@ const MannaPage = () => {
 const MannaGameLayer = ({
   set,
   mode,
+  rival,
+  liveKey,
+  liveEndsAt,
   onOver,
   onQuitEarly,
 }: {
   set: MannaSet
   mode: MannaMode
+  rival: Rival | null
+  liveKey: string | null
+  liveEndsAt: string | null
   onOver: (r: MannaResult) => void
   onQuitEarly: () => void
 }) => {
@@ -346,14 +511,19 @@ const MannaGameLayer = ({
   const [hud, setHud] = useState<MannaHud>({ score: 0, combo: 0, mult: 1, jars: MAX_JARS, done: 0, fever: false, slow: false })
   const [verse, setVerse] = useState<MannaVerseView | null>(null)
   const [banner, setBanner] = useState<MannaBanner | null>(null)
-  const [toast, setToast] = useState<{ id: number; text: string } | null>(null)
+  const [toast, setToast] = useState<{ id: number; text: string; tone?: 'live' | 'rival' } | null>(null)
+  const [ticker, setTicker] = useState<{ id: number; text: string } | null>(null)
   const [paused, setPaused] = useState(false)
   const [lostJar, setLostJar] = useState(-1)
   const prevJars = useRef(MAX_JARS)
+  const aheadRef = useRef<boolean | null>(null)
+  const rivalRef = useRef(rival)
   const onOverRef = useRef(onOver)
   useEffect(() => {
     onOverRef.current = onOver
-  }, [onOver])
+    rivalRef.current = rival
+  }, [onOver, rival])
+  const now = useTickingNow(1000, !!liveEndsAt)
 
   // 화면 키보드가 올라와도 입력칸이 보이게 — 보이는 영역에 맞춘다
   useEffect(() => {
@@ -382,6 +552,7 @@ const MannaGameLayer = ({
     const stage = stageRef.current
     if (!stage) return
     prevJars.current = MAX_JARS
+    aheadRef.current = null
     const game = new MannaGame({
       stage,
       verses: set.verses.map((v) => ({ ref: v.ref, text: v.text })),
@@ -394,7 +565,18 @@ const MannaGameLayer = ({
           setHud(h)
         },
         onVerse: setVerse,
-        onBanner: setBanner,
+        onBanner: (b) => {
+          setBanner(b)
+          // 고스트 라이벌 — 절을 새길 때 같은 자리에서 비교해 앞지름·역전을 알린다
+          const rv = rivalRef.current
+          if (!b || !rv || rv.is_me) return
+          const theirs = rv.checkpoints[b.done - 1]
+          const ahead = theirs === undefined ? b.score > rv.score : b.score > theirs
+          if (aheadRef.current !== null && ahead !== aheadRef.current) {
+            setToast({ id: Date.now(), text: ahead ? `${rv.name}님을 앞질렀어요!` : `${rv.name}님이 다시 앞섰어요`, tone: 'rival' })
+          }
+          aheadRef.current = ahead
+        },
         onToast: (text) => setToast({ id: Date.now(), text }),
         onShake: () => {
           const bar = barRef.current
@@ -415,11 +597,34 @@ const MannaGameLayer = ({
     }
   }, [set, mode])
 
+  // 라이브 — 창 안에서 한 판을 마친 사람의 점수가 흘러간다
+  useEffect(() => {
+    if (!liveKey) return
+    const off = notificationStream.on('manna_live', (raw) => {
+      try {
+        const ev = JSON.parse(raw) as MannaLiveEvent
+        if (ev.live_key !== liveKey) return
+        setTicker({
+          id: Date.now(),
+          text: `${ev.name}님 ${fmt(ev.score)}점${ev.reached_canaan ? ' · 가나안 도착' : ` · ${ev.verses_done}절`}${ev.rank ? ` · 지금 ${ev.rank}위` : ''}`,
+        })
+      } catch {
+        /* 무시 */
+      }
+    })
+    return off
+  }, [liveKey])
+
   useEffect(() => {
     if (!toast) return
     const t = setTimeout(() => setToast(null), 2200)
     return () => clearTimeout(t)
   }, [toast])
+  useEffect(() => {
+    if (!ticker) return
+    const t = setTimeout(() => setTicker(null), 3600)
+    return () => clearTimeout(t)
+  }, [ticker])
 
   const pause = useCallback((p: boolean) => {
     gameRef.current?.setPaused(p)
@@ -454,6 +659,11 @@ const MannaGameLayer = ({
   }
 
   const place = PLACES[Math.min(hud.done, PLACES.length - 1)]
+  // 라이벌이 지금 내가 치는 절을 다 새겼을 때의 점수 — 이걸 넘기면 이 절에서 앞선다
+  const rivalTarget = rival ? rival.checkpoints[hud.done] : undefined
+  const rivalStopped = !!rival && rivalTarget === undefined
+  const rivalDelta = rival ? hud.score - (rivalStopped ? rival.score : (rivalTarget ?? 0)) : 0
+  const liveLeft = liveEndsAt ? parseApiDate(liveEndsAt).getTime() - now : null
 
   return createPortal(
     <div
@@ -474,13 +684,22 @@ const MannaGameLayer = ({
           </button>
           <span>
             <span className="mn-hud__day">
-              {hud.done + 1}일째 · {set.kind === 'daily' ? '오늘의 만나' : '연습'} · {modeLabel(mode)}
+              {liveKey ? (
+                <>
+                  <i className="mn-hud__live">LIVE</i>
+                  {liveLeft !== null ? leftLabel(liveLeft) : '라이브'} · {modeLabel(mode)}
+                </>
+              ) : (
+                <>
+                  {hud.done + 1}일째 · {set.kind === 'daily' ? '오늘의 만나' : '연습'} · {modeLabel(mode)}
+                </>
+              )}
             </span>
             <span className="mn-hud__name">{place}</span>
           </span>
         </div>
         <div className="mn-hud__score">
-          <span className="mn-hud__num">{hud.score.toLocaleString('ko-KR')}</span>
+          <span className="mn-hud__num">{fmt(hud.score)}</span>
           {hud.combo >= 2 ? (
             <span key={hud.combo} className="mn-hud__combo">
               {hud.combo} 콤보{hud.mult > 1 ? ` ×${hud.mult}` : ''}
@@ -508,9 +727,39 @@ const MannaGameLayer = ({
               className={`mn-track__dot${i < hud.done ? ' is-done' : ''}${i === hud.done ? ' is-now' : ''}${i === set.verses.length && i !== hud.done ? ' is-goal' : ''}`}
             />
           ))}
+          {rival && !rival.is_me && (
+            <span
+              className="mn-track__ghost"
+              style={{ left: `calc(4px + (100% - 8px) * ${Math.min(1, rival.verses_done / (set.verses.length || 1))})` }}
+              title={`${rival.name} ${rival.verses_done}절`}
+              aria-hidden
+            >
+              {rival.name.trim().charAt(0)}
+            </span>
+          )}
         </div>
       </div>
       <div className="mn-chips">
+        {rival && !rival.is_me && (
+          <span className={`mn-chip mn-chip--rival${rivalDelta >= 0 ? ' is-ahead' : ' is-behind'}`} aria-live="polite">
+            <Avatar name={rival.name} url={rival.avatar_url} className="mn-chip__ava" />
+            {rival.name}
+            {rivalStopped ? ` 멈춤` : ''}
+            <b>
+              {rivalDelta >= 0 ? '+' : '−'}
+              {fmt(Math.abs(rivalDelta))}
+            </b>
+          </span>
+        )}
+        {rival && rival.is_me && (
+          <span className={`mn-chip mn-chip--rival${rivalDelta >= 0 ? ' is-ahead' : ' is-behind'}`}>
+            오늘의 나
+            <b>
+              {rivalDelta >= 0 ? '+' : '−'}
+              {fmt(Math.abs(rivalDelta))}
+            </b>
+          </span>
+        )}
         {hud.fever && <span className="mn-chip mn-chip--fever">여섯째 날 · 점수 2배</span>}
         {hud.slow && <span className="mn-chip mn-chip--slow">구름기둥 · 천천히</span>}
       </div>
@@ -529,11 +778,11 @@ const MannaGameLayer = ({
                 <span
                   key={`${verse.index}-${i}`}
                   className={
-                    verse.states[i] === 'got'
+                    (verse.states[i] === 'got'
                       ? `mn-w-got${i === verse.fresh ? ' is-fresh' : ''}`
                       : verse.states[i] === 'miss'
                         ? 'mn-w-miss'
-                        : `mn-w-blank${i === verse.turn ? ' is-next' : ''}`
+                        : `mn-w-blank${i === verse.turn ? ' is-next' : ''}`) + (i === verse.gold ? ' is-gold' : '')
                   }
                 >
                   {w}
@@ -546,6 +795,13 @@ const MannaGameLayer = ({
 
       <div className="mn-stage" ref={stageRef} onPointerDown={() => setTimeout(() => inputRef.current?.focus(), 0)}>
         <Dunes />
+        <div className="mn-stage__closeline" aria-hidden />
+        {ticker && (
+          <div key={ticker.id} className="mn-ticker" role="status">
+            <span className="mn-ticker__live">LIVE</span>
+            {ticker.text}
+          </div>
+        )}
       </div>
 
       <div className="mn-typebar" ref={barRef}>
@@ -628,12 +884,13 @@ const MannaGameLayer = ({
               {banner.perfect ? `한 단어도 놓치지 않았어요 +${banner.bonus}` : `놓친 단어 ${banner.missed}개`}
               {banner.last ? ' · 가나안에 닿았어요!' : ` · 다음 노정 ${banner.nextPlace}`}
             </p>
+            {rival && <RivalCompare rival={rival} banner={banner} />}
           </div>
         </div>
       )}
 
       {toast && (
-        <div key={toast.id} className="mn-toast" role="status">
+        <div key={toast.id} className={`mn-toast${toast.tone ? ` mn-toast--${toast.tone}` : ''}`} role="status">
           {toast.text}
         </div>
       )}
@@ -645,7 +902,7 @@ const MannaGameLayer = ({
               <span className="material-icons-round">pause</span>
             </span>
             <p className="mn-overlay__title">잠시 쉬는 중</p>
-            <p className="mn-overlay__text">만나는 기다려 줘요 · 지금 {hud.score.toLocaleString('ko-KR')}점</p>
+            <p className="mn-overlay__text">만나는 기다려 줘요 · 지금 {fmt(hud.score)}점</p>
             <div className="mn-overlay__score">
               <span className="mn-pill">{place}</span>
               <span className="mn-pill">
@@ -674,6 +931,27 @@ const MannaGameLayer = ({
   )
 }
 
+/** 새김 카드 안 — 같은 자리에서 라이벌은 몇 점이었나 */
+const RivalCompare = ({ rival, banner }: { rival: Rival; banner: MannaBanner }) => {
+  const theirs = rival.checkpoints[banner.done - 1]
+  const who = rival.is_me ? '오늘의 나' : `${rival.name}님`
+  if (theirs === undefined) {
+    const ahead = banner.score > rival.score
+    return (
+      <p className={`mn-banner__rival${ahead ? ' is-ahead' : ' is-behind'}`}>
+        {who}은 {rival.verses_done}절에서 멈췄어요 · {ahead ? `이미 ${fmt(banner.score - rival.score)}점 앞서요` : `${fmt(rival.score - banner.score + 1)}점 더 거두면 앞서요`}
+      </p>
+    )
+  }
+  const d = banner.score - theirs
+  return (
+    <p className={`mn-banner__rival${d >= 0 ? ' is-ahead' : ' is-behind'}`}>
+      {who}은 여기서 {fmt(theirs)}점 · 나 {fmt(banner.score)}점 ({d >= 0 ? '+' : '−'}
+      {fmt(Math.abs(d))})
+    </p>
+  )
+}
+
 // ── 결과 ─────────────────────────────────────────────
 
 const MannaResultCard = ({
@@ -689,13 +967,15 @@ const MannaResultCard = ({
   onAgain: () => void
   onBack: () => void
 }) => {
-  const { result, saved, set, mode } = finished
+  const { result, saved, set, mode, rival, liveKey } = finished
   const [sharing, setSharing] = useState(false)
   const shownScore = useCountUp(result.score)
   const place = PLACES[Math.min(result.versesDone, PLACES.length - 1)]
   const kindLabel = set.kind === 'daily' ? '오늘의 만나' : '연습'
   const rankLine =
     saved && saved.kind === 'daily' && saved.rank ? `오늘의 만나 ${modeLabel(mode)} ${saved.players}명 중 ${saved.rank}위` : null
+  const liveLine = saved?.live && saved.live.rank ? `라이브 ${saved.live.players}명 중 ${saved.live.rank}위` : liveKey ? '라이브 순위에 올라갔어요' : null
+  const rivalDelta = rival && !rival.is_me ? result.score - rival.score : null
 
   const share = async () => {
     setSharing(true)
@@ -706,10 +986,10 @@ const MannaResultCard = ({
         score: result.score,
         statLine: `새긴 말씀 ${result.versesDone}절 · 온전히 ${result.perfectVerses}절 · 최고 콤보 ${result.maxCombo}`,
         refs: result.refs,
-        rankLine,
+        rankLine: liveLine && saved?.live?.rank ? liveLine : rankLine,
       })
       if (!blob) throw new Error('canvas')
-      const r = await shareOrDownload(blob, `만나내리기-${set.date}.png`, `만나 내리기 · ${place}까지 ${result.score.toLocaleString('ko-KR')}점`)
+      const r = await shareOrDownload(blob, `만나내리기-${set.date}.png`, `만나 내리기 · ${place}까지 ${fmt(result.score)}점`)
       if (r === 'downloaded') showToast('카드 이미지를 저장했어요', 'success')
     } catch {
       showToast('카드를 만들지 못했어요', 'error')
@@ -727,21 +1007,39 @@ const MannaResultCard = ({
         <p className="mn-result__eyebrow">
           <span className="mn-pill">{kindLabel}</span>
           <span className="mn-pill">{modeLabel(mode)}</span>
+          {liveKey && <span className="mn-pill mn-pill--red">LIVE</span>}
         </p>
         <h2 className="mn-result__title">
           {result.reachedCanaan ? '가나안에 닿았어요' : `${place}까지 왔어요`}
           {saved?.is_best && <span className="mn-badge">NEW 최고 기록</span>}
         </h2>
         <p className="mn-result__score">
-          {shownScore.toLocaleString('ko-KR')}
+          {fmt(shownScore)}
           <small>점</small>
         </p>
-        {rankLine && (
+        {(liveLine || rankLine) && (
           <p className="mn-result__rank">
             <span className="material-icons-round" aria-hidden>
               emoji_events
             </span>
-            {rankLine}
+            {liveLine && saved?.live?.rank ? liveLine : rankLine ?? liveLine}
+          </p>
+        )}
+        {saved && (saved.overtook?.length ?? 0) > 0 && (
+          <p className="mn-result__overtook">
+            <span className="material-icons-round" aria-hidden>
+              notifications_active
+            </span>
+            {saved.overtook.join(', ')}님을 앞질렀어요 · 알림이 갔어요
+          </p>
+        )}
+        {rivalDelta !== null && rival && (
+          <p className={`mn-result__rival${rivalDelta > 0 ? ' is-ahead' : ' is-behind'}`}>
+            {rivalDelta > 0
+              ? `라이벌 ${rival.name}님을 ${fmt(rivalDelta)}점 차로 앞섰어요`
+              : rivalDelta === 0
+                ? `라이벌 ${rival.name}님과 동점이에요`
+                : `라이벌 ${rival.name}님까지 ${fmt(-rivalDelta)}점 남았어요`}
           </p>
         )}
         {saving && <p className="mn-result__note">기록을 남기는 중…</p>}
@@ -777,6 +1075,12 @@ const MannaResultCard = ({
           <span>최고 콤보</span>
         </div>
       </div>
+      {(result.goldCaught > 0 || result.closeCalls > 0) && (
+        <p className="mn-result__extras">
+          {result.goldCaught > 0 && <span>핵심 말씀 {result.goldCaught}</span>}
+          {result.closeCalls > 0 && <span>아슬아슬 {result.closeCalls}</span>}
+        </p>
+      )}
 
       {result.refs.length > 0 && (
         <div className="mn-refs">
@@ -792,7 +1096,7 @@ const MannaResultCard = ({
           <span className="material-icons-round" aria-hidden>
             replay
           </span>
-          다시 거두기
+          {rivalDelta !== null && rivalDelta < 0 ? '다시 도전하기' : '다시 거두기'}
         </button>
         <button type="button" className="bt-btn bt-btn--block" disabled={sharing} onClick={() => void share()}>
           <span className="material-icons-round" aria-hidden>

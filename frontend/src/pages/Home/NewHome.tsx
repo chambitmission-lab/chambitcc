@@ -33,6 +33,7 @@ import TimeCapsuleCard from './components/TimeCapsuleCardLazy'
 import IntercessionCard from './components/IntercessionCardGate'
 import SurveyBanner from './components/SurveyBanner'
 import ElectionBanner from './components/ElectionBanner'
+import MannaHomeBanner from './components/MannaHomeBanner'
 import TodayPlanCard from './components/TodayPlanCard'
 import SermonTakeawayEcho from './components/SermonTakeawayEcho'
 import LiveReadingCard from './components/LiveReadingCard'
@@ -518,6 +519,9 @@ const NewHome = () => {
 
             {/* 선거 — 선거인 명부에 있고 지금 투표할 수 있는 성도에게만 뜬다 */}
             <ElectionBanner />
+
+            {/* 만나 내리기 — 라이브 한 판(진행 중·2시간 안) 또는 월~수요일 지난주 광야 챔피언 */}
+            <MannaHomeBanner />
 
             {/* 타임캡슐 — 밤하늘 봉인 편지 히어로 (내 캡슐 상태 반영 동적 문구) */}
             <div id={HOME_CARD_IDS.capsule}>

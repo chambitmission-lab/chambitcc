@@ -66,6 +66,8 @@ import aboutDawnPcLight from '../assets/about/dawn-light.webp'
 import aboutDawnPcDark from '../assets/about/dawn-dark.webp'
 import aboutDawnMobileLight from '../assets/about/dawn-light-m.webp'
 import aboutDawnMobileDark from '../assets/about/dawn-dark-m.webp'
+import mannaHeroLight from '../assets/manna/hero-light.webp'
+import mannaHeroDark from '../assets/manna/hero-dark.webp'
 
 export type ThemeName = 'light' | 'dark'
 
@@ -203,6 +205,9 @@ export const NEWS_HERO: Record<'news' | 'new-family' | 'event-album', ThemePair>
 /** /news 헌금 탭 히어로 (offering.css) */
 export const OFFERING_HERO: ThemePair = { light: '/images/offering/hero-light.webp', dark: '/images/offering/hero-dark.webp' }
 /** /mission 히어로 좌우 삽화 (Mission.css) — 한 장이 PC 배경 · 모바일 바닥 띠를 겸한다 */
+/** /bible/typing/manna 시작 카드 하늘 장면(manna.css .mn-hero__art) */
+export const MANNA_HERO: ThemePair = { light: mannaHeroLight, dark: mannaHeroDark }
+
 export const MISSION_HERO: ThemePair = { light: missionHeroLight, dark: missionHeroDark }
 /** /classes 히어로 (class-hero.css) — 게시판 앞에 모인 우리 반 */
 export const CLASS_HERO: ThemePair = { light: classHeroLight, dark: classHeroDark }
@@ -339,6 +344,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/groups\/(?!join\/)[^/]+$/, pairs: [GROUP_DETAIL_HERO] },
   { match: /^\/bible$/, pairs: [READING_HERO, RESUME_CARD] },
   { match: /^\/bible\/plans$/, pairs: [PLAN_HERO] },
+  { match: /^\/bible\/typing\/manna$/, pairs: [MANNA_HERO] },
   { match: /^\/bible\/genealogy$/, pairs: [GENEALOGY_HERO] },
   { match: /^\/bible\/photo-verse$/, pairs: [PHOTO_VERSE_INTRO] },
   { match: /^\/bible\/alarm$/, pairs: [ALARM_HERO, ALARM_BAND] },
