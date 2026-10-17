@@ -45,10 +45,12 @@
     "chevron_right",
     "child_friendly",
     "church",
+    "circle",
     "class",
     "clear",
     "close",
     "close_fullscreen",
+    "cloud",
     "cloud_off",
     "content_copy",
     "copy",
@@ -62,6 +64,7 @@
     "delete_forever",
     "delete_outline",
     "description",
+    "diamond",
     "directions",
     "directions_walk",
     "diversity_3",
@@ -117,6 +120,7 @@
     "help",
     "help_outline",
     "highlight",
+    "hiking",
     "history",
     "history_edu",
     "home",
@@ -126,6 +130,7 @@
     "http",
     "image",
     "info",
+    "input",
     "insights",
     "ios_share",
     "key",
@@ -154,6 +159,7 @@
     "manage_accounts",
     "map",
     "mark_email_read",
+    "memory",
     "menu",
     "menu_book",
     "message",
@@ -204,6 +210,7 @@
     "place",
     "play_arrow",
     "play_circle",
+    "podcasts",
     "poll",
     "preview",
     "print",
@@ -287,6 +294,7 @@
     "tune",
     "tv",
     "u_turn_left",
+    "umbrella",
     "undo",
     "unfold_more",
     "upcoming",
@@ -304,6 +312,7 @@
     "volume_up",
     "volunteer_activism",
     "warning",
+    "water",
     "water_drop",
     "waving_hand",
     "wb_cloudy",
@@ -315,10 +324,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 25300
+    "bytes": 25960
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 27856
+    "bytes": 28724
   }
 }

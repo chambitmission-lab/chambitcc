@@ -16,8 +16,6 @@ import {
 import { bibleTypingKeys, useMannaLive, useMannaRival, useMannaSummary, useSubmitManna } from '../../../../hooks/useBibleTyping'
 import { useTickingNow } from '../../../../hooks/useTickingNow'
 import { safeStorage } from '../../../../utils/safeStorage'
-import { MANNA_HERO } from '../../../../utils/themeAssets'
-import { useThemeArt } from '../../../../hooks/useThemeArt'
 import { tokenStore } from '../../../../utils/tokenStore'
 import { showToast } from '../../../../utils/toast'
 import { notificationStream } from '../../../../utils/notificationStream'
@@ -39,17 +37,17 @@ import {
 } from './mannaEngine'
 import { renderMannaCard } from './mannaCard'
 import MannaBoards from './MannaBoards'
+import { BURST_EVERY, burstText, useContinueCountdown, useMannaSkin, type MannaSkin } from './mannaSkin'
+import { ArcadeResultHero, ArcadeTop, DropResultHero, DropTop, SkinPicker } from './MannaSkins'
 import '../typing.css'
 import './manna.css'
+import './manna-skins.css'
 
 const MODE_KEY = 'manna-mode'
 const KIND_KEY = 'manna-kind'
 const modeLabel = (m: MannaMode) => MANNA_MODES.find((x) => x.key === m)?.label ?? ''
 const fmt = (n: number) => n.toLocaleString('ko-KR')
 const RELATION_LABEL = { leader: '오늘 1위', above: '바로 위', below: '바로 아래 · 추격 중', self: '오늘의 나' } as const
-
-// 시작 카드에서 순서대로 내려오는 미리보기(요 3:16 앞머리)
-const PREVIEW_WORDS = ['하나님이', '세상을', '이처럼', '사랑하사']
 
 type Rival = NonNullable<MannaRival['rival']>
 
@@ -98,6 +96,8 @@ interface Finished {
   saveFailed: boolean
   rival: Rival | null
   liveKey: string | null
+  /** 시작 전 오늘 그 난이도 내 순위 — 아케이드 결과의 '▲ 7위 → 2위' */
+  prevRank: number | null
 }
 
 /**
@@ -111,7 +111,7 @@ const MannaPage = () => {
   const loggedIn = !!tokenStore.getAccess()
   const { data: summary } = useMannaSummary()
   const submit = useSubmitManna()
-  const artReady = useThemeArt(MANNA_HERO)
+  const [skin, setSkin] = useMannaSkin()
 
   const [mode, setModeState] = useState<MannaMode>(() => {
     const v = safeStorage.get(MODE_KEY)
@@ -172,7 +172,8 @@ const MannaPage = () => {
     (result: MannaResult) => {
       if (!set) return
       const playedMode = mode
-      setFinished({ set, mode: playedMode, result, saved: null, saveFailed: false, rival: playing.rival, liveKey: playing.liveKey })
+      const prevRank = set.kind === 'daily' && summary?.today?.mode === playedMode ? summary.today.rank : null
+      setFinished({ set, mode: playedMode, result, saved: null, saveFailed: false, rival: playing.rival, liveKey: playing.liveKey, prevRank })
       setPhase('over')
       window.scrollTo({ top: 0 })
       if (result.reachedCanaan) {
@@ -201,7 +202,7 @@ const MannaPage = () => {
     },
     // submit.mutate 는 안정적이다
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [set, mode, loggedIn, playing],
+    [set, mode, loggedIn, playing, summary],
   )
 
   const best = summary?.best[mode] ?? 0
@@ -214,7 +215,7 @@ const MannaPage = () => {
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
         <BibleSideRail active="typing" />
 
-        <main className="bt-shell bt-shell--session mn-shell">
+        <main className={`bt-shell bt-shell--session mn-shell mn-skin mn-skin--${skin}`}>
           <header className="bt-head">
             <button type="button" className="bt-icon-btn" onClick={() => navigate('/bible/typing')} aria-label="필사 홈으로">
               <span className="material-icons-round">arrow_back</span>
@@ -229,6 +230,7 @@ const MannaPage = () => {
           {phase === 'over' && finished ? (
             <MannaResultCard
               finished={finished}
+              skin={skin}
               loggedIn={loggedIn}
               saving={submit.isPending}
               onAgain={() => void start()}
@@ -236,41 +238,14 @@ const MannaPage = () => {
             />
           ) : (
             <section className="mn-hero">
-              <div className="mn-hero__stage">
-                <div className={`mn-hero__art${artReady ? ' is-ready' : ''}`} aria-hidden />
-                <div className="mn-rain" aria-hidden>
-                  {PREVIEW_WORDS.map((w, i) => (
-                    <span
-                      key={w}
-                      className={`mn-m mn-m--static${i === 0 ? ' is-turn' : ''}`}
-                      style={{ position: 'absolute', left: `${6 + i * 22}%`, top: 128 + (i % 2) * 6, animationDelay: `${i * 0.55}s` }}
-                    >
-                      {w}
-                    </span>
-                  ))}
-                </div>
-                <div className="mn-hero__top">
-                  <span className="mn-pill">
-                    <span className="material-icons-round" style={{ fontSize: 14 }} aria-hidden>
-                      keyboard
-                    </span>
-                    필사 미니게임
-                  </span>
-                  {summary && summary.players_today > 0 && <span className="mn-pill mn-pill--live">오늘 {summary.players_today}명 거두는 중</span>}
-                </div>
-                <div className="mn-hero__title-wrap">
-                  <p className="mn-hero__eyebrow">출애굽기 16장 · 광야의 아침</p>
-                  <h2 className="mn-hero__title">
-                    말씀이 <em>쏟아져요</em>
-                  </h2>
-                </div>
-              </div>
+              <SkinPicker skin={skin} onChange={setSkin} />
+              {skin === 'arcade' ? (
+                <ArcadeTop mode={mode} loggedIn={loggedIn} summary={summary} />
+              ) : (
+                <DropTop mode={mode} loggedIn={loggedIn} summary={summary} live={live} rival={rival} />
+              )}
 
               <div className="mn-hero__body">
-                <p className="mn-hero__lede">
-                  단어가 <b>순서대로</b> 내려와요. 땅에 닿기 전에 차례대로 쳐서 거두고, 여덟 절을 새겨 <b>가나안</b>까지.
-                </p>
-
                 {loggedIn && live && (liveNow || live.next) && (
                   <LiveCallout live={live} onJoin={() => void start({ live: true })} disabled={phase === 'loading'} />
                 )}
@@ -357,7 +332,13 @@ const MannaPage = () => {
                     '만나를 준비하는 중…'
                   ) : (
                     <>
-                      {liveEligible ? '라이브로 광야에 나가기' : '광야로 나가기'}
+                      {skin === 'arcade'
+                        ? liveEligible
+                          ? 'LIVE 참전 ▶'
+                          : 'INSERT COIN ▶'
+                        : liveEligible
+                          ? '라이브 드롭 받으러 가기'
+                          : '드롭 받으러 가기'}
                       <span className="material-icons-round" aria-hidden>
                         arrow_forward
                       </span>
@@ -431,6 +412,8 @@ const MannaPage = () => {
         <MannaGameLayer
           set={set}
           mode={mode}
+          skin={skin}
+          best={best}
           rival={playing.rival}
           liveKey={playing.liveKey}
           liveEndsAt={playing.liveKey && liveNow ? liveNow.ends_at : null}
@@ -487,6 +470,8 @@ const LiveCallout = ({ live, onJoin, disabled }: { live: MannaLive; onJoin: () =
 const MannaGameLayer = ({
   set,
   mode,
+  skin,
+  best,
   rival,
   liveKey,
   liveEndsAt,
@@ -495,6 +480,9 @@ const MannaGameLayer = ({
 }: {
   set: MannaSet
   mode: MannaMode
+  skin: MannaSkin
+  /** 시작 전 그 난이도 내 최고점 — 아케이드 HUD 의 HI */
+  best: number
   rival: Rival | null
   liveKey: string | null
   liveEndsAt: string | null
@@ -515,14 +503,19 @@ const MannaGameLayer = ({
   const [ticker, setTicker] = useState<{ id: number; text: string } | null>(null)
   const [paused, setPaused] = useState(false)
   const [lostJar, setLostJar] = useState(-1)
+  // 10콤보마다 화면 가운데 한 번 터지는 문구(스킨마다 말투가 다르다)
+  const [burst, setBurst] = useState<{ id: number; text: string } | null>(null)
+  const lastBurst = useRef(0)
   const prevJars = useRef(MAX_JARS)
   const aheadRef = useRef<boolean | null>(null)
   const rivalRef = useRef(rival)
   const onOverRef = useRef(onOver)
+  const skinRef = useRef(skin)
   useEffect(() => {
     onOverRef.current = onOver
     rivalRef.current = rival
-  }, [onOver, rival])
+    skinRef.current = skin
+  }, [onOver, rival, skin])
   const now = useTickingNow(1000, !!liveEndsAt)
 
   // 화면 키보드가 올라와도 입력칸이 보이게 — 보이는 영역에 맞춘다
@@ -562,6 +555,11 @@ const MannaGameLayer = ({
         onHud: (h) => {
           if (h.jars < prevJars.current) setLostJar(h.jars)
           prevJars.current = h.jars
+          if (h.combo < lastBurst.current) lastBurst.current = 0
+          if (h.combo >= BURST_EVERY && h.combo % BURST_EVERY === 0 && h.combo !== lastBurst.current) {
+            lastBurst.current = h.combo
+            setBurst({ id: Date.now(), text: burstText(skinRef.current, h.combo) })
+          }
           setHud(h)
         },
         onVerse: setVerse,
@@ -621,6 +619,11 @@ const MannaGameLayer = ({
     return () => clearTimeout(t)
   }, [toast])
   useEffect(() => {
+    if (!burst) return
+    const t = setTimeout(() => setBurst(null), 900)
+    return () => clearTimeout(t)
+  }, [burst])
+  useEffect(() => {
     if (!ticker) return
     const t = setTimeout(() => setTicker(null), 3600)
     return () => clearTimeout(t)
@@ -668,7 +671,7 @@ const MannaGameLayer = ({
   return createPortal(
     <div
       ref={layerRef}
-      className={`mn-game${hud.fever ? ' is-fever' : ''}${hud.slow ? ' is-slow' : ''}${mode === 'easy' ? ' is-easy' : ''}`}
+      className={`mn-game mn-skin--${skin}${hud.fever ? ' is-fever' : ''}${hud.slow ? ' is-slow' : ''}${mode === 'easy' ? ' is-easy' : ''}`}
       style={{ '--mn-dawn': Math.min(1, hud.done / (set.verses.length - 1 || 1)).toFixed(2) } as CSSProperties}
       role="application"
       aria-label="만나 내리기"
@@ -699,6 +702,11 @@ const MannaGameLayer = ({
           </span>
         </div>
         <div className="mn-hud__score">
+          {skin === 'arcade' && (
+            <span className="mn-hud__arcade" aria-hidden>
+              1UP <i>HI {fmt(Math.max(best, hud.score))}</i>
+            </span>
+          )}
           <span className="mn-hud__num">{fmt(hud.score)}</span>
           {hud.combo >= 2 ? (
             <span key={hud.combo} className="mn-hud__combo">
@@ -710,11 +718,15 @@ const MannaGameLayer = ({
         </div>
         <div className="mn-hud__right">
           <span className="mn-jars" aria-label={`만나 항아리 ${hud.jars}개 남음`}>
-            {Array.from({ length: MAX_JARS }, (_, i) => (
-              <svg key={i} viewBox="0 0 16 20" className={`mn-jar${i < hud.jars ? ' is-full' : ''}${i === lostJar ? ' is-lost' : ''}`} aria-hidden>
-                <path d="M5 1.5h6M5.5 1.5v3C2.5 6 1.5 8.5 1.5 12c0 4 2.5 6.5 6.5 6.5s6.5-2.5 6.5-6.5c0-3.5-1-6-4-7.5v-3" />
-              </svg>
-            ))}
+            {Array.from({ length: MAX_JARS }, (_, i) =>
+              skin === 'arcade' ? (
+                <i key={i} className={`mn-heart${i < hud.jars ? ' is-full' : ''}${i === lostJar ? ' is-lost' : ''}`} aria-hidden />
+              ) : (
+                <svg key={i} viewBox="0 0 16 20" className={`mn-jar${i < hud.jars ? ' is-full' : ''}${i === lostJar ? ' is-lost' : ''}`} aria-hidden>
+                  <path d="M5 1.5h6M5.5 1.5v3C2.5 6 1.5 8.5 1.5 12c0 4 2.5 6.5 6.5 6.5s6.5-2.5 6.5-6.5c0-3.5-1-6-4-7.5v-3" />
+                </svg>
+              ),
+            )}
           </span>
         </div>
       </header>
@@ -889,6 +901,12 @@ const MannaGameLayer = ({
         </div>
       )}
 
+      {burst && (
+        <div key={burst.id} className="mn-burst" aria-hidden>
+          {burst.text}
+        </div>
+      )}
+
       {toast && (
         <div key={toast.id} className={`mn-toast${toast.tone ? ` mn-toast--${toast.tone}` : ''}`} role="status">
           {toast.text}
@@ -956,12 +974,14 @@ const RivalCompare = ({ rival, banner }: { rival: Rival; banner: MannaBanner }) 
 
 const MannaResultCard = ({
   finished,
+  skin,
   loggedIn,
   saving,
   onAgain,
   onBack,
 }: {
   finished: Finished
+  skin: MannaSkin
   loggedIn: boolean
   saving: boolean
   onAgain: () => void
@@ -976,6 +996,15 @@ const MannaResultCard = ({
     saved && saved.kind === 'daily' && saved.rank ? `오늘의 만나 ${modeLabel(mode)} ${saved.players}명 중 ${saved.rank}위` : null
   const liveLine = saved?.live && saved.live.rank ? `라이브 ${saved.live.players}명 중 ${saved.live.rank}위` : liveKey ? '라이브 순위에 올라갔어요' : null
   const rivalDelta = rival && !rival.is_me ? result.score - rival.score : null
+  const rivalLine =
+    rivalDelta !== null && rival
+      ? rivalDelta > 0
+        ? `라이벌 ${rival.name}님을 ${fmt(rivalDelta)}점 차로 앞섰어요`
+        : rivalDelta === 0
+          ? `라이벌 ${rival.name}님과 동점이에요`
+          : `라이벌 ${rival.name}님까지 ${fmt(-rivalDelta)}점 남았어요`
+      : null
+  const countdown = useContinueCountdown(skin === 'arcade')
 
   const share = async () => {
     setSharing(true)
@@ -1000,87 +1029,44 @@ const MannaResultCard = ({
 
   return (
     <section className="mn-result">
-      <div className="mn-result__sky" style={{ '--mn-dawn': result.reachedCanaan ? 1 : Math.min(0.85, result.versesDone / (set.verses.length || 1)) } as CSSProperties}>
-        <div className="mn-sky" aria-hidden />
-        <div className="mn-sun" aria-hidden />
-        <Dunes />
-        <p className="mn-result__eyebrow">
-          <span className="mn-pill">{kindLabel}</span>
-          <span className="mn-pill">{modeLabel(mode)}</span>
-          {liveKey && <span className="mn-pill mn-pill--red">LIVE</span>}
-        </p>
-        <h2 className="mn-result__title">
-          {result.reachedCanaan ? '가나안에 닿았어요' : `${place}까지 왔어요`}
-          {saved?.is_best && <span className="mn-badge">NEW 최고 기록</span>}
-        </h2>
-        <p className="mn-result__score">
-          {fmt(shownScore)}
-          <small>점</small>
-        </p>
-        {(liveLine || rankLine) && (
-          <p className="mn-result__rank">
-            <span className="material-icons-round" aria-hidden>
-              emoji_events
-            </span>
-            {liveLine && saved?.live?.rank ? liveLine : rankLine ?? liveLine}
-          </p>
-        )}
-        {saved && (saved.overtook?.length ?? 0) > 0 && (
-          <p className="mn-result__overtook">
-            <span className="material-icons-round" aria-hidden>
-              notifications_active
-            </span>
-            {saved.overtook.join(', ')}님을 앞질렀어요 · 알림이 갔어요
-          </p>
-        )}
-        {rivalDelta !== null && rival && (
-          <p className={`mn-result__rival${rivalDelta > 0 ? ' is-ahead' : ' is-behind'}`}>
-            {rivalDelta > 0
-              ? `라이벌 ${rival.name}님을 ${fmt(rivalDelta)}점 차로 앞섰어요`
-              : rivalDelta === 0
-                ? `라이벌 ${rival.name}님과 동점이에요`
-                : `라이벌 ${rival.name}님까지 ${fmt(-rivalDelta)}점 남았어요`}
-          </p>
-        )}
-        {saving && <p className="mn-result__note">기록을 남기는 중…</p>}
-        {saved && !saved.counted && <p className="mn-result__note">사람이 내기 어려운 기록이라 순위에는 들어가지 않았어요</p>}
-        {saved?.demoted && <p className="mn-result__note">어제 날짜의 판이라 연습으로 남겼어요 — 다시 시작하면 오늘 판으로 순위에 올라가요</p>}
-        {finished.saveFailed && <p className="mn-result__note">기록을 저장하지 못했어요 — 연결을 확인해 주세요</p>}
-        {!loggedIn && (
-          <p className="mn-result__note">
-            <Link to="/login">로그인</Link>하면 기록이 남고 순위에 올라가요
-          </p>
-        )}
-      </div>
+      {skin === 'arcade' ? (
+        <ArcadeResultHero
+          result={result}
+          saved={saved}
+          verses={set.verses.length}
+          shownScore={shownScore}
+          prevRank={finished.prevRank}
+          rivalLine={rivalLine}
+        />
+      ) : (
+        <DropResultHero
+          result={result}
+          saved={saved}
+          verses={set.verses.length}
+          shownScore={shownScore}
+          rivalDelta={rivalDelta}
+          rivalName={rival && !rival.is_me ? rival.name : null}
+          dateLabel={set.date.slice(5).replace('-', '.')}
+          live={!!liveKey}
+        />
+      )}
 
-      <div className="mn-stats">
-        <div>
-          <span className="material-icons-round" aria-hidden>
-            edit_note
-          </span>
-          <b>{result.versesDone}</b>
-          <span>새긴 말씀</span>
+      {(liveLine || saving || (saved && !saved.counted) || saved?.demoted || finished.saveFailed || !loggedIn) && (
+        <div className="mn-result__notes">
+          {liveLine && <p className="mn-result__note is-live">{liveLine}</p>}
+          {skin === 'drop' && saved && saved.overtook.length > 0 && (
+            <p className="mn-result__note">{saved.overtook.join(', ')}님을 앞질렀어요 · 알림이 갔어요</p>
+          )}
+          {saving && <p className="mn-result__note">기록을 남기는 중…</p>}
+          {saved && !saved.counted && <p className="mn-result__note">사람이 내기 어려운 기록이라 순위에는 들어가지 않았어요</p>}
+          {saved?.demoted && <p className="mn-result__note">어제 날짜의 판이라 연습으로 남겼어요 — 다시 시작하면 오늘 판으로 순위에 올라가요</p>}
+          {finished.saveFailed && <p className="mn-result__note">기록을 저장하지 못했어요 — 연결을 확인해 주세요</p>}
+          {!loggedIn && (
+            <p className="mn-result__note">
+              <Link to="/login">로그인</Link>하면 기록이 남고 순위에 올라가요
+            </p>
+          )}
         </div>
-        <div>
-          <span className="material-icons-round" aria-hidden>
-            auto_awesome
-          </span>
-          <b>{result.perfectVerses}</b>
-          <span>온전히 새김</span>
-        </div>
-        <div>
-          <span className="material-icons-round" aria-hidden>
-            bolt
-          </span>
-          <b>{result.maxCombo}</b>
-          <span>최고 콤보</span>
-        </div>
-      </div>
-      {(result.goldCaught > 0 || result.closeCalls > 0) && (
-        <p className="mn-result__extras">
-          {result.goldCaught > 0 && <span>핵심 말씀 {result.goldCaught}</span>}
-          {result.closeCalls > 0 && <span>아슬아슬 {result.closeCalls}</span>}
-        </p>
       )}
 
       {result.refs.length > 0 && (
@@ -1097,13 +1083,19 @@ const MannaResultCard = ({
           <span className="material-icons-round" aria-hidden>
             replay
           </span>
-          {rivalDelta !== null && rivalDelta < 0 ? '다시 도전하기' : '다시 거두기'}
+          {skin === 'arcade'
+            ? countdown > 0
+              ? `CONTINUE? ${countdown}`
+              : '다시 하기'
+            : rivalDelta !== null && rivalDelta < 0
+              ? '한 판 더 · 역전하러'
+              : '한 판 더'}
         </button>
         <button type="button" className="bt-btn bt-btn--block" disabled={sharing} onClick={() => void share()}>
           <span className="material-icons-round" aria-hidden>
             ios_share
           </span>
-          {sharing ? '만드는 중…' : '카드로 나누기'}
+          {sharing ? '만드는 중…' : skin === 'drop' ? '스토리로 나누기' : '카드로 나누기'}
         </button>
         <button type="button" className="bt-btn bt-btn--block" onClick={onBack}>
           <span className="material-icons-round" aria-hidden>
