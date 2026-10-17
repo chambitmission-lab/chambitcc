@@ -48,7 +48,7 @@ const MODE_KEY = 'manna-mode'
 const KIND_KEY = 'manna-kind'
 const modeLabel = (m: MannaMode) => MANNA_MODES.find((x) => x.key === m)?.label ?? ''
 const fmt = (n: number) => n.toLocaleString('ko-KR')
-const RELATION_LABEL = { leader: '오늘 1위', above: '바로 위', below: '바로 아래 · 추격 중', self: '오늘의 나' } as const
+const RELATION_LABEL = { leader: '오늘', above: '바로 위', below: '바로 아래 · 추격 중', self: '오늘의 나' } as const
 
 type Rival = NonNullable<MannaRival['rival']>
 
