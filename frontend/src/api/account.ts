@@ -1,5 +1,6 @@
 import { API_V1 } from '../config/api'
-import { request, requestRaw, isApiError } from './utils/request'
+import { request, isApiError } from './utils/request'
+import { tokenStore } from '../utils/tokenStore'
 
 const AUTH_BASE = `${API_V1}/auth`
 
@@ -47,6 +48,14 @@ export const updateName = async (fullName: string): Promise<MeResponse> => {
 // 비밀번호 변경 실패 종류 (프론트에서 번역 메시지로 매핑)
 export type ChangePasswordError = 'wrong_current' | 'too_short' | 'failed'
 
+// 비밀번호 변경 응답 — 변경과 함께 기존 토큰이 전부 폐기되므로(백엔드 users.token_version)
+// 현재 기기에서 계속 쓸 새 토큰이 같이 온다. 구버전 백엔드는 message 만 준다.
+interface ChangePasswordResponse {
+  message: string
+  access_token?: string
+  refresh_token?: string
+}
+
 // 비밀번호 변경
 export const changePassword = async (
   currentPassword: string,
@@ -56,13 +65,17 @@ export const changePassword = async (
   // 실제 메시지는 화면에서 현재 언어에 맞게 번역한다.
   const failed: ChangePasswordError = 'failed'
   try {
-    await requestRaw(`${AUTH_BASE}/change-password`, {
+    const data = await request<ChangePasswordResponse | undefined>(`${AUTH_BASE}/change-password`, {
       auth: 'required',
       method: 'POST',
       json: { current_password: currentPassword, new_password: newPassword },
       errorMessage: failed,
       ignoreServerDetail: true,
     })
+    // 새 토큰을 저장하지 않으면 다음 요청이 401 → refresh 도 거부되어 로그아웃된다
+    if (data?.access_token) {
+      tokenStore.setTokens(data.access_token, data.refresh_token ?? tokenStore.getRefresh())
+    }
   } catch (error) {
     const kind: ChangePasswordError =
       isApiError(error, 400) ? 'wrong_current'
