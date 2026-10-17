@@ -38,8 +38,8 @@ import {
 } from './mannaEngine'
 import { renderMannaCard } from './mannaCard'
 import MannaBoards from './MannaBoards'
-import { BURST_EVERY, burstText, useContinueCountdown, useMannaSkin, type MannaSkin } from './mannaSkin'
-import { ArcadeResultHero, ArcadeTop, DropResultHero, DropTop, SkinPicker } from './MannaSkins'
+import { BURST_EVERY, burstText, isTouchDevice, useContinueCountdown, useMannaInput, useMannaSkin, type MannaInput, type MannaSkin } from './mannaSkin'
+import { ArcadeResultHero, ArcadeTop, DropResultHero, DropTop, InputPicker, SkinPicker } from './MannaSkins'
 import '../typing.css'
 import './manna.css'
 import './manna-skins.css'
@@ -113,6 +113,7 @@ const MannaPage = () => {
   const { data: summary } = useMannaSummary()
   const submit = useSubmitManna()
   const [skin, setSkin] = useMannaSkin()
+  const [input, setInput] = useMannaInput()
 
   const [mode, setModeState] = useState<MannaMode>(() => {
     const v = safeStorage.get(MODE_KEY)
@@ -240,6 +241,7 @@ const MannaPage = () => {
           ) : (
             <section className="mn-hero">
               <SkinPicker skin={skin} onChange={setSkin} />
+              {isTouchDevice() && <InputPicker input={input} onChange={setInput} />}
               {skin === 'arcade' ? (
                 <ArcadeTop mode={mode} loggedIn={loggedIn} summary={summary} />
               ) : (
@@ -414,6 +416,7 @@ const MannaPage = () => {
           set={set}
           mode={mode}
           skin={skin}
+          input={input}
           best={best}
           rival={playing.rival}
           liveKey={playing.liveKey}
@@ -472,6 +475,7 @@ const MannaGameLayer = ({
   set,
   mode,
   skin,
+  input,
   best,
   rival,
   liveKey,
@@ -482,6 +486,8 @@ const MannaGameLayer = ({
   set: MannaSet
   mode: MannaMode
   skin: MannaSkin
+  /** touch — 화면 키보드 없이 떨어지는 만나를 눌러 거둔다 */
+  input: MannaInput
   /** 시작 전 그 난이도 내 최고점 — 아케이드 HUD 의 HI */
   best: number
   rival: Rival | null
@@ -589,12 +595,12 @@ const MannaGameLayer = ({
     })
     gameRef.current = game
     game.start()
-    inputRef.current?.focus()
+    if (input === 'type') inputRef.current?.focus()
     return () => {
       game.destroy()
       gameRef.current = null
     }
-  }, [set, mode])
+  }, [set, mode, input])
 
   // 라이브 — 창 안에서 한 판을 마친 사람의 점수가 흘러간다
   useEffect(() => {
@@ -633,8 +639,8 @@ const MannaGameLayer = ({
   const pause = useCallback((p: boolean) => {
     gameRef.current?.setPaused(p)
     setPaused(p)
-    if (!p) setTimeout(() => inputRef.current?.focus(), 0)
-  }, [])
+    if (!p && input === 'type') setTimeout(() => inputRef.current?.focus(), 0)
+  }, [input])
 
   useEffect(() => {
     const onVis = () => {
@@ -815,7 +821,14 @@ const MannaGameLayer = ({
         </section>
       )}
 
-      <div className="mn-stage" ref={stageRef} onPointerDown={() => setTimeout(() => inputRef.current?.focus(), 0)}>
+      <div
+        className={`mn-stage${input === 'touch' ? ' is-touch' : ''}`}
+        ref={stageRef}
+        onPointerDown={(e) => {
+          if (input === 'touch') gameRef.current?.tap(e.clientX, e.clientY)
+          else setTimeout(() => inputRef.current?.focus(), 0)
+        }}
+      >
         <Dunes />
         <div className="mn-stage__closeline" aria-hidden />
         {ticker && (
@@ -827,71 +840,82 @@ const MannaGameLayer = ({
       </div>
 
       <div className="mn-typebar" ref={barRef}>
-        <div className="mn-typebar__field">
-          <input
-            ref={inputRef}
-            className="mn-input"
-            type="text"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            enterKeyHint="send"
-            placeholder="금빛 '차례' 단어를 입력"
-            aria-label="단어 입력"
-            onInput={(e) => {
-              const input = e.currentTarget
-              const v = input.value
-              if (/\s/.test(v)) {
-                const parts = v.split(/\s+/)
-                const rest = parts.pop() ?? ''
-                parts.filter(Boolean).forEach((p) => gameRef.current?.submit(p))
-                input.value = rest
-              }
-              gameRef.current?.aim(input.value)
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                // 한글 조합 중 엔터는 조합이 끝난 뒤에 거둔다
-                if (e.nativeEvent.isComposing || e.keyCode === 229) {
-                  pendingEnter.current = true
-                  return
-                }
-                submitInput()
-                return
-              }
-              if (e.key === 'Escape') {
-                pause(true)
-                return
-              }
-              if (e.key === ' ') playTypingSound('space')
-              else if (e.key === 'Backspace') playTypingSound('back')
-              else if (e.key.length === 1 || e.key === 'Process') playTypingSound('key')
-            }}
-            onCompositionEnd={() => {
-              if (pendingEnter.current) {
-                pendingEnter.current = false
-                setTimeout(submitInput, 0)
-              }
-            }}
-          />
-          <button
-            type="button"
-            className="mn-send"
-            aria-label="거두기"
-            // 화면 키보드가 내려가지 않게 입력칸 포커스를 지킨다
-            onPointerDown={(e) => e.preventDefault()}
-            onClick={submitInput}
-          >
+        {input === 'touch' ? (
+          <p className="mn-typebar__touch">
             <span className="material-icons-round" aria-hidden>
-              arrow_upward
+              touch_app
             </span>
-          </button>
-        </div>
-        <p className="mn-typebar__hint">
-          말씀은 순서대로 내려와요 · <kbd>Space</kbd> 또는 <kbd>Enter</kbd>로 거두기
-        </p>
+            금빛 &apos;차례&apos; 만나를 눌러 거둬요 · 벌레 먹은 만나는 그냥 두기
+          </p>
+        ) : (
+          <>
+            <div className="mn-typebar__field">
+              <input
+                ref={inputRef}
+                className="mn-input"
+                type="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                enterKeyHint="send"
+                placeholder="금빛 '차례' 단어를 입력"
+                aria-label="단어 입력"
+                onInput={(e) => {
+                  const input = e.currentTarget
+                  const v = input.value
+                  if (/\s/.test(v)) {
+                    const parts = v.split(/\s+/)
+                    const rest = parts.pop() ?? ''
+                    parts.filter(Boolean).forEach((p) => gameRef.current?.submit(p))
+                    input.value = rest
+                  }
+                  gameRef.current?.aim(input.value)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    // 한글 조합 중 엔터는 조합이 끝난 뒤에 거둔다
+                    if (e.nativeEvent.isComposing || e.keyCode === 229) {
+                      pendingEnter.current = true
+                      return
+                    }
+                    submitInput()
+                    return
+                  }
+                  if (e.key === 'Escape') {
+                    pause(true)
+                    return
+                  }
+                  if (e.key === ' ') playTypingSound('space')
+                  else if (e.key === 'Backspace') playTypingSound('back')
+                  else if (e.key.length === 1 || e.key === 'Process') playTypingSound('key')
+                }}
+                onCompositionEnd={() => {
+                  if (pendingEnter.current) {
+                    pendingEnter.current = false
+                    setTimeout(submitInput, 0)
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="mn-send"
+                aria-label="거두기"
+                // 화면 키보드가 내려가지 않게 입력칸 포커스를 지킨다
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={submitInput}
+              >
+                <span className="material-icons-round" aria-hidden>
+                  arrow_upward
+                </span>
+              </button>
+            </div>
+            <p className="mn-typebar__hint">
+              말씀은 순서대로 내려와요 · <kbd>Space</kbd> 또는 <kbd>Enter</kbd>로 거두기
+            </p>
+          </>
+        )}
       </div>
 
       {banner && (

@@ -101,6 +101,7 @@ const GOLD_MULT = 3 // 핵심 말씀
 const CLOSE_MULT = 1.5 // 아슬아슬 — 땅에 닿기 직전에 거둠
 const CLOSE_ZONE = 0.16 // 무대 높이 대비 아슬아슬 구간(최소 44px)
 const GROUND_OFFSET = 30 // 무대 바닥에서 모래 언덕 윗면까지
+const TAP_SLOP = 22 // 터치 모드 — 만나 테두리에서 이만큼 벗어나도 누른 걸로
 
 /** 판에 쓸 단어 — 문장부호는 떼어 내고(치기 어렵다) 빈 조각은 버린다 */
 export const splitWords = (text: string): string[] =>
@@ -655,6 +656,35 @@ export class MannaGame {
     this.emitHud()
   }
 
+  /** 터치 모드 — 화면을 누른 자리의 만나를 거둔다(움직이는 표적이라 손가락 둘레까지 봐준다) */
+  tap(clientX: number, clientY: number) {
+    if (!this.running || this.paused || this.pendingNext) return
+    const r = this.stage.getBoundingClientRect()
+    const px = clientX - r.left
+    const py = clientY - r.top
+    const turn = this.turnIdx()
+    let best: Falling | null = null
+    let bestD = TAP_SLOP
+    for (const f of this.falling) {
+      const dx = Math.max(f.x - px, 0, px - (f.x + f.w))
+      const dy = Math.max(f.y - py, 0, py - (f.y + f.h))
+      const d = Math.hypot(dx, dy)
+      // 겹치면 차례 말씀 쪽으로
+      if (d < bestD || (d === bestD && f.kind === 'word' && f.idx === turn)) {
+        best = f
+        bestD = d
+      }
+    }
+    if (!best) return
+    if (best.kind === 'word' && best.idx !== turn) {
+      const cur = this.falling.find((g) => g.kind === 'word' && g.idx === turn)
+      this.cb.onShake()
+      this.popAt(best, '앞 단어부터', cur ? `‘${cur.text}’ 먼저` : undefined, 'bad')
+      return
+    }
+    this.collect(best)
+  }
+
   /** 스페이스·엔터로 낸 단어 */
   submit(raw: string) {
     if (!this.running || this.paused) return
@@ -678,6 +708,10 @@ export class MannaGame {
       this.emitHud()
       return
     }
+    this.collect(f)
+  }
+
+  private collect(f: Falling) {
     if (f.kind === 'decoy') {
       this.remove(f, true)
       this.combo = 0

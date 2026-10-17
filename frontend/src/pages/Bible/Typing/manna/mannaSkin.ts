@@ -33,6 +33,25 @@ export const useMannaSkin = () => {
   return [skin, setSkin] as const
 }
 
+/** 입력 방식 — 휴대폰은 화면 키보드가 무대 절반을 가려서 기본은 '터치'(떨어지는 만나를 눌러 거둠) */
+export type MannaInput = 'touch' | 'type'
+
+const INPUT_KEY = 'manna-input'
+
+/** 손가락이 주 입력인 기기 — 이때만 입력 방식을 고르게 한다(PC 는 늘 타이핑) */
+export const isTouchDevice = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches
+
+const readInput = (): MannaInput => (isTouchDevice() && safeStorage.get(INPUT_KEY) !== 'type' ? 'touch' : 'type')
+
+export const useMannaInput = () => {
+  const [input, setInputState] = useState<MannaInput>(readInput)
+  const setInput = (v: MannaInput) => {
+    setInputState(v)
+    safeStorage.set(INPUT_KEY, v)
+  }
+  return [input, setInput] as const
+}
+
 /** 콤보 터짐 문구 — 10콤보마다 화면 가운데 한 번 */
 export const BURST_EVERY = 10
 export const burstText = (skin: MannaSkin, combo: number) => {

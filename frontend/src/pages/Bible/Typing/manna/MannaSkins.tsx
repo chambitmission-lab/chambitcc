@@ -2,7 +2,7 @@ import type { MannaLive, MannaRival, MannaRunResult, MannaSummary } from '../../
 import { useMannaBoard, useMannaTeams } from '../../../../hooks/useBibleTyping'
 import { parseApiDate } from '../../../../utils/dateUtils'
 import { PLACES, type MannaMode, type MannaResult } from './mannaEngine'
-import { MANNA_SKINS, dayOfYear, daysLeftInWeek, isoWeek, mannaPersona, type MannaSkin } from './mannaSkin'
+import { MANNA_SKINS, dayOfYear, daysLeftInWeek, isoWeek, mannaPersona, type MannaInput, type MannaSkin } from './mannaSkin'
 
 const fmt = (n: number) => n.toLocaleString('ko-KR')
 const hhmm = (iso: string) => {
@@ -26,6 +26,34 @@ export const SkinPicker = ({ skin, onChange }: { skin: MannaSkin; onChange: (s: 
         <i aria-hidden />
         <strong>{s.label}</strong>
         <span>{s.desc}</span>
+      </button>
+    ))}
+  </div>
+)
+
+const INPUTS: { key: MannaInput; label: string; desc: string; icon: string }[] = [
+  { key: 'touch', label: '터치', desc: '만나를 눌러 거둬요', icon: 'touch_app' },
+  { key: 'type', label: '타이핑', desc: '키보드로 쳐요', icon: 'keyboard' },
+]
+
+/** 휴대폰에서만 — 입력 방식 고르기(기기에 기억) */
+export const InputPicker = ({ input, onChange }: { input: MannaInput; onChange: (v: MannaInput) => void }) => (
+  <div className="mn-skinpick mn-inputpick" role="radiogroup" aria-label="입력 방식">
+    <span className="mn-skinpick__label">입력 방식</span>
+    {INPUTS.map((o) => (
+      <button
+        key={o.key}
+        type="button"
+        role="radio"
+        aria-checked={input === o.key}
+        className={`mn-skinpick__btn${input === o.key ? ' is-on' : ''}`}
+        onClick={() => onChange(o.key)}
+      >
+        <span className="material-icons-round mn-inputpick__icon" aria-hidden>
+          {o.icon}
+        </span>
+        <strong>{o.label}</strong>
+        <span>{o.desc}</span>
       </button>
     ))}
   </div>
