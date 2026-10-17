@@ -309,6 +309,17 @@
 .mn-skin--arcade .mn-chip--rival.is-behind b { color: var(--arc-pink); }
 .mn-skin--arcade .mn-chip--fever { background: var(--arc-orange); color: var(--arc-on); box-shadow: 0 0 14px color-mix(in srgb, var(--arc-orange) var(--arc-glow), transparent); }
 .mn-skin--arcade .mn-chip--slow { background: var(--arc-text); color: var(--arc-bg); }
+/* 아케이드 구름기둥 — 흐린 구름 대신 도트 무늬 기둥(가장자리에서 안쪽으로 옅어진다) */
+.mn-skin--arcade .mn-cloudveil i {
+  top: 0; bottom: 0; width: min(22vw, 150px); filter: none;
+  background: repeating-linear-gradient(0deg, color-mix(in srgb, var(--arc-cyan) 30%, transparent) 0 4px, transparent 4px 8px),
+    repeating-linear-gradient(90deg, transparent 0 4px, var(--arc-bg) 4px 8px);
+  -webkit-mask-image: linear-gradient(90deg, #000 20%, transparent); mask-image: linear-gradient(90deg, #000 20%, transparent);
+}
+.mn-skin--arcade .mn-cloudveil i:first-child { left: 0; }
+.mn-skin--arcade .mn-cloudveil i:last-child { right: 0; }
+.mn-skin--arcade .mn-cloudveil.is-on i { animation: none; transform: none; }
+.mn-skin--arcade .mn-cloudveil.is-on i:last-child { transform: scaleX(-1); }
 .mn-skin--arcade .mn-verse__card {
   background: var(--arc-panel); border: 2px solid color-mix(in srgb, var(--arc-cyan) 40%, transparent); box-shadow: none;
   backdrop-filter: none; -webkit-backdrop-filter: none;
@@ -613,8 +624,17 @@
 .mn-game.mn-skin--drop > .mn-sun { box-shadow: none; filter: none; opacity: 0.9; }
 .mn-skin--drop .mn-dunes__back { stroke: var(--dr-line); stroke-width: 2px; }
 .mn-skin--drop .mn-dunes__front { stroke: var(--dr-line); stroke-width: 2.5px; }
-.mn-skin--drop .mn-game__glow { background: var(--dr-orange); }
+/* 여섯째 날(2배) — 화면을 주황으로 칠하면 눈이 아프다(사용자 지적). 위에서 내려오는 옅은 노을 + 가장자리 테두리 빛만 */
+.mn-skin--drop .mn-game__glow {
+  background: linear-gradient(180deg, rgba(255, 90, 31, 0.3) 0%, rgba(255, 90, 31, 0.08) 45%, transparent 75%);
+  box-shadow: inset 0 0 0 5px rgba(255, 90, 31, 0.55), inset 0 0 60px rgba(255, 90, 31, 0.25);
+  transition: opacity 0.8s ease;
+}
 .mn-game.mn-skin--drop.is-fever .mn-game__glow { opacity: 1; animation: none; }
+.dark .mn-game.mn-skin--drop .mn-game__glow {
+  background: linear-gradient(180deg, rgba(255, 122, 61, 0.22) 0%, rgba(255, 122, 61, 0.06) 45%, transparent 75%);
+  box-shadow: inset 0 0 0 4px rgba(255, 122, 61, 0.45), inset 0 0 50px rgba(255, 122, 61, 0.18);
+}
 .mn-skin--drop .mn-stage__closeline { border-top: 2.5px dashed color-mix(in srgb, var(--dr-ink) 35%, transparent); }
 .mn-skin--drop .mn-stage__closeline::after { content: '아슬아슬 ×1.5'; color: var(--dr-ink); font-weight: 900; opacity: 0.7; }
 .mn-skin--drop .mn-hud__btn { background: var(--dr-surface); border: 2.5px solid var(--dr-line); box-shadow: 2px 2px 0 var(--dr-shadow); backdrop-filter: none; -webkit-backdrop-filter: none; }
@@ -637,7 +657,9 @@
 .mn-skin--drop .mn-chip--rival.is-ahead b { color: #0b8a3e; }
 .dark .mn-skin--drop .mn-chip--rival.is-ahead b { color: var(--dr-lime); }
 .mn-skin--drop .mn-chip--fever { background: var(--dr-inv-bg); color: var(--dr-inv-ink); box-shadow: none; }
-.mn-skin--drop .mn-chip--slow { background: var(--dr-surface); border: 2px solid var(--dr-line); }
+.mn-skin--drop .mn-chip--slow { background: var(--dr-surface); color: var(--dr-ink); border: 2px solid var(--dr-line); }
+.mn-game.mn-skin--drop { --mn-cloud: rgba(255, 255, 255, 0.9); }
+.dark .mn-game.mn-skin--drop { --mn-cloud: rgba(214, 226, 248, 0.24); }
 .mn-skin--drop .mn-verse__card {
   background: var(--dr-paper); border: 2.5px solid var(--dr-line); border-radius: 22px; box-shadow: 4px 4px 0 var(--dr-shadow);
   backdrop-filter: none; -webkit-backdrop-filter: none;

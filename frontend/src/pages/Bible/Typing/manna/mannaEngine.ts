@@ -91,7 +91,7 @@ const MODES: Record<MannaMode, { fall: number; spawn: number; decoy: number; ite
 export const MAX_JARS = 5
 const FEVER_EVERY = 3
 const FEVER_SECONDS = 10
-const SLOW_SECONDS = 6
+export const SLOW_SECONDS = 6
 const HOLD_SECONDS = 2.8 // 새김 카드를 보여 주는 동안 만나를 멈춘다
 const PERFECT_BONUS = 500
 const QUAIL_POINTS = 300

@@ -28,6 +28,7 @@ import {
   MANNA_MODES,
   MAX_JARS,
   MannaGame,
+  SLOW_SECONDS,
   PLACES,
   type MannaBanner,
   type MannaHud,
@@ -671,7 +672,7 @@ const MannaGameLayer = ({
   return createPortal(
     <div
       ref={layerRef}
-      className={`mn-game mn-skin--${skin}${hud.fever ? ' is-fever' : ''}${hud.slow ? ' is-slow' : ''}${mode === 'easy' ? ' is-easy' : ''}`}
+      className={`mn-game mn-skin--${skin}${hud.fever ? ' is-fever' : ''}${hud.slow ? ' is-slow' : ''}${mode === 'easy' ? ' is-easy' : ''}${paused ? ' is-paused' : ''}`}
       style={{ '--mn-dawn': Math.min(1, hud.done / (set.verses.length - 1 || 1)).toFixed(2) } as CSSProperties}
       role="application"
       aria-label="만나 내리기"
@@ -679,6 +680,11 @@ const MannaGameLayer = ({
       <div className="mn-sky" aria-hidden />
       <div className="mn-sun" aria-hidden />
       <div className="mn-game__glow" aria-hidden />
+      {/* 구름기둥 — 화면 양옆에서 피어오르는 구름(단어 뒤) */}
+      <div className={`mn-cloudveil${hud.slow ? ' is-on' : ''}`} aria-hidden>
+        <i />
+        <i />
+      </div>
 
       <header className="mn-hud">
         <div className="mn-hud__place">
@@ -773,7 +779,11 @@ const MannaGameLayer = ({
           </span>
         )}
         {hud.fever && <span className="mn-chip mn-chip--fever">여섯째 날 · 점수 2배</span>}
-        {hud.slow && <span className="mn-chip mn-chip--slow">구름기둥 · 천천히</span>}
+        {hud.slow && (
+          <span className="mn-chip mn-chip--slow" style={{ '--mn-slow-sec': `${SLOW_SECONDS}s` } as CSSProperties}>
+            구름기둥 · 천천히
+          </span>
+        )}
       </div>
 
       {verse && (

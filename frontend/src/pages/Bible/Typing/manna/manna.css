@@ -44,6 +44,7 @@
   --mn-overlay: rgba(20, 24, 32, 0.4);
 
   --mn-serif: var(--font-serif-kr, 'Noto Serif KR'), 'AppleMyungjo', serif;
+  --mn-cloud: rgba(255, 255, 255, 0.85);
 }
 .dark .mn-shell,
 .dark .mn-game {
@@ -85,6 +86,7 @@
   --mn-good: #7cd2ff;
   --mn-seal: #ff6b5e;
   --mn-overlay: rgba(0, 0, 0, 0.62);
+  --mn-cloud: rgba(200, 212, 235, 0.2);
 }
 
 /* 공통 — 하늘 그라데이션(시작 카드·게임·결과가 같이 쓴다) */
@@ -462,10 +464,33 @@
 @keyframes mn-fresh { 0% { color: var(--mn-accent-deep); text-shadow: 0 0 14px var(--mn-accent); transform: translateY(-5px) scale(1.08); } 100% { transform: none; } }
 
 .mn-stage { position: relative; flex: 1; min-height: 140px; overflow: hidden; width: 100%; max-width: 900px; margin-inline: auto; }
-.mn-game.is-slow .mn-stage::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.05) 60%, transparent);
+/* 구름기둥 — 양옆에서 피어오르는 구름 두 기둥(단어 뒤, 화면 전체 기준). 무대에 네모 안개를 덮지 않는다 */
+.mn-cloudveil { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 0.9s ease; }
+.mn-cloudveil.is-on { opacity: 1; }
+.mn-cloudveil i {
+  position: absolute; top: -10%; bottom: -10%; width: min(34vw, 260px);
+  background:
+    radial-gradient(closest-side, var(--mn-cloud) 0%, transparent 100%) 0 8% / 100% 30% no-repeat,
+    radial-gradient(closest-side, var(--mn-cloud) 0%, transparent 100%) 30% 38% / 90% 28% no-repeat,
+    radial-gradient(closest-side, var(--mn-cloud) 0%, transparent 100%) 0 68% / 110% 32% no-repeat,
+    radial-gradient(closest-side, var(--mn-cloud) 0%, transparent 100%) 40% 96% / 95% 30% no-repeat;
+  filter: blur(6px);
+  transform: translateY(14%);
+  transition: transform 1.4s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
+.mn-cloudveil i:first-child { left: max(-90px, -10vw); }
+.mn-cloudveil i:last-child { right: max(-90px, -10vw); transform: translateY(18%) scaleX(-1); }
+.mn-cloudveil.is-on i { transform: translateY(0); animation: mn-cloud-drift 6s ease-in-out infinite alternate; }
+.mn-cloudveil.is-on i:last-child { transform: scaleX(-1); animation-delay: -3s; }
+@keyframes mn-cloud-drift { to { translate: 0 -3%; } }
+.mn-chip--slow { position: relative; overflow: hidden; }
+.mn-chip--slow::after {
+  content: ''; position: absolute; left: 0; bottom: 0; height: 3px; width: 100%;
+  background: currentColor; opacity: 0.45; transform-origin: left;
+  animation: mn-slow-left var(--mn-slow-sec, 6s) linear forwards;
+}
+.mn-game.is-paused .mn-chip--slow::after, .mn-game.is-paused .mn-cloudveil i { animation-play-state: paused; }
+@keyframes mn-slow-left { to { transform: scaleX(0); } }
 .mn-stage__closeline {
   position: absolute; left: 0; right: 0; bottom: calc(30px + max(44px, 16%)); height: 0;
   border-top: 1.5px dashed color-mix(in srgb, var(--mn-bad) 45%, transparent); pointer-events: none;
