@@ -49,7 +49,13 @@ const MODE_KEY = 'manna-mode'
 const KIND_KEY = 'manna-kind'
 const modeLabel = (m: MannaMode) => MANNA_MODES.find((x) => x.key === m)?.label ?? ''
 const fmt = (n: number) => n.toLocaleString('ko-KR')
-const RELATION_LABEL = { leader: '오늘', above: '바로 위', below: '바로 아래 · 추격 중', self: '오늘의 나' } as const
+// 순위가 먼저, 나와의 관계는 뒤에 — "바로 위 1위"처럼 붙여 읽히면 뜻이 흐려진다
+const RELATION_LABEL = {
+  leader: (rank: number) => `오늘 ${rank}위`,
+  above: (rank: number) => `${rank}위 · 내 바로 앞`,
+  below: (rank: number) => `${rank}위 · 나를 추격 중`,
+  self: (rank: number) => `오늘의 나 ${rank}위`,
+} as const
 
 type Rival = NonNullable<MannaRival['rival']>
 
@@ -309,7 +315,7 @@ const MannaPage = () => {
                     <Avatar name={rival.name} url={rival.avatar_url} className="mn-rivalcard__ava" />
                     <div className="mn-rivalcard__body">
                       <span className="mn-rivalcard__eyebrow">
-                        {rival.relation === 'self' ? '오늘의 라이벌 없음' : '오늘의 라이벌'} · {RELATION_LABEL[rival.relation]} {rival.rank}위
+                        {rival.relation === 'self' ? '오늘의 라이벌 없음' : '오늘의 라이벌'} · {RELATION_LABEL[rival.relation](rival.rank)}
                       </span>
                       <strong className="mn-rivalcard__name">
                         {rival.name}

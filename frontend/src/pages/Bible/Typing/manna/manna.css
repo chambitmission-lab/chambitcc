@@ -224,7 +224,8 @@
 .dark .mn-rivalcard__name em { color: var(--mn-accent); }
 .mn-rivalcard__sub { font-size: 11.5px; color: var(--mn-muted); word-break: keep-all; line-height: 1.4; }
 .mn-rivalcard__vs {
-  position: absolute; right: -6px; top: -10px; font: 900 44px/1 Pretendard, system-ui, sans-serif; letter-spacing: -0.06em;
+  /* 모서리 밖으로 걸치면 잘린 글자로 읽힌다 — 카드 안 오른쪽 가운데에 온전히 둔다 */
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font: 900 40px/1 Pretendard, system-ui, sans-serif; letter-spacing: -0.06em;
   color: var(--mn-blue); opacity: 0.1; pointer-events: none;
 }
 

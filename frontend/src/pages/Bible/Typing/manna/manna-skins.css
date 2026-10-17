@@ -206,7 +206,7 @@
 .mn-skin--arcade .mn-rivalcard__eyebrow { color: var(--arc-cyan); }
 .mn-skin--arcade .mn-rivalcard__name { font-weight: 400; }
 .mn-skin--arcade .mn-rivalcard__name em { font-weight: 400; color: var(--arc-gold); }
-.mn-skin--arcade .mn-rivalcard__vs { font-family: var(--mn-pixel); color: var(--arc-pink); opacity: 0.25; font-size: 36px; top: 4px; right: 8px; }
+.mn-skin--arcade .mn-rivalcard__vs { font-family: var(--mn-pixel); color: var(--arc-pink); opacity: 0.25; font-size: 36px; }
 .mn-skin--arcade .mn-live { background: var(--arc-panel); border: 2px solid var(--arc-edge-2); }
 .mn-skin--arcade .mn-live--on { border-color: var(--arc-pink); background: color-mix(in srgb, var(--arc-pink) 8%, transparent); }
 .mn-skin--arcade .mn-live__body strong { font-weight: 400; }
@@ -566,7 +566,7 @@
 .mn-skin--drop .mn-rivalcard { background: var(--dr-surface); border: 2.5px solid var(--dr-line); box-shadow: 3px 3px 0 var(--dr-orange); }
 .mn-skin--drop .mn-rivalcard__eyebrow { color: var(--dr-orange); }
 .mn-skin--drop .mn-rivalcard__name em { color: var(--dr-orange); }
-.mn-skin--drop .mn-rivalcard__vs { font: 400 44px/1 var(--dr-display); color: var(--dr-orange); opacity: 0.22; }
+.mn-skin--drop .mn-rivalcard__vs { font: 400 40px/1 var(--dr-display); color: var(--dr-orange); opacity: 0.22; }
 .mn-skin--drop .mn-live { background: var(--dr-surface); border: 2.5px solid var(--dr-line); }
 .mn-skin--drop .mn-live__icon { color: var(--dr-orange); }
 .mn-skin--drop .mn-live--on { background: var(--dr-lime); border-color: var(--dr-on); }
