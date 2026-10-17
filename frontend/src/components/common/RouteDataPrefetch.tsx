@@ -51,6 +51,13 @@ const RouteDataPrefetch = () => {
     if (pathname === '/bluemarble' && tokenStore.getAccess()) prefetchQuest(queryClient)
     // 상황별 성구 — 청크 → 카테고리 → 히어로 구절 3단 직렬을 청크와 나란히 한 번에 띄운다
     if (pathname === '/bible/situation') prefetchSituation(queryClient)
+    // 말씀 필사 허브 — 묶음(통계·달력·오늘의 한 절·교회 성경·릴레이)을 청크와 나란히. 예전엔 허브가
+    // 마운트된 뒤에야 출발해 청크 왕복 + API 왕복이 직렬이었다 (훅 모듈이 메인 번들에 섞이지 않게 동적 import)
+    if (pathname === '/bible/typing' && tokenStore.getAccess()) {
+      void import('../../hooks/useBibleTyping')
+        .then((m) => m.prefetchTypingHome(queryClient))
+        .catch(() => undefined)
+    }
     // 설교 — 목록 첫 페이지 + 최신 설교 인용절을 청크와 나란히 (딥링크·새로고침 진입용.
     // 설교 유틸이 메인 번들에 섞이지 않게 동적 import — 페이지 청크와 나란히 온다)
     if (pathname === '/sermon' || pathname === '/sermon/new') {

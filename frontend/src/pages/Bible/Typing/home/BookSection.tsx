@@ -23,6 +23,8 @@ const progressLabel = (n: number, total: number) => {
 
 interface BookSectionProps {
   loggedIn: boolean
+  /** 허브 묶음을 기다리는 중 — 첫 방문자용 추천 장을 먼저 그렸다가 '쓰는 중인 책'으로 바꾸면 화면이 튄다 */
+  loading?: boolean
   stats?: TypingStats
   /** 책 번호(문자열 키) → 전체 절 수. 허브 묶음의 교회 성경 조각(book_totals)에서 내려온다 */
   bookTotals?: Record<string, number>
@@ -33,7 +35,7 @@ interface BookSectionProps {
  * 어디를 쓸까요 — 쓰는 중인 책만 앞에 두고, 66권 통독표는 접어 둔다.
  * (0% 칸 66개를 펼쳐 두면 성취감보다 '갈 길이 멀다'는 느낌이 먼저 온다)
  */
-const BookSection = ({ loggedIn, stats, bookTotals: totalsByBook, onGo }: BookSectionProps) => {
+const BookSection = ({ loggedIn, loading = false, stats, bookTotals: totalsByBook, onGo }: BookSectionProps) => {
   const { data: books } = useBibleBooks()
   const [open, setOpen] = useState(false)
   const [testament, setTestament] = useState<'OLD' | 'NEW'>('NEW')
@@ -76,10 +78,21 @@ const BookSection = ({ loggedIn, stats, bookTotals: totalsByBook, onGo }: BookSe
   return (
     <section className="bt-section" aria-labelledby="bt-books-title">
       <h2 id="bt-books-title" className="bt-section__title">
-        {inProgress.length > 0 ? '쓰는 중인 책' : '처음이라면 이 장부터'}
+        {loading ? <span className="bt-skel bt-skel--heading" aria-hidden /> : inProgress.length > 0 ? '쓰는 중인 책' : '처음이라면 이 장부터'}
       </h2>
 
-      {inProgress.length > 0 ? (
+      {loading ? (
+        <ul className="bt-shelf" aria-busy="true" aria-label="쓰는 중인 책 불러오는 중">
+          {[0, 1].map((i) => (
+            <li key={i}>
+              <span className="bt-card bt-shelf__item bt-shelf__item--skel" aria-hidden>
+                <span className="bt-skel bt-skel--line" />
+                <span className="bt-skel bt-skel--line bt-skel--short" />
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : inProgress.length > 0 ? (
         <ul className="bt-shelf">
           {inProgress.map((b) => {
             const pct = b.total ? Math.max(1, Math.floor((b.n / b.total) * 100)) : 0

@@ -53,6 +53,8 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
       import('../../pages/Bible/Plans/PlanList')
       import('../../pages/Bible/Genealogy/Genealogy')
       import('../../pages/Bible/Atlas/AtlasMap')
+      // 필사 허브(JS 8KB + typing.css 9.5KB gz) — 레일 목적지인데 빠져 있어 첫 진입마다 청크를 기다렸다
+      import('../../pages/Bible/Typing/TypingHome')
       void warmPair(PLAN_HERO)
       // 지도여행 배경도 CSS 배경이다 — 폭에 따라 파일이 달라 매니페스트가 고르게 한다
       void warmRouteThemeAssets('/bible/atlas')

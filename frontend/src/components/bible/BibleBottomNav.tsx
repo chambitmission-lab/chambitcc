@@ -51,6 +51,9 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       // 청크를 평가하는 시점에 해안선(data/landPath) 요청까지 같이 시작된다 —
       // useLandPath 가 모듈 최상단에서 받아 두기 때문이다.
       import('../../pages/Bible/Atlas/AtlasMap')
+      // 필사 허브(JS 8KB + typing.css 9.5KB gz) — 도크엔 없지만 허브 타일로 들어오는 곳이라,
+      // 청크를 미리 안 받으면 타일을 눌러도 청크가 올 때까지 이전 화면에 멈춰 있었다
+      import('../../pages/Bible/Typing/TypingHome')
       // 플랜·지도 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
       // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (themeAssets.ts).
       // 지도 배경은 폭에 따라 다른 파일이라 매니페스트가 고르게 한다.

@@ -106,6 +106,11 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
     Promise.all([import('../hooks/useSituation'), import('../config/queryClient')]).then(
       ([m, q]) => m.prefetchSituation(q.queryClient),
     ),
+  // 말씀 필사 허브 — 메뉴 호버·성경 허브 타일 pointerdown 때 묶음을 청크와 같이. 캐시가 아예 없을 때만(coldOnly)
+  '/bible/typing': () =>
+    Promise.all([import('../hooks/useBibleTyping'), import('../config/queryClient')]).then(
+      ([m, q]) => m.prefetchTypingHome(q.queryClient, true),
+    ),
   // 설교 — 목록 첫 페이지 + 최신 설교 인용절. 청크만 받아 두면 진입 시 목록 → 인용절 두 왕복이 직렬로 남았다
   '/sermon': () => import('../pages/Sermon/prefetch').then((m) => m.prefetchSermonPage()),
   // 시범 화면도 같은 목록·인용절을 쓴다 (키는 deepLinkRouteLoaders 의 key)

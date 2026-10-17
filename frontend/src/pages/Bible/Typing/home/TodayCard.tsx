@@ -22,6 +22,8 @@ const GOAL_COPY: Record<number, { name: string; hint: string }> = {
 
 interface TodayCardProps {
   loggedIn: boolean
+  /** 로그인은 했는데 허브 묶음이 아직 안 왔다 — 첫 방문자 문구 대신 조용한 자리표시자를 그린다 */
+  loading?: boolean
   stats?: TypingStats
   calendar?: TypingCalendar
   mode: TypingMode
@@ -61,6 +63,7 @@ const GoalPicker = ({ current, onPick, busy }: { current: number | null; onPick:
  */
 const TodayCard = ({
   loggedIn,
+  loading = false,
   stats,
   calendar,
   mode,
@@ -75,11 +78,12 @@ const TodayCard = ({
   const updateGoal = useUpdateTypingGoal()
 
   const spot = stats?.next_position ?? FIRST_SPOT
+  // 로그인 사용자의 본문은 묶음이 준다(전권 완필이면 null) — 묶음을 기다리는 동안 시편 23:1 을 따로 받던 요청을 없앤다
   const { data: fetchedVerse } = useQuery({
     queryKey: bibleKeys.verse(spot.book_number, spot.chapter, spot.verse),
     queryFn: () => getBibleVerse(spot.book_number, spot.chapter, spot.verse),
     staleTime: 1000 * 60 * 60 * 24,
-    enabled: nextVerseText === undefined,
+    enabled: !loggedIn && nextVerseText === undefined,
   })
   const nextVerse = nextVerseText !== undefined ? (nextVerseText ? { text: nextVerseText } : undefined) : fetchedVerse
 
@@ -126,6 +130,24 @@ const TodayCard = ({
     updateGoal.mutate(g, {
       onSuccess: () => setEditingGoal(false),
     })
+
+  if (loading) {
+    return (
+      <section className="bt-today bt-today--loading" aria-busy="true" aria-label="오늘의 필사 불러오는 중">
+        <div className="bt-today__top">
+          <Lamp fill={0} lit={false} className="bt-today__lamp" />
+          <div className="bt-today__head">
+            <p className="bt-today__eyebrow">오늘의 필사</p>
+            <span className="bt-skel bt-skel--title" />
+            <span className="bt-skel bt-skel--sub" />
+          </div>
+        </div>
+        <span className="bt-skel bt-skel--week" />
+        <span className="bt-skel bt-skel--next" />
+        <span className="bt-skel bt-skel--cta" />
+      </section>
+    )
+  }
 
   return (
     <section className={`bt-today${met ? ' is-met' : ''}`} aria-labelledby="bt-today-title">

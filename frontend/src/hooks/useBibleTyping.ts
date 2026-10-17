@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import {
   addTypingRelayMembers,
   createTypingRelay,
@@ -94,39 +94,65 @@ const parseJson = <T,>(raw: string): T | null => {
  * 카드마다 3초 넘게 비어 있었다(백엔드 소형 컨테이너는 동시 요청을 거의 순서대로 처리한다).
  * 받은 조각은 단건 키에도 심어 두어 세션·스프린트·오늘의 한 절 화면의 단건 훅이 다시 받지 않게 한다.
  */
+/** 허브 묶음 한 번 받기 — 조각 캐시(통계·달력·오늘의 한 절·교회 성경·릴레이)에도 심는다 */
+const fetchTypingHome = async (qc: QueryClient): Promise<TypingHomeBundle> => {
+  const bundle = await getTypingHome().catch(async (error: unknown) => {
+    // 묶음 엔드포인트가 아직 배포되지 않은 백엔드(404)면 조각별 요청으로 돌아간다 — 배포 순서가 어긋나도 허브가 비지 않게
+    if (!isApiError(error, 404)) throw error
+    const [stats, calendar, daily, church_bible, relays] = await Promise.all([
+      getTypingStats(),
+      getTypingCalendar(182),
+      getTypingDaily(),
+      getChurchBible(),
+      getTypingRelays(),
+    ])
+    const bundle: TypingHomeBundle = { stats, calendar, daily, church_bible, relays, next_verse_text: null }
+    const next = stats.next_position
+    if (next) {
+      bundle.next_verse_text = await getBibleVerse(next.book_number, next.chapter, next.verse)
+        .then((v) => v.text ?? null)
+        .catch(() => null)
+    }
+    return bundle
+  })
+  qc.setQueryData(bibleTypingKeys.stats(), bundle.stats)
+  qc.setQueryData(bibleTypingKeys.calendar(), bundle.calendar)
+  qc.setQueryData(bibleTypingKeys.daily(), bundle.daily)
+  qc.setQueryData(bibleTypingKeys.churchBible(), bundle.church_bible)
+  qc.setQueryData(bibleTypingKeys.relays(), bundle.relays)
+  return bundle
+}
+
+const TYPING_HOME_STALE = 1000 * 30
+
+/**
+ * 허브 묶음 선요청 — 두 시점에서 부른다(키·staleTime 은 useTypingHome 과 같아 진입 시 캐시를 그대로 이어받는다).
+ *   1. 청크 프리로드(routePreload.routeDataPrefetchers): 메뉴 호버·허브 타일 pointerdown. coldOnly 로 캐시가 없을 때만
+ *   2. 라우트 진입(RouteDataPrefetch): Suspense 바깥이라 청크 다운로드와 나란히 — 예전엔 청크가 도착해 허브가
+ *      마운트된 뒤에야 묶음 요청이 출발해 청크 왕복 + API 왕복이 직렬이었다
+ * 만나 입구 한 줄(오늘 순위)도 작아서 같이 띄운다. 비로그인은 훅도 꺼져 있으니 아무것도 하지 않는다.
+ */
+export const prefetchTypingHome = (qc: QueryClient, coldOnly = false): void => {
+  if (!loggedIn()) return
+  void qc.prefetchQuery({
+    queryKey: bibleTypingKeys.home(),
+    queryFn: () => fetchTypingHome(qc),
+    staleTime: coldOnly ? Infinity : TYPING_HOME_STALE,
+  })
+  void qc.prefetchQuery({
+    queryKey: bibleTypingKeys.mannaSummary(),
+    queryFn: getMannaSummary,
+    staleTime: coldOnly ? Infinity : TYPING_HOME_STALE,
+  })
+}
+
 export const useTypingHome = () => {
   const qc = useQueryClient()
   return useQuery({
     queryKey: bibleTypingKeys.home(),
-    queryFn: async () => {
-      const bundle = await getTypingHome().catch(async (error: unknown) => {
-        // 묶음 엔드포인트가 아직 배포되지 않은 백엔드(404)면 조각별 요청으로 돌아간다 — 배포 순서가 어긋나도 허브가 비지 않게
-        if (!isApiError(error, 404)) throw error
-        const [stats, calendar, daily, church_bible, relays] = await Promise.all([
-          getTypingStats(),
-          getTypingCalendar(182),
-          getTypingDaily(),
-          getChurchBible(),
-          getTypingRelays(),
-        ])
-        const bundle: TypingHomeBundle = { stats, calendar, daily, church_bible, relays, next_verse_text: null }
-        const next = stats.next_position
-        if (next) {
-          bundle.next_verse_text = await getBibleVerse(next.book_number, next.chapter, next.verse)
-            .then((v) => v.text ?? null)
-            .catch(() => null)
-        }
-        return bundle
-      })
-      qc.setQueryData(bibleTypingKeys.stats(), bundle.stats)
-      qc.setQueryData(bibleTypingKeys.calendar(), bundle.calendar)
-      qc.setQueryData(bibleTypingKeys.daily(), bundle.daily)
-      qc.setQueryData(bibleTypingKeys.churchBible(), bundle.church_bible)
-      qc.setQueryData(bibleTypingKeys.relays(), bundle.relays)
-      return bundle
-    },
+    queryFn: () => fetchTypingHome(qc),
     enabled: loggedIn(),
-    staleTime: 1000 * 30,
+    staleTime: TYPING_HOME_STALE,
   })
 }
 
@@ -643,12 +669,12 @@ export const useDeleteGlossaryLine = () => {
 // ── 만나 내리기 ─────────────────────────────────────────
 
 /** 허브 카드·시작 화면 — 난이도별 최고·오늘의 만나 내 순위 */
-export const useMannaSummary = () =>
+export const useMannaSummary = (enabled = true) =>
   useQuery({
     queryKey: bibleTypingKeys.mannaSummary(),
     queryFn: getMannaSummary,
-    enabled: loggedIn(),
-    staleTime: 1000 * 30,
+    enabled: loggedIn() && enabled,
+    staleTime: TYPING_HOME_STALE,
   })
 
 /** 오늘의 만나 순위(난이도별) */

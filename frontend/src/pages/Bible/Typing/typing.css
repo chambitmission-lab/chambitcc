@@ -1605,6 +1605,35 @@
   color: var(--text-muted);
   word-break: keep-all;
 }
+
+/* ── 허브 로딩 자리표시자 — 묶음(/bible-typing/home)을 기다리는 동안. 실제 카드와 같은 높이로 잡아
+   데이터가 와도 아래 카드들이 밀리지 않는다 (첫 방문자용 문구를 먼저 그렸다가 바꾸던 깜빡임 대체) */
+.bt-skel {
+  display: block;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text-muted) 14%, transparent);
+  animation: bt-skel-pulse 1.4s ease-in-out infinite;
+}
+.bt-skel--title { width: 68%; height: 22px; margin-top: 6px; }
+.bt-skel--sub { width: 52%; height: 13px; margin-top: 9px; }
+.bt-skel--week { height: 58px; margin-top: 16px; border-radius: 14px; }
+.bt-skel--next { height: 74px; margin-top: 12px; border-radius: 16px; }
+.bt-skel--cta { height: 50px; margin-top: 10px; border-radius: 16px; }
+.bt-skel--heading { display: inline-block; width: 110px; height: 17px; vertical-align: middle; }
+.bt-skel--line { width: 70%; height: 14px; }
+.bt-skel--short { width: 40%; height: 12px; margin-top: 10px; }
+.bt-shelf__item--skel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 76px;
+}
+@keyframes bt-skel-pulse {
+  50% { opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bt-skel { animation: none; }
+}
 .bt-today__sub b {
   color: var(--text-strong);
   font-weight: 800;

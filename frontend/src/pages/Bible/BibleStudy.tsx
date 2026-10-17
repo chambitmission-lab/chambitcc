@@ -516,6 +516,8 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/typing')}
+        onPointerEnter={() => void preloadRoute('/bible/typing')}
+        onPointerDown={() => void preloadRoute('/bible/typing')}
         className="dash-card dash-card--fav dash-card--tone-typing"
       >
         <span className="dash-card__icon dash-card__icon--seal">
@@ -606,7 +608,13 @@ const BibleStudy = () => {
           <span className="dash-tile__text">{dt.tileAtlas}</span>
         </span>
       </button>
-      <button type="button" onClick={() => navigate('/bible/typing')} className="dash-tile">
+      <button
+        type="button"
+        onClick={() => navigate('/bible/typing')}
+        onPointerEnter={() => void preloadRoute('/bible/typing')}
+        onPointerDown={() => void preloadRoute('/bible/typing')}
+        className="dash-tile"
+      >
         <span className="dash-tile__icon dash-card__icon--seal">
           <TypingIcon className="dash-card__glyph" />
         </span>

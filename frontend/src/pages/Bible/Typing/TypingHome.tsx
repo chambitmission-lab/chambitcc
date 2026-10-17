@@ -26,15 +26,21 @@ const TypingHome = () => {
   const loggedIn = !!tokenStore.getAccess()
   const { data: books } = useBibleBooks()
   // 허브 데이터는 요청 하나(묶음)로 — 조각별 요청 6개가 홈의 요청들과 섞여 줄을 서던 것을 줄인다
-  const { data: home } = useTypingHome()
+  const { data: home, isPending: homePending } = useTypingHome()
   // 내 릴레이 카드의 진행 칸도 다른 멤버가 쓰면 바로 바뀌게(SSE)
   useTypingRelayLive()
   const stats = home?.stats
   const calendar = home?.calendar
   const daily = home?.daily
   const church = home?.church_bible
-  const { data: titles } = useTitles(loggedIn)
-  const { data: manna } = useMannaSummary()
+  // 첫 화면(오늘의 필사)이 기다리는 건 묶음 하나다 — 칭호(GET /titles 는 평가까지 도는 무거운 요청)와 만나 순위는
+  // 묶음이 도착한 뒤에 받아 콜드 진입에서 묶음과 대역폭·DB 를 다투지 않게 한다 (캐시가 있으면 바로 그려진다)
+  const homeSettled = !loggedIn || !homePending
+  const { data: titles } = useTitles(loggedIn && homeSettled)
+  const { data: manna } = useMannaSummary(homeSettled)
+  // 로그인했는데 묶음이 아직 없다 — 첫 방문자용 문구(시편 23편부터)를 먼저 그렸다가 실제 자리로 바꾸면 화면이 튄다.
+  // 요청이 실패하면(isPending false) 자리표시자를 걷고 평소 화면으로 돌아간다
+  const loading = loggedIn && homePending
   const [mode, setMode] = useTypingMode()
   const [ignorePunct, setIgnorePunct] = useIgnorePunct()
 
@@ -52,6 +58,7 @@ const TypingHome = () => {
           <div className="bt-home-main">
             <TodayCard
               loggedIn={loggedIn}
+              loading={loading}
               stats={stats}
               calendar={calendar}
               mode={mode}
@@ -67,7 +74,7 @@ const TypingHome = () => {
 
             {loggedIn && <InkCalendar calendar={calendar} stats={stats} />}
 
-            <BookSection loggedIn={loggedIn} stats={stats} bookTotals={church?.book_totals} onGo={go} />
+            <BookSection loggedIn={loggedIn} loading={loading} stats={stats} bookTotals={church?.book_totals} onGo={go} />
 
             <button type="button" className="bt-card bt-sprint-entry" onClick={() => navigate('/bible/typing/sprint')}>
               <span className="material-icons-round bt-sprint-entry__icon" aria-hidden>
