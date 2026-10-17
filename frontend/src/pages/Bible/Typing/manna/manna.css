@@ -747,6 +747,31 @@ img.mn-podium__ava { object-fit: cover; }
 /* 허브 입구 카드 */
 .bt-manna-entry .bt-sprint-entry__icon { color: #d49a2e; }
 
+/* ── 가로 흐름(휴대폰 타이핑) — 화면 키보드 위 남은 자리를 무대에 몰아준다 ── */
+.mn-stage__basket {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 40px; pointer-events: none;
+  background: linear-gradient(90deg, var(--mn-dune-front) 70%, transparent);
+  border-right: 2px solid color-mix(in srgb, var(--mn-dune-front) 60%, var(--mn-text) 12%);
+}
+.mn-game.is-flow-left .mn-stage { min-height: 96px; }
+.mn-game.is-flow-left .mn-stage__closeline {
+  top: 0; bottom: 0; right: auto; left: calc(40px + max(44px, 16%)); height: auto; width: 0;
+  border-top: 0; border-left: 1.5px dashed color-mix(in srgb, var(--mn-bad) 45%, transparent);
+}
+.mn-game.is-flow-left .mn-stage__closeline::after { right: auto; left: 5px; top: 6px; }
+.mn-game.is-flow-left .mn-hud { padding-top: calc(6px + env(safe-area-inset-top, 0px)); padding-bottom: 2px; }
+.mn-game.is-flow-left .mn-hud__num { font-size: 24px; }
+.mn-game.is-flow-left .mn-hud__combo { margin-top: 2px; }
+.mn-game.is-flow-left .mn-hud__btn { width: 32px; height: 32px; }
+.mn-game.is-flow-left .mn-track { display: none; }
+.mn-game.is-flow-left .mn-verse { padding-block: 2px 4px; }
+.mn-game.is-flow-left .mn-verse__card { padding: 6px 12px 8px; border-radius: 16px; }
+.mn-game.is-flow-left .mn-verse__ref { margin-bottom: 2px; font-size: 11px; }
+.mn-game.is-flow-left .mn-verse__line { font-size: 14.5px; line-height: 1.6; }
+.mn-game.is-flow-left .mn-typebar { padding-top: 6px; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+.mn-game.is-flow-left .mn-input { min-height: 44px; padding-block: 8px; }
+.mn-game.is-flow-left .mn-typebar__hint { display: none; }
+
 @media (max-width: 380px) {
   .mn-hud__num { font-size: 24px; }
   .mn-jar { width: 12px; height: 16px; }

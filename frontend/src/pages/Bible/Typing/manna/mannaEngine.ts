@@ -102,6 +102,14 @@ const CLOSE_MULT = 1.5 // 아슬아슬 — 땅에 닿기 직전에 거둠
 const CLOSE_ZONE = 0.16 // 무대 높이 대비 아슬아슬 구간(최소 44px)
 const GROUND_OFFSET = 30 // 무대 바닥에서 모래 언덕 윗면까지
 const TAP_SLOP = 22 // 터치 모드 — 만나 테두리에서 이만큼 벗어나도 누른 걸로
+// 가로 흐름(휴대폰 타이핑) — 화면 키보드 위 낮고 넓은 무대에 맞춰 오른쪽에서 왼쪽 바구니로 흘러온다
+const BASKET_W = 40 // 왼쪽 바구니 띠 폭(여기 닿으면 떨어진 것)
+const LANE_H = 42 // 한 줄 높이
+const LANE_GAP = 14 // 같은 줄 앞 만나와의 최소 간격
+const FLOW_SPEED = 1.1 // 무대 폭 대비 — 세로 낙하(fall)에 곱한다
+
+/** down: 위→아래로 떨어짐(기본) · left: 오른쪽→왼쪽으로 흘러옴(화면 키보드가 무대 절반을 가리는 휴대폰 타이핑) */
+export type MannaFlow = 'down' | 'left'
 
 /** 판에 쓸 단어 — 문장부호는 떼어 내고(치기 어렵다) 빈 조각은 버린다 */
 export const splitWords = (text: string): string[] =>
@@ -191,6 +199,8 @@ interface Falling {
   p: string | null
   /** 아슬아슬 구간에 들어왔는지(클래스 토글용) */
   low: boolean
+  /** 가로 흐름에서 몇째 줄 */
+  lane: number
 }
 
 /** 시드 고정 난수(mulberry32) — 같은 seed 면 같은 판 */
@@ -278,6 +288,8 @@ export class MannaGame {
   private stage: HTMLElement
   private verses: { ref: string; text: string; words: string[] }[]
   private mode: MannaMode
+  private flow: MannaFlow
+  private lanes = 1
   private cb: MannaCallbacks
   private rand: () => number
 
@@ -324,8 +336,16 @@ export class MannaGame {
   private aimValue = ''
   private hudKey = ''
 
-  constructor(opts: { stage: HTMLElement; verses: { ref: string; text: string }[]; mode: MannaMode; seed: number; callbacks: MannaCallbacks }) {
+  constructor(opts: {
+    stage: HTMLElement
+    verses: { ref: string; text: string }[]
+    mode: MannaMode
+    seed: number
+    flow?: MannaFlow
+    callbacks: MannaCallbacks
+  }) {
     this.stage = opts.stage
+    this.flow = opts.flow ?? 'down'
     this.verses = opts.verses.map((v) => ({ ...v, words: splitWords(v.text) })).filter((v) => v.words.length > 0)
     this.mode = opts.mode
     this.cb = opts.callbacks
@@ -375,6 +395,39 @@ export class MannaGame {
     this.W = this.stage.clientWidth
     this.H = this.stage.clientHeight
     this.groundY = this.H - GROUND_OFFSET
+    if (this.flow === 'left') {
+      // 키보드가 열리고 닫히며 무대 높이가 바뀌면 줄 수도 바뀐다 — 넘친 줄의 만나는 안쪽으로 당긴다
+      this.lanes = Math.max(1, Math.min(5, Math.floor((this.H - 8) / LANE_H)))
+      for (const f of this.falling) {
+        f.lane = Math.min(f.lane, this.lanes - 1)
+        f.y = this.laneY(f.lane, f.h)
+      }
+    }
+  }
+
+  private laneY(lane: number, h: number) {
+    return (this.H - this.lanes * LANE_H) / 2 + lane * LANE_H + (LANE_H - h) / 2
+  }
+
+  /** 가로 흐름 — 비어 있는 자리가 가장 넓은 줄과, 앞 만나 뒤에 붙일 x */
+  private pickLane(): { lane: number; x: number } {
+    let best = { lane: 0, x: Infinity }
+    for (let i = 0; i < this.lanes; i++) {
+      const tail = this.falling.reduce((m, f) => (f.lane === i ? Math.max(m, f.x + f.w) : m), -Infinity)
+      const x = Math.max(this.W + 6, tail + LANE_GAP)
+      if (x < best.x) best = { lane: i, x }
+    }
+    return best
+  }
+
+  /** 아슬아슬 구간 — 세로는 땅 위, 가로는 바구니 앞 */
+  private isClose(f: Falling) {
+    return this.flow === 'left' ? f.x <= BASKET_W + Math.max(44, this.W * CLOSE_ZONE) : f.y + f.h >= this.closeLine()
+  }
+
+  /** 땅(바구니)에 닿은 자리 — 팝·자국 위치 */
+  private landAt(f: Falling): { x: number; y: number } {
+    return this.flow === 'left' ? { x: BASKET_W + 44, y: f.y } : { x: f.x + f.w / 2, y: this.groundY - 30 }
   }
 
   private loadVerse(vi: number) {
@@ -501,8 +554,17 @@ export class MannaGame {
       seed: this.rand() * 6,
       p: null,
       low: false,
+      lane: 0,
     }
-    el.style.transform = `translate(${x}px, ${f.y}px)`
+    if (this.flow === 'left') {
+      // 난수는 세로와 똑같이 소비한 뒤 자리만 바꾼다 — 같은 날 같은 난이도면 흐름이 달라도 같은 판
+      const at = this.pickLane()
+      f.lane = at.lane
+      f.x = at.x
+      f.y = this.laneY(at.lane, h)
+      f.spd = 1 // 한 줄에서 앞지르지 않게
+    }
+    el.style.transform = `translate(${f.x}px, ${f.y}px)`
     this.falling.push(f)
     this.aimOne(f)
     this.markTurn()
@@ -573,7 +635,11 @@ export class MannaGame {
   private splat(f: Falling, dark: boolean) {
     const el = document.createElement('div')
     el.className = `mn-splat${dark ? ' mn-splat--dark' : ''}`
-    el.style.left = `${f.x + f.w / 2 - 15}px`
+    if (this.flow === 'left') {
+      el.style.left = `${BASKET_W - 15}px`
+      el.style.top = `${f.y + f.h / 2 - 4}px`
+      el.style.bottom = 'auto'
+    } else el.style.left = `${f.x + f.w / 2 - 15}px`
     this.stage.appendChild(el)
     setTimeout(() => el.remove(), 900)
   }
@@ -586,7 +652,8 @@ export class MannaGame {
       this.wordsMissed++
       this.missed.add(f.idx)
       this.splat(f, false)
-      this.pop(f.x + f.w / 2, this.groundY - 30, '땅에 떨어졌어요', f.text, 'bad')
+      const at = this.landAt(f)
+      this.pop(at.x, at.y, '땅에 떨어졌어요', f.text, 'bad')
       sfx.miss()
       this.emitVerse()
       this.emitHud()
@@ -598,7 +665,8 @@ export class MannaGame {
     } else if (f.kind === 'decoy') {
       this.score += DECOY_AVOID
       this.splat(f, true)
-      this.pop(f.x + f.w / 2, this.groundY - 30, `+${DECOY_AVOID}`, '잘 피했어요', 'good')
+      const at = this.landAt(f)
+      this.pop(at.x, at.y, `+${DECOY_AVOID}`, '잘 피했어요', 'good')
     }
   }
 
@@ -610,7 +678,7 @@ export class MannaGame {
     this.maxCombo = Math.max(this.maxCombo, this.combo)
     const gold = f.idx === this.gold
     // 불기둥으로 쓸어 담은 건 아슬아슬이 아니다
-    const close = !viaFire && f.y + f.h >= this.closeLine()
+    const close = !viaFire && this.isClose(f)
     if (gold) this.goldCaught++
     if (close) this.closeCalls++
     const pts = Math.round(
@@ -704,7 +772,7 @@ export class MannaGame {
         return
       }
       this.combo = 0
-      this.pop(this.W / 2, this.H - 70, '없는 단어예요', t, 'bad')
+      this.pop(this.W / 2, this.flow === 'left' ? this.H / 2 : this.H - 70, '없는 단어예요', t, 'bad')
       this.emitHud()
       return
     }
@@ -845,20 +913,26 @@ export class MannaGame {
           this.lastExtra = this.clock
         }
       }
-      const v = this.H * m.fall * (1 + this.done * m.ramp) * (this.clock < this.slowUntil ? 0.4 : 1)
-      const closeLine = this.closeLine()
+      const left = this.flow === 'left'
+      const v = (left ? this.W * FLOW_SPEED : this.H) * m.fall * (1 + this.done * m.ramp) * (this.clock < this.slowUntil ? 0.4 : 1)
       for (const f of this.falling.slice()) {
-        f.y += v * dt * f.spd
         f.ph += dt
-        const sway = Math.sin(f.ph * 1.3 + f.seed) * 6
-        f.el.style.transform = `translate(${f.x + sway}px, ${f.y}px)`
+        if (left) {
+          f.x -= v * dt * f.spd
+          const bob = Math.sin(f.ph * 1.6 + f.seed) * 2.5
+          f.el.style.transform = `translate(${f.x}px, ${f.y + bob}px)`
+        } else {
+          f.y += v * dt * f.spd
+          const sway = Math.sin(f.ph * 1.3 + f.seed) * 6
+          f.el.style.transform = `translate(${f.x + sway}px, ${f.y}px)`
+        }
         // 아슬아슬 구간 — 말씀 단어만 떨리며 알린다(거두면 1.5배)
-        const low = f.kind === 'word' && f.y + f.h >= closeLine
+        const low = f.kind === 'word' && this.isClose(f)
         if (low !== f.low) {
           f.low = low
           f.el.classList.toggle('is-low', low)
         }
-        if (f.y + f.h >= this.groundY) this.land(f)
+        if (left ? f.x <= BASKET_W : f.y + f.h >= this.groundY) this.land(f)
         if (!this.running) return
       }
       this.emitHud()

@@ -31,6 +31,7 @@ import {
   SLOW_SECONDS,
   PLACES,
   type MannaBanner,
+  type MannaFlow,
   type MannaHud,
   type MannaMode,
   type MannaResult,
@@ -496,6 +497,8 @@ const MannaGameLayer = ({
   onOver: (r: MannaResult) => void
   onQuitEarly: () => void
 }) => {
+  // 휴대폰 타이핑은 화면 키보드가 아래 절반을 덮는다 — 남은 낮고 넓은 무대에 맞춰 가로로 흘려 보낸다
+  const flow: MannaFlow = input === 'type' && isTouchDevice() ? 'left' : 'down'
   const layerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -558,6 +561,7 @@ const MannaGameLayer = ({
       verses: set.verses.map((v) => ({ ref: v.ref, text: v.text })),
       mode,
       seed: set.seed,
+      flow,
       callbacks: {
         onHud: (h) => {
           if (h.jars < prevJars.current) setLostJar(h.jars)
@@ -600,7 +604,7 @@ const MannaGameLayer = ({
       game.destroy()
       gameRef.current = null
     }
-  }, [set, mode, input])
+  }, [set, mode, input, flow])
 
   // 라이브 — 창 안에서 한 판을 마친 사람의 점수가 흘러간다
   useEffect(() => {
@@ -678,7 +682,7 @@ const MannaGameLayer = ({
   return createPortal(
     <div
       ref={layerRef}
-      className={`mn-game mn-skin--${skin}${hud.fever ? ' is-fever' : ''}${hud.slow ? ' is-slow' : ''}${mode === 'easy' ? ' is-easy' : ''}${paused ? ' is-paused' : ''}`}
+      className={`mn-game mn-skin--${skin}${flow === 'left' ? ' is-flow-left' : ''}${hud.fever ? ' is-fever' : ''}${hud.slow ? ' is-slow' : ''}${mode === 'easy' ? ' is-easy' : ''}${paused ? ' is-paused' : ''}`}
       style={{ '--mn-dawn': Math.min(1, hud.done / (set.verses.length - 1 || 1)).toFixed(2) } as CSSProperties}
       role="application"
       aria-label="만나 내리기"
@@ -829,7 +833,7 @@ const MannaGameLayer = ({
           else setTimeout(() => inputRef.current?.focus(), 0)
         }}
       >
-        <Dunes />
+        {flow === 'left' ? <div className="mn-stage__basket" aria-hidden /> : <Dunes />}
         <div className="mn-stage__closeline" aria-hidden />
         {ticker && (
           <div key={ticker.id} className="mn-ticker" role="status">
