@@ -992,8 +992,6 @@ const MannaResultCard = ({
   const shownScore = useCountUp(result.score)
   const place = PLACES[Math.min(result.versesDone, PLACES.length - 1)]
   const kindLabel = set.kind === 'daily' ? '오늘의 만나' : '연습'
-  const rankLine =
-    saved && saved.kind === 'daily' && saved.rank ? `오늘의 만나 ${modeLabel(mode)} ${saved.players}명 중 ${saved.rank}위` : null
   const liveLine = saved?.live && saved.live.rank ? `라이브 ${saved.live.players}명 중 ${saved.live.rank}위` : liveKey ? '라이브 순위에 올라갔어요' : null
   const rivalDelta = rival && !rival.is_me ? result.score - rival.score : null
   const rivalLine =
@@ -1010,15 +1008,24 @@ const MannaResultCard = ({
     setSharing(true)
     try {
       const blob = await renderMannaCard({
-        eyebrow: `${kindLabel} · ${modeLabel(mode)} · ${set.date.replace(/-/g, '.')}`,
-        place,
-        score: result.score,
-        statLine: `새긴 말씀 ${result.versesDone}절 · 온전히 ${result.perfectVerses}절 · 최고 콤보 ${result.maxCombo}`,
-        refs: result.refs,
-        rankLine: liveLine && saved?.live?.rank ? liveLine : rankLine,
+        skin,
+        dark: document.documentElement.classList.contains('dark'),
+        result,
+        verses: set.verses.length,
+        kindLabel,
+        modeLabel: modeLabel(mode),
+        date: set.date,
+        rank: saved?.kind === 'daily' ? saved.rank : null,
+        players: saved?.kind === 'daily' ? saved.players : null,
+        prevRank: finished.prevRank,
+        isBest: !!saved?.is_best,
+        overtook: saved?.overtook ?? [],
+        rivalName: rival && !rival.is_me ? rival.name : null,
+        rivalDelta,
+        live: !!liveKey,
       })
       if (!blob) throw new Error('canvas')
-      const r = await shareOrDownload(blob, `만나내리기-${set.date}.png`, `만나 내리기 · ${place}까지 ${fmt(result.score)}점`)
+      const r = await shareOrDownload(blob, `만나${skin === 'drop' ? '드롭' : '내리기'}-${set.date}.png`, `만나 내리기 · ${place}까지 ${fmt(result.score)}점`)
       if (r === 'downloaded') showToast('카드 이미지를 저장했어요', 'success')
     } catch {
       showToast('카드를 만들지 못했어요', 'error')
