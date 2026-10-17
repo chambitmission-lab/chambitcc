@@ -551,12 +551,6 @@
 }
 .mn-send:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--mn-accent-deep); }
 .mn-send .material-icons-round { font-size: 24px; }
-.mn-stage.is-touch { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.mn-typebar__touch {
-  display: flex; align-items: center; justify-content: center; gap: 6px; margin: 2px auto 0;
-  font-size: 13px; font-weight: 700; color: var(--mn-text); text-align: center;
-}
-.mn-typebar__touch .material-icons-round { font-size: 18px; color: var(--mn-accent-deep); }
 .mn-typebar__hint { margin: 7px auto 0; font-size: 11.5px; font-weight: 600; color: var(--mn-muted); text-align: center; }
 .mn-typebar__hint kbd {
   display: inline-block; min-width: 18px; padding: 1px 5px; margin: 0 1px; border-radius: 5px;

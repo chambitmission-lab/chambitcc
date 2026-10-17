@@ -305,6 +305,22 @@ const playChime = (ac: AudioContext, kind: 'done' | 'finish') => {
   return true
 }
 
+/** 탭(포인터) 동작 안에서 오디오를 미리 깨운다 — iOS 는 화면 키보드 입력만으로는 잠긴 AudioContext 를 풀어 주지 않는다 */
+export const primeTypingSound = () => {
+  if (theme === 'off') return
+  const ac = audio()
+  if (!ac) return
+  try {
+    const src = ac.createBufferSource()
+    src.buffer = ac.createBuffer(1, 1, ac.sampleRate)
+    src.connect(ac.destination)
+    src.start()
+  } catch {
+    /* 무시 */
+  }
+  if (isRecorded(theme) && !samples[theme]) void loadSamples(theme)
+}
+
 export const playTypingSound = (requested: SoundKind) => {
   if (theme === 'off') return
   const ac = audio()

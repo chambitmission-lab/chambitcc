@@ -26,9 +26,7 @@
 .mn-skinpick__btn strong { font-size: 12.5px; font-weight: 900; }
 .mn-skinpick__btn span { font-size: 10.5px; font-weight: 600; opacity: 0.75; }
 .mn-skinpick__btn.is-on { color: var(--mn-text); border-color: var(--mn-text); }
-.mn-inputpick { padding-top: 8px; }
-.mn-skinpick__btn .mn-inputpick__icon { font-size: 16px; opacity: 1; }
-@media (max-width: 480px) { .mn-skinpick__btn span:not(.mn-inputpick__icon) { display: none; } }
+@media (max-width: 480px) { .mn-skinpick__btn span { display: none; } }
 
 .mn-hud__arcade { display: none; }
 .mn-burst {

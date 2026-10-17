@@ -101,7 +101,6 @@ const GOLD_MULT = 3 // 핵심 말씀
 const CLOSE_MULT = 1.5 // 아슬아슬 — 땅에 닿기 직전에 거둠
 const CLOSE_ZONE = 0.16 // 무대 높이 대비 아슬아슬 구간(최소 44px)
 const GROUND_OFFSET = 30 // 무대 바닥에서 모래 언덕 윗면까지
-const TAP_SLOP = 22 // 터치 모드 — 만나 테두리에서 이만큼 벗어나도 누른 걸로
 // 가로 흐름(휴대폰 타이핑) — 화면 키보드 위 낮고 넓은 무대에 맞춰 오른쪽에서 왼쪽 바구니로 흘러온다
 const BASKET_W = 40 // 왼쪽 바구니 띠 폭(여기 닿으면 떨어진 것)
 const LANE_H = 42 // 한 줄 높이
@@ -724,35 +723,6 @@ export class MannaGame {
     this.emitHud()
   }
 
-  /** 터치 모드 — 화면을 누른 자리의 만나를 거둔다(움직이는 표적이라 손가락 둘레까지 봐준다) */
-  tap(clientX: number, clientY: number) {
-    if (!this.running || this.paused || this.pendingNext) return
-    const r = this.stage.getBoundingClientRect()
-    const px = clientX - r.left
-    const py = clientY - r.top
-    const turn = this.turnIdx()
-    let best: Falling | null = null
-    let bestD = TAP_SLOP
-    for (const f of this.falling) {
-      const dx = Math.max(f.x - px, 0, px - (f.x + f.w))
-      const dy = Math.max(f.y - py, 0, py - (f.y + f.h))
-      const d = Math.hypot(dx, dy)
-      // 겹치면 차례 말씀 쪽으로
-      if (d < bestD || (d === bestD && f.kind === 'word' && f.idx === turn)) {
-        best = f
-        bestD = d
-      }
-    }
-    if (!best) return
-    if (best.kind === 'word' && best.idx !== turn) {
-      const cur = this.falling.find((g) => g.kind === 'word' && g.idx === turn)
-      this.cb.onShake()
-      this.popAt(best, '앞 단어부터', cur ? `‘${cur.text}’ 먼저` : undefined, 'bad')
-      return
-    }
-    this.collect(best)
-  }
-
   /** 스페이스·엔터로 낸 단어 */
   submit(raw: string) {
     if (!this.running || this.paused) return
@@ -776,10 +746,6 @@ export class MannaGame {
       this.emitHud()
       return
     }
-    this.collect(f)
-  }
-
-  private collect(f: Falling) {
     if (f.kind === 'decoy') {
       this.remove(f, true)
       this.combo = 0

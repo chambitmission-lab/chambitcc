@@ -21,7 +21,7 @@ import { showToast } from '../../../../utils/toast'
 import { notificationStream } from '../../../../utils/notificationStream'
 import { parseApiDate } from '../../../../utils/dateUtils'
 import { shareOrDownload } from '../dailyCard'
-import { playTypingSound } from '../typingSound'
+import { playTypingSound, primeTypingSound } from '../typingSound'
 import SoundMenu from '../SoundMenu'
 import {
   ITEMS,
@@ -39,8 +39,8 @@ import {
 } from './mannaEngine'
 import { renderMannaCard } from './mannaCard'
 import MannaBoards from './MannaBoards'
-import { BURST_EVERY, burstText, isTouchDevice, useContinueCountdown, useMannaInput, useMannaSkin, type MannaInput, type MannaSkin } from './mannaSkin'
-import { ArcadeResultHero, ArcadeTop, DropResultHero, DropTop, InputPicker, SkinPicker } from './MannaSkins'
+import { BURST_EVERY, burstText, isTouchDevice, useContinueCountdown, useMannaSkin, type MannaSkin } from './mannaSkin'
+import { ArcadeResultHero, ArcadeTop, DropResultHero, DropTop, SkinPicker } from './MannaSkins'
 import '../typing.css'
 import './manna.css'
 import './manna-skins.css'
@@ -114,7 +114,6 @@ const MannaPage = () => {
   const { data: summary } = useMannaSummary()
   const submit = useSubmitManna()
   const [skin, setSkin] = useMannaSkin()
-  const [input, setInput] = useMannaInput()
 
   const [mode, setModeState] = useState<MannaMode>(() => {
     const v = safeStorage.get(MODE_KEY)
@@ -143,6 +142,8 @@ const MannaPage = () => {
   const liveEligible = !!liveNow && kind === 'daily' && mode === (live?.mode ?? 'normal')
 
   const start = async (opts?: { live?: boolean }) => {
+    // 휴대폰은 화면 키보드 입력이 '사용자 동작'으로 안 쳐서 소리가 잠긴 채로 남는다 — 시작 버튼 탭에서 미리 깨운다
+    primeTypingSound()
     if (opts?.live && live) {
       setKind('daily')
       setMode(live.mode)
@@ -242,7 +243,6 @@ const MannaPage = () => {
           ) : (
             <section className="mn-hero">
               <SkinPicker skin={skin} onChange={setSkin} />
-              {isTouchDevice() && <InputPicker input={input} onChange={setInput} />}
               {skin === 'arcade' ? (
                 <ArcadeTop mode={mode} loggedIn={loggedIn} summary={summary} />
               ) : (
@@ -417,7 +417,6 @@ const MannaPage = () => {
           set={set}
           mode={mode}
           skin={skin}
-          input={input}
           best={best}
           rival={playing.rival}
           liveKey={playing.liveKey}
@@ -476,7 +475,6 @@ const MannaGameLayer = ({
   set,
   mode,
   skin,
-  input,
   best,
   rival,
   liveKey,
@@ -487,8 +485,6 @@ const MannaGameLayer = ({
   set: MannaSet
   mode: MannaMode
   skin: MannaSkin
-  /** touch — 화면 키보드 없이 떨어지는 만나를 눌러 거둔다 */
-  input: MannaInput
   /** 시작 전 그 난이도 내 최고점 — 아케이드 HUD 의 HI */
   best: number
   rival: Rival | null
@@ -498,13 +494,14 @@ const MannaGameLayer = ({
   onQuitEarly: () => void
 }) => {
   // 휴대폰 타이핑은 화면 키보드가 아래 절반을 덮는다 — 남은 낮고 넓은 무대에 맞춰 가로로 흘려 보낸다
-  const flow: MannaFlow = input === 'type' && isTouchDevice() ? 'left' : 'down'
+  const flow: MannaFlow = isTouchDevice() ? 'left' : 'down'
   const layerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<MannaGame | null>(null)
   const pendingEnter = useRef(false)
+  const keySoundAt = useRef(0)
 
   const [hud, setHud] = useState<MannaHud>({ score: 0, combo: 0, mult: 1, jars: MAX_JARS, done: 0, fever: false, slow: false })
   const [verse, setVerse] = useState<MannaVerseView | null>(null)
@@ -599,12 +596,12 @@ const MannaGameLayer = ({
     })
     gameRef.current = game
     game.start()
-    if (input === 'type') inputRef.current?.focus()
+    inputRef.current?.focus()
     return () => {
       game.destroy()
       gameRef.current = null
     }
-  }, [set, mode, input, flow])
+  }, [set, mode, flow])
 
   // 라이브 — 창 안에서 한 판을 마친 사람의 점수가 흘러간다
   useEffect(() => {
@@ -643,8 +640,8 @@ const MannaGameLayer = ({
   const pause = useCallback((p: boolean) => {
     gameRef.current?.setPaused(p)
     setPaused(p)
-    if (!p && input === 'type') setTimeout(() => inputRef.current?.focus(), 0)
-  }, [input])
+    if (!p) setTimeout(() => inputRef.current?.focus(), 0)
+  }, [])
 
   useEffect(() => {
     const onVis = () => {
@@ -825,14 +822,7 @@ const MannaGameLayer = ({
         </section>
       )}
 
-      <div
-        className={`mn-stage${input === 'touch' ? ' is-touch' : ''}`}
-        ref={stageRef}
-        onPointerDown={(e) => {
-          if (input === 'touch') gameRef.current?.tap(e.clientX, e.clientY)
-          else setTimeout(() => inputRef.current?.focus(), 0)
-        }}
-      >
+      <div className="mn-stage" ref={stageRef} onPointerDown={() => setTimeout(() => inputRef.current?.focus(), 0)}>
         {flow === 'left' ? <div className="mn-stage__basket" aria-hidden /> : <Dunes />}
         <div className="mn-stage__closeline" aria-hidden />
         {ticker && (
@@ -844,82 +834,78 @@ const MannaGameLayer = ({
       </div>
 
       <div className="mn-typebar" ref={barRef}>
-        {input === 'touch' ? (
-          <p className="mn-typebar__touch">
+        <div className="mn-typebar__field">
+          <input
+            ref={inputRef}
+            className="mn-input"
+            type="text"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            enterKeyHint="send"
+            placeholder="금빛 '차례' 단어를 입력"
+            aria-label="단어 입력"
+            onInput={(e) => {
+              const input = e.currentTarget
+              // 화면 키보드는 keydown 이 'Unidentified' 로 오거나 아예 안 와서 — 그때는 입력 자체로 소리를 낸다
+              if (performance.now() - keySoundAt.current > 80) {
+                const ne = e.nativeEvent as InputEvent
+                playTypingSound(ne.inputType?.startsWith('delete') ? 'back' : ne.data?.includes(' ') ? 'space' : 'key')
+              }
+              const v = input.value
+              if (/\s/.test(v)) {
+                const parts = v.split(/\s+/)
+                const rest = parts.pop() ?? ''
+                parts.filter(Boolean).forEach((p) => gameRef.current?.submit(p))
+                input.value = rest
+              }
+              gameRef.current?.aim(input.value)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                // 한글 조합 중 엔터는 조합이 끝난 뒤에 거둔다
+                if (e.nativeEvent.isComposing || e.keyCode === 229) {
+                  pendingEnter.current = true
+                  return
+                }
+                submitInput()
+                return
+              }
+              if (e.key === 'Escape') {
+                pause(true)
+                return
+              }
+              const kind = e.key === ' ' ? 'space' : e.key === 'Backspace' ? 'back' : e.key.length === 1 || e.key === 'Process' || e.keyCode === 229 ? 'key' : null
+              if (kind) {
+                playTypingSound(kind)
+                keySoundAt.current = performance.now()
+              }
+            }}
+            onCompositionEnd={() => {
+              if (pendingEnter.current) {
+                pendingEnter.current = false
+                setTimeout(submitInput, 0)
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="mn-send"
+            aria-label="거두기"
+            // 화면 키보드가 내려가지 않게 입력칸 포커스를 지킨다
+            onPointerDown={(e) => e.preventDefault()}
+            onClick={submitInput}
+          >
             <span className="material-icons-round" aria-hidden>
-              touch_app
+              arrow_upward
             </span>
-            금빛 &apos;차례&apos; 만나를 눌러 거둬요 · 벌레 먹은 만나는 그냥 두기
-          </p>
-        ) : (
-          <>
-            <div className="mn-typebar__field">
-              <input
-                ref={inputRef}
-                className="mn-input"
-                type="text"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                enterKeyHint="send"
-                placeholder="금빛 '차례' 단어를 입력"
-                aria-label="단어 입력"
-                onInput={(e) => {
-                  const input = e.currentTarget
-                  const v = input.value
-                  if (/\s/.test(v)) {
-                    const parts = v.split(/\s+/)
-                    const rest = parts.pop() ?? ''
-                    parts.filter(Boolean).forEach((p) => gameRef.current?.submit(p))
-                    input.value = rest
-                  }
-                  gameRef.current?.aim(input.value)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    // 한글 조합 중 엔터는 조합이 끝난 뒤에 거둔다
-                    if (e.nativeEvent.isComposing || e.keyCode === 229) {
-                      pendingEnter.current = true
-                      return
-                    }
-                    submitInput()
-                    return
-                  }
-                  if (e.key === 'Escape') {
-                    pause(true)
-                    return
-                  }
-                  if (e.key === ' ') playTypingSound('space')
-                  else if (e.key === 'Backspace') playTypingSound('back')
-                  else if (e.key.length === 1 || e.key === 'Process') playTypingSound('key')
-                }}
-                onCompositionEnd={() => {
-                  if (pendingEnter.current) {
-                    pendingEnter.current = false
-                    setTimeout(submitInput, 0)
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className="mn-send"
-                aria-label="거두기"
-                // 화면 키보드가 내려가지 않게 입력칸 포커스를 지킨다
-                onPointerDown={(e) => e.preventDefault()}
-                onClick={submitInput}
-              >
-                <span className="material-icons-round" aria-hidden>
-                  arrow_upward
-                </span>
-              </button>
-            </div>
-            <p className="mn-typebar__hint">
-              말씀은 순서대로 내려와요 · <kbd>Space</kbd> 또는 <kbd>Enter</kbd>로 거두기
-            </p>
-          </>
-        )}
+          </button>
+        </div>
+        <p className="mn-typebar__hint">
+          말씀은 순서대로 내려와요 · <kbd>Space</kbd> 또는 <kbd>Enter</kbd>로 거두기
+        </p>
       </div>
 
       {banner && (
