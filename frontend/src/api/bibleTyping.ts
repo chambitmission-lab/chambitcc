@@ -551,6 +551,8 @@ export interface MannaRunResult {
   /** 오늘의 만나 그 난이도 순위(연습 판이면 null) */
   rank: number | null
   players: number
+  /** 오늘의 만나로 보냈지만 판 날짜가 오늘이 아니라 연습으로 남겼다 */
+  demoted?: boolean
   /** 이 판으로 앞지른 사람 이름(1위였던 사람·바로 앞 사람) — 알림이 갔다 */
   overtook: string[]
   /** 라이브 창 안에서 친 판이면 라이브 순위 */

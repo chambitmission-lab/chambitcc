@@ -148,11 +148,11 @@ const MannaPage = () => {
     const m: MannaMode = opts?.live && live ? live.mode : mode
     setPhase('loading')
     try {
+      // 늘 서버에서 새로 받는다 — 복원된 옛 판(어제 날짜)으로 치면 서버가 연습으로 돌려 순위에 안 들어간다
       const data = await qc.fetchQuery({
         queryKey: [...bibleTypingKeys.manna(), 'set', k],
         queryFn: () => getMannaSet(k),
-        // 오늘의 만나는 하루 같은 판 — 잠깐은 캐시로, 연습 판은 매번 새로
-        staleTime: k === 'daily' ? 60_000 : 0,
+        staleTime: 0,
       })
       if (!data.verses.length) throw new Error('empty')
       setPlaying({
@@ -1044,6 +1044,7 @@ const MannaResultCard = ({
         )}
         {saving && <p className="mn-result__note">기록을 남기는 중…</p>}
         {saved && !saved.counted && <p className="mn-result__note">사람이 내기 어려운 기록이라 순위에는 들어가지 않았어요</p>}
+        {saved?.demoted && <p className="mn-result__note">어제 날짜의 판이라 연습으로 남겼어요 — 다시 시작하면 오늘 판으로 순위에 올라가요</p>}
         {finished.saveFailed && <p className="mn-result__note">기록을 저장하지 못했어요 — 연결을 확인해 주세요</p>}
         {!loggedIn && (
           <p className="mn-result__note">
