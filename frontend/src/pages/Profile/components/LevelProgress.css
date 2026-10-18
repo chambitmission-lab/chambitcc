@@ -398,3 +398,128 @@
   color: var(--brand);
 }
 .lp-earn__badge svg { width: 20px; height: 20px; }
+
+/* ===== 2026-10-18 빈티지 일관성 패스 ======================================
+   위(훈장 수첩 머리말)·아래(기도 수첩)와 같은 문법으로: 흰 카드 → 바랜 종이 낱장,
+   브랜드 블루 → 갈색 잉크 + 금박 액센트, 계단은 크래프트지 → 가죽색으로 짙어진다.
+   색은 아래 --lp-* 토큰으로만(계단은 --lp-step-* — 위쪽 .lp-stairs 가 --lp-stair-* 를 자체 정의해 상속이 끊기므로 이름을 달리한다). 라이트=낮의 종이, 다크=스탠드 아래 어두운 종이 + 크림 잉크(순백 금지). */
+.lp-sheet {
+  --lp-paper: #f8f1e1;
+  --lp-paper2: #efe4cc;
+  --lp-paper-age: #ead9b8;
+  --lp-ink: #4a3f35;
+  --lp-ink2: #6f6153;
+  --lp-ink3: #9a8b78;
+  --lp-rule: rgba(122, 107, 92, 0.25);
+  --lp-accent: #94701e;
+  --lp-hot: #b8382f;
+  --lp-foil: linear-gradient(100deg, #7a5414 0%, #b88a2c 25%, #e6c56f 32%, #a87c22 42%, #7a5414 60%, #c49a3e 80%, #7a5414 100%);
+  --lp-step-track: #ebe0c8;
+  --lp-step-done: #d6bf98;
+  --lp-step-current: #6e4f33;
+  --lp-step-ink: #8a7558;
+  --lp-shadow: 0 1px 0 rgba(160, 135, 95, 0.25), 0 10px 22px rgba(90, 65, 30, 0.09);
+  --lp-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px 16px 16px 6px;
+  padding: 20px;
+  color: var(--lp-ink);
+  background-color: var(--lp-paper);
+  background-image:
+    radial-gradient(circle at 92% 14%, rgba(150, 105, 40, 0.09) 0 7px, transparent 14px),
+    radial-gradient(circle at 6% 88%, rgba(150, 105, 40, 0.1) 0 9px, transparent 17px),
+    radial-gradient(ellipse at 50% 50%, transparent 64%, var(--lp-paper-age) 100%),
+    var(--lp-noise);
+  box-shadow: var(--lp-shadow);
+}
+.dark .lp-sheet {
+  --lp-paper: #2a2520;
+  --lp-paper2: #332c25;
+  --lp-paper-age: #3a3128;
+  --lp-ink: #ece3d3;
+  --lp-ink2: #c9bda9;
+  --lp-ink3: #958a7a;
+  --lp-rule: rgba(236, 227, 211, 0.12);
+  --lp-accent: #e2c27c;
+  --lp-hot: #e2847b;
+  --lp-foil: linear-gradient(100deg, #9a6f1f 0%, #e8c56e 22%, #fff1bf 30%, #d6ac52 40%, #a77b25 60%, #efd28a 80%, #a77b25 100%);
+  --lp-step-track: rgba(236, 227, 211, 0.06);
+  --lp-step-done: #5c4a35;
+  --lp-step-current: #c9a24f;
+  --lp-step-ink: #a89a85;
+  --lp-shadow: inset 0 1px 0 rgba(255, 240, 220, 0.05), 0 10px 24px rgba(0, 0, 0, 0.38);
+  --lp-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.lp-sheet .lp-head { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 23px; font-weight: 700; line-height: 1.1; color: var(--lp-ink); }
+.lp-sheet .lp-muted { color: var(--lp-ink3); }
+.lp-sheet .lp-ink2 { color: var(--lp-ink2); }
+.lp-sheet .lp-accent { color: var(--lp-accent); }
+.lp-sheet .lp-hot { color: var(--lp-hot); }
+.lp-sheet .lp-more { color: var(--lp-ink3); transition: color 0.15s; }
+.lp-sheet .lp-more:hover { color: var(--lp-ink); }
+
+.lp-sheet .lp-hint-btn { border-color: var(--lp-ink3); color: var(--lp-ink3); }
+.lp-sheet .lp-hint { border-radius: 4px; padding: 8px 12px; font-size: 12px; line-height: 1.55; color: var(--lp-ink2); background: var(--lp-paper2); border-left: 3px solid var(--lp-step-done); }
+
+/* Lv 필 → 황동 명판 */
+.lp-sheet .lp-level-pill {
+  position: relative; padding: 4px 14px; border: 0; border-radius: 3px;
+  background: linear-gradient(135deg, #7d5a1c, #e2c06f 40%, #9a7228 55%, #f1d999 75%, #8a6420);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 240, 200, 0.45);
+  font-family: 'Noto Serif KR', serif; font-size: 12.5px; font-weight: 700; letter-spacing: 0.08em;
+  color: rgba(60, 38, 5, 0.88); text-shadow: 0 1px 0 rgba(255, 240, 200, 0.5);
+}
+
+.lp-sheet .lp-level-name { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 30px; font-weight: 700; line-height: 1.05; color: var(--lp-ink); word-break: keep-all; }
+.lp-sheet .lp-verse { margin-top: 4px; font-family: 'Noto Serif KR', serif; font-size: 12px; line-height: 1.6; color: var(--lp-ink2); word-break: keep-all; }
+.lp-sheet .lp-percent {
+  font-family: 'Noto Serif KR', serif; font-size: 32px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
+  background: var(--lp-foil); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: lp-sheen 7s ease-in-out infinite;
+}
+@keyframes lp-sheen { 0%, 60% { background-position: 100% 0; } 100% { background-position: -60% 0; } }
+@media (prefers-reduced-motion: reduce) { .lp-sheet .lp-percent { animation: none; } }
+.lp-sheet .lp-foot { border-top: 1.5px dashed var(--lp-rule); }
+
+/* 등잔 — 파란 그릇 → 구운 흙 그릇 + 황동 심지 */
+.lp-sheet .lp-lamp__vessel { fill: #e8d6b5; stroke: rgba(122, 90, 50, 0.45); stroke-width: 1.2; }
+.lp-sheet .lp-lamp__metal { fill: #b08a3a; }
+.lp-sheet .lp-lamp__rim { stroke: #8a6a3a; }
+.dark .lp-sheet .lp-lamp__vessel { fill: rgba(236, 227, 211, 0.1); stroke: rgba(236, 227, 211, 0.22); }
+.dark .lp-sheet .lp-lamp__metal { fill: #c9a24f; }
+.dark .lp-sheet .lp-lamp__rim { stroke: #a8895c; }
+
+/* 계단 — 크래프트지 칸이 쌓이고 지금 칸은 가죽(다크는 황동) */
+.lp-sheet .lp-stair { background: var(--lp-step-track); border-radius: 6px 6px 2px 2px; box-shadow: inset 0 0 0 1px var(--lp-rule); }
+.lp-sheet .lp-stair[data-state='done'] { background: var(--lp-step-done); box-shadow: none; }
+.lp-sheet .lp-stair[data-state='current'] { background: var(--lp-step-current); box-shadow: 0 6px 12px rgba(60, 40, 15, 0.25); }
+.lp-sheet .lp-stair[data-selected='true'] { box-shadow: 0 0 0 2px var(--lp-ink2); }
+.lp-sheet .lp-stair[data-state='current'][data-selected='true'] { box-shadow: 0 6px 12px rgba(60, 40, 15, 0.25), 0 0 0 2px var(--lp-paper), 0 0 0 4px var(--lp-step-current); }
+.lp-sheet .lp-stair__fill { background: var(--lp-step-done); border-radius: 6px 6px 2px 2px; opacity: 0.7; }
+.lp-sheet .lp-stair__lv { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 15px; font-weight: 700; color: var(--lp-step-ink); }
+.lp-sheet .lp-stair[data-state='done'] .lp-stair__lv { color: #6f5636; }
+.dark .lp-sheet .lp-stair[data-state='done'] .lp-stair__lv { color: #e3d3b4; }
+.lp-sheet .lp-stair[data-state='current'] .lp-stair__lv { color: #f6ecd6; }
+.dark .lp-sheet .lp-stair[data-state='current'] .lp-stair__lv { color: #2a1f12; }
+.lp-sheet .lp-here { border: 1.2px solid var(--lp-accent); color: var(--lp-accent); border-radius: 999px; padding: 0 7px; font-size: 10px; font-weight: 700; line-height: 1.6; }
+
+/* 스탯 타일 — 점선 테두리 종이 칸, 숫자는 손글씨 */
+.lp-sheet .lp-tile { border: 1.5px dashed var(--lp-rule); border-radius: 6px; background: var(--lp-paper2); }
+.lp-sheet .lp-tile__num { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 30px; font-weight: 700; line-height: 0.9; color: var(--lp-ink); font-variant-numeric: tabular-nums; }
+
+/* 획득 안내 — 종이 칸 + 황동 배지 */
+.lp-sheet .lp-guide { border: 1.5px dashed var(--lp-rule); border-radius: 6px; background: var(--lp-paper2); }
+.lp-sheet .lp-guide__btn:hover { background: rgba(127, 110, 90, 0.08); }
+.lp-sheet .lp-guide__title { font-size: 13.5px; font-weight: 700; color: var(--lp-ink); }
+.lp-sheet .lp-earn__badge { border-radius: 50%; background: linear-gradient(135deg, #7d5a1c, #e2c06f 40%, #9a7228 55%, #f1d999 75%, #8a6420); color: rgba(60, 38, 5, 0.85); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); }
+.lp-sheet .lp-earn__title { color: var(--lp-accent); }
+.lp-sheet .lp-earn__label { color: var(--lp-ink2); }
+.lp-sheet .lp-earn__leader { border-bottom-color: var(--lp-rule); }
+.lp-sheet .lp-earn__pill[data-tier='1'] { color: var(--lp-ink2); box-shadow: inset 0 0 0 1px var(--lp-rule); background: none; }
+.lp-sheet .lp-earn__pill[data-tier='2'] { color: #5c4422; background: var(--lp-step-done); box-shadow: none; }
+.dark .lp-sheet .lp-earn__pill[data-tier='2'] { color: #ece3d3; }
+.lp-sheet .lp-earn__pill[data-tier='3'] { color: #f6ecd6; background: var(--lp-step-current); box-shadow: 0 2px 6px rgba(60, 40, 15, 0.25); }
+.dark .lp-sheet .lp-earn__pill[data-tier='3'] { color: #2a1f12; }

@@ -183,13 +183,13 @@ html.dark .ph-medal__ribbon { filter: brightness(0.72); }
   background-size: 300% 100%; animation: ph-sheen-medal 6s ease-in-out infinite;
 }
 .ph-medal__glyph { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; color: var(--ph-metal-ink); filter: drop-shadow(0 1px 0 rgba(255, 240, 200, 0.5)); }
-.ph-medal__glyph svg, .ph-medal__glyph span { font-size: 34px; }
+.ph-medal__icon { font-size: 34px; }
 .ph-medal__year { margin-top: 2px; font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 10px; letter-spacing: 0.15em; }
 @media (min-width: 1024px) {
   .ph-medal__pin { width: 58px; height: 10px; }
   .ph-medal__ribbon { width: 58px; height: 68px; background-size: 58px 100%; }
   .ph-medal__face { width: 104px; height: 104px; }
-  .ph-medal__glyph svg, .ph-medal__glyph span { font-size: 40px; }
+  .ph-medal__icon { font-size: 40px; }
 }
 
 .ph-stat { text-align: center; color: var(--ph-stat-ink); }

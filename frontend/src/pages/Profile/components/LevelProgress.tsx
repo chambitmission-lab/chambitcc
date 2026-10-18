@@ -2,7 +2,11 @@ import { useId, useState, type CSSProperties } from 'react'
 import type { GlowLevel } from '../../../types/achievement'
 import { GLOW_LEVELS } from '../../../types/achievement'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { ensureFontFamily } from '../../../utils/deferredFonts'
 import './LevelProgress.css'
+
+// 위아래 수첩(칭호 머리말·기도 수첩)과 같은 손글씨 — 오기 전엔 Pretendard 폴백
+void ensureFontFamily('gaegu')
 
 interface LevelProgressProps {
   currentLevel: GlowLevel
@@ -111,21 +115,12 @@ const LevelProgress = ({
   return (
     <>
     <div className="px-4 py-3">
-      <div
-        className="
-          relative overflow-hidden rounded-2xl p-5
-          bg-white/80 dark:bg-card-dark
-          border border-gray-200/70 dark:border-white/[0.08]
-          shadow-sm
-          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
-        "
-      >
-        <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
+      <div className="lp-sheet">
 
         {/* 헤더 — 제목 + (?) 힌트, 오른쪽 Lv 필 */}
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <h3 className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
+            <h3 className="lp-head">
               {t('lampTitle')}
             </h3>
             <button
@@ -141,7 +136,7 @@ const LevelProgress = ({
           <div className="lp-level-pill">Lv.{currentLevel.level}</div>
         </div>
         {hintOpen && (
-          <p className="relative z-10 mt-2 rounded-lg bg-[var(--brand-soft)] px-3 py-2 text-[12px] leading-snug text-gray-600 dark:text-white/70">
+          <p className="lp-hint relative z-10 mt-2">
             {t('lampHint')}
           </p>
         )}
@@ -150,17 +145,17 @@ const LevelProgress = ({
         <div className="relative z-10 mt-3 flex items-center gap-4">
           <OilLamp progress={progress} />
           <div className="min-w-0 flex-1">
-            <div className="text-[22px] font-extrabold leading-tight text-ink-strong tracking-[-0.03em]">
+            <div className="lp-level-name">
               {t(currentLevel.nameKey)}
             </div>
-            <p className="mt-1 break-keep text-[12px] leading-snug text-gray-500 dark:text-white/55">
+            <p className="lp-verse">
               {t('lampVerse')}
             </p>
             <div className="mt-2.5 flex items-baseline gap-1.5">
-              <span className="text-[30px] font-extrabold leading-none text-brand tracking-[-0.03em] tabular-nums">
+              <span className="lp-percent">
                 {Math.floor(progress)}%
               </span>
-              <span className="text-[12.5px] text-gray-500 dark:text-white/55">
+              <span className="lp-muted text-[12.5px]">
                 {t('lampFilled')}
               </span>
             </div>
@@ -168,16 +163,16 @@ const LevelProgress = ({
         </div>
 
         {/* 하단 — 모은 포인트 · 다음 단계까지 */}
-        <div className="relative z-10 mt-4 flex items-center justify-between gap-3 border-t border-dashed border-gray-200 pt-3 text-[12.5px] dark:border-white/[0.1]">
-          <span className="text-gray-500 dark:text-white/55 tabular-nums">
+        <div className="lp-foot relative z-10 mt-4 flex items-center justify-between gap-3 pt-3 text-[12.5px]">
+          <span className="lp-muted tabular-nums">
             {currentPoints.toLocaleString()} {t('levelPoints')}
           </span>
           {pointsToNext && nextLevel ? (
-            <span className="font-bold text-brand tabular-nums">
+            <span className="lp-accent font-bold tabular-nums">
               {t(nextLevel.nameKey)}{t('lampUntil')} {pointsToNext.needed.toLocaleString()}P
             </span>
           ) : (
-            <span className="font-bold text-brand">{t('levelMaxReached')}</span>
+            <span className="lp-accent font-bold">{t('levelMaxReached')}</span>
           )}
         </div>
       </div>
@@ -185,22 +180,13 @@ const LevelProgress = ({
 
     {/* ── 성장 카드 — 등불 계단 + 스탯 타일 + 획득 안내 ── */}
     <div className="px-4 py-1">
-      <div
-        className="
-          relative overflow-hidden rounded-2xl p-5
-          bg-white/80 dark:bg-card-dark
-          border border-gray-200/70 dark:border-white/[0.08]
-          shadow-sm
-          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
-        "
-      >
-        <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
+      <div className="lp-sheet">
 
         <div className="relative z-10 flex items-center justify-between">
-          <h3 className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
+          <h3 className="lp-head">
             {t('growthGraphTitle')}
           </h3>
-          <a href="#/growth" className="flex items-center gap-0.5 text-[12.5px] font-semibold text-gray-500 dark:text-white/55 hover:text-brand">
+          <a href="#/growth" className="lp-more flex items-center gap-0.5 text-[12.5px] font-semibold">
             {t('growthGraphMore')}
             <span className="material-icons-round text-[16px]" aria-hidden>chevron_right</span>
           </a>
@@ -214,15 +200,15 @@ const LevelProgress = ({
           onSelect={(i) => setSelectedIdx(i + winStart)}
         />
         <div className="relative z-10 mt-2.5 flex items-center gap-1.5 text-[11.5px]">
-          <span className="font-semibold text-gray-600 dark:text-white/65">
+          <span className="lp-ink2 font-semibold">
             Lv.{selLevel.level} {t(selLevel.nameKey)}
           </span>
           {selIdx === currentIdx && (
-            <span className="rounded-full bg-[var(--brand-soft)] px-2 py-[1.5px] text-[10px] font-bold text-brand">
+            <span className="lp-here">
               {t('levelJourneyHere')}
             </span>
           )}
-          <span className="text-gray-400 dark:text-white/40">
+          <span className="lp-muted">
             · {language === 'en'
               ? `from ${selLevel.minPoints.toLocaleString()}P`
               : `${selLevel.minPoints.toLocaleString()}P부터`}
@@ -243,27 +229,27 @@ const LevelProgress = ({
         </div>
 
         {/* 포인트 획득 방법 안내 — 행 카드, 탭하면 펼침 */}
-        <div className="relative z-10 mt-3 overflow-hidden rounded-xl border border-gray-200/70 dark:border-white/[0.08] bg-gray-50/70 dark:bg-white/[0.03]">
+        <div className="lp-guide relative z-10 mt-3 overflow-hidden">
           <button
             type="button"
             onClick={() => setGuideOpen((v) => !v)}
             aria-expanded={guideOpen}
             aria-controls="level-earn-guide"
-            className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors hover:bg-[var(--brand-soft)]"
+            className="lp-guide__btn flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors"
           >
             <span className="lp-earn__badge" aria-hidden="true">
               <EarnIcon name="flame" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[13.5px] font-bold text-ink-strong tracking-[-0.01em]">
+              <span className="lp-guide__title block">
                 {t('levelHowToEarn')}
               </span>
-              <span className="block text-[11.5px] text-gray-500 dark:text-white/55">
+              <span className="lp-muted block text-[11.5px]">
                 {t('levelHowToEarnSub')}
               </span>
             </span>
             <span
-              className={`material-icons-round text-[20px] text-gray-400 dark:text-white/40 transition-transform duration-300 ${
+              className={`lp-muted material-icons-round text-[20px] transition-transform duration-300 ${
                 guideOpen ? 'rotate-90' : ''
               }`}
               aria-hidden="true"
@@ -419,18 +405,18 @@ const GrowthStat = ({
   hot?: boolean
 }) => (
   <div className="lp-tile">
-    <div className="flex items-center gap-1 text-[11.5px] font-medium text-gray-500 dark:text-white/55 whitespace-nowrap">
-      <span className={`material-icons-round text-[15px] ${hot ? 'text-orange-500' : 'text-brand'}`} aria-hidden="true">
+    <div className="lp-muted flex items-center gap-1 text-[11.5px] font-semibold whitespace-nowrap">
+      <span className={`material-icons-round text-[15px] ${hot ? 'lp-hot' : 'lp-accent'}`} aria-hidden="true">
         {icon}
       </span>
       {label}
     </div>
     <div className="mt-1.5 leading-none">
-      <span className="text-[22px] font-extrabold text-ink-strong tracking-[-0.03em] tabular-nums">
+      <span className="lp-tile__num">
         {value.toLocaleString()}
       </span>
       {unit && (
-        <span className="ml-0.5 text-[12px] font-semibold text-gray-500 dark:text-white/55">{unit}</span>
+        <span className="lp-muted ml-0.5 text-[12px] font-semibold">{unit}</span>
       )}
     </div>
   </div>

@@ -230,7 +230,7 @@ const ProfileHeader = ({
                 <div className="ph-medal__ring" />
                 <div className="ph-medal__face">
                   <div className="ph-medal__glyph">
-                    <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} />
+                    <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} className="ph-medal__icon" />
                     {awardDate && <span className="ph-medal__year">{awardDate.slice(0, 4)}</span>}
                   </div>
                 </div>
