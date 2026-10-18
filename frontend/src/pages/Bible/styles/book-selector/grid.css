@@ -352,13 +352,93 @@
   opacity: 0.85;
 }
 
-/* 필터 결과가 빈 경우 — 이 분류를 전부 완독한 순간이므로 오류가 아니라 축하 톤 */
+/* 필터 결과가 빈 경우 — 이 분류를 전부 완독한 순간이므로 오류가 아니라 축하 톤.
+ * 이모지 대신 브랜드 틴트 인장(체크) + 분류명 제목 + 분량 메타 + 전체 목록으로 돌아가는 알약 */
 .books-list__empty {
-  padding: 1.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1.75rem 1rem 1.5rem;
   text-align: center;
-  font-size: 0.82rem;
-  font-weight: 600;
+}
+
+.books-list__empty-seal {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 0.45rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand) 7%, transparent);
+  animation: books-empty-seal 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.books-list__empty-seal path {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  animation: books-empty-check 0.36s ease-out 0.22s forwards;
+}
+
+@keyframes books-empty-seal {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes books-empty-check {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .books-list__empty-seal { animation: none; }
+  .books-list__empty-seal path { animation: none; stroke-dashoffset: 0; }
+}
+
+.books-list__empty-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ig-primary-text);
+}
+
+.books-list__empty-cat {
+  margin-right: 0.3em;
+  color: var(--brand);
+}
+
+.books-list__empty-meta {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
   color: var(--ig-secondary-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.books-list__empty-action {
+  margin-top: 0.75rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.books-list__empty-action:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+[data-theme="dark"] .books-list__empty-action {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 

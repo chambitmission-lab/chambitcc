@@ -190,7 +190,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       ctaContinue: '이어읽기',
       ctaStart: '읽기',
       unreadOnly: '안 읽은 책만',
-      allDone: '이 분류는 모두 완독했어요 🎉',
+      allDone: '모두 읽었어요',
+      allDoneMeta: (n: number, ch: number) => `${n}권 · ${ch}장 완독`,
+      showAllBooks: '읽은 책 다시 보기',
       nextUp: '다음',
       testamentDone: '완독',
       celebrateOT: '구약 39권을 모두 읽었어요 🎉',
@@ -231,7 +233,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       ctaContinue: 'Continue',
       ctaStart: 'Read',
       unreadOnly: 'Unread only',
-      allDone: 'Everything here is complete 🎉',
+      allDone: 'All read',
+      allDoneMeta: (n: number, ch: number) => `${n} books · ${ch} chapters complete`,
+      showAllBooks: 'Show finished books',
       nextUp: 'Next',
       testamentDone: 'complete',
       celebrateOT: 'You finished all 39 books of the Old Testament 🎉',
@@ -982,7 +986,38 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
               {listBooks.length > 0 ? (
                 listBooks.map(renderListRow)
               ) : (
-                <div className="books-list__empty">{t.allDone}</div>
+                // 이 분류를 전부 완독한 순간 — 이모지 대신 완독 인장 + 분량 + 원래 목록으로 돌아가는 길
+                <div className="books-list__empty" role="status">
+                  <span className="books-list__empty-seal" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12.5l4.2 4.2L19 7" />
+                    </svg>
+                  </span>
+                  <p className="books-list__empty-title">
+                    <span className="books-list__empty-cat">
+                      {activeCategory.id === 'all'
+                        ? (testament === 'OT' ? t.oldTestament : t.newTestament)
+                        : (language === 'en' ? activeCategory.labelEn : activeCategory.label)}
+                    </span>
+                    {t.allDone}
+                  </p>
+                  <p className="books-list__empty-meta">
+                    {t.allDoneMeta(
+                      filteredBooks.length,
+                      filteredBooks.reduce((sum, b) => sum + (b.chapter_count ?? 0), 0),
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    className="books-list__empty-action"
+                    onClick={() => {
+                      setInteracted(true)
+                      setUnreadOnly(false)
+                    }}
+                  >
+                    {t.showAllBooks}
+                  </button>
+                </div>
               )}
             </div>
           </>
