@@ -15,6 +15,7 @@ import { scheduleAfterFirstScreen } from './idlePreload'
 //      Gowun Dodum       : /about 첫 화면 말씀(요 1:9) — 둥글고 다정한 획
 //      Gowun Batang      : /sermon 말씀 편지 인용 구절
 //      Black Han Sans    : 만나 내리기 '드롭' 스킨 제목·떨어지는 단어
+//      Gaegu             : /profile 기도 수첩(손바닥 수첩 카드) 날짜·제목 손글씨
 const ALWAYS_SHEETS = [
   // 700 은 홈 '올해의 말씀' 대형 인용과 말씀 카드(photoVerseCanvas)가 실제로 요청하는 웨이트다
   // — 없으면 브라우저가 600 을 가짜 볼드로 늘려 획이 뭉갠다.
@@ -22,7 +23,7 @@ const ALWAYS_SHEETS = [
   'https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap',
 ]
 
-export type DeferredFontFamily = 'orbitron' | 'nanumPen' | 'nanumBrush' | 'gowunDodum' | 'gowunBatang' | 'blackHanSans'
+export type DeferredFontFamily = 'orbitron' | 'nanumPen' | 'nanumBrush' | 'gowunDodum' | 'gowunBatang' | 'blackHanSans' | 'gaegu'
 
 const ON_DEMAND_SHEETS: Record<DeferredFontFamily, string> = {
   orbitron: 'https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap',
@@ -31,6 +32,7 @@ const ON_DEMAND_SHEETS: Record<DeferredFontFamily, string> = {
   gowunDodum: 'https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap',
   gowunBatang: 'https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap',
   blackHanSans: 'https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap',
+  gaegu: 'https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap',
 }
 
 // href → 스타일시트가 CSSOM 에 들어간(또는 실패한) 시점에 resolve 되는 Promise.

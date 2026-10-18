@@ -2,6 +2,12 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import type { MyReply } from '../../../types/profile'
 import { getRelativeTime } from '../../../utils/dateUtils'
 import ExpandableText from './ExpandableText'
+import {
+  Doodle,
+  NotebookCard,
+  NotebookEmpty,
+} from './PrayerNotebook'
+import { RULED_TEXT, RULED_TOGGLE, notebookDate, pickLook } from './notebookLook'
 
 interface MyRepliesListProps {
   replies: MyReply[]
@@ -9,7 +15,7 @@ interface MyRepliesListProps {
 }
 
 const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
 
   // 익명 표시 이름 — "익명" 대신 마 6:6의 골방 기도자 (피드와 동일, 데이터 값은 그대로 둔다)
   const shownName = (displayName: string) =>
@@ -17,64 +23,47 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
 
   if (replies.length === 0) {
     return (
-      <div className="text-center py-12">
-        <span className="text-4xl block mb-3">💬</span>
-        <p className="text-[13px] text-gray-500 dark:text-white/55">
-          {t('profileEmptyReplies')}
-        </p>
-      </div>
+      <NotebookEmpty doodle="bubble" text={t('notebookEmptyReplies')} hint={t('notebookEmptyRepliesHint')} />
     )
   }
 
   return (
-    // lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 카드 그리드
-    <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
-      {replies.map((reply) => (
-        <div
-          key={reply.id}
-          role="button"
-          tabIndex={0}
-          onClick={() => onReplyClick?.(reply.prayer_id)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              onReplyClick?.(reply.prayer_id)
-            }
-          }}
-          className="
-            relative overflow-hidden rounded-2xl px-4 py-3 cursor-pointer
-            bg-white/80 dark:bg-card-dark
-            border border-gray-200/70 dark:border-white/[0.08]
-            shadow-sm
-            dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
-            transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md
-          "
-        >
-          <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-
-          <div className="relative z-10">
-            {reply.prayer_title && (
-              <div className="mb-1.5 text-[12px] font-semibold text-brand truncate">
-                {reply.prayer_title}
+    <div className="nb-grid">
+      {replies.map((reply, index) => {
+        // 같은 기도에 남긴 댓글끼리는 같은 종이 색 — 기도 id 로 톤을 고른다
+        const look = pickLook(reply.prayer_id)
+        return (
+          <NotebookCard
+            key={reply.id}
+            index={index}
+            tone={look.tone}
+            onOpen={() => onReplyClick?.(reply.prayer_id)}
+          >
+            <div className="nb-date">{notebookDate(reply.created_at, language)}</div>
+            <div className="nb-by truncate">
+              {reply.prayer_title
+                ? t('notebookOnPrayer').replace('{title}', reply.prayer_title)
+                : t('notebookOnPrayerUntitled')}
+            </div>
+            {/* 내가 건넨 말은 손글씨로 — 쪽지에 적어 건넨 느낌 */}
+            <ExpandableText
+              text={reply.content}
+              lines={3}
+              className="mt-1.5"
+              textClassName={`${RULED_TEXT} nb-ruled--hand`}
+              toggleClassName={RULED_TOGGLE}
+            />
+            <div className="nb-foot">
+              <div className="nb-meta">
+                <div className="nb-meta-row">
+                  {shownName(reply.display_name)}{t('profileWrittenAs')} · {getRelativeTime(reply.created_at)}
+                </div>
               </div>
-            )}
-
-            <div className="relative pl-3 mb-2.5">
-              <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-brand" />
-              <ExpandableText
-                text={reply.content}
-                lines={3}
-                textClassName="text-[14px] text-gray-700 dark:text-white/80 leading-[1.7] italic"
-              />
+              <Doodle name="bubble" />
             </div>
-
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">
-              <span>{shownName(reply.display_name)}{t('profileWrittenAs')}</span>
-              <span className="ml-auto">{getRelativeTime(reply.created_at)}</span>
-            </div>
-          </div>
-        </div>
-      ))}
+          </NotebookCard>
+        )
+      })}
     </div>
   )
 }

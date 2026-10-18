@@ -1,11 +1,6 @@
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { ProfileTab } from '../../../types/profile'
-import {
-  PenLineIcon,
-  HandHeartIcon,
-  CommentIcon,
-  BookOpenIcon,
-} from '../../../components/icons/ActionIcons'
+import './PrayerNotebook.css'
 
 interface ContentTabsProps {
   activeTab: ProfileTab
@@ -18,60 +13,39 @@ interface ContentTabsProps {
   }
 }
 
+// 기도 수첩 머리말 — 고른 탭에 맞춘 손글씨 제목 + 한 줄 요약, 오른쪽(모바일은 아래)에 잉크 칩 탭
+const TABS = [
+  { key: 'prayers', tabKey: 'notebookTabPrayers', titleKey: 'notebookTitlePrayers', subKey: 'notebookSubPrayers' },
+  { key: 'praying', tabKey: 'notebookTabPraying', titleKey: 'notebookTitlePraying', subKey: 'notebookSubPraying' },
+  { key: 'replies', tabKey: 'notebookTabReplies', titleKey: 'notebookTitleReplies', subKey: 'notebookSubReplies' },
+  { key: 'notes', tabKey: 'notebookTabNotes', titleKey: 'notebookTitleNotes', subKey: 'notebookSubNotes' },
+] as const
+
 const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
   const { t } = useLanguage()
-
-  const tabs = [
-    { key: 'prayers', Icon: PenLineIcon, labelKey: 'myPrayers', count: counts.prayers },
-    { key: 'praying', Icon: HandHeartIcon, labelKey: 'prayingFor', count: counts.praying },
-    { key: 'replies', Icon: CommentIcon, labelKey: 'myReplies', count: counts.replies },
-    { key: 'notes', Icon: BookOpenIcon, labelKey: 'meditationNotes', count: counts.notes },
-  ] as const
+  const active = TABS.find((tab) => tab.key === activeTab) ?? TABS[0]
 
   return (
-    <div className="flex gap-1.5 px-4 pb-3 mt-1 border-b border-border-light dark:border-border-dark">
-      {tabs.map((tab) => {
-        const isActive = activeTab === tab.key
-        return (
+    <div className="nb-head">
+      <div className="min-w-0">
+        <h3 className="nb-head-title">{t(active.titleKey)}</h3>
+        <p className="nb-head-sub">{t(active.subKey).replace('{n}', String(counts[active.key]))}</p>
+      </div>
+      <div className="nb-chips" role="tablist">
+        {TABS.map((tab) => (
           <button
             key={tab.key}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.key}
             onClick={() => onTabChange(tab.key)}
-            className={`
-              flex-1 flex flex-col items-center gap-1.5 py-3 px-2 rounded-t-xl
-              transition-all relative
-              ${isActive
-                ? 'bg-white/70 dark:bg-card-dark/80'
-                : 'bg-transparent text-gray-500 dark:text-white/55 hover:bg-gray-100/60 dark:hover:bg-white/[0.03]'
-              }
-            `}
+            className="nb-chip"
           >
-            <tab.Icon
-              size={20}
-              className={isActive ? 'text-brand' : undefined}
-            />
-            <span
-              className={`text-[11px] font-semibold tracking-[-0.01em] ${
-                isActive ? 'text-ink-strong' : ''
-              }`}
-            >
-              {t(tab.labelKey)}
-            </span>
-            <span
-              className={`text-[11px] font-semibold ${
-                isActive ? 'text-ink-strong' : 'text-gray-400 dark:text-white/40'
-              }`}
-            >
-              {tab.count}
-            </span>
-            {isActive && (
-              <>
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand rounded-full shadow-[0_0_10px_var(--brand-glow)]" />
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand rounded-full blur-sm" />
-              </>
-            )}
+            {t(tab.tabKey)}
+            <span className="nb-chip-count">{counts[tab.key]}</span>
           </button>
-        )
-      })}
+        ))}
+      </div>
     </div>
   )
 }

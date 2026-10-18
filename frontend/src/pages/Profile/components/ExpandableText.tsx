@@ -8,6 +8,8 @@ interface ExpandableTextProps {
   /** 본문 <p> 에 적용할 클래스 (크기/색상/행간) */
   textClassName?: string
   className?: string
+  /** '…더보기' 버튼 색 — 기본은 브랜드 블루, 기도 수첩은 종이 잉크색 */
+  toggleClassName?: string
 }
 
 const LINE_CLAMP: Record<number, string> = {
@@ -25,6 +27,7 @@ const ExpandableText = ({
   lines = 3,
   textClassName = '',
   className = '',
+  toggleClassName = 'text-brand hover:text-brand-dim',
 }: ExpandableTextProps) => {
   const { t } = useLanguage()
   const [expanded, setExpanded] = useState(false)
@@ -61,7 +64,7 @@ const ExpandableText = ({
               setExpanded((v) => !v)
             }}
             onKeyDown={(e) => e.stopPropagation()}
-            className="mt-1 text-[12px] font-semibold text-brand transition-colors hover:text-brand-dim"
+            className={`mt-1 text-[12px] font-semibold transition-colors ${toggleClassName}`}
             aria-expanded={expanded}
           >
             {expanded ? t('achievementCollapse') : `…${t('viewMore')}`}

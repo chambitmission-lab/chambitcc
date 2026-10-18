@@ -1,0 +1,189 @@
+/*
+ * /profile 기도 수첩 — '손바닥 수첩 모음' (2026-10-18)
+ *
+ * 책상(.prayer-desk) 위에 스프링 구멍 난 줄 노트 낱장(.nb-card)을 펼친 빈티지 톤.
+ * 장식은 낱장 하나에 하나만: 마스킹테이프(톤 색) + 선화 낙서, 응답받은 기도에만 '응답' 도장.
+ *
+ * 테마 규칙 — 색은 전부 아래 --nb-* 토큰으로만 쓴다(컴포넌트에 하드코딩 금지).
+ *  - 라이트: 낮의 책상. 바랜 크래프트 책상 + 파스텔 종이 + 갈색 잉크.
+ *  - 다크  : 밤의 책상. 순흑이 아닌 따뜻한 먹색 책상 위로 스탠드 불빛이 위쪽에서 번지고,
+ *           종이는 톤을 머금은 어두운 종이, 잉크는 크림색(순백 금지 — 눈부심 패스와 같은 원칙).
+ *           파스텔 면을 그대로 두면 다크에서 형광처럼 떠서, 톤은 '종이에 스민 색'으로만 남긴다.
+ */
+
+.prayer-desk {
+  --nb-desk: #efe7d8;
+  --nb-ink: #4a3f35;
+  --nb-ink2: #6f6153;
+  --nb-ink3: #9a8b78;
+  --nb-rule: rgba(138, 165, 196, 0.3);
+  --nb-stamp: #c4544d;
+  --nb-hole: inset 0 1px 1px rgba(0, 0, 0, 0.15);
+  --nb-shadow: 0 1px 0 rgba(160, 135, 95, 0.25), 0 10px 20px rgba(90, 65, 30, 0.08);
+  --nb-shadow-hover: 0 1px 0 rgba(160, 135, 95, 0.25), 0 16px 28px rgba(90, 65, 30, 0.13);
+  --nb-chip-bg: #fffdf6;
+  --nb-chip-on-bg: #4a3f35;
+  --nb-chip-on-ink: #fbf6ea;
+  --nb-tape-opacity: 0.85;
+  --nb-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --nb-lamp: none;
+
+  /* 톤: 종이 / 테이프 / 진한 잉크(낙서·도장 외 강조) */
+  --nb-rose-paper: #f8e3e1;    --nb-rose-tape: #d98e8e;    --nb-rose-deep: #a8524f;
+  --nb-sage-paper: #e5eddf;    --nb-sage-tape: #93ad8f;    --nb-sage-deep: #5c7a58;
+  --nb-mustard-paper: #f7ecd2; --nb-mustard-tape: #ddb259; --nb-mustard-deep: #94701e;
+  --nb-sky-paper: #e3ebf4;     --nb-sky-tape: #8aa5c4;     --nb-sky-deep: #4f6f94;
+  --nb-clay-paper: #f4e3d8;    --nb-clay-tape: #c98a68;    --nb-clay-deep: #9a5f40;
+  --nb-plain-paper: #fbf7ee;   --nb-plain-tape: #c8b89c;   --nb-plain-deep: #7a6b5c;
+
+  position: relative;
+  border-radius: 24px;
+  padding: 20px 16px 22px;
+  background-color: var(--nb-desk);
+  background-image: var(--nb-lamp), var(--nb-noise);
+  color: var(--nb-ink);
+}
+
+.dark .prayer-desk {
+  --nb-desk: #1a1714;
+  --nb-ink: #ece3d3;
+  --nb-ink2: #c9bda9;
+  --nb-ink3: #958a7a;
+  --nb-rule: rgba(236, 227, 211, 0.07);
+  --nb-stamp: #e2847b;
+  --nb-hole: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  --nb-shadow: inset 0 1px 0 rgba(255, 240, 220, 0.05), 0 10px 24px rgba(0, 0, 0, 0.38);
+  --nb-shadow-hover: inset 0 1px 0 rgba(255, 240, 220, 0.07), 0 16px 32px rgba(0, 0, 0, 0.45);
+  --nb-chip-bg: #24201c;
+  --nb-chip-on-bg: #ece3d3;
+  --nb-chip-on-ink: #1a1714;
+  --nb-tape-opacity: 0.6;
+  --nb-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* 밤의 책상 — 스탠드 불빛이 위쪽 가운데서 번진다 */
+  --nb-lamp: radial-gradient(ellipse 70% 280px at 50% 0, rgba(255, 196, 120, 0.09), transparent 75%);
+
+  --nb-rose-paper: #2e2324;    --nb-rose-tape: #b87575;    --nb-rose-deep: #e3a5a1;
+  --nb-sage-paper: #232a23;    --nb-sage-tape: #7e977a;    --nb-sage-deep: #a9c4a4;
+  --nb-mustard-paper: #2d2819; --nb-mustard-tape: #b8954c; --nb-mustard-deep: #e2c27c;
+  --nb-sky-paper: #20262e;     --nb-sky-tape: #7790ad;     --nb-sky-deep: #a8c0dc;
+  --nb-clay-paper: #2d241e;    --nb-clay-tape: #a87458;    --nb-clay-deep: #dfa889;
+  --nb-plain-paper: #27231f;   --nb-plain-tape: #7d705e;   --nb-plain-deep: #c4b8a6;
+}
+
+@media (min-width: 1024px) {
+  .prayer-desk { padding: 26px 26px 28px; }
+}
+
+.nb-hand { font-family: 'Gaegu', 'Pretendard', cursive; }
+
+/* ── 머리말 + 탭 칩 ── */
+.nb-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 16px; margin-bottom: 18px; }
+.nb-head-title { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 28px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; color: var(--nb-ink); }
+.nb-head-sub { margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--nb-ink2); }
+.nb-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; }
+.nb-chips::-webkit-scrollbar { display: none; }
+@media (min-width: 640px) { .nb-chips { margin: 0; padding: 2px 0; } }
+.nb-chip {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  border: 1.5px solid var(--nb-ink); background: var(--nb-chip-bg); color: var(--nb-ink);
+  font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 999px;
+  transition: background-color 0.15s, color 0.15s;
+}
+.nb-chip-count { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 16px; line-height: 1; opacity: 0.7; }
+.nb-chip[aria-selected='true'] { background: var(--nb-chip-on-bg); color: var(--nb-chip-on-ink); }
+.nb-chip[aria-selected='true'] .nb-chip-count { opacity: 0.85; }
+.nb-chip--sm { padding: 5px 11px; font-size: 12px; border-width: 1.2px; }
+
+/* ── 낱장 그리드 ── */
+.nb-grid { display: grid; grid-template-columns: 1fr; gap: 20px 16px; align-items: start; }
+@media (min-width: 640px) { .nb-grid { grid-template-columns: 1fr 1fr; } }
+
+/* ── 낱장 ── */
+.nb-card {
+  --nb-paper: var(--nb-plain-paper); --nb-tape: var(--nb-plain-tape); --nb-deep: var(--nb-plain-deep);
+  position: relative; display: flex; flex-direction: column;
+  border-radius: 4px 4px 14px 14px; padding: 26px 18px 14px;
+  background-color: var(--nb-paper); color: var(--nb-ink);
+  box-shadow: var(--nb-shadow);
+  transform: rotate(var(--nb-tilt, 0deg));
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer; text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.nb-card:hover { transform: translateY(-3px) rotate(0deg); box-shadow: var(--nb-shadow-hover); }
+.nb-card:active { transform: translateY(-1px) rotate(0deg); }
+.nb-card:focus-visible { outline: 2px solid var(--nb-ink2); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .nb-card, .nb-card:hover { transition: none; transform: none; } }
+
+.nb-tone-rose    { --nb-paper: var(--nb-rose-paper);    --nb-tape: var(--nb-rose-tape);    --nb-deep: var(--nb-rose-deep); }
+.nb-tone-sage    { --nb-paper: var(--nb-sage-paper);    --nb-tape: var(--nb-sage-tape);    --nb-deep: var(--nb-sage-deep); }
+.nb-tone-mustard { --nb-paper: var(--nb-mustard-paper); --nb-tape: var(--nb-mustard-tape); --nb-deep: var(--nb-mustard-deep); }
+.nb-tone-sky     { --nb-paper: var(--nb-sky-paper);     --nb-tape: var(--nb-sky-tape);     --nb-deep: var(--nb-sky-deep); }
+.nb-tone-clay    { --nb-paper: var(--nb-clay-paper);    --nb-tape: var(--nb-clay-tape);    --nb-deep: var(--nb-clay-deep); }
+
+.nb-holes { position: absolute; top: 8px; left: 0; right: 0; display: flex; justify-content: center; gap: 16px; pointer-events: none; }
+.nb-holes i { width: 8px; height: 8px; border-radius: 50%; background: var(--nb-desk); box-shadow: var(--nb-hole); }
+
+.nb-washi {
+  position: absolute; top: -8px; right: 18px; width: 54px; height: 18px;
+  background: var(--nb-washi, var(--nb-tape)); opacity: var(--nb-tape-opacity);
+  transform: rotate(4deg); pointer-events: none;
+  /* 손으로 찢은 테이프 끝 */
+  clip-path: polygon(0 8%, 6% 0, 12% 10%, 18% 0, 82% 0, 88% 8%, 94% 0, 100% 10%, 100% 92%, 94% 100%, 88% 90%, 82% 100%, 18% 100%, 12% 92%, 6% 100%, 0 90%);
+}
+
+.nb-date { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 17px; font-weight: 700; line-height: 1.2; color: var(--nb-ink2); }
+.nb-by { margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--nb-ink3); }
+.nb-title { margin-top: 3px; font-family: 'Gaegu', 'Pretendard', cursive; font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--nb-ink); word-break: keep-all; }
+.nb-badge { display: inline-flex; align-items: center; gap: 3px; width: max-content; margin-top: 6px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; color: var(--nb-deep); border: 1px solid currentColor; opacity: 0.9; }
+
+/* 줄 노트 — 줄 간격(28px)과 본문 행간을 맞춰 글씨가 괘선 위에 앉게 한다 */
+.nb-ruled {
+  font-size: 14px; line-height: 28px; color: var(--nb-ink2);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, var(--nb-rule) 27px 28px);
+  word-break: keep-all; overflow-wrap: anywhere;
+}
+.nb-ruled--hand { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 19px; color: var(--nb-ink); }
+.nb-more { color: var(--nb-deep); }
+.nb-more:hover { color: var(--nb-ink); }
+
+.nb-note {
+  margin-top: 10px; padding-top: 8px; border-top: 1.5px dashed var(--nb-rule);
+}
+
+.nb-foot { margin-top: auto; padding-top: 12px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.nb-meta { font-size: 12px; font-weight: 700; line-height: 1.6; color: var(--nb-ink3); min-width: 0; }
+.nb-meta-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.nb-hearts { display: inline-flex; gap: 1px; color: var(--nb-tape); }
+.nb-doodle { flex: none; width: 32px; height: 32px; color: var(--nb-deep); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+
+/* ── 응답 도장 — 인주가 덜 묻은 듯한 거친 가장자리 ── */
+.nb-stamp {
+  position: absolute; right: 12px; bottom: 44px; width: 60px; height: 60px; border-radius: 50%;
+  border: 2px solid var(--nb-stamp); color: var(--nb-stamp);
+  display: grid; place-items: center; text-align: center; line-height: 1;
+  transform: rotate(-12deg); opacity: 0.8; pointer-events: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='r'%3E%3CfeTurbulence baseFrequency='.6' numOctaves='2'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='1 1 1 0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23r)'/%3E%3C/svg%3E");
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='r'%3E%3CfeTurbulence baseFrequency='.6' numOctaves='2'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='1 1 1 0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='80' height='80' filter='url(%23r)'/%3E%3C/svg%3E");
+}
+.nb-stamp::before { content: ''; position: absolute; inset: 4px; border: 1px solid var(--nb-stamp); border-radius: 50%; }
+.nb-stamp b { display: block; font-family: 'Gaegu', 'Pretendard', cursive; font-size: 19px; font-weight: 700; }
+.nb-stamp small { display: block; margin-top: 2px; font-size: 11px; font-weight: 700; letter-spacing: 0; }
+
+/* ── 낱장 위 작은 버튼(말씀 노트 삭제) ── */
+.nb-icon-btn { position: absolute; top: 18px; right: 8px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--nb-ink3); transition: background-color 0.15s, color 0.15s; }
+.nb-icon-btn:hover { color: var(--nb-ink); background: rgba(127, 110, 90, 0.12); }
+
+/* ── 빈 낱장 · 스켈레톤 ── */
+.nb-empty {
+  border: 1.5px dashed var(--nb-ink3); border-radius: 14px; padding: 36px 20px; text-align: center;
+  background-color: var(--nb-plain-paper);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, var(--nb-rule) 27px 28px);
+}
+.nb-empty .nb-doodle { width: 40px; height: 40px; margin: 0 auto 8px; color: var(--nb-ink3); }
+.nb-empty p { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 20px; color: var(--nb-ink2); }
+.nb-empty small { display: block; margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--nb-ink3); }
+.nb-skel { min-height: 190px; cursor: default; }
+.nb-skel:hover { transform: none; box-shadow: var(--nb-shadow); }
+.nb-skel-bar { height: 12px; border-radius: 6px; background: var(--nb-rule); animation: nb-pulse 1.4s ease-in-out infinite; }
+@keyframes nb-pulse { 50% { opacity: 0.45; } }

@@ -356,7 +356,9 @@ const Profile = () => {
         </div>
         )}
 
-        {/* 콘텐츠 탭 */}
+        {/* 기도 수첩 — 책상(.prayer-desk) 위에 머리말 탭과 낱장 목록을 펼친다 (PrayerNotebook.css) */}
+        <div className="px-4 pt-2 pb-4">
+        <section className="prayer-desk">
         <ContentTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -370,7 +372,7 @@ const Profile = () => {
 
         {/* 콘텐츠 영역 — 첫 페이지 도착 전에는 detail의 미리보기 목록으로 채워
             탭 전환 시 빈 화면/스피너 플래시를 막는다 */}
-        <div className="px-4 py-4">
+        <div>
           {activeTab === 'prayers' && (
             <>
               <MyPrayersList
@@ -411,6 +413,8 @@ const Profile = () => {
             </>
           )}
           {activeTab === 'notes' && <MyBookmarksList />}
+        </div>
+        </section>
         </div>
         </>)
         })()}

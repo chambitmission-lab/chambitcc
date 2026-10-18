@@ -1,3 +1,4 @@
+import type { PrayerEmotion } from './prayer'
 // 프로필 관련 타입 정의
 
 export interface ProfileStats {
@@ -48,6 +49,10 @@ export interface MyPrayer {
   is_active: boolean
   is_private?: boolean  // 나만 보는 기도
   shared_with_pastor?: boolean  // 목사님과 함께
+  // 기도 수첩 카드 연출 — 응답 도장·감정 색 (백엔드 배포 전에는 내려오지 않는다)
+  is_answered?: boolean
+  answered_at?: string | null
+  emotion?: PrayerEmotion | null
 }
 
 export interface PrayingFor {
@@ -57,6 +62,9 @@ export interface PrayingFor {
   display_name: string
   prayer_count: number
   prayed_at: string
+  is_answered?: boolean
+  answered_at?: string | null
+  emotion?: PrayerEmotion | null
 }
 
 export interface MyReply {
