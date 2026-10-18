@@ -10,7 +10,8 @@ import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getWeeklyPrayer, toggleWeeklyPrayerAmen } from '../../api/weeklyPrayer'
 import { currentWeeklyPrayerQuery, weeklyPrayerListQuery } from '../../hooks/useWeeklyPrayer'
-import type { WeeklyPrayer, WeeklyPrayerListItem } from '../../types/weeklyPrayer'
+import { weeklyPrayerKeys } from '../../hooks/queryKeys'
+import type { WeeklyPrayer, WeeklyPrayerItem, WeeklyPrayerListItem } from '../../types/weeklyPrayer'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useThemeArt } from '../../hooks/useThemeArt'
@@ -68,6 +69,21 @@ const WeeklyPrayerTopics = () => {
     void load()
   }, [queryClient])
 
+  // 항목 하나를 고쳐 화면 상태와 공용 캐시(홈 배너·참비·재진입)에 같이 반영한다.
+  // 화면 상태만 고치면 캐시는 10분 신선 기간 동안 아멘 전 숫자를 그대로 돌려줘 재진입 때 늦게 오른다.
+  const patchItem = (itemId: number, patch: (item: WeeklyPrayerItem) => WeeklyPrayerItem) => {
+    const apply = (p: WeeklyPrayer | null | undefined) =>
+      p ? { ...p, items: p.items.map((item) => (item.id === itemId ? patch(item) : item)) } : p
+    setPrayer((p) => apply(p) ?? null)
+    queryClient.setQueryData<WeeklyPrayer | null>(weeklyPrayerKeys.current(), (p) => apply(p))
+    if (prayer) queryClient.setQueryData<WeeklyPrayer>(weeklyPrayerKeys.detail(prayer.id), (p) => apply(p) ?? undefined)
+  }
+  const flipAmen = (item: WeeklyPrayerItem) => ({
+    ...item,
+    is_amened: !item.is_amened,
+    amen_count: (item.amen_count ?? 0) + (item.is_amened ? -1 : 1),
+  })
+
   const handleAmen = async (itemId: number | undefined) => {
     if (!itemId) return
     if (!isAuthenticated()) {
@@ -79,55 +95,14 @@ const WeeklyPrayerTopics = () => {
     pendingAmens.current.add(itemId)
 
     // 낙관적 업데이트 — 실패 시 서버 응답/롤백으로 복원
-    setPrayer((p) =>
-      p
-        ? {
-            ...p,
-            items: p.items.map((item) =>
-              item.id === itemId
-                ? {
-                    ...item,
-                    is_amened: !item.is_amened,
-                    amen_count: (item.amen_count ?? 0) + (item.is_amened ? -1 : 1),
-                  }
-                : item,
-            ),
-          }
-        : p,
-    )
+    patchItem(itemId, flipAmen)
     try {
       const result = await toggleWeeklyPrayerAmen(itemId)
       // 서버 확정값으로 동기화 (참여 인원은 다음 로드 때 갱신)
-      setPrayer((p) =>
-        p
-          ? {
-              ...p,
-              items: p.items.map((item) =>
-                item.id === itemId
-                  ? { ...item, is_amened: result.is_amened, amen_count: result.amen_count }
-                  : item,
-              ),
-            }
-          : p,
-      )
+      patchItem(itemId, (item) => ({ ...item, is_amened: result.is_amened, amen_count: result.amen_count }))
     } catch {
       // 롤백
-      setPrayer((p) =>
-        p
-          ? {
-              ...p,
-              items: p.items.map((item) =>
-                item.id === itemId
-                  ? {
-                      ...item,
-                      is_amened: !item.is_amened,
-                      amen_count: (item.amen_count ?? 0) + (item.is_amened ? -1 : 1),
-                    }
-                  : item,
-              ),
-            }
-          : p,
-      )
+      patchItem(itemId, flipAmen)
       showToast('잠시 후 다시 시도해 주세요', 'error')
     } finally {
       pendingAmens.current.delete(itemId)
