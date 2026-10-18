@@ -268,3 +268,21 @@ html.dark .ph-medal__ribbon { filter: brightness(0.72); }
 /* 빈 액자 안 버튼 — 매트는 테마와 무관하게 밝은 크림이라 잉크도 고정 */
 .ph-change--on-mat { color: #6f6153; border-color: #a8987f; }
 .ph-change--on-mat:hover { color: #4a3f35; }
+
+/* ── 모바일(<640px) — 그림이 주인공이 되도록 테두리 겹을 얇게, 비율은 4:3 으로 세운다 ──
+   PC 두께(가죽 여백+금박 10px+매트 12px+단면)를 그대로 두면 360px 폭에서 그림이 액자 폭의
+   3/4 로 줄고 16:9 라 높이도 낮아 장면이 작게 보였다. 장식(모서리 덩굴·명판)은 크기만 줄여 유지.
+   4:3 크롭 중심은 TitleBackdrop 의 objectPosition(칭호별 지정)을 그대로 따른다. */
+@media (max-width: 639px) {
+  .ph-leather { padding: 18px 30px 18px 12px; }
+  .ph-leather::before { inset: 7px 24px 7px 7px; }
+  .ph-band { right: 9px; width: 9px; }
+  .ph-brass { width: 26px; height: 26px; }
+  .ph-frame { padding: 6px; }
+  .ph-frame::before { inset: 3px; }
+  .ph-orn { width: 16px; height: 16px; }
+  .ph-mat { padding: 6px; }
+  .ph-bevel { padding: 2px; }
+  .ph-film { aspect-ratio: 4 / 3; }
+  .ph-plaque { margin-top: -6px; padding: 4px 14px; font-size: 11px; letter-spacing: 0.12em; }
+}

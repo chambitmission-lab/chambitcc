@@ -74,17 +74,17 @@ const ProfileSkeleton = ({ isDesktop, withCover }: ProfileSkeletonProps) => (
   <div className="animate-pulse" aria-hidden="true">
     {/* ProfileHeader — 가죽 수첩 표지: 금박 액자(16:9)+훈장 기둥, 아래 종이 카드(칭호 이름·설명·소유자) */}
     <div className="px-4 pt-3">
-      <div className="rounded-[10px_20px_20px_10px] bg-[#6e4f33]/25 dark:bg-white/[0.05] p-[24px_42px_22px_18px] lg:p-[30px_54px_28px_26px]">
+      <div className="rounded-[10px_20px_20px_10px] bg-[#6e4f33]/25 dark:bg-white/[0.05] p-[18px_30px_18px_12px] sm:p-[24px_42px_22px_18px] lg:p-[30px_54px_28px_26px]">
         {withCover ? (
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-[1fr_140px] sm:gap-[18px] lg:grid-cols-[1fr_156px]">
-            <Bone className="w-full aspect-video rounded-[3px]" />
+            <Bone className="w-full aspect-[4/3] sm:aspect-video rounded-[3px]" />
             <div className="flex items-center justify-center gap-[18px] sm:flex-col">
               <Bone className="h-[150px] w-[88px] rounded-full lg:h-[176px] lg:w-[104px]" />
               <Bone className="h-[44px] w-[80px] rounded-lg" />
             </div>
           </div>
         ) : (
-          <Bone className="w-full aspect-video rounded-[3px]" />
+          <Bone className="w-full aspect-[4/3] sm:aspect-video rounded-[3px]" />
         )}
         <div className="mt-[18px] rounded-[4px] bg-white/50 dark:bg-white/[0.04] p-4">
           <Bone className="h-[11px] w-28 rounded-full" />
