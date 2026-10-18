@@ -178,6 +178,22 @@
   .bible-chapter-section {
     border-top-left-radius: 18px;
   }
+  /* 스크롤하면 위 radius 는 판과 함께 올라가 반투명 앱바(56) 뒤로 숨고, 앱바 아래로는
+     판의 직각 옆선만 남는다. 그래서 앱바 바로 밑에 붙는(sticky) 캔버스색 모서리 마스크를
+     얹어 스크롤 위치와 상관없이 같은 둥근 모서리가 보이게 한다. 맨 위에선 radius 와 정확히 겹친다.
+     z-index 는 sticky 장 이동 바(8)·헤더(10) 위. 본문 화면은 zoom 하지 않으므로 56px 그대로. */
+  .bible-chapter-section::before {
+    content: '';
+    position: sticky;
+    top: 56px;
+    z-index: 11;
+    display: block;
+    width: 18px;
+    height: 18px;
+    margin-bottom: -18px;
+    pointer-events: none;
+    background: radial-gradient(circle at 100% 100%, transparent 17.5px, var(--app-canvas) 18px);
+  }
   /* 해석 패널 도킹 시 본문 칼럼이 비키는 규칙은 아래 .bible-chapter-inner 블록에 있다 */
 }
 
