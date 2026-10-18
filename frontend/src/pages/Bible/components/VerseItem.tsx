@@ -411,8 +411,10 @@ const VerseItem = ({
         position: 'relative',
         // 'all'을 쓰면 :hover의 margin/padding 같은 레이아웃 속성까지 애니메이션돼 버벅인다.
         // 색/그림자 등 합성 가능한 속성만 전환하고 박스 지오메트리는 즉시 적용.
-        // opacity 는 읽음 표시(흐림)가 뒤늦게 도착해도 툭 끊기지 않고 스르르 잦아들도록
-        transition: 'background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.35s ease',
+        // opacity 는 전환하지 않는다 — 읽음 흐림(0.55)을 스르르 넣으면 그 0.35s 동안 절 전체가
+        // 합성 레이어로 승격되는데, 모바일(특히 다크)에서 승격 직후 첫 프레임이 간헐적으로
+        // 흰 바탕으로 번쩍였다. 정적 opacity 는 레이어를 만들지 않아 그냥 다시 칠해진다.
+        transition: 'background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.5rem',

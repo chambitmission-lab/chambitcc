@@ -111,7 +111,8 @@
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: 78% 40%;
+  /* 모바일: 양 두 마리가 그림 오른쪽 끝(83~96%)에 있어 오른쪽 끝에 맞춘다 — 78%면 양이 잘린다 */
+  background-position: 100% 40%;
   opacity: 0;
   transition: opacity 0.5s ease;
 }

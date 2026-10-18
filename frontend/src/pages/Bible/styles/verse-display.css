@@ -55,7 +55,10 @@
   border-bottom-color: rgba(255, 255, 255, 0.04);
 }
 
-/* 읽음 완료 상태 - 취소선 대신 살짝 흐리게 처리해 장시간 읽기에도 산만하지 않게 */
+/* 읽음 완료 상태 - 취소선 대신 살짝 흐리게 처리해 장시간 읽기에도 산만하지 않게.
+   ★opacity 를 transition/animation 으로 바꾸지 말 것 — 전환하는 동안 절 전체가 합성 레이어로
+   승격되고, 모바일에선 승격 첫 프레임이 간헐적으로 흰 바탕으로 번쩍인다(다크에서만 눈에 띔).
+   정적 값은 레이어를 만들지 않는다. (VerseItem 인라인 transition·아래 --flow 규칙도 동일) */
 .bible-verse-item.verse-read {
   opacity: 0.55;
   background: rgba(34, 197, 94, 0.05);
@@ -910,8 +913,9 @@
   background: none;
   box-shadow: none;
   animation: none;
-  /* 읽음 흐림만 스르르 — 뒤늦게 도착한 읽음 상태가 문단을 툭 바꾸지 않게 */
-  transition: opacity 0.35s ease;
+  /* opacity 는 전환하지 않는다 — 흐림을 스르르 넣으면 인라인 절이 합성 레이어로 승격돼
+     모바일에서 흰 번쩍임(위 .verse-read 주석). 뒤늦게 도착한 읽음 상태는 그냥 바로 흐려진다 */
+  transition: none;
 }
 
 /* 읽음 완료 — 흐림만 (초록 틴트는 문단에서 얼룩처럼 보인다) */
