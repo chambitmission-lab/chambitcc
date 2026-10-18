@@ -23,6 +23,14 @@ export interface TitleStatus {
   earned_at: string | null
   equipped: boolean
   progress: TitleProgress | null
+  /** /titles/equipped 에만 — 이 칭호를 가진 성도 수·내 획득 순번·전체 성도 수(구버전 백엔드엔 없음) */
+  rarity?: TitleRarity
+}
+
+export interface TitleRarity {
+  holder_count: number
+  holder_rank: number
+  member_count: number
 }
 
 export interface TitlesSummary {

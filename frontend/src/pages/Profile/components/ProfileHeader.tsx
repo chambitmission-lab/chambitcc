@@ -1,6 +1,6 @@
 import { useRef } from 'react'
-import { TitleGlyph } from '../../../components/titles/TitleGlyph'
 import { useNavigate } from 'react-router-dom'
+import { TitleGlyph } from '../../../components/titles/TitleGlyph'
 import { useTitleBackdropPosition, useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
 import { useEquippedTitle } from '../../../hooks/useTitles'
 import { localizeTitle } from '../../../components/titles/titleI18n'
@@ -8,46 +8,77 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useUploadAvatar, useDeleteAvatar } from '../../../hooks/useProfile'
 import { resizeImageToBlob } from '../../../utils/imageResize'
 import { showToast } from '../../../utils/toast'
+import { ensureFontFamily } from '../../../utils/deferredFonts'
+import type { TitleRarity, TitleTier } from '../../../api/titles'
 import type { GlowLevel } from '../../../types/achievement'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import './ProfileHeader.css'
+
+// 칭호 이름·소유자 이름 손글씨 — 아래 기도 수첩과 같은 서체(오기 전엔 Pretendard 폴백)
+void ensureFontFamily('gaegu')
 
 interface ProfileHeaderProps {
   username: string
   fullName: string
   avatarUrl?: string | null
+  /** 예전 아바타 후광용 — 훈장 수첩에선 쓰지 않지만 호출부 계약은 유지한다 */
   glowLevel: GlowLevel
   /** 직분 — 관리자·교역자가 지정 (예: 장로). 이름 뒤에 붙는다 */
   churchTitle?: string | null
 }
 
+const TIER_LABEL: Record<TitleTier, string> = { legendary: 'LEGENDARY', gold: 'GOLD', silver: 'SILVER', bronze: 'BRONZE' }
+
+// 액자 모서리 덩굴 장식 — 네 귀퉁이는 CSS 로 뒤집어 같은 그림을 쓴다
+const Ornament = ({ corner }: { corner: 'tl' | 'tr' | 'bl' | 'br' }) => (
+  <svg className={`ph-orn ph-orn--${corner}`} viewBox="0 0 30 30" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" aria-hidden>
+    <path d="M3 3c8 0 12 3 12 9M3 3c0 8 3 12 9 12" />
+    <circle cx="9" cy="9" r="2" />
+    <path d="M15 12c2-2 5-2 6 0M12 15c-2 2-2 5 0 6" />
+  </svg>
+)
+
+const pad3 = (n: number) => String(n).padStart(3, '0')
+
+/** 0.7% / 12% — 1% 미만만 소수 한 자리 */
+const formatShare = (r: TitleRarity) => {
+  const pct = (r.holder_count / r.member_count) * 100
+  return pct < 1 ? `${Math.max(pct, 0.1).toFixed(1)}%` : `${Math.round(pct)}%`
+}
+
+const formatAwardDate = (iso: string) => {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+}
+
 /**
- * 프로필 아이덴티티 — 카드가 아니라 "기록장의 첫 줄".
+ * 프로필 아이덴티티 — '훈장을 단 수첩'(2026-10-18).
  *
- * 이전의 트레이딩 카드(시리얼·바코드·플립)는 앱의 목회적 톤과 장르가 달라
- * 걷어냈다. 레벨 색은 아바타 글로우로만 은은하게 쓰고(레벨 글로우 정책),
- * 링 자체는 브랜드 솔리드를 유지한다. 숫자(포인트·스탯)는 아래
- * '신앙의 온도' 카드가 전담한다.
+ * 낡은 가죽 수첩 표지에 장착 칭호 그림을 금박 액자로 걸고(황동 명판에 발급 번호),
+ * 오른쪽엔 등급별 금속·리본의 훈장과 희소성(“성도 중 n%만 가진 칭호”),
+ * 아래 바랜 종이 카드에 칭호 이름·설명·소유자(사진·이름·수훈일)를 적는다.
+ * 숫자(포인트·스탯)는 아래 '신앙의 온도' 카드가 전담한다. 색 규칙은 ProfileHeader.css 머리말.
  */
 const ProfileHeader = ({
   username,
   fullName,
   avatarUrl = null,
-  glowLevel,
   churchTitle = null,
 }: ProfileHeaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadAvatar = useUploadAvatar()
   const deleteAvatar = useDeleteAvatar()
   const avatarBusy = uploadAvatar.isPending || deleteAvatar.isPending
-  const auraColor = glowLevel.glowColor
   const backdropSrc = useTitleBackdropSrc()
   const backdropPosition = useTitleBackdropPosition()
   const navigate = useNavigate()
   const { t, language } = useLanguage()
   const { data: equipped } = useEquippedTitle()
-  const titleName = equipped ? localizeTitle(equipped, language).name : null
-  // 이름 아래 한 줄 성구 — 오늘의 말씀을 그대로 빌려 쓴다(별도 요청 없음, 캐시 공유)
+  const text = equipped ? localizeTitle(equipped, language) : null
+  const rarity = equipped?.rarity && equipped.rarity.member_count > 0 ? equipped.rarity : null
+  const awardDate = equipped?.earned_at ? formatAwardDate(equipped.earned_at) : ''
+  const ownerName = fullName || username
 
   const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -82,160 +113,166 @@ const ProfileHeader = ({
     }
   }
 
-  return (
-    // 라운드 카드 — 아래 '신앙의 온도' 카드와 같은 반경·테두리·그림자.
-    // (풀블리드 배너는 바로 아래 라운드 카드와 문법이 달라 어색하다는 피드백으로 카드 안에 넣었다)
-    <div className="ph px-4 pt-3">
-    <div
-      className="
-        relative flex flex-col items-center overflow-hidden rounded-2xl pb-5 text-center
-        bg-white dark:bg-card-dark
-        border border-gray-200/70 dark:border-white/[0.08]
-        shadow-sm
-        dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
-      "
-    >
-      {/* 장착 칭호 커버 배너 — 장면(양·해돋이·닭)을 마스크 없이 온전히 보여준다.
-          lg+ 는 카드가 넓어져 16:9 면 너무 높아지므로 조금 납작하게 */}
-      {backdropSrc && (
-        <div className="relative w-full aspect-video lg:aspect-[21/9] overflow-hidden" aria-hidden>
-          <img
-            src={backdropSrc}
-            alt=""
-            draggable={false}
-            className="h-full w-full select-none object-cover"
-            style={backdropPosition ? { objectPosition: backdropPosition } : undefined}
-          />
-          {/* 하단 구름 — 직선 그라데이션 대신 페이지색 구름 뭉치가 그림을 삼키며
-              아바타를 받친다. 색은 아래 정보 영역 시작색과 동일(라이트 페이지색 / 다크 네이비 이음색) */}
-          <div className="ph-cloud" aria-hidden>
-            <span className="ph-cloud__haze" />
-            <span className="ph-cloud__puffs ph-cloud__puffs--back" />
-            <span className="ph-cloud__puffs ph-cloud__puffs--front" />
-            <span className="ph-cloud__seam" />
-          </div>
-        </div>
-      )}
+  const goGarden = () => navigate('/garden')
 
-      {/* 정보 영역 — 다크 모드에선 그림 하단 네이비를 이어받아 서서히 카드 배경으로 녹인다 */}
-      <div
-        className={`flex w-full flex-col items-center ${
-          backdropSrc ? 'bg-white dark:bg-transparent dark:bg-gradient-to-b dark:from-[#0c1322] dark:to-transparent' : ''
-        }`}
+  // 액자 속 — 칭호 그림 / 그림 없는 칭호는 문양 / 칭호 없음은 빈 액자 안내
+  const frameContent = !equipped ? (
+    <div className="ph-film ph-film--empty">
+      <div>
+        <p className="m-0 whitespace-pre-line">{t('phEmptyFrame')}</p>
+        <button type="button" onClick={goGarden} className="ph-change ph-change--on-mat">
+          {t('phPickTitle')} ›
+        </button>
+      </div>
+    </div>
+  ) : backdropSrc ? (
+    <div className="ph-film">
+      <img
+        src={backdropSrc}
+        alt=""
+        draggable={false}
+        style={backdropPosition ? { objectPosition: backdropPosition } : undefined}
+      />
+    </div>
+  ) : (
+    <div className="ph-film ph-film--glyph" aria-hidden>
+      <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} />
+    </div>
+  )
+
+  const avatar = (
+    <div className="ph-avatar">
+      <div className="ph-avatar__pic">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="프로필 사진" />
+        ) : (
+          <span aria-hidden>{ownerName.charAt(0).toUpperCase()}</span>
+        )}
+      </div>
+      <button
+        type="button"
+        className="ph-avatar__cam"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={avatarBusy}
+        aria-label={avatarUrl ? t('phAvatarChange') : t('phAvatarAdd')}
       >
-      {/* 아바타 — 배너가 있으면 커버 사진처럼 하단에 걸친다 */}
-      <div className={`relative z-[1] ${backdropSrc ? '-mt-14' : 'mt-7'}`}>
-          {/* 배너 위에 걸칠 때는 이음색 테두리로 오려낸 듯한 커버 스타일 */}
-          <div
-            className={`rounded-full ${backdropSrc ? 'bg-white dark:bg-[#0c1322] p-[3px]' : ''}`}
-          >
-          <div
-            className="rounded-full"
-            style={{
-              // 색 링 없이 후광 4겹만 — 레벨 색 후광이 사진을 직접 감싼다
-              // (파란 링은 주황/금빛 후광 레벨과 색 충돌해 제거. spread 로 빛무리 확산)
-              boxShadow: `0 0 8px 1px ${auraColor}, 0 0 24px 4px ${auraColor}, 0 0 52px 10px ${auraColor}, 0 0 92px 18px ${auraColor}`,
-            }}
-          >
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt="프로필 사진"
-                className="block h-[81px] w-[81px] rounded-full border border-black/[0.06] bg-gray-100 object-cover dark:border-white/10 dark:bg-card-dark"
-              />
-            ) : (
-              <div className="flex h-[81px] w-[81px] items-center justify-center rounded-full border border-black/[0.06] bg-gray-100 text-[30px] font-bold text-gray-500 dark:border-white/10 dark:bg-card-dark dark:text-white/80">
-                {(fullName || username).charAt(0).toUpperCase()}
+        <span className={`material-icons-round text-[13px] ${avatarBusy ? 'animate-spin' : ''}`} aria-hidden>
+          {avatarBusy ? 'autorenew' : 'photo_camera'}
+        </span>
+      </button>
+      {avatarUrl && !avatarBusy && (
+        <button type="button" className="ph-avatar__del" onClick={handleAvatarDelete} aria-label={t('phAvatarDelete')}>
+          <span className="material-icons-round text-[11px]" aria-hidden>close</span>
+        </button>
+      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleAvatarFile}
+      />
+    </div>
+  )
+
+  const owner = (
+    <div className={`ph-owner ${equipped ? '' : 'ph-owner--solo'}`}>
+      {avatar}
+      <div className="min-w-0 flex-1">
+        <div className="ph-owner__name truncate">
+          {ownerName}
+          {churchTitle && <small>{churchTitle}</small>}
+        </div>
+        <div className="ph-owner__sub">
+          {equipped ? (awardDate ? t('phAwarded').replace('{date}', awardDate) : equipped.category_label) : t('phEmptyLead')}
+        </div>
+      </div>
+      {/* 연필 = 닉네임 변경(/account) — 칭호가 아니라 이름을 고치는 버튼임이 드러나도록 이름 옆에 */}
+      <button type="button" onClick={() => navigate('/account')} aria-label={t('profileEdit')} className="ph-pen">
+        <span className="material-icons-round text-[13px]" aria-hidden>edit</span>
+      </button>
+      <button type="button" onClick={goGarden} className="ph-change">
+        {equipped ? t('phChangeTitle') : t('phPickTitle')} ›
+      </button>
+    </div>
+  )
+
+  return (
+    <div className={`ph px-4 pt-3 ${equipped && equipped.tier !== 'gold' ? `ph--${equipped.tier}` : ''}`}>
+      <section className="ph-leather">
+        <span className="ph-brass ph-brass--tl" aria-hidden />
+        <span className="ph-brass ph-brass--bl" aria-hidden />
+        <span className="ph-band" aria-hidden />
+
+        <div className={equipped ? 'ph-grid' : undefined}>
+          <div>
+            <div className="ph-frame">
+              <Ornament corner="tl" />
+              <Ornament corner="tr" />
+              <Ornament corner="bl" />
+              <Ornament corner="br" />
+              <div className="ph-mat">
+                <div className="ph-bevel">{frameContent}</div>
+              </div>
+            </div>
+            {text && (
+              <div className="ph-plaque">
+                {rarity ? `No.${pad3(rarity.holder_rank)} · ${text.name}` : text.name}
               </div>
             )}
           </div>
-          </div>
 
-          {/* 카메라 배지 — 등록/교체 */}
-          <button
-            type="button"
-            className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full border border-white/60 dark:border-white/15 bg-white dark:bg-[#2a2a2a] text-gray-600 dark:text-white/85 shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-transform hover:scale-110 disabled:opacity-60"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={avatarBusy}
-            aria-label={avatarUrl ? '프로필 사진 변경' : '프로필 사진 등록'}
-          >
-            <span
-              className={`material-icons-round text-[14px] ${avatarBusy ? 'animate-spin' : ''}`}
-              aria-hidden
-            >
-              {avatarBusy ? 'autorenew' : 'photo_camera'}
-            </span>
-          </button>
-
-          {/* 사진이 있을 때만 — 삭제 배지 */}
-          {avatarUrl && !avatarBusy && (
-            <button
-              type="button"
-              className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 dark:border-white/15 bg-black/60 text-white/80 transition-colors hover:bg-black/85 hover:text-white"
-              onClick={handleAvatarDelete}
-              aria-label="프로필 사진 삭제"
-            >
-              <span className="material-icons-round text-[11px]" aria-hidden>
-                close
-              </span>
-            </button>
+          {equipped && (
+            <div className="ph-side">
+              <div className="ph-medal" aria-hidden>
+                <div className="ph-medal__pin" />
+                <div className="ph-medal__ribbon" />
+                <div className="ph-medal__ring" />
+                <div className="ph-medal__face">
+                  <div className="ph-medal__glyph">
+                    <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} />
+                    {awardDate && <span className="ph-medal__year">{awardDate.slice(0, 4)}</span>}
+                  </div>
+                </div>
+              </div>
+              {rarity && (
+                <div className="ph-stat">
+                  {rarity.holder_count <= 1 ? (
+                    <b className="ph-foil" style={{ fontSize: 17 }}>{t('phRarityOnly')}</b>
+                  ) : (
+                    <>
+                      <b className="ph-foil">{formatShare(rarity)}</b>
+                      <span>{t('phRarityShare')}</span>
+                    </>
+                  )}
+                  <small>
+                    {t('phRarityCount')
+                      .replace('{m}', String(rarity.member_count))
+                      .replace('{h}', String(rarity.holder_count))}
+                  </small>
+                </div>
+              )}
+            </div>
           )}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handleAvatarFile}
-          />
-      </div>
-
-      {/* 아이덴티티 블록 — '내 칭호' 필 → 칭호 헤드라인 → 이름 → 오늘의 성구.
-          오른쪽 연필은 /account(프로필 편집). */}
-      <div className="relative w-full px-5">
-        <button
-          type="button"
-          onClick={() => navigate('/garden')}
-          className="ph-title-pill"
-          aria-label={
-            titleName
-              ? language === 'en' ? `Equipped title ${titleName} — change` : `장착한 칭호 ${titleName} — 변경하기`
-              : t('titleChipEmpty')
-          }
-        >
-          <span aria-hidden>{equipped ? <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} /> : '✝'}</span>
-          {titleName ? t('profileMyTitle') : t('titleChipEmpty')}
-        </button>
-
-        <h2
-          className="m-0 mt-2 max-w-full truncate text-[24px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
-          style={{ wordBreak: 'keep-all' }}
-        >
-          {titleName ?? fullName}
-          {!titleName && churchTitle && (
-            <span className="ml-1.5 text-[16px] font-semibold text-gray-500 dark:text-white/55">{churchTitle}</span>
-          )}
-        </h2>
-        {/* 닉네임 + 연필(닉네임 변경 → /account) — 칭호가 아니라 이름을 고치는 버튼임이 드러나도록 이름 바로 옆에 */}
-        <div className={`flex items-center justify-center gap-1 ${titleName ? 'mt-1' : 'mt-1.5'}`}>
-          {titleName && (
-            <p className="m-0 text-[13px] font-semibold text-gray-500 dark:text-white/55">
-              {churchTitle ? `${fullName} ${churchTitle}` : fullName}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={() => navigate('/account')}
-            aria-label={t('profileEdit')}
-            className="ph-edit"
-          >
-            <span className="material-icons-round text-[13px]" aria-hidden>edit</span>
-          </button>
         </div>
 
-      </div>
-      </div>
-    </div>
+        <div className="ph-card">
+          {equipped && text ? (
+            <>
+              <div className="ph-card__cat">
+                {[equipped.hidden ? 'HIDDEN' : null, TIER_LABEL[equipped.tier], rarity ? `No.${pad3(rarity.holder_rank)}` : null]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </div>
+              <h2 className="ph-card__title m-0">{text.name}</h2>
+              {text.description && <p className="ph-card__desc m-0">{text.description}</p>}
+              {owner}
+            </>
+          ) : (
+            owner
+          )}
+        </div>
+      </section>
     </div>
   )
 }
