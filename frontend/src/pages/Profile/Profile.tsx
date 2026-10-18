@@ -23,7 +23,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { useGrowthSummary, useGrowthRecentDays } from '../../hooks/useGrowth'
 import { useEquippedTitle } from '../../hooks/useTitles'
 import { hasTitleBackdrop } from '../../components/titles/TitleBackdrop'
-import ProfileSkeleton, { ProfileRailSkeleton } from './components/ProfileSkeleton'
+import ProfileSkeleton, { HookCardsSkeleton, ProfileRailSkeleton } from './components/ProfileSkeleton'
 import type { ProfileTab } from '../../types/profile'
 import type { Achievement, GlowLevel, UserActivityData } from '../../types/achievement'
 import { 
@@ -251,13 +251,15 @@ const Profile = () => {
   // 그 전에도 전체 스피너로 막지 않고 셸(상단 바)+같은 자리의 스켈레톤을 즉시 그린다 —
   // persist 복원 중(isLoading=false·data 없음)에도 에러 화면 대신 스켈레톤이 뜬다.
   //
-  // 카드 데이터(장착 칭호·여정 요약·최근 14일)도 같이 기다린다 — 따로 두면 본문이 뜬 뒤에
-  // 커버 배너(16:9)와 인사이트 카드가 하나씩 끼어들며 아래를 밀어내 "자라나는" 것처럼 보인다.
-  // 전부 prefetch.ts 가 같은 시점에 띄운 요청이라 기다림은 가장 느린 하나(detail)만큼이고,
-  // isLoading 기준이라 실패한 요청은 막지 않는다(그 카드만 빠진다).
-  // 장착 칭호만은 재조회(isFetching)까지 — 옛 배너가 먼저 뜨지 않게(위 useEquippedTitle 참고)
-  const cardsLoading = hasToken && (equippedPending || summaryLoading || recentLoading)
-  const ready = !!data && !isLoading && !(hasToken && bmLoading) && !cardsLoading
+  // 카드 데이터 중 장착 칭호만 같이 기다린다 — 커버 배너(16:9, +200px)의 출처라 따로 두면 본문이
+  // 뜬 뒤 끼어들며 아래를 밀어낸다. 재조회(isFetching)까지 기다리는 건 옛 배너가 먼저 뜨지 않게(위 참고).
+  //
+  // 여정 요약·최근 14일은 게이트에서 뺐다(2026-10-18) — 인사이트·여정·주간 카드 3장만 채우는 데이터인데
+  // 백엔드 캐시(5분)가 지나면 콜드(타임라인 헬퍼 11개 직렬 쿼리)라 5개 요청 중 가장 느린 축이었고,
+  // 본문 전체가 그 하나를 기다렸다. 카드 3장 자리는 같은 높이의 HookCardsSkeleton 이 지키다가
+  // 도착하면 교체하므로 아래(업적·수첩)는 밀리지 않는다. isLoading 기준이라 실패하면 그 카드만 빠진다.
+  const hooksLoading = hasToken && (summaryLoading || recentLoading)
+  const ready = !!data && !isLoading && !(hasToken && bmLoading) && !(hasToken && equippedPending)
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
@@ -305,14 +307,15 @@ const Profile = () => {
           streakDays={stats.activity.streak_days}
         />
 
-        {/* ③④ 인사이트·여정·주간 스토리 — lg에선 우측 레일이 대신한다 */}
-        {!isDesktop && (
+        {/* ③④ 인사이트·여정·주간 스토리 — lg에선 우측 레일이 대신한다.
+            여정 요약·최근 14일이 아직이면 같은 높이 스켈레톤이 자리를 지킨다(본문 게이트 밖) */}
+        {!isDesktop && (hooksLoading ? <HookCardsSkeleton /> : (
           <div>
             <FaithInsightCard />
             <GrowthHook />
             <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
           </div>
-        )}
+        ))}
 
         {/* ⑤ 업적 — 대표 배지 행 + 펼쳐보기 */}
         <AchievementBadges
@@ -433,7 +436,8 @@ const Profile = () => {
       <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc((100vh-88px)/var(--az,1))] lg:overflow-y-auto scrollbar-hide">
         {/* 카드들은 자체 px-4 여백을 갖고 있어 레일 안에서도 같은 거터를 그대로 쓴다
             (음수 마진으로 상쇄하면 overflow-y-auto 컨테이너에 가로 스크롤이 생긴다) */}
-        {!ready || !data ? <ProfileRailSkeleton /> : (
+        {/* 레일은 여정 요약·최근 14일까지 기다린다 — 본문과 달리 레일 전체가 카드 3장이라 따로 둘 자리가 없다 */}
+        {!ready || !data || hooksLoading ? <ProfileRailSkeleton /> : (
         <div>
           <FaithInsightCard />
           <GrowthHook />

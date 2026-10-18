@@ -174,6 +174,17 @@ const ProfileSkeleton = ({ isDesktop, withCover }: ProfileSkeletonProps) => (
   </div>
 )
 
+/**
+ * 모바일 본문 가운데 카드 3장(인사이트·여정·주간) 자리표시자 — 본문은 detail 로 먼저 그리고,
+ * 여정 요약·최근 14일(백엔드 5분 캐시가 지나면 콜드라 가장 느린 축)은 이 자리에서만 기다린다.
+ * 높이가 실제 카드와 같아 도착해 교체돼도 아래(업적·수첩)가 밀리지 않는다.
+ */
+export const HookCardsSkeleton = () => (
+  <div className="animate-pulse" aria-hidden="true">
+    <HookCards />
+  </div>
+)
+
 /** PC 우측 레일 자리표시자 — 레일이 비어 있다가 나타나면 본문 폭이 줄며 전체가 다시 짜인다 */
 export const ProfileRailSkeleton = () => (
   <div className="animate-pulse" aria-hidden="true">
