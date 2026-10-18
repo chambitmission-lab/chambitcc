@@ -54,6 +54,8 @@ export const useHoldToRead = ({ enabled, busy = false, onHold }: UseHoldToReadOp
       // 화면을 안 봐도 "됐다"를 알 수 있게 한 번만 짧게.
       // Android 전용 — iOS는 vibrate 미지원이라 조용히 무시된다.
       if ('vibrate' in navigator) navigator.vibrate(18)
+      // iOS는 길게 누르면 번호 옆 본문 글자를 잡아 선택 막(+돋보기)을 띄울 수 있다 — 확정 순간 걷어 낸다
+      window.getSelection()?.removeAllRanges()
       onHold()
     }, HOLD_TO_READ_MS)
   }

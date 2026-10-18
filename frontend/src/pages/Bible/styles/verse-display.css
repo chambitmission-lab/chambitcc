@@ -165,6 +165,15 @@
   outline: none;
 }
 
+/* 모바일 기본 탭 하이라이트 끄기 — 본문 전체가 role=button(클릭 대상)이라, 절 번호를
+   꾹 누르면 브라우저가 이 덩어리 전체에 반투명 회백색 막을 잠깐 씌웠다(다크에선 흰 번쩍임).
+   스크롤 판정 타이밍에 따라 그렸다 말았다 해서 간헐적으로만 보였다.
+   눌림 피드백은 hover/selected 배경과 번호의 차오름(verse-hold-fill)이 대신한다. */
+.bible-verse-body,
+.bible-verse-flow-body {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .bible-verse-item:not(.bible-verse-item--flow):has(> .bible-verse-body:focus-visible) {
   background: rgba(49, 130, 246, 0.06);
   margin: 0 -0.75rem;

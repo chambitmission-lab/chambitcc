@@ -331,7 +331,11 @@ const VerseItem = ({
           className="bible-verse-flow-body"
           onClick={handleBodyActivate}
           {...bodyA11y}
-          style={{ userSelect: selectionMode ? 'none' : 'text', ...flowAccent }}
+          style={{
+            userSelect: selectionMode || hold.isHolding ? 'none' : 'text',
+            WebkitUserSelect: selectionMode || hold.isHolding ? 'none' : 'text',
+            ...flowAccent,
+          }}
         >
           {/* 선택 모드: 번호 앞 고정 슬롯 — 토글마다 생겼다 사라지면 문단이 재줄바꿈된다 */}
           {selectionMode && (
@@ -430,8 +434,10 @@ const VerseItem = ({
           // baseline 정렬은 작은 숫자가 한글 본문 대비 살짝 처져 보였음.
           alignItems: 'flex-start',
           cursor: 'pointer',
-          // 선택 모드에선 탭마다 텍스트가 파랗게 잡히는 걸 막는다
-          userSelect: selectionMode ? 'none' : 'text',
+          // 선택 모드에선 탭마다 텍스트가 파랗게 잡히는 걸 막는다.
+          // 번호를 꾹 누르는 동안에도 — 길게 누르기가 옆 본문 글자 선택으로 번지지 않게
+          userSelect: selectionMode || hold.isHolding ? 'none' : 'text',
+          WebkitUserSelect: selectionMode || hold.isHolding ? 'none' : 'text',
           ...rowAccent,
           // 우측 묵상 마커 자리 — 묵상이 없는 절에도 항상 비워 둔다.
           // (있을 때만 자리를 만들면 숫자가 도착하는 순간 본문이 다시 접힌다)
