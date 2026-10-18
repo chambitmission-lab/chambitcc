@@ -36,19 +36,10 @@ import {
 import { tokenStore } from '../../utils/tokenStore'
 import { preloadRoute } from '../../utils/routePreload'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
+import { readCoverHintKey, writeCoverHintKey } from './coverHint'
 
 /** 프로필 카드 목적지 프리로드를 시작하기 전, 스크롤이 멎어 있어야 하는 시간 */
 const SCROLL_QUIET_MS = 1500
-
-// 마지막으로 본 커버 배너 유무 — 칭호 응답이 오기 전 스켈레톤이 배너 자리를 미리 잡는 데 쓴다
-const COVER_HINT_KEY = 'profile_cover_hint'
-const readCoverHint = (): boolean => {
-  try {
-    return localStorage.getItem(COVER_HINT_KEY) === '1'
-  } catch {
-    return false
-  }
-}
 
 const Profile = () => {
   const navigate = useNavigate()
@@ -96,14 +87,16 @@ const Profile = () => {
   const { isLoading: recentLoading } = useGrowthRecentDays(14, hasToken)
 
   // 커버 배너(16:9)는 헤더 높이를 200px 넘게 바꾼다 — 칭호 응답이 왔으면 그 값,
-  // 아직이면 지난 방문 때 기억해 둔 값으로 스켈레톤이 같은 자리를 잡는다
-  const hasCover = equipped === undefined ? readCoverHint() : !!equipped && hasTitleBackdrop(equipped.key)
+  // 아직이면 지난 방문 때 기억해 둔 칭호 키로 스켈레톤이 같은 자리를 잡는다
+  // (같은 키로 prefetch.ts 가 배너 이미지도 진입 즉시 받아 둔다 — coverHint.ts)
+  const hasCover =
+    equipped === undefined
+      ? hasTitleBackdrop(readCoverHintKey() ?? '')
+      : !!equipped && hasTitleBackdrop(equipped.key)
   useEffect(() => {
     if (equipped === undefined) return
-    try {
-      localStorage.setItem(COVER_HINT_KEY, hasCover ? '1' : '0')
-    } catch { /* 저장 불가 환경 — 힌트 없이 동작 */ }
-  }, [equipped, hasCover])
+    writeCoverHintKey(equipped ? equipped.key : '')
+  }, [equipped])
 
   // 활동 데이터를 기반으로 업적 계산
   const activityData = useMemo<UserActivityData | null>(() => {

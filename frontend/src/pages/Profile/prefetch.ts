@@ -15,7 +15,11 @@ import { titleKeys } from '../../hooks/useTitles'
 import { fetchBluemarbleStats } from '../../api/bluemarble'
 import { getGrowthSummary, getGrowthTimeline } from '../../api/growth'
 import { getEquippedTitle } from '../../api/titles'
+import type { TitleStatus } from '../../api/titles'
 import { isAuthenticated } from '../../utils/auth'
+import { warmTitleBackdrop } from '../../components/titles/TitleBackdrop'
+import { readCoverHintKey } from './coverHint'
+import { warmProfileFontsFromCache, warmProfileFontsStatic } from './warmup'
 
 const FIVE_MIN = 1000 * 60 * 5
 // FaithInsightCard·GrowthHook·WeeklyStoryHook 이 공유하는 최근 활동 창(일)
@@ -26,7 +30,13 @@ export const prefetchProfile = (qc: QueryClient = queryClient, coldOnly = false)
   if (!isAuthenticated()) return
   const staleTime = coldOnly ? Infinity : FIVE_MIN
 
-  prefetchProfileDetail(qc, coldOnly)
+  // 손글씨(Gaegu) 고정 라벨 조각·지난 방문의 커버 배너 — 데이터와 나란히 받는다. 둘 다 데이터가 다
+  // 도착한 뒤 본문이 그려질 때야 요청이 시작되던 것이라, 여기서 띄우면 그만큼 직렬 구간이 사라진다
+  warmProfileFontsStatic()
+  warmTitleBackdrop(readCoverHintKey())
+
+  // detail 이 오면(또는 캐시가 신선하면) 실제 그려질 이름·제목·댓글 글자 조각까지 예열
+  void prefetchProfileDetail(qc, coldOnly).then(() => warmProfileFontsFromCache(qc))
   // 기본 탭 목록 첫 페이지 — persist 되지 않는 쿼리라 유휴(coldOnly)에선 받지 않고 진입 시에만
   if (!coldOnly) prefetchMyPrayers(qc)
   void qc.prefetchQuery({ queryKey: QK_BM_STATS, queryFn: fetchBluemarbleStats, staleTime })
@@ -36,5 +46,8 @@ export const prefetchProfile = (qc: QueryClient = queryClient, coldOnly = false)
     queryFn: () => getGrowthTimeline(undefined, RECENT_DAYS),
     staleTime,
   })
-  void qc.prefetchQuery({ queryKey: titleKeys.equipped(), queryFn: getEquippedTitle, staleTime })
+  // 칭호 응답이 오면 그 키의 배너를 받는다 — 힌트와 같은 키면 위에서 이미 받고 있어 무시된다
+  void qc
+    .prefetchQuery({ queryKey: titleKeys.equipped(), queryFn: getEquippedTitle, staleTime })
+    .then(() => warmTitleBackdrop(qc.getQueryData<TitleStatus | null>(titleKeys.equipped())?.key))
 }

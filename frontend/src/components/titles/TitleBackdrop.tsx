@@ -61,6 +61,22 @@ const TITLE_BG_POSITION: Record<string, string> = {
 /** 이 칭호에 커버 배너가 등록돼 있는지 — 프로필 스켈레톤이 배너 자리를 미리 잡을 때 쓴다 */
 export const hasTitleBackdrop = (key: string): boolean => key in TITLE_BG
 
+// 이미 예열한 배너 — 같은 진입에서 힌트 키와 실제 응답 키가 같으면 두 번 만들지 않는다
+const warmedBackdrops = new Set<string>()
+
+/**
+ * 커버 배너 이미지를 미리 받아 둔다(브라우저 캐시) — 프로필 선요청이 칭호 응답을 기다리지 않고
+ * 지난 방문 힌트 키로 먼저, 응답이 오면 그 키로 한 번 더 부른다. 배너 없는 칭호·null 은 무시.
+ */
+export const warmTitleBackdrop = (key: string | null | undefined): void => {
+  const src = key ? TITLE_BG[key] : undefined
+  if (!src || warmedBackdrops.has(src) || typeof Image === 'undefined') return
+  warmedBackdrops.add(src)
+  const img = new Image()
+  img.decoding = 'async'
+  img.src = src
+}
+
 /** 장착 칭호의 커버 배너 이미지 경로(없으면 undefined) */
 export const useTitleBackdropSrc = (): string | undefined => {
   const { data: equipped } = useEquippedTitle()

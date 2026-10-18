@@ -127,10 +127,13 @@ const ProfileHeader = ({
     </div>
   ) : backdropSrc ? (
     <div className="ph-film">
+      {/* prefetch.ts 가 진입 즉시 받아 둔 배너 — 캐시에 없더라도 LCP 후보라 우선순위를 올린다 */}
       <img
         src={backdropSrc}
         alt=""
         draggable={false}
+        fetchPriority="high"
+        decoding="async"
         style={backdropPosition ? { objectPosition: backdropPosition } : undefined}
       />
     </div>

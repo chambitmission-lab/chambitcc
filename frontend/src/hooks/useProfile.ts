@@ -25,13 +25,13 @@ const PROFILE_DETAIL_STALE_MS = 1000 * 15 // 15초 (포인트 실시간 반영 �
 // /profile 선요청 — 훅과 같은 키라 화면이 뜨면 캐시를 그대로 이어받는다.
 // coldOnly: 유휴 프리로드용. 무거운 집계 API 라 앱을 켤 때마다 부르지 않고,
 // 캐시(persist 복원 포함)가 아예 없을 때만 받아 둔다 — 최신화는 진입 시 refetchOnMount 가 한다.
-export const prefetchProfileDetail = (qc: QueryClient, coldOnly = false): void => {
-  void qc.prefetchQuery({
+// 응답(또는 캐시가 신선해 건너뜀)이 끝나면 resolve — 선요청이 캐시된 detail 로 손글씨 글리프를 예열한다
+export const prefetchProfileDetail = (qc: QueryClient, coldOnly = false): Promise<void> =>
+  qc.prefetchQuery({
     queryKey: profileKeys.detail(),
     queryFn: fetchProfileDetail,
     staleTime: coldOnly ? Infinity : PROFILE_DETAIL_STALE_MS,
   })
-}
 
 // 프로필 전체 정보 조회 (React Query persist-client가 localStorage 영속화 담당)
 export const useProfileDetail = () => {
