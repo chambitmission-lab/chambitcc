@@ -17,6 +17,7 @@ import MemberPicker from './components/MemberPicker'
 import VisitComposer from './components/VisitComposer'
 import { Avatar } from './components/ui'
 import { formatDay, parseDay, todayIso, usePastorGate } from './components/pastorUtils'
+import { useHolidayMap, yearsForMonthView } from '../../hooks/useHolidays'
 
 // 목회 일정 — 좌: 어젠다(지난 일 · 오늘 · 내일 · 이번 주 · 다음 주 · 이후) / 우: 미니 달력 + 예약하기.
 // 월 그리드 대신 어젠다가 주인공(교회 캘린더와 같은 결정). 달력은 '어느 날이 차 있나'를 점으로만.
@@ -322,6 +323,14 @@ const MiniCalendar = ({
     return out
   }, [month])
 
+  // 법정 공휴일(임시·대체공휴일 포함) — 칸이 작아 이름은 격자 아래 한 줄로
+  const holidayYears = useMemo(() => yearsForMonthView(month), [month])
+  const holidays = useHolidayMap(holidayYears)
+  const monthHolidays = useMemo(
+    () => cells.filter((iso): iso is string => !!iso && holidays.has(iso)).map(iso => ({ d: Number(iso.slice(8)), name: holidays.get(iso)! })),
+    [cells, holidays],
+  )
+
   const thisMonth = month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth()
   const lastMonth = parseDay(data.until)!
   const canNext = month < new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1)
@@ -354,7 +363,7 @@ const MiniCalendar = ({
     >
       <div className="grid grid-cols-7 text-center gap-y-1">
         {WEEKDAYS.map((w, i) => (
-          <span key={w} className={`text-[12px] font-semibold ${i === 0 ? 'text-[var(--amber)]' : 'text-gray-500 dark:text-white/55'}`}>
+          <span key={w} className={`text-[12px] font-semibold ${i === 0 ? 'text-rose-500 dark:text-rose-400' : 'text-gray-500 dark:text-white/55'}`}>
             {w}
           </span>
         ))}
@@ -364,13 +373,21 @@ const MiniCalendar = ({
           const isToday = iso === data.today
           const isSel = iso === selected
           const past = iso < data.today
+          const holidayName = holidays.get(iso)
+          const isRed = !!holidayName || idx % 7 === 0 // 공휴일·일요일
           return (
             <button
               key={iso}
               type="button"
               onClick={() => onSelect(isSel ? null : iso)}
+              title={holidayName}
+              aria-label={holidayName ? `${formatDay(iso)} ${holidayName}` : formatDay(iso)}
               className={`mx-auto w-9 h-10 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-colors ${
-                isSel ? 'bg-brand text-white' : isToday ? 'bg-[var(--brand-soft)] text-brand' : 'hover:bg-gray-100 dark:hover:bg-white/[0.06]'
+                isSel
+                  ? 'bg-brand text-white'
+                  : isToday
+                    ? 'bg-[var(--brand-soft)] text-brand'
+                    : `hover:bg-gray-100 dark:hover:bg-white/[0.06]${isRed ? ' text-rose-500 dark:text-rose-400' : ''}`
               } ${past && !isSel ? 'opacity-40' : ''}`}
             >
               <span className="text-[12.5px] font-semibold leading-none">{Number(iso.slice(8))}</span>
@@ -384,6 +401,16 @@ const MiniCalendar = ({
           )
         })}
       </div>
+      {monthHolidays.length > 0 && (
+        <p className="rounded-lg bg-rose-50/70 px-2.5 py-1.5 text-[12px] leading-[1.6] text-rose-600 break-keep dark:bg-rose-400/[0.07] dark:text-rose-300">
+          {monthHolidays.map((h, i) => (
+            <span key={h.d}>
+              {i > 0 && <span className="text-rose-300 dark:text-rose-300/40"> · </span>}
+              {h.d}일 {h.name}
+            </span>
+          ))}
+        </p>
+      )}
       <div className="flex flex-wrap gap-x-3 gap-y-1">
         {TYPE_LEGEND.map(([t, label]) => (
           <span key={t} className="inline-flex items-center gap-1 text-[12px] text-gray-600 dark:text-white/60">
