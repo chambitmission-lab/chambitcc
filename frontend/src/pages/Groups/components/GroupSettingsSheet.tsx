@@ -110,7 +110,7 @@ const GroupSettingsSheet = ({ group, onClose }: GroupSettingsSheetProps) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] lg:max-h-[calc(90vh/var(--az,1))] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] flex flex-col"
+        className={`relative w-full sm:max-w-md ${group.is_admin ? 'lg:max-w-[960px]' : ''} max-h-[92vh] sm:max-h-[90vh] lg:max-h-[calc(90vh/var(--az,1))] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
@@ -182,7 +182,8 @@ const GroupSettingsSheet = ({ group, onClose }: GroupSettingsSheetProps) => {
         ) : (
           /* ── 관리자 — 섹션으로 끊은 편집 폼 ── */
           <form onSubmit={handleSave} className="relative z-10 flex-1 overflow-y-auto">
-            <div className="px-5 py-5 space-y-6">
+            {/* PC(lg+)는 2단 — 왼쪽 방 정보 / 오른쪽 공개·기도 시간·위험 구역 */}
+            <div className="px-5 py-5 lg:px-7 lg:py-6 space-y-6 lg:space-y-0 lg:grid lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-8">
               {/* ── 방 정보 ── */}
               <section className="space-y-4">
                 <SectionTitle>방 정보</SectionTitle>
@@ -208,7 +209,7 @@ const GroupSettingsSheet = ({ group, onClose }: GroupSettingsSheetProps) => {
                 </Field>
 
                 <Field label="아이콘">
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-5 lg:grid-cols-10 gap-2">
                     {ICON_OPTIONS.map((opt) => (
                       <button
                         key={opt}
@@ -255,8 +256,9 @@ const GroupSettingsSheet = ({ group, onClose }: GroupSettingsSheetProps) => {
                 )}
               </section>
 
+              <div className="space-y-6 lg:pl-8 lg:border-l lg:border-gray-100 lg:dark:border-white/[0.06]">
               {/* ── 공개 설정 ── */}
-              <section className="space-y-3 pt-4 border-t border-gray-100 dark:border-white/[0.06]">
+              <section className="space-y-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-white/[0.06]">
                 <SectionTitle>공개 설정</SectionTitle>
                 <div className="space-y-1.5">
                   {VISIBILITY_OPTIONS.map((opt) => {
@@ -363,6 +365,7 @@ const GroupSettingsSheet = ({ group, onClose }: GroupSettingsSheetProps) => {
                   </button>
                 )}
               </section>
+              </div>
             </div>
 
             {/* 푸터 */}
