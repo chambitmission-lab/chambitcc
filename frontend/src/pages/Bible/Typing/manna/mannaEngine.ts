@@ -104,6 +104,7 @@ const GROUND_OFFSET = 30 // 무대 바닥에서 모래 언덕 윗면까지
 // 가로 흐름(휴대폰 타이핑) — 화면 키보드 위 낮고 넓은 무대에 맞춰 오른쪽에서 왼쪽 바구니로 흘러온다
 const BASKET_W = 40 // 왼쪽 바구니 띠 폭(여기 닿으면 떨어진 것)
 const LANE_H = 42 // 한 줄 높이
+const LANE_TOP = 20 // 맨 윗줄 위 여백 — '차례' 꼬리표(단어 위 19px)가 무대 밖으로 잘리지 않게
 const LANE_GAP = 14 // 같은 줄 앞 만나와의 최소 간격
 const FLOW_SPEED = 1.1 // 무대 폭 대비 — 세로 낙하(fall)에 곱한다
 
@@ -396,7 +397,7 @@ export class MannaGame {
     this.groundY = this.H - GROUND_OFFSET
     if (this.flow === 'left') {
       // 키보드가 열리고 닫히며 무대 높이가 바뀌면 줄 수도 바뀐다 — 넘친 줄의 만나는 안쪽으로 당긴다
-      this.lanes = Math.max(1, Math.min(5, Math.floor((this.H - 8) / LANE_H)))
+      this.lanes = Math.max(1, Math.min(5, Math.floor((this.H - LANE_TOP - 6) / LANE_H)))
       for (const f of this.falling) {
         f.lane = Math.min(f.lane, this.lanes - 1)
         f.y = this.laneY(f.lane, f.h)
@@ -405,7 +406,8 @@ export class MannaGame {
   }
 
   private laneY(lane: number, h: number) {
-    return (this.H - this.lanes * LANE_H) / 2 + lane * LANE_H + (LANE_H - h) / 2
+    const top = LANE_TOP + Math.max(0, (this.H - LANE_TOP - this.lanes * LANE_H) / 2)
+    return top + lane * LANE_H + (LANE_H - h) / 2
   }
 
   /** 가로 흐름 — 비어 있는 자리가 가장 넓은 줄과, 앞 만나 뒤에 붙일 x */

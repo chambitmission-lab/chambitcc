@@ -753,7 +753,7 @@ img.mn-podium__ava { object-fit: cover; }
   top: 0; bottom: 0; right: auto; left: calc(40px + max(44px, 16%)); height: auto; width: 0;
   border-top: 0; border-left: 1.5px dashed color-mix(in srgb, var(--mn-bad) 45%, transparent);
 }
-.mn-game.is-flow-left .mn-stage__closeline::after { right: auto; left: 5px; top: 6px; }
+.mn-game.is-flow-left .mn-stage__closeline::after { right: auto; left: 5px; top: 6px; white-space: nowrap; } /* 폭 0 세로선이라 줄바꿈되면 '아슬/아슬'로 쪼개진다 */
 .mn-game.is-flow-left .mn-hud { padding-top: calc(6px + env(safe-area-inset-top, 0px)); padding-bottom: 2px; }
 .mn-game.is-flow-left .mn-hud__num { font-size: 24px; }
 .mn-game.is-flow-left .mn-hud__combo { margin-top: 2px; }
