@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { Achievement } from '../../../types/achievement'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { AchievementGlyph } from './AchievementGlyph'
 import { achievementInk } from './achievementInk'
+import './LevelProgress.css'
 import './AchievementBadges.css'
 
 interface AchievementBadgesProps {
@@ -30,13 +31,9 @@ const BadgeMedallion = ({ achievement, shineDelay, size = 'md' }: BadgeMedallion
     return (
       <div
         className={`ach-ring-unlocked relative ${dim} rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-110 group-active:scale-95`}
-        style={{
-          background:
-            'conic-gradient(from 210deg, #3182f6, #60a5fa, #f59e0b, #60a5fa, #3182f6)',
-          boxShadow: `0 0 16px ${achievement.glowColor}`,
-        }}
+        style={{ boxShadow: `0 0 10px ${achievement.glowColor}` }}
       >
-        <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-card-dark">
+        <div className="ach-face relative flex h-full w-full items-center justify-center overflow-hidden rounded-full">
           {/* 배지 색상 은은한 내부 틴트 */}
           <div
             className="pointer-events-none absolute inset-0"
@@ -56,28 +53,26 @@ const BadgeMedallion = ({ achievement, shineDelay, size = 'md' }: BadgeMedallion
             aria-hidden="true"
           />
         </div>
-        <div className={`absolute -right-0.5 -bottom-0.5 flex ${checkDim} items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg ring-2 ring-white dark:ring-card-dark`}>
-          <span className="text-[10px] font-bold text-white">✓</span>
+        <div className={`ach-check absolute -right-0.5 -bottom-0.5 flex ${checkDim} items-center justify-center rounded-full`}>
+          <span className="text-[10px] font-bold">✓</span>
         </div>
       </div>
     )
   }
 
+  // 링 자체가 진행률 게이지 — 채워질수록 해금이 가까워 보이게
   return (
     <div
-      className={`relative ${dim} rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95`}
-      style={{
-        // 링 자체가 진행률 게이지 — 채워질수록 해금이 가까워 보이게
-        background: `conic-gradient(rgba(49, 130, 246, 0.75) ${progressPct}%, rgba(148, 163, 184, 0.28) 0)`,
-      }}
+      className={`ach-ring-locked relative ${dim} rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95`}
+      style={{ '--ach-pct': `${progressPct}%` } as CSSProperties}
     >
-      <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-100 dark:bg-card-dark">
-        <span className={`${iconSize} leading-none text-gray-500 opacity-55 dark:text-white/70`}>
+      <div className="ach-face ach-face--locked flex h-full w-full items-center justify-center rounded-full">
+        <span className={`${iconSize} leading-none opacity-60`}>
           <AchievementGlyph achievementId={achievement.id} fallback={achievement.icon} />
         </span>
       </div>
-      <div className={`absolute -right-0.5 -bottom-0.5 flex ${checkDim} items-center justify-center rounded-full bg-gray-300 dark:bg-[#3a3a3a] ring-2 ring-white dark:ring-card-dark`}>
-        <span className="material-icons-round text-[11px] text-gray-500 dark:text-white/45">
+      <div className={`ach-lock absolute -right-0.5 -bottom-0.5 flex ${checkDim} items-center justify-center rounded-full`}>
+        <span className="material-icons-round text-[11px]">
           lock
         </span>
       </div>
@@ -111,30 +106,25 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
 
   return (
     <div className="px-4 py-3">
-      <div
-        className="
-          relative overflow-hidden rounded-2xl p-5
-          bg-white/80 dark:bg-card-dark
-          border border-gray-200/70 dark:border-white/[0.08]
-          shadow-sm
-          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
-        "
-      >
-        <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-
-        <div className="relative z-10 flex items-center justify-between mb-4">
-          <h3 className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
-            🏆 {t('achievementTitle')}{' '}
-            <span className="font-semibold text-brand tabular-nums">
+      <div className="lp-sheet">
+        <div className="relative z-10 mb-4 flex items-center justify-between">
+          <h3 className="lp-head">
+            {t('achievementTitle')}{' '}
+            <span className="ach-count">
               {unlockedCount}/{achievements.length}
             </span>
           </h3>
           {achievements.length > 0 && (
             <button
+              type="button"
               onClick={() => setShowAll(!showAll)}
-              className="text-[12px] font-semibold text-brand hover:text-brand-dim transition-colors"
+              aria-expanded={showAll}
+              className="lp-more flex items-center gap-0.5 text-[12.5px] font-semibold"
             >
               {showAll ? t('achievementCollapse') : t('achievementShowAll')}
+              <span className="material-icons-round text-[16px]" aria-hidden>
+                {showAll ? 'expand_less' : 'chevron_right'}
+              </span>
             </button>
           )}
         </div>
@@ -158,16 +148,14 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
 
                 <span
                   className={`w-full text-center text-[10.5px] font-semibold leading-tight line-clamp-1 ${
-                    achievement.unlocked
-                      ? 'text-gray-800 dark:text-white/85'
-                      : 'text-gray-400 dark:text-white/35'
+                    achievement.unlocked ? 'lp-ink2' : 'lp-muted'
                   }`}
                 >
                   {t(achievement.titleKey)}
                 </span>
 
                 {!achievement.unlocked && (
-                  <span className="-mt-1 text-[9.5px] tabular-nums text-gray-400 dark:text-white/30">
+                  <span className="lp-muted -mt-1 text-[9.5px] tabular-nums opacity-80">
                     {achievement.progress}/{achievement.requirement}
                   </span>
                 )}
@@ -198,7 +186,7 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
               <button
                 type="button"
                 onClick={() => onAchievementClick?.(nextTarget)}
-                className="group flex shrink-0 items-center gap-2 rounded-full border border-gray-200/70 dark:border-white/[0.08] bg-gray-50/70 dark:bg-white/[0.03] py-1 pl-1 pr-3"
+                className="ach-next group flex shrink-0 items-center gap-2 py-1 pl-1 pr-3.5"
                 aria-label={`${t(nextTarget.titleKey)} (${t('achievementProgress')} ${nextTarget.progress}/${nextTarget.requirement})`}
               >
                 <BadgeMedallion
@@ -207,10 +195,10 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
                   size="sm"
                 />
                 <span className="text-left">
-                  <span className="block text-[10px] font-semibold text-gray-400 dark:text-white/40">
+                  <span className="lp-muted block text-[10px] font-semibold">
                     {t('achievementNextGoal')}
                   </span>
-                  <span className="block text-[11px] font-bold leading-tight text-gray-700 dark:text-white/75">
+                  <span className="ach-next__title block leading-tight">
                     {t(nextTarget.titleKey)}
                   </span>
                 </span>
@@ -220,7 +208,7 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
         )}
 
         {unlockedCount === 0 && (
-          <p className="relative z-10 mt-4 mb-0 text-center text-[12px] text-gray-400 dark:text-white/40">
+          <p className="lp-muted relative z-10 mt-4 mb-0 text-center text-[12px]">
             {t('achievementStartPraying')}
           </p>
         )}

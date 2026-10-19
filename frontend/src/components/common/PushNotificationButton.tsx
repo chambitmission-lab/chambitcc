@@ -79,20 +79,21 @@ export const PushNotificationButton = () => {
       aria-pressed={isSubscribed}
       className="flex items-center gap-3 shrink-0"
     >
-      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+      <span className="push-toggle__label text-sm font-medium text-gray-800 dark:text-gray-200">
         {isLoading ? t('pushToggleLoading') : t('pushToggleLabel')}
       </span>
 
       <div
+        data-on={isSubscribed}
         className={`
-          relative w-12 h-7 rounded-full transition-colors duration-300 ease-in-out
+          push-toggle__track relative w-12 h-7 rounded-full transition-colors duration-300 ease-in-out
           ${isSubscribed ? 'bg-[var(--brand)]' : 'bg-gray-300 dark:bg-white/[0.16]'}
           ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
       >
         <div
           className={`
-            absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md
+            push-toggle__knob absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md
             transition-transform duration-300 ease-in-out
             ${isSubscribed ? 'translate-x-5' : 'translate-x-0'}
           `}

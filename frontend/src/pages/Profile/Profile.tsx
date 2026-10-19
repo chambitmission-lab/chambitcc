@@ -326,23 +326,13 @@ const Profile = () => {
         {/* 푸시 알림 설정 — lg에선 우측 레일이 대신한다 */}
         {!isDesktop && (
         <div className="px-4 py-3">
-          <div
-            className="
-              relative overflow-hidden rounded-2xl p-4
-              bg-white/80 dark:bg-card-dark
-              border border-gray-200/70 dark:border-white/[0.08]
-              shadow-sm
-              dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
-            "
-          >
-            <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-
+          <div className="lp-sheet">
             <div className="relative z-10 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <h3 className="text-[14px] font-bold text-ink-strong mb-0.5 tracking-[-0.01em]">
+                <h3 className="lp-head mb-1">
                   {t('pushCardTitle')}
                 </h3>
-                <p className="text-[12px] text-gray-500 dark:text-white/55">
+                <p className="lp-muted text-[12px]">
                   {t('pushCardSubtitle')}
                 </p>
               </div>
@@ -444,13 +434,12 @@ const Profile = () => {
           <WeeklyStoryHook thisWeekCount={data.stats.activity.this_week_count} />
 
           <div className="px-4 py-3">
-            <div className="relative overflow-hidden rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]">
-              <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
+            <div className="lp-sheet">
               <div className="relative z-10">
-                <h3 className="text-[14px] font-bold text-ink-strong mb-0.5 tracking-[-0.01em]">
+                <h3 className="lp-head mb-1">
                   {t('pushCardTitle')}
                 </h3>
-                <p className="text-[12px] text-gray-500 dark:text-white/55 mb-3">
+                <p className="lp-muted text-[12px] mb-3">
                   {t('pushCardSubtitle')}
                 </p>
                 <PushNotificationButton />
