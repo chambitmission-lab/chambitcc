@@ -41,6 +41,15 @@ export const sectionBody = (s: OutlineSection): string => (s.manuscript ?? '').t
 /** 공백을 뺀 글자 수 */
 export const countChars = (text: string): number => text.replace(/\s+/g, '').length
 
+/** 원고 칸 하나의 최대 글자 수(서버와 같다) */
+export const MANUSCRIPT_MAX = 20000
+
+/** 원고에 그대로 남아 있는 AI 초안 문단 — 고친 문단은 목사님 글이다(서버도 저장 때 같은 기준으로 정리) */
+export const pendingDraftsOf = (s: OutlineSection): string[] => {
+  const m = s.manuscript ?? ''
+  return (s.ai_drafts ?? []).filter(d => m.includes(d.trim()))
+}
+
 export const estimateMinutes = (chars: number, perMin: number): number => (chars ? Math.max(1, Math.round(chars / perMin)) : 0)
 
 // ── 말씀 인용 ─────────────────────────────────────────────

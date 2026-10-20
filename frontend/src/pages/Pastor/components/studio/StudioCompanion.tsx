@@ -4,7 +4,7 @@
 //   한 칸 초안: 원고 단계에서 목사님이 고른 칸 하나의 문단 초안. 고른 문단만 원고 끝에 넣고, 넣은 글은 'AI 초안' 표시가 붙는다
 //         (목사님이 고치면 표시가 사라진다 — 서버 sections[].ai_drafts).
 //   대화는 이 탭(sessionStorage)에만 남는다 — 목양 정보는 localStorage 에 두지 않는 목회자 영역 규칙.
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   askStudio,
@@ -16,19 +16,12 @@ import {
   type StudioStep,
   type StudioVerse,
 } from '../../../../api/pastor'
+import { useAutoGrow } from '../../../../hooks/useAutoGrow'
 import { showToast } from '../../../../utils/toast'
 import { invalidateNoteQueries } from '../sermonNoteUtils'
+import { stepOf } from './studio'
 
 const STUDIO_NOTE_SOURCE = 'AI 동역자 · 목사님 검토'
-
-const STEP_LABEL: Record<StudioStep, string> = {
-  passage: '본문 정하기',
-  study: '본문 연구',
-  outline: '뼈대 세우기',
-  manuscript: '원고 쓰기',
-  review: '원고 점검',
-  pulpit: '강단과 나눔',
-}
 
 // 단계마다 먼저 꺼내 볼 만한 질문 — 누르면 바로 묻는다
 const SUGGESTIONS: Record<StudioStep, string[]> = {
@@ -86,6 +79,7 @@ const StudioCompanion = ({
   activeSection,
   draftTarget,
   onCloseDraft,
+  onDraftBusy,
   onInsertDraft,
   onClose,
 }: {
@@ -96,8 +90,10 @@ const StudioCompanion = ({
   activeSection: { id: string; label: string } | null
   draftTarget: DraftTarget | null
   onCloseDraft: () => void
-  /** 고른 문단을 그 칸 원고 끝에 넣는다(부모가 원고·ai_drafts 를 함께 고친다) */
-  onInsertDraft: (sectionId: string, paragraphs: string[]) => void
+  /** 초안을 받는 중인지 — 부모가 그동안 다른 칸 초안 요청으로 이 요청을 버리지 않게 */
+  onDraftBusy?: (busy: boolean) => void
+  /** 고른 문단을 그 칸 원고 끝에 넣는다(부모가 원고·ai_drafts 를 함께 고친다). 못 넣었으면 false — 초안은 그대로 둔다 */
+  onInsertDraft: (sectionId: string, paragraphs: string[]) => boolean
   /** 모바일 시트 닫기 — PC 에선 없음 */
   onClose?: () => void
 }) => {
@@ -108,19 +104,6 @@ const StudioCompanion = ({
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => saveThread(outlineId, thread), [outlineId, thread])
-
-  // 새 말이 붙으면 맨 아래로 — 대화 상자 안에서만 움직인다(페이지 스크롤은 그대로)
-  useEffect(() => {
-    const el = listRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [thread.length, draftTarget])
-
-  useLayoutEffect(() => {
-    const el = inputRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
-  }, [input])
 
   const context = step === 'manuscript' || step === 'outline' ? activeSection : null
 
@@ -157,6 +140,14 @@ const StudioCompanion = ({
     if (!q || ask.isPending) return
     ask.mutate(q.slice(0, 600))
   }
+
+  // 새 말이 붙거나 '답을 찾는 중' 표시가 뜨면 맨 아래로 — 대화 상자 안에서만 움직인다(페이지 스크롤은 그대로)
+  useEffect(() => {
+    const el = listRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [thread.length, draftTarget, ask.isPending])
+
+  useAutoGrow(inputRef, input, { max: 160 })
 
   const saveNote = useMutation({
     mutationFn: (m: Message) =>
@@ -217,9 +208,9 @@ const StudioCompanion = ({
             outlineId={outlineId}
             target={draftTarget}
             onClose={onCloseDraft}
+            onBusy={onDraftBusy}
             onInsert={paragraphs => {
-              onInsertDraft(draftTarget.sectionId, paragraphs)
-              onCloseDraft()
+              if (onInsertDraft(draftTarget.sectionId, paragraphs)) onCloseDraft()
             }}
           />
         )}
@@ -232,7 +223,7 @@ const StudioCompanion = ({
                 설교의 말씀은 목사님의 몫이고, 저는 곁에서 묻고 찾고 점검하겠습니다.
               </p>
             </div>
-            <p className="text-[12px] font-bold text-gray-500 dark:text-white/50">{STEP_LABEL[step]} 단계에서 이렇게 물어보세요</p>
+            <p className="text-[12px] font-bold text-gray-500 dark:text-white/50">{stepOf(step).title} 단계에서 이렇게 물어보세요</p>
             <div className="flex flex-col gap-1.5">
               {SUGGESTIONS[step].map(q => (
                 <button
@@ -288,7 +279,7 @@ const StudioCompanion = ({
       <div className="border-t border-gray-200/70 dark:border-white/[0.06] px-3 pt-2.5 pb-3 space-y-2">
         <p className="flex flex-wrap items-center gap-1 text-[12px] text-gray-500 dark:text-white/50">
           <span className="material-icons-outlined text-[14px]">visibility</span>
-          함께 보는 것: {[passageLabel || '본문 없음', STEP_LABEL[step], context ? `「${context.label}」 칸` : null].filter(Boolean).join(' · ')}
+          함께 보는 것: {[passageLabel || '본문 없음', stepOf(step).title, context ? `「${context.label}」 칸` : null].filter(Boolean).join(' · ')}
         </p>
         <div className="flex items-end gap-2 rounded-2xl border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.03] px-3 py-2 focus-within:border-brand transition-colors">
           <textarea
@@ -413,11 +404,13 @@ const DraftComposer = ({
   outlineId,
   target,
   onClose,
+  onBusy,
   onInsert,
 }: {
   outlineId: number
   target: DraftTarget
   onClose: () => void
+  onBusy?: (busy: boolean) => void
   onInsert: (paragraphs: string[]) => void
 }) => {
   const [direction, setDirection] = useState('')
@@ -436,6 +429,14 @@ const DraftComposer = ({
 
   const chosen = result ? result.paragraphs.filter((_, i) => picked.has(i)) : []
 
+  // 받는 중(30~80초)엔 닫지 못하게 — 닫으면 받아 둔 초안과 그 호출 한도가 그냥 버려진다
+  const busy = run.isPending
+  useEffect(() => {
+    onBusy?.(busy)
+    return () => onBusy?.(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy])
+
   return (
     <div className="rounded-2xl border border-brand/40 bg-[var(--brand-soft)] p-3.5 space-y-3">
       <div className="flex items-start gap-2">
@@ -444,7 +445,14 @@ const DraftComposer = ({
           <p className="text-[14px] lg:text-[15px] font-bold text-ink-strong">「{target.label}」 칸 문단 초안</p>
           <p className="text-[12px] text-gray-600 dark:text-white/60">이 칸에 들어갈 문단만 씁니다. 넣은 글은 목사님이 고쳐 쓰시기 전까지 'AI 초안'으로 표시됩니다.</p>
         </div>
-        <button type="button" onClick={onClose} aria-label="초안 닫기" className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-600 dark:text-white/60 hover:bg-white/70 dark:hover:bg-white/[0.08]">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={busy}
+          aria-label={busy ? '초안을 받는 중에는 닫을 수 없어요' : '초안 닫기'}
+          title={busy ? '초안을 받는 중에는 닫을 수 없어요' : undefined}
+          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-600 dark:text-white/60 hover:bg-white/70 dark:hover:bg-white/[0.08] disabled:opacity-35"
+        >
           <span className="material-icons-outlined text-[18px]">close</span>
         </button>
       </div>

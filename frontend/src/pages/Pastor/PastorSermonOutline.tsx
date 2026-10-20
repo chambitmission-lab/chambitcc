@@ -9,6 +9,7 @@ import {
   finishOutline,
   type SermonNote,
 } from '../../api/pastor'
+import { confirmDialog } from '../../utils/confirmDialog'
 import { showToast } from '../../utils/toast'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import DatePicker from '../../components/common/DatePicker'
@@ -270,8 +271,12 @@ const PastorSermonOutline = () => {
                       label="칸 지우기"
                       danger
                       disabled={draft.sections.length <= 1}
-                      onClick={() => {
-                        if ((s.text.trim() || s.manuscript?.trim() || s.note_ids.length) && !window.confirm(`'${s.label}' 칸의 글·원고와 메모 배치를 지울까요?`)) return
+                      onClick={async () => {
+                        if (
+                          (s.text.trim() || s.manuscript?.trim() || s.note_ids.length) &&
+                          !(await confirmDialog({ title: '칸 지우기', message: `'${s.label}' 칸의 글·원고와 메모 배치를 지울까요?`, confirmText: '지우기' }))
+                        )
+                          return
                         editSections(list => list.filter(x => x.id !== s.id))
                       }}
                     />

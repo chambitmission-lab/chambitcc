@@ -2,64 +2,70 @@
 //   PC: 왼쪽 단계 레일 · 가운데 작업면 · 오른쪽 AI 동역자. 모바일: 위 단계 칩 · 아래 'AI 동역자' 버튼(시트).
 //   데이터는 개요(sermon_outlines) 하나 — 개요 보드·원고·강단 보기와 같은 것을 다른 순서로 다룰 뿐이다(저장도 같은 훅).
 //   AI 는 재료·질문·점검과 '목사님이 고른 한 칸'의 문단 초안까지. 넣은 초안은 고쳐 쓰기 전까지 표시가 남는다.
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchSermonBrief, type OutlineSection, type SermonBrief, type StudioStep } from '../../api/pastor'
 import { pastorKeys } from '../../hooks/queryKeys'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
+import { confirmDialog } from '../../utils/confirmDialog'
+import { showToast } from '../../utils/toast'
 import { StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import ManuscriptEditor from './components/ManuscriptEditor'
 import OutlineOptionsCard from './components/OutlineOptionsCard'
 import SermonBriefCard from './components/SermonBriefCard'
 import SermonBridgeCard from './components/SermonBridgeCard'
+import { MANUSCRIPT_MAX } from './components/manuscript'
 import StudioCompanion, { type DraftTarget } from './components/studio/StudioCompanion'
+import StudioGate from './components/studio/StudioGate'
 import { StepPassage, StepPulpit, StepReview, StepSkeleton } from './components/studio/StudioSteps'
-import { STEPS, isStep, manuscriptChars, pendingDraftCount, stepDone, usePassageStudy } from './components/studio/studio'
-import StudioLocked from './components/studio/StudioLocked'
-import { useStudioAccess } from './components/studio/useStudioAccess'
+import { STEPS, isStep, stepOf, studioProgress, usePassageStudy } from './components/studio/studio'
 import { useOutlineDraft } from './components/useOutlineDraft'
-import { formatDay, usePastorGate } from './components/pastorUtils'
+import { formatDay } from './components/pastorUtils'
 
 const MAX_DRAFTS = 12
 
-/** 원고 끝에 문단을 붙인다 — 빈 줄로 띄워 강단 보기에서 한 장씩 넘어가게 */
+/** 원고 끝에 문단을 붙인다 — 빈 줄로 띄워 강단 보기에서 한 장씩 넘어가게. 길이 제한은 부르는 쪽이 본다 */
 const appendParagraphs = (manuscript: string, paragraphs: string[]): string => {
   const head = manuscript.replace(/\s+$/, '')
-  return `${head ? `${head}\n\n` : ''}${paragraphs.join('\n\n')}\n\n`.slice(0, 20000)
+  return `${head ? `${head}\n\n` : ''}${paragraphs.join('\n\n')}\n\n`
 }
 
 const PastorStudioRoom = () => {
-  const pastor = usePastorGate()
-  const { allowed, checking } = useStudioAccess()
   const id = Number(useParams().id)
   const [params, setParams] = useSearchParams()
   const rawStep = params.get('step')
   const step: StudioStep = isStep(rawStep) ? rawStep : 'passage'
 
-  if (!pastor) return null
-  if (checking) {
-    return (
-      <PastorShell>
-        <StatSpinner label="준비실 문을 여는 중..." />
-      </PastorShell>
-    )
-  }
-  if (!allowed) return <StudioLocked />
-  return <StudioRoom id={id} step={step} onStep={s => setParams(s === 'passage' ? {} : { step: s }, { replace: true })} />
+  return (
+    <StudioGate>
+      {Number.isInteger(id) && id > 0 ? (
+        // key — 방 사이를 앞/뒤로 오갈 때 대화·고른 칸·초안 상태를 지난 설교 것으로 들고 가지 않게 통째로 새로 그린다
+        <StudioRoom key={id} id={id} step={step} onStep={s => setParams(s === 'passage' ? {} : { step: s }, { replace: true })} />
+      ) : (
+        <PastorShell wide>
+          <NotFound />
+        </PastorShell>
+      )}
+    </StudioGate>
+  )
 }
+
+const NotFound = () => <p className="px-4 py-16 text-center text-[13px] text-gray-600 dark:text-white/60">설교를 찾을 수 없습니다</p>
 
 /** 준비실 본체 — dev 미리보기(/dev/sermon-desk?v=studio)가 표본 데이터로 그대로 쓴다 */
 export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep; onStep: (s: StudioStep) => void }) => {
-  const setStep = (s: StudioStep) => {
+  /** 단계 바꾸기 — 기본은 맨 위로. 특정 칸으로 이어서 스크롤할 때는 scroll:false 로 한 번만 움직이게 */
+  const setStep = (s: StudioStep, opts: { scroll?: boolean } = {}) => {
     onStep(s)
-    document.getElementById('studio-top')?.scrollIntoView({ block: 'start' })
+    if (opts.scroll !== false) document.getElementById('studio-top')?.scrollIntoView({ block: 'start' })
   }
 
   const { data, isPending, draft, dirty, saving, notes, edit, editSections, flush } = useOutlineDraft(id, true)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [draftTarget, setDraftTarget] = useState<DraftTarget | null>(null)
+  const [draftBusy, setDraftBusy] = useState(false)
   const [companionOpen, setCompanionOpen] = useState(false)
 
   const study = usePassageStudy(draft?.passage ?? '')
@@ -71,54 +77,75 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
     enabled: false,
   })
 
+  // 원고 전체를 훑는 계산은 한 번만 — 단계 칩·레일·머리 칩이 같은 값을 나눠 쓴다(타이핑마다 12번 돌던 것)
+  const progress = useMemo(
+    () =>
+      draft && data
+        ? studioProgress({ passage: draft.passage, sections: draft.sections, noteCount: data.note_count, briefed: !!brief, status: data.status })
+        : null,
+    [draft, data, brief],
+  )
+
   // 고른 칸이 없거나 지워졌으면 첫 칸
   const activeId = draft?.sections.some(s => s.id === activeSection) ? activeSection : (draft?.sections[0]?.id ?? null)
 
-  if (isPending || !draft || !data) {
-    return (
-      <PastorShell wide>
-        {isPending ? <StatSpinner label="설교를 불러오는 중..." /> : <p className="px-4 py-16 text-center text-[13px] text-gray-600">설교를 찾을 수 없습니다</p>}
-      </PastorShell>
-    )
+  if (isPending || !draft || !data || !progress) {
+    return <PastorShell wide>{isPending ? <StatSpinner label="설교를 불러오는 중..." /> : <NotFound />}</PastorShell>
   }
 
-  const progress = { passage: draft.passage, sections: draft.sections, noteCount: data.note_count, briefed: !!brief, status: data.status }
-  const pending = pendingDraftCount(draft.sections)
-  const current = STEPS.find(s => s.id === step)!
+  const current = stepOf(step)
   const next = STEPS[STEPS.indexOf(current) + 1]
   const active = draft.sections.find(s => s.id === activeId) ?? null
+  const closeCompanion = () => setCompanionOpen(false)
 
-  const applySkeleton = (incoming: OutlineSection[], title: string) => {
+  const applySkeleton = async (incoming: OutlineSection[], title: string) => {
     const written = draft.sections.filter(s => s.text.trim() || s.manuscript?.trim() || s.note_ids.length)
-    if (written.length && !window.confirm('지금 뼈대를 이 후보로 바꿀까요? 원고나 메모가 있는 칸은 아래에 그대로 남겨 둡니다.')) return
+    if (
+      written.length &&
+      !(await confirmDialog({
+        title: '뼈대 바꾸기',
+        message: '지금 뼈대를 이 후보로 바꿀까요?',
+        description: '원고나 메모가 있는 칸은 아래에 그대로 남겨 둡니다.',
+        confirmText: '바꾸기',
+        tone: 'brand',
+      }))
+    )
+      return
     const kept = written.filter(s => s.manuscript?.trim() || s.note_ids.length)
     const taken = new Set(kept.map(s => s.id))
     editSections(() => [...incoming.map(s => (taken.has(s.id) ? { ...s, id: `${s.id}n` } : s)), ...kept].slice(0, 12))
     if (title && (!draft.title.trim() || draft.title.endsWith(' 설교'))) edit({ title })
   }
 
-  const insertDraft = (sectionId: string, paragraphs: string[]) => {
+  /** 고른 문단을 그 칸 원고 끝에 넣는다 — 넣었으면 true. 칸 글자 한도를 넘기면 넣지 않고 알린다(잘라 넣으면 초안 표시가 어긋난다) */
+  const insertDraft = (sectionId: string, paragraphs: string[]): boolean => {
+    const target = draft.sections.find(x => x.id === sectionId)
+    if (!target) return false
+    const merged = appendParagraphs(target.manuscript ?? '', paragraphs)
+    if (merged.length > MANUSCRIPT_MAX) {
+      showToast(`이 칸 원고가 ${MANUSCRIPT_MAX.toLocaleString()}자를 넘어 초안을 넣지 못했어요 · 칸을 나누거나 원고를 줄여 주세요`, 'error')
+      return false
+    }
     editSections(list =>
-      list.map(s =>
-        s.id === sectionId
-          ? {
-              ...s,
-              manuscript: appendParagraphs(s.manuscript ?? '', paragraphs),
-              ai_drafts: [...(s.ai_drafts ?? []), ...paragraphs].slice(-MAX_DRAFTS),
-            }
-          : s,
-      ),
+      list.map(s => (s.id === sectionId ? { ...s, manuscript: merged, ai_drafts: [...(s.ai_drafts ?? []), ...paragraphs].slice(-MAX_DRAFTS) } : s)),
     )
     setActiveSection(sectionId)
-    setCompanionOpen(false)
-    if (step !== 'manuscript') setStep('manuscript')
+    closeCompanion()
+    // 원고 단계로 옮길 땐 맨 위 스크롤을 건너뛰고 그 칸으로 한 번만 간다
+    if (step !== 'manuscript') setStep('manuscript', { scroll: false })
     requestAnimationFrame(() => document.getElementById(`ms-${sectionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    return true
   }
 
   const requestDraft = (sectionId: string) => {
     const s = draft.sections.find(x => x.id === sectionId)
     if (!s) return
-    setDraftTarget({ sectionId, label: s.label })
+    if (draftBusy && draftTarget && draftTarget.sectionId !== sectionId) {
+      showToast(`「${draftTarget.label}」 칸 초안을 쓰는 중이에요 · 끝난 뒤 다시 눌러 주세요`, 'info')
+      setCompanionOpen(true)
+      return
+    }
+    if (draftTarget?.sectionId !== sectionId) setDraftTarget({ sectionId, label: s.label })
     setCompanionOpen(true)
   }
 
@@ -139,9 +166,9 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
         <span className="flex flex-wrap items-center gap-1.5 text-[12.5px] lg:text-[13.5px]">
           {label && <span className="px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand font-bold">{label}</span>}
           {draft.preach_on && <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-700 dark:text-white/70 font-semibold">{formatDay(draft.preach_on)}</span>}
-          {manuscriptChars(draft.sections) > 0 && (
+          {progress.chars > 0 && (
             <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-700 dark:text-white/70 font-semibold">
-              원고 {manuscriptChars(draft.sections).toLocaleString()}자
+              원고 {progress.chars.toLocaleString()}자
             </span>
           )}
         </span>
@@ -151,7 +178,7 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
       <nav className="lg:hidden px-4 pt-3 flex gap-1.5 overflow-x-auto no-scrollbar" aria-label="준비 단계">
         {STEPS.map(s => {
           const on = s.id === step
-          const done = stepDone(s.id, progress)
+          const done = progress.done.has(s.id)
           return (
             <button
               key={s.id}
@@ -175,7 +202,7 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
           <ol className="space-y-1">
             {STEPS.map(s => {
               const on = s.id === step
-              const done = stepDone(s.id, progress)
+              const done = progress.done.has(s.id)
               return (
                 <li key={s.id}>
                   <button
@@ -278,7 +305,7 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
                 flush={flush}
                 onJump={sid => {
                   setActiveSection(sid)
-                  setStep('manuscript')
+                  setStep('manuscript', { scroll: false })
                   requestAnimationFrame(() => document.getElementById(`ms-${sid}`)?.scrollIntoView({ block: 'start' }))
                 }}
               />
@@ -302,22 +329,26 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
                 </span>
                 <span className="material-icons-outlined text-[22px] text-brand">arrow_forward</span>
               </button>
-              {step === 'manuscript' && pending > 0 && (
-                <p className="mt-2 text-[12.5px] text-gray-600 dark:text-white/60">고치지 않은 AI 초안 {pending}문단은 점검 단계에서 한 번 더 모아 보여 드립니다.</p>
+              {step === 'manuscript' && progress.pending > 0 && (
+                <p className="mt-2 text-[12.5px] text-gray-600 dark:text-white/60">고치지 않은 AI 초안 {progress.pending}문단은 점검 단계에서 한 번 더 모아 보여 드립니다.</p>
               )}
             </div>
           )}
         </div>
 
-        {/* AI 동역자 — PC 는 오른쪽 단에 붙어 있고, 모바일은 버튼으로 여는 시트 */}
+        {/* AI 동역자 — PC 는 오른쪽 단에 붙어 있고, 모바일은 버튼으로 여는 시트(어두운 배경을 누르거나 뒤로가기로 닫는다) */}
         <div
+          role={companionOpen ? 'dialog' : undefined}
+          aria-modal={companionOpen ? true : undefined}
+          aria-label={companionOpen ? 'AI 동역자' : undefined}
+          onClick={companionOpen ? e => e.target === e.currentTarget && closeCompanion() : undefined}
           className={
             companionOpen
               ? 'fixed inset-x-0 bottom-0 top-0 pt-[6vh] z-[105] px-2 bg-black/40 lg:bg-transparent pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:inset-auto lg:z-auto lg:p-0 lg:pr-4 lg:pt-4 lg:sticky lg:top-[72px] lg:h-[calc((100vh-88px)/var(--pz,1))]'
               : 'hidden lg:block pr-4 pt-4 lg:sticky lg:top-[72px] lg:h-[calc((100vh-88px)/var(--pz,1))]'
           }
         >
-          {companionOpen && <CloseOnBack onClose={() => setCompanionOpen(false)} />}
+          {companionOpen && <CloseOnBack onClose={closeCompanion} />}
           <StudioCompanion
             outlineId={id}
             step={step}
@@ -325,8 +356,9 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
             activeSection={active ? { id: active.id, label: active.label } : null}
             draftTarget={draftTarget}
             onCloseDraft={() => setDraftTarget(null)}
+            onDraftBusy={setDraftBusy}
             onInsertDraft={insertDraft}
-            onClose={companionOpen ? () => setCompanionOpen(false) : undefined}
+            onClose={companionOpen ? closeCompanion : undefined}
           />
         </div>
       </div>

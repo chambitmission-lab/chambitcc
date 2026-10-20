@@ -10,17 +10,21 @@ import { showToast } from '../../utils/toast'
 import DatePicker from '../../components/common/DatePicker'
 import { StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
-import StudioLocked from './components/studio/StudioLocked'
+import StudioGate from './components/studio/StudioGate'
 import { STEPS, nextSunday } from './components/studio/studio'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { STUDIO_HERO } from '../../utils/themeAssets'
-import { useStudioAccess } from './components/studio/useStudioAccess'
-import { formatDay, inputCls, pickerCls, usePastorGate } from './components/pastorUtils'
+import { formatDay, inputCls, pickerCls } from './components/pastorUtils'
 
-const PastorStudio = () => {
-  const pastor = usePastorGate()
-  const { allowed, checking } = useStudioAccess()
+const PastorStudio = () => (
+  <StudioGate>
+    <StudioLobby />
+  </StudioGate>
+)
+
+/** 로비 본체 — 문(StudioGate)을 통과한 뒤에만 그려져 권한 확인을 따로 하지 않는다 */
+const StudioLobby = () => {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const sunday = nextSunday()
@@ -30,7 +34,6 @@ const PastorStudio = () => {
   const { data: outlines, isPending } = useQuery({
     queryKey: pastorKeys.outlines(),
     queryFn: fetchOutlines,
-    enabled: pastor && allowed,
   })
 
   const [passage, setPassage] = useState('')
@@ -46,16 +49,6 @@ const PastorStudio = () => {
     },
     onError: (e: Error) => showToast(e.message, 'error'),
   })
-
-  if (!pastor) return null
-  if (checking) {
-    return (
-      <PastorShell>
-        <StatSpinner label="준비실 문을 여는 중..." />
-      </PastorShell>
-    )
-  }
-  if (!allowed) return <StudioLocked />
 
   const drafts = (outlines ?? []).filter(o => o.status === 'draft')
   const done = (outlines ?? []).filter(o => o.status === 'done').slice(0, 5)

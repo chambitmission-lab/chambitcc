@@ -1,14 +1,16 @@
 // 설교 준비실 가운데 단 — 단계별 작업면
 //   ① 본문(StepPassage) · ③ 뼈대(StepSkeleton) · ⑤ 점검(StepReview) · ⑥ 강단과 나눔(StepPulpit).
 //   ② 연구·④ 원고는 기존 카드(SermonBriefCard·SermonBridgeCard·ManuscriptEditor)를 PastorStudioRoom 이 그대로 쓴다.
-import { useLayoutEffect, useMemo, useRef, type ReactNode } from 'react'
+import { useMemo, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { OutlineSection, SermonStudy } from '../../../../api/pastor'
 import DatePicker from '../../../../components/common/DatePicker'
+import { useAutoGrow } from '../../../../hooks/useAutoGrow'
+import { confirmDialog } from '../../../../utils/confirmDialog'
 import { IconButton } from '../sermonNotes'
 import ManuscriptReviewPanel from '../ManuscriptReviewPanel'
 import WeekPackEditor from '../WeekPackEditor'
-import { checkManuscript, countChars, estimateMinutes, quotedVerses, sectionBody, usePace } from '../manuscript'
+import { checkManuscript, countChars, estimateMinutes, pendingDraftsOf, quotedVerses, sectionBody, usePace } from '../manuscript'
 import { formatDay, inputCls, pickerCls } from '../pastorUtils'
 import type { OutlineDraft } from '../useOutlineDraft'
 import { pendingDraftCount } from './studio'
@@ -170,12 +172,7 @@ const AutoGrowText = ({
   'aria-label'?: string
 }) => {
   const ref = useRef<HTMLTextAreaElement>(null)
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [value])
+  useAutoGrow(ref, value)
   return (
     <textarea
       ref={ref}
@@ -247,8 +244,12 @@ export const StepSkeleton = ({
                 label="칸 지우기"
                 danger
                 disabled={sections.length <= 1}
-                onClick={() => {
-                  if ((s.text.trim() || s.manuscript?.trim() || s.note_ids.length) && !window.confirm(`'${s.label}' 칸의 글·원고와 메모 배치를 지울까요?`)) return
+                onClick={async () => {
+                  if (
+                    (s.text.trim() || s.manuscript?.trim() || s.note_ids.length) &&
+                    !(await confirmDialog({ title: '칸 지우기', message: `'${s.label}' 칸의 글·원고와 메모 배치를 지울까요?`, confirmText: '지우기' }))
+                  )
+                    return
                   onChange(list => list.filter(x => x.id !== s.id))
                 }}
               />
@@ -302,9 +303,7 @@ export const StepReview = ({
   const checks = useMemo(() => checkManuscript(sections, perMin), [sections, perMin])
   const quotes = useMemo(() => quotedVerses(sections), [sections])
   const total = sections.reduce((n, s) => n + countChars(sectionBody(s)), 0)
-  const drafts = sections
-    .map(s => ({ s, n: (s.ai_drafts ?? []).filter(d => (s.manuscript ?? '').includes(d.trim())).length }))
-    .filter(x => x.n > 0)
+  const drafts = sections.map(s => ({ s, n: pendingDraftsOf(s).length })).filter(x => x.n > 0)
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:items-start">

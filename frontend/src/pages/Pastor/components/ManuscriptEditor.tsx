@@ -3,25 +3,28 @@
 //          빈 줄이 강단 보기의 장 경계 — 말씀 인용만 있는 문단은 강단에서 말씀 카드로 보인다.
 //   오른쪽 단: 칸 목록·칸별 예상 시간·말하는 빠르기 / 참고용 점검(규칙)·AI 원고 점검(누를 때만)·인용한 말씀·이미 쓴 예화 알림
 // 저장은 부모의 개요 저장(입력이 멈추고 1초 뒤)을 그대로 탄다.
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { OutlineSection, SermonNote } from '../../../api/pastor'
+import { useAutoGrow } from '../../../hooks/useAutoGrow'
 import { findSlashMatch, useVerseSlash } from '../../Home/components/PrayerComposer/verseSlash'
 import { VerseSlashPanel } from '../../Home/components/PrayerComposer/VerseSlashPanel'
 import ManuscriptReviewPanel from './ManuscriptReviewPanel'
 import { formatDay } from './pastorUtils'
 import {
+  MANUSCRIPT_MAX,
   PACES,
   checkManuscript,
   countChars,
   estimateMinutes,
+  pendingDraftsOf,
   quotedVerses,
   reusedNotes,
   sectionBody,
   usePace,
 } from './manuscript'
 
-const MAX_LEN = 20000
+const MAX_LEN = MANUSCRIPT_MAX
 
 const ManuscriptEditor = ({
   outlineId,
@@ -254,12 +257,7 @@ const SectionManuscript = ({
   const [focused, setFocused] = useState(false)
 
   // 글 길이에 맞춰 늘어나는 칸 — 원고 전체를 한 번에 훑어 내려가며 쓸 수 있게
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${Math.max(el.scrollHeight, 140)}px`
-  }, [value])
+  useAutoGrow(ref, value, { min: 140 })
 
   const slashMatch = useMemo(() => {
     if (!focused) return null
@@ -299,7 +297,7 @@ const SectionManuscript = ({
 
   const chars = countChars(value)
   // 원고에 그대로 남아 있는 AI 초안만 — 고치면 그 문단은 목사님 글이다(서버도 저장 때 같은 기준으로 정리)
-  const pendingDrafts = (section.ai_drafts ?? []).filter(d => value.includes(d.trim()))
+  const pendingDrafts = pendingDraftsOf(section)
 
   // 그 초안 문단을 원고에서 골라 보여 준다 — 글자 색을 칠할 수 없는 입력칸이라 선택 영역으로 짚는다
   const showDraft = (d: string) => {
