@@ -32,6 +32,7 @@ const ManuscriptEditor = ({
   flush,
   aside = true,
   onRequestDraft,
+  onDraftsChange,
   activeSection,
   onActiveChange,
 }: {
@@ -46,6 +47,8 @@ const ManuscriptEditor = ({
   aside?: boolean
   /** 설교 준비실 — 칸 머리의 'AI 문단 초안' 버튼 */
   onRequestDraft?: (sectionId: string) => void
+  /** 설교 준비실 — 'AI 초안' 표시 목록을 고친다(목사님이 검토하고 그대로 쓰기로 한 문단은 표시를 뗀다) */
+  onDraftsChange?: (sectionId: string, drafts: string[]) => void
   /** 지금 칸을 바깥이 쥘 때(준비실의 AI 동역자가 '지금 보고 있는 칸'을 맥락으로 쓴다) */
   activeSection?: string
   onActiveChange?: (sectionId: string) => void
@@ -109,6 +112,7 @@ const ManuscriptEditor = ({
                 setActive(s.id)
                 onRequestDraft(s.id)
               } : undefined}
+              onDraftsChange={onDraftsChange ? d => onDraftsChange(s.id, d) : undefined}
             />
           ))}
           <p className="text-[12.5px] lg:text-[13.5px] text-gray-500 dark:text-white/50 leading-relaxed">
@@ -233,6 +237,7 @@ const SectionManuscript = ({
   onChange,
   active = false,
   onRequestDraft,
+  onDraftsChange,
 }: {
   section: OutlineSection
   notes: SermonNote[]
@@ -240,6 +245,7 @@ const SectionManuscript = ({
   onChange: (v: string) => void
   active?: boolean
   onRequestDraft?: () => void
+  onDraftsChange?: (drafts: string[]) => void
 }) => {
   const value = section.manuscript ?? ''
   const ref = useRef<HTMLTextAreaElement>(null)
@@ -294,6 +300,23 @@ const SectionManuscript = ({
   const chars = countChars(value)
   // 원고에 그대로 남아 있는 AI 초안만 — 고치면 그 문단은 목사님 글이다(서버도 저장 때 같은 기준으로 정리)
   const pendingDrafts = (section.ai_drafts ?? []).filter(d => value.includes(d.trim()))
+
+  // 그 초안 문단을 원고에서 골라 보여 준다 — 글자 색을 칠할 수 없는 입력칸이라 선택 영역으로 짚는다
+  const showDraft = (d: string) => {
+    const el = ref.current
+    const start = value.indexOf(d.trim())
+    if (!el || start < 0) return
+    el.focus({ preventScroll: true })
+    el.setSelectionRange(start, start + d.trim().length)
+    // 입력칸이 글 길이만큼 늘어나 있어 페이지가 스크롤한다 — 문단 위치를 줄 수로 어림해 그 근처로
+    const ratio = value.slice(0, start).split('\n').length / Math.max(1, value.split('\n').length)
+    const rect = el.getBoundingClientRect()
+    // body 가 실제 스크롤러인 앱이라 window 가 아니라 둘 다에 건다(움직이지 않는 쪽은 무시된다)
+    const top = rect.top + rect.height * ratio - 160
+    document.body.scrollBy({ top, behavior: 'smooth' })
+    document.documentElement.scrollBy({ top, behavior: 'smooth' })
+  }
+  const reviewed = (d: string) => onDraftsChange?.((section.ai_drafts ?? []).filter(x => x !== d))
   return (
     <section
       id={`ms-${section.id}`}
@@ -313,12 +336,38 @@ const SectionManuscript = ({
         )}
       </div>
       {pendingDrafts.length > 0 && (
-        <p className="mb-2 flex items-start gap-1.5 rounded-xl px-3 py-2 bg-[var(--brand-soft)] border border-dashed border-brand/40 text-[12.5px] lg:text-[13.5px] text-ink-strong">
-          <span className="material-icons-outlined text-[16px] mt-px text-brand">auto_awesome</span>
-          <span>
-            아직 고치지 않은 <b>AI 초안 {pendingDrafts.length}문단</b>이 이 칸에 있습니다. 목사님의 말로 고쳐 쓰시면 표시가 사라집니다.
-          </span>
-        </p>
+        <div className="mb-2 rounded-xl px-3 py-2.5 bg-[var(--brand-soft)] border border-dashed border-brand/40 space-y-2">
+          <p className="flex items-start gap-1.5 text-[12.5px] lg:text-[13.5px] text-ink-strong">
+            <span className="material-icons-outlined text-[16px] mt-px text-brand">auto_awesome</span>
+            <span>
+              아래 원고 중 <b>AI 초안 {pendingDrafts.length}문단</b>이 아직 그대로입니다.
+              {onDraftsChange ? " 고쳐 쓰시거나, 읽어 보시고 그대로 쓰실 거면 '검토했어요'를 눌러 주세요." : ' 고쳐 쓰시면 표시가 사라집니다.'}
+            </span>
+          </p>
+          <ul className="space-y-1">
+            {pendingDrafts.map((d, i) => (
+              <li key={i} className="flex items-center gap-1.5 rounded-lg bg-white/80 dark:bg-white/[0.05] pl-2.5 pr-1 py-1">
+                <span className="min-w-0 flex-1 truncate text-[12.5px] lg:text-[13px] text-gray-700 dark:text-white/70">“{d.trim().slice(0, 48)}…”</span>
+                <button
+                  type="button"
+                  onClick={() => showDraft(d)}
+                  className="shrink-0 px-2 py-1 rounded-md text-[12px] lg:text-[12.5px] font-bold text-brand hover:bg-[var(--brand-soft)]"
+                >
+                  찾아 보기
+                </button>
+                {onDraftsChange && (
+                  <button
+                    type="button"
+                    onClick={() => reviewed(d)}
+                    className="shrink-0 inline-flex items-center gap-0.5 px-2 py-1 rounded-md text-[12px] lg:text-[12.5px] font-bold text-gray-600 dark:text-white/65 hover:text-brand hover:bg-[var(--brand-soft)]"
+                  >
+                    <span className="material-icons-outlined text-[14px]">check</span>검토했어요
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {(section.text.trim() || notes.length > 0) && (
         <div className="mb-2 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] px-3.5 py-2.5 space-y-1.5">

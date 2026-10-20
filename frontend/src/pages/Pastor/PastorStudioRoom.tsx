@@ -264,6 +264,7 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
               flush={flush}
               aside={false}
               onRequestDraft={requestDraft}
+              onDraftsChange={(sid, drafts) => editSections(list => list.map(x => (x.id === sid ? { ...x, ai_drafts: drafts } : x)))}
               activeSection={activeId ?? undefined}
               onActiveChange={setActiveSection}
             />
