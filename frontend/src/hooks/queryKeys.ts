@@ -69,6 +69,8 @@ export const sermonKeys = {
   takeaways: () => ['sermon-takeaways'] as const,
   /** 목사님이 공개한 소그룹 나눔 질문 */
   discussion: (sermonId: number) => ['sermon-discussion', sermonId] as const,
+  /** 목사님이 공개한 한 주 묶음(주보 요약·다음세대·가정예배) */
+  weekPack: (sermonId: number) => ['sermon-week-pack', sermonId] as const,
 }
 
 export const columnKeys = {
@@ -184,6 +186,9 @@ export const pastorKeys = {
   sermonStudy: (ref: string) => ['pastor-sermon-study', ref] as const,
   /** 설교의 메아리 — null 은 '가장 최근 설교' */
   sermonEcho: (sermonId: number | null) => ['pastor-sermon-echo', sermonId] as const,
+  /** 연구 브리프(AI) — 본문 표기별. 서버도 잠시 담아 두지만 화면 이동 사이엔 이 캐시로 */
+  sermonBrief: (ref: string) => ['pastor-sermon-brief', ref] as const,
+  weekPack: (outlineId: number) => ['pastor-week-pack', outlineId] as const,
 }
 
 /** 비로그인 랜딩 통계 티커 */

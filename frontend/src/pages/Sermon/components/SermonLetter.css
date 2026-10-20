@@ -588,3 +588,61 @@
   font-weight: 800;
 }
 .sl-discuss li p { font-size: 14.5px; line-height: 1.6; color: var(--text-body); word-break: keep-all; }
+
+/* 이번 주 말씀 따라 살기 — 목사님이 공개한 한 주 묶음 */
+.sl-week { display: grid; gap: 12px; }
+.sl-week-summary { display: grid; gap: 6px; }
+.sl-week-summary li {
+  position: relative;
+  padding-left: 14px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.sl-week-summary li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+.sl-week-label { font-size: 12.5px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; }
+.sl-week-days { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.sl-week-days button {
+  padding: 6px 0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+}
+.sl-week-days button.is-on { background: var(--brand); color: #fff; }
+.sl-week-card {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-container);
+  display: grid;
+  gap: 6px;
+}
+.sl-week-ref { font-size: 12.5px; font-weight: 800; color: var(--brand); }
+.sl-week-verse { font-size: 14px; line-height: 1.7; color: var(--text-body); word-break: keep-all; }
+.sl-week-card h4 { font-size: 15.5px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.01em; }
+.sl-week-body { font-size: 14.5px; line-height: 1.7; color: var(--text-body); word-break: keep-all; }
+.sl-week-prayer { font-size: 14px; line-height: 1.65; color: var(--text-body); word-break: keep-all; }
+.sl-week-prayer b { margin-right: 6px; color: var(--brand); font-weight: 800; }
+.sl-week-kids summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.sl-week-kids summary .material-icons-outlined { font-size: 18px; color: var(--brand); }
+.sl-week-kids p { margin-top: 8px; font-size: 14.5px; line-height: 1.7; color: var(--text-body); word-break: keep-all; }

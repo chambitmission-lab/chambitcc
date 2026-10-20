@@ -911,3 +911,91 @@ export const saveSermonDiscussion = (
   data: { questions: string[]; is_published: boolean },
 ): Promise<SermonDiscussion> =>
   pastorSend(`/pastor/sermon-echo/${sermonId}/discussion`, 'PUT', data, '나눔 질문을 저장하지 못했습니다')
+
+// ── 설교 준비 AI (고신 개혁주의 기준 · 이단 표현은 서버가 거른다 · 목사님 확인 후에만 쓰임) ──────
+export interface BriefPair {
+  id: string
+  title: string
+  body: string
+}
+
+export interface SermonBrief {
+  label: string
+  summary: string
+  context: BriefPair[]
+  words: Array<{ id: string; word: string; original: string; meaning: string }>
+  christ: Array<{ id: string; text: string }>
+  /** 웨스트민스터 신앙고백 장 — 제목은 서버가 붙인다 */
+  doctrines: Array<{ id: string; chapter: number; title: string; why: string }>
+  cautions: BriefPair[]
+  big_ideas: Array<{ id: string; text: string }>
+  questions: Array<{ id: string; text: string }>
+  /** 이단 표현이 있어 버린 항목 수 */
+  filtered: number
+}
+
+export const fetchSermonBrief = (ref: string, refresh = false): Promise<SermonBrief> =>
+  pastorSend('/pastor/sermon-study/brief', 'POST', { ref, refresh }, '연구 재료를 만들지 못했습니다')
+
+export type ReviewKind = 'scripture' | 'text' | 'theology' | 'gospel' | 'fact' | 'clarity'
+
+export interface ReviewFinding {
+  id?: string
+  kind: ReviewKind
+  section: string | null
+  quote: string
+  comment: string
+  /** 말씀 대조에서만 — 개역개정 본문(없는 구절이면 null) */
+  expected?: string | null
+}
+
+export interface SermonReview {
+  findings: ReviewFinding[]
+  scripture: ReviewFinding[]
+  quotes_checked: number
+  strengths: string[]
+  gospel_note: string
+  filtered: number
+}
+
+export const reviewOutline = (id: number): Promise<SermonReview> =>
+  pastorSend(`/pastor/outlines/${id}/review`, 'POST', {}, '원고를 점검하지 못했습니다')
+
+export interface WeekDevotion {
+  day: string
+  passage: string | null
+  title: string
+  body: string
+  prayer: string
+}
+
+export interface WeekPackContent {
+  summary: string[]
+  kids: string
+  questions: string[]
+  devotions: WeekDevotion[]
+}
+
+export interface WeekPack extends WeekPackContent {
+  sermon_id: number | null
+  is_published: boolean
+  published_at: string | null
+  updated_at: string | null
+}
+
+export interface WeekPackData {
+  pack: WeekPack | null
+  sermon: { id: number; title: string; bible_verse: string | null; date: string | null } | null
+}
+
+export const fetchWeekPack = (outlineId: number): Promise<WeekPackData> =>
+  pastorGet(`/pastor/outlines/${outlineId}/week-pack`, '한 주 묶음을 불러오지 못했습니다')
+
+export const draftWeekPack = (outlineId: number): Promise<WeekPackContent & { filtered: number }> =>
+  pastorSend(`/pastor/outlines/${outlineId}/week-pack/draft`, 'POST', {}, '한 주 묶음 초안을 만들지 못했습니다')
+
+export const saveWeekPack = (
+  outlineId: number,
+  data: WeekPackContent & { sermon_id: number | null; publish: boolean; reviewed: boolean },
+): Promise<WeekPackData> =>
+  pastorSend(`/pastor/outlines/${outlineId}/week-pack`, 'PUT', data, '한 주 묶음을 저장하지 못했습니다')

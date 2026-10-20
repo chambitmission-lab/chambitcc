@@ -19,6 +19,7 @@ import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCar
 import PastorShell from './components/PastorShell'
 import NoteComposer from './components/NoteComposer'
 import ManuscriptEditor from './components/ManuscriptEditor'
+import WeekPackEditor from './components/WeekPackEditor'
 import { GhostButton, PastorModal, PrimaryButton } from './components/ui'
 import { IconButton, NoteCard, SermonPicker, SermonTabs } from './components/sermonNotes'
 import { invalidateNoteQueries } from './components/sermonNoteUtils'
@@ -29,6 +30,7 @@ import { escapeHtml } from '../../utils/escapeHtml'
 // 입력이 멈추면 1초 뒤 저장. PC 오른쪽엔 '이 본문과 이어지는 메모'가 있어 누르면 지금 고른 칸에 붙는다.
 // 설교를 마치면 붙인 메모가 모두 '설교에 씀'으로 표시된다(같은 예화 되풀이 방지).
 // ?mode=manuscript — 같은 칸에 실제로 말할 원고를 쓰는 화면(ManuscriptEditor). 강단 보기는 /pulpit.
+// ?mode=week — 원고로 주보 요약·나눔 질문·다음세대·가정예배 6일을 만들어 확인 후 공개(WeekPackEditor).
 
 interface Draft {
   title: string
@@ -45,6 +47,8 @@ const toDraft = (o: SermonOutline): Draft => ({
   sections: o.sections.map(s => ({ ...s, manuscript: s.manuscript ?? '' })),
 })
 
+type Mode = 'outline' | 'manuscript' | 'week'
+
 const newSectionId = () => `s${Date.now().toString(36)}`
 
 const PastorSermonOutline = () => {
@@ -53,8 +57,9 @@ const PastorSermonOutline = () => {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
-  const mode = params.get('mode') === 'manuscript' ? 'manuscript' : 'outline'
-  const setMode = (m: 'outline' | 'manuscript') => setParams(m === 'manuscript' ? { mode: m } : {}, { replace: true })
+  const rawMode = params.get('mode')
+  const mode: Mode = rawMode === 'manuscript' || rawMode === 'week' ? rawMode : 'outline'
+  const setMode = (m: Mode) => setParams(m === 'outline' ? {} : { mode: m }, { replace: true })
 
   const { data, isPending } = useQuery<SermonOutline>({
     queryKey: pastorKeys.outline(id),
@@ -192,6 +197,13 @@ const PastorSermonOutline = () => {
     onError: (e: Error) => showToast(e.message, 'error'),
   })
 
+  // AI 점검·한 주 묶음은 저장된 원고를 읽는다 — 1초 대기 중인 입력을 먼저 저장
+  const flush = async () => {
+    if (!dirty || !draft) return
+    setDirty(false)
+    await save.mutateAsync(draft)
+  }
+
   const finish = useMutation({
     mutationFn: async (choice: { sermonId: number | null; date: string }) => {
       if (draft) await save.mutateAsync(draft)
@@ -232,11 +244,12 @@ const PastorSermonOutline = () => {
       </div>
 
       <div className="px-4 pt-3 flex items-center gap-2">
-        <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-gray-100 dark:bg-white/[0.05] w-[220px] lg:w-[260px]" role="tablist">
+        <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-gray-100 dark:bg-white/[0.05] flex-1 min-w-0 max-w-[300px] lg:max-w-[380px]" role="tablist">
           {(
             [
               ['outline', 'view_agenda', '개요'],
               ['manuscript', 'edit_note', '원고'],
+              ['week', 'date_range', '한 주 묶음'],
             ] as const
           ).map(([m, icon, label]) => (
             <button
@@ -245,30 +258,33 @@ const PastorSermonOutline = () => {
               role="tab"
               aria-selected={mode === m}
               onClick={() => setMode(m)}
-              className={`flex items-center justify-center gap-1 py-1.5 lg:py-2 rounded-lg text-[13px] lg:text-[15px] font-bold transition-colors ${
+              className={`flex items-center justify-center gap-1 py-1.5 lg:py-2 rounded-lg text-[13px] lg:text-[15px] font-bold whitespace-nowrap transition-colors ${
                 mode === m ? 'bg-white dark:bg-white/[0.12] text-brand shadow-sm' : 'text-gray-600 dark:text-white/65'
               }`}
             >
-              <span className="material-icons-outlined text-[17px]">{icon}</span>
+              <span className="material-icons-outlined text-[17px] hidden sm:inline">{icon}</span>
               {label}
             </button>
           ))}
         </div>
         <Link
           to={`/pastor/sermon/outlines/${id}/pulpit`}
-          className="ml-auto inline-flex items-center gap-1 px-3.5 py-2 rounded-full bg-ink-strong text-white dark:bg-white dark:text-black text-[13px] lg:text-[14px] font-bold"
+          className="ml-auto shrink-0 inline-flex items-center gap-1 px-3.5 py-2 rounded-full bg-ink-strong text-white dark:bg-white dark:text-black text-[13px] lg:text-[14px] font-bold whitespace-nowrap"
         >
           <span className="material-icons-outlined text-[17px]">menu_book</span>강단 보기
         </Link>
       </div>
 
-      {mode === 'manuscript' ? (
+      {mode === 'week' ? (
+        <WeekPackEditor outlineId={id} flush={flush} />
+      ) : mode === 'manuscript' ? (
         <ManuscriptEditor
           outlineId={id}
           draft={draft}
           status={data.status}
           notes={notes}
           onChange={(sid, manuscript) => editSections(list => list.map(x => (x.id === sid ? { ...x, manuscript } : x)))}
+          flush={flush}
         />
       ) : (
         <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">

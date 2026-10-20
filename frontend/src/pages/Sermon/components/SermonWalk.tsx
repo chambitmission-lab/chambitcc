@@ -18,6 +18,7 @@ import { formatReference, parseBibleReference } from '../utils/sermonMeta'
 import { primaryMedia, readWalk, writeWalk, type WalkState } from '../utils/sermonLetter'
 import type { SermonHeroVariant } from './SermonLetterHero'
 import SermonDiscussionBlock from './SermonDiscussionBlock'
+import SermonWeekPackBlock from './SermonWeekPackBlock'
 
 interface SermonWalkProps {
   sermon: Sermon
@@ -290,6 +291,7 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
       </div>
 
       <SermonDiscussionBlock sermon={sermon} />
+      <SermonWeekPackBlock sermon={sermon} />
     </section>
   )
 }

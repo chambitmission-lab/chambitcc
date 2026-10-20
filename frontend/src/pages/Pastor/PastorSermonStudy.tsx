@@ -17,11 +17,12 @@ import { showToast } from '../../utils/toast'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import NoteComposer from './components/NoteComposer'
+import SermonBriefCard from './components/SermonBriefCard'
 import { IconButton, NoteCard, SermonTabs } from './components/sermonNotes'
 import { agoLabel, daysSince, formatDay, inputCls, usePastorGate } from './components/pastorUtils'
 
-// 설교 본문 작업대 — 본문 하나를 열면 연구 재료를 한 화면에 모은다 (AI 미사용, 규칙·집계)
-//   좌: 본문(반복어 색 표시·성도 밑줄 수) · 권 개관과 그리스도 연결
+// 설교 본문 작업대 — 본문 하나를 열면 연구 재료를 한 화면에 모은다 (기본은 규칙·집계)
+//   좌: 본문(반복어 색 표시·성도 밑줄 수) · AI 연구 재료(누를 때만, 고른 것만 메모로) · 권 개관과 그리스도 연결
 //   우: 고른 절의 관주(교역자가 직접 잇는다) · 절 해석 · 내 메모 · 지난 설교 · 원고로 이어 쓰기
 // 본문은 주소(?ref=)에 남겨 새로고침·뒤로가기에도 같은 본문이 열린다.
 
@@ -150,6 +151,7 @@ export const StudyBody = ({ data }: { data: SermonStudy }) => {
   const singleChapter = verses[0].chapter === verses[verses.length - 1].chapter
   const notes = data.notes ?? []
   const xrefs = data.cross_refs ?? []
+  const qc = useQueryClient()
 
   const toggle = (w: string) =>
     setOn(prev => {
@@ -229,6 +231,12 @@ export const StudyBody = ({ data }: { data: SermonStudy }) => {
               밑줄 · 즐겨찾기는 성도들이 /bible 에서 남긴 것을 사람 수로만 보여 드립니다.
             </p>
           </SectionCard>
+
+          {/* AI 연구 재료 — 담은 항목은 오른쪽 '이 본문과 이어지는 내 메모'에 바로 보이게 작업대를 다시 읽는다 */}
+          <SermonBriefCard
+            label={data.label ?? data.query}
+            onSaved={() => void qc.invalidateQueries({ queryKey: pastorKeys.sermonStudy(data.query) })}
+          />
 
           <BookIntroCard data={data} />
         </div>

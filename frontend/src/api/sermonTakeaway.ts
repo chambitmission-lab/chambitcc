@@ -51,3 +51,27 @@ export const getSermonDiscussion = async (sermonId: number): Promise<string[] | 
   })
   return data.data.questions ?? null
 }
+
+export interface SermonWeekDevotion {
+  day: string
+  passage: string | null
+  title: string
+  body: string
+  prayer: string
+  /** 본문 앞 몇 절 */
+  text: string | null
+}
+
+export interface SermonWeekPack {
+  summary: string[]
+  kids: string
+  devotions: SermonWeekDevotion[]
+}
+
+/** 목사님이 공개한 한 주 묶음 — 없으면 null (로그인 불필요) */
+export const getSermonWeekPack = async (sermonId: number): Promise<SermonWeekPack | null> => {
+  const data = await request<{ data: SermonWeekPack | null }>(`/sermons/${sermonId}/week-pack`, {
+    errorMessage: '이번 주 말씀 자료를 불러오지 못했습니다',
+  })
+  return data.data ?? null
+}

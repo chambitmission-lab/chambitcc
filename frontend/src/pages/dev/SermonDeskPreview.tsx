@@ -1,12 +1,16 @@
 /**
  * /dev/sermon-desk — 설교 본문 작업대 · 원고 쓰기 · 강단 보기를 표본 데이터로 (로그인·백엔드 없이)
  *
- * ?v=study(기본) | manuscript | pulpit
+ * ?v=study(기본) | manuscript | week | pulpit
  * 실제 화면 컴포넌트를 그대로 쓴다. 관주 잇기·지우기·원고 시작 버튼은 진짜 API 라 여기선 누르지 말 것.
+ * AI 연구 재료·한 주 묶음은 표본 응답을 쿼리 캐시에 미리 넣어 결과 화면을 보여 준다(다시 만들기·저장은 진짜 API).
  */
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import type { OutlineSection, SermonNote, SermonOutline, SermonStudy } from '../../api/pastor'
+import { useQueryClient } from '@tanstack/react-query'
+import type { OutlineSection, SermonBrief, SermonNote, SermonOutline, SermonStudy, WeekPackData } from '../../api/pastor'
+import { pastorKeys } from '../../hooks/queryKeys'
+import WeekPackEditor from '../Pastor/components/WeekPackEditor'
 import PastorShell from '../Pastor/components/PastorShell'
 import { SermonTabs } from '../Pastor/components/sermonNotes'
 import ManuscriptEditor from '../Pastor/components/ManuscriptEditor'
@@ -123,7 +127,57 @@ const SECTIONS: OutlineSection[] = [
   { id: 'close', label: '결론', text: '출근길 10분', manuscript: '', note_ids: [] },
 ]
 
+const BRIEF: SermonBrief = {
+  label: '요한복음 15:1-8',
+  summary: '열매는 가지의 노력이 아니라 참포도나무이신 그리스도께 붙어 있음의 결과입니다.',
+  context: [
+    { id: 'context-0', title: '앞뒤 문맥', body: '다락방 강화(13-17장) 가운데, 떠나실 것을 앞둔 주님이 제자들에게 주신 말씀입니다. 14장 끝 "일어나라 여기를 떠나자" 뒤에 이어집니다.' },
+    { id: 'context-1', title: '구약 배경', body: '구약에서 포도나무는 이스라엘의 상징입니다(시 80편, 사 5장). 들포도를 맺은 이스라엘과 대조해 주님이 "참" 포도나무이심을 밝히십니다.' },
+  ],
+  words: [
+    { id: 'words-0', word: '거하라', original: '메노 μένω', meaning: '머물다, 계속 있다. 요한복음이 즐겨 쓰는 말로, 한 번의 결단보다 지속되는 연합을 가리킵니다.' },
+  ],
+  christ: [{ id: 'christ-0', text: '이스라엘이 이루지 못한 열매를 그리스도께서 참 이스라엘로 이루셨고, 성도는 그분과 연합하여 그 생명으로 열매를 맺습니다.' }],
+  doctrines: [
+    { id: 'doctrines-0', chapter: 13, title: '성화', why: '열매는 그리스도와 연합한 자 안에서 성령께서 이루시는 성화의 열매입니다.' },
+    { id: 'doctrines-1', chapter: 17, title: '성도의 견인', why: '2·6절의 "제거"를 참된 성도의 구원 상실로 읽지 않도록 견인 교리와 함께 살핍니다.' },
+  ],
+  cautions: [{ id: 'cautions-0', title: '열매를 구원의 조건으로', body: '열매가 있어야 구원받는다는 식으로 읽으면 은혜의 순서가 뒤집힙니다. 열매는 연합의 결과이지 조건이 아닙니다.' }],
+  big_ideas: [
+    { id: 'big_ideas-0', text: '열매는 짜내는 것이 아니라 붙어 있을 때 맺힌다' },
+    { id: 'big_ideas-1', text: '가지치기는 버림이 아니라 더 맺게 하시는 아버지의 손길이다' },
+  ],
+  questions: [{ id: 'questions-0', text: '"거한다"는 것이 오늘 성도의 일상에서 구체적으로 무엇인가?' }],
+  filtered: 1,
+}
+
+const WEEK: WeekPackData = {
+  sermon: { id: 1, title: '참포도나무와 가지', bible_verse: '요 15:1-8', date: '2026-10-19' },
+  pack: {
+    summary: ['참포도나무는 그리스도이십니다.', '열매는 붙어 있을 때 맺힙니다.', '가지치기는 더 맺게 하시는 사랑입니다.'],
+    kids: '포도 가지는 혼자서는 포도를 맺을 수 없어요. 나무에 꼭 붙어 있어야 해요. 예수님이 나무이시고 우리는 가지예요.',
+    questions: ['오늘 본문에서 예수님은 자신을 무엇이라고 소개하셨나요?', '이번 주 예수님께 붙어 있기 위해 정할 작은 습관은 무엇인가요?'],
+    devotions: ['월', '화', '수', '목', '금', '토'].map((day, i) => ({
+      day,
+      passage: i === 0 ? '요한복음 15:1-2' : null,
+      title: i === 0 ? '참포도나무' : '',
+      body: i === 0 ? '예수님은 자신을 참포도나무라 하십니다. 우리가 열매 맺지 못하던 자리에서 주님이 대신 열매를 맺으셨습니다.' : '',
+      prayer: i === 0 ? '주님, 오늘도 주님께 붙어 있게 하옵소서.' : '',
+    })),
+    sermon_id: 1,
+    is_published: false,
+    published_at: null,
+    updated_at: null,
+  },
+}
+
 const SermonDeskPreview = () => {
+  const qc = useQueryClient()
+  useState(() => {
+    qc.setQueryData(pastorKeys.sermonBrief(BRIEF.label), BRIEF)
+    qc.setQueryData(pastorKeys.weekPack(7), WEEK)
+    return true
+  })
   const [params, setParams] = useSearchParams()
   const v = params.get('v') ?? 'study'
   const [sections, setSections] = useState(SECTIONS)
@@ -153,13 +207,15 @@ const SermonDeskPreview = () => {
     <PastorShell>
       <SermonTabs />
       <div className="px-4 pt-3 flex gap-2 text-[13px] font-bold">
-        {['study', 'manuscript', 'pulpit'].map(x => (
+        {['study', 'manuscript', 'week', 'pulpit'].map(x => (
           <button key={x} type="button" onClick={() => setParams({ v: x })} className={`px-3 py-1.5 rounded-full ${v === x ? 'bg-brand text-white' : 'bg-gray-100 dark:bg-white/10'}`}>
             {x}
           </button>
         ))}
       </div>
-      {v === 'manuscript' ? (
+      {v === 'week' ? (
+        <WeekPackEditor outlineId={7} />
+      ) : v === 'manuscript' ? (
         <ManuscriptEditor
           outlineId={7}
           draft={draft}

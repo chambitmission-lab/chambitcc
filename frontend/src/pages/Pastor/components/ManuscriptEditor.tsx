@@ -1,13 +1,14 @@
 // 원고 쓰기 — 개요 칸마다 실제로 말할 글을 쓴다 (PastorSermonOutline 의 ?mode=manuscript)
 //   원고(PC 왼쪽 넓은 단): 칸별 원고. "/요 15:5" 를 치면 말씀을 찾아 넣는다(기도 작성의 "/말씀"과 같은 흐름).
 //          빈 줄이 강단 보기의 장 경계 — 말씀 인용만 있는 문단은 강단에서 말씀 카드로 보인다.
-//   오른쪽 단: 칸 목록·칸별 예상 시간·말하는 빠르기 / 참고용 점검(규칙)·인용한 말씀·이미 쓴 예화 알림
+//   오른쪽 단: 칸 목록·칸별 예상 시간·말하는 빠르기 / 참고용 점검(규칙)·AI 원고 점검(누를 때만)·인용한 말씀·이미 쓴 예화 알림
 // 저장은 부모의 개요 저장(입력이 멈추고 1초 뒤)을 그대로 탄다.
 import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { OutlineSection, SermonNote } from '../../../api/pastor'
 import { findSlashMatch, useVerseSlash } from '../../Home/components/PrayerComposer/verseSlash'
 import { VerseSlashPanel } from '../../Home/components/PrayerComposer/VerseSlashPanel'
+import ManuscriptReviewPanel from './ManuscriptReviewPanel'
 import { formatDay } from './pastorUtils'
 import {
   PACES,
@@ -28,12 +29,15 @@ const ManuscriptEditor = ({
   status,
   notes,
   onChange,
+  flush,
 }: {
   outlineId: number
   draft: { title: string; passage: string; preach_on: string; sections: OutlineSection[] }
   status: 'draft' | 'done'
   notes: Record<number, SermonNote>
   onChange: (sectionId: string, manuscript: string) => void
+  /** 입력 중인 원고를 바로 저장 — AI 점검은 저장된 원고를 읽는다 */
+  flush?: () => Promise<unknown>
 }) => {
   const [pace, setPace, perMin] = usePace()
   const [active, setActive] = useState(draft.sections[0]?.id ?? '')
@@ -147,6 +151,7 @@ const ManuscriptEditor = ({
             ))}
           </ul>
         </Panel>
+        <ManuscriptReviewPanel outlineId={outlineId} sections={draft.sections} flush={flush} />
         {quotes.length > 0 && (
           <Panel title="인용한 말씀" icon="format_quote">
             <div className="flex flex-wrap gap-1.5">

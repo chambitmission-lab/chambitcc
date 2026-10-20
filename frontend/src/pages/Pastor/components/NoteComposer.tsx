@@ -45,8 +45,8 @@ const PLACEHOLDER: Record<NoteKind, string> = {
 
 interface Props {
   note?: SermonNote
-  /** 새 메모의 시작 값 — 빠른 메모에서 넘어오거나, 심방 기록에서 옮길 때 */
-  initial?: { kind?: NoteKind; body?: string; passage?: string }
+  /** 새 메모의 시작 값 — 빠른 메모에서 넘어오거나, 심방 기록에서 옮기거나, AI 연구 재료를 고쳐 쓸 때 */
+  initial?: { kind?: NoteKind; body?: string; passage?: string; source?: string; tags?: string[] }
   fromVisitId?: number
   onClose: () => void
   onSaved?: (note: SermonNote) => void
@@ -58,8 +58,8 @@ const NoteComposer = ({ note, initial, fromVisitId, onClose, onSaved }: Props) =
   const [kind, setKind] = useState<NoteKind>(note?.kind ?? initial?.kind ?? (fromVisitId != null ? 'life' : 'idea'))
   const [body, setBody] = useState(note?.body ?? initial?.body ?? '')
   const [passage, setPassage] = useState(note?.passage ?? initial?.passage ?? '')
-  const [source, setSource] = useState(note?.source ?? '')
-  const [tags, setTags] = useState<string[]>(note?.tags ?? [])
+  const [source, setSource] = useState(note?.source ?? initial?.source ?? '')
+  const [tags, setTags] = useState<string[]>(note?.tags ?? initial?.tags ?? [])
   const [tagDraft, setTagDraft] = useState('')
   const [pinned, setPinned] = useState(note?.pinned ?? false)
   const [anonymized, setAnonymized] = useState(!!note)

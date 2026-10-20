@@ -43,6 +43,7 @@
     "checklist",
     "chevron_left",
     "chevron_right",
+    "child_care",
     "child_friendly",
     "church",
     "circle",
@@ -87,6 +88,7 @@
     "expand_less",
     "expand_more",
     "explore",
+    "fact_check",
     "family_restroom",
     "favorite",
     "favorite_border",
@@ -220,6 +222,7 @@
     "quiz",
     "radio",
     "radio_button_unchecked",
+    "rate_review",
     "record_voice_over",
     "redo",
     "refresh",
@@ -228,6 +231,7 @@
     "repeat",
     "replay",
     "report",
+    "report_gmailerrorred",
     "restart_alt",
     "restore",
     "room",
@@ -324,10 +328,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 25960
+    "bytes": 26456
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 28724
+    "bytes": 29316
   }
 }
