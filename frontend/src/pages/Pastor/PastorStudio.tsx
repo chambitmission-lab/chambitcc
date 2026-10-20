@@ -68,21 +68,23 @@ const PastorStudio = () => {
       {/* 히어로 */}
       <div className="px-4 pt-4">
         {/* 바탕색 = 삽화 왼쪽 끝 색(라이트 #f7f7ec · 다크 #172240) — 그림이 늦게 떠도 면이 튀지 않는다 */}
-        <div className="relative overflow-hidden rounded-3xl bg-[#f7f7ec] dark:bg-[#172240] text-ink-strong dark:text-white border border-black/[0.04] dark:border-white/[0.06] px-5 py-6 lg:px-8 lg:py-9 lg:min-h-[300px]">
-          {/* 목양실 책상 삽화 — 장면은 오른쪽 40%. 현재 테마 한 장만 그린다(반대 테마는 useThemeArt 가 미리 받아 둔다) */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#f7f7ec] dark:bg-[#172240] text-ink-strong dark:text-white border border-black/[0.04] dark:border-white/[0.06] px-5 py-6 lg:px-10 lg:py-0 lg:min-h-[400px] lg:flex lg:items-center">
+          {/* 목양실 책상 삽화 — 현재 테마 한 장만 그린다(반대 테마는 useThemeArt 가 미리 받아 둔다).
+              모바일은 카드를 덮고(cover), PC 는 높이에 맞춰 오른쪽에 통째로 — 폭맞춤으로 깔면 위아래(예배당 지붕·찻잔)가 잘린다.
+              그림 왼쪽 40% 는 바탕색과 같은 빈 면이라 글자 칼럼과 겹쳐도 된다. */}
           <img
             src={isDark ? STUDIO_HERO.dark : STUDIO_HERO.light}
             alt=""
             aria-hidden
             decoding="async"
-            className={`absolute inset-0 w-full h-full object-cover object-[78%_60%] lg:object-[right_62%] transition-opacity duration-500 ${artReady ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 w-full h-full object-cover object-[78%_60%] lg:left-auto lg:w-auto lg:max-w-none lg:object-contain transition-opacity duration-500 ${artReady ? 'opacity-100' : 'opacity-0'}`}
           />
           {/* 글자 쪽을 바탕색으로 덮는다 — 모바일은 그림 위에 글자가 앉아 더 짙게 */}
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-r from-[#f7f7ec] via-[#f7f7ec]/85 to-[#f7f7ec]/20 lg:via-[#f7f7ec]/60 lg:to-transparent dark:from-[#172240] dark:via-[#172240]/85 dark:to-[#172240]/25 dark:lg:via-[#172240]/55 dark:lg:to-transparent"
+            className="absolute inset-0 bg-gradient-to-r from-[#f7f7ec] via-[#f7f7ec]/85 to-[#f7f7ec]/20 lg:from-40% lg:via-[#f7f7ec]/0 lg:via-55% lg:to-transparent dark:from-[#172240] dark:via-[#172240]/85 dark:to-[#172240]/25 dark:lg:via-[#172240]/0 dark:lg:to-transparent"
           />
-          <div className="relative lg:max-w-[58%]">
+          <div className="relative lg:max-w-[54%] lg:py-10">
             <p className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand/10 text-brand dark:bg-white/10 dark:text-white text-[12px] font-bold">
               <span className="material-icons-outlined text-[15px]">auto_awesome</span>담임목사님 전용
             </p>
