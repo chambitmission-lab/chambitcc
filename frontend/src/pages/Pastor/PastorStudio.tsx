@@ -12,6 +12,9 @@ import { StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import StudioLocked from './components/studio/StudioLocked'
 import { STEPS, nextSunday } from './components/studio/studio'
+import { useTheme } from '../../contexts/ThemeContext'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { STUDIO_HERO } from '../../utils/themeAssets'
 import { useStudioAccess } from './components/studio/useStudioAccess'
 import { formatDay, inputCls, pickerCls, usePastorGate } from './components/pastorUtils'
 
@@ -21,6 +24,8 @@ const PastorStudio = () => {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const sunday = nextSunday()
+  const artReady = useThemeArt(STUDIO_HERO)
+  const isDark = useTheme().theme === 'dark'
 
   const { data: outlines, isPending } = useQuery({
     queryKey: pastorKeys.outlines(),
@@ -62,22 +67,37 @@ const PastorStudio = () => {
     <PastorShell>
       {/* 히어로 */}
       <div className="px-4 pt-4">
-        <div className="relative overflow-hidden rounded-3xl bg-ink-strong dark:bg-[#18202c] text-white px-5 py-6 lg:px-8 lg:py-8">
-          <div aria-hidden className="absolute -right-16 -top-24 w-80 h-80 rounded-full bg-brand/45 blur-3xl" />
-          <div aria-hidden className="absolute right-24 bottom-[-6rem] w-56 h-56 rounded-full bg-brand/20 blur-3xl" />
-          <div className="relative">
-            <p className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-[12px] font-bold">
+        {/* 바탕색 = 삽화 왼쪽 끝 색(라이트 #f7f7ec · 다크 #172240) — 그림이 늦게 떠도 면이 튀지 않는다 */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#f7f7ec] dark:bg-[#172240] text-ink-strong dark:text-white border border-black/[0.04] dark:border-white/[0.06] px-5 py-6 lg:px-8 lg:py-9 lg:min-h-[300px]">
+          {/* 목양실 책상 삽화 — 장면은 오른쪽 40%. 현재 테마 한 장만 그린다(반대 테마는 useThemeArt 가 미리 받아 둔다) */}
+          <img
+            src={isDark ? STUDIO_HERO.dark : STUDIO_HERO.light}
+            alt=""
+            aria-hidden
+            decoding="async"
+            className={`absolute inset-0 w-full h-full object-cover object-[78%_60%] lg:object-[right_62%] transition-opacity duration-500 ${artReady ? 'opacity-100' : 'opacity-0'}`}
+          />
+          {/* 글자 쪽을 바탕색으로 덮는다 — 모바일은 그림 위에 글자가 앉아 더 짙게 */}
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-r from-[#f7f7ec] via-[#f7f7ec]/85 to-[#f7f7ec]/20 lg:via-[#f7f7ec]/60 lg:to-transparent dark:from-[#172240] dark:via-[#172240]/85 dark:to-[#172240]/25 dark:lg:via-[#172240]/55 dark:lg:to-transparent"
+          />
+          <div className="relative lg:max-w-[58%]">
+            <p className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand/10 text-brand dark:bg-white/10 dark:text-white text-[12px] font-bold">
               <span className="material-icons-outlined text-[15px]">auto_awesome</span>담임목사님 전용
             </p>
             <h1 className="mt-3 text-[26px] lg:text-[34px] font-bold tracking-[-0.03em] leading-[1.2]">설교 준비실</h1>
-            <p className="mt-2 max-w-[560px] text-[14px] lg:text-[16px] leading-relaxed text-white/75">
+            <p className="mt-2 max-w-[560px] text-[14px] lg:text-[16px] leading-relaxed text-gray-700 dark:text-white/75">
               말씀 앞에서 목사님이 준비하시고, AI 동역자는 곁에서 재료를 찾고 묻고 점검합니다.
               무엇을 쓰고 무엇을 버릴지는 언제나 목사님이 정하십니다.
             </p>
             <ol className="mt-5 flex flex-wrap gap-1.5">
               {STEPS.map(s => (
-                <li key={s.id} className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full bg-white/[0.08] text-[12.5px] lg:text-[13.5px] font-semibold text-white/85">
-                  <span className="w-5 h-5 rounded-full bg-white/15 text-[11.5px] font-bold flex items-center justify-center">{s.no}</span>
+                <li
+                  key={s.id}
+                  className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full bg-white/80 dark:bg-white/[0.08] border border-black/[0.05] dark:border-transparent text-[12.5px] lg:text-[13.5px] font-semibold text-gray-700 dark:text-white/85"
+                >
+                  <span className="w-5 h-5 rounded-full bg-brand text-white dark:bg-white/15 text-[11.5px] font-bold flex items-center justify-center">{s.no}</span>
                   {s.label}
                 </li>
               ))}

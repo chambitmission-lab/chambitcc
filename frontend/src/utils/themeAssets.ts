@@ -32,6 +32,8 @@ import alarmBandLight from '../assets/verse-alarm/mobile-band-light.webp'
 import alarmBandDark from '../assets/verse-alarm/mobile-band-dark.webp'
 import missionHeroLight from '../assets/mission/hero-light.webp'
 import missionHeroDark from '../assets/mission/hero-dark.webp'
+import studioHeroLight from '../assets/studio/hero-light.webp'
+import studioHeroDark from '../assets/studio/hero-dark.webp'
 import classHeroLight from '../assets/classes/hero-light.webp'
 import classHeroDark from '../assets/classes/hero-dark.webp'
 import thanksHeroLight from '../assets/thanks/hero-light.webp'
@@ -205,6 +207,8 @@ export const OFFERING_HERO: ThemePair = { light: '/images/offering/hero-light.we
 /** /mission 히어로 좌우 삽화 (Mission.css) — 한 장이 PC 배경 · 모바일 바닥 띠를 겸한다 */
 
 export const MISSION_HERO: ThemePair = { light: missionHeroLight, dark: missionHeroDark }
+/** /pastor/studio 설교 준비실 히어로 — 목양실 책상의 양 목사님(오른쪽 40%), 왼쪽은 글자 자리 */
+export const STUDIO_HERO: ThemePair = { light: studioHeroLight, dark: studioHeroDark }
 /** /classes 히어로 (class-hero.css) — 게시판 앞에 모인 우리 반 */
 export const CLASS_HERO: ThemePair = { light: classHeroLight, dark: classHeroDark }
 /** /thanks 오늘의 말씀 히어로 (Thanks.css) — 감사 항아리에 쪽지를 넣는 양 */
@@ -325,6 +329,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/visit$/, pairs: [VISIT_HERO] },
   { match: /^\/worship$/, pairs: [WORSHIP_HERO] },
   { match: /^\/mission$/, pairs: [MISSION_HERO] },
+  { match: /^\/pastor\/studio$/, pairs: [STUDIO_HERO] },
   { match: /^\/education$/, pairs: [EDUCATION_HERO] },
   { match: /^\/culture$/, pairs: [CULTURE_HERO] },
   { match: /^\/news$/, pairs: [NEWS_HERO.news] },
