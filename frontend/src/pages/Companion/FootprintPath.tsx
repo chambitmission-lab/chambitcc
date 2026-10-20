@@ -16,11 +16,17 @@ const pathSlope = (x: number) =>
 /** 발자국 칸 수 — 목표가 작으면 목표만큼, 크면 14칸으로 줄여 그린다 */
 const stepCount = (goal: number) => Math.max(4, Math.min(14, goal))
 
-/** 채워진 칸마다 누구 발자국인지 — 내 몫을 고르게 흩어 번갈아 걷는 것처럼 */
-const stepOwners = (week: Pick<CompanionWeek, 'goal_amount' | 'total' | 'mine'>): ('me' | 'you')[] => {
+/** 채워진 칸마다 누구 발자국인지 — 내 몫을 고르게 흩어 번갈아 걷는 것처럼.
+ *  칸은 올림으로 채운다(20절 목표에 2절이면 14칸 중 1.4칸 → 2칸). 둘 다 걸었으면
+ *  각자 발자국이 최소 하나는 보이게 — 적게 한 쪽이 길에서 사라지지 않도록. */
+const stepOwners = (week: Pick<CompanionWeek, 'goal_amount' | 'total' | 'mine' | 'partner'>): ('me' | 'you')[] => {
   const steps = stepCount(week.goal_amount)
-  const filled = week.total <= 0 ? 0 : Math.max(1, Math.floor((Math.min(week.total, week.goal_amount) / week.goal_amount) * steps))
-  const mineSteps = week.total > 0 ? Math.round((filled * week.mine) / week.total) : 0
+  if (week.total <= 0) return []
+  const filled = Math.min(steps, Math.ceil((Math.min(week.total, week.goal_amount) / week.goal_amount) * steps))
+  let mineSteps = Math.round((filled * week.mine) / week.total)
+  if (week.mine > 0 && week.partner > 0 && filled >= 2) {
+    mineSteps = Math.min(filled - 1, Math.max(1, mineSteps))
+  }
   return Array.from({ length: filled }, (_, i) =>
     Math.floor(((i + 1) * mineSteps) / filled) > Math.floor((i * mineSteps) / filled) ? 'me' : 'you',
   )
@@ -34,10 +40,12 @@ const FootprintPath = ({ week, className }: { week: CompanionWeek; className?: s
     return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${pathY(x).toFixed(1)}`
   }).join(' ')
 
+  // display 는 바깥 div 가 맡는다 — .cp-path{display:block} 이 Tailwind hidden/lg:hidden 을 덮어쓰지 않게
   return (
+    <div className={className}>
     <svg
       viewBox={`0 0 ${W} 100`}
-      className={`cp-path${week.achieved ? ' is-lit' : ''} ${className ?? ''}`}
+      className={`cp-path${week.achieved ? ' is-lit' : ''}`}
       role="img"
       aria-label={`이번 주 ${steps}걸음 중 ${owners.length}걸음${week.achieved ? ', 등불이 켜졌어요' : ''}`}
     >
@@ -72,6 +80,7 @@ const FootprintPath = ({ week, className }: { week: CompanionWeek; className?: s
         <path className="cp-lantern-line" d="M-5 7h10" />
       </g>
     </svg>
+    </div>
   )
 }
 
