@@ -1,10 +1,10 @@
 // 설교 준비실 첫 화면 — 담임목사 전용 (/pastor/studio)
 //   이번 주일 설교를 이어서 준비하거나, 본문 하나로 새 설교를 시작한다. 준비 중인 설교는 준비실 방(/pastor/studio/:id)으로.
 //   데이터는 개요 보드와 같은 sermon_outlines — 준비실에서 시작한 설교도 개요 보드에 그대로 보인다.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createOutline, fetchOutlines, type OutlineSummary } from '../../api/pastor'
+import { createOutline, deleteOutline, fetchOutlines, type OutlineSummary } from '../../api/pastor'
 import { pastorKeys } from '../../hooks/queryKeys'
 import { showToast } from '../../utils/toast'
 import DatePicker from '../../components/common/DatePicker'
@@ -189,14 +189,66 @@ const PastorStudio = () => {
   )
 }
 
-const ContinueCard = ({ outline, highlight = false }: { outline: OutlineSummary; highlight?: boolean }) => (
+const ContinueCard = ({ outline, highlight = false }: { outline: OutlineSummary; highlight?: boolean }) => {
+  const qc = useQueryClient()
+  // 두 번 눌러야 지운다(개요 보드와 같은 방식). 3초 안에 다시 누르지 않으면 되돌아간다
+  const [armed, setArmed] = useState(false)
+  useEffect(() => {
+    if (!armed) return
+    const t = setTimeout(() => setArmed(false), 3000)
+    return () => clearTimeout(t)
+  }, [armed])
+
+  const remove = useMutation({
+    mutationFn: () => deleteOutline(outline.id),
+    onSuccess: () => {
+      try {
+        sessionStorage.removeItem(`pastor-studio-chat-${outline.id}`)
+      } catch {
+        // 대화 기록 정리는 못 해도 괜찮다(탭을 닫으면 사라진다)
+      }
+      qc.setQueryData<OutlineSummary[]>(pastorKeys.outlines(), list => list?.filter(o => o.id !== outline.id))
+      void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
+      showToast(`「${outline.title}」을 지웠습니다 · 설교 메모는 메모장에 그대로 있어요`, 'success')
+    },
+    onError: (e: Error) => {
+      setArmed(false)
+      showToast(e.message, 'error')
+    },
+  })
+
+  return (
+    <div
+      className={`group flex items-center gap-2 rounded-3xl border pr-2 transition-colors ${
+        highlight
+          ? 'bg-[var(--brand-soft)] border-brand/40 hover:border-brand'
+          : 'bg-white dark:bg-card-dark border-gray-200/70 dark:border-white/[0.08] hover:border-brand'
+      }`}
+    >
+      <InnerLink outline={outline} highlight={highlight} />
+      <button
+        type="button"
+        disabled={remove.isPending}
+        onClick={() => (armed ? remove.mutate() : setArmed(true))}
+        aria-label={armed ? '한 번 더 누르면 지웁니다' : '이 설교 지우기'}
+        title={armed ? '한 번 더 누르면 지웁니다' : '이 설교 지우기'}
+        className={`shrink-0 inline-flex items-center gap-1 rounded-full transition-colors disabled:opacity-50 ${
+          armed
+            ? 'px-3 py-2 bg-red-500 text-white text-[12.5px] lg:text-[13px] font-bold'
+            : 'w-9 h-9 justify-center text-gray-400 dark:text-white/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10'
+        }`}
+      >
+        <span className="material-icons-outlined text-[19px]">delete_outline</span>
+        {armed && (remove.isPending ? '지우는 중…' : '한 번 더 누르면 삭제')}
+      </button>
+    </div>
+  )
+}
+
+const InnerLink = ({ outline, highlight }: { outline: OutlineSummary; highlight: boolean }) => (
   <Link
     to={`/pastor/studio/${outline.id}${outline.passage ? '?step=study' : ''}`}
-    className={`group flex items-center gap-4 rounded-3xl border px-5 py-4 transition-colors ${
-      highlight
-        ? 'bg-[var(--brand-soft)] border-brand/40 hover:border-brand'
-        : 'bg-white dark:bg-card-dark border-gray-200/70 dark:border-white/[0.08] hover:border-brand'
-    }`}
+    className="min-w-0 flex-1 flex items-center gap-4 pl-5 py-4"
   >
     <span className="min-w-0 flex-1">
       {highlight && <span className="block text-[12.5px] font-bold text-brand">이번 주일 · {formatDay(outline.preach_on!)}</span>}
