@@ -3,6 +3,7 @@
     "account_balance",
     "account_tree",
     "add",
+    "add_circle",
     "add_photo_alternate",
     "admin_panel_settings",
     "air",
@@ -26,6 +27,7 @@
     "bolt",
     "book",
     "bookmark",
+    "bookmark_add",
     "bookmark_border",
     "brush",
     "cached",
@@ -54,6 +56,7 @@
     "cloud",
     "cloud_off",
     "content_copy",
+    "content_cut",
     "copy",
     "create",
     "crisis_alert",
@@ -187,6 +190,7 @@
     "notifications_active",
     "notifications_off",
     "open_in_full",
+    "open_in_new",
     "pages",
     "palette",
     "pan_tool",
@@ -260,6 +264,7 @@
     "smart_display",
     "smartphone",
     "sms",
+    "south",
     "spa",
     "speed",
     "spellcheck",
@@ -328,10 +333,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 26456
+    "bytes": 26712
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 29316
+    "bytes": 29664
   }
 }

@@ -32,7 +32,14 @@ const sectionsOf = (o: OutlineOption, bookLabel: string): OutlineSection[] => [
   { id: 'close', label: '결론', text: o.close, manuscript: '', note_ids: [] },
 ]
 
-const OutlineOptionsCard = ({ label }: { label: string }) => {
+const OutlineOptionsCard = ({
+  label,
+  onApply,
+}: {
+  label: string
+  /** 설교 준비실 — 새 개요를 만들지 않고 지금 개요의 칸을 이 뼈대로 바꾼다 */
+  onApply?: (sections: OutlineSection[], title: string) => void
+}) => {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [bigIdea, setBigIdea] = useState('')
@@ -141,11 +148,11 @@ const OutlineOptionsCard = ({ label }: { label: string }) => {
                 <button
                   type="button"
                   disabled={make.isPending}
-                  onClick={() => make.mutate(o)}
+                  onClick={() => (onApply ? onApply(sectionsOf(o, bookLabel), o.title) : make.mutate(o))}
                   className="mt-auto inline-flex items-center justify-center gap-1 py-2 rounded-xl bg-ink-strong text-white dark:bg-white dark:text-black text-[13px] lg:text-[14px] font-bold disabled:opacity-50"
                 >
                   <span className="material-icons-outlined text-[17px]">view_agenda</span>
-                  {make.isPending && make.variables?.id === o.id ? '만드는 중…' : '이 뼈대로 개요 만들기'}
+                  {make.isPending && make.variables?.id === o.id ? '만드는 중…' : onApply ? '이 뼈대로 세우기' : '이 뼈대로 개요 만들기'}
                 </button>
               </div>
             ))}

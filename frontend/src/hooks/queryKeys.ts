@@ -189,6 +189,8 @@ export const pastorKeys = {
   weekPack: (outlineId: number) => ['pastor-week-pack', outlineId] as const,
   sermonBridge: (ref: string) => ['pastor-sermon-bridge', ref] as const,
   planInputs: (weeks: number, start: string | null) => ['pastor-plan-inputs', weeks, start] as const,
+  /** 설교 준비실 입장 — 담임목사 여부(세션 동안 바뀌지 않아 한 번만) */
+  studioAccess: () => ['pastor-studio-access'] as const,
 }
 
 /** 비로그인 랜딩 통계 티커 */

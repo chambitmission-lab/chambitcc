@@ -11,6 +11,7 @@ import {
   type SermonOption,
 } from '../../../api/pastor'
 import { formatDay, todayIso } from './pastorUtils'
+import { useStudioAccess } from './studio/useStudioAccess'
 
 // ── 설교 준비 하위 탭 ─────────────────────────────────────
 const TABS = [
@@ -23,9 +24,10 @@ const TABS = [
 export const SermonTabs = () => {
   const { pathname } = useLocation()
   const active = (p: string) => (p === '/pastor/sermon' ? pathname === p : pathname.startsWith(p))
+  const { allowed: studio } = useStudioAccess()
   return (
-    <div className="px-4 pt-4">
-      <div className="grid grid-cols-4 gap-1 p-1 lg:p-1.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] lg:max-w-[680px]" role="tablist">
+    <div className="px-4 pt-4 flex flex-col gap-2 lg:flex-row lg:items-center">
+      <div className="grid grid-cols-4 gap-1 p-1 lg:p-1.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] lg:flex-1 lg:max-w-[680px]" role="tablist">
         {TABS.map(t => (
           <Link
             key={t.path}
@@ -41,6 +43,15 @@ export const SermonTabs = () => {
           </Link>
         ))}
       </div>
+      {/* 담임목사님께만 — 같은 개요를 단계와 AI 동역자로 다루는 준비실 */}
+      {studio && (
+        <Link
+          to="/pastor/studio"
+          className="lg:ml-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand text-white text-[13.5px] lg:text-[15px] font-bold shadow-[0_6px_18px_var(--brand-glow)]"
+        >
+          <span className="material-icons-outlined text-[18px]">auto_awesome</span>AI 설교 준비실
+        </Link>
+      )}
     </div>
   )
 }

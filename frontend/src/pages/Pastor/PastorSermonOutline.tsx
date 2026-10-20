@@ -1,18 +1,13 @@
 import { pastorKeys } from '../../hooks/queryKeys'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   deleteOutline,
   fetchNotes,
-  fetchOutline,
   fetchRelatedNotes,
   finishOutline,
-  updateOutline,
-  type OutlineSection,
-  type OutlineSectionPatch,
   type SermonNote,
-  type SermonOutline,
 } from '../../api/pastor'
 import { showToast } from '../../utils/toast'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
@@ -25,6 +20,7 @@ import WeekPackEditor from './components/WeekPackEditor'
 import { GhostButton, PastorModal, PrimaryButton } from './components/ui'
 import { IconButton, NoteCard, SermonPicker, SermonTabs } from './components/sermonNotes'
 import { invalidateNoteQueries } from './components/sermonNoteUtils'
+import { useOutlineDraft, type OutlineDraft } from './components/useOutlineDraft'
 import { formatDay, inputCls, pickerCls, usePastorGate } from './components/pastorUtils'
 import { escapeHtml } from '../../utils/escapeHtml'
 
@@ -33,21 +29,6 @@ import { escapeHtml } from '../../utils/escapeHtml'
 // 설교를 마치면 붙인 메모가 모두 '설교에 씀'으로 표시된다(같은 예화 되풀이 방지).
 // ?mode=manuscript — 같은 칸에 실제로 말할 원고를 쓰는 화면(ManuscriptEditor). 강단 보기는 /pulpit.
 // ?mode=week — 원고로 주보 요약·나눔 질문·다음세대·가정예배 6일을 만들어 확인 후 공개(WeekPackEditor).
-
-interface Draft {
-  title: string
-  passage: string
-  preach_on: string
-  sections: OutlineSection[]
-}
-
-const toDraft = (o: SermonOutline): Draft => ({
-  title: o.title,
-  passage: o.passage ?? '',
-  preach_on: o.preach_on ?? '',
-  // 원고 칸이 생기기 전 개요엔 manuscript 가 없다
-  sections: o.sections.map(s => ({ ...s, manuscript: s.manuscript ?? '' })),
-})
 
 type Mode = 'outline' | 'manuscript' | 'week'
 
@@ -63,96 +44,15 @@ const PastorSermonOutline = () => {
   const mode: Mode = rawMode === 'manuscript' || rawMode === 'week' ? rawMode : 'outline'
   const setMode = (m: Mode) => setParams(m === 'outline' ? {} : { mode: m }, { replace: true })
 
-  const { data, isPending } = useQuery<SermonOutline>({
-    queryKey: pastorKeys.outline(id),
-    queryFn: () => fetchOutline(id),
-    enabled: pastor && !!id,
-    refetchOnMount: 'always',
-  })
-
-  const [draft, setDraft] = useState<Draft | null>(null)
-  const [dirty, setDirty] = useState(false)
-  const [notes, setNotes] = useState<Record<number, SermonNote>>({})
-  const [active, setActive] = useState<string | null>(null)
+  const { data, isPending, draft, dirty, saving, notes, setNotes, edit, editSections, flush, saveNow } = useOutlineDraft(id, pastor)
+  const [picked, setActive] = useState<string | null>(null)
   const [picking, setPicking] = useState<string | null>(null)
   const [openNote, setOpenNote] = useState<SermonNote | null>(null)
   const [finishing, setFinishing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const loadedId = useRef<number | null>(null)
-  // 마지막으로 서버에 저장된 칸별 원고 — 저장 때 그대로인 칸은 원고를 보내지 않는다
-  const savedManuscripts = useRef<Record<string, string>>({})
-  const rememberSaved = (o: SermonOutline) => {
-    savedManuscripts.current = Object.fromEntries(o.sections.map(s => [s.id, s.manuscript ?? '']))
-  }
 
-  // 서버 값은 처음 한 번만 옮겨 온다 — 저장 응답으로 입력 중인 글을 덮지 않게
-  useEffect(() => {
-    if (!data) return
-    setNotes(prev => ({ ...prev, ...Object.fromEntries(data.notes.map(n => [n.id, n])) }))
-    if (loadedId.current !== data.id) {
-      loadedId.current = data.id
-      rememberSaved(data)
-      setDraft(toDraft(data))
-      setActive(data.sections.find(s => s.id === 'body')?.id ?? data.sections[0]?.id ?? null)
-    }
-  }, [data])
-
-  // 저장 요청 — 원고가 저장본과 같은 칸은 manuscript 를 null 로 보낸다(서버가 저장된 원고를 둠).
-  // 1초 멈춤마다 원고 전체(칸당 최대 2만 자)를 다시 보내지 않게. 개요 글(text)·메모 배치는 작아 늘 보낸다.
-  const payloadOf = (d: Draft) => ({
-    title: d.title.trim() || '제목 없는 설교',
-    passage: d.passage.trim() || null,
-    preach_on: d.preach_on || null,
-    sections: d.sections.map<OutlineSectionPatch>(s => {
-      const m = s.manuscript ?? ''
-      return { ...s, manuscript: m === savedManuscripts.current[s.id] ? null : m }
-    }),
-  })
-
-  const save = useMutation({
-    mutationFn: (d: Draft) => updateOutline(id, payloadOf(d)),
-    onSuccess: saved => {
-      rememberSaved(saved)
-      qc.setQueryData(pastorKeys.outline(id), saved)
-      void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
-    },
-    onError: (e: Error) => showToast(e.message, 'error'),
-  })
-
-  // 입력이 멈추고 1초 뒤 저장
-  useEffect(() => {
-    if (!dirty || !draft) return
-    const t = setTimeout(() => {
-      setDirty(false)
-      save.mutate(draft)
-    }, 1000)
-    return () => clearTimeout(t)
-    // save 는 매 렌더 새 객체라 의존성에서 뺀다
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, dirty])
-
-  // 1초 대기 중에 화면을 떠나도 마지막 입력을 잃지 않게 — 떠나는 순간 바로 저장
-  const pending = useRef<Draft | null>(null)
-  pending.current = dirty ? draft : null
-  useEffect(
-    () => () => {
-      const d = pending.current
-      if (!d) return
-      void updateOutline(id, payloadOf(d))
-        .then(() => qc.invalidateQueries({ queryKey: pastorKeys.outlines() }))
-        .catch(() => undefined)
-    },
-    [id, qc],
-  )
-
-  const edit = (patch: Partial<Draft>) => {
-    setDraft(d => (d ? { ...d, ...patch } : d))
-    setDirty(true)
-  }
-  const editSections = (fn: (s: OutlineSection[]) => OutlineSection[]) => {
-    setDraft(d => (d ? { ...d, sections: fn(d.sections) } : d))
-    setDirty(true)
-  }
+  // 아직 칸을 고르지 않았으면 본론 칸(없으면 첫 칸)
+  const active = picked ?? draft?.sections.find(s => s.id === 'body')?.id ?? draft?.sections[0]?.id ?? null
 
   const attach = (sectionId: string, picked: SermonNote[]) => {
     setNotes(prev => ({ ...prev, ...Object.fromEntries(picked.map(n => [n.id, n])) }))
@@ -207,17 +107,9 @@ const PastorSermonOutline = () => {
     onError: (e: Error) => showToast(e.message, 'error'),
   })
 
-  // AI 점검·한 주 묶음은 저장된 원고를 읽는다 — 1초 대기 중인 입력을 먼저 저장
-  const flush = async () => {
-    if (!dirty || !draft) return
-    setDirty(false)
-    await save.mutateAsync(draft)
-  }
-
   const finish = useMutation({
     mutationFn: async (choice: { sermonId: number | null; date: string }) => {
-      if (draft) await save.mutateAsync(draft)
-      setDirty(false)
+      await saveNow()
       return finishOutline(id, { sermon_id: choice.sermonId, preached_on: choice.sermonId ? null : choice.date })
     },
     onSuccess: saved => {
@@ -249,7 +141,7 @@ const PastorSermonOutline = () => {
           <span className="material-icons-outlined text-[18px]">chevron_left</span>개요 목록
         </Link>
         <span className="ml-auto text-gray-500 dark:text-white/50">
-          {save.isPending ? '저장 중...' : dirty ? '입력 중' : '저장됨'}
+          {saving ? '저장 중...' : dirty ? '입력 중' : '저장됨'}
         </span>
       </div>
 
@@ -645,7 +537,7 @@ const NotePicker = ({
 }
 
 // ── 복사·인쇄 ─────────────────────────────────────────────
-const buildOutlineText = (d: Draft, notes: Record<number, SermonNote>): string => {
+const buildOutlineText = (d: OutlineDraft, notes: Record<number, SermonNote>): string => {
   const lines: string[] = [d.title.trim() || '제목 없는 설교']
   const meta = [d.passage.trim(), d.preach_on && formatDay(d.preach_on)].filter(Boolean).join(' · ')
   if (meta) lines.push(meta)

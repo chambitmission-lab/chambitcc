@@ -30,6 +30,10 @@ const ManuscriptEditor = ({
   notes,
   onChange,
   flush,
+  aside = true,
+  onRequestDraft,
+  activeSection,
+  onActiveChange,
 }: {
   outlineId: number
   draft: { title: string; passage: string; preach_on: string; sections: OutlineSection[] }
@@ -38,9 +42,21 @@ const ManuscriptEditor = ({
   onChange: (sectionId: string, manuscript: string) => void
   /** 입력 중인 원고를 바로 저장 — AI 점검은 저장된 원고를 읽는다 */
   flush?: () => Promise<unknown>
+  /** 오른쪽 단(칸 목록·점검) — 설교 준비실은 점검을 따로 한 단계로 두고 AI 동역자 단을 옆에 둬서 끈다 */
+  aside?: boolean
+  /** 설교 준비실 — 칸 머리의 'AI 문단 초안' 버튼 */
+  onRequestDraft?: (sectionId: string) => void
+  /** 지금 칸을 바깥이 쥘 때(준비실의 AI 동역자가 '지금 보고 있는 칸'을 맥락으로 쓴다) */
+  activeSection?: string
+  onActiveChange?: (sectionId: string) => void
 }) => {
   const [pace, setPace, perMin] = usePace()
-  const [active, setActive] = useState(draft.sections[0]?.id ?? '')
+  const [ownActive, setOwnActive] = useState(draft.sections[0]?.id ?? '')
+  const active = activeSection ?? ownActive
+  const setActive = (id: string) => {
+    setOwnActive(id)
+    onActiveChange?.(id)
+  }
   const chars = draft.sections.map(s => countChars(sectionBody(s)))
   const total = chars.reduce((a, b) => a + b, 0)
   const minutes = estimateMinutes(total, perMin)
@@ -54,7 +70,7 @@ const ManuscriptEditor = ({
   }
 
   return (
-    <div className="px-4 pt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+    <div className={`px-4 pt-4 grid gap-4 lg:items-start ${aside ? 'lg:grid-cols-[minmax(0,1fr)_300px]' : ''}`}>
       {/* 원고 */}
       <div className="min-w-0 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm">
         <div className="flex flex-wrap items-center gap-2 px-4 lg:px-6 py-3 border-b border-gray-200/70 dark:border-white/[0.06]">
@@ -66,13 +82,13 @@ const ManuscriptEditor = ({
             {total.toLocaleString()}자 · 예상 {minutes}분
           </span>
           {/* 한 단 화면에선 점검 패널이 원고 아래 멀리 있다 — 바로 가는 버튼 */}
-          <button
+          {aside && <button
             type="button"
             onClick={() => document.getElementById('ms-review')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
             className="lg:hidden inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-brand text-white text-[12.5px] font-bold whitespace-nowrap"
           >
             <span className="material-icons-outlined text-[16px]">rate_review</span>AI 점검
-          </button>
+          </button>}
           <Link
             to={`/pastor/sermon/outlines/${outlineId}/pulpit`}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-ink-strong text-white dark:bg-white dark:text-black text-[12.5px] lg:text-[13.5px] font-bold whitespace-nowrap"
@@ -88,6 +104,11 @@ const ManuscriptEditor = ({
               notes={s.note_ids.map(id => notes[id]).filter(Boolean)}
               onFocus={() => setActive(s.id)}
               onChange={v => onChange(s.id, v)}
+              active={!aside && active === s.id}
+              onRequestDraft={onRequestDraft ? () => {
+                setActive(s.id)
+                onRequestDraft(s.id)
+              } : undefined}
             />
           ))}
           <p className="text-[12.5px] lg:text-[13.5px] text-gray-500 dark:text-white/50 leading-relaxed">
@@ -97,7 +118,7 @@ const ManuscriptEditor = ({
       </div>
 
       {/* 오른쪽 단 — 칸 목록 · 점검 (목회자 화면은 큰 글씨 zoom 이라 3단이면 원고 칸이 좁아져 2단으로) */}
-      <div className="space-y-4">
+      {aside && <div className="space-y-4">
           <Panel title="칸" icon="view_agenda">
             <ol className="space-y-0.5">
               {draft.sections.map((s, i) => (
@@ -186,7 +207,7 @@ const ManuscriptEditor = ({
             </ul>
           </div>
         )}
-      </div>
+      </div>}
     </div>
   )
 }
@@ -210,11 +231,15 @@ const SectionManuscript = ({
   notes,
   onFocus,
   onChange,
+  active = false,
+  onRequestDraft,
 }: {
   section: OutlineSection
   notes: SermonNote[]
   onFocus: () => void
   onChange: (v: string) => void
+  active?: boolean
+  onRequestDraft?: () => void
 }) => {
   const value = section.manuscript ?? ''
   const ref = useRef<HTMLTextAreaElement>(null)
@@ -267,12 +292,34 @@ const SectionManuscript = ({
   }
 
   const chars = countChars(value)
+  // 원고에 그대로 남아 있는 AI 초안만 — 고치면 그 문단은 목사님 글이다(서버도 저장 때 같은 기준으로 정리)
+  const pendingDrafts = (section.ai_drafts ?? []).filter(d => value.includes(d.trim()))
   return (
-    <section id={`ms-${section.id}`} className="scroll-mt-24">
+    <section
+      id={`ms-${section.id}`}
+      className={`scroll-mt-24 ${active ? 'relative before:absolute before:-left-3 lg:before:-left-5 before:top-1 before:bottom-1 before:w-[3px] before:rounded-full before:bg-brand' : ''}`}
+    >
       <div className="flex items-baseline gap-2 mb-2">
         <h3 className="text-[18px] lg:text-[21px] font-bold tracking-[-0.02em] text-ink-strong">{section.label}</h3>
         <span className="text-[12px] lg:text-[13px] text-gray-500 dark:text-white/50">{chars ? `${chars.toLocaleString()}자` : ''}</span>
+        {onRequestDraft && (
+          <button
+            type="button"
+            onClick={onRequestDraft}
+            className="ml-auto self-center inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-brand/40 text-brand text-[12px] lg:text-[13px] font-bold hover:bg-[var(--brand-soft)] whitespace-nowrap"
+          >
+            <span className="material-icons-outlined text-[15px]">auto_awesome</span>이 칸 문단 초안
+          </button>
+        )}
       </div>
+      {pendingDrafts.length > 0 && (
+        <p className="mb-2 flex items-start gap-1.5 rounded-xl px-3 py-2 bg-[var(--brand-soft)] border border-dashed border-brand/40 text-[12.5px] lg:text-[13.5px] text-ink-strong">
+          <span className="material-icons-outlined text-[16px] mt-px text-brand">auto_awesome</span>
+          <span>
+            아직 고치지 않은 <b>AI 초안 {pendingDrafts.length}문단</b>이 이 칸에 있습니다. 목사님의 말로 고쳐 쓰시면 표시가 사라집니다.
+          </span>
+        </p>
+      )}
       {(section.text.trim() || notes.length > 0) && (
         <div className="mb-2 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] px-3.5 py-2.5 space-y-1.5">
           {section.text.trim() && (

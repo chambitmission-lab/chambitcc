@@ -1,7 +1,7 @@
 /**
  * /dev/sermon-desk — 설교 본문 작업대 · 원고 쓰기 · 강단 보기를 표본 데이터로 (로그인·백엔드 없이)
  *
- * ?v=study(기본) | manuscript | week | plan | pulpit
+ * ?v=study(기본) | manuscript | week | plan | pulpit | studio(&step=passage|study|outline|manuscript|review|pulpit)
  * 실제 화면 컴포넌트를 그대로 쓴다. 관주 잇기·지우기·원고 시작 버튼은 진짜 API 라 여기선 누르지 말 것.
  * AI 연구 재료·한 주 묶음은 표본 응답을 쿼리 캐시에 미리 넣어 결과 화면을 보여 준다(다시 만들기·저장은 진짜 API).
  */
@@ -17,6 +17,8 @@ import { SermonTabs } from '../Pastor/components/sermonNotes'
 import ManuscriptEditor from '../Pastor/components/ManuscriptEditor'
 import { StudyBody } from '../Pastor/PastorSermonStudy'
 import { Stage } from '../Pastor/PastorPulpit'
+import { StudioRoom } from '../Pastor/PastorStudioRoom'
+import { isStep } from '../Pastor/components/studio/studio'
 
 const JOHN_15 = [
   '나는 참포도나무요 내 아버지는 농부라',
@@ -214,6 +216,18 @@ const SermonDeskPreview = () => {
     qc.setQueryData(pastorKeys.weekPack(7), WEEK)
     qc.setQueryData(pastorKeys.sermonBridge(BRIDGE.label), BRIDGE)
     qc.setQueryData(pastorKeys.planInputs(12, null), PLAN_INPUTS)
+    // 준비실 — 원고 한 칸에 '고치지 않은 AI 초안'을 하나 넣어 표시를 본다
+    const aiPara = '그렇다면 붙어 있다는 것은 무엇입니까? 날마다 말씀 앞에 머무는 것입니다. 바쁜 아침에도 주님의 말씀을 먼저 듣는 그 자리가, 가지가 나무에 붙어 있는 자리입니다.'
+    const studioSections = SECTIONS.map(x => (x.id === 'apply' ? { ...x, manuscript: `${x.manuscript}
+
+${aiPara}`, ai_drafts: [aiPara] } : x))
+    const studioOutline: SermonOutline = {
+      id: 7, title: '참포도나무와 가지', passage: '요 15:1-8', preach_on: '2026-10-25', status: 'draft',
+      sermon_id: null, note_count: 2, updated_at: null, sections: studioSections, notes: NOTES,
+    }
+    qc.setQueryData(pastorKeys.outline(7), studioOutline)
+    qc.setQueryData(pastorKeys.sermonStudy('요 15:1-8'), STUDY)
+    qc.setQueryData(pastorKeys.studioAccess(), { allowed: true })
     return true
   })
   const [params, setParams] = useSearchParams()
@@ -234,6 +248,16 @@ const SermonDeskPreview = () => {
     notes: NOTES,
   }
 
+  if (v === 'studio') {
+    const rawStep = params.get('step')
+    return (
+      <StudioRoom
+        id={7}
+        step={isStep(rawStep) ? rawStep : 'passage'}
+        onStep={st => setParams({ v: 'studio', step: st }, { replace: true })}
+      />
+    )
+  }
   if (v === 'pulpit') {
     return (
       <div className="fixed inset-0 z-[130]">
@@ -245,7 +269,7 @@ const SermonDeskPreview = () => {
     <PastorShell>
       <SermonTabs />
       <div className="px-4 pt-3 flex gap-2 text-[13px] font-bold">
-        {['study', 'manuscript', 'week', 'plan', 'pulpit'].map(x => (
+        {['study', 'manuscript', 'week', 'plan', 'pulpit', 'studio'].map(x => (
           <button key={x} type="button" onClick={() => setParams({ v: x })} className={`px-3 py-1.5 rounded-full ${v === x ? 'bg-brand text-white' : 'bg-gray-100 dark:bg-white/10'}`}>
             {x}
           </button>

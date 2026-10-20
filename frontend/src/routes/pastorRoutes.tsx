@@ -17,6 +17,9 @@ const PastorSermonOutlines = lazy(() => import('../pages/Pastor/PastorSermonOutl
 const PastorSermonOutline = lazy(() => import('../pages/Pastor/PastorSermonOutline'))
 const PastorSermonStudy = lazy(() => import('../pages/Pastor/PastorSermonStudy'))
 const PastorPulpit = lazy(() => import('../pages/Pastor/PastorPulpit'))
+// 설교 준비실 — 담임목사 전용(서버가 직분으로 판단)
+const PastorStudio = lazy(() => import('../pages/Pastor/PastorStudio'))
+const PastorStudioRoom = lazy(() => import('../pages/Pastor/PastorStudioRoom'))
 
 export const pastorRoutes = (
   <>
@@ -34,5 +37,7 @@ export const pastorRoutes = (
     <Route path="/pastor/sermon/outlines" element={<PastorSermonOutlines />} />
     <Route path="/pastor/sermon/outlines/:id" element={<PastorSermonOutline />} />
     <Route path="/pastor/sermon/outlines/:id/pulpit" element={<PastorPulpit />} />
+    <Route path="/pastor/studio" element={<PastorStudio />} />
+    <Route path="/pastor/studio/:id" element={<PastorStudioRoom />} />
   </>
 )

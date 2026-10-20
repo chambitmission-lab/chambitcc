@@ -7,6 +7,7 @@ import TextScaleToggle from './TextScaleToggle'
 import { warmPastorSections } from '../prefetch'
 import { pastorScaleProps, usePastorTextScale } from './textScale'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
+import { useStudioAccess } from './studio/useStudioAccess'
 
 // 목회자 영역 공용 껍데기 — 관리자 화면과 같은 와이드 셸 + 목회자 섹션 내비.
 // 준비 중인 섹션도 자리를 보여 둔다: 목양 → 심방 → AI 비서로 이어지는 로드맵이 한눈에 보이게.
@@ -28,6 +29,16 @@ const SECTIONS: Section[] = [
   { path: '/pastor/assistant', icon: 'tips_and_updates', label: '목회 비서', ready: true },
 ]
 
+// 설교 준비실 — 담임목사님께만 보인다(서버가 직분으로 판단). '설교 준비' 바로 뒤에 둔다
+const STUDIO: Section = { path: '/pastor/studio', icon: 'auto_awesome', label: '설교 준비실', ready: true }
+
+const useSections = (): Section[] => {
+  const { allowed } = useStudioAccess()
+  if (!allowed) return SECTIONS
+  const at = SECTIONS.findIndex(s => s.path === '/pastor/sermon') + 1
+  return [...SECTIONS.slice(0, at), STUDIO, ...SECTIONS.slice(at)]
+}
+
 const isActive = (path: string, pathname: string) =>
   path === '/pastor' ? pathname === path : pathname.startsWith(path)
 
@@ -48,6 +59,7 @@ const SectionSheet = ({ pathname, onClose }: { pathname: string; onClose: () => 
   useModalBackButton(onClose)
   const navigate = useNavigate()
   const scale = usePastorTextScale()
+  const sections = useSections()
   const go = (path: string) => {
     if (path === pathname) return onClose()
     resetPageScroll()
@@ -79,7 +91,7 @@ const SectionSheet = ({ pathname, onClose }: { pathname: string; onClose: () => 
           </button>
         </div>
         <div className="grid grid-cols-4 gap-2">
-          {SECTIONS.filter(s => s.ready).map(s => {
+          {sections.filter(s => s.ready).map(s => {
             const active = isActive(s.path, pathname)
             return (
               <button
@@ -110,6 +122,7 @@ export const PastorSectionNav = () => {
   const { pathname } = useLocation()
   const navRef = useRef<HTMLElement>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const sections = useSections()
 
   // 다른 섹션 청크·데이터를 유휴 시간에 미리 받아 둔다 — 칩을 누르는 순간 바로 그려지게 (세션당 한 번)
   useEffect(() => warmPastorSections(), [])
@@ -135,7 +148,7 @@ export const PastorSectionNav = () => {
           className="flex gap-1.5 overflow-x-auto no-scrollbar lg:[mask-image:none] [mask-image:linear-gradient(to_right,#000_calc(100%-24px),transparent)]"
           aria-label="목회자 메뉴"
         >
-      {SECTIONS.map(s => {
+      {sections.map(s => {
         const active = isActive(s.path, pathname)
         const base =
           'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12.5px] font-semibold transition-colors'
@@ -187,11 +200,12 @@ export const PastorSectionNav = () => {
   )
 }
 
-const PastorShell = ({ children }: { children: ReactNode }) => {
+/** wide — 설교 준비실처럼 PC 에서 세 단(단계·작업면·AI 동역자)을 펼치는 화면 */
+const PastorShell = ({ children, wide = false }: { children: ReactNode; wide?: boolean }) => {
   const scale = usePastorTextScale()
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div {...pastorScaleProps(scale)} className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-[1180px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
+      <div {...pastorScaleProps(scale)} className={`max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 ${wide ? 'lg:max-w-[1520px]' : 'lg:max-w-[1180px]'} lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark`}>
         <AdminPageHeader title="목회자 홈" badge="PASTOR" trailing={<TextScaleToggle />} />
 
         <PastorSectionNav />

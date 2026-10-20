@@ -739,6 +739,8 @@ export interface OutlineSection {
   /** 원고 — 실제로 말할 글. 강단 보기는 빈 줄로 나눠 한 장씩 넘긴다(예전 개요엔 없을 수 있다) */
   manuscript?: string
   note_ids: number[]
+  /** 설교 준비실 — 원고에 넣은 AI 문단 초안 중 아직 고치지 않은 것(원고에 그대로 남은 동안만 서버가 둔다) */
+  ai_drafts?: string[]
 }
 
 /** 저장 요청용 — manuscript 를 null 로 보내면 서버가 저장된 원고를 그대로 둔다(1초마다 전체 원고를 다시 보내지 않게) */
@@ -1095,3 +1097,52 @@ export const fetchPlanInputs = (weeks: number, start: string | null): Promise<Pl
 
 export const fetchSermonPlan = (data: { weeks: number; start: string | null; focus: string }): Promise<SermonPlan> =>
   pastorSend('/pastor/sermon-plan', 'POST', data, '설교 계획을 만들지 못했습니다')
+
+// ── 설교 준비실 (담임목사 전용) ─────────────────────────────────
+export type StudioStep = 'passage' | 'study' | 'outline' | 'manuscript' | 'review' | 'pulpit'
+
+/** 준비실에 들어올 수 있는지 — 목회자 권한 + 직분 '담임목사' (서버가 판단) */
+export const fetchStudioAccess = (): Promise<{ allowed: boolean }> =>
+  pastorGet('/pastor/studio', '설교 준비실 권한을 확인하지 못했습니다')
+
+export interface StudioVerse {
+  label: string
+  /** 서버가 찾아 붙인 개역개정 본문 */
+  text: string
+}
+
+export interface StudioAnswer {
+  answer: string
+  verses: StudioVerse[]
+  follow_ups: string[]
+  /** 답 속 말씀 인용이 개역개정과 다른 곳 */
+  scripture: ReviewFinding[]
+  /** 1 — 이단 표지가 있어 답 전체를 버렸다 */
+  filtered: number
+}
+
+export interface StudioTurn {
+  role: 'me' | 'ai'
+  text: string
+}
+
+export const askStudio = (
+  outlineId: number,
+  data: { question: string; step: StudioStep; section_id?: string | null; history: StudioTurn[] },
+): Promise<StudioAnswer> =>
+  pastorSend(`/pastor/studio/outlines/${outlineId}/ask`, 'POST', data, 'AI 동역자가 답하지 못했습니다')
+
+export interface StudioDraft {
+  section_id: string
+  label: string
+  paragraphs: string[]
+  notes: string[]
+  scripture: ReviewFinding[]
+  filtered: number
+}
+
+export const draftStudio = (
+  outlineId: number,
+  data: { section_id: string; direction: string; length: 'short' | 'normal' },
+): Promise<StudioDraft> =>
+  pastorSend(`/pastor/studio/outlines/${outlineId}/draft`, 'POST', data, '문단 초안을 받지 못했습니다')
