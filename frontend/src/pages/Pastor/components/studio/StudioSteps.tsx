@@ -1,7 +1,7 @@
 // 설교 준비실 가운데 단 — 단계별 작업면
 //   ① 본문(StepPassage) · ③ 뼈대(StepSkeleton) · ⑤ 점검(StepReview) · ⑥ 강단과 나눔(StepPulpit).
 //   ② 연구·④ 원고는 기존 카드(SermonBriefCard·SermonBridgeCard·ManuscriptEditor)를 PastorStudioRoom 이 그대로 쓴다.
-import { useMemo, type ReactNode } from 'react'
+import { useLayoutEffect, useMemo, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { OutlineSection, SermonStudy } from '../../../../api/pastor'
 import DatePicker from '../../../../components/common/DatePicker'
@@ -149,6 +149,48 @@ export const StepPassage = ({
 // ── ③ 뼈대 ───────────────────────────────────────────────
 const newSectionId = () => `s${Date.now().toString(36)}`
 
+/** 글 길이에 맞춰 늘어나는 입력칸 — 테두리 없이 카드 위에 바로 쓴다. singleLine 은 엔터·줄바꿈을 막는다(칸 이름) */
+const AutoGrowText = ({
+  value,
+  onChange,
+  className = '',
+  placeholder,
+  maxLength,
+  minRows = 1,
+  singleLine = false,
+  'aria-label': ariaLabel,
+}: {
+  value: string
+  onChange: (v: string) => void
+  className?: string
+  placeholder?: string
+  maxLength?: number
+  minRows?: number
+  singleLine?: boolean
+  'aria-label'?: string
+}) => {
+  const ref = useRef<HTMLTextAreaElement>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [value])
+  return (
+    <textarea
+      ref={ref}
+      rows={minRows}
+      value={value}
+      maxLength={maxLength}
+      placeholder={placeholder}
+      aria-label={ariaLabel}
+      onChange={e => onChange(singleLine ? e.target.value.replace(/\s*\n\s*/g, ' ') : e.target.value)}
+      onKeyDown={singleLine ? e => e.key === 'Enter' && e.preventDefault() : undefined}
+      className={`resize-none overflow-hidden bg-transparent p-0 placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none ${className}`}
+    />
+  )
+}
+
 export const StepSkeleton = ({
   sections,
   onChange,
@@ -182,16 +224,22 @@ export const StepSkeleton = ({
     >
       <ol className="space-y-2.5">
         {sections.map((s, i) => (
-          <li key={s.id} className="rounded-2xl border border-gray-200/80 dark:border-white/[0.08] bg-gray-50/60 dark:bg-white/[0.02] p-3 space-y-2">
-            <div className="flex items-center gap-1">
-              <span className="w-6 h-6 shrink-0 rounded-full bg-brand text-white text-[12px] font-bold flex items-center justify-center">{i + 1}</span>
-              <input
-                className="flex-1 min-w-0 bg-transparent text-[15px] lg:text-[16px] font-bold text-ink-strong focus:outline-none border-b border-transparent focus:border-brand ml-1"
+          <li
+            key={s.id}
+            className="rounded-2xl border border-gray-200/80 dark:border-white/[0.08] px-4 py-3.5 space-y-1.5 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand/30 transition-colors"
+          >
+            <div className="flex items-start gap-2">
+              <span className="mt-0.5 w-6 h-6 shrink-0 rounded-full bg-brand text-white text-[12px] font-bold flex items-center justify-center">{i + 1}</span>
+              {/* 긴 대지 제목도 잘리지 않게 줄바꿈되는 칸(엔터로 줄을 나누지는 않는다) */}
+              <AutoGrowText
+                className="flex-1 min-w-0 text-[16px] lg:text-[17px] font-bold leading-snug text-ink-strong"
                 value={s.label}
                 maxLength={30}
                 aria-label="칸 이름"
-                onChange={e => onChange(list => list.map(x => (x.id === s.id ? { ...x, label: e.target.value } : x)))}
+                singleLine
+                onChange={v => onChange(list => list.map(x => (x.id === s.id ? { ...x, label: v } : x)))}
               />
+              <span className="shrink-0 flex items-center -mt-1 -mr-1">
               <IconButton icon="arrow_upward" label="칸 위로" disabled={i === 0} onClick={() => move(i, -1)} />
               <IconButton icon="arrow_downward" label="칸 아래로" disabled={i === sections.length - 1} onClick={() => move(i, 1)} />
               <IconButton
@@ -204,16 +252,19 @@ export const StepSkeleton = ({
                   onChange(list => list.filter(x => x.id !== s.id))
                 }}
               />
+              </span>
             </div>
-            <textarea
-              className={`${inputCls} min-h-[72px] resize-y lg:text-[15px] lg:leading-[1.75]`}
+            {/* 요지 — 글 길이만큼 늘어난다(안쪽 스크롤 없이 전체를 보며 고친다) */}
+            <AutoGrowText
+              className="block w-full pl-8 text-[15px] lg:text-[16px] leading-[1.8] text-gray-800 dark:text-white/85"
               value={s.text}
               maxLength={6000}
               placeholder={`${s.label}에서 전할 요지`}
-              onChange={e => onChange(list => list.map(x => (x.id === s.id ? { ...x, text: e.target.value } : x)))}
+              minRows={2}
+              onChange={v => onChange(list => list.map(x => (x.id === s.id ? { ...x, text: v } : x)))}
             />
             {(s.manuscript?.trim() || s.note_ids.length > 0) && (
-              <p className="text-[12px] text-gray-500 dark:text-white/50">
+              <p className="pl-8 text-[12px] text-gray-500 dark:text-white/50">
                 {[s.manuscript?.trim() ? `원고 ${countChars(s.manuscript).toLocaleString()}자` : null, s.note_ids.length ? `메모 ${s.note_ids.length}개` : null]
                   .filter(Boolean)
                   .join(' · ')}
