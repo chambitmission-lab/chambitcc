@@ -25,30 +25,9 @@
   to { opacity: 1; }
 }
 
-.cp-lantern-body,
-.cp-lantern-line {
-  fill: none;
-  stroke: var(--cp-lamp-off);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.cp-flame { fill: var(--cp-lamp-off); opacity: 0.5; }
-.cp-glow { fill: var(--cp-flame); opacity: 0; }
-.cp-path.is-lit .cp-lantern-body,
-.cp-path.is-lit .cp-lantern-line { stroke: var(--cp-flame); }
-.cp-path.is-lit .cp-flame { fill: var(--cp-flame); opacity: 1; animation: cp-flicker 2.4s ease-in-out infinite; }
-.cp-path.is-lit .cp-glow { opacity: 0.22; animation: cp-glow 2.4s ease-in-out infinite; }
-@keyframes cp-flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.82; }
-}
-@keyframes cp-glow {
-  0%, 100% { opacity: 0.18; }
-  50% { opacity: 0.3; }
-}
+/* 길 끝 촛불은 MiniCandle(CandleSvg) — 모양·흔들림은 components/icons/miniCandle.css */
 @media (prefers-reduced-motion: reduce) {
-  .cp-foot.is-me, .cp-foot.is-you, .cp-path.is-lit .cp-flame, .cp-path.is-lit .cp-glow { animation: none; }
+  .cp-foot.is-me, .cp-foot.is-you { animation: none; }
 }
 
 .cp-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; }

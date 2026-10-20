@@ -1,5 +1,6 @@
 // 동행 상세 — 서로를 위한 기도: 짝에게만 보이는 이번 주 기도제목 + "오늘 너를 위해 기도했어" 한 번
 import { useState } from 'react'
+import MiniCandle from '../../components/icons/MiniCandle'
 import { useCheerCompanion, useUpdateCompanionTopic } from '../../hooks/useCompanion'
 import type { CompanionDetail } from '../../types/companion'
 import { showToast } from '../../utils/toast'
@@ -43,13 +44,17 @@ const CompanionPrayer = ({ c }: { c: CompanionDetail }) => {
           onClick={handleCheer}
           disabled={prayedToday || cheer.isPending}
           aria-pressed={prayedToday}
-          className={`mt-4 w-full py-3 rounded-xl text-[14px] font-bold transition-colors ${
+          className={`mt-4 w-full py-3 rounded-xl text-[14px] font-bold transition-colors relative overflow-hidden flex items-center justify-center gap-2 ${
             prayedToday
               ? 'bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/55'
               : 'bg-[var(--brand-soft)] text-brand active:scale-[0.99]'
           }`}
         >
-          {prayedToday ? '오늘 기도를 전했어요' : `🙏 오늘 ${name}님을 위해 기도했어요`}
+          {/* 촛불빛이 버튼 면에 번진다 — 기도를 전한 뒤에도 하루 동안 은은히 남는다 */}
+          <span className="candle-warm-glow is-igniting" aria-hidden="true" />
+          {/* 화면을 열면 촛불이 스스로 켜진다. 빛 알갱이는 아직 전하기 전에만 — 누르기를 조용히 부르는 움직임 */}
+          <MiniCandle size={24} ignite motes={!prayedToday} className="relative" />
+          <span className="relative">{prayedToday ? '오늘 기도를 전했어요' : `오늘 ${name}님을 위해 기도했어요`}</span>
         </button>
         {prayedToday && (
           <p className="mt-2 text-center text-[11.5px] text-gray-400 dark:text-white/40">내일 또 전할 수 있어요</p>

@@ -1,6 +1,7 @@
 // 두 사람의 발자국이 한 길에 번갈아 찍히고, 목표에 닿으면 길 끝 등불이 켜진다.
 // 사람별 숫자는 보이지 않게 — 색만 섞여 차오른다(누가 더 했는지 비교하지 않도록).
 import type { CompanionWeek } from '../../types/companion'
+import { CandleSvg } from '../../components/icons/MiniCandle'
 import './companion.css'
 
 const W = 340
@@ -8,6 +9,9 @@ const X0 = 18
 const X1 = 290
 const MID = 50
 const AMP = 15
+// 길 끝 촛불 크기(viewBox 단위) — 예전 등불(높이 약 23)보다 살짝 크게
+const CANDLE_H = 32
+const CANDLE_W = (CANDLE_H * 14) / 26
 
 const pathY = (x: number) => MID + AMP * Math.sin(((x - X0) / (X1 - X0)) * Math.PI * 2)
 const pathSlope = (x: number) =>
@@ -71,14 +75,9 @@ const FootprintPath = ({ week, className }: { week: CompanionWeek; className?: s
           </g>
         )
       })}
-      {/* 길 끝 등불 */}
-      <g className="cp-lantern" transform={`translate(316 ${MID - 4})`}>
-        <circle className="cp-glow" cx="0" cy="4" r="17" />
-        <path className="cp-lantern-line" d="M0 -16v4M-5 -12h10" />
-        <rect className="cp-lantern-body" x="-7" y="-12" width="14" height="19" rx="4" />
-        <path className="cp-flame" d="M0 -6c2 2.4 3 3.8 3 5.6a3 3 0 0 1-6 0c0-1.8 1-3.2 3-5.6Z" />
-        <path className="cp-lantern-line" d="M-5 7h10" />
-      </g>
+      {/* 길 끝 촛불 — 목표를 채우기 전엔 심지만 있는 초, 채운 주엔 화면을 열 때 불꽃이 피어난다.
+          기도 버튼과 같은 촛불(MiniCandle) — 길 높이에 맞춰 등불 자리(x 316)에 세운다 */}
+      <CandleSvg size={CANDLE_H} lit={week.achieved} ignite={week.achieved} x={316 - CANDLE_W / 2} y={MID + 9 - CANDLE_H} />
     </svg>
     </div>
   )
