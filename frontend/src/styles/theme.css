@@ -13,6 +13,13 @@
 
 :root,
 [data-theme="light"] {
+  /* 동행 — 두 사람의 발자국 색(보라 금지: 브랜드 블루 + 따뜻한 호박색)과 길·등불 */
+  --cp-me: var(--brand);
+  --cp-you: #f0a23b;
+  --cp-empty: rgba(15, 23, 42, 0.1);
+  --cp-guide: rgba(15, 23, 42, 0.12);
+  --cp-lamp-off: rgba(15, 23, 42, 0.28);
+  --cp-flame: #ffb547;
   /* 검정 잉크 글리프(손글씨 사인 PNG)를 글자색에 맞추는 필터 — 라이트는 원본 */
   --ink-glyph-filter: none;
   /* Brand — 토스 스타일 일렉트릭 블루. 그라데이션 대신 플랫 솔리드
@@ -155,6 +162,12 @@
 }
 
 [data-theme="dark"] {
+  --cp-me: var(--brand);
+  --cp-you: #f5b65a;
+  --cp-empty: rgba(255, 255, 255, 0.1);
+  --cp-guide: rgba(255, 255, 255, 0.12);
+  --cp-lamp-off: rgba(255, 255, 255, 0.3);
+  --cp-flame: #ffb547;
   /* 검정 잉크 글리프를 밝은 글자색으로 반전 */
   --ink-glyph-filter: invert(1) brightness(0.94);
   /* Brand — 토스 스타일 일렉트릭 블루.

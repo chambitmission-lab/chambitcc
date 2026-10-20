@@ -30,6 +30,7 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/bible': () => import('../pages/Bible/BibleStudy'),
   '/ministry': () => import('../pages/Ministry/Ministry'),
   '/groups': () => import('../pages/Groups/MyGroups'),
+  '/companion': () => import('../pages/Companion/CompanionList'),
   // 선교사 명단(섬기는 사람들 DB)을 먼저 채우고 연다 — 화면이 명단을 동기로 읽는다
   '/mission': withMissionRoster(() => import('../pages/Mission/Mission')),
   '/news': () => import('../pages/News/News'),

@@ -1,0 +1,62 @@
+/* 동행 — 두 사람 색 토큰(--cp-*)은 styles/theme.css 에서 라이트/다크를 나눈다 */
+
+.cp-path {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.cp-guide {
+  fill: none;
+  stroke: var(--cp-guide);
+  stroke-width: 1.4;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+.cp-foot.is-empty { fill: var(--cp-empty); }
+.cp-foot.is-me { fill: var(--cp-me); }
+.cp-foot.is-you { fill: var(--cp-you); }
+.cp-foot.is-me,
+.cp-foot.is-you {
+  animation: cp-step 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes cp-step {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cp-lantern-body,
+.cp-lantern-line {
+  fill: none;
+  stroke: var(--cp-lamp-off);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cp-flame { fill: var(--cp-lamp-off); opacity: 0.5; }
+.cp-glow { fill: var(--cp-flame); opacity: 0; }
+.cp-path.is-lit .cp-lantern-body,
+.cp-path.is-lit .cp-lantern-line { stroke: var(--cp-flame); }
+.cp-path.is-lit .cp-flame { fill: var(--cp-flame); opacity: 1; animation: cp-flicker 2.4s ease-in-out infinite; }
+.cp-path.is-lit .cp-glow { opacity: 0.22; animation: cp-glow 2.4s ease-in-out infinite; }
+@keyframes cp-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.82; }
+}
+@keyframes cp-glow {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-foot.is-me, .cp-foot.is-you, .cp-path.is-lit .cp-flame, .cp-path.is-lit .cp-glow { animation: none; }
+}
+
+.cp-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; }
+.cp-dot.is-me { background: var(--cp-me); }
+.cp-dot.is-you { background: var(--cp-you); }
+
+/* 지나온 주 — 등불 켜진 주 칩 (Tailwind 의 /20 투명도는 CSS 변수 색에 안 먹는다) */
+.cp-lamp-chip {
+  background: color-mix(in srgb, var(--cp-flame) 22%, transparent);
+  color: var(--cp-flame);
+}

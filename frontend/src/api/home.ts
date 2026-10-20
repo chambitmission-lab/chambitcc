@@ -1,4 +1,5 @@
 import type { TodayResponse } from '../types/biblePlan'
+import type { CompanionHome } from '../types/companion'
 import type { DailyVerseResponse } from '../types/dailyVerse'
 import type { ElectionSummary } from '../types/election'
 import type { MeditationCard } from '../types/meditation'
@@ -30,6 +31,7 @@ export interface HomeSummary {
   popup_notices: Notification[] | null
   my_groups: GroupListResponse | null
   today_church: TodayChurch | null
+  companions: CompanionHome | null
   failed: string[]
 }
 

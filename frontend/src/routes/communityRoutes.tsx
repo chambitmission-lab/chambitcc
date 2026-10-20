@@ -2,7 +2,7 @@ import { lazy } from 'react'
 import { Route } from 'react-router-dom'
 import { menuRouteLoaders } from '../utils/routePreload'
 
-// 나의 신앙·공동체 — 기도·감사·그룹·반·묵상방·타임캡슐·게임/회상 화면
+// 나의 신앙·공동체 — 기도·감사·그룹·반·묵상방·동행·타임캡슐·게임/회상 화면
 
 const PrayerFocus = lazy(menuRouteLoaders['/prayer-focus'])
 const WeeklyPrayerTopics = lazy(() => import('../pages/Prayer/WeeklyPrayerTopics'))
@@ -32,6 +32,8 @@ const RabbitGallery = lazy(() => import('../pages/Bluemarble/RabbitGallery'))
 const WeeklyStory = lazy(() => import('../pages/WeeklyStory/WeeklyStory'))
 const Growth = lazy(() => import('../pages/Growth/Growth'))
 const TodayChurch = lazy(() => import('../pages/TodayChurch/TodayChurch'))
+const CompanionList = lazy(menuRouteLoaders['/companion'])
+const CompanionDetail = lazy(() => import('../pages/Companion/CompanionDetail'))
 
 export const communityRoutes = (
   <>
@@ -63,5 +65,7 @@ export const communityRoutes = (
     <Route path="/weekly-story" element={<WeeklyStory />} />
     <Route path="/growth" element={<Growth />} />
     <Route path="/today" element={<TodayChurch />} />
+    <Route path="/companion" element={<CompanionList />} />
+    <Route path="/companion/:id" element={<CompanionDetail />} />
   </>
 )

@@ -175,6 +175,16 @@ const IconCandle = (p: IconProps) => (
   </Svg>
 )
 
+/* 동행 — 나란히 찍힌 두 발자국 */
+const IconFootsteps = (p: IconProps) => (
+  <Svg {...p}>
+    <ellipse cx="8" cy="8.5" rx="2.6" ry="4" />
+    <path d="M6.6 15.2a1.6 1.6 0 0 0 2.8 0" />
+    <ellipse cx="16" cy="11.5" rx="2.6" ry="4" />
+    <path d="M14.6 18.2a1.6 1.6 0 0 0 2.8 0" />
+  </Svg>
+)
+
 /* 우리반 알림장 — 종이 달린 알림판 */
 const IconClassNote = (p: IconProps) => (
   <Svg {...p}>
@@ -285,6 +295,7 @@ export const NAV_ICONS = {
   survey: IconSurvey,
   seats: IconSeat,
   todayChurch: IconTodayLetter,
+  companion: IconFootsteps,
 } as const
 
 export type NavIconKey = keyof typeof NAV_ICONS

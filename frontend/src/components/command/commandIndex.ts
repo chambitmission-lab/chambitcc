@@ -62,6 +62,7 @@ const CATALOG_PALETTE: [string, PaletteExtras][] = [
   ['/culture', { keywords: ['문화교실', '강좌', '수업', '신청', 'culture', 'class'] }],
   ['/seats', { keywords: ['좌석', '자리', '예약', '콘서트', '행사', 'seat', 'booking', 'reserve'] }],
   ['/survey', { keywords: ['설문', '설문조사', '의견', '투표', 'survey', 'poll', 'feedback'] }],
+  ['/companion', { keywords: ['동행', '짝', '같이', '함께', '목표', '챌린지', 'companion', 'buddy', 'together'], memberOnly: true }],
   ['/groups', { keywords: ['모임', '소그룹', '기도방', '구역', 'group', 'room'], memberOnly: true }],
   ['/classes', { keywords: ['알림장', '우리반', '교회학교', '주일학교', 'class', 'notice'], memberOnly: true }],
   ['/garden', { keywords: ['칭호', '뱃지', '업적', 'title', 'badge'], memberOnly: true }],

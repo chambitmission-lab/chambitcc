@@ -43,6 +43,7 @@ import heroAutumnNight from '../../../assets/hero/autumn-night.webp'
 import WaitingQuipLoader from './WaitingQuipLoader'
 import { WeatherGlyph, type WeatherGlyphName } from './WeatherIcons'
 import TodayChurchEnvelope from './TodayChurchEnvelope'
+import CompanionHeroButton from './CompanionHeroButton'
 import './DailyMeditationCard.css'
 
 const GREETING_KEYS = {
@@ -460,6 +461,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           <div className="meditation-hero-top">
           {/* 오늘의 교회 봉투 — 기념일에만 맨 앞 칸에. 오른쪽 정렬 클러스터라 생겨도 사라져도 아무것도 밀지 않는다 */}
           <TodayChurchEnvelope />
+          {/* 동행 — 받은 초대·오늘 짝의 기도가 있을 때만. 봉투와 같은 이유로 아무것도 밀지 않는다 */}
+          <CompanionHeroButton />
           {/* 실황 날씨 칩 — 유리 칩(라인 아이콘+기온). 맑으면 해/달,
            * 비·눈이면 한 단어 라벨, 강수확률 40% 이상이면 확률까지 붙는다.
            * API 실패 시엔 칩을 숨기고 인사말 끝 아이콘으로 폴백한다. */}

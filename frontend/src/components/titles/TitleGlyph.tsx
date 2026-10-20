@@ -270,6 +270,25 @@ const GLYPHS: Record<string, ReactElement> = {
       <path {...P} d="M3.5 8.5 7.5 12 12 5l4.5 7 4-3.5-1.8 9.5H5.3zM5.5 21h13" />
     </>
   ),
+  // 👣 동행 ─────────────────────────────
+  companion_first_lamp: (
+    <>
+      <rect {...soft} x="7" y="6" width="10" height="13" rx="3" />
+      <path {...P} d="M12 2.5V6M9.5 3.5h5M9 21h6" />
+      <rect {...P} x="7" y="6" width="10" height="13" rx="3" />
+      <path {...P} d="M12 9.5c1.5 1.7 2.2 2.8 2.2 4a2.2 2.2 0 0 1-4.4 0c0-1.2.7-2.3 2.2-4z" />
+    </>
+  ),
+  companion_ten_lamps: (
+    <>
+      <ellipse {...soft} cx="8" cy="8.5" rx="2.8" ry="4.2" />
+      <ellipse {...soft} cx="16" cy="11.5" rx="2.8" ry="4.2" />
+      <ellipse {...P} cx="8" cy="8.5" rx="2.8" ry="4.2" />
+      <path {...P} d="M6.4 15.5a1.7 1.7 0 0 0 3.2 0" />
+      <ellipse {...P} cx="16" cy="11.5" rx="2.8" ry="4.2" />
+      <path {...P} d="M14.4 18.5a1.7 1.7 0 0 0 3.2 0" />
+    </>
+  ),
   // 🎉 특별한 순간 ────────────────────────
   returned_prodigal: (
     <>

@@ -211,6 +211,16 @@ const EN: Record<string, TitleText> = {
     description: 'You gathered the most in church that day. He that gathered much had nothing over (Ex 16:18) — but today, you’re first!',
     hint: 'Finish 1st in Today’s Manna (a day and level with 3+ players)',
   },
+  companion_first_lamp: {
+    name: 'Co-worker',
+    description: 'A week you might have put off alone, filled because there were two of you. Two are better than one (Eccl 4:9) — turns out it’s true.',
+    hint: 'Light 1 lamp by filling a weekly goal with your companion',
+  },
+  companion_ten_lamps: {
+    name: 'Fellow Traveler',
+    description: 'Ten lamps lit. By now their week is your week. The road to Emmaus was walked by two as well (Luke 24:13).',
+    hint: 'Light 10 lamps in Walk Together',
+  },
   living_legend: {
     name: 'Living Legend',
     description: "Dawn and midnight, a hundred days and sixty-six books — every title in the collection has gathered before you. The titles aren't the legend anymore. You are.",
