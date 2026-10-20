@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
-import { getSermonWeekPack } from '../../../api/sermonTakeaway'
+import { getSermonExtras } from '../../../api/sermonTakeaway'
 import { sermonKeys } from '../../../hooks/queryKeys'
 import { showToast } from '../../../utils/toast'
 
@@ -14,10 +14,12 @@ const todayDay = () => {
 }
 
 const SermonWeekPackBlock = ({ sermon }: { sermon: Sermon }) => {
+  // 나눔 질문 블록과 같은 쿼리 — 설교 한 편에 요청 하나
   const { data: pack } = useQuery({
-    queryKey: sermonKeys.weekPack(sermon.id),
-    queryFn: () => getSermonWeekPack(sermon.id),
+    queryKey: sermonKeys.extras(sermon.id),
+    queryFn: () => getSermonExtras(sermon.id),
     staleTime: 1000 * 60 * 10,
+    select: x => x.week_pack,
   })
   const [day, setDay] = useState(todayDay)
   if (!pack || (!pack.summary.length && !pack.kids && !pack.devotions.length)) return null

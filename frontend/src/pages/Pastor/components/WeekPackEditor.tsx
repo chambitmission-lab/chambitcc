@@ -51,6 +51,7 @@ const WeekPackEditor = ({ outlineId, flush }: { outlineId: number; flush?: () =>
   const [picking, setPicking] = useState(false)
   const [confirmRedo, setConfirmRedo] = useState(false)
   const [filtered, setFiltered] = useState(0)
+  const [truncated, setTruncated] = useState<number | null>(null)
   const [loadedFor, setLoadedFor] = useState<number | null>(null)
 
   // 서버 값은 처음 한 번만 옮긴다 — 저장 응답이 고치는 중인 글을 덮지 않게
@@ -68,6 +69,7 @@ const WeekPackEditor = ({ outlineId, flush }: { outlineId: number; flush?: () =>
     onSuccess: d => {
       setContent(toContent(d))
       setFiltered(d.filtered)
+      setTruncated(d.truncated ? (d.read_chars ?? 0) : null)
       setDirty(true)
       setReviewed(false)
       setConfirmRedo(false)
@@ -94,10 +96,7 @@ const WeekPackEditor = ({ outlineId, flush }: { outlineId: number; flush?: () =>
       setContent(toContent(saved.pack))
       setSermon(saved.sermon)
       setDirty(false)
-      if (saved.sermon) {
-        void qc.invalidateQueries({ queryKey: sermonKeys.weekPack(saved.sermon.id) })
-        void qc.invalidateQueries({ queryKey: sermonKeys.discussion(saved.sermon.id) })
-      }
+      if (saved.sermon) void qc.invalidateQueries({ queryKey: sermonKeys.extras(saved.sermon.id) })
       showToast(publish ? '성도들에게 공개했어요' : data?.pack?.is_published ? '공개를 내리고 저장했어요' : '저장했어요', 'success')
     },
     onError: (e: Error) => showToast(e.message, 'error'),
@@ -153,6 +152,12 @@ const WeekPackEditor = ({ outlineId, flush }: { outlineId: number; flush?: () =>
               <p className="flex items-center gap-1.5 rounded-xl px-3 py-2 bg-amber-50 border border-amber-200 dark:bg-amber-400/10 dark:border-amber-400/25 text-[12.5px] lg:text-[13.5px] text-amber-900 dark:text-amber-200">
                 <span className="material-icons-outlined text-[16px]">shield</span>
                 이단 표현이 섞인 항목 {filtered}개는 초안에서 자동으로 뺐습니다.
+              </p>
+            )}
+            {truncated !== null && (
+              <p className="flex items-center gap-1.5 rounded-xl px-3 py-2 bg-amber-50 border border-amber-200 dark:bg-amber-400/10 dark:border-amber-400/25 text-[12.5px] lg:text-[13.5px] text-amber-900 dark:text-amber-200">
+                <span className="material-icons-outlined text-[16px]">content_cut</span>
+                원고가 길어 앞 {truncated.toLocaleString()}자까지만 읽고 만든 초안입니다. 뒷부분(결론)이 빠졌는지 살펴 주세요.
               </p>
             )}
             <Block icon="article" title="주보 요약" hint="한 줄씩 3줄">

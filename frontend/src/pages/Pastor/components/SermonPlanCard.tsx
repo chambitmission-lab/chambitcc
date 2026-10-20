@@ -9,7 +9,6 @@ import {
   createOutline,
   fetchPlanInputs,
   fetchSermonPlan,
-  updateOutline,
   type PlanInputs,
   type SermonPlan,
   type SermonSeries,
@@ -19,8 +18,11 @@ import { showToast } from '../../../utils/toast'
 import { SectionCard } from '../../Admin/components/StatCards'
 import { BriefLoading } from './SermonBriefCard'
 import { formatDay, inputCls } from './pastorUtils'
+import { defaultOutlineSections } from './sermonNoteUtils'
 
 const WEEK_CHOICES = [4, 6, 8, 12]
+// 재료는 가장 긴 기간으로 한 번만 받고 화면에서 자른다 — 기간 칩을 누를 때마다 다시 묻지 않게
+const INPUT_WEEKS = 12
 
 const SermonPlanCard = () => {
   const qc = useQueryClient()
@@ -31,10 +33,11 @@ const SermonPlanCard = () => {
   const [progress, setProgress] = useState<{ id: string; done: number; total: number } | null>(null)
 
   const { data: inputs } = useQuery<PlanInputs>({
-    queryKey: pastorKeys.planInputs(weeks, null),
-    queryFn: () => fetchPlanInputs(weeks, null),
+    queryKey: pastorKeys.planInputs(INPUT_WEEKS, null),
+    queryFn: () => fetchPlanInputs(INPUT_WEEKS, null),
     staleTime: 1000 * 60 * 10,
   })
+  const sundays = inputs?.sundays.slice(0, weeks) ?? []
 
   const ask = useMutation({
     mutationFn: () => fetchSermonPlan({ weeks, start: null, focus: focus.trim() }),
@@ -51,12 +54,13 @@ const SermonPlanCard = () => {
       let n = 0
       setProgress({ id: s.id, done: 0, total: rows.length })
       for (const r of rows) {
-        const o = await createOutline({ title: r.title || `${s.title} ${n + 1}`, passage: r.passage, preach_on: r.date })
-        if (r.gist) {
-          await updateOutline(o.id, {
-            sections: o.sections.map(x => (x.id === 'body' ? { ...x, text: `${r.gist}\n(시리즈: ${s.title})` } : x)),
-          })
-        }
+        // 요지는 본론 칸에 미리 채워 한 요청으로 만든다(주일 12개면 24요청이던 것이 12요청)
+        await createOutline({
+          title: r.title || `${s.title} ${n + 1}`,
+          passage: r.passage,
+          preach_on: r.date,
+          sections: r.gist ? defaultOutlineSections(`${r.gist}\n(시리즈: ${s.title})`) : undefined,
+        })
         n += 1
         setProgress({ id: s.id, done: n, total: rows.length })
       }
@@ -97,7 +101,7 @@ const SermonPlanCard = () => {
       {inputs && (
         <div className="rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] px-3.5 py-3 space-y-2">
           <div className="flex flex-wrap gap-1.5">
-            {inputs.sundays.map(s => (
+            {sundays.map(s => (
               <span
                 key={s.date}
                 className={`px-2.5 py-1 rounded-full text-[12px] lg:text-[13px] font-semibold ${

@@ -44,14 +44,6 @@ export const deleteSermonTakeaway = async (sermonId: number): Promise<void> => {
   })
 }
 
-/** 목사님이 공개한 소그룹 나눔 질문 — 없으면 null (로그인 불필요) */
-export const getSermonDiscussion = async (sermonId: number): Promise<string[] | null> => {
-  const data = await request<{ data: { questions?: string[] | null } }>(`/sermons/${sermonId}/discussion`, {
-    errorMessage: '나눔 질문을 불러오지 못했습니다',
-  })
-  return data.data.questions ?? null
-}
-
 export interface SermonWeekDevotion {
   day: string
   passage: string | null
@@ -68,10 +60,17 @@ export interface SermonWeekPack {
   devotions: SermonWeekDevotion[]
 }
 
-/** 목사님이 공개한 한 주 묶음 — 없으면 null (로그인 불필요) */
-export const getSermonWeekPack = async (sermonId: number): Promise<SermonWeekPack | null> => {
-  const data = await request<{ data: SermonWeekPack | null }>(`/sermons/${sermonId}/week-pack`, {
+export interface SermonExtras {
+  /** 목사님이 공개한 소그룹 나눔 질문 — 없으면 null */
+  discussion: string[] | null
+  /** 목사님이 공개한 한 주 묶음 — 없으면 null */
+  week_pack: SermonWeekPack | null
+}
+
+/** 나눔 질문 + 한 주 묶음을 한 번에 — 설교 한 편을 열 때 작은 GET 두 개 대신 하나 (로그인 불필요) */
+export const getSermonExtras = async (sermonId: number): Promise<SermonExtras> => {
+  const data = await request<{ data: SermonExtras }>(`/sermons/${sermonId}/extras`, {
     errorMessage: '이번 주 말씀 자료를 불러오지 못했습니다',
   })
-  return data.data ?? null
+  return { discussion: data.data?.discussion ?? null, week_pack: data.data?.week_pack ?? null }
 }

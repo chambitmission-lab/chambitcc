@@ -9,7 +9,6 @@ import {
   createOutline,
   fetchOutlineOptions,
   fetchSermonBrief,
-  updateOutline,
   type OutlineOption,
   type OutlineOptions,
   type OutlineSection,
@@ -53,10 +52,8 @@ const OutlineOptionsCard = ({ label }: { label: string }) => {
   })
 
   const make = useMutation({
-    mutationFn: async (o: OutlineOption) => {
-      const created = await createOutline({ title: o.title || `${label} 설교`, passage: label })
-      return updateOutline(created.id, { sections: sectionsOf(o, bookLabel) })
-    },
+    // 뼈대를 함께 보내 한 번에 만든다(만들고 또 고치는 두 요청이었다)
+    mutationFn: (o: OutlineOption) => createOutline({ title: o.title || `${label} 설교`, passage: label, sections: sectionsOf(o, bookLabel) }),
     onSuccess: saved => {
       void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
       void qc.invalidateQueries({ queryKey: pastorKeys.sermonStudy(label) })

@@ -148,7 +148,7 @@ const DiscussionEditor = ({
       qc.setQueryData<SermonEchoData>(pastorKeys.sermonEcho(sermonIdKey), prev =>
         prev ? { ...prev, discussion: saved } : prev,
       )
-      void qc.invalidateQueries({ queryKey: sermonKeys.discussion(sermon.id) })
+      void qc.invalidateQueries({ queryKey: sermonKeys.extras(sermon.id) })
       showToast(isPublished ? '성도들에게 나눔 질문을 공개했어요' : '나눔 질문을 저장했어요', 'success')
     },
     onError: (e: Error) => showToast(e.message, 'error'),

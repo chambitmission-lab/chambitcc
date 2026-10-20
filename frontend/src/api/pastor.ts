@@ -741,6 +741,9 @@ export interface OutlineSection {
   note_ids: number[]
 }
 
+/** 저장 요청용 — manuscript 를 null 로 보내면 서버가 저장된 원고를 그대로 둔다(1초마다 전체 원고를 다시 보내지 않게) */
+export type OutlineSectionPatch = Omit<OutlineSection, 'manuscript'> & { manuscript?: string | null }
+
 export interface OutlineSummary {
   id: number
   title: string
@@ -768,11 +771,13 @@ export const createOutline = (data: {
   passage?: string | null
   preach_on?: string | null
   note_ids?: number[]
+  /** 뼈대를 함께 보내면(대지 후보·설교 계획) 기본 칸 대신 이 칸들로 — 만들고 또 고치는 왕복을 없앤다 */
+  sections?: OutlineSectionPatch[]
 }): Promise<SermonOutline> => pastorSend('/pastor/outlines', 'POST', data, '개요를 만들지 못했습니다')
 
 export const updateOutline = (
   id: number,
-  data: Partial<{ title: string; passage: string | null; preach_on: string | null; sections: OutlineSection[] }>,
+  data: Partial<{ title: string; passage: string | null; preach_on: string | null; sections: OutlineSectionPatch[] }>,
 ): Promise<SermonOutline> => pastorSend(`/pastor/outlines/${id}`, 'PATCH', data, '개요 저장에 실패했습니다')
 
 export const deleteOutline = async (id: number): Promise<void> => {
@@ -848,6 +853,7 @@ export interface SermonStudy {
   } | null
   commentaries?: StudyCommentary[]
   cross_refs?: CrossRef[]
+  /** 서버는 더 싣지 않는다(화면이 /notes/related 로 따로 받음) — dev 미리보기가 표본을 넣을 때만 */
   notes?: (SermonNote & { reasons?: string[] })[]
   topics?: string[]
   past_sermons?: SermonRef[]
@@ -956,6 +962,9 @@ export interface SermonReview {
   strengths: string[]
   gospel_note: string
   filtered: number
+  /** 원고가 상한을 넘어 뒷부분은 AI 가 보지 못했다 */
+  truncated?: boolean
+  reviewed_chars?: number
 }
 
 export const reviewOutline = (id: number): Promise<SermonReview> =>
@@ -991,7 +1000,9 @@ export interface WeekPackData {
 export const fetchWeekPack = (outlineId: number): Promise<WeekPackData> =>
   pastorGet(`/pastor/outlines/${outlineId}/week-pack`, '한 주 묶음을 불러오지 못했습니다')
 
-export const draftWeekPack = (outlineId: number): Promise<WeekPackContent & { filtered: number }> =>
+export const draftWeekPack = (
+  outlineId: number,
+): Promise<WeekPackContent & { filtered: number; truncated?: boolean; read_chars?: number }> =>
   pastorSend(`/pastor/outlines/${outlineId}/week-pack/draft`, 'POST', {}, '한 주 묶음 초안을 만들지 못했습니다')
 
 export const saveWeekPack = (

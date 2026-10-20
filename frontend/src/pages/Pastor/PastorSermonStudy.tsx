@@ -7,6 +7,7 @@ import {
   createOutline,
   deleteCrossRef,
   fetchOutlines,
+  fetchRelatedNotes,
   fetchSermonStudy,
   type CrossRef,
   type SermonNote,
@@ -151,9 +152,17 @@ export const StudyBody = ({ data }: { data: SermonStudy }) => {
   const [openNote, setOpenNote] = useState<SermonNote | null>(null)
   const current = verses.find(v => verseKey(v) === selected) ?? verses[0]
   const singleChapter = verses[0].chapter === verses[verses.length - 1].chapter
-  const notes = data.notes ?? []
+  const label = data.label ?? data.query
+  // 이 본문과 이어지는 내 메모는 작업대 응답과 따로 받는다 — 메모를 담아도(invalidateNoteQueries) 이 목록만 갱신되고
+  // 본문·해석·관주는 다시 읽지 않는다. dev 미리보기는 표본을 data.notes 에 실어 보낸다
+  const related = useQuery({
+    queryKey: pastorKeys.relatedNotesFor(label),
+    queryFn: () => fetchRelatedNotes(label),
+    enabled: !data.notes,
+  })
+  const notes = data.notes ?? related.data?.items ?? []
+  const topics = data.topics ?? related.data?.topics ?? []
   const xrefs = data.cross_refs ?? []
-  const qc = useQueryClient()
 
   const toggle = (w: string) =>
     setOn(prev => {
@@ -234,16 +243,10 @@ export const StudyBody = ({ data }: { data: SermonStudy }) => {
             </p>
           </SectionCard>
 
-          {/* AI 연구 재료 — 담은 항목은 오른쪽 '이 본문과 이어지는 내 메모'에 바로 보이게 작업대를 다시 읽는다 */}
-          <SermonBriefCard
-            label={data.label ?? data.query}
-            onSaved={() => void qc.invalidateQueries({ queryKey: pastorKeys.sermonStudy(data.query) })}
-          />
-          <SermonBridgeCard
-            label={data.label ?? data.query}
-            onSaved={() => void qc.invalidateQueries({ queryKey: pastorKeys.sermonStudy(data.query) })}
-          />
-          <OutlineOptionsCard label={data.label ?? data.query} />
+          {/* AI 연구 재료·적용 다리 — 담은 항목은 카드가 메모 쿼리를 무효화해 오른쪽 '이어지는 내 메모'에 바로 보인다 */}
+          <SermonBriefCard label={label} />
+          <SermonBridgeCard label={label} />
+          <OutlineOptionsCard label={label} />
 
           <BookIntroCard data={data} />
         </div>
@@ -253,10 +256,12 @@ export const StudyBody = ({ data }: { data: SermonStudy }) => {
           <CommentaryCard data={data} verse={current} />
 
           <SectionCard title="이 본문과 이어지는 내 메모" action={<Link to="/pastor/sermon/notes" className="text-[12px] font-bold text-brand hover:underline">설교 메모</Link>}>
-            {data.topics && data.topics.length > 0 && (
-              <p className="text-[12px] text-gray-600 dark:text-white/60">본문의 주제: {data.topics.join(' · ')}</p>
+            {topics.length > 0 && (
+              <p className="text-[12px] text-gray-600 dark:text-white/60">본문의 주제: {topics.join(' · ')}</p>
             )}
-            {notes.length === 0 ? (
+            {related.isPending && !data.notes ? (
+              <p className="text-[12px] text-gray-500">메모를 찾는 중...</p>
+            ) : notes.length === 0 ? (
               <EmptyHint text="이어지는 메모가 아직 없습니다" />
             ) : (
               <ul className="space-y-1.5">
@@ -416,21 +421,30 @@ const CrossRefCard = ({ data, verse }: { data: SermonStudy; verse: StudyVerse })
   const [target, setTarget] = useState('')
   const [note, setNote] = useState('')
   const list = (data.cross_refs ?? []).filter(x => x.chapter === verse.chapter && x.verse === verse.verse)
-  const refresh = () => qc.invalidateQueries({ queryKey: pastorKeys.sermonStudy(data.query) })
+  // 응답으로 캐시만 고친다 — 관주 하나 잇고 작업대 전체(본문·해석·메모)를 다시 받지 않게
+  const patch = (fn: (s: SermonStudy) => SermonStudy) =>
+    qc.setQueryData<SermonStudy>(pastorKeys.sermonStudy(data.query), prev => (prev ? fn(prev) : prev))
+  const countAt = (s: SermonStudy, x: CrossRef, delta: number): SermonStudy => ({
+    ...s,
+    verses: s.verses?.map(v =>
+      v.chapter === x.chapter && v.verse === x.verse ? { ...v, cross_ref_count: Math.max(0, v.cross_ref_count + delta) } : v,
+    ),
+  })
 
   const add = useMutation({
     mutationFn: () =>
       addCrossRef({ book_number: data.book_number!, chapter: verse.chapter, verse: verse.verse, target: target.trim(), note: note.trim() || null }),
-    onSuccess: () => {
+    onSuccess: x => {
       setTarget('')
       setNote('')
-      void refresh()
+      // 같은 관주를 또 이으면 서버가 있던 것을 돌려준다 — 두 번 넣지 않는다
+      patch(s => (s.cross_refs?.some(r => r.id === x.id) ? s : { ...countAt(s, x, 1), cross_refs: [...(s.cross_refs ?? []), x] }))
     },
     onError: (e: Error) => showToast(e.message, 'error'),
   })
   const remove = useMutation({
     mutationFn: (x: CrossRef) => deleteCrossRef(x.id),
-    onSuccess: () => void refresh(),
+    onSuccess: (_r, x) => patch(s => ({ ...countAt(s, x, -1), cross_refs: (s.cross_refs ?? []).filter(r => r.id !== x.id) })),
     onError: (e: Error) => showToast(e.message, 'error'),
   })
 

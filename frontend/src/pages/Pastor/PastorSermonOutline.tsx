@@ -10,10 +10,12 @@ import {
   finishOutline,
   updateOutline,
   type OutlineSection,
+  type OutlineSectionPatch,
   type SermonNote,
   type SermonOutline,
 } from '../../api/pastor'
 import { showToast } from '../../utils/toast'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import DatePicker from '../../components/common/DatePicker'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
@@ -77,6 +79,11 @@ const PastorSermonOutline = () => {
   const [finishing, setFinishing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const loadedId = useRef<number | null>(null)
+  // 마지막으로 서버에 저장된 칸별 원고 — 저장 때 그대로인 칸은 원고를 보내지 않는다
+  const savedManuscripts = useRef<Record<string, string>>({})
+  const rememberSaved = (o: SermonOutline) => {
+    savedManuscripts.current = Object.fromEntries(o.sections.map(s => [s.id, s.manuscript ?? '']))
+  }
 
   // 서버 값은 처음 한 번만 옮겨 온다 — 저장 응답으로 입력 중인 글을 덮지 않게
   useEffect(() => {
@@ -84,20 +91,28 @@ const PastorSermonOutline = () => {
     setNotes(prev => ({ ...prev, ...Object.fromEntries(data.notes.map(n => [n.id, n])) }))
     if (loadedId.current !== data.id) {
       loadedId.current = data.id
+      rememberSaved(data)
       setDraft(toDraft(data))
       setActive(data.sections.find(s => s.id === 'body')?.id ?? data.sections[0]?.id ?? null)
     }
   }, [data])
 
+  // 저장 요청 — 원고가 저장본과 같은 칸은 manuscript 를 null 로 보낸다(서버가 저장된 원고를 둠).
+  // 1초 멈춤마다 원고 전체(칸당 최대 2만 자)를 다시 보내지 않게. 개요 글(text)·메모 배치는 작아 늘 보낸다.
+  const payloadOf = (d: Draft) => ({
+    title: d.title.trim() || '제목 없는 설교',
+    passage: d.passage.trim() || null,
+    preach_on: d.preach_on || null,
+    sections: d.sections.map<OutlineSectionPatch>(s => {
+      const m = s.manuscript ?? ''
+      return { ...s, manuscript: m === savedManuscripts.current[s.id] ? null : m }
+    }),
+  })
+
   const save = useMutation({
-    mutationFn: (d: Draft) =>
-      updateOutline(id, {
-        title: d.title.trim() || '제목 없는 설교',
-        passage: d.passage.trim() || null,
-        preach_on: d.preach_on || null,
-        sections: d.sections,
-      }),
+    mutationFn: (d: Draft) => updateOutline(id, payloadOf(d)),
     onSuccess: saved => {
+      rememberSaved(saved)
       qc.setQueryData(pastorKeys.outline(id), saved)
       void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
     },
@@ -123,12 +138,7 @@ const PastorSermonOutline = () => {
     () => () => {
       const d = pending.current
       if (!d) return
-      void updateOutline(id, {
-        title: d.title.trim() || '제목 없는 설교',
-        passage: d.passage.trim() || null,
-        preach_on: d.preach_on || null,
-        sections: d.sections,
-      })
+      void updateOutline(id, payloadOf(d))
         .then(() => qc.invalidateQueries({ queryKey: pastorKeys.outlines() }))
         .catch(() => undefined)
     },
@@ -500,7 +510,8 @@ const RelatedPanel = ({
   onAdd: (n: SermonNote) => void
   onOpen: (n: SermonNote) => void
 }) => {
-  const ref = passage.trim()
+  // 본문 칸을 치는 동안 글자마다 묻지 않게 — 입력이 멈춘 뒤에만
+  const ref = useDebouncedValue(passage.trim(), 400)
   const { data, isFetching } = useQuery({
     queryKey: pastorKeys.relatedNotesFor(ref),
     queryFn: () => fetchRelatedNotes(ref),

@@ -104,6 +104,11 @@ const ManuscriptReviewPanel = ({
               점검 뒤 원고가 바뀌었습니다. 다시 점검하면 새 원고로 봅니다.
             </p>
           )}
+          {result.data.truncated && (
+            <p className="rounded-lg px-2.5 py-1.5 bg-amber-50 border border-amber-200 dark:bg-amber-400/10 dark:border-amber-400/25 text-[12px] lg:text-[13px] text-amber-900 dark:text-amber-200">
+              원고가 길어 앞 {(result.data.reviewed_chars ?? 0).toLocaleString()}자까지만 AI 가 읽었습니다. 뒷부분은 칸을 나눠 따로 점검해 주세요.
+            </p>
+          )}
           <p className="flex items-center gap-1.5 text-[12.5px] lg:text-[13.5px] font-semibold text-ink-strong">
             <span className="material-icons-outlined text-[17px] text-brand">menu_book</span>
             {result.data.quotes_checked === 0

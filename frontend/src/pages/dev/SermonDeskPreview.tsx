@@ -213,7 +213,7 @@ const SermonDeskPreview = () => {
     qc.setQueryData(pastorKeys.sermonBrief(BRIEF.label), BRIEF)
     qc.setQueryData(pastorKeys.weekPack(7), WEEK)
     qc.setQueryData(pastorKeys.sermonBridge(BRIDGE.label), BRIDGE)
-    qc.setQueryData(pastorKeys.planInputs(6, null), PLAN_INPUTS)
+    qc.setQueryData(pastorKeys.planInputs(12, null), PLAN_INPUTS)
     return true
   })
   const [params, setParams] = useSearchParams()

@@ -2,7 +2,7 @@
 // 누구나 모임·단톡방에 그대로 옮길 수 있게 '나누기'는 공유 시트, 안 되면 복사.
 import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
-import { getSermonDiscussion } from '../../../api/sermonTakeaway'
+import { getSermonExtras } from '../../../api/sermonTakeaway'
 import { sermonKeys } from '../../../hooks/queryKeys'
 import { showToast } from '../../../utils/toast'
 
@@ -17,10 +17,12 @@ const shareText = (sermon: Sermon, questions: string[]): string =>
     .join('\n')
 
 const SermonDiscussionBlock = ({ sermon }: { sermon: Sermon }) => {
+  // 한 주 묶음 블록과 같은 쿼리 — 설교 한 편에 요청 하나
   const { data: questions } = useQuery({
-    queryKey: sermonKeys.discussion(sermon.id),
-    queryFn: () => getSermonDiscussion(sermon.id),
+    queryKey: sermonKeys.extras(sermon.id),
+    queryFn: () => getSermonExtras(sermon.id),
     staleTime: 1000 * 60 * 10,
+    select: x => x.discussion,
   })
   if (!questions?.length) return null
 

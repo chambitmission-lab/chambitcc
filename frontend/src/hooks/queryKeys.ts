@@ -67,10 +67,8 @@ export const sermonKeys = {
   bibleReferences: (sermonId: number | null) => ['sermon-bible-references', sermonId] as const,
   /** 내가 붙잡은 한 줄 전체 — sermonKeys.all 무효화(설교 등록·수정)에 휩쓸리지 않게 별도 루트 */
   takeaways: () => ['sermon-takeaways'] as const,
-  /** 목사님이 공개한 소그룹 나눔 질문 */
-  discussion: (sermonId: number) => ['sermon-discussion', sermonId] as const,
-  /** 목사님이 공개한 한 주 묶음(주보 요약·다음세대·가정예배) */
-  weekPack: (sermonId: number) => ['sermon-week-pack', sermonId] as const,
+  /** 목사님이 공개한 소그룹 나눔 질문 + 한 주 묶음(주보 요약·다음세대·가정예배) — 한 요청 */
+  extras: (sermonId: number) => ['sermon-extras', sermonId] as const,
 }
 
 export const columnKeys = {

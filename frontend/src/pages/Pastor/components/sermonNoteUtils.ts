@@ -1,6 +1,18 @@
 // 설교 메모장 공용 헬퍼 — 무효화 · 칩 스타일 · 성경 링크 (쿼리 키는 hooks/queryKeys 의 pastorKeys)
 import type { QueryClient } from '@tanstack/react-query'
+import type { OutlineSectionPatch } from '../../../api/pastor'
 import { pastorKeys } from '../../../hooks/queryKeys'
+
+/** 서버 기본 칸(sermon_note_service.DEFAULT_SECTIONS)과 같은 모양 — 본론 글을 미리 채워 개요를 한 번에 만들 때 */
+export const defaultOutlineSections = (bodyText = ''): OutlineSectionPatch[] =>
+  (
+    [
+      ['intro', '서론'],
+      ['body', '본론'],
+      ['apply', '적용'],
+      ['close', '결론'],
+    ] as const
+  ).map(([id, label]) => ({ id, label, text: id === 'body' ? bodyText : '', manuscript: '', note_ids: [] }))
 
 /** 메모·개요를 바꾼 뒤 — 메모가 보이는 모든 곳 */
 export const invalidateNoteQueries = (qc: QueryClient) => {
