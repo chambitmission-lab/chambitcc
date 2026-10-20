@@ -189,6 +189,8 @@ export const pastorKeys = {
   /** 연구 브리프(AI) — 본문 표기별. 서버도 잠시 담아 두지만 화면 이동 사이엔 이 캐시로 */
   sermonBrief: (ref: string) => ['pastor-sermon-brief', ref] as const,
   weekPack: (outlineId: number) => ['pastor-week-pack', outlineId] as const,
+  sermonBridge: (ref: string) => ['pastor-sermon-bridge', ref] as const,
+  planInputs: (weeks: number, start: string | null) => ['pastor-plan-inputs', weeks, start] as const,
 }
 
 /** 비로그인 랜딩 통계 티커 */

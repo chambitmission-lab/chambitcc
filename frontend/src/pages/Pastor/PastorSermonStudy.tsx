@@ -17,12 +17,14 @@ import { showToast } from '../../utils/toast'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import NoteComposer from './components/NoteComposer'
+import OutlineOptionsCard from './components/OutlineOptionsCard'
+import SermonBridgeCard from './components/SermonBridgeCard'
 import SermonBriefCard from './components/SermonBriefCard'
 import { IconButton, NoteCard, SermonTabs } from './components/sermonNotes'
 import { agoLabel, daysSince, formatDay, inputCls, usePastorGate } from './components/pastorUtils'
 
 // 설교 본문 작업대 — 본문 하나를 열면 연구 재료를 한 화면에 모은다 (기본은 규칙·집계)
-//   좌: 본문(반복어 색 표시·성도 밑줄 수) · AI 연구 재료(누를 때만, 고른 것만 메모로) · 권 개관과 그리스도 연결
+//   좌: 본문(반복어 색 표시·성도 밑줄 수) · AI 연구 재료 · 적용 다리 · 대지 후보(모두 누를 때만, 고른 것만 메모·개요로) · 권 개관
 //   우: 고른 절의 관주(교역자가 직접 잇는다) · 절 해석 · 내 메모 · 지난 설교 · 원고로 이어 쓰기
 // 본문은 주소(?ref=)에 남겨 새로고침·뒤로가기에도 같은 본문이 열린다.
 
@@ -237,6 +239,11 @@ export const StudyBody = ({ data }: { data: SermonStudy }) => {
             label={data.label ?? data.query}
             onSaved={() => void qc.invalidateQueries({ queryKey: pastorKeys.sermonStudy(data.query) })}
           />
+          <SermonBridgeCard
+            label={data.label ?? data.query}
+            onSaved={() => void qc.invalidateQueries({ queryKey: pastorKeys.sermonStudy(data.query) })}
+          />
+          <OutlineOptionsCard label={data.label ?? data.query} />
 
           <BookIntroCard data={data} />
         </div>

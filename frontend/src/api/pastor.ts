@@ -999,3 +999,88 @@ export const saveWeekPack = (
   data: WeekPackContent & { sermon_id: number | null; publish: boolean; reviewed: boolean },
 ): Promise<WeekPackData> =>
   pastorSend(`/pastor/outlines/${outlineId}/week-pack`, 'PUT', data, '한 주 묶음을 저장하지 못했습니다')
+
+// 적용 다리 — 본문 + 우리 교회 형편(이름 없는 집계)
+export interface ChurchContext {
+  days: number
+  emotion_total: number | null
+  emotions: Array<{ label: string; count: number }>
+  /** 지금 돌봄 중인 상황 — 3가정 미만 종류는 서버가 뺀다 */
+  care: Array<{ label: string; count: number }>
+  words: string[]
+  events: Array<{ title: string; date: string | null }>
+  theme: { text: string; ref: string } | null
+}
+
+export interface SermonBridge {
+  label: string
+  context: ChurchContext
+  bridges: Array<{ id: string; audience: string; need: string; truth: string; application: string; basis: string }>
+  caution: string
+  filtered: number
+}
+
+export const fetchSermonBridge = (ref: string, refresh = false): Promise<SermonBridge> =>
+  pastorSend('/pastor/sermon-study/bridge', 'POST', { ref, refresh }, '적용 후보를 만들지 못했습니다')
+
+// 대지 후보 — 뼈대만(근거 절은 본문 범위 안인지 서버가 확인)
+export interface OutlineOption {
+  id: string
+  style: string
+  title: string
+  points: Array<{ label: string; verses: string | null; verses_unchecked: boolean; gist: string }>
+  intro: string
+  close: string
+}
+
+export interface OutlineOptions {
+  label: string
+  big_idea: string
+  options: OutlineOption[]
+  filtered: number
+}
+
+export const fetchOutlineOptions = (ref: string, bigIdea: string): Promise<OutlineOptions> =>
+  pastorSend('/pastor/sermon-study/outline-options', 'POST', { ref, big_idea: bigIdea }, '대지 후보를 만들지 못했습니다')
+
+// 설교 계획 — 다가오는 주일 시리즈 후보
+export interface PlanInputs {
+  weeks: number
+  sundays: Array<{ date: string; season: string | null }>
+  testament: { ot: number; nt: number }
+  stale: Array<{ name: string; last_date: string | null }>
+  recent: Array<{ title: string; bible_verse: string | null; date: string }>
+  theme: { text: string; ref: string } | null
+}
+
+export interface PlanSunday {
+  date: string
+  season: string | null
+  passage: string | null
+  passage_unchecked: boolean
+  title: string
+  gist: string
+  /** 최근 3년 안에 같은 장을 설교한 날 */
+  recent_overlap: string | null
+}
+
+export interface SermonSeries {
+  id: string
+  title: string
+  kind: '강해' | '주제'
+  why: string
+  sundays: PlanSunday[]
+}
+
+export interface SermonPlan {
+  inputs: PlanInputs
+  focus: string
+  series: SermonSeries[]
+  filtered: number
+}
+
+export const fetchPlanInputs = (weeks: number, start: string | null): Promise<PlanInputs> =>
+  pastorGet(`/pastor/sermon-plan/inputs?weeks=${weeks}${start ? `&start=${start}` : ''}`, '설교 계획 재료를 불러오지 못했습니다')
+
+export const fetchSermonPlan = (data: { weeks: number; start: string | null; focus: string }): Promise<SermonPlan> =>
+  pastorSend('/pastor/sermon-plan', 'POST', data, '설교 계획을 만들지 못했습니다')

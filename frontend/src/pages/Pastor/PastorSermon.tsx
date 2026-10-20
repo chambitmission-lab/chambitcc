@@ -19,6 +19,7 @@ import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCar
 import PastorShell from './components/PastorShell'
 import EmotionFlowCard from './components/EmotionFlowCard'
 import { agoLabel, daysSince, formatDay, inputCls, usePastorGate } from './components/pastorUtils'
+import SermonPlanCard from './components/SermonPlanCard'
 
 // 설교 준비 도우미 — 좌: 본문 중복 확인 · 66권 커버리지 · 오래 설교하지 않은 권
 //                    우: 이번 주 성도의 마음 · 성도들이 머문 말씀 · 최근 설교
@@ -71,6 +72,7 @@ const PastorSermon = () => {
           <div className="contents lg:block lg:min-w-0">
             <PassageCheckCard />
             <CoverageCard data={data} years={years} onYears={setYears} openBook={openBook} onOpenBook={setOpenBook} />
+            <SermonPlanCard />
           </div>
           <div className="contents lg:block">
             <NotesPeekCard />

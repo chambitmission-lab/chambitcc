@@ -1,15 +1,16 @@
 /**
  * /dev/sermon-desk — 설교 본문 작업대 · 원고 쓰기 · 강단 보기를 표본 데이터로 (로그인·백엔드 없이)
  *
- * ?v=study(기본) | manuscript | week | pulpit
+ * ?v=study(기본) | manuscript | week | plan | pulpit
  * 실제 화면 컴포넌트를 그대로 쓴다. 관주 잇기·지우기·원고 시작 버튼은 진짜 API 라 여기선 누르지 말 것.
  * AI 연구 재료·한 주 묶음은 표본 응답을 쿼리 캐시에 미리 넣어 결과 화면을 보여 준다(다시 만들기·저장은 진짜 API).
  */
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import type { OutlineSection, SermonBrief, SermonNote, SermonOutline, SermonStudy, WeekPackData } from '../../api/pastor'
+import type { OutlineSection, PlanInputs, SermonBridge, SermonBrief, SermonNote, SermonOutline, SermonStudy, WeekPackData } from '../../api/pastor'
 import { pastorKeys } from '../../hooks/queryKeys'
+import SermonPlanCard from '../Pastor/components/SermonPlanCard'
 import WeekPackEditor from '../Pastor/components/WeekPackEditor'
 import PastorShell from '../Pastor/components/PastorShell'
 import { SermonTabs } from '../Pastor/components/sermonNotes'
@@ -171,11 +172,48 @@ const WEEK: WeekPackData = {
   },
 }
 
+const BRIDGE: SermonBridge = {
+  label: '요한복음 15:1-8',
+  context: {
+    days: 28,
+    emotion_total: 42,
+    emotions: [{ label: '불안', count: 14 }, { label: '지침', count: 9 }, { label: '감사', count: 8 }],
+    care: [{ label: '투병·입원', count: 4 }],
+    words: ['평안', '거하라', '두려워'],
+    events: [{ title: '추수감사주일 연합예배', date: '2026-11-15' }],
+    theme: { text: '너희 마른 뼈들아, 이제 살아나리라!', ref: '에스겔 37:5, 10' },
+  },
+  bridges: [
+    { id: 'bridge-0', audience: '고난 중인 분', need: '투병과 간병으로 지친 가정이 있습니다', truth: '포도나무에 붙은 가지는 스스로 버티지 않습니다(5절)', application: '오늘 버틸 힘이 없다는 고백이 실패가 아닙니다. 붙어 있는 가지에게 생명은 나무에서 옵니다.', basis: '투병·입원' },
+    { id: 'bridge-1', audience: '청년', need: '진로와 일자리로 불안한 마음이 많습니다', truth: '나를 떠나서는 아무것도 할 수 없다(5절)', application: '결과를 붙드는 대신 매일 말씀에 머무는 작은 습관으로 하루를 시작해 보세요.', basis: '불안' },
+  ],
+  caution: '열매를 구원의 조건으로 읽지 않게 해 주세요.',
+  filtered: 0,
+}
+
+const PLAN_INPUTS: PlanInputs = {
+  weeks: 6,
+  sundays: [
+    { date: '2026-10-25', season: '종교개혁주일' },
+    { date: '2026-11-01', season: null },
+    { date: '2026-11-08', season: null },
+    { date: '2026-11-15', season: '추수감사주일' },
+    { date: '2026-11-22', season: null },
+    { date: '2026-11-29', season: '대림절 1주' },
+  ],
+  testament: { ot: 41, nt: 77 },
+  stale: [{ name: '룻기', last_date: null }, { name: '하박국', last_date: '2021-03-07' }, { name: '빌립보서', last_date: '2022-05-01' }],
+  recent: [],
+  theme: { text: '너희 마른 뼈들아, 이제 살아나리라!', ref: '에스겔 37:5, 10' },
+}
+
 const SermonDeskPreview = () => {
   const qc = useQueryClient()
   useState(() => {
     qc.setQueryData(pastorKeys.sermonBrief(BRIEF.label), BRIEF)
     qc.setQueryData(pastorKeys.weekPack(7), WEEK)
+    qc.setQueryData(pastorKeys.sermonBridge(BRIDGE.label), BRIDGE)
+    qc.setQueryData(pastorKeys.planInputs(6, null), PLAN_INPUTS)
     return true
   })
   const [params, setParams] = useSearchParams()
@@ -207,13 +245,15 @@ const SermonDeskPreview = () => {
     <PastorShell>
       <SermonTabs />
       <div className="px-4 pt-3 flex gap-2 text-[13px] font-bold">
-        {['study', 'manuscript', 'week', 'pulpit'].map(x => (
+        {['study', 'manuscript', 'week', 'plan', 'pulpit'].map(x => (
           <button key={x} type="button" onClick={() => setParams({ v: x })} className={`px-3 py-1.5 rounded-full ${v === x ? 'bg-brand text-white' : 'bg-gray-100 dark:bg-white/10'}`}>
             {x}
           </button>
         ))}
       </div>
-      {v === 'week' ? (
+      {v === 'plan' ? (
+        <SermonPlanCard />
+      ) : v === 'week' ? (
         <WeekPackEditor outlineId={7} />
       ) : v === 'manuscript' ? (
         <ManuscriptEditor

@@ -18,3 +18,7 @@ export const chipCls = (active: boolean) =>
 
 export const bibleLink = (book: number, chapter: number, verse?: number | null) =>
   `/bible/${book}/${chapter}${verse ? `?verse=${verse}` : ''}`
+
+/** AI 초안에서 담은 메모 — 출처·태그로 '목사님 검토를 거친 AI 재료'임을 남긴다 */
+export const AI_NOTE_SOURCE = 'AI 연구 재료 · 목사님 검토'
+export const AI_NOTE_TAGS = ['AI초안']

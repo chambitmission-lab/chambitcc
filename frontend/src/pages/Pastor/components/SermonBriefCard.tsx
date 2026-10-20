@@ -9,12 +9,9 @@ import { pastorKeys } from '../../../hooks/queryKeys'
 import { showToast } from '../../../utils/toast'
 import { SectionCard } from '../../Admin/components/StatCards'
 import NoteComposer from './NoteComposer'
-import { invalidateNoteQueries } from './sermonNoteUtils'
+import { AI_NOTE_TAGS as AI_TAGS, AI_NOTE_SOURCE as AI_SOURCE, invalidateNoteQueries } from './sermonNoteUtils'
 
-const AI_SOURCE = 'AI 연구 재료 · 목사님 검토'
-const AI_TAGS = ['AI초안']
-
-interface Item {
+export interface Item {
   id: string
   kind: NoteKind
   /** 화면에 보이는 머리 — 없으면 본문만 */
@@ -152,10 +149,10 @@ const SermonBriefCard = ({ label, onSaved }: { label: string; onSaved?: () => vo
   )
 }
 
-const BriefLoading = () => (
+export const BriefLoading = ({ text = '본문을 살피며 연구 재료를 모으는 중입니다… (30초쯤)' }: { text?: string }) => (
   <div className="flex items-center gap-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] px-4 py-4" role="status">
     <span className="w-5 h-5 rounded-full border-2 border-brand/30 border-t-brand animate-spin" aria-hidden />
-    <span className="text-[13.5px] lg:text-[14.5px] text-gray-600 dark:text-white/65">본문을 살피며 연구 재료를 모으는 중입니다… (30초쯤)</span>
+    <span className="text-[13.5px] lg:text-[14.5px] text-gray-600 dark:text-white/65">{text}</span>
   </div>
 )
 
@@ -265,7 +262,7 @@ const BriefBody = ({
   )
 }
 
-const BriefItem = ({
+export const BriefItem = ({
   item,
   state,
   pending,
