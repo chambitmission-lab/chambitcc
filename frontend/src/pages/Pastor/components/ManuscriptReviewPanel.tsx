@@ -71,7 +71,7 @@ const ManuscriptReviewPanel = ({
   const all: ReviewFinding[] = result ? [...result.data.scripture, ...result.data.findings] : []
 
   return (
-    <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-4">
+    <div id="ms-review" className="scroll-mt-24 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-4">
       <div className="flex items-center justify-between gap-2 mb-3">
         <h2 className="flex items-center gap-1.5 text-[13.5px] lg:text-[15px] font-bold text-ink-strong">
           <span className="material-icons-outlined text-[18px] text-brand">rate_review</span>

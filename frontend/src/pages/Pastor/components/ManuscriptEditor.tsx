@@ -65,6 +65,14 @@ const ManuscriptEditor = ({
             <span className="material-icons-outlined text-[15px]">timer</span>
             {total.toLocaleString()}자 · 예상 {minutes}분
           </span>
+          {/* 한 단 화면에선 점검 패널이 원고 아래 멀리 있다 — 바로 가는 버튼 */}
+          <button
+            type="button"
+            onClick={() => document.getElementById('ms-review')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="lg:hidden inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-brand text-white text-[12.5px] font-bold whitespace-nowrap"
+          >
+            <span className="material-icons-outlined text-[16px]">rate_review</span>AI 점검
+          </button>
           <Link
             to={`/pastor/sermon/outlines/${outlineId}/pulpit`}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-ink-strong text-white dark:bg-white dark:text-black text-[12.5px] lg:text-[13.5px] font-bold whitespace-nowrap"
