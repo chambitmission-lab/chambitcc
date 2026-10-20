@@ -34,7 +34,7 @@ const SermonBridgeCard = ({ label, onSaved }: { label: string; onSaved?: () => v
   return (
     <SectionCard
       title="적용 다리 — 요즘 우리 성도에게"
-      action={<span className="text-[12px] text-gray-500 dark:text-white/50">이름 없는 교회 집계 · 목사님 확인 후 사용</span>}
+      action={<span className="text-[12px] text-gray-500 dark:text-white/50">성도 이름을 뺀 교회 형편 · 목사님 확인 후 사용</span>}
     >
       {!asked ? (
         <div className="rounded-xl bg-[var(--brand-soft)] px-4 py-3.5 space-y-2.5">
