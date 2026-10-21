@@ -3,6 +3,7 @@
 
 import type { VerseCardStyle } from './photoVerseCanvas'
 import type { PickedVerse } from './recommendedVerses'
+import { safeStorage } from '../../../utils/safeStorage'
 
 const KEY = 'chambit.photoVerse.draft.v1'
 /** 이보다 오래된 말씀은 '이어서 만들기'로 권하지 않는다 */
@@ -22,32 +23,23 @@ export interface PhotoVerseDraft {
 }
 
 export const loadDraft = (): PhotoVerseDraft | null => {
-  try {
-    const raw = localStorage.getItem(KEY)
-    if (!raw) return null
-    const d = JSON.parse(raw) as Partial<PhotoVerseDraft>
-    if (!d || typeof d !== 'object' || !d.style || typeof d.style !== 'object') return null
-    return {
-      style: d.style,
-      activePreset: d.activePreset ?? null,
-      verse: d.verse && d.verse.text && d.verse.refLabel ? d.verse : null,
-      bgId: d.bgId ?? null,
-      slideCount: typeof d.slideCount === 'number' ? d.slideCount : 1,
-      greeting: typeof d.greeting === 'string' ? d.greeting : '',
-      occasionId: typeof d.occasionId === 'string' ? d.occasionId : null,
-      savedAt: typeof d.savedAt === 'number' ? d.savedAt : 0,
-    }
-  } catch {
-    return null
+  const d = safeStorage.getJson(KEY) as Partial<PhotoVerseDraft> | null | undefined
+  if (!d || typeof d !== 'object' || !d.style || typeof d.style !== 'object') return null
+  return {
+    style: d.style,
+    activePreset: d.activePreset ?? null,
+    verse: d.verse && d.verse.text && d.verse.refLabel ? d.verse : null,
+    bgId: d.bgId ?? null,
+    slideCount: typeof d.slideCount === 'number' ? d.slideCount : 1,
+    greeting: typeof d.greeting === 'string' ? d.greeting : '',
+    occasionId: typeof d.occasionId === 'string' ? d.occasionId : null,
+    savedAt: typeof d.savedAt === 'number' ? d.savedAt : 0,
   }
 }
 
+/* 사파리 프라이빗 모드 등 저장 실패는 무시 */
 export const saveDraft = (d: Omit<PhotoVerseDraft, 'savedAt'>) => {
-  try {
-    localStorage.setItem(KEY, JSON.stringify({ ...d, savedAt: Date.now() }))
-  } catch {
-    /* 사파리 프라이빗 모드 등 */
-  }
+  safeStorage.setJson(KEY, { ...d, savedAt: Date.now() })
 }
 
 export const isResumable = (d: PhotoVerseDraft | null, nowMs: number): d is PhotoVerseDraft & { verse: PickedVerse } =>

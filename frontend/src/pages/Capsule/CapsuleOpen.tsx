@@ -27,6 +27,7 @@ import { POLAROID_TILTS, filmStamp } from './open/polaroidBits'
 import { MetaChip, SealDial, SealedLetterPreview } from './open/SealedScreen'
 import { VoiceTape } from './open/VoiceTape'
 import { addressTo, arrivalNarration, journeyLine, senderLine, signatureFrom } from './open/letterText'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 type Phase = 'sealed' | 'opening' | 'letter'
 
@@ -58,7 +59,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   useEffect(() => {
     if (preview) return
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', `/capsule/${id}`)
+      redirectAfterLogin.set(`/capsule/${id}`)
       navigate('/login')
     }
   }, [id, navigate, preview])

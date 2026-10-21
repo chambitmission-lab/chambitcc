@@ -1,4 +1,5 @@
 import { request, type UntypedJson } from './utils/request'
+import { safeStorage } from '../utils/safeStorage'
 // 집중 기도 세션 API
 // 로그인 사용자만 호출 가능. 비로그인이면 로컬에서만 처리하도록 호출부에서 분기.
 export type PrayerThemeId =
@@ -102,17 +103,13 @@ interface LocalSession {
 }
 
 export const recordLocalSession = (data: CreatePrayerSessionRequest): void => {
-  try {
-    const raw = localStorage.getItem(LOCAL_KEY)
-    const list: LocalSession[] = raw ? JSON.parse(raw) : []
-    list.unshift({
-      duration: data.duration,
-      theme: data.theme ?? null,
-      completed_at: data.completed_at ?? new Date().toISOString(),
-    })
-    // 최대 200개만 보관
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(list.slice(0, 200)))
-  } catch {
-    // 저장 실패는 무시
-  }
+  const prev = safeStorage.getJson(LOCAL_KEY)
+  const list: LocalSession[] = Array.isArray(prev) ? (prev as LocalSession[]) : []
+  list.unshift({
+    duration: data.duration,
+    theme: data.theme ?? null,
+    completed_at: data.completed_at ?? new Date().toISOString(),
+  })
+  // 최대 200개만 보관 — 저장 실패는 무시
+  safeStorage.setJson(LOCAL_KEY, list.slice(0, 200))
 }

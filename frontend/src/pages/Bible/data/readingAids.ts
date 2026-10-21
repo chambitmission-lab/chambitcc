@@ -4,6 +4,7 @@
 //  - crossRefs: 신약의 구약 인용·복음서 평행 본문 칩 (data/crossRefs)
 // 저장·전파 방식은 readerIntroCards 와 같다 — 바꾸는 즉시 열린 본문에 반영.
 // 기본은 셋 다 끔 — 처음 보는 분들이 칩·색·풀이를 헷갈려 해서, 원하는 분만 Aa에서 켜도록.
+import { safeStorage } from '../../../utils/safeStorage'
 
 export interface ReadingAids {
   paraphrase: boolean
@@ -19,28 +20,22 @@ const listeners = new Set<() => void>()
 
 export const getReadingAids = (): ReadingAids => {
   if (cache === null) {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      const p = raw ? JSON.parse(raw) : {}
-      cache = {
-        paraphrase: p.paraphrase === true,
-        jesusWords: p.jesusWords === true,
-        crossRefs: p.crossRefs === true,
-      }
-    } catch {
-      cache = DEFAULTS
-    }
+    const p = safeStorage.getJson(STORAGE_KEY) as Partial<ReadingAids> | null | undefined
+    cache =
+      p && typeof p === 'object'
+        ? {
+            paraphrase: p.paraphrase === true,
+            jesusWords: p.jesusWords === true,
+            crossRefs: p.crossRefs === true,
+          }
+        : DEFAULTS
   }
   return cache
 }
 
 export const setReadingAid = (key: keyof ReadingAids, value: boolean) => {
   cache = { ...getReadingAids(), [key]: value }
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cache))
-  } catch {
-    /* 사파리 프라이빗 모드 등 — 이번 세션만 반영 */
-  }
+  safeStorage.setJson(STORAGE_KEY, cache) // 사파리 프라이빗 모드 등 — 실패하면 이번 세션만 반영
   listeners.forEach((fn) => fn())
 }
 

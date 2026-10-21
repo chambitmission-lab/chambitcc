@@ -15,6 +15,7 @@ import { daysUntil, formatKoreanDate } from './capsuleDates'
 import { Icon, LockShackle, MicGlyph, PhotoGlyph, SigilGlyph } from './capsuleIcons'
 import './capsule.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
@@ -43,7 +44,7 @@ const CapsuleInvite = () => {
 
   const handleClaim = async () => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', `/capsule/invite/${inviteCode}`)
+      redirectAfterLogin.set(`/capsule/invite/${inviteCode}`)
       showToast('로그인하면 캡슐이 내 캡슐함에 담겨요', 'success')
       navigate('/login')
       return

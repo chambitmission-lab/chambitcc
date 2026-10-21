@@ -15,6 +15,7 @@ ensureFontFamily('nanumPen')
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CAPSULE_HERO } from '../../utils/themeAssets'
 import { Icon, LetterHeartGlyph } from './capsuleIcons'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 const CapsuleList = () => {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ const CapsuleList = () => {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', '/capsule')
+      redirectAfterLogin.set('/capsule')
       navigate('/login')
     }
   }, [navigate])

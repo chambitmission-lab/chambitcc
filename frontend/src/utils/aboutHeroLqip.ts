@@ -8,6 +8,8 @@
 // 빌드 타임에 썸네일을 굽지 않는 이유: 히어로는 관리자가 화면에서 교체하는 이미지라
 // 구워 넣으면 교체 즉시 옛 색이 남는다. 원본 URL을 키로 함께 저장해, 배경을 바꾸면
 // (파일명에 timestamp+uuid 가 들어가 URL 이 달라진다) 자동으로 무효화되게 한다.
+import { safeStorage } from './safeStorage'
+
 const STORAGE_KEY = 'about_hero_lqip_v1'
 
 /** 가로 32px — 색·구도만 남고 얼굴 등 식별 가능한 형체는 남지 않는 크기 */
@@ -26,15 +28,9 @@ type StoredLqip = {
  */
 export const readAboutHeroLqip = (url: string | null): string | null => {
   if (!url) return null
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as StoredLqip
-    if (!parsed || parsed.url !== url || typeof parsed.data !== 'string') return null
-    return parsed.data
-  } catch {
-    return null
-  }
+  const parsed = safeStorage.getJson(STORAGE_KEY) as Partial<StoredLqip> | null | undefined
+  if (!parsed || typeof parsed !== 'object' || parsed.url !== url || typeof parsed.data !== 'string') return null
+  return parsed.data
 }
 
 /**
@@ -64,7 +60,7 @@ export const captureAboutHeroLqip = (img: HTMLImageElement, url: string): void =
     const data = canvas.toDataURL('image/webp', 0.7)
     if (!data.startsWith('data:image/')) return
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ url, data } satisfies StoredLqip))
+    safeStorage.setJson(STORAGE_KEY, { url, data } satisfies StoredLqip)
   } catch {
     // LQIP 는 부가 기능 — 실패해도 화면은 그대로 동작한다
   }

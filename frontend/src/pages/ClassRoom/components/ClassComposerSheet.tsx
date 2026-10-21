@@ -25,6 +25,7 @@ import { calendarDateKey, formatKstDateTime, kstNow } from '../../../utils/kstTi
 import { showToast } from '../../../utils/toast'
 import { addMinutes, joinDT, splitDT, toLocalDatetimeInput } from '../../../utils/datetimeParts'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
+import { safeStorage } from '../../../utils/safeStorage'
 
 const MAX_PHOTOS = 10
 const MAX_POLL_OPTIONS = 8
@@ -44,21 +45,13 @@ interface PostTemplate {
 }
 
 const loadTemplates = (): PostTemplate[] => {
-  try {
-    const raw = localStorage.getItem(TEMPLATE_KEY)
-    const parsed = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
+  const parsed = safeStorage.getJson(TEMPLATE_KEY)
+  return Array.isArray(parsed) ? (parsed as PostTemplate[]) : []
 }
 
+/* 저장 실패는 조용히 무시 */
 const saveTemplates = (templates: PostTemplate[]) => {
-  try {
-    localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templates))
-  } catch {
-    /* 저장 실패는 조용히 무시 */
-  }
+  safeStorage.setJson(TEMPLATE_KEY, templates)
 }
 
 const TYPE_TABS: { value: ClassPostType; label: string; icon: IconFn }[] = [

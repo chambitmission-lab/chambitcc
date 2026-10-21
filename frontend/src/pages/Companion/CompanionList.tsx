@@ -14,6 +14,7 @@ import { Avatar, CompanionShell, RailCard, RailStat } from './CompanionParts'
 import FootprintPath from './FootprintPath'
 import InviteSheet from './InviteSheet'
 import { GOAL_SPECS, goalText } from './companionGoals'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 const errorText = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
 
@@ -30,7 +31,7 @@ const CompanionList = () => {
 
   const openInvite = () => {
     if (!authed) {
-      sessionStorage.setItem('redirect_after_login', '/companion')
+      redirectAfterLogin.set('/companion')
       navigate('/login')
       return
     }

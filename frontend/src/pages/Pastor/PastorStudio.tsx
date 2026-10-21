@@ -16,6 +16,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { STUDIO_HERO } from '../../utils/themeAssets'
 import { formatDay, inputCls, pickerCls } from './components/pastorUtils'
+import { safeSessionStorage } from '../../utils/safeStorage'
 
 const PastorStudio = () => (
   <StudioGate>
@@ -217,11 +218,8 @@ const ContinueCard = ({ outline, highlight = false }: { outline: OutlineSummary;
   const remove = useMutation({
     mutationFn: () => deleteOutline(outline.id),
     onSuccess: () => {
-      try {
-        sessionStorage.removeItem(`pastor-studio-chat-${outline.id}`)
-      } catch {
-        // 대화 기록 정리는 못 해도 괜찮다(탭을 닫으면 사라진다)
-      }
+      // 대화 기록 정리는 못 해도 괜찮다(탭을 닫으면 사라진다)
+      safeSessionStorage.remove(`pastor-studio-chat-${outline.id}`)
       qc.setQueryData<OutlineSummary[]>(pastorKeys.outlines(), list => list?.filter(o => o.id !== outline.id))
       void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
       showToast(`「${outline.title}」을 지웠습니다 · 설교 메모는 메모장에 그대로 있어요`, 'success')

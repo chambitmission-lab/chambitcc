@@ -4,6 +4,7 @@
 // WebP로 바꿔 그린다. 덕분에 서버/DB는 순수 텍스트 그대로라 백엔드 수정이 없고,
 // CDN 장애·미지원 이모지는 onError로 원래 문자가 그대로 보인다.
 import { useState } from 'react'
+import { safeStorage } from '../../utils/safeStorage'
 
 export interface AnimatedEmoji {
   char: string
@@ -146,19 +147,13 @@ const RECENT_KEY = 'animated_emoji_recent'
 const RECENT_MAX = 8
 
 export const getRecentEmojis = (): AnimatedEmoji[] => {
-  try {
-    const raw = localStorage.getItem(RECENT_KEY)
-    if (!raw) return []
-    const chars: unknown = JSON.parse(raw)
-    if (!Array.isArray(chars)) return []
-    // 목록에서 빠진 이모지는 조용히 버린다
-    return chars
-      .map((c) => (typeof c === 'string' ? byChar.get(c) : undefined))
-      .filter((e): e is AnimatedEmoji => !!e)
-      .slice(0, RECENT_MAX)
-  } catch {
-    return []
-  }
+  const chars = safeStorage.getJson(RECENT_KEY)
+  if (!Array.isArray(chars)) return []
+  // 목록에서 빠진 이모지는 조용히 버린다
+  return chars
+    .map((c) => (typeof c === 'string' ? byChar.get(c) : undefined))
+    .filter((e): e is AnimatedEmoji => !!e)
+    .slice(0, RECENT_MAX)
 }
 
 export const pushRecentEmoji = (char: string): AnimatedEmoji[] => {
@@ -166,11 +161,8 @@ export const pushRecentEmoji = (char: string): AnimatedEmoji[] => {
     0,
     RECENT_MAX
   )
-  try {
-    localStorage.setItem(RECENT_KEY, JSON.stringify(next))
-  } catch {
-    // 저장 실패(프라이빗 모드 등)해도 입력 자체는 막지 않는다
-  }
+  // 저장 실패(프라이빗 모드 등)해도 입력 자체는 막지 않는다
+  safeStorage.setJson(RECENT_KEY, next)
   return next.map((c) => byChar.get(c)).filter((e): e is AnimatedEmoji => !!e)
 }
 

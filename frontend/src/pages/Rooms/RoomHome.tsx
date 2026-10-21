@@ -14,6 +14,7 @@ import { MembersRail } from './components/MembersRail'
 import { DayStrip } from './components/DayStrip'
 import { TodayCard } from './components/TodayCard'
 import { DayFeed } from './components/DayFeed'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 const RoomHome = () => {
   const navigate = useNavigate()
@@ -46,7 +47,7 @@ const RoomHome = () => {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', `/rooms/${id}`)
+      redirectAfterLogin.set(`/rooms/${id}`)
       navigate('/login')
     }
   }, [id, navigate])

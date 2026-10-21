@@ -1,5 +1,6 @@
 import { isTokenExpired, refreshAccessToken } from '../utils/auth'
 import { tokenStore } from '../utils/tokenStore'
+import { redirectAfterLogin } from '../utils/redirectAfterLogin'
 
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 export const API_V1 = `${API_URL}/api/v1`
@@ -61,7 +62,7 @@ export const apiFetch = async (url: string, options: RequestInit = {}): Promise<
         ? window.location.hash.slice(1)
         : window.location.pathname + window.location.search
       if (currentPath !== '/login' && currentPath !== '/register') {
-        sessionStorage.setItem('redirect_after_login', currentPath)
+        redirectAfterLogin.set(currentPath)
       }
 
       throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.')

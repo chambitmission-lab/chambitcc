@@ -6,6 +6,7 @@ import StoryBook from './StoryBook'
 import Newspaper from './Newspaper'
 import MyJourney from './MyJourney'
 import HistoryQuiz from './HistoryQuiz'
+import { safeStorage } from '../../../utils/safeStorage'
 import './HistoryLab.css'
 
 /*
@@ -32,22 +33,13 @@ const SCALE_KEY = 'history-lab-scale'
 const TAB_KEY = 'history-lab-tab'
 
 const readStored = <T,>(key: string, fallback: T, valid: (v: unknown) => boolean): T => {
-  try {
-    const raw = window.localStorage.getItem(key)
-    if (raw === null) return fallback
-    const v = JSON.parse(raw)
-    return valid(v) ? (v as T) : fallback
-  } catch {
-    return fallback
-  }
+  const v = safeStorage.getJson(key)
+  return v !== undefined && valid(v) ? (v as T) : fallback
 }
 
+/* 저장 불가(사생활 보호 모드 등) — 무시 */
 const writeStored = (key: string, value: unknown) => {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    /* 저장 불가(사생활 보호 모드 등) — 무시 */
-  }
+  safeStorage.setJson(key, value)
 }
 
 export default function HistoryLab() {

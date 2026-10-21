@@ -10,6 +10,7 @@ import {
 } from '../data/readerIntroCards'
 import { getReadingAids, setReadingAid, type ReadingAids } from '../data/readingAids'
 import { isPresenceSharingEnabled, setPresenceSharingEnabled } from '../data/presenceSharing'
+import { safeStorage } from '../../../utils/safeStorage'
 import { ensureDeferredFontsNow } from '../../../utils/deferredFonts'
 
 /**
@@ -35,18 +36,13 @@ export interface ReaderPrefs {
 const DEFAULT_PREFS: ReaderPrefs = { font: 'gothic', scaleIdx: 1, leadingIdx: 1, warm: false }
 
 const loadPrefs = (): ReaderPrefs => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return DEFAULT_PREFS
-    const p = JSON.parse(raw)
-    return {
-      font: p.font === 'serif' ? 'serif' : 'gothic',
-      scaleIdx: FONT_SCALES[p.scaleIdx] !== undefined ? p.scaleIdx : 1,
-      leadingIdx: LINE_HEIGHTS[p.leadingIdx] !== undefined ? p.leadingIdx : 1,
-      warm: p.warm === true,
-    }
-  } catch {
-    return DEFAULT_PREFS
+  const p = safeStorage.getJson(STORAGE_KEY) as Partial<ReaderPrefs> | null | undefined
+  if (!p || typeof p !== 'object') return DEFAULT_PREFS
+  return {
+    font: p.font === 'serif' ? 'serif' : 'gothic',
+    scaleIdx: p.scaleIdx !== undefined && FONT_SCALES[p.scaleIdx] !== undefined ? p.scaleIdx : 1,
+    leadingIdx: p.leadingIdx !== undefined && LINE_HEIGHTS[p.leadingIdx] !== undefined ? p.leadingIdx : 1,
+    warm: p.warm === true,
   }
 }
 
@@ -111,7 +107,7 @@ const ReaderSettings = () => {
   // 마운트 시(및 변경 시) 저장된 설정을 CSS 변수로 반영
   useEffect(() => {
     applyPrefs(prefs)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
+    safeStorage.setJson(STORAGE_KEY, prefs)
   }, [prefs])
 
   // 패널 밖을 탭하면 닫기

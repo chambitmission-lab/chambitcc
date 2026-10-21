@@ -26,6 +26,7 @@ import {
   type IconFn,
 } from './ClassIcons'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 // 시트들은 열기 전엔 한 줄도 쓰이지 않는데, 정적 import면 첫 진입에 같이 받는다.
 // (작성 시트가 DatePicker·TimePicker·useBible·imageResize를, 상태 시트가
@@ -102,7 +103,7 @@ const ClassHome = () => {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', `/classes/${id}`)
+      redirectAfterLogin.set(`/classes/${id}`)
       navigate('/login')
     }
   }, [id, navigate])

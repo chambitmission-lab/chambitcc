@@ -9,26 +9,18 @@
 // ⚠️ STORAGE_KEY 는 index.html 의 프리로드 스크립트에도 같은 문자열로 하드코딩되어 있다.
 //    (인라인 스크립트는 번들 이전에 실행되므로 이 모듈을 import 할 수 없다) — 함께 수정할 것.
 import type { AboutContent } from '../types/aboutContent'
+import { safeStorage } from './safeStorage'
 
 export const ABOUT_CONTENT_STORAGE_KEY = 'about_content_cache'
 
 export const readAboutContentCache = (): AboutContent | undefined => {
-  try {
-    const raw = localStorage.getItem(ABOUT_CONTENT_STORAGE_KEY)
-    if (!raw) return undefined
-    const parsed = JSON.parse(raw) as AboutContent
-    // 형태가 깨진 값(구버전·수동 편집)이 placeholder 로 들어가면 렌더가 터진다.
-    if (!parsed || typeof parsed !== 'object' || typeof parsed.fields !== 'object') return undefined
-    return parsed
-  } catch {
-    return undefined
-  }
+  const parsed = safeStorage.getJson(ABOUT_CONTENT_STORAGE_KEY) as AboutContent | null | undefined
+  // 형태가 깨진 값(구버전·수동 편집)이 placeholder 로 들어가면 렌더가 터진다.
+  if (!parsed || typeof parsed !== 'object' || typeof parsed.fields !== 'object') return undefined
+  return parsed
 }
 
+// 용량 초과·프라이빗 모드 — 캐시는 부가 기능이므로 저장 실패는 조용히 넘어간다
 export const writeAboutContentCache = (content: AboutContent): void => {
-  try {
-    localStorage.setItem(ABOUT_CONTENT_STORAGE_KEY, JSON.stringify(content))
-  } catch {
-    // 용량 초과·프라이빗 모드 — 캐시는 부가 기능이므로 조용히 넘어간다
-  }
+  safeStorage.setJson(ABOUT_CONTENT_STORAGE_KEY, content)
 }

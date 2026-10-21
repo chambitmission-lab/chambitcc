@@ -5,6 +5,7 @@ import { chapterUnit } from '../../../utils/bibleLabels'
 import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
 import './typing.css'
+import { redirectAfterLogin } from '../../../utils/redirectAfterLogin'
 
 /** 릴레이 필사 초대 링크 랜딩 — 비로그인이면 로그인 후 이 페이지로 돌아온다 */
 const TypingRelayJoin = () => {
@@ -16,7 +17,7 @@ const TypingRelayJoin = () => {
 
   const goLogin = () => {
     try {
-      sessionStorage.setItem('redirect_after_login', `/bible/typing/relay/join/${code}`)
+      redirectAfterLogin.set(`/bible/typing/relay/join/${code}`)
     } catch {
       /* noop */
     }

@@ -23,6 +23,7 @@ import { buildPresets, formatKoreanDate, toDateStr } from './capsuleDates'
 import { CalendarGlyph, Icon, LetterHeartGlyph } from './capsuleIcons'
 import './capsule.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
@@ -120,7 +121,7 @@ const CapsuleCreate = () => {
     if (!isAuthenticated()) {
       // 딥링크 초기값(기도 연결 등)이 로그인 후에도 살아있도록 쿼리까지 보존
       const qs = searchParams.toString()
-      sessionStorage.setItem('redirect_after_login', qs ? `/capsule/new?${qs}` : '/capsule/new')
+      redirectAfterLogin.set(qs ? `/capsule/new?${qs}` : '/capsule/new')
       navigate('/login')
     }
   }, [navigate, searchParams])

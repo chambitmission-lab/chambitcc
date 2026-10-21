@@ -1,4 +1,5 @@
 import { showToast } from '../../../utils/toast'
+import { safeStorage } from '../../../utils/safeStorage'
 
 /**
  * 성경 구절 복사/공유 — 절 액션바, 여러 절 선택 바, 공유 시트가 함께 쓰는 포맷터.
@@ -49,29 +50,21 @@ export const DEFAULT_COPY_PREFS: CopyPrefs = {
 }
 
 export const loadCopyPrefs = (): CopyPrefs => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return DEFAULT_COPY_PREFS
-    const p = JSON.parse(raw)
-    return {
-      style: p.style === 'refBefore' || p.style === 'textOnly' ? p.style : 'refAfter',
-      withLink: p.withLink !== false,
-      // 아래 셋은 나중에 생긴 설정이라 예전 저장값엔 없다 — 없으면 새 기본값을 쓴다
-      numbering: p.numbering === 'none' ? 'none' : 'superscript',
-      layout: p.layout === 'lines' ? 'lines' : 'paragraph',
-      quote: p.quote !== false,
-    }
-  } catch {
-    return DEFAULT_COPY_PREFS
+  const p = safeStorage.getJson(STORAGE_KEY) as Partial<CopyPrefs> | null | undefined
+  if (!p || typeof p !== 'object') return DEFAULT_COPY_PREFS
+  return {
+    style: p.style === 'refBefore' || p.style === 'textOnly' ? p.style : 'refAfter',
+    withLink: p.withLink !== false,
+    // 아래 셋은 나중에 생긴 설정이라 예전 저장값엔 없다 — 없으면 새 기본값을 쓴다
+    numbering: p.numbering === 'none' ? 'none' : 'superscript',
+    layout: p.layout === 'lines' ? 'lines' : 'paragraph',
+    quote: p.quote !== false,
   }
 }
 
+/* 사파리 프라이빗 모드 등 — 저장 실패해도 이번 세션 동작엔 영향 없음 */
 export const saveCopyPrefs = (p: CopyPrefs) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(p))
-  } catch {
-    /* 사파리 프라이빗 모드 등 — 저장 실패해도 이번 세션 동작엔 영향 없음 */
-  }
+  safeStorage.setJson(STORAGE_KEY, p)
 }
 
 export interface CopyVerse {

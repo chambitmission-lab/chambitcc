@@ -9,6 +9,7 @@ import { isAuthenticated } from '../../utils/auth'
 import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../utils/inappBrowser'
 import { showToast } from '../../utils/toast'
 import { DeptBadge } from './classUi'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 const JoinClass = () => {
   const navigate = useNavigate()
@@ -31,7 +32,7 @@ const JoinClass = () => {
 
   const handleJoin = async () => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', `/classes/join/${inviteCode}`)
+      redirectAfterLogin.set(`/classes/join/${inviteCode}`)
       showToast('로그인하면 바로 참여돼요', 'success')
       navigate('/login')
       return

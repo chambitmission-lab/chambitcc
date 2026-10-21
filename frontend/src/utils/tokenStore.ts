@@ -6,24 +6,17 @@
  * 100곳을 고쳐야 하므로, 토큰과 세션 사용자 필드는 반드시 이 모듈을 통해 읽고 쓴다.
  */
 
+import { safeStorage } from './safeStorage'
+
 const ACCESS_KEY = 'access_token'
 const REFRESH_KEY = 'refresh_token'
 
-const safeGet = (key: string): string | null => {
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
+const safeGet = (key: string): string | null => safeStorage.get(key)
 
+/** null/undefined 는 삭제로 — 로그아웃·만료 때 "빈 문자열 토큰"이 남지 않게 */
 const safeSet = (key: string, value: string | null | undefined): void => {
-  try {
-    if (value == null) localStorage.removeItem(key)
-    else localStorage.setItem(key, value)
-  } catch {
-    /* 사파리 프라이빗 모드 등 저장 불가 환경은 조용히 무시 */
-  }
+  if (value == null) safeStorage.remove(key)
+  else safeStorage.set(key, value)
 }
 
 export const tokenStore = {

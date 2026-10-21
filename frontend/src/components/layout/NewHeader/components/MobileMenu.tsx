@@ -6,6 +6,7 @@ import { lazyModal } from '../../../../utils/lazyModal'
 import { isPastor } from '../../../../utils/access'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { Svg } from './NavIcons'
+import { safeStorage } from '../../../../utils/safeStorage'
 // 관리자 메뉴(아이콘 세트 포함 18KB)는 관리자에게만 — 엔트리에서 분리
 const AdminMenu = lazyModal(() => import('./AdminMenu'))
 
@@ -30,13 +31,11 @@ const footerLinkClass = `
 const MobileMenu = ({ isAdminUser, isLoggedIn, isDesktop, onLogout }: MobileMenuProps) => {
   const { t } = useLanguage()
   const showPastor = isLoggedIn && isPastor()
-  const [adminOpen, setAdminOpen] = useState(() => {
-    try { return localStorage.getItem(ADMIN_OPEN_KEY) === '1' } catch { return false }
-  })
+  const [adminOpen, setAdminOpen] = useState(() => safeStorage.get(ADMIN_OPEN_KEY) === '1')
   const toggleAdmin = () => {
     const next = !adminOpen
     setAdminOpen(next)
-    try { localStorage.setItem(ADMIN_OPEN_KEY, next ? '1' : '0') } catch { /* 이번 세션 토글은 동작한다 */ }
+    safeStorage.set(ADMIN_OPEN_KEY, next ? '1' : '0') // 저장 실패해도 이번 세션 토글은 동작한다
   }
 
   // PC: 목회자 홈 · 관리 도구는 큰 카드 대신 푸터 한 줄의 링크로 — 관리 도구 목록은 그 아래에 펼친다

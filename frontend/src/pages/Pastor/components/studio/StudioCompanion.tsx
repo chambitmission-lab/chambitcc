@@ -20,6 +20,7 @@ import { useAutoGrow } from '../../../../hooks/useAutoGrow'
 import { showToast } from '../../../../utils/toast'
 import { invalidateNoteQueries } from '../sermonNoteUtils'
 import { stepOf } from './studio'
+import { safeSessionStorage } from '../../../../utils/safeStorage'
 
 const STUDIO_NOTE_SOURCE = 'AI 동역자 · 목사님 검토'
 
@@ -47,21 +48,13 @@ interface Message {
 const storageKey = (outlineId: number) => `pastor-studio-chat-${outlineId}`
 
 const loadThread = (outlineId: number): Message[] => {
-  try {
-    const raw = sessionStorage.getItem(storageKey(outlineId))
-    const list = raw ? (JSON.parse(raw) as Message[]) : []
-    return Array.isArray(list) ? list.slice(-40) : []
-  } catch {
-    return []
-  }
+  const list = safeSessionStorage.getJson(storageKey(outlineId)) as Message[] | undefined
+  return Array.isArray(list) ? list.slice(-40) : []
 }
 
+// 저장 공간이 막혀도 대화는 화면에 그대로 둔다
 const saveThread = (outlineId: number, list: Message[]) => {
-  try {
-    sessionStorage.setItem(storageKey(outlineId), JSON.stringify(list.slice(-40)))
-  } catch {
-    // 저장 공간이 막혀도 대화는 화면에 그대로 둔다
-  }
+  safeSessionStorage.setJson(storageKey(outlineId), list.slice(-40))
 }
 
 let seq = 0

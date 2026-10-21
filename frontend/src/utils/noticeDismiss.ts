@@ -7,6 +7,8 @@
  * 공지가 수정되면(updated_at 변경) 다시 보여준다 — 내용이 바뀐 공지를
  * 예전에 닫았다는 이유로 계속 숨기면 정작 중요한 변경을 놓친다.
  */
+import { safeSessionStorage, safeStorage } from './safeStorage'
+
 const STORAGE_KEY = 'notice_dismiss_v1'
 /** '확인'으로 닫은 공지 — 앱을 닫을 때까지만 유지(홈을 오갈 때 다시 뜨지 않게) */
 const SESSION_KEY = 'notice_seen_session_v1'
@@ -21,22 +23,13 @@ type DismissEntry = {
 type DismissMap = Record<string, DismissEntry>
 
 const readMap = (): DismissMap => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' ? (parsed as DismissMap) : {}
-  } catch {
-    return {}
-  }
+  const parsed = safeStorage.getJson(STORAGE_KEY)
+  return parsed && typeof parsed === 'object' ? (parsed as DismissMap) : {}
 }
 
+// 시크릿 모드 등 저장 실패 — 이번 세션에만 숨겨지고 다음 진입 때 다시 뜬다
 const writeMap = (map: DismissMap) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(map))
-  } catch {
-    // 시크릿 모드 등 저장 실패 — 이번 세션에만 숨겨지고 다음 진입 때 다시 뜬다
-  }
+  safeStorage.setJson(STORAGE_KEY, map)
 }
 
 /** 내일 0시(로컬) — "오늘 하루 안 보기"의 만료 시점 */
@@ -58,13 +51,8 @@ const prune = (map: DismissMap): DismissMap => {
 
 /** 이번 세션에 '확인'으로 닫은 공지 목록 (sessionStorage) */
 const readSession = (): Record<string, string> => {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
-    const parsed = raw ? JSON.parse(raw) : null
-    return parsed && typeof parsed === 'object' ? parsed : {}
-  } catch {
-    return {}
-  }
+  const parsed = safeSessionStorage.getJson(SESSION_KEY)
+  return parsed && typeof parsed === 'object' ? (parsed as Record<string, string>) : {}
 }
 
 /**
@@ -73,13 +61,9 @@ const readSession = (): Record<string, string> => {
  * 놓친 공지가 묻히지 않게 한다.
  */
 export const markNoticeSeenThisSession = (id: number, updatedAt?: string | null) => {
-  try {
-    const map = readSession()
-    map[String(id)] = updatedAt ?? ''
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(map))
-  } catch {
-    // 저장 실패 — 이번 이동에서만 숨겨진다
-  }
+  const map = readSession()
+  map[String(id)] = updatedAt ?? ''
+  safeSessionStorage.setJson(SESSION_KEY, map) // 저장 실패 — 이번 이동에서만 숨겨진다
 }
 
 /** 이 공지를 지금 숨겨야 하는가 */

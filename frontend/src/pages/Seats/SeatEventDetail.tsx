@@ -23,6 +23,7 @@ import { DetailRail, InfoCard, PickRail, SeatConfirm, SelectedStrip } from './se
 import type { ConfirmState } from './seatDetailParts'
 import { SeatIcon, TicketCard } from './seatUi'
 import './seats-hero.css'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 type Mode = 'book' | 'cancel'
 
@@ -151,7 +152,7 @@ const SeatEventDetail = () => {
     (window.history.state as { idx?: number } | null)?.idx ? navigate(-1) : navigate('/seats')
 
   const goLogin = () => {
-    sessionStorage.setItem('redirect_after_login', `/seats/${seatEventId}`)
+    redirectAfterLogin.set(`/seats/${seatEventId}`)
     navigate('/login')
   }
 

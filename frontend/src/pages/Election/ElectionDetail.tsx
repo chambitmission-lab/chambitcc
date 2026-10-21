@@ -21,6 +21,7 @@ import { CenterNote, CheckIcon, RailCard, Spinner, SurveyShell } from '../Survey
 import { cardCls, phaseLabel, thresholdText } from './electionShared'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { CandidateAvatar, ClosesAtNote, PracticeBanner, ResultBreakdown, TallyBars, TurnoutBar } from './electionUi'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 // 선거관리위원만 여는 현황판 — 성도 대부분은 받지 않도록 따로 나눠 싣는다
 const ElectionBoard = lazy(() => import('../Admin/components/ElectionBoard'))
@@ -347,7 +348,7 @@ const ElectionDetail = () => {
 
   if (!loggedIn) {
     const goLogin = () => {
-      sessionStorage.setItem('redirect_after_login', `/elections/${id}`)
+      redirectAfterLogin.set(`/elections/${id}`)
       navigate('/login')
     }
     return (

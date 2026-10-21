@@ -14,6 +14,7 @@ import { EyeIcon, StatusIcon } from './AuthIcons'
 import { useCapsLock } from './useCapsLock'
 import './AuthForm.css'
 import { safeStorage } from '../../utils/safeStorage'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 /* 아이디 저장 — 사용자가 명시적으로 켰을 때만 남긴다.
    (로그인 성공 시 저장되는 last_cached_username은 캐시 분리용이라 별개) */
@@ -129,8 +130,7 @@ const Login = () => {
       })
 
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
-      const redirectPath = sessionStorage.getItem('redirect_after_login')
-      sessionStorage.removeItem('redirect_after_login')
+      const redirectPath = redirectAfterLogin.consume()
 
       // 홈으로 갈 때는 오늘의 묵상·오늘의 읽기 카드를 마중 연출 동안 미리 받아 둔다 —
       // 방금 캐시를 비워서, 안 그러면 홈에 도착해 말씀 자리는 스켈레톤으로 기다리고

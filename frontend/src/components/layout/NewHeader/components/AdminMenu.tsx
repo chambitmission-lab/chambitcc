@@ -6,6 +6,7 @@ import type { Translation } from '../../../../locales'
 import { fetchAdminMenuStatus, type AdminMenuBadge } from '../../../../api/admin'
 import { adminKeys } from '../../../../hooks/queryKeys'
 import { sessionStore } from '../../../../utils/tokenStore'
+import { safeStorage } from '../../../../utils/safeStorage'
 import { ADMIN_ICONS, IconChevron, IconShield, type AdminIconKey } from './AdminIcons'
 import { Svg } from './NavIcons'
 
@@ -92,25 +93,18 @@ const OPEN_KEY = 'adminMenu:open'
 const RECENT_MAX = 4
 
 const readRecent = (): string[] => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]')
-    if (!Array.isArray(parsed)) return []
-    return parsed
-      .filter((p): p is string => typeof p === 'string')
-      .filter(p => ALL_ITEMS.some(i => i.path === p))
-      .slice(0, RECENT_MAX)
-  } catch {
-    return []
-  }
+  const parsed = safeStorage.getJson(RECENT_KEY)
+  if (!Array.isArray(parsed)) return []
+  return parsed
+    .filter((p): p is string => typeof p === 'string')
+    .filter(p => ALL_ITEMS.some(i => i.path === p))
+    .slice(0, RECENT_MAX)
 }
 
+/* 저장 실패는 메뉴 동작에 영향 없음 */
 const pushRecent = (path: string) => {
-  try {
-    const next = [path, ...readRecent().filter(p => p !== path)].slice(0, RECENT_MAX)
-    localStorage.setItem(RECENT_KEY, JSON.stringify(next))
-  } catch {
-    /* 저장 실패는 메뉴 동작에 영향 없음 */
-  }
+  const next = [path, ...readRecent().filter(p => p !== path)].slice(0, RECENT_MAX)
+  safeStorage.setJson(RECENT_KEY, next)
 }
 
 const SectionTitle = ({ children }: { children: string }) => (
@@ -182,23 +176,15 @@ const QUICK_ACTIONS: Array<{ to: string; badgeKey: string; labelKey: Translation
 const favoritesKey = () => `adminMenu:favorites:${sessionStore.get('username') ?? ''}`
 
 const readFavorites = (): string[] => {
-  try {
-    const raw = localStorage.getItem(favoritesKey())
-    // 처음 쓰는 관리자는 '최근 사용' 기록으로 채워 준다 — 빈 줄로 시작하지 않게
-    if (raw === null) return readRecent()
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed.filter((p): p is string => ALL_ITEMS.some(i => i.path === p)) : []
-  } catch {
-    return []
-  }
+  const parsed = safeStorage.getJson(favoritesKey())
+  // 처음 쓰는 관리자는 '최근 사용' 기록으로 채워 준다 — 빈 줄로 시작하지 않게
+  if (parsed === undefined) return readRecent()
+  return Array.isArray(parsed) ? parsed.filter((p): p is string => ALL_ITEMS.some(i => i.path === p)) : []
 }
 
+/* 저장 실패해도 이번 세션 동안은 동작한다 */
 const writeFavorites = (paths: string[]) => {
-  try {
-    localStorage.setItem(favoritesKey(), JSON.stringify(paths))
-  } catch {
-    /* 저장 실패해도 이번 세션 동안은 동작한다 */
-  }
+  safeStorage.setJson(favoritesKey(), paths)
 }
 
 // 관리자 홈 액션 카드와 같은 등급·색 (AdminDashboard.tsx TONE_*)
@@ -456,17 +442,14 @@ const AdminDesktopPanel = () => {
  */
 const AdminMenu = ({ panelOnly = false }: { panelOnly?: boolean }) => {
   const { t } = useLanguage()
-  const [isOpen, setIsOpen] = useState(() => localStorage.getItem(OPEN_KEY) === '1')
+  const [isOpen, setIsOpen] = useState(() => safeStorage.get(OPEN_KEY) === '1')
   const [recent] = useState(readRecent)
 
   const toggle = () => {
     const next = !isOpen
     setIsOpen(next)
-    try {
-      localStorage.setItem(OPEN_KEY, next ? '1' : '0')
-    } catch {
-      /* 저장 실패해도 이번 세션 토글은 동작한다 */
-    }
+    // 저장 실패해도 이번 세션 토글은 동작한다
+    safeStorage.set(OPEN_KEY, next ? '1' : '0')
   }
 
   // 최근 항목이 하나뿐이면 줄만 늘어나므로 2개부터 노출한다

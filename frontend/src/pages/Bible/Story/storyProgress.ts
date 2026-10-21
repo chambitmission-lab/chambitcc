@@ -4,6 +4,7 @@ import { getStoryProgress, markStoryEpisodeRead } from '../../../api/bibleStory'
 import { isAuthenticated } from '../../../utils/auth'
 import { scheduleTitleEvaluation } from '../../../utils/titleUnlockBus'
 import { sessionStore } from '../../../utils/tokenStore'
+import { safeStorage } from '../../../utils/safeStorage'
 
 // 스토리 모드 진행 상태 — 읽은 에피소드 id 목록.
 //
@@ -30,21 +31,13 @@ const userKey = (base: string): string => {
 }
 
 const loadGuestReadIds = (): Set<string> => {
-  try {
-    const raw = localStorage.getItem(GUEST_READ_KEY)
-    const arr = raw ? (JSON.parse(raw) as unknown) : []
-    return new Set(Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [])
-  } catch {
-    return new Set()
-  }
+  const arr = safeStorage.getJson(GUEST_READ_KEY)
+  return new Set(Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [])
 }
 
+// 저장 실패(시크릿 모드 등)는 조용히 무시 — 세션 내 상태로만 동작
 const saveGuestReadIds = (ids: Set<string>) => {
-  try {
-    localStorage.setItem(GUEST_READ_KEY, JSON.stringify([...ids]))
-  } catch {
-    // 저장 실패(시크릿 모드 등)는 조용히 무시 — 세션 내 상태로만 동작
-  }
+  safeStorage.setJson(GUEST_READ_KEY, [...ids])
 }
 
 export const hasCelebrated = (): boolean => {

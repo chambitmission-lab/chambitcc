@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Column } from '../../types/column'
+import { safeStorage } from '../../utils/safeStorage'
 
 const KEY_PREFIX = 'ministry_column_draft_'
 const SAVE_DELAY = 800
@@ -10,12 +11,8 @@ const SAVE_DELAY = 800
 const draftKey = (id?: number) => `${KEY_PREFIX}${id ?? 'new'}`
 
 const read = (key: string): Partial<Column> | null => {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as Partial<Column>) : null
-  } catch {
-    return null
-  }
+  const saved = safeStorage.getJson(key)
+  return saved && typeof saved === 'object' ? (saved as Partial<Column>) : null
 }
 
 /** 본문·제목 중 하나라도 실제로 달라졌을 때만 "이어 쓰기"를 권한다 */
@@ -37,25 +34,18 @@ export const useColumnDraft = (initial: Partial<Column>, draft: Partial<Column>)
   useEffect(() => {
     window.clearTimeout(timerRef.current)
     timerRef.current = window.setTimeout(() => {
-      try {
-        localStorage.setItem(key, JSON.stringify(draft))
-        // 열자마자 한 번 도는 저장은 "자동 저장됨"으로 알리지 않는다 — 아직 쓴 게 없다
-        if (firstRunRef.current) firstRunRef.current = false
-        else setSavedAt(new Date())
-      } catch {
-        /* 용량 초과 등은 무시 — 자동 저장은 어디까지나 보조 장치 */
-      }
+      // 용량 초과 등 저장 실패는 무시 — 자동 저장은 어디까지나 보조 장치 (실패했으면 "저장됨"도 띄우지 않는다)
+      if (!safeStorage.setJson(key, draft)) return
+      // 열자마자 한 번 도는 저장은 "자동 저장됨"으로 알리지 않는다 — 아직 쓴 게 없다
+      if (firstRunRef.current) firstRunRef.current = false
+      else setSavedAt(new Date())
     }, SAVE_DELAY)
     return () => window.clearTimeout(timerRef.current)
   }, [key, draft])
 
   const clearDraft = () => {
     window.clearTimeout(timerRef.current)
-    try {
-      localStorage.removeItem(key)
-    } catch {
-      /* 무시 */
-    }
+    safeStorage.remove(key)
   }
 
   return {

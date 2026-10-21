@@ -7,6 +7,7 @@ import { isAuthenticated } from '../../utils/auth'
 import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../utils/inappBrowser'
 import { showToast } from '../../utils/toast'
 import { CloudOffIcon, RoomGlyph } from './RoomIcons'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 const JoinRoom = () => {
   const navigate = useNavigate()
@@ -29,7 +30,7 @@ const JoinRoom = () => {
 
   const handleJoin = async () => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', `/join/${inviteCode}`)
+      redirectAfterLogin.set(`/join/${inviteCode}`)
       showToast('로그인하면 바로 참여돼요', 'success')
       navigate('/login')
       return

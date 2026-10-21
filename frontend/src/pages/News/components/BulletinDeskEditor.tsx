@@ -23,6 +23,7 @@ import type {
 } from '../../../types/digitalBulletin'
 import DigitalBulletin from './DigitalBulletin'
 import { EXTRA_KIND_LABEL, EXTRA_PRESETS, extrasOf, fitRows, newExtraBlock, parseListItems } from './bulletinExtras'
+import { safeStorage } from '../../../utils/safeStorage'
 
 const DRAFT_KEY = 'digital-bulletin-desk-draft'
 const DAYS = ['월', '화', '수', '목', '금', '토', '주일'] as const
@@ -39,20 +40,13 @@ const SECTIONS: { id: SectionId; label: string }[] = [
 
 // ── 유틸 ─────────────────────────────────────────
 const readDraft = (): BulletinData | null => {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY)
-    return raw ? (JSON.parse(raw) as BulletinData) : null
-  } catch {
-    return null
-  }
+  const saved = safeStorage.getJson(DRAFT_KEY)
+  return saved && typeof saved === 'object' ? (saved as BulletinData) : null
 }
+/* 저장소 막힘 — 초안 복구만 포기 */
 const writeDraft = (data: BulletinData | null) => {
-  try {
-    if (data) localStorage.setItem(DRAFT_KEY, JSON.stringify(data))
-    else localStorage.removeItem(DRAFT_KEY)
-  } catch {
-    /* 저장소 막힘 — 초안 복구만 포기 */
-  }
+  if (data) safeStorage.setJson(DRAFT_KEY, data)
+  else safeStorage.remove(DRAFT_KEY)
 }
 
 /** 기존 주보 날짜 표기("2026. 3. 15.")에 맞춘 주일 날짜. offsetWeeks=0 → 다가오는(오늘 포함) 주일 */

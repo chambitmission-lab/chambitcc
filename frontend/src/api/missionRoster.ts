@@ -2,6 +2,7 @@ import { API_V1 } from '../config/api'
 import type { PeopleDirectory } from '../types/people'
 import type { Missionary } from '../pages/Mission/missionData'
 import { request } from './utils/request'
+import { safeStorage } from '../utils/safeStorage'
 
 // /mission 명단 — 섬기는 사람들(church_people)의 선교사. 발자취(api/churchHistory.ts)와 같은 방식:
 // 라우트 로더가 명단을 먼저 채우고 화면 청크를 연다. 재방문은 지난번 명단으로 바로 열고
@@ -11,20 +12,13 @@ const STORAGE_KEY = 'chambit:mission-roster:v1'
 const MAIN_GROUP = '파송선교사'
 
 const readCache = (): Missionary[] | null => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as Missionary[] | null
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null
-  } catch {
-    return null
-  }
+  const parsed = safeStorage.getJson(STORAGE_KEY) as Missionary[] | undefined
+  return Array.isArray(parsed) && parsed.length > 0 ? parsed : null
 }
 
+// 저장소가 막혀 있으면 다음 방문도 네트워크로 받으면 된다
 const writeCache = (roster: Missionary[]): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(roster))
-  } catch {
-    // 저장소가 막혀 있으면 다음 방문도 네트워크로 받으면 된다
-  }
+  safeStorage.setJson(STORAGE_KEY, roster)
 }
 
 const fetchRoster = async (): Promise<Missionary[]> => {

@@ -8,6 +8,7 @@ import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../../utils/i
 import { showToast } from '../../../utils/toast'
 import { accentGradient } from './planVisuals'
 import { CloudOffIcon, PlanGlyph } from './PlanIcons'
+import { redirectAfterLogin } from '../../../utils/redirectAfterLogin'
 
 const JoinPlan = () => {
   const navigate = useNavigate()
@@ -29,7 +30,7 @@ const JoinPlan = () => {
 
   const handleJoin = async () => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', `/bible/plans/join/${inviteCode}`)
+      redirectAfterLogin.set(`/bible/plans/join/${inviteCode}`)
       showToast('로그인하면 바로 함께할 수 있어요', 'success')
       navigate('/login')
       return

@@ -7,6 +7,7 @@ import { isAuthenticated } from '../../utils/auth'
 import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../utils/inappBrowser'
 import { showToast, toastFeedback } from '../../utils/toast'
 import { GroupGlyph } from './GroupIcons'
+import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 const JoinGroup = () => {
   const navigate = useNavigate()
@@ -30,7 +31,7 @@ const JoinGroup = () => {
 
   const handleJoin = async () => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', `/groups/join/${inviteCode}`)
+      redirectAfterLogin.set(`/groups/join/${inviteCode}`)
       showToast('로그인하면 바로 참여돼요', 'success')
       navigate('/login')
       return

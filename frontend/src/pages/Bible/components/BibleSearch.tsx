@@ -12,6 +12,7 @@ import SearchVerseCard from './SearchVerseCard'
 import SearchGlossaryCard from './SearchGlossaryCard'
 import { useGlossaryEntry } from '../hooks/useGlossaryEntry'
 import { BOOK_ABBREV_KO, BOOK_ABBREV_EN } from './bibleBookAbbrev'
+import { safeStorage } from '../../../utils/safeStorage'
 import '../styles/search.css'
 
 type SearchScope = 'ALL' | 'OLD' | 'NEW'
@@ -21,21 +22,13 @@ const MAX_RECENT_SEARCHES = 8
 const PLACEHOLDER_ROTATE_MS = 3500
 
 const loadRecentSearches = (): string[] => {
-  try {
-    const raw = localStorage.getItem(RECENT_SEARCHES_KEY)
-    const parsed = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
-  } catch {
-    return []
-  }
+  const parsed = safeStorage.getJson(RECENT_SEARCHES_KEY)
+  return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
 }
 
+// 저장 실패(사파리 시크릿 모드 등)는 무시 — 검색 자체에는 영향 없음
 const persistRecentSearches = (keywords: string[]) => {
-  try {
-    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(keywords))
-  } catch {
-    // 저장 실패(사파리 시크릿 모드 등)는 무시 — 검색 자체에는 영향 없음
-  }
+  safeStorage.setJson(RECENT_SEARCHES_KEY, keywords)
 }
 
 const isScope = (v: string | null): v is SearchScope => v === 'ALL' || v === 'OLD' || v === 'NEW'

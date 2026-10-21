@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
+import { safeSessionStorage } from '../../utils/safeStorage'
 
 /* SPA 라우트 전환 시 스크롤 관리.
    브라우저는 라우트가 바뀌어도 같은 문서라 스크롤을 그대로 두기 때문에
@@ -37,11 +38,8 @@ const maxScrollTop = () => {
 }
 
 function loadPositions(): Record<string, number> {
-  try {
-    return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}')
-  } catch {
-    return {}
-  }
+  const saved = safeSessionStorage.getJson(STORAGE_KEY)
+  return saved && typeof saved === 'object' ? (saved as Record<string, number>) : {}
 }
 
 /** 목표 높이까지 문서가 자라기를 기다리며 복원 스크롤을 반복 시도.
@@ -95,11 +93,7 @@ export default function ScrollRestoration() {
     // 새로고침·탭 종료 직전 위치를 저장해 두면 복귀 후 뒤로가기도 이어진다
     const persist = () => {
       record()
-      try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(positions.current))
-      } catch {
-        /* 저장 불가(시크릿 모드 등)여도 세션 내 복원은 동작 */
-      }
+      safeSessionStorage.setJson(STORAGE_KEY, positions.current) // 저장 불가(시크릿 모드 등)여도 세션 내 복원은 동작
     }
     window.addEventListener('pagehide', persist)
 

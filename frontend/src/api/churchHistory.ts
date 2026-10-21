@@ -2,6 +2,7 @@ import { API_V1 } from '../config/api'
 import { setHistoryEvents } from '../pages/History/data/events'
 import type { HistoryEvent } from '../pages/History/data/types'
 import { request } from './utils/request'
+import { safeStorage } from '../utils/safeStorage'
 
 interface ChurchHistoryPayload {
   version: string
@@ -13,22 +14,13 @@ interface ChurchHistoryPayload {
 const STORAGE_KEY = 'chambit:church-history:v1'
 
 const readCache = (): ChurchHistoryPayload | null => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as ChurchHistoryPayload
-    return Array.isArray(parsed?.events) && parsed.events.length > 0 ? parsed : null
-  } catch {
-    return null
-  }
+  const parsed = safeStorage.getJson(STORAGE_KEY) as ChurchHistoryPayload | undefined
+  return Array.isArray(parsed?.events) && parsed.events.length > 0 ? parsed : null
 }
 
+// 저장소가 막혀 있으면 다음 방문도 네트워크로 받으면 된다
 const writeCache = (payload: ChurchHistoryPayload): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
-  } catch {
-    // 저장소가 막혀 있으면 다음 방문도 네트워크로 받으면 된다
-  }
+  safeStorage.setJson(STORAGE_KEY, payload)
 }
 
 const fetchHistory = () =>

@@ -6,6 +6,7 @@
 //
 // 주의: 오디오북을 꺼도 플레이어는 마운트된 채로 숨긴다. 절 메뉴의 '여기부터 듣기'와
 // 장 끝 연속 재생이 같은 <audio> 요소를 쓰기 때문 (BibleStudy 가 그때 다시 드러낸다).
+import { safeStorage } from '../../../utils/safeStorage'
 
 export interface ReaderIntroCards {
   /** 오디오북 재생 바 */
@@ -24,28 +25,22 @@ const listeners = new Set<() => void>()
 
 export const getReaderIntroCards = (): ReaderIntroCards => {
   if (cache === null) {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      const p = raw ? JSON.parse(raw) : {}
-      cache = {
-        audio: p.audio !== false,
-        bookIntro: p.bookIntro !== false,
-        brief: p.brief !== false,
-      }
-    } catch {
-      cache = DEFAULTS
-    }
+    const p = safeStorage.getJson(STORAGE_KEY) as Partial<ReaderIntroCards> | null | undefined
+    cache =
+      p && typeof p === 'object'
+        ? {
+            audio: p.audio !== false,
+            bookIntro: p.bookIntro !== false,
+            brief: p.brief !== false,
+          }
+        : DEFAULTS
   }
   return cache
 }
 
 export const setReaderIntroCard = (key: keyof ReaderIntroCards, value: boolean) => {
   cache = { ...getReaderIntroCards(), [key]: value }
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cache))
-  } catch {
-    /* 사파리 프라이빗 모드 등 — 이번 세션만 반영 */
-  }
+  safeStorage.setJson(STORAGE_KEY, cache) // 사파리 프라이빗 모드 등 — 실패하면 이번 세션만 반영
   listeners.forEach((fn) => fn())
 }
 

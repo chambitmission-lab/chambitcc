@@ -1,5 +1,6 @@
 // 말씀 편지 화면용 표기 유틸 — 소인 날짜 · 예배 부 · 손글씨 서명 · 요일 인사 · 동행 단계 기록
 import type { Sermon } from '../../../types/sermon'
+import { safeStorage } from '../../../utils/safeStorage'
 
 /** 제목 관례("주일 3부 예배")에서 예배 부를 읽는다. 없으면 null */
 export const worshipSlot = (title: string): string | null => {
@@ -39,22 +40,13 @@ export interface WalkState { read: boolean; watch: boolean }
 const walkKey = (sermonId: number) => `sermon-walk:${sermonId}`
 
 export const readWalk = (sermonId: number): WalkState => {
-  try {
-    const raw = window.localStorage.getItem(walkKey(sermonId))
-    if (!raw) return { read: false, watch: false }
-    const v = JSON.parse(raw)
-    return { read: !!v?.read, watch: !!v?.watch }
-  } catch {
-    return { read: false, watch: false }
-  }
+  const v = safeStorage.getJson(walkKey(sermonId)) as Partial<WalkState> | null | undefined
+  return { read: !!v?.read, watch: !!v?.watch }
 }
 
+/* 저장 불가(사생활 보호 모드 등) — 이번 방문 동안만 기억 */
 export const writeWalk = (sermonId: number, state: WalkState) => {
-  try {
-    window.localStorage.setItem(walkKey(sermonId), JSON.stringify(state))
-  } catch {
-    /* 저장 불가(사생활 보호 모드 등) — 이번 방문 동안만 기억 */
-  }
+  safeStorage.setJson(walkKey(sermonId), state)
 }
 
 /** 영상·음성 중 먼저 열 미디어 — 영상 우선 */

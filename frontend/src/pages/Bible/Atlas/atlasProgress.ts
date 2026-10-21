@@ -4,6 +4,7 @@ import { getAtlasProgress, markAtlasPlaceVisited } from '../../../api/bibleAtlas
 import { isAuthenticated } from '../../../utils/auth'
 import { scheduleTitleEvaluation } from '../../../utils/titleUnlockBus'
 import { sessionStore } from '../../../utils/tokenStore'
+import { safeStorage } from '../../../utils/safeStorage'
 
 // 지도여행 방문 기록 — 여권에 찍히는 도장.
 //
@@ -29,46 +30,29 @@ const userKey = (base: string): string => {
   }
 }
 
-const loadGuestVisited = (): Set<string> => {
-  try {
-    const raw = localStorage.getItem(GUEST_VISITED_KEY)
-    const arr = raw ? (JSON.parse(raw) as unknown) : []
-    return new Set(Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [])
-  } catch {
-    return new Set()
-  }
+/** 저장된 문자열 배열을 Set 으로 — 없거나 깨졌으면 빈 Set */
+const loadStringSet = (key: string): Set<string> => {
+  const arr = safeStorage.getJson(key)
+  return new Set(Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [])
 }
 
+const loadGuestVisited = (): Set<string> => loadStringSet(GUEST_VISITED_KEY)
+
+// 저장 실패(시크릿 모드 등)는 조용히 무시 — 세션 내 상태로만 동작
 const saveGuestVisited = (ids: Set<string>) => {
-  try {
-    localStorage.setItem(GUEST_VISITED_KEY, JSON.stringify([...ids]))
-  } catch {
-    // 저장 실패(시크릿 모드 등)는 조용히 무시 — 세션 내 상태로만 동작
-  }
+  safeStorage.setJson(GUEST_VISITED_KEY, [...ids])
 }
 
-const loadCelebrated = (): Set<string> => {
-  try {
-    const raw = localStorage.getItem(userKey(CELEBRATED_KEY))
-    const arr = raw ? (JSON.parse(raw) as unknown) : []
-    return new Set(Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [])
-  } catch {
-    return new Set()
-  }
-}
+const loadCelebrated = (): Set<string> => loadStringSet(userKey(CELEBRATED_KEY))
 
 /** 이 여정의 완주 축하를 이미 봤는가 */
 export const hasCelebratedJourney = (journeyId: string): boolean =>
   loadCelebrated().has(journeyId)
 
 export const markJourneyCelebrated = (journeyId: string) => {
-  try {
-    const next = loadCelebrated()
-    next.add(journeyId)
-    localStorage.setItem(userKey(CELEBRATED_KEY), JSON.stringify([...next]))
-  } catch {
-    // 무시
-  }
+  const next = loadCelebrated()
+  next.add(journeyId)
+  safeStorage.setJson(userKey(CELEBRATED_KEY), [...next])
 }
 
 /**

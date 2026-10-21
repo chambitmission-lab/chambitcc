@@ -6,7 +6,7 @@ import { parseApiDate } from '../../../utils/dateUtils'
 import { lazyModal } from '../../../utils/lazyModal'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
 import { readingSceneFor } from '../../../utils/themeAssets'
-import { safeStorage } from '../../../utils/safeStorage'
+import { safeSessionStorage, safeStorage } from '../../../utils/safeStorage'
 // 지도 보기는 토글해야 나온다 — 기본 뷰(여정)만 정적으로 둔다.
 // 단, 청크는 요약 카드가 뜬 뒤 유휴 시간에(그리고 버튼에 손이 닿는 순간) 미리 받아 둔다 —
 // 예전엔 "지도"를 누른 뒤에야 청크 왕복이 시작돼 fallback(null) 빈 화면이 한 박자 끼었다
@@ -51,21 +51,13 @@ const TESTAMENT_SESSION_KEY = 'bible-testament-tab'
 const celebratedKey = (tm: Testament) => `bible-testament-complete-seen-${tm}`
 
 const loadChosenTestament = (): Testament | null => {
-  try {
-    const saved = sessionStorage.getItem(TESTAMENT_SESSION_KEY)
-    return saved === 'OT' || saved === 'NT' ? saved : null
-  } catch {
-    return null
-  }
+  const saved = safeSessionStorage.get(TESTAMENT_SESSION_KEY)
+  return saved === 'OT' || saved === 'NT' ? saved : null
 }
 
 const loadViewMode = (): BookViewMode => {
-  try {
-    const saved = localStorage.getItem(VIEW_MODE_KEY)
-    return saved === 'grid' || saved === 'list' ? saved : 'journey'
-  } catch {
-    return 'journey'
-  }
+  const saved = safeStorage.get(VIEW_MODE_KEY)
+  return saved === 'grid' || saved === 'list' ? saved : 'journey'
 }
 
 const OT_CATEGORIES: { id: string; label: string; labelEn: string; min: number; max: number }[] = [
@@ -122,11 +114,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const handleViewModeChange = (mode: BookViewMode) => {
     setInteracted(true)
     setViewMode(mode)
-    try {
-      localStorage.setItem(VIEW_MODE_KEY, mode)
-    } catch {
-      // 저장 실패(시크릿 모드 등)해도 이번 세션 동안은 상태로 동작한다
-    }
+    safeStorage.set(VIEW_MODE_KEY, mode) // 저장 실패(시크릿 모드 등)해도 이번 세션 동안은 상태로 동작한다
   }
 
   const infoMap = useMemo(() => buildBookInfoMap(books, progress), [books, progress])
@@ -283,11 +271,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     setInteracted(true)
     setDir(next === 'NT' ? 'forward' : 'back')
     setChosenTestament(next)
-    try {
-      sessionStorage.setItem(TESTAMENT_SESSION_KEY, next)
-    } catch {
-      // 저장 실패해도 이번 화면에서는 상태로 동작한다
-    }
+    safeSessionStorage.set(TESTAMENT_SESSION_KEY, next) // 저장 실패해도 이번 화면에서는 상태로 동작한다
     setFilter('all')
   }
 
