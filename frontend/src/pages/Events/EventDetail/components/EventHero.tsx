@@ -5,7 +5,8 @@ import { formatDDay, formatEventTime, formatEventDateLabel } from '../../utils/d
 import { CategoryIcon } from '../../components/CategoryIcons'
 
 interface EventHeroProps {
-  event: Event
+  /** 히어로가 그리는 칸만 받는다(전체 Event 를 넘겨도 된다) */
+  event: Pick<Event, 'title' | 'category' | 'start_datetime' | 'location' | 'group'>
   t: Translation
 }
 

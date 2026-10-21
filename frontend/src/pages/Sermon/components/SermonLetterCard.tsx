@@ -6,7 +6,8 @@ import { compactReference, parseBibleReference } from '../utils/sermonMeta'
 import { pastorShortName, primaryMedia, stampParts, worshipSlot } from '../utils/sermonLetter'
 
 interface SermonLetterCardProps {
-  sermon: Sermon
+  /** 편지 한 장이 그리는 칸만 받는다(전체 Sermon 을 넘겨도 된다) */
+  sermon: Pick<Sermon, 'title' | 'pastor' | 'bible_verse' | 'sermon_date' | 'video_url' | 'audio_url'>
   takeaway?: string
   /** 로그인한 사람에게만 '아직 붙잡은 한 줄이 없어요' 자리를 보인다 */
   showTakeawaySlot: boolean

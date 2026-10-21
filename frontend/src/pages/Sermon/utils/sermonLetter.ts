@@ -50,5 +50,5 @@ export const writeWalk = (sermonId: number, state: WalkState) => {
 }
 
 /** 영상·음성 중 먼저 열 미디어 — 영상 우선 */
-export const primaryMedia = (sermon: Sermon): 'video' | 'audio' | null =>
+export const primaryMedia = (sermon: Pick<Sermon, 'video_url' | 'audio_url'>): 'video' | 'audio' | null =>
   sermon.video_url ? 'video' : sermon.audio_url ? 'audio' : null

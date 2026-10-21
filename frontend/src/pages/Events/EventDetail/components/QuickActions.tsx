@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
-import type { Event } from '../../../../types/event'
 import type { Translation } from '../../../../locales'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { formatKstDateTime } from '../../../../utils/kstTime'
-import { downloadEventIcs, buildMapSearchUrl } from '../utils/calendarShare'
+import { downloadEventIcs, buildMapSearchUrl, type IcsEvent } from '../utils/calendarShare'
 
 interface QuickActionsProps {
-  event: Event
+  /** 공유·지도·캘린더 등록에 쓰는 칸만 받는다(전체 Event 를 넘겨도 된다) */
+  event: IcsEvent
   t: Translation
 }
 

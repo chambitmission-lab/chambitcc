@@ -9,8 +9,8 @@ export interface RailHighlight {
 
 interface MinistryRailProps {
   language: string
-  /** 발신인 카드용 — 최신 편지의 저자·직분 */
-  featured: Column | null
+  /** 발신인 카드용 — 최신 편지의 저자·직분 (전체 Column 을 넘겨도 된다) */
+  featured: Pick<Column, 'author' | 'role'> | null
   totalLetters: number
   railHighlights: RailHighlight[]
   monthGroups: MonthGroup[]

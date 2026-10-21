@@ -12,8 +12,11 @@ import { useUpdatePastor } from '../../../hooks/usePastors'
 import type { Pastor, PastorTextField } from '../../../types/pastor'
 import '../../../components/AboutEditor/AboutEditor.css'
 
+/** 편집에 필요한 칸만 — id 와 ko/en 텍스트 짝. 전체 Pastor 를 넘겨도 된다 */
+type EditablePastorFields = Pick<Pastor, 'id' | `${PastorTextField}_ko` | `${PastorTextField}_en`>
+
 interface EditablePastorTextProps {
-  pastor: Pastor
+  pastor: EditablePastorFields
   field: PastorTextField
   /** 인사말 본문처럼 긴 글은 textarea + 넉넉한 행수로 */
   multiline?: boolean
@@ -38,8 +41,8 @@ const EditablePastorText = ({
   const [valueEn, setValueEn] = useState('')
 
   const open = () => {
-    setValueKo((pastor[`${field}_ko` as keyof Pastor] as string | null) ?? '')
-    setValueEn((pastor[`${field}_en` as keyof Pastor] as string | null) ?? '')
+    setValueKo(pastor[`${field}_ko`] ?? '')
+    setValueEn(pastor[`${field}_en`] ?? '')
     setIsOpen(true)
   }
 

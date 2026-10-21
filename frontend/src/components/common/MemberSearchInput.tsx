@@ -1,22 +1,25 @@
-// 앱 사용자 검색 인풋 — 캡슐 "앱에서 바로 보내기"의 검색 API를 재사용한다.
-// 반 만들기(여러 명 담기)·멤버 시트(즉시 추가)·기도방 초대가 함께 쓴다.
+// 앱 사용자 검색 인풋 — 반 만들기(여러 명 담기)·멤버 시트(즉시 추가)·기도방·릴레이·동행 초대가 함께 쓴다.
+// 어느 도메인에도 묶이지 않는다: 결과 모양은 types/member.MemberHit, 검색 함수는 search 로 바꿔 끼울 수 있다.
 import { useEffect, useState } from 'react'
-import { searchCapsuleRecipients } from '../../api/timeCapsule'
-import type { CapsuleRecipient } from '../../types/timeCapsule'
+import { searchMembers } from '../../api/user'
+import type { MemberHit } from '../../types/member'
 
 const MemberSearchInput = ({
   excludeIds,
   onPick,
   placeholder = '이름을 검색해 앱 사용자를 바로 넣어요',
   emptyHint = '앱에서 찾을 수 없어요. 아직 가입 전이라면 초대 코드를 공유해주세요.',
+  search = searchMembers,
 }: {
   excludeIds: number[]
-  onPick: (user: CapsuleRecipient) => void
+  onPick: (user: MemberHit) => void
   placeholder?: string
   emptyHint?: string
+  /** 검색 함수 — 기본은 앱 사용자 전체. 범위를 좁히려면(같은 반·같은 그룹) 다른 함수를 넘긴다 */
+  search?: (q: string) => Promise<MemberHit[]>
 }) => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<CapsuleRecipient[]>([])
+  const [results, setResults] = useState<MemberHit[]>([])
   const [searching, setSearching] = useState(false)
 
   // 300ms 디바운스, 응답 역전 방지 (캡슐과 동일 패턴)
@@ -31,7 +34,7 @@ const MemberSearchInput = ({
     let stale = false
     const timer = setTimeout(async () => {
       try {
-        const found = await searchCapsuleRecipients(q)
+        const found = await search(q)
         if (!stale) setResults(found)
       } catch {
         if (!stale) setResults([])
@@ -43,7 +46,7 @@ const MemberSearchInput = ({
       stale = true
       clearTimeout(timer)
     }
-  }, [query])
+  }, [query, search])
 
   const visible = results.filter((u) => !excludeIds.includes(u.id))
 

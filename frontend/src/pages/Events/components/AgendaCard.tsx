@@ -9,7 +9,8 @@ import { translations } from '../../../locales'
 import { CategoryIcon } from './CategoryIcons'
 
 interface AgendaCardProps {
-  event: Event
+  /** 카드가 그리는 칸만 받는다(전체 Event 를 넘겨도 된다) */
+  event: Pick<Event, 'id' | 'title' | 'category' | 'start_datetime' | 'location' | 'rsvp_deadline' | 'attendance_count'>
   showDDay?: boolean
 }
 

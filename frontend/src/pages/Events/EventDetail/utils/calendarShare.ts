@@ -10,7 +10,10 @@ const toIcsUtc = (d: Date): string =>
 const escapeIcsText = (s: string): string =>
   s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n')
 
-export const downloadEventIcs = (event: Event): void => {
+/** .ics 를 만드는 데 필요한 칸만 — 상세 화면의 빠른 동작 버튼도 이 폭만 받는다 */
+export type IcsEvent = Pick<Event, 'id' | 'title' | 'start_datetime' | 'end_datetime' | 'location' | 'description'>
+
+export const downloadEventIcs = (event: IcsEvent): void => {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',

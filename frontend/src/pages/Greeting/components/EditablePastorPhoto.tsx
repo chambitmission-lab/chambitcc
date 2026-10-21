@@ -13,7 +13,8 @@ import type { Pastor } from '../../../types/pastor'
 import '../../../components/AboutEditor/AboutEditor.css'
 
 interface EditablePastorPhotoProps {
-  pastor: Pastor
+  /** 사진 교체에 필요한 칸만 — id 와 지금 사진 */
+  pastor: Pick<Pastor, 'id' | 'photo_url'>
   isAdmin: boolean
   children: ReactNode
 }

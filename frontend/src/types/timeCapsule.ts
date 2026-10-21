@@ -1,15 +1,12 @@
+import type { MemberHit } from './member'
+
 // 타임캡슐 타입 정의 — 개봉 전에는 서버가 content를 내려주지 않는다
 // self: 미래의 나 / invite: 초대 링크 전달 / direct: 앱 사용자에게 바로
 export type CapsuleType = 'self' | 'invite' | 'direct'
 export type CapsuleRole = 'self' | 'sender' | 'recipient'
 
-// 받는 사람 검색 결과 (direct 캡슐 수신자 선택용)
-export interface CapsuleRecipient {
-  id: number
-  display_name: string
-  username: string
-  avatar_url: string | null
-}
+// 받는 사람 검색 결과 (direct 캡슐 수신자 선택용) — 앱 사용자 검색 결과(types/member)와 같은 모양
+export type CapsuleRecipient = MemberHit
 
 export interface CapsuleSnapshotStats {
   meditations?: number

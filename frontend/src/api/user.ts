@@ -1,4 +1,12 @@
 import { request, requestRaw } from './utils/request'
+import type { MemberHit } from '../types/member'
+
+/**
+ * 이름·아이디 부분 일치로 앱 사용자 검색 — 서버가 최대 8명만 내려준다.
+ * 초대·담기 인풋(components/common/MemberSearchInput)의 기본 검색. 엔드포인트는 캡슐 받는 분 검색과 같다.
+ */
+export const searchMembers = (q: string, errorMessage = '사용자를 찾지 못했습니다'): Promise<MemberHit[]> =>
+  request<MemberHit[]>(`/time-capsules/recipients?q=${encodeURIComponent(q)}`, { errorMessage })
 
 /** 가입 승인 상태 — is_active(운영 중 정지)와는 별개의 축 */
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'

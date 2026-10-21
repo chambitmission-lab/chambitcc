@@ -10,6 +10,7 @@ import type {
   CapsuleSummary,
 } from '../types/timeCapsule'
 import { request, requestRaw } from './utils/request'
+import { searchMembers } from './user'
 
 const BASE = `${API_V1}/time-capsules`
 
@@ -63,10 +64,9 @@ export const createCapsule = async (
   })
 }
 
-// 받는 사람 검색 — 이름/아이디 부분 일치, 서버가 최대 8명만 내려준다
-export const searchCapsuleRecipients = async (q: string): Promise<CapsuleRecipient[]> => {
-  return request<CapsuleRecipient[]>(`${BASE}/recipients?q=${encodeURIComponent(q)}`, { errorMessage: '받는 분을 찾지 못했습니다' })
-}
+// 받는 사람 검색 — 앱 사용자 검색(api/user.searchMembers)과 같은 호출, 캡슐 화면의 문구만 다르다
+export const searchCapsuleRecipients = (q: string): Promise<CapsuleRecipient[]> =>
+  searchMembers(q, '받는 분을 찾지 못했습니다')
 
 // q를 주면 서버가 같은 형태(sealed/arrived)로 걸러서 내려준다.
 // 봉인 중인 캡슐은 제목·상대 이름·개봉 라벨만 검색된다 (본문은 개봉 전 비공개).
