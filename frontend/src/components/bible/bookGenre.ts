@@ -6,7 +6,7 @@
  * "지금 어떤 결의 책을 펼쳤는지"를 색으로 기억하게 하는 게 목적이다.
  * 실제 색값은 theme.css의 --genre-* 토큰(라이트/다크 분기)이 갖는다.
  *
- * 구간은 BookSelector의 분류 칩(OT_CATEGORIES / NT_CATEGORIES)과 같은 기준이다.
+ * 구간(min~max)은 BookSelector 의 분류 칩도 같은 표(BOOK_GENRES)에서 만든다 — 한 곳만 고치면 된다.
  */
 
 import type { CSSProperties } from 'react'
@@ -21,15 +21,24 @@ export interface BookGenre {
   icon: string
 }
 
-const GENRES: { max: number; genre: BookGenre }[] = [
-  { max: 5, genre: { id: 'law', label: '모세오경', colorVar: '--genre-law', icon: 'menu_book' } },
-  { max: 17, genre: { id: 'history', label: '역사서', colorVar: '--genre-history', icon: 'history_edu' } },
-  { max: 22, genre: { id: 'poetry', label: '시가서', colorVar: '--genre-poetry', icon: 'music_note' } },
-  { max: 39, genre: { id: 'prophets', label: '선지서', colorVar: '--genre-prophets', icon: 'campaign' } },
-  { max: 43, genre: { id: 'gospels', label: '복음서', colorVar: '--genre-gospels', icon: 'auto_awesome' } },
-  { max: 44, genre: { id: 'acts', label: '사도행전', colorVar: '--genre-acts', icon: 'travel_explore' } },
-  { max: 65, genre: { id: 'epistles', label: '서신서', colorVar: '--genre-epistles', icon: 'mail' } },
-  { max: 66, genre: { id: 'revelation', label: '요한계시록', colorVar: '--genre-revelation', icon: 'flare' } },
+/** 장르 + 책 번호 구간 — 책 목록의 분류 칩(한/영 라벨)과 권 개관의 액센트가 함께 쓴다 */
+export interface BookGenreRange extends BookGenre {
+  labelEn: string
+  /** 시작 책 번호(창세기=1, 포함) */
+  min: number
+  /** 끝 책 번호(포함) */
+  max: number
+}
+
+export const BOOK_GENRES: readonly BookGenreRange[] = [
+  { id: 'law', label: '모세오경', labelEn: 'Pentateuch', min: 1, max: 5, colorVar: '--genre-law', icon: 'menu_book' },
+  { id: 'history', label: '역사서', labelEn: 'History', min: 6, max: 17, colorVar: '--genre-history', icon: 'history_edu' },
+  { id: 'poetry', label: '시가서', labelEn: 'Wisdom', min: 18, max: 22, colorVar: '--genre-poetry', icon: 'music_note' },
+  { id: 'prophets', label: '선지서', labelEn: 'Prophets', min: 23, max: 39, colorVar: '--genre-prophets', icon: 'campaign' },
+  { id: 'gospels', label: '복음서', labelEn: 'Gospels', min: 40, max: 43, colorVar: '--genre-gospels', icon: 'auto_awesome' },
+  { id: 'acts', label: '사도행전', labelEn: 'Acts', min: 44, max: 44, colorVar: '--genre-acts', icon: 'travel_explore' },
+  { id: 'epistles', label: '서신서', labelEn: 'Epistles', min: 45, max: 65, colorVar: '--genre-epistles', icon: 'mail' },
+  { id: 'revelation', label: '요한계시록', labelEn: 'Revelation', min: 66, max: 66, colorVar: '--genre-revelation', icon: 'flare' },
 ]
 
 const FALLBACK: BookGenre = {
@@ -40,10 +49,8 @@ const FALLBACK: BookGenre = {
 }
 
 /** book_number(1~66) → 장르. 범위를 벗어나면 브랜드 블루로 폴백한다. */
-export const getBookGenre = (bookNumber: number): BookGenre => {
-  const found = GENRES.find((g) => bookNumber <= g.max)
-  return bookNumber >= 1 && found ? found.genre : FALLBACK
-}
+export const getBookGenre = (bookNumber: number): BookGenre =>
+  BOOK_GENRES.find((g) => bookNumber >= g.min && bookNumber <= g.max) ?? FALLBACK
 
 /** 개관 카드에 뿌릴 CSS 변수 묶음 — style={genreStyle(n)} 으로 쓴다. */
 export const genreStyle = (bookNumber: number): CSSProperties =>

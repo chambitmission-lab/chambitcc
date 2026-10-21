@@ -14,6 +14,7 @@ const BibleProgressMap = lazyModal(() => import('./BibleProgressMap'))
 const preloadProgressMap = () => void BibleProgressMap.preload()
 import BookJourneyPath from './BookJourneyPath'
 import { useBookIntroPeek, type PeekBook } from '../../../components/bible/BookIntroPeek'
+import { BOOK_GENRES } from '../../../components/bible/bookGenre'
 import { aggregateRange, buildBookInfoMap } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
 import {
@@ -60,20 +61,23 @@ const loadViewMode = (): BookViewMode => {
   return saved === 'grid' || saved === 'list' ? saved : 'journey'
 }
 
-const OT_CATEGORIES: { id: string; label: string; labelEn: string; min: number; max: number }[] = [
+// 분류 칩 — '전체' + 장르 구간. 장르 표(BOOK_GENRES)가 단일 출처라 여기엔 '전체' 칩만 따로 둔다
+interface BookCategory {
+  id: string
+  label: string
+  labelEn: string
+  min: number
+  max: number
+}
+
+const OT_CATEGORIES: BookCategory[] = [
   { id: 'all', label: '전체', labelEn: 'All', min: 1, max: 39 },
-  { id: 'law', label: '모세오경', labelEn: 'Pentateuch', min: 1, max: 5 },
-  { id: 'history', label: '역사서', labelEn: 'History', min: 6, max: 17 },
-  { id: 'poetry', label: '시가서', labelEn: 'Wisdom', min: 18, max: 22 },
-  { id: 'prophets', label: '선지서', labelEn: 'Prophets', min: 23, max: 39 },
+  ...BOOK_GENRES.filter(g => g.max <= 39),
 ]
 
-const NT_CATEGORIES: { id: string; label: string; labelEn: string; min: number; max: number }[] = [
+const NT_CATEGORIES: BookCategory[] = [
   { id: 'all', label: '전체', labelEn: 'All', min: 40, max: 66 },
-  { id: 'gospels', label: '복음서', labelEn: 'Gospels', min: 40, max: 43 },
-  { id: 'acts', label: '사도행전', labelEn: 'Acts', min: 44, max: 44 },
-  { id: 'epistles', label: '서신서', labelEn: 'Epistles', min: 45, max: 65 },
-  { id: 'revelation', label: '요한계시록', labelEn: 'Revelation', min: 66, max: 66 },
+  ...BOOK_GENRES.filter(g => g.min >= 40),
 ]
 
 /** 0보다 크면 최소 1%로 올려 표기 — 읽기 시작했는데 "0%"로 보이는 일을 막는다 */

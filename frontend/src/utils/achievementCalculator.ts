@@ -1,4 +1,4 @@
-import type { UserActivityData, Achievement, GlowLevel } from '../types/achievement'
+import type { UserActivityData, Achievement, AchievementType, GlowLevel } from '../types/achievement'
 import { ACHIEVEMENTS, GLOW_LEVELS } from '../types/achievement'
 import { safeStorage } from './safeStorage'
 
@@ -80,81 +80,39 @@ export const getPointsToNextLevel = (currentPoints: number): { needed: number; t
 }
 
 /**
+ * 업적 종류별 진행도 — 활동 데이터에서 어느 숫자를 보는지.
+ * 종류를 추가하면 types/achievement 의 AchievementType 과 함께 여기 한 줄만 늘린다(빠뜨리면 컴파일이 막는다).
+ * 달성 여부는 아래 calculateAchievements 가 requirement 와 비교해 한 번에 정한다.
+ */
+const PROGRESS_OF: Record<AchievementType, (activity: UserActivityData, achievement: Pick<Achievement, 'bookNumber'>) => number> = {
+  prayer_time: (a) => a.totalPrayerTime,
+  // bookNumber가 있으면 그 책에서 읽은 장 수(부분 진행도), 없으면 전체 읽은 장 수.
+  // 과거에는 완독 여부만 보고 0 또는 requirement로 튀어서 진행바가 항상 0이었다.
+  bible_reading: (a, ach) =>
+    ach.bookNumber !== undefined ? a.bibleBookChapters[String(ach.bookNumber)] ?? 0 : a.bibleChaptersRead,
+  streak: (a) => a.streakDays,
+  prayer_count: (a) => a.totalPrayerCount,
+  community: (a) => a.repliesCount,
+  bible_note: (a) => a.notesCount,
+  bible_highlight: (a) => a.bookmarksCount,
+  bluemarble_correct: (a) => a.bluemarbleCorrectTotal,
+  bluemarble_lap: (a) => a.bluemarbleLapsTotal,
+  bluemarble_clear: (a) => a.bluemarbleClearCount,
+  bluemarble_score: (a) => a.bluemarbleBestScore,
+}
+
+/**
  * 업적 달성 여부 및 진행도 계산
  */
-export const calculateAchievements = (activity: UserActivityData): Achievement[] => {
-  return ACHIEVEMENTS.map(achievement => {
-    let progress = 0
-    let unlocked = false
-    
-    switch (achievement.type) {
-      case 'prayer_time':
-        progress = activity.totalPrayerTime
-        unlocked = progress >= achievement.requirement
-        break
-        
-      case 'bible_reading':
-        // bookNumber가 있으면 그 책에서 읽은 장 수(부분 진행도), 없으면 전체 읽은 장 수.
-        // 과거에는 완독 여부만 보고 0 또는 requirement로 튀어서 진행바가 항상 0이었다.
-        progress = achievement.bookNumber !== undefined
-          ? activity.bibleBookChapters[String(achievement.bookNumber)] ?? 0
-          : activity.bibleChaptersRead
-        unlocked = progress >= achievement.requirement
-        break
-        
-      case 'streak':
-        progress = activity.streakDays
-        unlocked = progress >= achievement.requirement
-        break
-        
-      case 'prayer_count':
-        progress = activity.totalPrayerCount
-        unlocked = progress >= achievement.requirement
-        break
-        
-      case 'community':
-        progress = activity.repliesCount
-        unlocked = progress >= achievement.requirement
-        break
-
-      case 'bible_note':
-        progress = activity.notesCount
-        unlocked = progress >= achievement.requirement
-        break
-
-      case 'bible_highlight':
-        progress = activity.bookmarksCount
-        unlocked = progress >= achievement.requirement
-        break
-
-      case 'bluemarble_correct':
-        progress = activity.bluemarbleCorrectTotal
-        unlocked = progress >= achievement.requirement
-        break
-
-      case 'bluemarble_lap':
-        progress = activity.bluemarbleLapsTotal
-        unlocked = progress >= achievement.requirement
-        break
-
-      case 'bluemarble_clear':
-        progress = activity.bluemarbleClearCount
-        unlocked = progress >= achievement.requirement
-        break
-
-      case 'bluemarble_score':
-        progress = activity.bluemarbleBestScore
-        unlocked = progress >= achievement.requirement
-        break
-    }
-    
+export const calculateAchievements = (activity: UserActivityData): Achievement[] =>
+  ACHIEVEMENTS.map(achievement => {
+    const progress = PROGRESS_OF[achievement.type](activity, achievement)
     return {
       ...achievement,
       progress,
-      unlocked,
+      unlocked: progress >= achievement.requirement,
     }
   })
-}
 
 /**
  * 가장 최근에 해금된 업적 가져오기 (로컬스토리지 기반)

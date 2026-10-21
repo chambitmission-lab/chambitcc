@@ -1,4 +1,4 @@
-import { getLanguageCountryCode } from '../../utils/languageFlags'
+import { getLanguageCountryCode, type LanguageCountry } from '../../utils/languageFlags'
 // 전체 flag-icons CSS(600KB+) 대신 실제 지원 언어의 국기 SVG만 개별 로드
 import krFlag from 'flag-icons/flags/4x3/kr.svg'
 import usFlag from 'flag-icons/flags/4x3/us.svg'
@@ -10,7 +10,8 @@ import thFlag from 'flag-icons/flags/4x3/th.svg'
 import mmFlag from 'flag-icons/flags/4x3/mm.svg'
 import './LangFlag.css'
 
-const FLAG_SRC: Record<string, string> = {
+// 지원 언어 표(utils/languageFlags)와 키를 맞춘다 — 언어를 추가하고 SVG 를 빠뜨리면 여기서 컴파일이 막힌다
+const FLAG_SRC: Record<LanguageCountry, string> = {
   kr: krFlag,
   us: usFlag,
   vn: vnFlag,
@@ -33,8 +34,7 @@ interface LangFlagProps {
  * 모든 국기를 SVG로 통일 렌더링한다.
  */
 const LangFlag = ({ code, className = '' }: LangFlagProps) => {
-  const country = getLanguageCountryCode(code)
-  const src = FLAG_SRC[country] ?? FLAG_SRC.kr
+  const src = FLAG_SRC[getLanguageCountryCode(code)]
   return (
     <span
       className={`fi ${className}`.trim()}
