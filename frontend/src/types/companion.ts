@@ -55,6 +55,8 @@ export interface CompanionDetail extends CompanionSummary {
   /** 이번 주 기도제목 — 이 짝 둘에게만 보인다 */
   my_topic: string | null
   partner_topic: string | null
+  /** 등불이 켜진 주에 바꾼 목표 — 다음 주부터 적용된다 */
+  next_goal?: CompanionGoal | null
 }
 
 export interface CompanionHome {

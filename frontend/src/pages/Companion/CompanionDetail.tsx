@@ -128,6 +128,11 @@ const CompanionDetail = () => {
         <div className="text-[12.5px] text-gray-500 dark:text-white/50 mt-1">
           {week.achieved ? '등불이 켜졌어요' : `${remaining}${spec.unit} 남음 · ${c.days_left}일 남음`}
         </div>
+        {c.next_goal && (
+          <div className="text-[12px] text-gray-500 dark:text-white/50 mt-1">
+            다음 주부터 {goalText(c.next_goal.goal_type, c.next_goal.goal_amount)}
+          </div>
+        )}
         <button
           type="button"
           onClick={goToFill}
@@ -210,6 +215,11 @@ const CompanionDetail = () => {
             {spec.hint}. 누가 채워도 둘의 걸음이에요.
           </p>
         )}
+        {c.next_goal && (
+          <p className="mt-1 text-[12.5px] text-gray-500 dark:text-white/50">
+            다음 주부터는 둘이 합쳐 {goalText(c.next_goal.goal_type, c.next_goal.goal_amount)}
+          </p>
+        )}
 
         {/* lg 에선 우측 레일의 같은 버튼이 대신한다 */}
         <button
@@ -255,7 +265,15 @@ const CompanionDetail = () => {
         </button>
       </div>
 
-      {goalOpen && <GoalSheet id={c.id} initial={{ goal_type: week.goal_type, goal_amount: week.goal_amount }} onClose={() => setGoalOpen(false)} />}
+      {goalOpen && (
+        <GoalSheet
+          id={c.id}
+          current={{ goal_type: week.goal_type, goal_amount: week.goal_amount }}
+          initial={c.next_goal ?? { goal_type: week.goal_type, goal_amount: week.goal_amount }}
+          lit={week.achieved}
+          onClose={() => setGoalOpen(false)}
+        />
+      )}
     </CompanionShell>
   )
 }
@@ -385,14 +403,28 @@ const HistoryRow = ({ week }: { week: CompanionWeek }) => (
   </li>
 )
 
-const GoalSheet = ({ id, initial, onClose }: { id: number; initial: CompanionGoal; onClose: () => void }) => {
+// 등불이 켜진 주엔 그 등불을 지키고 다음 주부터 바꾼다(백엔드 set_goal 과 같은 규칙)
+const GoalSheet = ({
+  id,
+  current,
+  initial,
+  lit,
+  onClose,
+}: {
+  id: number
+  current: CompanionGoal
+  initial: CompanionGoal
+  lit: boolean
+  onClose: () => void
+}) => {
   const update = useUpdateCompanionGoal(id)
   const [goal, setGoal] = useState<CompanionGoal>(initial)
+  const typeChanged = goal.goal_type !== current.goal_type
 
   const save = async () => {
     try {
       await update.mutateAsync(goal)
-      showToast('이번 주 목표를 바꿨어요', 'success')
+      showToast(lit ? '다음 주부터 이 목표로 걸어요' : '이번 주 목표를 바꿨어요', 'success')
       onClose()
     } catch (e) {
       showToast(e instanceof Error ? e.message : '목표를 바꾸지 못했어요', 'error')
@@ -401,11 +433,18 @@ const GoalSheet = ({ id, initial, onClose }: { id: number; initial: CompanionGoa
 
   return (
     <Sheet onClose={onClose}>
-      <h3 className="text-[17px] font-bold text-ink-strong">이번 주 목표 바꾸기</h3>
+      <h3 className="text-[17px] font-bold text-ink-strong">{lit ? '다음 주 목표 바꾸기' : '이번 주 목표 바꾸기'}</h3>
       <p className="text-[12.5px] text-gray-500 dark:text-white/55 mt-1 mb-4 leading-[1.6]">
-        둘 중 누구나 바꿀 수 있고, 다음 주에도 이 목표로 이어가요.
+        {lit
+          ? '이번 주 등불은 그대로 두고, 다음 주부터 이 목표로 걸어요. 둘 중 누구나 바꿀 수 있어요.'
+          : '둘 중 누구나 바꿀 수 있고, 다음 주에도 이 목표로 이어가요.'}
       </p>
       <GoalPicker value={goal} onChange={setGoal} />
+      {!lit && typeChanged && (
+        <p className="mt-3 text-[12px] leading-[1.6] text-gray-500 dark:text-white/50">
+          이번 주는 {GOAL_SPECS[goal.goal_type].label}로 다시 세요. 지금까지 쌓은 {GOAL_SPECS[current.goal_type].label}는 새 목표에 더해지지 않아요.
+        </p>
+      )}
       <button
         type="button"
         onClick={save}
