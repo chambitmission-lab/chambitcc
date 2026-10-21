@@ -9,7 +9,7 @@
    **캐릭터 일치 꿀팁**: 기존 이미지(`public/images/title-bg/` 중 아무거나 한 장)를 함께 첨부하고
    "이 양 캐릭터와 완전히 같은 캐릭터로"라고 덧붙이면 시리즈가 정확히 이어진다.
 2. 결과물은 `frontend/public/images/title-bg/<key>.webp` 로 저장 (예: `dawn_riser.webp`).
-   기존 26장은 전부 **1376×768** — 같은 규격으로 맞춘다. (`cwebp -q 78 원본.png -o <key>.webp`, 20~50KB)
+   기존 36장은 전부 **1376×768** — 같은 규격으로 맞춘다. (`cwebp -q 78 원본.png -o <key>.webp`, 20~50KB)
 3. 비율은 16:9 (모바일 프로필 헤더 뒤에 깔고 하단은 그라데이션으로 녹일 예정).
 4. **새로 추가하는 칭호라면** 이미지를 넣은 뒤 `src/components/titles/TitleBackdrop.tsx` 의
    `TITLE_BG_KEYS` 에 key 를 추가해야 프로필에 실제로 깔린다 (미등록 키는 배너 없이 기본 레이아웃).
@@ -50,7 +50,7 @@ Scene:
 
 ---
 
-## 칭호별 장면 (36종)
+## 칭호별 장면 (43종 — 이미지 대기 7종: 만나 5 · 동행 2, 맨 아래 「새 칭호 7종 한 번에 붙여넣기」)
 
 ### 시간 카테고리
 
@@ -212,6 +212,45 @@ green summer, red autumn leaves, and snow — under one continuous navy night sk
 A warm trail of light follows its path across the whole year. Tiny runner, vast world.
 ```
 
+#### 동행 (`/companion`) — 이미지 대기
+
+> 이 시리즈에서 유일하게 **양이 두 마리** 나오는 장면. 주인공 양은 **파랑 목도리**, 짝 양은 **주황 목도리**
+> (`/companion` 히어로·발자국 색과 같은 짝). 짝 양은 같은 화풍이되 **조금 작고 머리에 복슬한 곱슬 한 줌**으로 구별한다 — 쌍둥이처럼 보이면 "둘"이 안 읽힌다.
+> 등불은 **종이 등롱(paper lantern)** 으로 통일. 엠마오 길에서도 예수님은 그리지 않는다(형상 금지 노선) — 길과 마을 창불로만.
+> **첨부 추천**: `title-bg/gospel_witness.webp`(양 캐릭터) + `src/assets/companion/hero-dark.webp`(목도리 두 양).
+
+**companion_first_lamp · 🏮 동역자 (silver)** — 동행 짝과 한 주 목표를 채워 등불 1개 켜기
+> 유머 핵심: 전 4:9-10 "두 사람이 한 사람보다 나음… 넘어지면 일으키리라" — 혼자선 닿지 않는 가지에 **양 탑**을 쌓아 등불을 건다.
+```
+Night hilltop scene in the upper left of the frame, under a lone old tree with one
+low-hanging branch. Two lambs work together as a wobbly little tower: the hero sheep
+wearing a small blue scarf stands on all four legs at the bottom, legs braced and
+trembling slightly, cheeks puffed with effort but grinning; on its back stands the
+second lamb — slightly smaller, with a fluffy curl of wool on its head and a small
+orange scarf — upright on its two hind legs, both front hooves stretched high to hang
+a round paper lantern on the branch. The lantern has just been lit and glows warm
+amber, the one warm light in the scene, its glow falling on both proud faces as they
+share a quick triumphant look. Tiny sparkles drift from the lantern. Deep navy sky with
+tiny blue-white stars; the lower half of the hill and the bottom-center of the frame
+stay dim, soft and empty.
+```
+
+**companion_ten_lamps · 👣 길동무 (gold)** — 동행 등불 10개 켜기
+> 유머 핵심: 열 주를 함께 걸으니 **발걸음이 완전히 맞아 버린** 두 양. 등불 개수는 세지 말고 "길을 따라 이어진 등불"로만.
+```
+Epic dusk-to-night panorama of a long winding country road through soft rolling hills,
+like the road to a small village. The two lambs walk side by side along the road in the
+upper right of the frame: the hero sheep in a small blue scarf and the slightly smaller
+lamb with a fluffy curl and a small orange scarf, both stepping with exactly the same
+leg at exactly the same moment in comically perfect sync, mid-conversation, the smaller
+one leaning its head happily against the other's shoulder. Behind them, along the whole
+road they have already traveled, a long line of round paper lanterns hangs on little
+wooden posts, each glowing softly, fading into the distance like a path of stars back
+over the hills. Ahead of them, at the end of the road, a tiny village house with one
+warm amber window glows as the main warm light. Deep navy sky with the first tiny
+blue-white stars; the bottom-center of the frame stays dark, quiet grass.
+```
+
 **bible_conqueror · 🏆 성경 통독의 전설 (legendary)**
 ```
 The most epic scene of all: the sheep stands victorious at the summit of a mountain
@@ -367,6 +406,95 @@ hangs by the window as the one warm light. A crescent moon and tiny blue-white s
 in the deep navy sky; the bottom-center stays dark, quiet leaves.
 ```
 
+#### 만나 내리기 (`/bible/typing/manna`) — 이미지 대기
+
+> 만나 연작 공통 규칙 — 배경은 **광야(모래 언덕·장막) 의 새벽 직전**(출 16:13-14 "아침에는 이슬이 진 주위에 있더니"). 팔레트는 그대로 네이비 + 앰버 하나.
+> 만나는 게임에선 말씀 단어지만 그림에선 글자가 생기므로 **작고 동그란 흰 빛 알갱이(coriander-seed-like glowing white flakes)** 로만 그린다(출 16:31 "깟씨 같고 희고").
+> 필사 칭호와 이어지게 **양의 귀 뒤 털에 작은 깃펜을 하나 꽂아 둔다** — 만나 연작의 표지.
+> 그릇은 **흙빛 오멜 항아리(small clay jar) · 짚 바구니**로 통일. 왕관 장면(`manna_crown`)은 `wisdom_king` 의 흘러내리는 금관과 겹치지 않게 **만나 알갱이로 엮은 화관**.
+> **첨부 추천**: `title-bg/typing_first.webp`(깃펜·두발 자세) + `title-bg/moses_companion.webp`(광야 톤) 두 장.
+
+**manna_first · 🍞 첫 만나를 거둔 자 (bronze)** — 만나 내리기에서 한 절 새기기
+> 유머 핵심: "이것이 무엇이냐"(출 16:15) — 처음 보는 만나에 **사팔눈으로 코끝을 들여다보는** 양.
+```
+Pre-dawn desert camp scene, the sheep placed on the left side of the frame just outside
+the flap of a small cloth tent, a tiny feather quill tucked into the wool behind one
+ear. All around it the sand is sprinkled with tiny round glowing white flakes like
+morning dew. The sheep sits upright on its two hind legs, both front hooves cupped
+together holding a single glowing flake up close, eyes comically crossed as it stares
+at it, head tilted in pure bewildered wonder, tongue just peeking out as if about to
+take the very first taste. A small empty clay bowl sits beside it. The faint first
+warm amber glow of dawn rises behind the dunes on the left as the one warm light;
+the rest of the sky is deep navy with tiny blue-white stars. The bottom-center of the
+frame stays quiet, dim sand.
+```
+
+**manna_omer · 🏺 오멜을 채운 자 (silver)** — 만나 내리기에서 온전히 새긴 절 30개
+> 유머 핵심: "한 단어도 흘리지 않고" — 제빵사처럼 **수평을 맞추는** 결벽 장인 양, 바닥엔 알갱이 하나 없음.
+```
+Cozy night interior of a small desert tent, lit by one small clay oil lamp glowing warm
+amber. On the right side of the frame the sheep stands upright on its two hind legs on
+a little wooden stool, a tiny feather quill tucked behind one ear, leaning over a small
+clay jar filled exactly to the brim with tiny glowing white flakes. With both front
+hooves it gently places one last flake on top with the extreme precision of a master
+pastry chef, one eye squinted, holding its breath, a tiny bead of sweat on its brow.
+The surface of the jar is perfectly level and the floor around it is completely
+spotless — not a single flake spilled. On a low shelf behind it stand more neatly
+filled clay jars, all glowing softly. Navy shadows fill the rest of the tent; through
+the open flap tiny blue-white stars show in the deep navy sky. The bottom-center stays
+dim, empty tent floor.
+```
+
+**manna_every_morning · 🌄 아침마다 거둔 자 (silver)** — 오늘의 만나에 7일 참여
+> 유머 핵심: "아침마다 거두었고"(출 16:21) — 아직 잠이 덜 깼는데도 **몸이 먼저 나가는** 개근 양. 반복의 흔적은 장막 앞 반들반들 닳은 오솔길로.
+```
+Early pre-dawn desert scene with soft rolling dunes. In the upper left of the frame the
+sheep shuffles out of its little cloth tent still half asleep, wearing a droopy knit
+nightcap, eyes half closed in a big yawn, a tiny feather quill tucked behind one ear,
+yet it walks upright on its two hind legs with complete dutiful determination, both
+front hooves holding a small woven straw basket in front of it. In front of the tent a
+smooth, well-worn little footpath leads out to a field of tiny glowing white flakes
+scattered over the sand like dew — the path is clearly walked every single morning.
+Beside the tent door hang a few small woven baskets on pegs, well used. The first warm
+amber light of sunrise peeks over the far dune as the one warm light; the sky above is
+deep navy fading lighter, with the last tiny blue-white stars. The bottom-center of the
+frame stays quiet, dim sand.
+```
+
+**manna_canaan · 🏞️ 가나안 입성 (gold)** — 만나 내리기 한 판에서 여덟 절을 모두 새기기
+> 유머 핵심: 민 13:23 정탐꾼들이 막대에 꿰어 둘이 메고 온 **거대한 포도송이** — 그걸 작은 양이 혼자 메고 휘청거린다. `moses_companion`(발자국)·`hundred_days`(빛의 행렬)와 겹치지 않게 지나온 길은 **작은 장막 진지들**로.
+```
+Epic panoramic landscape at dawn: on the left a vast navy desert of dunes stretches back
+into the distance, with a long winding trail of tiny cloth tent camps dotted along it,
+each one glowing faintly, marking the long journey behind. On the right side the land
+opens into a lush green valley with a gently shining river and soft hills of vineyards
+and olive trees, a warm amber sunrise breaking over it as the one warm light. In the
+upper right, standing on a small rocky ridge right at the border between desert and
+green land, the sheep stands upright on its two hind legs, a tiny feather quill tucked
+behind one ear, triumphantly balancing a long wooden pole over its shoulder with both
+front hooves — and hanging from the pole is a comically gigantic cluster of grapes
+nearly bigger than the sheep itself, making it wobble, yet its face beams with pure
+joy. Deep navy sky with tiny blue-white stars fading into the dawn. Grand promised-land
+movie-poster composition; the bottom-center stays dim, empty dunes.
+```
+
+**manna_crown · 👑 만나 거둠의 으뜸 (gold)** — 오늘의 만나 하루 1위
+> 유머 핵심: 출 16:18 "많이 거둔 자도 남음이 없고 적게 거둔 자도 부족함이 없었더라" — 1등 양의 넘치는 바구니에서 알갱이가 **친구들 바구니로 솔솔 흘러가** 결국 다 똑같이 찬다. 으뜸이지만 자랑보다 나눔.
+```
+Pre-dawn desert festival scene. In the upper center of the frame the sheep stands
+upright on its two hind legs on top of a low sand dune like a champion on a podium,
+a tiny feather quill tucked behind one ear, wearing a small wreath-crown woven from
+glowing white manna flakes that sparkles softly. With both front hooves it proudly
+holds up an enormous straw basket heaped far over the top with tiny glowing white
+flakes — but a gentle magical stream of flakes is drifting out of its basket and
+floating down into the small baskets of woodland friends (a rabbit, a fox, a hedgehog,
+little birds) gathered at the far left and right edges of the dune, so every basket
+ends up exactly full. The friends look up delighted; the sheep wears a slightly
+surprised but happy, generous smile. The glowing basket is the one warm amber light;
+deep navy sky with tiny blue-white stars and a faint hint of dawn on the horizon.
+Epic champion composition, humble sharing hero; the bottom-center stays dim, empty sand.
+```
+
 ### 히든 카테고리
 
 **returned_prodigal · 🫂 돌아온 탕자 (silver)**
@@ -497,4 +625,257 @@ as if it were a legendary hero they dare not approach. The glowing quill tip is 
 one warm light, catching the sheep's face; deep navy shadows fill the room and tiny
 blue-white stars show through a round window behind. Epic hero standoff, adorably
 tiny opponents.
+```
+
+---
+
+## 새 칭호 7종 한 번에 붙여넣기 (만나 5 · 동행 2)
+
+각 블록을 **통째로 복사**해서 보낸다(공통 스타일 포함). 첨부 이미지를 먼저 올리고 보낼 것.
+결과는 `public/images/title-bg/<key>.webp`(1376×768)로 저장 → `TitleBackdrop.tsx` 의 `TITLE_BG_KEYS` 해당 묶음(만나=필사, 동행=패턴)에 키 추가.
+
+### 🏮 동역자 (`companion_first_lamp`)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `src/assets/companion/hero-dark.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Night hilltop scene in the upper left of the frame, under a lone old tree with one
+low-hanging branch. Two lambs work together as a wobbly little tower: the hero sheep
+wearing a small blue scarf stands on all four legs at the bottom, legs braced and
+trembling slightly, cheeks puffed with effort but grinning; on its back stands the
+second lamb — slightly smaller, with a fluffy curl of wool on its head and a small
+orange scarf — upright on its two hind legs, both front hooves stretched high to hang
+a round paper lantern on the branch. The lantern has just been lit and glows warm
+amber, the one warm light in the scene, its glow falling on both proud faces as they
+share a quick triumphant look. Tiny sparkles drift from the lantern. Deep navy sky with
+tiny blue-white stars; the lower half of the hill and the bottom-center of the frame
+stay dim, soft and empty.
+```
+
+### 👣 길동무 (`companion_ten_lamps`)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `src/assets/companion/hero-dark.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Epic dusk-to-night panorama of a long winding country road through soft rolling hills,
+like the road to a small village. The two lambs walk side by side along the road in the
+upper right of the frame: the hero sheep in a small blue scarf and the slightly smaller
+lamb with a fluffy curl and a small orange scarf, both stepping with exactly the same
+leg at exactly the same moment in comically perfect sync, mid-conversation, the smaller
+one leaning its head happily against the other's shoulder. Behind them, along the whole
+road they have already traveled, a long line of round paper lanterns hangs on little
+wooden posts, each glowing softly, fading into the distance like a path of stars back
+over the hills. Ahead of them, at the end of the road, a tiny village house with one
+warm amber window glows as the main warm light. Deep navy sky with the first tiny
+blue-white stars; the bottom-center of the frame stays dark, quiet grass.
+```
+
+### 🍞 첫 만나를 거둔 자 (`manna_first`)
+
+첨부: `public/images/title-bg/typing_first.webp`, `public/images/title-bg/moses_companion.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Pre-dawn desert camp scene, the sheep placed on the left side of the frame just outside
+the flap of a small cloth tent, a tiny feather quill tucked into the wool behind one
+ear. All around it the sand is sprinkled with tiny round glowing white flakes like
+morning dew. The sheep sits upright on its two hind legs, both front hooves cupped
+together holding a single glowing flake up close, eyes comically crossed as it stares
+at it, head tilted in pure bewildered wonder, tongue just peeking out as if about to
+take the very first taste. A small empty clay bowl sits beside it. The faint first
+warm amber glow of dawn rises behind the dunes on the left as the one warm light;
+the rest of the sky is deep navy with tiny blue-white stars. The bottom-center of the
+frame stays quiet, dim sand.
+```
+
+### 🏺 오멜을 채운 자 (`manna_omer`)
+
+첨부: `public/images/title-bg/typing_first.webp`, `public/images/title-bg/moses_companion.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Cozy night interior of a small desert tent, lit by one small clay oil lamp glowing warm
+amber. On the right side of the frame the sheep stands upright on its two hind legs on
+a little wooden stool, a tiny feather quill tucked behind one ear, leaning over a small
+clay jar filled exactly to the brim with tiny glowing white flakes. With both front
+hooves it gently places one last flake on top with the extreme precision of a master
+pastry chef, one eye squinted, holding its breath, a tiny bead of sweat on its brow.
+The surface of the jar is perfectly level and the floor around it is completely
+spotless — not a single flake spilled. On a low shelf behind it stand more neatly
+filled clay jars, all glowing softly. Navy shadows fill the rest of the tent; through
+the open flap tiny blue-white stars show in the deep navy sky. The bottom-center stays
+dim, empty tent floor.
+```
+
+### 🌄 아침마다 거둔 자 (`manna_every_morning`)
+
+첨부: `public/images/title-bg/typing_first.webp`, `public/images/title-bg/moses_companion.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Early pre-dawn desert scene with soft rolling dunes. In the upper left of the frame the
+sheep shuffles out of its little cloth tent still half asleep, wearing a droopy knit
+nightcap, eyes half closed in a big yawn, a tiny feather quill tucked behind one ear,
+yet it walks upright on its two hind legs with complete dutiful determination, both
+front hooves holding a small woven straw basket in front of it. In front of the tent a
+smooth, well-worn little footpath leads out to a field of tiny glowing white flakes
+scattered over the sand like dew — the path is clearly walked every single morning.
+Beside the tent door hang a few small woven baskets on pegs, well used. The first warm
+amber light of sunrise peeks over the far dune as the one warm light; the sky above is
+deep navy fading lighter, with the last tiny blue-white stars. The bottom-center of the
+frame stays quiet, dim sand.
+```
+
+### 🏞️ 가나안 입성 (`manna_canaan`)
+
+첨부: `public/images/title-bg/typing_first.webp`, `public/images/title-bg/moses_companion.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Epic panoramic landscape at dawn: on the left a vast navy desert of dunes stretches back
+into the distance, with a long winding trail of tiny cloth tent camps dotted along it,
+each one glowing faintly, marking the long journey behind. On the right side the land
+opens into a lush green valley with a gently shining river and soft hills of vineyards
+and olive trees, a warm amber sunrise breaking over it as the one warm light. In the
+upper right, standing on a small rocky ridge right at the border between desert and
+green land, the sheep stands upright on its two hind legs, a tiny feather quill tucked
+behind one ear, triumphantly balancing a long wooden pole over its shoulder with both
+front hooves — and hanging from the pole is a comically gigantic cluster of grapes
+nearly bigger than the sheep itself, making it wobble, yet its face beams with pure
+joy. Deep navy sky with tiny blue-white stars fading into the dawn. Grand promised-land
+movie-poster composition; the bottom-center stays dim, empty dunes.
+```
+
+### 👑 만나 거둠의 으뜸 (`manna_crown`)
+
+첨부: `public/images/title-bg/typing_first.webp`, `public/images/title-bg/moses_companion.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Pre-dawn desert festival scene. In the upper center of the frame the sheep stands
+upright on its two hind legs on top of a low sand dune like a champion on a podium,
+a tiny feather quill tucked behind one ear, wearing a small wreath-crown woven from
+glowing white manna flakes that sparkles softly. With both front hooves it proudly
+holds up an enormous straw basket heaped far over the top with tiny glowing white
+flakes — but a gentle magical stream of flakes is drifting out of its basket and
+floating down into the small baskets of woodland friends (a rabbit, a fox, a hedgehog,
+little birds) gathered at the far left and right edges of the dune, so every basket
+ends up exactly full. The friends look up delighted; the sheep wears a slightly
+surprised but happy, generous smile. The glowing basket is the one warm amber light;
+deep navy sky with tiny blue-white stars and a faint hint of dawn on the horizon.
+Epic champion composition, humble sharing hero; the bottom-center stays dim, empty sand.
 ```
