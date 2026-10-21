@@ -121,15 +121,15 @@ const CompanionList = () => {
       {/* 히어로 — 무엇을 하는 곳인지 세 줄로. 오른쪽 삽화(함께 걷는 두 양)가 '동행'을 대신 보여 준다 */}
       <section
         style={{ ['--cp-hero-light' as string]: `url(${COMPANION_HERO.light})`, ['--cp-hero-dark' as string]: `url(${COMPANION_HERO.dark})` }}
-        className="relative overflow-hidden isolate mx-4 lg:mx-6 mt-5 lg:mt-6 rounded-[26px] px-6 py-7 lg:px-9 lg:py-9 bg-[var(--brand-soft)] ring-1 ring-[rgba(49,130,246,0.12)] dark:ring-white/[0.06]">
+        className="cp-hero relative overflow-hidden isolate mx-4 lg:mx-6 mt-5 lg:mt-6 rounded-[26px] px-6 py-7 lg:px-9 lg:py-9 ring-1 ring-[rgba(49,130,246,0.12)] dark:ring-white/[0.06]">
         <div className="relative z-[1] lg:max-w-[46%]">
-        <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-brand">Walk together</span>
-        <h2 className="text-[24px] lg:text-[30px] font-extrabold tracking-[-0.03em] leading-[1.3] text-ink-strong mt-3">
+        <span className="cp-hero__eyebrow block text-[11px] font-semibold uppercase tracking-[0.34em] text-brand">Walk together</span>
+        <h2 className="cp-hero__title text-[24px] lg:text-[30px] font-extrabold tracking-[-0.03em] leading-[1.3] text-ink-strong mt-3">
           혼자 말고, 둘이
           <br />
           한 주를 채워요
         </h2>
-        <p className="text-[13px] lg:text-[14px] leading-[1.7] break-keep text-gray-600 dark:text-white/70 mt-3">
+        <p className="cp-hero__body text-[13px] lg:text-[14px] leading-[1.7] break-keep text-gray-600 dark:text-white/70 mt-3">
           짝과 이번 주 목표를 정하면, 각자 읽고 필사하고 기도한 만큼 <b className="font-bold text-ink-strong">합쳐서</b> 쌓여요.
           누가 더 했는지는 세지 않아요. 바쁜 주엔 짝이 메꿔줘요.
         </p>

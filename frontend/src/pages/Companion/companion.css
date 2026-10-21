@@ -40,7 +40,25 @@
   color: var(--cp-flame);
 }
 
-/* 히어로 삽화(주일 아침 골목의 두 양) — lg 는 카드 오른쪽에 깔고 왼쪽 글 쪽으로 녹인다.
+/* 카드 면은 삽화 톤(라이트 크림·복숭아 / 다크 남청)에 맞춘다 — 브랜드 블루 틴트면 녹는 구간이 탁해진다 */
+.cp-hero {
+  background: linear-gradient(100deg, #f7f3ee 0%, #f6efe8 45%, #f3ebe4 100%);
+}
+html.dark .cp-hero {
+  background: linear-gradient(100deg, #1b2233 0%, #1e2538 50%, #232a40 100%);
+}
+/* 라이트 글자도 크림 면에 맞춰 따뜻하게 — 코코아 제목·웜그레이 본문, 라벨은 주황 목도리 색 */
+html:not(.dark) .cp-hero__eyebrow {
+  color: #c2652a;
+}
+html:not(.dark) .cp-hero__title,
+html:not(.dark) .cp-hero__body b {
+  color: #3b2e27;
+}
+html:not(.dark) .cp-hero__body {
+  color: #76645a;
+}
+/* 히어로 삽화(주일 아침 골목의 두 양) — lg 는 카드 오른쪽에 깔고 왼쪽 글 쪽으로 천천히 녹인다.
    모바일은 글 뒤에 깔면 양이 글씨와 섞이므로 글·버튼 사이에 또렷한 띠로 둔다. */
 .cp-hero-art {
   position: relative;
@@ -60,15 +78,21 @@ html.dark .cp-hero-art {
   background-image: var(--cp-hero-dark);
 }
 @media (min-width: 1024px) {
+  /* 그림 비율(688:610)대로 상자를 잡아 위(달·언덕 위 교회)부터 양 발끝까지 다 보이게 —
+     바닥 길만 조금 잘린다. 카드는 그만큼 조금 높인다. */
+  .cp-hero {
+    min-height: 340px;
+  }
   .cp-hero-art {
     position: absolute;
     inset: 0 0 0 auto;
-    width: 62%;
+    width: auto;
     height: auto;
+    aspect-ratio: 688 / 610;
     margin: 0;
-    background-position: right 70%;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%);
-    mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+    background-position: right 8%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 18%, #000 42%);
+    mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 18%, #000 42%);
     z-index: 0;
   }
 }
