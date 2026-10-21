@@ -49,59 +49,101 @@
   color: var(--cp-flame);
 }
 
-/* 카드 면은 삽화 톤(라이트 크림·복숭아 / 다크 남청)에 맞춘다 — 브랜드 블루 틴트면 녹는 구간이 탁해진다 */
+/* 히어로 — 그림을 녹이지 않고 물결 곡선으로 또렷이 잘라 둔다. 경계엔 금빛 줄 + 바깥 파란 줄 두 줄(둘이 함께 걷는 길).
+   녹이는 방식은 그림 색(라이트 회보랏빛 / 다크 밝은 회청색)과 카드 면이 달라 반투명 구간이 안개·띠로 떴다.
+   라이트 = 그림 맨 위 하늘색에서 시작하는 맑은 하늘 면, 다크 = 깊은 밤 남색 + 별 몇 개. */
 .cp-hero {
-  background: linear-gradient(100deg, #f7f3ee 0%, #f6efe8 45%, #f3ebe4 100%);
+  --cp-wave-gold: #f0a85a;
+  --cp-wave-blue: #6f9be6;
+  background: linear-gradient(180deg, #def3fa 0%, #ecf6f8 34%, #faf8f4 70%, #fbf7f3 100%);
 }
 html.dark .cp-hero {
-  background: linear-gradient(100deg, #1b2233 0%, #1e2538 50%, #232a40 100%);
+  --cp-wave-gold: #ffd79e;
+  --cp-wave-blue: #a9c2ff;
+  background: radial-gradient(ellipse 60% 60% at 0% 0%, #222a44, transparent 70%), #161c2c;
 }
-/* 라이트 글자도 크림 면에 맞춰 따뜻하게 — 코코아 제목·웜그레이 본문, 라벨은 주황 목도리 색 */
+html.dark .cp-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1.3px 1.3px at 8% 12%, #fff, transparent),
+    radial-gradient(1px 1px at 24% 7%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 38% 18%, #e8edff, transparent),
+    radial-gradient(1px 1px at 44% 4%, #fff, transparent),
+    radial-gradient(1px 1px at 16% 30%, #dfe6ff, transparent);
+}
 html:not(.dark) .cp-hero__eyebrow {
-  color: #c2652a;
+  color: #3b6fc4;
 }
 html:not(.dark) .cp-hero__title,
 html:not(.dark) .cp-hero__body b {
-  color: #3b2e27;
+  color: #26262f;
 }
 html:not(.dark) .cp-hero__body {
-  color: #76645a;
+  color: #5f6170;
 }
-/* 히어로 삽화(주일 아침 골목의 두 양) — lg 는 카드 오른쪽에 깔고 왼쪽 글 쪽으로 천천히 녹인다.
-   모바일은 글 뒤에 깔면 양이 글씨와 섞이므로 글·버튼 사이에 또렷한 띠로 둔다. */
+html.dark .cp-hero__body {
+  color: rgba(236, 238, 250, 0.8);
+}
+/* 모바일 = 글·버튼 사이 띠. 위아래 경계만 물결로 자른다(글 뒤에 깔면 양이 글씨와 섞인다).
+   280px 로 넉넉히 — 골목 건물과 언덕 위 교회까지 보이게 */
 .cp-hero-art {
   position: relative;
-  height: 200px;
+  height: 280px;
   margin: 18px -24px 0;
-  background: var(--cp-hero-light) center 72% / cover no-repeat;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 82%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 82%, transparent 100%);
+  background: var(--cp-hero-light) center 58% / cover no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='none'%3E%3Cpath d='M0 16 C 90 -4, 180 34, 270 14 C 330 2, 370 6, 400 12 V 186 C 320 204, 230 170, 140 190 C 80 202, 30 196, 0 190 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='none'%3E%3Cpath d='M0 16 C 90 -4, 180 34, 270 14 C 330 2, 370 6, 400 12 V 186 C 320 204, 230 170, 140 190 C 80 202, 30 196, 0 190 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
 }
-.cp-hero-art.is-loaded {
+.cp-hero-art.is-loaded,
+.cp-hero-wave.is-loaded {
   opacity: 1;
 }
 html.dark .cp-hero-art {
   background-image: var(--cp-hero-dark);
 }
+.cp-hero-wave {
+  display: none;
+}
 @media (min-width: 1024px) {
-  /* 그림 비율(688:610)대로 상자를 잡아 위(달·언덕 위 교회)부터 양 발끝까지 다 보이게 —
-     바닥 길만 조금 잘린다. 카드는 그만큼 조금 높인다. */
+  /* 높이 380 — 60% 폭 상자에서 언덕 위 교회 십자가부터 양 발끝까지 다 들어오는 높이 */
   .cp-hero {
-    min-height: 340px;
+    min-height: 380px;
   }
-  .cp-hero-art {
+  /* 카드 오른쪽 60% 상자에 그림을 cover 로 깔고 물결(viewBox 340, 늘려 씀)로 자른다.
+     폭을 넓혀 골목·하늘이 더 보이게 — 물결 가장 왼쪽(상자 6%)이 글 칸(40%)과 겹치지 않는 선 */
+  .cp-hero-art,
+  .cp-hero-wave {
     position: absolute;
     inset: 0 0 0 auto;
-    width: auto;
+    width: 60%;
     height: auto;
-    aspect-ratio: 688 / 610;
     margin: 0;
-    background-position: right 8%;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 18%, #000 42%);
-    mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.4) 18%, #000 42%);
     z-index: 0;
   }
+  .cp-hero-art {
+    background-size: cover;
+    background-position: 40% 22%;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 340' preserveAspectRatio='none'%3E%3Cpath d='M 50 0 C 0 70, 86 140, 40 214 C 10 262, 28 312, 70 340 L 340 340 L 340 0 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 340' preserveAspectRatio='none'%3E%3Cpath d='M 50 0 C 0 70, 86 140, 40 214 C 10 262, 28 312, 70 340 L 340 340 L 340 0 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  }
+  .cp-hero-wave {
+    display: block;
+    height: 100%;
+    z-index: 1;
+    overflow: visible;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
 }
+.cp-wave-gold stop { stop-color: var(--cp-wave-gold); }
+.cp-wave-blue stop { stop-color: var(--cp-wave-blue); }
+.cp-wave-glow { opacity: 0.45; }
+html.dark .cp-wave-glow { opacity: 0.7; }

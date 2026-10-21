@@ -16,6 +16,9 @@ import InviteSheet from './InviteSheet'
 import { GOAL_SPECS, goalText } from './companionGoals'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
+/** 히어로 삽화를 자르는 물결 — companion.css 의 lg 마스크 경로와 같아야 한다(viewBox 340) */
+const HERO_WAVE = 'M 50 0 C 0 70, 86 140, 40 214 C 10 262, 28 312, 70 340'
+
 const errorText = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
 
 const CompanionList = () => {
@@ -125,7 +128,7 @@ const CompanionList = () => {
       <section
         style={{ ['--cp-hero-light' as string]: `url(${COMPANION_HERO.light})`, ['--cp-hero-dark' as string]: `url(${COMPANION_HERO.dark})` }}
         className="cp-hero relative overflow-hidden isolate mx-4 lg:mx-6 mt-5 lg:mt-6 rounded-[26px] px-6 py-7 lg:px-9 lg:py-9 ring-1 ring-[rgba(49,130,246,0.12)] dark:ring-white/[0.06]">
-        <div className="relative z-[1] lg:max-w-[46%]">
+        <div className="relative z-[1] lg:max-w-[40%]">
         <span className="cp-hero__eyebrow block text-[11px] font-semibold uppercase tracking-[0.34em] text-brand">Walk together</span>
         <h2 className="cp-hero__title text-[24px] lg:text-[30px] font-extrabold tracking-[-0.03em] leading-[1.3] text-ink-strong mt-3">
           혼자 말고, 둘이
@@ -137,8 +140,29 @@ const CompanionList = () => {
           누가 더 했는지는 세지 않아요. 바쁜 주엔 짝이 메꿔줘요.
         </p>
         </div>
-        {/* 삽화 — lg 에선 카드 오른쪽 배경, 모바일에선 글과 버튼 사이 띠 */}
+        {/* 삽화 — lg 에선 카드 오른쪽을 물결로 자른 창, 모바일에선 글과 버튼 사이 띠 */}
         <div className={`cp-hero-art${heroArtReady ? ' is-loaded' : ''}`} aria-hidden />
+        {/* 물결 경계의 두 줄 — 금빛(번짐+선)과 바깥쪽 파란 줄. 경로는 CSS 마스크와 같은 곡선(viewBox 340) */}
+        <svg className={`cp-hero-wave${heroArtReady ? ' is-loaded' : ''}`} viewBox="0 0 340 340" preserveAspectRatio="none" aria-hidden>
+          <defs>
+            <linearGradient id="cp-wave-gold" className="cp-wave-gold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopOpacity="0" />
+              <stop offset="0.45" stopOpacity="0.95" />
+              <stop offset="1" stopOpacity="0.2" />
+            </linearGradient>
+            <linearGradient id="cp-wave-blue" className="cp-wave-blue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopOpacity="0.75" />
+              <stop offset="0.6" stopOpacity="0.3" />
+              <stop offset="1" stopOpacity="0" />
+            </linearGradient>
+            <filter id="cp-wave-blur" x="-50%" y="-10%" width="200%" height="120%">
+              <feGaussianBlur stdDeviation="3" />
+            </filter>
+          </defs>
+          <path d={HERO_WAVE} transform="translate(-12 0)" fill="none" stroke="url(#cp-wave-blue)" strokeWidth="1.3" vectorEffect="non-scaling-stroke" />
+          <path className="cp-wave-glow" d={HERO_WAVE} fill="none" stroke="url(#cp-wave-gold)" strokeWidth="6" filter="url(#cp-wave-blur)" />
+          <path d={HERO_WAVE} fill="none" stroke="url(#cp-wave-gold)" strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
+        </svg>
         {/* lg 에선 우측 레일의 같은 버튼이 대신한다 */}
         <button
           type="button"
