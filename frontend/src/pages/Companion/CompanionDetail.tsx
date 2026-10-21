@@ -1,9 +1,10 @@
 // 동행 상세 (/companion/:id) — 이번 주 합산 발자국 + 등불 + 지나온 주
-import { useEffect, useState } from 'react'
+// 쉬어간 짝은 읽기 전용 '지난 길' + 다시 걷자고 하기
+import { Fragment, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { useCompanion, useLeaveCompanion, useUpdateCompanionGoal } from '../../hooks/useCompanion'
-import type { CompanionGoal, CompanionWeek } from '../../types/companion'
+import type { CompanionDetail as CompanionDetailData, CompanionGoal, CompanionWeek } from '../../types/companion'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { safeStorage } from '../../utils/safeStorage'
 import { sessionStore } from '../../utils/tokenStore'
@@ -15,6 +16,7 @@ import CompanionPrayer from './CompanionPrayer'
 import { markCheerSeen } from './cheerSeen'
 import FootprintPath from './FootprintPath'
 import GoalPicker from './GoalPicker'
+import InviteSheet from './InviteSheet'
 import { GOAL_SPECS, goalText } from './companionGoals'
 
 const weekRange = (weekStart: string) => {
@@ -62,11 +64,13 @@ const CompanionDetail = () => {
     return (
       <CompanionShell title="동행" backTo="/companion" backLabel="동행">
         <p className="px-5 pt-14 text-center text-[13.5px] text-gray-500 dark:text-white/55">
-          이 동행은 이제 볼 수 없어요. 짝이 쉬어가기를 했을 수 있어요.
+          이 동행을 찾을 수 없어요.
         </p>
       </CompanionShell>
     )
   }
+
+  if (c.status === 'ended') return <RestedView c={c} />
 
   if (c.status !== 'active' || !c.week) {
     return (
@@ -87,7 +91,7 @@ const CompanionDetail = () => {
     const ok = await confirmDialog({
       title: '잠시 쉬어가기',
       message: `${c.partner.name}님과의 동행을 멈출까요?`,
-      description: '함께 걸은 기록은 남고, 언제든 다시 초대할 수 있어요.',
+      description: '함께 걸은 기록은 남아요. 다시 초대하면 그 길에 이어서 걸어요.',
       confirmText: '쉬어가기',
       cancelText: '계속 걸을게요',
       tone: 'warning',
@@ -225,14 +229,7 @@ const CompanionDetail = () => {
 
       {/* 지나온 주 — 끊김 대신 누적. 못 채운 주는 '쉼표' */}
       {c.history.length > 0 ? (
-        <section className="px-4 lg:px-0 pt-8">
-          <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-3 px-0.5">지나온 주</h3>
-          <ul className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark">
-            {c.history.map((w) => (
-              <HistoryRow key={w.week_start} week={w} />
-            ))}
-          </ul>
-        </section>
+        <HistoryList history={c.history} restedBefore={week.rested_before} />
       ) : (
         <section className="hidden lg:block pt-8">
           <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-3 px-0.5">지나온 주</h3>
@@ -262,6 +259,106 @@ const CompanionDetail = () => {
     </CompanionShell>
   )
 }
+
+// 쉬어간 짝 — 둘 다 지난 길을 볼 수 있다. 기도제목은 걷는 동안만, 여기선 숫자와 길만
+const RestedView = ({ c }: { c: CompanionDetailData }) => {
+  const navigate = useNavigate()
+  const [resumeOpen, setResumeOpen] = useState(false)
+  const myName = sessionStore.get('fullName') || '나'
+  const ended = c.ended_at ? new Date(c.ended_at) : null
+  const resumeButton = (
+    <button
+      type="button"
+      onClick={() => setResumeOpen(true)}
+      className="w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] active:scale-[0.99] transition-transform"
+    >
+      다시 함께 걷자고 하기
+    </button>
+  )
+  const rail = (
+    <>
+      <RailCard>
+        <div className="flex items-center gap-3">
+          <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" size={44} />
+          <div className="min-w-0">
+            <div className="text-[15px] font-bold text-ink-strong truncate">{c.partner.name}</div>
+            <div className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">쉬어가는 중</div>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-col gap-1.5">
+          <RailStat label="함께 걸은 주" value={`${c.together_weeks}주`} />
+          <RailStat label="켠 등불" value={c.lit_weeks} accent />
+          <RailStat label="서로를 위한 기도" value={`${c.cheer?.total ?? 0}번`} />
+        </div>
+      </RailCard>
+      <RailCard>
+        {resumeButton}
+        <p className="mt-2.5 text-[12px] leading-[1.6] text-gray-500 dark:text-white/50">
+          받으면 이 길에 이어서 걸어요. 쉬어간 주는 빈칸이 아니라 쉼으로 남아요.
+        </p>
+      </RailCard>
+    </>
+  )
+
+  return (
+    <CompanionShell title={`${c.partner.name}님과 걸은 길`} backTo="/companion" backLabel="동행" rail={rail}>
+      <section className="mx-4 lg:mx-6 mt-5 lg:mt-6 rounded-[26px] bg-white dark:bg-card-dark border border-border-light dark:border-border-dark px-5 pt-5 pb-6 lg:px-8 lg:py-8">
+        <div className="flex items-center gap-3">
+          <div className="flex -space-x-2">
+            <Avatar name={myName} url={sessionStore.get('avatarUrl')} tone="me" size={34} />
+            <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" size={34} />
+          </div>
+          <div className="text-[12.5px] text-gray-500 dark:text-white/55 leading-snug">
+            {ended ? `${ended.getMonth() + 1}월 ${ended.getDate()}일부터` : '지금은'} 잠시 쉬어가는 중이에요
+          </div>
+        </div>
+        <p className="mt-5 text-[19px] lg:text-[22px] font-extrabold tracking-[-0.03em] leading-[1.4] text-ink-strong break-keep">
+          {c.partner.name}님과 {c.together_weeks}주를 함께 걸으며
+          <br />
+          등불 {c.lit_weeks}개를 켰어요
+        </p>
+        <p className="mt-2 text-[12.5px] text-gray-500 dark:text-white/50">
+          서로를 위해 {c.cheer?.total ?? 0}번 기도했어요
+        </p>
+        <div className="mt-5 lg:hidden">{resumeButton}</div>
+      </section>
+
+      <div className="lg:px-6">
+        {c.history.length > 0 && <HistoryList history={c.history} />}
+        <CompanionMilestones c={c} />
+      </div>
+
+      {resumeOpen && <InviteSheet resume={c} onClose={() => setResumeOpen(false)} onSent={() => navigate('/companion')} />}
+    </CompanionShell>
+  )
+}
+
+// 지나온 주 — 끊김 대신 누적. 못 채운 주는 '쉼표', 쉬어가기로 비운 주는 한 줄로 접는다
+const HistoryList = ({ history, restedBefore = 0 }: { history: CompanionWeek[]; restedBefore?: number }) => (
+  <section className="px-4 lg:px-0 pt-8">
+    <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-3 px-0.5">지나온 주</h3>
+    <ul className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark">
+      {restedBefore > 0 && <RestedRow weeks={restedBefore} />}
+      {history.map((w) => (
+        <Fragment key={w.week_start}>
+          <HistoryRow week={w} />
+          {w.rested_before > 0 && <RestedRow weeks={w.rested_before} />}
+        </Fragment>
+      ))}
+    </ul>
+  </section>
+)
+
+const RestedRow = ({ weeks }: { weeks: number }) => (
+  <li className="flex items-center gap-3 px-4 py-2.5 bg-gray-50/70 dark:bg-white/[0.02]">
+    <span className="w-8 shrink-0 flex justify-center text-gray-300 dark:text-white/25" aria-hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        <path d="M12 3v3M12 10.5v3M12 18v3" />
+      </svg>
+    </span>
+    <span className="text-[12.5px] text-gray-500 dark:text-white/45">쉬어간 시간 · {weeks}주</span>
+  </li>
+)
 
 const HistoryRow = ({ week }: { week: CompanionWeek }) => (
   <li className="flex items-center gap-3 px-4 py-3">

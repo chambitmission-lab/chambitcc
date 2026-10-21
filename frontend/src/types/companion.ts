@@ -18,6 +18,8 @@ export interface CompanionWeek {
   mine: number
   partner: number
   achieved: boolean
+  /** 이 주 바로 앞(더 오래된 쪽)에 쉬어간 주 수 — 지나온 길에 '쉬어간 시간'으로 접어 보인다 */
+  rested_before: number
 }
 
 export interface CompanionCheerState {
@@ -37,11 +39,14 @@ export interface CompanionSummary {
   goal_type: CompanionGoalType
   goal_amount: number
   week: CompanionWeek | null
+  /** 함께 걸은 주(쉬어간 주 제외) — 쉬어간 짝·다시 걷자는 초대에도 예전 기록이 실린다 */
   together_weeks: number
   lit_weeks: number
   cheer: CompanionCheerState | null
   created_at: string
   started_at: string | null
+  /** 쉬어간 짝만 — 쉬어가기 한 시각 */
+  ended_at: string | null
 }
 
 export interface CompanionDetail extends CompanionSummary {
@@ -56,6 +61,8 @@ export interface CompanionHome {
   active: CompanionSummary[]
   incoming: CompanionSummary[]
   outgoing: CompanionSummary[]
+  /** 쉬어간 짝 — 최근 순. 예전 응답(필드 없음)도 견디게 옵셔널 */
+  ended?: CompanionSummary[]
 }
 
 export interface CompanionGoal {

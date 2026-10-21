@@ -40,7 +40,8 @@ export const useInviteCompanion = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ userId, goal }: { userId: number; goal: CompanionGoal }) => inviteCompanion(userId, goal),
-    onSuccess: () => qc.invalidateQueries({ queryKey: companionKeys.home() }),
+    // 쉬어간 짝에게 다시 걷자고 하면 그 동행 상세도 '지난 길'에서 바뀐다
+    onSuccess: () => qc.invalidateQueries({ queryKey: companionKeys.all }),
   })
 }
 

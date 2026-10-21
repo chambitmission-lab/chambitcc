@@ -32,7 +32,10 @@ const CompanionHeroButton = () => {
   const invite = data.incoming[0]
   const prayed = data.active.find((c) => c.cheer?.by_partner_today && !isCheerSeenToday(c.id))
   const target = invite
-    ? { to: '/companion', label: `${invite.partner.name}님이 함께 걷자고 해요` }
+    ? {
+        to: '/companion',
+        label: `${invite.partner.name}님이 ${invite.together_weeks > 0 ? '다시 ' : ''}함께 걷자고 해요`,
+      }
     : prayed
       ? { to: `/companion/${prayed.id}`, label: `${prayed.partner.name}님이 오늘 당신을 위해 기도했어요` }
       : null

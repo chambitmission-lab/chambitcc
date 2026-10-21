@@ -1,20 +1,18 @@
 // 동행 (/companion) — 짝과 한 주 목표를 합산으로 함께 채운다
-// 함께 걷는 중 / 받은 초대 / 보낸 초대 + 새 동행 초대 시트
+// 함께 걷는 중 / 받은 초대 / 보낸 초대 / 쉬어간 동행 + 초대 시트
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import MemberSearchInput from '../../components/common/MemberSearchInput'
-import { useAcceptCompanion, useInviteCompanion, useLeaveCompanion, useMyCompanions } from '../../hooks/useCompanion'
-import type { CompanionGoal, CompanionSummary } from '../../types/companion'
-import type { CapsuleRecipient } from '../../types/timeCapsule'
+import { useAcceptCompanion, useLeaveCompanion, useMyCompanions } from '../../hooks/useCompanion'
+import type { CompanionSummary } from '../../types/companion'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { COMPANION_HERO } from '../../utils/themeAssets'
 import { isAuthenticated } from '../../utils/auth'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { sessionStore } from '../../utils/tokenStore'
 import { showToast } from '../../utils/toast'
-import { Avatar, CompanionShell, RailCard, RailStat, Sheet } from './CompanionParts'
+import { Avatar, CompanionShell, RailCard, RailStat } from './CompanionParts'
 import FootprintPath from './FootprintPath'
-import GoalPicker from './GoalPicker'
+import InviteSheet from './InviteSheet'
 import { GOAL_SPECS, goalText } from './companionGoals'
 
 const errorText = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
@@ -24,6 +22,8 @@ const CompanionList = () => {
   const authed = isAuthenticated()
   const { data, isLoading } = useMyCompanions(authed)
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [resumeWith, setResumeWith] = useState<CompanionSummary | null>(null)
+  const [restedOpen, setRestedOpen] = useState(false)
   const accept = useAcceptCompanion()
   const leave = useLeaveCompanion()
   const heroArtReady = useThemeArt(COMPANION_HERO)
@@ -68,6 +68,7 @@ const CompanionList = () => {
   ].map((c) => c.partner.id)
 
   const litNow = data?.active.filter((c) => c.week?.achieved).length ?? 0
+  const rested = data?.ended ?? []
 
   // 우측 레일(lg+) — 초대 버튼을 늘 손 닿는 곳에, 본문은 짝 카드에만 집중
   const rail = (
@@ -91,6 +92,7 @@ const CompanionList = () => {
             {data.active.length > 0 && <RailStat label="이번 주 등불 켜진 짝" value={litNow} accent />}
             {data.incoming.length > 0 && <RailStat label="받은 초대" value={data.incoming.length} accent />}
             {data.outgoing.length > 0 && <RailStat label="답을 기다리는 초대" value={data.outgoing.length} />}
+            {rested.length > 0 && <RailStat label="쉬어가는 짝" value={rested.length} />}
           </div>
         </RailCard>
       )}
@@ -163,10 +165,17 @@ const CompanionList = () => {
                   <div className="flex items-center gap-3">
                     <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" />
                     <div className="min-w-0 flex-1">
-                      <div className="text-[14.5px] font-bold text-ink-strong truncate">{c.partner.name}님이 함께 걷자고 해요</div>
+                      <div className="text-[14.5px] font-bold text-ink-strong truncate">
+                        {c.partner.name}님이 {c.together_weeks > 0 ? '다시 ' : ''}함께 걷자고 해요
+                      </div>
                       <div className="text-[12.5px] text-gray-500 dark:text-white/55 mt-0.5">
                         매주 둘이 합쳐 {goalText(c.goal_type, c.goal_amount)}
                       </div>
+                      {c.together_weeks > 0 && (
+                        <div className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">
+                          예전에 함께 {c.together_weeks}주 · 등불 {c.lit_weeks}개, 이어서 걸어요
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="mt-3.5 flex gap-2">
@@ -208,7 +217,9 @@ const CompanionList = () => {
                   <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" size={32} />
                   <div className="min-w-0 flex-1">
                     <div className="text-[14px] font-bold text-ink-strong truncate">{c.partner.name}</div>
-                    <div className="text-[12px] text-gray-500 dark:text-white/50">답을 기다리는 중 · {goalText(c.goal_type, c.goal_amount)}</div>
+                    <div className="text-[12px] text-gray-500 dark:text-white/50">
+                      {c.together_weeks > 0 ? '다시 걷자고 했어요' : '답을 기다리는 중'} · {goalText(c.goal_type, c.goal_amount)}
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -221,10 +232,46 @@ const CompanionList = () => {
               ))}
             </Section>
           )}
+
+          {/* 쉬어간 동행 — 접어 두고, 펼치면 지난 길 보기·다시 걷자고 하기 */}
+          {rested.length > 0 && (
+            <section className="px-4 lg:px-6 pt-8">
+              <button
+                type="button"
+                onClick={() => setRestedOpen((v) => !v)}
+                aria-expanded={restedOpen}
+                className="w-full flex items-center justify-between px-0.5 text-left"
+              >
+                <span className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em]">
+                  쉬어가는 동행 <span className="text-gray-400 dark:text-white/40 font-bold">{rested.length}</span>
+                </span>
+                <svg
+                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                  className={`text-gray-400 dark:text-white/40 transition-transform ${restedOpen ? 'rotate-180' : ''}`}
+                  aria-hidden
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {restedOpen && (
+                <div className="mt-3 space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
+                  {rested.map((c) => (
+                    <RestedCard
+                      key={c.id}
+                      c={c}
+                      onOpen={() => navigate(`/companion/${c.id}`)}
+                      onResume={() => setResumeWith(c)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </>
       )}
 
       {inviteOpen && <InviteSheet excludeIds={busyIds} onClose={() => setInviteOpen(false)} />}
+      {resumeWith && <InviteSheet resume={resumeWith} onClose={() => setResumeWith(null)} />}
     </CompanionShell>
   )
 }
@@ -270,60 +317,34 @@ const ActiveCard = ({ c, onOpen }: { c: CompanionSummary; onOpen: () => void }) 
   )
 }
 
-const InviteSheet = ({ excludeIds, onClose }: { excludeIds: number[]; onClose: () => void }) => {
-  const invite = useInviteCompanion()
-  const [picked, setPicked] = useState<CapsuleRecipient | null>(null)
-  const [goal, setGoal] = useState<CompanionGoal>({ goal_type: 'reading', goal_amount: GOAL_SPECS.reading.defaultAmount })
-
-  const send = async () => {
-    if (!picked) return
-    try {
-      await invite.mutateAsync({ userId: picked.id, goal })
-      showToast(`${picked.display_name}님에게 초대를 보냈어요`, 'success')
-      onClose()
-    } catch (e) {
-      showToast(errorText(e, '초대를 보내지 못했어요'), 'error')
-    }
-  }
-
-  return (
-    <Sheet onClose={onClose}>
-      <h3 className="text-[17px] font-bold text-ink-strong">함께 걸을 사람</h3>
-      <p className="text-[12.5px] text-gray-500 dark:text-white/55 mt-1 mb-4 leading-[1.6]">
-        우리 교회 성도만 초대할 수 있어요. 받은 분이 수락하면 이번 주부터 함께 채워요.
-      </p>
-      {picked ? (
-        <div className="flex items-center gap-3 rounded-xl border border-brand/40 bg-[var(--brand-soft)] px-3.5 py-2.5">
-          <Avatar name={picked.display_name} url={picked.avatar_url} tone="you" size={30} />
-          <span className="flex-1 text-[14px] font-bold text-ink-strong">{picked.display_name}</span>
-          <button type="button" onClick={() => setPicked(null)} className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
-            바꾸기
-          </button>
+// 쉬어가는 짝 — 지난 기록 요약 + 다시 걷자고 하기
+const RestedCard = ({ c, onOpen, onResume }: { c: CompanionSummary; onOpen: () => void; onResume: () => void }) => (
+  <div className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark p-4">
+    <button type="button" onClick={onOpen} className="w-full flex items-center gap-3 text-left">
+      <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" size={32} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[14px] font-bold text-ink-strong truncate">{c.partner.name}님과 걸은 길</div>
+        <div className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">
+          함께 {c.together_weeks}주 · 등불 {c.lit_weeks}개{c.ended_at ? ` · ${restedSince(c.ended_at)}부터 쉬는 중` : ''}
         </div>
-      ) : (
-        <MemberSearchInput
-          excludeIds={excludeIds}
-          onPick={setPicked}
-          placeholder="이름을 검색해요"
-          emptyHint="찾을 수 없어요. 우리 교회 앱에 가입한 성도만 초대할 수 있어요."
-        />
-      )}
-
-      <div className="mt-6 text-[13px] font-bold text-ink-strong">무엇을 함께 채울까요?</div>
-      <div className="mt-2.5">
-        <GoalPicker value={goal} onChange={setGoal} />
       </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30" aria-hidden>
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </button>
+    <button
+      type="button"
+      onClick={onResume}
+      className="mt-3 w-full py-2.5 rounded-xl bg-[var(--brand-soft)] text-brand text-[13px] font-bold"
+    >
+      다시 함께 걷자고 하기
+    </button>
+  </div>
+)
 
-      <button
-        type="button"
-        onClick={send}
-        disabled={!picked || invite.isPending}
-        className="mt-6 w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold disabled:opacity-40"
-      >
-        {picked ? `${picked.display_name}님에게 초대 보내기` : '함께할 사람을 골라주세요'}
-      </button>
-    </Sheet>
-  )
+const restedSince = (iso: string) => {
+  const d = new Date(iso)
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`
 }
 
 // lg 에선 카드 2열 — 넓어진 폭에 카드가 늘어나 보이지 않게
