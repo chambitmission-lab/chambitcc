@@ -13,21 +13,30 @@
   stroke-dasharray: 2 5;
   stroke-linecap: round;
 }
-.cp-foot.is-empty { fill: var(--cp-empty); }
-.cp-foot.is-me { fill: var(--cp-me); }
-.cp-foot.is-you { fill: var(--cp-you); }
-.cp-foot.is-me,
-.cp-foot.is-you {
-  animation: cp-step 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+.cp-stamp.is-empty { fill: var(--cp-empty); }
+.cp-stamp.is-me { fill: var(--cp-me); }
+.cp-stamp.is-you { fill: var(--cp-you); }
+.cp-stamp-char {
+  font-size: 9.6px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
 }
-@keyframes cp-step {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* 꾹 찍는다 — 조금 크게 떴다가 종이에 눌린다 */
+.cp-stamp.is-me,
+.cp-stamp.is-you {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cp-stamp 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes cp-stamp {
+  from { opacity: 0; transform: scale(1.4); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* 길 끝 촛불은 MiniCandle(CandleSvg) — 모양·흔들림은 components/icons/miniCandle.css */
 @media (prefers-reduced-motion: reduce) {
-  .cp-foot.is-me, .cp-foot.is-you { animation: none; }
+  .cp-stamp.is-me, .cp-stamp.is-you { animation: none; }
 }
 
 .cp-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; }

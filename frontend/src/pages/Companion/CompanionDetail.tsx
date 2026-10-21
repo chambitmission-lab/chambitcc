@@ -185,7 +185,7 @@ const CompanionDetail = () => {
           </button>
         </div>
 
-        <FootprintPath week={week} className="mt-5 lg:hidden" />
+        <FootprintPath week={week} myName={myName} partnerName={c.partner.name} className="mt-5 lg:hidden" />
 
         <div className="mt-2 lg:mt-4 flex items-center gap-4 text-[12px] text-gray-500 dark:text-white/55">
           <span className="flex items-center gap-1.5">
@@ -216,7 +216,7 @@ const CompanionDetail = () => {
           {spec.cta}
         </button>
         </div>
-        <FootprintPath week={week} className="hidden lg:block" />
+        <FootprintPath week={week} myName={myName} partnerName={c.partner.name} className="hidden lg:block" />
       </section>
 
       {/* lg: 서로를 위한 기도(좌) · 지나온 주(우) 2열, 마일스톤은 그 아래 한 줄 */}

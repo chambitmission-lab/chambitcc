@@ -1,6 +1,7 @@
 // 동행 우정 카드 — 4:5 세로(인스타 피드·스토리 겸용) 캔버스 한 장.
-// 두 사람의 발자국은 번갈아(누가 더 걸었는지 보이지 않게), 길 끝 촛불은 켜진 채로.
+// 두 사람의 이름 도장은 번갈아 같은 수만큼(누가 더 걸었는지 보이지 않게), 길 끝 촛불은 켜진 채로.
 import type { Milestone } from './milestones'
+import { stampChars } from './stampChars'
 
 const W = 1080
 const H = 1350
@@ -35,15 +36,54 @@ const ensureFonts = async (text: string) => {
   }
 }
 
-const foot = (ctx: CanvasRenderingContext2D, x: number, y: number, deg: number, color: string) => {
+const rng = (seed: number) => () => ((seed = (seed * 16807) % 2147483647) / 2147483647)
+
+/** 이름 첫 글자 음각 도장 — 꽉 찬 인주 위로 글자가 하얗게 빠지고, 덜 묻은 자리·덜 눌린 쪽이 비친다.
+    한 장씩 오프스크린에 그려 잉크를 덜어 낸 뒤 살짝 기울여 찍는다 */
+const stamp = (ctx: CanvasRenderingContext2D, x: number, y: number, deg: number, color: string, char: string, seed: number) => {
+  const box = 110
+  const off = document.createElement('canvas')
+  off.width = box
+  off.height = box
+  const c = off.getContext('2d')
+  if (!c) return
+  c.translate(box / 2, box / 2)
+  c.fillStyle = color
+  c.beginPath()
+  c.roundRect(-37, -37, 74, 74, 16)
+  c.fill()
+  c.globalCompositeOperation = 'destination-out'
+  c.font = `800 44px ${FONT}`
+  c.textAlign = 'center'
+  c.textBaseline = 'middle'
+  c.fillText(char, 0, 2)
+  c.setTransform(1, 0, 0, 1, 0, 0)
+
+  // 인주가 덜 묻은 자리
+  const rand = rng(seed * 97 + 13)
+  for (let k = 0; k < box * 1.6; k++) {
+    c.globalAlpha = 0.25 + rand() * 0.6
+    c.beginPath()
+    c.arc(rand() * box, rand() * box, 0.6 + rand() * 1.8, 0, Math.PI * 2)
+    c.fill()
+  }
+  // 한쪽이 덜 눌린 결
+  const side = rand() * Math.PI * 2
+  const dx = (Math.cos(side) * box) / 2
+  const dy = (Math.sin(side) * box) / 2
+  const fade = c.createLinearGradient(box / 2 + dx, box / 2 + dy, box / 2 - dx, box / 2 - dy)
+  fade.addColorStop(0, 'rgba(0, 0, 0, 0.45)')
+  fade.addColorStop(0.5, 'rgba(0, 0, 0, 0)')
+  c.globalAlpha = 1
+  c.fillStyle = fade
+  c.fillRect(0, 0, box, box)
+
   ctx.save()
   ctx.translate(x, y)
   ctx.rotate((deg * Math.PI) / 180)
-  ctx.fillStyle = color
-  ctx.beginPath()
-  ctx.ellipse(0, -5, 10, 14, 0, 0, Math.PI * 2)
-  ctx.ellipse(0, 16, 7.5, 6.8, 0, 0, Math.PI * 2)
-  ctx.fill()
+  ctx.globalAlpha = 0.9
+  ctx.globalCompositeOperation = 'multiply'
+  ctx.drawImage(off, -box / 2, -box / 2)
   ctx.restore()
 }
 
@@ -69,17 +109,23 @@ const drawPath = (ctx: CanvasRenderingContext2D, i: FriendshipCardInput) => {
   ctx.stroke()
   ctx.restore()
 
-  const steps = 12
+  // 짝수 — 둘이 같은 수만큼 찍는다
+  const steps = 8
+  const tilt = rng(41)
+  const [meChar, youChar] = stampChars(i.myName, i.partnerName)
   for (let s = 0; s < steps; s++) {
     const x = x0 + ((x1 - x0) * (s + 0.5)) / steps
     const angle = Math.atan2(slope(x), 1)
-    const side = s % 2 === 0 ? -18 : 18
-    foot(
+    const mine = s % 2 === 0
+    const side = mine ? -36 : 36
+    stamp(
       ctx,
       x - Math.sin(angle) * side,
       y(x) + Math.cos(angle) * side,
-      (angle * 180) / Math.PI + 90,
-      s % 2 === 0 ? i.colors.me : i.colors.you,
+      (tilt() - 0.5) * 16,
+      mine ? i.colors.me : i.colors.you,
+      mine ? meChar : youChar,
+      s + 1,
     )
   }
 

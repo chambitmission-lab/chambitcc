@@ -256,7 +256,7 @@ const ActiveCard = ({ c, onOpen }: { c: CompanionSummary; onOpen: () => void }) 
       </div>
       {week && (
         <>
-          <FootprintPath week={week} className="mt-3" />
+          <FootprintPath week={week} myName={myName} partnerName={c.partner.name} className="mt-3" />
           <div className="mt-1 flex items-baseline justify-between text-[12.5px]">
             <span className="text-gray-500 dark:text-white/55">이번 주 {spec.label}</span>
             <span className="font-bold text-ink-strong tabular-nums">
