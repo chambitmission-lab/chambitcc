@@ -3,8 +3,8 @@ import { useMannaBoard, useMannaTeams } from '../../../../hooks/useBibleTyping'
 import { parseApiDate } from '../../../../utils/dateUtils'
 import { PLACES, type MannaMode, type MannaResult } from './mannaEngine'
 import { MANNA_SKINS, dayOfYear, daysLeftInWeek, isoWeek, mannaPersona, type MannaSkin } from './mannaSkin'
+import { formatNumberKo as fmt } from '../../../../utils/formatNumber'
 
-const fmt = (n: number) => n.toLocaleString('ko-KR')
 const hhmm = (iso: string) => {
   const d = parseApiDate(iso)
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`

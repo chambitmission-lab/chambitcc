@@ -7,7 +7,8 @@ import { HandHeartIcon } from '../../../components/icons/ActionIcons'
 import { useAboutContent } from '../../../hooks/useAboutContent'
 import { useLandingStats } from '../../../hooks/useLandingStats'
 import { BookOpenIcon, ChevronRightIcon, ClockIcon, HeartIcon, MapPinIcon, PlayCircleIcon, SproutIcon } from '../../About/icons'
-import { fmtNum, useCountUp } from '../components/landingUtils'
+import { fmtNum } from '../components/landingUtils'
+import { useCountUp } from '../../../hooks/useCountUp'
 import './classic.css'
 
 // 히어로: 큰 약속 한 줄 + 살아있는 숫자 + 두 갈래 CTA.
@@ -32,7 +33,7 @@ const StatItem = ({
   active: boolean
   ko: boolean
 }) => {
-  const n = useCountUp(value, active)
+  const n = useCountUp(value, { active, durationMs: 1400 })
   return (
     <div className="flex flex-col items-center text-center gap-2.5 px-1 py-4 sm:py-5 min-w-0 lg:flex-row lg:items-center lg:text-left lg:gap-4 lg:px-6">
       <span className="w-11 h-11 lg:w-12 lg:h-12 shrink-0 rounded-full bg-[var(--brand-soft)] text-brand flex items-center justify-center [&>svg]:w-5 [&>svg]:h-5 lg:[&>svg]:w-[22px] lg:[&>svg]:h-[22px]">

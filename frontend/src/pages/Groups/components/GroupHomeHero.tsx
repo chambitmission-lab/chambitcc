@@ -5,6 +5,7 @@ import { useGroupDigest, useGroupCheckin } from '../../../hooks/useGroups'
 import { kstDateKey } from '../../../utils/kstTime'
 import { CheckIcon, PrayIcon } from '../GroupIcons'
 import { toastFeedback } from '../../../utils/toast'
+import { KO_WEEKDAYS } from '../../../utils/dateUtils'
 
 interface GroupHomeHeroProps {
   groupId: number
@@ -13,7 +14,7 @@ interface GroupHomeHeroProps {
   onCompose: () => void
 }
 
-const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+const DAY_LABELS = KO_WEEKDAYS
 
 const GroupHomeHero = ({ groupId, hasPrayers, onStartIntercession, onCompose }: GroupHomeHeroProps) => {
   const { data, isLoading } = useGroupDigest(groupId)

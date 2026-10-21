@@ -6,12 +6,12 @@ import {
   MILESTONE_GLYPH,
   type GrowthGlyphName,
 } from '../../../components/icons/GrowthIcons'
+import { formatNumberKo as fmt } from '../../../utils/formatNumber'
 
 interface GrowthStatsProps {
   summary: GrowthSummaryData
 }
 
-const fmt = (n: number) => n.toLocaleString('ko-KR')
 
 const cardCls =
   'relative overflow-hidden rounded-xl p-3 bg-white/80 dark:bg-card-dark ' +

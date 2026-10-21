@@ -17,13 +17,14 @@ import VisitComposer from './components/VisitComposer'
 import { Avatar } from './components/ui'
 import { formatDay, parseDay, todayIso, usePastorGate } from './components/pastorUtils'
 import { useHolidayMap, yearsForMonthView } from '../../hooks/useHolidays'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 // 목회 일정 — 좌: 어젠다(지난 일 · 오늘 · 내일 · 이번 주 · 다음 주 · 이후) / 우: 미니 달력 + 예약하기.
 // 월 그리드 대신 어젠다가 주인공(교회 캘린더와 같은 결정). 달력은 '어느 날이 차 있나'를 점으로만.
 
 type Plan = Extract<AgendaItem, { type: 'visit_plan' }>
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = KO_WEEKDAYS
 
 // 항목 종류별 색 — 달력 점과 어젠다 아이콘이 같은 말을 한다
 const TYPE_DOT: Record<AgendaItem['type'], string> = {

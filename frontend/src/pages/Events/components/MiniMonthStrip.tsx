@@ -3,6 +3,7 @@ import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
 import { buildEventDateMap } from '../utils/dateGrouping'
 import { kstNow } from '../../../utils/kstTime'
+import { KO_WEEKDAYS } from '../../../utils/dateUtils'
 
 interface MiniMonthStripProps {
   date: Date
@@ -24,7 +25,7 @@ interface MiniMonthStripProps {
   holidays?: Map<string, string>
 }
 
-const DAYS = ['일', '월', '화', '수', '목', '금', '토']
+const DAYS = KO_WEEKDAYS
 
 // 큰 달력 칸(폭 ~50px)용 짧은 이름 — '대체공휴일(개천절)' 은 칸에 '대체휴일', 전체는 title·고른 날 패널에
 const shortHolidayName = (name: string) => (name.startsWith('대체공휴일') ? '대체휴일' : name)

@@ -23,6 +23,7 @@ import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { calendarDateKey, kstNow } from '../../utils/kstTime'
 import { addMinutes, joinDT, splitDT, toLocalDatetimeInput } from '../../utils/datetimeParts'
 import { SheetGrabber } from '../common/SheetGrabber'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 interface CreateGroupMeetingModalProps {
   isOpen: boolean
@@ -51,7 +52,7 @@ const RSVP_OPTIONS: { key: RsvpMode; label: string; minutesBefore?: number }[] =
   { key: 'custom', label: '직접 선택' },
 ]
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = KO_WEEKDAYS
 
 /** 'YYYY-MM-DDTHH:mm' → '8월 10일 (일) 오후 2:00' — 멤버에게 보일 모습 그대로 */
 const humanize = (v: string): string => {

@@ -6,6 +6,7 @@
 import { ensureFontFamily } from '../../../../utils/deferredFonts'
 import { PLACES, type MannaResult } from './mannaEngine'
 import { dayOfYear, isoWeek, mannaPersona, type MannaSkin } from './mannaSkin'
+import { formatNumberKo as fmt } from '../../../../utils/formatNumber'
 
 const SANS = '"Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", sans-serif'
 const PIXEL = '"MannaPixel", "Pretendard Variable", "Pretendard", sans-serif'
@@ -53,7 +54,6 @@ export interface MannaCardInput {
   live: boolean
 }
 
-const fmt = (n: number) => n.toLocaleString('ko-KR')
 
 /** maxWidth 안에 들어가는 가장 큰 글자 크기로 font 를 맞춘다 */
 const fitFont = (ctx: CanvasRenderingContext2D, text: string, weight: string, family: string, size: number, maxWidth: number) => {

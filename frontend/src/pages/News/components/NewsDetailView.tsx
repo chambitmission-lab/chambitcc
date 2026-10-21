@@ -8,6 +8,7 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { NewsAttachment } from '../../../types/news'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
+import { formatBytes } from '../../../utils/formatBytes'
 
 interface NewsDetailViewProps {
   newsId: number
@@ -16,13 +17,6 @@ interface NewsDetailViewProps {
 
 const formatDateTime = (value: string | null, lang: Language) =>
   value && !Number.isNaN(new Date(value).getTime()) ? formatLongDate(value, lang === 'en' ? 'en-US' : 'ko-KR') : ''
-
-const formatSize = (bytes: number | null) => {
-  if (!bytes || bytes <= 0) return ''
-  if (bytes < 1024) return `${bytes}B`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`
-  return `${(bytes / 1024 / 1024).toFixed(1)}MB`
-}
 
 /** 확장자별 색 힌트 — 문서 종류를 아이콘 대신 글자로 구분한다 */
 const extensionOf = (attachment: NewsAttachment): string => {
@@ -151,7 +145,7 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
                           {file.filename ?? t('newsDetailAttachmentFallback')}
                         </span>
                         <span className="block text-[11px] lg:text-[14px] lg:mt-0.5 text-gray-500 dark:text-white/45">
-                          {formatSize(file.file_size)}
+                          {formatBytes(file.file_size)}
                         </span>
                       </span>
                       <span className="shrink-0 inline-flex items-center gap-1.5 text-gray-400 dark:text-white/40 lg:h-11 lg:px-4 lg:rounded-full lg:bg-brand lg:text-white lg:text-[15px] lg:font-bold">

@@ -17,6 +17,7 @@ import { CATEGORY_VISUAL } from './utils/categoryConfig'
 import { kstNow, toKstCalendarDate } from '../../utils/kstTime'
 import './styles/index.css'
 import { can } from '../../utils/access'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 const formatYMD = (d: Date): string =>
   `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
@@ -105,7 +106,7 @@ const EventCalendar = () => {
   const selectedLabel = selectedKey
     ? (() => {
         const [, m, d] = selectedKey.split('-').map(Number)
-        const dow = ['일', '월', '화', '수', '목', '금', '토'][new Date(Number(selectedKey.slice(0, 4)), m - 1, d).getDay()]
+        const dow = KO_WEEKDAYS[new Date(Number(selectedKey.slice(0, 4)), m - 1, d).getDay()]
         return `${m}월 ${d}일 (${dow})`
       })()
     : ''

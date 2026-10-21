@@ -113,6 +113,12 @@ export const aggregateRange = (
 }
 
 /** 히트맵 색 농도 단계 — 0(안 읽음) ~ 4(완독) */
+/** 0보다 크면 최소 1%로 올려 표기 — 읽기 시작했는데 "0%"로 보이는 일을 막는다 */
+export const pctLabel = (rate: number): number => (rate > 0 ? Math.max(1, Math.round(rate)) : 0)
+
+/** 게이지 최소 두께(%) — 0.4% 같은 값도 눈에 보이게 */
+export const gaugeWidth = (rate: number): number => (rate > 0 ? Math.max(3, rate) : 0)
+
 export const progressLevel = (rate: number): 0 | 1 | 2 | 3 | 4 => {
   if (rate <= 0) return 0
   if (rate >= 100) return 4

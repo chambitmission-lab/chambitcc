@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../../utils/toast'
 import { isPastor } from '../../../utils/access'
+import { KO_WEEKDAYS } from '../../../utils/dateUtils'
 
 /** 목회자만 머무는 화면 — 아니면 안내 후 홈으로. 반환값은 쿼리 enabled 에 그대로 쓴다 */
 export const usePastorGate = (): boolean => {
@@ -25,7 +26,7 @@ export const inputCls =
 export const pickerCls =
   'flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] px-3.5 py-2.5 lg:px-4 lg:py-3.5 text-left text-[14px] lg:text-[17px] text-ink-strong hover:border-brand focus:border-brand focus:outline-none transition-colors'
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = KO_WEEKDAYS
 
 /** 'YYYY-MM-DD' → 로컬 Date (UTC 파싱으로 하루 밀리는 걸 막는다) */
 export const parseDay = (iso: string | null | undefined): Date | null => {

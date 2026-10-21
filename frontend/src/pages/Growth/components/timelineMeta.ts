@@ -1,8 +1,9 @@
 import type { TimelineDomain } from '../../../types/growth'
+import { KO_WEEKDAYS } from '../../../utils/dateUtils'
 
 // 발자취(ActivityTimeline)·지난 8주 돌아보기(GrowthRecap)가 함께 쓰는 도메인 색·날짜 라벨
 
-export const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
+export const WEEKDAY_KO = KO_WEEKDAYS
 
 /** 도메인 → 색 변수·라벨. 색은 ActivityTimeline.css 의 --atl-* 를 가리킨다 */
 export const DOMAIN_META: Record<TimelineDomain, { label: string; color: string }> = {

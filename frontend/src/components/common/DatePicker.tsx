@@ -6,6 +6,7 @@ import { Fragment, useState, useEffect, useLayoutEffect, useMemo, useRef } from 
 import { createPortal } from 'react-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useHolidayMap, yearsForMonthView } from '../../hooks/useHolidays'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 interface DatePickerProps {
   value: string // YYYY-MM-DD 형식
@@ -26,7 +27,7 @@ interface DatePickerProps {
   large?: boolean
 }
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = KO_WEEKDAYS
 const MONTHS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 
 /* 영어 라벨 — 2글자 요일은 S/T 중복 없이 좁은 격자에 들어가는 최소 단위 */

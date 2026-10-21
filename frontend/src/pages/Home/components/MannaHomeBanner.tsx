@@ -8,10 +8,10 @@ import { isAuthenticated } from '../../../utils/auth'
 import { parseApiDate } from '../../../utils/dateUtils'
 import { preloadRoute } from '../../../utils/routePreload'
 import { safeStorage } from '../../../utils/safeStorage'
+import { formatNumberKo as fmt } from '../../../utils/formatNumber'
 
 const PATH = '/bible/typing/manna'
 const DISMISS_KEY = 'manna-champion-dismissed'
-const fmt = (n: number) => n.toLocaleString('ko-KR')
 const hhmm = (iso: string) => {
   const d = parseApiDate(iso)
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`

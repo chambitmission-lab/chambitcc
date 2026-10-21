@@ -15,7 +15,7 @@ const preloadProgressMap = () => void BibleProgressMap.preload()
 import BookJourneyPath from './BookJourneyPath'
 import { useBookIntroPeek, type PeekBook } from '../../../components/bible/BookIntroPeek'
 import { BOOK_GENRES } from '../../../components/bible/bookGenre'
-import { aggregateRange, buildBookInfoMap } from './readingProgressInfo'
+import { aggregateRange, buildBookInfoMap, gaugeWidth, pctLabel } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
 import {
   BookOpen,
@@ -79,12 +79,6 @@ const NT_CATEGORIES: BookCategory[] = [
   { id: 'all', label: '전체', labelEn: 'All', min: 40, max: 66 },
   ...BOOK_GENRES.filter(g => g.min >= 40),
 ]
-
-/** 0보다 크면 최소 1%로 올려 표기 — 읽기 시작했는데 "0%"로 보이는 일을 막는다 */
-const pctLabel = (rate: number) => (rate > 0 ? Math.max(1, Math.round(rate)) : 0)
-
-/** 게이지 최소 두께 — 0.4% 같은 값도 눈에 보이게 */
-const gaugeWidth = (rate: number) => (rate > 0 ? Math.max(3, rate) : 0)
 
 const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progress, progressPending }: BookSelectorProps) => {
   const { language } = useLanguage()

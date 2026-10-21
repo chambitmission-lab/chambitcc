@@ -12,6 +12,7 @@ import { ComposerFooter } from './AdminFormBits'
 import DatePicker from '../../../components/common/DatePicker'
 import type { NewsDetail, NewsItem } from '../../../types/news'
 import { calendarDateKey as toDateInput } from '../../../utils/kstTime'
+import { formatBytes } from '../../../utils/formatBytes'
 
 interface NewsComposerProps {
   /** 넘기면 수정 모드, 없으면 등록 모드 */
@@ -72,13 +73,6 @@ const toNoticeBody = (content: string): string => {
 
 /** 소식 원문 딥링크 — /news 의 '소식' 탭에서 해당 글 상세를 연다 */
 const newsDeepLink = (newsId: number) => `/news?tab=news&post=${newsId}`
-
-const formatSize = (bytes: number | null) => {
-  if (!bytes || bytes <= 0) return ''
-  if (bytes < 1024) return `${bytes}B`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`
-  return `${(bytes / 1024 / 1024).toFixed(1)}MB`
-}
 
 const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
   const isEdit = !!news
@@ -461,7 +455,7 @@ const NewsComposer = ({ news, onClose, onSuccess }: NewsComposerProps) => {
                           {slot.kind === 'existing' ? slot.name : slot.file.name}
                         </span>
                         <span className="block text-[11px] text-gray-500 dark:text-white/45">
-                          {formatSize(slot.kind === 'existing' ? slot.size : slot.file.size)}
+                          {formatBytes(slot.kind === 'existing' ? slot.size : slot.file.size)}
                           {slot.kind === 'new' && <span className="ml-1 text-brand font-bold">새 파일</span>}
                         </span>
                       </span>

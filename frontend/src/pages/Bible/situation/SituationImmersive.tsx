@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
+import { prefersReducedMotion } from '../../../utils/prefersReducedMotion'
 import { createPortal } from 'react-dom'
 import { useSituationVerses } from '../../../hooks/useSituation'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -29,8 +30,6 @@ const markBreathSeen = () => {
   }
 }
 
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 export interface ImmersiveOrigin {
   x: number

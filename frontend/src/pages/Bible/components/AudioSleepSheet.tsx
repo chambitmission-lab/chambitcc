@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
+import { formatRemain } from '../hooks/useAudioSleepTimer'
 
 interface AudioSleepSheetProps {
   bookName: string
@@ -18,11 +19,6 @@ interface AudioSleepSheetProps {
 }
 
 const TIMER_OPTIONS = [5, 10, 15, 30, 60]
-
-const formatRemain = (ms: number): string => {
-  if (ms < 60_000) return `${Math.max(1, Math.ceil(ms / 1000))}초`
-  return `${Math.ceil(ms / 60_000)}분`
-}
 
 /**
  * 잠들기 전 듣기 설정 바텀시트 — 수면 타이머 + 듣기 범위(어느 장까지).

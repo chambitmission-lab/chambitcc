@@ -1,12 +1,13 @@
 // 1. 이번주 기도 현황 — 창가 삽화 머리(한 문장 + 빛 알갱이) · 요일 막대 · 아멘 목표 · 세 수치.
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { request } from '../../../../api/utils/request'
 import { fetchPrayers } from '../../../../api/prayer'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useTheme } from '../../../../contexts/ThemeContext'
 import { useThemeArt } from '../../../../hooks/useThemeArt'
+import { useCountUp } from '../../../../hooks/useCountUp'
 import { pairSrc, PRAYER_WEEK_WINDOW } from '../../../../utils/themeAssets'
 import type { Language } from '../../../../locales'
 import { prayerStatsKeys } from '../../../../hooks/queryKeys'
@@ -50,30 +51,7 @@ const useAnsweredTotal = (enabled: boolean) =>
     enabled,
   })
 
-// ── 숫자 카운트업 · 빛 알갱이 ─────────────────────────────────────────
-
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-
-// 0 → target 으로 1초 동안 차오른다(감속). 움직임 줄이기 설정이면 바로 최종값.
-const useCountUp = (target: number | undefined) => {
-  const [shown, setShown] = useState(0)
-  const instant = prefersReducedMotion()
-  useEffect(() => {
-    if (target === undefined || instant) return
-    let raf = 0
-    const t0 = performance.now()
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - t0) / 1000)
-      setShown(Math.round(target * (1 - Math.pow(1 - p, 3))))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target, instant])
-  return instant ? (target ?? 0) : shown
-}
-
+// ── 빛 알갱이 (숫자 카운트업은 hooks/useCountUp — 1초, 움직임 줄이기 설정이면 바로 최종값) ──────────
 // 아멘 수만큼(제곱근으로 눌러 최대 24개) 창턱 빛 웅덩이에서 떠오르는 알갱이.
 // 위치·속도는 고정 시드라 리렌더마다 자리가 튀지 않는다.
 const makeMotes = (amens: number): CSSProperties[] => {
@@ -257,7 +235,7 @@ const PrayerStatsWidget = () => {
   const { data: answeredTotal } = useAnsweredTotal(weekly.isError)
 
   const amens = weekly.data ? weekly.data.amens_week : summary?.total_reactions
-  const shownAmens = useCountUp(amens)
+  const shownAmens = useCountUp(amens, { durationMs: 1000 })
 
   const count = t('homeRailUnitCount')
   const trio: TrioItem[] = weekly.data

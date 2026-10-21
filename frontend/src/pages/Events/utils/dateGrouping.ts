@@ -1,5 +1,6 @@
 import type { Event } from '../../../types/event'
 import { calendarDateKey, kstNow, toKstCalendarDate } from '../../../utils/kstTime'
+import { KO_WEEKDAYS } from '../../../utils/dateUtils'
 
 /* 이 파일의 모든 날짜 계산은 서울(KST) 기준이다.
  * 서버가 주는 일정 시각엔 오프셋이 없어 new Date() 로 파싱하면 기기 타임존을 타므로,
@@ -126,7 +127,7 @@ export const formatEventTime = (datetime: string): string => {
 
 export const formatEventDateLabel = (datetime: string): string => {
   const d = eventDate(datetime)
-  const days = ['일', '월', '화', '수', '목', '금', '토']
+  const days = KO_WEEKDAYS
   return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`
 }
 

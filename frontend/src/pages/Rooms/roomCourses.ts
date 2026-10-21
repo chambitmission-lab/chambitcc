@@ -2,6 +2,7 @@
 // "뭘 읽을지"를 정하지 못해 막히는 초보자를 위해 코스 카드로 먼저 고르게 한다.
 // 백엔드는 연속된 한 범위(책·시작장·끝장)만 받으므로 코스도 그 제약 안에서 고른다.
 import type { RoomReactionKey } from '../../types/meditationRoom'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 export interface RoomCourse {
   id: string
@@ -122,7 +123,7 @@ export const REACTIONS: ReactionMeta[] = [
 export const reactionMeta = (key: string) => REACTIONS.find((r) => r.key === key)
 
 // ── 날짜 소품 ──
-export const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토']
+export const WEEKDAYS_KO = KO_WEEKDAYS
 
 /** 'YYYY-MM-DD' → 로컬 Date (타임존 밀림 없이) */
 export const parseYmd = (ymd: string) => {

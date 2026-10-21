@@ -15,6 +15,7 @@ import type { WeeklyPrayerItem, WeeklyPrayerListItem } from '../../types/weeklyP
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 // 다가오는 주일(일요일) 날짜 — 오늘이 일요일이면 오늘
 const upcomingSunday = (): string => {
@@ -28,7 +29,7 @@ const upcomingSunday = (): string => {
 const formatWeekLabel = (weekDate: string): string => {
   const d = new Date(`${weekDate}T00:00:00`)
   if (isNaN(d.getTime())) return weekDate
-  const days = ['일', '월', '화', '수', '목', '금', '토']
+  const days = KO_WEEKDAYS
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} (${days[d.getDay()]})`
 }
 

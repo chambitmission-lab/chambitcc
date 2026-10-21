@@ -17,6 +17,7 @@ import SermonEchoCard from './components/SermonEchoCard'
 import HeartCard from './components/HeartCard'
 import { Avatar } from './components/ui'
 import { formatDay as formatIsoDay, usePastorGate } from './components/pastorUtils'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 // 목회자 홈 — 월요일 아침에 여는 '이번 주 목양 브리핑'.
 // 개인정보 경계: 기도 본문은 성도가 '목사님과 함께'로 스스로 맡긴 것만,
@@ -25,7 +26,7 @@ import { formatDay as formatIsoDay, usePastorGate } from './components/pastorUti
 // 상세 모달은 성도 홈과 같은 컴포넌트 — 여기서 바로 답글·기도하기까지 끝낸다
 const PrayerDetail = lazyModal(() => import('../Home/components/PrayerDetail'))
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = KO_WEEKDAYS
 
 const EVENT_CATEGORY: Record<string, string> = {
   worship: '예배',

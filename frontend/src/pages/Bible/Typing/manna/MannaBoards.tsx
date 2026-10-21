@@ -5,11 +5,11 @@ import { useTickingNow } from '../../../../hooks/useTickingNow'
 import { parseApiDate } from '../../../../utils/dateUtils'
 import { showToast } from '../../../../utils/toast'
 import { MANNA_MODES, PLACES, type MannaMode } from './mannaEngine'
+import { formatNumberKo as fmt } from '../../../../utils/formatNumber'
 
 type Tab = 'today' | 'teams' | 'live'
 
 const MEDALS = ['#f5b301', '#9aa6bb', '#c98a55']
-const fmt = (n: number) => n.toLocaleString('ko-KR')
 const hhmm = (iso: string) => {
   const d = parseApiDate(iso)
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`

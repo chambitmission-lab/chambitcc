@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import { bookAbbrev } from './bibleBookAbbrev'
-import { aggregateRange, progressLevel, type BookInfoMap } from './readingProgressInfo'
+import { aggregateRange, pctLabel, progressLevel, type BookInfoMap } from './readingProgressInfo'
 
 interface BibleProgressMapProps {
   books: BibleBook[] | undefined
@@ -23,7 +23,6 @@ interface BibleProgressMapProps {
 type Testament = 'ot' | 'nt'
 
 /** 0보다 크면 최소 1%로 올려 표기 — 읽기 시작했는데 "0%"로 보이는 일을 막는다 */
-const pctLabel = (rate: number) => (rate > 0 ? Math.max(1, Math.round(rate)) : 0)
 
 /** 구약(두루마리)·신약(책) 아이콘 — 선화 1.8 스트로크, 헤더 색을 currentColor로 받는다 */
 const ScrollIcon = () => (

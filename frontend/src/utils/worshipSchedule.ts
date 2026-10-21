@@ -2,8 +2,9 @@
 // /worship(예배 안내)과 /visit(오시는 길)이 "다음 예배는 언제인가"를 같은 규칙으로 답해야 해서
 // 두 화면이 이 모듈을 공유한다. 표시 문구는 각 화면이 알아서 만든다.
 import type { WorshipService } from '../types/worship'
+import { KO_WEEKDAYS } from './dateUtils'
 
-export const DAY_CHARS = ['일', '월', '화', '수', '목', '금', '토'] as const
+export const DAY_CHARS = KO_WEEKDAYS
 
 // 관리자 자유 입력 시간("오전 11시 20분", "7:30" 등) → 자정 기준 분.
 // 수요기도회처럼 한 항목에 시간이 여러 개("오전 10시 30분, 오후 7시 30분")면 전부 추출한다.

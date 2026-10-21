@@ -19,6 +19,7 @@ import NoticeContent from '../../../components/common/NoticeContent'
 import NoticeMarkupToolbar from './NoticeMarkupToolbar'
 import { NOTICE_TEMPLATES, type NoticeTemplate } from '../../../utils/noticeMarkup'
 import { resizeImageToBlob } from '../../../utils/imageResize'
+import { KO_WEEKDAYS } from '../../../utils/dateUtils'
 
 /** 포스터 업로드 긴 변 상한(px) */
 const POSTER_MAX_SIZE = 1280
@@ -58,7 +59,7 @@ const formatKo = (iso: string) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
   if (!m) return iso
   const [y, mo, d] = [+m[1], +m[2], +m[3]]
-  const weekday = ['일', '월', '화', '수', '목', '금', '토'][new Date(y, mo - 1, d).getDay()]
+  const weekday = KO_WEEKDAYS[new Date(y, mo - 1, d).getDay()]
   return `${y}년 ${mo}월 ${d}일 (${weekday})`
 }
 

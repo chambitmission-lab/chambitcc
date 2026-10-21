@@ -1,4 +1,5 @@
 import type { TimelineDomain, TimelineEvent } from '../../../types/growth'
+import { KO_WEEKDAYS } from '../../../utils/dateUtils'
 
 /**
  * 프로필의 두 진입 카드(신앙 여정 / 이번 주 스토리)가 공유하는 날짜별 활동 집계.
@@ -140,5 +141,5 @@ export const cellLevel = (count: number): 0 | 1 | 2 | 3 => {
   return 3
 }
 
-export const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
+export const WEEKDAY_KO = KO_WEEKDAYS
 export const WEEKDAY_EN = ['S', 'M', 'T', 'W', 'T', 'F', 'S']

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useBodyScrollLock } from '../../../../hooks/useBodyScrollLock'
+import { useCountUp } from '../../../../hooks/useCountUp'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -45,11 +46,11 @@ import { ArcadeResultHero, ArcadeTop, DropResultHero, DropTop, SkinPicker } from
 import '../typing.css'
 import './manna.css'
 import './manna-skins.css'
+import { formatNumberKo as fmt } from '../../../../utils/formatNumber'
 
 const MODE_KEY = 'manna-mode'
 const KIND_KEY = 'manna-kind'
 const modeLabel = (m: MannaMode) => MANNA_MODES.find((x) => x.key === m)?.label ?? ''
-const fmt = (n: number) => n.toLocaleString('ko-KR')
 // 순위가 먼저, 나와의 관계는 뒤에 — "바로 위 1위"처럼 붙여 읽히면 뜻이 흐려진다
 const RELATION_LABEL = {
   leader: (rank: number) => `오늘 ${rank}위`,
@@ -1147,23 +1148,4 @@ const MannaResultCard = ({
 }
 
 /** 결과 점수를 0에서 올려 세운다(움직임 줄이기면 바로) */
-const useCountUp = (target: number, ms = 900) => {
-  const [v, setV] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? target : 0,
-  )
-  useEffect(() => {
-    const dur = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 0 : ms
-    let raf = 0
-    const t0 = performance.now()
-    const tick = (now: number) => {
-      const p = dur ? Math.min(1, (now - t0) / dur) : 1
-      setV(Math.round(target * (1 - Math.pow(1 - p, 3))))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target, ms])
-  return v
-}
-
 export default MannaPage

@@ -9,6 +9,7 @@ import type {
   ResultVisibility,
   RunoffRule,
 } from '../../types/election'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 export const STATUS_META: Record<ElectionStatus, { label: string; badge: string }> = {
   draft: {
@@ -52,7 +53,7 @@ export const turnoutPercent = (voted: number, total: number): number =>
 export const quorumText = (rules: ElectionRules): string | null =>
   rules.quorum_num > 0 ? `재적의 ${rules.quorum_num}/${rules.quorum_den} 이상 투표` : null
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = KO_WEEKDAYS
 
 /** 예약 마감 시각 — 오늘이면 "오후 3:00", 아니면 "10/18(토) 오후 3:00" */
 export const closesAtLabel = (iso: string, now = new Date()): string => {

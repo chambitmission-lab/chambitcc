@@ -1,7 +1,8 @@
 // 업적 상세 모달 — 게임 전리품 카드 감성의 동기부여 카드.
 // 해금 전: 큰 % 카운트업 + 남은 양 + 격려 문구 + 바로 실행 CTA + 보상 미리보기(욕구 자극)
 // 해금 후: 회전 빛살/오라/스파클 + 도장 스탬프 + 골드 진행바 + (새 해금 시) 컨페티 + 다음 목표 티저
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useCountUp } from '../../../hooks/useCountUp'
 import { AchievementGlyph } from './AchievementGlyph'
 import { achievementInk } from './achievementInk'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -64,23 +65,6 @@ const SPARKLES: Array<[number, number, number, string]> = [
 ]
 
 /** 0 → target 으로 차오르는 숫자 (ease-out) */
-const useCountUp = (target: number, duration = 900) => {
-  const [value, setValue] = useState(0)
-  useEffect(() => {
-    let raf: number
-    const start = performance.now()
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / duration, 1)
-      const eased = 1 - Math.pow(1 - p, 3)
-      setValue(Math.round(target * eased))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target, duration])
-  return value
-}
-
 interface CardProps {
   achievement: Achievement
   achievements: Achievement[]

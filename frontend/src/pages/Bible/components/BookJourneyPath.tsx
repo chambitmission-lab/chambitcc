@@ -14,7 +14,7 @@ import type { BibleBook } from '../../../types/bible'
 import type { ResumePosition } from '../../../api/bibleReading'
 import { parseApiDate } from '../../../utils/dateUtils'
 import { bookAbbrev } from './bibleBookAbbrev'
-import { aggregateRange, type BookInfoMap } from './readingProgressInfo'
+import { aggregateRange, pctLabel, type BookInfoMap } from './readingProgressInfo'
 
 interface Milestone {
   id: string
@@ -46,7 +46,6 @@ const PAD_TOP = 16
 const PAD_BOTTOM = 24
 
 /** 0보다 크면 최소 1% — 시작했는데 0%로 보이는 일을 막는다(그리드 시절과 동일 규칙) */
-const pctLabel = (rate: number) => (rate > 0 ? Math.max(1, Math.round(rate)) : 0)
 
 type PathItem =
   | { kind: 'milestone'; key: string; top: number; label: string; rate: number; hasRead: boolean }

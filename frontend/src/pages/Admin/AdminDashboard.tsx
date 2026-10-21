@@ -6,6 +6,7 @@ import { adminKeys } from '../../hooks/queryKeys'
 import { fetchAdminDashboard, type AdminDashboardData, type DashboardAction } from '../../api/admin'
 import { AdminPageHeader, SectionCard, StatSpinner } from './components/StatCards'
 import { can } from '../../utils/access'
+import { KO_WEEKDAYS } from '../../utils/dateUtils'
 
 // 액션 카드 톤 — 빨강 대신 앰버/브랜드 틴트로, 앱 전체 팔레트를 벗어나지 않게.
 const TONE_STYLE: Record<DashboardAction['tone'], string> = {
@@ -27,7 +28,7 @@ const SHORTCUTS = [
   { path: '/admin/push', icon: 'campaign', label: '푸시 알림', desc: '전체 · 대상별 발송' },
 ]
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS = KO_WEEKDAYS
 
 const AdminDashboard = () => {
   const navigate = useNavigate()

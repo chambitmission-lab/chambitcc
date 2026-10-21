@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { prefersReducedMotion } from '../../utils/prefersReducedMotion'
 import { missionaryByRegion, allMissionaries, regionMeta, countryCoordinates, countryDetail, domesticChurches, domesticOrganizations, missionStats, type RegionKey, type Missionary } from './missionData'
 import WorldGlobe from './WorldGlobe'
 import CountryFlag from './CountryFlag'
@@ -21,8 +22,6 @@ const REGION_LABEL_KEY: Record<RegionKey, 'regionAsia' | 'regionEurope' | 'regio
 
 
 /** 숫자 카운트업 — 화면에 들어오면 0→값으로 차오른다 (reduced-motion 시 즉시 표시) */
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const CountUpNum = ({ value }: { value: number }) => {
   const ref = useRef<HTMLSpanElement>(null)
