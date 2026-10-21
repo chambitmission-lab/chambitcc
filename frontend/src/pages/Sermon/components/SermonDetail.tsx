@@ -2,6 +2,8 @@
 //   헤더(날짜·예배구분·액션) → 사진 리드(제목·성구 인용) → 메타 스트립 → 플레이어 → 본문 카드
 // 색·질감은 theme.css 토큰만 참조하고, 문법은 목록(SermonLetterHero)의 편집 위계를 잇는다.
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { useNavigate } from 'react-router-dom'
 import type { Sermon } from '../../../types/sermon'
 import { API_URL } from '../../../config/api'
@@ -59,19 +61,8 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
     }
   })
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    
-    document.addEventListener('keydown', handleEscape)
-    document.body.style.overflow = 'hidden'
-    
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
-    }
-  }, [onClose])
+  useEscapeKey(onClose)
+  useBodyScrollLock()
 
   const handleDelete = async () => {
     try {

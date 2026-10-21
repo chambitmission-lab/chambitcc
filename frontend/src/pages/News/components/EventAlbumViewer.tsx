@@ -1,6 +1,7 @@
 // 행사 사진 풀스크린 뷰어 (Single Responsibility: 사진 크게 보기)
 // NewFamilyViewer 미러링 — 포스트 형태(제목·캡션)가 달라 복제했다.
 import { useEffect, useRef, useState } from 'react'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { formatEventDate } from './eventAlbumDate'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
@@ -25,13 +26,7 @@ const EventAlbumViewer = ({ post, initialIndex = 0, onClose }: EventAlbumViewerP
     if (el) el.scrollLeft = initialIndex * el.clientWidth
   }, [initialIndex])
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   const handleScroll = () => {
     const el = scrollRef.current

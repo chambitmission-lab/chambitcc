@@ -1,6 +1,6 @@
 // 좌석 예약 상세(SeatEventDetail)의 부분 컴포넌트 — 정보 카드·선택 띠·PC 레일·확인창.
 // 페이지 파일이 길어 자리만 옮겼다(동작 변경 없음).
-import { useEffect } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { SEATS_DETAIL } from '../../utils/themeAssets'
 import type { SeatEventDetail as SeatEventDetailData, SeatLabeling } from '../../types/seatEvent'
@@ -277,13 +277,7 @@ export const SeatConfirm = ({
   onCancel: () => void
   onConfirm: () => void
 }) => {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onCancel])
+  useEscapeKey(onCancel)
 
   const book = state.kind === 'book'
   const n = state.seats.length

@@ -1,5 +1,6 @@
 import { pastorKeys } from '../../hooks/queryKeys'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -67,13 +68,7 @@ const PastorPulpit = () => {
   })
 
   // 앱 머리·레일 위로 덮는 전체 화면 — 뒤 화면은 스크롤되지 않게
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  useBodyScrollLock()
 
   let content
   if (isPending) content = <Centered text="원고를 불러오는 중..." />

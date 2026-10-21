@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useState, type RefObject } from 'react'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
@@ -70,11 +71,7 @@ const AudioSettingsMenu = ({
     }
   }, [desktop, anchorRef])
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   const body = (
     <div className="audio-settings__body">

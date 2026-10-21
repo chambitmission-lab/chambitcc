@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import type { GlowLevel } from '../../../types/achievement'
 import { getReadableTextStyle, toOpaqueColor } from '../../../utils/contrastText'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -19,13 +19,7 @@ const LevelUpMoment = ({ level, onClose }: LevelUpMomentProps) => {
   const badgeText = getReadableTextStyle(level.glowColor)
 
   // 배경 스크롤 잠금
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  useBodyScrollLock()
 
   return (
     <div

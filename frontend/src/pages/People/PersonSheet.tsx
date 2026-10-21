@@ -2,7 +2,7 @@
 //
 // 카드 그리드는 얼굴과 이름만 보여주고, 담당 사역·소개·연락처는 여기서 편다.
 // 목록 페이지를 떠나지 않으므로 여러 사람을 연달아 확인하기 쉽다.
-import { useEffect } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { useNavigate } from 'react-router-dom'
 import {
   CalendarBlank,
@@ -44,13 +44,7 @@ const PersonSheet = ({ person, onClose }: PersonSheetProps) => {
   useModalBackButton(onClose)
 
   // 데스크톱에서 Esc — 모바일 뒤로가기는 useModalBackButton 이 맡는다
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   const name = personText(person, 'name', language)
   const role = personText(person, 'role', language)

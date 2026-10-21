@@ -11,7 +11,8 @@
 // 현장 QR(관리자 현황판 '투표 QR')로 곧장 들어오는 화면이다. 로그인 안 한 폰이면 선거를 묻기 전에
 // 로그인부터 청하고, 로그인 뒤 이 주소로 돌아온다(redirect_after_login). 투표 자격(선거인 명부)은
 // 서버가 가른다 — 명부 밖이면 403 → 아래 "참여할 수 없어요" 안내.
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCastVote, useElection } from '../../hooks/useElections'
 import { showToast } from '../../utils/toast'
@@ -191,13 +192,7 @@ const BallotConfirm = ({
   onCancel: () => void
   onConfirm: () => void
 }) => {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onCancel])
+  useEscapeKey(onCancel)
 
   return (
     <div

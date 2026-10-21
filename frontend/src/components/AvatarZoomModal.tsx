@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 import { createPortal } from 'react-dom'
 import { useModalBackButton } from '../hooks/useModalBackButton'
 import './AvatarZoomModal.css'
@@ -20,14 +20,7 @@ interface AvatarZoomModalProps {
  */
 const AvatarZoomModal = ({ src, name, onClose }: AvatarZoomModalProps) => {
   useModalBackButton(onClose)
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   return createPortal(
     <div

@@ -1,6 +1,7 @@
 // 선교사 상세 바텀시트 — 현지 시간·시차·거리로 그곳과의 연결감을 만든다.
 
 import { useEffect, useMemo } from 'react'
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { useTickingNow } from '../../../hooks/useTickingNow'
 import { countryDetail, SEOUL_GEO, type Missionary } from '../missionData'
 import CountryFlag from '../CountryFlag'
@@ -63,15 +64,14 @@ const MissionarySheet = ({
 
   // 배경 스크롤 잠금 — PC(lg+)에선 .mission-page 가 스스로 스크롤하는 상자라
   // body 만 잠그면 시트 뒤가 그대로 굴러간다. 둘 다 잠근다.
+  useBodyScrollLock()
   useEffect(() => {
     const page = document.querySelector<HTMLElement>('.mission-page')
-    const prev = document.body.style.overflow
-    const prevPage = page?.style.overflow
-    document.body.style.overflow = 'hidden'
-    if (page) page.style.overflow = 'hidden'
+    if (!page) return
+    const prevPage = page.style.overflow
+    page.style.overflow = 'hidden'
     return () => {
-      document.body.style.overflow = prev
-      if (page) page.style.overflow = prevPage ?? ''
+      page.style.overflow = prevPage
     }
   }, [])
 

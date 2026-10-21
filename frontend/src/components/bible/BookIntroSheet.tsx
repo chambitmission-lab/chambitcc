@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import { Markdown } from '../../utils/markdown'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { getBookGenre, genreStyle, parseBookStructure, parseKeyChapters } from './bookGenre'
@@ -51,13 +52,7 @@ const BookIntroSheet = ({
   useModalBackButton(onClose)
 
   // 시트가 열린 동안 뒤 화면(성경 본문)이 같이 스크롤되지 않게 잠근다
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  useBodyScrollLock()
 
   const handleJump = (chapter: number) => {
     if (!onJumpToChapter) return

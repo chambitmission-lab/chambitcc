@@ -1,5 +1,6 @@
 // 소그룹 필터 컴포넌트
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { createPortal } from 'react-dom'
 import { useMyGroups } from '../../hooks/useGroups'
 import { useHomeBundlePending } from '../../hooks/useHomeSummary'
@@ -74,14 +75,7 @@ const GroupFilter = ({
   }
 
   // 키보드가 있는 환경 — Esc로 팝오버 닫기
-  useEffect(() => {
-    if (!isExpanded) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsExpanded(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [isExpanded])
+  useEscapeKey(() => setIsExpanded(false), isExpanded)
   
   // 모바일은 fixed 시트 — 페이지 쌓임 맥락에 갇히면 하단 도크(z-100)·챗봇 FAB(z-95)가 딤 위로
   // 떠 버리므로, 다른 바텀시트들처럼 body 로 포털해 z-[110] 딤이 도크까지 덮게 한다.

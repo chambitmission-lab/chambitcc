@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { createPortal } from 'react-dom'
 import { useSituationVerses } from '../../../hooks/useSituation'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -124,13 +125,7 @@ const SituationImmersive = ({
     : 'inset(50% 50% 50% 50% round 22px)'
 
   // 뒤 페이지 스크롤 잠금 (body 가 실제 스크롤러)
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  useBodyScrollLock()
 
   const close = useCallback(() => {
     if (closingRef.current) return

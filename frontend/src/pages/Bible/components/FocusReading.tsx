@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { createPortal } from 'react-dom'
 import { visibleVerses, verseNumberLabel } from './mergedVerses'
 import { useBibleChapter } from '../../../hooks/useBible'
@@ -191,13 +192,7 @@ const FocusReading = ({
 
   // 화면 꺼짐 방지 + 뒤에 깔린 페이지 스크롤 잠금
   useWakeLock(true)
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  useBodyScrollLock()
 
   // ── 체류 자동 읽음 ──────────────────────────────────────────────
   // 원칙: 읽는 도중에는 화면이 절대 바뀌지 않는다(집중 우선).

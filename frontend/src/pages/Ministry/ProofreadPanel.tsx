@@ -1,7 +1,8 @@
 // 맞춤법 점검 결과 — 목록 패널(편지 정보 위)과, 본문 밑줄을 누르면 그 자리에 뜨는 카드.
 // 고치기는 한 곳씩 확인하거나 "모두 고치기" 한 번으로. AI 제안이라 자동으로 바꾸지는 않는다.
 
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { ColumnProofreadIssue } from '../../types/column'
 import { diffCore, type ProofIssue, type ProofreadFailure } from './columnProofread'
 
@@ -283,11 +284,7 @@ export const ProofIssueCard = ({ ko, issue, root, onFix, onIgnore, onClose }: Pr
       window.removeEventListener('resize', schedule)
     }
   }, [issue, root])
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   if (!anchor) return null
   const left = Math.max(16, Math.min(anchor.left, window.innerWidth - CARD_W - 16))

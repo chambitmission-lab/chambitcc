@@ -3,6 +3,7 @@
 // 슬라이드는 한 방향으로만 진행하고 마지막 사진에 머문다 (루프 없음 —
 // 각 슬라이드가 한 번만 활성화되므로 CSS 애니메이션 재시작 문제도 없다).
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import type { CapsulePhoto } from '../../types/timeCapsule'
 import './capsule.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
@@ -44,13 +45,7 @@ const CapsuleSlideshow = ({ photos, audioUrl, audioDuration, senderLine, onClose
   }, [index, photos.length, slideMs])
 
   // 감상 중에는 뒤 화면 스크롤을 잠근다
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  useBodyScrollLock()
 
   // 음성이 끝나면 여운을 잠깐 두고 편지로 돌아간다
   const handleEnded = () => {

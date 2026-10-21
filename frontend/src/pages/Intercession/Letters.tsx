@@ -5,7 +5,8 @@
 // 받는 쪽: 도착한 편지함. 편지지에는 "누군가"만 적힌다 — 이름도, 쓴 날짜도 없다.
 //
 // 음성·사진은 받지 않는다 (목소리·얼굴이 곧 이름이다). 텍스트만.
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { IntercessionLetter, IntercessionTarget } from '../../api/intercession'
 import {
   useDeleteIntercessionLetter,
@@ -46,13 +47,7 @@ const Sheet = ({
 }) => {
   useModalBackButton(onClose)
   // 데스크톱에서 Esc — 모바일 뒤로가기는 useModalBackButton 이 맡는다
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   return (
     <div className="ic-sheet-backdrop" onClick={onClose} role="presentation">

@@ -8,7 +8,8 @@
 // 칩·타일은 ?cat= 필터(단일 소스)라 새로고침·딥링크(/education?cat=youth)가 그대로 유지된다.
 // 시간표·다음 모임은 meeting_time/description 문장을 읽어 계산한다(eduSchedule.ts) — 읽히지
 // 않는 문장은 시간표에 올리지 않을 뿐 지어내지 않는다. 빈 값('') = 미확인 → 줄을 숨긴다.
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { useTickingNow } from '../../hooks/useTickingNow'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -843,11 +844,7 @@ const ProgramSheet = ({
   onClose: () => void
 }) => {
   useModalBackButton(onClose)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   const ko = language === 'ko'
   const stage = programStage(program)

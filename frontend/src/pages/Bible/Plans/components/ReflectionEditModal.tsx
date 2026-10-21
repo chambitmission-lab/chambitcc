@@ -1,5 +1,7 @@
 // ── 관리자 AI 묵상 수정 모달 (slide-up) ──
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useBodyScrollLock } from '../../../../hooks/useBodyScrollLock'
+import { useEscapeKey } from '../../../../hooks/useEscapeKey'
 import type { PlanReflection } from '../../../../types/biblePlan'
 import { normalizeReflection } from '../reflectionText'
 import { SheetGrabber } from '../../../../components/common/SheetGrabber'
@@ -22,18 +24,9 @@ const ReflectionEditModal = ({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving) onClose()
-    }
-    document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [onClose, saving])
+  // 저장 중엔 Esc 로 닫히지 않는다
+  useEscapeKey(onClose, !saving)
+  useBodyScrollLock()
 
   const updateQuestion = (i: number, value: string) =>
     setQuestions((prev) => prev.map((q, idx) => (idx === i ? value : q)))

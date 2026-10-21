@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkle, Check } from '../icons/phosphor'
 import { chatViewerKey, getChatbotGreeting, prefetchChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
@@ -297,15 +298,7 @@ const ChatbotWidget = () => {
   // 뒤로가기(안드로이드/브라우저)는 앱 종료·페이지 이동 대신 패널만 닫는다
   useModalBackButton(closePanel, open)
 
-  // Escape로 닫기
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closePanel()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, closePanel])
+  useEscapeKey(closePanel, open)
 
   const send = useCallback(
     async (text: string) => {

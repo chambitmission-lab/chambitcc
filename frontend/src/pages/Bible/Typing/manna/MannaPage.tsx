@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useBodyScrollLock } from '../../../../hooks/useBodyScrollLock'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -531,6 +532,9 @@ const MannaGameLayer = ({
   }, [onOver, rival, skin])
   const now = useTickingNow(1000, !!liveEndsAt)
 
+  // 게임 층이 떠 있는 동안 뒤 페이지는 스크롤되지 않게
+  useBodyScrollLock()
+
   // 화면 키보드가 올라와도 입력칸이 보이게 — 보이는 영역에 맞춘다
   useEffect(() => {
     const layer = layerRef.current
@@ -544,12 +548,9 @@ const MannaGameLayer = ({
     fit()
     vv?.addEventListener('resize', fit)
     vv?.addEventListener('scroll', fit)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
     return () => {
       vv?.removeEventListener('resize', fit)
       vv?.removeEventListener('scroll', fit)
-      document.body.style.overflow = prevOverflow
     }
   }, [])
 

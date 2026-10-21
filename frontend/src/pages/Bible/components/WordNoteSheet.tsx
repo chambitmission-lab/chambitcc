@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { createPortal } from 'react-dom'
 import type { WordNote } from '../../../api/bibleWordNote'
 import {
@@ -98,13 +99,7 @@ const WordNoteSheet = ({
   const del = useDeleteWordNote()
   const isBusy = create.isPending || update.isPending || del.isPending
 
-  useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onEsc)
-    return () => window.removeEventListener('keydown', onEsc)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   // 뒤로가기 → 시트만 닫기
   useModalBackButton(onClose)

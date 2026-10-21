@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { createPortal } from 'react-dom'
 import type { HighlightColor, VerseBookmark } from '../../../api/bibleBookmark'
 import { useUpsertBookmark, useDeleteBookmark } from '../../../hooks/useBibleBookmark'
@@ -46,13 +47,7 @@ const VerseBookmarkModal = ({
   const upsert = useUpsertBookmark(verseId)
   const del = useDeleteBookmark(verseId)
 
-  useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onEsc)
-    return () => window.removeEventListener('keydown', onEsc)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   // 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)

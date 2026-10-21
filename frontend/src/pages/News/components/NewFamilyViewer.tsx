@@ -1,5 +1,6 @@
 // 새가족 사진 풀스크린 뷰어 (Single Responsibility: 사진 크게 보기)
 import { useEffect, useRef, useState } from 'react'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { NewFamilyPost } from '../../../types/newFamily'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -23,13 +24,7 @@ const NewFamilyViewer = ({ post, initialIndex = 0, onClose }: NewFamilyViewerPro
     if (el) el.scrollLeft = initialIndex * el.clientWidth
   }, [initialIndex])
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   const handleScroll = () => {
     const el = scrollRef.current

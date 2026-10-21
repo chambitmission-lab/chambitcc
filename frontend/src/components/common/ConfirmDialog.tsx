@@ -2,6 +2,7 @@
 // 호출은 utils/confirmDialog 의 confirmDialog() / alertDialog() 로 하고,
 // 이 호스트는 App에 한 번만 마운트된다.
 import { useCallback, useEffect, useState } from 'react'
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock'
 import { createPortal } from 'react-dom'
 import { getStoredLanguage } from '../../locales'
 import {
@@ -90,7 +91,10 @@ export const ConfirmDialogHost = () => {
     })
   }, [text])
 
-  // ESC = 취소 / Enter = 확인(입력 조건을 채웠을 때만), 열려 있는 동안 배경 스크롤 잠금
+  // 열려 있는 동안 배경 스크롤 잠금
+  useBodyScrollLock(!!current)
+
+  // ESC = 취소 / Enter = 확인(입력 조건을 채웠을 때만) — Enter 까지 다루므로 useEscapeKey 대신 직접 듣는다
   useEffect(() => {
     if (!current) return
     const onKey = (e: KeyboardEvent) => {
@@ -98,12 +102,7 @@ export const ConfirmDialogHost = () => {
       else if (e.key === 'Enter' && !e.isComposing && canConfirm) close(true)
     }
     window.addEventListener('keydown', onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevOverflow
-    }
+    return () => window.removeEventListener('keydown', onKey)
   }, [current, close, canConfirm])
 
   if (!current) return null

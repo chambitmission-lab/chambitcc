@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { createPortal } from 'react-dom'
 import type { CSSProperties, RefObject } from 'react'
 import { isOmittedVerseText, visibleVerses, verseNumberLabel } from './mergedVerses'
@@ -103,19 +104,17 @@ const CinemaReading = ({
 
   useWakeLock(true)
   useModalBackButton(onClose)
+  // 뒤 페이지 스크롤 잠금
+  useBodyScrollLock()
 
-
-  // 뒤 페이지 스크롤 잠금 + 전체화면 진입(가능한 기기에서만, 실패는 조용히 무시)
+  // 전체화면 진입(가능한 기기에서만, 실패는 조용히 무시)
   useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
     try {
       rootRef.current?.requestFullscreen?.({ navigationUI: 'hide' })?.catch?.(() => {})
     } catch {
       // iOS 등 미지원 — fixed 오버레이만으로 충분
     }
     return () => {
-      document.body.style.overflow = prev
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
     }
   }, [])

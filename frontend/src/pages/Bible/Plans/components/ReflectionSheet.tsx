@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useBodyScrollLock } from '../../../../hooks/useBodyScrollLock'
 import { useNavigate } from 'react-router-dom'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import type { ReflectionState } from '../../../../hooks/usePlanReflections'
@@ -53,13 +54,7 @@ const ReflectionSheet = ({
   const authError = /not authenticated|401|credentials/i.test(state?.error ?? '')
 
   // 시트가 열린 동안 뒤 화면(플랜 일정)이 같이 스크롤되지 않게 잠근다
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  useBodyScrollLock()
 
   const data = state?.data
   const reference = data?.reference || passageLabel || dayTitle || ''
