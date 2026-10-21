@@ -6,16 +6,13 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../../utils/toast'
 import {
-  SITUATION_KIND_ICON,
-  SITUATION_KIND_LABEL,
-  SITUATION_RULE_HINT,
-  SITUATION_START_LABEL,
   createSituation,
   deleteSituation,
   updateSituation,
   type MemberSituation,
   type SituationKind,
 } from '../../../api/pastor'
+import { SITUATION_KIND_ICON, SITUATION_KIND_LABEL, SITUATION_RULE_HINT, SITUATION_START_LABEL } from '../labels'
 import DatePicker from '../../../components/common/DatePicker'
 import { FieldLabel, GhostButton, PastorModal, PrimaryButton } from './ui'
 import { inputCls, pickerCls, todayIso } from './pastorUtils'

@@ -9,8 +9,6 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../../utils/toast'
 import {
-  VISIT_KIND_ICON,
-  VISIT_KIND_LABEL,
   createVisit,
   deleteVisit,
   updateVisit,
@@ -18,6 +16,7 @@ import {
   type VisitKind,
   type VisitStatus,
 } from '../../../api/pastor'
+import { VISIT_KIND_ICON, VISIT_KIND_LABEL } from '../labels'
 import DatePicker from '../../../components/common/DatePicker'
 import TimePicker from '../../../components/common/TimePicker'
 import { FieldLabel, GhostButton, PastorModal, PrimaryButton } from './ui'

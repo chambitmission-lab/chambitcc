@@ -1,6 +1,6 @@
 // Admin API
 import type { PrayerGroup } from '../types/prayer'
-import { request, requestRaw, type UntypedJson } from './utils/request'
+import { request, requestData, requestRaw } from './utils/request'
 
 // 관리자용 그룹 목록 조회
 export interface AdminGroupListResponse {
@@ -63,15 +63,12 @@ export const fetchBibleEngagement = async (
 ): Promise<BibleEngagementData> => {
 
   const query = days ? `?days=${days}` : ''
-  const json = await request<UntypedJson>(`/admin/bible-engagement${query}`, { auth: 'required', errorMessage: '말씀 반응 통계를 불러오는데 실패했습니다' })
-  return json.data
+  return requestData<BibleEngagementData>(`/admin/bible-engagement${query}`, { auth: 'required', errorMessage: '말씀 반응 통계를 불러오는데 실패했습니다' })
 }
 
 // ── 관리자 홈 대시보드 · 돌봄 레이더 ──────────────────────
-const adminGet = async <T,>(path: string, errorMessage: string): Promise<T> => {
-  const json = await request<{ data: T }>(path, { auth: 'required', errorMessage })
-  return json.data
-}
+const adminGet = <T,>(path: string, errorMessage: string): Promise<T> =>
+  requestData<T>(path, { auth: 'required', errorMessage })
 
 /** 대시보드 액션 카드 — 0건인 항목은 서버가 아예 내려보내지 않는다 */
 export interface DashboardAction {

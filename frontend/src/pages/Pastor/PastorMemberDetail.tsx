@@ -3,10 +3,6 @@ import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  SITUATION_KIND_ICON,
-  SITUATION_KIND_LABEL,
-  VISIT_KIND_ICON,
-  VISIT_KIND_LABEL,
   fetchBriefing,
   fetchMemberDetail,
   fetchRoster,
@@ -15,6 +11,7 @@ import {
   type MemberSituation,
   type PastoralVisit,
 } from '../../api/pastor'
+import { SITUATION_KIND_ICON, SITUATION_KIND_LABEL, VISIT_KIND_ICON, VISIT_KIND_LABEL } from './labels'
 import { lazyModal } from '../../utils/lazyModal'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'

@@ -3,14 +3,13 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  VISIT_KIND_ICON,
-  VISIT_KIND_LABEL,
   fetchAgenda,
   type AgendaData,
   type AgendaItem,
   type PastoralVisit,
   type RosterMember,
 } from '../../api/pastor'
+import { VISIT_KIND_ICON, VISIT_KIND_LABEL } from './labels'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import MemberPicker from './components/MemberPicker'

@@ -1,5 +1,5 @@
 import type { PrayerEmotion } from '../types/prayer'
-import { request } from './utils/request'
+import { requestData } from './utils/request'
 
 /** year·half·month = 1년·6개월·1개월 전 오늘(±3일), first = 셋 다 없을 때 처음 남긴 기도 */
 export type MemoryOffset = 'year' | 'half' | 'month' | 'first'
@@ -62,10 +62,8 @@ export interface TodayChurch {
   church: ChurchDay
 }
 
-export const getTodayChurch = async (): Promise<TodayChurch> => {
-  const res = await request<{ success: boolean; data: TodayChurch }>('/today-church', {
+export const getTodayChurch = (): Promise<TodayChurch> =>
+  requestData('/today-church', {
     auth: 'required',
     errorMessage: '오늘의 교회를 불러오지 못했습니다',
   })
-  return res.data
-}

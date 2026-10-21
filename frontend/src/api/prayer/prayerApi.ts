@@ -7,7 +7,7 @@ import type {
   Prayer,
   PrayerFilterType,
 } from '../../types/prayer'
-import { request, type RequestPriority, type UntypedJson } from '../utils/request'
+import { request, requestData, type RequestPriority } from '../utils/request'
 
 /**
  * 기도 요청 목록 조회 (비로그인 가능)
@@ -55,10 +55,7 @@ export const fetchPrayers = async (
  */
 export const fetchPrayerDetail = async (
   prayerId: number
-): Promise<Prayer> => {
-  const result = await request<UntypedJson>(`/prayers/${prayerId}`, { errorMessage: '기도 요청을 불러오는데 실패했습니다' })
-  return result.data
-}
+): Promise<Prayer> => requestData(`/prayers/${prayerId}`, { errorMessage: '기도 요청을 불러오는데 실패했습니다' })
 
 /**
  * 기도 요청 생성 (로그인 필수)

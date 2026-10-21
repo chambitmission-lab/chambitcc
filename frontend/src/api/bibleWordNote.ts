@@ -1,5 +1,5 @@
 import { API_V1 } from '../config/api'
-import { request, requestRaw, type UntypedJson } from './utils/request'
+import { request, requestData, requestRaw, type UntypedJson } from './utils/request'
 /** 절 안의 특정 단어에 남긴 뜻/메모 */
 export interface WordNote {
   id: number
@@ -45,8 +45,8 @@ export interface UpdateWordNotePayload {
 export const createWordNote = async (
   verseId: number,
   payload: CreateWordNotePayload
-): Promise<WordNote> => {
-  const data = await request<UntypedJson>(`/bible/verses/${verseId}/word-notes`, {
+): Promise<WordNote> =>
+  requestData(`/bible/verses/${verseId}/word-notes`, {
     method: 'POST',
     auth: 'required',
     json: {
@@ -57,14 +57,12 @@ export const createWordNote = async (
     },
     errorMessage: '단어 저장에 실패했습니다',
   })
-  return data.data
-}
 
 export const updateWordNote = async (
   noteId: number,
   payload: UpdateWordNotePayload
-): Promise<WordNote> => {
-  const data = await request<UntypedJson>(`/bible/word-notes/${noteId}`, {
+): Promise<WordNote> =>
+  requestData(`/bible/word-notes/${noteId}`, {
     method: 'PUT',
     auth: 'required',
     json: {
@@ -77,8 +75,6 @@ export const updateWordNote = async (
     },
     errorMessage: '단어 수정에 실패했습니다',
   })
-  return data.data
-}
 
 export const deleteWordNote = async (noteId: number): Promise<void> => {
   await requestRaw(`/bible/word-notes/${noteId}`, {
@@ -112,6 +108,5 @@ export const listWordNotes = async (params?: {
   if (params?.page_size) query.append('page_size', String(params.page_size))
 
   const url = `${API_V1}/bible/word-notes${query.toString() ? `?${query}` : ''}`
-  const data = await request<UntypedJson>(url, { auth: 'required', errorMessage: '단어장 목록 조회에 실패했습니다' })
-  return data.data
+  return requestData(url, { auth: 'required', errorMessage: '단어장 목록 조회에 실패했습니다' })
 }

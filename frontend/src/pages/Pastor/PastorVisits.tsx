@@ -3,12 +3,11 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  VISIT_KIND_ICON,
-  VISIT_KIND_LABEL,
   fetchMyVisits,
   type FollowUp,
   type PastoralVisit,
 } from '../../api/pastor'
+import { VISIT_KIND_ICON, VISIT_KIND_LABEL } from './labels'
 import FollowUpList from './components/FollowUpList'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'

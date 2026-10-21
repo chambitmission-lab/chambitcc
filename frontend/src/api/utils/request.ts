@@ -179,6 +179,13 @@ export const request = async <T>(path: string, options: RequestOptions = {}): Pr
 }
 
 /**
+ * `{ data: T }` 봉투로 오는 응답의 data 만 돌려준다 — 서버 엔드포인트 대부분이 이 모양이라
+ * 모듈마다 `(await request<{ data: T }>(..)).data` 를 반복하지 않게 한다.
+ */
+export const requestData = async <T>(path: string, options: RequestOptions = {}): Promise<T> =>
+  (await request<{ data: T }>(path, options)).data
+
+/**
  * 마이그레이션 전 `await response.json()` 이 돌려주던 any 와 같은 의미.
  * 응답 타입을 아직 선언하지 않은 호출부의 임시 자리표시자 — 새 코드에서는 쓰지 않는다.
  */

@@ -10,7 +10,7 @@ import type { WeeklyPrayer } from '../types/weeklyPrayer'
 import type { IntercessionState } from './intercession'
 import type { SermonTakeaway } from './sermonTakeaway'
 import type { TodayChurch } from './todayChurch'
-import { request } from './utils/request'
+import { requestData } from './utils/request'
 
 /**
  * 홈 묶음 — 홈 위젯들이 따로 보내던 요청을 한 번에. 각 조각은 단건 엔드포인트의 응답과 같은 모양이라
@@ -35,12 +35,10 @@ export interface HomeSummary {
   failed: string[]
 }
 
-export const getHomeSummary = async (): Promise<HomeSummary> => {
-  const res = await request<{ success: boolean; data: HomeSummary }>('/home/summary', {
+export const getHomeSummary = (): Promise<HomeSummary> =>
+  requestData('/home/summary', {
     auth: 'required',
     // 홈의 첫 요청 — 기도 목록과 함께 줄을 서지 않고 바로 나간다(utils/requestPriority)
     priority: 'critical',
     errorMessage: '홈 정보를 불러오지 못했습니다',
   })
-  return res.data
-}

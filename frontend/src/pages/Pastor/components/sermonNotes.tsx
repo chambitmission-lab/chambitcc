@@ -4,12 +4,11 @@ import { useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  NOTE_KIND_ICON,
-  NOTE_KIND_LABEL,
   fetchSermonOptions,
   type SermonNote,
   type SermonOption,
 } from '../../../api/pastor'
+import { NOTE_KIND_ICON, NOTE_KIND_LABEL } from '../labels'
 import { formatDay, todayIso } from './pastorUtils'
 import { useStudioAccess } from './studio/useStudioAccess'
 

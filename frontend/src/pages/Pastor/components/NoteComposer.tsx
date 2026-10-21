@@ -10,8 +10,6 @@ import { Link } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../../utils/toast'
 import {
-  NOTE_KIND_ICON,
-  NOTE_KIND_LABEL,
   analyzeNote,
   createNote,
   deleteNote,
@@ -20,6 +18,7 @@ import {
   type NoteKind,
   type SermonNote,
 } from '../../../api/pastor'
+import { NOTE_KIND_ICON, NOTE_KIND_LABEL } from '../labels'
 import {
   GLOSSARY_TYPE_LABEL,
   isGlossaryReady,

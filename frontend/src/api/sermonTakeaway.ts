@@ -1,6 +1,6 @@
 // 설교 '한 줄 붙잡기' API — /sermon 말씀 편지의 3단계. 본인 것만 읽고 쓴다(로그인 필수).
 // 목회자 설교 메모장(/pastor/sermon/notes)과는 별개다.
-import { request, requestRaw } from './utils/request'
+import { request, requestData, requestRaw } from './utils/request'
 
 export interface SermonTakeaway {
   sermon_id: number
@@ -26,15 +26,13 @@ export const saveSermonTakeaway = async (
   sermonId: number,
   text: string,
   shared: boolean,
-): Promise<SermonTakeaway> => {
-  const data = await request<{ data: SermonTakeaway }>(`/sermon-takeaways/${sermonId}`, {
+): Promise<SermonTakeaway> =>
+  requestData(`/sermon-takeaways/${sermonId}`, {
     method: 'PUT',
     auth: 'required',
     json: { text, shared },
     errorMessage: '한 줄을 저장하지 못했습니다',
   })
-  return data.data
-}
 
 export const deleteSermonTakeaway = async (sermonId: number): Promise<void> => {
   await requestRaw(`/sermon-takeaways/${sermonId}`, {

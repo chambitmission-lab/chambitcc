@@ -1,8 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  NOTE_KIND_ICON,
-  NOTE_KIND_LABEL,
   createNote,
   fetchNotes,
   type NoteFilters,
@@ -10,6 +8,7 @@ import {
   type NoteListData,
   type SermonNote,
 } from '../../api/pastor'
+import { NOTE_KIND_ICON, NOTE_KIND_LABEL } from './labels'
 import { showToast } from '../../utils/toast'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'

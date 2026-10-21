@@ -1,5 +1,5 @@
 import { API_V1 } from '../config/api'
-import { request, requestRaw, type UntypedJson } from './utils/request'
+import { request, requestData, requestRaw, type UntypedJson } from './utils/request'
 export type HighlightColor = 'yellow' | 'orange' | 'pink' | 'blue' | 'green'
 
 export interface VerseBookmark {
@@ -44,8 +44,8 @@ const bookmarkPath = (verseId: number) => `${API_V1}/bible/verses/${verseId}/boo
 export const upsertBookmark = async (
   verseId: number,
   payload: UpsertBookmarkPayload
-): Promise<VerseBookmark> => {
-  const data = await request<UntypedJson>(bookmarkPath(verseId), {
+): Promise<VerseBookmark> =>
+  requestData(bookmarkPath(verseId), {
     method: 'PUT',
     auth: 'required',
     json: {
@@ -55,8 +55,6 @@ export const upsertBookmark = async (
     },
     errorMessage: '북마크 저장에 실패했습니다',
   })
-  return data.data
-}
 
 /** 필드 단위 삭제 대상 — note: 묵상 노트만, favorite: 즐겨찾기만. 미지정 시 통째 삭제 */
 export type BookmarkDeleteTarget = 'note' | 'favorite'
@@ -73,10 +71,8 @@ export const deleteBookmark = async (
   })
 }
 
-export const getBookmark = async (verseId: number): Promise<VerseBookmark | null> => {
-  const data = await request<UntypedJson>(bookmarkPath(verseId), { auth: 'required', errorMessage: '북마크 조회에 실패했습니다' })
-  return data.data
-}
+export const getBookmark = (verseId: number): Promise<VerseBookmark | null> =>
+  requestData(bookmarkPath(verseId), { auth: 'required', errorMessage: '북마크 조회에 실패했습니다' })
 
 /**
  * 한 장의 내 북마크 전체 — 절마다 개별 조회하는 N+1 제거용 배치 조회
@@ -107,8 +103,7 @@ export const listBookmarks = async (params?: {
   if (params?.page_size) query.append('page_size', String(params.page_size))
 
   const url = `${API_V1}/bible/bookmarks${query.toString() ? `?${query}` : ''}`
-  const data = await request<UntypedJson>(url, { auth: 'required', errorMessage: '북마크 목록 조회에 실패했습니다' })
-  return data.data
+  return requestData(url, { auth: 'required', errorMessage: '북마크 목록 조회에 실패했습니다' })
 }
 
 /** 즐겨찾기 플레이리스트 순서 저장 — id 나열 순서가 곧 재생 순서 */
@@ -121,7 +116,5 @@ export const reorderBookmarks = async (bookmarkIds: number[]): Promise<void> => 
   })
 }
 
-export const getBookmarkStats = async (): Promise<BookmarkStats> => {
-  const data = await request<UntypedJson>('/bible/bookmarks/stats', { auth: 'required', errorMessage: '북마크 통계 조회에 실패했습니다' })
-  return data.data
-}
+export const getBookmarkStats = (): Promise<BookmarkStats> =>
+  requestData('/bible/bookmarks/stats', { auth: 'required', errorMessage: '북마크 통계 조회에 실패했습니다' })
