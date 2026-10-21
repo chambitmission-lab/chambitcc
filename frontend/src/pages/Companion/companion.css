@@ -89,14 +89,16 @@ html.dark .cp-hero__body {
   color: rgba(236, 238, 250, 0.8);
 }
 /* 모바일 = 글·버튼 사이 띠. 위아래 경계만 물결로 자른다(글 뒤에 깔면 양이 글씨와 섞인다).
-   280px 로 넉넉히 — 골목 건물과 언덕 위 교회까지 보이게 */
+   그림(688×768) 세로 28~625 구간만 — 위는 달·교회 십자가, 아래는 양 발끝까지.
+   상자 비율을 그 구간에 맞춰 폭이 달라도 같은 범위가 보이고, 위치 16.4% = 28 / (768 − 597).
+   아래 물결은 양 발 밑(가로 30~72%)에서 가장 낮게 내려가 발을 자르지 않는다. */
 .cp-hero-art {
   position: relative;
-  height: 280px;
+  aspect-ratio: 688 / 597;
   margin: 18px -24px 0;
-  background: var(--cp-hero-light) center 58% / cover no-repeat;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='none'%3E%3Cpath d='M0 16 C 90 -4, 180 34, 270 14 C 330 2, 370 6, 400 12 V 186 C 320 204, 230 170, 140 190 C 80 202, 30 196, 0 190 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='none'%3E%3Cpath d='M0 16 C 90 -4, 180 34, 270 14 C 330 2, 370 6, 400 12 V 186 C 320 204, 230 170, 140 190 C 80 202, 30 196, 0 190 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  background: var(--cp-hero-light) center 16.4% / cover no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='none'%3E%3Cpath d='M0 14 C 80 0, 160 26, 250 12 C 300 4, 360 2, 400 6 V 186 C 340 182, 300 197, 230 197 C 160 197, 110 196, 70 190 C 40 186, 20 184, 0 186 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='none'%3E%3Cpath d='M0 14 C 80 0, 160 26, 250 12 C 300 4, 360 2, 400 6 V 186 C 340 182, 300 197, 230 197 C 160 197, 110 196, 70 190 C 40 186, 20 184, 0 186 Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -124,6 +126,7 @@ html.dark .cp-hero-art {
     inset: 0 0 0 auto;
     width: 60%;
     height: auto;
+    aspect-ratio: auto;
     margin: 0;
     z-index: 0;
   }
