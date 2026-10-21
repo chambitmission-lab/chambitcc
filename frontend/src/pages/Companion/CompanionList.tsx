@@ -6,6 +6,8 @@ import MemberSearchInput from '../../components/common/MemberSearchInput'
 import { useAcceptCompanion, useInviteCompanion, useLeaveCompanion, useMyCompanions } from '../../hooks/useCompanion'
 import type { CompanionGoal, CompanionSummary } from '../../types/companion'
 import type { CapsuleRecipient } from '../../types/timeCapsule'
+import { useThemeArt } from '../../hooks/useThemeArt'
+import { COMPANION_HERO } from '../../utils/themeAssets'
 import { isAuthenticated } from '../../utils/auth'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { sessionStore } from '../../utils/tokenStore'
@@ -24,6 +26,7 @@ const CompanionList = () => {
   const [inviteOpen, setInviteOpen] = useState(false)
   const accept = useAcceptCompanion()
   const leave = useLeaveCompanion()
+  const heroArtReady = useThemeArt(COMPANION_HERO)
 
   const openInvite = () => {
     if (!authed) {
@@ -115,29 +118,29 @@ const CompanionList = () => {
 
   return (
     <CompanionShell title="동행" backTo="/" backLabel="홈" rail={rail}>
-      {/* 히어로 — 무엇을 하는 곳인지 세 줄로. lg 에선 글(좌)·발자국 길(우) 가로 2단 */}
-      <section className="mx-4 lg:mx-6 mt-5 lg:mt-6 rounded-[26px] px-6 py-7 lg:px-9 lg:py-9 bg-[var(--brand-soft)] ring-1 ring-[rgba(49,130,246,0.12)] dark:ring-white/[0.06] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-center lg:gap-10">
-        <div>
+      {/* 히어로 — 무엇을 하는 곳인지 세 줄로. 오른쪽 삽화(함께 걷는 두 양)가 '동행'을 대신 보여 준다 */}
+      <section
+        style={{ ['--cp-hero-light' as string]: `url(${COMPANION_HERO.light})`, ['--cp-hero-dark' as string]: `url(${COMPANION_HERO.dark})` }}
+        className="relative overflow-hidden isolate mx-4 lg:mx-6 mt-5 lg:mt-6 rounded-[26px] px-6 py-7 lg:px-9 lg:py-9 bg-[var(--brand-soft)] ring-1 ring-[rgba(49,130,246,0.12)] dark:ring-white/[0.06]">
+        <div className="relative z-[1] lg:max-w-[46%]">
         <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-brand">Walk together</span>
         <h2 className="text-[24px] lg:text-[30px] font-extrabold tracking-[-0.03em] leading-[1.3] text-ink-strong mt-3">
           혼자 말고, 둘이
           <br />
           한 주를 채워요
         </h2>
-        <p className="text-[13px] lg:text-[14px] leading-[1.7] text-gray-600 dark:text-white/70 mt-3">
+        <p className="text-[13px] lg:text-[14px] leading-[1.7] break-keep text-gray-600 dark:text-white/70 mt-3">
           짝과 이번 주 목표를 정하면, 각자 읽고 필사하고 기도한 만큼 <b className="font-bold text-ink-strong">합쳐서</b> 쌓여요.
           누가 더 했는지는 세지 않아요. 바쁜 주엔 짝이 메꿔줘요.
         </p>
         </div>
-        <FootprintPath
-          className="mt-5 lg:mt-0 max-w-[300px] lg:max-w-none"
-          week={{ week_start: '', goal_type: 'reading', goal_amount: 10, total: 6, mine: 3, partner: 3, achieved: false }}
-        />
+        {/* 삽화 — lg 에선 카드 오른쪽 배경, 모바일에선 글과 버튼 사이 띠 */}
+        <div className={`cp-hero-art${heroArtReady ? ' is-loaded' : ''}`} aria-hidden />
         {/* lg 에선 우측 레일의 같은 버튼이 대신한다 */}
         <button
           type="button"
           onClick={openInvite}
-          className="lg:hidden mt-5 w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] active:scale-[0.99] transition-transform"
+          className="relative lg:hidden mt-1 w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] active:scale-[0.99] transition-transform"
         >
           동행 초대하기
         </button>

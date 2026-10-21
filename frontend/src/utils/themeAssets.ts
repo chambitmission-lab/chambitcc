@@ -40,6 +40,8 @@ import thanksHeroLight from '../assets/thanks/hero-light.webp'
 import thanksHeroDark from '../assets/thanks/hero-dark.webp'
 import intercessionHeroLight from '../assets/intercession/hero-light.webp'
 import intercessionHeroDark from '../assets/intercession/hero-dark.webp'
+import companionHeroLight from '../assets/companion/hero-light.webp'
+import companionHeroDark from '../assets/companion/hero-dark.webp'
 import prayerWeekWindowLight from '../assets/prayer-week/window-light.webp'
 import prayerWeekWindowDark from '../assets/prayer-week/window-dark.webp'
 import growthHeroMorningLight from '../assets/growth/hero-morning-light.webp'
@@ -215,6 +217,8 @@ export const CLASS_HERO: ThemePair = { light: classHeroLight, dark: classHeroDar
 export const THANKS_HERO: ThemePair = { light: thanksHeroLight, dark: thanksHeroDark }
 /** /intercession 등불 히어로 — 창턱 장면. 짝이 정해진 주기에만 떠서 매니페스트 대신 useThemeArt 로 등록 */
 export const INTERCESSION_HERO: ThemePair = { light: intercessionHeroLight, dark: intercessionHeroDark }
+/** /companion 동행 히어로 (companion.css .cp-hero-art) — 주일 아침 골목을 같이 뛰는 두 양. lg 는 카드 오른쪽, 모바일은 글·버튼 사이 띠 */
+export const COMPANION_HERO: ThemePair = { light: companionHeroLight, dark: companionHeroDark }
 /** /growth 신앙 여정 히어로 (GrowthHero.css) — 같은 능선의 시간대 3장 × 테마 2장.
  *  홈 묵상 카드와 같은 시간대 판정(deriveTimeOfDay)을 쓰고, CSS 는 시간대 클래스로 고른다. */
 export const GROWTH_HERO_BY_TIME: Record<TimeOfDay, ThemePair> = {

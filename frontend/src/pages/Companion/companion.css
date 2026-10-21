@@ -39,3 +39,36 @@
   background: color-mix(in srgb, var(--cp-flame) 22%, transparent);
   color: var(--cp-flame);
 }
+
+/* 히어로 삽화(주일 아침 골목의 두 양) — lg 는 카드 오른쪽에 깔고 왼쪽 글 쪽으로 녹인다.
+   모바일은 글 뒤에 깔면 양이 글씨와 섞이므로 글·버튼 사이에 또렷한 띠로 둔다. */
+.cp-hero-art {
+  position: relative;
+  height: 200px;
+  margin: 18px -24px 0;
+  background: var(--cp-hero-light) center 72% / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 82%, transparent 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.cp-hero-art.is-loaded {
+  opacity: 1;
+}
+html.dark .cp-hero-art {
+  background-image: var(--cp-hero-dark);
+}
+@media (min-width: 1024px) {
+  .cp-hero-art {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 62%;
+    height: auto;
+    margin: 0;
+    background-position: right 70%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+    z-index: 0;
+  }
+}
