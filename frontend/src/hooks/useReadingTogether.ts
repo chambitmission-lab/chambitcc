@@ -27,6 +27,7 @@ import {
 import { notificationStream } from '../utils/notificationStream'
 import { readingTogetherBus } from '../utils/readingTogetherBus'
 import { readingTogetherKeys } from './queryKeys'
+import { companionKeys } from './useCompanion'
 
 /** 하트비트 주기 — 서버 TTL(90초)의 1/3 이하여야 순단 한 번에 사라지지 않는다 */
 export const HEARTBEAT_INTERVAL_MS = 25_000
@@ -199,7 +200,12 @@ export const useReadingPresenceHeartbeat = ({ bookNumber, chapter, verse, enable
     if (!activeRef.current || v === null || document.visibilityState === 'hidden') return
     leftRef.current = false
     sendPresenceHeartbeat({ book_number: b, chapter: c, verse: v })
-      .then((data) => applyPresence(qc, data))
+      .then((data) => {
+        // 이 장이 방금 '오늘 읽은 장'으로 인정됐다 — 동행 성경 목표가 이 방문 기록을 합산한다
+        const wasRead = qc.getQueryData<ChapterPresence>(readingTogetherKeys.presence(b, c))?.me_read_today === true
+        if (data.me_read_today === true && !wasRead) void qc.invalidateQueries({ queryKey: companionKeys.all })
+        applyPresence(qc, data)
+      })
       .catch(() => {
         /* 순단·401 등 — 다음 주기에 다시 시도, 화면엔 영향 없음 */
       })

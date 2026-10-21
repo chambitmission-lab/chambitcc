@@ -63,7 +63,6 @@ const CardSheet = ({ c, milestone, onClose }: { c: CompanionDetail; milestone: M
     colors: {
       me: cssVar('--brand', '#3182f6'),
       you: cssVar('--cp-you', '#f0a23b'),
-      flame: cssVar('--cp-flame', '#ffb547'),
     },
   }))
 

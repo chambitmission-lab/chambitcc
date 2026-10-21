@@ -50,6 +50,7 @@ import { QK_LEAGUE } from './useBibleLeague'
 import { isApiError } from '../api/utils/request'
 import { bibleReadingKeys } from './useBibleReading'
 import { profileKeys } from './queryKeys'
+import { companionKeys } from './useCompanion'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import { notificationStream } from '../utils/notificationStream'
 import { tokenStore } from '../utils/tokenStore'
@@ -215,6 +216,8 @@ export const useSubmitTyping = () => {
             : [...bibleTypingKeys.all, 'chapter'],
       })
       void qc.invalidateQueries({ queryKey: [...bibleTypingKeys.all, 'relay'] })
+      // 동행 필사 목표는 이 기록을 그 주 범위로 합산한다 — /companion 에 돌아가면 바로 다시 받게
+      void qc.invalidateQueries({ queryKey: companionKeys.all })
       if (result.marked_read_ids.length > 0) {
         // 읽기 화면은 다른 라우트라 비활성 — refetchType 'all' 로 돌아갔을 때 바로 맞게
         void qc.invalidateQueries({ queryKey: bibleReadingKeys.all, refetchType: 'all' })

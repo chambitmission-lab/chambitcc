@@ -17,6 +17,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { addPrayer } from '../../api/prayer'
 import { prayerKeys } from '../../hooks/usePrayersQuery'
 import { prayerFocusKeys, profileKeys } from '../../hooks/queryKeys'
+import { companionKeys } from '../../hooks/useCompanion'
 import type { CarryItem } from './carryPrayers'
 
 interface SessionCompleteProps {
@@ -112,6 +113,8 @@ const SessionComplete = ({
         if (!alreadyRecorded) {
           const session = await createPrayerSession(payload)
           setSessionId(session.id)
+          // 동행 기도 목표는 기도 세션 시간을 그 주 범위로 합산한다
+          void queryClient.invalidateQueries({ queryKey: companionKeys.all })
         }
         if (!alreadyRecorded) void recordCarried()
         const s = await getPrayerSessionStats()
