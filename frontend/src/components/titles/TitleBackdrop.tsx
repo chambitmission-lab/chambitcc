@@ -25,6 +25,8 @@ const TITLE_BG_KEYS = [
   'plan_finisher',
   'plan_collector',
   'word_marathoner',
+  'companion_first_lamp',
+  'companion_ten_lamps',
   'bible_conqueror',
   // 필사
   'typing_first',
@@ -36,6 +38,11 @@ const TITLE_BG_KEYS = [
   'typing_lightning',
   'typing_heart_tablet',
   'typing_daily_line',
+  'manna_first',
+  'manna_canaan',
+  'manna_omer',
+  'manna_every_morning',
+  'manna_crown',
   // 히든
   'returned_prodigal',
   'streak_breaker',

@@ -9,7 +9,7 @@
    **캐릭터 일치 꿀팁**: 기존 이미지(`public/images/title-bg/` 중 아무거나 한 장)를 함께 첨부하고
    "이 양 캐릭터와 완전히 같은 캐릭터로"라고 덧붙이면 시리즈가 정확히 이어진다.
 2. 결과물은 `frontend/public/images/title-bg/<key>.webp` 로 저장 (예: `dawn_riser.webp`).
-   기존 36장은 전부 **1376×768** — 같은 규격으로 맞춘다. (`cwebp -q 78 원본.png -o <key>.webp`, 20~50KB)
+   기존 43장은 전부 **1376×768** — 같은 규격으로 맞춘다. (`cwebp -q 78 원본.png -o <key>.webp`, 20~50KB)
 3. 비율은 16:9 (모바일 프로필 헤더 뒤에 깔고 하단은 그라데이션으로 녹일 예정).
 4. **새로 추가하는 칭호라면** 이미지를 넣은 뒤 `src/components/titles/TitleBackdrop.tsx` 의
    `TITLE_BG_KEYS` 에 key 를 추가해야 프로필에 실제로 깔린다 (미등록 키는 배너 없이 기본 레이아웃).
@@ -50,7 +50,7 @@ Scene:
 
 ---
 
-## 칭호별 장면 (43종 — 이미지 대기 7종: 만나 5 · 동행 2, 맨 아래 「새 칭호 7종 한 번에 붙여넣기」)
+## 칭호별 장면 (43종)
 
 ### 시간 카테고리
 
@@ -212,7 +212,7 @@ green summer, red autumn leaves, and snow — under one continuous navy night sk
 A warm trail of light follows its path across the whole year. Tiny runner, vast world.
 ```
 
-#### 동행 (`/companion`) — 이미지 대기
+#### 동행 (`/companion`)
 
 > 이 시리즈에서 유일하게 **양이 두 마리** 나오는 장면. 주인공 양은 **파랑 목도리**, 짝 양은 **주황 목도리**
 > (`/companion` 히어로·발자국 색과 같은 짝). 짝 양은 같은 화풍이되 **조금 작고 머리에 복슬한 곱슬 한 줌**으로 구별한다 — 쌍둥이처럼 보이면 "둘"이 안 읽힌다.
@@ -406,7 +406,7 @@ hangs by the window as the one warm light. A crescent moon and tiny blue-white s
 in the deep navy sky; the bottom-center stays dark, quiet leaves.
 ```
 
-#### 만나 내리기 (`/bible/typing/manna`) — 이미지 대기
+#### 만나 내리기 (`/bible/typing/manna`)
 
 > 만나 연작 공통 규칙 — 배경은 **광야(모래 언덕·장막) 의 새벽 직전**(출 16:13-14 "아침에는 이슬이 진 주위에 있더니"). 팔레트는 그대로 네이비 + 앰버 하나.
 > 만나는 게임에선 말씀 단어지만 그림에선 글자가 생기므로 **작고 동그란 흰 빛 알갱이(coriander-seed-like glowing white flakes)** 로만 그린다(출 16:31 "깟씨 같고 희고").
