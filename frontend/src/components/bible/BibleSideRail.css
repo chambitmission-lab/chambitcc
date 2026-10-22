@@ -63,7 +63,13 @@
 }
 @media (min-width: 1440px) {
   .bible-chapter-section.commentary-docked .corl-slot,
-  .bible-chapter-section.commentary-docked .corl,
+  .bible-chapter-section.commentary-docked .corl {
+    display: block;
+  }
+}
+/* 안내·바구니 패널(guide-docked)이 붙으면 1680px 부터 레일을 함께 둔다 — 안내 패널은 1680px+ 에서만 뜨므로
+   이 경계가 실제로 갈리는 건 연구 모드(목회자)뿐. 그 아래에선 나란히 보기 칸을 넓히려 레일을 접어 둔다 */
+@media (min-width: 1680px) {
   .bible-chapter-section.guide-docked .corl-slot,
   .bible-chapter-section.guide-docked .corl {
     display: block;

@@ -1,5 +1,7 @@
 /* 연구 모드(목회자, PC 전용) — 나란히 보기(rsc-) + 말씀 바구니 패널(rsb-).
-   BibleStudy 가 lg+ 목회자에게만 마운트한다. 색은 theme.css 토큰만 쓴다(라이트·다크 공용). */
+   BibleStudy 가 lg+ 목회자에게만 마운트한다. 색은 theme.css 토큰만 쓴다(라이트·다크 공용).
+   ★글씨는 전부 헤더 '가 글씨 크기' 배율(--text-mul: 1 · 1.1 · 1.2)을 곱한다 — 목회자 노안 대응이라
+     작은 캡션(절 번호·해석 제목줄·바구니)도 빠짐없이 같이 커져야 한다. 기본값도 성도 화면보다 한 단계 크다. */
 
 /* ── 나란히 보기 ── */
 .rsc {
@@ -16,13 +18,13 @@
   background: var(--brand-soft);
 }
 .rsc-tool__label {
-  font-size: 14px;
+  font-size: calc(15px * var(--text-mul, 1));
   font-weight: 700;
   color: var(--text-strong);
 }
 .rsc-tool__hint {
   margin-left: auto;
-  font-size: 13px;
+  font-size: calc(14px * var(--text-mul, 1));
   color: var(--text-muted);
 }
 .rsc-seg {
@@ -35,7 +37,7 @@
 .rsc-seg button {
   padding: 6px 14px;
   border-radius: 8px;
-  font-size: 13.5px;
+  font-size: calc(15px * var(--text-mul, 1));
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -53,12 +55,12 @@
   align-items: baseline;
   gap: 0.5rem;
   padding: 0 1rem 0.5rem;
-  font-size: 15px;
+  font-size: calc(17px * var(--text-mul, 1));
   font-weight: 700;
   color: var(--brand);
 }
 .rsc-sec__title span {
-  font-size: 12.5px;
+  font-size: calc(14px * var(--text-mul, 1));
   font-weight: 500;
   color: var(--text-muted);
 }
@@ -87,19 +89,19 @@
   color: var(--text-muted);
 }
 .rsc-verse__num {
-  flex: 0 0 34px;
+  flex: 0 0 calc(40px * var(--text-mul, 1));
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
   padding-top: 0.2rem;
-  font-size: 12.5px;
+  font-size: calc(14.5px * var(--text-mul, 1));
   font-weight: 700;
   color: var(--brand);
 }
 .rsc-pick {
-  width: 24px;
-  height: 24px;
+  width: calc(28px * var(--text-mul, 1));
+  height: calc(28px * var(--text-mul, 1));
   border-radius: 999px;
   display: grid;
   place-items: center;
@@ -118,10 +120,10 @@
   color: #fff;
 }
 .rsc-pick .material-icons-round {
-  font-size: 16px;
+  font-size: calc(17px * var(--text-mul, 1));
 }
 .rsc-verse__text {
-  font-size: calc(16.5px * var(--text-mul, 1));
+  font-size: calc(18px * var(--text-mul, 1));
   line-height: 1.75;
   color: var(--text-strong);
   word-break: keep-all;
@@ -136,13 +138,13 @@
   gap: 0.75rem;
 }
 .rsc-side__text {
-  font-size: calc(15px * var(--text-mul, 1));
+  font-size: calc(16.5px * var(--text-mul, 1));
   line-height: 1.8;
   color: var(--text-body);
   word-break: keep-all;
 }
 .rsc-side__empty {
-  font-size: 13.5px;
+  font-size: calc(15px * var(--text-mul, 1));
   color: var(--text-muted);
   padding: 0.5rem 1rem;
 }
@@ -155,13 +157,13 @@
   padding-bottom: 0;
 }
 .rsc-cmt__ref {
-  font-size: 12.5px;
+  font-size: calc(14px * var(--text-mul, 1));
   font-weight: 700;
   color: var(--brand);
   margin-bottom: 0.25rem;
 }
 .rsc-cmt__body {
-  font-size: calc(14.5px * var(--text-mul, 1));
+  font-size: calc(16px * var(--text-mul, 1));
   line-height: 1.75;
   color: var(--text-body);
   word-break: keep-all;
@@ -172,7 +174,7 @@
 }
 .rsc-cmt__apply {
   margin-top: 0.375rem;
-  font-size: 13px;
+  font-size: calc(14.5px * var(--text-mul, 1));
   line-height: 1.6;
   color: var(--text-muted);
 }
@@ -201,7 +203,7 @@
     padding: 1.25rem 1.25rem 0.75rem;
   }
   .rsb-title {
-    font-size: 17px;
+    font-size: calc(18px * var(--text-mul, 1));
     font-weight: 700;
     color: var(--text-strong);
   }
@@ -210,7 +212,7 @@
     color: var(--brand);
   }
   .rsb-link {
-    font-size: 13px;
+    font-size: calc(14px * var(--text-mul, 1));
     color: var(--text-muted);
     text-decoration: underline;
   }
@@ -221,7 +223,7 @@
     scrollbar-width: thin;
   }
   .rsb-empty {
-    font-size: 14px;
+    font-size: calc(15px * var(--text-mul, 1));
     line-height: 1.7;
     color: var(--text-muted);
     padding: 1rem;
@@ -244,7 +246,7 @@
   .rsb-item__main {
     flex: 1;
     min-width: 0;
-    font-size: 13.5px;
+    font-size: calc(15px * var(--text-mul, 1));
     line-height: 1.6;
     color: var(--text-body);
   }
@@ -260,8 +262,8 @@
     gap: 2px;
   }
   .rsb-item__acts button {
-    width: 26px;
-    height: 26px;
+    width: calc(30px * var(--text-mul, 1));
+    height: calc(30px * var(--text-mul, 1));
     border-radius: 8px;
     display: grid;
     place-items: center;
@@ -275,7 +277,7 @@
     opacity: 0.3;
   }
   .rsb-item__acts .material-icons-round {
-    font-size: 16px;
+    font-size: calc(18px * var(--text-mul, 1));
   }
   /* 아래 여백 — 우하단 챗봇 버튼에 버튼이 가리지 않게 */
   .rsb-foot {
@@ -286,7 +288,7 @@
     gap: 0.5rem;
   }
   .rsb-passage {
-    font-size: 12.5px;
+    font-size: calc(14px * var(--text-mul, 1));
     color: var(--text-muted);
   }
   .rsb-passage--warn {
@@ -302,9 +304,9 @@
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
-    height: 42px;
+    min-height: calc(44px * var(--text-mul, 1));
     border-radius: 12px;
-    font-size: 14px;
+    font-size: calc(15px * var(--text-mul, 1));
     font-weight: 600;
     background: var(--surface-container-high);
     color: var(--text-strong);
@@ -325,6 +327,6 @@
     color: var(--text-body);
   }
   .rsb-btn .material-icons-round {
-    font-size: 18px;
+    font-size: calc(19px * var(--text-mul, 1));
   }
 }
