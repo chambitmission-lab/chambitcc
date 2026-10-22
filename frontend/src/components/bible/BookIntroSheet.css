@@ -1,0 +1,106 @@
+/* 권 개관 시트 — PC(lg+) 넓은 두 칸 지면 (bis-).
+   모바일·태블릿은 이 파일이 아무것도 바꾸지 않는다(전부 lg 미디어 쿼리 안).
+   왼쪽 칸: 표제·한 줄 소개·책의 흐름(장 이동)·주제/저자/핵심 장 — 따로 스크롤
+   오른쪽 칸: 개관 본문·그리스도와의 연결 — 큰 글씨로 따로 스크롤
+   글씨는 헤더 '가 글씨 크기' 배율(--text-mul: 1 · 1.1 · 1.2, html[data-text-scale])을 곱한다.
+   Tailwind 유틸(한 클래스)을 덮어야 하므로 선택자는 .bis 아래 두 클래스로 쓴다. */
+@media (min-width: 1024px) {
+  .bis.bis {
+    max-width: min(1120px, calc(100vw - 4rem));
+    height: min(calc(var(--vvh, 100dvh) * 0.88), 920px);
+  }
+
+  /* 본문 칸 둘을 나란히 — 바깥은 스크롤하지 않고 각 칸이 스스로 스크롤한다 */
+  .bis .bis-body {
+    display: grid;
+    grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
+    overflow: hidden;
+    padding: 0;
+    min-height: 0;
+  }
+  .bis .bis-aside,
+  .bis .bis-main {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .bis .bis-aside {
+    padding: 0.5rem 1.75rem 2rem 2.25rem;
+    border-right: 1px solid var(--card-border);
+  }
+  .bis .bis-main {
+    padding: 0.75rem 3rem 2.5rem;
+  }
+  /* 두 칸 사이 구분은 세로선이 맡는다 */
+  .bis .bis-rule {
+    display: none;
+  }
+
+  /* ── 왼쪽 칸 ── */
+  .bis .bis-title {
+    font-size: calc(34px * var(--text-mul, 1));
+  }
+  .bis .bis-oneliner {
+    font-size: calc(18px * var(--text-mul, 1));
+    line-height: 1.6;
+  }
+  .bis .bis-caption {
+    font-size: calc(15px * var(--text-mul, 1));
+  }
+  .bis .bis-caption-sub {
+    font-size: calc(13.5px * var(--text-mul, 1));
+  }
+  .bis .bis-range {
+    width: calc(76px * var(--text-mul, 1));
+    font-size: calc(14px * var(--text-mul, 1));
+  }
+  .bis .bis-flow-label {
+    font-size: calc(16px * var(--text-mul, 1));
+  }
+  .bis .bis-here {
+    font-size: calc(12.5px * var(--text-mul, 1));
+  }
+  .bis .bis-dt {
+    width: calc(76px * var(--text-mul, 1));
+    font-size: calc(14px * var(--text-mul, 1));
+  }
+  .bis .bis-dd {
+    font-size: calc(15.5px * var(--text-mul, 1));
+  }
+  .bis .bis-key-range {
+    font-size: calc(14px * var(--text-mul, 1));
+  }
+
+  /* ── 오른쪽 칸 — 읽는 글. 한 줄이 너무 길면 눈이 줄을 놓치므로 폭을 묶는다 ── */
+  .bis .bis-prose,
+  .bis .bis-main > section {
+    max-width: 680px;
+  }
+  .bis .bis-prose {
+    font-size: calc(18px * var(--text-mul, 1));
+    line-height: 1.95;
+  }
+  .bis .bis-christ-label {
+    font-size: calc(14.5px * var(--text-mul, 1));
+  }
+  .bis .bis-christ {
+    font-size: calc(17px * var(--text-mul, 1));
+    line-height: 1.9;
+  }
+
+  /* 푸터 버튼 — 전체 폭 대신 오른쪽에 알맞은 크기로 */
+  .bis .bis-foot {
+    display: flex;
+    justify-content: flex-end;
+    padding-left: 2.25rem;
+    padding-right: 2.25rem;
+  }
+  .bis .bis-cta {
+    width: auto;
+    min-width: 280px;
+    padding: 0 2rem;
+    font-size: calc(16px * var(--text-mul, 1));
+    height: calc(52px * var(--text-mul, 1));
+  }
+}

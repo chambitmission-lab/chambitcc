@@ -6,6 +6,7 @@ import { getBookGenre, genreStyle, parseBookStructure, parseKeyChapters } from '
 import type { KeyChapterItem } from './bookGenre'
 import type { BibleBookIntro } from '../../types/bibleBookIntro'
 import { SheetGrabber } from '../common/SheetGrabber'
+import './BookIntroSheet.css'
 
 interface BookIntroSheetProps {
   intro: BibleBookIntro
@@ -32,6 +33,9 @@ interface BookIntroSheetProps {
  *  - 본문에 색을 쓰지 않는다 (금빛 볼드 대신 emphasis="plain")
  *  - 색은 장르 액센트 하나로 통일하고, 아이브로우/구조 막대/규칙선에만 얹는다
  *  - 메타(주제·저자·핵심 장)는 칩이 아니라 라벨-값 행 — 문장이 pill 안에서 갇히지 않게
+ *
+ * PC(lg+)는 좁은 세로 시트 대신 넓은 두 칸 지면(BookIntroSheet.css, bis-) — 왼쪽은 표제·책의 흐름·메타,
+ * 오른쪽은 개관 본문을 큰 글씨로. 모바일은 클래스만 붙을 뿐 지금 시트 그대로다.
  */
 const BookIntroSheet = ({
   intro,
@@ -75,7 +79,7 @@ const BookIntroSheet = ({
       role="presentation"
     >
       <div
-        className="relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col"
+        className="bis relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col"
         style={{ ...genreStyle(intro.book_number), maxHeight: 'calc(var(--vvh, 100dvh) * 0.92)' }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -111,8 +115,10 @@ const BookIntroSheet = ({
         <div
           ref={scrollRef}
           onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 24)}
-          className="flex-1 overflow-y-auto overscroll-contain px-6 pb-6"
+          className="bis-body flex-1 overflow-y-auto overscroll-contain px-6 pb-6"
         >
+          {/* 왼쪽 칸(PC) — 표제·책의 흐름·메타. 모바일에선 그냥 위에서부터 이어지는 블록 */}
+          <div className="bis-aside">
           {/* 표제 */}
           <p
             className="text-[11.5px] font-bold tracking-[0.14em]"
@@ -120,17 +126,17 @@ const BookIntroSheet = ({
           >
             {genre.label}
           </p>
-          <h2 className="mt-1 text-[27px] font-bold tracking-[-0.03em] leading-[1.2] text-ink-strong">
+          <h2 className="bis-title mt-1 text-[27px] font-bold tracking-[-0.03em] leading-[1.2] text-ink-strong">
             {bookNameKo}
           </h2>
-          <p className="mt-1.5 text-[15.5px] leading-[1.55] text-ink">{intro.one_liner}</p>
+          <p className="bis-oneliner mt-1.5 text-[15.5px] leading-[1.55] text-ink">{intro.one_liner}</p>
 
           {/* 책의 흐름 — 장 범위 막대 + 단락 목록. 탭하면 그 장으로 이동한다 */}
           {sections.length > 0 && totalChapters > 0 && (
             <section className="mt-6">
               <div className="flex items-baseline justify-between mb-2">
-                <p className="text-[12.5px] font-bold text-ink-strong">책의 흐름</p>
-                <p className="text-[11.5px] text-ink-muted tabular-nums">전체 {totalChapters}장</p>
+                <p className="bis-caption text-[12.5px] font-bold text-ink-strong">책의 흐름</p>
+                <p className="bis-caption-sub text-[11.5px] text-ink-muted tabular-nums">전체 {totalChapters}장</p>
               </div>
 
               <div className="flex gap-[3px] h-2.5" aria-hidden="true">
@@ -163,13 +169,13 @@ const BookIntroSheet = ({
                         className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl text-left transition-colors enabled:hover:bg-[var(--surface-inset)] disabled:cursor-default"
                       >
                         <span
-                          className="shrink-0 w-[68px] text-[12px] font-bold tabular-nums"
+                          className="bis-range shrink-0 w-[68px] text-[12px] font-bold tabular-nums"
                           style={{ color: isCurrent ? 'var(--genre)' : 'var(--text-muted)' }}
                         >
                           {range}
                         </span>
                         <span
-                          className={`min-w-0 flex-1 text-[14px] leading-snug ${
+                          className={`bis-flow-label min-w-0 flex-1 text-[14px] leading-snug ${
                             isCurrent ? 'font-bold text-ink-strong' : 'text-ink'
                           }`}
                         >
@@ -177,7 +183,7 @@ const BookIntroSheet = ({
                         </span>
                         {isCurrent && (
                           <span
-                            className="shrink-0 text-[10.5px] font-bold px-2 py-0.5 rounded-full"
+                            className="bis-here shrink-0 text-[10.5px] font-bold px-2 py-0.5 rounded-full"
                             style={{ background: 'var(--genre-soft)', color: 'var(--genre)' }}
                           >
                             지금 여기
@@ -201,17 +207,17 @@ const BookIntroSheet = ({
             <dl className="mt-6 space-y-2.5">
               {metaRows.map((row) => (
                 <div key={row.label} className="flex gap-3">
-                  <dt className="shrink-0 w-[62px] pt-[1px] text-[12px] font-semibold text-ink-muted">
+                  <dt className="bis-dt shrink-0 w-[62px] pt-[1px] text-[12px] font-semibold text-ink-muted">
                     {row.label}
                   </dt>
-                  <dd className="min-w-0 flex-1 text-[14px] leading-[1.6] text-ink">
+                  <dd className="bis-dd min-w-0 flex-1 text-[14px] leading-[1.6] text-ink">
                     {row.items?.length ? (
                       <ul className="space-y-1.5">
                         {row.items.map((item) => (
                           <li key={item.range} className="flex gap-2">
                             {/* 범위는 절대 쪼개지지 않게 — 이 nowrap 이 이 행의 전부다 */}
                             <span
-                              className="shrink-0 whitespace-nowrap text-[12.5px] font-bold pt-[2px]"
+                              className="bis-key-range shrink-0 whitespace-nowrap text-[12.5px] font-bold pt-[2px]"
                               style={{ color: 'var(--genre)' }}
                             >
                               {item.range}
@@ -229,10 +235,14 @@ const BookIntroSheet = ({
             </dl>
           )}
 
-          <hr className="my-6 border-0 h-px bg-[var(--genre-line)]" />
+          </div>
 
+          <hr className="bis-rule my-6 border-0 h-px bg-[var(--genre-line)]" />
+
+          {/* 오른쪽 칸(PC) — 개관 본문. 모바일에선 위 블록에 이어서 */}
+          <div className="bis-main">
           {/* 개관 본문 — 색 없이 크기·행간으로만 읽힘을 만든다 */}
-          <div className="book-intro-prose text-[15.5px] leading-[1.85] text-ink">
+          <div className="bis-prose book-intro-prose text-[15.5px] leading-[1.85] text-ink">
             <Markdown source={intro.overview} emphasis="plain" />
           </div>
 
@@ -245,13 +255,13 @@ const BookIntroSheet = ({
               }}
             >
               <p
-                className="flex items-center gap-1.5 text-[12px] font-bold mb-1.5"
+                className="bis-christ-label flex items-center gap-1.5 text-[12px] font-bold mb-1.5"
                 style={{ color: 'var(--genre)' }}
               >
                 <span className="material-icons-round text-[16px]">auto_awesome</span>
                 그리스도와의 연결
               </p>
-              <div className="book-intro-prose text-[14.5px] leading-[1.8] text-ink">
+              <div className="bis-christ book-intro-prose text-[14.5px] leading-[1.8] text-ink">
                 <Markdown source={intro.christ_connection} emphasis="plain" />
               </div>
             </section>
@@ -277,14 +287,15 @@ const BookIntroSheet = ({
               </button>
             </div>
           )}
+          </div>
         </div>
 
         {/* 푸터 — 소개를 다 읽었으면 바로 본문으로 */}
-        <div className="shrink-0 px-6 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-[var(--card-border)] bg-surface-container">
+        <div className="bis-foot shrink-0 px-6 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-[var(--card-border)] bg-surface-container">
           <button
             type="button"
             onClick={onClose}
-            className="w-full h-12 rounded-2xl bg-brand text-white text-[15px] font-bold active:scale-[0.99] transition-transform"
+            className="bis-cta w-full h-12 rounded-2xl bg-brand text-white text-[15px] font-bold active:scale-[0.99] transition-transform"
           >
             {bookNameKo} {currentChapter}장 읽기
           </button>
