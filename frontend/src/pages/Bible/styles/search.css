@@ -1193,30 +1193,32 @@
   }
 
   /* 절 결과 — 한 장의 목록 안에 '참조(+액션) | 본문' 줄 */
-  .verses-list {
+  .search-verses-list {
     border: 1px solid var(--ig-border);
     border-radius: 20px;
     background: var(--ig-primary-background);
     overflow: clip;
   }
-  [data-theme="dark"] .verses-list {
+  [data-theme="dark"] .search-verses-list {
     background: rgba(255, 255, 255, 0.03);
     border-color: rgba(255, 255, 255, 0.08);
   }
-  .verses-list .bible-verse-item.bible-verse-item--search,
-  .verses-list .bible-verse-item.bible-verse-item--search:hover,
-  .verses-list .bible-verse-item.bible-verse-item--search:active,
-  [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search,
-  [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search:hover {
+  .search-verses-list .bible-verse-item.bible-verse-item--search,
+  .search-verses-list .bible-verse-item.bible-verse-item--search:hover,
+  .search-verses-list .bible-verse-item.bible-verse-item--search:active,
+  [data-theme="dark"] .search-verses-list .bible-verse-item.bible-verse-item--search,
+  [data-theme="dark"] .search-verses-list .bible-verse-item.bible-verse-item--search:hover {
     display: grid;
     /* 액션은 참조 아래 — 오른쪽에 따로 칸을 두면 좁은 폭에서 본문 줄이 일찍 꺾인다 */
-    grid-template-columns: 8.5rem minmax(0, 1fr);
+    /* 참조 칸은 '창세기 24:67' 한 줄 폭만 — 넓으면 참조와 본문 사이가 휑하게 벌어진다.
+       '고린도전서 13:13' 처럼 긴 참조는 keep-all 로 책 이름/장절에서 꺾인다 */
+    grid-template-columns: 7rem minmax(0, 1fr);
     grid-template-rows: auto 1fr;
     grid-template-areas: 'ref text' 'act text';
-    column-gap: 1.25rem;
+    column-gap: 1.5rem;
     align-items: start;
     margin: 0;
-    padding: 1.125rem 1.25rem;
+    padding: 1rem 1.5rem;
     border: none;
     border-top: 1px solid var(--ig-border);
     border-radius: 0;
@@ -1224,28 +1226,35 @@
     box-shadow: none;
     transform: none;
   }
-  [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search,
-  [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search:hover {
+  [data-theme="dark"] .search-verses-list .bible-verse-item.bible-verse-item--search,
+  [data-theme="dark"] .search-verses-list .bible-verse-item.bible-verse-item--search:hover {
     border-top-color: rgba(255, 255, 255, 0.07);
   }
-  .verses-list .bible-verse-item.bible-verse-item--search:first-child {
+  .search-verses-list .bible-verse-item.bible-verse-item--search:first-child {
     border-top: none;
   }
-  .verses-list .search-verse-head {
+  .search-verses-list .search-verse-head {
     display: contents;
   }
-  .verses-list .bible-verse-reference {
+  .search-verses-list .bible-verse-reference {
     grid-area: ref;
-    padding-top: 0.1875rem;
+    /* 본문 첫 줄(17px × 1.8) 가운데에 맞춘다 */
+    padding-top: 0.3rem;
     line-height: 1.45;
     word-break: keep-all;
   }
-  .verses-list .search-verse-actions {
+  /* 액션은 hover 때만 보이므로 줄 높이를 거의 차지하지 않게 — 아래 음수 마진으로 줄 패딩 안에 겹쳐 둔다.
+     (이게 없으면 두 줄짜리 절 아래에 보이지 않는 버튼 높이만큼 빈 띠가 생겨 줄 간격이 들쭉날쭉해진다) */
+  .search-verses-list .search-verse-actions {
     grid-area: act;
     align-self: start;
-    margin: 0.25rem 0 -0.5rem -0.75rem;
+    margin: 0.125rem 0 -0.75rem -0.625rem;
   }
-  .verses-list .bible-verse-item--search .bible-verse-text {
+  .search-verses-list .search-verse-action {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .search-verses-list .bible-verse-item--search .bible-verse-text {
     grid-area: text;
     display: block;
     -webkit-line-clamp: unset;
@@ -1253,18 +1262,18 @@
     line-height: 1.8;
   }
   @media (hover: hover) and (pointer: fine) {
-    .verses-list .bible-verse-item.bible-verse-item--search:hover,
-    [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search:hover {
+    .search-verses-list .bible-verse-item.bible-verse-item--search:hover,
+    [data-theme="dark"] .search-verses-list .bible-verse-item.bible-verse-item--search:hover {
       background: rgba(49, 130, 246, 0.04);
       box-shadow: inset 3px 0 0 var(--brand);
     }
     /* 액션은 줄에 마우스를 올리거나 키보드로 들어왔을 때만 — 목록이 본문만으로 조용히 읽히게 */
-    .verses-list .search-verse-actions {
+    .search-verses-list .search-verse-actions {
       opacity: 0;
       transition: opacity 0.15s;
     }
-    .verses-list .bible-verse-item--search:hover .search-verse-actions,
-    .verses-list .bible-verse-item--search:focus-within .search-verse-actions {
+    .search-verses-list .bible-verse-item--search:hover .search-verse-actions,
+    .search-verses-list .bible-verse-item--search:focus-within .search-verse-actions {
       opacity: 1;
     }
   }

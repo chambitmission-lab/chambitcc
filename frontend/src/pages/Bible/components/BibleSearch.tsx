@@ -786,7 +786,7 @@ const BibleSearch = () => {
             </div>
           )}
           {/* PC — 한 장의 목록 안에 '참조 | 본문' 줄로 늘어놓아 성구 사전처럼 위에서 아래로 훑는다 */}
-          <div className="verses-list">
+          <div className="search-verses-list">
             {scopedVerses.map(verse => {
               const bookNumber = verse.book_number ?? searchResults.book_number ?? 0
               return (
