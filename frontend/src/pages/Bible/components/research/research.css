@@ -1,0 +1,330 @@
+/* 연구 모드(목회자, PC 전용) — 나란히 보기(rsc-) + 말씀 바구니 패널(rsb-).
+   BibleStudy 가 lg+ 목회자에게만 마운트한다. 색은 theme.css 토큰만 쓴다(라이트·다크 공용). */
+
+/* ── 나란히 보기 ── */
+.rsc {
+  padding: 0 0 6rem;
+}
+.rsc-tool {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0 0.5rem;
+  border-radius: 14px;
+  background: var(--brand-soft);
+}
+.rsc-tool__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.rsc-tool__hint {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.rsc-seg {
+  display: flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+}
+.rsc-seg button {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.rsc-seg button.is-on {
+  background: var(--brand);
+  color: #fff;
+  font-weight: 600;
+}
+
+.rsc-sec {
+  margin-top: 1.25rem;
+}
+.rsc-sec__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0 1rem 0.5rem;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.rsc-sec__title span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.rsc-sec__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.rsc-verse {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem 0.625rem 0.5rem;
+  border-bottom: 1px solid var(--card-border);
+  position: relative;
+}
+.rsc-verse:last-child {
+  border-bottom: 0;
+}
+.rsc-verse.is-picked {
+  background: var(--brand-soft);
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+.rsc-verse.is-omitted .rsc-verse__text {
+  color: var(--text-muted);
+}
+.rsc-verse__num {
+  flex: 0 0 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding-top: 0.2rem;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.rsc-pick {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.rsc-pick:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+.rsc-pick[aria-pressed='true'] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.rsc-pick .material-icons-round {
+  font-size: 16px;
+}
+.rsc-verse__text {
+  font-size: calc(16.5px * var(--text-mul, 1));
+  line-height: 1.75;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+
+.rsc-side {
+  border-left: 1px solid var(--card-border);
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-high);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.rsc-side__text {
+  font-size: calc(15px * var(--text-mul, 1));
+  line-height: 1.8;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.rsc-side__empty {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  padding: 0.5rem 1rem;
+}
+.rsc-cmt {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed var(--card-border);
+}
+.rsc-cmt:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.rsc-cmt__ref {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+  margin-bottom: 0.25rem;
+}
+.rsc-cmt__body {
+  font-size: calc(14.5px * var(--text-mul, 1));
+  line-height: 1.75;
+  color: var(--text-body);
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rsc-cmt__apply {
+  margin-top: 0.375rem;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ── 말씀 바구니 패널 — 해석 패널과 같은 자리·폭(--commentary-dock-w), 그보다 아래 층 ── */
+.rsb {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .rsb {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 56px;
+    right: 0;
+    bottom: 0;
+    width: var(--guide-dock-w, 360px);
+    z-index: 30;
+    background: var(--surface-container);
+    border-left: 1px solid var(--card-border);
+  }
+  .rsb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.25rem 0.75rem;
+  }
+  .rsb-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+  .rsb-title span {
+    margin-left: 0.25rem;
+    color: var(--brand);
+  }
+  .rsb-link {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: underline;
+  }
+  .rsb-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 1.25rem 1rem;
+    scrollbar-width: thin;
+  }
+  .rsb-empty {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    padding: 1rem;
+    border: 1.5px dashed var(--card-border);
+    border-radius: 14px;
+  }
+  .rsb-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .rsb-item {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.625rem 0.5rem 0.625rem 0.75rem;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+  }
+  .rsb-item__main {
+    flex: 1;
+    min-width: 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-body);
+  }
+  .rsb-item__ref {
+    font-weight: 700;
+    color: var(--brand);
+    margin-right: 0.375rem;
+    white-space: nowrap;
+  }
+  .rsb-item__acts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .rsb-item__acts button {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+  }
+  .rsb-item__acts button:hover:not(:disabled) {
+    background: var(--surface-container-high);
+    color: var(--text-strong);
+  }
+  .rsb-item__acts button:disabled {
+    opacity: 0.3;
+  }
+  .rsb-item__acts .material-icons-round {
+    font-size: 16px;
+  }
+  /* 아래 여백 — 우하단 챗봇 버튼에 버튼이 가리지 않게 */
+  .rsb-foot {
+    padding: 0.75rem 1.25rem 5.5rem;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .rsb-passage {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .rsb-passage--warn {
+    color: #d14343;
+  }
+  .rsb-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .rsb-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--surface-container-high);
+    color: var(--text-strong);
+  }
+  .rsb-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .rsb-btn--primary {
+    flex: 2;
+    background: var(--brand);
+    color: #fff;
+  }
+  .rsb-btn--ghost {
+    background: none;
+    border: 1px solid var(--card-border);
+    font-weight: 500;
+    color: var(--text-body);
+  }
+  .rsb-btn .material-icons-round {
+    font-size: 18px;
+  }
+}

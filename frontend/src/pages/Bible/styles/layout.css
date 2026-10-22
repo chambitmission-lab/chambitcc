@@ -156,6 +156,8 @@
   min-height: calc(100vh - 200px);
   /* 해석 패널 도킹 폭 — 우측 fixed 패널(400 / 1280px+ 430)과 같은 값 */
   --commentary-dock-w: 400px;
+  /* "이 장 안내"·말씀 바구니 패널 폭 — 해석보다 좁게 둬 본문 칼럼을 덜 줄인다 (ChapterGuidePanel.css · research.css) */
+  --guide-dock-w: 360px;
 }
 @media (min-width: 1280px) {
   .bible-chapter-section {
@@ -231,6 +233,13 @@
   }
   /* 도킹: 우측 패널이 셸 안으로 파고드는 만큼만 오른쪽 패딩을 더한다.
      파고듦 = 패널 폭 − 셸 바깥 오른쪽 여백((섹션 폭 − 1240) / 2). 셸이 섹션보다 좁지 않으면 0 */
+  /* 안내·바구니 패널 도킹 — 같은 계산, 폭만 --guide-dock-w.
+     해석이 그 위로 열리면(두 클래스가 함께) 아래 commentary-docked 규칙이 이긴다 — 순서 유지 */
+  .bible-chapter-section.guide-docked .bible-chapter-inner {
+    padding-right: calc(
+      1.25rem + max(0px, var(--guide-dock-w) - max(0px, calc((100% - 1240px) / 2)))
+    );
+  }
   .bible-chapter-section.commentary-docked .bible-chapter-inner {
     padding-right: calc(
       1.25rem + max(0px, var(--commentary-dock-w) - max(0px, calc((100% - 1240px) / 2)))

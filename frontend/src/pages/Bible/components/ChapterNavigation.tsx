@@ -27,6 +27,8 @@ interface ChapterNavigationProps {
   onBackToBooks: () => void
   /** 집중 읽기(한 절씩 몰입 모드) 열기 */
   onOpenFocus?: () => void
+  /** 목회자 연구 모드 — 넘겨줄 때만(PC·목회자) 버튼이 생긴다 */
+  research?: { on: boolean; onToggle: () => void }
 }
 
 const ChapterNavigation = ({
@@ -38,7 +40,8 @@ const ChapterNavigation = ({
   resumeChapter,
   onChapterChange,
   onBackToBooks,
-  onOpenFocus
+  onOpenFocus,
+  research
 }: ChapterNavigationProps) => {
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
@@ -101,6 +104,9 @@ const ChapterNavigation = ({
 
   return (
     <>
+      {/* 모바일에선 상자가 없는 래퍼(display: contents)라 두 줄이 지금처럼 따로 놓이고,
+          PC(lg+)에선 두 줄을 한 줄 sticky 바로 합친다 — chapter-navigation.css 'chapter-nav-bar' */}
+      <div className="chapter-nav-bar">
       {/* 책 정보 헤더 */}
       <div className="book-header">
         <button className="back-button" onClick={onBackToBooks}>
@@ -112,6 +118,19 @@ const ChapterNavigation = ({
             {selectedChapter}장 / {totalChapters}장
           </p>
         </div>
+        {/* 연구 모드(목회자) — 개역개정 ↔ 쉽게 풀면/해석 나란히 보기 + 말씀 바구니 */}
+        {research && (
+          <button
+            type="button"
+            className={`research-toggle${research.on ? ' is-on' : ''}`}
+            onClick={research.onToggle}
+            aria-pressed={research.on}
+            title={research.on ? '연구 모드 끄기 — 읽기로 돌아가기' : '연구 모드 — 나란히 보기·말씀 바구니'}
+          >
+            <span className="material-icons-round" aria-hidden>menu_book</span>
+            <span className="research-toggle__label">연구 모드</span>
+          </button>
+        )}
         {/* 집중 읽기 — 한 절씩 몰입해서 읽는 모드 진입 */}
         {onOpenFocus && (
           <button
@@ -168,6 +187,7 @@ const ChapterNavigation = ({
         >
           <span className="material-icons-round">chevron_right</span>
         </button>
+      </div>
       </div>
 
       {pickerOpen && (
