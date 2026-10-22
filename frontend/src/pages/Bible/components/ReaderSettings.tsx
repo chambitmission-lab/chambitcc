@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './verseCopy'
 import { isGlossaryEnabled, setGlossaryEnabled } from '../data/bibleGlossary'
 import { getReaderLayout, setReaderLayout, type ReaderLayout } from '../data/readerLayout'
@@ -103,6 +103,13 @@ const ReaderSettings = () => {
   // 함께 읽기 — 내 읽기 위치 공유 (presenceSharing 모듈이 저장·전파, VerseList 하트비트가 구독)
   const [sharingOn, setSharingOn] = useState(isPresenceSharingEnabled)
   const wrapRef = useRef<HTMLDivElement>(null)
+  // PC(lg+) 패널은 세 묶음을 옆으로 나란히 펼친다. 패널은 Aa 버튼 오른쪽 끝에 맞춰 왼쪽으로 펴지므로,
+  // 열 때 버튼 왼쪽에 남은 폭을 재서 그 안에서만 넓힌다(좁은 화면에서 왼쪽 밖으로 잘리지 않게).
+  const [panelMaxW, setPanelMaxW] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    if (!open || !wrapRef.current || !window.matchMedia('(min-width: 1024px)').matches) return
+    setPanelMaxW(Math.floor(wrapRef.current.getBoundingClientRect().right - 16))
+  }, [open])
 
   // 마운트 시(및 변경 시) 저장된 설정을 CSS 변수로 반영
   useEffect(() => {
@@ -145,7 +152,14 @@ const ReaderSettings = () => {
       </button>
 
       {open && (
-        <div className="reader-settings__panel" role="dialog" aria-label="읽기 설정">
+        <div
+          className="reader-settings__panel"
+          role="dialog"
+          aria-label="읽기 설정"
+          style={panelMaxW ? { maxWidth: panelMaxW } : undefined}
+        >
+          {/* 묶음 1 — 본문을 어떻게 보여 줄지. 모바일은 묶음 상자가 없는 것처럼(display: contents) 한 줄로 쌓인다 */}
+          <div className="reader-settings__group">
           {/* 본문 보기 — 절별 줄 / 문단으로 이어읽기 */}
           <div className="reader-settings__row">
             <span className="reader-settings__label">본문 보기</span>
@@ -261,7 +275,9 @@ const ReaderSettings = () => {
             다른 복음서로 건너가는 칩이에요.
           </p>
 
+          </div>
           <div className="reader-settings__divider" aria-hidden />
+          <div className="reader-settings__group">
 
           {/* 서체 */}
           <div className="reader-settings__row">
@@ -424,7 +440,9 @@ const ReaderSettings = () => {
             태초에 하나님이 천지를 창조하시니라
           </p>
 
+          </div>
           <div className="reader-settings__divider" aria-hidden />
+          <div className="reader-settings__group">
 
           {/* 복사 형식 — 절 액션바의 복사/공유가 만드는 문자열 모양 */}
           <div className="reader-settings__row reader-settings__row--stack">
@@ -475,6 +493,7 @@ const ReaderSettings = () => {
           <p className="reader-settings__hint">
             여러 절을 문단으로 흘릴지, 절 번호를 붙일지는 공유 버튼의 미리보기에서 바꿀 수 있어요.
           </p>
+          </div>
         </div>
       )}
     </div>

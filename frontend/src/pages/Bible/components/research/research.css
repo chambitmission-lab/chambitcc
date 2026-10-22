@@ -81,6 +81,23 @@
 .rsc-verse:last-child {
   border-bottom: 0;
 }
+.rsc-verse {
+  /* 왼쪽 레일로 이동했을 때 앱바(56) + 한 줄 바(75) 아래에 멈추게 */
+  scroll-margin-top: 140px;
+}
+/* 레일에서 고른 절 — 잠깐 노랗게 짚어 준다 */
+.rsc-verse.is-jumped {
+  animation: rsc-jumped 2.4s ease-out;
+}
+@keyframes rsc-jumped {
+  0%,
+  40% {
+    background: rgba(255, 214, 10, 0.28);
+  }
+  100% {
+    background: transparent;
+  }
+}
 .rsc-verse.is-picked {
   background: var(--brand-soft);
   box-shadow: inset 3px 0 0 var(--brand);

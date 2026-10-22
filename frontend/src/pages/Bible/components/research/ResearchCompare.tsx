@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../../types/bible'
 import { useChapterCommentaries } from '../../../../hooks/useBibleCommentary'
@@ -21,6 +21,9 @@ interface Props {
   hasNextPage: boolean
   isFetchingNextPage: boolean
   fetchNextPage: () => void
+  /** 왼쪽 레일(절 바로가기·이 장의 흐름)에서 고른 절 — 읽기 모드 VerseList 와 같은 약속 */
+  scrollToVerse?: number | null
+  onScrolled?: () => void
 }
 
 interface Section {
@@ -50,6 +53,8 @@ const ResearchCompare = ({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
+  scrollToVerse,
+  onScrolled,
 }: Props) => {
   const [mode, setMode] = useState<CompareMode>('paraphrase')
   const basket = useSyncExternalStore(subscribeBasket, getBasket)
@@ -108,6 +113,40 @@ const ResearchCompare = ({
     return list
   }, [verses, outline, bookNumber, chapter])
 
+  // 왼쪽 레일 이동 — 행에 data-verse 를 달아 두었으니 그 행으로 스크롤하고 잠깐 강조한다.
+  // 병합 절(자리표시자 행은 감춤)을 가리키면 그 절을 품은 첫 절로, 아직 안 받은 페이지면 받은 뒤에 간다
+  const rootRef = useRef<HTMLDivElement>(null)
+  // 강조 해제 타이머 — 요청을 지우면(onScrolled) 이 effect 가 다시 돌므로 effect 정리에 묶지 않는다
+  const jumpTimer = useRef<{ el: HTMLElement; id: number } | null>(null)
+  useEffect(
+    () => () => {
+      if (jumpTimer.current) window.clearTimeout(jumpTimer.current.id)
+    },
+    [],
+  )
+  useEffect(() => {
+    if (!scrollToVerse || verses.length === 0) return
+    const anchor =
+      verses.find((v) => v.verse === scrollToVerse || v.merged_verses?.includes(scrollToVerse))?.verse ??
+      null
+    if (anchor == null) {
+      // 남은 페이지가 오면 다시 시도한다. 더 받을 게 없으면 요청만 지운다
+      if (!hasNextPage && !isFetchingNextPage) onScrolled?.()
+      return
+    }
+    const el = rootRef.current?.querySelector<HTMLElement>(`[data-verse="${anchor}"]`)
+    if (!el) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' })
+    if (jumpTimer.current) {
+      window.clearTimeout(jumpTimer.current.id)
+      jumpTimer.current.el.classList.remove('is-jumped')
+    }
+    el.classList.add('is-jumped')
+    jumpTimer.current = { el, id: window.setTimeout(() => el.classList.remove('is-jumped'), 2400) }
+    onScrolled?.()
+  }, [scrollToVerse, verses, hasNextPage, isFetchingNextPage, onScrolled])
+
   const chapterParaphrase = paraphrase?.book === bookNumber ? paraphrase.data?.[chapter] : undefined
   const abbr = bookAbbrev(bookNumber, 'ko')
 
@@ -144,7 +183,7 @@ const ResearchCompare = ({
   }
 
   return (
-    <div className="rsc">
+    <div className="rsc" ref={rootRef}>
       <div className="rsc-tool">
         <span className="rsc-tool__label">나란히 보기</span>
         <div className="rsc-seg" role="tablist" aria-label="나란히 볼 내용">
@@ -185,7 +224,11 @@ const ResearchCompare = ({
                 const label = verseNumberLabel(v)
                 const omitted = isOmittedVerseText(v.text)
                 return (
-                  <div key={v.id} className={`rsc-verse${on ? ' is-picked' : ''}${omitted ? ' is-omitted' : ''}`}>
+                  <div
+                    key={v.id}
+                    data-verse={v.verse}
+                    className={`rsc-verse${on ? ' is-picked' : ''}${omitted ? ' is-omitted' : ''}`}
+                  >
                     <div className="rsc-verse__num">
                       <span>{label}</span>
                       {!omitted && (

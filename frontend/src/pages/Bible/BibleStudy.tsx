@@ -866,6 +866,8 @@ const BibleStudy = () => {
                     hasNextPage={hasNextPage || false}
                     isFetchingNextPage={isFetchingNextPage}
                     fetchNextPage={fetchNextPage}
+                    scrollToVerse={pendingScrollVerse}
+                    onScrolled={() => setPendingScrollVerse(null)}
                   />
                 ) : (
                 <VerseList
