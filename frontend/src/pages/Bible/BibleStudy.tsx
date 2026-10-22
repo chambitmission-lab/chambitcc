@@ -788,7 +788,7 @@ const BibleStudy = () => {
 
                 {/* PC 사이드바 — 성경 공부 도구 모음 */}
                 {/* 스크롤해도 도구가 따라오도록 sticky — 다른 페이지 레일과 같은 top 값 */}
-                <aside className="hidden lg:block lg:w-[312px] lg:shrink-0 lg:pt-7 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
+                <aside className="bible-tools-rail hidden lg:block lg:w-[312px] lg:shrink-0 lg:pt-7 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
                   <p className="px-1 mb-2 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
                     성경 공부 도구
                   </p>

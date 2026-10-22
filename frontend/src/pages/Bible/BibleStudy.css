@@ -15,6 +15,8 @@
 /* Book Selector - 성경 책 선택 */
 @import './styles/book-selector.css';
 @import './styles/book-journey.css';
+/* PC(lg+) 허브 다듬기 — 위 두 파일의 lg 규칙 뒤에 와야 덮인다 */
+@import './styles/hub-desktop.css';
 
 /* Chapter Navigation - 장 네비게이션 */
 @import './styles/chapter-navigation.css';
