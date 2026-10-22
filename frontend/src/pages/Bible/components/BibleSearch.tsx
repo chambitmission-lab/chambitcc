@@ -33,6 +33,17 @@ const persistRecentSearches = (keywords: string[]) => {
 
 const isScope = (v: string | null): v is SearchScope => v === 'ALL' || v === 'OLD' || v === 'NEW'
 
+// 시작 화면 '주제별 말씀' 카드 — 카드는 그 주제어로 검색, 참조는 대표 구절로 바로 이동
+interface SearchTopic {
+  word: string
+  ref: string
+  book: number
+  chapter: number
+  verse: number
+  /** 대표 구절 본문(개역개정, DB 원문 그대로) — 없으면 참조만 */
+  text?: string
+}
+
 const BibleSearch = () => {
   const { language } = useLanguage()
   const navigate = useNavigate()
@@ -200,8 +211,18 @@ const BibleSearch = () => {
         { kind: '장·절로', example: '요 3:16', hint: '약칭도 알아들어요' },
         { kind: '단어로', example: '하나님 사랑', hint: '모든 단어가 들어간 절만 찾아요' },
       ],
-      suggestedIcons: ['favorite', 'verified', 'light_mode', 'volunteer_activism', 'spa', 'local_florist', 'water_drop', 'wb_twilight'],
-      suggestedRefs: ['고전 13:4', '히 11:1', '롬 5:5', '고후 1:4', '요 14:27', '살전 5:18', '엡 2:8', '빌 4:6'],
+      topicsTitle: '주제별 말씀',
+      topicOpen: (ref: string) => `${ref} 읽기`,
+      topics: [
+        { word: '사랑', ref: '고전 13:4', book: 46, chapter: 13, verse: 4, text: '사랑은 오래 참고 사랑은 온유하며 시기하지 아니하며 사랑은 자랑하지 아니하며 교만하지 아니하며' },
+        { word: '믿음', ref: '히 11:1', book: 58, chapter: 11, verse: 1, text: '믿음은 바라는 것들의 실상이요 보이지 않는 것들의 증거니' },
+        { word: '소망', ref: '롬 5:5', book: 45, chapter: 5, verse: 5, text: '소망이 우리를 부끄럽게 하지 아니함은 우리에게 주신 성령으로 말미암아 하나님의 사랑이 우리 마음에 부은 바 됨이니' },
+        { word: '위로', ref: '고후 1:4', book: 47, chapter: 1, verse: 4, text: '우리의 모든 환난 중에서 우리를 위로하사 우리로 하여금 하나님께 받는 위로로써 모든 환난 중에 있는 자들을 능히 위로하게 하시는 이시로다' },
+        { word: '평안', ref: '요 14:27', book: 43, chapter: 14, verse: 27, text: '평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라' },
+        { word: '감사', ref: '살전 5:18', book: 52, chapter: 5, verse: 18, text: '범사에 감사하라 이것이 그리스도 예수 안에서 너희를 향하신 하나님의 뜻이니라' },
+        { word: '은혜', ref: '엡 2:8', book: 49, chapter: 2, verse: 8, text: '너희는 그 은혜에 의하여 믿음으로 말미암아 구원을 받았으니 이것은 너희에게서 난 것이 아니요 하나님의 선물이라' },
+        { word: '기도', ref: '빌 4:6', book: 50, chapter: 4, verse: 6, text: '아무 것도 염려하지 말고 다만 모든 일에 기도와 간구로, 너희 구할 것을 감사함으로 하나님께 아뢰라' },
+      ] as SearchTopic[],
       keywordHeading: (q: string) => `‘${q}’`,
       distTitle: '어디에 많이 나오나요?',
       distClear: '선택 해제',
@@ -258,8 +279,18 @@ const BibleSearch = () => {
         { kind: 'By reference', example: 'John 3:16', hint: 'Abbreviations work too' },
         { kind: 'By words', example: "God's love", hint: 'Verses containing every word' },
       ],
-      suggestedIcons: ['favorite', 'verified', 'light_mode', 'volunteer_activism', 'spa', 'water_drop', 'wb_twilight'],
-      suggestedRefs: ['1 Cor 13:4', 'Heb 11:1', 'Rom 5:5', '2 Cor 1:4', 'John 14:27', 'Eph 2:8', 'Phil 4:6'],
+      topicsTitle: 'Verses by theme',
+      topicOpen: (ref: string) => `Read ${ref}`,
+      // 본문은 한국어 성경뿐이라 영문은 참조만 보여 준다
+      topics: [
+        { word: 'love', ref: '1 Cor 13:4', book: 46, chapter: 13, verse: 4 },
+        { word: 'faith', ref: 'Heb 11:1', book: 58, chapter: 11, verse: 1 },
+        { word: 'hope', ref: 'Rom 5:5', book: 45, chapter: 5, verse: 5 },
+        { word: 'comfort', ref: '2 Cor 1:4', book: 47, chapter: 1, verse: 4 },
+        { word: 'peace', ref: 'John 14:27', book: 43, chapter: 14, verse: 27 },
+        { word: 'grace', ref: 'Eph 2:8', book: 49, chapter: 2, verse: 8 },
+        { word: 'prayer', ref: 'Phil 4:6', book: 50, chapter: 4, verse: 6 },
+      ] as SearchTopic[],
       keywordHeading: (q: string) => `“${q}”`,
       distTitle: 'Where it appears most',
       distClear: 'Clear',
@@ -538,7 +569,7 @@ const BibleSearch = () => {
     </div>
   )
 
-  // 최근 검색어·추천 키워드 칩 그룹 — 모바일 시작 화면과 PC 결과 우측 레일
+  // 최근 검색어·추천 키워드 칩 그룹 — PC 결과 화면 우측 레일
   const suggestionGroups = (
     <>
       {recentGroup}
@@ -653,48 +684,61 @@ const BibleSearch = () => {
           </div>
         )}
 
-        <div className="search-scope-filter lg:hidden zoom-narrow-show-flex" role="radiogroup" aria-label={t.scopeLabel}>
-          {scopeButtons('scope-chip')}
+        {/* 모바일 — 입력창 아래 세그먼트(PC 는 입력창 안). 범위는 보조 기능이라 칩보다 조용한 톤 */}
+        <div
+          className="search-scope-filter search-scope-seg lg:hidden zoom-narrow-show-flex"
+          role="radiogroup"
+          aria-label={t.scopeLabel}
+        >
+          {scopeButtons('search-scope-seg__btn')}
         </div>
       </form>
 
-      {/* 시작 화면 — 최근·추천 칩. 결과를 보는 중엔 같은 블록이 PC 레일로 옮겨 간다 */}
-      {isHome && <div className="search-suggestions lg:hidden">{suggestionGroups}</div>}
-
-      {/* PC 시작 화면 — 찾는 방법 예시 카드 + 최근 검색어 + 추천 키워드 타일 */}
+      {/* 시작 화면(모바일·PC 공통) — 찾는 방법 + 최근 검색어 + 주제별 말씀.
+          결과를 보는 중엔 최근·추천 칩이 PC 우측 레일로 옮겨 간다 */}
       {isHome && (
-        <div className="search-hero hidden lg:block">
-          <div className="search-ways" role="group" aria-label={t.waysLabel}>
-            {t.ways.map(w => (
-              <button key={w.kind} type="button" className="search-way" onClick={() => runSearch(w.example)}>
-                <span className="search-way__kind">{w.kind}</span>
-                <span className="search-way__example">
-                  {w.example}
-                  <span className="material-icons-round" aria-hidden="true">arrow_forward</span>
-                </span>
-                <span className="search-way__hint">{w.hint}</span>
-              </button>
-            ))}
-          </div>
-          {recentGroup}
-          <div className="search-chip-group">
+        <div className="search-hero">
+          <section className="search-chip-group">
             <div className="search-chip-group-header">
-              <span>{t.recommendedKeywords}</span>
+              <span>{t.waysLabel}</span>
             </div>
-            <div className="search-topics">
-              {t.suggestedKeywords.map((kw, i) => (
-                <button key={kw} type="button" className="search-topic" onClick={() => runSearch(kw)}>
-                  <span className="search-topic__icon" aria-hidden="true">
-                    <span className="material-icons-round">{t.suggestedIcons[i]}</span>
-                  </span>
-                  <span className="search-topic__body">
-                    <span className="search-topic__word">{kw}</span>
-                    <span className="search-topic__ref">{t.suggestedRefs[i]}</span>
-                  </span>
+            <div className="search-ways" role="group" aria-label={t.waysLabel}>
+              {t.ways.map(w => (
+                <button key={w.kind} type="button" className="search-way" onClick={() => runSearch(w.example)}>
+                  <span className="search-way__kind">{w.kind}</span>
+                  <span className="search-way__example">{w.example}</span>
+                  <span className="search-way__hint">{w.hint}</span>
+                  <span className="search-way__arrow material-icons-round" aria-hidden="true">arrow_forward</span>
                 </button>
               ))}
             </div>
-          </div>
+          </section>
+          {recentGroup}
+          <section className="search-chip-group">
+            <div className="search-chip-group-header">
+              <span>{t.topicsTitle}</span>
+            </div>
+            <div className="search-topics">
+              {t.topics.map(topic => (
+                // 카드 = 주제어 검색, 오른쪽 위 참조 = 대표 구절로 바로 이동(버튼 중첩을 피해 형제로 겹쳐 둔다)
+                <div key={topic.word} className="search-topic">
+                  <button type="button" className="search-topic__main" onClick={() => runSearch(topic.word)}>
+                    <span className="search-topic__word">{topic.word}</span>
+                    {topic.text && <span className="search-topic__text">{topic.text}</span>}
+                  </button>
+                  <button
+                    type="button"
+                    className="search-topic__ref"
+                    aria-label={t.topicOpen(topic.ref)}
+                    onClick={() => goToChapter(topic.book, topic.chapter, topic.verse)}
+                  >
+                    {topic.ref}
+                    <span className="material-icons-round" aria-hidden="true">chevron_right</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       )}
 

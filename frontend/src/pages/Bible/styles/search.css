@@ -22,7 +22,7 @@
 
 .search-input-wrapper {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   background: var(--ig-primary-background);
   border: 2px solid var(--ig-border);
   border-radius: 16px;
@@ -52,7 +52,7 @@
 .search-input {
   flex: 1 1 0;
   min-width: 0;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1rem 0.75rem 0.5rem;
   border: none;
   background: transparent;
   font-size: 1rem;
@@ -99,7 +99,7 @@
 /* 롤링 플레이스홀더 — 입력이 비어 있을 때 검색 예시를 순차 노출 */
 .search-placeholder-rolling {
   position: absolute;
-  left: 1rem;
+  left: 0.5rem;
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
@@ -172,13 +172,6 @@
 }
 
 /* 최근 검색어 · 추천 키워드 */
-.search-suggestions {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
 .search-chip-group-header {
   display: flex;
   align-items: center;
@@ -279,16 +272,12 @@
   padding: 0 0.875rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--ig-secondary-text);
+  color: var(--ig-primary-text);
   cursor: pointer;
-  border-color: rgba(49, 130, 246, 0.14);
-  background: rgba(49, 130, 246, 0.035);
 }
 
 [data-theme="dark"] .search-chip--suggest {
-  color: var(--ig-secondary-text);
-  background: rgba(49, 130, 246, 0.06);
-  border-color: rgba(49, 130, 246, 0.14);
+  color: var(--ig-primary-text);
 }
 
 @media (hover: hover) {
@@ -800,6 +789,227 @@
   }
 }
 
+/* ── 입력창 돋보기 · 범위 세그먼트 (모바일·PC 공통) ───────────────
+   돋보기는 마크업을 늘리지 않고 의사 요소로. 범위는 보조 기능이라 파란 칩 대신 조용한 세그먼트 —
+   PC 는 입력창 안, 모바일은 입력창 아래. display 는 Tailwind(hidden/lg:flex)에 맡긴다 */
+.search-input-wrapper::before {
+  content: 'search';
+  font-family: 'Material Icons Round';
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  font-size: 1.25rem;
+  line-height: 1;
+  align-self: center;
+  padding-left: 0.75rem;
+  color: var(--brand);
+}
+
+.search-scope-seg {
+  flex-shrink: 0;
+  align-self: center;
+  gap: 2px;
+  padding: 3px;
+  margin-right: 0.25rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.045);
+}
+[data-theme="dark"] .search-scope-seg {
+  background: rgba(255, 255, 255, 0.06);
+}
+/* 모바일 — 입력창 아래 줄. 폭은 버튼만큼만 */
+.search-scope-filter.search-scope-seg {
+  width: fit-content;
+  margin: 0.625rem 0 0;
+}
+.search-scope-seg__btn {
+  height: 2.125rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+@media (hover: hover) {
+  .search-scope-seg__btn:hover {
+    color: var(--ig-primary-text);
+  }
+}
+.search-scope-seg__btn--active,
+.search-scope-seg__btn--active:hover {
+  background: var(--ig-primary-background);
+  color: var(--ig-primary-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+[data-theme="dark"] .search-scope-seg__btn--active {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ── 시작 화면 (모바일·PC 공통) — 찾는 방법 · 최근 검색어 · 주제별 말씀 ──
+   모바일은 찾는 방법을 한 장의 목록(줄 3개), 주제별 말씀은 2열. PC 는 아래 lg 블록이 3열 카드·4열로 편다 */
+.search-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 1rem 0 2rem;
+}
+
+.search-ways {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ig-border);
+  border-radius: 16px;
+  background: var(--ig-primary-background);
+  overflow: hidden;
+}
+[data-theme="dark"] .search-ways {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.search-way {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'example example arrow' 'kind hint arrow';
+  align-items: center;
+  column-gap: 0.25rem;
+  row-gap: 0.125rem;
+  padding: 0.875rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.search-way + .search-way {
+  border-top: 1px solid var(--ig-border);
+}
+[data-theme="dark"] .search-way + .search-way {
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+.search-way:active {
+  background: rgba(49, 130, 246, 0.06);
+}
+.search-way__kind {
+  grid-area: kind;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--brand);
+}
+/* 모바일 한 줄 요약 — '책 이름으로 · 장 목록이 바로 펼쳐져요' */
+.search-way__kind::after {
+  content: ' ·';
+  color: var(--ig-secondary-text);
+}
+.search-way__example {
+  grid-area: example;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+}
+.search-way__hint {
+  grid-area: hint;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+}
+.search-way__arrow.material-icons-round {
+  grid-area: arrow;
+  font-size: 1.125rem;
+  color: var(--brand);
+}
+
+.search-topics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+.search-topic {
+  position: relative;
+  border: 1px solid var(--ig-border);
+  border-radius: 16px;
+  background: var(--ig-primary-background);
+  transition: border-color 0.15s, transform 0.15s;
+}
+[data-theme="dark"] .search-topic {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+@media (hover: hover) {
+  .search-topic:hover,
+  [data-theme="dark"] .search-topic:hover {
+    border-color: var(--brand);
+  }
+  .search-way:hover {
+    background: rgba(49, 130, 246, 0.04);
+  }
+}
+.search-topic__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.875rem 0.875rem 1rem;
+  border: none;
+  border-radius: inherit;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.search-topic__main:active {
+  background: rgba(49, 130, 246, 0.05);
+}
+.search-topic__word {
+  /* 오른쪽 위 참조 버튼 자리 */
+  padding-right: 4.75rem;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ig-primary-text);
+}
+.search-topic__text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  word-break: keep-all;
+  color: var(--text-body, var(--ig-secondary-text));
+}
+.search-topic__ref {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  height: 1.75rem;
+  padding: 0 0.25rem 0 0.5rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--brand-soft, rgba(49, 130, 246, 0.08));
+  color: var(--brand);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.search-topic__ref .material-icons-round {
+  font-size: 1rem;
+}
+@media (hover: hover) {
+  .search-topic__ref:hover {
+    background: rgba(49, 130, 246, 0.16);
+  }
+}
+
 /* ── PC(lg+) 노안 패스 ─────────────────────────────────────────
    읽기 화면(verse-display.css 끝 lg 블록)과 같은 문법 — zoom 이 아니라 글자 크기에 헤더 '가'
    배율(--text-mul, 1 · 1.1 · 1.2)을 곱한다. 결과 카드는 2열 그리드라 본문은 읽기 화면(19px)보다
@@ -941,63 +1151,22 @@
 @media (min-width: 1024px) {
   /* 모바일 전용 블록 — 이 파일의 display 규칙이 Tailwind lg:hidden 보다 뒤에 번들돼 이기므로 여기서 직접 감춘다.
      좁은 zoom 폭에선 common.css 의 .zoom-narrow-show-flex(특정도 더 높음)가 범위 칩 줄을 다시 편다 */
-  .search-form .search-scope-filter,
-  .bible-search-section .search-suggestions {
+  .search-form .search-scope-filter {
     display: none;
   }
 
-  /* 입력창 왼쪽 돋보기 — 마크업을 늘리지 않고 의사 요소로 */
   .search-input-wrapper::before {
-    content: 'search';
-    font-family: 'Material Icons Round';
-    font-feature-settings: 'liga';
-    -webkit-font-feature-settings: 'liga';
     font-size: 1.5rem;
-    line-height: 1;
-    align-self: center;
-    padding-left: 0.75rem;
-    color: var(--brand);
   }
-  .search-input-wrapper {
-    gap: 0.25rem;
+  .search-placeholder-rolling {
+    left: 1.125rem;
   }
 
-  /* 범위 — 입력창 안 세그먼트 */
-  .search-scope-seg {
-    flex-shrink: 0;
-    align-self: center;
-    gap: 2px;
-    padding: 3px;
-    margin-right: 0.25rem;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.045);
-  }
-  [data-theme="dark"] .search-scope-seg {
-    background: rgba(255, 255, 255, 0.06);
-  }
+  /* 범위 세그먼트 — 입력창 안 */
   .search-scope-seg__btn {
     height: 2.375rem;
     padding: 0 0.9375rem;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
-    color: var(--ig-secondary-text);
     font-size: calc(0.9375rem * var(--text-mul, 1));
-    font-weight: 600;
-    cursor: pointer;
-    transition: color 0.15s, background 0.15s;
-  }
-  .search-scope-seg__btn:hover {
-    color: var(--ig-primary-text);
-  }
-  .search-scope-seg__btn--active,
-  .search-scope-seg__btn--active:hover {
-    background: var(--ig-primary-background);
-    color: var(--ig-primary-text);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  }
-  [data-theme="dark"] .search-scope-seg__btn--active {
-    background: rgba(255, 255, 255, 0.14);
   }
 
   /* 시작 화면 — 히어로 */
@@ -1038,102 +1207,69 @@
   .search-hero {
     max-width: 760px;
     margin: 1.75rem auto 3rem;
+    gap: 2rem;
   }
-  .search-hero > * + * {
-    margin-top: 2rem;
-  }
-  .search-ways {
+  .search-ways,
+  [data-theme="dark"] .search-ways {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.75rem;
+    border: none;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
   }
   .search-way,
-  .search-topic {
+  .search-way + .search-way {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'kind kind' 'example arrow' 'hint hint';
+    row-gap: 0.1875rem;
+    padding: 1rem 1.125rem;
     border: 1px solid var(--ig-border);
+    border-radius: 16px;
     background: var(--ig-primary-background);
-    text-align: left;
-    cursor: pointer;
-    transition: border-color 0.15s, transform 0.15s;
   }
   [data-theme="dark"] .search-way,
-  [data-theme="dark"] .search-topic {
+  [data-theme="dark"] .search-way + .search-way {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.08);
   }
-  .search-way:hover,
-  .search-topic:hover,
-  [data-theme="dark"] .search-way:hover,
-  [data-theme="dark"] .search-topic:hover {
-    border-color: var(--brand);
-    transform: translateY(-2px);
-  }
-  .search-way {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1875rem;
-    padding: 1rem 1.125rem;
-    border-radius: 16px;
-  }
   .search-way__kind {
     font-size: calc(0.8125rem * var(--text-mul, 1));
-    font-weight: 600;
-    color: var(--ig-secondary-text);
+  }
+  .search-way__kind::after {
+    content: none;
   }
   .search-way__example {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
     font-size: calc(1.125rem * var(--text-mul, 1));
-    font-weight: 700;
-    color: var(--ig-primary-text);
-  }
-  .search-way__example .material-icons-round {
-    margin-left: auto;
-    font-size: 1.125rem;
-    color: var(--brand);
   }
   .search-way__hint {
     font-size: calc(0.84375rem * var(--text-mul, 1));
-    color: var(--ig-secondary-text);
   }
+  .search-way:hover,
+  .search-topic:hover {
+    transform: translateY(-2px);
+  }
+
   .search-topics {
-    display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.625rem;
-  }
-  .search-topic {
-    display: flex;
-    align-items: center;
     gap: 0.75rem;
-    padding: 0.875rem;
-    border-radius: 14px;
   }
-  .search-topic__icon {
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 12px;
-    background: var(--brand-soft, rgba(49, 130, 246, 0.08));
-    color: var(--brand);
-  }
-  .search-topic__icon .material-icons-round {
-    font-size: 1.25rem;
-  }
-  .search-topic__body {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+  .search-topic__main {
+    gap: 0.5rem;
+    padding: 1.125rem 1.125rem 1.25rem;
   }
   .search-topic__word {
-    font-size: calc(1.0625rem * var(--text-mul, 1));
-    font-weight: 700;
-    color: var(--ig-primary-text);
+    font-size: calc(1.125rem * var(--text-mul, 1));
+  }
+  .search-topic__text {
+    font-size: calc(0.875rem * var(--text-mul, 1));
   }
   .search-topic__ref {
+    top: 0.875rem;
+    right: 0.75rem;
+    height: 2rem;
     font-size: calc(0.8125rem * var(--text-mul, 1));
-    color: var(--ig-secondary-text);
   }
 
   /* 타이핑 중 책 제안 — 칩 줄 대신 입력창 아래 드롭다운 */

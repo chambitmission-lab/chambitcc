@@ -16,7 +16,7 @@ const BibleHeader = ({ tab = 'read' }: BibleHeaderProps) => {
   const icon = tab === 'search' ? 'search' : 'auto_stories'
 
   return (
-    <div className="bible-study-header flex items-center justify-between">
+    <div className={`bible-study-header${tab === 'search' ? ' bible-study-header--search' : ''} flex items-center justify-between`}>
       <h1 className="bible-study-title">
         <span className="material-icons-round">{icon}</span>
         {title}

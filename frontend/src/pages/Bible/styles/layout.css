@@ -21,6 +21,12 @@
   z-index: 10;
 }
 
+/* 검색 탭 — 아래 검색 화면과 같은 바탕색으로 이어 흰 띠 + 회색 본문 두 겹으로 갈리지 않게 */
+.bible-study-header--search {
+  background: var(--ig-secondary-background);
+  border-bottom: none;
+}
+
 .bible-study-title {
   display: flex;
   align-items: center;
