@@ -933,3 +933,447 @@
     font-size: calc(1rem * var(--text-mul, 1));
   }
 }
+
+/* ── PC(lg+) 스포트라이트 레이아웃 ─────────────────────────────
+   시작 화면: 가운데 큰 검색창 + 찾는 방법 예시 + 최근·추천. 결과 화면: 위에 붙어 따라오는 검색창,
+   '참조 | 본문' 줄 목록, 우측 레일의 책별 분포 막대. 위 노안 패스 블록보다 뒤에 둬야 이긴다.
+   모바일은 이 블록과 무관하게 위 규칙 그대로. */
+@media (min-width: 1024px) {
+  /* 모바일 전용 블록 — 이 파일의 display 규칙이 Tailwind lg:hidden 보다 뒤에 번들돼 이기므로 여기서 직접 감춘다.
+     좁은 zoom 폭에선 common.css 의 .zoom-narrow-show-flex(특정도 더 높음)가 범위 칩 줄을 다시 편다 */
+  .search-form .search-scope-filter,
+  .bible-search-section .search-suggestions {
+    display: none;
+  }
+
+  /* 입력창 왼쪽 돋보기 — 마크업을 늘리지 않고 의사 요소로 */
+  .search-input-wrapper::before {
+    content: 'search';
+    font-family: 'Material Icons Round';
+    font-feature-settings: 'liga';
+    -webkit-font-feature-settings: 'liga';
+    font-size: 1.5rem;
+    line-height: 1;
+    align-self: center;
+    padding-left: 0.75rem;
+    color: var(--brand);
+  }
+  .search-input-wrapper {
+    gap: 0.25rem;
+  }
+
+  /* 범위 — 입력창 안 세그먼트 */
+  .search-scope-seg {
+    flex-shrink: 0;
+    align-self: center;
+    gap: 2px;
+    padding: 3px;
+    margin-right: 0.25rem;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.045);
+  }
+  [data-theme="dark"] .search-scope-seg {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .search-scope-seg__btn {
+    height: 2.375rem;
+    padding: 0 0.9375rem;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--ig-secondary-text);
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+  }
+  .search-scope-seg__btn:hover {
+    color: var(--ig-primary-text);
+  }
+  .search-scope-seg__btn--active,
+  .search-scope-seg__btn--active:hover {
+    background: var(--ig-primary-background);
+    color: var(--ig-primary-text);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+  [data-theme="dark"] .search-scope-seg__btn--active {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  /* 시작 화면 — 히어로 */
+  .search-hero-title {
+    margin: 2.25rem 0 1.5rem;
+    text-align: center;
+    font-size: calc(2rem * var(--text-mul, 1));
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    color: var(--ig-primary-text);
+  }
+  .search-form--hero {
+    /* 시작 화면엔 따라올 결과가 없으므로 sticky 를 푼다 — 드롭다운 기준점으로 relative 만 남긴다 */
+    position: relative;
+    top: auto;
+    max-width: 760px;
+    margin: 0 auto;
+    background: transparent;
+  }
+  .search-form--hero .search-input-wrapper {
+    border-width: 1px;
+    border-radius: 20px;
+    padding: 0.5rem;
+    box-shadow: 0 1px 2px rgba(24, 26, 40, 0.06), 0 14px 34px -16px rgba(24, 26, 40, 0.24);
+  }
+  .search-form--hero .search-input-wrapper:focus-within {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.14), 0 14px 34px -16px rgba(24, 26, 40, 0.24);
+  }
+  .search-form--hero .search-input {
+    font-size: calc(1.25rem * var(--text-mul, 1));
+    font-weight: 600;
+  }
+  .search-form--hero .search-placeholder-rolling {
+    font-size: calc(1.1875rem * var(--text-mul, 1));
+  }
+
+  .search-hero {
+    max-width: 760px;
+    margin: 1.75rem auto 3rem;
+  }
+  .search-hero > * + * {
+    margin-top: 2rem;
+  }
+  .search-ways {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .search-way,
+  .search-topic {
+    border: 1px solid var(--ig-border);
+    background: var(--ig-primary-background);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  [data-theme="dark"] .search-way,
+  [data-theme="dark"] .search-topic {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .search-way:hover,
+  .search-topic:hover,
+  [data-theme="dark"] .search-way:hover,
+  [data-theme="dark"] .search-topic:hover {
+    border-color: var(--brand);
+    transform: translateY(-2px);
+  }
+  .search-way {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1875rem;
+    padding: 1rem 1.125rem;
+    border-radius: 16px;
+  }
+  .search-way__kind {
+    font-size: calc(0.8125rem * var(--text-mul, 1));
+    font-weight: 600;
+    color: var(--ig-secondary-text);
+  }
+  .search-way__example {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: calc(1.125rem * var(--text-mul, 1));
+    font-weight: 700;
+    color: var(--ig-primary-text);
+  }
+  .search-way__example .material-icons-round {
+    margin-left: auto;
+    font-size: 1.125rem;
+    color: var(--brand);
+  }
+  .search-way__hint {
+    font-size: calc(0.84375rem * var(--text-mul, 1));
+    color: var(--ig-secondary-text);
+  }
+  .search-topics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.625rem;
+  }
+  .search-topic {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    border-radius: 14px;
+  }
+  .search-topic__icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    background: var(--brand-soft, rgba(49, 130, 246, 0.08));
+    color: var(--brand);
+  }
+  .search-topic__icon .material-icons-round {
+    font-size: 1.25rem;
+  }
+  .search-topic__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .search-topic__word {
+    font-size: calc(1.0625rem * var(--text-mul, 1));
+    font-weight: 700;
+    color: var(--ig-primary-text);
+  }
+  .search-topic__ref {
+    font-size: calc(0.8125rem * var(--text-mul, 1));
+    color: var(--ig-secondary-text);
+  }
+
+  /* 타이핑 중 책 제안 — 칩 줄 대신 입력창 아래 드롭다운 */
+  .search-typeahead {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% - 0.25rem);
+    z-index: 20;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    margin: 0;
+    padding: 0.5rem;
+    border: 1px solid var(--ig-border);
+    border-radius: 16px;
+    background: var(--ig-primary-background);
+    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.28);
+  }
+  [data-theme="dark"] .search-typeahead {
+    background: var(--surface-container-high, #22202a);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .search-typeahead-label {
+    padding: 0.375rem 0.625rem 0.25rem;
+    margin: 0;
+  }
+  .search-typeahead .search-chip--suggest,
+  [data-theme="dark"] .search-typeahead .search-chip--suggest {
+    justify-content: flex-start;
+    height: auto;
+    min-height: 44px;
+    padding: 0 0.75rem;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ig-primary-text);
+    font-size: calc(1.0625rem * var(--text-mul, 1));
+  }
+  .search-typeahead .search-chip--suggest:hover,
+  [data-theme="dark"] .search-typeahead .search-chip--suggest:hover {
+    background: rgba(49, 130, 246, 0.1);
+    color: var(--brand);
+  }
+
+  /* 결과 헤딩 — 검색어를 제목으로 */
+  .results-count {
+    margin: 0.5rem 0.25rem 1rem;
+    font-size: calc(1.5rem * var(--text-mul, 1));
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--ig-primary-text);
+  }
+  .results-count em {
+    font-style: normal;
+    color: var(--brand);
+  }
+
+  /* 절 결과 — 한 장의 목록 안에 '참조(+액션) | 본문' 줄 */
+  .verses-list {
+    border: 1px solid var(--ig-border);
+    border-radius: 20px;
+    background: var(--ig-primary-background);
+    overflow: clip;
+  }
+  [data-theme="dark"] .verses-list {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .verses-list .bible-verse-item.bible-verse-item--search,
+  .verses-list .bible-verse-item.bible-verse-item--search:hover,
+  .verses-list .bible-verse-item.bible-verse-item--search:active,
+  [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search,
+  [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search:hover {
+    display: grid;
+    /* 액션은 참조 아래 — 오른쪽에 따로 칸을 두면 좁은 폭에서 본문 줄이 일찍 꺾인다 */
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 'ref text' 'act text';
+    column-gap: 1.25rem;
+    align-items: start;
+    margin: 0;
+    padding: 1.125rem 1.25rem;
+    border: none;
+    border-top: 1px solid var(--ig-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+  }
+  [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search,
+  [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search:hover {
+    border-top-color: rgba(255, 255, 255, 0.07);
+  }
+  .verses-list .bible-verse-item.bible-verse-item--search:first-child {
+    border-top: none;
+  }
+  .verses-list .search-verse-head {
+    display: contents;
+  }
+  .verses-list .bible-verse-reference {
+    grid-area: ref;
+    padding-top: 0.1875rem;
+    line-height: 1.45;
+    word-break: keep-all;
+  }
+  .verses-list .search-verse-actions {
+    grid-area: act;
+    align-self: start;
+    margin: 0.25rem 0 -0.5rem -0.75rem;
+  }
+  .verses-list .bible-verse-item--search .bible-verse-text {
+    grid-area: text;
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+    line-height: 1.8;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .verses-list .bible-verse-item.bible-verse-item--search:hover,
+    [data-theme="dark"] .verses-list .bible-verse-item.bible-verse-item--search:hover {
+      background: rgba(49, 130, 246, 0.04);
+      box-shadow: inset 3px 0 0 var(--brand);
+    }
+    /* 액션은 줄에 마우스를 올리거나 키보드로 들어왔을 때만 — 목록이 본문만으로 조용히 읽히게 */
+    .verses-list .search-verse-actions {
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .verses-list .bible-verse-item--search:hover .search-verse-actions,
+    .verses-list .bible-verse-item--search:focus-within .search-verse-actions {
+      opacity: 1;
+    }
+  }
+
+  /* 책 카드 여러 권 — 2열 */
+  .search-book-list--multi {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: start;
+  }
+  .search-book-list--multi > .search-notice {
+    grid-column: 1 / -1;
+  }
+
+  /* 우측 레일 패널 */
+  .search-rail-panel {
+    --chip-height: 2.375rem;
+    padding: 1rem;
+    border: 1px solid var(--ig-border);
+    border-radius: 18px;
+    background: var(--ig-primary-background);
+  }
+  [data-theme="dark"] .search-rail-panel {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .search-rail-panel .search-chip-group + .search-chip-group {
+    margin-top: 1.25rem;
+  }
+
+  /* 책별 분포 막대 — 많은 순, 누르면 그 책으로 좁힌다 */
+  .search-dist {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .search-dist__row {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr) 2.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.375rem;
+    padding: 0 0.5rem;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--ig-primary-text);
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .search-dist__row:hover {
+    background: rgba(128, 128, 128, 0.08);
+  }
+  .search-dist__row--active,
+  .search-dist__row--active:hover {
+    background: var(--brand-soft-strong, rgba(49, 130, 246, 0.15));
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .search-dist__name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .search-dist__bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(128, 128, 128, 0.14);
+    overflow: hidden;
+  }
+  .search-dist__bar i {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--brand);
+    opacity: 0.75;
+  }
+  .search-dist__count {
+    text-align: right;
+    font-size: calc(0.8125rem * var(--text-mul, 1));
+    color: var(--ig-secondary-text);
+    font-variant-numeric: tabular-nums;
+  }
+  .search-dist__row--active .search-dist__count {
+    color: var(--brand);
+  }
+  .search-dist__more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    width: 100%;
+    min-height: 2.5rem;
+    margin-top: 0.25rem;
+    border: none;
+    border-radius: 9px;
+    background: none;
+    color: var(--brand);
+    font-size: calc(0.875rem * var(--text-mul, 1));
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .search-dist__more:hover {
+    background: rgba(49, 130, 246, 0.08);
+  }
+  .search-dist__more .material-icons-round {
+    font-size: 1.125rem;
+  }
+}

@@ -84,6 +84,8 @@ const BibleSearch = () => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   // 책 퀵 피커가 열려 있으면 그 트리거가 된 책의 book_number, 닫혀 있으면 null
   const [pickerFor, setPickerFor] = useState<number | null>(null)
+  // PC 우측 레일 책별 분포 — 기본은 많은 순 상위 몇 권만, 펼치면 전부
+  const [distExpanded, setDistExpanded] = useState(false)
   // 결과 목록 끝에 두는 무한 스크롤 감지용 센티널
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
@@ -191,6 +193,20 @@ const BibleSearch = () => {
       searchFailedHint: '연결 상태를 확인하고 다시 시도해 주세요',
       retry: '다시 시도',
       bookFound: '해당 책을 찾았습니다',
+      heroTitle: '어떤 말씀을 찾고 계세요?',
+      waysLabel: '찾는 방법',
+      ways: [
+        { kind: '책 이름으로', example: '고린도전서', hint: '장 목록이 바로 펼쳐져요' },
+        { kind: '장·절로', example: '요 3:16', hint: '약칭도 알아들어요' },
+        { kind: '단어로', example: '하나님 사랑', hint: '모든 단어가 들어간 절만 찾아요' },
+      ],
+      suggestedIcons: ['favorite', 'verified', 'light_mode', 'volunteer_activism', 'spa', 'local_florist', 'water_drop', 'wb_twilight'],
+      suggestedRefs: ['고전 13:4', '히 11:1', '롬 5:5', '고후 1:4', '요 14:27', '살전 5:18', '엡 2:8', '빌 4:6'],
+      keywordHeading: (q: string) => `‘${q}’`,
+      distTitle: '어디에 많이 나오나요?',
+      distClear: '선택 해제',
+      distMore: (n: number) => `${n}권 더 보기`,
+      distLess: '접기',
     },
     en: {
       searchAria: 'Bible search — book name, book+chapter, or keyword',
@@ -235,6 +251,20 @@ const BibleSearch = () => {
       searchFailedHint: 'Check your connection and try again',
       retry: 'Try again',
       bookFound: 'Book found',
+      heroTitle: 'What are you looking for?',
+      waysLabel: 'Ways to search',
+      ways: [
+        { kind: 'By book', example: '1 Corinthians', hint: 'Opens the chapter list' },
+        { kind: 'By reference', example: 'John 3:16', hint: 'Abbreviations work too' },
+        { kind: 'By words', example: "God's love", hint: 'Verses containing every word' },
+      ],
+      suggestedIcons: ['favorite', 'verified', 'light_mode', 'volunteer_activism', 'spa', 'water_drop', 'wb_twilight'],
+      suggestedRefs: ['1 Cor 13:4', 'Heb 11:1', 'Rom 5:5', '2 Cor 1:4', 'John 14:27', 'Eph 2:8', 'Phil 4:6'],
+      keywordHeading: (q: string) => `“${q}”`,
+      distTitle: 'Where it appears most',
+      distClear: 'Clear',
+      distMore: (n: number) => `${n} more books`,
+      distLess: 'Show less',
     }
   }
 
@@ -479,36 +509,39 @@ const BibleSearch = () => {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, loadedVerses.length])
 
-  // 최근 검색어·추천 키워드 칩 그룹 — 시작 화면 본문과 PC 우측 레일이 같은 마크업을 쓴다
+  // 최근 검색어 칩 그룹 — 모바일 시작 화면·PC 시작 화면(히어로)·PC 결과 레일이 같은 마크업을 쓴다
+  const recentGroup = recentSearches.length > 0 && (
+    <div className="search-chip-group">
+      <div className="search-chip-group-header">
+        <span>{t.recentSearches}</span>
+        <button type="button" className="search-chip-clear" onClick={clearRecentSearches}>
+          {t.clearAll}
+        </button>
+      </div>
+      <div className="search-chip-list">
+        {recentSearches.map(kw => (
+          <span key={kw} className="search-chip">
+            <button type="button" className="search-chip-label" onClick={() => runSearch(kw)}>
+              {kw}
+            </button>
+            <button
+              type="button"
+              className="search-chip-remove"
+              aria-label={`${t.removeRecent}: ${kw}`}
+              onClick={() => removeRecentSearch(kw)}
+            >
+              <span className="material-icons-round">close</span>
+            </button>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+
+  // 최근 검색어·추천 키워드 칩 그룹 — 모바일 시작 화면과 PC 결과 우측 레일
   const suggestionGroups = (
     <>
-      {recentSearches.length > 0 && (
-        <div className="search-chip-group">
-          <div className="search-chip-group-header">
-            <span>{t.recentSearches}</span>
-            <button type="button" className="search-chip-clear" onClick={clearRecentSearches}>
-              {t.clearAll}
-            </button>
-          </div>
-          <div className="search-chip-list">
-            {recentSearches.map(kw => (
-              <span key={kw} className="search-chip">
-                <button type="button" className="search-chip-label" onClick={() => runSearch(kw)}>
-                  {kw}
-                </button>
-                <button
-                  type="button"
-                  className="search-chip-remove"
-                  aria-label={`${t.removeRecent}: ${kw}`}
-                  onClick={() => removeRecentSearch(kw)}
-                >
-                  <span className="material-icons-round">close</span>
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      {recentGroup}
 
       <div className="search-chip-group">
         <div className="search-chip-group-header">
@@ -530,13 +563,36 @@ const BibleSearch = () => {
     </>
   )
 
+  // 범위 버튼 — 모바일은 입력창 아래 칩 줄, PC는 입력창 안 세그먼트. 같은 radiogroup 을 두 자리에 그린다
+  const scopeButtons = (className: string) =>
+    (['ALL', 'OLD', 'NEW'] as const).map(sc => (
+      <button
+        key={sc}
+        type="button"
+        role="radio"
+        aria-checked={scope === sc}
+        className={`${className}${scope === sc ? ` ${className}--active` : ''}`}
+        onClick={() => setScope(sc)}
+      >
+        {sc === 'ALL' ? t.scopeAll : sc === 'OLD' ? t.scopeOld : t.scopeNew}
+      </button>
+    ))
+
+  const isHome = !searchQuery
+  // PC 레일 분포 막대 — 가장 많은 책 기준 비율
+  const distMax = bookCounts[0]?.count ?? 1
+  const DIST_COLLAPSED = 8
+  const distShown = distExpanded ? bookCounts : bookCounts.slice(0, DIST_COLLAPSED)
+
   return (
     <div className="bible-search-section">
-      {/* lg+: 본문(검색·결과) + 우측 레일(범위·최근·추천). 레일 덕분에 결과를 보는
-          중에도 최근 검색어로 바로 갈아탈 수 있다 — 모바일에선 이 래퍼가 그냥 스택 */}
+      {/* lg+ 시작 화면: 가운데 큰 검색창(스포트라이트). 결과 화면: 본문 + 우측 레일(책별 분포·최근·추천) —
+          레일 덕분에 결과를 보는 중에도 다른 책으로 좁히거나 최근 검색어로 갈아탈 수 있다.
+          모바일에선 이 래퍼가 그냥 스택 */}
       <div className="lg:flex lg:items-start lg:gap-6">
       <div className="lg:flex-1 lg:min-w-0">
-      <form onSubmit={handleSearch} className="search-form">
+      {isHome && <h2 className="search-hero-title hidden lg:block">{t.heroTitle}</h2>}
+      <form onSubmit={handleSearch} className={`search-form${isHome ? ' search-form--hero' : ''}`}>
         <div className="search-input-wrapper">
           <div className="search-input-area">
             <input
@@ -575,6 +631,10 @@ const BibleSearch = () => {
               </span>
             )}
           </div>
+          {/* PC — 범위를 입력창 안 세그먼트로(좁은 zoom 폭에선 아래 모바일 칩 줄이 대신한다) */}
+          <div className="search-scope-seg hidden lg:flex zoom-narrow-hide" role="radiogroup" aria-label={t.scopeLabel}>
+            {scopeButtons('search-scope-seg__btn')}
+          </div>
         </div>
 
         {typeahead.length > 0 && (
@@ -594,23 +654,49 @@ const BibleSearch = () => {
         )}
 
         <div className="search-scope-filter lg:hidden zoom-narrow-show-flex" role="radiogroup" aria-label={t.scopeLabel}>
-          {(['ALL', 'OLD', 'NEW'] as const).map(s => (
-            <button
-              key={s}
-              type="button"
-              role="radio"
-              aria-checked={scope === s}
-              className={`scope-chip${scope === s ? ' scope-chip--active' : ''}`}
-              onClick={() => setScope(s)}
-            >
-              {s === 'ALL' ? t.scopeAll : s === 'OLD' ? t.scopeOld : t.scopeNew}
-            </button>
-          ))}
+          {scopeButtons('scope-chip')}
         </div>
       </form>
 
       {/* 시작 화면 — 최근·추천 칩. 결과를 보는 중엔 같은 블록이 PC 레일로 옮겨 간다 */}
-      {!searchQuery && <div className="search-suggestions">{suggestionGroups}</div>}
+      {isHome && <div className="search-suggestions lg:hidden">{suggestionGroups}</div>}
+
+      {/* PC 시작 화면 — 찾는 방법 예시 카드 + 최근 검색어 + 추천 키워드 타일 */}
+      {isHome && (
+        <div className="search-hero hidden lg:block">
+          <div className="search-ways" role="group" aria-label={t.waysLabel}>
+            {t.ways.map(w => (
+              <button key={w.kind} type="button" className="search-way" onClick={() => runSearch(w.example)}>
+                <span className="search-way__kind">{w.kind}</span>
+                <span className="search-way__example">
+                  {w.example}
+                  <span className="material-icons-round" aria-hidden="true">arrow_forward</span>
+                </span>
+                <span className="search-way__hint">{w.hint}</span>
+              </button>
+            ))}
+          </div>
+          {recentGroup}
+          <div className="search-chip-group">
+            <div className="search-chip-group-header">
+              <span>{t.recommendedKeywords}</span>
+            </div>
+            <div className="search-topics">
+              {t.suggestedKeywords.map((kw, i) => (
+                <button key={kw} type="button" className="search-topic" onClick={() => runSearch(kw)}>
+                  <span className="search-topic__icon" aria-hidden="true">
+                    <span className="material-icons-round">{t.suggestedIcons[i]}</span>
+                  </span>
+                  <span className="search-topic__body">
+                    <span className="search-topic__word">{kw}</span>
+                    <span className="search-topic__ref">{t.suggestedRefs[i]}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 성경 사전 정의 카드 — 절 결과가 0건("삼위일체")이어도 뜻은 답한다 */}
       {searchQuery && glossaryEntry && <SearchGlossaryCard entry={glossaryEntry} />}
@@ -632,7 +718,7 @@ const BibleSearch = () => {
       ) : scopedBooks.length > 0 ? (
         // 책 단독 검색 → 매칭된 모든 책 카드 + 장 그리드 (예: "고린" → 전·후서).
         // 장 그리드가 5열 고정이라 폭을 다 주면 칸이 늘어진다 — 읽기 폭으로 묶는다
-        <div className="search-book-list lg:max-w-[680px]">
+        <div className={`search-book-list${scopedBooks.length > 1 ? ' search-book-list--multi' : ' lg:max-w-[680px]'}`}>
           {noticeText && (
             <p className="search-notice" role="status">
               <span className="material-icons-round" aria-hidden="true">info</span>
@@ -658,8 +744,23 @@ const BibleSearch = () => {
             </p>
           )}
           {/* 스크린리더가 결과 도착·건수 변화를 읽도록 polite로 알린다 */}
-          <p className="results-count" aria-live="polite">{resultsHeading}</p>
+          <p className="results-count" aria-live="polite">
+            <span className="lg:hidden">{resultsHeading}</span>
+            {/* PC — 키워드 검색은 검색어를 제목으로 세운다(‘사랑’ 614절). 장·절 검색은 참조 표기 그대로 */}
+            <span className="hidden lg:inline">
+              {searchResults.is_chapter_search ? (
+                resultsHeading
+              ) : (
+                <>
+                  <em>{t.keywordHeading(trimmedQuery)}</em>
+                  {bookFilter !== null && ` · ${nameByNumber.get(bookFilter) ?? ''}`} {t.verseCount(shownTotal)}
+                </>
+              )}
+            </span>
+          </p>
+          {/* 책별 분포 칩 — 모바일·좁은 zoom 폭. PC 에선 우측 레일 막대 그래프가 대신한다 */}
           {showBookChips && (
+            <div className="lg:hidden zoom-narrow-show">
             <div className="search-book-chips" role="group" aria-label={t.byBook}>
               <button
                 type="button"
@@ -682,9 +783,10 @@ const BibleSearch = () => {
                 </button>
               ))}
             </div>
+            </div>
           )}
-          {/* 절 결과는 서로 독립된 스니펫이라 넓은 화면에선 2열로 훑는 편이 빠르다 */}
-          <div className="verses-list lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
+          {/* PC — 한 장의 목록 안에 '참조 | 본문' 줄로 늘어놓아 성구 사전처럼 위에서 아래로 훑는다 */}
+          <div className="verses-list">
             {scopedVerses.map(verse => {
               const bookNumber = verse.book_number ?? searchResults.book_number ?? 0
               return (
@@ -725,31 +827,49 @@ const BibleSearch = () => {
 
       </div>{/* /본문 컬럼 */}
 
-      {/* 우측 레일 (lg+) — 범위 필터 + 최근·추천 검색어를 항상 보이는 자리에 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-4 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
-        <div className="search-chip-group">
-          <div className="search-chip-group-header">
-            <span>{t.scopeLabel}</span>
-          </div>
-          <div className="search-scope-filter" role="radiogroup" aria-label={t.scopeLabel}>
-            {(['ALL', 'OLD', 'NEW'] as const).map(sc => (
-              <button
-                key={sc}
-                type="button"
-                role="radio"
-                aria-checked={scope === sc}
-                className={`scope-chip${scope === sc ? ' scope-chip--active' : ''}`}
-                onClick={() => setScope(sc)}
-              >
-                {sc === 'ALL' ? t.scopeAll : sc === 'OLD' ? t.scopeOld : t.scopeNew}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 시작 화면에는 본문에 이미 같은 칩이 있으므로, 결과를 보는 중일 때만 레일에 둔다 */}
-        {searchQuery && suggestionGroups}
-      </aside>
+      {/* 우측 레일 (lg+, 결과 화면만) — 책별 분포 + 최근·추천 검색어를 항상 보이는 자리에.
+          범위는 입력창 안 세그먼트로 옮겼다 */}
+      {!isHome && (
+        <aside className="search-rail hidden lg:flex lg:w-[300px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
+          {showBookChips && (
+            <div className="search-rail-panel">
+              <div className="search-chip-group-header">
+                <span>{t.distTitle}</span>
+                {bookFilter !== null && (
+                  <button type="button" className="search-chip-clear" onClick={() => setBookFilter(null)}>
+                    {t.distClear}
+                  </button>
+                )}
+              </div>
+              <div className="search-dist" role="group" aria-label={t.byBook}>
+                {distShown.map(b => (
+                  <button
+                    key={b.book_number}
+                    type="button"
+                    className={`search-dist__row${bookFilter === b.book_number ? ' search-dist__row--active' : ''}`}
+                    aria-pressed={bookFilter === b.book_number}
+                    aria-label={t.bookChipAria(b.book_name_ko, b.count)}
+                    onClick={() => setBookFilter(bookFilter === b.book_number ? null : b.book_number)}
+                  >
+                    <span className="search-dist__name">{b.book_name_ko}</span>
+                    <span className="search-dist__bar" aria-hidden="true">
+                      <i style={{ width: `${(b.count / distMax) * 100}%` }} />
+                    </span>
+                    <span className="search-dist__count">{b.count.toLocaleString()}</span>
+                  </button>
+                ))}
+              </div>
+              {bookCounts.length > DIST_COLLAPSED && (
+                <button type="button" className="search-dist__more" onClick={() => setDistExpanded(v => !v)}>
+                  <span className="material-icons-round" aria-hidden="true">{distExpanded ? 'expand_less' : 'expand_more'}</span>
+                  {distExpanded ? t.distLess : t.distMore(bookCounts.length - DIST_COLLAPSED)}
+                </button>
+              )}
+            </div>
+          )}
+          <div className="search-rail-panel">{suggestionGroups}</div>
+        </aside>
+      )}
       </div>{/* /lg 2단 래퍼 */}
 
       {/* 책 퀵 전환 바텀시트 — 책 카드 헤더 탭으로 열림 */}
