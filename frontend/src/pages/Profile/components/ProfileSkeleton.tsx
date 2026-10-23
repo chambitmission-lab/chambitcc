@@ -72,29 +72,16 @@ interface ProfileSkeletonProps {
 
 const ProfileSkeleton = ({ isDesktop, withCover }: ProfileSkeletonProps) => (
   <div className="animate-pulse" aria-hidden="true">
-    {/* ProfileHeader — 가죽 수첩 표지: 금박 액자(16:9)+훈장 기둥, 아래 종이 카드(칭호 이름·설명·소유자) */}
-    <div className="px-4 pt-3">
-      <div className="rounded-[10px_20px_20px_10px] bg-[#6e4f33]/25 dark:bg-white/[0.05] p-[18px_30px_18px_12px] sm:p-[24px_42px_22px_18px] lg:p-[30px_54px_28px_26px]">
-        {withCover ? (
-          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-[1fr_140px] sm:gap-[18px] lg:grid-cols-[1fr_156px]">
-            <Bone className="w-full aspect-[4/3] sm:aspect-video rounded-[3px]" />
-            <div className="flex items-center justify-center gap-[18px] sm:flex-col">
-              <Bone className="h-[150px] w-[88px] rounded-full lg:h-[176px] lg:w-[104px]" />
-              <Bone className="h-[44px] w-[80px] rounded-lg" />
-            </div>
-          </div>
-        ) : (
-          <Bone className="w-full aspect-[4/3] sm:aspect-video rounded-[3px]" />
-        )}
-        <div className="mt-[18px] rounded-[4px] bg-white/50 dark:bg-white/[0.04] p-4">
-          <Bone className="h-[11px] w-28 rounded-full" />
-          <Bone className="mt-2 h-[32px] w-40 rounded-lg" />
-          <Bone className="mt-2 h-[13px] w-full rounded-full" />
-          <div className="mt-3 flex items-center gap-3">
-            <Bone className="h-[52px] w-[52px] rounded-full" />
-            <Bone className="h-[20px] w-24 rounded-full" />
-          </div>
-        </div>
+    {/* ProfileHeader — 커버 무대: 칼럼 폭 커버(4:3, PC 5:2) + 걸친 훈장 + 칩·칭호·희소성·설명·소유자 */}
+    <div className="overflow-hidden rounded-b-[28px] bg-[#141a2b]/15 dark:bg-white/[0.05]">
+      {withCover ? <Bone className="w-full aspect-[4/3] lg:aspect-[5/2]" /> : <div className="h-[92px]" />}
+      <div className="-mt-[46px] lg:-mt-[56px] flex flex-col items-center px-[18px] pb-[18px] lg:px-7 lg:pb-6">
+        <Bone className="h-[88px] w-[88px] rounded-full lg:h-[104px] lg:w-[104px]" />
+        <Bone className="mt-3 h-[18px] w-28 rounded-full" />
+        <Bone className="mt-2 h-[40px] w-40 rounded-lg" />
+        <Bone className="mt-3 h-[38px] w-full max-w-[440px] rounded-[14px]" />
+        <Bone className="mt-3 h-[13px] w-4/5 rounded-full" />
+        <Bone className="mt-4 h-[72px] w-full max-w-[560px] rounded-[18px]" />
       </div>
     </div>
 

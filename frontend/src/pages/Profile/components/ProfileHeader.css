@@ -1,288 +1,205 @@
-/* ===== ProfileHeader — '훈장을 단 수첩' (2026-10-18) ==========================
-   낡은 가죽 수첩 표지(D3) 위에 금박 액자(P1)로 칭호 그림을 걸고, 오른쪽엔 리본 달린 훈장,
-   아래엔 바랜 종이 카드(칭호 이름·설명·소유자). 아래 '기도 수첩'(PrayerNotebook.css)과 한 권의 문법.
+/* ===== ProfileHeader — '커버 무대 + 수여 훈장' (2026-10-23, 시안 A+D) =====================
+   칭호 그림을 칼럼 폭 끝까지 커버로 깔고, 아랫단은 그림에서 뽑은 밤색(--ph-tone, useArtTone)으로
+   녹아든다. 이음새에 등급 금속 훈장이 반쯤 걸치고 그 아래 가운데 정렬로 칭호·희소성·설명·소유자.
 
-   테마 규칙 — 색은 --ph-* 토큰으로만.
-    - 라이트: 짙은 밤색 가죽 + 크림 매트 + 바랜 종이 + 갈색 잉크.
-    - 다크  : 거의 검은 밤색 가죽(순흑 아님), 매트·종이는 한 톤 눌러 눈부심을 막고 잉크는 크림색.
-              금박·황동은 그대로 두되 그림은 살짝 어둡게 — 밤에 스탠드 아래서 보는 액자.
-   등급(금·은·동)은 훈장 금속과 리본 줄무늬로만 구분한다(.ph--silver / .ph--bronze). 액자 금박은 공통. */
+   테마 규칙 — 무대는 그림이 정하는 어두운 바탕이라 라이트·다크 모두 밝은 크림 잉크(--ph-*).
+    - 라이트: 그림 그대로, 무대 아래 모서리만 둥글게 해 밝은 캔버스 위에 한 덩어리로 놓인다.
+    - 다크  : 그림을 살짝 눌러(brightness) 눈부심을 막고 잉크도 한 톤 낮춘다(순백 금지).
+   등급(금·은·동·전설)은 훈장 금속으로만 구분한다(.ph--silver / .ph--bronze / .ph--legendary). */
 
 .ph {
-  --ph-leather: #6e4f33;
-  --ph-leather-hi: rgba(255, 230, 190, 0.14);
-  --ph-leather-edge: rgba(20, 10, 0, 0.55);
-  --ph-stitch: rgba(250, 236, 205, 0.7);
-  --ph-band: linear-gradient(90deg, #1f160e, #3d2d1e, #1f160e);
-  --ph-shadow: 0 18px 34px rgba(40, 25, 10, 0.28);
-  --ph-mat: #f3ead6;
-  --ph-paper: #f8f1e1;
-  --ph-paper-age: #ead9b8;
-  --ph-ink: #4a3f35;
-  --ph-ink2: #6f6153;
-  --ph-ink3: #9a8b78;
-  --ph-rule: rgba(122, 107, 92, 0.22);
-  --ph-red: #b8382f;
-  --ph-photo-filter: sepia(0.22) saturate(0.85) contrast(1.02) brightness(0.98);
-  --ph-stat-ink: #ecdcb6;
+  --ph-tone: #141a2b;
+  --ph-cream: #f6ecd8;
+  --ph-ink2: rgba(240, 232, 218, 0.8);
+  --ph-ink3: rgba(240, 232, 218, 0.55);
+  --ph-line: rgba(255, 244, 222, 0.12);
+  --ph-fill: rgba(255, 255, 255, 0.07);
+  --ph-glow: rgba(244, 184, 96, 0.35);
+  --ph-photo-filter: none;
 
-  /* 금박(액자·명판·희소성 숫자) — 등급과 무관하게 공통 */
-  --ph-gilt: linear-gradient(135deg, #6e4c14, #d9b45c 18%, #8a6420 32%, #f1d999 48%, #a07626 62%, #e2c06f 80%, #6e4c14);
+  /* 금박(희소성 숫자·막대) — 등급과 무관하게 공통 */
   --ph-foil: linear-gradient(100deg, #9a6f1f 0%, #e8c56e 22%, #fff1bf 30%, #d6ac52 40%, #a77b25 60%, #efd28a 80%, #a77b25 100%);
   --ph-brass: linear-gradient(135deg, #7d5a1c, #e2c06f 40%, #9a7228 55%, #f1d999 75%, #8a6420);
+  --ph-bar: #e8c56e;
 
   /* 훈장 — 기본 금 */
   --ph-metal: var(--ph-brass);
   --ph-metal-ink: rgba(70, 45, 5, 0.75);
-  --ph-ribbon: repeating-linear-gradient(90deg, #7d1a14 0 6px, #e9d6a8 6px 10px, #2f4a3a 10px 24px, #e9d6a8 24px 28px, #2f4a3a 28px 30px, #e9d6a8 30px 34px, #7d1a14 34px 40px);
 
-  --ph-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
-  --ph-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 0 0 28px 28px;
+  background-color: var(--ph-tone);
+  color: var(--ph-cream);
+  transition: background-color 0.4s ease;
 }
 
 html.dark .ph {
-  --ph-leather: #33261b;
-  --ph-leather-hi: rgba(255, 220, 170, 0.07);
-  --ph-leather-edge: rgba(0, 0, 0, 0.7);
-  --ph-stitch: rgba(236, 227, 211, 0.32);
-  --ph-band: linear-gradient(90deg, #120e0a, #2a2118, #120e0a);
-  --ph-shadow: 0 18px 34px rgba(0, 0, 0, 0.5);
-  --ph-mat: #cfc3aa;
-  --ph-paper: #2a2520;
-  --ph-paper-age: #3a3128;
-  --ph-ink: #ece3d3;
-  --ph-ink2: #c9bda9;
-  --ph-ink3: #958a7a;
-  --ph-rule: rgba(236, 227, 211, 0.1);
-  --ph-red: #e2847b;
-  --ph-photo-filter: sepia(0.18) saturate(0.8) brightness(0.9);
-  --ph-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --ph-cream: #ece3d3;
+  --ph-ink2: rgba(236, 227, 211, 0.74);
+  --ph-ink3: rgba(236, 227, 211, 0.5);
+  --ph-glow: rgba(244, 184, 96, 0.22);
+  --ph-photo-filter: brightness(0.88) saturate(0.92);
 }
 
 .ph--silver {
   --ph-metal: linear-gradient(135deg, #5f6670, #e6e8eb 40%, #858c96 55%, #f5f6f7 75%, #646b75);
   --ph-metal-ink: rgba(40, 46, 56, 0.7);
-  --ph-ribbon: repeating-linear-gradient(90deg, #2f4560 0 8px, #e9e2d0 8px 12px, #6b7a8c 12px 28px, #e9e2d0 28px 32px, #2f4560 32px 40px);
 }
 .ph--bronze {
   --ph-metal: linear-gradient(135deg, #6b3d1f, #d49a6a 40%, #8a5230 55%, #e8b98c 75%, #6b3d1f);
   --ph-metal-ink: rgba(60, 28, 8, 0.72);
-  --ph-ribbon: repeating-linear-gradient(90deg, #5a3a22 0 8px, #ead9b8 8px 12px, #8a6a3a 12px 28px, #ead9b8 28px 32px, #5a3a22 32px 40px);
 }
-/* 전설 — 금테 안에 진홍 에나멜, 금실 섞인 리본. 문양은 금빛으로 */
+/* 전설 — 금테 안에 진홍 에나멜. 문양은 금빛으로 */
 .ph--legendary {
   --ph-metal: radial-gradient(circle at 50% 42%, #b3322a 0 52%, #7a1712 60%, transparent 61%), var(--ph-brass);
   --ph-metal-ink: #f6dc94;
-  --ph-ribbon: repeating-linear-gradient(90deg, #7d1a14 0 10px, #e2c06f 10px 13px, #a32a20 13px 27px, #e2c06f 27px 30px, #7d1a14 30px 40px);
 }
 
-/* ── 가죽 표지 ── */
-.ph-leather {
-  position: relative;
-  border-radius: 10px 20px 20px 10px;
-  padding: 24px 42px 22px 18px;
-  background-color: var(--ph-leather);
-  background-image:
-    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, var(--ph-leather-edge) 100%),
-    radial-gradient(ellipse at 28% 18%, var(--ph-leather-hi), transparent 55%),
-    var(--ph-grain);
-  box-shadow: var(--ph-shadow), inset 0 0 0 1px rgba(0, 0, 0, 0.2), inset 0 2px 0 rgba(255, 240, 210, 0.08);
+/* ── 커버 — 모바일 4:3(TitleBackdrop 의 칭호별 objectPosition 을 따름), PC 는 납작하게 ── */
+.ph-cover { position: relative; aspect-ratio: 4 / 3; }
+@media (min-width: 1024px) { .ph-cover { aspect-ratio: 5 / 2; } }
+.ph-cover img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  filter: var(--ph-photo-filter); user-select: none;
 }
-.ph-leather::before {
-  content: ''; position: absolute; inset: 9px 30px 9px 9px; pointer-events: none;
-  border: 1.5px dashed var(--ph-stitch); border-radius: 7px 14px 14px 7px;
+/* 아랫단이 무대 바탕으로 녹아드는 스크림 — 훈장·칭호가 그 위에 올라앉는다 */
+.ph-cover::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 42%,
+    color-mix(in srgb, var(--ph-tone) 55%, transparent) 68%,
+    color-mix(in srgb, var(--ph-tone) 90%, transparent) 88%,
+    var(--ph-tone) 100%
+  );
 }
-@media (min-width: 1024px) {
-  .ph-leather { padding: 30px 54px 28px 26px; }
-  .ph-leather::before { inset: 10px 36px 10px 10px; }
+.ph-cover__glyph {
+  position: absolute; inset: 0; display: grid; place-items: center; font-size: 132px; color: rgba(255, 240, 210, 0.13);
+  background: radial-gradient(ellipse 60% 70% at 50% 45%, rgba(244, 184, 96, 0.16), transparent 70%);
 }
-.ph-band {
-  position: absolute; right: 14px; top: -5px; bottom: -5px; width: 11px; z-index: 5;
-  border-radius: 3px; background: var(--ph-band); box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
-}
-@media (min-width: 1024px) { .ph-band { right: 18px; width: 12px; } }
-.ph-brass {
-  position: absolute; width: 32px; height: 32px; z-index: 4; background: var(--ph-brass);
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
-}
-html.dark .ph-brass { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)) brightness(0.8); }
-.ph-brass--tl { left: -3px; top: -3px; clip-path: polygon(0 0, 100% 0, 0 100%); border-radius: 8px 0 0 0; }
-.ph-brass--bl { left: -3px; bottom: -3px; clip-path: polygon(0 0, 0 100%, 100% 100%); border-radius: 0 0 0 8px; }
-.ph-brass::after { content: ''; position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #5a3f10; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4); }
-.ph-brass--tl::after { left: 7px; top: 7px; }
-.ph-brass--bl::after { left: 7px; bottom: 7px; }
+.ph-cover--empty { aspect-ratio: auto; height: 92px; background: radial-gradient(ellipse 50% 90% at 50% 100%, rgba(244, 184, 96, 0.14), transparent 70%); }
+.ph-cover--empty::after { display: none; }
 
-/* 액자 + 훈장 배치 — 모바일은 액자 아래 훈장·희소성이 가로로, sm+ 는 오른쪽 기둥 */
-.ph-grid { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
-@media (min-width: 640px) { .ph-grid { grid-template-columns: 1fr 140px; gap: 18px; } }
-@media (min-width: 1024px) { .ph-grid { grid-template-columns: 1fr 156px; } }
+/* ── 본문 — 훈장 반지름만큼 커버 위로 끌어올린다 ── */
+.ph-body {
+  position: relative; z-index: 1; margin-top: -46px; padding: 0 18px 18px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+@media (min-width: 1024px) { .ph-body { margin-top: -56px; padding: 0 28px 24px; } }
+.ph-cover--empty + .ph-body { margin-top: -44px; }
 
-/* ── 금박 액자(P1) ── */
-.ph-frame {
-  position: relative; padding: 10px; border-radius: 3px; background: var(--ph-gilt);
-  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 240, 200, 0.5),
-    inset 0 0 0 4px rgba(90, 60, 10, 0.45), inset 0 0 0 5px rgba(255, 235, 180, 0.45);
+/* ── 수여 훈장 — 무대색 고리로 커버에서 도드라지게, 빛이 천천히 한 번 지나간다 ── */
+.ph-medal {
+  position: relative; width: 88px; height: 88px; flex: none; border-radius: 50%; overflow: hidden;
+  display: grid; place-items: center; background: var(--ph-metal);
+  box-shadow: 0 0 0 5px var(--ph-tone), 0 12px 24px rgba(0, 0, 0, 0.45), inset 0 0 0 4px rgba(0, 0, 0, 0.16), inset 0 -3px 6px rgba(0, 0, 0, 0.22);
+  transition: box-shadow 0.4s ease;
 }
-.ph-frame::before { content: ''; position: absolute; inset: 5px; border: 1px dashed rgba(90, 60, 10, 0.45); pointer-events: none; }
-@media (min-width: 1024px) { .ph-frame { padding: 12px; } .ph-frame::before { inset: 6px; } }
-.ph-orn { position: absolute; width: 26px; height: 26px; color: #fbe7a8; opacity: 0.9; z-index: 2; pointer-events: none; }
-.ph-orn--tl { left: 2px; top: 2px; }
-.ph-orn--tr { right: 2px; top: 2px; transform: scaleX(-1); }
-.ph-orn--bl { left: 2px; bottom: 2px; transform: scaleY(-1); }
-.ph-orn--br { right: 2px; bottom: 2px; transform: scale(-1, -1); }
-.ph-mat { background: var(--ph-mat); padding: 12px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35); }
-@media (min-width: 1024px) { .ph-mat { padding: 16px; } }
-.ph-bevel { padding: 3px; background: linear-gradient(135deg, #fffaf0, #d8ccb2); box-shadow: inset 0 0 0 1px rgba(120, 95, 55, 0.35); }
-
-/* 사진 마감 — 따뜻한 세피아 + 비네트 + 필름 그레인 */
-.ph-film { position: relative; overflow: hidden; aspect-ratio: 16 / 9; }
-.ph-film img { width: 100%; height: 100%; object-fit: cover; display: block; filter: var(--ph-photo-filter); user-select: none; }
-.ph-film::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse 85% 80% at 50% 50%, transparent 55%, rgba(60, 35, 10, 0.38) 100%); }
-.ph-film::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background-image: var(--ph-grain); opacity: 0.55; mix-blend-mode: overlay; }
-/* 그림이 없는 칭호 / 칭호 없음 — 매트 위에 문양 또는 빈 액자 안내 */
-.ph-film--glyph { display: grid; place-items: center; background: #efe4cc; color: #8a6420; font-size: 64px; }
-.ph-film--empty {
-  display: grid; place-items: center; text-align: center; background: #efe4cc; color: #8a7558;
-  font-size: 13px; font-weight: 600; line-height: 1.6; padding: 12px;
-}
-.ph-film--empty::before, .ph-film--glyph::before { background: radial-gradient(ellipse 85% 80% at 50% 50%, transparent 60%, rgba(120, 80, 30, 0.2) 100%); }
-.ph-film--empty button { margin-top: 8px; }
-
-.ph-plaque {
-  position: relative; z-index: 3; width: max-content; max-width: 92%; margin: -8px auto 0;
-  padding: 5px 16px; border-radius: 3px; background: var(--ph-brass);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 240, 200, 0.45);
-  font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 11.5px; letter-spacing: 0.16em;
-  color: rgba(60, 38, 5, 0.88); text-shadow: 0 1px 0 rgba(255, 240, 200, 0.5);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ph-plaque::before, .ph-plaque::after { content: ''; position: absolute; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: #5a3f10; }
-.ph-plaque::before { left: 5px; }
-.ph-plaque::after { right: 5px; }
-
-/* ── 훈장 ── */
-.ph-side { display: flex; align-items: center; justify-content: center; gap: 18px; }
-@media (min-width: 640px) { .ph-side { flex-direction: column; gap: 12px; } }
-.ph-medal { position: relative; display: flex; flex-direction: column; align-items: center; flex: none; }
-.ph-medal__pin { width: 50px; height: 9px; border-radius: 3px; background: var(--ph-brass); box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4); }
-.ph-medal__ribbon {
-  width: 50px; height: 56px; margin-top: -2px; background: var(--ph-ribbon); background-size: 50px 100%;
-  clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%); box-shadow: inset 0 -8px 10px rgba(0, 0, 0, 0.25);
-}
-html.dark .ph-medal__ribbon { filter: brightness(0.72); }
-.ph-medal__ring { width: 14px; height: 11px; margin-top: -12px; border: 3px solid #c9a24f; border-radius: 50%; z-index: 1; }
-.ph-medal__face {
-  position: relative; width: 88px; height: 88px; margin-top: -4px; border-radius: 50%;
-  background: var(--ph-metal); display: grid; place-items: center;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4), inset 0 0 0 4px rgba(0, 0, 0, 0.18);
-}
-.ph-medal__face::before { content: ''; position: absolute; inset: 7px; border-radius: 50%; border: 1.5px dashed var(--ph-metal-ink); opacity: 0.6; }
-.ph-medal__face::after {
+.ph-medal::before { content: ''; position: absolute; inset: 8px; border-radius: 50%; border: 1.5px dashed var(--ph-metal-ink); opacity: 0.6; }
+.ph-medal::after {
   content: ''; position: absolute; inset: 0; border-radius: 50%;
-  background: linear-gradient(115deg, transparent 35%, rgba(255, 250, 220, 0.55) 48%, transparent 60%);
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 250, 220, 0.6) 48%, transparent 60%);
   background-size: 300% 100%; animation: ph-sheen-medal 6s ease-in-out infinite;
 }
+html.dark .ph-medal { filter: brightness(0.92); }
 .ph-medal__glyph { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; color: var(--ph-metal-ink); filter: drop-shadow(0 1px 0 rgba(255, 240, 200, 0.5)); }
-.ph-medal__icon { font-size: 34px; }
+.ph-medal__icon { font-size: 32px; }
 .ph-medal__year { margin-top: 2px; font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 10px; letter-spacing: 0.15em; }
 @media (min-width: 1024px) {
-  .ph-medal__pin { width: 58px; height: 10px; }
-  .ph-medal__ribbon { width: 58px; height: 68px; background-size: 58px 100%; }
-  .ph-medal__face { width: 104px; height: 104px; }
-  .ph-medal__icon { font-size: 40px; }
+  .ph-medal { width: 104px; height: 104px; box-shadow: 0 0 0 6px var(--ph-tone), 0 14px 28px rgba(0, 0, 0, 0.45), inset 0 0 0 4px rgba(0, 0, 0, 0.16), inset 0 -3px 6px rgba(0, 0, 0, 0.22); }
+  .ph-medal__icon { font-size: 38px; }
 }
+/* 칭호 없음 — 아직 비어 있는 훈장 자리 */
+.ph-medal--empty {
+  background: var(--ph-tone); color: var(--ph-ink3); font-size: 34px;
+  box-shadow: 0 0 0 5px var(--ph-tone), inset 0 0 0 1.5px var(--ph-line);
+}
+.ph-medal--empty::before { border-color: var(--ph-ink3); opacity: 0.5; }
+.ph-medal--empty::after { display: none; }
+.ph-medal--empty .material-icons-round { font-size: inherit; }
 
-.ph-stat { text-align: center; color: var(--ph-stat-ink); }
-.ph-stat b { display: block; font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 26px; line-height: 1.1; }
-.ph-stat span { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; opacity: 0.8; letter-spacing: 0.02em; }
-.ph-stat small { display: block; margin-top: 2px; font-size: 10.5px; font-weight: 600; opacity: 0.6; }
+/* ── 칭호 ── */
+.ph-chip {
+  margin-top: 12px; padding: 4px 10px; border-radius: 999px; background: var(--ph-fill);
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.2em; color: var(--ph-ink2);
+}
+.ph-title {
+  margin: 6px 0 0; font-family: 'Gaegu', 'Pretendard', cursive; font-weight: 700; font-size: 44px; line-height: 1.05;
+  color: var(--ph-cream); text-shadow: 0 2px 18px var(--ph-glow); word-break: keep-all; text-wrap: balance;
+}
+@media (min-width: 1024px) { .ph-title { font-size: 52px; } }
+
+.ph-rarity {
+  margin-top: 12px; width: 100%; max-width: 440px; display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: 14px; background: var(--ph-fill); text-align: left;
+  font-size: 12px; font-weight: 700; color: var(--ph-ink2);
+}
+.ph-rarity b { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 20px; line-height: 1; flex: none; }
+.ph-rarity .ph-rarity__only { font-size: 14px; }
+.ph-rarity > span:not(.ph-rarity__bar) { flex: none; }
+.ph-rarity__bar { flex: 1 1 auto; min-width: 24px; height: 5px; border-radius: 3px; background: var(--ph-line); overflow: hidden; }
+.ph-rarity__bar i { display: block; height: 100%; border-radius: 3px; background: var(--ph-bar); }
+.ph-rarity small { flex: none; font-size: 11px; font-weight: 600; color: var(--ph-ink3); font-variant-numeric: tabular-nums; }
+
+.ph-desc {
+  margin: 12px 0 0; max-width: 34em; font-family: 'Noto Serif KR', serif; font-size: 13px; line-height: 1.75;
+  color: var(--ph-ink2); word-break: keep-all; text-wrap: balance;
+}
+@media (min-width: 1024px) { .ph-desc { font-size: 14px; } }
+.ph-empty { margin: 12px 0 0; white-space: pre-line; font-size: 13.5px; font-weight: 600; line-height: 1.6; color: var(--ph-ink2); }
 
 /* 금박 글씨 — 천천히 빛이 한 번 지나간다 */
 .ph-foil {
   background: var(--ph-foil); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: ph-sheen 7s ease-in-out infinite;
-  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 1px 0 rgba(255, 230, 180, 0.18));
 }
 @keyframes ph-sheen { 0%, 60% { background-position: 100% 0; } 100% { background-position: -60% 0; } }
 @keyframes ph-sheen-medal { 0%, 65% { background-position: 100% 0; } 100% { background-position: -50% 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .ph-foil, .ph-medal__face::after { animation: none; }
+  .ph-foil, .ph-medal::after { animation: none; }
+  .ph, .ph-medal { transition: none; }
 }
 
-/* ── 바랜 종이 카드 ── */
-.ph-card {
-  position: relative; margin-top: 18px; padding: 16px 16px 14px; border-radius: 4px; color: var(--ph-ink);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-  background-color: var(--ph-paper);
-  background-image:
-    radial-gradient(circle at 12% 78%, rgba(150, 105, 40, 0.13) 0 10px, transparent 18px),
-    radial-gradient(circle at 86% 20%, rgba(150, 105, 40, 0.1) 0 6px, transparent 13px),
-    radial-gradient(circle at 70% 88%, rgba(150, 105, 40, 0.08) 0 4px, transparent 9px),
-    radial-gradient(ellipse at 50% 50%, transparent 62%, var(--ph-paper-age) 100%),
-    var(--ph-noise);
+/* ── 소유자 줄 ── */
+.ph-owner {
+  margin-top: 16px; width: 100%; max-width: 560px; display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 18px; background: var(--ph-fill); box-shadow: inset 0 0 0 1px var(--ph-line); text-align: left;
 }
-@media (min-width: 1024px) { .ph-card { padding: 18px 20px 16px; } }
-.ph-card__cat { font-size: 11px; font-weight: 800; letter-spacing: 0.22em; color: var(--ph-red); }
-.ph-card__title {
-  margin-top: 4px; font-family: 'Gaegu', 'Pretendard', cursive; font-weight: 700; font-size: 34px; line-height: 1.05;
-  color: var(--ph-ink); word-break: keep-all;
-}
-@media (min-width: 1024px) { .ph-card__title { font-size: 40px; } }
-.ph-card__desc { margin-top: 6px; font-family: 'Noto Serif KR', serif; font-size: 13px; line-height: 1.75; color: var(--ph-ink2); word-break: keep-all; }
-.ph-owner { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1.5px dashed var(--ph-rule); }
-.ph-owner--solo { margin-top: 0; padding-top: 0; border-top: 0; }
-.ph-avatar { position: relative; width: 52px; height: 52px; flex: none; }
+.ph-avatar { position: relative; width: 48px; height: 48px; flex: none; }
 .ph-avatar__pic {
   width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
-  border: 2px solid #fffdf7; box-shadow: 0 0 0 1.2px var(--ph-ink3); background: var(--ph-mat);
-  font-size: 20px; font-weight: 700; color: #6f6153;
+  border: 2px solid var(--ph-tone); box-shadow: 0 0 0 1.5px var(--ph-ink3); background: var(--ph-fill);
+  font-size: 19px; font-weight: 700; color: var(--ph-cream);
 }
-.ph-avatar__pic img { width: 100%; height: 100%; object-fit: cover; display: block; filter: sepia(0.12); }
+.ph-avatar__pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ph-avatar__cam {
   position: absolute; right: -6px; bottom: -4px; width: 24px; height: 24px; border-radius: 50%; z-index: 2;
-  display: grid; place-items: center; background: var(--ph-paper); color: var(--ph-ink); border: 1.5px solid var(--ph-ink);
+  display: grid; place-items: center; background: var(--ph-tone); color: var(--ph-cream); border: 1.5px solid var(--ph-ink3);
   transition: transform 0.15s;
 }
 .ph-avatar__cam:hover { transform: scale(1.08); }
 .ph-avatar__cam:disabled { opacity: 0.6; }
 .ph-avatar__del {
   position: absolute; right: -6px; top: -6px; width: 20px; height: 20px; border-radius: 50%; z-index: 2;
-  display: grid; place-items: center; background: rgba(40, 30, 20, 0.7); color: #f6efe1; transition: background-color 0.15s;
+  display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); color: var(--ph-cream); transition: background-color 0.15s;
 }
-.ph-avatar__del:hover { background: rgba(40, 30, 20, 0.9); }
-.ph-owner__name { font-family: 'Gaegu', 'Pretendard', cursive; font-weight: 700; font-size: 24px; line-height: 1.1; color: var(--ph-ink); }
+.ph-avatar__del:hover { background: rgba(0, 0, 0, 0.8); }
+.ph-owner__name { font-family: 'Gaegu', 'Pretendard', cursive; font-weight: 700; font-size: 23px; line-height: 1.1; color: var(--ph-cream); }
 .ph-owner__name small { margin-left: 4px; font-family: 'Pretendard', sans-serif; font-size: 13px; font-weight: 600; color: var(--ph-ink2); }
 .ph-owner__sub { margin-top: 3px; font-size: 11px; font-weight: 700; color: var(--ph-ink3); }
 .ph-pen {
-  display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%;
+  display: grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: 50%;
   border: 1.2px dashed var(--ph-ink3); color: var(--ph-ink2); transition: color 0.15s, border-color 0.15s;
 }
-.ph-pen:hover { color: var(--ph-ink); border-color: var(--ph-ink2); }
+.ph-pen:hover { color: var(--ph-cream); border-color: var(--ph-ink2); }
 .ph-change {
   display: inline-flex; align-items: center; gap: 2px; flex: none; white-space: nowrap;
-  padding: 5px 11px; border-radius: 999px; border: 1.2px solid var(--ph-ink3); background: transparent;
-  font-size: 12px; font-weight: 700; color: var(--ph-ink2); transition: background-color 0.15s, color 0.15s;
+  padding: 6px 12px; border-radius: 999px; border: 1.2px solid var(--ph-ink3); background: transparent;
+  font-size: 12px; font-weight: 700; color: var(--ph-cream); transition: background-color 0.15s, border-color 0.15s;
 }
-.ph-change:hover { color: var(--ph-ink); background: rgba(127, 110, 90, 0.1); }
-
-/* 빈 액자 안 버튼 — 매트는 테마와 무관하게 밝은 크림이라 잉크도 고정 */
-.ph-change--on-mat { color: #6f6153; border-color: #a8987f; }
-.ph-change--on-mat:hover { color: #4a3f35; }
-
-/* ── 모바일(<640px) — 그림이 주인공이 되도록 테두리 겹을 얇게, 비율은 4:3 으로 세운다 ──
-   PC 두께(가죽 여백+금박 10px+매트 12px+단면)를 그대로 두면 360px 폭에서 그림이 액자 폭의
-   3/4 로 줄고 16:9 라 높이도 낮아 장면이 작게 보였다. 장식(모서리 덩굴·명판)은 크기만 줄여 유지.
-   4:3 크롭 중심은 TitleBackdrop 의 objectPosition(칭호별 지정)을 그대로 따른다. */
-@media (max-width: 639px) {
-  .ph-leather { padding: 18px 30px 18px 12px; }
-  .ph-leather::before { inset: 7px 24px 7px 7px; }
-  .ph-band { right: 9px; width: 9px; }
-  .ph-brass { width: 26px; height: 26px; }
-  .ph-frame { padding: 6px; }
-  .ph-frame::before { inset: 3px; }
-  .ph-orn { width: 16px; height: 16px; }
-  .ph-mat { padding: 6px; }
-  .ph-bevel { padding: 2px; }
-  .ph-film { aspect-ratio: 4 / 3; }
-  .ph-plaque { margin-top: -6px; padding: 4px 14px; font-size: 11px; letter-spacing: 0.12em; }
+.ph-change:hover { background: var(--ph-fill); border-color: var(--ph-ink2); }
+.ph-pen:focus-visible, .ph-change:focus-visible, .ph-avatar__cam:focus-visible, .ph-avatar__del:focus-visible {
+  outline: 2px solid var(--ph-cream); outline-offset: 2px;
 }

@@ -151,7 +151,7 @@ export const profile = {
   // 훈장 수첩 머리말 — {n}·{date}·{h}·{m} 은 호출부에서 치환
   phChangeTitle: '칭호 바꾸기',
   phPickTitle: '칭호 고르기',
-  phEmptyFrame: '칭호를 얻으면\n이 액자에 걸려요',
+  phEmptyFrame: '칭호를 얻으면\n여기에 훈장이 걸려요',
   phEmptyLead: '말씀을 읽고 기도하면 칭호가 생겨요',
   phRarityShare: '만 가진 칭호',
   phRarityCount: '성도 {m}명 중 {h}명',

@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TitleGlyph } from '../../../components/titles/TitleGlyph'
 import { useTitleBackdropPosition, useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
@@ -29,15 +29,6 @@ interface ProfileHeaderProps {
 
 const TIER_LABEL: Record<TitleTier, string> = { legendary: 'LEGENDARY', gold: 'GOLD', silver: 'SILVER', bronze: 'BRONZE' }
 
-// 액자 모서리 덩굴 장식 — 네 귀퉁이는 CSS 로 뒤집어 같은 그림을 쓴다
-const Ornament = ({ corner }: { corner: 'tl' | 'tr' | 'bl' | 'br' }) => (
-  <svg className={`ph-orn ph-orn--${corner}`} viewBox="0 0 30 30" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" aria-hidden>
-    <path d="M3 3c8 0 12 3 12 9M3 3c0 8 3 12 9 12" />
-    <circle cx="9" cy="9" r="2" />
-    <path d="M15 12c2-2 5-2 6 0M12 15c-2 2-2 5 0 6" />
-  </svg>
-)
-
 const pad3 = (n: number) => String(n).padStart(3, '0')
 
 /** 0.7% / 12% — 1% 미만만 소수 한 자리 */
@@ -52,12 +43,58 @@ const formatAwardDate = (iso: string) => {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
+// 그림이 없거나 색을 아직 못 뽑았을 때의 무대 바탕 — 밤하늘 남색
+const DEFAULT_TONE = '#141a2b'
+const toneCache = new Map<string, string>()
+
 /**
- * 프로필 아이덴티티 — '훈장을 단 수첩'(2026-10-18).
+ * 커버 그림 아랫단 평균색을 어둡게 눌러 무대 바탕색으로 쓴다 — 그림이 아래로 녹아드는 이음새가
+ * 칭호마다 맞도록(36종 색표를 따로 들고 다니지 않으려고 런타임에 한 번 뽑아 캐시).
+ * 같은 출처(/images/title-bg) 그림이라 캔버스가 오염되지 않는다.
+ */
+const useArtTone = (src: string | undefined): string => {
+  // 색은 모듈 캐시가 정본 — 상태는 뽑기가 끝났을 때 다시 그리게 하는 신호로만 쓴다
+  const [, bump] = useState(0)
+  useEffect(() => {
+    if (!src || toneCache.has(src)) return
+    let alive = true
+    const img = new Image()
+    img.decoding = 'async'
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas')
+        canvas.width = 24
+        canvas.height = 24
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
+        if (!ctx) return
+        ctx.drawImage(img, 0, 0, 24, 24)
+        const { data } = ctx.getImageData(0, 18, 24, 6) // 아래 1/4
+        let r = 0, g = 0, b = 0
+        for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i + 1]; b += data[i + 2] }
+        const n = data.length / 4
+        // 가장 밝은 채널을 38 로 맞춰 색조는 살리고 밝기만 밤 수준으로
+        const k = 38 / Math.max(r / n, g / n, b / n, 1)
+        const c = (v: number) => Math.round(Math.min(255, (v / n) * k))
+        const value = `rgb(${c(r)}, ${c(g)}, ${c(b)})`
+        toneCache.set(src, value)
+        if (alive) bump((n) => n + 1)
+      } catch {
+        /* 색을 못 뽑아도 기본 남색으로 충분하다 */
+      }
+    }
+    img.src = src
+    return () => { alive = false }
+  }, [src])
+  return (src && toneCache.get(src)) || DEFAULT_TONE
+}
+
+/**
+ * 프로필 아이덴티티 — '커버 무대 + 수여 훈장'(2026-10-23, 시안 A+D).
  *
- * 낡은 가죽 수첩 표지에 장착 칭호 그림을 금박 액자로 걸고(황동 명판에 발급 번호),
- * 오른쪽엔 등급별 금속·리본의 훈장과 희소성(“성도 중 n%만 가진 칭호”),
- * 아래 바랜 종이 카드에 칭호 이름·설명·소유자(사진·이름·수훈일)를 적는다.
+ * 장착 칭호 그림을 화면 폭 끝까지 커버로 깔고 아랫단이 그림의 밤색(useArtTone)으로 녹아든다.
+ * 그 이음새에 등급 금속 훈장이 반쯤 걸치고(수여식), 아래 가운데로 등급·번호 칩, 손글씨 칭호명,
+ * 희소성 막대("n%만 가진 칭호"), 설명, 소유자 줄(사진·이름·수훈일·연필·칭호 바꾸기)이 이어진다.
+ * 예전 가죽 수첩·금박 액자는 모바일에서 그림을 네 겹으로 둘러싸 작게 만들어 걷어냈다.
  * 숫자(포인트·스탯)는 아래 '신앙의 온도' 카드가 전담한다. 색 규칙은 ProfileHeader.css 머리말.
  */
 const ProfileHeader = ({
@@ -79,6 +116,7 @@ const ProfileHeader = ({
   const rarity = equipped?.rarity && equipped.rarity.member_count > 0 ? equipped.rarity : null
   const awardDate = equipped?.earned_at ? formatAwardDate(equipped.earned_at) : ''
   const ownerName = fullName || username
+  const tone = useArtTone(backdropSrc)
 
   const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -115,30 +153,19 @@ const ProfileHeader = ({
 
   const goGarden = () => navigate('/garden')
 
-  // 액자 속 — 칭호 그림 / 그림 없는 칭호는 문양 / 칭호 없음은 빈 액자 안내
-  const frameContent = !equipped ? (
-    <div className="ph-film ph-film--empty">
-      <div>
-        <p className="m-0 whitespace-pre-line">{t('phEmptyFrame')}</p>
-        <button type="button" onClick={goGarden} className="ph-change ph-change--on-mat">
-          {t('phPickTitle')} ›
-        </button>
-      </div>
-    </div>
-  ) : backdropSrc ? (
-    <div className="ph-film">
-      {/* prefetch.ts 가 진입 즉시 받아 둔 배너 — 캐시에 없더라도 LCP 후보라 우선순위를 올린다 */}
-      <img
-        src={backdropSrc}
-        alt=""
-        draggable={false}
-        fetchPriority="high"
-        decoding="async"
-        style={backdropPosition ? { objectPosition: backdropPosition } : undefined}
-      />
-    </div>
+  // 커버 — 칭호 그림 / 그림 없는 칭호는 은은한 문양 / 칭호 없음은 짧은 빈 무대
+  const coverContent = !equipped ? null : backdropSrc ? (
+    // prefetch.ts 가 진입 즉시 받아 둔 배너 — 캐시에 없더라도 LCP 후보라 우선순위를 올린다
+    <img
+      src={backdropSrc}
+      alt=""
+      draggable={false}
+      fetchPriority="high"
+      decoding="async"
+      style={backdropPosition ? { objectPosition: backdropPosition } : undefined}
+    />
   ) : (
-    <div className="ph-film ph-film--glyph" aria-hidden>
+    <div className="ph-cover__glyph" aria-hidden>
       <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} />
     </div>
   )
@@ -179,7 +206,7 @@ const ProfileHeader = ({
   )
 
   const owner = (
-    <div className={`ph-owner ${equipped ? '' : 'ph-owner--solo'}`}>
+    <div className="ph-owner">
       {avatar}
       <div className="min-w-0 flex-1">
         <div className="ph-owner__name truncate">
@@ -200,83 +227,65 @@ const ProfileHeader = ({
     </div>
   )
 
-  return (
-    <div className={`ph px-4 pt-3 ${equipped && equipped.tier !== 'gold' ? `ph--${equipped.tier}` : ''}`}>
-      <section className="ph-leather">
-        <span className="ph-brass ph-brass--tl" aria-hidden />
-        <span className="ph-brass ph-brass--bl" aria-hidden />
-        <span className="ph-band" aria-hidden />
+  const share = rarity ? (rarity.holder_count / rarity.member_count) * 100 : 0
 
-        <div className={equipped ? 'ph-grid' : undefined}>
-          <div>
-            <div className="ph-frame">
-              <Ornament corner="tl" />
-              <Ornament corner="tr" />
-              <Ornament corner="bl" />
-              <Ornament corner="br" />
-              <div className="ph-mat">
-                <div className="ph-bevel">{frameContent}</div>
-              </div>
+  return (
+    <section
+      className={`ph ${equipped && equipped.tier !== 'gold' ? `ph--${equipped.tier}` : ''}`}
+      style={{ '--ph-tone': tone } as React.CSSProperties}
+    >
+      <div className={`ph-cover ${coverContent ? '' : 'ph-cover--empty'}`}>{coverContent}</div>
+
+      <div className="ph-body">
+        {/* 수여 훈장 — 커버가 바탕색으로 녹아드는 이음새에 반쯤 걸친다 */}
+        <div className={`ph-medal ${equipped ? '' : 'ph-medal--empty'}`} aria-hidden>
+          {equipped ? (
+            <div className="ph-medal__glyph">
+              <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} className="ph-medal__icon" />
+              {awardDate && <span className="ph-medal__year">{awardDate.slice(0, 4)}</span>}
             </div>
-            {text && (
-              <div className="ph-plaque">
-                {rarity ? `No.${pad3(rarity.holder_rank)} · ${text.name}` : text.name}
+          ) : (
+            <span className="material-icons-round">workspace_premium</span>
+          )}
+        </div>
+
+        {equipped && text ? (
+          <>
+            <div className="ph-chip">
+              {[equipped.hidden ? 'HIDDEN' : null, TIER_LABEL[equipped.tier], rarity ? `No.${pad3(rarity.holder_rank)}` : null]
+                .filter(Boolean)
+                .join(' · ')}
+            </div>
+            <h2 className="ph-title">{text.name}</h2>
+            {rarity && (
+              <div className="ph-rarity">
+                {rarity.holder_count <= 1 ? (
+                  <b className="ph-foil ph-rarity__only">{t('phRarityOnly')}</b>
+                ) : (
+                  <>
+                    <b className="ph-foil">{formatShare(rarity)}</b>
+                    <span>{t('phRarityShare')}</span>
+                  </>
+                )}
+                <span className="ph-rarity__bar" aria-hidden>
+                  <i style={{ width: `${Math.max(share, 3)}%` }} />
+                </span>
+                <small>
+                  {t('phRarityCount')
+                    .replace('{m}', String(rarity.member_count))
+                    .replace('{h}', String(rarity.holder_count))}
+                </small>
               </div>
             )}
-          </div>
+            {text.description && <p className="ph-desc">{text.description}</p>}
+          </>
+        ) : (
+          <p className="ph-empty">{t('phEmptyFrame')}</p>
+        )}
 
-          {equipped && (
-            <div className="ph-side">
-              <div className="ph-medal" aria-hidden>
-                <div className="ph-medal__pin" />
-                <div className="ph-medal__ribbon" />
-                <div className="ph-medal__ring" />
-                <div className="ph-medal__face">
-                  <div className="ph-medal__glyph">
-                    <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} className="ph-medal__icon" />
-                    {awardDate && <span className="ph-medal__year">{awardDate.slice(0, 4)}</span>}
-                  </div>
-                </div>
-              </div>
-              {rarity && (
-                <div className="ph-stat">
-                  {rarity.holder_count <= 1 ? (
-                    <b className="ph-foil" style={{ fontSize: 17 }}>{t('phRarityOnly')}</b>
-                  ) : (
-                    <>
-                      <b className="ph-foil">{formatShare(rarity)}</b>
-                      <span>{t('phRarityShare')}</span>
-                    </>
-                  )}
-                  <small>
-                    {t('phRarityCount')
-                      .replace('{m}', String(rarity.member_count))
-                      .replace('{h}', String(rarity.holder_count))}
-                  </small>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="ph-card">
-          {equipped && text ? (
-            <>
-              <div className="ph-card__cat">
-                {[equipped.hidden ? 'HIDDEN' : null, TIER_LABEL[equipped.tier], rarity ? `No.${pad3(rarity.holder_rank)}` : null]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </div>
-              <h2 className="ph-card__title m-0">{text.name}</h2>
-              {text.description && <p className="ph-card__desc m-0">{text.description}</p>}
-              {owner}
-            </>
-          ) : (
-            owner
-          )}
-        </div>
-      </section>
-    </div>
+        {owner}
+      </div>
+    </section>
   )
 }
 

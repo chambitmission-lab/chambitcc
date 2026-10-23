@@ -150,7 +150,7 @@ export const profile = {
   profileMyTitle: 'My title',
   phChangeTitle: 'Change title',
   phPickTitle: 'Pick a title',
-  phEmptyFrame: 'Earn a title\nand it hangs here',
+  phEmptyFrame: 'Earn a title\nand its medal hangs here',
   phEmptyLead: 'Read and pray to earn titles',
   phRarityShare: 'of members hold this',
   phRarityCount: '{h} of {m} members',
