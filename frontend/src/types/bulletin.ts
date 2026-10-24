@@ -9,6 +9,8 @@ export interface BulletinPage {
   display_url?: string | null
   /** 목록용 480px WebP — 옛 주보는 없음 */
   thumb_url?: string | null
+  /** 쪽 띠용 160px WebP — 백필 전 쪽은 없음, thumb_url 로 대체 */
+  mini_url?: string | null
   created_at: string
 }
 

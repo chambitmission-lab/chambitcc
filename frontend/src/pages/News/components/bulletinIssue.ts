@@ -51,5 +51,7 @@ export const fill = (s: string, vars: Record<string, string | number>) =>
 
 /** 크게 읽는 자리(뷰어·히어로 앞장) — 읽기용 WebP, 옛 주보는 원본 */
 export const pageSrc = (p: BulletinPage) => p.display_url || p.image_url
-/** 작게 보이는 자리(쪽 띠·옆 쪽·미니맵) — 480px WebP */
+/** 작게 보이는 자리(히어로 부채·옆 쪽·미니맵) — 480px WebP */
 export const pageThumb = (p: BulletinPage) => p.thumb_url || p.display_url || p.image_url
+/** 아주 작게 보이는 자리(히어로 쪽 띠 62px) — 160px WebP, 없으면 480px */
+export const pageMini = (p: BulletinPage) => p.mini_url || pageThumb(p)

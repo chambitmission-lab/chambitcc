@@ -4,11 +4,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getBulletinDetail } from '../../../api/bulletin'
-import { bulletinKeys } from '../../../hooks/useBulletins'
+import { BULLETIN_PREVIEW_STALE, bulletinKeys } from '../../../hooks/useBulletins'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Bulletin } from '../../../types/bulletin'
 import { BulletinIcon } from './NewsIcons'
-import { SEASON_LABEL, fill, issueDateText, pageSrc, pageThumb, toIssue, type Issue, type Season } from './bulletinIssue'
+import { SEASON_LABEL, fill, issueDateText, pageMini, pageThumb, toIssue, type Issue, type Season } from './bulletinIssue'
 import './bulletinShelf.css'
 
 const ChevronRight = ({ size = 14 }: { size?: number }) => (
@@ -50,15 +50,16 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
   const { data: preview } = useQuery({
     queryKey: bulletinKeys.preview(bulletin.id),
     queryFn: () => getBulletinDetail(bulletin.id, false),
-    staleTime: 10 * 60_000,
+    staleTime: BULLETIN_PREVIEW_STALE,
   })
   const pages = useMemo(
     () => [...(preview?.pages ?? [])].sort((a, b) => a.page_number - b.page_number),
     [preview],
   )
-  // 앞장은 크게 보여 읽기용 WebP, 번진 배경은 어차피 흐려서 480px 썸네일이면 충분
-  const cover = bulletin.cover_url ?? bulletin.thumbnail_url ?? (pages[0] && pageSrc(pages[0]))
-  const ambient = bulletin.thumbnail_url ?? cover
+  // 앞장(최대 212px)·번진 배경 모두 480px 썸네일 한 장으로 — 2x 화면에도 충분하고 요청이 하나로 준다
+  // (읽기용 WebP 는 549px 남짓이라 해상도 이득 없이 두 배 무겁다)
+  const cover = bulletin.thumbnail_url ?? bulletin.cover_url ?? (pages[0] && pageThumb(pages[0]))
+  const pageCount = bulletin.page_count ?? pages.length
 
   // 주일까지 남은 날 — 오늘 기기 날짜 기준
   const now = new Date()
@@ -92,14 +93,27 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
     }
   }, [pages.length])
 
-  const pageCount = bulletin.page_count ?? pages.length
+  // 번진 배경은 그림이 도착하면 스며들게 — 그 전엔 계절색 바탕만
+  const [ambientReady, setAmbientReady] = useState(false)
+  // 뒷장 두 장은 미리보기가 오기 전에도 빈 종이로 자리를 잡아 둔다(나중에 '툭' 끼어들지 않게)
+  const backSrc = (i: number) => (pages[i] ? pageThumb(pages[i]) : undefined)
+  const showBacks = pages.length >= 3 || (!preview && pageCount >= 3)
 
   return (
     <article
       className={`bsf-hero bsf-${issue.season} ${busy ? 'opacity-70' : ''}`}
       aria-busy={busy || undefined}
     >
-      {ambient && <div className="bsf-amb" style={{ backgroundImage: `url("${ambient}")` }} aria-hidden="true" />}
+      {cover && (
+        <img
+          className={`bsf-amb ${ambientReady ? 'is-ready' : ''}`}
+          src={cover}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          onLoad={() => setAmbientReady(true)}
+        />
+      )}
 
       <div className="bsf-hero-grid">
         <div className="bsf-hero-info">
@@ -127,10 +141,10 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
           disabled={busy}
           aria-label={t('newsBulletinOpenSpread')}
         >
-          {pages[2] && <img src={pageThumb(pages[2])} alt="" decoding="async" />}
-          {pages[1] && <img src={pageThumb(pages[1])} alt="" decoding="async" />}
+          {showBacks && <img src={backSrc(2)} alt="" decoding="async" />}
+          {showBacks && <img src={backSrc(1)} alt="" decoding="async" />}
           {cover ? (
-            <img src={cover} alt={bulletin.title} decoding="async" />
+            <img src={cover} alt={bulletin.title} decoding="async" fetchPriority="high" />
           ) : (
             <span className="bsf-fan-empty">
               <BulletinIcon width={40} height={40} />
@@ -149,7 +163,7 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
                   disabled={busy}
                   aria-label={fill(t('newsBulletinStartAt'), { n: i + 1 })}
                 >
-                  <img src={pageThumb(p)} alt="" loading="lazy" decoding="async" />
+                  <img src={pageMini(p)} alt="" decoding="async" />
                   <i>{i + 1}</i>
                 </button>
               ))}
@@ -282,7 +296,7 @@ const CoverFlow = ({
             >
               <span className="bsf-card-no">{fill(t('newsBulletinIssueShort'), { no: issue.no })}</span>
               {issue.bulletin.thumbnail_url ? (
-                <img src={issue.bulletin.thumbnail_url} alt="" loading="lazy" decoding="async" />
+                <img src={issue.bulletin.thumbnail_url} alt="" loading="lazy" decoding="async" fetchPriority="low" />
               ) : (
                 <span className="bsf-card-empty">
                   <BulletinIcon width={30} height={30} />
