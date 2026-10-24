@@ -8,7 +8,7 @@ import { bulletinKeys } from '../../../hooks/useBulletins'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Bulletin } from '../../../types/bulletin'
 import { BulletinIcon } from './NewsIcons'
-import { SEASON_LABEL, fill, issueDateText, toIssue, type Issue, type Season } from './bulletinIssue'
+import { SEASON_LABEL, fill, issueDateText, pageSrc, pageThumb, toIssue, type Issue, type Season } from './bulletinIssue'
 import './bulletinShelf.css'
 
 const ChevronRight = ({ size = 14 }: { size?: number }) => (
@@ -56,7 +56,9 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
     () => [...(preview?.pages ?? [])].sort((a, b) => a.page_number - b.page_number),
     [preview],
   )
-  const cover = bulletin.thumbnail_url ?? pages[0]?.image_url
+  // 앞장은 크게 보여 읽기용 WebP, 번진 배경은 어차피 흐려서 480px 썸네일이면 충분
+  const cover = bulletin.cover_url ?? bulletin.thumbnail_url ?? (pages[0] && pageSrc(pages[0]))
+  const ambient = bulletin.thumbnail_url ?? cover
 
   // 주일까지 남은 날 — 오늘 기기 날짜 기준
   const now = new Date()
@@ -97,7 +99,7 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
       className={`bsf-hero bsf-${issue.season} ${busy ? 'opacity-70' : ''}`}
       aria-busy={busy || undefined}
     >
-      {cover && <div className="bsf-amb" style={{ backgroundImage: `url("${cover}")` }} aria-hidden="true" />}
+      {ambient && <div className="bsf-amb" style={{ backgroundImage: `url("${ambient}")` }} aria-hidden="true" />}
 
       <div className="bsf-hero-grid">
         <div className="bsf-hero-info">
@@ -125,8 +127,8 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
           disabled={busy}
           aria-label={t('newsBulletinOpenSpread')}
         >
-          {pages[2] && <img src={pages[2].image_url} alt="" decoding="async" />}
-          {pages[1] && <img src={pages[1].image_url} alt="" decoding="async" />}
+          {pages[2] && <img src={pageThumb(pages[2])} alt="" decoding="async" />}
+          {pages[1] && <img src={pageThumb(pages[1])} alt="" decoding="async" />}
           {cover ? (
             <img src={cover} alt={bulletin.title} decoding="async" />
           ) : (
@@ -147,7 +149,7 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
                   disabled={busy}
                   aria-label={fill(t('newsBulletinStartAt'), { n: i + 1 })}
                 >
-                  <img src={p.image_url} alt="" loading="lazy" decoding="async" />
+                  <img src={pageThumb(p)} alt="" loading="lazy" decoding="async" />
                   <i>{i + 1}</i>
                 </button>
               ))}

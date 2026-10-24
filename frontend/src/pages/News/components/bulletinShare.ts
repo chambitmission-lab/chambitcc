@@ -42,14 +42,16 @@ export const shareBulletinPage = async (file: File | undefined, title: string, i
   await shareBulletinLink(title, id, ko)
 }
 
-/** 쪽 이미지를 공유용 파일로 받아 둔다 — 파일 공유를 못 하는 기기(대부분 PC)는 받지 않는다 */
-export const prefetchPageFile = async (src: string, name: string): Promise<File | undefined> => {
+/** 쪽 이미지를 공유용 파일로 받아 둔다 — 파일 공유를 못 하는 기기(대부분 PC)는 받지 않는다.
+ *  baseName 에 확장자는 붙이지 않는다(읽기용 WebP·옛 주보 PNG 를 받은 형식대로) */
+export const prefetchPageFile = async (src: string, baseName: string): Promise<File | undefined> => {
   if (!navigator.canShare) return undefined
   try {
     const res = await fetch(src)
     if (!res.ok) return undefined
     const blob = await res.blob()
-    const file = new File([blob], name, { type: blob.type || 'image/png' })
+    const type = blob.type || 'image/png'
+    const file = new File([blob], `${baseName}.${type.split('/')[1]?.replace('jpeg', 'jpg') || 'png'}`, { type })
     return navigator.canShare({ files: [file] }) ? file : undefined
   } catch {
     return undefined

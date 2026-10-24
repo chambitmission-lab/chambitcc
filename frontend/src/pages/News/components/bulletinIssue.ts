@@ -1,7 +1,7 @@
 // 주보 호수·계절 판 — 목록(BulletinShelf)과 뷰어가 같은 이름표를 쓴다.
 // 호수는 날짜로 계산(제33권 43호 = 2026년 43번째 주일)이라 백엔드 무변경.
 import type { Translation } from '../../../locales'
-import type { Bulletin } from '../../../types/bulletin'
+import type { Bulletin, BulletinPage } from '../../../types/bulletin'
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter'
 
@@ -48,3 +48,8 @@ export const issueDateText = (issue: Issue, language: string) =>
 
 export const fill = (s: string, vars: Record<string, string | number>) =>
   Object.entries(vars).reduce((acc, [k, v]) => acc.replace(`{${k}}`, String(v)), s)
+
+/** 크게 읽는 자리(뷰어·히어로 앞장) — 읽기용 WebP, 옛 주보는 원본 */
+export const pageSrc = (p: BulletinPage) => p.display_url || p.image_url
+/** 작게 보이는 자리(쪽 띠·옆 쪽·미니맵) — 480px WebP */
+export const pageThumb = (p: BulletinPage) => p.thumb_url || p.display_url || p.image_url

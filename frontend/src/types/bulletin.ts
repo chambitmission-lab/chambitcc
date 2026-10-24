@@ -5,6 +5,10 @@ export interface BulletinPage {
   bulletin_id: number
   page_number: number
   image_url: string
+  /** 읽기용 WebP(원본 해상도) — 옛 주보는 없음, image_url 로 대체 */
+  display_url?: string | null
+  /** 목록용 480px WebP — 옛 주보는 없음 */
+  thumb_url?: string | null
   created_at: string
 }
 
@@ -18,7 +22,8 @@ export interface Bulletin {
   created_at: string
   updated_at: string
   page_count?: number  // 목록 조회시에만 포함
-  thumbnail_url?: string  // 목록 조회시에만 포함
+  thumbnail_url?: string  // 목록 조회시에만 포함 — 첫 쪽 480px WebP(없으면 원본)
+  cover_url?: string  // 목록 조회시에만 포함 — 첫 쪽 읽기용 WebP(없으면 원본)
   pages?: BulletinPage[]  // 상세 조회시에만 포함
 }
 

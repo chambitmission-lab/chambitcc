@@ -5,7 +5,7 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { safeStorage } from '../../../utils/safeStorage'
-import { SEASON_LABEL, fill, issueDateText, toIssue } from './bulletinIssue'
+import { SEASON_LABEL, fill, issueDateText, pageSrc, pageThumb, toIssue } from './bulletinIssue'
 import { prefetchPageFile, shareBulletinLink, shareBulletinPage } from './bulletinShare'
 import './InstagramBulletinViewer.css'
 
@@ -166,7 +166,7 @@ const InstagramBulletinViewer = ({
   // 앞뒤 쪽 미리 받아 두기 — 넘길 때 빈 화면 없이
   useEffect(() => {
     ;[pages[currentPage - 1], pages[currentPage + 1]].forEach(p => {
-      if (p) new Image().src = p.image_url
+      if (p) new Image().src = pageSrc(p)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, totalPages])
@@ -471,17 +471,17 @@ const InstagramBulletinViewer = ({
   }, [currentPage, goToPage, setView, zoomAt, applyFit, fitMode, stage.w, stage.h, onClose, slideTo, ready])
 
   // ── 표지 색 배경: 주보 한 부 동안 고정 — 쪽마다 바꾸면 넘길 때 화면 전체가 출렁여 멀미가 난다 ──
-  const bgUrl = bulletin.thumbnail_url ?? pages[0]?.image_url
+  const bgUrl = pages[0] ? pageThumb(pages[0]) : bulletin.thumbnail_url
 
   // ── 이 쪽 보내기: 쪽이 자리 잡으면 공유용 파일을 미리 받아 둔다(누른 뒤 받으면 iOS 가 공유 시트를 막는다) ──
   const shareFiles = useRef(new Map<number, File>())
-  const pageUrl = onEnd ? undefined : pages[currentPage]?.image_url
+  const pageUrl = onEnd || !pages[currentPage] ? undefined : pageSrc(pages[currentPage])
   useEffect(() => {
     if (!pageUrl || shareFiles.current.has(currentPage)) return
     let alive = true
     const page = currentPage
     const id = window.setTimeout(() => {
-      prefetchPageFile(pageUrl, `bulletin-${issue.y}${String(issue.m).padStart(2, '0')}${String(issue.d).padStart(2, '0')}-p${page + 1}.png`).then(
+      prefetchPageFile(pageUrl, `bulletin-${issue.y}${String(issue.m).padStart(2, '0')}${String(issue.d).padStart(2, '0')}-p${page + 1}`).then(
         file => {
           if (alive && file) shareFiles.current.set(page, file)
         },
@@ -640,7 +640,7 @@ const InstagramBulletinViewer = ({
         >
           {showPeeks && prevPage && (
             <div className="bv-peek" style={peekStyle(-1)} aria-hidden="true">
-              <img src={prevPage.image_url} alt="" draggable={false} />
+              <img src={pageSrc(prevPage)} alt="" draggable={false} />
             </div>
           )}
 
@@ -665,7 +665,7 @@ const InstagramBulletinViewer = ({
             >
               <img
                 key={pages[currentPage]?.id}
-                src={pages[currentPage]?.image_url}
+                src={pages[currentPage] && pageSrc(pages[currentPage])}
                 alt={t('newsViewerPageNth').replace('{n}', String(currentPage + 1))}
                 className={`bulletin-image ${animate ? 'is-animating' : ''} ${ready ? 'is-ready' : ''} ${zoomed ? '' : 'is-card'}`}
                 style={
@@ -687,7 +687,7 @@ const InstagramBulletinViewer = ({
           {showPeeks &&
             (nextPage ? (
               <div className="bv-peek" style={peekStyle(1)} aria-hidden="true">
-                <img src={nextPage.image_url} alt="" draggable={false} />
+                <img src={pageSrc(nextPage)} alt="" draggable={false} />
               </div>
             ) : (
               !onEnd && (
@@ -780,7 +780,7 @@ const InstagramBulletinViewer = ({
           }}
           aria-hidden="true"
         >
-          <img src={pages[currentPage]?.image_url} alt="" draggable={false} />
+          {pages[currentPage] && <img src={pageThumb(pages[currentPage])} alt="" draggable={false} />}
           <div
             className="zoom-minimap-rect"
             style={{
