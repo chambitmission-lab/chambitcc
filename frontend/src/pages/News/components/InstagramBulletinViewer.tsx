@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 import type { Bulletin } from '../../../types/bulletin'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
+import { safeStorage } from '../../../utils/safeStorage'
 import './InstagramBulletinViewer.css'
 
 interface InstagramBulletinViewerProps {
@@ -10,172 +12,446 @@ interface InstagramBulletinViewerProps {
   onClose: () => void
 }
 
+/** s = 전체 맞춤 크기 대비 배율(1 = 한 쪽이 화면에 다 들어옴), x·y = 무대 기준 그림 왼쪽 위 위치(px) */
+interface View {
+  s: number
+  x: number
+  y: number
+}
+
+/** 쪽을 넘겨도 이어지는 보기 방식 — 폭 맞춤으로 읽던 사람은 다음 쪽도 폭 맞춤 맨 위에서 시작 */
+type FitMode = 'contain' | 'width'
+
+const HINT_KEY = 'bulletin-viewer-hint-v1'
+const DOUBLE_TAP_MS = 300
+const DRAG_THRESHOLD = 6
+
 const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerProps) => {
   const { t, language } = useLanguage()
   const ko = language !== 'en'
   const [currentPage, setCurrentPage] = useState(0)
-  const [scale, setScale] = useState(1)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
   const [showControls, setShowControls] = useState(true)
   // PC(lg+)는 마우스로 넘기는 자리라 버튼이 3초 뒤 사라지면 어르신이 넘기는 법을 잃는다 — 늘 보인다
   const isLg = useMediaQuery('(min-width: 1024px)')
   const controlsOn = showControls || isLg
-  
-  const containerRef = useRef<HTMLDivElement>(null)
-  const imageRef = useRef<HTMLImageElement>(null)
-  const touchStartRef = useRef({ x: 0, y: 0, distance: 0 })
-  const lastTapRef = useRef(0)
-  const dragStartRef = useRef({ x: 0, y: 0 })
-  const controlsTimeoutRef = useRef<number | undefined>(undefined)
 
-  const pages = bulletin.pages?.sort((a, b) => a.page_number - b.page_number) || []
+  const pages = [...(bulletin.pages ?? [])].sort((a, b) => a.page_number - b.page_number)
   const totalPages = pages.length
+
+  // ── 확대 엔진 상태 ──────────────────────────────────────────
+  const stageRef = useRef<HTMLDivElement>(null)
+  const [stage, setStage] = useState({ w: 0, h: 0 })
+  const [natural, setNatural] = useState({ w: 0, h: 0 })
+  const [view, setViewState] = useState<View>({ s: 1, x: 0, y: 0 })
+  // 버튼·더블클릭처럼 "한 번에 이동"할 때만 부드럽게 — 끌기·휠·핀치 중에 transition 이 걸리면 손을 늦게 따라온다
+  const [animate, setAnimate] = useState(false)
+  const [dragging, setDragging] = useState(false)
+  const [fitMode, setFitMode] = useState<FitMode>('contain')
+  const [showHint, setShowHint] = useState(() => safeStorage.get(HINT_KEY) !== '1')
+  const viewRef = useRef(view)
+
+  // 위·아래는 머리말·쪽 표시 자리, PC 좌우는 넘기기 버튼 자리 — 맞춤 크기는 이 안쪽에서 잡는다
+  const inset = isLg ? { t: 110, b: 92, l: 120, r: 120 } : { t: 74, b: 72, l: 0, r: 0 }
+  const availW = Math.max(stage.w - inset.l - inset.r, 1)
+  const availH = Math.max(stage.h - inset.t - inset.b, 1)
+  const ratio = natural.w && natural.h ? Math.min(availW / natural.w, availH / natural.h) : 0
+  const baseW = natural.w * ratio
+  const baseH = natural.h * ratio
+  const ready = baseW > 0 && stage.w > 0
+  const widthScale = ready ? Math.max(availW / baseW, 1) : 1
+  // 원본 화소 2배까지는 볼 수 있게 — 작은 글씨도 끝까지 키울 수 있어야 한다
+  const maxScale = ready ? Math.max(4, widthScale * 2.5, (natural.w / baseW) * 2) : 4
+
+  const clamp = useCallback(
+    (v: View): View => {
+      const s = Math.min(Math.max(v.s, 1), maxScale)
+      const w = baseW * s
+      const h = baseH * s
+      // 화면보다 작으면 가운데, 크면 가장자리가 머리말·버튼 자리를 넘어 숨지 않을 만큼만 움직인다
+      const axis = (pos: number, size: number, full: number, a: number, b: number) => {
+        const room = full - a - b
+        if (size <= room) return a + (room - size) / 2
+        return Math.min(Math.max(pos, full - b - size), a)
+      }
+      return {
+        s,
+        x: axis(v.x, w, stage.w, inset.l, inset.r),
+        y: axis(v.y, h, stage.h, inset.t, inset.b),
+      }
+    },
+    [baseW, baseH, maxScale, stage.w, stage.h, inset.l, inset.r, inset.t, inset.b],
+  )
+
+  const setView = useCallback(
+    (next: View, smooth = false) => {
+      const v = clamp(next)
+      viewRef.current = v
+      setAnimate(smooth)
+      setViewState(v)
+    },
+    [clamp],
+  )
+
+  /** (cx, cy) 무대 좌표에 있는 그림 위의 점을 그 자리에 붙든 채 배율만 바꾼다 */
+  const zoomAt = useCallback(
+    (nextS: number, cx: number, cy: number, smooth = false) => {
+      const cur = viewRef.current
+      const s = Math.min(Math.max(nextS, 1), maxScale)
+      const px = (cx - cur.x) / cur.s
+      const py = (cy - cur.y) / cur.s
+      setView({ s, x: cx - px * s, y: cy - py * s }, smooth)
+    },
+    [maxScale, setView],
+  )
+
+  const applyFit = useCallback(
+    (mode: FitMode, smooth = false) => {
+      if (mode === 'width') setView({ s: widthScale, x: 0, y: inset.t }, smooth)
+      else setView({ s: 1, x: 0, y: 0 }, smooth)
+    },
+    [setView, widthScale, inset.t],
+  )
+
+  const zoomBy = (factor: number) => zoomAt(viewRef.current.s * factor, stage.w / 2, stage.h / 2, true)
+
+  // 무대 크기 — 창 크기를 바꾸면 맞춤도 다시
+  useLayoutEffect(() => {
+    const el = stageRef.current
+    if (!el) return
+    const measure = () => setStage({ w: el.clientWidth, h: el.clientHeight })
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // 새 쪽이 뜨거나 화면 크기가 바뀌면 지금 보기 방식으로 다시 맞춘다
+  useLayoutEffect(() => {
+    if (ready) applyFit(fitMode)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, baseW, baseH, stage.w, stage.h, currentPage])
+
+  // 앞뒤 쪽 미리 받아 두기 — 넘길 때 빈 화면 없이
+  useEffect(() => {
+    ;[pages[currentPage - 1], pages[currentPage + 1]].forEach(p => {
+      if (p) new Image().src = p.image_url
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, totalPages])
+
+  const dismissHint = useCallback(() => {
+    setShowHint(prev => {
+      if (prev) safeStorage.set(HINT_KEY, '1')
+      return false
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!showHint) return
+    const id = window.setTimeout(dismissHint, 5000)
+    return () => window.clearTimeout(id)
+  }, [showHint, dismissHint])
 
   // 뒤로가기 → 뷰어만 닫기
   useModalBackButton(onClose)
 
-  // 컨트롤 자동 숨김
+  // 컨트롤 자동 숨김(모바일)
   useEffect(() => {
-    if (showControls) {
-      controlsTimeoutRef.current = window.setTimeout(() => {
-        setShowControls(false)
-      }, 3000)
-    }
-    return () => {
-      if (controlsTimeoutRef.current) {
-        window.clearTimeout(controlsTimeoutRef.current)
-      }
-    }
+    if (!showControls) return
+    const id = window.setTimeout(() => setShowControls(false), 3000)
+    return () => window.clearTimeout(id)
   }, [showControls, currentPage])
 
-  // 화면 터치로 컨트롤 토글
-  const handleScreenTap = () => {
-    setShowControls(!showControls)
+  const goToPage = useCallback(
+    (next: number) => {
+      if (next < 0 || next >= totalPages) return
+      setNatural({ w: 0, h: 0 })
+      setCurrentPage(next)
+    },
+    [totalPages],
+  )
+
+  // ── 휠 · 트랙패드 핀치: 커서가 가리키는 곳을 중심으로 ──────────────
+  useEffect(() => {
+    const el = stageRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const rect = el.getBoundingClientRect()
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY
+      // 트랙패드 핀치는 ctrlKey 가 붙고 delta 가 잘다 — 같은 손동작이 같은 만큼 커지게 감도를 나눈다
+      const k = e.ctrlKey ? 0.01 : 0.0022
+      const factor = Math.exp(-Math.max(Math.min(dy, 120), -120) * k)
+      zoomAt(viewRef.current.s * factor, e.clientX - rect.left, e.clientY - rect.top)
+      dismissHint()
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [zoomAt, dismissHint])
+
+  // ── 포인터(마우스·손가락 공통): 끌어서 이동 · 두 손가락 핀치 · 더블탭 · 스와이프 ──
+  const pointers = useRef(new Map<number, { x: number; y: number }>())
+  const gesture = useRef({
+    startX: 0,
+    startY: 0,
+    startView: view,
+    pinchDist: 0,
+    pinchMid: { x: 0, y: 0 },
+    moved: false,
+    pinched: false,
+  })
+  const lastTap = useRef({ t: 0, x: 0, y: 0 })
+  const tapTimer = useRef<number | undefined>(undefined)
+  const velocity = useRef({ vx: 0, vy: 0, t: 0, x: 0, y: 0 })
+  const inertiaRaf = useRef<number | undefined>(undefined)
+
+  const stopInertia = () => {
+    if (inertiaRaf.current) cancelAnimationFrame(inertiaRaf.current)
+    inertiaRaf.current = undefined
   }
 
-  // 더블탭 줌
-  const handleDoubleTap = () => {
+  const local = (e: { clientX: number; clientY: number }) => {
+    const rect = stageRef.current!.getBoundingClientRect()
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+  }
+
+  const isZoomed = () => {
+    const v = viewRef.current
+    return baseW * v.s > stage.w - inset.l - inset.r + 1 || baseH * v.s > stage.h - inset.t - inset.b + 1
+  }
+
+  const beginPinch = () => {
+    const [a, b] = [...pointers.current.values()]
+    gesture.current.pinchDist = Math.hypot(a.x - b.x, a.y - b.y) || 1
+    gesture.current.pinchMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+    gesture.current.startView = viewRef.current
+    gesture.current.pinched = true
+  }
+
+  const beginPan = (p: { x: number; y: number }) => {
+    gesture.current.startX = p.x
+    gesture.current.startY = p.y
+    gesture.current.startView = viewRef.current
+    velocity.current = { vx: 0, vy: 0, t: performance.now(), x: p.x, y: p.y }
+  }
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    stopInertia()
+    const p = local(e)
+    pointers.current.set(e.pointerId, p)
+    if (pointers.current.size === 1) {
+      gesture.current.moved = false
+      gesture.current.pinched = false
+      beginPan(p)
+    } else if (pointers.current.size === 2) {
+      beginPinch()
+    }
+  }
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!pointers.current.has(e.pointerId)) return
+    const p = local(e)
+    pointers.current.set(e.pointerId, p)
+    const g = gesture.current
+
+    if (pointers.current.size >= 2) {
+      g.moved = true
+      const [a, b] = [...pointers.current.values()]
+      const dist = Math.hypot(a.x - b.x, a.y - b.y)
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+      const sv = g.startView
+      const s = Math.min(Math.max((sv.s * dist) / g.pinchDist, 1), maxScale)
+      // 처음 집은 점이 두 손가락 가운데를 따라오게 — 집으면서 옮기기도 된다
+      const px = (g.pinchMid.x - sv.x) / sv.s
+      const py = (g.pinchMid.y - sv.y) / sv.s
+      setView({ s, x: mid.x - px * s, y: mid.y - py * s })
+      return
+    }
+
+    const dx = p.x - g.startX
+    const dy = p.y - g.startY
+    if (!g.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+    if (!g.moved) {
+      g.moved = true
+      // 캡처는 끌기 임계치를 넘은 뒤에만 — 처음부터 잡으면 자식 click 이 죽는다(frontend-pitfalls)
+      const el = e.currentTarget as HTMLElement
+      if (!el.hasPointerCapture(e.pointerId)) el.setPointerCapture(e.pointerId)
+    }
+    if (isZoomed()) {
+      setDragging(true)
+      setView({ s: g.startView.s, x: g.startView.x + dx, y: g.startView.y + dy })
+      const now = performance.now()
+      const dt = Math.max(now - velocity.current.t, 1)
+      velocity.current = {
+        vx: (p.x - velocity.current.x) / dt,
+        vy: (p.y - velocity.current.y) / dt,
+        t: now,
+        x: p.x,
+        y: p.y,
+      }
+    }
+  }
+
+  const handleTap = (p: { x: number; y: number }, isMouse: boolean) => {
     const now = Date.now()
-    const timeSinceLastTap = now - lastTapRef.current
-
-    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-      if (scale === 1) {
-        setScale(2)
-      } else {
-        setScale(1)
-        setPosition({ x: 0, y: 0 })
-      }
+    const lt = lastTap.current
+    if (now - lt.t < DOUBLE_TAP_MS && Math.hypot(p.x - lt.x, p.y - lt.y) < 40) {
+      // 두 번 누름: 누른 그 자리를 크게, 이미 커져 있으면 원래대로
+      window.clearTimeout(tapTimer.current)
+      lastTap.current = { t: 0, x: 0, y: 0 }
+      const fitS = fitMode === 'width' ? widthScale : 1
+      if (Math.abs(viewRef.current.s - fitS) < 0.05) zoomAt(Math.max(2.5, fitS * 1.6), p.x, p.y, true)
+      else applyFit(fitMode, true)
+      dismissHint()
+      return
     }
-    lastTapRef.current = now
-  }
-
-  // 터치 시작
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      touchStartRef.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-        distance: 0
-      }
-      if (scale > 1) {
-        setIsDragging(true)
-        dragStartRef.current = { x: position.x, y: position.y }
-      }
-    } else if (e.touches.length === 2) {
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      )
-      touchStartRef.current = { x: 0, y: 0, distance }
+    lastTap.current = { t: now, x: p.x, y: p.y }
+    // 한 번 누름(모바일): 컨트롤 토글 — 두 번 누름과 겹치지 않게 잠깐 기다린다
+    if (!isMouse) {
+      window.clearTimeout(tapTimer.current)
+      tapTimer.current = window.setTimeout(() => setShowControls(v => !v), DOUBLE_TAP_MS)
     }
   }
 
-  // 터치 이동
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      // 핀치 줌
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      )
-      const delta = distance / touchStartRef.current.distance
-      const newScale = Math.min(Math.max(scale * delta, 1), 4)
-      setScale(newScale)
-      touchStartRef.current.distance = distance
-      
-      if (newScale === 1) {
-        setPosition({ x: 0, y: 0 })
-      }
-    } else if (e.touches.length === 1 && scale > 1 && isDragging) {
-      // 드래그
-      const deltaX = e.touches[0].clientX - touchStartRef.current.x
-      const deltaY = e.touches[0].clientY - touchStartRef.current.y
-      setPosition({
-        x: dragStartRef.current.x + deltaX,
-        y: dragStartRef.current.y + deltaY
-      })
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!pointers.current.has(e.pointerId)) return
+    const p = local(e)
+    pointers.current.delete(e.pointerId)
+    const g = gesture.current
+    setDragging(false)
+
+    if (pointers.current.size === 1) {
+      // 핀치하다 한 손가락을 떼면 남은 손가락으로 이어서 끌기
+      beginPan([...pointers.current.values()][0])
+      return
     }
-  }
+    if (pointers.current.size > 0) return
 
-  // 터치 종료
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (e.changedTouches.length === 1 && scale === 1 && !isDragging) {
-      const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x
-      const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartRef.current.y)
-      
-      // 수평 스와이프 감지
-      if (Math.abs(deltaX) > 50 && deltaY < 100) {
-        if (deltaX > 0 && currentPage > 0) {
-          goToPreviousPage()
-        } else if (deltaX < 0 && currentPage < totalPages - 1) {
-          goToNextPage()
-        }
-      }
+    if (!g.moved) {
+      handleTap(p, e.pointerType === 'mouse')
+      return
     }
-    setIsDragging(false)
-  }
+    if (g.pinched) return
 
-  const goToNextPage = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1)
-      resetZoom()
+    const dx = p.x - g.startX
+    const dy = p.y - g.startY
+    if (!isZoomed()) {
+      // 맞춤 상태의 가로 스와이프 = 쪽 넘기기
+      if (Math.abs(dx) > 50 && Math.abs(dy) < 100) goToPage(currentPage + (dx < 0 ? 1 : -1))
+      return
     }
-  }
 
-  const goToPreviousPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1)
-      resetZoom()
+    // 손을 놓은 속도로 조금 더 미끄러지기
+    let { vx, vy } = velocity.current
+    if (performance.now() - velocity.current.t > 80) return
+    const step = () => {
+      vx *= 0.92
+      vy *= 0.92
+      if (Math.hypot(vx, vy) < 0.02) return stopInertia()
+      const cur = viewRef.current
+      setView({ s: cur.s, x: cur.x + vx * 16, y: cur.y + vy * 16 })
+      inertiaRaf.current = requestAnimationFrame(step)
     }
+    inertiaRaf.current = requestAnimationFrame(step)
   }
 
-  const resetZoom = () => {
-    setScale(1)
-    setPosition({ x: 0, y: 0 })
+  const handlePointerCancel = (e: React.PointerEvent) => {
+    pointers.current.delete(e.pointerId)
+    setDragging(false)
   }
 
-  // 키보드 네비게이션
+  useEffect(() => () => {
+    stopInertia()
+    window.clearTimeout(tapTimer.current)
+  }, [])
+
+  // ── 키보드: ←→ 쪽 · ↑↓ 확대 중 이동 · + − 확대 · 0 맞춤 · Esc 닫기 ──
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') goToPreviousPage()
-      if (e.key === 'ArrowRight') goToNextPage()
-      if (e.key === 'Escape') onClose()
+      const cur = viewRef.current
+      if (e.key === 'ArrowLeft') goToPage(currentPage - 1)
+      else if (e.key === 'ArrowRight') goToPage(currentPage + 1)
+      else if (e.key === 'ArrowUp') setView({ ...cur, y: cur.y + 160 }, true)
+      else if (e.key === 'ArrowDown') setView({ ...cur, y: cur.y - 160 }, true)
+      else if (e.key === '+' || e.key === '=') zoomAt(cur.s * 1.4, stage.w / 2, stage.h / 2, true)
+      else if (e.key === '-' || e.key === '_') zoomAt(cur.s / 1.4, stage.w / 2, stage.h / 2, true)
+      else if (e.key === '0') applyFit(fitMode, true)
+      else if (e.key === 'Escape') onClose()
+      else return
+      e.preventDefault()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentPage, totalPages])
+  }, [currentPage, goToPage, setView, zoomAt, applyFit, fitMode, stage.w, stage.h, onClose])
+
+  // ── 미니맵: 확대 중 지금 보는 자리를 작은 쪽 위에 표시, 누르거나 끌면 그리로 ──
+  const mapW = isLg ? 168 : 96
+  const mapH = ready ? (mapW * baseH) / baseW : 0
+  const zoomed = ready && isZoomed()
+  const w = baseW * view.s
+  const h = baseH * view.s
+  const rect = ready
+    ? {
+        left: Math.max(0, -view.x / w),
+        top: Math.max(0, -view.y / h),
+        right: Math.min(1, (stage.w - view.x) / w),
+        bottom: Math.min(1, (stage.h - view.y) / h),
+      }
+    : { left: 0, top: 0, right: 1, bottom: 1 }
+
+  const moveToMapPoint = (e: React.PointerEvent<HTMLDivElement>, smooth: boolean) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const fx = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1)
+    const fy = Math.min(Math.max((e.clientY - r.top) / r.height, 0), 1)
+    const cur = viewRef.current
+    setView({ s: cur.s, x: stage.w / 2 - fx * baseW * cur.s, y: stage.h / 2 - fy * baseH * cur.s }, smooth)
+  }
 
   if (totalPages === 0) {
-    return (
+    return createPortal(
       <div className="instagram-viewer">
         <div className="viewer-error">{t('newsViewerPageFailed')}</div>
-      </div>
+      </div>,
+      document.body,
     )
   }
 
-  return (
-    <div className="instagram-viewer" ref={containerRef}>
+  const pct = Math.round(view.s * 100)
+  const nextFit: FitMode = fitMode === 'width' ? 'contain' : 'width'
+
+  // 라우트 최상위에 붙는 PC 글씨 크기 zoom(--az) 밖으로 꺼낸다 — zoom 안에선 포인터 좌표와 화면 좌표가 어긋난다
+  return createPortal(
+    <div className="instagram-viewer">
+      {/* 무대 — 그림을 끌고 키우는 자리 */}
+      <div
+        ref={stageRef}
+        className={`image-container ${zoomed ? (dragging ? 'is-grabbing' : 'is-pannable') : 'is-fit'}`}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+        <img
+          key={pages[currentPage]?.id}
+          src={pages[currentPage]?.image_url}
+          alt={t('newsViewerPageNth').replace('{n}', String(currentPage + 1))}
+          className={`bulletin-image ${animate ? 'is-animating' : ''} ${ready ? 'is-ready' : ''}`}
+          style={
+            ready
+              ? {
+                  width: baseW,
+                  height: baseH,
+                  transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.s})`,
+                }
+              : undefined
+          }
+          onLoad={e => setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+          onTransitionEnd={() => setAnimate(false)}
+          draggable={false}
+        />
+      </div>
+
       {/* 헤더 */}
       <div className={`instagram-header ${controlsOn ? 'visible' : 'hidden'}`}>
         <button onClick={onClose} className="close-button" aria-label={t('newsClose')} title={t('newsClose')}>
@@ -191,33 +467,11 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
       <div className={`progress-bars ${controlsOn ? 'visible' : 'hidden'}`}>
         {pages.map((_, index) => (
           <div key={index} className="progress-bar-container">
-            <div 
+            <div
               className={`progress-bar ${index < currentPage ? 'completed' : index === currentPage ? 'active' : ''}`}
             />
           </div>
         ))}
-      </div>
-
-      {/* 이미지 컨테이너 */}
-      <div 
-        className="image-container"
-        onClick={handleScreenTap}
-        onDoubleClick={handleDoubleTap}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <img
-          ref={imageRef}
-          src={pages[currentPage]?.image_url}
-          alt={t('newsViewerPageNth').replace('{n}', String(currentPage + 1))}
-          className="bulletin-image"
-          style={{
-            transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
-            cursor: scale > 1 ? 'grab' : 'default'
-          }}
-          draggable={false}
-        />
       </div>
 
       {/* 페이지 인디케이터 */}
@@ -225,13 +479,13 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
         {currentPage + 1} / {totalPages}
       </div>
 
-      {/* 네비게이션 버튼 */}
-      {scale === 1 && (
+      {/* 네비게이션 버튼 — 확대 중에도 PC 는 그대로 넘길 수 있다 */}
+      {(isLg || !zoomed) && (
         <>
           {currentPage > 0 && (
-            <button 
+            <button
               className={`nav-button prev ${controlsOn ? 'visible' : 'hidden'}`}
-              onClick={goToPreviousPage}
+              onClick={() => goToPage(currentPage - 1)}
               aria-label={ko ? '이전 쪽' : 'Previous page'}
             >
               <span className="material-icons-outlined">chevron_left</span>
@@ -239,9 +493,9 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
             </button>
           )}
           {currentPage < totalPages - 1 && (
-            <button 
+            <button
               className={`nav-button next ${controlsOn ? 'visible' : 'hidden'}`}
-              onClick={goToNextPage}
+              onClick={() => goToPage(currentPage + 1)}
               aria-label={ko ? '다음 쪽' : 'Next page'}
             >
               <span className="material-icons-outlined">chevron_right</span>
@@ -251,31 +505,98 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
         </>
       )}
 
+      {/* 미니맵 */}
+      {ready && (
+        <div
+          className={`zoom-minimap ${zoomed && controlsOn ? 'visible' : 'hidden'}`}
+          style={{ width: mapW, height: mapH }}
+          onPointerDown={e => {
+            e.currentTarget.setPointerCapture(e.pointerId)
+            moveToMapPoint(e, true)
+          }}
+          onPointerMove={e => {
+            if (e.currentTarget.hasPointerCapture(e.pointerId)) moveToMapPoint(e, false)
+          }}
+          aria-hidden="true"
+        >
+          <img src={pages[currentPage]?.image_url} alt="" draggable={false} />
+          <div
+            className="zoom-minimap-rect"
+            style={{
+              left: `${rect.left * 100}%`,
+              top: `${rect.top * 100}%`,
+              width: `${(rect.right - rect.left) * 100}%`,
+              height: `${(rect.bottom - rect.top) * 100}%`,
+            }}
+          />
+        </div>
+      )}
+
       {/* 줌 컨트롤 */}
       <div className={`zoom-controls ${controlsOn ? 'visible' : 'hidden'}`}>
-        <button 
-          onClick={() => {
-            if (scale > 1) {
-              setScale(Math.max(scale - 0.5, 1))
-              if (scale - 0.5 <= 1) setPosition({ x: 0, y: 0 })
-            }
-          }}
-          disabled={scale <= 1}
-        >
-          <span className="material-icons-outlined">remove</span>
-        </button>
-        <span className="zoom-level">{Math.round(scale * 100)}%</span>
-        <button 
-          onClick={() => setScale(Math.min(scale + 0.5, 4))}
-          disabled={scale >= 4}
+        <button
+          onClick={() => zoomBy(1.4)}
+          disabled={view.s >= maxScale - 0.01}
+          aria-label={ko ? '크게' : 'Zoom in'}
+          title={ko ? '크게 (+)' : 'Zoom in (+)'}
         >
           <span className="material-icons-outlined">add</span>
         </button>
+        <span className="zoom-level">{pct}%</span>
+        <button
+          onClick={() => zoomBy(1 / 1.4)}
+          disabled={view.s <= 1.01}
+          aria-label={ko ? '작게' : 'Zoom out'}
+          title={ko ? '작게 (−)' : 'Zoom out (−)'}
+        >
+          <span className="material-icons-outlined">remove</span>
+        </button>
+        <span className="zoom-divider" aria-hidden="true" />
+        <button
+          className="zoom-fit"
+          onClick={() => {
+            setFitMode(nextFit)
+            applyFit(nextFit, true)
+          }}
+          aria-label={nextFit === 'width' ? (ko ? '폭 맞춤' : 'Fit width') : (ko ? '한 쪽 전체 보기' : 'Fit page')}
+          title={nextFit === 'width' ? (ko ? '폭 맞춤' : 'Fit width') : (ko ? '한 쪽 전체 보기 (0)' : 'Fit page (0)')}
+        >
+          {nextFit === 'width' ? <FitWidthIcon /> : <FitPageIcon />}
+          <span className="zoom-fit-label">
+            {nextFit === 'width' ? (ko ? '폭 맞춤' : 'Width') : (ko ? '전체' : 'Page')}
+          </span>
+        </button>
       </div>
 
-      {/* 도움말 제거 */}
-    </div>
+      {/* 첫 사용 안내 — 한 번 보고 손을 대면 다시 안 뜬다 */}
+      {showHint && ready && (
+        <div className="viewer-hint" onClick={dismissHint}>
+          {isLg
+            ? ko
+              ? '마우스 휠로 크게 · 끌어서 이동 · 두 번 누르면 그 부분 확대'
+              : 'Scroll to zoom · Drag to move · Double-click to zoom there'
+            : ko
+              ? '두 손가락으로 벌려 크게 · 두 번 톡 누르면 그 부분 확대'
+              : 'Pinch to zoom · Double-tap to zoom there'}
+        </div>
+      )}
+    </div>,
+    document.body,
   )
 }
+
+const FitWidthIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="5" y="3.5" width="14" height="17" rx="2" />
+    <path d="M2 12h6M22 12h-6M4.5 9.5 2 12l2.5 2.5M19.5 9.5 22 12l-2.5 2.5" />
+  </svg>
+)
+
+const FitPageIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="6.5" y="5.5" width="11" height="13" rx="1.6" />
+    <path d="M3 8V4.5A1.5 1.5 0 0 1 4.5 3H8M16 3h3.5A1.5 1.5 0 0 1 21 4.5V8M21 16v3.5a1.5 1.5 0 0 1-1.5 1.5H16M8 21H4.5A1.5 1.5 0 0 1 3 19.5V16" />
+  </svg>
+)
 
 export default InstagramBulletinViewer

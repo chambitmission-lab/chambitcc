@@ -91,6 +91,7 @@
     "expand_less",
     "expand_more",
     "explore",
+    "extension",
     "fact_check",
     "family_restroom",
     "favorite",
@@ -327,16 +328,17 @@
     "wb_cloudy",
     "wb_sunny",
     "wb_twilight",
+    "wifi_off",
     "woman",
     "work_outline",
     "workspace_premium"
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 26712
+    "bytes": 26856
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 29664
+    "bytes": 29868
   }
 }

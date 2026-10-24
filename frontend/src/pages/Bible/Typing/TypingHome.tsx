@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import { useBibleBooks } from '../../../hooks/useBible'
-import { useMannaSummary, useTypingHome, useTypingRelayLive } from '../../../hooks/useBibleTyping'
+import { useLinkSummary, useMannaSummary, useTypingHome, useTypingRelayLive } from '../../../hooks/useBibleTyping'
 import { useTitles } from '../../../hooks/useTitles'
 import { tokenStore } from '../../../utils/tokenStore'
 import { sessionPath, useIgnorePunct, useTypingMode } from './typingPrefs'
@@ -38,6 +38,7 @@ const TypingHome = () => {
   const homeSettled = !loggedIn || !homePending
   const { data: titles } = useTitles(loggedIn && homeSettled)
   const { data: manna } = useMannaSummary(homeSettled)
+  const { data: link } = useLinkSummary(homeSettled)
   // 로그인했는데 묶음이 아직 없다 — 첫 방문자용 문구(시편 23편부터)를 먼저 그렸다가 실제 자리로 바꾸면 화면이 튄다.
   // 요청이 실패하면(isPending false) 자리표시자를 걷고 평소 화면으로 돌아간다
   const loading = loggedIn && homePending
@@ -103,6 +104,25 @@ const TypingHome = () => {
                     : manna && manna.players_today > 0
                       ? `오늘 ${manna.players_today}명이 거뒀어요 · 부서 대항전`
                       : '내려오는 말씀을 순서대로 거두는 게임 · 부서 대항전'}
+                </span>
+              </span>
+              <span className="material-icons-round" aria-hidden>
+                chevron_right
+              </span>
+            </button>
+
+            <button type="button" className="bt-card bt-sprint-entry bt-link-entry" onClick={() => navigate('/bible/typing/link')}>
+              <span className="material-icons-round bt-sprint-entry__icon" aria-hidden>
+                extension
+              </span>
+              <span className="bt-sprint-entry__body">
+                <span className="bt-sprint-entry__title">말씀 잇기</span>
+                <span className="bt-sprint-entry__desc">
+                  {link?.today
+                    ? `오늘 ${link.today.rank}위 · ${link.today.score.toLocaleString('ko-KR')}점`
+                    : link && link.players_today > 0
+                      ? `오늘 ${link.players_today}명이 이었어요 · 부서 대항`
+                      : '흩어진 말씀 조각을 순서대로 톡톡 · 부서 대항'}
                 </span>
               </span>
               <span className="material-icons-round" aria-hidden>

@@ -134,26 +134,110 @@
   to { width: 100%; }
 }
 
-/* 이미지 컨테이너 */
+/* 이미지 무대 — 화면 전체. 그림은 왼쪽 위 기준으로 놓고 translate+scale 로만 움직인다 */
 .image-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
-  position: relative;
   user-select: none;
   -webkit-user-select: none;
-  /* 위: 헤더+진행 막대, 아래: 쪽 표시 자리를 비워 주보 윗단·아랫단이 가려지지 않게 */
-  padding: 84px 0 76px;
+  touch-action: none;
 }
 
+.image-container.is-fit { cursor: zoom-in; }
+.image-container.is-pannable { cursor: grab; }
+.image-container.is-grabbing { cursor: grabbing; }
+
+/* will-change: transform 은 일부러 안 건다 — 크롬이 처음 크기로 굳혀 그려 확대하면 글씨가 뿌옇게 번진다 */
 .bulletin-image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  transform-origin: 0 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.bulletin-image.is-ready {
+  opacity: 1;
+}
+
+.bulletin-image.is-animating {
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+/* 미니맵 — 확대 중 지금 보는 자리 */
+.zoom-minimap {
+  position: absolute;
+  left: 1rem;
+  bottom: 5rem;
+  z-index: 100;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 8px 24px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  touch-action: none;
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.zoom-minimap.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.zoom-minimap.hidden {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+
+.zoom-minimap img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.zoom-minimap-rect {
+  position: absolute;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* 첫 사용 안내 */
+.viewer-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 5.5rem;
+  transform: translateX(-50%);
+  z-index: 101;
+  max-width: calc(100% - 32px);
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  background: rgba(20, 20, 24, 0.82);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  animation: viewerHintIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+}
+
+@keyframes viewerHintIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* 페이지 인디케이터 */
@@ -292,6 +376,29 @@
   font-weight: 600;
 }
 
+.zoom-divider {
+  height: 1px;
+  margin: 0.15rem 0.35rem;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.zoom-controls .zoom-fit {
+  color: #fff;
+  flex-direction: column;
+  gap: 1px;
+  height: auto;
+  min-height: 40px;
+  padding: 6px 0;
+  border-radius: 14px;
+}
+
+.zoom-fit-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 /* 도움말 오버레이 */
 .help-overlay {
   position: absolute;
@@ -358,10 +465,6 @@
   .header-info p {
     font-size: 1.05rem;
     margin-top: 0.2rem;
-  }
-
-  .image-container {
-    padding: 110px 0 92px;
   }
 
   .progress-bars {
@@ -437,6 +540,32 @@
   .zoom-level {
     font-size: 0.95rem;
   }
+
+  .zoom-controls .zoom-fit {
+    min-height: 60px;
+    border-radius: 18px;
+  }
+
+  .zoom-fit svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .zoom-fit-label {
+    font-size: 0.8rem;
+  }
+
+  .zoom-minimap {
+    left: 1.5rem;
+    bottom: 6rem;
+    border-radius: 12px;
+  }
+
+  .viewer-hint {
+    bottom: 6.5rem;
+    font-size: 1.05rem;
+    padding: 0.85rem 1.5rem;
+  }
 }
 
 /* 반응형 */
@@ -455,10 +584,6 @@
 
   .progress-bars {
     top: 60px;
-  }
-
-  .image-container {
-    padding: 74px 0 72px;
   }
 
   .instagram-viewer .nav-button {

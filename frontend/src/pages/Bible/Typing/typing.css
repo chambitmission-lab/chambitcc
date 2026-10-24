@@ -2112,6 +2112,10 @@
   font-size: 26px;
   color: var(--brand);
 }
+/* 말씀 잇기 — 드롭 스킨의 오렌지 */
+.bt-link-entry .bt-sprint-entry__icon {
+  color: #ff5a1f;
+}
 .bt-sprint-entry__body {
   flex: 1;
   min-width: 0;
