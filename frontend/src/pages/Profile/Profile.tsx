@@ -24,6 +24,7 @@ import { useGrowthSummary, useGrowthRecentDays } from '../../hooks/useGrowth'
 import { useEquippedTitle } from '../../hooks/useTitles'
 import { hasTitleBackdrop } from '../../components/titles/TitleBackdrop'
 import ProfileSkeleton, { HookCardsSkeleton, ProfileRailSkeleton } from './components/ProfileSkeleton'
+import ProfileWaitingQuip from './components/ProfileWaitingQuip'
 import type { ProfileTab } from '../../types/profile'
 import type { Achievement, GlowLevel, UserActivityData } from '../../types/achievement'
 import { 
@@ -285,7 +286,13 @@ const Profile = () => {
           </button>
         </div>
 
-        {!ready || !data ? <ProfileSkeleton isDesktop={isDesktop} withCover={hasCover} /> : (() => {
+        {/* 첫 진입(콜드) 대기 — 스켈레톤 위에 성경 속 기다림 한 줄 유머 쪽지. 캐시 복원이면 드러나기 전에 끝난다 */}
+        {!ready || !data ? (
+          <div className="relative">
+            <ProfileSkeleton isDesktop={isDesktop} withCover={hasCover} />
+            <ProfileWaitingQuip />
+          </div>
+        ) : (() => {
         const { stats, my_prayers, praying_for, my_replies } = data
         return (<>
         {/* ① 아이덴티티 — 이름·칭호·단계, 조용하게 */}
@@ -305,6 +312,7 @@ const Profile = () => {
           thisWeekCount={stats.activity.this_week_count}
           totalCount={stats.activity.total_count}
           streakDays={stats.activity.streak_days}
+          bibleCompletions={stats.bible_reading?.bible_completions ?? 0}
         />
 
         {/* ③④ 인사이트·여정·주간 스토리 — lg에선 우측 레일이 대신한다.

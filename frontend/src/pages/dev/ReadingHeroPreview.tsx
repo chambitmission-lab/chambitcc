@@ -79,6 +79,14 @@ function Card({ sample, scene }: { sample: Sample; scene: ReadingScene }) {
             </span>
           </div>
         </div>
+
+        {/* 완독한 회차 — 실물(BookSelector)은 서버의 cycle.current_completed 일 때만 보인다 */}
+        {left === 0 && (
+          <div className="reading-hero__cycle">
+            <span className="reading-hero__cycle-done">성경 통독 1회 완료</span>
+            <button type="button" className="reading-hero__cycle-btn">2독 시작하기</button>
+          </div>
+        )}
       </div>
 
       <div className="reading-tiles">

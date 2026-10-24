@@ -1,0 +1,120 @@
+/* ── 프로필 첫 진입 대기 쪽지 (ProfileWaitingQuip) ──────────────────────────
+ * 스켈레톤(relative 래퍼) 위에 absolute 로 얹어 칼럼 가운데·첫 화면 세로 중앙쯤에 둔다 —
+ * fixed 로 뷰포트 중앙에 두면 PC 에서 좌측 레일·우측 레일 사이 본문 칼럼과 어긋난다.
+ * 세로는 상단 바 두 줄(앱 56 + 화면 56)과 카드 절반을 빼고, PC 글씨 배율(--az)만큼 vh 를 나눈다.
+ * 400ms 안에 본문이 오면 드러나기 전에 끝난다(animation-delay). */
+.pwq {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: max(72px, calc(50vh / var(--az, 1) - 200px));
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+  pointer-events: none;
+  animation: pwq-reveal 0.45s ease-out 0.4s both;
+}
+@keyframes pwq-reveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 바탕은 흰 막 한 겹 + 왼쪽 위 옅은 브랜드 빛 — 펄스 중인 스켈레톤 위에서 쪽지 한 장처럼 읽힌다 */
+.pwq-card {
+  position: relative;
+  width: min(100%, 360px);
+  padding: 16px 20px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(49, 130, 246, 0.14);
+  background:
+    radial-gradient(90% 80% at 0% 0%, rgba(49, 130, 246, 0.08), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.86));
+  box-shadow:
+    0 1px 2px rgba(20, 30, 50, 0.04),
+    0 12px 32px -12px rgba(20, 30, 50, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+[data-theme="dark"] .pwq-card {
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(90% 80% at 0% 0%, rgba(69, 147, 252, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(38, 40, 52, 0.94), rgba(30, 32, 42, 0.9));
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.5);
+}
+
+.pwq-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pwq-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.pwq-sub {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 문구 교체 — key 가 바뀌며 다시 마운트돼 살짝 올라온다 */
+.pwq-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 84px;
+  padding-right: 28px; /* 점 셋 자리 */
+  animation: pwq-text-in 0.5s ease-out both;
+}
+@keyframes pwq-text-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+.pwq-text {
+  margin: 0;
+  font-family: var(--font-serif-kr);
+  font-size: 16.5px;
+  line-height: 1.6;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+.pwq-ref {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 준비 중 표시 — 오른쪽 아래 점 세 개가 차례로 숨 쉰다(홈 묵상 카드와 같은 리듬) */
+.pwq-dots {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  gap: 5px;
+}
+.pwq-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  opacity: 0.25;
+  animation: pwq-dot 1.2s ease-in-out infinite;
+}
+.pwq-dots i:nth-child(2) { animation-delay: 0.2s; }
+.pwq-dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pwq-dot {
+  0%, 100% { opacity: 0.25; transform: none; }
+  40% { opacity: 0.9; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwq { animation-duration: 0.01s; }
+  .pwq-body,
+  .pwq-dots i { animation: none; }
+}

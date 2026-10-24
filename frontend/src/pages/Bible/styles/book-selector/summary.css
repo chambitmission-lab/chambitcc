@@ -350,6 +350,68 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 완독한 회차 — 통독 횟수 + 다음 회차 시작 버튼. 삽화 위라 버튼은 반투명 흰 바탕으로 대비만 확보 */
+.reading-hero__cycle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+/* 삽화(밤 장면의 등불 등) 위에 놓이므로 .reading-hero__left 와 같은 후광으로 글자를 띄운다 */
+.reading-hero__cycle-done {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--brand);
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.95),
+    0 0 6px rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="dark"] .reading-hero__cycle-done {
+  text-shadow:
+    0 0 2px rgba(8, 14, 26, 0.95),
+    0 0 6px rgba(8, 14, 26, 0.8),
+    0 0 12px rgba(8, 14, 26, 0.55);
+}
+
+.reading-hero__cycle-btn {
+  flex-shrink: 0;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--ig-border);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--text-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.reading-hero__cycle-btn:hover {
+  background: rgba(255, 255, 255, 0.97);
+}
+
+.reading-hero__cycle-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+[data-theme="dark"] .reading-hero__cycle-btn {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 24, 38, 0.78);
+  color: #e3ebf7;
+}
+
+[data-theme="dark"] .reading-hero__cycle-btn:hover {
+  background: rgba(16, 24, 38, 0.92);
+}
+
 [data-theme="dark"] .reading-hero__left {
   color: #e3ebf7;
   text-shadow:

@@ -14,7 +14,7 @@ import { trimInfiniteQuery } from './infiniteQueryTrim'
 import { tokenStore } from './tokenStore'
 import { prayerKeys } from '../hooks/usePrayersQuery'
 import { notificationKeys } from '../hooks/queryKeys'
-import { applyReadingSync, resyncReadingAfterReconnect } from '../hooks/useBibleReading'
+import { applyReadingCycleStart, applyReadingSync, resyncReadingAfterReconnect } from '../hooks/useBibleReading'
 
 const INITIAL_RETRY_MS = 5_000
 const MAX_RETRY_MS = 60_000
@@ -193,6 +193,9 @@ class NotificationStreamManager {
             } else if (event === 'reading_sync') {
               // 같은 계정의 다른 기기에서 절·장 읽음이 바뀌었다 — 장 상태 캐시만 고친다
               if (this.queryClient) applyReadingSync(this.queryClient, data)
+            } else if (event === 'reading_cycle') {
+              // 다른 기기에서 새 통독 회차를 시작했다 — 읽기 캐시를 통째로 다시 받는다
+              if (this.queryClient) applyReadingCycleStart(this.queryClient)
             }
             this.dispatch(event, data)
           },

@@ -21,6 +21,7 @@ export const prayer = {
   prayed: '기도함',
   totalPrayers: '총 기도',
   consecutivePrayers: '연속 기도',
+  bibleCompletions: '성경 통독',
   popular: '따뜻한 관심순',
   latest: '최신순',
   popularDesc: '기도와 공감이 모이는 글 먼저',

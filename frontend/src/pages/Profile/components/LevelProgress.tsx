@@ -15,6 +15,8 @@ interface LevelProgressProps {
   thisWeekCount: number
   totalCount: number
   streakDays: number
+  /** 성경 전권 통독 횟수 — 1회 이상일 때만 타일을 보인다 */
+  bibleCompletions?: number
 }
 
 /* 온기 메뉴판 — 활동을 온기 그룹으로 묶고, 점수 크기를 배지 농도로 표현.
@@ -94,6 +96,7 @@ const LevelProgress = ({
   thisWeekCount,
   totalCount,
   streakDays,
+  bibleCompletions = 0,
 }: LevelProgressProps) => {
   const { t, language } = useLanguage()
   const [guideOpen, setGuideOpen] = useState(false)
@@ -227,6 +230,16 @@ const LevelProgress = ({
             hot={streakDays >= 7}
           />
         </div>
+        {bibleCompletions > 0 && (
+          <div className="relative z-10 mt-2">
+            <GrowthStat
+              value={bibleCompletions}
+              unit={t('statUnitTimes')}
+              label={t('bibleCompletions')}
+              icon="menu_book"
+            />
+          </div>
+        )}
 
         {/* 포인트 획득 방법 안내 — 행 카드, 탭하면 펼침 */}
         <div className="lp-guide relative z-10 mt-3 overflow-hidden">

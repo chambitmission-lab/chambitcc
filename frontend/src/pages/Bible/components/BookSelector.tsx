@@ -7,6 +7,8 @@ import { lazyModal } from '../../../utils/lazyModal'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
 import { readingSceneFor } from '../../../utils/themeAssets'
 import { safeSessionStorage, safeStorage } from '../../../utils/safeStorage'
+import { alertDialog, confirmDialog } from '../../../utils/confirmDialog'
+import { useStartReadingCycle } from '../../../hooks/useBibleReading'
 // 지도 보기는 토글해야 나온다 — 기본 뷰(여정)만 정적으로 둔다.
 // 단, 청크는 요약 카드가 뜬 뒤 유휴 시간에(그리고 버튼에 손이 닿는 순간) 미리 받아 둔다 —
 // 예전엔 "지도"를 누른 뒤에야 청크 왕복이 시작돼 fallback(null) 빈 화면이 한 박자 끼었다
@@ -186,6 +188,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       celebrateNT: '신약 27권을 모두 읽었어요 🎉',
       celebrateNTNext: '이제 구약으로 넘어가요',
       close: '닫기',
+      cycleLabel: (n: number) => `${n}독 진행률`,
+      cycleDone: (n: number) => `성경 통독 ${n}회 완료`,
+      cycleStart: (n: number) => `${n}독 시작하기`,
+      cycleConfirmTitle: (n: number) => `${n}독을 시작할까요?`,
+      cycleConfirmMessage: '진행률이 0%에서 다시 시작해요.',
+      cycleConfirmDescription: '지금까지 읽은 기록과 통독 횟수는 프로필에 그대로 남아요.',
+      cycleConfirmOk: '시작하기',
+      cycleStartFailed: '새 회차를 시작하지 못했어요. 잠시 후 다시 시도해 주세요.',
     },
     en: {
       selectBook: 'Select Book',
@@ -229,6 +239,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       celebrateNT: 'You finished all 27 books of the New Testament 🎉',
       celebrateNTNext: 'On to the Old Testament',
       close: 'Close',
+      cycleLabel: (n: number) => `Read-through #${n}`,
+      cycleDone: (n: number) => `Bible read through ${n}×`,
+      cycleStart: (n: number) => `Start read-through #${n}`,
+      cycleConfirmTitle: (n: number) => `Start read-through #${n}?`,
+      cycleConfirmMessage: 'Your progress will start again from 0%.',
+      cycleConfirmDescription: 'Everything you have read so far and your read-through count stay on your profile.',
+      cycleConfirmOk: 'Start',
+      cycleStartFailed: "Couldn't start a new read-through. Please try again shortly.",
     }
   }
 
@@ -323,6 +341,27 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   }, [progress, t.whole, t.oldTestament, t.newTestament, t.chapterUnit, t.verseUnit])
 
   const overallStat = summaryStats[0]
+
+  // 통독 회차 — 진행률은 현재 회차 기준. 완독한 뒤에만 다음 회차를 열 수 있다(서버도 409 로 막는다)
+  const cycle = progress?.cycle
+  const startCycle = useStartReadingCycle()
+  const handleStartCycle = async () => {
+    if (!cycle || startCycle.isPending) return
+    const next = cycle.current_cycle + 1
+    const ok = await confirmDialog({
+      title: t.cycleConfirmTitle(next),
+      message: t.cycleConfirmMessage,
+      description: t.cycleConfirmDescription,
+      confirmText: t.cycleConfirmOk,
+      tone: 'brand',
+    })
+    if (!ok) return
+    try {
+      await startCycle.mutateAsync()
+    } catch {
+      await alertDialog({ message: t.cycleStartFailed })
+    }
+  }
 
 
   // 격려 문구 — 진행률 구간별 한 줄. 숫자만 있는 대시보드가 아니라 "함께 읽는" 톤을 만든다
@@ -706,7 +745,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           <div className="reading-hero" data-done={overallStat.rate >= 100 ? 'true' : undefined}>
             <div className="reading-hero__top">
               <div className="reading-hero__stat">
-                <span className="reading-hero__label">{t.overallLabel}</span>
+                <span className="reading-hero__label">
+                  {cycle && cycle.current_cycle > 1 ? t.cycleLabel(cycle.current_cycle) : t.overallLabel}
+                </span>
                 <span
                   className="reading-hero__value"
                   aria-label={`${t.overallLabel} ${pctLabel(overallStat.rate)}%`}
@@ -742,6 +783,21 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                 </span>
               </div>
             </div>
+
+            {/* 완독한 회차 — 통독 횟수와 다음 회차 시작. 버튼은 휴지 상태라 중립색 */}
+            {cycle?.current_completed && (
+              <div className="reading-hero__cycle">
+                <span className="reading-hero__cycle-done">{t.cycleDone(cycle.completed_count)}</span>
+                <button
+                  type="button"
+                  className="reading-hero__cycle-btn"
+                  onClick={handleStartCycle}
+                  disabled={startCycle.isPending}
+                >
+                  {t.cycleStart(cycle.current_cycle + 1)}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* 구약/신약 타일 — 색으로 나누지 않고(전부 브랜드 블루) 두루마리·십자가 아이콘으로 구분한다.

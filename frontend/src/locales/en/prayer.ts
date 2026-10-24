@@ -21,6 +21,7 @@ export const prayer = {
   prayed: 'Prayed',
   totalPrayers: 'Total Prayers',
   consecutivePrayers: 'Streak Days',
+  bibleCompletions: 'Bible read-throughs',
   popular: 'Most Supported',
   latest: 'Latest',
   popularDesc: 'Most prayed-for and loved first',

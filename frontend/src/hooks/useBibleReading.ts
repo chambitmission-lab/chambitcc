@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
-import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead } from '../api/bibleReading'
+import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead, startReadingCycle } from '../api/bibleReading'
 import type { ChapterReadStatusResponse } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import type { RequestPriority } from '../api/utils/request'
@@ -133,6 +133,16 @@ export const applyReadingSync = (qc: QueryClient, raw: string) => {
     predicate: (q) => !isChapterStatusKey(q.queryKey),
     refetchType: 'none',
   })
+}
+
+/**
+ * 새 통독 회차가 시작됐다 — 진행률·장 읽음 표시·이어읽기가 전부 0 기준으로 바뀌므로
+ * 고칠 범위를 따지지 않고 읽기 캐시를 통째로 다시 받는다(보이는 것만 즉시, 나머지는 stale 표시).
+ * 시작한 기기의 mutation 과 다른 기기의 SSE reading_cycle 이 함께 쓴다.
+ */
+export const applyReadingCycleStart = (qc: QueryClient) => {
+  void qc.invalidateQueries({ queryKey: bibleReadingKeys.all })
+  void qc.invalidateQueries({ queryKey: profileKeys.detail() })
 }
 
 /**
@@ -395,5 +405,17 @@ export const useUnmarkVerseAsRead = () => {
         })
       }, 0)
     },
+  })
+}
+
+/**
+ * 다음 통독 회차 시작 Mutation — 완독한 뒤에만 서버가 받아 준다(아니면 409)
+ */
+export const useStartReadingCycle = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => startReadingCycle(),
+    onSuccess: () => applyReadingCycleStart(queryClient),
   })
 }

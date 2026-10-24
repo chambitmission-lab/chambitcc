@@ -94,6 +94,23 @@ export interface TestamentProgress {
   read_chapters?: number
 }
 
+// 통독 회차 — 백엔드 bible_reading_views.cycle_payload. 진행률은 현재 회차 기준이다
+export interface ReadingCycle {
+  cycle_no: number
+  started_at: string | null
+  completed_at: string | null
+}
+
+export interface ReadingCycleSummary {
+  /** 지금 읽고 있는 회차 (1독=1) */
+  current_cycle: number
+  /** 완독한 회차 수 = 통독 횟수 */
+  completed_count: number
+  /** 현재 회차를 완독했는지 — 참이면 다음 회차를 시작할 수 있다 */
+  current_completed: boolean
+  cycles: ReadingCycle[]
+}
+
 export interface ReadingProgressResponse {
   success: boolean
   data: {
@@ -101,6 +118,8 @@ export interface ReadingProgressResponse {
     old_testament: TestamentProgress
     new_testament: TestamentProgress
     books: BookProgress[]
+    /** 구버전 백엔드엔 없다 */
+    cycle?: ReadingCycleSummary
   }
 }
 
@@ -166,6 +185,8 @@ export interface ChapterBulkReadResult {
   chapter: number
   total_verses: number
   marked_verses: number
+  /** 이 장으로 현재 회차(성경 전체)를 완독했는지 */
+  cycle_completed?: boolean
 }
 
 export interface ChapterBulkUnreadResult {
@@ -284,4 +305,17 @@ export const unmarkVerseAsRead = async (verseId: number): Promise<void> => {
     auth: 'required',
     errorMessage: '읽음 취소에 실패했습니다',
   })
+}
+
+/**
+ * 다음 통독 회차 시작 — 현재 회차를 완독한 뒤에만 (아니면 409).
+ * 지난 회차 기록은 서버에 그대로 남고, 진행률·장 읽음 표시·이어읽기만 0 에서 다시 시작한다
+ */
+export const startReadingCycle = async (): Promise<ReadingCycleSummary> => {
+  const result = await request<{ success: boolean; data: ReadingCycleSummary }>('/bible/reading-cycles', {
+    method: 'POST',
+    auth: 'required',
+    errorMessage: '새 회차를 시작하지 못했습니다',
+  })
+  return result.data
 }
