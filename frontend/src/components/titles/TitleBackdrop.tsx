@@ -58,8 +58,8 @@ const TITLE_BG: Record<string, string> = Object.fromEntries(
   TITLE_BG_KEYS.map((key) => [key, `/images/title-bg/${key}.webp`]),
 )
 
-// 원본 구도가 천장에 붙은 그림은 자르는 기준점을 위로 올린다(기본은 정중앙).
-// PC 는 21:9 로 납작하게 잘라 위아래가 함께 깎이는데, 창문 같은 윗부분이 잘리면 답답해 보임
+// 원본 구도가 천장에 붙은 그림은 자르는 기준점을 더 위로 올린다(기본 50% 25% 는 ProfileHeader.css).
+// PC 는 5:2 로 납작하게 잘라 위아래가 함께 깎이는데, 창문 같은 윗부분이 잘리면 답답해 보임
 const TITLE_BG_POSITION: Record<string, string> = {
   typing_jot_and_tittle: '50% 15%',
   typing_one_chapter: '50% 10%', // 치켜든 두루마리 윗끝이 원본 y≈72px
@@ -90,7 +90,7 @@ export const useTitleBackdropSrc = (): string | undefined => {
   return equipped ? TITLE_BG[equipped.key] : undefined
 }
 
-/** 장착 칭호 배너의 object-position(기본 정중앙이면 undefined) */
+/** 장착 칭호 배너의 object-position(기본값을 따르면 undefined) */
 export const useTitleBackdropPosition = (): string | undefined => {
   const { data: equipped } = useEquippedTitle()
   return equipped ? TITLE_BG_POSITION[equipped.key] : undefined
