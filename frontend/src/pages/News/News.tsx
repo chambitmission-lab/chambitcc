@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Language, Translation } from '../../locales'
@@ -129,8 +129,38 @@ const News = () => {
     setViewMode('list')
   }
 
+  // 공유 링크(#/news?tab=bulletin&b=28)로 들어오면 그 주보를 바로 연다 — 한 번만 열리게 파라미터는 지운다
+  const deepLinkId = Number(searchParams.get('b')) || null
+  useEffect(() => {
+    if (!deepLinkId || loading) return
+    setSearchParams(
+      prev => {
+        const next = new URLSearchParams(prev)
+        next.delete('b')
+        return next
+      },
+      { replace: true },
+    )
+    // 목록(최근 20개) 밖의 주보도 상세 조회는 id 만 있으면 된다
+    void handleBulletinClick(bulletins.find(b => b.id === deepLinkId) ?? ({ id: deepLinkId } as Bulletin))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId, loading])
+
   if (viewMode === 'view' && selectedBulletin) {
-    return <InstagramBulletinViewer bulletin={selectedBulletin} initialPage={startPage} onClose={handleBack} />
+    // 마무리 카드의 '지난 주 주보' — 목록은 최신순이라 바로 다음 칸
+    const idx = bulletins.findIndex(b => b.id === selectedBulletin.id)
+    const older = idx >= 0 ? bulletins[idx + 1] : undefined
+    return (
+      <InstagramBulletinViewer
+        key={selectedBulletin.id}
+        bulletin={selectedBulletin}
+        initialPage={startPage}
+        onClose={handleBack}
+        olderBulletin={older}
+        onOpenBulletin={b => handleBulletinClick(b)}
+        opening={openingId !== null}
+      />
+    )
   }
 
   return (

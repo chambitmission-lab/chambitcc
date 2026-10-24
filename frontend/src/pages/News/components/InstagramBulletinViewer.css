@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #000;
+  background: #0d0d0f;
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -19,7 +19,7 @@
   left: 0;
   right: 0;
   padding: 1rem;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), transparent);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -82,58 +82,6 @@
   margin: 0;
 }
 
-/* 프로그레스 바 */
-.progress-bars {
-  position: absolute;
-  top: 70px;
-  left: 1rem;
-  right: 1rem;
-  display: flex;
-  gap: 4px;
-  z-index: 100;
-  transition: opacity 0.3s, transform 0.3s;
-}
-
-.progress-bars.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.progress-bars.hidden {
-  opacity: 0;
-  transform: translateY(-20px);
-  pointer-events: none;
-}
-
-.progress-bar-container {
-  flex: 1;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background: white;
-  width: 0;
-  transition: width 0.3s ease;
-}
-
-.progress-bar.completed {
-  width: 100%;
-}
-
-.progress-bar.active {
-  width: 100%;
-  animation: progress 0.3s ease;
-}
-
-@keyframes progress {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
 /* 이미지 무대 — 화면 전체. 그림은 왼쪽 위 기준으로 놓고 translate+scale 로만 움직인다 */
 .image-container {
   position: absolute;
@@ -172,7 +120,7 @@
 .zoom-minimap {
   position: absolute;
   left: 1rem;
-  bottom: 5rem;
+  bottom: 8.5rem;
   z-index: 100;
   border-radius: 10px;
   overflow: hidden;
@@ -215,7 +163,7 @@
 .viewer-hint {
   position: absolute;
   left: 50%;
-  bottom: 5.5rem;
+  bottom: 8.75rem;
   transform: translateX(-50%);
   z-index: 101;
   max-width: calc(100% - 32px);
@@ -238,34 +186,6 @@
 @keyframes viewerHintIn {
   from { opacity: 0; transform: translateX(-50%) translateY(10px); }
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-/* 페이지 인디케이터 */
-.page-indicator {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  z-index: 100;
-  transition: opacity 0.3s, transform 0.3s;
-  backdrop-filter: blur(10px);
-}
-
-.page-indicator.visible {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-.page-indicator.hidden {
-  opacity: 0;
-  transform: translateX(-50%) translateY(20px);
-  pointer-events: none;
 }
 
 /* 네비게이션 버튼 */
@@ -317,7 +237,7 @@
 /* 줌 컨트롤 */
 .zoom-controls {
   position: absolute;
-  bottom: 5rem;
+  bottom: 8.5rem;
   right: 1rem;
   display: flex;
   flex-direction: column;
@@ -399,33 +319,6 @@
   white-space: nowrap;
 }
 
-/* 도움말 오버레이 */
-.help-overlay {
-  position: absolute;
-  bottom: 8rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  text-align: center;
-  z-index: 99;
-  animation: fadeInOut 4s ease-in-out;
-  backdrop-filter: blur(10px);
-  max-width: 90%;
-}
-
-.help-overlay p {
-  margin: 0.25rem 0;
-}
-
-@keyframes fadeInOut {
-  0%, 100% { opacity: 0; }
-  10%, 90% { opacity: 1; }
-}
-
 /* 에러 상태 */
 .viewer-error {
   flex: 1;
@@ -467,16 +360,6 @@
     margin-top: 0.2rem;
   }
 
-  .progress-bars {
-    top: 92px;
-    left: 1.5rem;
-    right: 1.5rem;
-  }
-
-  .progress-bar-container {
-    height: 4px;
-  }
-
   .instagram-viewer .nav-button {
     width: auto;
     height: 72px;
@@ -515,15 +398,9 @@
     font-weight: 700;
   }
 
-  .page-indicator {
-    font-size: 1.2rem;
-    padding: 0.65rem 1.4rem;
-    border-radius: 999px;
-  }
-
   .zoom-controls {
     right: 1.5rem;
-    bottom: 6rem;
+    bottom: 8rem;
     padding: 0.6rem;
     border-radius: 32px;
   }
@@ -557,12 +434,12 @@
 
   .zoom-minimap {
     left: 1.5rem;
-    bottom: 6rem;
+    bottom: 8rem;
     border-radius: 12px;
   }
 
   .viewer-hint {
-    bottom: 6.5rem;
+    bottom: 8.25rem;
     font-size: 1.05rem;
     padding: 0.85rem 1.5rem;
   }
@@ -582,10 +459,6 @@
     font-size: 0.75rem;
   }
 
-  .progress-bars {
-    top: 60px;
-  }
-
   .instagram-viewer .nav-button {
     width: 40px;
     height: 40px;
@@ -596,13 +469,7 @@
   }
 
   .zoom-controls {
-    bottom: 4rem;
-  }
-
-  .help-overlay {
-    font-size: 0.75rem;
-    padding: 0.75rem 1rem;
-    bottom: 7rem;
+    bottom: 8.5rem;
   }
 }
 
@@ -616,4 +483,230 @@
   .zoom-controls button:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.2);
   }
+}
+
+/* ── B안: 표지 색으로 물든 무대 ─────────────────────────────
+   목록 히어로(bulletinShelf.css)와 같은 문법 — 표지를 크게 번지게 깔고(한 부 동안 고정), 쪽은 그 위에 뜬 카드. */
+.instagram-viewer.bv-spring { --bv-season: #d9658a; }
+.instagram-viewer.bv-summer { --bv-season: #2a74c8; }
+.instagram-viewer.bv-autumn { --bv-season: #cf6a2c; }
+.instagram-viewer.bv-winter { --bv-season: #56698a; }
+
+.bv-amb {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bv-season, #333) 45%, #0d0d0f);
+  pointer-events: none;
+}
+.bv-amb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.52));
+}
+.bv-amb-layer {
+  position: absolute;
+  inset: -30%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(40px) saturate(1.5) brightness(0.75);
+  transform: scale(1.1);
+  animation: bvAmbIn 0.5s ease both;
+}
+@keyframes bvAmbIn {
+  from { opacity: 0; }
+}
+
+/* 레일 — 지금 쪽 + 양옆 쪽. 손가락을 따라 통째로 움직인다 */
+.bv-rail {
+  position: absolute;
+  inset: 0;
+}
+.bv-rail.is-sliding,
+.bv-rail.is-sliding .bv-peek,
+.bv-rail.is-sliding .bv-current {
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease;
+}
+.bv-current {
+  position: absolute;
+  inset: 0;
+}
+.bulletin-image.is-card {
+  border-radius: 10px;
+  box-shadow: 0 24px 44px -16px rgba(0, 0, 0, 0.65);
+}
+
+.bv-peek {
+  position: absolute;
+  pointer-events: none;
+}
+.bv-peek img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 18px 34px -16px rgba(0, 0, 0, 0.55);
+}
+
+/* 마무리 카드 — 마지막 쪽 다음 칸 */
+.bv-end-slot {
+  position: absolute;
+}
+.bv-end {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  overflow: hidden;
+}
+.bv-end-seal {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  box-shadow: inset 0 0 0 4px transparent, inset 0 0 0 5px rgba(255, 255, 255, 0.55);
+  display: grid;
+  place-items: center;
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 900;
+  font-size: 14px;
+  line-height: 1.15;
+  transform: rotate(-12deg);
+  margin-bottom: 1.1rem;
+}
+.is-end .bv-end-slot .bv-end-seal {
+  animation: bvSeal 0.55s cubic-bezier(0.2, 1.6, 0.4, 1) 0.1s both;
+}
+@keyframes bvSeal {
+  from { transform: rotate(-32deg) scale(2); opacity: 0; }
+  to { transform: rotate(-12deg) scale(1); opacity: 1; }
+}
+.bv-end-title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+}
+.bv-end-desc {
+  margin-top: 0.4rem;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.8);
+}
+.bv-end-actions {
+  width: 100%;
+  max-width: 300px;
+  display: grid;
+  gap: 8px;
+  margin-top: 1.4rem;
+}
+.bv-end-actions button {
+  height: 48px;
+  border-radius: 14px;
+  font-size: 14.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s, background 0.2s;
+}
+.bv-end-actions button:active { transform: scale(0.98); }
+.bv-end-actions button:disabled { opacity: 0.6; }
+.bv-end-primary { background: #fff; color: #191f28; }
+.bv-end-secondary { background: rgba(255, 255, 255, 0.92); color: #191f28; }
+.bv-end-secondary img { width: 22px; height: 32px; object-fit: cover; border-radius: 3px; }
+.bv-end-ghost { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.bv-end-ghost:hover { background: rgba(255, 255, 255, 0.24); }
+
+/* 하단 — 쪽 점 · 몇 쪽 · 이 쪽 보내기 */
+.bv-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  padding: 0 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+  transition: opacity 0.3s, transform 0.3s;
+}
+.bv-bottom.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+.bv-dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 0.9rem;
+}
+.bv-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  transition: width 0.3s, background 0.3s;
+}
+.bv-dots i.is-end { background: rgba(255, 255, 255, 0.22); }
+.bv-dots i.is-on { width: 20px; background: #fff; }
+.bv-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.bv-count {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.bv-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 15px;
+  border-radius: 999px;
+  background: #fff;
+  color: #191f28;
+  font-size: 13.5px;
+  font-weight: 800;
+  transition: transform 0.15s;
+}
+.bv-share:active { transform: scale(0.97); }
+
+@media (min-width: 1024px) {
+  .bv-end { padding: 2rem 1.75rem; }
+  .bv-end-seal { width: 92px; height: 92px; font-size: 16px; }
+  .bv-end-title { font-size: 28px; }
+  .bv-end-desc { font-size: 16px; }
+  .bv-end-actions { max-width: 340px; }
+  .bv-end-actions button { height: 54px; font-size: 16.5px; }
+  .bv-bottom { padding-bottom: 1.75rem; }
+  .bv-dots i { width: 8px; height: 8px; }
+  .bv-dots i.is-on { width: 26px; }
+  .bv-count { font-size: 17px; }
+  .bv-share { height: 50px; padding: 0 1.4rem; font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bv-amb-layer { animation: none; }
+  .bv-rail.is-sliding,
+  .bv-rail.is-sliding .bv-peek,
+  .bv-rail.is-sliding .bv-current { transition: none; }
+  .is-end .bv-end-slot .bv-end-seal { animation: none; }
 }
