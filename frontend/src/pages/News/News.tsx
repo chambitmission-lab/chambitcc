@@ -11,6 +11,7 @@ import { showToast } from '../../utils/toast'
 import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
+import BulletinShelf from './components/BulletinShelf'
 import BulletinStory from './components/BulletinStory'
 import { useDigitalBulletin } from '../../hooks/useDigitalBulletin'
 import { can } from '../../utils/access'
@@ -33,8 +34,6 @@ import {
   ScreenPageIcon,
   ArchiveIcon,
   SparkleIcon,
-  PagesIcon,
-  EyeIcon,
   SignalIcon,
 } from './components/NewsIcons'
 
@@ -80,11 +79,6 @@ const localeOf = (lang: Language) => (lang === 'en' ? 'en-US' : 'ko-KR')
 
 const formatBulletinDate = (date: string, lang: Language) => formatLongDate(date, localeOf(lang))
 
-const isThisMonth = (date: string): boolean => {
-  const d = new Date(date)
-  const now = new Date()
-  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-}
 
 const News = () => {
   const { t } = useLanguage()
@@ -101,6 +95,8 @@ const News = () => {
   // 상세를 여는 중인 주보 id — 카드에 busy 표시 + 중복 탭 방지
   const [openingId, setOpeningId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
+  // 히어로 쪽 띠에서 고른 쪽 — 뷰어를 그 쪽부터 연다
+  const [startPage, setStartPage] = useState(0)
   const [tab, setTab] = useState<BulletinTabKey>('image')
 
   const handleSectionChange = (next: SectionKey) => {
@@ -108,7 +104,7 @@ const News = () => {
     setSearchParams(next === 'news' ? {} : { tab: next }, { replace: true })
   }
 
-  const handleBulletinClick = async (bulletin: Bulletin) => {
+  const handleBulletinClick = async (bulletin: Bulletin, page = 0) => {
     if (openingId !== null) return
     setOpeningId(bulletin.id)
     try {
@@ -119,6 +115,7 @@ const News = () => {
         queryFn: () => getBulletinDetail(bulletin.id),
       })
       setSelectedBulletin(detail)
+      setStartPage(page)
       setViewMode('view')
     } catch (error) {
       showToast(error instanceof Error ? error.message : t('newsBulletinOpenFailed'), 'error')
@@ -133,10 +130,8 @@ const News = () => {
   }
 
   if (viewMode === 'view' && selectedBulletin) {
-    return <InstagramBulletinViewer bulletin={selectedBulletin} onClose={handleBack} />
+    return <InstagramBulletinViewer bulletin={selectedBulletin} initialPage={startPage} onClose={handleBack} />
   }
-
-  const latest = bulletins[0]
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
@@ -239,37 +234,7 @@ const News = () => {
               // 캐시도 없이 실패한 경우와 진짜 빈 목록을 구분한다
               listError ? <ErrorState /> : <EmptyState />
             ) : (
-              <div className="space-y-3">
-                {/* 최신 주보 hero */}
-                {latest && (
-                  <FeaturedCard
-                    bulletin={latest}
-                    busy={openingId === latest.id}
-                    onClick={() => handleBulletinClick(latest)}
-                  />
-                )}
-
-                {/* 나머지 — 컴팩트 카드 */}
-                {bulletins.length > 1 && (
-                  <div className="pt-1">
-                    <p className="text-[12px] lg:text-[16px] lg:mb-3 lg:mt-2 font-bold text-gray-500 dark:text-white/55 lg:text-ink-strong mb-2 px-1">
-                      {t('newsBulletinPast')}
-                    </p>
-                    {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 그리드. 칸 수는 폭으로 정해
-                        PC 글씨 크기(zoom)로 좁아지면 한 열로 풀린다 */}
-                    <div className="space-y-2 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(360px,1fr))] lg:gap-3 lg:space-y-0">
-                      {bulletins.slice(1).map(b => (
-                        <CompactCard
-                          key={b.id}
-                          bulletin={b}
-                          busy={openingId === b.id}
-                          onClick={() => handleBulletinClick(b)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <BulletinShelf bulletins={bulletins} openingId={openingId} onOpen={handleBulletinClick} />
             )}
           </div>
         )}
@@ -359,200 +324,6 @@ const TabPill = ({
     {children}
   </button>
 )
-
-// ── Featured Card (최신 주보 hero) ─────────────────
-const FeaturedCard = ({
-  bulletin,
-  onClick,
-  busy,
-}: {
-  bulletin: Bulletin
-  onClick: () => void
-  busy?: boolean
-}) => {
-  const { t, language } = useLanguage()
-  return (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={busy}
-    className={`block w-full text-left group transition-opacity duration-150 ${busy ? 'opacity-60' : ''}`}
-  >
-    {/* lg+: 폭이 넓어지면 4:3 히어로가 화면 한 판을 다 먹는다 —
-        좌(썸네일)·우(정보) 가로 분할로 바꿔 높이를 잡고 여백을 채운다 */}
-    <article className="relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.06] shadow-[0_18px_44px_-18px_var(--brand-glow)] transition-transform duration-200 group-active:scale-[0.99] lg:flex lg:items-stretch">
-      {/* 썸네일 */}
-      <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500/15 to-sky-500/15 lg:w-[44%] lg:shrink-0">
-        {bulletin.thumbnail_url ? (
-          <img
-            src={bulletin.thumbnail_url}
-            alt={bulletin.title}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-brand opacity-40">
-            <BulletinIcon width={46} height={46} />
-          </div>
-        )}
-        {/* 하단 그라데이션 — lg에선 글자가 사진 위에 얹히지 않으므로 불필요 */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none lg:hidden" />
-        {/* 상단 chip들 */}
-        <div className="absolute top-3 left-3 flex items-center gap-1.5">
-          {isThisMonth(bulletin.bulletin_date) && (
-            <span className="inline-flex items-center gap-1 px-2 h-6 lg:h-8 lg:px-3 lg:text-[13.5px] rounded-full bg-brand text-white text-[10.5px] font-bold tracking-wide shadow-[0_4px_12px_-2px_var(--brand-glow)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              {t('newsBulletinLatest')}
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1 px-2 h-6 lg:h-8 lg:px-3 lg:text-[13.5px] rounded-full bg-black/45 backdrop-blur-sm text-white text-[10.5px] font-semibold">
-            <PagesIcon width={11.5} height={11.5} />
-            {bulletin.page_count}P
-          </span>
-        </div>
-        {/* 하단 텍스트 (모바일 — 사진 위 오버레이) */}
-        <div className="absolute inset-x-0 bottom-0 p-4 z-10 lg:hidden">
-          <p className="text-white/80 text-[11.5px] font-semibold mb-1">
-            {formatBulletinDate(bulletin.bulletin_date, language)}
-          </p>
-          <h2 className="text-white text-[18px] font-bold leading-[1.3] tracking-[-0.015em] line-clamp-2 mb-1.5">
-            {bulletin.title}
-          </h2>
-          <div className="flex items-center gap-3 text-white/75 text-[11.5px]">
-            <span className="inline-flex items-center gap-1">
-              <EyeIcon width={13} height={13} />
-              {bulletin.views}
-            </span>
-            <span className="ml-auto inline-flex items-center gap-0.5 text-white font-bold">
-              {t('newsBulletinRead')}
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 정보 패널 (lg — 썸네일 오른쪽) */}
-      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:flex-col lg:justify-center lg:gap-2.5 lg:p-8">
-        <p className="text-gray-500 dark:text-white/70 text-[15.5px] font-semibold">
-          {formatBulletinDate(bulletin.bulletin_date, language)}
-        </p>
-        <h2 className="text-gray-900 dark:text-white text-[28px] font-bold leading-[1.32] tracking-[-0.02em] line-clamp-2">
-          {bulletin.title}
-        </h2>
-        {bulletin.description && (
-          <p className="text-gray-700 dark:text-white/75 text-[16.5px] leading-[1.7] line-clamp-3">
-            {bulletin.description}
-          </p>
-        )}
-        <div className="flex items-center gap-3 text-gray-500 dark:text-white/60 text-[15px] pt-2">
-          <span className="inline-flex items-center gap-1">
-            <PagesIcon width={17} height={17} />
-            {bulletin.page_count}P
-          </span>
-          <span className="text-gray-300 dark:text-white/25">·</span>
-          <span className="inline-flex items-center gap-1">
-            <EyeIcon width={17} height={17} />
-            {bulletin.views}
-          </span>
-          <span className="ml-auto inline-flex items-center gap-1.5 h-12 px-6 rounded-full bg-brand text-white text-[17px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
-            {t('newsBulletinRead')}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </span>
-        </div>
-      </div>
-
-      {/* 설명 (모바일) */}
-      {bulletin.description && (
-        <div className="px-4 py-3 border-t border-white/[0.06] lg:hidden">
-          <p className="text-white/75 text-[12.5px] leading-[1.55] line-clamp-2">
-            {bulletin.description}
-          </p>
-        </div>
-      )}
-    </article>
-  </button>
-  )
-}
-
-// ── Compact Card (지난 주보) ─────────────────────
-const CompactCard = ({
-  bulletin,
-  onClick,
-  busy,
-}: {
-  bulletin: Bulletin
-  onClick: () => void
-  busy?: boolean
-}) => {
-  const { language } = useLanguage()
-  return (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={busy}
-    className={`block w-full text-left group transition-opacity duration-150 ${busy ? 'opacity-60' : ''}`}
-  >
-    <article
-      className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 group-hover:border-[var(--brand-soft-strong)] group-active:scale-[0.995]"
-    >
-      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-sky-400/60 to-blue-500/40" />
-
-      <div className="relative z-10 flex items-center gap-3 pl-3.5 pr-3 py-3 lg:gap-4 lg:pl-5 lg:pr-4 lg:py-4">
-        {/* 썸네일 */}
-        <div className="shrink-0 w-16 h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500/15 to-sky-500/15 border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
-          {bulletin.thumbnail_url ? (
-            <img
-              src={bulletin.thumbnail_url}
-              alt={bulletin.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <BulletinIcon width={24} height={24} className="text-brand opacity-45" />
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <p className="text-[14.5px] lg:text-[18.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
-            {bulletin.title}
-          </p>
-          <p className="text-[11.5px] lg:text-[15px] text-gray-500 dark:text-white/55 lg:text-gray-600 truncate mt-0.5 lg:mt-1">
-            {formatBulletinDate(bulletin.bulletin_date, language)}
-          </p>
-          <div className="flex items-center gap-2.5 text-[11px] lg:text-[13.5px] text-gray-400 dark:text-white/45 lg:text-gray-500 mt-0.5 lg:mt-1">
-            <span className="inline-flex items-center gap-1">
-              <PagesIcon width={12.5} height={12.5} />
-              {bulletin.page_count}P
-            </span>
-            <span className="text-gray-300 dark:text-white/20">·</span>
-            <span className="inline-flex items-center gap-1">
-              <EyeIcon width={12.5} height={12.5} />
-              {bulletin.views}
-            </span>
-          </div>
-        </div>
-
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-brand"
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </div>
-    </article>
-  </button>
-  )
-}
 
 // ── Desktop Sidebar (lg+) ────────────────────────
 // 넓어진 화면의 우측을 채우는 보조 위젯 열. PC 전용이라 글씨는 어르신 기준(본문 15px+)으로 잡는다.
@@ -729,17 +500,15 @@ const DigitalBulletinTab = () => {
   )
 }
 
+// BulletinShelf 와 같은 뼈대 — 히어로(lg 가로 분할) + 커버플로우 세 장
 const SkeletonCards = () => (
-  <div className="space-y-3">
-    {/* lg에선 히어로가 가로 분할이라 세로로 덜 길다 */}
-    <div className="aspect-[4/3] lg:aspect-[16/6] rounded-3xl bg-gray-100 dark:bg-white/[0.04] animate-pulse" />
-    <div className="space-y-2 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(360px,1fr))] lg:gap-3 lg:space-y-0">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div
-          key={i}
-          className="h-[82px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
-        />
-      ))}
+  <div>
+    <div className="h-[520px] lg:h-[404px] rounded-[1.625rem] bg-gray-200/70 dark:bg-white/[0.06] animate-pulse" />
+    <div className="mt-7 lg:mt-9 h-6 w-24 rounded-lg bg-gray-200/70 dark:bg-white/[0.06] animate-pulse" />
+    <div className="flex justify-center items-center gap-3 pt-6 pb-12">
+      <div className="w-[100px] h-[150px] lg:w-[128px] lg:h-[190px] rounded-[10px] bg-gray-200/50 dark:bg-white/[0.04] animate-pulse" />
+      <div className="w-[132px] h-[196px] lg:w-[168px] lg:h-[250px] rounded-[10px] bg-gray-200/70 dark:bg-white/[0.06] animate-pulse" />
+      <div className="w-[100px] h-[150px] lg:w-[128px] lg:h-[190px] rounded-[10px] bg-gray-200/50 dark:bg-white/[0.04] animate-pulse" />
     </div>
   </div>
 )

@@ -8,6 +8,8 @@ export const bulletinKeys = {
   all: ['bulletins'] as const,
   list: () => [...bulletinKeys.all, 'list'] as const,
   detail: (id: number) => [...bulletinKeys.all, 'detail', id] as const,
+  /** 목록 히어로의 쪽 미리보기 — 조회수를 올리지 않는 조회라 detail 과 캐시를 나눈다 */
+  preview: (id: number) => [...bulletinKeys.all, 'preview', id] as const,
 }
 
 /** 공개 주보 목록 (최신순) */

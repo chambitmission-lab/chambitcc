@@ -1,0 +1,305 @@
+/* 이미지 주보 목록 — 앰비언트 커버 히어로 + 커버플로우 (BulletinShelf.tsx)
+   계절 색은 종이 주보 표지의 계절 판을 따르는 기능색이라 브랜드 블루로 덮지 않는다. */
+
+.bsf-spring { --bsf-season: #d9658a; }
+.bsf-summer { --bsf-season: #2a74c8; }
+.bsf-autumn { --bsf-season: #cf6a2c; }
+.bsf-winter { --bsf-season: #56698a; }
+
+/* ── 히어로 ─────────────────────────────────────── */
+.bsf-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.625rem;
+  padding: 1.125rem;
+  color: #fff;
+  background: var(--bsf-season);
+  transition: opacity 0.15s;
+}
+/* 표지를 크게 번지게 깐 배경 — Apple Music '지금 재생' 문법. 계절이 바뀌면 색도 따라 바뀐다 */
+.bsf-amb {
+  position: absolute;
+  inset: -30%;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  filter: blur(38px) saturate(1.5);
+  transform: scale(1.1);
+}
+.bsf-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.46));
+  pointer-events: none;
+}
+
+.bsf-hero-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.bsf-chip {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+.bsf-vol {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.88;
+  white-space: nowrap;
+}
+.bsf-title {
+  margin-top: 0.75rem;
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.18);
+}
+.bsf-sub {
+  margin-top: 0.3rem;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+}
+.bsf-desc {
+  margin-top: 0.5rem;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 겹쳐 놓인 이번 주 주보 — 올리면(또는 첫 진입 때 한 번) 부채처럼 펼쳐진다 */
+.bsf-fan {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 250px;
+  margin: 1rem 0 0.375rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bsf-fan img,
+.bsf-fan-empty {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: 158px;
+  height: 236px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+  transition: transform 0.55s cubic-bezier(0.34, 1.3, 0.5, 1);
+}
+.bsf-fan-empty {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.18);
+}
+.bsf-fan img:nth-last-child(3) { transform: translateX(-50%) rotate(-7deg) translateX(-26px); }
+.bsf-fan img:nth-last-child(2) { transform: translateX(-50%) rotate(6deg) translateX(26px); }
+.bsf-fan.is-fanned img:nth-last-child(3) { transform: translateX(-50%) rotate(-14deg) translateX(-88px) translateY(10px); }
+.bsf-fan.is-fanned img:nth-last-child(2) { transform: translateX(-50%) rotate(13deg) translateX(88px) translateY(10px); }
+.bsf-fan.is-fanned img:last-child { transform: translateX(-50%) translateY(-6px) scale(1.03); }
+@media (hover: hover) {
+  .bsf-fan:hover img:nth-last-child(3) { transform: translateX(-50%) rotate(-14deg) translateX(-88px) translateY(10px); }
+  .bsf-fan:hover img:nth-last-child(2) { transform: translateX(-50%) rotate(13deg) translateX(88px) translateY(10px); }
+  .bsf-fan:hover img:last-child { transform: translateX(-50%) translateY(-6px) scale(1.03); }
+}
+.bsf-fan:active img:last-child { transform: translateX(-50%) scale(0.98); }
+.bsf-fan:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 12px; }
+
+/* 쪽 띠 — 고른 쪽부터 바로 연다 */
+.bsf-strip {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 6px 0 2px;
+}
+.bsf-strip button {
+  position: relative;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  border-radius: 7px;
+}
+.bsf-strip img {
+  width: 52px;
+  height: 76px;
+  object-fit: cover;
+  border-radius: 7px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  transition: border-color 0.2s, transform 0.2s;
+}
+.bsf-strip button:first-child img { border-color: #fff; }
+.bsf-strip button:hover img { border-color: #fff; transform: translateY(-2px); }
+.bsf-strip button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.bsf-strip i {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.bsf-cta {
+  margin-top: 0.875rem;
+  width: 100%;
+  height: 50px;
+  border-radius: 15px;
+  background: #fff;
+  color: #191f28;
+  font-size: 15.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.15s;
+}
+.bsf-cta:active { transform: scale(0.98); }
+
+/* lg — 왼쪽 부채, 오른쪽 정보·쪽 띠·버튼 */
+@media (min-width: 1024px) {
+  .bsf-hero { padding: 2rem 2.25rem; border-radius: 1.75rem; }
+  .bsf-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 42%) 1fr;
+    grid-template-rows: auto 1fr;
+    column-gap: 2rem;
+  }
+  .bsf-fan { grid-column: 1; grid-row: 1 / span 2; height: 340px; margin: 0; }
+  .bsf-fan img,
+  .bsf-fan-empty { width: 212px; height: 316px; top: 12px; }
+  .bsf-fan img:nth-last-child(3) { transform: translateX(-50%) rotate(-7deg) translateX(-34px); }
+  .bsf-fan img:nth-last-child(2) { transform: translateX(-50%) rotate(6deg) translateX(34px); }
+  .bsf-fan:hover img:nth-last-child(3),
+  .bsf-fan.is-fanned img:nth-last-child(3) { transform: translateX(-50%) rotate(-13deg) translateX(-110px) translateY(12px); }
+  .bsf-fan:hover img:nth-last-child(2),
+  .bsf-fan.is-fanned img:nth-last-child(2) { transform: translateX(-50%) rotate(12deg) translateX(110px) translateY(12px); }
+  .bsf-hero-info { grid-column: 2; padding-top: 0.5rem; }
+  .bsf-hero-actions { grid-column: 2; align-self: end; }
+  .bsf-chip, .bsf-vol { font-size: 14px; }
+  .bsf-title { font-size: 38px; margin-top: 1rem; }
+  .bsf-sub { font-size: 16.5px; margin-top: 0.5rem; }
+  .bsf-desc { font-size: 16px; }
+  .bsf-strip img { width: 62px; height: 92px; }
+  .bsf-strip i { font-size: 11.5px; }
+  .bsf-cta { width: auto; padding: 0 2rem; height: 52px; font-size: 17px; }
+}
+
+/* ── 커버플로우 ─────────────────────────────────── */
+.bsf-season-chip {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--text-muted);
+  border: 1px solid var(--card-border);
+  transition: background 0.2s, color 0.2s;
+}
+.bsf-season-chip.is-on {
+  background: var(--brand);
+  border-color: transparent;
+  color: #fff;
+}
+
+.bsf-flow {
+  --bsf-card-w: 132px;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* 모바일은 화면 끝까지 흘러가게 본문 여백(px-4)을 넘는다 */
+  margin: 0 -1rem;
+  padding: 1.375rem calc(50% - var(--bsf-card-w) / 2) 3rem;
+  perspective: 700px;
+}
+.bsf-card {
+  position: relative;
+  flex: 0 0 var(--bsf-card-w);
+  scroll-snap-align: center;
+  transform-style: preserve-3d;
+  transition: transform 0.15s linear, opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.bsf-card img,
+.bsf-card-empty {
+  width: var(--bsf-card-w);
+  height: calc(var(--bsf-card-w) * 1.485);
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 14px 24px -12px rgba(0, 0, 0, 0.45);
+  background: var(--surface-container);
+  /* 바닥에 비친 그림자 — 지원하지 않는 브라우저는 그냥 없다 */
+  -webkit-box-reflect: below 3px linear-gradient(transparent 72%, rgba(0, 0, 0, 0.16));
+}
+.bsf-card-empty {
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+}
+.bsf-card-no {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fff;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--bsf-season);
+}
+.bsf-card:focus-visible { outline: none; }
+.bsf-card:focus-visible img { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+.bsf-nav { display: none; }
+
+@media (min-width: 1024px) {
+  .bsf-season-chip { font-size: 14px; padding: 7px 13px; }
+  .bsf-flow { --bsf-card-w: 168px; perspective: 900px; margin: 0; }
+  .bsf-nav {
+    position: absolute;
+    top: calc(1.375rem + 168px * 1.485 / 2);
+    transform: translateY(-50%);
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: var(--surface-container);
+    color: var(--brand);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.25);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .bsf-nav:disabled { opacity: 0; pointer-events: none; }
+  .bsf-nav-prev { left: 4px; }
+  .bsf-nav-next { right: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bsf-fan img,
+  .bsf-card { transition: none; }
+}

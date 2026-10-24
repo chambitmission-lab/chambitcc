@@ -10,6 +10,8 @@ import './InstagramBulletinViewer.css'
 interface InstagramBulletinViewerProps {
   bulletin: Bulletin
   onClose: () => void
+  /** 처음 펼칠 쪽(0부터) — 목록의 쪽 띠에서 고른 쪽부터 바로 연다 */
+  initialPage?: number
 }
 
 /** s = 전체 맞춤 크기 대비 배율(1 = 한 쪽이 화면에 다 들어옴), x·y = 무대 기준 그림 왼쪽 위 위치(px) */
@@ -26,10 +28,12 @@ const HINT_KEY = 'bulletin-viewer-hint-v1'
 const DOUBLE_TAP_MS = 300
 const DRAG_THRESHOLD = 6
 
-const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerProps) => {
+const InstagramBulletinViewer = ({ bulletin, onClose, initialPage = 0 }: InstagramBulletinViewerProps) => {
   const { t, language } = useLanguage()
   const ko = language !== 'en'
-  const [currentPage, setCurrentPage] = useState(0)
+  const [currentPage, setCurrentPage] = useState(() =>
+    Math.min(Math.max(initialPage, 0), Math.max((bulletin.pages?.length ?? 1) - 1, 0)),
+  )
   const [showControls, setShowControls] = useState(true)
   // PC(lg+)는 마우스로 넘기는 자리라 버튼이 3초 뒤 사라지면 어르신이 넘기는 법을 잃는다 — 늘 보인다
   const isLg = useMediaQuery('(min-width: 1024px)')
