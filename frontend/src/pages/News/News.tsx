@@ -13,6 +13,7 @@ import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
 import BulletinShelf from './components/BulletinShelf'
 import BulletinStory from './components/BulletinStory'
+import { warmImage, warmPagesAround } from './components/bulletinWarm'
 import { useDigitalBulletin } from '../../hooks/useDigitalBulletin'
 import { can } from '../../utils/access'
 import NewsSection from './components/NewsSection'
@@ -107,6 +108,13 @@ const News = () => {
   const handleBulletinClick = async (bulletin: Bulletin, page = 0) => {
     if (openingId !== null) return
     setOpeningId(bulletin.id)
+    // 상세를 기다리는 동안 그림부터 받기 시작한다 — 히어로 미리보기(preview)나 지난 상세 캐시에 쪽 목록이
+    // 있으면 펼칠 쪽과 옆 쪽, 없으면 표지(= 첫 쪽 읽기용)라도
+    const known =
+      qc.getQueryData<Bulletin>(bulletinKeys.detail(bulletin.id)) ??
+      qc.getQueryData<Bulletin>(bulletinKeys.preview(bulletin.id))
+    if (known?.pages?.length) warmPagesAround(known.pages, page)
+    else if (page === 0) warmImage(bulletin.cover_url)
     try {
       // fetchQuery 는 staleTime 내 캐시가 있으면 네트워크 없이 즉시 반환 —
       // 한 번 본 주보는 재열람이 바로 열린다

@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
-import type { Bulletin } from '../../../types/bulletin'
+import type { Bulletin, BulletinPage } from '../../../types/bulletin'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { safeStorage } from '../../../utils/safeStorage'
 import { SEASON_LABEL, fill, issueDateText, pageSrc, pageThumb, toIssue } from './bulletinIssue'
 import { prefetchPageFile, shareBulletinLink, shareBulletinPage } from './bulletinShare'
+import { isWarm, warmImage, warmPagesAround } from './bulletinWarm'
 import './InstagramBulletinViewer.css'
 
 interface InstagramBulletinViewerProps {
@@ -38,6 +39,35 @@ const DRAG_THRESHOLD = 6
 const SLIDE_MS = 320
 /** 옆 쪽 사이 틈(px) */
 const PEEK_GAP = 12
+
+/**
+ * 옆 쪽 그림 — 읽기용 원본이 아직 안 왔으면 목록에서 이미 받아 둔 480px 썸네일을 먼저 세운다.
+ * 옆 쪽은 0.9배·반투명이라 썸네일로도 티가 안 나고, 원본이 도착하면 같은 자리에서 또렷해진다.
+ * (처음 여는 주보에서 다음 쪽이 빈 채로 있다가 뒤늦게 끼어들던 것의 해결)
+ */
+const PeekImage = ({ page }: { page: BulletinPage }) => {
+  const full = pageSrc(page)
+  const [src, setSrc] = useState(() => (isWarm(full) ? full : pageThumb(page)))
+  useEffect(() => {
+    if (src === full) return
+    let alive = true
+    const img = new Image()
+    img.decoding = 'async'
+    img.onload = () => {
+      if (alive) setSrc(full)
+    }
+    img.src = full
+    // 캐시에 있으면 onload 전에 complete 가 선다 — 썸네일 한 프레임도 안 거치게
+    if (img.complete && img.naturalWidth > 0) setSrc(full)
+    // 뷰어 쪽 미리 받기 명단에도 올려 두어 다음부턴 처음부터 원본으로 선다
+    warmImage(full)
+    return () => {
+      alive = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [full])
+  return <img src={src} alt="" draggable={false} decoding="async" />
+}
 
 const InstagramBulletinViewer = ({
   bulletin,
@@ -163,11 +193,10 @@ const InstagramBulletinViewer = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, baseW, baseH, stage.w, stage.h, currentPage])
 
-  // 앞뒤 쪽 미리 받아 두기 — 넘길 때 빈 화면 없이
+  // 앞뒤 쪽 미리 받아 두기 — 넘길 때 빈 화면 없이. 지금 쪽도 함께 적어 두어야 뒤로 넘겼을 때
+  // 옆 쪽으로 물러난 그 쪽이 썸네일 단계를 건너뛴다
   useEffect(() => {
-    ;[pages[currentPage - 1], pages[currentPage + 1]].forEach(p => {
-      if (p) new Image().src = pageSrc(p)
-    })
+    warmPagesAround(pages, currentPage)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, totalPages])
 
@@ -640,7 +669,7 @@ const InstagramBulletinViewer = ({
         >
           {showPeeks && prevPage && (
             <div className="bv-peek" style={peekStyle(-1)} aria-hidden="true">
-              <img src={pageSrc(prevPage)} alt="" draggable={false} />
+              <PeekImage page={prevPage} />
             </div>
           )}
 
@@ -687,7 +716,7 @@ const InstagramBulletinViewer = ({
           {showPeeks &&
             (nextPage ? (
               <div className="bv-peek" style={peekStyle(1)} aria-hidden="true">
-                <img src={pageSrc(nextPage)} alt="" draggable={false} />
+                <PeekImage page={nextPage} />
               </div>
             ) : (
               !onEnd && (

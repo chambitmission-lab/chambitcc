@@ -2,13 +2,14 @@
 // 주보 표지가 매주 거의 같고 계절 판(여름 파랑·가을 주황)만 바뀌어서, 표지를 늘어놓는 대신
 // 호수·날짜·계절로 각 주를 구분한다. 호수는 날짜로 계산(제33권 43호 = 2026년 43번째 주일)이라 백엔드 무변경.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getBulletinDetail } from '../../../api/bulletin'
 import { BULLETIN_PREVIEW_STALE, bulletinKeys } from '../../../hooks/useBulletins'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Bulletin } from '../../../types/bulletin'
 import { BulletinIcon } from './NewsIcons'
 import { SEASON_LABEL, fill, issueDateText, pageMini, pageThumb, toIssue, type Issue, type Season } from './bulletinIssue'
+import { warmImage, warmPagesAround } from './bulletinWarm'
 import './bulletinShelf.css'
 
 const ChevronRight = ({ size = 14 }: { size?: number }) => (
@@ -98,6 +99,17 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
   // 뒷장 두 장은 미리보기가 오기 전에도 빈 종이로 자리를 잡아 둔다(나중에 '툭' 끼어들지 않게)
   const backSrc = (i: number) => (pages[i] ? pageThumb(pages[i]) : undefined)
   const showBacks = pages.length >= 3 || (!preview && pageCount >= 3)
+  // 열려는 기미(마우스 올림·포커스·누름)에 펼칠 쪽과 옆 쪽 읽기용 그림을 미리 받는다 —
+  // 뷰어가 뜰 때 옆 쪽이 빈 채로 있다가 끼어들지 않게. 미리보기 전엔 표지(첫 쪽 읽기용)라도
+  const warm = (page = 0) => {
+    if (pages.length) warmPagesAround(pages, page)
+    else if (page === 0) warmImage(bulletin.cover_url)
+  }
+  const intent = (page = 0) => ({
+    onPointerEnter: () => warm(page),
+    onPointerDown: () => warm(page),
+    onFocus: () => warm(page),
+  })
 
   return (
     <article
@@ -139,6 +151,7 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
           className={`bsf-fan ${intro ? 'is-fanned' : ''}`}
           onClick={() => onOpen(bulletin)}
           disabled={busy}
+          {...intent()}
           aria-label={t('newsBulletinOpenSpread')}
         >
           {showBacks && <img src={backSrc(2)} alt="" decoding="async" />}
@@ -162,6 +175,7 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
                   onClick={() => onOpen(bulletin, i)}
                   disabled={busy}
                   aria-label={fill(t('newsBulletinStartAt'), { n: i + 1 })}
+                  {...intent(i)}
                 >
                   <img src={pageMini(p)} alt="" decoding="async" />
                   <i>{i + 1}</i>
@@ -169,7 +183,7 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
               ))}
             </div>
           )}
-          <button type="button" className="bsf-cta" onClick={() => onOpen(bulletin)} disabled={busy}>
+          <button type="button" className="bsf-cta" onClick={() => onOpen(bulletin)} disabled={busy} {...intent()}>
             {t('newsBulletinOpenSpread')}
             <ChevronRight size={15} />
           </button>
@@ -190,10 +204,23 @@ const CoverFlow = ({
   onOpen: ShelfProps['onOpen']
 }) => {
   const { t, language } = useLanguage()
+  const qc = useQueryClient()
   const trackRef = useRef<HTMLDivElement>(null)
   const frame = useRef(0)
   const [season, setSeason] = useState<Season | 'all'>('all')
   const [center, setCenter] = useState(0)
+
+  // 가운데(= 눌러서 열 수 있는) 카드에 마우스를 올리거나 누르면 표지와 첫 두 쪽을 미리 받는다 —
+  // 지난 주보는 쪽 목록이 없어 조회수를 올리지 않는 미리보기(preview)로 알아낸다
+  const warm = (issue: Issue) => {
+    const b = issue.bulletin
+    warmImage(b.cover_url)
+    qc.prefetchQuery({
+      queryKey: bulletinKeys.preview(b.id),
+      queryFn: () => getBulletinDetail(b.id, false),
+      staleTime: BULLETIN_PREVIEW_STALE,
+    }).then(() => warmPagesAround(qc.getQueryData<Bulletin>(bulletinKeys.preview(b.id))?.pages, 0))
+  }
 
   // 실제로 있는 계절 판만 칩으로 — 한 계절뿐이면 칩 줄을 숨긴다
   const seasons = useMemo(() => [...new Set(issues.map(i => i.season))], [issues])
@@ -290,6 +317,8 @@ const CoverFlow = ({
               type="button"
               className={`bsf-card bsf-${issue.season} ${openingId === issue.bulletin.id ? 'opacity-60' : ''}`}
               onClick={() => handleCard(i)}
+              onPointerEnter={e => e.pointerType === 'mouse' && i === center && warm(issue)}
+              onPointerDown={() => i === center && warm(issue)}
               disabled={openingId === issue.bulletin.id}
               aria-label={`${fill(t('newsBulletinIssue'), { vol: issue.vol, no: issue.no })} ${issue.bulletin.title}`}
               aria-current={i === center || undefined}
