@@ -3,9 +3,11 @@ import type { QueryClient } from '@tanstack/react-query'
 import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead, startReadingCycle } from '../api/bibleReading'
 import type { ChapterReadStatusResponse } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
+import { isApiError } from '../api/utils/request'
 import type { RequestPriority } from '../api/utils/request'
 import type { ProfileDetail } from '../types/profile'
 import { profileKeys } from './queryKeys'
+import { biblePlanKeys } from './useBiblePlan'
 
 // 진행률·이어읽기 신선도. 예전 30초는 /bible 을 열 때마다 두 요청을 다시 보냈는데,
 // 읽음·플랜 mutation 이 이미 bibleReadingKeys.all 을 무효화하므로 짧은 staleTime 은
@@ -143,6 +145,8 @@ export const applyReadingSync = (qc: QueryClient, raw: string) => {
 export const applyReadingCycleStart = (qc: QueryClient) => {
   void qc.invalidateQueries({ queryKey: bibleReadingKeys.all })
   void qc.invalidateQueries({ queryKey: profileKeys.detail() })
+  // 플랜 일차 완료 판정도 현재 회차 기준이라 오늘의 읽기·플랜 상세가 옛 완료 표시로 남지 않게
+  void qc.invalidateQueries({ queryKey: biblePlanKeys.all })
 }
 
 /**
@@ -417,5 +421,10 @@ export const useStartReadingCycle = () => {
   return useMutation({
     mutationFn: () => startReadingCycle(),
     onSuccess: () => applyReadingCycleStart(queryClient),
+    // 409 는 서버 기준으로 "지금 회차는 완독 전" — 버튼이 보였다면 다른 기기가 이미 새 회차를
+    // 시작했거나(SSE 를 놓침) 읽음 취소가 있었다는 뜻이라, 읽기 캐시를 통째로 다시 맞춘다
+    onError: (error) => {
+      if (isApiError(error, 409)) applyReadingCycleStart(queryClient)
+    },
   })
 }

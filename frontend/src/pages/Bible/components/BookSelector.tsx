@@ -8,6 +8,7 @@ import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePrel
 import { readingSceneFor } from '../../../utils/themeAssets'
 import { safeSessionStorage, safeStorage } from '../../../utils/safeStorage'
 import { alertDialog, confirmDialog } from '../../../utils/confirmDialog'
+import { isApiError } from '../../../api/utils/request'
 import { useStartReadingCycle } from '../../../hooks/useBibleReading'
 // 지도 보기는 토글해야 나온다 — 기본 뷰(여정)만 정적으로 둔다.
 // 단, 청크는 요약 카드가 뜬 뒤 유휴 시간에(그리고 버튼에 손이 닿는 순간) 미리 받아 둔다 —
@@ -50,8 +51,49 @@ const VIEW_MODE_KEY = 'bible-book-view-mode'
  *  앱을 새로 열면 다시 "지금 읽는 쪽" 자동 선택으로 돌아간다 */
 const TESTAMENT_SESSION_KEY = 'bible-testament-tab'
 
-/** 구약/신약 완독 축하 문구를 이미 보여 줬는지 — 기기에 한 번만 */
-const celebratedKey = (tm: Testament) => `bible-testament-complete-seen-${tm}`
+/** 구약/신약 완독 축하 문구를 이미 보여 줬는지 — 기기에 회차마다 한 번만.
+ *  1독은 예전 키 그대로(이미 본 사람에게 다시 띄우지 않기), 2독부터 회차를 붙여 다시 축하한다 */
+const celebratedKey = (tm: Testament, cycleNo: number) =>
+  cycleNo > 1 ? `bible-testament-complete-seen-${tm}-c${cycleNo}` : `bible-testament-complete-seen-${tm}`
+
+/**
+ * 구약/신약 완독 축하 띠 — "본 적 있나"는 마운트 시점 저장소 값으로 고정해, 저장소에 '봤다'고
+ * 적은 직후 재렌더돼도 닫기 전까지 남아 있다. (쪽, 회차)가 바뀌면 부모가 key 로 다시 마운트한다
+ */
+const TestamentCelebrate = ({
+  storageKey,
+  title,
+  next,
+  closeLabel,
+}: {
+  storageKey: string
+  title: string
+  next: string
+  closeLabel: string
+}) => {
+  const [seenAtMount] = useState(() => !!safeStorage.get(storageKey))
+  const [closed, setClosed] = useState(false)
+  useEffect(() => {
+    if (!seenAtMount) safeStorage.set(storageKey, '1')
+  }, [seenAtMount, storageKey])
+  if (seenAtMount || closed) return null
+  return (
+    <div className="testament-celebrate" role="status">
+      <span className="testament-celebrate__text">
+        <strong>{title}</strong>
+        <span>{next}</span>
+      </span>
+      <button
+        type="button"
+        className="testament-celebrate__close"
+        aria-label={closeLabel}
+        onClick={() => setClosed(true)}
+      >
+        <span className="material-icons-round">close</span>
+      </button>
+    </div>
+  )
+}
 
 const loadChosenTestament = (): Testament | null => {
   const saved = safeSessionStorage.get(TESTAMENT_SESSION_KEY)
@@ -196,6 +238,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       cycleConfirmDescription: '지금까지 읽은 기록과 통독 횟수는 프로필에 그대로 남아요.',
       cycleConfirmOk: '시작하기',
       cycleStartFailed: '새 회차를 시작하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      cycleStartConflict: '아직 이 회차를 완독하지 않았거나, 다른 기기에서 이미 새 회차를 시작했어요. 진행률을 다시 맞췄어요.',
     },
     en: {
       selectBook: 'Select Book',
@@ -247,6 +290,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       cycleConfirmDescription: 'Everything you have read so far and your read-through count stay on your profile.',
       cycleConfirmOk: 'Start',
       cycleStartFailed: "Couldn't start a new read-through. Please try again shortly.",
+      cycleStartConflict: "This read-through isn't finished yet, or another device already started the next one. Your progress has been refreshed.",
     }
   }
 
@@ -294,19 +338,12 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const categories = testament === 'OT' ? OT_CATEGORIES : NT_CATEGORIES
   const activeCategory = categories.find(c => c.id === filter) ?? categories[0]
 
-  // 구약/신약 완독 축하 — 한쪽을 다 읽고 반대쪽이 남았을 때 기기당 딱 한 번만 띄운다.
-  // 탭이 저절로 넘어간 이유도 이 한 줄이 설명해 준다. "본 적 있나"는 진입 시점 값으로 고정해
-  // 기록한 직후에도 이번 화면에서는 닫기 전까지 남아 있게 한다
-  const [seenAtMount] = useState(() => ({
-    OT: !!safeStorage.get(celebratedKey('OT')),
-    NT: !!safeStorage.get(celebratedKey('NT')),
-  }))
-  const [celebrateClosed, setCelebrateClosed] = useState(false)
+  // 구약/신약 완독 축하 — 한쪽을 다 읽고 반대쪽이 남았을 때 기기당·회차당 딱 한 번만 띄운다.
+  // 탭이 저절로 넘어간 이유도 이 한 줄이 설명해 준다.
+  const cycleNo = progress?.cycle?.current_cycle ?? 1
   const doneSide: Testament | null = otDone && !ntDone ? 'OT' : ntDone && !otDone ? 'NT' : null
-  const celebrate = doneSide && !seenAtMount[doneSide] && !celebrateClosed ? doneSide : null
-  useEffect(() => {
-    if (celebrate) safeStorage.set(celebratedKey(celebrate), '1')
-  }, [celebrate])
+  // "본 적 있나"는 TestamentCelebrate 가 마운트 시점 값으로 고정한다 — (쪽, 회차)가 바뀌면 key 로 다시 마운트
+  const celebrateKey = doneSide ? celebratedKey(doneSide, cycleNo) : null
 
 
   // 전체/구약/신약 요약 — 장 기준을 주 지표로 쓰고, 장 집계가 없는 구버전 응답에서는 절 기준으로 폴백.
@@ -358,8 +395,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     if (!ok) return
     try {
       await startCycle.mutateAsync()
-    } catch {
-      await alertDialog({ message: t.cycleStartFailed })
+    } catch (error) {
+      // 409 면 mutation onError 가 이미 읽기 캐시를 다시 맞췄다 — 버튼도 새 진행률에 따라 사라진다
+      await alertDialog({ message: isApiError(error, 409) ? t.cycleStartConflict : t.cycleStartFailed })
     }
   }
 
@@ -854,21 +892,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       {/* 구약/신약 탭 + 서브 카테고리 칩 — 한 패널로 묶어 "칩은 탭에 종속"임을 시각적으로 표현.
           탭 전환 시 key가 바뀌며 칩들이 순차적으로 슬라이드 인 된다. */}
       {/* 완독 축하 — sticky 탭 바깥에 둬 스크롤을 따라다니지 않게 한다 */}
-      {celebrate && (
-        <div className="testament-celebrate" role="status">
-          <span className="testament-celebrate__text">
-            <strong>{celebrate === 'OT' ? t.celebrateOT : t.celebrateNT}</strong>
-            <span>{celebrate === 'OT' ? t.celebrateOTNext : t.celebrateNTNext}</span>
-          </span>
-          <button
-            type="button"
-            className="testament-celebrate__close"
-            aria-label={t.close}
-            onClick={() => setCelebrateClosed(true)}
-          >
-            <span className="material-icons-round">close</span>
-          </button>
-        </div>
+      {doneSide && celebrateKey && (
+        <TestamentCelebrate
+          key={celebrateKey}
+          storageKey={celebrateKey}
+          title={doneSide === 'OT' ? t.celebrateOT : t.celebrateNT}
+          next={doneSide === 'OT' ? t.celebrateOTNext : t.celebrateNTNext}
+          closeLabel={t.close}
+        />
       )}
       <div className="book-nav">
         <div className="testament-tabs" role="tablist" data-active={testament}>

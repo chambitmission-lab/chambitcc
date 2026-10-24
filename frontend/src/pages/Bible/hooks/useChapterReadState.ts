@@ -4,6 +4,7 @@
 // 따로 있었다. 여기서는 장별 상태를 "장 키와 함께" 저장해 장이 바뀌면 저절로 없는 값이
 // 되게 하고(리셋 effect 없음), 완독 감시는 effect 하나로 모은다.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useAuth } from '../../../hooks/useAuth'
@@ -16,11 +17,15 @@ import {
 } from '../../../hooks/useBibleReading'
 import { biblePlanKeys } from '../../../hooks/useBiblePlan'
 import { showToast } from '../../../utils/toast'
+import { confirmDialog } from '../../../utils/confirmDialog'
+import type { BibleReadingRecord } from '../../../api/bibleReading'
 
 // 본문이 먼저 왔을 때 읽음 상태를 함께 기다리는 최대 시간 — 이보다 길면 본문부터 그린다
 const READ_STATUS_HOLD_MS = 220
 // 장 전체 읽음 취소 2탭 확인 유지 시간
 const UNMARK_CONFIRM_MS = 3000
+// 성경 전체 완독 모먼트는 도장·꽃 연출이 먼저 지나간 뒤에 띄운다
+const CYCLE_MOMENT_DELAY_MS = 700
 
 // 축하 효과(canvas-confetti)는 절을 다 읽은 순간에만 필요하다
 const celebrateFlowerBloom = () =>
@@ -34,14 +39,23 @@ const celebrateFlowerBloom = () =>
  * 어긋나지 않는다. 이미 읽음(ALREADY_READ)은 실패가 아니다: 묶음 중 일부만
  * 기록돼 있을 수 있다.
  */
-const settleReadCalls = async (calls: Promise<unknown>[]) => {
+const settleReadCalls = async <T,>(calls: Promise<T>[]): Promise<T[]> => {
   const results = await Promise.allSettled(calls)
+  const fulfilled: T[] = []
   for (const r of results) {
-    if (r.status !== 'rejected') continue
+    if (r.status === 'fulfilled') {
+      fulfilled.push(r.value)
+      continue
+    }
     if (r.reason instanceof Error && r.reason.message === 'ALREADY_READ') continue
     throw r.reason
   }
+  return fulfilled
 }
+
+/** 읽음 처리 응답 묶음 중 하나라도 "이 절로 현재 통독 회차를 완독했다"고 하는지 */
+const completedCycle = (records: Pick<BibleReadingRecord, 'cycle_completed'>[]) =>
+  records.some((r) => r?.cycle_completed === true)
 
 interface UseChapterReadStateOptions {
   bookNumber: number
@@ -68,6 +82,27 @@ export const useChapterReadState = ({
 }: UseChapterReadStateOptions) => {
   const { isLoggedIn } = useAuth()
   const loggedIn = isLoggedIn()
+  const navigate = useNavigate()
+
+  /**
+   * 성경 전체 완독 모먼트 — 이 절·장으로 현재 통독 회차를 다 읽은 그 자리에서 1회.
+   * 백엔드가 완독을 '새로' 기록한 응답에만 cycle_completed 가 참이라 두 번 뜨지 않는다.
+   * 다음 회차 시작 버튼은 성경 홈 진행률 카드에 있어 그리로 안내한다(계속 읽기도 된다).
+   */
+  const scheduleCycleMoment = useCallback(() => {
+    window.setTimeout(() => {
+      void confirmDialog({
+        title: '성경 통독 완료 🎉',
+        message: '성경 66권을 모두 읽었어요.',
+        description: '성경 홈 진행률 카드에서 다음 회차를 시작할 수 있어요. 지금까지의 기록은 그대로 남아요.',
+        confirmText: '성경 홈으로',
+        cancelText: '계속 읽기',
+        tone: 'brand',
+      }).then((go) => {
+        if (go) navigate('/bible')
+      })
+    }, CYCLE_MOMENT_DELAY_MS)
+  }, [navigate])
   const queryClient = useQueryClient()
   // 장별 상태는 이 키와 함께 저장한다 — 장이 바뀌면 키가 안 맞아 자동으로 '초기값'이 된다
   const chapterKey = `${bookNumber}:${chapter}`
@@ -168,13 +203,14 @@ export const useChapterReadState = ({
   const markVerseRead = useCallback(
     async (verseId: number, similarity: number) => {
       try {
-        await settleReadCalls(
+        const records = await settleReadCalls(
           (mergedMemberIdsRef.current.get(verseId) ?? [verseId]).map((id) =>
             markVerse({ verseId: id, similarity }),
           ),
         )
         // 장 상태 캐시는 mutation 이 직접 고친다(재조회 없음) — useBibleReading syncAfterVerseToggle
         celebrateFlowerBloom()
+        if (completedCycle(records)) scheduleCycleMoment()
       } catch (error) {
         // 이미 읽음(409)은 실패가 아니다 — 화면 동기화는 mutation onError 가 맡는다
         if (!(error instanceof Error && error.message === 'ALREADY_READ')) {
@@ -182,7 +218,7 @@ export const useChapterReadState = ({
         }
       }
     },
-    [markVerse],
+    [markVerse, scheduleCycleMoment],
   )
 
   /**
@@ -199,9 +235,10 @@ export const useChapterReadState = ({
       const label = verse.verse_label || String(verse.verse)
       try {
         if (nextRead) {
-          await settleReadCalls(ids.map((id) => markVerse({ verseId: id, similarity: 1 })))
+          const records = await settleReadCalls(ids.map((id) => markVerse({ verseId: id, similarity: 1 })))
           showToast(`${label}절을 읽음 처리했습니다`, 'success')
           onManualReadDone?.()
+          if (completedCycle(records)) scheduleCycleMoment()
         } else {
           await settleReadCalls(ids.map((id) => unmarkVerse(id)))
           showToast(`${label}절 읽음을 취소했습니다`, 'info')
@@ -218,7 +255,7 @@ export const useChapterReadState = ({
         setTogglingVerseId(null)
       }
     },
-    [markVerse, unmarkVerse, onManualReadDone],
+    [markVerse, unmarkVerse, onManualReadDone, scheduleCycleMoment],
   )
 
   // ── 장 끝 일괄 읽음/취소 — 눈으로 끝까지 읽은 성도가 한 번에 완료 표시 (본인 계정) ──
@@ -250,7 +287,9 @@ export const useChapterReadState = ({
     if (bulkPending) return false
     try {
       // mutation 이 이 장 상태 재조회까지 기다린 뒤 돌아온다
-      await markChapterMutation.mutateAsync({ bookNumber, chapter })
+      const res = await markChapterMutation.mutateAsync({ bookNumber, chapter })
+      // 이 장으로 성경 전체(현재 회차)를 완독했으면 도장이 찍힌 뒤 완독 모먼트
+      if (res.cycle_completed) scheduleCycleMoment()
       return true
     } catch (error) {
       console.error('Failed to mark chapter read:', error)

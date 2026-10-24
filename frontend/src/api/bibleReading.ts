@@ -8,6 +8,8 @@ export interface BibleReadingRecord {
   similarity: number
   read_at: string
   created_at: string
+  /** 이 절로 현재 통독 회차(성경 전체)를 완독했는지 — 구버전 백엔드엔 없다 */
+  cycle_completed?: boolean
 }
 
 export interface MarkVerseAsReadRequest {
