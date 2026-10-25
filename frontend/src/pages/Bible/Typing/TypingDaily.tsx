@@ -38,7 +38,7 @@ const dateLabelOf = (iso: string) => {
 const TypingDaily = () => {
   const navigate = useNavigate()
   const loggedIn = !!tokenStore.getAccess()
-  const { data: daily, isLoading, error } = useTypingDaily()
+  const { data: daily, isLoading, error, refetch: refetchDaily } = useTypingDaily()
   const submit = useSubmitTyping()
   const [ignorePunct] = useIgnorePunct()
   const [attempt, setAttempt] = useState(0)
@@ -79,7 +79,9 @@ const TypingDaily = () => {
       }
       playTypingSound('finish')
       confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 }, colors: ['#3182f6', '#60a5fa', '#ffb547', '#ffe08a'] })
-      // 결과(순번)는 기록 저장 뒤 오늘의 한 절이 다시 불러와지며 채워진다
+      // 결과(순번)는 오늘의 한 절을 다시 받아야 채워진다 — useSubmitTyping 은 daily 를 stale 로만
+      // 표시하므로(세션 화면 요청 줄이기) 여기서 직접 받는다. 받는 동안은 '새기는 중…' 유지
+      await refetchDaily()
     } catch {
       setNote('기록을 저장하지 못했어요 — 연결을 확인해 주세요')
     } finally {

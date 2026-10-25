@@ -44,7 +44,7 @@ const TypingSprint = () => {
   const loggedIn = !!tokenStore.getAccess()
   const [ignorePunct, setIgnorePunct] = useIgnorePunct()
   const { data: stats } = useTypingStats()
-  const { data: weekly } = useTypingWeekly()
+  const { data: weekly, refetch: refetchWeekly } = useTypingWeekly()
   // 단일 절 응답엔 책 이름이 없다 — 책 목록(24시간 캐시)에서 찾는다
   const { data: books } = useBibleBooks()
   const submit = useSubmitTyping()
@@ -120,6 +120,7 @@ const TypingSprint = () => {
     playTypingSound(index + 1 >= set.length ? 'finish' : 'done')
     const lap: LapResult = { accuracy: r.accuracy, keystrokes: r.keystrokes, durationMs: r.durationMs, personalBest: false }
     setLaps((prev) => [...prev, lap])
+    const isLast = index + 1 >= set.length
     if (loggedIn) {
       submit.mutate(
         {
@@ -136,11 +137,13 @@ const TypingSprint = () => {
             if (res.personal_best) {
               setLaps((prev) => prev.map((l) => (l === lap ? { ...l, personalBest: true } : l)))
             }
+            // 끝 화면의 '이번 주 우리 교회' 보드 — useSubmitTyping 은 weekly 를 stale 로만 표시하므로 직접 받는다
+            if (isLast) void refetchWeekly()
           },
         },
       )
     }
-    if (index + 1 >= set.length) {
+    if (isLast) {
       setClockMs(Date.now() - (startedAt.current ?? Date.now()))
       setPhase('done')
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.65 }, colors: ['#3182f6', '#60a5fa', '#38bdf8', '#93c5fd'] })

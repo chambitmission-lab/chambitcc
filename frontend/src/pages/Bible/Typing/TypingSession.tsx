@@ -53,7 +53,9 @@ interface SessionVerse {
 }
 
 interface Outcome {
-  status: 'saving' | 'passed' | 'failed'
+  status: 'passed' | 'failed'
+  /** 저장 응답이 늦게 와도 지금 이 절의 결과에만 붙이도록 */
+  verseId: number
   accuracy: number
   cpm: number
   newlyRead?: boolean
@@ -206,7 +208,8 @@ const TypingSessionView = () => {
   }, [stats])
   const goalShownRef = useRef(false)
   /** 목표를 채운 순간 — next 는 이어 쓸 절 인덱스(장 끝이면 null) */
-  const [goalMoment, setGoalMoment] = useState<{ next: number | null } | null>(null)
+  // resume — 저장 응답이 다음 절로 넘어간 뒤에 와서 띄운 경우. 닫으면 쓰던 절 그대로 둔다
+  const [goalMoment, setGoalMoment] = useState<{ next: number | null; resume?: boolean } | null>(null)
 
   const book = books?.find((b) => b.book_number === bookNumber)
   const bookName = chapterData?.book_name_ko ?? book?.book_name_ko ?? ''
@@ -222,6 +225,10 @@ const TypingSessionView = () => {
   const [active, setActive] = useState<number | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [outcome, setOutcome] = useState<Outcome | null>(null)
+  const outcomeRef = useRef(outcome)
+  useEffect(() => {
+    outcomeRef.current = outcome
+  }, [outcome])
   const [results, setResults] = useState<SessionResult[]>([])
   const [showSummary, setShowSummary] = useState(false)
   // 무대 전환 방향(1 = 다음 절로, -1 = 앞 절로)
@@ -240,6 +247,11 @@ const TypingSessionView = () => {
     return idx < 0 ? 0 : idx
   }, [verses, typedIds, startVerse, loggedIn])
   const current = active ?? defaultIdx
+  // 저장 응답이 늦게 왔을 때 '지금 쓰는 절'을 알기 위해
+  const currentRef = useRef(current)
+  useEffect(() => {
+    currentRef.current = current
+  }, [current])
   const memberName = (uid: number) => room?.members.find((m) => m.user_id === uid)?.name ?? '친구'
   const live = useTypingRelayRoom(roomId, current !== null ? (verses[current]?.verse ?? null) : null, {
     onCheer: (ev) => {
@@ -427,24 +439,29 @@ const TypingSessionView = () => {
     return null
   }
 
-  const handleFinish = async (sv: SessionVerse, r: TypingFinish) => {
+  const handleFinish = (sv: SessionVerse, r: TypingFinish) => {
     const cpm = cpmOf(r.keystrokes, r.durationMs)
     if (r.suspicious) {
       setOutcome({
         status: 'failed',
+        verseId: sv.id,
         accuracy: r.accuracy,
         cpm,
         note: '한꺼번에 들어온 입력은 기록되지 않아요. 직접 써 볼까요?',
       })
       return
     }
-    let passed = r.accuracy >= PASS_ACCURACY
-    let next: Outcome = { status: 'saving', accuracy: r.accuracy, cpm }
-    let reachedGoal = false
+    // 통과 판정은 이 자리에서 끝난다(정확도 95%) — 서버 저장을 기다리지 않고 바로 '새김'을 보여 주고
+    // 다음 절로 넘어간다. 저장은 뒤에서 하고, 서버가 인정하지 않으면(너무 빠른 입력 등) 되돌리고 알린다
+    const passed = r.accuracy >= PASS_ACCURACY
+    const next: Outcome = { status: passed ? 'passed' : 'failed', verseId: sv.id, accuracy: r.accuracy, cpm }
+    // 목표 달성은 서버의 오늘 절 수로만 안다 — 넘어가기 전에 응답이 오면 그 흐름에서, 늦으면 따로 띄운다
+    const pending = { reachedGoal: false, advanced: false }
     setOutcome(next)
     if (loggedIn) {
-      try {
-        const res = await submit.mutateAsync({
+      const label = sv.label
+      submit
+        .mutateAsync({
           verse_id: sv.id,
           mode,
           accuracy: r.accuracy,
@@ -453,37 +470,40 @@ const TypingSessionView = () => {
           duration_ms: r.durationMs,
           merged_verse_ids: sv.extraIds,
         })
-        passed = res.passed
-        reachedGoal =
-          res.passed &&
-          !goalShownRef.current &&
-          (startTodayRef.current ?? 0) < goal &&
-          res.today_verses >= goal
-        if (reachedGoal) goalShownRef.current = true
-        next = {
-          status: passed ? 'passed' : 'failed',
-          accuracy: res.accuracy,
-          cpm: res.cpm,
-          newlyRead: res.marked_read_ids.length > 0,
-          personalBest: res.personal_best,
-          note: res.counted ? undefined : '너무 빠른 입력이라 기록으로 인정되지 않았어요',
-        }
-      } catch {
-        next = {
-          status: passed ? 'passed' : 'failed',
-          accuracy: r.accuracy,
-          cpm,
-          note: '기록을 저장하지 못했어요 — 연결을 확인해 주세요',
-        }
-      }
-    } else {
-      next = {
-        status: passed ? 'passed' : 'failed',
-        accuracy: r.accuracy,
-        cpm,
-      }
+        .then((res) => {
+          if (!passed) return
+          if (!res.passed) {
+            rollback(sv)
+            const note = res.counted ? '정확도가 조금 모자라 기록되지 않았어요' : '너무 빠른 입력이라 기록으로 인정되지 않았어요'
+            if (!patchOutcome(sv.id, { status: 'failed', note })) showToast(`${label}절 — ${note}`, 'error')
+            return
+          }
+          patchOutcome(sv.id, {
+            accuracy: res.accuracy,
+            cpm: res.cpm,
+            newlyRead: res.marked_read_ids.length > 0,
+            personalBest: res.personal_best,
+          })
+          if (
+            !goalShownRef.current &&
+            (startTodayRef.current ?? 0) < goal &&
+            res.today_verses >= goal
+          ) {
+            goalShownRef.current = true
+            if (!pending.advanced) pending.reachedGoal = true
+            else {
+              setGoalMoment({ next: currentRef.current, resume: true })
+              celebrateGoal()
+            }
+          }
+        })
+        .catch(() => {
+          if (!passed) return
+          rollback(sv)
+          const note = '기록을 저장하지 못했어요 — 연결을 확인해 주세요'
+          if (!patchOutcome(sv.id, { status: 'failed', note })) showToast(`${label}절 — ${note}`, 'error')
+        })
     }
-    setOutcome(next)
     if (!passed) return
     playTypingSound('done')
 
@@ -512,15 +532,9 @@ const TypingSessionView = () => {
     const ni = wasComplete ? (idx < verses.length - 1 ? idx + 1 : null) : nextIndex(idx, newDone)
     setLastWritten(sv)
     const proceed = (to: number | null) => {
-      if (reachedGoal) {
+      if (pending.reachedGoal) {
         setGoalMoment({ next: to })
-        playTypingSound('finish')
-        confetti({
-          particleCount: 60,
-          spread: 60,
-          origin: { y: 0.6 },
-          colors: ['#ffb547', '#ffe08a', '#3182f6', '#93c5fd'],
-        })
+        celebrateGoal()
         return
       }
       if (to === null) {
@@ -545,6 +559,8 @@ const TypingSessionView = () => {
     const relayNext = inRoom ? relayNextIndex(sv.id, written) : null
     advanceTimer.current = setTimeout(
       () => {
+        pending.advanced = true
+        const reachedGoal = pending.reachedGoal
         if (inRoom) {
           if (relayNext === null) {
             // 마지막 빈칸을 내가 채웠다 — 바통 대신 함께 완성한 순간
@@ -570,8 +586,35 @@ const TypingSessionView = () => {
         }
         proceed(ni)
       },
-      next.personalBest ? 1400 : 900,
+      900,
     )
+  }
+
+  /** 지금 화면의 결과가 그 절 것일 때만 고친다 — 이미 다음 절로 넘어갔으면 false */
+  const patchOutcome = (verseId: number, patch: Partial<Outcome>) => {
+    const prev = outcomeRef.current
+    if (!prev || prev.verseId !== verseId || prev.status !== 'passed') return false
+    // 넘어가기 전에 거절이 오면 넘어가지 않고 이 자리에서 다시 쓰게 한다
+    if (patch.status === 'failed' && advanceTimer.current) clearTimeout(advanceTimer.current)
+    setOutcome({ ...prev, ...patch })
+    return true
+  }
+
+  /** 서버가 인정하지 않은 절 — 이번 세션의 '쓴 절'·결과에서 뺀다 */
+  const rollback = (sv: SessionVerse) => {
+    const ids = new Set([sv.id, ...sv.extraIds])
+    setSessionDone((prev) => new Set([...prev].filter((id) => !ids.has(id))))
+    setResults((prev) => prev.filter((x) => x.verseId !== sv.id))
+  }
+
+  const celebrateGoal = () => {
+    playTypingSound('finish')
+    confetti({
+      particleCount: 60,
+      spread: 60,
+      origin: { y: 0.6 },
+      colors: ['#ffb547', '#ffe08a', '#3182f6', '#93c5fd'],
+    })
   }
 
   const onCheer = (to: { user_id: number; name: string }, kind: TypingCheerKind) => {
@@ -897,7 +940,6 @@ const TypingSessionView = () => {
         )}
         {outcome && !handoff && (
           <div className={`bt-outcome bt-outcome--${outcome.status}`} role="status">
-            {outcome.status === 'saving' && <span>기록하는 중…</span>}
             {outcome.status === 'passed' && (
               <>
                 <span className="material-icons-round" aria-hidden>
@@ -1250,9 +1292,10 @@ const TypingSessionView = () => {
                 className="bt-btn bt-btn--primary bt-btn--block"
                 onClick={() => {
                   const ni = goalMoment.next
+                  const resume = goalMoment.resume
                   setGoalMoment(null)
-                  // 바통을 넘기고 기다리는 중이면 그 화면으로 돌아간다
-                  if (handoff) return
+                  // 바통을 넘기고 기다리는 중이거나 이미 다음 절을 쓰던 중이면 그 화면으로 돌아간다
+                  if (handoff || resume) return
                   if (ni === null) setShowSummary(true)
                   else goTo(ni)
                 }}
