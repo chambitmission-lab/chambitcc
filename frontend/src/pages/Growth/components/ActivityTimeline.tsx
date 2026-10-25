@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import type { TimelineDomain, TimelineEvent } from '../../../types/growth'
 import { TimelineEventGlyph } from '../../../components/icons/GrowthIcons'
 import { DOMAIN_META, DOMAIN_ORDER, dayAnchorId, dayLabel } from './timelineMeta'
+import { smoothScrollToElement } from '../../../utils/scrollTo'
 import './ActivityTimeline.css'
+
+/** 달력 → 그날 이동 시 상단에 남길 여백(px) — .atl-day 의 scroll-margin-top(8rem)과 같은 값.
+    앱 헤더 56px + 화면 헤더 아래에 멈추게 한다 */
+const JUMP_OFFSET = 128
 
 interface ActivityTimelineProps {
   events: TimelineEvent[]
@@ -177,8 +182,10 @@ const ActivityTimeline = ({
   }, [filter, filtered.length, hasMore, isLoadingMore, onLoadMore, autoLoadExhausted])
 
   // 달력에서 고른 날로 이동 — 필터가 그날을 가리고 있을 수 있어 '전체'로 되돌리고,
-  // 접혀 있던 하루는 펼친다(렌더 중 상태 조정). 스크롤은 그 렌더가 커밋된 뒤 effect 에서 —
-  // 헤더 높이는 .atl-day 의 scroll-margin 이 맡는다
+  // 접혀 있던 하루는 펼친다(렌더 중 상태 조정). 스크롤은 그 렌더가 커밋된 뒤 effect 에서.
+  // scrollIntoView(smooth) 는 이 앱 구조(실제 스크롤러가 body)에서 모바일 브라우저가
+  // 조용히 무시한다 — PC 에서만 되고 폰에서는 안 움직이던 원인. 스크롤러를 직접 찾아
+  // 미는 smoothScrollToElement 로 이동하고, 헤더 여백은 JUMP_OFFSET 으로 준다
   const [handledJump, setHandledJump] = useState(0)
   if (jumpTo && jumpTo.nonce !== handledJump) {
     setHandledJump(jumpTo.nonce)
@@ -189,9 +196,9 @@ const ActivityTimeline = ({
   useEffect(() => {
     if (!jumpTo) return
     const raf = requestAnimationFrame(() => {
-      document
-        .getElementById(dayAnchorId(jumpTo.date))
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      smoothScrollToElement(document.getElementById(dayAnchorId(jumpTo.date)), {
+        offset: JUMP_OFFSET,
+      })
     })
     const t = window.setTimeout(() => setFlashDate(null), 2200)
     return () => {
