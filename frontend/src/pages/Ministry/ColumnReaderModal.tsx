@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import type { Column } from '../../types/column'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
-import KakaoIcon from '../../components/icons/KakaoIcon'
 import { canKakaoShare, loadKakaoShare } from '../../utils/kakaoShare'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import ColumnLetter from './ColumnLetter'
@@ -261,37 +260,6 @@ const ColumnReaderModal = ({
               )}
             </button>
           </div>
-
-          {/* 엽서로 보내기 — 다 읽은 자리에서 바로. 카톡은 엽서 카드만, 옆 버튼은 다른 앱(공유 시트) */}
-          {column.id != null && (
-            <div className="mt-7 lg:mt-9 flex justify-center gap-2 lg:gap-2.5">
-              {kakaoReady && (
-                <button
-                  type="button"
-                  onClick={() => shareColumnKakao(column.id!, ko)}
-                  className="inline-flex items-center gap-2 h-11 lg:h-14 px-5 lg:px-7 rounded-full bg-[#fee500] text-black/85 text-[13.5px] lg:text-[17px] font-semibold active:scale-95 transition-transform"
-                >
-                  <KakaoIcon size={isLg ? 22 : 18} />
-                  {ko ? '카카오톡으로 엽서 보내기' : 'Send on KakaoTalk'}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => shareColumnLink(column.id!, ko)}
-                aria-label={ko ? '다른 앱으로 보내기' : 'Share via other apps'}
-                title={ko ? '다른 앱으로 보내기' : 'Share via other apps'}
-                className={`inline-flex items-center justify-center gap-2 h-11 lg:h-14 rounded-full border border-gray-300 dark:border-white/[0.15] text-gray-600 dark:text-gray-300 text-[13.5px] lg:text-[17px] font-semibold hover:border-brand hover:text-brand active:scale-95 transition-all ${
-                  kakaoReady ? 'w-11 lg:w-14' : 'px-5 lg:px-7'
-                }`}
-              >
-                <svg viewBox="0 0 24 24" width={isLg ? 21 : 17} height={isLg ? 21 : 17} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M12 3v12M7 8l5-5 5 5" />
-                  <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
-                </svg>
-                {!kakaoReady && (ko ? '편지 보내기' : 'Share letter')}
-              </button>
-            </div>
-          )}
 
           {/* 이어 읽기 — 편지를 다 읽은 흐름 그대로 다음 글로 */}
           {(olderColumn || newerColumn) && (
