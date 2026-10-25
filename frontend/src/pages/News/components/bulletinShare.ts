@@ -1,18 +1,27 @@
-// 주보 보내기 — 한 쪽 이미지는 파일로(카톡이 사진으로 받는다), 안 되면 바로 열리는 링크로.
+// 주보 보내기 — 한 쪽 이미지는 파일로(카톡이 사진으로 받는다), 안 되면 미리보기 카드가 뜨는 링크로.
 // 컴포넌트가 아닌 순수 함수라 별도 파일 (fast refresh 규칙)
+import { isLocalHost, SHARE_ORIGIN } from '../../../utils/shareOrigin'
 import { showToast } from '../../../utils/toast'
 
-/** /news 가 이 링크로 열리면 그 주보 뷰어를 바로 띄운다 (News.tsx 의 b 파라미터) */
+/**
+ * 주보 공유 링크. 운영에서는 짧은 /w/{id} — 백엔드(bulletin_share.py)가 앨범 커버
+ * 카드(표지 + 이번 호 목차)를 og:image 로 붙이고, 사람은 그 주보 뷰어로 곧바로 보낸다.
+ * (해시 딥링크는 크롤러가 앱 셸만 읽어 어느 주보든 홈 카드가 떴다)
+ * 로컬은 /w/* 프록시가 없어 해시 딥링크로 — /news 의 b 파라미터가 뷰어를 띄운다.
+ */
 export const bulletinLink = (id: number) =>
-  `${window.location.origin}${window.location.pathname}#/news?tab=bulletin&b=${id}`
+  isLocalHost()
+    ? `${window.location.origin}${window.location.pathname}#/news?tab=bulletin&b=${id}`
+    : `${SHARE_ORIGIN}/w/${id}`
 
 const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError'
 
-export const shareBulletinLink = async (title: string, id: number, ko: boolean) => {
+/** 주소만 보낸다 — title 을 같이 주면 카톡이 "제목 - 주소" 말풍선을 따로 만들어 카드 위에 붙인다 */
+export const shareBulletinLink = async (id: number, ko: boolean) => {
   const url = bulletinLink(id)
   if (navigator.share) {
     try {
-      await navigator.share({ title, url })
+      await navigator.share({ url })
       return
     } catch (e) {
       if (isAbort(e)) return
@@ -39,7 +48,7 @@ export const shareBulletinPage = async (file: File | undefined, title: string, i
       if (isAbort(e)) return
     }
   }
-  await shareBulletinLink(title, id, ko)
+  await shareBulletinLink(id, ko)
 }
 
 /** 쪽 이미지를 공유용 파일로 받아 둔다 — 파일 공유를 못 하는 기기(대부분 PC)는 받지 않는다.

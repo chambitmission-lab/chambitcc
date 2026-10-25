@@ -1,5 +1,6 @@
 import { showToast } from '../../../utils/toast'
 import { safeStorage } from '../../../utils/safeStorage'
+import { isLocalHost, SHARE_ORIGIN } from '../../../utils/shareOrigin'
 
 /**
  * 성경 구절 복사/공유 — 절 액션바, 여러 절 선택 바, 공유 시트가 함께 쓰는 포맷터.
@@ -115,19 +116,6 @@ export const buildReference = (target: VerseCopyTarget): string => {
   const nums = formatVerseNumbers(referenceNumbers(target))
   return `${target.bookNameKo} ${target.chapter}:${nums}`.trim()
 }
-
-/**
- * 공유 링크의 정식 도메인.
- *
- * 어느 호스트에서 보든(미리보기 배포, vercel.app 등) 이 도메인으로 보낸다 —
- * /b/* 를 백엔드 OG 라우트로 넘기는 rewrite가 여기에만 걸려 있고, 받는 사람에게도
- * 교회 주소가 찍히는 편이 낫다.
- */
-const SHARE_ORIGIN = 'https://chambitcc.kro.kr'
-
-/** 로컬 개발에는 /b/* rewrite가 없다 — 그때만 예전 해시 딥링크로 폴백한다 */
-const isLocalHost = () =>
-  ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
 
 /** [16,17,20] → "16-17,20" — 경로에 넣을 공백 없는 표기 */
 const toVerseSpec = (nums: number[]): string =>

@@ -622,7 +622,7 @@ const InstagramBulletinViewer = ({
         )}
       </p>
       <div className="bv-end-actions">
-        <button type="button" className="bv-end-primary" onClick={() => shareBulletinLink(shareTitle, bulletin.id, ko)}>
+        <button type="button" className="bv-end-primary" onClick={() => shareBulletinLink(bulletin.id, ko)}>
           <ShareIcon />
           {ko ? '주보 보내기' : 'Share bulletin'}
         </button>
