@@ -35,19 +35,25 @@ const kakaoEscapePage = (target, { title, heading }) => {
   // 이 웹뷰에서 탈출을 시도했다는 표식 — 폴백·아래 링크로 인앱에 뜬 앱(main.tsx)이 다시 openExternal 을
   // 부르지 않게 한다 (★ src/utils/inappBrowser.ts 의 KAKAO_ESCAPE_KEY 와 같은 키).
   try { sessionStorage.setItem('kakaoEscapeAttempted', '1'); } catch (e) {}
+  var ua = navigator.userAgent;
   var fallback = setTimeout(function () { location.replace(${href}); }, 1500);
-  // 외부 브라우저로 넘어가 이 웹뷰가 가려지면(iOS 는 인앱을 닫지 않고 Safari 를 앞에 띄운다) 폴백을 거둔다 —
-  // 그대로 두면 뒤에서 앱이 한 번 더 떠서 같은 주소가 두 벌 열린다
+  // 외부 브라우저로 넘어가 이 웹뷰가 가려지면 폴백을 거둔다 — 그대로 두면 뒤에서 앱이 한 번 더 뜬다
   var cancel = function () { clearTimeout(fallback); };
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') cancel(); });
   window.addEventListener('pagehide', cancel);
   location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(${href});
+  // 넘긴 뒤 카톡 인앱 창은 스스로 닫는다 — 안 닫으면 카톡에 빈 화면이 하나 남아 "여기저기 들락거리는" 느낌이 된다.
+  // (카톡 비공식이지만 널리 쓰이는 스킴 — ★ src/utils/inappBrowser.ts 의 closeKakaoInApp 과 같은 문자열)
+  // 닫기가 안 먹는 환경이면 페이지가 남아 위 폴백·아래 링크가 그대로 동작한다.
+  setTimeout(function () {
+    location.href = /ipad|iphone|ipod/i.test(ua) ? 'kakaoweb://closeBrowser' : 'kakaotalk://inappbrowser/close';
+  }, 300);
 </script>
 <style>
   html { background:#f1f3f6; color:#191f28; color-scheme:light dark; }
   @media (prefers-color-scheme: dark) { html { background:#131313; color:#e5e2e1; } }
   body { margin:0; padding:2.5rem 1.5rem; font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; line-height:1.7; }
-  main { max-width:34rem; margin:0 auto; opacity:0; animation:reveal .3s ease 2s forwards; }
+  main { max-width:34rem; margin:0 auto; opacity:0; animation:reveal .3s ease 1s forwards; }
   @keyframes reveal { to { opacity:1; } }
   h1 { font-size:1rem; font-weight:700; color:#4593fc; margin:0 0 .75rem; }
   p { margin:0 0 1.25rem; font-size:1.0625rem; }

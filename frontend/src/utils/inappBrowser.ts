@@ -14,6 +14,18 @@ export const isInAppBrowser = () => isKakaoInApp() || isOtherInApp()
 export const escapeKakaoInApp = (url: string = window.location.href) => {
   markKakaoEscapeAttempted()
   window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url)
+  // 넘긴 뒤 인앱 창은 닫는다 — 안 닫으면 카톡 안에 앱 화면이 하나 더 남아 사용자가 두 군데를 오간다
+  window.setTimeout(closeKakaoInApp, 300)
+}
+
+/**
+ * 카톡 인앱 브라우저 닫기 — 카톡 비공식이지만 널리 쓰이는 스킴(안드로이드·iOS 가 다르다).
+ * 안 먹는 환경이면 아무 일도 없이 페이지가 남는다. ★ functions/_lib/shareEntry.js 의 탈출 페이지와 같은 문자열.
+ */
+export const closeKakaoInApp = () => {
+  window.location.href = /ipad|iphone|ipod/i.test(navigator.userAgent)
+    ? 'kakaoweb://closeBrowser'
+    : 'kakaotalk://inappbrowser/close'
 }
 
 /**
