@@ -1,12 +1,14 @@
-// Cloudflare Pages Function — /w/* 주보 공유 링크 프록시.
-//
-// /b/* 말씀 링크와 같은 구조다 (functions/b/[[path]].js 참고).
-// 백엔드(bulletin_share.py)가 og:* 메타와 앨범 커버 카드를 붙여 응답해야 카톡
-// 미리보기에 그 주보가 뜬다 — 이 프록시가 빠지면 카드가 조용히 홈으로 떨어진다.
-const BACKEND_ORIGIN = 'https://port-0-chambit-ml1vrmry20fb0cc0.sel3.cloudtype.app'
+// Cloudflare Pages Function — /w/* 주보 공유 링크.
+// 사람/크롤러 분기는 _lib/shareEntry.js 한 곳 — 크롤러·card.png 는 백엔드(bulletin_share.py)로,
+// 사람은 앱 셸을 바로 받고 src/utils/shareEntry.ts 가 #/news?tab=bulletin&b={id} 로 바꿔 읽는다.
+import { handleShareEntry } from '../_lib/shareEntry.js'
 
-export async function onRequest({ request }) {
-  const url = new URL(request.url)
-  const upstream = new Request(BACKEND_ORIGIN + url.pathname + url.search, request)
-  return fetch(upstream)
+/** 사람이 열 주소 — /w/{id} 만. card.png 등 나머지는 전부 백엔드로 */
+const SHARE_PATH = /^\/w\/(\d+)\/?$/
+
+export async function onRequest(context) {
+  const url = new URL(context.request.url)
+  const match = SHARE_PATH.exec(url.pathname)
+  const deepLink = match ? `${url.origin}/#/news?tab=bulletin&b=${match[1]}` : null
+  return handleShareEntry(context, deepLink, { title: '부천참빛교회 주보', heading: '참빛교회 주보' })
 }

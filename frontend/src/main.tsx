@@ -6,6 +6,7 @@ import { persister } from './config/persister'
 import { PERSIST_SCHEMA_VERSION } from './config/persistSchema'
 import { initPWAInstallPrompt, registerPushServiceWorker } from './utils/pwa'
 import { escapeKakaoInApp, isKakaoInApp } from './utils/inappBrowser'
+import { rewriteShareEntry } from './utils/shareEntry'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { loadDeferredFonts } from './utils/deferredFonts'
 // 폰트 @font-face 는 index.css 보다 먼저 — 첫 CSSOM 에 폰트 선언이 있어야
@@ -18,6 +19,10 @@ import './index.css'
 import './styles/theme.css'
 import './styles/common.css'
 import App from './App.tsx'
+
+// 공유 링크(/b/ 말씀·/w/ 주보)로 들어온 사람 — Pages Function 이 앱 셸을 바로 내려주므로
+// 라우터가 읽을 수 있게 해시 주소로 바꿔 끼운다 (라우터 생성 전에, 인앱 탈출의 href 에도 반영되도록 먼저)
+rewriteShareEntry()
 
 // 카카오톡 인앱 브라우저로 진입한 경우 어떤 페이지든 외부 브라우저로 탈출
 // (안드로이드: 설치된 PWA가 열리거나 크롬에서 설치 유도 / iOS: Safari로 열림)

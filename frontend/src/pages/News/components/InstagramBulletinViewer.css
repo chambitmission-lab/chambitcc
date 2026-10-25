@@ -96,24 +96,37 @@
 .image-container.is-pannable { cursor: grab; }
 .image-container.is-grabbing { cursor: grabbing; }
 
-/* will-change: transform 은 일부러 안 건다 — 크롬이 처음 크기로 굳혀 그려 확대하면 글씨가 뿌옇게 번진다 */
-.bulletin-image {
+/* 지금 쪽 카드 — 왼쪽 위 기준 translate+scale 로만 움직인다. 안에 썸네일·원본 두 겹(.bv-page-thumb / .bv-page-full)
+   will-change: transform 은 일부러 안 건다 — 크롬이 처음 크기로 굳혀 그려 확대하면 글씨가 뿌옇게 번진다 */
+.bv-page {
   position: absolute;
   left: 0;
   top: 0;
   max-width: none;
   transform-origin: 0 0;
   pointer-events: none;
+  overflow: hidden;
+  /* 아직 썸네일도 안 온 순간의 빈 종이 자리 — 구멍이 아니라 종이 한 장이 놓여 있는 것으로 보이게 */
+  background: rgba(255, 255, 255, 0.08);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
-.bulletin-image.is-ready {
+.bv-page.is-ready {
   opacity: 1;
 }
 
-.bulletin-image.is-animating {
+.bv-page.is-animating {
   transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+.bv-page img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: block;
 }
 
 /* 미니맵 — 확대 중 지금 보는 자리 */
@@ -532,7 +545,7 @@
   position: absolute;
   inset: 0;
 }
-.bulletin-image.is-card {
+.bv-page.is-card {
   border-radius: 10px;
   box-shadow: 0 24px 44px -16px rgba(0, 0, 0, 0.65);
 }
@@ -550,12 +563,13 @@
   border-radius: 10px;
   box-shadow: 0 18px 34px -16px rgba(0, 0, 0, 0.55);
 }
-/* 읽기용 원본은 썸네일 위에 겹쳐 스며든다 — src 교체식 깜빡임 없이 조용히 또렷해지기만 */
-.bv-peek-full {
+/* 읽기용 원본은 썸네일 위에 겹쳐 스며든다(옆 쪽·지금 쪽 공통) — src 교체식 깜빡임 없이 조용히 또렷해지기만.
+   캐시에 있던 그림은 is-ready 가 첫 그리기 전에 붙어 스며들기 없이 바로 선다 */
+.bv-page-full {
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.3s ease;
 }
-.bv-peek-full.is-ready {
+.bv-page-full.is-ready {
   opacity: 1;
 }
 
@@ -723,5 +737,6 @@
   .bv-rail.is-sliding,
   .bv-rail.is-sliding .bv-peek,
   .bv-rail.is-sliding .bv-current { transition: none; }
+  .bv-page-full { transition: none; }
   .is-end .bv-end-slot .bv-end-seal { animation: none; }
 }

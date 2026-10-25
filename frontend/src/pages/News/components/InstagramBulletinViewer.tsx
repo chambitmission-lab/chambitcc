@@ -41,42 +41,59 @@ const SLIDE_MS = 320
 /** 옆 쪽 사이 틈(px) */
 const PEEK_GAP = 12
 
+/** 그림 크기 보고 — 썸네일이든 원본이든 먼저 온 것부터. full 은 읽기용 원본인지 */
+type OnSize = (w: number, h: number, full: boolean) => void
+
 /**
- * 옆 쪽 그림 — 읽기용 원본이 아직 안 왔으면 목록에서 이미 받아 둔 480px 썸네일을 먼저 세운다.
- * 옆 쪽은 0.9배·반투명이라 썸네일로도 티가 안 나고, 원본이 도착하면 같은 자리에서 또렷해진다.
- * (처음 여는 주보에서 다음 쪽이 빈 채로 있다가 뒤늦게 끼어들던 것의 해결)
+ * 쪽 그림 두 겹 — 목록에서 이미 받아 둔 480px 썸네일을 먼저 세우고, 읽기용 원본은 그 위에 겹쳐 opacity 로 스며든다.
+ * 옆 쪽(0.9배·반투명)과 지금 쪽이 같은 구조라, 넘김이 끝나 옆 쪽이 지금 쪽 자리로 올 때도 같은 그림이 그대로 이어진다.
+ * (처음 여는 주보에서 다음 쪽이 빈 채로 있다가 원본 도착 순간 '툭' 끼어들던 것의 해결)
  *
- * 원본은 썸네일 위에 겹쳐 올리고 opacity 로 스며들게 한다 — 한 <img> 의 src 를 바꿔 끼우면
- * decoding=async 와 만나 한 프레임 비었다가 다시 그려져서 '툭 새로고침'처럼 보였다.
+ * 한 <img> 의 src 를 바꿔 끼우면 decoding=async 와 만나 한 프레임 비었다가 다시 그려져 새로고침처럼 보인다 —
+ * 그래서 겹치기만 하고 바꿔 끼우지 않는다. 캐시에 있는 그림은 ref 콜백(그리기 전)에서 바로 ready 로 두어 스며들기 없이 선다.
  */
-const PeekImage = ({ page }: { page: BulletinPage }) => {
+const LayeredPage = ({ page, alt = '', onSize }: { page: BulletinPage; alt?: string; onSize?: OnSize }) => {
   const full = pageSrc(page)
   const thumb = pageThumb(page)
-  // 이 세션에서 이미 받아 둔 그림이면 썸네일 단계 없이 원본만 — 처음부터 또렷하게
-  const [warmAtMount] = useState(() => isWarm(full))
   // 썸네일이 따로 없는 옛 주보는 겹칠 게 없으니 바로 보이게
-  const [ready, setReady] = useState(warmAtMount || thumb === full)
+  const [ready, setReady] = useState(() => isWarm(full) || thumb === full)
+  // 크기 보고는 그림마다 한 번만 — ref 콜백은 렌더마다 다시 불리므로 여기서 막는다
+  const sent = useRef({ thumb: false, full: false })
   useEffect(() => {
     // 뷰어 쪽 미리 받기 명단에도 올려 두어 다음부턴 처음부터 원본으로 선다
     warmImage(full)
   }, [full])
-  const markReady = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    if (e.currentTarget.naturalWidth > 0) setReady(true)
+  const report = (el: HTMLImageElement | null, isFull: boolean) => {
+    if (!el || !el.complete || el.naturalWidth === 0) return
+    const key = isFull ? 'full' : 'thumb'
+    if (!sent.current[key]) {
+      sent.current[key] = true
+      onSize?.(el.naturalWidth, el.naturalHeight, isFull)
+    }
+    if (isFull) setReady(true)
   }
   return (
     <>
-      {!warmAtMount && thumb !== full && <img src={thumb} alt="" draggable={false} decoding="async" />}
+      {thumb !== full && (
+        <img
+          className="bv-page-thumb"
+          src={thumb}
+          alt=""
+          draggable={false}
+          decoding="sync"
+          onLoad={e => report(e.currentTarget, false)}
+          ref={el => report(el, false)}
+        />
+      )}
       <img
-        className={`bv-peek-full ${ready ? 'is-ready' : ''}`}
+        className={`bv-page-full ${ready ? 'is-ready' : ''}`}
         src={full}
-        alt=""
+        alt={alt}
         draggable={false}
         decoding="async"
-        onLoad={markReady}
-        // 캐시에서 바로 오면 onLoad 가 붙기 전에 끝나 있을 수 있다
-        ref={el => {
-          if (el?.complete && el.naturalWidth > 0) setReady(true)
-        }}
+        onLoad={e => report(e.currentTarget, true)}
+        // 캐시에서 바로 오면 onLoad 가 붙기 전에 끝나 있을 수 있다 — 그리기 전에 ready 로 두어 스며들기 없이 선다
+        ref={el => report(el, true)}
       />
     </>
   )
@@ -238,6 +255,15 @@ const InstagramBulletinViewer = ({
 
   // 크기(natural)는 일부러 비우지 않는다 — 쪽마다 거의 같은 판형이라 앞 쪽 크기로 바로 그리고,
   // 새 쪽이 뜨면 onLoad 가 맞춰 준다(비우면 넘길 때마다 한 번 깜빡인다)
+  // 썸네일 크기는 아직 아무 크기도 없을 때(처음 열기)와 판형이 달라진 쪽에서만 받는다 — 같은 판형이면 원본 것만
+  const onPageSize = useCallback<OnSize>((w, h, isFull) => {
+    setNatural(prev => {
+      if (prev.w === w && prev.h === h) return prev
+      if (!isFull && prev.w > 0 && Math.abs(prev.w / prev.h - w / h) < 0.01) return prev
+      return { w, h }
+    })
+  }, [])
+
   const goToPage = useCallback(
     (next: number) => {
       if (next < 0 || next > totalPages) return
@@ -707,7 +733,7 @@ const InstagramBulletinViewer = ({
         >
           {showPeeks && prevPage && (
             <div className="bv-peek" style={peekStyle(-1)} aria-hidden="true">
-              <PeekImage page={prevPage} />
+              <LayeredPage page={prevPage} />
             </div>
           )}
 
@@ -730,11 +756,9 @@ const InstagramBulletinViewer = ({
                   : undefined
               }
             >
-              <img
-                key={pages[currentPage]?.id}
-                src={pages[currentPage] && pageSrc(pages[currentPage])}
-                alt={t('newsViewerPageNth').replace('{n}', String(currentPage + 1))}
-                className={`bulletin-image ${animate ? 'is-animating' : ''} ${ready ? 'is-ready' : ''} ${zoomed ? '' : 'is-card'}`}
+              {/* 쪽 카드 — 왼쪽 위 기준 translate+scale. 안에 썸네일(먼저)·원본(스며들기) 두 겹 */}
+              <div
+                className={`bv-page ${animate ? 'is-animating' : ''} ${ready ? 'is-ready' : ''} ${zoomed ? '' : 'is-card'}`}
                 style={
                   ready
                     ? {
@@ -744,17 +768,27 @@ const InstagramBulletinViewer = ({
                       }
                     : undefined
                 }
-                onLoad={e => setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
-                onTransitionEnd={() => setAnimate(false)}
-                draggable={false}
-              />
+                // 안쪽 원본의 스며들기 transitionend 가 올라와 확대 애니메이션을 끊지 않게 카드 자신 것만
+                onTransitionEnd={e => {
+                  if (e.target === e.currentTarget) setAnimate(false)
+                }}
+              >
+                {pages[currentPage] && (
+                  <LayeredPage
+                    key={pages[currentPage].id}
+                    page={pages[currentPage]}
+                    alt={t('newsViewerPageNth').replace('{n}', String(currentPage + 1))}
+                    onSize={onPageSize}
+                  />
+                )}
+              </div>
             </div>
           )}
 
           {showPeeks &&
             (nextPage ? (
               <div className="bv-peek" style={peekStyle(1)} aria-hidden="true">
-                <PeekImage page={nextPage} />
+                <LayeredPage page={nextPage} />
               </div>
             ) : (
               !onEnd && (

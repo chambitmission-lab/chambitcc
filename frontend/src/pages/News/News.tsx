@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Language, Translation } from '../../locales'
@@ -81,6 +82,24 @@ const localeOf = (lang: Language) => (lang === 'en' ? 'en-US' : 'ko-KR')
 const formatBulletinDate = (date: string, lang: Language) => formatLongDate(date, localeOf(lang))
 
 
+/**
+ * 공유 링크로 주보를 여는 동안의 자리 — 뷰어(InstagramBulletinViewer)와 같은 포털·같은 바탕색.
+ * 상세가 도착하면 뷰어가 같은 자리에 그대로 겹쳐 떠서 화면이 바뀌는 느낌 없이 쪽만 나타난다.
+ * 목록 캐시에 표지 썸네일이 있으면 뷰어처럼 표지 색을 번지게 깐다.
+ */
+const BulletinOpening = ({ thumbnail }: { thumbnail?: string }) =>
+  createPortal(
+    <div className="instagram-viewer" aria-busy="true">
+      <div className="bv-amb" aria-hidden="true">
+        {thumbnail && <div className="bv-amb-layer" style={{ backgroundImage: `url("${thumbnail}")` }} />}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+      </div>
+    </div>,
+    document.body,
+  )
+
 const News = () => {
   const { t } = useLanguage()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -137,10 +156,16 @@ const News = () => {
     setViewMode('list')
   }
 
-  // 공유 링크(#/news?tab=bulletin&b=28)로 들어오면 그 주보를 바로 연다 — 한 번만 열리게 파라미터는 지운다
+  // 공유 링크(#/news?tab=bulletin&b=28)로 들어오면 그 주보를 바로 연다 — 한 번만 열리게 파라미터는 지운다.
+  // 목록을 기다리지 않는다: 상세는 id 만 있으면 되고, RouteDataPrefetch 가 청크와 나란히 이미 요청해 둬서
+  // 대개 캐시에서 바로 나온다. 여는 동안은 소식 목록 대신 뷰어 바탕(아래 BulletinOpening)을 보여
+  // "소식 화면에 들렀다가 간다"는 끊김이 없다.
   const deepLinkId = Number(searchParams.get('b')) || null
+  const [pendingDeepLink, setPendingDeepLink] = useState<number | null>(deepLinkId)
   useEffect(() => {
-    if (!deepLinkId || loading) return
+    if (!deepLinkId) return
+    // 이미 열린 /news 에서 공유 링크로 다시 들어온 경우(알림 등)도 같은 자리를 깐다
+    setPendingDeepLink(deepLinkId)
     setSearchParams(
       prev => {
         const next = new URLSearchParams(prev)
@@ -150,9 +175,11 @@ const News = () => {
       { replace: true },
     )
     // 목록(최근 20개) 밖의 주보도 상세 조회는 id 만 있으면 된다
-    void handleBulletinClick(bulletins.find(b => b.id === deepLinkId) ?? ({ id: deepLinkId } as Bulletin))
+    void handleBulletinClick(
+      qc.getQueryData<Bulletin[]>(bulletinKeys.list())?.find(b => b.id === deepLinkId) ?? ({ id: deepLinkId } as Bulletin),
+    ).finally(() => setPendingDeepLink(null))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deepLinkId, loading])
+  }, [deepLinkId])
 
   if (viewMode === 'view' && selectedBulletin) {
     // 마무리 카드의 '지난 주 주보' — 목록은 최신순이라 바로 다음 칸
@@ -169,6 +196,12 @@ const News = () => {
         opening={openingId !== null}
       />
     )
+  }
+
+  if (pendingDeepLink) {
+    // 공유 링크로 여는 중 — 뷰어와 같은 바탕을 먼저 깔아 두어, 상세가 오면 그 자리에서 쪽이 떠오른다
+    const known = bulletins.find(b => b.id === pendingDeepLink)
+    return <BulletinOpening thumbnail={known?.thumbnail_url} />
   }
 
   return (

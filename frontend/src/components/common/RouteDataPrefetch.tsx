@@ -22,7 +22,7 @@ import { warmRouteThemeAssets } from '../../utils/themeAssets'
 const BIBLE_CHAPTER = /^\/bible\/(\d+)\/(\d+)$/
 
 const RouteDataPrefetch = () => {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -74,6 +74,16 @@ const RouteDataPrefetch = () => {
     // 현재 테마 파일을 띄우고, 반대 테마는 유휴 시간에 받아 둬 토글 순간 빈 배경이 끼지 않게 한다
     void warmRouteThemeAssets(pathname).catch(() => undefined)
   }, [pathname, queryClient])
+
+  // 소식 — 주보 탭·공유 링크(?tab=bulletin&b=28)는 쿼리를 보고 가르므로 search 에도 반응한다.
+  // 공유 링크는 목록과 그 주보 상세를 청크와 나란히 동시에 띄운다 (예전엔 청크 → 목록 → 상세 → 쪽 그림 직렬).
+  // 뉴스 유틸이 메인 번들에 섞이지 않게 동적 import — 작은 청크라 페이지 청크와 나란히 온다
+  useEffect(() => {
+    if (pathname !== '/news') return
+    void import('../../pages/News/prefetch')
+      .then((m) => m.prefetchNewsRoute(search, queryClient))
+      .catch(() => undefined)
+  }, [pathname, search, queryClient])
 
   return null
 }
