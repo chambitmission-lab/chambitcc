@@ -2,6 +2,7 @@
 // 컴포넌트가 아닌 순수 함수라 별도 파일 (fast refresh 규칙)
 import { isLocalHost, SHARE_ORIGIN } from '../../../utils/shareOrigin'
 import { showToast } from '../../../utils/toast'
+import { kakaoShareScrap } from '../../../utils/kakaoShare'
 
 /**
  * 주보 공유 링크. 운영에서는 짧은 /w/{id} — 백엔드(bulletin_share.py)가 앨범 커버
@@ -33,6 +34,15 @@ export const shareBulletinLink = async (id: number, ko: boolean) => {
   } catch {
     showToast(ko ? '보내기에 실패했어요' : 'Could not share', 'error')
   }
+}
+
+/**
+ * 카카오톡으로 — 링크 말풍선 없이 앨범 커버 카드만 간다. 카톡이 직접 /w/{id} 를 긁어 가므로
+ * 로컬에서도 운영 주소로 보낸다. SDK 가 아직 없으면 공유 시트로 넘긴다.
+ */
+export const shareBulletinKakao = async (id: number, ko: boolean) => {
+  if (kakaoShareScrap(`${SHARE_ORIGIN}/w/${id}`)) return
+  await shareBulletinLink(id, ko)
 }
 
 /**

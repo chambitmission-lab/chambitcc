@@ -6,7 +6,8 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { safeStorage } from '../../../utils/safeStorage'
 import { SEASON_LABEL, fill, issueDateText, pageSrc, pageThumb, toIssue } from './bulletinIssue'
-import { prefetchPageFile, shareBulletinLink, shareBulletinPage } from './bulletinShare'
+import { prefetchPageFile, shareBulletinKakao, shareBulletinLink, shareBulletinPage } from './bulletinShare'
+import { canKakaoShare, loadKakaoShare } from '../../../utils/kakaoShare'
 import { isWarm, warmImage, warmPagesAround } from './bulletinWarm'
 import './InstagramBulletinViewer.css'
 
@@ -534,6 +535,13 @@ const InstagramBulletinViewer = ({
     }
   }, [pageUrl, currentPage, issue.y, issue.m, issue.d])
 
+  // 카톡 SDK 는 뷰어를 열 때 미리 — 마무리 카드에서 누르는 순간엔 이미 있어야 PC 팝업이 안 막힌다
+  useEffect(() => {
+    if (!canKakaoShare()) return
+    const id = window.setTimeout(() => loadKakaoShare().catch(() => {}), 1500)
+    return () => window.clearTimeout(id)
+  }, [])
+
   const shareTitle = ko ? `${dateText} 주보 · ${issueLabel}` : `${dateText} bulletin · ${issueLabel}`
   const sharePage = () =>
     shareBulletinPage(
@@ -634,10 +642,28 @@ const InstagramBulletinViewer = ({
         )}
       </p>
       <div className="bv-end-actions">
-        <button type="button" className="bv-end-primary" onClick={() => shareBulletinLink(bulletin.id, ko)}>
-          <ShareIcon />
-          {ko ? '주보 보내기' : 'Share bulletin'}
-        </button>
+        {canKakaoShare() ? (
+          <div className="bv-end-share">
+            <button type="button" className="bv-end-kakao" onClick={() => shareBulletinKakao(bulletin.id, ko)}>
+              <KakaoIcon />
+              {ko ? '카카오톡으로 보내기' : 'Share on KakaoTalk'}
+            </button>
+            <button
+              type="button"
+              className="bv-end-more"
+              onClick={() => shareBulletinLink(bulletin.id, ko)}
+              aria-label={ko ? '다른 앱으로 보내기' : 'Share via other apps'}
+              title={ko ? '다른 앱으로 보내기' : 'Share via other apps'}
+            >
+              <ShareIcon />
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="bv-end-primary" onClick={() => shareBulletinLink(bulletin.id, ko)}>
+            <ShareIcon />
+            {ko ? '주보 보내기' : 'Share bulletin'}
+          </button>
+        )}
         {olderBulletin && onOpenBulletin && (
           <button
             type="button"
@@ -891,6 +917,13 @@ const ShareIcon = () => (
   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M12 3v12M7 8l5-5 5 5" />
     <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+  </svg>
+)
+
+// 카카오 말풍선 심볼 — 브랜드 가이드대로 노란 바탕에 검은 말풍선
+const KakaoIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+    <path d="M12 3.5C7 3.5 3 6.63 3 10.5c0 2.48 1.65 4.66 4.14 5.9l-.84 3.07c-.08.28.24.5.48.34l3.66-2.43c.51.07 1.03.1 1.56.1 5 0 9-3.13 9-7s-4-7-9-7Z" />
   </svg>
 )
 

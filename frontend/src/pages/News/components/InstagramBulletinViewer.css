@@ -635,6 +635,10 @@
 .bv-end-actions button:active { transform: scale(0.98); }
 .bv-end-actions button:disabled { opacity: 0.6; }
 .bv-end-primary { background: #fff; color: #191f28; }
+/* 카톡 보내기 + 다른 앱(정사각) 한 줄 — 노랑·검정은 카카오 브랜드 가이드 색 */
+.bv-end-share { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.bv-end-actions .bv-end-kakao { background: #fee500; color: rgba(0, 0, 0, 0.85); }
+.bv-end-actions .bv-end-more { width: 48px; background: #fff; color: #191f28; }
 .bv-end-secondary { background: rgba(255, 255, 255, 0.92); color: #191f28; }
 .bv-end-secondary img { width: 22px; height: 32px; object-fit: cover; border-radius: 3px; }
 .bv-end-ghost { background: rgba(255, 255, 255, 0.16); color: #fff; }
@@ -706,6 +710,7 @@
   .bv-end-desc { font-size: 16px; }
   .bv-end-actions { max-width: 340px; }
   .bv-end-actions button { height: 54px; font-size: 16.5px; }
+  .bv-end-actions .bv-end-more { width: 54px; }
   .bv-bottom { padding-bottom: 1.75rem; }
   .bv-dots i { width: 8px; height: 8px; }
   .bv-dots i.is-on { width: 26px; }
