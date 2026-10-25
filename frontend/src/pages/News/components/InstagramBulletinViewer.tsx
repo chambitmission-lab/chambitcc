@@ -8,6 +8,7 @@ import { safeStorage } from '../../../utils/safeStorage'
 import { SEASON_LABEL, fill, issueDateText, pageSrc, pageThumb, toIssue } from './bulletinIssue'
 import { prefetchPageFile, shareBulletinKakao, shareBulletinLink, shareBulletinPage } from './bulletinShare'
 import { canKakaoShare, loadKakaoShare } from '../../../utils/kakaoShare'
+import KakaoIcon from '../../../components/icons/KakaoIcon'
 import { isWarm, warmImage, warmPagesAround } from './bulletinWarm'
 import './InstagramBulletinViewer.css'
 
@@ -951,13 +952,6 @@ const ShareIcon = () => (
   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M12 3v12M7 8l5-5 5 5" />
     <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
-  </svg>
-)
-
-// 카카오 말풍선 심볼 — 브랜드 가이드대로 노란 바탕에 검은 말풍선
-const KakaoIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-    <path d="M12 3.5C7 3.5 3 6.63 3 10.5c0 2.48 1.65 4.66 4.14 5.9l-.84 3.07c-.08.28.24.5.48.34l3.66-2.43c.51.07 1.03.1 1.56.1 5 0 9-3.13 9-7s-4-7-9-7Z" />
   </svg>
 )
 

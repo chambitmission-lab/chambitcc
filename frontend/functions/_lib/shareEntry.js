@@ -1,6 +1,6 @@
-// 공유 링크(/b/ 말씀·/w/ 주보) Pages Function 공통 — 사람과 크롤러를 가른다.
+// 공유 링크(/b/ 말씀·/w/ 주보·/c/ 목양칼럼) Pages Function 공통 — 사람과 크롤러를 가른다.
 //
-// 크롤러(카톡 스크래퍼 등)는 백엔드(share_preview.py·bulletin_share.py)의 og:* 메타와 카드를 읽어야
+// 크롤러(카톡 스크래퍼 등)는 백엔드(share_preview.py·bulletin_share.py·column_share.py)의 og:* 메타와 카드를 읽어야
 // 미리보기에 그 구절·그 주보가 뜬다 — 이 프록시가 빠지면 카드가 조용히 홈으로 떨어진다.
 //
 // 사람은 다르다. 백엔드 페이지는 사람에게 '빈 화면 → location.replace → 앱' 왕복 하나를 더 끼우고,
@@ -32,8 +32,16 @@ const kakaoEscapePage = (target, { title, heading }) => {
 <title>${title}</title>
 <script>
   // 외부 브라우저(안드로이드는 설치된 PWA)로 넘긴다. 스킴이 막힌 환경이면 인앱에서 그대로 앱을 연다.
+  // 이 웹뷰에서 탈출을 시도했다는 표식 — 폴백·아래 링크로 인앱에 뜬 앱(main.tsx)이 다시 openExternal 을
+  // 부르지 않게 한다 (★ src/utils/inappBrowser.ts 의 KAKAO_ESCAPE_KEY 와 같은 키).
+  try { sessionStorage.setItem('kakaoEscapeAttempted', '1'); } catch (e) {}
+  var fallback = setTimeout(function () { location.replace(${href}); }, 1500);
+  // 외부 브라우저로 넘어가 이 웹뷰가 가려지면(iOS 는 인앱을 닫지 않고 Safari 를 앞에 띄운다) 폴백을 거둔다 —
+  // 그대로 두면 뒤에서 앱이 한 번 더 떠서 같은 주소가 두 벌 열린다
+  var cancel = function () { clearTimeout(fallback); };
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') cancel(); });
+  window.addEventListener('pagehide', cancel);
   location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(${href});
-  setTimeout(function () { location.replace(${href}); }, 1500);
 </script>
 <style>
   html { background:#f1f3f6; color:#191f28; color-scheme:light dark; }

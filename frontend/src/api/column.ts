@@ -17,6 +17,11 @@ export const getColumns = async (q?: string): Promise<Column[]> => {
   return request<Column[]>(`/columns${qs ? `?${qs}` : ''}`, { errorMessage: 'Failed to fetch columns' })
 }
 
+// 목양컬럼 한 편 (인증 불필요) — 공유 링크로 목록 밖의 편지를 열 때
+export const getColumn = async (id: number): Promise<Column> => {
+  return request<Column>(`/columns/${id}`, { errorMessage: 'Failed to fetch column' })
+}
+
 // 편지에 아멘 토글 (로그인 필수)
 export const toggleColumnAmen = async (id: number): Promise<ColumnEngagement> => {
   return request<ColumnEngagement>(`/columns/${id}/amen`, { method: 'POST', errorMessage: 'Failed to toggle amen' })

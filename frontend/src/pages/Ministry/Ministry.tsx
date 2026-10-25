@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
-import { deleteColumn } from '../../api/column'
+import { deleteColumn, getColumn } from '../../api/column'
 import type { Column } from '../../types/column'
 import { useColumnAmen, useColumns } from './useColumns'
 import { firstHighlight, groupByMonth } from './letterFormat'
@@ -47,6 +48,33 @@ const Ministry = () => {
   const { columns, allColumns, loading, syncColumnsCache, patchColumnCache } = useColumns(appliedQuery)
 
   const handleAmen = useColumnAmen(patchColumnCache, language)
+
+  // 공유 엽서 링크(/c/{id} → #/ministry?c={id})로 들어오면 그 편지를 바로 연다.
+  // 목록이 오면 거기서 찾고, 목록 밖(오래된 편지)이면 한 편만 따로 받는다
+  const [searchParams, setSearchParams] = useSearchParams()
+  const deepLinkId = Number(searchParams.get('c')) || null
+  useEffect(() => {
+    if (!deepLinkId || loading) return
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('c')
+        return next
+      },
+      { replace: true },
+    )
+    const listed = allColumns.find((c) => c.id === deepLinkId)
+    if (listed) {
+      setSelectedColumn(listed)
+      return
+    }
+    getColumn(deepLinkId)
+      .then((column) => {
+        if (column.is_active) setSelectedColumn(column)
+      })
+      .catch(() => showToast(language === 'ko' ? '편지를 찾지 못했어요' : 'Letter not found', 'error'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId, loading])
 
   // 관리자에겐 '글쓰기' 버튼이 늘 보이므로, 첫 화면이 끝난 뒤 편집기 청크를 미리 받아 둔다
   // (미리 받아두지 않으면 첫 클릭에 Suspense 스로틀로 빈 화면이 잠깐 뜬다)

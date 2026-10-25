@@ -5,7 +5,7 @@ import { queryClient } from './config/queryClient'
 import { persister } from './config/persister'
 import { PERSIST_SCHEMA_VERSION } from './config/persistSchema'
 import { initPWAInstallPrompt, registerPushServiceWorker } from './utils/pwa'
-import { escapeKakaoInApp, isKakaoInApp } from './utils/inappBrowser'
+import { autoEscapeKakaoInApp } from './utils/inappBrowser'
 import { rewriteShareEntry } from './utils/shareEntry'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { loadDeferredFonts } from './utils/deferredFonts'
@@ -26,9 +26,8 @@ rewriteShareEntry()
 
 // 카카오톡 인앱 브라우저로 진입한 경우 어떤 페이지든 외부 브라우저로 탈출
 // (안드로이드: 설치된 PWA가 열리거나 크롬에서 설치 유도 / iOS: Safari로 열림)
-if (isKakaoInApp()) {
-  escapeKakaoInApp()
-}
+// 공유 링크 탈출 페이지가 이미 한 번 시도한 웹뷰(폴백으로 인앱에 뜬 경우)에서는 다시 부르지 않는다
+autoEscapeKakaoInApp()
 
 // PWA 설치 프롬프트 초기화 (프로덕션에서만)
 if (import.meta.env.PROD) {
