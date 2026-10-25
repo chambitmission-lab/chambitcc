@@ -542,11 +542,21 @@
   pointer-events: none;
 }
 .bv-peek img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
   border-radius: 10px;
   box-shadow: 0 18px 34px -16px rgba(0, 0, 0, 0.55);
+}
+/* 읽기용 원본은 썸네일 위에 겹쳐 스며든다 — src 교체식 깜빡임 없이 조용히 또렷해지기만 */
+.bv-peek-full {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.bv-peek-full.is-ready {
+  opacity: 1;
 }
 
 /* 마무리 카드 — 마지막 쪽 다음 칸 */

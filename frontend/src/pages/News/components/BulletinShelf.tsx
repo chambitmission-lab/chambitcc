@@ -110,6 +110,15 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
     onPointerDown: () => warm(page),
     onFocus: () => warm(page),
   })
+  // 누르기 전에도 — 히어로 그림이 다 뜬 뒤 유휴 시간에 첫 쪽·둘째 쪽 읽기용을 조용히 받아 둔다.
+  // 누르는 순간 출발하면 Supabase 왕복(0.3~1초)만큼 뷰어의 다음 쪽이 늦게 또렷해졌다.
+  // 두 장 합쳐 180KB 남짓이라 열지 않는 사용자에게도 부담이 작다(iOS 는 requestIdleCallback 이 없어 타이머로)
+  useEffect(() => {
+    if (!pages.length || !ambientReady) return
+    const id = window.setTimeout(() => warmPagesAround(pages, 0), 800)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pages.length, ambientReady])
 
   return (
     <article

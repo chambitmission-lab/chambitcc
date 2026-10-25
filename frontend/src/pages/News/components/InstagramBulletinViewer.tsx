@@ -44,29 +44,41 @@ const PEEK_GAP = 12
  * 옆 쪽 그림 — 읽기용 원본이 아직 안 왔으면 목록에서 이미 받아 둔 480px 썸네일을 먼저 세운다.
  * 옆 쪽은 0.9배·반투명이라 썸네일로도 티가 안 나고, 원본이 도착하면 같은 자리에서 또렷해진다.
  * (처음 여는 주보에서 다음 쪽이 빈 채로 있다가 뒤늦게 끼어들던 것의 해결)
+ *
+ * 원본은 썸네일 위에 겹쳐 올리고 opacity 로 스며들게 한다 — 한 <img> 의 src 를 바꿔 끼우면
+ * decoding=async 와 만나 한 프레임 비었다가 다시 그려져서 '툭 새로고침'처럼 보였다.
  */
 const PeekImage = ({ page }: { page: BulletinPage }) => {
   const full = pageSrc(page)
-  const [src, setSrc] = useState(() => (isWarm(full) ? full : pageThumb(page)))
+  const thumb = pageThumb(page)
+  // 이 세션에서 이미 받아 둔 그림이면 썸네일 단계 없이 원본만 — 처음부터 또렷하게
+  const [warmAtMount] = useState(() => isWarm(full))
+  // 썸네일이 따로 없는 옛 주보는 겹칠 게 없으니 바로 보이게
+  const [ready, setReady] = useState(warmAtMount || thumb === full)
   useEffect(() => {
-    if (src === full) return
-    let alive = true
-    const img = new Image()
-    img.decoding = 'async'
-    img.onload = () => {
-      if (alive) setSrc(full)
-    }
-    img.src = full
-    // 캐시에 있으면 onload 전에 complete 가 선다 — 썸네일 한 프레임도 안 거치게
-    if (img.complete && img.naturalWidth > 0) setSrc(full)
     // 뷰어 쪽 미리 받기 명단에도 올려 두어 다음부턴 처음부터 원본으로 선다
     warmImage(full)
-    return () => {
-      alive = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [full])
-  return <img src={src} alt="" draggable={false} decoding="async" />
+  const markReady = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (e.currentTarget.naturalWidth > 0) setReady(true)
+  }
+  return (
+    <>
+      {!warmAtMount && thumb !== full && <img src={thumb} alt="" draggable={false} decoding="async" />}
+      <img
+        className={`bv-peek-full ${ready ? 'is-ready' : ''}`}
+        src={full}
+        alt=""
+        draggable={false}
+        decoding="async"
+        onLoad={markReady}
+        // 캐시에서 바로 오면 onLoad 가 붙기 전에 끝나 있을 수 있다
+        ref={el => {
+          if (el?.complete && el.naturalWidth > 0) setReady(true)
+        }}
+      />
+    </>
+  )
 }
 
 const InstagramBulletinViewer = ({
