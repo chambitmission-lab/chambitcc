@@ -47,6 +47,8 @@ type OnSize = (w: number, h: number, full: boolean) => void
 
 /**
  * 쪽 그림 두 겹 — 목록에서 이미 받아 둔 480px 썸네일을 먼저 세우고, 읽기용 원본은 그 위에 겹쳐 opacity 로 스며든다.
+ * 지금 쪽·옆 쪽 모두 page.id 를 key 로 쪽마다 새로 세운다 — 같은 <img> 의 src 만 바꾸면 브라우저가 새 그림이
+ * 올 때까지 옛 그림(방금 보던 쪽)을 그대로 그려서, 넘긴 뒤 오른쪽 옆 쪽에 지금 쪽이 한동안 남아 보였다.
  * 옆 쪽(0.9배·반투명)과 지금 쪽이 같은 구조라, 넘김이 끝나 옆 쪽이 지금 쪽 자리로 올 때도 같은 그림이 그대로 이어진다.
  * (처음 여는 주보에서 다음 쪽이 빈 채로 있다가 원본 도착 순간 '툭' 끼어들던 것의 해결)
  *
@@ -225,9 +227,15 @@ const InstagramBulletinViewer = ({
   }, [ready, baseW, baseH, stage.w, stage.h, currentPage])
 
   // 앞뒤 쪽 미리 받아 두기 — 넘길 때 빈 화면 없이. 지금 쪽도 함께 적어 두어야 뒤로 넘겼을 때
-  // 옆 쪽으로 물러난 그 쪽이 썸네일 단계를 건너뛴다
+  // 옆 쪽으로 물러난 그 쪽이 썸네일 단계를 건너뛴다.
+  // 두 쪽 앞은 조금 늦게 — 넘긴 뒤 오른쪽 옆 쪽으로 들어올 그림을 미리 받아 두되,
+  // 처음 열 때 원본 네 장이 한꺼번에 내려오며 옆 쪽이 더 늦어지는 일은 피한다
   useEffect(() => {
     warmPagesAround(pages, currentPage)
+    const ahead = pages[currentPage + 2]
+    if (!ahead) return
+    const id = window.setTimeout(() => warmImage(pageSrc(ahead)), 700)
+    return () => window.clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, totalPages])
 
@@ -734,7 +742,7 @@ const InstagramBulletinViewer = ({
         >
           {showPeeks && prevPage && (
             <div className="bv-peek" style={peekStyle(-1)} aria-hidden="true">
-              <LayeredPage page={prevPage} />
+              <LayeredPage key={prevPage.id} page={prevPage} />
             </div>
           )}
 
@@ -789,7 +797,7 @@ const InstagramBulletinViewer = ({
           {showPeeks &&
             (nextPage ? (
               <div className="bv-peek" style={peekStyle(1)} aria-hidden="true">
-                <LayeredPage page={nextPage} />
+                <LayeredPage key={nextPage.id} page={nextPage} />
               </div>
             ) : (
               !onEnd && (
