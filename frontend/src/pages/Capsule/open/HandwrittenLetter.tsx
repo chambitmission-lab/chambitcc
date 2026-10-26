@@ -51,10 +51,13 @@ const ReplayPage = ({
   const [ink, setInk] = useState<InkPage | null | 'failed'>(null)
   const [width, setWidth] = useState(0)
   const [visible, setVisible] = useState(false)
+  // status 는 화면 표시용일 뿐 재생 효과의 의존성이 아니다 — 넣으면 'playing' 으로 바뀌는 순간
+  // 정리 함수가 막 시작한 애니메이션을 취소해 빈 종이에서 멈춘다. 재생은 skipped(탭하면 끝까지)로만 움직인다.
   const [status, setStatus] = useState<Status>('idle')
-  const rafRef = useRef(0)
-  const statusRef = useRef<Status>('idle')
-  statusRef.current = status
+  const [skipped, setSkipped] = useState(false)
+  const doneRef = useRef(false)
+  const themeRef = useRef(theme)
+  themeRef.current = theme
 
   // 획 JSON — 실패하면 PNG 로
   useEffect(() => {
@@ -96,11 +99,6 @@ const ReplayPage = ({
     return () => io.disconnect()
   }, [])
 
-  // 다시 보기 — 처음부터
-  useEffect(() => {
-    if (replayKey > 0) setStatus('idle')
-  }, [replayKey])
-
   // 재생 — 보이기 시작하면 쓴 순서대로. 탭하면 끝까지 바로.
   useEffect(() => {
     const canvas = canvasRef.current
@@ -108,21 +106,23 @@ const ReplayPage = ({
     const fitted = fitCanvas(canvas, width)
     if (!fitted) return
     const { ctx } = fitted
-
-    if (status === 'done') {
+    const strokes = ink.strokes
+    const drawAll = () => {
       clearCanvas(ctx)
-      drawStrokes(ctx, ink.strokes, theme)
-      return
+      drawStrokes(ctx, strokes, themeRef.current)
+      doneRef.current = true
+      setStatus('done')
     }
-    if (!visible || status !== 'idle') return
 
     const total = inkPointCount(ink)
-    if (total === 0) {
-      setStatus('done')
+    if (skipped || doneRef.current || total === 0) {
+      drawAll()
       return
     }
+    if (!visible) return
+
     const duration = Math.min(MAX_MS, Math.max(MIN_MS, total * MS_PER_POINT))
-    const strokes = ink.strokes
+    let raf = 0
     let strokeIdx = 0
     let drawnPoints = 0 // 완전히 그려진 획들의 점 수 합
     const begin = performance.now() + startAt
@@ -130,7 +130,7 @@ const ReplayPage = ({
     setStatus('playing')
 
     const frame = (now: number) => {
-      if (statusRef.current === 'done') return
+      const theme = themeRef.current
       const t = Math.min(1, Math.max(0, (now - begin) / duration))
       // 앞은 느리고 중간은 빠르게 — 사람이 쓰는 리듬에 가깝다
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
@@ -147,17 +147,25 @@ const ReplayPage = ({
       }
       if (t >= 1) {
         // 마지막 획까지 확정본으로
-        for (; strokeIdx < strokes.length; strokeIdx++) drawStroke(ctx, strokes[strokeIdx], theme)
-        setStatus('done')
+        drawAll()
         return
       }
-      rafRef.current = requestAnimationFrame(frame)
+      raf = requestAnimationFrame(frame)
     }
-    rafRef.current = requestAnimationFrame(frame)
-    return () => cancelAnimationFrame(rafRef.current)
-    // theme 가 바뀌면 done 분기에서 다시 그린다; playing 중 테마 변경은 다음 프레임부터 새 색
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ink, width, visible, status, theme])
+    raf = requestAnimationFrame(frame)
+    return () => cancelAnimationFrame(raf)
+    // 다시 보기는 부모가 key 를 바꿔 이 컴포넌트를 새로 마운트한다(replayKey 는 그 신호를 겸한다)
+  }, [ink, width, visible, skipped, startAt, replayKey])
+
+  // 다 써진 뒤 테마가 바뀌면 새 잉크색으로 다시 그린다 (쓰는 도중엔 다음 획부터 새 색)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !doneRef.current || !ink || ink === 'failed' || width <= 0) return
+    const fitted = fitCanvas(canvas, width)
+    if (!fitted) return
+    clearCanvas(fitted.ctx)
+    drawStrokes(fitted.ctx, ink.strokes, theme)
+  }, [theme, ink, width])
 
   const ratio = page.height && page.width ? page.height / page.width : 1.414
   const scale = width / INK_PAGE_W
@@ -172,7 +180,7 @@ const ReplayPage = ({
         ['--ink-top' as string]: `${INK_LINE_TOP * scale}px`,
         ['--ink-margin' as string]: `${72 * scale}px`,
       }}
-      onClick={() => status === 'playing' && setStatus('done')}
+      onClick={() => status === 'playing' && setSkipped(true)}
       role={status === 'playing' ? 'button' : undefined}
       aria-label={status === 'playing' ? '손글씨 다 보기' : undefined}
     >
