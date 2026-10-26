@@ -39,6 +39,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/bluemarble': () => import('../pages/Bluemarble/Bluemarble'),
   // 나의 신앙 메뉴·성경 좌측 레일 "필사"
   '/bible/typing': () => import('../pages/Bible/Typing/TypingHome'),
+  // 성경 하단 도크·좌측 레일 "플랜" — 라우트 lazy 와 같은 로더라 프리로드한 청크를 그대로 쓴다
+  '/bible/plans': () => import('../pages/Bible/Plans/PlanList'),
   '/answered-prayers': () => import('../pages/Prayer/AnsweredPrayers'),
   '/intercession': () => import('../pages/Intercession/Intercession'),
   '/account': () => import('../pages/Account/AccountSettings'),
@@ -111,6 +113,11 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   '/bible/typing': () =>
     Promise.all([import('../hooks/useBibleTyping'), import('../config/queryClient')]).then(
       ([m, q]) => m.prefetchTypingHome(q.queryClient, true),
+    ),
+  // 읽기 플랜 — 목록·오늘의 읽기 묶음. 캐시가 아예 없을 때만(coldOnly)
+  '/bible/plans': () =>
+    Promise.all([import('../hooks/useBiblePlan'), import('../config/queryClient')]).then(
+      ([m, q]) => m.prefetchPlanOverview(q.queryClient, true),
     ),
   // 설교 — 목록 첫 페이지 + 최신 설교 인용절. 청크만 받아 두면 진입 시 목록 → 인용절 두 왕복이 직렬로 남았다
   '/sermon': () => import('../pages/Sermon/prefetch').then((m) => m.prefetchSermonPage()),

@@ -10,6 +10,7 @@ import type {
   PlanDetail,
   PlanInvitePreview,
   PlanListResponse,
+  PlanOverview,
   PlanProgress,
   PlanReflection,
   PlanReflectionUpdateRequest,
@@ -31,6 +32,14 @@ export const getPlan = async (planId: number): Promise<PlanDetail> => {
 
 export const getTodayReadings = async (): Promise<TodayResponse> => {
   return request<TodayResponse>(`${BASE}/today`, { errorMessage: '오늘의 읽기를 불러오지 못했습니다' })
+}
+
+// 플랜 화면 묶음(목록 + 오늘의 읽기) — 로그인 전용. 화면의 첫 그림을 막는 요청이라 줄을 서지 않는다
+export const getPlanOverview = async (): Promise<PlanOverview> => {
+  return request<PlanOverview>(`${BASE}/overview`, {
+    priority: 'high',
+    errorMessage: '읽기 플랜을 불러오지 못했습니다',
+  })
 }
 
 export const subscribePlan = async (

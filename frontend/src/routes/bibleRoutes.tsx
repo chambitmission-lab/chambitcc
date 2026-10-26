@@ -6,7 +6,7 @@ import { menuRouteLoaders } from '../utils/routePreload'
 
 const BibleStudy = lazy(menuRouteLoaders['/bible'])
 const Genealogy = lazy(() => import('../pages/Bible/Genealogy/Genealogy'))
-const PlanList = lazy(() => import('../pages/Bible/Plans/PlanList'))
+const PlanList = lazy(menuRouteLoaders['/bible/plans'])
 const PlanDetail = lazy(() => import('../pages/Bible/Plans/PlanDetail'))
 const JoinPlan = lazy(() => import('../pages/Bible/Plans/JoinPlan'))
 const BibleWordbook = lazy(() => import('../pages/Bible/Wordbook/WordbookPage'))

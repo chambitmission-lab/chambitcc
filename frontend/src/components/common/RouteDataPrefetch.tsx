@@ -58,6 +58,13 @@ const RouteDataPrefetch = () => {
         .then((m) => m.prefetchTypingHome(queryClient))
         .catch(() => undefined)
     }
+    // 읽기 플랜 — 목록·오늘의 읽기 묶음을 청크와 나란히. 예전엔 화면이 마운트된 뒤에야 둘이 출발해
+    // 청크 왕복 + API 왕복이 직렬이었다 (플랜 훅이 메인 번들에 섞이지 않게 동적 import)
+    if (pathname === '/bible/plans') {
+      void import('../../hooks/useBiblePlan')
+        .then((m) => m.prefetchPlanOverview(queryClient))
+        .catch(() => undefined)
+    }
     // 설교 — 목록 첫 페이지 + 최신 설교 인용절을 청크와 나란히 (딥링크·새로고침 진입용.
     // 설교 유틸이 메인 번들에 섞이지 않게 동적 import — 페이지 청크와 나란히 온다)
     if (pathname === '/sermon' || pathname === '/sermon/new') {

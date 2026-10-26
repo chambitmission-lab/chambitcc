@@ -4,7 +4,7 @@
 // 기능은 예전 그대로다(이어서 읽기·오늘 분량·연속 기록·완주 목록·묵상방·나만의 플랜·초대 코드·태그 필터).
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useBiblePlans, useTodayReadings } from '../../../hooks/useBiblePlan'
+import { usePlanOverview } from '../../../hooks/useBiblePlan'
 import { isAuthenticated } from '../../../utils/auth'
 import { CloudOffIcon, DoveIcon, EmptyTrayIcon } from './PlanIcons'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
@@ -23,9 +23,11 @@ import StampBook from './list/StampBook'
 
 const PlanList = () => {
   const navigate = useNavigate()
-  const { data, isLoading, error, refetch, isFetching } = useBiblePlans()
-  // 오늘 분량(일차·본문 reference) — 이어서 읽기 카드의 CTA/미리보기에 사용
-  const { data: todayData } = useTodayReadings(isAuthenticated())
+  // 목록 + 오늘 분량(일차·본문 reference)을 묶음 한 요청으로 — 둘을 따로 보내면 단일 워커 백엔드가
+  // 직렬로 처리해 두 배가 걸렸다. 라우트 진입 때 RouteDataPrefetch 가 청크와 나란히 먼저 띄운다
+  const { data: overview, isLoading, error, refetch, isFetching } = usePlanOverview()
+  const data = overview?.plans
+  const todayData = overview?.today
   // 도장 수첩은 완주 도장 몇 개만 보이고 나머지는 +N 으로 접는다
   const [showCompleted, setShowCompleted] = useState(false)
   // 둘러보기 해시태그 필터 (null = 전체)

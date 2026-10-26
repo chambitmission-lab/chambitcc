@@ -143,6 +143,12 @@ export interface TodayResponse {
   items: TodayReading[]
 }
 
+/** GET /bible-plans/overview — 플랜 화면이 따로 받던 목록·오늘의 읽기 묶음(각 조각은 단건 응답과 같은 모양) */
+export interface PlanOverview {
+  plans: PlanListResponse
+  today: TodayResponse
+}
+
 export interface PlanReflection {
   reference: string
   reflection: string
