@@ -117,6 +117,19 @@ export const CAPSULE_SEALED: ThemePair = {
   light: '/images/capsule/sealed-light.webp',
   dark: '/images/capsule/sealed-dark.webp',
 }
+/** /capsule/new 단계별 배달부 양 삽화 (styles/create.css) — 기존 캡슐 그림에서 잘라 낸 판.
+ *  첫 단계만 매니페스트로 선요청하고, 나머지는 화면이 다음 단계 그림을 미리 데운다 */
+const capsuleCreatePair = (name: string): ThemePair => ({
+  light: `/images/capsule/create-${name}-light.webp`,
+  dark: `/images/capsule/create-${name}-dark.webp`,
+})
+export const CAPSULE_CREATE_ART = {
+  recipient: capsuleCreatePair('recipient'),
+  date: capsuleCreatePair('date'),
+  letter: capsuleCreatePair('letter'),
+  extras: capsuleCreatePair('extras'),
+  seal: capsuleCreatePair('seal'),
+} satisfies Record<string, ThemePair>
 /** 홈 타임캡슐 배너 (TimeCapsuleCard.css) */
 export const CAPSULE_HOME_BANNER: ThemePair = {
   light: '/images/capsule/home-banner-light.webp',
@@ -346,6 +359,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/thanks$/, pairs: [THANKS_HERO] },
   { match: /^\/growth$/, pairs: [GROWTH_HERO] },
   { match: /^\/capsule$/, pairs: [CAPSULE_HERO] },
+  { match: /^\/capsule\/new$/, pairs: [CAPSULE_CREATE_ART.recipient] },
   { match: /^\/groups\/(?!join\/)[^/]+$/, pairs: [GROUP_DETAIL_HERO] },
   { match: /^\/bible$/, pairs: [READING_HERO, RESUME_CARD] },
   { match: /^\/bible\/plans$/, pairs: [PLAN_HERO] },

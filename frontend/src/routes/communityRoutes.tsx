@@ -2,7 +2,7 @@ import { lazy } from 'react'
 import { Route } from 'react-router-dom'
 import { menuRouteLoaders } from '../utils/routePreload'
 
-// 나의 신앙·공동체 — 기도·감사·그룹·반·묵상방·동행·타임캡슐·게임/회상 화면
+// 나의 신앙·공동체 — 기도·감사·그룹·반·묵상방·동행·타임캡슐·손글씨 필사대회·게임/회상 화면
 
 const PrayerFocus = lazy(menuRouteLoaders['/prayer-focus'])
 const WeeklyPrayerTopics = lazy(() => import('../pages/Prayer/WeeklyPrayerTopics'))
@@ -34,6 +34,9 @@ const Growth = lazy(() => import('../pages/Growth/Growth'))
 const TodayChurch = lazy(() => import('../pages/TodayChurch/TodayChurch'))
 const CompanionList = lazy(menuRouteLoaders['/companion'])
 const CompanionDetail = lazy(() => import('../pages/Companion/CompanionDetail'))
+const HandwritingContest = lazy(menuRouteLoaders['/handwriting'])
+const HandwritingContestWrite = lazy(() => import('../pages/HandwritingContest/ContestWrite'))
+const HandwritingContestCard = lazy(() => import('../pages/HandwritingContest/ContestCard'))
 
 export const communityRoutes = (
   <>
@@ -67,5 +70,9 @@ export const communityRoutes = (
     <Route path="/today" element={<TodayChurch />} />
     <Route path="/companion" element={<CompanionList />} />
     <Route path="/companion/:id" element={<CompanionDetail />} />
+    <Route path="/handwriting" element={<HandwritingContest />} />
+    <Route path="/handwriting/:id" element={<HandwritingContest />} />
+    <Route path="/handwriting/:id/write" element={<HandwritingContestWrite />} />
+    <Route path="/handwriting/:id/card/:entryId" element={<HandwritingContestCard />} />
   </>
 )

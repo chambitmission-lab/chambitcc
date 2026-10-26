@@ -39,6 +39,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/bluemarble': () => import('../pages/Bluemarble/Bluemarble'),
   // 나의 신앙 메뉴·성경 좌측 레일 "필사"
   '/bible/typing': () => import('../pages/Bible/Typing/TypingHome'),
+  // 나의 신앙 메뉴·필사 허브 배너 "손글씨 필사대회"
+  '/handwriting': () => import('../pages/HandwritingContest/ContestPage'),
   // 성경 하단 도크·좌측 레일 "플랜" — 라우트 lazy 와 같은 로더라 프리로드한 청크를 그대로 쓴다
   '/bible/plans': () => import('../pages/Bible/Plans/PlanList'),
   '/answered-prayers': () => import('../pages/Prayer/AnsweredPrayers'),

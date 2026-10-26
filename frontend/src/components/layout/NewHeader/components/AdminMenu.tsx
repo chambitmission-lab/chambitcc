@@ -62,6 +62,7 @@ const ADMIN_GROUPS: AdminGroup[] = [
       { path: '/admin/push', key: 'adminNavPush' },
       { path: '/admin/chatbot', key: 'adminNavChatbot' },
       { path: '/admin/surveys', key: 'adminNavSurvey' },
+      { path: '/admin/handwriting', key: 'adminNavHandwriting' },
       { path: '/admin/intercession', key: 'adminNavIntercession' }
     ]
   },

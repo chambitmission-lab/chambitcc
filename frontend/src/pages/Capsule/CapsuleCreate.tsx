@@ -1,10 +1,11 @@
-// 타임캡슐 작성 (/capsule/new)
-// 편지 글 + 3분 음성 녹음 + 개봉일(기간/절기 프리셋)을 골라 봉인한다.
+// 타임캡슐 작성 (/capsule/new) — "배달부 양과 함께" 한 걸음씩 담기.
+// 받는 사람 → 여는 날 → 편지(글/손글씨) → 함께 넣을 것(사진·목소리) → 인장 꾹 봉인, 다섯 단계.
+// 단계마다 배달부 양 삽화가 바뀌고 양이 한 줄씩 반응한다(create/createQuips.ts).
+// 단계는 ?step= 으로 히스토리에 쌓여 휴대폰 뒤로가기가 이전 단계로 돌아간다.
 // 봉인한 날의 스냅샷(절기·오늘의 말씀)은 여기서 계산해 함께 보낸다
 // (절기 계산의 진실은 프론트 churchCalendar — 백엔드 season은 플레이스홀더).
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import DatePicker from '../../components/common/DatePicker'
 import { getTodayVerse } from '../../api/dailyVerse'
 import { searchCapsuleRecipients } from '../../api/timeCapsule'
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'
@@ -19,15 +20,29 @@ import { isAuthenticated } from '../../utils/auth'
 import { getCurrentSeason } from '../../utils/churchCalendar'
 import { resizeImageToBlob } from '../../utils/imageResize'
 import { showToast } from '../../utils/toast'
-import { buildPresets, formatKoreanDate, toDateStr } from './capsuleDates'
-import { CalendarGlyph, Icon, LetterHeartGlyph, PenGlyph } from './capsuleIcons'
+import { buildPresets, daysUntil, formatKoreanDate, toDateStr } from './capsuleDates'
 import HandwritingSheet from './ink/HandwritingSheet'
-import InkThumb from './ink/InkThumb'
 import { buildHandwritingUpload } from './ink/inkExport'
-import { INK_MAX_PAGES, emptyInkPage, filledInkPages, type InkPage } from './ink/inkModel'
+import { emptyInkPage, filledInkPages, type InkPage } from './ink/inkModel'
 import './capsule.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
+import { CAPSULE_CREATE_ART, warmPair } from '../../utils/themeAssets'
+import SheepStage from './create/SheepStage'
+import SealHold from './create/SealHold'
+import StepRecipient from './create/StepRecipient'
+import StepWhen from './create/StepWhen'
+import StepLetter from './create/StepLetter'
+import StepExtras from './create/StepExtras'
+import {
+  STEP_COUNT,
+  dateQuip,
+  extrasQuip,
+  letterQuip,
+  recipientQuip,
+  sealQuip,
+  type CreateStep,
+} from './create/createQuips'
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
@@ -39,8 +54,20 @@ const MAX_CAPTION_LEN = 100
 // 개봉 때 전체화면 감상까지 견디는 해상도 — 원본(수 MB)은 올리지 않는다
 const PHOTO_MAX_SIZE = 1600
 
-// 폴라로이드가 편지지 위에 아무렇게나 놓인 느낌 — 순서별 고정 기울기
-const POLAROID_TILTS = ['-2.2deg', '2.4deg', '-1.4deg']
+// 단계별 삽화 — 1 받는 사람(달리는 배달부) · 2 여는 날(시간에 지쳐 뒤집힌 양) ·
+// 3 편지(편지를 문 아기 양) · 4 함께 넣을 것(가방) · 5 봉인(금고 앞을 지키는 양)
+const STEP_ART = {
+  1: { pair: CAPSULE_CREATE_ART.recipient, variant: 'recipient' },
+  2: { pair: CAPSULE_CREATE_ART.date, variant: 'date' },
+  3: { pair: CAPSULE_CREATE_ART.letter, variant: 'letter' },
+  4: { pair: CAPSULE_CREATE_ART.extras, variant: 'extras' },
+  5: { pair: CAPSULE_CREATE_ART.seal, variant: 'seal' },
+} as const
+
+const parseStep = (raw: string | null): CreateStep => {
+  const n = Number(raw)
+  return (Number.isInteger(n) && n >= 1 && n <= STEP_COUNT ? n : 1) as CreateStep
+}
 
 const SEASON_LABELS: Record<string, string> = {
   advent: '대림절',
@@ -50,8 +77,6 @@ const SEASON_LABELS: Record<string, string> = {
   epiphany: '주현절기',
   ordinary: '연중',
 }
-
-const formatSeconds = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
 /** 딥링크로 받은 개봉일이 내일 이후의 유효한 YYYY-MM-DD인지 */
 const isValidFutureDateStr = (s: string | null): s is string => {
@@ -69,7 +94,7 @@ const capsuleInviteUrl = (code: string) =>
 const CapsuleCreate = () => {
   const navigate = useNavigate()
   const createCapsule = useCreateCapsule()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // 기도→묵상→캡슐 딥링크 (#/capsule/new?from=prayer&prayerId=…&title=…&openDate=…&openLabel=…)
   // — 묵상 마지막 화면의 타임캡슐 초대에서 넘어온 초기값. 최초 진입 값만 쓴다.
@@ -106,7 +131,6 @@ const CapsuleCreate = () => {
   const [inkOpen, setInkOpen] = useState(false)
   const [presetKey, setPresetKey] = useState(suggested.openDate ? 'custom' : '1y')
   const [customDate, setCustomDate] = useState(suggested.openDate)
-  const [confirming, setConfirming] = useState(false)
   const [created, setCreated] = useState<CapsuleSummary | null>(null)
   const [photos, setPhotos] = useState<CapsuleDraftPhoto[]>([])
   const [photoProcessing, setPhotoProcessing] = useState(false)
@@ -262,12 +286,9 @@ const CapsuleCreate = () => {
         ? recipientName.trim() || selectedRecipient?.display_name || '소중한 분'
         : recipientName.trim() || '소중한 분'
 
+  // 인장 꾹 누르기가 확인을 대신한다 (SealHold)
   const handleSeal = async () => {
     if (!canSubmit) return
-    if (!confirming) {
-      setConfirming(true)
-      return
-    }
     // 봉인한 날의 스냅샷 — 실패해도 봉인은 진행한다
     let clientSnapshot
     try {
@@ -286,7 +307,6 @@ const CapsuleCreate = () => {
       try {
         handwriting = await buildHandwritingUpload(writtenInkPages)
       } catch {
-        setConfirming(false)
         showToast('손글씨를 담는 데 실패했어요. 다시 시도해주세요', 'error')
         return
       }
@@ -321,7 +341,6 @@ const CapsuleCreate = () => {
         navigate('/capsule', { replace: true })
       }
     } catch (e) {
-      setConfirming(false)
       showToast(e instanceof Error ? e.message : '봉인에 실패했습니다', 'error')
     }
   }
@@ -349,706 +368,369 @@ const CapsuleCreate = () => {
     }
   }
 
+  // ── 단계 이동 ────────────────────────────────────────────────
+  const step = parseStep(searchParams.get('step'))
+
+  // 새로고침·공유 링크로 중간 단계에 떨어지면 초안이 비어 있다 — 첫 단계로 되돌린다
+  useEffect(() => {
+    if (searchParams.get('step')) {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          next.delete('step')
+          return next
+        },
+        { replace: true },
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 앞으로는 히스토리를 쌓고(push), 뒤로는 히스토리를 되감는다 — 휴대폰 뒤로가기와 같은 길
+  const goStep = (n: CreateStep) =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set('step', String(n))
+      return next
+    })
+  const backTo = (n: CreateStep) => {
+    if (n < step) navigate(n - step)
+  }
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+    // 다음 단계 삽화를 미리 데워 둔다 — 넘기는 순간 그림이 비어 보이지 않게
+    const next = STEP_ART[(step + 1) as CreateStep]
+    if (next) void warmPair(next.pair)
+  }, [step])
+
+  // 아래 고정 버튼 줄 위로 참비(챗봇) 버튼을 비켜세운다
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.setProperty('--chat-fab-lift', '1.75rem')
+    return () => {
+      root.style.removeProperty('--chat-fab-lift')
+    }
+  }, [])
+
+  const isSelf = capsuleType === 'self'
+  const nights = openDate ? daysUntil(`${openDate}T00:00:00`) : null
+  const recording = recordingState === 'recording' || recordingState === 'paused'
+  const hasWritten = message.trim().length > 0 || hasInk
+  const openDateText = openDate ? formatKoreanDate(openDate) : '그날'
+
+  const quip =
+    step === 1
+      ? recipientQuip(isSelf ? 'self' : 'other')
+      : step === 2
+        ? dateQuip(presetKey, nights)
+        : step === 3
+          ? letterQuip(message.trim().length, hasInk)
+          : step === 4
+            ? extrasQuip(photos.length, !!audioBlob, recording)
+            : sealQuip(openDateText)
+
+  // 저절로 함께 봉인되는 것들 — 4단계 안내와 5단계 요약이 같은 목록을 쓴다
+  const enclosures = [
+    '오늘의 말씀과 지금의 신앙 기록 (P.S.)',
+    ...(sealedPrayerId ? ['방금의 기도와 붙들었던 말씀'] : []),
+    ...(sealedIntercessionCycleId ? ['함께 기도해 준 지난 한 달'] : []),
+  ]
+
+  const recipientLabel = isSelf
+    ? '미래의 나'
+    : capsuleType === 'direct'
+      ? selectedRecipient
+        ? `${selectedRecipient.display_name}님`
+        : '받는 분'
+      : recipientName.trim() || '받는 분'
+
+  // 담은 것 목록 — 5단계 요약과 PC 왼쪽 패널(배달 길)이 같이 쓴다
+  const voiceText = audioBlob
+    ? `목소리 ${Math.floor(Math.min(recordingTime, MAX_RECORD_SECONDS) / 60)}:${String(
+        Math.min(recordingTime, MAX_RECORD_SECONDS) % 60,
+      ).padStart(2, '0')}`
+    : ''
+  const letterParts = [
+    message.trim() && `편지 ${message.trim().length.toLocaleString()}자`,
+    hasInk && `손글씨 ${writtenInkPages.length}장`,
+  ].filter(Boolean) as string[]
+  const extraParts = [photos.length > 0 && `사진 ${photos.length}장`, voiceText].filter(Boolean) as string[]
+  const trail = [
+    { label: '받는 사람', value: recipientReady ? recipientLabel : '' },
+    { label: '여는 날', value: openDate ? `${openDateText}${nights !== null ? ` · ${nights.toLocaleString()}밤` : ''}` : '' },
+    { label: '편지', value: letterParts.length ? letterParts.join(' · ') : step > 3 ? '목소리로만' : '' },
+    { label: '함께 넣을 것', value: extraParts.length ? extraParts.join(' · ') : step > 4 ? '없음' : '' },
+    { label: '봉인', value: '' },
+  ]
+
+  // 단계별 아래 버튼 — 고른 답을 버튼이 말한다("미래의 나에게 보낼게요")
+  type Foot = { label: string; disabled?: boolean; ghost?: boolean; onClick: () => void }
+  const foot: Foot | null =
+    step === 1
+      ? recipientReady
+        ? {
+            label: `${recipientLabel}${recipientLabel.endsWith('님') ? '께' : '에게'} 보낼게요`,
+            onClick: () => goStep(2),
+          }
+        : {
+            label: capsuleType === 'direct' ? '받는 분을 골라 주세요' : '받는 분 이름을 적어 주세요',
+            disabled: true,
+            onClick: () => {},
+          }
+      : step === 2
+        ? openDate
+          ? { label: '이날 배달해 주세요', onClick: () => goStep(3) }
+          : { label: '날짜를 골라 주세요', disabled: true, onClick: () => {} }
+        : step === 3
+          ? hasWritten
+            ? { label: '다 썼어요!', onClick: () => goStep(4) }
+            : { label: '편지를 써 주세요', disabled: true, onClick: () => {} }
+          : step === 4
+            ? recording
+              ? { label: '녹음을 마쳐 주세요', disabled: true, onClick: () => {} }
+              : !hasLetter
+                ? { label: '편지나 목소리 하나는 담아 주세요', disabled: true, onClick: () => {} }
+                : photos.length > 0 || audioBlob
+                  ? { label: '다 넣었어요', onClick: () => goStep(5) }
+                  : { label: '이대로 충분해요', ghost: true, onClick: () => goStep(5) }
+            : null
+
   // 선물 캡슐 봉인 완료 화면 — direct는 배달 완료 안내, invite는 초대 링크 전달
   if (created) {
     const isDirect = created.capsule_type === 'direct'
+    const name = created.recipient_name || '소중한 분'
     return (
-      <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-center px-6 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-[60vh]">
-          <span className="text-brand">
-            <Icon size={60}>
-              <LetterHeartGlyph />
-            </Icon>
-          </span>
-          <h2 className="text-[20px] font-extrabold mt-4 text-center break-keep">
-            {isDirect ? (
-              <>
-                {created.recipient_name || '소중한 분'}님의 캡슐함에
-                <br />
-                바로 담아드렸어요
-              </>
-            ) : (
-              <>
-                {created.recipient_name || '소중한 분'}에게 보낼
-                <br />
-                캡슐이 봉인됐어요
-              </>
+      <div className="cw-page page-stage">
+        <div className="cw-shell screen-fit-minus-header">
+          <SheepStage
+            step={5}
+            art={STEP_ART[5].pair}
+            artVariant={STEP_ART[5].variant}
+            quip={
+              isDirect
+                ? `${name}님 캡슐함에 쏙 넣고 왔어요!`
+                : '초대장만 전해 주시면 나머지는 제가 할게요'
+            }
+            closeOnly
+            onBack={() => navigate('/capsule', { replace: true })}
+          />
+          <main className="cw-body cw-body--center">
+            <h2 className="cw-title">
+              {isDirect ? (
+                <>
+                  {name}님의 캡슐함에
+                  <br />
+                  바로 담아드렸어요
+                </>
+              ) : (
+                <>
+                  {name}에게 보낼
+                  <br />
+                  캡슐이 봉인됐어요
+                </>
+              )}
+            </h2>
+            <p className="cw-sub">
+              {isDirect ? (
+                <>
+                  받는 분께 도착 알림이 갔어요.
+                  <br />
+                  내용은 {formatKoreanDate(created.open_at)}
+                  {created.open_label ? ` (${created.open_label})` : ''} 아침까지 봉인돼요.
+                </>
+              ) : (
+                <>
+                  아래 링크를 받는 분께 전해 주세요.
+                  <br />
+                  {formatKoreanDate(created.open_at)}
+                  {created.open_label ? ` (${created.open_label})` : ''} 아침에 열 수 있어요.
+                </>
+              )}
+            </p>
+          </main>
+          <footer className="cw-foot">
+            {!isDirect && (
+              <button type="button" onClick={handleShareCreated} className="cw-btn cw-btn--amber">
+                초대 링크 전하기
+              </button>
             )}
-          </h2>
-          <p className="text-[13px] text-gray-500 dark:text-white/55 mt-2.5 text-center leading-[1.7]">
-            {isDirect ? (
-              <>
-                받는 분께 캡슐이 도착했다는 알림이 갔어요.
-                <br />
-                내용은 {formatKoreanDate(created.open_at)}
-                {created.open_label ? ` (${created.open_label})` : ''} 아침까지 봉인돼요.
-              </>
-            ) : (
-              <>
-                아래 링크를 받는 분께 전해주세요.
-                <br />
-                {formatKoreanDate(created.open_at)}
-                {created.open_label ? ` (${created.open_label})` : ''} 아침에 열 수 있어요.
-              </>
-            )}
-          </p>
-          {!isDirect && (
             <button
               type="button"
-              onClick={handleShareCreated}
-              className="relative w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]"
+              onClick={() => navigate('/capsule', { replace: true })}
+              className={`cw-btn ${isDirect ? '' : 'cw-btn--ghost'}`}
             >
-              초대 링크 전달하기
+              캡슐함으로 가기
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => navigate('/capsule', { replace: true })}
-            className={
-              isDirect
-                ? 'relative w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]'
-                : 'w-full mt-2.5 py-3.5 rounded-2xl bg-[var(--brand-soft)] text-brand text-[14px] font-bold'
-            }
-          >
-            캡슐함으로 가기
-          </button>
+          </footer>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-      {/* lg+: 편집기 화면이라 위젯 레일 대신 폼 자체를 2단으로 편다(/bible/photo-verse 와 같은 방식).
-          편지 칸이 편히 읽히는 폭(약 630px)을 지키려고 셸은 표준 1240px보다 좁은 1080px. */}
-      <div className="lg:max-w-[1080px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-none lg:mx-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
-        {/* 헤더 */}
-        <div className="sticky top-14 lg:static z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="p-1 -ml-1 text-gray-700 dark:text-white/80"
-            aria-label="뒤로"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
+  let body: ReactNode
+  if (step === 1) {
+    body = (
+      <StepRecipient
+        capsuleType={capsuleType}
+        onTypeChange={setCapsuleType}
+        recipientName={recipientName}
+        onRecipientNameChange={setRecipientName}
+        recipientQuery={recipientQuery}
+        onRecipientQueryChange={setRecipientQuery}
+        recipientResults={recipientResults}
+        recipientSearching={recipientSearching}
+        selectedRecipient={selectedRecipient}
+        onSelectRecipient={(u) => {
+          setSelectedRecipient(u)
+          if (u) setRecipientResults([])
+        }}
+        sealsPrayer={!!suggested.prayerId}
+        sealsIntercession={!!suggested.intercessionCycleId}
+      />
+    )
+  } else if (step === 2) {
+    body = (
+      <StepWhen
+        presets={presets}
+        presetKey={presetKey}
+        onPresetChange={setPresetKey}
+        customDate={customDate}
+        onCustomDateChange={setCustomDate}
+        openDate={openDate}
+        nights={nights}
+      />
+    )
+  } else if (step === 3) {
+    body = (
+      <>
+        <StepLetter
+          isSelf={isSelf}
+          addressee={inkAddressee}
+          title={title}
+          onTitleChange={setTitle}
+          message={message}
+          onMessageChange={setMessage}
+          maxLength={MAX_MESSAGE_LEN}
+          letterMode={letterMode}
+          onLetterModeChange={setLetterMode}
+          inkPages={inkPages}
+          writtenInkCount={writtenInkPages.length}
+          onOpenInk={() => setInkOpen(true)}
+        />
+        {/* 글·손글씨 없이 목소리만 남기는 길 — 내용 필수 규칙은 셋 중 하나 */}
+        {!hasWritten && (
+          <button type="button" onClick={() => goStep(4)} className="cw-textlink">
+            글 대신 목소리로만 남길래요 →
           </button>
-          <h1 className="text-[16px] font-extrabold">새 타임캡슐</h1>
+        )}
+      </>
+    )
+  } else if (step === 4) {
+    body = (
+      <StepExtras
+        photos={photos}
+        maxPhotos={MAX_PHOTOS}
+        maxCaption={MAX_CAPTION_LEN}
+        photoProcessing={photoProcessing}
+        photoInputRef={photoInputRef}
+        onPickPhotos={handlePickPhotos}
+        onRemovePhoto={handleRemovePhoto}
+        onCaptionChange={handleCaptionChange}
+        recordingState={recordingState}
+        recordingTime={recordingTime}
+        maxRecordSeconds={MAX_RECORD_SECONDS}
+        audioUrl={audioUrl}
+        recordError={recordError}
+        onStartRecording={startRecording}
+        onStopRecording={stopRecording}
+        onResetRecording={resetRecording}
+        enclosures={enclosures}
+      />
+    )
+  } else {
+    const contents = [...letterParts, ...extraParts]
+    body = (
+      <div className="cw-body--center">
+        <h2 className="cw-title">캡슐 문을 닫을까요?</h2>
+        <p className="cw-sub">
+          닫으면 {openDateText} 아침까지 {isSelf ? '나조차도' : '받는 분도, 나도'} 열어볼 수 없어요
+        </p>
+
+        {/* 고른 것들 — 누르면 그 단계로 되돌아가 고친다 */}
+        <div className="cw-summary">
+          <button type="button" onClick={() => backTo(1)} className="cw-summary__row">
+            <span>받는 사람</span>
+            <b>{recipientLabel}</b>
+          </button>
+          <button type="button" onClick={() => backTo(2)} className="cw-summary__row">
+            <span>여는 날</span>
+            <b>
+              {openDateText}
+              {openLabel ? ` · ${openLabel}` : ''}
+            </b>
+          </button>
+          <button type="button" onClick={() => backTo(3)} className="cw-summary__row">
+            <span>담은 것</span>
+            <b>{contents.length ? contents.join(' · ') : '아직 없어요'}</b>
+          </button>
+          <p className="cw-summary__ps">+ {enclosures.join(' · ')}</p>
         </div>
 
-        {/* 기도→캡슐 흐름 안내 — 방금의 기도가 함께 봉인된다 */}
-        {sealedPrayerId && (
-          <div className="mx-4 mt-4 px-4 py-3.5 rounded-2xl bg-[var(--brand-soft)] border border-brand/15">
-            <p className="text-[13px] font-bold text-brand">🙏 방금의 기도가 함께 봉인돼요</p>
-            <p className="text-[12px] text-gray-600 dark:text-white/60 mt-1 leading-[1.6]">
-              캡슐을 여는 날, 이 편지와 함께 그날의 기도와 붙들었던 말씀을 다시 보여드릴게요.
-            </p>
-          </div>
+        <SealHold disabled={!canSubmit} pending={createCapsule.isPending} onSeal={handleSeal} />
+
+        {!canSubmit && !createCapsule.isPending ? (
+          <p className="cw-note text-center">
+            {!recipientReady
+              ? '받는 분을 먼저 정해 주세요'
+              : !hasLetter
+                ? '편지 글·손글씨·목소리 중 하나는 담아야 해요'
+                : !openDate
+                  ? '여는 날을 골라 주세요'
+                  : photoProcessing
+                    ? '사진을 담는 중이에요'
+                    : ''}
+          </p>
+        ) : (
+          capsuleType === 'invite' && <p className="cw-note text-center">봉인하면 받는 분께 전할 초대 링크가 만들어져요</p>
         )}
+      </div>
+    )
+  }
 
-        {/* 누군가의 기도 → 캡슐 흐름 안내 — 지난 한 달(기도제목·등불·편지)이 함께 봉인된다 */}
-        {sealedIntercessionCycleId && (
-          <div className="mx-4 mt-4 px-4 py-3.5 rounded-2xl bg-[var(--brand-soft)] border border-brand/15">
-            <p className="text-[13px] font-bold text-brand">누군가 함께 기도해 준 한 달이 봉인돼요</p>
-            <p className="text-[12px] text-gray-600 dark:text-white/60 mt-1 leading-[1.6]">
-              캡슐을 여는 날, 그때의 기도제목과 켜졌던 등불을 다시 보여드릴게요. 어떻게 응답되었는지 돌아봐요.
-            </p>
-          </div>
-        )}
+  const art = STEP_ART[step]
 
-        {/* lg+: 편지 쪽(왼쪽)과 봉인 설정 쪽(오른쪽) 2단.
-            래퍼는 lg 미만에서 display:contents 라 모바일 흐름은 그대로다 — capsule.css 참고 */}
-        <div className="cc-form">
-          <div className="cc-main">
-          {/* 받는 사람 */}
-          <section className="px-4 pt-5">
-            <p className="px-1 mb-2 text-[12px] font-bold text-[var(--text-muted)]">받는 사람</p>
-            <div className="flex gap-2">
-              {(
-                [
-                  {
-                    type: 'self' as const,
-                    label: '미래의 나에게',
-                    // 시계 — 시간이 흘러 도착하는 캡슐
-                    icon: (
-                      <>
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 7.5V12l3 2" />
-                      </>
-                    ),
-                  },
-                  {
-                    type: 'direct' as const,
-                    label: '소중한 사람에게',
-                    // 하트 — 사랑하는 이에게 보내는 마음
-                    icon: (
-                      <path d="M12 20.2 5.4 13.6a4.7 4.7 0 0 1 0-6.6 4.6 4.6 0 0 1 6.6 0 4.6 4.6 0 0 1 6.6 0 4.7 4.7 0 0 1 0 6.6Z" />
-                    ),
-                  },
-                ]
-              ).map(({ type, label, icon }) => {
-                const active = type === 'self' ? capsuleType === 'self' : capsuleType !== 'self'
-                // 활성 칩은 앱 전역 인장(점선) 문법 — seal-chip 은 relative 필수이고,
-                // 테두리는 transparent 라야 인장 링과 겹치지 않는다
-                return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setCapsuleType(type)}
-                  className={`relative flex-1 py-3 rounded-2xl text-[13.5px] font-bold border transition-colors inline-flex items-center justify-center gap-1.5 ${
-                    active
-                      ? 'bg-brand text-white border-transparent seal-chip [--seal-radius:1rem]'
-                      : 'bg-white dark:bg-card-dark text-gray-600 dark:text-white/60 border-gray-200/70 dark:border-white/[0.08]'
-                  }`}
-                >
-                  <svg
-                    className="w-4 h-4 shrink-0"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.8}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden
-                  >
-                    {icon}
-                  </svg>
-                  {label}
-                </button>
-                )
-              })}
-            </div>
-            {capsuleType !== 'self' && (
-              <div className="mt-2.5">
-                {/* 전달 방식 — 같은 앱 사용자면 바로, 아니면 초대 링크.
-                    "보내는 버튼"이 아니라 방식 고르기라는 걸 라벨·아이콘·선택 링으로 분명히 한다
-                    (눌러도 아무 일이 없어 보인다는 얘기가 있었다 — 링크는 봉인 후에 생긴다) */}
-                <p className="px-1 mb-1.5 text-[11.5px] font-bold text-[var(--text-muted)]">
-                  어떻게 전할까요?
-                </p>
-                <div className="flex gap-1.5 p-1 rounded-xl bg-gray-100 dark:bg-white/[0.06]">
-                  {(
-                    [
-                      {
-                        mode: 'direct' as const,
-                        label: '앱에서 바로',
-                        // 종이비행기 — 앱 안에서 곧장 배달
-                        icon: <path d="M21 3 10.5 13.5M21 3l-6.6 18-3.9-7.5L3 9.6 21 3Z" />,
-                      },
-                      {
-                        mode: 'invite' as const,
-                        label: '초대 링크로',
-                        // 사슬 고리 — 링크로 건네기
-                        icon: (
-                          <>
-                            <path d="M10 13.8a4 4 0 0 0 5.7 0l2.6-2.6a4 4 0 0 0-5.7-5.7l-1.3 1.3" />
-                            <path d="M14 10.2a4 4 0 0 0-5.7 0l-2.6 2.6a4 4 0 1 0 5.7 5.7l1.3-1.3" />
-                          </>
-                        ),
-                      },
-                    ]
-                  ).map(({ mode, label, icon }) => {
-                    const on = capsuleType === mode
-                    return (
-                      <button
-                        key={mode}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => setCapsuleType(mode)}
-                        className={`flex-1 py-2 rounded-lg text-[12.5px] font-bold transition-colors inline-flex items-center justify-center gap-1.5 ${
-                          on
-                            ? 'bg-white dark:bg-card-dark text-brand shadow-sm ring-1 ring-brand/30'
-                            : 'text-gray-500 dark:text-white/50'
-                        }`}
-                      >
-                        <svg
-                          className="w-3.5 h-3.5 shrink-0"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={1.8}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden
-                        >
-                          {icon}
-                        </svg>
-                        {label}
-                      </button>
-                    )
-                  })}
-                </div>
+  return (
+    <div className="cw-page page-stage">
+      <div className="cw-shell screen-fit-minus-header">
+        <SheepStage
+          step={step}
+          art={art.pair}
+          artVariant={art.variant}
+          quip={quip}
+          speaker={step === 3 ? '아기 양' : '배달부 양'}
+          trail={trail}
+          onTrailClick={backTo}
+          onBack={() => navigate(-1)}
+        />
 
-                {capsuleType === 'direct' && (
-                  <div className="mt-2.5">
-                    {selectedRecipient ? (
-                      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[var(--brand-soft)] border border-brand/20">
-                        {selectedRecipient.avatar_url ? (
-                          <img
-                            src={selectedRecipient.avatar_url}
-                            alt=""
-                            className="w-9 h-9 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <span className="w-9 h-9 rounded-full bg-brand/15 text-brand text-[15px] font-extrabold flex items-center justify-center shrink-0">
-                            {selectedRecipient.display_name.charAt(0)}
-                          </span>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[14px] font-bold text-ink-strong truncate">
-                            {selectedRecipient.display_name}
-                          </p>
-                          <p className="text-[11.5px] text-gray-400 dark:text-white/40 truncate">
-                            @{selectedRecipient.username}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedRecipient(null)
-                            setRecipientQuery('')
-                          }}
-                          aria-label="받는 분 다시 고르기"
-                          className="shrink-0 w-7 h-7 rounded-full bg-gray-200/80 dark:bg-white/10 text-gray-500 dark:text-white/60 text-[12px] font-bold flex items-center justify-center"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <input
-                          type="text"
-                          value={recipientQuery}
-                          onChange={(e) => setRecipientQuery(e.target.value)}
-                          maxLength={20}
-                          placeholder="받는 분 이름을 검색하세요"
-                          className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] outline-none focus:border-brand placeholder:text-gray-400 dark:placeholder:text-white/30"
-                        />
-                        {recipientQuery.trim() && (
-                          <div className="mt-1.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] overflow-hidden">
-                            {recipientSearching ? (
-                              <p className="px-4 py-3 text-[12.5px] text-gray-400 dark:text-white/40">
-                                찾는 중...
-                              </p>
-                            ) : recipientResults.length === 0 ? (
-                              <p className="px-4 py-3 text-[12.5px] text-gray-400 dark:text-white/40 leading-[1.6]">
-                                앱에서 찾을 수 없어요.
-                                아직 가입 전이라면 초대 링크로 보내주세요.
-                              </p>
-                            ) : (
-                              recipientResults.map((u) => (
-                                <button
-                                  key={u.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedRecipient(u)
-                                    setRecipientResults([])
-                                  }}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left border-b last:border-b-0 border-gray-100 dark:border-white/[0.05] active:bg-gray-50 dark:active:bg-white/[0.04]"
-                                >
-                                  {u.avatar_url ? (
-                                    <img
-                                      src={u.avatar_url}
-                                      alt=""
-                                      className="w-8 h-8 rounded-full object-cover shrink-0"
-                                    />
-                                  ) : (
-                                    <span className="w-8 h-8 rounded-full bg-[var(--brand-soft)] text-brand text-[13.5px] font-extrabold flex items-center justify-center shrink-0">
-                                      {u.display_name.charAt(0)}
-                                    </span>
-                                  )}
-                                  <span className="flex-1 min-w-0">
-                                    <span className="block text-[13.5px] font-bold text-ink-strong truncate">
-                                      {u.display_name}
-                                    </span>
-                                    <span className="block text-[11px] text-gray-400 dark:text-white/40 truncate">
-                                      @{u.username}
-                                    </span>
-                                  </span>
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                    <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
-                      봉인하면 받는 분 캡슐함에 바로 담기고, 도착 알림이 가요.
-                      내용은 개봉일까지 아무도 볼 수 없어요.
-                    </p>
-                  </div>
-                )}
+        {/* key — 단계가 바뀌면 본문이 새로 들어온다(등장 연출) */}
+        <main className="cw-body" key={step}>
+          {body}
+        </main>
 
-                {capsuleType === 'invite' && (
-                  <div className="mt-2.5">
-                    <input
-                      type="text"
-                      value={recipientName}
-                      onChange={(e) => setRecipientName(e.target.value)}
-                      maxLength={20}
-                      placeholder="받는 분 이름이나 애칭 (예: 아들 민준)"
-                      className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] outline-none focus:border-brand placeholder:text-gray-400 dark:placeholder:text-white/30"
-                    />
-                    <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
-                      봉인 후 초대 링크를 전달하면, 받는 분이 자신의 캡슐로 등록해요.
-                      아직 앱이 없어도 가입하면 이어져요.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
-
-          {/* 편지 — 타자로 쓰거나(글), 펜·손가락으로 직접 쓴다(손글씨) */}
-          <section className="px-4 pt-6">
-            <div className="px-1 mb-2 flex items-center justify-between gap-2">
-              <p className="text-[12px] font-bold text-[var(--text-muted)]">편지</p>
-              <div className="inline-flex p-0.5 rounded-full bg-gray-100 dark:bg-white/[0.07]" role="tablist" aria-label="편지 쓰는 방법">
-                {(
-                  [
-                    { key: 'type', label: '글로 쓰기' },
-                    { key: 'pen', label: '펜으로 쓰기' },
-                  ] as const
-                ).map((m) => (
-                  <button
-                    key={m.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={letterMode === m.key}
-                    onClick={() => setLetterMode(m.key)}
-                    className={`px-3 py-1 rounded-full text-[12px] font-bold transition-colors ${
-                      letterMode === m.key
-                        ? 'bg-white dark:bg-white/[0.14] text-ink-strong shadow-sm'
-                        : 'text-gray-500 dark:text-white/50'
-                    }`}
-                  >
-                    {m.label}
-                    {m.key === 'pen' && hasInk && (
-                      <span className="ml-1 text-[10px] text-brand">{writtenInkPages.length}장</span>
-                    )}
-                    {m.key === 'type' && letterMode === 'pen' && message.trim() && (
-                      <span className="ml-1 text-[10px] text-brand">·</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={50}
-              placeholder="제목 (선택)"
-              className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] font-bold outline-none focus:border-brand placeholder:font-normal placeholder:text-gray-400 dark:placeholder:text-white/30"
-            />
-            {letterMode === 'type' ? (
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value.slice(0, MAX_MESSAGE_LEN))}
-                rows={7}
-                placeholder={
-                  capsuleType === 'self'
-                    ? '캡슐을 여는 날의 나에게, 지금의 마음과 기도를 남겨보세요'
-                    : '캡슐을 여는 날의 그 사람에게, 전하고 싶은 마음을 남겨보세요'
-                }
-                className="cc-letter-body w-full mt-2.5 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] leading-[1.7] outline-none focus:border-brand resize-none placeholder:text-gray-400 dark:placeholder:text-white/30"
-              />
-            ) : (
-              <div className="mt-2.5 p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
-                {hasInk ? (
-                  <>
-                    {/* 쓴 편지지 묶음 — 누르면 이어서 쓴다 */}
-                    <button type="button" onClick={() => setInkOpen(true)} className="block w-full text-left">
-                      <div className="ink-stack">
-                        {inkPages.map((p, i) => (
-                          <span key={i} className="ink-stack__item">
-                            <InkThumb page={p} width={112} />
-                            <span className="ink-stack__no">{i + 1}</span>
-                          </span>
-                        ))}
-                      </div>
-                    </button>
-                    <div className="mt-3 flex items-center justify-between gap-2">
-                      <p className="text-[12px] text-gray-500 dark:text-white/55 leading-[1.6]">
-                        손으로 쓴 편지지 {writtenInkPages.length}장
-                        {inkPages.length > writtenInkPages.length ? ` (빈 장 ${inkPages.length - writtenInkPages.length})` : ''}
-                        <br />
-                        여는 날, 쓴 순서 그대로 다시 써지는 걸 보게 돼요
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setInkOpen(true)}
-                        className="shrink-0 px-3.5 py-2 rounded-full bg-[var(--brand-soft)] text-brand text-[12.5px] font-bold"
-                      >
-                        이어 쓰기
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setInkOpen(true)}
-                    className="w-full flex items-center gap-3.5 text-left"
-                  >
-                    <span className="shrink-0 w-12 h-12 rounded-2xl bg-[var(--brand-soft)] text-brand inline-flex items-center justify-center">
-                      <Icon size={22}>
-                        <PenGlyph />
-                      </Icon>
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[14px] font-bold text-ink-strong">편지지 펼치기</span>
-                      <span className="block mt-0.5 text-[12px] text-gray-500 dark:text-white/55 leading-[1.6]">
-                        S펜·애플펜슬이나 손가락으로 직접 써요. 최대 {INK_MAX_PAGES}장, 내 글씨 그대로 봉인돼요
-                      </span>
-                    </span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30" aria-hidden>
-                      <path d="M9 6l6 6-6 6" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            )}
-            {letterMode === 'pen' && message.trim() && (
-              <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35">글로 쓴 편지도 함께 담겨요</p>
-            )}
-            {letterMode === 'type' && hasInk && (
-              <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35">손으로 쓴 편지지 {writtenInkPages.length}장도 함께 담겨요</p>
-            )}
-          </section>
-
-          {/* 사진 — 폴라로이드처럼 편지에 끼워 보낸다 */}
-          <section className="px-4 pt-4">
-            <div className="p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
-              <p className="text-[13.5px] font-bold text-ink-strong">
-                📷 사진 끼우기{' '}
-                <span className="text-gray-400 dark:text-white/40 font-normal">
-                  (선택 · 최대 {MAX_PHOTOS}장)
-                </span>
-              </p>
-              <p className="text-[11.5px] text-gray-400 dark:text-white/40 mt-0.5">
-                개봉하는 날, 사진이 그 시절 그대로 인화되어 나와요
-              </p>
-
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={(e) => handlePickPhotos(e.target.files)}
-              />
-
-              {photos.length > 0 && (
-                <div className="mt-3.5 flex flex-col gap-4">
-                  {photos.map((photo, i) => (
-                    <div
-                      key={photo.previewUrl}
-                      className="capsule-polaroid capsule-polaroid--developed relative mx-auto"
-                      style={{ transform: `rotate(${POLAROID_TILTS[i % POLAROID_TILTS.length]})` }}
-                    >
-                      <img src={photo.previewUrl} alt="" className="capsule-polaroid__img" />
-                      <input
-                        type="text"
-                        value={photo.caption}
-                        onChange={(e) => handleCaptionChange(i, e.target.value)}
-                        maxLength={MAX_CAPTION_LEN}
-                        placeholder="한 줄 캡션 (선택)"
-                        className="capsule-polaroid__caption-input"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemovePhoto(i)}
-                        aria-label="사진 빼기"
-                        className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-gray-800/85 text-white text-[13px] font-bold flex items-center justify-center shadow"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {photos.length < MAX_PHOTOS && (
-                <button
-                  type="button"
-                  onClick={() => photoInputRef.current?.click()}
-                  disabled={photoProcessing}
-                  className="mt-3 w-full py-3 rounded-xl bg-[var(--brand-soft)] text-brand text-[13.5px] font-bold disabled:opacity-60"
-                >
-                  {photoProcessing
-                    ? '사진 담는 중...'
-                    : photos.length > 0
-                      ? '사진 더 끼우기'
-                      : '앨범에서 고르기'}
-                </button>
-              )}
-            </div>
-          </section>
-
-          </div>
-
-          <div className="cc-side">
-          {/* 음성 */}
-          <section className="px-4 pt-4">
-            <div className="p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[13.5px] font-bold text-ink-strong">
-                    🎙️ 목소리 남기기 <span className="text-gray-400 dark:text-white/40 font-normal">(선택 · 최대 3분)</span>
-                  </p>
-                  <p className="text-[11.5px] text-gray-400 dark:text-white/40 mt-0.5">
-                    시간이 지나 다시 듣는 목소리는 글과는 다른 울림이 있어요
-                  </p>
-                </div>
-              </div>
-
-              {recordError && (
-                <p className="mt-2.5 text-[12px] text-red-500">{recordError}</p>
-              )}
-
-              {recordingState === 'idle' && !audioBlob && (
-                <button
-                  type="button"
-                  onClick={startRecording}
-                  className="mt-3 w-full py-3 rounded-xl bg-[var(--brand-soft)] text-brand text-[13.5px] font-bold"
-                >
-                  녹음 시작
-                </button>
-              )}
-
-              {(recordingState === 'recording' || recordingState === 'paused') && (
-                <div className="mt-3 flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0" />
-                  <span className="text-[15px] font-extrabold tabular-nums text-ink-strong">
-                    {formatSeconds(recordingTime)}
-                    <span className="text-gray-400 dark:text-white/40 font-normal"> / {formatSeconds(MAX_RECORD_SECONDS)}</span>
-                  </span>
-                  <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
-                    <div
-                      className="h-full bg-brand rounded-full transition-[width] duration-1000 ease-linear"
-                      style={{ width: `${Math.min(100, (recordingTime / MAX_RECORD_SECONDS) * 100)}%` }}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={stopRecording}
-                    className="shrink-0 px-4 py-2 rounded-full bg-brand text-white text-[12.5px] font-bold"
-                  >
-                    완료
-                  </button>
-                </div>
-              )}
-
-              {audioBlob && audioUrl && (
-                <div className="mt-3">
-                  <audio controls src={audioUrl} className="w-full" />
-                  <button
-                    type="button"
-                    onClick={resetRecording}
-                    className="mt-2 text-[12.5px] font-bold text-gray-500 dark:text-white/50"
-                  >
-                    ↺ 다시 녹음하기
-                  </button>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* 개봉일 */}
-          <section className="px-4 pt-6">
-            <p className="px-1 mb-2 text-[12px] font-bold text-[var(--text-muted)]">언제 열까요?</p>
-            <div className="flex flex-wrap gap-2">
-              {presets.map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => setPresetKey(p.key)}
-                  className={`relative px-4 py-2 rounded-full text-[13px] font-bold transition-colors ${
-                    presetKey === p.key
-                      ? 'bg-brand text-white seal-chip'
-                      : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => setPresetKey('custom')}
-                className={`relative px-4 py-2 rounded-full text-[13px] font-bold transition-colors ${
-                  presetKey === 'custom'
-                    ? 'bg-brand text-white seal-chip'
-                    : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
-                }`}
-              >
-                직접 선택
-              </button>
-            </div>
-            {presetKey === 'custom' && (
-              <div className="mt-2.5">
-                <DatePicker value={customDate} onChange={setCustomDate} placeholder="개봉일을 선택하세요" large />
-              </div>
-            )}
-            {openDate && (
-              <p className="px-1 mt-2.5 flex items-center gap-1.5 text-[12.5px] text-gray-500 dark:text-white/55">
-                <span className="shrink-0 text-brand inline-flex">
-                  <Icon size={14}>
-                    <CalendarGlyph />
-                  </Icon>
-                </span>
-                <span className="min-w-0">
-                  <strong className="text-ink-strong">{formatKoreanDate(openDate)}</strong> 아침 7시에 열려요
-                </span>
-              </p>
-            )}
-          </section>
-
-          {/* 봉인 */}
-          <section className="px-4 pt-7">
-            {confirming && (
-              <div className="mb-3 p-4 rounded-2xl bg-amber-400/10 border border-amber-400/25">
-                <p className="text-[13px] font-bold text-amber-700 dark:text-amber-300">
-                  봉인하면 개봉일까지 아무도 열어볼 수 없어요
-                </p>
-                <p className="text-[12px] text-gray-600 dark:text-white/60 mt-1 leading-[1.6]">
-                  쓴 사람인 나도 다시 볼 수 없습니다. 그게 타임캡슐의 재미예요.
-                  내용을 한 번 더 확인했다면 아래 버튼을 눌러주세요.
-                </p>
-              </div>
-            )}
+        {foot && (
+          <footer className="cw-foot">
             <button
               type="button"
-              onClick={handleSeal}
-              disabled={!canSubmit}
-              className="relative w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-40"
+              onClick={foot.onClick}
+              disabled={foot.disabled}
+              className={`cw-btn ${foot.ghost ? 'cw-btn--ghost' : ''}`}
             >
-              {createCapsule.isPending
-                ? '봉인하는 중...'
-                : confirming
-                  ? '🔏 정말 봉인하기'
-                  : capsuleType === 'invite'
-                    ? '봉인하고 초대 링크 만들기'
-                    : '캡슐 봉인하기'}
+              {foot.label}
             </button>
-            {!canSubmit && !createCapsule.isPending && (
-              <p className="text-center text-[11.5px] text-gray-400 dark:text-white/35 mt-2">
-                {capsuleType === 'direct' && !selectedRecipient
-                  ? '받는 분을 검색해 선택해주세요'
-                  : capsuleType === 'invite' && !recipientName.trim()
-                    ? '받는 분 이름을 적어주세요'
-                    : !hasLetter
-                      ? '편지 글·손글씨·음성 중 하나는 담아야 해요'
-                      : !openDate
-                        ? '개봉일을 선택해주세요'
-                        : ''}
-              </p>
-            )}
-          </section>
-          </div>
-        </div>
-      </div>
+          </footer>
+        )}
       </div>
 
       {/* 손글씨 편지지 — 전체화면. 닫으면 쓴 그대로 남는다 */}

@@ -68,6 +68,7 @@ const CATALOG_PALETTE: [string, PaletteExtras][] = [
   ['/garden', { keywords: ['칭호', '뱃지', '업적', 'title', 'badge'], memberOnly: true }],
   ['/bluemarble', { keywords: ['퀘스트', '게임', '퀴즈', '보드', 'quest', 'quiz', 'game'], memberOnly: true }],
   ['/bible/typing', { keywords: ['필사', '타자', '타이핑', '따라쓰기', '암송', '스프린트', 'typing', 'copy', 'memorize'] }],
+  ['/handwriting', { keywords: ['손글씨', '필사대회', '대회', '펜', '글씨', '투표', '말씀카드', 'handwriting', 'contest', 'calligraphy'] }],
   ['/answered-prayers', { keywords: ['응답', '간증', 'answered', 'testimony'] }],
   ['/intercession', { keywords: ['누군가', '중보', '기도짝', '짝꿍', '마니또', 'intercession'] }],
 ]

@@ -25,6 +25,7 @@ const SituationManagement = lazy(() => import('../pages/Admin/SituationManagemen
 const ChatbotManagement = lazy(() => import('../pages/Admin/ChatbotManagement'))
 const CultureManagement = lazy(() => import('../pages/Admin/CultureManagement'))
 const SurveyManagement = lazy(() => import('../pages/Admin/SurveyManagement'))
+const HandwritingContestManagement = lazy(() => import('../pages/Admin/HandwritingContestManagement'))
 const SeatEventManagement = lazy(() => import('../pages/Admin/SeatEventManagement'))
 const ElectionManagement = lazy(() => import('../pages/Admin/ElectionManagement'))
 const IntercessionManagement = lazy(() => import('../pages/Admin/IntercessionManagement'))
@@ -56,6 +57,7 @@ export const adminRoutes = (
     <Route path="/admin/chatbot" element={<ChatbotManagement />} />
     <Route path="/admin/culture" element={<CultureManagement />} />
     <Route path="/admin/surveys" element={<SurveyManagement />} />
+    <Route path="/admin/handwriting" element={<HandwritingContestManagement />} />
     <Route path="/admin/seats" element={<SeatEventManagement />} />
     <Route path="/admin/elections" element={<ElectionManagement />} />
     <Route path="/admin/intercession" element={<IntercessionManagement />} />

@@ -1,6 +1,7 @@
 // 손글씨 편지 쓰기 — 전체화면 편지지(책상 위에 펼친 종이)와 도구 막대.
 // 작성 화면(/capsule/new)이 pages 상태를 들고 있고, 이 시트는 그 위에서 쓰고 고치기만 한다.
 // 닫기 = 완료(쓴 것은 그대로 남는다). 버리고 싶으면 '이 장 지우기'.
+// 손글씨 필사대회(/handwriting)도 같은 시트를 한 장짜리로 쓴다 — eyebrow·heading·guide·maxPages 로 바꾼다.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
@@ -27,7 +28,17 @@ interface Props {
   onChange: (pages: InkPage[]) => void
   onClose: () => void
   /** 편지지 머리에 적힐 받는 사람 — "미래의 나" / 이름 */
-  addressee: string
+  addressee?: string
+  /** 머리 위 작은 글씨 (기본: 손으로 쓰는 편지) */
+  eyebrow?: string
+  /** 머리 큰 글씨 — 주면 'To. 받는 사람' 대신 쓴다 */
+  heading?: string
+  /** 머리와 종이 사이에 보여 줄 것 — 필사대회의 '따라 쓸 구절' */
+  guide?: React.ReactNode
+  /** 장 수 상한 (기본 INK_MAX_PAGES). 1이면 장 넘기기 도구를 숨긴다 */
+  maxPages?: number
+  /** 다 쓴 뒤 안내 — 기본: 'N장을 썼어요 · 완료를 누르면 편지에 담겨요' */
+  writtenHint?: (written: number) => string
 }
 
 const G = ({ children, size = 20 }: { children: React.ReactNode; size?: number }) => (
@@ -68,7 +79,17 @@ const ZoomGlyph = ({ out }: { out?: boolean }) => (
   </>
 )
 
-const HandwritingSheet = ({ pages, onChange, onClose, addressee }: Props) => {
+const HandwritingSheet = ({
+  pages,
+  onChange,
+  onClose,
+  addressee = '',
+  eyebrow = '손으로 쓰는 편지',
+  heading,
+  guide,
+  maxPages = INK_MAX_PAGES,
+  writtenHint = (n) => `${n}장을 썼어요 · 완료를 누르면 편지에 담겨요`,
+}: Props) => {
   const [index, setIndex] = useState(() => Math.max(0, pages.length - 1))
   const [tool, setTool] = useState<InkTool>('pen')
   const [color, setColor] = useState<InkColorIndex>(0)
@@ -129,8 +150,8 @@ const HandwritingSheet = ({ pages, onChange, onClose, addressee }: Props) => {
   }
 
   const handleAddPage = () => {
-    if (pages.length >= INK_MAX_PAGES) {
-      showToast(`편지지는 ${INK_MAX_PAGES}장까지예요`, 'error')
+    if (pages.length >= maxPages) {
+      showToast(`편지지는 ${maxPages}장까지예요`, 'error')
       return
     }
     pushUndo(pages)
@@ -165,11 +186,11 @@ const HandwritingSheet = ({ pages, onChange, onClose, addressee }: Props) => {
   const written = useMemo(() => pages.filter((p) => !isInkPageEmpty(p)).length, [pages])
 
   return (
-    <div className="ink-sheet" role="dialog" aria-modal="true" aria-label="손글씨 편지 쓰기">
+    <div className="ink-sheet" role="dialog" aria-modal="true" aria-label={heading ?? '손글씨 편지 쓰기'}>
       <header className="ink-sheet__top">
         <div className="min-w-0">
-          <p className="ink-sheet__eyebrow">손으로 쓰는 편지</p>
-          <p className="ink-sheet__to">To. {addressee}</p>
+          <p className="ink-sheet__eyebrow">{eyebrow}</p>
+          <p className="ink-sheet__to">{heading ?? `To. ${addressee}`}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {penSeen && (
@@ -193,6 +214,8 @@ const HandwritingSheet = ({ pages, onChange, onClose, addressee }: Props) => {
           </button>
         </div>
       </header>
+
+      {guide}
 
       <InkPad
         page={page}
@@ -314,59 +337,61 @@ const HandwritingSheet = ({ pages, onChange, onClose, addressee }: Props) => {
               </button>
             ))}
           </div>
-          <div className="ink-group ink-pages">
-            <button
-              type="button"
-              className="ink-tool"
-              onClick={() => setIndex((i) => Math.max(0, i - 1))}
-              disabled={safeIndex === 0}
-              aria-label="앞 장"
-            >
-              <G size={18}>
-                <ChevronGlyph dir="l" />
-              </G>
-            </button>
-            <span className="ink-pages__label">
-              {safeIndex + 1}
-              <small>/{pages.length}장</small>
-            </span>
-            <button
-              type="button"
-              className="ink-tool"
-              onClick={() => setIndex((i) => Math.min(pages.length - 1, i + 1))}
-              disabled={safeIndex >= pages.length - 1}
-              aria-label="다음 장"
-            >
-              <G size={18}>
-                <ChevronGlyph dir="r" />
-              </G>
-            </button>
-            {pages.length > 1 && (
-              <button type="button" className="ink-tool" onClick={handleRemovePage} aria-label="이 장 빼기">
+          {maxPages > 1 && (
+            <div className="ink-group ink-pages">
+              <button
+                type="button"
+                className="ink-tool"
+                onClick={() => setIndex((i) => Math.max(0, i - 1))}
+                disabled={safeIndex === 0}
+                aria-label="앞 장"
+              >
                 <G size={18}>
-                  <MinusGlyph />
+                  <ChevronGlyph dir="l" />
                 </G>
               </button>
-            )}
-            <button
-              type="button"
-              className="ink-tool"
-              onClick={handleAddPage}
-              disabled={pages.length >= INK_MAX_PAGES}
-              aria-label="장 추가"
-            >
-              <G size={18}>
-                <PlusGlyph />
-              </G>
-            </button>
-          </div>
+              <span className="ink-pages__label">
+                {safeIndex + 1}
+                <small>/{pages.length}장</small>
+              </span>
+              <button
+                type="button"
+                className="ink-tool"
+                onClick={() => setIndex((i) => Math.min(pages.length - 1, i + 1))}
+                disabled={safeIndex >= pages.length - 1}
+                aria-label="다음 장"
+              >
+                <G size={18}>
+                  <ChevronGlyph dir="r" />
+                </G>
+              </button>
+              {pages.length > 1 && (
+                <button type="button" className="ink-tool" onClick={handleRemovePage} aria-label="이 장 빼기">
+                  <G size={18}>
+                    <MinusGlyph />
+                  </G>
+                </button>
+              )}
+              <button
+                type="button"
+                className="ink-tool"
+                onClick={handleAddPage}
+                disabled={pages.length >= maxPages}
+                aria-label="장 추가"
+              >
+                <G size={18}>
+                  <PlusGlyph />
+                </G>
+              </button>
+            </div>
+          )}
         </div>
         <p className="ink-sheet__hint">
           {written === 0
             ? penSeen
               ? '펜으로 편지지에 바로 쓰세요. 손가락은 종이를 넘겨요'
               : '펜이나 손가락으로 쓰세요. 두 손가락으로 종이를 넘겨요'
-            : `${written}장을 썼어요 · 완료를 누르면 편지에 담겨요`}
+            : writtenHint(written)}
         </p>
       </footer>
     </div>

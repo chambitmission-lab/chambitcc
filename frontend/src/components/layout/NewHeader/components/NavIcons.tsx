@@ -296,6 +296,7 @@ export const NAV_ICONS = {
   seats: IconSeat,
   todayChurch: IconTodayLetter,
   companion: IconFootsteps,
+  handwritingContest: IconQuill,
 } as const
 
 export type NavIconKey = keyof typeof NAV_ICONS

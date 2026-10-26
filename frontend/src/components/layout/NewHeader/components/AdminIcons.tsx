@@ -298,6 +298,7 @@ export const ADMIN_ICONS = {
   adminNavPush: IconBell,
   adminNavChatbot: IconChatBot,
   adminNavSurvey: IconSurveyBoard,
+  adminNavHandwriting: IconPenSparkle,
   adminNavIntercession: IconCandle,
   adminNavEvent: IconCalendar,
   adminNavSeats: IconSeat,

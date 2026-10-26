@@ -14,6 +14,7 @@ import BookSection from './home/BookSection'
 import ChurchBibleCard from './home/ChurchBibleCard'
 import RelayCard from './home/RelayCard'
 import NextTitleCard from './home/NextTitleCard'
+import ContestEntryCard from './home/ContestEntryCard'
 import './typing.css'
 
 /**
@@ -132,6 +133,7 @@ const TypingHome = () => {
           </div>
 
           <div className="bt-home-side">
+            <ContestEntryCard />
             {loggedIn && <ChurchBibleCard data={church} bookName={bookName} />}
             {loggedIn && <RelayCard relays={home?.relays} />}
             {loggedIn && <NextTitleCard titles={typingTitles} />}
