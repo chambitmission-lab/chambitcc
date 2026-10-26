@@ -1,32 +1,15 @@
-// 플랜 카드 — 섹션 제목 · 해시태그 · 비주얼 · 피드 카드 · 대표 카드 · 스켈레톤.
+// 플랜 카드 — 섹션 제목 · 비주얼 · 둘러보기 쿠폰 카드 · 스켈레톤.
+// 읽는 중 플랜은 JourneyBoard(말씀 오솔길), 오늘 분량은 TodayHero 가 맡는다.
 
-import type { PlanSummary, TodayReading } from '../../../../types/biblePlan'
-import { accentGradient, gradientTextStyle, planHashtags } from '../planVisuals'
-import { FlameIcon, PartyIcon, PlanGlyph, PeopleIcon as UsersIcon } from '../PlanIcons'
+import type { PlanSummary } from '../../../../types/biblePlan'
+import { accentGradient } from '../planVisuals'
+import { PlanGlyph, PeopleIcon as UsersIcon } from '../PlanIcons'
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <h3 className="text-[15px] lg:text-[20px] lg:mb-6 font-extrabold text-ink-strong tracking-[-0.02em] mb-5 px-0.5">
     {children}
   </h3>
 )
-
-// 해시태그 한 줄 — #7일완성 #입문 #습관
-const Hashtags = ({ plan }: { plan: PlanSummary }) => {
-  const tags = planHashtags(plan)
-  if (tags.length === 0) return null
-  return (
-    <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-      {tags.map((t) => (
-        <span
-          key={t}
-          className="text-[11px] lg:text-[13.5px] font-medium tracking-[-0.02em] text-brand"
-        >
-          #{t}
-        </span>
-      ))}
-    </div>
-  )
-}
 
 // 카드 비주얼(감성 그래픽): accent 그라데이션 + 글로우 + 선화 표식.
 // size: feed = 격자 카드의 5:4 커버 / thumb = 가로형 카드의 정사각 썸네일.
@@ -68,257 +51,79 @@ const PlanVisual = ({
   )
 }
 
-// 피드형 카드 (둘러보기 · 2열 그리드) — 이미지 우선 세로 카드
-const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => void }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="group relative flex h-full w-full flex-col text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.97]"
-  >
-    {/* 정사각 → 5:4로 살짝 낮춰 무게중심을 텍스트 쪽으로 — 글씨가 먼저 읽힌다 */}
-    <div className="relative aspect-[5/4] lg:aspect-[16/10] shrink-0">
-      <PlanVisual plan={plan} size="feed" />
-    </div>
-    {/* 텍스트와 화살표를 한 flex 행으로 완전히 분리 — 제목·태그가 길어져도
-        겹치지 않고, 배경 없는 맨 화살표라 "카드 전체가 눌린다"로 읽힌다.
-        flex-1 로 남는 높이를 흡수해 2열 카드가 항상 같은 높이로 정렬된다 */}
-    <div className="flex-1 px-3.5 pt-3.5 pb-[18px] flex items-center gap-1.5">
-      <div className="flex-1 min-w-0">
-        {/* 제목은 1~2줄로 갈리므로 최소 2줄 높이를 확보해 해시태그 baseline 을 맞춘다 */}
-        <h4 className="min-h-[2.5em] text-[14px] lg:text-[18px] font-bold text-ink-strong tracking-[-0.015em] leading-snug line-clamp-2">
-          {plan.title}
-        </h4>
-        <div className="mt-1">
-          <Hashtags plan={plan} />
-        </div>
-        {/* 사회적 증거 — 몇 명이 함께 읽는지 보여 시작 문턱을 낮춘다 */}
-        {(plan.participant_count ?? 0) > 0 && (
-          <p className="mt-1 text-[11px] lg:text-[14px] font-medium tracking-[-0.01em] text-gray-400 dark:text-white/45">
-            <UsersIcon size={12} className="inline-block -mt-px mr-1 align-middle" />
-            {(plan.participant_count ?? 0).toLocaleString()}명 참여 중
-          </p>
-        )}
-      </div>
-      <svg
-        width="15"
-        height="15"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="shrink-0 text-gray-300 dark:text-white/30 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-brand"
-      >
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
-    </div>
-  </button>
-)
+// 난이도 점 — 입문·초급 1 / 중급 2 / 고급 3. 모르는 값이면 점 없이 글자만
+const LEVEL_DOTS: Record<string, number> = { 입문: 1, 초급: 1, 중급: 2, 고급: 3 }
 
-// 피처형 카드 (이어서 읽기 · 가로형)
-// 정보 위계: ① 무슨 플랜인지(제목·기간) ② 얼마나 왔는지(진행률 한 줄) ③ 오늘 뭘 읽을지(패널+CTA)
-// 예전 카드는 33%·불꽃·해시태그·"119/365일 · 118일차 진행 중"·"118일차 · 역대하"·"117일차 완료"가
-// 각자 떠 있어 숫자 세 개(119·118·117)가 서로 다른 뜻으로 읽혔다. 이제 진행 숫자는 게이지 아래
-// 한 줄로만 모으고, 일차 번호는 "오늘 읽을 말씀" 패널 안에서만 말한다. 해시태그는 둘러보기(발견)용이라
-// 내 진행 카드에서는 뺀다. 상태 색 규칙은 유지: 진행 중 = 브랜드 블루, 완료 = 에메랄드.
-const formatStartLabel = (value?: string | null): string | null => {
-  if (!value) return null
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return null
-  return `${d.getMonth() + 1}월 ${d.getDate()}일부터`
-}
+// 도장 기울기 — 격자에서 카드마다 조금씩 달라야 손으로 찍은 쿠폰처럼 보인다
+const COUPON_TILT = [-10, 6, -4, 9, -7, 3]
 
-const CheckMark = ({ size = 12 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-)
-
-const Chevron = ({ size = 12 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-)
-
-const FeaturedPlanCard = ({
+// 둘러보기 카드 — "새 도장판" 쿠폰. 표지에 기간 도장(90일) + 절취선 + 제목·난이도·해시태그.
+// (예전 정사각 피드 카드의 선화 표식은 왼쪽 아래 작은 표식으로 남겼다)
+const CouponPlanCard = ({
   plan,
-  today,
+  index,
   onClick,
 }: {
   plan: PlanSummary
-  today?: TodayReading
+  index: number
   onClick: () => void
 }) => {
-  const progress = plan.progress
-  const subscribed = !!progress?.subscribed
-  const completed = progress?.status === 'completed'
-  const streak = progress?.streak_count ?? 0
-  const doneToday = today?.done_today ?? progress?.completed_today ?? false
-  const lastDoneDay = today?.last_completed_day ?? progress?.last_completed_day ?? null
-  const todayRefs = (today?.passages ?? [])
-    .map((p) => p.reference)
-    .filter(Boolean)
-    .join(' · ')
-  // day_number = 아직 안 읽은 첫 일차(다음에 읽을 분량). 오늘 이미 읽었어도 이 값은 그 다음 일차다.
-  const todayDay = today?.day_number ?? progress?.current_day
-  const totalDays = progress?.total_days || plan.total_days
-  const doneDays = progress?.completed_days ?? 0
-  const remainDays = Math.max(0, totalDays - doneDays)
-  const percent = Math.min(100, progress?.percent ?? 0)
-  const startLabel = formatStartLabel(progress?.start_date)
-  // 일차 제목이 본문 참조와 같으면(대부분의 통독 플랜) 한 번만 보여준다
-  const dayTitle = today?.day_title?.trim() || ''
-  const headline = dayTitle || todayRefs || (todayDay != null ? `${todayDay}일차` : '')
-  const subline = dayTitle && todayRefs && dayTitle !== todayRefs ? todayRefs : null
-
+  const people = plan.participant_count ?? 0
+  const dots = plan.level ? LEVEL_DOTS[plan.level] : undefined
+  const tags = [plan.category].filter(Boolean) as string[]
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group relative block w-full text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985]"
+      className="group relative flex h-full w-full flex-col text-left overflow-hidden rounded-[20px] bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.97]"
     >
-      <div className="p-4">
-        {/* ① 헤더 — 썸네일 · 제목/기간 · 진행률 숫자 하나 */}
-        <div className="flex items-center gap-3">
-          <span className="relative block w-12 h-12 shrink-0 overflow-hidden rounded-xl ring-1 ring-black/[0.06] dark:ring-white/10">
-            <PlanVisual plan={plan} size="thumb" />
-          </span>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-[16px] lg:text-[20px] font-bold text-ink-strong tracking-[-0.02em] leading-snug truncate">
-              {plan.title}
-            </h4>
-            <p className="mt-0.5 flex items-center gap-1.5 flex-wrap text-[12px] lg:text-[15px] tracking-[-0.01em] text-gray-500 dark:text-white/50">
-              {plan.is_personal && (
-                <span className="inline-flex items-center px-1.5 py-[2px] rounded-md bg-[var(--brand-soft-strong)] text-brand text-[10.5px] lg:text-[13px] lg:px-2 lg:py-1 font-bold leading-none">
-                  {plan.is_owner ? '내 플랜' : `${plan.owner_name ?? '친구'}님의 플랜`}
-                  {(plan.participant_count ?? 0) > 1 && ` · ${plan.participant_count}명`}
-                </span>
-              )}
-              <span>{totalDays}일 플랜</span>
-              {startLabel && (
-                <>
-                  <span aria-hidden className="text-gray-300 dark:text-white/20">·</span>
-                  <span>{startLabel}</span>
-                </>
-              )}
-            </p>
-          </div>
-          {subscribed && progress && (
-            completed ? (
-              <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] lg:text-[14.5px] font-extrabold leading-none">
-                <CheckMark size={11} />
-                완주
-              </span>
-            ) : (
-              <span
-                className="shrink-0 text-[24px] lg:text-[30px] font-extrabold leading-none tracking-[-0.03em]"
-                style={gradientTextStyle}
-              >
-                {percent}
-                <span className="text-[13px] lg:text-[16px] font-bold ml-px">%</span>
-              </span>
-            )
-          )}
-        </div>
-
-        {/* ② 진행 — 게이지 + 숫자는 이 한 줄에만 */}
-        {subscribed && progress && (
-          <div className="mt-3.5">
-            <div
-              className={`h-2 rounded-full overflow-hidden ${
-                completed ? 'bg-emerald-500/[0.12]' : 'bg-[var(--brand-soft-strong)]'
-              }`}
-            >
-              <div
-                className={`h-full rounded-full transition-[width] duration-500 ${
-                  completed ? 'bg-emerald-400/80 dark:bg-emerald-400/70' : 'bg-brand'
-                }`}
-                style={{ width: `${percent}%` }}
-              />
-            </div>
-            <div className="mt-1.5 flex items-center justify-between gap-2 text-[11.5px] lg:text-[14px] tracking-[-0.01em] tabular-nums text-gray-500 dark:text-white/50">
-              {completed ? (
-                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300 font-semibold">
-                  <PartyIcon size={12} />
-                  {totalDays}일을 모두 읽었어요
-                </span>
-              ) : (
-                <span>
-                  <b className="font-bold text-gray-700 dark:text-white/75">{doneDays}일</b> 읽음
-                  <span aria-hidden className="mx-1 text-gray-300 dark:text-white/20">·</span>
-                  {remainDays}일 남음
-                </span>
-              )}
-              {!completed && streak > 0 && (
-                <span className="inline-flex items-center gap-0.5 font-bold text-amber-600 dark:text-amber-300">
-                  <FlameIcon size={12} />
-                  {streak}일 연속
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ③ 오늘 패널 — "지금 뭘 읽으면 되는지"만 크게. 읽었으면 완료 확인 + 다음 분량 예고 */}
-        {subscribed && !completed && todayDay != null && (
-          doneToday ? (
-            <div className="mt-3.5 rounded-xl bg-emerald-500/[0.07] dark:bg-emerald-400/[0.08] px-3.5 py-3">
-              <p className="inline-flex items-center gap-1.5 text-[12.5px] lg:text-[15.5px] font-bold tracking-[-0.02em] text-emerald-600 dark:text-emerald-300">
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white">
-                  <CheckMark size={9} />
-                </span>
-                오늘 분량을 읽었어요
-                {lastDoneDay != null && (
-                  <span className="font-medium opacity-80">· {lastDoneDay}일차</span>
-                )}
-              </p>
-              <div className="mt-1.5 flex items-center justify-between gap-3">
-                <p className="min-w-0 text-[12.5px] lg:text-[15.5px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
-                  {plan.schedule_mode === 'calendar' ? (
-                    // 달력 고정 — 오늘 본문이 곧 위 완료 일차라 '다음' 대신 밀린 읽기/내일 안내
-                    (progress?.behind_days ?? 0) > 0
-                      ? `밀린 읽기 ${progress?.behind_days}일 · ${progress?.catch_up_day}일차부터`
-                      : '내일 본문으로 이어서 함께 읽어요'
-                  ) : (
-                    <>
-                      다음 {todayDay}일차
-                      {headline && (
-                        <span className="text-gray-700 dark:text-white/75"> · {headline}</span>
-                      )}
-                    </>
-                  )}
-                </p>
-                <span className="shrink-0 inline-flex items-center gap-0.5 text-[12px] lg:text-[15px] font-bold tracking-[-0.02em] text-brand transition-transform group-hover:translate-x-0.5">
-                  더 읽기
-                  <Chevron size={11} />
-                </span>
-              </div>
-            </div>
+      <div className={`relative aspect-[4/3] shrink-0 overflow-hidden bg-gradient-to-br ${accentGradient(plan.accent)} text-white`}>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.42),transparent_60%)]" />
+        {/* 사회적 증거 — 몇 명이 함께 읽는지 보여 시작 문턱을 낮춘다 */}
+        <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/[0.18] px-2 py-1 text-[10.5px] lg:text-[12.5px] font-bold leading-none">
+          {people > 0 ? (
+            <>
+              <UsersIcon size={12} />
+              {people.toLocaleString()}명 함께
+            </>
           ) : (
-            <div className="mt-3.5 rounded-xl bg-[var(--brand-soft)] px-3.5 py-3">
-              <p className="text-[11px] lg:text-[14px] font-bold tracking-[-0.01em] text-brand">
-                오늘 읽을 말씀 · {todayDay}일차
-              </p>
-              <div className="mt-1 flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[17px] lg:text-[22px] font-extrabold tracking-[-0.03em] leading-tight text-ink-strong line-clamp-2">
-                    {headline}
-                  </p>
-                  {subline && (
-                    <p className="mt-0.5 text-[12px] lg:text-[15px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
-                      {subline}
-                    </p>
-                  )}
-                </div>
-                <span className="relative seal-chip shrink-0 inline-flex items-center gap-1 pl-3.5 pr-2.5 py-2 rounded-full bg-brand text-white text-[12.5px] lg:text-[15.5px] lg:py-2.5 font-bold tracking-[-0.02em] leading-none transition-transform group-hover:scale-[1.04]">
-                  읽기
-                  <Chevron size={12} />
-                </span>
-              </div>
-            </div>
-          )
-        )}
+            '첫 번째로 시작'
+          )}
+        </span>
+        <span className="absolute left-3 bottom-3 drop-shadow-[0_3px_8px_rgba(0,0,0,0.25)]">
+          <PlanGlyph emoji={plan.emoji} size={22} />
+        </span>
+        {/* 기간 도장 */}
+        <span
+          className="pj-stamp absolute right-3 top-1/2 -mt-[36px] lg:-mt-[42px] flex w-[72px] h-[72px] lg:w-[84px] lg:h-[84px] flex-col items-center justify-center rounded-full border-[2.5px] border-white/95 shadow-[inset_0_0_0_5px_rgba(255,255,255,0.35)] leading-none transition-transform duration-300 group-hover:scale-105"
+          style={{ '--r': `${COUPON_TILT[index % COUPON_TILT.length]}deg` } as React.CSSProperties}
+        >
+          <b className="text-[24px] lg:text-[28px] font-extrabold tracking-[-0.04em] tabular-nums">{plan.total_days}</b>
+          <small className="mt-1 text-[9.5px] lg:text-[11px] font-bold opacity-90">일 도장판</small>
+        </span>
+      </div>
+      {/* 절취선 — 양쪽 홈은 페이지 배경색으로 파낸다(plan-journey.css .pj-perf) */}
+      <div className="pj-perf relative mx-3 border-t-2 border-dashed border-gray-200 dark:border-white/[0.1]" aria-hidden />
+      <div className="flex-1 px-3.5 pt-3 pb-4 lg:px-4">
+        <h4 className="min-h-[2.6em] text-[14.5px] lg:text-[17px] font-extrabold text-ink-strong tracking-[-0.02em] leading-snug line-clamp-2 break-keep">
+          {plan.title}
+        </h4>
+        <p className="mt-1.5 flex items-center gap-1.5 text-[11.5px] lg:text-[13.5px] font-semibold text-gray-500 dark:text-white/50">
+          {dots != null && (
+            <span className="inline-flex gap-[3px]" aria-hidden>
+              {[1, 2, 3].map((n) => (
+                <i key={n} className={`block w-[5px] h-[5px] rounded-full ${n <= dots ? 'bg-brand' : 'bg-gray-200 dark:bg-white/[0.15]'}`} />
+              ))}
+            </span>
+          )}
+          {plan.level && <span>{plan.level}</span>}
+        </p>
+        <p className="mt-1.5 flex flex-wrap gap-x-2 text-[11.5px] lg:text-[13.5px] font-medium tracking-[-0.02em] text-brand">
+          <span>#{plan.total_days}일완성</span>
+          {tags.map((t) => (
+            <span key={t}>#{t}</span>
+          ))}
+        </p>
       </div>
     </button>
   )
@@ -327,13 +132,13 @@ const FeaturedPlanCard = ({
 const PlanSkeletons = () => (
   <div className="px-4 pt-9 lg:px-7">
     <div className="h-4 w-24 rounded bg-gray-100 dark:bg-white/[0.06] animate-pulse mb-5" />
-    <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] lg:gap-5">
+    <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] lg:gap-5">
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
           className="rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse overflow-hidden"
         >
-          <div className="aspect-[5/4] lg:aspect-[16/10]" />
+          <div className="aspect-[4/3]" />
           <div className="p-3 space-y-2">
             <div className="h-3.5 w-3/4 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
             <div className="h-2.5 w-1/2 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
@@ -345,4 +150,4 @@ const PlanSkeletons = () => (
 )
 
 // ── 같은 화면의 형제 모듈이 쓴다 ──
-export { SectionTitle, FeedPlanCard, FeaturedPlanCard, PlanSkeletons }
+export { SectionTitle, CouponPlanCard, PlanSkeletons, PlanVisual }

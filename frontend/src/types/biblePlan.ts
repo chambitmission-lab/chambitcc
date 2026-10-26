@@ -52,6 +52,14 @@ export interface PlanProgress {
   today_day?: number | null
   behind_days?: number
   catch_up_day?: number | null
+  // 최근 7일(오늘 포함) 중 읽은 날짜 'YYYY-MM-DD' — 목록의 '이번 주 도장'. 구버전 응답엔 없다
+  recent_dates?: string[]
+}
+
+// 플랜이 지나는 책 하나 — 처음 나오는 일차 순서 (목록의 '말씀 오솔길' 정거장 근거)
+export interface PlanBookStop {
+  book_number: number
+  start_day: number
 }
 
 export interface PlanSummary {
@@ -79,6 +87,8 @@ export interface PlanSummary {
   invite_code?: string | null
   schedule_mode?: PlanScheduleMode
   anchor_date?: string | null // 달력 고정 플랜의 1일차 날짜
+  // 지나는 책 순서 — 목록 응답에서 내가 구독한 플랜에만 온다
+  book_route?: PlanBookStop[] | null
 }
 
 // 개인 플랜을 함께 읽는 사람 한 명의 진행 상태

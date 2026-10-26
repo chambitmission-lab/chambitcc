@@ -1,8 +1,8 @@
 // 성경 읽기 플랜 라이브러리 (/bible/plans)
-// 인스타 감성 리디자인: 스토리형 Hero + 피드형 카드 그리드 + 해시태그 칩.
-// 플랜 데이터에 커버 이미지가 없어 실사 대신 accent 그라데이션 + 이모지를
-// '감성 그래픽'으로 사용한다. (추후 plan.cover_image 추가 시 PlanVisual 교체만 하면 됨)
-import { useMemo, useState } from 'react'
+// 2026-10 '도장판 여정' 개편: 오늘 카드(히어로 + 오늘 분량 티켓 + 이번 주 도장) → 읽는 중 플랜마다
+// 말씀 오솔길(지나는 성경 구간 위 내 위치) + 25/50/75/완주 이정표 → 도장 수첩(완주) → 둘러보기 쿠폰.
+// 기능은 예전 그대로다(이어서 읽기·오늘 분량·연속 기록·완주 목록·묵상방·나만의 플랜·초대 코드·태그 필터).
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBiblePlans, useTodayReadings } from '../../../hooks/useBiblePlan'
 import { isAuthenticated } from '../../../utils/auth'
@@ -11,25 +11,30 @@ import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import PersonalPlanSheet from './components/PersonalPlanSheet'
 import './plan-hero.css'
+import './plan-journey.css'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { PLAN_HERO, ROOMS_HERO, warmPair } from '../../../utils/themeAssets'
 import { showToast } from '../../../utils/toast'
-import { FeaturedPlanCard, FeedPlanCard, PlanSkeletons, SectionTitle } from './list/PlanCards'
+import { CouponPlanCard, PlanSkeletons, SectionTitle } from './list/PlanCards'
 import { PersonalPlanEntry } from './list/PersonalPlanEntry'
+import TodayHero from './list/TodayHero'
+import JourneyBoard from './list/JourneyBoard'
+import StampBook from './list/StampBook'
 
 const PlanList = () => {
   const navigate = useNavigate()
   const { data, isLoading, error, refetch, isFetching } = useBiblePlans()
   // 오늘 분량(일차·본문 reference) — 이어서 읽기 카드의 CTA/미리보기에 사용
   const { data: todayData } = useTodayReadings(isAuthenticated())
-  // 완주한 플랜은 기본 접힘 — 화면의 주인공은 "오늘 읽어야 할 플랜"
+  // 도장 수첩은 완주 도장 몇 개만 보이고 나머지는 +N 으로 접는다
   const [showCompleted, setShowCompleted] = useState(false)
   // 둘러보기 해시태그 필터 (null = 전체)
   const [tagFilter, setTagFilter] = useState<string | null>(null)
   // 나만의 플랜 만들기 시트 / 초대 코드 입력
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [codeOpen, setCodeOpen] = useState(false)
   const [codeValue, setCodeValue] = useState('')
+  // 도장 수첩의 빈 칸(+) → 둘러보기로 내려간다
+  const discoverRef = useRef<HTMLElement>(null)
 
   // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(themeAssets.ts 참고).
   // 하단 도크·레일이 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인한다.
@@ -53,6 +58,13 @@ const PlanList = () => {
     () => new Map((todayData?.items ?? []).map((t) => [t.plan_id, t])),
     [todayData],
   )
+
+  // 오늘 카드에 올릴 플랜 — 오늘 아직 안 읽은 첫 플랜, 다 읽었으면 첫 플랜. 오솔길 카드도 이 플랜부터
+  const focusPlan =
+    activePlans.find((p) => !(todayByPlan.get(p.id)?.done_today ?? p.progress?.completed_today)) ??
+    activePlans[0] ??
+    null
+  const boardPlans = focusPlan ? [focusPlan, ...activePlans.filter((p) => p.id !== focusPlan.id)] : []
 
   // 내가 만든 개인 플랜(1인 1플랜) — 있으면 "만들기" 대신 그 플랜으로 안내
   const ownedPlan = useMemo(() => plans.find((p) => p.is_owner) ?? null, [plans])
@@ -82,10 +94,8 @@ const PlanList = () => {
   const personalEntry = (
     <PersonalPlanEntry
       ownedPlan={ownedPlan}
-      codeOpen={codeOpen}
       codeValue={codeValue}
       onCreate={openCreate}
-      onToggleCode={() => setCodeOpen((v) => !v)}
       onCodeChange={setCodeValue}
       onSubmitCode={submitCode}
     />
@@ -137,140 +147,67 @@ const PlanList = () => {
           </h1>
         </div>
 
-        {/* 위쪽 — 모바일은 한 줄로 쌓이고, PC는 [히어로 + 이어서 읽기 | 위젯] 2단 */}
-        <div className="lg:flex lg:items-start lg:gap-6 lg:px-7 lg:pt-6">
-        <div className="lg:flex-1 lg:min-w-0">
-        {/* Hero — 카드 그라데이션 + 배경 삽화("통독표에 도장 찍는 양").
-            플랜마다 다른 수채 사진을 깔았더니 들어올 때마다 배경이 바뀌는 인상을 줘,
-            한 톤의 캔버스로 고정하고 그 위에 라이트/다크 한 장씩만 얹었다.
-            ★2판(2026-09-05): 라이트도 남색이던 걸 뒤집어 /bible 이어읽기 카드와 같은 문법으로 갔다 —
-            라이트는 밝은 하늘 + 남색 잉크, 다크는 거의 검은 별밤 + 흰 잉크.
-            ★삽화가 카드 전면을 불투명하게 덮는다. 예전엔 왼쪽 절반을 알파로 파서 카드 그라데이션이
-            비치게 했는데, 그 남색이 삽화의 별밤 하늘을 덮어 버려 폐기했다(재도입 금지).
-            그래서 아래 배경은 **삽화 도착 전 자리끼움**일 뿐이고, 색은 삽화 하늘색과 같게 맞춰 둔다.
-            카드·잉크·삽화는 한 세트다. 하나만 바꾸면 글씨가 죽는다(docs/plan-hero-bg-prompts.md) */}
-        <section className="relative mx-4 mt-5 lg:mx-0 lg:mt-0 overflow-hidden rounded-[26px] px-6 py-8 lg:px-8 lg:py-9 bg-[linear-gradient(120deg,#dceefc_0%,#e9f4fd_55%,#eef7ff_100%)] ring-1 ring-[rgba(49,130,246,0.15)] shadow-[0_10px_30px_-14px_rgba(49,130,246,0.45)] dark:bg-[linear-gradient(120deg,#060d1c_0%,#08111f_55%,#0c162e_100%)] dark:ring-white/[0.08] dark:shadow-[0_10px_34px_-12px_rgba(0,0,0,0.6)]">
-          {/* 라디얼 글로우 두 겹은 삭제했다 — 불투명한 삽화 아래에 깔려 보이지도 않으면서
-              페이드인 320ms 동안만 파랗게 번쩍였다. 자리끼움은 위 카드 그라데이션이면 충분하다.
-              삽화는 카드 전면을 덮고, 왼쪽 통독표 자국은 에셋 안에서 자기 하늘색으로 녹아 있다 */}
-          <div className={`plan-hero-art absolute inset-0${artReady ? ' is-ready' : ''}`} aria-hidden />
-
-          <div className="relative z-10">
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-[#2563eb] dark:text-white/65">
-              Reading&nbsp;Plan
-            </span>
-            {/* drop-shadow 는 다크에만 — 밝은 카드 위 남색 글씨에 검은 그림자가 붙으면 지저분하다 */}
-            <h2 className="text-[26px] lg:text-[30px] font-extrabold tracking-[-0.02em] leading-[1.25] text-[#152648] dark:text-white mt-3 dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
-              오늘부터,
-              <br />
-              함께 읽어요
-            </h2>
-            <p className="text-[13px] lg:text-[15px] font-light leading-[1.7] text-[#41527a] dark:text-white/80 mt-3 max-w-[15rem] lg:max-w-[17rem] break-keep">
-              계획을 골라 시작하면 매일 분량과 진행률·연속 기록을 챙겨드려요.
-            </p>
-          </div>
-        </section>
-
-        {/* 공동 묵상방 진입 — 혼자 읽는 플랜과 달리 "함께" 읽는 새 기능 */}
-        <button
-          type="button"
-          onClick={() => navigate('/rooms')}
-          onPointerEnter={warmRooms}
-          onTouchStart={warmRooms}
-          className="lg:hidden zoom-narrow-show-flex mx-4 mt-3.5 lg:mx-0 w-[calc(100%-2rem)] lg:w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
-        >
-          <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
-            <DoveIcon size={21} />
-          </span>
-          <span className="flex-1 min-w-0">
-            <span className="block text-[14px] font-bold text-ink-strong tracking-[-0.015em]">
-              공동 묵상방
-            </span>
-            <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
-              초대 링크로 모여 같은 본문을 함께 묵상해요
-            </span>
-          </span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-
-        {/* 나만의 플랜 — 관리자 큐레이션이 아니라 성도가 직접 범위·기간을 정하는 플랜 (모바일) */}
-        <div className="lg:hidden zoom-narrow-show mx-4 mt-3 lg:mx-0">{personalEntry}</div>
-
-        {/* 이어서 읽기 — PC에선 히어로 바로 아래, 위젯 칸 옆에 붙는다 */}
-        {!isLoading && activePlans.length > 0 && (
-          <section className="px-4 pt-9 lg:px-0 lg:pt-8">
-            <SectionTitle>이어서 읽기</SectionTitle>
-            <div className="space-y-3.5 lg:space-y-4">
-              {activePlans.map((plan) => (
-                <FeaturedPlanCard
+        {/* 위쪽 — 모바일은 [오늘 카드 → 오솔길 → 묵상방·나만의 플랜·도장 수첩]으로 쌓이고,
+            PC는 [오늘 카드 + 오솔길 | 300px 보조 칸] 2단. 좁은 PC 폭 + 글씨 크기 zoom 에선
+            plan-journey.css 가 2단을 풀어 모바일처럼 쌓는다(보조 칸을 숨기지 않고 아래로 내린다) */}
+        <div className="pj-top px-4 pt-5 lg:px-7 lg:pt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-6 lg:items-start">
+          <div className="min-w-0 space-y-3.5 lg:space-y-4">
+            <TodayHero
+              plan={isLoading ? null : focusPlan}
+              today={focusPlan ? todayByPlan.get(focusPlan.id) : undefined}
+              artReady={artReady}
+              onOpen={() => focusPlan && navigate(`/bible/plans/${focusPlan.id}`)}
+            />
+            {!isLoading &&
+              boardPlans.map((plan) => (
+                <JourneyBoard
                   key={plan.id}
                   plan={plan}
                   today={todayByPlan.get(plan.id)}
+                  showToday={plan.id !== focusPlan?.id}
                   onClick={() => navigate(`/bible/plans/${plan.id}`)}
                 />
               ))}
-            </div>
-          </section>
-        )}
-        </div>
+          </div>
 
-        {/* 위젯 칸 (lg+) — 공동 묵상방·나만의 플랜·나의 플랜 요약. 좁은 PC 폭 + 글씨 크기 zoom 에선
-            접고 본문 안 모바일용 진입(zoom-narrow-show)이 대신 펴진다 */}
-        <aside className="hidden lg:flex lg:w-[300px] lg:shrink-0 lg:flex-col lg:gap-3 zoom-narrow-hide">
-          <button
-            type="button"
-            onClick={() => navigate('/rooms')}
-            onPointerEnter={warmRooms}
-            onTouchStart={warmRooms}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] text-left"
-          >
-            <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
-              <DoveIcon size={21} />
-            </span>
-            <span className="flex-1 min-w-0">
-              <span className="block text-[17px] font-bold text-ink-strong tracking-[-0.015em]">
-                공동 묵상방
+          <aside className="pj-aside mt-3.5 lg:mt-0 grid gap-3 content-start">
+            {/* 공동 묵상방 — 혼자 읽는 플랜과 달리 "함께" 읽는 기능 */}
+            <button
+              type="button"
+              onClick={() => navigate('/rooms')}
+              onPointerEnter={warmRooms}
+              onTouchStart={warmRooms}
+              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-[20px] bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
+            >
+              <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+                <DoveIcon size={21} />
               </span>
-              <span className="block text-[14px] text-gray-400 dark:text-white/45 mt-0.5">
-                함께 같은 본문을 묵상해요
+              <span className="flex-1 min-w-0">
+                <span className="block text-[15px] lg:text-[17px] font-extrabold text-ink-strong tracking-[-0.015em]">
+                  공동 묵상방
+                </span>
+                <span className="block text-[12px] lg:text-[13.5px] text-gray-400 dark:text-white/45 mt-0.5">
+                  같은 본문을 함께 묵상해요
+                </span>
               </span>
-            </span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
 
-          {personalEntry}
+            {personalEntry}
 
-          {myPlans.length > 0 && (
-            <section className="rounded-2xl px-4 py-3.5 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
-              <p className="mb-2.5 text-[14px] font-bold tracking-[0.02em] text-gray-600 dark:text-white/60">
-                나의 플랜
-              </p>
-              {/* 숫자 두 개를 나란히 — 세로로 쌓으면 위젯 칸이 히어로보다 길어져 둘러보기가 밀려난다 */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl bg-[var(--brand-soft)] px-3 py-2.5">
-                  <span className="block text-[13px] font-semibold text-gray-500 dark:text-white/55">
-                    읽는 중
-                  </span>
-                  <span className="block mt-0.5 text-[24px] leading-none font-extrabold text-brand tabular-nums">
-                    {activePlans.length}
-                  </span>
-                </div>
-                <div className="rounded-xl bg-emerald-500/[0.08] px-3 py-2.5">
-                  <span className="block text-[13px] font-semibold text-gray-500 dark:text-white/55">
-                    완주
-                  </span>
-                  <span className="block mt-0.5 text-[24px] leading-none font-extrabold text-emerald-600 dark:text-emerald-300 tabular-nums">
-                    {completedPlans.length}
-                  </span>
-                </div>
-              </div>
-            </section>
-          )}
-        </aside>
+            {myPlans.length > 0 && (
+              <StampBook
+                activeCount={activePlans.length}
+                completed={completedPlans}
+                expanded={showCompleted}
+                onToggle={() => setShowCompleted((v) => !v)}
+                onOpen={(plan) => navigate(`/bible/plans/${plan.id}`)}
+                onFindMore={() => discoverRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              />
+            )}
+          </aside>
         </div>
 
         {/* 본문 — 에러여도 캐시된 목록이 있으면 그대로 보여준다
@@ -305,57 +242,12 @@ const PlanList = () => {
           </div>
         ) : (
           <>
-            {/* 완주한 플랜 — 기본 접힘 아코디언. 펼쳐도 톤을 낮춰(투명도) 진행 중 플랜에 시선이 가게 한다 */}
-            {completedPlans.length > 0 && (
-              <section className="px-4 pt-8 lg:px-7">
-                <button
-                  type="button"
-                  onClick={() => setShowCompleted((v) => !v)}
-                  aria-expanded={showCompleted}
-                  className="w-full flex items-center justify-between px-0.5 py-1 lg:px-4 lg:py-3 lg:rounded-2xl lg:bg-gray-50 lg:hover:bg-gray-100 dark:lg:bg-white/[0.03] dark:lg:hover:bg-white/[0.06] lg:transition-colors"
-                >
-                  <span className="flex items-center gap-1.5 text-[15px] lg:text-[18px] font-extrabold text-gray-500 dark:text-white/55 tracking-[-0.02em]">
-                    완주한 플랜
-                    <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] lg:text-[13px] lg:h-6 lg:min-w-[1.5rem] font-bold bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300">
-                      {completedPlans.length}
-                    </span>
-                  </span>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className={`text-gray-400 dark:text-white/40 transition-transform duration-200 ${showCompleted ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
-                {showCompleted && (
-                  <div className="space-y-3.5 mt-4 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] lg:gap-4 lg:space-y-0 lg:items-start">
-                    {completedPlans.map((plan) => (
-                      /* 끝난 플랜은 채도까지 죽여 회색조에 가깝게 — 진행 중 카드만 화면의 주인공 */
-                      <div key={plan.id} className="opacity-70 saturate-[0.35]">
-                        <FeaturedPlanCard
-                          plan={plan}
-                          onClick={() => navigate(`/bible/plans/${plan.id}`)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
-
-            <section className="px-4 pt-10 lg:px-7">
+            <section ref={discoverRef} className="px-4 pt-10 lg:px-7 scroll-mt-[112px]">
               {/* PC — 제목과 태그 칩을 한 줄에: 필터가 목록 바로 위에 있어야 "골라서 본다"가 읽힌다 */}
               <div className="lg:flex lg:items-end lg:justify-between lg:gap-6 lg:mb-6">
                 <div className="lg:[&>h3]:mb-0">
                   <SectionTitle>
-                    {myPlans.length > 0 ? '다른 플랜 둘러보기' : '플랜 둘러보기'}
+                    {myPlans.length > 0 ? '새 도장판 고르기' : '플랜 둘러보기'}
                   </SectionTitle>
                 </div>
                 {filterTags.length > 0 && (
@@ -417,11 +309,12 @@ const PlanList = () => {
                   이 태그의 플랜이 아직 없어요
                 </p>
               ) : (
-                <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] lg:gap-5">
-                  {visibleOtherPlans.map((plan) => (
-                    <FeedPlanCard
+                <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] lg:gap-5">
+                  {visibleOtherPlans.map((plan, i) => (
+                    <CouponPlanCard
                       key={plan.id}
                       plan={plan}
+                      index={i}
                       onClick={() => navigate(`/bible/plans/${plan.id}`)}
                     />
                   ))}

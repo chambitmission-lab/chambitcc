@@ -422,6 +422,8 @@
   --lp-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 
   position: relative;
+  /* 안쪽 z-10 행들이 페이지의 sticky 헤더와 같은 층에서 겹치지 않게 카드 안에 가둔다 */
+  isolation: isolate;
   overflow: hidden;
   border-radius: 6px 16px 16px 6px;
   padding: 20px;

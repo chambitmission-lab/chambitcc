@@ -1,0 +1,106 @@
+/* /bible/plans 도장판 여정 — 말씀 오솔길(pt-) · 도장(pj-) 전용.
+   레이아웃·색면은 Tailwind 로 쓰고, SVG 칠과 도장 애니메이션처럼 유틸로 못 쓰는 것만 둔다.
+   다크는 .dark 조상 기준(plan-hero.css 와 같은 문법). */
+
+/* ── 말씀 오솔길 ── */
+.pt-box { width: 100%; }
+.pt-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.pt-road { fill: none; stroke: #eef2f7; stroke-width: 16; stroke-linecap: round; stroke-linejoin: round; }
+.pt-dash { fill: none; stroke: #d5dde8; stroke-width: 2; stroke-dasharray: 2 9; stroke-linecap: round; }
+.pt-done { fill: none; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; transition: stroke-dasharray 700ms ease-out; }
+.pt-grad-a { stop-color: #8cbcff; }
+.pt-grad-b { stop-color: var(--brand); }
+
+.pt-stop-dot { fill: #fff; stroke: #d5dbe2; stroke-width: 2; }
+.pt-stop.is-passed .pt-stop-dot { fill: var(--brand); stroke: #fff; stroke-width: 3; }
+.pt-stop.is-current .pt-stop-dot { fill: #fff; stroke: var(--brand); stroke-width: 3; }
+.pt-stop-core { fill: var(--brand); }
+.pt-stop-check { fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.pt-label { font-size: 13px; font-weight: 700; fill: #8b95a1; letter-spacing: -0.02em; }
+.pt-stop.is-passed .pt-label, .pt-stop.is-current .pt-label { fill: #333d4b; }
+.pt-stop.is-current .pt-label { fill: var(--brand); font-weight: 800; }
+.pt-label-bg { fill: rgba(255, 255, 255, 0.86); }
+.pt-svg.is-wide .pt-label { font-size: 12.5px; }
+
+.pt-finish-dot { fill: #fff; stroke: #d5dbe2; stroke-width: 2; stroke-dasharray: 3 3; }
+.pt-finish-flag { fill: none; stroke: #b0b8c1; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pt-finish-label { fill: var(--brand); }
+.pt-finish.is-done .pt-finish-dot { fill: #f2cf6b; stroke: #fff; stroke-dasharray: none; }
+
+.pt-me-dot { fill: #fff; stroke: var(--brand); stroke-width: 4; filter: drop-shadow(0 0 4px rgba(49, 130, 246, 0.45)); }
+.pt-me { animation: pt-bob 2s ease-in-out infinite; }
+.pt-me-bubble { fill: #191f28; }
+.pt-me-flag { fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.pt-me-text { font-size: 11.5px; font-weight: 800; fill: #fff; letter-spacing: -0.02em; }
+@keyframes pt-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+.dark .pt-road { stroke: rgba(255, 255, 255, 0.06); }
+.dark .pt-dash { stroke: rgba(255, 255, 255, 0.14); }
+.dark .pt-grad-a { stop-color: #2f5fa8; }
+.dark .pt-stop-dot, .dark .pt-finish-dot { fill: #201f1f; stroke: rgba(255, 255, 255, 0.2); }
+.dark .pt-stop.is-passed .pt-stop-dot { fill: var(--brand); stroke: #201f1f; }
+.dark .pt-stop.is-current .pt-stop-dot { fill: #201f1f; stroke: var(--brand); }
+.dark .pt-label { fill: rgba(255, 255, 255, 0.42); }
+.dark .pt-stop.is-passed .pt-label { fill: rgba(255, 255, 255, 0.78); }
+.dark .pt-label-bg { fill: rgba(32, 31, 31, 0.86); }
+.dark .pt-finish-flag { stroke: rgba(255, 255, 255, 0.4); }
+.dark .pt-me-dot { fill: #201f1f; }
+.dark .pt-me-bubble { fill: #f1f3f6; }
+.dark .pt-me-flag { stroke: #191f28; }
+.dark .pt-me-text { fill: #191f28; }
+
+/* ── 도장 ── 찍히는 순간만 크게 내려앉는다. 회전은 --r 로 받아 transform 하나에 합친다 */
+.pj-stamp { transform: rotate(var(--r, -8deg)); }
+.pj-slam { animation: pj-slam 520ms cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
+@keyframes pj-slam {
+  0% { transform: scale(2.1) rotate(var(--r, -12deg)); opacity: 0; }
+  55% { transform: scale(0.9) rotate(var(--r, -12deg)); opacity: 1; }
+  100% { transform: scale(1) rotate(var(--r, -12deg)); }
+}
+.pj-wait { animation: pj-wait 1.7s ease-in-out infinite; }
+@keyframes pj-wait {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
+}
+
+/* 버튼 위를 한 번씩 훑는 빛 — '눌러도 되는 곳' 힌트 */
+.pj-shine { position: relative; overflow: hidden; }
+.pj-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(49, 130, 246, 0.18), transparent);
+  animation: pj-shine 3s ease-in-out infinite;
+}
+@keyframes pj-shine { 0% { transform: translateX(-120%); } 60%, 100% { transform: translateX(260%); } }
+
+/* 쿠폰 절취선의 양쪽 홈 — 페이지 배경색으로 파낸다 */
+.pj-perf::before, .pj-perf::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--pj-notch, #f1f3f6);
+}
+.pj-perf::before { left: -21px; }
+.pj-perf::after { right: -21px; }
+.dark .pj-perf { --pj-notch: #131313; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-me, .pj-slam, .pj-wait, .pj-shine::after { animation: none; }
+  .pt-done { transition: none; }
+}
+
+/* PC 글씨 크기 zoom + 좁은 PC 폭 — 위쪽 2단(오늘 카드·오솔길 | 보조 칸)을 풀어 모바일처럼 쌓는다.
+   기준 폭은 common.css 의 .zoom-narrow-* 와 같다(바꾸면 함께). 보조 칸은 숨기지 않고 아래로 내린다 */
+@media (min-width: 1024px) and (max-width: 1639px) {
+  .main-content[data-app-scale='xlarge'] .pj-top { display: block; }
+  .main-content[data-app-scale='xlarge'] .pj-aside { margin-top: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) and (max-width: 1479px) {
+  .main-content[data-app-scale='large'] .pj-top { display: block; }
+  .main-content[data-app-scale='large'] .pj-aside { margin-top: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
