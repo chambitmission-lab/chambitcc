@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, type KeyboardEvent, type ReactNode } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { Translation } from '../../../../locales'
@@ -157,7 +157,7 @@ const AdminLauncherItem = ({
 }
 
 // ── PC 관리 도구 패널 ──────────────────────────────────────
-// 빠른 작업(등록 창 바로 열기) + 개인 즐겨찾기 + 이름만 있는 6칸 목록 + 할 일 배지.
+// 전체 메뉴의 관리 탭: 왼쪽 빠른 작업 목록(할 일 배지) + 오른쪽 즐겨찾기 칩 · 이름만 있는 4칸 목록.
 // 예전 5열 아이콘 칩 격자는 29개가 같은 무게라 한눈에 안 들어왔고, '최근 사용'은 매번 순서가
 // 바뀌어 손이 위치를 못 외웠다 → 직접 고정하는 즐겨찾기로 바꿨다. 모바일 런처는 그대로다.
 
@@ -229,11 +229,13 @@ const norm = (v: string) => v.toLowerCase().replace(/\s+/g, '')
 /* 목록 행 — 단색 아이콘 + 이름 + (할 일 배지) + ☆. 설명은 호버 0.3초 뒤 말풍선.
    ☆ 은 링크 안에 넣지 않는다(a 안의 button 은 무효 HTML) — 형제로 겹쳐 둔다 */
 const ToolRow = ({
-  item, label, desc, badge, pinned, onTogglePin, tipRight = false,
+  item, label, desc, badge, pinned, onTogglePin, tipRight = false, active = false,
 }: {
   item: AdminItem; label: string; desc: string; badge?: AdminMenuBadge; pinned: boolean; onTogglePin: () => void
   /** 맨 오른쪽 칸 — 말풍선을 오른쪽 끝에 맞춰 메뉴 밖으로 잘리지 않게 */
   tipRight?: boolean
+  /** 검색 결과에서 ↑↓ 로 고른 행 — Enter 가 여는 곳 */
+  active?: boolean
 }) => {
   const { t } = useLanguage()
   const Icon = ADMIN_ICONS[item.key]
@@ -242,7 +244,7 @@ const ToolRow = ({
       <Link
         to={item.path}
         onClick={() => pushRecent(item.path)}
-        className={`flex items-center gap-2.5 rounded-lg pl-2.5 py-2 transition-colors duration-150 hover:bg-[var(--brand-soft)] focus-visible:bg-[var(--brand-soft)] outline-none ${
+        className={`flex items-center gap-2.5 rounded-lg pl-2.5 py-2 transition-colors duration-150 hover:bg-[var(--brand-soft)] focus-visible:bg-[var(--brand-soft)] outline-none ${active ? 'bg-[var(--brand-soft)]' : ''} ${
           pinned ? 'pr-8' : 'pr-2.5 group-hover:pr-8 group-focus-within:pr-8'
         }`}
       >
@@ -285,19 +287,38 @@ const ToolRow = ({
   )
 }
 
-const AdminDesktopPanel = () => {
+/* 목록 묶음 — 2개짜리 회원·그룹은 현황·통계 아래에 붙여 4칸으로 줄인다(칸이 적을수록 덜 산만하고,
+   그만큼 말씀·콘텐츠 두 줄 칸이 넓어져 "비로그인 홈(랜딩) 편집" 같은 긴 이름이 안 잘린다) */
+const DESKTOP_COLUMNS: AdminGroup[][] = [
+  [ADMIN_GROUPS[0], ADMIN_GROUPS[4]],
+  [ADMIN_GROUPS[1]],
+  [ADMIN_GROUPS[2]],
+  [ADMIN_GROUPS[3]],
+]
+
+/* 빠른 작업 행 아이콘 — 할 일 등급 색(관리자 홈과 같은 규칙), 할 일이 없으면 브랜드 */
+const ICON_TONE: Record<AdminMenuBadge['tone'], string> = {
+  urgent: 'text-[var(--amber)]',
+  warn: 'text-brand',
+  info: 'text-ink-muted',
+}
+
+const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const [favorites, setFavorites] = useState(readFavorites)
   const [query, setQuery] = useState('')
-  // 배지는 메뉴를 열 때마다 새로 — 주보를 올리고 돌아오면 '미등록'이 바로 사라져야 한다.
-  // persist 제외(main.tsx) — 복원된 옛 배지가 먼저 떴다가 바뀌면 오히려 헷갈린다
+  const [cursor, setCursor] = useState(0)
+  // 메뉴를 열 때 MobileMenu 가 같은 키로 새로 받아 둔다(탭 숫자) — 탭을 오갈 때마다 다시 부르지 않게
+  // 여기선 캐시를 그대로 쓴다. persist 제외(main.tsx) — 복원된 옛 배지가 먼저 뜨면 헷갈린다
   const { data: status } = useQuery({
     queryKey: adminKeys.menuStatus(),
     queryFn: fetchAdminMenuStatus,
     staleTime: 30_000,
-    refetchOnMount: 'always',
   })
   const badges = status?.badges ?? {}
+  const todoCount = Object.keys(badges).length
+  const urgent = Object.values(badges).some(b => b.tone === 'urgent')
 
   const togglePin = (path: string) => {
     setFavorites(prev => {
@@ -313,7 +334,27 @@ const AdminDesktopPanel = () => {
     ? ADMIN_GROUPS.flatMap(g => g.items.filter(item =>
       norm(t(item.key) + desc(item) + t(g.titleKey)).includes(q)))
     : []
-  const row = (item: AdminItem, tipRight = false) => (
+
+  // 메뉴 찾기와 같은 손버릇 — ↑↓ 로 고르고 Enter 로 연다
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent.isComposing) return
+    if (e.key === 'ArrowDown' && hits.length) {
+      e.preventDefault()
+      setCursor(c => (c + 1) % hits.length)
+    } else if (e.key === 'ArrowUp' && hits.length) {
+      e.preventDefault()
+      setCursor(c => (c - 1 + hits.length) % hits.length)
+    } else if (e.key === 'Enter' && hits.length) {
+      e.preventDefault()
+      const hit = hits[Math.min(cursor, hits.length - 1)]
+      pushRecent(hit.path)
+      navigate(hit.path)
+    } else if (e.key === 'Escape' && query) {
+      setQuery('')
+    }
+  }
+
+  const row = (item: AdminItem, tipRight = false, active = false) => (
     <ToolRow
       key={item.path}
       item={item}
@@ -323,6 +364,7 @@ const AdminDesktopPanel = () => {
       pinned={favorites.includes(item.path)}
       onTogglePin={() => togglePin(item.path)}
       tipRight={tipRight}
+      active={active}
     />
   )
   const favoriteItems = favorites
@@ -330,117 +372,138 @@ const AdminDesktopPanel = () => {
     .filter((i): i is AdminItem => !!i)
 
   return (
-    <div className="mx-5 mb-5 pt-4 border-t border-border-light dark:border-border-dark animate-pop-in">
-      <label className="flex items-center gap-2.5 rounded-xl px-3.5 h-[calc(44px*var(--mm,1))] bg-surface-high border border-transparent focus-within:border-brand transition-colors">
-        <IconSearch className="w-[calc(18px*var(--mm,1))] h-[calc(18px*var(--mm,1))] text-ink-muted shrink-0" />
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Escape' && query) setQuery('') }}
-          placeholder={t('adminSearchPlaceholder')}
-          aria-label={t('adminSearchPlaceholder')}
-          className="flex-1 min-w-0 bg-transparent outline-none text-[length:calc(15px*var(--mm,1))] text-ink-strong placeholder:text-ink-muted"
-        />
-      </label>
+    <div className="px-5 pt-5 pb-4">
+      {/* 검색 줄 — 메뉴 탭과 같은 높이·자리(탭을 바꿔도 위가 안 흔들린다) */}
+      <div className="flex items-center gap-3">
+        {leading}
+        <label className="flex-1 min-w-0 flex items-center gap-2.5 rounded-xl px-3.5 h-[calc(46px*var(--mm,1))] bg-surface-high border border-transparent focus-within:border-brand transition-colors">
+          <IconSearch className="w-[calc(19px*var(--mm,1))] h-[calc(19px*var(--mm,1))] text-ink-muted shrink-0" />
+          <input
+            autoFocus
+            value={query}
+            onChange={e => { setQuery(e.target.value); setCursor(0) }}
+            onKeyDown={onKeyDown}
+            placeholder={t('adminSearchPlaceholder')}
+            aria-label={t('adminSearchPlaceholder')}
+            className="flex-1 min-w-0 bg-transparent outline-none text-[length:calc(15.5px*var(--mm,1))] text-ink-strong placeholder:text-ink-muted"
+          />
+        </label>
+      </div>
 
       {q ? (
-        <div className="mt-3 min-h-[calc(160px*var(--mm,1))]">
+        <div className="mt-3 min-h-[calc(220px*var(--mm,1))]">
           {hits.length > 0 ? (
-            <div className="grid grid-cols-4 gap-x-4">{hits.map((item, i) => row(item, i % 4 === 3))}</div>
+            <div className="grid grid-cols-4 gap-x-4">{hits.map((item, i) => row(item, i % 4 === 3, i === cursor))}</div>
           ) : (
-            <p className="py-10 text-center text-[length:calc(15px*var(--mm,1))] text-ink-muted">
+            <p className="py-12 text-center text-[length:calc(15px*var(--mm,1))] text-ink-muted">
               “{query.trim()}” — {t('adminSearchEmpty')}
             </p>
           )}
         </div>
       ) : (
-        <>
-          {/* 빠른 작업 — 매주 하는 등록 일을 한 번에. 할 일 배지가 있으면 설명 대신 배지를 보인다 */}
-          <h4 className="mt-5 mb-2.5 px-1 text-[length:calc(14.5px*var(--mm,1))] font-bold text-brand">{t('adminQuickTitle')}</h4>
-          <div className="grid grid-cols-6 gap-2">
-            {QUICK_ACTIONS.map(action => {
-              const Icon = ADMIN_ICONS[action.icon]
-              const badge = badges[action.badgeKey]
-              return (
-                <Link
-                  key={action.to}
-                  to={action.to}
-                  className="group flex flex-col items-start gap-2.5 rounded-2xl p-3.5 bg-[var(--brand-soft)] transition-colors hover:bg-[var(--brand-soft-strong)]"
-                >
-                  <span className="flex items-center justify-center w-[calc(36px*var(--mm,1))] h-[calc(36px*var(--mm,1))] rounded-xl bg-background-light dark:bg-background-dark text-brand [&_svg]:w-[calc(19px*var(--mm,1))] [&_svg]:h-[calc(19px*var(--mm,1))]">
-                    <Icon />
-                  </span>
-                  <span className="min-w-0 w-full">
-                    <span className="block text-[length:calc(15px*var(--mm,1))] font-bold leading-tight text-ink-strong group-hover:text-brand transition-colors truncate">
-                      {t(action.labelKey)}
-                    </span>
-                    <span className="block mt-1 min-h-[1.25em]">
-                      {badge ? (
-                        <Badge badge={badge} full />
-                      ) : (
-                        <span className="block text-[length:calc(12.5px*var(--mm,1))] leading-snug text-ink-muted truncate">{t(action.descKey)}</span>
-                      )}
-                    </span>
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
-
-          {/* 즐겨찾기 — 내가 고른 도구만. 순서는 고정한 순서 그대로(손이 위치를 외우게) */}
-          <h4 className="mt-5 mb-2 px-1 text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong"><span className="text-[var(--amber-icon)]">★</span> {t('adminFavorites')}</h4>
-          {favoriteItems.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {favoriteItems.map(item => {
-                const Icon = ADMIN_ICONS[item.key]
-                const badge = badges[item.path]
+        <div className="mt-5 grid grid-cols-[minmax(0,15.5rem)_minmax(0,1fr)] gap-x-7 items-start">
+          {/* 빠른 작업 — 매주 하는 등록 일. 파란 카드 6장 대신 회색 면 한 장 안의 목록으로.
+              순서는 고정(손이 위치를 외운다), 할 일이 걸린 행만 흰 면으로 떠오른다 */}
+          <aside className="rounded-2xl bg-surface-high p-2">
+            <div className="flex items-baseline justify-between gap-2 px-2.5 pt-1.5 pb-2">
+              <h4 className="whitespace-nowrap text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">{t('adminQuickTitle')}</h4>
+              {/* 현황을 받기 전엔 비워 둔다 — '할 일 없음'이 먼저 떴다가 숫자로 바뀌면 헷갈린다 */}
+              {status && (
+                <span className={`whitespace-nowrap text-[length:calc(12.5px*var(--mm,1))] font-semibold ${
+                  todoCount === 0 ? 'text-ink-muted' : urgent ? 'text-[var(--amber)]' : 'text-brand'
+                }`}>
+                  {todoCount > 0 ? `${t('adminTodoSummary')} ${todoCount}` : t('adminTodoDone')}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {QUICK_ACTIONS.map(action => {
+                const Icon = ADMIN_ICONS[action.icon]
+                const badge = badges[action.badgeKey]
                 return (
                   <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => pushRecent(item.path)}
-                    className="group inline-flex items-center gap-2 rounded-xl pl-3 pr-3.5 py-2 bg-surface-high transition-colors hover:bg-[var(--brand-soft)] [&_svg]:w-[calc(17px*var(--mm,1))] [&_svg]:h-[calc(17px*var(--mm,1))]"
+                    key={action.to}
+                    to={action.to}
+                    title={t(action.descKey)}
+                    className={`group flex items-center gap-2.5 rounded-xl px-2.5 py-2.5 transition-colors ${
+                      badge
+                        ? 'bg-background-light dark:bg-card-dark shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                        : 'hover:bg-background-light dark:hover:bg-card-dark'
+                    } [&_svg]:w-[calc(19px*var(--mm,1))] [&_svg]:h-[calc(19px*var(--mm,1))]`}
                   >
-                    <span className="text-ink-muted group-hover:text-brand transition-colors"><Icon /></span>
-                    <span className="text-[length:calc(15px*var(--mm,1))] font-semibold text-ink-strong group-hover:text-brand transition-colors">{t(item.key)}</span>
-                    {badge && <Badge badge={badge} />}
+                    <span className={`shrink-0 ${badge ? ICON_TONE[badge.tone] : 'text-brand'}`}><Icon /></span>
+                    <span className={`min-w-0 flex-1 truncate text-[length:calc(15px*var(--mm,1))] leading-tight text-ink-strong group-hover:text-brand transition-colors ${badge ? 'font-bold' : 'font-medium'}`}>
+                      {t(action.labelKey)}
+                    </span>
+                    {badge && <Badge badge={badge} full />}
                   </Link>
                 )
               })}
             </div>
-          ) : (
-            <p className="px-1 text-[length:calc(13.5px*var(--mm,1))] text-ink-muted">{t('adminFavoritesEmpty')}</p>
-          )}
+          </aside>
 
-          {/* 전체 — 제목 진하게+밑줄. 14개짜리 말씀·콘텐츠는 두 줄로 펴고 폭도 그만큼 더 준다
-              ("비로그인 홈(랜딩) 편집" 같은 긴 이름이 잘리지 않게 — 짧은 칸은 좁게) */}
-          <div className="mt-6 grid grid-cols-[minmax(0,1fr)_minmax(0,2.5fr)_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.9fr)] gap-x-4 items-start">
-            {ADMIN_GROUPS.map((group, gi) => {
-              const wide = group.items.length > 8
-              const last = gi === ADMIN_GROUPS.length - 1
-              return (
-                <div key={group.titleKey} className="min-w-0">
-                  <h4 className="mx-2.5 mb-1.5 pb-2 flex items-baseline justify-between border-b border-border-light dark:border-border-dark text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">
-                    {t(group.titleKey)}
-                    <span className="text-[length:calc(12.5px*var(--mm,1))] font-medium text-ink-muted">{group.items.length}</span>
-                  </h4>
-                  <div className={wide ? 'grid grid-cols-2 gap-x-2' : ''}>{group.items.map(item => row(item, last))}</div>
+          <div className="min-w-0">
+            {/* 즐겨찾기 — 내가 고른 도구만. 제목과 같은 줄에 칩으로(세로 자리를 덜 먹게) */}
+            <div className="flex flex-wrap items-center gap-2 min-h-[calc(38px*var(--mm,1))]">
+              <h4 className="mr-1 flex items-center gap-1 text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">
+                <span className="text-[var(--amber-icon)]"><IconStar filled /></span>
+                {t('adminFavorites')}
+              </h4>
+              {favoriteItems.length > 0 ? (
+                favoriteItems.map(item => {
+                  const Icon = ADMIN_ICONS[item.key]
+                  const badge = badges[item.path]
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => pushRecent(item.path)}
+                      className="group inline-flex items-center gap-2 rounded-full pl-3 pr-3.5 py-1.5 border border-border-light dark:border-border-dark transition-colors hover:border-brand hover:bg-[var(--brand-soft)] [&_svg]:w-[calc(17px*var(--mm,1))] [&_svg]:h-[calc(17px*var(--mm,1))]"
+                    >
+                      <span className="text-ink-muted group-hover:text-brand transition-colors"><Icon /></span>
+                      <span className="text-[length:calc(14.5px*var(--mm,1))] font-semibold text-ink-strong group-hover:text-brand transition-colors">{t(item.key)}</span>
+                      {badge && <Badge badge={badge} />}
+                    </Link>
+                  )
+                })
+              ) : (
+                <p className="text-[length:calc(13.5px*var(--mm,1))] text-ink-muted">{t('adminFavoritesEmpty')}</p>
+              )}
+            </div>
+
+            {/* 전체 — 제목 진하게+밑줄. 14개짜리 말씀·콘텐츠는 두 줄로 펴고 폭도 그만큼 더 준다 */}
+            <div className="mt-4 grid grid-cols-[minmax(0,0.9fr)_minmax(0,2.7fr)_minmax(0,1.15fr)_minmax(0,0.85fr)] gap-x-3 items-start">
+              {DESKTOP_COLUMNS.map((groups, ci) => (
+                <div key={groups[0].titleKey} className="min-w-0 flex flex-col gap-4">
+                  {groups.map(group => {
+                    const wide = group.items.length > 8
+                    return (
+                      <div key={group.titleKey}>
+                        <h4 className="mx-2.5 mb-1.5 pb-2 flex items-baseline justify-between border-b border-border-light dark:border-border-dark text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">
+                          {t(group.titleKey)}
+                          <span className="text-[length:calc(12.5px*var(--mm,1))] font-medium text-ink-muted">{group.items.length}</span>
+                        </h4>
+                        <div className={wide ? 'grid grid-cols-2 gap-x-2' : ''}>
+                          {group.items.map(item => row(item, ci === DESKTOP_COLUMNS.length - 1))}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
+              ))}
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )
 }
 
 /**
- * panelOnly — PC 전체 메뉴용. 큰 파란 토글 카드 없이 도구 목록만 그린다(열고 닫기는 MobileMenu 푸터 링크가
- * 같은 OPEN_KEY 로 한다 — 이 파일은 lazy 청크라 상수를 import 하지 않고 키 문자열을 양쪽에 둔다).
- * 관리 도구는 보조 영역이라 본 메뉴보다 먼저 눈에 띄면 안 된다.
+ * panelOnly — PC 전체 메뉴의 '관리' 탭 화면. 메뉴/관리 전환은 MobileMenu 가 같은 OPEN_KEY 로 한다
+ * (이 파일은 lazy 청크라 상수를 import 하지 않고 키 문자열을 양쪽에 둔다). leading = 검색창 왼쪽 탭.
  */
-const AdminMenu = ({ panelOnly = false }: { panelOnly?: boolean }) => {
+const AdminMenu = ({ panelOnly = false, leading }: { panelOnly?: boolean; leading?: ReactNode }) => {
   const { t } = useLanguage()
   const [isOpen, setIsOpen] = useState(() => safeStorage.get(OPEN_KEY) === '1')
   const [recent] = useState(readRecent)
@@ -483,7 +546,7 @@ const AdminMenu = ({ panelOnly = false }: { panelOnly?: boolean }) => {
     </div>
   )
 
-  if (panelOnly) return <AdminDesktopPanel />
+  if (panelOnly) return <AdminDesktopPanel leading={leading} />
 
   return (
     <div className="px-3 pt-3 pb-2 lg:px-5">

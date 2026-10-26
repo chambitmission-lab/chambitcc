@@ -199,6 +199,12 @@ export const navigation = {
   adminFavoriteRemove: 'Unpin',
   adminSearchPlaceholder: 'Find a tool (e.g. bulletin, push)',
   adminSearchEmpty: 'No matching tool',
+  // PC full menu mode tabs — shown to admins only
+  navMenuModeAria: 'Switch menu view',
+  navMenuModeMember: 'Menu',
+  navMenuModeAdmin: 'Admin',
+  adminTodoSummary: 'To do',
+  adminTodoDone: 'All done',
   // PC left nav rail (DesktopNavRail) — home/bible/profile reuse the shared keys above
   railAria: 'Main menu',
   railPrayerFocus: 'Focused Prayer',

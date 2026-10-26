@@ -200,6 +200,12 @@ export const navigation = {
   adminFavoriteRemove: '즐겨찾기 해제',
   adminSearchPlaceholder: '관리 도구 찾기 (예: 주보, 푸시, 선거)',
   adminSearchEmpty: '관리 도구에 없어요',
+  // PC 전체 메뉴 상단 모드 탭 — 관리자에게만 보인다
+  navMenuModeAria: '메뉴 보기 전환',
+  navMenuModeMember: '메뉴',
+  navMenuModeAdmin: '관리',
+  adminTodoSummary: '할 일',
+  adminTodoDone: '할 일 없음',
   // PC 좌측 내비 레일 (DesktopNavRail) — 홈·성경·프로필은 위 공용 키 재사용
   railAria: '주요 메뉴',
   railPrayerFocus: '집중 기도',

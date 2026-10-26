@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { NAV_ICONS, Svg } from './NavIcons'
@@ -150,7 +150,7 @@ const SearchResultItem = ({
   )
 }
 
-const DesktopMegaMenu = ({ visible }: { visible: (item: NavEntry) => boolean }) => {
+const DesktopMegaMenu = ({ visible, searchLeading }: { visible: (item: NavEntry) => boolean; searchLeading?: ReactNode }) => {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -184,20 +184,24 @@ const DesktopMegaMenu = ({ visible }: { visible: (item: NavEntry) => boolean }) 
 
   return (
     <div className="px-5 pt-5 pb-4">
-      {/* 메뉴 찾기 — 20개 넘는 항목은 훑기보다 치는 게 빠르다. 메뉴에 없으면 ⌘K 팔레트로 이어준다 */}
-      <label className="flex items-center gap-2.5 rounded-xl px-3.5 h-[calc(46px*var(--mm,1))] bg-surface-high border border-transparent focus-within:border-brand transition-colors">
-        <IconSearch className="w-[calc(19px*var(--mm,1))] h-[calc(19px*var(--mm,1))] text-ink-muted shrink-0" />
-        <input
-          autoFocus
-          value={query}
-          onChange={e => { setQuery(e.target.value); setCursor(0) }}
-          onKeyDown={onKeyDown}
-          onFocus={preloadCommandPalette}
-          placeholder={t('navMenuSearchPlaceholder')}
-          aria-label={t('navMenuSearchPlaceholder')}
-          className="flex-1 min-w-0 bg-transparent outline-none text-[length:calc(15.5px*var(--mm,1))] text-ink-strong placeholder:text-ink-muted"
-        />
-      </label>
+      {/* 메뉴 찾기 — 20개 넘는 항목은 훑기보다 치는 게 빠르다. 메뉴에 없으면 ⌘K 팔레트로 이어준다.
+          관리자는 왼쪽에 메뉴/관리 탭(searchLeading)이 붙는다 — 관리 탭도 같은 자리에 같은 줄이라 전환해도 안 흔들린다 */}
+      <div className="flex items-center gap-3">
+        {searchLeading}
+        <label className="flex-1 min-w-0 flex items-center gap-2.5 rounded-xl px-3.5 h-[calc(46px*var(--mm,1))] bg-surface-high border border-transparent focus-within:border-brand transition-colors">
+          <IconSearch className="w-[calc(19px*var(--mm,1))] h-[calc(19px*var(--mm,1))] text-ink-muted shrink-0" />
+          <input
+            autoFocus
+            value={query}
+            onChange={e => { setQuery(e.target.value); setCursor(0) }}
+            onKeyDown={onKeyDown}
+            onFocus={preloadCommandPalette}
+            placeholder={t('navMenuSearchPlaceholder')}
+            aria-label={t('navMenuSearchPlaceholder')}
+            className="flex-1 min-w-0 bg-transparent outline-none text-[length:calc(15.5px*var(--mm,1))] text-ink-strong placeholder:text-ink-muted"
+          />
+        </label>
+      </div>
 
       {q ? (
         <div className="mt-3 min-h-[calc(220px*var(--mm,1))]">
@@ -316,13 +320,13 @@ const LauncherItem = ({
 
 // isDesktop: PC 그리드와 모바일 런처를 둘 다 그리고 CSS 로 한쪽만 숨기면 Link·아이콘이 두 벌씩
 // 만들어진다 — 메뉴가 열리는 프레임에 청크 프리로드까지 같이 도는 시점이라 한쪽만 그린다.
-const NavigationMenu = ({ isDesktop }: { isDesktop: boolean }) => {
+const NavigationMenu = ({ isDesktop, searchLeading }: { isDesktop: boolean; searchLeading?: ReactNode }) => {
   const { t } = useLanguage()
   // 누군가의 기도는 운영자가 연 뒤에만 메뉴에 보인다 (그 전엔 광고 전 기능)
   const { data: intercession } = useIntercessionSummary()
   const visible = (item: NavEntry) => item.path !== '/intercession' || !!intercession?.open
 
-  if (isDesktop) return <DesktopMegaMenu visible={visible} />
+  if (isDesktop) return <DesktopMegaMenu visible={visible} searchLeading={searchLeading} />
 
 
   const activityItems = ACTIVITY_ITEMS.filter(visible)
