@@ -240,24 +240,231 @@
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* ── 묵상 시트 내부 ── */
-.rt-prompt {
-  border-radius: 1rem;
-  padding: 0.9rem 1rem;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
+/* ── 묵상 시트 — "말씀에서 켜진 빛을 서로 나눈다" ──
+   참빛 감성은 장식이 아니라 빛 하나로: 시트 위쪽에서 번지는 브랜드 빛, 빈 상태의 작은 불씨,
+   방금 나눈 묵상이 한 번 빛나는 순간. 그 밖엔 토스 플랫(테두리 1px·그림자 없음)을 지킨다. */
+.rt-sheet__glow {
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 340px;
+  background: radial-gradient(ellipse 50% 55% at 50% 50%, var(--brand-soft-strong), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
-.rt-prompt__q {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-body);
-  letter-spacing: -0.01em;
-}
-.rt-prompt__hint {
-  margin-top: 2px;
-  font-size: 0.76rem;
+.rt-sheet__presence {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  font-weight: 600;
   color: var(--text-muted);
 }
+.rt-sheet__presence--live { color: var(--brand); }
+
+/* 말씀 — 명조, 어절마다 누를 수 있다 */
+.rt-verse {
+  margin: 0.25rem 0 1rem;
+  padding: 1.1rem 1.15rem 0.85rem;
+  border-radius: 1.1rem;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--ig-border);
+}
+.dark .rt-verse { background: rgba(255, 255, 255, 0.035); border-color: rgba(255, 255, 255, 0.07); }
+.rt-verse__text {
+  margin: 0;
+  font-family: var(--font-serif-kr);
+  font-size: 1.0625rem;
+  line-height: 1.9;
+  letter-spacing: -0.01em;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.rt-verse__word {
+  display: inline;
+  padding: 0.05em 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  border-radius: 0.3em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+@media (hover: hover) {
+  .rt-verse__word:hover { background: var(--brand-soft); }
+}
+.rt-verse__word:active { background: var(--brand-soft-strong); }
+.rt-verse__word--on {
+  color: var(--brand);
+  background: linear-gradient(transparent 62%, var(--brand-soft-strong) 62%);
+}
+.rt-verse__cap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.rt-verse__hint { color: var(--brand); opacity: 0.85; }
+
+/* 작성 카드 */
+.rt-composer {
+  border-radius: 1.1rem;
+  padding: 0.85rem 0.9rem 0.75rem;
+  background: var(--card-bg, #fff);
+  border: 1.5px solid var(--brand-soft-strong);
+  transition: border-color 0.2s ease;
+}
+.dark .rt-composer { background: rgba(255, 255, 255, 0.035); }
+.rt-composer:focus-within { border-color: var(--brand); }
+.rt-composer__keys {
+  display: flex;
+  gap: 0.375rem;
+  margin: 0 -0.9rem;
+  padding: 0 0.9rem 0.15rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 0.9rem, #000 calc(100% - 1.5rem), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 0.9rem, #000 calc(100% - 1.5rem), transparent);
+}
+.rt-composer__keys::-webkit-scrollbar { display: none; }
+.rt-key {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--ig-border);
+  background: transparent;
+  color: var(--text-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.dark .rt-key { border-color: rgba(255, 255, 255, 0.1); }
+.rt-key:active { transform: scale(0.97); }
+.rt-key--on,
+.dark .rt-key--on {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+.rt-composer__input {
+  display: block;
+  width: 100%;
+  margin-top: 0.65rem;
+  min-height: 84px;
+  max-height: 240px;
+  resize: none;
+  padding: 0.1rem 0.1rem;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text-body);
+}
+.rt-composer__input::placeholder { color: var(--text-muted); opacity: 0.8; }
+.rt-composer__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+.rt-composer__who {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  flex: 1;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rt-composer__count {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.rt-composer__count--warn { color: #e5484d; font-weight: 700; }
+.rt-composer__send {
+  flex-shrink: 0;
+  height: 38px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+.rt-composer__send:active:not(:disabled) { transform: scale(0.97); }
+.rt-composer__send:disabled { opacity: 0.35; cursor: default; }
+
+/* 이미 나눴을 때 */
+.rt-done {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 1.1rem;
+  background: var(--brand-soft);
+}
+.rt-done__mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: var(--on-brand);
+}
+.rt-done__title { font-size: 0.875rem; font-weight: 700; color: var(--text-body); }
+.rt-done__sub { margin-top: 1px; font-size: 0.75rem; color: var(--text-muted); }
+
+/* 성도들의 묵상 */
+.rt-feed { margin-top: 1.5rem; }
+.rt-feed__head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.rt-feed__head strong { color: var(--text-body); font-weight: 800; }
+.rt-faces { display: inline-flex; }
+.rt-faces .rt-avatar { box-shadow: 0 0 0 2px var(--rt-sheet-bg, #fff); }
+.dark .rt-faces .rt-avatar { --rt-sheet-bg: #201f1f; }
+.rt-faces .rt-avatar + .rt-avatar { margin-left: -7px; }
+.rt-faces:empty { display: none; }
+
+.rt-skeleton { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.5rem; }
+.rt-skeleton span {
+  height: 76px;
+  border-radius: 1rem;
+  background: var(--ig-secondary-background);
+  animation: rt-skel 1.2s ease-in-out infinite alternate;
+}
+.rt-skeleton span:nth-child(2) { height: 58px; animation-delay: 0.15s; }
+.rt-skeleton span:nth-child(3) { height: 92px; animation-delay: 0.3s; }
+@keyframes rt-skel { from { opacity: 0.55; } to { opacity: 1; } }
+
 .rt-textarea {
   width: 100%;
   margin-top: 0.6rem;
@@ -286,28 +493,39 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  height: 38px;
-  padding: 0 1rem;
+  height: 34px;
+  padding: 0 0.95rem;
   border-radius: 999px;
   border: none;
   background: var(--brand);
-  color: #fff;
-  font-weight: 800;
-  font-size: 0.82rem;
+  color: var(--on-brand);
+  font-weight: 700;
+  font-size: 0.8rem;
   cursor: pointer;
-  box-shadow: 0 8px 20px -10px var(--brand-glow);
 }
-.rt-btn-primary:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+.rt-btn-primary:disabled { opacity: 0.4; cursor: default; }
 
 .rt-card {
   border-radius: 1rem;
-  padding: 0.85rem 0.95rem;
+  padding: 0.9rem 0.95rem 0.55rem;
   background: var(--card-bg, #fff);
   border: 1px solid var(--ig-border);
 }
 .dark .rt-card { background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.07); }
-.rt-card--mine { border-color: var(--brand-soft-strong); }
+.rt-card--mine,
+.dark .rt-card--mine { border-color: var(--brand-soft-strong); }
+/* 방금 나눈 묵상 — 빛이 한 번 번졌다 가라앉는다 */
+.rt-card--fresh { animation: rt-fresh 1.6s ease-out; }
+@keyframes rt-fresh {
+  0% { box-shadow: 0 0 0 0 var(--brand-glow); border-color: var(--brand); }
+  40% { box-shadow: 0 0 0 6px var(--brand-soft); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-card--fresh { animation: none; }
+}
 .rt-card__head { display: flex; align-items: center; gap: 0.6rem; }
+.rt-card__who { min-width: 0; flex: 1; }
 .rt-avatar {
   width: 34px;
   height: 34px;
@@ -324,38 +542,72 @@
 }
 .rt-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .rt-avatar--sm { width: 26px; height: 26px; font-size: 0.7rem; }
-.rt-card__name { font-weight: 700; font-size: 0.86rem; color: var(--text-body); }
-.rt-card__meta { font-size: 0.72rem; color: var(--text-muted); }
+.rt-card__name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 0.4rem;
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--text-body);
+}
+.rt-card__me {
+  align-self: center;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.rt-card__meta { font-size: 0.72rem; font-weight: 500; color: var(--text-muted); }
 .rt-card__body {
-  margin-top: 0.55rem;
+  margin-top: 0.5rem;
   white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   font-size: 0.95rem;
   line-height: 1.7;
   color: var(--text-body);
 }
+.rt-card__quote {
+  background: none;
+  color: var(--brand);
+  font-weight: 700;
+}
 .rt-card__actions {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
+  gap: 0.15rem;
+  margin: 0.35rem -0.45rem 0;
 }
 .rt-action {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  height: 30px;
-  padding: 0 0.6rem;
+  height: 32px;
+  padding: 0 0.55rem;
   border-radius: 999px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .rt-action:hover { background: var(--ig-secondary-background); }
 .rt-action--on { color: var(--brand); }
+.rt-action__num { font-weight: 800; font-variant-numeric: tabular-nums; }
+.rt-action--amen[aria-pressed='true'] svg { animation: rt-amen 0.32s cubic-bezier(0.2, 0.8, 0.2, 1.4); }
+@keyframes rt-amen {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-action--amen[aria-pressed='true'] svg { animation: none; }
+}
 .rt-action--danger:hover { color: #e5484d; }
 .rt-action__spacer { flex: 1; }
 
@@ -418,17 +670,133 @@
 .rt-reply-form button:disabled { opacity: 0.5; cursor: default; }
 
 .rt-empty {
-  text-align: center;
-  padding: 1.2rem 0.5rem;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  line-height: 1.6;
-}
-.rt-live-line {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 1.25rem;
+  padding: 1.5rem 0.75rem 0.5rem;
   color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  word-break: keep-all;
 }
-.rt-live-line strong { color: var(--brand); font-weight: 800; }
+.rt-empty__title { margin-bottom: 0.15rem; font-size: 0.9rem; font-weight: 700; color: var(--text-body); }
+/* 아직 아무도 나누지 않은 말씀 — 꺼진 촛불(연기만 오름) → 쓰기 시작하면 불이 붙고 빛살이 돈다 */
+.rt-candle {
+  --rt-wax-a: #e9e4da;
+  --rt-wax-b: #fbf8f2;
+  --rt-dish: #cfd5de;
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  width: 140px;
+  height: 104px;
+  margin-bottom: 0.4rem;
+}
+.dark .rt-candle {
+  --rt-wax-a: #8e8a84;
+  --rt-wax-b: #d9d4cb;
+  --rt-dish: #4a4d55;
+}
+.rt-candle svg { position: relative; width: 66px; height: 100px; overflow: visible; z-index: 2; }
+.rt-candle__wax-a { stop-color: var(--rt-wax-a); }
+.rt-candle__wax-b { stop-color: var(--rt-wax-b); }
+.rt-candle__drip { fill: var(--rt-wax-b); }
+.rt-candle__top { fill: var(--rt-wax-a); }
+.rt-candle__dish { fill: var(--rt-dish); }
+.rt-candle__wick {
+  stroke: #3b3530;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  fill: none;
+}
+.dark .rt-candle__wick { stroke: #1a1715; }
+
+/* 연기 — 위로 흘러가며 사라진다 */
+.rt-candle__smoke {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 12 60;
+  opacity: 0.5;
+  animation: rt-smoke 3.2s linear infinite;
+  transition: opacity 0.3s ease;
+}
+@keyframes rt-smoke {
+  0% { stroke-dashoffset: 0; opacity: 0; }
+  20% { opacity: 0.5; }
+  100% { stroke-dashoffset: -72; opacity: 0; }
+}
+
+/* 불꽃 — 심지에서 피어나 일렁인다 */
+.rt-candle__flame {
+  transform-box: fill-box;
+  transform-origin: 50% 95%;
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.25s ease;
+}
+.rt-candle.is-lit .rt-candle__flame {
+  transform: scale(1);
+  opacity: 1;
+  animation: rt-flicker 2.6s ease-in-out 0.5s infinite;
+}
+.rt-candle.is-lit .rt-candle__smoke { opacity: 0; animation: none; }
+@keyframes rt-flicker {
+  0%, 100% { transform: scale(1, 1) skewX(0deg); }
+  20% { transform: scale(0.96, 1.05) skewX(-2deg); }
+  45% { transform: scale(1.03, 0.97) skewX(1.5deg); }
+  70% { transform: scale(0.98, 1.06) skewX(-1deg); }
+}
+
+/* 따뜻한 후광 + 천천히 도는 빛살 (불이 붙었을 때만) */
+.rt-candle__halo,
+.rt-candle__rays {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+  transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rt-candle__halo {
+  width: 96px;
+  height: 96px;
+  background: radial-gradient(circle, rgba(255, 196, 92, 0.55), rgba(255, 170, 70, 0.18) 45%, transparent 70%);
+  z-index: 1;
+}
+.rt-candle__rays {
+  width: 170px;
+  height: 170px;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 200, 110, 0.32) 0deg 4deg, transparent 4deg 22.5deg);
+  -webkit-mask-image: radial-gradient(circle, #000 12%, transparent 66%);
+  mask-image: radial-gradient(circle, #000 12%, transparent 66%);
+  z-index: 0;
+}
+.rt-candle.is-lit .rt-candle__halo {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  animation: rt-halo 2.6s ease-in-out 0.8s infinite;
+}
+.rt-candle.is-lit .rt-candle__rays {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  animation: rt-rays 36s linear infinite;
+}
+@keyframes rt-halo {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.8; }
+}
+@keyframes rt-rays {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-candle__smoke,
+  .rt-candle.is-lit .rt-candle__flame,
+  .rt-candle.is-lit .rt-candle__halo,
+  .rt-candle.is-lit .rt-candle__rays { animation: none; }
+}

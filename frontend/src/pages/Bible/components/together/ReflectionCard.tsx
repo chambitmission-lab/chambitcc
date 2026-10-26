@@ -12,9 +12,23 @@ interface ReflectionCardProps {
   onEdit: (r: VerseReflection, content: string) => void
   onDelete: (r: VerseReflection) => void
   editPending: boolean
+  /** 방금 내가 나눈 묵상 — 한 번 빛나며 자리 잡는다 */
+  fresh?: boolean
 }
 
 const REFLECTION_MAX = 1000
+
+/** 본문 속 “인용한 말씀 단어”만 브랜드 색으로 — 말씀 어절을 눌러 담은 흔적 */
+const renderBody = (text: string) =>
+  text.split(/(“[^”\n]{1,30}”)/).map((part, i) =>
+    i % 2 === 1 ? (
+      <mark key={i} className="rt-card__quote">
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
+  )
 
 /** 묵상 한 장 — 작성자·본문·공감/댓글 액션. 댓글은 펼칠 때만 불러온다. */
 const ReflectionCard = ({
@@ -25,6 +39,7 @@ const ReflectionCard = ({
   onEdit,
   onDelete,
   editPending,
+  fresh = false,
 }: ReflectionCardProps) => {
   const [repliesOpen, setRepliesOpen] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -41,17 +56,17 @@ const ReflectionCard = ({
   }
 
   return (
-    <article className={`rt-card ${r.is_mine ? 'rt-card--mine' : ''}`}>
+    <article className={`rt-card ${r.is_mine ? 'rt-card--mine' : ''} ${fresh ? 'rt-card--fresh' : ''}`}>
       <div className="rt-card__head">
         <RtAvatar author={r.author} />
-        <div style={{ minWidth: 0, flex: 1 }}>
+        <div className="rt-card__who">
           <div className="rt-card__name">
             {r.author.display_name}
-            {r.is_mine && <span className="rt-card__meta"> · 나</span>}
-          </div>
-          <div className="rt-card__meta">
-            {r.time_ago}
-            {r.is_edited ? ' · 수정됨' : ''}
+            {r.is_mine && <span className="rt-card__me">내 묵상</span>}
+            <span className="rt-card__meta">
+              {r.time_ago}
+              {r.is_edited ? ' · 수정됨' : ''}
+            </span>
           </div>
         </div>
       </div>
@@ -78,19 +93,19 @@ const ReflectionCard = ({
           </div>
         </>
       ) : (
-        <p className="rt-card__body">{r.content}</p>
+        <p className="rt-card__body">{renderBody(r.content)}</p>
       )}
 
       <div className="rt-card__actions">
         <button
           type="button"
-          className={`rt-action ${r.is_liked ? 'rt-action--on' : ''}`}
+          className={`rt-action rt-action--amen ${r.is_liked ? 'rt-action--on' : ''}`}
           onClick={() => onToggleLike(r)}
           aria-pressed={r.is_liked}
-          title={r.is_liked ? '공감 취소' : '공감'}
+          title={r.is_liked ? '아멘 취소' : '아멘'}
         >
           <HeartIcon size={15} filled={r.is_liked} />
-          {r.like_count > 0 ? r.like_count : '공감'}
+          아멘{r.like_count > 0 && <span className="rt-action__num">{r.like_count}</span>}
         </button>
         <button
           type="button"
@@ -100,7 +115,7 @@ const ReflectionCard = ({
           title="댓글"
         >
           <CommentIcon size={15} />
-          {r.reply_count > 0 ? r.reply_count : '댓글'}
+          댓글{r.reply_count > 0 && <span className="rt-action__num">{r.reply_count}</span>}
         </button>
         <span className="rt-action__spacer" />
         {r.is_mine && !editing && (

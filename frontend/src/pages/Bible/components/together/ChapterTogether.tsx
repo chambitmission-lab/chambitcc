@@ -54,6 +54,7 @@ const ChapterTogether = ({
     {/* 절 묵상 나눔 시트 (목록에 하나) */}
     {reflectionTarget && (
       <VerseReflectionSheet
+        key={reflectionTarget.id}
         verseId={reflectionTarget.id}
         bookNumber={bookNumber}
         chapter={chapter}
