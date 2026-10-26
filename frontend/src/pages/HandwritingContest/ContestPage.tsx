@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   useContest,
   useContestEntries,
+  useContestLive,
   useContests,
   useUpdateConsent,
   useVoteEntry,
@@ -81,6 +82,7 @@ const ContestBody = ({
   const [sort, setSort] = useState<EntrySort>(contest.phase === 'announced' ? 'popular' : 'shuffle')
   const entries = useContestEntries(contest.id, sort)
   const [openId, setOpenId] = useState<number | null>(null)
+  useContestLive(contest.id) // 다른 성도의 표가 들어오면 하트 수·참여 인원이 바로 바뀐다
   const vote = useVoteEntry(contest.id, toastFeedback({ error: '투표하지 못했어요' }))
   const withdraw = useWithdrawEntry(contest.id, toastFeedback({ success: '출품을 거뒀어요', error: '출품을 거두지 못했어요' }))
   const consent = useUpdateConsent(contest.id, toastFeedback({ error: '동의 설정을 바꾸지 못했어요' }))

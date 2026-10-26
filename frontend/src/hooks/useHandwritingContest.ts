@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createContest,
@@ -19,6 +20,8 @@ import {
 import type { ContestDetail, ContestEntry, ContestWrite, EntryPage, EntrySort, EntrySubmit } from '../types/handwritingContest'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { MutationFeedback } from './mutationFeedback'
+import { notificationStream } from '../utils/notificationStream'
+import { tokenStore } from '../utils/tokenStore'
 
 export const contestKeys = {
   all: ['handwriting-contest'] as const,
@@ -90,22 +93,107 @@ const patchEntryEverywhere = (
   qc.setQueryData<ContestEntry>(contestKeys.entry(contestId, entryId), (e) => (e ? patch(e) : e))
 }
 
+/** 하트 누르기 — 서버 응답을 기다리지 않고 캐시에 먼저 반영한다(낙관적).
+ *  표 수 ±1 은 여기(onMutate)서만 한다. 커밋 직후 서버가 contest_vote SSE 로 보내는 정확한 표 수는
+ *  HTTP 응답보다 먼저 올 수 있어, onSuccess 에서 다시 더하면 두 번 센다. 실패하면 서버 값으로 되돌린다. */
 export const useVoteEntry = (contestId: number, feedback?: MutationFeedback) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ entryId, on }: { entryId: number; on: boolean }) => voteContestEntry(contestId, entryId, on),
-    onSuccess: (detail: ContestDetail, vars) => {
-      const { entryId, on } = vars
-      qc.setQueryData(contestKeys.detail(contestId), detail)
+    onMutate: ({ entryId, on }) => {
       patchEntryEverywhere(qc, contestId, entryId, (e) => ({
         ...e,
         voted_by_me: on,
-        vote_count: e.vote_count == null ? null : Math.max(0, e.vote_count + (on === e.voted_by_me ? 0 : on ? 1 : -1)),
+        vote_count: e.vote_count == null || on === e.voted_by_me ? e.vote_count : Math.max(0, e.vote_count + (on ? 1 : -1)),
       }))
+    },
+    onSuccess: (detail: ContestDetail, vars) => {
+      qc.setQueryData(contestKeys.detail(contestId), detail)
+      patchEntryEverywhere(qc, contestId, vars.entryId, (e) => ({ ...e, voted_by_me: vars.on }))
       feedback?.onSuccess?.(detail, vars)
     },
-    onError: (error, vars) => feedback?.onError?.(error, vars),
+    onError: (error, vars) => {
+      void qc.invalidateQueries({ queryKey: contestKeys.detail(contestId) })
+      void qc.invalidateQueries({ queryKey: contestKeys.entriesPrefix(contestId) })
+      void qc.invalidateQueries({ queryKey: contestKeys.entry(contestId, vars.entryId) })
+      feedback?.onError?.(error, vars)
+    },
   })
+}
+
+interface ContestVoteEvent {
+  contest_id: number
+  entry_id: number
+  /** 표 수가 모두에게 공개된 대회(발표 뒤·show_ranking)에만 실려 온다 */
+  vote_count: number | null
+  voter_count: number
+}
+
+/** 관리자처럼 표 수는 보이는데 이벤트엔 없을 때 다시 받는 최소 간격 — 표가 몰려도 이 주기로 한 번 */
+const LIVE_REFETCH_THROTTLE_MS = 2500
+const liveRefetchTimers = new Map<number, ReturnType<typeof setTimeout>>()
+
+/**
+ * 다른 성도의 표가 들어오고 빠지는 것을 새로고침 없이 비춘다.
+ * 로그인 사용자가 이미 물고 있는 전역 SSE(/notifications/stream)의 contest_vote 이벤트를 구독해
+ * 갤러리·작품 상세 캐시의 표 수와 대회의 투표 참여 인원만 서버 값으로 덮어쓴다(요청 0).
+ * 정렬은 바꾸지 않는다 — 보고 있는 갤러리가 갑자기 자리를 바꾸면 오히려 방해라서 다음 재조회에 맡긴다.
+ * 끊겼다 다시 붙으면 놓친 표가 있을 수 있어 대회·갤러리를 한 번 새로 받는다.
+ */
+export const useContestLive = (contestId: number) => {
+  const qc = useQueryClient()
+  useEffect(() => {
+    if (contestId <= 0 || !tokenStore.getAccess()) return
+    const refetchEntries = () => {
+      if (liveRefetchTimers.has(contestId)) return
+      liveRefetchTimers.set(
+        contestId,
+        setTimeout(() => {
+          liveRefetchTimers.delete(contestId)
+          void qc.invalidateQueries({ queryKey: contestKeys.entriesPrefix(contestId) })
+          void qc.invalidateQueries({ queryKey: [...contestKeys.all, 'entry', contestId] })
+        }, LIVE_REFETCH_THROTTLE_MS),
+      )
+    }
+    const offVote = notificationStream.on('contest_vote', (raw) => {
+      let ev: ContestVoteEvent
+      try {
+        ev = JSON.parse(raw) as ContestVoteEvent
+      } catch {
+        return
+      }
+      if (ev.contest_id !== contestId || typeof ev.entry_id !== 'number') return
+
+      qc.setQueryData<ContestDetail>(contestKeys.detail(contestId), (d) => {
+        if (!d) return d
+        const mine =
+          d.my_entry && d.my_entry.id === ev.entry_id && d.my_entry.vote_count != null && ev.vote_count != null
+            ? { ...d.my_entry, vote_count: ev.vote_count }
+            : d.my_entry
+        return d.voter_count === ev.voter_count && mine === d.my_entry ? d : { ...d, voter_count: ev.voter_count, my_entry: mine }
+      })
+
+      if (ev.vote_count != null) {
+        const count = ev.vote_count
+        patchEntryEverywhere(qc, contestId, ev.entry_id, (e) => (e.vote_count === count ? e : { ...e, vote_count: count }))
+        return
+      }
+      // 이벤트엔 표 수가 없는데 내 화면엔 보인다(관리자) — 몰아서 다시 받는다
+      const pages = qc.getQueriesData<InfiniteData<EntryPage>>({ queryKey: contestKeys.entriesPrefix(contestId) })
+      const showsCounts = pages.some(([, data]) =>
+        data?.pages.some((p) => p.items.some((e) => e.id === ev.entry_id && e.vote_count != null)),
+      )
+      if (showsCounts) refetchEntries()
+    })
+    const offReconnect = notificationStream.on('reconnected', () => {
+      void qc.invalidateQueries({ queryKey: contestKeys.detail(contestId) })
+      void qc.invalidateQueries({ queryKey: contestKeys.entriesPrefix(contestId) })
+    })
+    return () => {
+      offVote()
+      offReconnect()
+    }
+  }, [qc, contestId])
 }
 
 export const useSubmitEntry = (contestId: number) => {
