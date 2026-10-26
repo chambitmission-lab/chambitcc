@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Column } from '../../types/column'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
+import KakaoIcon from '../../components/icons/KakaoIcon'
 import { canKakaoShare, loadKakaoShare } from '../../utils/kakaoShare'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import ColumnLetter from './ColumnLetter'
@@ -97,14 +98,10 @@ const ColumnReaderModal = ({
     return () => window.clearTimeout(id)
   }, [])
 
-  // 공유 — 편지 전문 대신 '엽서' 카드 링크(/c/{id}). 카톡이면 링크 말풍선 없이 카드만 간다
+  // 공유 — 편지 전문 대신 '엽서' 카드 링크(/c/{id}). 주보 뷰어와 같은 짝: 노란 카카오 버튼은 링크 말풍선
+  // 없이 카드만, 옆 공유 아이콘은 다른 앱(공유 시트). 일반 아이콘이 카톡으로 곧장 가면 눌러 보기 전엔 알 수 없었다
   const ko = language === 'ko'
   const kakaoReady = canKakaoShare()
-  const handleShare = () => {
-    if (!column.id) return
-    if (kakaoReady) shareColumnKakao(column.id, ko)
-    else shareColumnLink(column.id, ko)
-  }
 
   const renderNeighbor = (target: Column, label: string) => (
     <button onClick={() => onNavigate(target)} className="feed-card w-full rounded-2xl px-5 py-4 lg:px-6 lg:py-5 text-left group">
@@ -174,11 +171,23 @@ const ColumnReaderModal = ({
               >
                 <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">format_size</span>
               </button>
+              {kakaoReady && column.id != null && (
+                <button
+                  type="button"
+                  onClick={() => shareColumnKakao(column.id!, ko)}
+                  className="w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-full bg-[#fee500] text-black/85 hover:brightness-95 active:scale-95 transition-[filter,transform]"
+                  aria-label={ko ? '카카오톡으로 엽서 보내기' : 'Send on KakaoTalk'}
+                  title={ko ? '카카오톡으로 엽서 보내기' : 'Send on KakaoTalk'}
+                >
+                  <KakaoIcon size={isLg ? 22 : 18} />
+                </button>
+              )}
               <button
-                onClick={handleShare}
+                type="button"
+                onClick={() => column.id != null && shareColumnLink(column.id, ko)}
                 className="w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
-                aria-label={kakaoReady ? (ko ? '카카오톡으로 보내기' : 'Share on KakaoTalk') : ko ? '공유' : 'Share'}
-                title={kakaoReady ? (ko ? '카카오톡으로 보내기' : 'Share on KakaoTalk') : ko ? '공유' : 'Share'}
+                aria-label={kakaoReady ? (ko ? '다른 앱으로 보내기' : 'Share via other apps') : ko ? '공유' : 'Share'}
+                title={kakaoReady ? (ko ? '다른 앱으로 보내기' : 'Share via other apps') : ko ? '공유' : 'Share'}
               >
                 <span className="material-icons-outlined text-[19px] lg:text-[23px] text-gray-600 dark:text-gray-400">share</span>
               </button>

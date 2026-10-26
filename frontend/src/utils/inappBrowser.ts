@@ -13,9 +13,8 @@ export const isInAppBrowser = () => isKakaoInApp() || isOtherInApp()
 // 안드로이드는 이때 스코프가 일치하는 설치된 PWA(WebAPK)가 있으면 앱이 바로 열린다.
 export const escapeKakaoInApp = (url: string = window.location.href) => {
   markKakaoEscapeAttempted()
+  closeKakaoInAppOnceHidden()
   window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url)
-  // 넘긴 뒤 인앱 창은 닫는다 — 안 닫으면 카톡 안에 앱 화면이 하나 더 남아 사용자가 두 군데를 오간다
-  window.setTimeout(closeKakaoInApp, 300)
 }
 
 /**
@@ -26,6 +25,34 @@ export const closeKakaoInApp = () => {
   window.location.href = /ipad|iphone|ipod/i.test(navigator.userAgent)
     ? 'kakaoweb://closeBrowser'
     : 'kakaotalk://inappbrowser/close'
+}
+
+/** 외부 브라우저가 열렸다는 증거(가려짐)를 이만큼만 기다린다 — 그 뒤 가려지는 건 사용자가 카톡을 접은 것 */
+const CLOSE_WATCH_MS = 10_000
+
+/**
+ * 외부 브라우저가 실제로 열려 이 웹뷰가 가려졌을 때만 인앱 창을 닫는다.
+ * 예전엔 openExternal 300ms 뒤 무조건 닫았는데, openExternal 은 조용히 실패하고 닫기만 먹는 환경이면
+ * 사용자가 보던 화면이 그냥 사라졌다. 가려졋다는 증거가 있을 때만 닫고(안 닫으면 카톡 안에 앱 화면이
+ * 하나 더 남아 두 군데를 오간다), 증거가 없으면 페이지를 그대로 둔다.
+ * ★ functions/_lib/shareEntry.js 의 탈출 페이지와 같은 규칙.
+ */
+const closeKakaoInAppOnceHidden = () => {
+  let done = false
+  const stop = () => {
+    done = true
+    document.removeEventListener('visibilitychange', closeIfHidden)
+    window.clearTimeout(timer)
+  }
+  const closeIfHidden = () => {
+    if (done || document.visibilityState !== 'hidden') return
+    stop()
+    closeKakaoInApp()
+  }
+  const timer = window.setTimeout(stop, CLOSE_WATCH_MS)
+  document.addEventListener('visibilitychange', closeIfHidden)
+  // 스킴 전환이 빨라 리스너를 걸기 전에 이미 가려진 경우
+  window.setTimeout(closeIfHidden, 300)
 }
 
 /**

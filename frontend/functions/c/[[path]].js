@@ -10,5 +10,9 @@ export async function onRequest(context) {
   const url = new URL(context.request.url)
   const match = SHARE_PATH.exec(url.pathname)
   const deepLink = match ? `${url.origin}/#/ministry?c=${match[1]}` : null
-  return handleShareEntry(context, deepLink, { title: '부천참빛교회 목양칼럼', heading: '참빛교회 목양칼럼' })
+  return handleShareEntry(context, deepLink, {
+    title: '부천참빛교회 목양칼럼',
+    heading: '참빛교회 목양칼럼',
+    description: '담임목사님이 성도들에게 보내는 주간 편지를 만나보세요.',
+  })
 }

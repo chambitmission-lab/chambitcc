@@ -1,8 +1,7 @@
 // 주보 보내기 — 한 쪽 이미지는 파일로(카톡이 사진으로 받는다), 안 되면 미리보기 카드가 뜨는 링크로.
-// 컴포넌트가 아닌 순수 함수라 별도 파일 (fast refresh 규칙)
+// 컴포넌트가 아닌 순수 함수라 별도 파일 (fast refresh 규칙). 칼럼 columnShare.ts 와 같은 결 — 공통은 utils/shareLink.ts.
 import { isLocalHost, SHARE_ORIGIN } from '../../../utils/shareOrigin'
-import { showToast } from '../../../utils/toast'
-import { kakaoShareScrap } from '../../../utils/kakaoShare'
+import { isAbortError, shareKakaoOrUrl, shareUrl } from '../../../utils/shareLink'
 
 /**
  * 주보 공유 링크. 운영에서는 짧은 /w/{id} — 백엔드(bulletin_share.py)가 앨범 커버
@@ -15,35 +14,16 @@ export const bulletinLink = (id: number) =>
     ? `${window.location.origin}${window.location.pathname}#/news?tab=bulletin&b=${id}`
     : `${SHARE_ORIGIN}/w/${id}`
 
-const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError'
+/** 공유 시트(없으면 클립보드)로 주소만 보낸다 */
+export const shareBulletinLink = (id: number, ko: boolean) =>
+  shareUrl(bulletinLink(id), {
+    copied: ko ? '주보 링크를 복사했어요. 카톡에 붙여넣어 보내 주세요' : 'Link copied',
+    failed: ko ? '보내기에 실패했어요' : 'Could not share',
+  })
 
-/** 주소만 보낸다 — title 을 같이 주면 카톡이 "제목 - 주소" 말풍선을 따로 만들어 카드 위에 붙인다 */
-export const shareBulletinLink = async (id: number, ko: boolean) => {
-  const url = bulletinLink(id)
-  if (navigator.share) {
-    try {
-      await navigator.share({ url })
-      return
-    } catch (e) {
-      if (isAbort(e)) return
-    }
-  }
-  try {
-    await navigator.clipboard.writeText(url)
-    showToast(ko ? '주보 링크를 복사했어요. 카톡에 붙여넣어 보내 주세요' : 'Link copied', 'success')
-  } catch {
-    showToast(ko ? '보내기에 실패했어요' : 'Could not share', 'error')
-  }
-}
-
-/**
- * 카카오톡으로 — 링크 말풍선 없이 앨범 커버 카드만 간다. 카톡이 직접 /w/{id} 를 긁어 가므로
- * 로컬에서도 운영 주소로 보낸다. SDK 가 아직 없으면 공유 시트로 넘긴다.
- */
-export const shareBulletinKakao = async (id: number, ko: boolean) => {
-  if (kakaoShareScrap(`${SHARE_ORIGIN}/w/${id}`)) return
-  await shareBulletinLink(id, ko)
-}
+/** 카카오톡으로 — 앨범 커버 카드만 간다. SDK 가 없으면 공유 시트로 */
+export const shareBulletinKakao = (id: number, ko: boolean) =>
+  shareKakaoOrUrl(`${SHARE_ORIGIN}/w/${id}`, () => shareBulletinLink(id, ko))
 
 /**
  * 한 쪽을 사진으로 보낸다. file 은 미리 받아 둔 것 — 누른 뒤에 받으면 iOS 사파리가
@@ -55,18 +35,22 @@ export const shareBulletinPage = async (file: File | undefined, title: string, i
       await navigator.share({ files: [file], title })
       return
     } catch (e) {
-      if (isAbort(e)) return
+      if (isAbortError(e)) return
     }
   }
   await shareBulletinLink(id, ko)
 }
 
-/** 쪽 이미지를 공유용 파일로 받아 둔다 — 파일 공유를 못 하는 기기(대부분 PC)는 받지 않는다.
- *  baseName 에 확장자는 붙이지 않는다(읽기용 WebP·옛 주보 PNG 를 받은 형식대로) */
+/**
+ * 쪽 이미지를 공유용 파일로 받아 둔다 — 파일 공유를 못 하는 기기(대부분 PC)는 받지 않는다.
+ * baseName 에 확장자는 붙이지 않는다(읽기용 WebP·옛 주보 PNG 를 받은 형식대로).
+ * force-cache: 뷰어의 <img> 가 이미 받은 바이트를 그대로 쓴다 — Supabase 는 no-cache 로 응답해
+ * 기본값이면 쪽마다 재검증(304) 왕복이 하나 더 나갔다. 파일명이 업로드마다 고유해 묵은 그림이 올 일은 없다.
+ */
 export const prefetchPageFile = async (src: string, baseName: string): Promise<File | undefined> => {
   if (!navigator.canShare) return undefined
   try {
-    const res = await fetch(src)
+    const res = await fetch(src, { cache: 'force-cache' })
     if (!res.ok) return undefined
     const blob = await res.blob()
     const type = blob.type || 'image/png'

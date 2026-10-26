@@ -18,5 +18,9 @@ export async function onRequest(context) {
     m && book >= 1 && book <= 66 && m[3].length <= 64
       ? `${url.origin}/#/bible/${book}/${Number(m[2])}?verse=${parseInt(m[3], 10)}`
       : null
-  return handleShareEntry(context, deepLink, { title: '부천참빛교회 성경', heading: '참빛교회 성경' })
+  return handleShareEntry(context, deepLink, {
+    title: '부천참빛교회 성경',
+    heading: '참빛교회 성경',
+    description: '함께 읽는 말씀 — 성경 본문과 해설을 참빛교회 성경에서 만나보세요.',
+  })
 }

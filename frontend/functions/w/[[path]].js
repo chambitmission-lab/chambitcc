@@ -10,5 +10,9 @@ export async function onRequest(context) {
   const url = new URL(context.request.url)
   const match = SHARE_PATH.exec(url.pathname)
   const deepLink = match ? `${url.origin}/#/news?tab=bulletin&b=${match[1]}` : null
-  return handleShareEntry(context, deepLink, { title: '부천참빛교회 주보', heading: '참빛교회 주보' })
+  return handleShareEntry(context, deepLink, {
+    title: '부천참빛교회 주보',
+    heading: '참빛교회 주보',
+    description: '이번 주 교회 소식과 예배 안내를 주보로 만나보세요.',
+  })
 }
