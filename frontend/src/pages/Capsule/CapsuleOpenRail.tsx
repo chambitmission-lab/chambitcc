@@ -51,7 +51,11 @@ const CapsuleOpenRail = ({
   const span = journeySpan(capsule.sealed_at, capsule.open_at)
   const dday = daysUntil(capsule.open_at)
   const photos = capsule.photo_count ?? 0
-  const attachments = [photos > 0 ? `사진 ${photos}장` : null, capsule.has_audio ? '음성 편지' : null]
+  const attachments = [
+    capsule.has_handwriting ? '손글씨 편지' : null,
+    photos > 0 ? `사진 ${photos}장` : null,
+    capsule.has_audio ? '음성 편지' : null,
+  ]
     .filter(Boolean)
     .join(' · ')
 

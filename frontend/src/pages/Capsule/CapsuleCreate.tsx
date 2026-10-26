@@ -20,7 +20,11 @@ import { getCurrentSeason } from '../../utils/churchCalendar'
 import { resizeImageToBlob } from '../../utils/imageResize'
 import { showToast } from '../../utils/toast'
 import { buildPresets, formatKoreanDate, toDateStr } from './capsuleDates'
-import { CalendarGlyph, Icon, LetterHeartGlyph } from './capsuleIcons'
+import { CalendarGlyph, Icon, LetterHeartGlyph, PenGlyph } from './capsuleIcons'
+import HandwritingSheet from './ink/HandwritingSheet'
+import InkThumb from './ink/InkThumb'
+import { buildHandwritingUpload } from './ink/inkExport'
+import { INK_MAX_PAGES, emptyInkPage, filledInkPages, type InkPage } from './ink/inkModel'
 import './capsule.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
@@ -96,6 +100,10 @@ const CapsuleCreate = () => {
   const [selectedRecipient, setSelectedRecipient] = useState<CapsuleRecipient | null>(null)
   const [title, setTitle] = useState(suggested.title)
   const [message, setMessage] = useState('')
+  // 편지는 타자로도, 펜으로도 쓴다. 전환해도 양쪽 내용은 남고 봉인 때 둘 다 담긴다
+  const [letterMode, setLetterMode] = useState<'type' | 'pen'>('type')
+  const [inkPages, setInkPages] = useState<InkPage[]>(() => [emptyInkPage()])
+  const [inkOpen, setInkOpen] = useState(false)
   const [presetKey, setPresetKey] = useState(suggested.openDate ? 'custom' : '1y')
   const [customDate, setCustomDate] = useState(suggested.openDate)
   const [confirming, setConfirming] = useState(false)
@@ -235,12 +243,24 @@ const CapsuleCreate = () => {
     capsuleType === 'self' ||
     (capsuleType === 'direct' ? !!selectedRecipient : recipientName.trim().length > 0)
 
+  const writtenInkPages = filledInkPages(inkPages)
+  const hasInk = writtenInkPages.length > 0
+  const hasLetter = message.trim().length > 0 || !!audioBlob || hasInk
+
   const canSubmit =
     !!openDate &&
-    (message.trim().length > 0 || !!audioBlob) &&
+    hasLetter &&
     recipientReady &&
     !photoProcessing &&
     !createCapsule.isPending
+
+  // 손글씨 편지지 머리에 적힐 받는 사람
+  const inkAddressee =
+    capsuleType === 'self'
+      ? '미래의 나'
+      : capsuleType === 'direct'
+        ? recipientName.trim() || selectedRecipient?.display_name || '소중한 분'
+        : recipientName.trim() || '소중한 분'
 
   const handleSeal = async () => {
     if (!canSubmit) return
@@ -259,6 +279,17 @@ const CapsuleCreate = () => {
       }
     } catch {
       clientSnapshot = { season_label: SEASON_LABELS[getCurrentSeason(new Date())] }
+    }
+    // 손글씨는 봉인 직전에 굽는다 — 장마다 투명 PNG + 획 JSON
+    let handwriting
+    if (hasInk) {
+      try {
+        handwriting = await buildHandwritingUpload(writtenInkPages)
+      } catch {
+        setConfirming(false)
+        showToast('손글씨를 담는 데 실패했어요. 다시 시도해주세요', 'error')
+        return
+      }
     }
     try {
       const summary = await createCapsule.mutateAsync({
@@ -281,6 +312,7 @@ const CapsuleCreate = () => {
         audioBlob,
         audioDuration: audioBlob ? Math.min(recordingTime, MAX_RECORD_SECONDS) : undefined,
         photos: photos.length > 0 ? photos : undefined,
+        handwriting,
       })
       if (summary.capsule_type === 'invite' || summary.capsule_type === 'direct') {
         setCreated(summary)
@@ -669,9 +701,40 @@ const CapsuleCreate = () => {
             )}
           </section>
 
-          {/* 편지 */}
+          {/* 편지 — 타자로 쓰거나(글), 펜·손가락으로 직접 쓴다(손글씨) */}
           <section className="px-4 pt-6">
-            <p className="px-1 mb-2 text-[12px] font-bold text-[var(--text-muted)]">편지</p>
+            <div className="px-1 mb-2 flex items-center justify-between gap-2">
+              <p className="text-[12px] font-bold text-[var(--text-muted)]">편지</p>
+              <div className="inline-flex p-0.5 rounded-full bg-gray-100 dark:bg-white/[0.07]" role="tablist" aria-label="편지 쓰는 방법">
+                {(
+                  [
+                    { key: 'type', label: '글로 쓰기' },
+                    { key: 'pen', label: '펜으로 쓰기' },
+                  ] as const
+                ).map((m) => (
+                  <button
+                    key={m.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={letterMode === m.key}
+                    onClick={() => setLetterMode(m.key)}
+                    className={`px-3 py-1 rounded-full text-[12px] font-bold transition-colors ${
+                      letterMode === m.key
+                        ? 'bg-white dark:bg-white/[0.14] text-ink-strong shadow-sm'
+                        : 'text-gray-500 dark:text-white/50'
+                    }`}
+                  >
+                    {m.label}
+                    {m.key === 'pen' && hasInk && (
+                      <span className="ml-1 text-[10px] text-brand">{writtenInkPages.length}장</span>
+                    )}
+                    {m.key === 'type' && letterMode === 'pen' && message.trim() && (
+                      <span className="ml-1 text-[10px] text-brand">·</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
             <input
               type="text"
               value={title}
@@ -680,17 +743,79 @@ const CapsuleCreate = () => {
               placeholder="제목 (선택)"
               className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] font-bold outline-none focus:border-brand placeholder:font-normal placeholder:text-gray-400 dark:placeholder:text-white/30"
             />
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value.slice(0, MAX_MESSAGE_LEN))}
-              rows={7}
-              placeholder={
-                capsuleType === 'self'
-                  ? '캡슐을 여는 날의 나에게, 지금의 마음과 기도를 남겨보세요'
-                  : '캡슐을 여는 날의 그 사람에게, 전하고 싶은 마음을 남겨보세요'
-              }
-              className="cc-letter-body w-full mt-2.5 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] leading-[1.7] outline-none focus:border-brand resize-none placeholder:text-gray-400 dark:placeholder:text-white/30"
-            />
+            {letterMode === 'type' ? (
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value.slice(0, MAX_MESSAGE_LEN))}
+                rows={7}
+                placeholder={
+                  capsuleType === 'self'
+                    ? '캡슐을 여는 날의 나에게, 지금의 마음과 기도를 남겨보세요'
+                    : '캡슐을 여는 날의 그 사람에게, 전하고 싶은 마음을 남겨보세요'
+                }
+                className="cc-letter-body w-full mt-2.5 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] leading-[1.7] outline-none focus:border-brand resize-none placeholder:text-gray-400 dark:placeholder:text-white/30"
+              />
+            ) : (
+              <div className="mt-2.5 p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
+                {hasInk ? (
+                  <>
+                    {/* 쓴 편지지 묶음 — 누르면 이어서 쓴다 */}
+                    <button type="button" onClick={() => setInkOpen(true)} className="block w-full text-left">
+                      <div className="ink-stack">
+                        {inkPages.map((p, i) => (
+                          <span key={i} className="ink-stack__item">
+                            <InkThumb page={p} width={112} />
+                            <span className="ink-stack__no">{i + 1}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </button>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <p className="text-[12px] text-gray-500 dark:text-white/55 leading-[1.6]">
+                        손으로 쓴 편지지 {writtenInkPages.length}장
+                        {inkPages.length > writtenInkPages.length ? ` (빈 장 ${inkPages.length - writtenInkPages.length})` : ''}
+                        <br />
+                        여는 날, 쓴 순서 그대로 다시 써지는 걸 보게 돼요
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setInkOpen(true)}
+                        className="shrink-0 px-3.5 py-2 rounded-full bg-[var(--brand-soft)] text-brand text-[12.5px] font-bold"
+                      >
+                        이어 쓰기
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setInkOpen(true)}
+                    className="w-full flex items-center gap-3.5 text-left"
+                  >
+                    <span className="shrink-0 w-12 h-12 rounded-2xl bg-[var(--brand-soft)] text-brand inline-flex items-center justify-center">
+                      <Icon size={22}>
+                        <PenGlyph />
+                      </Icon>
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[14px] font-bold text-ink-strong">편지지 펼치기</span>
+                      <span className="block mt-0.5 text-[12px] text-gray-500 dark:text-white/55 leading-[1.6]">
+                        S펜·애플펜슬이나 손가락으로 직접 써요. 최대 {INK_MAX_PAGES}장, 내 글씨 그대로 봉인돼요
+                      </span>
+                    </span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30" aria-hidden>
+                      <path d="M9 6l6 6-6 6" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+            {letterMode === 'pen' && message.trim() && (
+              <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35">글로 쓴 편지도 함께 담겨요</p>
+            )}
+            {letterMode === 'type' && hasInk && (
+              <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35">손으로 쓴 편지지 {writtenInkPages.length}장도 함께 담겨요</p>
+            )}
           </section>
 
           {/* 사진 — 폴라로이드처럼 편지에 끼워 보낸다 */}
@@ -913,8 +1038,8 @@ const CapsuleCreate = () => {
                   ? '받는 분을 검색해 선택해주세요'
                   : capsuleType === 'invite' && !recipientName.trim()
                     ? '받는 분 이름을 적어주세요'
-                    : !message.trim() && !audioBlob
-                      ? '편지 글이나 음성 중 하나는 담아야 해요'
+                    : !hasLetter
+                      ? '편지 글·손글씨·음성 중 하나는 담아야 해요'
                       : !openDate
                         ? '개봉일을 선택해주세요'
                         : ''}
@@ -925,6 +1050,16 @@ const CapsuleCreate = () => {
         </div>
       </div>
       </div>
+
+      {/* 손글씨 편지지 — 전체화면. 닫으면 쓴 그대로 남는다 */}
+      {inkOpen && (
+        <HandwritingSheet
+          pages={inkPages}
+          onChange={setInkPages}
+          onClose={() => setInkOpen(false)}
+          addressee={inkAddressee}
+        />
+      )}
     </div>
   )
 }

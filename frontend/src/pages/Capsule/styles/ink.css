@@ -1,0 +1,364 @@
+/* 손글씨 편지 — 쓰기 시트(책상 위 편지지)·작성 화면 미리보기·개봉 재생.
+   종이·잉크는 실물이라 앱 테마 토큰을 쓰지 않는다. 쓰기 시트의 편지지는 늘 크림,
+   개봉 화면은 .capsule-paper 의 --p-* 팔레트(라이트 크림 / 다크 밤하늘)를 그대로 따른다. */
+
+/* ── 편지지 괘선 — 쓰기·미리보기·개봉이 같은 식으로 그린다 ── */
+.ink-pad__paper,
+.ink-thumb,
+.ink-letter__page {
+  --ink-line: rgba(74, 67, 53, 0.14);
+  --ink-margin-line: rgba(168, 80, 63, 0.22);
+  position: relative;
+  background-image:
+    linear-gradient(90deg, transparent calc(var(--ink-margin) - 1px), var(--ink-margin-line) calc(var(--ink-margin) - 1px) var(--ink-margin), transparent var(--ink-margin)),
+    repeating-linear-gradient(180deg, transparent 0 calc(var(--ink-gap) - 1px), var(--ink-line) calc(var(--ink-gap) - 1px) var(--ink-gap));
+  background-position: 0 0, 0 calc(var(--ink-top) - var(--ink-gap));
+  background-repeat: no-repeat, repeat-y;
+}
+
+/* ── 쓰기 시트 ───────────────────────────────────────────── */
+.ink-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  background: #1d1a16; /* 책상 — 밤의 캡슐 정체성과 같은 어둠 */
+  color: #efe6d2;
+  overscroll-behavior: contain;
+}
+
+.ink-sheet__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+  flex-shrink: 0;
+}
+
+.ink-sheet__eyebrow {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgba(239, 230, 210, 0.5);
+}
+
+.ink-sheet__to {
+  margin-top: 2px;
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: 22px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #efe6d2;
+}
+
+.ink-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px 8px 11px;
+  border-radius: 999px;
+  background: #efe6d2;
+  color: #1d1a16;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.ink-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(239, 230, 210, 0.22);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(239, 230, 210, 0.75);
+}
+
+.ink-chip--on {
+  border-color: rgba(217, 164, 65, 0.6);
+  color: #d9a441;
+}
+
+/* 종이가 놓인 영역 — 확대하면 넘겨 본다. 손가락 스크롤은 InkPad 가 직접 처리하므로 touch-action 없음 */
+.ink-pad {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px 18px;
+  touch-action: none;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(239, 230, 210, 0.22) transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ink-pad__paper {
+  flex-shrink: 0;
+  background-color: #f8f1e1;
+  background-image:
+    linear-gradient(90deg, transparent calc(var(--ink-margin) - 1px), var(--ink-margin-line) calc(var(--ink-margin) - 1px) var(--ink-margin), transparent var(--ink-margin)),
+    repeating-linear-gradient(180deg, transparent 0 calc(var(--ink-gap) - 1px), var(--ink-line) calc(var(--ink-gap) - 1px) var(--ink-gap)),
+    linear-gradient(172deg, #faf5ea 0%, #f6efdf 55%, #f0e7d2 100%);
+  background-repeat: no-repeat, repeat-y, no-repeat;
+  border-radius: 3px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 18px 40px -18px rgba(0, 0, 0, 0.75),
+    0 2px 6px rgba(0, 0, 0, 0.35);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: crosshair;
+}
+
+.ink-pad__paper--eraser {
+  cursor: cell;
+}
+
+.ink-pad__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+
+.ink-pad__canvas--live {
+  z-index: 1;
+}
+
+/* 도구 막대 */
+.ink-sheet__tools {
+  flex-shrink: 0;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  background: #26221d;
+  border-top: 1px solid rgba(239, 230, 210, 0.08);
+}
+
+.ink-sheet__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ink-sheet__row + .ink-sheet__row {
+  margin-top: 6px;
+}
+
+.ink-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ink-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: rgba(239, 230, 210, 0.78);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.ink-tool:disabled {
+  opacity: 0.3;
+}
+
+.ink-tool--on {
+  background: rgba(239, 230, 210, 0.14);
+  color: #fff6e3;
+}
+
+.ink-zoom {
+  min-width: 42px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(239, 230, 210, 0.6);
+}
+
+.ink-swatch {
+  width: 30px;
+  height: 30px;
+  margin: 0 3px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: 0 0 0 2px #26221d, 0 0 0 3px rgba(239, 230, 210, 0.18);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.ink-swatch--on {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 2px #26221d, 0 0 0 4px #d9a441;
+}
+
+.ink-size {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: rgba(239, 230, 210, 0.7);
+}
+
+.ink-size i {
+  display: block;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ink-size--on {
+  background: rgba(239, 230, 210, 0.14);
+  color: #fff6e3;
+}
+
+.ink-pages__label {
+  min-width: 46px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #efe6d2;
+}
+
+.ink-pages__label small {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(239, 230, 210, 0.5);
+}
+
+.ink-sheet__hint {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 11.5px;
+  color: rgba(239, 230, 210, 0.45);
+}
+
+/* PC — 종이는 가운데, 도구는 한 줄 */
+@media (min-width: 900px) {
+  .ink-sheet__tools {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* ── 작성 화면 미리보기(편지지 묶음) ─────────────────────────── */
+.ink-thumb {
+  flex-shrink: 0;
+  aspect-ratio: 1000 / 1414;
+  background-color: #f8f1e1;
+  border-radius: 3px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.12),
+    0 8px 18px -10px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.ink-thumb canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ink-stack {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 2px 2px 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ink-stack::-webkit-scrollbar {
+  display: none;
+}
+
+.ink-stack__item {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ink-stack__no {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(58, 52, 40, 0.72);
+  color: #f8f1e1;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* ── 개봉 — 편지지 위의 손글씨 ───────────────────────────── */
+.ink-letter {
+  margin-top: 6px;
+}
+
+.ink-letter__page {
+  --ink-line: var(--p-line, rgba(74, 67, 53, 0.13));
+  --ink-margin-line: color-mix(in srgb, var(--p-accent, #a8503f) 24%, transparent);
+  width: 100%;
+  border-radius: 2px;
+}
+
+.ink-letter__page--writing {
+  cursor: pointer;
+}
+
+.ink-letter__canvas,
+.ink-letter__img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* PNG 폴백은 먹색 잉크 고정 — 밤하늘 편지지에서는 밝게 뒤집어 잉크가 보이게 한다 */
+.ink-letter__img--dark {
+  filter: invert(0.92) hue-rotate(180deg) brightness(1.05);
+}
+
+.ink-letter__break {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 14px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--p-ink-faint, rgba(74, 67, 53, 0.45));
+}
+
+.ink-letter__break::before,
+.ink-letter__break::after {
+  content: '';
+  flex: 1;
+  border-top: 1px dashed var(--p-dash, rgba(74, 67, 53, 0.26));
+}
+
+.ink-letter__replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--p-ink-mute, rgba(74, 67, 53, 0.55));
+  border: 1px dashed var(--p-dash, rgba(74, 67, 53, 0.26));
+}

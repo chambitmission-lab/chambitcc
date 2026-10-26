@@ -12,7 +12,7 @@ import { isAuthenticated } from '../../utils/auth'
 import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../utils/inappBrowser'
 import { showToast } from '../../utils/toast'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
-import { Icon, LockShackle, MicGlyph, PhotoGlyph, SigilGlyph } from './capsuleIcons'
+import { Icon, LockShackle, MicGlyph, PenGlyph, PhotoGlyph, SigilGlyph } from './capsuleIcons'
 import './capsule.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
@@ -163,8 +163,16 @@ const CapsuleInvite = () => {
                     <span key={w} style={{ width: w }} />
                   ))}
                 </div>
-                {(photos > 0 || preview.has_audio) && (
+                {(photos > 0 || preview.has_audio || preview.has_handwriting) && (
                   <div className="capsule-invite__enclosed">
+                    {preview.has_handwriting && (
+                      <span>
+                        <Icon size={12}>
+                          <PenGlyph />
+                        </Icon>
+                        손으로 쓴 편지
+                      </span>
+                    )}
                     {photos > 0 && (
                       <span>
                         <Icon size={12}>

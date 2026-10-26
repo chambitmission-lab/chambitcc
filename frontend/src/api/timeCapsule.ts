@@ -57,6 +57,17 @@ export const createCapsule = async (
       JSON.stringify(payload.photos.map((p) => p.caption.trim())),
     )
   }
+  if (payload.handwriting?.length) {
+    // 장별 PNG·획 JSON·크기는 같은 순서(인덱스)로 짝을 맞춘다
+    payload.handwriting.forEach((page, i) => {
+      formData.append('handwriting', page.png, `letter_${i + 1}.png`)
+      formData.append('handwriting_inks', page.ink, `letter_${i + 1}.json`)
+    })
+    formData.append(
+      'handwriting_meta',
+      JSON.stringify(payload.handwriting.map((p) => ({ width: p.width, height: p.height }))),
+    )
+  }
   return request<CapsuleSummary>(BASE, {
     method: 'POST',
     body: formData,

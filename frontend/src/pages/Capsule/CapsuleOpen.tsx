@@ -13,7 +13,8 @@ import CapsuleOpenRail from './CapsuleOpenRail'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CAPSULE_LETTER, CAPSULE_SEALED } from '../../utils/themeAssets'
 import { formatKoreanDate } from './capsuleDates'
-import { CalendarGlyph, Icon, MicGlyph, PhotoGlyph } from './capsuleIcons'
+import { CalendarGlyph, Icon, MicGlyph, PenGlyph, PhotoGlyph } from './capsuleIcons'
+import HandwrittenLetter from './open/HandwrittenLetter'
 import './capsule.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 
@@ -155,8 +156,9 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   const content = capsule?.content ?? null
   const snapshot = content?.snapshot ?? null
   const stats = snapshot?.stats ?? null
-  // 배포 전 캐시 응답에는 photos가 없을 수 있다
+  // 배포 전 캐시 응답에는 photos·handwriting 이 없을 수 있다
   const photos = content?.photos ?? []
+  const handwriting = content?.handwriting ?? []
 
   // 편지를 읽는 화면에서만 헤더가 아침 하늘 위로 올라간다
   const onSky = phase === 'letter' && !!content
@@ -280,6 +282,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
                 {(capsule.photo_count ?? 0) > 0 && (
                   <MetaChip icon={<PhotoGlyph />}>사진 {capsule.photo_count}장</MetaChip>
                 )}
+                {capsule.has_handwriting && <MetaChip icon={<PenGlyph />}>손글씨 편지</MetaChip>}
                 {capsule.has_audio && <MetaChip icon={<MicGlyph />}>음성 편지</MetaChip>}
               </div>
             </div>
@@ -307,6 +310,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
               {(capsule.photo_count ?? 0) > 0 && (
                 <MetaChip icon={<PhotoGlyph />}>사진 {capsule.photo_count}장</MetaChip>
               )}
+              {capsule.has_handwriting && <MetaChip icon={<PenGlyph />}>손글씨 편지</MetaChip>}
               {capsule.has_audio && <MetaChip icon={<MicGlyph />}>음성 편지</MetaChip>}
             </div>
 
@@ -369,8 +373,13 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
 
               <div className="capsule-paper__rule" aria-hidden />
 
+              {/* 손으로 쓴 편지 — 그 사람의 글씨가 편지지 위에서 다시 써진다 */}
+              {handwriting.length > 0 && <HandwrittenLetter pages={handwriting} />}
+
               {/* 본문 — 괘선 위에 명조 잉크로. 잉크가 스미듯 반 박자 늦게 떠오른다 */}
-              {content.message && <p className="capsule-paper__message">{content.message}</p>}
+              {content.message && (
+                <p className={`capsule-paper__message ${handwriting.length > 0 ? 'mt-6' : ''}`}>{content.message}</p>
+              )}
 
               {/* 음성 — 릴이 돌아가는 카세트 */}
               {content.audio_url && (

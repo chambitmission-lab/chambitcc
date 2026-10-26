@@ -113,6 +113,7 @@ export const SealedRow = ({
           </span>
           <span className="capsule-mail__chips">
             {capsule.open_label && <i className="capsule-mail__chip">✦ {capsule.open_label}</i>}
+            {capsule.has_handwriting && <i className="capsule-mail__chip">✍️ 손글씨</i>}
             {capsule.has_audio && <i className="capsule-mail__chip">🎙️ 음성편지</i>}
             {photos > 0 && <i className="capsule-mail__chip">📷 사진 {photos}장</i>}
           </span>
@@ -220,6 +221,7 @@ export const ArrivedRow = ({
             </span>
           )}
           <span className="capsule-mail__chips">
+            {capsule.has_handwriting && <i className="capsule-mail__chip">✍️ 손글씨</i>}
             {capsule.has_audio && <i className="capsule-mail__chip">🎙️ 음성편지</i>}
             {photos > 0 && <i className="capsule-mail__chip">📷 사진 {photos}장</i>}
             {isSender ? (

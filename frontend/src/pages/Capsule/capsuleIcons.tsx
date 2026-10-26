@@ -47,6 +47,11 @@ export const MicGlyph = () => (
   </>
 )
 
+/** 펜 — 손으로 쓴 편지지 */
+export const PenGlyph = () => (
+  <path d="M4 20l3.5-.9L19 7.6a2 2 0 0 0 0-2.9l-.7-.7a2 2 0 0 0-2.9 0L4 15.5V20ZM13.5 6.4l4.1 4.1" />
+)
+
 /** 마음을 담은 편지 — 💌 대신. 봉투 날개는 하트를 피해 중간에서 끊는다. */
 export const LetterHeartGlyph = () => (
   <>

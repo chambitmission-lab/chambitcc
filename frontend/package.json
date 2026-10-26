@@ -28,6 +28,7 @@
     "canvas-confetti": "^1.9.4",
     "flag-icons": "^7.5.0",
     "framer-motion": "^12.38.0",
+    "perfect-freehand": "^1.2.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0",

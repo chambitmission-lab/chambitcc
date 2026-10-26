@@ -57,6 +57,7 @@ export interface CapsuleSummary {
   openable: boolean
   has_audio: boolean
   has_message: boolean
+  has_handwriting?: boolean // 손으로 쓴 편지지가 있는지 (구버전 백엔드에는 없는 필드)
   photo_count: number // 동봉 사진 수 (내용은 개봉 전 비공개)
   claimed: boolean
   invite_code: string | null // 발신자에게만 내려온다
@@ -87,6 +88,7 @@ export interface CapsulePreview {
   open_label: string | null
   sealed_at: string
   has_audio: boolean
+  has_handwriting?: boolean
   photo_count: number
   openable: boolean
   claimed: boolean
@@ -98,12 +100,21 @@ export interface CapsulePhoto {
   caption: string | null
 }
 
+/** 손으로 쓴 편지지 한 장 — url 은 투명 PNG(잉크만), ink_url 은 획 JSON(재생용, 없을 수 있다) */
+export interface CapsuleHandwritingPage {
+  url: string
+  ink_url: string | null
+  width: number | null
+  height: number | null
+}
+
 export interface CapsuleContent {
   title: string | null
   message: string | null
   audio_url: string | null
   audio_duration: number | null
   photos: CapsulePhoto[]
+  handwriting?: CapsuleHandwritingPage[] // 구버전 백엔드에는 없다
   snapshot: CapsuleSnapshot | null
 }
 
@@ -125,6 +136,7 @@ export interface CapsuleCreateRequest {
   audioBlob?: Blob | null
   audioDuration?: number
   photos?: CapsuleDraftPhoto[]
+  handwriting?: CapsuleDraftHandwritingPage[]
 }
 
 // 작성 중 첨부한 사진 — 리사이즈된 Blob + 프리뷰 URL + 캡션
@@ -132,4 +144,12 @@ export interface CapsuleDraftPhoto {
   blob: Blob
   previewUrl: string
   caption: string
+}
+
+// 봉인 직전 구워 둔 손글씨 한 장 — 투명 PNG + 획 JSON (pages/Capsule/ink/inkExport.ts 가 만든다)
+export interface CapsuleDraftHandwritingPage {
+  png: Blob
+  ink: Blob
+  width: number
+  height: number
 }

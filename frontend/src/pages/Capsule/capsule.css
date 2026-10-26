@@ -6,6 +6,7 @@
 @import './styles/open-sequence.css'; /* 개봉 연출 · 꾹 누르기 안내 */
 @import './styles/sealed.css'; /* 봉인 대기 — 금고 삽화 · 다이얼 · 가려진 편지 */
 @import './styles/letter.css'; /* 개봉 후 편지지 — 폴라로이드 · 아침 하늘 · 우표 · 소인 */
+@import './styles/ink.css'; /* 손글씨 편지 — 펜 쓰기 시트 · 미리보기 · 개봉 재생 */
 @import './styles/voice.css'; /* 그날의 목소리(카세트) · P.S. 카드 */
 @import './styles/mailbox.css'; /* 캡슐함 — 도착/봉인 중 목록 · 검색 · 달별 서랍 */
 @import './styles/invite.css'; /* 초대장 */
