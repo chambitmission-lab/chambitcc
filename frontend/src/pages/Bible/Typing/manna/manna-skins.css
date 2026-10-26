@@ -587,14 +587,16 @@
 .mn-skin--drop .mn-legend__wide .material-icons-round { color: var(--dr-orange); }
 .mn-skin--drop .mn-legend li { background: var(--dr-paper); }
 
-/* 떨어지는 만나 — 굵은 외곽선 글씨(알약 없이). 하늘 위라 테마와 무관하게 흰 글자·잉크 테 */
+/* 떨어지는 만나 — 굵은 외곽선 글씨(알약 없이). 하늘 위라 테마와 무관하게 흰 글자·잉크 테.
+   쳐야 할 글자라 판독성 우선: Black Han Sans는 획 사이가 좁아 두꺼운 테가 ㄹ·ㅡ 틈을 메워
+   '들·를·의'가 뭉개진다 → 속공간이 넓은 Pretendard 800 + 4px 테 */
 .mn-skin--drop .mn-m {
   padding: 2px 4px; background: none; box-shadow: none;
-  font: 400 22px/1.2 var(--dr-display); color: #fff; letter-spacing: 0;
-  -webkit-text-stroke: 5px var(--dr-on); paint-order: stroke fill;
+  font: 800 23px/1.2 Pretendard, system-ui, sans-serif; color: #fff; letter-spacing: 0;
+  -webkit-text-stroke: 4px var(--dr-on); paint-order: stroke fill;
 }
 .mn-game.mn-skin--drop.is-easy .mn-m:not(.mn-m--static) { font-size: 26px; padding: 2px 4px; }
-.mn-skin--drop .mn-m b { color: var(--dr-lime); font-weight: 400; }
+.mn-skin--drop .mn-m b { color: var(--dr-lime); font-weight: 800; }
 .mn-skin--drop .mn-m.is-turn { background: none; color: var(--dr-lime); font-size: 27px; box-shadow: none; }
 .mn-skin--drop .mn-m.is-turn b { color: var(--dr-orange); }
 .mn-skin--drop .mn-m.is-turn::after {
@@ -621,9 +623,9 @@
 .mn-skin--drop .mn-m--fire { background: var(--dr-orange); color: #fff; text-shadow: none; }
 .mn-skin--drop .mn-m.is-low:not(.mn-m--static) { box-shadow: none; color: var(--dr-orange); }
 .mn-skin--drop .mn-m--item.is-low:not(.mn-m--static) { box-shadow: 2px 2px 0 var(--dr-orange); }
-.mn-skin--drop .mn-m--static { font-size: 16px; -webkit-text-stroke-width: 4px; }
+.mn-skin--drop .mn-m--static { font-size: 16px; -webkit-text-stroke-width: 3px; }
 .mn-skin--drop .mn-m--static.is-turn { font-size: 18px; }
-/* 아이템 칩은 색 알약이라 글자 테가 없다 — 위 static 테(4px)가 다시 씌우지 않게 */
+/* 아이템 칩은 색 알약이라 글자 테가 없다 — 위 static 테(3px)가 다시 씌우지 않게 */
 .mn-skin--drop .mn-m--static.mn-m--item { font-size: 13px; padding: 4px 10px; -webkit-text-stroke: 0; }
 
 /* 한 판 */
