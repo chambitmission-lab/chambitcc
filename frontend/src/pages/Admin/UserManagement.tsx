@@ -1,5 +1,5 @@
 import { formatLongDate, timeAgo } from '../../utils/dateUtils'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
 import {
@@ -14,23 +14,38 @@ import {
   updateAdminSettings,
   type User,
 } from '../../api/user'
-import { FilterChip, FilterRow } from './components/FilterControls'
-import { confirmDialog, alertDialog } from '../../utils/confirmDialog'
+import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import { CLERGY_TITLES } from '../../utils/churchTitles'
-import { SkeletonRows, StatChip, UserRow } from './userManagementParts'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
+import {
+  EmptyList,
+  MemberDetail,
+  MemberListItem,
+  SkeletonRows,
+  SwitchVisual,
+  TempPasswordDialog,
+  memberStatus,
+} from './userManagementParts'
 
-type RoleFilter = 'all' | 'admin' | 'user'
-type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
+// 권한·상태를 한 줄 세그먼트로 — 관리자가 실제로 찾는 묶음만
+type ListTab = 'all' | 'pending' | 'admin' | 'pastor' | 'inactive'
 type SortKey = 'recentLogin' | 'createdAt' | 'name'
 type TitleFilter = 'all' | 'clergy' | 'elder' | 'kwonsa' | 'none'
 
 const TITLE_FILTERS: [TitleFilter, string][] = [
-  ['all', '전체'],
+  ['all', '전체 직분'],
   ['clergy', '교역자'],
   ['elder', '장로'],
   ['kwonsa', '권사'],
   ['none', '미지정'],
+]
+
+const SORTS: [SortKey, string][] = [
+  ['recentLogin', '최근 로그인순'],
+  ['createdAt', '가입일순'],
+  ['name', '이름순'],
 ]
 
 const matchesTitleFilter = (title: string | null | undefined, f: TitleFilter) => {
@@ -43,18 +58,34 @@ const matchesTitleFilter = (title: string | null | undefined, f: TitleFilter) =>
   return title.includes('권사')
 }
 
+const matchesTab = (u: User, tab: ListTab) => {
+  if (tab === 'all') return true
+  if (tab === 'admin') return u.is_admin
+  if (tab === 'pastor') return !!u.is_pastor
+  const st = memberStatus(u)
+  if (tab === 'pending') return st === 'pending'
+  return st === 'inactive' || st === 'rejected'
+}
+
+const isTypingTarget = (el: Element | null) =>
+  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el as HTMLElement).isContentEditable)
+
 const UserManagement = () => {
   const navigate = useNavigate()
+  const isLg = useMediaQuery('(min-width: 1024px)')
+  const searchRef = useRef<HTMLInputElement>(null)
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterRole, setFilterRole] = useState<RoleFilter>('all')
-  const [filterStatus, setFilterStatus] = useState<StatusFilter>('all')
+  const [tab, setTab] = useState<ListTab>('all')
   const [filterTitle, setFilterTitle] = useState<TitleFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('recentLogin')
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  // 모바일: 목록 ↔ 상세를 한 화면씩. PC 는 늘 나란히라 쓰지 않는다
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
   const [requireApproval, setRequireApproval] = useState(false)
   const [savingApproval, setSavingApproval] = useState(false)
+  const [tempPassword, setTempPassword] = useState<{ name: string; password: string } | null>(null)
 
   useEffect(() => {
     if (!can('admin:access')) {
@@ -138,6 +169,33 @@ const UserManagement = () => {
     } catch {
       showToast('승인 처리에 실패했습니다', 'error')
     }
+  }
+
+  // 승인 대기 여러 명 한 번에 — 서버가 요청을 직렬로 처리하므로 한 명씩 차례로 보낸다
+  const handleApproveAll = async (ids: number[]) => {
+    if (
+      !(await confirmDialog({
+        title: `${ids.length}명 한 번에 승인`,
+        message: `승인 대기 중인 ${ids.length}명을 모두 승인하시겠습니까?`,
+        description: '승인하면 바로 로그인할 수 있습니다.',
+        confirmText: '모두 승인',
+        tone: 'brand',
+        icon: 'how_to_reg',
+      }))
+    )
+      return
+    let done = 0
+    for (const id of ids) {
+      try {
+        await updateUserApproval(id, true)
+        done++
+      } catch {
+        // 실패한 회원은 대기로 남는다 — 아래 안내로 알린다
+      }
+    }
+    if (done === ids.length) showToast(`${done}명을 승인했습니다`, 'success')
+    else showToast(`${done}명 승인, ${ids.length - done}명은 실패했습니다`, 'error')
+    loadUsers()
   }
 
   const handleToggleAdmin = async (userId: number, currentStatus: boolean) => {
@@ -256,16 +314,8 @@ const UserManagement = () => {
       return
     try {
       const { temp_password } = await resetUserPassword(userId)
-      // 임시 비밀번호를 놓치지 않도록 모달로 확실히 안내 (회원에게 전달 후 직접 변경)
-      await alertDialog({
-        title: '비밀번호가 초기화되었습니다',
-        message: `임시 비밀번호: ${temp_password}`,
-        description: '회원에게 전달해 주세요. 로그인 후 직접 변경할 수 있습니다.',
-        confirmText: '확인',
-        tone: 'brand',
-        icon: 'lock_reset',
-      })
-      showToast('비밀번호가 초기화되었습니다', 'success')
+      // 임시 비밀번호를 놓치지 않도록 복사 버튼이 있는 안내창으로 (회원에게 전달 후 직접 변경)
+      setTempPassword({ name, password: temp_password })
     } catch {
       showToast('비밀번호 초기화에 실패했습니다', 'error')
     }
@@ -278,16 +328,7 @@ const UserManagement = () => {
         !q ||
         user.username.toLowerCase().includes(q) ||
         (user.full_name?.toLowerCase().includes(q) ?? false)
-      const matchesRole =
-        filterRole === 'all' ||
-        (filterRole === 'admin' && user.is_admin) ||
-        (filterRole === 'user' && !user.is_admin)
-      const matchesStatus =
-        filterStatus === 'all' ||
-        (filterStatus === 'active' && user.is_active) ||
-        (filterStatus === 'inactive' && !user.is_active) ||
-        (filterStatus === 'pending' && user.approval_status === 'pending')
-      return matchesSearch && matchesRole && matchesStatus && matchesTitleFilter(user.church_title, filterTitle)
+      return matchesSearch && matchesTab(user, tab) && matchesTitleFilter(user.church_title, filterTitle)
     })
 
     // 승인 대기는 항상 맨 위로 — 처리해야 할 일이 정렬 기준에 묻히지 않게
@@ -306,206 +347,335 @@ const UserManagement = () => {
       }
       return (a.full_name || a.username).localeCompare(b.full_name || b.username, 'ko')
     })
-  }, [users, searchTerm, filterRole, filterStatus, filterTitle, sortKey])
+  }, [users, searchTerm, tab, filterTitle, sortKey])
 
-  const adminCount = users.filter(u => u.is_admin).length
-  const pastorCount = users.filter(u => u.is_pastor).length
-  const activeCount = users.filter(u => u.is_active).length
-  const pendingCount = users.filter(u => u.approval_status === 'pending').length
+  const pendingInList = filteredAndSorted.filter(u => u.approval_status === 'pending')
+  const restInList = filteredAndSorted.filter(u => u.approval_status !== 'pending')
+
+  // PC: 고른 회원이 목록에서 빠지면(승인 대기 탭에서 승인 등) 다음 사람을 자동으로 보여 준다
+  const activeId = isLg
+    ? filteredAndSorted.some(u => u.id === selectedId)
+      ? selectedId
+      : (filteredAndSorted[0]?.id ?? null)
+    : selectedId
+  const selectedUser = activeId != null ? (users.find(u => u.id === activeId) ?? null) : null
+  const showMobileDetail = !isLg && mobileDetailOpen && !!selectedUser
+
+  const closeMobileDetail = useCallback(() => setMobileDetailOpen(false), [])
+  useModalBackButton(closeMobileDetail, showMobileDetail)
+
+  const selectUser = (id: number) => {
+    setSelectedId(id)
+    if (!isLg) {
+      setMobileDetailOpen(true)
+      document.getElementById('user-mgmt-top')?.scrollIntoView()
+    }
+  }
+
+  // PC 키보드 — '/' 검색, ↑↓ 회원 이동 (확인창이 떠 있거나 입력 중이면 무시)
+  useEffect(() => {
+    if (!isLg) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (document.querySelector('[role="alertdialog"]')) return
+      if (isTypingTarget(document.activeElement)) return
+      if (e.key === '/') {
+        e.preventDefault()
+        searchRef.current?.focus()
+        return
+      }
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+      if (filteredAndSorted.length === 0) return
+      e.preventDefault()
+      const i = filteredAndSorted.findIndex(u => u.id === activeId)
+      const next =
+        e.key === 'ArrowDown' ? Math.min(filteredAndSorted.length - 1, i + 1) : Math.max(0, i - 1)
+      const id = filteredAndSorted[next].id
+      setSelectedId(id)
+      document.getElementById(`member-row-${id}`)?.scrollIntoView({ block: 'nearest' })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isLg, filteredAndSorted, activeId])
+
+  const counts = useMemo(
+    () => ({
+      all: users.length,
+      pending: users.filter(u => u.approval_status === 'pending').length,
+      admin: users.filter(u => u.is_admin).length,
+      pastor: users.filter(u => u.is_pastor).length,
+      inactive: users.filter(u => ['inactive', 'rejected'].includes(memberStatus(u))).length,
+      active: users.filter(u => u.is_active).length,
+    }),
+    [users],
+  )
+
+  const TABS: [ListTab, string, number][] = [
+    ['all', '전체', counts.all],
+    ['pending', '대기', counts.pending],
+    ['admin', '관리자', counts.admin],
+    ['pastor', '목회자', counts.pastor],
+    ['inactive', '비활성', counts.inactive],
+  ]
+
+  const resetFilters = () => {
+    setSearchTerm('')
+    setTab('all')
+    setFilterTitle('all')
+  }
 
   const formatDate = (d: string) => formatLongDate(d)
 
   const formatRelative = (d?: string) =>
     d ? timeAgo(d, { maxDays: 7, beyond: x => formatLongDate(x.toISOString()) }) : '로그인 기록 없음'
 
-  return (
-    // lg 에서 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
-    // sticky 가 전역으로 죽어 있어, 이 상자를 만들어야 우측 도구 레일 sticky 가 산다.
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
-        {/* 헤더 — lg 에선 검색/필터가 우측 레일에 고정되므로 sticky 를 풀어 둔다
-            (sticky 인 채로 라운드 모서리를 주면 스크롤 중 둥근 막대가 떠 보인다) */}
-        <div className="sticky top-14 lg:static lg:rounded-t-3xl z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+  const groupLabel = (text: string) => (
+    <p className="px-4 pt-4 pb-1.5 text-[12px] font-bold text-gray-500 dark:text-white/50">{text}</p>
+  )
+
+  const renderItem = (u: User) => (
+    <MemberListItem
+      key={u.id}
+      user={u}
+      selected={u.id === activeId}
+      onSelect={() => selectUser(u.id)}
+      formatRelative={formatRelative}
+    />
+  )
+
+  const selectCls =
+    'appearance-none h-9 pl-3 pr-8 rounded-xl bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] text-[12.5px] font-semibold text-gray-700 dark:text-white/80 focus:outline-none focus:border-brand cursor-pointer'
+
+  // ── 왼쪽: 목록 ─────────────────────────────────────────
+  const listColumn = (
+    <section
+      aria-label="회원 목록"
+      className="bg-white dark:bg-card-dark min-h-screen lg:min-h-0 lg:w-[372px] lg:shrink-0 lg:flex lg:flex-col lg:border-r border-gray-200/70 dark:border-white/[0.08]"
+    >
+      <div className="sticky top-14 lg:static z-10 bg-white/95 dark:bg-card-dark/95 backdrop-blur-sm px-4 pt-3 pb-3 space-y-3 border-b border-gray-200/70 dark:border-white/[0.08]">
+        <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
+            className="w-8 h-8 -ml-1.5 rounded-lg flex items-center justify-center text-gray-500 dark:text-white/60 hover:text-brand hover:bg-gray-50 dark:hover:bg-white/[0.04]"
+            aria-label="뒤로"
           >
-            <span className="material-icons-outlined">arrow_back</span>
-            <span className="text-sm font-semibold">뒤로</span>
+            <span className="material-icons-outlined text-[22px]">arrow_back</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">회원 관리</h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
-            ADMIN
-          </span>
+          <h1 className="flex-1 text-[19px] font-bold text-ink-strong tracking-[-0.02em]">
+            회원 <span className="text-brand">{counts.all}</span>
+            <span className="ml-2 text-[12px] font-medium text-gray-400 dark:text-white/40">활성 {counts.active}</span>
+          </h1>
+          <div className="relative">
+            <select
+              value={sortKey}
+              onChange={e => setSortKey(e.target.value as SortKey)}
+              className={selectCls}
+              aria-label="정렬"
+            >
+              {SORTS.map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
+            <span className="material-icons-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-gray-400 pointer-events-none">expand_more</span>
+          </div>
         </div>
 
-        {/* PC(lg+) 2단 — 좌: 회원 목록 / 우: 도구(통계·가입 승인제·검색/필터)가 sticky.
-            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
-        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
-          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3">
-            {/* 통계 칩 */}
-            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
-              <StatChip label="전체" value={users.length} />
-              <StatChip label="관리자" value={adminCount} accent />
-              <StatChip label="목회자" value={pastorCount} />
-              <StatChip label="활성" value={activeCount} />
-              {pendingCount > 0 && <StatChip label="승인 대기" value={pendingCount} warn />}
-            </div>
+        {/* 가입 승인제 — 운영 설정이라 한 줄로 작게, 대신 늘 보이게 */}
+        <button
+          type="button"
+          onClick={handleToggleRequireApproval}
+          disabled={savingApproval}
+          role="switch"
+          aria-checked={requireApproval}
+          aria-label="가입 승인제"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.04] text-left disabled:opacity-50"
+        >
+          <span className="flex-1 min-w-0">
+            <span className="block text-[13px] font-bold text-ink-strong">가입 승인제</span>
+            <span className="block text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5 truncate">
+              {requireApproval ? '새 회원은 승인 후에만 로그인할 수 있어요' : '누구나 가입 후 바로 이용할 수 있어요'}
+            </span>
+          </span>
+          <SwitchVisual on={requireApproval} small />
+        </button>
 
-            {/* 가입 승인제 토글 */}
-            <div className="px-4 pt-3 lg:px-0">
-              <div className="relative isolate overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+        <div className="relative">
+          <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-gray-400 dark:text-white/40 pointer-events-none">search</span>
+          <input
+            ref={searchRef}
+            type="text"
+            placeholder="이름 · 아이디 검색"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            onKeyDown={e => e.key === 'Escape' && (e.currentTarget as HTMLInputElement).blur()}
+            className="w-full h-10 pl-10 pr-10 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand focus:bg-white dark:focus:bg-white/[0.05] transition-colors"
+          />
+          {searchTerm ? (
+            <button
+              type="button"
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
+              aria-label="검색어 지우기"
+            >
+              <span className="material-icons-outlined text-[18px]">close</span>
+            </button>
+          ) : (
+            <kbd className="hidden lg:block absolute right-3 top-1/2 -translate-y-1/2 px-1.5 rounded-md border border-gray-200 dark:border-white/[0.1] text-[11px] text-gray-400 dark:text-white/40 font-sans">/</kbd>
+          )}
+        </div>
 
-                <div className="relative z-10 flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
-                      가입 승인제
-                    </p>
-                    <p className="text-[12px] text-gray-500 dark:text-white/55 mt-1 leading-relaxed">
-                      {requireApproval
-                        ? '새로 가입한 회원은 관리자 승인 후에만 로그인할 수 있습니다.'
-                        : '누구나 회원가입 후 바로 이용할 수 있습니다.'}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleToggleRequireApproval}
-                    disabled={savingApproval}
-                    role="switch"
-                    aria-checked={requireApproval}
-                    aria-label="가입 승인제"
-                    className={`relative shrink-0 w-[52px] h-[30px] rounded-full transition-all duration-200 disabled:opacity-50 ${
-                      requireApproval
-                        ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]'
-                        : 'bg-gray-300 dark:bg-white/[0.12]'
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-1/2 -translate-y-1/2 w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-all duration-200 ${
-                        requireApproval ? 'left-[25px]' : 'left-[3px]'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {requireApproval && pendingCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setFilterStatus('pending')}
-                    className="relative z-10 mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-400/30 hover:bg-amber-100 dark:hover:bg-amber-500/15 transition-colors"
-                  >
-                    <span className="material-icons-outlined text-[16px]">how_to_reg</span>
-                    <span>승인 대기 {pendingCount}명 보기</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* 검색 + 필터 카드 */}
-            <div className="px-4 py-3 lg:px-0">
-              <div className="relative isolate overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-
-                <div className="relative z-10 space-y-3">
-                  {/* 검색 */}
-                  <div className="relative">
-                    <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 text-[20px] pointer-events-none">search</span>
-                    <input
-                      type="text"
-                      placeholder="아이디 · 이름 검색"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-                    />
-                    {searchTerm && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
-                        aria-label="검색어 지우기"
-                      >
-                        <span className="material-icons-outlined text-[18px]">close</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* 권한 */}
-                  <FilterRow align="center" label="권한">
-                    {([['all', '전체'], ['admin', '관리자'], ['user', '일반']] as const).map(([v, l]) => (
-                      <FilterChip key={v} active={filterRole === v} onClick={() => setFilterRole(v)}>{l}</FilterChip>
-                    ))}
-                  </FilterRow>
-
-                  {/* 직분 */}
-                  <FilterRow align="center" label="직분">
-                    {TITLE_FILTERS.map(([v, l]) => (
-                      <FilterChip key={v} active={filterTitle === v} onClick={() => setFilterTitle(v)}>{l}</FilterChip>
-                    ))}
-                  </FilterRow>
-
-                  {/* 상태 */}
-                  <FilterRow align="center" label="상태">
-                    {([['all', '전체'], ['active', '활성'], ['inactive', '비활성'], ['pending', '승인 대기']] as const).map(([v, l]) => (
-                      <FilterChip key={v} active={filterStatus === v} onClick={() => setFilterStatus(v)}>{l}</FilterChip>
-                    ))}
-                  </FilterRow>
-
-                  {/* 정렬 */}
-                  <FilterRow align="center" label="정렬">
-                    {([['recentLogin', '최근 로그인'], ['createdAt', '가입일'], ['name', '이름']] as const).map(([v, l]) => (
-                      <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>{l}</FilterChip>
-                    ))}
-                  </FilterRow>
-                </div>
-              </div>
-            </div>
-
-            {/* 결과 카운트 */}
-            <div className="px-5 pb-2 lg:px-1 lg:pb-0 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
-              <span>
-                검색 결과 <span className="font-bold text-ink-strong">{filteredAndSorted.length}</span>명
-              </span>
-              {searchTerm && (
-                <span className="text-brand truncate">"{searchTerm}"</span>
+        {/* 권한·상태 세그먼트 */}
+        <div className="flex gap-1 p-1 rounded-xl bg-gray-100 dark:bg-white/[0.04]" role="tablist">
+          {TABS.map(([v, l, n]) => (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={tab === v}
+              onClick={() => setTab(v)}
+              className={`flex-1 h-8 rounded-lg text-[12.5px] font-semibold whitespace-nowrap transition-colors ${
+                tab === v
+                  ? 'bg-white dark:bg-white/[0.1] text-ink-strong shadow-sm'
+                  : 'text-gray-500 dark:text-white/50 hover:text-gray-800 dark:hover:text-white/80'
+              }`}
+            >
+              {l}
+              {v !== 'all' && n > 0 && (
+                <span className={`ml-0.5 ${v === 'pending' ? 'text-amber-600 dark:text-amber-300' : ''}`}>{n}</span>
               )}
-            </div>
-          </div>
+            </button>
+          ))}
+        </div>
 
-          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
-            {/* 회원 목록 */}
-            <div className="px-4 pb-10 lg:px-0 lg:pb-8 space-y-2">
-              {loading ? (
-                <SkeletonRows />
-              ) : filteredAndSorted.length === 0 ? (
-                <div className="text-center py-12">
-                  <span className="text-4xl block mb-3">🔍</span>
-                  <p className="text-[13px] text-gray-500 dark:text-white/55">검색 결과가 없습니다</p>
-                  <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">필터/검색어를 바꿔보세요</p>
-                </div>
-              ) : (
-                filteredAndSorted.map(user => (
-                  <UserRow
-                    key={user.id}
-                    user={user}
-                    expanded={expandedId === user.id}
-                    onToggleExpand={() => setExpandedId(prev => (prev === user.id ? null : user.id))}
-                    onToggleAdmin={() => handleToggleAdmin(user.id, user.is_admin)}
-                    onTogglePastor={() => handleTogglePastor(user.id, user.full_name || user.username, !!user.is_pastor)}
-                    onChurchTitle={title => handleChurchTitle(user, title)}
-                    onToggleStatus={() => handleToggleStatus(user.id, user.is_active)}
-                    onApproval={(approve) => handleApproval(user.id, approve)}
-                    onResetPassword={() => handleResetPassword(user.id, user.full_name || user.username)}
-                    formatDate={formatDate}
-                    formatRelative={formatRelative}
-                  />
-                ))
-              )}
-            </div>
-          </div>
+        {/* 직분 */}
+        <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {TITLE_FILTERS.map(([v, l]) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setFilterTitle(v)}
+              aria-pressed={filterTitle === v}
+              className={`shrink-0 h-7 px-2.5 rounded-full text-[12px] font-semibold border transition-colors ${
+                filterTitle === v
+                  ? 'bg-[var(--brand-soft-strong)] border-transparent text-brand'
+                  : 'border-gray-200 dark:border-white/[0.1] text-gray-500 dark:text-white/55 hover:text-gray-800 dark:hover:text-white/80'
+              }`}
+            >
+              {l}
+            </button>
+          ))}
         </div>
       </div>
+
+      <div className="pb-10 lg:pb-3 lg:flex-1 lg:overflow-y-auto">
+        {loading ? (
+          <SkeletonRows />
+        ) : filteredAndSorted.length === 0 ? (
+          <EmptyList onReset={resetFilters} />
+        ) : (
+          <>
+            {pendingInList.length > 0 && (
+              <>
+                {groupLabel(`승인 대기 ${pendingInList.length}`)}
+                {pendingInList.map(renderItem)}
+                {pendingInList.length > 1 && (
+                  <div className="px-4 pt-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleApproveAll(pendingInList.map(u => u.id))}
+                      className="w-full h-9 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.15] text-[12.5px] font-semibold text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                    >
+                      대기 {pendingInList.length}명 모두 승인
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+            {restInList.length > 0 && (
+              <>
+                {groupLabel(
+                  `${SORTS.find(([v]) => v === sortKey)![1]} · ${restInList.length}명`,
+                )}
+                {restInList.map(renderItem)}
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="hidden lg:flex items-center gap-1.5 px-4 py-2 border-t border-gray-200/70 dark:border-white/[0.06] text-[11.5px] text-gray-400 dark:text-white/40">
+        <kbd className="px-1.5 rounded-md border border-gray-200 dark:border-white/[0.1] font-sans">↑</kbd>
+        <kbd className="px-1.5 rounded-md border border-gray-200 dark:border-white/[0.1] font-sans">↓</kbd>
+        회원 이동
+        <kbd className="ml-2 px-1.5 rounded-md border border-gray-200 dark:border-white/[0.1] font-sans">/</kbd>
+        검색
+      </div>
+    </section>
+  )
+
+  const detail = selectedUser && (
+    <MemberDetail
+      key={selectedUser.id}
+      user={selectedUser}
+      onToggleAdmin={() => handleToggleAdmin(selectedUser.id, selectedUser.is_admin)}
+      onTogglePastor={() =>
+        handleTogglePastor(selectedUser.id, selectedUser.full_name || selectedUser.username, !!selectedUser.is_pastor)
+      }
+      onChurchTitle={title => handleChurchTitle(selectedUser, title)}
+      onToggleStatus={() => handleToggleStatus(selectedUser.id, selectedUser.is_active)}
+      onApproval={approve => handleApproval(selectedUser.id, approve)}
+      onResetPassword={() => handleResetPassword(selectedUser.id, selectedUser.full_name || selectedUser.username)}
+      formatDate={formatDate}
+      formatRelative={formatRelative}
+    />
+  )
+
+  return (
+    // PC(lg+): 목록·상세가 각자 스크롤하는 고정 높이 2단. 모바일: 목록 ↔ 상세 한 화면씩
+    <div
+      id="user-mgmt-top"
+      className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:p-4 lg:overflow-hidden"
+    >
+      <div className="max-w-md mx-auto lg:max-w-[1240px] lg:h-full lg:flex lg:rounded-3xl lg:overflow-hidden lg:border border-gray-200/70 dark:border-white/[0.08]">
+        {showMobileDetail ? (
+          <div className="min-h-screen">
+            <div className="sticky top-14 z-10 bg-[var(--app-canvas)]/95 dark:bg-background-dark/95 backdrop-blur-sm px-2 h-12 flex items-center border-b border-gray-200/70 dark:border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => history.back()}
+                className="h-9 px-2 rounded-lg inline-flex items-center gap-1 text-[14px] font-semibold text-gray-700 dark:text-white/80"
+              >
+                <span className="material-icons-outlined text-[22px]">arrow_back</span>
+                회원 목록
+              </button>
+            </div>
+            {detail}
+          </div>
+        ) : (
+          <>
+            {listColumn}
+            {isLg && (
+              <section aria-label="회원 상세" className="flex-1 min-w-0 overflow-y-auto">
+                {detail ??
+                  (!loading && (
+                    <div className="h-full flex items-center justify-center text-[13.5px] text-gray-400 dark:text-white/40">
+                      왼쪽에서 회원을 골라 주세요
+                    </div>
+                  ))}
+              </section>
+            )}
+          </>
+        )}
+      </div>
+
+      {tempPassword && (
+        <TempPasswordDialog
+          name={tempPassword.name}
+          password={tempPassword.password}
+          onClose={() => setTempPassword(null)}
+        />
+      )}
     </div>
   )
 }
