@@ -73,4 +73,15 @@
   .pv-sample__frame {
     width: 168px;
   }
+
+  /* 상황 칩·스타일·레이아웃·필터·감성 배경 스트립 — 모바일은 가로 스크롤,
+     PC는 마우스로 가로 스크롤이 불편하니 줄바꿈해 전부 보이게 */
+  .pv-occasion-row,
+  .pv-presets,
+  .pv-layouts,
+  .pv-filters,
+  .pv-bg-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
