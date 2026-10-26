@@ -70,11 +70,12 @@ export const drawStrokes = (
 }
 
 /** 캔버스를 CSS 크기에 맞추고, 논리 좌표(1000 × 1414)로 그릴 수 있게 transform을 건다.
-    크기가 같으면 백킹 스토어를 건드리지 않는다(내용이 지워지므로). 반환값: 다시 잡았는지 */
+    크기가 같으면 백킹 스토어를 건드리지 않는다(내용이 지워지므로). 반환값: 다시 잡았는지
+    ★ desynchronized(저지연) 옵션은 쓰지 않는다 — 안드로이드 크롬은 그 캔버스를 불투명 검은 면으로
+    합성해 종이와 아래 캔버스를 전부 가린다(2026-10-26 갤럭시 실기기 재현). */
 export const fitCanvas = (
   canvas: HTMLCanvasElement,
   cssWidth: number,
-  options: { desynchronized?: boolean } = {},
 ): { ctx: CanvasRenderingContext2D; resized: boolean } | null => {
   const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR)
   const cssHeight = (cssWidth * INK_PAGE_H) / INK_PAGE_W
@@ -88,7 +89,7 @@ export const fitCanvas = (
   }
   canvas.style.width = `${cssWidth}px`
   canvas.style.height = `${cssHeight}px`
-  const ctx = canvas.getContext('2d', options.desynchronized ? { desynchronized: true } : undefined)
+  const ctx = canvas.getContext('2d')
   if (!ctx) return null
   const scale = bw / INK_PAGE_W
   ctx.setTransform(scale, 0, 0, scale, 0, 0)

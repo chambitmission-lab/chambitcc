@@ -139,11 +139,11 @@ const InkPad = ({
     drawnRef.current = { list: strokes, count: strokes.length }
   }, [page.strokes, cssWidth])
 
-  // 위 캔버스 — 크기만 맞춰 둔다(지연이 적은 desynchronized 컨텍스트)
+  // 위 캔버스 — 크기만 맞춰 둔다
   useLayoutEffect(() => {
     const canvas = liveRef.current
     if (!canvas || cssWidth <= 0) return
-    fitCanvas(canvas, cssWidth, { desynchronized: true })
+    fitCanvas(canvas, cssWidth)
   }, [cssWidth])
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
@@ -165,7 +165,7 @@ const InkPad = ({
     const canvas = liveRef.current
     const d = drawingRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d', { desynchronized: true })
+    const ctx = canvas.getContext('2d')
     if (!ctx) return
     clearCanvas(ctx)
     if (d && d.mode === 'draw') drawStroke(ctx, d.stroke, 'light', undefined, false)
@@ -196,7 +196,7 @@ const InkPad = ({
     if (!d) return
     drawingRef.current = null
     const canvas = liveRef.current
-    const ctx = canvas?.getContext('2d', { desynchronized: true })
+    const ctx = canvas?.getContext('2d')
     if (ctx) clearCanvas(ctx)
   }, [])
 
