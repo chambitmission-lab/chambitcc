@@ -29,7 +29,7 @@ const ArchTitle = ({ parts }: { parts: TitlePart[] }) => {
           return (
             <span
               key={i}
-              className={`cw-arch__ch ${p.mark ? 'is-mark' : ''}`}
+              className="cw-arch__ch"
               style={{ '--lift': lift, '--slope': slope } as CSSProperties}
               aria-hidden
             >
@@ -37,7 +37,9 @@ const ArchTitle = ({ parts }: { parts: TitlePart[] }) => {
             </span>
           )
         })
-        return p.em ? <em key={pi}>{chars}</em> : <span key={pi}>{chars}</span>
+        // 띠는 글자 묶음 뒤에 한 획으로 — 글자별로 쪼개면 붓자국이 끊긴다
+        const inner = p.mark ? <span className="cw-arch__mark">{chars}</span> : chars
+        return p.em ? <em key={pi}>{inner}</em> : <span key={pi}>{inner}</span>
       })}
     </span>
   )
