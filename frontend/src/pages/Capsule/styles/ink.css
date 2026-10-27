@@ -327,11 +327,6 @@
   height: 100% !important;
 }
 
-/* PNG 폴백은 먹색 잉크 고정 — 밤하늘 편지지에서는 밝게 뒤집어 잉크가 보이게 한다 */
-.ink-letter__img--dark {
-  filter: invert(0.92) hue-rotate(180deg) brightness(1.05);
-}
-
 .ink-letter__break {
   display: flex;
   align-items: center;

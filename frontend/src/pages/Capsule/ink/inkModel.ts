@@ -38,7 +38,8 @@ export interface InkPageFile {
 
 export type InkTheme = 'light' | 'dark'
 
-/** 펜 색 — 라이트는 크림 종이 위 잉크, 다크는 밤하늘 편지지(미드나잇 네이비) 위 잉크.
+/** 펜 색 — light 는 크림 종이 위 잉크. dark 는 밤하늘 편지지(미드나잇 네이비) 실험용으로 남겨 둔 밝은 잉크인데
+    개봉 편지지는 라이트·다크 모두 크림이라(letter.css) 현재 쓰는 곳이 없다 — 크림 위에 올리면 글씨가 사라진다.
     개봉 편지지의 --p-* 팔레트와 같은 결 (앱 테마 토큰 금지 원칙) */
 export const INK_COLORS: { key: string; label: string; light: string; dark: string }[] = [
   { key: 'ink', label: '먹색', light: '#2b2a28', dark: '#ece2cc' },
