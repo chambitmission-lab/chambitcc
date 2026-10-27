@@ -1,9 +1,11 @@
 // 홈 "주일에 붙잡은 말씀" — 지난 주일 설교에서 내가 적은 한 줄을 월~토 홈에 다시 띄운다.
 // 설교가 주일에 끝나지 않고 한 주 내내 이어지게. 비로그인·한 줄이 없으면 아무것도 그리지 않는다.
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useSermonTakeaways } from '../../../hooks/useSermonTakeaways'
 import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { todayYmd } from '../../Bible/Plans/planSchedule'
+import { ensureFontFamily } from '../../../utils/deferredFonts'
 
 const DAY_MS = 86_400_000
 
@@ -14,15 +16,25 @@ const daysBetween = (a: string, b: string): number =>
 const SermonTakeawayEcho = () => {
   const bundlePending = useHomeBundlePending()
   const { loggedIn, data } = useSermonTakeaways(!bundlePending)
-  if (!loggedIn || !data?.length) return null
 
   // 설교 다음 날부터 엿새째(다음 주일 전날)까지 — 가장 최근 설교의 한 줄 하나
   const today = todayYmd()
-  const pick = data
-    .filter((t) => t.sermon_date)
-    .map((t) => ({ t, ago: daysBetween(t.sermon_date!, today) }))
-    .filter(({ ago }) => ago >= 1 && ago <= 6)
-    .sort((a, b) => a.ago - b.ago)[0]
+  const pick = loggedIn
+    ? (data ?? [])
+        .filter((t) => t.sermon_date)
+        .map((t) => ({ t, ago: daysBetween(t.sermon_date!, today) }))
+        .filter(({ ago }) => ago >= 1 && ago <= 6)
+        .sort((a, b) => a.ago - b.ago)[0]
+    : undefined
+
+  // 손글씨 서체는 카드가 뜰 때만 붙인다 — 홈 모듈 최상단에서 부르면 카드 없는 날에도 전원이 CSS 를 받는다.
+  // 한글은 unicode-range 조각이라 그 한 줄 글자로 조각까지 받아 폴백 → 손글씨 바뀜을 줄인다
+  const text = pick?.t.text
+  useEffect(() => {
+    if (!text || !document.fonts) return
+    void ensureFontFamily('nanumPen').then(() => document.fonts.load(`22px "Nanum Pen Script"`, text).catch(() => undefined))
+  }, [text])
+
   if (!pick) return null
 
   return (

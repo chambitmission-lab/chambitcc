@@ -50,6 +50,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/prayer-focus': () => import('../pages/PrayerFocus'),
   // PC 좌측 레일 "신앙 여정"
   '/growth': () => import('../pages/Growth/Growth'),
+  // 홈 히어로 '오늘의 교회' 봉투 목적지 — 봉투가 뜨는 순간 데운다
+  '/today': () => import('../pages/TodayChurch/TodayChurch'),
   // 홈 FAB 스피드 다이얼의 "말씀 카드 만들기" 목적지
   '/bible/photo-verse': () => import('../pages/Bible/PhotoVerse/PhotoVerse'),
   // /bible 허브 도구 카드·홈 우측 레일 칩 목적지 — 허브가 뜨면 유휴 시간에 미리 받는다
@@ -106,6 +108,13 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
       ([m, q, a]) => {
         if (a.isAuthenticated()) m.prefetchGrowth(q.queryClient, true)
       },
+    ),
+  // 오늘의 교회 — 데이터는 홈 묶음이 이미 심었다. 남는 건 손글씨(Nanum Pen) 서체: 한글 웹폰트는
+  // unicode-range 조각이라 스타일시트만 붙여선 안 받고, 글자가 그려진 뒤에야 조각을 받아 진입 시
+  // 폴백 서체 → 손글씨로 한 박자 늦게 바뀌었다. 기록 글자로 조각까지 미리 받아 둔다.
+  '/today': () =>
+    Promise.all([import('../pages/TodayChurch/memoryCopy'), import('../config/queryClient')]).then(
+      ([m, q]) => m.warmMemoryFonts(q.queryClient),
     ),
   '/bible/situation': () =>
     Promise.all([import('../hooks/useSituation'), import('../config/queryClient')]).then(

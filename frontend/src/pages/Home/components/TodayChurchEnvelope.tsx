@@ -9,11 +9,13 @@
 //   - 1년·6개월·한 달 전 '정확히 오늘' 남긴 기록이 있는 날만 뜬다(memory.exact).
 //     앞뒤 3일 대체나 '처음 남긴 기도'는 같은 기록이 며칠씩 반복되므로 상세에서만 보여 준다.
 //   - /today 를 한 번 열면 그날(서버 KST 날짜)은 숨는다. 상시 입구는 전체 메뉴·⌘K(navCatalog '/today').
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { MemoryKind, MemoryOffset } from '../../../api/todayChurch'
 import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { useTodayChurch } from '../../../hooks/useTodayChurch'
 import { isAuthenticated } from '../../../utils/auth'
+import { preloadRoute } from '../../../utils/routePreload'
 import { EnvelopeSimple } from '../../../components/icons/phosphor'
 import { isTodayChurchOpened, useAskableMemory } from '../../TodayChurch/memoryCopy'
 
@@ -37,11 +39,18 @@ const TodayChurchEnvelope = () => {
   const bundlePending = useHomeBundlePending()
   const { data } = useTodayChurch(authed && !bundlePending)
   const askable = useAskableMemory()
-
-  if (!authed || !data || isTodayChurchOpened(data.date)) return null
-  const exact = data.memories.filter((m) => m.exact && m.offset !== 'first')
+  const exact = authed && data && !isTodayChurchOpened(data.date)
+    ? data.memories.filter((m) => m.exact && m.offset !== 'first')
+    : []
   // 응답을 물을 기도가 있으면 그것을 먼저, 없으면 가장 오래된 기념일(1년 → 6개월 → 한 달)
   const main = exact.find(askable) ?? exact[0]
+
+  // 봉투가 뜨면 누를 확률이 높다 — 화면 청크와 손글씨 서체 조각을 미리 받아 탭 즉시 본문이 손글씨로 뜨게
+  const visible = !!main
+  useEffect(() => {
+    if (visible) void preloadRoute('/today')
+  }, [visible])
+
   if (!main || main.offset === 'first') return null
 
   const label = `${WHEN[main.offset]} 오늘의 ${SUBJECT[main.kind]} 도착했어요`

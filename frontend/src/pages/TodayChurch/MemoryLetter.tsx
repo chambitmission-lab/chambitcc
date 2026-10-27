@@ -5,7 +5,11 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { TodayMemory } from '../../api/todayChurch'
 import { useAnswerMemoryPrayer, useStillPraying } from '../../hooks/useTodayChurch'
+import { ensureFontFamily } from '../../utils/deferredFonts'
 import { lazyModal } from '../../utils/lazyModal'
+
+// 손글씨 서체는 쓰는 화면이 붙인다 — 빠져 있어 챗봇 위젯이 먼저 붙여 주기 전엔 폴백 서체로 그려졌다
+ensureFontFamily('nanumPen')
 
 const AnswerModal = lazyModal(() => import('../../components/prayer/AnswerModal'))
 
