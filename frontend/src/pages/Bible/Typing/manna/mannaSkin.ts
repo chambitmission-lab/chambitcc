@@ -4,10 +4,9 @@ import { ensureFontFamily } from '../../../../utils/deferredFonts'
 import type { MannaResult } from './mannaEngine'
 
 /**
- * 만나 내리기 화면 스타일 두 벌 — 규칙·점수·순위는 같고 겉모습과 보상 문법만 다르다.
+ * 화면 스타일 두 벌 — 이제 말씀 잇기(/bible/typing/link)만 고른다. 만나 내리기는 드롭 한 벌.
  *  arcade : 오락실 레트로(도트 서체·네온·하이스코어·STAGE CLEAR)
  *  drop   : 스트리트 스티커(굵은 외곽선 글씨·컬러 블록·유형 카드)
- * 앱 라이트/다크와 무관하게 각자 한 벌 색을 쓴다(색은 manna-skins.css 의 토큰에서만 분기).
  */
 export type MannaSkin = 'arcade' | 'drop'
 
@@ -36,10 +35,9 @@ export const useMannaSkin = () => {
 /** 손가락이 주 입력인 기기 — 화면 키보드가 무대 아래 절반을 덮으니 만나를 가로로 흘려 보낸다 */
 export const isTouchDevice = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches
 
-/** 콤보 터짐 문구 — 10콤보마다 화면 가운데 한 번 */
+/** 만나 콤보 터짐 문구 — 10콤보마다 화면 가운데 한 번 */
 export const BURST_EVERY = 10
-export const burstText = (skin: MannaSkin, combo: number) => {
-  if (skin === 'arcade') return `${combo} COMBO!`
+export const burstText = (combo: number) => {
   const lines = ['미쳤다!', '폼 미쳤다', '손 풀렸다', '갓벽!', '멈추지 마']
   return lines[Math.floor(combo / BURST_EVERY - 1) % lines.length]
 }
