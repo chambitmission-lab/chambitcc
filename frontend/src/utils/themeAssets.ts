@@ -130,6 +130,12 @@ export const CAPSULE_CREATE_ART = {
   extras: capsuleCreatePair('extras'),
   seal: capsuleCreatePair('seal'),
 } satisfies Record<string, ThemePair>
+/** /capsule/new 왼쪽 패널 바닥 들판 (styles/create.css .cw-stage::before) — lg+ 에서만 깔린다 */
+export const CAPSULE_TRAIL_BG: ThemePair = {
+  light: '/images/capsule/trail-bg-light.webp',
+  dark: '/images/capsule/trail-bg-dark.webp',
+  when: () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
+}
 /** 홈 타임캡슐 배너 (TimeCapsuleCard.css) */
 export const CAPSULE_HOME_BANNER: ThemePair = {
   light: '/images/capsule/home-banner-light.webp',
@@ -359,7 +365,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/thanks$/, pairs: [THANKS_HERO] },
   { match: /^\/growth$/, pairs: [GROWTH_HERO] },
   { match: /^\/capsule$/, pairs: [CAPSULE_HERO] },
-  { match: /^\/capsule\/new$/, pairs: [CAPSULE_CREATE_ART.recipient] },
+  { match: /^\/capsule\/new$/, pairs: [CAPSULE_CREATE_ART.recipient, CAPSULE_TRAIL_BG] },
   { match: /^\/groups\/(?!join\/)[^/]+$/, pairs: [GROUP_DETAIL_HERO] },
   { match: /^\/bible$/, pairs: [READING_HERO, RESUME_CARD] },
   { match: /^\/bible\/plans$/, pairs: [PLAN_HERO] },
