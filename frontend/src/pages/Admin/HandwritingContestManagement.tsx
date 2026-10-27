@@ -2,6 +2,9 @@
 // 작품 숨기기는 대회 화면에서 작품을 열면 관리자에게만 보이는 버튼으로 한다(관리자는 표 수도 늘 보인다).
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { dateTriggerClass } from '../../components/common/ComposerFields'
+import DatePicker from '../../components/common/DatePicker'
+import TimePicker from '../../components/common/TimePicker'
 import {
   useAdminContests,
   useDeleteContest,
@@ -11,6 +14,7 @@ import {
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import type { ContestSummary, ContestWrite } from '../../types/handwritingContest'
 import { can } from '../../utils/access'
+import { joinDT, splitDT } from '../../utils/datetimeParts'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { showToast, toastFeedback } from '../../utils/toast'
 import { PhaseChip } from '../HandwritingContest/contestShared'
@@ -21,7 +25,7 @@ const cardCls =
 const inputCls =
   'w-full rounded-xl border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2.5 text-[14px] text-ink-strong focus:outline-none focus:border-brand'
 
-/** 서버는 KST 벽시계를 +09:00 으로 내려준다 → datetime-local 값 */
+/** 서버는 KST 벽시계를 +09:00 으로 내려준다 → 'YYYY-MM-DDTHH:mm' 값 */
 const toLocalInput = (iso: string) => iso.slice(0, 16)
 
 /** 다음 달 1일 0시 ~ 말일 끝(다음다음 달 1일 0시) — 한 달 대회 기본값 */
@@ -34,6 +38,30 @@ const nextMonthDefaults = (): Pick<ContestWrite, 'starts_at' | 'ends_at'> => {
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-01T00:00`
   }
   return { starts_at: fmt(y, m + 1), ends_at: fmt(y, m + 2) }
+}
+
+/** 네이티브 datetime-local(OS 달력·시분 따로 굴리기) 대신 앱 공통 달력 + 30분 간격 시간 목록 */
+const DateTimeField = ({
+  label,
+  value,
+  onChange,
+  minDate,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  minDate?: string
+}) => {
+  const { date, time } = splitDT(value)
+  return (
+    <div>
+      <label className="block text-[12.5px] font-bold text-ink-muted mb-1.5">{label}</label>
+      <div className="grid grid-cols-[minmax(0,1fr)_132px] gap-2">
+        <DatePicker value={date} onChange={(d) => onChange(joinDT(d, time || '00:00'))} minDate={minDate} className={dateTriggerClass} />
+        <TimePicker value={time} onChange={(t) => onChange(joinDT(date, t))} className={dateTriggerClass} />
+      </div>
+    </div>
+  )
 }
 
 const emptyForm = (): ContestWrite => ({
@@ -99,16 +127,13 @@ const ContestComposer = ({
               placeholder="한 달 동안 마음에 닿는 말씀을 손으로 써 주세요. 성도들이 뽑은 1~3등 작품은 말씀카드로 만들어져요."
             />
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
-            <div>
-              <label className="block text-[12.5px] font-bold text-ink-muted mb-1.5">시작 (KST)</label>
-              <input type="datetime-local" className={inputCls} value={form.starts_at} onChange={(e) => set('starts_at', e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-[12.5px] font-bold text-ink-muted mb-1.5">마감 (KST)</label>
-              <input type="datetime-local" className={inputCls} value={form.ends_at} onChange={(e) => set('ends_at', e.target.value)} />
-            </div>
-          </div>
+          <DateTimeField label="시작 (KST)" value={form.starts_at} onChange={(v) => set('starts_at', v)} />
+          <DateTimeField
+            label="마감 (KST)"
+            value={form.ends_at}
+            onChange={(v) => set('ends_at', v)}
+            minDate={splitDT(form.starts_at).date || undefined}
+          />
           {form.ends_at && form.starts_at && form.ends_at <= form.starts_at ? (
             <p className="text-[12px] text-rose-500">마감은 시작보다 뒤여야 해요</p>
           ) : null}
