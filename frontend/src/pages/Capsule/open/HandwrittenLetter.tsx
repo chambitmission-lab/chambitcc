@@ -14,6 +14,7 @@ import {
   type InkPage,
 } from '../ink/inkModel'
 import { clearCanvas, drawStroke, drawStrokes, fitCanvas } from '../ink/inkRender'
+import { fetchR2 } from '../../../utils/r2Fetch'
 
 const MIN_MS = 4500
 const MAX_MS = 13000
@@ -46,15 +47,16 @@ const ReplayPage = ({
   const [skipped, setSkipped] = useState(false)
   const doneRef = useRef(false)
 
-  // 획 JSON — 실패하면 PNG 로
+  // 획 JSON — 실패하면 PNG 로(그땐 재생 없이 완성본만 보인다).
+  // r2.dev 직접 fetch 는 CORS 로 막혀 늘 PNG 로 떨어졌다 — 같은 출처 /r2 프록시로 받는다.
   useEffect(() => {
     let alive = true
     if (!page.ink_url) {
       setInk('failed')
       return
     }
-    fetch(page.ink_url)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+    fetchR2(page.ink_url)
+      .then((r) => r.json())
       .then((json) => {
         if (!alive) return
         setInk(parseInkPageFile(json) ?? 'failed')
