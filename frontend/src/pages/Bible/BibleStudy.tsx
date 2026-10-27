@@ -232,6 +232,10 @@ const BibleStudy = () => {
   }, [resumeData])
 
   const selectedBookData = books?.find(b => b.id === selectedBookId)
+  // 책 마지막 장 끝 '이어서 읽기' — 요한계시록 다음은 없다
+  const nextBookData = selectedBookData
+    ? books?.find(b => b.book_number === selectedBookData.book_number + 1)
+    : undefined
 
   // 처음 만나는 성경(스토리 모드) 진행 — 로그인 시 서버 저장분을 공유 캐시로 읽는다
   const { readIds: storyReadIds } = useStoryProgress(isHub)
@@ -887,6 +891,14 @@ const BibleStudy = () => {
                   onListenFromVerse={handleListenFromVerse}
                   onChapterFullyRead={planAutoComplete ? handleChapterFullyRead : undefined}
                   onCommentaryOpenChange={setCommentaryOpen}
+                  bookFinish={{
+                    bookId: selectedBookData.id,
+                    nextBook: nextBookData
+                      ? { name: nextBookData.book_name_ko, chapterCount: nextBookData.chapter_count, testament: nextBookData.testament }
+                      : null,
+                    onNextBook: () => nextBookData && handleBookSelect(nextBookData.id, nextBookData.book_name_ko),
+                    onPickBook: handleChangeBook,
+                  }}
                 />
                 )}
                 </div>

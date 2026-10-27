@@ -22,6 +22,7 @@ import VerseListSheets from './verse/VerseListSheets'
 import type { VerseListActions, VerseListSettings } from './verse/VerseListContext'
 import ChapterLoader from './ChapterLoader'
 import ChapterSealStamp from './ChapterSealStamp'
+import BookFinishCard from './BookFinishCard'
 import VerseSelectionBar from './VerseSelectionBar'
 import AudioFollowLayer from './AudioFollowLayer'
 import ChapterTogether from './together/ChapterTogether'
@@ -71,6 +72,13 @@ interface VerseListProps {
   // 해석 패널 열림/닫힘 통지 — PC(lg+)에서 부모가 본문 컬럼을 옆으로 비켜
   // 본문과 해석을 나란히 배치하는 데 쓴다
   onCommentaryOpenChange?: (open: boolean) => void
+  // 책 마지막 장 끝 '한 권 완주' 카드 — 넘겨줄 때만 그린다
+  bookFinish?: {
+    bookId: number
+    nextBook: { name: string; chapterCount: number; testament: 'OLD' | 'NEW' } | null
+    onNextBook: () => void
+    onPickBook: () => void
+  }
 }
 
 const VerseList = ({
@@ -90,6 +98,7 @@ const VerseList = ({
   audioPlaying = false,
   onListenFromVerse,
   onCommentaryOpenChange,
+  bookFinish,
 }: VerseListProps) => {
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
@@ -753,6 +762,20 @@ const VerseList = ({
                 </span>
               </button>
             </div>
+
+            {isLastChapter && bookFinish && (
+              <BookFinishCard
+                bookId={bookFinish.bookId}
+                bookName={index.bookNameKo}
+                totalChapters={totalChapters}
+                currentChapter={selectedChapter}
+                currentChapterDone={read.hasStatus ? read.unreadCount === 0 : null}
+                nextBook={bookFinish.nextBook}
+                onNextBook={bookFinish.onNextBook}
+                onPickBook={bookFinish.onPickBook}
+                onChapterChange={onChapterChange}
+              />
+            )}
           </div>
         )}
       </div>

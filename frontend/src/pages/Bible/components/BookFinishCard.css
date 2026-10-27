@@ -1,0 +1,291 @@
+/* 책 마지막 장 끝 '한 권 완주' 카드 — BookFinishCard.tsx (bfin- 접두사) */
+.bfin {
+  position: relative;
+  max-width: 26rem;
+  margin: 1.25rem auto 0;
+  padding: 1.25rem 1rem 1rem;
+  border-radius: 24px;
+  border: 1px solid var(--card-border);
+  background:
+    radial-gradient(120% 70% at 50% 0%, var(--brand-soft-strong), transparent 70%),
+    var(--surface-container);
+  box-shadow: var(--card-shadow);
+  text-align: left;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* 완주했을 때만 위쪽 가장자리에 1px 빛줄 */
+.bfin--complete::before {
+  content: '';
+  position: absolute;
+  inset: 0 18% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+  opacity: 0.7;
+}
+
+.bfin__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* ── 진행 링 ── */
+.bfin__ring {
+  position: relative;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+}
+.bfin__ring > svg:first-child {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.bfin__ring circle {
+  fill: none;
+  stroke-width: 6;
+}
+.bfin__ring-track {
+  stroke: var(--brand-soft-strong);
+}
+.bfin__ring-fill {
+  stroke: var(--brand);
+  stroke-linecap: round;
+  animation: bfin-ring 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes bfin-ring {
+  from { stroke-dashoffset: 163.4; }
+}
+.bfin__ring-num {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.bfin__ring-num small {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.bfin__ring-check {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 24;
+  animation: bfin-check 420ms 620ms ease-out both;
+}
+@keyframes bfin-check {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── 제목 ── */
+.bfin__titles {
+  min-width: 0;
+}
+.bfin__eyebrow {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.bfin__title {
+  margin: 6px 0 2px;
+  font-size: 1.06rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.bfin__sub {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ── 장 구슬 ── */
+.bfin__beads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 1rem;
+}
+.bfin__bead {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--card-border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+.bfin__bead:active {
+  transform: scale(0.92);
+}
+.bfin__bead.is-read {
+  border: 1.5px solid transparent;
+  background: var(--brand);
+  color: #fff;
+}
+.bfin__bead.is-here {
+  box-shadow: 0 0 0 2px var(--surface-container), 0 0 0 3.5px var(--brand);
+}
+
+.bfin__bar {
+  height: 8px;
+  margin-top: 1rem;
+  border-radius: 999px;
+  background: var(--brand-soft-strong);
+  overflow: hidden;
+}
+.bfin__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+}
+
+.bfin__fill-gap {
+  margin-top: 0.6rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--brand);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── 다음 책 / 목록 ── */
+.bfin__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 1rem;
+}
+.bfin__next {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 14px 14px 18px;
+  border: none;
+  border-radius: 18px;
+  background: var(--brand);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -10px var(--brand-glow);
+  transition: transform 0.15s, filter 0.15s;
+}
+.bfin__next:hover {
+  filter: brightness(1.05);
+}
+.bfin__next:active {
+  transform: scale(0.98);
+}
+.bfin__next-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.bfin__next-kicker {
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.bfin__next-name {
+  margin-top: 1px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bfin__next-meta {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+.bfin__next-arrow {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.2);
+}
+.bfin__next-arrow svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s;
+}
+.bfin__next:hover .bfin__next-arrow svg {
+  transform: translateX(2px);
+}
+
+.bfin__list {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.bfin__list:hover {
+  background: var(--surface-inset);
+}
+/* 요한계시록처럼 다음 책이 없을 때는 목록 버튼이 주 버튼 */
+.bfin__list--solo {
+  background: var(--brand);
+  color: #fff;
+  padding: 14px;
+}
+.bfin__list--solo:hover {
+  background: var(--brand-dim);
+}
+.bfin__list svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  opacity: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bfin__ring-fill,
+  .bfin__ring-check {
+    animation: none;
+  }
+}
