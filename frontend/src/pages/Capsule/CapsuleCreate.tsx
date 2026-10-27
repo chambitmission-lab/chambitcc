@@ -6,7 +6,10 @@
 // (절기 계산의 진실은 프론트 churchCalendar — 백엔드 season은 플레이스홀더).
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { getTodayVerse } from '../../api/dailyVerse'
+import { dailyVerseKeys } from '../../hooks/queryKeys'
+import type { DailyVerseResponse } from '../../types/dailyVerse'
 import { searchCapsuleRecipients } from '../../api/timeCapsule'
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'
 import { useCreateCapsule } from '../../hooks/useTimeCapsule'
@@ -130,6 +133,10 @@ const CapsuleCreate = () => {
   const [letterMode, setLetterMode] = useState<'type' | 'pen'>('type')
   const [inkPages, setInkPages] = useState<InkPage[]>(() => [emptyInkPage()])
   const [inkOpen, setInkOpen] = useState(false)
+  // 인장을 누른 순간부터 응답까지 — 말씀 조회·손글씨 PNG 굽기는 mutation 앞에서 0.5~1.5초 걸리는데
+  // 그동안 isPending 이 false 라 인장을 다시 누르면 캡슐이 두 번 만들어졌다
+  const [sealing, setSealing] = useState(false)
+  const queryClient = useQueryClient()
   const [presetKey, setPresetKey] = useState(suggested.openDate ? 'custom' : '1y')
   const [customDate, setCustomDate] = useState(suggested.openDate)
   const [created, setCreated] = useState<CapsuleSummary | null>(null)
@@ -272,12 +279,13 @@ const CapsuleCreate = () => {
   const hasInk = writtenInkPages.length > 0
   const hasLetter = message.trim().length > 0 || !!audioBlob || hasInk
 
+  const sealBusy = sealing || createCapsule.isPending
   const canSubmit =
     !!openDate &&
     hasLetter &&
     recipientReady &&
     !photoProcessing &&
-    !createCapsule.isPending
+    !sealBusy
 
   // 손글씨 편지지 머리에 적힐 받는 사람
   const inkAddressee =
@@ -290,10 +298,20 @@ const CapsuleCreate = () => {
   // 인장 꾹 누르기가 확인을 대신한다 (SealHold)
   const handleSeal = async () => {
     if (!canSubmit) return
-    // 봉인한 날의 스냅샷 — 실패해도 봉인은 진행한다
+    setSealing(true)
+    try {
+      await sealCapsule()
+    } finally {
+      setSealing(false)
+    }
+  }
+
+  const sealCapsule = async () => {
+    // 봉인한 날의 스냅샷 — 실패해도 봉인은 진행한다. 홈 묶음이 이미 받아 둔 오늘의 말씀이 있으면 재요청하지 않는다
     let clientSnapshot
     try {
-      const verse = await getTodayVerse()
+      const verse =
+        queryClient.getQueryData<DailyVerseResponse>(dailyVerseKeys.today()) ?? (await getTodayVerse())
       clientSnapshot = {
         season_label: SEASON_LABELS[getCurrentSeason(new Date())],
         verse_reference: verse.verse_reference,
@@ -614,6 +632,7 @@ const CapsuleCreate = () => {
           inkPages={inkPages}
           writtenInkCount={writtenInkPages.length}
           onOpenInk={() => setInkOpen(true)}
+          inkOpen={inkOpen}
         />
         {/* 글·손글씨 없이 목소리만 남기는 길 — 내용 필수 규칙은 셋 중 하나 */}
         {!hasWritten && (
@@ -674,9 +693,9 @@ const CapsuleCreate = () => {
           <p className="cw-summary__ps">+ {enclosures.join(' · ')}</p>
         </div>
 
-        <SealHold disabled={!canSubmit} pending={createCapsule.isPending} onSeal={handleSeal} />
+        <SealHold disabled={!canSubmit} pending={sealBusy} onSeal={handleSeal} />
 
-        {!canSubmit && !createCapsule.isPending ? (
+        {!canSubmit && !sealBusy ? (
           <p className="cw-note text-center">
             {!recipientReady
               ? '받는 분을 먼저 정해 주세요'
@@ -698,7 +717,7 @@ const CapsuleCreate = () => {
   const art = STEP_ART[step]
 
   return (
-    <div className="cw-page page-stage">
+    <div className={`cw-page page-stage${inkOpen ? ' cw-page--ink-open' : ''}`}>
       <div className="cw-shell screen-fit-minus-header">
         <SheepStage
           step={step}

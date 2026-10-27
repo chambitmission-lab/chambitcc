@@ -9,9 +9,10 @@ const QuillGlyph = () => (
   </svg>
 )
 
-const ContestEntryCard = () => {
+/** enabled — 허브 묶음(/bible-typing/home)이 끝난 뒤에만 목록을 받는다(콜드 진입에서 묶음과 다투지 않게) */
+const ContestEntryCard = ({ enabled = true }: { enabled?: boolean }) => {
   const navigate = useNavigate()
-  const { data } = useContests()
+  const { data } = useContests(enabled)
   const contest = data?.items.find((c) => c.phase === 'open') ?? data?.items.find((c) => c.phase === 'announced')
   if (!contest) return null
   const left = contest.phase === 'open' ? daysUntil(contest.ends_at) : 0

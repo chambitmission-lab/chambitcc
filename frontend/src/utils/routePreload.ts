@@ -121,6 +121,11 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
     Promise.all([import('../hooks/useBiblePlan'), import('../config/queryClient')]).then(
       ([m, q]) => m.prefetchPlanOverview(q.queryClient, true),
     ),
+  // 손글씨 필사대회 — 목록 + 첫 대회 상세(공개 API). 캐시가 아예 없을 때만(coldOnly)
+  '/handwriting': () =>
+    Promise.all([import('../hooks/useHandwritingContest'), import('../config/queryClient')]).then(
+      ([m, q]) => m.prefetchContestPage(q.queryClient, true),
+    ),
   // 설교 — 목록 첫 페이지 + 최신 설교 인용절. 청크만 받아 두면 진입 시 목록 → 인용절 두 왕복이 직렬로 남았다
   '/sermon': () => import('../pages/Sermon/prefetch').then((m) => m.prefetchSermonPage()),
   // 시범 화면도 같은 목록·인용절을 쓴다 (키는 deepLinkRouteLoaders 의 key)

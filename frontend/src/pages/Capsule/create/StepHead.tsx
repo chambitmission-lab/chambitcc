@@ -1,9 +1,7 @@
 // 단계 머리글 — 손글씨 안내 줄(작은 배지 + 위로 둥글게 휘는 펜글씨 + 반짝) / 아치형 제목 / 한 줄 설명.
 // 2026-10-27 받는 사람 단계부터 적용.
 // 펜글씨는 SVG textPath 로 아치 위에, 제목은 글자마다 살짝 올리고 기울여 가운데가 솟은 아치로 — 둘 다 "기울인 직선"이 아니다.
-import type { CSSProperties, ReactNode } from 'react'
-
-let arcSeq = 0
+import { useId, type CSSProperties, type ReactNode } from 'react'
 
 export type TitlePart = {
   text: string
@@ -59,8 +57,8 @@ const StepHead = ({
   title: TitlePart[]
   sub?: string
 }) => {
-  // 같은 화면에 머리글이 둘 이상 있어도 경로 id 가 겹치지 않게
-  const arcId = `cw-eyebrow-arc-${++arcSeq}`
+  // 같은 화면에 머리글이 둘 이상 있어도 경로 id 가 겹치지 않게 — 렌더마다 바뀌면 textPath 가 매번 다시 묶이므로 useId 로 고정
+  const arcId = `cw-eyebrow-arc-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   return (
     <header className="cw-head">
       <p className="cw-eyebrow" aria-hidden>

@@ -24,6 +24,7 @@ const StepLetter = ({
   inkPages,
   writtenInkCount,
   onOpenInk,
+  inkOpen = false,
 }: {
   isSelf: boolean
   addressee: string
@@ -37,6 +38,8 @@ const StepLetter = ({
   inkPages: InkPage[]
   writtenInkCount: number
   onOpenInk: () => void
+  /** 손글씨 시트가 위를 덮고 있는 동안 — 썸네일은 멈춰 둔다 */
+  inkOpen?: boolean
 }) => {
   const bodyRef = useRef<HTMLTextAreaElement>(null)
   const hasInk = writtenInkCount > 0
@@ -123,7 +126,7 @@ const StepLetter = ({
               <div className="ink-stack">
                 {inkPages.map((p, i) => (
                   <span key={i} className="ink-stack__item">
-                    <InkThumb page={p} width={112} />
+                    <InkThumb page={p} width={112} frozen={inkOpen} />
                     <span className="ink-stack__no">{i + 1}</span>
                   </span>
                 ))}

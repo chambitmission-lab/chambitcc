@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import type { VerseReflection } from '../../../../api/bibleReflection'
 import { CommentIcon, HeartIcon } from '../../../../components/icons/ActionIcons'
 import ReflectionReplies from './ReflectionReplies'
@@ -141,4 +141,5 @@ const ReflectionCard = ({
   )
 }
 
-export default ReflectionCard
+// memo — 시트에서 초안을 한 글자 칠 때마다 목록 전체가 다시 그리지 않게. 콜백은 시트가 useCallback 으로 붙잡는다
+export default memo(ReflectionCard)

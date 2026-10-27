@@ -408,6 +408,8 @@ const BibleStudy = () => {
       // 플랜 데이터를 새로고침한다. 모두 읽었으면 아래 감지 effect가 축하를 띄운다.
       qc.invalidateQueries({ queryKey: biblePlanKeys.detail(planId) })
       qc.invalidateQueries({ queryKey: biblePlanKeys.today() })
+      // /bible/plans 첫 화면은 overview 묶음을 읽는다 — 같이 비우지 않으면 staleTime 동안 '오늘'이 옛 값으로 남는다
+      qc.invalidateQueries({ queryKey: biblePlanKeys.overview() })
     }
   }, [planAutoComplete, isPlanLastChapter, completeDay, planId, planDayNumber, qc])
 

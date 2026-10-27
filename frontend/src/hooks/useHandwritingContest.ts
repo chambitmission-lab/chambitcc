@@ -17,8 +17,8 @@ import {
   voteContestEntry,
   withdrawContestEntry,
 } from '../api/handwritingContest'
-import type { ContestDetail, ContestEntry, ContestWrite, EntryPage, EntrySort, EntrySubmit } from '../types/handwritingContest'
-import type { InfiniteData } from '@tanstack/react-query'
+import type { ContestDetail, ContestEntry, ContestSummary, ContestWrite, EntryPage, EntrySort, EntrySubmit } from '../types/handwritingContest'
+import type { InfiniteData, QueryClient } from '@tanstack/react-query'
 import type { MutationFeedback } from './mutationFeedback'
 import { notificationStream } from '../utils/notificationStream'
 import { tokenStore } from '../utils/tokenStore'
@@ -36,8 +36,11 @@ export const contestKeys = {
 
 const PAGE = 24
 
-export const useContests = () =>
-  useQuery({ queryKey: contestKeys.list(), queryFn: getContests, staleTime: 1000 * 60 })
+const LIST_STALE = 1000 * 60
+
+/** 대회 목록. 허브 카드처럼 묶음 요청이 끝난 뒤에 받아야 하는 자리는 enabled 로 미룬다 */
+export const useContests = (enabled = true) =>
+  useQuery({ queryKey: contestKeys.list(), queryFn: getContests, enabled, staleTime: LIST_STALE })
 
 // 남은 표·내 작품은 다른 기기에서도 바뀌므로 재진입 때 갱신한다(전역 refetchOnMount:false 의 예외)
 export const useContest = (id: number) =>
@@ -49,16 +52,38 @@ export const useContest = (id: number) =>
     refetchOnMount: true,
   })
 
-export const useContestEntries = (id: number, sort: EntrySort) =>
-  useInfiniteQuery({
-    queryKey: contestKeys.entries(id, sort),
-    queryFn: ({ pageParam }) => getContestEntries(id, sort, pageParam, PAGE),
+/** 갤러리. sort 가 아직 정해지지 않았으면(null — 대회 단계를 모를 때) 기다린다 */
+export const useContestEntries = (id: number, sort: EntrySort | null) => {
+  const effective: EntrySort = sort ?? 'shuffle'
+  return useInfiniteQuery({
+    queryKey: contestKeys.entries(id, effective),
+    queryFn: ({ pageParam }) => getContestEntries(id, effective, pageParam, PAGE),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => (last.has_more ? pages.length * PAGE : undefined),
-    enabled: id > 0,
+    enabled: id > 0 && sort != null,
     staleTime: 1000 * 30,
     refetchOnMount: true,
   })
+}
+
+/**
+ * /handwriting 선요청 — 메뉴 호버·라우트 진입 때 청크와 나란히 목록을, 목록이 오면 첫 대회(id 없이 들어오면
+ * 화면이 보여 주는 대회) 상세까지 받아 둔다. 예전엔 청크 → 목록 → 상세 → 갤러리가 직렬이었다.
+ * coldOnly: 캐시가 아예 없을 때만(메뉴 호버용). id 가 있으면(딥링크) 목록을 기다리지 않고 그 상세를 바로 띄운다.
+ */
+export const prefetchContestPage = (qc: QueryClient, coldOnly = false, id?: number): Promise<void> => {
+  const detailStale = coldOnly ? Infinity : 1000 * 30
+  const prefetchDetail = (contestId: number) =>
+    qc.prefetchQuery({ queryKey: contestKeys.detail(contestId), queryFn: () => getContest(contestId), staleTime: detailStale })
+  const list = qc
+    .prefetchQuery({ queryKey: contestKeys.list(), queryFn: getContests, staleTime: coldOnly ? Infinity : LIST_STALE })
+    .then(() => {
+      if (id) return
+      const first = qc.getQueryData<{ items: ContestSummary[] }>(contestKeys.list())?.items[0]
+      if (first) return prefetchDetail(first.id)
+    })
+  return Promise.all([list, id ? prefetchDetail(id) : undefined]).then(() => undefined)
+}
 
 export const useContestEntry = (id: number, entryId: number) =>
   useQuery({
@@ -85,11 +110,24 @@ const patchEntryEverywhere = (
   entryId: number,
   patch: (e: ContestEntry) => ContestEntry,
 ) => {
-  qc.setQueriesData<InfiniteData<EntryPage>>({ queryKey: contestKeys.entriesPrefix(contestId) }, (data) =>
-    data
-      ? { ...data, pages: data.pages.map((p) => ({ ...p, items: p.items.map((e) => (e.id === entryId ? patch(e) : e)) })) }
-      : data,
-  )
+  // 바뀐 작품이 없는 쪽·바뀌지 않은 쪽은 원래 배열을 그대로 돌려준다 — 참조가 유지돼야 memo 된 카드가 다시 그리지 않는다
+  qc.setQueriesData<InfiniteData<EntryPage>>({ queryKey: contestKeys.entriesPrefix(contestId) }, (data) => {
+    if (!data) return data
+    let pagesChanged = false
+    const pages = data.pages.map((p) => {
+      let itemsChanged = false
+      const items = p.items.map((e) => {
+        if (e.id !== entryId) return e
+        const next = patch(e)
+        if (next !== e) itemsChanged = true
+        return next
+      })
+      if (!itemsChanged) return p
+      pagesChanged = true
+      return { ...p, items }
+    })
+    return pagesChanged ? { ...data, pages } : data
+  })
   qc.setQueryData<ContestEntry>(contestKeys.entry(contestId, entryId), (e) => (e ? patch(e) : e))
 }
 

@@ -36,7 +36,7 @@ export const fetchR2 = async (url: string, init?: RequestInit): Promise<Response
       proxyAvailable = false
     } catch (e) {
       if (e instanceof Error && /^\d{3}$/.test(e.message)) throw e
-      proxyAvailable = false
+      // 네트워크 오류(일시 끊김·취소)는 프록시 유무를 말해 주지 않는다 — 이번 한 번만 원래 주소로 가 본다
     }
   }
   const res = await fetch(url, init)

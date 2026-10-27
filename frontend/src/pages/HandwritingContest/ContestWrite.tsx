@@ -81,14 +81,15 @@ const ContestWrite = () => {
     }
   }, [contestId, navigate])
 
-  // 초안 — 획은 저장 형식(좌표 반올림)으로 줄여 둔다
+  // 초안 — 획은 저장 형식(좌표 반올림)으로 줄여 둔다.
+  // 시트에서 쓰는 동안은 저장하지 않는다(획마다 직렬화 수십 KB) — 완료로 닫히는 순간 한 번 저장된다
   useEffect(() => {
-    if (!contestId) return
+    if (!contestId || writing) return
     const t = window.setTimeout(() => {
       safeStorage.setJson(draftKey(contestId), { verse, page: toInkPageFile(page), comment } satisfies Draft)
     }, 400)
     return () => window.clearTimeout(t)
-  }, [contestId, verse, page, comment])
+  }, [contestId, verse, page, comment, writing])
 
   const goBack = () => navigate(`/handwriting/${contestId}`)
   const thumbWidth = useMemo(() => Math.min(280, typeof window !== 'undefined' ? window.innerWidth - 80 : 280), [])
@@ -195,7 +196,7 @@ const ContestWrite = () => {
           {written ? (
             <div className="flex flex-col items-center">
               <button type="button" onClick={() => setWriting(true)} aria-label="이어서 쓰기">
-                <InkThumb page={page} width={thumbWidth} className="rounded-xl shadow-sm" />
+                <InkThumb page={page} width={thumbWidth} className="rounded-xl shadow-sm" frozen={writing} />
               </button>
               <button type="button" onClick={() => setWriting(true)} className="mt-3 text-[13px] font-bold text-brand">
                 이어서 쓰기 · 고치기

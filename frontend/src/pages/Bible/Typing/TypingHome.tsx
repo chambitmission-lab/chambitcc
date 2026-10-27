@@ -133,7 +133,7 @@ const TypingHome = () => {
           </div>
 
           <div className="bt-home-side">
-            <ContestEntryCard />
+            <ContestEntryCard enabled={homeSettled} />
             {loggedIn && <ChurchBibleCard data={church} bookName={bookName} />}
             {loggedIn && <RelayCard relays={home?.relays} />}
             {loggedIn && <NextTitleCard titles={typingTitles} />}

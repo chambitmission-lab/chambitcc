@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { VerseReflection } from '../../../../api/bibleReflection'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
@@ -35,6 +35,15 @@ interface VerseReflectionSheetProps {
 }
 
 const draftKey = (verseId: number) => `rt-draft:${verseId}`
+/** 초안 저장은 타이핑 뒤 잠깐 모아서 — 글자마다 sessionStorage 를 두드리지 않는다(닫힐 땐 바로 비운다) */
+const DRAFT_WRITE_DELAY_MS = 150
+
+const writeDraft = (key: string, value: string) => {
+  if (value) safeSessionStorage.set(key, value)
+  else safeSessionStorage.remove(key)
+}
+
+const fail = (e: unknown, fallback: string) => showToast(e instanceof Error ? e.message : fallback, 'error')
 
 /** 말씀을 어절로 나눈다 — 앞뒤 문장부호는 인용할 때 떼어 낸다 */
 const toWords = (text: string) =>
@@ -70,11 +79,29 @@ const VerseReflectionSheet = ({
 
   // 초안은 절마다 세션에 붙잡아 둔다 — 시트를 실수로 닫아도 쓰던 글이 남는다
   const [draft, setDraftState] = useState(() => safeSessionStorage.get(draftKey(verseId)) ?? '')
-  const setDraft = (next: string) => {
-    setDraftState(next)
-    if (next) safeSessionStorage.set(draftKey(verseId), next)
-    else safeSessionStorage.remove(draftKey(verseId))
-  }
+  // 상태는 바로(입력이 즉시 비친다), 저장은 모아서. 아직 안 쓴 초안은 닫힐 때(언마운트) 바로 쓴다
+  const pendingDraft = useRef<{ key: string; value: string } | null>(null)
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const flushDraft = useCallback(() => {
+    if (draftTimer.current) {
+      clearTimeout(draftTimer.current)
+      draftTimer.current = null
+    }
+    const pending = pendingDraft.current
+    if (!pending) return
+    pendingDraft.current = null
+    writeDraft(pending.key, pending.value)
+  }, [])
+  const setDraft = useCallback(
+    (next: string) => {
+      setDraftState(next)
+      pendingDraft.current = { key: draftKey(verseId), value: next }
+      if (draftTimer.current) clearTimeout(draftTimer.current)
+      draftTimer.current = setTimeout(flushDraft, DRAFT_WRITE_DELAY_MS)
+    },
+    [verseId, flushDraft],
+  )
+  useEffect(() => flushDraft, [flushDraft])
   const [activeKey, setActiveKey] = useState<number | null>(null)
   const [freshId, setFreshId] = useState<number | null>(null)
   const composerRef = useRef<ReflectionComposerHandle>(null)
@@ -104,7 +131,23 @@ const VerseReflectionSheet = ({
       onError: (e) => showToast(e instanceof Error ? e.message : '묵상을 남기지 못했습니다', 'error'),
     })
   }
-  const fail = (e: unknown, fallback: string) => showToast(e instanceof Error ? e.message : fallback, 'error')
+  // memo 된 ReflectionCard 가 받는 콜백 — mutate 는 react-query 가 안정된 참조로 준다
+  const { mutate: likeMutate } = toggleLike
+  const { mutate: updateMutate } = update
+  const { mutate: removeMutate } = remove
+  const handleToggleLike = useCallback(
+    (target: VerseReflection) => likeMutate(target, { onError: (e) => fail(e, '아멘을 남기지 못했습니다') }),
+    [likeMutate],
+  )
+  const handleEdit = useCallback(
+    (target: VerseReflection, content: string) =>
+      updateMutate({ id: target.id, content }, { onError: (e) => fail(e, '묵상을 수정하지 못했습니다') }),
+    [updateMutate],
+  )
+  const handleDelete = useCallback(
+    (target: VerseReflection) => removeMutate(target, { onError: (e) => fail(e, '묵상을 삭제하지 못했습니다') }),
+    [removeMutate],
+  )
 
   const readersToday = presence?.readers_today ?? 0
   const meReadToday = presence?.me_read_today === true
@@ -247,11 +290,9 @@ const VerseReflectionSheet = ({
                     fresh={r.id === freshId}
                     canModerate={canModerate}
                     editPending={update.isPending}
-                    onToggleLike={(target) => toggleLike.mutate(target, { onError: (e) => fail(e, '아멘을 남기지 못했습니다') })}
-                    onEdit={(target, content) =>
-                      update.mutate({ id: target.id, content }, { onError: (e) => fail(e, '묵상을 수정하지 못했습니다') })
-                    }
-                    onDelete={(target) => remove.mutate(target, { onError: (e) => fail(e, '묵상을 삭제하지 못했습니다') })}
+                    onToggleLike={handleToggleLike}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
                   />
                 ))}
               </div>

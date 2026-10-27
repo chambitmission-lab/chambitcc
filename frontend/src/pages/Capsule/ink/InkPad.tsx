@@ -11,6 +11,8 @@
 // 그리기
 //  - 완성된 획은 아래 캔버스(committed), 지금 긋는 획은 위 캔버스(live)에 그린다. 획 하나가 끝날 때마다
 //    전체를 다시 그리지 않고 그 획만 아래 캔버스에 얹는다(되돌리기·지우개·크기 변경 때만 전체 다시 그림).
+//  - 아래 캔버스는 종이 크기, 위 캔버스는 보이는 창 크기만이다. 위 캔버스는 스크롤러 안에서 sticky 로 창에 붙어
+//    따라오고, 프레임마다 종이 위치를 재서 transform 을 건다 — 확대 2.4배에서도 백킹 스토어가 종이만큼 커지지 않는다.
 //  - 좌표는 전부 논리 단위(1000 × 1414). 확대(zoom)는 종이 CSS 크기만 바꾸고 데이터는 건드리지 않는다.
 import {
   useCallback,
@@ -26,11 +28,12 @@ import {
   INK_MAX_STROKES_PER_PAGE,
   INK_PAGE_H,
   INK_PAGE_W,
+  simplifyStrokePoints,
   type InkColorIndex,
   type InkPage,
   type InkStroke,
 } from './inkModel'
-import { clearCanvas, drawStroke, drawStrokes, fitCanvas, strokeHits } from './inkRender'
+import { clearCanvas, drawStroke, drawStrokes, fitCanvas, fitViewportCanvas, pointsBounds, strokeHits } from './inkRender'
 
 export type InkTool = 'pen' | 'eraser'
 
@@ -83,6 +86,8 @@ const InkPad = ({
   const committedRef = useRef<HTMLCanvasElement>(null)
   const liveRef = useRef<HTMLCanvasElement>(null)
   const [baseWidth, setBaseWidth] = useState(0)
+  // 스크롤 창 크기 — 위(live) 캔버스는 이 크기만 잡는다
+  const [viewport, setViewport] = useState({ w: 0, h: 0 })
 
   // 입력 상태는 전부 ref — 포인터 이벤트는 초당 수백 번이라 렌더를 타면 안 된다
   const drawingRef = useRef<Drawing | null>(null)
@@ -95,6 +100,12 @@ const InkPad = ({
   const drawnRef = useRef<{ list: InkStroke[]; count: number }>({ list: [], count: 0 })
   // 지금 긋는 획의 입력 종류 — 펜으로 긋는 동안 들어오는 터치는 손바닥이다
   const drawingTypeRef = useRef<string>('')
+  // 위 캔버스에 마지막으로 그린 영역(캔버스 픽셀 x,y,w,h) — 다음 프레임은 전면이 아니라 이 영역만 지운다.
+  // 픽셀 단위로 두는 건 그 사이 스크롤로 transform 이 바뀌어도 지운 자리가 어긋나지 않게
+  const liveBoxRef = useRef<[number, number, number, number] | null>(null)
+  // 지우개 — 이벤트마다 부모를 갱신하지 않고 한 프레임치 적중을 모아 한 번만 올린다
+  const eraseHitsRef = useRef<Set<InkStroke>>(new Set())
+  const eraseRafRef = useRef(0)
 
   // 최신 props 를 핸들러에서 ref 로 읽는다 (리스너 재등록 없이)
   const propsRef = useRef({ page, onCommit, onErase, tool, color, size, penOnly, onPenDetected })
@@ -102,11 +113,14 @@ const InkPad = ({
     propsRef.current = { page, onCommit, onErase, tool, color, size, penOnly, onPenDetected }
   })
 
-  // 종이 기본 폭 = 스크롤 영역 폭(PC 는 상한) — 확대는 여기에 zoom 을 곱한다
+  // 종이 기본 폭 = 스크롤 영역 폭(PC 는 상한) — 확대는 여기에 zoom 을 곱한다. 24 = 종이 좌우 여백(ink.css)
   useLayoutEffect(() => {
     const el = scrollerRef.current
     if (!el) return
-    const measure = () => setBaseWidth(Math.min(maxBaseWidth, Math.max(0, el.clientWidth - 24)))
+    const measure = () => {
+      setBaseWidth(Math.min(maxBaseWidth, Math.max(0, el.clientWidth - 24)))
+      setViewport((v) => (v.w === el.clientWidth && v.h === el.clientHeight ? v : { w: el.clientWidth, h: el.clientHeight }))
+    }
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(el)
@@ -139,36 +153,71 @@ const InkPad = ({
     drawnRef.current = { list: strokes, count: strokes.length }
   }, [page.strokes, cssWidth])
 
-  // 위 캔버스 — 크기만 맞춰 둔다
+  // 위 캔버스 — 보이는 창 크기만. 종이 확대와 무관하다
   useLayoutEffect(() => {
     const canvas = liveRef.current
-    if (!canvas || cssWidth <= 0) return
-    fitCanvas(canvas, cssWidth)
-  }, [cssWidth])
+    if (!canvas || viewport.w <= 0 || viewport.h <= 0) return
+    fitViewportCanvas(canvas, viewport.w, viewport.h)
+    liveBoxRef.current = null
+  }, [viewport])
 
-  useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(rafRef.current)
+      cancelAnimationFrame(eraseRafRef.current)
+    },
+    [],
+  )
 
-  const toLogical = useCallback((e: { clientX: number; clientY: number }): [number, number] => {
-    const canvas = liveRef.current
-    if (!canvas) return [0, 0]
-    const rect = canvas.getBoundingClientRect()
-    return [
-      ((e.clientX - rect.left) / rect.width) * INK_PAGE_W,
-      ((e.clientY - rect.top) / rect.height) * INK_PAGE_H,
-    ]
-  }, [])
+  /** 화면 좌표 → 논리 좌표(종이 기준). rect 는 이벤트 묶음(coalesced)마다 한 번만 재서 넘긴다 */
+  const toLogical = useCallback(
+    (e: { clientX: number; clientY: number }, rect?: DOMRect): [number, number] => {
+      const paper = committedRef.current
+      if (!paper) return [0, 0]
+      const r = rect ?? paper.getBoundingClientRect()
+      return [((e.clientX - r.left) / r.width) * INK_PAGE_W, ((e.clientY - r.top) / r.height) * INK_PAGE_H]
+    },
+    [],
+  )
 
   const renderLive = useCallback(() => {
     rafRef.current = 0
     if (!dirtyRef.current) return
     dirtyRef.current = false
     const canvas = liveRef.current
+    const paper = committedRef.current
     const d = drawingRef.current
-    if (!canvas) return
+    if (!canvas || !paper) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    clearCanvas(ctx)
-    if (d && d.mode === 'draw') drawStroke(ctx, d.stroke, 'light', undefined, false)
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    const prev = liveBoxRef.current
+    if (prev) ctx.clearRect(prev[0], prev[1], prev[2], prev[3])
+    else ctx.clearRect(0, 0, canvas.width, canvas.height)
+    liveBoxRef.current = null
+    if (d && d.mode === 'draw') {
+      // 창 캔버스 위에 종이 논리 좌표를 얹는 transform — 종이가 스크롤·확대로 어디 있든 프레임마다 다시 잰다
+      const pr = paper.getBoundingClientRect()
+      const lr = canvas.getBoundingClientRect()
+      if (pr.width <= 0 || lr.width <= 0) return
+      const dpr = canvas.width / lr.width
+      const s = (pr.width / INK_PAGE_W) * dpr
+      const tx = (pr.left - lr.left) * dpr
+      const ty = (pr.top - lr.top) * dpr
+      ctx.setTransform(s, 0, 0, s, tx, ty)
+      drawStroke(ctx, d.stroke, 'light', undefined, false)
+      const b = pointsBounds(d.stroke.p)
+      if (b) {
+        // 윤곽은 굵기만큼 점 바깥으로 나간다 — 넉넉히 잡아 잔상이 남지 않게 (캔버스 픽셀로 보관)
+        const m = d.stroke.s * 1.5 + 4
+        liveBoxRef.current = [
+          (b[0] - m) * s + tx,
+          (b[1] - m) * s + ty,
+          (b[2] - b[0] + m * 2) * s,
+          (b[3] - b[1] + m * 2) * s,
+        ]
+      }
+    }
   }, [])
 
   const requestLive = useCallback(() => {
@@ -176,25 +225,37 @@ const InkPad = ({
     if (!rafRef.current) rafRef.current = requestAnimationFrame(renderLive)
   }, [renderLive])
 
+  /** 모아 둔 지우개 적중을 한 번에 부모로 — 전체 다시 그리기·썸네일 갱신이 프레임당 1회로 줄어든다.
+      적중 집합은 지우개 제스처가 끝날 때까지 비우지 않는다 — 부모의 page 갱신이 한 프레임 늦게 와도
+      같은 결과를 다시 계산할 뿐, 이미 지운 획이 되살아나지 않는다 */
+  const flushErase = useCallback(() => {
+    eraseRafRef.current = 0
+    const hits = eraseHitsRef.current
+    if (hits.size === 0) return
+    const { page: cur, onErase: erase } = propsRef.current
+    const next = cur.strokes.filter((s) => !hits.has(s))
+    if (next.length !== cur.strokes.length) erase(next)
+  }, [])
+
   const eraseAt = useCallback(
     (x: number, y: number) => {
-      const { page: cur, onErase: erase } = propsRef.current
+      const { page: cur } = propsRef.current
       const r = ERASER_RADIUS / Math.max(0.35, Math.min(1, scale * 2.4))
-      let hit = false
-      const next = cur.strokes.filter((s) => {
-        const h = strokeHits(s, x, y, r)
-        if (h) hit = true
-        return !h
-      })
-      if (hit) erase(next)
+      const hits = eraseHitsRef.current
+      for (const s of cur.strokes) {
+        if (!hits.has(s) && strokeHits(s, x, y, r)) hits.add(s)
+      }
+      if (hits.size > 0 && !eraseRafRef.current) eraseRafRef.current = requestAnimationFrame(flushErase)
     },
-    [scale],
+    [scale, flushErase],
   )
 
   const cancelDrawing = useCallback(() => {
     const d = drawingRef.current
     if (!d) return
     drawingRef.current = null
+    liveBoxRef.current = null
+    eraseHitsRef.current.clear()
     const canvas = liveRef.current
     const ctx = canvas?.getContext('2d')
     if (ctx) clearCanvas(ctx)
@@ -204,14 +265,21 @@ const InkPad = ({
     const d = drawingRef.current
     if (!d) return
     drawingRef.current = null
-    if (d.mode === 'draw' && d.stroke.p.length >= 3) {
+    if (d.mode === 'erase') {
+      cancelAnimationFrame(eraseRafRef.current)
+      flushErase()
+      eraseHitsRef.current.clear()
+    } else if (d.stroke.p.length >= 3) {
       const { page: cur, onCommit: commit } = propsRef.current
-      if (cur.strokes.length < INK_MAX_STROKES_PER_PAGE) commit(d.stroke)
+      if (cur.strokes.length < INK_MAX_STROKES_PER_PAGE) {
+        // 확정할 때 점을 솎는다 — 화면은 같고 JSON·재생·되돌리기 비용은 점 수에 비례해 준다
+        commit({ ...d.stroke, p: simplifyStrokePoints(d.stroke.p) })
+      }
     }
     // 아래 캔버스에 얹힌 뒤 위 캔버스를 비운다 — 같은 프레임이라 깜빡임이 없다
     dirtyRef.current = true
     renderLive()
-  }, [renderLive])
+  }, [renderLive, flushErase])
 
   const handlePointerDown = (re: ReactPointerEvent<HTMLCanvasElement>) => {
     const e = re.nativeEvent
@@ -286,9 +354,10 @@ const InkPad = ({
       typeof e.getCoalescedEvents === 'function' && e.getCoalescedEvents().length > 0
         ? e.getCoalescedEvents()
         : [e]
+    const rect = committedRef.current?.getBoundingClientRect()
     if (d.mode === 'erase') {
       for (const ev of events) {
-        const [x, y] = toLogical(ev)
+        const [x, y] = toLogical(ev, rect)
         eraseAt(x, y)
       }
       return
@@ -296,7 +365,7 @@ const InkPad = ({
     const isPen = e.pointerType === 'pen'
     const p = d.stroke.p
     for (const ev of events) {
-      const [x, y] = toLogical(ev)
+      const [x, y] = toLogical(ev, rect)
       // 같은 자리 중복 샘플은 버린다 — 윤곽 계산 비용과 JSON 크기 절약
       const n = p.length
       if (n >= 3 && Math.abs(p[n - 3] - x) < 0.35 && Math.abs(p[n - 2] - y) < 0.35) continue
@@ -326,25 +395,15 @@ const InkPad = ({
   }
 
   const cssHeight = (cssWidth * INK_PAGE_H) / INK_PAGE_W
-  const cursorClass = tool === 'eraser' ? 'ink-pad__paper--eraser' : ''
+  const cursorClass = tool === 'eraser' ? 'ink-pad__live--eraser' : ''
 
   return (
     <div ref={scrollerRef} className="ink-pad">
-      <div
-        className={`ink-pad__paper ${cursorClass}`}
-        style={{
-          width: cssWidth || undefined,
-          height: cssWidth ? cssHeight : undefined,
-          ['--ink-gap' as string]: `${INK_LINE_GAP * scale}px`,
-          ['--ink-top' as string]: `${INK_LINE_TOP * scale}px`,
-          ['--ink-margin' as string]: `${72 * scale}px`,
-        }}
-        onContextMenu={(e) => e.preventDefault()}
-      >
-        <canvas ref={committedRef} className="ink-pad__canvas" aria-hidden />
+      {/* 위(live) 캔버스 — 창 크기, sticky 로 창에 붙어 따라온다. 입력도 전부 여기서 받는다 */}
+      <div className="ink-pad__live-wrap">
         <canvas
           ref={liveRef}
-          className="ink-pad__canvas ink-pad__canvas--live"
+          className={`ink-pad__live ${cursorClass}`}
           role="img"
           aria-label="손글씨 편지지 — 펜이나 손가락으로 쓰세요"
           onPointerDown={handlePointerDown}
@@ -354,7 +413,20 @@ const InkPad = ({
           onPointerEnter={handlePointerEnter}
           onPointerLeave={handlePointerLeave}
           onLostPointerCapture={handlePointerUp}
+          onContextMenu={(e) => e.preventDefault()}
         />
+      </div>
+      <div
+        className="ink-pad__paper"
+        style={{
+          width: cssWidth || undefined,
+          height: cssWidth ? cssHeight : undefined,
+          ['--ink-gap' as string]: `${INK_LINE_GAP * scale}px`,
+          ['--ink-top' as string]: `${INK_LINE_TOP * scale}px`,
+          ['--ink-margin' as string]: `${72 * scale}px`,
+        }}
+      >
+        <canvas ref={committedRef} className="ink-pad__canvas" aria-hidden />
       </div>
     </div>
   )

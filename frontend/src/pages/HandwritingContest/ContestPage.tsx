@@ -1,7 +1,7 @@
 // 손글씨 성경 필사대회 (/handwriting, /handwriting/:id)
 // 대회 소개 → 참여하기(또는 내 작품) → (발표 뒤) 시상대 → 갤러리에서 한 표씩.
 // id 없이 들어오면 진행 중인 대회(없으면 가장 최근 대회)를 보여 준다.
-import { useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   useContest,
@@ -30,6 +30,11 @@ const SORTS: { id: EntrySort; label: string }[] = [
   { id: 'popular', label: '많이 받은' },
 ]
 
+type ContestEntries = ReturnType<typeof useContestEntries>
+
+/** 대회 단계에 따른 기본 정렬 — 발표 뒤엔 많이 받은 순, 진행 중엔 골고루 */
+const defaultSort = (phase: ContestDetail['phase']): EntrySort => (phase === 'announced' ? 'popular' : 'shuffle')
+
 const ContestPage = () => {
   const navigate = useNavigate()
   const params = useParams<{ id?: string }>()
@@ -37,6 +42,15 @@ const ContestPage = () => {
   const { data: list, isLoading: listLoading } = useContests()
   const contestId = params.id ? Number(params.id) : (list?.items[0]?.id ?? 0)
   const { data: contest, isLoading, error } = useContest(contestId)
+
+  // 갤러리는 상세와 나란히 띄운다(예전엔 상세가 온 뒤 ContestBody 가 마운트되고서야 출발해 직렬).
+  // 기본 정렬은 단계에 달렸는데 상세가 아직 없으면 목록(요약)의 단계로 정한다 — 둘은 같은 값이다.
+  // 사용자가 고른 정렬은 대회별로 붙잡아 둔다(다른 대회로 가면 기본값으로).
+  const [sortChoice, setSortChoice] = useState<{ id: number; sort: EntrySort } | null>(null)
+  const phase = contest?.phase ?? list?.items.find((c) => c.id === contestId)?.phase
+  const sort: EntrySort | null = (sortChoice?.id === contestId ? sortChoice.sort : null) ?? (phase ? defaultSort(phase) : null)
+  const setSort = useCallback((next: EntrySort) => setSortChoice({ id: contestId, sort: next }), [contestId])
+  const entries = useContestEntries(contestId, sort)
 
   const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'))
 
@@ -61,7 +75,18 @@ const ContestPage = () => {
       </SurveyShell>
     )
   }
-  return <ContestBody key={contest.id} contest={contest} authed={authed} onBack={goBack} others={(list?.items ?? []).filter((c) => c.id !== contest.id)} />
+  return (
+    <ContestBody
+      key={contest.id}
+      contest={contest}
+      authed={authed}
+      onBack={goBack}
+      others={(list?.items ?? []).filter((c) => c.id !== contest.id)}
+      entries={entries}
+      sort={sort ?? defaultSort(contest.phase)}
+      setSort={setSort}
+    />
+  )
 }
 
 const ContestBody = ({
@@ -69,18 +94,22 @@ const ContestBody = ({
   authed,
   onBack,
   others,
+  entries,
+  sort,
+  setSort,
 }: {
   contest: ContestDetail
   authed: boolean
   onBack: () => void
   others: { id: number; title: string; phase: ContestDetail['phase']; starts_at: string; ends_at: string }[]
+  entries: ContestEntries
+  sort: EntrySort
+  setSort: (next: EntrySort) => void
 }) => {
   const navigate = useNavigate()
   // 관리자는 서버가 표 수를 늘 내려준다 — 집계 확인용으로 '많이 받은' 정렬도 연다
   const countsVisible = contest.phase === 'announced' || contest.show_ranking || can('admin:access')
   const sorts = countsVisible ? SORTS : SORTS.filter((s) => s.id !== 'popular')
-  const [sort, setSort] = useState<EntrySort>(contest.phase === 'announced' ? 'popular' : 'shuffle')
-  const entries = useContestEntries(contest.id, sort)
   const [openId, setOpenId] = useState<number | null>(null)
   useContestLive(contest.id) // 다른 성도의 표가 들어오면 하트 수·참여 인원이 바로 바뀐다
   const vote = useVoteEntry(contest.id, toastFeedback({ error: '투표하지 못했어요' }))
@@ -101,14 +130,24 @@ const ContestBody = ({
     return false
   }
 
-  const handleVote = (entry: ContestEntry) => {
-    if (!requireLogin()) return
-    if (!entry.voted_by_me && contest.votes_left <= 0) {
-      showToast(`${contest.votes_per_user}표를 모두 썼어요. 다른 작품의 표를 거두면 다시 줄 수 있어요`, 'error')
-      return
-    }
-    vote.mutate({ entryId: entry.id, on: !entry.voted_by_me })
-  }
+  // memo 된 EntryCard 에 그대로 내려가므로 참조를 붙잡는다 — 표 하나 바뀔 때 카드 전체가 다시 그리지 않게
+  const { mutate: voteMutate } = vote
+  const { id: contestIdForVote, votes_left: votesLeft, votes_per_user: votesPerUser } = contest
+  const handleVote = useCallback(
+    (entry: ContestEntry) => {
+      if (!authed) {
+        redirectAfterLogin.set(`/handwriting/${contestIdForVote}`)
+        navigate('/login')
+        return
+      }
+      if (!entry.voted_by_me && votesLeft <= 0) {
+        showToast(`${votesPerUser}표를 모두 썼어요. 다른 작품의 표를 거두면 다시 줄 수 있어요`, 'error')
+        return
+      }
+      voteMutate({ entryId: entry.id, on: !entry.voted_by_me })
+    },
+    [authed, contestIdForVote, votesLeft, votesPerUser, voteMutate, navigate],
+  )
 
   const startWrite = () => {
     if (!requireLogin()) return
@@ -303,8 +342,8 @@ const ContestBody = ({
                       canVote={contest.phase === 'open' && !entry.is_mine}
                       votesLeft={contest.votes_left}
                       busy={vote.isPending && vote.variables?.entryId === entry.id}
-                      onOpen={() => setOpenId(entry.id)}
-                      onVote={() => handleVote(entry)}
+                      onOpen={setOpenId}
+                      onVote={handleVote}
                     />
                   ))}
                 </div>
@@ -349,7 +388,9 @@ const ContestBody = ({
   )
 }
 
-const EntryCard = ({
+// memo — 투표 한 번에 갤러리 캐시가 통째로 갈려도(patchEntryEverywhere 가 안 바뀐 작품은 같은 참조로 둔다)
+// 표가 바뀐 카드만 다시 그린다. 콜백은 (id·entry) 인자형이라 부모가 안정된 참조 하나를 내려준다
+const EntryCard = memo(function EntryCard({
   entry,
   canVote,
   votesLeft,
@@ -361,11 +402,13 @@ const EntryCard = ({
   canVote: boolean
   votesLeft: number
   busy: boolean
-  onOpen: () => void
-  onVote: () => void
-}) => (
+  onOpen: (id: number) => void
+  onVote: (entry: ContestEntry) => void
+}) {
+  const open = () => onOpen(entry.id)
+  return (
   <div className="min-w-0">
-    <button type="button" onClick={onOpen} className="block w-full text-left" aria-label={`${entry.author.name}님의 ${entry.verse_ref} 보기`}>
+    <button type="button" onClick={open} className="block w-full text-left" aria-label={`${entry.author.name}님의 ${entry.verse_ref} 보기`}>
       <div className="relative">
         <PaperThumb entry={entry} className={entry.rank ? `ring-2 ${RANK_META[entry.rank]?.ring ?? ''}` : ''} />
         {entry.rank ? (
@@ -379,14 +422,14 @@ const EntryCard = ({
       </div>
     </button>
     <div className="mt-2 flex items-start gap-1.5">
-      <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
+      <button type="button" onClick={open} className="min-w-0 flex-1 text-left">
         <p className="text-[13px] font-bold text-ink-strong truncate">{entry.verse_ref}</p>
         <p className="text-[12px] text-ink-muted truncate">{entry.author.name}</p>
       </button>
       {canVote ? (
         <button
           type="button"
-          onClick={onVote}
+          onClick={() => onVote(entry)}
           disabled={busy}
           aria-pressed={entry.voted_by_me}
           aria-label={entry.voted_by_me ? '한 표 거두기' : '한 표 주기'}
@@ -409,7 +452,8 @@ const EntryCard = ({
       ) : null}
     </div>
   </div>
-)
+  )
+})
 
 const Podium = ({ contest, onOpen }: { contest: ContestDetail; onOpen: (id: number) => void }) => {
   const byRank = new Map(contest.winners.map((w) => [w.rank ?? 0, w]))

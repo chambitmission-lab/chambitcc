@@ -85,22 +85,53 @@
 }
 
 /* 종이가 놓인 영역 — 확대하면 넘겨 본다. 손가락 스크롤은 InkPad 가 직접 처리하므로 touch-action 없음 */
+/* 스크롤러엔 padding 을 두지 않는다(종이의 margin 으로) — sticky 인 위 캔버스가 창 원점(0,0)에 늘 머물러
+   창 크기 그대로 덮을 수 있게. padding 이 있으면 스크롤 초반에 그만큼 밀려 가장자리가 안 덮인다 */
 .ink-pad {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 10px 12px 18px;
   touch-action: none;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(239, 230, 210, 0.22) transparent;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* 가운데 정렬은 종이의 auto 여백으로 — align-items:center 는 확대로 종이가 창보다 넓어지면
+     왼쪽이 잘린 채 스크롤로 닿지 않는다(auto 여백은 남는 공간이 없으면 0 이 돼 왼쪽부터 다 보인다) */
+  align-items: flex-start;
+}
+
+/* 위(live) 캔버스 — 종이가 아니라 보이는 창 크기(InkPad 가 측정). sticky 0,0 으로 스크롤·확대를 따라오고
+   입력은 전부 여기서 받는다(종이는 아래에서 그려지기만). 확대 2.4배라도 백킹 스토어가 종이만큼 커지지 않는다 */
+.ink-pad__live-wrap {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  flex-shrink: 0;
+  align-self: flex-start;
+  z-index: 1;
+}
+.ink-pad__live {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: crosshair;
+}
+.ink-pad__live--eraser {
+  cursor: cell;
 }
 
 .ink-pad__paper {
   flex-shrink: 0;
+  margin: 10px auto 18px;
   background-color: #f8f1e1;
   background-image:
     linear-gradient(90deg, transparent calc(var(--ink-margin) - 1px), var(--ink-margin-line) calc(var(--ink-margin) - 1px) var(--ink-margin), transparent var(--ink-margin)),
@@ -115,11 +146,6 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-  cursor: crosshair;
-}
-
-.ink-pad__paper--eraser {
-  cursor: cell;
 }
 
 .ink-pad__canvas {
@@ -127,10 +153,6 @@
   inset: 0;
   display: block;
   touch-action: none;
-}
-
-.ink-pad__canvas--live {
-  z-index: 1;
 }
 
 /* 도구 막대 */

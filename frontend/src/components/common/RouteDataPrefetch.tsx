@@ -20,6 +20,8 @@ import { warmRouteThemeAssets } from '../../utils/themeAssets'
    훅과 같은 queryKey·queryFn 으로 prefetch 하므로 화면이 뜨면 캐시를 그대로 이어받는다. */
 
 const BIBLE_CHAPTER = /^\/bible\/(\d+)\/(\d+)$/
+// /handwriting 또는 /handwriting/:id (쓰기·말씀카드 화면은 제외)
+const CONTEST_ROUTE = /^\/handwriting(?:\/(\d+))?$/
 
 const RouteDataPrefetch = () => {
   const { pathname, search } = useLocation()
@@ -63,6 +65,15 @@ const RouteDataPrefetch = () => {
     if (pathname === '/bible/plans') {
       void import('../../hooks/useBiblePlan')
         .then((m) => m.prefetchPlanOverview(queryClient))
+        .catch(() => undefined)
+    }
+    // 손글씨 필사대회 — 목록·대회 상세를 청크와 나란히 (딥링크 /handwriting/:id 는 그 상세를 바로).
+    // 예전엔 청크 → 목록 → 상세 → 갤러리 네 왕복이 직렬이었다 (훅 모듈은 메인 번들에 섞이지 않게 동적 import)
+    const contest = CONTEST_ROUTE.exec(pathname)
+    if (contest) {
+      const contestId = contest[1] ? Number(contest[1]) : undefined
+      void import('../../hooks/useHandwritingContest')
+        .then((m) => m.prefetchContestPage(queryClient, false, contestId && contestId > 0 ? contestId : undefined))
         .catch(() => undefined)
     }
     // 설교 — 목록 첫 페이지 + 최신 설교 인용절을 청크와 나란히 (딥링크·새로고침 진입용.

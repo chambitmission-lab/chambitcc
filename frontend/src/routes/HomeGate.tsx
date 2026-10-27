@@ -2,19 +2,20 @@ import { lazy } from 'react'
 import { useLocation } from 'react-router-dom'
 import { tokenStore } from '../utils/tokenStore'
 import { loadHome } from '../utils/homeChunk'
-import { scheduleAfterFirstScreen } from '../utils/idlePreload'
+import { preloadBudget, scheduleAfterFirstScreen } from '../utils/idlePreload'
 
 // 딥링크(#/bible/1/1 등)·새로고침으로 다른 화면에 들어왔는지 — 루트일 때만 첫 화면이 홈/랜딩이다
 const atRootHash = /^#?\/?(\?|$)/.test(window.location.hash)
 // 로그인 홈 피드 — 비로그인 방문자(랜딩·딥링크)는 받을 필요가 없어 메인 번들에서 뗀다.
 // 토큰이 있고 루트로 들어왔으면 모듈 평가 직후 바로 받아 두어 라우트 진입 때 폭포수(메인 → 홈) 없이 그린다.
 // 다른 화면(#/bible/plans 등)으로 들어왔을 땐 홈 청크 70여 개가 그 화면의 청크·API 와 대역폭을 다퉜다 —
-// 첫 화면이 끝난 뒤 유휴 시간에 받아 둔다(홈으로 돌아올 땐 이미 있다).
+// 첫 화면이 끝난 뒤 유휴 시간에 받아 둔다(홈으로 돌아올 땐 이미 있다). 3G·데이터 절약처럼
+// 선요청 예산이 'full' 이 아니면 받지 않는다 — 홈에 갈 때 lazy 가 그때 받는다.
 // 로그인 화면은 마중 연출 동안 같은 로더로 선요청한다(utils/homeChunk).
 const NewHome = lazy(loadHome)
 if (tokenStore.getAccess()) {
   if (atRootHash) void loadHome()
-  else scheduleAfterFirstScreen(() => void loadHome(), { settleMs: 1000 })
+  else if (preloadBudget() === 'full') scheduleAfterFirstScreen(() => void loadHome(), { settleMs: 1000 })
 }
 // 비로그인 첫 화면 — 로그인 교인의 메인 번들에서 떼어내되, 비로그인이면 모듈 로드 즉시
 // 청크를 받아둬서 라우트 진입 시 폭포수(메인 → 랜딩) 없이 바로 그린다.

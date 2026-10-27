@@ -63,6 +63,28 @@ export const filledInkPages = (pages: InkPage[]): InkPage[] => pages.filter((p) 
 export const inkPointCount = (page: InkPage): number =>
   page.strokes.reduce((n, s) => n + s.p.length / 3, 0)
 
+/** 획을 확정할 때 점을 솎는다 — 바로 앞에 남긴 점과 minDist(논리 단위) 안이고 필압 차도 작으면 버린다.
+    펜슬 240Hz 는 1cm 에 40~50점을 주는데 perfect-freehand 가 어차피 곡선으로 메워 화면은 같고,
+    JSON·윤곽 계산·재생 비용은 점 수에 비례해 3~5배 준다. 첫 점과 끝 점은 늘 남긴다 */
+export const simplifyStrokePoints = (p: number[], minDist = 1.2, minPressureDelta = 0.08): number[] => {
+  const n = Math.floor(p.length / 3)
+  if (n <= 2) return p
+  const d2 = minDist * minDist
+  const out: number[] = [p[0], p[1], p[2]]
+  for (let i = 1; i < n - 1; i++) {
+    const x = p[i * 3]
+    const y = p[i * 3 + 1]
+    const pr = p[i * 3 + 2]
+    const dx = x - out[out.length - 3]
+    const dy = y - out[out.length - 2]
+    if (dx * dx + dy * dy < d2 && Math.abs(pr - out[out.length - 1]) < minPressureDelta) continue
+    out.push(x, y, pr)
+  }
+  const last = (n - 1) * 3
+  out.push(p[last], p[last + 1], p[last + 2])
+  return out
+}
+
 export const inkColorFor = (index: number, theme: InkTheme): string =>
   (INK_COLORS[index] ?? INK_COLORS[0])[theme]
 
