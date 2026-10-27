@@ -6,6 +6,7 @@ import type { Translation } from '../../../../locales'
 import { preloadMenuRoutes, preloadRoute } from '../../../../utils/routePreload'
 import { NAV_ICONS, Svg } from './NavIcons'
 import { navEntries, navEntry, navEntryMatches, type NavEntry } from '../../navCatalog'
+import NewsMegaPanel from './NewsMegaPanel'
 
 // PC(lg+) 전용 헤더 메뉴 — 교회 안내 페이지를 4축(교회 · 예배·말씀 · 함께 · 소식)으로 묶고,
 // 각 축은 호버/클릭 시 "아이콘 + 이름 + 한 줄 설명" 드롭다운을 연다 (Stripe·Linear 문법).
@@ -40,7 +41,7 @@ const GROUPS: Group[] = [
   },
 ]
 
-// 단독 링크 — 드롭다운 없이 바로 이동
+// 소식 — 클릭은 /news 로 바로 이동, 호버는 미리보기 메가 패널(NewsMegaPanel)
 const NEWS = navEntry('/news')
 
 // NAV_ICONS 에 없는 항목(카탈로그 icon: null)용 라인 아이콘 (같은 1.6 스트로크 문법)
@@ -99,7 +100,7 @@ const DesktopNav = () => {
     setOpen(null)
   }
 
-  // 라우트가 바뀌면(소식 같은 단독 링크·뒤로가기 포함) 열려 있던 패널을 닫는다
+  // 라우트가 바뀌면(소식 클릭·뒤로가기 포함) 열려 있던 패널을 닫는다
   useEffect(() => {
     closeNow()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,7 +147,7 @@ const DesktopNav = () => {
   return (
     <nav
       ref={navRef}
-      className="desktop-nav hidden lg:flex items-center gap-0.5"
+      className="desktop-nav relative hidden lg:flex items-center gap-0.5"
       aria-label="주요 페이지"
       // 메뉴에 마우스가 올라온 순간 = 곧 이동한다는 신호 → lazy 청크 프리로드
       // (청크를 다 받은 뒤엔 즉시 돌아온다 — 데이터 선요청은 항목 호버 때 그 경로만)
@@ -239,24 +240,55 @@ const DesktopNav = () => {
         )
       })}
 
-      {/* 소식 — 단독 링크 */}
-      <NavLink
-        to={NEWS.path}
-        end
-        className={({ isActive }) => topClass(isActive, false)}
-        // 드롭다운이 없는 항목이므로 호버·포커스·클릭 모두 열린 패널을 즉시 닫는다
-        // (cancelClose 만 하면 "함께"에서 넘어올 때 예약된 닫기가 취소돼 패널이 남는다)
-        onMouseEnter={closeNow}
-        onFocus={closeNow}
-        onClick={closeNow}
-      >
-        {({ isActive }) => (
-          <>
-            {isActive && <ActivePill />}
-            <span className="relative z-10">{t(NEWS.labelKey)}</span>
-          </>
-        )}
-      </NavLink>
+      {/* 소식 — 누르면 /news 로 바로 가고, 호버하면 탭 목록 + 최신 글 미리보기 메가 패널.
+          패널이 800px 라 소식 트리거가 아닌 nav 왼쪽 끝에 붙인다(래퍼에 relative 를 두지 않는 이유) */}
+      <div onMouseEnter={() => openNow('news')} onMouseLeave={scheduleClose}>
+        <NavLink
+          to={NEWS.path}
+          end
+          aria-haspopup="menu"
+          aria-expanded={open === 'news'}
+          className={({ isActive }) => topClass(isActive, open === 'news')}
+          onFocus={() => openNow('news')}
+          onClick={closeNow}
+        >
+          {({ isActive }) => (
+            <>
+              {isActive && <ActivePill />}
+              <span className="relative z-10">{t(NEWS.labelKey)}</span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`relative z-10 w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${open === 'news' ? 'rotate-180' : ''}`}
+                aria-hidden
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </>
+          )}
+        </NavLink>
+
+        <AnimatePresence>
+          {open === 'news' && (
+            <motion.div
+              role="menu"
+              initial={{ opacity: 0, y: 6, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.98 }}
+              transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute left-0 top-full pt-2 z-[70] origin-top"
+              onMouseEnter={cancelClose}
+              onMouseLeave={scheduleClose}
+            >
+              <NewsMegaPanel pathname={pathname} search={search} go={go} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </nav>
   )
 }
