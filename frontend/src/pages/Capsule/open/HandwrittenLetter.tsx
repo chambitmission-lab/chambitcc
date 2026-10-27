@@ -16,9 +16,11 @@ import {
 import { clearCanvas, drawStroke, drawStrokes, fitCanvas } from '../ink/inkRender'
 import { fetchR2 } from '../../../utils/r2Fetch'
 
+// 재생 시간 — 캡슐은 "편지를 받아 읽는 시간"이라 사람 손 속도에 맞춘다. 한 장 빼곡한 편지(점 수천 개)가
+// 25~40초. 상한 13초였을 땐 긴 편지가 두세 배 빨리 감기로 보였다(2026-10-27). 급하면 종이를 탭해 끝까지.
 const MIN_MS = 4500
-const MAX_MS = 13000
-const MS_PER_POINT = 9
+const MAX_MS = 45000
+const MS_PER_POINT = 11
 
 /** 종이가 크림이면 잉크는 먹색 — 테마와 무관 */
 const INK_THEME = 'light' as const
