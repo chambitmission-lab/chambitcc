@@ -1376,6 +1376,25 @@
     border-right: 1px solid var(--card-border);
     background: var(--app-canvas);
   }
+  /* 왼쪽 패널 바닥 — 수채화 들판(낮/밤). 아래에 붙이고 위쪽은 바탕으로 녹여
+     위 삽화의 하늘과 경계 없이 이어진다. 목록은 그 위에 뜬다 */
+  .cw-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: url('/images/capsule/trail-bg-light.webp') center bottom / cover no-repeat;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.55) 22%, #000 44%);
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.55) 22%, #000 44%);
+    pointer-events: none;
+  }
+  .dark .cw-stage::before {
+    background-image: url('/images/capsule/trail-bg-dark.webp');
+  }
+  .cw-stage > * {
+    position: relative;
+    z-index: 1;
+  }
   /* 삽화 칸 높이 = 그림 원본 비율. 가로형 그림을 세로 칸에 cover 로 넣으면 양·우체통이
      좌우로 잘려 나가므로, 칸을 그림 비율대로 잡아 한 장이 통째로 보이게 한다.
      봉인(seal)만 정사각형에 가까워 비율대로 두면 너무 높다 — 고정 높이 + 초점 유지 */
