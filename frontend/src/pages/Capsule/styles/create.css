@@ -257,55 +257,102 @@
   color: var(--brand);
 }
 
-/* ── 단계 머리글 — 손글씨 안내 줄 + 제목 + 설명 ──────────────────── */
+/* ── 단계 머리글 — 손글씨 안내 줄 + 제목 + 설명 ────────────────────
+   기준: 연파랑 둥근 네모 배지 + 비스듬히 올라가는 큰 펜글씨 + 굵고 큰 제목(강조어는 파랑) */
 .cw-head {
-  margin-bottom: 6px;
+  margin: 4px 0 18px;
+}
+.cw-head .cw-title {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+  padding-top: 0.18em; /* 아치로 올라간 가운데 글자 자리 */
+}
+/* 아치형 제목 — 글자마다 --lift(0→1→0)만큼 올리고 --slope(1→0→-1)만큼 접선 방향으로 돈다 */
+.cw-arch {
+  display: inline-block;
+  white-space: nowrap;
+}
+/* 아치는 한 줄이어야 하니 좁은 폰에서는 글자를 조금 줄인다 */
+@media (max-width: 380px) {
+  .cw-head .cw-title {
+    font-size: 23px;
+  }
+}
+.cw-arch__ch {
+  display: inline-block;
+  transform: translateY(calc(var(--lift) * -0.17em)) rotate(calc(var(--slope) * -3.2deg));
+  transform-origin: 50% 100%;
+}
+.cw-arch__ch.is-mark {
+  position: relative;
+  z-index: 0;
+}
+.cw-arch__ch.is-mark::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -1px;
+  right: -1px;
+  bottom: 0.2em;
+  height: 0.22em;
+  background: rgba(49, 130, 246, 0.13);
+}
+.cw-arch__ch.is-mark:first-child::after {
+  border-radius: 3px 0 0 3px;
+}
+.cw-arch__ch.is-mark:last-child::after {
+  border-radius: 0 3px 3px 0;
+}
+.dark .cw-arch__ch.is-mark::after {
+  background: rgba(61, 124, 240, 0.24);
+}
+.cw-head .cw-sub {
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--text-muted);
 }
 .cw-eyebrow {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 8px;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 0 0 10px;
   color: var(--brand);
 }
 .cw-eyebrow__badge {
-  width: 28px;
-  height: 28px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
-  border-radius: 50%;
+  border-radius: 12px;
   display: grid;
   place-items: center;
-  color: #fff;
-  background: linear-gradient(180deg, #4d98ff, #2f7cf2);
-  box-shadow: 0 6px 14px -8px rgba(49, 130, 246, 0.8);
+  color: var(--brand);
+  background: rgba(49, 130, 246, 0.12);
+}
+.dark .cw-eyebrow__badge {
+  background: rgba(61, 124, 240, 0.22);
 }
 .cw-eyebrow__badge svg {
-  width: 15px;
-  height: 15px;
+  width: 22px;
+  height: 22px;
+}
+/* 펜글씨는 SVG 아치(textPath) 위 — 글자 크기는 viewBox 단위, 실제 크기는 svg 폭으로 조절 */
+.cw-eyebrow__arc {
+  width: 222px;
+  height: 46px;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-bottom: 2px;
 }
 .cw-eyebrow__text {
   font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
-  font-size: 21px;
-  line-height: 1;
-  letter-spacing: 0;
-  transform: rotate(-2.5deg);
-  transform-origin: 0 100%;
-  word-break: keep-all;
+  font-size: 29px;
+  letter-spacing: 0.01em;
+  fill: currentColor;
 }
 .cw-eyebrow__spark {
-  width: 12px;
-  height: 22px;
-  flex-shrink: 0;
-  margin-left: 2px;
-  transform: scaleX(-1) translateY(-4px);
-  opacity: 0.85;
-}
-.cw-sub {
-  margin-top: 6px;
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--text-muted);
-  word-break: keep-all;
+  opacity: 0.9;
 }
 .cw-label {
   margin: 20px 2px 8px;
@@ -1495,8 +1542,24 @@
   .cw-title {
     font-size: 28px;
   }
-  .cw-eyebrow__text {
-    font-size: 23px;
+  .cw-head .cw-title {
+    font-size: 38px;
+  }
+  .cw-head .cw-sub {
+    font-size: 16px;
+  }
+  .cw-eyebrow__arc {
+    width: 256px;
+    height: 53px;
+  }
+  .cw-eyebrow__badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+  .cw-eyebrow__badge svg {
+    width: 25px;
+    height: 25px;
   }
   .cw-tile--card {
     min-height: 172px;

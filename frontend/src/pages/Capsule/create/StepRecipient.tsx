@@ -91,12 +91,13 @@ const StepRecipient = ({
       <StepHead
         eyebrow="당신의 마음을 전해보세요"
         badge={<MailGlyph />}
-        title={
-          <>
-            이 편지, <em>누구에게</em> 보낼까요?
-          </>
-        }
-        sub="보낼 사람을 고르면 편지의 내용이 달라져요"
+        title={[
+          { text: '이 편지, ' },
+          { text: '누구', em: true, mark: true },
+          { text: '에게', em: true },
+          { text: ' 보낼까요?' },
+        ]}
+        sub="보낼 사람을 선택하면, 편지의 내용이 달라져요."
       />
 
       <div className="cw-tiles cw-tiles--cards" role="radiogroup" aria-label="받는 사람">
