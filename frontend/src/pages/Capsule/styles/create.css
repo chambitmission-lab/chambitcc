@@ -1161,9 +1161,9 @@
   .cw-shell {
     --cw-surface: var(--surface-container);
     display: grid;
-    grid-template-columns: 420px minmax(0, 1fr);
+    grid-template-columns: 500px minmax(0, 1fr);
     grid-template-rows: 1fr auto;
-    max-width: 1080px;
+    max-width: 1240px;
     min-height: var(--cw-panel-h);
     border: 1px solid var(--card-border);
     border-radius: 28px;
@@ -1183,14 +1183,42 @@
     border-right: 1px solid var(--card-border);
     background: var(--app-canvas);
   }
+  /* 삽화 칸 높이 = 그림 원본 비율. 가로형 그림을 세로 칸에 cover 로 넣으면 양·우체통이
+     좌우로 잘려 나가므로, 칸을 그림 비율대로 잡아 한 장이 통째로 보이게 한다.
+     봉인(seal)만 정사각형에 가까워 비율대로 두면 너무 높다 — 고정 높이 + 초점 유지 */
   .cw-stage__scene,
-  .cw-stage--letter .cw-stage__scene,
-  .cw-stage--seal .cw-stage__scene {
-    height: 360px;
+  .cw-stage--letter .cw-stage__scene {
+    height: auto;
+    aspect-ratio: 600 / 316;
     flex-shrink: 0;
   }
+  .cw-stage--date .cw-stage__scene {
+    aspect-ratio: 780 / 470;
+  }
+  .cw-stage--letter .cw-stage__scene {
+    aspect-ratio: 580 / 310;
+  }
+  .cw-stage--extras .cw-stage__scene {
+    aspect-ratio: 698 / 450;
+  }
+  .cw-stage--seal .cw-stage__scene {
+    height: 360px;
+    aspect-ratio: auto;
+  }
+  /* 봉인 말풍선은 삽화 안에 머무르니 목록 위 여백이 필요 없다 */
+  .cw-stage--seal .cw-trail {
+    padding-top: 10px;
+  }
+  .cw-stage--recipient .cw-art,
+  .cw-stage--date .cw-art,
+  .cw-stage--letter .cw-art,
+  .cw-stage--extras .cw-art {
+    background-position: center top;
+  }
+  /* 말풍선은 삽화 아래 가장자리에 걸친다 — 칸이 그림 비율로 낮아져 양을 가리지 않게 */
   .cw-stage .cw-bubble {
-    bottom: 22px;
+    bottom: -26px;
+    max-width: min(280px, 64%);
   }
   .cw-stage--seal .cw-bubble {
     bottom: 56px;
@@ -1204,7 +1232,7 @@
     min-height: 0;
     overflow-y: auto;
     margin: 0;
-    padding: 6px 20px 22px;
+    padding: 44px 20px 22px;
     list-style: none;
   }
   .cw-trail__item {
@@ -1304,7 +1332,7 @@
     grid-column: 2;
     grid-row: 1;
     width: 100%;
-    max-width: 680px;
+    max-width: 740px;
     padding: 44px 52px 28px;
   }
   .cw-title {
@@ -1317,7 +1345,7 @@
     grid-column: 2;
     grid-row: 2;
     width: 100%;
-    max-width: 680px;
+    max-width: 740px;
     padding: 14px 52px 28px;
   }
   .cw-photos {
