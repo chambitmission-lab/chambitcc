@@ -29,6 +29,7 @@ import { ensureFontFamily } from '../../utils/deferredFonts'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 import { CAPSULE_CREATE_ART, warmPair } from '../../utils/themeAssets'
 import SheepStage from './create/SheepStage'
+import CtaButton, { type CtaIcon } from './create/CtaButton'
 import SealHold from './create/SealHold'
 import StepRecipient from './create/StepRecipient'
 import StepWhen from './create/StepWhen'
@@ -465,12 +466,13 @@ const CapsuleCreate = () => {
   ]
 
   // 단계별 아래 버튼 — 고른 답을 버튼이 말한다("미래의 나에게 보낼게요")
-  type Foot = { label: string; disabled?: boolean; ghost?: boolean; onClick: () => void }
+  type Foot = { label: string; icon?: CtaIcon; disabled?: boolean; ghost?: boolean; onClick: () => void }
   const foot: Foot | null =
     step === 1
       ? recipientReady
         ? {
             label: `${recipientLabel}${recipientLabel.endsWith('님') ? '께' : '에게'} 보낼게요`,
+            icon: 'mail',
             onClick: () => goStep(2),
           }
         : {
@@ -480,11 +482,11 @@ const CapsuleCreate = () => {
           }
       : step === 2
         ? openDate
-          ? { label: '이날 배달해 주세요', onClick: () => goStep(3) }
+          ? { label: '이날 배달해 주세요', icon: 'calendar', onClick: () => goStep(3) }
           : { label: '날짜를 골라 주세요', disabled: true, onClick: () => {} }
         : step === 3
           ? hasWritten
-            ? { label: '다 썼어요!', onClick: () => goStep(4) }
+            ? { label: '다 썼어요!', icon: 'pen', onClick: () => goStep(4) }
             : { label: '편지를 써 주세요', disabled: true, onClick: () => {} }
           : step === 4
             ? recording
@@ -492,7 +494,7 @@ const CapsuleCreate = () => {
               : !hasLetter
                 ? { label: '편지나 목소리 하나는 담아 주세요', disabled: true, onClick: () => {} }
                 : photos.length > 0 || audioBlob
-                  ? { label: '다 넣었어요', onClick: () => goStep(5) }
+                  ? { label: '다 넣었어요', icon: 'box', onClick: () => goStep(5) }
                   : { label: '이대로 충분해요', ghost: true, onClick: () => goStep(5) }
             : null
 
@@ -550,18 +552,13 @@ const CapsuleCreate = () => {
             </p>
           </main>
           <footer className="cw-foot">
-            {!isDirect && (
-              <button type="button" onClick={handleShareCreated} className="cw-btn cw-btn--amber">
-                초대 링크 전하기
-              </button>
-            )}
-            <button
-              type="button"
+            {!isDirect && <CtaButton label="초대 링크 전하기" icon="link" amber onClick={handleShareCreated} />}
+            <CtaButton
+              label="캡슐함으로 가기"
+              icon="home"
+              ghost={!isDirect}
               onClick={() => navigate('/capsule', { replace: true })}
-              className={`cw-btn ${isDirect ? '' : 'cw-btn--ghost'}`}
-            >
-              캡슐함으로 가기
-            </button>
+            />
           </footer>
         </div>
       </div>
@@ -721,14 +718,13 @@ const CapsuleCreate = () => {
 
         {foot && (
           <footer className="cw-foot">
-            <button
-              type="button"
-              onClick={foot.onClick}
+            <CtaButton
+              label={foot.label}
+              icon={foot.icon}
+              ghost={foot.ghost}
               disabled={foot.disabled}
-              className={`cw-btn ${foot.ghost ? 'cw-btn--ghost' : ''}`}
-            >
-              {foot.label}
-            </button>
+              onClick={foot.onClick}
+            />
           </footer>
         )}
       </div>

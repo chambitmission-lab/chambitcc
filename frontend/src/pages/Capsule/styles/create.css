@@ -251,6 +251,55 @@
   color: var(--text-strong);
   word-break: keep-all;
 }
+/* 제목 속 강조어 — "누구에게" 처럼 이 단계가 묻는 한 단어만 브랜드색 */
+.cw-title em {
+  font-style: normal;
+  color: var(--brand);
+}
+
+/* ── 단계 머리글 — 손글씨 안내 줄 + 제목 + 설명 ──────────────────── */
+.cw-head {
+  margin-bottom: 6px;
+}
+.cw-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--brand);
+}
+.cw-eyebrow__badge {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(180deg, #4d98ff, #2f7cf2);
+  box-shadow: 0 6px 14px -8px rgba(49, 130, 246, 0.8);
+}
+.cw-eyebrow__badge svg {
+  width: 15px;
+  height: 15px;
+}
+.cw-eyebrow__text {
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: 21px;
+  line-height: 1;
+  letter-spacing: 0;
+  transform: rotate(-2.5deg);
+  transform-origin: 0 100%;
+  word-break: keep-all;
+}
+.cw-eyebrow__spark {
+  width: 12px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-left: 2px;
+  transform: scaleX(-1) translateY(-4px);
+  opacity: 0.85;
+}
 .cw-sub {
   margin-top: 6px;
   font-size: 13.5px;
@@ -399,6 +448,55 @@
 }
 .dark .cw-tone--amber {
   color: #ffb03a;
+}
+
+/* ── 카드형 타일(받는 사람) — 입체 바닥 대신 납작한 카드 + 모서리 삽화 ──
+   선택은 연파랑 면 + 파란 테두리 + 오른쪽 위 체크. 삽화는 오른쪽 아래에 살짝 걸친다 */
+.cw-tiles--cards {
+  gap: 12px;
+}
+.cw-tile--card {
+  min-height: 158px;
+  padding: 16px 14px 14px;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px -16px rgba(20, 30, 50, 0.25);
+}
+.cw-tile--card:active:not(:disabled) {
+  transform: scale(0.985);
+  box-shadow: 0 6px 16px -14px rgba(20, 30, 50, 0.3);
+}
+.cw-tile--card.is-on {
+  box-shadow: 0 12px 28px -16px rgba(49, 130, 246, 0.45);
+}
+.cw-tile--card.is-on:active:not(:disabled) {
+  box-shadow: 0 6px 16px -14px rgba(49, 130, 246, 0.4);
+}
+.cw-tile--card .cw-tile__icon {
+  border-radius: 50%;
+  margin-bottom: 26px;
+}
+.cw-tile--card b {
+  font-size: 17px;
+}
+.cw-tile--card > span:not([class]) {
+  /* 삽화 자리를 비워 둔다 */
+  padding-right: 52px;
+}
+.cw-tile__art {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  width: 64px;
+  height: 48px;
+  pointer-events: none;
+  transition: transform 0.25s ease;
+}
+.cw-tile--card.is-on .cw-tile__art {
+  transform: translateY(-2px) rotate(-2deg);
+}
+.dark .cw-tile__art rect {
+  fill: #2b2d35;
 }
 
 /* 두 칸 선택(전달 방식·글/펜) */
@@ -1061,7 +1159,9 @@
   animation: cw-shake 0.45s ease;
 }
 
-/* ── 아래 버튼 줄 — 눌리는 입체 버튼 ──────────────────────────── */
+/* ── 아래 버튼 줄 — 둥근 알약 버튼 ──────────────────────────────
+   2026-10-27 바닥 그림자형 입체 버튼에서 교체: 알약 + 은은한 그라데이션 + 빛 그림자,
+   앞에 상황 아이콘·뒤에 화살표, 양옆에 작은 반짝 선(.cw-btn--lively). 타일의 입체감은 그대로. */
 .cw-foot {
   position: sticky;
   bottom: 0;
@@ -1078,85 +1178,132 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   width: 100%;
   height: 56px;
-  padding: 0 16px;
-  border-radius: 18px;
-  background: #3182f6;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4d98ff 0%, #2f7cf2 100%);
   color: #fff;
   font-size: 16.5px;
   font-weight: 800;
   letter-spacing: -0.02em;
   box-shadow:
-    0 5px 0 #1f5fcf,
-    0 14px 24px -12px rgba(49, 130, 246, 0.6);
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 12px 26px -12px rgba(49, 130, 246, 0.75);
   transition:
-    transform 0.08s ease,
-    box-shadow 0.08s ease;
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
   -webkit-tap-highlight-color: transparent;
 }
-/* 위쪽 하이라이트 — 볼록한 버튼 */
-.cw-btn::before {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 14px;
-  right: 14px;
-  height: 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.18);
-  pointer-events: none;
-}
 .cw-btn:active:not(:disabled) {
-  transform: translateY(4px);
-  box-shadow: 0 1px 0 #1f5fcf;
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.96);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 6px 14px -10px rgba(49, 130, 246, 0.6);
+}
+.cw-btn:focus-visible {
+  outline: 3px solid rgba(49, 130, 246, 0.45);
+  outline-offset: 3px;
 }
 .cw-btn:disabled {
   background: var(--cw-tile-edge);
   color: var(--text-muted);
-  box-shadow: 0 5px 0 var(--cw-tile-floor);
+  box-shadow: none;
 }
-.cw-btn:disabled::before {
-  display: none;
+.cw-btn__ico,
+.cw-btn__go {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+.cw-btn__go {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+.cw-btn:hover:not(:disabled) .cw-btn__go {
+  transform: translateX(3px);
+}
+.cw-btn__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 양옆 반짝 선 — 버튼 밖으로 살짝 나간다 (foot 좌우 패딩 18px 안) */
+.cw-btn--lively::before,
+.cw-btn--lively::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 26px;
+  margin-top: -13px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 26' fill='none' stroke='%233182f6' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M12 5 5 2M11 13H2M12 21l-7 3'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+  animation: cw-twinkle 2.4s ease-in-out infinite;
+}
+.cw-btn--lively::before {
+  left: -17px;
+}
+.cw-btn--lively::after {
+  right: -17px;
+  transform: scaleX(-1);
+  animation-delay: 0.6s;
+}
+.dark .cw-btn--lively::before,
+.dark .cw-btn--lively::after {
+  filter: brightness(1.35);
+}
+.cw-btn--amber.cw-btn--lively::before,
+.cw-btn--amber.cw-btn--lively::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 26' fill='none' stroke='%23e3961c' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M12 5 5 2M11 13H2M12 21l-7 3'/%3E%3C/svg%3E");
+}
+@keyframes cw-twinkle {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 .cw-btn--ghost {
   background: var(--cw-tile-bg);
   color: var(--text-body);
   border: 2px solid var(--cw-tile-edge);
-  box-shadow: 0 5px 0 var(--cw-tile-floor);
-}
-.cw-btn--ghost::before {
-  display: none;
+  box-shadow: none;
 }
 .cw-btn--ghost:active:not(:disabled) {
-  box-shadow: 0 1px 0 var(--cw-tile-floor);
+  filter: none;
+  box-shadow: none;
 }
 .cw-btn--amber {
-  background: #ffb03a;
+  background: linear-gradient(180deg, #ffc55c 0%, #ffab2e 100%);
   color: #2a1a02;
   box-shadow:
-    0 5px 0 #c97f12,
-    0 14px 24px -12px rgba(255, 176, 58, 0.55);
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 12px 26px -12px rgba(255, 176, 58, 0.7);
 }
 .cw-btn--amber:active:not(:disabled) {
-  box-shadow: 0 1px 0 #c97f12;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 6px 14px -10px rgba(255, 176, 58, 0.6);
 }
 .cw-btn--sm {
   flex-shrink: 0;
   width: auto;
   height: 38px;
   padding: 0 16px;
-  border-radius: 12px;
   font-size: 13px;
-  box-shadow: 0 3px 0 #1f5fcf;
-}
-.cw-btn--sm::before {
-  top: 4px;
-  height: 5px;
+  box-shadow: 0 8px 18px -10px rgba(49, 130, 246, 0.7);
 }
 .cw-btn--sm:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #1f5fcf;
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 4px 10px -8px rgba(49, 130, 246, 0.6);
 }
 
 /* ── PC(lg+) — 가운데 한 장의 카드 ─────────────────────────── */
@@ -1346,7 +1493,20 @@
     padding: 44px 52px 28px;
   }
   .cw-title {
-    font-size: 26px;
+    font-size: 28px;
+  }
+  .cw-eyebrow__text {
+    font-size: 23px;
+  }
+  .cw-tile--card {
+    min-height: 172px;
+    padding: 18px 18px 16px;
+  }
+  .cw-tile__art {
+    right: 10px;
+    bottom: 8px;
+    width: 72px;
+    height: 54px;
   }
   .cw-sub {
     font-size: 14.5px;
@@ -1446,6 +1606,8 @@
     transition: none;
   }
   .cw-path__letter,
+  .cw-btn--lively::before,
+  .cw-btn--lively::after,
   .cw-bubble,
   .cw-body,
   .cw-reveal,

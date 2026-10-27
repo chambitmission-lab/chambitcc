@@ -3,6 +3,7 @@
 // 서로 아는 공동체 앱이라 바로 보내기를 기본으로 둔다.
 import type { CapsuleRecipient, CapsuleType } from '../../../types/timeCapsule'
 import { Icon, LinkGlyph } from '../capsuleIcons'
+import StepHead from './StepHead'
 
 const ClockGlyph = () => (
   <>
@@ -14,6 +15,38 @@ const HeartGlyph = () => (
   <path d="M12 20.2 5.4 13.6a4.7 4.7 0 0 1 0-6.6 4.6 4.6 0 0 1 6.6 0 4.6 4.6 0 0 1 6.6 0 4.7 4.7 0 0 1 0 6.6Z" />
 )
 const PlaneGlyph = () => <path d="M21 3 10.5 13.5M21 3l-6.6 18-3.9-7.5L3 9.6 21 3Z" />
+const MailGlyph = () => (
+  <>
+    <rect x="3" y="5" width="18" height="14" rx="3" />
+    <path d="m3 8 9 6 9-6" />
+  </>
+)
+
+/* 타일 오른쪽 아래 모서리 삽화 — 작은 봉투. 나에게는 새잎(시간이 흘러 자란다), 사람에게는 하트 봉인 */
+const LeafMailArt = () => (
+  <svg className="cw-tile__art" viewBox="0 0 64 48" aria-hidden>
+    <g transform="rotate(-8 30 30)">
+      <rect x="10" y="16" width="40" height="27" rx="4" fill="#fff" stroke="#b7c6dd" strokeWidth="1.5" />
+      <path d="M10 19l20 13 20-13" fill="none" stroke="#b7c6dd" strokeWidth="1.5" />
+      <path d="M10 41l15-10M50 41l-15-10" fill="none" stroke="#d6dfeb" strokeWidth="1.2" />
+    </g>
+    <path d="M44 20c-1-8 4-13 11-14-.5 7-4 12-11 14Z" fill="#8ccf9a" />
+    <path d="M44 20c3-4 6-7 9-10" fill="none" stroke="#4fa366" strokeWidth="1.2" strokeLinecap="round" />
+    <path d="M46 24c-6-1-9-6-9-12 6 1 9 6 9 12Z" fill="#a9dcb3" />
+    <path d="M46 24c-2-4-4-7-6-9" fill="none" stroke="#4fa366" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+)
+const HeartMailArt = () => (
+  <svg className="cw-tile__art" viewBox="0 0 64 48" aria-hidden>
+    <g transform="rotate(6 32 30)">
+      <rect x="10" y="14" width="42" height="28" rx="4" fill="#fff" stroke="#e6cfa6" strokeWidth="1.5" />
+      <path d="M10 17l21 13 21-13" fill="none" stroke="#e6cfa6" strokeWidth="1.5" />
+      <path d="M10 40l16-10M52 40l-16-10" fill="none" stroke="#f0e3cb" strokeWidth="1.2" />
+      <path d="M31 36.5 25.8 31a3.3 3.3 0 0 1 0-4.8 3.4 3.4 0 0 1 4.9 0l.3.3.3-.3a3.4 3.4 0 0 1 4.9 0 3.3 3.3 0 0 1 0 4.8Z" fill="#ff6b8a" />
+    </g>
+    <path d="M55 8v6M52 11h6M6 30v4M4 32h4" stroke="#ffb03a" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+)
 
 const Avatar = ({ user, size }: { user: CapsuleRecipient; size: number }) =>
   user.avatar_url ? (
@@ -55,15 +88,24 @@ const StepRecipient = ({
 
   return (
     <>
-      <h2 className="cw-title">이 편지, 누구에게 보낼까요?</h2>
+      <StepHead
+        eyebrow="당신의 마음을 전해보세요"
+        badge={<MailGlyph />}
+        title={
+          <>
+            이 편지, <em>누구에게</em> 보낼까요?
+          </>
+        }
+        sub="보낼 사람을 고르면 편지의 내용이 달라져요"
+      />
 
-      <div className="cw-tiles" role="radiogroup" aria-label="받는 사람">
+      <div className="cw-tiles cw-tiles--cards" role="radiogroup" aria-label="받는 사람">
         <button
           type="button"
           role="radio"
           aria-checked={isSelf}
           onClick={() => onTypeChange('self')}
-          className={`cw-tile ${isSelf ? 'is-on' : ''}`}
+          className={`cw-tile cw-tile--card ${isSelf ? 'is-on' : ''}`}
         >
           <span className="cw-tile__icon cw-tone--blue">
             <Icon size={26}>
@@ -72,6 +114,7 @@ const StepRecipient = ({
           </span>
           <b>미래의 나</b>
           <span>시간이 흐른 뒤의 나에게</span>
+          <LeafMailArt />
         </button>
         <button
           type="button"
@@ -79,7 +122,7 @@ const StepRecipient = ({
           aria-checked={!isSelf}
           // 다시 누를 때 고른 전달 방식을 지키도록, 이미 '소중한 사람'이면 그대로 둔다
           onClick={() => isSelf && onTypeChange('direct')}
-          className={`cw-tile ${!isSelf ? 'is-on' : ''}`}
+          className={`cw-tile cw-tile--card ${!isSelf ? 'is-on' : ''}`}
         >
           <span className="cw-tile__icon cw-tone--amber">
             <Icon size={26}>
@@ -88,6 +131,7 @@ const StepRecipient = ({
           </span>
           <b>소중한 사람</b>
           <span>가족·친구·교우에게</span>
+          <HeartMailArt />
         </button>
       </div>
 
