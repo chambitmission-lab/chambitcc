@@ -135,10 +135,9 @@ export const linkPersona = (r: LinkResult, total: number): LinkPersona => {
   return { key: 'steady', title: '차근차근\n말씀 순례자형', desc: '한 절 한 절 차근차근.\n결국 끝까지 가는 타입.', icon: '👣', tone: 'hot', stat: { label: '이은 말씀', value: `${r.versesDone}절` } }
 }
 
-/** 콤보 터짐 문구(드롭) — 만나 내리기와 같은 말투 */
+/** 콤보 터짐 문구 — 만나 내리기와 같은 말투 */
 const BURST_LINES = ['미쳤다!', '폼 미쳤다', '손 풀렸다', '갓벽!', '멈추지 마']
-export const linkBurstText = (arcade: boolean, combo: number) =>
-  arcade ? `${combo} COMBO!` : BURST_LINES[(combo / BURST_EVERY - 1) % BURST_LINES.length]
+export const linkBurstText = (combo: number) => BURST_LINES[(combo / BURST_EVERY - 1) % BURST_LINES.length]
 
 export interface LinkView {
   round: number

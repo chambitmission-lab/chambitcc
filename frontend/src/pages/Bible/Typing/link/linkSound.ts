@@ -2,7 +2,7 @@ import { safeStorage } from '../../../../utils/safeStorage'
 
 /**
  * 말씀 잇기 효과음 — 전부 Web Audio 합성(파일 없음).
- * 드롭은 장난스러운 소리(물방울 음계·양 "메에~?"·휘슬·관중·성가대), 아케이드는 탭·글자 소리만 8비트.
+ * 장난스러운 소리(물방울 음계·양 "메에~?"·휘슬·관중·성가대).
  * 모든 소리는 컴프레서 한 대를 지나 여러 소리가 겹쳐도 찢어지지 않는다.
  * 양·관중·성가대는 목소리를 흉내 낸 합성이라, 나중에 녹음 파일로 바꿀 자리다.
  */
@@ -185,14 +185,9 @@ const NOTE = (n: number) => 440 * Math.pow(2, (n - 69) / 12)
 const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760, 2093, 2349.3]
 
 export const linkSfx = {
-  /** 조각 탭 — 드롭은 물방울 "뽁·뾱·뿅"이 음계로, 아케이드는 8비트 */
-  tap(i: number, arcade: boolean) {
+  /** 조각 탭 — 물방울 "뽁·뾱·뿅"이 음계로 */
+  tap(i: number) {
     const f = SCALE[i % SCALE.length]
-    if (arcade) {
-      tone(f, 0.12, { type: 'square', vol: 0.06 })
-      tone(f * 2, 0.08, { type: 'square', vol: 0.025, delay: 0.04 })
-      return
-    }
     const c = live()
     if (!c) return
     const t = c.currentTime
@@ -409,16 +404,10 @@ export const linkSfx = {
     })
   },
   /** 결과 팡파레 */
-  fanfare(arcade: boolean) {
-    ;[523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5].forEach((f, i) =>
-      tone(f, 0.3, { type: arcade ? 'square' : 'triangle', vol: arcade ? 0.05 : 0.09, delay: i * 0.12 }),
-    )
+  fanfare() {
+    ;[523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5].forEach((f, i) => tone(f, 0.3, { type: 'triangle', vol: 0.09, delay: i * 0.12 }))
   },
-  /** 완성 카드의 단어가 하나씩 켜질 때 — 아케이드만(드롭은 성가대가 노래한다) */
-  word(i: number, arcade: boolean) {
-    if (arcade) tone(SCALE[(i + 4) % 12], 0.05, { type: 'square', vol: 0.03 })
-  },
-  click(arcade: boolean) {
-    tone(arcade ? 660 : 880, 0.06, { type: arcade ? 'square' : 'triangle', vol: 0.05 })
+  click() {
+    tone(880, 0.06, { type: 'triangle', vol: 0.05 })
   },
 }

@@ -8,7 +8,8 @@ import { useCountUp } from '../../../../hooks/useCountUp'
 import { tokenStore } from '../../../../utils/tokenStore'
 import { showToast } from '../../../../utils/toast'
 import { formatNumberKo as fmt } from '../../../../utils/formatNumber'
-import { MANNA_SKINS, daysLeftInWeek, dayOfYear, isoWeek, useContinueCountdown, useMannaSkin, type MannaSkin } from '../manna/mannaSkin'
+import { ensureFontFamily } from '../../../../utils/deferredFonts'
+import { daysLeftInWeek, isoWeek } from '../manna/mannaSkin'
 import chambiJoy from '../../../../components/chatbot/img/joy.webp'
 import LinkPlay from './LinkPlay'
 import LinkBoards from './LinkBoards'
@@ -29,7 +30,7 @@ interface Finished {
 
 /** 시작 화면 '효과음 미리 듣기' — 게임 속 순간별 소리 */
 const SOUND_BOARD: [string, string, () => void][] = [
-  ['💧', '조각 탭 (뽁·뾱·뿅)', () => [0, 1, 2, 3, 4, 5].forEach((i, k) => setTimeout(() => linkSfx.tap(i, false), k * 140))],
+  ['💧', '조각 탭 (뽁·뾱·뿅)', () => [0, 1, 2, 3, 4, 5].forEach((i, k) => setTimeout(() => linkSfx.tap(i), k * 140))],
   ['🐑', '틀림 (메에~?)', () => linkSfx.sheep(false)],
   ['🏺', '항아리 깨짐 (쨍그랑)', () => linkSfx.crack(false)],
   ['😢', '마지막 항아리 (메헹…)', () => linkSfx.crack(true)],
@@ -59,25 +60,6 @@ const SOUND_BOARD: [string, string, () => void][] = [
   }],
   ['🎷', '게임 오버 (뿌뿌뿌뿌우~)', () => linkSfx.sadTrombone()],
 ]
-
-const SkinPick = ({ skin, onChange }: { skin: MannaSkin; onChange: (s: MannaSkin) => void }) => (
-  <div className="vl-pickrow" role="radiogroup" aria-label="화면 스타일">
-    <span className="vl-pickrow__lbl">화면 스타일</span>
-    {MANNA_SKINS.map((s) => (
-      <button
-        key={s.key}
-        type="button"
-        role="radio"
-        aria-checked={skin === s.key}
-        className={`vl-pick is-${s.key}${skin === s.key ? ' is-on' : ''}`}
-        onClick={() => onChange(s.key)}
-      >
-        <i aria-hidden />
-        {s.label}
-      </button>
-    ))}
-  </div>
-)
 
 const JarIcon = () => (
   <svg viewBox="0 0 16 20" aria-hidden>
@@ -150,49 +132,6 @@ const DropTop = ({ loggedIn }: { loggedIn: boolean }) => {
   )
 }
 
-/** 아케이드 — 도트 로고 + 오늘의 하이스코어 */
-const ArcadeTop = ({ loggedIn }: { loggedIn: boolean }) => {
-  const { data: board } = useLinkBoard('today', loggedIn)
-  const top = board?.entries.slice(0, 3) ?? []
-  const me = board?.me && board.me.rank > 3 ? board.me : null
-  return (
-    <div className="vl-arc">
-      <div className="vl-arc__eyebrow">VERSE LINK · STAGE {dayOfYear()}</div>
-      <h2 className="vl-arc__title">
-        말씀
-        <br />
-        잇기
-      </h2>
-      <p className="vl-arc__sub">흩어진 말씀 조각을 순서대로 눌러 이어요</p>
-      {loggedIn && (
-        <div className="vl-hs">
-          <p>TODAY&apos;S HI-SCORE</p>
-          {top.length === 0 ? (
-            <p className="vl-hs__empty">{board ? 'NO RECORD — 첫 기록의 주인공이 되어 보세요' : 'LOADING…'}</p>
-          ) : (
-            <ol>
-              {top.map((e) => (
-                <li key={e.user_id} className={`is-${e.rank}${e.is_me ? ' is-me' : ''}`}>
-                  <span>{['1ST', '2ND', '3RD'][e.rank - 1] ?? `${e.rank}TH`}</span>
-                  <span>{e.is_me ? 'YOU' : e.name}</span>
-                  <span>{fmt(e.score)}</span>
-                </li>
-              ))}
-              {me && (
-                <li className="is-me">
-                  <span>{me.rank}TH</span>
-                  <span>YOU</span>
-                  <span>{fmt(me.score)}</span>
-                </li>
-              )}
-            </ol>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
 const DropResult = ({ f, total, score, rank }: { f: Finished; total: number; score: number; rank: number | null }) => {
   const p = linkPersona(f.result, total)
   const tags = [
@@ -245,53 +184,15 @@ const DropResult = ({ f, total, score, rank }: { f: Finished; total: number; sco
   )
 }
 
-const ArcadeResult = ({ f, score }: { f: Finished; score: number }) => {
-  const rows: [string, string][] = [
-    ['이은 조각', `×${f.result.pieces}`],
-    ['완벽 새김', `×${f.result.perfectVerses}`],
-    ['최고 콤보', `${f.result.maxCombo}`],
-    ['틀린 횟수', `×${f.result.mistakes}`],
-  ]
-  const total = f.result.verseSecs.reduce((a, s) => a + s, 0)
-  return (
-    <div className="vl-arcres">
-      <p className={`vl-arcres__big${f.result.cleared ? '' : ' is-over'}`}>
-        {f.result.cleared ? 'STAGE' : 'GAME'}
-        <br />
-        {f.result.cleared ? 'CLEAR!' : 'OVER'}
-      </p>
-      <p className="vl-arcres__sub">
-        {f.result.cleared ? `${f.set.verses.length}절 모두 이음` : `${f.result.versesDone}/${f.set.verses.length}절까지`} · {total.toFixed(0)}초
-      </p>
-      {f.saved?.is_best && <p className="vl-arcres__new vl-blink">NEW RECORD!</p>}
-      <div className="vl-tally">
-        {rows.map(([k, v], i) => (
-          <div key={k} style={{ animationDelay: `${300 + i * 220}ms` }}>
-            <span>{k}</span>
-            <span>{v}</span>
-          </div>
-        ))}
-        <div className="is-total" style={{ animationDelay: `${300 + rows.length * 220}ms` }}>
-          <span>TOTAL</span>
-          <span>{fmt(score)}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const ResultView = ({ f, skin, loggedIn, saving, onAgain, onBack }: {
+const ResultView = ({ f, loggedIn, saving, onAgain, onBack }: {
   f: Finished
-  skin: MannaSkin
   loggedIn: boolean
   saving: boolean
   onAgain: () => void
   onBack: () => void
 }) => {
-  const arcade = skin === 'arcade'
-  const countMs = arcade ? 1400 : 1100
+  const countMs = 1100
   const score = useCountUp(f.result.score, { durationMs: countMs })
-  const cont = useContinueCountdown(arcade)
   const [toast, setToast] = useState<string | null>(null)
   const rank = f.saved?.rank ?? null
 
@@ -300,7 +201,7 @@ const ResultView = ({ f, skin, loggedIn, saving, onAgain, onBack }: {
     if (f.result.cleared) {
       linkSfx.drumroll(countMs / 1000)
       linkSfx.cymbal(countMs / 1000)
-      const t = setTimeout(() => linkSfx.fanfare(arcade), countMs + 150)
+      const t = setTimeout(() => linkSfx.fanfare(), countMs + 150)
       return () => clearTimeout(t)
     }
     linkSfx.sadTrombone()
@@ -308,16 +209,9 @@ const ResultView = ({ f, skin, loggedIn, saving, onAgain, onBack }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 아케이드 정산 줄이 하나씩 켜질 때 8비트 소리
-  useEffect(() => {
-    if (!arcade) return
-    const ts = [0, 1, 2, 3, 4].map((i) => setTimeout(() => linkSfx.tap(i * 2, true), 300 + i * 220))
-    return () => ts.forEach(clearTimeout)
-  }, [arcade])
-
   return (
     <div className="vl-result">
-      {arcade ? <ArcadeResult f={f} score={score} /> : <DropResult f={f} total={f.set.verses.length} score={score} rank={rank} />}
+      <DropResult f={f} total={f.set.verses.length} score={score} rank={rank} />
 
       {!loggedIn ? (
         <p className="vl-note">
@@ -337,12 +231,11 @@ const ResultView = ({ f, skin, loggedIn, saving, onAgain, onBack }: {
             </div>
           )}
           <LinkBoards
-            arcade={arcade}
             climb={f.saved?.counted && f.board ? { board: f.board, prevRank: f.saved.prev_rank } : null}
             onPassed={(names) => {
               if (!names.length || toast) return
               const last = names[names.length - 1]
-              setToast(arcade ? `${last} 추월!` : `${last}님을 밀어냈어요 🏃`)
+              setToast(`${last}님을 밀어냈어요 🏃`)
             }}
           />
         </div>
@@ -350,7 +243,7 @@ const ResultView = ({ f, skin, loggedIn, saving, onAgain, onBack }: {
 
       <div className="vl-resfoot">
         <button type="button" className="vl-cta" onClick={onAgain}>
-          <span>{arcade && cont > 0 ? `CONTINUE? ${cont}` : '한 판 더'}</span>
+          <span>한 판 더</span>
           <span aria-hidden>↻</span>
         </button>
         <button type="button" className="vl-cta is-ghost" onClick={onBack}>
@@ -366,8 +259,6 @@ const VerseLinkPage = () => {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const loggedIn = !!tokenStore.getAccess()
-  const [skin, setSkin] = useMannaSkin()
-  const arcade = skin === 'arcade'
   const [phase, setPhase] = useState<Phase>('start')
   const [set, setSet] = useState<LinkSet | null>(null)
   const [finished, setFinished] = useState<Finished | null>(null)
@@ -377,7 +268,7 @@ const VerseLinkPage = () => {
 
   const start = async () => {
     primeLinkSound()
-    linkSfx.click(arcade)
+    linkSfx.click()
     setPhase('loading')
     try {
       // 늘 새로 받는다 — 자정을 넘긴 옛 판으로 치면 순위에 들어가지 않는다
@@ -420,15 +311,20 @@ const VerseLinkPage = () => {
   const toggleMute = () => {
     setLinkMuted(!muted)
     setMuted(!muted)
-    if (muted) linkSfx.tap(4, arcade)
+    if (muted) linkSfx.tap(4)
   }
+
+  // 드롭 제목 서체(Black Han Sans)는 이 화면에서만 붙인다
+  useEffect(() => {
+    void ensureFontFamily('blackHanSans')
+  }, [])
 
   return (
     <div className="bt-page bg-[var(--app-canvas)] dark:bg-background-dark page-stage">
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
         <BibleSideRail active="typing" />
 
-        <main className={`bt-shell bt-shell--session vl-shell vl-skin vl-skin--${skin}`}>
+        <main className="bt-shell bt-shell--session vl-shell vl-skin vl-skin--drop">
           <header className="bt-head">
             <button type="button" className="bt-icon-btn" onClick={() => navigate('/bible/typing')} aria-label="필사 홈으로">
               <span className="material-icons-round">arrow_back</span>
@@ -445,7 +341,6 @@ const VerseLinkPage = () => {
           {phase === 'over' && finished ? (
             <ResultView
               f={finished}
-              skin={skin}
               loggedIn={loggedIn}
               saving={submit.isPending}
               onAgain={() => void start()}
@@ -453,14 +348,7 @@ const VerseLinkPage = () => {
             />
           ) : (
             <section className="vl-start">
-              <SkinPick
-                skin={skin}
-                onChange={(s) => {
-                  setSkin(s)
-                  linkSfx.click(s === 'arcade')
-                }}
-              />
-              {arcade ? <ArcadeTop loggedIn={loggedIn} /> : <DropTop loggedIn={loggedIn} />}
+              <DropTop loggedIn={loggedIn} />
 
               {loggedIn && (
                 <div className="vl-kpis">
@@ -492,11 +380,7 @@ const VerseLinkPage = () => {
                 </div>
                 <div>
                   <b className="vl-rules__jar">
-                    {arcade ? 'LIFE 3' : (
-                      <>
-                        <JarIcon />×3
-                      </>
-                    )}
+                    <JarIcon />×3
                   </b>
                   틀리면
                   <br />
@@ -540,7 +424,7 @@ const VerseLinkPage = () => {
 
               <div className="vl-startfoot">
                 <button type="button" className="vl-cta" onClick={() => void start()} disabled={phase === 'loading'}>
-                  <span>{phase === 'loading' ? '말씀 조각 준비 중…' : arcade ? <span className="vl-blink">PRESS START</span> : '도전 시작'}</span>
+                  <span>{phase === 'loading' ? '말씀 조각 준비 중…' : '도전 시작'}</span>
                   <span aria-hidden>→</span>
                 </button>
               </div>
@@ -550,7 +434,7 @@ const VerseLinkPage = () => {
       </div>
 
       {phase === 'playing' && set && (
-        <LinkPlay key={set.date + set.seed} set={set} skin={skin} onOver={onOver} onQuit={() => setPhase('start')} />
+        <LinkPlay key={set.date + set.seed} set={set} onOver={onOver} onQuit={() => setPhase('start')} />
       )}
     </div>
   )

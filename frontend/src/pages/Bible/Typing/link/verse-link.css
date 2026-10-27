@@ -1,13 +1,6 @@
-/* 말씀 잇기 — 만나 내리기의 화면 스타일 두 벌(드롭·아케이드) × 앱 라이트/다크를 그대로 따른다.
-   색은 맨 위 역할 토큰(--vl-*)에서만 분기한다 — 값은 manna-skins.css 의 --dr-* / --arc-* 와 같다(함께 맞출 것).
+/* 말씀 잇기 — 만나 내리기의 드롭 스타일 × 앱 라이트/다크를 그대로 따른다.
+   색은 맨 위 역할 토큰(--vl-*)에서만 분기한다 — 값은 manna-skins.css 의 --dr-* 와 같다(함께 맞출 것).
    .vl-skin 은 시작·결과(.vl-shell)와 한 판 포털(.vl-game) 두 곳에 붙는다. ★보라 금지 */
-
-@font-face {
-  font-family: 'MannaPixel';
-  src: url('../../../../assets/fonts/galmuri11-bold.woff2') format('woff2');
-  font-weight: 100 900;
-  font-display: swap;
-}
 
 /* ── 역할 토큰 ───────────────────────────────── */
 .vl-skin--drop {
@@ -68,64 +61,6 @@
   --vl-sky-2: #a8502b;
   --vl-sky-3: #ff9a55;
 }
-.vl-skin--arcade {
-  --vl-display: 'MannaPixel', Pretendard, system-ui, sans-serif;
-  --vl-hot: #e8336b;
-  --vl-acc: #3f9a00;
-  --vl-sky: #0096b4;
-  --vl-gold: #c08a00;
-  --vl-orange: #ff7a1a;
-  --vl-on: #12161a;
-  --vl-bg: #f6f1e4;
-  --vl-paper: #fffaf0;
-  --vl-surface: #ffffff;
-  --vl-ink: #1a1f24;
-  --vl-bright: #12161a;
-  --vl-muted: #6b665a;
-  --vl-line: #d2c7ae;
-  --vl-line-2: #b9ac8f;
-  --vl-soft-line: #d2c7ae;
-  --vl-shadow: rgba(26, 31, 36, 0.14);
-  --vl-inv-bg: #12161a;
-  --vl-inv-ink: #f6f1e4;
-  --vl-sky-1: #f6f1e4;
-  --vl-sky-2: #fbf3e3;
-  --vl-sky-3: #ffe9cc;
-  --vl-decoy-bg: #fde4ea;
-  --vl-scan: rgba(26, 31, 36, 0.035);
-  --vl-glow: 0%;
-  --vl-r: 0px;
-  --vl-bw: 2px;
-  --vl-off: 5px;
-}
-.dark .vl-skin--arcade {
-  --vl-hot: #ff5c8a;
-  --vl-acc: #b6ff3b;
-  --vl-sky: #3ff0ff;
-  --vl-gold: #ffd23f;
-  --vl-orange: #ff9a3d;
-  --vl-on: #07090c;
-  --vl-bg: #07090c;
-  --vl-paper: #0b1117;
-  --vl-surface: #0f161d;
-  --vl-ink: #e8f6ff;
-  --vl-bright: #ffffff;
-  --vl-muted: #7d93a3;
-  --vl-line: #24323d;
-  --vl-line-2: #3a4a58;
-  --vl-soft-line: #24323d;
-  --vl-shadow: rgba(0, 0, 0, 0.5);
-  --vl-inv-bg: #b6ff3b;
-  --vl-inv-ink: #07090c;
-  --vl-sky-1: #07090c;
-  --vl-sky-2: #0a1a20;
-  --vl-sky-3: #10313a;
-  --vl-decoy-bg: #1a0f15;
-  --vl-scan: rgba(255, 255, 255, 0.035);
-  --vl-glow: 55%;
-}
-.vl-skin--arcade,
-.vl-skin--arcade * { letter-spacing: 0; }
 
 /* ── 공통 ─────────────────────────────────── */
 .vl-cta {
@@ -137,11 +72,6 @@
 .vl-cta:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--vl-shadow); }
 .vl-cta:disabled { opacity: 0.7; }
 .vl-cta.is-ghost { justify-content: center; background: var(--vl-surface); color: var(--vl-ink); border-color: var(--vl-line); font: 900 15px Pretendard, system-ui, sans-serif; }
-.vl-skin--arcade .vl-cta { background: var(--vl-acc); color: #fff; border-color: var(--vl-acc); box-shadow: none; }
-.dark .vl-skin--arcade .vl-cta { background: transparent; color: var(--vl-acc); box-shadow: 0 0 18px color-mix(in srgb, var(--vl-acc) var(--vl-glow), transparent); }
-.vl-skin--arcade .vl-cta.is-ghost { background: transparent; color: var(--vl-muted); border-color: var(--vl-line-2); font: 400 14px var(--vl-display); }
-.vl-blink { animation: vl-blink 1s steps(1) infinite; }
-@keyframes vl-blink { 50% { opacity: 0; } }
 .vl-note { margin: 12px 16px 0; text-align: center; font-size: 13px; font-weight: 700; color: var(--vl-muted); }
 .vl-note a { color: var(--vl-hot); text-decoration: underline; }
 
@@ -152,28 +82,6 @@
   background: var(--vl-bg); color: var(--vl-ink); border: var(--vl-bw) solid var(--vl-line); border-radius: 24px;
   box-shadow: 5px 5px 0 var(--vl-shadow);
 }
-.vl-skin--arcade .vl-start,
-.vl-skin--arcade .vl-result { border-radius: 0; box-shadow: 6px 6px 0 var(--vl-shadow); }
-.vl-skin--arcade .vl-start::after,
-.vl-skin--arcade .vl-result::after,
-.vl-game.vl-skin--arcade::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
-  background: repeating-linear-gradient(0deg, var(--vl-scan) 0 1px, transparent 1px 3px);
-}
-.vl-skin--arcade :is(.vl-arc, .vl-rules, .vl-kpis, .vl-hs, .vl-pick, .vl-arcres, .vl-board h3, .vl-tabs) { font-family: var(--vl-display); }
-
-.vl-pickrow { display: flex; align-items: center; gap: 6px; padding: 12px 12px 0; }
-.vl-pickrow__lbl { margin-right: auto; font-size: 11.5px; font-weight: 800; color: var(--vl-muted); white-space: nowrap; }
-.vl-pick {
-  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 7px; border-radius: 999px; white-space: nowrap;
-  border: 1.5px solid var(--vl-soft-line); color: var(--vl-muted); font: 900 12.5px Pretendard, system-ui, sans-serif;
-}
-.vl-pick i { width: 16px; height: 16px; flex: none; }
-.vl-pick.is-arcade i { background: #07090c; box-shadow: inset 0 0 0 3px #07090c, inset 0 0 0 8px #b6ff3b; }
-.vl-pick.is-drop i { background: #ff5a1f; box-shadow: inset 0 0 0 1.5px #14110f; border-radius: 50%; }
-.vl-skin--drop .vl-pick.is-on { background: var(--vl-inv-bg); color: var(--vl-inv-ink); border-color: var(--vl-inv-bg); }
-.vl-skin--arcade .vl-pick { border-radius: 0; font-weight: 400; }
-.vl-skin--arcade .vl-pick.is-on { border-color: var(--vl-acc); color: var(--vl-acc); }
 
 /* 드롭 머리 */
 .vl-marq { overflow: hidden; white-space: nowrap; background: var(--vl-inv-bg); color: var(--vl-inv-ink); font-size: 12px; font-weight: 800; padding: 7px 0; margin-top: 12px; }
@@ -209,21 +117,6 @@
 .vl-champs b { display: block; margin-top: 3px; font: 400 21px/1.15 var(--vl-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vl-champs em { font-style: normal; font-size: 12px; font-weight: 700; opacity: 0.75; }
 
-/* 아케이드 머리 */
-.vl-arc { position: relative; padding: 22px 16px 4px; text-align: center; }
-.vl-arc__eyebrow { font-size: 11px; color: var(--vl-orange); }
-.vl-arc__title { margin: 10px 0 0; font: 400 50px/1.05 var(--vl-display); color: var(--vl-bright); text-shadow: 3px 3px 0 var(--vl-hot), -2px -2px 0 var(--vl-sky); }
-.vl-arc__sub { margin: 10px 0 0; font-size: 11.5px; color: var(--vl-muted); }
-.vl-hs { margin: 18px 0 0; padding: 12px; border: 2px solid color-mix(in srgb, var(--vl-sky) 35%, transparent); text-align: left; }
-.vl-hs > p { margin: 0 0 8px; text-align: center; font-size: 11px; color: var(--vl-sky); }
-.vl-hs .vl-hs__empty { margin: 4px 0; color: var(--vl-muted); font-size: 11.5px; }
-.vl-hs ol { margin: 0; padding: 0; list-style: none; }
-.vl-hs li { display: grid; grid-template-columns: 44px 1fr auto; gap: 6px; padding: 4px; font-size: 13px; font-variant-numeric: tabular-nums; }
-.vl-hs li span:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vl-hs li.is-1 { color: var(--vl-gold); }
-.vl-hs li.is-3 { color: var(--vl-orange); }
-.vl-hs li.is-me { color: var(--vl-acc); background: color-mix(in srgb, var(--vl-acc) 10%, transparent); }
-
 .vl-kpis, .vl-rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 16px 0; }
 .vl-kpis > div, .vl-rules > div {
   padding: 12px 8px; text-align: center; background: var(--vl-surface); border: 2px solid var(--vl-line); border-radius: 14px;
@@ -232,8 +125,6 @@
 .vl-kpis b, .vl-rules b { display: flex; align-items: center; justify-content: center; gap: 2px; font: 400 19px var(--vl-display); color: var(--vl-ink); margin-bottom: 3px; }
 .vl-rules__jar svg { width: 16px; height: 20px; }
 .vl-rules__jar path { fill: var(--vl-gold); stroke: var(--vl-on); stroke-width: 1.4; }
-.vl-skin--arcade :is(.vl-kpis, .vl-rules) > div { border-radius: 0; background: var(--vl-paper); font-weight: 400; }
-.vl-skin--arcade :is(.vl-kpis, .vl-rules) b { color: var(--vl-gold); }
 
 .vl-sboard { margin: 12px 16px 0; background: var(--vl-surface); border: var(--vl-bw) solid var(--vl-line); border-radius: var(--vl-r); }
 .vl-sboard summary { cursor: pointer; list-style: none; padding: 13px 14px; font-weight: 900; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
@@ -247,7 +138,6 @@
 .vl-sbtns button:active { transform: translate(2px, 2px); }
 .vl-sbtns button span { font-size: 20px; flex: none; }
 .vl-sbtns button.is-playing { background: var(--vl-acc); color: var(--vl-on); border-color: var(--vl-on); }
-.vl-skin--arcade .vl-sboard, .vl-skin--arcade .vl-sbtns button { border-radius: 0; }
 .vl-startfoot { position: relative; z-index: 2; padding: 18px 16px 18px; }
 
 /* ── 한 판(포털) ─────────────────────────── */
@@ -271,42 +161,33 @@
   width: 40px; height: 40px; display: grid; place-items: center; background: var(--vl-surface); color: var(--vl-ink);
   border: var(--vl-bw) solid var(--vl-line); border-radius: 12px; box-shadow: 2px 2px 0 var(--vl-shadow);
 }
-.vl-skin--arcade .vl-hudbtn { border-radius: 0; box-shadow: none; }
 .vl-hud__name { flex: 1; min-width: 0; }
 .vl-hud__name small { display: block; font-size: 11px; font-weight: 800; opacity: 0.7; }
 .vl-hud__name b { display: block; font: 400 18px var(--vl-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vl-jars { display: flex; gap: 2px; padding: 6px 8px; background: var(--vl-surface); border: var(--vl-bw) solid var(--vl-line); border-radius: 12px; box-shadow: 2px 2px 0 var(--vl-shadow); }
-.vl-skin--arcade .vl-jars { border-radius: 0; box-shadow: none; }
 .vl-jars svg { width: 16px; height: 20px; }
 .vl-jars path { fill: var(--vl-gold); stroke: var(--vl-on); stroke-width: 1.4; transition: fill 0.2s; }
 .dark .vl-skin--drop .vl-jars path { stroke: var(--vl-line); }
-.vl-skin--arcade .vl-jars path { stroke: var(--vl-line-2); }
 .vl-jars svg.is-broken { animation: vl-crack 0.5s forwards; }
 .vl-jars svg.is-broken path { fill: transparent; stroke: color-mix(in srgb, var(--vl-ink) 35%, transparent); stroke-dasharray: 3 2; }
 @keyframes vl-crack { 30% { transform: scale(1.4) rotate(-14deg); } 60% { transform: scale(0.9) rotate(8deg); } }
 .vl-scorebox { display: flex; align-items: flex-end; justify-content: space-between; padding: 4px 16px 0; }
 .vl-score { display: inline-block; font: 400 40px/1 var(--vl-display); color: #fff; -webkit-text-stroke: 7px var(--vl-on); paint-order: stroke fill; font-variant-numeric: tabular-nums; }
-.vl-skin--arcade .vl-score { color: var(--vl-gold); -webkit-text-stroke: 0; font-size: 34px; text-shadow: 0 0 12px color-mix(in srgb, var(--vl-gold) var(--vl-glow), transparent); }
 .vl-combo {
   padding: 5px 10px; border-radius: 999px; background: var(--vl-acc); color: var(--vl-on); border: 2px solid var(--vl-on);
   font-weight: 900; font-size: 13px; opacity: 0; transform: scale(0.6); transition: opacity 0.2s, transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 .vl-combo.is-on { opacity: 1; transform: none; }
-.vl-skin--arcade .vl-combo { border-radius: 0; background: transparent; color: var(--vl-acc); border-color: var(--vl-acc); font: 400 13px var(--vl-display); }
 .vl-fuse { position: relative; overflow: hidden; margin: 10px 16px 0; height: 12px; border: var(--vl-bw) solid var(--vl-line); border-radius: 999px; background: var(--vl-surface); }
-.vl-skin--arcade .vl-fuse { border-radius: 0; }
 .vl-fuse i { position: absolute; inset: 0; transform-origin: left; transform: scaleX(var(--left)); background: var(--vl-acc); }
 .vl-fuse.is-low i { background: var(--vl-hot); }
 .vl-fuse-lbl { display: flex; justify-content: space-between; padding: 4px 18px 0; font-size: 11px; font-weight: 800; color: var(--vl-muted); font-variant-numeric: tabular-nums; }
-.vl-skin--arcade .vl-fuse-lbl { font: 400 10.5px var(--vl-display); }
 
 .vl-vcard {
   position: relative; margin: 12px 16px 0; padding: 18px 16px 20px; min-height: 150px;
   background: var(--vl-paper); border: var(--vl-bw) solid var(--vl-line); border-radius: 22px; box-shadow: var(--vl-off) var(--vl-off) 0 var(--vl-shadow);
 }
-.vl-skin--arcade .vl-vcard { border-radius: 0; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vl-sky) 20%, transparent); }
 .vl-vref { display: inline-block; margin-bottom: 12px; padding: 4px 10px; border-radius: 999px; background: var(--vl-inv-bg); color: var(--vl-inv-ink); font-size: 12px; font-weight: 900; }
-.vl-skin--arcade .vl-vref { border-radius: 0; background: transparent; color: var(--vl-sky); border: 2px solid var(--vl-sky); font: 400 12px var(--vl-display); }
 .vl-vline { display: flex; flex-wrap: wrap; gap: 8px 6px; align-items: flex-end; }
 .vl-blank {
   min-width: 38px; height: 34px; display: inline-flex; align-items: flex-end; justify-content: center; padding: 0 3px 3px;
@@ -320,8 +201,6 @@
   background: linear-gradient(transparent 58%, color-mix(in srgb, var(--vl-acc) 70%, transparent) 58%) no-repeat 0 0 / 0% 100%;
 }
 @keyframes vl-hl { 0% { transform: scale(1.3); } 40% { transform: none; } 100% { background-size: 100% 100%; } }
-.vl-skin--arcade .vl-blank { font: 400 18px var(--vl-display); }
-.vl-skin--arcade .vl-blank.is-got > span { color: var(--vl-sky); background: none; animation: vl-fade 0.3s steps(3); }
 @keyframes vl-fade { from { opacity: 0; } }
 
 .vl-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 10px; padding: 22px 14px 24px; margin-top: auto; }
@@ -338,22 +217,16 @@
 @keyframes vl-bad { 20% { transform: translateX(-7px) rotate(-6deg); } 50% { transform: translateX(7px) rotate(6deg); } 80% { transform: translateX(-3px); } }
 .vl-chip.is-hint { animation: vl-hint 1s ease-in-out infinite; box-shadow: 3px 3px 0 var(--vl-hot); }
 @keyframes vl-hint { 50% { transform: translateY(-5px) rotate(var(--tilt, 0deg)); } }
-.vl-skin--arcade .vl-chip { border-radius: 0; border-color: var(--vl-line-2); background: var(--vl-paper); box-shadow: none; font-size: 19px; transform: none; }
-.vl-skin--arcade .vl-chip:active { transform: none; background: color-mix(in srgb, var(--vl-acc) 20%, var(--vl-paper)); border-color: var(--vl-acc); }
-.vl-skin--arcade .vl-chip.is-bad { color: var(--vl-hot); border-color: var(--vl-hot); }
-.vl-skin--arcade .vl-chip.is-hint { border-color: var(--vl-sky); box-shadow: 0 0 14px color-mix(in srgb, var(--vl-sky) 60%, transparent); }
 
 .vl-flyer {
   position: fixed; z-index: 20; pointer-events: none; padding: 10px 16px; border: 2.5px solid var(--vl-on); border-radius: 16px;
   background: var(--vl-acc); color: var(--vl-on); font: 400 22px var(--vl-display);
 }
-.vl-skin--arcade .vl-flyer { border-radius: 0; border-color: var(--vl-acc); font-size: 19px; }
 .vl-pop {
   position: fixed; z-index: 21; pointer-events: none; white-space: nowrap; font: 400 26px var(--vl-display); color: var(--vl-hot);
   -webkit-text-stroke: 4px var(--vl-on); paint-order: stroke fill; animation: vl-pop 0.8s ease-out forwards;
 }
 .vl-pop.is-good { color: var(--vl-acc); }
-.vl-skin--arcade .vl-pop { -webkit-text-stroke: 0; font-size: 18px; text-shadow: 0 0 10px currentColor; }
 @keyframes vl-pop {
   0% { transform: translate(-50%, 0) scale(0.5); }
   25% { transform: translate(-50%, -10px) scale(1.15); }
@@ -364,7 +237,6 @@
   font: 400 58px/1 var(--vl-display); color: var(--vl-acc); -webkit-text-stroke: 8px var(--vl-on); paint-order: stroke fill;
   animation: vl-burst 0.9s ease-out forwards;
 }
-.vl-skin--arcade .vl-burst { -webkit-text-stroke: 0; font-size: 40px; color: var(--vl-gold); text-shadow: 3px 3px 0 var(--vl-hot), -2px -2px 0 var(--vl-sky); }
 @keyframes vl-burst {
   0% { opacity: 0; transform: rotate(-6deg) scale(0.3); }
   20% { opacity: 1; transform: rotate(-6deg) scale(1.15); }
@@ -372,7 +244,6 @@
   100% { opacity: 0; transform: rotate(-6deg) translateY(-16px); }
 }
 .vl-conf { position: absolute; z-index: 32; pointer-events: none; border: 2px solid var(--vl-on); }
-.vl-skin--arcade .vl-conf { border: 0; }
 
 /* 새김 연출 */
 .vl-reveal {
@@ -389,15 +260,12 @@
   0% { transform: translateX(-50%) rotate(-30deg) scale(3); opacity: 0; }
   100% { transform: translateX(-50%) rotate(-8deg) scale(1); opacity: 1; }
 }
-.vl-skin--arcade .vl-stamp { border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--vl-gold); font-size: 38px; text-shadow: 3px 3px 0 var(--vl-hot), -2px -2px 0 var(--vl-sky); }
-.vl-skin--arcade .vl-stamp.is-perfect { color: var(--vl-acc); }
 .vl-rcard {
   position: relative; width: 100%; max-width: 400px; padding: 56px 20px 18px;
   background: var(--vl-paper); border: 3px solid var(--vl-line); border-radius: 26px; box-shadow: 7px 7px 0 var(--vl-shadow);
   animation: vl-card-up 0.5s 0.15s backwards cubic-bezier(0.2, 1.3, 0.4, 1);
 }
 @keyframes vl-card-up { from { transform: translateY(60px) rotate(3deg); opacity: 0; } }
-.vl-skin--arcade .vl-rcard { border-radius: 0; border-color: var(--vl-sky); box-shadow: 0 0 30px color-mix(in srgb, var(--vl-sky) var(--vl-glow), transparent); }
 .vl-rverse { margin: 0; font: 800 22px/1.6 Pretendard, system-ui, sans-serif; word-break: keep-all; letter-spacing: -0.03em; }
 .vl-w {
   display: inline-block; padding: 0 1px; white-space: pre;
@@ -409,19 +277,14 @@
   60% { opacity: 1; transform: none; }
   100% { opacity: 1; transform: none; background-size: 100% 100%; }
 }
-.vl-skin--arcade .vl-rverse { font: 400 19px/1.75 var(--vl-display); color: var(--vl-bright); }
-.vl-skin--arcade .vl-w { background: none; color: var(--vl-sky); text-shadow: 0 0 10px color-mix(in srgb, var(--vl-sky) var(--vl-glow), transparent); animation: vl-fade 0.05s both; }
 .vl-rref, .vl-rstats, .vl-rnext { animation: vl-up 0.3s both; }
 @keyframes vl-up { from { opacity: 0; transform: translateY(8px); } }
 .vl-rref { margin: 12px 0 0; font-weight: 900; color: var(--vl-hot); }
-.vl-skin--arcade .vl-rref { font: 400 13px var(--vl-display); color: var(--vl-orange); }
 .vl-rstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 16px 0 14px; }
 .vl-rstats div { padding: 8px 6px; border-radius: 12px; background: var(--vl-surface); border: 2px solid var(--vl-line); text-align: center; font-size: 10.5px; font-weight: 800; color: var(--vl-muted); }
 .vl-rstats div.is-lime { background: var(--vl-acc); color: var(--vl-on); border-color: var(--vl-on); }
 .vl-rstats b { display: block; font: 400 20px/1.2 var(--vl-display); color: var(--vl-ink); }
 .vl-rstats div.is-lime b { color: inherit; }
-.vl-skin--arcade .vl-rstats div { border-radius: 0; background: transparent; border-color: var(--vl-line-2); font-family: var(--vl-display); font-weight: 400; }
-.vl-skin--arcade .vl-rstats div.is-lime { background: transparent; color: var(--vl-acc); border-color: var(--vl-acc); }
 
 /* ── 결과 ─────────────────────────────────── */
 .vl-story {
@@ -453,40 +316,23 @@
 .vl-story__grid small { display: block; font-size: 10.5px; font-weight: 700; opacity: 0.72; }
 .vl-story__grid b { display: block; margin-top: 2px; font: 400 24px/1.1 var(--vl-display); font-variant-numeric: tabular-nums; }
 
-.vl-arcres { position: relative; margin: 14px 16px 0; padding: 22px 16px; text-align: center; border: 2px solid var(--vl-line); background: var(--vl-paper); }
-.vl-arcres__big { margin: 0; font: 400 46px/1.05 var(--vl-display); color: var(--vl-gold); text-shadow: 3px 3px 0 var(--vl-hot), -2px -2px 0 var(--vl-sky); }
-.vl-arcres__big.is-over { color: var(--vl-hot); text-shadow: 3px 3px 0 var(--vl-on); }
-.vl-arcres__sub { margin: 8px 0 0; font-size: 12px; color: var(--vl-muted); }
-.vl-arcres__new { margin: 10px 0 0; font-size: 15px; color: var(--vl-acc); }
-.vl-tally { margin: 16px auto 0; max-width: 300px; text-align: left; }
-.vl-tally div { display: flex; justify-content: space-between; padding: 5px 2px; font-size: 14px; border-bottom: 1px dashed var(--vl-line); animation: vl-tally 0.25s both; }
-.vl-tally div.is-total { border-bottom: 0; padding-top: 10px; font-size: 20px; color: var(--vl-gold); }
-@keyframes vl-tally { from { opacity: 0; transform: translateX(-10px); } }
-
 .vl-boardwrap { position: relative; }
 .vl-board { position: relative; margin: 14px 16px 0; padding: 14px 12px 8px; background: var(--vl-surface); border: 2.5px solid var(--vl-line); border-radius: 24px; box-shadow: 5px 5px 0 var(--vl-shadow); }
-.vl-skin--arcade .vl-board { border-radius: 0; box-shadow: none; background: var(--vl-paper); border-width: 2px; }
 .vl-board h3 { margin: 0 4px 10px; display: flex; justify-content: space-between; align-items: center; font: 400 21px var(--vl-display); }
 .vl-board h3 small { font: 800 11.5px Pretendard, system-ui, sans-serif; color: var(--vl-muted); }
-.vl-skin--arcade .vl-board h3 { font-size: 16px; }
 .vl-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
 .vl-tabs button { flex: 1; height: 36px; border-radius: 999px; border: 2px solid var(--vl-soft-line); font-weight: 900; font-size: 13px; color: var(--vl-muted); }
 .vl-tabs button.is-on { background: var(--vl-inv-bg); color: var(--vl-inv-ink); border-color: var(--vl-inv-bg); }
-.vl-skin--arcade .vl-tabs button { border-radius: 0; font-weight: 400; font-size: 12px; }
-.vl-skin--arcade .vl-tabs button.is-on { background: transparent; color: var(--vl-sky); border-color: var(--vl-sky); }
 .vl-rlist { position: relative; margin: 0; padding: 0; list-style: none; }
 .vl-rlist li { position: relative; display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-radius: 14px; background: var(--vl-surface); }
-.vl-skin--arcade .vl-rlist li { border-radius: 0; background: var(--vl-paper); }
 .vl-rno { width: 26px; text-align: center; font: 400 18px var(--vl-display); font-variant-numeric: tabular-nums; }
 .vl-rlist li:first-child .vl-rno { color: var(--vl-hot); }
 .vl-av { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; object-fit: cover; font-weight: 900; font-size: 14px; color: var(--vl-on); background: var(--vl-sky); border: 2px solid var(--vl-on); }
-.vl-skin--arcade .vl-av { border-radius: 0; border: 0; }
 .vl-rnm { flex: 1; min-width: 0; }
 .vl-rnm b { display: block; font-size: 15px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vl-rpt { font: 400 19px var(--vl-display); font-variant-numeric: tabular-nums; }
 .vl-rlist li.is-me { z-index: 2; background: var(--vl-acc); color: var(--vl-on); border: 2.5px solid var(--vl-on); box-shadow: 3px 3px 0 var(--vl-shadow); }
 .vl-rlist li.is-me .vl-av { background: var(--vl-surface); color: var(--vl-ink); }
-.vl-skin--arcade .vl-rlist li.is-me { background: color-mix(in srgb, var(--vl-acc) 12%, var(--vl-paper)); color: var(--vl-acc); border: 2px solid var(--vl-acc); box-shadow: none; }
 .vl-rlist li.is-passed { animation: vl-passed 0.5s; }
 @keyframes vl-passed { 40% { background: color-mix(in srgb, var(--vl-hot) 18%, var(--vl-surface)); } }
 .vl-climb {
@@ -494,14 +340,12 @@
   border: 2px solid var(--vl-on); font: 900 11px Pretendard, system-ui, sans-serif; animation: vl-badge 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
 @keyframes vl-badge { from { transform: rotate(-20deg) scale(2.4); opacity: 0; } }
-.vl-skin--arcade .vl-climb { border-radius: 0; border: 0; font: 400 11px var(--vl-display); }
 .vl-empty { margin: 10px 4px 14px; text-align: center; font-size: 13px; font-weight: 700; color: var(--vl-muted); }
 .vl-toast {
   position: absolute; left: 50%; top: -4px; z-index: 5; padding: 10px 16px; border-radius: 14px; white-space: nowrap;
   background: var(--vl-hot); color: #fff; border: 2.5px solid var(--vl-on); box-shadow: 4px 4px 0 var(--vl-shadow);
   font-weight: 900; font-size: 14px; animation: vl-toast 2.6s forwards;
 }
-.vl-skin--arcade .vl-toast { border-radius: 0; border-color: var(--vl-hot); background: var(--vl-paper); color: var(--vl-hot); font: 400 13px var(--vl-display); box-shadow: none; }
 @keyframes vl-toast {
   0% { transform: translate(-50%, -30px); opacity: 0; }
   12%, 85% { transform: translate(-50%, 0); opacity: 1; }
@@ -511,12 +355,11 @@
 .vl-lane { margin: 10px 0; }
 .vl-lane__top { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; font-weight: 900; }
 .vl-lane__rail { position: relative; height: 14px; border-radius: 999px; background: color-mix(in srgb, var(--vl-ink) 8%, transparent); border: 2px solid var(--vl-line); }
-.vl-skin--arcade .vl-lane__rail { border-radius: 0; }
 .vl-lane__rail i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: var(--vl-hot); transition: width 1.2s cubic-bezier(0.2, 1, 0.3, 1); }
 .vl-lane.is-mine .vl-lane__rail i { background: var(--vl-acc); }
 .vl-lane__rail em { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 18px; font-style: normal; transition: left 1.2s cubic-bezier(0.2, 1, 0.3, 1); }
 .vl-resfoot { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 18px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .vl-marq__track, .vl-fall, .vl-blink, .vl-chip.is-hint, .vl-game.is-shake { animation: none; }
+  .vl-marq__track, .vl-fall, .vl-chip.is-hint, .vl-game.is-shake { animation: none; }
 }

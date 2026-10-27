@@ -15,10 +15,9 @@ const Avatar = ({ e }: { e: LinkBoardEntry }) =>
     </span>
   )
 
-const Row = ({ e, rank, arcade, rowRef, badge, passed }: {
+const Row = ({ e, rank, rowRef, badge, passed }: {
   e: LinkBoardEntry
   rank: number
-  arcade: boolean
   rowRef?: (el: HTMLLIElement | null) => void
   badge?: string | null
   passed?: boolean
@@ -27,7 +26,7 @@ const Row = ({ e, rank, arcade, rowRef, badge, passed }: {
     <span className="vl-rno">{rank}</span>
     <Avatar e={e} />
     <span className="vl-rnm">
-      <b>{e.is_me ? (arcade ? 'YOU' : '나') : e.name}</b>
+      <b>{e.is_me ? '나' : e.name}</b>
     </span>
     <span className="vl-rpt">{fmt(e.score)}</span>
     {badge && <span className="vl-climb">{badge}</span>}
@@ -38,7 +37,7 @@ const Row = ({ e, rank, arcade, rowRef, badge, passed }: {
  * 오늘 순위 — 내 줄이 이 판 전 자리에서 시작해 한 칸씩 치고 올라간다(FLIP).
  * board 는 저장 직후 새로 받은 오늘 순위, prevRank 는 저장 전 내 순위(처음이면 맨 아래에서).
  */
-const ClimbList = ({ board, prevRank, arcade, onDone }: { board: LinkBoard; prevRank: number | null; arcade: boolean; onDone: (passed: string[]) => void }) => {
+const ClimbList = ({ board, prevRank, onDone }: { board: LinkBoard; prevRank: number | null; onDone: (passed: string[]) => void }) => {
   const me = board.entries.find((e) => e.is_me)
   const others = board.entries.filter((e) => !e.is_me)
   const target = me ? board.entries.indexOf(me) : 0
@@ -54,7 +53,7 @@ const ClimbList = ({ board, prevRank, arcade, onDone }: { board: LinkBoard; prev
     if (!me) return
     if (pos <= target) {
       const n = passedNames.current.length
-      if (n) setBadge(arcade ? `▲${n}` : `▲ ${n}칸`)
+      if (n) setBadge(`▲ ${n}칸`)
       onDone(passedNames.current)
       return
     }
@@ -90,7 +89,6 @@ const ClimbList = ({ board, prevRank, arcade, onDone }: { board: LinkBoard; prev
           e={e}
           // 올라가는 동안은 자리 번호, 다 오르면 서버가 준 순위(동점 처리)
           rank={pos <= target ? e.rank : i + 1}
-          arcade={arcade}
           passed={e.user_id === passedId}
           badge={e.is_me ? badge : null}
           rowRef={(el) => {
@@ -103,14 +101,14 @@ const ClimbList = ({ board, prevRank, arcade, onDone }: { board: LinkBoard; prev
   )
 }
 
-const PlainList = ({ scope, arcade }: { scope: LinkScope; arcade: boolean }) => {
+const PlainList = ({ scope }: { scope: LinkScope }) => {
   const { data, isLoading } = useLinkBoard(scope)
   if (isLoading) return <p className="vl-empty">불러오는 중…</p>
   if (!data || data.entries.length === 0) return <p className="vl-empty">{scope === 'today' ? '오늘 첫 기록의 주인공이 되어 보세요' : '이번 주 첫 기록을 기다려요'}</p>
   return (
     <ul className="vl-rlist">
       {data.entries.map((e) => (
-        <Row key={e.user_id} e={e} rank={e.rank} arcade={arcade} />
+        <Row key={e.user_id} e={e} rank={e.rank} />
       ))}
     </ul>
   )
@@ -159,8 +157,7 @@ const TABS: { key: Tab; label: string }[] = [
 ]
 
 /** 결과·시작 화면 순위판 — climb 가 있으면 오늘 탭에서 치고 올라가기부터 */
-const LinkBoards = ({ arcade, climb, onPassed }: {
-  arcade: boolean
+const LinkBoards = ({ climb, onPassed }: {
   climb?: { board: LinkBoard; prevRank: number | null } | null
   onPassed?: (names: string[]) => void
 }) => {
@@ -183,7 +180,7 @@ const LinkBoards = ({ arcade, climb, onPassed }: {
             aria-selected={tab === t.key}
             className={tab === t.key ? 'is-on' : ''}
             onClick={() => {
-              linkSfx.click(arcade)
+              linkSfx.click()
               setTab(t.key)
             }}
           >
@@ -192,11 +189,11 @@ const LinkBoards = ({ arcade, climb, onPassed }: {
         ))}
       </div>
       {tab === 'today' && climb ? (
-        <ClimbList board={climb.board} prevRank={climb.prevRank} arcade={arcade} onDone={(n) => onPassed?.(n)} />
+        <ClimbList board={climb.board} prevRank={climb.prevRank} onDone={(n) => onPassed?.(n)} />
       ) : tab === 'dept' ? (
         <DeptLanes />
       ) : (
-        <PlainList scope={tab} arcade={arcade} />
+        <PlainList scope={tab} />
       )}
     </section>
   )

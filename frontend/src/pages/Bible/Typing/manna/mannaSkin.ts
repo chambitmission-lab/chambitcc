@@ -1,36 +1,4 @@
-import { useEffect, useState } from 'react'
-import { safeStorage } from '../../../../utils/safeStorage'
-import { ensureFontFamily } from '../../../../utils/deferredFonts'
 import type { MannaResult } from './mannaEngine'
-
-/**
- * 화면 스타일 두 벌 — 이제 말씀 잇기(/bible/typing/link)만 고른다. 만나 내리기는 드롭 한 벌.
- *  arcade : 오락실 레트로(도트 서체·네온·하이스코어·STAGE CLEAR)
- *  drop   : 스트리트 스티커(굵은 외곽선 글씨·컬러 블록·유형 카드)
- */
-export type MannaSkin = 'arcade' | 'drop'
-
-const SKIN_KEY = 'manna-skin'
-
-export const MANNA_SKINS: { key: MannaSkin; label: string; desc: string }[] = [
-  { key: 'drop', label: '드롭', desc: '스티커 · 컬러' },
-  { key: 'arcade', label: '아케이드', desc: '오락실 · 도트' },
-]
-
-const readSkin = (): MannaSkin => (safeStorage.get(SKIN_KEY) === 'arcade' ? 'arcade' : 'drop')
-
-export const useMannaSkin = () => {
-  const [skin, setSkinState] = useState<MannaSkin>(readSkin)
-  const setSkin = (s: MannaSkin) => {
-    setSkinState(s)
-    safeStorage.set(SKIN_KEY, s)
-  }
-  // 드롭 제목 서체(Black Han Sans)는 그 스킨을 쓸 때만 붙인다 — 아케이드 도트 서체는 CSS @font-face 라 쓸 때만 내려온다
-  useEffect(() => {
-    if (skin === 'drop') void ensureFontFamily('blackHanSans')
-  }, [skin])
-  return [skin, setSkin] as const
-}
 
 /** 손가락이 주 입력인 기기 — 화면 키보드가 무대 아래 절반을 덮으니 만나를 가로로 흘려 보낸다 */
 export const isTouchDevice = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches
@@ -70,9 +38,6 @@ export const mannaPersona = (r: MannaResult, verses: number): MannaPersona => {
   return { key: 'steady', title: '꾸준한\n광야 순례자형', desc: '한 절 한 절 차근차근.\n결국 끝까지 가는 타입.', icon: 'directions_walk', stat: { label: '새긴 말씀', value: `${r.versesDone}절` } }
 }
 
-/** 올해 몇째 날인지 — 아케이드 STAGE 번호 */
-export const dayOfYear = (d = new Date()) => Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 86400000)
-
 /** ISO 주차 — 드롭 시즌 번호(월요일 시작, 부서 대항전 주와 같다) */
 export const isoWeek = (d = new Date()) => {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
@@ -85,13 +50,3 @@ export const isoWeek = (d = new Date()) => {
 /** 이번 주(월~주일) 끝까지 남은 날 — 주일이면 0 */
 export const daysLeftInWeek = (d = new Date()) => (7 - (d.getDay() || 7)) % 7
 
-/** 결과 다시하기 — 오락실 CONTINUE 카운트다운(9→0, 끝나면 그냥 '다시 하기') */
-export const useContinueCountdown = (enabled: boolean) => {
-  const [n, setN] = useState(enabled ? 9 : 0)
-  useEffect(() => {
-    if (!enabled || n <= 0) return
-    const t = setTimeout(() => setN((v) => v - 1), 1000)
-    return () => clearTimeout(t)
-  }, [enabled, n])
-  return n
-}

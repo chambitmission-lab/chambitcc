@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { createPortal } from 'react-dom'
 import { useBodyScrollLock } from '../../../../hooks/useBodyScrollLock'
 import type { LinkSet } from '../../../../api/bibleTyping'
-import type { MannaSkin } from '../manna/mannaSkin'
 import { formatNumberKo as fmt } from '../../../../utils/formatNumber'
 import {
   BURST_EVERY,
@@ -75,8 +74,8 @@ const flyTo = (host: HTMLElement, from: DOMRect, to: DOMRect, text: string, done
   }
 }
 
-/** 스티커 색종이(아케이드는 네모 도트) */
-const confettiOn = (host: HTMLElement, arcade: boolean) => {
+/** 스티커 색종이 */
+const confettiOn = (host: HTMLElement) => {
   const cs = getComputedStyle(host)
   const cols = ['--vl-hot', '--vl-acc', '--vl-sky', '--vl-gold'].map((k) => cs.getPropertyValue(k))
   const w = host.clientWidth
@@ -84,8 +83,8 @@ const confettiOn = (host: HTMLElement, arcade: boolean) => {
     const c = document.createElement('div')
     c.className = 'vl-conf'
     const s = 8 + Math.random() * 10
-    const round = arcade ? '0' : Math.random() < 0.5 ? '50%' : '3px'
-    c.style.cssText = `width:${s}px;height:${arcade ? s : s * (Math.random() < 0.5 ? 1 : 0.55)}px;background:${cols[i % 4]};left:${w / 2}px;top:22%;border-radius:${round}`
+    const round = Math.random() < 0.5 ? '50%' : '3px'
+    c.style.cssText = `width:${s}px;height:${s * (Math.random() < 0.5 ? 1 : 0.55)}px;background:${cols[i % 4]};left:${w / 2}px;top:22%;border-radius:${round}`
     host.appendChild(c)
     const ang = Math.random() * Math.PI * 2
     const d = 110 + Math.random() * 190
@@ -116,9 +115,8 @@ interface Reveal {
  * 한 판 — 화면 전체를 덮는 포털. 규칙은 LinkRun 하나에서만 바뀌고 화면은 snapshot 을 그린다.
  * 퓨즈·시계는 다시 그리지 않고 DOM 에 바로 쓰고, 날아가는 조각·점수 팝·색종이는 레이어에 직접 붙인다.
  */
-const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin; onOver: (r: LinkResult) => void; onQuit: () => void }) => {
+const LinkPlay = ({ set, onOver, onQuit }: { set: LinkSet; onOver: (r: LinkResult) => void; onQuit: () => void }) => {
   useBodyScrollLock()
-  const arcade = skin === 'arcade'
   const [run] = useState(() => new LinkRun(set.verses, set.seed))
   const [view, setView] = useState(() => run.snapshot())
   const sync = useCallback(() => setView(run.snapshot()), [run])
@@ -167,7 +165,7 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
         if (fuseTxtRef.current) {
           const bonus = Math.round(left * SPEED_BONUS_MAX)
           fuseTxtRef.current.textContent =
-            left > 0 ? (arcade ? `SPEED BONUS +${bonus}` : `스피드 보너스 +${bonus}`) : arcade ? 'NO BONUS' : '보너스 끝 · 천천히 이어도 괜찮아요'
+            left > 0 ? `스피드 보너스 +${bonus}` : '보너스 끝 · 천천히 이어도 괜찮아요'
         }
         if (left > 0 && left < TICK_FROM && now >= nextTick) {
           alt = !alt
@@ -179,7 +177,7 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
     }
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
-  }, [run, arcade])
+  }, [run])
 
   // 6초 동안 손을 놓으면 다음 조각이 살짝 들썩인다
   const armHint = useCallback(() => {
@@ -202,10 +200,9 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
       linkSfx.stamp()
       restart(layerRef.current, 'is-shake')
       buzz([20, 30, 60])
-      if (layerRef.current) confettiOn(layerRef.current, arcade)
+      if (layerRef.current) confettiOn(layerRef.current)
     }, 120)
     linkSfx.complete()
-    if (arcade) words.forEach((_, i) => later(() => linkSfx.word(i, true), 650 + i * 110))
   }
 
   const tap = (pieceId: number, el: HTMLElement) => {
@@ -216,12 +213,12 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
     if (out.kind === 'ignored') return
     scoreRef.current?.animate([{ transform: 'scale(1.3) rotate(-4deg)' }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.3,1.6,.5,1)' })
     if (out.kind === 'hit') {
-      linkSfx.tap(out.slot, arcade)
+      linkSfx.tap(out.slot)
       buzz(8)
       if (host) popAt(host, anchor, out.mult > 1 ? `+${out.pts} ×${out.mult}` : `+${out.pts}`, true)
       if (out.combo === 3) linkSfx.slide()
       if (out.combo % BURST_EVERY === 0) {
-        if (host) burstText(host, linkBurstText(arcade, out.combo))
+        if (host) burstText(host, linkBurstText(out.combo))
         linkSfx.slide()
         linkSfx.crowd(Math.min(3, out.combo / BURST_EVERY) as 1 | 2 | 3)
       }
@@ -240,7 +237,7 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
     } else {
       buzz([30, 40, 30])
       restart(host, 'is-shake')
-      if (host) popAt(host, anchor, arcade ? 'MISS' : `−${WRONG_PENALTY}`, false)
+      if (host) popAt(host, anchor, `−${WRONG_PENALTY}`, false)
       setBadId(null)
       requestAnimationFrame(() => setBadId(pieceId))
       later(() => setBadId((b) => (b === pieceId ? null : b)), 420)
@@ -251,7 +248,7 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
   }
 
   const next = () => {
-    linkSfx.click(arcade)
+    linkSfx.click()
     setReveal(null)
     if (run.isLastRound) return finish(true)
     run.nextRound()
@@ -261,11 +258,11 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
   }
 
   const mult = comboMult(view.combo)
-  const revealStep = arcade ? 110 : 150
+  const revealStep = 150
   const revealEnd = reveal ? 650 + reveal.words.length * revealStep : 0
 
   return createPortal(
-    <div ref={layerRef} className={`vl-game vl-skin vl-skin--${skin}`} role="application" aria-label="말씀 잇기">
+    <div ref={layerRef} className="vl-game vl-skin vl-skin--drop" role="application" aria-label="말씀 잇기">
       <div className="vl-game__col">
         <header className="vl-hud">
           <button type="button" className="vl-hudbtn" onClick={onQuit} aria-label="그만하기">
@@ -288,7 +285,7 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
             {fmt(view.score)}
           </span>
           <span className={`vl-combo${view.combo >= 3 ? ' is-on' : ''}`}>
-            {view.combo >= 3 && (arcade ? `${view.combo} COMBO ×${mult}` : `🔥 ${view.combo}콤보 ×${mult}`)}
+            {view.combo >= 3 && `🔥 ${view.combo}콤보 ×${mult}`}
           </span>
         </div>
         <div ref={fuseRef} className="vl-fuse" style={{ '--left': 1 } as CSSProperties}>
@@ -334,7 +331,7 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
       {reveal && (
         <div className="vl-reveal">
           <div className={`vl-stamp${reveal.perfect ? ' is-perfect' : ''}`}>
-            {arcade ? (reveal.perfect ? 'PERFECT!' : 'CLEAR!') : reveal.perfect ? '완벽 새김!' : '새김!'}
+            {reveal.perfect ? '완벽 새김!' : '새김!'}
           </div>
           <div className="vl-rcard">
             <p className="vl-rverse">
@@ -350,19 +347,19 @@ const LinkPlay = ({ set, skin, onOver, onQuit }: { set: LinkSet; skin: MannaSkin
             <div className="vl-rstats" style={{ animationDelay: `${revealEnd + 300}ms` }}>
               <div>
                 <b>{reveal.secs.toFixed(1)}s</b>
-                {arcade ? 'TIME' : '걸린 시간'}
+                걸린 시간
               </div>
               <div className={reveal.speed ? 'is-lime' : ''}>
                 <b>+{reveal.speed}</b>
-                {arcade ? 'SPEED' : '스피드'}
+                스피드
               </div>
               <div className={reveal.perfect ? 'is-lime' : ''}>
                 <b>{reveal.perfect ? `+${PERFECT_BONUS}` : '—'}</b>
-                {arcade ? 'NO MISS' : '무실수'}
+                무실수
               </div>
             </div>
             <button type="button" className="vl-cta vl-rnext" style={{ animationDelay: `${revealEnd + 500}ms` }} onClick={next}>
-              <span>{reveal.last ? (arcade ? 'RESULT' : '결과 보기') : arcade ? 'NEXT STAGE' : '다음 절'}</span>
+              <span>{reveal.last ? '결과 보기' : '다음 절'}</span>
               <span aria-hidden>→</span>
             </button>
           </div>
