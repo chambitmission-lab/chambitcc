@@ -1,32 +1,29 @@
 // /capsule/new 단계 머리 — 배달부 양 삽화 + 뒤로/배달 길(진행) + 양의 말풍선.
-// 삽화는 단계마다 바뀌고, 진행 표시는 막대가 아니라 양이 우체통까지 걸어가는 길이다.
+// 삽화는 단계마다 바뀌고, 진행 표시는 막대가 아니라 편지가 점선 길을 따라 우체통까지 날아가는 길이다.
+// (양 얼굴 아이콘은 삽화 속 양과 그림체가 충돌해 2026-10-27 편지로 교체)
 import type { CSSProperties } from "react";
 import { useThemeArt } from "../../../hooks/useThemeArt";
 import type { ThemePair } from "../../../utils/themeAssets";
 import { STEP_COUNT, type CreateStep } from "./createQuips";
 
-/** 길 위를 걷는 양 머리 — 진행 표시의 손잡이 */
-const SheepMark = () => (
-  <svg viewBox="0 0 32 32" aria-hidden>
+/** 길 위를 날아가는 편지 — 진행 표시의 손잡이. 삽화 속 양이 든 편지와 같은 물건(밀랍 봉인) */
+const LetterMark = () => (
+  <svg viewBox="0 0 34 30" aria-hidden>
     <path
-      d="M8.6 11.4a4.2 4.2 0 0 1 6.2-3.6 4.2 4.2 0 0 1 6.6.4 4.2 4.2 0 0 1 3.4 5.4 4.2 4.2 0 0 1-.6 6.6 4.2 4.2 0 0 1-5.4 3.8 4.2 4.2 0 0 1-6.4.2 4.2 4.2 0 0 1-5.4-4 4.2 4.2 0 0 1-.6-6.4 4.2 4.2 0 0 1 2.2-2.4Z"
-      fill="#fffdf6"
-      stroke="#463d33"
-      strokeWidth="1.3"
-      strokeLinejoin="round"
+      d="M3 7.5 17 2l14 5.5v17.5a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3Z"
+      fill="#fff8e8"
+      stroke="#c9a56a"
+      strokeWidth="1.2"
     />
-    <ellipse cx="16" cy="17.4" rx="4.6" ry="5.4" fill="#463d33" />
-    <circle cx="14.2" cy="16.4" r="1" fill="#fff" />
-    <circle cx="17.8" cy="16.4" r="1" fill="#fff" />
-    <path
-      d="M10.6 15.2c-1.6-.4-2.8.2-3.2 1.4M21.4 15.2c1.6-.4 2.8.2 3.2 1.4"
-      stroke="#463d33"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      fill="none"
-    />
+    <path d="M3 8l14 9 14-9" fill="none" stroke="#c9a56a" strokeWidth="1.2" />
+    <path d="M3 25l10-8M31 25l-10-8" fill="none" stroke="#e5d6b4" strokeWidth="1" />
+    <circle cx="17" cy="16.5" r="4.3" fill="#e9a21f" stroke="#b9780e" strokeWidth="1" />
+    <circle cx="17" cy="16.5" r="2.1" fill="none" stroke="#fff0c2" strokeWidth=".9" />
   </svg>
 );
+
+/** 단계 사이 점 — 길 위에 찍힌 정거장. 마지막 단계 자리는 우체통이 대신한다 */
+const STOPS = Array.from({ length: STEP_COUNT - 1 }, (_, i) => i);
 
 const SheepStage = ({
   step,
@@ -107,23 +104,31 @@ const SheepStage = ({
           >
             <span className="cw-path__track" />
             <span className="cw-path__fill" />
-            <span className="cw-path__sheep">
-              <SheepMark />
+            {STOPS.map((i) => (
+              <span
+                key={i}
+                className={`cw-path__stop ${i < step - 1 ? "is-done" : ""}`}
+                style={{ "--cw-stop": i / (STEP_COUNT - 1) } as CSSProperties}
+              />
+            ))}
+            <span className="cw-path__letter">
+              <LetterMark />
             </span>
             {/* 길 끝의 우체통 — 봉인하면 닿는 곳 */}
             <span className="cw-path__box" aria-hidden>
               <svg
-                width="14"
-                height="14"
+                width="20"
+                height="20"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="2.1"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M4 7h16v11H4z" />
-                <path d="m4 8 8 5 8-5" />
+                <path d="M5 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6H5z" />
+                <path d="M12 16v6" />
+                <path d="M9 10h5" />
               </svg>
             </span>
           </div>

@@ -116,70 +116,80 @@
   box-shadow: none;
 }
 
-/* 배달 길 — 막대가 아니라 양이 우체통까지 걸어간다 */
+/* 배달 길 — 막대가 아니라 편지가 점선 길을 따라 우체통까지 날아간다.
+   점선 = 아직 갈 길, 금빛 실선 = 지나온 길, 점 = 지난 단계 정거장, 끝 = 우체통 */
 .cw-path {
-  --cw-run: calc(100% - 44px);
+  --cw-run: calc(100% - 60px);
   position: relative;
   flex: 1;
-  height: 32px;
+  height: 34px;
   margin-right: 2px;
 }
 .cw-path__track,
 .cw-path__fill {
   position: absolute;
-  top: 13px;
-  left: 14px;
-  height: 6px;
-  border-radius: 6px;
+  top: 16px;
+  left: 10px;
+  height: 0;
 }
 .cw-path__track {
-  right: 30px;
-  background: rgba(255, 255, 255, 0.7);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  right: 34px;
+  border-top: 2px dashed rgba(255, 255, 255, 0.95);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
 }
 .dark .cw-path__track {
-  background: rgba(10, 12, 20, 0.45);
+  border-top-color: rgba(255, 255, 255, 0.55);
 }
 .cw-path__fill {
   width: calc(var(--cw-run) * var(--cw-progress));
-  background: linear-gradient(90deg, #ffd27a, #ffb03a);
+  border-top: 2px solid #ffb03a;
   transition: width 0.55s cubic-bezier(0.3, 0.1, 0.3, 1);
 }
-.cw-path__sheep {
+.cw-path__stop {
   position: absolute;
-  top: 0;
-  left: calc(14px + var(--cw-run) * var(--cw-progress));
-  width: 32px;
-  height: 32px;
-  margin-left: -16px;
+  top: 13px;
+  left: calc(10px + var(--cw-run) * var(--cw-stop));
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
   background: #fff;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.28);
-  transition: left 0.55s cubic-bezier(0.3, 0.1, 0.3, 1);
-  animation: cw-bob 1.6s ease-in-out infinite;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease;
 }
-.cw-path__sheep svg {
-  width: 26px;
-  height: 26px;
+.cw-path__stop.is-done {
+  background: #ffb03a;
+}
+.cw-path__letter {
+  position: absolute;
+  top: 1px;
+  left: calc(10px + var(--cw-run) * var(--cw-progress));
+  width: 34px;
+  height: 30px;
+  margin-left: -17px;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.28));
+  transition: left 0.55s cubic-bezier(0.3, 0.1, 0.3, 1);
+  animation: cw-fly 1.8s ease-in-out infinite;
+}
+.cw-path__letter svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .cw-path__box {
   position: absolute;
   right: 0;
-  top: 5px;
-  width: 24px;
-  height: 22px;
-  border-radius: 7px;
+  top: 2px;
+  width: 28px;
+  height: 30px;
   display: grid;
   place-items: center;
   color: #c97f12;
-  background: rgba(255, 255, 255, 0.7);
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.6));
 }
 .dark .cw-path__box {
   color: #ffd27a;
-  background: rgba(10, 12, 20, 0.45);
+  filter: none;
 }
 
 /* 양의 말풍선 — 펜글씨 한 줄. 바뀔 때마다 톡 튀어나온다 */
@@ -1378,13 +1388,13 @@
     transform: none;
   }
 }
-@keyframes cw-bob {
+@keyframes cw-fly {
   0%,
   100% {
-    transform: translateY(0) rotate(-4deg);
+    transform: translateY(0) rotate(-10deg);
   }
   50% {
-    transform: translateY(-2px) rotate(4deg);
+    transform: translateY(-2.5px) rotate(-7deg);
   }
 }
 @keyframes cw-spin {
@@ -1432,10 +1442,10 @@
 @media (prefers-reduced-motion: reduce) {
   .cw-art,
   .cw-path__fill,
-  .cw-path__sheep {
+  .cw-path__letter {
     transition: none;
   }
-  .cw-path__sheep,
+  .cw-path__letter,
   .cw-bubble,
   .cw-body,
   .cw-reveal,
