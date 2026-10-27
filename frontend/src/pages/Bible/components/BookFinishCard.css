@@ -1,6 +1,7 @@
 /* 책 마지막 장 끝 '한 권 완주' 카드 — BookFinishCard.tsx (bfin- 접두사) */
 .bfin {
   position: relative;
+  width: 100%;
   max-width: 26rem;
   margin: 1.25rem auto 0;
   padding: 1.25rem 1rem 1rem;
