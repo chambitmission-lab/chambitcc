@@ -180,27 +180,11 @@
     border-bottom: none;
     padding: 1.25rem 1rem 0.25rem;
   }
-  /* 흰 읽기 판이 회색 캔버스·좌측 레일과 만나는 좌상단 모서리만 둥글게 —
-     직각으로 맞물리면 판이 화면에 붙어 보인다. 오른쪽·아래는 화면 밖으로
-     이어지므로 모서리가 노출되지 않아 그대로 둔다. */
+  /* 흰 읽기 판은 본문 칼럼부터 화면 오른쪽 끝까지만 깐다 — 좌측 성경 레일은 다른 성경 탭(검색·플랜…)처럼
+     회색 캔버스 위에 남아, 탭을 오갈 때 레일 바탕이 회색↔흰색으로 바뀌지 않는다.
+     판 자체는 .bible-chapter-column(아래 셸 블록)이 그린다 */
   .bible-chapter-section {
-    border-top-left-radius: 18px;
-  }
-  /* 스크롤하면 위 radius 는 판과 함께 올라가 반투명 앱바(56) 뒤로 숨고, 앱바 아래로는
-     판의 직각 옆선만 남는다. 그래서 앱바 바로 밑에 붙는(sticky) 캔버스색 모서리 마스크를
-     얹어 스크롤 위치와 상관없이 같은 둥근 모서리가 보이게 한다. 맨 위에선 radius 와 정확히 겹친다.
-     z-index 는 sticky 장 이동 바(8)·헤더(10) 위. 본문 화면은 zoom 하지 않으므로 56px 그대로. */
-  .bible-chapter-section::before {
-    content: '';
-    position: sticky;
-    top: 56px;
-    z-index: 11;
-    display: block;
-    width: 18px;
-    height: 18px;
-    margin-bottom: -18px;
-    pointer-events: none;
-    background: radial-gradient(circle at 100% 100%, transparent 17.5px, var(--app-canvas) 18px);
+    background: transparent;
   }
   /* 해석 패널 도킹 시 본문 칼럼이 비키는 규칙은 아래 .bible-chapter-inner 블록에 있다 */
 }
@@ -254,7 +238,29 @@
   .bible-chapter-column {
     flex: 1 1 auto;
     width: 100%;
-    max-width: 720px;
+    /* 판 안쪽 왼쪽 여백만큼 최대 폭을 늘려 본문 읽기 폭(720)은 그대로 */
+    max-width: calc(720px + 1.5rem);
     min-width: 0;
+    box-sizing: border-box;
+    padding-left: 1.5rem;
+    min-height: calc(100vh - 200px);
+    /* 흰 읽기 판 — 칼럼 배경을 오른쪽으로 화면 끝까지 늘린다. border-image outset 은 그리기만 넘치고
+       스크롤 폭은 늘리지 않는다(가로 스크롤 없음). 칼럼 오른쪽 형제(안내 손잡이 등)는 판 위에 얹힌다 */
+    border-image: linear-gradient(var(--ig-primary-background), var(--ig-primary-background)) fill 0 / 0 / 0 100vw 0 0;
+  }
+  /* 판 좌상단만 둥글게 — border-image 는 radius 를 따르지 않아 캔버스색 모서리 마스크를 얹는다.
+     sticky 라 스크롤하면 앱바(56) 바로 밑에 붙어, 판의 직각 옆선 대신 같은 둥근 모서리가 계속 보인다.
+     z-index 는 sticky 장 이동 바(8)·헤더(10) 위. 본문 화면은 zoom 하지 않으므로 56px 그대로 */
+  .bible-chapter-column::before {
+    content: '';
+    position: sticky;
+    top: 56px;
+    z-index: 11;
+    display: block;
+    width: 18px;
+    height: 18px;
+    margin: 0 0 -18px -1.5rem;
+    pointer-events: none;
+    background: radial-gradient(circle at 100% 100%, transparent 17.5px, var(--app-canvas) 18px);
   }
 }

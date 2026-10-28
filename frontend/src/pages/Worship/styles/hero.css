@@ -12,9 +12,11 @@
   padding: 16px 16px 40px;
 }
 @media (min-width: 1024px) {
+  /* 다른 PC 화면(/news·/history·/sermon…)과 같은 셸 — lg:max-w-[1240px] lg:px-5 lg:pt-3.
+     예전 66rem·24px 는 본문 왼쪽 시작점이 다른 화면보다 안쪽으로 밀려 화면을 옮길 때 어긋나 보였다 */
   .worship-wrap {
-    max-width: 66rem;
-    padding: 12px 24px 56px;
+    max-width: 1240px;
+    padding: 12px 20px 56px;
   }
 }
 
