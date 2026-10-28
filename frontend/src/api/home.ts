@@ -2,7 +2,6 @@ import type { TodayResponse } from '../types/biblePlan'
 import type { CompanionHome } from '../types/companion'
 import type { DailyVerseResponse } from '../types/dailyVerse'
 import type { ElectionSummary } from '../types/election'
-import type { MeditationCard } from '../types/meditation'
 import type { Notification } from '../types/notification'
 import type { GroupListResponse } from '../types/prayer'
 import type { SurveySummary } from '../types/survey'
@@ -18,8 +17,8 @@ import { requestData } from './utils/request'
  * 단건이 404 로 답하는 '없음'(현재 말씀·이번 주 기도제목·통독표 없음)은 null 이지만 failed 가 아니다.
  */
 export interface HomeSummary {
-  /** 서버 KST 날짜 + 서버가 고른 시간대의 카드 — 프론트가 같은 키를 만들 때만 심는다 */
-  meditation: { date: string; card: MeditationCard } | null
+  /** 오늘의 묵상은 일부러 없다 — 홈 맨 위 카드라 묶음(0.6~1.2초)을 기다리지 않고 critical 단독 요청으로 받는다
+   * (DailyMeditationCard). 옛 백엔드가 보내더라도 쓰지 않는다. */
   plan_today: TodayResponse | null
   sermon_takeaways: { items: SermonTakeaway[] } | null
   daily_verse: DailyVerseResponse | null

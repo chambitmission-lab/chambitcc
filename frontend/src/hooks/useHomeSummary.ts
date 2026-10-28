@@ -3,10 +3,9 @@ import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-quer
 import { getHomeSummary, type HomeSummary } from '../api/home'
 import { isApiError } from '../api/utils/request'
 import { tokenStore } from '../utils/tokenStore'
-import { dailyVerseKeys, meditationKeys, notificationKeys, sermonKeys, todayChurchKeys, weeklyPrayerKeys } from './queryKeys'
+import { dailyVerseKeys, notificationKeys, sermonKeys, todayChurchKeys, weeklyPrayerKeys } from './queryKeys'
 import { biblePlanKeys } from './useBiblePlan'
 import { companionKeys } from './useCompanion'
-import { deriveTimeOfDay, localDateKey } from './useDailyMeditation'
 import { electionKeys } from './useElections'
 import { groupKeys } from './useGroups'
 import { intercessionKeys } from './useIntercession'
@@ -62,15 +61,7 @@ const seedPieces = (qc: QueryClient, s: HomeSummary) => {
   const failed = new Set(s.failed ?? [])
   const ok = (name: keyof HomeSummary) => !failed.has(name) && s[name] !== null && s[name] !== undefined
 
-  if (ok('meditation') && s.meditation) {
-    // 서버(KST)와 같은 날·같은 시간대일 때만 — 키가 다르면 카드 훅이 제 키로 받는다
-    const now = new Date()
-    const timeOfDay = deriveTimeOfDay(now.getHours())
-    const dateKey = localDateKey(now)
-    if (s.meditation.date === dateKey && s.meditation.card.context?.time_of_day === timeOfDay) {
-      qc.setQueryData(meditationKeys.card(dateKey, timeOfDay), s.meditation.card)
-    }
-  }
+  // 오늘의 묵상 카드는 묶음에 없다 — 홈 맨 위라 critical 단독 요청으로 먼저 받는다(DailyMeditationCard)
   if (ok('plan_today')) qc.setQueryData(biblePlanKeys.today(), s.plan_today)
   if (ok('sermon_takeaways')) qc.setQueryData(sermonKeys.takeaways(), s.sermon_takeaways!.items)
   if (ok('daily_verse')) qc.setQueryData(dailyVerseKeys.today(), s.daily_verse)
@@ -87,8 +78,9 @@ const seedPieces = (qc: QueryClient, s: HomeSummary) => {
 }
 
 /**
- * 홈 묶음 — 묵상·오늘의 읽기·설교 한 줄·올해의 말씀·이번 주 기도제목·응답 수·중보 짝·설문·선거·팝업 공지·
+ * 홈 묶음 — 오늘의 읽기·설교 한 줄·올해의 말씀·이번 주 기도제목·응답 수·중보 짝·설문·선거·팝업 공지·
  * 내 그룹·오늘의 교회·동행을 요청 하나로 받아 단건 키에 심는다(필사 허브 useTypingHome 과 같은 방식).
+ * 오늘의 묵상 카드만은 뺐다 — 맨 위 카드가 가장 느린 조각들과 한 응답에 묶여 꼴찌로 채워졌기 때문.
  * 홈은 콜드 마운트에 GET 18개를 보냈고 백엔드는 단일 워커라 요청 수 자체가 비용이었다.
  */
 export const useHomeSummary = () => {

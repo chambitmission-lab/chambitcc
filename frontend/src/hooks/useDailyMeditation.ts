@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient, keepPreviousData, type QueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { getTodayMeditation } from '../api/meditation'
+import type { RequestPriority } from '../api/utils/request'
 import type { EmotionTag, TimeOfDay } from '../types/meditation'
 import { meditationKeys } from './queryKeys'
 
@@ -27,8 +28,10 @@ interface UseDailyMeditationOptions {
   emotion?: EmotionTag
   /** override 시간대 (테스트/수동 전환용) */
   timeOfDay?: TimeOfDay
-  /** false 면 요청을 미룬다(홈 묶음 useHomeSummary 가 심어 줄 때까지) — 캐시가 있으면 그대로 보인다 */
+  /** false 면 요청을 미룬다 — 캐시가 있으면 그대로 보인다 */
   enabled?: boolean
+  /** 홈 맨 위 카드는 'critical' — 첫 화면에서 가장 먼저 채워져야 하는 요청이라 줄을 서지 않는다 */
+  priority?: RequestPriority
 }
 
 export const useDailyMeditation = (options: UseDailyMeditationOptions = {}) => {
@@ -48,7 +51,7 @@ export const useDailyMeditation = (options: UseDailyMeditationOptions = {}) => {
     queryKey,
     queryFn: () => {
       recordedKeys.add(keyStr)
-      return getTodayMeditation({ time_of_day: timeOfDay, emotion })
+      return getTodayMeditation({ time_of_day: timeOfDay, emotion, priority: options.priority })
     },
     enabled: options.enabled ?? true,
     staleTime: STALE,

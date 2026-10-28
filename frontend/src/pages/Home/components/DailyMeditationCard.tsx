@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDailyMeditation, deriveTimeOfDay } from '../../../hooks/useDailyMeditation'
-import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
 import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
 import {
@@ -248,9 +247,11 @@ interface DailyMeditationCardProps {
 const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
-  // 홈 묶음(useHomeSummary)이 카드를 심어 줄 때까지 단건 요청은 미룬다
-  const bundlePending = useHomeBundlePending()
-  const { data, error } = useDailyMeditation({ enabled: !bundlePending })
+  /* 홈 묶음(useHomeSummary)에 섞지 않고 critical 단독 요청으로 가장 먼저 받는다 —
+   * 묶음은 운영에서 0.6~1.2초(오늘의 읽기·동행·그룹 조각이 무겁다)인데 이 카드 조각은 50~100ms 라,
+   * 묶음을 기다리면 첫 화면 맨 위 카드가 가장 늦게 채워졌다(2026-10-28 실측). 자식 effect 가 부모보다
+   * 먼저 돌아 기도 목록·묶음보다도 앞서 출발한다. */
+  const { data, error } = useDailyMeditation({ priority: 'critical' })
   /* 스켈레톤을 거쳐 데이터가 채워진 경우에만 본문을 페이드인한다 —
    * 캐시로 즉시 그려질 때(재방문)는 애니메이션 없이 바로 완성형으로.
    * lazy initializer라 마운트 첫 렌더의 상태가 그대로 고정된다. */
