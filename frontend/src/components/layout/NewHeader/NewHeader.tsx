@@ -31,6 +31,8 @@ const useIsDesktop = (): boolean => {
 import { SearchCapsule } from '../../command/SearchTrigger'
 import HeaderActions from './components/HeaderActions'
 import HeaderAccountCluster from './components/HeaderAccountCluster'
+import chambiDefault from '../../chatbot/img/default.webp'
+import chambiJoy from '../../chatbot/img/joy.webp'
 import HeaderTextScale from './components/HeaderTextScale'
 import { hasTextScale } from '../../../utils/textScaleRoutes'
 import MobileMenu from './components/MobileMenu'
@@ -162,36 +164,39 @@ const NewHeader = () => {
                 <HeaderTextScale />
               </div>
             )}
-            {railVisible && (
+            {/* 비로그인 PC — 레일엔 로그인 진입이 없으니 우상단에 랜딩과 같은 두 갈래 CTA를 둔다.
+                레일이 숨는 랜딩에서도 보여야 한다(로그아웃된 교인이 가장 먼저 닿는 화면) */}
+            {!isLoggedIn && (
               <div className="hidden lg:flex items-center gap-1.5">
-                {/* 비로그인 PC — 레일엔 로그인 진입이 없으니 우상단에 랜딩과 같은 두 갈래 CTA를 둔다 */}
-                {!isLoggedIn && (
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => navigate('/login')}
-                      className="h-9 px-3.5 rounded-full text-[13.5px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
-                    >
-                      {t('navCtaLogin')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/register')}
-                      className="brand-gradient h-9 px-4 rounded-full text-[13.5px] font-bold text-white shadow-[0_4px_12px_-4px_var(--brand-glow)] active:scale-[0.97] transition-transform"
-                    >
-                      {t('navCtaNewHere')}
-                    </button>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="h-9 px-3.5 rounded-full text-[13.5px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                >
+                  {t('navCtaLogin')}
+                </button>
+                {/* 주연 버튼 = 참비가 건네는 말풍선. 호버하면 참비가 웃는 얼굴로 바뀐다 */}
+                <button type="button" onClick={() => navigate('/register')} className="hdr-chambi">
+                  <span aria-hidden className="hdr-chambi-face">
+                    <img src={chambiDefault} alt="" className="hdr-chambi-def" />
+                    <img src={chambiJoy} alt="" className="hdr-chambi-joy" />
+                  </span>
+                  <span className="hdr-chambi-bubble">
+                    {t('navCtaNewHere')}
+                    <span aria-hidden className="hdr-chambi-arrow">→</span>
+                  </span>
+                </button>
+              </div>
+            )}
+            {railVisible && isLoggedIn && (
+              <div className="hidden lg:flex items-center gap-1.5">
                 {/* 로그인 PC — 비로그인 CTA가 있던 그 자리를 알림 + 계정 아바타가 이어받는다.
                     (레일 하단 유틸리티엔 "내가 누구인지" 보여주는 자리가 없었다) */}
-                {isLoggedIn && (
-                  <HeaderAccountCluster
-                    unreadCount={unreadCount}
-                    onNotificationClick={openNotifications}
-                    onNotificationWarm={warmNotificationModal}
-                  />
-                )}
+                <HeaderAccountCluster
+                  unreadCount={unreadCount}
+                  onNotificationClick={openNotifications}
+                  onNotificationWarm={warmNotificationModal}
+                />
               </div>
             )}
             {/* 우상단 액션 — 레일이 보이는 PC에선 레일 하단 유틸리티가 대신한다 */}
@@ -202,6 +207,7 @@ const NewHeader = () => {
                 onNotificationClick={openNotifications}
                 onNotificationWarm={warmNotificationModal}
                 onMenuToggle={() => setIsMenuOpen(!isMenuOpen)}
+                onLogin={isLoggedIn ? undefined : () => navigate('/login')}
               />
             </div>
           </div>

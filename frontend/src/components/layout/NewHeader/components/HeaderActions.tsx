@@ -10,14 +10,17 @@ interface HeaderActionsProps {
   /** hover·터치 시작 시 알림 모달 청크를 미리 받는다 — 탭 시점엔 이미 도착해 바로 뜬다 */
   onNotificationWarm?: () => void
   onMenuToggle: () => void
+  /** 비로그인일 때만 넘긴다 — 모바일에서 알림 종 대신 로그인 버튼을 보여준다 */
+  onLogin?: () => void
 }
 
-const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onNotificationWarm, onMenuToggle }: HeaderActionsProps) => {
+const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onNotificationWarm, onMenuToggle, onLogin }: HeaderActionsProps) => {
   const { theme, toggleTheme } = useTheme()
   const { t } = useLanguage()
 
+  /* inline-flex — 버튼 줄높이(≈32px) 안에서 24px 글리프가 위로 붙어 옆 로그인 알약과 4px 어긋났다 */
   const iconBaseClass =
-    'text-gray-700 dark:text-white/80 hover:text-brand transition-colors'
+    'inline-flex items-center justify-center text-gray-700 dark:text-white/80 hover:text-brand transition-colors'
 
   /* 24px 고정 박스 — 아이콘 폰트 로드 전 리가처 원문("dark_mode" 등)이
    * 헤더 폭을 밀어내 로고를 세로로 꺾는 것을 막는다.
@@ -43,19 +46,31 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onNotific
         </span>
       </button>
 
-      <button
-        onClick={onNotificationClick}
-        onPointerEnter={onNotificationWarm}
-        onPointerDown={onNotificationWarm}
-        onFocus={onNotificationWarm}
-        className={`${iconBaseClass} relative`}
-        aria-label={t('notificationsAria')}
-      >
-        <span className={iconGlyphClass}>notifications</span>
-        {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 w-2 h-2 bg-brand rounded-full ring-2 ring-background-light dark:ring-background-dark" />
-        )}
-      </button>
+      {/* 비로그인 — 알림은 받을 게 없으니 종 자리를 로그인이 쓴다(PC lg+ 는 헤더 CTA가 따로 있다).
+          로그아웃된 기존 교인이 햄버거 안까지 찾아 들어가지 않게 첫 화면에 꺼내 둔다 */}
+      {onLogin ? (
+        <button
+          type="button"
+          onClick={onLogin}
+          className="hdr-login-pill lg:hidden"
+        >
+          {t('navCtaLogin')}
+        </button>
+      ) : (
+        <button
+          onClick={onNotificationClick}
+          onPointerEnter={onNotificationWarm}
+          onPointerDown={onNotificationWarm}
+          onFocus={onNotificationWarm}
+          className={`${iconBaseClass} relative`}
+          aria-label={t('notificationsAria')}
+        >
+          <span className={iconGlyphClass}>notifications</span>
+          {unreadCount > 0 && (
+            <span className="absolute top-0 right-0 w-2 h-2 bg-brand rounded-full ring-2 ring-background-light dark:ring-background-dark" />
+          )}
+        </button>
+      )}
 
       <button
         onClick={onMenuToggle}
