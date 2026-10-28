@@ -941,10 +941,7 @@ const BibleStudy = () => {
           <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:flex lg:items-start lg:gap-6">
             <BibleSideRail active="search" onSelectTab={handleSelectTab} />
             <div className="lg:flex-1 lg:min-w-0">
-              {/* 시작 화면(검색어 없음)은 가운데 큰 질문형 제목이 머리 역할 — 왼쪽 위 '성경 검색'과 제목이 둘로 겹치지 않게 숨긴다 */}
-              <div className={searchParams.get('q') ? 'hidden lg:block' : 'hidden'}>
-                <BibleHeader tab="search" />
-              </div>
+              {/* 머리는 BibleSearch 의 질문형 제목 하나 — 검색 전후로 같은 자리에 남아 화면이 갈아 끼워지지 않는다 */}
               <BibleSearch />
             </div>
           </div>

@@ -103,6 +103,17 @@ const BibleSearch = () => {
   const [distExpanded, setDistExpanded] = useState(false)
   // 결과 목록 끝에 두는 무한 스크롤 감지용 센티널
   const sentinelRef = useRef<HTMLDivElement | null>(null)
+  // 검색창 높이 → --search-form-h. PC 결과 화면에서 sticky 검색창 바로 아래에 우측 레일을 붙인다
+  // ('가' 배율·입력 칩 줄에 따라 높이가 달라져 고정값을 못 쓴다). offsetHeight 는 zoom 안 레이아웃 px
+  const formRef = useRef<HTMLFormElement | null>(null)
+  useEffect(() => {
+    const form = formRef.current
+    const section = form?.parentElement
+    if (!form || !section || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => section.style.setProperty('--search-form-h', `${form.offsetHeight}px`))
+    ro.observe(form)
+    return () => ro.disconnect()
+  }, [])
 
   // 범위 필터는 서버로 넘긴다 — 페이지마다 프론트에서 거르면 페이지별 개수가 들쭉날쭉해진다
   const {
@@ -622,13 +633,10 @@ const BibleSearch = () => {
 
   return (
     <div className="bible-search-section">
-      {/* lg+ 시작 화면: 가운데 큰 검색창(스포트라이트). 결과 화면: 본문 + 우측 레일(책별 분포·최근·추천) —
-          레일 덕분에 결과를 보는 중에도 다른 책으로 좁히거나 최근 검색어로 갈아탈 수 있다.
-          모바일에선 이 래퍼가 그냥 스택 */}
-      <div className="lg:flex lg:items-start lg:gap-6">
-      <div className="lg:flex-1 lg:min-w-0">
-      {isHome && <h2 className="search-hero-title hidden lg:block">{t.heroTitle}</h2>}
-      <form onSubmit={handleSearch} className={`search-form${isHome ? ' search-form--hero' : ''}`}>
+      {/* lg+ 제목·검색창은 시작 화면과 결과 화면이 같은 틀 — 2단 래퍼 밖(위)에 두어 결과 화면에서
+          우측 레일이 생겨도 검색창 폭·위치·모양이 그대로다(검색 전후로 화면이 덜컥 바뀌지 않게) */}
+      <h2 className="search-hero-title hidden lg:block">{t.heroTitle}</h2>
+      <form ref={formRef} onSubmit={handleSearch} className={`search-form${isHome ? ' search-form--hero' : ''}`}>
         <div className="search-input-wrapper">
           <div className="search-input-area">
             <input
@@ -699,6 +707,10 @@ const BibleSearch = () => {
         </div>
       </form>
 
+      {/* 결과 화면: 본문 + 우측 레일(책별 분포·최근·추천) — 레일 덕분에 결과를 보는 중에도
+          다른 책으로 좁히거나 최근 검색어로 갈아탈 수 있다. 모바일에선 이 래퍼가 그냥 스택 */}
+      <div className="lg:flex lg:items-start lg:gap-6">
+      <div className="lg:flex-1 lg:min-w-0">
       {/* 시작 화면(모바일·PC 공통) — 찾는 방법 + 최근 검색어 + 주제별 말씀.
           결과를 보는 중엔 최근·추천 칩이 PC 우측 레일로 옮겨 간다 */}
       {isHome && (
@@ -879,7 +891,7 @@ const BibleSearch = () => {
       {/* 우측 레일 (lg+, 결과 화면만) — 책별 분포 + 최근·추천 검색어를 항상 보이는 자리에.
           범위는 입력창 안 세그먼트로 옮겼다 */}
       {!isHome && (
-        <aside className="search-rail hidden lg:flex lg:w-[300px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] zoom-narrow-hide">
+        <aside className="search-rail hidden lg:flex lg:w-[300px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky zoom-narrow-hide">
           {showBookChips && (
             <div className="search-rail-panel">
               <div className="search-chip-group-header">
