@@ -1,6 +1,14 @@
 import type { PrayerEmotion } from './prayer'
 // 프로필 관련 타입 정의
 
+/** 전역 헤더 아바타용 "나" — /profile/identity (ProfileStats 의 머리 부분과 같은 필드) */
+export interface ProfileIdentity {
+  user_id: number
+  username: string
+  full_name: string | null
+  avatar_url?: string | null
+}
+
 export interface ProfileStats {
   user_id: number
   username: string

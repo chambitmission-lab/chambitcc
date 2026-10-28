@@ -3,7 +3,9 @@ import type { CompanionHome } from '../types/companion'
 import type { DailyVerseResponse } from '../types/dailyVerse'
 import type { ElectionSummary } from '../types/election'
 import type { Notification } from '../types/notification'
-import type { GroupListResponse } from '../types/prayer'
+import type { GroupListResponse, Prayer } from '../types/prayer'
+import type { SituationCategory, SituationWithVerses } from '../types/situation'
+import type { WeeklyPrayerStats } from '../types/weeklyPrayerStats'
 import type { SurveySummary } from '../types/survey'
 import type { WeeklyPrayer } from '../types/weeklyPrayer'
 import type { IntercessionState } from './intercession'
@@ -33,6 +35,28 @@ export interface HomeSummary {
   companions: CompanionHome | null
   failed: string[]
 }
+
+/**
+ * PC 홈 우측 레일 묶음 — 이번주 기도 현황·상황 카테고리·내 최근 기도·참비의 오늘 추천을 한 번에.
+ * hooks/useHomeRail 이 단건 키에 심는다. `pick` 은 서버가 PersonalPickWidget 과 같은 규칙으로 고른
+ * 카테고리의 구절(상황 목록 → 구절의 2단 폭포를 없앤다). 실패한 조각은 null + `failed`.
+ */
+export interface HomeRail {
+  weekly: WeeklyPrayerStats | null
+  categories: SituationCategory[] | null
+  /** 내가 쓴 가장 최근 기도 — 없으면 null 이 정상값 */
+  my_latest_prayer: Prayer | null
+  pick: { category_id: number; verses: SituationWithVerses } | null
+  failed: string[]
+}
+
+export const getHomeRail = (): Promise<HomeRail> =>
+  requestData('/home/rail', {
+    auth: 'required',
+    // 레일은 lazy 청크라 가장 늦게 마운트되고 요청은 일반 대기열 맨 뒤였다(콜드 3.5~5초) — 줄을 서지 않는다
+    priority: 'high',
+    errorMessage: '홈 위젯 정보를 불러오지 못했습니다',
+  })
 
 export const getHomeSummary = (): Promise<HomeSummary> =>
   requestData('/home/summary', {

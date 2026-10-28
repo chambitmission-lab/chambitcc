@@ -11,7 +11,12 @@
  */
 import { API_V1, apiFetch } from '../../config/api'
 import { tokenStore } from '../../utils/tokenStore'
-import { acquireRequestSlot, releaseSecondaryRequests, waitForCriticalRequests } from '../../utils/requestPriority'
+import {
+  acquireRequestSlot,
+  releaseSecondaryRequests,
+  waitForCriticalRequests,
+  waitForQueueIdle,
+} from '../../utils/requestPriority'
 import { ApiError } from './apiHelpers'
 
 export type QueryValue = string | number | boolean | null | undefined
@@ -47,11 +52,32 @@ export interface RequestOptions {
    * 'normal'(기본): 홈 콜드 마운트 중이면 핵심 요청이 끝날 때까지 출발을 미루고, 그 뒤에도
    *   동시 요청 한도(3개) 안에서 차례로 나간다. GET 이 아닌 요청·keepalive 는 줄을 서지 않는다.
    *   (utils/requestPriority 참고 — 백엔드가 직렬에 가까워 한꺼번에 보내면 전부 느려진다)
+   * 'low': 다른 화면을 미리 받아 두는 선요청(routePreload). 일반 대기열이 비고 잠시 조용해진 뒤에야
+   *   하나씩 나가고, 라우트가 바뀌면 즉시 일반으로 올라간다. 지정은 보통 withRequestPriority 로 한다.
    */
-  priority?: 'critical' | 'high' | 'normal'
+  priority?: 'critical' | 'high' | 'normal' | 'low'
 }
 
 export type RequestPriority = NonNullable<RequestOptions['priority']>
+
+// 호출자가 priority 를 안 적었을 때 쓰는 기본값 — withRequestPriority 가 동기 구간 동안만 바꾼다
+let defaultPriority: RequestPriority | undefined
+
+/**
+ * fn 이 동기적으로 시작하는 요청들의 기본 priority 를 정한다.
+ * react-query 의 prefetchQuery/fetchQuery 는 queryFn 을 그 자리에서(동기로) 부르고, 우리 api 함수들은
+ * 첫 await 전에 request() 에 들어오므로, 선요청 함수를 이걸로 감싸면 그 안의 요청이 전부 해당 우선순위가 된다.
+ * (await 뒤에 이어지는 요청 — 예: 카테고리를 받은 뒤 구절 — 은 기본으로 돌아간다. 그래도 틀리진 않는다)
+ */
+export const withRequestPriority = <T>(priority: RequestPriority, fn: () => T): T => {
+  const prev = defaultPriority
+  defaultPriority = priority
+  try {
+    return fn()
+  } finally {
+    defaultPriority = prev
+  }
+}
 
 export const LOGIN_REQUIRED_MESSAGE = '로그인이 필요합니다'
 
@@ -146,10 +172,13 @@ export const toApiError = async (
 export const requestRaw = async (path: string, options: RequestOptions = {}): Promise<Response> => {
   const url = resolveUrl(path) + buildQuery(options.query)
   const init = buildInit(options)
-  const critical = options.priority === 'critical'
+  const priority = options.priority ?? defaultPriority
+  const critical = priority === 'critical'
   // 줄을 서지 않는 것: 첫 화면 핵심·high, 사용자 행동(GET 아닌 요청), 이탈 신호(keepalive)
   const bypassQueue =
-    critical || options.priority === 'high' || (options.method !== undefined && options.method !== 'GET') || !!options.keepalive
+    critical || priority === 'high' || (options.method !== undefined && options.method !== 'GET') || !!options.keepalive
+  // 선요청('low')은 화면의 요청이 다 나간 뒤 조용해져야 출발한다 — 그 다음은 보통 요청과 같다
+  if (priority === 'low' && !bypassQueue) await waitForQueueIdle(options.signal)
   if (!bypassQueue) await waitForCriticalRequests()
   // 동시 요청 제한 — 백엔드가 직렬에 가까워 한꺼번에 보내면 전부 느려진다(utils/requestPriority)
   const releaseSlot = await acquireRequestSlot(bypassQueue, options.signal)

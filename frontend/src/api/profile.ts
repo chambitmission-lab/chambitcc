@@ -1,5 +1,5 @@
 import { API_V1 } from '../config/api'
-import type { ProfileStats, ProfileDetail, MyPrayer, PrayingFor, MyReply } from '../types/profile'
+import type { ProfileStats, ProfileIdentity, ProfileDetail, MyPrayer, PrayingFor, MyReply } from '../types/profile'
 import { request } from './utils/request'
 
 const PROFILE_BASE = `${API_V1}/profile`
@@ -8,6 +8,11 @@ const PROFILE_BASE = `${API_V1}/profile`
 // 프로필 통계 조회
 export const getProfileStats = async (): Promise<ProfileStats> => {
   return request<ProfileStats>(`${PROFILE_BASE}/stats`, { auth: 'required', errorMessage: '프로필 통계를 불러오는데 실패했습니다' })
+}
+
+/** 전역 헤더 아바타용 "나" — 이름·사진만. 통계(/stats)는 쿼리 12개짜리 집계라 헤더가 부를 게 아니었다 */
+export const getProfileIdentity = async (): Promise<ProfileIdentity> => {
+  return request<ProfileIdentity>(`${PROFILE_BASE}/identity`, { auth: 'required', errorMessage: '내 정보를 불러오는데 실패했습니다' })
 }
 
 // 프로필 전체 정보 조회 (통합 API)

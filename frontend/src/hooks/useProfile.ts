@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import type { QueryClient } from '@tanstack/react-query'
 import {
   getProfileDetail,
+  getProfileIdentity,
   getProfileStats,
   getMyPrayers,
   getPrayingFor,
@@ -10,6 +11,8 @@ import {
   uploadProfileAvatar,
   deleteProfileAvatar,
 } from '../api/profile'
+import { isApiError } from '../api/utils/request'
+import type { ProfileIdentity } from '../types/profile'
 import { tokenStore, sessionStore } from '../utils/tokenStore'
 import { profileKeys, meKeys } from './queryKeys'
 
@@ -151,7 +154,16 @@ export const useMyIdentity = () => {
 
   const { data } = useQuery({
     queryKey: meKeys.identity(),
-    queryFn: getProfileStats,
+    // 이름·사진만 주는 /identity(추가 쿼리 0) — 예전엔 통계(/stats, 쿼리 12개·운영 1.1초)를 불렀다.
+    // 묶음 엔드포인트가 없는 옛 백엔드(404)면 통계로 폴백한다(필드가 상위 호환)
+    queryFn: async (): Promise<ProfileIdentity> => {
+      try {
+        return await getProfileIdentity()
+      } catch (error) {
+        if (isApiError(error, 404)) return getProfileStats()
+        throw error
+      }
+    },
     enabled: !!token,
     staleTime: 1000 * 60 * 10, // 10분 — 사진/이름은 거의 안 바뀐다
     gcTime: 1000 * 60 * 60,

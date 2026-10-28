@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { fetchPrayers } from '../../../../api/prayer'
 import chambiAvatar from '../../../../components/chatbot/img/default.webp'
 import { useLanguage } from '../../../../contexts/LanguageContext'
+import { useHomeRailPending } from '../../../../hooks/useHomeRail'
 import { useSituationCategories, useSituationVerses } from '../../../../hooks/useSituation'
 import { EmotionGlyph } from '../EmotionGlyph'
 import type { SituationCategory } from '../../../../types/situation'
@@ -42,9 +43,12 @@ const PersonalPickWidget = () => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
   const loggedIn = !!tokenStore.getAccess()
-  const { data: myPrayer } = useMyLatestPrayer(loggedIn)
+  // 홈 레일 묶음(useHomeRail)이 내 최근 기도·카테고리·추천 구절까지 심어 줄 때까지 단건 요청은 미룬다.
+  // 아래 category 규칙은 서버(home_rail_service.pick_category)와 같아 묶음이 심은 구절 키와 맞는다.
+  const railPending = useHomeRailPending()
+  const { data: myPrayer } = useMyLatestPrayer(loggedIn && !railPending)
   const weekly = useWeeklyPrayerStats()
-  const { data: categories = [] } = useSituationCategories()
+  const { data: categories = [] } = useSituationCategories(!railPending)
 
   // 근거 결정 — 어떤 감정으로 추천했는지 카드에 그대로 밝힌다(블랙박스 금지)
   const basis = useMemo<{ emotion: string | null; source: 'mine' | 'week' | 'default' }>(() => {

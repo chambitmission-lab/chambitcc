@@ -3,23 +3,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { request } from '../../../../api/utils/request'
 import { prayerStatsKeys } from '../../../../hooks/queryKeys'
+import { useHomeRailPending } from '../../../../hooks/useHomeRail'
+import type { WeeklyPrayerStats } from '../../../../types/weeklyPrayerStats'
 
-interface WeeklyPrayerStats {
-  week_start: string
-  week_end: string
-  prayers_today: number
-  prayers_week: number
-  amens_week: number
-  answered_week: number
-  emotions: { emotion: string; count: number }[]
-  // 아래 둘은 신버전 백엔드에서만 내려온다 — 없으면 차트·진행률을 숨긴다
-  daily?: { date: string; prayers: number; amens: number }[]
-  amen_goal?: number
-}
-
-// 이번주(월~일 KST) 실측 집계 — 구버전 백엔드에는 없으므로 실패 시 폴백 경로를 탄다
-const useWeeklyPrayerStats = () =>
-  useQuery({
+// 이번주(월~일 KST) 실측 집계 — 구버전 백엔드에는 없으므로 실패 시 폴백 경로를 탄다.
+// 홈 레일 묶음(useHomeRail)이 같은 키에 심어 주는 동안은 단건 요청을 미룬다(캐시가 있으면 그대로 보인다).
+const useWeeklyPrayerStats = () => {
+  const railPending = useHomeRailPending()
+  return useQuery({
     queryKey: prayerStatsKeys.weekly(),
     queryFn: async (): Promise<WeeklyPrayerStats> => {
       const json = await request<{ data: WeeklyPrayerStats }>('/prayers/stats/weekly', {
@@ -27,10 +18,12 @@ const useWeeklyPrayerStats = () =>
       })
       return json.data
     },
+    enabled: !railPending,
     // 서버도 5분 캐시라 더 자주 물어봐야 새 숫자가 없다 — 15분이면 충분
     staleTime: 1000 * 60 * 15,
     retry: 1,
   })
+}
 
 // ── 분리 전 같은 파일에 있던 형제 모듈이 쓴다 ──
 export { useWeeklyPrayerStats }

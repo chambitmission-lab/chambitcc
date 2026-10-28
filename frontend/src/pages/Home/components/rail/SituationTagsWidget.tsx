@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
+import { useHomeRailPending } from '../../../../hooks/useHomeRail'
 import { useSituationCategories } from '../../../../hooks/useSituation'
 import type { SituationCategory } from '../../../../types/situation'
 import { EMOTION_META, pick } from './shared'
@@ -13,8 +14,10 @@ import { useWeeklyPrayerStats } from './queries'
 const SituationTagsWidget = () => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
+  // 홈 레일 묶음(useHomeRail)이 심어 줄 때까지 단건 요청은 미룬다
+  const railPending = useHomeRailPending()
   const weekly = useWeeklyPrayerStats()
-  const { data: categories = [] } = useSituationCategories()
+  const { data: categories = [] } = useSituationCategories(!railPending)
 
   // 이번주 성도들이 기도 작성 때 실제로 고른 감정 태그 (많이 고른 순)
   const weeklyEmotions = weekly.data?.emotions ?? []

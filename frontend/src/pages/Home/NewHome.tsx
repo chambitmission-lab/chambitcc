@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, lazy, Suspense, type Componen
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useIsRestoring, useQueryClient } from '@tanstack/react-query'
 import { armHomeBundle, useHomeSummary } from '../../hooks/useHomeSummary'
+import { useHomeRail } from '../../hooks/useHomeRail'
 import { scheduleAfterFirstScreen, preloadBudget } from '../../utils/idlePreload'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import { lazyModal } from '../../utils/lazyModal'
@@ -183,6 +184,9 @@ const NewHome = () => {
   useEffect(() => {
     if (railWide) void warmPair(PRAYER_WEEK_WINDOW)
   }, [railWide])
+  // 레일 위젯 데이터 묶음(/home/rail) — 레일 청크를 기다리지 않고 여기서 'high' 로 먼저 보낸다.
+  // 레일이 마운트되면 위젯 훅들은 심어진 캐시를 그대로 쓴다(hooks/useHomeRail).
+  useHomeRail(railWide)
 
   // 기도 작성·상세·감사 시트 청크 선로드 — 첫 화면이 그려진 뒤 한가할 때 받아 두어 첫 탭이 즉시 열리게 한다.
   // 감사 시트는 FAB 다이얼·티커가 공유. preload 가 끝난 lazyModal 은 Suspense 없이 곧장 그린다

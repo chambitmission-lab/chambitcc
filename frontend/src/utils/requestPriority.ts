@@ -56,6 +56,9 @@ export const waitForCriticalRequests = (): Promise<void> => gate ?? Promise.reso
  */
 const MAX_IN_FLIGHT = 3
 const SLOT_LEASE_MS = 4000
+// 'low'(다른 화면 선요청)는 일반 대기열이 이만큼 비어 있어야 출발한다 — 홈 콜드 마운트에서 프로필·신앙 여정
+// 선요청(서버 단독 1초짜리 집계)이 레일·알림보다 앞에 서서 첫 화면을 1초 넘게 밀던 것(2026-10-28 실측)
+const LOW_QUIET_MS = 700
 
 interface Waiter {
   generation: number
@@ -70,9 +73,50 @@ let generation = 0
 let seq = 0
 const waiting: Waiter[] = []
 
+// 'low' 대기자 — 일반 대기열(waiting)·비행 중 요청이 LOW_QUIET_MS 동안 하나도 없을 때 하나씩 내보낸다
+const lowWaiting: Waiter[] = []
+let lowTimer: ReturnType<typeof setTimeout> | null = null
+
 if (typeof window !== 'undefined') {
   window.addEventListener('hashchange', () => {
     generation += 1
+    // 화면이 바뀌면 기다리던 선요청은 그 화면의 요청과 같은 키일 수 있다(react-query 가 같은 fetch 로 묶는다) —
+    // 더 미루면 새 화면이 선요청을 기다리게 되므로 일반 대기열(새 세대)로 올린다
+    promoteLowWaiters()
+  })
+}
+
+const promoteLowWaiters = (): void => {
+  if (lowWaiting.length === 0) return
+  for (const w of lowWaiting.splice(0)) w.resolve()
+}
+
+const scheduleLowPump = (): void => {
+  if (lowWaiting.length === 0) return
+  if (lowTimer) clearTimeout(lowTimer)
+  lowTimer = setTimeout(() => {
+    lowTimer = null
+    if (inFlight > 0 || waiting.length > 0) return // 그 사이 바빠졌다 — 다음 release 가 다시 재운다
+    const next = lowWaiting.shift()
+    if (!next) return
+    if (next.signal?.aborted) {
+      next.reject(abortError())
+      scheduleLowPump()
+      return
+    }
+    next.resolve()
+  }, LOW_QUIET_MS)
+}
+
+/**
+ * 'low' 요청의 출발 허가 — 일반 대기열이 비고 LOW_QUIET_MS 가 조용히 지나면 하나씩 풀린다.
+ * 풀린 뒤엔 보통 요청처럼 게이트·자리를 받는다(request.ts). 라우트가 바뀌면 전부 즉시 풀린다.
+ */
+export const waitForQueueIdle = (signal?: AbortSignal): Promise<void> => {
+  if (signal?.aborted) return Promise.reject(abortError())
+  return new Promise<void>((resolve, reject) => {
+    lowWaiting.push({ generation, seq: seq++, signal, resolve, reject })
+    scheduleLowPump()
   })
 }
 
@@ -95,6 +139,8 @@ const pump = (): void => {
     inFlight += 1
     next.resolve()
   }
+  // 대기열이 비었으면 조용한 구간을 재기 시작한다 — 'low' 는 그 뒤에야 나간다
+  if (inFlight === 0 && waiting.length === 0) scheduleLowPump()
 }
 
 const takeSlot = (): (() => void) => {

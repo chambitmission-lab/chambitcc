@@ -25,10 +25,12 @@ export const situationKeys = {
 const CATEGORIES_STALE_MS = 1000 * 60 * 30
 const VERSES_STALE_MS = 1000 * 60 * 10
 
-export const useSituationCategories = () =>
+/** enabled=false 면 요청을 미룬다(홈 레일 묶음 useHomeRail 이 심어 줄 때까지) — 캐시가 있으면 그대로 보인다 */
+export const useSituationCategories = (enabled = true) =>
   useQuery({
     queryKey: situationKeys.categories(),
     queryFn: getSituationCategories,
+    enabled,
     staleTime: CATEGORIES_STALE_MS,
   })
 
