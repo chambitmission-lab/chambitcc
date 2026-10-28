@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
-import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getBookCardContext, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead, startReadingCycle } from '../api/bibleReading'
-import type { ChapterReadStatusResponse } from '../api/bibleReading'
+import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getBookCardContexts, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead, startReadingCycle } from '../api/bibleReading'
+import type { BookCardContext, ChapterReadStatusResponse } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import { isApiError } from '../api/utils/request'
 import type { RequestPriority } from '../api/utils/request'
@@ -33,7 +33,9 @@ export const bibleReadingKeys = {
   // 검색 탭 책 카드 묶음(진행률 + 표시 남긴 장). bibleReading 아래 두어 읽음 mutation 의
   // all 무효화를 그대로 받는다. 북마크·단어장 mutation 은 bookCards() prefix 로 따로 무효화한다
   bookCards: () => [...bibleReadingKeys.all, 'bookCard'] as const,
-  bookCard: (bookNumber: number) => [...bibleReadingKeys.bookCards(), bookNumber] as const,
+  // 검색 결과에 잡힌 책 묶음 하나가 캐시 한 칸 — 같은 묶음이면 책 순서가 달라도 같은 키
+  bookCardBatch: (bookNumbers: number[]) =>
+    [...bibleReadingKeys.bookCards(), [...bookNumbers].sort((a, b) => a - b).join(',')] as const,
   resume: (limit: number) => [...bibleReadingKeys.all, 'resume', limit] as const,
 }
 
@@ -295,15 +297,20 @@ export const useBookReadingProgress = (bookId: number, enabled: boolean = true) 
 }
 
 /**
- * 검색 탭 책 카드 컨텍스트 — 장별 진행률 + 밑줄·메모·즐겨찾기를 남긴 장을 한 요청으로.
- * 예전엔 카드마다 진행률·북마크·단어장 세 훅이 각각 요청해 "사"처럼 네 권이 잡히면 12개가
- * 동시 요청 한도에 걸려 줄을 섰다.
+ * 검색 탭 책 카드 컨텍스트 — 결과에 잡힌 책 전부의 장별 진행률 + 밑줄·메모·즐겨찾기 남긴 장을
+ * 한 요청으로. 예전엔 카드마다 한 요청(그 전엔 셋)이라 "사"처럼 네 권이 잡히면 동시 요청 한도에
+ * 걸려 줄을 섰다. 반환은 책 번호 → 컨텍스트 맵이라 카드가 자기 몫만 꺼내 쓴다.
  */
-export const useBookCardContext = (bookNumber: number, enabled: boolean = true) => {
+export const useBookCardContexts = (bookNumbers: number[], enabled: boolean = true) => {
   return useQuery({
-    queryKey: bibleReadingKeys.bookCard(bookNumber),
-    queryFn: () => getBookCardContext(bookNumber),
-    enabled: enabled && bookNumber > 0,
+    queryKey: bibleReadingKeys.bookCardBatch(bookNumbers),
+    queryFn: async () => {
+      const list = await getBookCardContexts(bookNumbers)
+      const map = new Map<number, BookCardContext>()
+      list.forEach(ctx => map.set(ctx.book_number, ctx))
+      return map
+    },
+    enabled: enabled && bookNumbers.length > 0,
     staleTime: 1000 * 60 * 5,
     // 카드는 읽는 동안 언마운트라 invalidate 가 stale 마크만 남긴다 — useBookReadingProgress 와 같은 이유
     refetchOnMount: true,

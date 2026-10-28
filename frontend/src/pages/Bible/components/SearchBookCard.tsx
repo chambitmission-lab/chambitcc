@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
-import { useBookCardContext } from '../../../hooks/useBibleReading'
+import type { BookCardContext } from '../../../api/bibleReading'
 
 // 책 카드 렌더에 필요한 최소 형태 — 백엔드 검색 결과(BibleSearchBook)와 전체 책 목록(BibleBook) 공통 필드
 export interface BookCard {
@@ -17,6 +17,8 @@ interface SearchBookCardProps {
   onSelectChapter: (bookNumber: number, chapter: number) => void
   /** 책 헤더 탭 → 다른 책으로 빠르게 전환하는 퀵 피커 열기 */
   onOpenPicker: () => void
+  /** 장별 진행률 + 표시 남긴 장 — 부모가 결과의 책 전부를 한 요청으로 받아 카드별로 나눠 준다 */
+  cardContext?: BookCardContext
 }
 
 /**
@@ -25,13 +27,10 @@ interface SearchBookCardProps {
  * - 로그인 시 장별 컨텍스트를 얹는다: 완독한 장은 ✓, 읽는 중인 장은 하단 진행바,
  *   밑줄/메모를 남긴 장은 우상단 점(dot)
  */
-const SearchBookCard = ({ book, onSelectChapter, onOpenPicker }: SearchBookCardProps) => {
+const SearchBookCard = ({ book, onSelectChapter, onOpenPicker, cardContext }: SearchBookCardProps) => {
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
   const loggedIn = isLoggedIn()
-
-  // 장별 진행률 + 표시(밑줄·메모·즐겨찾기) 남긴 장을 한 요청으로 — 카드마다 3요청이던 것을 묶었다
-  const { data: cardContext } = useBookCardContext(book.book_number, loggedIn)
 
   const texts = {
     ko: {

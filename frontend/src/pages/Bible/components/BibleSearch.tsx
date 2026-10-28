@@ -3,6 +3,8 @@ import type { FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleSearchInfinite, useBibleBooks } from '../../../hooks/useBible'
+import { useBookCardContexts } from '../../../hooks/useBibleReading'
+import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { BibleBook, BookMatchCount } from '../../../types/bible'
 import SearchBookCard from './SearchBookCard'
@@ -46,6 +48,8 @@ interface SearchTopic {
 
 const BibleSearch = () => {
   const { language } = useLanguage()
+  const { isLoggedIn } = useAuth()
+  const loggedIn = isLoggedIn()
   const navigate = useNavigate()
   // 검색어·범위는 URL(?q=&scope=)을 원본으로 삼는다. 결과를 눌러 장으로 갔다가
   // 뒤로 오면 이 컴포넌트가 다시 마운트되는데, 로컬 state만 쓰면 입력창이 비어
@@ -399,6 +403,9 @@ const BibleSearch = () => {
   }
 
   const scopedBooks = scope === 'ALL' ? booksToShow : booksToShow.filter(b => b.testament === scope)
+  // 카드에 얹을 장별 진행률·표시 장 — 결과의 책 전부를 한 요청으로 받아 카드별로 나눠 준다
+  // (쿼리 키는 책 번호를 정렬해 이어 붙인 문자열이라 배열 참조가 바뀌어도 재요청하지 않는다)
+  const { data: cardContexts } = useBookCardContexts(scopedBooks.map(b => b.book_number), loggedIn)
   const scopedVerses = searchResults
     ? loadedVerses.filter(v =>
         matchesScope(v.book_number ?? searchResults.book_number, v.book_name_ko)
@@ -771,6 +778,7 @@ const BibleSearch = () => {
             <SearchBookCard
               key={book.book_number}
               book={book}
+              cardContext={cardContexts?.get(book.book_number)}
               onSelectChapter={goToChapter}
               onOpenPicker={() => setPickerFor(book.book_number)}
             />

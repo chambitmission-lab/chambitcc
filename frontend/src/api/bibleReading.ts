@@ -264,21 +264,26 @@ export const getBookReadingProgress = async (
   return result.data
 }
 
-// GET /bible/book-card-context?book_number=N — 검색 탭 책 카드용 묶음.
-// 장별 진행률(✓·진행바) + 밑줄·메모·즐겨찾기를 남긴 장(점)을 한 왕복에 받는다
-// (예전엔 reading-progress · bookmarks · word-notes 세 요청)
+// GET /bible/book-card-context?book_numbers=a,b,c — 검색 탭 책 카드용 묶음.
+// 장별 진행률(✓·진행바) + 밑줄·메모·즐겨찾기를 남긴 장(점)을 여러 권까지 한 왕복에 받는다.
+// 예전엔 카드마다 한 요청(그 전엔 reading-progress · bookmarks · word-notes 세 요청)이라
+// "사"처럼 네 권이 잡히면 동시 요청 한도에 줄을 섰다. 서버는 권수와 무관하게 쿼리 둘로 끝낸다
 export interface BookCardContext {
   book_number: number
   chapters: ChapterProgress[]
   marked_chapters: number[]
 }
 
-export const getBookCardContext = async (bookNumber: number): Promise<BookCardContext> => {
-  const result = await request<{ success: boolean; data: BookCardContext }>(
-    `/bible/book-card-context?book_number=${bookNumber}`,
+/** 서버 상한과 같다 (BOOK_CARD_MAX_BOOKS) — 그 이상은 잘라 보낸다 */
+export const BOOK_CARD_MAX_BOOKS = 10
+
+export const getBookCardContexts = async (bookNumbers: number[]): Promise<BookCardContext[]> => {
+  if (bookNumbers.length === 0) return []
+  const result = await request<{ success: boolean; data: { books: BookCardContext[] } }>(
+    `/bible/book-card-context?book_numbers=${bookNumbers.slice(0, BOOK_CARD_MAX_BOOKS).join(',')}`,
     { auth: 'required', errorMessage: '책 읽기 진행률을 불러오는데 실패했습니다' }
   )
-  return result.data
+  return result.data.books
 }
 
 // 이어 읽기 위치
