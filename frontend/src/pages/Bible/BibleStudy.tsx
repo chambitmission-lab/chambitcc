@@ -760,19 +760,25 @@ const BibleStudy = () => {
                         (비로그인은 쿼리가 꺼져 isPending 이 영원히 true 라 isLoggedIn 과 함께 판정) */}
                     {isLoggedIn() && resumePending && !resumeData && (
                       <div className="dash-card dash-card--resume dash-card--resume-skel" aria-hidden="true">
-                        <span className="dash-card__icon">
-                          <span className="bib-skel bib-skel--resume-icon" />
-                        </span>
-                        <span className="dash-card__body">
-                          <span className="bib-skel bib-skel--resume-label" />
-                          <span className="bib-skel bib-skel--resume-title" />
-                          <span className="bib-skel bib-skel--resume-text" />
+                        <span className="resume-stack">
+                          <span className="resume-head">
+                            <span className="dash-card__icon">
+                              <span className="bib-skel bib-skel--resume-icon" />
+                            </span>
+                            <span className="dash-card__body">
+                              <span className="bib-skel bib-skel--resume-label" />
+                              <span className="bib-skel bib-skel--resume-title" />
+                            </span>
+                          </span>
+                          <span className="bib-skel bib-skel--resume-week" />
+                          <span className="bib-skel bib-skel--resume-cta" />
                         </span>
                       </div>
                     )}
                     {resumeData?.latest && (
                       <ResumeReadingCard
                         latest={resumeData.latest}
+                        weekDays={resumeData.week_days}
                         onResume={handleResume}
                         bookNameEn={books?.find(b => b.book_number === resumeData.latest!.book_number)?.book_name_en}
                       />

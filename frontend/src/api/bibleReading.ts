@@ -280,6 +280,8 @@ export interface ResumeReadingResponse {
   data: {
     latest: ResumePosition | null
     recent_books: ResumePosition[]
+    /** 이번 주(KST 월~주일) 중 읽은 날짜 'YYYY-MM-DD' — 이어 읽기 카드의 요일 점. 구버전 캐시엔 없다 */
+    week_days?: string[]
   }
 }
 

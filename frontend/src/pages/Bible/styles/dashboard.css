@@ -29,9 +29,11 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  /* 그림(3.1:1)이 카드 폭에 맞춰 cover 되므로 높이가 얕으면 양 머리·달이 잘린다.
-     모바일은 그림 세로가 거의 다 들어오는 높이, PC(더 넓은 카드)는 한 단계 더 높인다. */
-  min-height: 8.25rem;
+  /* 머리(인장+제목)·요일 점·버튼 세 줄이 들어가는 높이. 그림(3.1:1)은 cover 라 높이가 늘면
+     좌우가 잘리는데, 주인공 양은 오른쪽 끝에 있어 right 정렬로 그대로 남는다.
+     스켈레톤도 같은 높이라 응답이 와도 아래가 밀리지 않는다. */
+  align-items: stretch;
+  min-height: 13rem;
   padding: 1rem;
   margin-bottom: 0.625rem;
   background:
@@ -51,7 +53,7 @@
 }
 @media (min-width: 1024px) {
   .dash-card--resume {
-    min-height: 10rem;
+    min-height: 13.75rem;
     padding: 1.25rem 1.25rem;
   }
 }
@@ -76,21 +78,144 @@
 .bib-skel--resume-icon { width: 1.5rem; height: 1.5rem; border-radius: 0.5rem; }
 .bib-skel--resume-label { width: 7rem; height: 0.7rem; }
 .bib-skel--resume-title { width: 9.5rem; height: 1.05rem; }
-.bib-skel--resume-text { width: 78%; height: 0.8rem; }
+.bib-skel--resume-week { width: 12.5rem; max-width: 100%; height: 2.4rem; border-radius: 0.75rem; }
+.bib-skel--resume-cta { width: 7rem; height: 2.25rem; border-radius: 999px; }
 
-/* 본문은 그림의 주인공(오른쪽 약 30%)을 침범하지 않도록 오른쪽 여백을 둔다.
-   우측 화살표는 그림 위 건물과 겹쳐 지저분해서 숨긴다 — 카드 전체가 버튼이라 손실 없음 */
-.dash-card--resume .dash-card__body {
-  padding-right: 16%;
+/* 글·점·버튼은 그림의 주인공(오른쪽 약 30%)을 침범하지 않도록 왼쪽 칸에 세로로 쌓는다 */
+.resume-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 70%;
+  min-width: 0;
 }
-.dash-card--resume .dash-card__chevron {
+.resume-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* 이번 주 리듬 — 읽은 날 = 브랜드 원 + 체크, 오늘 = 테두리 강조, 나머지 = 점선 빈 원 */
+.resume-week {
+  display: flex;
+  gap: 0.375rem;
+}
+@media (min-width: 1024px) {
+  .resume-week {
+    gap: 0.5rem;
+  }
+}
+.resume-week__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 1.375rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+.resume-week__day i {
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(49, 130, 246, 0.35);
+}
+.resume-week__day.is-read i {
+  border: none;
+  background: var(--brand);
+  box-shadow: 0 3px 8px -3px var(--brand);
+}
+.resume-week__day.is-read i::after {
+  content: '';
+  width: 0.5rem;
+  height: 0.3rem;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: translate(0, -1px) rotate(-45deg);
+}
+.resume-week__day.is-today {
+  color: var(--brand);
+  font-weight: 800;
+}
+.resume-week__day.is-today:not(.is-read) i {
+  border: 2px solid var(--brand);
+  background: #fff;
+}
+[data-theme="dark"] .resume-week__day {
+  color: rgba(255, 255, 255, 0.55);
+}
+[data-theme="dark"] .resume-week__day i {
+  border-color: rgba(125, 180, 255, 0.35);
+}
+[data-theme="dark"] .resume-week__day.is-today {
+  color: #7db4ff;
+}
+[data-theme="dark"] .resume-week__day.is-today:not(.is-read) i {
+  border-color: #7db4ff;
+  background: #091128;
+}
+
+/* 버튼 + 이번 주 한 줄 요약 — 좁은 폭에선 요약이 버튼 아래로 내려간다 */
+.resume-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
+}
+.resume-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem 0.5rem 0.95rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 700;
+  box-shadow: 0 8px 18px -8px var(--brand);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.resume-cta .material-icons-round {
+  font-size: 1.05rem;
+  transition: transform 0.18s ease;
+}
+@media (hover: hover) {
+  .dash-card--resume:hover .resume-cta {
+    box-shadow: 0 10px 22px -8px var(--brand);
+  }
+  .dash-card--resume:hover .resume-cta .material-icons-round {
+    transform: translateX(2px);
+  }
+}
+.resume-streak {
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+}
+.resume-streak b {
+  color: var(--brand);
+  font-weight: 800;
+}
+.resume-streak__more {
   display: none;
+}
+@media (min-width: 1024px) {
+  .resume-streak__more {
+    display: inline;
+  }
+}
+[data-theme="dark"] .resume-streak {
+  color: rgba(255, 255, 255, 0.72);
+}
+[data-theme="dark"] .resume-streak b {
+  color: #7db4ff;
 }
 [data-theme="dark"] .dash-card--resume .dash-card__title {
   color: #fff;
-}
-[data-theme="dark"] .dash-card--resume .dash-card__text {
-  color: rgba(255, 255, 255, 0.72);
 }
 [data-theme="dark"] .dash-card--resume .dash-card__label {
   color: #7db4ff;
@@ -244,9 +369,6 @@
   color: var(--ig-secondary-text);
   opacity: 0.7;
   transition: color 0.18s ease, transform 0.18s ease;
-}
-.dash-card--resume .dash-card__chevron {
-  color: var(--brand);
 }
 
 /* ── 모바일 도구 타일 그리드 (2×2 가로형) ─────────────────────

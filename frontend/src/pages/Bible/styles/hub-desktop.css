@@ -87,28 +87,12 @@
     max-width: 58%;
   }
 
-  /* ⑤ 이어 읽기 — 본문 미리보기가 오른쪽 삽화(양) 밑까지 달려가 글자가 그림에 걸렸다.
-     글은 왼쪽 하늘 칸에 묶고, 대신 두 줄까지 보여 준다 */
-  .dash-card--resume .dash-card__body {
-    flex: 0 1 60%;
+  /* ⑤ 이어 읽기 — 글·요일 점이 오른쪽 삽화(양) 밑까지 달려가지 않도록 왼쪽 하늘 칸(60%)에 묶는다 */
+  .dash-card--resume .resume-stack {
+    width: 60%;
   }
   .dash-card--resume .dash-card__title {
     font-size: calc(1.0625rem * var(--text-mul, 1));
-  }
-  .dash-card--resume .dash-card__text {
-    margin-top: 0.25rem;
-    font-size: calc(0.84375rem * var(--text-mul, 1));
-    line-height: 1.5;
-    white-space: normal;
-    word-break: keep-all;
-    text-wrap: pretty;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-  /* 글이 60% 칸에 묶여 화살표가 글 바로 옆에 붙지 않도록 카드 오른쪽 끝으로 */
-  .dash-card--resume .dash-card__chevron {
-    margin-left: auto;
   }
 
   /* ⑥ 오른쪽 '성경 공부 도구' 레일 — 설명이 한 줄 말줄임이라 무슨 도구인지 끝까지 안 읽혔다.
