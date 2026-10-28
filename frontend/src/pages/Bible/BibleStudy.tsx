@@ -626,7 +626,7 @@ const BibleStudy = () => {
   // 아이콘은 참빛 인장(모노 스탬프) — BibleToolIcons + .dash-card__icon--seal
   const dashToolTiles = (
     <div className={`dash-tiles${isLoggedIn() ? '' : ' dash-tiles--odd'}`}>
-      <button type="button" onClick={() => navigate('/bible/story')} className="dash-tile">
+      <button type="button" onClick={() => navigate('/bible/story')} className="dash-tile dash-tile--tone-story">
         <span className="dash-tile__icon dash-card__icon--seal">
           <StoryIcon className="dash-card__glyph" />
         </span>
@@ -637,7 +637,7 @@ const BibleStudy = () => {
           </span>
         </span>
       </button>
-      <button type="button" onClick={() => navigate('/bible/atlas')} className="dash-tile">
+      <button type="button" onClick={() => navigate('/bible/atlas')} className="dash-tile dash-tile--tone-atlas">
         <span className="dash-tile__icon dash-card__icon--seal">
           <AtlasIcon className="dash-card__glyph" />
         </span>
@@ -651,7 +651,7 @@ const BibleStudy = () => {
         onClick={() => navigate('/bible/typing')}
         onPointerEnter={() => void preloadRoute('/bible/typing')}
         onPointerDown={() => void preloadRoute('/bible/typing')}
-        className="dash-tile"
+        className="dash-tile dash-tile--tone-typing"
       >
         <span className="dash-tile__icon dash-card__icon--seal">
           <TypingIcon className="dash-card__glyph" />
@@ -661,7 +661,7 @@ const BibleStudy = () => {
           <span className="dash-tile__text">{dt.tileTyping}</span>
         </span>
       </button>
-      <button type="button" onClick={() => navigate('/bible/situation')} className="dash-tile">
+      <button type="button" onClick={() => navigate('/bible/situation')} className="dash-tile dash-tile--tone-situation">
         <span className="dash-tile__icon dash-card__icon--seal">
           <SituationIcon className="dash-card__glyph" />
         </span>
@@ -670,7 +670,7 @@ const BibleStudy = () => {
           <span className="dash-tile__text">{dt.tileSituation}</span>
         </span>
       </button>
-      <button type="button" onClick={() => navigate('/bible/photo-verse')} className="dash-tile">
+      <button type="button" onClick={() => navigate('/bible/photo-verse')} className="dash-tile dash-tile--tone-photo">
         <span className="dash-tile__icon dash-card__icon--seal">
           <PhotoVerseIcon className="dash-card__glyph" />
         </span>
@@ -680,7 +680,7 @@ const BibleStudy = () => {
         </span>
       </button>
       {isLoggedIn() && (
-        <button type="button" onClick={() => setShowPlaylist(true)} className="dash-tile">
+        <button type="button" onClick={() => setShowPlaylist(true)} className="dash-tile dash-tile--tone-listen">
           <span className="dash-tile__icon dash-card__icon--seal">
             <ListenIcon className="dash-card__glyph" />
           </span>
@@ -745,7 +745,7 @@ const BibleStudy = () => {
               // ★묶음을 가운데 정렬(justify-center)하지 않는다 — 좌측 레일은 fixed 로 슬롯 위치를
               // 따라가므로, 가운데 정렬하면 넓은 화면에서 검색·플랜·지도여행 등 다른 화면(flex-start)과
               // 레일 자리가 어긋나 메뉴를 누를 때마다 레일이 좌우로 뛴다. 남는 폭은 오른쪽에 둔다.
-              <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5">
+              <div className="bible-hub lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5">
                 <BibleSideRail active="read" onSelectTab={handleSelectTab} />
                 <div className="lg:w-full lg:max-w-[620px] lg:min-w-0">
                   <div className="hidden lg:block">
@@ -798,7 +798,7 @@ const BibleStudy = () => {
                   <p className="px-1 mb-2 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
                     성경 공부 도구
                   </p>
-                  <div className="space-y-2.5">{dashToolCards}</div>
+                  <div className="dash-bento">{dashToolCards}</div>
                 </aside>
               </div>
             )}

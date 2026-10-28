@@ -17,6 +17,8 @@
 @import './styles/book-journey.css';
 /* PC(lg+) 허브 다듬기 — 위 두 파일의 lg 규칙 뒤에 와야 덮인다 */
 @import './styles/hub-desktop.css';
+/* PC(lg+) 허브 글래스 + 벤토 도구 — hub-desktop 뒤에서 덮는다 */
+@import './styles/hub-glass.css';
 
 /* Chapter Navigation - 장 네비게이션 */
 @import './styles/chapter-navigation.css';
