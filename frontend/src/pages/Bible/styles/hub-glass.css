@@ -159,15 +159,6 @@
     background: var(--brand-soft-strong);
     box-shadow: none;
   }
-  .bible-hub .reading-tile {
-    border-color: transparent;
-    border-radius: 1.125rem;
-    background: var(--glass-strong);
-    box-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 1px var(--glass-line), 0 6px 18px -10px rgba(49, 90, 180, 0.2);
-  }
-  .bible-hub .reading-tile__fill {
-    background: linear-gradient(90deg, #8cc0ff, var(--brand));
-  }
 
   /* ③ 구약/신약 세그먼트 + 분류 칩 */
   .bible-hub .testament-tabs {

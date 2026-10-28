@@ -23,10 +23,8 @@ import { bookAbbrev } from './bibleBookAbbrev'
 import {
   BookOpen,
   ChartPieSlice,
-  Cross,
   HandsPraying,
   MapTrifold,
-  Scroll,
 } from '../../../components/icons/phosphor'
 
 interface BookSelectorProps {
@@ -192,6 +190,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       selectBook: '책 선택',
       oldTestament: '구약',
       newTestament: '신약',
+      otShort: '구약',
+      ntShort: '신약',
       loadingBooks: '성경 책 목록을 불러오는 중...',
       errorBooks: '성경 책 목록을 불러오는데 실패했습니다. 백엔드 API를 확인해주세요.',
       noBooks: '성경 책 데이터가 없습니다.',
@@ -244,6 +244,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       selectBook: 'Select Book',
       oldTestament: 'Old Testament',
       newTestament: 'New Testament',
+      otShort: 'OT',
+      ntShort: 'NT',
       loadingBooks: 'Loading bible books...',
       errorBooks: 'Failed to load bible books. Please check backend API.',
       noBooks: 'No bible book data available.',
@@ -378,6 +380,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   }, [progress, t.whole, t.oldTestament, t.newTestament, t.chapterUnit, t.verseUnit])
 
   const overallStat = summaryStats[0]
+  const testamentStats = useMemo(() => summaryStats.filter(stat => stat.id !== 'all'), [summaryStats])
 
   // 통독 회차 — 진행률은 현재 회차 기준. 완독한 뒤에만 다음 회차를 열 수 있다(서버도 409 로 막는다)
   const cycle = progress?.cycle
@@ -699,7 +702,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     <div className="bible-books-section" data-animate={interacted ? '' : undefined}>
       <h2 className="section-title">{t.selectBook}</h2>
 
-      {/* 읽기 진행 요약 — 히어로(전체 진행률·격려·게이지) + 구약/신약 타일, 또는 66권 지도.
+      {/* 읽기 진행 요약 — 히어로(전체 진행률·격려·구약/신약으로 쪼갠 게이지), 지도 보기면 66권 지도가 아래에.
           링 3개 대신 "숫자 하나가 먼저 읽히고" 그 아래 구약/신약이 나뉘는 위계로 재구성했다.
           탭 안에 %를 넣지 않는 이유: 탭은 선택 컨트롤이고, 비활성 탭의 수치는 가려지기 때문 */}
       {summaryStats.length === 0 && progressPending && (
@@ -723,15 +726,10 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
               </div>
             </div>
             <div className="reading-hero__gauge">
-              <span className="reading-hero__track" />
+              <span className="reading-hero__track">
+                <span className="reading-hero__seg" />
+              </span>
             </div>
-          </div>
-          <div className="reading-tiles">
-            {[0, 1].map(i => (
-              <div className="reading-tile" key={i}>
-                <span className="bib-skel bib-skel--tile" />
-              </div>
-            ))}
           </div>
         </div>
       )}
@@ -748,7 +746,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
               </span>
             </div>
 
-            {/* 보기 전환 — 진행률(구약/신약 타일) ↔ 지도(66권 히트맵). 히어로는 둘 다에서 유지 */}
+            {/* 보기 전환 — 진행률(히어로만, 구약/신약은 게이지 안) ↔ 지도(히어로 + 66권 히트맵) */}
             <div className="reading-summary__views" role="tablist" aria-label={t.summaryTitle}>
               <button
                 type="button"
@@ -805,13 +803,11 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
               </div>
             </div>
 
+            {/* 게이지 — 막대 하나를 구약·신약 장 수 비율(929 : 260)로 쪼갠다(2026-10-28, 구약/신약 타일 대체).
+                전체 진행률이 "구약 얼마 + 신약 얼마"로 막대 하나에 그대로 보여 같은 정보를 두 번 그리지 않는다.
+                칸 이름은 같은 flex 비율로 칸 바로 아래에 선다 — 책 이름 캡션(창세기·마태복음…)은 칸 이름과
+                겹치는 정보라 넣지 않는다 */}
             <div className="reading-hero__gauge">
-              <span className="reading-hero__track" aria-hidden="true">
-                <span
-                  className="reading-hero__fill"
-                  style={{ width: `${gaugeWidth(overallStat.rate)}%` }}
-                />
-              </span>
               <div className="reading-hero__meta">
                 <span className="reading-hero__read">{overallStat.detail}</span>
                 <span className="reading-hero__left">
@@ -819,6 +815,36 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                     ? `${t.remaining} ${(overallStat.total - overallStat.read).toLocaleString()}${overallStat.unit}`
                     : t.allComplete}
                 </span>
+              </div>
+              <span className="reading-hero__track" aria-hidden="true">
+                {testamentStats.map(stat => (
+                  <span
+                    key={stat.id}
+                    className="reading-hero__seg"
+                    data-full={stat.rate >= 100 ? 'true' : undefined}
+                    style={{ flex: `${stat.total} 1 0` }}
+                  >
+                    <span className="reading-hero__fill" style={{ width: `${gaugeWidth(stat.rate)}%` }} />
+                  </span>
+                ))}
+              </span>
+              <div className="reading-hero__parts">
+                {testamentStats.map(stat => (
+                  <span
+                    key={stat.id}
+                    className="reading-hero__part"
+                    style={{ flex: `${stat.total} 1 0` }}
+                    aria-label={`${stat.label} ${pctLabel(stat.rate)}% · ${stat.detail}`}
+                  >
+                    <span className="reading-hero__part-label" aria-hidden="true">
+                      {stat.id === 'ot' ? t.otShort : t.ntShort}
+                    </span>
+                    <span className="reading-hero__part-value" aria-hidden="true">
+                      {pctLabel(stat.rate)}
+                      <small>%</small>
+                    </span>
+                  </span>
+                ))}
               </div>
             </div>
 
@@ -837,48 +863,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
               </div>
             )}
           </div>
-
-          {/* 구약/신약 타일 — 색으로 나누지 않고(전부 브랜드 블루) 두루마리·십자가 아이콘으로 구분한다.
-              전체 수치는 히어로에 이미 있으므로 타일에서 반복하지 않는다 */}
-          {!showMap && (
-            <div className="reading-tiles">
-              {summaryStats
-                .filter(stat => stat.id !== 'all')
-                .map(stat => (
-                  <div
-                    className="reading-tile"
-                    key={stat.id}
-                    data-stat={stat.id}
-                    role="img"
-                    aria-label={`${stat.label} ${pctLabel(stat.rate)}% · ${stat.detail}`}
-                  >
-                    <div className="reading-tile__head" aria-hidden="true">
-                      <span className="reading-tile__icon">
-                        {stat.id === 'ot' ? (
-                          <Scroll size="1em" weight="duotone" color="currentColor" />
-                        ) : (
-                          <Cross size="1em" weight="duotone" color="currentColor" />
-                        )}
-                      </span>
-                      <span className="reading-tile__text">
-                        <span className="reading-tile__label">{stat.label}</span>
-                        <span className="reading-tile__value">
-                          {pctLabel(stat.rate)}
-                          <small>%</small>
-                        </span>
-                        <span className="reading-tile__detail">{stat.detail}</span>
-                      </span>
-                    </div>
-                    <span className="reading-tile__track" aria-hidden="true">
-                      <span
-                        className="reading-tile__fill"
-                        style={{ width: `${gaugeWidth(stat.rate)}%` }}
-                      />
-                    </span>
-                  </div>
-                ))}
-            </div>
-          )}
 
           {showMap && (
             <BibleProgressMap books={books} infoMap={infoMap} onBookSelect={handleMapSelect} />

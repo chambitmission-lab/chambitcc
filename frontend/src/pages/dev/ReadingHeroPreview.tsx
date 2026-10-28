@@ -5,11 +5,13 @@
  * 배경 장면은 시간대로 갈린다(낮 "함께 걷는 길" / 저녁·밤 "함께 읽기") — 위 토글로 둘 다 본다.
  */
 import { useState } from 'react'
-import { BookOpen, ChartPieSlice, MapTrifold, HandsPraying, Scroll, Cross } from '../../components/icons/phosphor'
+import { BookOpen, ChartPieSlice, MapTrifold, HandsPraying } from '../../components/icons/phosphor'
 import '../Bible/BibleStudy.css'
 import { readingSceneFor, type ReadingScene } from '../../utils/themeAssets'
 
 const TOTAL = 1189
+const OT_TOTAL = 929
+const NT_TOTAL = TOTAL - OT_TOTAL
 
 type Sample = { label: string; read: number; cheerHead: string; cheerTail: string }
 
@@ -23,6 +25,12 @@ function Card({ sample, scene }: { sample: Sample; scene: ReadingScene }) {
   const read = sample.read
   const rate = Math.round((read / TOTAL) * 100)
   const left = TOTAL - read
+  // 표본은 창세기부터 차례로 읽었다고 가정 — 구약을 다 채운 뒤 신약으로 넘어간다
+  const otRead = Math.min(read, OT_TOTAL)
+  const parts = [
+    { id: 'ot', label: '구약', total: OT_TOTAL, rate: Math.round((otRead / OT_TOTAL) * 100) },
+    { id: 'nt', label: '신약', total: NT_TOTAL, rate: Math.round(((read - otRead) / NT_TOTAL) * 100) },
+  ]
 
   return (
     <section className="reading-summary" data-scene={scene} aria-label="성경 읽기 현황">
@@ -67,9 +75,6 @@ function Card({ sample, scene }: { sample: Sample; scene: ReadingScene }) {
         </div>
 
         <div className="reading-hero__gauge">
-          <span className="reading-hero__track" aria-hidden="true">
-            <span className="reading-hero__fill" style={{ width: `${Math.max(rate, 3)}%` }} />
-          </span>
           <div className="reading-hero__meta">
             <span className="reading-hero__read">
               {read.toLocaleString()} / {TOTAL.toLocaleString()}장
@@ -77,6 +82,29 @@ function Card({ sample, scene }: { sample: Sample; scene: ReadingScene }) {
             <span className="reading-hero__left">
               {left > 0 ? `남은 ${left.toLocaleString()}장` : '성경 전체를 완독했어요'}
             </span>
+          </div>
+          <span className="reading-hero__track" aria-hidden="true">
+            {parts.map(p => (
+              <span
+                key={p.id}
+                className="reading-hero__seg"
+                data-full={p.rate >= 100 ? 'true' : undefined}
+                style={{ flex: `${p.total} 1 0` }}
+              >
+                <span className="reading-hero__fill" style={{ width: `${Math.max(p.rate, 3)}%` }} />
+              </span>
+            ))}
+          </span>
+          <div className="reading-hero__parts">
+            {parts.map(p => (
+              <span key={p.id} className="reading-hero__part" style={{ flex: `${p.total} 1 0` }}>
+                <span className="reading-hero__part-label">{p.label}</span>
+                <span className="reading-hero__part-value">
+                  {p.rate}
+                  <small>%</small>
+                </span>
+              </span>
+            ))}
           </div>
         </div>
 
@@ -89,42 +117,6 @@ function Card({ sample, scene }: { sample: Sample; scene: ReadingScene }) {
         )}
       </div>
 
-      <div className="reading-tiles">
-        <div className="reading-tile" data-stat="ot">
-          <div className="reading-tile__head">
-            <span className="reading-tile__icon" aria-hidden="true">
-              <Scroll size="1em" weight="duotone" color="currentColor" />
-            </span>
-            <span className="reading-tile__text">
-              <span className="reading-tile__label">구약</span>
-              <span className="reading-tile__value">
-                71<small>%</small>
-              </span>
-              <span className="reading-tile__detail">661 / 929장</span>
-            </span>
-          </div>
-          <span className="reading-tile__track" aria-hidden="true">
-            <span className="reading-tile__fill" style={{ width: '71%' }} />
-          </span>
-        </div>
-        <div className="reading-tile" data-stat="nt">
-          <div className="reading-tile__head">
-            <span className="reading-tile__icon" aria-hidden="true">
-              <Cross size="1em" weight="duotone" color="currentColor" />
-            </span>
-            <span className="reading-tile__text">
-              <span className="reading-tile__label">신약</span>
-              <span className="reading-tile__value">
-                0<small>%</small>
-              </span>
-              <span className="reading-tile__detail">0 / 260장</span>
-            </span>
-          </div>
-          <span className="reading-tile__track" aria-hidden="true">
-            <span className="reading-tile__fill" style={{ width: '2%' }} />
-          </span>
-        </div>
-      </div>
     </section>
   )
 }
