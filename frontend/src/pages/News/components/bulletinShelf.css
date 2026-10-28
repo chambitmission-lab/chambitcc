@@ -239,13 +239,16 @@
   /* 모바일은 화면 끝까지 흘러가게 본문 여백(px-4)을 넘는다 */
   margin: 0 -1rem;
   padding: 1.375rem calc(50% - var(--bsf-card-w) / 2) 3rem;
-  perspective: 700px;
+  /* 카드 위치를 offsetLeft(스크롤 내용 기준)로 재려고 기준 상자로 둔다.
+     원근은 카드마다 perspective() 로 — 스크롤 상자에 perspective 를 걸면 모바일 Chrome 이
+     원근 기준점을 스크롤된 내용에 묶어 넘길수록 그려진 자리와 실제 자리가 어긋났다(왼쪽 카드가 안 눌림) */
+  position: relative;
+  --bsf-persp: 700px;
 }
 .bsf-card {
   position: relative;
   flex: 0 0 var(--bsf-card-w);
   scroll-snap-align: center;
-  transform-style: preserve-3d;
   transition: transform 0.15s linear, opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
@@ -284,7 +287,7 @@
 
 @media (min-width: 1024px) {
   .bsf-season-chip { font-size: 14px; padding: 7px 13px; }
-  .bsf-flow { --bsf-card-w: 168px; perspective: 900px; margin: 0; }
+  .bsf-flow { --bsf-card-w: 168px; --bsf-persp: 900px; margin: 0; }
   .bsf-nav {
     position: absolute;
     top: calc(1.375rem + 168px * 1.485 / 2);

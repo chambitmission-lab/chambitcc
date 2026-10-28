@@ -238,19 +238,19 @@ const CoverFlow = ({
     [issues, season],
   )
 
-  // 스크롤 위치에 따라 카드마다 기울기를 직접 쓴다(리렌더 없이) — 가운데 카드만 state 로
+  // 스크롤 위치에 따라 카드마다 기울기를 직접 쓴다(리렌더 없이) — 가운데 카드만 state 로.
+  // 거리는 기울기 전 레이아웃 자리(offsetLeft)로 잰다 — 기울어진 getBoundingClientRect 로 재면
+  // 쓴 transform 이 다음 측정을 비틀어 가운데 판정·옆 카드 이동이 어긋났다
   const update = useCallback(() => {
     const track = trackRef.current
     if (!track) return
-    const r = track.getBoundingClientRect()
-    const cx = r.left + r.width / 2
+    const cx = track.scrollLeft + track.clientWidth / 2
     let best = 0
     let bestDist = Infinity
     track.querySelectorAll<HTMLElement>('.bsf-card').forEach((card, i) => {
-      const cr = card.getBoundingClientRect()
-      const dist = (cr.left + cr.width / 2 - cx) / cr.width
+      const dist = (card.offsetLeft + card.offsetWidth / 2 - cx) / card.offsetWidth
       const k = Math.max(-1.6, Math.min(1.6, dist))
-      card.style.transform = `rotateY(${-k * 38}deg) translateZ(${-Math.abs(k) * 70}px) scale(${1 - Math.min(Math.abs(k), 1) * 0.06})`
+      card.style.transform = `perspective(var(--bsf-persp)) rotateY(${-k * 38}deg) translateZ(${-Math.abs(k) * 70}px) scale(${1 - Math.min(Math.abs(k), 1) * 0.06})`
       card.style.zIndex = String(100 - Math.round(Math.abs(dist) * 10))
       if (Math.abs(dist) < bestDist) {
         bestDist = Math.abs(dist)
@@ -284,9 +284,7 @@ const CoverFlow = ({
     const track = trackRef.current
     const card = track?.querySelectorAll<HTMLElement>('.bsf-card')[index]
     if (!track || !card) return
-    const r = track.getBoundingClientRect()
-    const cr = card.getBoundingClientRect()
-    track.scrollBy({ left: cr.left + cr.width / 2 - (r.left + r.width / 2), behavior: 'smooth' })
+    track.scrollTo({ left: card.offsetLeft + card.offsetWidth / 2 - track.clientWidth / 2, behavior: 'smooth' })
   }
 
   // 옆 카드는 가운데로 데려오고, 가운데 카드를 누르면 연다
