@@ -264,6 +264,23 @@ export const getBookReadingProgress = async (
   return result.data
 }
 
+// GET /bible/book-card-context?book_number=N — 검색 탭 책 카드용 묶음.
+// 장별 진행률(✓·진행바) + 밑줄·메모·즐겨찾기를 남긴 장(점)을 한 왕복에 받는다
+// (예전엔 reading-progress · bookmarks · word-notes 세 요청)
+export interface BookCardContext {
+  book_number: number
+  chapters: ChapterProgress[]
+  marked_chapters: number[]
+}
+
+export const getBookCardContext = async (bookNumber: number): Promise<BookCardContext> => {
+  const result = await request<{ success: boolean; data: BookCardContext }>(
+    `/bible/book-card-context?book_number=${bookNumber}`,
+    { auth: 'required', errorMessage: '책 읽기 진행률을 불러오는데 실패했습니다' }
+  )
+  return result.data
+}
+
 // 이어 읽기 위치
 export interface ResumePosition {
   book_number: number

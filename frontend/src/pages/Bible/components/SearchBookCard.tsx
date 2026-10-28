@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
-import { useBookReadingProgress } from '../../../hooks/useBibleReading'
-import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
-import { useBookWordNotes } from '../../../hooks/useBibleWordNote'
+import { useBookCardContext } from '../../../hooks/useBibleReading'
 
 // 책 카드 렌더에 필요한 최소 형태 — 백엔드 검색 결과(BibleSearchBook)와 전체 책 목록(BibleBook) 공통 필드
 export interface BookCard {
@@ -16,8 +14,6 @@ export interface BookCard {
 
 interface SearchBookCardProps {
   book: BookCard
-  /** BibleBook.id — 읽기 진행도 조회용. 매핑 실패(0) 시 진행도 표시만 생략 */
-  bookId: number
   onSelectChapter: (bookNumber: number, chapter: number) => void
   /** 책 헤더 탭 → 다른 책으로 빠르게 전환하는 퀵 피커 열기 */
   onOpenPicker: () => void
@@ -29,18 +25,13 @@ interface SearchBookCardProps {
  * - 로그인 시 장별 컨텍스트를 얹는다: 완독한 장은 ✓, 읽는 중인 장은 하단 진행바,
  *   밑줄/메모를 남긴 장은 우상단 점(dot)
  */
-const SearchBookCard = ({ book, bookId, onSelectChapter, onOpenPicker }: SearchBookCardProps) => {
+const SearchBookCard = ({ book, onSelectChapter, onOpenPicker }: SearchBookCardProps) => {
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
   const loggedIn = isLoggedIn()
 
-  const { data: bookProgress } = useBookReadingProgress(bookId, loggedIn && bookId > 0)
-  // 이 책의 북마크만 조회 — 전역 최신순 목록에서는 오래된 북마크가 page_size에 밀려 빠질 수 있다
-  const { data: bookmarks } = useMyBookmarks(
-    { book_number: book.book_number, page_size: 100 },
-    loggedIn
-  )
-  const { data: wordNotes } = useBookWordNotes(book.book_number, loggedIn)
+  // 장별 진행률 + 표시(밑줄·메모·즐겨찾기) 남긴 장을 한 요청으로 — 카드마다 3요청이던 것을 묶었다
+  const { data: cardContext } = useBookCardContext(book.book_number, loggedIn)
 
   const texts = {
     ko: {
@@ -75,24 +66,17 @@ const SearchBookCard = ({ book, bookId, onSelectChapter, onOpenPicker }: SearchB
   // 장 번호 → 진행 상태 (완독 여부 · 진행률 0~100)
   const chapterInfo = useMemo(() => {
     const map = new Map<number, { completed: boolean; progress: number }>()
-    bookProgress?.chapters?.forEach(c =>
+    cardContext?.chapters?.forEach(c =>
       map.set(c.chapter, { completed: c.completed, progress: c.progress })
     )
     return map
-  }, [bookProgress])
+  }, [cardContext])
 
-  // 밑줄/메모/즐겨찾기를 남긴 장 집합 — 절 북마크 + 단어장 노트.
-  // book_number 재확인은 필터 미배포 백엔드(전체 최신 100개 반환) 대비 방어
-  const markedChapters = useMemo(() => {
-    const set = new Set<number>()
-    bookmarks?.items?.forEach(b => {
-      if (b.book_number === book.book_number) set.add(b.chapter)
-    })
-    wordNotes?.items?.forEach(n => {
-      if (n.book_number === book.book_number) set.add(n.chapter)
-    })
-    return set
-  }, [bookmarks, wordNotes, book.book_number])
+  // 밑줄/메모/즐겨찾기를 남긴 장 집합 — 절 북마크 + 단어장 노트 (서버가 장 번호로 합쳐 준다)
+  const markedChapters = useMemo(
+    () => new Set<number>(cardContext?.marked_chapters ?? []),
+    [cardContext]
+  )
 
   const readCount = useMemo(
     () => Array.from(chapterInfo.values()).filter(c => c.completed).length,

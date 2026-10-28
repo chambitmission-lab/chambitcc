@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { prefetchBibleChapter } from '../../hooks/useBible'
+import { prefetchBibleChapter, prefetchBibleSearch } from '../../hooks/useBible'
 import { prefetchBibleHub } from '../../pages/Bible/prefetch'
 import { prefetchProfile } from '../../pages/Profile/prefetch'
 import { prefetchGrowth } from '../../hooks/useGrowth'
@@ -101,6 +101,26 @@ const RouteDataPrefetch = () => {
     void import('../../pages/News/prefetch')
       .then((m) => m.prefetchNewsRoute(search, queryClient))
       .catch(() => undefined)
+  }, [pathname, search, queryClient])
+
+  // 성경 찾기 딥링크·뒤로가기(/bible?tab=search&q=사랑[&scope=NEW&book=43]) — 검색 첫 페이지와
+  // 검색 탭 청크를 라우트 청크와 나란히 띄운다. 예전엔 BibleStudy 청크 → BibleSearch 청크 → 검색 요청
+  // 세 왕복이 직렬이었다. 청크 import 는 BibleStudy 의 lazyModal 과 같은 모듈이라 한 청크로 묶인다.
+  useEffect(() => {
+    if (pathname !== '/bible') return
+    const params = new URLSearchParams(search)
+    if (params.get('tab') !== 'search') return
+    void import('../../pages/Bible/components/BibleSearch').catch(() => undefined)
+    const q = params.get('q')?.trim() ?? ''
+    if (q.length < 2) return
+    const scope = params.get('scope')
+    const book = Number(params.get('book'))
+    prefetchBibleSearch(
+      queryClient,
+      q,
+      scope === 'OLD' || scope === 'NEW' ? scope : undefined,
+      book >= 1 && book <= 66 ? book : undefined,
+    )
   }, [pathname, search, queryClient])
 
   return null

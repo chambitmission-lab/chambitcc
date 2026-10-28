@@ -15,6 +15,7 @@ import {
 import { tokenStore } from '../utils/tokenStore'
 import type { ProfileDetail } from '../types/profile'
 import { profileKeys } from './queryKeys'
+import { bibleReadingKeys } from './useBibleReading'
 
 export const bookmarkKeys = {
   all: ['bookmark'] as const,
@@ -143,6 +144,8 @@ export const useUpsertBookmark = (verseId: number) => {
       queryClient.invalidateQueries({ queryKey: profileKeys.detail() })
       // 현재 보고 있는 장의 배치 캐시 갱신 (활성 쿼리만 — 즉시 표시는 detail 캐시가 담당)
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.chapters() })
+      // 검색 탭 책 카드의 '표시 남긴 장' 점 — 비활성이라 stale 마크만, 재진입 때 refetchOnMount
+      queryClient.invalidateQueries({ queryKey: bibleReadingKeys.bookCards() })
     },
   })
 }
@@ -221,6 +224,8 @@ export const useDeleteBookmark = (verseId: number) => {
       queryClient.invalidateQueries({ queryKey: profileKeys.detail() })
       // 현재 보고 있는 장의 배치 캐시 갱신 (활성 쿼리만 — 즉시 표시는 detail 캐시가 담당)
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.chapters() })
+      // 검색 탭 책 카드의 '표시 남긴 장' 점 — 비활성이라 stale 마크만, 재진입 때 refetchOnMount
+      queryClient.invalidateQueries({ queryKey: bibleReadingKeys.bookCards() })
     },
   })
 }

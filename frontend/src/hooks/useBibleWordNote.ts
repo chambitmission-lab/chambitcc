@@ -5,6 +5,7 @@ import {
   useInfiniteQuery,
 } from '@tanstack/react-query'
 import { tokenStore } from '../utils/tokenStore'
+import { bibleReadingKeys } from './useBibleReading'
 import {
   createWordNote,
   updateWordNote,
@@ -58,6 +59,8 @@ const useInvalidateWordNotes = () => {
     // 단어장 페이지 목록은 성경 화면에서 저장하는 시점엔 비활성 쿼리 —
     // stale 마크만 해 두면 재진입 때 refetchOnMount(true)가 재조회한다 (북마크와 동일 패턴)
     queryClient.invalidateQueries({ queryKey: wordNoteKeys.lists() })
+    // 검색 탭 책 카드의 '표시 남긴 장' 점도 같은 방식으로 stale 마크
+    queryClient.invalidateQueries({ queryKey: bibleReadingKeys.bookCards() })
   }
 }
 

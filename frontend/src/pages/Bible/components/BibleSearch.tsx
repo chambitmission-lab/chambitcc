@@ -388,8 +388,6 @@ const BibleSearch = () => {
   // 구절의 book_number(없으면 책 이름)로 신·구약을 판별하고, 판별 불가 시에는 표시를 유지한다.
   const testamentByNumber = new Map((allBooks || []).map(b => [b.book_number, b.testament]))
   const testamentByName = new Map((allBooks || []).map(b => [b.book_name_ko, b.testament]))
-  // 검색 결과 카드(book_number 기반)에 읽기 진행도(book_id 기반)를 연결하기 위한 매핑
-  const bookIdByNumber = new Map((allBooks || []).map(b => [b.book_number, b.id]))
   // 키워드 검색 응답의 절 객체에는 책 이름이 없다(book_number만) → 책 목록으로 이름을 복원
   const nameByNumber = new Map((allBooks || []).map(b => [b.book_number, b.book_name_ko]))
   const matchesScope = (bookNumber?: number | null, bookNameKo?: string) => {
@@ -773,7 +771,6 @@ const BibleSearch = () => {
             <SearchBookCard
               key={book.book_number}
               book={book}
-              bookId={bookIdByNumber.get(book.book_number) ?? 0}
               onSelectChapter={goToChapter}
               onOpenPicker={() => setPickerFor(book.book_number)}
             />

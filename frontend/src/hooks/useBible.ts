@@ -110,6 +110,29 @@ export const prefetchBibleBooks = (qc: QueryClient): void => {
   })
 }
 
+/**
+ * 검색 첫 페이지 — 딥링크·뒤로가기(/bible?tab=search&q=사랑)로 들어올 때 라우트 청크와 나란히 띄운다.
+ * 예전엔 BibleStudy 청크 → BibleSearch 청크 → 검색 요청이 세 번 직렬이었다.
+ * 키·queryFn·페이지 크기·initialPageParam 은 useBibleSearchInfinite 와 같아야 훅이 캐시를 이어받는다.
+ */
+export const prefetchBibleSearch = (
+  qc: QueryClient,
+  keyword: string,
+  testament?: 'OLD' | 'NEW',
+  bookNumber?: number,
+): void => {
+  const q = keyword.trim()
+  if (q.length < 2) return
+  void qc.prefetchInfiniteQuery({
+    queryKey: bibleKeys.searchInfinite(q, testament, bookNumber),
+    queryFn: ({ pageParam }) =>
+      searchBible(q, { offset: pageParam, limit: BIBLE_SEARCH_PAGE_SIZE, testament, bookNumber }),
+    initialPageParam: 0,
+    staleTime: CHAPTER_STALE_MS,
+    gcTime: CHAPTER_GC_MS,
+  })
+}
+
 export const prefetchBibleChapter = (qc: QueryClient, bookNumber: number, chapter: number): void => {
   if (!(bookNumber > 0 && chapter > 0)) return
   prefetchBibleBooks(qc)

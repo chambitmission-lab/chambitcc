@@ -394,6 +394,13 @@ const BibleStudy = () => {
       { settleMs: 300, idleTimeoutMs: 2000 },
     )
   }, [showBookList, resumeData, qc])
+
+  // 찾기 탭 청크(gz 12KB)는 읽기 탭이 그려진 뒤 유휴 시간에 받아 둔다 — 탭을 누르는 순간
+  // 청크 한 왕복을 기다리지 않게. 재방문은 SW 캐시라 비용이 없고, 데이터 절약 모드에선 건너뛴다.
+  useEffect(() => {
+    if (activeTab === 'search' || preloadBudget() === 'none') return
+    return scheduleAfterFirstScreen(() => void BibleSearch.preload(), { settleMs: 1000, idleTimeoutMs: 5000 })
+  }, [activeTab])
   const handleChapterFullyRead = useCallback(async () => {
     if (!planAutoComplete) return
     if (isPlanLastChapter) {
