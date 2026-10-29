@@ -199,38 +199,46 @@
   opacity: 0.7;
 }
 
-/* 완독 — 켜진 등불. 위쪽에서 빛이 도는 구체 질감 + 1px 빛줄 림 + 주변을 밝히는 정적 halo.
-   다크모드 카드 문법(솔리드+미세 그라데이션+1px 빛줄)을 노드에 그대로 적용한 것.
+/* 완독 — 유리구슬 같은 광택 원판. 책 목록 보기(book-selector/list.css .book-row.is-complete)와
+   같은 문법: 위쪽 radial 하이라이트 + 밝은→진한 3단 그라데이션 + 1px 빛줄 림 + 바깥 빛무리 +
+   왼쪽 위 광택 한 점(::after). 노드가 56px이라 목록(36px)보다 빛무리·광택 점을 비례해 키웠다.
    halo는 애니메이션 없는 정적 빛 — 무한 글로우 절제 원칙. */
 .bjp-row--done .bjp-node__inner {
   background:
-    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.3), transparent 45%),
-    linear-gradient(155deg, #4593fc, var(--brand-dim));
-  border-color: transparent;
+    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.32), transparent 45%),
+    linear-gradient(150deg, #64aaff 0%, var(--brand) 55%, #1f66e0 100%);
+  /* 테두리는 아예 없앤다 — transparent 1.5px 테두리 아래로 그라데이션이 반복 타일링돼
+     가장자리에 반대쪽 끝(진한 #1f66e0)이 띠처럼 비쳐 검은 테가 보였다 */
+  border: none;
+  color: #fff;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 4px rgba(49, 130, 246, 0.09),
-    0 0 18px 2px rgba(49, 130, 246, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 0 4px rgba(49, 130, 246, 0.1),
+    0 0 20px 2px rgba(49, 130, 246, 0.32),
     0 4px 14px -4px rgba(49, 130, 246, 0.55);
 }
 
 [data-theme="dark"] .bjp-row--done .bjp-node__inner {
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
     0 0 0 4px rgba(69, 147, 252, 0.09),
     0 0 22px 3px rgba(69, 147, 252, 0.3),
     0 4px 16px -4px rgba(49, 130, 246, 0.6);
 }
 
-/* 순례 스탬프 압인 링 — 여권 도장의 톱니 테두리처럼 채움 안쪽을 도는 점선 링 */
+/* 광택 한 점 — 왼쪽 위에 맺힌 작은 타원 하이라이트(예전 점선 압인 링 자리) */
 .bjp-row--done .bjp-node__inner::after {
   content: '';
   position: absolute;
-  inset: 4.5px;
+  top: 8px;
+  left: 12px;
+  width: 18px;
+  height: 9px;
   border-radius: 50%;
-  border: 1.5px dashed rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.5);
+  transform: rotate(-25deg);
   pointer-events: none;
 }
 
