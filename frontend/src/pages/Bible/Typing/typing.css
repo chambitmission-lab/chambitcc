@@ -2418,6 +2418,67 @@
   font-size: 15px;
   font-weight: 500;
 }
+/* PC — 넓은 화면에선 시트를 키워 고르고 이름 붙이기 편하게 (모바일은 그대로) */
+@media (min-width: 1024px) {
+  .bt-summary__card.bt-relay-new {
+    max-width: 580px;
+    padding: 36px 36px 28px;
+    border-radius: 28px;
+  }
+  .bt-relay-new .bt-summary__eyebrow {
+    font-size: 14px;
+  }
+  .bt-relay-new .bt-summary__title {
+    margin-top: 6px;
+    font-size: 26px;
+  }
+  .bt-relay-new__desc {
+    margin: 10px 0 20px;
+    font-size: 15.5px;
+  }
+  .bt-relay-new .bt-quick--wrap {
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+  .bt-relay-new .bt-chip {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 15px;
+  }
+  .bt-relay-new__row {
+    gap: 12px;
+  }
+  .bt-relay-new .bt-field {
+    gap: 6px;
+    margin-top: 14px;
+    font-size: 14px;
+  }
+  .bt-relay-new .bt-field--narrow {
+    flex-basis: 132px;
+  }
+  .bt-relay-new .bt-field select,
+  .bt-relay-new .bt-field input {
+    height: 52px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-size: 17px;
+  }
+  .bt-relay-new .bt-summary__actions {
+    flex-direction: row-reverse;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .bt-relay-new .bt-summary__actions .bt-btn {
+    height: 54px;
+    font-size: 17px;
+  }
+  .bt-relay-new .bt-summary__actions .bt-btn--primary {
+    flex: 2;
+  }
+  .bt-relay-new .bt-summary__actions .bt-btn--ghost {
+    flex: 1;
+  }
+}
 
 /* ── 다음 칭호 ───────────────────────────────────── */
 .bt-nexttitle {

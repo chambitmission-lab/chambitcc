@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ReadingProgressResponse, ResumePosition } from '../../../api/bibleReading'
@@ -110,6 +110,7 @@ interface BookCategory {
   labelEn: string
   min: number
   max: number
+  colorVar?: string
 }
 
 const OT_CATEGORIES: BookCategory[] = [
@@ -225,6 +226,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       showAllBooks: '읽은 책 다시 보기',
       nextUp: '다음',
       testamentDone: '완독',
+      bookCount: (n: number) => `${n}권`,
       celebrateOT: '구약 39권을 모두 읽었어요 🎉',
       celebrateOTNext: '이제 신약으로 넘어가요',
       celebrateNT: '신약 27권을 모두 읽었어요 🎉',
@@ -279,6 +281,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       showAllBooks: 'Show finished books',
       nextUp: 'Next',
       testamentDone: 'complete',
+      bookCount: (n: number) => `${n} books`,
       celebrateOT: 'You finished all 39 books of the Old Testament 🎉',
       celebrateOTNext: 'On to the New Testament',
       celebrateNT: 'You finished all 27 books of the New Testament 🎉',
@@ -681,21 +684,27 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       ?.book_number
   })()
 
-  // 탭 배지 — 진행 기록이 없으면 권수, 읽는 중이면 %, 다 읽었으면 체크.
+  // 탭 보조 줄 — 권수는 늘 보이고, 읽은 기록이 있으면 %(다 읽었으면 '완독')를 덧붙인다.
   // 탭을 누르기 전에 양쪽이 어디까지 왔는지 보인다
-  const renderTabBadge = (tm: Testament, bookCount: number) => {
+  const renderTabMeta = (tm: Testament, bookCount: number) => {
     const rate = testamentRate[tm]
-    if (hasAnyProgress && rate >= 100) {
-      return (
-        <span className="testament-tab__count testament-tab__count--done" aria-label={t.testamentDone}>
-          <span className="material-icons-round">check</span>
-        </span>
-      )
-    }
-    if (hasAnyProgress && rate > 0) {
-      return <span className="testament-tab__count">{pctLabel(rate)}%</span>
-    }
-    return <span className="testament-tab__count">{bookCount}</span>
+    return (
+      <span className="testament-tab__meta">
+        {t.bookCount(bookCount)}
+        {hasAnyProgress && rate >= 100 && (
+          <>
+            {' · '}
+            <b className="testament-tab__done">{t.testamentDone}</b>
+          </>
+        )}
+        {hasAnyProgress && rate > 0 && rate < 100 && (
+          <>
+            {' · '}
+            <b>{pctLabel(rate)}%</b>
+          </>
+        )}
+      </span>
+    )
   }
 
   return (
@@ -887,8 +896,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       )}
       <div className="book-nav">
         <div className="testament-tabs" role="tablist" data-active={testament}>
-          {/* 슬라이딩 선택 마커 — 트랙 위를 부드럽게 이동한다 */}
-          <span className="testament-marker" aria-hidden="true" />
           <button
             type="button"
             role="tab"
@@ -896,9 +903,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             className={`testament-tab${testament === 'OT' ? ' active' : ''}`}
             onClick={() => handleTestamentChange('OT')}
           >
-            <span className="material-icons-round testament-tab__icon">auto_stories</span>
             <span className="testament-tab__label">{t.oldTestament}</span>
-            {renderTabBadge('OT', 39)}
+            {renderTabMeta('OT', 39)}
           </button>
           <button
             type="button"
@@ -907,9 +913,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             className={`testament-tab${testament === 'NT' ? ' active' : ''}`}
             onClick={() => handleTestamentChange('NT')}
           >
-            <span className="material-icons-round testament-tab__icon">menu_book</span>
             <span className="testament-tab__label">{t.newTestament}</span>
-            {renderTabBadge('NT', 27)}
+            {renderTabMeta('NT', 27)}
           </button>
         </div>
 
@@ -917,29 +922,33 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           {categories.map((cat, i) => {
             const rate = categoryStats.get(`${cat.min}-${cat.max}`) ?? 0
             const showRate = hasAnyProgress
+            const done = showRate && rate >= 100
             return (
               <button
                 key={cat.id}
                 type="button"
                 className={`book-filter-chip${filter === cat.id ? ' active' : ''}`}
-                style={{ animationDelay: `${i * 45}ms` }}
+                style={{
+                  animationDelay: `${i * 45}ms`,
+                  // 분류 이름 글자가 진행률만큼 왼쪽부터 장르색으로 차오른다('전체'는 브랜드 블루)
+                  '--chip-color': cat.colorVar ? `var(${cat.colorVar})` : 'var(--brand)',
+                  '--chip-fill': `${showRate ? gaugeWidth(rate) : 0}%`,
+                } as CSSProperties}
                 onClick={() => {
                   setInteracted(true)
                   setFilter(cat.id)
                 }}
               >
-                {/* 칩 배경을 진행률만큼 채워, 숫자를 읽지 않아도 덜 읽은 분류가 드러나게 */}
-                {showRate && (
-                  <span
-                    className="book-filter-chip__fill"
-                    aria-hidden="true"
-                    style={{ width: `${gaugeWidth(rate)}%` }}
-                  />
-                )}
                 <span className="book-filter-chip__label">
                   {language === 'en' ? cat.labelEn : cat.label}
                 </span>
-                {showRate && <span className="book-filter-chip__pct">{pctLabel(rate)}%</span>}
+                {done ? (
+                  <span className="material-icons-round book-filter-chip__done" aria-label={t.testamentDone}>
+                    check
+                  </span>
+                ) : (
+                  showRate && <span className="book-filter-chip__pct">{pctLabel(rate)}%</span>
+                )}
               </button>
             )
           })}

@@ -160,32 +160,6 @@
     box-shadow: none;
   }
 
-  /* ③ 구약/신약 세그먼트 + 분류 칩 */
-  .bible-hub .testament-tabs {
-    background: var(--glass);
-    border-color: transparent;
-    border-radius: 1rem;
-    box-shadow: var(--glass-shadow);
-    -webkit-backdrop-filter: blur(18px) saturate(1.4);
-    backdrop-filter: blur(18px) saturate(1.4);
-  }
-  .bible-hub .testament-marker {
-    border-radius: 0.75rem;
-    background: radial-gradient(120% 140% at 30% 0%, #79b2ff, var(--brand) 60%, var(--brand-dim, var(--brand)));
-    box-shadow: 0 8px 20px -8px var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  }
-  .bible-hub .testament-marker::after {
-    display: none;
-  }
-  .bible-hub .book-filter-chip:not(.active) {
-    background: var(--glass-strong);
-    border-color: transparent;
-    box-shadow: inset 0 1px 0 var(--glass-edge), 0 0 0 1px var(--glass-line), 0 4px 12px -8px rgba(49, 90, 180, 0.25);
-  }
-  .bible-hub .book-filter-chip.active {
-    box-shadow: 0 6px 16px -6px var(--brand-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  }
-
   /* ④ 성경 공부 도구 — 벤토 타일 */
   .bible-hub .dash-bento {
     display: grid;
