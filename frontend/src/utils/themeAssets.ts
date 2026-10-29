@@ -23,6 +23,7 @@
 // 서비스 워커의 옛 캐시를 자연히 비켜 간다). public/ 파일은 URL 이 고정이라 sw.js 의
 // stale-while-revalidate 가 백그라운드로 갱신한다. 어느 쪽이든 CSS 와 같은 경로여야 한다.
 import { preloadBudget } from './idlePreload'
+import { safeStorage } from './safeStorage'
 import { getNaturalSeason, type NaturalSeason } from './naturalSeason'
 import { deriveTimeOfDay } from '../hooks/useDailyMeditation'
 import type { TimeOfDay } from '../types/meditation'
@@ -365,6 +366,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/thanks$/, pairs: [THANKS_HERO] },
   { match: /^\/growth$/, pairs: [GROWTH_HERO] },
   { match: /^\/capsule$/, pairs: [CAPSULE_HERO] },
+  { match: /^\/companion$/, pairs: [COMPANION_HERO] },
   { match: /^\/capsule\/new$/, pairs: [CAPSULE_CREATE_ART.recipient, CAPSULE_TRAIL_BG] },
   { match: /^\/groups\/(?!join\/)[^/]+$/, pairs: [GROUP_DETAIL_HERO] },
   { match: /^\/bible$/, pairs: [READING_HERO, RESUME_CARD] },
@@ -420,8 +422,27 @@ type Priority = 'high' | 'low' | 'auto'
 const inflight = new Map<string, Promise<void>>()
 const settled = new Set<string>()
 
-/** 이 파일이 이미 도착했는지(성공·실패 불문) — 첫 렌더에서 페이드를 건너뛰는 데 쓴다 */
-export const isImageWarm = (src: string): boolean => settled.has(src)
+// 지난 실행에서 받아 둔 파일 — settled 는 새로고침·앱 재실행마다 비어서, 브라우저 캐시에 있는
+// 파일도 "마운트 → 요청 → 도착 → 0.4초 페이드" 를 한 번 더 거쳤다. 성공한 URL 을 기억해 두고
+// 첫 렌더부터 ready 로 본다. 캐시가 실제로 비었더라도 페이드만 빠질 뿐 배경은 도착하는 대로 뜬다.
+const SEEN_KEY = 'theme-art-seen'
+const SEEN_MAX = 80
+const seen: string[] = (() => {
+  const raw = safeStorage.getJson(SEEN_KEY)
+  return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : []
+})()
+const seenSet = new Set(seen)
+
+const rememberSeen = (src: string): void => {
+  if (seenSet.has(src)) return
+  seenSet.add(src)
+  seen.push(src)
+  if (seen.length > SEEN_MAX) seenSet.delete(seen.shift() as string)
+  safeStorage.setJson(SEEN_KEY, seen)
+}
+
+/** 이 파일이 이미 도착했는지(이번 실행 성공·실패 불문, 또는 지난 실행에서 받음) — 첫 렌더에서 페이드를 건너뛰는 데 쓴다 */
+export const isImageWarm = (src: string): boolean => settled.has(src) || seenSet.has(src)
 
 /**
  * 파일 한 장을 브라우저 캐시(+ 서비스 워커 캐시)에 넣어 둔다. 같은 URL 은 한 번만 요청한다.
@@ -441,7 +462,10 @@ export const warmImage = (src: string, priority: Priority = 'auto'): Promise<voi
       settled.add(src)
       resolve()
     }
-    img.onload = done
+    img.onload = () => {
+      rememberSeen(src)
+      done()
+    }
     img.onerror = done
     img.src = src
   })
@@ -481,7 +505,8 @@ export const warmRouteThemeAssets = (path: string): Promise<void> =>
 /** 지금 화면의 반대 테마 파일이 전부 도착해 있는가(동기) — 토글이 기다릴 필요가 있는지 판단 */
 export const isOppositeThemeWarm = (path = currentRoutePath()): boolean => {
   const other = oppositeTheme(currentTheme())
-  return activePairs(path).every((pair) => isImageWarm(pairSrc(pair, other)))
+  // 지난 실행 기록(seen)은 보지 않는다 — 토글은 이번 실행에서 실제로 받아 둔 파일만 믿고, 아니면 잠깐 기다린다
+  return activePairs(path).every((pair) => settled.has(pairSrc(pair, other)))
 }
 
 /** 토글 버튼 hover/focus 에서 호출 — 누르기 전에 반대 테마 배경을 낮은 우선순위로 데운다(PC) */

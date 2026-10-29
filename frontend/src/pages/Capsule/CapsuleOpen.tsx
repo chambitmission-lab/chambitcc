@@ -68,12 +68,12 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   // 이 화면에서 방금 연 캡슐 — 개봉 응답이 캐시에 opened_at 을 채워도 재열람으로 보지 않는다
   const openedHere = useRef(false)
 
-  // 이미 개봉한 캡슐(재열람)은 연출 없이 바로 편지를 보여준다
-  useEffect(() => {
-    if (capsule?.openable && capsule.opened_at && phase === 'sealed' && !openedHere.current) {
-      setPhase('letter')
-    }
-  }, [capsule, phase])
+  // 이미 개봉한 캡슐(재열람)은 연출 없이 바로 편지를 보여준다.
+  // effect로 phase를 바꾸면 데이터가 도착한 첫 프레임에 봉투 화면이 한 번 그려졌다 사라진다
+  // (캐시된 캡슐은 진입 즉시) — 렌더 시점에 바로 유도해서 봉투가 아예 안 찍히게 한다.
+  const reopened =
+    phase === 'sealed' && !!capsule?.openable && !!capsule.opened_at && !openedHere.current
+  const stage: Phase = reopened ? 'letter' : phase
 
   // 봉투를 뜯기 전에 편지 하늘 삽화를 데워 둔다 — 개봉 연출이 끝나는 순간 이미 자리에 있게.
   // 봉인 대기 화면의 금고 삽화도 CSS 배경이라 현재 테마만 받는다 — 반대 테마까지 미리 데워
@@ -84,7 +84,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   // 하늘 위 헤더 ↔ 크림 유리 헤더 전환 (편지를 읽는 동안에만)
   useEffect(() => {
     // 편지 단계는 되돌아오지 않으므로 벗어날 때 상태를 되돌릴 일이 없다
-    if (phase !== 'letter') return
+    if (stage !== 'letter') return
     // 실제 스크롤 컨테이너는 body다(#root·body에 overflow-y가 걸려 있어 window.scrollY는 늘 0).
     // 어느 쪽이 움직이든 잡히도록 둘 다 읽고, 둘 다 듣는다.
     const onScroll = () =>
@@ -98,7 +98,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
       document.body.removeEventListener('scroll', onScroll)
       window.removeEventListener('scroll', onScroll)
     }
-  }, [phase])
+  }, [stage])
 
   // 개봉 연출(빛 터짐·선물·도장)이 끝나도 편지로 저절로 넘기지 않는다 —
   // "기다린 보람"을 누릴 시간을 두고, 편지 읽기 버튼으로 들어간다
@@ -169,7 +169,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   const handwriting = content?.handwriting ?? []
 
   // 편지를 읽는 화면에서만 헤더가 아침 하늘 위로 올라간다
-  const onSky = phase === 'letter' && !!content
+  const onSky = stage === 'letter' && !!content
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
@@ -259,7 +259,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
 
         {/* 개봉 가능 — 빛에 비춰보는 봉투 한 통. 꾹 눌러 빛이 터지면
             담긴 것이 하나씩 튀어나오고, "편지 읽기"로 편지 화면에 들어간다 */}
-        {capsule && phase !== 'letter' && capsule.openable && (
+        {capsule && stage !== 'letter' && capsule.openable && (
           <ArrivalEnvelope
             capsule={capsule}
             opened={phase === 'opening'}
@@ -271,7 +271,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
         {/* 아직 못 여는 캡슐 — 봉투는 "열 수 있다"는 신호라서 다이얼만 보여준다.
             위·아래 여백은 capsule.css 가 잡는다: 뒤에 깔린 금고 삽화(양·텐트·새끼양)가
             다이얼과 제목 사이에 들어앉을 자리라서 pt-10/mt-9 로는 모자란다 */}
-        {capsule && phase !== 'letter' && !capsule.openable && (
+        {capsule && stage !== 'letter' && !capsule.openable && (
           <div className="capsule-waiting px-6 text-center">
             <SealDial sealedAt={capsule.sealed_at} openAt={capsule.open_at} />
 
@@ -316,7 +316,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
         {/* 편지 — 봉투에서 방금 꺼낸 크림 편지지.
             봉투·초대장·폴라로이드가 쌓아온 재질 언어(크림 종이·소인·손글씨·밀랍)를
             여기서 끊지 않는다. 앱 카드가 아니라 세 겹으로 접혀 있던 종이 한 장이다. */}
-        {capsule && phase === 'letter' && content && (
+        {capsule && stage === 'letter' && content && (
           <div className="capsule-reading px-4">
             {/* 하늘의 내레이션 — 편지를 펼치기 전에 집배원이 건네는 한마디 */}
             <div className="capsule-reading__journey capsule-letter-enter">
@@ -576,7 +576,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
       {capsule && (
         <CapsuleOpenRail
           capsule={capsule}
-          reading={phase === 'letter' && !!content}
+          reading={stage === 'letter' && !!content}
           senderLine={senderLine(capsule)}
           onSlideshow={
             photos.length > 0 && content?.audio_url ? () => setShowSlideshow(true) : undefined
