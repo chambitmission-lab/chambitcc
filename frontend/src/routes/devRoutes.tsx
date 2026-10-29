@@ -23,7 +23,7 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['notice-poster', () => import('../pages/Home/components/NoticePosterPreview')],
       // 공지 본문 서식(경량 마크업) 렌더
       ['notice-markup', () => import('../pages/Admin/components/NoticeMarkupPreview')],
-      // 타임캡슐 개봉 후 편지 화면(아침 하늘·우표·종이테이프)
+      // 타임캡슐 개봉 후 편지 화면(아침 하늘·우표·종이테이프) / ?arrival=1 도착·개봉 연출
       ['capsule-letter', () => import('../pages/Capsule/CapsuleLetterPreview')],
       // 홈 "올해의 말씀" 카드 리디자인 후보 비교
       ['annual-verse', () => import('../pages/Home/AnnualVersePreview')],

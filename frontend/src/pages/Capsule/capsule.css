@@ -2,8 +2,8 @@
    화면/연출 단위로 styles/ 아래에 나뉘어 있다. @import 순서 = 원본 순서이므로
    (뒤에 오는 규칙이 이긴다) 새 파일을 끼워 넣을 때 순서를 지켜야 한다. */
 
-@import './styles/envelope.css'; /* 밤하늘 무대 · 봉투 · 밀랍 인장 */
-@import './styles/open-sequence.css'; /* 개봉 연출 · 꾹 누르기 안내 */
+@import './styles/envelope.css'; /* 도착 — 빛에 비춰보는 봉투 · 빛 터짐 · 선물 · 도착 도장 */
+@import './styles/open-sequence.css'; /* 편지 등장 모션 */
 @import './styles/sealed.css'; /* 봉인 대기 — 금고 삽화 · 다이얼 · 가려진 편지 */
 @import './styles/letter.css'; /* 개봉 후 편지지 — 폴라로이드 · 아침 하늘 · 우표 · 소인 */
 @import './styles/ink.css'; /* 손글씨 편지 — 펜 쓰기 시트 · 미리보기 · 개봉 재생 */

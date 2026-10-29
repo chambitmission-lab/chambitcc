@@ -1,5 +1,7 @@
 // /dev/capsule-letter — 개봉 후 편지 화면(아침 하늘 + 우표 + 종이테이프)을 로그인·서버 없이 본다.
+// ?arrival=1 이면 아직 열지 않은 도착 화면(빛에 비춰보는 봉투 → 선물 → 도착 도장)부터.
 // DEV 전용 라우트라 App.tsx가 import.meta.env.DEV일 때만 lazy import 한다.
+import { useSearchParams } from 'react-router-dom'
 import type { CapsuleDetail } from '../../types/timeCapsule'
 import CapsuleOpen from './CapsuleOpen'
 
@@ -43,6 +45,28 @@ const MOCK: CapsuleDetail = {
   },
 }
 
-const CapsuleLetterPreview = () => <CapsuleOpen preview={MOCK} />
+// 도착 화면용 — 열기 전이고, 선물로 튀어나올 사진·음성이 들어 있다
+const ARRIVAL: CapsuleDetail = {
+  ...MOCK,
+  opened_at: null,
+  has_audio: true,
+  photo_count: 2,
+  content: MOCK.content && {
+    ...MOCK.content,
+    audio_url: '/sounds/ambience-dawn.mp3',
+    audio_duration: 42,
+    photos: [
+      { url: '/images/capsule/letter-light.webp', caption: '그날 저녁' },
+      { url: '/images/capsule/hero-light.webp', caption: null },
+    ],
+  },
+}
+
+const CapsuleLetterPreview = () => {
+  const [params] = useSearchParams()
+  const arrival = params.get('arrival') === '1'
+  // key — 도착/편지를 오갈 때 개봉 단계 상태를 새로 시작한다
+  return <CapsuleOpen key={arrival ? 'arrival' : 'letter'} preview={arrival ? ARRIVAL : MOCK} />
+}
 
 export default CapsuleLetterPreview

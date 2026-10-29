@@ -60,5 +60,23 @@ const arrivalNarration = (sealedAt: string, openAt: string): string => {
   return `${formatKoreanDate(sealedAt)}에 봉인되어, ${journeyLine(sealedAt, openAt)}`
 }
 
+/** 도착 화면 큰 제목의 숫자 — "{이것}을 건너온 편지". 당일 봉인·당일 도착이면 null */
+const journeySpanLabel = (days: number): string | null => {
+  if (days === 0) return null
+  if (days < 365) return `${days.toLocaleString()}일`
+  const years = Math.floor(days / 365)
+  const rest = days - years * 365
+  return rest > 0 ? `${years}년 ${rest.toLocaleString()}일` : `${years}년`
+}
+
 // ── 같은 화면의 형제 모듈이 쓴다 ──
-export { senderLine, addressTo, signatureFrom, postmark, journeyLine, arrivalNarration }
+export {
+  senderLine,
+  addressTo,
+  signatureFrom,
+  postmark,
+  journeyDays,
+  journeyLine,
+  journeySpanLabel,
+  arrivalNarration,
+}

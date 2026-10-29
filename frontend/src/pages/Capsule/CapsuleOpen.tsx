@@ -2,7 +2,7 @@
 // - 개봉 전: 봉인된 봉투 + D-day (내용은 서버가 내려주지 않는다)
 // - 개봉 가능: 밤하늘에 내려앉은 우편물 → 인장 뜯기 → 편지(글·음성·스냅샷)
 // - 읽은 뒤: 답장 캡슐 이어쓰기 CTA (개봉이 다음 봉인의 입구)
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCapsule, useDeleteCapsule, useOpenCapsule } from '../../hooks/useTimeCapsule'
 import type { CapsuleDetail } from '../../types/timeCapsule'
@@ -27,7 +27,7 @@ import { DevelopingPolaroid } from './open/DevelopingPolaroid'
 import { POLAROID_TILTS, filmStamp } from './open/polaroidBits'
 import { MetaChip, SealDial, SealedLetterPreview } from './open/SealedScreen'
 import { VoiceTape } from './open/VoiceTape'
-import { addressTo, arrivalNarration, journeyLine, senderLine, signatureFrom } from './open/letterText'
+import { addressTo, arrivalNarration, senderLine, signatureFrom } from './open/letterText'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
 type Phase = 'sealed' | 'opening' | 'letter'
@@ -65,9 +65,12 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
     }
   }, [id, navigate, preview])
 
+  // 이 화면에서 방금 연 캡슐 — 개봉 응답이 캐시에 opened_at 을 채워도 재열람으로 보지 않는다
+  const openedHere = useRef(false)
+
   // 이미 개봉한 캡슐(재열람)은 연출 없이 바로 편지를 보여준다
   useEffect(() => {
-    if (capsule?.openable && capsule.opened_at && phase === 'sealed') {
+    if (capsule?.openable && capsule.opened_at && phase === 'sealed' && !openedHere.current) {
       setPhase('letter')
     }
   }, [capsule, phase])
@@ -97,16 +100,21 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
     }
   }, [phase])
 
-  const handleOpen = async () => {
+  // 개봉 연출(빛 터짐·선물·도장)이 끝나도 편지로 저절로 넘기지 않는다 —
+  // "기다린 보람"을 누릴 시간을 두고, 편지 읽기 버튼으로 들어간다
+  const handleOpen = async (): Promise<boolean> => {
     try {
-      await openCapsule.mutateAsync()
-      // 봉투가 뜯기는 순간의 촉감 — 미지원 브라우저(iOS Safari)는 조용히 무시
+      // 미리보기는 목 데이터에 내용이 이미 있다 — 서버 없이 연출만
+      openedHere.current = true
+      if (!preview) await openCapsule.mutateAsync()
+      // 봉투가 빛으로 풀리는 순간의 촉감 — 미지원 브라우저(iOS Safari)는 조용히 무시
       navigator.vibrate?.([28, 45, 34])
       setPhase('opening')
-      // 봉투 연출이 끝나면 편지로 전환
-      window.setTimeout(() => setPhase('letter'), 1700)
+      return true
     } catch (e) {
+      openedHere.current = false
       showToast(e instanceof Error ? e.message : '아직 캡슐을 열 수 없습니다', 'error')
+      return false
     }
   }
 
@@ -249,44 +257,15 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
           </div>
         )}
 
-        {/* 개봉 가능 — 밤하늘에서 내려앉은 우편물 한 통.
-            "열어보고 싶은 마음"은 파란 버튼이 아니라 봉투의 재질과 뜯는 동작에서 온다. */}
+        {/* 개봉 가능 — 빛에 비춰보는 봉투 한 통. 꾹 눌러 빛이 터지면
+            담긴 것이 하나씩 튀어나오고, "편지 읽기"로 편지 화면에 들어간다 */}
         {capsule && phase !== 'letter' && capsule.openable && (
-          <div className={`capsule-arrival ${phase === 'opening' ? 'capsule-arrival--opening' : ''}`}>
-            <span className="capsule-arrival__bloom" aria-hidden />
-            <div className="capsule-arrival__inner px-6 pt-6 pb-10 text-center">
-              <p className="capsule-invite__eyebrow pb-7 text-[11px] font-bold tracking-[0.3em]">
-                {capsule.role === 'recipient' ? '편지가 도착했어요' : '오늘 열 수 있어요'}
-              </p>
-
-              <ArrivalEnvelope
-                capsule={capsule}
-                opening={phase === 'opening' || openCapsule.isPending}
-                onOpen={handleOpen}
-              />
-
-              <p className="mt-9 text-[12.5px] font-bold text-[var(--text-muted)]">
-                {senderLine(capsule)}
-              </p>
-              <h2 className="text-[21px] font-extrabold mt-1.5 break-keep">
-                {capsule.title || '캡슐이 도착했어요'}
-              </h2>
-              <p className="mt-2 text-[13px] font-bold text-brand">
-                {journeyLine(capsule.sealed_at, capsule.open_at)}
-              </p>
-
-              <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-                <MetaChip icon={<CalendarGlyph />}>
-                  {formatKoreanDate(capsule.sealed_at)} 봉인
-                </MetaChip>
-                {(capsule.photo_count ?? 0) > 0 && (
-                  <MetaChip icon={<PhotoGlyph />}>사진 {capsule.photo_count}장</MetaChip>
-                )}
-                {capsule.has_handwriting && <MetaChip icon={<PenGlyph />}>손글씨 편지</MetaChip>}
-                {capsule.has_audio && <MetaChip icon={<MicGlyph />}>음성 편지</MetaChip>}
-              </div>
-            </div>
-          </div>
+          <ArrivalEnvelope
+            capsule={capsule}
+            opened={phase === 'opening'}
+            onOpen={handleOpen}
+            onRead={() => setPhase('letter')}
+          />
         )}
 
         {/* 아직 못 여는 캡슐 — 봉투는 "열 수 있다"는 신호라서 다이얼만 보여준다.
