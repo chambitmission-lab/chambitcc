@@ -4,6 +4,7 @@
 // '다음에 열릴 편지가 언제인지'만 남긴다.
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLazyNavigate } from '../../hooks/useLazyNavigate'
 import type { CapsuleSummary } from '../../types/timeCapsule'
 import type { CapsuleMailboxData } from '../../hooks/useTimeCapsule'
 import { warmCapsuleCreate } from '../../utils/routePreload'
@@ -75,7 +76,9 @@ const UpcomingRow = ({ capsule }: { capsule: CapsuleSummary }) => {
 }
 
 const CapsuleRail = ({ data }: { data: CapsuleMailboxData }) => {
-  const navigate = useNavigate()
+  // 청크가 아직 안 왔으면 눌린 버튼에 스피너 — 전환 중엔 fallback 이 없어 "안 눌린 것처럼" 보였다
+  const { go, pending } = useLazyNavigate()
+  const createPending = pending === '/capsule/new'
   const { sealed, arrivedTotal, unreadTotal } = data
   // 개봉이 가까운 순 — 본문은 '봉인한 달'로 묶이므로 여기서만 시간순으로 보여준다
   const upcoming = [...sealed]
@@ -91,12 +94,16 @@ const CapsuleRail = ({ data }: { data: CapsuleMailboxData }) => {
       <section className={cardClass}>
         <button
           type="button"
-          onClick={() => navigate('/capsule/new')}
+          onClick={() => void go('/capsule/new')}
           onPointerEnter={warmCapsuleCreate}
           onPointerDown={warmCapsuleCreate}
+          aria-busy={createPending || undefined}
           className="capsule-cta capsule-cta--block"
         >
-          새 캡슐 봉인하기
+          {createPending && (
+            <span className="w-4 h-4 rounded-full border-2 border-white/90 border-t-transparent animate-spin" aria-hidden />
+          )}
+          {createPending ? '봉투를 꺼내는 중…' : '새 캡슐 봉인하기'}
         </button>
         <p className="mt-3 rounded-xl bg-[var(--brand-soft)] px-3 py-2.5 text-[12.5px] leading-[1.7] text-[var(--text-body)] break-keep">
           오늘의 마음을 봉인하면 <b className="font-bold text-ink-strong">정해진 날 아침</b>에 도착해요.

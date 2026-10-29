@@ -16,6 +16,7 @@ import { useThemeArt } from '../../hooks/useThemeArt'
 import { CAPSULE_HERO } from '../../utils/themeAssets'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 import { preloadRoute, warmCapsuleCreate } from '../../utils/routePreload'
+import { useLazyNavigate } from '../../hooks/useLazyNavigate'
 import { Icon, LetterHeartGlyph } from './capsuleIcons'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
@@ -36,6 +37,11 @@ const CapsuleList = () => {
   // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(themeAssets.ts 참고).
   // 홈 배너가 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인한다.
   const artReady = useThemeArt(CAPSULE_HERO)
+
+  // 청크가 아직 안 왔으면 눌린 버튼에 스피너를 띄우고 받은 뒤 이동한다 — 전환 중엔 Suspense fallback 이
+  // 뜨지 않아 버튼이 "안 눌린 것처럼" 멈춰 보였다(NewHome goLazy 와 같은 문법)
+  const { go, pending } = useLazyNavigate()
+  const createPending = pending === '/capsule/new'
 
   // "새 캡슐 봉인하기" 목적지(/capsule/new, JS 36KB + 1단계 배달부 양 삽화)를 유휴 시간에 미리 받아 둔다.
   // 예전엔 버튼을 누른 뒤에야 청크 → 삽화가 직렬로 내려와 스피너 뒤 빈 무대가 한 박자 더 있었다.
@@ -94,26 +100,31 @@ const CapsuleList = () => {
             </p>
             <button
               type="button"
-              onClick={() => navigate('/capsule/new')}
+              onClick={() => void go('/capsule/new')}
               onPointerEnter={warmCapsuleCreate}
               onPointerDown={warmCapsuleCreate}
+              aria-busy={createPending || undefined}
               className="capsule-cta mt-4"
             >
-              {/* 봉인된 편지 — 손+펜 이모지가 삽화 위에서 겉돌아 스트로크 아이콘으로 교체 */}
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-              >
-                <rect x="3" y="5" width="18" height="14" rx="2.5" />
-                <path d="m3.5 6.5 8.5 6 8.5-6" />
-              </svg>
-              새 캡슐 봉인하기
+              {createPending ? (
+                <span className="w-4 h-4 rounded-full border-2 border-white/90 border-t-transparent animate-spin" aria-hidden />
+              ) : (
+                /* 봉인된 편지 — 손+펜 이모지가 삽화 위에서 겉돌아 스트로크 아이콘으로 교체 */
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <rect x="3" y="5" width="18" height="14" rx="2.5" />
+                  <path d="m3.5 6.5 8.5 6 8.5-6" />
+                </svg>
+              )}
+              {createPending ? '봉투를 꺼내는 중…' : '새 캡슐 봉인하기'}
             </button>
           </div>
         </section>
