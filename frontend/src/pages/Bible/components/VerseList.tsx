@@ -542,46 +542,6 @@ const VerseList = ({
     <VerseListProvider actions={verseActions} settings={verseSettings}>
     {/* 절 하나에 등불이 켜지면(액션 메뉴 열림) 나머지 절은 살짝 물러난다 — verse-display.css */}
     <div className={`bible-content${openVerseId !== null && !selectionMode ? ' verses-lamp-on' : ''}`}>
-      {/* 진행률 pill - 읽은 절이 있을 때만 컴팩트하게 표시 */}
-      {read.readCount > 0 && read.pillTotal > 0 && (
-        <div className={`verse-measure${read.pillReveal ? ' verse-progress-pill--reveal' : ''}`} style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.625rem',
-          padding: '0.5rem 0.875rem',
-          marginBottom: '0.875rem',
-          background: 'var(--ig-secondary-background)',
-          borderRadius: '999px',
-          fontSize: '0.8125rem',
-        }}>
-          <span className="material-icons-outlined" style={{ fontSize: '1rem', color: 'var(--ig-primary)' }}>
-            auto_stories
-          </span>
-          <span style={{ color: 'var(--ig-secondary-text)', fontWeight: 500 }}>
-            {read.readCount} / {read.pillTotal}
-          </span>
-          <div style={{
-            flex: 1,
-            height: '6px',
-            background: 'var(--ig-border)',
-            borderRadius: '3px',
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              width: `${read.progress}%`,
-              height: '100%',
-              background: 'var(--brand)',
-              borderRadius: '3px',
-              transition: 'width 0.3s ease',
-              minWidth: read.progress > 0 ? '2px' : '0',
-            }} />
-          </div>
-          <span style={{ fontWeight: 600, color: 'var(--ig-primary)', minWidth: '2.5rem', textAlign: 'right' }}>
-            {Math.round(read.progress)}%
-          </span>
-        </div>
-      )}
-
       {/* 함께 읽기 — 상단 캡션 + 묵상 배너 + 묵상 시트 */}
       <ChapterTogether
         bookNumber={bookNumber}

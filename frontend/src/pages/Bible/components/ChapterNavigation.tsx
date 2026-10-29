@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
-import { bibleReadingKeys } from '../../../hooks/useBibleReading'
+import { bibleReadingKeys, useChapterReadStatus } from '../../../hooks/useBibleReading'
 import { getBookReadingProgress } from '../../../api/bibleReading'
 import { bookmarkKeys } from '../../../hooks/useBibleBookmark'
 import { listBookmarks } from '../../../api/bibleBookmark'
@@ -12,6 +12,54 @@ import ReaderSettings from './ReaderSettings'
 import { lazyModal } from '../../../utils/lazyModal'
 // 장 선택 시트는 열 때만 — 읽기 화면 청크에서 분리
 const ChapterPickerSheet = lazyModal(() => import('./ChapterPickerSheet'))
+
+/**
+ * 장 알약 테두리 = 이 장 읽음 진행선.
+ * 예전엔 본문 위에 진행률 pill 을 첫 읽음 때 새로 끼워 넣어 본문 전체가 툭 밀렸다.
+ * 알약 둘레(위 가운데에서 시계 방향)에 겹쳐 그리면 차지하는 높이가 0 이다.
+ * 알약 폭이 화면마다 달라 실제 크기를 재서 스타디움 경로를 그린다 — viewBox 를 늘이면 둥근 끝이 찌그러진다.
+ */
+const ChapterTriggerRing = ({ percent }: { percent: number }) => {
+  const ref = useRef<SVGSVGElement>(null)
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null)
+  useLayoutEffect(() => {
+    const el = ref.current?.parentElement
+    if (!el) return
+    const measure = () => setSize({ w: el.offsetWidth, h: el.offsetHeight })
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const sw = 2
+  let d = ''
+  if (size && size.w > 0 && size.h > 0) {
+    const t = sw / 2
+    const w = size.w - t
+    const h = size.h - t
+    const r = (h - t) / 2
+    d = `M ${size.w / 2} ${t} H ${w - r} A ${r} ${r} 0 0 1 ${w - r} ${h} H ${t + r} A ${r} ${r} 0 0 1 ${t + r} ${t} Z`
+  }
+  return (
+    <svg
+      ref={ref}
+      className="chapter-trigger__ring"
+      width={size?.w ?? 0}
+      height={size?.h ?? 0}
+      aria-hidden
+    >
+      {d && (
+        <path
+          d={d}
+          pathLength={100}
+          strokeWidth={sw}
+          strokeDasharray="100 100"
+          strokeDashoffset={100 - Math.min(100, Math.max(0, percent))}
+        />
+      )}
+    </svg>
+  )
+}
 
 interface ChapterNavigationProps {
   selectedBook: string
@@ -47,6 +95,14 @@ const ChapterNavigation = ({
   const { isLoggedIn } = useAuth()
   const [pickerOpen, setPickerOpen] = useState(false)
   const queryClient = useQueryClient()
+  const loggedIn = isLoggedIn()
+
+  // 이 장 읽음 현황 — 본문(useChapterReadState)과 같은 쿼리 키라 요청이 더 생기지 않는다
+  const { data: readStatus } = useChapterReadStatus(bookNumber, selectedChapter, loggedIn)
+  const readTotal = readStatus?.total_verses ?? 0
+  const readDone = Math.min(readStatus?.read_verses ?? 0, readTotal)
+  const readPercent = readTotal > 0 ? (readDone / readTotal) * 100 : 0
+  const chapterComplete = readTotal > 0 && readDone >= readTotal
 
   // 시트 청크를 본문이 그려진 뒤 한가할 때 미리 받아둔다.
   // 미리 받지 않으면 첫 탭은 Suspense 경로로 열리는데, React는 폴백(null)을 한 번
@@ -71,7 +127,6 @@ const ChapterNavigation = ({
   // 한 박자 늦게 뜬다. 책을 펼쳐 읽는 동안 미리 받아 두면 시트는 캐시로 즉시 그려진다.
   // (staleTime은 useBookReadingProgress / useMyBookmarks / useBookWordNotes와
   //  동일하게 맞춘다 — fresh하면 prefetch도, 시트의 refetchOnMount도 요청 없이 끝난다)
-  const loggedIn = isLoggedIn()
   useEffect(() => {
     if (!loggedIn) return
     if (selectedBookId > 0) {
@@ -96,8 +151,8 @@ const ChapterNavigation = ({
   }, [loggedIn, selectedBookId, bookNumber, queryClient])
 
   const texts = {
-    ko: { prevChapter: '이전 장', nextChapter: '다음 장', pick: '장 선택', of: '장', focus: '집중 읽기 — 한 절씩' },
-    en: { prevChapter: 'Previous', nextChapter: 'Next', pick: 'Select chapter', of: '', focus: 'Focus reading — verse by verse' }
+    ko: { prevChapter: '이전 장', nextChapter: '다음 장', pick: '장 선택', of: '장', focus: '집중 읽기 — 한 절씩', readProgress: (n: number, total: number) => `${total}절 중 ${n}절 읽음` },
+    en: { prevChapter: 'Previous', nextChapter: 'Next', pick: 'Select chapter', of: '', focus: 'Focus reading — verse by verse', readProgress: (n: number, total: number) => `${n} of ${total} verses read` }
   }
 
   const t = texts[language]
@@ -162,13 +217,14 @@ const ChapterNavigation = ({
             "50장 중 3장"이라는 위치 감각까지 알약 하나로 전달한다 */}
         <button
           type="button"
-          className={`chapter-trigger${pickerOpen ? ' is-open' : ''}`}
+          className={`chapter-trigger${pickerOpen ? ' is-open' : ''}${readDone > 0 ? ' has-progress' : ''}${chapterComplete ? ' is-complete' : ''}`}
           onClick={() => setPickerOpen(true)}
           aria-haspopup="dialog"
           aria-expanded={pickerOpen}
-          aria-label={t.pick}
-          title={t.pick}
+          aria-label={readDone > 0 ? `${t.pick} — ${t.readProgress(readDone, readTotal)}` : t.pick}
+          title={readDone > 0 ? `${t.pick} · ${t.readProgress(readDone, readTotal)}` : t.pick}
         >
+          {readDone > 0 && <ChapterTriggerRing percent={readPercent} />}
           <span className="chapter-trigger__num">
             {selectedChapter}
             {t.of}
@@ -177,6 +233,14 @@ const ChapterNavigation = ({
           <span className="material-icons-round chapter-trigger__icon" aria-hidden="true">
             grid_view
           </span>
+          {/* 몇 절 읽었는지 — 알약 모서리에 겹쳐 띄워 줄 높이를 바꾸지 않는다 */}
+          {readDone > 0 && (
+            <span key={chapterComplete ? 'done' : 'reading'} className="chapter-trigger__badge" aria-hidden>
+              {chapterComplete
+                ? <span className="material-icons-round">check</span>
+                : <>{readDone}<small>/{readTotal}</small></>}
+            </span>
+          )}
         </button>
 
         <button

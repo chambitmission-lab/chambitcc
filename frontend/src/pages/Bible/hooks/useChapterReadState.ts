@@ -127,10 +127,6 @@ export const useChapterReadState = ({
   const unreadCount = Math.max(0, totalVerses - readCount)
   const progress = status?.progress ?? 0
   const isFullyRead = totalVerses > 0 && readCount >= totalVerses
-  // 진행률 pill 분모는 장 전체 절 수 — 로드된 페이지(20절) 합계를 쓰면 첫 읽음이 1/20으로 보임
-  const loadedVerseCount = chapterData?.pages.reduce((sum, page) => sum + page.verses.length, 0) ?? 0
-  const pillTotal = totalVerses || chapterData?.pages[0]?.total_verses || loadedVerseCount
-
   // ── 완독 감시 (장마다 한 번) ──
   // 두 가지를 한 effect 에서 본다:
   //  1) 이 장의 모든 절이 읽혔으면 onChapterFullyRead 를 장당 1회 — 이미 다 읽힌 장을 다시 열어도
@@ -178,14 +174,6 @@ export const useChapterReadState = ({
   const bodyRendered = !chapterLoading && !!chapterData && !holdingForReadStatus
   // 비로그인은 읽음 상태 쿼리가 꺼져 있어 '도착'으로 본다
   const readStatusReady = !loggedIn || !statusLoading
-
-  // 진행률 pill 이 본문보다 늦게 도착하면 목록이 툭 밀린다 — 그 경우에만 높이를 펼치며 나타난다.
-  // (읽음 상태가 캐시에 있어 본문과 함께 그려지면 그냥 정적으로 둔다)
-  const [pillRevealKey, setPillRevealKey] = useState<string | null>(null)
-  const pillReveal = pillRevealKey === chapterKey
-  useEffect(() => {
-    if (bodyRendered && !readStatusReady) setPillRevealKey(chapterKey)
-  }, [bodyRendered, readStatusReady, chapterKey])
 
   // ── 절 읽음 처리 ──
   const markAsReadMutation = useMarkVerseAsRead()
@@ -325,13 +313,11 @@ export const useChapterReadState = ({
     readCount,
     unreadCount,
     progress,
-    pillTotal,
     isFullyRead,
     readVerses,
     readStatusReady,
     holdingForReadStatus,
     bodyRendered,
-    pillReveal,
     togglingVerseId,
     markVerseRead,
     toggleVerseRead,
