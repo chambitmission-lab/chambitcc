@@ -328,6 +328,12 @@ const BibleStudy = () => {
   )
   const planId = Number(searchParams.get('plan')) || 0
   const planDayNumber = Number(searchParams.get('day')) || 0
+  // 처음 만나는 성경(스토리)의 '성경에서 직접 읽기'로 들어온 경우 ?from=story&ep= 가 붙는다.
+  // 초보자가 본문을 보고 이야기로 되돌아갈 길을 잃지 않게 칩을 띄운다(슬러그 형태만 신뢰)
+  const storyReturnEp =
+    searchParams.get('from') === 'story' && /^[a-z0-9-]+$/.test(searchParams.get('ep') ?? '')
+      ? (searchParams.get('ep') as string)
+      : null
   const { data: planData } = useBiblePlan(planId, planId > 0)
   const completeDay = useCompleteDay()
 
@@ -851,6 +857,19 @@ const BibleStudy = () => {
                     researchAvailable ? { on: researchOn, onToggle: () => setResearchOn(o => !o) } : undefined
                   }
                 />
+
+                {storyReturnEp && (
+                  <div className="px-4 pt-3 lg:px-0">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/bible/story/${storyReturnEp}`)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-soft)] px-3.5 py-2 text-[13px] lg:text-[14px] font-bold text-brand hover:bg-[var(--brand-soft-strong)] transition-colors"
+                    >
+                      <span className="material-icons-round text-[17px]">auto_stories</span>
+                      처음 만나는 성경으로 돌아가기
+                    </button>
+                  </div>
+                )}
 
                 {/* 오디오북 — 현재 장을 음성으로 듣기.
                     key로 리마운트하지 않는다: 연속 재생(장 끝 → 다음 장 자동 재생)이

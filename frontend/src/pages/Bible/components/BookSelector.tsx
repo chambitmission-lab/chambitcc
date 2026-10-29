@@ -593,8 +593,15 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         : 0
     const aheadPct = resumePct > rate + 1 ? resumePct : 0
 
-    // 버튼 문구의 3단계: 완독(상태) / 진행 중(이어읽기) / 새 책(읽기)
-    const ctaLabel = isComplete ? t.complete : hasProgress ? t.ctaContinue : t.ctaStart
+    // 버튼 문구의 3단계: 완독(상태) / 진행 중(이어읽기) / 새 책(읽기).
+    // 지금 읽는 책만 "4장 이어 읽기"처럼 갈 곳을 구체적으로 적는다
+    const ctaLabel = isComplete
+      ? t.complete
+      : isCurrent && resume
+        ? t.continueFrom(resume.chapter)
+        : hasProgress
+          ? t.ctaContinue
+          : t.ctaStart
 
     return (
       <button
@@ -624,7 +631,23 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           {isComplete ? (
             <span className="material-icons-round">check</span>
           ) : (
-            bookAbbrev(book.book_number, language)
+            <>
+              {/* 읽는 중 — 약칭 둘레에 진행 링 */}
+              {hasProgress && (
+                <svg className="book-row__ring" viewBox="0 0 36 36">
+                  <circle className="book-row__ring-track" cx="18" cy="18" r="16.5" pathLength={100} />
+                  <circle
+                    className="book-row__ring-fill"
+                    cx="18"
+                    cy="18"
+                    r="16.5"
+                    pathLength={100}
+                    strokeDasharray={`${gaugeWidth(rate)} 100`}
+                  />
+                </svg>
+              )}
+              {bookAbbrev(book.book_number, language)}
+            </>
           )}
         </span>
         <span className="book-row__body">
@@ -652,6 +675,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         <span className="book-row__cta" aria-hidden="true">
           {ctaLabel}
         </span>
+        <svg className="book-row__chev" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.5 6l6 6-6 6" />
+        </svg>
       </button>
     )
   }

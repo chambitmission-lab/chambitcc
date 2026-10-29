@@ -1,10 +1,10 @@
-import { Suspense, lazy, useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getBibleChapter } from '../../../api/bible'
 import type { BibleVerse } from '../../../types/bible'
 import type { StoryVerseRef } from './storyTypes'
-import { ALL_EPISODES, TOTAL_EPISODES, findEpisode } from './data'
+import { ALL_EPISODES, STORY_ACTS, TOTAL_EPISODES, findEpisode } from './data'
 import { GLOSSARY, parseGlossaryText } from './glossary'
 import { useStoryProgress } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
@@ -71,6 +71,23 @@ const useEpisodeVerses = (episodeId: string, refs: StoryVerseRef[]) =>
     gcTime: 1000 * 60 * 60 * 24 * 7,
     retry: 1,
   })
+
+// 읽는 시간 — 지도 히어로가 "한 편에 3분"이라 약속하므로 화마다 실제 분량으로 보여 준다.
+// 본문 400~680자에 원문 맛보기·용어 풋노트까지 천천히 읽는 시간을 분당 200자로 잡는다(2~3분).
+const readingMinutes = (paragraphs: string[], why: string) => {
+  const chars = [...paragraphs, why].join('').replace(/\s|\{\{[^}]*\}\}/g, '').length
+  return Math.max(1, Math.round(chars / 200))
+}
+
+// 원문 맛보기 한 참조의 절들을 평문으로 — 창 1:1, 31 처럼 떨어진 절은 "…"으로 끊어
+// 한 문장처럼 읽히지 않게 한다(말씀 카드로 넘길 때 사용)
+const joinVerseText = (verses: BibleVerse[]) =>
+  verses
+    .map((v, i) => {
+      const gap = i > 0 && v.verse > verses[i - 1].verse + 1
+      return `${gap ? '… ' : ''}${v.text}`
+    })
+    .join(' ')
 
 // {{용어}} 풋노트가 섞인 문단 렌더
 const GlossaryText = ({ text, onTerm }: { text: string; onTerm: (term: string) => void }) => (
@@ -156,6 +173,36 @@ const StoryEpisode = () => {
     return () => window.removeEventListener('keydown', onKey)
   }, [foundId, prevId, nextId, markRead, navigate])
 
+  // 끝까지 읽으면 자동 읽음 — 예전엔 '다음 이야기' 버튼에만 묶여 있어 다 읽고 뒤로가기·지도로
+  // 나가면 기록이 안 남았고, 42화는 '완주하기'를 눌러야만 완주로 잡혔다. 본문 끝 표식이
+  // 화면에 1.2초 머물면 읽음으로 본다(스크롤이 휙 지나가는 건 제외)
+  const endRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = endRef.current
+    if (!foundId || !el || typeof IntersectionObserver === 'undefined') return
+    let timer = 0
+    const io = new IntersectionObserver(
+      entries => {
+        const visible = entries.some(e => e.isIntersecting)
+        if (visible && !timer) {
+          timer = window.setTimeout(() => {
+            markRead(foundId)
+            io.disconnect()
+          }, 1200)
+        } else if (!visible && timer) {
+          window.clearTimeout(timer)
+          timer = 0
+        }
+      },
+      { threshold: 0.6 }
+    )
+    io.observe(el)
+    return () => {
+      window.clearTimeout(timer)
+      io.disconnect()
+    }
+  }, [foundId, markRead])
+
   const { data: fetchedRefs, isLoading: versesLoading } = useEpisodeVerses(
     episodeId,
     found?.episode.verseRefs ?? []
@@ -171,8 +218,20 @@ const StoryEpisode = () => {
 
   const goRead = () => {
     const { book, chapter, verse } = episode.readLink
-    navigate(`/bible/${book}/${chapter}${verse ? `?verse=${verse}` : ''}`)
+    // 출처를 붙여 보낸다 — 장 화면이 '처음 만나는 성경으로 돌아가기' 칩을 띄운다
+    const q = new URLSearchParams({ from: 'story', ep: episode.id })
+    if (verse) q.set('verse', String(verse))
+    navigate(`/bible/${book}/${chapter}?${q}`)
   }
+
+  // 원문 맛보기 절을 말씀 카드로 — 검색 결과 카드와 같은 presetVerse 경로를 탄다
+  const goCard = (label: string, verses: BibleVerse[]) => {
+    navigate('/bible/photo-verse', {
+      state: { presetVerse: { text: joinVerseText(verses), refLabel: label } },
+    })
+  }
+
+  const minutes = readingMinutes(episode.story, episode.why)
 
   const goNext = () => {
     markRead(episode.id)
@@ -228,12 +287,40 @@ const StoryEpisode = () => {
           )}
           <div className="story-ep__hook">{episode.hook}</div>
           <h2 className="story-ep__title">{episode.title}</h2>
-          {isRead && (
-            <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-soft)] px-2.5 py-0.5 text-[11px] font-bold text-brand">
-              <span className="material-icons-round text-[13px]">check_circle</span>
-              읽은 이야기
-            </div>
-          )}
+          <div className="story-ep__meta">
+            <span className="story-ep__meta-item">
+              <span className="material-icons-round text-[13px]">schedule</span>약 {minutes}분
+            </span>
+            <span className="story-ep__meta-item">
+              <span className="material-icons-round text-[13px]">menu_book</span>{act.range}
+            </span>
+            {isRead && (
+              <span className="story-ep__meta-item story-ep__meta-item--read">
+                <span className="material-icons-round text-[13px]">check_circle</span>읽은 이야기
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 지금 성경 어디쯤 — 모바일은 "1 / 42화" 숫자뿐이라 위치감이 없었다. 10막 점 띠로
+            이 화가 성경 전체의 어느 구간인지 보여 준다(PC 는 오른쪽 레일이 같은 역할) */}
+        <div className="story-ep__acts" role="group" aria-label={`전체 ${STORY_ACTS.length}막 중 ${act.act}막 ${act.title}`}>
+          {STORY_ACTS.map(a => {
+            const state = a.act < act.act ? 'past' : a.act === act.act ? 'now' : 'next'
+            return (
+              <button
+                key={a.act}
+                type="button"
+                className={`story-ep__act story-ep__act--${state}`}
+                onClick={() => navigate(`/bible/story/${a.episodes[0].id}`)}
+                title={`${a.act}막 · ${a.title}`}
+                aria-current={state === 'now' ? 'step' : undefined}
+              >
+                <span className="story-ep__act-dot" />
+                {state === 'now' && <span className="story-ep__act-label">{a.act}막 · {a.title}</span>}
+              </button>
+            )
+          })}
         </div>
 
         {/* 이야기 본문 */}
@@ -266,14 +353,33 @@ const StoryEpisode = () => {
             fetchedRefs.map(({ ref, verses }) => (
               <div key={ref.label} className="story-verse">
                 <p className="story-verse__text">
-                  {verses.map(v => (
-                    <span key={v.verse}>
-                      {v.text}
-                      {verses.length > 1 && v !== verses[verses.length - 1] ? ' ' : ''}
-                    </span>
-                  ))}
+                  {verses.map((v, i) => {
+                    // 떨어진 절(창 1:1, 31) 사이에는 "…" — 두 절이 한 문장처럼 읽히지 않게
+                    const gap = i > 0 && v.verse > verses[i - 1].verse + 1
+                    return (
+                      <span key={v.verse}>
+                        {i > 0 && ' '}
+                        {gap && <span className="story-verse__gap" aria-label="중략">…</span>}
+                        <sup className="story-verse__no">{v.verse}</sup>
+                        {v.text}
+                      </span>
+                    )
+                  })}
                 </p>
-                <span className="story-verse__ref">{ref.label}</span>
+                <div className="story-verse__foot">
+                  <span className="story-verse__ref">{ref.label}</span>
+                  {verses.length > 0 && (
+                    <button
+                      type="button"
+                      className="story-verse__card"
+                      onClick={() => goCard(ref.label, verses)}
+                      title="이 말씀으로 카드 만들기"
+                    >
+                      <span className="material-icons-round text-[15px]">image</span>
+                      말씀 카드
+                    </button>
+                  )}
+                </div>
               </div>
             ))
           ) : (
@@ -310,6 +416,9 @@ const StoryEpisode = () => {
             <p className="story-ep__teaser-text">{episode.teaser}</p>
           </div>
         )}
+
+        {/* 본문 끝 표식 — 자동 읽음 관찰 대상 (예고 카드 아래, 바 위) */}
+        <div ref={endRef} className="story-ep__end" aria-hidden />
 
         {/* 하단 고정 바 */}
         <div className="story-ep__bar">
