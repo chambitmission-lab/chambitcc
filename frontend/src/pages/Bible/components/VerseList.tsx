@@ -201,9 +201,28 @@ const VerseList = ({
     }
   }, [bookNumber, readingAids.paraphrase])
   const chapterParaphrase = readingAids.paraphrase ? bookParaphrase?.[selectedChapter] : undefined
+  // PC 넓은 화면 — 본문 컬럼(42rem) 오른쪽 여백이 노트(18.5rem)+간격을 품을 만하면 풀이를 옆 노트로 띄운다.
+  // 해석 패널 도킹·창 크기에 따라 여백이 바뀌므로 미디어쿼리 대신 실제 폭을 잰다.
+  const versesContainerRef = useRef<HTMLDivElement>(null)
+  const [paraphraseSide, setParaphraseSide] = useState(false)
+  const hasChapter = !!chapterData
+  useEffect(() => {
+    const el = versesContainerRef.current
+    const host = el?.parentElement
+    if (!el || !host || !chapterParaphrase) return
+    const measure = () => {
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+      const pad = parseFloat(getComputedStyle(host).paddingRight) || 0
+      setParaphraseSide((host.clientWidth - el.offsetWidth) / 2 - pad >= 21 * rem)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(host)
+    return () => ro.disconnect()
+  }, [chapterParaphrase, hasChapter])
   const renderParaphrase = (para: FlowParagraph) => {
     const text = para.range && chapterParaphrase?.[para.range[0]]
-    return text ? <SectionParaphrase text={text} range={para.range} /> : null
+    return text ? <SectionParaphrase text={text} range={para.range} side={paraphraseSide} /> : null
   }
 
   const flowParagraphs = useMemo<FlowParagraph[]>(() => {
@@ -628,7 +647,7 @@ const VerseList = ({
         </div>
       )}
 
-      <div className="verses-container">
+      <div ref={versesContainerRef} className="verses-container">
         <div className={`verses-list${isFlow ? ' verses-list--flow' : ''}`}>
           {isFlow
             ? // 이어읽기: 단락(소제목) 안에 절이 인라인으로 흐른다
