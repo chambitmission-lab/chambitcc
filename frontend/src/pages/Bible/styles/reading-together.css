@@ -800,3 +800,57 @@
   .rt-candle.is-lit .rt-candle__halo,
   .rt-candle.is-lit .rt-candle__rays { animation: none; }
 }
+
+/* ── PC(lg+) 묵상 시트 — 2단: 왼쪽 말씀+쓰기 / 오른쪽 성도들의 묵상. 두 칸이 각자 스크롤한다.
+   모바일은 래퍼 두 개가 그냥 블록이라 한 줄기 스크롤 그대로. 헤더 '가' 배율은 .pc-scale-sheet 가 맡고,
+   zoom 안에서 커지는 vh 는 배율로 나눈다 */
+@media (min-width: 1024px) {
+  .rt-sheet.rt-sheet {
+    max-width: 980px;
+    height: min(660px, calc(88vh / var(--pc-zoom, 1)));
+    max-height: calc(88vh / var(--pc-zoom, 1));
+  }
+  .rt-sheet .rt-sheet__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    overflow: hidden;
+    min-height: 0;
+    padding: 0.25rem 1.75rem 1.75rem;
+  }
+  .rt-sheet__write,
+  .rt-sheet__others {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .rt-sheet__write { padding-right: 0.25rem; }
+  .rt-sheet__write .rt-verse { margin-top: 0.25rem; padding: 1.4rem 1.5rem 1rem; }
+  .rt-sheet__write .rt-verse__text { font-size: 1.22rem; line-height: 1.95; }
+  /* 생각 열쇠 — 가로 스크롤 대신 넉넉한 폭에서 줄바꿈으로 다 보여 준다 */
+  .rt-sheet__write .rt-composer { padding: 1rem 1.1rem 0.85rem; }
+  .rt-sheet__write .rt-composer__keys {
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .rt-sheet__write .rt-composer__input { min-height: 150px; font-size: 1.05rem; line-height: 1.75; }
+  /* 오른쪽 칸 — 옅은 면 위에 피드, 빈 상태는 칸 한가운데 */
+  .rt-sheet__others {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.25rem;
+    padding: 1.1rem 1.1rem 1.25rem;
+    border-radius: 1.1rem;
+    background: var(--ig-secondary-background);
+  }
+  .dark .rt-sheet__others { background: rgba(255, 255, 255, 0.025); }
+  .rt-sheet__others .rt-feed,
+  .rt-sheet__others .rt-skeleton { margin-top: 0; }
+  .rt-sheet__others .rt-empty { margin: auto 0; padding-top: 0; }
+  .rt-sheet__others .rt-faces .rt-avatar { --rt-sheet-bg: var(--ig-secondary-background); }
+}

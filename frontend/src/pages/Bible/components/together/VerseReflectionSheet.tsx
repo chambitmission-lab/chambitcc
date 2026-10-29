@@ -165,7 +165,7 @@ const VerseReflectionSheet = ({
       onClick={onClose}
     >
       <div
-        className="rt-sheet relative w-full sm:max-w-[480px] sheet-rise max-h-[92vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex flex-col"
+        className="rt-sheet pc-scale-sheet relative w-full sm:max-w-[480px] sheet-rise max-h-[92vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label={`${verseReference} 함께 읽는 성도의 묵상`}
@@ -196,108 +196,112 @@ const VerseReflectionSheet = ({
           </button>
         </div>
 
-        {/* 본문 */}
-        <div className="relative z-10 flex-1 overflow-y-auto overscroll-contain px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
-          {/* 말씀 — 어절을 누르면 묵상에 인용된다 */}
-          <figure className="rt-verse">
-            <blockquote className="rt-verse__text">
-              {words.map(({ raw, word }, i) =>
-                !word || !canCompose ? (
-                  <span key={i}>{raw}</span>
+        {/* 본문 — 모바일은 한 줄기 스크롤, PC(lg+)는 왼쪽 쓰기 / 오른쪽 성도들의 묵상이 각자 스크롤한다 */}
+        <div className="rt-sheet__body relative z-10 flex-1 overflow-y-auto overscroll-contain px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
+          <div className="rt-sheet__write">
+            {/* 말씀 — 어절을 누르면 묵상에 인용된다 */}
+            <figure className="rt-verse">
+              <blockquote className="rt-verse__text">
+                {words.map(({ raw, word }, i) =>
+                  !word || !canCompose ? (
+                    <span key={i}>{raw}</span>
+                  ) : (
+                    <button
+                      key={i}
+                      type="button"
+                      className={`rt-verse__word ${draft.includes(`“${word}”`) ? 'rt-verse__word--on' : ''}`}
+                      onClick={() => composerRef.current?.append(`“${word}”`)}
+                    >
+                      {raw}
+                    </button>
+                  ),
+                )}
+              </blockquote>
+              <figcaption className="rt-verse__cap">
+                <span>{verse}절</span>
+                {canCompose && <span className="rt-verse__hint">단어를 누르면 묵상에 담겨요</span>}
+              </figcaption>
+            </figure>
+
+            {/* 작성 — 이미 나눴으면 짧은 확인만 */}
+            {mine ? (
+              <div className="rt-done">
+                <span className="rt-done__mark" aria-hidden>
+                  <span className="material-icons-round text-[16px]">check</span>
+                </span>
+                <div className="min-w-0">
+                  <p className="rt-done__title">이 말씀에 묵상을 나눴어요</p>
+                  <p className="rt-done__sub">다른 성도의 묵상에 아멘과 따뜻한 한마디를 건네 보세요</p>
+                </div>
+              </div>
+            ) : (
+              !isLoading && (
+                <ReflectionComposer
+                  ref={composerRef}
+                  draft={draft}
+                  onDraftChange={setDraft}
+                  activeKey={activeKey}
+                  onActiveKeyChange={setActiveKey}
+                  pending={create.isPending}
+                  onSubmit={submit}
+                />
+              )
+            )}
+          </div>
+
+          <div className="rt-sheet__others">
+            {/* 성도들의 묵상 */}
+            {isLoading ? (
+              <div className="rt-skeleton" aria-label="묵상을 불러오는 중">
+                <span /><span /><span />
+              </div>
+            ) : isError ? (
+              <div className="rt-empty">묵상을 불러오지 못했어요. 잠시 후 다시 열어 주세요.</div>
+            ) : items.length === 0 ? (
+              <div className="rt-empty">
+                <RtCandle lit={draft.trim().length > 0} />
+                {draft.trim() ? (
+                  <>
+                    <p className="rt-empty__title">쓰는 동안 불이 붙었어요</p>
+                    <p>나누면 이 말씀의 첫 빛이 돼요.</p>
+                  </>
                 ) : (
-                  <button
-                    key={i}
-                    type="button"
-                    className={`rt-verse__word ${draft.includes(`“${word}”`) ? 'rt-verse__word--on' : ''}`}
-                    onClick={() => composerRef.current?.append(`“${word}”`)}
-                  >
-                    {raw}
-                  </button>
-                ),
-              )}
-            </blockquote>
-            <figcaption className="rt-verse__cap">
-              <span>{verse}절</span>
-              {canCompose && <span className="rt-verse__hint">단어를 누르면 묵상에 담겨요</span>}
-            </figcaption>
-          </figure>
-
-          {/* 작성 — 이미 나눴으면 짧은 확인만 */}
-          {mine ? (
-            <div className="rt-done">
-              <span className="rt-done__mark" aria-hidden>
-                <span className="material-icons-round text-[16px]">check</span>
-              </span>
-              <div className="min-w-0">
-                <p className="rt-done__title">이 말씀에 묵상을 나눴어요</p>
-                <p className="rt-done__sub">다른 성도의 묵상에 아멘과 따뜻한 한마디를 건네 보세요</p>
+                  <>
+                    <p className="rt-empty__title">아직 이 말씀에 켜진 빛이 없어요</p>
+                    <p>한 줄을 쓰기 시작하면 촛불이 켜져요.</p>
+                  </>
+                )}
               </div>
-            </div>
-          ) : (
-            !isLoading && (
-              <ReflectionComposer
-                ref={composerRef}
-                draft={draft}
-                onDraftChange={setDraft}
-                activeKey={activeKey}
-                onActiveKeyChange={setActiveKey}
-                pending={create.isPending}
-                onSubmit={submit}
-              />
-            )
-          )}
-
-          {/* 성도들의 묵상 */}
-          {isLoading ? (
-            <div className="rt-skeleton" aria-label="묵상을 불러오는 중">
-              <span /><span /><span />
-            </div>
-          ) : isError ? (
-            <div className="rt-empty">묵상을 불러오지 못했어요. 잠시 후 다시 열어 주세요.</div>
-          ) : items.length === 0 ? (
-            <div className="rt-empty">
-              <RtCandle lit={draft.trim().length > 0} />
-              {draft.trim() ? (
-                <>
-                  <p className="rt-empty__title">쓰는 동안 불이 붙었어요</p>
-                  <p>나누면 이 말씀의 첫 빛이 돼요.</p>
-                </>
-              ) : (
-                <>
-                  <p className="rt-empty__title">아직 이 말씀에 켜진 빛이 없어요</p>
-                  <p>한 줄을 쓰기 시작하면 촛불이 켜져요.</p>
-                </>
-              )}
-            </div>
-          ) : (
-            <section className="rt-feed" aria-label="성도들의 묵상">
-              <header className="rt-feed__head">
-                <span className="rt-faces" aria-hidden>
-                  {faces.map((r) => (
-                    <RtAvatar key={r.author.id} author={r.author} small />
+            ) : (
+              <section className="rt-feed" aria-label="성도들의 묵상">
+                <header className="rt-feed__head">
+                  <span className="rt-faces" aria-hidden>
+                    {faces.map((r) => (
+                      <RtAvatar key={r.author.id} author={r.author} small />
+                    ))}
+                  </span>
+                  <span>
+                    <strong>{total}개</strong>의 묵상이 켜졌어요
+                  </span>
+                </header>
+                <div className="space-y-2.5">
+                  {items.map((r: VerseReflection) => (
+                    <ReflectionCard
+                      key={r.id}
+                      reflection={r}
+                      verseId={verseId}
+                      fresh={r.id === freshId}
+                      canModerate={canModerate}
+                      editPending={update.isPending}
+                      onToggleLike={handleToggleLike}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
                   ))}
-                </span>
-                <span>
-                  <strong>{total}개</strong>의 묵상이 켜졌어요
-                </span>
-              </header>
-              <div className="space-y-2.5">
-                {items.map((r: VerseReflection) => (
-                  <ReflectionCard
-                    key={r.id}
-                    reflection={r}
-                    verseId={verseId}
-                    fresh={r.id === freshId}
-                    canModerate={canModerate}
-                    editPending={update.isPending}
-                    onToggleLike={handleToggleLike}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+                </div>
+              </section>
+            )}
+          </div>
         </div>
       </div>
     </div>,
