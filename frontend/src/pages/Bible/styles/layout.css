@@ -214,11 +214,18 @@
     align-items: flex-start;
     gap: 1.5rem;
     box-sizing: border-box;
+    /* ★허브 배율 — 책 목록·검색·플랜 등 다른 성경 화면은 페이지 zoom(--az) 화면이라 셸(1240)도
+       배율만큼 커진 채 가운데 놓인다. 본문은 zoom 을 안 쓰므로(절 이동이 화면 좌표) 배율을 1 로 두면
+       넓은 화면(글씨 크게·2200px+ 대형 모니터)에서 셸 왼쪽 가장자리가 허브보다 수백 px 오른쪽에 잡혀,
+       책을 고르는 순간 좌측 레일이 옆으로 뛰었다. 허브가 받는 배율(= html --corl-nav-zoom, 단계표는
+       BibleSideRail.css · common.css --az 와 동일)을 셸 여백·왼쪽 패딩에 곱해 같은 화면 좌표에 세운다 */
+    --hub-az: var(--corl-nav-zoom, 1);
+    --shell-ml: max(0px, calc((100% - 1240px * var(--hub-az)) / 2));
     width: min(100%, 1240px);
     /* mx-auto 대신 명시적 왼쪽 여백 — 오른쪽 패딩이 늘어도 왼쪽 가장자리가 그대로다.
        100% = 섹션(main-content 폭) 기준 */
-    margin: 0 0 0 max(0px, calc((100% - 1240px) / 2));
-    padding: 0 1.25rem;
+    margin: 0 0 0 var(--shell-ml);
+    padding: 0 1.25rem 0 calc(1.25rem * var(--hub-az));
     transition: padding-right 0.3s ease;
   }
   /* 도킹: 우측 패널이 셸 안으로 파고드는 만큼만 오른쪽 패딩을 더한다.
@@ -227,12 +234,12 @@
      해석이 그 위로 열리면(두 클래스가 함께) 아래 commentary-docked 규칙이 이긴다 — 순서 유지 */
   .bible-chapter-section.guide-docked .bible-chapter-inner {
     padding-right: calc(
-      1.25rem + max(0px, var(--guide-dock-w) - max(0px, calc((100% - 1240px) / 2)))
+      1.25rem + max(0px, var(--guide-dock-w) - var(--shell-ml))
     );
   }
   .bible-chapter-section.commentary-docked .bible-chapter-inner {
     padding-right: calc(
-      1.25rem + max(0px, var(--commentary-dock-w) - max(0px, calc((100% - 1240px) / 2)))
+      1.25rem + max(0px, var(--commentary-dock-w) - var(--shell-ml))
     );
   }
   .bible-chapter-column {
@@ -253,7 +260,7 @@
      1240 셸 바깥 여백과 안내·해석 패널 사이 빈 칸을 칼럼이 쓴다. 도킹 패널은 섹션 오른쪽 끝에 붙으므로
      파고듦 = 패널 폭 전부. 칼럼은 960px 에서 멈춘다(그보다 길면 줄 끝→다음 줄 처음 찾기가 힘들다) */
   html:not([data-bible-wide='false']) .bible-chapter-inner {
-    width: calc(100% - max(0px, calc((100% - 1240px) / 2)));
+    width: calc(100% - var(--shell-ml));
   }
   html:not([data-bible-wide='false']) .bible-chapter-section.guide-docked .bible-chapter-inner {
     padding-right: calc(1.25rem + var(--guide-dock-w));
