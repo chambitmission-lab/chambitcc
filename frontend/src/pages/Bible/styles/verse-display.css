@@ -908,7 +908,7 @@
 /* 메모 카드 — 테이프가 위로 걸쳐 나오도록 위 여백을 비워 둔다 */
 .paraphrase-note {
   position: relative;
-  margin: 1.125rem 0 0;
+  margin: 1.375rem 0 0;
   padding: 1.75rem 1.25rem 1.25rem;
   border-radius: 1.125rem;
   background: var(--ig-primary-background);
@@ -921,8 +921,9 @@
 }
 
 .paraphrase-note__tape {
+  /* 위 가운데에 붙인 테이프 — 왼쪽에 두면 바로 위 "풀이 접기" 버튼과 한 줄로 몰려 답답해 보인다 */
   position: absolute;
-  left: -0.5rem;
+  left: 50%;
   top: -0.875rem;
   z-index: 1;
   padding: 0.375rem 1.125rem 0.25rem;
@@ -932,7 +933,8 @@
   font-size: 1.45rem;
   line-height: 1;
   letter-spacing: 0;
-  transform: rotate(-5deg);
+  white-space: nowrap;
+  transform: translateX(-50%) rotate(-3deg);
   clip-path: polygon(3% 0, 97% 4%, 100% 50%, 96% 100%, 2% 96%, 0 50%);
   pointer-events: none;
 }
