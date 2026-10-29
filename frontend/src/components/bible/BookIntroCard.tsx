@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { showToast } from '../../utils/toast'
 import {
   useBookIntro,
@@ -8,6 +8,7 @@ import {
 import type { BibleBookIntroUpsertRequest } from '../../types/bibleBookIntro'
 import { getBookGenre, genreStyle } from './bookGenre'
 import { lazyModal } from '../../utils/lazyModal'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 // 개관 읽기 시트·(관리자) 에디터는 열 때만 — 읽기 화면 청크에서 분리
 const BookIntroEditor = lazyModal(() => import('./BookIntroEditor'))
 const BookIntroSheet = lazyModal(() => import('./BookIntroSheet'))
@@ -49,6 +50,18 @@ const BookIntroCard = ({
   const [editorOpen, setEditorOpen] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // 시트는 lazy 청크(JS+CSS 두 파일)라 첫 탭이 네트워크 왕복만큼 늦게 열렸고, fallback 이
+  // null 이라 그동안 아무 반응도 없어 "느리다"로 느껴졌다. 바가 보이는 순간부터 눌릴 수 있으니
+  // 본문이 그려진 뒤 유휴 시간에 미리 받아 둔다 — 받아 둔 뒤엔 Suspense 없이 곧장 열린다.
+  // 데이터 절약 모드·2G 에선 건너뛰고(아래 hover/touch 워밍이 받쳐 준다), 재방문은 SW 캐시라 공짜다.
+  const hasIntro = !!intro
+  useEffect(() => {
+    if (!hasIntro || preloadBudget() === 'none') return
+    return scheduleAfterFirstScreen(() => void BookIntroSheet.preload(), { settleMs: 800, idleTimeoutMs: 4000 })
+  }, [hasIntro])
+  // 유휴 콜백보다 먼저 손이 가는 경우(PC 호버·모바일 터치 시작은 click 보다 수십~수백 ms 앞선다)
+  const warmSheet = () => void BookIntroSheet.preload()
 
   const handleSave = async (payload: BibleBookIntroUpsertRequest) => {
     try {
@@ -135,6 +148,9 @@ const BookIntroCard = ({
       <button
         type="button"
         onClick={() => setSheetOpen(true)}
+        onPointerEnter={warmSheet}
+        onTouchStart={warmSheet}
+        onFocus={warmSheet}
         style={genreStyle(bookNumber)}
         aria-haspopup="dialog"
         className="w-full mt-3 mb-2 px-4 text-left"
