@@ -12,7 +12,7 @@ import CapsuleSlideshow from './CapsuleSlideshow'
 import CapsuleOpenRail from './CapsuleOpenRail'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CAPSULE_LETTER, CAPSULE_SEALED } from '../../utils/themeAssets'
-import { formatKoreanDate } from './capsuleDates'
+import { daysUntil, formatKoreanDate } from './capsuleDates'
 import { CalendarGlyph, Icon, MicGlyph, PenGlyph, PhotoGlyph } from './capsuleIcons'
 import HandwrittenLetter from './open/HandwrittenLetter'
 import './capsule.css'
@@ -43,12 +43,20 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   const { id } = useParams<{ id: string }>()
   const capsuleId = Number(id)
 
-  const { data: fetched, isLoading: fetching, error: fetchError } = useCapsule(
-    capsuleId,
-    isAuthenticated() && !preview,
-  )
-  const capsule = preview ?? fetched
-  const isLoading = preview ? false : fetching
+  const {
+    data: fetched,
+    isLoading: fetching,
+    isFetching,
+    error: fetchError,
+  } = useCapsule(capsuleId, isAuthenticated() && !preview)
+  // 캐시(메모리·IndexedDB persist)에 남은 상세의 openable 은 저장 당시 값이다. 봉인 중일 때 들렀던
+  // 캡슐을 개봉일이 지나 다시 열면 '아직'이라 적힌 캐시가 먼저 그려져 금고 삽화(봉인 대기)가 떴다가
+  // 재요청 응답에 봉투로 바뀌며 화면이 튄다. 개봉일이 지났는데도 '아직'이면 서버 응답이 올 때까지
+  // 불러오는 중으로 둔다 — 응답도 '아직'이면(시계 차이) 그때 봉인 대기 화면을 그린다.
+  const gateStale =
+    !!fetched && !fetched.openable && isFetching && daysUntil(fetched.open_at) === 0
+  const capsule = preview ?? (gateStale ? undefined : fetched)
+  const isLoading = preview ? false : fetching || gateStale
   const error = preview ? null : fetchError
   const openCapsule = useOpenCapsule(capsuleId)
   const deleteCapsule = useDeleteCapsule()
