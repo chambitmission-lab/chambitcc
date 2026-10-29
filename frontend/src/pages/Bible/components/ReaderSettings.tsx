@@ -31,9 +31,11 @@ export interface ReaderPrefs {
   leadingIdx: number // LINE_HEIGHTS 인덱스
   /** 야간 따뜻한 톤 — 다크 테마에서 본문의 푸른 빛을 걷어내 밤에 눈이 덜 부시게 */
   warm: boolean
+  /** PC 본문 폭 — 넓게면 칼럼이 오른쪽 빈 칸까지 넓어져 한 절이 덜 꺾인다(모바일은 영향 없음) */
+  wide: boolean
 }
 
-const DEFAULT_PREFS: ReaderPrefs = { font: 'gothic', scaleIdx: 1, leadingIdx: 1, warm: false }
+const DEFAULT_PREFS: ReaderPrefs = { font: 'gothic', scaleIdx: 1, leadingIdx: 1, warm: false, wide: true }
 
 const loadPrefs = (): ReaderPrefs => {
   const p = safeStorage.getJson(STORAGE_KEY) as Partial<ReaderPrefs> | null | undefined
@@ -43,6 +45,7 @@ const loadPrefs = (): ReaderPrefs => {
     scaleIdx: p.scaleIdx !== undefined && FONT_SCALES[p.scaleIdx] !== undefined ? p.scaleIdx : 1,
     leadingIdx: p.leadingIdx !== undefined && LINE_HEIGHTS[p.leadingIdx] !== undefined ? p.leadingIdx : 1,
     warm: p.warm === true,
+    wide: p.wide !== false,
   }
 }
 
@@ -63,6 +66,9 @@ const applyPrefs = (p: ReaderPrefs) => {
   } else {
     root.removeAttribute('data-bible-warm')
   }
+  // layout.css·verse-display.css 는 lg+ 에서 기본이 넓게 — 'false'(보통)일 때만 예전 폭으로 묶는다.
+  // 기본을 CSS 쪽에 둬서 이 설정이 붙기 전 첫 화면이 좁았다 넓어지며 흔들리지 않게 한다
+  root.setAttribute('data-bible-wide', String(p.wide))
 }
 
 // 본문 앞 안내 세 줄 — 독립 토글이라 세그먼트(택1)가 아니라 칩으로 늘어놓는다
@@ -328,6 +334,32 @@ const ReaderSettings = () => {
               </button>
             </div>
           </div>
+
+          {/* 본문 폭 — PC 전용. 넓게면 '쉽게 풀면'은 옆 노트 대신 본문 안 카드로 나온다 */}
+          <div className="reader-settings__row reader-settings__row--pc">
+            <span className="reader-settings__label">본문 폭</span>
+            <div className="reader-settings__seg">
+              <button
+                type="button"
+                className={!prefs.wide ? 'active' : ''}
+                onClick={() => update({ wide: false })}
+              >
+                보통
+              </button>
+              <button
+                type="button"
+                className={prefs.wide ? 'active' : ''}
+                onClick={() => update({ wide: true })}
+              >
+                넓게
+              </button>
+            </div>
+          </div>
+          <p className="reader-settings__hint reader-settings__row--pc">
+            {prefs.wide
+              ? '남는 화면까지 본문을 넓혀 한 절이 덜 꺾여요.'
+              : '본문을 좁게 두고, 쉽게 풀면 풀이를 본문 옆에 띄워요.'}
+          </p>
 
           {/* 줄 간격 */}
           <div className="reader-settings__row">

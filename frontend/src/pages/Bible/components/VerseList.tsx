@@ -201,7 +201,7 @@ const VerseList = ({
     }
   }, [bookNumber, readingAids.paraphrase])
   const chapterParaphrase = readingAids.paraphrase ? bookParaphrase?.[selectedChapter] : undefined
-  // PC 넓은 화면 — 본문 컬럼(42rem) 오른쪽 여백이 노트(18.5rem)+간격을 품을 만하면 풀이를 옆 노트로 띄운다.
+  // PC 넓은 화면 — 본문 컬럼(보통 폭 42rem) 오른쪽 여백이 노트(18.5rem)+간격을 품을 만하면 풀이를 옆 노트로 띄운다.
   // 해석 패널 도킹·창 크기에 따라 여백이 바뀌므로 미디어쿼리 대신 실제 폭을 잰다.
   const versesContainerRef = useRef<HTMLDivElement>(null)
   const [paraphraseSide, setParaphraseSide] = useState(false)
@@ -553,7 +553,7 @@ const VerseList = ({
     <div className={`bible-content${openVerseId !== null && !selectionMode ? ' verses-lamp-on' : ''}`}>
       {/* 진행률 pill - 읽은 절이 있을 때만 컴팩트하게 표시 */}
       {read.readCount > 0 && read.pillTotal > 0 && (
-        <div className={read.pillReveal ? 'verse-progress-pill--reveal' : undefined} style={{
+        <div className={`verse-measure${read.pillReveal ? ' verse-progress-pill--reveal' : ''}`} style={{
           display: 'flex',
           alignItems: 'center',
           gap: '0.625rem',
@@ -562,8 +562,6 @@ const VerseList = ({
           background: 'var(--ig-secondary-background)',
           borderRadius: '999px',
           fontSize: '0.8125rem',
-          maxWidth: '42rem',
-          marginInline: 'auto',
         }}>
           <span className="material-icons-outlined" style={{ fontSize: '1rem', color: 'var(--ig-primary)' }}>
             auto_stories
@@ -607,6 +605,7 @@ const VerseList = ({
       {/* 길게 누르기 안내 — 로그인 사용자에게 처음 한 번만 */}
       {showHoldHint && loggedIn && (
         <div
+          className="verse-measure"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -618,8 +617,6 @@ const VerseList = ({
             borderRadius: '999px',
             fontSize: '0.8125rem',
             color: 'var(--ig-secondary-text)',
-            maxWidth: '42rem',
-            marginInline: 'auto',
           }}
         >
           <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: 'var(--brand)', flexShrink: 0 }}>

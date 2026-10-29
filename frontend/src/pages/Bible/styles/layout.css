@@ -248,6 +248,22 @@
        스크롤 폭은 늘리지 않는다(가로 스크롤 없음). 칼럼 오른쪽 형제(안내 손잡이 등)는 판 위에 얹힌다 */
     border-image: linear-gradient(var(--ig-primary-background), var(--ig-primary-background)) fill 0 / 0 / 0 100vw 0 0;
   }
+  /* '본문 폭: 넓게'(Aa 기본값 — 보통을 고르면 html[data-bible-wide='false']) — 한 절이 두세 줄로 꺾이지 않게 칼럼을 넓힌다.
+     셸 왼쪽 가장자리(= 다른 성경 화면과 같은 레일 위치)는 그대로 두고, 오른쪽만 섹션 끝까지 늘려
+     1240 셸 바깥 여백과 안내·해석 패널 사이 빈 칸을 칼럼이 쓴다. 도킹 패널은 섹션 오른쪽 끝에 붙으므로
+     파고듦 = 패널 폭 전부. 칼럼은 960px 에서 멈춘다(그보다 길면 줄 끝→다음 줄 처음 찾기가 힘들다) */
+  html:not([data-bible-wide='false']) .bible-chapter-inner {
+    width: calc(100% - max(0px, calc((100% - 1240px) / 2)));
+  }
+  html:not([data-bible-wide='false']) .bible-chapter-section.guide-docked .bible-chapter-inner {
+    padding-right: calc(1.25rem + var(--guide-dock-w));
+  }
+  html:not([data-bible-wide='false']) .bible-chapter-section.commentary-docked .bible-chapter-inner {
+    padding-right: calc(1.25rem + var(--commentary-dock-w));
+  }
+  html:not([data-bible-wide='false']) .bible-chapter-column {
+    max-width: calc(960px + 1.5rem);
+  }
   /* 판 좌상단만 둥글게 — border-image 는 radius 를 따르지 않아 캔버스색 모서리 마스크를 얹는다.
      sticky 라 스크롤하면 앱바(56) 바로 밑에 붙어, 판의 직각 옆선 대신 같은 둥근 모서리가 계속 보인다.
      z-index 는 sticky 장 이동 바(8)·헤더(10) 위. 본문 화면은 zoom 하지 않으므로 56px 그대로 */

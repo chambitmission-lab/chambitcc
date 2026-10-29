@@ -854,3 +854,10 @@
   .rt-sheet__others .rt-empty { margin: auto 0; padding-top: 0; }
   .rt-sheet__others .rt-faces .rt-avatar { --rt-sheet-bg: var(--ig-secondary-background); }
 }
+
+/* PC '본문 폭: 넓게' — 본문(verse-display.css .verses-container)과 같은 폭 */
+@media (min-width: 1024px) {
+  html:not([data-bible-wide='false']) .rt-chapter-line {
+    max-width: none;
+  }
+}

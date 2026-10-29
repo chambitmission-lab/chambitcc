@@ -7,10 +7,20 @@
 
 .verses-container {
   background: var(--ig-primary-background);
-  /* 읽기 폭 제한(measure): 큰 화면에서 한 줄이 너무 길어 피로해지지 않도록
-     본문 컬럼을 적정 폭으로 제한하고 가운데 정렬. 밝은 읽기 패널 배경은 full-bleed 유지. */
+}
+
+/* 읽기 폭 제한(measure): 큰 화면에서 한 줄이 너무 길어 피로해지지 않도록
+   본문과 그 위 진행률·안내 줄을 같은 폭으로 제한하고 가운데 정렬. 밝은 읽기 패널 배경은 full-bleed 유지.
+   PC '본문 폭: 넓게'(Aa 기본값, 보통이면 html[data-bible-wide='false'])면 칼럼을 가득 쓴다 — 칼럼 자체 폭은 layout.css */
+.verses-container,
+.verse-measure {
   max-width: 42rem;
   margin-inline: auto;
+}
+@media (min-width: 1024px) {
+  html:not([data-bible-wide='false']) :is(.verses-container, .verse-measure) {
+    max-width: none;
+  }
 }
 
 .chapter-title {
