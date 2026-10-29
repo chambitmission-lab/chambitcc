@@ -9,9 +9,13 @@ import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import type { CapsuleSummary } from '../../../types/timeCapsule'
 import { capsuleKeys } from '../../../hooks/useTimeCapsule'
+import { ensureFontFamily } from '../../../utils/deferredFonts'
 import { formatKoreanDate } from '../capsuleDates'
 import { counterpartLabel } from '../capsuleGroups'
 import { FlapNumber } from './SplitFlap'
+
+// 블루 캔디 숫자판의 동글동글한 숫자(0~9만 담긴 작은 조각)
+void ensureFontFamily('fredokaDigits')
 
 /** 1초마다 지금 시각 — 카운트다운과 안내판 시계가 같은 박자로 움직인다 */
 const useNow = () => {

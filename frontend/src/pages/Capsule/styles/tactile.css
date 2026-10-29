@@ -200,14 +200,70 @@
   box-shadow: 0 1px 0 var(--cap-tile-floor);
 }
 
-/* 숫자판도 바닥이 있는 패 — 낮은 흰 패(파랑회색 바닥), 밤은 철판 */
+/* ── 숫자판 = 블루 캔디 ──────────────────────────────────────────────
+   파란 볼록 사탕 패(진한 파랑 바닥 + 왼쪽 위 반짝임) 위에 동글한 흰 숫자(Fredoka).
+   '일' 칸만 노란 사탕. 낮·밤 같은 사탕 — 밤 유리 위에서도 그대로 빛난다.
+   위·아래 반쪽이 따로 접히므로 그라데이션도 반쪽씩 이어 칠한다. */
 .capsule-station {
-  --st-flap-shadow: 0 3px 0 #cfdcef, 0 8px 12px -8px rgba(30, 70, 140, 0.35),
-    inset 0 0 0 1px #e1e9f5;
+  --st-flap-top: linear-gradient(180deg, #62a2ff, #4b92fb);
+  --st-flap-bottom: linear-gradient(180deg, #3d88f8, #3182f6);
+  --st-flap-fg: #fff;
+  --st-flap-seam: rgba(23, 76, 170, 0.35);
+  --st-flap-shadow: 0 3px 0 #1f5fcf, 0 10px 14px -8px rgba(31, 95, 207, 0.55);
 }
 
 .dark .capsule-station {
-  --st-flap-shadow: 0 3px 0 #0e1220, 0 8px 12px -6px rgba(0, 0, 0, 0.7);
+  --st-flap-top: linear-gradient(180deg, #5a9bff, #4189f6);
+  --st-flap-bottom: linear-gradient(180deg, #3a83f2, #2f78ea);
+  --st-flap-fg: #fff;
+  --st-flap-seam: rgba(10, 40, 110, 0.45);
+  --st-flap-shadow: 0 3px 0 #1a4aa8, 0 10px 16px -8px rgba(0, 0, 0, 0.7);
+}
+
+.capsule-next__group.is-gold,
+.dark .capsule-next__group.is-gold {
+  --flap-fg: #fff;
+  --st-flap-top: linear-gradient(180deg, #ffd873, #ffc94d);
+  --st-flap-bottom: linear-gradient(180deg, #ffbf3a, #ffb020);
+  --st-flap-seam: rgba(170, 100, 0, 0.3);
+  --st-flap-shadow: 0 3px 0 #d98e00, 0 10px 14px -8px rgba(217, 142, 0, 0.55);
+}
+
+.capsule-flap {
+  border-radius: 10px;
+}
+
+.capsule-flap__half--top {
+  border-radius: 10px 10px 0 0;
+}
+
+.capsule-flap__half--bottom {
+  border-radius: 0 0 10px 10px;
+}
+
+.capsule-flap__half b {
+  font-family: 'Fredoka', 'Pretendard Variable', sans-serif;
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(0, 40, 120, 0.18);
+}
+
+.capsule-next__group.is-gold .capsule-flap__half b {
+  text-shadow: 0 1px 0 rgba(150, 80, 0, 0.22);
+}
+
+/* 사탕 반짝임 — 왼쪽 위 작은 빛 알갱이(접힘 조각보다 위) */
+.capsule-flap::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 7px;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.55);
+  transform: rotate(-20deg);
+  z-index: 4;
+  pointer-events: none;
 }
 
 /* 안내판 머리 칩 */
