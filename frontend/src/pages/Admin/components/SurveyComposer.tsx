@@ -24,6 +24,13 @@ import type {
 import { QuestionEditor, ToggleRow } from './surveyComposerParts'
 import type { DraftQuestion } from './surveyComposerParts'
 
+// 상태 버튼 문구 — 목록 배지(STATUS_META.label)와 같은 뜻이지만 짧게 읽히는 쪽을 쓴다
+const STATUS_ACTION_LABEL: Record<SurveyStatus, string> = {
+  draft: '작성 중',
+  open: '진행',
+  closed: '마감',
+}
+
 const newKey = () => `q${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 
 const blankQuestion = (type: SurveyQuestionType): DraftQuestion => ({
@@ -346,7 +353,7 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
                         : 'border-gray-200 dark:border-white/[0.08] text-ink hover:border-brand'
                     }`}
                   >
-                    {s === 'draft' ? '작성 중' : s === 'open' ? '진행' : '마감'}
+                    {STATUS_ACTION_LABEL[s]}
                   </button>
                 ))}
               </div>

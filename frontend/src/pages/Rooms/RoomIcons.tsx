@@ -176,22 +176,18 @@ export const ExternalIcon = (p: Props) => (
   </Svg>
 )
 
-/** 반응 키 → 선화 (roomCourses.REACTIONS 와 같은 키) */
+/** 반응 키 → 선화 (roomCourses.REACTIONS 와 같은 키). 새 반응은 여기 한 줄만 추가 */
+type ReactionIcon = (p: { size?: number; className?: string }) => ReactElement
+const REACTION_GLYPHS: Record<string, ReactionIcon> = {
+  grace: SparklesIcon,
+  comfort: HandHeartIcon,
+  challenge: FlameIcon,
+  question: QuestionIcon,
+  thanks: SunIcon,
+}
 export const ReactionGlyph = ({ reaction, size = 14, className }: { reaction: string; size?: number; className?: string }) => {
-  switch (reaction) {
-    case 'grace':
-      return <SparklesIcon size={size} className={className} />
-    case 'comfort':
-      return <HandHeartIcon size={size} className={className} />
-    case 'challenge':
-      return <FlameIcon size={size} className={className} />
-    case 'question':
-      return <QuestionIcon size={size} className={className} />
-    case 'thanks':
-      return <SunIcon size={size} className={className} />
-    default:
-      return <SparklesIcon size={size} className={className} />
-  }
+  const Icon = REACTION_GLYPHS[reaction] ?? SparklesIcon
+  return <Icon size={size} className={className} />
 }
 
 const GLYPHS: Record<string, (p: Props) => ReactElement> = {

@@ -18,6 +18,7 @@ import HeartCard from './components/HeartCard'
 import { Avatar } from './components/ui'
 import { formatDay as formatIsoDay, usePastorGate } from './components/pastorUtils'
 import { KO_WEEKDAYS } from '../../utils/dateUtils'
+import { event as eventKo } from '../../locales/ko/event'
 
 // 목회자 홈 — 월요일 아침에 여는 '이번 주 목양 브리핑'.
 // 개인정보 경계: 기도 본문은 성도가 '목사님과 함께'로 스스로 맡긴 것만,
@@ -28,14 +29,8 @@ const PrayerDetail = lazyModal(() => import('../Home/components/PrayerDetail'))
 
 const WEEKDAYS = KO_WEEKDAYS
 
-const EVENT_CATEGORY: Record<string, string> = {
-  worship: '예배',
-  meeting: '모임',
-  service: '봉사',
-  special: '행사',
-  education: '교육',
-  other: '기타',
-}
+// 일정 카테고리 이름은 /events 와 같은 출처(locales/ko/event) — 목회자 화면은 한국어 고정
+const EVENT_CATEGORY: Record<string, string> = eventKo.categories
 
 // 오래 기다린 기도일수록 눈에 띄게 — 사흘 넘으면 앰버, 일주일 넘으면 진하게
 const waitTone = (days: number | null): string => {

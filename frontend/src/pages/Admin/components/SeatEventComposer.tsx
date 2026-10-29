@@ -30,6 +30,13 @@ import {
 } from '../../Seats/seatLayout'
 import { STATUS_META, formatShort, inputCls, labelCls } from '../../Seats/seatShared'
 
+// 상태 버튼은 '무엇을 할지'로 읽히게 — 목록 배지(STATUS_META.label)와는 문구가 다르다
+const STATUS_ACTION_LABEL: Record<SeatEventStatus, string> = {
+  draft: '준비 중 (숨김)',
+  open: '예약 받기',
+  closed: '마감',
+}
+
 // ── 날짜+시간 ↔ 서버 KST-naive 문자열 ─────────────────────────────────
 
 const splitDateTime = (iso?: string | null): { date: string; time: string } =>
@@ -325,7 +332,7 @@ const SeatEventComposer = ({ event, onClose, onSaved }: Props) => {
                       status === s ? 'bg-brand text-white border-transparent' : 'border-gray-200 dark:border-white/[0.08] text-ink hover:border-brand'
                     }`}
                   >
-                    {s === 'draft' ? '준비 중 (숨김)' : s === 'open' ? '예약 받기' : '마감'}
+                    {STATUS_ACTION_LABEL[s]}
                   </button>
                 ))}
               </div>

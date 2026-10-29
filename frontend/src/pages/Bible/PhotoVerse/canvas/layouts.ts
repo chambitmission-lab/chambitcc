@@ -235,37 +235,43 @@ const countLines = (tc: TypeContext, px: number, maxW: number) => {
   return n
 }
 
-/** 주어진 글자 크기에서 블록 높이와 쓸 수 있는 높이 — 세로쓰기는 스스로 맞추므로 제외 */
-const measureFit = (tc: TypeContext, f: number): { need: number; avail: number } => {
-  const { l, style, tuning, refOnPhoto } = tc
+type Fit = { need: number; avail: number }
+/** 레이아웃별 어림 측정 — 아래 LAYOUTS 테이블에서 draw 와 짝을 이룬다 */
+type MeasureFn = (tc: TypeContext, f: number, textH: (px: number, maxW: number) => number) => Fit
+
+const measureClassic: MeasureFn = ({ l, style, refOnPhoto }, f, textH) => {
+  const pad = style.textBg === 'scrim' ? f * 0.85 : style.textBg === 'marker' ? f * 0.4 : 0
+  return {
+    need: textH(f, l.pw * 0.82) + (refOnPhoto ? f * 1.41 : 0),
+    avail: l.ph - 2 * (l.pw * 0.05 + pad),
+  }
+}
+const measureGallery: MeasureFn = ({ l, refOnPhoto }, f, textH) => {
+  const b = f * 0.82
+  return { need: textH(b, l.pw * 0.82) + (refOnPhoto ? b * 1.8 : 0), avail: l.ph * 0.8 }
+}
+const measureQuote: MeasureFn = ({ l, refOnPhoto }, f, textH) => ({
+  need: f * 1.85 + textH(f, l.pw * 0.76) + (refOnPhoto ? f * 2.46 : 0),
+  avail: l.ph * 0.84,
+})
+const measureFocus: MeasureFn = ({ l, refOnPhoto }, f, textH) => {
+  const b = f * 0.76
+  return { need: f * 3.1 + textH(b, l.pw * 0.78) + (refOnPhoto ? f * 1.15 : 0), avail: l.ph * 0.88 }
+}
+const measurePoster: MeasureFn = ({ l, refOnPhoto }, f, textH) => {
+  const inset = l.pw * 0.07
+  return {
+    need: f * 2.1 + textH(f, l.pw - inset * 2 - f * 1.6) + (refOnPhoto ? f * 1.94 : 0),
+    avail: (l.ph - inset * 2) * 0.86,
+  }
+}
+
+/** 주어진 글자 크기에서 블록 높이와 쓸 수 있는 높이 — 세로쓰기는 스스로 맞추므로 fitFontPx 가 제외한다 */
+const measureFit = (tc: TypeContext, f: number): Fit => {
+  const { tuning } = tc
   const lh = (px: number) => px * tuning.lineHeight
   const textH = (px: number, maxW: number) => (countLines(tc, px, maxW) - 1) * lh(px) + px
-  switch (style.layout) {
-    case 'gallery': {
-      const b = f * 0.82
-      return { need: textH(b, l.pw * 0.82) + (refOnPhoto ? b * 1.8 : 0), avail: l.ph * 0.8 }
-    }
-    case 'quote':
-      return { need: f * 1.85 + textH(f, l.pw * 0.76) + (refOnPhoto ? f * 2.46 : 0), avail: l.ph * 0.84 }
-    case 'focus': {
-      const b = f * 0.76
-      return { need: f * 3.1 + textH(b, l.pw * 0.78) + (refOnPhoto ? f * 1.15 : 0), avail: l.ph * 0.88 }
-    }
-    case 'poster': {
-      const inset = l.pw * 0.07
-      return {
-        need: f * 2.1 + textH(f, l.pw - inset * 2 - f * 1.6) + (refOnPhoto ? f * 1.94 : 0),
-        avail: (l.ph - inset * 2) * 0.86,
-      }
-    }
-    default: {
-      const pad = style.textBg === 'scrim' ? f * 0.85 : style.textBg === 'marker' ? f * 0.4 : 0
-      return {
-        need: textH(f, l.pw * 0.82) + (refOnPhoto ? f * 1.41 : 0),
-        avail: l.ph - 2 * (l.pw * 0.05 + pad),
-      }
-    }
-  }
+  return layoutOf(tc).measure(tc, f, textH)
 }
 
 /** 블록이 사진 안에 들어올 때까지 글자 크기를 8%씩 줄인 값 (이미 들어오면 그대로) */
@@ -815,6 +821,23 @@ const drawSignature = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement,
 }
 
 
+// ── 레이아웃 레지스트리 — 새 레이아웃은 CardLayoutId 에 추가하고 여기 한 줄을 채우면 끝 ──
+// (measure 는 fitFontPx 의 어림 측정, draw 는 실제 조판. 세로쓰기는 스스로 맞추므로 measure 가 쓰이지 않는다)
+const LAYOUTS: Record<CardLayoutId, { measure: MeasureFn; draw: (tc: TypeContext) => void }> = {
+  classic: { measure: measureClassic, draw: drawClassicLayout },
+  gallery: { measure: measureGallery, draw: drawGalleryLayout },
+  quote: { measure: measureQuote, draw: drawQuoteLayout },
+  focus: { measure: measureFocus, draw: drawFocusLayout },
+  poster: { measure: measurePoster, draw: drawPosterLayout },
+  vertical: { measure: measureClassic, draw: drawVerticalLayout },
+}
+
+/** 저장된 초안(draft)의 옛 레이아웃 id 가 와도 예전 switch 의 default 처럼 classic 으로 그린다 */
+const layoutOf = (tc: TypeContext) => LAYOUTS[tc.style.layout] ?? LAYOUTS.classic
+
+/** 스타일의 레이아웃으로 본문·출처를 조판한다 */
+const drawLayout = (tc: TypeContext) => layoutOf(tc).draw(tc)
+
 // ── photoVerseCanvas 내부 공유 ──
-export { fitFontPx, KEYWORDS_KO, KEYWORDS_EN, pickEmphasisWord, setTextShadow, setInkBleed, setTypeShadow, clearTextShadow, drawSoftScrim, setRefFont, drawOrnamentRule, drawSmallCross, drawSeal, drawClassicLayout, drawGalleryLayout, drawQuoteLayout, drawFocusLayout, drawPosterLayout, drawVerticalLayout, drawSignature, greetingBand, drawGreeting }
+export { fitFontPx, drawLayout, KEYWORDS_KO, KEYWORDS_EN, pickEmphasisWord, setTextShadow, setInkBleed, setTypeShadow, clearTextShadow, drawSoftScrim, setRefFont, drawOrnamentRule, drawSmallCross, drawSeal, drawSignature, greetingBand, drawGreeting }
 export type { TypeContext }

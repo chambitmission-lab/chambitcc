@@ -50,18 +50,7 @@ import {
   layoutFromCanvas,
   textAreaLayout,
 } from './canvas/frames'
-import {
-  drawClassicLayout,
-  drawFocusLayout,
-  drawGreeting,
-  drawGalleryLayout,
-  drawPosterLayout,
-  drawQuoteLayout,
-  drawSignature,
-  drawVerticalLayout,
-  fitFontPx,
-  greetingBand,
-} from './canvas/layouts'
+import { drawGreeting, drawLayout, drawSignature, fitFontPx, greetingBand } from './canvas/layouts'
 import type { TypeContext } from './canvas/layouts'
 
 /** 사진 전체의 평균 밝기(0~1) — 밝은 사진은 어두운 글자로 시작해야 읽힌다 */
@@ -142,25 +131,7 @@ export const drawVerseCard = (
       lightText: isLightColor(style.color),
     }
     tc.fontPx = fitFontPx(tc)
-    switch (style.layout) {
-      case 'gallery':
-        drawGalleryLayout(tc)
-        break
-      case 'quote':
-        drawQuoteLayout(tc)
-        break
-      case 'focus':
-        drawFocusLayout(tc)
-        break
-      case 'poster':
-        drawPosterLayout(tc)
-        break
-      case 'vertical':
-        drawVerticalLayout(tc)
-        break
-      default:
-        drawClassicLayout(tc)
-    }
+    drawLayout(tc)
   }
 
   if (greeting && text && withText) drawGreeting(ctx, l, greeting, style)
