@@ -57,7 +57,7 @@ const UpcomingRow = ({ capsule }: { capsule: CapsuleSummary }) => {
     <button
       type="button"
       onClick={() => navigate(`/capsule/${capsule.id}`)}
-      className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl border border-[var(--card-border)] text-left hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+      className="capsule-rail-row w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-[var(--brand-soft)]"
     >
       <span className="shrink-0 w-11 text-center text-[12px] font-extrabold text-brand tabular-nums">
         {dday > 0 ? `D-${dday}` : '오늘'}
@@ -88,12 +88,10 @@ const CapsuleRail = ({ data }: { data: CapsuleMailboxData }) => {
   return (
     <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
       <section className={cardClass}>
-        {/* relative 필수 — seal-chip 점선은 absolute ::after 라,
-            빠뜨리면 sticky가 걸린 레일(aside) 전체를 감싼다 */}
         <button
           type="button"
           onClick={() => navigate('/capsule/new')}
-          className="relative w-full py-3 rounded-2xl bg-brand text-white text-[14px] font-bold hover:-translate-y-0.5 transition-all seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]"
+          className="capsule-cta capsule-cta--block"
         >
           새 캡슐 봉인하기
         </button>

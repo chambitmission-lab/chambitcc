@@ -254,10 +254,9 @@ const VerseItem = ({
   const popoverEl = showActions && (
     <VerseActionPopover
       verse={verse}
+      reference={verseReference}
       copyTarget={copyTarget}
       isRead={isRead}
-      isTogglingRead={!!isTogglingRead}
-      loggedIn={loggedIn}
       isAdminUser={isAdminUser}
       bookmark={bookmark}
       hasWordNotes={(wordNotes?.length ?? 0) > 0}

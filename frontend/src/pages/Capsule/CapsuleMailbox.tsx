@@ -2,15 +2,16 @@
 // 편지가 몇 통일 땐 평평한 목록이 가장 좋지만, 쌓이기 시작하면 '언제 도착한 편지'인지가
 // 유일한 기억의 실마리가 된다. 그래서 도착한 달로 묶고, 오래된 달은 접어 둔다.
 // 도착함은 서버가 한 페이지씩 내려준다 — 화면 맨 아래 [더 보기]로 이어 받는다.
+// 도착한 편지는 '편지 도착 안내판'(station/CapsuleStation) 안에, 봉인 중인 편지는 그 아래 낮 영역에 놓인다.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CapsuleSummary } from '../../types/timeCapsule'
 import type { CapsuleMailboxData } from '../../hooks/useTimeCapsule'
 import { useCapsuleSearch } from '../../hooks/useTimeCapsule'
-import { daysUntil } from './capsuleDates'
 import { ArrivedRow, SealedRow } from './CapsuleMailRows'
-import { defaultOpenKeys, groupByMonth } from './capsuleGroups'
+import { defaultOpenKeys, groupByMonth, pickNextArrival } from './capsuleGroups'
 import type { CapsuleGroup } from './capsuleGroups'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import CapsuleStation from './station/CapsuleStation'
 
 // 이 수보다 적으면 검색창은 도움이 아니라 소음이다
 const SEARCH_MIN_ITEMS = 4
@@ -122,8 +123,10 @@ const useGroupOpenState = (groups: CapsuleGroup[]) => {
 }
 
 interface SectionProps {
-  eyebrow: string
-  description: string
+  eyebrow?: string
+  description?: string
+  /** 안내판 안에 들어갈 때 — 바깥 여백과 머리글은 안내판이 맡는다 */
+  bare?: boolean
   badge?: React.ReactNode
   groups: CapsuleGroup[]
   kind: 'arrived' | 'sealed'
@@ -134,6 +137,7 @@ interface SectionProps {
 const GroupedSection = ({
   eyebrow,
   description,
+  bare,
   badge,
   groups,
   kind,
@@ -144,18 +148,28 @@ const GroupedSection = ({
   const grouped = groups.length > 1
 
   return (
-    <section className="px-4 pt-7">
-      <div className="px-1 mb-2.5 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
-            {eyebrow}
-          </p>
-          <p className="text-[12.5px] mt-1 leading-[1.6] text-[var(--text-body)] break-keep">
-            {description}
-          </p>
+    <section className={bare ? undefined : 'px-4 pt-7'}>
+      {!bare && (
+        <div className="px-1 mb-3 flex items-center gap-2.5">
+          {/* 편지가 날아가는 중 — 안내판의 '도착'과 짝을 이루는 '출발' 표시 */}
+          <svg className="w-7 h-7 shrink-0 text-brand" viewBox="0 0 24 24" aria-hidden>
+            <path
+              fill="currentColor"
+              opacity=".9"
+              d="M2.5 11.2 20.6 3.6c.7-.3 1.3.4 1 1.1l-7.6 18c-.3.8-1.4.7-1.6-.1l-1.8-7.1-7.1-1.8c-.8-.2-.9-1.3-.1-1.6z"
+            />
+          </svg>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[16.5px] font-extrabold tracking-[-0.01em] text-ink-strong">
+              {eyebrow}
+            </h3>
+            <p className="text-[11.5px] mt-0.5 leading-[1.5] text-[var(--text-muted)] break-keep">
+              {description}
+            </p>
+          </div>
+          {badge}
         </div>
-        {badge}
-      </div>
+      )}
 
       {grouped && (
         <div className="px-1 mb-2 flex justify-end">
@@ -342,7 +356,7 @@ const CapsuleMailbox = ({
   const arrivedGroups = useMemo(() => groupByMonth(arrived), [arrived])
   const sealedGroups = useMemo(() => groupByMonth(sealed), [sealed])
 
-  const nextOpenDday = sealed.length ? Math.min(...sealed.map((c) => daysUntil(c.open_at))) : null
+  const nextArrival = useMemo(() => pickNextArrival(sealed), [sealed])
   const showSearch = sealed.length + arrivedTotal >= SEARCH_MIN_ITEMS || searching
 
   return (
@@ -396,44 +410,39 @@ const CapsuleMailbox = ({
         />
       ) : (
         <>
-          {arrived.length > 0 && (
-            <GroupedSection
-              kind="arrived"
-              eyebrow={`도착한 캡슐 ${arrivedTotal}통`}
-              description="지난 날 봉인한 마음이 여기 도착해 있어요"
-              groups={arrivedGroups}
-              badge={
-                unreadTotal > 0 ? (
-                  <span className="shrink-0 mt-0.5 px-2.5 py-1 rounded-full bg-[var(--brand-soft-strong)] text-brand text-[11px] font-extrabold">
-                    {unreadTotal}통 안 읽음
-                  </span>
-                ) : undefined
-              }
-              footer={
-                paging.hasMore ? (
-                  <LoadMore
-                    remaining={arrivedTotal - arrived.length}
-                    loading={paging.loadingMore}
-                    onClick={paging.onLoadMore}
-                  />
-                ) : undefined
-              }
-            />
+          {/* 캡슐이 하나도 없으면 안내판 대신 CapsuleList 의 빈 상태가 나온다 */}
+          {arrived.length + sealed.length > 0 && (
+            <CapsuleStation
+              next={nextArrival}
+              arrivedTotal={arrivedTotal}
+              unreadTotal={unreadTotal}
+              sealedCount={sealed.length}
+            >
+              {arrived.length > 0 ? (
+                <GroupedSection
+                  bare
+                  kind="arrived"
+                  groups={arrivedGroups}
+                  footer={
+                    paging.hasMore ? (
+                      <LoadMore
+                        remaining={arrivedTotal - arrived.length}
+                        loading={paging.loadingMore}
+                        onClick={paging.onLoadMore}
+                      />
+                    ) : undefined
+                  }
+                />
+              ) : undefined}
+            </CapsuleStation>
           )}
 
           {sealed.length > 0 && (
             <GroupedSection
               kind="sealed"
-              eyebrow={`봉인 중인 캡슐 ${sealed.length}통`}
-              description="아직 아무도 열어볼 수 없어요. 그날까지 조용히 기다립니다"
+              eyebrow={`기다리는 편지 ${sealed.length}통`}
+              description="도착할 날을 기다리는 중이에요. 그날까지 아무도 열어볼 수 없어요"
               groups={sealedGroups}
-              badge={
-                nextOpenDday !== null ? (
-                  <span className="shrink-0 mt-0.5 px-2.5 py-1 rounded-full bg-[var(--surface-inset)] border border-[var(--card-border)] text-[11px] font-extrabold text-[var(--text-body)] tabular-nums">
-                    {nextOpenDday > 0 ? `가장 가까운 개봉 D-${nextOpenDday}` : '오늘 열려요'}
-                  </span>
-                ) : undefined
-              }
               footnote="선물 캡슐은 [초대 전달]로 받는 분께 링크를 보내주세요. 개봉일 아침이 되면 받는 분께 알림이 갑니다."
             />
           )}

@@ -530,7 +530,8 @@ const VerseList = ({
 
   return (
     <VerseListProvider actions={verseActions} settings={verseSettings}>
-    <div className="bible-content">
+    {/* 절 하나에 등불이 켜지면(액션 메뉴 열림) 나머지 절은 살짝 물러난다 — verse-display.css */}
+    <div className={`bible-content${openVerseId !== null && !selectionMode ? ' verses-lamp-on' : ''}`}>
       {/* 진행률 pill - 읽은 절이 있을 때만 컴팩트하게 표시 */}
       {read.readCount > 0 && read.pillTotal > 0 && (
         <div className={read.pillReveal ? 'verse-progress-pill--reveal' : undefined} style={{

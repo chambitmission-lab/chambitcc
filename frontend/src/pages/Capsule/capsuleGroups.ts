@@ -102,3 +102,17 @@ export const counterpartLabel = (c: CapsuleSummary): string => {
   if (c.role === 'sender') return `${c.recipient_name || '소중한 분'}에게 보냄`
   return `${c.sender_name}님이 보냄`
 }
+
+/** 개봉이 가장 가까운 봉인 캡슐 */
+export const pickNextArrival = (sealed: CapsuleSummary[]): CapsuleSummary | null => {
+  let best: CapsuleSummary | null = null
+  let bestAt = Infinity
+  for (const c of sealed) {
+    const at = new Date(c.open_at).getTime()
+    if (!c.openable && !Number.isNaN(at) && at < bestAt) {
+      best = c
+      bestAt = at
+    }
+  }
+  return best
+}

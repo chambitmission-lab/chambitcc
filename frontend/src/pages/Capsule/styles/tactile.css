@@ -1,0 +1,254 @@
+/* ── /capsule 캡슐함 — "눌리는 입체" ───────────────────────────────────
+   /capsule/new(create.css)의 손맛을 목록 화면에도 같은 문법으로 잇는다.
+     · 타일 = 2px 테두리 + 아래 두꺼운 바닥 그림자. 누르면 바닥이 줄며 쑥 들어간다
+     · 버튼 = 브랜드 블루 + 진한 파랑 바닥 + 위쪽 빛줄(볼록함)
+   바닥·테두리 색은 --cap-* 에만 있다. 밤 안내판 안에서는 station 보드가 다시 정의한다.
+   (station.css·mailbox.css 뒤에 import — 같은 선택자를 덮어쓴다) */
+
+.capsule-box {
+  --cap-tile-edge: #e3e7ee;
+  --cap-tile-floor: #d3d9e3;
+  --cap-on-bg: rgba(49, 130, 246, 0.07);
+  --cap-on-edge: #3182f6;
+  --cap-on-floor: #1f5fcf;
+}
+
+.dark .capsule-box {
+  --cap-tile-edge: #303036;
+  --cap-tile-floor: #18181b;
+  --cap-on-bg: #172442;
+  --cap-on-edge: #3d7cf0;
+  --cap-on-floor: #2456b8;
+}
+
+/* 밤 안내판 — 유리 위의 타일은 테두리는 옅게, 바닥은 밤하늘보다 한 톤 깊게 */
+.dark .capsule-station__board {
+  --cap-tile-edge: rgba(255, 255, 255, 0.1);
+  --cap-tile-floor: rgba(3, 8, 26, 0.6);
+  --cap-on-bg: rgba(49, 130, 246, 0.18);
+  --cap-on-floor: #1a3a86;
+}
+
+/* ── 볼록 버튼 — 히어로 [새 캡슐 봉인하기] · PC 레일 ── */
+.capsule-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: #3182f6;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  box-shadow:
+    0 4px 0 #1f5fcf,
+    0 12px 22px -12px rgba(49, 130, 246, 0.6);
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.capsule-cta::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 12px;
+  right: 12px;
+  height: 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+.capsule-cta:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #1f5fcf;
+}
+
+.capsule-cta--block {
+  width: 100%;
+  height: 52px;
+  border-radius: 16px;
+  font-size: 15px;
+  box-shadow:
+    0 5px 0 #1f5fcf,
+    0 14px 24px -12px rgba(49, 130, 246, 0.6);
+}
+
+.capsule-cta--block::before {
+  top: 6px;
+  left: 14px;
+  right: 14px;
+  height: 8px;
+  border-radius: 8px;
+}
+
+.capsule-cta--block:active {
+  transform: translateY(4px);
+}
+
+/* ── 편지 한 통 = 입체 타일 ── */
+.capsule-row-card {
+  border: 2px solid var(--cap-tile-edge);
+  box-shadow: 0 4px 0 var(--cap-tile-floor);
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.capsule-row-card:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--cap-tile-floor);
+}
+
+/* 안 읽은 편지 = 골라 둔 타일처럼 파란 테두리·파란 바닥 */
+.capsule-row-card.is-new,
+.dark .capsule-station__board .capsule-row-card.is-new {
+  background: var(--cap-on-bg);
+  border-color: var(--cap-on-edge);
+  box-shadow:
+    0 4px 0 var(--cap-on-floor),
+    0 14px 24px -16px var(--brand-glow);
+}
+
+.capsule-row-card.is-new:active {
+  box-shadow: 0 1px 0 var(--cap-on-floor);
+}
+
+/* 상태 알약 — 새 편지·오늘은 작은 볼록 버튼 */
+.capsule-row__pill.is-new,
+.capsule-row__pill.is-today {
+  box-shadow:
+    0 2px 0 var(--cap-on-floor),
+    0 0 14px -4px var(--brand-glow);
+}
+
+/* 초대 전달 — 작은 볼록 버튼 */
+.capsule-row__share {
+  position: relative;
+  padding: 7px 13px;
+  border-radius: 10px;
+  box-shadow: 0 3px 0 #1f5fcf;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.capsule-row__share::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+.capsule-row__share:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1f5fcf;
+}
+
+/* ── 달별 서랍 · 모두 접기 · 더 보기 ── */
+.capsule-group__head {
+  border: 2px solid var(--cap-tile-edge);
+  box-shadow: 0 3px 0 var(--cap-tile-floor);
+}
+
+.capsule-group__head:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--cap-tile-floor);
+}
+
+/* 열린 서랍 머리글은 라벨이라 입체가 없다 */
+.capsule-group.is-open > .capsule-group__head,
+.capsule-group.is-open > .capsule-group__head:active {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.capsule-group__all {
+  border: 1.5px solid var(--cap-tile-edge);
+  box-shadow: 0 2px 0 var(--cap-tile-floor);
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.capsule-group__all:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.capsule-more {
+  border: 2px solid var(--cap-tile-edge);
+  background: var(--surface-container);
+  box-shadow: 0 4px 0 var(--cap-tile-floor);
+}
+
+.capsule-more:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--cap-tile-floor);
+}
+
+/* 숫자판도 바닥이 있는 패 — 낮은 흰 패(파랑회색 바닥), 밤은 철판 */
+.capsule-station {
+  --st-flap-shadow: 0 3px 0 #cfdcef, 0 8px 12px -8px rgba(30, 70, 140, 0.35),
+    inset 0 0 0 1px #e1e9f5;
+}
+
+.dark .capsule-station {
+  --st-flap-shadow: 0 3px 0 #0e1220, 0 8px 12px -6px rgba(0, 0, 0, 0.7);
+}
+
+/* 안내판 머리 칩 */
+.capsule-station__unread {
+  box-shadow:
+    0 2px 0 var(--cap-on-floor),
+    0 0 14px -4px rgba(49, 130, 246, 0.45);
+}
+
+.capsule-station__clock {
+  border: 1.5px solid var(--cap-tile-edge);
+  box-shadow: 0 2px 0 var(--cap-tile-floor);
+}
+
+/* PC 레일 '다가올 개봉' 한 줄도 같은 타일 */
+.capsule-rail-row {
+  border: 2px solid var(--cap-tile-edge);
+  box-shadow: 0 3px 0 var(--cap-tile-floor);
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.capsule-rail-row:hover {
+  border-color: var(--cap-on-edge);
+  box-shadow: 0 3px 0 var(--cap-on-floor);
+}
+
+.capsule-rail-row:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--cap-on-floor);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-cta,
+  .capsule-rail-row,
+  .capsule-row-card,
+  .capsule-row__share,
+  .capsule-group__all {
+    transition: none;
+  }
+}

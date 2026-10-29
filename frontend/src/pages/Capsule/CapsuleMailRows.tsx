@@ -1,10 +1,14 @@
 // 캡슐함 목록의 편지 한 통 — 봉인 중(SealedRow) / 도착함(ArrivedRow)
-// 카드 스타일은 capsule.css 의 .capsule-mail 계열.
+// 도착 안내판의 한 줄 행: [작은 봉투] [날짜 · 여행 기간] [제목 · 보낸 분] [상태 알약] ›
+// 스타일은 styles/mailbox.css 의 .capsule-row 계열. 색은 전부 테마 토큰이라
+// 밤 안내판(station.css) 안에서는 토큰만 바뀌어 유리 행이 된다.
+import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { CapsuleSummary } from '../../types/timeCapsule'
 import { showToast } from '../../utils/toast'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
 import { counterpartLabel, splitHighlight } from './capsuleGroups'
+import { Icon, MicGlyph, PenGlyph, PhotoGlyph } from './capsuleIcons'
 
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
@@ -51,31 +55,106 @@ const Mark = ({ text, keyword }: { text: string; keyword?: string }) => {
   )
 }
 
-/** 밀랍 인장 — 누가 보냈는지는 옆 텍스트가 이미 말한다.
-    그래서 인장에는 이름 대신 이 편지가 지금 어떤 상태인지를 새긴다. */
-const WaxSeal = ({ state }: { state: 'sealed' | 'new' | 'read' }) => (
-  <span className={`capsule-mail__seal capsule-mail__seal--${state}`} aria-hidden>
-    <svg
-      className="capsule-mail__sigil"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.9}
-      strokeLinecap="round"
+/** 봉투마다 인장 색이 다르다 — 같은 편지는 언제나 같은 색 */
+const SEAL_COLORS = ['#3182f6', '#e0a42e', '#8f86e6', '#4fae6a', '#e2675a']
+const sealColor = (id: number) => SEAL_COLORS[Math.abs(id) % SEAL_COLORS.length]
+
+/** 작은 실물 봉투 — tile이면 같은 색 옅은 바탕 위에 앉는다(낮 영역 목록) */
+const MiniEnvelope = ({ color, tile }: { color: string; tile?: boolean }) => {
+  const env = (
+    <span className="capsule-row__env">
+      <i />
+    </span>
+  )
+  return (
+    <span
+      className={tile ? 'capsule-row__tile' : 'capsule-row__lead'}
+      style={{ '--seal': color } as CSSProperties}
+      aria-hidden
     >
-      <path d="M12 3.5v17M6.6 9.2h10.8" />
-    </svg>
-  </span>
+      {env}
+    </span>
+  )
+}
+
+const Chevron = () => (
+  <svg
+    className="capsule-row__chev"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <polyline points="9 6 15 12 9 18" />
+  </svg>
 )
 
-/** 봉인 → 개봉까지 얼마나 왔는지 (0~1) — 기다림의 진행바 */
+/** 2025.11.23 */
+const dotDate = (iso: string): string => {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(
+    d.getDate(),
+  ).padStart(2, '0')}`
+}
+
+/** 봉인부터 개봉까지 — 편지가 시간을 건너는 여행 길이 */
+const travelLabel = (c: CapsuleSummary): string => {
+  const sealed = new Date(c.sealed_at).getTime()
+  const opened = new Date(c.open_at).getTime()
+  if (Number.isNaN(sealed) || Number.isNaN(opened)) return ''
+  const days = Math.round((opened - sealed) / 86_400_000)
+  if (days >= 365) return `${Math.floor(days / 365)}년 여행`
+  if (days >= 28) return `${Math.round(days / 30)}개월 여행`
+  if (days >= 1) return `${days}일 여행`
+  return '당일 도착'
+}
+
+/** 동봉한 것 — 사진·음성·손글씨를 작은 라인 아이콘으로 */
+const Enclosures = ({ capsule }: { capsule: CapsuleSummary }) => {
+  const photos = capsule.photo_count ?? 0
+  if (!photos && !capsule.has_audio && !capsule.has_handwriting) return null
+  return (
+    <span className="capsule-row__extras">
+      {capsule.has_handwriting && (
+        <i title="손글씨 편지">
+          <Icon size={11}>
+            <PenGlyph />
+          </Icon>
+        </i>
+      )}
+      {capsule.has_audio && (
+        <i title="음성 편지">
+          <Icon size={11}>
+            <MicGlyph />
+          </Icon>
+        </i>
+      )}
+      {photos > 0 && (
+        <i title={`사진 ${photos}장`}>
+          <Icon size={11}>
+            <PhotoGlyph />
+          </Icon>
+          {photos}
+        </i>
+      )}
+    </span>
+  )
+}
+
+/** 봉인부터 개봉까지 얼마나 왔는지 (0~1) — D-day 알약이 이만큼 차오른다 */
 const waitProgress = (c: CapsuleSummary): number => {
   const sealed = new Date(c.sealed_at).getTime()
   const opened = new Date(c.open_at).getTime()
   if (Number.isNaN(sealed) || Number.isNaN(opened) || opened <= sealed) return 1
-  const now = Date.now()
-  return Math.min(1, Math.max(0.02, (now - sealed) / (opened - sealed)))
+  return Math.min(1, Math.max(0.02, (Date.now() - sealed) / (opened - sealed)))
 }
+
+// 이 안으로 들어오면 D-day 알약이 브랜드 색으로 떠오른다
+const NEAR_DAYS = 30
 
 export const SealedRow = ({
   capsule,
@@ -88,90 +167,59 @@ export const SealedRow = ({
   const dday = daysUntil(capsule.open_at)
   const needsShare =
     capsule.role === 'sender' && capsule.capsule_type === 'invite' && !!capsule.invite_code
-  const photos = capsule.photo_count ?? 0
-  const progress = waitProgress(capsule)
+  const who = counterpartLabel(capsule)
 
   return (
-    <article className="capsule-mail capsule-mail--sealed">
-      <span className="capsule-mail__flap" aria-hidden />
+    <article className="capsule-row-card">
       <button
         type="button"
         onClick={() => navigate(`/capsule/${capsule.id}`)}
-        className="capsule-mail__hit"
+        className="capsule-row"
       >
-        <WaxSeal state="sealed" />
+        <MiniEnvelope color={sealColor(capsule.id)} tile />
 
-        <span className="flex-1 min-w-0">
-          <span className="capsule-mail__title">
-            <Mark text={capsule.title || counterpartLabel(capsule)} keyword={keyword} />
-          </span>
-          <span className="capsule-mail__from">
-            {capsule.title ? <Mark text={`${counterpartLabel(capsule)} · `} keyword={keyword} /> : ''}
-            <span className="capsule-mail__journey">
-              {formatKoreanDate(capsule.open_at)} 아침에 열려요
+        <span className="capsule-row__when">
+          <b>{dotDate(capsule.open_at)}</b>
+          <small>{capsule.open_label || travelLabel(capsule)}</small>
+        </span>
+
+        <span className="capsule-row__body">
+          <b>
+            <Mark text={capsule.title || who} keyword={keyword} />
+          </b>
+          <small>
+            <span className="capsule-row__sub">
+              {capsule.title ? <Mark text={who} keyword={keyword} /> : '아침에 열려요'}
             </span>
-          </span>
-          <span className="capsule-mail__chips">
-            {capsule.open_label && <i className="capsule-mail__chip">✦ {capsule.open_label}</i>}
-            {capsule.has_handwriting && <i className="capsule-mail__chip">✍️ 손글씨</i>}
-            {capsule.has_audio && <i className="capsule-mail__chip">🎙️ 음성편지</i>}
-            {photos > 0 && <i className="capsule-mail__chip">📷 사진 {photos}장</i>}
-          </span>
+            <Enclosures capsule={capsule} />
+          </small>
         </span>
 
         <span
-          className="capsule-mail__dday"
+          className={`capsule-row__pill ${
+            dday === 0 ? 'is-today' : dday <= NEAR_DAYS ? 'is-near' : 'is-wait'
+          }`}
+          // 기다림의 진행 — 카드 바닥의 선 대신 D-day 알약 안이 봉인일부터 차오른다
+          style={{ '--wait': `${Math.round(waitProgress(capsule) * 100)}%` } as CSSProperties}
           aria-label={dday > 0 ? `${dday}일 남음` : '오늘 열려요'}
         >
-          {dday > 0 ? (
-            <>
-              <b>D-</b>
-              <i>{dday}</i>
-            </>
-          ) : (
-            <b className="capsule-mail__dday--today">오늘</b>
-          )}
+          {dday > 0 ? `D-${dday.toLocaleString()}` : '오늘'}
         </span>
+        <Chevron />
       </button>
 
       {needsShare && (
-        <div className="capsule-mail__foot">
-          <span className="capsule-mail__foot-text">
+        <div className="capsule-row__foot">
+          <span className="capsule-row__foot-text">
             {capsule.claimed ? '받는 분이 초대를 확인했어요' : '아직 초대장을 전하지 않았어요'}
           </span>
-          <button type="button" onClick={() => shareInvite(capsule)} className="capsule-mail__share">
+          <button type="button" onClick={() => shareInvite(capsule)} className="capsule-row__share">
             {capsule.claimed ? '다시 전달' : '초대 전달'}
           </button>
         </div>
       )}
-
-      {/* 봉인부터 개봉까지 — 기다림이 얼마나 흘렀는지 */}
-      <span className="capsule-mail__wait" aria-hidden>
-        <i style={{ width: `${progress * 100}%` }} />
-      </span>
     </article>
   )
-}
-
-/** 봉인부터 도착까지 건너온 시간 — 이 편지의 감정선 */
-const journeyLabel = (c: CapsuleSummary): string | null => {
-  const sealed = new Date(c.sealed_at).getTime()
-  const opened = new Date(c.open_at).getTime()
-  if (Number.isNaN(sealed) || Number.isNaN(opened)) return null
-  const days = Math.round((opened - sealed) / 86_400_000)
-  if (days >= 365) return `${Math.floor(days / 365)}년을 건너온 마음`
-  if (days >= 28) return `${Math.round(days / 30)}개월을 건너온 마음`
-  if (days >= 1) return `${days}일을 건너온 마음`
-  return '오늘 봉인해 오늘 도착한 마음'
-}
-
-/** 소인(우표)에 찍히는 봉인 날짜 */
-const postmarkParts = (iso: string): { year: string; day: string } | null => {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return null
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  return { year: String(d.getFullYear()), day: `${mm}.${dd}` }
 }
 
 export const ArrivedRow = ({
@@ -186,72 +234,64 @@ export const ArrivedRow = ({
   // 그래서 내가 보낸 캡슐에는 미개봉 상태를 쓰면 안 된다 — 내가 아무리 읽어도 영영 '안 읽음'이 된다.
   const isSender = capsule.role === 'sender'
   const unopened = !isSender && !capsule.opened_at
-  const journey = journeyLabel(capsule)
-  const stamp = postmarkParts(capsule.sealed_at)
-  const photos = capsule.photo_count ?? 0
+  const who = counterpartLabel(capsule)
   // 본문 발췌는 검색 중일 때만, 그것도 서버가 내려준 경우만 (아직 안 연 편지엔 오지 않는다)
   const snippet = keyword ? capsule.match_snippet : null
 
+  const pill = unopened
+    ? { cls: 'is-new', text: '새 편지' }
+    : isSender
+      ? capsule.opened_at
+        ? { cls: 'is-read', text: '읽었어요' }
+        : { cls: 'is-wait', text: '읽기 전' }
+      : { cls: 'is-read', text: '읽음' }
+
   return (
-    <article className={`capsule-mail ${unopened ? 'capsule-mail--new' : ''}`}>
-      <span className="capsule-mail__flap" aria-hidden />
+    <article className={`capsule-row-card${unopened ? ' is-new' : ''}`}>
       <button
         type="button"
         onClick={() => navigate(`/capsule/${capsule.id}`)}
-        className="capsule-mail__hit"
+        className="capsule-row"
+        aria-label={
+          isSender
+            ? `${capsule.title || who}, ${
+                capsule.opened_at
+                  ? `${capsule.recipient_name || '받는 분'}님이 읽었어요`
+                  : '아직 안 읽었어요'
+              }`
+            : undefined
+        }
       >
-        <WaxSeal state={unopened ? 'new' : 'read'} />
+        <MiniEnvelope color={unopened ? 'var(--brand)' : sealColor(capsule.id)} />
 
-        <span className="flex-1 min-w-0">
-          <span className="capsule-mail__title">
-            <Mark text={capsule.title || counterpartLabel(capsule)} keyword={keyword} />
-          </span>
-          <span className="capsule-mail__from">
-            {/* 제목이 없으면 제목 자리에 이미 쓰인 문구라 겹치지 않게 뺀다 */}
-            {capsule.title ? (
-              <Mark text={`${counterpartLabel(capsule)}${journey ? ' · ' : ''}`} keyword={keyword} />
-            ) : (
-              ''
-            )}
-            {journey && <span className="capsule-mail__journey">{journey}</span>}
-          </span>
+        <span className="capsule-row__when">
+          <b>{dotDate(capsule.sealed_at)}</b>
+          <small>{travelLabel(capsule)}</small>
+        </span>
+
+        <span className="capsule-row__body">
+          <b>
+            <Mark text={capsule.title || who} keyword={keyword} />
+          </b>
+          <small>
+            <span className="capsule-row__sub">
+              {capsule.title ? (
+                <Mark text={who} keyword={keyword} />
+              ) : (
+                `${formatKoreanDate(capsule.open_at)} 도착`
+              )}
+            </span>
+            <Enclosures capsule={capsule} />
+          </small>
           {snippet && (
-            <span className="capsule-mail__snippet">
+            <span className="capsule-row__snippet">
               <Mark text={snippet} keyword={keyword} />
             </span>
           )}
-          <span className="capsule-mail__chips">
-            {capsule.has_handwriting && <i className="capsule-mail__chip">✍️ 손글씨</i>}
-            {capsule.has_audio && <i className="capsule-mail__chip">🎙️ 음성편지</i>}
-            {photos > 0 && <i className="capsule-mail__chip">📷 사진 {photos}장</i>}
-            {isSender ? (
-              <i className="capsule-mail__chip">
-                {capsule.opened_at
-                  ? `${capsule.recipient_name || '받는 분'}님이 읽었어요`
-                  : '아직 안 읽었어요'}
-              </i>
-            ) : (
-              !unopened && <i className="capsule-mail__chip">읽음</i>
-            )}
-          </span>
         </span>
 
-        {unopened ? (
-          <span className="capsule-mail__cta">
-            {/* 글자를 감싸야 빛 스침(::before) 아래로 깔려 씻겨 보이지 않는다 */}
-            <span>열어보기</span>
-          </span>
-        ) : (
-          stamp && (
-            <span
-              className="capsule-mail__postmark"
-              aria-label={`${formatKoreanDate(capsule.sealed_at)} 봉인`}
-            >
-              <b>{stamp.year}</b>
-              <i>{stamp.day}</i>
-            </span>
-          )
-        )}
+        <span className={`capsule-row__pill ${pill.cls}`}>{pill.text}</span>
+        <Chevron />
       </button>
     </article>
   )

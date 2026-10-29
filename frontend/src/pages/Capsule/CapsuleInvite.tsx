@@ -5,7 +5,7 @@
 //
 // 화면 언어: 이 앱을 처음 보는 사람이 닿는 유일한 화면이라, 브랜드 슬래브 한 장 대신
 // "도착한 편지 한 통" 자체를 그린다 — 항공우편 테두리·우표·소인·손글씨 수취인·밀랍 인장.
-// 캡슐함(capsule-mail)과 개봉 화면(capsule-envelope)이 이미 쓰는 재질을 그대로 이어받는다.
+// 캡슐함 봉투(capsule-row__env)와 개봉 화면(capsule-envelope)이 이미 쓰는 재질을 그대로 이어받는다.
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCapsulePreview, useClaimCapsule } from '../../hooks/useTimeCapsule'
 import { isAuthenticated } from '../../utils/auth'

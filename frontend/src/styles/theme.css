@@ -32,6 +32,10 @@
   --brand-soft-strong: rgba(49, 130, 246, 0.15);
   --brand-muted: #3d5a85;                    /* 채도 낮춘 스틸 블루 텍스트 — 제목 등 은은한 강조 */
   --marker: rgba(49, 130, 246, 0.22);        /* 형광펜 밑줄 — 본문 위 강조라 soft-strong보다 진하게 */
+  /* /bible 절 등불 — 탭한 절에 스미는 빛. 라이트는 새벽 하늘, 다크는 등불 앰버.
+     rgba(var(--verse-lamp), a) 로 쓰도록 r,g,b 세 값만 둔다 */
+  --verse-lamp: 120, 175, 255;
+  --verse-lamp-ink: #2f6fd6;
   --quote-rule: rgba(60, 55, 70, 0.20);      /* 인용구 왼쪽 획 — 브랜드색이면 CTA와 겹쳐 소란스러워 중립 회색 */
 
   /* 묵상 카드 시간대 tint — 아침(여명)/낮/저녁 */
@@ -178,6 +182,8 @@
   --brand-glow: rgba(49, 130, 246, 0.35);
   --brand-soft: rgba(69, 147, 252, 0.10);
   --brand-soft-strong: rgba(69, 147, 252, 0.18);
+  --verse-lamp: 255, 180, 90;
+  --verse-lamp-ink: #d9b56e;
   --brand-muted: #9db8dd;                    /* 채도 낮춘 스틸 블루 텍스트 — 제목 등 은은한 강조 */
   --marker: rgba(69, 147, 252, 0.38);        /* 형광펜 밑줄 — 어두운 배경에 묻히지 않게 라이트보다 진하게 */
   --quote-rule: rgba(170, 166, 178, 0.28);   /* 인용구 왼쪽 획 — 브랜드색이면 CTA와 겹쳐 소란스러워 중립 회색 */

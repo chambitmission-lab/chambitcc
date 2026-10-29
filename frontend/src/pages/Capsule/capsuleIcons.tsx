@@ -77,5 +77,5 @@ export const LinkGlyph = () => (
   </>
 )
 
-/** 밀랍 인장에 눌린 문양 — 캡슐함 인장(capsule-mail__sigil)과 같은 십자 */
+/** 밀랍 인장에 눌린 문양 — 초대장 인장의 십자 */
 export const SigilGlyph = () => <path d="M12 3.5v17M6.6 9.2h10.8" />

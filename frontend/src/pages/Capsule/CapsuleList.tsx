@@ -39,7 +39,7 @@ const CapsuleList = () => {
   const isEmpty = !isLoading && mailbox.sealed.length === 0 && mailbox.arrived.length === 0
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+    <div className="capsule-box min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
       {/* lg+: 좁은 셸을 풀고 본문(캡슐함) + 우측 레일(봉인하기·한눈에·다가올 개봉) 2단 표준 규격 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
@@ -85,7 +85,7 @@ const CapsuleList = () => {
             <button
               type="button"
               onClick={() => navigate('/capsule/new')}
-              className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-brand text-white text-[13.5px] font-extrabold shadow-[0_6px_16px_-6px_var(--brand-glow)] active:scale-[0.97] dark:bg-white dark:text-brand dark:shadow-sm"
+              className="capsule-cta mt-4"
             >
               {/* 봉인된 편지 — 손+펜 이모지가 삽화 위에서 겉돌아 스트로크 아이콘으로 교체 */}
               <svg
