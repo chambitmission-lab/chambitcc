@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { createPortal } from 'react-dom'
 import type { HighlightColor, VerseBookmark } from '../../../api/bibleBookmark'
@@ -86,7 +86,7 @@ const VerseBookmarkModal = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-md sheet-rise max-h-[94vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="pc-scale-sheet relative w-full sm:max-w-md lg:max-w-[920px] lg:h-[580px] sheet-rise max-h-[94vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 카드 표면 그라데이션 + 글로우 */}
@@ -117,15 +117,21 @@ const VerseBookmarkModal = ({
           </button>
         </div>
 
-        {/* 본문 */}
-        <div className="relative z-10 flex-1 overflow-y-auto px-5 py-5 space-y-5">
-          {/* 말씀 본문 */}
-          <div className="rounded-xl border-l-[3px] border-brand bg-gray-50 dark:bg-white/[0.03] px-4 py-3 text-[14.5px] leading-[1.7] text-gray-700 dark:text-white/80">
-            {verseText}
+        {/* 본문 — PC(lg+)는 2단: 왼쪽 말씀·색·즐겨찾기 / 오른쪽 메모가 높이 전체를 쓴다.
+            모바일 DOM 순서(말씀→색→메모→즐겨찾기)는 그대로 두고 grid 배치로만 옮긴다 */}
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-5 py-5 space-y-5 lg:space-y-0 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:grid-rows-[auto_auto_1fr_auto] lg:gap-x-8 lg:gap-y-6 lg:px-8 lg:py-7">
+          {/* 말씀 본문 — PC는 고른 형광펜 색을 미리 칠해 보여준다 */}
+          <div className="rounded-xl border-l-[3px] border-brand bg-gray-50 dark:bg-white/[0.03] px-4 py-3 text-[14.5px] leading-[1.7] text-gray-700 dark:text-white/80 lg:col-start-1 lg:row-start-1 lg:px-5 lg:py-5 lg:text-[17px] lg:leading-[1.85] lg:max-h-[240px] lg:overflow-y-auto">
+            <span
+              className="lg:rounded-[3px] lg:[box-decoration-break:clone] lg:[-webkit-box-decoration-break:clone] lg:px-0.5 lg:transition-colors lg:bg-[var(--hl-preview)]"
+              style={color ? ({ '--hl-preview': `color-mix(in srgb, ${HIGHLIGHT_COLOR_BG[color]} 34%, transparent)` } as CSSProperties) : undefined}
+            >
+              {verseText}
+            </span>
           </div>
 
           {/* 하이라이트 색상 */}
-          <div>
+          <div className="lg:col-start-1 lg:row-start-2">
             <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em] mb-2">
               하이라이트 색상
             </p>
@@ -160,7 +166,7 @@ const VerseBookmarkModal = ({
           </div>
 
           {/* 묵상 메모 */}
-          <div>
+          <div className="lg:col-start-2 lg:row-start-1 lg:row-span-4 lg:flex lg:flex-col lg:min-h-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
                 묵상 메모 <span className="font-medium text-gray-400 dark:text-white/40">(선택)</span>
@@ -170,14 +176,21 @@ const VerseBookmarkModal = ({
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value.slice(0, 2000))}
+              onKeyDown={(e) => {
+                // PC: Ctrl/⌘+Enter 로 바로 저장
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !isBusy) {
+                  e.preventDefault()
+                  void handleSave()
+                }
+              }}
               rows={5}
               placeholder="이 구절이 마음에 와닿은 이유나 받은 은혜를 적어보세요..."
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-y min-h-[120px] focus:outline-none focus:border-brand transition-colors"
+              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-y min-h-[120px] focus:outline-none focus:border-brand transition-colors lg:flex-1 lg:min-h-0 lg:resize-none lg:px-5 lg:py-4 lg:text-[16px] lg:leading-[1.8] lg:rounded-2xl"
             />
           </div>
 
           {/* 즐겨찾기 토글 */}
-          <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
+          <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl lg:col-start-1 lg:row-start-4 bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
             <div className="min-w-0">
               <p className="text-[13.5px] font-bold text-ink-strong">
                 ⭐ 즐겨찾기에 추가
@@ -220,10 +233,13 @@ const VerseBookmarkModal = ({
           ) : (
             <div />
           )}
+          <span className="hidden lg:inline text-[11.5px] text-gray-400 dark:text-white/35 ml-auto mr-1">
+            Ctrl + Enter 로 저장
+          </span>
           <button
             onClick={onClose}
             disabled={isBusy}
-            className="ml-auto px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+            className="ml-auto lg:ml-0 px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
           >
             취소
           </button>
