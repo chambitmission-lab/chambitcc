@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { prefersReducedMotion } from '../../../utils/prefersReducedMotion'
+import { safeSessionStorage } from '../../../utils/safeStorage'
 import { createPortal } from 'react-dom'
 import { useSituationVerses } from '../../../hooks/useSituation'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -23,11 +24,7 @@ const readBreathSeen = () => {
   }
 }
 const markBreathSeen = () => {
-  try {
-    sessionStorage.setItem(BREATH_SEEN_KEY, '1')
-  } catch {
-    /* 사파리 사생활 보호 모드 등 — 숨 고르기만 한 번 더 뜰 뿐 */
-  }
+  safeSessionStorage.set(BREATH_SEEN_KEY, '1') // 저장 실패면 숨 고르기만 한 번 더 뜰 뿐
 }
 
 

@@ -5,6 +5,7 @@ import type { Column } from '../../types/column'
 import { columnPlainText } from './blockFormat'
 import { parseHighlightToken, removeHighlightTags, swatchColor } from './highlightMarkup'
 import { ensureFontFamily } from '../../utils/deferredFonts'
+import { safeStorage } from '../../utils/safeStorage'
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
@@ -140,18 +141,10 @@ export const FONT_STEPS_LG = [18, 20.5, 23]
 const FONT_STEP_KEY = 'ministry_font_step'
 
 export const loadFontStep = (): number => {
-  try {
-    const n = Number(localStorage.getItem(FONT_STEP_KEY))
-    return Number.isInteger(n) && n >= 0 && n < FONT_STEPS.length ? n : 1
-  } catch {
-    return 1
-  }
+  const n = Number(safeStorage.get(FONT_STEP_KEY))
+  return Number.isInteger(n) && n >= 0 && n < FONT_STEPS.length ? n : 1
 }
 
 export const saveFontStep = (step: number) => {
-  try {
-    localStorage.setItem(FONT_STEP_KEY, String(step))
-  } catch {
-    /* 무시 */
-  }
+  safeStorage.set(FONT_STEP_KEY, String(step))
 }

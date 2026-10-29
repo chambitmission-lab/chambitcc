@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { BulletinData, ExtraBlock } from '../../../types/digitalBulletin'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { safeStorage } from '../../../utils/safeStorage'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { WORSHIP_HERO } from '../../../utils/themeAssets'
@@ -95,19 +96,10 @@ const quizChoices = (answer: number, seed: string): number[] => {
 }
 
 const DONE_KEY = 'bulletin-story-done'
-const readDone = (): string | null => {
-  try {
-    return localStorage.getItem(DONE_KEY)
-  } catch {
-    return null
-  }
-}
+const readDone = (): string | null => safeStorage.get(DONE_KEY)
+// 저장 실패(사생활 보호 모드 등)면 완독 표시만 못 남길 뿐
 const writeDone = (date: string) => {
-  try {
-    localStorage.setItem(DONE_KEY, date)
-  } catch {
-    // 사생활 보호 모드 등 — 완독 표시만 못 남길 뿐
-  }
+  safeStorage.set(DONE_KEY, date)
 }
 
 const isInteractive = (el: EventTarget | null) =>

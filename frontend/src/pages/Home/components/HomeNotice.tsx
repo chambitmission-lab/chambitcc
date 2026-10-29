@@ -26,6 +26,7 @@ import {
   markNoticeSeenThisSession,
 } from '../../../utils/noticeDismiss'
 import { tokenStore } from '../../../utils/tokenStore'
+import { safeStorage } from '../../../utils/safeStorage'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { NOTICE_BANNER } from '../../../utils/themeAssets'
 import './HomeNotice.css'
@@ -60,19 +61,10 @@ const previewOf = (content: string) => noticePreviewText(content)
  * (공지가 새로 생긴 첫 방문은 한 번 밀리지만, 그 뒤로는 어느 쪽도 흔들리지 않는다)
  */
 const SLOT_HINT_KEY = 'home_notice_slot_v1'
-const readSlotHint = (): boolean => {
-  try {
-    return localStorage.getItem(SLOT_HINT_KEY) === '1'
-  } catch {
-    return false
-  }
-}
+const readSlotHint = (): boolean => safeStorage.get(SLOT_HINT_KEY) === '1'
+// 저장 불가 환경이면 다음 방문에 자리표시자 없이 뜰 뿐
 const writeSlotHint = (hasBanner: boolean) => {
-  try {
-    localStorage.setItem(SLOT_HINT_KEY, hasBanner ? '1' : '0')
-  } catch {
-    /* 저장 불가 환경 — 다음 방문에 자리표시자 없이 뜰 뿐 */
-  }
+  safeStorage.set(SLOT_HINT_KEY, hasBanner ? '1' : '0')
 }
 
 /**

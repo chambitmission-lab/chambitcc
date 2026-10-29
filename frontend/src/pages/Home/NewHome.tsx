@@ -57,6 +57,7 @@ import { useBottomStickyRail } from '../../hooks/useBottomStickyRail'
 import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
+import { safeStorage } from '../../utils/safeStorage'
 import { preloadNavRoutes, preloadRoute, isRoutePreloaded } from '../../utils/routePreload'
 import { warmPair, PRAYER_WEEK_WINDOW } from '../../utils/themeAssets'
 import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
@@ -108,21 +109,12 @@ const NewHome = () => {
   const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
   // 정렬은 마지막 선택을 이 기기에 기억한다(개인 편의) — 다시 들어와도 고른 순서 그대로
   const [sort, setSortState] = useState<SortType>(() => {
-    try {
-      const v = localStorage.getItem(PRAYER_SORT_KEY)
-      if (v === 'popular' || v === 'latest') return v
-    } catch {
-      /* 저장소를 못 쓰는 환경 — 기본값 */
-    }
-    return 'popular'
+    const v = safeStorage.get(PRAYER_SORT_KEY)
+    return v === 'popular' || v === 'latest' ? v : 'popular'
   })
   const setSort = useCallback((next: SortType) => {
     setSortState(next)
-    try {
-      localStorage.setItem(PRAYER_SORT_KEY, next)
-    } catch {
-      /* 저장 실패는 무시 — 이번 방문엔 그대로 적용 */
-    }
+    safeStorage.set(PRAYER_SORT_KEY, next) // 저장 실패는 무시 — 이번 방문엔 그대로 적용
   }, [])
   // 기도방 홈에서 "이 방의 기도 보러 가기"로 진입하면 ?group=ID 로 필터를 미리 선택
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(() => {

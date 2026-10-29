@@ -2,6 +2,8 @@
 // 기기별로 localStorage에 기억하고, 저장·전파 방식은 readerLayout과 같다.
 // 플레이어는 이 모듈만 알면 되고, 저장 매체가 바뀌어도 UI는 손대지 않는다.
 
+import { safeStorage } from '../../../utils/safeStorage'
+
 import { useSyncExternalStore } from 'react'
 import type { BibleTTSVoice } from '../../../types/bible'
 
@@ -25,20 +27,10 @@ const KEYS = {
   collapsed: 'bible-tts-collapsed',
 } as const
 
-const read = (key: string): string | null => {
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
-
+const read = (key: string): string | null => safeStorage.get(key)
+/* 저장 실패(사파리 프라이빗 모드 등)면 이번 세션만 반영 */
 const write = (key: string, value: string) => {
-  try {
-    localStorage.setItem(key, value)
-  } catch {
-    /* 사파리 프라이빗 모드 등 — 이번 세션만 반영 */
-  }
+  safeStorage.set(key, value)
 }
 
 // 현재는 음성 선택 UI를 숨기고 남성으로 고정한다(여성/남성 토글은 코드만 보존).

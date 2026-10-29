@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDailyVerse } from '../../../hooks/useDailyVerse'
 import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
+import { safeStorage } from '../../../utils/safeStorage'
 import './AnnualThemeVerse.css'
 
 // "에스겔 37장 5,10절" → "에스겔 37:5,10" (형식이 다르면 원문 그대로)
@@ -20,13 +21,7 @@ const splitHighlight = (text: string): { head: string; mark: string } => {
 // 접힌 상태는 기기에 기억한다 — 기도 목록을 보러 온 사람이 매번 다시 접지 않도록.
 const OPEN_KEY = 'chambit.annualVerse.open'
 
-const readOpen = (): boolean => {
-  try {
-    return localStorage.getItem(OPEN_KEY) !== 'false'
-  } catch {
-    return true
-  }
-}
+const readOpen = (): boolean => safeStorage.get(OPEN_KEY) !== 'false'
 
 type PreviewVerse = { verse_text: string; verse_reference: string }
 
@@ -43,11 +38,7 @@ const AnnualThemeVerse = ({ preview }: { preview?: PreviewVerse }) => {
   const toggle = useCallback(() => {
     setOpen((prev) => {
       const next = !prev
-      try {
-        localStorage.setItem(OPEN_KEY, String(next))
-      } catch {
-        /* 사파리 프라이빗 모드 등 — 기억만 못 할 뿐 동작은 그대로 */
-      }
+      safeStorage.set(OPEN_KEY, String(next)) // 기억만 못 할 뿐 동작은 그대로
       return next
     })
   }, [])

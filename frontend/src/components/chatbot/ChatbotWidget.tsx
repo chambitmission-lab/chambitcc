@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
+import { safeStorage } from '../../utils/safeStorage'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkle, Check } from '../icons/phosphor'
 import { chatViewerKey, getChatbotGreeting, prefetchChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
@@ -53,13 +54,7 @@ const SCALE_NAME: Record<FeedTextScale, string> = { base: '글씨 보통', large
 
 // 넓게 보기 — 코너 패널 대신 화면 가운데 큰 창. 이 기기에만 기억한다.
 const WIDE_KEY = 'chatbot-wide'
-const readWide = () => {
-  try {
-    return localStorage.getItem(WIDE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
+const readWide = () => safeStorage.get(WIDE_KEY) === '1'
 
 const isDesktop = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
 
@@ -106,11 +101,7 @@ const ChatbotWidget = () => {
   const [wide, setWide] = useState(readWide)
   const toggleWide = useCallback(() => {
     setWide((v) => {
-      try {
-        localStorage.setItem(WIDE_KEY, v ? '0' : '1')
-      } catch {
-        /* 기억만 못 할 뿐 화면은 바뀐다 */
-      }
+      safeStorage.set(WIDE_KEY, v ? '0' : '1') // 기억만 못 할 뿐 화면은 바뀐다
       return !v
     })
   }, [])

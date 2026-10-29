@@ -11,6 +11,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useWakeLock } from '../../PrayerFocus/useWakeLock'
 import { showToast } from '../../../utils/toast'
+import { safeStorage } from '../../../utils/safeStorage'
 import VerseBookmarkModal from './VerseBookmarkModal'
 import { useChapterJesusWords } from '../hooks/useJesusWords'
 import type { TextRange } from './verse/verseTextSegments'
@@ -119,7 +120,7 @@ const FocusReading = ({
   const [commentaryVerse, setCommentaryVerse] = useState<number | null>(null)
   const [tint] = useState(currentTint)
   const [hint, setHint] = useState<'off' | 'on' | 'leaving'>(() =>
-    localStorage.getItem(HINT_KEY) ? 'off' : 'on'
+    safeStorage.get(HINT_KEY) ? 'off' : 'on'
   )
   const [finePointer] = useState(hasFinePointer)
   // 글자 크기 가−/가+ — 영화관과 공유(immersiveScale)
@@ -338,7 +339,7 @@ const FocusReading = ({
       return () => clearTimeout(t)
     }
     if (hint === 'leaving') {
-      localStorage.setItem(HINT_KEY, '1')
+      safeStorage.set(HINT_KEY, '1')
       const t = setTimeout(() => setHint('off'), 700)
       return () => clearTimeout(t)
     }

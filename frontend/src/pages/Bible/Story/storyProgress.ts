@@ -49,11 +49,7 @@ export const hasCelebrated = (): boolean => {
 }
 
 export const markCelebrated = () => {
-  try {
-    localStorage.setItem(userKey(CELEBRATED_KEY), '1')
-  } catch {
-    // 무시
-  }
+  safeStorage.set(userKey(CELEBRATED_KEY), '1')
 }
 
 /**

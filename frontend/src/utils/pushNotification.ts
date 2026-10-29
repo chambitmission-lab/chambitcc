@@ -1,4 +1,5 @@
 import { getVapidPublicKey, subscribePush, unsubscribePush, getMySubscriptions } from '../api/push';
+import { safeStorage } from './safeStorage';
 
 // 사용자별 푸시 알림 선호도를 localStorage에 저장하기 위한 키 prefix.
 // 같은 브라우저에서 사용자가 바뀌면 각자 자기 키를 갖기 때문에 격리가 유지된다.
@@ -227,7 +228,7 @@ export const unsubscribeFromPushNotifications = async (
  */
 export const setPushPreference = (username: string | null, enabled: boolean): void => {
   if (!username) return;
-  localStorage.setItem(`${PUSH_PREF_PREFIX}${username}`, enabled ? 'on' : 'off');
+  safeStorage.set(`${PUSH_PREF_PREFIX}${username}`, enabled ? 'on' : 'off');
 };
 
 /**
@@ -236,7 +237,7 @@ export const setPushPreference = (username: string | null, enabled: boolean): vo
  */
 export const getPushPreference = (username: string | null): boolean => {
   if (!username) return false;
-  return localStorage.getItem(`${PUSH_PREF_PREFIX}${username}`) === 'on';
+  return safeStorage.get(`${PUSH_PREF_PREFIX}${username}`) === 'on';
 };
 
 /**

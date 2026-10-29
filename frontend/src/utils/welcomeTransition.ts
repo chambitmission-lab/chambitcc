@@ -12,6 +12,7 @@ import { deriveTimeOfDay } from '../hooks/useDailyMeditation'
 import { getCurrentSeason, type ChurchSeason } from './churchCalendar'
 import gmarketManifest from '../styles/gmarket-sans.manifest.json'
 import '../styles/welcomeTransition.css'
+import { safeStorage } from './safeStorage'
 
 type Lang = 'ko' | 'en'
 
@@ -52,17 +53,14 @@ const pickLine = (lang: Lang, now: Date, username: string): string => {
   const tod = deriveTimeOfDay(now.getHours())
 
   let pool = pools[tod]
-  try {
-    const lastSeen = Number(localStorage.getItem(lastSeenKey(username)) || 0)
-    if (lastSeen && now.getTime() - lastSeen > LONG_AWAY_MS) {
-      pool = pools.longAway
-    } else if (now.getDay() === 0 && tod === 'morning') {
-      pool = pools.sundayMorning
-    }
-    localStorage.setItem(lastSeenKey(username), String(now.getTime()))
-  } catch {
-    /* localStorage 불가 환경 — 시간대 풀 유지 */
+  // localStorage 불가 환경이면 lastSeen 은 0 — 시간대·주일 아침 풀만 적용
+  const lastSeen = Number(safeStorage.get(lastSeenKey(username)) || 0)
+  if (lastSeen && now.getTime() - lastSeen > LONG_AWAY_MS) {
+    pool = pools.longAway
+  } else if (now.getDay() === 0 && tod === 'morning') {
+    pool = pools.sundayMorning
   }
+  safeStorage.set(lastSeenKey(username), String(now.getTime()))
   return pool[Math.floor(Math.random() * pool.length)]
 }
 

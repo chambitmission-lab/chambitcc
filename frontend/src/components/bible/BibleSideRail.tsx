@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import type { BibleNavKey } from './BibleBottomNav'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 import { useFeedTextScale } from '../../utils/feedTextScale'
+import { safeStorage } from '../../utils/safeStorage'
 import { usePageZoomRequest } from '../../utils/textScaleRoutes'
 import { PLAN_HERO, alarmArtPair, warmPair, warmRouteThemeAssets } from '../../utils/themeAssets'
 import './BibleSideRail.css'
@@ -18,13 +19,7 @@ interface BibleSideRailProps {
 
 const COLLAPSED_KEY = 'bible-rail-collapsed'
 
-const readCollapsed = (): boolean => {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === '1'
-  } catch {
-    return false
-  }
-}
+const readCollapsed = (): boolean => safeStorage.get(COLLAPSED_KEY) === '1'
 
 /**
  * PC 전용(lg+) 성경 섹션 좌측 레일 — 모바일 하단 도크(BibleBottomNav)의 데스크톱 대응물.
@@ -109,11 +104,7 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
       const next = !prev
-      try {
-        localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0')
-      } catch {
-        /* noop */
-      }
+      safeStorage.set(COLLAPSED_KEY, next ? '1' : '0')
       return next
     })
   }

@@ -12,6 +12,7 @@
 // index.html 인라인 스크립트가 React 전에 같은 속성을 먼저 세워 첫 프레임 배율 플래시가 없다.
 // 선택은 이 기기에만 기억한다(개인 편의).
 import { useSyncExternalStore } from 'react'
+import { safeStorage } from './safeStorage'
 
 export type FeedTextScale = 'base' | 'large' | 'xlarge'
 
@@ -22,12 +23,8 @@ const DEFAULT: FeedTextScale = 'base'
 const listeners = new Set<() => void>()
 
 const read = (): FeedTextScale => {
-  try {
-    const v = localStorage.getItem(KEY)
-    if (v === 'base' || v === 'large' || v === 'xlarge') return v
-  } catch {
-    /* 저장소를 못 쓰는 환경 — 기본값 */
-  }
+  const v = safeStorage.get(KEY)
+  if (v === 'base' || v === 'large' || v === 'xlarge') return v
   return DEFAULT
 }
 
@@ -44,11 +41,7 @@ applyToDocument(current)
 export const setFeedTextScale = (next: FeedTextScale) => {
   current = next
   applyToDocument(next)
-  try {
-    localStorage.setItem(KEY, next)
-  } catch {
-    /* 기억만 못 할 뿐 화면은 바뀐다 */
-  }
+  safeStorage.set(KEY, next) // 기억만 못 할 뿐 화면은 바뀐다
   listeners.forEach(l => l())
 }
 

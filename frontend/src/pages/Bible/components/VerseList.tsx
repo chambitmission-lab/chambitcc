@@ -10,6 +10,7 @@ import { useEffect, useRef, useState, useMemo, useCallback, useSyncExternalStore
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { safeStorage } from '../../../utils/safeStorage'
 import { useAuth } from '../../../hooks/useAuth'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { prefetchAdjacentChapters } from '../../../hooks/useBible'
@@ -122,20 +123,10 @@ const VerseList = ({
   const openReflections = useCallback((verse: BibleVerse) => setReflectionTarget(verse), [])
   // '절 번호 꾹 눌러 읽음 표시' 안내 — 처음 한 번만. 제스처는 눈에 보이지 않아
   // 알려주지 않으면 아무도 쓰지 않는다. 한 번 써 보면 자동으로 사라진다.
-  const [showHoldHint, setShowHoldHint] = useState(() => {
-    try {
-      return localStorage.getItem(HOLD_HINT_KEY) !== 'done'
-    } catch {
-      return false
-    }
-  })
+  const [showHoldHint, setShowHoldHint] = useState(() => safeStorage.get(HOLD_HINT_KEY) !== 'done')
   const dismissHoldHint = useCallback(() => {
     setShowHoldHint(false)
-    try {
-      localStorage.setItem(HOLD_HINT_KEY, 'done')
-    } catch {
-      // 사파리 프라이빗 모드 등 저장 불가 — 안내만 닫고 넘어간다
-    }
+    safeStorage.set(HOLD_HINT_KEY, 'done') // 저장 불가면 안내만 닫고 넘어간다
   }, [])
 
   // 사전 칩·단어장·묵상 노트 시트는 lazy 청크라 첫 탭이 네트워크 왕복만큼 늦게 열렸다.

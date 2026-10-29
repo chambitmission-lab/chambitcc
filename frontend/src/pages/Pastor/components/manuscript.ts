@@ -2,6 +2,7 @@
 // 모두 규칙 기반(AI 미사용). 예상 시간은 공백을 뺀 글자 수 ÷ 말하는 빠르기.
 import { useState } from 'react'
 import type { OutlineSection, SermonNote } from '../../../api/pastor'
+import { safeStorage } from '../../../utils/safeStorage'
 
 // ── 말하는 빠르기 ──────────────────────────────────────────
 export const PACES = [
@@ -14,12 +15,8 @@ export type PaceId = (typeof PACES)[number]['id']
 const PACE_KEY = 'pastor-sermon-pace'
 
 const readPace = (): PaceId => {
-  try {
-    const v = localStorage.getItem(PACE_KEY)
-    return PACES.some(p => p.id === v) ? (v as PaceId) : 'normal'
-  } catch {
-    return 'normal'
-  }
+  const v = safeStorage.get(PACE_KEY)
+  return PACES.some(p => p.id === v) ? (v as PaceId) : 'normal'
 }
 
 /** 기기마다 기억하는 말하는 빠르기 — 원고 쓰기와 강단 보기가 같은 값을 읽는다 */
@@ -27,11 +24,7 @@ export const usePace = (): [PaceId, (p: PaceId) => void, number] => {
   const [pace, setPace] = useState<PaceId>(readPace)
   const set = (p: PaceId) => {
     setPace(p)
-    try {
-      localStorage.setItem(PACE_KEY, p)
-    } catch {
-      /* 사생활 보호 모드 — 이번 화면에서만 */
-    }
+    safeStorage.set(PACE_KEY, p) // 저장 실패면 이번 화면에서만
   }
   return [pace, set, PACES.find(p => p.id === pace)!.perMin]
 }

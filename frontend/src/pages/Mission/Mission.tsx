@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { prefersReducedMotion } from '../../utils/prefersReducedMotion'
+import { safeStorage } from '../../utils/safeStorage'
 import { missionaryByRegion, allMissionaries, regionMeta, countryCoordinates, countryDetail, domesticChurches, domesticOrganizations, missionStats, type RegionKey, type Missionary } from './missionData'
 import WorldGlobe from './WorldGlobe'
 import CountryFlag from './CountryFlag'
@@ -89,10 +90,10 @@ const Mission = () => {
   // 함께 기도하기 — 개인 기기 기준 하루 한 번. 서버 없이도 참여감을 주는 소박한 액션
   const prayKey = `mission-prayed-${new Date().toISOString().slice(0, 10)}`
   const [prayedToday, setPrayedToday] = useState(
-    () => localStorage.getItem(prayKey) === '1'
+    () => safeStorage.get(prayKey) === '1'
   )
   const handlePray = () => {
-    localStorage.setItem(prayKey, '1')
+    safeStorage.set(prayKey, '1')
     setPrayedToday(true)
   }
 

@@ -14,6 +14,7 @@ import { useElectionAdmin, useElectionAdminAction, useElectionAudit } from '../.
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { confirmDialog, promptDialog } from '../../../utils/confirmDialog'
 import { showToast } from '../../../utils/toast'
+import { safeSessionStorage } from '../../../utils/safeStorage'
 import type { ElectionAdminDetail, ElectionRound, OpenRoundPayload } from '../../../types/election'
 import {
   STATUS_META,
@@ -43,20 +44,11 @@ const chipBtn = (active: boolean) =>
 
 // 진행 중 득표를 보기로 한 선거 — 이 탭이 살아 있는 동안만 기억한다
 const revealKey = (id: number) => `election-reveal-${id}`
-const readReveal = (id: number) => {
-  try {
-    return sessionStorage.getItem(revealKey(id)) === '1'
-  } catch {
-    return false
-  }
-}
+const readReveal = (id: number) => safeSessionStorage.get(revealKey(id)) === '1'
 const writeReveal = (id: number, on: boolean) => {
-  try {
-    if (on) sessionStorage.setItem(revealKey(id), '1')
-    else sessionStorage.removeItem(revealKey(id))
-  } catch {
-    /* 저장 못 해도 이번 화면에서는 동작한다 */
-  }
+  // 저장 못 해도 이번 화면에서는 동작한다
+  if (on) safeSessionStorage.set(revealKey(id), '1')
+  else safeSessionStorage.remove(revealKey(id))
 }
 
 interface Props {

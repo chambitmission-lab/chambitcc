@@ -8,6 +8,7 @@ import { createColumn, proofreadColumn, updateColumn, uploadColumnImage } from '
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import DatePicker from '../../components/common/DatePicker'
 import { showToast } from '../../utils/toast'
+import { safeStorage } from '../../utils/safeStorage'
 import HighlightPopover from './HighlightPopover'
 import ColumnToolbar from './ColumnToolbar'
 import ColumnLetter from './ColumnLetter'
@@ -66,12 +67,8 @@ const EDITOR_FONT_KEY = 'ministry_editor_font_px'
 /** 본문 입력이 이만큼 멈추면 마커 문자열로 동기화(글자 수·자동 저장·미리보기 기준) */
 const CONTENT_SYNC_MS = 300
 const readEditorFont = (): number => {
-  try {
-    const saved = Number(localStorage.getItem(EDITOR_FONT_KEY))
-    if (EDITOR_FONT_STEPS.includes(saved)) return saved
-  } catch {
-    /* 무시 */
-  }
+  const saved = Number(safeStorage.get(EDITOR_FONT_KEY))
+  if (EDITOR_FONT_STEPS.includes(saved)) return saved
   return typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches ? 22 : 18
 }
 
@@ -235,11 +232,7 @@ const ColumnEditorModal = ({ language, initial, onSaved, onClose }: ColumnEditor
     const i = EDITOR_FONT_STEPS.indexOf(fontPx)
     const next = EDITOR_FONT_STEPS[Math.min(EDITOR_FONT_STEPS.length - 1, Math.max(0, i + dir))]
     setFontPx(next)
-    try {
-      localStorage.setItem(EDITOR_FONT_KEY, String(next))
-    } catch {
-      /* 무시 */
-    }
+    safeStorage.set(EDITOR_FONT_KEY, String(next))
   }
 
   const handleSave = async () => {

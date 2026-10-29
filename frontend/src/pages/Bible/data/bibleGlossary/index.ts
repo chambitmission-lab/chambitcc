@@ -12,6 +12,8 @@
 //    어간 뒤 한글 꼬리를 통째로 인정하고, 밑줄도 낱말 전체("긍휼히")에 긋는다.
 //    어간은 다른 낱말의 머리가 될 수 없는 것만 넣을 것("거하"는 되지만 "거"는 안 됨).
 
+import { safeStorage } from '../../../../utils/safeStorage'
+
 export type GlossaryType = 'person' | 'place' | 'title' | 'term' | 'archaic' | 'loanword'
 
 export interface GlossaryEntry {
@@ -50,22 +52,14 @@ const enabledListeners = new Set<() => void>()
 
 export const isGlossaryEnabled = (): boolean => {
   if (enabledCache === null) {
-    try {
-      enabledCache = localStorage.getItem(ENABLED_KEY) !== '0'
-    } catch {
-      enabledCache = true
-    }
+    enabledCache = safeStorage.get(ENABLED_KEY) !== '0'
   }
   return enabledCache
 }
 
 export const setGlossaryEnabled = (value: boolean) => {
   enabledCache = value
-  try {
-    localStorage.setItem(ENABLED_KEY, value ? '1' : '0')
-  } catch {
-    /* noop */
-  }
+  safeStorage.set(ENABLED_KEY, value ? '1' : '0')
   enabledListeners.forEach((fn) => fn())
 }
 

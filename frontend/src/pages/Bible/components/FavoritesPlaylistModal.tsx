@@ -11,6 +11,7 @@ import {
 } from '../../../hooks/useBibleBookmark'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { shuffle } from '../../../utils/random'
+import { safeStorage } from '../../../utils/safeStorage'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 import { formatClock } from '../../../utils/formatClock'
 // 배속 목록은 장 오디오북과 공유(같은 bible-tts-rate 키를 쓰므로 목록도 하나로)
@@ -27,7 +28,7 @@ const COLLAPSE_STORAGE_KEY = 'bible-playlist-collapsed'
 const VOICE = 'male'
 
 const loadRate = (): number => {
-  const r = Number(localStorage.getItem(RATE_STORAGE_KEY))
+  const r = Number(safeStorage.get(RATE_STORAGE_KEY))
   return RATE_OPTIONS.includes(r) ? r : 1
 }
 
@@ -66,7 +67,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   const [rate, setRate] = useState<number>(loadRate)
   // 플레이어 카드 접기 — 목록을 더 넓게 보고 싶을 때. 상태는 기기에 유지.
   const [collapsed, setCollapsed] = useState(
-    () => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1'
+    () => safeStorage.get(COLLAPSE_STORAGE_KEY) === '1'
   )
   const [isShuffle, setIsShuffle] = useState(false)
   const [isRepeat, setIsRepeat] = useState(true) // 기본: 마지막 절 후 처음으로 돌아 계속
@@ -261,7 +262,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   const toggleCollapse = () => {
     setCollapsed((v) => {
       const next = !v
-      localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? '1' : '0')
+      safeStorage.set(COLLAPSE_STORAGE_KEY, next ? '1' : '0')
       return next
     })
   }
@@ -270,7 +271,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
     const idx = RATE_OPTIONS.indexOf(rate)
     const next = RATE_OPTIONS[(idx + 1) % RATE_OPTIONS.length]
     setRate(next)
-    localStorage.setItem(RATE_STORAGE_KEY, String(next))
+    safeStorage.set(RATE_STORAGE_KEY, String(next))
     if (audioRef.current) audioRef.current.playbackRate = next
   }
 

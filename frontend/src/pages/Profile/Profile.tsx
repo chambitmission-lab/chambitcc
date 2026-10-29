@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail, useMyPrayers, usePrayingFor, useMyReplies } from '../../hooks/useProfile'
 import { useBluemarbleStats } from '../../hooks/useBluemarble'
 import { logout } from '../../utils/auth'
+import { safeStorage } from '../../utils/safeStorage'
 import { PushNotificationButton } from '../../components/common/PushNotificationButton'
 import ProfileHeader from './components/ProfileHeader'
 import FaithInsightCard from './components/FaithInsightCard'
@@ -168,9 +169,9 @@ const Profile = () => {
   useEffect(() => {
     if (isLoading || (hasToken && bmLoading) || !data) return
     const KEY = 'glow_level_seen'
-    const stored = localStorage.getItem(KEY)
+    const stored = safeStorage.get(KEY)
     if (stored === null) {
-      localStorage.setItem(KEY, String(glowLevel.level))
+      safeStorage.set(KEY, String(glowLevel.level))
       return
     }
     const prev = Number(stored)
@@ -178,7 +179,7 @@ const Profile = () => {
       setLevelUp(glowLevel)
     }
     if (glowLevel.level !== prev) {
-      localStorage.setItem(KEY, String(glowLevel.level))
+      safeStorage.set(KEY, String(glowLevel.level))
     }
   }, [isLoading, bmLoading, hasToken, data, glowLevel])
 

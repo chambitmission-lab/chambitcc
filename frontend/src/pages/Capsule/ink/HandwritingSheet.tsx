@@ -7,6 +7,7 @@ import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { showToast } from '../../../utils/toast'
+import { safeSessionStorage } from '../../../utils/safeStorage'
 import InkPad, { type InkTool } from './InkPad'
 import {
   INK_COLORS,
@@ -172,13 +173,9 @@ const HandwritingSheet = ({
     setPenSeen(true)
     setPenOnly(true)
     // 세로로 든 폰이면 한 번만 귀띔 — 가로가 두 배 넓다
-    try {
-      if (window.innerWidth < window.innerHeight && window.innerWidth < 700 && !sessionStorage.getItem(PEN_HINT_KEY)) {
-        sessionStorage.setItem(PEN_HINT_KEY, '1')
-        showToast('펜을 알아봤어요. 폰을 가로로 돌리면 더 넓게 쓸 수 있어요', 'success')
-      }
-    } catch {
-      /* 저장소 막힌 환경 — 귀띔만 생략 */
+    if (window.innerWidth < window.innerHeight && window.innerWidth < 700 && !safeSessionStorage.get(PEN_HINT_KEY)) {
+      safeSessionStorage.set(PEN_HINT_KEY, '1')
+      showToast('펜을 알아봤어요. 폰을 가로로 돌리면 더 넓게 쓸 수 있어요', 'success')
     }
   }
 

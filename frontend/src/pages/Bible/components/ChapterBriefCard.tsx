@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { genreStyle } from '../../../components/bible/bookGenre'
+import { safeStorage } from '../../../utils/safeStorage'
 import { loadBookBriefs, type LoadedBriefs } from '../data/chapterBriefs'
 
 const COLLAPSED_KEY = 'bible-brief-collapsed'
@@ -13,12 +14,8 @@ let catchUpNeeded = false
 const checkCatchUp = (): boolean => {
   if (catchUpChecked) return catchUpNeeded
   catchUpChecked = true
-  try {
-    const prev = Number(localStorage.getItem(LAST_READ_KEY))
-    catchUpNeeded = prev > 0 && Date.now() - prev >= CATCH_UP_GAP_MS
-  } catch {
-    catchUpNeeded = false
-  }
+  const prev = Number(safeStorage.get(LAST_READ_KEY))
+  catchUpNeeded = prev > 0 && Date.now() - prev >= CATCH_UP_GAP_MS
   return catchUpNeeded
 }
 
@@ -43,13 +40,7 @@ const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
   const [loadedFor, setLoadedFor] = useState<{ book: number; data: LoadedBriefs | null } | null>(null)
   const resolved = loadedFor?.book === bookNumber
   const loaded = resolved ? loadedFor.data : null
-  const [collapsed, setCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(COLLAPSED_KEY) === '1'
-    } catch {
-      return false
-    }
-  })
+  const [collapsed, setCollapsed] = useState(() => safeStorage.get(COLLAPSED_KEY) === '1')
   // 오랜만에 돌아온 사람에게만 지난 장 줄거리를 함께 보여준다 (마운트 시 1회 판정)
   const [showCatchUp] = useState(checkCatchUp)
 
@@ -66,7 +57,7 @@ const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
   // 읽기 화면에 온 것 자체를 방문 도장으로 기록 — 다음 방문의 공백 판정에 쓴다
   useEffect(() => {
     try {
-      localStorage.setItem(LAST_READ_KEY, String(Date.now()))
+      safeStorage.set(LAST_READ_KEY, String(Date.now()))
     } catch {
       /* storage 불가 환경은 조용히 무시 */
     }
@@ -87,7 +78,7 @@ const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
       try {
-        localStorage.setItem(COLLAPSED_KEY, prev ? '0' : '1')
+        safeStorage.set(COLLAPSED_KEY, prev ? '0' : '1')
       } catch {
         /* noop */
       }

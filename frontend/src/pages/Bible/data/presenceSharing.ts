@@ -4,28 +4,22 @@
 // 같은 장을 읽는 성도에게 숫자로만 보인다(이름 노출 없음). 기본값은 켜짐.
 // 저장·전파 방식은 readerLayout 과 같다 — 끄는 즉시 열린 본문의 하트비트가 멈춘다.
 
+import { safeStorage } from '../../../utils/safeStorage'
+
 const STORAGE_KEY = 'bible-presence-sharing'
 let cache: boolean | null = null
 const listeners = new Set<() => void>()
 
 export const isPresenceSharingEnabled = (): boolean => {
   if (cache === null) {
-    try {
-      cache = localStorage.getItem(STORAGE_KEY) !== 'off'
-    } catch {
-      cache = true
-    }
+    cache = safeStorage.get(STORAGE_KEY) !== 'off'
   }
   return cache
 }
 
 export const setPresenceSharingEnabled = (value: boolean) => {
   cache = value
-  try {
-    localStorage.setItem(STORAGE_KEY, value ? 'on' : 'off')
-  } catch {
-    /* 사파리 프라이빗 모드 등 — 이번 세션만 반영 */
-  }
+  safeStorage.set(STORAGE_KEY, value ? 'on' : 'off') // 저장 실패면 이번 세션만 반영
   listeners.forEach((fn) => fn())
 }
 

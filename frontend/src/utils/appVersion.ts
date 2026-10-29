@@ -6,6 +6,8 @@
 // 앱 시작·포그라운드 복귀 때 서버의 version.json 과 실행 중인 빌드 버전을
 // 비교해서 다르면 스스로 새로고침한다.
 
+import { safeStorage } from './safeStorage'
+
 const CHECK_THROTTLE_MS = 1000 * 60 // 복귀가 잦아도 검사는 1분에 1회면 충분
 const RELOAD_GUARD_KEY = 'app_update_reload_guard'
 const RELOAD_RETRY_MS = 1000 * 60 * 5
@@ -36,21 +38,12 @@ export const checkForAppUpdate = async (): Promise<void> => {
 
     // 새로고침 루프 방지: CDN 엣지가 아직 옛 번들을 주는 동안에는
     // reload 해도 버전이 안 바뀔 수 있다 → 같은 목표 버전으로는 5분에 1회만 시도
-    try {
-      const guard = localStorage.getItem(RELOAD_GUARD_KEY)
-      if (guard) {
-        const parsed = JSON.parse(guard) as { version?: string; at?: number }
-        if (parsed.version === latest && now - (parsed.at ?? 0) < RELOAD_RETRY_MS) {
-          return
-        }
-      }
-      localStorage.setItem(
-        RELOAD_GUARD_KEY,
-        JSON.stringify({ version: latest, at: now }),
-      )
-    } catch {
-      // localStorage 불가 환경이면 가드 없이 1회 reload (throttle이 최소한의 방어)
+    // localStorage 불가 환경이면 가드 없이 1회 reload (throttle이 최소한의 방어)
+    const guard = safeStorage.getJson(RELOAD_GUARD_KEY) as { version?: string; at?: number } | undefined
+    if (guard && guard.version === latest && now - (guard.at ?? 0) < RELOAD_RETRY_MS) {
+      return
     }
+    safeStorage.setJson(RELOAD_GUARD_KEY, { version: latest, at: now })
 
     window.location.reload()
   } catch {

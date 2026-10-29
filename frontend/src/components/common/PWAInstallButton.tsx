@@ -1,17 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { showPWAInstallPrompt, isPWAInstallable } from '../../utils/pwa'
+import { safeStorage } from '../../utils/safeStorage'
 
 /** 닫기를 누르면 이 기간 동안 다시 뜨지 않는다 (매 방문 재노출은 배너 피로를 만든다) */
 const SNOOZE_KEY = 'pwa-install-snoozed-at'
 const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000
 
 const isSnoozed = () => {
-  try {
-    const at = Number(localStorage.getItem(SNOOZE_KEY))
-    return Boolean(at) && Date.now() - at < SNOOZE_MS
-  } catch {
-    return false
-  }
+  const at = Number(safeStorage.get(SNOOZE_KEY))
+  return Boolean(at) && Date.now() - at < SNOOZE_MS
 }
 
 const PWAInstallButton = () => {
@@ -68,11 +65,7 @@ const PWAInstallButton = () => {
   }
 
   const handleSnooze = () => {
-    try {
-      localStorage.setItem(SNOOZE_KEY, String(Date.now()))
-    } catch {
-      /* 사파리 프라이빗 모드 등 — 저장 실패해도 이번 세션은 닫힌다 */
-    }
+    safeStorage.set(SNOOZE_KEY, String(Date.now())) // 저장 실패해도 이번 세션은 닫힌다
     setEntered(false)
     exitTimer.current = setTimeout(() => setSnoozed(true), 220)
   }

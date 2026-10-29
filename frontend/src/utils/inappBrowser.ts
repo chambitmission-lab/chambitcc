@@ -2,6 +2,8 @@
 // 카카오 인앱 웹뷰는 설치된 PWA·기본 브라우저 세션과 분리돼 있어,
 // 초대 링크 도착지에서 외부 브라우저로 내보내야 안드로이드에서 설치된 PWA가 열린다.
 
+import { safeSessionStorage } from './safeStorage'
+
 export const isKakaoInApp = () => /KAKAOTALK/i.test(navigator.userAgent)
 
 export const isOtherInApp = () =>
@@ -64,20 +66,10 @@ const closeKakaoInAppOnceHidden = () => {
 const KAKAO_ESCAPE_KEY = 'kakaoEscapeAttempted'
 
 export const markKakaoEscapeAttempted = () => {
-  try {
-    sessionStorage.setItem(KAKAO_ESCAPE_KEY, '1')
-  } catch {
-    /* 저장소 막힌 환경 — 표식 없이 진행 */
-  }
+  safeSessionStorage.set(KAKAO_ESCAPE_KEY, '1') // 저장소 막힌 환경이면 표식 없이 진행
 }
 
-const kakaoEscapeAttempted = () => {
-  try {
-    return sessionStorage.getItem(KAKAO_ESCAPE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
+const kakaoEscapeAttempted = () => safeSessionStorage.get(KAKAO_ESCAPE_KEY) === '1'
 
 /**
  * 앱 부팅 시 자동 탈출 (main.tsx) — 카카오톡 인앱이고 이 웹뷰에서 아직 시도한 적 없을 때만.
