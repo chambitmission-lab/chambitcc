@@ -20,6 +20,7 @@ import { useBookIntroPeek, type PeekBook } from '../../../components/bible/BookI
 import { BOOK_GENRES } from '../../../components/bible/bookGenre'
 import { aggregateRange, buildBookInfoMap, gaugeWidth, pctLabel } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
+import CandleHero from '../../PrayerFocus/CandleHero'
 import {
   BookOpen,
   ChartPieSlice,
@@ -43,6 +44,11 @@ type Testament = 'OT' | 'NT'
 type BookViewMode = 'journey' | 'grid' | 'list'
 
 /** 보기 방식 선택 저장 키 — 여정(경로)·격자·목록은 취향 문제라 사용자별로 기억한다 */
+// 격자 "지금 읽는 책" 카드의 장 칸 상한 — 넘으면 칸이 실처럼 가늘어져 막대로 그린다
+const HERO_CELL_MAX = 40
+// 작은 카드 진행 링 둘레 (r=10)
+const RING_LEN = 2 * Math.PI * 10
+
 const VIEW_MODE_KEY = 'bible-book-view-mode'
 
 /** 사용자가 직접 고른 구약/신약 탭 — 책에 들어갔다 돌아와도 그 탭이 유지되도록 세션 동안만 기억한다.
@@ -225,6 +231,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       allDoneMeta: (n: number, ch: number) => `${n}권 · ${ch}장 완독`,
       showAllBooks: '읽은 책 다시 보기',
       nextUp: '다음',
+      nextBook: '다음 책',
+      nowReading: '지금 읽는 중',
+      continueFrom: (ch: number) => `${ch}장 이어 읽기`,
       testamentDone: '완독',
       celebrateOT: '구약 39권을 모두 읽었어요 🎉',
       celebrateOTNext: '이제 신약으로 넘어가요',
@@ -279,6 +288,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       allDoneMeta: (n: number, ch: number) => `${n} books · ${ch} chapters complete`,
       showAllBooks: 'Show finished books',
       nextUp: 'Next',
+      nextBook: 'Up next',
+      nowReading: 'Reading now',
+      continueFrom: (ch: number) => `Continue ch. ${ch}`,
       testamentDone: 'complete',
       celebrateOT: 'You finished all 39 books of the Old Testament 🎉',
       celebrateOTNext: 'On to the New Testament',
@@ -434,8 +446,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     [onBookSelect, resumeMap]
   )
 
-  // 격자 보기 — 성경통독표: 괘선으로 나뉜 표에 도장이 쌓인다.
-  // 색은 먹(ink)+인주 둘뿐, 진행률은 게이지가 아니라 인장의 농도로 말한다.
+  // 격자 보기 — 큰 약어 카드 격자. 시선이 갈 곳은 "지금 읽는 책" 한 장뿐이라 그 카드만 2×2로 키운다
+  // (다크 = 집중 기도 화면의 유리컵 촛불, 라이트 = 브랜드 테두리). 완독은 체크 하나로 조용히 물러난다.
   const renderBook = (book: BibleBook, index: number) => {
     const resume = resumeMap?.get(book.book_number)
     const info = infoMap.get(book.book_number)
@@ -447,89 +459,113 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
 
     const isCurrent = book.book_number === currentBookNumber
     const isNext = book.book_number === nextBookNumber
+    const isHero = isCurrent && !isComplete
+    const name = language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko
+    const abbrev = bookAbbrev(book.book_number, language)
 
-    let metaText: string | null = null
+    let metaText: string
     if (isComplete) {
       metaText = `${t.complete} · ${totalChapters}${t.chapterUnit}`
     } else if (readChapters !== null && readChapters > 0) {
-      // 분수만으론 "얼마나 남았나"가 한눈에 안 잡혀 %를 함께 — 아래 게이지의 눈금 역할
       metaText = `${readChapters}/${totalChapters}${t.chapterUnit} · ${pctLabel(rate)}%`
     } else if (hasProgress) {
       // 완독한 장이 아직 없는 단계 — 비율 대신 "몇 장을 읽는 중"이라는 위치를 알려준다
       metaText = resume ? `${resume.chapter}${t.chapterUnit} ${t.reading}` : t.reading
+    } else {
+      metaText = `${isNext ? `${t.nextBook} · ` : ''}${totalChapters}${t.chapterUnit}`
     }
 
-    // 인장의 농도 = 진행률 (읽을수록 인주가 진해진다). 완독은 선명한 도장
-    const stampOpacity = isComplete ? 1 : hasProgress ? 0.13 + rate * 0.0045 : undefined
-    // 도장마다 손으로 찍은 듯 살짝 다른 기울기 — book_number 기반이라 리렌더에도 흔들리지 않는다
-    const stampTilt = ((book.book_number % 5) - 2) * 3.5
+    const buttonProps = {
+      // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 칸은 딜레이 상한으로 묶는다
+      style: { animationDelay: `${Math.min(index * 14, 320)}ms` },
+      'aria-label': [name, isCurrent ? t.reading : null, isNext ? t.nextUp : null, metaText]
+        .filter(Boolean)
+        .join(' · '),
+      onClick: () => onBookSelect(book.id, book.book_name_ko, resume),
+      ...peekProps(peekBook(book)),
+    }
 
-    // 이어 읽기 위치가 읽은 양보다 앞설 때만 연한 구간으로 이어 붙인다 (최근 읽은 책 칩과 같은 규칙)
-    const resumePct =
-      resume && rate < 100 && totalChapters > 0
-        ? Math.max(0, Math.min(100, (resume.chapter / totalChapters) * 100))
-        : 0
-    const aheadPct = resumePct > rate + 1 ? resumePct : 0
+    if (isHero) {
+      // 이어 읽을 장 — 마지막으로 펼친 장. 기록이 없으면 다 읽은 장 다음
+      const resumeChapter = resume?.chapter ?? Math.min((readChapters ?? 0) + 1, totalChapters)
+      // 장 칸은 "몇 장을 읽었나"의 눈금이다(어느 장인지는 집계에 없다) — 앞에서부터 읽은 수만큼 채우고,
+      // 이어 읽을 장이 그 뒤에 있으면 그 칸만 테두리로 짚는다. 장이 많은 책은 칸이 실처럼 가늘어져 막대로
+      const filled = readChapters ?? 0
+      return (
+        <button key={book.id} {...buttonProps} className="book-cell book-hero">
+          {/* 다크에서만 보이는 촛불 — 라이트에선 CSS가 숨겨 애니메이션도 돌지 않는다 */}
+          <span className="book-hero__candle" aria-hidden="true">
+            <CandleHero haloTint="#ffb05a" />
+          </span>
+          <span className="book-hero__head">
+            <span className="book-hero__eyebrow">{t.nowReading}</span>
+            <span className="book-hero__abbr">{abbrev}</span>
+            <span className="book-hero__name">{name}</span>
+          </span>
+          <span className="book-hero__foot" aria-hidden="true">
+            {totalChapters <= HERO_CELL_MAX ? (
+              <span className="book-hero__cells">
+                {Array.from({ length: totalChapters }, (_, i) => (
+                  <span
+                    key={i}
+                    className={i < filled ? 'is-read' : i + 1 === resumeChapter ? 'is-now' : undefined}
+                  />
+                ))}
+              </span>
+            ) : (
+              <span className="book-hero__track">
+                <span style={{ width: `${gaugeWidth(rate)}%` }} />
+              </span>
+            )}
+            <span className="book-hero__meta">{metaText}</span>
+            <span className="book-hero__cta">
+              {t.continueFrom(resumeChapter)}
+              <span className="material-icons-round">arrow_forward</span>
+            </span>
+          </span>
+        </button>
+      )
+    }
 
     return (
       <button
         key={book.id}
-        className={`book-cell${isComplete ? ' is-complete' : ''}${isCurrent ? ' is-current' : ''}${
-          isNext ? ' is-next' : ''
-        }${hasProgress ? '' : ' is-untouched'}`}
-        // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 칸은 딜레이 상한으로 묶는다
-        style={{ animationDelay: `${Math.min(index * 14, 320)}ms` }}
-        aria-label={[
-          language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko,
-          isCurrent ? t.reading : null,
-          isNext ? t.nextUp : null,
-          metaText,
-        ]
-          .filter(Boolean)
-          .join(' · ')}
-        onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
-        {...peekProps(peekBook(book))}
+        {...buttonProps}
+        className={`book-cell${isComplete ? ' is-complete' : ''}${isNext ? ' is-next' : ''}${
+          hasProgress ? '' : ' is-untouched'
+        }`}
       >
-        {/* 지금 읽는 책은 표 전체에서 딱 한 칸 — 배지 하나로 시선을 먼저 잡는다 */}
-        {isCurrent && !isComplete && <span className="book-cell__badge">{t.reading}</span>}
-        {isNext && <span className="book-cell__badge book-cell__badge--next">{t.nextUp}</span>}
-        <span className="book-cell__top">
-          {/* 인장은 옅은 원반(할로) 위에 — 카드 왼편의 시각적 닻 */}
-          <span className="book-stamp-halo" aria-hidden="true">
-            <span
-              className={`book-stamp${hasProgress ? ' inked' : ''}`}
-              style={{
-                ['--stamp-tilt' as string]: `${stampTilt}deg`,
-                ...(stampOpacity !== undefined && !isComplete ? { opacity: stampOpacity } : {}),
-              }}
-            >
-              {bookAbbrev(book.book_number, language)}
-            </span>
+        {/* 오른쪽 위 표식 하나 — 완독 체크 / 읽는 중 진행 링 / 안 읽은 책은 권 번호 */}
+        {isComplete ? (
+          <span className="book-cell__check" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </span>
-          <span className="book-cell__text">
-            <span className="book-cell__name">
-              {language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko}
-            </span>
-            {/* 빈 카드도 줄 높이를 유지 — 카드 높이가 들쭉날쭉해지지 않게 */}
-            <span className="book-cell__meta" aria-hidden="true">
-              {metaText ?? ' '}
-            </span>
+        ) : hasProgress ? (
+          <svg className="book-cell__ring" viewBox="0 0 26 26" aria-hidden="true">
+            <circle cx="13" cy="13" r="10" />
+            <circle
+              cx="13"
+              cy="13"
+              r="10"
+              className="book-cell__ring-fill"
+              strokeDasharray={`${(RING_LEN * gaugeWidth(rate)) / 100} ${RING_LEN}`}
+            />
+          </svg>
+        ) : (
+          <span className="book-cell__no" aria-hidden="true">
+            {book.book_number}
           </span>
+        )}
+        <span className="book-cell__abbr" aria-hidden="true">
+          {abbrev}
         </span>
-        {/* 인장 농도는 눈대중이라 "얼마나 남았나"까지는 못 준다 — 카드 하단 게이지+%가 그 몫.
-            안 읽은 책은 게이지를 그리지 않되 줄 높이는 남겨 카드 크기를 맞춘다 */}
-        <span className="book-cell__gauge" aria-hidden="true">
-          {hasProgress && (
-            <>
-              <span className="book-progress-track">
-                {aheadPct > 0 && (
-                  <span className="book-progress-ahead" style={{ width: `${aheadPct}%` }} />
-                )}
-                <span className="book-progress-fill" style={{ width: `${gaugeWidth(rate)}%` }} />
-              </span>
-              <span className="book-cell__pct">{pctLabel(rate)}%</span>
-            </>
-          )}
+        <span className="book-cell__foot">
+          <span className="book-cell__name">{name}</span>
+          <span className="book-cell__meta" aria-hidden="true">
+            {metaText}
+          </span>
         </span>
       </button>
     )

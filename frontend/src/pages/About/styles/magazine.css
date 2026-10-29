@@ -1,295 +1,74 @@
-/* 스티키 스크롤 — 고정 그림 + 다섯 장
-   PC     ┌ 고정 그림(sticky) ┬ 01 만남        ┐   지금 읽는 장(화면 가운데 선에 걸린 장)의
-          │  장면 크로스페이드  │ 02 다섯 만남   │   장면으로 그림이 바뀐다
-          │  01 · ● ○ ○ ○ ○    │ …            │
-   모바일  고정 그림이 헤더 아래 위쪽에 붙고, 글이 그 밑으로 흘러 들어간다(판정선은 화면 68%). */
+/* 잡지형 장 — 그림과 글을 좌우로 번갈아 놓는다(모바일은 그림 위 · 글 아래)
+   PC     ┌ 그림 ┬ 01 만남 ┐
+          │ 다섯 만남 — 사진 카드 5장 + 약속 │
+          └ 담임목사 ┬ 사진 ┘
+          초대 — 들판 길 사진 띠 위에 초대 글 + 한눈에 정보 */
 
-.ab-scrolly {
+/* ── 첫 화면 아래 바로가기 알약 — 하늘 카드 아래 가장자리에 걸친다 ── */
+.ab-jump {
   position: relative;
-  margin-top: 1rem;
-}
-
-/* ── 고정 그림 ── */
-.ab-visual-wrap {
-  position: sticky;
-  top: 3.5rem; /* 헤더 56px 아래 */
   z-index: 2;
-  /* 위 틈으로 글이 비치지 않게 캔버스색으로 막고, 아래로는 글이 부드럽게 사라지게 */
-  margin: 0 calc(-1 * var(--ab-gutter));
-  padding: 0.75rem var(--ab-gutter) 0;
-  background: var(--app-canvas);
-}
-
-.ab-visual-wrap::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 1.75rem;
-  background: linear-gradient(var(--app-canvas), transparent);
-  pointer-events: none;
-}
-
-.ab-visual {
-  position: relative;
-  height: clamp(220px, 40svh, 380px);
-  overflow: hidden;
-  border-radius: 24px;
-  background: var(--ab-night);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.06),
-    0 16px 40px -24px rgba(0, 0, 0, 0.45);
-}
-
-.dark .ab-visual {
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 16px 40px -24px rgba(0, 0, 0, 0.8);
-}
-
-/* 장면 레이어 — 지금 장만 보인다(나머지는 inert) */
-.ab-scene {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  opacity: 0;
-  /* 히어로 사진 LQIP 가 인라인 background-image 로 깔린다 */
-  background-size: cover;
-  background-position: center;
-  transition: opacity 0.8s ease;
-  pointer-events: none;
-}
-
-.ab-scene.is-on {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.ab-scene-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scale(1.06);
-  transition: transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.ab-scene.is-on .ab-scene-img {
-  transform: none;
-}
-
-/* 히어로 사진은 도착하면 LQIP 위로 페이드 */
-.ab-hero-img {
-  opacity: 0;
-  transition: opacity 260ms ease-out, transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.ab-hero-img.is-loaded {
-  opacity: 1;
-}
-
-/* 만남 장면 — 4:3 삽화(960×717)를 원본 비율 카드로 띄운다.
-   세로로 긴 틀에 cover 로 채우면 좌우(손·고양이)가 잘리고 원본보다 커져 흐려졌다.
-   카드 폭 = 틀 폭 · (틀 높이 − 캡션 자리)×비율 · 원본 960px 중 가장 작은 값 → 잘림·확대 없음 */
-.ab-scene.is-meet {
-  container-type: size;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 2.75rem 1rem 0.875rem;
-  overflow: hidden;
-  --ab-meet-cap: 5.5rem; /* 캡션(작은 줄 + 문구 두 줄) + 간격 */
+  gap: 0.25rem;
+  width: max-content;
+  max-width: calc(100% - 2 * var(--ab-gutter));
+  margin: -1.5rem auto 0;
+  padding: 0.3125rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: var(--surface-container);
+  box-shadow:
+    0 0 0 1px var(--card-border),
+    0 10px 28px -12px rgba(0, 0, 0, 0.22);
 }
 
-/* 남는 자리 — 같은 그림을 크게 흐려 깐다 */
-.ab-meet-backdrop {
-  position: absolute;
-  inset: -10%;
-  width: 120%;
-  height: 120%;
-  object-fit: cover;
-  filter: blur(32px) brightness(0.55) saturate(1.25);
-  pointer-events: none;
+.ab-jump::-webkit-scrollbar {
+  display: none;
 }
 
-.ab-meet-frame {
-  position: relative;
+.ab-jump button {
   flex: none;
-  width: min(100%, (100cqh - var(--ab-meet-cap)) * 960 / 717, 960px);
-  aspect-ratio: 960 / 717;
-  overflow: hidden;
-  border-radius: 16px;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.12),
-    0 18px 40px -12px rgba(0, 0, 0, 0.6);
-  animation: ab-scene-in 0.5s ease-out;
-}
-
-/* 캡션은 카드 아래 제자리(겹치지 않게) */
-.ab-scene.is-meet .ab-scene-cap {
-  position: relative;
-  left: auto;
-  right: auto;
-  bottom: auto;
-  width: 100%;
-  text-align: center;
-}
-
-@keyframes ab-scene-in {
-  from {
-    opacity: 0.3;
-    transform: scale(1.04);
-  }
-}
-
-.ab-pastor-img {
-  object-position: center 20%;
-}
-
-/* 초대 — 길이 왼쪽 앞에서 시작해 해 쪽으로 난다. 세로 틀에서 길과 해가 함께 남도록 */
-.ab-invite-img {
-  object-position: 38% center;
-}
-
-.dark .ab-invite-img {
-  filter: brightness(0.82);
-}
-
-/* EditableImage 래퍼(inline-block)가 그림을 가두지 않게 장면을 꽉 채운다.
-   직계 자식만 — 캡션·별칭 안의 EditableText 래퍼까지 잡으면 글이 0높이 상자 밖으로 흘러 아래가 잘린다 */
-.ab-scene > .about-editable-wrapper {
-  position: absolute;
-  inset: 0;
-  display: block;
-}
-
-.ab-scene > .about-editable-wrapper > .about-edit-btn {
-  top: 12px;
-  right: 12px;
-}
-
-/* 장면 위 글씨 — 스크림 없이 흰 글씨 + 3겹 halo (히어로 확정 문법) */
-.ab-scene-cap {
-  position: absolute;
-  left: 1.125rem;
-  right: 1.125rem;
-  bottom: 1rem;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.45;
-  color: #fff;
-  text-shadow: var(--ab-halo);
-}
-
-.ab-scene-cap small {
-  display: block;
-  margin-bottom: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #f5cf86; /* 파랑은 라이트 장면에서 묻힌다 */
-}
-
-.ab-scene-quote {
-  display: block;
-  font-family: var(--ab-verse);
-  font-size: 1.1875rem;
-  font-weight: 400;
-}
-
-.ab-scene-quote .ab-line {
-  display: block;
-}
-
-.ab-pastor-nickname {
-  position: absolute;
-  left: 1rem;
-  bottom: 1rem;
-  padding: 0.25rem 0.875rem 0.375rem;
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 0;
   border-radius: 999px;
-  background: rgba(11, 18, 32, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font-family: 'Nanum Pen Script', cursive;
-  font-size: 1.375rem;
-  line-height: 1.3;
-  color: #fff;
+  background: none;
+  color: var(--text-body);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-/* 장 번호 + 진행 점 */
-.ab-visual-no {
-  position: absolute;
-  top: 0.875rem;
-  left: 1.125rem;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-  color: #fff;
-  text-shadow: var(--ab-halo);
-  pointer-events: none;
+.ab-jump button:hover,
+.ab-jump button:focus-visible {
+  background: var(--brand-soft);
+  color: var(--brand);
 }
 
-.ab-visual-dots {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.125rem;
-  display: flex;
-  gap: 5px;
-  pointer-events: none;
+/* 바로가기로 내려왔을 때 헤더에 가리지 않게 */
+.ab-row,
+.ab-meet,
+.ab-invite {
+  scroll-margin-top: 5rem;
 }
 
-.ab-visual-dots i {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-  transition: width 0.4s ease, background 0.4s ease;
-}
-
-.ab-visual-dots i.is-on {
-  width: 20px;
-  background: #fff;
-}
-
-/* ── 다섯 장 ── */
-.ab-chapters {
-  position: relative;
-  /* 쌓임 맥락을 만들어 장 안의 편집 연필(z-index 5)이 고정 그림(z-index 2) 위로 뚫고 나오지 않게 */
-  z-index: 1;
-}
-
-.ab-chapter {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 62svh;
-  padding: 2.75rem 0.25rem;
-  opacity: 0.32;
-  transition: opacity 0.5s ease;
-}
-
-.ab-chapter.is-on {
-  opacity: 1;
-}
-
-.ab-chapter-no {
-  display: flex;
+/* ── 장 머리 라벨 ── */
+.ab-tag {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.875rem;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
   color: var(--brand);
 }
 
-.ab-chapter-no i {
+.ab-tag i {
   width: 18px;
   height: 1.5px;
   border-radius: 1px;
@@ -317,78 +96,201 @@
   color: var(--text-body);
 }
 
-/* 02 — 꺼진 전구 넷 + 켜진 손수건 하나 */
-.ab-bulbs {
+/* ── 좌우 한 줄(그림 + 글) ── */
+.ab-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 3.5rem;
+}
+
+.ab-pic {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--ab-night);
+  /* 히어로 사진 LQIP 가 인라인 background-image 로 깔린다 */
+  background-size: cover;
+  background-position: center;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 16px 40px -24px rgba(0, 0, 0, 0.45);
+}
+
+.dark .ab-pic {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 16px 40px -24px rgba(0, 0, 0, 0.8);
+}
+
+.ab-pic.is-portrait {
+  aspect-ratio: 1 / 1.05;
+}
+
+.ab-pic-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 히어로 사진은 도착하면 LQIP 위로 페이드 */
+.ab-hero-img {
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+}
+
+.ab-hero-img.is-loaded {
+  opacity: 1;
+}
+
+.ab-pastor-img {
+  object-position: center 20%;
+}
+
+/* EditableImage 래퍼(inline-block)가 그림을 가두지 않게 틀을 꽉 채운다.
+   직계 자식만 — 별칭 안의 EditableText 래퍼까지 잡으면 글이 0높이 상자 밖으로 흘러 아래가 잘린다 */
+.ab-pic > .about-editable-wrapper {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.ab-pic > .about-editable-wrapper > .about-edit-btn {
+  top: 12px;
+  right: 12px;
+}
+
+.ab-pastor-nickname {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  padding: 0.25rem 0.875rem 0.375rem;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: 1.375rem;
+  line-height: 1.3;
+  color: #fff;
+}
+
+.ab-txt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* ── 다섯 만남 — 흰 판 위 카드 5장 + 약속 ── */
+.ab-meet {
+  margin-top: 3.5rem;
+  padding: 2rem 1.125rem;
+  border-radius: 24px;
+  background: var(--surface-container);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+.ab-meet-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ab-meet-head .ab-lead {
+  margin-top: 0.5rem;
+}
+
+/* 모바일 2열 — 손수건(단 하나)은 한 줄 전체 */
+.ab-meet-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin-top: 1.5rem;
+  gap: 0.625rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.ab-bulb {
+.ab-meet-card {
   display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0.875rem 1rem;
+  flex-direction: column;
+  overflow: hidden;
   border-radius: 16px;
-  background: var(--surface-container);
-  border: 1.5px solid var(--card-border);
-  font-size: 0.9375rem;
+  background: var(--app-canvas);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+/* 삽화는 4:3(960×717) — 카드도 같은 비율이라 잘림이 없다 */
+.ab-meet-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 960 / 717;
+  object-fit: cover;
+  /* 스쳐 가는 만남 — 빛이 빠진 흑백 */
+  filter: grayscale(0.9) brightness(0.92);
+  transition: filter 0.3s ease;
+}
+
+.ab-meet-card:hover img {
+  filter: grayscale(0.5) brightness(0.96);
+}
+
+.ab-meet-label {
+  display: block;
+  padding: 0.75rem 0.875rem 0.875rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.45;
   word-break: keep-all;
   color: var(--text-muted);
-  cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.ab-bulb:hover {
-  transform: translateY(-2px);
+.ab-meet-label small {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ab-hl-ink);
 }
 
-.ab-bulb:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
-}
-
-.ab-bulb-dot {
-  flex: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--text-muted) 40%, transparent);
-}
-
-/* 고른 전구 — 불은 여전히 꺼져 있다. 테두리만 또렷하게 */
-.ab-bulb.is-selected {
-  border-color: var(--text-muted);
-  color: var(--text-strong);
-}
-
-.ab-bulb.is-selected .ab-bulb-dot {
-  background: var(--text-muted);
-}
-
-/* 다섯째 켜진 전구(손수건) — 한 줄 전체, 점에 불이 들어와 있다 */
-.ab-bulb.is-on {
+/* 단 하나 켜진 만남 — 컬러 + 금빛 테두리 */
+.ab-meet-card.is-good {
   grid-column: 1 / -1;
+  background: color-mix(in srgb, #ffc35a 12%, var(--surface-container));
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, #f1b44c 70%, transparent),
+    0 12px 28px -16px rgba(214, 150, 40, 0.55);
+}
+
+.ab-meet-card.is-good img {
+  filter: none;
+}
+
+.ab-meet-card.is-good .ab-meet-label {
+  font-size: 0.9375rem;
+  font-weight: 700;
   color: var(--text-strong);
 }
 
-.ab-bulb.is-on .ab-bulb-dot {
-  background: var(--ab-dot);
-  box-shadow: 0 0 0 1px var(--ab-dot-glow), 0 0 12px 3px var(--ab-dot-glow);
+.dark .ab-meet-card.is-good .ab-meet-label small {
+  color: #f5cf86;
 }
 
-.ab-bulb.is-on.is-selected {
-  border-color: var(--ab-dot-glow);
+/* 약속 — 다섯 만남의 결론으로 같은 판 안에 */
+.ab-promise {
+  margin: 2rem 0 0;
+  text-align: center;
 }
 
-/* 03 — 약속 */
 .ab-promise-text {
   margin: 0;
   font-family: var(--ab-verse);
-  font-size: 1.625rem;
+  font-size: 1.375rem;
   font-weight: 400;
   line-height: 1.65;
   letter-spacing: -0.02em;
@@ -406,13 +308,13 @@
 
 .ab-promise-author {
   display: block;
-  margin-top: 1.25rem;
+  margin-top: 0.75rem;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-muted);
 }
 
-/* 04 — 담임목사 편지 */
+/* ── 담임목사 ── */
 .ab-pastor-text {
   margin-top: 0.75rem;
   font-size: 1rem;
@@ -428,12 +330,53 @@
   color: var(--text-strong);
 }
 
+.ab-facts {
+  align-self: stretch;
+  margin: 1.25rem 0 0;
+  border-top: 1px solid var(--card-border);
+}
+
+.ab-fact {
+  display: flex;
+  gap: 0.875rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.ab-fact dt {
+  flex: none;
+  width: 4.5rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ab-fact dd {
+  margin: 0;
+  color: var(--text-strong);
+}
+
+/* 인사말 링크(왼쪽) · 서명(오른쪽) 한 줄 */
+.ab-pastor-foot {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.ab-pastor-foot .ab-link-btn {
+  margin-top: 0;
+}
+
 .ab-pastor-sign {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 1.25rem;
+  margin-left: auto;
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-body);
@@ -450,32 +393,6 @@
   opacity: 0.92;
   user-select: none;
   filter: var(--ink-glyph-filter, none);
-}
-
-.ab-facts {
-  margin: 1.25rem 0 0;
-  border-top: 1px solid var(--card-border);
-}
-
-.ab-fact {
-  display: flex;
-  gap: 0.875rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--card-border);
-  font-size: 0.875rem;
-  line-height: 1.55;
-}
-
-.ab-fact dt {
-  flex: none;
-  width: 4.25rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.ab-fact dd {
-  margin: 0;
-  color: var(--text-strong);
 }
 
 /* 글자 링크 버튼 — 인사말 전문 · 앱 가입 */
@@ -501,29 +418,126 @@
   text-underline-offset: 3px;
 }
 
-/* 05 — 초대 + 한눈에 정보 */
-.ab-info {
-  display: grid;
-  gap: 0.5rem;
+/* ── 초대 — 들판 길 사진 띠. 라이트·다크 모두 사진 위 흰 글씨 ── */
+.ab-invite {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  margin-top: 3.5rem;
+  padding: 2.25rem 1.25rem 1.25rem;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #1b2a1a;
+  color: #fff;
+}
+
+.ab-invite-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 38% 60%;
+}
+
+/* 글 쪽(위·왼쪽)을 어둡게 눌러 흰 글씨를 받친다 */
+.ab-invite::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, rgba(8, 16, 10, 0.72), rgba(8, 16, 10, 0.25) 70%, rgba(8, 16, 10, 0.45));
+  pointer-events: none;
+}
+
+.ab-invite-copy,
+.ab-invite .ab-info {
+  position: relative;
+  z-index: 2;
+}
+
+.ab-invite-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.ab-invite .ab-tag {
+  color: #f5cf86;
+}
+
+.ab-invite .ab-title {
+  color: #fff;
+}
+
+.ab-invite .ab-lead {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.ab-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
   margin-top: 1.5rem;
+}
+
+.ab-invite-actions .ab-link-btn {
+  margin-top: 0;
+  color: #fff;
+}
+
+.ab-invite-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 14px;
+  background: #3182f6;
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.ab-invite-cta:hover {
+  background: #1b6ef3;
+  transform: translateY(-1px);
+}
+
+/* 한눈에 정보 — 사진 위 불투명 카드(테마 표면) */
+.ab-info {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 1.125rem;
+  border-radius: 18px;
+  background: var(--surface-container);
+  color: var(--text-strong);
+  box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.55);
 }
 
 .ab-info-row {
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  padding: 1rem 1.125rem;
-  border-radius: 16px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
+  padding: 0.9375rem 0;
+  border-bottom: 1px solid var(--card-border);
   cursor: pointer;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
-.ab-info-row:hover,
-.ab-info-row:focus-visible {
-  border-color: var(--brand-soft-strong);
-  transform: translateY(-1px);
+.ab-info-row:last-of-type {
+  border-bottom: 0;
+}
+
+.ab-info-row:hover .ab-info-main b,
+.ab-info-row:focus-visible .ab-info-main b {
+  color: var(--brand);
 }
 
 .ab-info-icon {
@@ -550,6 +564,7 @@
   font-weight: 700;
   line-height: 1.45;
   color: var(--text-strong);
+  transition: color 0.15s ease;
 }
 
 .ab-info-main b.is-empty {
@@ -563,7 +578,7 @@
 }
 
 .ab-info-admin {
-  margin: 0;
+  margin: 0 0 0.875rem;
   padding: 0.625rem 0.875rem;
   border-radius: 12px;
   border: 1px dashed var(--card-border);
@@ -571,87 +586,43 @@
   color: var(--text-body);
 }
 
-.ab-invite-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  margin-top: 1.25rem;
-}
-
-.ab-invite-actions .ab-link-btn {
-  align-self: center;
-  margin-top: 0.25rem;
-}
-
-.ab-invite-cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 54px;
-  padding: 0 1.75rem;
-  border: 0;
-  border-radius: 14px;
-  background: #3182f6;
-  color: #fff;
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-
-.ab-invite-cta:hover {
-  background: #1b6ef3;
-  transform: translateY(-1px);
-}
-
-/* ── 이야기 뒤 — 더 알아보기 · 감사 ── */
+/* ── 이야기 뒤 — 더 알아보기 알약 · 감사 ── */
 .ab-more {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
   margin-top: 2rem;
 }
 
 .ab-more-link {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.2rem;
-  padding: 1rem 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 40px;
+  padding: 0 1rem;
   border: 1px solid var(--card-border);
-  border-radius: 16px;
+  border-radius: 999px;
   background: var(--surface-container);
   color: var(--text-strong);
   font: inherit;
-  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .ab-more-link:hover {
-  transform: translateY(-2px);
   border-color: var(--brand-soft-strong);
-}
-
-.ab-more-icon {
-  margin-bottom: 0.4rem;
   color: var(--brand);
 }
 
-.ab-more-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.ab-more-desc {
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--text-muted);
+.ab-more-icon {
+  color: var(--brand);
 }
 
 .ab-thanks {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   font-size: 0.8125rem;
   line-height: 1.7;
   white-space: pre-line;
@@ -660,73 +631,53 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ab-scene,
-  .ab-scene-img,
-  .ab-chapter {
+  .ab-meet-card img,
+  .ab-hero-img,
+  .ab-invite-cta {
     transition: none;
-  }
-
-  .ab-scene-img {
-    transform: none;
-  }
-
-  .ab-meet-frame {
-    animation: none;
   }
 }
 
-/* ── PC: 왼쪽 고정 그림 · 오른쪽 다섯 장 ── */
+/* ── 태블릿 이상: 다섯 만남 한 줄 ── */
+@media (min-width: 768px) {
+  .ab-meet-cards {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  /* 한 줄일 땐 다섯째도 한 칸 — 살짝 떠올라 혼자 켜진 것처럼 */
+  .ab-meet-card.is-good {
+    grid-column: auto;
+    transform: translateY(-6px);
+  }
+}
+
+/* ── PC: 좌우 번갈아 ── */
 @media (min-width: 1024px) {
-  .ab-scrolly {
+  .ab-jump {
+    margin-top: -1.75rem;
+  }
+
+  .ab-jump button {
+    min-height: 44px;
+    padding: 0 1.25rem;
+    font-size: 0.9375rem;
+  }
+
+  .ab-row {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    gap: 4.5rem;
-    margin-top: 2.5rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 4rem;
+    margin-top: 6rem;
   }
 
-  /* zoom(--az) 안이라 top·vh 가 함께 커진다 → 나눠서 되돌린다 */
-  .ab-visual-wrap {
-    top: calc(4.5rem / var(--az, 1));
-    align-self: start;
-    height: calc((100vh - 6rem) / var(--az, 1));
-    margin: 0;
-    padding: 0;
-    background: none;
+  /* 담임목사 — 글 왼쪽 · 사진 오른쪽 */
+  .ab-row.is-flip > .ab-pic {
+    order: 2;
   }
 
-  .ab-visual-wrap::after {
-    content: none;
-  }
-
-  .ab-visual {
-    height: 100%;
+  .ab-pic {
     border-radius: 28px;
-  }
-
-  .ab-scene-cap {
-    left: 2rem;
-    right: 2rem;
-    bottom: 1.75rem;
-    font-size: 1.25rem;
-  }
-
-  .ab-scene-cap small {
-    font-size: 0.875rem;
-  }
-
-  .ab-scene.is-meet {
-    gap: 1.25rem;
-    padding: 5rem 2.5rem 1.75rem;
-    --ab-meet-cap: 8.5rem;
-  }
-
-  .ab-meet-frame {
-    border-radius: 20px;
-  }
-
-  .ab-scene-quote {
-    font-size: 1.75rem;
-    line-height: 1.5;
   }
 
   .ab-pastor-nickname {
@@ -735,38 +686,7 @@
     font-size: 1.75rem;
   }
 
-  .ab-visual-no {
-    top: 1.25rem;
-    left: 1.75rem;
-    font-size: 3rem;
-  }
-
-  .ab-visual-dots {
-    top: 50%;
-    right: 1.25rem;
-    flex-direction: column;
-    transform: translateY(-50%);
-  }
-
-  .ab-visual-dots i {
-    transition: height 0.4s ease, background 0.4s ease;
-  }
-
-  .ab-visual-dots i.is-on {
-    width: 6px;
-    height: 24px;
-  }
-
-  .ab-chapters {
-    padding-bottom: calc(12vh / var(--az, 1));
-  }
-
-  .ab-chapter {
-    min-height: calc(78vh / var(--az, 1));
-    padding: 4rem 0;
-  }
-
-  .ab-chapter-no {
+  .ab-tag {
     font-size: 0.875rem;
   }
 
@@ -780,49 +700,45 @@
     line-height: 1.8;
   }
 
-  .ab-promise-text {
-    font-size: 2.25rem;
-    line-height: 1.6;
-  }
-
   .ab-pastor-text {
     font-size: 1.0625rem;
   }
 
-  .ab-invite-actions {
-    flex-direction: row;
-    align-items: center;
-    gap: 1.25rem;
+  .ab-meet {
+    margin-top: 6rem;
+    padding: 3rem 2.75rem;
+    border-radius: 28px;
   }
 
-  .ab-invite-actions .ab-link-btn {
-    margin-top: 0;
+  .ab-meet-cards {
+    gap: 0.875rem;
+    margin-top: 2.25rem;
+  }
+
+  .ab-promise {
+    margin-top: 2.75rem;
+  }
+
+  .ab-promise-text {
+    font-size: 1.75rem;
+  }
+
+  .ab-invite {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    align-items: end;
+    gap: 3rem;
+    margin-top: 6rem;
+    padding: 3.5rem;
+    border-radius: 28px;
+  }
+
+  /* PC 는 글이 왼쪽 — 왼쪽을 눌러 받친다 */
+  .ab-invite::before {
+    background: linear-gradient(90deg, rgba(8, 16, 10, 0.75), rgba(8, 16, 10, 0.2) 65%, rgba(8, 16, 10, 0.1));
   }
 
   .ab-more {
-    gap: 0.75rem;
-    margin-top: 3rem;
-  }
-
-  .ab-more-link {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-    column-gap: 0.75rem;
-    padding: 1.25rem 1.375rem;
-  }
-
-  .ab-more-icon {
-    margin-bottom: 0;
-  }
-
-  .ab-more-title {
-    font-size: 1rem;
-  }
-
-  .ab-more-desc {
-    flex-basis: 100%;
-    padding-left: 2rem;
-    font-size: 0.8125rem;
+    margin-top: 2.5rem;
   }
 }

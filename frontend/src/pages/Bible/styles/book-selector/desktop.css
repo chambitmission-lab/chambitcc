@@ -48,32 +48,25 @@
   }
   .view-toggle__btn .material-icons-round { font-size: 1.25rem; }
 
-  /* 통독표 — 인장·원반은 한 치수씩, 글씨는 두 단계 */
-  .book-cell { padding: 0.95rem 0.9rem 0.85rem; }
-  .book-stamp-halo {
-    width: 3.25rem;
-    height: 3.25rem;
+  /* 통독표 — 약어는 한 치수, 글씨는 두 단계 */
+  .book-cell {
+    min-height: 7.75rem;
+    padding: 0.95rem 0.95rem 0.9rem;
   }
-  .book-stamp {
-    width: 34px;
-    height: 34px;
-    font-size: 0.74rem;
-  }
-  .book-cell__name {
-    font-size: calc(1rem * var(--text-mul, 1));
-    white-space: normal;
-    overflow-wrap: anywhere;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
+  .book-cell__abbr { font-size: calc(2rem * var(--text-mul, 1)); }
+  .book-cell__name { font-size: calc(0.9375rem * var(--text-mul, 1)); }
   .book-cell__meta {
     font-size: calc(0.8125rem * var(--text-mul, 1));
     color: var(--text-body, var(--ig-secondary-text));
   }
-  .book-cell__badge { font-size: calc(0.6875rem * var(--text-mul, 1)); }
-  .book-cell__pct { font-size: calc(0.84375rem * var(--text-mul, 1)); }
-  .books-grid .book-cell .book-progress-track { height: 6px; }
+  .book-cell.is-complete .book-cell__meta { color: var(--brand); }
+  .book-cell__no { font-size: calc(0.6875rem * var(--text-mul, 1)); }
+  .book-hero { min-height: 16rem; padding: 1.25rem 1.3rem; }
+  .book-hero__eyebrow { font-size: calc(0.8125rem * var(--text-mul, 1)); }
+  .book-hero__abbr { font-size: calc(3.5rem * var(--text-mul, 1)); }
+  .book-hero__name { font-size: calc(1.25rem * var(--text-mul, 1)); }
+  .book-hero__meta { font-size: calc(0.875rem * var(--text-mul, 1)); }
+  .book-hero__cta { font-size: calc(0.9375rem * var(--text-mul, 1)); }
 
   .unread-chip {
     min-height: 2.5rem;

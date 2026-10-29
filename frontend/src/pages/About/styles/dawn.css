@@ -1,6 +1,7 @@
 /* 첫 화면 — 어둠 속 한 줄기 빛
-   하늘 카드(테마별) 하나가 첫 화면을 채운다: 빛줄기 → 빛 무리(진입 때 한 번 개화) → 요 1:9 · 참빛교회
-   → 카드 아래 "다섯 장의 이야기"로 흘러내리는 빛 선. 사진은 아래 고정 그림의 첫 장면이 된다. */
+   하늘 카드(테마별) 하나: 빛줄기 → 빛 무리(진입 때 한 번 개화) → 교회 이름(주인공) · 요 1:9(곁에).
+   모바일은 이름 → 말씀 위아래, PC 는 이름 왼쪽 · 말씀 오른쪽(가운데 빛기둥을 사이에 둔다).
+   카드 아래 가장자리엔 바로가기 알약(.ab-jump, magazine.css)이 걸친다. */
 
 .ab-dawn {
   position: relative;
@@ -15,7 +16,8 @@
      PC 는 zoom(--az) 안이라 vh 가 함께 커진다 → 나눠서 되돌린다 */
   min-height: 520px;
   min-height: calc((100svh - 56px) / var(--az, 1) - 4.5rem);
-  padding: 4rem 1.5rem 8rem;
+  gap: 2.5rem;
+  padding: 3.5rem 1.5rem 9rem;
   overflow: hidden;
   border-radius: 28px;
   text-align: center;
@@ -152,11 +154,20 @@
   }
 }
 
+/* 말씀 묶음(말씀 + 출처) */
+.ab-dawn-word {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* 출처 — 작은 알약 */
 .ab-dawn-ref {
   position: relative;
   z-index: 1;
-  margin-top: 1.625rem;
+  margin-top: 1.25rem;
   padding: 0.4rem 0.95rem;
   border-radius: 999px;
   background: var(--ab-row-bg);
@@ -169,7 +180,6 @@
 .ab-dawn-name {
   position: relative;
   z-index: 1;
-  margin-top: 4rem;
 }
 
 /* 키커 — 교회 이름 위 작은 본문 글씨(손글씨는 목사님 별칭에만 남겨 첫 화면 서체를 줄였다) */
@@ -194,50 +204,14 @@
   text-shadow: var(--ab-name-glow);
 }
 
-/* 카드 아래 — "다섯 장의 이야기" 안내 + 빛 알갱이가 흘러내리는 선 */
-.ab-dawn-hint {
-  position: absolute;
-  left: 50%;
-  bottom: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.625rem;
-  transform: translateX(-50%);
-  font-size: 0.8125rem;
+/* 이름 아래 한 줄 — 관리자 문구(aboutTagline) */
+.ab-dawn-tagline {
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
   font-weight: 600;
-  white-space: nowrap;
-  color: var(--ab-ink-3);
-  pointer-events: none;
-}
-
-.ab-dawn-stream {
-  position: relative;
-  order: -1;
-  width: 1.5px;
-  height: var(--ab-stream-h, 64px);
-  background: linear-gradient(to bottom, transparent, var(--ab-beam));
-}
-
-.ab-dawn-stream::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  margin-left: -2.5px;
-  border-radius: 50%;
-  background: var(--ab-dot);
-  box-shadow: 0 0 10px 3px var(--ab-dot-glow);
-  animation: ab-drip 2.4s cubic-bezier(0.5, 0, 0.6, 1) infinite;
-}
-
-@keyframes ab-drip {
-  0% { transform: translateY(0); opacity: 0; }
-  15% { opacity: 1; }
-  85% { opacity: 1; }
-  100% { transform: translateY(var(--ab-stream-h, 64px)); opacity: 0; }
+  line-height: 1.5;
+  word-break: keep-all;
+  color: var(--ab-ink-2);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -249,16 +223,26 @@
   .ab-dawn-art {
     transition: none;
   }
-
-  .ab-dawn-stream::after {
-    animation: none;
-    opacity: 0;
-  }
 }
 
 @media (min-width: 1024px) {
   .ab-dawn {
-    --ab-stream-h: 80px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 3rem;
+    padding: 3rem 4.5rem 10rem;
+    text-align: left;
+  }
+
+  .ab-dawn-word {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .ab-dawn-tagline {
+    margin-top: 1rem;
+    font-size: 1.1875rem;
   }
 
   .ab-dawn-art {
@@ -270,7 +254,7 @@
   }
 
   .ab-dawn-verse {
-    font-size: 2.25rem;
+    font-size: 1.875rem;
   }
 
   .ab-dawn-kicker {
@@ -278,11 +262,7 @@
   }
 
   .ab-dawn-name h1 {
-    font-size: 3.5rem;
-  }
-
-  .ab-dawn-hint {
-    bottom: 2rem;
-    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-size: 4.25rem;
   }
 }
