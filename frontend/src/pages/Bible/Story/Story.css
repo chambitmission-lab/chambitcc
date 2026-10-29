@@ -488,23 +488,6 @@
   margin-top: 0.4rem;
   padding-left: 0.875rem;
 }
-.story-verse__card {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid var(--card-border, rgba(0, 0, 0, 0.1));
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--ig-secondary-text);
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-}
-.story-verse__card:hover {
-  color: var(--brand);
-  border-color: var(--brand-soft-strong);
-  background: var(--brand-soft);
-}
 /* 본문 끝 표식(자동 읽음 관찰용) — 보이지 않지만 높이는 있어야 관찰된다 */
 .story-ep__end {
   height: 1px;
@@ -1208,13 +1191,6 @@
   .story-verse__foot {
     padding-left: 1.1rem;
     margin-top: 0.6rem;
-  }
-  .story-verse__card {
-    padding: 0.35rem 0.8rem;
-    font-size: 0.85rem;
-  }
-  .story-verse__card .material-icons-round {
-    font-size: 17px !important;
   }
   .story-ep__meta {
     margin-top: 0.8rem;

@@ -79,16 +79,6 @@ const readingMinutes = (paragraphs: string[], why: string) => {
   return Math.max(1, Math.round(chars / 200))
 }
 
-// 원문 맛보기 한 참조의 절들을 평문으로 — 창 1:1, 31 처럼 떨어진 절은 "…"으로 끊어
-// 한 문장처럼 읽히지 않게 한다(말씀 카드로 넘길 때 사용)
-const joinVerseText = (verses: BibleVerse[]) =>
-  verses
-    .map((v, i) => {
-      const gap = i > 0 && v.verse > verses[i - 1].verse + 1
-      return `${gap ? '… ' : ''}${v.text}`
-    })
-    .join(' ')
-
 // {{용어}} 풋노트가 섞인 문단 렌더
 const GlossaryText = ({ text, onTerm }: { text: string; onTerm: (term: string) => void }) => (
   <>
@@ -222,13 +212,6 @@ const StoryEpisode = () => {
     const q = new URLSearchParams({ from: 'story', ep: episode.id })
     if (verse) q.set('verse', String(verse))
     navigate(`/bible/${book}/${chapter}?${q}`)
-  }
-
-  // 원문 맛보기 절을 말씀 카드로 — 검색 결과 카드와 같은 presetVerse 경로를 탄다
-  const goCard = (label: string, verses: BibleVerse[]) => {
-    navigate('/bible/photo-verse', {
-      state: { presetVerse: { text: joinVerseText(verses), refLabel: label } },
-    })
   }
 
   const minutes = readingMinutes(episode.story, episode.why)
@@ -368,17 +351,6 @@ const StoryEpisode = () => {
                 </p>
                 <div className="story-verse__foot">
                   <span className="story-verse__ref">{ref.label}</span>
-                  {verses.length > 0 && (
-                    <button
-                      type="button"
-                      className="story-verse__card"
-                      onClick={() => goCard(ref.label, verses)}
-                      title="이 말씀으로 카드 만들기"
-                    >
-                      <span className="material-icons-round text-[15px]">image</span>
-                      말씀 카드
-                    </button>
-                  )}
                 </div>
               </div>
             ))

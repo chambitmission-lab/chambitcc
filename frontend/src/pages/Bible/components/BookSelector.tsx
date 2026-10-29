@@ -148,7 +148,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 책 목록 보기 방식 — 여정 경로(기본)와 예전 격자 중 취향대로. 선택은 기기에 기억된다
   const [viewMode, setViewMode] = useState<BookViewMode>(loadViewMode)
 
-  // 목록 보기 전용 "안 읽은 책만" 필터 — 통독 후반부에 남은 책만 추려 보는 용도.
+  // 카드·목록 보기 공용 "안 읽은 책만" 필터 — 통독 후반부에 남은 책만 추려 보는 용도.
+  // 여정 보기는 경로가 끊기면 안 되므로 제외.
   // 세션 한정 상태로 둔다: 기기에 기억하면 다음 방문에 목록이 비어 보이는 이유를 찾기 어렵다
   const [unreadOnly, setUnreadOnly] = useState(false)
 
@@ -731,7 +732,61 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 칩은 걸러낼 것이 있을 때만 노출 — 완독한 책이 없으면 눌러도 아무 일도 없는 장식이 된다.
   // 칩이 숨은 상태에서 unreadOnly가 켜져 있어도 remaining === filtered라 목록은 그대로다
   const showUnreadChip = remainingBooks.length < filteredBooks.length
-  const listBooks = unreadOnly ? remainingBooks : filteredBooks
+  const shownBooks = unreadOnly ? remainingBooks : filteredBooks
+
+  // "안 읽은 책만" 칩과 전부 완독 빈 상태 — 카드·목록 보기가 함께 쓴다
+  const unreadTools =
+    showUnreadChip && (
+      <div className="list-tools">
+        <button
+          type="button"
+          className={`unread-chip${unreadOnly ? ' active' : ''}`}
+          aria-pressed={unreadOnly}
+          onClick={() => {
+            setInteracted(true)
+            setUnreadOnly(v => !v)
+          }}
+        >
+          {t.unreadOnly}
+          <span className="unread-chip__count">{remainingBooks.length}</span>
+        </button>
+      </div>
+    )
+
+  const allDoneState = (
+    // 이 분류를 전부 완독한 순간 — 이모지 대신 완독 인장 + 분량 + 원래 목록으로 돌아가는 길
+    <div className="books-list__empty" role="status">
+      <span className="books-list__empty-seal" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12.5l4.2 4.2L19 7" />
+        </svg>
+      </span>
+      <p className="books-list__empty-title">
+        <span className="books-list__empty-cat">
+          {activeCategory.id === 'all'
+            ? (testament === 'OT' ? t.oldTestament : t.newTestament)
+            : (language === 'en' ? activeCategory.labelEn : activeCategory.label)}
+        </span>
+        {t.allDone}
+      </p>
+      <p className="books-list__empty-meta">
+        {t.allDoneMeta(
+          filteredBooks.length,
+          filteredBooks.reduce((sum, b) => sum + (b.chapter_count ?? 0), 0),
+        )}
+      </p>
+      <button
+        type="button"
+        className="books-list__empty-action"
+        onClick={() => {
+          setInteracted(true)
+          setUnreadOnly(false)
+        }}
+      >
+        {t.showAllBooks}
+      </button>
+    </div>
+  )
 
   // 다음 읽을 책 — 여정 보기의 '다음 정거장'과 같은 규칙(지금 읽는 책 바로 뒤의 첫 미완독 책,
   // 지금 읽는 책이 이 목록에 없으면 첫 미완독 책). 격자·목록에서는 읽는 중인 책이 이미
@@ -1078,65 +1133,26 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           />
         ) : viewMode === 'list' ? (
           <>
-            {showUnreadChip && (
-              <div className="list-tools">
-                <button
-                  type="button"
-                  className={`unread-chip${unreadOnly ? ' active' : ''}`}
-                  aria-pressed={unreadOnly}
-                  onClick={() => {
-                    setInteracted(true)
-                    setUnreadOnly(v => !v)
-                  }}
-                >
-                  {t.unreadOnly}
-                  <span className="unread-chip__count">{remainingBooks.length}</span>
-                </button>
-              </div>
-            )}
+            {unreadTools}
             <div className="books-list">
-              {listBooks.length > 0 ? (
-                listBooks.map(renderListRow)
+              {shownBooks.length > 0 ? (
+                shownBooks.map(renderListRow)
               ) : (
-                // 이 분류를 전부 완독한 순간 — 이모지 대신 완독 인장 + 분량 + 원래 목록으로 돌아가는 길
-                <div className="books-list__empty" role="status">
-                  <span className="books-list__empty-seal" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12.5l4.2 4.2L19 7" />
-                    </svg>
-                  </span>
-                  <p className="books-list__empty-title">
-                    <span className="books-list__empty-cat">
-                      {activeCategory.id === 'all'
-                        ? (testament === 'OT' ? t.oldTestament : t.newTestament)
-                        : (language === 'en' ? activeCategory.labelEn : activeCategory.label)}
-                    </span>
-                    {t.allDone}
-                  </p>
-                  <p className="books-list__empty-meta">
-                    {t.allDoneMeta(
-                      filteredBooks.length,
-                      filteredBooks.reduce((sum, b) => sum + (b.chapter_count ?? 0), 0),
-                    )}
-                  </p>
-                  <button
-                    type="button"
-                    className="books-list__empty-action"
-                    onClick={() => {
-                      setInteracted(true)
-                      setUnreadOnly(false)
-                    }}
-                  >
-                    {t.showAllBooks}
-                  </button>
-                </div>
+                allDoneState
               )}
             </div>
           </>
         ) : (
-          <div className="books-grid">
-            {filteredBooks.map(renderBook)}
-          </div>
+          <>
+            {unreadTools}
+            {shownBooks.length > 0 ? (
+              <div className="books-grid">
+                {shownBooks.map(renderBook)}
+              </div>
+            ) : (
+              allDoneState
+            )}
+          </>
         )}
       </div>
       {peekNode}
