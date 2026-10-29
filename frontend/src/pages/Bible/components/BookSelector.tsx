@@ -226,7 +226,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       showAllBooks: '읽은 책 다시 보기',
       nextUp: '다음',
       testamentDone: '완독',
-      bookCount: (n: number) => `${n}권`,
       celebrateOT: '구약 39권을 모두 읽었어요 🎉',
       celebrateOTNext: '이제 신약으로 넘어가요',
       celebrateNT: '신약 27권을 모두 읽었어요 🎉',
@@ -281,7 +280,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       showAllBooks: 'Show finished books',
       nextUp: 'Next',
       testamentDone: 'complete',
-      bookCount: (n: number) => `${n} books`,
       celebrateOT: 'You finished all 39 books of the Old Testament 🎉',
       celebrateOTNext: 'On to the New Testament',
       celebrateNT: 'You finished all 27 books of the New Testament 🎉',
@@ -684,32 +682,17 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       ?.book_number
   })()
 
-  // 탭 보조 줄 — 권수는 늘 보이고, 읽은 기록이 있으면 %(다 읽었으면 '완독')를 덧붙인다.
-  // 탭을 누르기 전에 양쪽이 어디까지 왔는지 보인다
-  const renderTabMeta = (tm: Testament, bookCount: number) => {
+  // 토글 안 상태 — 읽은 기록이 있으면 %(다 읽었으면 '완독'). 누르기 전에 양쪽이 어디까지 왔는지 보인다
+  const renderTabStatus = (tm: Testament) => {
     const rate = testamentRate[tm]
+    if (!hasAnyProgress || rate <= 0) return null
     return (
-      <span className="testament-tab__meta">
-        {t.bookCount(bookCount)}
-        {hasAnyProgress && rate >= 100 && (
-          <>
-            {' · '}
-            <b className="testament-tab__done">{t.testamentDone}</b>
-          </>
-        )}
-        {hasAnyProgress && rate > 0 && rate < 100 && (
-          <>
-            {' · '}
-            <b>{pctLabel(rate)}%</b>
-          </>
-        )}
-      </span>
+      <span className="testament-tab__status">{rate >= 100 ? t.testamentDone : `${pctLabel(rate)}%`}</span>
     )
   }
 
   return (
     <div className="bible-books-section" data-animate={interacted ? '' : undefined}>
-      <h2 className="section-title">{t.selectBook}</h2>
 
       {/* 읽기 진행 요약 — 히어로(전체 진행률·격려·구약/신약으로 쪼갠 게이지), 지도 보기면 66권 지도가 아래에.
           링 3개 대신 "숫자 하나가 먼저 읽히고" 그 아래 구약/신약이 나뉘는 위계로 재구성했다.
@@ -882,8 +865,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       {/* (구 "최근 읽은 책" 슬라이더 자리 — 이어 읽기 카드·통독표 마커와 역할이 겹쳐 제거.
           책별 이어 읽기 진입은 통독표에서 책을 탭하면 동일하게 동작한다) */}
 
-      {/* 구약/신약 탭 + 서브 카테고리 칩 — 한 패널로 묶어 "칩은 탭에 종속"임을 시각적으로 표현.
-          탭 전환 시 key가 바뀌며 칩들이 순차적으로 슬라이드 인 된다. */}
+      {/* "책 선택" 제목 + 구약/신약 토글 + 분류 칩을 카드 하나로 묶는다 — 칩은 토글에 종속.
+          토글 전환 시 key가 바뀌며 칩들이 순차적으로 슬라이드 인 된다. */}
       {/* 완독 축하 — sticky 탭 바깥에 둬 스크롤을 따라다니지 않게 한다 */}
       {doneSide && celebrateKey && (
         <TestamentCelebrate
@@ -895,27 +878,31 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         />
       )}
       <div className="book-nav">
-        <div className="testament-tabs" role="tablist" data-active={testament}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={testament === 'OT'}
-            className={`testament-tab${testament === 'OT' ? ' active' : ''}`}
-            onClick={() => handleTestamentChange('OT')}
-          >
-            <span className="testament-tab__label">{t.oldTestament}</span>
-            {renderTabMeta('OT', 39)}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={testament === 'NT'}
-            className={`testament-tab${testament === 'NT' ? ' active' : ''}`}
-            onClick={() => handleTestamentChange('NT')}
-          >
-            <span className="testament-tab__label">{t.newTestament}</span>
-            {renderTabMeta('NT', 27)}
-          </button>
+        <div className="book-nav__head">
+          <h2 className="section-title">{t.selectBook}</h2>
+          <div className="testament-tabs" role="tablist" data-active={testament}>
+            <span className="testament-thumb" aria-hidden="true" />
+            <button
+              type="button"
+              role="tab"
+              aria-selected={testament === 'OT'}
+              className={`testament-tab${testament === 'OT' ? ' active' : ''}`}
+              onClick={() => handleTestamentChange('OT')}
+            >
+              <span className="testament-tab__label">{t.oldTestament}</span>
+              {renderTabStatus('OT')}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={testament === 'NT'}
+              className={`testament-tab${testament === 'NT' ? ' active' : ''}`}
+              onClick={() => handleTestamentChange('NT')}
+            >
+              <span className="testament-tab__label">{t.newTestament}</span>
+              {renderTabStatus('NT')}
+            </button>
+          </div>
         </div>
 
         <div className="book-filter" key={testament} data-dir={dir}>
@@ -932,7 +919,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                   animationDelay: `${i * 45}ms`,
                   // 분류 이름 글자가 진행률만큼 왼쪽부터 장르색으로 차오른다('전체'는 브랜드 블루)
                   '--chip-color': cat.colorVar ? `var(${cat.colorVar})` : 'var(--brand)',
-                  '--chip-fill': `${showRate ? gaugeWidth(rate) : 0}%`,
+                  // 경계가 앞뒤로 살짝 번지므로 완독·0%는 번짐이 글자에 닿지 않게 바깥으로 민다
+                  '--chip-fill': `${!showRate || rate <= 0 ? -10 : done ? 110 : gaugeWidth(rate)}%`,
                 } as CSSProperties}
                 onClick={() => {
                   setInteracted(true)

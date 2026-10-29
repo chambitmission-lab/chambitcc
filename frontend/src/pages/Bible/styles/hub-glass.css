@@ -160,6 +160,16 @@
     box-shadow: none;
   }
 
+  /* ③ 책 선택 카드 — 현황 카드와 같은 유리 판. 위에 붙어 책 목록 위를 지나가므로 한 단계 진하게 */
+  .bible-hub .book-nav {
+    background: var(--glass-strong);
+    border-color: transparent;
+    border-radius: 1.25rem;
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    backdrop-filter: blur(18px) saturate(1.4);
+  }
+
   /* ④ 성경 공부 도구 — 벤토 타일 */
   .bible-hub .dash-bento {
     display: grid;

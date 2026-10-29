@@ -86,8 +86,8 @@
   }
 }
 
-/* 구약/신약 탭 + 분류 칩 — 큰 글자 탭 + 밑줄(타이포 탭).
-   칩은 선택된 탭의 하위 분류라 같은 기준선 아래 한 줄로 이어 붙인다 */
+/* 책 선택 카드 — "책 선택" 제목 + 구약/신약 알약 토글 한 줄, 가는 선 아래 분류 칩.
+   위 "성경 읽기 현황" 카드와 같은 카드 문법이라 스크롤해 위에 붙어도 떠 있는 패널처럼 보인다 */
 .book-nav {
   position: sticky;
   /* 앱바(56) 바로 아래에 고정 — 모바일 .bible-study-header 는 lg:hidden 래퍼에 갇혀 붙지 않고
@@ -95,10 +95,20 @@
   top: 56px;
   z-index: 8;
   margin-bottom: 1rem;
-  padding: 0.25rem 0 0.25rem;
+  padding: 0.75rem 0.75rem 0.25rem;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 18px;
+  box-shadow: 0 6px 20px -12px rgba(25, 31, 40, 0.12);
 }
 
-/* 고정 시 아래 책 그리드가 탭 뒤로 비쳐 보이지 않도록 섹션 배경으로 풀블리드 마스킹 */
+[data-theme="dark"] .book-nav {
+  background: #1b2029;
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+}
+
+/* 고정 시 아래 책 목록이 카드 모서리 밖으로 비쳐 보이지 않도록 섹션 배경으로 풀블리드 마스킹 */
 .book-nav::before {
   content: '';
   position: absolute;
@@ -110,86 +120,101 @@
   background: var(--ig-secondary-background);
 }
 
-/* 마스크가 위로 1rem 뻗기 때문에 바로 위 "책 선택" 제목의 받침을 덮어
-   "채 서태"처럼 잘려 보였다. 제목을 패널(z-index:8)보다 위 레이어로 올려
-   마스크가 글자를 가리지 못하게 한다. */
-.bible-books-section .section-title {
-  position: relative;
-  z-index: 9;
+.book-nav__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.125rem 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--ig-border);
 }
 
+[data-theme="dark"] .book-nav__head {
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.book-nav__head .section-title {
+  margin: 0;
+}
+
+/* 구약/신약 알약 토글 — 흰 썸이 미끄러진다 */
 .testament-tabs {
-  display: flex;
-  gap: 1.5rem;
-  border-bottom: 1px solid var(--ig-border);
+  position: relative;
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--ig-secondary-background);
+}
+
+[data-theme="dark"] .testament-tabs {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.testament-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 999px;
+  background: var(--ig-primary-background);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.32s cubic-bezier(0.34, 1.25, 0.5, 1);
+}
+
+[data-theme="dark"] .testament-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+.testament-tabs[data-active="NT"] .testament-thumb {
+  transform: translateX(100%);
 }
 
 .testament-tab {
   position: relative;
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  padding: 0 0 0.7rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.85rem;
   border: none;
   background: transparent;
   cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--text-muted, var(--ig-secondary-text));
-  opacity: 0.7;
-  transition: color 0.2s, opacity 0.2s;
+  transition: color 0.2s;
 }
 
 .testament-tab:hover,
 .testament-tab.active {
-  opacity: 1;
-}
-
-.testament-tab.active {
   color: var(--ig-primary-text);
 }
 
-/* 선택 밑줄 — 탭 폭만큼 가운데서 펼쳐진다 */
-.testament-tab::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 3px;
-  border-radius: 3px;
-  background: var(--ig-primary-text);
-  transform: scaleX(0);
-  transition: transform 0.32s cubic-bezier(0.34, 1.3, 0.5, 1);
-}
-
-.testament-tab.active::after {
-  transform: scaleX(1);
-}
-
-.testament-tab__label {
-  font-size: 1.5rem;
+.testament-tab__status {
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-}
-
-.testament-tab__meta {
-  font-size: 0.78rem;
-  font-weight: 600;
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-.testament-tab.active .testament-tab__meta {
-  color: var(--text-muted, var(--ig-secondary-text));
+.testament-tab.active .testament-tab__status {
+  color: var(--brand);
 }
 
-.testament-tab.active .testament-tab__meta b {
-  color: var(--brand);
-  font-weight: 800;
+@media (prefers-reduced-motion: reduce) {
+  .testament-thumb {
+    transition: none;
+  }
 }
 
 /* 분류 칩 — 모세오경/역사서/시가서… 으로 목록을 한눈에 줄인다.
-   진행률은 분류 이름 글자가 왼쪽부터 장르색으로 차오르는 것으로 보여준다 */
+   진행률은 분류 이름 글자가 왼쪽부터 장르색으로 차오르는 것으로 보여준다.
+   고른 칩의 안 읽은 쪽은 검정이 아니라 같은 장르색을 옅게 — 검정이면 경계가
+   커서(|)처럼 끊겨 보였다 */
 .book-filter {
   display: flex;
   gap: 0.125rem;
@@ -210,6 +235,7 @@
 }
 
 .book-filter-chip {
+  --chip-read: var(--chip-color);
   --chip-rest: var(--text-muted, var(--ig-secondary-text));
   position: relative;
   flex: 0 0 auto;
@@ -221,25 +247,25 @@
   border-radius: 10px;
   background: transparent;
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   color: var(--text-muted, var(--ig-secondary-text));
   cursor: pointer;
-  transition: background 0.2s, --chip-fill 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: --chip-fill 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   /* 탭 전환 시(.book-filter key 변경) 새 칩들이 방향에 맞춰 순차적으로 슬라이드 인 — delay는 인라인 스타일 */
   animation: chip-in-forward 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .book-filter-chip:hover {
-  background: rgba(120, 120, 130, 0.08);
+  background: rgba(120, 120, 130, 0.06);
 }
 
 .book-filter-chip.active {
-  --chip-rest: var(--ig-primary-text);
-  background: rgba(120, 120, 130, 0.08);
+  --chip-rest: color-mix(in srgb, var(--chip-color) 38%, transparent);
+  font-weight: 800;
 }
 
-/* 선택 분류 밑줄 — 장르색 */
+/* 선택 분류 밑줄 */
 .book-filter-chip.active::after {
   content: '';
   position: absolute;
@@ -251,11 +277,12 @@
   background: var(--chip-color);
 }
 
+/* 경계를 앞뒤로 살짝 번지게 해 글자 획이 칼로 자른 듯 끊기지 않게 */
 .book-filter-chip__label {
   background: linear-gradient(
     90deg,
-    var(--chip-color) var(--chip-fill),
-    var(--chip-rest) var(--chip-fill)
+    var(--chip-read) calc(var(--chip-fill) - 5%),
+    var(--chip-rest) calc(var(--chip-fill) + 5%)
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -277,7 +304,7 @@
 
 .book-filter-chip__done {
   font-size: 0.95rem;
-  color: var(--chip-color);
+  color: var(--chip-read);
 }
 
 /* OT→NT: 우측에서, NT→OT: 좌측에서 스와이프 하듯 들어온다 */
@@ -311,7 +338,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .testament-tab::after,
   .book-filter-chip {
     transition: none;
   }
