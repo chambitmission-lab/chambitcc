@@ -60,6 +60,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/classes': () => import('../pages/ClassRoom/ClassList'),
   '/survey': () => import('../pages/Survey/SurveyList'),
   '/seats': () => import('../pages/Seats/SeatEventList'),
+  // 성경 하단 도크·좌측 레일 "단어장" — 테이블에 없어 누른 뒤에야 청크가 내려왔다
+  '/bible/wordbook': () => import('../pages/Bible/Wordbook/WordbookPage'),
 }
 
 // 청크와 함께 데워 둘 페이지 데이터. 청크만 먼저 받으면 진입 시 껍데기(히어로)는 즉시
@@ -142,6 +144,16 @@ const routeDataPrefetchers: Record<string, (run: Run) => Promise<void>> = {
   '/handwriting': (run) =>
     Promise.all([import('../hooks/useHandwritingContest'), import('../config/queryClient')]).then(
       ([m, q]) => run(() => m.prefetchContestPage(q.queryClient, true)),
+    ),
+  // 내 단어장 — 첫 페이지(30개, 구절 본문 포함)를 청크와 같이. 로그인 전엔 훅도 꺼져 있어 받지 않는다
+  '/bible/wordbook': (run) =>
+    Promise.all([import('../hooks/useBibleWordNote'), import('../config/queryClient')]).then(
+      ([m, q]) => run(() => m.prefetchWordbook(q.queryClient, true)),
+    ),
+  // 좌석 예약 — 행사 목록(공개 API, 로그인 시 내 좌석 포함)을 청크와 같이. 캐시가 없을 때만
+  '/seats': (run) =>
+    Promise.all([import('../hooks/useSeatEvents'), import('../config/queryClient')]).then(
+      ([m, q]) => run(() => m.prefetchSeatEvents(q.queryClient, true)),
     ),
   // 설교 — 목록 첫 페이지 + 최신 설교 인용절. 청크만 받아 두면 진입 시 목록 → 인용절 두 왕복이 직렬로 남았다
   '/sermon': (run) => import('../pages/Sermon/prefetch').then((m) => run(() => m.prefetchSermonPage())),
@@ -241,6 +253,12 @@ export const preloadRoute = (path: string, options: PreloadRouteOptions = {}): P
     })
   inflight.set(resolved.key, promise)
   return promise
+}
+
+// /capsule "새 캡슐 봉인하기" 버튼(목록 히어로·PC 레일) — 호버·누르는 순간 청크와 1단계 삽화(매니페스트)를 같이.
+// 유휴 프리로드가 이미 받았으면 즉시 돌아온다
+export const warmCapsuleCreate = (): void => {
+  void preloadRoute('/capsule/new')
 }
 
 // 하단 네비 3개는 동시에 받는다 (순차로 돌리면 마지막 것이 몇 초씩 밀린다).

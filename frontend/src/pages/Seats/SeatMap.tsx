@@ -185,6 +185,13 @@ const SeatMap = ({
   const contentWidth =
     axis + 6 + grid.totalCols * seat + (grid.totalCols - nSec) * gap + (nSec - 1) * aisle
 
+  // 폭을 재기 전(첫 커밋, width 0)엔 좌석을 그리지 않는다 — 예전엔 최소 크기(12px)로 수백 칸을 한 번
+  // 만들고 useLayoutEffect 가 폭을 재자마자 전부 다시 맞췄다(페인트 전이라 눈엔 안 띄어도 두 번 일).
+  // 자리만 비워 두면 폭 측정은 그대로 되고(wrapRef 는 바깥 상자), 두 번째 커밋에서 한 번에 그린다.
+  if (width <= 0) {
+    return <div ref={wrapRef} className="relative" style={{ minHeight: big ? 320 : 220 }} aria-busy />
+  }
+
   return (
     <div ref={wrapRef} className="relative">
       {(canZoom || toolbarExtra) && width > 0 ? (

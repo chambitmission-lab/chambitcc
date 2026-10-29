@@ -20,6 +20,7 @@ import { warmRouteThemeAssets } from '../../utils/themeAssets'
    훅과 같은 queryKey·queryFn 으로 prefetch 하므로 화면이 뜨면 캐시를 그대로 이어받는다. */
 
 const BIBLE_CHAPTER = /^\/bible\/(\d+)\/(\d+)$/
+const SEAT_DETAIL = /^\/seats\/(\d+)$/
 // /handwriting 또는 /handwriting/:id (쓰기·말씀카드 화면은 제외)
 const CONTEST_ROUTE = /^\/handwriting(?:\/(\d+))?$/
 
@@ -58,6 +59,26 @@ const RouteDataPrefetch = () => {
     if (pathname === '/bible/typing' && tokenStore.getAccess()) {
       void import('../../hooks/useBibleTyping')
         .then((m) => m.prefetchTypingHome(queryClient))
+        .catch(() => undefined)
+    }
+    // 내 단어장 — 첫 페이지를 청크와 나란히. 도크·레일에서 누르면 터치 때 이미 출발했고(routePreload),
+    // 딥링크·새로고침 진입은 여기서 받는다 (훅 모듈이 메인 번들에 섞이지 않게 동적 import)
+    if (pathname === '/bible/wordbook' && tokenStore.getAccess()) {
+      void import('../../hooks/useBibleWordNote')
+        .then((m) => m.prefetchWordbook(queryClient))
+        .catch(() => undefined)
+    }
+    // 좌석 예약 — 목록은 /seats, 배치도는 /seats/:id 를 청크와 나란히. 상세는 응답 전엔 배치도를
+    // 그릴 수 없어 청크 → 상세 직렬이 그대로 체감됐다 (일정 상세 카드·푸시 딥링크 진입)
+    if (pathname === '/seats') {
+      void import('../../hooks/useSeatEvents')
+        .then((m) => m.prefetchSeatEvents(queryClient))
+        .catch(() => undefined)
+    }
+    const seat = SEAT_DETAIL.exec(pathname)
+    if (seat) {
+      void import('../../hooks/useSeatEvents')
+        .then((m) => m.prefetchSeatEvent(queryClient, Number(seat[1])))
         .catch(() => undefined)
     }
     // 읽기 플랜 — 목록·오늘의 읽기 묶음을 청크와 나란히. 예전엔 화면이 마운트된 뒤에야 둘이 출발해

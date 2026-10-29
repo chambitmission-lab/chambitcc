@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
+import { preloadRoute } from '../../utils/routePreload'
 import { PLAN_HERO, warmPair, warmRouteThemeAssets } from '../../utils/themeAssets'
 
 /** 'alarm'(구절 알람)·'meditation'(오늘의 묵상)은 목적지로만 존재한다 —
@@ -17,6 +18,22 @@ export type BibleNavKey =
   | 'alarm'
   | 'meditation'
   | 'typing'
+
+// 도크 키 → 경로. 누르기 전(pointerdown)에도 같은 표로 청크·첫 데이터를 데운다(routePreload 테이블에 있는 곳만)
+const NAV_PATHS: Record<Exclude<BibleNavKey, 'read' | 'search'>, string> = {
+  plans: '/bible/plans',
+  atlas: '/bible/atlas',
+  wordbook: '/bible/wordbook',
+  genealogy: '/bible/genealogy',
+  alarm: '/bible/alarm',
+  meditation: '/bible/meditation',
+  typing: '/bible/typing',
+}
+
+const warmRoute = (key: BibleNavKey) => {
+  if (key === 'read' || key === 'search') return
+  void preloadRoute(NAV_PATHS[key])
+}
 
 interface BibleBottomNavProps {
   active: BibleNavKey
@@ -54,6 +71,9 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       // 필사 허브(JS 8KB + typing.css 9.5KB gz) — 도크엔 없지만 허브 타일로 들어오는 곳이라,
       // 청크를 미리 안 받으면 타일을 눌러도 청크가 올 때까지 이전 화면에 멈춰 있었다
       import('../../pages/Bible/Typing/TypingHome')
+      // 단어장(JS 10KB + 시트 9KB) — 도크 목적지인데 빠져 있어 누른 뒤에야 청크 → 목록이 직렬로 왔다.
+      // 로그인 상태면 첫 페이지도 같이(캐시가 비었을 때만), 'low' 우선순위라 본문 요청을 밀지 않는다
+      void preloadRoute('/bible/wordbook', { idle: true })
       // 플랜·지도 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
       // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (themeAssets.ts).
       // 지도 배경은 폭에 따라 다른 파일이라 매니페스트가 고르게 한다.
@@ -100,16 +120,7 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       }
       return
     }
-    const paths: Record<Exclude<BibleNavKey, 'read' | 'search'>, string> = {
-      plans: '/bible/plans',
-      atlas: '/bible/atlas',
-      wordbook: '/bible/wordbook',
-      genealogy: '/bible/genealogy',
-      alarm: '/bible/alarm',
-      meditation: '/bible/meditation',
-      typing: '/bible/typing',
-    }
-    navigate(paths[key])
+    navigate(NAV_PATHS[key])
   }
 
   if (keyboardOpen) {
@@ -131,6 +142,7 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
                 key={key}
                 type="button"
                 onClick={() => handleSelect(key)}
+                onPointerDown={() => warmRoute(key)}
                 aria-label={label}
                 aria-current={isActive ? 'page' : undefined}
                 className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-xl transition-[color,background-color,transform] duration-150 active:scale-90 ${

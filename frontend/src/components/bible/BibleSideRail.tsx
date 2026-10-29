@@ -3,11 +3,28 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { BibleNavKey } from './BibleBottomNav'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
+import { preloadRoute } from '../../utils/routePreload'
 import { useFeedTextScale } from '../../utils/feedTextScale'
 import { safeStorage } from '../../utils/safeStorage'
 import { usePageZoomRequest } from '../../utils/textScaleRoutes'
 import { PLAN_HERO, alarmArtPair, warmPair, warmRouteThemeAssets } from '../../utils/themeAssets'
 import './BibleSideRail.css'
+
+// 레일 키 → 경로. 누르기 전(pointerdown)에도 같은 표로 청크·첫 데이터를 데운다(routePreload 테이블에 있는 곳만)
+const NAV_PATHS: Record<Exclude<BibleNavKey, 'read' | 'search'>, string> = {
+  plans: '/bible/plans',
+  atlas: '/bible/atlas',
+  wordbook: '/bible/wordbook',
+  genealogy: '/bible/genealogy',
+  alarm: '/bible/alarm',
+  meditation: '/bible/meditation',
+  typing: '/bible/typing',
+}
+
+const warmRoute = (key: BibleNavKey) => {
+  if (key === 'read' || key === 'search') return
+  void preloadRoute(NAV_PATHS[key])
+}
 
 interface BibleSideRailProps {
   active: BibleNavKey
@@ -50,6 +67,8 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
       import('../../pages/Bible/Atlas/AtlasMap')
       // 필사 허브(JS 8KB + typing.css 9.5KB gz) — 레일 목적지인데 빠져 있어 첫 진입마다 청크를 기다렸다
       import('../../pages/Bible/Typing/TypingHome')
+      // 단어장 — 레일 목적지인데 빠져 있어 누른 뒤에야 청크 → 목록이 직렬로 왔다 (첫 페이지도 같이, 캐시가 비었을 때만)
+      void preloadRoute('/bible/wordbook', { idle: true })
       void warmPair(PLAN_HERO)
       // 지도여행 배경도 CSS 배경이다 — 폭에 따라 파일이 달라 매니페스트가 고르게 한다
       void warmRouteThemeAssets('/bible/atlas')
@@ -89,16 +108,7 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
       }
       return
     }
-    const paths: Record<Exclude<BibleNavKey, 'read' | 'search'>, string> = {
-      plans: '/bible/plans',
-      atlas: '/bible/atlas',
-      wordbook: '/bible/wordbook',
-      genealogy: '/bible/genealogy',
-      alarm: '/bible/alarm',
-      meditation: '/bible/meditation',
-      typing: '/bible/typing',
-    }
-    navigate(paths[key])
+    navigate(NAV_PATHS[key])
   }
 
   const toggleCollapsed = () => {
@@ -181,6 +191,8 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
                 <button
                   type="button"
                   onClick={() => handleSelect(key)}
+                  onPointerEnter={() => warmRoute(key)}
+                  onPointerDown={() => warmRoute(key)}
                   aria-current={isActive ? 'page' : undefined}
                   aria-label={label}
                   title={collapsed ? label : undefined}

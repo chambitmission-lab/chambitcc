@@ -1,5 +1,5 @@
 // 행사 좌석 예약 React Query 훅 — 캐시만 다루고 토스트는 호출부(feedback)에 맡긴다
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import {
   adminAssignSeats,
   adminCancelSeats,
@@ -35,11 +35,40 @@ export const seatKeys = {
 
 // ── 성도 ──────────────────────────────────────────────────────────────
 
+const LIST_STALE = 1000 * 60
+const DETAIL_STALE = 1000 * 10
+
+/**
+ * /seats 목록을 청크와 나란히 미리 받아 둔다 — 메뉴 호버(routePreload)·라우트 진입(RouteDataPrefetch).
+ * 예전엔 청크만 데워 두고 목록은 화면이 마운트된 뒤에야 출발해 히어로 → 스피너 → 카드 두 박자였다.
+ * 키·staleTime 은 useSeatEvents 와 같다. coldOnly: 유휴 프리로드용 — 캐시가 없을 때만.
+ */
+export const prefetchSeatEvents = (qc: QueryClient, coldOnly = false): void => {
+  void qc.prefetchQuery({
+    queryKey: seatKeys.list(),
+    queryFn: () => getSeatEvents(),
+    staleTime: coldOnly ? Infinity : LIST_STALE,
+  })
+}
+
+/**
+ * 배치도 상세를 미리 받아 둔다 — 목록 카드 호버·터치(청크 프리로드와 같은 순간)와 딥링크 진입.
+ * 상세는 응답 전엔 배치도를 아예 그릴 수 없어 청크 → 상세 직렬이 그대로 체감됐다.
+ */
+export const prefetchSeatEvent = (qc: QueryClient, id: number): void => {
+  if (!(id > 0)) return
+  void qc.prefetchQuery({
+    queryKey: seatKeys.detail(id),
+    queryFn: () => getSeatEvent(id),
+    staleTime: DETAIL_STALE,
+  })
+}
+
 export const useSeatEvents = () =>
   useQuery({
     queryKey: seatKeys.list(),
     queryFn: () => getSeatEvents(),
-    staleTime: 1000 * 60,
+    staleTime: LIST_STALE,
   })
 
 /** 일정 상세의 "좌석 예약" 카드 — 연결된 행사가 없으면 빈 배열 */
@@ -60,7 +89,7 @@ export const useSeatEvent = (id: number, live = true) =>
     queryKey: seatKeys.detail(id),
     queryFn: () => getSeatEvent(id),
     enabled: id > 0,
-    staleTime: 1000 * 10,
+    staleTime: DETAIL_STALE,
     refetchInterval: live ? 1000 * 15 : false,
     refetchIntervalInBackground: false,
   })

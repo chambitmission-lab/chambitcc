@@ -14,6 +14,8 @@ import { ensureFontFamily } from '../../utils/deferredFonts'
 ensureFontFamily('nanumPen')
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CAPSULE_HERO } from '../../utils/themeAssets'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
+import { preloadRoute, warmCapsuleCreate } from '../../utils/routePreload'
 import { Icon, LetterHeartGlyph } from './capsuleIcons'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 
@@ -34,6 +36,14 @@ const CapsuleList = () => {
   // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(themeAssets.ts 참고).
   // 홈 배너가 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인한다.
   const artReady = useThemeArt(CAPSULE_HERO)
+
+  // "새 캡슐 봉인하기" 목적지(/capsule/new, JS 36KB + 1단계 배달부 양 삽화)를 유휴 시간에 미리 받아 둔다.
+  // 예전엔 버튼을 누른 뒤에야 청크 → 삽화가 직렬로 내려와 스피너 뒤 빈 무대가 한 박자 더 있었다.
+  // 캡슐함이 그려진 뒤(목록 API·히어로가 끝난 뒤)에, 3G 이하 예산에선 받지 않는다.
+  useEffect(() => {
+    if (preloadBudget() !== 'full') return
+    return scheduleAfterFirstScreen(() => void preloadRoute('/capsule/new', { idle: true }), { settleMs: 1200 })
+  }, [])
 
   const mailbox = data ?? { sealed: [], arrived: [], arrivedTotal: 0, unreadTotal: 0 }
   const isEmpty = !isLoading && mailbox.sealed.length === 0 && mailbox.arrived.length === 0
@@ -85,6 +95,8 @@ const CapsuleList = () => {
             <button
               type="button"
               onClick={() => navigate('/capsule/new')}
+              onPointerEnter={warmCapsuleCreate}
+              onPointerDown={warmCapsuleCreate}
               className="capsule-cta mt-4"
             >
               {/* 봉인된 편지 — 손+펜 이모지가 삽화 위에서 겉돌아 스트로크 아이콘으로 교체 */}

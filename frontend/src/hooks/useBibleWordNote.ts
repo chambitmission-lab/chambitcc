@@ -3,6 +3,7 @@ import {
   useMutation,
   useQueryClient,
   useInfiniteQuery,
+  type QueryClient,
 } from '@tanstack/react-query'
 import { tokenStore } from '../utils/tokenStore'
 import { bibleReadingKeys } from './useBibleReading'
@@ -90,6 +91,24 @@ export const useDeleteWordNote = () => {
 }
 
 const WORDBOOK_PAGE_SIZE = 30
+const WORDBOOK_STALE = 1000 * 60 * 2
+
+/**
+ * 단어장 첫 페이지를 미리 받아 둔다 — 도크·레일 터치(청크 프리로드)와 라우트 진입(RouteDataPrefetch)에서.
+ * 예전엔 청크가 도착해 화면이 마운트된 뒤에야 목록 요청이 출발해 청크 왕복 + API 왕복이 직렬이었다.
+ * 키·queryFn·staleTime 은 useMyWordNotes(검색어 없음)와 같아 진입 시 캐시를 그대로 이어받는다.
+ * coldOnly: 유휴 프리로드용 — 캐시가 아예 없을 때만 받는다(최신화는 진입 시 refetchOnMount 몫).
+ */
+export const prefetchWordbook = (qc: QueryClient, coldOnly = false): void => {
+  if (!tokenStore.getAccess()) return
+  void qc.prefetchInfiniteQuery({
+    queryKey: wordNoteKeys.list(undefined),
+    queryFn: ({ pageParam }) =>
+      listWordNotes({ page: pageParam, page_size: WORDBOOK_PAGE_SIZE }),
+    initialPageParam: 1,
+    staleTime: coldOnly ? Infinity : WORDBOOK_STALE,
+  })
+}
 
 /** 단어장 페이지 무한 목록 (검색어 포함) */
 export const useMyWordNotes = (q?: string, enabled: boolean = true) => {
@@ -102,7 +121,7 @@ export const useMyWordNotes = (q?: string, enabled: boolean = true) => {
     getNextPageParam: (lastPage) =>
       lastPage.page * lastPage.page_size < lastPage.total ? lastPage.page + 1 : undefined,
     enabled: enabled && !!token,
-    staleTime: 1000 * 60 * 2,
+    staleTime: WORDBOOK_STALE,
     // persist 복원 쿼리는 무효화로 재요청되지 않으므로 마운트 시 갱신 (북마크 목록과 동일)
     refetchOnMount: true,
   })

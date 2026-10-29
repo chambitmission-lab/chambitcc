@@ -3,6 +3,8 @@
 import type { ReactNode } from 'react'
 import { sessionStore } from '../../utils/tokenStore'
 import { preloadRoute } from '../../utils/routePreload'
+import { queryClient } from '../../config/queryClient'
+import { prefetchSeatEvent } from '../../hooks/useSeatEvents'
 import type { SeatEventSummary } from '../../types/seatEvent'
 import { ChevronRight } from '../Survey/surveyUi'
 import { sortSeats } from './seatLayout'
@@ -111,12 +113,18 @@ export const SeatEventCard = ({
   const date = stubDate(event.performance_at)
   const accent = primary || hasMine
 
+  // 청크와 배치도 응답을 같은 순간에 띄운다 — 누르는 때엔 둘 다 거의 도착해 있다
+  const warm = () => {
+    void preloadRoute(`/seats/${event.id}`)
+    prefetchSeatEvent(queryClient, event.id)
+  }
+
   return (
     <button
       type="button"
       onClick={onOpen}
-      onMouseEnter={() => void preloadRoute(`/seats/${event.id}`)}
-      onTouchStart={() => void preloadRoute(`/seats/${event.id}`)}
+      onMouseEnter={warm}
+      onTouchStart={warm}
       className={`seat-ticket ${lg('seat-ticket--lg')} block w-full text-left transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.985] ${
         ended ? 'opacity-80' : ''
       }`}

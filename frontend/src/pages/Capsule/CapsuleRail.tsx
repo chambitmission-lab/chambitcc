@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { CapsuleSummary } from '../../types/timeCapsule'
 import type { CapsuleMailboxData } from '../../hooks/useTimeCapsule'
+import { warmCapsuleCreate } from '../../utils/routePreload'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
 import { counterpartLabel } from './capsuleGroups'
 import { BellGlyph, Icon, LinkGlyph, MicGlyph } from './capsuleIcons'
@@ -91,6 +92,8 @@ const CapsuleRail = ({ data }: { data: CapsuleMailboxData }) => {
         <button
           type="button"
           onClick={() => navigate('/capsule/new')}
+          onPointerEnter={warmCapsuleCreate}
+          onPointerDown={warmCapsuleCreate}
           className="capsule-cta capsule-cta--block"
         >
           새 캡슐 봉인하기
