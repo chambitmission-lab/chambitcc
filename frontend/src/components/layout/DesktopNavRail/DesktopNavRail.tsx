@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react'
 import { HeavenLetterIcon } from '../../icons/HeavenLetterIcon'
-// 나누기 다이얼 아이콘 — 기도 작성 모달과 같은 Phosphor duotone 세트를 재사용한다
-// (컬러 이모지는 OS 폰트마다 생김새가 달라 메뉴 톤이 기기별로 흔들렸음)
-import { ImageIcon, PrayIcon, ThanksHandIcon } from '../../../pages/Home/components/EmotionIcons'
 // 내비 글리프도 같은 Phosphor 세트 — 비활성은 굵은 선(bold), 활성은 면이 차오르는 duotone
 import {
   BookOpenText,
@@ -20,6 +17,8 @@ import { prewarmThemeToggle, pairSrc, RAIL_BOTTOM } from '../../../utils/themeAs
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
+import SharePostcards from '../../share/SharePostcards'
+import { prewarmPostcardFont, type PostcardKey } from '../../share/sharePostcardsShared'
 
 // PC 전용 좌측 내비 레일 (lg+) — 모바일 하단 도크(BottomNavigation)의 데스크톱 대응물.
 // 홈 전용 컴포넌트였다가 전역 레이아웃으로 승격: 모든 페이지에서 App.tsx가 렌더링한다.
@@ -67,13 +66,6 @@ const RailSpinner = () => (
     노안 대응으로 24 → 26(레일 글씨 크기 배율은 DesktopNavRail.css `--rl`) */
 const GLYPH = 26
 
-// 나누기 다이얼 인사 — 모바일 홈 FAB(BottomNavigation)과 같은 문구 로테이션
-const DIAL_GREETING_KEYS = [
-  'railShareGreeting1',
-  'railShareGreeting2',
-  'railShareGreeting3',
-  'railShareGreeting4',
-] as const
 
 // 아이콘만 보이는 폭(lg~xl 미만)에서 "이게 무슨 메뉴인지"를 알려주는 호버 툴팁.
 // 색은 반전 토큰(--text-strong 배경 / --surface-container 글자)이라 라이트·다크 모두 대응.
@@ -109,7 +101,6 @@ const DesktopNavRail = () => {
   const [pendingPath, setPendingPath] = useState<string | null>(null)
   // 나누기 스피드 다이얼 — 모바일 홈 FAB과 같은 3액션(기도·감사·말씀 카드)을 팝오버로
   const [dialOpen, setDialOpen] = useState(false)
-  const [dialNonce, setDialNonce] = useState(0)
   const visible = useDesktopRailVisible()
   const { theme, toggleTheme } = useTheme()
   // 레일 하단 삽화 — 테마 쌍을 등록해 두면 토글 직전 선요청이 반대 테마를 챙긴다
@@ -168,6 +159,14 @@ const DesktopNavRail = () => {
     requireAuth(() =>
       navigate('/', { state: { openThanks: true }, replace: pathname === '/' }),
     )
+  }
+
+  // 엽서가 날아간 뒤 — 다이얼을 닫고 작성 창을 연다
+  const sendPostcard = (key: PostcardKey) => {
+    setDialOpen(false)
+    if (key === 'prayer') handleComposeClick()
+    else if (key === 'thanks') handleThanksClick()
+    else void goLazy('/bible/photo-verse')
   }
 
   const isHomeActive = pathname === '/'
@@ -348,91 +347,34 @@ const DesktopNavRail = () => {
       <div className="mt-6 relative flex flex-col items-center xl:items-start">
         {dialOpen && (
           <>
-            {/* 바깥 클릭으로 닫기 */}
+            {/* 엽서가 레일 메뉴 위에 겹치므로 뒤를 바탕색으로 살짝 덮어 물러서게 한다 */}
             <div
-              className="fixed inset-0 z-40"
+              className="fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--surface)_62%,transparent)]"
+              style={{ animation: 'share-post-scrim 0.18s ease-out both' }}
               onClick={() => setDialOpen(false)}
               aria-hidden
             />
-            <div
-              role="menu"
-              aria-label={t('railShareMenuAria')}
-              className="absolute z-50 bottom-[calc(100%_+_10px)] left-0 w-[calc(272px*var(--rl,1))] feed-card rounded-2xl p-2 shadow-xl origin-bottom-left"
-              style={{ animation: 'scale-in 0.16s ease-out both' }}
-            >
-              {/* 모바일 FAB과 같은 다정한 인사 — 열 때마다 로테이션 */}
-              <p className="px-3 pt-2 pb-1.5 text-[length:calc(13px*var(--rl,1))] text-ink-muted">
-                {t(DIAL_GREETING_KEYS[dialNonce % DIAL_GREETING_KEYS.length])}
-              </p>
-              {[
-                {
-                  key: 'prayer',
-                  icon: <PrayIcon size={22} />,
-                  label: t('railSharePrayer'),
-                  tint: 'bg-[var(--brand-soft-strong)]',
-                  // 각 액션의 색은 그 화면의 액센트를 그대로 가져온다(기도=브랜드,
-                  // 감사=감사 스레드 핑크, 말씀 카드=우측 레일 타일의 라벤더)
-                  colorClass: 'text-brand',
-                  onClick: handleComposeClick,
-                },
-                {
-                  key: 'thanks',
-                  icon: <ThanksHandIcon size={22} />,
-                  label: t('railShareThanks'),
-                  tint: 'bg-[rgba(236,95,143,0.12)]',
-                  colorClass: 'text-[#ec5f8f] dark:text-[#f38cb2]',
-                  onClick: handleThanksClick,
-                },
-                {
-                  key: 'verse-card',
-                  icon: <ImageIcon size={22} />,
-                  label: t('railShareVerseCard'),
-                  tint: 'bg-[rgba(124,102,217,0.14)]',
-                  colorClass: 'text-[#7c66d9] dark:text-[#b7a8f2]',
-                  onClick: () => void goLazy('/bible/photo-verse'),
-                },
-              ].map((action, i) => (
-                <button
-                  key={action.key}
-                  role="menuitem"
-                  onClick={() => {
-                    setDialOpen(false)
-                    action.onClick()
-                  }}
-                  onMouseEnter={
-                    action.key === 'verse-card'
-                      ? () => void preloadRoute('/bible/photo-verse')
-                      : undefined
-                  }
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-[var(--brand-soft)] active:scale-[0.98] transition-[background-color,transform] duration-150"
-                  style={{ animation: 'fade-in 0.22s ease-out both', animationDelay: `${i * 45}ms` }}
-                >
-                  <span
-                    className={`w-[calc(40px*var(--rl,1))] h-[calc(40px*var(--rl,1))] rounded-full flex items-center justify-center shrink-0 ${action.tint} ${action.colorClass}`}
-                    aria-hidden
-                  >
-                    {action.icon}
-                  </span>
-                  <span className="text-[length:calc(15.5px*var(--rl,1))] font-semibold text-ink-strong whitespace-nowrap">
-                    {action.label}
-                  </span>
-                </button>
-              ))}
-            </div>
+            {/* 하늘 우체국 — 메뉴 세 줄 대신 우표 붙은 엽서 세 장이 부채처럼 손에 쥐어진다.
+                FAB 아이콘(하늘에 보내는 편지)의 이야기를 팝오버 전체로 넓힌 것. 고른 엽서는
+                하늘로 날아간 뒤 작성 창이 열린다. 움직임은 열 때·고를 때만(유휴 반복 없음). */}
+            <SharePostcards
+              variant="rail"
+              className="absolute z-50 bottom-[calc(100%_+_14px)] left-0"
+              onSend={sendPostcard}
+              onVerseCardIntent={() => void preloadRoute('/bible/photo-verse')}
+            />
           </>
         )}
 
         <button
           onClick={() => {
-            setDialOpen((open) => {
-              if (!open) setDialNonce((n) => n + 1)
-              return !open
-            })
+            setDialOpen((open) => !open)
           }}
+          onMouseEnter={prewarmPostcardFont}
           aria-label={t('railShare')}
           aria-haspopup="menu"
           aria-expanded={dialOpen}
-          className="group relative w-[52px] h-[52px] xl:w-auto xl:h-auto xl:pl-3.5 xl:pr-6 xl:py-3.5 rounded-full flex items-center justify-center gap-2 text-white bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%),linear-gradient(155deg,#4593fc,var(--brand-dim))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.12),0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
+          className="group relative z-50 w-[52px] h-[52px] xl:w-auto xl:h-auto xl:pl-3.5 xl:pr-6 xl:py-3.5 rounded-full flex items-center justify-center gap-2 text-white bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%),linear-gradient(155deg,#4593fc,var(--brand-dim))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.12),0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
         >
           {/* 인장 문법(도크 FAB·완독 도장과 동일): 안쪽 점선 압인 링 */}
           <span aria-hidden className="absolute inset-[3px] rounded-full border border-dashed border-white/30 pointer-events-none" />

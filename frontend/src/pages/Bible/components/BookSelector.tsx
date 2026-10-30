@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ReadingProgressResponse, ResumePosition } from '../../../api/bibleReading'
@@ -141,6 +141,26 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const [readingScene] = useState(() => readingSceneFor(new Date().getHours()))
 
   // 지도 청크 선로드 — 요약 카드(토글 버튼)가 보이는 동안 3G 이하가 아니면 유휴 시간에 받는다
+  // 책 선택 툴바가 앱바 아래 붙었는지(PC 3안 — 판 없는 툴바, 붙었을 때만 캔버스색 블러 바탕).
+  // CSS 만으론 sticky 고정 상태를 알 수 없어 툴바 바로 위 1px 파수꾼이 앱바(56px) 위로 사라지면 붙은 것으로 본다
+  const navRef = useRef<HTMLDivElement>(null)
+  const navSentinelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const nav = navRef.current
+    const sentinel = navSentinelRef.current
+    if (!nav || !sentinel || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        // 파수꾼이 위로 벗어났을 때만 붙은 것 — 아래로 벗어난 경우(첫 화면 밖)는 아직 안 붙은 상태
+        const stuck = !entry.isIntersecting && entry.boundingClientRect.top < 57
+        nav.toggleAttribute('data-stuck', stuck)
+      },
+      { rootMargin: '-57px 0px 0px 0px', threshold: 0 },
+    )
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [])
+
   useEffect(() => {
     if (preloadBudget() !== 'full') return
     return scheduleAfterFirstScreen(preloadProgressMap, { settleMs: 1000 })
@@ -994,7 +1014,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           closeLabel={t.close}
         />
       )}
-      <div className="book-nav">
+      <div ref={navSentinelRef} className="book-nav__sentinel" aria-hidden="true" />
+      <div ref={navRef} className="book-nav">
         <div className="book-nav__head">
           <h2 className="section-title">{t.selectBook}</h2>
           <div className="testament-tabs" role="tablist" data-active={testament}>

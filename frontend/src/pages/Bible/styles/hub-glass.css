@@ -157,69 +157,67 @@
     box-shadow: none;
   }
 
-  /* ③ 책 선택 카드 — 위 현황 카드의 그림 색 판(--rs-plate)을 옅게 이어 받아 두 카드를 한 벌로 묶는다.
-     흰 유리(78%)였을 땐 그림 색 판 아래에서 혼자 하얗게 떠 보였다(2026-10-30 A안).
-     위에 붙어 책 목록 위를 지나가므로 판은 86%로 진하게 두고, 장면(낮·저녁)은 현황 카드의 data-scene 을 따른다.
-     단색 세로 띠뿐이라 위 그림 하늘과 따로 놀았다 — 그림에서 잰 색으로 왼쪽 위 하늘빛 + 오른쪽 해(등불) 쪽
-     따뜻한 빛 웅덩이를 얹어 하늘이 아래 카드까지 번져 내려오게 한다(2026-10-30). 타원은 상자 안에서 다 사라지게 */
+  /* ③ 책 선택 — 카드가 아니라 툴바(2026-10-30 3안). 현황 카드 바로 아래 색 판이 오면 뭘 넣어도 어색했다:
+     흰 유리는 혼자 떠 보였고(A안), 하늘색 판은 그림 없는 복사본 같았고, 그림 아래 땅색(흙·풀) 판은
+     차가운 캔버스·토스 블루 사이에서 혼자 따뜻한 섬처럼 튀었다(모두 같은 날). 색 있는 카드는 현황 카드
+     하나만 남기고, 제목·구약/신약 토글·분류 칩은 아래 "구약 (39)" 줄과 같은 문법으로 캔버스 위에 그냥 둔다.
+     앱바 아래 붙었을 때(data-stuck, BookSelector 파수꾼)만 캔버스색 블러 바탕과 아래 그림자를 켜 책 목록이
+     비쳐 지나가게 한다 */
   .bible-hub .book-nav {
-    --nav-plate:
-      radial-gradient(55% 120% at 4% 0%, rgba(200, 210, 236, 0.55), transparent 70%),
-      radial-gradient(50% 130% at 84% 10%, rgba(250, 240, 222, 0.75), transparent 70%),
-      linear-gradient(180deg, rgba(228, 233, 244, 0.88) 0%, rgba(240, 240, 238, 0.88) 60%, rgba(246, 244, 238, 0.88) 100%);
-    background: var(--nav-plate);
+    padding: 0.25rem 0.125rem 0.25rem;
+    margin-left: -0.125rem;
+    margin-right: -0.125rem;
+    background: transparent;
     border-color: transparent;
-    border-radius: 1.25rem;
-    box-shadow: var(--glass-shadow);
-    -webkit-backdrop-filter: blur(18px) saturate(1.4);
-    backdrop-filter: blur(18px) saturate(1.4);
+    border-radius: 0.875rem;
+    box-shadow: none;
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
   }
-  /* 모바일용 풀블리드 가림막(skeleton.css .book-nav::before, 섹션 회색 바탕)이 빛 번짐 위에
-     카드보다 한 뼘 큰 회색 사각형으로 비쳤다(라이트만 — 다크는 바탕과 같은 색이라 안 보임, 2026-10-30).
-     PC 는 섹션 바탕을 걷었고 카드가 유리라 책 목록이 비쳐 지나가는 게 의도이므로 가림막을 뺀다 */
+  /* 모바일용 풀블리드 가림막(skeleton.css .book-nav::before, 섹션 회색 바탕) — PC 는 섹션 바탕을 걷었고
+     붙었을 때의 바탕은 아래 data-stuck 이 맡으므로 뺀다 */
   .bible-hub .book-nav::before {
     display: none;
   }
-  /* 낮 — 보랏빛 새벽 하늘(왼쪽 위) → 살구·크림 해돋이(오른쪽) → 아래 따뜻한 크림 */
-  .bible-hub .bible-books-section:has(.reading-summary[data-scene="day"]) .book-nav {
-    --nav-plate:
-      radial-gradient(55% 120% at 4% 0%, rgba(218, 205, 226, 0.6), transparent 70%),
-      radial-gradient(50% 130% at 82% 15%, rgba(252, 236, 214, 0.8), transparent 70%),
-      linear-gradient(180deg, rgba(236, 227, 236, 0.88) 0%, rgba(242, 231, 229, 0.88) 50%, rgba(247, 242, 236, 0.88) 100%);
+  /* 붙음 — 캔버스색 85% + 블러(앱 헤더 블러 판과 같은 문법). 양옆 1rem 을 더 넓혀 칩 글자가 둥근 모서리에 닿지 않게 */
+  .bible-hub .book-nav[data-stuck] {
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    margin-left: -0.875rem;
+    margin-right: -0.875rem;
+    background: color-mix(in srgb, var(--app-canvas) 85%, transparent);
+    box-shadow:
+      0 0 0 1px var(--glass-line),
+      0 12px 28px -14px rgba(49, 90, 180, 0.28);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
   }
-  [data-theme="dark"] .bible-hub .book-nav {
-    --nav-plate:
-      radial-gradient(50% 130% at 82% 15%, rgba(123, 112, 113, 0.2), transparent 70%),
-      linear-gradient(180deg, rgba(33, 43, 57, 0.86) 0%, rgba(38, 48, 61, 0.86) 55%, rgba(28, 36, 45, 0.86) 100%);
+  [data-theme="dark"] .bible-hub .book-nav[data-stuck] {
+    box-shadow:
+      0 0 0 1px var(--glass-line),
+      0 12px 28px -14px rgba(0, 0, 0, 0.6);
   }
-  [data-theme="dark"] .bible-hub .bible-books-section:has(.reading-summary[data-scene="day"]) .book-nav {
-    --nav-plate:
-      radial-gradient(55% 120% at 4% 0%, rgba(40, 38, 76, 0.5), transparent 70%),
-      radial-gradient(50% 130% at 82% 15%, rgba(93, 86, 120, 0.32), transparent 70%),
-      linear-gradient(180deg, rgba(36, 34, 58, 0.86) 0%, rgba(44, 41, 66, 0.86) 50%, rgba(38, 35, 48, 0.86) 100%);
+  /* 머리줄 — 캔버스 위에 바로 놓이므로 토글 바탕은 흰 유리로 띄우고(오른쪽 보기 전환 알약과 같은 결),
+     밑줄은 걷어 "카드 안 구분선"이 아니라 줄 사이 여백으로 나눈다 */
+  .bible-hub .book-nav__head {
+    padding: 0 0.125rem 0.625rem 0.125rem;
+    border-bottom: none;
   }
-  /* 판 위의 회색 면(토글 바탕·칩 호버·구분선·보기 전환)은 회색 대신 반투명 흰색으로 — 회색이면 판이 도로 하얗게 읽힌다 */
-  .bible-hub .book-nav .testament-tabs,
+  .bible-hub .book-nav .testament-tabs {
+    background: var(--glass);
+    box-shadow: 0 0 0 1px var(--glass-line);
+  }
+  .bible-hub .book-nav .book-filter-chip:hover,
   .bible-hub .view-toggle {
     background: rgba(255, 255, 255, 0.55);
   }
-  .bible-hub .book-nav .book-filter-chip:hover {
-    background: rgba(255, 255, 255, 0.55);
-  }
-  .bible-hub .book-nav__head {
-    border-bottom-color: rgba(120, 100, 140, 0.14);
-  }
   [data-theme="dark"] .bible-hub .book-nav .testament-tabs {
-    background: rgba(0, 0, 0, 0.22);
+    background: var(--glass);
   }
   [data-theme="dark"] .bible-hub .view-toggle {
     background: rgba(255, 255, 255, 0.06);
   }
   [data-theme="dark"] .bible-hub .book-nav .book-filter-chip:hover {
     background: rgba(255, 255, 255, 0.06);
-  }
-  [data-theme="dark"] .bible-hub .book-nav__head {
-    border-bottom-color: rgba(255, 255, 255, 0.07);
   }
 
   /* ④ 성경 공부 도구 — 벤토 타일 */

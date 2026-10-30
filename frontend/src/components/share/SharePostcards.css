@@ -1,0 +1,349 @@
+/* ── 나누기 다이얼: 하늘 우체국 엽서 ───────────────────────────────
+   PC 레일(--rail): 세로 엽서 세 장이 부채처럼 펼쳐진다. 올리면 바로 서고, 누르면 하늘로 날아간다.
+   모바일 도크(--dock): 폭이 좁아 부채로 펼치면 다시 겹친다 — 진짜 엽서 뒷면처럼 가로로 눕혀
+     (왼쪽 사연 | 점선 | 오른쪽 우표·소인·받는 분) 엄지 쪽(기도)부터 위로 쌓는다.
+   ★ 색은 theme.css 토큰과 카드별 --pc-accent 하나로만 — 라이트·다크 분기는 토큰이 한다.
+     종이는 표면색에 앰버를 아주 조금 섞은 미색(다크에선 따뜻한 먹색 종이가 된다).
+   ★ 움직임은 열 때(나눠 주기)·고를 때(날아가기)만. 유휴 반복 애니메이션 금지.
+   ★ 크기는 전부 --rl(PC 헤더 '가' 단계) 배율을 곱한다 — 모바일엔 --rl 이 없어 1배. */
+.share-post {
+  --s: var(--rl, 1);
+}
+
+/* 제목은 종이 꼬리표 위에 — 배경 없이 띄우면 뒤의 레일 메뉴(말씀 카드 등)와 겹쳐 읽혔다 */
+.share-post__head {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6px * var(--s));
+  padding: calc(5px * var(--s)) calc(12px * var(--s)) calc(5px * var(--s)) calc(9px * var(--s));
+  border-radius: 9999px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  font-family: 'Gaegu', var(--font-sans, system-ui), cursive;
+  font-weight: 700;
+  font-size: calc(17px * var(--s));
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+  color: var(--text-strong);
+  white-space: nowrap;
+  animation: fade-in 0.22s ease-out both;
+}
+.share-post__head svg {
+  width: calc(15px * var(--s));
+  height: calc(15px * var(--s));
+  color: var(--brand);
+  flex: none;
+}
+
+/* .share-post 를 앞에 붙이는 건 Tailwind preflight 의 button 배경 리셋(같은 특이도)보다 확실히 이기려고 */
+.share-post .share-post__card {
+  --pc-paper: color-mix(in srgb, var(--surface-container) 95%, var(--amber-icon));
+  --pc-rot: 0deg;
+  --pc-y: 0px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(3px * var(--s));
+  padding: calc(12px * var(--s));
+  border-radius: 14px;
+  text-align: left;
+  border: 1px solid var(--card-border);
+  background: var(--pc-paper);
+  box-shadow: var(--card-shadow), 0 16px 30px -18px rgba(0, 0, 0, 0.45);
+  transform: translateY(var(--pc-y)) rotate(var(--pc-rot));
+  transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.35, 1.25), opacity 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.share-post__card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--pc-accent), 0 22px 36px -16px rgba(0, 0, 0, 0.5);
+}
+.share-post__card.is-sent {
+  z-index: 6;
+}
+.share-post:has(.is-sent) .share-post__card:not(.is-sent) {
+  opacity: 0.45;
+}
+
+/* 우표 — 톱니는 ::before 에만(마스크를 우표 자체에 걸면 자식인 아이콘 면까지 구멍이 뚫린다) */
+.share-post__stamp {
+  position: absolute;
+  top: calc(10px * var(--s));
+  right: calc(10px * var(--s));
+  width: calc(36px * var(--s));
+  height: calc(42px * var(--s));
+}
+.share-post__stamp::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--pc-accent) 22%, var(--surface-container));
+  -webkit-mask: radial-gradient(circle, transparent 1.4px, #000 1.6px) -2.5px -2.5px / 5px 5px;
+  mask: radial-gradient(circle, transparent 1.4px, #000 1.6px) -2.5px -2.5px / 5px 5px;
+}
+.share-post__stamp-face {
+  position: absolute;
+  inset: 3px;
+  display: grid;
+  place-items: center;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--pc-accent) 22%, var(--surface-container));
+  border: 1px dashed color-mix(in srgb, var(--pc-accent) 45%, transparent);
+  color: var(--pc-accent);
+}
+/* 소인 — 비스듬히 찍힌 '참빛 · 오늘 날짜' */
+.share-post__postmark {
+  position: absolute;
+  width: calc(34px * var(--s));
+  height: calc(34px * var(--s));
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in srgb, var(--pc-accent) 40%, transparent);
+  color: color-mix(in srgb, var(--pc-accent) 60%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.05;
+  font-size: calc(7.5px * var(--s));
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transform: rotate(-14deg);
+  opacity: 0.7;
+  pointer-events: none;
+}
+.share-post__postmark b {
+  font-size: calc(9.5px * var(--s));
+  font-variant-numeric: tabular-nums;
+}
+.share-post__title {
+  margin-top: calc(4px * var(--s));
+  font-size: calc(16.5px * var(--s));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+/* Gaegu 한글은 좁아 기본 자간에선 글자가 벌어져 보인다 — 나눔펜은 작은 크기·다크에서 획이 깨져 교체 */
+.share-post__hand {
+  white-space: pre-line;
+  font-family: 'Gaegu', var(--font-sans, system-ui), cursive;
+  font-weight: 700;
+  font-size: calc(16.5px * var(--s));
+  letter-spacing: -0.05em;
+  line-height: calc(24px * var(--s));
+  color: var(--text-body);
+}
+.share-post__to {
+  font-size: calc(11px * var(--s));
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── PC 레일: 세로 엽서 부채 ── */
+.share-post--rail {
+  --pc-w: calc(146px * var(--s));
+  --pc-h: calc(178px * var(--s));
+  --pc-step: calc(120px * var(--s));
+  width: calc(var(--pc-step) * 2 + var(--pc-w) + 12px);
+  height: calc(var(--pc-h) + 44px * var(--s));
+  transform-origin: bottom left;
+}
+.share-post--rail .share-post__head {
+  position: absolute;
+  left: 2px;
+  top: 0;
+}
+.share-post--rail .share-post__card {
+  position: absolute;
+  bottom: 0;
+  left: calc(var(--pc-i) * var(--pc-step));
+  z-index: calc(3 - var(--pc-i));
+  width: var(--pc-w);
+  height: var(--pc-h);
+  padding-top: calc(16px * var(--s));
+  overflow: hidden;
+  /* 열 때 버튼 쪽에서 한 장씩 나눠 준다 — backwards 라 끝나면 호버 transform 이 그대로 산다 */
+  animation: share-post-deal 0.34s cubic-bezier(0.2, 0.9, 0.35, 1.15) backwards;
+  animation-delay: calc(var(--pc-i) * 55ms);
+}
+.share-post--rail .share-post__card:nth-of-type(1) { --pc-rot: -5deg; --pc-y: calc(8px * var(--s)); }
+.share-post--rail .share-post__card:nth-of-type(2) { --pc-rot: 0.5deg; }
+.share-post--rail .share-post__card:nth-of-type(3) { --pc-rot: 6deg; --pc-y: calc(10px * var(--s)); }
+.share-post--rail .share-post__card:hover,
+.share-post--rail .share-post__card:focus-visible {
+  z-index: 5;
+  transform: translateY(calc(-20px * var(--s))) rotate(0deg) scale(1.04);
+}
+.share-post--rail .share-post__card:hover {
+  box-shadow: var(--card-shadow), 0 22px 36px -16px rgba(0, 0, 0, 0.5);
+}
+/* 한 장을 집으면 나머지는 한 발 물러선다 — 지금 고르는 엽서에 시선이 모이게 */
+.share-post--rail:has(.share-post__card:hover) .share-post__card:not(:hover):not(.is-sent) {
+  opacity: 0.72;
+}
+/* 항공우편 줄무늬 — 모바일 도크와 같은 문법, 세로 엽서라 윗변에 두른다(괘선은 지저분해 걷어냄) */
+.share-post--rail .share-post__card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(5px * var(--s));
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--pc-accent) 0 5px,
+    color-mix(in srgb, var(--pc-accent) 28%, transparent) 5px 10px
+  );
+  opacity: 0.85;
+}
+.share-post--rail .share-post__card.is-sent {
+  animation: share-post-fly 0.42s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+.share-post--rail .share-post__stamp {
+  top: calc(16px * var(--s));
+}
+.share-post--rail .share-post__postmark {
+  bottom: calc(8px * var(--s));
+  right: calc(8px * var(--s));
+}
+.share-post--rail .share-post__title {
+  padding-right: calc(40px * var(--s));
+}
+.share-post--rail .share-post__hand {
+  margin-top: auto;
+}
+.share-post--rail .share-post__to {
+  align-self: stretch;
+  padding-top: calc(6px * var(--s));
+  padding-right: calc(34px * var(--s));
+  border-top: 1px dashed var(--card-border);
+}
+
+/* ── 모바일 도크: 납작한 가로 엽서 더미 ──
+   왼쪽 항공우편 줄무늬 | 사연 70%(제목·손글씨 한 줄·받는 분) | 세로 점선 | 우표·소인 30%.
+   ★ 1차는 높이 100px·오른쪽 칸 40%라 세 장이 화면 70%를 덮고 오른쪽이 비어 보였다 — 76px·30%로 납작하게.
+   ★ 세 장이 같은 버튼처럼 보이지 않게 왼쪽 끝 줄무늬를 카드별 액센트로 칠한다. */
+.share-post--dock {
+  width: min(330px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.share-post--dock .share-post__head {
+  margin-bottom: 2px;
+}
+.share-post--dock .share-post__card {
+  align-self: stretch;
+  min-height: 76px;
+  justify-content: center;
+  padding: 10px calc(30% + 10px) 10px 22px;
+  gap: 1px;
+  overflow: hidden;
+  animation: share-post-rise 0.3s cubic-bezier(0.2, 0.9, 0.35, 1.15) backwards;
+  animation-delay: calc(var(--pc-d) * 50ms);
+}
+/* 항공우편 줄무늬 */
+.share-post--dock .share-post__card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--pc-accent) 0 5px,
+    color-mix(in srgb, var(--pc-accent) 28%, transparent) 5px 10px
+  );
+  opacity: 0.85;
+}
+/* 엽서 가운데 세로 점선 — 사연과 주소를 가르는 진짜 엽서 뒷면의 선 */
+.share-post--dock .share-post__card::after {
+  content: '';
+  position: absolute;
+  left: 70%;
+  top: 12px;
+  bottom: 12px;
+  border-left: 1px dashed var(--card-border);
+}
+.share-post--dock .share-post__card:nth-of-type(1) { --pc-rot: -1deg; }
+.share-post--dock .share-post__card:nth-of-type(2) { --pc-rot: 0.7deg; }
+.share-post--dock .share-post__card:nth-of-type(3) { --pc-rot: -0.4deg; }
+.share-post--dock .share-post__card:active {
+  transform: rotate(0deg) scale(0.97);
+}
+.share-post--dock .share-post__card.is-sent {
+  animation: share-post-fly-up 0.42s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+.share-post--dock .share-post__title {
+  margin-top: 0;
+  font-size: 15.5px;
+  line-height: 1.3;
+}
+/* 손글씨는 한 줄로 — nowrap 이 문구 속 줄바꿈도 공백으로 접는다 */
+.share-post--dock .share-post__hand {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 15.5px;
+  line-height: 21px;
+}
+.share-post--dock .share-post__to {
+  max-width: 100%;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.share-post--dock .share-post__stamp {
+  top: 50%;
+  right: 16px;
+  width: 32px;
+  height: 38px;
+  margin-top: -19px;
+}
+/* 소인은 우표 왼쪽 아래에 걸쳐 찍는다 */
+.share-post--dock .share-post__postmark {
+  top: calc(50% - 2px);
+  right: 40px;
+}
+
+@keyframes share-post-scrim {
+  from { opacity: 0; }
+}
+@keyframes share-post-deal {
+  from {
+    opacity: 0;
+    transform: translate(calc(var(--pc-i) * -60px), 40px) rotate(0deg) scale(0.6);
+  }
+}
+@keyframes share-post-rise {
+  from {
+    opacity: 0;
+    transform: translateY(36px) rotate(0deg) scale(0.88);
+  }
+}
+@keyframes share-post-fly {
+  to {
+    opacity: 0;
+    transform: translate(120px, -300px) rotate(28deg) scale(0.4);
+  }
+}
+@keyframes share-post-fly-up {
+  to {
+    opacity: 0;
+    transform: translate(60px, -260px) rotate(-14deg) scale(0.45);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .share-post__head,
+  .share-post .share-post__card,
+  .share-post .share-post__card.is-sent {
+    animation: none;
+    transition: none;
+  }
+}

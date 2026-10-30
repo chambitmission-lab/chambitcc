@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { HeavenLetterGlyph } from '../../../components/icons/HeavenLetterIcon'
-import { HandHeartIcon, VerseCardIcon } from '../../../components/icons/ActionIcons'
-import { ThanksIcon } from '../../../components/icons/ThanksIcons'
+import SharePostcards from '../../../components/share/SharePostcards'
+import { prewarmPostcardFont, type PostcardKey } from '../../../components/share/sharePostcardsShared'
 
 interface BottomNavigationProps {
   onProfileClick: () => void
@@ -22,38 +22,6 @@ interface BottomNavigationProps {
 const NavSpinner = () => (
   <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin" />
 )
-
-// 스피드 다이얼 액션 — 위에서부터 렌더되고, 엄지에 가까운 아래쪽이 주 액션(기도)
-// 아이콘은 컬러 이모지 대신 라인 아이콘(ActionIcons/ThanksIcons 세트)을 쓴다.
-// 이모지는 기기 폰트마다 생김새가 달라 도크 톤이 흔들리고, 알약 tint 색과 따로 논다.
-const DIAL_ACTIONS = [
-  {
-    key: 'verse-card' as const,
-    icon: <VerseCardIcon size={19} strokeWidth={1.7} />,
-    label: '말씀 카드 만들기',
-    tint: 'bg-[rgba(234,179,8,0.14)] text-[#b45309] dark:text-[#fcd34d]',
-  },
-  {
-    key: 'thanks' as const,
-    icon: <ThanksIcon name="thanks" size={19} strokeWidth={1.7} />,
-    label: '감사 한 줄 남기기',
-    tint: 'bg-[rgba(236,95,143,0.12)] text-[#d1477a] dark:text-[#f7a3c3]',
-  },
-  {
-    key: 'prayer' as const,
-    icon: <HandHeartIcon size={19} strokeWidth={1.7} />,
-    label: '기도제목 나누기',
-    tint: 'bg-[var(--brand-soft-strong)] text-brand',
-  },
-]
-
-// 다이얼을 열 때마다 하나씩 — 화려함 대신 "써볼까" 하게 만드는 다정한 질문
-const GREETINGS = [
-  '오늘은 어떤 마음을 나눌까요?',
-  '나누고 싶은 은혜가 있나요?',
-  '작은 것도 좋아요, 함께 나눠요',
-  '오늘 하루, 어떠셨어요?',
-]
 
 // 열리는 순간 FAB에서 퍼지는 반짝 파편 — "발견" 손맛 (위쪽 반원으로만)
 const FAB_SPARKS = [
@@ -81,20 +49,18 @@ const BottomNavigation = ({
 
   // FAB 스피드 다이얼 — 기도·감사·말씀카드 세 가지 "나눔"의 허브
   const [dialOpen, setDialOpen] = useState(false)
-  // 열 때마다 바뀌는 인사 — "작성해볼까" 하는 마음을 여는 한 줄
-  const [greeting, setGreeting] = useState(GREETINGS[0])
   useModalBackButton(() => setDialOpen(false), dialOpen)
 
   const toggleDial = () => {
     if (!dialOpen) {
-      setGreeting(GREETINGS[Math.floor(Math.random() * GREETINGS.length)])
       // 지원 기기(안드로이드)에서만 아주 짧은 햅틱 — 눌린 손맛
       navigator.vibrate?.(8)
     }
     setDialOpen((v) => !v)
   }
 
-  const runAction = (key: (typeof DIAL_ACTIONS)[number]['key']) => {
+  // 엽서가 날아간 뒤 — 다이얼을 닫고 작성 창을 연다
+  const runAction = (key: PostcardKey) => {
     setDialOpen(false)
     if (key === 'prayer') onComposeClick()
     else if (key === 'thanks') onThanksClick()
@@ -112,51 +78,17 @@ const BottomNavigation = ({
         />
       )}
 
-      {/* 스피드 다이얼 액션 — FAB 위로 순서대로 튀어오른다 */}
+      {/* 하늘 우체국 엽서 — PC 레일 다이얼과 같은 엽서를, 좁은 폭에 맞춰 가로 엽서 더미로.
+          엄지에 가까운 맨 아래가 주 액션(기도). 고른 엽서는 하늘로 날아간 뒤 작성 창이 열린다. */}
       {dialOpen && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-[-14px] -translate-y-full z-30 flex flex-col items-center gap-2.5">
-          {/* 인사 한 줄 — 알약들이 자리잡은 뒤 마지막에 스르륵 */}
-          <p
-            className="dial-item text-[13px] font-medium text-white/85 mb-1 select-none"
-            style={{ animationDelay: `${DIAL_ACTIONS.length * 45 + 60}ms` }}
-          >
-            <span aria-hidden className="mr-1 text-[11px] opacity-70">✦</span>
-            {greeting}
-          </p>
-          {DIAL_ACTIONS.map((action, i) => (
-            <button
-              key={action.key}
-              type="button"
-              onClick={() => runAction(action.key)}
-              // 도크와 같은 유리 질감 — 바에서 떠올라온 조각처럼 보이게 키를 맞춘다
-              className="dial-item flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full backdrop-blur-xl bg-white/95 dark:bg-[#201f1f]/95 shadow-[0_8px_24px_rgba(0,0,0,0.25)] ring-1 ring-black/[0.05] dark:ring-white/[0.08] active:scale-95 transition-transform"
-              // 아래(기도)부터 위로 순서대로 등장
-              style={{ animationDelay: `${(DIAL_ACTIONS.length - 1 - i) * 45}ms` }}
-            >
-              <span
-                className={`dial-icon w-9 h-9 rounded-full ${action.tint} flex items-center justify-center`}
-                // 알약이 자리잡은 직후 아이콘이 통통 튀며 착지
-                style={{ animationDelay: `${(DIAL_ACTIONS.length - 1 - i) * 45 + 90}ms` }}
-                aria-hidden
-              >
-                {action.icon}
-              </span>
-              <span className="text-[13.5px] font-bold text-ink-strong whitespace-nowrap">
-                {action.label}
-              </span>
-            </button>
-          ))}
-        </div>
+        <SharePostcards
+          variant="dock"
+          className="absolute left-1/2 -translate-x-1/2 top-[-14px] -translate-y-full z-30"
+          onSend={runAction}
+        />
       )}
 
       <style>{`
-        @keyframes dial-pop {
-          from { opacity: 0; transform: translateY(14px) scale(0.9); }
-          to { opacity: 1; transform: none; }
-        }
-        .dial-item {
-          animation: dial-pop 0.22s cubic-bezier(0.2, 0.9, 0.35, 1.2) both;
-        }
         @keyframes dial-fade-in {
           from { opacity: 0; }
           to { opacity: 1; }
@@ -216,16 +148,8 @@ const BottomNavigation = ({
         }
         .fab-spark { animation: fab-spark 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
 
-        /* 알약 아이콘 착지 — 자리를 잡은 뒤 통통 */
-        @keyframes dial-icon-pop {
-          0% { transform: scale(0.3) rotate(-14deg); }
-          60% { transform: scale(1.18) rotate(6deg); }
-          100% { transform: scale(1) rotate(0deg); }
-        }
-        .dial-icon { animation: dial-icon-pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-
         @media (prefers-reduced-motion: reduce) {
-          .dial-item, .dial-fade, .fab-pop, .fab-wink, .fab-halo, .fab-ring, .fab-spark, .dial-icon {
+          .dial-fade, .fab-pop, .fab-wink, .fab-halo, .fab-ring, .fab-spark {
             animation: none;
           }
           .fab-spark { display: none; }
@@ -340,6 +264,8 @@ const BottomNavigation = ({
           "반짝이는 걸 발견해서 눌렀더니 나눌 거리가 쏟아진다"는 손맛 */}
       <button
         onClick={toggleDial}
+        // 손가락이 닿는 순간 손글씨 서체를 미리 — 열린 뒤 받으면 엽서 글씨가 툭 바뀐다
+        onPointerDown={prewarmPostcardFont}
         aria-label={dialOpen ? '나눔 메뉴 닫기' : '나눔 메뉴 열기'}
         aria-expanded={dialOpen}
         className={`absolute left-1/2 -translate-x-1/2 top-0 z-30 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#4593fc] to-[var(--brand-dim)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-2px_var(--brand-glow)] active:scale-[0.82] transition-transform duration-150${dialOpen ? ' fab-pop' : ''}`}
