@@ -18,6 +18,7 @@ import { warmImage, warmPagesAround } from './components/bulletinWarm'
 import { useDigitalBulletin } from '../../hooks/useDigitalBulletin'
 import { can } from '../../utils/access'
 import NewsSection from './components/NewsSection'
+import './news-seg-glass.css'
 import NoticeArchiveSection from './components/NoticeArchiveSection'
 import NewFamilySection from './components/NewFamilySection'
 import EventAlbumSection from './components/EventAlbumSection'
@@ -225,12 +226,12 @@ const News = () => {
         </header>
 
         {/* 그룹 세그먼트 — 주보 / 새가족 */}
-        <div className="px-4 pt-2 pb-1 lg:px-6">
+        <div className="news-seg-wrap px-4 pt-2 pb-1 lg:px-6">
           <SegmentTrack
             count={SECTIONS.length}
             index={SECTIONS.findIndex(s => s.key === section)}
-            className="flex p-1 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm"
-            markerClassName="seal-marker rounded-xl [--seal-radius:0.75rem] transition-[transform,background] duration-300"
+            className="news-seg flex p-1"
+            markerClassName="seal-marker news-seg__marker rounded-xl [--seal-radius:0.75rem] transition-[transform,background] duration-300"
             markerStyle={
               activeSection?.seal
                 ? ({ '--seal-from': activeSection.seal.from, '--seal-to': activeSection.seal.to } as React.CSSProperties)

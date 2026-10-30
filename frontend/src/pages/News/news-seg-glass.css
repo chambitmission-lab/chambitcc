@@ -1,0 +1,98 @@
+/* ── /news 탭 세그먼트 글래스 패스 (2026-10-30 시안) ─────────────────────────
+   /bible 허브 글래스(hub-glass.css)와 같은 문법 — 뒤에 은은한 빛 번짐을 깔고
+   트랙은 반투명 유리 + 위쪽 1px 빛줄 + 넓게 퍼지는 푸른 그림자로 띄운다.
+   선택 마커는 점선 압인 링을 걷고 유리구슬처럼 광택 하이라이트를 얹는다. */
+.news-seg-wrap {
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-edge: rgba(255, 255, 255, 0.9);
+  --glass-line: rgba(30, 60, 120, 0.07);
+  --glass-shadow:
+    inset 0 1px 0 var(--glass-edge),
+    0 0 0 1px var(--glass-line),
+    0 10px 30px -12px rgba(49, 90, 180, 0.22);
+  --blob-1: rgba(120, 170, 255, 0.3);
+  --blob-2: rgba(190, 170, 255, 0.22);
+  --blob-3: rgba(255, 200, 170, 0.2);
+  background:
+    radial-gradient(22% 46% at 20% 54%, var(--blob-1), transparent),
+    radial-gradient(18% 46% at 55% 50%, var(--blob-2), transparent),
+    radial-gradient(20% 46% at 84% 54%, var(--blob-3), transparent);
+  background-repeat: no-repeat;
+}
+/* 타원이 상자 밖으로 나가면 가장자리에서 잘려 띠가 보인다 — 반경을 상자 안에서 다 사라지게 잡았다 */
+[data-theme="dark"] .news-seg-wrap {
+  --glass: rgba(34, 37, 46, 0.58);
+  --glass-edge: rgba(255, 255, 255, 0.08);
+  --glass-line: rgba(255, 255, 255, 0.07);
+  --glass-shadow:
+    inset 0 1px 0 var(--glass-edge),
+    0 0 0 1px var(--glass-line),
+    0 12px 32px -12px rgba(0, 0, 0, 0.6);
+  --blob-1: rgba(49, 110, 246, 0.2);
+  --blob-2: rgba(120, 90, 240, 0.15);
+  --blob-3: rgba(240, 130, 80, 0.08);
+}
+
+.news-seg {
+  border-radius: 1.25rem;
+  background: var(--glass);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+
+/* 선택 마커 — /bible 완독 구슬(book-journey.css .bjp-row--done)과 같은 문법:
+   위쪽 radial 하이라이트 + 밝은→진한 3단 그라데이션 + 1px 빛줄 림 + 바깥 빛무리 +
+   왼쪽 위 광택 한 점(::after, 예전 점선 압인 링 자리). 탭별 톤은 --seal-from/--seal-to 를 따른다 */
+.news-seg .news-seg__marker {
+  background:
+    radial-gradient(60% 120% at 22% 10%, rgba(255, 255, 255, 0.34), transparent 55%),
+    linear-gradient(150deg, color-mix(in srgb, var(--seal-from, #4593fc) 70%, #fff) 0%, var(--seal-from, #4593fc) 45%, var(--seal-to, #1f66e0) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -4px 10px -4px rgba(10, 40, 120, 0.3),
+    0 0 0 4px rgba(49, 130, 246, 0.1),
+    0 0 20px 2px rgba(49, 130, 246, 0.3),
+    0 4px 14px -4px rgba(49, 130, 246, 0.55);
+}
+.news-seg .news-seg__marker::after {
+  inset: auto;
+  top: 5px;
+  left: 12px;
+  width: 22px;
+  height: 9px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: rotate(-12deg);
+}
+@media (min-width: 1024px) {
+  .news-seg .news-seg__marker::after {
+    top: 6px;
+    left: 16px;
+    width: 30px;
+    height: 11px;
+  }
+}
+[data-theme="dark"] .news-seg .news-seg__marker {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -4px 10px -4px rgba(0, 0, 0, 0.35),
+    0 0 0 4px rgba(69, 147, 252, 0.09),
+    0 0 22px 3px rgba(69, 147, 252, 0.3),
+    0 4px 16px -4px rgba(49, 130, 246, 0.6);
+}
+
+/* 비선택 칸 호버 — 회색 대신 반투명 흰 유리 */
+@media (hover: hover) {
+  .news-seg > button[aria-pressed='false']:hover {
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  [data-theme="dark"] .news-seg > button[aria-pressed='false']:hover {
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+}
