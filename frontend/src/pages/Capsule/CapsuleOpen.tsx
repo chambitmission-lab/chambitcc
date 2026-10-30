@@ -86,13 +86,17 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   // 봉투를 뜯기 전에 편지 하늘 삽화를 데워 둔다 — 개봉 연출이 끝나는 순간 이미 자리에 있게.
   // 봉인 대기 화면의 금고 삽화도 CSS 배경이라 현재 테마만 받는다 — 반대 테마까지 미리 데워
   // 첫 테마 토글에서 배경이 늦게 바뀌지 않게 한다(themeAssets.ts).
-  useThemeArt(CAPSULE_LETTER, !!capsule?.openable)
+  const skyReady = useThemeArt(CAPSULE_LETTER, !!capsule?.openable)
   useThemeArt(CAPSULE_SEALED, !!capsule && !capsule.openable)
 
   // 하늘 위 헤더 ↔ 크림 유리 헤더 전환 (편지를 읽는 동안에만)
   useEffect(() => {
     // 편지 단계는 되돌아오지 않으므로 벗어날 때 상태를 되돌릴 일이 없다
     if (stage !== 'letter') return
+    // PC(lg+)는 헤더가 카드(lg:overflow-hidden) 안이라 붙지 않고 본문과 같이 밀려 올라간다 —
+    // 그런데도 130px 에서 크림 유리로 갈아입으면 아직 보이는 바가 색을 바꿨다 되돌리며 들락날락한다.
+    // 하늘 위 흰 글씨가 종이 위로 넘어가는 일은 sticky 인 모바일에서만 생기므로 거기서만 듣는다.
+    if (window.matchMedia('(min-width: 1024px)').matches) return
     // 실제 스크롤 컨테이너는 body다(#root·body에 overflow-y가 걸려 있어 window.scrollY는 늘 0).
     // 어느 쪽이 움직이든 잡히도록 둘 다 읽고, 둘 다 듣는다.
     const onScroll = () =>
@@ -190,7 +194,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
         }`}
       >
         {/* 편지가 도착한 아침 하늘 — 헤더 뒤까지 올라와 화면 전체의 조명이 된다 */}
-        {onSky && <DawnSky />}
+        {onSky && <DawnSky ready={skyReady} />}
 
         {/* 헤더 */}
         <div

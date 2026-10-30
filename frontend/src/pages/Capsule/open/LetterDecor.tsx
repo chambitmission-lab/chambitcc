@@ -3,8 +3,10 @@
 /* ── 편지가 도착한 아침 하늘 ──────────────────────────────────
    캡슐함 히어로와 같은 양 마스코트 삽화(배달을 끝내고 뻗은 우체부 양) 위에
    헤더와 편지가 놓인다. 삽화·그라데이션 폴백·스크림은 전부 capsule.css. */
-const DawnSky = () => (
+/** ready: 삽화 파일이 도착했는가(useThemeArt) — 그라데이션 위로 페이드인해 "툭" 바뀌지 않게 */
+const DawnSky = ({ ready }: { ready: boolean }) => (
   <div className="capsule-sky" aria-hidden>
+    <span className={`capsule-sky__art${ready ? ' is-ready' : ''}`} />
     <span className="capsule-sky__scrim" />
   </div>
 )

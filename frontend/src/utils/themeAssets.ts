@@ -368,6 +368,9 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/capsule$/, pairs: [CAPSULE_HERO] },
   { match: /^\/companion$/, pairs: [COMPANION_HERO] },
   { match: /^\/capsule\/new$/, pairs: [CAPSULE_CREATE_ART.recipient, CAPSULE_TRAIL_BG] },
+  // 편지 화면의 아침 하늘 — 상세 데이터가 온 뒤에야 받으면 첫 진입에서 그라데이션이 먼저 깔렸다 삽화로 "툭" 바뀐다.
+  // 목록의 행(링크)이 보이는 순간 청크와 함께 데워 둔다 (봉인 중인 캡슐은 안 쓰지만 50KB 라 감수)
+  { match: /^\/capsule\/\d+$/, pairs: [CAPSULE_LETTER] },
   { match: /^\/groups\/(?!join\/)[^/]+$/, pairs: [GROUP_DETAIL_HERO] },
   { match: /^\/bible$/, pairs: [READING_HERO, RESUME_CARD] },
   { match: /^\/bible\/plans$/, pairs: [PLAN_HERO] },

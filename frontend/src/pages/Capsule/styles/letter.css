@@ -140,36 +140,54 @@
   aspect-ratio: 5 / 3;
   overflow: hidden;
   pointer-events: none;
-  background-image:
-    url('/images/capsule/letter-light.webp'),
-    linear-gradient(
-      180deg,
-      #6f96cb 0%,
-      #9bb0d8 15%,
-      #c7b6cc 32%,
-      #e8b795 52%,
-      #f2cda9 70%,
-      #f9e3cd 100%
-    );
-  background-repeat: no-repeat, no-repeat;
-  background-size: cover, cover;
-  background-position: 50% 0, 0 0;
+  background: linear-gradient(
+    180deg,
+    #6f96cb 0%,
+    #9bb0d8 15%,
+    #c7b6cc 32%,
+    #e8b795 52%,
+    #f2cda9 70%,
+    #f9e3cd 100%
+  );
   -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 70%, rgba(0, 0, 0, 0.5) 89%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 0%, #000 70%, rgba(0, 0, 0, 0.5) 89%, transparent 100%);
 }
 
 .dark .capsule-sky {
-  background-image:
-    url('/images/capsule/letter-dark.webp'),
-    linear-gradient(
-      180deg,
-      #1d2740 0%,
-      #2e3552 18%,
-      #4a3f5c 40%,
-      #7a5461 62%,
-      #9a6455 80%,
-      #b2775c 100%
-    );
+  background: linear-gradient(
+    180deg,
+    #1d2740 0%,
+    #2e3552 18%,
+    #4a3f5c 40%,
+    #7a5461 62%,
+    #9a6455 80%,
+    #b2775c 100%
+  );
+}
+
+/* 삽화 층 — 파일이 도착한 뒤(is-ready, useThemeArt) 그라데이션 위로 페이드인한다.
+   CSS 배경은 엘리먼트가 그려진 뒤에야 요청이 나가서, 첫 진입(캐시 없음)엔 그라데이션 하늘이
+   한 박자 먼저 깔렸다 삽화로 "툭" 바뀌었다. 이미 받아 둔 파일이면 첫 프레임부터 ready 라 페이드가 없다. */
+.capsule-sky__art {
+  position: absolute;
+  inset: 0;
+  background: url('/images/capsule/letter-light.webp') 50% 0 / cover no-repeat;
+  opacity: 0;
+  transition: opacity 360ms ease-out;
+}
+
+.dark .capsule-sky__art {
+  background-image: url('/images/capsule/letter-dark.webp');
+}
+
+.capsule-sky__art.is-ready {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-sky__art {
+    transition: none;
+  }
 }
 
 /* 삽화 윗단은 연한 살구빛이라 흰 헤더 글씨가 묻힌다 — 위쪽만 살짝 눌러 글자를 띄운다 */
@@ -262,8 +280,11 @@
   text-shadow: 0 1px 8px rgba(38, 26, 16, 0.4);
 }
 
+/* 부제는 유리로 갈아입어도 자리를 지킨다 — display:none 으로 치우면 바 높이가 12px 줄어
+   130px 경계를 오갈 때마다 아래 편지가 들썩였다(스크롤을 내렸다 올리면 들락날락) */
 .capsule-topbar.is-scrolled .capsule-topbar__sub {
-  display: none;
+  opacity: 0.62;
+  text-shadow: none;
 }
 
 .capsule-topbar__del {
