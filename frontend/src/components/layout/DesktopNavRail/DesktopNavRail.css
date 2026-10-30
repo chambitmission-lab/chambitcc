@@ -55,3 +55,17 @@
   .desktop-rail { --rl: var(--text-mul, 1); }
 }
 
+
+/* ── 묶음 제목(매일·함께·나) — 세로가 빠듯한 화면에서는 접는다 ──────────
+   제목 셋이 ~70px 를 더 쓴다. short/tiny 티어(실측 780px 이하)에서는 나누기 버튼과
+   하단 유틸이 밀려나지 않도록 제목을 접고, 묶음 사이는 간격만 남긴다. */
+:root[data-vh-tier='short'] .rail-sec-label,
+:root[data-vh-tier='tiny'] .rail-sec-label {
+  display: none;
+}
+@media (min-width: 1280px) {
+  :root[data-vh-tier='short'] .rail-sec + .rail-sec,
+  :root[data-vh-tier='tiny'] .rail-sec + .rail-sec {
+    margin-top: 0.75rem;
+  }
+}

@@ -15,6 +15,8 @@ import { useTheme } from '../../../contexts/ThemeContext'
 import { prewarmThemeToggle, pairSrc, RAIL_BOTTOM } from '../../../utils/themeAssets'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { BIBLE_HUB_RESUME_LIMIT, useResumeReading } from '../../../hooks/useBibleReading'
+import { useGrowthSummary } from '../../../hooks/useGrowth'
 import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
 import SharePostcards from '../../share/SharePostcards'
 import SharePostcardButton from '../../share/SharePostcardButton'
@@ -50,14 +52,6 @@ const useIsXl = (): boolean => {
 // 그림이 둘이면 하나는 져야 하고, 그 화면에서는 본문이 주인공이다.
 const ART_FREE_PATHS = ['/bible/atlas']
 
-// 활성 항목 좌측 바 — 컴포넌트 안에서 선언하면 렌더마다 새 타입이라 리마운트된다. 모듈 최상위에 고정
-const ActiveBar = () => (
-  <span
-    className="absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-full bg-brand"
-    aria-hidden
-  />
-)
-
 const RailSpinner = () => (
   <span className="w-6 h-6 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
 )
@@ -65,6 +59,28 @@ const RailSpinner = () => (
 /** 내비 글리프 공통 크기 — 활성만 duotone 으로 면이 차오른다.
     노안 대응으로 24 → 26(레일 글씨 크기 배율은 DesktopNavRail.css `--rl`) */
 const GLYPH = 26
+
+type RailGlyph = typeof House
+type StatusTone = 'muted' | 'brand' | 'amber'
+
+/** 메뉴 한 줄 — 섹션 배열로 그려서 7개 버튼의 반복 마크업을 없앴다 */
+interface RailItem {
+  key: string
+  label: string
+  Icon: RailGlyph
+  active: boolean
+  onClick: () => void
+  /** 호버 때 청크를 미리 받을 경로 — 스피너도 이 경로 기준 */
+  path?: string
+  /** 메뉴 아래 지금 상태 한 줄(xl 에서만) — 매일 돌아오게 하는 두 축(성경·신앙 여정)에만 붙인다 */
+  status?: { text: string; tone: StatusTone } | null
+}
+
+const STATUS_TONE: Record<StatusTone, string> = {
+  muted: 'text-[var(--text-muted)] font-medium',
+  brand: 'text-brand font-bold',
+  amber: 'text-[var(--amber)] font-bold',
+}
 
 
 // 아이콘만 보이는 폭(lg~xl 미만)에서 "이게 무슨 메뉴인지"를 알려주는 호버 툴팁.
@@ -104,9 +120,14 @@ const DesktopNavRail = () => {
   const visible = useDesktopRailVisible()
   const { theme, toggleTheme } = useTheme()
   // 레일 하단 삽화 — 테마 쌍을 등록해 두면 토글 직전 선요청이 반대 테마를 챙긴다
-  const showRailArt = useIsXl() && !ART_FREE_PATHS.some((p) => pathname.startsWith(p))
+  const isXl = useIsXl()
+  const showRailArt = isXl && !ART_FREE_PATHS.some((p) => pathname.startsWith(p))
   const railArtReady = useThemeArt(RAIL_BOTTOM, showRailArt)
   const { t } = useLanguage()
+  // 상태 한 줄은 글자가 보이는 xl 폭 + 로그인일 때만 받는다(좁은 바에선 보여줄 자리가 없다)
+  const wantStatus = visible && isXl && isLoggedIn()
+  const resumeQuery = useResumeReading(BIBLE_HUB_RESUME_LIMIT, wantStatus)
+  const growthQuery = useGrowthSummary(wantStatus)
 
   // 청크가 아직 안 왔으면 다운로드를 기다렸다가 이동한다 (startTransition 중엔
   // Suspense fallback이 뜨지 않아 "안 눌린 것처럼" 보이는 문제 방지).
@@ -176,15 +197,78 @@ const DesktopNavRail = () => {
   const isGrowthActive = pathname === '/growth'
   const isProfileActive = pathname === '/profile'
 
-  // 하단 도크와 같은 가벼운 아이콘 언어 유지. 활성은 브랜드 연한 배경 + 좌측 바 인디케이터만
+  // 성경 — 마지막으로 읽던 장. /bible 허브와 같은 키라 어느 쪽이 먼저 받든 캐시를 나눠 쓴다
+  const resume = resumeQuery.data?.latest
+  const bibleStatus = resume
+    ? { text: t('railStatusResume').replace('{book}', resume.book_name_ko).replace('{n}', String(resume.chapter)), tone: 'muted' as const }
+    : null
+  // 신앙 여정 — 오늘 이미 이었으면 앰버(스트릭 불꽃과 같은 색), 아직이면 "오늘 하면 N일째"로 살짝 민다
+  const streak = growthQuery.data?.data?.streak
+  const keptToday = streak ? (streak.active_today ?? false) : false
+  const growthStatus =
+    streak && streak.current > 0
+      ? keptToday
+        ? { text: t('railStatusStreak').replace('{n}', String(streak.current)), tone: 'amber' as const }
+        : { text: t('railStatusStreakNext').replace('{n}', String(streak.current + 1)), tone: 'brand' as const }
+      : null
+
+  // 매일 · 함께 · 나 — 자주 가는 순서대로 묶는다. 묶음 제목은 xl 에서만 글자로,
+  // 아이콘만 보이는 lg 폭에서는 얇은 구분선으로 바뀐다
+  const sections: { key: string; label: string; items: RailItem[] }[] = [
+    {
+      key: 'daily',
+      label: t('railSecDaily'),
+      items: [
+        // 홈 — 홈에서 다시 누르면 최상단 스크롤
+        { key: 'home', label: t('home'), Icon: House, active: isHomeActive, onClick: handleHomeClick },
+        {
+          key: 'bible', label: t('bible'), Icon: BookOpenText, active: isBibleActive,
+          path: '/bible', onClick: () => void goLazy('/bible'), status: bibleStatus,
+        },
+        // 집중 기도 — 하단 도크와 동일한 스톱워치 아이콘
+        {
+          key: 'focus', label: t('railPrayerFocus'), Icon: Timer, active: pathname === '/prayer-focus',
+          path: '/prayer-focus', onClick: () => void goLazy('/prayer-focus'),
+        },
+      ],
+    },
+    {
+      key: 'together',
+      label: t('railSecTogether'),
+      items: [
+        {
+          key: 'card', label: t('railVerseCard'), Icon: ImageSquare, active: isVerseCardActive,
+          path: '/bible/photo-verse', onClick: () => void goLazy('/bible/photo-verse'),
+        },
+        // 모임 — 소그룹 체크인·릴레이·기도 나눔
+        {
+          key: 'groups', label: t('railGroups'), Icon: UsersThree, active: isGroupsActive,
+          path: '/groups', onClick: () => void goLazy('/groups'),
+        },
+      ],
+    },
+    {
+      key: 'mine',
+      label: t('railSecMine'),
+      items: [
+        // 신앙 여정 — 스트릭·타임라인·통계 (성장 페이지)
+        {
+          key: 'growth', label: t('railGrowth'), Icon: Path, active: isGrowthActive,
+          path: '/growth', onClick: () => void goLazy('/growth'), status: growthStatus,
+        },
+        { key: 'profile', label: t('profile'), Icon: UserCircle, active: isProfileActive, path: '/profile', onClick: handleProfileClick },
+      ],
+    },
+  ]
+
+  // 활성은 캔버스 위에 뜬 흰 알약 — 앱의 확정 층 구조(회색 바닥 / 떠 있는 흰 카드)를 레일에도 그대로 쓴다.
+  // 연한 블루 면 + 좌측 막대는 은퇴. 브랜드색은 활성 글리프의 인장 타일 하나에만 남긴다
   const itemClass = (active: boolean) =>
-    `group relative flex items-center justify-center xl:justify-start gap-3.5 h-[52px] rounded-xl px-0 xl:px-3 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
+    `group relative flex items-center justify-center xl:justify-start gap-3 min-h-[50px] rounded-2xl px-0 xl:px-2 py-1.5 active:scale-[0.97] transition-[color,background-color,box-shadow,transform] duration-150 ${
       active
-        ? 'text-brand bg-[var(--brand-soft)]'
-        : 'text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)]'
+        ? 'bg-[var(--surface-container)] shadow-[var(--card-shadow)] text-[var(--text-strong)]'
+        : 'text-gray-600 dark:text-white/75 hover:text-[var(--text-strong)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
     }`
-  const labelClass = (active: boolean) =>
-    `hidden xl:inline text-[length:calc(17px*var(--rl,1))] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`
 
   return (
     <aside
@@ -193,150 +277,62 @@ const DesktopNavRail = () => {
       // 화면의 층은 오직 "바닥(캔버스) / 떠 있는 흰 카드" 둘뿐이다.
       // chrome-type: 헤더와 함께 G마켓 산스로 그리는 "앱의 틀" (styles/gmarket-sans.css, lg+ 에서만)
       // 헤더 '가' 배율은 <html data-text-scale> 에서 CSS 로 상속(DesktopNavRail.css --rl)
-      className="desktop-rail chrome-type hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-[var(--desktop-chrome)] px-3 xl:px-4 pt-6 pb-5"
+      className="desktop-rail chrome-type hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-[var(--desktop-chrome)] px-3 xl:px-4 pt-5 pb-5"
       aria-label={t('railAria')}
     >
-      <nav className="flex flex-col gap-1">
-        {/* 홈 — 홈에서 다시 누르면 최상단 스크롤 */}
-        <button
-          onClick={handleHomeClick}
-          aria-label={t('home')}
-          aria-current={isHomeActive ? 'page' : undefined}
-          className={itemClass(isHomeActive)}
-        >
-          {isHomeActive && <ActiveBar />}
-          <House size={GLYPH} weight={isHomeActive ? 'duotone' : 'bold'} className="shrink-0" />
-          <span className={labelClass(isHomeActive)}>{t('home')}</span>
-          <RailTip label={t('home')} />
-        </button>
-
-        {/* 성경 */}
-        <button
-          onClick={() => void goLazy('/bible')}
-          onMouseEnter={() => void preloadRoute('/bible')}
-          aria-label={t('bible')}
-          aria-current={isBibleActive ? 'page' : undefined}
-          aria-busy={pendingPath === '/bible'}
-          className={itemClass(isBibleActive)}
-        >
-          {isBibleActive && <ActiveBar />}
-          {pendingPath === '/bible' ? (
-            <RailSpinner />
-          ) : (
-            <BookOpenText
-              size={GLYPH}
-              weight={isBibleActive ? 'duotone' : 'bold'}
-              className="shrink-0"
-            />
-          )}
-          <span className={labelClass(isBibleActive)}>{t('bible')}</span>
-          <RailTip label={t('bible')} />
-        </button>
-
-        {/* 집중 기도 — 하단 도크와 동일한 스톱워치 아이콘 */}
-        <button
-          onClick={() => void goLazy('/prayer-focus')}
-          onMouseEnter={() => void preloadRoute('/prayer-focus')}
-          aria-label={t('railPrayerFocus')}
-          aria-busy={pendingPath === '/prayer-focus'}
-          className={itemClass(false)}
-        >
-          {pendingPath === '/prayer-focus' ? (
-            <RailSpinner />
-          ) : (
-            <Timer size={GLYPH} weight="bold" className="shrink-0" />
-          )}
-          <span className={labelClass(false)}>{t('railPrayerFocus')}</span>
-          <RailTip label={t('railPrayerFocus')} />
-        </button>
-
-        {/* 말씀 사진 카드 만들기 */}
-        <button
-          onClick={() => void goLazy('/bible/photo-verse')}
-          onMouseEnter={() => void preloadRoute('/bible/photo-verse')}
-          aria-label={t('railShareVerseCard')}
-          aria-current={isVerseCardActive ? 'page' : undefined}
-          aria-busy={pendingPath === '/bible/photo-verse'}
-          className={itemClass(isVerseCardActive)}
-        >
-          {isVerseCardActive && <ActiveBar />}
-          {pendingPath === '/bible/photo-verse' ? (
-            <RailSpinner />
-          ) : (
-            <ImageSquare
-              size={GLYPH}
-              weight={isVerseCardActive ? 'duotone' : 'bold'}
-              className="shrink-0"
-            />
-          )}
-          <span className={labelClass(isVerseCardActive)}>{t('railVerseCard')}</span>
-          <RailTip label={t('railVerseCard')} />
-        </button>
-
-        {/* 모임 — 소그룹 체크인·릴레이·기도 나눔 */}
-        <button
-          onClick={() => void goLazy('/groups')}
-          onMouseEnter={() => void preloadRoute('/groups')}
-          aria-label={t('railGroups')}
-          aria-current={isGroupsActive ? 'page' : undefined}
-          aria-busy={pendingPath === '/groups'}
-          className={itemClass(isGroupsActive)}
-        >
-          {isGroupsActive && <ActiveBar />}
-          {pendingPath === '/groups' ? (
-            <RailSpinner />
-          ) : (
-            <UsersThree
-              size={GLYPH}
-              weight={isGroupsActive ? 'duotone' : 'bold'}
-              className="shrink-0"
-            />
-          )}
-          <span className={labelClass(isGroupsActive)}>{t('railGroups')}</span>
-          <RailTip label={t('railGroups')} />
-        </button>
-
-        {/* 신앙 여정 — 스트릭·타임라인·통계 (성장 페이지) */}
-        <button
-          onClick={() => void goLazy('/growth')}
-          onMouseEnter={() => void preloadRoute('/growth')}
-          aria-label={t('railGrowth')}
-          aria-current={isGrowthActive ? 'page' : undefined}
-          aria-busy={pendingPath === '/growth'}
-          className={itemClass(isGrowthActive)}
-        >
-          {isGrowthActive && <ActiveBar />}
-          {pendingPath === '/growth' ? (
-            <RailSpinner />
-          ) : (
-            <Path size={GLYPH} weight={isGrowthActive ? 'duotone' : 'bold'} className="shrink-0" />
-          )}
-          <span className={labelClass(isGrowthActive)}>{t('railGrowth')}</span>
-          <RailTip label={t('railGrowth')} />
-        </button>
-
-        {/* 프로필 */}
-        <button
-          onClick={handleProfileClick}
-          onMouseEnter={() => void preloadRoute('/profile')}
-          aria-label={t('profile')}
-          aria-current={isProfileActive ? 'page' : undefined}
-          aria-busy={pendingPath === '/profile'}
-          className={itemClass(isProfileActive)}
-        >
-          {isProfileActive && <ActiveBar />}
-          {pendingPath === '/profile' ? (
-            <RailSpinner />
-          ) : (
-            <UserCircle
-              size={GLYPH}
-              weight={isProfileActive ? 'duotone' : 'bold'}
-              className="shrink-0"
-            />
-          )}
-          <span className={labelClass(isProfileActive)}>{t('profile')}</span>
-          <RailTip label={t('profile')} />
-        </button>
+      <nav className="flex flex-col">
+        {sections.map((sec, si) => (
+          <div key={sec.key} role="group" aria-label={sec.label} className="rail-sec flex flex-col gap-0.5">
+            {/* 묶음 제목(xl) / 구분선(lg). 높이 티어가 낮으면 제목을 접는다 — DesktopNavRail.css */}
+            <span
+              className={`rail-sec-label hidden xl:block px-3 pb-1.5 text-[length:calc(13px*var(--rl,1))] font-bold text-[var(--text-muted)] ${si === 0 ? 'pt-0' : 'pt-4'}`}
+              aria-hidden
+            >
+              {sec.label}
+            </span>
+            {si > 0 && <span className="xl:hidden mx-4 my-2 h-px bg-black/[0.07] dark:bg-white/[0.08]" aria-hidden />}
+            {sec.items.map(({ key, label, Icon, active, onClick, path, status }) => (
+              <button
+                key={key}
+                onClick={onClick}
+                onMouseEnter={path ? () => void preloadRoute(path) : undefined}
+                aria-label={status ? `${label}, ${status.text}` : label}
+                aria-current={active ? 'page' : undefined}
+                aria-busy={path ? pendingPath === path : undefined}
+                className={itemClass(active)}
+              >
+                {/* 글리프 자리 — 모든 줄이 같은 38px 칸을 써서 활성이 바뀌어도 라벨이 흔들리지 않는다.
+                    활성만 인장(블루 그라데이션 + 안쪽 점선 압인 링, common.css .seal-marker)이 찍힌다 */}
+                <span
+                  className={`relative grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl transition-[background-color,box-shadow] duration-150 ${
+                    active ? 'seal-marker text-white [--seal-radius:12px]' : ''
+                  }`}
+                >
+                  {path && pendingPath === path ? (
+                    <RailSpinner />
+                  ) : (
+                    <Icon size={active ? GLYPH - 4 : GLYPH} weight={active ? 'duotone' : 'bold'} />
+                  )}
+                </span>
+                <span className="hidden xl:flex min-w-0 flex-col text-left leading-tight">
+                  <span
+                    className={`text-[length:calc(17px*var(--rl,1))] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`}
+                  >
+                    {label}
+                  </span>
+                  {status && (
+                    <span
+                      className={`mt-1 truncate text-[length:calc(13px*var(--rl,1))] chrome-type-off ${STATUS_TONE[status.tone]}`}
+                    >
+                      {status.text}
+                    </span>
+                  )}
+                </span>
+                <RailTip label={label} />
+              </button>
+            ))}
+          </div>
+        ))}
       </nav>
 
       {/* 나눔 액션 — X/인스타 데스크톱 문법의 단일 주 CTA. 누르면 모바일 홈 FAB과

@@ -238,6 +238,14 @@ export const navigation = {
   railVerseCard: '말씀 카드',
   railGroups: '모임',
   railGrowth: '신앙 여정',
+  // 레일 묶음 제목(xl) — 자주 가는 순서
+  railSecDaily: '매일',
+  railSecTogether: '함께',
+  railSecMine: '나',
+  // 레일 메뉴 아래 상태 한 줄 — {book}·{n} 치환
+  railStatusResume: '{book} {n}장 이어 읽기',
+  railStatusStreak: '연속 {n}일째',
+  railStatusStreakNext: '오늘 하면 {n}일째',
   railShare: '나누기',
   railShareMenuAria: '나누기 메뉴',
   railSharePrayer: '기도제목 나누기',
