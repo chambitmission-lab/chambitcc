@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
@@ -12,54 +12,6 @@ import ReaderSettings from './ReaderSettings'
 import { lazyModal } from '../../../utils/lazyModal'
 // 장 선택 시트는 열 때만 — 읽기 화면 청크에서 분리
 const ChapterPickerSheet = lazyModal(() => import('./ChapterPickerSheet'))
-
-/**
- * 장 알약 테두리 = 이 장 읽음 진행선.
- * 예전엔 본문 위에 진행률 pill 을 첫 읽음 때 새로 끼워 넣어 본문 전체가 툭 밀렸다.
- * 알약 둘레(위 가운데에서 시계 방향)에 겹쳐 그리면 차지하는 높이가 0 이다.
- * 알약 폭이 화면마다 달라 실제 크기를 재서 스타디움 경로를 그린다 — viewBox 를 늘이면 둥근 끝이 찌그러진다.
- */
-const ChapterTriggerRing = ({ percent }: { percent: number }) => {
-  const ref = useRef<SVGSVGElement>(null)
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null)
-  useLayoutEffect(() => {
-    const el = ref.current?.parentElement
-    if (!el) return
-    const measure = () => setSize({ w: el.offsetWidth, h: el.offsetHeight })
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-  const sw = 2
-  let d = ''
-  if (size && size.w > 0 && size.h > 0) {
-    const t = sw / 2
-    const w = size.w - t
-    const h = size.h - t
-    const r = (h - t) / 2
-    d = `M ${size.w / 2} ${t} H ${w - r} A ${r} ${r} 0 0 1 ${w - r} ${h} H ${t + r} A ${r} ${r} 0 0 1 ${t + r} ${t} Z`
-  }
-  return (
-    <svg
-      ref={ref}
-      className="chapter-trigger__ring"
-      width={size?.w ?? 0}
-      height={size?.h ?? 0}
-      aria-hidden
-    >
-      {d && (
-        <path
-          d={d}
-          pathLength={100}
-          strokeWidth={sw}
-          strokeDasharray="100 100"
-          strokeDashoffset={100 - Math.min(100, Math.max(0, percent))}
-        />
-      )}
-    </svg>
-  )
-}
 
 interface ChapterNavigationProps {
   selectedBook: string
@@ -217,28 +169,31 @@ const ChapterNavigation = ({
             "50장 중 3장"이라는 위치 감각까지 알약 하나로 전달한다 */}
         <button
           type="button"
-          className={`chapter-trigger${pickerOpen ? ' is-open' : ''}${readDone > 0 ? ' has-progress' : ''}${chapterComplete ? ' is-complete' : ''}`}
+          className={`chapter-trigger${pickerOpen ? ' is-open' : ''}${chapterComplete ? ' is-complete' : ''}`}
           onClick={() => setPickerOpen(true)}
           aria-haspopup="dialog"
           aria-expanded={pickerOpen}
           aria-label={readDone > 0 ? `${t.pick} — ${t.readProgress(readDone, readTotal)}` : t.pick}
           title={readDone > 0 ? `${t.pick} · ${t.readProgress(readDone, readTotal)}` : t.pick}
         >
-          {readDone > 0 && <ChapterTriggerRing percent={readPercent} />}
           <span className="chapter-trigger__num">
             {selectedChapter}
             {t.of}
           </span>
           <span className="chapter-trigger__total">/ {totalChapters}</span>
-          <span className="material-icons-round chapter-trigger__icon" aria-hidden="true">
-            grid_view
+          {/* 다 읽으면 장 목록 아이콘이 ✓ 로 — 글자를 늘리지 않고 완독을 알린다 */}
+          <span
+            key={chapterComplete ? 'done' : 'grid'}
+            className={`material-icons-round chapter-trigger__icon${chapterComplete ? ' is-done' : ''}`}
+            aria-hidden="true"
+          >
+            {chapterComplete ? 'check_circle' : 'grid_view'}
           </span>
-          {/* 몇 절 읽었는지 — 알약 모서리에 겹쳐 띄워 줄 높이를 바꾸지 않는다 */}
+          {/* 이 장 읽음 진행 — 알약 안쪽 바닥의 얇은 바. absolute 라 첫 읽음에도 줄 높이가 그대로다.
+              몇 절인지는 aria-label·title 로 */}
           {readDone > 0 && (
-            <span key={chapterComplete ? 'done' : 'reading'} className="chapter-trigger__badge" aria-hidden>
-              {chapterComplete
-                ? <span className="material-icons-round">check</span>
-                : <>{readDone}<small>/{readTotal}</small></>}
+            <span className="chapter-trigger__bar" aria-hidden>
+              <i style={{ width: `${readPercent}%` }} />
             </span>
           )}
         </button>

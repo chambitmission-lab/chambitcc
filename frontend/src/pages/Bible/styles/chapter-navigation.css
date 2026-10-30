@@ -114,77 +114,50 @@
   background: var(--brand-soft);
 }
 
-/* ── 이 장 읽음 진행 — 알약 테두리가 진행선, 모서리 뱃지가 절 수 ──
-   본문 위 진행률 pill 을 대신한다. 둘 다 absolute 라 첫 읽음에도 줄 높이가 그대로다. */
+/* ── 이 장 읽음 진행 — 알약 안쪽 바닥의 얇은 바 ──
+   예전엔 테두리를 진행선으로 덧그리고 모서리 뱃지를 띄웠는데, 회색 테두리·파란 선·튀어나온 뱃지가
+   서로 다른 모양으로 겹쳐 어색했다. 테두리는 그대로 두고 안쪽에서만 차오르게 한다.
+   absolute 라 첫 읽음에도 줄 높이가 그대로다. 완독은 grid 아이콘이 ✓ 로 바뀌어 알린다. */
 .chapter-trigger {
   position: relative;
 }
 
-.chapter-trigger.has-progress {
-  border-color: var(--brand-soft-strong);
-}
-
-.chapter-trigger__ring {
+.chapter-trigger__bar {
   position: absolute;
-  inset: -1px;
-  overflow: visible;
+  left: 18px;
+  right: 18px;
+  bottom: 5px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--brand-soft-strong);
+  overflow: hidden;
   pointer-events: none;
 }
 
-.chapter-trigger__ring path {
-  fill: none;
-  stroke: var(--brand);
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+.chapter-trigger__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .chapter-trigger.is-complete {
-  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
 }
 
-.chapter-trigger__badge {
-  position: absolute;
-  top: -0.5rem;
-  right: -0.375rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.375rem;
-  border-radius: 999px;
-  background: var(--brand);
-  color: #fff;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  box-shadow: 0 0 0 2px var(--ig-primary-background);
-  animation: chapterBadgePop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+.chapter-trigger__icon.is-done {
+  animation: chapterDonePop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-.chapter-trigger__badge small {
-  font-size: 0.625rem;
-  font-weight: 700;
-  opacity: 0.8;
-}
-
-.chapter-trigger__badge .material-icons-round {
-  font-size: 0.875rem;
-}
-
-.chapter-trigger.is-complete .chapter-trigger__badge {
-  padding: 0;
-}
-
-@keyframes chapterBadgePop {
+@keyframes chapterDonePop {
   from { transform: scale(0.4); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chapter-trigger__ring path { transition: none; }
-  .chapter-trigger__badge { animation: none; }
+  .chapter-trigger__bar i { transition: none; }
+  .chapter-trigger__icon.is-done { animation: none; }
 }
 
 .chapter-trigger:focus-visible {
