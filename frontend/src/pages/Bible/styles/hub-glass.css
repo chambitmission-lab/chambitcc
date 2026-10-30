@@ -159,9 +159,14 @@
 
   /* ③ 책 선택 카드 — 위 현황 카드의 그림 색 판(--rs-plate)을 옅게 이어 받아 두 카드를 한 벌로 묶는다.
      흰 유리(78%)였을 땐 그림 색 판 아래에서 혼자 하얗게 떠 보였다(2026-10-30 A안).
-     위에 붙어 책 목록 위를 지나가므로 판은 86%로 진하게 두고, 장면(낮·저녁)은 현황 카드의 data-scene 을 따른다 */
+     위에 붙어 책 목록 위를 지나가므로 판은 86%로 진하게 두고, 장면(낮·저녁)은 현황 카드의 data-scene 을 따른다.
+     단색 세로 띠뿐이라 위 그림 하늘과 따로 놀았다 — 그림에서 잰 색으로 왼쪽 위 하늘빛 + 오른쪽 해(등불) 쪽
+     따뜻한 빛 웅덩이를 얹어 하늘이 아래 카드까지 번져 내려오게 한다(2026-10-30). 타원은 상자 안에서 다 사라지게 */
   .bible-hub .book-nav {
-    --nav-plate: linear-gradient(180deg, rgba(233, 236, 245, 0.86) 0%, rgba(242, 243, 240, 0.86) 100%);
+    --nav-plate:
+      radial-gradient(55% 120% at 4% 0%, rgba(200, 210, 236, 0.55), transparent 70%),
+      radial-gradient(50% 130% at 84% 10%, rgba(250, 240, 222, 0.75), transparent 70%),
+      linear-gradient(180deg, rgba(228, 233, 244, 0.88) 0%, rgba(240, 240, 238, 0.88) 60%, rgba(246, 244, 238, 0.88) 100%);
     background: var(--nav-plate);
     border-color: transparent;
     border-radius: 1.25rem;
@@ -175,14 +180,23 @@
   .bible-hub .book-nav::before {
     display: none;
   }
+  /* 낮 — 보랏빛 새벽 하늘(왼쪽 위) → 살구·크림 해돋이(오른쪽) → 아래 따뜻한 크림 */
   .bible-hub .bible-books-section:has(.reading-summary[data-scene="day"]) .book-nav {
-    --nav-plate: linear-gradient(180deg, rgba(239, 231, 238, 0.86) 0%, rgba(243, 238, 237, 0.86) 100%);
+    --nav-plate:
+      radial-gradient(55% 120% at 4% 0%, rgba(218, 205, 226, 0.6), transparent 70%),
+      radial-gradient(50% 130% at 82% 15%, rgba(252, 236, 214, 0.8), transparent 70%),
+      linear-gradient(180deg, rgba(236, 227, 236, 0.88) 0%, rgba(242, 231, 229, 0.88) 50%, rgba(247, 242, 236, 0.88) 100%);
   }
   [data-theme="dark"] .bible-hub .book-nav {
-    --nav-plate: linear-gradient(180deg, rgba(33, 41, 53, 0.84) 0%, rgba(28, 36, 45, 0.84) 100%);
+    --nav-plate:
+      radial-gradient(50% 130% at 82% 15%, rgba(123, 112, 113, 0.2), transparent 70%),
+      linear-gradient(180deg, rgba(33, 43, 57, 0.86) 0%, rgba(38, 48, 61, 0.86) 55%, rgba(28, 36, 45, 0.86) 100%);
   }
   [data-theme="dark"] .bible-hub .bible-books-section:has(.reading-summary[data-scene="day"]) .book-nav {
-    --nav-plate: linear-gradient(180deg, rgba(40, 37, 62, 0.84) 0%, rgba(34, 31, 44, 0.84) 100%);
+    --nav-plate:
+      radial-gradient(55% 120% at 4% 0%, rgba(40, 38, 76, 0.5), transparent 70%),
+      radial-gradient(50% 130% at 82% 15%, rgba(93, 86, 120, 0.32), transparent 70%),
+      linear-gradient(180deg, rgba(36, 34, 58, 0.86) 0%, rgba(44, 41, 66, 0.86) 50%, rgba(38, 35, 48, 0.86) 100%);
   }
   /* 판 위의 회색 면(토글 바탕·칩 호버·구분선·보기 전환)은 회색 대신 반투명 흰색으로 — 회색이면 판이 도로 하얗게 읽힌다 */
   .bible-hub .book-nav .testament-tabs,
