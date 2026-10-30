@@ -157,9 +157,12 @@
     box-shadow: none;
   }
 
-  /* ③ 책 선택 카드 — 현황 카드와 같은 유리 판. 위에 붙어 책 목록 위를 지나가므로 한 단계 진하게 */
+  /* ③ 책 선택 카드 — 위 현황 카드의 그림 색 판(--rs-plate)을 옅게 이어 받아 두 카드를 한 벌로 묶는다.
+     흰 유리(78%)였을 땐 그림 색 판 아래에서 혼자 하얗게 떠 보였다(2026-10-30 A안).
+     위에 붙어 책 목록 위를 지나가므로 판은 86%로 진하게 두고, 장면(낮·저녁)은 현황 카드의 data-scene 을 따른다 */
   .bible-hub .book-nav {
-    background: var(--glass-strong);
+    --nav-plate: linear-gradient(180deg, rgba(233, 236, 245, 0.86) 0%, rgba(242, 243, 240, 0.86) 100%);
+    background: var(--nav-plate);
     border-color: transparent;
     border-radius: 1.25rem;
     box-shadow: var(--glass-shadow);
@@ -171,6 +174,38 @@
      PC 는 섹션 바탕을 걷었고 카드가 유리라 책 목록이 비쳐 지나가는 게 의도이므로 가림막을 뺀다 */
   .bible-hub .book-nav::before {
     display: none;
+  }
+  .bible-hub .bible-books-section:has(.reading-summary[data-scene="day"]) .book-nav {
+    --nav-plate: linear-gradient(180deg, rgba(239, 231, 238, 0.86) 0%, rgba(243, 238, 237, 0.86) 100%);
+  }
+  [data-theme="dark"] .bible-hub .book-nav {
+    --nav-plate: linear-gradient(180deg, rgba(33, 41, 53, 0.84) 0%, rgba(28, 36, 45, 0.84) 100%);
+  }
+  [data-theme="dark"] .bible-hub .bible-books-section:has(.reading-summary[data-scene="day"]) .book-nav {
+    --nav-plate: linear-gradient(180deg, rgba(40, 37, 62, 0.84) 0%, rgba(34, 31, 44, 0.84) 100%);
+  }
+  /* 판 위의 회색 면(토글 바탕·칩 호버·구분선·보기 전환)은 회색 대신 반투명 흰색으로 — 회색이면 판이 도로 하얗게 읽힌다 */
+  .bible-hub .book-nav .testament-tabs,
+  .bible-hub .view-toggle {
+    background: rgba(255, 255, 255, 0.55);
+  }
+  .bible-hub .book-nav .book-filter-chip:hover {
+    background: rgba(255, 255, 255, 0.55);
+  }
+  .bible-hub .book-nav__head {
+    border-bottom-color: rgba(120, 100, 140, 0.14);
+  }
+  [data-theme="dark"] .bible-hub .book-nav .testament-tabs {
+    background: rgba(0, 0, 0, 0.22);
+  }
+  [data-theme="dark"] .bible-hub .view-toggle {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  [data-theme="dark"] .bible-hub .book-nav .book-filter-chip:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  [data-theme="dark"] .bible-hub .book-nav__head {
+    border-bottom-color: rgba(255, 255, 255, 0.07);
   }
 
   /* ④ 성경 공부 도구 — 벤토 타일 */
