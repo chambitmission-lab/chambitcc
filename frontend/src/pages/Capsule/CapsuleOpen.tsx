@@ -47,6 +47,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
     data: fetched,
     isLoading: fetching,
     isFetching,
+    isPlaceholderData,
     error: fetchError,
   } = useCapsule(capsuleId, isAuthenticated() && !preview)
   // 캐시(메모리·IndexedDB persist)에 남은 상세의 openable 은 저장 당시 값이다. 봉인 중일 때 들렀던
@@ -82,6 +83,9 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   const reopened =
     phase === 'sealed' && !!capsule?.openable && !!capsule.opened_at && !openedHere.current
   const stage: Phase = reopened ? 'letter' : phase
+  // 목록 캐시 요약이 자리표시자로 먼저 왔다(useCapsule placeholderData) — 무대는 맞게 섰고
+  // 편지 내용만 아직이다. 하늘·헤더·내레이션은 그대로 두고 종이만 빈 채로 기다린다.
+  const contentPending = stage === 'letter' && !capsule?.content && isPlaceholderData
 
   // 봉투를 뜯기 전에 편지 하늘 삽화를 데워 둔다 — 개봉 연출이 끝나는 순간 이미 자리에 있게.
   // 봉인 대기 화면의 금고 삽화도 CSS 배경이라 현재 테마만 받는다 — 반대 테마까지 미리 데워
@@ -183,8 +187,9 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   const photos = content?.photos ?? []
   const handwriting = content?.handwriting ?? []
 
-  // 편지를 읽는 화면에서만 헤더가 아침 하늘 위로 올라간다
-  const onSky = stage === 'letter' && !!content
+  // 편지를 읽는 화면에서만 헤더가 아침 하늘 위로 올라간다 (내용을 기다리는 동안도 포함 —
+  // 여기서 흰 헤더를 거쳤다가 하늘로 바뀌면 그게 바로 깜빡임이다)
+  const onSky = stage === 'letter' && (!!content || contentPending)
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
@@ -325,6 +330,29 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
                   {capsule.claimed ? '받는 분이 등록을 마쳤어요 · 링크 다시 보내기' : '초대 링크 전달하기'}
                 </button>
               )}
+          </div>
+        )}
+
+        {/* 내용을 기다리는 편지지 — 요약은 알지만 본문은 아직(목록에서 막 들어온 첫 진입).
+            내레이션 칩은 봉인·개봉일만으로 완성되니 진짜를 쓰고, 종이만 빈 채로 숨 쉰다 */}
+        {capsule && contentPending && (
+          <div className="capsule-reading px-4" aria-busy="true">
+            <div className="capsule-reading__journey">
+              <span className="capsule-reading__journey-chip">
+                <Icon size={13}>
+                  <CalendarGlyph />
+                </Icon>
+                {arrivalNarration(capsule.sealed_at, capsule.open_at)}
+              </span>
+            </div>
+            <div className="capsule-paper capsule-paper--ghost" aria-hidden>
+              <i className="capsule-washi capsule-washi--tl" />
+              <i className="capsule-washi capsule-washi--br" />
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
           </div>
         )}
 

@@ -4,6 +4,8 @@
 // 밤 안내판(station.css) 안에서는 토큰만 바뀌어 유리 행이 된다.
 import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { prefetchCapsule } from '../../hooks/useTimeCapsule'
 import type { CapsuleSummary } from '../../types/timeCapsule'
 import { showToast } from '../../utils/toast'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
@@ -164,6 +166,9 @@ export const SealedRow = ({
   keyword?: string
 }) => {
   const navigate = useNavigate()
+  const qc = useQueryClient()
+  // 손이 닿는 순간 상세를 미리 받아 둔다 — 눌렀을 때 편지 내용까지 바로 있게(30초 안엔 재요청 없음)
+  const warm = () => void prefetchCapsule(qc, capsule.id)
   const dday = daysUntil(capsule.open_at)
   const needsShare =
     capsule.role === 'sender' && capsule.capsule_type === 'invite' && !!capsule.invite_code
@@ -174,6 +179,8 @@ export const SealedRow = ({
       <button
         type="button"
         onClick={() => navigate(`/capsule/${capsule.id}`)}
+        onPointerEnter={warm}
+        onFocus={warm}
         className="capsule-row"
       >
         <MiniEnvelope color={sealColor(capsule.id)} tile />
@@ -230,6 +237,8 @@ export const ArrivedRow = ({
   keyword?: string
 }) => {
   const navigate = useNavigate()
+  const qc = useQueryClient()
+  const warm = () => void prefetchCapsule(qc, capsule.id)
   // opened_at은 '수신자가 열었는가'만 기록한다(발신자 재열람은 남지 않는다).
   // 그래서 내가 보낸 캡슐에는 미개봉 상태를 쓰면 안 된다 — 내가 아무리 읽어도 영영 '안 읽음'이 된다.
   const isSender = capsule.role === 'sender'
@@ -251,6 +260,8 @@ export const ArrivedRow = ({
       <button
         type="button"
         onClick={() => navigate(`/capsule/${capsule.id}`)}
+        onPointerEnter={warm}
+        onFocus={warm}
         className="capsule-row"
         aria-label={
           isSender

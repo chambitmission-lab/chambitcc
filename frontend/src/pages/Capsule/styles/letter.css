@@ -401,6 +401,57 @@
   color: var(--p-ink);
 }
 
+/* 내용을 기다리는 빈 편지지 — 목록 요약(placeholderData)으로 무대는 섰고 본문만 올 때.
+   글줄 자리만 옅게 비워 두고 종이 전체가 천천히 숨 쉰다. 진짜 편지가 오면 그 자리에서
+   capsule-letter-enter 로 떠오른다 */
+.capsule-paper--ghost {
+  min-height: 340px;
+  animation: capsule-paper-breathe 1.7s ease-in-out infinite;
+}
+
+.capsule-paper--ghost > span {
+  display: block;
+  height: 13px;
+  border-radius: 999px;
+  background: rgba(74, 48, 30, 0.09);
+}
+
+.capsule-paper--ghost > span:nth-child(3) {
+  width: 42%;
+  height: 20px;
+  margin: 46px 0 26px;
+}
+
+.capsule-paper--ghost > span:nth-child(4) {
+  width: 92%;
+  margin-bottom: 21px;
+}
+
+.capsule-paper--ghost > span:nth-child(5) {
+  width: 84%;
+  margin-bottom: 21px;
+}
+
+.capsule-paper--ghost > span:nth-child(6) {
+  width: 61%;
+}
+
+.dark .capsule-paper--ghost > span {
+  background: rgba(74, 48, 30, 0.14);
+}
+
+@keyframes capsule-paper-breathe {
+  50% {
+    opacity: 0.78;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-paper--ghost {
+    animation: none;
+  }
+}
+
 /* 종이 결 — 봉투·폴라로이드와 같은 그레인 */
 .capsule-paper::after {
   content: '';

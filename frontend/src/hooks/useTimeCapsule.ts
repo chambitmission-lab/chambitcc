@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import type { QueryClient } from '@tanstack/react-query'
+import type { InfiniteData, QueryClient } from '@tanstack/react-query'
 import {
   claimCapsule,
   createCapsule,
@@ -84,14 +84,38 @@ export const useMyCapsules = (enabled = true) => useCapsuleList('', enabled)
 export const useCapsuleSearch = (q: string, enabled = true) =>
   useCapsuleList(q, enabled && q.length > 0)
 
-export const useCapsule = (capsuleId: number, enabled = true) =>
-  useQuery({
+/**
+ * 캡슐함 목록 캐시(검색 결과 페이지까지)에서 요약 한 건을 찾아 상세 모양으로 돌려준다.
+ * 상세 응답이 오기 전 자리표시자 — 요약만으로도 개봉 여부·날짜를 알아 무대(하늘·봉투·다이얼)를
+ * 처음부터 맞게 그릴 수 있다. 내용(content)만 비어 있다.
+ */
+const summaryFromListCache = (qc: QueryClient, capsuleId: number): CapsuleDetail | undefined => {
+  const lists = qc.getQueriesData<InfiniteData<CapsuleListResponse>>({
+    queryKey: capsuleKeys.list(),
+  })
+  for (const [, data] of lists) {
+    for (const page of data?.pages ?? []) {
+      const hit = [...(page.arrived ?? []), ...(page.sealed ?? [])].find((c) => c.id === capsuleId)
+      if (hit) return { ...hit, content: null }
+    }
+  }
+  return undefined
+}
+
+export const useCapsule = (capsuleId: number, enabled = true) => {
+  const qc = useQueryClient()
+  return useQuery({
     queryKey: capsuleKeys.detail(capsuleId),
     queryFn: () => getCapsule(capsuleId),
     enabled: enabled && capsuleId > 0,
     staleTime: 1000 * 30,
     refetchOnMount: true,
+    // 목록에서 들어왔다면 요약은 이미 안다 — 응답을 기다리는 동안 흰 로딩 헤더를 그렸다가
+    // 하늘 헤더로 갈아입던 깜빡임을 없앤다(화면은 isPlaceholderData 로 본문만 기다린다).
+    // 목록 캐시가 없으면(딥링크·콜드 스타트) undefined → 평소처럼 로딩 스켈레톤.
+    placeholderData: () => summaryFromListCache(qc, capsuleId),
   })
+}
 
 /**
  * 알림 '바로가기'처럼 진입이 예정된 캡슐의 상세를 미리 받아둔다.
