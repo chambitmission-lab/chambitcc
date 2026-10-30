@@ -118,6 +118,17 @@ export const deleteMyNotification = async (id: number): Promise<void> => {
 }
 
 /**
+ * 내 개인 알림 모두 삭제 (로그인 필수) — 전체 공지는 남는다
+ */
+export const deleteAllMyNotifications = async (): Promise<void> => {
+  await requestRaw('/notifications/mine', {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '알림을 삭제하지 못했습니다',
+  })
+}
+
+/**
  * 공지사항 생성 (관리자 전용)
  */
 export const createNotification = async (data: CreateNotificationRequest): Promise<Notification> => {

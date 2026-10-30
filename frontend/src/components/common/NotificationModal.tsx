@@ -7,7 +7,9 @@ import {
   useMarkAsRead,
   useMarkAllAsRead,
   useDeleteMyNotification,
+  useDeleteAllMyNotifications,
 } from '../../hooks/useNotifications'
+import { confirmDialog } from '../../utils/confirmDialog'
 import { tokenStore } from '../../utils/tokenStore'
 import { prefetchCapsule } from '../../hooks/useTimeCapsule'
 import { showToast } from '../../utils/toast'
@@ -157,6 +159,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const markAsReadMutation = useMarkAsRead()
   const markAllAsReadMutation = useMarkAllAsRead()
   const deleteMutation = useDeleteMyNotification()
+  const deleteAllMutation = useDeleteAllMyNotifications()
 
   // 스크롤 끝 감지 → 다음 페이지 로드
   useEffect(() => {
@@ -298,6 +301,26 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
     })
   }
 
+  // 내 알림 탭에서만 보이는 일괄 삭제 — 되돌릴 수 없으니 한 번 묻는다.
+  // 아직 안 불러온 페이지의 알림도 서버가 함께 지운다.
+  const hasPersonal = useMemo(() => notifications.some((n) => !isNotice(n)), [notifications])
+
+  const handleDeleteAll = async () => {
+    const ok = await confirmDialog({
+      title: '내 알림 모두 삭제',
+      message: '받은 개인 알림을 모두 삭제할까요?',
+      description: '교회 공지는 그대로 남고, 삭제한 알림은 되돌릴 수 없어요.',
+      confirmText: '모두 삭제',
+      icon: 'delete_outline',
+    })
+    if (!ok) return
+    deleteAllMutation.mutate(undefined, {
+      onSuccess: () => showToast('내 알림을 모두 삭제했어요', 'success'),
+      onError: (error) =>
+        showToast(error instanceof Error ? error.message : '알림을 삭제하지 못했습니다', 'error'),
+    })
+  }
+
   const handleMarkAllAsRead = async () => {
     if (!isLoggedIn) return
     try {
@@ -398,6 +421,17 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                   </button>
                 )
               })}
+
+              {isLoggedIn && filter === 'mine' && hasPersonal && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAll}
+                  disabled={deleteAllMutation.isPending}
+                  className="ml-auto h-8 lg:h-10 px-2.5 lg:px-3.5 -mr-1 rounded-full text-[13px] lg:text-[15.5px] font-semibold text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  모두 삭제
+                </button>
+              )}
             </div>
           )}
         </div>

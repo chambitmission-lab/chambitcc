@@ -6,6 +6,7 @@ import {
   markAsRead,
   markAllAsRead,
   deleteMyNotification,
+  deleteAllMyNotifications,
 } from '../api/notification'
 import type { NotificationsResponse } from '../types/notification'
 import { tokenStore } from '../utils/tokenStore'
@@ -159,6 +160,43 @@ export const useDeleteMyNotification = () => {
       return { prev }
     },
     onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(key, ctx.prev)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: key })
+    },
+  })
+}
+
+/**
+ * 내 개인 알림 모두 삭제 — 단건 삭제처럼 목록에서 먼저 빼고(낙관적), 실패하면 되돌린다.
+ * 전체 공지(target_user_id 없음)는 남기고, 지운 것 중 안 읽은 수만큼 뱃지를 줄인다.
+ */
+export const useDeleteAllMyNotifications = () => {
+  const queryClient = useQueryClient()
+  const key = notificationKeys.list()
+
+  return useMutation({
+    mutationFn: deleteAllMyNotifications,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const prev = queryClient.getQueryData<InfiniteData<NotificationsResponse>>(key)
+      if (prev) {
+        const personal = prev.pages.flatMap((p) => p.notifications).filter((n) => n.target_user_id != null)
+        const unreadDelta = personal.filter((n) => !n.is_read).length
+        queryClient.setQueryData<InfiniteData<NotificationsResponse>>(key, {
+          ...prev,
+          pages: prev.pages.map((p) => ({
+            ...p,
+            notifications: p.notifications.filter((n) => n.target_user_id == null),
+            total: Math.max(0, p.total - personal.length),
+            unread_count: Math.max(0, p.unread_count - unreadDelta),
+          })),
+        })
+      }
+      return { prev }
+    },
+    onError: (_err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(key, ctx.prev)
     },
     onSettled: () => {
