@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { HeavenLetterIcon } from '../../icons/HeavenLetterIcon'
 // 내비 글리프도 같은 Phosphor 세트 — 비활성은 굵은 선(bold), 활성은 면이 차오르는 duotone
 import {
   BookOpenText,
@@ -18,6 +17,7 @@ import { useThemeArt } from '../../../hooks/useThemeArt'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
 import SharePostcards from '../../share/SharePostcards'
+import SharePostcardButton from '../../share/SharePostcardButton'
 import { prewarmPostcardFont, type PostcardKey } from '../../share/sharePostcardsShared'
 
 // PC 전용 좌측 내비 레일 (lg+) — 모바일 하단 도크(BottomNavigation)의 데스크톱 대응물.
@@ -366,27 +366,20 @@ const DesktopNavRail = () => {
           </>
         )}
 
-        <button
-          onClick={() => {
-            setDialOpen((open) => !open)
-          }}
+        {/* 엽서 묶음 버튼 — 누르면 깔린 엽서가 빠져나가 위의 엽서 부채가 된다 */}
+        <SharePostcardButton
+          variant="rail"
+          open={dialOpen}
+          label={t('railShare')}
+          onClick={() => setDialOpen((open) => !open)}
           onMouseEnter={prewarmPostcardFont}
           aria-label={t('railShare')}
           aria-haspopup="menu"
           aria-expanded={dialOpen}
-          className="group relative z-50 w-[52px] h-[52px] xl:w-auto xl:h-auto xl:pl-3.5 xl:pr-6 xl:py-3.5 rounded-full flex items-center justify-center gap-2 text-white bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%),linear-gradient(155deg,#4593fc,var(--brand-dim))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.12),0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
+          className="group z-50"
         >
-          {/* 인장 문법(도크 FAB·완독 도장과 동일): 안쪽 점선 압인 링 */}
-          <span aria-hidden className="absolute inset-[3px] rounded-full border border-dashed border-white/30 pointer-events-none" />
-          {/* 도크 FAB와 같은 하늘 편지 — 평소엔 땅을 향해 있다가(rotate-90) 열리면 하늘로 날아오른다 */}
-          <HeavenLetterIcon
-            className={`w-[26px] h-[26px] shrink-0 transition-transform duration-300 ease-out ${dialOpen ? '' : 'rotate-90'}`}
-          />
-          <span className="hidden xl:inline text-[length:calc(16.5px*var(--rl,1))] font-bold whitespace-nowrap">
-            {t('railShare')}
-          </span>
           {!dialOpen && <RailTip label={t('railShare')} />}
-        </button>
+        </SharePostcardButton>
       </div>
 
       {/* 레일 하단 삽화 — 남는 세로를 다 가져가고 그림은 바닥에 붙는다.
