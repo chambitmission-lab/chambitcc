@@ -834,11 +834,12 @@ const PhotoVerse = () => {
             <p className="pv-intro__body">{t.introBody}</p>
             <button
               type="button"
-              className="pv-intro__cta brand-gradient"
+              className="pv-intro__cta"
               onClick={() => fileInputRef.current?.click()}
             >
               <span className="material-icons-round">add_photo_alternate</span>
-              {t.pickPhoto}
+              {/* 글자를 span 으로 감싼다 — 맨 텍스트 노드는 광택·빛줄(절대 위치 가상 요소) 아래에 깔린다 */}
+              <span>{t.pickPhoto}</span>
             </button>
 
             {/* 이어서 만들기 — 지난번 말씀과 스타일이 남아 있을 때만 */}

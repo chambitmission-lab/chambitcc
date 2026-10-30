@@ -1,0 +1,108 @@
+/* ── 기도 작성 · 공개 범위 칩 글래스 (2026-10-30) ───────────────────────────
+   /news 탭 세그먼트(pages/News/news-seg-glass.css)와 같은 문법.
+   - 비선택 칩: 반투명 유리 + 위쪽 1px 빛줄 + 1px 가는 테두리(box-shadow) + 넓게 퍼지는 그림자
+   - 선택 칩: /bible 완독 구슬 문법의 유리구슬 — 밝은→진한 3단 그라데이션 + 빛무리 + 왼쪽 위 광택 한 점
+   - 골방 기도자(익명)는 '누구와'가 아니라 '어떻게'를 바꾸는 토글이라 구슬 대신 점선 유리로 구분한다 */
+.pv-glass {
+  --pv-glass: rgba(255, 255, 255, 0.62);
+  --pv-glass-hover: rgba(255, 255, 255, 0.85);
+  --pv-edge: rgba(255, 255, 255, 0.9);
+  --pv-line: rgba(30, 60, 120, 0.09);
+  --pv-secret-line: rgba(49, 130, 246, 0.28);
+  --pv-drop: 0 8px 22px -12px rgba(49, 90, 180, 0.28);
+}
+[data-theme="dark"] .pv-glass {
+  --pv-glass: rgba(34, 37, 46, 0.58);
+  --pv-glass-hover: rgba(48, 52, 64, 0.7);
+  --pv-edge: rgba(255, 255, 255, 0.08);
+  --pv-line: rgba(255, 255, 255, 0.08);
+  --pv-secret-line: rgba(69, 147, 252, 0.32);
+  --pv-drop: 0 10px 26px -12px rgba(0, 0, 0, 0.6);
+}
+
+.pv-chip {
+  position: relative;
+  /* 골방 칩의 1px 점선과 높이를 맞추려고 모든 칩에 투명 1px 테두리를 둔다 — 보이는 선은 box-shadow 가 그린다 */
+  border: 1px solid transparent;
+  background: var(--pv-glass);
+  box-shadow:
+    inset 0 1px 0 var(--pv-edge),
+    0 0 0 1px var(--pv-line),
+    var(--pv-drop);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+}
+/* 비밀 칩(나만 보기·목사님과 함께) — 고르기 전에도 테두리만 은은한 블루로 */
+.pv-chip--secret {
+  box-shadow:
+    inset 0 1px 0 var(--pv-edge),
+    0 0 0 1px var(--pv-secret-line),
+    var(--pv-drop);
+}
+@media (hover: hover) {
+  .pv-chip[aria-pressed='false']:hover {
+    background: var(--pv-glass-hover);
+  }
+}
+
+/* 선택 — 유리구슬 */
+.pv-chip[aria-pressed='true']:not(.pv-chip--anon) {
+  color: #fff;
+  background:
+    radial-gradient(60% 120% at 22% 10%, rgba(255, 255, 255, 0.34), transparent 55%),
+    linear-gradient(150deg, color-mix(in srgb, #4593fc 70%, #fff) 0%, #4593fc 45%, #1f66e0 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -4px 10px -4px rgba(10, 40, 120, 0.3),
+    0 0 0 4px rgba(49, 130, 246, 0.1),
+    0 0 20px 2px rgba(49, 130, 246, 0.28),
+    0 4px 14px -4px rgba(49, 130, 246, 0.55);
+}
+/* 왼쪽 위 광택 한 점 — 글자·아이콘을 덮지 않게 작고 옅게 */
+.pv-chip[aria-pressed='true']:not(.pv-chip--anon)::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 10px;
+  width: 18px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.42);
+  transform: rotate(-10deg);
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .pv-chip[aria-pressed='true']:not(.pv-chip--anon)::after {
+    top: 5px;
+    left: 16px;
+    width: 28px;
+    height: 9px;
+  }
+}
+[data-theme="dark"] .pv-chip[aria-pressed='true']:not(.pv-chip--anon) {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -4px 10px -4px rgba(0, 0, 0, 0.35),
+    0 0 0 4px rgba(69, 147, 252, 0.09),
+    0 0 22px 3px rgba(69, 147, 252, 0.3),
+    0 4px 16px -4px rgba(49, 130, 246, 0.6);
+}
+
+/* 골방 기도자 — 점선 유리. 켜지면 점선이 블루로, 유리에 블루가 살짝 번진다 */
+.pv-chip--anon {
+  border: 1px dashed color-mix(in srgb, var(--text-muted) 45%, transparent);
+  /* 점선이 테두리 역할 — 바깥 1px 실선(box-shadow)은 빼야 선이 두 겹이 안 된다 */
+  box-shadow:
+    inset 0 1px 0 var(--pv-edge),
+    var(--pv-drop);
+}
+.pv-chip--anon[aria-pressed='true'] {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 14%, var(--pv-glass));
+  box-shadow:
+    inset 0 1px 0 var(--pv-edge),
+    0 0 16px -2px var(--brand-glow),
+    var(--pv-drop);
+}

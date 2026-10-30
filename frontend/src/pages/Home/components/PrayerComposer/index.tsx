@@ -14,6 +14,7 @@ import { GroupGlyph } from '../../../Groups/GroupIcons'
 import { VerseSlashPanel } from './VerseSlashPanel'
 import { findSlashMatch, useVerseSlash } from './verseSlash'
 import '../ThanksThread/thanks.css'
+import './visibility-glass.css'
 import { SheetGrabber } from '../../../../components/common/SheetGrabber'
 import { pickRandom } from '../../../../utils/random'
 
@@ -508,7 +509,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
                   <div className="mt-3 lg:mt-7 flex items-center justify-between">
                     <span className="text-[11.5px] lg:text-[17px] font-bold text-ink-strong">{t('prayerVisibilityLabel')}</span>
                   </div>
-                  <div className="mt-1.5 lg:mt-3 flex flex-wrap items-center gap-1.5 lg:gap-2.5 lg:[&>button]:px-5 lg:[&>button]:py-3 lg:[&>button]:text-[16px] lg:[&>button]:gap-2 lg:[&_svg]:w-[19px] lg:[&_svg]:h-[19px]">
+                  <div className="pv-glass mt-1.5 lg:mt-3 flex flex-wrap items-center gap-1.5 lg:gap-2.5 lg:[&>button]:px-5 lg:[&>button]:py-3 lg:[&>button]:text-[16px] lg:[&>button]:gap-2 lg:[&_svg]:w-[19px] lg:[&_svg]:h-[19px]">
                     {[
                       { key: 'public', Icon: GlobeIcon, label: t('prayerVisibilityPublic'), active: !isPrivate && selectedGroupId === null, onClick: () => { setIsPrivate(false); setSelectedGroupId(null) } },
                       { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: onlyMe, onClick: () => setIsPrivate(true), tooltip: t('privateChipTooltip') },
@@ -520,19 +521,10 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
                         onClick={opt.onClick}
                         aria-pressed={opt.active}
                         title={opt.tooltip}
-                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all active:scale-95 ${
-                          opt.active
-                            ? 'border-transparent bg-brand text-[var(--on-brand)] shadow-[0_4px_12px_var(--brand-glow)]'
-                            : 'text-ink-muted hover:text-brand'
+                        // 유리 칩 — 선택은 유리구슬, 비밀 칩(나만 보기·목사님과 함께)은 고르기 전에도 블루 테두리 (visibility-glass.css)
+                        className={`pv-chip${opt.tooltip ? ' pv-chip--secret' : ''} inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all active:scale-95 ${
+                          opt.active ? '' : 'text-ink-muted hover:text-brand'
                         }`}
-                        style={
-                          opt.active
-                            ? undefined
-                            : opt.tooltip
-                              // 비밀 칩(나만 보기·목사님과 함께) — 고르기 전에도 은은한 브랜드 테두리로 구분
-                              ? { borderColor: 'color-mix(in srgb, var(--brand) 30%, var(--card-border))', background: 'color-mix(in srgb, var(--brand) 5%, var(--surface-inset))' }
-                              : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
-                        }
                       >
                         {opt.lockBadge ? (
                           // 목사님 아이콘 + 작은 자물쇠 — 목사님만 읽는 비밀 기도라는 표시
@@ -563,16 +555,9 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
                           type="button"
                           onClick={() => setSelectedGroupId(active ? null : group.id)}
                           aria-pressed={active}
-                          className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all active:scale-95 ${
-                            active
-                              ? 'border-transparent bg-brand text-[var(--on-brand)] shadow-[0_4px_12px_var(--brand-glow)]'
-                              : 'text-ink-muted hover:text-brand'
+                          className={`pv-chip inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all active:scale-95 ${
+                            active ? '' : 'text-ink-muted hover:text-brand'
                           }`}
-                          style={
-                            active
-                              ? undefined
-                              : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
-                          }
                         >
                           <GroupGlyph emoji={group.icon} size={14} className="shrink-0" />
                           {group.name}
@@ -586,13 +571,9 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
                         type="button"
                         onClick={() => setIsAnonymous(!isAnonymous)}
                         aria-pressed={isAnonymous}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed text-[12px] font-semibold transition-all active:scale-95 ${
-                          isAnonymous ? 'text-brand border-brand' : 'text-ink-muted hover:text-brand'
+                        className={`pv-chip pv-chip--anon inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all active:scale-95 ${
+                          isAnonymous ? 'text-brand' : 'text-ink-muted hover:text-brand'
                         }`}
-                        style={{
-                          borderColor: isAnonymous ? undefined : 'var(--card-border)',
-                          background: isAnonymous ? 'var(--brand-soft)' : 'var(--surface-inset)',
-                        }}
                       >
                         {isAnonymous ? <ClosetIcon size={14} /> : <EyeIcon size={14} />}
                         {t('prayerComposerAnonymous')}

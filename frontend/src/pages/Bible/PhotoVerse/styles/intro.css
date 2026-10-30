@@ -70,7 +70,13 @@
   margin-bottom: 28px;
 }
 
+/* 사진 선택 CTA — 유리구슬 버튼 (/news 탭 마커·기도 작성 공개 범위 칩과 같은 문법)
+   밝은→진한 3단 그라데이션 + 1px 빛줄 림 + 아래쪽 안 그림자 + 빛무리 + 왼쪽 위 광택 한 점.
+   호버하면 살짝 떠오르며 빛줄 하나가 유리 위를 한 번 쓸고 지나간다(반복 없음). */
 .pv-intro__cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -78,14 +84,91 @@
   border-radius: 16px;
   font-size: 16px;
   font-weight: 700;
+  color: #fff;
   border: none;
   cursor: pointer;
-  box-shadow: 0 6px 16px var(--brand-glow);
-  transition: transform 0.15s ease;
+  background:
+    radial-gradient(60% 120% at 22% 10%, rgba(255, 255, 255, 0.34), transparent 55%),
+    linear-gradient(150deg, color-mix(in srgb, #4593fc 70%, #fff) 0%, #4593fc 45%, #1f66e0 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -6px 12px -6px rgba(10, 40, 120, 0.35),
+    0 0 0 4px rgba(49, 130, 246, 0.1),
+    0 0 24px 2px rgba(49, 130, 246, 0.28),
+    0 8px 20px -6px rgba(49, 130, 246, 0.55);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
+[data-theme="dark"] .pv-intro__cta {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -6px 12px -6px rgba(0, 0, 0, 0.4),
+    0 0 0 4px rgba(69, 147, 252, 0.09),
+    0 0 26px 3px rgba(69, 147, 252, 0.3),
+    0 8px 22px -6px rgba(49, 130, 246, 0.6);
+}
+/* 글자·아이콘은 광택·빛줄 위에 */
+.pv-intro__cta > * {
+  position: relative;
+  z-index: 1;
+}
+/* 왼쪽 위 광택 한 점 */
+.pv-intro__cta::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 18px;
+  width: 34px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.42);
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+/* 호버 때 한 번 쓸고 지나가는 빛줄 */
+.pv-intro__cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.38), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .pv-intro__cta:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -6px 12px -6px rgba(10, 40, 120, 0.35),
+      0 0 0 5px rgba(49, 130, 246, 0.12),
+      0 0 32px 4px rgba(49, 130, 246, 0.34),
+      0 12px 26px -8px rgba(49, 130, 246, 0.6);
+  }
+  .pv-intro__cta:hover::before {
+    left: 120%;
+    transition: left 0.7s ease;
+  }
+}
 .pv-intro__cta:active {
   transform: scale(0.97);
+}
+.pv-intro__cta:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-intro__cta,
+  .pv-intro__cta:hover::before {
+    transition: none;
+  }
+  .pv-intro__cta::before {
+    display: none;
+  }
 }
 
 /* 인트로 — 상황별 카드 "누구에게 보내요?" (탭 한 번에 말씀·인사말·배경이 채워진다) */
