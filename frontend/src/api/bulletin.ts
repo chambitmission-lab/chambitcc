@@ -35,6 +35,21 @@ export const getBulletinDetail = async (id: number, countView = true): Promise<B
   })
 }
 
+/** 카톡 피드 카드 재료 — /w/{id} 미리보기와 같은 제목·설명·카드 그림 (백엔드 bulletin_share.share_card) */
+export interface BulletinShareCard {
+  title: string
+  description: string
+  image_url: string
+  image_width: number
+  image_height: number
+  /** 카드를 누르면 열리는 공유 주소 */
+  url: string
+}
+
+/** 비공개·없음·카드를 못 그릴 때는 404 — 부른 쪽은 스크랩 경로로 돌아간다 */
+export const getBulletinShareCard = (id: number): Promise<BulletinShareCard> =>
+  request<BulletinShareCard>(`/bulletins/${id}/share`, { errorMessage: '주보 카드를 불러오지 못했어요' })
+
 /**
  * 주보 생성 (관리자 전용) - multipart/form-data 사용
  */

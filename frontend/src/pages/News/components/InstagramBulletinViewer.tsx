@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useQuery } from '@tanstack/react-query'
 import type { Bulletin, BulletinPage } from '../../../types/bulletin'
+import { getBulletinShareCard } from '../../../api/bulletin'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { safeStorage } from '../../../utils/safeStorage'
 import { SEASON_LABEL, fill, issueDateText, pageSrc, pageThumb, toIssue } from './bulletinIssue'
-import { prefetchPageFile, shareBulletinKakao, shareBulletinLink, shareBulletinPage } from './bulletinShare'
+import { prefetchPageFile, prewarmBulletinKakao, shareBulletinKakao, shareBulletinLink, shareBulletinPage } from './bulletinShare'
 import { canKakaoShare, loadKakaoShare } from '../../../utils/kakaoShare'
 import KakaoIcon from '../../../components/icons/KakaoIcon'
 import { isWarm, warmImage, warmPagesAround } from './bulletinWarm'
@@ -577,6 +579,41 @@ const InstagramBulletinViewer = ({
     return () => window.clearTimeout(id)
   }, [])
 
+  // ── 카톡 카드 재료(제목·설명·카드 그림)도 미리 — 피드 템플릿으로 보내면 카카오가 주소를 긁지 않아 첫 공유도 바로 열린다.
+  //    못 받으면(비공개·카드 없음) 스크랩 경로라, 그땐 카카오 쪽 스크랩 캐시를 미리 데워 둔다 ──
+  const shareCard = useQuery({
+    queryKey: ['bulletin', bulletin.id, 'share-card'],
+    queryFn: () => getBulletinShareCard(bulletin.id),
+    enabled: canKakaoShare(),
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  })
+  useEffect(() => {
+    if (shareCard.isError) prewarmBulletinKakao(bulletin.id)
+  }, [shareCard.isError, bulletin.id])
+
+  // 누른 뒤 카톡이 열리기까지(모바일은 카카오 API 응답 뒤 앱 전환) 화면이 그대로라 "안 눌렸나" 싶었다 —
+  // 눌림 상태를 보여 주고, 앱으로 넘어가거나(visibilitychange) 2.5초가 지나면 되돌린다
+  const [kakaoBusy, setKakaoBusy] = useState(false)
+  useEffect(() => {
+    if (!kakaoBusy) return
+    const done = () => setKakaoBusy(false)
+    const id = window.setTimeout(done, 2500)
+    const onVisibility = () => {
+      if (document.hidden) done()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.clearTimeout(id)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [kakaoBusy])
+  const sendKakao = () => {
+    setKakaoBusy(true)
+    // 클릭 핸들러 안에서 동기로 보내야(SDK 가 있으면 await 없이) 팝업·스킴 전환이 막히지 않는다
+    void shareBulletinKakao(bulletin.id, ko, shareCard.data)
+  }
+
   const shareTitle = ko ? `${dateText} 주보 · ${issueLabel}` : `${dateText} bulletin · ${issueLabel}`
   const sharePage = () =>
     shareBulletinPage(
@@ -679,9 +716,15 @@ const InstagramBulletinViewer = ({
       <div className="bv-end-actions">
         {canKakaoShare() ? (
           <div className="bv-end-share">
-            <button type="button" className="bv-end-kakao" onClick={() => shareBulletinKakao(bulletin.id, ko)}>
+            <button type="button" className="bv-end-kakao" onClick={sendKakao} disabled={kakaoBusy} aria-busy={kakaoBusy}>
               <KakaoIcon />
-              {ko ? '카카오톡으로 보내기' : 'Share on KakaoTalk'}
+              {kakaoBusy
+                ? ko
+                  ? '카카오톡 여는 중…'
+                  : 'Opening KakaoTalk…'
+                : ko
+                  ? '카카오톡으로 보내기'
+                  : 'Share on KakaoTalk'}
             </button>
             <button
               type="button"

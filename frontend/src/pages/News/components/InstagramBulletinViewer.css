@@ -652,6 +652,8 @@
 /* 카톡 보내기 + 다른 앱(정사각) 한 줄 — 노랑·검정은 카카오 브랜드 가이드 색 */
 .bv-end-share { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
 .bv-end-actions .bv-end-kakao { background: #fee500; color: rgba(0, 0, 0, 0.85); }
+/* 누른 뒤 카톡이 열릴 때까지 — 흐려지기보다 '열고 있다'는 느낌으로 */
+.bv-end-actions .bv-end-kakao:disabled { opacity: 0.85; cursor: progress; }
 .bv-end-actions .bv-end-more { width: 48px; background: #fff; color: #191f28; }
 .bv-end-secondary { background: rgba(255, 255, 255, 0.92); color: #191f28; }
 .bv-end-secondary img { width: 22px; height: 32px; object-fit: cover; border-radius: 3px; }

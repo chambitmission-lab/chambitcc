@@ -1,5 +1,7 @@
 // 주보 보내기 — 한 쪽 이미지는 파일로(카톡이 사진으로 받는다), 안 되면 미리보기 카드가 뜨는 링크로.
 // 컴포넌트가 아닌 순수 함수라 별도 파일 (fast refresh 규칙). 칼럼 columnShare.ts 와 같은 결 — 공통은 utils/shareLink.ts.
+import type { BulletinShareCard } from '../../../api/bulletin'
+import { kakaoShareFeed, prewarmKakaoScrap } from '../../../utils/kakaoShare'
 import { isLocalHost, SHARE_ORIGIN } from '../../../utils/shareOrigin'
 import { isAbortError, shareKakaoOrUrl, shareUrl } from '../../../utils/shareLink'
 
@@ -21,9 +23,32 @@ export const shareBulletinLink = (id: number, ko: boolean) =>
     failed: ko ? '보내기에 실패했어요' : 'Could not share',
   })
 
-/** 카카오톡으로 — 앨범 커버 카드만 간다. SDK 가 없으면 공유 시트로 */
-export const shareBulletinKakao = (id: number, ko: boolean) =>
-  shareKakaoOrUrl(`${SHARE_ORIGIN}/w/${id}`, () => shareBulletinLink(id, ko))
+/** 카톡이 긁어 가는 주소 — 로컬에서도 운영 주소(카카오 서버가 직접 읽는다) */
+const bulletinKakaoUrl = (id: number) => `${SHARE_ORIGIN}/w/${id}`
+
+/**
+ * 카카오톡으로 — 앨범 커버 카드만 간다.
+ * card(제목·설명·카드 그림)가 있으면 피드 템플릿으로 보낸다 — 카카오가 /w 페이지를 긁지 않아 첫 공유도
+ * 바로 열린다. 없으면 스크랩(sendScrap), SDK 마저 없으면 공유 시트로.
+ */
+export const shareBulletinKakao = async (id: number, ko: boolean, card?: BulletinShareCard | null) => {
+  if (
+    card &&
+    (await kakaoShareFeed({
+      title: card.title,
+      description: card.description,
+      imageUrl: card.image_url,
+      imageWidth: card.image_width,
+      imageHeight: card.image_height,
+      link: card.url,
+    }))
+  )
+    return
+  await shareKakaoOrUrl(bulletinKakaoUrl(id), () => shareBulletinLink(id, ko))
+}
+
+/** 카드 재료를 못 받아 스크랩 경로로 갈 때 — 누르기 전에 카카오 쪽 캐시를 데워 둔다 */
+export const prewarmBulletinKakao = (id: number) => prewarmKakaoScrap(bulletinKakaoUrl(id))
 
 /**
  * 한 쪽을 사진으로 보낸다. file 은 미리 받아 둔 것 — 누른 뒤에 받으면 iOS 사파리가
