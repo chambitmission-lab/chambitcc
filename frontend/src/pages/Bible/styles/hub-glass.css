@@ -166,6 +166,12 @@
     -webkit-backdrop-filter: blur(18px) saturate(1.4);
     backdrop-filter: blur(18px) saturate(1.4);
   }
+  /* 모바일용 풀블리드 가림막(skeleton.css .book-nav::before, 섹션 회색 바탕)이 빛 번짐 위에
+     카드보다 한 뼘 큰 회색 사각형으로 비쳤다(라이트만 — 다크는 바탕과 같은 색이라 안 보임, 2026-10-30).
+     PC 는 섹션 바탕을 걷었고 카드가 유리라 책 목록이 비쳐 지나가는 게 의도이므로 가림막을 뺀다 */
+  .bible-hub .book-nav::before {
+    display: none;
+  }
 
   /* ④ 성경 공부 도구 — 벤토 타일 */
   .bible-hub .dash-bento {
