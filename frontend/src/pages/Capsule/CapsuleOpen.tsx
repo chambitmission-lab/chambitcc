@@ -103,10 +103,13 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
       setScrolled(
         (document.body.scrollTop || document.documentElement.scrollTop || window.scrollY) > 130,
       )
-    onScroll()
+    // 첫 판정은 한 프레임 뒤에 — 진입 직후엔 ScrollRestoration 이 이전 화면의 스크롤을 0 으로
+    // 되돌리는 중이라, 지금 읽으면 옛 위치(>130)로 유리를 입혔다가 바로 벗으며 한 번 깜빡인다
+    const first = requestAnimationFrame(onScroll)
     document.body.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
+      cancelAnimationFrame(first)
       document.body.removeEventListener('scroll', onScroll)
       window.removeEventListener('scroll', onScroll)
     }
