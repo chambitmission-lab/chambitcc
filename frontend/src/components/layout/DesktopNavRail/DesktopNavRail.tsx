@@ -261,13 +261,13 @@ const DesktopNavRail = () => {
     },
   ]
 
-  // 활성은 캔버스 위에 뜬 흰 알약 — 앱의 확정 층 구조(회색 바닥 / 떠 있는 흰 카드)를 레일에도 그대로 쓴다.
-  // 연한 블루 면 + 좌측 막대는 은퇴. 브랜드색은 활성 글리프의 인장 타일 하나에만 남긴다
+  // 활성은 인장 하나로만 — 글리프 칸에 블루 인장이 찍히고 라벨은 진하게.
+  // 흰 알약까지 겹치면 무거워서 줄 배경은 두지 않는다(호버만 옅은 면). 연한 블루 면·좌측 막대도 은퇴
   const itemClass = (active: boolean) =>
-    `group relative flex items-center justify-center xl:justify-start gap-3 min-h-[50px] rounded-2xl px-0 xl:px-2 py-1.5 active:scale-[0.97] transition-[color,background-color,box-shadow,transform] duration-150 ${
+    `group relative flex items-center justify-center xl:justify-start gap-3 min-h-[50px] rounded-2xl px-0 xl:px-2 py-1.5 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
       active
-        ? 'bg-[var(--surface-container)] shadow-[var(--card-shadow)] text-[var(--text-strong)]'
-        : 'text-gray-600 dark:text-white/75 hover:text-[var(--text-strong)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+        ? 'text-[var(--text-strong)] dark:text-white'
+        : 'text-gray-600 dark:text-white/70 hover:text-[var(--text-strong)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
     }`
 
   return (
@@ -305,7 +305,7 @@ const DesktopNavRail = () => {
                     활성만 인장(블루 그라데이션 + 안쪽 점선 압인 링, common.css .seal-marker)이 찍힌다 */}
                 <span
                   className={`relative grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl transition-[background-color,box-shadow] duration-150 ${
-                    active ? 'seal-marker text-white [--seal-radius:12px]' : ''
+                    active ? 'rail-seal seal-marker text-white [--seal-radius:12px]' : ''
                   }`}
                 >
                   {path && pendingPath === path ? (
