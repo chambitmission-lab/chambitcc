@@ -820,8 +820,16 @@ const PhotoVerse = () => {
         {/* 사진 선택 전 — 인트로 */}
         {!photo && (
           <div className="pv-intro">
-            <div className="pv-intro__icon">
-              <span className="material-icons-round">photo_filter</span>
+            {/* 인트로 그림 — 누르는 자리가 아니라서 버튼처럼 보이는 아이콘 타일 대신,
+                이 화면에서 만들게 될 말씀 카드 세 장이 부채처럼 겹친 미니 그림 (intro.css) */}
+            <div className="pv-intro__fan" aria-hidden="true">
+              <span className="pv-intro__card pv-intro__card--back" />
+              <span className="pv-intro__card pv-intro__card--mid" />
+              <span className="pv-intro__card pv-intro__card--front">
+                <i />
+                <i />
+                <i />
+              </span>
             </div>
             <h2 className="pv-intro__headline">
               {t.introHeadline.split('\n').map((line) => (
@@ -886,8 +894,8 @@ const PhotoVerse = () => {
                     </span>
                     {sermon.title && <span className="pv-today__text">「{sermon.title}」</span>}
                     <span className="pv-today__ref">
+                      {/* 화살표는 카드 오른쪽 유리 단추(intro.css ::after)가 맡는다 */}
                       {passageLabel(sermon.ref)} · {t.sermonPick}
-                      <span className="material-icons-round text-[15px] align-[-3px]">chevron_right</span>
                     </span>
                   </button>
                 )}

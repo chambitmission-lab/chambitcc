@@ -38,20 +38,89 @@
   z-index: 1;
 }
 
-.pv-intro__icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 24px;
-  background: var(--brand-soft-strong);
-  color: var(--brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
+/* 인트로 그림 — 말씀 카드 세 장 부채. 장식이라 버튼 문법(구슬·빛무리·광택)은 쓰지 않는다.
+   사진 인화지처럼 흰 테두리 + 얕은 그림자만, 맨 앞 카드에 말씀 두 줄과 출처 한 줄.
+   처음 열릴 때 한 번만 겹쳐 있던 카드가 펼쳐진다(유휴 반복 없음). */
+.pv-intro__fan {
+  --pvf-paper: #ffffff;
+  --pvf-shadow: 0 1px 2px rgba(20, 30, 60, 0.08), 0 10px 22px -10px rgba(20, 40, 90, 0.32);
+  position: relative;
+  width: 112px;
+  height: 92px;
+  margin-bottom: 22px;
+}
+[data-theme="dark"] .pv-intro__fan {
+  --pvf-paper: #2c2b2b;
+  --pvf-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 24px -10px rgba(0, 0, 0, 0.7);
 }
 
-.pv-intro__icon .material-icons-round {
-  font-size: 36px;
+.pv-intro__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 62px;
+  height: 80px;
+  margin: -40px 0 0 -31px;
+  border-radius: 9px;
+  border: 3px solid var(--pvf-paper);
+  box-shadow: var(--pvf-shadow);
+  transition: transform 0.3s ease;
+}
+/* 뒤 두 장 — 새벽빛·들판 사진 톤 */
+.pv-intro__card--back {
+  background: linear-gradient(170deg, #ffe2c4 0%, #f7a98a 55%, #c97a8a 100%);
+  transform: translateX(-24px) rotate(-14deg);
+  animation: pv-fan-back 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+.pv-intro__card--mid {
+  background: linear-gradient(170deg, #e4f3d8 0%, #a7d39a 55%, #5e9f78 100%);
+  transform: translateX(24px) rotate(12deg);
+  animation: pv-fan-mid 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+/* 맨 앞 — 하늘 사진 위 말씀 두 줄 + 출처 */
+.pv-intro__card--front {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background:
+    radial-gradient(70% 50% at 70% 18%, rgba(255, 255, 255, 0.55), transparent 70%),
+    linear-gradient(175deg, #a9d2ff 0%, #5a9bf6 55%, #2a5fc4 100%);
+  transform: translateY(-3px) rotate(-2deg);
+  animation: pv-fan-front 0.5s ease both;
+}
+.pv-intro__card--front i {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.92);
+}
+.pv-intro__card--front i:nth-child(1) { width: 36px; margin-top: 10px; }
+.pv-intro__card--front i:nth-child(2) { width: 28px; }
+.pv-intro__card--front i:nth-child(3) {
+  width: 16px;
+  height: 3px;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes pv-fan-back {
+  from { transform: translateX(0) rotate(-2deg); }
+  to { transform: translateX(-24px) rotate(-14deg); }
+}
+@keyframes pv-fan-mid {
+  from { transform: translateX(0) rotate(-2deg); }
+  to { transform: translateX(24px) rotate(12deg); }
+}
+@keyframes pv-fan-front {
+  from { opacity: 0; transform: translateY(6px) rotate(-2deg) scale(0.94); }
+  to { opacity: 1; transform: translateY(-3px) rotate(-2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-intro__card {
+    animation: none !important;
+  }
 }
 
 .pv-intro__headline {
@@ -177,45 +246,145 @@
   margin-top: 30px;
 }
 
+/* 상황별 카드 — 유리 타일 (위 유리구슬 CTA·이어서 만들기 유리 카드와 한 식구)
+   타일마다 반투명 유리 + 위쪽 1px 빛줄. 아이콘 칸은 평소엔 옅은 블루 유리이고,
+   호버(PC)·누름 때만 유리구슬로 차오른다 — 구슬이 일곱 개 다 켜져 있으면 CTA 가 묻힌다.
+   PC 에서는 일곱 개를 한 줄에 놓고 폭을 묶는다(4열이면 넓은 화면에서 타일이 멀리 흩어진다). */
 .pv-occasions {
+  --pvo-glass: rgba(255, 255, 255, 0.62);
+  --pvo-glass-hover: rgba(255, 255, 255, 0.88);
+  --pvo-edge: rgba(255, 255, 255, 0.9);
+  --pvo-line: rgba(30, 60, 120, 0.07);
+  --pvo-drop: 0 8px 22px -14px rgba(49, 90, 180, 0.3);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px 6px;
+  gap: 10px 8px;
+}
+[data-theme="dark"] .pv-occasions {
+  --pvo-glass: rgba(34, 37, 46, 0.58);
+  --pvo-glass-hover: rgba(46, 50, 62, 0.72);
+  --pvo-edge: rgba(255, 255, 255, 0.07);
+  --pvo-line: rgba(255, 255, 255, 0.07);
+  --pvo-drop: 0 10px 26px -14px rgba(0, 0, 0, 0.65);
+}
+@media (min-width: 1024px) {
+  .pv-occasions {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    max-width: 920px;
+    margin: 0 auto;
+    gap: 12px;
+  }
 }
 
 .pv-occasion {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 12px 4px 11px;
   border: none;
-  background: transparent;
+  border-radius: 18px;
+  background: var(--pvo-glass);
+  box-shadow:
+    inset 0 1px 0 var(--pvo-edge),
+    0 0 0 1px var(--pvo-line),
+    var(--pvo-drop);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
-
-.pv-occasion:active {
-  transform: scale(0.95);
+@media (min-width: 1024px) {
+  .pv-occasion {
+    padding: 16px 6px 14px;
+    gap: 10px;
+  }
 }
 
 .pv-occasion__icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 18px;
+  position: relative;
+  isolation: isolate;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--brand-soft);
+  background: color-mix(in srgb, var(--brand) 11%, transparent);
+  box-shadow: inset 0 1px 0 var(--pvo-edge);
   color: var(--brand);
   font-size: 24px;
+  transition: color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
-
+/* 구슬 면은 미리 깔아 두고 투명도만 올린다 — 그라데이션은 transition 이 안 걸린다 */
+.pv-occasion__icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(60% 120% at 22% 10%, rgba(255, 255, 255, 0.34), transparent 55%),
+    linear-gradient(150deg, color-mix(in srgb, #4593fc 70%, #fff) 0%, #4593fc 45%, #1f66e0 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -4px 8px -4px rgba(10, 40, 120, 0.35);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
 .pv-occasion__name {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-body);
   word-break: keep-all;
+  transition: color 0.2s ease;
+}
+@media (min-width: 1024px) {
+  .pv-occasion__name {
+    font-size: 14px;
+  }
+}
+
+@media (hover: hover) {
+  .pv-occasion:hover {
+    transform: translateY(-2px);
+    background: var(--pvo-glass-hover);
+    box-shadow:
+      inset 0 1px 0 var(--pvo-edge),
+      0 0 0 1px color-mix(in srgb, var(--brand) 26%, transparent),
+      0 14px 30px -14px rgba(49, 130, 246, 0.42);
+  }
+  .pv-occasion:hover .pv-occasion__icon {
+    color: #fff;
+    box-shadow: 0 6px 14px -4px rgba(49, 130, 246, 0.55);
+  }
+  .pv-occasion:hover .pv-occasion__icon::before {
+    opacity: 1;
+  }
+  .pv-occasion:hover .pv-occasion__name {
+    color: var(--text-strong);
+  }
+}
+.pv-occasion:active {
+  transform: scale(0.95);
+}
+.pv-occasion:active .pv-occasion__icon {
+  color: #fff;
+}
+.pv-occasion:active .pv-occasion__icon::before {
+  opacity: 1;
+}
+.pv-occasion:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-occasion,
+  .pv-occasion__icon,
+  .pv-occasion__icon::before {
+    transition: none;
+  }
 }
 
 /* 인트로 — 이번 주 우리 교회 말씀 (설교 본문 · 올해의 말씀) */
@@ -226,12 +395,141 @@
   border-top: 1px dashed var(--card-border);
 }
 
-.pv-intro__church .pv-today {
-  margin-top: 0;
+/* 설교 본문 · 올해의 말씀 카드 — 유리 카드 (말씀 시트의 .pv-today 는 그대로 두고 인트로에서만 덮는다)
+   블루 테두리 상자 대신 반투명 유리 + 위쪽 1px 빛줄 + 넓게 퍼지는 그림자, 배지는 유리구슬 알약.
+   PC 에서는 두 장을 나란히 놓고 상황별 타일과 같은 폭(920px)으로 묶는다. */
+.pv-intro__church {
+  --pvc-glass: rgba(255, 255, 255, 0.62);
+  --pvc-glass-hover: rgba(255, 255, 255, 0.88);
+  --pvc-edge: rgba(255, 255, 255, 0.9);
+  --pvc-line: rgba(30, 60, 120, 0.07);
+  --pvc-drop: 0 10px 28px -16px rgba(49, 90, 180, 0.32);
+}
+[data-theme="dark"] .pv-intro__church {
+  --pvc-glass: rgba(34, 37, 46, 0.58);
+  --pvc-glass-hover: rgba(46, 50, 62, 0.72);
+  --pvc-edge: rgba(255, 255, 255, 0.07);
+  --pvc-line: rgba(255, 255, 255, 0.07);
+  --pvc-drop: 0 12px 30px -16px rgba(0, 0, 0, 0.65);
 }
 
+.pv-intro__church .pv-today {
+  position: relative;
+  margin-top: 0;
+  gap: 8px;
+  padding: 16px 44px 16px 16px;
+  border: none;
+  border-radius: 18px;
+  background: var(--pvc-glass);
+  box-shadow:
+    inset 0 1px 0 var(--pvc-edge),
+    0 0 0 1px var(--pvc-line),
+    var(--pvc-drop);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
 .pv-intro__church .pv-today + .pv-today {
   margin-top: 10px;
+}
+/* 오른쪽 가운데 둥근 유리 화살표 — 카드 전체가 눌린다는 표시 */
+.pv-intro__church .pv-today::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin-top: -13px;
+  border-radius: 50%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233182f6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center / 16px no-repeat,
+    color-mix(in srgb, var(--brand) 10%, transparent);
+  box-shadow: inset 0 1px 0 var(--pvc-edge);
+  transition: transform 0.2s ease;
+}
+
+/* 배지 — 유리구슬 알약 */
+.pv-intro__church .pv-today__badge {
+  position: relative;
+  padding: 5px 11px 5px 9px;
+  font-size: 11.5px;
+  background:
+    radial-gradient(60% 120% at 22% 10%, rgba(255, 255, 255, 0.34), transparent 55%),
+    linear-gradient(150deg, color-mix(in srgb, #4593fc 70%, #fff) 0%, #4593fc 45%, #1f66e0 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 6px -3px rgba(10, 40, 120, 0.35),
+    0 4px 10px -4px rgba(49, 130, 246, 0.55);
+}
+
+.pv-intro__church .pv-today__text {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.pv-intro__church .pv-today__ref {
+  font-size: 12.5px;
+}
+
+@media (hover: hover) {
+  .pv-intro__church .pv-today:hover {
+    transform: translateY(-2px);
+    background: var(--pvc-glass-hover);
+    box-shadow:
+      inset 0 1px 0 var(--pvc-edge),
+      0 0 0 1px color-mix(in srgb, var(--brand) 26%, transparent),
+      0 16px 32px -16px rgba(49, 130, 246, 0.42);
+  }
+  .pv-intro__church .pv-today:hover::after {
+    transform: translateX(2px);
+  }
+}
+.pv-intro__church .pv-today:active {
+  transform: scale(0.98);
+}
+.pv-intro__church .pv-today:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+@media (min-width: 1024px) {
+  .pv-intro__church {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 14px;
+    max-width: 920px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .pv-intro__church > p {
+    grid-column: 1 / -1;
+  }
+  .pv-intro__church .pv-today + .pv-today {
+    margin-top: 0;
+  }
+  /* 한 장뿐이면 두 칸을 다 쓴다 */
+  .pv-intro__church .pv-today:only-of-type {
+    grid-column: 1 / -1;
+  }
+  .pv-intro__church .pv-today {
+    padding: 20px 52px 20px 20px;
+  }
+  .pv-intro__church .pv-today__text {
+    font-size: 17px;
+  }
+  .pv-intro__church .pv-today__ref {
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-intro__church .pv-today,
+  .pv-intro__church .pv-today::after {
+    transition: none;
+  }
 }
 
 /* 인트로 — 예시 카드 캐러셀. 만들어 보기 전에 결과물을 먼저 보여준다 (템플릿 스트립의 문법) */
