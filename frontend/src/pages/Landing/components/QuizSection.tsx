@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../../utils/toast'
 import { ChevronRightIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
+import { preloadRoute } from '../../../utils/routePreload'
 import { TentIcon, SleepIcon, CompassIcon, CandleIcon, BulbIcon } from './LandingIcons'
 
 // "당신은 어떤 성도?" 3문항 — 결과는 앱의 칭호 세계관(레위기 생존자·유두고 등)과 맞닿아 있어
@@ -176,7 +177,7 @@ const QuizSection = ({ ko }: { ko: boolean }) => {
                   <span>{result.hook}</span>
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => navigate(result.to)} className="brand-gradient inline-flex items-center gap-1 px-4 py-2.5 rounded-full text-[13.5px] font-bold text-white">
+                  <button type="button" onClick={() => navigate(result.to)} onPointerEnter={() => void preloadRoute(result.to)} onPointerDown={() => void preloadRoute(result.to)} className="brand-gradient inline-flex items-center gap-1 px-4 py-2.5 rounded-full text-[13.5px] font-bold text-white">
                     {result.cta}<ChevronRightIcon size={15} />
                   </button>
                   <button type="button" onClick={share} className="px-4 py-2.5 rounded-full bg-[var(--brand-soft)] text-brand text-[13.5px] font-bold hover:bg-[var(--brand-soft-strong)]">

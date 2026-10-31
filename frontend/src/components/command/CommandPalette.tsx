@@ -10,7 +10,7 @@ import { getTodayVerse } from '../../api/dailyVerse'
 import { DAY_CHARS, soonestService } from '../../utils/worshipSchedule'
 import { pushRecent, readRecent, clearRecent, type RecentItem } from './commandRecent'
 import { formatReference, matchBibleBooks, parseBibleReference, resolveBookNumber } from '../../pages/Sermon/utils/sermonMeta'
-import { preloadMenuRoutes } from '../../utils/routePreload'
+import { preloadMenuRoutes, preloadRoute } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { NAV_ICONS } from '../layout/NewHeader/components/NavIcons'
 import { getPageIndex, scorePage, type PageEntry } from './commandIndex'
@@ -41,6 +41,14 @@ type Row =
 
 const DEBOUNCE_MS = 180
 const MAX_PAGES = 5
+
+// 행의 이동 목적지 — run(이동)과 hover(청크 프리로드)가 같은 규칙을 쓴다
+const rowTarget = (row: Row): string =>
+  row.kind === 'page' ? row.entry.to
+  : row.kind === 'recent' ? row.item.to
+  : row.kind === 'action' ? (row.to ?? '/')
+  : row.kind === 'ask' ? '/'
+  : row.to
 
 const CommandPalette = () => {
   const { language, t } = useLanguage()
@@ -304,14 +312,17 @@ const CommandPalette = () => {
     if (row.kind === 'page') pushRecent({ id: row.id, kind: 'page', label: ko ? row.entry.label.ko : row.entry.label.en, desc: ko ? row.entry.desc.ko : row.entry.desc.en, to: row.entry.to })
     else if (row.kind === 'ref' || row.kind === 'verse' || row.kind === 'sermon') pushRecent({ id: row.id, kind: row.kind, label: row.label, desc: row.desc, to: row.to })
     else if (row.kind === 'recent') pushRecent({ id: row.item.id, kind: row.item.kind, label: row.item.label, desc: row.item.desc, to: row.item.to })
-    const to =
-      row.kind === 'page' ? row.entry.to
-      : row.kind === 'recent' ? row.item.to
-      : row.kind === 'action' ? (row.to ?? '/')
-      : row.to
     close()
-    navigate(to)
+    navigate(rowTarget(row))
   }, [close, navigate, ko])
+
+  // 커서가 행에 머무는 순간 목적지 청크를 데운다 — 열릴 때 도는 메뉴 스윕(45개 순차)이 아직
+  // 못 미친 뒤쪽 항목·스윕 밖 경로(/thanks·/feed)도 Enter 즉시 전환된다
+  const hover = useCallback((row: Row, idx: number) => {
+    setCursor(idx)
+    if (row.kind === 'ask' || (row.kind === 'action' && row.ask)) return
+    void preloadRoute(rowTarget(row))
+  }, [setCursor])
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setCursor((c) => Math.min(rows.length - 1, c + 1)) }
@@ -349,7 +360,7 @@ const CommandPalette = () => {
         key={row.id}
         type="button"
         data-idx={idx}
-        onMouseEnter={() => setCursor(idx)}
+        onMouseEnter={() => hover(row, idx)}
         onClick={() => run(row)}
         className={rowClass}
       >
@@ -479,7 +490,7 @@ const CommandPalette = () => {
                       key={row.id}
                       type="button"
                       data-idx={idx}
-                      onMouseEnter={() => setCursor(idx)}
+                      onMouseEnter={() => hover(row, idx)}
                       onClick={() => run(row)}
                       className={`cmdk-action${row.accent ? ' cmdk-action--accent' : ''}${active ? ' is-active' : ''}`}
                     >

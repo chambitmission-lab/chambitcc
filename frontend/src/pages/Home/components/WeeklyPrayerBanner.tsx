@@ -6,6 +6,7 @@ import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
 import { GraceIcon } from '../../../components/icons/GraceIcons'
 import { useCurrentWeeklyPrayer } from '../../../hooks/useWeeklyPrayer'
 import { useHomeBundlePending } from '../../../hooks/useHomeSummary'
+import { preloadRoute } from '../../../utils/routePreload'
 
 const ROTATE_MS = 4200
 
@@ -34,6 +35,8 @@ const WeeklyPrayerBanner = () => {
     <button
       type="button"
       onClick={() => navigate('/prayer-topics')}
+      onPointerEnter={() => void preloadRoute('/prayer-topics')}
+      onPointerDown={() => void preloadRoute('/prayer-topics')}
       className="w-full flex items-center gap-2.5 pl-3 pr-2.5 py-2.5 text-left hover:bg-[var(--brand-soft)] transition-colors"
       aria-label="공동 기도제목 — 이번 주 교회가 함께 드리는 기도"
     >

@@ -63,7 +63,7 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
     const prefetch = () => {
       import('../../pages/Bible/BibleStudy')
       import('../../pages/Bible/Plans/PlanList')
-      import('../../pages/Bible/Genealogy/Genealogy')
+      void preloadRoute('/bible/genealogy')
       // 지도여행은 이 도크에서 가장 무거운 목적지다(청크+장소·여정 데이터 약 55KB gz).
       // 청크를 평가하는 시점에 해안선(data/landPath) 요청까지 같이 시작된다 —
       // useLandPath 가 모듈 최상단에서 받아 두기 때문이다.

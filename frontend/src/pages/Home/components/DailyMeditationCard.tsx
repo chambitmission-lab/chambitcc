@@ -21,6 +21,7 @@ import {
 import type { TimeOfDay } from '../../../types/meditation'
 import { getNaturalSeason, type NaturalSeason } from '../../../utils/naturalSeason'
 import { tokenStore } from '../../../utils/tokenStore'
+import { preloadRoute } from '../../../utils/routePreload'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { currentTheme } from '../../../utils/themeAssets'
@@ -503,6 +504,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               type="button"
               className="meditation-alarm-btn"
               onClick={() => navigate('/bible/alarm')}
+              onPointerEnter={() => void preloadRoute('/bible/alarm')}
+              onPointerDown={() => void preloadRoute('/bible/alarm')}
               aria-label={t('homeVerseAlarmAria')}
               title={t('homeVerseAlarmAria')}
             >
@@ -651,6 +654,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             type="button"
             className="meditation-deepen-link"
             onClick={() => navigate('/bible/meditation')}
+            onPointerEnter={() => void preloadRoute('/bible/meditation')}
+            onPointerDown={() => void preloadRoute('/bible/meditation')}
           >
             {t('homeContinueMeditation')}
             <span className="material-icons-round" aria-hidden>arrow_forward</span>

@@ -1,11 +1,11 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
-import { menuRouteLoaders } from '../utils/routePreload'
+import { genealogyLoader, meditationLoader, menuRouteLoaders, verseAlarmLoader } from '../utils/routePreload'
 
 // /bible 섹션 — 읽기·플랜·단어장·지도·스토리·필사·말씀 카드·묵상·알람
 
 const BibleStudy = lazy(menuRouteLoaders['/bible'])
-const Genealogy = lazy(() => import('../pages/Bible/Genealogy/Genealogy'))
+const Genealogy = lazy(genealogyLoader)
 const PlanList = lazy(menuRouteLoaders['/bible/plans'])
 const PlanDetail = lazy(() => import('../pages/Bible/Plans/PlanDetail'))
 const JoinPlan = lazy(() => import('../pages/Bible/Plans/JoinPlan'))
@@ -24,8 +24,8 @@ const BibleTypingLink = lazy(() => import('../pages/Bible/Typing/link/VerseLinkP
 const BibleTypingRelay = lazy(() => import('../pages/Bible/Typing/TypingRelay'))
 const BibleTypingRelayJoin = lazy(() => import('../pages/Bible/Typing/TypingRelayJoin'))
 const PhotoVerse = lazy(menuRouteLoaders['/bible/photo-verse'])
-const MeditationPage = lazy(() => import('../pages/Bible/Meditation/MeditationPage'))
-const VerseAlarmPage = lazy(() => import('../pages/Bible/VerseAlarm/VerseAlarmPage'))
+const MeditationPage = lazy(meditationLoader)
+const VerseAlarmPage = lazy(verseAlarmLoader)
 
 export const bibleRoutes = (
   <>

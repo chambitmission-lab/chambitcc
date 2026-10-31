@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import type { Sermon } from '../../../types/sermon'
 import { BookOpenIcon, ChevronRightIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
+import { preloadRoute } from '../../../utils/routePreload'
 import { MicIcon, OpenBookIcon, SparkleIcon } from './LandingIcons'
 
 // "왜 참빛교회인가" 3기둥 — 설교 · 성경공부 · 스마트.
@@ -180,6 +181,8 @@ const PillarsSection = ({ ko, sermons }: { ko: boolean; sermons: Sermon[] }) => 
               <button
                 type="button"
                 onClick={() => navigate(p.to)}
+                onPointerEnter={() => void preloadRoute(p.to)}
+                onPointerDown={() => void preloadRoute(p.to)}
                 className="mt-auto pt-5 inline-flex items-center gap-1 text-[13.5px] font-bold text-brand hover:underline self-start"
               >
                 {p.cta}

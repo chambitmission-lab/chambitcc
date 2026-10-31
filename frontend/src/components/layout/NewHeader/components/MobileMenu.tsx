@@ -9,6 +9,7 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 import { Svg } from './NavIcons'
 import { safeStorage } from '../../../../utils/safeStorage'
 import { adminKeys } from '../../../../hooks/queryKeys'
+import { preloadRoute } from '../../../../utils/routePreload'
 // 관리자 메뉴(아이콘 세트 포함 18KB)는 관리자에게만 — 엔트리에서 분리
 const AdminMenu = lazyModal(() => import('./AdminMenu'))
 
@@ -101,6 +102,10 @@ const footerLinkClass = `
 const MobileMenu = ({ isAdminUser, isLoggedIn, isDesktop, onLogout }: MobileMenuProps) => {
   const { t } = useLanguage()
   const showPastor = isLoggedIn && isPastor()
+  // 목회자 홈 청크(35KB)는 메뉴 카탈로그 밖이라 메뉴 스윕이 안 받는다 — 링크가 보이는 순간 데운다
+  useEffect(() => {
+    if (showPastor) void preloadRoute('/pastor', { idle: true })
+  }, [showPastor])
   const desktopAdmin = isDesktop && isAdminUser
   const [mode, setMode] = useState<MenuMode>(() => safeStorage.get(ADMIN_OPEN_KEY) === '1' ? 'admin' : 'member')
   const adminMode = desktopAdmin && mode === 'admin'
@@ -150,7 +155,7 @@ const MobileMenu = ({ isAdminUser, isLoggedIn, isDesktop, onLogout }: MobileMenu
   const desktopExtra = isDesktop && showPastor ? (
     <>
       <span aria-hidden className="mx-1 h-4 w-px bg-border-light dark:bg-border-dark" />
-      <Link to="/pastor" className={footerLinkClass}>
+      <Link to="/pastor" onPointerEnter={() => void preloadRoute('/pastor')} onPointerDown={() => void preloadRoute('/pastor')} className={footerLinkClass}>
         <span className="material-icons-outlined text-[18px] text-ink-muted">dashboard</span>
         <span>{t('navPastorHome')}</span>
       </Link>
@@ -192,6 +197,8 @@ const MobileMenu = ({ isAdminUser, isLoggedIn, isDesktop, onLogout }: MobileMenu
               <div className="px-4 pt-4">
                 <Link
                   to="/pastor"
+                  onPointerEnter={() => void preloadRoute('/pastor')}
+                  onPointerDown={() => void preloadRoute('/pastor')}
                   className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] hover:border-brand transition-colors"
                 >
                   <span className="material-icons-outlined text-[22px] text-brand">dashboard</span>

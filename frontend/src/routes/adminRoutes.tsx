@@ -1,41 +1,38 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
 import { CareRadar } from './sharedPages'
+import { adminRouteLoaders } from '../utils/routePreload'
 
-// 관리자 화면 /admin/*
+// 관리자 화면 /admin/* — lazy 는 utils/routePreload 의 adminRouteLoaders 와 같은 함수(관리 메뉴 호버 프리로드 공유)
 
-const AdminDashboard = lazy(() => import('../pages/Admin/AdminDashboard'))
-const NotificationManagement = lazy(() => import('../pages/Admin/NotificationManagement'))
-const DailyVerseManagement = lazy(() => import('../pages/Admin/DailyVerseManagement'))
-const BulletinManagement = lazy(() => import('../pages/Admin/BulletinManagement'))
-const NewsManagement = lazy(() => import('../pages/Admin/NewsManagement'))
-const NewFamilyManagement = lazy(() => import('../pages/Admin/NewFamilyManagement'))
-const EventAlbumManagement = lazy(() => import('../pages/Admin/EventAlbumManagement'))
-const PushNotificationManagement = lazy(() =>
-  import('../pages/Admin/PushNotificationManagement').then((m) => ({
-    default: m.PushNotificationManagement,
-  })),
-)
-const EventManagement = lazy(() => import('../pages/Admin/EventManagement'))
-const UserManagement = lazy(() => import('../pages/Admin/UserManagement'))
-const GroupManagement = lazy(() => import('../pages/Admin/GroupManagement'))
-const BiblePlanManagement = lazy(() => import('../pages/Admin/BiblePlanManagement'))
-const BibleCommentaryManagement = lazy(() => import('../pages/Admin/BibleCommentaryManagement'))
-const SituationManagement = lazy(() => import('../pages/Admin/SituationManagement'))
-const ChatbotManagement = lazy(() => import('../pages/Admin/ChatbotManagement'))
-const CultureManagement = lazy(() => import('../pages/Admin/CultureManagement'))
-const SurveyManagement = lazy(() => import('../pages/Admin/SurveyManagement'))
-const HandwritingContestManagement = lazy(() => import('../pages/Admin/HandwritingContestManagement'))
-const SeatEventManagement = lazy(() => import('../pages/Admin/SeatEventManagement'))
-const ElectionManagement = lazy(() => import('../pages/Admin/ElectionManagement'))
-const IntercessionManagement = lazy(() => import('../pages/Admin/IntercessionManagement'))
-const OrganizationManagement = lazy(() => import('../pages/Admin/OrganizationManagement'))
-const PastorManagement = lazy(() => import('../pages/Admin/PastorManagement'))
-const PeopleManagement = lazy(() => import('../pages/Admin/PeopleManagement'))
-const EducationManagement = lazy(() => import('../pages/Admin/EducationManagement'))
-const OfferingManagement = lazy(() => import('../pages/Admin/OfferingManagement'))
-const BibleEngagementManagement = lazy(() => import('../pages/Admin/BibleEngagementManagement'))
-const WeeklyPrayerManagement = lazy(() => import('../pages/Admin/WeeklyPrayerManagement'))
+const AdminDashboard = lazy(adminRouteLoaders['/admin'])
+const NotificationManagement = lazy(adminRouteLoaders['/admin/notifications'])
+const DailyVerseManagement = lazy(adminRouteLoaders['/admin/daily-verse'])
+const BulletinManagement = lazy(adminRouteLoaders['/admin/bulletins'])
+const NewsManagement = lazy(adminRouteLoaders['/admin/news'])
+const NewFamilyManagement = lazy(adminRouteLoaders['/admin/new-family'])
+const EventAlbumManagement = lazy(adminRouteLoaders['/admin/event-albums'])
+const PushNotificationManagement = lazy(adminRouteLoaders['/admin/push'])
+const EventManagement = lazy(adminRouteLoaders['/admin/events'])
+const UserManagement = lazy(adminRouteLoaders['/admin/users'])
+const GroupManagement = lazy(adminRouteLoaders['/admin/groups'])
+const BiblePlanManagement = lazy(adminRouteLoaders['/admin/bible-plans'])
+const BibleCommentaryManagement = lazy(adminRouteLoaders['/admin/bible-commentaries'])
+const SituationManagement = lazy(adminRouteLoaders['/admin/situations'])
+const ChatbotManagement = lazy(adminRouteLoaders['/admin/chatbot'])
+const CultureManagement = lazy(adminRouteLoaders['/admin/culture'])
+const SurveyManagement = lazy(adminRouteLoaders['/admin/surveys'])
+const HandwritingContestManagement = lazy(adminRouteLoaders['/admin/handwriting'])
+const SeatEventManagement = lazy(adminRouteLoaders['/admin/seats'])
+const ElectionManagement = lazy(adminRouteLoaders['/admin/elections'])
+const IntercessionManagement = lazy(adminRouteLoaders['/admin/intercession'])
+const OrganizationManagement = lazy(adminRouteLoaders['/admin/organization'])
+const PastorManagement = lazy(adminRouteLoaders['/admin/pastors'])
+const PeopleManagement = lazy(adminRouteLoaders['/admin/people'])
+const EducationManagement = lazy(adminRouteLoaders['/admin/education'])
+const OfferingManagement = lazy(adminRouteLoaders['/admin/offering'])
+const BibleEngagementManagement = lazy(adminRouteLoaders['/admin/bible-engagement'])
+const WeeklyPrayerManagement = lazy(adminRouteLoaders['/admin/weekly-prayers'])
 
 export const adminRoutes = (
   <>

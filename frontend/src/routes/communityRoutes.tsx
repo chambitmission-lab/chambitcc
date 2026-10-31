@@ -1,15 +1,15 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
-import { groupDetailLoader, menuRouteLoaders } from '../utils/routePreload'
+import { groupDetailLoader, menuRouteLoaders, prayerTopicsLoader, thanksLoader } from '../utils/routePreload'
 
 // 나의 신앙·공동체 — 기도·감사·그룹·반·묵상방·동행·타임캡슐·손글씨 필사대회·게임/회상 화면
 
 const PrayerFocus = lazy(menuRouteLoaders['/prayer-focus'])
-const WeeklyPrayerTopics = lazy(() => import('../pages/Prayer/WeeklyPrayerTopics'))
+const WeeklyPrayerTopics = lazy(prayerTopicsLoader)
 const WeeklyPrayerScreen = lazy(() => import('../pages/Prayer/WeeklyPrayerScreen'))
 const AnsweredPrayers = lazy(menuRouteLoaders['/answered-prayers'])
 const Intercession = lazy(menuRouteLoaders['/intercession'])
-const Thanks = lazy(() => import('../pages/Thanks/Thanks'))
+const Thanks = lazy(thanksLoader)
 const MyGroups = lazy(menuRouteLoaders['/groups'])
 const GroupDetail = lazy(groupDetailLoader)
 const JoinGroup = lazy(() => import('../pages/Groups/JoinGroup'))

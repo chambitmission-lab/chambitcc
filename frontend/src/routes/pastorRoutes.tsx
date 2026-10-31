@@ -1,10 +1,11 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
 import { CareRadar } from './sharedPages'
+import { pastorHomeLoader } from '../utils/routePreload'
 
 // 목회자 영역 /pastor — 브리핑·돌봄·명부·심방·일정·설교 준비·리포트·비서
 
-const PastorHome = lazy(() => import('../pages/Pastor/PastorHome'))
+const PastorHome = lazy(pastorHomeLoader)
 const PastorMembers = lazy(() => import('../pages/Pastor/PastorMembers'))
 const PastorMemberDetail = lazy(() => import('../pages/Pastor/PastorMemberDetail'))
 const PastorVisits = lazy(() => import('../pages/Pastor/PastorVisits'))

@@ -63,7 +63,7 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
     const prefetch = () => {
       import('../../pages/Bible/BibleStudy')
       import('../../pages/Bible/Plans/PlanList')
-      import('../../pages/Bible/Genealogy/Genealogy')
+      void preloadRoute('/bible/genealogy')
       import('../../pages/Bible/Atlas/AtlasMap')
       // 필사 허브(JS 8KB + typing.css 9.5KB gz) — 레일 목적지인데 빠져 있어 첫 진입마다 청크를 기다렸다
       import('../../pages/Bible/Typing/TypingHome')

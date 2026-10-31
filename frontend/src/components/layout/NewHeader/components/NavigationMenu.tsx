@@ -247,6 +247,7 @@ const SearchResultItem = ({
     <div className="group relative" onMouseEnter={onHover}>
     <Link
       to={item.path}
+      {...warmOnTouch(item.path)}
       className={`flex items-center gap-3 rounded-xl pl-3 pr-9 py-2.5 transition-colors ${active ? 'bg-[var(--brand-soft)]' : 'hover:bg-[var(--brand-soft)]'}`}
     >
       <span className={`flex items-center justify-center w-[calc(36px*var(--mm,1))] h-[calc(36px*var(--mm,1))] rounded-lg shrink-0 bg-surface-high ${active ? 'text-brand' : 'text-ink'}`}>

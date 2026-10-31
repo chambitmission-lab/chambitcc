@@ -5,6 +5,7 @@ import { warmRouteThemeAssets } from './themeAssets'
 import { withChurchHistory } from '../api/churchHistory'
 import { withMissionRoster } from '../api/missionRoster'
 import { withRequestPriority } from '../api/utils/request'
+import { loadHome } from './homeChunk'
 
 type RouteLoader = () => Promise<{ default: ComponentType }>
 
@@ -14,6 +15,52 @@ export const historyLabLoader: RouteLoader = withChurchHistory(() => import('../
 export const sermonLabLoader: RouteLoader = () => import('../pages/Sermon/SermonLab')
 // 기도방 상세 — /groups 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
 export const groupDetailLoader: RouteLoader = () => import('../pages/Groups/GroupDetail')
+
+// 홈 카드·성경 도크·메뉴 꼬리 링크로만 들어오는 화면 — 메뉴 카탈로그엔 없어 테이블에서 빠져 있었다.
+// 라우터가 전환을 startTransition 으로 돌려 청크가 올 때까지 이전 화면에 멈춰 보이던 곳들.
+// 메뉴 스윕(preloadMenuRoutes)엔 넣지 않고 deepLinkRouteLoaders 로만 잡는다 — 라우트 lazy 와 같은 함수를 쓴다
+export const thanksLoader: RouteLoader = () => import('../pages/Thanks/Thanks')
+export const prayerTopicsLoader: RouteLoader = () => import('../pages/Prayer/WeeklyPrayerTopics')
+export const meditationLoader: RouteLoader = () => import('../pages/Bible/Meditation/MeditationPage')
+export const verseAlarmLoader: RouteLoader = () => import('../pages/Bible/VerseAlarm/VerseAlarmPage')
+export const genealogyLoader: RouteLoader = () => import('../pages/Bible/Genealogy/Genealogy')
+export const pastorHomeLoader: RouteLoader = () => import('../pages/Pastor/PastorHome')
+
+// 관리자 화면 — 관리 메뉴(AdminMenu) 항목 호버·터치 때 받는다. 메뉴 스윕·유휴 프리로드엔 넣지 않는다
+// (29개를 관리자가 아닌 사람까지 받을 이유가 없다). routes/adminRoutes.tsx 의 lazy 가 같은 함수를 쓴다
+// satisfies — 각 로더의 모듈 타입을 지켜야 lazy(adminRouteLoaders['/admin/care']) 가 scope 같은 props 를 잃지 않는다
+export const adminRouteLoaders = {
+  '/admin': () => import('../pages/Admin/AdminDashboard'),
+  '/admin/care': () => import('../pages/Admin/CareRadar'),
+  '/admin/notifications': () => import('../pages/Admin/NotificationManagement'),
+  '/admin/daily-verse': () => import('../pages/Admin/DailyVerseManagement'),
+  '/admin/bulletins': () => import('../pages/Admin/BulletinManagement'),
+  '/admin/news': () => import('../pages/Admin/NewsManagement'),
+  '/admin/new-family': () => import('../pages/Admin/NewFamilyManagement'),
+  '/admin/event-albums': () => import('../pages/Admin/EventAlbumManagement'),
+  '/admin/push': () =>
+    import('../pages/Admin/PushNotificationManagement').then((m) => ({ default: m.PushNotificationManagement })),
+  '/admin/events': () => import('../pages/Admin/EventManagement'),
+  '/admin/users': () => import('../pages/Admin/UserManagement'),
+  '/admin/groups': () => import('../pages/Admin/GroupManagement'),
+  '/admin/bible-plans': () => import('../pages/Admin/BiblePlanManagement'),
+  '/admin/bible-commentaries': () => import('../pages/Admin/BibleCommentaryManagement'),
+  '/admin/situations': () => import('../pages/Admin/SituationManagement'),
+  '/admin/chatbot': () => import('../pages/Admin/ChatbotManagement'),
+  '/admin/culture': () => import('../pages/Admin/CultureManagement'),
+  '/admin/surveys': () => import('../pages/Admin/SurveyManagement'),
+  '/admin/handwriting': () => import('../pages/Admin/HandwritingContestManagement'),
+  '/admin/seats': () => import('../pages/Admin/SeatEventManagement'),
+  '/admin/elections': () => import('../pages/Admin/ElectionManagement'),
+  '/admin/intercession': () => import('../pages/Admin/IntercessionManagement'),
+  '/admin/organization': () => import('../pages/Admin/OrganizationManagement'),
+  '/admin/pastors': () => import('../pages/Admin/PastorManagement'),
+  '/admin/people': () => import('../pages/Admin/PeopleManagement'),
+  '/admin/education': () => import('../pages/Admin/EducationManagement'),
+  '/admin/offering': () => import('../pages/Admin/OfferingManagement'),
+  '/admin/bible-engagement': () => import('../pages/Admin/BibleEngagementManagement'),
+  '/admin/weekly-prayers': () => import('../pages/Admin/WeeklyPrayerManagement'),
+} satisfies Record<string, RouteLoader>
 
 // 햄버거 메뉴에서 진입하는 lazy 페이지들의 동적 import를 한곳에 모음.
 // App.tsx의 lazy()와 같은 함수를 공유해야 프리로드한 청크가 그대로 재사용된다.
@@ -214,6 +261,17 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   // 선거는 메뉴에 없다(선거인에게만 열림) — 홈 배너·링크로만 들어오므로 메뉴 프리로드에 넣지 않는다
   { key: 'elections', match: /^\/elections$/, load: () => import('../pages/Election/ElectionList') },
   { key: 'elections/detail', match: /^\/elections\/[^/]+$/, load: () => import('../pages/Election/ElectionDetail') },
+  // 홈 카드 목적지 — 감사 티커·공동 기도제목 배너·묵상 카드(알람·이어서 묵상)·PC 레일 벤토
+  { key: 'thanks', match: /^\/thanks$/, load: thanksLoader },
+  { key: 'prayer-topics', match: /^\/prayer-topics$/, load: prayerTopicsLoader },
+  { key: 'bible/meditation', match: /^\/bible\/meditation$/, load: meditationLoader },
+  { key: 'bible/alarm', match: /^\/bible\/alarm$/, load: verseAlarmLoader },
+  // 성경 도크·레일 "가계도" — 도크의 warmRoute 가 부르는데 테이블에 없어 무효였다
+  { key: 'bible/genealogy', match: /^\/bible\/genealogy$/, load: genealogyLoader },
+  // 목회자 홈 — 햄버거 메뉴 꼬리 링크(목회자에게만). 영역 안 섹션은 pages/Pastor/prefetch 가 데운다
+  { key: 'pastor', match: /^\/pastor$/, load: pastorHomeLoader },
+  // 비로그인 랜딩 "먼저 둘러볼게요" — 홈 피드 청크는 토큰이 있을 때만 미리 받아 두므로 버튼 호버·터치 때 데운다
+  { key: 'feed', match: /^\/feed$/, load: loadHome },
 ]
 
 // 진행 중인 로드는 promise 자체를 캐싱한다. Set으로 "시작했음"만 기록하면
@@ -227,6 +285,9 @@ const resolveLoader = (path: string): { key: string; load: RouteLoader } | null 
 
   const menu = menuRouteLoaders[clean]
   if (menu) return { key: clean, load: menu }
+
+  const admin = (adminRouteLoaders as Record<string, RouteLoader | undefined>)[clean]
+  if (admin) return { key: clean, load: admin }
 
   const deep = deepLinkRouteLoaders.find((r) => r.match.test(clean))
   return deep ? { key: deep.key, load: deep.load } : null
@@ -317,7 +378,11 @@ export const preloadMenuRoutes = async (): Promise<void> => {
 // 홈에서 한 탭 거리인 화면. 25개 메뉴 청크(~1MB)를 통째로 받으면 홈 API 요청과
 // 대역폭을 다투고 모바일 데이터를 태운다. 나머지는 메뉴를 여는 순간(preloadMenuRoutes)
 // 이나 링크 호버/터치 때 받는다.
-const IDLE_PRELOAD_ROUTES = [...NAV_ROUTES, '/sermon', '/events', '/news', '/groups', '/growth']
+// 홈 카드에서 바로 가는 감사·공동 기도제목·묵상·구절 알람도 한 탭 거리다 (합쳐 gz 30KB 안팎)
+const IDLE_PRELOAD_ROUTES = [
+  ...NAV_ROUTES, '/sermon', '/events', '/news', '/groups', '/growth',
+  '/thanks', '/prayer-topics', '/bible/meditation', '/bible/alarm',
+]
 
 // 비로그인 방문자가 랜딩에서 실제로 누르는 곳만 — 공개 메뉴 9개(성경 청크만 gz 120KB 등
 // 합계 JS 1.5MB)를 첫 방문마다 받는 건 랜딩 히어로·API 와 대역폭을 다투는 낭비였다.

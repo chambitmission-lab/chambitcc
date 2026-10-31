@@ -6,6 +6,7 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 import { ImageIcon } from '../EmotionIcons'
 import { AlarmIcon } from './railIcons'
 import { ArrowUpRight } from '../../../../components/icons/phosphor'
+import { preloadRoute } from '../../../../utils/routePreload'
 
 // ── 3. 액션 벤토 (말씀 알림 · 말씀 카드) ───────────────────────────────
 
@@ -19,6 +20,8 @@ interface ActionTile {
   icon: ReactNode
   tone: 'brand' | 'lavender'
   onClick: () => void
+  /** 목적지 경로 — 호버·누르는 순간 청크를 미리 받는다 */
+  path: string
 }
 
 const ActionBento = ({ tiles }: { tiles: ActionTile[] }) => (
@@ -30,6 +33,8 @@ const ActionBento = ({ tiles }: { tiles: ActionTile[] }) => (
           key={tile.key}
           type="button"
           onClick={tile.onClick}
+          onPointerEnter={() => void preloadRoute(tile.path)}
+          onPointerDown={() => void preloadRoute(tile.path)}
           className={`group relative flex min-h-[132px] flex-col overflow-hidden rounded-2xl p-3.5 text-left transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${
             brand
               ? 'text-white hover:shadow-[0_14px_28px_-12px_var(--brand-glow)]'
@@ -98,6 +103,7 @@ const ActionBentoWidget = () => {
       cta: t('homeRailAlarmCta'),
       icon: <AlarmIcon size={18} />,
       tone: 'brand',
+      path: '/bible/alarm',
       onClick: () => navigate('/bible/alarm'),
     },
     {
@@ -107,6 +113,7 @@ const ActionBentoWidget = () => {
       cta: t('railShareVerseCard'),
       icon: <ImageIcon size={18} />,
       tone: 'lavender',
+      path: '/bible/photo-verse',
       onClick: () => navigate('/bible/photo-verse'),
     },
   ]

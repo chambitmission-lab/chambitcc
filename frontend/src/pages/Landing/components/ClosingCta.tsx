@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAboutContent } from '../../../hooks/useAboutContent'
 import { ChevronRightIcon, MapPinIcon, SproutIcon } from '../../About/icons'
 import { Reveal } from './shared'
+import { preloadRoute } from '../../../utils/routePreload'
 
 // 마무리 — 비회원의 마지막 선택은 둘뿐: [직접 방문] 또는 [1분 가입].
 // 오로라 무대 위에 유리 카드 두 장을 놓고, 가입 카드(넓은 쪽)의 큰 브랜드 버튼이 주연이 된다.
@@ -83,7 +84,7 @@ const ClosingCta = ({ ko }: { ko: boolean }) => {
                   <button type="button" onClick={() => navigate('/login')} className="px-4 py-3 rounded-full text-[14px] font-bold text-ink-strong ring-1 ring-inset ring-black/[0.08] dark:ring-white/[0.12] hover:bg-[var(--brand-soft)] hover:text-brand">
                     {ko ? '로그인' : 'Log in'}
                   </button>
-                  <button type="button" onClick={() => navigate('/feed')} className="px-2 py-3 text-[13.5px] font-semibold text-ink-muted hover:text-brand">
+                  <button type="button" onClick={() => navigate('/feed')} onPointerEnter={() => void preloadRoute('/feed')} onPointerDown={() => void preloadRoute('/feed')} className="px-2 py-3 text-[13.5px] font-semibold text-ink-muted hover:text-brand">
                     {ko ? '먼저 둘러볼게요' : 'Just browsing'}
                   </button>
                 </div>

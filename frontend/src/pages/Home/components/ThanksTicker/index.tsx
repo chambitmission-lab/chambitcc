@@ -9,6 +9,7 @@ import { useThanks } from '../ThanksThread/useThanks'
 // 감사 작성 시트는 탭해야 열린다 — 별도 청크(FAB 다이얼과 공유, 홈 idle 때 preload)
 import ThanksComposer from '../ThanksThread/ThanksComposerLazy'
 import { PencilIcon } from '../../../../components/icons/ActionIcons'
+import { preloadRoute } from '../../../../utils/routePreload'
 
 const ThanksTicker = () => {
   const { language } = useLanguage()
@@ -40,6 +41,8 @@ const ThanksTicker = () => {
         <button
           type="button"
           onClick={handleOpenList}
+          onPointerEnter={() => void preloadRoute('/thanks')}
+          onPointerDown={() => void preloadRoute('/thanks')}
           className="flex-1 min-w-0 text-left active:scale-[0.99] transition-transform"
           aria-label={
             language === 'ko'

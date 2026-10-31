@@ -9,6 +9,15 @@ import { sessionStore } from '../../../../utils/tokenStore'
 import { safeStorage } from '../../../../utils/safeStorage'
 import { ADMIN_ICONS, IconChevron, IconShield, type AdminIconKey } from './AdminIcons'
 import { Svg } from './NavIcons'
+import { preloadRoute } from '../../../../utils/routePreload'
+
+// 관리 화면 청크는 메뉴 스윕이 받지 않는다 — 항목에 마우스가 올라오거나 손가락이 닿는 순간 받는다
+// (adminRouteLoaders, ?new=1 쿼리는 떼고 본다). 이미 받았으면 preloadRoute 가 그대로 돌아온다
+const warmOnTouch = (path: string) => ({
+  onPointerEnter: () => void preloadRoute(path),
+  onPointerDown: () => void preloadRoute(path),
+  onFocus: () => void preloadRoute(path),
+})
 
 type TranslationKey = keyof Translation
 
@@ -129,6 +138,7 @@ const AdminLauncherItem = ({
   return (
     <Link
       to={item.path}
+      {...warmOnTouch(item.path)}
       onClick={() => pushRecent(item.path)}
       className="
         group flex flex-col items-center gap-1.5
@@ -244,6 +254,7 @@ const ToolRow = ({
     <div className="group relative">
       <Link
         to={item.path}
+        {...warmOnTouch(item.path)}
         onClick={() => pushRecent(item.path)}
         className={`flex items-center gap-3 rounded-lg pl-3 py-2.5 transition-colors duration-150 hover:bg-[var(--brand-soft)] focus-visible:bg-[var(--brand-soft)] outline-none ${active ? 'bg-[var(--brand-soft)]' : ''} ${
           pinned ? 'pr-8' : 'pr-3 group-hover:pr-8 group-focus-within:pr-8'
@@ -425,6 +436,7 @@ const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
                   <Link
                     key={action.to}
                     to={action.to}
+                    {...warmOnTouch(action.to)}
                     title={t(action.descKey)}
                     className={`group flex gap-3 rounded-xl px-3 transition-colors ${
                       badge
@@ -468,6 +480,7 @@ const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
                     <Link
                       key={item.path}
                       to={item.path}
+                      {...warmOnTouch(item.path)}
                       onClick={() => pushRecent(item.path)}
                       className="group inline-flex items-center gap-2 rounded-full pl-3 pr-3.5 py-1.5 border border-border-light dark:border-border-dark transition-colors hover:border-brand hover:bg-[var(--brand-soft)] [&_svg]:w-[calc(17px*var(--mm,1))] [&_svg]:h-[calc(17px*var(--mm,1))]"
                     >
