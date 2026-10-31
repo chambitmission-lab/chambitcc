@@ -21,6 +21,8 @@ export interface SermonPassage {
   title: string
   /** 피커 배지 문구 — '이번 주일 설교' 등. 없으면 '설교 본문' */
   badge?: string
+  /** 설교 날짜 (YYYY-MM-DD) — 최근 주일 설교에서만 채운다 */
+  date?: string
 }
 
 const DAY_MS = 86_400_000
@@ -44,7 +46,7 @@ export const useRecentSermonPassage = (lang: 'ko' | 'en'): SermonPassage | null 
       lang === 'en'
         ? ago <= 6 ? "This Sunday's sermon" : "Last Sunday's sermon"
         : ago <= 6 ? '이번 주일 설교 말씀' : '지난 주일 설교 말씀'
-    return { ref: s.bible_verse, title: s.title, badge }
+    return { ref: s.bible_verse, title: s.title, badge, date: s.sermon_date.slice(0, 10) }
   }, [data, lang])
 }
 

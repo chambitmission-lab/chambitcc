@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ReadingProgressResponse, ResumePosition } from '../../../api/bibleReading'
@@ -17,7 +17,7 @@ const BibleProgressMap = lazyModal(() => import('./BibleProgressMap'))
 const preloadProgressMap = () => void BibleProgressMap.preload()
 import BookJourneyPath from './BookJourneyPath'
 import { useBookIntroPeek, type PeekBook } from '../../../components/bible/BookIntroPeek'
-import { BOOK_GENRES } from '../../../components/bible/bookGenre'
+import { BOOK_GENRES, genreStyle } from '../../../components/bible/bookGenre'
 import { aggregateRange, buildBookInfoMap, gaugeWidth, pctLabel } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
 import CandleHero from '../../PrayerFocus/CandleHero'
@@ -592,9 +592,11 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     )
   }
 
-  // 목록 보기 — 장식을 걷어낸 통독 체크리스트. 순번·분수·게이지·행동 버튼이 세로로 정렬되어
-  // 훑어 내리며 "다음에 읽을 책"을 고르는 용도다. 순번은 필터와 무관하게 성경 권 번호(1~66)를
-  // 그대로 쓴다 — 신약 필터에서 40부터 시작하는 것이 정답이지, 매번 1부터 세면 위치 감각이 끊긴다.
+  // 목록 보기 — "글자 게이지" 행. 게이지를 따로 그리지 않고 책 이름 글자 자체를 왼쪽부터
+  // 장르색으로 채운다(안 읽은 책은 옅은 글자, 완독은 꽉 찬 글자). 한 행의 요소는 순번·이름·숫자
+  // 셋뿐이라 글씨를 가장 크게 쓸 수 있고, 훑어 내리며 "다음에 읽을 책"을 고르는 속도가 살아난다.
+  // 순번은 필터와 무관하게 성경 권 번호(1~66)를 그대로 쓴다 — 신약 필터에서 40부터 시작하는 것이
+  // 정답이지, 매번 1부터 세면 위치 감각이 끊긴다.
   const renderListRow = (book: BibleBook, index: number) => {
     const resume = resumeMap?.get(book.book_number)
     const info = infoMap.get(book.book_number)
@@ -613,16 +615,18 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         ? Math.max(0, Math.min(100, (resume.chapter / totalChapters) * 100))
         : 0
     const aheadPct = resumePct > rate + 1 ? resumePct : 0
+    // 글자 채움 폭 — 0.4% 같은 값도 첫 획은 물들도록 게이지 최소 두께를 그대로 쓴다
+    const fillPct = isComplete ? 100 : gaugeWidth(rate)
 
-    // 버튼 문구의 3단계: 완독(상태) / 진행 중(이어읽기) / 새 책(읽기).
+    // 오른쪽 숫자 두 줄: 위는 상태(완독 / 30% / 다음), 아래는 분수.
     // 지금 읽는 책만 "4장 이어 읽기"처럼 갈 곳을 구체적으로 적는다
-    const ctaLabel = isComplete
-      ? t.complete
-      : isCurrent && resume
-        ? t.continueFrom(resume.chapter)
-        : hasProgress
-          ? t.ctaContinue
-          : t.ctaStart
+    const stateLabel = isComplete ? t.complete : hasProgress ? `${pctLabel(rate)}%` : isNext ? t.nextUp : null
+    const fracLabel = isComplete
+      ? `${totalChapters}${t.chapterUnit}`
+      : hasProgress
+        ? `${readChapters}/${totalChapters}${t.chapterUnit}`
+        : `${totalChapters}${t.chapterUnit}`
+    const resumeLabel = isCurrent && resume ? t.continueFrom(resume.chapter) : null
 
     return (
       <button
@@ -631,8 +635,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         className={`book-row${isComplete ? ' is-complete' : ''}${isCurrent ? ' is-current' : ''}${
           isNext ? ' is-next' : ''
         }${hasProgress ? ' has-progress' : ''}`}
-        // 격자와 같은 스태거 — 목록은 행이 많아 딜레이 상한을 더 낮게 묶는다
-        style={{ animationDelay: `${Math.min(index * 12, 280)}ms` }}
+        // 격자와 같은 스태거 — 목록은 행이 많아 딜레이 상한을 더 낮게 묶는다. 장르색은 CSS 변수로
+        style={{ ...genreStyle(book.book_number), animationDelay: `${Math.min(index * 12, 280)}ms` }}
         aria-label={[
           bookName,
           isCurrent ? t.reading : null,
@@ -648,59 +652,56 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         <span className="book-row__num" aria-hidden="true">
           {book.book_number}
         </span>
-        <span className="book-row__avatar" aria-hidden="true">
-          {isComplete ? (
-            <span className="material-icons-round">check</span>
-          ) : (
-            <>
-              {/* 읽는 중 — 약칭 둘레에 진행 링 */}
-              {hasProgress && (
-                <svg className="book-row__ring" viewBox="0 0 36 36">
-                  <circle className="book-row__ring-track" cx="18" cy="18" r="16.5" pathLength={100} />
-                  <circle
-                    className="book-row__ring-fill"
-                    cx="18"
-                    cy="18"
-                    r="16.5"
-                    pathLength={100}
-                    strokeDasharray={`${gaugeWidth(rate)} 100`}
-                  />
-                </svg>
-              )}
-              {bookAbbrev(book.book_number, language)}
-            </>
+        {/* 글자 게이지 — 옅은 바탕 글자 위에 같은 글자를 장르색으로 겹치고 폭만 잘라낸다 */}
+        <span className="book-row__word" aria-hidden="true">
+          <span className="book-row__word-base">{bookName}</span>
+          {aheadPct > 0 && (
+            <span className="book-row__word-ahead" style={{ width: `${aheadPct}%` }}>
+              {bookName}
+            </span>
+          )}
+          {fillPct > 0 && (
+            <span className="book-row__word-fill" style={{ width: `${fillPct}%` }}>
+              {bookName}
+            </span>
           )}
         </span>
-        <span className="book-row__body">
-          <span className="book-row__name">
-            {bookName}
-            {isCurrent && <span className="book-row__badge">{t.reading}</span>}
-            {isNext && <span className="book-row__badge book-row__badge--next">{t.nextUp}</span>}
-          </span>
-          <span className="book-row__meta" aria-hidden="true">
-            {/* 분수는 "0/50장"까지 그대로 — 열이 흔들리지 않아야 표처럼 훑어진다 */}
-            <span className="book-row__frac">
-              {readChapters}/{totalChapters}
-              {t.chapterUnit}
-            </span>
-            <span className="book-row__track">
-              {aheadPct > 0 && (
-                <span className="book-row__ahead" style={{ width: `${aheadPct}%` }} />
-              )}
-              <span className="book-row__fill" style={{ width: `${gaugeWidth(rate)}%` }} />
-            </span>
-            <span className="book-row__pct">{pctLabel(rate)}%</span>
+        <span className="book-row__meta" aria-hidden="true">
+          {stateLabel && <span className="book-row__state">{stateLabel}</span>}
+          <span className="book-row__frac">
+            {fracLabel}
+            {resumeLabel && <span className="book-row__resume"> · {resumeLabel}</span>}
           </span>
         </span>
-        {/* 행 전체가 버튼이라 이건 눌림 대상이 아니라 "누르면 무슨 일이 생기나"의 라벨 */}
-        <span className="book-row__cta" aria-hidden="true">
-          {ctaLabel}
-        </span>
-        <svg className="book-row__chev" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M9.5 6l6 6-6 6" />
-        </svg>
       </button>
     )
+  }
+
+  // 목록 보기의 분류 머리말 — 전체 필터일 때만 장르가 바뀌는 자리에 한 줄(모세오경·역사서…).
+  // 분류 필터 중에는 칩이 그 역할을 이미 한다
+  const renderListRows = (list: BibleBook[]) => {
+    if (activeCategory.id !== 'all') return list.map(renderListRow)
+    const groups = categories.filter(c => c.id !== 'all')
+    let lastGroup: string | null = null
+    const nodes: ReactNode[] = []
+    list.forEach((book, index) => {
+      const group = groups.find(c => book.book_number >= c.min && book.book_number <= c.max)
+      if (group && group.id !== lastGroup) {
+        lastGroup = group.id
+        nodes.push(
+          <div
+            key={`group-${group.id}`}
+            className="books-list__group"
+            style={genreStyle(group.min)}
+            aria-hidden="true"
+          >
+            {language === 'en' ? group.labelEn : group.label}
+          </div>,
+        )
+      }
+      nodes.push(renderListRow(book, index))
+    })
+    return nodes
   }
 
   if (isLoading) {
@@ -1157,7 +1158,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             {unreadTools}
             <div className="books-list">
               {shownBooks.length > 0 ? (
-                shownBooks.map(renderListRow)
+                renderListRows(shownBooks)
               ) : (
                 allDoneState
               )}

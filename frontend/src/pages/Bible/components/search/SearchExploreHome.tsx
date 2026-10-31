@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSituationCategories } from '../../../../hooks/useSituation'
-import { passageLabel, useRecentSermonPassage } from '../../PhotoVerse/churchVerses'
+import { passageLabel, usePassageVerses, useRecentSermonPassage } from '../../PhotoVerse/churchVerses'
 import { parseBibleReference } from '../../../Sermon/utils/sermonMeta'
 import floodImg from '../../Story/img/flood.webp'
 import exodusImg from '../../Story/img/exodus.webp'
@@ -37,6 +37,15 @@ const STORIES: StoryTile[] = [
 
 const MOOD_LIMIT = 6
 
+/** '2026-11-01' → { md: '11.1', day: '주일' } — 날짜 인장용 */
+const stampOf = (ymd?: string): { md: string; day: string } | null => {
+  if (!ymd) return null
+  const [y, m, d] = ymd.split('-').map(Number)
+  if (!y || !m || !d) return null
+  const dow = new Date(y, m - 1, d).getDay()
+  return { md: `${m}.${d}`, day: dow === 0 ? '주일' : `${'일월화수목금토'[dow]}요일` }
+}
+
 const SearchExploreHome = ({
   onSearch,
   onOpen,
@@ -50,6 +59,10 @@ const SearchExploreHome = ({
   const navigate = useNavigate()
   const sermon = useRecentSermonPassage('ko')
   const sermonRef = sermon ? parseBibleReference(sermon.ref) : null
+  // 본문 첫 구절을 쪽지에 옮겨 적는다 — 성경 화면과 같은 장 캐시라 펼칠 때 다시 받지 않는다
+  const { verses: sermonVerses } = usePassageVerses(sermon?.ref, !!sermonRef?.bookNumber)
+  const sermonExcerpt = sermonVerses.slice(0, 3).map(v => v.text.trim()).join(' ')
+  const stamp = stampOf(sermon?.date)
   const { data: categories } = useSituationCategories()
   const moods = (categories ?? []).filter(c => c.is_active && c.verse_count > 0).slice(0, MOOD_LIMIT)
 
@@ -61,13 +74,28 @@ const SearchExploreHome = ({
           className="search-sermon"
           onClick={() => onOpen(sermonRef.bookNumber!, sermonRef.chapter, sermonRef.verse ?? undefined)}
         >
-          <span className="search-sermon__icon material-icons-round" aria-hidden="true">church</span>
-          <span className="search-sermon__text">
+          <span className="search-sermon__head">
             <span className="search-sermon__badge">{sermon.badge}</span>
-            <b>{passageLabel(sermon.ref)}</b>
-            <span className="search-sermon__title">{sermon.title}</span>
+            {stamp && (
+              <span className="search-sermon__stamp" aria-hidden="true">
+                <b>{stamp.md}</b>
+                <span>{stamp.day}</span>
+              </span>
+            )}
           </span>
-          <span className="material-icons-round" aria-hidden="true">chevron_right</span>
+          <span className={`search-sermon__quote${sermonExcerpt ? '' : ' search-sermon__quote--wait'}`}>
+            {sermonExcerpt || '\u00a0'}
+          </span>
+          <span className="search-sermon__foot">
+            <span className="search-sermon__ref">
+              <b>{passageLabel(sermon.ref)}</b>
+              {sermon.title && <span className="search-sermon__title">{sermon.title}</span>}
+            </span>
+            <span className="search-sermon__open">
+              본문 펼치기
+              <span className="material-icons-round" aria-hidden="true">arrow_forward</span>
+            </span>
+          </span>
         </button>
       )}
 

@@ -8,8 +8,7 @@
   .testament-title,
   .list-tools,
   .books-grid .book-cell,
-  .books-list .book-row,
-  .book-row.is-complete .book-row__avatar
+  .books-list .book-row
 ) {
   animation: none;
 }

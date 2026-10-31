@@ -44,7 +44,6 @@
   .testament-title,
   .books-grid .book-cell,
   .books-list .book-row,
-  .book-row.is-complete .book-row__avatar,
   .list-tools {
     animation: none;
   }
