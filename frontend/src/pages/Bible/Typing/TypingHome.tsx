@@ -6,11 +6,12 @@ import { useBibleBooks } from '../../../hooks/useBible'
 import { useLinkSummary, useMannaSummary, useTypingHome, useTypingRelayLive } from '../../../hooks/useBibleTyping'
 import { useTitles } from '../../../hooks/useTitles'
 import { tokenStore } from '../../../utils/tokenStore'
+import { smoothScrollToElement } from '../../../utils/scrollTo'
 import { sessionPath, useIgnorePunct, useTypingMode } from './typingPrefs'
 import TodayCard from './home/TodayCard'
 import DailyVerseCard from './home/DailyVerseCard'
 import InkCalendar from './home/InkCalendar'
-import BookSection from './home/BookSection'
+import BookSection, { PICK_SECTION_ID } from './home/BookSection'
 import ChurchBibleCard from './home/ChurchBibleCard'
 import RelayCard from './home/RelayCard'
 import NextTitleCard from './home/NextTitleCard'
@@ -20,7 +21,7 @@ import './typing.css'
 /**
  * 말씀 필사 허브 — "매일 한 페이지씩 쌓이는 나의 필사 노트".
  * 첫 화면은 '오늘의 필사' 하나(등잔·이번 주·이어 쓸 말씀·버튼 하나), 그 아래로
- * 오늘의 한 절 → 잉크 달력 → 쓰는 중인 책 → 스프린트. 오른쪽(모바일은 아래)은 함께 쓰는 것들.
+ * 골라 쓰기(펼친 책·장 격자) → 오늘의 한 절 → 잉크 달력 → 스프린트. 오른쪽(모바일은 아래)은 함께 쓰는 것들.
  */
 const TypingHome = () => {
   const navigate = useNavigate()
@@ -49,6 +50,7 @@ const TypingHome = () => {
   const bookName = (n: number) => books?.find((b) => b.book_number === n)?.book_name_ko ?? ''
   const typingTitles = useMemo(() => (titles?.titles ?? []).filter((t) => t.category === 'typing'), [titles])
   const go = (book: number, chapter: number, verse?: number) => navigate(sessionPath(book, chapter, mode, verse))
+  const toPicker = () => smoothScrollToElement(document.getElementById(PICK_SECTION_ID), { offset: 76 })
 
   return (
     <div className="bt-page bg-[var(--app-canvas)] dark:bg-background-dark page-stage">
@@ -70,13 +72,15 @@ const TypingHome = () => {
               bookName={bookName}
               nextVerseText={home ? home.next_verse_text : undefined}
               onGo={go}
+              onPick={toPicker}
             />
+
+            {/* 골라 쓰기는 접지 않고 바로 아래 — 대부분은 오늘 쓰고 싶은 곳을 들고 온다 */}
+            <BookSection loggedIn={loggedIn} loading={loading} stats={stats} bookTotals={church?.book_totals} onGo={go} />
 
             {loggedIn && <DailyVerseCard daily={daily} />}
 
             {loggedIn && <InkCalendar calendar={calendar} stats={stats} />}
-
-            <BookSection loggedIn={loggedIn} loading={loading} stats={stats} bookTotals={church?.book_totals} onGo={go} />
 
             <button type="button" className="bt-card bt-sprint-entry" onClick={() => navigate('/bible/typing/sprint')}>
               <span className="material-icons-round bt-sprint-entry__icon" aria-hidden>

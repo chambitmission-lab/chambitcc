@@ -34,6 +34,8 @@ interface TodayCardProps {
   /** 이어 쓸 절 본문 — 허브 묶음이 함께 준다(null = 전권 완필). undefined(묶음 없음·비로그인)면 직접 받는다 */
   nextVerseText?: string | null
   onGo: (book: number, chapter: number, verse?: number) => void
+  /** '골라 쓰기' — 바로 아래 골라 쓰기 카드로 데려간다 */
+  onPick: () => void
 }
 
 const GoalPicker = ({ current, onPick, busy }: { current: number | null; onPick: (g: number) => void; busy: boolean }) => (
@@ -73,6 +75,7 @@ const TodayCard = ({
   bookName,
   nextVerseText,
   onGo,
+  onPick,
 }: TodayCardProps) => {
   const [editingGoal, setEditingGoal] = useState(false)
   const updateGoal = useUpdateTypingGoal()
@@ -226,16 +229,25 @@ const TodayCard = ({
                 : ' '}
             </span>
           </button>
-          <button
-            type="button"
-            className="bt-btn bt-btn--primary bt-btn--block bt-today__cta"
-            onClick={() => onGo(spot.book_number, spot.chapter, spot.verse)}
-          >
-            {cta}
-            <span className="material-icons-round" aria-hidden>
-              arrow_forward
-            </span>
-          </button>
+          {/* 이어 쓰기와 골라 쓰기는 같은 줄 — 오늘 쓰고 싶은 곳을 들고 온 성도가 첫눈에 찾게 */}
+          <div className="bt-today__ctas">
+            <button
+              type="button"
+              className="bt-btn bt-btn--primary bt-today__cta"
+              onClick={() => onGo(spot.book_number, spot.chapter, spot.verse)}
+            >
+              {cta}
+              <span className="material-icons-round" aria-hidden>
+                arrow_forward
+              </span>
+            </button>
+            <button type="button" className="bt-btn bt-today__cta bt-today__pick" onClick={onPick}>
+              <span className="material-icons-round" aria-hidden>
+                menu_book
+              </span>
+              골라 쓰기
+            </button>
+          </div>
         </>
       )}
 

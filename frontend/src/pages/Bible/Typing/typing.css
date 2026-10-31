@@ -1622,12 +1622,6 @@
 .bt-skel--heading { display: inline-block; width: 110px; height: 17px; vertical-align: middle; }
 .bt-skel--line { width: 70%; height: 14px; }
 .bt-skel--short { width: 40%; height: 12px; margin-top: 10px; }
-.bt-shelf__item--skel {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 76px;
-}
 @keyframes bt-skel-pulse {
   50% { opacity: 0.55; }
 }
@@ -1779,14 +1773,33 @@
 .bt-today__verse.is-masked {
   color: var(--text-muted);
 }
-.bt-today__cta {
+.bt-today__ctas {
+  display: flex;
+  gap: 8px;
   margin-top: 10px;
+}
+.bt-today__cta {
   min-height: 52px;
   font-size: 16px;
   border-radius: 16px;
 }
 .bt-today__cta .material-icons-round {
   font-size: 20px;
+}
+.bt-today__ctas .bt-btn--primary {
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
+  line-height: 1.25;
+}
+/* 골라 쓰기 — 이어 쓰기 옆 같은 키. 브랜드 연한 판이라 회색 ghost 보다 먼저 눈에 든다 */
+.bt-today__pick {
+  flex-shrink: 0;
+  padding: 0 14px;
+  background: var(--brand-soft-strong);
+  border-color: transparent;
+  color: var(--brand);
+  font-weight: 700;
 }
 .bt-today__opts {
   display: flex;
@@ -2023,78 +2036,123 @@
   margin-left: 8px;
 }
 
-/* ── 쓰는 중인 책 ────────────────────────────────── */
-.bt-shelf {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+/* ── 골라 쓰기 — 오늘의 필사 바로 아래, 접지 않고 펼쳐 둔다 ── */
+.bt-pick {
+  margin-top: 14px;
+  padding: 16px 14px 14px;
 }
-@media (min-width: 640px) {
-  .bt-shelf {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-.bt-shelf__item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 16px;
-  text-align: left;
-}
-.bt-shelf__name {
-  font-size: 15px;
+.bt-pick__title {
+  margin: 0 2px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text-strong);
 }
-.bt-shelf__meta {
-  font-size: 12px;
+.bt-pick__sub {
+  margin: 3px 2px 0;
+  font-size: 13px;
   color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
 }
-.bt-shelf__bar {
-  display: block;
-  width: 100%;
-  height: 4px;
-  margin-top: 6px;
-  border-radius: 999px;
+.bt-pick__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  margin-top: 12px;
+  padding: 0 6px 0 12px;
+  border-radius: 14px;
   background: var(--surface-inset);
-  overflow: hidden;
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
-.bt-shelf__bar span {
-  display: block;
+.bt-pick__search:focus-within {
+  border-color: var(--brand);
+  background: var(--surface-container);
+}
+.bt-pick__search > .material-icons-round {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+.bt-pick__search input {
+  flex: 1;
+  min-width: 0;
   height: 100%;
-  background: var(--brand);
-  border-radius: inherit;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-size: 16px; /* 16px 미만이면 iOS 가 확대한다 */
+  color: var(--text-strong);
 }
-.bt-disclose {
+.bt-pick__search input::placeholder {
+  color: var(--text-muted);
+}
+.bt-pick__search input::-webkit-search-cancel-button {
+  display: none;
+}
+.bt-pick__clear {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--text-muted);
+}
+.bt-pick__clear .material-icons-round {
+  font-size: 18px;
+}
+.bt-pick__hint {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  margin-top: 10px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px dashed var(--card-border);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-body);
+  margin-top: 8px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  font-size: 14.5px;
+  font-weight: 700;
+  text-align: left;
 }
-.bt-disclose .material-icons-round {
+.bt-pick__hint .material-icons-round {
   font-size: 20px;
+}
+.bt-pick__hint-go {
+  margin-left: auto;
+}
+.bt-pick__miss {
+  margin: 8px 2px 0;
+  font-size: 13px;
   color: var(--text-muted);
 }
-.bt-disclose__chev {
-  margin-left: auto;
-  transition: transform 0.2s ease;
+.bt-pick__row {
+  align-items: center;
+  margin-top: 12px;
+  padding-bottom: 2px;
 }
-.bt-disclose[aria-expanded='true'] .bt-disclose__chev {
-  transform: rotate(180deg);
+.bt-pick__row-label {
+  flex-shrink: 0;
+  margin-right: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
 }
-.bt-disclose + .bt-picker {
-  margin-top: 8px;
+.bt-pick__chip-pct {
+  margin-left: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.bt-skel--chip {
+  flex-shrink: 0;
+  width: 92px;
+  height: 32px;
+  border-radius: 999px;
+}
+.bt-pick__grid {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--card-border);
 }
 
 /* ── 스프린트 입구 ───────────────────────────────── */
@@ -3119,13 +3177,11 @@
     height: 36px;
   }
   .bt-daily:hover,
-  .bt-sprint-entry:hover,
-  .bt-shelf__item:hover {
+  .bt-sprint-entry:hover {
     transform: translateY(-1px);
     border-color: color-mix(in srgb, var(--brand) 40%, var(--card-border));
   }
-  .bt-sprint-entry,
-  .bt-shelf__item {
+  .bt-sprint-entry {
     transition: transform 0.15s ease, border-color 0.15s ease;
   }
 }
