@@ -21,7 +21,7 @@ import { ensureFontFamily } from '../../utils/deferredFonts'
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
 import { confirmDialog } from '../../utils/confirmDialog'
-import { ArrivalEnvelope } from './open/ArrivalEnvelope'
+import { ArrivalTrail } from './open/ArrivalTrail'
 import { DawnSky, LetterStamp } from './open/LetterDecor'
 import { DevelopingPolaroid } from './open/DevelopingPolaroid'
 import { POLAROID_TILTS, filmStamp } from './open/polaroidBits'
@@ -277,10 +277,10 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
           </div>
         )}
 
-        {/* 개봉 가능 — 빛에 비춰보는 봉투 한 통. 꾹 눌러 빛이 터지면
+        {/* 개봉 가능 — 배달부 양이 걸어온 배달 길. 마지막 한 칸을 꾹 눌러 채우면
             담긴 것이 하나씩 튀어나오고, "편지 읽기"로 편지 화면에 들어간다 */}
         {capsule && stage !== 'letter' && capsule.openable && (
-          <ArrivalEnvelope
+          <ArrivalTrail
             capsule={capsule}
             opened={phase === 'opening'}
             onOpen={handleOpen}

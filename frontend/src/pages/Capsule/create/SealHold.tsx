@@ -1,5 +1,5 @@
 // 봉인 = 금빛 밀랍 인장을 1초 꾹 누르기.
-// 개봉 화면(ArrivalEnvelope)이 인장을 꾹 눌러 뜯으니, 봉인도 같은 손짓으로 찍는다 —
+// 개봉 화면(ArrivalTrail)이 꾹 눌러 여니, 봉인도 같은 손짓으로 찍는다 —
 // 시작과 끝이 거울상이다. 꾹 누르기가 "정말 봉인할까요?" 확인을 대신한다
 // (예전엔 버튼을 두 번 눌러야 했다). 키보드·보조기기는 Enter/Space로 즉시 봉인.
 import { useEffect, useRef, useState } from 'react'

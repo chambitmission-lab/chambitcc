@@ -1,0 +1,773 @@
+/* ── 도착한 캡슐 = 배달부 양이 걸어온 배달 길 ──────────────────────
+   2026-10-31 개편. 크고 사실적인 3D 봉투 + 블러 '안에 든 것' 상자는 캡슐함 목록·작성 화면과
+   재질이 따로 놀아 어색했다(시안 6벌 → B '배달 길' → 변형 5벌 비교 끝에 B 원안 확정).
+   지금 문법: 캡슐함 히어로의 배달부 양 무대 + 말풍선 → 지나온 길(봉인·여행·도착)은 입체 타일,
+   마지막 '열어 보기' 칸만 점선 → 꾹 누르면 버튼과 그 칸이 같이 차오름 → 체크가 찍히고 길이 접히는
+   자리에서 담긴 것이 하나씩 뽁 → 참빛우체국 D+N 도장.
+   타일·버튼의 바닥 그림자는 tactile.css(캡슐함)와 같은 값 — 이 화면은 .capsule-box 밖이라 여기서 다시 정의한다.
+   JS가 루트에 --p(누른 정도 0~1)를 실시간으로 쓴다. */
+
+.capsule-arrival {
+  --ca-glow: 255, 196, 110;
+  --cap-tile-edge: #e3e7ee;
+  --cap-tile-floor: #d3d9e3;
+  --cap-on-bg: rgba(49, 130, 246, 0.07);
+  --cap-on-edge: #3182f6;
+  --cap-on-floor: #1f5fcf;
+  --ca-gold: #e0a42e;
+  --ca-gold-soft: rgba(224, 164, 46, 0.22);
+  --ca-sky1: #cfe2f5;
+  --ca-sky2: #e3ebf4;
+  position: relative;
+  overflow: hidden;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+}
+
+.dark .capsule-arrival {
+  --cap-tile-edge: #303036;
+  --cap-tile-floor: #18181b;
+  --cap-on-bg: #172442;
+  --cap-on-edge: #3d7cf0;
+  --cap-on-floor: #2456b8;
+  --ca-sky1: #101932;
+  --ca-sky2: #1f2248;
+}
+
+/* ── 양 무대 — 캡슐함 히어로와 같은 그림(utils/themeAssets CAPSULE_HERO) ── */
+.capsule-arrival__stage {
+  position: relative;
+  height: 156px;
+  border-radius: 22px;
+  overflow: hidden;
+  /* 그라데이션은 삽화 하늘색에서 역산 — 그림이 늦게 와도 빈 판이 아닌 하늘이 먼저 선다 */
+  background: linear-gradient(165deg, var(--ca-sky1), var(--ca-sky2));
+}
+
+.capsule-arrival__stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/capsule/hero-light.webp') center bottom / 100% auto no-repeat;
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+
+.dark .capsule-arrival__stage::before {
+  background-image: url('/images/capsule/hero-dark.webp');
+}
+
+.capsule-arrival__stage.is-ready::before {
+  opacity: 1;
+}
+
+/* 양의 말풍선 — key 가 바뀔 때마다 톡 튀어나온다.
+   양은 무대 오른쪽에 있어서 꼬리도 오른쪽으로, 양 얼굴 쪽(살짝 아래)을 가리킨다 */
+.capsule-arrival__say {
+  position: absolute;
+  z-index: 1;
+  left: 14px;
+  top: 14px;
+  max-width: calc(58% - 14px);
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  word-break: keep-all;
+  box-shadow: 0 3px 0 var(--cap-tile-floor);
+  animation: capsule-say-pop 0.32s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  transform-origin: 100% 60%;
+}
+
+.capsule-arrival__say::after {
+  content: '';
+  position: absolute;
+  right: -11px;
+  top: 50%;
+  width: 14px;
+  height: 18px;
+  margin-top: -8px;
+  background: inherit;
+  clip-path: polygon(0 0, 100% 78%, 0 100%);
+}
+
+@keyframes capsule-say-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.capsule-arrival__eyebrow {
+  margin: 20px 2px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.capsule-arrival__headline {
+  margin: 4px 2px 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.36;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+
+.capsule-arrival__headline em {
+  font-style: normal;
+  color: var(--brand);
+}
+
+.capsule-arrival__swap {
+  display: inline-block;
+  animation: capsule-fade-up 0.5s ease both;
+}
+
+/* 길과 선물이 같은 칸에 겹친다 */
+.capsule-arrival__zone {
+  display: grid;
+  margin-top: 16px;
+}
+
+.capsule-arrival__zone > * {
+  grid-area: 1 / 1;
+}
+
+/* ── 배달 길 ──────────────────────────────────────────────────── */
+.capsule-trail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition:
+    opacity 0.45s ease,
+    transform 0.55s cubic-bezier(0.3, 0.7, 0.3, 1),
+    visibility 0s 0.55s;
+}
+
+/* 정류장을 잇는 점선 */
+.capsule-trail::before {
+  content: '';
+  position: absolute;
+  left: 25px;
+  top: 24px;
+  bottom: 24px;
+  border-left: 2px dashed var(--cap-tile-floor);
+}
+
+/* 체크가 찍히고 한 박자 뒤 길이 접혀 선물에 자리를 내준다 */
+.beat-1 .capsule-trail,
+.beat-2 .capsule-trail,
+.beat-3 .capsule-trail,
+.beat-4 .capsule-trail {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.97);
+  visibility: hidden;
+}
+
+.capsule-trail__stop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 14px 10px 12px;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 2px solid var(--cap-tile-edge);
+  box-shadow: 0 4px 0 var(--cap-tile-floor);
+}
+
+.capsule-trail__dot {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  color: #fff;
+}
+
+.capsule-trail__dot svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.capsule-trail__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.capsule-trail__text b {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.capsule-trail__text small {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.capsule-trail__end {
+  flex: none;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 지금 여기 — 목록의 '새 편지' 타일처럼 파란 테두리·바닥, 점은 금빛 */
+.capsule-trail__stop.is-now {
+  background: var(--cap-on-bg);
+  border-color: var(--cap-on-edge);
+  box-shadow:
+    0 4px 0 var(--cap-on-floor),
+    0 14px 24px -16px var(--brand-glow);
+}
+
+.capsule-trail__stop.is-now .capsule-trail__dot {
+  background: var(--ca-gold);
+  box-shadow: 0 0 0 5px var(--ca-gold-soft);
+}
+
+/* 남은 한 걸음 — 점선 칸. 꾹 누르는 동안 왼쪽부터 차오른다 */
+.capsule-trail__stop.is-next {
+  overflow: hidden;
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.capsule-trail__stop.is-next::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--cap-on-bg);
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+}
+
+.is-holding .capsule-trail__stop.is-next,
+.is-charged .capsule-trail__stop.is-next {
+  border-color: var(--cap-on-edge);
+}
+
+.capsule-trail__stop.is-next .capsule-trail__dot {
+  background: var(--surface-container);
+  border: 2px dashed var(--brand);
+  color: var(--brand);
+}
+
+.capsule-trail__stop.is-next .capsule-trail__text b {
+  color: var(--brand);
+}
+
+/* 열렸다 — 빈 칸이 채워진 타일이 된다 */
+.capsule-trail__stop.is-next.is-done {
+  border-style: solid;
+  border-color: var(--cap-on-edge);
+  background: var(--cap-on-bg);
+  box-shadow: 0 4px 0 var(--cap-on-floor);
+}
+
+.capsule-trail__stop.is-next.is-done::before {
+  display: none;
+}
+
+.capsule-trail__stop.is-next.is-done .capsule-trail__dot {
+  border: 0;
+  background: var(--brand);
+  color: #fff;
+  animation: capsule-trail-check 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes capsule-trail-check {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+/* ── 기다린 보람 — 담긴 것이 하나씩 뽁 (길이 접힌 자리) ─────────── */
+.capsule-gift {
+  position: relative;
+  z-index: 7;
+  align-self: center;
+  justify-self: center;
+  width: min(300px, 86%);
+  margin: 26px 0 42px;
+  pointer-events: none;
+}
+
+.capsule-gift__photo,
+.capsule-gift__voice {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  opacity: 0;
+}
+
+.capsule-gift__photo {
+  width: 104px;
+  padding: 7px 7px 26px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.35);
+}
+
+.capsule-gift__photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.capsule-gift__photo figcaption {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  text-align: center;
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: 17px;
+  color: #4a5670;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.capsule-gift__voice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.35);
+  color: #2f3b55;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.capsule-gift__voice svg {
+  color: #3182f6;
+}
+
+.capsule-gift__voice b {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  height: 18px;
+}
+
+.capsule-gift__voice b i {
+  width: 3px;
+  border-radius: 2px;
+  background: #3182f6;
+  opacity: 0.7;
+}
+
+.beat-1 .capsule-gift__photo,
+.beat-2 .capsule-gift__photo,
+.beat-3 .capsule-gift__photo,
+.beat-4 .capsule-gift__photo {
+  animation: capsule-gift-photo 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) forwards;
+}
+
+.beat-1 .capsule-gift__voice,
+.beat-2 .capsule-gift__voice,
+.beat-3 .capsule-gift__voice,
+.beat-4 .capsule-gift__voice {
+  animation: capsule-gift-voice 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) 0.45s forwards;
+}
+
+@keyframes capsule-gift-photo {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(-132px, -34px) rotate(-12deg);
+  }
+}
+
+@keyframes capsule-gift-voice {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(134px, -74px) rotate(9deg);
+  }
+}
+
+/* 참빛 편지지 — 머리에 금빛 십자가와 봉인한 날 */
+.capsule-giftletter {
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  padding: 18px 22px 20px;
+  border-radius: 6px;
+  text-align: left;
+  background: linear-gradient(180deg, #fffefa, #fcf7ee);
+  box-shadow:
+    0 22px 40px -18px rgba(90, 60, 30, 0.4),
+    0 0 0 1px rgba(170, 140, 90, 0.12);
+}
+
+.dark .capsule-giftletter {
+  box-shadow:
+    0 0 60px rgba(var(--ca-glow), 0.25),
+    0 24px 50px -18px rgba(0, 0, 0, 0.7);
+}
+
+.beat-2 .capsule-giftletter,
+.beat-3 .capsule-giftletter,
+.beat-4 .capsule-giftletter {
+  animation: capsule-gift-letter 0.65s cubic-bezier(0.3, 1.5, 0.5, 1) forwards;
+}
+
+@keyframes capsule-gift-letter {
+  0% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.capsule-giftletter__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(170, 140, 90, 0.28);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #a08a6a;
+}
+
+.capsule-giftletter__head svg {
+  width: 13px;
+  height: 13px;
+  color: #c69a4e;
+}
+
+.capsule-giftletter__date {
+  margin-left: auto;
+}
+
+.capsule-giftletter__body {
+  margin-top: 10px;
+  background: repeating-linear-gradient(180deg, transparent 0 33px, rgba(49, 82, 140, 0.12) 33px 34px);
+}
+
+/* 손글씨가 펜 끝을 따라 한 줄씩 다시 써진다 */
+.capsule-giftletter__ln {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: 23px;
+  line-height: 34px;
+  color: #2f3b55;
+  -webkit-mask-image: linear-gradient(90deg, #000 42%, transparent 58%);
+  mask-image: linear-gradient(90deg, #000 42%, transparent 58%);
+  -webkit-mask-size: 260% 100%;
+  mask-size: 260% 100%;
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
+}
+
+.capsule-giftletter__sig {
+  text-align: right;
+  color: #6d5a42;
+  font-size: 21px;
+}
+
+.beat-4 .capsule-giftletter__ln {
+  animation: capsule-ink 0.9s cubic-bezier(0.4, 0.1, 0.6, 0.9) calc(var(--i) * 0.75s) forwards;
+}
+
+@keyframes capsule-ink {
+  to {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+  }
+}
+
+/* 참빛우체국 도착 도장 — 쾅 */
+/* 서명(오른쪽 아래)을 가리지 않게 왼쪽 아래 모서리에 걸쳐 찍는다 */
+.capsule-arrivestamp {
+  position: absolute;
+  left: -22px;
+  bottom: -26px;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  line-height: 1.1;
+  color: var(--brand);
+  border: 2.5px solid currentColor;
+  background: color-mix(in srgb, currentColor 6%, #fffdf8);
+  box-shadow:
+    inset 0 0 0 3px #fffdf8,
+    inset 0 0 0 4.5px currentColor;
+  opacity: 0;
+}
+
+/* 1년을 넘게 기다린 편지는 금빛 도장 — 응답·영광의 앰버 시맨틱 */
+.capsule-arrivestamp--gold {
+  color: #c08a1e;
+}
+
+.capsule-arrivestamp small {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.capsule-arrivestamp b {
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.beat-3 .capsule-arrivestamp,
+.beat-4 .capsule-arrivestamp {
+  animation: capsule-stamp-thunk 0.42s cubic-bezier(0.6, 0, 0.6, 1.4) forwards;
+}
+
+.beat-3 .capsule-gift {
+  animation: capsule-stamp-shake 0.28s 0.3s;
+}
+
+@keyframes capsule-stamp-thunk {
+  0% {
+    opacity: 0;
+    transform: scale(2.4) rotate(-26deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.9) rotate(-14deg);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-14deg);
+  }
+}
+
+@keyframes capsule-stamp-shake {
+  25% {
+    translate: 3px 2px;
+  }
+  50% {
+    translate: -3px -1px;
+  }
+  75% {
+    translate: 1px -1px;
+  }
+}
+
+.capsule-confetti {
+  position: absolute;
+  z-index: 11;
+  left: 50%;
+  top: 45%;
+  width: 7px;
+  height: 11px;
+  border-radius: 1.5px;
+  pointer-events: none;
+  animation: capsule-confetti 1.5s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+}
+
+@keyframes capsule-confetti {
+  0% {
+    transform: translate(0, 0) rotate(0);
+  }
+  35% {
+    transform: translate(var(--dx), var(--dy)) rotate(calc(var(--r) * 0.4));
+  }
+  100% {
+    transform: translate(calc(var(--dx) * 1.25), calc(var(--dy) + 240px)) rotate(var(--r));
+    opacity: 0;
+  }
+}
+
+
+/* ── 꾹 눌러서 열기 — 캡슐함 [새 캡슐 봉인하기]와 같은 볼록 버튼, 안이 왼쪽부터 차오른다 ── */
+.capsule-hold {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  width: 100%;
+  height: 54px;
+  margin: 20px auto 0;
+  border-radius: 16px;
+  background: #3182f6;
+  color: #fff;
+  font-size: 15.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  box-shadow:
+    0 5px 0 #1f5fcf,
+    0 14px 24px -12px rgba(49, 130, 246, 0.6);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+/* 위쪽 빛줄 — 볼록함 */
+.capsule-hold::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 14px;
+  right: 14px;
+  height: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+.capsule-hold::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #1f5fcf;
+  opacity: 0.55;
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+  pointer-events: none;
+}
+
+.is-open .capsule-hold::after {
+  display: none;
+}
+
+.capsule-hold:active,
+.is-holding .capsule-hold,
+.is-charged .capsule-hold {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #1f5fcf;
+}
+
+.capsule-hold:focus-visible {
+  outline: 3px solid var(--brand-soft-strong);
+  outline-offset: 3px;
+}
+
+.capsule-hold:disabled {
+  cursor: default;
+}
+
+.capsule-hold span {
+  position: relative;
+  z-index: 1;
+}
+
+/* 짧게 탭했을 때 — 손을 떼면 안 된다는 걸 몸으로 알려준다 */
+.capsule-hold--nudge {
+  animation: capsule-hold-nudge 0.5s ease-in-out;
+}
+
+@keyframes capsule-hold-nudge {
+  0%,
+  100% {
+    translate: 0;
+  }
+  22% {
+    translate: -5px;
+  }
+  48% {
+    translate: 5px;
+  }
+  74% {
+    translate: -3px;
+  }
+}
+
+.capsule-arrival__hint {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* 꾹 누르기를 못 찾은 사람을 위한 보조 경로 — 잠시 뒤 조용히 나타난다 */
+.capsule-arrival__bypass {
+  display: block;
+  margin: 8px auto 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  animation: capsule-fade-up 0.5s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-arrival__say,
+  .capsule-hold--nudge,
+  .capsule-trail__stop.is-next.is-done .capsule-trail__dot {
+    animation: none;
+  }
+  .capsule-trail,
+  .capsule-hold,
+  .capsule-arrival__stage::before {
+    transition: none;
+  }
+  .capsule-confetti {
+    display: none;
+  }
+  .beat-4 .capsule-gift__photo,
+  .beat-4 .capsule-gift__voice,
+  .beat-4 .capsule-giftletter,
+  .beat-4 .capsule-arrivestamp {
+    animation-duration: 0.01s;
+    animation-delay: 0s;
+  }
+  .beat-4 .capsule-giftletter__ln {
+    animation: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
