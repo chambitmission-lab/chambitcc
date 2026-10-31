@@ -17,10 +17,89 @@
     padding-bottom: 300px;
   }
 
+  /* 예시 카드·감성 배경은 위 상황별·교회 말씀과 같은 920px 기둥에 가운데로 —
+     전체 폭에 두면 카드 다섯 장이 왼쪽에 쏠리고, 560px 에 가두면 스와치 하나가 둘째 줄에 홀로 남는다 */
+  .pv-intro__samples,
   .pv-intro__bg {
-    max-width: 560px;
+    max-width: 920px;
   }
 
+  .pv-samples {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+    overflow: visible;
+    margin: 0;
+    padding: 6px 0 4px;
+  }
+
+  .pv-sample {
+    gap: 10px;
+    transition: transform 0.22s ease;
+  }
+
+  .pv-sample__frame {
+    width: 100%;
+    transition: box-shadow 0.22s ease;
+  }
+
+  .pv-sample__name {
+    font-size: 13px;
+  }
+
+  /* 감성 배경 — 한 줄 가운데, 예시 카드 옆에서 너무 작아 보이지 않게 조금 키운다 */
+  .pv-intro__bg .pv-bg-row {
+    justify-content: center;
+    gap: 14px;
+    padding: 4px 0 6px;
+  }
+
+  .pv-intro__bg .pv-bg-dot__swatch {
+    width: 52px;
+    height: 65px;
+    border-radius: 13px;
+  }
+
+  .pv-intro__bg .pv-bg-dot__name {
+    font-size: 12px;
+  }
+}
+
+/* 마우스 — 예시 카드·스와치가 살짝 떠올라 "눌러서 시작"임을 알린다 */
+@media (min-width: 1024px) and (hover: hover) {
+  .pv-sample:hover {
+    transform: translateY(-4px);
+  }
+
+  .pv-sample:hover .pv-sample__frame {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.35) inset,
+      0 22px 40px -16px rgba(0, 0, 0, 0.6),
+      0 6px 14px -6px rgba(0, 0, 0, 0.3);
+  }
+
+  .pv-sample:hover .pv-sample__name,
+  .pv-intro__bg .pv-bg-dot:hover .pv-bg-dot__name {
+    color: var(--text-strong);
+  }
+
+  .pv-intro__bg .pv-bg-dot:hover {
+    transform: translateY(-3px);
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .pv-sample,
+  .pv-intro__bg .pv-bg-dot {
+    transition: none;
+  }
+  .pv-sample:hover,
+  .pv-intro__bg .pv-bg-dot:hover {
+    transform: none;
+  }
+}
+
+@media (min-width: 1024px) {
   .pv-intro::after {
     height: 500px;
     background-size: 100% auto;
@@ -68,10 +147,6 @@
   /* 우측 열 안에서는 첫 요소이므로 위 여백을 줄인다 */
   .pv-controls {
     margin-top: 12px;
-  }
-
-  .pv-sample__frame {
-    width: 168px;
   }
 
   /* 상황 칩·스타일·레이아웃·필터·감성 배경 스트립 — 모바일은 가로 스크롤,

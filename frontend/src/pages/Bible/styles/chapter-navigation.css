@@ -511,6 +511,12 @@
   background: #fff;
 }
 
+/* 지금 보는 장이 완독이면 ✓ 도 흰색 — 브랜드 바탕 위라 브랜드색 ✓ 는 묻힌다 */
+.ch-cell.is-current .ch-cell__check,
+.ch-cell.is-current:hover .ch-cell__check {
+  color: #fff;
+}
+
 /* 이어읽기 위치 — 채우지 않고 테두리로만. '지금 보는 장'과 헷갈리지 않게 */
 .ch-cell.is-resume {
   border-color: var(--brand);

@@ -252,7 +252,9 @@ const ChapterPickerSheet = ({
                       onClick={() => onPick(ch)}
                     >
                       <span className="ch-cell__num">{ch}</span>
-                      {completed && !isCurrent && (
+                      {/* 지금 보는 장이어도 완독이면 ✓ — 장이 하나뿐인 책(빌레몬서·유다서 등)은
+                          그 장이 늘 '지금'이라 숨기면 완독 표시를 영영 볼 수 없다 */}
+                      {completed && (
                         <span className="material-icons-round ch-cell__check" aria-hidden="true">
                           check
                         </span>

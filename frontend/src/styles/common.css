@@ -98,6 +98,11 @@
 .sheet-grabber:not(.absolute) {
   position: relative;
 }
+/* 절대 위치 손잡이는 뒤따르는 본문 래퍼(relative z-10 + pt-6)가 윗변을 덮어 터치를 가로챈다
+   (/bible 단어 시트에서 끌어내리기가 안 먹던 원인) — 패널 안에서 맨 위로 올린다 */
+.sheet-grabber.absolute {
+  z-index: 30;
+}
 .sheet-grabber:active {
   cursor: grabbing;
 }
