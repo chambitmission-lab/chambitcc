@@ -53,10 +53,15 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/growth': () => import('../pages/Growth/Growth'),
   // 홈 히어로 '오늘의 교회' 봉투 목적지 — 봉투가 뜨는 순간 데운다
   '/today': () => import('../pages/TodayChurch/TodayChurch'),
-  // 홈 FAB 스피드 다이얼의 "말씀 카드 만들기" 목적지
+  // 홈 FAB 스피드 다이얼·/bible 허브 도구 타일 "말씀 사진 카드" 목적지
   '/bible/photo-verse': () => import('../pages/Bible/PhotoVerse/PhotoVerse'),
   // /bible 허브 도구 카드·홈 우측 레일 칩 목적지 — 허브가 뜨면 유휴 시간에 미리 받는다
   '/bible/situation': () => import('../pages/Bible/SituationBible'),
+  // /bible 허브 도구 타일 "처음 만나는 성경"·"성경 지도여행" — 테이블에 없어 타일을 누른 뒤에야
+  // 청크(스토리 gz 43KB·지도 gz 49KB)가 내려왔다. 라우터가 전환을 startTransition 으로 돌려
+  // 청크가 올 때까지 허브 화면에 멈춘 듯 보이던 원인. 라우트 lazy 와 같은 로더를 쓴다
+  '/bible/story': () => import('../pages/Bible/Story/StoryMap'),
+  '/bible/atlas': () => import('../pages/Bible/Atlas/AtlasMap'),
   '/classes': () => import('../pages/ClassRoom/ClassList'),
   '/survey': () => import('../pages/Survey/SurveyList'),
   '/seats': () => import('../pages/Seats/SeatEventList'),
@@ -129,6 +134,14 @@ const routeDataPrefetchers: Record<string, (run: Run) => Promise<void>> = {
   '/bible/situation': (run) =>
     Promise.all([import('../hooks/useSituation'), import('../config/queryClient')]).then(
       ([m, q]) => run(() => m.prefetchSituation(q.queryClient)),
+    ),
+  // 지도여행 — 여권 도장(방문 기록)은 화면이 마운트된 뒤에야 받아 지도 → 도장 순으로 두 박자였다.
+  // 스토리 진행은 허브가 이미 같은 키로 들고 있어(useStoryProgress) 따로 데우지 않는다
+  '/bible/atlas': (run) =>
+    Promise.all([import('../pages/Bible/Atlas/atlasProgress'), import('../config/queryClient'), import('./auth')]).then(
+      ([m, q, a]) => {
+        if (a.isAuthenticated()) run(() => m.prefetchAtlasProgress(q.queryClient))
+      },
     ),
   // 말씀 필사 허브 — 메뉴 호버·성경 허브 타일 pointerdown 때 묶음을 청크와 같이. 캐시가 아예 없을 때만(coldOnly)
   '/bible/typing': (run) =>

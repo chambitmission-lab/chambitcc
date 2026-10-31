@@ -4,6 +4,7 @@ import { Reorder, useDragControls } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import { API_V1 } from '../../../config/api'
 import {
+  FAVORITES_PLAYLIST_PARAMS,
   bookmarkKeys,
   useMyBookmarks,
   useReorderBookmarks,
@@ -56,7 +57,8 @@ const verseUrl = (item: VerseBookmarkWithVerse) =>
 const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   useModalBackButton(onClose)
 
-  const { data, isLoading } = useMyBookmarks({ favorites_only: true, page_size: 100 })
+  // 인자는 허브 선요청(prefetchFavoritesPlaylist)과 공유 — 타일을 누르기 전에 받아 둔 캐시를 그대로 이어받는다
+  const { data, isLoading } = useMyBookmarks(FAVORITES_PLAYLIST_PARAMS)
   const serverItems = useMemo<VerseBookmarkWithVerse[]>(() => data?.items ?? [], [data])
   const reorderMutation = useReorderBookmarks()
 

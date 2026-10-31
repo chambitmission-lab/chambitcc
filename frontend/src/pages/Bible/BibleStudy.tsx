@@ -28,6 +28,16 @@ import { lazyModal } from '../../utils/lazyModal'
 /** 허브 유휴 시간에 미리 받아 둘 장 수 — 이어읽기(latest) + 최근 읽은 책. 장당 요청 2건(본문·읽음 상태) */
 const HUB_CHAPTER_PREFETCH_MAX = 3
 
+/** 허브 도구 타일 목적지 — 마우스가 올라오거나 손가락이 닿는 순간 청크·첫 데이터를 받기 시작한다.
+ *  유휴 프리로드가 이미 받았으면 즉시 돌아오고, 아직이면 탭 → 라우터 전환까지의 틈을 벌어 준다 */
+const warmRoute = (path: string) => ({
+  onPointerEnter: () => void preloadRoute(path),
+  onPointerDown: () => void preloadRoute(path),
+})
+/** 허브 타일이 유휴 시간에 순서대로 데워 둘 목적지 — 상황별 성구(청크+카테고리+히어로 구절)가 먼저,
+ *  나머지는 'low' 우선순위. 지도·필사 청크는 하단 도크/레일도 받지만 inflight 맵이 중복을 막는다 */
+const HUB_TILE_PRELOAD_ROUTES = ['/bible/story', '/bible/photo-verse', '/bible/atlas', '/bible/typing']
+
 const BibleSearch = lazyModal(() => import('./components/BibleSearch'), <ChapterLoader />)
 const FavoritesPlaylistModal = lazyModal(() => import('./components/FavoritesPlaylistModal'))
 const FocusReading = lazyModal(() => import('./components/FocusReading'))
@@ -35,7 +45,7 @@ const FocusReading = lazyModal(() => import('./components/FocusReading'))
 const ResearchCompare = lazyModal(() => import('./components/research/ResearchCompare'), <ChapterLoader />)
 const ResearchBasketPanel = lazyModal(() => import('./components/research/ResearchBasketPanel'))
 import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
-import { useBookmarkStats } from '../../hooks/useBibleBookmark'
+import { useBookmarkStats, prefetchFavoritesPlaylist } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
 import ChapterBriefCard from './components/ChapterBriefCard'
 import { ChapterGuidePanel, ChapterGuideTab } from './components/ChapterGuidePanel'
@@ -49,6 +59,7 @@ import BibleSideRail from '../../components/bible/BibleSideRail'
 import { requestPageZoom } from '../../utils/textScaleRoutes'
 // 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
 import { useStoryProgress } from './Story/storyProgress'
+import { isAuthenticated } from '../../utils/auth'
 import './BibleStudy.css'
 
 // 오른쪽 "이 장 안내" 패널 펼침 여부 (PC 1680px+). 기본은 펼침, '0' 이면 접힘
@@ -128,6 +139,7 @@ const BibleStudy = () => {
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { isLoggedIn } = useAuth()
   const { language } = useLanguage()
+  const qc = useQueryClient()
 
   // 나의 서재 카드 문구 — BookSelector와 같은 방식의 화면 내 ko/en 사전
   const dashTexts = {
@@ -214,13 +226,32 @@ const BibleStudy = () => {
   }
   useEffect(() => releaseSecondaryRequests, [])
 
-  // 허브 도구 카드 목적지(상황별 성구)를 유휴 시간에 미리 받아 둔다 — 청크와 첫 데이터까지.
-  // 예전엔 카드를 누른 뒤에야 청크 → 카테고리 → 히어로 구절이 직렬로 내려와 스피너가 두 번 떴다.
-  // 책 목록(허브)이 보일 때만, 3G 이하 예산에선 받지 않는다.
+  // 허브 도구 타일 목적지를 유휴 시간에 미리 받아 둔다 — 청크와 첫 데이터까지.
+  // 예전엔 상황별 성구만 받아, 스토리·말씀 카드 타일은 누른 뒤에야 청크(gz 43KB·35KB)가 내려왔고
+  // 라우터가 전환을 startTransition 으로 돌려 청크가 올 때까지 허브에 멈춘 듯 보였다.
+  // 상황별 성구(청크 → 카테고리 → 히어로 구절 직렬)를 먼저, 나머지는 순서대로 'low' 우선순위로.
+  // 즐겨찾기 플레이리스트는 모달 청크(framer-motion 포함)와 목록을 같이. 책 목록(허브)이 보일 때만,
+  // 3G 이하 예산에선 받지 않는다.
   useEffect(() => {
     if (!showBookList || preloadBudget() !== 'full') return
-    return scheduleAfterFirstScreen(() => void preloadRoute('/bible/situation'), { settleMs: 1500 })
-  }, [showBookList])
+    let cancelled = false
+    const warm = async () => {
+      await preloadRoute('/bible/situation')
+      for (const path of HUB_TILE_PRELOAD_ROUTES) {
+        if (cancelled) return
+        await preloadRoute(path, { idle: true })
+      }
+      // useAuth().isLoggedIn 은 렌더마다 새 함수라 의존성에 넣으면 effect 가 매 렌더 취소·재예약된다 — 모듈 함수로 본다
+      if (cancelled || !isAuthenticated()) return
+      void FavoritesPlaylistModal.preload()
+      prefetchFavoritesPlaylist(qc)
+    }
+    const cancel = scheduleAfterFirstScreen(() => void warm(), { settleMs: 1500 })
+    return () => {
+      cancelled = true
+      cancel()
+    }
+  }, [showBookList, qc])
 
   const resumeMap = useMemo(() => {
     const map = new Map<number, ResumePosition>()
@@ -363,8 +394,6 @@ const BibleStudy = () => {
     )
   const planAutoComplete =
     planId > 0 && planDayNumber > 0 && !!planDay && !planDay.completed && planChapterInDay
-
-  const qc = useQueryClient()
 
   // 본문 → 허브로 돌아올 때 읽는 동안 쌓인 변경을 한 번에 반영한다. 절 읽음 처리는 진행률·이어읽기를
   // stale 표시만 하고 다시 받지 않는다(이 컴포넌트가 본문도 그려 허브 쿼리가 읽는 내내 살아 있어,
@@ -526,6 +555,12 @@ const BibleStudy = () => {
     document.body.scrollTop = 0
   }
   
+  // 즐겨찾기 플레이리스트 — 모달 청크(framer-motion)와 목록을 손가락이 닿는 순간부터
+  const warmFavorites = () => {
+    void FavoritesPlaylistModal.preload()
+    prefetchFavoritesPlaylist(qc)
+  }
+
   // 성경 공부 도구 카드 묶음 — 모바일에선 서재 스택 안에, PC(lg+)에선 우측 사이드바에 렌더
   const dashToolCards = (
     <>
@@ -533,6 +568,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/story')}
+        {...warmRoute('/bible/story')}
         className="dash-card dash-card--fav dash-card--tone-story"
       >
         <span className="dash-card__icon dash-card__icon--seal">
@@ -551,6 +587,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/atlas')}
+        {...warmRoute('/bible/atlas')}
         className="dash-card dash-card--fav dash-card--tone-atlas"
       >
         <span className="dash-card__icon dash-card__icon--seal">
@@ -567,8 +604,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/typing')}
-        onPointerEnter={() => void preloadRoute('/bible/typing')}
-        onPointerDown={() => void preloadRoute('/bible/typing')}
+        {...warmRoute('/bible/typing')}
         className="dash-card dash-card--fav dash-card--tone-typing"
       >
         <span className="dash-card__icon dash-card__icon--seal">
@@ -585,6 +621,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/situation')}
+        {...warmRoute('/bible/situation')}
         className="dash-card dash-card--fav dash-card--tone-situation"
       >
         <span className="dash-card__icon dash-card__icon--seal">
@@ -601,6 +638,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/photo-verse')}
+        {...warmRoute('/bible/photo-verse')}
         className="dash-card dash-card--fav dash-card--tone-photo"
       >
         <span className="dash-card__icon dash-card__icon--seal">
@@ -617,6 +655,8 @@ const BibleStudy = () => {
         <button
           type="button"
           onClick={() => setShowPlaylist(true)}
+          onPointerEnter={warmFavorites}
+          onPointerDown={warmFavorites}
           className="dash-card dash-card--fav dash-card--tone-listen"
         >
           <span className="dash-card__icon dash-card__icon--seal">
@@ -639,7 +679,7 @@ const BibleStudy = () => {
   // 아이콘은 참빛 인장(모노 스탬프) — BibleToolIcons + .dash-card__icon--seal
   const dashToolTiles = (
     <div className={`dash-tiles${isLoggedIn() ? '' : ' dash-tiles--odd'}`}>
-      <button type="button" onClick={() => navigate('/bible/story')} className="dash-tile dash-tile--tone-story">
+      <button type="button" onClick={() => navigate('/bible/story')} {...warmRoute('/bible/story')} className="dash-tile dash-tile--tone-story">
         <span className="dash-tile__icon dash-card__icon--seal">
           <StoryIcon className="dash-card__glyph" />
         </span>
@@ -650,7 +690,7 @@ const BibleStudy = () => {
           </span>
         </span>
       </button>
-      <button type="button" onClick={() => navigate('/bible/atlas')} className="dash-tile dash-tile--tone-atlas">
+      <button type="button" onClick={() => navigate('/bible/atlas')} {...warmRoute('/bible/atlas')} className="dash-tile dash-tile--tone-atlas">
         <span className="dash-tile__icon dash-card__icon--seal">
           <AtlasIcon className="dash-card__glyph" />
         </span>
@@ -662,8 +702,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/typing')}
-        onPointerEnter={() => void preloadRoute('/bible/typing')}
-        onPointerDown={() => void preloadRoute('/bible/typing')}
+        {...warmRoute('/bible/typing')}
         className="dash-tile dash-tile--tone-typing"
       >
         <span className="dash-tile__icon dash-card__icon--seal">
@@ -674,7 +713,7 @@ const BibleStudy = () => {
           <span className="dash-tile__text">{dt.tileTyping}</span>
         </span>
       </button>
-      <button type="button" onClick={() => navigate('/bible/situation')} className="dash-tile dash-tile--tone-situation">
+      <button type="button" onClick={() => navigate('/bible/situation')} {...warmRoute('/bible/situation')} className="dash-tile dash-tile--tone-situation">
         <span className="dash-tile__icon dash-card__icon--seal">
           <SituationIcon className="dash-card__glyph" />
         </span>
@@ -683,7 +722,7 @@ const BibleStudy = () => {
           <span className="dash-tile__text">{dt.tileSituation}</span>
         </span>
       </button>
-      <button type="button" onClick={() => navigate('/bible/photo-verse')} className="dash-tile dash-tile--tone-photo">
+      <button type="button" onClick={() => navigate('/bible/photo-verse')} {...warmRoute('/bible/photo-verse')} className="dash-tile dash-tile--tone-photo">
         <span className="dash-tile__icon dash-card__icon--seal">
           <PhotoVerseIcon className="dash-card__glyph" />
         </span>
@@ -693,7 +732,7 @@ const BibleStudy = () => {
         </span>
       </button>
       {isLoggedIn() && (
-        <button type="button" onClick={() => setShowPlaylist(true)} className="dash-tile dash-tile--tone-listen">
+        <button type="button" onClick={() => setShowPlaylist(true)} onPointerEnter={warmFavorites} onPointerDown={warmFavorites} className="dash-tile dash-tile--tone-listen">
           <span className="dash-tile__icon dash-card__icon--seal">
             <ListenIcon className="dash-card__glyph" />
           </span>

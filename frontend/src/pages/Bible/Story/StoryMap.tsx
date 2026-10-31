@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import confetti from 'canvas-confetti'
 import { ALL_EPISODES, STORY_ACTS, TOTAL_EPISODES, nextUnread } from './data'
 import { useStoryProgress, hasCelebrated, markCelebrated } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
@@ -32,12 +31,15 @@ const StoryMap = () => {
   useEffect(() => {
     if (!completed || hasCelebrated()) return
     markCelebrated()
-    confetti({
-      particleCount: 120,
-      spread: 80,
-      origin: { y: 0.6 },
-      colors: ['#3182f6', '#4593fc', '#60a5fa', '#facc15'],
-    })
+    // 축하 효과는 완주 순간에만 필요하다 — canvas-confetti 는 그때 받는다 (AtlasMap 과 같은 규약)
+    void import('canvas-confetti').then(({ default: confetti }) =>
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#3182f6', '#4593fc', '#60a5fa', '#facc15'],
+      }),
+    )
   }, [completed])
 
   // 히어로(진행·이어보기 CTA) — 본문 맨 위. lg+ 에선 가로 배너로 펼쳐진다(Story.css)

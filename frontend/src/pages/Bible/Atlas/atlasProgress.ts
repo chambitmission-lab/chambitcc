@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { getAtlasProgress, markAtlasPlaceVisited } from '../../../api/bibleAtlas'
 import { isAuthenticated } from '../../../utils/auth'
 import { scheduleTitleEvaluation } from '../../../utils/titleUnlockBus'
@@ -20,6 +20,13 @@ const GUEST_VISITED_KEY = 'bible-atlas-visited-v1'
 const CELEBRATED_KEY = 'bible-atlas-celebrated-v1'
 
 export const ATLAS_PROGRESS_KEY = ['bible', 'atlas-progress'] as const
+const PROGRESS_STALE_MS = 1000 * 60 * 5
+
+/** 로그인 사용자의 방문 기록을 청크와 나란히 받아 둔다 — useAtlasProgress 와 같은 키·staleTime 이라
+ *  화면이 뜨면 캐시를 그대로 이어받는다. 호출부(routePreload)가 로그인 여부를 가린다 */
+export const prefetchAtlasProgress = (qc: QueryClient): void => {
+  void qc.prefetchQuery({ queryKey: ATLAS_PROGRESS_KEY, queryFn: getAtlasProgress, staleTime: PROGRESS_STALE_MS })
+}
 
 const userKey = (base: string): string => {
   try {
@@ -68,7 +75,7 @@ export const useAtlasProgress = () => {
     queryKey: ATLAS_PROGRESS_KEY,
     queryFn: getAtlasProgress,
     enabled: authed,
-    staleTime: 1000 * 60 * 5,
+    staleTime: PROGRESS_STALE_MS,
   })
 
   const [guestIds, setGuestIds] = useState<Set<string>>(loadGuestVisited)

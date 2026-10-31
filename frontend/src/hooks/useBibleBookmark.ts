@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData, type QueryClient } from '@tanstack/react-query'
 import {
   upsertBookmark,
   deleteBookmark,
@@ -265,7 +265,7 @@ export const useMyBookmarks = (
     queryKey: bookmarkKeys.list(params),
     queryFn: () => listBookmarks(params),
     enabled: enabled && !!token,
-    staleTime: 1000 * 60 * 2,
+    staleTime: LIST_STALE_MS,
     // 전역 refetchOnMount:false의 예외. persist 복원만 되고 이 세션에서 아직
     // 마운트된 적 없는 목록 쿼리는 queryFn이 없어 refetchType:'all' 무효화로도
     // 재요청이 조용히 실패한다 — 저장 직후 플레이리스트/프로필을 열면 옛 목록이
@@ -274,6 +274,21 @@ export const useMyBookmarks = (
     refetchOnMount: true,
     // 필터(전체/노트/즐겨찾기) 전환 시 이전 목록을 유지해 높이 붕괴로 인한 화면 흔들림 방지
     placeholderData: keepPreviousData,
+  })
+}
+
+const LIST_STALE_MS = 1000 * 60 * 2
+
+/** 즐겨찾기 플레이리스트(FavoritesPlaylistModal)가 쓰는 목록 인자 — 선요청과 키가 같아야 캐시를 이어받는다 */
+export const FAVORITES_PLAYLIST_PARAMS = { favorites_only: true, page_size: 100 } as const
+
+/** 즐겨찾기 목록을 모달 청크와 나란히 받아 둔다(/bible 허브 타일 유휴·터치). 캐시가 신선하면 요청 없이 끝난다 */
+export const prefetchFavoritesPlaylist = (qc: QueryClient): void => {
+  if (!tokenStore.getAccess()) return
+  void qc.prefetchQuery({
+    queryKey: bookmarkKeys.list(FAVORITES_PLAYLIST_PARAMS),
+    queryFn: () => listBookmarks(FAVORITES_PLAYLIST_PARAMS),
+    staleTime: LIST_STALE_MS,
   })
 }
 
