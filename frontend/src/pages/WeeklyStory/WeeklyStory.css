@@ -1,446 +1,501 @@
-/* 주간 기도 스토리 - 인스타 스토리 풍 풀스크린 */
+/* 주간 기도 스토리 — A안 "키네틱 랩드" (2026-10-31)
+   장마다 색면(--ws-bg)이 바뀌고 큰 숫자·단어가 튀어 오른다.
+   카드 안 글자 크기는 컨테이너 단위(cqw)라 모바일 전체 화면 · PC 9:16 카드에서 같은 비율로 보인다.
+   @property 로 색을 등록해 장이 넘어갈 때 배경색이 부드럽게 번진다. */
+
+@property --ws-bg {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #3182f6;
+}
+@property --ws-glow {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #6aa8ff;
+}
 
 .ws-root {
+  --ws-display: 'Black Han Sans', 'Pretendard Variable', Pretendard, sans-serif;
+  --ws-sans: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  --ws-serif: 'Noto Serif KR', serif;
+  --ws-ink: #ffffff;
+  --ws-ink-soft: rgba(255, 255, 255, 0.82);
+  --ws-fill: rgba(255, 255, 255, 0.16);
+  --ws-track: rgba(255, 255, 255, 0.3);
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: #000;
-  color: #f8fafc;
-  display: flex;
-  flex-direction: column;
+  background: var(--ws-bg);
+  color: var(--ws-ink);
+  font-family: var(--ws-sans);
+  letter-spacing: -0.02em;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: pan-y;
+  transition: --ws-bg 0.6s ease, --ws-glow 0.6s ease;
+}
+.ws-root[data-ink='dark'],
+.ws-card[data-ink='dark'] {
+  --ws-ink: #191f28;
+  --ws-ink-soft: rgba(25, 31, 40, 0.78);
+  --ws-fill: rgba(25, 31, 40, 0.1);
+  --ws-track: rgba(25, 31, 40, 0.18);
 }
 
-/* 진행 바 (상단) */
-.ws-progress-bar {
+/* ── 로딩·오류 ── */
+.ws-status-root { display: grid; place-items: center; }
+.ws-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  padding: 0 24px;
+}
+.ws-loader { display: flex; gap: 8px; height: 40px; align-items: flex-end; }
+.ws-loader i {
+  width: 12px;
+  border-radius: 6px;
+  background: #fff;
+  animation: ws-loader 0.9s ease-in-out infinite;
+}
+.ws-loader i:nth-child(2) { animation-delay: 0.12s; }
+.ws-loader i:nth-child(3) { animation-delay: 0.24s; }
+@keyframes ws-loader {
+  0%, 100% { height: 12px; opacity: 0.6; }
+  50% { height: 40px; opacity: 1; }
+}
+.ws-status-btn {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 22px;
+  background: #fff;
+  color: #191f28;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+/* ── 배치: 모바일은 카드가 화면 전체 ── */
+.ws-center { position: absolute; inset: 0; }
+.ws-side { display: none; }
+.ws-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ws-bg);
+  color: var(--ws-ink);
+  container-type: size;
+  touch-action: pan-y;
+  cursor: pointer;
+}
+
+/* 진행 바 */
+.ws-bars {
+  position: absolute;
+  z-index: 5;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: 12px;
+  right: 12px;
   display: flex;
   gap: 4px;
-  padding: 12px 14px 4px;
 }
-.ws-progress-track {
+.ws-bars div {
   flex: 1;
   height: 3px;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
+  border-radius: 3px;
+  background: var(--ws-track);
   overflow: hidden;
 }
-.ws-progress-fill {
-  height: 100%;
-  background: #f8fafc;
-  width: 0%;
-  border-radius: 999px;
-  transition: width 0.1s linear;
-}
-.ws-progress-fill.ws-pf-done { width: 100%; }
-.ws-progress-fill.ws-pf-active { animation: ws-progress var(--ws-duration, 6s) linear forwards; }
-.ws-progress-fill.ws-pf-paused { animation-play-state: paused; }
+.ws-bars i { display: block; height: 100%; width: 0; background: var(--ws-ink); }
+.ws-bars .is-done i { width: 100%; }
+.ws-bars .is-run i { animation: ws-fill linear forwards; }
+.ws-card.is-paused .ws-bars .is-run i { animation-play-state: paused; }
+@keyframes ws-fill { to { width: 100%; } }
 
-@keyframes ws-progress {
-  from { width: 0%; }
-  to   { width: 100%; }
-}
-
-/* 헤더 */
-.ws-header {
+/* 상단 줄 */
+.ws-top {
+  position: absolute;
+  z-index: 5;
+  top: calc(env(safe-area-inset-top, 0px) + 22px);
+  left: 16px;
+  right: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 14px 10px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
 }
-.ws-header-title {
-  font-weight: 700;
+.ws-top-title { font-size: 14px; font-weight: 700; color: var(--ws-ink-soft); }
+.ws-top-acts { display: flex; gap: 2px; }
+.ws-icon-btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ws-ink);
+  cursor: pointer;
+}
+.ws-icon-btn:hover { background: var(--ws-fill); }
+.ws-icon-btn:focus-visible,
+.ws-toc:focus-visible,
+.ws-pbtn:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
+
+.ws-paused-chip {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 6px;
-}
-.ws-close-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: 0;
-  color: #f8fafc;
-  width: 32px;
-  height: 32px;
+  padding: 7px 14px;
   border-radius: 999px;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.ws-close-btn:hover { background: rgba(255, 255, 255, 0.2); }
-
-/* 카드 영역 */
-.ws-card-area {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
 }
 
-.ws-card {
+/* ── 장면 ── */
+.ws-scene {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 24px 28px 80px;
-  opacity: 0;
+  padding: calc(env(safe-area-inset-top, 0px) + 84px) 7.5cqw calc(env(safe-area-inset-bottom, 0px) + 36px);
+  overflow: hidden;
+}
+.ws-blob {
+  position: absolute;
+  width: 110cqw;
+  height: 110cqw;
+  right: -42cqw;
+  top: -22cqw;
+  border-radius: 50%;
+  background: var(--ws-glow);
+  opacity: 0.7;
+  animation: ws-blob 9s ease-in-out infinite alternate;
   pointer-events: none;
-  transform: scale(1.02);
-  transition: opacity 0.25s ease, transform 0.25s ease;
 }
-.ws-card.ws-card-active {
-  opacity: 1;
-  pointer-events: auto;
-  transform: scale(1);
-  animation: ws-card-in 0.4s ease-out;
-}
-@keyframes ws-card-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
+@keyframes ws-blob { to { transform: translate(-6cqw, 8cqw) scale(1.08); } }
+.ws-scene > *:not(.ws-blob) { position: relative; }
 
-/* 그라디언트 배경 (카드별 다르게) */
-.ws-bg-hook       { background: radial-gradient(circle at 30% 20%, #1e1b4b, #0f172a 70%); }
-.ws-bg-day        { background: radial-gradient(circle at 70% 30%, #064e3b, #0f172a 70%); }
-.ws-bg-emotion    { background: radial-gradient(circle at 30% 70%, #831843, #0f172a 70%); }
-.ws-bg-highlight  { background: radial-gradient(circle at 70% 70%, #78350f, #0f172a 70%); }
-.ws-bg-answered   { background: radial-gradient(circle at 50% 30%, #14532d, #0f172a 70%); }
-.ws-bg-ai         { background: radial-gradient(circle at 50% 50%, #1e3a8a, #0f172a 70%); }
-.ws-bg-empty      { background: radial-gradient(circle at 50% 50%, #312e81, #0f172a 70%); }
-
-/* 카드 공용 텍스트 */
-.ws-eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 14px;
+.ws-eye { font-size: max(14px, 3.8cqw); font-weight: 700; letter-spacing: 0.02em; color: var(--ws-ink-soft); }
+.ws-huge {
+  font-family: var(--ws-display);
+  font-size: 48cqw;
+  line-height: 0.86;
+  letter-spacing: -0.06em;
+  margin-top: auto;
+  font-variant-numeric: tabular-nums;
 }
-.ws-headline {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1.3;
-  margin: 0 0 12px;
-  letter-spacing: -0.01em;
-}
-.ws-sub {
-  font-size: 16px;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0 0 24px;
-}
-.ws-big-num {
-  font-size: 80px;
-  font-weight: 900;
-  line-height: 1;
+.ws-huge-s { font-size: 38cqw; margin-top: 4cqh; }
+.ws-big {
+  font-family: var(--ws-display);
+  font-weight: 400;
+  font-size: 14.5cqw;
+  line-height: 1.04;
   letter-spacing: -0.04em;
-  background: linear-gradient(135deg, #fde68a, #fb923c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 4px;
+  margin: 0;
+  text-wrap: balance;
 }
-.ws-big-num-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 18px;
+.ws-big-s { font-size: 11.5cqw; line-height: 1.12; }
+.ws-mid { font-family: var(--ws-display); font-size: 9cqw; line-height: 1.1; letter-spacing: -0.03em; }
+.ws-word { font-family: var(--ws-display); font-size: 25cqw; line-height: 1; letter-spacing: -0.05em; }
+.ws-word.is-lit { font-size: 30cqw; }
+.ws-body {
+  margin: 2.4cqh 0 0;
+  font-size: max(16px, 4.4cqw);
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--ws-ink-soft);
+  text-wrap: pretty;
 }
-.ws-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 8px;
-}
-.ws-stat-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 12px;
-  text-align: center;
-}
-.ws-stat-num {
-  font-size: 26px;
-  font-weight: 800;
-  color: #fde68a;
-}
-.ws-stat-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
-  margin-top: 3px;
-}
+.ws-mt { margin-top: 2cqh; }
+.ws-mt-s { margin-top: 2cqh; }
+.ws-push { margin-top: auto; }
 
-/* 일별 카드 */
-.ws-day-pill {
+.ws-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2.6cqh; }
+.ws-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.12);
-  padding: 6px 12px;
+  gap: 7px;
+  padding: 8px 14px;
   border-radius: 999px;
-  font-size: 13px;
+  background: var(--ws-fill);
+  font-size: max(14px, 3.8cqw);
   font-weight: 700;
-  margin-bottom: 16px;
 }
-.ws-day-pill.ws-peak {
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
-}
-.ws-day-pray-list {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.ws-pray-item {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-.ws-pray-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.ws-pray-snippet {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.82);
-  line-height: 1.5;
-}
-.ws-pray-meta {
-  margin-top: 8px;
-  display: flex;
-  gap: 10px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.68);
-}
+.ws-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-/* 감정 카드 */
-.ws-emo-bars {
+/* 리듬 막대 */
+.ws-bars7 {
+  margin-top: auto;
+  height: 42cqh;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 2.3cqw;
+  align-items: flex-end;
 }
-.ws-emo-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.ws-emo-label {
-  font-size: 13px;
-  font-weight: 600;
-  width: 56px;
-  flex-shrink: 0;
-}
-.ws-emo-bar-track {
+.ws-bars7 > div {
   flex: 1;
-  height: 10px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  overflow: hidden;
-}
-.ws-emo-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #fb7185, #f59e0b);
-  border-radius: 999px;
-  transition: width 0.6s ease-out;
-}
-.ws-emo-count {
-  width: 24px;
-  text-align: right;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
-}
-.ws-emo-shift {
-  margin-top: 22px;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border-left: 3px solid #f59e0b;
-  border-radius: 0 12px 12px 0;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* 하이라이트/응답 */
-.ws-feature-card {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  padding: 18px;
-  margin-top: 16px;
-}
-.ws-feature-reason {
-  font-size: 13px;
-  color: #fbbf24;
-  font-weight: 600;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* AI 내레이션 */
-.ws-ai-quote {
-  font-size: 13px;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.8);
-  border-left: 3px solid rgba(255, 255, 255, 0.4);
-  padding: 6px 0 6px 12px;
-  margin-top: 18px;
-}
-.ws-ai-ref {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.68);
-  margin-top: 6px;
-}
-
-/* 좌우 탭존 */
-.ws-tap-zones {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  z-index: 5;
-}
-.ws-tap-prev,
-.ws-tap-next {
-  flex: 1;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-.ws-tap-prev { -webkit-tap-highlight-color: transparent; }
-.ws-tap-next { -webkit-tap-highlight-color: transparent; }
-
-/* 푸터 */
-.ws-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px 18px 18px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.45);
-  z-index: 4;
-  pointer-events: none;
-}
-
-/* 로딩/에러 */
-.ws-status {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  justify-content: flex-end;
+  gap: 8px;
 }
-.ws-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: #fbbf24;
-  border-radius: 50%;
-  animation: ws-spin 0.9s linear infinite;
+.ws-bars7 i {
+  display: block;
+  width: 100%;
+  border-radius: 3.5cqw 3.5cqw 4px 4px;
+  background: rgba(255, 255, 255, 0.38);
+  transform-origin: bottom;
+  animation: ws-grow 0.8s cubic-bezier(0.2, 0.9, 0.2, 1) both;
 }
-@keyframes ws-spin { to { transform: rotate(360deg); } }
-.ws-retry-btn {
-  background: linear-gradient(135deg, #6366f1, #ec4899);
-  border: 0;
-  color: white;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 8px;
-}
+.ws-bars7 i.is-peak { background: #ffd84d; }
+.ws-bars7 em { font-style: normal; font-family: var(--ws-display); font-size: 5cqw; }
+.ws-bars7 span { font-size: max(14px, 3.6cqw); font-weight: 700; }
+@keyframes ws-grow { from { transform: scaleY(0); } }
 
-/* 컨페티 (응답된 기도 카드용) */
-.ws-confetti {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.ws-confetti span {
-  position: absolute;
-  top: -10%;
-  font-size: 18px;
-  animation-name: ws-confetti-fall;
-  animation-timing-function: cubic-bezier(0.3, 0.7, 0.4, 1);
-  animation-fill-mode: forwards;
-  opacity: 0;
-}
-@keyframes ws-confetti-fall {
-  0%   { opacity: 0; transform: translateY(-20px) rotate(0deg); }
-  10%  { opacity: 1; }
-  100% { opacity: 0; transform: translateY(110vh) rotate(540deg); }
-}
-
-/* 카드 전환 별빛 버스트 — 장이 넘어갈 때마다 한 번씩 터지는 은은한 반짝임 */
-.ws-spark-burst {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 6;
-}
-/* 화면 전체에 아주 옅은 글로우 플래시 */
-.ws-spark-burst::before {
+/* 감정: 지워지는 단어 */
+.ws-strike { position: relative; display: inline-block; opacity: 0.55; }
+.ws-strike::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 42%, rgba(253, 230, 138, 0.14), transparent 55%);
-  opacity: 0;
-  animation: ws-glow-flash 0.8s ease-out forwards;
+  left: -4px;
+  right: -4px;
+  top: 52%;
+  height: 2.2cqw;
+  border-radius: 2px;
+  background: #ff6b4a;
+  transform-origin: left;
+  animation: ws-line 0.5s 0.75s both;
 }
-@keyframes ws-glow-flash {
-  0%   { opacity: 0; }
-  30%  { opacity: 1; }
-  100% { opacity: 0; }
+@keyframes ws-line { from { transform: scaleX(0); } }
+
+/* 하이라이트 인용 카드 */
+.ws-quote {
+  margin-top: auto;
+  background: #fff;
+  color: #191f28;
+  border-radius: 7cqw;
+  padding: 6cqw;
+  transform: rotate(-2deg);
+  box-shadow: 0 20px 40px -22px rgba(0, 0, 0, 0.35);
 }
-.ws-spark {
+.ws-quote.ws-in { animation-name: ws-up-tilt; }
+.ws-quote-t { font-size: max(18px, 5.2cqw); font-weight: 700; line-height: 1.35; }
+.ws-quote-s {
+  margin-top: 6px;
+  font-size: max(15px, 4cqw);
+  line-height: 1.55;
+  color: #4e5968;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ws-quote-m { margin-top: 14px; font-size: max(13px, 3.4cqw); font-weight: 700; color: #3182f6; }
+@keyframes ws-up-tilt { from { transform: translateY(60px) rotate(4deg); opacity: 0; } to { transform: rotate(-2deg); } }
+
+/* 응답 */
+.ws-answers { margin-top: auto; display: grid; gap: 3cqh; }
+.ws-answer { position: relative; padding: 5cqw 5.5cqw; border-radius: 6cqw; background: var(--ws-fill); }
+.ws-answer-t { font-size: max(17px, 5cqw); font-weight: 700; line-height: 1.35; padding-right: 18cqw; }
+.ws-answer-s {
+  margin-top: 4px;
+  font-size: max(14px, 3.9cqw);
+  line-height: 1.5;
+  color: var(--ws-ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ws-stamp {
   position: absolute;
-  color: #fde68a;
-  opacity: 0;
-  text-shadow:
-    0 0 8px rgba(253, 230, 138, 0.9),
-    0 0 20px rgba(251, 146, 60, 0.5);
-  animation: ws-spark-pop 0.95s ease-out forwards;
-  will-change: transform, opacity;
+  right: 4cqw;
+  top: -3.5cqw;
+  font-family: var(--ws-display);
+  font-size: 5cqw;
+  padding: 1.4cqw 2.8cqw;
+  border: 3px solid #ffd84d;
+  border-radius: 3cqw;
+  color: #ffd84d;
+  background: var(--ws-bg);
+  transform: rotate(-7deg);
+  animation: ws-stamp 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
 }
-/* 일부 별은 보랏빛으로 — 네온 톤 변주 */
-.ws-spark:nth-child(3n) {
-  color: #e9d5ff;
-  text-shadow:
-    0 0 8px rgba(233, 213, 255, 0.9),
-    0 0 20px rgba(168, 85, 247, 0.5);
+@keyframes ws-stamp { from { transform: scale(2.4) rotate(-16deg); opacity: 0; } }
+
+/* 마무리 */
+.ws-verse {
+  margin: 3cqh 0 0;
+  font-family: var(--ws-serif);
+  font-size: max(16px, 4.5cqw);
+  line-height: 1.75;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
-@keyframes ws-spark-pop {
-  0%   { opacity: 0; transform: scale(0.2) translateY(8px) rotate(0deg); }
-  25%  { opacity: 1; transform: scale(1.15) translateY(0) rotate(20deg); }
-  100% { opacity: 0; transform: scale(0.5) translateY(-18px) rotate(45deg); }
+.ws-verse cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--ws-sans);
+  font-style: normal;
+  font-size: max(13px, 3.5cqw);
+  font-weight: 600;
+  color: var(--ws-ink-soft);
 }
-@media (prefers-reduced-motion: reduce) {
-  .ws-spark-burst { display: none; }
+.ws-cta { margin-top: auto; display: grid; gap: 10px; padding-top: 3cqh; }
+.ws-cta button { font-family: inherit; cursor: pointer; border: 0; font-weight: 700; }
+.ws-cta-main {
+  border-radius: 16px;
+  padding: 17px;
+  font-size: 17px;
+  background: #3182f6;
+  color: #fff;
+}
+.ws-cta-main:disabled { opacity: 0.7; }
+.ws-cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ws-cta-sub {
+  border-radius: 16px;
+  padding: 15px;
+  font-size: 16px;
+  background: var(--ws-fill);
+  color: var(--ws-ink);
 }
 
-@media (max-width: 480px) {
-  .ws-headline { font-size: 24px; }
-  .ws-big-num { font-size: 64px; }
-  .ws-card { padding: 20px 22px 90px; }
+/* ── 등장 모션 ── */
+.ws-in { animation: ws-up 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+.ws-pop { animation: ws-pop 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) both; transform-origin: left bottom; }
+@keyframes ws-up { from { transform: translateY(60px) rotate(2deg); opacity: 0; } }
+@keyframes ws-pop { from { transform: scale(0.3); opacity: 0; } }
+
+/* ── PC: 가운데 9:16 카드 + 배경 전체가 카드 색 ── */
+@media (min-width: 1024px) {
+  .ws-root {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    background:
+      radial-gradient(ellipse 60% 75% at 50% 48%, var(--ws-glow) 0%, var(--ws-bg) 38%, color-mix(in srgb, var(--ws-bg) 30%, #07090d) 100%);
+    color: #fff;
+  }
+  .ws-center { position: static; display: grid; place-items: center; padding: 32px 0; }
+  .ws-card {
+    width: auto;
+    height: min(860px, calc(100dvh - 64px));
+    aspect-ratio: 9 / 16;
+    border-radius: 28px;
+    box-shadow: 0 50px 100px -40px rgba(0, 0, 0, 0.65);
+  }
+  .ws-bars { top: 12px; }
+  .ws-top { top: 24px; }
+  .ws-top-acts .ws-icon-btn:not(:last-child) { display: none; }
+  .ws-scene { padding: 84px 7.5cqw 36px; }
+  .ws-paused-chip { bottom: 22px; }
+
+  .ws-side {
+    display: flex;
+    flex-direction: column;
+    height: min(860px, calc(100dvh - 64px));
+    padding: 8px 40px;
+    color: #fff;
+  }
+  .ws-side-l { justify-self: end; width: min(300px, 100%); gap: 4px; }
+  .ws-side-r { justify-self: start; width: min(320px, 100%); gap: 16px; }
+  .ws-side-eye { font-size: 14px; font-weight: 600; opacity: 0.7; margin-bottom: 14px; }
+  .ws-toc {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .ws-toc small { width: 20px; font-size: 13px; opacity: 0.7; font-variant-numeric: tabular-nums; }
+  .ws-toc:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+  .ws-toc.is-done { color: rgba(255, 255, 255, 0.78); }
+  .ws-toc.is-on { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+  .ws-side-now { font-family: var(--ws-display); font-size: 38px; line-height: 1.1; letter-spacing: -0.03em; margin-top: -8px; }
+  .ws-side-acts { display: grid; gap: 10px; margin-top: 8px; }
+  .ws-pbtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 14px;
+    padding: 15px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    cursor: pointer;
+  }
+  .ws-pbtn:hover { background: rgba(255, 255, 255, 0.22); }
+  .ws-pbtn.is-primary { background: #fff; color: #191f28; }
+  .ws-pbtn:disabled { opacity: 0.7; cursor: default; }
+  .ws-keys {
+    margin: auto 0 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 14px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .ws-keys dd { margin: 0; }
+  .ws-keys kbd {
+    display: inline-block;
+    min-width: 28px;
+    padding: 2px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: center;
+  }
+  .ws-side-close {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    border: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 8px 0;
+    cursor: pointer;
+  }
+  .ws-side-close:hover { color: #fff; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-root { transition: none; }
+  .ws-in,
+  .ws-pop,
+  .ws-stamp,
+  .ws-bars7 i,
+  .ws-strike::after,
+  .ws-blob { animation: none !important; }
 }
