@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
-import { menuRouteLoaders } from '../utils/routePreload'
+import { groupDetailLoader, menuRouteLoaders } from '../utils/routePreload'
 
 // 나의 신앙·공동체 — 기도·감사·그룹·반·묵상방·동행·타임캡슐·손글씨 필사대회·게임/회상 화면
 
@@ -11,7 +11,7 @@ const AnsweredPrayers = lazy(menuRouteLoaders['/answered-prayers'])
 const Intercession = lazy(menuRouteLoaders['/intercession'])
 const Thanks = lazy(() => import('../pages/Thanks/Thanks'))
 const MyGroups = lazy(menuRouteLoaders['/groups'])
-const GroupDetail = lazy(() => import('../pages/Groups/GroupDetail'))
+const GroupDetail = lazy(groupDetailLoader)
 const JoinGroup = lazy(() => import('../pages/Groups/JoinGroup'))
 const ClassList = lazy(menuRouteLoaders['/classes'])
 const ClassHome = lazy(() => import('../pages/ClassRoom/ClassHome'))

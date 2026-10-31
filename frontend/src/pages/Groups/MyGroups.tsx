@@ -21,6 +21,10 @@ import groupJoinPixelArt from '../../assets/hero/group-join-pixel.png'
 import type { PrayerGroup } from '../../types/prayer'
 import { CheckIcon, GroupGlyph, PersonIcon, PrayIcon, TicketIcon } from './GroupIcons'
 import { toastFeedback } from '../../utils/toast'
+import { queryClient } from '../../config/queryClient'
+import { fetchGroup } from '../../api/group'
+import { groupKeys } from '../../hooks/useGroups'
+import { groupDetailLoader } from '../../utils/routePreload'
 
 // 마지막 활동 상대 시각 — "방금 전 / N분 전 / N시간 전 / N일 전"
 const timeAgo = (iso?: string | null): string | null => {
@@ -244,6 +248,17 @@ const GROUP_TILE_COLORS = [
   '#10b981', // 에메랄드
 ]
 
+// 카드 터치·호버 순간 상세 청크와 방 정보를 미리 받는다 — 탭 뒤 스피너·빈 스켈레톤 구간을 없앤다
+// (staleTime 은 useGroup 과 같은 1분 — 막 받은 데이터면 다시 요청하지 않는다)
+const warmGroupDetail = (groupId: number) => {
+  void groupDetailLoader()
+  void queryClient.prefetchQuery({
+    queryKey: groupKeys.detail(groupId),
+    queryFn: () => fetchGroup(groupId),
+    staleTime: 1000 * 60,
+  })
+}
+
 const GroupCard = ({ group }: { group: PrayerGroup }) => {
   const { t } = useLanguage()
   const tileColor = GROUP_TILE_COLORS[group.id % GROUP_TILE_COLORS.length]
@@ -261,6 +276,8 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
   return (
   <Link
     to={`/groups/${group.id}`}
+    onPointerEnter={() => warmGroupDetail(group.id)}
+    onPointerDown={() => warmGroupDetail(group.id)}
     className="block group"
   >
     <article

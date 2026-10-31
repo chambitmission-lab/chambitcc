@@ -117,12 +117,26 @@ const GroupDetail = () => {
   }
 
   if (isLoading) {
+    // 본 화면과 같은 셸(PC 1240 본문 + 312 레일)로 잡아 둔다 — 좁은 테두리 상자가 떴다가 넓게 튀지 않게
+    const bone = 'bg-gray-200/60 dark:bg-white/[0.05] animate-pulse'
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] page-stage">
-        <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen px-4 pt-14 space-y-3 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
-        <div className="h-52 rounded-[1.25rem] bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-          <div className="h-32 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-          <div className="h-24 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+        <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+          <div className="max-w-md mx-auto min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0 lg:bg-surface">
+            <div className="h-14 lg:h-16 flex items-center gap-3 px-4 lg:border-b lg:border-border-light dark:lg:border-border-dark">
+              <div className={`w-9 h-9 rounded-full ${bone}`} />
+              <div className={`hidden lg:block h-4 w-40 rounded-full ${bone}`} />
+            </div>
+            <div className="px-4 pt-3 space-y-3">
+              <div className={`h-24 rounded-2xl ${bone}`} />
+              <div className={`h-32 rounded-2xl ${bone}`} />
+              <div className={`h-32 rounded-2xl ${bone}`} />
+            </div>
+          </div>
+          <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3">
+            <div className={`h-48 rounded-2xl ${bone}`} />
+            <div className={`h-36 rounded-2xl ${bone}`} />
+          </aside>
         </div>
       </div>
     )

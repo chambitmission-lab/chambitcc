@@ -12,6 +12,8 @@ type RouteLoader = () => Promise<{ default: ComponentType }>
 export const historyLabLoader: RouteLoader = withChurchHistory(() => import('../pages/History/labs/HistoryLab'))
 // 설교 시범 화면(영상 히어로) — /sermon 상단 배너로만 들어온다
 export const sermonLabLoader: RouteLoader = () => import('../pages/Sermon/SermonLab')
+// 기도방 상세 — /groups 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
+export const groupDetailLoader: RouteLoader = () => import('../pages/Groups/GroupDetail')
 
 // 햄버거 메뉴에서 진입하는 lazy 페이지들의 동적 import를 한곳에 모음.
 // App.tsx의 lazy()와 같은 함수를 공유해야 프리로드한 청크가 그대로 재사용된다.
