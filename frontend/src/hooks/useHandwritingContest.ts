@@ -131,6 +131,25 @@ const patchEntryEverywhere = (
   qc.setQueryData<ContestEntry>(contestKeys.entry(contestId, entryId), (e) => (e ? patch(e) : e))
 }
 
+/** 갤러리 캐시에서 작품 하나를 뺀다(출품 거두기). 없는 쪽은 그대로 — 두 번 불려도(SSE·내 응답) 한 번만 줄어든다 */
+const removeEntryEverywhere = (qc: ReturnType<typeof useQueryClient>, contestId: number, entryId: number) => {
+  qc.setQueriesData<InfiniteData<EntryPage>>({ queryKey: contestKeys.entriesPrefix(contestId) }, (data) => {
+    if (!data || !data.pages.some((p) => p.items.some((e) => e.id === entryId))) return data
+    return {
+      ...data,
+      pages: data.pages.map((p) => ({ ...p, items: p.items.filter((e) => e.id !== entryId), total: Math.max(0, p.total - 1) })),
+    }
+  })
+  qc.removeQueries({ queryKey: contestKeys.entry(contestId, entryId), exact: true })
+  qc.removeQueries({ queryKey: contestKeys.ink(contestId, entryId), exact: true })
+}
+
+/** 빠진 작품에 내가 줬던 표를 돌려받는다(서버는 표를 지웠다). 이미 돌려받았으면 그대로 */
+const refundVote = (d: ContestDetail, entryId: number): ContestDetail =>
+  d.my_vote_entry_ids.includes(entryId)
+    ? { ...d, my_vote_entry_ids: d.my_vote_entry_ids.filter((id) => id !== entryId), votes_left: d.votes_left + 1 }
+    : d
+
 /** 하트 누르기 — 서버 응답을 기다리지 않고 캐시에 먼저 반영한다(낙관적).
  *  표 수 ±1 은 여기(onMutate)서만 한다. 커밋 직후 서버가 contest_vote SSE 로 보내는 정확한 표 수는
  *  HTTP 응답보다 먼저 올 수 있어, onSuccess 에서 다시 더하면 두 번 센다. 실패하면 서버 값으로 되돌린다. */
@@ -223,12 +242,26 @@ export const useContestLive = (contestId: number) => {
       )
       if (showsCounts) refetchEntries()
     })
+    // 누군가 출품을 거뒀다 — 갤러리에서 빼고, 내가 표를 줬던 작품이면 표를 돌려받는다. 참여 수는 상세를 다시 받아 맞춘다
+    const offWithdrawn = notificationStream.on('contest_entry_withdrawn', (raw) => {
+      let ev: { contest_id: number; entry_id: number; voter_count: number }
+      try {
+        ev = JSON.parse(raw)
+      } catch {
+        return
+      }
+      if (ev.contest_id !== contestId || typeof ev.entry_id !== 'number') return
+      removeEntryEverywhere(qc, contestId, ev.entry_id)
+      qc.setQueryData<ContestDetail>(contestKeys.detail(contestId), (d) => (d ? refundVote(d, ev.entry_id) : d))
+      void qc.invalidateQueries({ queryKey: contestKeys.detail(contestId) })
+    })
     const offReconnect = notificationStream.on('reconnected', () => {
       void qc.invalidateQueries({ queryKey: contestKeys.detail(contestId) })
       void qc.invalidateQueries({ queryKey: contestKeys.entriesPrefix(contestId) })
     })
     return () => {
       offVote()
+      offWithdrawn()
       offReconnect()
     }
   }, [qc, contestId])
@@ -246,14 +279,23 @@ export const useSubmitEntry = (contestId: number) => {
   })
 }
 
+/** 출품 거두기 — 응답이 오면 내 작품 카드·갤러리·참여 수를 캐시에서 바로 지운다.
+ *  예전엔 무효화만 해서, 갤러리 전 페이지를 다시 받을 때까지 '거뒀어요' 토스트 뒤에도 카드가 남아 느려 보였다.
+ *  표 참여 인원(voter_count)만 상세를 뒤에서 다시 받아 맞춘다 */
 export const useWithdrawEntry = (contestId: number, feedback?: MutationFeedback) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: () => withdrawContestEntry(contestId),
     onSuccess: (data, vars) => {
+      const mineId = qc.getQueryData<ContestDetail>(contestKeys.detail(contestId))?.my_entry?.id
+      qc.setQueryData<ContestDetail>(contestKeys.detail(contestId), (d) =>
+        d && d.my_entry ? { ...d, my_entry: null, entry_count: Math.max(0, d.entry_count - 1) } : d,
+      )
+      qc.setQueryData<{ items: ContestSummary[] }>(contestKeys.list(), (l) =>
+        l ? { ...l, items: l.items.map((c) => (c.id === contestId ? { ...c, entry_count: Math.max(0, c.entry_count - 1) } : c)) } : l,
+      )
+      if (mineId) removeEntryEverywhere(qc, contestId, mineId)
       void qc.invalidateQueries({ queryKey: contestKeys.detail(contestId) })
-      void qc.invalidateQueries({ queryKey: contestKeys.entriesPrefix(contestId) })
-      void qc.invalidateQueries({ queryKey: contestKeys.list() })
       feedback?.onSuccess?.(data, vars)
     },
     onError: (error, vars) => feedback?.onError?.(error, vars),

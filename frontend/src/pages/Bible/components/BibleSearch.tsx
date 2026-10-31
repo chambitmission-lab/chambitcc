@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { useBibleSearchInfinite, useBibleBooks } from '../../../hooks/useBible'
+import { useBibleSearchInfinite, useBibleBooks, useBibleChapter } from '../../../hooks/useBible'
+import { useSituationCategories } from '../../../hooks/useSituation'
 import { useBookCardContexts } from '../../../hooks/useBibleReading'
 import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -15,13 +16,30 @@ import SearchGlossaryCard from './SearchGlossaryCard'
 import { useGlossaryEntry } from '../hooks/useGlossaryEntry'
 import { BOOK_ABBREV_KO, BOOK_ABBREV_EN } from './bibleBookAbbrev'
 import { safeStorage } from '../../../utils/safeStorage'
+import { useSearchIndex } from './search/useSearchIndex'
+import { useVoiceSearch } from './search/useVoiceSearch'
+import { findFuzzyBook, isChoseongQuery, matchBooksByChoseong } from './search/bookFuzzy'
+import { SearchEventRows, SearchEventTopCard, SearchKindTabs, SearchPlaceRows } from './search/SearchLocalResults'
+import type { SearchKind } from './search/SearchLocalResults'
+import type { EventRef } from './search/searchIndex'
+import SearchMindAnswer from './search/SearchMindAnswer'
+import { matchSituation } from './search/situationMatch'
+import SearchVerseGroups from './search/SearchVerseGroups'
+import SearchExploreHome from './search/SearchExploreHome'
 import '../styles/search.css'
 
 type SearchScope = 'ALL' | 'OLD' | 'NEW'
+type VerseView = 'list' | 'book'
 
 const RECENT_SEARCHES_KEY = 'bible_recent_searches'
+const VERSE_VIEW_KEY = 'bible_search_verse_view'
 const MAX_RECENT_SEARCHES = 8
 const PLACEHOLDER_ROTATE_MS = 3500
+/** 숫자 없는 검색어는 타이핑을 멈추면 Enter 없이 바로 찾는다 */
+const LIVE_SEARCH_MS = 400
+/** '전체' 보기에서 사건·지명은 몇 줄만 — 나머지는 종류 칩으로 */
+const EVENT_PREVIEW = 3
+const PLACE_PREVIEW = 2
 
 const loadRecentSearches = (): string[] => {
   const parsed = safeStorage.getJson(RECENT_SEARCHES_KEY)
@@ -96,6 +114,20 @@ const BibleSearch = () => {
     setBookFilterState(book)
     syncUrl(searchQuery, scope, book)
   }
+  // 결과 종류 칩(전체·절·사건·지명) — 검색어가 바뀌면 '전체'로 돌아간다(이펙트 없이 검색어와 묶어 둔다)
+  const [kindState, setKindState] = useState<{ q: string; kind: SearchKind }>({ q: initialQuery, kind: 'all' })
+  const kind: SearchKind = kindState.q === searchQuery ? kindState.kind : 'all'
+  const setKind = (k: SearchKind) => setKindState({ q: searchQuery, kind: k })
+  // 절 결과 보기 방식 — 기기별로 기억한다
+  const [verseView, setVerseViewState] = useState<VerseView>(() =>
+    safeStorage.get(VERSE_VIEW_KEY) === 'book' ? 'book' : 'list'
+  )
+  const setVerseView = (v: VerseView) => {
+    setVerseViewState(v)
+    safeStorage.set(VERSE_VIEW_KEY, v)
+  }
+  const liveTimerRef = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(liveTimerRef.current), [])
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   // 책 퀵 피커가 열려 있으면 그 트리거가 된 책의 book_number, 닫혀 있으면 null
   const [pickerFor, setPickerFor] = useState<number | null>(null)
@@ -127,7 +159,8 @@ const BibleSearch = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useBibleSearchInfinite(
-    searchQuery,
+    // 초성("ㄱㄹㄷㅈㅅ")은 본문에 없는 글자라 서버에 묻지 않는다 — 로컬 책 매칭만으로 답한다
+    isChoseongQuery(searchQuery) ? '' : searchQuery,
     scope === 'ALL' ? undefined : scope,
     bookFilter ?? undefined
   )
@@ -151,17 +184,55 @@ const BibleSearch = () => {
     BOOK_ABBREV_EN[b.book_number]?.toLowerCase() === normalizedQuery
   const localBookMatches: BookCard[] =
     trimmedQuery && !isChapterLike
-      ? (allBooks || []).filter(
-          b =>
-            matchesAbbrev(b) ||
-            normalize(b.book_name_ko).includes(normalizedQuery) ||
-            normalize(b.book_name_en).includes(normalizedQuery)
-        )
+      ? isChoseongQuery(trimmedQuery)
+        ? matchBooksByChoseong(allBooks || [], trimmedQuery)
+        : (allBooks || []).filter(
+            b =>
+              matchesAbbrev(b) ||
+              normalize(b.book_name_ko).includes(normalizedQuery) ||
+              normalize(b.book_name_en).includes(normalizedQuery)
+          )
       : []
 
   const backendIsBookSearch = !!(
     searchResults?.is_book_search && (searchResults.books?.length || searchResults.book)
   )
+
+  // 사건·지명 로컬 색인 — 숫자 없는 검색어에서만, 책 이름이 잡히면(책 카드가 답) 쓰지 않는다
+  const localEligible = language === 'ko' && trimmedQuery.length >= 2 && !isChapterLike && localBookMatches.length === 0
+  const searchIndex = useSearchIndex(!!trimmedQuery && language === 'ko')
+  const eventHits = useMemo(
+    () => (searchIndex && localEligible ? searchIndex.findEvents(trimmedQuery) : null),
+    [searchIndex, localEligible, trimmedQuery]
+  )
+  const placeHits = useMemo(
+    () => (searchIndex && localEligible ? searchIndex.findPlaces(trimmedQuery) : null),
+    [searchIndex, localEligible, trimmedQuery]
+  )
+  const events = backendIsBookSearch ? [] : (eventHits?.items ?? [])
+  const places = backendIsBookSearch ? [] : (placeHits?.items ?? [])
+  const hasLocal = events.length > 0 || places.length > 0
+
+  // 마음으로 찾기 — 상황별 성구 카테고리 이름·키워드
+  const { data: situationCategories } = useSituationCategories(localEligible)
+  const situationMatch =
+    localEligible && situationCategories ? matchSituation(situationCategories, trimmedQuery) : null
+
+  // 한 글자 오타 보정 — 책 이름도, 본문 낱말도, 사건도 아무것도 안 걸렸을 때만 책 이름에 가깝게 고쳐 본다
+  const fuzzyBook =
+    trimmedQuery &&
+    !isChapterLike &&
+    localBookMatches.length === 0 &&
+    !backendIsBookSearch &&
+    !hasLocal &&
+    !glossaryEntry &&
+    searchResults &&
+    !searchStale &&
+    (searchResults.total ?? 0) === 0 &&
+    loadedVerses.length === 0
+      ? findFuzzyBook(allBooks || [], trimmedQuery)
+      : null
+
   // 백엔드가 책 검색으로 인식했으면, 누락 없이 전체 로컬 매칭으로 카드를 그린다(없으면 백엔드 응답 사용).
   const booksToShow: BookCard[] =
     localBookMatches.length > 0
@@ -172,7 +243,9 @@ const BibleSearch = () => {
           : searchResults!.book
             ? [searchResults!.book]
             : []
-        : []
+        : fuzzyBook
+          ? [fuzzyBook]
+          : []
 
   const texts = {
     ko: {
@@ -220,12 +293,15 @@ const BibleSearch = () => {
       retry: '다시 시도',
       bookFound: '해당 책을 찾았습니다',
       heroTitle: '어떤 말씀을 찾고 계세요?',
-      waysLabel: '찾는 방법',
-      ways: [
-        { kind: '책 이름으로', example: '고린도전서', hint: '장 목록이 바로 펼쳐져요' },
-        { kind: '장·절로', example: '요 3:16', hint: '약칭도 알아들어요' },
-        { kind: '단어로', example: '하나님 사랑', hint: '모든 단어가 들어간 절만 찾아요' },
-      ],
+      fuzzyNotice: (typed: string, book: string) => `‘${typed}’에 맞는 결과가 없어 ‘${book}’으로 찾았어요.`,
+      didYouMean: '혹시 이걸 찾으셨나요?',
+      noVerseButLocal: (q: string) => `‘${q}’이(가) 본문에 그대로 나오는 절은 없어요`,
+      viewLabel: '절 보기 방식',
+      viewList: '목록',
+      viewBook: '책별',
+      voiceStart: '말로 검색',
+      voiceStop: '듣기 멈추기',
+      versePreview: '절 바로 가기',
       topicsTitle: '주제별 말씀',
       topicOpen: (ref: string) => `${ref} 읽기`,
       topics: [
@@ -288,12 +364,15 @@ const BibleSearch = () => {
       retry: 'Try again',
       bookFound: 'Book found',
       heroTitle: 'What are you looking for?',
-      waysLabel: 'Ways to search',
-      ways: [
-        { kind: 'By book', example: '1 Corinthians', hint: 'Opens the chapter list' },
-        { kind: 'By reference', example: 'John 3:16', hint: 'Abbreviations work too' },
-        { kind: 'By words', example: "God's love", hint: 'Verses containing every word' },
-      ],
+      fuzzyNotice: (typed: string, book: string) => `No results for “${typed}”, so we searched “${book}”.`,
+      didYouMean: 'Did you mean',
+      noVerseButLocal: (q: string) => `No verse contains “${q}” word for word`,
+      viewLabel: 'Verse view',
+      viewList: 'List',
+      viewBook: 'By book',
+      voiceStart: 'Search by voice',
+      voiceStop: 'Stop listening',
+      versePreview: 'Jump to verse',
       topicsTitle: 'Verses by theme',
       topicOpen: (ref: string) => `Read ${ref}`,
       // 본문은 한국어 성경뿐이라 영문은 참조만 보여 준다
@@ -350,6 +429,7 @@ const BibleSearch = () => {
   const runSearch = (keyword: string) => {
     const q = keyword.trim()
     if (!q) return
+    window.clearTimeout(liveTimerRef.current)
     setSearchKeyword(q)
     setSearchQuery(q)
     // 백엔드가 2글자 미만을 거부하므로 한 글자는 최근 검색어에 쌓지 않는다
@@ -364,7 +444,22 @@ const BibleSearch = () => {
     runSearch(searchKeyword)
   }
 
+  // 즉시 검색 — 숫자 없는 검색어는 타이핑을 멈추면 Enter 없이 결과를 펼친다.
+  // 장·절("요 3:16")은 쓰는 도중엔 뜻이 계속 바뀌므로 아래 바로 가기 제안으로 대신하고 Enter 로 찾는다.
+  // 최근 검색어에는 쌓지 않는다(타이핑 중간 글자가 쌓이므로) — Enter·결과 열기 때만 저장
+  const scheduleLiveSearch = (value: string) => {
+    window.clearTimeout(liveTimerRef.current)
+    const q = value.trim()
+    if (q.length < 2 || /\d/.test(q)) return
+    liveTimerRef.current = window.setTimeout(() => {
+      setSearchQuery(q)
+      setBookFilterState(null)
+      syncUrl(q, scope, null)
+    }, LIVE_SEARCH_MS)
+  }
+
   const clearSearch = () => {
+    window.clearTimeout(liveTimerRef.current)
     setSearchKeyword('')
     setSearchQuery('')
     setBookFilterState(null)
@@ -375,6 +470,9 @@ const BibleSearch = () => {
   useModalBackButton(clearSearch, !!searchQuery)
 
   const goToChapter = (bookNumber: number, chapter: number, verse?: number) => {
+    // 즉시 검색으로 뜬 결과를 열었으면 그 검색어도 최근 검색어로 남긴다
+    const q = searchQuery.trim()
+    if (q.length >= 2) saveRecentSearch(q)
     // 현재 URL이 이미 같은 책·장이어도(예: 나훔 2장을 읽다가 검색에서 다시 나훔 2장 클릭)
     // 읽기 화면으로 전환되도록 재진입 신호를 state로 함께 넘긴다.
     // 절 결과에서 왔으면 ?verse=N — 읽기 화면이 그 절로 스크롤·하이라이트한다(장 첫머리에 떨구지 않는다)
@@ -383,6 +481,11 @@ const BibleSearch = () => {
       state: { chapterNav: new Date().getTime() },
     })
   }
+
+  const openEventRef = (r: EventRef) => goToChapter(r.b, r.c, r.v)
+
+  // 음성 검색 — 말하는 동안 받아 적고, 말을 마치면 바로 찾는다
+  const voice = useVoiceSearch(language, text => setSearchKeyword(text), text => runSearch(text))
 
   // 퀵 피커에서 책 선택 — 타이핑 없이 그 책의 장 그리드로 바로 전환.
   // 검색 행위가 아니라 탐색이므로 최근 검색어에는 쌓지 않는다.
@@ -512,6 +615,25 @@ const BibleSearch = () => {
       .map(b => ({ label: b.book_name_ko, query: b.book_name_ko }))
   })()
 
+  // 절 바로 가기 — "요 3:1"까지 치면 그 장의 3:1·3:10~19 를 본문 첫머리와 함께 미리 보여 준다.
+  // 장 본문은 읽기 화면과 같은 캐시 칸이라, 한 번 받은 장은 다시 묻지 않는다
+  const verseTyping =
+    typedRaw && typedRaw !== searchQuery ? typedRaw.match(/^(.+?)\s*(\d+)\s*(?:장)?\s*[:.]\s*(\d*)$/) : null
+  const previewBook = verseTyping ? resolveBookLocal(verseTyping[1]) : undefined
+  const previewCh = verseTyping ? Number(verseTyping[2]) : 0
+  const previewOk = !!previewBook && previewCh >= 1 && previewCh <= previewBook.chapter_count
+  const { data: previewChapter } = useBibleChapter(
+    previewOk ? previewBook!.book_number : 0,
+    previewOk ? previewCh : 0,
+    previewOk
+  )
+  const versePreview =
+    previewOk && previewChapter && verseTyping
+      ? previewChapter.verses
+          .filter(v => !v.merged_into && String(v.verse).startsWith(verseTyping[3]))
+          .slice(0, 5)
+      : []
+
   // 키워드 검색 결과에서 매칭 단어 강조 — "왜 이 절이 걸렸는지"가 훑기만 해도 보이게.
   // 여러 단어 AND 검색은 단어별로 각각 칠한다. 장 검색(창 1)은 키워드가 없으므로 제외.
   const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -626,6 +748,26 @@ const BibleSearch = () => {
     ))
 
   const isHome = !searchQuery
+
+  // 통합 결과 배치
+  const topEvent = !glossaryEntry && eventHits?.exact ? events[0] : undefined
+  const previewEvents = topEvent ? events.slice(1) : events
+  // 사건·지명을 절보다 위에 세우는 건 고유명사일 때만 — 사전의 인물·지명·칭호(모세·다윗·바로),
+  // 사건 이름 그 자체(십계명), 지도 장소(여리고). "은혜"처럼 제목 머리에 흔한 낱말은 절이 먼저다
+  const properNoun = !!glossaryEntry && ['person', 'place', 'title'].includes(glossaryEntry.type)
+  const strongLocal = !!(eventHits?.exact || placeHits?.strong || (properNoun && eventHits?.strong))
+  // 책별 묶음은 여러 책에 걸친 키워드 검색에서만 — 책 하나로 좁혔으면 목록이 곧 그 책이다
+  const canGroup = !!searchResults && !searchResults.is_chapter_search && bookCounts.length > 1 && bookFilter === null
+  const verseViewShown: VerseView = canGroup ? verseView : 'list'
+
+  // 장·절 검색의 책 이름 오타("요한복은 3") — 결과가 없을 때 고친 검색어를 제안한다
+  const didYouMean = (() => {
+    if (!isChapterLike || !searchResults || loadedVerses.length > 0) return null
+    const m = trimmedQuery.match(/^(.+?)\s*(\d.*)$/)
+    if (!m || resolveBookLocal(m[1])) return null
+    const b = findFuzzyBook(allBooks || [], m[1])
+    return b ? `${b.book_name_ko} ${m[2]}` : null
+  })()
   // PC 레일 분포 막대 — 가장 많은 책 기준 비율
   const distMax = bookCounts[0]?.count ?? 1
   const DIST_COLLAPSED = 8
@@ -638,7 +780,7 @@ const BibleSearch = () => {
       <h2 className="search-hero-title hidden lg:block">{t.heroTitle}</h2>
       <form ref={formRef} onSubmit={handleSearch} className={`search-form${isHome ? ' search-form--hero' : ''}`}>
         <div className="search-input-wrapper">
-          <div className="search-input-area">
+          <div className={`search-input-area${voice.supported ? ' search-input-area--voice' : ''}`}>
             <input
               type="text"
               value={searchKeyword}
@@ -646,9 +788,12 @@ const BibleSearch = () => {
                 setSearchKeyword(e.target.value)
                 // 입력을 모두 지우면 결과도 접고 검색 시작 화면(최근/추천 키워드)으로
                 if (e.target.value === '') {
+                  window.clearTimeout(liveTimerRef.current)
                   setSearchQuery('')
                   setBookFilterState(null)
                   syncUrl('', scope, null)
+                } else {
+                  scheduleLiveSearch(e.target.value)
                 }
               }}
               aria-label={t.searchAria}
@@ -663,6 +808,17 @@ const BibleSearch = () => {
                 onClick={clearSearch}
               >
                 <span className="material-icons-round">close</span>
+              </button>
+            )}
+            {voice.supported && (!searchKeyword || voice.listening) && (
+              <button
+                type="button"
+                className={`search-voice-button${voice.listening ? ' search-voice-button--on' : ''}`}
+                aria-label={voice.listening ? t.voiceStop : t.voiceStart}
+                aria-pressed={voice.listening}
+                onClick={voice.toggle}
+              >
+                <span className="material-icons-round">{voice.listening ? 'graphic_eq' : 'mic'}</span>
               </button>
             )}
             {!searchKeyword && (
@@ -697,6 +853,28 @@ const BibleSearch = () => {
           </div>
         )}
 
+        {versePreview.length > 0 && previewBook && (
+          <div className="search-typeahead search-typeahead--verses" role="group" aria-label={t.versePreview}>
+            <span className="search-typeahead-label">{t.versePreview}</span>
+            {versePreview.map(v => (
+              <button
+                key={v.id}
+                type="button"
+                className="search-verse-jump"
+                onClick={() => {
+                  saveRecentSearch(`${previewBook.book_name_ko} ${previewCh}:${v.verse}`)
+                  goToChapter(previewBook.book_number, previewCh, v.verse)
+                }}
+              >
+                <b>
+                  {previewBook.book_name_ko} {previewCh}:{v.verse}
+                </b>
+                <span>{v.text}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* 모바일 — 입력창 아래 세그먼트(PC 는 입력창 안). 범위는 보조 기능이라 칩보다 조용한 톤 */}
         <div
           className="search-scope-filter search-scope-seg lg:hidden zoom-narrow-show-flex"
@@ -711,26 +889,15 @@ const BibleSearch = () => {
           다른 책으로 좁히거나 최근 검색어로 갈아탈 수 있다. 모바일에선 이 래퍼가 그냥 스택 */}
       <div className="lg:flex lg:items-start lg:gap-6">
       <div className="lg:flex-1 lg:min-w-0">
-      {/* 시작 화면(모바일·PC 공통) — 찾는 방법 + 최근 검색어 + 주제별 말씀.
+      {/* 시작 화면(모바일·PC 공통) — 설교 본문·최근 검색어·마음·이야기 + 주제별 말씀.
           결과를 보는 중엔 최근·추천 칩이 PC 우측 레일로 옮겨 간다 */}
       {isHome && (
         <div className="search-hero">
-          <section className="search-chip-group">
-            <div className="search-chip-group-header">
-              <span>{t.waysLabel}</span>
-            </div>
-            <div className="search-ways" role="group" aria-label={t.waysLabel}>
-              {t.ways.map(w => (
-                <button key={w.kind} type="button" className="search-way" onClick={() => runSearch(w.example)}>
-                  <span className="search-way__kind">{w.kind}</span>
-                  <span className="search-way__example">{w.example}</span>
-                  <span className="search-way__hint">{w.hint}</span>
-                  <span className="search-way__arrow material-icons-round" aria-hidden="true">arrow_forward</span>
-                </button>
-              ))}
-            </div>
-          </section>
-          {recentGroup}
+          {language === 'ko' ? (
+            <SearchExploreHome onSearch={runSearch} onOpen={goToChapter} recent={recentGroup} />
+          ) : (
+            recentGroup
+          )}
           <section className="search-chip-group">
             <div className="search-chip-group-header">
               <span>{t.topicsTitle}</span>
@@ -759,8 +926,56 @@ const BibleSearch = () => {
         </div>
       )}
 
-      {/* 성경 사전 정의 카드 — 절 결과가 0건("삼위일체")이어도 뜻은 답한다 */}
-      {searchQuery && glossaryEntry && <SearchGlossaryCard entry={glossaryEntry} />}
+      {/* 결과 종류 칩 — 사건·지명이 함께 잡힐 때만. 검색창 바로 아래(Spotify·Apple Music 검색 문법) */}
+      {searchQuery && hasLocal && booksToShow.length === 0 && (
+        <SearchKindTabs
+          kind={kind}
+          onChange={setKind}
+          verseCount={searchResults && !searchStale ? shownTotal : null}
+          eventCount={events.length}
+          placeCount={places.length}
+          lang={language}
+        />
+      )}
+
+      {/* 최상위 결과 — 사전 표제어("모세", "바리새인")가 먼저, 아니면 사건 이름 그 자체("오병이어").
+          절 결과가 0건("삼위일체")이어도 뜻은 답한다 */}
+      {searchQuery && kind === 'all' && (
+        glossaryEntry ? (
+          <SearchGlossaryCard
+            entry={glossaryEntry}
+            mapPlaceId={glossaryEntry.type === 'place' && placeHits?.exact ? places[0]?.id : undefined}
+          />
+        ) : topEvent ? (
+          <SearchEventTopCard event={topEvent} onOpen={openEventRef} lang={language} />
+        ) : null
+      )}
+
+      {/* 마음으로 찾기 — "요즘 불안해요" → 상황별 성구 */}
+      {searchQuery && kind === 'all' && situationMatch && (
+        <SearchMindAnswer key={situationMatch.category.id} match={situationMatch} onOpenVerse={goToChapter} />
+      )}
+
+      {kind === 'event' ? (
+        <SearchEventRows events={events} onOpen={openEventRef} lang={language} />
+      ) : kind === 'place' ? (
+        <SearchPlaceRows places={places} lang={language} />
+      ) : (
+      <>
+      {/* '전체' — 검색어가 사건 제목·지명 머리와 맞으면(모세·홍해·여리고) 절보다 위에 몇 줄.
+          본문 낱말에 가까운 검색어("은혜")는 절이 먼저고, 사건·지명은 종류 칩으로만 연다 */}
+      {kind === 'all' && strongLocal && (
+        <div className="search-local">
+          <SearchEventRows
+            events={previewEvents}
+            limit={EVENT_PREVIEW}
+            onOpen={openEventRef}
+            onShowAll={() => setKind('event')}
+            lang={language}
+          />
+          <SearchPlaceRows places={places} limit={PLACE_PREVIEW} onShowAll={() => setKind('place')} lang={language} />
+        </div>
+      )}
 
       {searchError && !hasAnyResult ? (
         <div className="no-results" role="alert">
@@ -784,6 +999,12 @@ const BibleSearch = () => {
             <p className="search-notice" role="status">
               <span className="material-icons-round" aria-hidden="true">info</span>
               {noticeText}
+            </p>
+          )}
+          {fuzzyBook && scopedBooks[0]?.book_number === fuzzyBook.book_number && (
+            <p className="search-notice" role="status">
+              <span className="material-icons-round" aria-hidden="true">spellcheck</span>
+              {t.fuzzyNotice(trimmedQuery, fuzzyBook.book_name_ko)}
             </p>
           )}
           {scopedBooks.map(book => (
@@ -819,6 +1040,39 @@ const BibleSearch = () => {
               )}
             </span>
           </p>
+          {/* 보기 방식 — 목록(성경 순서) / 책별(많이 나온 책부터 접어 두기). 여러 책에 걸친 키워드 검색에서만 */}
+          {canGroup && (
+            <div className="search-view-toggle" role="radiogroup" aria-label={t.viewLabel}>
+              {(['list', 'book'] as const).map(v => (
+                <button
+                  key={v}
+                  type="button"
+                  role="radio"
+                  aria-checked={verseViewShown === v}
+                  className={`search-view-toggle__btn${verseViewShown === v ? ' search-view-toggle__btn--on' : ''}`}
+                  onClick={() => setVerseView(v)}
+                >
+                  <span className="material-icons-round" aria-hidden="true">{v === 'list' ? 'list' : 'view_agenda'}</span>
+                  {v === 'list' ? t.viewList : t.viewBook}
+                </button>
+              ))}
+            </div>
+          )}
+          {verseViewShown === 'book' ? (
+            <SearchVerseGroups
+              query={searchQuery}
+              scope={scope === 'ALL' ? undefined : scope}
+              bookCounts={bookCounts}
+              lang={language}
+              renderVerseText={renderVerseText}
+              onOpen={goToChapter}
+              onMore={book => {
+                setBookFilter(book)
+                window.scrollTo({ top: 0 })
+              }}
+            />
+          ) : (
+          <>
           {/* 책별 분포 칩 — 모바일·좁은 zoom 폭. PC 에선 우측 레일 막대 그래프가 대신한다 */}
           {showBookChips && (
             <div className="lg:hidden zoom-narrow-show">
@@ -872,6 +1126,8 @@ const BibleSearch = () => {
               )}
             </div>
           )}
+          </>
+          )}
         </div>
       ) : queryTooShort ? (
         <div className="no-results">
@@ -879,12 +1135,25 @@ const BibleSearch = () => {
           <p>{t.tooShort}</p>
           <p className="no-results-hint">{t.tooShortHint}</p>
         </div>
+      ) : searchQuery && (hasLocal || situationMatch || glossaryEntry || topEvent) ? (
+        // 사건·사전·마음 답변이 이미 답했으면 큰 빈 상태 대신 한 줄만
+        searchResults && !searchStale ? <p className="search-quiet-empty">{t.noVerseButLocal(trimmedQuery)}</p> : null
       ) : searchQuery ? (
         <div className="no-results">
           <span className="material-icons-round">search_off</span>
           <p>{scope !== 'ALL' && hasAnyResult ? t.noResultsInScope : t.noResults}</p>
+          {didYouMean && (
+            <div className="search-did-you-mean">
+              <span>{t.didYouMean}</span>
+              <button type="button" className="search-chip search-chip--suggest" onClick={() => runSearch(didYouMean)}>
+                {didYouMean}
+              </button>
+            </div>
+          )}
         </div>
       ) : null}
+      </>
+      )}
 
       </div>{/* /본문 컬럼 */}
 

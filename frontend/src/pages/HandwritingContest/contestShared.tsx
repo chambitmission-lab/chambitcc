@@ -1,6 +1,6 @@
 // 필사대회 화면 공통 컴포넌트 — 단계 칩·종이 썸네일·메달·아이콘 (값·문구는 contestFormat.ts)
 // 셸·레일·섹션 제목은 설문 화면(surveyUi)과 같은 앱 공통 문법을 그대로 쓴다.
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { ContestEntry, ContestPhase } from '../../types/handwritingContest'
 import { PHASE_META, RANK_META } from './contestFormat'
 
@@ -31,15 +31,20 @@ export const PaperThumb = ({
   entry,
   className = '',
   maxRatio = 1.25,
+  ratio: fixedRatio,
+  style,
 }: {
   entry: Pick<ContestEntry, 'image_url' | 'width' | 'height' | 'verse_ref'>
   className?: string
   /** 세로로 긴 글씨도 카드가 너무 길어지지 않게 */
   maxRatio?: number
+  /** 종이 비율(세로/가로) 고정 — 글씨는 그 안에 contain */
+  ratio?: number
+  style?: CSSProperties
 }) => {
-  const ratio = entry.width && entry.height ? Math.min(maxRatio, Math.max(0.55, entry.height / entry.width)) : 1
+  const ratio = fixedRatio ?? (entry.width && entry.height ? Math.min(maxRatio, Math.max(0.55, entry.height / entry.width)) : 1)
   return (
-    <div className={`hw-paper ${className}`} style={{ aspectRatio: `1 / ${ratio}` }}>
+    <div className={`hw-paper ${className}`} style={{ ...style, aspectRatio: `1 / ${ratio}` }}>
       {entry.image_url ? (
         <img src={entry.image_url} alt={`${entry.verse_ref} 손글씨`} loading="lazy" decoding="async" draggable={false} />
       ) : null}

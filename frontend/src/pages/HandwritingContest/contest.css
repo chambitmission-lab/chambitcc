@@ -126,3 +126,147 @@
   color: #fff;
   padding: 6px 0;
 }
+
+/* 줄 노트 종이 — 히어로·넘겨 보기 */
+.hw-paper--lined {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 29px, rgba(92, 74, 54, 0.08) 29px 30px),
+    radial-gradient(120% 90% at 20% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
+    var(--hw-paper);
+}
+
+/* 히어로 — 지금 막 써지는 누군가의 글씨 (종이는 화면 폭 가득) */
+.hw-live {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+.hw-live .hw-paper {
+  border-radius: 0;
+  box-shadow: none;
+}
+.hw-live__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  font-size: 30px;
+  line-height: 1.25;
+  letter-spacing: 0;
+  color: #2b2a28;
+  word-break: keep-all;
+  text-align: center;
+}
+.hw-live__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f04452;
+  flex-shrink: 0;
+  animation: hw-blink 1.2s steps(2) infinite;
+}
+@keyframes hw-blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+.hw-headline {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 23px;
+  line-height: 1.45;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.hw-quote {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+}
+
+/* 넘겨 보기 진입 카드 — 넘겨 보기 무대와 같은 먹색 */
+.hw-play {
+  background: #16140f;
+  color: #efe6d4;
+}
+
+/* 넘겨 보기 무대 */
+.hw-story {
+  background: #14120f;
+  color: #f3ead8;
+}
+.hw-story__bar {
+  position: relative;
+  flex: 1;
+  height: 2.5px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(243, 234, 216, 0.25);
+}
+.hw-story__fill {
+  position: absolute;
+  inset: 0;
+  background: #f3ead8;
+  transform-origin: left center;
+}
+.hw-story__paper {
+  border-radius: 18px;
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.7);
+}
+.hw-story__paused {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(20, 18, 15, 0.7);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.hw-story__arrow {
+  display: none;
+  position: absolute;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  border-radius: 50%;
+  background: rgba(243, 234, 216, 0.12);
+  font-size: 26px;
+  line-height: 1;
+}
+.hw-story__arrow:disabled {
+  opacity: 0.3;
+}
+@media (min-width: 1024px) {
+  .hw-story__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+.hw-story__blank {
+  width: 100%;
+  height: min(240px, 34vh);
+  border-radius: 18px;
+  border: 1.5px dashed rgba(243, 234, 216, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hw-story__blank-text {
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: 30px;
+  letter-spacing: 0;
+  color: rgba(243, 234, 216, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-live__dot {
+    animation: none;
+  }
+}

@@ -3,6 +3,7 @@
 // 구도는 갤러리 썸네일과 같다(쓴 자리만 잘라 크림 종이 가운데) — 열어도 화면이 튀지 않게.
 // 재생 리듬은 타임캡슐 손글씨(open/HandwrittenLetter)와 같다: 앞은 느리게·중간은 빠르게, 탭하면 끝까지.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useContestEntryInk } from '../../hooks/useHandwritingContest'
 import type { ContestEntry } from '../../types/handwritingContest'
 import { inkPointCount, parseInkPageFile } from '../Capsule/ink/inkModel'
@@ -20,7 +21,20 @@ const INSET = 0.07
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-const InkReplay = ({ entry, maxRatio = 1.5, className = '' }: { entry: ContestEntry; maxRatio?: number; className?: string }) => {
+interface Props {
+  entry: ContestEntry
+  maxRatio?: number
+  className?: string
+  /** 종이 비율(세로/가로)을 고정한다 — 히어로처럼 자리가 정해진 곳. 글씨는 그 안에 contain */
+  ratio?: number
+  /** 아래 안내·다시 보기 버튼과 종이 탭(끝까지 보기)을 뺀다 — 스토리·히어로처럼 바깥이 제스처를 맡을 때 */
+  bare?: boolean
+  /** 재생을 시작할 때 걸리는 시간(ms)을 알린다. 한 번에 다 그리면(획 없음·실패·동작 줄이기) 0 */
+  onPlay?: (ms: number) => void
+  style?: CSSProperties
+}
+
+const InkReplay = ({ entry, maxRatio = 1.5, className = '', ratio: fixedRatio, bare = false, onPlay, style }: Props) => {
   const ink = useContestEntryInk(entry.contest_id, entry.id, entry.has_ink)
   const page = useMemo(() => (ink.data ? parseInkPageFile(ink.data) : null), [ink.data])
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -32,7 +46,14 @@ const InkReplay = ({ entry, maxRatio = 1.5, className = '' }: { entry: ContestEn
   const [skipped, setSkipped] = useState(prefersReducedMotion)
   const [replayKey, setReplayKey] = useState(0)
 
-  const ratio = entry.width && entry.height ? Math.min(maxRatio, Math.max(0.55, entry.height / entry.width)) : 1
+  const ratio = fixedRatio ?? (entry.width && entry.height ? Math.min(maxRatio, Math.max(0.55, entry.height / entry.width)) : 1)
+  // 효과 의존성에 넣지 않는다(부모가 매번 새 함수를 내려도 재생이 다시 시작되지 않게)
+  const onPlayRef = useRef(onPlay)
+  onPlayRef.current = onPlay
+  const noInk = !entry.has_ink || ink.isError
+  useEffect(() => {
+    if (noInk) onPlayRef.current?.(0)
+  }, [noInk, entry.id])
 
   useLayoutEffect(() => {
     const el = wrapRef.current
@@ -77,9 +98,11 @@ const InkReplay = ({ entry, maxRatio = 1.5, className = '' }: { entry: ContestEn
     const total = inkPointCount(page)
     if (skipped || total === 0) {
       drawAll()
+      onPlayRef.current?.(0)
       return
     }
     const duration = Math.min(MAX_MS, Math.max(MIN_MS, total * MS_PER_POINT))
+    onPlayRef.current?.(duration + 350)
     let strokeIdx = 0
     let drawnPoints = 0
     // 시트가 올라오는 동안은 기다렸다가 쓰기 시작한다
@@ -112,20 +135,25 @@ const InkReplay = ({ entry, maxRatio = 1.5, className = '' }: { entry: ContestEn
   }, [page, size.w, size.h, skipped, replayKey])
 
   // 받기 전·획 없음·실패 — 출품 PNG
-  if (!page) return <PaperThumb entry={entry} maxRatio={maxRatio} className={className} />
+  if (!page) return <PaperThumb entry={entry} maxRatio={maxRatio} ratio={fixedRatio} className={className} style={style} />
+
+  const paper = (
+    <div
+      ref={wrapRef}
+      className={`hw-paper ${playing && !bare ? 'cursor-pointer' : ''} ${className}`}
+      style={{ ...style, aspectRatio: `1 / ${ratio}` }}
+      onClick={bare ? undefined : () => playing && setSkipped(true)}
+      role={playing && !bare ? 'button' : 'img'}
+      aria-label={playing && !bare ? '손글씨 다 보기' : `${entry.verse_ref} 손글씨`}
+    >
+      <canvas ref={canvasRef} className="absolute" style={{ left: `${INSET * 100}%`, top: `${INSET * 100}%` }} aria-hidden />
+    </div>
+  )
+  if (bare) return paper
 
   return (
     <div>
-      <div
-        ref={wrapRef}
-        className={`hw-paper ${playing ? 'cursor-pointer' : ''} ${className}`}
-        style={{ aspectRatio: `1 / ${ratio}` }}
-        onClick={() => playing && setSkipped(true)}
-        role={playing ? 'button' : 'img'}
-        aria-label={playing ? '손글씨 다 보기' : `${entry.verse_ref} 손글씨`}
-      >
-        <canvas ref={canvasRef} className="absolute" style={{ left: `${INSET * 100}%`, top: `${INSET * 100}%` }} aria-hidden />
-      </div>
+      {paper}
       <div className="mt-2 flex justify-center">
         {playing ? (
           <p className="text-[11.5px] text-ink-muted">쓰는 중이에요 · 종이를 누르면 바로 다 보여요</p>

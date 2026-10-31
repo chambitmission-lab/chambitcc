@@ -848,80 +848,13 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
-/* ── 시작 화면 (모바일·PC 공통) — 찾는 방법 · 최근 검색어 · 주제별 말씀 ──
-   모바일은 찾는 방법을 한 장의 목록(줄 3개), 주제별 말씀은 2열. PC 는 아래 lg 블록이 3열 카드·4열로 편다 */
+/* ── 시작 화면 (모바일·PC 공통) — 설교 본문 · 최근 검색어 · 마음 · 이야기 · 주제별 말씀 ──
+   주제별 말씀은 모바일 2열, PC 는 아래 lg 블록이 4열로 편다 */
 .search-hero {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   margin: 1rem 0 2rem;
-}
-
-.search-ways {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--ig-border);
-  border-radius: 16px;
-  background: var(--ig-primary-background);
-  overflow: hidden;
-}
-[data-theme="dark"] .search-ways {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-.search-way {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'example example arrow' 'kind hint arrow';
-  align-items: center;
-  column-gap: 0.25rem;
-  row-gap: 0.125rem;
-  padding: 0.875rem 1rem;
-  border: none;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
-}
-.search-way + .search-way {
-  border-top: 1px solid var(--ig-border);
-}
-[data-theme="dark"] .search-way + .search-way {
-  border-top-color: rgba(255, 255, 255, 0.07);
-}
-.search-way:active {
-  background: rgba(49, 130, 246, 0.06);
-}
-.search-way__kind {
-  grid-area: kind;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--brand);
-}
-/* 모바일 한 줄 요약 — '책 이름으로 · 장 목록이 바로 펼쳐져요' */
-.search-way__kind::after {
-  content: ' ·';
-  color: var(--ig-secondary-text);
-}
-.search-way__example {
-  grid-area: example;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ig-primary-text);
-}
-.search-way__hint {
-  grid-area: hint;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 0.75rem;
-  color: var(--ig-secondary-text);
-}
-.search-way__arrow.material-icons-round {
-  grid-area: arrow;
-  font-size: 1.125rem;
-  color: var(--brand);
 }
 
 .search-topics {
@@ -944,9 +877,6 @@
   .search-topic:hover,
   [data-theme="dark"] .search-topic:hover {
     border-color: var(--brand);
-  }
-  .search-way:hover {
-    background: rgba(49, 130, 246, 0.04);
   }
 }
 .search-topic__main {
@@ -1214,44 +1144,6 @@
     margin: 1rem 0 3rem;
     gap: 2rem;
   }
-  .search-ways,
-  [data-theme="dark"] .search-ways {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-    border: none;
-    border-radius: 0;
-    background: none;
-    overflow: visible;
-  }
-  .search-way,
-  .search-way + .search-way {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'kind kind' 'example arrow' 'hint hint';
-    row-gap: 0.1875rem;
-    padding: 1rem 1.125rem;
-    border: 1px solid var(--ig-border);
-    border-radius: 16px;
-    background: var(--ig-primary-background);
-  }
-  [data-theme="dark"] .search-way,
-  [data-theme="dark"] .search-way + .search-way {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-  .search-way__kind {
-    font-size: calc(0.8125rem * var(--text-mul, 1));
-  }
-  .search-way__kind::after {
-    content: none;
-  }
-  .search-way__example {
-    font-size: calc(1.125rem * var(--text-mul, 1));
-  }
-  .search-way__hint {
-    font-size: calc(0.84375rem * var(--text-mul, 1));
-  }
-  .search-way:hover,
   .search-topic:hover {
     transform: translateY(-2px);
   }
@@ -1525,5 +1417,858 @@
   }
   .search-dist__more .material-icons-round {
     font-size: 1.125rem;
+  }
+}
+
+/* ══ 검색 개편 2026-10-31 — 통합 결과(사건·지명·마음) · 즉시 검색 보조 · 탐색 홈 ══════════
+   카드 바탕·테두리는 이 파일의 다른 카드(.search-topic)와 같은 토큰. 터치 기기 hover 잔상을 막으려고
+   hover 강조는 전부 (hover: hover) 가드 안, 탭 피드백은 :active. PC 글자 배율은 맨 아래 lg 블록 */
+
+/* 음성 검색 버튼 — 지우기(✕)와 같은 자리·같은 규격, 듣는 동안은 브랜드 원 */
+.search-input-area--voice .search-placeholder-rolling {
+  right: 2.75rem;
+}
+.search-voice-button {
+  flex-shrink: 0;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-right: 0.25rem;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.search-voice-button .material-icons-round {
+  font-size: 1.25rem;
+}
+.search-voice-button--on {
+  background: var(--brand);
+  color: #fff;
+  animation: search-voice-pulse 1.4s ease-in-out infinite;
+}
+@keyframes search-voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--brand-glow, rgba(49, 130, 246, 0.3)); }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-voice-button--on { animation: none; }
+}
+@media (hover: hover) {
+  .search-voice-button:not(.search-voice-button--on):hover {
+    color: var(--brand);
+    background: rgba(128, 128, 128, 0.12);
+  }
+}
+
+/* 절 바로 가기 — "요 3:1" 입력 중 후보 절 줄 */
+.search-typeahead--verses {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--ig-border);
+  border-radius: 14px;
+  background: var(--ig-primary-background);
+  overflow: hidden;
+}
+[data-theme="dark"] .search-typeahead--verses {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.search-typeahead--verses .search-typeahead-label {
+  padding: 0.5rem 0.875rem 0.25rem;
+}
+.search-verse-jump {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  min-height: 44px;
+  padding: 0.5rem 0.875rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.search-verse-jump + .search-verse-jump {
+  border-top: 1px solid var(--ig-border);
+}
+[data-theme="dark"] .search-verse-jump + .search-verse-jump {
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+.search-verse-jump b {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.search-verse-jump span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.875rem;
+  color: var(--text-body, var(--ig-primary-text));
+}
+.search-verse-jump:active {
+  background: rgba(49, 130, 246, 0.06);
+}
+@media (hover: hover) {
+  .search-verse-jump:hover {
+    background: rgba(49, 130, 246, 0.06);
+  }
+}
+
+/* 결과 종류 칩 — 전체·절·사건·지명 (선택 = 잉크색 채움, 범위 칩의 브랜드 채움과 구분) */
+.search-kinds {
+  display: flex;
+  gap: 0.375rem;
+  overflow-x: auto;
+  margin: 0 0 0.875rem;
+  scrollbar-width: none;
+}
+.search-kinds::-webkit-scrollbar {
+  display: none;
+}
+.search-kind {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 2.125rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 999px;
+  background: var(--ig-primary-background);
+  color: var(--ig-secondary-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+[data-theme="dark"] .search-kind {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.search-kind__n {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+.search-kind--active,
+[data-theme="dark"] .search-kind--active {
+  background: var(--ig-primary-text);
+  border-color: transparent;
+  color: var(--ig-primary-background);
+}
+[data-theme="dark"] .search-kind--active {
+  color: #121212;
+}
+
+/* 사건·지명 섹션 */
+.search-local {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.search-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.search-sec__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.125rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+.search-sec__more {
+  border: none;
+  background: none;
+  min-height: 36px;
+  padding: 0 0.25rem;
+  color: var(--brand);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.search-rows {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ig-border);
+  border-radius: 16px;
+  background: var(--ig-primary-background);
+  overflow: hidden;
+}
+[data-theme="dark"] .search-rows {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.625rem 0.875rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.search-row + .search-row {
+  border-top: 1px solid var(--ig-border);
+}
+[data-theme="dark"] .search-row + .search-row {
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+.search-row:active {
+  background: rgba(49, 130, 246, 0.06);
+}
+@media (hover: hover) {
+  .search-row:hover {
+    background: rgba(49, 130, 246, 0.05);
+  }
+}
+.search-row__badge.material-icons-round {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: 10px;
+  background: var(--brand-soft, rgba(49, 130, 246, 0.08));
+  color: var(--brand);
+  font-size: 1.125rem;
+}
+.search-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+}
+.search-row__text b {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+}
+.search-row__text b small {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+.search-row__text > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+  font-variant-numeric: tabular-nums;
+}
+.search-row__chev.material-icons-round {
+  flex-shrink: 0;
+  font-size: 1.125rem;
+  color: var(--ig-secondary-text);
+}
+
+/* 최상위 결과 — 사건 이름 그 자체("오병이어") */
+.search-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 16px;
+  background: var(--ig-primary-background);
+}
+[data-theme="dark"] .search-top {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.search-top__icon.material-icons-round {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: var(--brand-soft, rgba(49, 130, 246, 0.08));
+  color: var(--brand);
+  font-size: 1.375rem;
+}
+.search-top__body {
+  flex: 1;
+  min-width: 0;
+}
+.search-top__eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--brand);
+}
+.search-top__title {
+  margin: 0.125rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.search-top__refs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.75rem;
+}
+.search-top__ref {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 0.375rem 0 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--brand-soft, rgba(49, 130, 246, 0.08));
+  color: var(--brand);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.search-top__ref .material-icons-round {
+  font-size: 1rem;
+}
+@media (hover: hover) {
+  .search-top__ref:hover {
+    background: var(--brand-soft-strong, rgba(49, 130, 246, 0.15));
+  }
+}
+
+/* 마음으로 찾기 — 상황별 성구 답변 */
+.search-mind {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 16px;
+  background: var(--ig-primary-background);
+}
+[data-theme="dark"] .search-mind {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+/* 문장으로 적은 마음 — 이 답이 화면의 주인공이라 틴트 바탕으로 세운다 */
+.search-mind--lead,
+[data-theme="dark"] .search-mind--lead {
+  border-color: transparent;
+  background: var(--brand-soft, rgba(49, 130, 246, 0.08));
+}
+.search-mind__head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.search-mind__icon.material-icons-round {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 11px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 1.125rem;
+}
+.search-mind__eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--brand);
+}
+.search-mind__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.search-mind__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.search-mind__verse {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0.875rem;
+  border: none;
+  border-radius: 12px;
+  background: var(--ig-secondary-background);
+  text-align: left;
+  cursor: pointer;
+}
+.search-mind--lead .search-mind__verse {
+  background: var(--ig-primary-background);
+}
+[data-theme="dark"] .search-mind__verse,
+[data-theme="dark"] .search-mind--lead .search-mind__verse {
+  background: rgba(255, 255, 255, 0.05);
+}
+.search-mind__verse:active {
+  transform: scale(0.99);
+}
+.search-mind__ref {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+.search-mind__text {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  word-break: keep-all;
+  color: var(--ig-primary-text);
+}
+.search-mind__msg {
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+}
+.search-mind__all {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--brand);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.search-mind__all .material-icons-round {
+  font-size: 1rem;
+}
+.search-mind__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.search-mind__skeleton i {
+  display: block;
+  height: 4.25rem;
+  border-radius: 12px;
+  background: rgba(128, 128, 128, 0.1);
+}
+
+/* 절 보기 방식 — 목록 / 책별 */
+.search-view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0 0 0.75rem;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(128, 128, 128, 0.1);
+}
+.search-view-toggle__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 2rem;
+  padding: 0 0.75rem;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--ig-secondary-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.search-view-toggle__btn .material-icons-round {
+  font-size: 1rem;
+}
+.search-view-toggle__btn--on {
+  background: var(--ig-primary-background);
+  color: var(--ig-primary-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] .search-view-toggle__btn--on {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* 책별 묶음 */
+.search-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.search-group__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 0.875rem 0 1rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 14px;
+  background: var(--ig-primary-background);
+  color: var(--ig-primary-text);
+  text-align: left;
+  cursor: pointer;
+}
+[data-theme="dark"] .search-group__head {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.search-group__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+.search-group__count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+  font-variant-numeric: tabular-nums;
+}
+.search-group__head .material-icons-round {
+  font-size: 1.25rem;
+  color: var(--ig-secondary-text);
+}
+.search-group__body {
+  margin-top: 0.5rem;
+}
+.search-group__loading {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  color: var(--ig-secondary-text);
+}
+.search-group__more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  background: none;
+  color: var(--brand);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.search-group__more .material-icons-round {
+  font-size: 1rem;
+}
+
+/* 사건·사전이 이미 답했을 때의 조용한 빈 상태, 오타 제안 */
+.search-quiet-empty {
+  margin: 0.25rem 0.25rem 1.5rem;
+  font-size: 0.8125rem;
+  color: var(--ig-secondary-text);
+}
+.search-did-you-mean {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--ig-secondary-text);
+}
+
+/* ── 탐색 홈 ── */
+.search-sermon {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 0.875rem 0.875rem 1rem;
+  border: none;
+  border-radius: 16px;
+  background: var(--brand);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+.search-sermon:active {
+  transform: scale(0.99);
+}
+.search-sermon__icon.material-icons-round {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 1.25rem;
+}
+.search-sermon__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.search-sermon__badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+.search-sermon__text b {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.search-sermon__title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.search-moods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.search-mood {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 4.75rem;
+  padding: 0.625rem 0.375rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 14px;
+  background: var(--ig-primary-background);
+  cursor: pointer;
+}
+[data-theme="dark"] .search-mood {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.search-mood .material-icons-round {
+  font-size: 1.375rem;
+  color: var(--brand);
+}
+.search-mood__name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  word-break: keep-all;
+  color: var(--ig-primary-text);
+}
+.search-mood:active {
+  background: rgba(49, 130, 246, 0.06);
+}
+
+.search-stories {
+  display: flex;
+  gap: 0.625rem;
+  overflow-x: auto;
+  margin: 0 -1rem;
+  padding: 0 1rem 0.25rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.search-stories::-webkit-scrollbar {
+  display: none;
+}
+.search-story {
+  flex-shrink: 0;
+  width: 8.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.search-story__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 0.375rem;
+  border-radius: 12px;
+  object-fit: cover;
+  background: rgba(128, 128, 128, 0.12);
+}
+.search-story__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+}
+.search-story__label {
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+}
+.search-story:active .search-story__img {
+  opacity: 0.85;
+}
+
+@media (hover: hover) {
+  .search-group__head:hover,
+  .search-mood:hover,
+  [data-theme="dark"] .search-group__head:hover,
+  [data-theme="dark"] .search-mood:hover {
+    border-color: var(--brand);
+  }
+  .search-mind__verse:hover {
+    box-shadow: inset 0 0 0 1px var(--brand);
+  }
+  .search-sermon:hover {
+    background: var(--brand-dim, #1b6ef3);
+  }
+  .search-story:hover .search-story__img {
+    opacity: 0.88;
+  }
+}
+
+/* PC(lg+) — 노안 패스 문법(--text-mul)과 넓은 폭 배치 */
+@media (min-width: 1024px) {
+  .search-kind {
+    height: 2.5rem;
+    padding: 0 1.125rem;
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-sec__head,
+  .search-sec__more,
+  .search-mind__all,
+  .search-quiet-empty {
+    font-size: calc(0.90625rem * var(--text-mul, 1));
+  }
+  .search-row {
+    min-height: 3.75rem;
+    padding: 0.75rem 1.125rem;
+  }
+  .search-row__text b {
+    font-size: calc(1.0625rem * var(--text-mul, 1));
+  }
+  .search-row__text > span {
+    font-size: calc(0.875rem * var(--text-mul, 1));
+  }
+  .search-local,
+  .search-top,
+  .search-mind {
+    max-width: 680px;
+  }
+  .search-top {
+    padding: 1.25rem;
+  }
+  .search-top__title {
+    font-size: calc(1.25rem * var(--text-mul, 1));
+  }
+  .search-top__eyebrow,
+  .search-mind__eyebrow {
+    font-size: calc(0.8125rem * var(--text-mul, 1));
+  }
+  .search-top__ref {
+    height: 2.75rem;
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-mind {
+    padding: 1.25rem;
+  }
+  .search-mind__title {
+    font-size: calc(1.1875rem * var(--text-mul, 1));
+  }
+  .search-mind__ref {
+    font-size: calc(0.875rem * var(--text-mul, 1));
+  }
+  .search-mind__text {
+    font-size: calc(1.0625rem * var(--text-mul, 1));
+  }
+  .search-mind__msg {
+    font-size: calc(0.875rem * var(--text-mul, 1));
+  }
+  .search-view-toggle__btn {
+    height: 2.5rem;
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-group__head {
+    min-height: 3.5rem;
+  }
+  .search-group__name {
+    font-size: calc(1.0625rem * var(--text-mul, 1));
+  }
+  .search-group__count,
+  .search-group__more {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-verse-jump b {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-verse-jump span {
+    font-size: calc(1rem * var(--text-mul, 1));
+  }
+  .search-voice-button {
+    width: 44px;
+    height: 44px;
+  }
+  .search-input-area--voice .search-placeholder-rolling {
+    right: 3.25rem;
+  }
+
+  .search-sermon {
+    padding: 1.125rem 1.25rem;
+    border-radius: 18px;
+  }
+  .search-sermon__badge,
+  .search-sermon__title {
+    font-size: calc(0.875rem * var(--text-mul, 1));
+  }
+  .search-sermon__text b {
+    font-size: calc(1.1875rem * var(--text-mul, 1));
+  }
+  .search-moods {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .search-mood {
+    min-height: 5.5rem;
+  }
+  .search-mood__name {
+    font-size: calc(0.9375rem * var(--text-mul, 1));
+  }
+  .search-mood:hover {
+    transform: translateY(-2px);
+  }
+  .search-stories {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem 1rem;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+  .search-story {
+    width: auto;
+  }
+  .search-story__title {
+    font-size: calc(1rem * var(--text-mul, 1));
+  }
+  .search-story__label {
+    font-size: calc(0.875rem * var(--text-mul, 1));
   }
 }

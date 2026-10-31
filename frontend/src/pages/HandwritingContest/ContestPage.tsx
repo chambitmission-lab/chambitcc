@@ -1,7 +1,9 @@
 // 손글씨 성경 필사대회 (/handwriting, /handwriting/:id)
-// 대회 소개 → 참여하기(또는 내 작품) → (발표 뒤) 시상대 → 갤러리에서 한 표씩.
+// 지금 막 써지는 누군가의 글씨(히어로) → 초대·참여하기(또는 내 작품) → (발표 뒤) 시상대
+// → 이 구절을 고른 이유(사연) → 한 편씩 넘겨 보기·모든 작품 → 아직 아무도 쓰지 않은 구절.
+// 작품은 시트 대신 StoryViewer 로 한 편씩 화면 가득 넘겨 본다.
 // id 없이 들어오면 진행 중인 대회(없으면 가장 최근 대회)를 보여 준다.
-import { memo, useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   useContest,
@@ -18,8 +20,11 @@ import { isAuthenticated } from '../../utils/auth'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
 import { showToast, toastFeedback } from '../../utils/toast'
+import { timeAgo } from '../../utils/dateUtils'
+import { RECOMMENDED, type PickedVerse } from '../Bible/PhotoVerse/recommendedVerses'
 import { RailCard, SectionTitle, Spinner, SurveyShell } from '../Survey/surveyUi'
-import EntrySheet from './EntrySheet'
+import InkReplay from './InkReplay'
+import StoryViewer from './StoryViewer'
 import { Avatar, CardIcon, CenterNote, HeartIcon, Medal, PaperThumb, PhaseChip, QuillIcon, TrophyIcon } from './contestShared'
 import { RANK_META, errorText, periodText, phaseLine } from './contestFormat'
 import './contest.css'
@@ -89,6 +94,16 @@ const ContestPage = () => {
   )
 }
 
+/** 넘겨 보기를 어느 묶음에서 열었는지 — 목록은 늘 최신 캐시에서 다시 뽑는다(표가 바로 반영되게) */
+type StorySource = 'gallery' | 'stories' | 'winners' | 'mine'
+
+const DEFAULT_INVITE = '빠르게 읽던 말씀도 손으로 쓰면 한 글자씩 오래 머물러요.\n마음에 닿는 구절 하나면 충분해요.'
+/** 소감이 있는 작품 중 '고른 이유' 칸에 바로 펼쳐 둘 편수 */
+const STORY_PREVIEW = 3
+const SUGGESTION_COUNT = 3
+
+const sameRef = (a: string, b: string) => a.replace(/\s/g, '') === b.replace(/\s/g, '')
+
 const ContestBody = ({
   contest,
   authed,
@@ -110,18 +125,42 @@ const ContestBody = ({
   // 관리자는 서버가 표 수를 늘 내려준다 — 집계 확인용으로 '많이 받은' 정렬도 연다
   const countsVisible = contest.phase === 'announced' || contest.show_ranking || can('admin:access')
   const sorts = countsVisible ? SORTS : SORTS.filter((s) => s.id !== 'popular')
-  const [openId, setOpenId] = useState<number | null>(null)
+  const [story, setStory] = useState<{ source: StorySource; index: number } | null>(null)
   useContestLive(contest.id) // 다른 성도의 표가 들어오면 하트 수·참여 인원이 바로 바뀐다
   const vote = useVoteEntry(contest.id, toastFeedback({ error: '투표하지 못했어요' }))
   const withdraw = useWithdrawEntry(contest.id, toastFeedback({ success: '출품을 거뒀어요', error: '출품을 거두지 못했어요' }))
   const consent = useUpdateConsent(contest.id, toastFeedback({ error: '동의 설정을 바꾸지 못했어요' }))
 
+  const myEntry = contest.my_entry
   const loaded = useMemo(() => entries.data?.pages.flatMap((p) => p.items) ?? [], [entries.data])
-  const findEntry = (id: number): ContestEntry | undefined =>
-    loaded.find((e) => e.id === id) ??
-    contest.winners.find((e) => e.id === id) ??
-    (contest.my_entry?.id === id ? contest.my_entry : undefined)
-  const opened = openId != null ? findEntry(openId) : undefined
+  const total = entries.data?.pages[0]?.total ?? contest.entry_count
+  const withStory = useMemo(() => loaded.filter((e) => e.comment?.trim()), [loaded])
+  const storyList = (source: StorySource): ContestEntry[] =>
+    source === 'gallery' ? loaded : source === 'stories' ? withStory : source === 'winners' ? contest.winners : myEntry ? [myEntry] : []
+  const openStory = (source: StorySource, id?: number) => {
+    const index = id == null ? 0 : storyList(source).findIndex((e) => e.id === id)
+    setStory({ source, index: Math.max(0, index) })
+  }
+  const openGallery = useCallback(
+    (id: number) => {
+      const index = loaded.findIndex((e) => e.id === id)
+      setStory({ source: 'gallery', index: Math.max(0, index) })
+    },
+    [loaded, setStory],
+  )
+
+  // 함께 쓴 성도 얼굴 몇 개 — 받아 둔 갤러리에서
+  const faces = useMemo(() => {
+    const seen = new Set<number>()
+    return loaded.filter((e) => !seen.has(e.author.id) && seen.add(e.author.id)).slice(0, 4).map((e) => e.author)
+  }, [loaded])
+
+  // 아직 아무도 안 쓴 애송 구절 — 갤러리를 다 받았을 때만 '아무도'라고 말한다
+  const canEnter = contest.phase === 'open' && !myEntry
+  const suggestions = useMemo(
+    () => RECOMMENDED.filter((v) => !loaded.some((e) => sameRef(e.verse_ref, v.refLabel))).slice(0, SUGGESTION_COUNT),
+    [loaded],
+  )
 
   const requireLogin = (): boolean => {
     if (authed) return true
@@ -149,9 +188,9 @@ const ContestBody = ({
     [authed, contestIdForVote, votesLeft, votesPerUser, voteMutate, navigate],
   )
 
-  const startWrite = () => {
+  const startWrite = (verse?: PickedVerse) => {
     if (!requireLogin()) return
-    navigate(`/handwriting/${contest.id}/write`)
+    navigate(`/handwriting/${contest.id}/write`, verse ? { state: { verse } } : undefined)
   }
 
   const handleWithdraw = async () => {
@@ -164,8 +203,6 @@ const ContestBody = ({
     })
     if (ok) withdraw.mutate()
   }
-
-  const myEntry = contest.my_entry
 
   const rules = (
     <ul className="space-y-1.5 text-[12.5px] leading-[1.6] text-ink-muted">
@@ -188,7 +225,13 @@ const ContestBody = ({
           ))}
         </div>
         <p className="text-[13px] text-ink-muted">
-          남은 표 <b className="text-ink-strong tabular-nums">{contest.votes_left}</b> / {contest.votes_per_user}
+          {contest.votes_left > 0 ? (
+            <>
+              마음에 드는 글씨에 <b className="text-ink-strong tabular-nums">{contest.votes_left}</b>표 더 줄 수 있어요
+            </>
+          ) : (
+            '표를 다 나눴어요'
+          )}
         </p>
       </div>
     ) : null
@@ -205,51 +248,79 @@ const ContestBody = ({
     </>
   )
 
+  const { fetchNextPage, isFetchingNextPage } = entries
+  const loadMore = useCallback(() => {
+    if (!isFetchingNextPage) fetchNextPage()
+  }, [fetchNextPage, isFetchingNextPage])
+
+  const viewerList = story ? storyList(story.source) : []
+
   return (
     <SurveyShell onBack={onBack} title={contest.title} rail={rail}>
-      <div className="px-4 pt-4 lg:px-6 lg:pt-6">
-        {/* 히어로 */}
-        <section className="hw-hero">
-          <span className="hw-hero__quill">
-            <QuillIcon size={112} />
-          </span>
+      {/* 히어로 — 지금 막 써지는 누군가의 글씨 */}
+      <div className="lg:px-6 lg:pt-6">
+        <LiveInkHero contest={contest} entries={loaded} frozen={story != null} onOpen={openGallery} />
+      </div>
+
+      <div className="px-4 lg:px-6">
+        {/* 초대 */}
+        <section className="pt-6">
           <div className="flex items-center gap-2">
-            <p className="hw-hero__eyebrow">참빛교회 손글씨 성경 필사대회</p>
+            <p className="text-[11.5px] font-bold tracking-[0.04em] text-ink-muted">참빛교회 손글씨 성경 필사대회</p>
             <PhaseChip phase={contest.phase} />
           </div>
-          <h2 className="hw-hero__title">{contest.title}</h2>
-          <p className="mt-2 text-[13px] font-semibold opacity-75">
+          <h2 className="hw-headline mt-2 text-ink-strong">{contest.title}</h2>
+          <p className="mt-2.5 text-[14.5px] leading-[1.75] text-ink-muted whitespace-pre-line">{contest.description || DEFAULT_INVITE}</p>
+          <p className="mt-3 text-[12.5px] font-semibold text-ink-muted">
             {periodText(contest)} · {phaseLine(contest)}
           </p>
-          {contest.description ? (
-            <p className="mt-3 text-[13.5px] leading-[1.7] opacity-85 whitespace-pre-line">{contest.description}</p>
+          {contest.phase !== 'upcoming' ? (
+            <div className="mt-4 flex items-center gap-2.5">
+              {faces.length ? (
+                <span className="flex">
+                  {faces.map((a, i) => (
+                    <span key={a.id} className={`rounded-full ring-2 ring-background-light dark:ring-background-dark ${i ? '-ml-2' : ''}`}>
+                      <Avatar name={a.name} url={a.avatar_url} size={26} />
+                    </span>
+                  ))}
+                </span>
+              ) : null}
+              <p className="text-[13px] text-ink-muted">
+                {contest.entry_count > 0 ? (
+                  <>
+                    벌써 <b className="text-ink-strong tabular-nums">{contest.entry_count}</b>명이 자기 글씨로 말씀을 남겼어요
+                    {contest.voter_count > 0 ? <span className="tabular-nums"> · 투표 {contest.voter_count}명</span> : null}
+                  </>
+                ) : contest.phase === 'open' ? (
+                  '첫 번째 글씨의 주인공이 되어 주세요'
+                ) : (
+                  '출품작이 없었어요'
+                )}
+              </p>
+            </div>
           ) : null}
-          <div className="mt-4 flex gap-4 text-[12.5px] font-semibold opacity-75">
-            <span>
-              출품 <b className="tabular-nums">{contest.entry_count}</b>작품
-            </span>
-            <span>
-              투표 참여 <b className="tabular-nums">{contest.voter_count}</b>명
-            </span>
-          </div>
         </section>
 
-        {/* 참여하기 / 내 작품 */}
-        {contest.phase === 'open' && !myEntry ? (
-          <button
-            type="button"
-            onClick={startWrite}
-            className="relative mt-4 w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold seal-chip [--seal-radius:1rem]"
-          >
-            <QuillIcon />
-            {authed ? '참여하기 · 구절 골라 손글씨로 쓰기' : '로그인하고 참여하기'}
-          </button>
+        {/* 참여하기 */}
+        {canEnter ? (
+          <div className="mt-5">
+            <button
+              type="button"
+              onClick={() => startWrite()}
+              className="relative w-full inline-flex items-center justify-center gap-2 py-4 rounded-2xl bg-brand text-white text-[16px] font-bold seal-chip [--seal-radius:1rem]"
+            >
+              <QuillIcon />
+              {authed ? '나도 한 구절 써 보기' : '로그인하고 한 구절 써 보기'}
+            </button>
+            <p className="mt-2 text-center text-[12.5px] text-ink-muted">5분이면 충분해요 · 손가락으로도 써져요</p>
+          </div>
         ) : null}
 
+        {/* 내 작품 */}
         {myEntry ? (
-          <section className="mt-4 rounded-2xl border border-gray-200/70 dark:border-white/[0.07] bg-white dark:bg-card-dark p-3.5">
+          <section className="mt-5 rounded-2xl border border-gray-200/70 dark:border-white/[0.07] bg-white dark:bg-card-dark p-3.5">
             <div className="flex gap-3">
-              <button type="button" className="w-[84px] shrink-0" onClick={() => setOpenId(myEntry.id)} aria-label="내 작품 크게 보기">
+              <button type="button" className="w-[84px] shrink-0" onClick={() => openStory('mine')} aria-label="내 작품 크게 보기">
                 <PaperThumb entry={myEntry} maxRatio={1.2} />
               </button>
               <div className="min-w-0 flex-1">
@@ -289,7 +360,7 @@ const ContestBody = ({
                   disabled={withdraw.isPending}
                   className="px-3.5 py-2.5 rounded-xl text-[13px] font-bold text-ink-muted border border-gray-200 dark:border-white/10"
                 >
-                  출품 거두기
+                  {withdraw.isPending ? '거두는 중…' : '출품 거두기'}
                 </button>
               ) : null}
             </div>
@@ -300,13 +371,60 @@ const ContestBody = ({
         {voteBox ? <div className="lg:hidden mt-4 rounded-2xl bg-gray-50 dark:bg-white/[0.04] px-4 py-3">{voteBox}</div> : null}
 
         {/* 시상대 */}
-        {contest.phase === 'announced' ? <Podium contest={contest} onOpen={setOpenId} /> : null}
+        {contest.phase === 'announced' ? <Podium contest={contest} onOpen={(id) => openStory('winners', id)} /> : null}
+
+        {/* 이 구절을 고른 이유 — 공감이 먼저, 글씨는 옆에 작게 */}
+        {contest.phase !== 'upcoming' && withStory.length ? (
+          <section className="mt-9">
+            <div className="flex items-baseline justify-between gap-2 mb-1">
+              <h3 className="text-[17px] font-bold text-ink-strong tracking-[-0.02em]">이 구절을 고른 이유</h3>
+              {withStory.length > STORY_PREVIEW ? (
+                <button type="button" onClick={() => openStory('stories')} className="text-[12.5px] font-bold text-ink-muted">
+                  사연 {withStory.length}편 넘겨 보기 ›
+                </button>
+              ) : null}
+            </div>
+            <div className="divide-y divide-border-light dark:divide-border-dark">
+              {withStory.slice(0, STORY_PREVIEW).map((entry) => (
+                <StoryRow
+                  key={entry.id}
+                  entry={entry}
+                  canVote={contest.phase === 'open' && !entry.is_mine}
+                  votesLeft={contest.votes_left}
+                  busy={vote.isPending && vote.variables?.entryId === entry.id}
+                  onOpen={(id) => openStory('stories', id)}
+                  onVote={handleVote}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* 갤러리 */}
         {contest.phase !== 'upcoming' ? (
-          <section className="mt-7">
+          <section className="mt-8">
+            {loaded.length ? (
+              <button
+                type="button"
+                onClick={() => openStory('gallery')}
+                className="hw-play mb-6 w-full grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[20px] px-5 py-[18px] text-left"
+              >
+                <span className="min-w-0">
+                  <span className="block font-['Noto_Serif_KR',serif] text-[16px] font-semibold leading-[1.5]">처음부터 한 편씩 넘겨 보기</span>
+                  <span className="block mt-0.5 text-[12px] opacity-60">
+                    {total}편 · 쓴 순서대로 다시 써져요 · 탭하면 다음으로
+                  </span>
+                </span>
+                <span className="w-11 h-11 rounded-full bg-[#efe6d4] text-[#16140f] inline-flex items-center justify-center" aria-hidden>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5.5v13l10.5-6.5L8 5.5Z" />
+                  </svg>
+                </span>
+              </button>
+            ) : null}
+
             <div className="flex items-center justify-between gap-2 mb-3">
-              <SectionTitle count={entries.data?.pages[0]?.total}>출품작</SectionTitle>
+              <SectionTitle count={entries.data?.pages[0]?.total}>모든 작품</SectionTitle>
               <div className="flex gap-1 -mt-3" role="tablist" aria-label="정렬">
                 {sorts.map((s) => (
                   <button
@@ -342,7 +460,7 @@ const ContestBody = ({
                       canVote={contest.phase === 'open' && !entry.is_mine}
                       votesLeft={contest.votes_left}
                       busy={vote.isPending && vote.variables?.entryId === entry.id}
-                      onOpen={setOpenId}
+                      onOpen={openGallery}
                       onVote={handleVote}
                     />
                   ))}
@@ -362,11 +480,41 @@ const ContestBody = ({
           </section>
         ) : null}
 
+        {/* 무엇을 쓸지 고민하는 문턱을 없앤다 */}
+        {canEnter && suggestions.length ? (
+          <section className="mt-9">
+            <h3 className="mb-3 text-[17px] font-bold text-ink-strong tracking-[-0.02em]">
+              {entries.hasNextPage ? '이런 구절은 어떠세요' : '아직 아무도 쓰지 않은 구절'}
+            </h3>
+            <div className="flex flex-col gap-2">
+              {suggestions.map((v) => (
+                <button
+                  key={v.refLabel}
+                  type="button"
+                  onClick={() => startWrite(v)}
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-gray-300 dark:border-white/15 bg-gray-50 dark:bg-white/[0.03] px-4 py-3.5 text-left"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[13.5px] font-bold text-ink-strong">{v.refLabel}</span>
+                    <span className="block mt-0.5 text-[12.5px] text-ink-muted truncate">{v.text}</span>
+                  </span>
+                  <span className="shrink-0 text-[12.5px] font-bold text-brand">이 구절로 ›</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {/* 모바일 — 안내·다른 대회 */}
-        <section className="lg:hidden mt-8 rounded-2xl bg-gray-50 dark:bg-white/[0.04] px-4 py-4">
-          <p className="mb-2 text-[12.5px] font-bold text-ink-strong">대회 안내</p>
-          {rules}
-        </section>
+        <details className="lg:hidden mt-8 rounded-2xl bg-gray-50 dark:bg-white/[0.04] px-4 py-3.5 group">
+          <summary className="flex items-center justify-between cursor-pointer list-none text-[13px] font-bold text-ink-strong">
+            대회 안내
+            <span className="text-[12px] font-semibold text-ink-muted">
+              1인 1작품 · {contest.votes_per_user}표 <span className="inline-block transition-transform group-open:rotate-180">▾</span>
+            </span>
+          </summary>
+          <div className="mt-3">{rules}</div>
+        </details>
         {others.length ? (
           <section className="lg:hidden mt-3 mb-4 rounded-2xl bg-gray-50 dark:bg-white/[0.04] px-4 py-4">
             <p className="mb-2 text-[12.5px] font-bold text-ink-strong">다른 대회</p>
@@ -375,11 +523,21 @@ const ContestBody = ({
         ) : null}
       </div>
 
-      {opened ? (
-        <EntrySheet
+      {story && viewerList.length ? (
+        <StoryViewer
+          key={story.source}
           contest={contest}
-          entry={opened}
-          onClose={() => setOpenId(null)}
+          entries={viewerList}
+          startIndex={story.index}
+          total={story.source === 'gallery' ? total : viewerList.length}
+          hasMore={story.source === 'gallery' && !!entries.hasNextPage}
+          onLoadMore={loadMore}
+          invite={story.source === 'gallery' && canEnter}
+          onWrite={() => {
+            setStory(null)
+            startWrite()
+          }}
+          onClose={() => setStory(null)}
           onVote={handleVote}
           voting={vote.isPending}
         />
@@ -387,6 +545,156 @@ const ContestBody = ({
     </SurveyShell>
   )
 }
+
+/** 히어로 — 받아 둔 작품 몇 편이 쓴 순서대로 번갈아 다시 써진다. 탭하면 그 작품부터 넘겨 보기 */
+const HERO_RATIO = 0.56
+const HERO_TURNS = 3
+const HERO_REST_MS = 2800
+
+const LiveInkHero = ({
+  contest,
+  entries,
+  frozen,
+  onOpen,
+}: {
+  contest: ContestDetail
+  entries: ContestEntry[]
+  /** 넘겨 보기가 열려 있으면 다음 편으로 넘어가지 않는다 */
+  frozen: boolean
+  onOpen: (id: number) => void
+}) => {
+  const picks = useMemo(() => {
+    const withInk = entries.filter((e) => e.has_ink && !e.is_hidden)
+    return (withInk.length ? withInk : entries.filter((e) => e.image_url && !e.is_hidden)).slice(0, HERO_TURNS)
+  }, [entries])
+  const [turn, setTurn] = useState(0)
+  const timer = useRef(0)
+  const frozenRef = useRef(frozen)
+  useEffect(() => {
+    frozenRef.current = frozen
+  }, [frozen])
+  useEffect(() => () => window.clearTimeout(timer.current), [])
+  // 넘겨 보기를 닫으면 잠깐 쉬었다가 다음 편
+  useEffect(() => {
+    if (frozen || picks.length < 2) return
+    window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => setTurn((t) => t + 1), HERO_REST_MS)
+  }, [frozen, picks.length])
+
+  const handlePlay = useCallback(
+    (ms: number) => {
+      window.clearTimeout(timer.current)
+      // 한 번에 다 그려지는 경우(동작 줄이기·획 없음)는 한 편뿐이면 그대로 둔다
+      if (frozenRef.current || (ms === 0 && picks.length < 2)) return
+      timer.current = window.setTimeout(() => setTurn((t) => t + 1), ms + (ms ? HERO_REST_MS : HERO_REST_MS * 2))
+    },
+    [picks.length],
+  )
+
+  const current = picks.length ? picks[turn % picks.length] : null
+
+  if (!current) {
+    return (
+      <div className="hw-live lg:overflow-hidden lg:rounded-3xl">
+        <div className="hw-paper hw-paper--lined hw-live__empty" style={{ aspectRatio: `1 / ${HERO_RATIO}` }}>
+          {contest.phase === 'upcoming' ? '곧 첫 글씨를 받아요' : '첫 글씨를 기다리고 있어요'}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <button type="button" className="hw-live" onClick={() => onOpen(current.id)} aria-label={`${current.author.name}님의 ${current.verse_ref} 넘겨 보기`}>
+      <div className="lg:overflow-hidden lg:rounded-3xl">
+        <InkReplay key={`${current.id}-${turn}`} entry={current} bare ratio={HERO_RATIO} onPlay={handlePlay} className="hw-paper--lined" />
+      </div>
+      <span className="flex items-center gap-2 px-4 pt-2.5 text-[12.5px] text-ink-muted lg:px-1">
+        <span className="hw-live__dot" aria-hidden />
+        <span className="min-w-0 truncate">
+          <b className="font-semibold text-ink-strong">{current.author.name}</b> 님이 {timeAgo(current.created_at)} 쓴 {current.verse_ref}
+          {current.has_ink ? ' · 쓴 순서대로 다시 보는 중' : ''}
+        </span>
+      </span>
+    </button>
+  )
+}
+
+/** 표 하트 — 갤러리 카드·사연 줄이 함께 쓴다 */
+const VoteChip = ({
+  entry,
+  canVote,
+  votesLeft,
+  busy,
+  onVote,
+}: {
+  entry: ContestEntry
+  canVote: boolean
+  votesLeft: number
+  busy: boolean
+  onVote: (entry: ContestEntry) => void
+}) =>
+  canVote ? (
+    <button
+      type="button"
+      onClick={() => onVote(entry)}
+      disabled={busy}
+      aria-pressed={entry.voted_by_me}
+      aria-label={entry.voted_by_me ? '한 표 거두기' : '한 표 주기'}
+      className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[12px] font-bold transition-colors ${
+        entry.voted_by_me
+          ? 'text-rose-500 bg-rose-50 dark:bg-rose-500/10'
+          : votesLeft > 0
+            ? 'text-gray-400 hover:text-rose-500 dark:text-white/40'
+            : 'text-gray-300 dark:text-white/20'
+      }`}
+    >
+      <HeartIcon filled={entry.voted_by_me} size={17} />
+      {entry.vote_count != null ? <span className="tabular-nums">{entry.vote_count}</span> : null}
+    </button>
+  ) : entry.vote_count != null ? (
+    <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 text-[12px] font-bold text-gray-400 dark:text-white/40">
+      <HeartIcon size={15} />
+      <span className="tabular-nums">{entry.vote_count}</span>
+    </span>
+  ) : null
+
+/** 사연 한 줄 — 소감이 먼저, 글씨는 옆에 작게 */
+const StoryRow = memo(function StoryRow({
+  entry,
+  canVote,
+  votesLeft,
+  busy,
+  onOpen,
+  onVote,
+}: {
+  entry: ContestEntry
+  canVote: boolean
+  votesLeft: number
+  busy: boolean
+  onOpen: (id: number) => void
+  onVote: (entry: ContestEntry) => void
+}) {
+  const open = () => onOpen(entry.id)
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_88px] gap-3.5 py-4">
+      <div className="min-w-0 flex flex-col">
+        <button type="button" onClick={open} className="text-left">
+          <p className="hw-quote text-ink-strong line-clamp-4">{entry.comment}</p>
+        </button>
+        <div className="mt-auto pt-2.5 flex items-center gap-2 min-w-0">
+          <Avatar name={entry.author.name} url={entry.author.avatar_url} size={22} />
+          <p className="min-w-0 flex-1 truncate text-[12.5px] text-ink-muted">
+            <b className="font-semibold text-ink-strong">{entry.author.name}</b> · {entry.verse_ref}
+          </p>
+          <VoteChip entry={entry} canVote={canVote} votesLeft={votesLeft} busy={busy} onVote={onVote} />
+        </div>
+      </div>
+      <button type="button" onClick={open} aria-label={`${entry.author.name}님의 ${entry.verse_ref} 보기`}>
+        <PaperThumb entry={entry} maxRatio={1.25} />
+      </button>
+    </div>
+  )
+})
 
 // memo — 투표 한 번에 갤러리 캐시가 통째로 갈려도(patchEntryEverywhere 가 안 바뀐 작품은 같은 참조로 둔다)
 // 표가 바뀐 카드만 다시 그린다. 콜백은 (id·entry) 인자형이라 부모가 안정된 참조 하나를 내려준다
@@ -426,30 +734,7 @@ const EntryCard = memo(function EntryCard({
         <p className="text-[13px] font-bold text-ink-strong truncate">{entry.verse_ref}</p>
         <p className="text-[12px] text-ink-muted truncate">{entry.author.name}</p>
       </button>
-      {canVote ? (
-        <button
-          type="button"
-          onClick={() => onVote(entry)}
-          disabled={busy}
-          aria-pressed={entry.voted_by_me}
-          aria-label={entry.voted_by_me ? '한 표 거두기' : '한 표 주기'}
-          className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[12px] font-bold transition-colors ${
-            entry.voted_by_me
-              ? 'text-rose-500 bg-rose-50 dark:bg-rose-500/10'
-              : votesLeft > 0
-                ? 'text-gray-400 hover:text-rose-500 dark:text-white/40'
-                : 'text-gray-300 dark:text-white/20'
-          }`}
-        >
-          <HeartIcon filled={entry.voted_by_me} size={17} />
-          {entry.vote_count != null ? <span className="tabular-nums">{entry.vote_count}</span> : null}
-        </button>
-      ) : entry.vote_count != null ? (
-        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 text-[12px] font-bold text-gray-400 dark:text-white/40">
-          <HeartIcon size={15} />
-          <span className="tabular-nums">{entry.vote_count}</span>
-        </span>
-      ) : null}
+      <VoteChip entry={entry} canVote={canVote} votesLeft={votesLeft} busy={busy} onVote={onVote} />
     </div>
   </div>
   )

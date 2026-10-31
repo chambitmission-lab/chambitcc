@@ -1,7 +1,7 @@
 // 필사대회 참여 (/handwriting/:id/write) — ① 구절 고르기 → ② 손글씨로 쓰기 → ③ 한마디·동의 → 출품
 // 쓰는 도중 나가도 이 기기에 초안(구절·획)이 남는다 — 다시 들어오면 이어 쓴다.
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useContest, useSubmitEntry } from '../../hooks/useHandwritingContest'
 import { isAuthenticated } from '../../utils/auth'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
@@ -58,11 +58,18 @@ const Step = ({ n, title, done, children }: { n: number; title: string; done: bo
 const ContestWrite = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+  const location = useLocation()
   const contestId = Number(id) || 0
   const { data: contest, isLoading } = useContest(contestId)
   const submit = useSubmitEntry(contestId)
 
-  const [initial] = useState(() => loadDraft(contestId))
+  // 대회 화면의 '이 구절로'에서 오면 그 구절로 시작한다 — 이미 써 둔 초안 글씨가 있으면 초안을 지킨다
+  const [initial] = useState(() => {
+    const draft = loadDraft(contestId)
+    const passed = (location.state as { verse?: PickedVerse } | null)?.verse
+    const usable = passed && typeof passed.text === 'string' && typeof passed.refLabel === 'string'
+    return usable && isInkPageEmpty(draft.page) ? { ...draft, verse: passed } : draft
+  })
   const [verse, setVerse] = useState<PickedVerse | null>(initial.verse)
   const [pages, setPages] = useState<InkPage[]>([initial.page])
   const [comment, setComment] = useState(initial.comment)

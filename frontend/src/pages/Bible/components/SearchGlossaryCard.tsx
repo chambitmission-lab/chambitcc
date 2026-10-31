@@ -17,7 +17,7 @@ const TYPE_ICON: Record<GlossaryEntry['type'], string> = {
  * "삼위일체"처럼 본문에 한 번도 안 나오는 말도 여기서는 답이 나온다.
  * GlossarySheet(본문 칩 시트)와 같은 문법의 인라인 카드.
  */
-const SearchGlossaryCard = ({ entry }: { entry: GlossaryEntry }) => {
+const SearchGlossaryCard = ({ entry, mapPlaceId }: { entry: GlossaryEntry; mapPlaceId?: string }) => {
   const navigate = useNavigate()
   const firstRef = useMemo(() => {
     const parsed = parseBibleReference(entry.first)
@@ -62,6 +62,17 @@ const SearchGlossaryCard = ({ entry }: { entry: GlossaryEntry }) => {
             </button>
           ) : (
             <p className="mt-2.5 text-[12px] lg:text-[length:calc(14px*var(--text-mul,1))] text-ink-muted lg:text-ink">{entry.first}</p>
+          )}
+          {/* 지명이 성경 지도에 있으면 그 장소 카드로 — 검색 탭 통합 결과의 '지도에서 보기' */}
+          {mapPlaceId && (
+            <button
+              type="button"
+              onClick={() => navigate(`/bible/atlas?p=${encodeURIComponent(mapPlaceId)}`)}
+              className="mt-3 ml-1.5 inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.12] px-3 py-1.5 lg:min-h-[44px] lg:px-4 text-[12.5px] lg:text-[length:calc(15px*var(--text-mul,1))] font-bold text-ink transition-colors hover:border-brand hover:text-brand"
+            >
+              <span className="material-icons-round text-[16px]">map</span>
+              지도에서 보기
+            </button>
           )}
         </div>
       </div>
