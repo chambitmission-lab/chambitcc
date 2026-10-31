@@ -744,6 +744,90 @@
   animation: capsule-fade-up 0.5s ease both;
 }
 
+/* ── PC(lg+) 2단 — 왼쪽: 양 무대·제목·버튼 / 오른쪽: 배달 길(열리면 선물) ──
+   한 줄 480px 기둥은 넓은 카드 가운데에서 휑했다. /capsule/new PC 와 같은 좌우 문법.
+   왼쪽은 버튼을 바닥(1fr 빈 줄 아래)에 붙여 오른쪽 길의 마지막 칸과 높이를 맞춘다.
+   마크업 순서는 모바일 그대로 — 자리만 grid 로 옮긴다. */
+@media (min-width: 1024px) {
+  .capsule-arrival {
+    max-width: 920px;
+    padding: 32px 36px 52px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr auto auto auto;
+    column-gap: 36px;
+  }
+  .capsule-arrival > * {
+    grid-column: 1;
+  }
+  /* 칸 폭(≈400px)에 100% 맞추면 그림이 바닥에 낮은 띠로 눌리고, 높이에 맞추면 양 한 마리만 확대된다.
+     그림의 오른쪽 55%(빈 왼쪽 하늘만 버림)가 칸을 채우게 182% 로 키워 오른쪽 아래에 붙이고,
+     무대 비율(5:3)을 그 그림 높이에 맞춘다 — 양·우체통·새끼 양이 한 장면에 다 들어온다.
+     양이 칸 왼쪽~가운데로 오므로 말풍선은 오른쪽 위 하늘에 앉고 꼬리는 왼쪽(양 얼굴)으로 */
+  .capsule-arrival__stage {
+    grid-row: 1;
+    height: auto;
+    aspect-ratio: 5 / 3;
+    border-radius: 26px;
+  }
+  .capsule-arrival__stage::before {
+    background-size: 182% auto;
+    background-position: right bottom;
+  }
+  .capsule-arrival__say {
+    top: 16px;
+    left: auto;
+    right: 16px;
+    max-width: 46%;
+    font-size: 14px;
+    padding: 10px 14px;
+    transform-origin: 0 60%;
+  }
+  .capsule-arrival__say::after {
+    right: auto;
+    left: -11px;
+    clip-path: polygon(100% 0, 0 78%, 100% 100%);
+  }
+  .capsule-arrival__eyebrow {
+    grid-row: 2;
+    margin-top: 26px;
+    font-size: 14px;
+  }
+  .capsule-arrival__headline {
+    grid-row: 3;
+    font-size: 28px;
+  }
+  .capsule-arrival__zone {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: center;
+    margin-top: 0;
+  }
+  .capsule-hold {
+    grid-row: 5;
+    margin-top: 24px;
+  }
+  .capsule-arrival__hint {
+    grid-row: 6;
+  }
+  .capsule-arrival__bypass {
+    grid-row: 7;
+  }
+  .capsule-trail {
+    gap: 10px;
+  }
+  .capsule-trail__stop {
+    min-height: 68px;
+  }
+  .capsule-trail__text b {
+    font-size: 15px;
+  }
+  .capsule-trail__text small,
+  .capsule-trail__end {
+    font-size: 12.5px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .capsule-arrival__say,
   .capsule-hold--nudge,
