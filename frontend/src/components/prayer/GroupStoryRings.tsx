@@ -7,10 +7,9 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { GroupGlyph } from '../../pages/Groups/GroupIcons'
 import type { PrayerGroup } from '../../types/prayer'
 import './GroupStoryRings.css'
+import { roomColor } from '../../utils/roomColor'
 
 // 방마다 고유 색 — groupColors 는 부서명 매칭이라 "3구역" 같은 방은 전부 기본 금색이 되어 id 해시로 고른다
-const ROOM_COLORS = ['#3182f6', '#12b886', '#f76707', '#d6336c', '#7048e8', '#0c8599', '#e8590c', '#5c7cfa']
-const roomColor = (id: number) => ROOM_COLORS[id % ROOM_COLORS.length]
 
 interface GroupStoryRingsProps {
   groups: PrayerGroup[]

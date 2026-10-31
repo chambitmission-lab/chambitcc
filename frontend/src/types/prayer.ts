@@ -158,6 +158,23 @@ export interface GroupThemeVerse {
 // 그룹 공개 설정 — private(초대만) / public(바로 가입) / approval(신청 승인)
 export type GroupVisibility = 'private' | 'public' | 'approval'
 
+// 내 그룹 목록 가사 카드의 최근 기도 한 줄 (my-groups에서만, 골방·신고 기도 제외)
+export interface GroupRecentPrayer {
+  id: number
+  text: string           // 제목 또는 본문 첫 줄 (최대 80자)
+  author_name: string    // 익명 기도는 "익명"
+  is_anonymous: boolean
+  prayed_count: number
+  is_answered: boolean
+  created_at: string
+}
+
+// 오늘 이 방을 위해 기도(체크인)한 식구 얼굴
+export interface GroupTodayFace {
+  name: string
+  avatar_url?: string | null
+}
+
 export interface PrayerGroup {
   id: number
   name: string
@@ -181,6 +198,8 @@ export interface PrayerGroup {
   checkins_today?: number | null        // 오늘 체크인한 멤버 수
   my_checked_in_today?: boolean | null  // 내가 오늘 체크인했는지
   last_activity_at?: string | null      // 마지막 활동(기도 등록·체크인) 시각
+  recent_prayers?: GroupRecentPrayer[] | null  // 목록 가사 카드용 최근 기도 (최대 3)
+  today_faces?: GroupTodayFace[] | null        // 오늘 기도한 식구 얼굴 (최대 4)
 }
 
 // 초대 링크 랜딩용 미리보기

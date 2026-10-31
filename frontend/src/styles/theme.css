@@ -146,6 +146,21 @@
   --desktop-chrome-blur: rgba(241, 243, 246, 0.85);
   --surface-container-high: #f3f1f7;
   --surface-inset: rgba(0, 0, 0, 0.04);     /* 카드 안의 한 단계 깊은 박스 */
+  /* 기도방 목록 가사 카드(/groups) — 판은 방 색(기능색) 그대로, 라이트는 원색 판 + 색 그림자.
+     지난/다음 줄은 밝은 판 위라 검정 알파로 눌러 준다. */
+  --gl-panel-mix: 100%;
+  --gl-panel-base: #000000;
+  --gl-cover-mix: 78%;
+  --gl-cover-base: #000000;
+  --gl-on: #ffffff;
+  --gl-on-soft: rgba(255, 255, 255, 0.86);
+  --gl-line-past: rgba(255, 255, 255, 0.62);
+  --gl-line-next: rgba(0, 0, 0, 0.32);
+  --gl-ghost-border: rgba(255, 255, 255, 0.6);
+  --gl-ghost-hover: rgba(255, 255, 255, 0.14);
+  --gl-pill-bg: rgba(0, 0, 0, 0.16);
+  --gl-hairline: rgba(255, 255, 255, 0.14);
+  --gl-shadow-alpha: 55%;
 
   /* 질감 — 테두리는 인스타그램 헤어라인(#dbdbdb≈14%)과 토스 소프트(7%)의 중간 농도 */
   --card-border: rgba(0, 0, 0, 0.11);
@@ -278,6 +293,21 @@
   --desktop-chrome-blur: rgba(19, 19, 19, 0.85);
   --surface-container-high: #2a2a2a;
   --surface-inset: rgba(10, 8, 20, 0.4);
+  /* 기도방 목록 가사 카드 — 다크는 원색 판이 캔버스(#131313) 위에서 눈부시므로 방 색을 깊게 가라앉히고,
+     순백 대신 살짝 누른 흰색. 판이 어두워 '다음 줄'은 검정이 아니라 흰 알파로 낮춘다. */
+  --gl-panel-mix: 52%;
+  --gl-panel-base: #14171c;
+  --gl-cover-mix: 38%;
+  --gl-cover-base: #0b0d10;
+  --gl-on: #eef1f5;
+  --gl-on-soft: rgba(238, 241, 245, 0.78);
+  --gl-line-past: rgba(238, 241, 245, 0.5);
+  --gl-line-next: rgba(238, 241, 245, 0.26);
+  --gl-ghost-border: rgba(255, 255, 255, 0.22);
+  --gl-ghost-hover: rgba(255, 255, 255, 0.08);
+  --gl-pill-bg: rgba(0, 0, 0, 0.28);
+  --gl-hairline: rgba(255, 255, 255, 0.07);
+  --gl-shadow-alpha: 0%;
 
   /* 질감 */
   --card-border: rgba(147, 143, 154, 0.14);
