@@ -4,6 +4,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useEventAlbumsByEvent } from '../../../../hooks/useEventAlbum'
 import { tokenStore } from '../../../../utils/tokenStore'
+import { CameraGlyph } from './EventDetailIcons'
 
 interface EventAlbumLinkCardProps {
   eventId: number
@@ -40,13 +41,13 @@ export const EventAlbumLinkCard = ({ eventId }: EventAlbumLinkCardProps) => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-[22px]">📸</span>
+              <CameraGlyph size={26} className="text-brand" />
             )}
           </div>
 
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-bold text-ink-strong tracking-[-0.01em] truncate">
-              📸 이날의 사진 보기
+              이날의 사진 보기
             </p>
             <p className="text-[11.5px] text-gray-500 dark:text-white/55 truncate mt-0.5">
               {first.title}

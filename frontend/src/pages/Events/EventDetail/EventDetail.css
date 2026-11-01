@@ -1,0 +1,227 @@
+/* 일정 상세 — C안 "초대장 + 모임 이야기"
+ * PC: 왼쪽 초대장·응답(스티키) / 오른쪽 안내·장소·참석자·이야기
+ * 모바일: 같은 순서로 한 줄
+ */
+
+.evd-shell {
+  --evd-map-land: #eef2f6;
+  --evd-map-road: #ffffff;
+  --evd-map-park: #dfeee2;
+  --evd-map-water: #d6e6fb;
+  --evd-ok: #12a150;
+  --evd-ok-soft: rgba(18, 161, 80, 0.1);
+  --evd-maybe: #d98200;
+  --evd-maybe-soft: rgba(224, 138, 0, 0.1);
+  --evd-no: #e5484d;
+  --evd-no-soft: rgba(229, 72, 77, 0.09);
+}
+[data-theme='dark'] .evd-shell {
+  --evd-map-land: #232428;
+  --evd-map-road: #2f3136;
+  --evd-map-park: #24302a;
+  --evd-map-water: #1f2a3a;
+  --evd-ok: #3ccb7f;
+  --evd-ok-soft: rgba(60, 203, 127, 0.12);
+  --evd-maybe: #f5b041;
+  --evd-maybe-soft: rgba(245, 176, 65, 0.12);
+  --evd-no: #ff6b6f;
+  --evd-no-soft: rgba(255, 107, 111, 0.12);
+}
+
+/* ── 초대장 ── */
+.evd-inv {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  color: #fff;
+  background: linear-gradient(160deg, #4b94ff 0%, #2a64e0 55%, #1d47b8 100%);
+  box-shadow: 0 24px 50px -26px rgba(29, 71, 184, 0.7);
+  padding: 26px 24px 22px;
+}
+[data-theme='dark'] .evd-inv {
+  background: linear-gradient(160deg, #2c63c9 0%, #1d47a6 55%, #142f78 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 24px 50px -24px rgba(0, 0, 0, 0.8);
+}
+.evd-inv-art {
+  position: absolute;
+  right: -70px;
+  top: -40px;
+  width: 300px;
+  height: 300px;
+  background-position: 88% 40%;
+  background-size: auto 160%;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle, #000 40%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 40%, transparent 70%);
+}
+.evd-inv > *:not(.evd-inv-art) {
+  position: relative;
+}
+.evd-inv-big {
+  font-size: 60px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.evd-inv-big small {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-left: 8px;
+  opacity: 0.85;
+}
+/* 절취선 — 양끝 반원은 바탕색으로 파낸다 */
+.evd-perf {
+  margin: 22px -24px;
+  border-top: 2px dashed rgba(255, 255, 255, 0.35);
+}
+.evd-perf::before,
+.evd-perf::after {
+  content: '';
+  position: absolute;
+  top: -13px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--app-canvas);
+}
+.evd-perf::before {
+  left: -12px;
+}
+.evd-perf::after {
+  right: -12px;
+}
+
+/* ── 응답 얼굴 버튼 ── */
+.evd-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0 12px;
+  border-radius: 18px;
+  border: 2px solid transparent;
+  font-weight: 800;
+  transition: transform 0.12s, background-color 0.15s, border-color 0.15s;
+}
+.evd-face:active {
+  transform: scale(0.97);
+}
+.evd-face-emoji {
+  font-size: 30px;
+  line-height: 1.1;
+  transition: transform 0.2s;
+}
+@media (hover: hover) {
+  .evd-face:not(:disabled):hover .evd-face-emoji {
+    transform: scale(1.14) rotate(-6deg);
+  }
+}
+.evd-face[data-tone='ok'][data-sel='true'] {
+  border-color: var(--evd-ok);
+  background: var(--evd-ok-soft);
+  color: var(--evd-ok);
+}
+.evd-face[data-tone='maybe'][data-sel='true'] {
+  border-color: var(--evd-maybe);
+  background: var(--evd-maybe-soft);
+  color: var(--evd-maybe);
+}
+.evd-face[data-tone='no'][data-sel='true'] {
+  border-color: var(--evd-no);
+  background: var(--evd-no-soft);
+  color: var(--evd-no);
+}
+.evd-tone-ok {
+  color: var(--evd-ok);
+}
+.evd-tone-maybe {
+  color: var(--evd-maybe);
+}
+.evd-tone-no {
+  color: var(--evd-no);
+}
+
+/* ── 지도 타일(장식) ── */
+.evd-map {
+  position: relative;
+  overflow: hidden;
+  background: var(--evd-map-land);
+}
+.evd-map svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.evd-pin {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.evd-pin-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--brand);
+  box-shadow: 0 6px 14px -4px rgba(49, 130, 246, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.evd-pin-dot::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+}
+.evd-pin-shadow {
+  width: 12px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
+  margin-top: 3px;
+}
+
+/* ── 말풍선 ── */
+.evd-bubble-host {
+  border-radius: 4px 18px 18px 18px;
+}
+.evd-bubble-you {
+  border-radius: 18px 18px 18px 4px;
+}
+.evd-bubble-me {
+  border-radius: 18px 18px 4px 18px;
+}
+
+@media (min-width: 1024px) {
+  .evd-inv {
+    padding: 32px 30px 26px;
+  }
+  .evd-perf {
+    margin: 24px -30px;
+  }
+  .evd-inv-big {
+    font-size: 74px;
+  }
+}
+
+/* 왼쪽 초대장 묶음 — 화면 높이가 넉넉할 때만 따라오게(낮은 노트북에선 응답 버튼이 화면 밖에 갇힌다).
+   zoom 라우트라 sticky top 은 --az 로 나눈다 */
+@media (min-width: 1024px) and (min-height: 900px) {
+  .evd-left {
+    position: sticky;
+    top: calc(5.5rem / var(--az, 1));
+  }
+}

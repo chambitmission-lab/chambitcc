@@ -5,25 +5,30 @@ import { translations } from '../../../locales'
 import { useEventActions } from './hooks/useEventActions'
 import { useCommentActions } from './hooks/useCommentActions'
 import {
-  EventHero,
-  QuickActions,
-  EventInfo,
-  EventDescription,
-  AttendeesCard,
-  AttendanceSection,
-  CommentsSection,
+  EventInvitation,
+  EventReplyCard,
+  EventTools,
+  EventGuideCard,
+  EventPlaceCard,
+  EventPeopleCard,
+  EventThread,
   EventAlbumLinkCard,
   SeatBookingLinkCard,
 } from './components'
+import './EventDetail.css'
 
-// lg: 어르신이 모니터로 보는 자리 — 폭(760px)과 각 카드 글씨를 키운다(카드별 lg: 클래스)
+/* C안 "초대장 + 모임 이야기"
+ * 모바일: 한 줄(초대장 → 응답 → 도구 → 안내 → 장소 → 참석자 → 이야기)
+ * PC(lg): 왼쪽 420px 초대장·응답 스티키(.evd-left) / 오른쪽 안내·장소·참석자·이야기 */
 const Shell = ({ children }: { children: React.ReactNode }) => (
-  <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
-    <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-[760px] lg:pb-10 lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
+  <div className="evd-shell bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
+    <div className="max-w-md mx-auto relative min-h-screen px-4 pb-24 lg:max-w-[1180px] lg:px-8 lg:pb-16">
       {children}
     </div>
   </div>
 )
+
+const cardSkeleton = 'rounded-[22px] bg-gray-100 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] animate-pulse'
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>()
@@ -32,8 +37,7 @@ const EventDetail = () => {
   const t = translations[language]
   const { event, loading, error, refresh } = useEventDetail(Number(id))
 
-  const { handleAttend, handleCancelAttendance } =
-    useEventActions(Number(id), refresh, t)
+  const { handleAttend, handleCancelAttendance } = useEventActions(Number(id), refresh, t)
 
   const {
     comment,
@@ -45,13 +49,13 @@ const EventDetail = () => {
   } = useCommentActions(Number(id), refresh, t)
 
   const backButton = (
-    <div className="px-4 pt-4 pb-3 lg:px-6 lg:pt-6">
+    <div className="pt-4 pb-3 lg:pt-6 lg:pb-4">
       <button
         type="button"
         onClick={() => navigate('/events')}
-        className="inline-flex items-center gap-1 h-9 lg:h-11 pl-1.5 pr-3 lg:pr-4 -ml-1.5 rounded-full text-ink-strong text-[14px] lg:text-[17px] font-bold hover:bg-gray-100 dark:hover:bg-white/[0.06] active:scale-[0.97] transition-all"
+        className="inline-flex items-center gap-1 h-10 pl-1.5 pr-3.5 -ml-1.5 rounded-full text-ink-strong text-[15px] lg:text-[16px] font-bold hover:bg-gray-100 dark:hover:bg-white/[0.06] active:scale-[0.97] transition-all"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <polyline points="15 18 9 12 15 6" />
         </svg>
         {t.title}
@@ -63,16 +67,16 @@ const EventDetail = () => {
     return (
       <Shell>
         {backButton}
-        <div className="mx-4 h-48 rounded-3xl bg-gray-100 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
-        <div className="flex gap-2 px-4 mt-3">
-          {[0, 1, 2].map(i => (
-            <div key={i} className="flex-1 h-10 rounded-xl bg-gray-100 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
-          ))}
-        </div>
-        <div className="px-4 mt-3 flex flex-col gap-3">
-          {[0, 1, 2].map(i => (
-            <div key={i} className="h-28 rounded-2xl bg-gray-100 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
-          ))}
+        <div className="lg:grid lg:grid-cols-[420px_minmax(0,1fr)] lg:gap-9">
+          <div>
+            <div className="h-[380px] lg:h-[430px] rounded-[28px] bg-[var(--brand-soft-strong)] animate-pulse" />
+            <div className={`${cardSkeleton} h-40 mt-3.5`} />
+          </div>
+          <div className="flex flex-col gap-4 mt-4 lg:mt-0">
+            {[0, 1, 2].map(i => (
+              <div key={i} className={`${cardSkeleton} h-36`} />
+            ))}
+          </div>
         </div>
       </Shell>
     )
@@ -82,7 +86,7 @@ const EventDetail = () => {
     return (
       <Shell>
         {backButton}
-        <div className="mx-4 mt-10 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] p-8 text-center">
+        <div className="max-w-md mx-auto mt-10 rounded-[22px] bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] p-8 text-center">
           <p className="text-[32px] mb-3" aria-hidden="true">😢</p>
           <p className="text-gray-500 dark:text-white/55 text-[14px] mb-5">{error || t.error}</p>
           <button
@@ -101,44 +105,48 @@ const EventDetail = () => {
     <Shell>
       {backButton}
 
-      <EventHero event={event} t={t} />
-      <QuickActions event={event} t={t} />
+      <div className="lg:grid lg:grid-cols-[420px_minmax(0,1fr)] lg:gap-9 lg:items-start">
+        <div className="evd-left">
+          <EventInvitation event={event} t={t} />
+          <EventReplyCard
+            userAttendanceStatus={event.user_attendance_status ?? undefined}
+            onAttend={handleAttend}
+            onCancel={handleCancelAttendance}
+            rsvpDeadline={event.rsvp_deadline}
+            t={t}
+          />
+          <EventTools event={event} t={t} />
+        </div>
 
-      <div className="px-4 mt-3 flex flex-col gap-3 lg:px-6 lg:mt-4 lg:gap-4">
-        <EventInfo event={event} t={t} />
+        <div className="flex flex-col gap-4 mt-4 lg:mt-0">
+          <EventGuideCard event={event} t={t} />
+          <EventPlaceCard location={event.location} startDatetime={event.start_datetime} t={t} />
 
-        <EventDescription
-          description={event.description}
-          attachmentUrl={event.attachment_url}
-          t={t}
-        />
+          {/* 이 일정에 좌석 예약 행사가 연결돼 있으면 예약 진입점 노출 */}
+          <SeatBookingLinkCard eventId={event.id} />
+          {/* 이 일정에 연결된 행사 앨범이 있으면 사진 보기 진입점 노출 */}
+          <EventAlbumLinkCard eventId={event.id} />
 
-        {/* 이 일정에 좌석 예약 행사가 연결돼 있으면 예약 진입점 노출 */}
-        <SeatBookingLinkCard eventId={event.id} />
+          <EventPeopleCard attendances={event.attendances} t={t} />
+          <EventThread
+            comments={event.comments}
+            comment={comment}
+            setComment={setComment}
+            submitting={submitting}
+            isLoggedIn={isLoggedInForComments}
+            onSubmit={handleSubmitComment}
+            onDelete={handleDeleteComment}
+            t={t}
+          />
 
-        {/* 이 일정에 연결된 행사 앨범이 있으면 사진 보기 진입점 노출 */}
-        <EventAlbumLinkCard eventId={event.id} />
-
-        <AttendeesCard attendances={event.attendances} t={t} />
-
-        <AttendanceSection
-          userAttendanceStatus={event.user_attendance_status ?? undefined}
-          onAttend={handleAttend}
-          onCancel={handleCancelAttendance}
-          rsvpDeadline={event.rsvp_deadline}
-          t={t}
-        />
-
-        <CommentsSection
-          comments={event.comments}
-          comment={comment}
-          setComment={setComment}
-          submitting={submitting}
-          isLoggedIn={isLoggedInForComments}
-          onSubmit={handleSubmitComment}
-          onDelete={handleDeleteComment}
-          t={t}
-        />
+          <p className="flex items-center gap-1.5 px-1 text-gray-400 dark:text-white/40 text-[13px] font-medium">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            {t.views} {event.views}
+          </p>
+        </div>
       </div>
     </Shell>
   )
