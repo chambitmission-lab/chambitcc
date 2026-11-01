@@ -15,6 +15,8 @@ export const historyLabLoader: RouteLoader = withChurchHistory(() => import('../
 export const sermonLabLoader: RouteLoader = () => import('../pages/Sermon/SermonLab')
 // 기도방 상세 — /groups 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
 export const groupDetailLoader: RouteLoader = () => import('../pages/Groups/GroupDetail')
+// 일정 상세 — /events 히어로·어젠다 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
+export const eventDetailLoader: RouteLoader = () => import('../pages/Events/EventDetail')
 
 // 홈 카드·성경 도크·메뉴 꼬리 링크로만 들어오는 화면 — 메뉴 카탈로그엔 없어 테이블에서 빠져 있었다.
 // 라우터가 전환을 startTransition 으로 돌려 청크가 올 때까지 이전 화면에 멈춰 보이던 곳들.
@@ -258,6 +260,9 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'sermon/new', match: /^\/sermon\/new$/, load: sermonLabLoader },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
   { key: 'seats/detail', match: /^\/seats\/[^/]+$/, load: () => import('../pages/Seats/SeatEventDetail') },
+  // 일정 상세 — 표에 없어 청크 프리로드가 무효였다. 라우터가 전환을 startTransition 으로 돌려
+  // 청크가 올 때까지 목록 화면에 멈춰 보이던 곳 (푸시·알림 딥링크도 여기로 들어온다)
+  { key: 'events/detail', match: /^\/events\/[^/]+$/, load: eventDetailLoader },
   // 선거는 메뉴에 없다(선거인에게만 열림) — 홈 배너·링크로만 들어오므로 메뉴 프리로드에 넣지 않는다
   { key: 'elections', match: /^\/elections$/, load: () => import('../pages/Election/ElectionList') },
   { key: 'elections/detail', match: /^\/elections\/[^/]+$/, load: () => import('../pages/Election/ElectionDetail') },

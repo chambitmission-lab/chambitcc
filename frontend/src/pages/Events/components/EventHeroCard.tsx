@@ -6,6 +6,9 @@ import { formatDDay, formatEventStartTime, formatEventDateLabel } from '../utils
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
 import { CategoryIcon } from './CategoryIcons'
+import { queryClient } from '../../../config/queryClient'
+import { prefetchEventDetail } from '../../../hooks/useEvents'
+import { preloadRoute } from '../../../utils/routePreload'
 
 interface EventHeroCardProps {
   event: Event
@@ -25,10 +28,19 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
   const [loadedBg, setLoadedBg] = useState<string | null>(null)
   const imgLoaded = loadedBg === v.bg
 
+  // 상세 청크와 상세 응답을 같은 순간에 띄운다 — 누르는 때엔 둘 다 거의 도착해 있다
+  // (예전엔 청크 → 마운트 → API 직렬이라 목록에 멈췄다가 스켈레톤이 한 번 더 보였다)
+  const warm = () => {
+    void preloadRoute(`/events/${event.id}`)
+    prefetchEventDetail(queryClient, event.id)
+  }
+
   return (
     <button
       type="button"
       onClick={() => navigate(`/events/${event.id}`)}
+      onMouseEnter={warm}
+      onTouchStart={warm}
       className="mx-4 mb-4 w-[calc(100%-2rem)] text-left group block"
     >
       <div

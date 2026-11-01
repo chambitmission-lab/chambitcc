@@ -21,6 +21,7 @@ import { warmRouteThemeAssets } from '../../utils/themeAssets'
 
 const BIBLE_CHAPTER = /^\/bible\/(\d+)\/(\d+)$/
 const SEAT_DETAIL = /^\/seats\/(\d+)$/
+const EVENT_DETAIL = /^\/events\/(\d+)$/
 // /handwriting 또는 /handwriting/:id (쓰기·말씀카드 화면은 제외)
 const CONTEST_ROUTE = /^\/handwriting(?:\/(\d+))?$/
 
@@ -79,6 +80,14 @@ const RouteDataPrefetch = () => {
     if (seat) {
       void import('../../hooks/useSeatEvents')
         .then((m) => m.prefetchSeatEvent(queryClient, Number(seat[1])))
+        .catch(() => undefined)
+    }
+    // 일정 상세 — 목록 카드에서 들어오면 터치 때 이미 출발했고(카드 warm), 푸시·알림 딥링크·새로고침
+    // 진입은 여기서 청크와 나란히 받는다 (훅 모듈이 메인 번들에 섞이지 않게 동적 import)
+    const eventDetail = EVENT_DETAIL.exec(pathname)
+    if (eventDetail) {
+      void import('../../hooks/useEvents')
+        .then((m) => m.prefetchEventDetail(queryClient, Number(eventDetail[1])))
         .catch(() => undefined)
     }
     // 읽기 플랜 — 목록·오늘의 읽기 묶음을 청크와 나란히. 예전엔 화면이 마운트된 뒤에야 둘이 출발해

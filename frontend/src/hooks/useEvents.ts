@@ -1,5 +1,5 @@
 // Event 데이터 관리 커스텀 훅 - React Query 기반
-import { keepPreviousData, useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { fetchEvents, fetchEventDetail } from '../api/event'
 import type { EventCategory } from '../types/event'
 
@@ -71,18 +71,33 @@ export const useEvents = (
   }
 }
 
+const DETAIL_STALE = 1000 * 60 * 5
+
+const fetchEventDetailData = async (eventId: number) => {
+  const response = await fetchEventDetail(eventId)
+  return response.success ? response.data : null
+}
+
+/** 일정 상세 선요청 — 목록 카드 터치·호버, 딥링크 진입(RouteDataPrefetch)에서 청크와 나란히 띄운다.
+ *  useEventDetail 과 같은 key·fn·staleTime 이라 화면이 뜨면 캐시를 그대로 이어받고, 신선하면 요청하지 않는다 */
+export const prefetchEventDetail = (qc: QueryClient, eventId: number): void => {
+  if (!(eventId > 0)) return
+  void qc.prefetchQuery({
+    queryKey: eventKeys.detail(eventId),
+    queryFn: () => fetchEventDetailData(eventId),
+    staleTime: DETAIL_STALE,
+  })
+}
+
 // 이벤트 상세 조회 훅
 export const useEventDetail = (eventId: number) => {
   const queryClient = useQueryClient()
 
   const query = useQuery({
     queryKey: eventKeys.detail(eventId),
-    queryFn: async () => {
-      const response = await fetchEventDetail(eventId)
-      return response.success ? response.data : null
-    },
+    queryFn: () => fetchEventDetailData(eventId),
     enabled: !!eventId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: DETAIL_STALE,
   })
 
   return {

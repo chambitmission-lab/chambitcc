@@ -7,6 +7,9 @@ import { useNowMs } from '../../../hooks/useNowMs'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
 import { CategoryIcon } from './CategoryIcons'
+import { queryClient } from '../../../config/queryClient'
+import { prefetchEventDetail } from '../../../hooks/useEvents'
+import { preloadRoute } from '../../../utils/routePreload'
 
 interface AgendaCardProps {
   /** 카드가 그리는 칸만 받는다(전체 Event 를 넘겨도 된다) */
@@ -26,10 +29,18 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
   const nowMs = useNowMs()
   const rsvpClosed = !!event.rsvp_deadline && parseKstDate(event.rsvp_deadline).getTime() <= nowMs
 
+  // 상세 청크와 상세 응답을 터치·호버 순간에 같이 띄운다 (히어로 카드와 동일)
+  const warm = () => {
+    void preloadRoute(`/events/${event.id}`)
+    prefetchEventDetail(queryClient, event.id)
+  }
+
   return (
     <button
       type="button"
       onClick={() => navigate(`/events/${event.id}`)}
+      onMouseEnter={warm}
+      onTouchStart={warm}
       className="w-full text-left group"
     >
       <article

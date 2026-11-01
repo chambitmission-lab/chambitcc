@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
-import { historyLabLoader, menuRouteLoaders, sermonLabLoader } from '../utils/routePreload'
+import { eventDetailLoader, historyLabLoader, menuRouteLoaders, sermonLabLoader } from '../utils/routePreload'
 
 // 교회 소개·예배·소식·행사·참여(설문·좌석·선거)
 // 햄버거 메뉴 페이지는 routePreload 의 로더를 공유해 프리로드 청크를 재사용한다
@@ -30,7 +30,7 @@ const Worship = lazy(menuRouteLoaders['/worship'])
 const Sermon = lazy(menuRouteLoaders['/sermon'])
 const SermonLab = lazy(sermonLabLoader)
 const EventCalendar = lazy(menuRouteLoaders['/events'])
-const EventDetail = lazy(() => import('../pages/Events/EventDetail'))
+const EventDetail = lazy(eventDetailLoader)
 
 export const churchRoutes = (
   <>
