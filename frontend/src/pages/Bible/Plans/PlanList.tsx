@@ -172,7 +172,7 @@ const PlanList = () => {
               ))}
           </div>
 
-          <aside className="pj-aside mt-3.5 lg:mt-0 grid gap-3 content-start">
+          <aside className="pj-aside min-w-0 mt-3.5 lg:mt-0 grid grid-cols-[minmax(0,1fr)] gap-3 content-start">
             {/* 공동 묵상방 — 혼자 읽는 플랜과 달리 "함께" 읽는 기능 */}
             <button
               type="button"
