@@ -191,14 +191,14 @@ export const Genealogy = () => {
             <p className="mt-2 max-w-[520px] text-[14px] text-gray-600 dark:text-white/65 leading-[1.65]">
               아담부터 예수 그리스도까지, 하나님이 친히 보존하신 메시아 약속의 계보입니다.
               {isLoggedIn ? (
-                <> 통독한 구절이 늘어날수록 그 인물의 별이 밝아져요.</>
+                <> 통독한 만큼 내 열차가 아담역에서 예수역까지 달려가요.</>
               ) : (
                 <>
                   {' '}
                   <Link to="/login" className="text-brand hover:underline font-medium">
                     로그인
                   </Link>
-                  하면 통독 진도에 따라 별이 하나씩 밝아지는 연출을 볼 수 있어요.
+                  하면 통독한 만큼 열차가 노선을 따라 달려가는 걸 볼 수 있어요.
                 </>
               )}
             </p>
@@ -214,8 +214,8 @@ export const Genealogy = () => {
                 >
                   <ul className="mt-3 max-w-[520px] rounded-xl bg-white/70 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08] px-3.5 py-3 text-[12.5px] text-gray-600 dark:text-white/65 leading-[1.6] space-y-1">
                     <li>· 인물을 누르면 생애·관련 구절·가족 관계를 볼 수 있어요.</li>
-                    <li>· 인물과 연결된 장을 통독할수록 그 인물의 별이 크고 밝아져요.</li>
-                    <li>· <b className="text-brand">✦ 메시아 라인</b>은 아담→예수까지 이어지는 별자리 선이에요.</li>
+                    <li>· 인물과 연결된 장을 다 읽으면 그 역을 지나요. 아담역부터 이어서 다 읽은 역까지 열차가 내려와요.</li>
+                    <li>· <b className="text-brand">가계도</b>는 아담→예수까지 한 줄 노선이에요. 시대마다 노선 색이 바뀌고, 점선은 성경이 건너뛴 세대예요.</li>
                   </ul>
                 </motion.div>
               )}

@@ -82,220 +82,211 @@
 .gen-stat__label { font-size: 11.5px; font-weight: 600; color: var(--brand); line-height: 1.2; }
 .gen-stat__value { font-size: 18px; font-weight: 800; color: var(--text-body); letter-spacing: -0.02em; line-height: 1.2; }
 
-/* ── 가계도 = 밤하늘 별자리 ────────────────────────────────────────── */
-.gen-sky-wrap {
-  /* 라이트: 새벽 하늘(옅은 파랑→아이보리), 다크: 깊은 밤 */
-  --sky-top: #f7faff;
-  --sky-mid: #fcfdff;
-  --sky-bottom: #fffbf3;
-  /* 별자리 글자 토큰 */
-  --gsky-name: #0f1f4d;
-  --gsky-sub: rgba(15,31,77,.62);
-  --gsky-faint: rgba(15,31,77,.42);
-  --gsky-era: #1d4ed8;
-  --gsky-pink: #be185d;
-  --gsky-pink-strong: #9d174d;
-  --gsky-pink-soft: rgba(244,114,182,.12);
-  --gsky-pink-line: rgba(219,39,119,.28);
-  --gsky-gold: #92400e;
-  --gsky-gold-soft: rgba(245,158,11,.16);
-  --gsky-jesus: #7a4b00;
-  /* 라이트: 흰 종이 위 위쪽만 옅은 새벽빛, 아래로 따뜻한 미색 — 전면 파랑 틴트는 탁해 보여 걷어냄 */
-  background:
-    radial-gradient(130% 360px at 50% 0%, rgba(222,235,255,.55) 0%, rgba(222,235,255,0) 100%),
-    radial-gradient(120% 680px at 50% 100%, rgba(253,232,188,.62) 0%, rgba(253,232,188,0) 100%),
-    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bottom) 100%);
-  border: 1px solid var(--card-border);
-  box-shadow: 0 1px 2px rgba(15,31,77,0.04);
-  color: #0f1f4d;
-  font-family: inherit;
-  overflow: hidden;
+/* ── 가계도 = "내 열차 위치" 노선도 (GenealogyTree) ───────────────────
+   한 줄 노선(위→아래) · 시대마다 노선 색(--c, SKY_ERA_START.color) · 아담역부터 이어 읽은 역까지 열차.
+   지나온 역은 진하게, 앞으로 갈 역(.is-ahead)은 흐린 노선. 레일 x 좌표는 --rx, 역 점 높이는 --dt. */
+.grl {
+  --grl-card: var(--surface-container);
+  --grl-ink: var(--text-strong);
+  --grl-sub: var(--text-body);
+  --grl-faint: var(--text-muted);
+  --grl-soft: rgba(0, 0, 0, 0.045);
+  --grl-pink: #d6336c;
+  --grl-pink-soft: #fff0f6;
+  --grl-gold: #9a6700;
+  --grl-gold-soft: rgba(245, 159, 0, 0.14);
+  --grl-brand: var(--brand, #3182f6);
+  display: flex; flex-direction: column; gap: 10px;
 }
-.dark .gen-sky-wrap {
-  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 50%, var(--sky-bottom) 100%);
-  --sky-top: #0b1030;
-  --sky-mid: #070b22;
-  --sky-bottom: #04061a;
-  --gsky-name: #f4f8ff;
-  --gsky-sub: rgba(255,255,255,.62);
-  --gsky-faint: rgba(255,255,255,.4);
-  --gsky-era: #9cc4ff;
-  --gsky-pink: #f9a8d4;
-  --gsky-pink-strong: #ffd6ea;
-  --gsky-pink-soft: rgba(244,114,182,.12);
-  --gsky-pink-line: rgba(244,114,182,.3);
-  --gsky-gold: #ffe08a;
-  --gsky-gold-soft: rgba(255,209,102,.14);
-  --gsky-jesus: #fff3c4;
-  border-color: rgba(255,255,255,0.06);
-  box-shadow: inset 0 0 80px rgba(0,0,0,0.35);
-  color: #fff;
+.dark .grl, [data-theme="dark"] .grl {
+  --grl-soft: rgba(255, 255, 255, 0.06);
+  --grl-pink: #f783ac;
+  --grl-pink-soft: rgba(240, 101, 149, 0.16);
+  --grl-gold: #ffd43b;
+  --grl-gold-soft: rgba(255, 212, 59, 0.12);
 }
 
-/* 하늘 장식 레이어 — 페이지 스크롤 하나로 흐른다(내부 스크롤 없음) */
-.gen-sky { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.gen-sky__nebula {
-  position: absolute;
-  width: 420px; height: 420px; border-radius: 9999px;
-  filter: blur(60px); opacity: .55; mix-blend-mode: screen;
+/* 구간 바 — 헤더(56px) 바로 아래 붙는다. zoom 화면이라 top 을 배율로 나눈다 */
+.grl-bar {
+  position: sticky; top: calc(3.5rem / var(--az, 1) + 8px); z-index: 20;
+  padding: 12px 14px 12px; border-radius: 18px;
+  background: var(--grl-card); border: 1px solid var(--card-border);
+  box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.35);
+  display: flex; flex-direction: column; gap: 10px;
 }
-.gen-sky__nebula--a { left: -20%; top: 3%; background: radial-gradient(circle, rgba(49,130,246,.45), transparent 65%); }
-.gen-sky__nebula--b { right: -25%; top: 40%; background: radial-gradient(circle, rgba(139,92,246,.35), transparent 65%); }
-.gen-sky__nebula--c { left: 50%; bottom: -6%; transform: translateX(-50%); background: radial-gradient(circle, rgba(255,209,102,.3), transparent 65%); }
-/* 라이트: screen 블렌드는 흰 바탕에서 안 보임 → multiply 로 옅은 구름 느낌 */
-:root:not(.dark) .gen-sky__nebula { mix-blend-mode: multiply; opacity: .18; }
-:root:not(.dark) .gen-sky__nebula--a { background: radial-gradient(circle, rgba(147,197,253,.6), transparent 65%); }
-:root:not(.dark) .gen-sky__nebula--b { background: radial-gradient(circle, rgba(253,224,171,.55), transparent 65%); }
-:root:not(.dark) .gen-sky__nebula--c { background: radial-gradient(circle, rgba(253,230,138,.6), transparent 65%); }
-
-/* 범례 */
-.gsky-legend {
-  position: relative; z-index: 1;
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px;
-  padding: 14px 14px 0;
-  font-size: 11px; color: var(--gsky-sub);
-}
-.gsky-legend > span { display: inline-flex; align-items: center; gap: 5px; }
-.gsky-legend i { display: inline-block; flex-shrink: 0; }
-.gsky-legend__star { width: 8px; height: 8px; background: var(--gsky-era); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); }
-.gsky-legend__woman { width: 10px; height: 10px; border-radius: 4px; background: var(--gsky-pink-soft); border: 1px solid var(--gsky-pink-line); }
-.gsky-legend__gap { width: 14px; border-top: 1.5px dashed var(--gsky-faint); }
-.gsky-legend__hint { color: var(--gsky-faint); }
-
-/* 별자리 캔버스 — SVG(선·별) 위에 HTML 라벨을 겹친다 */
-.gsky { position: relative; z-index: 1; width: 100%; }
-.gsky__svg { position: absolute; inset: 0; display: block; overflow: visible; }
-
-.gsky-label { position: absolute; display: flex; flex-direction: column; align-items: flex-start; text-align: left; min-width: 0; }
-.gsky-label[data-side="l"] { align-items: flex-end; text-align: right; }
-.gsky-label[data-side="c"] { align-items: center; text-align: center; }
-
-.gsky-name {
-  display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: 2px 6px;
-  max-width: 100%;
-  font-size: 15px; font-weight: 700; line-height: 22px; letter-spacing: -0.02em;
-  color: var(--gsky-name);
-  background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit;
-}
-.gsky-label[data-side="l"] .gsky-name { justify-content: flex-end; }
-.gsky-label[data-side="c"] .gsky-name { justify-content: center; }
-.gsky-name:hover .gsky-name__text,
-.gsky-name.is-sel .gsky-name__text { text-decoration: underline; text-decoration-color: var(--gsky-era); text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
-.gsky-gen { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; color: var(--gsky-faint); }
-.gsky-mark {
-  font-size: 10px; font-weight: 700; line-height: 16px; letter-spacing: -0.01em;
-  padding: 0 6px; border-radius: 999px;
-  color: var(--gsky-gold); background: var(--gsky-gold-soft);
-}
-.gsky-role {
-  max-width: 100%;
-  font-size: 11.5px; line-height: 16px; color: var(--gsky-sub);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-.gsky-label .is-dim { opacity: .22; }
-
-/* 아내·어머니 */
-.gsky-pair { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; max-width: 100%; }
-.gsky-label[data-side="l"] .gsky-pair { justify-content: flex-end; }
-.gsky-label[data-side="c"] .gsky-pair { justify-content: center; }
-.gsky-spouse, .gsky-branch {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 12px; font-weight: 600; line-height: 18px;
-  color: var(--gsky-pink); background: none; border: 0; padding: 0; cursor: pointer;
-}
-.gsky-spouse::before { content: ''; width: 5px; height: 5px; border-radius: 999px; background: currentColor; box-shadow: 0 0 6px currentColor; }
-.gsky-branch { color: var(--gsky-sub); }
-.gsky-spouse.is-sel, .gsky-spouse:hover { text-decoration: underline; text-underline-offset: 3px; }
-
-/* 마태복음 1장의 다섯 여인 — 분홍 카드 */
-.gsky-woman {
-  display: flex; flex-direction: column; align-items: inherit; gap: 1px;
-  max-width: 100%;
-  padding: 5px 10px 6px; border-radius: 12px;
-  background: var(--gsky-pink-soft); border: 1px solid var(--gsky-pink-line);
-  text-align: inherit; cursor: pointer;
-  transition: border-color .15s ease, background-color .15s ease;
-}
-.gsky-label[data-side="l"] .gsky-woman { align-items: flex-end; }
-.gsky-label[data-side="c"] .gsky-woman { align-items: center; }
-.gsky-woman:hover, .gsky-woman.is-sel, .gsky-woman.is-hit { border-color: var(--gsky-pink); }
-.gsky-woman__name { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 700; line-height: 18px; color: var(--gsky-pink-strong); }
-.gsky-woman__name::before { content: '✦'; font-size: 10px; color: var(--gsky-pink); }
-.gsky-woman__note {
-  font-size: 11px; line-height: 15px; color: var(--gsky-sub);
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+.grl-bar__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.grl-now { display: inline-flex; align-items: center; gap: 7px; min-width: 0; font-size: 12.5px; font-weight: 600; color: var(--grl-faint); }
+.grl-now i { width: 20px; height: 6px; border-radius: 3px; background: var(--c); flex-shrink: 0; transition: background .25s; }
+.grl-now b { font-size: 14px; font-weight: 800; color: var(--c); transition: color .25s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grl-bar__meta { flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--grl-faint); font-variant-numeric: tabular-nums; }
+.grl-map { position: relative; display: flex; gap: 3px; height: 8px; }
+.grl-map button { height: 100%; border: 0; padding: 0; border-radius: 4px; opacity: .45; cursor: pointer; transition: opacity .2s; min-width: 6px; }
+.grl-map button.is-on, .grl-map button:hover { opacity: 1; }
+.grl-map__train {
+  position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--grl-brand); border: 3px solid var(--grl-card);
+  transform: translate(-50%, -50%); box-shadow: 0 1px 4px rgba(0, 0, 0, .25); pointer-events: none;
 }
 
-/* 건너뛴 세대 */
-.gsky-gap__count { display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: 2px 6px; font-size: 13px; font-weight: 700; line-height: 22px; color: var(--gsky-sub); }
-.gsky-label[data-side="l"] .gsky-gap__count { justify-content: flex-end; }
-.gsky-gap__names { font-size: 11px; line-height: 15px; color: var(--gsky-faint); }
-.gsky-gap.is-dim, .gsky-era.is-dim { opacity: .3; }
-
-/* 시대 머리글 */
-.gsky-era { position: absolute; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; text-align: left; pointer-events: none; }
-.gsky-era[data-side="r"] { align-items: flex-end; text-align: right; }
-.gsky-era__label { font-size: 13px; font-weight: 800; line-height: 18px; letter-spacing: -0.02em; color: var(--gsky-era); }
-.gsky-era__meta { font-size: 10.5px; line-height: 14px; color: var(--gsky-faint); }
-
-/* 예수 — 가운데 피날레 */
-.gsky-finale .gsky-name { font-size: 20px; line-height: 28px; color: var(--gsky-jesus); }
-.gsky-finale .gsky-role { font-size: 12.5px; }
-.gsky-finale__era { margin-top: 6px; font-size: 11px; letter-spacing: .08em; color: var(--gsky-gold); }
-
-.gen-sky__caption {
-  position: relative; z-index: 1;
-  padding: 0 0 14px;
-  text-align: center;
-  font-size: 11px; letter-spacing: .12em;
-  color: rgba(15,31,77,.4);
+/* 내 열차 카드 */
+.grl-ticket {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 14px 16px; border-radius: 18px;
+  background: var(--grl-card); border: 1px solid var(--card-border);
 }
-.dark .gen-sky__caption { color: rgba(255,255,255,.35); }
+.grl-ticket__icon { width: 40px; height: 40px; border-radius: 12px; background: var(--grl-brand); display: grid; place-items: center; flex-shrink: 0; }
+.grl-ticket__icon svg { width: 22px; height: 22px; fill: #fff; }
+.grl-ticket__body { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 3px; }
+.grl-ticket__body b { font-size: 15.5px; font-weight: 800; color: var(--grl-ink); }
+.grl-ticket__body > span { font-size: 13px; color: var(--grl-sub); }
+.grl-ticket__body strong { color: var(--grl-ink); font-weight: 700; }
+.grl-ticket__bar { display: block; height: 6px; margin-top: 6px; border-radius: 3px; background: var(--grl-soft); overflow: hidden; }
+.grl-ticket__bar i { display: block; height: 100%; border-radius: 3px; background: var(--grl-brand); transition: width .6s ease; }
+.grl-ticket__acts { display: flex; gap: 6px; margin-left: auto; }
+.grl-btn { display: inline-flex; align-items: center; justify-content: center; height: 38px; padding: 0 14px; border-radius: 11px; border: 0; font-size: 13.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.grl-btn--pri { background: var(--grl-brand); color: #fff; }
+.grl-btn--sub { background: var(--grl-soft); color: var(--grl-ink); }
+.grl-btn:active { transform: scale(.97); }
 
-/* 별 반짝임 */
-@keyframes gen-twinkle {
-  0%, 100% { opacity: .15; }
-  50%      { opacity: .9; }
+/* 노선 */
+.grl-route {
+  --rx: 30px; --rw: 6px;
+  list-style: none; margin: 0; padding: 6px 0 4px;
+  border-radius: 22px; background: var(--grl-card); border: 1px solid var(--card-border);
 }
-.gen-twinkle { animation: gen-twinkle 3.6s ease-in-out infinite; }
-/* 라이트: 남색 점이 '먼지'처럼 보이지 않게 반짝임 상한을 낮춘다 */
-@keyframes gen-twinkle-dawn {
-  0%, 100% { opacity: .1; }
-  50%      { opacity: .45; }
+.grl-route > li {
+  --dt: 20px;
+  --c-ahead: color-mix(in srgb, var(--c) 26%, var(--grl-card));
+  position: relative; padding: 10px 14px 10px calc(var(--rx) + 24px);
 }
-:root:not(.dark) .gen-twinkle { animation-name: gen-twinkle-dawn; }
-
-/* 메시아 라인 별 — 미세한 호흡 */
-@keyframes gen-star-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.18); }
+.grl-route > li::before {
+  content: ''; position: absolute; top: 0; bottom: 0;
+  left: calc(var(--rx) - var(--rw) / 2); width: var(--rw); background: var(--c);
 }
-.gen-star-glow { transform-box: fill-box; transform-origin: center; animation: gen-star-breathe 4.8s ease-in-out infinite; }
+.grl-route > li.is-ahead::before { background: var(--c-ahead); }
+.grl-route > li.is-first::before { top: var(--dt); }
+.grl-route > li.is-last::before { bottom: calc(100% - var(--dt)); }
+/* 열차가 선 역 — 위는 지나온 색, 아래는 앞으로 갈 색 */
+.grl-route > li.is-here::before { background: linear-gradient(var(--c) 0 var(--dt), var(--c-ahead) var(--dt)); }
+.grl-route > li.is-dim { opacity: .3; }
 
-/* spine 위를 흐르는 빛 */
-@keyframes gen-flow { to { stroke-dashoffset: -64; } }
-.gen-flow { animation: gen-flow 3.2s linear infinite; }
+/* 구간 표지판 */
+.grl-route > li.grl-sign { --dt: 31px; padding-top: 20px; padding-bottom: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.grl-knot {
+  position: absolute; left: var(--rx); top: var(--dt); z-index: 1;
+  width: 16px; height: 16px; border-radius: 5px; transform: translate(-50%, -50%);
+  background: var(--c); border: 3px solid var(--grl-card);
+}
+.grl-sign.is-ahead .grl-knot { background: var(--c-ahead); }
+.grl-sign__label { display: inline-flex; align-items: center; height: 26px; padding: 0 11px; border-radius: 8px; background: var(--c); color: #fff; font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; }
+.grl-sign.is-ahead .grl-sign__label { background: color-mix(in srgb, var(--c) 55%, var(--grl-card)); }
+.grl-sign__meta { font-size: 12px; color: var(--grl-faint); }
 
-/* 예수 후광 · 빛살 */
-@keyframes gen-halo { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }
-.gen-halo { transform-box: fill-box; transform-origin: center; animation: gen-halo 5s ease-in-out infinite; }
-@keyframes gen-rays { to { transform: rotate(360deg); } }
-.gen-rays { transform-box: fill-box; transform-origin: center; animation: gen-rays 60s linear infinite; }
+/* 역 */
+.grl-route > li.grl-st { display: flex; align-items: flex-start; gap: 10px; transition: background .15s; }
+.grl-route > li.grl-st.is-major { --dt: 27px; padding-top: 14px; padding-bottom: 14px; }
+.grl-route > li.grl-st.is-sel { background: color-mix(in srgb, var(--c) 9%, transparent); }
+.grl-dot {
+  position: absolute; left: var(--rx); top: var(--dt); z-index: 1;
+  width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%);
+  background: var(--grl-card); border: 3px solid var(--c);
+}
+.grl-st.is-major .grl-dot { width: 26px; height: 26px; border-width: 5px; }
+.grl-st.is-done.is-minor .grl-dot { background: var(--c); }
+.grl-st.is-done.is-major .grl-dot { box-shadow: inset 0 0 0 4px var(--c); }
+.grl-st.is-part .grl-dot { background: conic-gradient(var(--c) 0 50%, var(--grl-card) 50%); }
+.grl-st.is-ahead .grl-dot { border-color: var(--c-ahead); }
+.grl-st.is-ahead.is-part .grl-dot { border-color: color-mix(in srgb, var(--c) 55%, var(--grl-card)); }
+.grl-st.is-jesus .grl-dot { width: 30px; height: 30px; background: #ffd43b; border-color: #f59f00; box-shadow: 0 0 0 6px rgba(255, 212, 59, .25); }
+.grl-st__body { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.grl-st__name {
+  display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: 3px 7px;
+  border: 0; background: none; padding: 0; text-align: left; color: var(--grl-ink); cursor: pointer;
+}
+.grl-st__name b { font-size: 15px; font-weight: 600; line-height: 20px; }
+.grl-st.is-major .grl-st__name b { font-size: 19px; font-weight: 800; line-height: 26px; letter-spacing: -0.03em; }
+.grl-st.is-jesus .grl-st__name b { font-size: 21px; }
+.grl-st.is-ahead:not(.is-part) .grl-st__name b { color: var(--grl-sub); }
+.grl-st__name em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--grl-faint); font-variant-numeric: tabular-nums; }
+.grl-st__name:hover b, .grl-st.is-sel .grl-st__name b {
+  text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px;
+  text-decoration-color: color-mix(in srgb, var(--c) 65%, transparent);
+}
+.grl-st__name:focus-visible { outline: 2px solid var(--grl-brand); outline-offset: 3px; border-radius: 6px; }
+.grl-st__hook { display: block; margin-top: 2px; font-size: 13.5px; line-height: 1.5; color: var(--grl-sub); }
+.grl-st.is-ahead .grl-st__hook { color: var(--grl-faint); }
+.grl-here { align-self: center; padding: 2px 7px; border-radius: 6px; background: var(--grl-brand); color: #fff; font-size: 11.5px; font-weight: 800; }
+.grl-mark { align-self: center; display: inline-flex; padding: 2px 7px; border-radius: 6px; background: var(--grl-gold-soft); color: var(--grl-gold); font-size: 11px; font-weight: 700; }
+.grl-st__chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.grl-woman, .grl-branch {
+  display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 999px;
+  border: 1px solid transparent; font-size: 12.5px; font-weight: 700; cursor: pointer;
+}
+.grl-woman { background: var(--grl-pink-soft); color: var(--grl-pink); }
+.grl-woman::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.grl-woman small { font-size: 11px; font-weight: 600; opacity: .75; }
+.grl-woman.is-hit, .grl-woman.is-sel, .grl-woman:hover { border-color: var(--grl-pink); }
+.grl-woman.is-dim { opacity: .35; }
+.grl-branch { background: var(--grl-soft); color: var(--grl-sub); }
+.grl-st__read { flex-shrink: 0; display: none; align-items: center; gap: 6px; margin-top: calc(var(--dt) - 18px); font-size: 11.5px; font-weight: 600; color: var(--grl-faint); font-variant-numeric: tabular-nums; min-width: 82px; justify-content: flex-end; }
+.grl-st__read i { display: block; width: 40px; height: 5px; border-radius: 3px; background: var(--grl-soft); overflow: hidden; }
+.grl-st__read i b { display: block; height: 100%; background: var(--c); }
+.grl-st.is-done .grl-st__read { color: var(--c); font-weight: 700; }
 
-/* 필터 매칭 링 — 천천히 도는 점선 */
-@keyframes gen-match { to { stroke-dashoffset: -20; } }
-.gen-match-ring { animation: gen-match 2.4s linear infinite; }
+/* 열차 — 선 역 바로 아래 노선 위에 */
+.grl-train {
+  position: absolute; left: var(--rx); top: calc(var(--dt) + 34px); z-index: 2;
+  width: 34px; height: 34px; border-radius: 50%; background: var(--grl-brand);
+  display: grid; place-items: center; transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--grl-brand) 22%, transparent), 0 4px 10px -2px rgba(0, 0, 0, .25);
+  animation: grl-bob 2.4s ease-in-out infinite;
+}
+.grl-st.is-major .grl-train { top: calc(var(--dt) + 40px); }
+.grl-train svg { width: 18px; height: 18px; fill: #fff; }
+@keyframes grl-bob { 50% { transform: translate(-50%, -40%); } }
 
-/* 선택 링 */
-@keyframes gen-select { 0% { r: 12; opacity: .9; } 100% { r: 24; opacity: 0; } }
-.gen-select-ring { animation: gen-select 1.6s ease-out infinite; }
+/* 출발 전 플랫폼 */
+.grl-route > li.grl-start { --dt: 26px; padding-top: 14px; padding-bottom: 6px; font-size: 13.5px; font-weight: 700; color: var(--grl-brand); min-height: 52px; display: flex; align-items: center; }
+.grl-route > li.grl-start::before { top: var(--dt); background: var(--c-ahead); }
+.grl-train--start { top: var(--dt); }
 
-/* 별 호버 */
-.gen-sky-wrap .node .gen-star { transform-box: fill-box; transform-origin: center; transition: transform .2s ease; }
-.gen-sky-wrap .node:hover .gen-star { transform: scale(1.35); }
+/* 접힌 세대 · 건너뛴 세대 */
+.grl-route > li.grl-fold::before { background: repeating-linear-gradient(var(--c) 0 7px, transparent 7px 11px); }
+.grl-route > li.grl-fold.is-ahead::before { background: repeating-linear-gradient(var(--c-ahead) 0 7px, transparent 7px 11px); }
+.grl-route > li.grl-gap::before { background: repeating-linear-gradient(var(--c) 0 3px, transparent 3px 9px); opacity: .8; }
+.grl-route > li.grl-gap.is-ahead::before { background: repeating-linear-gradient(var(--c-ahead) 0 3px, transparent 3px 9px); }
+.grl-route > li.grl-gap { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.grl-route > li.grl-gap .grl-st__hook { width: 100%; font-size: 12.5px; color: var(--grl-faint); }
+.grl-pill {
+  display: inline-flex; align-items: center; min-height: 30px; padding: 4px 12px; border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--grl-faint) 70%, transparent);
+  background: var(--grl-card); color: var(--grl-sub); font-size: 13px; font-weight: 600; text-align: left; line-height: 1.4;
+}
+button.grl-pill { cursor: pointer; }
+button.grl-pill:hover { border-color: var(--c); color: var(--grl-ink); }
+.grl-gap .grl-pill { background: transparent; }
+
+/* 종착역 */
+.grl-end {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;
+  padding: 22px 18px; border-radius: 22px;
+  background: linear-gradient(160deg, #fff6d8, #ffe8a3); color: #5c4300; font-size: 13px;
+}
+.grl-end b { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+.dark .grl-end, [data-theme="dark"] .grl-end { background: linear-gradient(160deg, #3a2f10, #2a2208); color: #ffe8a3; }
+
+/* PC — 노선이 넓어지고 역마다 읽은 정도 막대가 붙는다 */
+@media (min-width: 1024px) {
+  .grl-route { --rx: 44px; padding: 10px 0 6px; }
+  .grl-route > li { padding-right: 22px; }
+  .grl-st__read { display: inline-flex; }
+  .grl-route > li.grl-st.is-major .grl-st__name b { font-size: 21px; }
+  .grl-st__hook { font-size: 14.5px; }
+  .grl-bar { padding: 14px 18px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .gen-twinkle, .gen-star-glow, .gen-flow, .gen-halo, .gen-rays, .gen-select-ring, .gen-match-ring { animation: none; }
+  .grl-train { animation: none; }
 }
 
 /* 인물 상세 — 본문이 채워질 때 살짝 떠오르며 등장 */
