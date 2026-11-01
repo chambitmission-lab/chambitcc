@@ -199,6 +199,37 @@
       })();
     </script>
 
+    <!-- 홈 묵상 카드 히어로 사진 선요청: 사진은 CSS 배경이라 프리로드 스캐너가 못 보고,
+         엔트리 JS 의 프리로드도 번들이 다 받아진 뒤에야 걸린다. 지난 방문에 DailyMeditationCard
+         가 저장해 둔 '날짜 → 슬롯별 사진 URL' 표(home_hero_plan)에서 오늘 칸을 골라
+         문서 파싱 시점에 최우선으로 받는다. 계절·성탄 판정은 저장하는 쪽에서 끝났고
+         여기서는 시각·테마로 슬롯만 고른다(deriveHeroSlot·deriveTimeOfDay 와 동일 경계).
+         엔트리 프리로드는 같은 href 가 있으면 건너뛰므로 두 번 받지 않는다. -->
+    <script>
+      (function () {
+        try {
+          var isHome = !!localStorage.getItem('access_token') || /^#\/feed(\?|$)/.test(location.hash);
+          if (!isHome || (location.hash && !/^#\/(feed)?(\?|$)/.test(location.hash))) return;
+          var raw = localStorage.getItem('home_hero_plan');
+          if (!raw) return;
+          var now = new Date();
+          var day = JSON.parse(raw)[now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate()];
+          if (!day) return;
+          var h = now.getHours();
+          var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+          var slot = dark && (h >= 20 || h < 4) ? 'night' : h >= 4 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'afternoon' : 'evening';
+          var url = day[slot];
+          if (!url) return;
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = url;
+          link.fetchPriority = 'high';
+          document.head.appendChild(link);
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- /about 히어로 배경 선요청: 배경 URL은 /about-content API 응답 안에 있어
          (라우트 청크 → API 왕복 → 렌더) 뒤에야 발견된다. CSS background-image 나
          React가 그리는 <img> 모두 프리로드 스캐너가 못 보므로, 지난 방문에 저장해 둔

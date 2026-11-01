@@ -40,6 +40,9 @@ import heroWinterAfternoon from '../../../assets/hero/winter-afternoon.webp'
 import heroWinterEvening from '../../../assets/hero/winter-evening.webp'
 import heroSpringNight from '../../../assets/hero/spring-night.webp'
 import heroAutumnNight from '../../../assets/hero/autumn-night.webp'
+import heroChristmasMorning from '../../../assets/hero/christmas-morning.webp'
+import heroChristmasAfternoon from '../../../assets/hero/christmas-afternoon.webp'
+import heroChristmasEvening from '../../../assets/hero/christmas-evening.webp'
 import { WeatherGlyph, type WeatherGlyphName } from './WeatherIcons'
 import TodayChurchEnvelope from './TodayChurchEnvelope'
 import CompanionHeroButton from './CompanionHeroButton'
@@ -66,7 +69,16 @@ const deriveHeroSlot = (hour: number, isDark: boolean): HeroSlot =>
  * (아래 preloadCurrentHero 가 그 한 장을 엔트리 실행 시점에 high 우선순위로 미리 받는다)
  * 밤: 봄=달빛 벚꽃(교토), 가을=안개 숲 위 보름달 — 둘 다 남색 하늘이라 다크 바탕에 녹는다.
  *     여름·겨울 저녁 사진은 이미 은하수 별하늘이라 밤 슬롯에 그대로 재사용한다. */
-const HERO_IMAGES: Record<NaturalSeason, Record<HeroSlot, string>> = {
+type HeroSet = NaturalSeason | 'christmas'
+const HERO_IMAGES: Record<HeroSet, Record<HeroSlot, string>> = {
+  /* 성탄 세트 — 같은 눈 덮인 돌 예배당(트리·리스·촛불 길)을 새벽·낮·성탄 이브로.
+   * 저녁 사진이 이미 남색 밤하늘이라 밤 슬롯에 그대로 쓴다. */
+  christmas: {
+    morning: heroChristmasMorning,
+    afternoon: heroChristmasAfternoon,
+    evening: heroChristmasEvening,
+    night: heroChristmasEvening,
+  },
   spring: {
     morning: heroSpringMorning,
     afternoon: heroSpringAfternoon,
@@ -91,6 +103,15 @@ const HERO_IMAGES: Record<NaturalSeason, Record<HeroSlot, string>> = {
     evening: heroWinterEvening,
     night: heroWinterEvening,
   },
+}
+
+/* 히어로 사진 세트 — 대림절 첫 주일부터 주현절(1/6)까지는 성탄 세트, 그 밖엔 자연 계절.
+ * 2월까지 이어지는 겨울 전체가 아니라 교회력의 성탄 시기에만 크리스마스를 보여준다. */
+const getHeroSet = (date: Date): HeroSet => {
+  const church = getCurrentSeason(date)
+  const isEpiphanyDay = date.getMonth() === 0 && date.getDate() === 6
+  if (church === 'advent' || church === 'christmas' || isEpiphanyDay) return 'christmas'
+  return getNaturalSeason(date)
 }
 
 /* 눈 앰비언트 — 실황이 눈일 때만 히어로 안에서 은은하게 내리는 글리프.
@@ -163,7 +184,7 @@ const preloadCurrentHero = () => {
   if (!isHome) return
   const now = new Date()
   // 테마는 index.html 선적용 스크립트가 이미 .dark 를 붙인 뒤라 DOM 에서 바로 읽는다
-  const src = HERO_IMAGES[getNaturalSeason(now)][deriveHeroSlot(now.getHours(), currentTheme() === 'dark')]
+  const src = HERO_IMAGES[getHeroSet(now)][deriveHeroSlot(now.getHours(), currentTheme() === 'dark')]
   if (document.querySelector(`link[rel="preload"][href="${src}"]`)) return
   const link = document.createElement('link')
   link.rel = 'preload'
@@ -173,6 +194,32 @@ const preloadCurrentHero = () => {
   document.head.appendChild(link)
 }
 preloadCurrentHero()
+
+/* 다음 방문 선요청표 — 위 프리로드도 엔트리 JS 가 다 받아져 실행된 뒤에야 걸린다.
+ * 오늘부터 사흘 치 '날짜 → 슬롯별 사진 URL(해시 경로)'을 저장해 두면 index.html 이
+ * 문서 파싱 시점에 JS 와 나란히 사진을 받기 시작한다. 계절·대림절 판정은 여기서만
+ * 하고 index.html 은 날짜·시각·테마로 칸만 고른다(로직 중복 없음).
+ * 키·형식은 index.html 의 홈 히어로 선요청 스크립트와 동일하게 유지할 것. */
+const HERO_PLAN_KEY = 'home_hero_plan'
+const saveHeroPlan = () => {
+  try {
+    const plan: Record<string, Record<HeroSlot, string>> = {}
+    const base = new Date()
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i)
+      const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+      plan[key] = HERO_IMAGES[getHeroSet(d)]
+    }
+    const json = JSON.stringify(plan)
+    if (localStorage.getItem(HERO_PLAN_KEY) !== json) localStorage.setItem(HERO_PLAN_KEY, json)
+  } catch {
+    /* 저장소가 막혀 있어도 위 엔트리 프리로드로 충분하다 */
+  }
+}
+if (typeof window !== 'undefined') {
+  if ('requestIdleCallback' in window) window.requestIdleCallback(saveHeroPlan, { timeout: 5000 })
+  else setTimeout(saveHeroPlan, 3000)
+}
 
 /* 날씨 조회 실패 시 인사말 끝에 붙는 시간대 아이콘 */
 const HERO_FALLBACK_GLYPH: Record<TimeOfDay, WeatherGlyphName> = {
@@ -305,7 +352,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
    * 절기 태그·리본 모두 프론트 계산값(churchCalendar)을 쓴다. */
   const season = getCurrentSeason(today)
   /* 자연 계절 — 히어로 배경·앰비언트 연출용 (교회력 절기와 별개) */
-  const naturalSeason = getNaturalSeason(today)
+  const heroSet = getHeroSet(today)
   /* 히어로 사진만 밤 슬롯을 따로 본다 — 서버가 준 time_of_day 와 무관하게 로컬 시각·테마 기준 */
   const heroSlot = deriveHeroSlot(today.getHours(), theme === 'dark')
 
@@ -394,8 +441,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
          * 이미지는 ::before 레이어에서 하단 마스크로 카드 배경에 녹아든다 (Apple TV/Netflix식 페이드) */}
         <div
           className="meditation-hero"
-          data-hero={`${naturalSeason}-${heroSlot}`}
-          style={{ '--hero-image': `url(${HERO_IMAGES[naturalSeason][heroSlot]})` } as React.CSSProperties}
+          data-hero={`${heroSet}-${heroSlot}`}
+          style={{ '--hero-image': `url(${HERO_IMAGES[heroSet][heroSlot]})` } as React.CSSProperties}
         >
           <div className="meditation-hero-overlay" aria-hidden />
           {/* 비 앰비언트 — 비·가랑비·뇌우일 때 계절 연출 대신 빗줄기가 흐른다 */}
