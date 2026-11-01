@@ -167,8 +167,12 @@ const InstagramBulletinViewer = ({
       // 화면보다 작으면 가운데, 크면 가장자리가 머리말·버튼 자리를 넘어 숨지 않을 만큼만 움직인다
       const axis = (pos: number, size: number, full: number, a: number, b: number, pa = a, pb = b) => {
         const room = full - a - b
-        if (size <= room) return a + (room - size) / 2
-        return Math.min(Math.max(pos, full - pb - size), pa)
+        if (size <= room + 0.5) return a + (room - size) / 2
+        // 맞춤 칸보다는 크고 끌 수 있는 폭보다는 작은 사이(모바일은 끌 때 좌우 끝까지 쓴다) —
+        // 범위가 뒤집혀 왼쪽(pa)에 붙던 자리라 끌기 범위 안 가운데에 둔다
+        const lo = full - pb - size
+        if (lo > pa) return (lo + pa) / 2
+        return Math.min(Math.max(pos, lo), pa)
       }
       return {
         s,
