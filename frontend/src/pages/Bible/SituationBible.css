@@ -789,16 +789,34 @@
   animation: sb-rise 0.5s ease both;
 }
 
+/* D안(2026-11-02) — 주간 이야기 톤의 굵은 고딕. 길이 3단계로 크기 조절, 핵심 낱말만 따뜻한 색 */
 .sbi__verse {
-  font-family: var(--font-serif-kr);
-  font-size: 25px;
-  line-height: 1.75;
-  letter-spacing: -0.01em;
+  --sbi-verse-size: 26px;
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  font-weight: 800;
+  font-size: var(--sbi-verse-size);
+  line-height: 1.42;
+  letter-spacing: -0.045em;
   word-break: keep-all;
+  text-wrap: pretty;
+}
+
+.sbi__verse--s { --sbi-verse-size: 32px; }
+.sbi__verse--l { --sbi-verse-size: 22px; }
+
+.sbi__verse .is-key {
+  color: #2b6fd6;
+}
+
+.dark .sbi__verse .is-key,
+.sbi--art .sbi__verse .is-key {
+  color: #ffe08a;
 }
 
 @media (min-width: 1024px) {
-  .sbi__verse { font-size: 30px; }
+  .sbi__verse { --sbi-verse-size: 32px; }
+  .sbi__verse--s { --sbi-verse-size: 38px; }
+  .sbi__verse--l { --sbi-verse-size: 27px; }
   .sbi__lead { font-size: 17px; }
 }
 

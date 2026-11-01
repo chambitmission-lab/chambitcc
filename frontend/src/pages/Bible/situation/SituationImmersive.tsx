@@ -27,6 +27,22 @@ const markBreathSeen = () => {
   safeSessionStorage.set(BREATH_SEEN_KEY, '1') // 저장 실패면 숨 고르기만 한 번 더 뜰 뿐
 }
 
+/** 말씀 길이별 글자 크기 단계 — 굵은 고딕이라 긴 절은 한 단계 줄여 화면 안에 머물게 */
+const verseLengthClass = (text: string): 's' | 'm' | 'l' => {
+  const n = text.replace(/\s+/g, '').length
+  return n <= 28 ? 's' : n <= 64 ? 'm' : 'l'
+}
+
+/** 핵심 낱말 — 하나님·주님을 가리키는 말과 '함께' 같은 위로의 낱말만 따뜻한 색으로 (최대 3개) */
+const KEY_WORD = /^(하나님|여호와|예수|그리스도|성령|주께서|주께|주의|주를|주는|주가|주님|함께|사랑|평강|안위|붙들)/
+const MAX_KEY_WORDS = 3
+const keyWordIndexes = (words: string[]): Set<number> => {
+  const picked = new Set<number>()
+  for (let i = 0; i < words.length && picked.size < MAX_KEY_WORDS; i++) {
+    if (KEY_WORD.test(words[i])) picked.add(i)
+  }
+  return picked
+}
 
 export interface ImmersiveOrigin {
   x: number
@@ -178,6 +194,8 @@ const SituationImmersive = ({
   const lead = verse?.message?.trim() || (index === 0 ? empathyFor(category.name) : '')
   const tone = toneForCategory(category.name)
   const words = verse ? verse.text.split(/\s+/) : []
+  const verseLen = verse ? verseLengthClass(verse.text) : 'm'
+  const keyIdx = verse ? keyWordIndexes(words) : new Set<number>()
 
   const style = {
     '--sbi-x': origin ? `${origin.x}px` : '50%',
@@ -292,9 +310,13 @@ const SituationImmersive = ({
                 <div className="sbi__slide" key={`${category.id}-${index}`}>
                   {index === 0 && sentence && <p className="sbi__said">“{sentence}”</p>}
                   {lead && <p className="sbi__lead">{lead}</p>}
-                  <p className="sbi__verse">
+                  <p className={`sbi__verse sbi__verse--${verseLen}`}>
                     {words.map((w, i) => (
-                      <span key={i} style={{ animationDelay: `${Math.min(i * 45, 1500)}ms` }}>
+                      <span
+                        key={i}
+                        className={keyIdx.has(i) ? 'is-key' : undefined}
+                        style={{ animationDelay: `${Math.min(i * 45, 1500)}ms` }}
+                      >
                         {w}{' '}
                       </span>
                     ))}
