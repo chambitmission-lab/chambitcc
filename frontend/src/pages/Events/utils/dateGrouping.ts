@@ -125,6 +125,20 @@ export const formatEventTime = (datetime: string): string => {
   return `${ampm} ${h12}:${mm}`
 }
 
+/**
+ * 시각 없이 날짜만 있는 일정 — 0시 시작 ~ 23:59 끝(주보 소식 자동 초안이 시각 미상이면 이렇게 만든다).
+ * 따로 종일 칼럼이 없어 이 모양을 종일로 읽는다.
+ */
+export const isAllDayEvent = (ev: { start_datetime: string; end_datetime: string }): boolean => {
+  const s = eventDate(ev.start_datetime)
+  const e = eventDate(ev.end_datetime)
+  return s.getHours() === 0 && s.getMinutes() === 0 && e.getHours() === 23 && e.getMinutes() === 59
+}
+
+/** 일정 시작 시각 — 종일 일정이면 '종일' */
+export const formatEventStartTime = (ev: { start_datetime: string; end_datetime: string }): string =>
+  isAllDayEvent(ev) ? '종일' : formatEventTime(ev.start_datetime)
+
 export const formatEventDateLabel = (datetime: string): string => {
   const d = eventDate(datetime)
   const days = KO_WEEKDAYS

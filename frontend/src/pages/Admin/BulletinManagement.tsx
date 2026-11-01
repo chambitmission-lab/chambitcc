@@ -2,7 +2,7 @@ import { formatDotDateWeekday, formatLongDate } from '../../utils/dateUtils'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
-import { getBulletins, deleteBulletin } from '../../api/bulletin'
+import { getBulletins, deleteBulletin, importBulletinNews } from '../../api/bulletin'
 import type { Bulletin } from '../../types/bulletin'
 import BulletinComposer from './components/BulletinComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
@@ -87,6 +87,39 @@ const BulletinManagement = () => {
   const openEdit = (bulletin: Bulletin) => {
     setEditing(bulletin)
     setComposerOpen(true)
+  }
+
+  // 소식 쪽 → 일정·교회소식 초안 (AI 1~2분). 자동 등록을 놓친 주보나 직접 올린 주보용
+  const [importingId, setImportingId] = useState<number | null>(null)
+  const handleImportNews = async (bulletin: Bulletin) => {
+    if (importingId !== null) return
+    if (
+      !(await confirmDialog({
+        title: '소식 → 일정 초안',
+        message:
+          '주보의 소식 쪽을 읽어 날짜가 있는 항목은 일정 초안으로, 소식 전문은 교회소식 초안으로 만들어요. 1~2분 걸리고, 이미 있는 일정은 건너뜁니다.',
+        confirmText: '가져오기',
+      }))
+    )
+      return
+    setImportingId(bulletin.id)
+    showToast('주보 소식을 읽는 중이에요… (1~2분)', 'info')
+    try {
+      const r = await importBulletinNews(bulletin.id)
+      if (!r.found) {
+        showToast('이 주보에서 소식 쪽을 찾지 못했어요', 'info')
+        return
+      }
+      const parts = [`일정 초안 ${r.events}건`]
+      if (r.skipped_duplicates) parts.push(`중복 ${r.skipped_duplicates}건 건너뜀`)
+      if (r.news_id) parts.push('교회소식 초안 1건')
+      showToast(`${parts.join(' · ')} — 일정 관리에서 확인 후 공개해 주세요`, 'success')
+      if (r.events) navigate('/admin/events?status=bulletin')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : '주보 소식을 읽지 못했어요', 'error')
+    } finally {
+      setImportingId(null)
+    }
   }
 
   const handleComposerClose = () => {
@@ -282,6 +315,8 @@ const BulletinManagement = () => {
                     onEdit={() => openEdit(bulletin)}
                     onDelete={() => handleDelete(bulletin.id)}
                     onView={() => navigate('/news')}
+                    onImportNews={() => handleImportNews(bulletin)}
+                    importing={importingId === bulletin.id}
                   />
                 ))
               )}
@@ -323,6 +358,8 @@ interface BulletinRowProps {
   onEdit: () => void
   onDelete: () => void
   onView: () => void
+  onImportNews: () => void
+  importing: boolean
 }
 
 const BulletinRow = ({
@@ -332,6 +369,8 @@ const BulletinRow = ({
   onEdit,
   onDelete,
   onView,
+  onImportNews,
+  importing,
 }: BulletinRowProps) => {
   const isCurrent = isThisMonth(bulletin.bulletin_date)
   return (
@@ -439,6 +478,11 @@ const BulletinRow = ({
             <RowAction onClick={onEdit} accent icon="pencil" label="수정" />
             <RowAction onClick={onDelete} destructive icon="trash" label="삭제" />
           </div>
+          <RowAction
+            onClick={onImportNews}
+            icon="calendar"
+            label={importing ? '소식 읽는 중… (1~2분)' : '소식 → 일정 초안 만들기'}
+          />
 
           <p className="text-[11px] text-gray-400 dark:text-white/40 leading-[1.5] pt-1">
             * 수정에서 제목·날짜·설명은 물론 페이지 추가·삭제·순서까지 바꿀 수 있어요.
@@ -472,6 +516,14 @@ const ACTION_ICONS: Record<string, ReactNode> = {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  ),
+  calendar: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
   trash: (

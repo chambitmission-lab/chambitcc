@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
-import { formatDDay, formatEventTime, formatEventDateLabel } from '../utils/dateGrouping'
+import { formatDDay, formatEventStartTime, formatEventDateLabel } from '../utils/dateGrouping'
 import { parseKstDate } from '../../../utils/kstTime'
 import { useNowMs } from '../../../hooks/useNowMs'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -10,7 +10,7 @@ import { CategoryIcon } from './CategoryIcons'
 
 interface AgendaCardProps {
   /** 카드가 그리는 칸만 받는다(전체 Event 를 넘겨도 된다) */
-  event: Pick<Event, 'id' | 'title' | 'category' | 'start_datetime' | 'location' | 'rsvp_deadline' | 'attendance_count'>
+  event: Pick<Event, 'id' | 'title' | 'category' | 'start_datetime' | 'end_datetime' | 'location' | 'rsvp_deadline' | 'attendance_count'>
   showDDay?: boolean
 }
 
@@ -20,7 +20,7 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
   const t = translations[language]
   const v = CATEGORY_VISUAL[event.category]
   const dday = formatDDay(event.start_datetime)
-  const time = formatEventTime(event.start_datetime)
+  const time = formatEventStartTime(event)
   const dateLabel = formatEventDateLabel(event.start_datetime)
   // 마감 여부는 상세에 들어가지 않아도 목록에서 바로 보이게 (KST 기준)
   const nowMs = useNowMs()

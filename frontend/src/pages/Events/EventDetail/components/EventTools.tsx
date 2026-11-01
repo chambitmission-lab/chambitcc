@@ -40,7 +40,7 @@ export const EventTools = ({ event, t }: EventToolsProps) => {
   }
 
   return (
-    <div className="flex gap-2 mt-3">
+    <div className="flex gap-2 mt-6">
       <button type="button" onClick={() => downloadEventIcs(event)} className={toolClass}>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="3" y="4" width="18" height="18" rx="2.5" />

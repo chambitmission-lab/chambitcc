@@ -41,6 +41,8 @@ export interface Event {
   repeat_type: RepeatType
   repeat_end_date?: string
   is_published: boolean
+  /** 주보 소식에서 자동으로 만든 초안이면 그 주보 id (직접 등록은 null) */
+  source_bulletin_id?: number | null
   attendance_count: number
   views: number
   created_at: string

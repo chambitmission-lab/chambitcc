@@ -92,7 +92,7 @@ export const EventReplyCard = ({ userAttendanceStatus, onAttend, onCancel, rsvpD
           {t.replyQuestion}
         </h2>
         <p
-          className={`mt-1 text-[13.5px] lg:text-[14.5px] font-semibold leading-[1.5] ${
+          className={`mt-2 text-[13.5px] lg:text-[14.5px] font-semibold leading-[1.5] ${
             isClosed ? 'text-rose-500 dark:text-rose-400' : 'text-gray-500 dark:text-white/55'
           }`}
         >

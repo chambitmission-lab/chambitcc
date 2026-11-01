@@ -1,6 +1,6 @@
 import type { Translation } from '../../../../locales'
 import { showToast } from '../../../../utils/toast'
-import { formatEventDateLabel, formatEventTime } from '../../utils/dateGrouping'
+import { formatEventDateLabel, formatEventStartTime } from '../../utils/dateGrouping'
 import { buildMapSearchUrl } from '../utils/calendarShare'
 import { splitLocation } from '../utils/eventDisplay'
 import { SectionCard } from './EventAvatar'
@@ -8,6 +8,7 @@ import { SectionCard } from './EventAvatar'
 interface EventPlaceCardProps {
   location?: string
   startDatetime: string
+  endDatetime: string
   t: Translation
 }
 
@@ -33,7 +34,7 @@ const ghostBtn =
   'inline-flex items-center gap-1 h-9 px-3 rounded-[10px] bg-gray-100 dark:bg-white/[0.07] text-gray-700 dark:text-white/80 text-[13.5px] lg:text-[14px] font-bold hover:bg-[var(--brand-soft-strong)] hover:text-brand transition-colors'
 
 /** 어디서 만나요 — 지도 타일 · 장소명/지역 · 카카오맵 · 주소 복사 */
-export const EventPlaceCard = ({ location, startDatetime, t }: EventPlaceCardProps) => {
+export const EventPlaceCard = ({ location, startDatetime, endDatetime, t }: EventPlaceCardProps) => {
   if (!location) return null
   const { name, sub } = splitLocation(location)
 
@@ -54,7 +55,8 @@ export const EventPlaceCard = ({ location, startDatetime, t }: EventPlaceCardPro
           <p className="text-ink-strong text-[17px] lg:text-[18.5px] font-extrabold leading-[1.35] break-keep">{name}</p>
           <p className="mt-0.5 text-gray-500 dark:text-white/55 text-[14px] lg:text-[15px] font-medium">
             {sub ? `${sub} · ` : ''}
-            {formatEventDateLabel(startDatetime)} {formatEventTime(startDatetime)}
+            {formatEventDateLabel(startDatetime)}{' '}
+            {formatEventStartTime({ start_datetime: startDatetime, end_datetime: endDatetime })}
           </p>
           <div className="flex flex-wrap gap-1.5 mt-2.5">
             <a href={buildMapSearchUrl(location)} target="_blank" rel="noopener noreferrer" className={ghostBtn}>

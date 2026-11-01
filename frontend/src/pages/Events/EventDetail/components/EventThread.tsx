@@ -58,7 +58,7 @@ export const EventThread = ({
               <li key={c.id} className={`flex items-end gap-2.5 ${mine ? 'flex-row-reverse' : ''}`}>
                 {!mine && <EventAvatar name={name} className="w-9 h-9 text-[14px]" />}
                 <div className={`min-w-0 max-w-[82%] flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
-                  <div className="flex items-center gap-2 mb-1 px-0.5 text-[12.5px] lg:text-[13.5px] text-gray-400 dark:text-white/45 font-semibold">
+                  <div className="flex items-center gap-2 mb-2 px-0.5 text-[12.5px] lg:text-[13.5px] text-gray-400 dark:text-white/45 font-semibold">
                     <span className={mine ? '' : 'text-gray-600 dark:text-white/70 font-bold'}>{mine ? t.threadMe : name}</span>
                     <span>{formatWhen(c.created_at)}</span>
                     {mine && (

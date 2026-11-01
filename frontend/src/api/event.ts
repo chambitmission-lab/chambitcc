@@ -194,3 +194,12 @@ export const fetchAllEvents = async (
   
   return data
 }
+
+// 주보 소식에서 만든 일정 초안 한꺼번에 공개 (관리자) — bulletinId 없으면 모든 주보 초안
+export const publishBulletinDrafts = (bulletinId?: number): Promise<{ published: number }> =>
+  request<{ published: number }>('/events/bulletin-drafts/publish', {
+    method: 'POST',
+    auth: 'required',
+    json: { bulletin_id: bulletinId ?? null },
+    errorMessage: '초안 공개에 실패했습니다',
+  })

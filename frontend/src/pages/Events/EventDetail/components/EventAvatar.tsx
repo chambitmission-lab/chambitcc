@@ -27,7 +27,7 @@ export const SectionCard = ({
   children: React.ReactNode
 }) => (
   <section className="rounded-[22px] bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-5 lg:p-7">
-    <h2 className="flex items-center gap-2 mb-4 text-ink-strong text-[17px] lg:text-[19px] font-extrabold tracking-[-0.025em]">
+    <h2 className="flex items-center gap-2 mb-8 text-ink-strong text-[17px] lg:text-[19px] font-extrabold tracking-[-0.025em]">
       {title}
       {count !== undefined && (
         <span className="inline-flex items-center h-[22px] px-2 rounded-full bg-[var(--brand-soft)] text-brand text-[12.5px] font-extrabold">

@@ -108,6 +108,7 @@ export const event = {
   addressCopied: '주소를 복사했어요',
   peopleTitle: '누가 와요',
   peopleEmpty: '아직 응답한 분이 없어요.\n먼저 알려 주세요',
+  peopleNoneGoing: '아직 함께 가기로 한 분이 없어요.',
   threadTitle: '모임 이야기',
   threadEmpty: '아직 나눈 이야기가 없어요.\n준비물·차량처럼 궁금한 점을 물어보세요.',
   threadPlaceholder: '메시지를 남겨 주세요',

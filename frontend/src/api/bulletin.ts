@@ -146,3 +146,21 @@ export const reorderBulletinPages = async (
 export const deleteBulletin = async (id: number): Promise<void> => {
   await requestRaw(`/bulletins/${id}`, { method: 'DELETE', errorMessage: '주보 삭제에 실패했습니다' })
 }
+
+export interface BulletinNewsImportResult {
+  found: boolean
+  events: number
+  skipped_duplicates: number
+  news_id: number | null
+}
+
+/**
+ * 주보 '소식' 쪽 → 일정·교회소식 초안 다시 가져오기 (관리자 전용, AI 읽기라 1~2분)
+ * 같은 날·같은 제목 일정은 서버가 건너뛰어 여러 번 눌러도 쌓이지 않는다.
+ */
+export const importBulletinNews = (id: number): Promise<BulletinNewsImportResult> =>
+  request<BulletinNewsImportResult>(`/bulletins/${id}/import-news`, {
+    method: 'POST',
+    auth: 'required',
+    errorMessage: '주보 소식을 읽지 못했어요',
+  })

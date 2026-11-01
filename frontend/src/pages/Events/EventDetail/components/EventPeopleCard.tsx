@@ -56,7 +56,7 @@ const Group = ({
   )
 }
 
-/** 누가 와요 — 참석·고민 중은 얼굴로, 불참은 숫자만 */
+/** 누가 와요 — 참석·고민 중은 얼굴로, 불참은 이름 없이 숫자만(옛 AttendeesCard 부터 같은 규칙) */
 export const EventPeopleCard = ({ attendances, t }: EventPeopleCardProps) => {
   const attending = attendances?.filter(a => a.status === 'attending') ?? []
   const maybe = attendances?.filter(a => a.status === 'maybe') ?? []
@@ -66,7 +66,8 @@ export const EventPeopleCard = ({ attendances, t }: EventPeopleCardProps) => {
     <SectionCard title={t.peopleTitle} count={attending.length}>
       {attending.length === 0 && maybe.length === 0 ? (
         <p className="py-4 text-center text-gray-400 dark:text-white/45 text-[14.5px] lg:text-[15.5px] leading-[1.65] whitespace-pre-line">
-          {t.peopleEmpty}
+          {/* 불참만 있을 때 '아직 응답한 분이 없어요'는 거짓말이 된다 — 문구를 바꾼다 */}
+          {notAttendingCount > 0 ? t.peopleNoneGoing : t.peopleEmpty}
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -75,7 +76,7 @@ export const EventPeopleCard = ({ attendances, t }: EventPeopleCardProps) => {
         </div>
       )}
       {notAttendingCount > 0 && (
-        <p className="mt-4 text-gray-400 dark:text-white/45 text-[13.5px] lg:text-[14.5px] font-medium">
+        <p className="mt-8 text-gray-400 dark:text-white/45 text-[13.5px] lg:text-[14.5px] font-medium">
           {t.attendeesNotAttendingCount.replace('{count}', String(notAttendingCount))}
         </p>
       )}

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
-import { fetchAllEvents, deleteEvent } from '../../api/event'
+import { fetchAllEvents, deleteEvent, publishBulletinDrafts } from '../../api/event'
 import type { Event, EventCategory } from '../../types/event'
 import { ALL_CATEGORIES, CATEGORY_VISUAL } from '../Events/utils/categoryConfig'
-import { formatDDay, formatEventTime, formatEventDateLabel } from '../Events/utils/dateGrouping'
+import { formatDDay, formatEventTime, formatEventStartTime, formatEventDateLabel, isAllDayEvent } from '../Events/utils/dateGrouping'
 import { formatKstDateTime, parseKstDate } from '../../utils/kstTime'
 import { useNowMs } from '../../hooks/useNowMs'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -17,7 +17,11 @@ import { can } from '../../utils/access'
 import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
 import { InfoRow } from './components/AdminListBits'
 
-type PublishFilter = 'all' | 'published' | 'draft'
+// bulletin = 주보 소식에서 자동으로 만든 비공개 초안 (알림의 ?status=bulletin 으로 바로 열린다)
+type PublishFilter = 'all' | 'published' | 'draft' | 'bulletin'
+const PUBLISH_FILTERS: readonly PublishFilter[] = ['all', 'published', 'draft', 'bulletin']
+
+const isBulletinDraft = (ev: Event) => !ev.is_published && ev.source_bulletin_id != null
 type SortKey = 'upcoming' | 'recent' | 'attendance'
 
 const EventManagement = () => {
@@ -29,7 +33,12 @@ const EventManagement = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState<EventCategory | 'all'>('all')
-  const [filterPublish, setFilterPublish] = useState<PublishFilter>('all')
+  const [searchParams] = useSearchParams()
+  const [filterPublish, setFilterPublish] = useState<PublishFilter>(() => {
+    const s = searchParams.get('status') as PublishFilter | null
+    return s && PUBLISH_FILTERS.includes(s) ? s : 'all'
+  })
+  const [publishingDrafts, setPublishingDrafts] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('upcoming')
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
@@ -76,6 +85,29 @@ const EventManagement = () => {
     }
   }
 
+  const handlePublishBulletinDrafts = async () => {
+    if (publishingDrafts) return
+    if (
+      !(await confirmDialog({
+        title: '주보 초안 모두 공개',
+        message: `주보 소식에서 만든 일정 초안 ${bulletinDraftCount}건을 한꺼번에 공개할까요? 날짜·시간·장소를 먼저 확인해 주세요. 잘못 읽힌 일정은 수정하거나 삭제한 뒤 공개하면 돼요.`,
+        confirmText: '모두 공개',
+      }))
+    )
+      return
+    setPublishingDrafts(true)
+    try {
+      const { published } = await publishBulletinDrafts()
+      showToast(`일정 ${published}건을 공개했어요`, 'success')
+      setFilterPublish('all')
+      loadEvents()
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : t.error, 'error')
+    } finally {
+      setPublishingDrafts(false)
+    }
+  }
+
   const handleEdit = (event: Event) => {
     setEditingEvent(event)
     setComposerOpen(true)
@@ -111,7 +143,8 @@ const EventManagement = () => {
       const matchesPublish =
         filterPublish === 'all' ||
         (filterPublish === 'published' && ev.is_published) ||
-        (filterPublish === 'draft' && !ev.is_published)
+        (filterPublish === 'draft' && !ev.is_published) ||
+        (filterPublish === 'bulletin' && isBulletinDraft(ev))
       return matchesSearch && matchesCategory && matchesPublish
     })
 
@@ -129,6 +162,7 @@ const EventManagement = () => {
 
   const publishedCount = events.filter(e => e.is_published).length
   const draftCount = events.length - publishedCount
+  const bulletinDraftCount = events.filter(isBulletinDraft).length
   const upcomingCount = events.filter(e => parseKstDate(e.start_datetime).getTime() >= Date.now()).length
 
   return (
@@ -180,6 +214,39 @@ const EventManagement = () => {
               <StatChip label="공개" value={publishedCount} />
               {draftCount > 0 && <StatChip label="임시저장" value={draftCount} muted />}
             </div>
+
+            {/* 주보 소식에서 만든 초안 — 확인 후 한꺼번에 공개 */}
+            {bulletinDraftCount > 0 && (
+              <div className="px-4 pt-3 lg:px-0 lg:pt-0">
+                <div className="rounded-2xl border border-[var(--brand-glow)] bg-[var(--brand-soft)] p-3.5">
+                  <p className="text-[13px] font-bold text-ink-strong">
+                    주보에서 가져온 일정 초안 {bulletinDraftCount}건
+                  </p>
+                  <p className="text-[11.5px] leading-[1.55] text-gray-600 dark:text-white/60 mt-1">
+                    AI가 주보 소식을 읽어 만든 비공개 일정이에요. 날짜·시간·장소를 확인하고, 틀린 건 고치거나 지운 뒤 공개해 주세요.
+                  </p>
+                  <div className="flex gap-2 mt-2.5">
+                    {filterPublish !== 'bulletin' && (
+                      <button
+                        type="button"
+                        onClick={() => setFilterPublish('bulletin')}
+                        className="flex-1 py-2 rounded-xl text-[12.5px] font-semibold bg-white dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-700 dark:text-white/80"
+                      >
+                        초안만 보기
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handlePublishBulletinDrafts}
+                      disabled={publishingDrafts}
+                      className="flex-1 py-2 rounded-xl text-[12.5px] font-bold bg-brand hover:bg-brand-dim text-white disabled:opacity-60"
+                    >
+                      {publishingDrafts ? '공개하는 중…' : '모두 공개'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 검색 + 필터 카드 */}
             <div className="px-4 py-3 lg:px-0 lg:py-0">
@@ -246,6 +313,7 @@ const EventManagement = () => {
                         ['all', '전체'],
                         ['published', '공개'],
                         ['draft', '임시저장'],
+                        ['bulletin', '주보 초안'],
                       ] as const
                     ).map(([v, l]) => (
                       <FilterChip key={v} active={filterPublish === v} onClick={() => setFilterPublish(v)}>
@@ -369,7 +437,7 @@ const EventRow = ({
 }: EventRowProps) => {
   const v = CATEGORY_VISUAL[event.category]
   const dday = formatDDay(event.start_datetime)
-  const time = formatEventTime(event.start_datetime)
+  const time = formatEventStartTime(event)
   const dateLabel = formatEventDateLabel(event.start_datetime)
   const nowMs = useNowMs()
   const isPast = parseKstDate(event.start_datetime).getTime() < nowMs
@@ -412,6 +480,11 @@ const EventRow = ({
             {!event.is_published && (
               <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-white/[0.08] text-gray-600 dark:text-white/60 tracking-[0.05em] shrink-0">
                 임시저장
+              </span>
+            )}
+            {event.source_bulletin_id != null && (
+              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-brand tracking-[0.05em] shrink-0">
+                주보
               </span>
             )}
           </div>
@@ -463,7 +536,11 @@ const EventRow = ({
             <InfoRow label="분류" value={categoryLabel} />
             <InfoRow
               label="기간"
-              value={`${dateLabel} ${time} ~ ${formatEventDateLabel(event.end_datetime)} ${formatEventTime(event.end_datetime)}`}
+              value={
+                isAllDayEvent(event)
+                  ? `${dateLabel} ~ ${formatEventDateLabel(event.end_datetime)} 종일`
+                  : `${dateLabel} ${time} ~ ${formatEventDateLabel(event.end_datetime)} ${formatEventTime(event.end_datetime)}`
+              }
             />
             {event.location && <InfoRow label="장소" value={event.location} />}
             {event.group && (

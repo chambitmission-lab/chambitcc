@@ -72,7 +72,7 @@ const EventDetail = () => {
             <div className="h-[380px] lg:h-[430px] rounded-[28px] bg-[var(--brand-soft-strong)] animate-pulse" />
             <div className={`${cardSkeleton} h-40 mt-3.5`} />
           </div>
-          <div className="flex flex-col gap-4 mt-4 lg:mt-0">
+          <div className="flex flex-col gap-4 mt-8 lg:mt-0">
             {[0, 1, 2].map(i => (
               <div key={i} className={`${cardSkeleton} h-36`} />
             ))}
@@ -87,7 +87,7 @@ const EventDetail = () => {
       <Shell>
         {backButton}
         <div className="max-w-md mx-auto mt-10 rounded-[22px] bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] p-8 text-center">
-          <p className="text-[32px] mb-3" aria-hidden="true">😢</p>
+          <p className="text-[32px] mb-6" aria-hidden="true">😢</p>
           <p className="text-gray-500 dark:text-white/55 text-[14px] mb-5">{error || t.error}</p>
           <button
             type="button"
@@ -118,9 +118,14 @@ const EventDetail = () => {
           <EventTools event={event} t={t} />
         </div>
 
-        <div className="flex flex-col gap-4 mt-4 lg:mt-0">
+        <div className="flex flex-col gap-4 mt-8 lg:mt-0">
           <EventGuideCard event={event} t={t} />
-          <EventPlaceCard location={event.location} startDatetime={event.start_datetime} t={t} />
+          <EventPlaceCard
+            location={event.location}
+            startDatetime={event.start_datetime}
+            endDatetime={event.end_datetime}
+            t={t}
+          />
 
           {/* 이 일정에 좌석 예약 행사가 연결돼 있으면 예약 진입점 노출 */}
           <SeatBookingLinkCard eventId={event.id} />

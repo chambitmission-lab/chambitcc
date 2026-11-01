@@ -12,7 +12,7 @@ import AgendaSection from './components/AgendaSection'
 import EmptyState from './components/EmptyState'
 import { preloadCategoryBackgrounds } from './utils/categoryConfig'
 import { CategoryIcon } from './components/CategoryIcons'
-import { buildEventDateMap, formatEventTime, getNextEvent, groupEventsByDate } from './utils/dateGrouping'
+import { buildEventDateMap, formatEventStartTime, getNextEvent, groupEventsByDate } from './utils/dateGrouping'
 import { CATEGORY_VISUAL } from './utils/categoryConfig'
 import { kstNow, toKstCalendarDate } from '../../utils/kstTime'
 import './styles/index.css'
@@ -253,7 +253,7 @@ const EventCalendar = () => {
                       className="relative text-left rounded-xl border border-gray-200/70 dark:border-white/[0.08] pl-5 pr-4 py-3.5 overflow-hidden hover:border-brand hover:bg-[var(--brand-soft)] transition-colors"
                     >
                       <span className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${CATEGORY_VISUAL[ev.category].gradient}`} />
-                      <p className="text-brand text-[18px] font-bold tabular-nums">{formatEventTime(ev.start_datetime)}</p>
+                      <p className="text-brand text-[18px] font-bold tabular-nums">{formatEventStartTime(ev)}</p>
                       <p className="mt-1 text-ink-strong text-[20px] font-bold leading-[1.35] tracking-[-0.01em] line-clamp-2">
                         <CategoryIcon category={ev.category} width={17} height={17} className="inline-block align-[-2px] mr-1.5 text-brand" />
                         {ev.title}

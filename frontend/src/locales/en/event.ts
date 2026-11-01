@@ -109,6 +109,7 @@ export const event = {
   addressCopied: 'Address copied',
   peopleTitle: "Who's coming",
   peopleEmpty: 'No replies yet.\nBe the first to let us know',
+  peopleNoneGoing: 'No one has said they are going yet.',
   threadTitle: 'Conversation',
   threadEmpty: 'No messages yet.\nAsk about what to bring, rides, and more.',
   threadPlaceholder: 'Write a message',

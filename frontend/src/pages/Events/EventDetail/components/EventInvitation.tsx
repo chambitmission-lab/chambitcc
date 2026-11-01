@@ -2,7 +2,7 @@ import type { Event } from '../../../../types/event'
 import type { Translation } from '../../../../locales'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { CATEGORY_VISUAL } from '../../utils/categoryConfig'
-import { formatDDay, formatEventTime, formatEventDateLabel } from '../../utils/dateGrouping'
+import { formatDDay, formatEventTime, formatEventDateLabel, isAllDayEvent } from '../../utils/dateGrouping'
 import { eventDateParts, isSameKstDay, splitLocation } from '../utils/eventDisplay'
 import { EventAvatar } from './EventAvatar'
 import { LockGlyph, SparkleGlyph } from './EventDetailIcons'
@@ -20,6 +20,7 @@ export const EventInvitation = ({ event, t }: EventInvitationProps) => {
   const sameDay = isSameKstDay(event.start_datetime, event.end_datetime)
   const startTime = formatEventTime(event.start_datetime)
   const endTime = formatEventTime(event.end_datetime)
+  const allDay = isAllDayEvent(event)
   const place = event.location ? splitLocation(event.location) : null
   const going = event.attendances?.filter(a => a.status === 'attending') ?? []
 
@@ -42,12 +43,12 @@ export const EventInvitation = ({ event, t }: EventInvitationProps) => {
         )}
       </div>
 
-      <div className="evd-inv-big mt-3">
+      <div className="evd-inv-big mt-6">
         {big}
         <small>{weekday}</small>
       </div>
 
-      <h1 className="mt-4 text-[25px] lg:text-[29px] font-extrabold leading-[1.3] tracking-[-0.035em] break-keep">
+      <h1 className="mt-8 text-[25px] lg:text-[29px] font-extrabold leading-[1.3] tracking-[-0.035em] break-keep">
         {event.title}
       </h1>
 
@@ -56,8 +57,17 @@ export const EventInvitation = ({ event, t }: EventInvitationProps) => {
       <dl className="grid grid-cols-2 gap-4">
         <div className={place ? '' : 'col-span-2'}>
           <dt className="text-[12.5px] font-bold text-white/70">{t.inviteTime}</dt>
-          <dd className="mt-1 text-[16.5px] lg:text-[17.5px] font-extrabold leading-[1.4]">
-            {sameDay ? (
+          <dd className="mt-2 text-[16.5px] lg:text-[17.5px] font-extrabold leading-[1.4]">
+            {allDay ? (
+              sameDay ? (
+                '종일'
+              ) : (
+                <>
+                  종일
+                  <br />– {formatEventDateLabel(event.end_datetime)}
+                </>
+              )
+            ) : sameDay ? (
               <>
                 {startTime}
                 <br />– {endTime}
@@ -73,7 +83,7 @@ export const EventInvitation = ({ event, t }: EventInvitationProps) => {
         {place && (
           <div className="min-w-0">
             <dt className="text-[12.5px] font-bold text-white/70">{t.location}</dt>
-            <dd className="mt-1 text-[16.5px] lg:text-[17.5px] font-extrabold leading-[1.4] break-keep">
+            <dd className="mt-2 text-[16.5px] lg:text-[17.5px] font-extrabold leading-[1.4] break-keep">
               {place.name}
               {place.sub && (
                 <span className="block text-[14px] font-semibold text-white/75">{place.sub}</span>

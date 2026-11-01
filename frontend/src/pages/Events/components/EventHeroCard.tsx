@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
-import { formatDDay, formatEventTime, formatEventDateLabel } from '../utils/dateGrouping'
+import { formatDDay, formatEventStartTime, formatEventDateLabel } from '../utils/dateGrouping'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
 import { CategoryIcon } from './CategoryIcons'
@@ -17,7 +17,7 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
   const t = translations[language]
   const v = CATEGORY_VISUAL[event.category]
   const dday = formatDDay(event.start_datetime)
-  const time = formatEventTime(event.start_datetime)
+  const time = formatEventStartTime(event)
   const dateLabel = formatEventDateLabel(event.start_datetime)
 
   // 배경 로드 전엔 그라데이션만 보이다가 부드럽게 페이드인 (팝인 방지)
