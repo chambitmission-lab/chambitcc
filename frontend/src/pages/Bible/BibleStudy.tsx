@@ -48,6 +48,7 @@ import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats, prefetchFavoritesPlaylist } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
 import ChapterBriefCard from './components/ChapterBriefCard'
+import ReadAgainCard from './components/ReadAgainCard'
 import { ChapterGuidePanel, ChapterGuideTab } from './components/ChapterGuidePanel'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { isPastor } from '../../utils/access'
@@ -750,6 +751,13 @@ const BibleStudy = () => {
   // 본문 앞 안내 카드 — 본문 칼럼 또는 PC 오른쪽 "이 장 안내" 패널 중 한 곳에 놓인다
   const guideCards = selectedBookData ? (
     <>
+      {/* 다시 읽는 길 — 2독부터만 보인다(회차 렌즈 질문 + 지난 회차의 나) */}
+      <ReadAgainCard
+        key={`${selectedBookData.book_number}-${selectedChapter}`}
+        bookNumber={selectedBookData.book_number}
+        chapter={selectedChapter}
+        enabled={isLoggedIn()}
+      />
       {/* 권 개관 — 한 줄 진입 바. 실제 소개는 탭하면 열리는 읽기 시트라
           본문을 밀지 않는다. 그래서 1장뿐 아니라 모든 장에서 열 수 있다. */}
       {introCards.bookIntro && (

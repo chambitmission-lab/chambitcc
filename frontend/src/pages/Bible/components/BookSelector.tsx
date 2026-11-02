@@ -267,7 +267,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       cycleStart: (n: number) => `${n}독 시작하기`,
       cycleConfirmTitle: (n: number) => `${n}독을 시작할까요?`,
       cycleConfirmMessage: '진행률이 0%에서 다시 시작해요.',
-      cycleConfirmDescription: '지금까지 읽은 기록과 통독 횟수는 프로필에 그대로 남아요.',
+      cycleConfirmDescription: '지금까지 읽은 기록과 통독 횟수는 프로필에 그대로 남아요. 이번엔 장마다 새 질문 하나와 지난 회차에 남긴 메모가 함께 따라가요.',
       cycleConfirmOk: '시작하기',
       cycleStartFailed: '새 회차를 시작하지 못했어요. 잠시 후 다시 시도해 주세요.',
       cycleStartConflict: '아직 이 회차를 완독하지 않았거나, 다른 기기에서 이미 새 회차를 시작했어요. 진행률을 다시 맞췄어요.',
@@ -324,7 +324,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       cycleStart: (n: number) => `Start read-through #${n}`,
       cycleConfirmTitle: (n: number) => `Start read-through #${n}?`,
       cycleConfirmMessage: 'Your progress will start again from 0%.',
-      cycleConfirmDescription: 'Everything you have read so far and your read-through count stay on your profile.',
+      cycleConfirmDescription: 'Everything you have read so far and your read-through count stay on your profile. This time each chapter comes with a fresh question and the notes you left last time.',
       cycleConfirmOk: 'Start',
       cycleStartFailed: "Couldn't start a new read-through. Please try again shortly.",
       cycleStartConflict: "This read-through isn't finished yet, or another device already started the next one. Your progress has been refreshed.",
@@ -432,7 +432,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     })
     if (!ok) return
     try {
-      await startCycle.mutateAsync()
+      await startCycle.mutateAsync(undefined)
     } catch (error) {
       // 409 면 mutation onError 가 이미 읽기 캐시를 다시 맞췄다 — 버튼도 새 진행률에 따라 사라진다
       await alertDialog({ message: isApiError(error, 409) ? t.cycleStartConflict : t.cycleStartFailed })

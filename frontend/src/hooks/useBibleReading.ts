@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
-import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getBookCardContexts, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead, startReadingCycle } from '../api/bibleReading'
-import type { BookCardContext, ChapterReadStatusResponse } from '../api/bibleReading'
+import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getBookCardContexts, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead, startReadingCycle, getReadingCycles, setReadingCycleLens, getReadingCycleEcho } from '../api/bibleReading'
+import type { BookCardContext, ChapterReadStatusResponse, ReadingCycleSummary, ReadingProgressResponse } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import { isApiError } from '../api/utils/request'
 import type { RequestPriority } from '../api/utils/request'
@@ -37,6 +37,9 @@ export const bibleReadingKeys = {
   bookCardBatch: (bookNumbers: number[]) =>
     [...bibleReadingKeys.bookCards(), [...bookNumbers].sort((a, b) => a - b).join(',')] as const,
   resume: (limit: number) => [...bibleReadingKeys.all, 'resume', limit] as const,
+  cycles: () => [...bibleReadingKeys.all, 'cycles'] as const,
+  echo: (bookNumber: number, chapter: number) =>
+    [...bibleReadingKeys.all, 'echo', bookNumber, chapter] as const,
 }
 
 type ChapterStatusData = ChapterReadStatusResponse['data']
@@ -446,12 +449,53 @@ export const useStartReadingCycle = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () => startReadingCycle(),
+    mutationFn: (lens?: string | null) => startReadingCycle(lens),
     onSuccess: () => applyReadingCycleStart(queryClient),
     // 409 는 서버 기준으로 "지금 회차는 완독 전" — 버튼이 보였다면 다른 기기가 이미 새 회차를
     // 시작했거나(SSE 를 놓침) 읽음 취소가 있었다는 뜻이라, 읽기 캐시를 통째로 다시 맞춘다
     onError: (error) => {
       if (isApiError(error, 409)) applyReadingCycleStart(queryClient)
+    },
+  })
+}
+
+/**
+ * 통독 회차 요약 — 장 화면의 '다시 읽는 길' 카드가 N독째·렌즈를 안다.
+ * 허브의 진행률 묶음에 같은 값이 실려 있으니 그걸 초기값으로 써서, 허브를 거쳐 온 사람은 요청 없이 바로 그린다.
+ * 회차는 거의 안 바뀌어 신선도를 길게 둔다(새 회차 시작은 applyReadingCycleStart 가 통째로 무효화).
+ */
+export const useReadingCycles = (enabled: boolean = true) => {
+  const queryClient = useQueryClient()
+  return useQuery({
+    queryKey: bibleReadingKeys.cycles(),
+    queryFn: getReadingCycles,
+    enabled,
+    staleTime: 1000 * 60 * 30,
+    initialData: () =>
+      queryClient.getQueryData<ReadingProgressResponse['data']>(bibleReadingKeys.progress())?.cycle,
+    initialDataUpdatedAt: () => queryClient.getQueryState(bibleReadingKeys.progress())?.dataUpdatedAt,
+  })
+}
+
+/** 지난 회차의 나 — 2독부터만 요청한다. 지난 회차 흔적은 지금 바뀌지 않으니 오래 둔다 */
+export const useReadingCycleEcho = (bookNumber: number, chapter: number, enabled: boolean) =>
+  useQuery({
+    queryKey: bibleReadingKeys.echo(bookNumber, chapter),
+    queryFn: () => getReadingCycleEcho(bookNumber, chapter),
+    enabled: enabled && bookNumber > 0 && chapter > 0,
+    staleTime: 1000 * 60 * 60,
+  })
+
+/** 지금 회차 렌즈 바꾸기 — 회차 요약 캐시와 진행률 묶음의 cycle 을 응답으로 바로 고친다 */
+export const useSetReadingLens = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (lens: string | null) => setReadingCycleLens(lens),
+    onSuccess: (summary: ReadingCycleSummary) => {
+      queryClient.setQueryData(bibleReadingKeys.cycles(), summary)
+      queryClient.setQueryData<ReadingProgressResponse['data']>(bibleReadingKeys.progress(), (old) =>
+        old ? { ...old, cycle: summary } : old,
+      )
     },
   })
 }

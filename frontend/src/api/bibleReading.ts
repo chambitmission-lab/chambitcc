@@ -101,6 +101,8 @@ export interface ReadingCycle {
   cycle_no: number
   started_at: string | null
   completed_at: string | null
+  /** 이 회차의 읽기 렌즈(pages/Bible/data/readingLenses). null 이면 회차 기본값. 구버전 백엔드엔 없다 */
+  lens?: string | null
 }
 
 export interface ReadingCycleSummary {
@@ -337,11 +339,67 @@ export const unmarkVerseAsRead = async (verseId: number): Promise<void> => {
  * 다음 통독 회차 시작 — 현재 회차를 완독한 뒤에만 (아니면 409).
  * 지난 회차 기록은 서버에 그대로 남고, 진행률·장 읽음 표시·이어읽기만 0 에서 다시 시작한다
  */
-export const startReadingCycle = async (): Promise<ReadingCycleSummary> => {
+export const startReadingCycle = async (lens?: string | null): Promise<ReadingCycleSummary> => {
   const result = await request<{ success: boolean; data: ReadingCycleSummary }>('/bible/reading-cycles', {
     method: 'POST',
     auth: 'required',
+    json: lens ? { lens } : undefined,
     errorMessage: '새 회차를 시작하지 못했습니다',
   })
+  return result.data
+}
+
+/** 통독 회차 요약만 — 장 화면이 'N독째·렌즈'를 알기 위해 (진행률 묶음보다 훨씬 가볍다) */
+export const getReadingCycles = async (): Promise<ReadingCycleSummary> => {
+  const result = await request<{ success: boolean; data: ReadingCycleSummary }>('/bible/reading-cycles', {
+    auth: 'required',
+    errorMessage: '통독 회차를 불러오지 못했습니다',
+  })
+  return result.data
+}
+
+/** 지금 회차(2독부터)의 읽기 렌즈 바꾸기 — null 이면 회차 기본 렌즈로 */
+export const setReadingCycleLens = async (lens: string | null): Promise<ReadingCycleSummary> => {
+  const result = await request<{ success: boolean; data: ReadingCycleSummary }>('/bible/reading-cycles/current', {
+    method: 'PATCH',
+    auth: 'required',
+    json: { lens },
+    errorMessage: '읽기 렌즈를 바꾸지 못했습니다',
+  })
+  return result.data
+}
+
+// 지난 회차의 나 — 백엔드 bible_reading_echo.BibleReadingEchoService.chapter_echo
+export type ReadingEchoTraceKind = 'note' | 'reflection' | 'word' | 'highlight' | 'favorite'
+
+export interface ReadingEchoTrace {
+  kind: ReadingEchoTraceKind
+  verse: number
+  /** 남긴 때 진행 중이던 회차 */
+  cycle_no: number
+  /** 오프셋 포함 ISO */
+  at: string
+  text?: string | null
+  /** kind=word */
+  word?: string
+  /** kind=highlight */
+  color?: string
+}
+
+export interface ReadingEcho {
+  current_cycle: number
+  book_number: number
+  chapter: number
+  /** 지난 회차마다 이 장을 마지막으로 읽은 시각 */
+  past_reads: { cycle_no: number; read_at: string }[]
+  /** 지금 회차를 시작하기 전에 이 장에 남긴 흔적 */
+  traces: ReadingEchoTrace[]
+}
+
+export const getReadingCycleEcho = async (bookNumber: number, chapter: number): Promise<ReadingEcho> => {
+  const result = await request<{ success: boolean; data: ReadingEcho }>(
+    `/bible/reading-cycles/echo?book_number=${bookNumber}&chapter=${chapter}`,
+    { auth: 'required', errorMessage: '지난 회차 기록을 불러오지 못했습니다' },
+  )
   return result.data
 }
