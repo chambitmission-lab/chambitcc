@@ -411,8 +411,18 @@
 [data-theme="dark"] .book-hero {
   border: 1.5px solid transparent;
   background:
-    linear-gradient(90deg, rgba(8, 10, 22, 0.55) 0%, rgba(8, 10, 22, 0.2) 45%, rgba(8, 10, 22, 0) 70%) padding-box,
-    url('../../../../assets/bible/hero-reading-together-night-soft.webp') center / cover no-repeat padding-box,
+    linear-gradient(90deg, rgba(8, 10, 22, 0.5) 0%, rgba(8, 10, 22, 0.15) 45%, rgba(8, 10, 22, 0) 70%) padding-box,
+    /* 작은 별 — 흐린 그림을 늘려 깔면 하늘이 뭉개져서, 바탕은 또렷한 그라데이션 + 점 별로 그린다 */
+    radial-gradient(1.2px 1.2px at 12% 18%, rgba(255, 255, 255, 0.85), transparent 100%) padding-box,
+    radial-gradient(1px 1px at 27% 9%, rgba(255, 255, 255, 0.6), transparent 100%) padding-box,
+    radial-gradient(1.4px 1.4px at 41% 24%, rgba(220, 225, 255, 0.8), transparent 100%) padding-box,
+    radial-gradient(1px 1px at 55% 12%, rgba(255, 255, 255, 0.55), transparent 100%) padding-box,
+    radial-gradient(1.2px 1.2px at 66% 6%, rgba(255, 245, 220, 0.75), transparent 100%) padding-box,
+    radial-gradient(1px 1px at 8% 38%, rgba(255, 255, 255, 0.45), transparent 100%) padding-box,
+    radial-gradient(1px 1px at 34% 42%, rgba(255, 255, 255, 0.4), transparent 100%) padding-box,
+    /* 그림 속 지평선의 보랏빛 노을이 카드 바탕으로 이어지게 */
+    radial-gradient(70% 55% at 72% 62%, rgba(120, 96, 190, 0.32) 0%, rgba(120, 96, 190, 0) 70%) padding-box,
+    linear-gradient(180deg, #080c1c 0%, #10152e 38%, #1a1d3d 64%, #142630 86%, #0f1f22 100%) padding-box,
     linear-gradient(135deg, #6f63c9 0%, #3a3f7a 40%, #2f6f78 75%, #7fc9a8 100%) border-box;
   color: #fff;
   box-shadow:
