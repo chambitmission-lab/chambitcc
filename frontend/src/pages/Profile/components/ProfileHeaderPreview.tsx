@@ -50,7 +50,7 @@ const ProfileHeaderPreview = () => {
         glowLevel={GLOW_LEVELS[levelIdx]}
       />
 
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md lg:max-w-[864px]">
         <LevelProgress
           currentLevel={GLOW_LEVELS[levelIdx]}
           currentPoints={GLOW_LEVELS[levelIdx].minPoints + 1200}
@@ -69,7 +69,7 @@ const ProfileHeaderPreview = () => {
       </div>
 
       {/* 업적 스트립 (접힌 상태 스크롤바/페이드 확인용) */}
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md lg:max-w-[864px]">
         <AchievementBadges achievements={SAMPLE_ACHIEVEMENTS} />
       </div>
 

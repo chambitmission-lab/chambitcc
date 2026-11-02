@@ -31,7 +31,6 @@ const BadgeMedallion = ({ achievement, shineDelay, size = 'md' }: BadgeMedallion
     return (
       <div
         className={`ach-ring-unlocked relative ${dim} rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-110 group-active:scale-95`}
-        style={{ boxShadow: `0 0 10px ${achievement.glowColor}` }}
       >
         <div className="ach-face relative flex h-full w-full items-center justify-center overflow-hidden rounded-full">
           {/* 배지 색상 은은한 내부 틴트 */}
@@ -80,9 +79,6 @@ const BadgeMedallion = ({ achievement, shineDelay, size = 'md' }: BadgeMedallion
   )
 }
 
-/** 접힌 대표 배지 행에 보여줄 해금 배지 수 */
-const COMPACT_UNLOCKED_COUNT = 6
-
 const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadgesProps) => {
   const { t } = useLanguage()
   const [showAll, setShowAll] = useState(false)
@@ -93,11 +89,8 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
     (a, b) => Number(b.unlocked) - Number(a.unlocked),
   )
 
-  // 접힌 상태: 해금 배지 몇 개 + "다음으로 가까운 목표" 하나만.
-  // (컬렉션 전시는 펼쳤을 때의 몫 — 프로필 기본 화면은 조용하게)
-  const compactUnlocked = sorted
-    .filter((a) => a.unlocked)
-    .slice(0, COMPACT_UNLOCKED_COUNT)
+  // 접힌 상태: 받은 수 막대 + "다음에 받을 업적" 하나만 (2026-11-02 D안).
+  // 컬렉션 전시는 펼쳤을 때의 몫 — 프로필 기본 화면은 조용하게
   const nextTarget = achievements
     .filter((a) => !a.unlocked)
     .sort(
@@ -106,113 +99,88 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
 
   return (
     <div className="px-4 py-3">
-      <div className="lp-sheet">
-        <div className="relative z-10 mb-4 flex items-center justify-between">
-          <h3 className="lp-head">
-            {t('achievementTitle')}{' '}
-            <span className="ach-count">
-              {unlockedCount}/{achievements.length}
-            </span>
-          </h3>
+      <section className="pd-card pd-ach">
+        <button
+          type="button"
+          onClick={() => setShowAll(!showAll)}
+          aria-expanded={showAll}
+          className="pd-ach__head"
+          disabled={achievements.length === 0}
+        >
+          <span className="pd-label flex-1 text-left">{t('achievementTitle')}</span>
+          <span className="pd-ach__count">
+            {showAll ? t('achievementCollapse') : t('achievementEarnedCount').replace('{n}', String(unlockedCount))}
+          </span>
+          <span className="pd-chevron material-icons-round text-[18px]" aria-hidden>
+            {showAll ? 'expand_less' : 'chevron_right'}
+          </span>
+        </button>
+
+        <div className="pd-ach__body">
+          {/* 받은 수 / 전체 — 두 토막 막대 */}
           {achievements.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowAll(!showAll)}
-              aria-expanded={showAll}
-              className="lp-more flex items-center gap-0.5 text-[12.5px] font-semibold"
+            <div
+              className="pd-ach__bar"
+              role="img"
+              aria-label={`${unlockedCount}/${achievements.length}`}
             >
-              {showAll ? t('achievementCollapse') : t('achievementShowAll')}
-              <span className="material-icons-round text-[16px]" aria-hidden>
-                {showAll ? 'expand_less' : 'chevron_right'}
-              </span>
-            </button>
+              <span style={{ flexGrow: Math.max(unlockedCount, 0.0001) }} data-on="true" />
+              <span style={{ flexGrow: Math.max(achievements.length - unlockedCount, 0.0001) }} />
+            </div>
           )}
-        </div>
 
-        {showAll ? (
-          <div className="relative z-10 grid grid-cols-4 gap-x-2 gap-y-4">
-            {sorted.map((achievement, index) => (
-              <button
-                key={achievement.id}
-                type="button"
-                onClick={() => onAchievementClick?.(achievement)}
-                className="group flex flex-col items-center gap-1.5"
-                aria-label={`${t(achievement.titleKey)}${
-                  achievement.unlocked ? '' : ` (${t('achievementProgress')} ${achievement.progress}/${achievement.requirement})`
-                }`}
-              >
-                <BadgeMedallion
-                  achievement={achievement}
-                  shineDelay={(index % 4) * 0.4}
-                />
-
-                <span
-                  className={`w-full text-center text-[10.5px] font-semibold leading-tight line-clamp-1 ${
-                    achievement.unlocked ? 'lp-ink2' : 'lp-muted'
+          {showAll ? (
+            <div className="grid grid-cols-4 gap-x-2 gap-y-4 pt-1">
+              {sorted.map((achievement, index) => (
+                <button
+                  key={achievement.id}
+                  type="button"
+                  onClick={() => onAchievementClick?.(achievement)}
+                  className="group flex flex-col items-center gap-1.5"
+                  aria-label={`${t(achievement.titleKey)}${
+                    achievement.unlocked ? '' : ` (${t('achievementProgress')} ${achievement.progress}/${achievement.requirement})`
                   }`}
                 >
-                  {t(achievement.titleKey)}
-                </span>
-
-                {!achievement.unlocked && (
-                  <span className="lp-muted -mt-1 text-[9.5px] tabular-nums opacity-80">
-                    {achievement.progress}/{achievement.requirement}
+                  <BadgeMedallion achievement={achievement} shineDelay={(index % 4) * 0.4} />
+                  <span
+                    className={`w-full text-center text-[11px] font-semibold leading-tight line-clamp-1 ${
+                      achievement.unlocked ? 'pd-text-body' : 'pd-text-muted'
+                    }`}
+                  >
+                    {t(achievement.titleKey)}
                   </span>
-                )}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="ach-compact-row no-scrollbar relative z-10 flex items-center gap-2 overflow-x-auto pb-0.5">
-            {compactUnlocked.map((achievement, index) => (
-              <button
-                key={achievement.id}
-                type="button"
-                onClick={() => onAchievementClick?.(achievement)}
-                className="group shrink-0"
-                aria-label={t(achievement.titleKey)}
-                title={t(achievement.titleKey)}
-              >
-                <BadgeMedallion
-                  achievement={achievement}
-                  shineDelay={(index % 4) * 0.4}
-                  size="sm"
-                />
-              </button>
-            ))}
+                  {!achievement.unlocked && (
+                    <span className="pd-text-muted -mt-1 text-[10px] tabular-nums">
+                      {achievement.progress}/{achievement.requirement}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : nextTarget ? (
+            /* 다음에 받을 업적 — 진행률이 가장 높은 미해금 배지 */
+            <button
+              type="button"
+              onClick={() => onAchievementClick?.(nextTarget)}
+              className="pd-ach__next group"
+              aria-label={`${t(nextTarget.titleKey)} (${t('achievementProgress')} ${nextTarget.progress}/${nextTarget.requirement})`}
+            >
+              <BadgeMedallion achievement={nextTarget} shineDelay={0} size="sm" />
+              <span className="min-w-0 flex-1 text-left">
+                <span className="pd-ach__next-label">{t('achievementNextToEarn')}</span>
+                <span className="pd-ach__next-title">{t(nextTarget.titleKey)}</span>
+              </span>
+              <span className="pd-ach__next-progress">
+                {nextTarget.progress.toLocaleString()}/{nextTarget.requirement.toLocaleString()}
+              </span>
+            </button>
+          ) : null}
 
-            {/* 다음 목표 — 진행률이 가장 높은 미해금 배지 */}
-            {nextTarget && (
-              <button
-                type="button"
-                onClick={() => onAchievementClick?.(nextTarget)}
-                className="ach-next group flex shrink-0 items-center gap-2 py-1 pl-1 pr-3.5"
-                aria-label={`${t(nextTarget.titleKey)} (${t('achievementProgress')} ${nextTarget.progress}/${nextTarget.requirement})`}
-              >
-                <BadgeMedallion
-                  achievement={nextTarget}
-                  shineDelay={0}
-                  size="sm"
-                />
-                <span className="text-left">
-                  <span className="lp-muted block text-[10px] font-semibold">
-                    {t('achievementNextGoal')}
-                  </span>
-                  <span className="ach-next__title block leading-tight">
-                    {t(nextTarget.titleKey)}
-                  </span>
-                </span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {unlockedCount === 0 && (
-          <p className="lp-muted relative z-10 mt-4 mb-0 text-center text-[12px]">
-            {t('achievementStartPraying')}
-          </p>
-        )}
-      </div>
+          {unlockedCount === 0 && (
+            <p className="pd-text-muted m-0 text-center text-[12.5px]">{t('achievementStartPraying')}</p>
+          )}
+        </div>
+      </section>
     </div>
   )
 }

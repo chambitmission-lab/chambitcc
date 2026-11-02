@@ -1,146 +1,112 @@
-/* 나의 등불 카드 — 등잔 삽화·레벨 성장 그래프·요일 마이크로 도트 */
+/* ===== /profile 나의 등불 · 내 기록 · 업적 — 2026-11-02 D안 (토스 '전체' 탭 문법) =====
+   예전 종이 수첩(.lp-sheet)·등잔 삽화·등불 계단·점선 스탯 타일은 전부 폐기.
+   흰 카드(.pd-card) + 한 문장 요약 + 목록 행. 색은 theme.css 토큰만 — 라이트·다크 분기는 토큰이 한다.
+   .pd-card 는 AchievementBadges·푸시 카드(Profile.tsx)도 같이 쓴다. */
 
-
-/* 붓자국 마스크 — 세로 획(위→아래로 눌러 찍은 dab)과 가로 획 */
-:root {
-  --brush-dab: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 32' preserveAspectRatio='none'%3E%3Cpath d='M7 2C5 1 13 0 15 2.5 16.5 5 16.8 9 16 14 15.3 19 14.4 24 12.5 28 11.5 30.2 9.6 30.8 8.8 28.5 7.5 24.5 6.6 19 6.2 13.5 5.9 9 6.2 5 7 2Z'/%3E%3C/svg%3E");
-  --brush-stroke: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'%3E%3Cpath d='M0 1.5 94 .8C104 .4 114 1.6 117.6 4.6 119.6 6.4 116.4 9.8 107 10.7 97 11.6 40 11.4 0 11.2Z'/%3E%3C/svg%3E");
-  --brush-swatch: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24' preserveAspectRatio='none'%3E%3Cpath d='M4 6C2 3 10 1.5 20 2L48 2.5C56 3 59 6 58.5 12 58 18 52 21 44 21.5L14 22C6 22.3 2.5 19 3 13Z'/%3E%3C/svg%3E");
-}
-
-/* 온도계 수은구 — 트랙 왼쪽에 겹쳐 mercury 가 이어져 보이게.
-   완전한 원 대신 살짝 눌린 물감 방울 실루엣 */
-.lp-bulb {
+.pd-card {
   position: relative;
-  z-index: 1;
-  width: 22px;
-  height: 22px;
-  border-radius: 47% 53% 51% 49% / 53% 47% 55% 45%;
-  transform: rotate(-8deg);
-  background: var(--brand);
-  flex: 0 0 auto;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--surface-container);
+  color: var(--text-strong);
 }
-.lp-bulb::after {
-  /* 유리 하이라이트 */
-  content: '';
-  position: absolute;
-  top: 4px;
-  left: 5px;
-  width: 6px;
-  height: 6px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.45);
+.dark .pd-card,
+[data-theme='dark'] .pd-card {
+  /* 다크 카드 합의 — 솔리드 + 미세 그라데이션 + 위쪽 1px 빛줄 */
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%, rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 0 0 1px var(--card-border);
 }
 
-/* 수은주 — 각진 바 대신 왼→오로 그은 붓질, 끝단이 거칠게 마른다 */
-.lp-mercury {
-  -webkit-mask-image: var(--brush-stroke);
-  -webkit-mask-size: 100% 100%;
-  mask-image: var(--brush-stroke);
-  mask-size: 100% 100%;
+.pd-label { margin: 0; font-size: 14px; font-weight: 500; color: var(--text-muted); }
+.pd-title { margin: 0; font-size: 16px; font-weight: 700; color: var(--text-strong); }
+.pd-text-body { color: var(--text-body); }
+.pd-text-muted { color: var(--text-muted); }
+.pd-chevron { color: var(--text-muted); opacity: 0.7; }
+.pd-more {
+  display: inline-flex; align-items: center; gap: 1px;
+  font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none;
+  transition: color 0.15s;
+}
+.pd-more:hover { color: var(--brand); }
+
+/* ── 요약 ── */
+.pd-summary { padding: 24px 22px 22px; display: flex; flex-direction: column; gap: 14px; }
+.pd-hint-btn {
+  width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center;
+  border: 1.3px solid currentColor; color: var(--text-muted); opacity: 0.75;
+  font-size: 11px; font-weight: 700; line-height: 1; background: none; cursor: pointer;
+}
+.pd-hint {
+  margin: -4px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--surface-inset);
+  font-size: 12.5px; line-height: 1.6; color: var(--text-body); word-break: keep-all;
+}
+.pd-hint__verse { display: block; margin-top: 6px; font-family: 'Noto Serif KR', serif; font-size: 12px; color: var(--text-muted); }
+.pd-headline {
+  margin: 0; font-size: 24px; font-weight: 800; line-height: 1.38; letter-spacing: -0.02em;
+  color: var(--text-strong); word-break: keep-all;
+}
+.pd-headline__accent { color: var(--brand); }
+@media (min-width: 1024px) { .pd-headline { font-size: 26px; } }
+
+.pd-bar { height: 10px; border-radius: 999px; background: var(--surface-inset); overflow: hidden; }
+.pd-bar__fill { display: block; height: 100%; border-radius: inherit; background: var(--brand); transition: width 0.8s ease; }
+.pd-bar-foot {
+  margin-top: -6px; display: flex; justify-content: space-between; gap: 12px;
+  font-size: 12.5px; color: var(--text-muted); font-variant-numeric: tabular-nums;
 }
 
-/* ── 레벨 여정 굽잇길 ───────────────────────────── */
-/* 일직선 스트립 대신 골짜기·오르막이 있는 순례길 지도.
-   경로 좌표는 LevelProgress.tsx 의 JOURNEY_PTS 가 단일 출처 —
-   SVG(preserveAspectRatio:none)와 버튼(left/top %)이 같은 좌표를 공유한다 */
-.lp-journey {
-  position: relative;
-  height: 84px;
-  margin: 6px 2px 2px;
+/* ── 내 기록 목록 ── */
+.pd-list { padding: 6px 0 8px; }
+.pd-list__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px 6px; }
+.pd-row { display: flex; align-items: center; gap: 14px; padding: 12px 22px; }
+.pd-row__icon {
+  --tone: var(--brand);
+  width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center;
+  color: var(--tone); background: color-mix(in srgb, var(--tone) 11%, transparent);
 }
-.lp-journey__map {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
+.pd-row__icon .material-icons-round { font-size: 21px; }
+.pd-row__icon[data-tone='rose'] { --tone: #f04452; }
+.pd-row__icon[data-tone='blue'] { --tone: var(--brand); }
+.pd-row__icon[data-tone='amber'] { --tone: #e07b00; }
+.pd-row__icon[data-tone='green'] { --tone: #1f8a5b; }
+.dark .pd-row__icon[data-tone='rose'], [data-theme='dark'] .pd-row__icon[data-tone='rose'] { --tone: #ff6b77; }
+.dark .pd-row__icon[data-tone='amber'], [data-theme='dark'] .pd-row__icon[data-tone='amber'] { --tone: #fbbf24; }
+.dark .pd-row__icon[data-tone='green'], [data-theme='dark'] .pd-row__icon[data-tone='green'] { --tone: #4cc38a; }
+.pd-row__label { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 500; color: var(--text-body); }
+.pd-row__value { font-size: 15.5px; font-weight: 700; color: var(--text-strong); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ── 기름 채우는 법 ── */
+.pd-guide__btn {
+  display: flex; width: 100%; align-items: center; gap: 14px; padding: 18px 22px;
+  text-align: left; background: none; border: 0; color: inherit; cursor: pointer; transition: background-color 0.15s;
 }
-/* 남은 길 — 점점이 찍힌 발자국 트랙 (현재 위치부터만 그려진다) */
-.lp-journey__track {
-  fill: none;
-  stroke: rgba(0, 0, 0, 0.18);
-  stroke-width: 2px;
-  stroke-linecap: round;
-  stroke-dasharray: 0.5 6.5;
-  vector-effect: non-scaling-stroke;
+.pd-guide__btn:hover { background: var(--surface-inset); }
+.pd-guide__title { display: block; font-size: 15px; font-weight: 700; color: var(--text-strong); }
+.pd-guide__sub { display: block; margin-top: 3px; font-size: 12.5px; color: var(--text-muted); }
+
+/* ── 업적 카드 (AchievementBadges) ── */
+.pd-ach { padding: 6px 0 20px; }
+.pd-ach__head {
+  display: flex; width: 100%; align-items: center; gap: 2px; padding: 14px 22px 12px;
+  background: none; border: 0; color: inherit; cursor: pointer;
 }
-[data-theme='dark'] .lp-journey__track {
-  stroke: rgba(255, 255, 255, 0.18);
+.pd-ach__head:disabled { cursor: default; }
+.pd-ach__count { font-size: 14px; font-weight: 700; color: var(--brand); }
+.pd-ach__body { padding: 0 22px; display: flex; flex-direction: column; gap: 14px; }
+.pd-ach__bar { display: flex; gap: 3px; height: 6px; }
+.pd-ach__bar > span { flex-basis: 0; border-radius: 2px; background: var(--surface-inset); }
+.pd-ach__bar > span:first-child { border-radius: 999px 2px 2px 999px; }
+.pd-ach__bar > span:last-child { border-radius: 2px 999px 999px 2px; }
+.pd-ach__bar > span[data-on='true'] { background: var(--brand); }
+.pd-ach__next {
+  display: flex; width: 100%; align-items: center; gap: 14px; padding: 14px; border-radius: 16px;
+  background: var(--surface-inset); border: 0; color: inherit; cursor: pointer; transition: filter 0.15s;
 }
-/* 지나온 길 — 출발점에서 옅게 시작해 현재에 가까울수록 진해지는 잉크 획.
-   색은 SVG 내 linearGradient(#lp-trail-grad)가 칠한다 */
-.lp-journey__trail {
-  fill: none;
-  stroke: url(#lp-trail-grad);
-  stroke-width: 2.5px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-/* 실선 아래 넓게 번진 수채 밑칠 — 획이 종이에 스민 듯한 부드러움 */
-.lp-journey__trail-soft {
-  fill: none;
-  stroke: var(--brand);
-  stroke-width: 7px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.09;
-  vector-effect: non-scaling-stroke;
-}
-[data-theme='dark'] .lp-journey__trail-soft {
-  opacity: 0.16;
-}
-.lp-journey__stop {
-  position: absolute;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 30px;
-  padding: 0;
-  margin: 0;
-  transform: translate(-50%, -50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-/* 각 단계는 위에서 아래로 눌러 찍은 세로 붓자국.
-   지나온/현재 단계 색은 inline backgroundColor, 글로우는 버튼 drop-shadow */
-.lp-journey__dot {
-  width: 9px;
-  height: 19px;
-  background: rgba(0, 0, 0, 0.16);
-  -webkit-mask-image: var(--brush-dab);
-  -webkit-mask-size: 100% 100%;
-  mask-image: var(--brush-dab);
-  mask-size: 100% 100%;
-  transform: rotate(var(--tilt, 0deg)) scale(var(--s, 1));
-  transition: transform 0.15s ease;
-}
-[data-theme='dark'] .lp-journey__dot {
-  background: rgba(255, 255, 255, 0.2);
-}
-/* 손으로 찍은 듯 획마다 기울기를 엇갈리게 */
-.lp-journey__stop:nth-of-type(odd) .lp-journey__dot {
-  --tilt: -6deg;
-}
-.lp-journey__stop:nth-of-type(even) .lp-journey__dot {
-  --tilt: 5deg;
-}
-.lp-journey__stop[data-state='current'] .lp-journey__dot {
-  width: 13px;
-  height: 26px;
-}
-.lp-journey__stop[data-selected='true'] .lp-journey__dot {
-  --s: 1.22;
-}
-.lp-journey__stop[data-state='current'][data-selected='true'] .lp-journey__dot {
-  --s: 1.08;
-}
+.pd-ach__next:hover { filter: brightness(0.98); }
+.pd-ach__next-label { display: block; font-size: 12.5px; color: var(--text-muted); }
+.pd-ach__next-title { display: block; margin-top: 2px; font-size: 15px; font-weight: 700; color: var(--text-strong); }
+.pd-ach__next-progress { font-size: 13px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
 
 /* ── 온기 메뉴판 (포인트 획득 안내) ─────────────── */
 .lp-earn__header-icon svg {
@@ -254,280 +220,3 @@
     transform: none;
   }
 }
-
-/* ── 스탯 숫자 뒤 붓 스와치 — 성경에 형광펜 긋듯 ── */
-.lp-stat-num {
-  position: relative;
-  display: inline-block;
-  padding: 4px 9px 3px;
-}
-.lp-stat-num::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--brand-soft);
-  -webkit-mask-image: var(--brush-swatch);
-  -webkit-mask-size: 100% 100%;
-  mask-image: var(--brush-swatch);
-  mask-size: 100% 100%;
-  transform: rotate(-2deg);
-}
-
-/* ===== 2026-08 리디자인: 온도 카드 + 성장 그래프 카드 ===== */
-.lp-hint-btn {
-  width: 16px; height: 16px;
-  border-radius: 999px;
-  border: 1.5px solid var(--card-border);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 10px; font-weight: 700; line-height: 1;
-  display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer; -webkit-tap-highlight-color: transparent;
-}
-.lp-level-pill {
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
-  color: var(--brand);
-  font-size: 13px; font-weight: 800; letter-spacing: -0.01em;
-}
-/* 등잔 삽화 — 기름 높이 = 다음 단계 진행률 */
-.lp-lamp {
-  width: 96px;
-  flex: none;
-  display: block;
-  overflow: visible;
-}
-.lp-lamp__flame {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: lp-flicker 2.6s ease-in-out infinite;
-}
-@keyframes lp-flicker {
-  0%, 100% { transform: scale(1) rotate(-1deg); }
-  50% { transform: scale(1.05, 1.09) rotate(1.5deg); }
-}
-.lp-lamp__oil { transition: y 0.8s ease; }
-.lp-lamp__vessel { fill: var(--brand-soft); stroke: rgba(148, 163, 184, 0.35); stroke-width: 1; }
-.lp-lamp__metal { fill: #9aa4b1; }
-.lp-lamp__rim { stroke: #9aa4b1; stroke-width: 3; stroke-linecap: round; }
-.dark .lp-lamp__vessel { fill: rgba(255, 255, 255, 0.06); stroke: rgba(255, 255, 255, 0.12); }
-.dark .lp-lamp__metal { fill: #6b7684; }
-.dark .lp-lamp__rim { stroke: #6b7684; }
-@media (prefers-reduced-motion: reduce) {
-  .lp-lamp__flame { animation: none; }
-}
-/* 등불 계단 — 레벨이 한 칸씩 높아지는 계단, 지금 칸 위에 작은 등불 */
-.lp-stairs {
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  height: 150px;
-  margin-top: 14px;
-  padding-top: 34px;
-  --lp-stair-track: #eef1f5;
-  --lp-stair-done: rgba(49, 130, 246, 0.32);
-}
-[data-theme='dark'] .lp-stairs {
-  --lp-stair-track: rgba(255, 255, 255, 0.07);
-  --lp-stair-done: rgba(69, 147, 252, 0.38);
-}
-.lp-stair {
-  position: relative;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  border-radius: 10px 10px 4px 4px;
-  background: var(--lp-stair-track);
-  transition: transform 0.15s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-.lp-stair:hover { transform: translateY(-2px); }
-.lp-stair[data-state='done'] { background: var(--lp-stair-done); }
-.lp-stair[data-state='current'] { background: var(--brand); }
-.lp-stair[data-selected='true'] { box-shadow: 0 0 0 2px var(--brand); }
-.lp-stair[data-state='current'][data-selected='true'] { box-shadow: 0 0 0 3px var(--brand-soft); }
-.lp-stair__fill {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  border-radius: 10px 10px 4px 4px;
-  background: var(--lp-stair-done);
-  opacity: 0.55;
-  transition: height 0.6s ease;
-}
-.lp-stair__lv {
-  position: absolute;
-  bottom: 7px;
-  font-size: 10.5px;
-  font-weight: 800;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.lp-stair[data-state='done'] .lp-stair__lv { color: var(--brand); }
-[data-theme='dark'] .lp-stair[data-state='done'] .lp-stair__lv { color: #dbe9ff; }
-.lp-stair[data-state='current'] .lp-stair__lv { color: #fff; }
-.lp-stair__lamp {
-  position: absolute;
-  top: -34px;
-  width: 30px;
-  overflow: visible;
-}
-.lp-stair__lamp .lp-lamp__flame {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: lp-flicker 2.6s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .lp-stair__lamp .lp-lamp__flame { animation: none; }
-}
-.lp-tile {
-  display: flex; flex-direction: column; align-items: flex-start;
-  padding: 11px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--card-border);
-  background: var(--surface-container);
-  text-align: left;
-}
-[data-theme="dark"] .lp-tile { background: rgba(255, 255, 255, 0.03); }
-.lp-earn__badge {
-  display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; flex-shrink: 0;
-  border-radius: 12px;
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-.lp-earn__badge svg { width: 20px; height: 20px; }
-
-/* ===== 2026-10-18 빈티지 일관성 패스 ======================================
-   위(훈장 수첩 머리말)·아래(기도 수첩)와 같은 문법으로: 흰 카드 → 바랜 종이 낱장,
-   브랜드 블루 → 갈색 잉크 + 금박 액센트, 계단은 크래프트지 → 가죽색으로 짙어진다.
-   색은 아래 --lp-* 토큰으로만(계단은 --lp-step-* — 위쪽 .lp-stairs 가 --lp-stair-* 를 자체 정의해 상속이 끊기므로 이름을 달리한다). 라이트=낮의 종이, 다크=스탠드 아래 어두운 종이 + 크림 잉크(순백 금지). */
-.lp-sheet {
-  --lp-paper: #f8f1e1;
-  --lp-paper2: #efe4cc;
-  --lp-paper-age: #ead9b8;
-  --lp-ink: #4a3f35;
-  --lp-ink2: #6f6153;
-  --lp-ink3: #9a8b78;
-  --lp-rule: rgba(122, 107, 92, 0.25);
-  --lp-accent: #94701e;
-  --lp-hot: #b8382f;
-  --lp-foil: linear-gradient(100deg, #7a5414 0%, #b88a2c 25%, #e6c56f 32%, #a87c22 42%, #7a5414 60%, #c49a3e 80%, #7a5414 100%);
-  --lp-step-track: #ebe0c8;
-  --lp-step-done: #d6bf98;
-  --lp-step-current: #6e4f33;
-  --lp-step-ink: #8a7558;
-  --lp-shadow: 0 1px 0 rgba(160, 135, 95, 0.25), 0 10px 22px rgba(90, 65, 30, 0.09);
-  --lp-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-
-  position: relative;
-  /* 안쪽 z-10 행들이 페이지의 sticky 헤더와 같은 층에서 겹치지 않게 카드 안에 가둔다 */
-  isolation: isolate;
-  overflow: hidden;
-  border-radius: 6px 16px 16px 6px;
-  padding: 20px;
-  color: var(--lp-ink);
-  background-color: var(--lp-paper);
-  background-image:
-    radial-gradient(circle at 92% 14%, rgba(150, 105, 40, 0.09) 0 7px, transparent 14px),
-    radial-gradient(circle at 6% 88%, rgba(150, 105, 40, 0.1) 0 9px, transparent 17px),
-    radial-gradient(ellipse at 50% 50%, transparent 64%, var(--lp-paper-age) 100%),
-    var(--lp-noise);
-  box-shadow: var(--lp-shadow);
-}
-.dark .lp-sheet {
-  --lp-paper: #2a2520;
-  --lp-paper2: #332c25;
-  --lp-paper-age: #3a3128;
-  --lp-ink: #ece3d3;
-  --lp-ink2: #c9bda9;
-  --lp-ink3: #958a7a;
-  --lp-rule: rgba(236, 227, 211, 0.12);
-  --lp-accent: #e2c27c;
-  --lp-hot: #e2847b;
-  --lp-foil: linear-gradient(100deg, #9a6f1f 0%, #e8c56e 22%, #fff1bf 30%, #d6ac52 40%, #a77b25 60%, #efd28a 80%, #a77b25 100%);
-  --lp-step-track: rgba(236, 227, 211, 0.06);
-  --lp-step-done: #5c4a35;
-  --lp-step-current: #c9a24f;
-  --lp-step-ink: #a89a85;
-  --lp-shadow: inset 0 1px 0 rgba(255, 240, 220, 0.05), 0 10px 24px rgba(0, 0, 0, 0.38);
-  --lp-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .95 0 0 0 0 .85 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-.lp-sheet .lp-head { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 23px; font-weight: 700; line-height: 1.1; color: var(--lp-ink); }
-.lp-sheet .lp-muted { color: var(--lp-ink3); }
-.lp-sheet .lp-ink2 { color: var(--lp-ink2); }
-.lp-sheet .lp-accent { color: var(--lp-accent); }
-.lp-sheet .lp-hot { color: var(--lp-hot); }
-.lp-sheet .lp-more { color: var(--lp-ink3); transition: color 0.15s; }
-.lp-sheet .lp-more:hover { color: var(--lp-ink); }
-
-.lp-sheet .lp-hint-btn { border-color: var(--lp-ink3); color: var(--lp-ink3); }
-.lp-sheet .lp-hint { border-radius: 4px; padding: 8px 12px; font-size: 12px; line-height: 1.55; color: var(--lp-ink2); background: var(--lp-paper2); border-left: 3px solid var(--lp-step-done); }
-
-/* Lv 필 → 황동 명판 */
-.lp-sheet .lp-level-pill {
-  position: relative; padding: 4px 14px; border: 0; border-radius: 3px;
-  background: linear-gradient(135deg, #7d5a1c, #e2c06f 40%, #9a7228 55%, #f1d999 75%, #8a6420);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 240, 200, 0.45);
-  font-family: 'Noto Serif KR', serif; font-size: 12.5px; font-weight: 700; letter-spacing: 0.08em;
-  color: rgba(60, 38, 5, 0.88); text-shadow: 0 1px 0 rgba(255, 240, 200, 0.5);
-}
-
-.lp-sheet .lp-level-name { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 30px; font-weight: 700; line-height: 1.05; color: var(--lp-ink); word-break: keep-all; }
-.lp-sheet .lp-verse { margin-top: 4px; font-family: 'Noto Serif KR', serif; font-size: 12px; line-height: 1.6; color: var(--lp-ink2); word-break: keep-all; }
-.lp-sheet .lp-percent {
-  font-family: 'Noto Serif KR', serif; font-size: 32px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
-  background: var(--lp-foil); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: lp-sheen 7s ease-in-out infinite;
-}
-@keyframes lp-sheen { 0%, 60% { background-position: 100% 0; } 100% { background-position: -60% 0; } }
-@media (prefers-reduced-motion: reduce) { .lp-sheet .lp-percent { animation: none; } }
-.lp-sheet .lp-foot { border-top: 1.5px dashed var(--lp-rule); }
-
-/* 등잔 — 파란 그릇 → 구운 흙 그릇 + 황동 심지 */
-.lp-sheet .lp-lamp__vessel { fill: #e8d6b5; stroke: rgba(122, 90, 50, 0.45); stroke-width: 1.2; }
-.lp-sheet .lp-lamp__metal { fill: #b08a3a; }
-.lp-sheet .lp-lamp__rim { stroke: #8a6a3a; }
-.dark .lp-sheet .lp-lamp__vessel { fill: rgba(236, 227, 211, 0.1); stroke: rgba(236, 227, 211, 0.22); }
-.dark .lp-sheet .lp-lamp__metal { fill: #c9a24f; }
-.dark .lp-sheet .lp-lamp__rim { stroke: #a8895c; }
-
-/* 계단 — 크래프트지 칸이 쌓이고 지금 칸은 가죽(다크는 황동) */
-.lp-sheet .lp-stair { background: var(--lp-step-track); border-radius: 6px 6px 2px 2px; box-shadow: inset 0 0 0 1px var(--lp-rule); }
-.lp-sheet .lp-stair[data-state='done'] { background: var(--lp-step-done); box-shadow: none; }
-.lp-sheet .lp-stair[data-state='current'] { background: var(--lp-step-current); box-shadow: 0 6px 12px rgba(60, 40, 15, 0.25); }
-.lp-sheet .lp-stair[data-selected='true'] { box-shadow: 0 0 0 2px var(--lp-ink2); }
-.lp-sheet .lp-stair[data-state='current'][data-selected='true'] { box-shadow: 0 6px 12px rgba(60, 40, 15, 0.25), 0 0 0 2px var(--lp-paper), 0 0 0 4px var(--lp-step-current); }
-.lp-sheet .lp-stair__fill { background: var(--lp-step-done); border-radius: 6px 6px 2px 2px; opacity: 0.7; }
-.lp-sheet .lp-stair__lv { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 15px; font-weight: 700; color: var(--lp-step-ink); }
-.lp-sheet .lp-stair[data-state='done'] .lp-stair__lv { color: #6f5636; }
-.dark .lp-sheet .lp-stair[data-state='done'] .lp-stair__lv { color: #e3d3b4; }
-.lp-sheet .lp-stair[data-state='current'] .lp-stair__lv { color: #f6ecd6; }
-.dark .lp-sheet .lp-stair[data-state='current'] .lp-stair__lv { color: #2a1f12; }
-.lp-sheet .lp-here { border: 1.2px solid var(--lp-accent); color: var(--lp-accent); border-radius: 999px; padding: 0 7px; font-size: 10px; font-weight: 700; line-height: 1.6; }
-
-/* 스탯 타일 — 점선 테두리 종이 칸, 숫자는 손글씨 */
-.lp-sheet .lp-tile { border: 1.5px dashed var(--lp-rule); border-radius: 6px; background: var(--lp-paper2); }
-.lp-sheet .lp-tile__num { font-family: 'Gaegu', 'Pretendard', cursive; font-size: 30px; font-weight: 700; line-height: 0.9; color: var(--lp-ink); font-variant-numeric: tabular-nums; }
-
-/* 획득 안내 — 종이 칸 + 황동 배지 */
-.lp-sheet .lp-guide { border: 1.5px dashed var(--lp-rule); border-radius: 6px; background: var(--lp-paper2); }
-.lp-sheet .lp-guide__btn:hover { background: rgba(127, 110, 90, 0.08); }
-.lp-sheet .lp-guide__title { font-size: 13.5px; font-weight: 700; color: var(--lp-ink); }
-.lp-sheet .lp-earn__badge { border-radius: 50%; background: linear-gradient(135deg, #7d5a1c, #e2c06f 40%, #9a7228 55%, #f1d999 75%, #8a6420); color: rgba(60, 38, 5, 0.85); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); }
-.lp-sheet .lp-earn__title { color: var(--lp-accent); }
-.lp-sheet .lp-earn__label { color: var(--lp-ink2); }
-.lp-sheet .lp-earn__leader { border-bottom-color: var(--lp-rule); }
-.lp-sheet .lp-earn__pill[data-tier='1'] { color: var(--lp-ink2); box-shadow: inset 0 0 0 1px var(--lp-rule); background: none; }
-.lp-sheet .lp-earn__pill[data-tier='2'] { color: #5c4422; background: var(--lp-step-done); box-shadow: none; }
-.dark .lp-sheet .lp-earn__pill[data-tier='2'] { color: #ece3d3; }
-.lp-sheet .lp-earn__pill[data-tier='3'] { color: #f6ecd6; background: var(--lp-step-current); box-shadow: 0 2px 6px rgba(60, 40, 15, 0.25); }
-.dark .lp-sheet .lp-earn__pill[data-tier='3'] { color: #2a1f12; }
-
-/* 푸시 알림 카드(Profile.tsx) — 종이 위 토글은 잉크/황동 톤 */
-.lp-sheet .push-toggle__label { color: var(--lp-ink2); }
-.lp-sheet .push-toggle__track { background: var(--lp-step-track); box-shadow: inset 0 0 0 1px var(--lp-rule); }
-.lp-sheet .push-toggle__track[data-on='true'] { background: var(--lp-step-current); box-shadow: none; }
-.lp-sheet .push-toggle__knob { background: var(--lp-paper); }

@@ -335,13 +335,13 @@ const Profile = () => {
         {/* 푸시 알림 설정 — lg에선 우측 레일이 대신한다 */}
         {!isDesktop && (
         <div className="px-4 py-3">
-          <div className="lp-sheet">
-            <div className="relative z-10 flex items-center justify-between gap-3">
+          <div className="pd-card px-[22px] py-5">
+            <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <h3 className="lp-head mb-1">
+                <h3 className="pd-title mb-1">
                   {t('pushCardTitle')}
                 </h3>
-                <p className="lp-muted text-[12px]">
+                <p className="pd-text-muted m-0 text-[12.5px]">
                   {t('pushCardSubtitle')}
                 </p>
               </div>
@@ -447,12 +447,12 @@ const Profile = () => {
           <WeeklyStoryHook thisWeekCount={data.stats.activity.this_week_count} />
 
           <div className="px-4 py-3">
-            <div className="lp-sheet">
-              <div className="relative z-10">
-                <h3 className="lp-head mb-1">
+            <div className="pd-card px-[22px] py-5">
+              <div>
+                <h3 className="pd-title mb-1">
                   {t('pushCardTitle')}
                 </h3>
-                <p className="lp-muted text-[12px] mb-3">
+                <p className="pd-text-muted m-0 mb-3 text-[12.5px]">
                   {t('pushCardSubtitle')}
                 </p>
                 <PushNotificationButton />
