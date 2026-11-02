@@ -333,8 +333,11 @@
 .book-hero {
   container-type: inline-size;
   border: 1.5px solid transparent;
+  /* 바탕 = 같은 그림을 크게 흐려 깐 면 — 선명한 그림이 녹아드는 자리도 흰 여백 없이 하늘·풀빛으로 채운다.
+     글자 쪽(왼쪽)만 흰 빛을 살짝 더 얹어 또렷하게 */
   background:
-    linear-gradient(var(--bc-paper), var(--bc-paper)) padding-box,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.2) 45%, rgba(255, 255, 255, 0) 70%) padding-box,
+    url('../../../../assets/bible/hero-reading-together-soft.webp') center / cover no-repeat padding-box,
     linear-gradient(135deg, #bcd8ff 0%, #e6eefc 40%, #f3ecd6 70%, #cfe7b4 100%) border-box;
   box-shadow: 0 12px 28px -16px rgba(80, 120, 170, 0.35);
 }
@@ -382,11 +385,24 @@
   box-shadow: 0 6px 14px -8px rgba(49, 130, 246, 0.7);
 }
 
-/* 좁은 카드(3열 격자의 2칸)는 그림이 글자 쪽으로 밀려오므로 더 넓게 녹인다 */
+/* 카드가 좁아질수록 그림 속 양의 머리가 진행 막대 쪽으로 다가온다 — 막대를 양 앞에서 멈춘다 */
+@container (max-width: 460px) {
+  .book-hero__cells,
+  .book-hero__track {
+    width: 27%;
+  }
+}
+
+/* 좁은 카드(3열 격자의 2칸)는 그림이 글자 쪽으로 밀려오므로 더 넓게 녹이고 막대도 더 짧게 */
 @container (max-width: 329px) {
   .book-hero__art {
     width: 96%;
     --fade-x: 42%;
+  }
+
+  .book-hero__cells,
+  .book-hero__track {
+    width: 20%;
   }
 }
 
