@@ -1,15 +1,20 @@
 import { Lock } from '../../components/icons/phosphor'
-// 우리반 알림장 홈 (/classes/:classId)
-// 반 정보 · 초대 공유 · 유형 필터 · 알림 피드 (확인체크/암송/RSVP/댓글)
-import { lazy, Suspense, useEffect, useState } from 'react'
+// 우리반 알림장 홈 (/classes/:classId) — '도장 수첩 + 이번 주 공책' (2026-11 개편)
+// 반 표지(게시판 앞 양 삽화) → 이번 주 공책(말씀 + 도장판) → 주별로 묶은 알림 피드(모두 확인 도장)
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useClassDetail, useClassPosts, useLeaveClass } from '../../hooks/useClassRoom'
+import { useThemeArt } from '../../hooks/useThemeArt'
 import type { ClassDetail, ClassPost, ClassPostType } from '../../types/classRoom'
 import { isAuthenticated } from '../../utils/auth'
+import { ensureFontFamily } from '../../utils/deferredFonts'
 import { classInviteUrl } from '../../utils/inviteLink'
+import { CLASS_HERO } from '../../utils/themeAssets'
 import { showToast } from '../../utils/toast'
 import ClassPostCard from './components/ClassPostCard'
+import ClassWeekNote from './components/ClassWeekNote'
 import { Avatar, DeptBadge, Shell } from './classUi'
+import { COMPLETE_STAMP, toStampSlot, weekKeyOf, weekLabel, weekRelative, type StampSlot } from './classWeek'
 import {
   BallotIcon,
   CalendarIcon,
@@ -20,13 +25,18 @@ import {
   MailboxIcon,
   MegaphoneIcon,
   OpenBookIcon,
-  SchoolIcon,
+  PinIcon,
   SproutIcon,
   StarIcon,
   type IconFn,
 } from './ClassIcons'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
+import './class-hero.css'
+import './class-note.css'
+
+// 공책 머리말·반 인사말 손글씨
+void ensureFontFamily('gaegu')
 
 // 시트들은 열기 전엔 한 줄도 쓰이지 않는데, 정적 import면 첫 진입에 같이 받는다.
 // (작성 시트가 DatePicker·TimePicker·useBible·imageResize를, 상태 시트가
@@ -100,6 +110,33 @@ const ClassHome = () => {
   const [recitePost, setRecitePost] = useState<ClassPost | null>(null)
   const [rsvpPost, setRsvpPost] = useState<ClassPost | null>(null)
   const [pollPost, setPollPost] = useState<ClassPost | null>(null)
+
+  const heroArtReady = useThemeArt(CLASS_HERO)
+  // 이번 주 공책은 필터와 무관하게 '전체' 목록으로 계산한다 (필터 없는 피드와 같은 쿼리라 요청이 겹치지 않는다)
+  const allPosts = useClassPosts(id, undefined)
+  const weekPosts = useMemo(() => allPosts.data?.pages.flatMap((p) => p.items) ?? [], [allPosts.data])
+
+  // 도장 칸 → 피드의 해당 글로 (필터가 걸려 있으면 풀고 나서)
+  const jumpToPost = useCallback((post: ClassPost) => {
+    setPostType(undefined)
+    window.setTimeout(() => {
+      const el = document.getElementById(`class-post-${post.id}`)
+      if (!el) return
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.classList.remove('cn-flash')
+      void el.offsetWidth
+      el.classList.add('cn-flash')
+      window.setTimeout(() => el.classList.remove('cn-flash'), 1700)
+    }, 80)
+  }, [])
+
+  // 교사: 도장 칸 → 응답 현황 시트(다시 알리기 포함)
+  const openSlotStatus = useCallback((slot: StampSlot) => {
+    if (slot.kind === 'notice') setCheckPost(slot.post)
+    else if (slot.kind === 'verse') setRecitePost(slot.post)
+    else if (slot.kind === 'event') setRsvpPost(slot.post)
+    else setPollPost(slot.post)
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -215,64 +252,8 @@ const ClassHome = () => {
         </button>
       }
       rail={
-        /* lg+ 우측 레일 — 본문 헤더·퀵액션·글쓰기 FAB(모두 lg:hidden)를 대신한다.
-           어느 만큼 스크롤해도 반 정체성과 진입점이 옆에 남는다 */
+        /* lg+ 우측 레일 — 글쓰기 FAB·퀵액션(lg:hidden)을 대신한다. 반 표지·공책은 본문에 있다 */
         <>
-          <section className="relative overflow-hidden rounded-3xl p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35">
-            <div className="flex items-start gap-3">
-              <span className="shrink-0 w-11 h-11 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-brand">
-                <SchoolIcon width={22} height={22} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <DeptBadge department={cls.department} />
-                  {cls.is_teacher && (
-                    <span className="shrink-0 px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-600 dark:text-amber-300 text-[11px] font-bold leading-none">
-                      교사
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-[17px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mt-1 break-keep">
-                  {cls.name}
-                </h2>
-              </div>
-            </div>
-
-            {cls.description && (
-              <p className="text-[12.5px] text-gray-600 dark:text-white/65 mt-2.5 leading-[1.6]">
-                {cls.description}
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setShowMembers(true)}
-              className="mt-4 flex items-center active:scale-95 transition-transform"
-            >
-              <AvatarStack
-                members={cls.members}
-                memberCount={cls.member_count}
-                max={5}
-                size={28}
-              />
-              <span className="ml-2.5 text-[12px] font-semibold text-gray-500 dark:text-white/55">
-                {cls.member_count}명 →
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleShare}
-              className="mt-3 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] active:scale-[0.98] transition-transform"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-              </svg>
-              초대하기
-            </button>
-          </section>
-
           {cls.is_teacher && (
             <button
               type="button"
@@ -308,62 +289,64 @@ const ClassHome = () => {
         </>
       }
     >
-      {/* 반 헤더 — lg에선 우측 레일의 같은 카드가 대신한다 */}
-      <section className="lg:hidden relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35">
-        <div className="flex items-start gap-3">
-          <span className="shrink-0 w-12 h-12 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-brand">
-            <SchoolIcon width={24} height={24} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <DeptBadge department={cls.department} />
-              {cls.is_teacher && (
-                <span className="shrink-0 px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-600 dark:text-amber-300 text-[11px] font-bold leading-none">
-                  교사
-                </span>
-              )}
-            </div>
-            <h2 className="text-[19px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mt-1 break-keep">
-              {cls.name}
-            </h2>
-            {cls.description && (
-              <p className="text-[12.5px] text-gray-600 dark:text-white/65 mt-1">
-                {cls.description}
-              </p>
+      {/* 반 표지 — /classes 목록과 같은 '게시판 앞 양들' 삽화(오른쪽 아래 도장 든 양). 글은 왼쪽 하늘 위에만 둔다 */}
+      <section className="relative isolate overflow-hidden rounded-[26px] mx-4 mt-4 px-5 pt-5 pb-4 lg:px-7 lg:pt-6 min-h-[176px] lg:min-h-[196px] flex flex-col justify-between bg-[linear-gradient(180deg,#c8e5ee_0%,#daecf0_100%)] ring-1 ring-[#3182f6]/15 shadow-[0_10px_30px_-14px_rgba(49,130,246,0.45)] dark:bg-[linear-gradient(180deg,#07173b_0%,#050c20_100%)] dark:ring-white/[0.08] dark:shadow-[0_10px_34px_-12px_rgba(0,0,0,0.6)]">
+        <div
+          className={`absolute inset-0 pointer-events-none class-hero-art${heroArtReady ? ' is-ready' : ''}`}
+          aria-hidden
+        />
+        <button
+          type="button"
+          onClick={handleShare}
+          className="absolute z-10 top-4 right-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/75 dark:bg-white/[0.12] backdrop-blur-sm text-[#1b64da] dark:text-white text-[12px] font-bold shadow-sm active:scale-95 transition-transform"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          초대
+        </button>
+        <div className="relative z-10 class-hero-ink max-w-[62%] lg:max-w-[52%]">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <DeptBadge department={cls.department} />
+            {cls.is_teacher && (
+              <span className="shrink-0 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-700 dark:text-amber-300 text-[11px] font-bold leading-none">
+                교사
+              </span>
             )}
           </div>
+          <h2 className="text-[23px] lg:text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] mt-2 text-[#152648] dark:text-white break-keep">
+            {cls.name}
+          </h2>
+          {cls.description && (
+            <p className="cn-hand text-[18px] leading-[1.25] text-[#41527a] dark:text-white/80 mt-1 break-keep line-clamp-2">
+              {cls.description}
+            </p>
+          )}
         </div>
-
-        {/* 멤버 + 초대 */}
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setShowMembers(true)}
-            className="flex items-center active:scale-95 transition-transform"
-          >
-            <AvatarStack
-              members={cls.members}
-              memberCount={cls.member_count}
-              max={6}
-              size={30}
-            />
-            <span className="ml-2.5 text-[12px] font-semibold text-gray-500 dark:text-white/55">
-              {cls.member_count}명 →
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={handleShare}
-            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-brand text-white text-[12px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] active:scale-95 transition-transform"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-            </svg>
-            초대하기
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowMembers(true)}
+          className="relative z-10 mt-4 self-start flex items-center active:scale-95 transition-transform"
+        >
+          <AvatarStack members={cls.members} memberCount={cls.member_count} max={5} size={28} />
+          <span className="ml-2 text-[12px] font-bold text-[#41527a] dark:text-white/75">
+            {cls.member_count}명 →
+          </span>
+        </button>
       </section>
+
+      {/* 이번 주 공책 — 말씀 + 도장판 (lg 에선 안에서 2단) */}
+      <ClassWeekNote
+        posts={weekPosts}
+        loading={allPosts.isLoading}
+        memberCount={cls.member_count}
+        isTeacher={cls.is_teacher}
+        onJump={jumpToPost}
+        onOpenSlot={openSlotStatus}
+        onOpenRecitations={setRecitePost}
+        onCompose={() => setShowComposer(true)}
+      />
 
       {/* 퀵 액션 — 리포트·출석부(교사) / 앨범·별·성장카드 (lg에선 레일의 '바로가기') */}
       <div className="lg:hidden flex gap-2 overflow-x-auto px-4 pt-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -516,6 +499,38 @@ const QuickAction = ({
   </button>
 )
 
+// ── 피드 주(週) 묶음 — 고정 글은 맨 위 따로, 나머지는 공책 한 장(주)씩 ──
+type FeedGroup = { key: number; pinned: boolean; posts: ClassPost[] }
+
+const groupByWeek = (posts: ClassPost[]): FeedGroup[] => {
+  const groups: FeedGroup[] = []
+  const pinned = posts.filter((p) => p.is_pinned)
+  if (pinned.length > 0) groups.push({ key: -1, pinned: true, posts: pinned })
+  for (const post of posts) {
+    if (post.is_pinned) continue
+    const key = weekKeyOf(post)
+    const last = groups[groups.length - 1]
+    if (last && !last.pinned && last.key === key) last.posts.push(post)
+    else groups.push({ key, pinned: false, posts: [post] })
+  }
+  return groups
+}
+
+const WeekDivider = ({ weekKey }: { weekKey: number }) => {
+  const rel = weekRelative(weekKey)
+  return (
+    <div className="flex items-center gap-2 px-1 pt-3">
+      <h3 className="cn-hand shrink-0 text-[21px] leading-none font-bold text-ink-strong">{weekLabel(weekKey)}</h3>
+      {rel && (
+        <span className="shrink-0 px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand text-[10.5px] font-bold">
+          {rel}
+        </span>
+      )}
+      <span aria-hidden className="flex-1 border-t border-dashed border-gray-300/80 dark:border-white/[0.12]" />
+    </div>
+  )
+}
+
 // ── 피드 ──
 const Feed = ({
   classId,
@@ -559,18 +574,45 @@ const Feed = ({
         </div>
       ) : (
         <>
-          {posts.map((post) => (
-            <ClassPostCard
-              key={post.id}
-              post={post}
-              isTeacher={isTeacher}
-              memberCount={memberCount}
-              onOpenComments={onOpenComments}
-              onOpenChecks={onOpenChecks}
-              onOpenRecitations={onOpenRecitations}
-              onOpenRsvps={onOpenRsvps}
-              onOpenPollDetail={onOpenPollDetail}
-            />
+          {groupByWeek(posts).map((group) => (
+            <div key={group.key} className="space-y-3">
+              {group.pinned ? (
+                <p className="flex items-center gap-1.5 px-1 pt-1 text-[12px] font-bold text-brand">
+                  <PinIcon width={13} height={13} />
+                  고정된 알림
+                </p>
+              ) : (
+                <WeekDivider weekKey={group.key} />
+              )}
+              {group.posts.map((post) => {
+                const slot = toStampSlot(post, memberCount)
+                return (
+                  <div key={post.id} id={`class-post-${post.id}`} className="cn-sheet scroll-mt-32 rounded-2xl">
+                    <ClassPostCard
+                      post={post}
+                      isTeacher={isTeacher}
+                      memberCount={memberCount}
+                      onOpenComments={onOpenComments}
+                      onOpenChecks={onOpenChecks}
+                      onOpenRecitations={onOpenRecitations}
+                      onOpenRsvps={onOpenRsvps}
+                      onOpenPollDetail={onOpenPollDetail}
+                    />
+                    {slot?.classComplete && !post.is_scheduled && (
+                      <span
+                        aria-label={COMPLETE_STAMP[slot.kind]}
+                        className="cn-stamp cn-stamp-ink absolute z-[2] right-4 top-14 w-[60px] h-[60px] text-[10.5px]"
+                      >
+                        <span>
+                          <b className="block text-[16px] tabular-nums">{slot.target}</b>
+                          {COMPLETE_STAMP[slot.kind]}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           ))}
           {hasNextPage && (
             <div className="flex justify-center pt-2">

@@ -231,7 +231,7 @@ export const OFFERING_HERO: ThemePair = { light: '/images/offering/hero-light.we
 export const MISSION_HERO: ThemePair = { light: missionHeroLight, dark: missionHeroDark }
 /** /pastor/studio 설교 준비실 히어로 — 목양실 책상의 양 목사님(오른쪽 40%), 왼쪽은 글자 자리 */
 export const STUDIO_HERO: ThemePair = { light: studioHeroLight, dark: studioHeroDark }
-/** /classes 히어로 (class-hero.css) — 게시판 앞에 모인 우리 반 */
+/** /classes 히어로 + /classes/:id 반 표지 (class-hero.css) — 게시판 앞에 모인 우리 반 */
 export const CLASS_HERO: ThemePair = { light: classHeroLight, dark: classHeroDark }
 /** /thanks 오늘의 말씀 히어로 (Thanks.css) — 감사 항아리에 쪽지를 넣는 양 */
 export const THANKS_HERO: ThemePair = { light: thanksHeroLight, dark: thanksHeroDark }
@@ -362,7 +362,7 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/seats\/[^/]+$/, pairs: [SEATS_DETAIL] },
   { match: /^\/garden$/, pairs: [GARDEN_HERO] },
   { match: /^\/rooms$/, pairs: [ROOMS_HERO] },
-  { match: /^\/classes$/, pairs: [CLASS_HERO] },
+  { match: /^\/classes(\/\d+)?$/, pairs: [CLASS_HERO] },
   { match: /^\/thanks$/, pairs: [THANKS_HERO] },
   { match: /^\/growth$/, pairs: [GROWTH_HERO] },
   { match: /^\/capsule$/, pairs: [CAPSULE_HERO] },

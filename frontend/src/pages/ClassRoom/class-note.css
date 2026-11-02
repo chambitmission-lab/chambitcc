@@ -1,0 +1,121 @@
+/* 우리반 알림장 상세 — '도장 수첩 + 이번 주 공책' (2026-11 개편)
+   종이(줄 노트 + 빨간 여백선) · 마스킹 테이프 · 빨간 도장. 접두사 cn-.
+   손글씨는 Gaegu(ensureFontFamily('gaegu')) — 머리말·인사말 한 줄에만 쓴다(본문 가독성 유지). */
+
+:root {
+  --cn-paper: #fffdf7;
+  --cn-rule: rgba(49, 130, 246, 0.09);
+  --cn-margin: rgba(236, 112, 112, 0.38);
+  --cn-tape: rgba(255, 207, 92, 0.55);
+  --cn-stamp: #e03e45;
+  --cn-stamp-soft: rgba(224, 62, 69, 0.07);
+  --cn-ink: #152648;
+}
+
+.dark {
+  --cn-paper: #1b1d26;
+  --cn-rule: rgba(140, 180, 255, 0.07);
+  --cn-margin: rgba(255, 120, 130, 0.22);
+  --cn-tape: rgba(255, 207, 92, 0.18);
+  --cn-stamp: #ff7479;
+  --cn-stamp-soft: rgba(255, 116, 121, 0.08);
+  --cn-ink: #f4f6ff;
+}
+
+.cn-hand {
+  font-family: 'Gaegu', 'Nanum Pen Script', var(--font-sans, system-ui), cursive;
+}
+
+/* 줄 노트 한 장 — 왼쪽 빨간 여백선 */
+.cn-paper {
+  position: relative;
+  background-color: var(--cn-paper);
+  background-image: repeating-linear-gradient(180deg, transparent 0 27px, var(--cn-rule) 27px 28px);
+}
+.cn-paper::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--cn-margin);
+  pointer-events: none;
+}
+
+/* 피드 카드 위에 겹치는 여백선 — 카드 자체는 건드리지 않는다 */
+.cn-sheet {
+  position: relative;
+}
+.cn-sheet::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 14px;
+  bottom: 14px;
+  width: 1.5px;
+  border-radius: 1px;
+  background: var(--cn-margin);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cn-tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 76px;
+  height: 18px;
+  margin-left: -38px;
+  background: var(--cn-tape);
+  transform: rotate(3deg);
+  pointer-events: none;
+}
+
+/* 도장 — 원형 테두리 + 잉크 번짐 */
+.cn-stamp {
+  display: inline-grid;
+  place-items: center;
+  text-align: center;
+  border-radius: 9999px;
+  border: 2.5px solid var(--cn-stamp);
+  color: var(--cn-stamp);
+  background: radial-gradient(circle, var(--cn-stamp-soft), transparent 70%);
+  font-weight: 800;
+  line-height: 1.1;
+  transform: rotate(-14deg);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 아직 비어 있는 칸 */
+.cn-slot-empty {
+  border: 2px dashed rgba(139, 149, 161, 0.45);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cn-stamp-press {
+    animation: cn-press 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  }
+  @keyframes cn-press {
+    0% { transform: rotate(-14deg) scale(1.45); opacity: 0; }
+    60% { opacity: 1; }
+    100% { transform: rotate(-14deg) scale(1); opacity: 1; }
+  }
+  .cn-flash {
+    animation: cn-flash 1.6s ease-out;
+  }
+  @keyframes cn-flash {
+    0%, 30% { box-shadow: 0 0 0 3px var(--brand, #3182f6); border-radius: 1rem; }
+    100% { box-shadow: 0 0 0 0 transparent; border-radius: 1rem; }
+  }
+}
+
+/* 피드 카드 위에 찍힌 '모두 확인' 도장 — 종이에 찍힌 잉크처럼 글자 위에 겹친다 */
+.cn-stamp-ink {
+  opacity: 0.88;
+  mix-blend-mode: multiply;
+}
+.dark .cn-stamp-ink {
+  mix-blend-mode: screen;
+}
