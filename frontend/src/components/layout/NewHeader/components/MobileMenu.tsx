@@ -3,15 +3,14 @@ import { useQuery } from '@tanstack/react-query'
 import NavigationMenu from './NavigationMenu'
 import SettingsMenu from './SettingsMenu'
 import { Link } from 'react-router-dom'
-import { lazyModal } from '../../../../utils/lazyModal'
 import { isPastor } from '../../../../utils/access'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { Svg } from './NavIcons'
 import { safeStorage } from '../../../../utils/safeStorage'
 import { adminKeys } from '../../../../hooks/queryKeys'
 import { preloadRoute } from '../../../../utils/routePreload'
-// 관리자 메뉴(아이콘 세트 포함 18KB)는 관리자에게만 — 엔트리에서 분리
-const AdminMenu = lazyModal(() => import('./AdminMenu'))
+// 관리자 메뉴 lazy 인스턴스 — NewHeader 의 미리 받기와 공유 (adminMenuChunk.ts)
+import { AdminMenu } from './adminMenuChunk'
 
 // AdminMenu.tsx 의 OPEN_KEY 와 같은 값 — lazy 청크라 상수를 import 하지 않는다.
 // PC 에선 '마지막에 관리 탭을 보고 닫았는가' — 다시 열면 그 탭으로 돌아온다

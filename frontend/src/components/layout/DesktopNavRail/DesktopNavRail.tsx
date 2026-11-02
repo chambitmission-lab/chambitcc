@@ -417,6 +417,7 @@ const DesktopNavRail = () => {
 
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('chambit:open-menu'))}
+          onPointerEnter={() => window.dispatchEvent(new CustomEvent('chambit:warm-menu'))}
           aria-label={t('allMenu')}
           className="group relative w-12 h-12 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
         >

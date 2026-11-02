@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import { preloadMenuRoutes } from '../../../utils/routePreload'
+import { scheduleAfterFirstScreen } from '../../../utils/idlePreload'
 // 알림 모달은 종을 눌러야 열린다 — lazy 로 분리해 첫 로드에서 제외.
 // 다만 눌린 뒤에 받으면 도착까지 아무것도 안 떠서, 로그인 후 유휴 시간과 종 hover/pointerdown 에
 // 같은 로더로 미리 받아둔다 (loadNotificationModal 을 공유해야 청크가 하나다)
@@ -36,6 +37,7 @@ import chambiJoy from '../../chatbot/img/joy.webp'
 import HeaderTextScale from './components/HeaderTextScale'
 import { hasTextScale } from '../../../utils/textScaleRoutes'
 import MobileMenu from './components/MobileMenu'
+import { warmAdminMenu } from './components/adminMenuChunk'
 import { useDesktopRailVisible } from '../DesktopNavRail/useDesktopRailVisible'
 import { useMenuState } from './hooks/useMenuState'
 import { useHeaderScrolled } from './hooks/useHeaderScrolled'
@@ -85,13 +87,26 @@ const NewHeader = () => {
       setIsNotificationOpen(true)
     }
     const openMenu = () => setIsMenuOpen(true)
+    // 레일 ⋮ 에 마우스가 올라온 순간 — 누르기 전에 관리 메뉴 청크를 받아 둔다(관리자만 쓴다)
+    const warmMenu = () => {
+      if (isAdminUser) void warmAdminMenu()
+    }
     window.addEventListener('chambit:open-notifications', openFromRail)
     window.addEventListener('chambit:open-menu', openMenu)
+    window.addEventListener('chambit:warm-menu', warmMenu)
     return () => {
       window.removeEventListener('chambit:open-notifications', openFromRail)
       window.removeEventListener('chambit:open-menu', openMenu)
+      window.removeEventListener('chambit:warm-menu', warmMenu)
     }
-  }, [setIsMenuOpen])
+  }, [setIsMenuOpen, isAdminUser])
+
+  // 관리자는 메뉴를 열면 관리 탭이 먼저 뜰 수 있다 — 첫 화면이 끝난 뒤 유휴 시간에 청크를 받아 둔다.
+  // 메뉴 안에서 preload 하면 이미 늦다(열리고 나서 한 왕복 동안 빈 카드)
+  useEffect(() => {
+    if (!isAdminUser) return
+    return scheduleAfterFirstScreen(() => void warmAdminMenu(), { settleMs: 3000 })
+  }, [isAdminUser])
 
   // 알림 모달 청크는 로그인 사용자만 쓴다 — 첫 화면이 끝난 뒤 유휴 시간에 미리 받아둔다
   useEffect(() => {
@@ -106,18 +121,24 @@ const NewHeader = () => {
     setIsNotificationOpen(true)
   }
 
-  // 메뉴를 여는 순간 = 곧 이동한다는 신호 → 메뉴 페이지 청크를 미리 로드
+  // 메뉴를 여는 순간 = 곧 이동한다는 신호 → 메뉴 페이지 청크를 미리 로드.
+  // 단, 메뉴가 그려지고 pop-in(140ms)이 끝난 뒤 유휴 시간에 시작한다 — 여는 프레임에 바로 돌리면
+  // 청크 요청·모듈 평가가 메뉴 렌더와 같은 프레임을 다퉈 "눌렀는데 한 박자 늦게 뜨는" 체감이 됐다
+  // (2026-11-02 실측: 관리 패널 17ms → 128ms). 400ms 안에 닫히면 취소 — 누른 항목은 호버·터치가 따로 데운다.
   // (이미 받은 청크는 스킵되므로 유휴 프리로드와 중복돼도 비용 없음)
   useEffect(() => {
-    if (isMenuOpen) void preloadMenuRoutes()
+    if (!isMenuOpen) return
+    return scheduleAfterFirstScreen(() => void preloadMenuRoutes(), { settleMs: 400, idleTimeoutMs: 3000 })
   }, [isMenuOpen])
 
   return (
     <>
-      {/* Backdrop Blur Overlay — 하단 dock(z-100)까지 덮도록 dock보다 위 */}
+      {/* Backdrop Overlay — 하단 dock(z-100)까지 덮도록 dock보다 위.
+          블러는 4px: 전면 backdrop-filter 는 매 프레임 화면 전체를 읽어 흐리는 GPU 작업이라 12px 는
+          메뉴가 뜨는 첫 프레임을 무겁게 했다. 75% 검정 + 4px 면 뒤 본문 글자는 그대로 안 읽힌다(2026-11-02 비교) */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-md z-[101]"
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[101]"
           onClick={() => setIsMenuOpen(false)}
         />
       )}

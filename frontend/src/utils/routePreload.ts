@@ -359,12 +359,37 @@ export const preloadNavRoutes = (): Promise<void> => {
 // 청크를 전부 받은 뒤엔 즉시 돌아온다: 안 그러면 헤더 위를 지나갈 때마다 36개를 다시 훑으며
 // preloadRoute 가 staleTime 지난 데이터 선요청(/bible·/greeting·/bible/situation)을 재발사했다.
 // 특정 화면의 데이터를 데우는 건 그 항목을 호버할 때 preloadRoute(path) 하나만 한다.
+//
+// 청크 하나를 받을 때마다 유휴 틱을 한 번 기다린다 — 청크는 SW 캐시에서 0ms 에 오지만 모듈 평가는
+// 메인 스레드 작업이라, 연달아 붙으면 메뉴 pop-in·호버 말풍선·관리 패널 렌더를 밀었다
+// (2026-11-02 실측: 열자마자 JS 92개·CSS 28개·이미지 55개가 2초 안에 쏟아지며 84ms 롱태스크).
+// 스윕은 한 번에 하나만 돈다 — 헤더 호버와 메뉴 열기가 겹쳐 두 루프가 번갈아 돌지 않게.
+const nextIdle = (): Promise<void> =>
+  new Promise((resolve) => {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(() => resolve(), { timeout: 1000 })
+    } else {
+      window.setTimeout(resolve, 50)
+    }
+  })
+
 let menuChunksWarm = false
-export const preloadMenuRoutes = async (): Promise<void> => {
-  if (menuChunksWarm) return
+let menuSweep: Promise<void> | null = null
+export const preloadMenuRoutes = (): Promise<void> => {
+  if (menuChunksWarm) return Promise.resolve()
+  if (!menuSweep) {
+    menuSweep = runMenuSweep().finally(() => {
+      menuSweep = null
+    })
+  }
+  return menuSweep
+}
+
+const runMenuSweep = async (): Promise<void> => {
   // 비로그인: 공개 페이지만 순차로 (로그인하면 HomeGate 가 다시 마운트되며 전체 프리로드)
   if (!tokenStore.getAccess()) {
     for (const path of PUBLIC_MENU_ROUTES) {
+      await nextIdle()
       await preloadRoute(path, { idle: true })
     }
     return
@@ -373,6 +398,7 @@ export const preloadMenuRoutes = async (): Promise<void> => {
   await preloadNavRoutes()
   const all = [...NAV_ROUTES, ...Object.keys(menuRouteLoaders)]
   for (const path of all) {
+    await nextIdle()
     await preloadRoute(path, { idle: true })
   }
   // 실패(오프라인)한 청크가 있으면 다음 기회에 다시 돈다
