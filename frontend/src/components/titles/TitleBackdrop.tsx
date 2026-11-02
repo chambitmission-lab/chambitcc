@@ -63,6 +63,7 @@ const TITLE_BG: Record<string, string> = Object.fromEntries(
 const TITLE_BG_POSITION: Record<string, string> = {
   typing_jot_and_tittle: '50% 15%',
   typing_one_chapter: '50% 10%', // 치켜든 두루마리 윗끝이 원본 y≈72px
+  bible_conqueror: '50% 4%', // 치켜든 트로피 윗끝이 원본 y≈40px — 기본 25% 면 PC 에서 ~54px 잘림
 }
 
 /** 이 칭호에 커버 배너가 등록돼 있는지 — 프로필 스켈레톤이 배너 자리를 미리 잡을 때 쓴다 */
