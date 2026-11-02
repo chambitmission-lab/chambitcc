@@ -416,7 +416,11 @@ const Profile = () => {
 
         {/* 레벨업 축하 모먼트 */}
         {levelUp && (
-          <LevelUpMoment level={levelUp} onClose={() => setLevelUp(null)} />
+          <LevelUpMoment
+            level={levelUp}
+            pointsToNext={pointsToNext?.needed ?? null}
+            onClose={() => setLevelUp(null)}
+          />
         )}
 
         {/* 업적 모달 */}

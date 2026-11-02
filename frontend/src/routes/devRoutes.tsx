@@ -61,6 +61,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['read-again', () => import('../pages/dev/ReadAgainPreview')],
       // 전신갑주 토끼 — 단계·장비·표정별 지도 위(58px) / 내 토끼 히어로(200px)
       ['rabbit', () => import('../pages/dev/RabbitPreview')],
+      // 레벨업 축하 모먼트(키네틱 리소) — ?lv=8 로 레벨 지정, 닫으면 다시 열림
+      ['level-up', () => import('../pages/dev/LevelUpPreview')],
     ]
   : []
 
