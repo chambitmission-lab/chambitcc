@@ -5,6 +5,7 @@ import { ClipboardIcon } from './ClassIcons'
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  defaultAttendanceMonth,
   useClassAttendanceMonth,
   useClassDetail,
   useToggleClassAttendance,
@@ -44,7 +45,8 @@ const ClassAttendance = () => {
   const { classId } = useParams<{ classId: string }>()
   const id = Number(classId)
 
-  const [month, setMonth] = useState(() => fmtMonth(lastSunday()))
+  // 선요청(prefetchClassSubPage)과 같은 달이어야 캐시가 맞아떨어진다
+  const [month, setMonth] = useState(defaultAttendanceMonth)
   const [selected, setSelected] = useState(() => fmtDate(lastSunday()))
 
   const { data: cls } = useClassDetail(id, isAuthenticated())

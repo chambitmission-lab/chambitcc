@@ -1,6 +1,14 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
-import { groupDetailLoader, menuRouteLoaders, prayerTopicsLoader, thanksLoader } from '../utils/routePreload'
+import {
+  classAlbumLoader,
+  classAttendanceLoader,
+  classReportLoader,
+  groupDetailLoader,
+  menuRouteLoaders,
+  prayerTopicsLoader,
+  thanksLoader,
+} from '../utils/routePreload'
 
 // 나의 신앙·공동체 — 기도·감사·그룹·반·묵상방·동행·타임캡슐·손글씨 필사대회·게임/회상 화면
 
@@ -16,9 +24,9 @@ const JoinGroup = lazy(() => import('../pages/Groups/JoinGroup'))
 const ClassList = lazy(menuRouteLoaders['/classes'])
 const ClassHome = lazy(() => import('../pages/ClassRoom/ClassHome'))
 const JoinClass = lazy(() => import('../pages/ClassRoom/JoinClass'))
-const ClassReport = lazy(() => import('../pages/ClassRoom/ClassReport'))
-const ClassAttendance = lazy(() => import('../pages/ClassRoom/ClassAttendance'))
-const ClassAlbum = lazy(() => import('../pages/ClassRoom/ClassAlbum'))
+const ClassReport = lazy(classReportLoader)
+const ClassAttendance = lazy(classAttendanceLoader)
+const ClassAlbum = lazy(classAlbumLoader)
 const RoomList = lazy(() => import('../pages/Rooms/RoomList'))
 const RoomHome = lazy(() => import('../pages/Rooms/RoomHome'))
 const JoinRoom = lazy(() => import('../pages/Rooms/JoinRoom'))

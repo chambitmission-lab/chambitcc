@@ -17,6 +17,10 @@ export const sermonLabLoader: RouteLoader = () => import('../pages/Sermon/Sermon
 export const groupDetailLoader: RouteLoader = () => import('../pages/Groups/GroupDetail')
 // 일정 상세 — /events 히어로·어젠다 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
 export const eventDetailLoader: RouteLoader = () => import('../pages/Events/EventDetail')
+// 우리반 하위 화면 — 반 홈 '바로가기'·하위 레일 호버·터치 때 미리 받는다 (lazy 와 같은 함수 공유)
+export const classReportLoader: RouteLoader = () => import('../pages/ClassRoom/ClassReport')
+export const classAttendanceLoader: RouteLoader = () => import('../pages/ClassRoom/ClassAttendance')
+export const classAlbumLoader: RouteLoader = () => import('../pages/ClassRoom/ClassAlbum')
 
 // 홈 카드·성경 도크·메뉴 꼬리 링크로만 들어오는 화면 — 메뉴 카탈로그엔 없어 테이블에서 빠져 있었다.
 // 라우터가 전환을 startTransition 으로 돌려 청크가 올 때까지 이전 화면에 멈춰 보이던 곳들.
@@ -253,6 +257,11 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'capsule', match: /^\/capsule$/, load: () => import('../pages/Capsule/CapsuleList') },
   { key: 'classes/join', match: /^\/classes\/join\//, load: () => import('../pages/ClassRoom/JoinClass') },
   { key: 'classes/detail', match: /^\/classes\/[^/]+$/, load: () => import('../pages/ClassRoom/ClassHome') },
+  // 반 홈 '바로가기' 목적지 — 표에 없어 청크 프리로드가 무효였다. 라우터가 전환을 startTransition 으로
+  // 돌려 청크가 올 때까지 반 홈에 멈춰 보이던 곳 (데이터는 pages/ClassRoom/classSubPage 가 같은 순간 데운다)
+  { key: 'classes/report', match: /^\/classes\/[^/]+\/report$/, load: classReportLoader },
+  { key: 'classes/attendance', match: /^\/classes\/[^/]+\/attendance$/, load: classAttendanceLoader },
+  { key: 'classes/album', match: /^\/classes\/[^/]+\/album$/, load: classAlbumLoader },
   // 프로필 스토리 카드 목적지 — 메뉴 테이블에 없어 청크 프리로드 대상이 아니었다
   { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
   // 발자취 시범 화면 — 기존 /history 상단 배너로만 들어오므로 메뉴 프리로드에 넣지 않는다

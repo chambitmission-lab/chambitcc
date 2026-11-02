@@ -3,7 +3,8 @@ import { Lock } from '../../components/icons/phosphor'
 // 반 표지(게시판 앞 양 삽화) → 이번 주 공책(말씀 + 도장판) → 주별로 묶은 알림 피드(모두 확인 도장)
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useClassDetail, useClassPosts, useLeaveClass } from '../../hooks/useClassRoom'
+import { prefetchClassStars, useClassDetail, useClassPosts, useLeaveClass } from '../../hooks/useClassRoom'
+import { queryClient } from '../../config/queryClient'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import type { ClassDetail, ClassPost, ClassPostType } from '../../types/classRoom'
 import { isAuthenticated } from '../../utils/auth'
@@ -15,6 +16,7 @@ import ClassPostCard from './components/ClassPostCard'
 import ClassWeekNote from './components/ClassWeekNote'
 import { Avatar, DeptBadge, Shell } from './classUi'
 import { COMPLETE_STAMP, toStampSlot, weekKeyOf, weekLabel, weekRelative, type StampSlot } from './classWeek'
+import { goClassSubPage, warmClassSubPage, warmClassSubPageChunks, type ClassSubPage } from './classSubPage'
 import {
   BallotIcon,
   CalendarIcon,
@@ -110,6 +112,8 @@ const ClassHome = () => {
   const [recitePost, setRecitePost] = useState<ClassPost | null>(null)
   const [rsvpPost, setRsvpPost] = useState<ClassPost | null>(null)
   const [pollPost, setPollPost] = useState<ClassPost | null>(null)
+  // 바로가기 중 청크를 받는 중인 행 — 그 행 아이콘 자리에 스피너
+  const [pendingSub, setPendingSub] = useState<ClassSubPage | null>(null)
 
   const heroArtReady = useThemeArt(CLASS_HERO)
   // 이번 주 공책은 필터와 무관하게 '전체' 목록으로 계산한다 (필터 없는 피드와 같은 쿼리라 요청이 겹치지 않는다)
@@ -129,6 +133,17 @@ const ClassHome = () => {
       window.setTimeout(() => el.classList.remove('cn-flash'), 1700)
     }, 80)
   }, [])
+
+  // 바로가기 — 손이 닿으면 청크·첫 요청을 데우고, 누르면 받아둔 게 있을 때 즉시 간다
+  const warmSub = useCallback((page: ClassSubPage) => warmClassSubPage(id, page), [id])
+  const goSub = useCallback(
+    (page: ClassSubPage) => void goClassSubPage(id, page, navigate, setPendingSub),
+    [id, navigate],
+  )
+  const warmStars = useCallback(() => {
+    void loadStatusSheets()
+    prefetchClassStars(queryClient, id)
+  }, [id])
 
   // 교사: 도장 칸 → 응답 현황 시트(다시 알리기 포함)
   const openSlotStatus = useCallback((slot: StampSlot) => {
@@ -160,6 +175,22 @@ const ClassHome = () => {
     const handle = window.setTimeout(warm, 1500)
     return () => window.clearTimeout(handle)
   }, [])
+
+  // 바로가기 목적지 청크도 유휴 때 미리 — 반 정보가 와서 교사 여부를 알고 난 뒤 한 번.
+  // 세 청크 합쳐 20KB 남짓이라 첫 진입엔 부담이 없고, 누를 때 스피너 없이 바로 넘어간다
+  const hasCls = !!cls
+  const isTeacher = !!cls?.is_teacher
+  useEffect(() => {
+    if (!hasCls) return
+    const pages: ClassSubPage[] = isTeacher ? ['report', 'attendance', 'album'] : ['album']
+    const warm = () => warmClassSubPageChunks(pages, id)
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(warm, { timeout: 4000 })
+      return () => window.cancelIdleCallback(handle)
+    }
+    const handle = window.setTimeout(warm, 2500)
+    return () => window.clearTimeout(handle)
+  }, [id, hasCls, isTeacher])
 
   // '알림 쓰기' FAB가 떠 있는 동안 전역 챗봇 버튼을 위로 밀어 우하단 겹침을 막는다.
   // (VerseList·BookJourneyPath와 같은 --chat-fab-lift 문법 — 챗봇 쪽은 변수만 읽는다)
@@ -275,12 +306,12 @@ const ClassHome = () => {
             <div className="flex flex-col -mx-1">
               {cls.is_teacher && (
                 <>
-                  <RailAction icon={ChartIcon} label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
-                  <RailAction icon={ClipboardIcon} label="출석부" onClick={() => navigate(`/classes/${id}/attendance`)} />
+                  <RailAction icon={ChartIcon} label="리포트" pending={pendingSub === 'report'} onWarm={() => warmSub('report')} onClick={() => goSub('report')} />
+                  <RailAction icon={ClipboardIcon} label="출석부" pending={pendingSub === 'attendance'} onWarm={() => warmSub('attendance')} onClick={() => goSub('attendance')} />
                 </>
               )}
-              <RailAction icon={CameraIcon} label="앨범" onClick={() => navigate(`/classes/${id}/album`)} />
-              <RailAction icon={StarIcon} label="암송 별" onClick={() => setShowStars(true)} />
+              <RailAction icon={CameraIcon} label="앨범" pending={pendingSub === 'album'} onWarm={() => warmSub('album')} onClick={() => goSub('album')} />
+              <RailAction icon={StarIcon} label="암송 별" onWarm={warmStars} onClick={() => setShowStars(true)} />
               {!cls.is_teacher && (
                 <RailAction icon={SproutIcon} label="성장 카드" onClick={() => setShowGrowth(true)} />
               )}
@@ -352,12 +383,12 @@ const ClassHome = () => {
       <div className="lg:hidden flex gap-2 overflow-x-auto px-4 pt-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {cls.is_teacher && (
           <>
-            <QuickAction icon={ChartIcon} label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
-            <QuickAction icon={ClipboardIcon} label="출석부" onClick={() => navigate(`/classes/${id}/attendance`)} />
+            <QuickAction icon={ChartIcon} label="리포트" pending={pendingSub === 'report'} onWarm={() => warmSub('report')} onClick={() => goSub('report')} />
+            <QuickAction icon={ClipboardIcon} label="출석부" pending={pendingSub === 'attendance'} onWarm={() => warmSub('attendance')} onClick={() => goSub('attendance')} />
           </>
         )}
-        <QuickAction icon={CameraIcon} label="앨범" onClick={() => navigate(`/classes/${id}/album`)} />
-        <QuickAction icon={StarIcon} label="암송 별" onClick={() => setShowStars(true)} />
+        <QuickAction icon={CameraIcon} label="앨범" pending={pendingSub === 'album'} onWarm={() => warmSub('album')} onClick={() => goSub('album')} />
+        <QuickAction icon={StarIcon} label="암송 별" onWarm={warmStars} onClick={() => setShowStars(true)} />
         {!cls.is_teacher && (
           <QuickAction icon={SproutIcon} label="성장 카드" onClick={() => setShowGrowth(true)} />
         )}
@@ -455,22 +486,34 @@ const ClassHome = () => {
 }
 
 // ── 레일 바로가기 행 (lg+) — 가로 칩 대신 세로 목록 ──
-const RailAction = ({
-  icon: Icon,
-  label,
-  onClick,
-}: {
+// onWarm: 호버·터치·포커스 때 목적지 청크·데이터를 데운다. pending: 청크를 받는 중(아이콘 자리에 스피너)
+type ActionProps = {
   icon: IconFn
   label: string
   onClick: () => void
-}) => (
+  onWarm?: () => void
+  pending?: boolean
+}
+
+const Spinner = ({ size }: { size: number }) => (
+  <span
+    style={{ width: size, height: size }}
+    className="inline-block shrink-0 rounded-full border-2 border-brand/30 border-t-brand animate-spin"
+  />
+)
+
+const RailAction = ({ icon: Icon, label, onClick, onWarm, pending }: ActionProps) => (
   <button
     type="button"
     onClick={onClick}
+    onMouseEnter={onWarm}
+    onTouchStart={onWarm}
+    onFocus={onWarm}
+    aria-busy={pending}
     className="flex items-center gap-2.5 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
   >
     <span className="w-5 flex justify-center text-brand">
-      <Icon width={15} height={15} />
+      {pending ? <Spinner size={14} /> : <Icon width={15} height={15} />}
     </span>
     <span className="flex-1 min-w-0 truncate text-[12.5px] font-bold text-ink-strong">{label}</span>
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-400 dark:text-white/35">
@@ -480,21 +523,17 @@ const RailAction = ({
 )
 
 // ── 퀵 액션 칩 ──
-const QuickAction = ({
-  icon: Icon,
-  label,
-  onClick,
-}: {
-  icon: IconFn
-  label: string
-  onClick: () => void
-}) => (
+const QuickAction = ({ icon: Icon, label, onClick, onWarm, pending }: ActionProps) => (
   <button
     type="button"
     onClick={onClick}
+    onMouseEnter={onWarm}
+    onTouchStart={onWarm}
+    onFocus={onWarm}
+    aria-busy={pending}
     className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[12.5px] font-bold text-gray-700 dark:text-white/75 shadow-sm active:scale-95 transition-transform"
   >
-    <Icon width={14} height={14} className="shrink-0 text-brand" />
+    {pending ? <Spinner size={13} /> : <Icon width={14} height={14} className="shrink-0 text-brand" />}
     {label}
   </button>
 )

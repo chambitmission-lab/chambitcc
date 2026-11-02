@@ -21,6 +21,55 @@ import type {
 
 const PAGE_SIZE = 20
 
+/** 출석부가 처음 여는 달 — 가장 최근 주일(오늘이 주일이면 오늘)이 속한 "YYYY-MM". 선요청과 화면이 같은 값을 쓴다 */
+export const defaultAttendanceMonth = (): string => {
+  const d = new Date()
+  d.setDate(d.getDate() - d.getDay())
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+export type ClassSubPage = 'report' | 'attendance' | 'album'
+
+/**
+ * 하위 화면 첫 요청을 청크와 같은 순간에 데운다 — 반 홈 '바로가기'·하위 레일 호버·터치.
+ * 청크만 받아 두면 진입 시 "청크 → 렌더 → 요청" 직렬이 그대로 체감됐다.
+ * staleTime 은 각 훅과 같아 진입 직후 refetchOnMount 가 다시 받지 않는다.
+ */
+export const prefetchClassSubPage = (qc: QueryClient, classId: number, page: ClassSubPage): void => {
+  if (!(classId > 0)) return
+  if (page === 'report') {
+    void qc.prefetchQuery({
+      queryKey: classKeys.report(classId, 4),
+      queryFn: () => getClassReport(classId, 4),
+      staleTime: 1000 * 30,
+    })
+  } else if (page === 'attendance') {
+    const month = defaultAttendanceMonth()
+    void qc.prefetchQuery({
+      queryKey: classKeys.attendance(classId, month),
+      queryFn: () => getClassAttendanceMonth(classId, month),
+      staleTime: 1000 * 30,
+    })
+  } else {
+    void qc.prefetchInfiniteQuery({
+      queryKey: classKeys.posts(classId, 'photo'),
+      queryFn: () => listClassPosts(classId, 'photo', 0, PAGE_SIZE),
+      initialPageParam: 0,
+      staleTime: 1000 * 15,
+    })
+  }
+}
+
+/** 암송 별 시트 — 버튼에 손이 닿는 순간 랭킹을 데운다 (시트 청크는 반 홈이 유휴 때 이미 받아 둔다) */
+export const prefetchClassStars = (qc: QueryClient, classId: number): void => {
+  if (!(classId > 0)) return
+  void qc.prefetchQuery({
+    queryKey: classKeys.stars(classId),
+    queryFn: () => getClassStars(classId),
+    staleTime: 1000 * 30,
+  })
+}
+
 export const classKeys = {
   all: ['classRoom'] as const,
   list: () => [...classKeys.all, 'list'] as const,
