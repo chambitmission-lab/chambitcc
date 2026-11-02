@@ -139,7 +139,8 @@ const loadChosenTestament = (): Testament | null => {
 
 const loadViewMode = (): BookViewMode => {
   const saved = safeStorage.get(VIEW_MODE_KEY)
-  return saved === 'grid' || saved === 'list' ? saved : 'journey'
+  // 기본은 리스트형. 직접 고른 보기(지도·카드)는 저장돼 그대로 유지된다
+  return saved === 'journey' || saved === 'grid' ? saved : 'list'
 }
 
 // 분류 칩 — '전체' + 장르 구간. 장르 표(BOOK_GENRES)가 단일 출처라 여기엔 '전체' 칩만 따로 둔다
