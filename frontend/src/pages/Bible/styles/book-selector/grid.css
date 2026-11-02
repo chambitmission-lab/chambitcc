@@ -2,7 +2,7 @@
  * 큰 약어 카드 격자. 카드마다 오른쪽 위 표식 하나(완독 체크 / 진행 링 / 권 번호)만 두고,
  * 시선이 가야 할 곳은 "지금 읽는 책" 한 장 — 그 카드만 2×2로 키운다.
  *   다크  = 집중 기도 화면(CandleHero)의 유리컵 촛불 하나만 켜진 밤
- *   라이트 = 효과 없이 브랜드 테두리 + 장 칸 막대
+ *   라이트 = 양과 예수님이 함께 읽는 수채 삽화 + 하늘→풀빛 그라데이션 테두리
  * 완독 카드는 옅은 브랜드 면 + 체크로 조용히 물러난다(촛불·빛은 이 카드에 두지 않는다). */
 .books-grid {
   --bc-paper: var(--ig-primary-background);
@@ -209,8 +209,7 @@
   min-height: 14.5rem;
   padding: 1.1rem 1.15rem;
   gap: 1rem;
-  border: 2px solid var(--brand);
-  box-shadow: 0 10px 24px -14px rgba(49, 130, 246, 0.55);
+  /* 테두리·그림자는 아래 "함께 읽는 삽화" 블록에서 */
 }
 
 .book-hero__head,
@@ -328,80 +327,80 @@
   font-size: 1rem;
 }
 
-/* 라이트 전용 "다음 장 길잡이 쪽지" — 오른쪽 빈 곳에 이어 읽을 장 이야기 한 줄.
-   빛·그림 효과 없이 종이 쪽지 + 명조 한 줄. 흐름 밖(absolute)이라 늦게 떠도 카드가 밀리지 않는다.
-   카드가 좁으면(모바일 3열 격자의 2칸) 왼쪽 정보와 부딪히므로 그리지 않는다 */
+/* 라이트 전용 "함께 읽는 삽화" — 양과 예수님이 함께 말씀을 읽는 수채 그림을 오른쪽 아래에 앉히고,
+   왼쪽·위 가장자리만 흰 면으로 녹인다(글자 쪽은 흰 면 그대로).
+   테두리는 그림 속 하늘색 → 풀빛으로 흐르는 1.5px 그라데이션 라인(padding-box/border-box 두 겹 배경) */
 .book-hero {
   container-type: inline-size;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--bc-paper), var(--bc-paper)) padding-box,
+    linear-gradient(135deg, #bcd8ff 0%, #e6eefc 40%, #f3ecd6 70%, #cfe7b4 100%) border-box;
+  box-shadow: 0 12px 28px -16px rgba(80, 120, 170, 0.35);
 }
 
-.book-hero__brief {
+/* 다른 카드의 호버 테두리색이 그라데이션 라인을 덮지 않게 */
+@media (hover: hover) {
+  :root:not([data-theme="dark"]) .book-hero:hover {
+    border-color: transparent;
+    box-shadow: 0 14px 32px -16px rgba(80, 120, 170, 0.45);
+  }
+}
+
+.book-hero__art {
+  --fade-x: 28%;
+  --fade-y: 26%;
+  position: absolute;
+  z-index: 0;
+  right: 0;
+  bottom: 0;
+  width: 84%;
+  aspect-ratio: 3 / 2;
+  background: url('../../../../assets/bible/hero-reading-together.webp') center / cover no-repeat;
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 0%, #000 var(--fade-x)),
+    linear-gradient(180deg, transparent 0%, #000 var(--fade-y));
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent 0%, #000 var(--fade-x)),
+    linear-gradient(180deg, transparent 0%, #000 var(--fade-y));
+  mask-composite: intersect;
+  pointer-events: none;
+}
+
+/* 그림과 겹치지 않게 진행 막대는 짧게, 버튼은 그림 위에서도 또렷하게 */
+.book-hero__cells,
+.book-hero__track {
+  width: 40%;
+}
+
+.book-hero__name {
+  max-width: 54%;
+}
+
+.book-hero__cta {
+  box-shadow: 0 6px 14px -8px rgba(49, 130, 246, 0.7);
+}
+
+/* 좁은 카드(3열 격자의 2칸)는 그림이 글자 쪽으로 밀려오므로 더 넓게 녹인다 */
+@container (max-width: 329px) {
+  .book-hero__art {
+    width: 96%;
+    --fade-x: 42%;
+  }
+}
+
+[data-theme="dark"] .book-hero__art {
   display: none;
 }
 
-@container (min-width: 330px) {
-  .book-hero__brief {
-    position: absolute;
-    z-index: 1;
-    top: 3rem;
-    right: 1rem;
-    bottom: 1rem;
-    width: 40%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    padding: 0.8rem 0.8rem 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--brand) 12%, var(--bc-paper));
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--brand) 3%, var(--bc-paper));
-    text-align: left;
-    animation: book-hero-brief-in 0.4s ease-out both;
-  }
-
-  /* 쪽지를 붙인 테이프 한 조각 */
-  .book-hero__brief::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: 50%;
-    width: 2.1rem;
-    height: 0.7rem;
-    border-radius: 2px;
-    background: color-mix(in srgb, var(--brand) 15%, transparent);
-    transform: translateX(-50%) rotate(-3deg);
-  }
-
-  .book-hero__name {
-    max-width: 54%;
-  }
-
-  .book-hero__cells,
-  .book-hero__track {
-    width: 52%;
-  }
+[data-theme="dark"] .book-hero__cta {
+  box-shadow: none;
 }
 
-.book-hero__brief-label {
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--brand);
-}
-
-.book-hero__brief-text {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-  overflow: hidden;
-  font-family: var(--font-serif-kr);
-  font-size: 0.8rem;
-  line-height: 1.7;
-  color: var(--text-body, var(--ig-secondary-text));
-  word-break: keep-all;
-}
-
-@keyframes book-hero-brief-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+[data-theme="dark"] .book-hero__cells,
+[data-theme="dark"] .book-hero__track {
+  width: 64%;
 }
 
 /* 촛불은 다크 전용 — 라이트에선 그리지 않아 애니메이션도 돌지 않는다 */
@@ -432,11 +431,6 @@
   transform: scale(0.82);
   transform-origin: 100% 100%;
   pointer-events: none;
-}
-
-/* 다크는 촛불이 이 자리를 채운다 */
-[data-theme="dark"] .book-hero__brief {
-  display: none;
 }
 
 [data-theme="dark"] .book-hero__eyebrow {
@@ -478,7 +472,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .book-hero__eyebrow::before,
-  .book-hero__brief,
   .book-hero__candle * {
     animation: none !important;
   }

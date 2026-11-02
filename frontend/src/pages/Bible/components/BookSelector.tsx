@@ -21,7 +21,6 @@ import { BOOK_GENRES, genreStyle } from '../../../components/bible/bookGenre'
 import { aggregateRange, buildBookInfoMap, gaugeWidth, pctLabel } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
 import CandleHero from '../../PrayerFocus/CandleHero'
-import { loadBookBriefs, type LoadedBriefs } from '../data/chapterBriefs'
 import {
   BookOpen,
   ChartPieSlice,
@@ -48,37 +47,6 @@ type BookViewMode = 'journey' | 'grid' | 'list'
 // 격자 "지금 읽는 책" 카드의 장 칸 상한 — 넘으면 칸이 실처럼 가늘어져 막대로 그린다
 const HERO_CELL_MAX = 40
 
-/**
- * 라이트 히어로 오른쪽의 "다음 장 길잡이 쪽지" — 이어 읽을 장에서 벌어지는 일 한 줄.
- * 데이터는 읽기 화면의 오늘의 길잡이(chapterBriefs)를 그대로 쓴다(책 단위 청크, 캐시됨).
- * 흐름 밖(absolute)이라 늦게 떠도 카드가 밀리지 않는다. 다크·좁은 카드에선 CSS가 숨긴다.
- */
-const HeroBrief = ({ bookNumber, chapter }: { bookNumber: number; chapter: number }) => {
-  const [loadedFor, setLoadedFor] = useState<{ book: number; data: LoadedBriefs | null } | null>(null)
-  useEffect(() => {
-    let alive = true
-    loadBookBriefs(bookNumber)
-      .then((data) => {
-        if (alive) setLoadedFor({ book: bookNumber, data })
-      })
-      .catch(() => {
-        /* 청크 실패 시 쪽지 없이 기존 카드 그대로 */
-      })
-    return () => {
-      alive = false
-    }
-  }, [bookNumber])
-  const loaded = loadedFor?.book === bookNumber ? loadedFor.data : null
-  const text = loaded?.briefs[chapter]?.now
-  if (!loaded || !text) return null
-  const label = loaded.narrative ? `${chapter}장에서는` : `${chapter} · ${loaded.labels[1]}`
-  return (
-    <span className="book-hero__brief" aria-hidden="true">
-      <span className="book-hero__brief-label">{label}</span>
-      <span className="book-hero__brief-text">{text}</span>
-    </span>
-  )
-}
 // 작은 카드 진행 링 둘레 (r=10)
 const RING_LEN = 2 * Math.PI * 10
 
@@ -552,6 +520,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           <span className="book-hero__candle" aria-hidden="true">
             <CandleHero haloTint="#ffb05a" />
           </span>
+          {/* 라이트 전용 — 양과 예수님이 함께 말씀을 읽는 수채 삽화. 다크에선 CSS가 숨긴다 */}
+          <span className="book-hero__art" aria-hidden="true" />
           <span className="book-hero__head">
             <span className="book-hero__eyebrow">{t.nowReading}</span>
             <span className="book-hero__abbr">{abbrev}</span>
@@ -578,8 +548,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
               <span className="material-icons-round">arrow_forward</span>
             </span>
           </span>
-          {/* 라이트 전용 — 한국어 길잡이만 있으므로 영어 화면에선 그리지 않는다 */}
-          {language === 'ko' && <HeroBrief bookNumber={book.book_number} chapter={resumeChapter} />}
         </button>
       )
     }
