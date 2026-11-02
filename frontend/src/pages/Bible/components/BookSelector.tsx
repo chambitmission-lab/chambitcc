@@ -515,8 +515,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       const filled = readChapters ?? 0
       return (
         <button key={book.id} {...buttonProps} className="book-cell book-hero">
-          {/* 양과 예수님이 함께 말씀을 읽는 수채 삽화 — 라이트는 낮 풀밭, 다크는 밤 숲(CSS가 그림을 바꾼다) */}
-          <span className="book-hero__art" aria-hidden="true" />
           <span className="book-hero__head">
             <span className="book-hero__eyebrow">{t.nowReading}</span>
             <span className="book-hero__abbr">{abbrev}</span>

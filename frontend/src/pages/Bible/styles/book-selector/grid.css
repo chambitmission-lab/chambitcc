@@ -327,17 +327,15 @@
   font-size: 1rem;
 }
 
-/* "함께 읽는 삽화" — 양과 예수님이 함께 말씀을 읽는 수채 그림을 오른쪽 아래에 앉히고,
-   왼쪽·위 가장자리만 흰 면으로 녹인다(글자 쪽은 흰 면 그대로). 다크는 아래에서 밤 그림으로 바꾼다.
-   테두리는 그림 속 하늘색 → 풀빛으로 흐르는 1.5px 그라데이션 라인(padding-box/border-box 두 겹 배경) */
+/* "함께 읽는 삽화" — 양과 예수님이 함께 말씀을 읽는 수채 원본 그림을 카드 전체에 그대로 깐다
+   (가장자리 녹임·흐린 바탕·덧그린 하늘 없음 — 어색해진다는 피드백). 다크는 아래에서 밤 그림으로 바꾼다.
+   글자 쪽(왼쪽)만 옅은 흰 막, 테두리는 그림 속 하늘색 → 풀빛 1.5px 그라데이션 라인(padding-box/border-box 두 겹 배경) */
 .book-hero {
   container-type: inline-size;
   border: 1.5px solid transparent;
-  /* 바탕 = 같은 그림을 크게 흐려 깐 면 — 선명한 그림이 녹아드는 자리도 흰 여백 없이 하늘·풀빛으로 채운다.
-     글자 쪽(왼쪽)만 흰 빛을 살짝 더 얹어 또렷하게 */
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.2) 45%, rgba(255, 255, 255, 0) 70%) padding-box,
-    url('../../../../assets/bible/hero-reading-together-soft.webp') center / cover no-repeat padding-box,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.28) 38%, rgba(255, 255, 255, 0) 62%) padding-box,
+    url('../../../../assets/bible/hero-reading-together.webp') 62% 100% / cover no-repeat padding-box,
     linear-gradient(135deg, #bcd8ff 0%, #e6eefc 40%, #f3ecd6 70%, #cfe7b4 100%) border-box;
   box-shadow: 0 12px 28px -16px rgba(80, 120, 170, 0.35);
 }
@@ -348,27 +346,6 @@
     border-color: transparent;
     box-shadow: 0 14px 32px -16px rgba(80, 120, 170, 0.45);
   }
-}
-
-.book-hero__art {
-  --fade-x: 28%;
-  --fade-y: 26%;
-  position: absolute;
-  z-index: 0;
-  right: 0;
-  bottom: 0;
-  width: 84%;
-  aspect-ratio: 3 / 2;
-  background: url('../../../../assets/bible/hero-reading-together.webp') center / cover no-repeat;
-  -webkit-mask-image:
-    linear-gradient(90deg, transparent 0%, #000 var(--fade-x)),
-    linear-gradient(180deg, transparent 0%, #000 var(--fade-y));
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(90deg, transparent 0%, #000 var(--fade-x)),
-    linear-gradient(180deg, transparent 0%, #000 var(--fade-y));
-  mask-composite: intersect;
-  pointer-events: none;
 }
 
 /* 그림과 겹치지 않게 진행 막대는 짧게, 버튼은 그림 위에서도 또렷하게 */
@@ -393,13 +370,8 @@
   }
 }
 
-/* 좁은 카드(3열 격자의 2칸)는 그림이 글자 쪽으로 밀려오므로 더 넓게 녹이고 막대도 더 짧게 */
+/* 좁은 카드(3열 격자의 2칸)는 그림이 글자 쪽으로 밀려오므로 막대를 더 짧게 */
 @container (max-width: 329px) {
-  .book-hero__art {
-    width: 96%;
-    --fade-x: 42%;
-  }
-
   .book-hero__cells,
   .book-hero__track {
     width: 20%;
@@ -419,11 +391,6 @@
   box-shadow:
     0 16px 40px -18px rgba(110, 100, 220, 0.45),
     0 10px 26px -10px rgba(0, 0, 0, 0.8);
-}
-
-/* 다크는 바탕이 곧 그림이라 따로 얹는 그림 층은 쓰지 않는다 */
-[data-theme="dark"] .book-hero__art {
-  display: none;
 }
 
 /* 그림 위에서도 글자가 또렷하게 */
