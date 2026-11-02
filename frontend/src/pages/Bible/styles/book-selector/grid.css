@@ -421,8 +421,9 @@
     radial-gradient(1px 1px at 8% 38%, rgba(255, 255, 255, 0.45), transparent 100%) padding-box,
     radial-gradient(1px 1px at 34% 42%, rgba(255, 255, 255, 0.4), transparent 100%) padding-box,
     /* 그림 속 지평선의 보랏빛 노을이 카드 바탕으로 이어지게 */
-    radial-gradient(70% 55% at 72% 62%, rgba(120, 96, 190, 0.32) 0%, rgba(120, 96, 190, 0) 70%) padding-box,
-    linear-gradient(180deg, #080c1c 0%, #10152e 38%, #1a1d3d 64%, #142630 86%, #0f1f22 100%) padding-box,
+    radial-gradient(80% 60% at 70% 55%, rgba(132, 110, 200, 0.38) 0%, rgba(132, 110, 200, 0) 72%) padding-box,
+    /* 그림 속 하늘(남보라)과 같은 밝기로 — 바탕이 더 어두우면 그림 위쪽이 검게 꺼져 보인다 */
+    linear-gradient(180deg, #1c2346 0%, #2a3062 40%, #353670 62%, #223a4a 85%, #16282c 100%) padding-box,
     linear-gradient(135deg, #6f63c9 0%, #3a3f7a 40%, #2f6f78 75%, #7fc9a8 100%) border-box;
   color: #fff;
   box-shadow:
@@ -431,6 +432,8 @@
 }
 
 [data-theme="dark"] .book-hero__art {
+  /* 위쪽은 짧게만 녹여 예수님 머리 위 하늘·별이 살아 있게 */
+  --fade-y: 10%;
   background-image: url('../../../../assets/bible/hero-reading-together-night.webp');
 }
 
