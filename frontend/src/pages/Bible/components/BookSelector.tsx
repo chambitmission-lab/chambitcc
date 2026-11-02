@@ -992,7 +992,12 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           </div>
 
           {showMap && (
-            <BibleProgressMap books={books} infoMap={infoMap} onBookSelect={handleMapSelect} />
+            <BibleProgressMap
+              books={books}
+              infoMap={infoMap}
+              onBookSelect={handleMapSelect}
+              currentBookNumber={currentBookNumber}
+            />
           )}
         </section>
       )}
