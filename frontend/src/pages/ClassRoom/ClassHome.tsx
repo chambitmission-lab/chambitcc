@@ -516,17 +516,13 @@ const groupByWeek = (posts: ClassPost[]): FeedGroup[] => {
   return groups
 }
 
-const WeekDivider = ({ weekKey }: { weekKey: number }) => {
+const WeekDivider = ({ weekKey, count }: { weekKey: number; count: number }) => {
   const rel = weekRelative(weekKey)
   return (
-    <div className="flex items-center gap-2 px-1 pt-3">
-      <h3 className="cn-hand shrink-0 text-[21px] leading-none font-bold text-ink-strong">{weekLabel(weekKey)}</h3>
-      {rel && (
-        <span className="shrink-0 px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand text-[10.5px] font-bold">
-          {rel}
-        </span>
-      )}
-      <span aria-hidden className="flex-1 border-t border-dashed border-gray-300/80 dark:border-white/[0.12]" />
+    <div className="flex items-baseline gap-2 px-1 pt-4 first:pt-1">
+      <h3 className="text-[15px] font-extrabold tracking-[-0.01em] text-ink-strong">{rel ?? weekLabel(weekKey)}</h3>
+      {rel && <span className="text-[12px] font-semibold text-gray-400 dark:text-white/40">{weekLabel(weekKey)}</span>}
+      <span className="ml-auto text-[11.5px] font-semibold tabular-nums text-gray-400 dark:text-white/40">알림 {count}</span>
     </div>
   )
 }
@@ -577,17 +573,17 @@ const Feed = ({
           {groupByWeek(posts).map((group) => (
             <div key={group.key} className="space-y-3">
               {group.pinned ? (
-                <p className="flex items-center gap-1.5 px-1 pt-1 text-[12px] font-bold text-brand">
-                  <PinIcon width={13} height={13} />
+                <p className="flex items-center gap-1.5 px-1 pt-1 text-[15px] font-extrabold tracking-[-0.01em] text-ink-strong">
+                  <PinIcon width={14} height={14} className="text-brand" />
                   고정된 알림
                 </p>
               ) : (
-                <WeekDivider weekKey={group.key} />
+                <WeekDivider weekKey={group.key} count={group.posts.length} />
               )}
               {group.posts.map((post) => {
                 const slot = toStampSlot(post, memberCount)
                 return (
-                  <div key={post.id} id={`class-post-${post.id}`} className="cn-sheet scroll-mt-32 rounded-2xl">
+                  <div key={post.id} id={`class-post-${post.id}`} className="scroll-mt-32 rounded-2xl">
                     <ClassPostCard
                       post={post}
                       isTeacher={isTeacher}
@@ -597,18 +593,10 @@ const Feed = ({
                       onOpenRecitations={onOpenRecitations}
                       onOpenRsvps={onOpenRsvps}
                       onOpenPollDetail={onOpenPollDetail}
+                      completeLabel={
+                        slot?.classComplete && !post.is_scheduled ? COMPLETE_STAMP[slot.kind] : undefined
+                      }
                     />
-                    {slot?.classComplete && !post.is_scheduled && (
-                      <span
-                        aria-label={COMPLETE_STAMP[slot.kind]}
-                        className="cn-stamp cn-stamp-ink absolute z-[2] right-4 top-14 w-[60px] h-[60px] text-[10.5px]"
-                      >
-                        <span>
-                          <b className="block text-[16px] tabular-nums">{slot.target}</b>
-                          {COMPLETE_STAMP[slot.kind]}
-                        </span>
-                      </span>
-                    )}
                   </div>
                 )
               })}

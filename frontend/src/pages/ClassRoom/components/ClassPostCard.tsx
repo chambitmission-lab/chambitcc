@@ -51,6 +51,8 @@ interface ClassPostCardProps {
   onOpenRecitations: (post: ClassPost) => void
   onOpenRsvps: (post: ClassPost) => void
   onOpenPollDetail: (post: ClassPost) => void
+  /** 반 전원이 응답한 글 — 헤더 배지 줄에 '모두 확인' 같은 완료 표시(우리반 상세 피드) */
+  completeLabel?: string
 }
 
 const ClassPostCard = ({
@@ -62,6 +64,7 @@ const ClassPostCard = ({
   onOpenRecitations,
   onOpenRsvps,
   onOpenPollDetail,
+  completeLabel,
 }: ClassPostCardProps) => {
   const deletePost = useDeleteClassPost(post.class_id)
   const updatePost = useUpdateClassPost(post.class_id)
@@ -131,6 +134,15 @@ const ClassPostCard = ({
               <meta.icon width={10} height={10} />
               {meta.label}
             </span>
+            {completeLabel && (
+              <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10.5px] font-bold leading-none bg-[var(--cn-stamp-soft,rgba(224,62,69,0.08))] text-[var(--cn-stamp,#e03e45)]">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <circle cx="12" cy="12" r="9.5" />
+                  <path d="m7.8 12.3 2.8 2.8 5.6-5.8" />
+                </svg>
+                {completeLabel}
+              </span>
+            )}
           </div>
           <span className="block text-[11px] text-gray-400 dark:text-white/40 mt-0.5">
             {timeAgo(post.created_at)}

@@ -13,10 +13,11 @@
 }
 
 .dark {
-  --cn-paper: #1b1d26;
-  --cn-rule: rgba(140, 180, 255, 0.07);
-  --cn-margin: rgba(255, 120, 130, 0.22);
-  --cn-tape: rgba(255, 207, 92, 0.18);
+  /* 다크: 페이지 바탕(무채색)과 같은 계열의 한 단 밝은 면. 푸른 기·밝은 줄은 '모눈 화면'처럼 보여 뺀다 */
+  --cn-paper: #1c1c1e;
+  --cn-rule: rgba(255, 255, 255, 0.028);
+  --cn-margin: rgba(255, 120, 130, 0.16);
+  --cn-tape: rgba(255, 214, 120, 0.30);
   --cn-stamp: #ff7479;
   --cn-stamp-soft: rgba(255, 116, 121, 0.08);
   --cn-ink: #f4f6ff;
@@ -43,21 +44,28 @@
   pointer-events: none;
 }
 
-/* 피드 카드 위에 겹치는 여백선 — 카드 자체는 건드리지 않는다 */
-.cn-sheet {
-  position: relative;
+/* 말씀 카드 — 불투명 종이(줄 노트 줄이 비치지 않게) */
+.cn-verse-card {
+  background: #fffbeb;
+  box-shadow: 0 10px 22px -18px rgba(120, 80, 0, 0.6);
 }
-.cn-sheet::before {
-  content: '';
-  position: absolute;
-  left: 9px;
-  top: 14px;
-  bottom: 14px;
-  width: 1.5px;
-  border-radius: 1px;
-  background: var(--cn-margin);
-  pointer-events: none;
-  z-index: 1;
+.dark .cn-verse-card {
+  /* 다크 카드 합의: 솔리드 + 미세 그라데이션 + 위쪽 1px 빛줄 */
+  background: linear-gradient(180deg, #2b2519, #241f16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 160, 0.10),
+    0 0 0 1px rgba(255, 214, 120, 0.08),
+    0 14px 26px -18px rgba(0, 0, 0, 0.8);
+}
+
+.dark .cn-paper {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 40%),
+    repeating-linear-gradient(180deg, transparent 0 27px, var(--cn-rule) 27px 28px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 18px 34px -26px rgba(0, 0, 0, 0.9);
 }
 
 .cn-tape {
@@ -109,13 +117,4 @@
     0%, 30% { box-shadow: 0 0 0 3px var(--brand, #3182f6); border-radius: 1rem; }
     100% { box-shadow: 0 0 0 0 transparent; border-radius: 1rem; }
   }
-}
-
-/* 피드 카드 위에 찍힌 '모두 확인' 도장 — 종이에 찍힌 잉크처럼 글자 위에 겹친다 */
-.cn-stamp-ink {
-  opacity: 0.88;
-  mix-blend-mode: multiply;
-}
-.dark .cn-stamp-ink {
-  mix-blend-mode: screen;
 }

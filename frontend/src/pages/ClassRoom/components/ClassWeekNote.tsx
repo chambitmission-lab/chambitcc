@@ -227,14 +227,14 @@ const VerseBlock = ({
 
   return (
     <>
-    <div className="relative mt-2 rounded-[4px] bg-amber-50/90 dark:bg-amber-300/[0.07] px-4 pt-5 pb-3.5 -rotate-[0.6deg] shadow-[0_10px_22px_-18px_rgba(120,80,0,0.6)]">
+    <div className="relative mt-2 cn-verse-card rounded-[4px] px-4 pt-5 pb-3.5 -rotate-[0.6deg]">
       <span className="cn-tape" aria-hidden />
       <p className="flex items-center gap-1.5 text-[11px] font-extrabold tracking-[0.04em] text-amber-700 dark:text-amber-300">
         <OpenBookIcon width={12} height={12} />
         {isThisWeek ? '이번 주 말씀' : '지금 외우는 말씀'}
         {verse.week_label && <span className="font-bold opacity-80">· {verse.week_label}</span>}
       </p>
-      <blockquote className="font-serif-kr text-[18.5px] leading-[1.7] font-medium text-gray-900 dark:text-white/92 mt-2 break-keep [text-wrap:balance]">
+      <blockquote className="font-serif-kr text-[18.5px] leading-[1.7] font-medium text-gray-900 dark:text-[#f6efe0] mt-2 break-keep [text-wrap:balance]">
         “{verse.text}”
       </blockquote>
       <p className="text-[12px] font-bold text-amber-700 dark:text-amber-300 mt-1 text-right">{verse.reference}</p>
