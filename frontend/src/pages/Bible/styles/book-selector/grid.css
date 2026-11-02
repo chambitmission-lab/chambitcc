@@ -1,7 +1,7 @@
 /* ── 책 카드 격자 ─────────────────────
  * 큰 약어 카드 격자. 카드마다 오른쪽 위 표식 하나(완독 체크 / 진행 링 / 권 번호)만 두고,
  * 시선이 가야 할 곳은 "지금 읽는 책" 한 장 — 그 카드만 2×2로 키운다.
- *   다크  = 집중 기도 화면(CandleHero)의 유리컵 촛불 하나만 켜진 밤
+ *   다크  = 같은 장면의 밤 숲 삽화 + 보라→청록 밤하늘 테두리
  *   라이트 = 양과 예수님이 함께 읽는 수채 삽화 + 하늘→풀빛 그라데이션 테두리
  * 완독 카드는 옅은 브랜드 면 + 체크로 조용히 물러난다(촛불·빛은 이 카드에 두지 않는다). */
 .books-grid {
@@ -327,8 +327,8 @@
   font-size: 1rem;
 }
 
-/* 라이트 전용 "함께 읽는 삽화" — 양과 예수님이 함께 말씀을 읽는 수채 그림을 오른쪽 아래에 앉히고,
-   왼쪽·위 가장자리만 흰 면으로 녹인다(글자 쪽은 흰 면 그대로).
+/* "함께 읽는 삽화" — 양과 예수님이 함께 말씀을 읽는 수채 그림을 오른쪽 아래에 앉히고,
+   왼쪽·위 가장자리만 흰 면으로 녹인다(글자 쪽은 흰 면 그대로). 다크는 아래에서 밤 그림으로 바꾼다.
    테두리는 그림 속 하늘색 → 풀빛으로 흐르는 1.5px 그라데이션 라인(padding-box/border-box 두 겹 배경) */
 .book-hero {
   container-type: inline-size;
@@ -406,47 +406,32 @@
   }
 }
 
+/* ── 다크: 같은 장면의 밤 숲 ──
+   라이트와 같은 구조(그림 오른쪽 아래 + 빈 곳은 밤하늘을 흐리게 깐 바탕), 테두리는 보라→청록 밤하늘 라인 */
+[data-theme="dark"] .book-hero {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(90deg, rgba(8, 10, 22, 0.55) 0%, rgba(8, 10, 22, 0.2) 45%, rgba(8, 10, 22, 0) 70%) padding-box,
+    url('../../../../assets/bible/hero-reading-together-night-soft.webp') center / cover no-repeat padding-box,
+    linear-gradient(135deg, #6f63c9 0%, #3a3f7a 40%, #2f6f78 75%, #7fc9a8 100%) border-box;
+  color: #fff;
+  box-shadow:
+    0 16px 40px -18px rgba(110, 100, 220, 0.45),
+    0 10px 26px -10px rgba(0, 0, 0, 0.8);
+}
+
 [data-theme="dark"] .book-hero__art {
-  display: none;
+  background-image: url('../../../../assets/bible/hero-reading-together-night.webp');
+}
+
+/* 그림 위에서도 글자가 또렷하게 */
+[data-theme="dark"] .book-hero__abbr,
+[data-theme="dark"] .book-hero__name {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
 }
 
 [data-theme="dark"] .book-hero__cta {
   box-shadow: none;
-}
-
-[data-theme="dark"] .book-hero__cells,
-[data-theme="dark"] .book-hero__track {
-  width: 64%;
-}
-
-/* 촛불은 다크 전용 — 라이트에선 그리지 않아 애니메이션도 돌지 않는다 */
-.book-hero__candle {
-  display: none;
-}
-
-/* ── 다크: 촛불 하나만 켜진 밤 ──
-   CandleHero(224px 정사각)를 오른쪽 아래 기준으로 줄여 카드 안에 세운다 */
-[data-theme="dark"] .book-hero {
-  background: radial-gradient(120% 90% at 78% 70%, #1d2236 0%, #121726 55%, #0c0f1a 100%);
-  border: 1px solid rgba(255, 190, 110, 0.14);
-  color: #fff;
-  box-shadow:
-    0 0 0 1px rgba(255, 190, 110, 0.05),
-    0 18px 44px -16px rgba(255, 150, 60, 0.32),
-    0 10px 26px -10px rgba(0, 0, 0, 0.8);
-}
-
-[data-theme="dark"] .book-hero__candle {
-  display: block;
-  position: absolute;
-  z-index: 0;
-  right: -6px;
-  bottom: -14px;
-  width: 224px;
-  height: 224px;
-  transform: scale(0.82);
-  transform-origin: 100% 100%;
-  pointer-events: none;
 }
 
 [data-theme="dark"] .book-hero__eyebrow {
@@ -479,16 +464,8 @@
   box-shadow: inset 0 0 0 1.5px #ffc46e;
 }
 
-/* 좁은 화면 — 2열이라 2×2 카드는 한 줄을 다 쓴다. 촛불은 조금 더 작게 */
-@media (max-width: 480px) {
-  [data-theme="dark"] .book-hero__candle {
-    transform: scale(0.72);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .book-hero__eyebrow::before,
-  .book-hero__candle * {
+  .book-hero__eyebrow::before {
     animation: none !important;
   }
 }

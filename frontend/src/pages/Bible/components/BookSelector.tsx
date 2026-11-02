@@ -20,7 +20,6 @@ import { useBookIntroPeek, type PeekBook } from '../../../components/bible/BookI
 import { BOOK_GENRES, genreStyle } from '../../../components/bible/bookGenre'
 import { aggregateRange, buildBookInfoMap, gaugeWidth, pctLabel } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
-import CandleHero from '../../PrayerFocus/CandleHero'
 import {
   BookOpen,
   ChartPieSlice,
@@ -516,11 +515,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       const filled = readChapters ?? 0
       return (
         <button key={book.id} {...buttonProps} className="book-cell book-hero">
-          {/* 다크에서만 보이는 촛불 — 라이트에선 CSS가 숨겨 애니메이션도 돌지 않는다 */}
-          <span className="book-hero__candle" aria-hidden="true">
-            <CandleHero haloTint="#ffb05a" />
-          </span>
-          {/* 라이트 전용 — 양과 예수님이 함께 말씀을 읽는 수채 삽화. 다크에선 CSS가 숨긴다 */}
+          {/* 양과 예수님이 함께 말씀을 읽는 수채 삽화 — 라이트는 낮 풀밭, 다크는 밤 숲(CSS가 그림을 바꾼다) */}
           <span className="book-hero__art" aria-hidden="true" />
           <span className="book-hero__head">
             <span className="book-hero__eyebrow">{t.nowReading}</span>
