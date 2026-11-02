@@ -1,8 +1,10 @@
 // /groups 목록의 가사 카드 — D3(Spotify 가사 화면) + D1(성구 한 단어 커버)
 // 방 색 판 위에 그 방 테마의 한 단어를 크게 박고, 식구들이 올린 최근 기도가 가사처럼 한 줄씩 밝아진다.
 // 판·글자 색의 라이트/다크 차이는 theme.css 의 --gl-* 토큰이 맡는다(myGroupsList.css 참고).
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import { fill } from '../../../utils/fill'
 import type { GroupRecentPrayer, PrayerGroup } from '../../../types/prayer'
 import { groupKeyword, keywordSize, roomStyle, verseRef } from '../utils/groupKeyword'
 import { timeAgo as relativeTime } from '../../../utils/dateUtils'
@@ -69,30 +71,33 @@ const useLyricIndex = (count: number) => {
   return { ref, index: count ? tick % count : 0 }
 }
 
-const lineMeta = (p: GroupRecentPrayer) => {
-  const parts = [p.is_anonymous ? '익명' : p.author_name]
+type T = ReturnType<typeof useLanguage>['t']
+
+const lineMeta = (p: GroupRecentPrayer, t: T) => {
+  const parts = [p.is_anonymous ? t('roomAnonymous') : p.author_name]
   const ago = relativeTime(p.created_at, { maxDays: 30 })
   if (ago) parts.push(ago)
-  if (p.is_answered) parts.push('응답받은 기도')
-  else if (p.prayed_count > 0) parts.push(`${p.prayed_count}명 함께 기도`)
+  if (p.is_answered) parts.push(t('roomAnswered'))
+  else if (p.prayed_count > 0) parts.push(fill(t('roomPrayedTogether'), { count: p.prayed_count }))
   return parts.join(' · ')
 }
 
 // 구버전 백엔드(recent_prayers 없음)·빈 방에서 가사 자리를 채우는 한 줄
-const fallbackLine = (g: PrayerGroup) => {
-  if (g.recent_prayers == null) return g.description?.trim() || '방에 들어가 식구들의 기도를 확인해 보세요'
-  return '아직 올라온 기도가 없어요'
+const fallbackLine = (g: PrayerGroup, t: T) => {
+  if (g.recent_prayers == null) return g.description?.trim() || t('roomEmptyLegacy')
+  return t('roomEmpty')
 }
 
 export const LyricLines = ({ group, max = 3 }: { group: PrayerGroup; max?: number }) => {
+  const { t } = useLanguage()
   const prayers = (group.recent_prayers ?? []).slice(0, max)
   const { ref, index } = useLyricIndex(prayers.length)
   if (!prayers.length) {
     return (
       <div className="gl-lines">
         <p className="gl-line is-quiet">
-          {fallbackLine(group)}
-          {group.recent_prayers != null && <span className="gl-line-meta">첫 줄을 남겨 주면 식구들이 함께 기도해요</span>}
+          {fallbackLine(group, t)}
+          {group.recent_prayers != null && <span className="gl-line-meta">{t('roomEmptyHint')}</span>}
         </p>
       </div>
     )
@@ -102,7 +107,7 @@ export const LyricLines = ({ group, max = 3 }: { group: PrayerGroup; max?: numbe
       {prayers.map((p, i) => (
         <p key={p.id} className={`gl-line ${i < index ? 'is-past' : i === index ? 'is-on' : ''}`}>
           {p.text}
-          <span className="gl-line-meta">{lineMeta(p)}</span>
+          <span className="gl-line-meta">{lineMeta(p, t)}</span>
         </p>
       ))}
     </div>
@@ -111,30 +116,32 @@ export const LyricLines = ({ group, max = 3 }: { group: PrayerGroup; max?: numbe
 
 // ── 상태 줄 ─────────────────────────────────────────
 export const RoomStatus = ({ group }: { group: PrayerGroup }) => {
+  const { t } = useLanguage()
   const hasSignals = group.checkins_today != null
   const newP = group.new_prayers_week ?? 0
   return (
     <span className="gl-sub">
-      {newP > 0 && <span className="gl-new">새 기도 {newP}</span>}
+      {newP > 0 && <span className="gl-new">{fill(t('roomNewPrayers'), { count: newP })}</span>}
       {group.my_checked_in_today && (
         <span className="inline-flex items-center gap-1">
-          <CheckGlyph /> 오늘 기도함 ·
+          <CheckGlyph /> {t('roomPrayedToday')} ·
         </span>
       )}
       <span>
         {hasSignals
-          ? `오늘 ${group.checkins_today ?? 0}/${group.member_count}명`
-          : `${group.member_count}명`}
+          ? fill(t('roomTodayCount'), { today: group.checkins_today ?? 0, total: group.member_count })
+          : fill(t('roomMemberCount'), { count: group.member_count })}
       </span>
     </span>
   )
 }
 
 export const TodayFaces = ({ group, size = 24 }: { group: PrayerGroup; size?: number }) => {
+  const { t } = useLanguage()
   const faces = group.today_faces ?? []
   if (!faces.length) return null
   return (
-    <span className="gl-faces" style={{ '--s': `${size}px` } as CSSProperties} aria-label={`오늘 기도한 식구 ${faces.map((f) => f.name).join(', ')}`}>
+    <span className="gl-faces" style={{ '--s': `${size}px` } as CSSProperties} aria-label={fill(t('roomFacesAria'), { names: faces.map((f) => f.name).join(', ') })}>
       {faces.map((f, i) => (
         <span key={`${f.name}-${i}`} className="gl-face">
           {f.avatar_url ? <img src={f.avatar_url} alt="" loading="lazy" /> : f.name.slice(0, 1)}
@@ -191,7 +198,11 @@ const cardKeyDown = (fn: () => void) => (e: KeyboardEvent) => {
 }
 
 // ── 모바일 hero (맨 위, 펼친 방) ────────────────────────
-export const RoomHeroCard = ({ group, onWarm }: { group: PrayerGroup; onWarm?: () => void }) => {
+/** 상세 prefetch 손잡이 — 호버(머문 뒤)·떠남(취소)·누름(즉시)을 한 핸들러가 이벤트 종류로 가른다(MyGroups.warmOnPointer) */
+type WarmHandler = (e: ReactPointerEvent<HTMLElement>) => void
+
+export const RoomHeroCard = ({ group, onWarm }: { group: PrayerGroup; onWarm?: WarmHandler }) => {
+  const { t } = useLanguage()
   const a = useRoomActions(group)
   const verse = group.theme_verse?.text
   return (
@@ -200,10 +211,11 @@ export const RoomHeroCard = ({ group, onWarm }: { group: PrayerGroup; onWarm?: (
       style={roomStyle(group)}
       role="link"
       tabIndex={0}
-      aria-label={`${group.name} 들어가기`}
+      aria-label={fill(t('roomEnterAria'), { name: group.name })}
       onClick={a.open}
       onKeyDown={cardKeyDown(a.open)}
       onPointerEnter={onWarm}
+      onPointerLeave={onWarm}
       onPointerDown={onWarm}
     >
       <div className="gl-hero-band">
@@ -213,7 +225,7 @@ export const RoomHeroCard = ({ group, onWarm }: { group: PrayerGroup; onWarm?: (
           <RoomStatus group={group} />
           <TodayFaces group={group} />
         </div>
-        <button type="button" className="gl-play" style={{ '--p': '46px' } as CSSProperties} onClick={a.pray} aria-label={`${group.name} 중보 시작`}>
+        <button type="button" className="gl-play" style={{ '--p': '46px' } as CSSProperties} onClick={a.pray} aria-label={fill(t('roomPrayAria'), { name: group.name })}>
           <PlayGlyph size={18} />
         </button>
       </div>
@@ -221,11 +233,11 @@ export const RoomHeroCard = ({ group, onWarm }: { group: PrayerGroup; onWarm?: (
       <LyricLines group={group} />
       <div className="gl-hero-ft">
         <button type="button" className="gl-ghost" onClick={a.compose}>
-          <PenGlyph /> 기도 올리기
+          <PenGlyph /> {t('roomCompose')}
         </button>
         {group.prayer_time && (
           <span className="gl-pill">
-            <ClockGlyph /> 함께 기도 {group.prayer_time}
+            <ClockGlyph /> {fill(t('roomPrayTime'), { time: group.prayer_time })}
           </span>
         )}
       </div>
@@ -241,8 +253,9 @@ export const RoomCompactCard = ({
 }: {
   group: PrayerGroup
   onExpand: () => void
-  onWarm?: () => void
+  onWarm?: WarmHandler
 }) => {
+  const { t } = useLanguage()
   const a = useRoomActions(group)
   const first = group.recent_prayers?.[0]
   return (
@@ -251,10 +264,11 @@ export const RoomCompactCard = ({
       style={roomStyle(group)}
       role="button"
       tabIndex={0}
-      aria-label={`${group.name} 펼치기`}
+      aria-label={fill(t('roomExpandAria'), { name: group.name })}
       onClick={onExpand}
       onKeyDown={cardKeyDown(onExpand)}
       onPointerEnter={onWarm}
+      onPointerLeave={onWarm}
       onPointerDown={onWarm}
     >
       <div className="gl-compact-top">
@@ -263,13 +277,13 @@ export const RoomCompactCard = ({
           <span className="gl-compact-name">{group.name}</span>
           <RoomStatus group={group} />
         </div>
-        <button type="button" className="gl-play" style={{ '--p': '36px' } as CSSProperties} onClick={a.pray} aria-label={`${group.name} 중보 시작`}>
+        <button type="button" className="gl-play" style={{ '--p': '36px' } as CSSProperties} onClick={a.pray} aria-label={fill(t('roomPrayAria'), { name: group.name })}>
           <PlayGlyph size={14} />
         </button>
       </div>
       <div className="gl-lines">
-        <p className={`gl-line ${first ? 'is-on' : 'is-quiet'}`}>{first ? first.text : fallbackLine(group)}</p>
-        {first && <span className="gl-compact-meta">{lineMeta(first)}</span>}
+        <p className={`gl-line ${first ? 'is-on' : 'is-quiet'}`}>{first ? first.text : fallbackLine(group, t)}</p>
+        {first && <span className="gl-compact-meta">{lineMeta(first, t)}</span>}
       </div>
     </div>
   )
@@ -277,6 +291,7 @@ export const RoomCompactCard = ({
 
 // ── PC 무대 ────────────────────────────────────────
 export const RoomStage = ({ group, children }: { group: PrayerGroup; children?: ReactNode }) => {
+  const { t } = useLanguage()
   const a = useRoomActions(group)
   const verse = group.theme_verse?.text
   // '함께한 지 N일' — 방이 바뀔 때만 다시 센다 (렌더마다 시계를 읽지 않게)
@@ -289,7 +304,8 @@ export const RoomStage = ({ group, children }: { group: PrayerGroup; children?: 
         <KeywordCover group={group} size={208} radius={14} showRef />
         <div className="gl-stage-info">
           <span className="gl-stage-kicker">
-            기도방 · 함께한 지 {days.toLocaleString()}일{group.prayer_time ? ` · 매일 ${group.prayer_time} 함께 기도` : ''}
+            {fill(t('roomKicker'), { days: days.toLocaleString() })}
+            {group.prayer_time ? fill(t('roomKickerTime'), { time: group.prayer_time }) : ''}
           </span>
           <h2 className="gl-stage-name">{group.name}</h2>
           {(verse || group.description) && <p className="gl-stage-verse">{verse ? `“${verse}”` : group.description}</p>}
@@ -301,15 +317,15 @@ export const RoomStage = ({ group, children }: { group: PrayerGroup; children?: 
       </div>
       <LyricLines group={group} />
       <div className="gl-stage-ft">
-        <button type="button" className="gl-play" style={{ '--p': '56px' } as CSSProperties} onClick={a.pray} aria-label={`${group.name} 중보 시작`}>
+        <button type="button" className="gl-play" style={{ '--p': '56px' } as CSSProperties} onClick={a.pray} aria-label={fill(t('roomPrayAria'), { name: group.name })}>
           <PlayGlyph size={22} />
         </button>
-        <span className="gl-hint">중보 모드 · {newP > 0 ? `새 기도 ${newP}개를` : '기도를'} 한 장씩</span>
+        <span className="gl-hint">{newP > 0 ? fill(t('roomHintNew'), { count: newP }) : t('roomHint')}</span>
         <button type="button" className="gl-ghost" onClick={a.compose}>
-          <PenGlyph /> 기도 올리기
+          <PenGlyph /> {t('roomCompose')}
         </button>
         <button type="button" className="gl-ghost" onClick={(e) => { e.stopPropagation(); a.open() }}>
-          방 들어가기
+          {t('roomEnter')}
         </button>
         {children}
       </div>

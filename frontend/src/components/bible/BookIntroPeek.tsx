@@ -21,6 +21,9 @@ import './BookIntroPeek.css'
  * 일괄 캐시 키(BOOK_INTRO_ALL_KEY)는 크기 때문에 persist 에서 뺀다(main.tsx).
  *
  * 말풍선은 읽기 전용(pointer-events: none)이라 아래 요소의 클릭을 가로막지 않는다.
+ *
+ * 개관 데이터가 오기 전엔 아무것도 띄우지 않는다 — 스켈레톤 높이로 자리를 잡았다가 본문 높이로
+ * 다시 잡으면 말풍선이 아래→오른쪽으로 튀었다. 일괄 캐시가 있으면 어차피 첫 프레임에 본문이 나온다.
  */
 
 const WIDTH = 340
@@ -216,11 +219,11 @@ const plain = (text: string) => text.replace(/\*\*/g, '').trim()
 const BookIntroPeekBubble = ({ target, allIntros, allFailed }: BubbleProps) => {
   const single = useBookIntro(target.bookNumber, allFailed)
   const intro = allIntros ? (allIntros.get(target.bookNumber) ?? null) : allFailed ? single.data : undefined
-  const isLoading = allIntros ? false : allFailed ? single.isLoading : true
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ left: number; top: number; side: 'right' | 'left' | 'below' } | null>(null)
 
-  // 실제 높이를 잰 뒤 자리를 잡는다 — 오른쪽 → 왼쪽 → 아래 순으로 들어갈 곳을 찾는다
+  // 실제 높이를 잰 뒤 자리를 잡는다 — 오른쪽 → 왼쪽 → 아래 순으로 들어갈 곳을 찾는다.
+  // 본문이 있을 때만 그려지므로(아래 return null) 한 번 잰 자리가 그대로 간다
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -241,10 +244,11 @@ const BookIntroPeekBubble = ({ target, allIntros, allFailed }: BubbleProps) => {
       const top = below + h <= vh - GAP ? below : r.top - 8 - h
       setPos({ left: clampX(r.left + 56), top: Math.max(GAP, top), side: 'below' })
     }
-  }, [target, intro, isLoading])
+  }, [target, intro])
 
-  // 개관이 아직 없는 책은 아무것도 띄우지 않는다 (관리자 추가 유도는 책 안쪽 바가 맡는다)
-  if (!isLoading && !intro) return null
+  // 아직 안 받았거나(undefined) 개관이 없는 책(null)은 아무것도 띄우지 않는다
+  // (관리자 추가 유도는 책 안쪽 바가 맡는다)
+  if (!intro) return null
 
   const genre = getBookGenre(target.bookNumber)
   const sections = intro ? parseBookStructure(intro.structure, target.totalChapters) : []
@@ -274,73 +278,63 @@ const BookIntroPeekBubble = ({ target, allIntros, allFailed }: BubbleProps) => {
       </div>
       <p className="bip-title">{target.bookName}</p>
 
-      {isLoading || !intro ? (
-        <div className="bip-skel" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-      ) : (
-        <>
-          <p className="bip-oneliner">{plain(intro.one_liner)}</p>
-          {theme && <p className="bip-theme">{theme}</p>}
+      <p className="bip-oneliner">{plain(intro.one_liner)}</p>
+        {theme && <p className="bip-theme">{theme}</p>}
 
-          {sections.length > 0 && (
-            <div className="bip-struct">
-              <p className="bip-cap">이렇게 흘러가요</p>
-              <div className="bip-struct__bar" aria-hidden="true">
+        {sections.length > 0 && (
+          <div className="bip-struct">
+            <p className="bip-cap">이렇게 흘러가요</p>
+            <div className="bip-struct__bar" aria-hidden="true">
+              {sections.map((s, i) => (
+                <span
+                  key={i}
+                  className="bip-struct__seg"
+                  style={{ flexGrow: s.to - s.from + 1, opacity: segOpacity(i) }}
+                />
+              ))}
+            </div>
+            {sections.length <= STRUCT_INLINE_MAX ? (
+              <div className="bip-struct__labels">
                 {sections.map((s, i) => (
-                  <span
-                    key={i}
-                    className="bip-struct__seg"
-                    style={{ flexGrow: s.to - s.from + 1, opacity: segOpacity(i) }}
-                  />
+                  <span key={i} className="bip-struct__label" style={{ flexGrow: s.to - s.from + 1 }}>
+                    <b>{s.from === s.to ? s.from : `${s.from}-${s.to}`}</b>
+                    {s.label}
+                  </span>
                 ))}
               </div>
-              {sections.length <= STRUCT_INLINE_MAX ? (
-                <div className="bip-struct__labels">
-                  {sections.map((s, i) => (
-                    <span key={i} className="bip-struct__label" style={{ flexGrow: s.to - s.from + 1 }}>
-                      <b>{s.from === s.to ? s.from : `${s.from}-${s.to}`}</b>
-                      {s.label}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <ul className="bip-struct__legend">
-                  {sections.map((s, i) => (
-                    <li key={i}>
-                      <span className="bip-struct__dot" style={{ opacity: segOpacity(i) }} aria-hidden="true" />
-                      <b>{s.from === s.to ? s.from : `${s.from}-${s.to}`}</b>
-                      <span>{s.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-
-          {keyChapters.length > 0 && (
-            <div className="bip-keys">
-              <p className="bip-cap">꼭 읽어볼 장</p>
-              <ul>
-                {keyChapters.slice(0, 3).map((k, i) => (
+            ) : (
+              <ul className="bip-struct__legend">
+                {sections.map((s, i) => (
                   <li key={i}>
-                    <b>{k.range}</b>
-                    <span>{plain(k.desc)}</span>
+                    <span className="bip-struct__dot" style={{ opacity: segOpacity(i) }} aria-hidden="true" />
+                    <b>{s.from === s.to ? s.from : `${s.from}-${s.to}`}</b>
+                    <span>{s.label}</span>
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
-          {intro.author_period && (
-            <p className="bip-foot">
-              <span className="material-icons-round">edit_note</span>
-              {plain(intro.author_period)}
-            </p>
-          )}
-        </>
+        {keyChapters.length > 0 && (
+          <div className="bip-keys">
+            <p className="bip-cap">꼭 읽어볼 장</p>
+            <ul>
+              {keyChapters.slice(0, 3).map((k, i) => (
+                <li key={i}>
+                  <b>{k.range}</b>
+                  <span>{plain(k.desc)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+      {intro.author_period && (
+        <p className="bip-foot">
+          <span className="material-icons-round">edit_note</span>
+          {plain(intro.author_period)}
+        </p>
       )}
     </div>,
     document.body,

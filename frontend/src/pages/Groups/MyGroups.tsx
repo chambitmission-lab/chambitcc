@@ -3,7 +3,7 @@
 // 목록에서 가장 큰 글자는 식구들이 실제로 올린 기도다. 맨 위 카드는 최근 활동순 첫 방(펼친 방),
 // 나머지 방은 작은 커버와 지금 줄 하나 — 누르면 맨 위로 펼친다. PC는 왼쪽 라이브러리 + 오른쪽 무대.
 // 판 색은 방 고유 색(utils/roomColor), 라이트/다크 차이는 theme.css 의 --gl-* 토큰.
-import { useRef, useState } from 'react'
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import {
@@ -25,6 +25,7 @@ import { groupKeys } from '../../hooks/useGroups'
 import { groupDetailLoader } from '../../utils/routePreload'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 import { smoothScrollToElement } from '../../utils/scrollTo'
+import { fill } from '../../utils/fill'
 import {
   KeywordCover,
   RoomCompactCard,
@@ -97,15 +98,15 @@ const MyGroups = () => {
     : groups.length === 0
       ? t('groupsNoneYet')
       : hasSignals && prayedToday > 0
-        ? `${groups.length}곳 · 오늘 ${prayedToday}명이 함께 기도했어요`
-        : t(groups.length === 1 ? 'groupsCountSummaryOne' : 'groupsCountSummary').replace('{count}', String(groups.length))
+        ? fill(t('groupsTodaySummary'), { count: groups.length, prayed: prayedToday })
+        : fill(t(groups.length === 1 ? 'groupsCountSummaryOne' : 'groupsCountSummary'), { count: groups.length })
 
   const addButton = (
     <button
       type="button"
       onClick={() => setShowAdd(true)}
       className="shrink-0 w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shadow-[0_8px_24px_-8px_var(--brand-glow)] active:scale-95 transition-all"
-      aria-label="기도방 만들기 또는 참여하기"
+      aria-label={t('groupsAddAria')}
     >
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="5" x2="12" y2="19" />
@@ -141,7 +142,7 @@ const MyGroups = () => {
           <div className="grid grid-cols-[300px_minmax(0,1fr)] gap-5 items-start">
             <aside className="sticky top-[4.5rem] max-h-[calc((100vh-5.5rem)/var(--az,1))] overflow-y-auto scrollbar-hide rounded-3xl bg-[var(--surface-container)] border border-black/[0.05] dark:border-white/[0.07] p-2.5">
               <p className="px-2 pt-1.5 pb-2 text-[12px] font-bold text-gray-400 dark:text-white/40 tracking-[0.06em]">
-                내 기도방 {groups.length}
+                {fill(t('groupsLibraryTitle'), { count: groups.length })}
               </p>
               {groups.map((g) => (
                 <button
@@ -150,7 +151,7 @@ const MyGroups = () => {
                   className="gl-lib-item"
                   aria-pressed={g.id === selected.id}
                   onClick={() => setSelectedId(g.id)}
-                  onPointerEnter={() => warmGroupDetail(g.id)}
+                  {...warmProps(g.id)}
                 >
                   <KeywordCover group={g} size={48} radius={8} />
                   <span className="min-w-0 flex-1">
@@ -159,9 +160,9 @@ const MyGroups = () => {
                     </span>
                     <span className="block text-[11.5px] text-gray-500 dark:text-white/50 truncate">
                       {(g.new_prayers_week ?? 0) > 0 && (
-                        <span className="text-brand font-bold">● 새 기도 {g.new_prayers_week} · </span>
+                        <span className="text-brand font-bold">● {fill(t('roomNewPrayers'), { count: g.new_prayers_week ?? 0 })} · </span>
                       )}
-                      {g.recent_prayers?.[0]?.text ?? g.description ?? `${g.member_count}명`}
+                      {g.recent_prayers?.[0]?.text ?? g.description ?? fill(t('roomMemberCount'), { count: g.member_count })}
                     </span>
                   </span>
                 </button>
@@ -176,10 +177,10 @@ const MyGroups = () => {
           // 모바일 — 펼친 방 하나 + 나머지 compact + 둘러보기 선반
           <div className="px-3.5 space-y-3">
             <div ref={heroRef} className="scroll-mt-20">
-              <RoomHeroCard key={selected.id} group={selected} onWarm={() => warmGroupDetail(selected.id)} />
+              <RoomHeroCard key={selected.id} group={selected} onWarm={warmOnPointer(selected.id)} />
             </div>
             {others.map((g) => (
-              <RoomCompactCard key={g.id} group={g} onExpand={() => expand(g.id)} onWarm={() => warmGroupDetail(g.id)} />
+              <RoomCompactCard key={g.id} group={g} onExpand={() => expand(g.id)} onWarm={warmOnPointer(g.id)} />
             ))}
             <div className="pt-3">
               <DiscoverShelf />
@@ -219,6 +220,7 @@ const AddChooserSheet = ({
   onCreate: () => void
   onJoin: () => void
 }) => {
+  const { t } = useLanguage()
   useModalBackButton(onClose)
   return (
     <div
@@ -229,7 +231,7 @@ const AddChooserSheet = ({
         className="w-full sm:max-w-sm bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl border border-black/[0.04] dark:border-white/[0.08] p-5 pb-8 sm:pb-5"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-[15px] font-bold text-ink-strong mb-4">기도방을 시작해볼까요?</p>
+        <p className="text-[15px] font-bold text-ink-strong mb-4">{t('groupsAddTitle')}</p>
         <div className="space-y-2">
           <button
             type="button"
@@ -243,8 +245,8 @@ const AddChooserSheet = ({
               </svg>
             </span>
             <span>
-              <span className="block text-white text-[14px] font-bold">새 기도방 만들기</span>
-              <span className="block text-white/80 text-[11.5px] mt-0.5">우리 모임의 기도방을 새로 열어요</span>
+              <span className="block text-white text-[14px] font-bold">{t('groupsAddCreate')}</span>
+              <span className="block text-white/80 text-[11.5px] mt-0.5">{t('groupsAddCreateDesc')}</span>
             </span>
           </button>
           <button
@@ -256,8 +258,8 @@ const AddChooserSheet = ({
               <TicketIcon size={20} />
             </span>
             <span>
-              <span className="block text-ink-strong text-[14px] font-bold">초대 코드로 참여하기</span>
-              <span className="block text-gray-500 dark:text-white/55 text-[11.5px] mt-0.5">받은 코드를 입력하고 바로 들어가요</span>
+              <span className="block text-ink-strong text-[14px] font-bold">{t('groupsAddJoin')}</span>
+              <span className="block text-gray-500 dark:text-white/55 text-[11.5px] mt-0.5">{t('groupsAddJoinDesc')}</span>
             </span>
           </button>
         </div>
@@ -277,13 +279,40 @@ const warmGroupDetail = (groupId: number) => {
   })
 }
 
+// 마우스 호버는 150ms 머문 뒤에만 받는다 — 목록을 훑고 지나갈 때 방마다 요청이 나가지 않게.
+// 백엔드가 요청을 직렬로 처리해, 훑는 동안 쏟아진 prefetch 뒤로 정작 누른 방의 응답이 밀렸다.
+// 터치(pointerType!=='mouse')·pointerdown 은 곧 진입이므로 바로 받는다.
+const WARM_DWELL_MS = 150
+let warmTimer: number | undefined
+const cancelWarm = () => window.clearTimeout(warmTimer)
+const warmOnPointer = (groupId: number) => (e: ReactPointerEvent<HTMLElement>) => {
+  if (e.type === 'pointerdown' || e.pointerType !== 'mouse') {
+    cancelWarm()
+    warmGroupDetail(groupId)
+    return
+  }
+  if (e.type === 'pointerenter') {
+    cancelWarm()
+    warmTimer = window.setTimeout(() => warmGroupDetail(groupId), WARM_DWELL_MS)
+  } else if (e.type === 'pointerleave') {
+    cancelWarm()
+  }
+}
+const warmProps = (groupId: number) => {
+  const h = warmOnPointer(groupId)
+  return { onPointerEnter: h, onPointerLeave: h, onPointerDown: h }
+}
+
 // ── 둘러보기(디렉터리) ─────────────────────────────────
 // 공개·승인제 그룹 중 내가 아직 안 들어간 방 — 새가족도 초대 없이 공동체를 찾는다.
+type JoinState = 'requested' | 'pending' | 'open' | 'request'
+
 const useDiscoverJoin = () => {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const query = useDiscoverGroups()
-  const joinOpen = useJoinOpenGroup(toastFeedback({ success: '그룹에 가입했어요 🙌', error: '그룹 가입에 실패했습니다' }))
-  const requestJoin = useRequestJoinGroup(toastFeedback({ success: '가입을 신청했어요. 승인되면 알려드릴게요', error: '가입 신청에 실패했습니다' }))
+  const joinOpen = useJoinOpenGroup(toastFeedback({ success: t('groupsJoinedToast'), error: t('groupsJoinFailedToast') }))
+  const requestJoin = useRequestJoinGroup(toastFeedback({ success: t('groupsRequestedToast'), error: t('groupsRequestFailedToast') }))
   const [pendingId, setPendingId] = useState<number | null>(null)
 
   const join = async (g: PrayerGroup) => {
@@ -301,16 +330,31 @@ const useDiscoverJoin = () => {
       setPendingId(null)
     }
   }
-  const label = (g: PrayerGroup) =>
+  const state = (g: PrayerGroup): JoinState =>
     g.my_join_request_status === 'pending'
-      ? '신청됨'
+      ? 'requested'
       : pendingId === g.id
-        ? '…'
+        ? 'pending'
         : g.visibility === 'public'
-          ? '바로 가입'
-          : '가입 신청'
+          ? 'open'
+          : 'request'
+  // short: PC 라이브러리의 좁은 행용 한 단어 라벨
+  const label = (g: PrayerGroup, short = false) => {
+    switch (state(g)) {
+      case 'requested':
+        return t('groupsJoinRequested')
+      case 'pending':
+        return '…'
+      case 'open':
+        return t(short ? 'groupsJoinOpenShort' : 'groupsJoinOpen')
+      case 'request':
+        return t(short ? 'groupsJoinRequestShort' : 'groupsJoinRequest')
+    }
+  }
+  const visibility = (g: PrayerGroup) =>
+    `${fill(t('roomMemberCount'), { count: g.member_count })} · ${t(g.visibility === 'public' ? 'groupsVisibilityPublic' : 'groupsVisibilityApproval')}`
   const disabled = (g: PrayerGroup) => g.my_join_request_status === 'pending' || pendingId === g.id
-  return { groups: query.data?.data.items ?? [], isLoading: query.isLoading, join, label, disabled }
+  return { groups: query.data?.data.items ?? [], isLoading: query.isLoading, join, label, visibility, disabled }
 }
 
 const joinBtnClass = (requested: boolean) =>
@@ -323,14 +367,15 @@ const joinBtnClass = (requested: boolean) =>
 
 // 모바일(그리고 방이 없을 때 PC) — 한 단어 커버 선반
 const DiscoverShelf = ({ promoted }: { promoted?: boolean }) => {
+  const { t } = useLanguage()
   const d = useDiscoverJoin()
   if (!d.isLoading && d.groups.length === 0) return null
   return (
     <section>
       <div className="flex items-baseline justify-between mb-2.5 px-1">
-        <h2 className="text-[17px] font-extrabold text-ink-strong tracking-[-0.035em]">둘러보기</h2>
+        <h2 className="text-[17px] font-extrabold text-ink-strong tracking-[-0.035em]">{t('groupsDiscoverTitle')}</h2>
         <span className="text-[11.5px] text-gray-400 dark:text-white/40">
-          {promoted ? '초대 없이도 함께할 수 있어요' : '함께할 수 있는 기도방이에요'}
+          {t(promoted ? 'groupsDiscoverHintPromoted' : 'groupsDiscoverHint')}
         </span>
       </div>
       {d.isLoading ? (
@@ -346,9 +391,7 @@ const DiscoverShelf = ({ promoted }: { promoted?: boolean }) => {
               <KeywordCover group={g} size={132} radius={12} solo />
               <div className="min-w-0">
                 <p className="text-[13px] font-bold text-ink-strong truncate">{g.name}</p>
-                <p className="text-[11px] text-gray-500 dark:text-white/50">
-                  {g.member_count}명 · {g.visibility === 'public' ? '공개' : '승인제'}
-                </p>
+                <p className="text-[11px] text-gray-500 dark:text-white/50">{d.visibility(g)}</p>
               </div>
               <button
                 type="button"
@@ -368,21 +411,20 @@ const DiscoverShelf = ({ promoted }: { promoted?: boolean }) => {
 
 // PC 라이브러리 아래 — 작은 행
 const DiscoverRows = () => {
+  const { t } = useLanguage()
   const d = useDiscoverJoin()
   if (d.isLoading || d.groups.length === 0) return null
   return (
     <>
       <p className="px-2 pt-4 pb-1.5 text-[12px] font-bold text-gray-400 dark:text-white/40 tracking-[0.06em]">
-        둘러보기 {d.groups.length}
+        {fill(t('groupsDiscoverCount'), { count: d.groups.length })}
       </p>
       {d.groups.map((g) => (
         <div key={g.id} className="flex items-center gap-2.5 px-2 py-1.5">
           <KeywordCover group={g} size={40} radius={7} solo />
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-bold text-ink-strong truncate">{g.name}</p>
-            <p className="text-[11px] text-gray-500 dark:text-white/50">
-              {g.member_count}명 · {g.visibility === 'public' ? '공개' : '승인제'}
-            </p>
+            <p className="text-[11px] text-gray-500 dark:text-white/50">{d.visibility(g)}</p>
           </div>
           <button
             type="button"
@@ -390,7 +432,7 @@ const DiscoverRows = () => {
             onClick={() => d.join(g)}
             className={`${joinBtnClass(g.my_join_request_status === 'pending')} px-3 !h-7 text-[11px]`}
           >
-            {d.label(g) === '바로 가입' ? '가입' : d.label(g) === '가입 신청' ? '신청' : d.label(g)}
+            {d.label(g, true)}
           </button>
         </div>
       ))}

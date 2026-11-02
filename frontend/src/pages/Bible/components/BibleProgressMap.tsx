@@ -300,7 +300,7 @@ const BibleProgressMap = ({ books, infoMap, onBookSelect, currentBookNumber }: B
       {renderSection('nt')}
 
       {/* 고른 장르의 책 — 칩을 누르면 그 책으로 이동 */}
-      <section className="bible-map__sheet" data-testament={active.genre.testament} aria-live="polite">
+      <section className="bible-map__sheet" data-testament={active.genre.testament}>
         <div className="bible-map__sheet-head">
           <strong>{activeName}</strong>
           <span>

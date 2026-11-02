@@ -291,6 +291,7 @@
 }
 
 .book-hero__eyebrow {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -299,19 +300,35 @@
   color: var(--brand);
 }
 
-/* 지금 여기 — 숨 쉬듯 퍼지는 점 하나 */
+/* 지금 여기 — 숨 쉬듯 퍼지는 점 하나.
+   점(::before)은 가만히 두고 퍼지는 링(::after)만 transform·opacity 로 움직인다 —
+   box-shadow 를 키우던 예전 방식은 목록이 떠 있는 내내 2초마다 페인트를 다시 했다 */
 .book-hero__eyebrow::before {
   content: '';
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--brand);
+}
+
+.book-hero__eyebrow::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--brand) 45%, transparent);
+  pointer-events: none;
+  will-change: transform, opacity;
   animation: book-hero-ping 2s ease-out infinite;
 }
 
 @keyframes book-hero-ping {
-  0% { box-shadow: 0 0 0 0 rgba(49, 130, 246, 0.5); }
-  70%, 100% { box-shadow: 0 0 0 7px rgba(49, 130, 246, 0); }
+  0% { transform: scale(1); opacity: 0.7; }
+  70%, 100% { transform: scale(3); opacity: 0; }
 }
 
 .book-hero__abbr {
@@ -478,7 +495,10 @@
 [data-theme="dark"] .book-hero__eyebrow::before {
   background: #ffb547;
   box-shadow: 0 0 8px #ffb547;
-  animation: none;
+}
+
+[data-theme="dark"] .book-hero__eyebrow::after {
+  display: none;
 }
 
 [data-theme="dark"] .book-hero__meta {
@@ -502,8 +522,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .book-hero__eyebrow::before {
-    animation: none !important;
+  .book-hero__eyebrow::after {
+    display: none;
   }
 }
 
