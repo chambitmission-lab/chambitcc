@@ -102,6 +102,9 @@ const Login = () => {
                   : t('loginInactiveAccount')
           // 승인 대기는 "기다리면 되는 상태"라 경고가 아닌 안내 톤으로
           if (reason === 'pending_approval') setErrorTone('info')
+        } else if (loginError.status === 429) {
+          // 같은 IP 의 실패가 10분 20회를 넘김 (백엔드 login_failure_limiter)
+          message = t('loginTooManyAttempts')
         }
         throw new Error(message)
       }
