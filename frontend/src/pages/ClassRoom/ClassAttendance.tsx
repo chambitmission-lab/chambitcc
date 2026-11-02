@@ -12,6 +12,7 @@ import {
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { Avatar, memberLabel, Shell } from './classUi'
+import ClassSubRail, { RAIL_CARD, RAIL_LABEL } from './components/ClassSubRail'
 
 const fmtMonth = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -79,13 +80,58 @@ const ClassAttendance = () => {
     }
   }
 
+  // 레일 요약 — 이번 달 지난 주일 기준 학생 출석률
+  const pastSundays = sundays.filter((d) => d <= today)
+  const studentIds = new Set(students.map((m) => m.user_id))
+  const monthPresent = pastSundays.reduce(
+    (n, d) => n + (att?.records[d] ?? []).filter((uid) => studentIds.has(uid)).length,
+    0,
+  )
+  const monthRate =
+    students.length && pastSundays.length
+      ? Math.round((monthPresent / (students.length * pastSundays.length)) * 100)
+      : null
+  const selectedPresent = students.filter((m) => presentIds.has(m.user_id)).length
+
   const chipLabel = (iso: string) => {
     const d = new Date(iso)
     return `${d.getMonth() + 1}/${d.getDate()}${iso === today ? ' (오늘)' : ''}`
   }
 
   return (
-    <Shell onBack={() => navigate(`/classes/${id}`)} title={<><ClipboardIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />출석부</>}>
+    <Shell
+      onBack={() => navigate(`/classes/${id}`)}
+      title={<><ClipboardIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />출석부</>}
+      rail={
+        <ClassSubRail classId={id} current="attendance">
+          {att && cls && students.length > 0 && (
+            <section className={RAIL_CARD}>
+              <p className={RAIL_LABEL}>출석 요약</p>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="rounded-xl px-3 py-2.5 bg-[var(--brand-soft)]">
+                  <p className="text-[11px] font-bold text-gray-500 dark:text-white/55 truncate">{chipLabel(selected)}</p>
+                  <p className="text-[20px] font-extrabold tracking-[-0.02em] text-brand tabular-nums mt-0.5">
+                    {selectedPresent}
+                    <span className="text-[12px] font-bold text-gray-400 dark:text-white/40">/{students.length}명</span>
+                  </p>
+                </div>
+                <div className="rounded-xl px-3 py-2.5 bg-gray-50 dark:bg-white/[0.04]">
+                  <p className="text-[11px] font-bold text-gray-500 dark:text-white/55 truncate">
+                    {Number(month.slice(5))}월 출석률
+                  </p>
+                  <p className="text-[20px] font-extrabold tracking-[-0.02em] text-ink-strong tabular-nums mt-0.5">
+                    {monthRate == null ? '—' : `${monthRate}%`}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] text-gray-400 dark:text-white/40">
+                지난 주일 {pastSundays.length}번 기준
+              </p>
+            </section>
+          )}
+        </ClassSubRail>
+      }
+    >
       {/* 월 이동 */}
       <div className="flex items-center justify-center gap-4 pt-4">
         <button
@@ -158,14 +204,14 @@ const ClassAttendance = () => {
                 {chipLabel(selected)} 출석
               </h3>
               <span className="text-[12.5px] font-bold text-brand tabular-nums">
-                {students.filter((m) => presentIds.has(m.user_id)).length}/
+                {selectedPresent}/
                 {students.length}명
               </span>
             </div>
             <p className="text-[11.5px] text-gray-400 dark:text-white/40 mb-3">
               이름을 누르면 출석 ↔ 미출석이 바뀌어요
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               {students.map((m) => {
                 const present = presentIds.has(m.user_id)
                 return (
@@ -211,7 +257,7 @@ const ClassAttendance = () => {
                   선생님 출석 ({teachers.filter((t) => presentIds.has(t.user_id)).length}/
                   {teachers.length})
                 </summary>
-                <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
                   {teachers.map((m) => {
                     const present = presentIds.has(m.user_id)
                     return (

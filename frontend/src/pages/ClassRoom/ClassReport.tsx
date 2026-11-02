@@ -8,6 +8,7 @@ import type { ReportMemberRow, ReportWeekRow } from '../../types/classRoom'
 import { isAuthenticated } from '../../utils/auth'
 import { Avatar, memberLabel, Shell, timeAgo } from './classUi'
 import { BallotIcon, ChartIcon, HeartIcon, OpenBookIcon, StarIcon } from './ClassIcons'
+import ClassSubRail, { RAIL_CARD, RAIL_LABEL } from './components/ClassSubRail'
 
 const WEEK_OPTIONS = [4, 8, 12]
 
@@ -48,7 +49,35 @@ const ClassReport = () => {
   const attention = report?.members.filter((m) => m.attention_flags.length > 0) ?? []
 
   return (
-    <Shell onBack={() => navigate(`/classes/${id}`)} title={<><ChartIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />우리반 리포트</>}>
+    <Shell
+      onBack={() => navigate(`/classes/${id}`)}
+      title={<><ChartIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />우리반 리포트</>}
+      rail={
+        /* lg+ 우측 레일 — 반 요약·화면 이동 + '살펴봐 주세요'(본문에선 lg:hidden) */
+        <ClassSubRail classId={id} current="report">
+          {report && (
+            <section className={RAIL_CARD}>
+              <p className={RAIL_LABEL}>
+                <HeartIcon width={12} height={12} className="inline-block align-[-1px] mr-1 text-rose-500 dark:text-rose-300" />
+                조금 더 살펴봐 주세요
+              </p>
+              {attention.length > 0 ? (
+                <>
+                  <p className="text-[11.5px] text-gray-500 dark:text-white/50 mb-1 leading-[1.6]">
+                    최근 반응이 뜸한 멤버예요. 전화나 심방으로 안부를 물어보면 좋아요.
+                  </p>
+                  <AttentionList members={attention} />
+                </>
+              ) : (
+                <p className="text-[12px] text-gray-400 dark:text-white/40 py-1 leading-[1.6]">
+                  최근 {report.weeks}주 동안 모두 잘 반응하고 있어요.
+                </p>
+              )}
+            </section>
+          )}
+        </ClassSubRail>
+      }
+    >
       {/* 기간 선택 */}
       <div className="flex gap-2 px-4 pt-4">
         {WEEK_OPTIONS.map((w) => (
@@ -90,7 +119,7 @@ const ClassReport = () => {
             {METRICS.map((m) => (
               <div
                 key={m.key}
-                className="rounded-2xl p-3.5 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]"
+                className="rounded-2xl p-3.5 lg:p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]"
               >
                 <p className="flex items-center gap-1.5 text-[11.5px] font-bold text-gray-500 dark:text-white/55">
                   <span
@@ -99,7 +128,7 @@ const ClassReport = () => {
                   />
                   {m.label}
                 </p>
-                <p className="text-[22px] font-extrabold tracking-[-0.02em] text-ink-strong mt-1">
+                <p className="text-[22px] lg:text-[28px] font-extrabold tracking-[-0.02em] text-ink-strong mt-1">
                   {pct(report[m.key])}
                 </p>
               </div>
@@ -117,7 +146,7 @@ const ClassReport = () => {
                 이 기간에 올린 알림이 없어요
               </p>
             ) : (
-              <div className="space-y-3.5">
+              <div className="space-y-3.5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-4">
                 {report.trend.map((w) => (
                   <WeekTrendRow key={w.week_start} week={w} />
                 ))}
@@ -127,7 +156,7 @@ const ClassReport = () => {
 
           {/* 관심 필요 */}
           {attention.length > 0 && (
-            <section className="mx-4 mt-4 p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-400/[0.06] border border-rose-200/60 dark:border-rose-300/20">
+            <section className="lg:hidden mx-4 mt-4 p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-400/[0.06] border border-rose-200/60 dark:border-rose-300/20">
               <h3 className="text-[14px] font-bold text-rose-600 dark:text-rose-300 mb-1">
                 <HeartIcon width={14} height={14} className="inline-block align-[-2px] mr-1" />
                 조금 더 살펴봐 주세요
@@ -135,24 +164,7 @@ const ClassReport = () => {
               <p className="text-[11.5px] text-gray-500 dark:text-white/50 mb-3 leading-[1.6]">
                 최근 반응이 뜸한 멤버예요. 전화나 심방으로 안부를 물어보면 좋아요.
               </p>
-              {attention.map((m) => (
-                <div key={m.user_id} className="flex items-center gap-2.5 py-2">
-                  <Avatar name={m.name} size={30} />
-                  <span className="flex-1 min-w-0 text-[13.5px] font-semibold text-ink-strong truncate">
-                    {memberLabel(m.name, m.child_name)}
-                  </span>
-                  <span className="flex gap-1 flex-wrap justify-end">
-                    {m.attention_flags.map((f) => (
-                      <span
-                        key={f}
-                        className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold leading-relaxed ${FLAG_META[f]?.cls ?? ''}`}
-                      >
-                        {FLAG_META[f]?.label ?? f}
-                      </span>
-                    ))}
-                  </span>
-                </div>
-              ))}
+              <AttentionList members={attention} />
             </section>
           )}
 
@@ -176,6 +188,30 @@ const ClassReport = () => {
     </Shell>
   )
 }
+
+// ── 관심 필요 멤버 목록 — 본문(모바일)·레일(lg) 공용 ──
+const AttentionList = ({ members }: { members: ReportMemberRow[] }) => (
+  <>
+    {members.map((m) => (
+      <div key={m.user_id} className="flex items-center gap-2.5 py-2">
+        <Avatar name={m.name} size={30} />
+        <span className="flex-1 min-w-0 text-[13.5px] font-semibold text-ink-strong truncate">
+          {memberLabel(m.name, m.child_name)}
+        </span>
+        <span className="flex gap-1 flex-wrap justify-end">
+          {m.attention_flags.map((f) => (
+            <span
+              key={f}
+              className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold leading-relaxed ${FLAG_META[f]?.cls ?? ''}`}
+            >
+              {FLAG_META[f]?.label ?? f}
+            </span>
+          ))}
+        </span>
+      </div>
+    ))}
+  </>
+)
 
 // ── 주간 추이 한 줄 — 지표별 얇은 미터 3개 (색 + 라벨 병기) ──
 const WeekTrendRow = ({ week }: { week: ReportWeekRow }) => {

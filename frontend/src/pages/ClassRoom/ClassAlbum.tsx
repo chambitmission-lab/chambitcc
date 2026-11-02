@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useClassPosts } from '../../hooks/useClassRoom'
 import { Shell } from './classUi'
 import { CameraIcon } from './ClassIcons'
+import ClassSubRail, { RAIL_CARD, RAIL_LABEL } from './components/ClassSubRail'
 
 const ClassAlbum = () => {
   const navigate = useNavigate()
@@ -29,11 +30,30 @@ const ClassAlbum = () => {
   const [viewer, setViewer] = useState<number | null>(null)
 
   return (
-    <Shell onBack={() => navigate(`/classes/${id}`)} title={<><CameraIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />우리반 앨범</>}>
+    <Shell
+      onBack={() => navigate(`/classes/${id}`)}
+      title={<><CameraIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />우리반 앨범</>}
+      rail={
+        <ClassSubRail classId={id} current="album">
+          {photos.length > 0 && (
+            <section className={RAIL_CARD}>
+              <p className={RAIL_LABEL}>앨범</p>
+              <p className="text-[22px] font-extrabold tracking-[-0.02em] text-brand tabular-nums">
+                {photos.length}
+                <span className="ml-0.5 text-[13px] font-bold text-gray-500 dark:text-white/55">장{hasNextPage ? '+' : ''}</span>
+              </p>
+              <p className="mt-1 text-[11.5px] text-gray-400 dark:text-white/40 leading-[1.6]">
+                기간 만료 없이 원본 화질로 보관돼요
+              </p>
+            </section>
+          )}
+        </ClassSubRail>
+      }
+    >
       {isLoading ? (
-        <div className="grid grid-cols-3 gap-1 p-1 pt-4">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-gray-100/70 dark:bg-white/[0.04] animate-pulse rounded-sm" />
+        <div className="grid grid-cols-3 lg:grid-cols-4 gap-1 lg:gap-2 p-1 lg:p-4 pt-4">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="aspect-square bg-gray-100/70 dark:bg-white/[0.04] animate-pulse rounded-sm lg:rounded-xl" />
           ))}
         </div>
       ) : photos.length === 0 ? (
@@ -50,13 +70,13 @@ const ClassAlbum = () => {
           <p className="px-4 pt-4 text-[11.5px] text-gray-400 dark:text-white/40">
             사진 {photos.length}장 · 기간 만료 없이 원본 화질로 보관돼요
           </p>
-          <div className="grid grid-cols-3 gap-1 p-1 pt-2">
+          <div className="grid grid-cols-3 lg:grid-cols-4 gap-1 lg:gap-2 p-1 lg:px-4 lg:pb-2 pt-2">
             {photos.map((p, i) => (
               <button
                 key={`${p.url}-${i}`}
                 type="button"
                 onClick={() => setViewer(i)}
-                className="aspect-square overflow-hidden bg-gray-100 dark:bg-white/[0.05] rounded-sm active:opacity-80 transition-opacity"
+                className="aspect-square overflow-hidden bg-gray-100 dark:bg-white/[0.05] rounded-sm lg:rounded-xl active:opacity-80 lg:hover:opacity-90 transition-opacity"
               >
                 <img src={p.url} alt="" loading="lazy" className="w-full h-full object-cover" />
               </button>
