@@ -1,5 +1,5 @@
 import { formatDotDateWeekday, formatLongDate } from '../../utils/dateUtils'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
 import { getBulletins, deleteBulletin, importBulletinNews } from '../../api/bulletin'
@@ -91,8 +91,18 @@ const BulletinManagement = () => {
 
   // 소식 쪽 → 일정·교회소식 초안 (AI 1~2분). 자동 등록을 놓친 주보나 직접 올린 주보용
   const [importingId, setImportingId] = useState<number | null>(null)
+  // state는 다음 렌더에야 반영되므로, 확인창 전후 빠른 연타까지 막는 동기 잠금
+  const importLockRef = useRef(false)
   const handleImportNews = async (bulletin: Bulletin) => {
-    if (importingId !== null) return
+    if (importLockRef.current) return
+    importLockRef.current = true
+    try {
+      await runImportNews(bulletin)
+    } finally {
+      importLockRef.current = false
+    }
+  }
+  const runImportNews = async (bulletin: Bulletin) => {
     if (
       !(await confirmDialog({
         title: '소식 → 일정 초안',
@@ -317,6 +327,7 @@ const BulletinManagement = () => {
                     onView={() => navigate('/news')}
                     onImportNews={() => handleImportNews(bulletin)}
                     importing={importingId === bulletin.id}
+                    importLocked={importingId !== null}
                   />
                 ))
               )}
@@ -360,6 +371,8 @@ interface BulletinRowProps {
   onView: () => void
   onImportNews: () => void
   importing: boolean
+  /** 다른 주보(또는 이 주보)를 읽는 중 — 버튼 비활성 */
+  importLocked: boolean
 }
 
 const BulletinRow = ({
@@ -371,6 +384,7 @@ const BulletinRow = ({
   onView,
   onImportNews,
   importing,
+  importLocked,
 }: BulletinRowProps) => {
   const isCurrent = isThisMonth(bulletin.bulletin_date)
   return (
@@ -481,7 +495,15 @@ const BulletinRow = ({
           <RowAction
             onClick={onImportNews}
             icon="calendar"
-            label={importing ? '소식 읽는 중… (1~2분)' : '소식 → 일정 초안 만들기'}
+            disabled={importLocked}
+            busy={importing}
+            label={
+              importing
+                ? '소식 읽는 중… (1~2분)'
+                : importLocked
+                  ? '다른 주보를 읽는 중이에요'
+                  : '소식 → 일정 초안 만들기'
+            }
           />
 
           <p className="text-[11px] text-gray-400 dark:text-white/40 leading-[1.5] pt-1">
@@ -542,12 +564,16 @@ const RowAction = ({
   destructive,
   icon,
   label,
+  disabled,
+  busy,
 }: {
   onClick: () => void
   accent?: boolean
   destructive?: boolean
   icon: keyof typeof ACTION_ICONS
   label: string
+  disabled?: boolean
+  busy?: boolean
 }) => {
   let cls =
     'flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
@@ -562,8 +588,20 @@ const RowAction = ({
       'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08]'
   }
   return (
-    <button type="button" onClick={onClick} className={cls}>
-      {ACTION_ICONS[icon]}
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-busy={busy || undefined}
+      className={`${cls} disabled:opacity-60 ${busy ? 'cursor-wait' : 'disabled:cursor-not-allowed'}`}
+    >
+      {busy ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" className="animate-spin" aria-hidden>
+          <path d="M21 12a9 9 0 1 1-6.2-8.56" />
+        </svg>
+      ) : (
+        ACTION_ICONS[icon]
+      )}
       <span>{label}</span>
     </button>
   )
