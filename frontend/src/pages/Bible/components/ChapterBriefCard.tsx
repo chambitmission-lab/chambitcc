@@ -1,7 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { genreStyle } from '../../../components/bible/bookGenre'
+import { canonicalBookName } from '../../Sermon/utils/sermonMeta'
 import { safeStorage } from '../../../utils/safeStorage'
 import { loadBookBriefs, type LoadedBriefs } from '../data/chapterBriefs'
+import { loadBookKeywords, type BookKeywords, type ChapterKeyword } from '../data/chapterKeywords'
+import { getActiveKeyword, setActiveKeyword, subscribeActiveKeyword } from '../data/keywordHighlight'
+import KeywordSheet from './KeywordSheet'
+import KeywordActivePill from './KeywordActivePill'
+import { scrollToFirstKeyword } from './keywordScroll'
 
 const COLLAPSED_KEY = 'bible-brief-collapsed'
 const LAST_READ_KEY = 'bible-last-read-at'
@@ -53,6 +59,37 @@ const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
       alive = false
     }
   }, [bookNumber])
+
+  // ── 이 장의 열쇠말 — 길잡이와 별도 청크(데이터 있는 책만). 늦게 와도 카드 맨 아래 줄이라 본문을 밀지 않는다
+  const [keywordsFor, setKeywordsFor] = useState<{ book: number; data: BookKeywords | null } | null>(null)
+  useEffect(() => {
+    let alive = true
+    loadBookKeywords(bookNumber).then((data) => {
+      if (alive) setKeywordsFor({ book: bookNumber, data })
+    })
+    return () => {
+      alive = false
+    }
+  }, [bookNumber])
+  const keywords = keywordsFor?.book === bookNumber ? (keywordsFor.data?.[chapter] ?? []) : []
+  const [sheetKeyword, setSheetKeyword] = useState<ChapterKeyword | null>(null)
+  const active = useSyncExternalStore(subscribeActiveKeyword, getActiveKeyword)
+  const activeHere = active && active.book === bookNumber && active.chapter === chapter ? active.keyword : null
+
+  // 장을 옮기거나 읽기 화면을 떠나면 밝히기를 끈다 — 다른 장으로 따라가지 않게
+  useEffect(() => {
+    return () => setActiveKeyword(null)
+  }, [bookNumber, chapter])
+
+  const toggleHighlight = (kw: ChapterKeyword) => {
+    setSheetKeyword(null)
+    if (activeHere === kw) {
+      setActiveKeyword(null)
+      return
+    }
+    setActiveKeyword({ book: bookNumber, chapter, keyword: kw })
+    scrollToFirstKeyword()
+  }
 
   // 읽기 화면에 온 것 자체를 방문 도장으로 기록 — 다음 방문의 공백 판정에 쓴다
   useEffect(() => {
@@ -170,9 +207,50 @@ const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
                 </p>
               </div>
             ))}
+
+            {/* 이 장의 열쇠말 — 탭하면 뜻풀이 시트, 시트에서 본문 밝히기 */}
+            {keywords.length > 0 && (
+              <div className="flex gap-2.5 items-start pt-0.5">
+                <span
+                  className="shrink-0 w-[58px] pt-[7px] text-[10.5px] font-bold tracking-wide"
+                  style={{ color: 'var(--genre)' }}
+                >
+                  열쇠말
+                </span>
+                <div className="min-w-0 flex-1 flex flex-wrap gap-1.5">
+                  {keywords.map((kw) => {
+                    const on = activeHere === kw
+                    return (
+                      <button
+                        key={kw.word}
+                        type="button"
+                        onClick={() => setSheetKeyword(kw)}
+                        aria-pressed={on}
+                        className={`keyword-chip${on ? ' is-on' : ''}`}
+                      >
+                        <span className="material-icons-round text-[14px] keyword-chip-icon">key</span>
+                        <span className="font-bold break-keep">{kw.word}</span>
+                        <span className="keyword-chip-count">{kw.count}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {sheetKeyword && (
+        <KeywordSheet
+          keyword={sheetKeyword}
+          where={`${canonicalBookName(bookNumber)} ${chapter}장`}
+          active={activeHere === sheetKeyword}
+          onToggleHighlight={() => toggleHighlight(sheetKeyword)}
+          onClose={() => setSheetKeyword(null)}
+        />
+      )}
+      {activeHere && <KeywordActivePill keyword={activeHere} onOff={() => setActiveKeyword(null)} />}
     </div>
   )
 }

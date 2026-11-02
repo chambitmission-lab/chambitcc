@@ -17,6 +17,8 @@ interface VerseTextProps {
   glossarySegments: GlossaryMatch[]
   /** 예수님 말씀 구간 — 글자색만 바꾼다 (밑줄·칩 장식과 겹쳐도 함께 칠한다) */
   jesusRanges: TextRange[]
+  /** 길잡이 "이 장의 열쇠말"을 밝히는 중이면 그 말이 나오는 구간 — 형광 띠만 얹는다 */
+  keywordRanges?: TextRange[]
   onTokenTap: (token: WordToken) => void
   onNoteTap: (seg: NoteSegment) => void
   onGlossaryTap: (entry: GlossaryEntry) => void
@@ -37,6 +39,7 @@ const VerseText = ({
   noteSegments,
   glossarySegments,
   jesusRanges,
+  keywordRanges = [],
   onTokenTap,
   onNoteTap,
   onGlossaryTap,
@@ -45,20 +48,39 @@ const VerseText = ({
   const jesusWhole = jesusRanges.length === 1 && jesusRanges[0].start === 0 && jesusRanges[0].end >= text.length
   const jesusPartial = jesusWhole ? [] : jesusRanges
 
-  /** text[start, end) 를 예수님 말씀 경계에서 쪼개 그린다 */
+  /**
+   * text[start, end) 를 예수님 말씀·열쇠말 경계에서 쪼개 그린다.
+   * 두 장식은 서로 다른 속성(글자색 / 형광 띠)이라 겹치면 둘 다 입힌다.
+   */
   const paint = (start: number, end: number, key: string): ReactNode => {
-    if (!jesusPartial.length) return text.slice(start, end)
-    const parts: ReactNode[] = []
-    let cursor = start
-    for (const r of jesusPartial) {
-      const s = Math.max(r.start, start)
-      const e = Math.min(r.end, end)
-      if (s >= e) continue
-      if (s > cursor) parts.push(<Fragment key={`${key}-p${cursor}`}>{text.slice(cursor, s)}</Fragment>)
-      parts.push(<span key={`${key}-j${s}`} className="verse-jesus-words">{text.slice(s, e)}</span>)
-      cursor = e
+    if (!jesusPartial.length && !keywordRanges.length) return text.slice(start, end)
+    const cuts = new Set<number>([start, end])
+    for (const r of [...jesusPartial, ...keywordRanges]) {
+      if (r.start > start && r.start < end) cuts.add(r.start)
+      if (r.end > start && r.end < end) cuts.add(r.end)
     }
-    if (cursor < end) parts.push(<Fragment key={`${key}-p${cursor}`}>{text.slice(cursor, end)}</Fragment>)
+    const points = [...cuts].sort((a, b) => a - b)
+    const inside = (ranges: TextRange[], at: number) => ranges.some((r) => r.start <= at && at < r.end)
+    const parts: ReactNode[] = []
+    for (let i = 0; i < points.length - 1; i++) {
+      const s = points[i]
+      const e = points[i + 1]
+      const cls = [
+        inside(jesusPartial, s) ? 'verse-jesus-words' : '',
+        inside(keywordRanges, s) ? 'verse-keyword-mark' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')
+      parts.push(
+        cls ? (
+          <span key={`${key}-${s}`} className={cls}>
+            {text.slice(s, e)}
+          </span>
+        ) : (
+          <Fragment key={`${key}-${s}`}>{text.slice(s, e)}</Fragment>
+        )
+      )
+    }
     return parts
   }
 

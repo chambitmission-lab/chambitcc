@@ -387,6 +387,48 @@
   color: #f0a198;
 }
 
+/* 이 장의 열쇠말 밝히기 — 글자 아래쪽에 노란 형광 띠를 왼쪽부터 그어 준다.
+   단어장(브랜드 블루 형광펜+실선)과 겹치지 않는 색, 굵기는 그대로(줄바꿈 출렁임 방지). */
+.verse-keyword-mark {
+  --kw-ink: rgba(250, 196, 40, 0.5);
+  background-image: linear-gradient(to top, var(--kw-ink) 0 42%, transparent 42%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  border-radius: 2px;
+  animation: verse-keyword-sweep 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+[data-theme="dark"] .verse-keyword-mark {
+  --kw-ink: rgba(250, 204, 21, 0.3);
+}
+/* 밝히는 중 알약 — 모바일은 하단 글래스 독(5.5rem) 위, PC 는 바닥에서 조금 띄운다 */
+.keyword-pill {
+  bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  animation: keyword-pill-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (min-width: 1024px) {
+  .keyword-pill {
+    bottom: 28px;
+  }
+}
+@keyframes keyword-pill-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+}
+@keyframes verse-keyword-sweep {
+  from {
+    background-size: 0% 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .verse-keyword-mark {
+    animation: none;
+  }
+}
+
 /* 다크 테마 읽기 편의 개선:
    순블랙 배경 + 순백 글자의 과한 대비(halation)를 줄여 눈 피로를 낮춘다.
    - 읽기 영역을 살짝 띄워(elevated) 종이 같은 느낌

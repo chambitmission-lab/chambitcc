@@ -9,6 +9,7 @@ import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
 import { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import { useGlossaryChips } from '../hooks/useGlossaryChips'
 import { useJesusWords } from '../hooks/useJesusWords'
+import { useKeywordRanges } from '../hooks/useKeywordRanges'
 import { useCrossLinks } from '../hooks/useCrossLinks'
 import type { CrossLink } from '../data/crossRefs'
 import VerseCrossLinks from './verse/VerseCrossLinks'
@@ -149,6 +150,7 @@ const VerseItem = ({
     verse.merged_verses ?? [verse.verse],
   )
   const jesusRanges = useJesusWords(bookNumber ?? verse.book_number, chapter ?? verse.chapter, verse.verse, verse.text)
+  const keywordRanges = useKeywordRanges(bookNumber ?? verse.book_number, chapter ?? verse.chapter, verse.text)
   const words = useWordSelection({ noteSegments, wordNotes })
 
   // ── 절 번호 길게 누르기 = 읽음 표시
@@ -245,6 +247,7 @@ const VerseItem = ({
       noteSegments={noteSegments}
       glossarySegments={glossarySegments}
       jesusRanges={jesusRanges}
+      keywordRanges={keywordRanges}
       onTokenTap={words.openForToken}
       onNoteTap={words.openForNote}
       onGlossaryTap={setGlossaryEntry}

@@ -284,3 +284,76 @@
 .chapter-brief-placeholder.is-collapsed {
   height: 56px;
 }
+
+/* 길잡이 "열쇠말" 칩 — 본문 형광 띠와 같은 노랑으로 이어 준다(켜지면 칩도 칠해진다) */
+.keyword-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 0 6px 0 8px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  line-height: 1.2;
+  color: var(--ink-strong, inherit);
+  background: rgba(250, 196, 40, 0.14);
+  border: 1px solid rgba(214, 158, 18, 0.32);
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+.keyword-chip:hover {
+  background: rgba(250, 196, 40, 0.24);
+}
+.keyword-chip-icon {
+  color: #b7791f;
+}
+.keyword-chip-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #7a5200;
+  background: rgba(250, 196, 40, 0.3);
+}
+.keyword-chip.is-on {
+  background: #f6c544;
+  border-color: #f6c544;
+  color: #3d2c00;
+}
+.keyword-chip.is-on .keyword-chip-icon {
+  color: #3d2c00;
+}
+.keyword-chip.is-on .keyword-chip-count {
+  background: rgba(61, 44, 0, 0.14);
+  color: #3d2c00;
+}
+[data-theme="dark"] .keyword-chip {
+  background: rgba(250, 204, 21, 0.1);
+  border-color: rgba(250, 204, 21, 0.26);
+}
+[data-theme="dark"] .keyword-chip-icon {
+  color: #f6c544;
+}
+[data-theme="dark"] .keyword-chip-count {
+  color: #f6d37a;
+  background: rgba(250, 204, 21, 0.18);
+}
+[data-theme="dark"] .keyword-chip.is-on {
+  background: #f6c544;
+  border-color: #f6c544;
+  color: #3d2c00;
+}
+[data-theme="dark"] .keyword-chip.is-on .keyword-chip-icon,
+[data-theme="dark"] .keyword-chip.is-on .keyword-chip-count {
+  color: #3d2c00;
+}
+@media (min-width: 1024px) {
+  .keyword-chip {
+    min-height: 34px;
+    font-size: calc(14px * var(--text-mul, 1));
+  }
+}
