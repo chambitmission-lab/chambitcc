@@ -52,9 +52,21 @@ export interface PeekBook {
 const toIntroMap = (list: BibleBookIntro[]) => new Map(list.map(i => [i.book_number, i]))
 
 export const useBookIntroPeek = () => {
-  const [target, setTarget] = useState<PeekTarget | null>(null)
+  const [target, setTargetState] = useState<PeekTarget | null>(null)
+  // 이벤트 핸들러·타이머 안에서 "지금 떠 있는 책"을 보려고 ref 로도 같이 둔다
+  const targetRef = useRef<PeekTarget | null>(null)
+  const setTarget = useCallback((t: PeekTarget | null) => {
+    targetRef.current = t
+    setTargetState(t)
+  }, [])
   const openTimer = useRef<number | undefined>(undefined)
   const closeTimer = useRef<number | undefined>(undefined)
+  // 지금 커서가 올라가 있는 책(pointerenter~pointerleave 사이)과 마지막 커서 좌표.
+  // 스크롤이 끝난 뒤 "커서 밑에 남은 책"을 다시 열 때, 그리고 pointerenter 를 놓쳤을 때의 보강에 쓴다
+  const hover = useRef<{ el: HTMLElement; book: PeekBook } | null>(null)
+  const pointer = useRef({ x: 0, y: 0 })
+  // 클릭한 책은 커서를 뗄 때까지 다시 띄우지 않는다
+  const suppressed = useRef<number | null>(null)
   // 마우스 기기 여부는 화면이 떠 있는 동안 바뀌지 않는다고 보고 처음 한 번만 잰다
   const [enabled] = useState(canHover)
 
@@ -75,28 +87,58 @@ export const useBookIntroPeek = () => {
   const clearAll = () => {
     window.clearTimeout(openTimer.current)
     window.clearTimeout(closeTimer.current)
+    openTimer.current = undefined
+    closeTimer.current = undefined
   }
 
   const close = useCallback(() => {
     clearAll()
     setTarget(null)
-  }, [])
+  }, [setTarget])
 
   const scheduleClose = useCallback(() => {
-    window.clearTimeout(openTimer.current)
-    window.clearTimeout(closeTimer.current)
+    clearAll()
     closeTimer.current = window.setTimeout(() => setTarget(null), CLOSE_MS)
-  }, [])
+  }, [setTarget])
 
   // 스크롤·리사이즈하면 말풍선이 책에서 떨어져 떠 있게 되므로 그냥 닫는다.
   // 휠로 굴리는 동안 커서 밑을 지나가는 책마다 열리지 않도록, 직전 스크롤 시각도 기억해 둔다
   const lastScrollAt = useRef(0)
+
+  /**
+   * delay 뒤에 커서가 올라가 있는 책의 말풍선을 연다.
+   * 스크롤 직후라면 포기하지 않고 조용해질 때까지 미룬다 — 예전엔 여기서 그냥 돌아가서,
+   * 휠로 굴리다 카드 위에 멈춘 뒤엔 커서를 뺐다 다시 올리기 전까지 말풍선이 안 떴다.
+   * 열기 직전엔 책이 실제로 커서 밑에 있는지(스크롤로 밀려났을 수 있다) 좌표로 확인한다.
+   */
+  const armOpen = useCallback((delay: number) => {
+    window.clearTimeout(openTimer.current)
+    const fire = () => {
+      openTimer.current = undefined
+      const h = hover.current
+      if (!h || !h.el.isConnected) return
+      if (suppressed.current === h.book.bookNumber) return
+      const quiet = SCROLL_QUIET_MS - (performance.now() - lastScrollAt.current)
+      if (quiet > 0) {
+        openTimer.current = window.setTimeout(fire, quiet)
+        return
+      }
+      const rect = h.el.getBoundingClientRect()
+      const { x, y } = pointer.current
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return
+      setTarget({ ...h.book, rect })
+    }
+    openTimer.current = window.setTimeout(fire, delay)
+  }, [setTarget])
+
   useEffect(() => {
     if (!enabled) return
     const onScroll = () => {
       lastScrollAt.current = performance.now()
       clearAll()
       setTarget(null)
+      // 스크롤이 멎은 뒤 커서 밑에 남은 책은 다시 띄운다 (커서가 안 움직이면 pointer 이벤트가 안 온다)
+      if (hover.current) armOpen(SCROLL_QUIET_MS)
     }
     window.addEventListener('scroll', onScroll, { capture: true, passive: true })
     window.addEventListener('resize', onScroll)
@@ -104,7 +146,7 @@ export const useBookIntroPeek = () => {
       window.removeEventListener('scroll', onScroll, { capture: true })
       window.removeEventListener('resize', onScroll)
     }
-  }, [enabled])
+  }, [enabled, armOpen, setTarget])
 
   useEffect(() => clearAll, [])
 
@@ -113,18 +155,35 @@ export const useBookIntroPeek = () => {
     return {
       onPointerEnter: (e: ReactPointerEvent<HTMLElement>) => {
         if (e.pointerType !== 'mouse') return
-        const el = e.currentTarget
+        hover.current = { el: e.currentTarget, book }
+        pointer.current = { x: e.clientX, y: e.clientY }
         clearAll()
         setWantAll(true)
         // 이미 다른 책 말풍선이 떠 있으면 기다리지 않고 바로 옮겨 탄다 — 훑어보기가 끊기지 않게
-        const delay = target ? 60 : OPEN_MS
-        openTimer.current = window.setTimeout(() => {
-          if (performance.now() - lastScrollAt.current < SCROLL_QUIET_MS) return
-          setTarget({ ...book, rect: el.getBoundingClientRect() })
-        }, delay)
+        armOpen(targetRef.current ? 60 : OPEN_MS)
       },
-      onPointerLeave: scheduleClose,
-      onPointerDown: close,
+      // 격자가 커서 밑에서 다시 그려지면(스켈레톤→카드, 필터 전환) pointerenter 가 오지 않을 수 있다.
+      // 움직임이 있을 때 열려 있지도, 예약돼 있지도 않으면 그때 예약한다
+      onPointerMove: (e: ReactPointerEvent<HTMLElement>) => {
+        if (e.pointerType !== 'mouse') return
+        pointer.current = { x: e.clientX, y: e.clientY }
+        if (hover.current?.el !== e.currentTarget) hover.current = { el: e.currentTarget, book }
+        if (openTimer.current !== undefined) return
+        if (targetRef.current?.bookNumber === book.bookNumber) return
+        if (suppressed.current === book.bookNumber) return
+        setWantAll(true)
+        armOpen(OPEN_MS)
+      },
+      onPointerLeave: (e: ReactPointerEvent<HTMLElement>) => {
+        if (e.pointerType !== 'mouse') return
+        if (hover.current?.el === e.currentTarget) hover.current = null
+        if (suppressed.current === book.bookNumber) suppressed.current = null
+        scheduleClose()
+      },
+      onPointerDown: () => {
+        suppressed.current = book.bookNumber
+        close()
+      },
     }
   }
 
