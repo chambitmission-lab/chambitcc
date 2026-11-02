@@ -236,3 +236,81 @@ button.gl-room:active,
 .gl-shelf { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .gl-shelf::-webkit-scrollbar { display: none; }
 .gl-shelf-item { flex: none; width: 132px; display: flex; flex-direction: column; gap: 6px; }
+
+/* ── 빈 화면 — 커버 배너(D안) ──
+ * 둘러보기 커버(.gl-cover.is-solo)와 같은 판 문법: 브랜드 색을 --rc 로 두고 --gl-* 토큰이 라이트/다크를 맡는다.
+ * 왼쪽 말풍선 + 큰 한 단어, 오른쪽 문구·버튼. 좁은 화면에선 위아래로 쌓인다. */
+.gl-empty {
+  --rc: var(--brand);
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: 20px;
+  border-radius: 22px;
+  color: var(--gl-on);
+  background: color-mix(in srgb, var(--rc) var(--gl-panel-mix), var(--gl-panel-base));
+  box-shadow:
+    inset 0 0 0 1px var(--gl-hairline),
+    0 14px 30px -20px color-mix(in srgb, var(--rc) var(--gl-shadow-alpha), transparent);
+}
+.gl-empty::before {
+  content: '';
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  right: -150px;
+  top: -230px;
+  border-radius: 50%;
+  background: var(--gl-ghost-hover);
+  pointer-events: none;
+}
+.gl-empty > * { position: relative; }
+.gl-empty-icon { display: block; opacity: 0.92; }
+.gl-empty-kw {
+  display: block;
+  margin-top: 14px;
+  font-family: 'Black Han Sans', 'Pretendard Variable', 'Pretendard', sans-serif;
+  font-weight: 400;
+  font-size: 64px;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+}
+.gl-empty-side { display: flex; flex-direction: column; gap: 6px; }
+.gl-empty-title { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.03em; }
+.gl-empty-desc { margin: 0 0 10px; font-size: 13px; line-height: 1.6; color: var(--gl-on-soft); }
+.gl-empty-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gl-empty-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--gl-ghost-border);
+  color: var(--gl-on);
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.15s;
+}
+.gl-empty-btn:hover { background: var(--gl-ghost-hover); }
+.gl-empty-btn:active { transform: scale(0.97); }
+.gl-empty-btn:focus-visible { outline: 2px solid var(--gl-on); outline-offset: 2px; }
+.gl-empty-btn.is-solid { border-color: transparent; background: var(--gl-on); color: var(--rc); font-weight: 800; }
+.gl-empty-btn.is-solid:hover { background: var(--gl-on-soft); }
+
+@media (min-width: 1024px) {
+  .gl-empty {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px;
+    min-height: 220px;
+    padding: 28px 32px;
+  }
+  .gl-empty-kw { margin-top: 22px; font-size: 92px; }
+  .gl-empty-side { align-self: end; max-width: 320px; }
+  .gl-empty-btns { display: flex; flex-wrap: wrap; }
+}

@@ -314,8 +314,11 @@ export const prayer = {
   groupsStatMembers: 'Total Members',
   groupsCreateSub: 'Start a new group',
   groupsJoinSub: 'With an invite code',
-  groupsEmptyLine1: 'Create a new group',
-  groupsEmptyLine2: 'or join with an invite code',
+  groupsEmptyLine1: 'Open a group with your cell, family or friends',
+  groupsEmptyLine2: 'and share prayer requests together',
+  groupsEmptyKeyword: 'Share',
+  groupsEmptyCreate: 'New group',
+  groupsEmptyJoin: 'Invite code',
 
   // Group modals / short button labels
   createGroupShort: 'Create',

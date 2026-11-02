@@ -17,7 +17,7 @@ import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { isAuthenticated } from '../../utils/auth'
 import type { PrayerGroup } from '../../types/prayer'
-import { GroupGlyph, TicketIcon } from './GroupIcons'
+import { ChatsIcon, GroupGlyph, TicketIcon } from './GroupIcons'
 import { toastFeedback } from '../../utils/toast'
 import { queryClient } from '../../config/queryClient'
 import { fetchGroup } from '../../api/group'
@@ -134,7 +134,7 @@ const MyGroups = () => {
           // 그룹이 없는 새가족 — 둘러보기가 첫 화면 (초대 없이도 공동체를 찾는다)
           <div className="px-4 lg:px-1 space-y-4">
             <DiscoverShelf promoted />
-            <EmptyState onAdd={() => setShowAdd(true)} />
+            <EmptyState onCreate={() => setShowCreate(true)} onJoin={() => setShowJoin(true)} />
           </div>
         ) : isDesktop && selected ? (
           // PC — 왼쪽 라이브러리(방 목록 + 둘러보기) / 오른쪽 무대(고른 방)
@@ -415,29 +415,38 @@ const SkeletonRows = () => (
 )
 
 // ── Empty ──────────────────────────────────────────────
-const EmptyState = ({ onAdd }: { onAdd: () => void }) => {
+// 둘러보기 커버와 같은 문법의 넓은 커버 한 장 — 브랜드 판 + 말풍선 + 큰 한 단어("나눔").
+// 만들기·초대 코드를 바로 나눠서 + 선택 시트를 한 번 덜 거친다. 색은 myGroupsList.css 의 .gl-empty
+const EmptyState = ({ onCreate, onJoin }: { onCreate: () => void; onJoin: () => void }) => {
   const { t } = useLanguage()
   return (
-    <div className="mx-0 my-2 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-10 px-6 text-center">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
-        <span className="text-[28px]">🤝</span>
+    <section className="gl-empty" aria-label={t('groupsNoneYet')}>
+      <div className="gl-empty-art" aria-hidden>
+        <ChatsIcon size={30} className="gl-empty-icon" />
+        <span className="gl-empty-kw">{t('groupsEmptyKeyword')}</span>
       </div>
-      <p className="text-ink-strong text-[14.5px] font-bold mb-1">
-        {t('groupsNoneYet')}
-      </p>
-      <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-        {t('groupsEmptyLine1')}
-        <br />
-        {t('groupsEmptyLine2')}
-      </p>
-      <button
-        type="button"
-        onClick={onAdd}
-        className="mt-4 h-10 px-5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[12.5px] font-bold"
-      >
-        만들거나 참여하기
-      </button>
-    </div>
+      <div className="gl-empty-side">
+        <h2 className="gl-empty-title">{t('groupsNoneYet')}</h2>
+        <p className="gl-empty-desc">
+          {t('groupsEmptyLine1')}
+          <br />
+          {t('groupsEmptyLine2')}
+        </p>
+        <div className="gl-empty-btns">
+          <button type="button" onClick={onCreate} className="gl-empty-btn is-solid">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {t('groupsEmptyCreate')}
+          </button>
+          <button type="button" onClick={onJoin} className="gl-empty-btn">
+            <TicketIcon size={17} />
+            {t('groupsEmptyJoin')}
+          </button>
+        </div>
+      </div>
+    </section>
   )
 }
 

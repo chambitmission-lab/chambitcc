@@ -315,8 +315,11 @@ export const prayer = {
   groupsStatMembers: '전체 멤버',
   groupsCreateSub: '새 모임 시작',
   groupsJoinSub: '초대 코드로',
-  groupsEmptyLine1: '새 그룹을 만들거나',
-  groupsEmptyLine2: '초대 코드로 함께해보세요',
+  groupsEmptyLine1: '셀 모임, 가족, 친구와 그룹을 열고',
+  groupsEmptyLine2: '서로의 기도제목을 나눠 보세요',
+  groupsEmptyKeyword: '나눔',
+  groupsEmptyCreate: '새 그룹 만들기',
+  groupsEmptyJoin: '초대 코드',
 
   // 그룹 모달 / 짧은 버튼 라벨
   createGroupShort: '만들기',
