@@ -111,8 +111,12 @@ const NewsMegaPanel = ({ pathname, search, go }: Props) => {
             {t('navNewsMenuSeeAll')} →
           </button>
         </div>
-        {/* key 로 탭마다 새로 마운트 — 활성 탭의 쿼리만 돈다 */}
-        <Preview key={active} tab={active} go={go} />
+        {/* key 로 탭마다 새로 마운트 — 활성 탭의 쿼리만 돈다.
+            미리보기는 DB 내용(제목·헌금 종류·계좌)이라 G마켓 산스 서브셋에 없는 글자가 섞인다
+            (예: 십일조의 '십'만 다른 서체) → 본문 서체로 되돌린다. 칸 머리의 탭 이름·전체 보기는 크롬 서체 유지 */}
+        <div className="chrome-type-off min-w-0 flex-1 flex flex-col">
+          <Preview key={active} tab={active} go={go} />
+        </div>
       </div>
     </div>
   )
