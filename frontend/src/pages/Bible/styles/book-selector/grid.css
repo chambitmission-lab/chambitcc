@@ -407,23 +407,13 @@
 }
 
 /* ── 다크: 같은 장면의 밤 숲 ──
-   라이트와 같은 구조(그림 오른쪽 아래 + 빈 곳은 밤하늘을 흐리게 깐 바탕), 테두리는 보라→청록 밤하늘 라인 */
+   원본 그림을 카드 전체에 그대로 깐다(덧그린 하늘·별·가장자리 녹임 없음 — 어색해진다는 피드백).
+   글자 쪽(왼쪽)만 옅은 어둠막, 테두리는 보라→청록 밤하늘 라인 */
 [data-theme="dark"] .book-hero {
   border: 1.5px solid transparent;
   background:
-    linear-gradient(90deg, rgba(8, 10, 22, 0.5) 0%, rgba(8, 10, 22, 0.15) 45%, rgba(8, 10, 22, 0) 70%) padding-box,
-    /* 작은 별 — 흐린 그림을 늘려 깔면 하늘이 뭉개져서, 바탕은 또렷한 그라데이션 + 점 별로 그린다 */
-    radial-gradient(1.2px 1.2px at 12% 18%, rgba(255, 255, 255, 0.85), transparent 100%) padding-box,
-    radial-gradient(1px 1px at 27% 9%, rgba(255, 255, 255, 0.6), transparent 100%) padding-box,
-    radial-gradient(1.4px 1.4px at 41% 24%, rgba(220, 225, 255, 0.8), transparent 100%) padding-box,
-    radial-gradient(1px 1px at 55% 12%, rgba(255, 255, 255, 0.55), transparent 100%) padding-box,
-    radial-gradient(1.2px 1.2px at 66% 6%, rgba(255, 245, 220, 0.75), transparent 100%) padding-box,
-    radial-gradient(1px 1px at 8% 38%, rgba(255, 255, 255, 0.45), transparent 100%) padding-box,
-    radial-gradient(1px 1px at 34% 42%, rgba(255, 255, 255, 0.4), transparent 100%) padding-box,
-    /* 그림 속 지평선의 보랏빛 노을이 카드 바탕으로 이어지게 */
-    radial-gradient(80% 60% at 70% 55%, rgba(132, 110, 200, 0.38) 0%, rgba(132, 110, 200, 0) 72%) padding-box,
-    /* 그림 속 하늘(남보라)과 같은 밝기로 — 바탕이 더 어두우면 그림 위쪽이 검게 꺼져 보인다 */
-    linear-gradient(180deg, #1c2346 0%, #2a3062 40%, #353670 62%, #223a4a 85%, #16282c 100%) padding-box,
+    linear-gradient(90deg, rgba(6, 8, 18, 0.55) 0%, rgba(6, 8, 18, 0.25) 38%, rgba(6, 8, 18, 0) 62%) padding-box,
+    url('../../../../assets/bible/hero-reading-together-night.webp') 62% 100% / cover no-repeat padding-box,
     linear-gradient(135deg, #6f63c9 0%, #3a3f7a 40%, #2f6f78 75%, #7fc9a8 100%) border-box;
   color: #fff;
   box-shadow:
@@ -431,10 +421,9 @@
     0 10px 26px -10px rgba(0, 0, 0, 0.8);
 }
 
+/* 다크는 바탕이 곧 그림이라 따로 얹는 그림 층은 쓰지 않는다 */
 [data-theme="dark"] .book-hero__art {
-  /* 위쪽은 짧게만 녹여 예수님 머리 위 하늘·별이 살아 있게 */
-  --fade-y: 10%;
-  background-image: url('../../../../assets/bible/hero-reading-together-night.webp');
+  display: none;
 }
 
 /* 그림 위에서도 글자가 또렷하게 */
