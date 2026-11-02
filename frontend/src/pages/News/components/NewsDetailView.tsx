@@ -13,6 +13,7 @@ import type { NewsAttachment, NewsDetail } from '../../../types/news'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
 import { formatBytes } from '../../../utils/formatBytes'
+import { renderKeepTogether } from '../../../utils/keepTogether'
 
 // 관리자만 쓰는 수정 모달 — 일반 방문자의 /news 청크에 섞이지 않게 눌렀을 때 받는다
 const NewsComposer = lazy(() => import('../../Admin/components/NewsComposer'))
@@ -180,8 +181,9 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
             </div>
           )}
 
-          <div className="relative z-10 px-5 py-5 text-[14px] leading-[1.75] text-gray-800 dark:text-white/80 whitespace-pre-wrap break-words lg:px-10 lg:py-8 lg:text-[18px] lg:leading-[1.8] lg:max-w-[calc(42em+5rem)] lg:text-gray-900 lg:dark:text-white/85">
-            {news.content}
+          <div className="relative z-10 px-5 py-5 text-[14px] leading-[1.75] text-gray-800 dark:text-white/80 whitespace-pre-wrap break-keep break-words lg:px-10 lg:py-8 lg:text-[18px] lg:leading-[1.8] lg:max-w-[calc(42em+5rem)] lg:text-gray-900 lg:dark:text-white/85">
+            {/* 한글은 어절 단위로 꺾고(break-keep), 계좌·전화번호는 한 줄에 묶는다 */}
+            {renderKeepTogether(news.content)}
           </div>
 
           {/* 첨부파일 — 안내문·신청서를 바로 내려받는 자리 */}

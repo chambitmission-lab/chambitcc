@@ -1,4 +1,5 @@
 import type { Event } from '../../../../types/event'
+import { renderKeepTogether } from '../../../../utils/keepTogether'
 import type { Translation } from '../../../../locales'
 import { SectionCard } from './EventAvatar'
 import { ChurchGlyph } from './EventDetailIcons'
@@ -25,8 +26,8 @@ export const EventGuideCard = ({ event, t }: EventGuideCardProps) => {
             {host} · {t.hostLabel}
           </p>
           {description && (
-            <p className="evd-bubble-host inline-block max-w-full bg-[var(--app-canvas)] px-4 py-3 text-ink-strong text-[16px] lg:text-[17.5px] leading-[1.7] whitespace-pre-wrap break-words">
-              {description}
+            <p className="evd-bubble-host inline-block max-w-full bg-[var(--app-canvas)] px-4 py-3 text-ink-strong text-[16px] lg:text-[17.5px] leading-[1.7] whitespace-pre-wrap break-keep break-words">
+              {renderKeepTogether(description)}
             </p>
           )}
           {attachmentUrl && (
