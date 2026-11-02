@@ -201,6 +201,74 @@
   border: 1.5px dashed color-mix(in srgb, var(--brand) 70%, var(--bc-line));
 }
 
+/* ── 라이트 = 틴트 서피스(E2) ──
+ * 검정 약어가 덩어리로 보여 무게를 뺐다: 테두리 없는 옅은 하늘 면 + 맑은 하늘색 약어(장식),
+ * 주인공은 책 이름. 읽는 중인 카드만 흰 면으로 떠올라 그림자가 생긴다. 2×2 히어로는 제외 */
+:root:not([data-theme="dark"]) .books-grid {
+  --bc-tint: #f6f9fe;
+  --bc-chip: #e8f0fc;
+}
+
+:root:not([data-theme="dark"]) .book-cell:not(.book-hero) {
+  background: var(--bc-tint);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+:root:not([data-theme="dark"]) .book-cell:not(.book-hero) .book-cell__abbr {
+  color: #cadcf5;
+}
+
+:root:not([data-theme="dark"]) .book-cell__name {
+  color: #333d4b;
+}
+
+:root:not([data-theme="dark"]) .book-cell__meta {
+  color: #8b95a1;
+  font-weight: 500;
+}
+
+:root:not([data-theme="dark"]) .book-cell__no {
+  color: #8b95a1;
+}
+
+/* 읽는 중 — 흰 카드가 떠오르고 약어는 브랜드 블루 */
+:root:not([data-theme="dark"]) .book-cell:not(.book-hero):not(.is-complete):not(.is-untouched) {
+  background: var(--bc-paper);
+  border-color: #d6e6fd;
+  box-shadow: 0 6px 18px -8px rgba(49, 130, 246, 0.25);
+}
+
+:root:not([data-theme="dark"]) .book-cell:not(.book-hero):not(.is-complete):not(.is-untouched) .book-cell__abbr {
+  color: var(--brand);
+}
+
+/* 완독 — 한 톤 진한 하늘 면 */
+:root:not([data-theme="dark"]) .book-cell.is-complete:not(.book-hero) {
+  background: #edf4fe;
+}
+
+:root:not([data-theme="dark"]) .book-cell.is-complete:not(.book-hero) .book-cell__abbr {
+  color: #9fc3f5;
+}
+
+:root:not([data-theme="dark"]) .book-cell.is-complete .book-cell__meta {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+:root:not([data-theme="dark"]) .book-cell.is-next:not(.book-hero) {
+  border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+}
+
+@media (hover: hover) {
+  :root:not([data-theme="dark"]) .book-cell:not(.book-hero):hover {
+    background: var(--bc-paper);
+    border-color: #d6e6fd;
+    box-shadow: 0 6px 18px -8px rgba(49, 130, 246, 0.25);
+  }
+}
+
 /* ── 지금 읽는 책 (2×2) ── */
 .book-hero {
   grid-column: span 2;
