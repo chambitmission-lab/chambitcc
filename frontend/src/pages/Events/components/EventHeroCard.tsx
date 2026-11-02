@@ -145,10 +145,20 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
             <div className="flex items-center gap-3 text-white/90 text-[12.5px] lg:text-[15.5px] font-medium">
               <span className="inline-flex items-center gap-1">
-                👥 <span>{event.attendance_count}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span>{event.attendance_count}</span>
               </span>
               <span className="inline-flex items-center gap-1">
-                👁️ <span>{event.views}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <span>{event.views}</span>
               </span>
             </div>
             <span className="inline-flex items-center gap-1 text-white text-[13px] lg:text-[16px] font-bold">
