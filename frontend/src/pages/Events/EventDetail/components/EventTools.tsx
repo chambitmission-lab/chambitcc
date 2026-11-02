@@ -2,7 +2,9 @@ import { useRef, useState } from 'react'
 import type { Translation } from '../../../../locales'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { formatKstDateTime } from '../../../../utils/kstTime'
+import { useChurchSite } from '../../../../hooks/useChurchSite'
 import { downloadEventIcs, type IcsEvent } from '../utils/calendarShare'
+import { resolveEventPlace } from '../utils/eventPlace'
 
 interface EventToolsProps {
   event: IcsEvent
@@ -15,6 +17,7 @@ const toolClass =
 /** 초대장 아래 도구 줄 — 캘린더 담기 · 공유 */
 export const EventTools = ({ event, t }: EventToolsProps) => {
   const { language } = useLanguage()
+  const site = useChurchSite()
   const [copied, setCopied] = useState(false)
   const copiedTimer = useRef<number | undefined>(undefined)
 
@@ -41,7 +44,7 @@ export const EventTools = ({ event, t }: EventToolsProps) => {
 
   return (
     <div className="flex gap-2 mt-6">
-      <button type="button" onClick={() => downloadEventIcs(event)} className={toolClass}>
+      <button type="button" onClick={() => downloadEventIcs(event, event.location ? resolveEventPlace(event.location, site).fullAddress : undefined)} className={toolClass}>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="3" y="4" width="18" height="18" rx="2.5" />
           <path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />

@@ -13,7 +13,9 @@ const escapeIcsText = (s: string): string =>
 /** .ics 를 만드는 데 필요한 칸만 — 상세 화면의 빠른 동작 버튼도 이 폭만 받는다 */
 export type IcsEvent = Pick<Event, 'id' | 'title' | 'start_datetime' | 'end_datetime' | 'location' | 'description'>
 
-export const downloadEventIcs = (event: IcsEvent): void => {
+/** @param locationText 캘린더에 적을 장소 — 교회 안 자리면 호출부가 교회 주소를 붙여 넘긴다(없으면 event.location) */
+export const downloadEventIcs = (event: IcsEvent, locationText?: string): void => {
+  const location = (locationText ?? event.location ?? '').trim()
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -24,7 +26,7 @@ export const downloadEventIcs = (event: IcsEvent): void => {
     `DTSTART:${toIcsUtc(parseKstDate(event.start_datetime))}`,
     `DTEND:${toIcsUtc(parseKstDate(event.end_datetime))}`,
     `SUMMARY:${escapeIcsText(event.title)}`,
-    event.location ? `LOCATION:${escapeIcsText(event.location)}` : '',
+    location ? `LOCATION:${escapeIcsText(location)}` : '',
     event.description ? `DESCRIPTION:${escapeIcsText(event.description)}` : '',
     'END:VEVENT',
     'END:VCALENDAR',
@@ -39,5 +41,3 @@ export const downloadEventIcs = (event: IcsEvent): void => {
   URL.revokeObjectURL(url)
 }
 
-export const buildMapSearchUrl = (location: string): string =>
-  `https://map.kakao.com/link/search/${encodeURIComponent(location)}`

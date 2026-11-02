@@ -93,6 +93,15 @@ export const news = {
   newsDetailErrorDesc: '삭제되었거나 아직 공개되지 않은 글일 수 있어요',
   newsDetailAuthorFallback: '관리자',
   newsDetailZoomPhoto: '사진 크게 보기',
+  // 상세 위 관리자 줄 — 주보에서 가져온 초안처럼 비공개 글을 그 자리에서 확인·공개·수정
+  newsAdminHintPrivate: '비공개 글이에요. 관리자에게만 보이니 내용을 확인한 뒤 공개해 주세요.',
+  newsAdminHintPublic: '공개 중인 글이에요. 수정하면 바로 반영돼요.',
+  newsAdminEdit: '내용 수정',
+  newsAdminPublish: '공개하기',
+  newsAdminUnpublish: '비공개로',
+  newsAdminPublished: '공개했어요',
+  newsAdminUnpublished: '비공개로 바꿨어요',
+  newsAdminPatchFailed: '변경하지 못했어요',
   newsDetailAttachments: '첨부파일 {n}개',
   newsDetailAttachmentFallback: '첨부파일',
 

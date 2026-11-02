@@ -2,13 +2,20 @@
 // Single Responsibility: 소식 한 건을 읽는 화면(+ 사진 확대 라이트박스)
 // PC(lg+)는 설교 상세와 같은 읽기 칼럼 — 본문 18px·줄간 1.8·줄 폭 제한, 제목·첨부 버튼을 크게(어르신 기준)
 import { formatLongDate } from '../../../utils/dateUtils'
-import { useState } from 'react'
-import { useNewsDetail } from '../../../hooks/useNews'
+import { Suspense, lazy, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { newsKeys, useInvalidateNews, useNewsDetail } from '../../../hooks/useNews'
+import { patchNews } from '../../../api/news'
+import { can } from '../../../utils/access'
+import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import type { NewsAttachment } from '../../../types/news'
+import type { NewsAttachment, NewsDetail } from '../../../types/news'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
 import { formatBytes } from '../../../utils/formatBytes'
+
+// 관리자만 쓰는 수정 모달 — 일반 방문자의 /news 청크에 섞이지 않게 눌렀을 때 받는다
+const NewsComposer = lazy(() => import('../../Admin/components/NewsComposer'))
 
 interface NewsDetailViewProps {
   newsId: number
@@ -29,6 +36,28 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
   const { t, language } = useLanguage()
   const { data: news, isLoading, error } = useNewsDetail(newsId)
   const [zoom, setZoom] = useState<string | null>(null)
+  // 관리자 줄 — 주보에서 가져온 소식 초안은 비공개로 만들어지는데, 보이는 자리에서 바로
+  // 공개·수정할 수 있어야 한다(소식 관리 화면까지 찾아가지 않아도 되게)
+  const admin = can('content:manage')
+  const queryClient = useQueryClient()
+  const invalidateNews = useInvalidateNews()
+  const [editing, setEditing] = useState(false)
+  const [toggling, setToggling] = useState(false)
+
+  const togglePublished = async () => {
+    if (!news || toggling) return
+    setToggling(true)
+    try {
+      const updated = await patchNews(news.id, { is_published: !news.is_published })
+      queryClient.setQueryData<NewsDetail>(newsKeys.detail(news.id), (prev) => (prev ? { ...prev, ...updated } : prev))
+      invalidateNews()
+      showToast(updated.is_published ? t('newsAdminPublished') : t('newsAdminUnpublished'), 'success')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : t('newsAdminPatchFailed'), 'error')
+    } finally {
+      setToggling(false)
+    }
+  }
 
   const images = news?.attachments.filter((a) => a.kind === 'image') ?? []
   const files = news?.attachments.filter((a) => a.kind === 'file') ?? []
@@ -95,6 +124,39 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
               <span>{t('newsViewCount').replace('{n}', String(news.views))}</span>
             </div>
           </header>
+
+          {admin && (
+            <div
+              className={`relative z-10 flex flex-wrap items-center gap-2 px-5 py-3 lg:px-10 lg:py-4 border-b border-gray-200/60 dark:border-white/[0.06] ${
+                news.is_published ? 'bg-gray-50/80 dark:bg-white/[0.03]' : 'bg-amber-50/70 dark:bg-amber-400/[0.07]'
+              }`}
+            >
+              <p className="flex-1 min-w-[12em] text-[12.5px] lg:text-[15px] leading-[1.5] text-gray-600 dark:text-white/65 break-keep">
+                {news.is_published ? t('newsAdminHintPublic') : t('newsAdminHintPrivate')}
+              </p>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="inline-flex items-center h-9 lg:h-11 px-3.5 lg:px-5 rounded-full bg-white dark:bg-white/[0.08] border border-gray-200/80 dark:border-white/[0.1] text-gray-700 dark:text-white/85 text-[12.5px] lg:text-[15px] font-bold hover:border-[var(--brand-soft-strong)] hover:text-brand transition-colors"
+                >
+                  {t('newsAdminEdit')}
+                </button>
+                <button
+                  type="button"
+                  onClick={togglePublished}
+                  disabled={toggling}
+                  className={`inline-flex items-center h-9 lg:h-11 px-3.5 lg:px-5 rounded-full text-[12.5px] lg:text-[15px] font-bold transition disabled:opacity-60 ${
+                    news.is_published
+                      ? 'bg-white dark:bg-white/[0.08] border border-gray-200/80 dark:border-white/[0.1] text-gray-700 dark:text-white/85 hover:border-[var(--brand-soft-strong)] hover:text-brand'
+                      : 'bg-brand text-white shadow-[0_6px_16px_-6px_var(--brand-glow)] hover:brightness-110 active:scale-[0.97]'
+                  }`}
+                >
+                  {news.is_published ? t('newsAdminUnpublish') : t('newsAdminPublish')}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* 본문 사진 — 포스터 한 장짜리가 대부분이라 폭을 꽉 채운다 */}
           {images.length > 0 && (
@@ -167,6 +229,18 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
       )}
 
       {zoom && <Lightbox src={zoom} onClose={() => setZoom(null)} />}
+      {editing && news && (
+        <Suspense fallback={null}>
+          <NewsComposer
+            news={news}
+            onClose={() => setEditing(false)}
+            onSuccess={() => {
+              setEditing(false)
+              invalidateNews()
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   )
 }

@@ -1,7 +1,8 @@
 import type { Translation } from '../../../../locales'
 import { showToast } from '../../../../utils/toast'
 import { formatEventDateLabel, formatEventStartTime } from '../../utils/dateGrouping'
-import { buildMapSearchUrl } from '../utils/calendarShare'
+import { useChurchSite } from '../../../../hooks/useChurchSite'
+import { resolveEventPlace } from '../utils/eventPlace'
 import { splitLocation } from '../utils/eventDisplay'
 import { SectionCard } from './EventAvatar'
 
@@ -33,14 +34,18 @@ const MapTile = () => (
 const ghostBtn =
   'inline-flex items-center gap-1 h-9 px-3 rounded-[10px] bg-gray-100 dark:bg-white/[0.07] text-gray-700 dark:text-white/80 text-[13.5px] lg:text-[14px] font-bold hover:bg-[var(--brand-soft-strong)] hover:text-brand transition-colors'
 
-/** 어디서 만나요 — 지도 타일 · 장소명/지역 · 카카오맵 · 주소 복사 */
+/** 어디서 만나요 — 지도 타일 · 장소명/지역 · 카카오맵 · 주소 복사
+ *  "3층 본당"처럼 교회 안 자리면 카카오맵은 교회 좌표로 열고, 주소 복사도 교회 주소를 준다 */
 export const EventPlaceCard = ({ location, startDatetime, endDatetime, t }: EventPlaceCardProps) => {
+  const site = useChurchSite()
   if (!location) return null
   const { name, sub } = splitLocation(location)
+  const place = resolveEventPlace(location, site)
+  const subLine = sub ?? place.addressLine
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(location)
+      await navigator.clipboard.writeText(place.fullAddress)
       showToast(t.addressCopied, 'success')
     } catch {
       // 클립보드 접근 불가 환경 — 조용히 무시
@@ -54,12 +59,12 @@ export const EventPlaceCard = ({ location, startDatetime, endDatetime, t }: Even
         <div className="min-w-0">
           <p className="text-ink-strong text-[17px] lg:text-[18.5px] font-extrabold leading-[1.35] break-keep">{name}</p>
           <p className="mt-0.5 text-gray-500 dark:text-white/55 text-[14px] lg:text-[15px] font-medium">
-            {sub ? `${sub} · ` : ''}
+            {subLine ? `${subLine} · ` : ''}
             {formatEventDateLabel(startDatetime)}{' '}
             {formatEventStartTime({ start_datetime: startDatetime, end_datetime: endDatetime })}
           </p>
           <div className="flex flex-wrap gap-1.5 mt-2.5">
-            <a href={buildMapSearchUrl(location)} target="_blank" rel="noopener noreferrer" className={ghostBtn}>
+            <a href={place.mapUrl} target="_blank" rel="noopener noreferrer" className={ghostBtn}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M20 10c0 6.5-8 12-8 12s-8-5.5-8-12a8 8 0 0 1 16 0z" />
                 <circle cx="12" cy="10" r="3" />
