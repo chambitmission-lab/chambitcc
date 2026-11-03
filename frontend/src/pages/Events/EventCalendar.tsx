@@ -184,8 +184,57 @@ const EventCalendar = () => {
           onPrev={handlePrevMonth}
           onNext={handleNextMonth}
           onToday={handleToday}
-          className="mx-4 mb-4 lg:hidden"
+          onSelectDate={handleSelectDate}
+          selectedKey={selectedKey}
+          className={`mx-4 lg:hidden ${selectedKey ? 'mb-2' : 'mb-4'}`}
         />
+
+        {/* 모바일 고른 날 — 달력 바로 아래에 그날 일정을 펼친다 (lg에선 우측 레일 패널이 대신) */}
+        {selectedKey && (
+          <section className="lg:hidden mx-4 mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none p-4">
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <p className="text-ink-strong text-[15px] font-bold tracking-[-0.01em]">
+                {selectedLabel}
+                {selectedHoliday && (
+                  <span className="ml-1.5 align-[1px] inline-block px-1.5 py-0.5 rounded-md bg-rose-50 dark:bg-rose-400/10 text-[11.5px] font-bold text-rose-600 dark:text-rose-300">
+                    {selectedHoliday}
+                  </span>
+                )}
+              </p>
+              <button
+                type="button"
+                onClick={() => setSelectedKey(null)}
+                className="shrink-0 h-8 px-3 rounded-full text-[12.5px] font-semibold text-gray-500 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+              >
+                닫기
+              </button>
+            </div>
+            {selectedEvents.length === 0 ? (
+              <p className="text-[13px] text-gray-500 dark:text-white/60 py-1">이날은 일정이 없어요</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {selectedEvents.map(ev => (
+                  <button
+                    key={ev.id}
+                    type="button"
+                    onClick={() => navigate(`/events/${ev.id}`)}
+                    className="relative text-left rounded-xl border border-gray-200/70 dark:border-white/[0.08] pl-4 pr-3 py-2.5 overflow-hidden active:bg-[var(--brand-soft)] transition-colors"
+                  >
+                    <span className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${CATEGORY_VISUAL[ev.category].gradient}`} />
+                    <p className="text-brand text-[12.5px] font-bold tabular-nums">{formatEventStartTime(ev)}</p>
+                    <p className="mt-0.5 text-ink-strong text-[14.5px] font-bold leading-[1.35] line-clamp-2">
+                      <CategoryIcon category={ev.category} width={13} height={13} className="inline-block align-[-1px] mr-1 text-brand" />
+                      {ev.title}
+                    </p>
+                    {ev.location && (
+                      <p className="mt-0.5 text-[12.5px] text-gray-600 dark:text-white/70 truncate">📍 {ev.location}</p>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* 어젠다 */}
         {loading && events.length === 0 ? (

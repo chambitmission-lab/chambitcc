@@ -166,6 +166,8 @@ const MiniMonthStrip = ({
                 'relative flex flex-col items-center rounded-xl transition-colors',
                 large ? 'min-h-[70px] justify-start pt-1.5 pb-1 gap-1 border-2' : 'aspect-square justify-center',
                 large && (isSelected ? 'border-brand bg-[var(--brand-soft)]' : 'border-transparent'),
+                !large && isSelected && !isToday && 'bg-[var(--brand-soft)] ring-1 ring-inset ring-brand/40',
+                !large && isSelected && isToday && 'bg-[var(--brand-soft)]',
                 !inMonth && 'opacity-30 cursor-default',
                 inMonth && !isToday && !isSelected && 'hover:bg-gray-100 dark:hover:bg-white/[0.04]',
               ]
