@@ -1,0 +1,266 @@
+/* 주보 소식 카드 보기 (NewsDigestView, nd- 접두)
+ *
+ * 폭은 화면 크기가 아니라 '본문 칸' 폭으로 나눈다(container query).
+ * PC에서도 /news 는 오른쪽 위젯 레일 때문에 본문 칸이 830px 안팎이라, lg 기준으로 나누면 목차+2열이 비좁다.
+ *   < 600px  : 스티커 목차 + 카드 1열 (모바일 글씨)
+ *   ≥ 600px  : 스티커 목차 + PC 글씨
+ *   ≥ 720px  : 왼쪽 고정 목차 + 카드 1열 (PC 본문 칸 748px가 여기)
+ *   ≥ 1040px : 왼쪽 고정 목차 + 카드 2열
+ *
+ * 표지 삽화는 /news 히어로와 같은 에셋 — 왼쪽·아래 알파 페이드가 구워져 있어
+ * 높이맞춤 + 오른쪽 정렬이면 글 자리(왼쪽)가 카드색에 녹는다(news-hero.css 참고).
+ */
+.nd-root {
+  container-type: inline-size;
+  --nd-surface-2: rgba(0, 0, 0, 0.035);
+  --k-worship: #3182f6; --k-worship-soft: rgba(49, 130, 246, 0.1);
+  --k-prayer: #c98a0c;  --k-prayer-soft: rgba(232, 160, 20, 0.13);
+  --k-meet: #0f9b8e;    --k-meet-soft: rgba(15, 155, 142, 0.11);
+  --k-apply: #e5484d;   --k-apply-soft: rgba(229, 72, 77, 0.1);
+  --k-event: #ea6a17;   --k-event-soft: rgba(242, 113, 28, 0.11);
+  --k-share: #18a058;   --k-share-soft: rgba(24, 160, 88, 0.11);
+  --k-notice: #5b6b80;  --k-notice-soft: rgba(91, 107, 128, 0.11);
+  --k-past: #8b95a1;
+}
+.dark .nd-root {
+  --nd-surface-2: rgba(255, 255, 255, 0.05);
+  --k-worship: #6aa6ff; --k-worship-soft: rgba(106, 166, 255, 0.14);
+  --k-prayer: #f0b84a;  --k-prayer-soft: rgba(240, 184, 74, 0.14);
+  --k-meet: #3fcfbf;    --k-meet-soft: rgba(63, 207, 191, 0.13);
+  --k-apply: #ff7a7e;   --k-apply-soft: rgba(255, 122, 126, 0.13);
+  --k-event: #ff9a55;   --k-event-soft: rgba(255, 154, 85, 0.13);
+  --k-share: #4cd38a;   --k-share-soft: rgba(76, 211, 138, 0.13);
+  --k-notice: #9fb0c6;  --k-notice-soft: rgba(159, 176, 198, 0.13);
+  --k-past: #7c8592;
+}
+.nd-root [data-k='worship'] { --k: var(--k-worship); --ks: var(--k-worship-soft); }
+.nd-root [data-k='prayer'] { --k: var(--k-prayer); --ks: var(--k-prayer-soft); }
+.nd-root [data-k='meet'] { --k: var(--k-meet); --ks: var(--k-meet-soft); }
+.nd-root [data-k='apply'] { --k: var(--k-apply); --ks: var(--k-apply-soft); }
+.nd-root [data-k='event'] { --k: var(--k-event); --ks: var(--k-event-soft); }
+.nd-root [data-k='share'] { --k: var(--k-share); --ks: var(--k-share-soft); }
+.nd-root [data-k='notice'] { --k: var(--k-notice); --ks: var(--k-notice-soft); }
+
+.nd-root { display: grid; gap: 16px; word-break: keep-all; overflow-wrap: break-word; }
+.nd-ico { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── 표지 ── */
+.nd-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 168px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--card-border);
+  display: grid;
+  align-content: center;
+  background: url('/images/news/church-news-light.webp') right -36px top / auto 128% no-repeat, var(--nd-surface-2);
+}
+.dark .nd-hero { background-image: url('/images/news/church-news-dark.webp'); }
+.nd-hero-eb { font-size: 12px; font-weight: 700; color: var(--brand); }
+.nd-hero-title {
+  margin: 5px 0 6px;
+  max-width: 8.5em;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+/* 좁은 칸은 숫자를 다음 줄로 — 한 줄이면 오른쪽 삽화(바구니)와 겹친다 */
+.nd-hero-title b { display: block; color: var(--brand); white-space: nowrap; }
+.nd-hero-sub { margin: 0; max-width: 10.5em; font-size: 13px; line-height: 1.55; color: var(--text-muted); }
+
+.nd-intro { margin: 0; font-size: 14px; line-height: 1.75; color: var(--text-body); }
+
+/* ── D-day 뱃지 ── */
+.nd-dd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--k);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.nd-dd.is-soft { background: var(--ks); color: var(--k); }
+.nd-dd.is-past { background: var(--nd-surface-2); color: var(--k-past); }
+
+/* ── 스티커 목차(좁은 칸) ── */
+.nd-stickers { display: flex; flex-wrap: wrap; gap: 7px; }
+.nd-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 34px;
+  padding: 0 12px 0 5px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ks);
+  color: var(--text-strong);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.nd-sticker:active { transform: scale(0.96); }
+.nd-sticker-text { min-width: 0; max-width: 9.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── 고정 목차(넓은 칸) ── */
+.nd-layout { display: grid; gap: 16px; }
+.nd-toc { display: none; }
+.nd-toc h4 { margin: 0 8px 6px; font-size: 15px; font-weight: 800; color: var(--text-strong); }
+.nd-toc button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 9px 8px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.nd-toc button:hover { background: var(--nd-surface-2); }
+.nd-toc-text { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.nd-toc-text::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--k); }
+
+/* ── 카드 ── */
+.nd-cards { display: grid; gap: 12px; align-items: start; }
+.nd-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--glass-bg, transparent);
+  scroll-margin-top: 72px;
+}
+.nd-card.is-past { opacity: 0.72; }
+.nd-tile { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: var(--ks); color: var(--k); }
+.nd-tile .nd-ico { width: 21px; height: 21px; }
+.nd-card-body { display: grid; gap: 7px; min-width: 0; }
+.nd-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--k); }
+.nd-card-title { margin: 0; font-size: 17px; font-weight: 800; line-height: 1.4; color: var(--text-strong); }
+.nd-desc { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text-body); white-space: pre-line; }
+.nd-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--card-border); }
+.nd-table { width: 100%; border-collapse: collapse; font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nd-table th, .nd-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--card-border); }
+.nd-table th { background: var(--nd-surface-2); font-weight: 700; color: var(--text-muted); }
+.nd-table td { color: var(--text-strong); font-weight: 600; }
+.nd-table tr:last-child td { border-bottom: 0; }
+.nd-note { margin: 0; padding-left: 10px; border-left: 2px solid var(--ks); font-size: 13.5px; line-height: 1.65; color: var(--text-body); }
+.nd-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.nd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 5px 9px;
+  border-radius: 9px;
+  background: var(--nd-surface-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.nd-pill .nd-ico { width: 13px; height: 13px; color: var(--text-muted); }
+.nd-pill.is-who { background: var(--k-prayer-soft); color: var(--k-prayer); }
+.nd-pill.is-who .nd-ico { color: inherit; }
+.nd-call {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 7px 7px 11px;
+  border: 1px dashed var(--card-border);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--text-body);
+}
+.nd-call button {
+  flex: none;
+  height: 30px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── 원문 ── */
+.nd-raw-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.nd-raw { white-space: pre-wrap; font-size: 14px; line-height: 1.75; color: var(--text-body); }
+
+.nd-root button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ── 넓은 칸: PC 글씨(≥600) ── */
+@container (min-width: 600px) {
+  .nd-hero { min-height: 220px; padding: 30px 34px; background-position: right top; background-size: auto 165%; }
+  .nd-hero-eb { font-size: 14px; }
+  .nd-hero-title { max-width: none; font-size: 30px; }
+  .nd-hero-title b { display: inline; }
+  .nd-hero-sub { max-width: none; font-size: 16px; }
+  .nd-intro { font-size: 17px; }
+
+  .nd-sticker { height: 38px; font-size: 15px; }
+  .nd-dd { height: 26px; font-size: 13px; padding: 0 9px; }
+  .nd-card { grid-template-columns: 52px minmax(0, 1fr); gap: 16px; padding: 22px; scroll-margin-top: 84px; }
+  .nd-tile { width: 52px; height: 52px; border-radius: 16px; }
+  .nd-tile .nd-ico { width: 25px; height: 25px; }
+  .nd-meta { font-size: 14px; }
+  .nd-card-title { font-size: 20px; }
+  .nd-desc { font-size: 17px; line-height: 1.75; }
+  .nd-note { font-size: 16px; }
+  .nd-pill { font-size: 15px; padding: 7px 11px; }
+  .nd-pill .nd-ico { width: 15px; height: 15px; }
+  .nd-call { font-size: 15.5px; }
+  .nd-call button { height: 38px; padding: 0 15px; font-size: 14.5px; }
+  .nd-raw-btn { height: 52px; font-size: 15.5px; }
+  .nd-raw { font-size: 18px; line-height: 1.8; }
+  .nd-table { font-size: 15px; }
+  .nd-table th, .nd-table td { padding: 9px 12px; }
+}
+/* ── 더 넓은 칸: 스티커 → 왼쪽 고정 목차(≥720) ── */
+@container (min-width: 720px) {
+  .nd-stickers { display: none; }
+  .nd-layout { grid-template-columns: 200px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .nd-toc {
+    display: grid;
+    position: sticky;
+    top: 4.75rem;
+    padding: 16px 8px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+  }
+}
+@container (min-width: 1040px) {
+  .nd-cards { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nd-sticker { transition: none; }
+}

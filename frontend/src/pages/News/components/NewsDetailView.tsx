@@ -2,7 +2,7 @@
 // Single Responsibility: 소식 한 건을 읽는 화면(+ 사진 확대 라이트박스)
 // PC(lg+)는 설교 상세와 같은 읽기 칼럼 — 본문 18px·줄간 1.8·줄 폭 제한, 제목·첨부 버튼을 크게(어르신 기준)
 import { formatLongDate } from '../../../utils/dateUtils'
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { newsKeys, useInvalidateNews, useNewsDetail } from '../../../hooks/useNews'
 import { patchNews } from '../../../api/news'
@@ -14,6 +14,8 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
 import { formatBytes } from '../../../utils/formatBytes'
 import { renderKeepTogether } from '../../../utils/keepTogether'
+import NewsDigestView from './newsDigest/NewsDigestView'
+import { parseNewsDigest } from './newsDigest/parseNewsDigest'
 
 // 관리자만 쓰는 수정 모달 — 일반 방문자의 /news 청크에 섞이지 않게 눌렀을 때 받는다
 const NewsComposer = lazy(() => import('../../Admin/components/NewsComposer'))
@@ -59,6 +61,13 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
       setToggling(false)
     }
   }
+
+  // 주보 소식은 게시일(없으면 등록일)이 '오늘'·'다음 주일'의 기준
+  const postDate = useMemo(() => {
+    const d = new Date(news?.published_at ?? news?.created_at ?? Date.now())
+    return Number.isNaN(d.getTime()) ? new Date() : d
+  }, [news?.published_at, news?.created_at])
+  const digest = useMemo(() => (news ? parseNewsDigest(news.content, postDate) : null), [news, postDate])
 
   const images = news?.attachments.filter((a) => a.kind === 'image') ?? []
   const files = news?.attachments.filter((a) => a.kind === 'file') ?? []
@@ -181,10 +190,17 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
             </div>
           )}
 
-          <div className="relative z-10 px-5 py-5 text-[14px] leading-[1.75] text-gray-800 dark:text-white/80 whitespace-pre-wrap break-keep break-words lg:px-10 lg:py-8 lg:text-[18px] lg:leading-[1.8] lg:max-w-[calc(42em+5rem)] lg:text-gray-900 lg:dark:text-white/85">
-            {/* 한글은 어절 단위로 꺾고(break-keep), 계좌·전화번호는 한 줄에 묶는다 */}
-            {renderKeepTogether(news.content)}
-          </div>
+          {digest ? (
+            // "1. 제목 / 본문 / * 일시" 번호 원고 — 항목 카드로 정리(원문은 카드 아래에서 열 수 있다)
+            <div className="relative z-10 px-4 py-4 lg:px-8 lg:py-7">
+              <NewsDigestView digest={digest} rawContent={news.content} postDate={postDate} />
+            </div>
+          ) : (
+            <div className="relative z-10 px-5 py-5 text-[14px] leading-[1.75] text-gray-800 dark:text-white/80 whitespace-pre-wrap break-keep break-words lg:px-10 lg:py-8 lg:text-[18px] lg:leading-[1.8] lg:max-w-[calc(42em+5rem)] lg:text-gray-900 lg:dark:text-white/85">
+              {/* 한글은 어절 단위로 꺾고(break-keep), 계좌·전화번호는 한 줄에 묶는다 */}
+              {renderKeepTogether(news.content)}
+            </div>
+          )}
 
           {/* 첨부파일 — 안내문·신청서를 바로 내려받는 자리 */}
           {files.length > 0 && (
