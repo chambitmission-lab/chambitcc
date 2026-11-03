@@ -159,7 +159,9 @@ const BottomNavigation = ({
           <span className="dock-label is-active">홈</span>
         </button>
 
-        {/* Bible — 펼친 책 선화. 책 아이콘은 성경 전용, 집중기도는 스톱워치로 분리 */}
+        {/* Bible — 십자가 성경책 선화(2026-11-03 B안). 펼친 책은 흐리게 읽혀 교체 —
+            닫힌 책이라 홈·스톱워치·사람처럼 닫힌 실루엣끼리 무게가 맞고, 십자가로 '성경'임이 바로 보인다.
+            책 아이콘은 성경 전용, 집중기도는 스톱워치로 분리 */}
         <button
           onClick={onBibleClick}
           aria-label="성경"
@@ -171,8 +173,9 @@ const BottomNavigation = ({
               <NavSpinner />
             ) : (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M12 6.5C10.2 5.1 7.6 4.5 3.5 4.6v13.6c4.1-.1 6.7.5 8.5 1.9 1.8-1.4 4.4-2 8.5-1.9V4.6c-4.1-.1-6.7.5-8.5 1.9z" />
-                <path d="M12 6.5v13.6" />
+                <path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v15H7.5A2.5 2.5 0 0 0 5 20.5z" />
+                <path d="M5 20.5A2.5 2.5 0 0 0 7.5 23H19v-5" />
+                <path d="M12 7v7.5M9.3 9.6h5.4" />
               </svg>
             )}
           </span>
