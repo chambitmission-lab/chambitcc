@@ -93,55 +93,42 @@ export const toStampSlot = (post: ClassPost, memberCount: number): StampSlot | n
   }
 }
 
-/** 반 전원이 응답한 글에 찍는 도장 문구 */
-export const COMPLETE_STAMP: Record<StampKind, string> = {
-  notice: '모두 확인',
-  verse: '모두 외움',
-  event: '모두 응답',
-  poll: '모두 참여',
+// ── 주간 매거진(2026-11-03 개편) — 한 주 = 한 호(VOL.) ──
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+/** 반이 만들어진 주를 1호로 센 발행 번호 */
+export const issueNo = (weekKey: number, classCreatedAt: string) => {
+  const first = weekStartOf(toKstCalendarDate(classCreatedAt)).getTime()
+  return Math.max(1, Math.round((weekKey - first) / WEEK_MS) + 1)
 }
 
-export interface WeekNote {
-  /** 이번 주 칸이 없으면 '아직 남은 도장'(최근 30일 미완료)으로 대신 채운다 */
-  mode: 'week' | 'leftover' | 'empty'
-  slots: StampSlot[]
-  /** 맨 위에 펼칠 말씀 — 가장 최근 암송요절 */
-  versePost: ClassPost | null
-  verseIsThisWeek: boolean
+export interface Issue {
+  weekKey: number
+  /** 최신순(서버 순서 그대로) */
+  posts: ClassPost[]
 }
 
-export const buildWeekNote = (posts: ClassPost[], memberCount: number, isTeacher: boolean): WeekNote => {
-  const visible = posts.filter((p) => !p.is_scheduled)
-  const now = thisWeekKey()
-  const isDone = (s: StampSlot) => (isTeacher ? s.classComplete : s.doneByMe)
-  const asSlots = (list: ClassPost[]) =>
-    list
-      .map((p) => toStampSlot(p, memberCount))
-      .filter((s): s is StampSlot => s !== null && (isTeacher || !s.post.is_mine))
-
-  const versePost =
-    [...visible]
-      .filter((p) => p.post_type === 'verse' && p.verse)
-      .sort((a, b) => postCalendarDate(b).getTime() - postCalendarDate(a).getTime())[0] ?? null
-
-  // 오래된 글이 위로 — 주 초에 올린 것부터 차례로 도장을 찍는다
-  const byOldest = (a: StampSlot, b: StampSlot) =>
-    postCalendarDate(a.post).getTime() - postCalendarDate(b.post).getTime()
-
-  let mode: WeekNote['mode'] = 'week'
-  let slots = asSlots(visible.filter((p) => weekKeyOf(p) === now)).sort(byOldest)
-  if (slots.length === 0) {
-    const monthAgo = now - 30 * 24 * 60 * 60 * 1000
-    slots = asSlots(visible.filter((p) => weekKeyOf(p) >= monthAgo))
-      .filter((s) => !isDone(s))
-      .sort(byOldest)
-    mode = slots.length > 0 ? 'leftover' : 'empty'
+/** 고정·예약 글을 뺀 나머지를 주 단위 호로 묶는다 — 최신 호가 앞 */
+export const groupIssues = (posts: ClassPost[]): Issue[] => {
+  const issues: Issue[] = []
+  for (const post of posts) {
+    if (post.is_pinned || post.is_scheduled) continue
+    const key = weekKeyOf(post)
+    const last = issues[issues.length - 1]
+    if (last && last.weekKey === key) last.posts.push(post)
+    else issues.push({ weekKey: key, posts: [post] })
   }
+  return issues
+}
 
-  return {
-    mode,
-    slots,
-    versePost,
-    verseIsThisWeek: versePost ? weekKeyOf(versePost) === now : false,
-  }
+/** 표지 말씀 — 가장 최근 암송요절(예약 글 제외) */
+export const latestVersePost = (posts: ClassPost[]): ClassPost | null =>
+  posts.find((p) => p.post_type === 'verse' && p.verse && !p.is_scheduled) ?? null
+
+/** 내가 아직 응답하지 않은 글인가 (내가 쓴 글·사진은 해당 없음) */
+export const awaitingMe = (post: ClassPost, memberCount: number) => {
+  if (post.is_mine || post.is_scheduled) return false
+  const slot = toStampSlot(post, memberCount)
+  return slot ? !slot.doneByMe : false
 }

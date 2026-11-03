@@ -1,0 +1,20 @@
+/* 우리반 알림장 상세 — 주간 매거진(2026-11-03 개편). 접두사 cm-.
+   표지 삽화는 class-hero.css 의 .class-hero-art(라이트/다크 자동)를 그대로 쓰고 위치만 맞춘다. */
+
+.cm-cover-band {
+  background-size: auto 100%;
+  background-position: right bottom;
+  /* 띠 아래 끝을 녹여 아래 파랑 면과 이음새 없이 잇는다 */
+  -webkit-mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cm-flash {
+    animation: cm-flash 1.6s ease-out;
+  }
+  @keyframes cm-flash {
+    0%, 30% { box-shadow: 0 0 0 3px var(--brand, #3182f6); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+}
