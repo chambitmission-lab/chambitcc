@@ -72,6 +72,8 @@ interface Props {
   onPray: (verse: SituationVerse) => void
   onShare: (verse: SituationVerse) => void
   onRead: (verse: SituationVerse) => void
+  /** 화면에 보이는 절이 바뀔 때 — 부모가 공유 카드를 미리 데우는 데 쓴다 */
+  onView?: (verse: SituationVerse) => void
 }
 
 const SituationImmersive = ({
@@ -88,6 +90,7 @@ const SituationImmersive = ({
   onPray,
   onShare,
   onRead,
+  onView,
 }: Props) => {
   const { data, isLoading } = useSituationVerses(category.id)
   const verses = data?.verses ?? []
@@ -191,6 +194,9 @@ const SituationImmersive = ({
   }
 
   const verse = !atEnd ? verses[index] : undefined
+  useEffect(() => {
+    if (verse) onView?.(verse)
+  }, [verse, onView])
   const lead = verse?.message?.trim() || (index === 0 ? empathyFor(category.name) : '')
   const tone = toneForCategory(category.name)
   const words = verse ? verse.text.split(/\s+/) : []

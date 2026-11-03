@@ -120,21 +120,41 @@ const SituationBible = () => {
 
   // 감정 삽화가 있는 카테고리면 /s/{감정}/… 링크 — 카톡 미리보기가 그 풍경 위 말씀 카드로 뜬다(situation_share.py).
   // 어드민이 추가한 카테고리(감정 없음)는 일반 /b/ 말씀 카드.
-  const shareMood = shareVerse
-    ? moodForCategory(categories.find((c) => c.id === shareVerse.category_id)?.name ?? '')
-    : null
-  const shareArtKey = shareMood?.art?.key
-  const sharePath =
-    shareVerse && shareArtKey && shareVerse.verse > 0
-      ? `/s/${shareArtKey}/${shareVerse.book_number}/${shareVerse.chapter}/${shareVerse.verse}`
-      : null
+  const shareMoodOf = useCallback(
+    (v: SituationVerse) => moodForCategory(categories.find((c) => c.id === v.category_id)?.name ?? ''),
+    [categories],
+  )
+  const sharePathOf = useCallback(
+    (v: SituationVerse) => {
+      const key = shareMoodOf(v)?.art?.key
+      return key && v.verse > 0 ? `/s/${key}/${v.book_number}/${v.chapter}/${v.verse}` : null
+    },
+    [shareMoodOf],
+  )
+  const shareMood = shareVerse ? shareMoodOf(shareVerse) : null
+  const sharePath = shareVerse ? sharePathOf(shareVerse) : null
+
+  // 카드 그림 예열 — 몰입 화면에서 그 절이 보이는 순간 한 번 받아 둔다(백엔드 렌더 캐시 + 엣지 캐시).
+  // 시트가 열릴 때 예열하면 보통 3초 안에 카톡 버튼을 눌러 카카오가 아직 그리는 중인 카드를 기다렸다.
+  // 운영 CPU 에선 첫 렌더가 수백 ms 라 절마다 한 번이면 족하다 (IP 당 분당 20장 한도 안).
+  const warmedCardsRef = useRef(new Set<string>())
+  const warmShareCard = useCallback(
+    (v: SituationVerse) => {
+      const path = sharePathOf(v)
+      if (!path || warmedCardsRef.current.has(path)) return
+      warmedCardsRef.current.add(path)
+      const img = new Image()
+      img.src = `${SHARE_ORIGIN}${path}/card.jpg`
+    },
+    [sharePathOf],
+  )
   // 카톡 피드 카드 — 주보처럼 SDK 로 카드만 보낸다. 제목·설명은 백엔드 og 메타(situation_share.py)와 같은 문구
   const shareKakao: KakaoFeedCard | undefined =
     shareVerse && shareMood && sharePath
       ? {
           title: `‘${shareMood.label}’ 하는 당신에게`,
           description: `${shareVerse.text} · ${bookAbbrev(shareVerse.book_number, 'ko')} ${shareVerse.chapter}:${shareVerse.verse}`,
-          imageUrl: `${SHARE_ORIGIN}${sharePath}/card.png`,
+          imageUrl: `${SHARE_ORIGIN}${sharePath}/card.jpg`,
           imageWidth: 1200,
           imageHeight: 630,
           link: `${SHARE_ORIGIN}${sharePath}`,
@@ -317,6 +337,7 @@ const SituationBible = () => {
           onPray={(v) => goPray(v, immersive.sentence)}
           onShare={setShareVerse}
           onRead={goRead}
+          onView={warmShareCard}
         />
       )}
 
