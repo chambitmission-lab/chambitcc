@@ -1,0 +1,415 @@
+/* /today?tab=church — 참비의 손편지 (ChurchLetter.tsx). 접두사 tcl-
+   책상(점 무늬) 위에 편지지·폴라로이드·포스트잇·티켓을 얹는다. 색은 여기 토큰으로만 — 다크는 아래에서 재정의. */
+
+.tcl {
+  --tcl-desk: #efe9dd;
+  --tcl-dot: rgba(120, 95, 50, 0.07);
+  --tcl-paper: #fffdf8;
+  --tcl-rule: #e9e1cf;
+  --tcl-margin: rgba(230, 120, 120, 0.35);
+  --tcl-ink: #2b2a26;
+  --tcl-ink-soft: #6b665b;
+  --tcl-hl: rgba(255, 214, 90, 0.6);
+  --tcl-stamp: rgba(49, 130, 246, 0.55);
+  --tcl-stamp-ink: rgba(27, 100, 218, 0.8);
+  --tcl-link: #1b64da;
+  --tcl-frame: #fbfaf5;
+  --tcl-note: #fff3b8;
+  --tcl-note-ink: #7a6420;
+  --tcl-note-link: #6b4600;
+  --tcl-tape: rgba(250, 228, 160, 0.72);
+  --tcl-tape-2: rgba(190, 220, 255, 0.75);
+  --tcl-shadow: rgba(60, 40, 10, 0.35);
+  --tcl-path: #c9b791;
+  --tcl-ground: #d8ccb2;
+  --tcl-time: #b86a00;
+  --tcl-up: #0a7d4f;
+  --tcl-photo: url('/images/bible/reading-scene-light.webp');
+  --tcl-pen-size: 23px;
+  --tcl-lh: 34px;
+
+  background-color: var(--tcl-desk);
+  background-image: radial-gradient(var(--tcl-dot) 1px, transparent 1px);
+  background-size: 6px 6px;
+  color: var(--tcl-ink);
+  padding: 18px 16px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+[data-theme='dark'] .tcl {
+  --tcl-desk: #171513;
+  --tcl-dot: rgba(255, 240, 210, 0.035);
+  --tcl-paper: #24211d;
+  --tcl-rule: rgba(255, 240, 210, 0.08);
+  --tcl-margin: rgba(240, 130, 130, 0.25);
+  --tcl-ink: #ece6da;
+  --tcl-ink-soft: #a9a293;
+  --tcl-hl: rgba(251, 191, 36, 0.3);
+  --tcl-stamp: rgba(144, 194, 255, 0.5);
+  --tcl-stamp-ink: rgba(170, 205, 255, 0.85);
+  --tcl-link: #90c2ff;
+  --tcl-frame: #e4dfd3;
+  --tcl-note: #4a4122;
+  --tcl-note-ink: #f3e3a6;
+  --tcl-note-link: #ffd36b;
+  --tcl-tape: rgba(250, 228, 160, 0.38);
+  --tcl-tape-2: rgba(160, 200, 255, 0.35);
+  --tcl-shadow: rgba(0, 0, 0, 0.6);
+  --tcl-path: #7d7260;
+  --tcl-ground: #4a443a;
+  --tcl-time: #fbbf24;
+  --tcl-up: #6ee7b7;
+  --tcl-photo: url('/images/bible/reading-scene-dark.webp');
+}
+
+@media (min-width: 1024px) {
+  .tcl {
+    --tcl-pen-size: 33px;
+    --tcl-lh: 42px;
+    border-radius: 28px;
+    padding: 32px 36px 36px;
+    gap: 24px;
+  }
+}
+
+.tcl-pen {
+  font-family: 'Nanum Pen Script', var(--font-serif-kr);
+}
+
+.tcl-day {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tcl-ink-soft);
+}
+@media (min-width: 1024px) {
+  .tcl-day { font-size: 16px; }
+}
+
+/* ── 위: 편지 + 옆(폴라로이드·포스트잇) ───────────── */
+.tcl-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px 36px;
+  align-items: flex-start;
+}
+
+.tcl-paper {
+  flex: 999 1 520px;
+  min-width: 0;
+  position: relative;
+  background: var(--tcl-paper);
+  border-radius: 4px;
+  padding: 18px 18px 20px 40px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05), 0 22px 40px -18px var(--tcl-shadow);
+  background-image: linear-gradient(90deg, transparent 26px, var(--tcl-margin) 26px, var(--tcl-margin) 27px, transparent 27px);
+}
+@media (min-width: 1024px) {
+  .tcl-paper {
+    padding: 28px 40px 32px 80px;
+    transform: rotate(-0.6deg);
+    background-image: linear-gradient(90deg, transparent 54px, var(--tcl-margin) 54px, var(--tcl-margin) 55px, transparent 55px);
+  }
+}
+
+.tcl-postmark {
+  position: absolute;
+  top: -12px;
+  right: 8px;
+  width: 58px;
+  height: 58px;
+  background: var(--tcl-paper);
+  border-radius: 50%;
+  border: 2px solid var(--tcl-stamp);
+  color: var(--tcl-stamp-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 8.5px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  transform: rotate(12deg);
+  pointer-events: none;
+}
+.tcl-postmark b { font-size: 13px; }
+@media (min-width: 1024px) {
+  .tcl-postmark { top: 22px; right: 26px; width: 96px; height: 96px; font-size: 11px; }
+  .tcl-postmark b { font-size: 18px; }
+}
+
+.tcl-paper-from {
+  font-size: 12.5px;
+  color: var(--tcl-ink-soft);
+  line-height: var(--tcl-lh);
+  padding-right: 70px;
+}
+.tcl-paper-from b { color: var(--tcl-ink); }
+@media (min-width: 1024px) {
+  .tcl-paper-from { font-size: 15px; }
+}
+
+/* 줄 노트 — 글줄 높이와 같은 간격으로 밑줄. 줄바꿈된 줄도 선 위에 앉는다 */
+.tcl-lines {
+  font-size: var(--tcl-pen-size);
+  line-height: var(--tcl-lh);
+  word-break: keep-all;
+  max-width: 600px;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0,
+    transparent calc(var(--tcl-lh) - 1px),
+    var(--tcl-rule) calc(var(--tcl-lh) - 1px),
+    var(--tcl-rule) var(--tcl-lh)
+  );
+}
+.tcl-hl {
+  color: inherit;
+  background: linear-gradient(180deg, transparent 55%, var(--tcl-hl) 55%, var(--tcl-hl) 92%, transparent 92%);
+  padding: 0 2px;
+}
+.tcl-sign {
+  text-align: right;
+  color: var(--tcl-ink-soft);
+  padding-right: 12px;
+}
+.tcl-ps { color: var(--tcl-link); }
+.tcl-ps-link {
+  font-family: 'Pretendard Variable', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tcl-link);
+  margin-left: 4px;
+  min-height: 32px;
+  vertical-align: middle;
+}
+@media (min-width: 1024px) {
+  .tcl-ps-link { font-size: 15px; }
+}
+
+/* ── 옆 칸 ────────────────────────────────────────── */
+.tcl-side {
+  flex: 1 1 280px;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px 16px;
+}
+@media (min-width: 1024px) {
+  .tcl-side { flex-direction: column; flex-wrap: nowrap; align-items: center; padding-top: 18px; gap: 30px; }
+}
+
+.tcl-tape {
+  position: absolute;
+  height: 26px;
+  background: var(--tcl-tape);
+  clip-path: polygon(3% 0, 97% 4%, 100% 22%, 97% 40%, 100% 60%, 97% 80%, 99% 100%, 2% 96%, 0 78%, 3% 58%, 0 38%, 3% 18%);
+  pointer-events: none;
+}
+
+/* 폴라로이드 — 정사각 사진 + 두꺼운 아래 여백, 바랜 색·유광·필름 날짜 */
+.tcl-pol-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: calc(54% - 8px);
+  max-width: 200px;
+}
+@media (min-width: 1024px) {
+  .tcl-pol-wrap { width: 300px; max-width: 100%; }
+}
+.tcl-pol {
+  position: relative;
+  display: block;
+  width: 100%;
+  background: var(--tcl-frame);
+  padding: 12px 12px 0;
+  transform: rotate(2.4deg);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(60, 40, 10, 0.08), 0 18px 30px -10px var(--tcl-shadow);
+  transition: transform 0.25s ease;
+  text-align: center;
+}
+.tcl-pol:hover { transform: rotate(0.8deg) translateY(-2px); }
+.tcl-pol:focus-visible { outline: 2px solid var(--tcl-link); outline-offset: 4px; }
+.tcl-pol-tape { top: -13px; left: 50%; width: 104px; margin-left: -52px; transform: rotate(-4deg); }
+.tcl-pol-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 1;
+  background-image: var(--tcl-photo);
+  background-size: cover;
+  background-position: 68% center;
+  filter: saturate(0.88) contrast(0.96) sepia(0.08);
+}
+.tcl-pol-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 0 40px rgba(80, 50, 10, 0.18);
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 32%, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, 0.12) 100%);
+}
+.tcl-pol-date {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  z-index: 1;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #ff8a3d;
+  text-shadow: 0 0 4px rgba(255, 120, 40, 0.6);
+}
+.tcl-pol-cap {
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  color: #2b2a26; /* 프레임은 다크에서도 밝다 */
+}
+.tcl-pol-title { font-size: 24px; line-height: 1; white-space: nowrap; }
+.tcl-pol-sub { font-size: 15px; line-height: 1; color: #6b665b; white-space: nowrap; }
+@media (min-width: 1024px) {
+  .tcl-pol { padding: 14px 14px 0; }
+  .tcl-pol-cap { height: 74px; }
+  .tcl-pol-title { font-size: 30px; }
+  .tcl-pol-sub { font-size: 20px; }
+}
+
+.tcl-link,
+.tcl-note-link {
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 36px;
+}
+.tcl-link { color: var(--tcl-link); }
+.tcl-others { font-size: 19px; line-height: 1.3; color: var(--tcl-ink-soft); text-align: center; }
+.tcl-inline { color: var(--tcl-ink); text-decoration: underline; text-decoration-color: var(--tcl-path); text-underline-offset: 4px; }
+
+/* 포스트잇 */
+.tcl-note {
+  position: relative;
+  width: calc(46% - 8px);
+  max-width: 170px;
+  background: var(--tcl-note);
+  padding: 16px 14px 10px;
+  transform: rotate(-2deg);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05), 0 10px 18px -8px var(--tcl-shadow);
+}
+.tcl-note-tape { top: -11px; left: 18px; width: 70px; height: 22px; transform: rotate(-12deg); background: var(--tcl-tape-2); }
+.tcl-note-title { font-size: 12.5px; font-weight: 700; color: var(--tcl-note-ink); }
+.tcl-note-list { margin-top: 6px; font-size: 24px; line-height: 1.15; }
+@media (min-width: 1024px) {
+  .tcl-note { width: 250px; max-width: 100%; padding: 18px 20px 14px; }
+  .tcl-note-list { font-size: 30px; }
+}
+.tcl-rising {
+  margin-left: 6px;
+  font-family: 'Pretendard Variable', system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--tcl-note-ink);
+  vertical-align: middle;
+}
+.tcl-note-link { color: var(--tcl-note-link); margin-top: 4px; }
+
+/* ── 기도가 올라간 시간 ───────────────────────────── */
+.tcl-card {
+  background: var(--tcl-paper);
+  border-radius: 18px;
+  box-shadow: 0 1px 0 var(--tcl-rule), 0 14px 28px -18px var(--tcl-shadow);
+  padding: 18px 18px 14px;
+}
+@media (min-width: 1024px) {
+  .tcl-card { padding: 24px 30px 18px; }
+}
+.tcl-card-title { font-size: 13px; font-weight: 700; color: var(--tcl-ink-soft); }
+.tcl-times-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; }
+.tcl-times-lead { font-size: 24px; line-height: 1.2; }
+@media (min-width: 1024px) {
+  .tcl-card-title { font-size: 15px; }
+  .tcl-times-lead { font-size: 28px; }
+}
+
+.tcl-glow { filter: drop-shadow(0 0 6px rgba(255, 180, 60, 0.75)); }
+
+.tcl-hill { display: block; width: 100%; height: auto; margin-top: 6px; }
+.tcl-hill-ground { fill: none; stroke: var(--tcl-ground); stroke-width: 2; stroke-linecap: round; }
+.tcl-hill-path { fill: none; stroke: var(--tcl-path); stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 1 9; }
+.tcl-hill-sun circle { fill: #ffe7a8; stroke: #e0a43a; stroke-width: 2; }
+.tcl-hill-sun path { fill: none; stroke: #e0a43a; stroke-width: 2; stroke-linecap: round; }
+.tcl-hill-moon { fill: #dfe4f5; stroke: #8c96b8; stroke-width: 1.6; }
+.tcl-hill-label { font-family: 'Nanum Pen Script', var(--font-serif-kr); font-size: 28px; fill: var(--tcl-ink); }
+.tcl-hill-end { font-size: 13px; fill: var(--tcl-ink-soft); }
+
+/* 모바일 — 기도 일기 시간표 */
+.tcl-diary {
+  margin-top: 6px;
+  background-image: repeating-linear-gradient(180deg, transparent 0, transparent 47px, var(--tcl-rule) 47px, var(--tcl-rule) 48px);
+}
+.tcl-diary li {
+  height: 48px;
+  display: grid;
+  grid-template-columns: 56px 44px 1fr;
+  align-items: center;
+  gap: 6px;
+}
+.tcl-diary-time { font-family: 'Courier New', monospace; font-weight: 700; font-size: 14px; color: var(--tcl-time); }
+.tcl-diary-flames { display: flex; gap: 1px; align-items: flex-end; }
+.tcl-diary-text { font-size: 23px; line-height: 1; word-break: keep-all; }
+
+/* ── 숫자 티켓 ───────────────────────────────────── */
+.tcl-tickets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (min-width: 1024px) {
+  .tcl-tickets { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+}
+.tcl-ticket {
+  position: relative;
+  background: var(--tcl-paper);
+  border-radius: 10px;
+  box-shadow: 0 1px 0 var(--tcl-rule);
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tcl-ticket::before,
+.tcl-ticket::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--tcl-desk);
+}
+.tcl-ticket::before { left: -7px; }
+.tcl-ticket::after { right: -7px; }
+.tcl-ticket-label { font-size: 12.5px; color: var(--tcl-ink-soft); }
+.tcl-ticket-value { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.tcl-ticket-value small { font-size: 13px; font-weight: 600; color: var(--tcl-ink-soft); margin-left: 2px; }
+.tcl-ticket-value em { font-style: normal; font-size: 12px; margin-left: 6px; }
+.tcl-ticket-up { color: var(--tcl-up); font-weight: 700; }
+.tcl-ticket-avg { color: var(--tcl-ink-soft); font-weight: 500; }
+@media (min-width: 1024px) {
+  .tcl-ticket { flex-direction: row; justify-content: space-between; align-items: baseline; padding: 16px 26px; }
+  .tcl-ticket-label { font-size: 15px; }
+  .tcl-ticket-value { font-size: 26px; }
+  .tcl-ticket-value em { font-size: 13.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tcl-pol { transition: none; }
+}
