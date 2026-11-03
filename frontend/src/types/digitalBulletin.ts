@@ -68,3 +68,10 @@ export interface DigitalBulletinResponse {
   data: BulletinData
   updated_at?: string
 }
+
+/** 종이 주보를 AI 가 읽어 만든 초안(관리자 전용) — 없으면 data 가 null */
+export interface DigitalBulletinDraftResponse {
+  data: BulletinData | null
+  bulletin_id: number | null
+  created_at?: string | null
+}

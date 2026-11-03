@@ -2,7 +2,7 @@ import { formatDotDateWeekday, formatLongDate } from '../../utils/dateUtils'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
-import { getBulletins, deleteBulletin, importBulletinNews } from '../../api/bulletin'
+import { getBulletins, deleteBulletin, importBulletinDigital, importBulletinNews } from '../../api/bulletin'
 import type { Bulletin } from '../../types/bulletin'
 import BulletinComposer from './components/BulletinComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
@@ -100,6 +100,42 @@ const BulletinManagement = () => {
       await runImportNews(bulletin)
     } finally {
       importLockRef.current = false
+    }
+  }
+  const handleImportDigital = async (bulletin: Bulletin) => {
+    if (importLockRef.current) return
+    importLockRef.current = true
+    try {
+      await runImportDigital(bulletin)
+    } finally {
+      importLockRef.current = false
+    }
+  }
+  // 주보 전체 → 디지털 주보 초안 (AI 1~2분). 공개되지 않고 소식 탭의 관리자 배너에서 검토 후 적용
+  const runImportDigital = async (bulletin: Bulletin) => {
+    if (
+      !(await confirmDialog({
+        title: '디지털 주보 초안 만들기',
+        message:
+          '주보 사진을 읽어 예배 순서·설교·소식·안내·주간 일정을 디지털 주보 초안으로 만들어요. 1~2분 걸리고, 소식 탭에서 검토한 뒤 적용해야 공개됩니다. 있던 초안은 덮어써요.',
+        confirmText: '만들기',
+      }))
+    )
+      return
+    setImportingId(bulletin.id)
+    showToast('주보를 읽는 중이에요… (1~2분)', 'info')
+    try {
+      const r = await importBulletinDigital(bulletin.id)
+      if (!r.found) {
+        showToast('이 이미지를 주보로 읽지 못했어요', 'info')
+        return
+      }
+      showToast(`초안 완성 — 소식 ${r.announcements}건 · 안내 ${r.extras}개 · 일정 ${r.schedule}개. 소식 탭에서 검토 후 적용해 주세요`, 'success')
+      navigate('/news?tab=bulletin')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : '주보를 읽지 못했어요', 'error')
+    } finally {
+      setImportingId(null)
     }
   }
   const runImportNews = async (bulletin: Bulletin) => {
@@ -326,6 +362,7 @@ const BulletinManagement = () => {
                     onDelete={() => handleDelete(bulletin.id)}
                     onView={() => navigate('/news')}
                     onImportNews={() => handleImportNews(bulletin)}
+                    onImportDigital={() => handleImportDigital(bulletin)}
                     importing={importingId === bulletin.id}
                     importLocked={importingId !== null}
                   />
@@ -370,6 +407,7 @@ interface BulletinRowProps {
   onDelete: () => void
   onView: () => void
   onImportNews: () => void
+  onImportDigital: () => void
   importing: boolean
   /** 다른 주보(또는 이 주보)를 읽는 중 — 버튼 비활성 */
   importLocked: boolean
@@ -383,6 +421,7 @@ const BulletinRow = ({
   onDelete,
   onView,
   onImportNews,
+  onImportDigital,
   importing,
   importLocked,
 }: BulletinRowProps) => {
@@ -505,6 +544,19 @@ const BulletinRow = ({
                   : '소식 → 일정 초안 만들기'
             }
           />
+          <RowAction
+            onClick={onImportDigital}
+            icon="phone"
+            disabled={importLocked}
+            busy={importing}
+            label={
+              importing
+                ? '주보 읽는 중… (1~2분)'
+                : importLocked
+                  ? '다른 주보를 읽는 중이에요'
+                  : '디지털 주보 초안 만들기'
+            }
+          />
 
           <p className="text-[11px] text-gray-400 dark:text-white/40 leading-[1.5] pt-1">
             * 수정에서 제목·날짜·설명은 물론 페이지 추가·삭제·순서까지 바꿀 수 있어요.
@@ -528,6 +580,12 @@ const SkeletonRows = () => (
 )
 
 const ACTION_ICONS: Record<string, ReactNode> = {
+  phone: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="6" y="2" width="12" height="20" rx="2.5" />
+      <path d="M10 18h4" />
+    </svg>
+  ),
   eye: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />

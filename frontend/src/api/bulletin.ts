@@ -164,3 +164,21 @@ export const importBulletinNews = (id: number): Promise<BulletinNewsImportResult
     auth: 'required',
     errorMessage: '주보 소식을 읽지 못했어요',
   })
+
+export interface BulletinDigitalImportResult {
+  found: boolean
+  announcements: number
+  extras: number
+  schedule: number
+}
+
+/**
+ * 주보 전체 → 디지털 주보 초안 다시 만들기 (관리자 전용, AI 읽기라 1~2분)
+ * 초안은 공개되지 않고 /news?tab=bulletin 의 관리자 배너에서 검토 후 적용한다. 있던 초안은 덮어쓴다.
+ */
+export const importBulletinDigital = (id: number): Promise<BulletinDigitalImportResult> =>
+  request<BulletinDigitalImportResult>(`/bulletins/${id}/import-digital`, {
+    method: 'POST',
+    auth: 'required',
+    errorMessage: '주보를 읽지 못했어요',
+  })

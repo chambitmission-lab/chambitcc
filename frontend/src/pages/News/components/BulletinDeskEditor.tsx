@@ -135,18 +135,24 @@ const ICON = {
 
 // ── 본체 ─────────────────────────────────────────
 interface BulletinDeskEditorProps {
+  /** 공개본 — 저장 전 비교 기준 */
   initial: BulletinData
+  /** 종이 주보를 AI 가 읽은 초안 — 넘기면 이걸로 시작하고, 저장하면 서버의 초안도 지운다 */
+  aiDraft?: BulletinData
   onClose: () => void
 }
 
-const BulletinDeskEditor = ({ initial, onClose }: BulletinDeskEditorProps) => {
+const BulletinDeskEditor = ({ initial, aiDraft, onClose }: BulletinDeskEditorProps) => {
   const replaceMutation = useReplaceDigitalBulletin()
   const [baseline, setBaseline] = useState<BulletinData>(initial)
-  const [draft, setDraft] = useState<BulletinData>(initial)
+  const [draft, setDraft] = useState<BulletinData>(aiDraft ?? initial)
+  // AI 초안으로 열었을 땐 localStorage 의 옛 작성분을 권하지 않는다 — 검토 대상이 분명하니까
   const [recoverable, setRecoverable] = useState<BulletinData | null>(() => {
+    if (aiDraft) return null
     const saved = readDraft()
     return saved && JSON.stringify(saved) !== JSON.stringify(initial) ? saved : null
   })
+  const [fromAiDraft, setFromAiDraft] = useState(aiDraft != null)
   const [active, setActive] = useState<SectionId>('basic')
   const scrollRef = useRef<HTMLDivElement>(null)
   const sectionEl = (id: SectionId) =>
@@ -165,8 +171,9 @@ const BulletinDeskEditor = ({ initial, onClose }: BulletinDeskEditorProps) => {
   const save = useCallback(async () => {
     if (!dirty || replaceMutation.isPending) return
     try {
-      await replaceMutation.mutateAsync(draft)
+      await replaceMutation.mutateAsync({ data: draft, discardDraft: fromAiDraft })
       setBaseline(draft)
+      setFromAiDraft(false)
       setRecoverable(null)
       writeDraft(null)
       showToast('주보를 저장했어요', 'success')
@@ -174,7 +181,7 @@ const BulletinDeskEditor = ({ initial, onClose }: BulletinDeskEditorProps) => {
       console.error(e)
       showToast('저장에 실패했습니다', 'error')
     }
-  }, [dirty, draft, replaceMutation])
+  }, [dirty, draft, fromAiDraft, replaceMutation])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -267,6 +274,15 @@ const BulletinDeskEditor = ({ initial, onClose }: BulletinDeskEditorProps) => {
             </button>
           </div>
         </header>
+
+        {fromAiDraft && (
+          <div className="shrink-0 flex items-center gap-3 px-6 py-2.5 bg-amber-50 dark:bg-amber-400/10 border-b border-amber-200 dark:border-amber-400/20 text-[13.5px] text-amber-900 dark:text-amber-100">
+            <span className="font-semibold">종이 주보를 AI 가 읽은 초안이에요.</span>
+            <span className="text-amber-800/80 dark:text-amber-100/70">
+              설교자·기도 담당 같은 이름과 계좌번호는 사진과 꼭 맞춰 보고 저장하세요. 저장하면 공개되고 초안은 지워져요.
+            </span>
+          </div>
+        )}
 
         {recoverable && (
           <div className="shrink-0 flex items-center gap-3 px-6 py-2.5 bg-[var(--brand-soft)] border-b border-[var(--brand-soft-strong)] text-[13.5px] text-brand">

@@ -1,7 +1,16 @@
 // 디지털 주보 훅 - React Query
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getDigitalBulletin, replaceDigitalBulletin } from '../api/digitalBulletin'
-import type { BulletinData, DigitalBulletinResponse } from '../types/digitalBulletin'
+import {
+  discardDigitalBulletinDraft,
+  getDigitalBulletin,
+  getDigitalBulletinDraft,
+  replaceDigitalBulletin,
+} from '../api/digitalBulletin'
+import type {
+  BulletinData,
+  DigitalBulletinDraftResponse,
+  DigitalBulletinResponse,
+} from '../types/digitalBulletin'
 
 export const DEFAULT_BULLETIN: BulletinData = {
   date: '2026. 3. 15.',
@@ -37,7 +46,10 @@ export const DEFAULT_BULLETIN: BulletinData = {
 
 const bulletinKeys = {
   all: ['digital-bulletin'] as const,
+  draft: ['digital-bulletin', 'draft'] as const,
 }
+
+const NO_DRAFT: DigitalBulletinDraftResponse = { data: null, bulletin_id: null }
 
 const isEmptyData = (data?: BulletinData): boolean => {
   if (!data) return true
@@ -72,13 +84,42 @@ export const useDigitalBulletin = () => {
   }
 }
 
+export interface ReplaceBulletinVars {
+  data: BulletinData
+  /** AI 초안을 검토해 적용한 저장 — 서버가 초안을 지우므로 초안 캐시도 비운다 */
+  discardDraft?: boolean
+}
+
 export const useReplaceDigitalBulletin = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: BulletinData) => replaceDigitalBulletin(data),
-    onSuccess: (response) => {
+    mutationFn: ({ data, discardDraft }: ReplaceBulletinVars) => replaceDigitalBulletin(data, discardDraft),
+    onSuccess: (response, { discardDraft }) => {
       queryClient.setQueryData<DigitalBulletinResponse>(bulletinKeys.all, response)
+      if (discardDraft) queryClient.setQueryData<DigitalBulletinDraftResponse>(bulletinKeys.draft, NO_DRAFT)
+    },
+  })
+}
+
+/** 종이 주보를 AI 가 읽어 만든 초안 — 관리자일 때만 묻는다(enabled) */
+export const useDigitalBulletinDraft = (enabled: boolean) => {
+  const query = useQuery({
+    queryKey: bulletinKeys.draft,
+    queryFn: getDigitalBulletinDraft,
+    enabled,
+    staleTime: 1000 * 60,
+  })
+  return { draft: query.data?.data ?? null, createdAt: query.data?.created_at ?? null }
+}
+
+export const useDiscardDigitalBulletinDraft = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: discardDigitalBulletinDraft,
+    onSuccess: () => {
+      queryClient.setQueryData<DigitalBulletinDraftResponse>(bulletinKeys.draft, NO_DRAFT)
     },
   })
 }

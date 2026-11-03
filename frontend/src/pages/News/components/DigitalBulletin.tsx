@@ -2,8 +2,11 @@ import { lazy, Suspense, useState } from 'react'
 import { showToast } from '../../../utils/toast'
 import {
   useDigitalBulletin,
+  useDigitalBulletinDraft,
+  useDiscardDigitalBulletinDraft,
   useReplaceDigitalBulletin,
 } from '../../../hooks/useDigitalBulletin'
+import { confirmDialog } from '../../../utils/confirmDialog'
 import { EditableField, AddItemButton, RemoveItemButton } from '../../../components/EditableField'
 import type {
   AnnouncementItem,
@@ -35,10 +38,49 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
   const { data: fetched } = useDigitalBulletin()
   const data = previewData ?? fetched
   const replaceMutation = useReplaceDigitalBulletin()
+  // 종이 주보를 AI 가 읽어 둔 초안 — 관리자만 보고, 검토해 적용하기 전까지 방문자에겐 공개본만 보인다
+  const { draft: aiDraft } = useDigitalBulletinDraft(isAdminUser)
+  const discardDraftMutation = useDiscardDigitalBulletinDraft()
   const [expanded, setExpanded] = useState<Set<SectionKey>>(
     () => new Set<SectionKey>(isPreview ? ['worship', 'announcements', 'groups', 'schedule'] : ['worship']),
   )
   const [deskOpen, setDeskOpen] = useState(false)
+  // 편집기를 AI 초안으로 열었는지 — 그 저장은 초안을 함께 지운다
+  const [deskFromDraft, setDeskFromDraft] = useState(false)
+  const openDesk = (fromDraft: boolean) => {
+    setDeskFromDraft(fromDraft)
+    setDeskOpen(true)
+  }
+
+  const applyDraft = async () => {
+    if (!aiDraft) return
+    if (
+      !(await confirmDialog({
+        title: t('newsDbDraftApplyTitle'),
+        message: t('newsDbDraftApplyMessage'),
+        confirmText: t('newsDbDraftApply'),
+      }))
+    )
+      return
+    try {
+      await replaceMutation.mutateAsync({ data: aiDraft, discardDraft: true })
+      setExpanded(new Set<SectionKey>(['worship', 'announcements', 'schedule']))
+      showToast(t('newsDbDraftApplied'), 'success')
+    } catch (e) {
+      console.error(e)
+      showToast(t('newsDbSaveFailed'), 'error')
+    }
+  }
+
+  const discardDraft = async () => {
+    if (!(await confirmDialog({ message: t('newsDbDraftDiscardMessage'), confirmText: t('newsDbDraftDiscard'), tone: 'danger' }))) return
+    try {
+      await discardDraftMutation.mutateAsync()
+    } catch (e) {
+      console.error(e)
+      showToast(t('newsDbDraftDiscardFailed'), 'error')
+    }
+  }
 
   const toggle = (key: SectionKey) => {
     setExpanded(prev => {
@@ -51,7 +93,7 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
 
   const save = async (next: BulletinData) => {
     try {
-      await replaceMutation.mutateAsync(next)
+      await replaceMutation.mutateAsync({ data: next })
     } catch (e) {
       console.error(e)
       showToast(t('newsDbSaveFailed'), 'error')
@@ -164,12 +206,51 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
 
   return (
     <div className="space-y-3">
+      {/* AI 초안 배너 — 관리자 전용. PC 는 편집기에서 검토 후 저장, 모바일은 바로 적용한 뒤 인라인으로 고친다 */}
+      {isAdminUser && aiDraft && (
+        <div className="px-4">
+          <div className="rounded-2xl border border-amber-300/70 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-400/10 p-4">
+            <p className="text-[15px] font-bold text-amber-900 dark:text-amber-200">
+              {t('newsDbDraftTitle').replace('{date}', aiDraft.date)}
+            </p>
+            <p className="mt-1 text-[13px] leading-[1.55] text-amber-800/90 dark:text-amber-100/70">
+              {t('newsDbDraftHint')}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => openDesk(true)}
+                className="hidden lg:inline-flex h-9 px-4 items-center rounded-xl bg-brand text-white text-[13.5px] font-bold"
+              >
+                {t('newsDbDraftReview')}
+              </button>
+              <button
+                type="button"
+                onClick={() => void applyDraft()}
+                disabled={replaceMutation.isPending}
+                className="inline-flex lg:hidden h-9 px-4 items-center rounded-xl bg-brand text-white text-[13.5px] font-bold disabled:opacity-50"
+              >
+                {t('newsDbDraftApply')}
+              </button>
+              <button
+                type="button"
+                onClick={() => void discardDraft()}
+                disabled={discardDraftMutation.isPending}
+                className="inline-flex h-9 px-4 items-center rounded-xl border border-amber-300/80 dark:border-amber-300/30 text-[13.5px] font-semibold text-amber-900 dark:text-amber-100 disabled:opacity-50"
+              >
+                {t('newsDbDraftDiscard')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PC 편집기 진입 — 관리자 · lg+ 전용(모바일은 아래 인라인 편집) */}
       {isAdminUser && (
         <div className="hidden lg:block px-4">
           <button
             type="button"
-            onClick={() => setDeskOpen(true)}
+            onClick={() => openDesk(false)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-dashed border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] text-left transition-colors hover:border-[var(--brand)]"
           >
             <span className="shrink-0 w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center">
@@ -187,7 +268,11 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
       )}
       {deskOpen && (
         <Suspense fallback={null}>
-          <BulletinDeskEditor initial={data} onClose={() => setDeskOpen(false)} />
+          <BulletinDeskEditor
+            initial={data}
+            aiDraft={deskFromDraft && aiDraft ? aiDraft : undefined}
+            onClose={() => setDeskOpen(false)}
+          />
         </Suspense>
       )}
 
