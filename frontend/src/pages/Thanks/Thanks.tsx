@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { markPostcardSent } from '../../components/share/sharePostcardsShared'
 import { useNavigate } from 'react-router-dom'
 import {
   useInfiniteQuery,
@@ -218,6 +219,7 @@ const Thanks = () => {
   const addMutation = useMutation({
     mutationFn: (payload: CreateThanksRequest) => createThanks(payload),
     onSuccess: (created) => {
+      markPostcardSent()
       updatePages((page, idx) =>
         idx === 0
           ? { ...page, items: [created, ...page.items], total: page.total + 1 }

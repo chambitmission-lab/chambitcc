@@ -4,6 +4,7 @@ import {
   useQueryClient,
   type InfiniteData,
 } from '@tanstack/react-query'
+import { markPostcardSent } from '../../../../components/share/sharePostcardsShared'
 import {
   createThanks,
   deleteThanks,
@@ -82,6 +83,7 @@ export const useThanks = ({ limit = THANKS_PAGE_SIZE }: UseThanksOptions = {}) =
   const addMutation = useMutation({
     mutationFn: (payload: CreateThanksRequest) => createThanks(payload),
     onSuccess: (created) => {
+      markPostcardSent()
       updatePages((page, idx) =>
         idx === 0
           ? { ...page, items: [created, ...page.items], total: page.total + 1 }

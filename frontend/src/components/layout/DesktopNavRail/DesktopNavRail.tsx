@@ -118,6 +118,29 @@ const DesktopNavRail = () => {
   // 나누기 스피드 다이얼 — 모바일 홈 FAB과 같은 3액션(기도·감사·말씀 카드)을 팝오버로
   const [dialOpen, setDialOpen] = useState(false)
   const visible = useDesktopRailVisible()
+  // PC 단축키 — N 으로 나누기 열기(X·인스타 데스크톱 문법), Esc 로 닫기.
+  // 글을 쓰는 중(input·textarea·contentEditable)이거나 조합키가 붙었으면 건드리지 않는다.
+  // 한글 자판이면 e.key 가 'ㅜ'로 들어오는 브라우저가 있어 물리 키(e.code)도 본다.
+  useEffect(() => {
+    if (!visible) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setDialOpen(false)
+        return
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing) return
+      if (!(e.key === 'n' || e.key === 'N' || e.code === 'KeyN')) return
+      const el = document.activeElement as HTMLElement | null
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return
+      // 모달·팔레트가 떠 있을 땐 그쪽 입력이 우선
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
+      e.preventDefault()
+      prewarmPostcardFont()
+      setDialOpen((open) => !open)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [visible])
   const { theme, toggleTheme } = useTheme()
   // 레일 하단 삽화 — 테마 쌍을 등록해 두면 토글 직전 선요청이 반대 테마를 챙긴다
   const isXl = useIsXl()
@@ -370,11 +393,14 @@ const DesktopNavRail = () => {
           onClick={() => setDialOpen((open) => !open)}
           onMouseEnter={prewarmPostcardFont}
           aria-label={t('railShare')}
+          aria-keyshortcuts="n"
           aria-haspopup="menu"
           aria-expanded={dialOpen}
+          // xl 은 툴팁이 숨고 라벨이 직접 붙으니 단축키 힌트는 네이티브 title 로
+          title={isXl ? `${t('railShare')} · N` : undefined}
           className="group z-50"
         >
-          {!dialOpen && <RailTip label={t('railShare')} />}
+          {!dialOpen && <RailTip label={`${t('railShare')} · N`} />}
         </SharePostcardButton>
       </div>
 

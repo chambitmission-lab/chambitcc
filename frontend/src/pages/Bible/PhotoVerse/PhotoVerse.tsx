@@ -1,4 +1,5 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { markPostcardSent } from '../../../components/share/sharePostcardsShared'
 import type { ChangeEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -677,6 +678,7 @@ const PhotoVerse = () => {
       // 다운로드 직후 인화 연출 — URL은 오버레이를 닫을 때 해제한다
       setPrintDeveloped(false)
       setPrinted(urls[0])
+      markPostcardSent()
     } catch {
       showToast(t.saveFailed)
     } finally {
@@ -694,6 +696,7 @@ const PhotoVerse = () => {
       const files = await buildCardFiles()
       if (!files.length) throw new Error('export failed')
       await navigator.share({ files, title: verse?.refLabel, text: shareText })
+      markPostcardSent()
     } catch (err) {
       // 공유 시트를 사용자가 닫은 경우는 실패가 아니다
       if ((err as DOMException)?.name !== 'AbortError') showToast(t.saveFailed)

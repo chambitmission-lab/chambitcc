@@ -1,5 +1,6 @@
 // React Query를 사용한 Prayer 데이터 관리
 import { useEffect, useRef } from 'react'
+import { markPostcardSent } from '../components/share/sharePostcardsShared'
 import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import {
   fetchPrayers,
@@ -280,6 +281,8 @@ export const usePrayersInfinite = (
     },
     onSuccess: (data, variables) => {
       feedback?.create?.onSuccess?.(data, variables)
+      // 나누기 버튼 소인 — 오늘 한 장 보냈다
+      markPostcardSent()
 
       // 실제 데이터로 갱신 (모든 사용자의 캐시) — 내 글이 제자리에 서도록 서버 순서로 받는다
       requestServerOrder()
