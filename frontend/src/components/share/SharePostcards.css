@@ -354,6 +354,7 @@
    ★ 소인 = 이중 링 + 오른쪽으로 흘러 모서리에서 잘리는 물결 취소선 — 알림 배지가 아니라 찍힌 도장.
    ★ 오늘 보낸 게 있으면(is-sent) 외곽선 소인이 잉크로 꽉 찬다. 보내는 순간(is-stamping) 한 번 꾹.
    ★ 움직임은 호버(PC)·누름·열림·찍힘 때만. 유휴 반복 없음.
+   ★ 줄무늬 흐름(background-position 루프)은 어지럽다는 사용자 피드백으로 뺐다 — 줄무늬는 정지.
    ★ 뒤 엽서는 그림자 없이 윤곽만 — 그림자가 겹치면 우하단에 회색 덩어리로 뭉친다. */
 .share-pcb {
   --s: var(--rl, 1);
@@ -380,9 +381,36 @@
 .share-pcb__under:nth-of-type(1) { transform: rotate(calc(var(--pcb-tilt) - 6deg)) translate(-4px, 2px); }
 .share-pcb__under:nth-of-type(2) { transform: rotate(calc(var(--pcb-tilt) + 5deg)) translate(4px, 1px); }
 @media (hover: hover) {
-  .share-pcb:hover .share-pcb__under:nth-of-type(1) { transform: rotate(calc(var(--pcb-tilt) - 10deg)) translate(-8px, 0); }
-  .share-pcb:hover .share-pcb__under:nth-of-type(2) { transform: rotate(calc(var(--pcb-tilt) + 9deg)) translate(8px, -2px); }
+  .share-pcb:hover .share-pcb__under:nth-of-type(1) { transform: rotate(calc(var(--pcb-tilt) - 10deg)) translate(-8px, 3px); }
+  .share-pcb:hover .share-pcb__under:nth-of-type(2) { transform: rotate(calc(var(--pcb-tilt) + 9deg)) translate(8px, 1px); }
+  /* 엽서를 집어 드는 손 — 위 엽서가 2px 들리며 그림자가 깊어지고, 뒤 엽서는 제자리에 남아 틈이 생긴다 */
+  .share-pcb:hover:not(.is-open) .share-pcb__face {
+    transform: rotate(var(--pcb-tilt)) translateY(-2px);
+    box-shadow: var(--card-shadow), 0 12px 22px -10px rgba(0, 0, 0, 0.4);
+  }
+  /* 소인 — 도장을 다시 누르듯 각도가 서고 살짝 커진다 */
+  .share-pcb:hover:not(.is-open) .share-pcb__postmark {
+    transform: rotate(-7deg) scale(1.06);
+  }
+  /* 물결 취소선 — 원에서 오른쪽으로 한 줄씩 그려져 나간다(한 번만) */
+  .share-pcb:hover:not(.is-open) .share-pcb__waves {
+    opacity: 0.8;
+  }
+  .share-pcb:hover:not(.is-open) .share-pcb__waves path {
+    animation: share-pcb-wave-draw 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+  .share-pcb:hover:not(.is-open) .share-pcb__waves path:nth-child(2) { animation-delay: 0.07s; }
+  .share-pcb:hover:not(.is-open) .share-pcb__waves path:nth-child(3) { animation-delay: 0.14s; }
+  /* 손글씨 — 잉크가 살짝 진해진다 */
+  .share-pcb:hover:not(.is-open) .share-pcb__word {
+    color: var(--brand-dim, var(--brand));
+  }
 }
+@keyframes share-pcb-wave-draw {
+  from { stroke-dashoffset: 60; }
+  to { stroke-dashoffset: 0; }
+}
+
 /* 열리면 깔려 있던 엽서가 위로 빠져나간다 — 그게 펼쳐진 엽서 다이얼이 된다 */
 .share-pcb.is-open .share-pcb__under {
   opacity: 0;
@@ -401,10 +429,11 @@
   box-shadow: var(--card-shadow), 0 6px 14px -10px rgba(0, 0, 0, 0.32);
   overflow: hidden;
   transform: rotate(var(--pcb-tilt));
-  transition: transform 0.15s ease;
+  transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.35, 1.2), box-shadow 0.22s ease;
 }
 .share-pcb:active .share-pcb__face {
   transform: rotate(var(--pcb-tilt)) scale(0.95);
+  transition-duration: 0.1s;
 }
 .share-pcb:focus-visible {
   outline: none;
@@ -434,6 +463,7 @@
   letter-spacing: -0.04em;
   line-height: 1;
   white-space: nowrap;
+  transition: color 0.2s ease;
 }
 .share-pcb__mark {
   position: relative;
@@ -499,6 +529,11 @@
   opacity: 0.45;
   pointer-events: none;
   transition: opacity 0.18s ease;
+}
+.share-pcb__waves path {
+  /* 경로 길이(≈46)보다 긴 dash 하나 — 호버 때 offset 을 0 으로 돌리면 원에서 오른쪽으로 그려 나간다 */
+  stroke-dasharray: 60;
+  stroke-dashoffset: 0;
 }
 /* 오늘 한 장 보냈다 — 잉크로 꽉 찬 소인(인주 농도 = 진행) */
 .share-pcb.is-sent .share-pcb__postmark {
@@ -608,7 +643,8 @@
   .share-pcb__close {
     transition: none;
   }
-  .share-pcb.is-stamping .share-pcb__postmark {
+  .share-pcb.is-stamping .share-pcb__postmark,
+  .share-pcb:hover .share-pcb__waves path {
     animation: none;
   }
 }
