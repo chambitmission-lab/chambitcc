@@ -8,6 +8,7 @@ import { useAboutContent } from '../../../hooks/useAboutContent'
 import { EditableText } from '../../../components/AboutEditor'
 import { getSermons } from '../../../api/sermon'
 import { sermonKeys } from '../../../hooks/queryKeys'
+import { formatMonthDay } from '../../../utils/date'
 
 interface Props {
   isAdminUser: boolean
@@ -15,13 +16,8 @@ interface Props {
   ongoing: boolean
 }
 
-const fmtDate = (iso: string, ko: boolean) => {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return ko
-    ? `${d.getMonth() + 1}월 ${d.getDate()}일`
-    : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
+/** '8월 5일' / 'Aug 5' — 파싱이 안 되면 입력을 그대로 */
+const fmtDate = (iso: string, ko: boolean) => formatMonthDay(iso, { lang: ko ? 'ko' : 'en' }) || iso
 
 const isHttp = (u: string) => /^https?:\/\//i.test(u)
 

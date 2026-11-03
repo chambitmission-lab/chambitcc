@@ -11,19 +11,14 @@ import { DAY_CHARS, soonestService } from '../../../utils/worshipSchedule'
 import { ChevronRightIcon } from '../icons'
 import { sermonKeys, columnKeys } from '../../../hooks/queryKeys'
 import { useWorshipServices } from '../../../hooks/useWorshipServices'
-import { kstNow } from '../../../utils/kstTime'
+import { formatMonthDay, kstNow } from '../../../utils/date'
 
 interface Props {
   ko: boolean
 }
 
-const fmtDate = (iso: string, ko: boolean) => {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return ko
-    ? `${d.getMonth() + 1}월 ${d.getDate()}일`
-    : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
+/** '8월 5일' / 'Aug 5' — 파싱이 안 되면 입력을 그대로 */
+const fmtDate = (iso: string, ko: boolean) => formatMonthDay(iso, { lang: ko ? 'ko' : 'en' }) || iso
 
 const fmtTime = (startMin: number, ko: boolean) => {
   const h = Math.floor(startMin / 60)

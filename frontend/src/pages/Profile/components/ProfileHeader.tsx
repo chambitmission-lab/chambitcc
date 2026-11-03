@@ -12,6 +12,7 @@ import { ensureFontFamily } from '../../../utils/deferredFonts'
 import type { TitleRarity, TitleTier } from '../../../api/titles'
 import type { GlowLevel } from '../../../types/achievement'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import { formatDotDate } from '../../../utils/date'
 import './ProfileHeader.css'
 
 // 칭호 이름·소유자 이름 손글씨 — 아래 기도 수첩과 같은 서체(오기 전엔 Pretendard 폴백)
@@ -35,12 +36,6 @@ const pad3 = (n: number) => String(n).padStart(3, '0')
 const formatShare = (r: TitleRarity) => {
   const pct = (r.holder_count / r.member_count) * 100
   return pct < 1 ? `${Math.max(pct, 0.1).toFixed(1)}%` : `${Math.round(pct)}%`
-}
-
-const formatAwardDate = (iso: string) => {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
 // 그림이 없거나 색을 아직 못 뽑았을 때의 무대 바탕 — 밤하늘 남색
@@ -114,7 +109,7 @@ const ProfileHeader = ({
   const { data: equipped } = useEquippedTitle()
   const text = equipped ? localizeTitle(equipped, language) : null
   const rarity = equipped?.rarity && equipped.rarity.member_count > 0 ? equipped.rarity : null
-  const awardDate = equipped?.earned_at ? formatAwardDate(equipped.earned_at) : ''
+  const awardDate = equipped?.earned_at ? formatDotDate(equipped.earned_at) : ''
   const ownerName = fullName || username
   const tone = useArtTone(backdropSrc)
 
