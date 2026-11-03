@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import KakaoIcon from '../../../components/icons/KakaoIcon'
+import { canKakaoShare, kakaoShareFeed, kakaoShareScrap, loadKakaoShare, type KakaoFeedCard } from '../../../utils/kakaoShare'
 import { showToast } from '../../../utils/toast'
 import {
   BACKGROUNDS,
@@ -60,9 +62,14 @@ const autoFontScale = (len: number): number => {
 interface VerseShareSheetProps {
   target: VerseCopyTarget
   onClose: () => void
+  /**
+   * 카카오톡 피드 카드 — 있으면 맨 위에 '카카오톡으로 보내기'를 둔다. 주보처럼 SDK 로 카드만 보내
+   * 본문·주소 말풍선이 따로 붙지 않는다 (/bible/situation 의 감정 삽화 카드).
+   */
+  kakao?: KakaoFeedCard
 }
 
-const VerseShareSheet = ({ target, onClose }: VerseShareSheetProps) => {
+const VerseShareSheet = ({ target, onClose, kakao }: VerseShareSheetProps) => {
   const [tab, setTab] = useState<ShareTab>('text')
   const [prefs, setPrefs] = useState<CopyPrefs>(loadCopyPrefs)
   const [bgId, setBgId] = useState<string>(BACKGROUNDS[0].id)
@@ -76,6 +83,37 @@ const VerseShareSheet = ({ target, onClose }: VerseShareSheetProps) => {
   const bgCacheRef = useRef(new Map<string, HTMLImageElement>())
 
   useModalBackButton(onClose)
+
+  const showKakao = !!kakao && canKakaoShare()
+  // SDK 는 누르기 전에 받아 둔다(PC 팝업·모바일 스킴 전환이 사용자 동작 안에서 나가야 한다).
+  // 카드 그림도 미리 한 번 불러 백엔드 렌더 캐시를 데운다 — 카카오가 받아 갈 때 바로 나간다.
+  useEffect(() => {
+    if (!showKakao || !kakao) return
+    loadKakaoShare().catch(() => {})
+    const warm = new Image()
+    warm.src = kakao.imageUrl
+  }, [showKakao, kakao])
+
+  const handleKakao = async () => {
+    if (!kakao) return
+    if ((await kakaoShareFeed(kakao)) || (await kakaoShareScrap(kakao.link))) {
+      onClose()
+      return
+    }
+    // SDK 를 끝내 못 받았으면 주소만 공유 시트로 — 본문 말풍선 없이 미리보기 카드만 붙는다
+    try {
+      if (navigator.share) {
+        await navigator.share({ url: kakao.link })
+      } else {
+        const ok = await writeToClipboard(kakao.link)
+        showToast(ok ? '링크를 복사했어요. 카톡에 붙여넣어 보내 주세요' : '보내기에 실패했어요', ok ? 'success' : 'error')
+        if (!ok) return
+      }
+      onClose()
+    } catch {
+      /* 사용자가 공유 시트를 닫음 */
+    }
+  }
 
   const reference = useMemo(() => buildReference(target), [target])
   const built = useMemo(() => buildCopyText(target, prefs), [target, prefs])
@@ -413,6 +451,15 @@ const VerseShareSheet = ({ target, onClose }: VerseShareSheetProps) => {
             </>
           )}
         </div>
+
+        {showKakao && (
+          <div className="vss-kakao-row">
+            <button type="button" className="vss-kakao" onClick={handleKakao}>
+              <KakaoIcon size={20} />
+              카카오톡으로 보내기
+            </button>
+          </div>
+        )}
 
         <footer className="vss-actions">
           <button type="button" className="vss-btn vss-btn--ghost" onClick={handleCopy} disabled={busy}>

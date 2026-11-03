@@ -361,6 +361,42 @@
 }
 
 /* ── 하단 액션 ───────────────────────────────────────── */
+.vss-kakao-row {
+  padding: 0.875rem 1.125rem 0;
+  flex-shrink: 0;
+}
+
+/* 카카오 브랜드 가이드 — 노란 바탕 + 검은 심볼·글자 (테마와 무관하게 같은 색) */
+.vss-kakao {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4375rem;
+  padding: 0.875rem;
+  border: 0;
+  border-radius: 12px;
+  background: #fee500;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.16s ease;
+}
+
+.vss-kakao:hover {
+  filter: brightness(0.97);
+}
+
+.vss-kakao:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.vss-kakao-row + .vss-actions {
+  padding-top: 0.5rem;
+}
+
 .vss-actions {
   display: flex;
   gap: 0.5rem;

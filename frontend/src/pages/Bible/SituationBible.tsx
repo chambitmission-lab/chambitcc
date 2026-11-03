@@ -8,6 +8,8 @@ import SituationImmersive, { type ImmersiveOrigin } from './situation/SituationI
 import SituationAsk from './situation/SituationAsk'
 import { MOODS, moodForCategory, timeGreeting, type Mood } from './situation/situationMoods'
 import { SHARE_ORIGIN } from '../../utils/shareOrigin'
+import type { KakaoFeedCard } from '../../utils/kakaoShare'
+import { bookAbbrev } from './components/bibleBookAbbrev'
 import { moodArtVars, tileArtStyle, warmMoodArtFull } from './situation/moodArt'
 import './SituationBible.css'
 
@@ -118,19 +120,33 @@ const SituationBible = () => {
 
   // 감정 삽화가 있는 카테고리면 /s/{감정}/… 링크 — 카톡 미리보기가 그 풍경 위 말씀 카드로 뜬다(situation_share.py).
   // 어드민이 추가한 카테고리(감정 없음)는 일반 /b/ 말씀 카드.
-  const shareArtKey = shareVerse
-    ? moodForCategory(categories.find((c) => c.id === shareVerse.category_id)?.name ?? '')?.art?.key
-    : undefined
+  const shareMood = shareVerse
+    ? moodForCategory(categories.find((c) => c.id === shareVerse.category_id)?.name ?? '')
+    : null
+  const shareArtKey = shareMood?.art?.key
+  const sharePath =
+    shareVerse && shareArtKey && shareVerse.verse > 0
+      ? `/s/${shareArtKey}/${shareVerse.book_number}/${shareVerse.chapter}/${shareVerse.verse}`
+      : null
+  // 카톡 피드 카드 — 주보처럼 SDK 로 카드만 보낸다. 제목·설명은 백엔드 og 메타(situation_share.py)와 같은 문구
+  const shareKakao: KakaoFeedCard | undefined =
+    shareVerse && shareMood && sharePath
+      ? {
+          title: `‘${shareMood.label}’ 하는 당신에게`,
+          description: `${shareVerse.text} · ${bookAbbrev(shareVerse.book_number, 'ko')} ${shareVerse.chapter}:${shareVerse.verse}`,
+          imageUrl: `${SHARE_ORIGIN}${sharePath}/card.png`,
+          imageWidth: 1200,
+          imageHeight: 630,
+          link: `${SHARE_ORIGIN}${sharePath}`,
+        }
+      : undefined
   const shareTarget: VerseCopyTarget | null = shareVerse
     ? {
         bookNameKo: shareVerse.book_name_ko,
         bookNumber: shareVerse.book_number,
         chapter: shareVerse.chapter,
         verses: [{ verse: shareVerse.verse, text: shareVerse.text }],
-        shareUrl:
-          shareArtKey && shareVerse.verse > 0
-            ? `${SHARE_ORIGIN}/s/${shareArtKey}/${shareVerse.book_number}/${shareVerse.chapter}/${shareVerse.verse}`
-            : undefined,
+        shareUrl: sharePath ? `${SHARE_ORIGIN}${sharePath}` : undefined,
       }
     : null
 
@@ -306,7 +322,7 @@ const SituationBible = () => {
 
       {shareTarget && (
         <Suspense fallback={null}>
-          <VerseShareSheet target={shareTarget} onClose={() => setShareVerse(null)} />
+          <VerseShareSheet target={shareTarget} kakao={shareKakao} onClose={() => setShareVerse(null)} />
         </Suspense>
       )}
     </div>
