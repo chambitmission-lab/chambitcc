@@ -85,6 +85,11 @@ export interface VerseCopyTarget {
    * 없으면 verses 의 번호를 그대로 쓴다.
    */
   refVerses?: number[]
+  /**
+   * 공유 링크를 /b/ 대신 이 주소로 — 상황별 말씀(/s/{감정}/…)처럼 미리보기 카드가 다른 링크.
+   * 로컬 개발에선 쓰지 않는다(카드 라우트가 운영 백엔드에만 있다).
+   */
+  shareUrl?: string
 }
 
 /** 출처·링크 기준 절 번호 — 병합 구간이면 묶음 전체 */
@@ -130,6 +135,7 @@ const toVerseSpec = (nums: number[]): string =>
  */
 export const buildVerseLink = (target: VerseCopyTarget): string => {
   const nums = referenceNumbers(target)
+  if (target.shareUrl && !isLocalHost()) return target.shareUrl
   if (isLocalHost()) {
     const { origin, pathname } = window.location
     return `${origin}${pathname}#/bible/${target.bookNumber}/${target.chapter}?verse=${Math.min(...nums)}`

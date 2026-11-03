@@ -6,7 +6,8 @@ import type { SituationCategory, SituationVerse } from '../../types/situation'
 import type { VerseCopyTarget } from './components/verseCopy'
 import SituationImmersive, { type ImmersiveOrigin } from './situation/SituationImmersive'
 import SituationAsk from './situation/SituationAsk'
-import { MOODS, timeGreeting, type Mood } from './situation/situationMoods'
+import { MOODS, moodForCategory, timeGreeting, type Mood } from './situation/situationMoods'
+import { SHARE_ORIGIN } from '../../utils/shareOrigin'
 import { moodArtVars, tileArtStyle, warmMoodArtFull } from './situation/moodArt'
 import './SituationBible.css'
 
@@ -115,12 +116,21 @@ const SituationBible = () => {
     requireAuth(() => navigate('/', { state: { openComposer: true, composerPrefill: draft } }))
   }
 
+  // 감정 삽화가 있는 카테고리면 /s/{감정}/… 링크 — 카톡 미리보기가 그 풍경 위 말씀 카드로 뜬다(situation_share.py).
+  // 어드민이 추가한 카테고리(감정 없음)는 일반 /b/ 말씀 카드.
+  const shareArtKey = shareVerse
+    ? moodForCategory(categories.find((c) => c.id === shareVerse.category_id)?.name ?? '')?.art?.key
+    : undefined
   const shareTarget: VerseCopyTarget | null = shareVerse
     ? {
         bookNameKo: shareVerse.book_name_ko,
         bookNumber: shareVerse.book_number,
         chapter: shareVerse.chapter,
         verses: [{ verse: shareVerse.verse, text: shareVerse.text }],
+        shareUrl:
+          shareArtKey && shareVerse.verse > 0
+            ? `${SHARE_ORIGIN}/s/${shareArtKey}/${shareVerse.book_number}/${shareVerse.chapter}/${shareVerse.verse}`
+            : undefined,
       }
     : null
 

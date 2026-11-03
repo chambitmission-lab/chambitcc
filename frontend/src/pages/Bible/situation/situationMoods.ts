@@ -42,6 +42,10 @@ export const MOODS: Mood[] = [
   { label: '감사해요', names: ['감사할 때'], tone: 'amber', art: { key: 'thankful', fx: 0.75, fy: 0.48, zoom: 2.0 } },
 ]
 
+/** 카테고리 → 감정(대표 이름 우선) — 어드민이 추가한 카테고리는 null */
+export const moodForCategory = (name: string): Mood | null =>
+  MOODS.find((m) => m.names[0] === name) ?? MOODS.find((m) => m.names.includes(name)) ?? null
+
 /** 카테고리 → 몰입 화면 색 — 감정 타일에 없는(어드민 추가) 카테고리는 차분한 블루 */
 export const toneForCategory = (name: string): MoodTone =>
   MOODS.find((m) => m.names[0] === name)?.tone ??
