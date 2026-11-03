@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useTransition, type CSSProperties } from 'react'
-import { formatLongDate, timeAgo } from '../../utils/dateUtils'
+import { formatMonthDay, timeAgo, toKstCalendarDate } from '../../utils/date'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -57,7 +57,7 @@ const heroDeadline = (hero: Notification | null) => {
   const dday = Math.max(0, Math.ceil((until.getTime() - Date.now()) / 86_400_000))
   return {
     dday: dday <= 30 ? dday : null,
-    label: `${until.getMonth() + 1}월 ${until.getDate()}일`,
+    label: formatMonthDay(hero.popup_until),
   }
 }
 
@@ -65,10 +65,7 @@ const heroDeadline = (hero: Notification | null) => {
 const formatDate = (iso: string) =>
   timeAgo(iso, {
     maxDays: 7,
-    beyond: (d) =>
-      d.getFullYear() === new Date().getFullYear()
-        ? `${d.getMonth() + 1}월 ${d.getDate()}일`
-        : formatLongDate(d.toISOString()),
+    beyond: (d) => formatMonthDay(toKstCalendarDate(d), { year: 'auto' }),
   })
 
 // 공지/내 알림을 항목마다 칩으로 다는 대신 위에서 한 번에 거른다 (인스타 활동 탭의 필터 칩)

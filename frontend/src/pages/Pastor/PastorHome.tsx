@@ -17,7 +17,7 @@ import SermonEchoCard from './components/SermonEchoCard'
 import HeartCard from './components/HeartCard'
 import { Avatar } from './components/ui'
 import { formatDay as formatIsoDay, usePastorGate } from './components/pastorUtils'
-import { KO_WEEKDAYS } from '../../utils/dateUtils'
+import { KO_WEEKDAYS, formatMonthDay } from '../../utils/date'
 import { event as eventKo } from '../../locales/ko/event'
 
 // 목회자 홈 — 월요일 아침에 여는 '이번 주 목양 브리핑'.
@@ -131,7 +131,7 @@ const Greeting = ({ data }: { data: PastorHomeData }) => {
         <div className="relative z-10 lg:flex lg:items-end lg:justify-between lg:gap-6">
           <div>
             <p className="text-[12px] font-semibold text-brand">
-              {now.getMonth() + 1}월 {now.getDate()}일 {WEEKDAYS[now.getDay()]}요일 · 이번 주 목양 브리핑
+              {formatMonthDay(now)} {WEEKDAYS[now.getDay()]}요일 · 이번 주 목양 브리핑
             </p>
             <h2 className="mt-1.5 text-[20px] lg:text-[22px] font-bold text-ink-strong tracking-[-0.02em]">
               {name ? `${name} 목사님, 평안하세요` : '목사님, 평안하세요'}
@@ -559,9 +559,6 @@ const formatTime = (d: Date): string => {
 }
 
 /** '2026-09-20T…' → '9월 20일' */
-const formatDay = (iso: string): string => {
-  const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}월 ${d.getDate()}일`
-}
+const formatDay = (iso: string): string => formatMonthDay(iso)
 
 export default PastorHome

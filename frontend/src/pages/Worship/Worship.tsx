@@ -25,7 +25,7 @@ import WorshipMore from './components/WorshipMore'
 import WorshipEditSheet from './components/WorshipEditSheet'
 import { DAY_NAMES_EN, OPEN_AFTER_MIN, OPEN_BEFORE_MIN, dayLabel, formatRemaining, formatTimeLabel, liturgicalSeason, moodOfTime, orderLabel, pick, serviceStatusToday, taglineKey, weekdayIcon } from './components/worshipTime'
 import type { Mood } from './components/worshipTime'
-import { toKstCalendarDate } from '../../utils/kstTime'
+import { formatMonthDay, toKstCalendarDate } from '../../utils/date'
 
 /* /worship — 2026-10 "주일 중심" 개편.
  * 처음 온 성도가 제일 궁금한 "주일 몇 시?"를 히어로의 큰 시간 타일로 바로 답한다.
@@ -154,7 +154,7 @@ const Worship = () => {
   sunday.setDate(sunday.getDate() + daysToSunday)
   const sundayLabel = en
     ? `Sunday, ${sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-    : `${sunday.getMonth() + 1}월 ${sunday.getDate()}일 주일`
+    : `${formatMonthDay(sunday)} 주일`
 
   const scrollToService = (id?: number) => {
     if (!id) return

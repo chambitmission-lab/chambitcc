@@ -6,6 +6,7 @@ import { useReadingCycleEcho, useReadingCycles, useSetReadingLens } from '../../
 import { safeStorage } from '../../../utils/safeStorage'
 import { showToast } from '../../../utils/toast'
 import { READING_LENSES, defaultLensFor, lensQuestion, resolveLens, type ReadingLensId } from '../data/readingLenses'
+import { formatMonthDay } from '../../../utils/date'
 
 const COLLAPSED_KEY = 'bible-readagain-collapsed'
 // 흔적 목록은 처음엔 이만큼만 — 나머지는 '더 보기'
@@ -18,12 +19,7 @@ interface ReadAgainCardProps {
   enabled: boolean
 }
 
-const fmtDate = (iso: string): string => {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const sameYear = d.getFullYear() === new Date().getFullYear()
-  return d.toLocaleDateString('ko-KR', sameYear ? { month: 'long', day: 'numeric' } : { year: 'numeric', month: 'long', day: 'numeric' })
-}
+const fmtDate = (iso: string): string => formatMonthDay(iso, { year: 'auto' })
 
 const TRACE_LABEL: Record<ReadingEchoTrace['kind'], string> = {
   note: '메모',

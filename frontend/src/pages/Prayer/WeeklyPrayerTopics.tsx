@@ -19,12 +19,12 @@ import { WEEKLY_PRAYER_ART } from '../../utils/themeAssets'
 import LanternPath from './weeklyTopics/LanternPath'
 import OfferingCards from './weeklyTopics/OfferingCards'
 import { CheckIcon } from './weeklyTopics/HoldAmen'
+import { formatMonthDay } from '../../utils/date'
 import './weeklyTopics/weeklyTopics.css'
 
 const formatWeekLabel = (weekDate: string): string => {
-  const d = new Date(`${weekDate}T00:00:00`)
-  if (isNaN(d.getTime())) return weekDate
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 주일`
+  const label = formatMonthDay(weekDate, { year: 'always' })
+  return label ? `${label} 주일` : weekDate
 }
 
 const WeeklyPrayerTopics = () => {

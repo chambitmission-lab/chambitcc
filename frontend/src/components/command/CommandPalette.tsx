@@ -27,7 +27,7 @@ import { tokenStore } from '../../utils/tokenStore'
 import { sermonKeys, dailyVerseKeys, cmdkKeys } from '../../hooks/queryKeys'
 import { useWorshipServices } from '../../hooks/useWorshipServices'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
-import { kstNow } from '../../utils/kstTime'
+import { formatMonthDay, kstNow } from '../../utils/date'
 
 type Row =
   | { kind: 'action'; id: string; label: string; desc: string; icon: keyof typeof NAV_ICONS | 'chambi'; to?: string; ask?: boolean; accent?: boolean }
@@ -208,8 +208,7 @@ const CommandPalette = () => {
     if (!home) return []
     const out: Row[] = []
     if (lastSunday) {
-      const d = new Date(lastSunday.sermon_date)
-      const date = Number.isNaN(d.getTime()) ? '' : ko ? `${d.getMonth() + 1}월 ${d.getDate()}일` : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      const date = formatMonthDay(lastSunday.sermon_date, { lang: ko ? 'ko' : 'en' })
       out.push({ kind: 'action', id: 'act:sermon', label: t('cmdkActSermon'), desc: [date, lastSunday.bible_verse].filter(Boolean).join(' · ') || t('cmdkActSermonDesc'), icon: 'sermon', to: `/sermon?id=${lastSunday.id}`, accent: true })
     } else {
       out.push({ kind: 'action', id: 'act:sermon', label: t('cmdkActSermon'), desc: t('cmdkActSermonDesc'), icon: 'sermon', to: '/sermon', accent: true })
@@ -278,8 +277,7 @@ const CommandPalette = () => {
       const q = debounced.toLowerCase()
       const matched = sermons.filter((s) => [s.title, s.pastor, s.bible_verse].some((f) => (f ?? '').toLowerCase().includes(q)))
       matched.slice(0, 4).forEach((s) => {
-        const d = new Date(s.sermon_date)
-        const date = Number.isNaN(d.getTime()) ? '' : ko ? `${d.getMonth() + 1}월 ${d.getDate()}일` : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        const date = formatMonthDay(s.sermon_date, { lang: ko ? 'ko' : 'en' })
         out.push({
           kind: 'sermon',
           id: `sermon:${s.id}`,

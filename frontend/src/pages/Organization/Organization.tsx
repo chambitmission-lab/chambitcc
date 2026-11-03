@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState } from 'react'
 import { Buildings, Gavel, UsersThree, Church, MagnifyingGlass, X } from '../../components/icons/phosphor'
 import { useOrgTree } from '../../hooks/useOrganization'
 import type { OrgUnit } from '../../types/organization'
+import { formatMonthDay } from '../../utils/date'
 import './Organization.css'
 
 /* 종이 조직도의 가로 5열 격자는 모바일에서 글자가 3px가 된다.
@@ -387,10 +388,6 @@ const Organization = () => {
 }
 
 /** '2026-08-10T09:51:00' → '2026년 8월 10일' (서버가 로컬시간으로 저장하므로 그대로 읽는다) */
-const formatStamp = (iso: string): string => {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`
-}
+const formatStamp = (iso: string): string => formatMonthDay(iso, { year: 'always' }) || iso
 
 export default Organization

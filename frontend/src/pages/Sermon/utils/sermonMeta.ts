@@ -1,5 +1,6 @@
 // 설교 목록 화면용 메타 유틸 — 성구 참조 파싱 · 예배 유형 유추 · 월별 그룹핑
 import type { Sermon } from '../../../types/sermon'
+import { KO_WEEKDAYS, formatMonthDay, isValidDate, parseApiDate, toKstCalendarDate } from '../../../utils/date'
 
 export interface ParsedReference {
   /* 표시용 책 이름 — 번호 해석에 성공하면 정식 명칭("삿"→"사사기"), 실패하면 입력 그대로 */
@@ -155,12 +156,10 @@ export const formatReference = (parsed: ParsedReference): string => {
  * ("8월 9일 일"처럼 '일'이 두 번 이어지는 스터터도 함께 사라진다.)
  * 올해 날짜는 연도를 생략해 히어로·상세가 담백하게 읽힌다. */
 export const formatSermonDate = (dateString: string): string => {
-  const d = new Date(dateString)
-  const weekday =
-    d.getDay() === 0 ? '주일' : d.toLocaleDateString('ko-KR', { weekday: 'long' })
-  const year =
-    d.getFullYear() === new Date().getFullYear() ? '' : `${d.getFullYear()}년 `
-  return `${year}${d.getMonth() + 1}월 ${d.getDate()}일 ${weekday}`
+  const d = toKstCalendarDate(parseApiDate(dateString))
+  if (!isValidDate(d)) return ''
+  const weekday = d.getDay() === 0 ? '주일' : `${KO_WEEKDAYS[d.getDay()]}요일`
+  return `${formatMonthDay(d, { year: 'auto' })} ${weekday}`
 }
 
 /* 지난 말씀 행처럼 좁은 자리용 성구 표기 — 파싱되면 "요한복음 12:20–33"으로

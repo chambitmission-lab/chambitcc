@@ -6,6 +6,7 @@ import { columnPlainText } from './blockFormat'
 import { parseHighlightToken, removeHighlightTags, swatchColor } from './highlightMarkup'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 import { safeStorage } from '../../utils/safeStorage'
+import { formatMonthDay } from '../../utils/date'
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
@@ -48,7 +49,7 @@ export const formatLetterDate = (dateStr: string, language: string): string => {
   if (!d) return dateStr
   if (language === 'ko') {
     const days = ['주일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-    return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${days[d.getDay()]}`
+    return `${formatMonthDay(d, { year: 'always' })} ${days[d.getDay()]}`
   }
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 }

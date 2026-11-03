@@ -6,7 +6,7 @@ import { adminKeys } from '../../hooks/queryKeys'
 import { fetchAdminDashboard, type AdminDashboardData, type DashboardAction } from '../../api/admin'
 import { AdminPageHeader, SectionCard, StatSpinner } from './components/StatCards'
 import { can } from '../../utils/access'
-import { KO_WEEKDAYS } from '../../utils/dateUtils'
+import { KO_WEEKDAYS, formatMonthDay, toKstCalendarDate } from '../../utils/date'
 
 // 액션 카드 톤 — 빨강 대신 앰버/브랜드 틴트로, 앱 전체 팔레트를 벗어나지 않게.
 const TONE_STYLE: Record<DashboardAction['tone'], string> = {
@@ -243,11 +243,11 @@ const Delta = ({ delta }: { delta: number }) => {
 
 /** '2026-08-09T16:20:46' → '8월 9일 16:20' */
 const formatStamp = (iso: string): string => {
-  const d = new Date(iso)
+  const d = toKstCalendarDate(iso)
   if (Number.isNaN(d.getTime())) return iso
   const hh = String(d.getHours()).padStart(2, '0')
   const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${hh}:${mm}`
+  return `${formatMonthDay(d)} ${hh}:${mm}`
 }
 
 export default AdminDashboard

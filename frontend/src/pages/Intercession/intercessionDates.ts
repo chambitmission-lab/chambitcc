@@ -1,4 +1,5 @@
 // 누군가의 기도 — 날짜 표기 (서버는 KST 날짜를 'YYYY-MM-DD' 로 준다)
+import { formatMonthDay } from '../../utils/date'
 
 const WEEKDAY = ['주일', '월', '화', '수', '목', '금', '토']
 
@@ -10,7 +11,7 @@ const parseDay = (iso: string) => {
 /** '2026-11-01' → '11월 1일 주일' */
 export const formatDay = (iso: string, withWeekday = true) => {
   const d = parseDay(iso)
-  const base = `${d.getMonth() + 1}월 ${d.getDate()}일`
+  const base = formatMonthDay(d)
   return withWeekday ? `${base} ${WEEKDAY[d.getDay()]}` : base
 }
 

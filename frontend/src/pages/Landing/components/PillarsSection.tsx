@@ -4,6 +4,7 @@ import { BookOpenIcon, ChevronRightIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
 import { preloadRoute } from '../../../utils/routePreload'
 import { MicIcon, OpenBookIcon, SparkleIcon } from './LandingIcons'
+import { formatMonthDay } from '../../../utils/date'
 
 // "왜 참빛교회인가" 3기둥 — 설교 · 성경공부 · 스마트.
 // 문장으로 주장하지 않고 실제 기능 이름(칩)과 실물(최신 설교)을 보여준다.
@@ -116,11 +117,7 @@ const PillarArt = ({ kind, ko }: { kind: Pillar['key']; ko: boolean }) => {
 
 const PillarsSection = ({ ko, sermons }: { ko: boolean; sermons: Sermon[] }) => {
   const navigate = useNavigate()
-  const fmtDate = (iso: string) => {
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return ''
-    return ko ? `${d.getMonth() + 1}월 ${d.getDate()}일` : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  }
+  const fmtDate = (iso: string) => formatMonthDay(iso, { lang: ko ? 'ko' : 'en' })
 
   return (
     <section className="mt-16">

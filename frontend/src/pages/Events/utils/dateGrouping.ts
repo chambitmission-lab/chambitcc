@@ -1,6 +1,5 @@
 import type { Event } from '../../../types/event'
-import { calendarDateKey, kstNow, toKstCalendarDate } from '../../../utils/kstTime'
-import { KO_WEEKDAYS } from '../../../utils/dateUtils'
+import { KO_WEEKDAYS, calendarDateKey, formatMonthDay, kstNow, toKstCalendarDate } from '../../../utils/date'
 
 /* 이 파일의 모든 날짜 계산은 서울(KST) 기준이다.
  * 서버가 주는 일정 시각엔 오프셋이 없어 new Date() 로 파싱하면 기기 타임존을 타므로,
@@ -113,7 +112,7 @@ export const formatDDay = (datetime: string, now: Date = kstNow()): string => {
   if (diff === 0) return '오늘'
   if (diff === 1) return '내일'
   if (diff < 7) return `D-${diff}`
-  return `${d.getMonth() + 1}월 ${d.getDate()}일`
+  return formatMonthDay(d)
 }
 
 export const formatEventTime = (datetime: string): string => {

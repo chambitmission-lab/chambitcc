@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } fr
 import type { CapsuleDetail } from '../../../types/timeCapsule'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { CAPSULE_HERO } from '../../../utils/themeAssets'
+import { KO_WEEKDAYS } from '../../../utils/date'
 import { formatKoreanDate } from '../capsuleDates'
 import { Icon, MicGlyph } from '../capsuleIcons'
 import { addressTo, journeyDays, journeySpanLabel, senderLine, signatureFrom } from './letterText'
@@ -37,13 +38,11 @@ const CONFETTI = Array.from({ length: 30 }, (_, i) => {
   } as CSSProperties
 })
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
-
 /** 10.30 금 */
 const stopDate = (iso: string): string => {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  return `${d.getMonth() + 1}.${d.getDate()} ${WEEKDAYS[d.getDay()]}`
+  return `${d.getMonth() + 1}.${d.getDate()} ${KO_WEEKDAYS[d.getDay()]}`
 }
 
 const isToday = (iso: string): boolean => new Date(iso).toDateString() === new Date().toDateString()

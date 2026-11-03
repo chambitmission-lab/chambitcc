@@ -8,6 +8,7 @@ import {
   formatRemaining,
   formatYmdWeekday,
 } from './format'
+import { toKstCalendarDate } from './calendar'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -52,9 +53,21 @@ describe('formatMonthDay (서울 고정)', () => {
     expect(formatMonthDay('2026-12-31T20:00:00+09:00', { year: 'auto' })).toBe('2026년 12월 31일')
   })
 
+  it('Date 는 캘린더 필드 그대로 — 서울 캘린더 Date·로컬 생성 Date 모두', () => {
+    expect(formatMonthDay(toKstCalendarDate('2026-08-06T00:30:00+09:00'))).toBe('8월 6일')
+    expect(formatMonthDay(new Date(2026, 7, 6))).toBe('8월 6일')
+    expect(formatMonthDay(new Date(2026, 7, 6), { lang: 'en', weekday: true, year: 'always' })).toBe('Thu, Aug 6, 2026')
+  })
+
+  it("날짜 전용 'YYYY-MM-DD' 문자열은 그 날짜 그대로", () => {
+    expect(formatMonthDay('2026-08-06')).toBe('8월 6일')
+    expect(formatMonthDay('2026-08-06', { weekday: true })).toBe('8월 6일 (목)')
+  })
+
   it("무효한 입력은 ''", () => {
     expect(formatMonthDay('')).toBe('')
     expect(formatMonthDay('nope')).toBe('')
+    expect(formatMonthDay(new Date(NaN))).toBe('')
   })
 })
 

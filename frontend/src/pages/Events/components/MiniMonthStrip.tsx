@@ -2,8 +2,7 @@ import { Fragment, useMemo } from 'react'
 import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
 import { buildEventDateMap } from '../utils/dateGrouping'
-import { kstNow } from '../../../utils/kstTime'
-import { KO_WEEKDAYS } from '../../../utils/dateUtils'
+import { KO_WEEKDAYS, formatMonthDay, kstNow } from '../../../utils/date'
 
 interface MiniMonthStripProps {
   date: Date
@@ -159,7 +158,7 @@ const MiniMonthStrip = ({
               aria-pressed={onSelectDate ? isSelected : undefined}
               aria-label={
                 large && inMonth
-                  ? `${d.getMonth() + 1}월 ${d.getDate()}일${isToday ? ' 오늘' : ''}${holidayName ? ` ${holidayName}` : ''}${dayEvents.length ? ` 일정 ${dayEvents.length}개` : ''}`
+                  ? `${formatMonthDay(d)}${isToday ? ' 오늘' : ''}${holidayName ? ` ${holidayName}` : ''}${dayEvents.length ? ` 일정 ${dayEvents.length}개` : ''}`
                   : undefined
               }
               title={holidayName}

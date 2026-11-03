@@ -4,6 +4,7 @@
 //
 // 형식이 맞지 않으면(번호 항목 3개 미만, 번호가 1부터 차례가 아님) null 을 돌려주고
 // 화면은 지금처럼 원문을 그대로 보여 준다. 읽어 낸 값이 틀릴 수 있으니 원문은 늘 따로 열 수 있다.
+import { formatMonthDay } from '../../../../utils/date'
 
 export type DigestKind = 'worship' | 'prayer' | 'meet' | 'apply' | 'event' | 'share' | 'notice'
 
@@ -78,7 +79,7 @@ const kindOf = (title: string, body: string): DigestKind => {
   return 'notice'
 }
 
-const dayLabel = (d: Date) => `${d.getMonth() + 1}월 ${d.getDate()}일(${WEEKDAYS[d.getDay()]})`
+const dayLabel = (d: Date) => `${formatMonthDay(d)}(${WEEKDAYS[d.getDay()]})`
 
 const makeDate = (year: number, postMonth: number, m: number, d: number): Date => {
   // 12월 주보에 1월 일정이 실리면 다음 해

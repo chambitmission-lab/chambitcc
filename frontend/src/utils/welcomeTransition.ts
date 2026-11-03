@@ -13,6 +13,7 @@ import { getCurrentSeason, type ChurchSeason } from './churchCalendar'
 import gmarketManifest from '../styles/gmarket-sans.manifest.json'
 import '../styles/welcomeTransition.css'
 import { safeStorage } from './safeStorage'
+import { formatMonthDay } from './date'
 
 type Lang = 'ko' | 'en'
 
@@ -72,7 +73,7 @@ const buildSubLine = (lang: Lang, now: Date): string => {
     return `${date} · ${season}`
   }
   const day = '일월화수목금토'[now.getDay()]
-  return `${now.getMonth() + 1}월 ${now.getDate()}일 ${day}요일 · ${season}`
+  return `${formatMonthDay(now)} ${day}요일 · ${season}`
 }
 
 export interface WelcomeTransitionOptions {

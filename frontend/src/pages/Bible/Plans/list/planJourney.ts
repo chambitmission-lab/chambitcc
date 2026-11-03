@@ -4,6 +4,7 @@
 import type { PlanBookStop, PlanProgress, PlanSummary, TodayReading } from '../../../../types/biblePlan'
 import { getBookGenre } from '../../../../components/bible/bookGenre'
 import { canonicalBookName } from '../../../Sermon/utils/sermonMeta'
+import { KO_WEEKDAYS, formatMonthDay } from '../../../../utils/date'
 
 export interface TrailStop {
   label: string
@@ -122,8 +123,6 @@ export interface WeekStamp {
   isToday: boolean
 }
 
-const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토']
-
 /**
  * 오늘로 끝나는 최근 7일 도장.
  * recent_dates 가 오면 그대로 쓰고, 구버전 응답이면 연속 기록(마지막 읽은 날부터 streak 일)으로 채운다.
@@ -144,7 +143,7 @@ export const weekStamps = (progress?: PlanProgress | null, now = new Date()): We
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (6 - i))
     const key = localDateKey(d)
-    return { key, label: i === 6 ? '오늘' : WEEKDAY[d.getDay()], stamped: read.has(key), isToday: i === 6 }
+    return { key, label: i === 6 ? '오늘' : KO_WEEKDAYS[d.getDay()], stamped: read.has(key), isToday: i === 6 }
   })
 }
 
@@ -203,5 +202,5 @@ export const formatStartLabel = (value?: string | null): string | null => {
   if (!value) return null
   const d = /^\d{4}-\d{2}-\d{2}$/.test(value) ? parseDateKey(value) : new Date(value)
   if (Number.isNaN(d.getTime())) return null
-  return `${d.getMonth() + 1}월 ${d.getDate()}일부터`
+  return `${formatMonthDay(d)}부터`
 }

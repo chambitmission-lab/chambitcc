@@ -8,6 +8,7 @@
 import type { PlanSummary, TodayReading } from '../../../../types/biblePlan'
 import { FlameIcon } from '../PlanIcons'
 import { streakAlive, todayInfo, weekStamps } from './planJourney'
+import { KO_WEEKDAYS, formatMonthDay } from '../../../../utils/date'
 
 const Check = ({ size = 14, width = 3 }: { size?: number; width?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={width} strokeLinecap="round" strokeLinejoin="round">
@@ -24,8 +25,7 @@ const Chevron = () => (
 // 도장마다 조금씩 다른 기울기 — 손으로 찍은 느낌
 const TILT = [-9, 6, -4, 10, -12, 3, -6]
 
-const formatToday = (d: Date) =>
-  `${d.getMonth() + 1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일`
+const formatToday = (d: Date) => `${formatMonthDay(d)} ${KO_WEEKDAYS[d.getDay()]}요일`
 
 const TodayHero = ({
   plan,

@@ -52,6 +52,11 @@ export const formatDotDateTime = (iso: string): string => {
 export const formatLongDateTime = (iso: string): string =>
   new Date(iso).toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 
+const calendarOf = (iso: string): Date | null => {
+  const actual = parseApiDate(iso)
+  return isValidDate(actual) ? toKstCalendarDate(actual) : null
+}
+
 export interface MonthDayOptions {
   lang?: DateLang
   /** 요일을 붙인다 — ko '8월 5일 (수)', en 'Wed, Aug 5' */
@@ -63,21 +68,26 @@ export interface MonthDayOptions {
 /**
  * '8월 5일' / 'Aug 5' — 서울 달력 기준. 무효한 입력이면 ''.
  * 화면마다 손으로 조립하던 `${getMonth()+1}월 ${getDate()}일` 의 공용 출구.
+ *
+ * - string: API 시각 문자열. parseApiDate 로 읽어 서울 날짜로 바꾼다.
+ * - Date: 캘린더 Date(로컬 필드가 곧 표시할 날짜)로 본다 — toKstCalendarDate/kstNow 가 돌려준 것,
+ *   또는 'YYYY-MM-DD' 를 new Date(y, m-1, d) 로 만든 것. 실제 시각 Date 는 toKstCalendarDate 로 먼저 바꿀 것.
  */
-export const formatMonthDay = (iso: string, options: MonthDayOptions = {}): string => {
+export const formatMonthDay = (value: string | Date, options: MonthDayOptions = {}): string => {
   const { lang = 'ko', weekday = false, year = 'never' } = options
-  const actual = parseApiDate(iso)
-  if (!isValidDate(actual)) return ''
-  const c = toKstCalendarDate(actual)
+  const c = typeof value === 'string' ? calendarOf(value) : value
+  if (!c || !isValidDate(c)) return ''
   const showYear = year === 'always' || (year === 'auto' && c.getFullYear() !== kstNow().getFullYear())
   if (lang === 'en') {
+    // 캘린더 필드를 UTC 정오 인스턴트로 옮겨 Intl 이 타임존과 무관하게 같은 날짜를 찍게 한다
+    const noonUtc = new Date(Date.UTC(c.getFullYear(), c.getMonth(), c.getDate(), 12))
     return new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Seoul',
+      timeZone: 'UTC',
       month: 'short',
       day: 'numeric',
       ...(weekday ? { weekday: 'short' } : {}),
       ...(showYear ? { year: 'numeric' } : {}),
-    }).format(actual)
+    }).format(noonUtc)
   }
   const yearPart = showYear ? `${c.getFullYear()}년 ` : ''
   const weekdayPart = weekday ? ` (${KO_WEEKDAYS[c.getDay()]})` : ''

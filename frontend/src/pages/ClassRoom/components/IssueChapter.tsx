@@ -5,14 +5,13 @@ import { CommentIcon } from '../../../components/icons/ActionIcons'
 import { useDeleteClassPost, useUpdateClassPost } from '../../../hooks/useClassRoom'
 import type { ClassPost } from '../../../types/classRoom'
 import { confirmDialog } from '../../../utils/confirmDialog'
-import { formatKstDateTime, kstNow, toKstCalendarDate } from '../../../utils/kstTime'
+import { KO_WEEKDAYS, formatKstDateTime, kstNow, toKstCalendarDate } from '../../../utils/date'
 import { showToast } from '../../../utils/toast'
 import { Avatar, timeAgo } from '../classUi'
 import { responseTarget, toStampSlot } from '../classWeek'
 import { ClockIcon, MapPinIcon, PinIcon } from '../ClassIcons'
 import { CheckButton, PollOptions, RsvpButtons, VerseButtons } from './IssueActions'
 
-const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토']
 const DAY_MS = 24 * 60 * 60 * 1000
 
 /** 꼭지 머리말 — 유형마다 잡지 섹션 이름 */
@@ -270,7 +269,7 @@ const EventBoard = ({ post }: { post: ClassPost }) => {
     <div className="mt-4 flex items-center gap-4 rounded-2xl p-4 bg-[var(--brand-soft)]">
       <div className="shrink-0 w-[66px] rounded-2xl bg-white dark:bg-card-dark py-2 text-center shadow-[0_6px_16px_-8px_var(--brand-glow)]">
         <span className="block text-[11px] font-extrabold text-rose-500">
-          {start.getMonth() + 1}월 · {WEEKDAY[start.getDay()]}
+          {start.getMonth() + 1}월 · {KO_WEEKDAYS[start.getDay()]}
         </span>
         <span className="block text-[28px] font-extrabold leading-[1.1] tabular-nums text-ink-strong">{start.getDate()}</span>
       </div>

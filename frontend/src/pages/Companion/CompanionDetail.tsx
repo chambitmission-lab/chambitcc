@@ -18,6 +18,7 @@ import FootprintPath from './FootprintPath'
 import GoalPicker from './GoalPicker'
 import InviteSheet from './InviteSheet'
 import { GOAL_SPECS, goalText } from './companionGoals'
+import { formatMonthDay, toKstCalendarDate } from '../../utils/date'
 
 const weekRange = (weekStart: string) => {
   const [y, m, d] = weekStart.split('-').map(Number)
@@ -283,7 +284,7 @@ const RestedView = ({ c }: { c: CompanionDetailData }) => {
   const navigate = useNavigate()
   const [resumeOpen, setResumeOpen] = useState(false)
   const myName = sessionStore.get('fullName') || '나'
-  const ended = c.ended_at ? new Date(c.ended_at) : null
+  const ended = c.ended_at ? toKstCalendarDate(c.ended_at) : null
   const resumeButton = (
     <button
       type="button"
@@ -327,7 +328,7 @@ const RestedView = ({ c }: { c: CompanionDetailData }) => {
             <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" size={34} />
           </div>
           <div className="text-[12.5px] text-gray-500 dark:text-white/55 leading-snug">
-            {ended ? `${ended.getMonth() + 1}월 ${ended.getDate()}일부터` : '지금은'} 잠시 쉬어가는 중이에요
+            {ended ? `${formatMonthDay(ended)}부터` : '지금은'} 잠시 쉬어가는 중이에요
           </div>
         </div>
         <p className="mt-5 text-[19px] lg:text-[22px] font-extrabold tracking-[-0.03em] leading-[1.4] text-ink-strong break-keep">

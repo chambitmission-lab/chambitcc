@@ -46,6 +46,7 @@ import heroChristmasEvening from '../../../assets/hero/christmas-evening.webp'
 import { WeatherGlyph, type WeatherGlyphName } from './WeatherIcons'
 import TodayChurchEnvelope from './TodayChurchEnvelope'
 import CompanionHeroButton from './CompanionHeroButton'
+import { formatMonthDay } from '../../../utils/date'
 import './DailyMeditationCard.css'
 
 const GREETING_KEYS = {
@@ -611,7 +612,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             <span className="meditation-journey-date">
               {language === 'en'
                 ? `${MONTH_NAMES_EN[today.getMonth()]} ${today.getDate()}`
-                : `${today.getMonth() + 1}월 ${today.getDate()}일`}
+                : formatMonthDay(today)}
             </span>
           </div>
           {/* 각 구간은 탭 가능 — 모바일에서 절기 이름·기간·의미를 토스트로 알려준다 */}

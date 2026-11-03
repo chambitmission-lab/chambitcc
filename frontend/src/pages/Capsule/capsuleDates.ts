@@ -1,6 +1,7 @@
 // 타임캡슐 개봉일 프리셋/포맷 유틸
 // 절기 프리셋(부활절·성탄)은 churchCalendar의 계산값을 사용한다.
 import { computeEaster } from '../../utils/churchCalendar'
+import { formatMonthDay } from '../../utils/date'
 
 export interface OpenDatePreset {
   key: string
@@ -55,11 +56,8 @@ export const buildPresets = (now = new Date()): OpenDatePreset[] => {
   ]
 }
 
-export const formatKoreanDate = (isoLike: string): string => {
-  const d = new Date(isoLike)
-  if (Number.isNaN(d.getTime())) return isoLike
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`
-}
+export const formatKoreanDate = (isoLike: string): string =>
+  formatMonthDay(isoLike, { year: 'always' }) || isoLike
 
 /** 봉인일 → 개봉일 구간에서 지금까지 지난 비율 (0~1). 봉인 다이얼 링에 쓴다. */
 export const sealProgress = (sealedAt: string, openAt: string): number => {

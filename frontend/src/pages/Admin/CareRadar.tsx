@@ -16,6 +16,7 @@ import { adminKeys, pastorKeys } from '../../hooks/queryKeys'
 import { PastorSectionNav } from '../Pastor/components/PastorShell'
 import TextScaleToggle from '../Pastor/components/TextScaleToggle'
 import { pastorScaleProps, usePastorTextScale } from '../Pastor/components/textScale'
+import { formatMonthDay } from '../../utils/date'
 
 type Tab = 'quiet' | 'newcomers'
 
@@ -349,9 +350,7 @@ const Avatar = ({ name, url }: { name: string; url: string | null }) =>
 /** '2026-07-16' → '7월 16일' */
 const formatDay = (iso: string | null): string => {
   if (!iso) return '기록 없음'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return `${d.getMonth() + 1}월 ${d.getDate()}일`
+  return formatMonthDay(iso) || iso
 }
 
 export default CareRadar

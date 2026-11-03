@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useWorshipServices } from '../../../hooks/useWorshipServices'
 import { useTickingNow } from '../../../hooks/useTickingNow'
-import { toKstCalendarDate } from '../../../utils/kstTime'
+import { formatMonthDay, toKstCalendarDate } from '../../../utils/date'
 import type { Event } from '../../../types/event'
 import type { WorshipService } from '../../../types/worship'
 import { DAY_CHARS, parseServiceTimes, serviceDays, soonestService } from '../../../utils/worshipSchedule'
@@ -52,11 +52,7 @@ const ThisWeekSection = ({ ko, events }: { ko: boolean; events: Event[] }) => {
     : ''
   const serviceName = next ? (ko ? next.service.name : next.service.name_en || next.service.name) : ''
 
-  const fmtDate = (iso: string) => {
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return ''
-    return ko ? `${d.getMonth() + 1}월 ${d.getDate()}일` : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  }
+  const fmtDate = (iso: string) => formatMonthDay(iso, { lang: ko ? 'ko' : 'en' })
 
   return (
     <section className="mt-16">

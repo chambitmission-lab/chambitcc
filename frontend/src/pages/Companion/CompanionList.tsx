@@ -15,6 +15,7 @@ import FootprintPath from './FootprintPath'
 import InviteSheet from './InviteSheet'
 import { GOAL_SPECS, goalText } from './companionGoals'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
+import { formatMonthDay } from '../../utils/date'
 
 /** 히어로 삽화를 자르는 물결 — companion.css 의 lg 마스크 경로와 같아야 한다(viewBox 340) */
 const HERO_WAVE = 'M 50 0 C 0 70, 86 140, 40 214 C 10 262, 28 312, 70 340'
@@ -367,10 +368,7 @@ const RestedCard = ({ c, onOpen, onResume }: { c: CompanionSummary; onOpen: () =
   </div>
 )
 
-const restedSince = (iso: string) => {
-  const d = new Date(iso)
-  return `${d.getMonth() + 1}월 ${d.getDate()}일`
-}
+const restedSince = (iso: string) => formatMonthDay(iso)
 
 // lg 에선 카드 2열 — 넓어진 폭에 카드가 늘어나 보이지 않게
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
