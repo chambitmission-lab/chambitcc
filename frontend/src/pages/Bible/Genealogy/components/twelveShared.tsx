@@ -4,14 +4,13 @@ import { motion } from 'framer-motion'
 import { parseBibleReference } from '../../../Sermon/utils/sermonMeta'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { SheetGrabber } from '../../../../components/common/SheetGrabber'
-import { useIsDesktop } from './useIsDesktop'
 
 // 열두 지파(TribesView)·열두 제자(ApostlesView)가 함께 쓰는 조각들.
 
 export type TwelveSide = 'tribes' | 'apostles'
 
 
-const CARD = 'rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08]'
+export const CARD = 'rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08]'
 
 /**
  * 맨 위 "지파 | 제자" 전환 + 두 열둘을 잇는 말씀(계 21:12-14).
@@ -104,113 +103,6 @@ export const ListPicker = <T extends string>({
     </section>
   )
 }
-
-/** 카드 한 장 — 이름·윗줄 라벨·한 줄 소개, 목록에서 빠지면 흐리게 */
-export const TwelveCard = ({
-  badge,
-  name,
-  tagline,
-  inList,
-  selected,
-  onClick,
-}: {
-  badge: string
-  name: string
-  tagline: string
-  inList: boolean
-  selected: boolean
-  onClick: () => void
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    aria-pressed={selected}
-    className={[
-      'relative text-left rounded-2xl border px-3.5 py-3 transition-all',
-      selected
-        ? 'bg-[var(--brand-soft)] border-[var(--brand-soft-strong)]'
-        : 'bg-white dark:bg-card-dark border-gray-200 dark:border-white/[0.08] hover:border-[var(--brand-soft-strong)]',
-      inList ? '' : 'opacity-40',
-    ].join(' ')}
-  >
-    <span className="block text-[11px] font-semibold text-gray-500 dark:text-white/50 truncate pr-6">{badge}</span>
-    <span className="mt-0.5 block text-ink-strong text-[18px] font-bold tracking-[-0.02em]">{name}</span>
-    <span className="mt-1 block text-[12px] text-gray-600 dark:text-white/60 leading-[1.5] break-keep">{tagline}</span>
-    {!inList && (
-      <span className="absolute top-2.5 right-2.5 text-[10.5px] font-semibold text-gray-500 dark:text-white/50">빠짐</span>
-    )}
-  </button>
-)
-
-/** 2/3 카드 목록 + 1/3 sticky 상세(PC) / 슬라이드업 시트(모바일) */
-export const TwelveLayout = ({
-  main,
-  detail,
-  emptyText,
-  onClose,
-}: {
-  main: ReactNode
-  detail: ReactNode | null
-  emptyText: ReactNode
-  onClose: () => void
-}) => {
-  const isDesktop = useIsDesktop()
-  return (
-    <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 min-w-0 flex flex-col gap-4">{main}</div>
-        <aside className="hidden lg:block lg:col-span-1 min-w-0">
-          <div className="sticky lg:top-[4.5rem]">
-            {detail ? (
-              <div className={`${CARD} max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain`}>{detail}</div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-gray-300 dark:border-white/[0.12] px-5 py-10 text-center">
-                <span className="material-icons-round text-brand" style={{ fontSize: 28 }}>groups</span>
-                <p className="mt-2 text-[13.5px] text-gray-500 dark:text-white/55 leading-[1.6]">{emptyText}</p>
-              </div>
-            )}
-          </div>
-        </aside>
-      </div>
-      {detail && !isDesktop && <DetailSheet onClose={onClose}>{detail}</DetailSheet>}
-    </>
-  )
-}
-
-export const DetailHeader = ({
-  eyebrow,
-  title,
-  subtitle,
-  onClose,
-}: {
-  eyebrow: string
-  title: string
-  subtitle: string
-  onClose: () => void
-}) => (
-  <div className="flex items-start gap-3">
-    <div className="min-w-0 flex-1">
-      <p className="text-brand text-[11.5px] font-bold tracking-[0.08em]">{eyebrow}</p>
-      <h3 className="mt-0.5 text-ink-strong text-[24px] font-bold tracking-[-0.02em]">{title}</h3>
-      <p className="mt-0.5 text-[13px] text-gray-600 dark:text-white/60 break-keep">{subtitle}</p>
-    </div>
-    <button
-      type="button"
-      onClick={onClose}
-      aria-label="닫기"
-      className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors shrink-0"
-    >
-      <span className="material-icons-round" style={{ fontSize: 20 }}>close</span>
-    </button>
-  </div>
-)
-
-export const DetailBlock = ({ title, children }: { title: string; children: ReactNode }) => (
-  <section className="mt-4">
-    <h4 className="text-[12px] font-bold text-gray-500 dark:text-white/50 tracking-[0.04em]">{title}</h4>
-    <div className="mt-1 text-[13.5px] text-ink leading-[1.65] break-keep">{children}</div>
-  </section>
-)
 
 /** 브랜드 테두리 강조 상자 — "구속사의 흐름에서", "견해" 같은 덧붙임 */
 export const NoteBox = ({ label, children, refText, onNavigate }: { label: string; children: ReactNode; refText?: string; onNavigate?: () => void }) => (

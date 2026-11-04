@@ -11,6 +11,12 @@ export type ApostleId =
   | 'jamesAlphaeus' | 'thaddaeus' | 'simonZealot' | 'judas'
   | 'matthias'
 
+// 사물은 그 제자의 성경 장면에서만 고른다(전승 상징 X). 반석(요 1:42)·물고기(요 6:8)·우레(막 3:17)·사랑·문("와서 보라")·
+// 무화과 잎(요 1:48, 견해)·못 자국 손(요 20:27)·세관 동전(마 9:9)·다락방(행 1:13)·질문(요 14:22)·불꽃(열심당)·은 삼십(마 26:15)·제비(행 1:26)
+export type ApostleIconKey =
+  | 'rock' | 'fish' | 'bolt' | 'heart' | 'door' | 'leaf' | 'hand'
+  | 'coin' | 'house' | 'ask' | 'flame' | 'coins' | 'lot'
+
 export interface ApostleScene {
   title: string
   note: string
@@ -22,6 +28,8 @@ export interface Apostle {
   name: string
   /** 성경에 나오는 다른 이름·표기 */
   otherNames?: string
+  /** 성경 장면에서 고른 사물 — ApostleIcon 라인 아이콘 키 */
+  icon: ApostleIconKey
   /** 카드 윗줄 작은 라벨 */
   badge: string
   /** 카드 한 줄 */
@@ -45,7 +53,7 @@ export const APOSTLE_GROUPS: { title: string; note: string; members: ApostleId[]
 
 export const APOSTLES: Apostle[] = [
   {
-    id: 'peter', badge: '갈릴리 어부', name: '베드로', otherNames: '시몬, 게바(아람어로 "반석")',
+    id: 'peter', icon: 'rock', badge: '갈릴리 어부', name: '베드로', otherNames: '시몬, 게바(아람어로 "반석")',
     tagline: '넘어졌다가 다시 세워진 수제자',
     background: '갈릴리 벳새다 출신의 어부 — 동생 안드레와 함께 고기를 잡았어요.',
     calling: { summary: '"나를 따라오라 내가 너희를 사람을 낚는 어부가 되게 하리라" — 곧 그물을 버려두고 따랐어요.', ref: '마태복음 4:18' },
@@ -58,7 +66,7 @@ export const APOSTLES: Apostle[] = [
     ],
   },
   {
-    id: 'andrew', badge: '갈릴리 어부', name: '안드레',
+    id: 'andrew', icon: 'fish', badge: '갈릴리 어부', name: '안드레',
     tagline: '사람을 예수님께 데려온 제자',
     background: '베드로의 형제, 벳새다 출신 어부 — 처음엔 세례 요한의 제자였어요.',
     calling: { summary: '세례 요한이 "보라 하나님의 어린 양"이라 할 때 예수님을 따라갔어요.', ref: '요한복음 1:40' },
@@ -69,7 +77,7 @@ export const APOSTLES: Apostle[] = [
     ],
   },
   {
-    id: 'james', badge: '세베대의 아들', name: '야고보', otherNames: '세베대의 아들, 보아너게("우레의 아들")',
+    id: 'james', icon: 'bolt', badge: '세베대의 아들', name: '야고보', otherNames: '세베대의 아들, 보아너게("우레의 아들")',
     tagline: '열두 제자 중 처음 순교한 사도',
     background: '세베대의 아들, 요한의 형 — 아버지와 배에서 그물을 깁던 어부예요.',
     calling: { summary: '부르심을 듣고 곧 배와 아버지를 버려두고 따랐어요.', ref: '마태복음 4:21' },
@@ -80,7 +88,7 @@ export const APOSTLES: Apostle[] = [
     ],
   },
   {
-    id: 'john', badge: '세베대의 아들', name: '요한', otherNames: '세베대의 아들, 보아너게',
+    id: 'john', icon: 'heart', badge: '세베대의 아들', name: '요한', otherNames: '세베대의 아들, 보아너게',
     tagline: '사랑을 가장 많이 말한 제자',
     background: '야고보의 동생, 갈릴리 어부 — 베드로·야고보와 함께 가장 가까이에서 예수님을 따랐어요.',
     calling: { summary: '형 야고보와 함께 배와 아버지를 두고 따랐어요.', ref: '마가복음 1:19' },
@@ -92,7 +100,7 @@ export const APOSTLES: Apostle[] = [
     view: '요한복음의 "예수께서 사랑하시는 그 제자"를 교회는 사도 요한으로 받아 왔어요.',
   },
   {
-    id: 'philip', badge: '벳새다 사람', name: '빌립',
+    id: 'philip', icon: 'door', badge: '벳새다 사람', name: '빌립',
     tagline: '"와서 보라"고 초대한 제자',
     background: '베드로·안드레와 같은 동네인 벳새다 출신이에요. (사도행전 8장의 집사 빌립은 다른 인물)',
     calling: { summary: '예수님이 갈릴리로 가시다 빌립을 만나 "나를 따르라" 하셨어요.', ref: '요한복음 1:43' },
@@ -103,7 +111,7 @@ export const APOSTLES: Apostle[] = [
     ],
   },
   {
-    id: 'bartholomew', badge: '빌립의 짝', name: '바돌로매',
+    id: 'bartholomew', icon: 'leaf', badge: '빌립의 짝', name: '바돌로매',
     tagline: '목록에 이름만 남은, 그러나 빠짐없는 제자',
     background: '네 목록 모두에 이름이 있지만 복음서에 따로 나오는 장면은 없어요.',
     scenes: [
@@ -112,7 +120,7 @@ export const APOSTLES: Apostle[] = [
     view: '목록에서 늘 빌립과 짝지어 나와서, 빌립이 데려온 요한복음의 나다나엘과 같은 사람으로 보는 견해가 많아요.',
   },
   {
-    id: 'thomas', badge: '디두모', name: '도마', otherNames: '디두모("쌍둥이")',
+    id: 'thomas', icon: 'hand', badge: '디두모', name: '도마', otherNames: '디두모("쌍둥이")',
     tagline: '의심 끝에 가장 깊이 고백한 제자',
     background: '성경은 그의 직업을 말하지 않아요. 요한복음에서 세 번 목소리를 내요.',
     scenes: [
@@ -122,7 +130,7 @@ export const APOSTLES: Apostle[] = [
     ],
   },
   {
-    id: 'matthew', badge: '세리', name: '마태', otherNames: '레위(마가·누가복음)',
+    id: 'matthew', icon: 'coin', badge: '세리', name: '마태', otherNames: '레위(마가·누가복음)',
     tagline: '세관에서 부름받은 세리',
     background: '로마를 대신해 세금을 걷던 세리 — 동족에게 미움받던 직업이었어요.',
     calling: { summary: '세관에 앉아 있을 때 "나를 따르라" 하시자 일어나 따랐어요.', ref: '마태복음 9:9' },
@@ -133,7 +141,7 @@ export const APOSTLES: Apostle[] = [
     view: '교회는 마태복음을 그가 기록했다고 받아 왔어요.',
   },
   {
-    id: 'jamesAlphaeus', badge: '알패오의 아들', name: '야고보', otherNames: '알패오의 아들',
+    id: 'jamesAlphaeus', icon: 'house', badge: '알패오의 아들', name: '야고보', otherNames: '알패오의 아들',
     tagline: '셋째 묶음을 늘 이끈 조용한 제자',
     background: '네 목록 모두에서 셋째 묶음 맨 앞에 나오지만 따로 기록된 장면은 없어요.',
     scenes: [
@@ -142,7 +150,7 @@ export const APOSTLES: Apostle[] = [
     view: '십자가 곁 여인들 중 "작은 야고보의 어머니 마리아"의 그 야고보로 보는 견해가 있어요(막 15:40).',
   },
   {
-    id: 'thaddaeus', badge: '야고보의 아들 유다', name: '다대오', otherNames: '야고보의 아들 유다(누가복음·사도행전), "가룟인 아닌 유다"',
+    id: 'thaddaeus', icon: 'ask', badge: '야고보의 아들 유다', name: '다대오', otherNames: '야고보의 아들 유다(누가복음·사도행전), "가룟인 아닌 유다"',
     tagline: '마지막 만찬에서 질문한 또 하나의 유다',
     background: '마태·마가복음은 다대오, 누가복음·사도행전은 "야고보의 아들 유다"라 불러요.',
     scenes: [
@@ -150,7 +158,7 @@ export const APOSTLES: Apostle[] = [
     ],
   },
   {
-    id: 'simonZealot', badge: '셀롯인', name: '시몬', otherNames: '셀롯인(열심당원), 가나나인',
+    id: 'simonZealot', icon: 'flame', badge: '셀롯인', name: '시몬', otherNames: '셀롯인(열심당원), 가나나인',
     tagline: '세리 마태와 한 공동체가 된 열심당원',
     background: '셀롯(열심당)은 로마에 맞서 싸우려던 무리예요. 로마의 세금을 걷던 마태와는 원수 같은 사이였어요.',
     scenes: [
@@ -158,7 +166,7 @@ export const APOSTLES: Apostle[] = [
     ],
   },
   {
-    id: 'judas', badge: '주님을 판 제자', name: '가룟 유다', special: 'fallen',
+    id: 'judas', icon: 'coins', badge: '주님을 판 제자', name: '가룟 유다', special: 'fallen',
     tagline: '곁에 있었지만 끝내 돌아서지 못한 제자',
     background: '열두 제자의 돈궤를 맡았지만 그 돈을 훔쳐 가곤 했어요.',
     scenes: [
@@ -168,7 +176,7 @@ export const APOSTLES: Apostle[] = [
     ],
   },
   {
-    id: 'matthias', badge: '나중에 세워진 사도', name: '맛디아', special: 'replacement',
+    id: 'matthias', icon: 'lot', badge: '나중에 세워진 사도', name: '맛디아', special: 'replacement',
     tagline: '유다의 빈자리를 채운 증인',
     background: '세례 요한 때부터 예수님이 승천하실 때까지 늘 함께 다닌 사람 중 하나예요.',
     calling: { summary: '제자들이 기도하고 제비를 뽑아 열한 사도와 함께 세웠어요.', ref: '사도행전 1:26' },
@@ -220,3 +228,47 @@ export const APOSTLE_LISTS: ApostleList[] = [
     note: '가룟 유다가 빠진 열한 명에, 제비 뽑아 세운 맛디아가 더해져 다시 열둘이 돼요.',
   },
 ]
+
+// ── 관계도 선 — 성경 기록·견해·대비 ───────────────────────────────
+// record: 성경이 직접 잇는 관계 / view: 교회가 받아 온 해석(점선) / contrast: 같은 일, 다른 길(긴 점선)
+export type ApostleRelationKind = 'record' | 'view' | 'contrast'
+
+export interface ApostleRelation {
+  a: ApostleId
+  b: ApostleId
+  label: string
+  ref: string
+  kind: ApostleRelationKind
+}
+
+export const APOSTLE_RELATIONS: ApostleRelation[] = [
+  { a: 'peter', b: 'andrew', label: '형제 · 형을 예수님께 데려옴', ref: '요한복음 1:41', kind: 'record' },
+  { a: 'james', b: 'john', label: '형제 · 함께 "우레의 아들"', ref: '마가복음 3:17', kind: 'record' },
+  { a: 'peter', b: 'john', label: '빈 무덤으로 함께 달려감', ref: '요한복음 20:4', kind: 'record' },
+  { a: 'andrew', b: 'philip', label: '같은 동네 · 헬라인을 함께 전함', ref: '요한복음 12:22', kind: 'record' },
+  { a: 'philip', b: 'bartholomew', label: '"와서 보라" — 나다나엘과 같은 사람이라면', ref: '요한복음 1:46', kind: 'view' },
+  { a: 'matthew', b: 'simonZealot', label: '세리와 열심당원, 한 공동체', ref: '누가복음 6:15', kind: 'contrast' },
+  { a: 'thomas', b: 'philip', label: '만찬 자리에서 이어진 두 질문', ref: '요한복음 14:5', kind: 'record' },
+  { a: 'thaddaeus', b: 'judas', label: '이름이 같은 두 유다 · "가룟인 아닌 유다"', ref: '요한복음 14:22', kind: 'contrast' },
+  { a: 'peter', b: 'judas', label: '같은 밤 넘어졌지만 갈린 길', ref: '마태복음 27:3', kind: 'contrast' },
+  { a: 'judas', b: 'matthias', label: '빈자리를 채움', ref: '사도행전 1:26', kind: 'record' },
+]
+
+export const relationsOf = (id: ApostleId) => APOSTLE_RELATIONS.filter((r) => r.a === id || r.b === id)
+
+/** 네 목록 순서 흐름 그래프에서 한 사람을 골랐을 때 아래에 붙는 설명 */
+export const APOSTLE_LIST_NOTES: Record<ApostleId, string> = {
+  peter: '베드로는 네 목록 모두 1번, 첫째 묶음의 머리예요.',
+  andrew: '안드레는 2 → 4 → 2 → 4. 마가와 사도행전은 가까운 세 제자를 먼저 부르느라 형제 안드레가 뒤로 가요.',
+  james: '야고보는 3 → 2 → 3 → 3. 마가는 베드로·야고보·요한을 먼저 묶었어요.',
+  john: '요한은 사도행전에서 2번으로 올라와요. 사도행전 3~4장에서 베드로와 늘 함께 다녀요.',
+  philip: '빌립은 네 목록 모두 5번, 둘째 묶음의 머리예요.',
+  bartholomew: '바돌로매는 복음서 세 목록에서 늘 빌립 바로 다음(6번)이에요. 그래서 빌립의 짝으로 불러요.',
+  thomas: '도마는 7 → 8 → 8 → 6. 순서는 바뀌어도 둘째 묶음을 벗어나지 않아요.',
+  matthew: '마태는 자기 복음서 목록에서 도마 뒤에 서고 이름 앞에 "세리"를 붙였어요. 마가·누가에선 도마 앞이에요.',
+  jamesAlphaeus: '알패오의 아들 야고보는 네 목록 모두 9번, 셋째 묶음의 머리예요.',
+  thaddaeus: '다대오는 누가·사도행전에선 "야고보의 아들 유다"로 불리고 11번으로 가요.',
+  simonZealot: '시몬은 마태·마가에선 "가나나인", 누가·사도행전에선 "셀롯이라는 시몬"이에요.',
+  judas: '가룟 유다는 늘 마지막이고, 사도행전 목록에선 이름이 없어요.',
+  matthias: '맛디아는 사도행전에서 유다의 12번 자리에 들어와요.',
+}
