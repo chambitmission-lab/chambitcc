@@ -32,6 +32,9 @@
   color: var(--text-strong);
   cursor: pointer;
 }
+.pzb-sound[aria-pressed='false'] {
+  color: var(--text-muted);
+}
 .pzb-head-text {
   display: flex;
   flex-direction: column;

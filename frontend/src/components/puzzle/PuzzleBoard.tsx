@@ -9,6 +9,7 @@ import type { TitleStatus } from '../../api/titles'
 import { useCompletePuzzle } from '../../hooks/usePuzzles'
 import { emitTitleUnlocks } from '../../utils/titleUnlockBus'
 import { GRID, MARGIN, buildEdges, piecePath } from './jigsaw'
+import { isPuzzleSoundOn, playPuzzleSound, prefetchPuzzleSounds, primePuzzleSounds, setPuzzleSoundOn } from './puzzleSound'
 import './PuzzleBoard.css'
 
 interface Props {
@@ -110,6 +111,22 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
   const [typed, setTyped] = useState(0)
   const earned = useRef<TitleStatus[] | null>(null)
   const completeMut = useCompletePuzzle()
+  const [soundOn, setSoundOn] = useState(isPuzzleSoundOn)
+
+  // 효과음 파일은 판을 열 때 미리 받아 둔다
+  useEffect(() => {
+    prefetchPuzzleSounds()
+  }, [])
+
+  const toggleSound = () => {
+    const next = !soundOn
+    setPuzzleSoundOn(next)
+    setSoundOn(next)
+    if (next) {
+      primePuzzleSounds()
+      playPuzzleSound('snap')
+    }
+  }
 
   const verseText = puzzle.verse.text ?? ''
   const verseRef = `${puzzle.verse.book_name} ${puzzle.verse.chapter}:${puzzle.verse.verse}`
@@ -173,6 +190,8 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
     const secs = startedAt.current ? Math.max(1, Math.round((Date.now() - startedAt.current) / 1000)) : 1
     setElapsed(secs)
     setPhase('reveal')
+    // 마지막 조각 "톡" 뒤에 이어지도록 살짝 늦춰 하프
+    window.setTimeout(() => playPuzzleSound('complete'), 260)
     if (!preview) {
       completeMut.mutate(
         { key: puzzle.key, seconds: secs },
@@ -241,6 +260,8 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
       /* 이미 끝난 포인터 — 캡처 없이도 판 위에서는 따라온다 */
     }
     if (!startedAt.current) startedAt.current = Date.now()
+    primePuzzleSounds()
+    playPuzzleSound('pickup')
     const pt = localPoint(e)
     const half = layout.cell / 2
     // 보관함에서 집으면 제 크기로 커진다 — 가운데를 기준으로 잡은 자리를 유지
@@ -278,14 +299,17 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
       const half = layout.cell / 2
       const ux = Math.min(Math.max(pt.x - d.dx - half, -half), layout.width - half)
       const uy = Math.min(Math.max(pt.y - d.dy - half, -half), layout.height - half)
+      const tx = layout.boardX + (d.id % GRID) * layout.cell
+      const ty = layout.boardY + Math.floor(d.id / GRID) * layout.cell
+      const snapped = Math.hypot(ux - tx, uy - ty) < layout.cell * SNAP
+      // 소리·진동은 업데이터 밖에서 — StrictMode 가 업데이터를 두 번 부르면 두 번 울린다
+      if (snapped) {
+        playPuzzleSound('snap')
+        try { navigator.vibrate?.(12) } catch { /* 진동 미지원 */ }
+      }
       setPieces((ps) => {
         const p = { ...ps[d.id], x: ux, y: uy }
-        const tx = layout.boardX + (d.id % GRID) * layout.cell
-        const ty = layout.boardY + Math.floor(d.id / GRID) * layout.cell
-        if (Math.hypot(p.x - tx, p.y - ty) < layout.cell * SNAP) {
-          try { navigator.vibrate?.(12) } catch { /* 진동 미지원 */ }
-          return ps.map((q, i) => (i === d.id ? { ...q, x: tx, y: ty, locked: true, z: 1 } : q))
-        }
+        if (snapped) return ps.map((q, i) => (i === d.id ? { ...q, x: tx, y: ty, locked: true, z: 1 } : q))
         // 보관함 위에 내려놓으면 다시 작게
         const cx = p.x + layout.cell / 2
         const cy = p.y + layout.cell / 2
@@ -310,6 +334,15 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
           <strong>{puzzle.title}</strong>
           <span>{preview ? '미리 맞춰보기 · 기록되지 않아요' : puzzle.subtitle}</span>
         </div>
+        <button
+          type="button"
+          className="pzb-close pzb-sound"
+          onClick={toggleSound}
+          aria-pressed={soundOn}
+          aria-label={soundOn ? '효과음 끄기' : '효과음 켜기'}
+        >
+          <span className="material-icons-round">{soundOn ? 'volume_up' : 'volume_off'}</span>
+        </button>
         <div className="pzb-meta" aria-live="off">
           <span className="pzb-count">{lockedCount}/{GRID * GRID}</span>
           <span className="pzb-time">{formatTime(elapsed)}</span>
