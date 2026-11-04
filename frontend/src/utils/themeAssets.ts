@@ -202,6 +202,11 @@ export const GENEALOGY_HERO: ThemePair = {
   light: '/images/genealogy/tree-hero-light.webp',
   dark: '/images/genealogy/tree-hero-dark.webp',
 }
+/** 열두 지파 진영 배치도의 회막 (theme.css --tabernacle-image) — 지파 보기에서만, 컴포넌트가 등록 */
+export const TABERNACLE_ART: ThemePair = {
+  light: '/images/genealogy/tabernacle-day-v1.webp',
+  dark: '/images/genealogy/tabernacle-night-v1.webp',
+}
 /** /bible/photo-verse 인트로 (PhotoVerse.css) */
 export const PHOTO_VERSE_INTRO: ThemePair = {
   light: '/images/photo-verse/intro-light.webp',

@@ -249,13 +249,42 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
     return { x: e.clientX - r.left, y: e.clientY - r.top }
   }
 
-  const onPointerDown = (id: number) => (e: React.PointerEvent) => {
+  /**
+   * 손가락 아래 겹쳐 있는 조각들 중 몸통 가운데가 가장 가까운 조각을 고른다.
+   * 보관함에선 이웃 조각의 탭이 내 조각 몸통 위에 올라타므로, 브라우저가 고른 "맨 위 조각"은
+   * 보고 누른 조각과 다를 수 있다. 눈에 보이는 몸통 기준으로 다시 고른다.
+   */
+  const pickNearest = (e: React.PointerEvent, fallback: number): number => {
+    const area = areaRef.current
+    if (!area || typeof document.elementsFromPoint !== 'function') return fallback
+    const pt = localPoint(e)
+    const half = layout!.cell / 2
+    let bestId = fallback
+    let bestDist = Infinity
+    for (const el of document.elementsFromPoint(e.clientX, e.clientY)) {
+      if (!(el instanceof Element) || !el.classList.contains('pzb-hit')) continue
+      const idx = Number(el.getAttribute('data-idx'))
+      const q = pieces[idx]
+      if (!q || q.locked) continue
+      const dist = Math.hypot(pt.x - (q.x + half), pt.y - (q.y + half))
+      if (dist < bestDist) {
+        bestDist = dist
+        bestId = idx
+      }
+    }
+    return bestId
+  }
+
+  const onPointerDown = (hitId: number) => (e: React.PointerEvent) => {
     if (!layout || phase !== 'play') return
-    const p = pieces[id]
-    if (p.locked || drag.current) return
+    if (pieces[hitId].locked || drag.current) return
     e.preventDefault()
+    const id = pickNearest(e, hitId)
+    const p = pieces[id]
+    const target =
+      id === hitId ? (e.currentTarget as Element) : areaRef.current?.querySelector<Element>(`.pzb-hit[data-idx="${id}"]`)
     try {
-      ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
+      target?.setPointerCapture?.(e.pointerId)
     } catch {
       /* 이미 끝난 포인터 — 캡처 없이도 판 위에서는 따라온다 */
     }
@@ -289,7 +318,7 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
   )
 
   const onPointerUp = useCallback(
-    (e: React.PointerEvent) => {
+    (e: React.PointerEvent | PointerEvent) => {
       const d = drag.current
       if (!d || !layout || e.pointerId !== d.pointer) return
       drag.current = null
@@ -315,11 +344,24 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
         const cy = p.y + layout.cell / 2
         const inTray =
           cx >= layout.trayX && cx <= layout.trayX + layout.trayW && cy >= layout.trayY && cy <= layout.trayY + layout.trayH
-        return ps.map((q, i) => (i === d.id ? { ...p, inTray } : q))
+        // 보관함으로 되돌리면 쌓임을 원래 순서로 — 최상위로 남아 이웃 조각 위를 덮지 않게
+        return ps.map((q, i) => (i === d.id ? { ...p, inTray, z: inTray ? d.id + 1 : p.z } : q))
       })
     },
     [layout],
   )
+
+  // 손을 뗀 이벤트가 판 밖에서 끝나거나 캡처가 풀려도 드래그가 끼이지 않게 — window 에서 한 번 더 받는다
+  useEffect(() => {
+    if (dragId === null) return
+    const release = (e: PointerEvent) => onPointerUp(e)
+    window.addEventListener('pointerup', release)
+    window.addEventListener('pointercancel', release)
+    return () => {
+      window.removeEventListener('pointerup', release)
+      window.removeEventListener('pointercancel', release)
+    }
+  }, [dragId, onPointerUp])
 
   const lockedCount = pieces.filter((p) => p.locked).length
   const best = puzzle.best_seconds
@@ -415,7 +457,7 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
                     clipPath={`url(#pzc-${puzzle.key}-${i})`}
                   />
                   <path className="pzb-seam" d={paths[i]} />
-                  <path className="pzb-hit" d={paths[i]} onPointerDown={onPointerDown(i)} />
+                  <path className="pzb-hit" data-idx={i} d={paths[i]} onPointerDown={onPointerDown(i)} />
                 </svg>
               )
             })}

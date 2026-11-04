@@ -1,25 +1,15 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { parseBibleReference } from '../../../Sermon/utils/sermonMeta'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { SheetGrabber } from '../../../../components/common/SheetGrabber'
+import { useIsDesktop } from './useIsDesktop'
 
 // 열두 지파(TribesView)·열두 제자(ApostlesView)가 함께 쓰는 조각들.
 
 export type TwelveSide = 'tribes' | 'apostles'
 
-const useIsDesktop = () => {
-  const query = '(min-width: 1024px)'
-  const [desktop, setDesktop] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches)
-  useEffect(() => {
-    const mq = window.matchMedia(query)
-    const on = () => setDesktop(mq.matches)
-    mq.addEventListener('change', on)
-    return () => mq.removeEventListener('change', on)
-  }, [])
-  return desktop
-}
 
 const CARD = 'rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08]'
 
@@ -236,14 +226,19 @@ export const RefLink = ({
   refText,
   onNavigate,
   className = 'mt-1',
+  tone = 'brand',
 }: {
   refText: string
   onNavigate?: () => void
   className?: string
+  /** onColor — 지파 색 카드 위 흰 글씨 */
+  tone?: 'brand' | 'onColor'
 }) => {
   const navigate = useNavigate()
   const parsed = useMemo(() => parseBibleReference(refText), [refText])
-  if (!parsed?.bookNumber) return <span className={`${className} block text-[12px] text-gray-500`}>{refText}</span>
+  const color = tone === 'onColor' ? 'text-white/85 hover:text-white' : 'text-brand'
+  if (!parsed?.bookNumber)
+    return <span className={`${className} block text-[12px] ${tone === 'onColor' ? 'text-white/80' : 'text-gray-500'}`}>{refText}</span>
   return (
     <button
       type="button"
@@ -251,7 +246,7 @@ export const RefLink = ({
         onNavigate?.()
         navigate(`/bible/${parsed.bookNumber}/${parsed.chapter}${parsed.verse ? `?verse=${parsed.verse}` : ''}`)
       }}
-      className={`${className} inline-flex items-center gap-0.5 text-[12px] font-semibold text-brand hover:underline`}
+      className={`${className} inline-flex items-center gap-0.5 text-[12px] font-semibold ${color} hover:underline`}
     >
       <span className="material-icons-round" style={{ fontSize: 14 }}>auto_stories</span>
       {refText}
@@ -260,8 +255,21 @@ export const RefLink = ({
 }
 
 /** 모바일 시트 — 뒤로가기로 시트만 닫힌다(useModalBackButton) */
-const DetailSheet = ({ children, onClose }: { children: ReactNode; onClose: () => void }) => {
+export const DetailSheet = ({
+  children,
+  onClose,
+  scrollKey,
+}: {
+  children: ReactNode
+  onClose: () => void
+  /** 바뀌면 시트 안을 맨 위로 — 시트 안에서 다음 카드로 넘어갈 때 */
+  scrollKey?: string
+}) => {
   useModalBackButton(onClose)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 })
+  }, [scrollKey])
   return (
     <>
       <motion.div
@@ -281,7 +289,7 @@ const DetailSheet = ({ children, onClose }: { children: ReactNode; onClose: () =
           <div className="flex-shrink-0 flex justify-center py-2.5">
             <SheetGrabber onClose={onClose} className="w-10 h-1.5 bg-black/15 dark:bg-white/20 rounded-full" />
           </div>
-          <div className="overflow-y-auto overscroll-contain">{children}</div>
+          <div ref={scrollRef} className="overflow-y-auto overscroll-contain">{children}</div>
         </div>
       </motion.div>
     </>

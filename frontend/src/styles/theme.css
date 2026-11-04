@@ -58,6 +58,8 @@
   --garden-hero-image: url('/images/garden/bible-title-hero-light.webp');
   /* /bible/genealogy 히어로 우측 — 십자가 빛을 품은 생명나무 수채화 (라이트) */
   --genealogy-hero-image: url('/images/genealogy/tree-hero-light.webp');
+  /* 열두 지파 진영 배치도 가운데 회막 — 낮, 구름 기둥 (TribeCampMap) */
+  --tabernacle-image: url('/images/genealogy/tabernacle-day-v1.webp');
   --garden-hero-min-height: 172px;
   --garden-hero-min-height-lg: 300px;
   --garden-hero-aspect-lg: 1376 / 560;
@@ -221,6 +223,8 @@
   --garden-hero-image: url('/images/garden/bible-title-hero.webp');
   /* /bible/genealogy 히어로 — 밤하늘 위 빛나는 생명나무 (다크) */
   --genealogy-hero-image: url('/images/genealogy/tree-hero-dark.webp');
+  /* 열두 지파 진영 배치도 가운데 회막 — 밤, 불기둥 (민 9:16) */
+  --tabernacle-image: url('/images/genealogy/tabernacle-night-v1.webp');
   --garden-hero-min-height: 172px;
   --garden-hero-min-height-lg: 300px;
   --garden-hero-aspect-lg: 1376 / 560;

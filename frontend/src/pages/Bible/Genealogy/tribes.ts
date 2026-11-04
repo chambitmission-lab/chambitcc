@@ -256,3 +256,64 @@ export const TRIBE_LISTS: TribeList[] = [
     note: '레위와 요셉이 다시 들어오고 단과 에브라임이 빠져요. 성경은 이유를 말하지 않아요 — 단의 우상숭배(삿 18:30)와 관련된다는 견해가 있어요.',
   },
 ]
+
+// ── 이야기 카드 색 · 인구 · 광야 진영 ─────────────────────────────
+// 색은 성경 근거가 있는 "지파 깃발 색"이 아니라 화면에서 지파를 구분하는 표지 색이다(랍비 전승
+// 깃발 색을 따르지 않음). 카드 위 흰 글씨가 읽히도록 모두 4.5:1 이상인 짙은 색으로 고른다.
+export const TRIBE_COLOR: Record<TribeId, string> = {
+  reuben: '#c5304a', simeon: '#8f6a0c', levi: '#1b7a4f', judah: '#b3213f',
+  dan: '#2f5fcf', naphtali: '#b04e32', gad: '#a35d08', asher: '#5d6b7c',
+  issachar: '#7a45c2', zebulun: '#127680', joseph: '#3b4150', benjamin: '#2f7a50',
+  ephraim: '#5f7024', manasseh: '#8a5a2b',
+}
+
+/** 민수기 1장 첫 인구조사 — 이십 세 이상 싸움에 나갈 만한 남자 (레위·요셉은 따로 세지 않음) */
+export const TRIBE_CENSUS: Partial<Record<TribeId, { count: number; ref: string }>> = {
+  reuben: { count: 46500, ref: '민수기 1:21' },
+  simeon: { count: 59300, ref: '민수기 1:23' },
+  gad: { count: 45650, ref: '민수기 1:25' },
+  judah: { count: 74600, ref: '민수기 1:27' },
+  issachar: { count: 54400, ref: '민수기 1:29' },
+  zebulun: { count: 57400, ref: '민수기 1:31' },
+  ephraim: { count: 40500, ref: '민수기 1:33' },
+  manasseh: { count: 32200, ref: '민수기 1:35' },
+  benjamin: { count: 35400, ref: '민수기 1:37' },
+  dan: { count: 62700, ref: '민수기 1:39' },
+  asher: { count: 41500, ref: '민수기 1:41' },
+  naphtali: { count: 53400, ref: '민수기 1:43' },
+}
+
+export type CampSideId = 'east' | 'south' | 'west' | 'north'
+
+export interface CampSide {
+  id: CampSideId
+  label: string
+  /** 행진 순서 (민 2장) — 동 → 남 → (회막) → 서 → 북 */
+  march: number
+  marchLabel: string
+  ref: string
+  /** 첫째가 기수(진영의 깃발을 든 지파) */
+  members: [TribeId, TribeId, TribeId]
+}
+
+export const CAMP_SIDES: CampSide[] = [
+  { id: 'east', label: '동쪽', march: 1, marchLabel: '맨 앞', ref: '민수기 2:3', members: ['judah', 'issachar', 'zebulun'] },
+  { id: 'south', label: '남쪽', march: 2, marchLabel: '둘째', ref: '민수기 2:10', members: ['reuben', 'simeon', 'gad'] },
+  { id: 'west', label: '서쪽', march: 3, marchLabel: '셋째', ref: '민수기 2:18', members: ['ephraim', 'manasseh', 'benjamin'] },
+  { id: 'north', label: '북쪽', march: 4, marchLabel: '맨 뒤', ref: '민수기 2:25', members: ['dan', 'asher', 'naphtali'] },
+]
+
+export const CAMP_SIDE_OF = new Map<TribeId, CampSide>(
+  CAMP_SIDES.flatMap((s) => s.members.map((m) => [m, s] as const)),
+)
+
+/** '"찬송" — 내가 이제는…' → { word: '찬송', phrase: '내가 이제는…' } */
+export const splitMeaning = (meaning: string): { word: string; phrase: string } => {
+  const m = meaning.match(/^"([^"]+)"\s*—\s*(.*)$/)
+  return m ? { word: m[1], phrase: m[2] } : { word: meaning, phrase: '' }
+}
+
+const ORDINAL = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째', '아홉째', '열째', '열한째', '열두째']
+
+/** "넷째 아들" / "요셉의 아들" */
+export const tribeBadge = (t: Tribe) => (t.parent ? '요셉의 아들' : t.order ? `${ORDINAL[t.order - 1]} 아들` : '')
