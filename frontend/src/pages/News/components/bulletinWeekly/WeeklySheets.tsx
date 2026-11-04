@@ -382,45 +382,51 @@ export const ExtraSheet = ({ block, onClose }: { block: ExtraBlock; onClose: () 
   const { t } = useLanguage()
   const accounts = block.kind === 'note' ? parseAccounts(block.content) : null
   return (
-    <WeeklySheet title={block.title} onClose={onClose}>
+    <WeeklySheet title={block.title} onClose={onClose} wide>
       {block.kind === 'list' && (
-        <ol className="bw-ol">
+        <ol className="bw-xl">
           {block.items.map((x, i) => (
-            <li key={i}>{x}</li>
+            <li key={i}>
+              <span className="bw-xl-n bw-tnum" aria-hidden="true">
+                {i + 1}
+              </span>
+              <span className="bw-xl-t">{x}</span>
+            </li>
           ))}
         </ol>
       )}
       {block.kind === 'note' &&
         (accounts ? (
           <>
-            {accounts.intro && (
-              <p className="bw-cap" style={{ margin: '0 0 4px' }}>
-                {accounts.intro}
-              </p>
-            )}
-            {accounts.lines.map((a, i) => (
-              <div className="bw-kv" key={i}>
-                <span className="bw-kv-l">{a.label}</span>
-                <span className="bw-kv-v bw-tnum">
-                  {a.bank} {a.number}
-                </span>
-                <button type="button" className="bw-btn is-sm is-soft" onClick={() => copy(`${a.bank} ${a.number}`, t('bwAccountOf').replace('{label}', a.label), t)}>
-                  {t('bwCopy')}
-                </button>
-              </div>
-            ))}
+            {accounts.intro && <p className="bw-xnote">{accounts.intro}</p>}
+            <div className="bw-xacc">
+              {accounts.lines.map((a, i) => (
+                <div className="bw-xacc-i" key={i}>
+                  <span className="bw-grow">
+                    <span className="bw-xacc-l">{a.label}</span>
+                    <span className="bw-xacc-n bw-tnum">{a.number}</span>
+                    <span className="bw-xacc-b">{a.bank}</span>
+                  </span>
+                  <button type="button" className="bw-btn is-sm is-soft" onClick={() => copy(`${a.bank} ${a.number}`, t('bwAccountOf').replace('{label}', a.label), t)}>
+                    {t('bwCopy')}
+                  </button>
+                </div>
+              ))}
+            </div>
           </>
         ) : (
           <p className="bw-body">{block.content}</p>
         ))}
       {block.kind === 'table' &&
         (block.rows.length === 1 ? (
-          block.columns.map((c, i) => (
-            <div className="bw-kv" key={i}>
-              <span className="bw-kv-v">{c}</span>
-              <b>{block.rows[0][i] ?? ''}</b>
-            </div>
-          ))
+          <div className="bw-xtiles">
+            {block.columns.map((c, i) => (
+              <div className="bw-xtile" key={i}>
+                <span className="bw-xtile-l">{c}</span>
+                <b className="bw-xtile-v">{block.rows[0][i] ?? ''}</b>
+              </div>
+            ))}
+          </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="bw-table">
