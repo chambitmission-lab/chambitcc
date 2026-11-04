@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { APOSTLE_BY_ID, type ApostleId } from '../apostles'
 import { CARD, DetailSheet } from './twelveShared'
-import { useIsDesktop } from './useIsDesktop'
+import { useMediaQuery } from '../../../../hooks/useMediaQuery'
 import ApostleMap from './apostles/ApostleMap'
 import ApostleListFlow from './apostles/ApostleListFlow'
 import ApostleStory from './apostles/ApostleStory'
@@ -19,7 +19,7 @@ interface Props {
 }
 
 const ApostlesView = ({ selectedId, onSelect }: Props) => {
-  const isDesktop = useIsDesktop()
+  const isDesktop = useMediaQuery('(min-width: 1024px)') // lg — PC 패널 / 모바일 시트 분기
   // 주소에 ?apostle= 가 있으면(성경 사전 칩 "카드 보기") 모바일에서도 이야기부터 연다
   const [storyOpen, setStoryOpen] = useState(() => !!selectedId)
   const selected = selectedId ? APOSTLE_BY_ID.get(selectedId) ?? null : null

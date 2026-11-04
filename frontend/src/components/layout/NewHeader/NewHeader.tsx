@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import { preloadMenuRoutes } from '../../../utils/routePreload'
 import { scheduleAfterFirstScreen } from '../../../utils/idlePreload'
@@ -17,18 +18,6 @@ import Logo from './components/Logo'
 // (vite.config.ts manualChunks 의 "lazy 전용 패키지" 규칙을 지키는 유일한 방법)
 const DesktopNav = lazy(() => import('./components/DesktopNav'))
 
-const useIsDesktop = (): boolean => {
-  const [isDesktop, setIsDesktop] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
-  )
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)')
-    const onChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-  return isDesktop
-}
 import { SearchCapsule } from '../../command/SearchTrigger'
 import HeaderActions from './components/HeaderActions'
 import HeaderAccountCluster from './components/HeaderAccountCluster'
@@ -47,7 +36,7 @@ import './NewHeader.css'
 
 const NewHeader = () => {
   const { t } = useLanguage()
-  const isDesktop = useIsDesktop()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const navigate = useNavigate()
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   // 여는 순간에 구현을 고른다 — 청크가 이미 와 있으면 lazy 를 건너뛰어 fallback(→300ms 스로틀) 없이 바로 그린다.

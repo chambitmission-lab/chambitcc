@@ -12,7 +12,7 @@ import {
   type TribeListId,
 } from '../tribes'
 import { DetailSheet, ListPicker, RefLink } from './twelveShared'
-import { useIsDesktop } from './useIsDesktop'
+import { useMediaQuery } from '../../../../hooks/useMediaQuery'
 import TribeCampMap from './tribes/TribeCampMap'
 import { TribeStoryBody, TribeStoryHero } from './tribes/TribeStory'
 
@@ -54,7 +54,7 @@ const nextOf = (tribe: Tribe, listId: TribeListId): { tribe: Tribe; label: strin
 const TribesView = ({ selectedId, onSelect }: Props) => {
   const [listId, setListId] = useState<TribeListId>('camp')
   const list = LISTS.find((l) => l.id === listId)!
-  const isDesktop = useIsDesktop()
+  const isDesktop = useMediaQuery('(min-width: 1024px)') // lg — PC 패널 / 모바일 시트 분기
 
   // 선택이 없으면 유다(목록에 없으면 목록 첫 지파)를 보여 준다 — 빈 카드 대신 바로 읽을 거리
   const fallbackId: TribeId = list.members.includes('judah') ? 'judah' : list.members[0]

@@ -105,6 +105,11 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
   const zTop = useRef(GRID * GRID)
   const drag = useRef<{ id: number; dx: number; dy: number; pointer: number } | null>(null)
   const [dragId, setDragId] = useState<number | null>(null)
+  // 끄는 동안은 React 상태를 건드리지 않는다 — pointermove 마다 setPieces 를 하면 조각 9개 SVG 가 전부 다시 그려진다.
+  // 끄는 조각의 위치는 ref 에 두고 DOM style 만 직접 바꾸며, 손을 뗄 때 한 번만 상태에 반영한다.
+  // 렌더가 그 사이 다른 이유(시계 등)로 일어나도 끄는 조각은 ref 위치를 쓴다.
+  const pieceEls = useRef<Array<SVGSVGElement | null>>([])
+  const dragPos = useRef<{ x: number; y: number } | null>(null)
   const startedAt = useRef<number | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const [phase, setPhase] = useState<'play' | 'reveal' | 'done'>('play')
@@ -298,6 +303,7 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
     const cx = p.x + half
     const cy = p.y + half
     drag.current = { id, dx: (pt.x - cx) / k, dy: (pt.y - cy) / k, pointer: e.pointerId }
+    dragPos.current = { x: p.x, y: p.y }
     zTop.current += 1
     const z = zTop.current
     setDragId(id)
@@ -312,7 +318,12 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
       const half = layout.cell / 2
       const x = Math.min(Math.max(pt.x - d.dx - half, -half), layout.width - half)
       const y = Math.min(Math.max(pt.y - d.dy - half, -half), layout.height - half)
-      setPieces((ps) => ps.map((q, i) => (i === d.id ? { ...q, x, y } : q)))
+      dragPos.current = { x, y }
+      const el = pieceEls.current[d.id]
+      if (el) {
+        el.style.left = `${x - layout.cell * MARGIN}px`
+        el.style.top = `${y - layout.cell * MARGIN}px`
+      }
     },
     [layout],
   )
@@ -322,6 +333,7 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
       const d = drag.current
       if (!d || !layout || e.pointerId !== d.pointer) return
       drag.current = null
+      dragPos.current = null
       setDragId(null)
       // 빠르게 튕겨 놓으면 마지막 move 가 늦게 온다 — 손을 뗀 자리를 기준으로 판정한다
       const pt = localPoint(e)
@@ -427,16 +439,20 @@ export const PuzzleBoard: React.FC<Props> = ({ puzzle, preview = false, onClose 
               const col = i % GRID
               const row = Math.floor(i / GRID)
               const scale = p.inTray ? TRAY_SCALE : 1
+              const pos = dragId === i && dragPos.current ? dragPos.current : p
               return (
                 <svg
                   key={`${round}-${i}`}
+                  ref={(el) => {
+                    pieceEls.current[i] = el
+                  }}
                   className={`pzb-piece ${p.locked ? 'is-locked' : ''} ${dragId === i ? 'is-dragging' : ''}`}
                   width={size}
                   height={size}
                   viewBox={`${-MARGIN} ${-MARGIN} ${1 + MARGIN * 2} ${1 + MARGIN * 2}`}
                   style={{
-                    left: p.x - layout.cell * MARGIN,
-                    top: p.y - layout.cell * MARGIN,
+                    left: pos.x - layout.cell * MARGIN,
+                    top: pos.y - layout.cell * MARGIN,
                     zIndex: p.locked ? 1 : p.z + 10,
                     transform: `scale(${scale})`,
                   }}
