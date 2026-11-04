@@ -37,6 +37,11 @@ export interface GlossaryEntry {
    * "죄", "교회", "믿음"처럼 본문에 너무 흔하거나 일반어와 겹치는 핵심 개념어용.
    */
   chipless?: boolean
+  /**
+   * 열두 지파 카드 연결 — 지파 id(judah 등)면 그 지파 카드, 'all' 이면 지파 모음 첫 화면.
+   * 시트에 "열두 지파 카드 보기" 버튼이 붙는다(/bible/genealogy?view=tribes).
+   */
+  tribe?: string
 }
 
 export interface GlossaryMatch {

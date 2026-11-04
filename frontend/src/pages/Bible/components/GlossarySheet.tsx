@@ -114,6 +114,28 @@ const GlossarySheet = ({ entry, onClose }: { entry: GlossaryEntry; onClose: () =
               대표 구절 — {entry.first}
             </p>
           )}
+
+          {/* 지파 이름이면 가계도 화면의 열두 지파 카드로 — 축복·땅·인물까지 한눈에 */}
+          {entry.tribe && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose()
+                navigate(
+                  entry.tribe === 'all'
+                    ? '/bible/genealogy?view=tribes'
+                    : `/bible/genealogy?view=tribes&tribe=${entry.tribe}`
+                )
+              }}
+              className="mt-2 w-full flex items-center gap-2 rounded-xl border border-[var(--brand-soft-strong)] px-3.5 py-3 lg:min-h-[52px] lg:px-4 text-left transition-colors hover:bg-[var(--brand-soft)]"
+            >
+              <span className="material-icons-round text-[17px] text-brand shrink-0">groups</span>
+              <span className="min-w-0 flex-1 text-[12.5px] lg:text-[length:calc(15px*var(--text-mul,1))] font-bold text-brand">
+                {entry.tribe === 'all' ? '열두 지파 한눈에 보기' : `${entry.name.replace(/인$/, '')} 지파 카드 보기`}
+              </span>
+              <span className="material-icons-round text-[18px] text-brand shrink-0">chevron_right</span>
+            </button>
+          )}
         </div>
       </div>
     </div>,
