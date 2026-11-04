@@ -42,6 +42,8 @@ export interface GlossaryEntry {
    * 시트에 "열두 지파 카드 보기" 버튼이 붙는다(/bible/genealogy?view=tribes).
    */
   tribe?: string
+  /** 열두 제자 카드 연결 — 제자 id(peter 등) 또는 'all'(/bible/genealogy?view=apostles) */
+  apostle?: string
 }
 
 export interface GlossaryMatch {

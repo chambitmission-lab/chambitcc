@@ -6,7 +6,10 @@ import GenealogyTree from './components/GenealogyTree'
 import FigureDetailPanel from './components/FigureDetailPanel'
 import EraTimeline from './components/EraTimeline'
 import TribesView from './components/TribesView'
+import ApostlesView from './components/ApostlesView'
+import { TwelveSwitch } from './components/twelveShared'
 import { isTribeId, type TribeId } from './tribes'
+import { isApostleId, type ApostleId } from './apostles'
 import type { BibleFigureSummary } from '../../../types/bibleFigure'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
@@ -26,7 +29,7 @@ const encouragement = (p: number) => {
   return '첫 장을 펼쳐보세요'
 }
 
-type ViewMode = 'tree' | 'timeline' | 'tribes'
+type ViewMode = 'tree' | 'timeline' | 'tribes' | 'apostles'
 type RoleFilter = 'all' | 'messianic' | 'king' | 'prophet' | 'woman' | 'patriarch'
 
 const ROLE_FILTERS: { id: RoleFilter; label: string; icon: string }[] = [
@@ -53,17 +56,21 @@ const matchRole = (figure: BibleFigureSummary, filter: RoleFilter): boolean => {
 export const Genealogy = () => {
   const { data, isLoading, error } = useMessianicGenealogy()
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
-  // ?view=tribes(&tribe=judah) — 성경 사전 칩의 "지파 카드 보기"가 이 주소로 들어온다.
-  // 보기 전환은 주소에 replace 로 남겨 본문에 다녀와도 같은 보기로 돌아온다(지파 선택은 첫 진입만 반영).
+  // ?view=tribes(&tribe=judah) / ?view=apostles(&apostle=peter) — 성경 사전 칩의 "카드 보기"가 이 주소로 들어온다.
+  // 보기 전환은 주소에 replace 로 남겨 본문에 다녀와도 같은 보기로 돌아온다.
   const [searchParams, setSearchParams] = useSearchParams()
   const [viewMode, setViewModeState] = useState<ViewMode>(() => {
     const v = searchParams.get('view')
-    if (v === 'tribes' || v === 'tree' || v === 'timeline') return v
+    if (v === 'tribes' || v === 'apostles' || v === 'tree' || v === 'timeline') return v
     return typeof window !== 'undefined' && window.innerWidth < 1024 ? 'timeline' : 'tree'
   })
   const [selectedTribe, setSelectedTribe] = useState<TribeId | null>(() => {
     const t = searchParams.get('tribe')
     return isTribeId(t) ? t : null
+  })
+  const [selectedApostle, setSelectedApostle] = useState<ApostleId | null>(() => {
+    const a = searchParams.get('apostle')
+    return isApostleId(a) ? a : null
   })
   const setViewMode = useCallback(
     (v: ViewMode) => {
@@ -73,6 +80,7 @@ export const Genealogy = () => {
           const next = new URLSearchParams(prev)
           next.set('view', v)
           next.delete('tribe')
+          next.delete('apostle')
           return next
         },
         { replace: true },
@@ -80,16 +88,21 @@ export const Genealogy = () => {
     },
     [setSearchParams],
   )
-  const isTribes = viewMode === 'tribes'
-  // 화면이 이미 열린 채 주소만 바뀌어도(사전 칩 → 같은 화면) 그 지파 카드가 열리게
+  // 지파·제자 보기는 가계도 데이터(API)와 무관한 정적 화면
+  const isTwelve = viewMode === 'tribes' || viewMode === 'apostles'
+  // 화면이 이미 열린 채 주소만 바뀌어도(사전 칩 → 같은 화면) 그 카드가 열리게
   // (렌더 중 이전 값과 비교해 맞추는 패턴 — effect 로 setState 하면 한 번 더 그린다)
   const tribeParam = searchParams.get('tribe')
-  const [seenTribeParam, setSeenTribeParam] = useState(tribeParam)
-  if (tribeParam !== seenTribeParam) {
-    setSeenTribeParam(tribeParam)
+  const apostleParam = searchParams.get('apostle')
+  const [seenParams, setSeenParams] = useState(`${tribeParam}|${apostleParam}`)
+  if (`${tribeParam}|${apostleParam}` !== seenParams) {
+    setSeenParams(`${tribeParam}|${apostleParam}`)
     if (isTribeId(tribeParam)) {
       setViewModeState('tribes')
       setSelectedTribe(tribeParam)
+    } else if (isApostleId(apostleParam)) {
+      setViewModeState('apostles')
+      setSelectedApostle(apostleParam)
     }
   }
   const [query, setQuery] = useState('')
@@ -317,9 +330,9 @@ export const Genealogy = () => {
           <div className="relative flex flex-col gap-3">
             {/* 검색 + 뷰 토글 한 줄 */}
             <div className="flex items-center gap-2">
-              {isTribes ? (
+              {isTwelve ? (
                 <p className="flex-1 min-w-0 px-1 text-[13px] text-gray-600 dark:text-white/65 leading-[1.5] break-keep">
-                  야곱의 열두 아들에서 시작된 하나님의 백성
+                  {viewMode === 'tribes' ? '야곱의 열두 아들에서 시작된 하나님의 백성' : '예수님이 부르신 열두 사람, 새 이스라엘의 기초'}
                 </p>
               ) : (
               <div className="relative flex-1">
@@ -345,11 +358,11 @@ export const Genealogy = () => {
                 )}
               </div>
               )}
-              <ViewToggle value={viewMode} onChange={setViewMode} />
+              <ViewToggle value={viewMode === 'apostles' ? 'tribes' : viewMode} onChange={setViewMode} />
             </div>
 
             {/* 역할 필터 pill */}
-            {!isTribes && (
+            {!isTwelve && (
             <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 scrollbar-hide">
               {visibleFilters.map((rf) => {
                 const active = roleFilter === rf.id
@@ -375,10 +388,19 @@ export const Genealogy = () => {
           </div>
         </div>
 
-        {isTribes && <TribesView selectedId={selectedTribe} onSelect={setSelectedTribe} />}
+        {isTwelve && (
+          <div className="flex flex-col gap-4">
+            <TwelveSwitch side={viewMode === 'apostles' ? 'apostles' : 'tribes'} onChange={setViewMode} />
+            {viewMode === 'tribes' ? (
+              <TribesView selectedId={selectedTribe} onSelect={setSelectedTribe} />
+            ) : (
+              <ApostlesView selectedId={selectedApostle} onSelect={setSelectedApostle} />
+            )}
+          </div>
+        )}
 
         {/* 검색/필터 결과 안내 */}
-        {!isTribes && data && (query || roleFilter !== 'all') && (
+        {!isTwelve && data && (query || roleFilter !== 'all') && (
           <div className="mb-3 text-[12.5px] text-gray-500 dark:text-white/55">
             <span className="font-semibold text-brand">
               {filteredNodes.length}명
@@ -387,19 +409,19 @@ export const Genealogy = () => {
           </div>
         )}
 
-        {!isTribes && isLoading && (
+        {!isTwelve && isLoading && (
           <div className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
             가계도를 불러오는 중...
           </div>
         )}
 
-        {!isTribes && error && (
+        {!isTwelve && error && (
           <div className="rounded-2xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-[14px] text-red-700 dark:text-red-300">
             가계도 데이터를 불러오지 못했습니다.
           </div>
         )}
 
-        {!isTribes && data && (
+        {!isTwelve && data && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <div className="lg:col-span-2 min-w-0">
               {viewMode === 'tree' ? (
@@ -530,7 +552,7 @@ const ViewToggle = ({
   const opts: { id: ViewMode; label: string; icon: string }[] = [
     { id: 'tree', label: '가계도', icon: 'account_tree' },
     { id: 'timeline', label: '시대순', icon: 'view_agenda' },
-    { id: 'tribes', label: '열두 지파', icon: 'groups' },
+    { id: 'tribes', label: '지파·제자', icon: 'groups' },
   ]
   return (
     <div className="inline-flex p-1 rounded-xl bg-gray-100 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06]">

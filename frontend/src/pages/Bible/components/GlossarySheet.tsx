@@ -136,6 +136,28 @@ const GlossarySheet = ({ entry, onClose }: { entry: GlossaryEntry; onClose: () =
               <span className="material-icons-round text-[18px] text-brand shrink-0">chevron_right</span>
             </button>
           )}
+
+          {/* 열두 제자 이름이면 같은 화면의 제자 카드로 */}
+          {entry.apostle && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose()
+                navigate(
+                  entry.apostle === 'all'
+                    ? '/bible/genealogy?view=apostles'
+                    : `/bible/genealogy?view=apostles&apostle=${entry.apostle}`
+                )
+              }}
+              className="mt-2 w-full flex items-center gap-2 rounded-xl border border-[var(--brand-soft-strong)] px-3.5 py-3 lg:min-h-[52px] lg:px-4 text-left transition-colors hover:bg-[var(--brand-soft)]"
+            >
+              <span className="material-icons-round text-[17px] text-brand shrink-0">groups</span>
+              <span className="min-w-0 flex-1 text-[12.5px] lg:text-[length:calc(15px*var(--text-mul,1))] font-bold text-brand">
+                {entry.apostle === 'all' ? '열두 제자 한눈에 보기' : `${entry.name} 제자 카드 보기`}
+              </span>
+              <span className="material-icons-round text-[18px] text-brand shrink-0">chevron_right</span>
+            </button>
+          )}
         </div>
       </div>
     </div>,

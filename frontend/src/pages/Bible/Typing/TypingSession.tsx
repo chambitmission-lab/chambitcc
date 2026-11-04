@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
@@ -8,7 +8,6 @@ import {
   useChapterTyping,
   useCreateTypingRelay,
   usePassTypingBaton,
-  useSendRelayGlossView,
   useSendTogetherCheer,
   useSendTypingCheer,
   useSubmitTyping,
@@ -22,91 +21,55 @@ import {
 import { showToast } from '../../../utils/toast'
 import { tokenStore } from '../../../utils/tokenStore'
 import type { TypingChapterPerson, TypingCheerKind, TypingMode } from '../../../api/bibleTyping'
-import type { BibleVerse } from '../../../types/bible'
-import TypingPad, { type TypingFinish, type TypingMark } from './TypingPad'
-import { PASS_ACCURACY, cpmOf, typingSource } from './hangulTyping'
-import { formatDuration, sessionPath, useIgnorePunct } from './typingPrefs'
+import TypingPad, { type TypingFinish } from './TypingPad'
+import { PASS_ACCURACY, cpmOf } from './hangulTyping'
+import { sessionPath, useIgnorePunct } from './typingPrefs'
 import { playTypingSound } from './typingSound'
 import SoundMenu from './SoundMenu'
-import Lamp from './home/Lamp'
-import { teaser } from './home/teaser'
 import { BatonSheet, RelayBoard, RelayHandoff, RelayLine, RelayPrevNote } from './RelayRoom'
 import RelayInviteSheet from './RelayInviteSheet'
-import { RoomBanner, RoomFeed, RoomMembers, type RoomFeedItem } from './RelayStudyRoom'
-import TypingGlossary, { type GlossaryViewer } from './TypingGlossary'
+import { RoomBanner, RoomFeed, RoomMembers } from './RelayStudyRoom'
+import TypingGlossary from './TypingGlossary'
 import { InviteCard, TogetherPanel, TogetherStrip } from './TypingTogether'
 import { CHEER_LABEL, hueOfKey, relayHueMap } from './relayShare'
-import { isGlossaryReady, loadGlossary, matchGlossary, type GlossaryEntry } from '../data/bibleGlossary'
 import './typing.css'
 import './together.css'
-import { useTickingNow } from '../../../hooks/useTickingNow'
-import { safeStorage } from '../../../utils/safeStorage'
 import { chapterUnit } from '../../../utils/bibleLabels'
+import {
+  STAGE_AHEAD,
+  maskText,
+  nextIndex,
+  readAnon,
+  relayNextIndex,
+  summarize,
+  toSessionVerses,
+  writeAnon,
+  type Outcome,
+  type SessionResult,
+  type SessionVerse,
+} from './session/sessionModel'
+import { useActiveScroll } from './session/useActiveScroll'
+import { useRoomNotices } from './session/useRoomNotices'
+import { useSessionGloss } from './session/useSessionGloss'
+import { useSessionKeys } from './session/useSessionKeys'
+import { ActiveVerseLabel, CheerFloats, OutcomeBox } from './session/ActiveParts'
+import { ChapterMap, DeskKeyHints, DeskRingCard, StageContextButton } from './session/DeskSide'
+import { GoalMomentDialog, RelayDoneDialog, SummaryDialog } from './session/SessionDialogs'
 
-interface SessionVerse {
-  id: number
-  verse: number
-  label: string
-  text: string
-  /** 병합 구간의 딸린 절 id — 함께 읽음 처리한다 */
-  extraIds: number[]
-}
-
-interface Outcome {
-  status: 'passed' | 'failed'
-  /** 저장 응답이 늦게 와도 지금 이 절의 결과에만 붙이도록 */
-  verseId: number
-  accuracy: number
-  cpm: number
-  newlyRead?: boolean
-  personalBest?: boolean
-  note?: string
-}
-
-interface SessionResult {
-  verseId: number
-  accuracy: number
-  keystrokes: number
-  durationMs: number
-  maxCombo: number
-}
-
-// PC 무대 아래로 미리 보여 줄 다음 절 수
-const STAGE_AHEAD = 2
-// 장 지도 링 — r=44 원의 둘레
-const RING_C = 2 * Math.PI * 44
-// 릴레이 소식 띠에 잠깐 띄우는 소식(칸 채움·바통·응원 보냄)이 머무는 시간
-const FLASH_MS = 6000
-// 주소로 정해진 절에 처음 내려앉은 뒤, 늦게 도착한 내용에 밀려도 자리를 다시 맞추는 시간
-const LAND_HOLD_MS = 1500
-// 방 소식에 남겨 두는 개수
-const FEED_MAX = 8
-// '내 이름 숨기고 쓰기' — 기기별 기억
-const ANON_KEY = 'bt-together-anon'
-const readAnon = () => safeStorage.get(ANON_KEY) === '1'
-
-interface CheerFloat {
-  id: number
-  text: string
-  hue: number
-}
-
-const toSessionVerses = (verses: BibleVerse[]): SessionVerse[] => {
-  const byNumber = new Map(verses.map((v) => [v.verse, v.id]))
-  return verses
-    .filter((v) => !v.merged_into)
-    .map((v) => ({
-      id: v.id,
-      verse: v.verse,
-      label: v.verse_label || String(v.verse),
-      text: v.text,
-      extraIds: (v.merged_verses ?? [])
-        .filter((n) => n !== v.verse)
-        .map((n) => byNumber.get(n))
-        .filter((id): id is number => typeof id === 'number'),
-    }))
-}
-
+/**
+ * 필사 세션 — 한 장을 절 단위로 따라 쓰거나(copy) 암송해 쓰는(memorize) 화면.
+ * 혼자 쓰면 '지금 이 장을 쓰는 사람'과, 릴레이 방이면 친구들과 칸을 나눠 쓴다.
+ *
+ * 흐름(절 이동·저장·목표 달성·바통·마무리)은 여기서 맡고, 나머지는 session/ 에 나눠 두었다:
+ *   sessionModel.ts   타입·상수·순수 계산(다음 절·릴레이 빈칸·요약)
+ *   useActiveScroll   모바일에서 지금 절을 화면 위쪽에 붙드는 스크롤
+ *   useRoomNotices    소식 띠(flash)·응원 말풍선·방 소식·시계
+ *   useSessionGloss   알아두면 좋은 말(사전 로딩·펼침·방에 알리기)
+ *   useSessionKeys    키보드 단축키
+ *   ActiveParts       지금 절 카드의 절 번호 줄·결과 상자·응원 말풍선
+ *   DeskSide          PC 책상의 앞뒤 절 버튼·단축키 안내·진행 링·장 지도
+ *   SessionDialogs    목표 달성·릴레이 완성·필사 완료 모달
+ */
 const TypingSessionView = () => {
   const navigate = useNavigate()
   const params = useParams()
@@ -139,52 +102,15 @@ const TypingSessionView = () => {
   const hueOf = useMemo(() => relayHueMap(room?.members), [room])
   const sendCheer = useSendTypingCheer()
   const passBaton = usePassTypingBaton()
-  const [flash, setFlash] = useState<string | null>(null)
-  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const showFlash = useCallback((text: string) => {
-    if (flashTimer.current) clearTimeout(flashTimer.current)
-    setFlash(text)
-    flashTimer.current = setTimeout(() => setFlash(null), FLASH_MS)
-  }, [])
-  const [cheers, setCheers] = useState<CheerFloat[]>([])
-  const cheerSeq = useRef(0)
-  const floatCheer = useCallback((text: string, hue: number) => {
-    const id = ++cheerSeq.current
-    setCheers((prev) => [...prev.slice(-3), { id, text, hue }])
-    setTimeout(() => setCheers((prev) => prev.filter((c) => c.id !== id)), 2200)
-  }, [])
-  // 방 소식(PC 독서실) — 이 화면에 있는 동안 일어난 일
-  const [feed, setFeed] = useState<RoomFeedItem[]>([])
-  const feedSeq = useRef(0)
-  const pushFeed = useCallback((text: string, hue: number | null) => {
-    const id = ++feedSeq.current
-    setFeed((prev) => [{ id, text, hue, at: Date.now() }, ...prev].slice(0, FEED_MAX))
-  }, [])
-  // 방 소식의 "n분 전"은 PC 독서실에서만 보인다 — 그때만, 탭이 보일 때만 흐른다
-  const clock = useTickingNow(30_000, isDesk && !!room)
+  const { flash, showFlash, cheers, floatCheer, feed, pushFeed, clock } = useRoomNotices(room, hueOf, isDesk)
   const [inviting, setInviting] = useState(false)
   const createRelay = useCreateTypingRelay()
-  const sendGlossView = useSendRelayGlossView()
   const sendTogetherCheer = useSendTogetherCheer()
   const [anon, setAnonState] = useState(readAnon)
   const setAnon = (v: boolean) => {
     setAnonState(v)
-    safeStorage.set(ANON_KEY, v ? '1' : '0')
+    writeAnon(v)
   }
-  // 알아두면 좋은 말 — 사전은 코드 분할이라 처음 필요할 때 받는다
-  const [glossReady, setGlossReady] = useState(isGlossaryReady)
-  useEffect(() => {
-    if (glossReady) return
-    let alive = true
-    loadGlossary()
-      .then(() => alive && setGlossReady(true))
-      .catch(() => undefined)
-    return () => {
-      alive = false
-    }
-  }, [glossReady])
-  // 펼친 풀이는 절에 묶는다 — 다른 절로 가면 저절로 접힌다
-  const [glossState, setGlossState] = useState<{ verseId: number; term: string } | null>(null)
   /** 내 칸을 쓴 직후 여는 바통 시트 — then 은 시트를 닫은 뒤 이어 갈 흐름(다음 절·목표 축하·마무리) */
   const [baton, setBaton] = useState<{
     verse: SessionVerse
@@ -233,8 +159,6 @@ const TypingSessionView = () => {
   const [showSummary, setShowSummary] = useState(false)
   // 무대 전환 방향(1 = 다음 절로, -1 = 앞 절로)
   const [dir, setDir] = useState<1 | -1>(1)
-  const activeRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<HTMLDivElement>(null)
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 시작 절 — ?v= 가 있으면 그 절, 없으면 아직 안 쓴 첫 절. 첫 글자를 치는 순간(onStart)
@@ -303,24 +227,6 @@ const TypingSessionView = () => {
       },
     )
 
-  // 방에 처음 들어왔을 때 — 바통 한마디를 방 소식의 바닥으로 깔아 둔다(언제였는지는 모른다)
-  const feedSeeded = useRef(0)
-  useEffect(() => {
-    if (!room || feedSeeded.current === room.id) return
-    feedSeeded.current = room.id
-    const notes = room.verses
-      .filter((v) => v.note)
-      .slice(-3)
-      .reverse()
-      .map((v) => ({
-        id: ++feedSeq.current,
-        hue: hueOf.get(v.note!.user_id) ?? null,
-        text: `${v.note!.name} · ${v.label}절 “${v.note!.message}”`,
-        at: null,
-      }))
-    setFeed((prev) => [...prev, ...notes].slice(0, FEED_MAX))
-  }, [room, hueOf])
-
   // 방 만들기로 들어왔으면(?invite=1) 초대 시트를 연다 — 닫을 때 주소에서 뺀다
   const inviteFromUrl = !!room && search.get('invite') === '1'
   const showInvite = inviting || inviteFromUrl
@@ -351,78 +257,11 @@ const TypingSessionView = () => {
   useEffect(
     () => () => {
       if (advanceTimer.current) clearTimeout(advanceTimer.current)
-      if (flashTimer.current) clearTimeout(flashTimer.current)
     },
     [],
   )
 
-  // 지금 쓰는 절을 화면 위쪽으로 — 모바일 키보드가 아래 절반을 덮는다.
-  // body 가 스크롤러라 sticky 대신 scrollIntoView 로 붙든다. PC 책상은 무대가 제자리라 필요 없다
-  const scrollToActive = useCallback(() => {
-    activeRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
-  }, [])
-  // 주소로 정해진 절(?v=, 알림·릴레이에서 들어옴)에 처음 내려앉을 때는 smooth 한 번으로 끝내지 않는다.
-  // 모바일은 본문 뒤로 릴레이 칸 판·소식 띠가 늦게 도착해 레이아웃이 밀리고, 그 사이 smooth 스크롤이
-  // 취소돼 맨 위에 머물렀다. 즉시 이동 후 잠깐 동안 자리를 다시 맞추고, 사용자가 만지면 바로 멈춘다
-  const landedRef = useRef(false)
-  useEffect(() => {
-    if (current === null || isDesk) return
-    if (landedRef.current) {
-      const t = setTimeout(scrollToActive, 60)
-      return () => clearTimeout(t)
-    }
-    landedRef.current = true
-    const until = performance.now() + LAND_HOLD_MS
-    let stopped = false
-    let raf = 0
-    const stop = () => {
-      stopped = true
-      cancelAnimationFrame(raf)
-      window.removeEventListener('touchstart', stop, true)
-      window.removeEventListener('wheel', stop, true)
-    }
-    window.addEventListener('touchstart', stop, { passive: true, capture: true })
-    window.addEventListener('wheel', stop, { passive: true, capture: true })
-    const pin = () => {
-      if (stopped) return
-      const el = activeRef.current
-      if (el) {
-        const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
-        if (Math.abs(el.getBoundingClientRect().top - margin) > 4)
-          el.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior })
-      }
-      if (performance.now() < until) raf = requestAnimationFrame(pin)
-      else stop()
-    }
-    raf = requestAnimationFrame(pin)
-    return stop
-  }, [current, scrollToActive, isDesk])
-  // PC 장 지도 — 지금 절 칩이 지도 상자 안에 보이도록(페이지는 건드리지 않는다)
-  useEffect(() => {
-    if (!isDesk || current === null) return
-    const box = mapRef.current
-    const chip = box?.querySelector<HTMLElement>(`[data-map-idx="${current}"]`)
-    if (!box || !chip) return
-    const top = chip.offsetTop - box.offsetTop
-    if (top < box.scrollTop || top + chip.offsetHeight > box.scrollTop + box.clientHeight) {
-      box.scrollTo({
-        top: top - box.clientHeight / 2 + chip.offsetHeight / 2,
-        behavior: 'smooth',
-      })
-    }
-  }, [current, isDesk])
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv || isDesk) return
-    let last = vv.height
-    const onResize = () => {
-      // 키보드가 올라와 화면이 크게 줄었을 때만 다시 맞춘다
-      if (last - vv.height > 120) scrollToActive()
-      last = vv.height
-    }
-    vv.addEventListener('resize', onResize)
-    return () => vv.removeEventListener('resize', onResize)
-  }, [scrollToActive, isDesk])
+  const activeRef = useActiveScroll(current, isDesk)
 
   const goTo = (idx: number) => {
     if (advanceTimer.current) clearTimeout(advanceTimer.current)
@@ -431,12 +270,6 @@ const TypingSessionView = () => {
     setAttempt((n) => n + 1)
     setOutcome(null)
     setHandoff(null)
-  }
-
-  const nextIndex = (from: number, doneSet: Set<number>) => {
-    for (let i = from + 1; i < verses.length; i++) if (!doneSet.has(verses[i].id)) return i
-    for (let i = 0; i < from; i++) if (!doneSet.has(verses[i].id)) return i
-    return null
   }
 
   const handleFinish = (sv: SessionVerse, r: TypingFinish) => {
@@ -529,7 +362,7 @@ const TypingSessionView = () => {
       return s
     })
     const idx = verses.findIndex((v) => v.id === sv.id)
-    const ni = wasComplete ? (idx < verses.length - 1 ? idx + 1 : null) : nextIndex(idx, newDone)
+    const ni = wasComplete ? (idx < verses.length - 1 ? idx + 1 : null) : nextIndex(verses, idx, newDone)
     setLastWritten(sv)
     const proceed = (to: number | null) => {
       if (pending.reachedGoal) {
@@ -556,7 +389,7 @@ const TypingSessionView = () => {
     const written = new Set(sessionDone)
     written.add(sv.id)
     sv.extraIds.forEach((id) => written.add(id))
-    const relayNext = inRoom ? relayNextIndex(sv.id, written) : null
+    const relayNext = inRoom ? relayNextIndex(room, verses, sv.id, written) : null
     advanceTimer.current = setTimeout(
       () => {
         pending.advanced = true
@@ -637,19 +470,6 @@ const TypingSessionView = () => {
     then?.()
   }
 
-  // 방금 쓴 칸 다음의 릴레이 빈칸(없으면 앞쪽 빈칸) → 세션 절 인덱스. 바통이 가리키는 칸이기도 하다.
-  // 방 정보가 아직 새로 오기 전일 수 있어 이번에 쓴 칸(written)은 직접 뺀다
-  function relayNextIndex(fromId: number, written: Set<number>): number | null {
-    if (!room) return null
-    const slots = room.verses
-    const at = slots.findIndex((v) => v.id === fromId)
-    const ordered = [...slots.slice(at + 1), ...slots.slice(0, Math.max(at, 0))]
-    const slot = ordered.find((v) => !v.by && !written.has(v.id))
-    if (!slot) return null
-    const i = verses.findIndex((v) => v.id === slot.id)
-    return i < 0 ? null : i
-  }
-
   const onPassBaton = (toUserId: number | null, message: string | null) => {
     if (!baton || !roomId) return
     const b = baton
@@ -667,17 +487,11 @@ const TypingSessionView = () => {
           setBaton(null)
           const written = new Set(sessionDone)
           written.add(b.verse.id)
-          const ni = relayNextIndex(b.verse.id, written)
+          const ni = relayNextIndex(room, verses, b.verse.id, written)
           setHandoff({ toUserId, label: ni !== null ? verses[ni].label : null, next: ni })
           if (b.reachedGoal) {
             setGoalMoment({ next: null })
-            playTypingSound('finish')
-            confetti({
-              particleCount: 60,
-              spread: 60,
-              origin: { y: 0.6 },
-              colors: ['#ffb547', '#ffe08a', '#3182f6', '#93c5fd'],
-            })
+            celebrateGoal()
           }
         },
         onError: (e) => showToast(e instanceof Error ? e.message : '바통을 넘기지 못했어요', 'error'),
@@ -698,23 +512,9 @@ const TypingSessionView = () => {
   }, [book, books, bookNumber, chapter])
 
   const doneCount = verses.filter((v) => done.has(v.id)).length
-  const summary = useMemo(() => {
-    const totalMs = results.reduce((s, r) => s + r.durationMs, 0)
-    const keys = results.reduce((s, r) => s + r.keystrokes, 0)
-    const acc = results.length ? results.reduce((s, r) => s + r.accuracy, 0) / results.length : 0
-    const bestCombo = results.reduce((m, r) => Math.max(m, r.maxCombo), 0)
-    return {
-      count: results.length,
-      totalMs,
-      cpm: cpmOf(keys, totalMs),
-      acc,
-      bestCombo,
-    }
-  }, [results])
+  const summary = useMemo(() => summarize(results), [results])
 
-  // 키보드 단축키 — Tab/Shift+Tab 절 이동, Esc 처음부터, 틀린 뒤 Enter 다시 쓰기,
-  // 입력칸 밖에서 글자를 치면 바로 입력칸으로. 최신 상태는 ref 로 읽어 리스너는 한 번만 단다
-  const keyState = useRef({
+  useSessionKeys({
     current,
     outcome,
     showSummary,
@@ -722,54 +522,6 @@ const TypingSessionView = () => {
     count: verses.length,
     goTo,
   })
-  useEffect(() => {
-    keyState.current = {
-      current,
-      outcome,
-      showSummary,
-      goalOpen: goalMoment !== null || baton !== null || relayDone !== null,
-      count: verses.length,
-      goTo,
-    }
-  })
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const st = keyState.current
-      if (st.showSummary || st.goalOpen || st.current === null) return
-      // 한 줄 남기기 입력칸에서는 절 이동·처음부터 단축키를 쓰지 않는다
-      const focusEl = document.activeElement
-      if (focusEl instanceof HTMLInputElement && focusEl.closest('.bt-gloss')) return
-      const cur = st.current
-      if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        const ni = e.shiftKey ? cur - 1 : cur + 1
-        e.preventDefault()
-        if (ni >= 0 && ni < st.count) st.goTo(ni)
-        return
-      }
-      if (e.isComposing || e.keyCode === 229) return
-      if (e.key === 'Escape') {
-        if (document.querySelector('[role="dialog"]')) return
-        e.preventDefault()
-        st.goTo(cur)
-        return
-      }
-      if (e.key === 'Enter' && st.outcome?.status === 'failed') {
-        e.preventDefault()
-        e.stopPropagation()
-        st.goTo(cur)
-        return
-      }
-      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const el = document.activeElement
-        const typingElsewhere =
-          el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || (el instanceof HTMLElement && el.isContentEditable)
-        if (!typingElsewhere)
-          document.querySelector<HTMLTextAreaElement>('.bt-active .bt-input:not(:disabled)')?.focus({ preventScroll: true })
-      }
-    }
-    document.addEventListener('keydown', onKey, true)
-    return () => document.removeEventListener('keydown', onKey, true)
-  }, [])
 
   const keepAsCard = () => {
     const first = verses.find((v) => results.some((r) => r.verseId === v.id)) ?? verses[0]
@@ -808,41 +560,16 @@ const TypingSessionView = () => {
   const myId = room?.members.find((m) => m.is_me)?.user_id
   const unit = chapterUnit(bookNumber)
 
-  // 지금 절의 알아두면 좋은 말 — 필사 판이 그리는 원문(typingSource) 기준으로 찾는다
   const activeVerse = current !== null ? verses[current] : null
-  const gloss = useMemo((): { entries: GlossaryEntry[]; marks: TypingMark[] } => {
-    if (!glossReady || !activeVerse || mode === 'memorize') return { entries: [], marks: [] }
-    const found = matchGlossary(bookNumber, typingSource(activeVerse.text))
-    const entries: GlossaryEntry[] = []
-    found.forEach((m) => {
-      if (!entries.includes(m.entry)) entries.push(m.entry)
-    })
-    return { entries, marks: found.map((m) => ({ id: m.entry.name, start: m.start, end: m.end })) }
-  }, [glossReady, activeVerse, mode, bookNumber])
-  const glossOpen = glossState && glossState.verseId === activeVerse?.id ? glossState.term : null
-  const toggleGloss = (term: string) => {
-    const opening = glossOpen !== term
-    setGlossState(opening && activeVerse ? { verseId: activeVerse.id, term } : null)
-    if (opening && room && myId !== undefined && !(room.gloss_views?.[term] ?? []).includes(myId))
-      sendGlossView.mutate({ id: room.id, term })
-  }
-  const viewersOf = room
-    ? (term: string): GlossaryViewer[] =>
-        (room.gloss_views?.[term] ?? [])
-          .filter((uid) => uid !== myId)
-          .map((uid) => ({ user_id: uid, name: memberName(uid), hue: hueOf.get(uid) ?? 0 }))
-    : undefined
+  const { gloss, glossOpen, toggleGloss, viewersOf } = useSessionGloss({ activeVerse, mode, bookNumber, room, myId, memberName, hueOf })
   const canPassBaton =
     !!room && lastWritten !== null && baton === null && !handoff && !room.completed && room.verses.some((rv) => !rv.by)
   const openBaton = () => lastWritten && setBaton({ verse: lastWritten, hasNext: true, then: () => undefined })
 
   const renderActive = (v: SessionVerse, i: number) => {
-    const isDone = done.has(v.id)
+    const passed = outcome?.status === 'passed'
     return (
-      <div
-        ref={activeRef}
-        className={`bt-card bt-active${outcome?.status === 'passed' ? ' is-sealed' : ''}${room ? ' bt-active--room' : ''}`}
-      >
+      <div ref={activeRef} className={`bt-card bt-active${passed ? ' is-sealed' : ''}${room ? ' bt-active--room' : ''}`}>
         {room && !isDesk && (
           <RelayLine
             relay={room}
@@ -875,106 +602,24 @@ const TypingSessionView = () => {
           />
         )}
         {room && !handoff && <RelayPrevNote relay={room} verse={v.verse} hueOf={hueOf} />}
-        <div className="bt-card__label" hidden={!!handoff}>
-          {room ? (
-            (() => {
-              const slot = room.verses.find((rv) => rv.id === v.id)
-              if (!slot?.by) {
-                const turn = room.turn
-                // '내 차례'는 실제로 내게 바통이 왔을 때만. 남의 차례인 칸도 막지는 않는다
-                if (turn && turn.verse === v.verse && turn.user_id !== myId)
-                  return (
-                    <>
-                      <span className="bt-verse-no">
-                        {turn.name}님 차례 · {v.label}절
-                      </span>
-                      <span className="bt-badge">먼저 써도 괜찮아요</span>
-                    </>
-                  )
-                if (turn && turn.verse === v.verse)
-                  return <span className="bt-verse-no bt-room-turn">내 차례 · {v.label}절</span>
-                return <span className="bt-verse-no">빈칸 · {v.label}절</span>
-              }
-              return (
-                <>
-                  <span className="bt-verse-no">{v.label}절</span>
-                  <span className="bt-badge">{slot.by.user_id === myId ? '내가 채운 칸' : `${slot.by.name}님이 채운 칸`}</span>
-                </>
-              )
-            })()
-          ) : (
-            <>
-              <span className="bt-verse-no">{v.label}절</span>
-              {isDone && outcome?.status !== 'passed' && <span className="bt-badge">이미 쓴 절</span>}
-            </>
-          )}
-          {/* 새김 도장 — 카드 모서리가 아니라 절 번호 줄에 붙인다(위에 함께 쓰는 줄이 와도 겹치지 않게) */}
-          {outcome?.status === 'passed' && (
-            <span className="bt-seal" aria-hidden>
-              새김
-            </span>
-          )}
-        </div>
-        {cheers.length > 0 && (
-          <div className="bt-room-floats" aria-live="polite">
-            {cheers.map((c) => (
-              <span key={c.id} className={`bt-room-float bt-hue-${c.hue}`}>
-                {c.text}
-              </span>
-            ))}
-          </div>
-        )}
+        <ActiveVerseLabel verse={v} room={room} myId={myId} isDone={done.has(v.id)} passed={passed} hidden={!!handoff} />
+        <CheerFloats cheers={cheers} />
         {!handoff && (
-        <TypingPad
-          key={`${v.id}-${attempt}-${ignorePunct ? 1 : 0}`}
-          text={v.text}
-          mode={mode}
-          ignorePunct={ignorePunct}
-          disabled={outcome !== null && outcome.status !== 'failed'}
-          onStart={() => setActive(i)}
-          onFinish={(r) => void handleFinish(v, r)}
-          marks={gloss.marks}
-          activeMark={glossOpen}
-          onMarkClick={toggleGloss}
-        />
+          <TypingPad
+            key={`${v.id}-${attempt}-${ignorePunct ? 1 : 0}`}
+            text={v.text}
+            mode={mode}
+            ignorePunct={ignorePunct}
+            disabled={outcome !== null && outcome.status !== 'failed'}
+            onStart={() => setActive(i)}
+            onFinish={(r) => void handleFinish(v, r)}
+            marks={gloss.marks}
+            activeMark={glossOpen}
+            onMarkClick={toggleGloss}
+          />
         )}
         {outcome && !handoff && (
-          <div className={`bt-outcome bt-outcome--${outcome.status}`} role="status">
-            {outcome.status === 'passed' && (
-              <>
-                <span className="material-icons-round" aria-hidden>
-                  check_circle
-                </span>
-                <span>
-                  정확도 <b>{Math.round(outcome.accuracy * 100)}%</b> · <b>{outcome.cpm}</b>타/분
-                  {outcome.newlyRead && ' · 읽음 완료'}
-                </span>
-                {outcome.personalBest && <span className="bt-badge bt-badge--best">개인 최고 기록!</span>}
-              </>
-            )}
-            {outcome.status === 'failed' && (
-              <>
-                <span>
-                  {outcome.note ?? (
-                    <>
-                      정확도 <b>{Math.round(outcome.accuracy * 100)}%</b> — 95% 이상이면 완료돼요
-                    </>
-                  )}
-                </span>
-                <span className="bt-outcome__actions">
-                  <button type="button" className="bt-btn bt-btn--primary" onClick={() => goTo(i)}>
-                    다시 쓰기
-                  </button>
-                  {i < verses.length - 1 && (
-                    <button type="button" className="bt-btn" onClick={() => goTo(i + 1)}>
-                      다음 절
-                    </button>
-                  )}
-                </span>
-              </>
-            )}
-            {outcome.status === 'passed' && outcome.note && <span className="bt-outcome__note">{outcome.note}</span>}
-          </div>
+          <OutcomeBox outcome={outcome} hasNext={i < verses.length - 1} onRetry={() => goTo(i)} onNext={() => goTo(i + 1)} />
         )}
         {!handoff && (
           <TypingGlossary
@@ -993,8 +638,7 @@ const TypingSessionView = () => {
   const curVerse = current !== null ? verses[current] : null
   const prevVerse = current !== null && current > 0 ? verses[current - 1] : null
   const aheadVerses = current !== null ? verses.slice(current + 1, current + 1 + STAGE_AHEAD) : []
-  const ghostText = (v: SessionVerse) => (mode === 'memorize' && !done.has(v.id) ? v.text.replace(/[^\s]/g, '·') : v.text)
-  const pct = verses.length ? doneCount / verses.length : 0
+  const ghostText = (v: SessionVerse) => (mode === 'memorize' && !done.has(v.id) ? maskText(v.text) : v.text)
 
   return (
     <div className="bt-page bg-[var(--app-canvas)] dark:bg-background-dark page-stage">
@@ -1067,65 +711,30 @@ const TypingSessionView = () => {
             <div className="bt-desk">
               <section className="bt-stage" style={{ ['--bt-dir' as string]: dir }}>
                 {prevVerse && (
-                  <button
+                  <StageContextButton
                     key={`p${prevVerse.id}`}
-                    type="button"
-                    className="bt-stage__ctx bt-stage__ctx--prev"
+                    verse={prevVerse}
+                    text={ghostText(prevVerse)}
+                    done={done.has(prevVerse.id)}
+                    side="prev"
                     onClick={() => goTo(current! - 1)}
-                  >
-                    <span className="bt-verse-no">{prevVerse.label}</span>
-                    <span className="bt-stage__ctx-text">{ghostText(prevVerse)}</span>
-                    {done.has(prevVerse.id) && (
-                      <span className="material-icons-round bt-row__check" aria-label="필사 완료">
-                        check_circle
-                      </span>
-                    )}
-                  </button>
+                  />
                 )}
                 <div key={curVerse.id} className="bt-stage__slide">
                   {renderActive(curVerse, current!)}
                 </div>
                 {aheadVerses.map((v, k) => (
-                  <button
+                  <StageContextButton
                     key={`n${v.id}`}
-                    type="button"
-                    className="bt-stage__ctx bt-stage__ctx--next"
-                    style={{ ['--bt-fade' as string]: k }}
+                    verse={v}
+                    text={ghostText(v)}
+                    done={done.has(v.id)}
+                    side="next"
+                    fade={k}
                     onClick={() => goTo(current! + 1 + k)}
-                  >
-                    <span className="bt-verse-no">{v.label}</span>
-                    <span className="bt-stage__ctx-text">{ghostText(v)}</span>
-                    {done.has(v.id) && (
-                      <span className="material-icons-round bt-row__check" aria-label="필사 완료">
-                        check_circle
-                      </span>
-                    )}
-                  </button>
+                  />
                 ))}
-                <p className="bt-keys" aria-label="키보드 단축키">
-                  <span>
-                    <kbd>Tab</kbd> 다음 절
-                  </span>
-                  <span>
-                    <kbd>Shift</kbd>+<kbd>Tab</kbd> 앞 절
-                  </span>
-                  <span>
-                    <kbd>Esc</kbd> 처음부터
-                  </span>
-                  <span>
-                    <kbd>Enter</kbd> 완료·다시 쓰기
-                  </span>
-                  {mode === 'memorize' && (
-                    <>
-                      <span>
-                        <kbd>Alt</kbd>+<kbd>H</kbd> 초성
-                      </span>
-                      <span>
-                        <kbd>Alt</kbd>+<kbd>P</kbd> 잠깐 보기
-                      </span>
-                    </>
-                  )}
-                </p>
+                <DeskKeyHints mode={mode} />
               </section>
 
               <aside className="bt-desk__side" aria-label="장 진행">
@@ -1136,41 +745,7 @@ const TypingSessionView = () => {
                     <RoomFeed items={feed} now={clock} />
                   </>
                 )}
-                {!room && (
-                <div className="bt-card bt-ringcard">
-                  <div className="bt-ring" role="img" aria-label={`${verses.length}절 중 ${doneCount}절 필사`}>
-                    <svg viewBox="0 0 100 100" aria-hidden>
-                      <circle className="bt-ring__track" cx="50" cy="50" r="44" />
-                      <circle
-                        className="bt-ring__fill"
-                        cx="50"
-                        cy="50"
-                        r="44"
-                        strokeDasharray={RING_C}
-                        strokeDashoffset={RING_C * (1 - pct)}
-                      />
-                    </svg>
-                    <span className="bt-ring__label">
-                      <b className="brand-text-gradient">{Math.round(pct * 100)}</b>
-                      <small>%</small>
-                    </span>
-                  </div>
-                  <div className="bt-ringcard__body">
-                    <span className="bt-ringcard__count">
-                      {doneCount}/{verses.length}절
-                    </span>
-                    <span className="bt-ringcard__sub">
-                      {doneCount === verses.length && verses.length > 0 ? '이 장을 다 새겼어요' : `${verses.length - doneCount}절 남았어요`}
-                    </span>
-                    {stats && (
-                      <span className="bt-ringcard__today">
-                        오늘 <b>{stats.today_verses}절</b> · 목표 {goal}절
-                        {stats.current_streak > 0 && <> · {stats.current_streak}일째</>}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                )}
+                {!room && <DeskRingCard total={verses.length} doneCount={doneCount} stats={stats} goal={goal} />}
 
                 {!room && loggedIn && (
                   <TogetherPanel
@@ -1186,34 +761,7 @@ const TypingSessionView = () => {
                 {!room && loggedIn && <InviteCard unit={unit} busy={createRelay.isPending} onCreate={onCreateRoom} />}
 
                 {!room && (
-                <div className="bt-card bt-map">
-                  <p className="bt-map__title">장 지도</p>
-                  <div ref={mapRef} className="bt-map__grid">
-                    {verses.map((v, i) => (
-                      <button
-                        key={v.id}
-                        type="button"
-                        data-map-idx={i}
-                        className={[
-                          'bt-map__chip',
-                          done.has(v.id) ? 'is-done' : '',
-                          sessionDone.has(v.id) ? 'is-fresh' : '',
-                          i === current ? 'is-now' : '',
-                        ].join(' ')}
-                        onClick={() => goTo(i)}
-                        title={mode === 'memorize' && !done.has(v.id) ? `${v.label}절` : `${v.label}절 · ${v.text}`}
-                      >
-                        {v.label}
-                        {(() => {
-                          const p = together.people.find((pp) => pp.verse === v.verse)
-                          return p ? (
-                            <i className={`bt-map__dot${p.name ? ` bt-hue-${hueOfKey(p.key)}` : ' is-anon'}`} aria-hidden />
-                          ) : null
-                        })()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  <ChapterMap verses={verses} done={done} fresh={sessionDone} current={current} mode={mode} people={together.people} onPick={goTo} />
                 )}
               </aside>
             </div>
@@ -1228,7 +776,7 @@ const TypingSessionView = () => {
                     <button type="button" className={`bt-row${isDone ? ' is-done' : ''}`} onClick={() => goTo(i)}>
                       <span className="bt-verse-no">{v.label}</span>
                       <span className={`bt-row__text${mode === 'memorize' && !isDone ? ' is-masked' : ''}`}>
-                        {mode === 'memorize' && !isDone ? v.text.replace(/[^\s]/g, '·') : v.text}
+                        {mode === 'memorize' && !isDone ? maskText(v.text) : v.text}
                       </span>
                       {isDone && (
                         <span className="material-icons-round bt-row__check" aria-label="필사 완료">
@@ -1263,156 +811,60 @@ const TypingSessionView = () => {
       )}
 
       {goalMoment && (
-        <div className="bt-summary" role="dialog" aria-modal="true" aria-labelledby="bt-goal-title">
-          <div className="bt-summary__card bt-goalmoment">
-            <Lamp fill={1} lit full className="bt-goalmoment__lamp" />
-            <p className="bt-summary__eyebrow">오늘의 목표 {goal}절 달성</p>
-            <h2 id="bt-goal-title" className="bt-summary__title">
-              오늘의 등잔이 가득 찼어요
-            </h2>
-            {stats && stats.current_streak > 0 && (
-              <p className="bt-goalmoment__streak">
-                <b>{stats.current_streak}</b>일째 등불이 이어지고 있어요
-              </p>
-            )}
-            {(() => {
-              const nv = goalMoment.next !== null ? verses[goalMoment.next] : null
-              const ref = nv ? `${bookName} ${chapter}:${nv.label}` : nextChapter ? `${nextChapter.name} ${nextChapter.chapter}장` : null
-              if (!ref) return null
-              return (
-                <div className="bt-goalmoment__tomorrow">
-                  <span className="bt-goalmoment__eyebrow">내일 이어질 말씀 · {ref}</span>
-                  <span className="bt-goalmoment__text">{nv ? `“${teaser(nv.text, 3)}”` : '새 장이 기다리고 있어요'}</span>
-                </div>
-              )
-            })()}
-            <div className="bt-summary__actions">
-              <button
-                type="button"
-                className="bt-btn bt-btn--primary bt-btn--block"
-                onClick={() => {
-                  const ni = goalMoment.next
-                  const resume = goalMoment.resume
-                  setGoalMoment(null)
-                  // 바통을 넘기고 기다리는 중이거나 이미 다음 절을 쓰던 중이면 그 화면으로 돌아간다
-                  if (handoff || resume) return
-                  if (ni === null) setShowSummary(true)
-                  else goTo(ni)
-                }}
-              >
-                {handoff ? '확인' : '조금 더 쓰기'}
-              </button>
-              <button type="button" className="bt-btn bt-btn--ghost bt-btn--block" onClick={() => navigate('/bible/typing')}>
-                오늘은 여기까지
-              </button>
-            </div>
-          </div>
-        </div>
+        <GoalMomentDialog
+          goal={goal}
+          stats={stats}
+          nextVerse={goalMoment.next !== null ? (verses[goalMoment.next] ?? null) : null}
+          bookName={bookName}
+          chapter={chapter}
+          nextChapter={nextChapter}
+          waiting={!!handoff}
+          onMore={() => {
+            const ni = goalMoment.next
+            const resume = goalMoment.resume
+            setGoalMoment(null)
+            // 바통을 넘기고 기다리는 중이거나 이미 다음 절을 쓰던 중이면 그 화면으로 돌아간다
+            if (handoff || resume) return
+            if (ni === null) setShowSummary(true)
+            else goTo(ni)
+          }}
+          onHome={() => navigate('/bible/typing')}
+        />
       )}
 
       {relayDone && room && (
-        <div className="bt-summary" role="dialog" aria-modal="true" aria-labelledby="bt-relaydone-title">
-          <div className="bt-summary__card bt-relaydone">
-            <span className="bt-baton__torch" aria-hidden />
-            <p className="bt-summary__eyebrow">릴레이 완성 · 마지막 칸을 내가 채웠어요</p>
-            <h2 id="bt-relaydone-title" className="bt-summary__title">
-              {room.book_name} {room.chapter}
-              {chapterUnit(room.book_number)}을 함께 완성했어요!
-            </h2>
-            <ul className="bt-relaydone__members">
-              {[...room.members]
-                .sort((a, b) => b.verses - a.verses)
-                .map((m) => (
-                  <li key={m.user_id} className={`bt-hue-${hueOf.get(m.user_id) ?? 0}`}>
-                    <span className="bt-relay__swatch" aria-hidden />
-                    {m.is_me ? '나' : m.name}
-                    <b>{m.verses}칸</b>
-                  </li>
-                ))}
-            </ul>
-            <div className="bt-summary__actions">
-              <button
-                type="button"
-                className="bt-btn bt-btn--primary bt-btn--block"
-                onClick={() => navigate(`/bible/typing/relay/${room.id}`)}
-              >
-                릴레이 현황 보기
-              </button>
-              <button type="button" className="bt-btn bt-btn--block" onClick={() => navigate('/bible/typing')}>
-                필사 홈으로
-              </button>
-              {relayDone.personalNext !== null && (
-                <button
-                  type="button"
-                  className="bt-btn bt-btn--ghost bt-btn--block"
-                  onClick={() => {
-                    const ni = relayDone.personalNext!
-                    setRelayDone(null)
-                    goTo(ni)
-                  }}
-                >
-                  친구가 쓴 절도 내 손으로 써 보기
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <RelayDoneDialog
+          room={room}
+          hueOf={hueOf}
+          personalNext={relayDone.personalNext}
+          onOpenRelay={() => navigate(`/bible/typing/relay/${room.id}`)}
+          onHome={() => navigate('/bible/typing')}
+          onContinue={() => {
+            const ni = relayDone.personalNext!
+            setRelayDone(null)
+            goTo(ni)
+          }}
+        />
       )}
 
       {showSummary && (
-        <div className="bt-summary" role="dialog" aria-modal="true" aria-labelledby="bt-summary-title">
-          <div className="bt-summary__card">
-            <span className="bt-summary__seal" aria-hidden>
-              <span className="material-icons-round">history_edu</span>
-            </span>
-            <p className="bt-summary__eyebrow">필사 완료</p>
-            <h2 id="bt-summary-title" className="bt-summary__title">
-              {bookName} {chapter}장을 온전히 새겼어요
-            </h2>
-            <dl className="bt-summary__stats">
-              <div>
-                <dt>이번에 쓴 절</dt>
-                <dd className="brand-text-gradient">{summary.count}</dd>
-              </div>
-              <div>
-                <dt>평균 타수</dt>
-                <dd className="brand-text-gradient">{summary.cpm}</dd>
-              </div>
-              <div>
-                <dt>정확도</dt>
-                <dd className="brand-text-gradient">{Math.round(summary.acc * 100)}%</dd>
-              </div>
-            </dl>
-            <p className="bt-summary__time">
-              걸린 시간 {formatDuration(summary.totalMs)}
-              {summary.bestCombo >= 10 && <> · 최고 {summary.bestCombo}자 연속 정확</>}
-            </p>
-            <div className="bt-summary__actions">
-              {nextChapter && (
-                <button
-                  type="button"
-                  className="bt-btn bt-btn--primary bt-btn--block"
-                  onClick={() => {
-                    setShowSummary(false)
-                    setResults([])
-                    setSessionDone(new Set())
-                    setActive(null)
-                    setOutcome(null)
-                    navigate(sessionPath(nextChapter.book, nextChapter.chapter, mode), { replace: true })
-                  }}
-                >
-                  이어서 {nextChapter.name} {nextChapter.chapter}장 쓰기
-                </button>
-              )}
-              <button type="button" className="bt-btn bt-btn--block" onClick={keepAsCard}>
-                말씀 카드로 간직하기
-              </button>
-              <button type="button" className="bt-btn bt-btn--ghost bt-btn--block" onClick={() => navigate('/bible/typing')}>
-                필사 홈으로
-              </button>
-            </div>
-          </div>
-        </div>
+        <SummaryDialog
+          bookName={bookName}
+          chapter={chapter}
+          summary={summary}
+          nextChapter={nextChapter}
+          onNextChapter={() => {
+            if (!nextChapter) return
+            setShowSummary(false)
+            setResults([])
+            setSessionDone(new Set())
+            setActive(null)
+            setOutcome(null)
+            navigate(sessionPath(nextChapter.book, nextChapter.chapter, mode), { replace: true })
+          }}
+          onKeepCard={keepAsCard}
+          onHome={() => navigate('/bible/typing')}
+        />
       )}
     </div>
   )
