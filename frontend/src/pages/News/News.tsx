@@ -13,7 +13,7 @@ import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
 import BulletinShelf from './components/BulletinShelf'
-import BulletinStory from './components/BulletinStory'
+import BulletinWeekly from './components/bulletinWeekly/BulletinWeekly'
 import { warmImage, warmPagesAround } from './components/bulletinWarm'
 import { useDigitalBulletin } from '../../hooks/useDigitalBulletin'
 import { can } from '../../utils/access'
@@ -118,7 +118,8 @@ const News = () => {
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
   // 히어로 쪽 띠에서 고른 쪽 — 뷰어를 그 쪽부터 연다
   const [startPage, setStartPage] = useState(0)
-  const [tab, setTab] = useState<BulletinTabKey>('image')
+  // 2026-11 개편 — 디지털 주보가 기본. 종이 원본은 탭이나 디지털 주보의 '원본' 버튼으로
+  const [tab, setTab] = useState<BulletinTabKey>('digital')
 
   const handleSectionChange = (next: SectionKey) => {
     // replace — 탭 전환마다 히스토리가 쌓여 뒤로가기가 먹통이 되는 걸 막는다
@@ -314,7 +315,13 @@ const News = () => {
         {/* 디지털 주보 */}
         {section === 'bulletin' && tab === 'digital' && (
           <div className="pt-3 pb-8">
-            <DigitalBulletinTab />
+            <DigitalBulletinTab
+              onOpenPaper={id => {
+                const target = id != null ? bulletins.find(b => b.id === id) ?? ({ id } as Bulletin) : bulletins[0]
+                if (target) void handleBulletinClick(target)
+                else setTab('image')
+              }}
+            />
           </div>
         )}
       </div>
@@ -532,9 +539,9 @@ const SidebarCard = ({
 
 // ── Skeleton / Empty ─────────────────────────────
 /** 디지털 주보 — 모두에게 넘겨보기, 관리자는 편집 화면(인라인 편집·PC 편집기)으로 바꿔 볼 수 있다 */
-const DigitalBulletinTab = () => {
+const DigitalBulletinTab = ({ onOpenPaper }: { onOpenPaper: (bulletinId: number | null) => void }) => {
   const { t } = useLanguage()
-  const { data, isLoading } = useDigitalBulletin()
+  const { isLoading } = useDigitalBulletin()
   const isAdmin = can('content:manage')
   const [mode, setMode] = useState<'read' | 'edit'>('read')
 
@@ -567,7 +574,7 @@ const DigitalBulletinTab = () => {
           </div>
         </div>
       )}
-      {mode === 'edit' && isAdmin ? <DigitalBulletin /> : <BulletinStory data={data} />}
+      {mode === 'edit' && isAdmin ? <DigitalBulletin /> : <BulletinWeekly onOpenPaper={onOpenPaper} />}
     </>
   )
 }

@@ -1,4 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
+import { announceSummary } from './bulletinWeekly/bulletinWeek'
+import { kstNow } from '../../../utils/date'
 import { showToast } from '../../../utils/toast'
 import {
   useDigitalBulletin,
@@ -63,7 +65,7 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
     )
       return
     try {
-      await replaceMutation.mutateAsync({ data: aiDraft, discardDraft: true })
+      await replaceMutation.mutateAsync({ data: aiDraft, discardDraft: true, announce: announceSummary(aiDraft, kstNow()) })
       setExpanded(new Set<SectionKey>(['worship', 'announcements', 'schedule']))
       showToast(t('newsDbDraftApplied'), 'success')
     } catch (e) {

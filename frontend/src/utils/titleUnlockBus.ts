@@ -4,6 +4,7 @@
 // React 트리와 분리해 어디서든(훅/이벤트 핸들러) 트리거할 수 있게 모듈 싱글톤으로 둔다.
 import { evaluateTitles, type TitleStatus } from '../api/titles'
 import { tokenStore } from './tokenStore'
+import { emitPuzzlePieces } from './puzzlePieceBus'
 
 type Listener = (titles: TitleStatus[]) => void
 
@@ -29,6 +30,8 @@ const runEvaluation = async () => {
   try {
     const result = await evaluateTitles()
     emit(result.newly_earned || [])
+    // 같은 응답에 실려 온 말씀 퍼즐 새 조각 → 조용한 쪽지
+    emitPuzzlePieces(result.puzzle_pieces_new)
   } catch {
     // 조용히 무시 — 칭호 평가 실패가 읽기 흐름을 방해하면 안 됨
   } finally {

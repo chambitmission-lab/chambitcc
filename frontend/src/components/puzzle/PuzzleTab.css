@@ -1,0 +1,286 @@
+/* /garden?tab=puzzle — 말씀 퍼즐 목록 */
+.pzt {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pzt-intro {
+  margin: 0 2px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.pzt-more {
+  margin: 2px 2px 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.pzt-empty {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.pzt-card {
+  display: grid;
+  gap: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+}
+
+/* 그림 — 모은 칸만 선명 */
+.pzt-art {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--surface-container-high);
+}
+.pzt-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 3px;
+  background: var(--surface-container);
+}
+.pzt-card.is-completed .pzt-grid {
+  gap: 0;
+}
+.pzt-cell {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-container-high);
+}
+.pzt-cell-img {
+  position: absolute;
+  inset: 0;
+  background-size: 300% 300%;
+  transition: filter 0.6s ease, opacity 0.6s ease;
+}
+.pzt-cell:not(.is-on) .pzt-cell-img {
+  filter: blur(6px) grayscale(0.8);
+  opacity: 0.22;
+  transform: scale(1.1);
+}
+.pzt-cell-label {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 4px;
+}
+.pzt-art-verse {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 22% 7% 6%;
+  background: linear-gradient(to bottom, rgba(10, 28, 38, 0), rgba(10, 28, 38, 0.45) 40%, rgba(10, 28, 38, 0.68));
+  color: #fff;
+}
+.pzt-art-verse p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.55;
+  word-break: keep-all;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+.pzt-art-verse span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  opacity: 0.85;
+}
+
+.pzt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+.pzt-titlebar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pzt-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+.pzt-sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.pzt-stat {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pzt-stat b {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--brand);
+}
+.pzt-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+.pzt-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+  transition: width 0.6s ease;
+}
+.pzt-note {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-body);
+}
+.pzt-note.is-brand {
+  color: var(--brand);
+  font-weight: 700;
+}
+.pzt-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  border: 0;
+  background: var(--brand);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pzt-play .material-icons-round {
+  font-size: 20px;
+}
+
+.pzt-pieces {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.pzt-piece {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--surface-inset);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pzt-piece-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--surface-container);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.pzt-piece.is-on .pzt-piece-mark {
+  background: var(--brand);
+  color: #fff;
+}
+.pzt-piece-mark .material-icons-round {
+  font-size: 16px;
+}
+.pzt-piece-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.pzt-piece-ref {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.pzt-piece-label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pzt-piece-progress {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pzt-piece.is-on .pzt-piece-progress {
+  color: var(--brand);
+}
+.pzt-preview {
+  align-self: flex-start;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px dashed var(--card-border);
+  background: none;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.pzt-card.is-skeleton .pzt-art {
+  animation: pzt-pulse 1.4s ease-in-out infinite;
+}
+.pzt-skel {
+  display: block;
+  height: 18px;
+  width: 60%;
+  border-radius: 8px;
+  background: var(--surface-inset);
+}
+.pzt-skel.is-short {
+  width: 35%;
+}
+@keyframes pzt-pulse {
+  50% { opacity: 0.6; }
+}
+
+/* PC — 그림 왼쪽, 장 목록 오른쪽 */
+@media (min-width: 1024px) {
+  .pzt-card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    max-width: 960px;
+  }
+  .pzt-art {
+    align-self: start;
+  }
+  .pzt-body {
+    padding: 22px;
+  }
+}

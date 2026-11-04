@@ -16,6 +16,7 @@ import ScrollRestoration from './components/common/ScrollRestoration'
 import { RouteMeta } from './seo/RouteMeta'
 import OpenFromQuery from './components/common/OpenFromQuery'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
+import { PuzzlePieceNoteHost } from './components/puzzle/PuzzlePieceNoteHost'
 import { ConfirmDialogHost } from './components/common/ConfirmDialog'
 // 챗봇 위젯(24KB + CSS 24KB + 아바타 7장)은 첫 페인트에 필요 없다 — 엔트리에서 떼고
 // App 첫 렌더 때 받기 시작해 한 왕복 뒤 FAB 이 나타난다
@@ -194,6 +195,8 @@ function App() {
           <PWAInstallButton />
           {/* 성경 칭호 해금 팝업 호스트 — 읽기 후 새 칭호를 축하 */}
           <TitleUnlockHost />
+          {/* 말씀 퍼즐 조각 쪽지 — 읽는 중 조용히 조각 모음을 알린다 */}
+          <PuzzlePieceNoteHost />
           {/* 공통 확인/안내 모달 호스트 — 브라우저 기본 confirm()/alert() 대체 */}
           <ConfirmDialogHost />
           {/* 규칙 기반 교회 챗봇 "참빛 말씀비서" — 전역 플로팅 위젯 */}

@@ -129,6 +129,33 @@
   margin: 12px 16px 6px;
 }
 
+/* 성경 칭호 | 말씀 퍼즐 탭 */
+.garden-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 12px 16px 0;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+}
+.garden-tab {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 11px;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.garden-tab.is-active {
+  background: var(--surface-container);
+  color: var(--text-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
 /* ── 로딩/에러 ──────────────────────────── */
 .garden-loading,
 .garden-error {
@@ -175,6 +202,10 @@
   .garden-section {
     margin: 12px 12px 6px;
   }
+
+  .garden-tabs {
+    margin: 12px 12px 0;
+  }
 }
 
 /* PC(lg+) — 2단 무대(도감 + 고정 현황 레일).
@@ -195,6 +226,7 @@
   }
 
   .garden-hero,
+  .garden-tabs,
   .garden-section {
     max-width: 1100px;
     margin-left: auto;
@@ -211,6 +243,19 @@
     min-height: var(--garden-hero-min-height-lg, auto);
     aspect-ratio: var(--garden-hero-aspect-lg, auto);
     background-position: left center, right center;
+  }
+
+  .garden-tabs {
+    margin-top: 16px;
+    padding: 0;
+    gap: 8px;
+    background: none;
+  }
+
+  .garden-tab {
+    flex: none;
+    padding: 10px 22px;
+    background: var(--surface-inset);
   }
 
   .garden-hero-emblem {

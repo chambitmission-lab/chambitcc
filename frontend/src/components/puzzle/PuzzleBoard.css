@@ -1,0 +1,317 @@
+/* 말씀 퍼즐 맞추기 — 전체 화면. 색은 theme.css 토큰만 쓴다 */
+.pzb {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  color: var(--text-body);
+  overscroll-behavior: contain;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pzb-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+  border-bottom: 1px solid var(--card-border);
+  background: var(--surface-container);
+}
+.pzb-close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--surface-inset);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.pzb-head-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.pzb-head-text strong {
+  font-size: 16px;
+  color: var(--text-strong);
+}
+.pzb-head-text span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pzb-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+.pzb-count {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--brand);
+}
+.pzb-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pzb-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px 16px;
+}
+.pzb-area {
+  position: relative;
+}
+
+/* 판 */
+.pzb-board {
+  position: absolute;
+  border-radius: 6px;
+  background: var(--surface-container);
+  box-shadow: 0 0 0 1px var(--card-border), 0 10px 30px rgba(20, 30, 50, 0.08);
+}
+.pzb-ghost {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-size: cover;
+  opacity: 0.16;
+  filter: saturate(0.6);
+  transition: opacity 0.6s ease;
+}
+.pzb-slots {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.pzb-slots path {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-opacity: 0.35;
+  stroke-width: 0.012;
+  stroke-dasharray: 0.04 0.035;
+  transition: opacity 0.6s ease;
+}
+.pzb-board.phase-reveal .pzb-ghost,
+.pzb-board.phase-done .pzb-ghost,
+.pzb-board.phase-reveal .pzb-slots,
+.pzb-board.phase-done .pzb-slots {
+  opacity: 0;
+}
+
+/* 보관함 */
+.pzb-tray {
+  position: absolute;
+  border-radius: 18px;
+  background: var(--surface-inset);
+  display: grid;
+  place-items: center;
+}
+.pzb-tray {
+  transition: opacity 0.6s ease;
+}
+.pzb-tray.is-hidden {
+  opacity: 0;
+}
+.pzb-tray-hint {
+  position: absolute;
+  bottom: -26px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* 조각 */
+.pzb-piece {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+  transform-origin: center;
+  transition: transform 0.18s ease, filter 0.18s ease;
+  filter: drop-shadow(0 3px 5px rgba(20, 30, 50, 0.22));
+}
+.pzb-piece.is-dragging {
+  transition: transform 0.12s ease;
+  filter: drop-shadow(0 12px 16px rgba(20, 30, 50, 0.3));
+}
+.pzb-piece.is-locked {
+  filter: none;
+  transition: left 0.12s ease, top 0.12s ease;
+}
+.pzb-piece.is-locked .pzb-seam {
+  animation: pzb-snap 0.5s ease-out;
+}
+.pzb-seam {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.75);
+  stroke-width: 0.012;
+  transition: stroke-opacity 1.1s ease;
+}
+.pzb-hit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: grab;
+  touch-action: none;
+}
+.is-locked .pzb-hit {
+  pointer-events: none;
+}
+.is-dragging .pzb-hit {
+  cursor: grabbing;
+}
+@keyframes pzb-snap {
+  0% { stroke: var(--brand); stroke-width: 0.04; }
+  100% { stroke: rgba(255, 255, 255, 0.75); stroke-width: 0.012; }
+}
+
+/* 완성 — 조각 선이 빛으로 사라진다 */
+.pzb-area:has(.pzb-reveal) .pzb-seam {
+  stroke-opacity: 0;
+}
+.pzb-reveal {
+  position: absolute;
+  z-index: 40;
+  border-radius: 6px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.pzb-sweep {
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 244, 214, 0.0) 40%,
+    rgba(255, 244, 214, 0.55) 50%,
+    rgba(255, 244, 214, 0.0) 60%,
+    transparent 65%
+  );
+  transform: translateX(-70%);
+  animation: pzb-sweep 1.4s ease-in-out 0.15s forwards;
+}
+@keyframes pzb-sweep {
+  to { transform: translateX(70%); }
+}
+.pzb-verse {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18% 7% 6%;
+  background: linear-gradient(to bottom, rgba(10, 28, 38, 0), rgba(10, 28, 38, 0.42) 38%, rgba(10, 28, 38, 0.66));
+  opacity: 0;
+  animation: pzb-fade 0.8s ease 1.1s forwards;
+}
+.pzb-verse-text {
+  margin: 0;
+  min-height: 3em;
+  color: #fff;
+  font-size: clamp(15px, 4.2vw, 21px);
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  word-break: keep-all;
+}
+.pzb-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background: rgba(255, 255, 255, 0.85);
+  animation: pzb-blink 0.9s steps(2) infinite;
+}
+.pzb-verse-ref {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.pzb-verse-ref.is-shown {
+  opacity: 1;
+}
+@keyframes pzb-fade {
+  to { opacity: 1; }
+}
+@keyframes pzb-blink {
+  50% { opacity: 0; }
+}
+
+/* 아래 버튼 — 다 맞춘 뒤에만 올라온다 */
+.pzb-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--card-border);
+  background: var(--surface-container);
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.pzb-foot.is-shown {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+.pzb-foot-msg {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.pzb-foot-msg span {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.pzb-foot-actions {
+  display: flex;
+  gap: 8px;
+}
+.pzb-btn {
+  padding: 11px 16px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--brand);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pzb-btn.is-ghost {
+  background: var(--surface-inset);
+  color: var(--text-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pzb-sweep { display: none; }
+  .pzb-verse { animation: none; opacity: 1; }
+  .pzb-piece, .pzb-foot { transition: none; }
+}

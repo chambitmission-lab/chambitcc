@@ -1,7 +1,8 @@
 // 정원 → "성경 칭호" 페이지로 전면 개편. 토스 블루 플랫 테마(theme.css 토큰).
 // 신앙 나무(GrowingTree)는 삭제하지 않고 SHOW_FAITH_TREE 플래그로 휴면 처리(언제든 복구 가능).
 
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { GrowingTree } from '../../components/garden/GrowingTree'
 import { TitleCollection } from '../../components/titles/TitleCollection'
 import { useReadingProgress } from '../../hooks/useBibleReading'
@@ -10,6 +11,11 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { GARDEN_HERO } from '../../utils/themeAssets'
 import './Garden.css'
+
+// 말씀 퍼즐 탭 — 탭을 열 때만 불러온다
+const PuzzleTab = lazy(() => import('../../components/puzzle/PuzzleTab').then((m) => ({ default: m.PuzzleTab })))
+
+type GardenTab = 'titles' | 'puzzle'
 
 // 신앙 나무 휴면 플래그 — true 로 바꾸면 기존 성장 나무가 다시 보인다.
 const SHOW_FAITH_TREE = false
@@ -21,6 +27,14 @@ export const Garden: React.FC = () => {
   const totalVerses = progress?.overall.total_verses
   const [showCustomizeModal, setShowCustomizeModal] = useState(false)
   const [themeKey, setThemeKey] = useState(0)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab: GardenTab = searchParams.get('tab') === 'puzzle' ? 'puzzle' : 'titles'
+  const selectTab = (next: GardenTab) => {
+    const p = new URLSearchParams(searchParams)
+    if (next === 'titles') p.delete('tab')
+    else p.set('tab', next)
+    setSearchParams(p, { replace: true })
+  }
 
   // 히어로 배너는 CSS 배경(테마 토큰)이라 렌더된 뒤에야 요청이 나가고, 브라우저는 현재
   // 테마 한 장만 받는다 — 진입 시 두 테마를 모두 데워 토글 순간 배너가 늦게 뜨지 않게 한다.
@@ -82,10 +96,38 @@ export const Garden: React.FC = () => {
           <GrowingTree key={themeKey} versesRead={versesRead} totalVerses={totalVerses} showInfo />
         </div>
       ) : (
-        /* 성경 칭호 컬렉션 */
-        <div className="garden-section">
-          <TitleCollection />
-        </div>
+        <>
+          {/* 성경 칭호 | 말씀 퍼즐 탭 */}
+          <div className="garden-tabs" role="tablist" aria-label={t('gardenHeroTitle')}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'titles'}
+              className={`garden-tab ${tab === 'titles' ? 'is-active' : ''}`}
+              onClick={() => selectTab('titles')}
+            >
+              {t('gardenTabTitles')}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'puzzle'}
+              className={`garden-tab ${tab === 'puzzle' ? 'is-active' : ''}`}
+              onClick={() => selectTab('puzzle')}
+            >
+              {t('gardenTabPuzzle')}
+            </button>
+          </div>
+          <div className="garden-section">
+            {tab === 'titles' ? (
+              <TitleCollection />
+            ) : (
+              <Suspense fallback={null}>
+                <PuzzleTab />
+              </Suspense>
+            )}
+          </div>
+        </>
       )}
 
       {/* 정원 꾸미기 모달 */}

@@ -2,12 +2,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   discardDigitalBulletinDraft,
+  getBulletinNotify,
+  getBulletinReminders,
   getDigitalBulletin,
   getDigitalBulletinDraft,
+  getDigitalBulletinIssue,
+  getDigitalBulletinIssues,
+  replaceBulletinReminders,
   replaceDigitalBulletin,
+  updateBulletinNotify,
 } from '../api/digitalBulletin'
 import type {
   BulletinData,
+  BulletinNotifySettings,
+  BulletinReminder,
   DigitalBulletinDraftResponse,
   DigitalBulletinResponse,
 } from '../types/digitalBulletin'
@@ -44,9 +52,13 @@ export const DEFAULT_BULLETIN: BulletinData = {
   ],
 }
 
-const bulletinKeys = {
+export const bulletinKeys = {
   all: ['digital-bulletin'] as const,
   draft: ['digital-bulletin', 'draft'] as const,
+  issues: ['digital-bulletin', 'issues'] as const,
+  issue: (id: number) => ['digital-bulletin', 'issues', id] as const,
+  notify: ['digital-bulletin', 'notify'] as const,
+  reminders: ['digital-bulletin', 'reminders'] as const,
 }
 
 const NO_DRAFT: DigitalBulletinDraftResponse = { data: null, bulletin_id: null }
@@ -79,6 +91,7 @@ export const useDigitalBulletin = () => {
 
   return {
     data,
+    bulletinId: query.data?.bulletin_id ?? null,
     isLoading: query.isLoading,
     isFromDefault: isEmptyData(query.data?.data),
   }
@@ -88,16 +101,21 @@ export interface ReplaceBulletinVars {
   data: BulletinData
   /** AI 초안을 검토해 적용한 저장 — 서버가 초안을 지우므로 초안 캐시도 비운다 */
   discardDraft?: boolean
+  /** 새 주보 도착 알림 본문(초안 적용 때만 의미) */
+  announce?: string
 }
 
 export const useReplaceDigitalBulletin = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ data, discardDraft }: ReplaceBulletinVars) => replaceDigitalBulletin(data, discardDraft),
+    mutationFn: ({ data, discardDraft, announce }: ReplaceBulletinVars) =>
+      replaceDigitalBulletin(data, discardDraft, announce),
     onSuccess: (response, { discardDraft }) => {
       queryClient.setQueryData<DigitalBulletinResponse>(bulletinKeys.all, response)
       if (discardDraft) queryClient.setQueryData<DigitalBulletinDraftResponse>(bulletinKeys.draft, NO_DRAFT)
+      // 보관본 목록·해당 주보도 바뀌었다 — refetchOnMount:false 라 비활성 캐시도 직접 무효화
+      queryClient.invalidateQueries({ queryKey: bulletinKeys.issues, refetchType: 'all' })
     },
   })
 }
@@ -121,5 +139,75 @@ export const useDiscardDigitalBulletinDraft = () => {
     onSuccess: () => {
       queryClient.setQueryData<DigitalBulletinDraftResponse>(bulletinKeys.draft, NO_DRAFT)
     },
+  })
+}
+
+/* ── 지난 주보 ─────────────────────────────────────── */
+
+export const useDigitalBulletinIssues = () =>
+  useQuery({
+    queryKey: bulletinKeys.issues,
+    queryFn: getDigitalBulletinIssues,
+    staleTime: 1000 * 60 * 5,
+  })
+
+/** 지난 주보 하나 — id 가 null 이면 묻지 않는다(최신은 useDigitalBulletin) */
+export const useDigitalBulletinIssue = (bulletinId: number | null) =>
+  useQuery({
+    queryKey: bulletinKeys.issue(bulletinId ?? 0),
+    queryFn: () => getDigitalBulletinIssue(bulletinId!),
+    enabled: bulletinId != null,
+    staleTime: 1000 * 60 * 30,
+  })
+
+/* ── 내 주보 알림 ──────────────────────────────────── */
+
+export const DEFAULT_NOTIFY: BulletinNotifySettings = {
+  new_bulletin: false,
+  item_reminders: true,
+  service: false,
+  services: [],
+  dawn: false,
+  dawn_days: '0000000',
+}
+
+export const useBulletinNotify = (enabled: boolean) =>
+  useQuery({
+    queryKey: bulletinKeys.notify,
+    queryFn: getBulletinNotify,
+    enabled,
+    staleTime: 1000 * 60 * 5,
+  })
+
+export const useUpdateBulletinNotify = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (patch: Partial<BulletinNotifySettings>) => updateBulletinNotify(patch),
+    onMutate: async patch => {
+      await queryClient.cancelQueries({ queryKey: bulletinKeys.notify })
+      const prev = queryClient.getQueryData<BulletinNotifySettings>(bulletinKeys.notify)
+      queryClient.setQueryData<BulletinNotifySettings>(bulletinKeys.notify, { ...(prev ?? DEFAULT_NOTIFY), ...patch })
+      return { prev }
+    },
+    onError: (_e, _p, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(bulletinKeys.notify, ctx.prev)
+    },
+    onSuccess: res => queryClient.setQueryData(bulletinKeys.notify, res),
+  })
+}
+
+export const useBulletinReminders = (enabled: boolean) =>
+  useQuery({
+    queryKey: bulletinKeys.reminders,
+    queryFn: getBulletinReminders,
+    enabled,
+    staleTime: 1000 * 60,
+  })
+
+export const useReplaceBulletinReminders = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (items: BulletinReminder[]) => replaceBulletinReminders(items),
+    onSuccess: res => queryClient.setQueryData<BulletinReminder[]>(bulletinKeys.reminders, res),
   })
 }

@@ -8,6 +8,8 @@
 // - 표 칸 Enter = 아래 행 같은 칸(마지막 행이면 행 추가), Ctrl+S = 저장, Esc = 닫기
 // - 초안은 localStorage 에 계속 적어 둔다 — 저장 안 하고 닫아도 다음에 열면 이어 쓰기 제안
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { announceSummary } from './bulletinWeekly/bulletinWeek'
+import { kstNow } from '../../../utils/date'
 import { createPortal } from 'react-dom'
 import { showToast } from '../../../utils/toast'
 import { useReplaceDigitalBulletin } from '../../../hooks/useDigitalBulletin'
@@ -171,7 +173,11 @@ const BulletinDeskEditor = ({ initial, aiDraft, onClose }: BulletinDeskEditorPro
   const save = useCallback(async () => {
     if (!dirty || replaceMutation.isPending) return
     try {
-      await replaceMutation.mutateAsync({ data: draft, discardDraft: fromAiDraft })
+      await replaceMutation.mutateAsync({
+        data: draft,
+        discardDraft: fromAiDraft,
+        announce: fromAiDraft ? announceSummary(draft, kstNow()) : undefined,
+      })
       setBaseline(draft)
       setFromAiDraft(false)
       setRecoverable(null)

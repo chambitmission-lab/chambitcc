@@ -1,7 +1,8 @@
 // 성경 칭호 API — 칭호 컬렉션 조회 / 획득 평가(해금) / 장착
 import { request, requestRaw, isApiError, type UntypedJson } from './utils/request'
+import type { PuzzlePieceNews } from './puzzles'
 
-export type TitleCategory = 'time' | 'pattern' | 'typing' | 'hidden'
+export type TitleCategory = 'time' | 'pattern' | 'typing' | 'puzzle' | 'hidden'
 export type TitleTier = 'bronze' | 'silver' | 'gold' | 'legendary'
 
 export interface TitleProgress {
@@ -49,6 +50,8 @@ export interface TitlesPayload {
 
 export interface EvaluatePayload extends TitlesPayload {
   newly_earned: TitleStatus[]
+  // 말씀 퍼즐 — 이번 읽기로 새로 모은 조각(조용한 쪽지용). 구버전 백엔드엔 없다
+  puzzle_pieces_new?: PuzzlePieceNews[]
 }
 
 /** 전체 칭호 컬렉션 + 획득/진척/장착 상태 */

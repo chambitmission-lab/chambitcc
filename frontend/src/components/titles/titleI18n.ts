@@ -221,6 +221,61 @@ const EN: Record<string, TitleText> = {
     description: 'Ten lamps lit. By now their week is your week. The road to Emmaus was walked by two as well (Luke 24:13).',
     hint: 'Light 10 lamps in Walk Together',
   },
+  puzzle_red_sea: {
+    name: 'Footsteps Through the Sea',
+    description: 'Dry ground in the middle of the sea! You crossed all nine pieces without getting a single sandal wet.',
+    hint: "Complete the Scripture Puzzle 'Crossing the Red Sea'",
+  },
+  puzzle_creation: {
+    name: 'Light of the First Day',
+    description: 'Let there be light! With all nine pieces in place, it feels like watching the very first morning of the world.',
+    hint: "Complete the Scripture Puzzle 'Creation'",
+  },
+  puzzle_noah: {
+    name: 'Witness of the Rainbow Covenant',
+    description: 'The forty days of rain are over and all nine pieces are gathered. Now every rainbow will remind you of this puzzle!',
+    hint: "Complete the Scripture Puzzle 'The Rainbow Covenant'",
+  },
+  puzzle_abraham: {
+    name: 'The Lord Will Provide',
+    description: 'Just as the ram was provided on the mountain, the last piece was waiting right where it belonged.',
+    hint: "Complete the Scripture Puzzle 'The Lord Will Provide'",
+  },
+  puzzle_david: {
+    name: 'One Smooth Stone',
+    description: 'No armor, no sword, just a smooth stone and faith! You finished a giant of a puzzle.',
+    hint: "Complete the Scripture Puzzle 'David and Goliath'",
+  },
+  puzzle_daniel: {
+    name: "Sound Sleep in the Lions' Den",
+    description: 'On the night the lions slept like kittens, all nine pieces found their place.',
+    hint: "Complete the Scripture Puzzle 'Daniel in the Lions' Den'",
+  },
+  puzzle_nativity: {
+    name: 'Following the Star of Bethlehem',
+    description: 'Like the shepherds, you hurried to the manger. Unto you is born this day a Savior!',
+    hint: "Complete the Scripture Puzzle 'A Savior Is Born'",
+  },
+  puzzle_five_loaves: {
+    name: 'Twelve Baskets',
+    description: 'Five loaves and two fish fed five thousand with twelve baskets left over. Not a single piece left over here!',
+    hint: "Complete the Scripture Puzzle 'Five Loaves and Two Fish'",
+  },
+  puzzle_cross: {
+    name: 'It Is Finished',
+    description: 'Before the love of the cross that finished everything for us, you quietly laid down the last piece.',
+    hint: "Complete the Scripture Puzzle 'It Is Finished'",
+  },
+  puzzle_resurrection: {
+    name: 'Morning of the Empty Tomb',
+    description: 'He is not here, for He has risen! Like the stone rolled away, the last piece joyfully found its place.',
+    hint: "Complete the Scripture Puzzle 'Morning of the Empty Tomb'",
+  },
+  puzzle_master: {
+    name: 'Master of the Redemption Puzzle',
+    description: 'From creation to resurrection, ten pictures joined into one story. The Bible is one story of salvation, from beginning to end.',
+    hint: 'Complete all 10 Scripture Puzzles',
+  },
   living_legend: {
     name: 'Living Legend',
     description: "Dawn and midnight, a hundred days and sixty-six books — every title in the collection has gathered before you. The titles aren't the legend anymore. You are.",

@@ -10,6 +10,8 @@ export const garden = {
   gardenHeroLabel: '나의 신앙 여정',
   gardenHeroTitle: '성경 칭호',
   gardenHeroSubtitle: '말씀을 읽으며 모으는 나만의 성경 칭호',
+  gardenTabTitles: '성경 칭호',
+  gardenTabPuzzle: '말씀 퍼즐',
 
   // 칭호 컬렉션
   titleCollectionLoading: '칭호를 불러오는 중…',
@@ -23,6 +25,7 @@ export const garden = {
   // 카테고리 / 티어
   titleCatTime: '시간과 꾸준함',
   titleCatTyping: '말씀 필사',
+  titleCatPuzzle: '말씀 퍼즐',
   titleCatPattern: '읽기 여정',
   titleCatHidden: '히든',
   titleTierBronze: '브론즈',

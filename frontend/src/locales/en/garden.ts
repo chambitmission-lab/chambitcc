@@ -10,6 +10,8 @@ export const garden = {
   gardenHeroLabel: 'My Faith Journey',
   gardenHeroTitle: 'Bible Titles',
   gardenHeroSubtitle: 'Your own collection of Bible titles, earned as you read the Word',
+  gardenTabTitles: 'Titles',
+  gardenTabPuzzle: 'Scripture Puzzles',
 
   // Title collection
   titleCollectionLoading: 'Loading titles…',
@@ -22,6 +24,7 @@ export const garden = {
 
   // Categories / tiers
   titleCatTime: 'Time & Consistency',
+  titleCatPuzzle: 'Scripture Puzzles',
   titleCatTyping: 'Scripture Typing',
   titleCatPattern: 'Reading Journey',
   titleCatHidden: 'Hidden',
