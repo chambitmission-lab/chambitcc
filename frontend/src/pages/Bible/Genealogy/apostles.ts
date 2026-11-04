@@ -5,11 +5,9 @@
 // - 바돌로매=나다나엘, 알패오의 아들 야고보=작은 야고보처럼 성경이 직접 잇지 않는 동일시는 "견해"로만.
 // - 성경 사전 칩(bibleGlossary entries 의 apostle 필드)이 이 id 로 카드를 연다.
 
-export type ApostleId =
-  | 'peter' | 'andrew' | 'james' | 'john'
-  | 'philip' | 'bartholomew' | 'thomas' | 'matthew'
-  | 'jamesAlphaeus' | 'thaddaeus' | 'simonZealot' | 'judas'
-  | 'matthias'
+// id·판별은 twelveIds.ts — 가계도 본체가 이 데이터 파일을 끌어오지 않고 주소를 읽을 수 있게
+import { isApostleId, type ApostleId } from './twelveIds'
+export { isApostleId, type ApostleId }
 
 // 사물은 그 제자의 성경 장면에서만 고른다(전승 상징 X). 반석(요 1:42)·물고기(요 6:8)·우레(막 3:17)·사랑·문("와서 보라")·
 // 무화과 잎(요 1:48, 견해)·못 자국 손(요 20:27)·세관 동전(마 9:9)·다락방(행 1:13)·질문(요 14:22)·불꽃(열심당)·은 삼십(마 26:15)·제비(행 1:26)
@@ -187,9 +185,6 @@ export const APOSTLES: Apostle[] = [
 ]
 
 export const APOSTLE_BY_ID = new Map<ApostleId, Apostle>(APOSTLES.map((a) => [a.id, a]))
-
-export const isApostleId = (v: string | null | undefined): v is ApostleId =>
-  !!v && APOSTLE_BY_ID.has(v as ApostleId)
 
 /** 가장 가까이에서 따른 세 제자 — 야이로의 딸·변화산·겟세마네 */
 export const INNER_THREE: ApostleId[] = ['peter', 'james', 'john']

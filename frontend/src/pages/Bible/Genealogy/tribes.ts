@@ -7,10 +7,9 @@
 // - 계 7장에서 단·에브라임이 빠진 이유처럼 성경이 직접 말하지 않는 것은 "견해"로만 적는다.
 // - 성경 사전 칩(bibleGlossary entries 의 tribe 필드)이 이 id 로 카드를 연다.
 
-export type TribeId =
-  | 'reuben' | 'simeon' | 'levi' | 'judah' | 'dan' | 'naphtali'
-  | 'gad' | 'asher' | 'issachar' | 'zebulun' | 'joseph' | 'benjamin'
-  | 'ephraim' | 'manasseh'
+// id·판별은 twelveIds.ts — 가계도 본체가 이 데이터 파일을 끌어오지 않고 주소를 읽을 수 있게
+import { isTribeId, type TribeId } from './twelveIds'
+export { isTribeId, type TribeId }
 
 export type MotherId = 'leah' | 'rachel' | 'bilhah' | 'zilpah'
 
@@ -218,9 +217,6 @@ export const TRIBES: Tribe[] = [
 ]
 
 export const TRIBE_BY_ID = new Map<TribeId, Tribe>(TRIBES.map((t) => [t.id, t]))
-
-export const isTribeId = (v: string | null | undefined): v is TribeId =>
-  !!v && TRIBE_BY_ID.has(v as TribeId)
 
 // ── "열두"는 어느 목록의 열둘일까 ─────────────────────────────────
 // 성경에 나오는 열두 지파 목록은 서로 조금씩 달라서, 그 차이를 모르면 헷갈린다.

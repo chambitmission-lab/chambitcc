@@ -12,10 +12,12 @@ export const bibleFigureKeys = {
   detail: (slug: string) => [...bibleFigureKeys.all, 'detail', slug] as const,
 }
 
-export const useMessianicGenealogy = () => {
+/** enabled=false 면 요청하지 않는다 — 지파·제자 보기처럼 가계도 데이터가 필요 없는 화면 */
+export const useMessianicGenealogy = (enabled = true) => {
   return useQuery({
     queryKey: bibleFigureKeys.genealogyMessianic(),
     queryFn: fetchMessianicGenealogy,
+    enabled,
     staleTime: 1000 * 60 * 30, // 가계도는 잘 안 변하니 30분
     gcTime: 1000 * 60 * 60 * 24, // 1일
   })

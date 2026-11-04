@@ -1,15 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMessianicGenealogy, usePrefetchBibleFigure } from '../../../hooks/useBibleFigure'
 import GenealogyTree from './components/GenealogyTree'
 import FigureDetailPanel from './components/FigureDetailPanel'
 import EraTimeline from './components/EraTimeline'
-import TribesView from './components/TribesView'
-import ApostlesView from './components/ApostlesView'
-import { TwelveSwitch } from './components/twelveShared'
-import { isTribeId, type TribeId } from './tribes'
-import { isApostleId, type ApostleId } from './apostles'
+import { isApostleId, isTribeId, type ApostleId, type TribeId } from './twelveIds'
 import type { BibleFigureSummary } from '../../../types/bibleFigure'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
@@ -20,6 +16,11 @@ import { useThemeArt } from '../../../hooks/useThemeArt'
 import { GENEALOGY_HERO } from '../../../utils/themeAssets'
 import { warmGenealogySerif } from './warmSerifGlyphs'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
+
+// 지파·제자 보기는 카드 데이터(tribes.ts, apostles.ts)까지 묶여 커서 별도 청크 —
+// 가계도·시대순만 보는 사람은 받지 않고, 보기 토글에 손이 가면 미리 받는다.
+const loadTwelveView = () => import('./components/TwelveView')
+const TwelveView = lazy(loadTwelveView)
 
 const encouragement = (p: number) => {
   if (p >= 1) return '완독했어요!'
@@ -54,7 +55,6 @@ const matchRole = (figure: BibleFigureSummary, filter: RoleFilter): boolean => {
 }
 
 export const Genealogy = () => {
-  const { data, isLoading, error } = useMessianicGenealogy()
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   // ?view=tribes(&tribe=judah) / ?view=apostles(&apostle=peter) — 성경 사전 칩의 "카드 보기"가 이 주소로 들어온다.
   // 보기 전환은 주소에 replace 로 남겨 본문에 다녀와도 같은 보기로 돌아온다.
@@ -88,8 +88,9 @@ export const Genealogy = () => {
     },
     [setSearchParams],
   )
-  // 지파·제자 보기는 가계도 데이터(API)와 무관한 정적 화면
+  // 지파·제자 보기는 가계도 데이터(API)와 무관한 정적 화면 — 그 보기에선 요청도 통계 타일도 없다
   const isTwelve = viewMode === 'tribes' || viewMode === 'apostles'
+  const { data, isLoading, error } = useMessianicGenealogy(!isTwelve)
   // 화면이 이미 열린 채 주소만 바뀌어도(사전 칩 → 같은 화면) 그 카드가 열리게
   // (렌더 중 이전 값과 비교해 맞추는 패턴 — effect 로 setState 하면 한 번 더 그린다)
   const tribeParam = searchParams.get('tribe')
@@ -272,7 +273,8 @@ export const Genealogy = () => {
               )}
             </AnimatePresence>
 
-            {/* 통계 타일 */}
+            {/* 통계 타일 — 가계도 인물 수라 지파·제자 보기에선 숨긴다 */}
+            {!isTwelve && (
             <div className="mt-4 grid grid-cols-3 gap-2 max-w-[560px]">
               <StatTile icon="groups" label="전체 인물" value={counts.total} />
               <StatTile icon="account_tree" label="메시아 라인" value={counts.messianic} />
@@ -284,11 +286,12 @@ export const Genealogy = () => {
                 />
               )}
             </div>
+            )}
           </div>
         </header>
 
         {/* 로그인 사용자 진도 카드 */}
-        {overallProgress !== null && (
+        {!isTwelve && overallProgress !== null && (
           <div className="mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] px-4 py-4 md:px-5 relative overflow-hidden">
             <div className="absolute inset-0 opacity-50 dark:opacity-100 pointer-events-none bg-gradient-to-br from-[var(--brand-soft)] via-transparent to-transparent dark:from-white/[0.05] dark:via-transparent dark:to-white/[0.02]" />
             <div className="relative">
@@ -358,7 +361,7 @@ export const Genealogy = () => {
                 )}
               </div>
               )}
-              <ViewToggle value={viewMode === 'apostles' ? 'tribes' : viewMode} onChange={setViewMode} />
+              <ViewToggle value={viewMode === 'apostles' ? 'tribes' : viewMode} onChange={setViewMode} onWarmTwelve={loadTwelveView} />
             </div>
 
             {/* 역할 필터 pill */}
@@ -389,14 +392,16 @@ export const Genealogy = () => {
         </div>
 
         {isTwelve && (
-          <div className="flex flex-col gap-4">
-            <TwelveSwitch side={viewMode === 'apostles' ? 'apostles' : 'tribes'} onChange={setViewMode} />
-            {viewMode === 'tribes' ? (
-              <TribesView selectedId={selectedTribe} onSelect={setSelectedTribe} />
-            ) : (
-              <ApostlesView selectedId={selectedApostle} onSelect={setSelectedApostle} />
-            )}
-          </div>
+          <Suspense fallback={<TwelveLoading />}>
+            <TwelveView
+              side={viewMode === 'apostles' ? 'apostles' : 'tribes'}
+              onChangeSide={setViewMode}
+              selectedTribe={selectedTribe}
+              onSelectTribe={setSelectedTribe}
+              selectedApostle={selectedApostle}
+              onSelectApostle={setSelectedApostle}
+            />
+          </Suspense>
         )}
 
         {/* 검색/필터 결과 안내 */}
@@ -542,12 +547,22 @@ const StatTile = ({
   </div>
 )
 
+/** 지파·제자 청크를 받는 동안 — 카드 자리의 빈 상자 */
+const TwelveLoading = () => (
+  <div className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
+    열두 지파·제자를 불러오는 중...
+  </div>
+)
+
 const ViewToggle = ({
   value,
   onChange,
+  onWarmTwelve,
 }: {
   value: ViewMode
   onChange: (v: ViewMode) => void
+  /** 지파·제자 탭에 호버·터치 — 누르기 전에 청크를 받아 둔다 */
+  onWarmTwelve: () => void
 }) => {
   const opts: { id: ViewMode; label: string; icon: string }[] = [
     { id: 'tree', label: '가계도', icon: 'account_tree' },
@@ -563,6 +578,9 @@ const ViewToggle = ({
             key={o.id}
             type="button"
             onClick={() => onChange(o.id)}
+            onMouseEnter={o.id === 'tribes' ? onWarmTwelve : undefined}
+            onTouchStart={o.id === 'tribes' ? onWarmTwelve : undefined}
+            onFocus={o.id === 'tribes' ? onWarmTwelve : undefined}
             className={[
               'inline-flex items-center gap-1 px-2.5 h-8 rounded-lg text-[12px] font-semibold transition-all',
               active
