@@ -1,6 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { markPostcardSent } from '../../../components/share/sharePostcardsShared'
-import type { ChangeEvent, PointerEvent as ReactPointerEvent } from 'react'
+import type { ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleBooks } from '../../../hooks/useBible'
@@ -17,22 +17,26 @@ import { compactReference, getTodayRecommended } from './recommendedVerses'
 import type { PickedVerse } from './recommendedVerses'
 import { CARD_PRESETS } from './cardPresets'
 import type { CardPreset } from './cardPresets'
-import { BACKGROUNDS, CARD_LAYOUTS, DEFAULT_CARD_STYLE, LOCK_SAFE, backgroundCss, cropRect, createBackgroundImage, createCardCanvas, drawVerseCard, ensureCardFonts, getSeasonStamp, measureImageLuminance } from './photoVerseCanvas'
+import { BACKGROUNDS, DEFAULT_CARD_STYLE, backgroundCss, createBackgroundImage, createCardCanvas, drawVerseCard, ensureCardFonts, measureImageLuminance } from './photoVerseCanvas'
 import type { CardRatioId, CardTextBg, CardTextureId, VerseBackground, VerseCardStyle } from './photoVerseCanvas'
-import { FilterStrip, PresetStrip } from './components/StyleStrips'
-import { IntroSamples } from './components/IntroSamples'
-import { LayoutGlyph } from './components/LayoutGlyph'
+import { PresetStrip } from './components/StyleStrips'
+import DetailControls from './components/DetailControls'
+import IntroScreen from './components/IntroScreen'
 import LockScreenGuide from './components/LockScreenGuide'
 import MotionCardSheet from './components/MotionCardSheet'
+import OccasionSection from './components/OccasionSection'
+import PrintOverlay from './components/PrintOverlay'
 import VerseEditSheet from './components/VerseEditSheet'
 import { pickMotionMime } from './motionCard'
 import { MAX_SLIDES, canSplit, splitIntoSlides, suggestedSlideCount } from './slides'
 import { verseLinkFromRef } from './verseLink'
 import { isResumable, loadDraft, saveDraft } from './draft'
-import { GREETING_MAX, OCCASIONS, findOccasion } from './occasions'
+import { findOccasion } from './occasions'
 import type { CardOccasion } from './occasions'
-import { passageLabel, useRecentSermonPassage } from './churchVerses'
+import { useRecentSermonPassage } from './churchVerses'
 import type { SermonPassage } from './churchVerses'
+import { PHOTO_VERSE_TEXTS } from './texts'
+import { usePhotoGesture } from './usePhotoGesture'
 import './PhotoVerse.css'
 
 // 미리보기는 화면용으로 캡, 저장본은 원본 해상도(최대 2048px)로 다시 그린다
@@ -40,18 +44,6 @@ const PREVIEW_MAX_SIDE = 1280
 const EXPORT_MAX_SIDE = 2048
 // 잠금화면은 요즘 폰 세로 해상도(2556~2400px)에 맞춰 더 크게 — 원본보다 키우지는 않는다
 const EXPORT_MAX_SIDE_LOCK = 2560
-
-const COLOR_SWATCHES = [
-  '#ffffff',
-  '#fff3d6', // 아이보리
-  '#ffd166', // 앰버
-  '#a7d8ff', // 하늘
-  '#b9f0c9', // 연두
-  '#ffb3c1', // 로즈
-  '#111111',
-]
-
-const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max)
 
 // 우리 교회 말씀(설교 본문·올해의 말씀)으로 시작할 때의 룩 — 종이 배경 + 절기 에디션 프레임
 const CHURCH_BG_ID = 'cream'
@@ -134,167 +126,10 @@ const PhotoVerse = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  // 캔버스 위 손가락들과 진행 중인 제스처 (끌기: 글/사진, 벌리기: 글자 크기)
-  const pointersRef = useRef(new Map<number, { x: number; y: number }>())
-  const gestureRef = useRef<
-    | { kind: 'text' | 'photo'; startX: number; startY: number; origin: { x: number; y: number } }
-    | { kind: 'pinch'; dist: number; scale: number }
-    | null
-  >(null)
   // 예시 카드에서 고른 프리셋 — 배경 이미지가 준비된 뒤 적용한다
   const pendingPresetRef = useRef<CardPreset | null>(null)
 
-  const texts = {
-    ko: {
-      title: '말씀 사진 카드',
-      introHeadline: '내 사진 위에\n말씀을 담아보세요',
-      introBody: '갤러리에서 사진을 고르고 마음에 새기고 싶은 말씀을 올려 나만의 말씀 카드를 만들 수 있어요.',
-      privacy: '사진은 서버로 전송되지 않고 내 기기 안에서만 처리돼요.',
-      pickPhoto: '사진 선택하기',
-      samplesTitle: '이런 카드가 만들어져요',
-      samplesBody: '탭하면 그 스타일로 바로 시작해요',
-      noPhotoTitle: '사진이 없어도 괜찮아요',
-      noPhotoBody: '감성 배경을 골라 바로 시작해보세요',
-      changePhoto: '사진 바꾸기',
-      changeVerse: '말씀 바꾸기',
-      pickVerse: '말씀 고르기',
-      dragHint: '사진을 드래그해 말씀 위치를 옮길 수 있어요',
-      presetTitle: '스타일',
-      details: '세부 조정',
-      save: '저장',
-      share: '공유',
-      saving: '만드는 중…',
-      saved: '이미지가 저장되었습니다',
-      saveFailed: '저장에 실패했어요. 다시 시도해주세요.',
-      photoFailed: '사진을 불러오지 못했어요. 다른 사진으로 시도해주세요.',
-      size: '글자 크기',
-      font: { serif: '명조', sans: '고딕', hand: '손글씨', brush: '붓' },
-      alignLabel: '정렬',
-      ref: '출처',
-      signature: '서명',
-      layoutTitle: '레이아웃',
-      textBgLabel: '글 배경',
-      textBg: { none: '없음', soft: '은은', scrim: '박스', marker: '형광펜' },
-      frameLabel: '프레임',
-      frame: { none: '기본', season: '절기', polaroid: '폴라로이드', film: '필름' },
-      ratioLabel: '비율',
-      ratio: { original: '원본', '1:1': '1:1', '4:5': '4:5', '9:16': '9:16', lock: '잠금화면' },
-      textureLabel: '질감',
-      texture: { grain: '그레인', leak: '빛샘', vignette: '비네트', stamp: '날짜' },
-      printedHint: '이미지가 저장되었어요 · 탭해서 닫기',
-      bgTitle: '감성 배경',
-      back: '뒤로',
-      modeCard: '카드',
-      modeLock: '잠금화면',
-      lockGuideHide: '시계 가리기',
-      lockGuideShow: '시계 보기',
-      lockSavedHint: '저장한 이미지를 사진첩에서 배경화면으로 설정해보세요',
-      dragText: '글 옮기기',
-      dragPhoto: '사진 옮기기',
-      photoDragHint: '사진을 드래그해 보일 부분을 고를 수 있어요',
-      pinchHint: '두 손가락으로 글자 크기를 바꿀 수 있어요',
-      editText: '문구 다듬기',
-      edited: '다듬음',
-      slidesTitle: '여러 장으로 나누기',
-      slidesOne: '한 장',
-      slidesN: (n: number) => `${n}장`,
-      slidesHint: '인스타 캐러셀처럼 넘겨 보는 카드로 나눠 담아요',
-      slideOf: (i: number, n: number) => `${i} / ${n}`,
-      motion: '움직이는 카드',
-      motionHint: '사진이 천천히 다가오고 말씀이 스며드는 짧은 영상',
-      resumeTitle: '이어서 만들기',
-      resumeBody: '지난번 만들던 말씀 카드가 있어요',
-      resumeDismiss: '새로 시작',
-      savedMany: (n: number) => `${n}장의 이미지가 저장되었어요`,
-      occasionTitle: '누구에게 보내요?',
-      occasionBody: '고르면 말씀과 인사말이 함께 채워져요',
-      churchTitle: '이번 주 우리 교회 말씀',
-      churchBody: '온 교회가 함께 붙잡는 말씀으로 만들어요',
-      themeBadge: `${new Date().getFullYear()} 올해의 말씀`,
-      sermonPick: '본문에서 고르기',
-      greetingAdd: '인사말 넣기',
-      greetingPlaceholder: '예) 김○○ 집사님, 생일 축하해요',
-      greetingHint: '받는 분 이름을 넣으면 더 따뜻해요',
-      greetingLockNote: '잠금화면에는 인사말이 들어가지 않아요',
-      greetingRemove: '인사말 지우기',
-      otherVerse: '다른 말씀',
-    },
-    en: {
-      title: 'Verse Photo Card',
-      introHeadline: 'Put the Word\non your photo',
-      introBody: 'Pick a photo from your gallery and overlay a Bible verse to keep as your own verse card.',
-      privacy: 'Photos never leave your device — everything happens locally.',
-      pickPhoto: 'Choose Photo',
-      samplesTitle: 'Cards you can make',
-      samplesBody: 'Tap one to start in that style',
-      noPhotoTitle: 'No photo? No problem',
-      noPhotoBody: 'Start right away with a mood background',
-      changePhoto: 'Change photo',
-      changeVerse: 'Change verse',
-      pickVerse: 'Choose verse',
-      dragHint: 'Drag the photo to move the text',
-      presetTitle: 'Style',
-      details: 'Fine-tune',
-      save: 'Save',
-      share: 'Share',
-      saving: 'Creating…',
-      saved: 'Image saved',
-      saveFailed: 'Failed to save. Please try again.',
-      photoFailed: 'Could not load the photo. Please try another one.',
-      size: 'Text size',
-      font: { serif: 'Serif', sans: 'Sans', hand: 'Hand', brush: 'Brush' },
-      alignLabel: 'Align',
-      ref: 'Reference',
-      signature: 'Signature',
-      layoutTitle: 'Layout',
-      textBgLabel: 'Text backdrop',
-      textBg: { none: 'None', soft: 'Soft', scrim: 'Box', marker: 'Marker' },
-      frameLabel: 'Frame',
-      frame: { none: 'None', season: 'Season', polaroid: 'Polaroid', film: 'Film' },
-      ratioLabel: 'Ratio',
-      ratio: { original: 'Original', '1:1': '1:1', '4:5': '4:5', '9:16': '9:16', lock: 'Lock screen' },
-      textureLabel: 'Texture',
-      texture: { grain: 'Grain', leak: 'Light leak', vignette: 'Vignette', stamp: 'Date' },
-      printedHint: 'Image saved · tap to close',
-      bgTitle: 'Backgrounds',
-      back: 'Back',
-      modeCard: 'Card',
-      modeLock: 'Lock screen',
-      lockGuideHide: 'Hide clock',
-      lockGuideShow: 'Show clock',
-      lockSavedHint: 'Set the saved image as your wallpaper from Photos',
-      dragText: 'Move text',
-      dragPhoto: 'Move photo',
-      photoDragHint: 'Drag the photo to choose what stays in frame',
-      pinchHint: 'Pinch with two fingers to resize the text',
-      editText: 'Edit text',
-      edited: 'Edited',
-      slidesTitle: 'Split into slides',
-      slidesOne: 'One',
-      slidesN: (n: number) => `${n}`,
-      slidesHint: 'Split a long passage into a swipeable carousel',
-      slideOf: (i: number, n: number) => `${i} / ${n}`,
-      motion: 'Moving card',
-      motionHint: 'A short video: the photo drifts in as the Word appears',
-      resumeTitle: 'Pick up where you left off',
-      resumeBody: 'You have a verse card in progress',
-      resumeDismiss: 'Start new',
-      savedMany: (n: number) => `${n} images saved`,
-      occasionTitle: 'Who is it for?',
-      occasionBody: 'Pick one and the verse and greeting are filled in',
-      churchTitle: "Our church's word this week",
-      churchBody: 'Make a card with the word the whole church is holding',
-      themeBadge: `${new Date().getFullYear()} Theme Verse`,
-      sermonPick: 'Pick from passage',
-      greetingAdd: 'Add a greeting',
-      greetingPlaceholder: 'e.g. Happy birthday, Grace',
-      greetingHint: 'Add their name to make it personal',
-      greetingLockNote: 'Greetings are left off lock screens',
-      greetingRemove: 'Remove greeting',
-      otherVerse: 'Another verse',
-    },
-  }
-  const t = texts[language]
+  const t = PHOTO_VERSE_TEXTS[language]
 
   // 웹폰트(명조/손글씨)가 로드되기 전에 그리면 시스템 폰트로 그려진다.
   // 한글 폰트는 서브셋 조각으로 나뉘어 있어 구절 텍스트를 넘겨 해당 글자의
@@ -559,85 +394,14 @@ const PhotoVerse = () => {
     }
   }, [photo, current, style])
 
-  // ── 캔버스 제스처 — 한 손가락: 글(자유 레이아웃) 또는 사진 크롭 이동, 두 손가락: 글자 크기 ──
-  // 사진 옮기기는 비율로 잘렸을 때만 의미가 있다
-  const canPan = style.ratio !== 'original'
-  const dragMode: 'text' | 'photo' | null = !verse
-    ? null
-    : style.layout === 'classic' && (dragTarget === 'text' || !canPan)
-      ? 'text'
-      : canPan
-        ? 'photo'
-        : null
-
-  const handlePointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (!verse) return
-    e.currentTarget.setPointerCapture(e.pointerId)
-    const pts = pointersRef.current
-    pts.set(e.pointerId, { x: e.clientX, y: e.clientY })
-    if (pts.size === 2) {
-      const [a, b] = [...pts.values()]
-      gestureRef.current = { kind: 'pinch', dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, scale: style.fontScale }
-      return
-    }
-    if (pts.size !== 1 || !dragMode) return
-    gestureRef.current = {
-      kind: dragMode,
-      startX: e.clientX,
-      startY: e.clientY,
-      origin: dragMode === 'text' ? { ...style.pos } : { ...style.focus },
-    }
-  }
-
-  const handlePointerMove = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    const pts = pointersRef.current
-    if (!pts.has(e.pointerId)) return
-    pts.set(e.pointerId, { x: e.clientX, y: e.clientY })
-    const g = gestureRef.current
-    if (!g) return
-    if (g.kind === 'pinch') {
-      if (pts.size < 2) return
-      const [a, b] = [...pts.values()]
-      const d = Math.hypot(a.x - b.x, a.y - b.y)
-      setStyle((s) => ({ ...s, fontScale: clamp(g.scale * (d / g.dist), 0.03, 0.09) }))
-      return
-    }
-    const rect = e.currentTarget.getBoundingClientRect()
-    const dx = (e.clientX - g.startX) / rect.width
-    const dy = (e.clientY - g.startY) / rect.height
-    if (g.kind === 'text') {
-      // 잠금화면은 글 자리가 가운데 띠라 같은 손가락 이동이 더 큰 비율 변화다
-      const band = isLock ? LOCK_SAFE.bottom - LOCK_SAFE.top : 1
-      setStyle((s) => ({
-        ...s,
-        pos: {
-          x: clamp(g.origin.x + dx, 0.05, 0.95),
-          y: clamp(g.origin.y + dy / band, 0.05, 0.95),
-        },
-      }))
-      return
-    }
-    if (!photo) return
-    // 사진 옮기기 — 손가락을 오른쪽으로 끌면 사진의 왼쪽이 드러난다 (손가락에 붙어 움직이는 느낌)
-    const img = photo.img
-    const crop = cropRect(img, style.ratio)
-    const spareX = img.naturalWidth - crop.sw
-    const spareY = img.naturalHeight - crop.sh
-    setStyle((s) => ({
-      ...s,
-      focus: {
-        x: spareX > 1 ? clamp(g.origin.x - (dx * crop.sw) / spareX, 0, 1) : 0.5,
-        y: spareY > 1 ? clamp(g.origin.y - (dy * crop.sh) / spareY, 0, 1) : 0.5,
-      },
-    }))
-  }
-
-  const handlePointerUp = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    const pts = pointersRef.current
-    pts.delete(e.pointerId)
-    // 두 손가락 중 하나를 떼면 크기 조절 끝 — 남은 손가락으로 끌려가지 않게 제스처를 비운다
-    if (pts.size === 0 || gestureRef.current?.kind === 'pinch') gestureRef.current = null
-  }
+  // 캔버스 제스처 — 글/사진 끌기와 두 손가락 글자 크기 (usePhotoGesture)
+  const { canPan, dragMode, onPointerDown, onPointerMove, onPointerUp } = usePhotoGesture({
+    hasVerse: !!verse,
+    photo: photo?.img ?? null,
+    style,
+    setStyle,
+    dragTarget,
+  })
 
   // ── 저장/공유 — 원본 해상도로 다시 그려 JPEG 파일 생성 (나누기면 장마다 한 장씩) ──
   const buildCardFiles = useCallback(async (): Promise<File[]> => {
@@ -741,8 +505,6 @@ const PhotoVerse = () => {
     setActivePreset(null)
   }
 
-  const seasonStamp = getSeasonStamp(lang)
-
   const bgStrip = (
     <div className="pv-bg-row">
       {BACKGROUNDS.map((bg) => (
@@ -759,9 +521,6 @@ const PhotoVerse = () => {
       ))}
     </div>
   )
-
-  const textBgOptions: CardTextBg[] =
-    style.layout === 'classic' ? ['none', 'soft', 'scrim', 'marker'] : ['none', 'soft']
 
   return (
     <div className="photo-verse bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen">
@@ -822,125 +581,24 @@ const PhotoVerse = () => {
 
         {/* 사진 선택 전 — 인트로 */}
         {!photo && (
-          <div className="pv-intro">
-            {/* 인트로 그림 — 누르는 자리가 아니라서 버튼처럼 보이는 아이콘 타일 대신,
-                이 화면에서 만들게 될 말씀 카드 세 장이 부채처럼 겹친 미니 그림 (intro.css) */}
-            <div className="pv-intro__fan" aria-hidden="true">
-              <span className="pv-intro__card pv-intro__card--back" />
-              <span className="pv-intro__card pv-intro__card--mid" />
-              <span className="pv-intro__card pv-intro__card--front">
-                <i />
-                <i />
-                <i />
-              </span>
-            </div>
-            <h2 className="pv-intro__headline">
-              {t.introHeadline.split('\n').map((line) => (
-                <span key={line}>
-                  {line}
-                  <br />
-                </span>
-              ))}
-            </h2>
-            <p className="pv-intro__body">{t.introBody}</p>
-            <button
-              type="button"
-              className="pv-intro__cta"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <span className="material-icons-round">add_photo_alternate</span>
-              {/* 글자를 span 으로 감싼다 — 맨 텍스트 노드는 광택·빛줄(절대 위치 가상 요소) 아래에 깔린다 */}
-              <span>{t.pickPhoto}</span>
-            </button>
-
-            {/* 이어서 만들기 — 지난번 말씀과 스타일이 남아 있을 때만 */}
-            {resumeOffer?.verse && (
-              <div className="pv-resume">
-                <button type="button" className="pv-resume__main" onClick={resumeDraft}>
-                  <span className="material-icons-round pv-resume__icon">history</span>
-                  <span className="pv-resume__text">
-                    <span className="pv-resume__title">{t.resumeTitle}</span>
-                    <span className="pv-resume__ref">{resumeOffer.verse.refLabel}</span>
-                  </span>
-                  <span className="material-icons-round pv-resume__chevron">chevron_right</span>
-                </button>
-                <button type="button" className="pv-resume__dismiss" onClick={() => setResumeOffer(null)}>
-                  {t.resumeDismiss}
-                </button>
-              </div>
-            )}
-
-            {/* 상황별 카드 — 카드를 만드는 이유는 대개 누군가에게 마음을 보내는 것이다 */}
-            <div className="pv-intro__occasions">
-              <p className="pv-intro__bg-title">{t.occasionTitle}</p>
-              <p className="pv-intro__bg-body">{t.occasionBody}</p>
-              <div className="pv-occasions">
-                {OCCASIONS.map((o) => (
-                  <button key={o.id} type="button" className="pv-occasion" onClick={() => startOccasion(o)}>
-                    <span className="material-icons-round pv-occasion__icon" aria-hidden="true">{o.icon}</span>
-                    <span className="pv-occasion__name">{language === 'ko' ? o.nameKo : o.nameEn}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 우리 교회 말씀 — 이번 주 설교 본문과 올해의 말씀. 온 교회가 같은 말씀으로 카드를 만든다 */}
-            {(sermon || themeText) && (
-              <div className="pv-intro__church">
-                <p className="pv-intro__bg-title">{t.churchTitle}</p>
-                <p className="pv-intro__bg-body">{t.churchBody}</p>
-                {sermon && (
-                  <button type="button" className="pv-today pv-today--theme" onClick={() => startChurchVerse()}>
-                    <span className="pv-today__badge">
-                      <span className="material-icons-round text-[13px]">church</span>
-                      {sermon.badge ?? (lang === 'en' ? 'Sermon passage' : '설교 본문')}
-                    </span>
-                    {sermon.title && <span className="pv-today__text">「{sermon.title}」</span>}
-                    <span className="pv-today__ref">
-                      {/* 화살표는 카드 오른쪽 유리 단추(intro.css ::after)가 맡는다 */}
-                      {passageLabel(sermon.ref)} · {t.sermonPick}
-                    </span>
-                  </button>
-                )}
-                {themeText && (
-                  <button
-                    type="button"
-                    className="pv-today pv-today--theme"
-                    onClick={() => startChurchVerse({ text: themeText, refLabel: themeRef || t.themeBadge })}
-                  >
-                    <span className="pv-today__badge">
-                      <span className="material-icons-round text-[13px]">workspace_premium</span>
-                      {t.themeBadge}
-                    </span>
-                    <span className="pv-today__text">{themeText}</span>
-                    {themeRef && <span className="pv-today__ref">{themeRef}</span>}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* 예시 카드 — 만들어 보기 전에는 재미를 알 수 없으니 결과물을 먼저 보여준다 */}
-            <div className="pv-intro__samples">
-              <p className="pv-intro__bg-title">{t.samplesTitle}</p>
-              <p className="pv-intro__bg-body">{t.samplesBody}</p>
-              <IntroSamples
-                verse={verse ?? todayVerse}
-                lang={lang}
-                fontsReady={fontsReady}
-                onPick={startFromSample}
-              />
-            </div>
-
-            <div className="pv-intro__bg">
-              <p className="pv-intro__bg-title">{t.noPhotoTitle}</p>
-              <p className="pv-intro__bg-body">{t.noPhotoBody}</p>
-              {bgStrip}
-            </div>
-            <p className="pv-intro__privacy">
-              <span className="material-icons-round text-[14px]">lock</span>
-              {t.privacy}
-            </p>
-          </div>
+          <IntroScreen
+            t={t}
+            language={language}
+            lang={lang}
+            sampleVerse={verse ?? todayVerse}
+            fontsReady={fontsReady}
+            resumeOffer={resumeOffer}
+            sermon={sermon}
+            themeText={themeText}
+            themeRef={themeRef}
+            bgStrip={bgStrip}
+            onPickPhoto={() => fileInputRef.current?.click()}
+            onResume={resumeDraft}
+            onDismissResume={() => setResumeOffer(null)}
+            onStartOccasion={startOccasion}
+            onStartChurchVerse={startChurchVerse}
+            onStartSample={startFromSample}
+          />
         )}
 
         {/* 편집 화면 */}
@@ -952,10 +610,10 @@ const PhotoVerse = () => {
                 <canvas
                   ref={canvasRef}
                   className="pv-canvas"
-                  onPointerDown={handlePointerDown}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                  onPointerCancel={handlePointerUp}
+                  onPointerDown={onPointerDown}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  onPointerCancel={onPointerUp}
                 />
                 {isLock && showLockGuide && <LockScreenGuide language={language} />}
                 {isLock && (
@@ -1082,67 +740,19 @@ const PhotoVerse = () => {
             {/* 스타일 컨트롤 */}
             {verse && (
               <div className="pv-controls">
-                {/* 상황 · 인사말 — 상황을 고르면 말씀·인사말·룩이 함께 바뀐다. 인사말은 직접 고칠 수 있다 */}
-                <div className="pv-section">
-                  <p className="pv-section__title">{t.occasionTitle}</p>
-                  <div className="pv-occasion-row" role="radiogroup" aria-label={t.occasionTitle}>
-                    {OCCASIONS.map((o) => (
-                      <button
-                        key={o.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={occasionId === o.id}
-                        className={`pv-occasion-chip${occasionId === o.id ? ' pv-occasion-chip--active' : ''}`}
-                        onClick={() => startOccasion(o)}
-                      >
-                        <span className="material-icons-round text-[16px]" aria-hidden="true">{o.icon}</span>
-                        {language === 'ko' ? o.nameKo : o.nameEn}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="pv-greeting">
-                    {greetingEditing ? (
-                      <input
-                        type="text"
-                        className="pv-greeting__input"
-                        value={greeting}
-                        maxLength={GREETING_MAX}
-                        placeholder={t.greetingPlaceholder}
-                        enterKeyHint="done"
-                        autoFocus
-                        onChange={(e) => setGreeting(e.target.value)}
-                        onBlur={() => setGreetingEditing(false)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') setGreetingEditing(false)
-                        }}
-                      />
-                    ) : (
-                      <button type="button" className="pv-greeting__chip" onClick={() => setGreetingEditing(true)}>
-                        <span className="material-icons-round text-[16px]">draw</span>
-                        <span className="pv-greeting__text">{greeting.trim() || t.greetingAdd}</span>
-                      </button>
-                    )}
-                    {greeting && !greetingEditing && (
-                      <button
-                        type="button"
-                        className="pv-greeting__remove"
-                        aria-label={t.greetingRemove}
-                        onClick={() => setGreeting('')}
-                      >
-                        <span className="material-icons-round text-[16px]">close</span>
-                      </button>
-                    )}
-                    {occasion && occasion.verses.length > 1 && (
-                      <button type="button" className="pv-greeting__chip pv-greeting__chip--plain" onClick={nextOccasionVerse}>
-                        <span className="material-icons-round text-[16px]">autorenew</span>
-                        {t.otherVerse}
-                      </button>
-                    )}
-                  </div>
-                  {greeting.trim() && (
-                    <p className="pv-section__note">{isLock ? t.greetingLockNote : t.greetingHint}</p>
-                  )}
-                </div>
+                <OccasionSection
+                  t={t}
+                  language={language}
+                  occasionId={occasionId}
+                  occasion={occasion}
+                  greeting={greeting}
+                  greetingEditing={greetingEditing}
+                  isLock={isLock}
+                  onStartOccasion={startOccasion}
+                  onGreetingChange={setGreeting}
+                  onGreetingEditing={setGreetingEditing}
+                  onNextVerse={nextOccasionVerse}
+                />
 
                 {/* 스타일 프리셋 — 내 사진으로 그린 실사 썸네일. 한 탭에 완성된 룩 */}
                 <div className="pv-section">
@@ -1215,198 +825,18 @@ const PhotoVerse = () => {
                 </button>
 
                 {showDetails && (
-                  <div className="pv-details">
-                {/* 레이아웃 — 옵션 조합이 아니라 디자이너가 완성한 구도를 고른다 */}
-                <div className="pv-layouts" role="radiogroup" aria-label={t.layoutTitle}>
-                  {CARD_LAYOUTS.map((lay) => (
-                    <button
-                      key={lay.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={style.layout === lay.id}
-                      className={`pv-layout${style.layout === lay.id ? ' pv-layout--active' : ''}`}
-                      onClick={() => setPartial({ layout: lay.id })}
-                    >
-                      <span className="pv-layout__thumb">
-                        <LayoutGlyph id={lay.id} />
-                      </span>
-                      <span className="pv-layout__name">
-                        {language === 'ko' ? lay.nameKo : lay.nameEn}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <FilterStrip
-                  img={photo.img}
-                  active={style.filter}
-                  language={language}
-                  onSelect={(filter) => setPartial({ filter })}
-                />
-
-                <div className="pv-swatches" role="radiogroup" aria-label="색상">
-                  {COLOR_SWATCHES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      role="radio"
-                      aria-checked={style.color === c}
-                      className={`pv-swatch${style.color === c ? ' pv-swatch--active' : ''}`}
-                      style={{ backgroundColor: c }}
-                      onClick={() => setPartial({ color: c })}
-                    />
-                  ))}
-                </div>
-
-                <div className="pv-control-row">
-                  <div className="pv-seg" role="radiogroup" aria-label="서체">
-                    {(['serif', 'sans', 'hand', 'brush'] as const).map((f) => (
-                      <button
-                        key={f}
-                        type="button"
-                        role="radio"
-                        aria-checked={style.fontFamily === f}
-                        className={`pv-seg__item${style.fontFamily === f ? ' pv-seg__item--active' : ''}`}
-                        onClick={() => setPartial({ fontFamily: f })}
-                      >
-                        {t.font[f]}
-                      </button>
-                    ))}
-                  </div>
-
-                  {style.layout === 'classic' && (
-                    <div className="pv-seg" role="radiogroup" aria-label={t.alignLabel}>
-                      {(
-                        [
-                          ['left', 'format_align_left'],
-                          ['center', 'format_align_center'],
-                          ['right', 'format_align_right'],
-                        ] as const
-                      ).map(([a, icon]) => (
-                        <button
-                          key={a}
-                          type="button"
-                          role="radio"
-                          aria-checked={style.align === a}
-                          className={`pv-seg__item${style.align === a ? ' pv-seg__item--active' : ''}`}
-                          onClick={() => setPartial({ align: a })}
-                        >
-                          <span className="material-icons-round text-[18px]">{icon}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    aria-pressed={style.showRef}
-                    className={`pv-toggle${style.showRef ? ' pv-toggle--active' : ''}`}
-                    onClick={() => setPartial({ showRef: !style.showRef })}
-                  >
-                    {t.ref}
-                  </button>
-
-                  <button
-                    type="button"
-                    aria-pressed={style.signature}
-                    className={`pv-toggle${style.signature ? ' pv-toggle--active' : ''}`}
-                    onClick={() => setPartial({ signature: !style.signature })}
-                  >
-                    {t.signature}
-                  </button>
-                </div>
-
-                {/* 글 배경 — 은은한 스크림 / 반투명 박스 / 성경 밑줄 긋듯 형광펜(자유 레이아웃 전용) */}
-                <div className="pv-control-row">
-                  <div className="pv-seg" role="radiogroup" aria-label={t.textBgLabel}>
-                    {textBgOptions.map((b) => (
-                      <button
-                        key={b}
-                        type="button"
-                        role="radio"
-                        aria-checked={style.textBg === b}
-                        className={`pv-seg__item${style.textBg === b ? ' pv-seg__item--active' : ''}`}
-                        onClick={() => pickTextBg(b)}
-                      >
-                        {t.textBg[b]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 프레임 — 절기는 교회력 스탬프, 폴라로이드는 손글씨 출처, 필름은 날짜 스탬프 */}
-                <div className="pv-control-row">
-                  <div className="pv-seg" role="radiogroup" aria-label={t.frameLabel}>
-                    {(['none', 'season', 'polaroid', 'film'] as const).map((f) => (
-                      <button
-                        key={f}
-                        type="button"
-                        role="radio"
-                        aria-checked={style.frame === f}
-                        className={`pv-seg__item${style.frame === f ? ' pv-seg__item--active' : ''}`}
-                        onClick={() => setPartial({ frame: f })}
-                      >
-                        {t.frame[f]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {/* 지금 이 절기에만 찍히는 스탬프 — 한정판의 이유를 알려준다 */}
-                {style.frame === 'season' && (
-                  <p className="pv-season-note">
-                    <span className="material-icons-round text-[13px]">auto_awesome</span>
-                    {seasonStamp.label} · {seasonStamp.year}
-                  </p>
-                )}
-
-                {/* 비율 — 공유할 곳에 맞춘 센터 크롭 */}
-                <div className="pv-control-row">
-                  <div className="pv-seg" role="radiogroup" aria-label={t.ratioLabel}>
-                    {(['original', '1:1', '4:5', '9:16'] as const).map((r: CardRatioId) => (
-                      <button
-                        key={r}
-                        type="button"
-                        role="radio"
-                        aria-checked={style.ratio === r}
-                        className={`pv-seg__item${style.ratio === r ? ' pv-seg__item--active' : ''}`}
-                        onClick={() => pickCardRatio(r)}
-                      >
-                        {t.ratio[r]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 질감 — 필름의 물성. 여러 개를 겹칠 수 있다 */}
-                <div className="pv-control-row" role="group" aria-label={t.textureLabel}>
-                  {(['grain', 'leak', 'vignette', 'stamp'] as const).map((tx) => (
-                    <button
-                      key={tx}
-                      type="button"
-                      aria-pressed={style.textures.includes(tx)}
-                      className={`pv-toggle${style.textures.includes(tx) ? ' pv-toggle--active' : ''}`}
-                      onClick={() => toggleTexture(tx)}
-                    >
-                      {t.texture[tx]}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="pv-slider-row">
-                  <span className="pv-slider-label pv-slider-label--small">가</span>
-                  <input
-                    type="range"
-                    min={0.03}
-                    max={0.09}
-                    step={0.002}
-                    value={style.fontScale}
-                    aria-label={t.size}
-                    onChange={(e) => setStyle((s) => ({ ...s, fontScale: Number(e.target.value) }))}
-                    className="pv-slider"
+                  <DetailControls
+                    t={t}
+                    language={language}
+                    lang={lang}
+                    img={photo.img}
+                    style={style}
+                    onPartial={setPartial}
+                    onToggleTexture={toggleTexture}
+                    onPickTextBg={pickTextBg}
+                    onPickRatio={pickCardRatio}
+                    onFontScale={(fontScale) => setStyle((s) => ({ ...s, fontScale }))}
                   />
-                  <span className="pv-slider-label pv-slider-label--big">가</span>
-                </div>
-                  </div>
                 )}
 
                 <div className="pv-bg-section">
@@ -1421,18 +851,16 @@ const PhotoVerse = () => {
 
         {toast && <div className="pv-toast">{toast}</div>}
 
-        {/* 저장 인화 연출 — 방금 만든 카드가 폴라로이드처럼 서서히 현상된다 */}
+        {/* 저장 인화 연출 */}
         {printed && (
-          <div className="pv-print-overlay" onClick={closePrint}>
-            <div className={`pv-print${printDeveloped ? ' pv-print--developed' : ''}`}>
-              <div className="pv-print__img-wrap">
-                <img src={printed} alt="" className="pv-print__img" />
-              </div>
-              <p className="pv-print__caption">{verse?.refLabel}</p>
-            </div>
-            {isLock && <p className="pv-print__hint pv-print__hint--strong">{t.lockSavedHint}</p>}
-            <p className="pv-print__hint">{t.printedHint}</p>
-          </div>
+          <PrintOverlay
+            t={t}
+            src={printed}
+            developed={printDeveloped}
+            caption={verse?.refLabel}
+            isLock={isLock}
+            onClose={closePrint}
+          />
         )}
 
         {pickerOpen && (
