@@ -167,6 +167,30 @@
 .bw-body { font-size: 15px; line-height: 1.7; color: var(--bw-sub); white-space: pre-line; margin: 0 0 16px; overflow-wrap: anywhere; }
 .bw-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 20px 10px; }
 .bw-sheet-head .bw-h2 { font-size: 20px; }
+/* 소식 전체 시트 — 구분선은 둥근 행 바깥(::before)에 그려 끝이 말려 보이지 않게, 호버는 그림자 대신 안쪽 배경 */
+.bw-nl { display: flex; flex-direction: column; margin: 0 -10px; }
+.bw-nl-item { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; padding: 13px 10px; border-radius: 12px; text-align: left; transition: background 0.12s; }
+.bw-nl-item + .bw-nl-item::before { content: ''; position: absolute; left: 10px; right: 10px; top: 0; height: 1px; background: var(--bw-line); }
+.bw-nl-item:active { background: var(--bw-press); }
+.bw-nl-item.is-past .bw-tt { color: var(--bw-mute); }
+.bw-nl-body { display: none; }
+@media (hover: hover) {
+  .bw-nl-item:hover { background: var(--bw-press); }
+  .bw-nl-item:hover::before, .bw-nl-item:hover + .bw-nl-item::before { opacity: 0; }
+}
+@media (min-width: 1024px) {
+  .bw-nl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 4px 0 0; }
+  .bw-nl-item { align-items: flex-start; padding: 16px 16px 15px; border-radius: 16px; border: 1px solid var(--bw-line); min-height: 108px; }
+  .bw-nl-item + .bw-nl-item::before { display: none; }
+  .bw-nl-item .bw-tt { font-size: 16px; }
+  .bw-nl-item .bw-ss { margin-top: 3px; }
+  .bw-nl-body { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 8px; font-size: 13.5px; line-height: 1.55; color: var(--bw-sub); overflow-wrap: anywhere; }
+  .bw-nl-item.is-past { opacity: 0.62; }
+  .bw-nl-item.is-past .bw-tt { color: inherit; }
+  .bw-later-h { margin-top: 26px !important; }
+  .bw-later { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+  .bw-later .bw-kv:nth-child(2) { border-top: 0; }
+}
 .bw-ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; color: var(--bw-sub); font-size: 14.5px; line-height: 1.6; }
 .bw-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .bw-table th, .bw-table td { padding: 9px 6px; border-top: 1px solid var(--bw-line); text-align: left; vertical-align: top; }

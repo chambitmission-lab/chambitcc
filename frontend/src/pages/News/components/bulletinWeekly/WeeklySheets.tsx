@@ -83,10 +83,23 @@ const Switch = ({ on, onToggle, label, disabled }: { on: boolean; onToggle: () =
 )
 
 /** 시트 틀 — 제목 + 닫기 + 스크롤 본문 */
-export const WeeklySheet = ({ title, onClose, children, footer }: { title: string; onClose: () => void; children: ReactNode; footer?: ReactNode }) => {
+export const WeeklySheet = ({
+  title,
+  onClose,
+  children,
+  footer,
+  wide,
+}: {
+  title: string
+  onClose: () => void
+  children: ReactNode
+  footer?: ReactNode
+  /** lg+ 에서 넓은 카드로 (소식 전체) */
+  wide?: boolean
+}) => {
   const { t } = useLanguage()
   return (
-    <BottomSheet onClose={onClose} ariaLabel={title}>
+    <BottomSheet onClose={onClose} ariaLabel={title} wide={wide}>
       <div className="bw-sheet flex flex-col min-h-0 flex-1">
         <div className="bw-sheet-head">
           <p className="bw-h2">{title}</p>
@@ -288,21 +301,25 @@ export const WorshipSheet = ({ data, now, onClose }: { data: BulletinData; now: 
 export const NewsSheet = ({ week, now, onOpen, onClose }: { week: BulletinWeek; now: Date; onOpen: (index: number) => void; onClose: () => void }) => {
   const { t } = useLanguage()
   return (
-    <WeeklySheet title={t('bwNewsCount').replace('{n}', String(week.events.length))} onClose={onClose}>
-      {week.events.map(ev => {
-        const st = eventStatus(ev, now)
-        return (
-          <button type="button" key={ev.index} className="bw-r bw-press" style={{ borderTop: '1px solid var(--bw-line)' }} onClick={() => onOpen(ev.index)}>
-            <span className="bw-m">
-              <span className="bw-tt" style={st?.kind === 'past' ? { color: 'var(--bw-mute)' } : undefined}>
-                {ev.title}
+    <WeeklySheet title={t('bwNewsCount').replace('{n}', String(week.events.length))} onClose={onClose} wide>
+      {/* 모바일은 한 줄 목록, lg+ 는 2열 카드(본문 두 줄 미리보기) — bw-nl */}
+      <div className="bw-nl">
+        {week.events.map(ev => {
+          const st = eventStatus(ev, now)
+          const when = whenLabel(ev)
+          const preview = when ? ev.body.replace(/\s*\n\s*/g, ' ').trim() : ''
+          return (
+            <button type="button" key={ev.index} className={`bw-nl-item ${st?.kind === 'past' ? 'is-past' : ''}`} onClick={() => onOpen(ev.index)}>
+              <span className="bw-m">
+                <span className="bw-tt">{ev.title}</span>
+                <span className="bw-ss">{when || ev.body.split('\n')[0]}</span>
+                {preview && <span className="bw-nl-body">{preview}</span>}
               </span>
-              <span className="bw-ss">{whenLabel(ev) || ev.body.split('\n')[0]}</span>
-            </span>
-            <StatusChip st={st} />
-          </button>
-        )
-      })}
+              <StatusChip st={st} />
+            </button>
+          )
+        })}
+      </div>
       {week.later.length > 0 && <LaterList week={week} />}
     </WeeklySheet>
   )
@@ -312,9 +329,10 @@ const LaterList = ({ week }: { week: BulletinWeek }) => {
   const { t } = useLanguage()
   return (
     <>
-      <p className="bw-h2" style={{ fontSize: 16, margin: '20px 0 4px' }}>
+      <p className="bw-h2 bw-later-h" style={{ fontSize: 16, margin: '20px 0 4px' }}>
         {t('bwLater')}
       </p>
+      <div className="bw-later">
       {week.later.map((x, i) => (
         <div className="bw-kv" key={i}>
           <span className="bw-kv-l is-brand bw-tnum" style={{ minWidth: 76 }}>
@@ -323,6 +341,7 @@ const LaterList = ({ week }: { week: BulletinWeek }) => {
           <span className="bw-kv-v">{x.text}</span>
         </div>
       ))}
+      </div>
     </>
   )
 }
