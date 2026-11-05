@@ -17,7 +17,14 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 // 포스터 확대 보기는 탭해야 열린다 — lazy 로 분리
 const ImageLightbox = lazy(() => import('../../../components/common/ImageLightbox'))
 import NoticeContent from '../../../components/common/NoticeContent'
-import { noticePreviewText } from '../../../utils/noticeMarkup'
+import { noticePreviewText, stripInline } from '../../../utils/noticeMarkup'
+import {
+  downloadNoticeIcs,
+  extractNoticeHighlights,
+  noticeDday,
+  type NoticeWhen,
+} from '../../../utils/noticeHighlights'
+import { SheetGrabber } from '../../../components/common/SheetGrabber'
 import {
   dismissNoticeForToday,
   dismissNoticeForever,
@@ -95,6 +102,33 @@ const BannerSkeleton = () => (
     </div>
   </div>
 )
+
+/**
+ * 제목이 한 글자씩 켜진다 — 어절은 줄바꿈되지 않게 묶고(한글 keep-all), 글자는 inline 이라
+ * 줄바꿈 규칙을 깨지 않는다. 긴 제목도 1.3초 안에 다 켜지도록 간격을 줄인다.
+ */
+const GlowTitle = ({ text }: { text: string }) => {
+  const chars = Array.from(text)
+  const step = Math.min(0.08, 1.3 / Math.max(chars.length, 1))
+  let n = 0
+  return (
+    <h2 className="nl-title" aria-label={text}>
+      {text.split(/(\s+)/).map((word, wi) =>
+        /^\s+$/.test(word) ? (
+          <span key={wi}> </span>
+        ) : (
+          <span key={wi} className="nl-title__word" aria-hidden>
+            {Array.from(word).map((ch, ci) => (
+              <span key={ci} style={{ animationDelay: `${0.7 + step * n++}s` }}>
+                {ch}
+              </span>
+            ))}
+          </span>
+        ),
+      )}
+    </h2>
+  )
+}
 
 const HomeNotice = () => {
   const navigate = useNavigate()
@@ -181,6 +215,20 @@ const HomeNotice = () => {
   }, [currentPoster, posterReady])
   const popupReady = !!current && (!currentPoster || posterReady.has(currentPoster))
 
+  // 포스터 밖으로 꺼낼 정보 — 본문의 일시·장소 줄, 출처 붙은 인용(성구), 날짜 → D-day
+  const highlights = useMemo(
+    () => (current ? extractNoticeHighlights(current.content) : null),
+    [current],
+  )
+  const ddayValue = highlights?.when ? noticeDday(highlights.when) : null
+  // 두 달 넘게 남았거나 지난 일정은 숫자가 의미가 없어 칩을 뺀다
+  const ddayLabel =
+    ddayValue == null || ddayValue < 0 || ddayValue > 60
+      ? null
+      : ddayValue === 0
+        ? 'D-DAY'
+        : `D-${ddayValue}`
+
   // 팝업으로 본 공지는 읽음 처리 — 헤더 알림 뱃지가 이미 확인한 공지로 계속 울리지 않게
   useEffect(() => {
     if (!current || !isLoggedIn || current.is_read) return
@@ -237,6 +285,17 @@ const HomeNotice = () => {
   }
 
   useModalBackButton(closeCurrent, !!current)
+
+  // PC 키보드 — Esc 닫기, → 다음 공지. 포스터 확대 중에는 라이트박스가 키를 쓴다
+  useEffect(() => {
+    if (!current || !popupReady || zoomSrc) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeCurrent()
+      else if (e.key === 'ArrowRight' && queue.length > 1) closeCurrent()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [current, popupReady, zoomSrc, queue.length, closeCurrent])
 
   // 첫 조회 중 — 응답이 온 뒤 배너가 끼어들면 아래 묵상 카드가 통째로 밀린다(실측 CLS 0.115).
   // 지난 방문에 배너가 있었을 때만 같은 골격으로 자리를 비워 두고, 없었으면 아무것도 두지
@@ -404,146 +463,144 @@ const HomeNotice = () => {
         </button>
       </div>
 
-      {/* 전면 팝업 — 포스터가 있으면 디코드가 끝난 뒤에 */}
-      {current && popupReady && (
-        <div
-          className="notice-backdrop fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={closeCurrent}
-        >
+      {/* 전면 팝업 — 포스터가 있으면 디코드가 끝난 뒤에.
+          "빛 드는 공지": 모바일은 아래에서 올라오는 시트(위 포스터 · 아래 핵심 정보와 엄지 버튼),
+          PC(lg)는 가운데 2단 모달(왼쪽 포스터 전체 · 오른쪽 정보). 같은 DOM 을 CSS 가 두 모양으로
+          접는다(HomeNotice.css .nl-*). 위에서 내려오는 빛 · 포스터가 밝아짐 · 제목이 한 글자씩
+          켜짐은 교회 이름 '참빛'의 모티프 — 라이트는 새벽빛, 다크는 예배당 촛불빛. */}
+      {current && popupReady && highlights && (
+        <div className="nl-backdrop fixed inset-0 z-[120]" onClick={closeCurrent}>
+          <span aria-hidden className="nl-beam" />
           <div
-            className="notice-card relative w-full max-w-md lg:max-w-lg max-h-[88vh] rounded-3xl overflow-hidden flex flex-col"
-            style={{
-              background: 'var(--surface-container)',
-              border: '1px solid var(--card-border)',
-              boxShadow: 'var(--card-shadow)',
-            }}
+            key={current.id}
+            data-sheet-root
+            className={`nl-card${current.image_url ? '' : ' nl-card--plain'}`}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="공지사항"
+            aria-label={`공지사항 ${current.title}`}
           >
-            {/* 헤더 */}
-            <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3">
-              <div className="min-w-0">
-                <p className="text-[10.5px] font-bold tracking-[0.12em]" style={{ color: 'var(--brand)' }}>
-                  공지사항
-                </p>
-                <h2
-                  className="mt-1 text-[18px] font-bold leading-snug tracking-[-0.015em]"
-                  style={{ color: 'var(--text-strong)' }}
-                >
-                  {current.title}
-                </h2>
-                <p className="mt-1 text-[11.5px]" style={{ color: 'var(--text-muted)' }}>
-                  {formatDate(current.created_at)}
-                  {queue.length > 1 && ` · 1/${queue.length}`}
-                </p>
-              </div>
+            <SheetGrabber onClose={closeCurrent} className="nl-grab sheet-grabber" />
+            <button type="button" onClick={closeCurrent} aria-label="닫기" className="nl-close">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+
+            {current.image_url && (
               <button
                 type="button"
-                onClick={closeCurrent}
-                aria-label="닫기"
-                className="shrink-0 w-9 h-9 -mr-1.5 rounded-full flex items-center justify-center transition-colors hover:bg-[var(--brand-soft)]"
-                style={{ color: 'var(--text-muted)' }}
+                onClick={() => setZoomSrc(current.image_url as string)}
+                aria-label={`${current.title} 포스터 크게 보기`}
+                className="nl-media"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* 본문 */}
-            <div className="flex-1 overflow-y-auto px-5 pb-4">
-              {current.image_url && (
-                <button
-                  type="button"
-                  onClick={() => setZoomSrc(current.image_url as string)}
-                  aria-label={`${current.title} 포스터 크게 보기`}
-                  className="poster-btn group/poster relative mb-3.5 block w-full overflow-hidden rounded-2xl"
-                  style={{ background: 'var(--surface-inset)' }}
-                >
-                  <img
-                    src={current.image_url}
-                    alt=""
-                    className="notice-poster-img w-full object-contain transition-transform duration-200 group-hover/poster:scale-[1.02]"
-                    style={{ filter: 'var(--media-dim)' }}
-                  />
-                  {/* 눌러야 읽힌다는 걸 알려주는 손잡이 — 없으면 그냥 작은 그림으로 끝난다 */}
-                  <span className="pointer-events-none absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-[2px]">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <circle cx="11" cy="11" r="7" />
-                      <path d="M20 20l-3.2-3.2M11 8.5v5M8.5 11h5" />
-                    </svg>
-                    크게 보기
-                  </span>
-                </button>
-              )}
-              <NoticeContent source={current.content} />
-
-              {current.link_url && (
-                <button
-                  type="button"
-                  onClick={handleLink}
-                  className="mt-4 inline-flex items-center gap-1 text-[13px] font-bold"
-                  style={{ color: 'var(--brand)' }}
-                >
-                  바로가기
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18l6-6-6-6" />
+                <span aria-hidden className="nl-media__amb" style={{ backgroundImage: `url("${current.image_url}")` }} />
+                <span aria-hidden className="nl-media__beam" />
+                <img src={current.image_url} alt="" className="nl-media__img" />
+                <span aria-hidden className="nl-media__sheen" />
+                <span className="nl-chips">
+                  <span className="nl-chip">참빛 소식</span>
+                  {ddayLabel && <span className="nl-chip nl-chip--dday">{ddayLabel}</span>}
+                </span>
+                <span className="nl-chip nl-zoom">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-3.2-3.2M11 8.5v5M8.5 11h5" />
                   </svg>
-                </button>
-              )}
-
-              {/* 다 읽고 난 자리 — '바로가기'보다 한 단계 낮은 위계로 보관함을 알려준다 */}
-              <button
-                type="button"
-                onClick={handleArchive}
-                className="mt-4 flex items-center gap-1 text-[12px] font-semibold"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                지난 공지 모두 보기
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
+                  크게 보기
+                </span>
               </button>
-            </div>
+            )}
 
-            {/* 푸터 — 확인이 주 동작, 안 보기는 한 단계 낮은 위계 */}
-            <div
-              className="px-5 pt-3 pb-4"
-              style={{ borderTop: '1px solid var(--card-border)' }}
-            >
-              <button
-                type="button"
-                onClick={closeCurrent}
-                className="w-full h-12 rounded-2xl text-[15px] font-bold brand-gradient active:opacity-90 transition-opacity"
-              >
-                {queue.length > 1 ? '다음 공지 보기' : '확인'}
-              </button>
-              <div className="mt-2.5 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleToday}
-                  className="px-2 py-1 text-[12.5px] font-semibold"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  오늘 하루 안 보기
-                </button>
-                <span className="w-px h-3" style={{ background: 'var(--card-border)' }} aria-hidden />
-                <button
-                  type="button"
-                  onClick={handleForever}
-                  className="px-2 py-1 text-[12.5px] font-semibold"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  다시 안 보기
-                </button>
+            <div className="nl-info">
+              <span aria-hidden className="nl-info__glow" />
+              <div className="nl-scroll">
+                <div className="nl-rise">
+                  <p className="nl-kick">
+                    공지{queue.length > 1 && ` · 1/${queue.length}`}
+                    {!current.image_url && ddayLabel && <span className="nl-chip nl-chip--dday">{ddayLabel}</span>}
+                  </p>
+                  <GlowTitle text={current.title} />
+                  <p className="nl-meta">{formatDate(current.created_at)} · 참빛교회</p>
+                </div>
+
+                {highlights.rows.length > 0 && (
+                  <dl className="nl-rows nl-rise">
+                    {highlights.rows.map((r) => (
+                      <div key={`${r.label}-${r.value}`} className="nl-row">
+                        <dt>{r.label}</dt>
+                        <dd>{stripInline(r.value)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+
+                {highlights.verse && (
+                  <p className="nl-verse nl-rise">
+                    {highlights.verse.text} <small>{highlights.verse.ref}</small>
+                  </p>
+                )}
+
+                {highlights.rest && (
+                  <div className="nl-content nl-rise">
+                    <NoticeContent source={highlights.rest} />
+                  </div>
+                )}
+
+                <div className="nl-more nl-rise">
+                  {current.link_url && (
+                    <button type="button" onClick={handleLink} className="nl-more__link">
+                      바로가기
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </button>
+                  )}
+                  {/* 다 읽고 난 자리 — '바로가기'보다 한 단계 낮은 위계로 보관함을 알려준다 */}
+                  <button type="button" onClick={handleArchive} className="nl-more__archive">
+                    지난 공지 모두 보기
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* 푸터 — 확인이 주 동작, 일정 담기는 날짜를 읽은 공지만, 안 보기는 한 단계 낮은 위계 */}
+              <div className="nl-foot">
+                <div className="nl-act">
+                  {highlights.when && (ddayValue == null || ddayValue >= 0) && (
+                    <button
+                      type="button"
+                      onClick={() => downloadNoticeIcs(current, highlights.when as NoticeWhen, highlights.place)}
+                      className="nl-btn nl-btn--sec"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <rect x="3" y="4.5" width="18" height="16" rx="3" />
+                        <path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
+                      </svg>
+                      일정 담기
+                    </button>
+                  )}
+                  <button type="button" onClick={closeCurrent} className="nl-btn nl-btn--pri">
+                    {queue.length > 1 ? '다음 공지 보기' : '확인'}
+                  </button>
+                </div>
+                <div className="nl-links">
+                  <span className="nl-links__row">
+                    <button type="button" onClick={handleToday}>오늘은 그만 보기</button>
+                    <span aria-hidden className="nl-links__bar" />
+                    <button type="button" onClick={handleForever}>다시 안 보기</button>
+                  </span>
+                  <span className="nl-kbd" aria-hidden>
+                    <kbd>Esc</kbd>닫기{queue.length > 1 && <><kbd>→</kbd>다음</>}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
-
       {/* 포스터 확대 보기 — 핀치·휠·두 번 탭으로 원하는 곳만 키워서 읽는다 */}
       {zoomSrc && (
         <Suspense fallback={null}>

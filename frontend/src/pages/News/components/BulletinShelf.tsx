@@ -251,7 +251,10 @@ const CoverFlow = ({
       const dist = (card.offsetLeft + card.offsetWidth / 2 - cx) / card.offsetWidth
       const k = Math.max(-1.6, Math.min(1.6, dist))
       card.style.transform = `perspective(var(--bsf-persp)) rotateY(${-k * 38}deg) translateZ(${-Math.abs(k) * 70}px) scale(${1 - Math.min(Math.abs(k), 1) * 0.06})`
-      card.style.zIndex = String(100 - Math.round(Math.abs(dist) * 10))
+      // 겹침 순서는 두 카드가 가운데에서 같은 거리가 되는 순간(0.5 간격)에만 바뀌면 된다 —
+      // 프레임마다 다른 값을 쓰면 레이어가 매번 다시 정렬되어 옆 카드가 덜컥거렸다
+      const z = String(100 - Math.round(Math.abs(dist)))
+      if (card.style.zIndex !== z) card.style.zIndex = z
       if (Math.abs(dist) < bestDist) {
         bestDist = Math.abs(dist)
         best = i
@@ -280,12 +283,61 @@ const CoverFlow = ({
     }
   }, [schedule])
 
+  // 버튼·옆 카드로 넘길 때는 직접 이징한다 — 브라우저 smooth 스크롤은 거리마다 속도가 달라
+  // 한 장 넘김이 툭 끝나고, 스냅 컨테이너에선 멈춘 뒤 스냅이 한 번 더 움직여 끊겨 보였다.
+  // 움직이는 동안만 스냅을 끄고(끄지 않으면 scrollLeft 가 바로 스냅 자리로 튄다) 도착하면 되돌린다
+  const anim = useRef(0)
+  const stopAnim = useCallback(() => {
+    if (!anim.current) return
+    cancelAnimationFrame(anim.current)
+    anim.current = 0
+    if (trackRef.current) trackRef.current.style.scrollSnapType = ''
+  }, [])
+
   const scrollToCard = (index: number) => {
     const track = trackRef.current
     const card = track?.querySelectorAll<HTMLElement>('.bsf-card')[index]
     if (!track || !card) return
-    track.scrollTo({ left: card.offsetLeft + card.offsetWidth / 2 - track.clientWidth / 2, behavior: 'smooth' })
+    const target = card.offsetLeft + card.offsetWidth / 2 - track.clientWidth / 2
+    stopAnim()
+    const from = track.scrollLeft
+    const delta = target - from
+    if (Math.abs(delta) < 1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      track.scrollLeft = target
+      update()
+      return
+    }
+    track.style.scrollSnapType = 'none'
+    const duration = Math.min(640, 360 + (Math.abs(delta) / card.offsetWidth) * 70)
+    let t0 = 0
+    const step = (now: number) => {
+      if (!t0) t0 = now
+      const p = Math.min(1, (now - t0) / duration)
+      const eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+      track.scrollLeft = from + delta * eased
+      update()
+      if (p < 1) {
+        anim.current = requestAnimationFrame(step)
+      } else {
+        anim.current = 0
+        track.style.scrollSnapType = ''
+      }
+    }
+    anim.current = requestAnimationFrame(step)
   }
+
+  // 손으로 넘기기 시작하면 진행 중이던 이징을 바로 놓아 준다
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return
+    track.addEventListener('wheel', stopAnim, { passive: true })
+    track.addEventListener('touchstart', stopAnim, { passive: true })
+    return () => {
+      track.removeEventListener('wheel', stopAnim)
+      track.removeEventListener('touchstart', stopAnim)
+      stopAnim()
+    }
+  }, [stopAnim])
 
   // 옆 카드는 가운데로 데려오고, 가운데 카드를 누르면 연다
   const handleCard = (index: number) => {
@@ -317,7 +369,7 @@ const CoverFlow = ({
       </div>
 
       <div className="relative">
-        <div ref={trackRef} className="bsf-flow scrollbar-hide" onScroll={schedule}>
+        <div ref={trackRef} className="bsf-flow scrollbar-hide" onScroll={() => { if (!anim.current) schedule() }}>
           {list.map((issue, i) => (
             <button
               key={issue.bulletin.id}
@@ -332,7 +384,14 @@ const CoverFlow = ({
             >
               <span className="bsf-card-no">{fill(t('newsBulletinIssueShort'), { no: issue.no })}</span>
               {issue.bulletin.thumbnail_url ? (
-                <img src={issue.bulletin.thumbnail_url} alt="" loading="lazy" decoding="async" fetchPriority="low" />
+                <img
+                  src={issue.bulletin.thumbnail_url}
+                  alt=""
+                  // 가운데 근처 카드는 넘기는 도중 그림이 툭 뜨지 않게 미리 받아 둔다
+                  loading={Math.abs(i - center) <= 4 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  fetchPriority="low"
+                />
               ) : (
                 <span className="bsf-card-empty">
                   <BulletinIcon width={30} height={30} />

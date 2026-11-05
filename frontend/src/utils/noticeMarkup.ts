@@ -132,7 +132,7 @@ export interface InfoRow {
 // 라벨 안의 공백은 무시하고 맞춘다 — "모이는 곳:"도 잡히도록.
 const INFO_RE = /^\s*([가-힣]{2,6}(?:\s[가-힣]{1,4})?)\s*[:：]\s*(\S.*)$/
 
-const matchInfoRow = (line: string): InfoRow | null => {
+export const matchInfoRow = (line: string): InfoRow | null => {
   const m = INFO_RE.exec(line)
   if (!m) return null
   const rawLabel = m[1].trim()
