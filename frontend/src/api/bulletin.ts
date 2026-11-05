@@ -151,19 +151,7 @@ export interface BulletinNewsImportResult {
   found: boolean
   events: number
   skipped_duplicates: number
-  news_id: number | null
 }
-
-/**
- * 주보 '소식' 쪽 → 일정·교회소식 초안 다시 가져오기 (관리자 전용, AI 읽기라 1~2분)
- * 같은 날·같은 제목 일정은 서버가 건너뛰어 여러 번 눌러도 쌓이지 않는다.
- */
-export const importBulletinNews = (id: number): Promise<BulletinNewsImportResult> =>
-  request<BulletinNewsImportResult>(`/bulletins/${id}/import-news`, {
-    method: 'POST',
-    auth: 'required',
-    errorMessage: '주보 소식을 읽지 못했어요',
-  })
 
 export interface BulletinDigitalImportResult {
   found: boolean
@@ -173,12 +161,66 @@ export interface BulletinDigitalImportResult {
 }
 
 /**
- * 주보 전체 → 디지털 주보 초안 다시 만들기 (관리자 전용, AI 읽기라 1~2분)
- * 초안은 공개되지 않고 /news?tab=bulletin 의 관리자 배너에서 검토 후 적용한다. 있던 초안은 덮어쓴다.
+ * AI 읽기 요청(서버 대기열) — '다시 만들기'는 1~2분을 응답에서 기다리지 않고 job 으로 돌아온다.
+ * queued → running → done(result) / failed(error). 서버가 재시작되면 목록이 비어 404.
  */
-export const importBulletinDigital = (id: number): Promise<BulletinDigitalImportResult> =>
-  request<BulletinDigitalImportResult>(`/bulletins/${id}/import-digital`, {
+export interface BulletinImportJob {
+  job_id: string
+  state: 'queued' | 'running' | 'done' | 'failed'
+  bulletin_id: number | null
+  readers: string[]
+  force: boolean
+  result: { news?: BulletinNewsImportResult; digital?: BulletinDigitalImportResult; column?: { column_id: number } }
+  error: string | null
+}
+
+/**
+ * 주보 '소식' 쪽 → 일정 초안 다시 가져오기 (관리자 전용). 대기열에 넣고 바로 job 을 돌려준다.
+ * 같은 날·같은 제목 일정은 서버가 건너뛰어 여러 번 눌러도 쌓이지 않는다.
+ */
+export const importBulletinNews = (id: number): Promise<BulletinImportJob> =>
+  request<BulletinImportJob>(`/bulletins/${id}/import-news`, {
     method: 'POST',
     auth: 'required',
-    errorMessage: '주보를 읽지 못했어요',
+    errorMessage: '주보 소식 읽기를 시작하지 못했어요',
   })
+
+/**
+ * 주보 전체 → 디지털 주보 초안 다시 만들기 (관리자 전용). 대기열에 넣고 바로 job 을 돌려준다.
+ * 초안은 공개되지 않고 /news?tab=bulletin 의 관리자 배너에서 검토 후 적용한다. 있던 초안은 덮어쓴다.
+ */
+export const importBulletinDigital = (id: number): Promise<BulletinImportJob> =>
+  request<BulletinImportJob>(`/bulletins/${id}/import-digital`, {
+    method: 'POST',
+    auth: 'required',
+    errorMessage: '주보 읽기를 시작하지 못했어요',
+  })
+
+export const getBulletinImportJob = (jobId: string): Promise<BulletinImportJob> =>
+  request<BulletinImportJob>(`/bulletins/import-jobs/${jobId}`, {
+    auth: 'required',
+    cache: 'no-store',
+    errorMessage: '읽기 진행 상태를 확인하지 못했어요',
+  })
+
+const IMPORT_POLL_MS = 5000
+const IMPORT_WAIT_MS = 5 * 60 * 1000
+
+/**
+ * job 이 끝날 때까지 몇 초마다 묻는다(최대 5분 — 읽기 하나는 2분 상한, 앞에 줄 선 것이 있을 수 있다).
+ * failed 면 서버가 남긴 error 로 던지고, 시간을 넘기면 안내 문구로 던진다.
+ */
+export const waitForBulletinImportJob = async (
+  jobId: string,
+  onTick?: (job: BulletinImportJob) => void,
+): Promise<BulletinImportJob> => {
+  const deadline = Date.now() + IMPORT_WAIT_MS
+  for (;;) {
+    const job = await getBulletinImportJob(jobId)
+    onTick?.(job)
+    if (job.state === 'done') return job
+    if (job.state === 'failed') throw new Error(job.error || '주보를 읽지 못했어요. 잠시 후 다시 시도해 주세요.')
+    if (Date.now() > deadline) throw new Error('읽기가 아직 끝나지 않았어요. 끝나면 관리자 알림으로 알려드려요.')
+    await new Promise(resolve => setTimeout(resolve, IMPORT_POLL_MS))
+  }
+}

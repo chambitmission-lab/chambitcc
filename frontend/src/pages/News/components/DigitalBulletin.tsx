@@ -95,7 +95,8 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
 
   const save = async (next: BulletinData) => {
     try {
-      await replaceMutation.mutateAsync({ data: next })
+      // 초안 없이 손으로 새 주 주보를 쓰는 경우도 서버가 date 로 주보를 찾아 도착 알림을 잡는다 — 본문을 늘 같이 보낸다
+      await replaceMutation.mutateAsync({ data: next, announce: announceSummary(next, kstNow()) })
     } catch (e) {
       console.error(e)
       showToast(t('newsDbSaveFailed'), 'error')

@@ -101,7 +101,7 @@ export interface ReplaceBulletinVars {
   data: BulletinData
   /** AI 초안을 검토해 적용한 저장 — 서버가 초안을 지우므로 초안 캐시도 비운다 */
   discardDraft?: boolean
-  /** 새 주보 도착 알림 본문(초안 적용 때만 의미) */
+  /** 새 주보 도착 알림 본문 — 서버가 date 로 새 주보임을 알아내면 쓴다(초안 적용이든 손으로 쓴 새 주든) */
   announce?: string
 }
 

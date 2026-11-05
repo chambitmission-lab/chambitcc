@@ -173,10 +173,11 @@ const BulletinDeskEditor = ({ initial, aiDraft, onClose }: BulletinDeskEditorPro
   const save = useCallback(async () => {
     if (!dirty || replaceMutation.isPending) return
     try {
+      // 알림 본문은 늘 보낸다 — 초안 없이 새 주 주보를 써도 서버가 date 로 주보를 찾아 도착 알림을 잡는다
       await replaceMutation.mutateAsync({
         data: draft,
         discardDraft: fromAiDraft,
-        announce: fromAiDraft ? announceSummary(draft, kstNow()) : undefined,
+        announce: announceSummary(draft, kstNow()),
       })
       setBaseline(draft)
       setFromAiDraft(false)

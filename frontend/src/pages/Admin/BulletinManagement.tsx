@@ -2,7 +2,16 @@ import { formatDotDateWeekday, formatLongDate } from '../../utils/dateUtils'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
-import { getBulletins, deleteBulletin, importBulletinDigital, importBulletinNews } from '../../api/bulletin'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  getBulletins,
+  deleteBulletin,
+  importBulletinDigital,
+  importBulletinNews,
+  waitForBulletinImportJob,
+  type BulletinImportJob,
+} from '../../api/bulletin'
+import { bulletinKeys } from '../../hooks/useDigitalBulletin'
 import type { Bulletin } from '../../types/bulletin'
 import BulletinComposer from './components/BulletinComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
@@ -22,6 +31,7 @@ const isThisMonth = (date: string): boolean => {
 
 const BulletinManagement = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const [bulletins, setBulletins] = useState<Bulletin[]>([])
   const [loading, setLoading] = useState(true)
@@ -111,6 +121,17 @@ const BulletinManagement = () => {
       importLockRef.current = false
     }
   }
+  // 서버는 읽기를 대기열에 넣고 바로 job 을 돌려준다 — 끝날 때까지 몇 초마다 묻는다.
+  // 앞에 줄 선 읽기가 있으면 '대기 중' 토스트로 알려 준다
+  const waitImport = (job: BulletinImportJob) => {
+    let queuedToldAt = 0
+    return waitForBulletinImportJob(job.job_id, j => {
+      if (j.state === 'queued' && Date.now() - queuedToldAt > 30_000) {
+        queuedToldAt = Date.now()
+        showToast('앞의 읽기가 끝나기를 기다리는 중이에요…', 'info')
+      }
+    })
+  }
   // 주보 전체 → 디지털 주보 초안 (AI 1~2분). 공개되지 않고 소식 탭의 관리자 배너에서 검토 후 적용
   const runImportDigital = async (bulletin: Bulletin) => {
     if (
@@ -125,7 +146,14 @@ const BulletinManagement = () => {
     setImportingId(bulletin.id)
     showToast('주보를 읽는 중이에요… (1~2분)', 'info')
     try {
-      const r = await importBulletinDigital(bulletin.id)
+      const job = await waitImport(await importBulletinDigital(bulletin.id))
+      const r = job.result.digital
+      // 초안이 바뀌었으니 소식 탭이 옛 초안(캐시)을 보여 주지 않게
+      void queryClient.invalidateQueries({ queryKey: bulletinKeys.draft, refetchType: 'all' })
+      if (!r) {
+        showToast('주보를 읽지 못했어요. 잠시 후 다시 시도해 주세요', 'error')
+        return
+      }
       if (!r.found) {
         showToast('이 이미지를 주보로 읽지 못했어요', 'info')
         return
@@ -143,7 +171,7 @@ const BulletinManagement = () => {
       !(await confirmDialog({
         title: '소식 → 일정 초안',
         message:
-          '주보의 소식 쪽을 읽어 날짜가 있는 항목은 일정 초안으로, 소식 전문은 교회소식 초안으로 만들어요. 1~2분 걸리고, 이미 있는 일정은 건너뜁니다.',
+          '주보의 소식 쪽을 읽어 날짜가 있는 항목을 일정 초안으로 만들어요. 1~2분 걸리고, 이미 있는 일정은 건너뜁니다. 교회소식 초안은 디지털 주보 초안을 적용할 때 그 소식으로 만들어져요.',
         confirmText: '가져오기',
       }))
     )
@@ -151,14 +179,18 @@ const BulletinManagement = () => {
     setImportingId(bulletin.id)
     showToast('주보 소식을 읽는 중이에요… (1~2분)', 'info')
     try {
-      const r = await importBulletinNews(bulletin.id)
+      const job = await waitImport(await importBulletinNews(bulletin.id))
+      const r = job.result.news
+      if (!r) {
+        showToast('주보 소식을 읽지 못했어요. 잠시 후 다시 시도해 주세요', 'error')
+        return
+      }
       if (!r.found) {
         showToast('이 주보에서 소식 쪽을 찾지 못했어요', 'info')
         return
       }
       const parts = [`일정 초안 ${r.events}건`]
       if (r.skipped_duplicates) parts.push(`중복 ${r.skipped_duplicates}건 건너뜀`)
-      if (r.news_id) parts.push('교회소식 초안 1건')
       showToast(`${parts.join(' · ')} — 일정 관리에서 확인 후 공개해 주세요`, 'success')
       if (r.events) navigate('/admin/events?status=bulletin')
     } catch (err) {
@@ -389,6 +421,7 @@ const BulletinManagement = () => {
           <BulletinComposer
             key={editing?.id ?? 'new'}
             bulletin={editing}
+            existing={bulletins}
             onClose={handleComposerClose}
             onSuccess={handleComposerSuccess}
           />

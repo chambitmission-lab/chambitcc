@@ -21,6 +21,14 @@ interface BulletinComposerProps {
   onSuccess: () => void
   /** 주면 수정 모드 — 제목·날짜·설명과 페이지(추가·삭제·순서)를 함께 고친다 */
   bulletin?: Bulletin | null
+  /** 이미 등록된 주보 목록 — 같은 주일에 또 올리려 할 때 경고(두 번 올리면 AI 초안이 뒤 것으로 덮인다) */
+  existing?: Bulletin[]
+}
+
+/** 자동 등록(bulletin_sync_service.bulletin_title)과 같은 제목 — "2026년 10월 11일" */
+const autoTitle = (dateInput: string): string => {
+  const m = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? `${m[1]}년 ${Number(m[2])}월 ${Number(m[3])}일` : ''
 }
 
 /**
@@ -49,14 +57,22 @@ const getNextSunday = (): string => {
   return toDateInput(d)
 }
 
-const BulletinComposer = ({ onClose, onSuccess, bulletin = null }: BulletinComposerProps) => {
+const BulletinComposer = ({ onClose, onSuccess, bulletin = null, existing = [] }: BulletinComposerProps) => {
   const isEdit = !!bulletin
-  const [title, setTitle] = useState(bulletin?.title ?? '')
-  const [description, setDescription] = useState(bulletin?.description ?? '')
   // 저장된 주보 날짜는 'YYYY-MM-DDTHH:mm:ss' — 앞 10자가 곧 DatePicker 값이다
-  const [bulletinDate, setBulletinDate] = useState(
+  const [bulletinDate, setBulletinDateRaw] = useState(
     bulletin ? bulletin.bulletin_date.slice(0, 10) : getThisSunday(),
   )
+  // 새 주보 제목은 날짜에서 자동으로("2026년 10월 11일") — 손으로 고치기 전까지만 날짜를 따라간다
+  const [title, setTitle] = useState(bulletin?.title ?? autoTitle(getThisSunday()))
+  const titleTouchedRef = useRef(false)
+  const setBulletinDate = (next: string) => {
+    setBulletinDateRaw(next)
+    if (!isEdit && !titleTouchedRef.current) setTitle(autoTitle(next))
+  }
+  const [description, setDescription] = useState(bulletin?.description ?? '')
+  // 같은 주일 주보가 이미 있으면 알려 준다(수정 모드에선 자기 자신은 제외)
+  const duplicate = existing.find(b => b.id !== bulletin?.id && b.bulletin_date.slice(0, 10) === bulletinDate)
   const [items, setItems] = useState<PageItem[]>([])
   /** 수정 모드에서 지운 기존 페이지 — 저장할 때 한꺼번에 삭제한다 */
   const [removedPageIds, setRemovedPageIds] = useState<number[]>([])
@@ -258,8 +274,11 @@ const BulletinComposer = ({ onClose, onSuccess, bulletin = null }: BulletinCompo
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="예) 2026년 5월 셋째 주 주보"
+                onChange={(e) => {
+                  titleTouchedRef.current = true
+                  setTitle(e.target.value)
+                }}
+                placeholder="예) 2026년 5월 17일"
                 maxLength={120}
                 required
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
@@ -284,6 +303,11 @@ const BulletinComposer = ({ onClose, onSuccess, bulletin = null }: BulletinCompo
                 sundayMode
                 className={dateTriggerClass}
               />
+              {duplicate && (
+                <p className="mt-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-400/10 border border-amber-200 dark:border-amber-400/25 text-[12px] leading-[1.55] text-amber-900 dark:text-amber-100">
+                  이 주일엔 이미 <span className="font-bold">{duplicate.title}</span> 주보가 있어요. 또 올리면 AI 초안이 나중 것으로 덮여요. 페이지를 바꾸려면 기존 주보를 수정해 주세요.
+                </p>
+              )}
             </FieldGroup>
 
             {/* 설명 */}
