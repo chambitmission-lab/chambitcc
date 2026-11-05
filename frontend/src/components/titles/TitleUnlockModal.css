@@ -1,198 +1,313 @@
-/* 칭호 해금 팝업 */
-.title-unlock-overlay {
+/* 칭호 해금 팝업 — B1 풀아트 칭호 카드 (tuc-)
+   어두운 무대 위 카드 한 장. 배경은 칭호 그림을 흐리게 깔아 칭호마다 분위기가 달라진다.
+   등급 색은 TitleUnlockModal 의 CARD_TIER 가 --tuc-frame/--tuc-tier-text/--tuc-glow/--tuc-holo 로 넣는다. */
+
+.tuc-overlay {
   position: fixed;
   inset: 0;
   z-index: 1200;
   display: grid;
   place-items: center;
-  padding: 20px;
-  background: rgba(8, 8, 16, 0.66);
-  backdrop-filter: blur(6px);
-}
-
-.title-unlock-card {
-  position: relative;
-  width: min(360px, 92vw);
-  padding: 30px 24px 24px;
-  border-radius: 26px;
-  text-align: center;
-  background: linear-gradient(160deg, #241a3a 0%, #1c1c26 60%);
-  border: 1px solid rgba(168, 85, 247, 0.45);
-  box-shadow:
-    0 24px 60px rgba(168, 85, 247, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+  background: #07090f;
   overflow: hidden;
+  isolation: isolate;
+  color: #fff;
 }
 
-/* 🏆 전설 등급 팝업 — 무지개빛 테두리가 흐른다 */
-.title-unlock-card.is-legendary {
-  border: 2px solid transparent;
-  background:
-    linear-gradient(160deg, #2a2012 0%, #1c1c26 60%) padding-box,
-    linear-gradient(135deg, #fbbf24, #ec4899, #a855f7, #22d3ee, #fbbf24) border-box;
-  background-size: 100% 100%, 300% 300%;
-  box-shadow: 0 24px 70px rgba(251, 191, 36, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  animation: unlock-legend-border 6s linear infinite;
-}
-
-.title-unlock-card.is-legendary .title-unlock-emblem {
-  background: linear-gradient(135deg, #fbbf24, #ec4899, #a855f7);
-}
-
-.title-unlock-card.is-legendary .title-unlock-name {
-  background: linear-gradient(135deg, #fde68a, #fbbf24, #f9a8d4);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-@keyframes unlock-legend-border {
-  0% { background-position: 0% 0%, 0% 50%; }
-  100% { background-position: 0% 0%, 300% 50%; }
-}
-
-/* 번지는 광채 */
-.title-unlock-burst {
+/* 흐린 그림 배경 */
+.tuc-ambient {
   position: absolute;
-  top: -40%;
-  left: 50%;
-  width: 320px;
-  height: 320px;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.32) 38%, transparent 70%);
-  filter: blur(8px);
-  pointer-events: none;
-  animation: unlock-glow 2.6s ease-in-out infinite;
+  inset: -60px;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) saturate(1.25) brightness(0.42);
+  transform: scale(1.05);
+}
+.tuc-ambient.is-plain {
+  background: var(--tuc-frame);
+  filter: blur(60px) saturate(0.9) brightness(0.3);
+}
+.tuc-ambient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 42%, transparent 20%, rgba(0, 0, 0, 0.6) 78%);
 }
 
-@keyframes unlock-glow {
-  0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
-  50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
-}
-
-.title-unlock-eyebrow {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #f9a8d4;
-  margin-bottom: 14px;
-}
-
-.title-unlock-emblem {
-  position: relative;
-  width: 92px;
-  height: 92px;
-  margin: 0 auto 16px;
-  border-radius: 24px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  box-shadow:
-    0 10px 30px rgba(168, 85, 247, 0.5),
-    0 0 0 4px var(--tier-ring, rgba(168, 85, 247, 0.4));
-}
-
-.title-unlock-icon {
-  font-size: 50px;
-  line-height: 1;
-  display: block;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
-}
-
-.title-unlock-name {
-  position: relative;
-  margin: 0 0 6px;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  background: linear-gradient(135deg, #d8b4fe, #f9a8d4);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.title-unlock-congrats {
-  position: relative;
-  margin: 0 0 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #eaeaf0;
-}
-
-.title-unlock-desc {
-  position: relative;
-  margin: 0 0 22px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #b9b9c4;
-}
-
-.title-unlock-actions {
-  position: relative;
+.tuc-stage {
+  width: min(320px, 100%);
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
 }
 
-.title-unlock-equip {
+/* 순서대로 떠오르기 */
+.tuc-fu { animation: tuc-fade-up 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--tuc-d, 0s); }
+@keyframes tuc-fade-up { from { opacity: 0; transform: translateY(12px); } }
+
+.tuc-eyebrow {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+}
+.tuc-eyebrow b { color: var(--tuc-tier-text); }
+
+/* ── 기울이기 ── */
+.tuc-tilt {
+  width: min(236px, 68vw);
+  aspect-ratio: 236 / 346;
+  perspective: 900px;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tuc-tilt-inner {
+  width: 100%;
+  height: 100%;
+  transform: rotateX(var(--tuc-rx, 0deg)) rotateY(var(--tuc-ry, 0deg));
+  transition: transform 0.12s ease-out;
+}
+.tuc-tilt.is-idle .tuc-tilt-inner { animation: tuc-sway 6s ease-in-out infinite 2.8s; }
+@keyframes tuc-sway {
+  0%, 100% { transform: rotateX(4deg) rotateY(-9deg); }
+  50% { transform: rotateX(-3deg) rotateY(9deg); }
+}
+
+/* ── 뒤집기: 0→90° 뒷면, 90°에서 바꿔 끼우고 -90→0° 앞면 ── */
+.tuc-flip {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: tuc-flip 1.7s cubic-bezier(0.55, 0, 0.2, 1) both 0.1s;
+}
+@keyframes tuc-flip {
+  0% { transform: translateY(70px) scale(0.7); opacity: 0; }
+  25% { transform: translateY(0) scale(1); opacity: 1; }
+  49.9% { transform: perspective(800px) rotateY(90deg); }
+  50% { transform: perspective(800px) rotateY(-90deg); }
+  100% { transform: perspective(800px) rotateY(0deg); }
+}
+.tuc-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.tuc-back {
+  opacity: 0;
+  animation: tuc-back-out 1.7s linear both 0.1s;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 12px),
+    radial-gradient(circle, #1f3b7c, #0a1430 72%);
+}
+@keyframes tuc-back-out { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.tuc-back-mark {
+  width: 64px;
+  height: 64px;
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.tuc-front {
+  padding: 5px;
+  background: var(--tuc-frame);
+  box-shadow: 0 0 40px -6px var(--tuc-glow), 0 26px 50px -12px rgba(0, 0, 0, 0.8);
+  animation: tuc-front-in 1.7s linear both 0.1s;
+}
+@keyframes tuc-front-in { 0%, 49.9% { opacity: 0; } 50%, 100% { opacity: 1; } }
+.tuc-front-in {
+  position: relative;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111521;
+}
+
+/* ── 그림 ── */
+.tuc-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tuc-mosaic {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+.tuc-mosaic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 그림 없는 칭호 — 등급 재질 위 큰 선화 */
+.tuc-plain {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding-bottom: 30%;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.22), transparent 55%),
+    linear-gradient(180deg, rgba(10, 14, 24, 0.15), rgba(10, 14, 24, 0.55)),
+    var(--tuc-frame);
+}
+.tuc-plain-glyph {
+  width: 46%;
+  height: auto;
+  aspect-ratio: 1;
+  color: rgba(255, 255, 255, 0.92);
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.35));
+  font-size: 72px;
+  line-height: 1;
+}
+
+.tuc-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 22%, transparent 46%, rgba(8, 10, 18, 0.92) 88%);
+}
+.tuc-serial {
+  position: absolute;
+  top: 9px;
+  left: 11px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.92);
+}
+.tuc-tier {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--tuc-tier-text);
+  border: 1px solid color-mix(in srgb, var(--tuc-tier-text) 50%, transparent);
+}
+.tuc-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 14px;
+  text-align: left;
+}
+.tuc-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+.tuc-meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.66);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 홀로그램·반사광 (포인터를 따라) ── */
+.tuc-holo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+  opacity: var(--tuc-holo, 0.3);
+  background:
+    repeating-linear-gradient(115deg, transparent 0 6px, rgba(255, 255, 255, 0.08) 6px 7px),
+    linear-gradient(115deg, transparent 15%, rgba(255, 90, 180, 0.55) 30%, rgba(90, 220, 255, 0.55) 42%,
+      rgba(255, 240, 120, 0.5) 54%, rgba(140, 255, 170, 0.45) 64%, transparent 80%);
+  background-size: 100% 100%, 280% 280%;
+  background-position: 0 0, var(--tuc-px, 50%) var(--tuc-py, 50%);
+}
+.tuc-tilt.is-idle .tuc-holo { animation: tuc-holo-drift 6s ease-in-out infinite 2.8s; }
+@keyframes tuc-holo-drift {
+  0%, 100% { background-position: 0 0, 20% 30%; }
+  50% { background-position: 0 0, 80% 70%; }
+}
+.tuc-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  background: radial-gradient(circle at var(--tuc-px, 40%) var(--tuc-py, 25%), rgba(255, 255, 255, 0.7), transparent 50%);
+}
+
+/* ── 설명·버튼 ── */
+.tuc-desc {
+  margin: 0;
+  max-width: 300px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.74);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+.tuc-actions {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.tuc-equip,
+.tuc-later {
   border: none;
   cursor: pointer;
-  width: 100%;
-  padding: 13px;
   border-radius: 14px;
+  padding: 14px 12px;
   font-size: 15px;
   font-weight: 700;
+  transition: filter 0.15s ease, transform 0.1s ease, background 0.15s ease;
+}
+.tuc-equip {
+  flex: 1.4;
   color: #fff;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  box-shadow: 0 8px 22px rgba(168, 85, 247, 0.45);
-  transition: filter 0.15s ease, transform 0.1s ease;
+  background: var(--brand, #3182f6);
 }
-
-.title-unlock-equip:hover { filter: brightness(1.08); }
-.title-unlock-equip:active { transform: scale(0.97); }
-
-.title-unlock-later {
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  padding: 11px;
-  border-radius: 14px;
-  font-size: 14px;
+.tuc-equip:hover { filter: brightness(1.08); }
+.tuc-later {
+  flex: 1;
   font-weight: 600;
-  color: #b9b9c4;
-  background: rgba(148, 163, 184, 0.12);
-  transition: background 0.15s ease;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.12);
 }
-
-.title-unlock-later:hover { background: rgba(148, 163, 184, 0.2); }
-
-.title-unlock-tier-chip {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-}
+.tuc-later:hover { background: rgba(255, 255, 255, 0.18); }
+.tuc-equip:active,
+.tuc-later:active { transform: scale(0.97); }
+.tuc-equip:focus-visible,
+.tuc-later:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .title-unlock-burst,
-  .title-unlock-card.is-legendary { animation: none; }
+  .tuc-fu,
+  .tuc-flip,
+  .tuc-back,
+  .tuc-front,
+  .tuc-tilt.is-idle .tuc-tilt-inner,
+  .tuc-tilt.is-idle .tuc-holo { animation: none; }
+  .tuc-back { opacity: 0; }
 }
 
-/* PC(lg+) 헤더 '가' 배율 — 앱 루트 오버레이라 <main data-app-scale> zoom 밖이다. 카드 자체를 zoom 한다
-   (TitleDetailSheet 와 같은 문법). 가로는 360px 상한이 먼저 걸려 vw 보정은 필요 없다. */
+/* PC(lg+) 헤더 '가' 배율 — 앱 루트 오버레이라 <main data-app-scale> zoom 밖이다. 무대 자체를 zoom 한다 */
 @media (min-width: 1024px) {
-  .title-unlock-card { zoom: var(--pc-zoom, 1); }
-}
-
-.title-unlock-eyebrow-icon {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
+  .tuc-stage { zoom: var(--pc-zoom, 1); }
 }

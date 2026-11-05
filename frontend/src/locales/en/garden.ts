@@ -47,10 +47,8 @@ export const garden = {
   titleEarnedDone: 'Earned',
 
   // Unlock popup
-  titleUnlockEyebrow: 'New Title Unlocked',
-  titleUnlockEyebrowLegendary: 'Legendary Title Unlocked!',
-  titleUnlockCongrats: 'Congratulations! You earned a new title',
-  titleUnlockEquipNow: 'Equip Now',
+  titleUnlockCardEyebrow: 'title card unlocked',
+  titleUnlockEquipNow: 'Wear on Profile',
   titleUnlockLater: 'Later',
   titleUnlockNext: 'Next',
 

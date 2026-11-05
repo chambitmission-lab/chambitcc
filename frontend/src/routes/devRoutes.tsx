@@ -63,6 +63,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['rabbit', () => import('../pages/dev/RabbitPreview')],
       // 레벨업 축하 모먼트(키네틱 리소) — ?lv=8 로 레벨 지정, 닫으면 다시 열림
       ['level-up', () => import('../pages/dev/LevelUpPreview')],
+      // 칭호 해금 팝업(B1 풀아트 카드) — ?key=puzzle_cross|puzzle_master|dawn_riser
+      ['title-unlock', () => import('../pages/dev/TitleUnlockPreview')],
       // 말씀 퍼즐 — 목록 카드(?state=progress|ready|done) · 맞추기 화면 · 조각 쪽지 (표본 데이터)
       ['puzzle', () => import('../pages/dev/PuzzlePreview')],
     ]
