@@ -37,6 +37,11 @@ export const STORY_PLACE: Record<string, string> = {
   missions: 'philippi', // 유럽으로 건너간 자리
   letters: 'ephesus',
   revelation: 'ephesus', // 일곱 교회의 첫 교회
+  // 특별편 '약속의 실'
+  'promise-moriah': 'jerusalem', // 모리아 산
+  'promise-david': 'jerusalem',
+  'promise-bethlehem': 'bethlehem',
+  'promise-donkey': 'olivet', // 벳바게·감람산에서 나귀를 타고 들어가셨다
 }
 
 /** 이 화에 이어 줄 지도 장소가 있는가 */

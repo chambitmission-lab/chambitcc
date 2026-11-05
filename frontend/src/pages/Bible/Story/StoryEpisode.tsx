@@ -1,12 +1,12 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getBibleChapter } from '../../../api/bible'
 import type { BibleVerse } from '../../../types/bible'
 import type { StoryVerseRef } from './storyTypes'
-import { ALL_EPISODES, STORY_ACTS, TOTAL_EPISODES, findEpisode } from './data'
+import { STORY_ACTS, TOTAL_EPISODES, findEpisode } from './data'
 import { GLOSSARY, parseGlossaryText } from './glossary'
-import { useStoryProgress } from './storyProgress'
+import { countMainRead, useStoryProgress } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
 import './Story.css'
 import { bibleKeys } from '../../../hooks/queryKeys'
@@ -70,6 +70,62 @@ const readingMinutes = (paragraphs: string[], why: string) => {
   return Math.max(1, Math.round(chars / 200))
 }
 
+// 절 카드 묶음 — 원문 맛보기와 특별편의 약속/성취 칸이 같이 쓴다.
+// 절 로드에 실패하면 출처 표기만 남기고 본문 읽기로 안내한다
+const VerseCards = ({
+  refs,
+  fetched,
+  loading,
+}: {
+  refs: StoryVerseRef[]
+  fetched: FetchedRef[] | undefined
+  loading: boolean
+}) => {
+  if (loading) return <div className="story-verse story-verse--skeleton" />
+  if (!fetched || fetched.length === 0) {
+    return (
+      <>
+        {refs.map(ref => (
+          <div key={ref.label} className="story-verse">
+            <span className="story-verse__ref">{ref.label}</span>
+          </div>
+        ))}
+      </>
+    )
+  }
+  return (
+    <>
+      {fetched.map(({ ref, verses }) => (
+        <div key={ref.label} className="story-verse">
+          <p className="story-verse__text">
+            {verses.map((v, i) => {
+              // 떨어진 절(창 1:1, 31) 사이에는 "…" — 두 절이 한 문장처럼 읽히지 않게
+              const gap = i > 0 && v.verse > verses[i - 1].verse + 1
+              return (
+                <span key={v.verse}>
+                  {i > 0 && ' '}
+                  {gap && <span className="story-verse__gap" aria-label="중략">…</span>}
+                  <sup className="story-verse__no">{v.verse}</sup>
+                  {v.text}
+                </span>
+              )
+            })}
+          </p>
+          <div className="story-verse__foot">
+            <span className="story-verse__ref">{ref.label}</span>
+          </div>
+        </div>
+      ))}
+    </>
+  )
+}
+
+// 특별편 화의 성격 — 신약이 직접 이은 것만 다루되, 말씀 예언과 예표(그림)는 구분해 보여 준다
+const PROMISE_KIND = {
+  prophecy: { label: '예언', icon: 'record_voice_over', desc: '말씀으로 미리 하신 약속' },
+  type: { label: '예표', icon: 'auto_awesome', desc: '사건·제도가 미리 보여 준 그림' },
+} as const
+
 // {{용어}} 풋노트가 섞인 문단 렌더
 const GlossaryText = ({ text, onTerm }: { text: string; onTerm: (term: string) => void }) => (
   <>
@@ -116,25 +172,33 @@ const StoryEpisode = () => {
 
   // 다음(과 이전) 화 일러스트를 미리 받아 둔다 — 화를 넘길 때 히어로가 한 박자 늦게
   // 나타나던 원인. 그림 한 장이 20~70KB라 앞뒤 한 장씩이면 충분히 가볍다.
+  // 이전/다음 화는 이 화가 속한 묶음(본편 42화 또는 특별편) 안에서만 오간다
+  const series = found?.series
   useEffect(() => {
     const idx = found?.index
-    if (idx === undefined) return
+    if (idx === undefined || !series) return
     const timer = window.setTimeout(() => {
       for (const step of [1, -1]) {
-        const neighbor = ALL_EPISODES[idx + step]
+        const neighbor = series[idx + step]
         const url = neighbor && storyImage(neighbor.id)
         if (url) new Image().src = url
       }
     }, 200)
     return () => window.clearTimeout(timer)
-  }, [found?.index])
+  }, [found?.index, series])
 
   // PC 키보드 넘기기 — ← 이전 화, → 다음 화(다음 이야기 버튼과 같이 읽음 처리), Esc 용어 닫기.
   // 입력 중이거나 조합키를 누른 경우엔 건드리지 않는다
-  const prevId = found && found.index > 0 ? ALL_EPISODES[found.index - 1].id : null
+  const prevId = found && series && found.index > 0 ? series[found.index - 1].id : null
   const nextId =
-    found && found.index + 1 < ALL_EPISODES.length ? ALL_EPISODES[found.index + 1].id : null
+    found && series && found.index + 1 < series.length ? series[found.index + 1].id : null
   const foundId = found?.episode.id
+  // 지도로 나갈 때 — 특별편은 지도의 특별편 구역으로 스크롤해 돌아간다(StoryMap 이 state 를 읽음)
+  const special = found?.special ?? false
+  const goMap = useCallback(
+    () => navigate('/bible/story', special ? { state: { scrollTo: 'story-promise' } } : undefined),
+    [navigate, special]
+  )
   useEffect(() => {
     if (!foundId) return
     const onKey = (e: KeyboardEvent) => {
@@ -147,12 +211,13 @@ const StoryEpisode = () => {
         navigate(`/bible/story/${prevId}`)
       } else if (e.key === 'ArrowRight') {
         markRead(foundId)
-        navigate(nextId ? `/bible/story/${nextId}` : '/bible/story')
+        if (nextId) navigate(`/bible/story/${nextId}`)
+        else goMap()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [foundId, prevId, nextId, markRead, navigate])
+  }, [foundId, prevId, nextId, markRead, navigate, goMap])
 
   // 끝까지 읽으면 자동 읽음 — 예전엔 '다음 이야기' 버튼에만 묶여 있어 다 읽고 뒤로가기·지도로
   // 나가면 기록이 안 남았고, 42화는 '완주하기'를 눌러야만 완주로 잡혔다. 본문 끝 표식이
@@ -184,18 +249,29 @@ const StoryEpisode = () => {
     }
   }, [foundId, markRead])
 
-  const { data: fetchedRefs, isLoading: versesLoading } = useEpisodeVerses(
-    episodeId,
-    found?.episode.verseRefs ?? []
-  )
+  // 특별편은 구약 약속 + 신약 성취를 한 번에 받아 앞뒤로 나눈다 (같은 장은 fetch 안에서 한 번만 요청)
+  const oldRefs = found?.episode.verseRefs ?? []
+  const fulfillRefs = found?.episode.promise?.fulfillRefs ?? []
+  const { data: fetchedAll, isLoading: versesLoading } = useEpisodeVerses(episodeId, [
+    ...oldRefs,
+    ...fulfillRefs,
+  ])
+  const fetchedRefs = fetchedAll?.slice(0, oldRefs.length)
+  const fetchedFulfill = fetchedAll?.slice(oldRefs.length)
 
-  if (!found) return null
+  if (!found || !series) return null
   const { episode, act, index } = found
   // 이 화의 무대 — 지도에 찍을 자리가 있는 화에만 값이 있다 (storyPlaces.ts)
   const atlasPlaceId = placeForEpisode(episode.id)
   const isRead = readIds.has(episode.id)
-  const nextEp = index + 1 < ALL_EPISODES.length ? ALL_EPISODES[index + 1] : null
-  const prevEp = index > 0 ? ALL_EPISODES[index - 1] : null
+  const nextEp = index + 1 < series.length ? series[index + 1] : null
+  const prevEp = index > 0 ? series[index - 1] : null
+  const actLabel = act.badge ?? `${act.act}막`
+  const unit = special ? '편' : '화'
+  // 진행 카드 — 본편은 42화 기준(특별편 읽음은 빼고), 특별편은 특별편 화 수 기준
+  const seriesRead = special ? series.filter(e => readIds.has(e.id)).length : countMainRead(readIds)
+  const seriesTotal = special ? series.length : TOTAL_EPISODES
+  const promise = episode.promise
 
   const goRead = () => {
     const { book, chapter, verse } = episode.readLink
@@ -210,7 +286,7 @@ const StoryEpisode = () => {
   const goNext = () => {
     markRead(episode.id)
     if (nextEp) navigate(`/bible/story/${nextEp.id}`)
-    else navigate('/bible/story')
+    else goMap()
   }
 
   return (
@@ -227,7 +303,7 @@ const StoryEpisode = () => {
         <div className="sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm lg:rounded-t-3xl">
           <div className="flex items-center gap-3 px-4 h-14 lg:h-16 lg:px-6">
             <button
-              onClick={() => navigate('/bible/story')}
+              onClick={goMap}
               className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full lg:hover:bg-[var(--brand-soft)] lg:hover:text-brand transition-colors"
               aria-label="여정 지도로 돌아가기"
             >
@@ -235,12 +311,12 @@ const StoryEpisode = () => {
             </button>
             <div className="flex-1 min-w-0">
               <h1 className="text-[15px] lg:text-[18px] font-bold text-ink-strong truncate">
-                {act.act}막 · {act.title}
+                {actLabel} · {act.title}
               </h1>
             </div>
             <span className="flex-shrink-0 text-[12px] lg:text-[15px] font-bold tabular-nums text-gray-400 dark:text-white/45 lg:text-gray-500">
-              {index + 1} / {TOTAL_EPISODES}
-              <span className="hidden lg:inline">화</span>
+              {index + 1} / {seriesTotal}
+              <span className="hidden lg:inline">{unit}</span>
             </span>
           </div>
         </div>
@@ -268,6 +344,15 @@ const StoryEpisode = () => {
             <span className="story-ep__meta-item">
               <span className="material-icons-round text-[13px]">menu_book</span>{act.range}
             </span>
+            {promise && (
+              <span
+                className="story-ep__meta-item story-ep__meta-item--kind"
+                title={PROMISE_KIND[promise.kind].desc}
+              >
+                <span className="material-icons-round text-[13px]">{PROMISE_KIND[promise.kind].icon}</span>
+                {PROMISE_KIND[promise.kind].label}
+              </span>
+            )}
             {isRead && (
               <span className="story-ep__meta-item story-ep__meta-item--read">
                 <span className="material-icons-round text-[13px]">check_circle</span>읽은 이야기
@@ -277,7 +362,9 @@ const StoryEpisode = () => {
         </div>
 
         {/* 지금 성경 어디쯤 — 모바일은 "1 / 42화" 숫자뿐이라 위치감이 없었다. 10막 점 띠로
-            이 화가 성경 전체의 어느 구간인지 보여 준다(PC 는 오른쪽 레일이 같은 역할) */}
+            이 화가 성경 전체의 어느 구간인지 보여 준다(PC 는 오른쪽 레일이 같은 역할).
+            특별편은 10막 바깥 묶음이라 띠를 두지 않는다 */}
+        {!special && (
         <div className="story-ep__acts" role="group" aria-label={`전체 ${STORY_ACTS.length}막 중 ${act.act}막 ${act.title}`}>
           {STORY_ACTS.map(a => {
             const state = a.act < act.act ? 'past' : a.act === act.act ? 'now' : 'next'
@@ -296,6 +383,7 @@ const StoryEpisode = () => {
             )
           })}
         </div>
+        )}
 
         {/* 이야기 본문 */}
         <div className="story-ep__body">
@@ -316,42 +404,31 @@ const StoryEpisode = () => {
           </p>
         </div>
 
-        {/* 원문 맛보기 */}
-        <div className="story-ep__verses">
+        {/* 원문 맛보기 — 특별편은 '구약의 약속 → 신약의 성취' 한 쌍으로 */}
+        <div className={`story-ep__verses ${promise ? 'story-promise' : ''}`}>
           <span className="story-ep__verses-label">
-            <span className="material-icons-round text-[14px]">format_quote</span>원문 맛보기
+            <span className="material-icons-round text-[14px]">{promise ? 'link' : 'format_quote'}</span>
+            {promise ? '약속과 성취' : '원문 맛보기'}
           </span>
-          {versesLoading ? (
-            <div className="story-verse story-verse--skeleton" />
-          ) : fetchedRefs && fetchedRefs.length > 0 ? (
-            fetchedRefs.map(({ ref, verses }) => (
-              <div key={ref.label} className="story-verse">
-                <p className="story-verse__text">
-                  {verses.map((v, i) => {
-                    // 떨어진 절(창 1:1, 31) 사이에는 "…" — 두 절이 한 문장처럼 읽히지 않게
-                    const gap = i > 0 && v.verse > verses[i - 1].verse + 1
-                    return (
-                      <span key={v.verse}>
-                        {i > 0 && ' '}
-                        {gap && <span className="story-verse__gap" aria-label="중략">…</span>}
-                        <sup className="story-verse__no">{v.verse}</sup>
-                        {v.text}
-                      </span>
-                    )
-                  })}
-                </p>
-                <div className="story-verse__foot">
-                  <span className="story-verse__ref">{ref.label}</span>
-                </div>
+          {promise ? (
+            <>
+              <div className="story-promise__half">
+                <span className="story-promise__tag">구약의 약속</span>
+                <VerseCards refs={oldRefs} fetched={fetchedRefs} loading={versesLoading} />
               </div>
-            ))
+              <div className="story-promise__joint" aria-hidden>
+                <span className="story-promise__knot">
+                  <span className="material-icons-round">south</span>
+                </span>
+              </div>
+              <div className="story-promise__half story-promise__half--fulfill">
+                <span className="story-promise__tag story-promise__tag--fulfill">신약의 성취</span>
+                <p className="story-promise__note">{promise.fulfillNote}</p>
+                <VerseCards refs={fulfillRefs} fetched={fetchedFulfill} loading={versesLoading} />
+              </div>
+            </>
           ) : (
-            // 절 로드 실패 — 출처 표기만 남기고 본문 읽기로 안내
-            episode.verseRefs.map(ref => (
-              <div key={ref.label} className="story-verse">
-                <span className="story-verse__ref">{ref.label}</span>
-              </div>
-            ))
+            <VerseCards refs={oldRefs} fetched={fetchedRefs} loading={versesLoading} />
           )}
           <button className="story-ep__readlink" onClick={goRead}>
             <span className="material-icons-round text-[17px]">menu_book</span>
@@ -399,7 +476,7 @@ const StoryEpisode = () => {
             )}
             <button
               className="story-ep__bar-map"
-              onClick={() => navigate('/bible/story')}
+              onClick={goMap}
               aria-label="여정 지도"
             >
               <span className="material-icons-round text-[20px]">map</span>
@@ -411,6 +488,11 @@ const StoryEpisode = () => {
                   {/* PC 는 바가 넓어 다음 화 제목까지 보여 준다 */}
                   <span className="story-ep__bar-next-title">· {nextEp.title}</span>
                   <span className="material-icons-round text-[18px]">arrow_forward</span>
+                </>
+              ) : special ? (
+                <>
+                  특별편 마치기
+                  <span className="material-icons-round text-[18px]">check</span>
                 </>
               ) : (
                 <>
@@ -443,21 +525,21 @@ const StoryEpisode = () => {
         <section className="rounded-2xl p-5 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
           <div className="flex items-baseline justify-between gap-2">
             <span className="text-[14px] font-bold text-gray-600 dark:text-white/60">
-              전체 여정
+              {special ? actLabel : '전체 여정'}
             </span>
             <span className="text-[16px] font-extrabold text-brand tabular-nums">
-              {readIds.size} / {TOTAL_EPISODES}화
+              {seriesRead} / {seriesTotal}{unit}
             </span>
           </div>
           <div className="mt-2.5 h-2 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
             <div
               className="h-full rounded-full bg-brand transition-[width] duration-500"
-              style={{ width: `${Math.round((readIds.size / TOTAL_EPISODES) * 100)}%` }}
+              style={{ width: `${Math.round((seriesRead / seriesTotal) * 100)}%` }}
             />
           </div>
           <button
             type="button"
-            onClick={() => navigate('/bible/story')}
+            onClick={goMap}
             className="mt-4 w-full h-11 rounded-xl border border-[var(--card-border)] text-[15px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors inline-flex items-center justify-center gap-1.5"
           >
             <span className="material-icons-round text-[19px]">map</span>
@@ -467,7 +549,7 @@ const StoryEpisode = () => {
 
         <section className="rounded-2xl p-3 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
           <p className="px-2 pt-1 pb-2 text-[14px] font-bold text-gray-600 dark:text-white/60 [word-break:keep-all]">
-            {act.act}막 · {act.title}
+            {actLabel} · {act.title}
           </p>
           <div className="flex flex-col">
             {act.episodes.map((ep) => {

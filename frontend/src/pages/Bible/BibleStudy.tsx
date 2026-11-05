@@ -59,7 +59,7 @@ import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../components/bible/BibleSideRail'
 import { requestPageZoom } from '../../utils/textScaleRoutes'
 // 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
-import { useStoryProgress } from './Story/storyProgress'
+import { countMainRead, useStoryProgress } from './Story/storyProgress'
 import { isAuthenticated } from '../../utils/auth'
 import './BibleStudy.css'
 
@@ -271,7 +271,7 @@ const BibleStudy = () => {
 
   // 처음 만나는 성경(스토리 모드) 진행 — 로그인 시 서버 저장분을 공유 캐시로 읽는다
   const { readIds: storyReadIds } = useStoryProgress(isHub)
-  const storyReadCount = storyReadIds.size
+  const storyReadCount = countMainRead(storyReadIds)
   
   // URL 파라미터로 책과 장이 전달된 경우 자동으로 선택.
   // ?verse=N 이 함께 오면(프로필 묵상노트 카드 등에서 딥링크) 해당 절로 스크롤+하이라이트.

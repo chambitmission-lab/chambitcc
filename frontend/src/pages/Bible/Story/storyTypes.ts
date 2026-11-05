@@ -29,10 +29,27 @@ export interface StoryEpisode {
   readLink: { book: number; chapter: number; verse?: number; label: string }
   /** 다음 화 예고 한 줄 (마지막 화는 생략) */
   teaser?: string
+  /**
+   * 특별편 '약속의 실' 전용 — 구약의 약속(verseRefs)과 신약의 성취를 한 쌍으로 보여 준다.
+   * 있으면 원문 맛보기 자리가 '약속 → 성취' 카드로 바뀐다.
+   */
+  promise?: StoryPromise
+}
+
+export interface StoryPromise {
+  /** 'prophecy' 말씀으로 미리 하신 약속 · 'type' 사람·사건·제도가 미리 보여 준 그림(예표) */
+  kind: 'prophecy' | 'type'
+  /** 신약이 직접 인용·연결한 성취 구절 */
+  fulfillRefs: StoryVerseRef[]
+  /** 성취를 한 줄로 */
+  fulfillNote: string
 }
 
 export interface StoryAct {
+  /** 본편 1~10. 특별편은 0 */
   act: number
+  /** 막 번호 대신 보여 줄 표식 — 특별편 '특별편' */
+  badge?: string
   title: string
   subtitle: string
   emoji: string

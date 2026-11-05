@@ -23,24 +23,33 @@ import {
   DoorOpen,
   EnvelopeSimple,
   FishSimple,
+  Flag,
   Flame,
   GlobeHemisphereEast,
   Grains,
+  HandHeart,
   HeartBreak,
   Horse,
+  Key,
   Lightning,
+  MapPin,
   MagnifyingGlass,
   Megaphone,
   MoonStars,
   Mountains,
   MusicNote,
+  MusicNotes,
   Orange,
   Path,
   PersonSimpleThrow,
+  Plant,
   Rainbow,
+  RoadHorizon,
   Scroll,
   ShootingStar,
+  Sparkle,
   Star,
+  StarFour,
   SunHorizon,
   Target,
   Tornado,
@@ -108,7 +117,19 @@ const GLYPHS: Record<string, (p: StoryIconProps) => ReactElement> = {
   '🛤': duotone(Path), // 박해자가 전도자로 — 다메섹 길
   '✉': duotone(EnvelopeSimple), // 교회에게 보낸 편지들
   '📖': duotone(BookOpen), // 마지막 책, 문 앞에 서신 분
-  '🚪': duotone(DoorOpen), // 이제 당신의 차례
+  '🚪': duotone(DoorOpen), // 이제 당신의 차례 · 문설주에 바른 피
+  // 특별편 '약속의 실' (data/promise.ts)
+  '✨': duotone(StarFour), // 특별편 표식
+  '🌱': duotone(Plant), // 여자의 후손
+  '🦁': duotone(Crown), // 유다를 떠나지 않을 왕의 지팡이
+  '🐍': duotone(Flag), // 장대 위의 놋뱀 — 높이 든 장대
+  '🗣': duotone(Megaphone), // 모세 같은 선지자
+  '🎵': duotone(MusicNotes), // 천 년 전에 부른 십자가의 노래
+  '👶': duotone(Sparkle), // 처녀가 낳을 아들, 임마누엘
+  '📍': duotone(MapPin), // 작은 마을 베들레헴
+  '🩹': duotone(HandHeart), // 우리 대신 상처 입은 종
+  '🛣': duotone(RoadHorizon), // 길을 닦는 사람
+  '🔑': duotone(Key), // 모든 약속이 "예"가 되다
 }
 
 const normalize = (e: string) => e.replace(/️/g, '').trim()

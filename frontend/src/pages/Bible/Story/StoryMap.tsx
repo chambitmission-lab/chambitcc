@@ -1,6 +1,14 @@
-import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ALL_EPISODES, STORY_ACTS, TOTAL_EPISODES, nextUnread } from './data'
+import { useEffect, useMemo } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import {
+  ALL_EPISODES,
+  PROMISE_ACT,
+  STORY_ACTS,
+  TOTAL_EPISODES,
+  nextUnread,
+  nextUnreadPromise,
+} from './data'
+import type { StoryEpisode } from './storyTypes'
 import { useStoryProgress } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
 import StoryFinale from './StoryFinale'
@@ -16,7 +24,27 @@ const EPISODE_NO = new Map(ALL_EPISODES.map((e, i) => [e.id, i + 1]))
  */
 const StoryMap = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { readIds } = useStoryProgress()
+
+  // 특별편 화에서 지도로 돌아오면 특별편 구역으로 바로 — HashRouter 라 #앵커 대신 state 로 받는다
+  const scrollTo = (location.state as { scrollTo?: string } | null)?.scrollTo
+  useEffect(() => {
+    if (!scrollTo) return
+    const raf = requestAnimationFrame(() =>
+      document.getElementById(scrollTo)?.scrollIntoView({ block: 'start' })
+    )
+    return () => cancelAnimationFrame(raf)
+  }, [scrollTo])
+
+  const promiseRead = useMemo(
+    () => PROMISE_ACT.episodes.filter(e => readIds.has(e.id)).length,
+    [readIds]
+  )
+  const promiseNext = useMemo(() => nextUnreadPromise(readIds), [readIds])
+  const promiseTotal = PROMISE_ACT.episodes.length
+  const scrollToPromise = () =>
+    document.getElementById('story-promise')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   const readCount = useMemo(
     () => STORY_ACTS.reduce((n, a) => n + a.episodes.filter(e => readIds.has(e.id)).length, 0),
@@ -88,6 +116,42 @@ const StoryMap = () => {
     </div>
   )
 
+  // 화 카드 — 본편·특별편 공용. noLabel 은 lg 격자에서 순서를 알려 주는 번호(모바일은 숨김)
+  const renderNode = (ep: StoryEpisode, isCurrent: boolean, noLabel: string) => {
+    const read = readIds.has(ep.id)
+    return (
+      <button
+        key={ep.id}
+        className={`story-node ${read ? 'story-node--read' : ''} ${
+          isCurrent ? 'story-node--current' : ''
+        }`}
+        onClick={() => navigate(`/bible/story/${ep.id}`)}
+      >
+        <span className="story-node__dot">
+          <StoryGlyph emoji={ep.emoji} size={20} />
+          {read && (
+            <span className="story-node__check">
+              <span className="material-icons-round">check</span>
+            </span>
+          )}
+        </span>
+        <span className="story-node__body">
+          <span className="story-node__no">
+            {noLabel}
+            {read ? ' · 읽음' : ''}
+          </span>
+          <span className="story-node__title">{ep.title}</span>
+          <span className="story-node__hook">{ep.hook}</span>
+        </span>
+        {isCurrent ? (
+          <span className="story-node__here">여기부터</span>
+        ) : (
+          <span className="material-icons-round story-node__chevron">chevron_right</span>
+        )}
+      </button>
+    )
+  }
+
   // 지금 이어 읽을 화가 속한 막 — 우측 바로가기에서 강조한다
   const currentAct = next ? STORY_ACTS.find(a => a.episodes.some(e => e.id === next.id))?.act : undefined
 
@@ -125,6 +189,27 @@ const StoryMap = () => {
         <div className="px-4 pt-5 lg:px-8 lg:pt-2">
           {renderStoryHero('')}
 
+          {/* 특별편 안내 — 42화 목록 맨 아래에 있어 그냥 두면 아무도 못 찾는다 */}
+          <button type="button" className="story-special-cta" onClick={scrollToPromise}>
+            <span className="story-special-cta__icon">
+              <StoryGlyph emoji={PROMISE_ACT.emoji} size={20} />
+            </span>
+            <span className="story-special-cta__body">
+              <span className="story-special-cta__eyebrow">
+                {PROMISE_ACT.badge} · {PROMISE_ACT.title}
+              </span>
+              <span className="story-special-cta__title">
+                구약에 숨은 메시아의 신호 {promiseTotal}편
+              </span>
+              <span className="story-special-cta__sub">
+                {promiseRead > 0
+                  ? `${promiseRead} / ${promiseTotal}편 읽음`
+                  : '창세기 3장부터 말라기까지, 약속이 이루어진 자리를 따라가요'}
+              </span>
+            </span>
+            <span className="material-icons-round story-special-cta__chev">south</span>
+          </button>
+
           {/* 10막 여정 */}
           {STORY_ACTS.map(act => {
             const done = act.episodes.filter(e => readIds.has(e.id)).length
@@ -149,47 +234,60 @@ const StoryMap = () => {
                 </div>
 
                 <div className="story-path">
-                  {act.episodes.map(ep => {
-                    const read = readIds.has(ep.id)
-                    const isCurrent = next?.id === ep.id
-                    return (
-                      <button
-                        key={ep.id}
-                        className={`story-node ${read ? 'story-node--read' : ''} ${
-                          isCurrent ? 'story-node--current' : ''
-                        }`}
-                        onClick={() => navigate(`/bible/story/${ep.id}`)}
-                      >
-                        <span className="story-node__dot">
-                          <StoryGlyph emoji={ep.emoji} size={20} />
-                          {read && (
-                            <span className="story-node__check">
-                              <span className="material-icons-round">check</span>
-                            </span>
-                          )}
-                        </span>
-                        <span className="story-node__body">
-                          {/* 화 번호 — lg 격자에서 점선 경로 대신 순서를 알려 준다 (모바일은 숨김) */}
-                          <span className="story-node__no">
-                            {EPISODE_NO.get(ep.id)}화{read ? ' · 읽음' : ''}
-                          </span>
-                          <span className="story-node__title">{ep.title}</span>
-                          <span className="story-node__hook">{ep.hook}</span>
-                        </span>
-                        {isCurrent ? (
-                          <span className="story-node__here">여기부터</span>
-                        ) : (
-                          <span className="material-icons-round story-node__chevron">
-                            chevron_right
-                          </span>
-                        )}
-                      </button>
-                    )
-                  })}
+                  {act.episodes.map(ep =>
+                    renderNode(ep, next?.id === ep.id, `${EPISODE_NO.get(ep.id)}화`)
+                  )}
                 </div>
               </section>
             )
           })}
+
+          {/* 특별편 — 약속의 실. 본편 42화와 따로 세는 묶음(완주·벽화에 끼지 않는다) */}
+          <section id="story-promise" className="story-act story-act--special scroll-mt-20">
+            <div className="story-act__head">
+              <span className="story-act__emoji"><StoryGlyph emoji={PROMISE_ACT.emoji} size={20} /></span>
+              <div className="story-act__titles">
+                <span className="story-act__no">{PROMISE_ACT.badge}</span>
+                <span className="story-act__title">{PROMISE_ACT.title}</span>
+                <span className="story-act__range">
+                  {PROMISE_ACT.subtitle} · {PROMISE_ACT.range}
+                </span>
+              </div>
+              <span
+                className={`story-act__count ${
+                  promiseRead === promiseTotal ? 'story-act__count--done' : ''
+                }`}
+              >
+                {promiseRead}/{promiseTotal}
+              </span>
+            </div>
+            <div className="story-special-intro">
+              <p>
+                구약에는 오실 메시아를 가리키는 신호가 곳곳에 놓여 있습니다. 한 편마다{' '}
+                <b>구약의 약속</b>과 그것이 이루어진 <b>신약의 성취</b>를 나란히 보여 드려요.
+                신약 성경이 직접 이어 준 말씀만 골랐습니다.
+              </p>
+              <div className="story-special-intro__legend">
+                <span>
+                  <span className="material-icons-round">record_voice_over</span>
+                  <b>예언</b> 말씀으로 미리 하신 약속
+                </span>
+                <span>
+                  <span className="material-icons-round">auto_awesome</span>
+                  <b>예표</b> 사건·제도가 미리 보여 준 그림
+                </span>
+              </div>
+            </div>
+            <div className="story-path">
+              {PROMISE_ACT.episodes.map((ep, i) =>
+                renderNode(
+                  ep,
+                  promiseRead > 0 && promiseNext?.id === ep.id,
+                  `${i + 1}편${ep.promise ? ` · ${ep.promise.kind === 'prophecy' ? '예언' : '예표'}` : ''}`
+                )
+              )}
+            </div>
+          </section>
         </div>
       </div>
 
@@ -280,6 +378,34 @@ const StoryMap = () => {
                 </button>
               )
             })}
+            {/* 특별편 — 10막과 구분선으로 떼어 둔다 */}
+            <div className="my-1.5 mx-2 border-t border-gray-200/70 dark:border-white/[0.08]" />
+            <button
+              type="button"
+              onClick={scrollToPromise}
+              className="flex items-center gap-3 px-2 py-2.5 rounded-xl text-left transition-colors hover:bg-[var(--brand-soft)]"
+            >
+              <span className="shrink-0 w-9 h-9 rounded-lg grid place-items-center bg-[var(--brand-soft)] text-brand">
+                <StoryGlyph emoji={PROMISE_ACT.emoji} size={18} />
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block text-[12px] font-bold text-brand">{PROMISE_ACT.badge}</span>
+                <span className="block text-[15px] font-semibold leading-snug text-ink-strong [word-break:keep-all]">
+                  {PROMISE_ACT.title}
+                </span>
+              </span>
+              <span
+                className={`shrink-0 text-[13.5px] font-bold tabular-nums ${
+                  promiseRead === promiseTotal ? 'text-emerald-600 dark:text-emerald-300' : 'text-gray-500 dark:text-white/50'
+                }`}
+              >
+                {promiseRead === promiseTotal ? (
+                  <span className="material-icons-round text-[20px] align-middle">check_circle</span>
+                ) : (
+                  `${promiseRead}/${promiseTotal}`
+                )}
+              </span>
+            </button>
           </div>
         </section>
       </aside>

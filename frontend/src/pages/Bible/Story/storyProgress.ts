@@ -21,6 +21,19 @@ const CELEBRATED_KEY = 'bible-story-celebrated-v1'
 
 export const STORY_PROGRESS_KEY = ['bible', 'story-progress'] as const
 
+// 특별편(약속의 실) 화 id 접두사 — 같은 진행 저장소를 쓰지만 본편 42화 진행·완주에는 세지 않는다.
+// 백엔드 칭호 집계(titles/facts._gather_story_facts)도 같은 접두사로 거른다.
+export const PROMISE_ID_PREFIX = 'promise-'
+
+export const isMainEpisodeId = (id: string): boolean => !id.startsWith(PROMISE_ID_PREFIX)
+
+/** 본편(42화) 중 읽은 화 수 — 화 데이터를 import 하지 않아 허브 청크가 가볍게 유지된다 */
+export const countMainRead = (ids: Iterable<string>): number => {
+  let n = 0
+  for (const id of ids) if (isMainEpisodeId(id)) n++
+  return n
+}
+
 const userKey = (base: string): string => {
   try {
     const username = sessionStore.get('username')
