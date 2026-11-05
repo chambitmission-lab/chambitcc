@@ -186,12 +186,18 @@ export const EventSheet = ({
 
 /* ── 말씀 · 설교 · 예배 ─────────────────────────────── */
 
+/** 주보 제목 첫 줄의 "2026 표어" → "2026 표어 말씀". 연도가 없으면 "교회 표어 말씀"(매주 바뀌는 말씀이 아니라 연간 표어다) */
+export const verseLabel = (title: string, t: (k: 'bwVerse' | 'bwVerseYear') => string) => {
+  const year = title.match(/^\s*(\d{4})\s*표어/)?.[1]
+  return year ? t('bwVerseYear').replace('{n}', year) : t('bwVerse')
+}
+
 export const VerseSheet = ({ data, onClose, onRead }: { data: BulletinData; onClose: () => void; onRead: () => void }) => {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const link = bibleLink(data.subtitle)
   return (
-    <WeeklySheet title={t('bwVerse')} onClose={onClose}>
+    <WeeklySheet title={verseLabel(data.title, t)} onClose={onClose}>
       <p style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.45, margin: 0, whiteSpace: 'pre-line', textWrap: 'balance' }}>
         {data.title.replace(/^\d{4}\s*표어\s*\n?/, '')}
       </p>

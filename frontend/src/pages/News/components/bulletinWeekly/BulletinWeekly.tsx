@@ -47,6 +47,7 @@ import {
   SettingsRules,
   StatusChip,
   VerseSheet,
+  verseLabel,
   WeekSheet,
   WeeklySheet,
   WorshipSheet,
@@ -494,7 +495,7 @@ const BulletinWeekly = ({ onOpenPaper }: BulletinWeeklyProps) => {
 
   type Row = { key: string; icon: WeeklyIconName; label: string; value: string; open: () => void }
   const rows: Row[] = [
-    data.title && { key: 'verse', icon: 'book' as const, label: t('bwVerse'), value: data.subtitle.replace(/[()]/g, ''), open: () => setSheet({ k: 'verse' }) },
+    data.title && { key: 'verse', icon: 'book' as const, label: verseLabel(data.title, t), value: data.subtitle.replace(/[()]/g, ''), open: () => setSheet({ k: 'verse' }) },
     sermons.length > 0 && { key: 'sermon', icon: 'mega' as const, label: t('bwSermon'), value: sermons[0].title, open: () => setSheet({ k: 'sermon' }) },
     services.length > 0 && {
       key: 'worship',
