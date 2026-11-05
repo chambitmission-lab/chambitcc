@@ -383,6 +383,74 @@
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
+/* 순서 타임라인 — 점은 금빛, 이어지는 선은 아주 옅게. 첫 줄은 이름, 나머지는 곁들이는 줄 */
+.nl-prog {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0 0 0 4px;
+  display: flex;
+  flex-direction: column;
+}
+.nl-prog__item {
+  position: relative;
+  padding: 0 0 14px 22px;
+}
+.nl-prog__item:last-child { padding-bottom: 0; }
+.nl-prog__item::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--nl-gold-line);
+}
+.nl-prog__item:last-child::before { display: none; }
+.nl-prog__dot {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--nl-sh);
+  border: 2px solid var(--nl-gold);
+  box-shadow: 0 0 0 3px var(--nl-sh), 0 0 10px var(--nl-glow);
+}
+.nl-prog__item:first-child .nl-prog__dot { background: var(--nl-gold); }
+.nl-prog__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+  color: var(--nl-ink);
+  word-break: keep-all;
+}
+.nl-prog__detail {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--nl-ink2);
+  word-break: keep-all;
+}
+.nl-prog__label {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  vertical-align: 1px;
+  color: var(--nl-gold);
+  background: var(--nl-inset);
+}
+@media (min-width: 1024px) {
+  .nl-prog__title { font-size: 16.5px; }
+  .nl-prog__detail { font-size: 14.5px; }
+  .nl-prog__item { padding-bottom: 16px; }
+}
+
 .nl-verse {
   display: flex;
   align-items: baseline;

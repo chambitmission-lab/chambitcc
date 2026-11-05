@@ -535,6 +535,24 @@ const HomeNotice = () => {
                   </dl>
                 )}
 
+                {/* 짧은 줄 묶음으로 쓴 순서 — 금빛 점이 이어지는 한 줄기 타임라인 */}
+                {highlights.program && (
+                  <ol className="nl-prog nl-rise">
+                    {highlights.program.map((item, i) => (
+                      <li key={`${i}-${item.title}`} className="nl-prog__item">
+                        <span aria-hidden className="nl-prog__dot" />
+                        <p className="nl-prog__title">{item.title}</p>
+                        {item.details.map((d, j) => (
+                          <p key={j} className="nl-prog__detail">
+                            {d.label && <span className="nl-prog__label">{d.label}</span>}
+                            {d.text}
+                          </p>
+                        ))}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
                 {highlights.verse && (
                   <p className="nl-verse nl-rise">
                     {highlights.verse.text} <small>{highlights.verse.ref}</small>

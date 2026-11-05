@@ -21,15 +21,69 @@ export interface NoticeWhen {
   minute: number
 }
 
+/** 짧은 줄 묶음으로 쓴 순서·프로그램 한 칸 — 첫 줄이 이름, 나머지는 곁들이는 줄 */
+export interface NoticeProgramItem {
+  title: string
+  details: { label: string | null; text: string }[]
+}
+
 export interface NoticeHighlights {
   rows: InfoRow[]
   verse: { text: string; ref: string } | null
+  /** 나머지 본문이 전부 짧은 줄 묶음이면 순서 목록으로 — 이때 rest 는 빈 문자열 */
+  program: NoticeProgramItem[] | null
   rest: string
   when: NoticeWhen | null
   place: string | null
 }
 
 const MAX_ROWS = 4
+
+const splitVerse = (joined: string): { text: string; ref: string } | null => {
+  const ref = VERSE_REF_RE.exec(joined)
+  if (!ref || ref.index === 0) return null
+  const text = joined
+    .slice(0, ref.index)
+    .trim()
+    .replace(/^["“'‘]+|["”'’]+$/g, '')
+    .replace(/[\s,—–-]+$/, '')
+    .replace(/^["“'‘]+|["”'’]+$/g, '')
+    .trim()
+  return text ? { text, ref: ref[1].replace(/\s+/g, ' ').trim() } : null
+}
+
+// 순서 목록으로 볼 줄 — 짧고, 문장(~니다./~요.)이 아니고, 목록·인용 같은 문법이 아닌 줄
+const PROSE_END_RE = /(?:[.!?。]|니다|세요|어요|아요|해요|까요)\s*$/
+const MARKUP_START_RE = /^\s*(?:#|>|[-*·]\s|\d{1,2}[.)]\s|-{3,}|\[!)/
+const PROGRAM_LINE_MAX = 32
+const LABELED_RE = /^([가-힣A-Za-z]{1,6})\s*[:：]\s*(\S.*)$/
+
+const toProgram = (rest: string): NoticeProgramItem[] | null => {
+  if (!rest) return null
+  const paras = rest
+    .split(/\n\s*\n/)
+    .map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean))
+    .filter((p) => p.length > 0)
+  if (paras.length < 2 || paras.length > 6) return null
+  const ok = paras.every(
+    (p) =>
+      p.length <= 3 &&
+      p.every(
+        (l) =>
+          stripInline(l).length <= PROGRAM_LINE_MAX &&
+          !PROSE_END_RE.test(l) &&
+          !MARKUP_START_RE.test(l),
+      ),
+  )
+  if (!ok || !paras.some((p) => p.length >= 2)) return null
+  return paras.map(([title, ...more]) => ({
+    title: stripInline(title),
+    details: more.map((l) => {
+      const m = LABELED_RE.exec(stripInline(l))
+      return m ? { label: m[1], text: m[2].trim() } : { label: null, text: stripInline(l) }
+    }),
+  }))
+}
 
 const QUOTE_RE = /^>\s?(.*)$/
 const CALLOUT_RE = /^\[!\s*[A-Za-z가-힣]+\s*\]/
@@ -138,20 +192,26 @@ export const extractNoticeHighlights = (source: string): NoticeHighlights => {
       idx.push(j)
       parts.push(m[1].trim())
     }
-    const joined = stripInline(parts.join(' ')).trim()
-    const ref = VERSE_REF_RE.exec(joined)
-    if (ref && ref.index > 0) {
-      const text = joined
-        .slice(0, ref.index)
-        .trim()
-        .replace(/^["“'‘]+|["”'’]+$/g, '')
-        .replace(/[\s,—–-]+$/, '')
-      if (text) {
-        verse = { text, ref: ref[1].replace(/\s+/g, ' ').trim() }
-        idx.forEach((k) => drop.add(k))
-      }
+    const found = splitVerse(stripInline(parts.join(' ')).trim())
+    if (found) {
+      verse = found
+      idx.forEach((k) => drop.add(k))
     }
     i += idx.length - 1
+  }
+  // 인용 문법 없이 따옴표로 쓴 성구 한 줄 — "하나님이 … 좋았더라" (창세기 1장 31절)
+  if (!verse) {
+    for (let i = 0; i < lines.length; i++) {
+      if (drop.has(i)) continue
+      const line = stripInline(lines[i]).trim()
+      if (!/^["“‘']/.test(line)) continue
+      const found = splitVerse(line)
+      if (found) {
+        verse = found
+        drop.add(i)
+        break
+      }
+    }
   }
 
   const rest = lines
@@ -159,6 +219,7 @@ export const extractNoticeHighlights = (source: string): NoticeHighlights => {
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+  const program = toProgram(rest)
 
   const whenRow =
     rows.find((r) => ['일시', '날짜'].includes(r.label.replace(/\s+/g, ''))) ??
@@ -166,7 +227,7 @@ export const extractNoticeHighlights = (source: string): NoticeHighlights => {
   const when = whenRow ? parseNoticeWhen(whenRow.value) : null
   const placeRow = rows.find((r) => r.icon === 'place')
 
-  return { rows, verse, rest, when, place: placeRow ? stripInline(placeRow.value) : null }
+  return { rows, verse, program, rest: program ? '' : rest, when, place: placeRow ? stripInline(placeRow.value) : null }
 }
 
 /* ------------------------------------------------------------------ */
