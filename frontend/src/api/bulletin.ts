@@ -196,6 +196,29 @@ export const importBulletinDigital = (id: number): Promise<BulletinImportJob> =>
     errorMessage: '주보 읽기를 시작하지 못했어요',
   })
 
+/** 주보 하나의 AI 읽기(칼럼·소식·디지털) 상태 — 관리자 목록의 "눌러야 하나" 표시용 */
+/** idle = 자동 회수 범위(앞뒤 14일) 밖의 옛 주보 — 저절로 읽히지 않고 '다시 만들기'로만 */
+export type BulletinAiReaderState = 'done' | 'queued' | 'running' | 'pending' | 'gave_up' | 'idle'
+export interface BulletinAiReaderStatus {
+  state: BulletinAiReaderState
+  done_at: string | null
+  attempts: number
+}
+export type BulletinAiStatus = Record<'column' | 'news' | 'digital', BulletinAiReaderStatus>
+
+/**
+ * 주보별 AI 읽기 상태 (관리자 전용). 자동·수동 등록 모두 서버가 알아서 읽으므로
+ * 관리자가 '다시 만들기'를 눌러야 하는 건 gave_up(3번 실패)뿐이다.
+ */
+export const getBulletinAiStatus = (ids: number[]): Promise<Record<string, BulletinAiStatus>> =>
+  ids.length === 0
+    ? Promise.resolve({})
+    : request<Record<string, BulletinAiStatus>>(`/bulletins/ai-status?ids=${ids.join(',')}`, {
+        auth: 'required',
+        cache: 'no-store',
+        errorMessage: '주보 읽기 상태를 확인하지 못했어요',
+      })
+
 export const getBulletinImportJob = (jobId: string): Promise<BulletinImportJob> =>
   request<BulletinImportJob>(`/bulletins/import-jobs/${jobId}`, {
     auth: 'required',

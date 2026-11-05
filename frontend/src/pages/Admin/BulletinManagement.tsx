@@ -6,9 +6,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   getBulletins,
   deleteBulletin,
+  getBulletinAiStatus,
   importBulletinDigital,
   importBulletinNews,
   waitForBulletinImportJob,
+  type BulletinAiReaderStatus,
+  type BulletinAiStatus,
   type BulletinImportJob,
 } from '../../api/bulletin'
 import { bulletinKeys } from '../../hooks/useDigitalBulletin'
@@ -34,6 +37,8 @@ const BulletinManagement = () => {
   const queryClient = useQueryClient()
 
   const [bulletins, setBulletins] = useState<Bulletin[]>([])
+  // 주보별 AI 읽기 상태 — 자동으로 읽히는 중인지, 3번 실패해 손을 봐야 하는지
+  const [aiStatus, setAiStatus] = useState<Record<string, BulletinAiStatus>>({})
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
@@ -57,7 +62,9 @@ const BulletinManagement = () => {
       setLoading(true)
       // 관리자 목록은 캐시를 건너뛴다 — 수정 직후 옛 내용이 보이면 안 된다
       const data = await getBulletins(0, 100, true)
-      setBulletins(Array.isArray(data) ? data : [])
+      const list = Array.isArray(data) ? data : []
+      setBulletins(list)
+      void loadAiStatus(list.map(b => b.id))
     } catch (err) {
       showToast(err instanceof Error ? err.message : '주보를 불러오는데 실패했습니다', 'error')
       setBulletins([])
@@ -65,6 +72,29 @@ const BulletinManagement = () => {
       setLoading(false)
     }
   }
+
+  // 읽기 상태는 목록과 따로 — 실패해도 목록은 보여야 한다
+  const loadAiStatus = async (ids: number[]) => {
+    try {
+      setAiStatus(await getBulletinAiStatus(ids))
+    } catch {
+      /* 상태 칩만 빠진다 */
+    }
+  }
+  // 아직 읽는 중인 주보가 있으면 30초마다 다시 묻는다(자동 읽기는 1~2분)
+  const hasActiveReading = useMemo(
+    () =>
+      Object.values(aiStatus).some(per =>
+        Object.values(per).some(r => r.state === 'queued' || r.state === 'running' || r.state === 'pending'),
+      ),
+    [aiStatus],
+  )
+  useEffect(() => {
+    if (!hasActiveReading || bulletins.length === 0) return
+    const ids = bulletins.map(b => b.id)
+    const timer = window.setInterval(() => void loadAiStatus(ids), 30_000)
+    return () => window.clearInterval(timer)
+  }, [hasActiveReading, bulletins])
 
   const handleDelete = async (id: number) => {
     if (
@@ -136,10 +166,10 @@ const BulletinManagement = () => {
   const runImportDigital = async (bulletin: Bulletin) => {
     if (
       !(await confirmDialog({
-        title: '디지털 주보 초안 만들기',
+        title: '디지털 주보 초안 다시 만들기',
         message:
-          '주보 사진을 읽어 예배 순서·설교·소식·안내·주간 일정을 디지털 주보 초안으로 만들어요. 1~2분 걸리고, 소식 탭에서 검토한 뒤 적용해야 공개됩니다. 있던 초안은 덮어써요.',
-        confirmText: '만들기',
+          '등록된 주보는 서버가 알아서 읽어 초안을 만들어요. 다시 읽히고 싶거나 읽기가 3번 실패했을 때만 쓰세요. 1~2분 걸리고, 소식 탭에서 검토한 뒤 적용해야 공개됩니다. 있던 초안은 덮어써요.',
+        confirmText: '다시 만들기',
       }))
     )
       return
@@ -164,15 +194,16 @@ const BulletinManagement = () => {
       showToast(err instanceof Error ? err.message : '주보를 읽지 못했어요', 'error')
     } finally {
       setImportingId(null)
+      void loadAiStatus(bulletins.map(b => b.id))
     }
   }
   const runImportNews = async (bulletin: Bulletin) => {
     if (
       !(await confirmDialog({
-        title: '소식 → 일정 초안',
+        title: '소식 → 일정 초안 다시 만들기',
         message:
-          '주보의 소식 쪽을 읽어 날짜가 있는 항목을 일정 초안으로 만들어요. 1~2분 걸리고, 이미 있는 일정은 건너뜁니다. 교회소식 초안은 디지털 주보 초안을 적용할 때 그 소식으로 만들어져요.',
-        confirmText: '가져오기',
+          '등록된 주보는 서버가 알아서 소식 쪽을 읽어 일정 초안을 만들어요. 다시 읽히고 싶거나 읽기가 3번 실패했을 때만 쓰세요. 1~2분 걸리고, 이미 있는 일정은 건너뜁니다. 교회소식 초안은 디지털 주보 초안을 적용할 때 만들어져요.',
+        confirmText: '다시 만들기',
       }))
     )
       return
@@ -197,6 +228,7 @@ const BulletinManagement = () => {
       showToast(err instanceof Error ? err.message : '주보 소식을 읽지 못했어요', 'error')
     } finally {
       setImportingId(null)
+      void loadAiStatus(bulletins.map(b => b.id))
     }
   }
 
@@ -397,6 +429,7 @@ const BulletinManagement = () => {
                     onImportDigital={() => handleImportDigital(bulletin)}
                     importing={importingId === bulletin.id}
                     importLocked={importingId !== null}
+                    aiStatus={aiStatus[String(bulletin.id)]}
                   />
                 ))
               )}
@@ -444,6 +477,95 @@ interface BulletinRowProps {
   importing: boolean
   /** 다른 주보(또는 이 주보)를 읽는 중 — 버튼 비활성 */
   importLocked: boolean
+  /** 서버의 AI 읽기 상태(없으면 아직 못 받음) */
+  aiStatus?: BulletinAiStatus
+}
+
+const READER_NAMES = ['column', 'news', 'digital'] as const
+const READER_LABELS: Record<keyof BulletinAiStatus, string> = {
+  column: '칼럼',
+  news: '일정',
+  digital: '디지털',
+}
+
+const readerStateText = (r: BulletinAiReaderStatus): string => {
+  switch (r.state) {
+    case 'done':
+      return '읽음'
+    case 'queued':
+      return '대기'
+    case 'running':
+      return '읽는 중'
+    case 'gave_up':
+      return `${r.attempts}번 실패`
+    case 'idle':
+      return '안 읽음'
+    default:
+      return r.attempts > 0 ? `재시도 예정 ${r.attempts}/3` : '곧 읽음'
+  }
+}
+
+/** 읽기 하나의 상태 칩 — 끝남(차분)·진행(브랜드)·실패(주의) 세 톤 */
+const ReaderChip = ({ name, status }: { name: keyof BulletinAiStatus; status: BulletinAiReaderStatus }) => {
+  const tone =
+    status.state === 'done'
+      ? 'bg-gray-100 dark:bg-white/[0.05] border-gray-200 dark:border-white/[0.06] text-gray-600 dark:text-white/65'
+      : status.state === 'gave_up'
+        ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-400/30 text-rose-600 dark:text-rose-300'
+        : status.state === 'idle'
+          ? 'bg-transparent border-dashed border-gray-300 dark:border-white/[0.14] text-gray-400 dark:text-white/40'
+          : 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
+  const title =
+    status.state === 'done' && status.done_at
+      ? `${READER_LABELS[name]} 읽기 완료 · ${formatLongDate(status.done_at)}`
+      : status.state === 'gave_up'
+        ? `${READER_LABELS[name]} 읽기를 ${status.attempts}번 시도해도 안 됐어요 — 아래 '다시 만들기'로 직접 읽혀 주세요`
+        : status.state === 'idle'
+          ? `${READER_LABELS[name]}은 읽지 않았어요 — 2주 넘게 지난 주보는 자동으로 읽지 않아요. 필요하면 '다시 만들기'로`
+          : `${READER_LABELS[name]} 읽기는 서버가 자동으로 해요 — 기다리면 돼요`
+  return (
+    <span
+      title={title}
+      className={`inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full border text-[10px] font-semibold leading-[1.5] whitespace-nowrap ${tone}`}
+    >
+      {status.state === 'done' ? (
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : status.state === 'gave_up' ? (
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="14" />
+          <circle cx="12" cy="19" r="0.6" fill="currentColor" />
+        </svg>
+      ) : status.state === 'idle' ? (
+        <span className="w-1.5 h-1.5 rounded-full border border-current" aria-hidden="true" />
+      ) : (
+        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" aria-hidden="true" />
+      )}
+      {READER_LABELS[name]} {readerStateText(status)}
+    </span>
+  )
+}
+
+/** 세 읽기 상태를 한 줄로 — 전부 끝났으면 "AI 읽기 완료" 하나로 접는다 */
+const AiStatusLine = ({ status }: { status?: BulletinAiStatus }) => {
+  if (!status) return null
+  const allDone = READER_NAMES.every(n => status[n]?.state === 'done')
+  if (allDone) {
+    return (
+      <div className="flex items-center gap-1 mt-1.5 text-[10.5px] font-semibold text-gray-500 dark:text-white/50">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        AI 읽기 완료 — 칼럼·일정·디지털
+      </div>
+    )
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-1 mt-1.5">
+      {READER_NAMES.map(n => (status[n] ? <ReaderChip key={n} name={n} status={status[n]} /> : null))}
+    </div>
+  )
 }
 
 const BulletinRow = ({
@@ -457,8 +579,13 @@ const BulletinRow = ({
   onImportDigital,
   importing,
   importLocked,
+  aiStatus,
 }: BulletinRowProps) => {
   const isCurrent = isThisMonth(bulletin.bulletin_date)
+  const needsHand =
+    aiStatus !== undefined && Object.values(aiStatus).some(r => r.state === 'gave_up')
+  const outOfWindow =
+    aiStatus !== undefined && Object.values(aiStatus).some(r => r.state === 'idle')
   return (
     <div
       className={[
@@ -515,6 +642,7 @@ const BulletinRow = ({
             <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
             👁️ {bulletin.views ?? 0}
           </div>
+          <AiStatusLine status={aiStatus} />
         </div>
 
         <svg
@@ -564,6 +692,13 @@ const BulletinRow = ({
             <RowAction onClick={onEdit} accent icon="pencil" label="수정" />
             <RowAction onClick={onDelete} destructive icon="trash" label="삭제" />
           </div>
+          <p className="text-[11px] leading-[1.55] text-gray-500 dark:text-white/50 bg-gray-50 dark:bg-white/[0.03] rounded-xl px-3 py-2">
+            {needsHand
+              ? '읽기가 3번 실패한 항목이 있어요. 아래 버튼으로 직접 다시 읽혀 주세요.'
+              : outOfWindow
+                ? '2주 넘게 지난 주보라 자동으로 읽지 않아요. 초안이 필요하면 아래 버튼으로 읽혀 주세요. 디지털 초안은 지금 초안을 덮어써요.'
+                : '칼럼·일정·디지털 주보 초안은 등록되면 서버가 알아서 읽어요. 아래 버튼은 다시 읽히고 싶을 때만 쓰세요.'}
+          </p>
           <RowAction
             onClick={onImportNews}
             icon="calendar"
@@ -574,7 +709,7 @@ const BulletinRow = ({
                 ? '소식 읽는 중… (1~2분)'
                 : importLocked
                   ? '다른 주보를 읽는 중이에요'
-                  : '소식 → 일정 초안 만들기'
+                  : '소식 → 일정 초안 다시 만들기'
             }
           />
           <RowAction
@@ -587,7 +722,7 @@ const BulletinRow = ({
                 ? '주보 읽는 중… (1~2분)'
                 : importLocked
                   ? '다른 주보를 읽는 중이에요'
-                  : '디지털 주보 초안 만들기'
+                  : '디지털 주보 초안 다시 만들기'
             }
           />
 
