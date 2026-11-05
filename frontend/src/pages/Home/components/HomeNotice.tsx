@@ -480,7 +480,7 @@ const HomeNotice = () => {
             aria-modal="true"
             aria-label={`공지사항 ${current.title}`}
           >
-            <SheetGrabber onClose={closeCurrent} className="nl-grab sheet-grabber" />
+            <SheetGrabber onClose={closeCurrent} className="nl-grab sheet-grabber absolute" />
             <button type="button" onClick={closeCurrent} aria-label="닫기" className="nl-close">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
                 <path d="M18 6L6 18M6 6l12 12" />
