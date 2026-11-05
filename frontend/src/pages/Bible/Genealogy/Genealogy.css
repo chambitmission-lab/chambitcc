@@ -80,7 +80,18 @@
   border: 1px solid var(--brand-soft-strong);
 }
 .gen-stat__label { font-size: 11.5px; font-weight: 600; color: var(--brand); line-height: 1.2; }
-.gen-stat__value { font-size: 18px; font-weight: 800; color: var(--text-body); letter-spacing: -0.02em; line-height: 1.2; }
+.gen-stat__value { font-size: 18px; font-weight: 800; color: var(--text-body); letter-spacing: -0.02em; line-height: 1.2; white-space: nowrap; }
+
+/* 모바일(3칸이 ~100px) — 아이콘을 위로 올려 이름·숫자가 칸 폭을 다 쓰게.
+   가로 배치면 아이콘+여백이 66px를 먹어 "전체 …"로 잘리고 "100%"가 테두리를 넘는다 */
+@media (max-width: 639px) {
+  .gen-stat { flex-direction: column; align-items: flex-start; gap: 7px; padding: 10px; }
+  .gen-stat__icon { width: 28px; height: 28px; border-radius: 9px; }
+  .gen-stat__icon .material-icons-round { font-size: 16px !important; }
+  .gen-stat__label { font-size: 11px; }
+  .gen-stat > .min-w-0 { align-self: stretch; }
+  .gen-stat__value { margin-top: 2px; }
+}
 
 /* ── 가계도 = "내 열차 위치" 노선도 (GenealogyTree) ───────────────────
    한 줄 노선(위→아래) · 시대마다 노선 색(--c, SKY_ERA_START.color) · 아담역부터 이어 읽은 역까지 열차.
