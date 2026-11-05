@@ -6,12 +6,13 @@
 //     voted_count·voters_total 만 고친다(요청 0). 득표가 보이는 화면(실시간 공개·관리자
 //     현황판)만 다시 받되, 몰아서 받도록 스로틀한다.
 //   - 그 밖(회차 열림·마감·선거 수정): 드문 일이라 그대로 전부 다시 받는다.
-//   - kind 가 없는 옛 서버: 예전처럼 다시 받되 스로틀만 건다.
+//   - kind 가 없는 옛 서버: 예전처럼 다시 받되 스로틀만 건다(utils/invalidateThrottled).
 //
 // 키는 hooks/useElections.ts 의 electionKeys 와 같은 리터럴이다 — 그쪽이
 // notificationStream 을 import 하므로 여기서 되가져오면 순환한다.
 import type { QueryClient, QueryKey } from '@tanstack/react-query'
 import type { ElectionDetail, ElectionRoundStatus, ElectionSummary } from '../types/election'
+import { invalidateThrottled } from './invalidateThrottled'
 
 const ALL: QueryKey = ['elections']
 const LIST_KEYS: QueryKey[] = [
@@ -21,9 +22,6 @@ const LIST_KEYS: QueryKey[] = [
 const detailKey = (id: number): QueryKey => ['elections', 'detail', id]
 const adminDetailKey = (id: number): QueryKey => ['elections', 'admin-detail', id]
 
-/** 득표를 다시 받는 최소 간격 — 표가 몰려도 화면당 이 주기로 한 번만 조회한다 */
-const REFETCH_THROTTLE_MS = 2500
-
 interface ElectionUpdateEvent {
   election_id: number
   kind?: 'ballot' | 'state'
@@ -31,23 +29,6 @@ interface ElectionUpdateEvent {
   round_status: ElectionRoundStatus | null
   voted_count: number
   voters_total: number
-}
-
-const lastFired = new Map<string, number>()
-const pending = new Map<string, ReturnType<typeof setTimeout>>()
-
-/** 첫 신호는 바로, 이어지는 신호는 주기 끝에 한 번으로 모은다(leading + trailing) */
-const invalidateThrottled = (qc: QueryClient, queryKey: QueryKey): void => {
-  const k = JSON.stringify(queryKey)
-  if (pending.has(k)) return
-  const fire = () => {
-    pending.delete(k)
-    lastFired.set(k, Date.now())
-    void qc.invalidateQueries({ queryKey })
-  }
-  const wait = (lastFired.get(k) ?? 0) + REFETCH_THROTTLE_MS - Date.now()
-  if (wait <= 0) fire()
-  else pending.set(k, setTimeout(fire, wait))
 }
 
 const parse = (raw: string): ElectionUpdateEvent | null => {

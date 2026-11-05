@@ -242,3 +242,14 @@ export const cultureKeys = {
   classes: () => [...cultureKeys.all, 'classes'] as const,
   notices: () => [...cultureKeys.all, 'notices'] as const,
 }
+
+/** 행사 좌석 예약 — 훅(useSeatEvents)과 SSE 동기화(utils/seatLiveSync)가 같은 키를 쓴다 */
+export const seatKeys = {
+  all: ['seat-events'] as const,
+  list: () => [...seatKeys.all, 'list'] as const,
+  byEvent: (eventId: number) => [...seatKeys.all, 'by-event', eventId] as const,
+  byEvents: () => [...seatKeys.all, 'by-event'] as const,
+  adminList: () => [...seatKeys.all, 'admin'] as const,
+  detail: (id: number) => [...seatKeys.all, 'detail', id] as const,
+  reservations: (id: number) => [...seatKeys.all, 'reservations', id] as const,
+}

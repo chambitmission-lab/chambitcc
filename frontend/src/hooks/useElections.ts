@@ -67,7 +67,9 @@ export const useElection = (id: number, enabled = true) =>
     queryFn: () => getElection(id),
     enabled: enabled && id > 0,
     staleTime: 1000 * 5,
-    refetchInterval: () => (notificationStream.connected ? 1000 * 60 : 1000 * 15),
+    // SSE 가 붙어 있으면 표·회차 변화는 밀려 오고, 유실(큐 넘침)은 서버가 resync 로 알려 준다.
+    // 연결 중 폴링은 5분 안전망만, 끊긴 동안은 15초.
+    refetchInterval: () => (notificationStream.connected ? 1000 * 60 * 5 : 1000 * 15),
     refetchIntervalInBackground: false,
     retry: false, // 명부 밖(403)·없는 선거(404)는 다시 물어도 같다
   })
@@ -101,14 +103,14 @@ export const useAdminElections = () =>
   })
 
 /** 현황판 — live 면 SSE 가 끊긴 동안 5초마다 새로 받는다(득표가 멈춰 보이지 않게).
- * 붙어 있을 때는 SSE 가 갱신을 맡으므로 15초 안전망만 돈다. */
+ * 붙어 있을 때는 SSE 가 갱신을 맡고 유실은 서버가 resync 로 알려 주므로 1분 안전망만 돈다. */
 export const useElectionAdmin = (id: number, live = false) =>
   useQuery({
     queryKey: electionKeys.adminDetail(id),
     queryFn: () => getElectionAdmin(id),
     enabled: id > 0,
     staleTime: 0,
-    refetchInterval: live ? () => (notificationStream.connected ? 1000 * 15 : 1000 * 5) : false,
+    refetchInterval: live ? () => (notificationStream.connected ? 1000 * 60 : 1000 * 5) : false,
     refetchIntervalInBackground: false,
   })
 

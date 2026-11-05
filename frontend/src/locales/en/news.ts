@@ -29,6 +29,8 @@ export const news = {
   newsPrivate: 'Private',
   newsPinned: 'Pinned',
   newsViewCount: '{n} views',
+  newsLatest: 'Latest',
+  newsReadMore: 'Read more',
   newsLoadFailed: 'Could not load',
   newsAnimatedSticker: 'Animated sticker',
   newsPhotoNth: 'Photo {n}',

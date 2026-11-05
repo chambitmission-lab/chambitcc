@@ -1,9 +1,9 @@
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ALL_EPISODES, STORY_ACTS, TOTAL_EPISODES, nextUnread } from './data'
-import { useStoryProgress, hasCelebrated, markCelebrated } from './storyProgress'
+import { useStoryProgress } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
-import { ArrowRight, BookOpen, Sparkle } from '../../../components/icons/phosphor'
+import StoryFinale from './StoryFinale'
 import './Story.css'
 
 // 화 번호(1~42) — 맵의 카드 격자와 레일에서 순서를 보여 준다
@@ -27,80 +27,13 @@ const StoryMap = () => {
   const completed = readCount >= TOTAL_EPISODES
   const pct = Math.round((readCount / TOTAL_EPISODES) * 100)
 
-  // 완주 축하 — 최초 1회만 컨페티
-  useEffect(() => {
-    if (!completed || hasCelebrated()) return
-    markCelebrated()
-    // 축하 효과는 완주 순간에만 필요하다 — canvas-confetti 는 그때 받는다 (AtlasMap 과 같은 규약)
-    void import('canvas-confetti').then(({ default: confetti }) =>
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#3182f6', '#4593fc', '#60a5fa', '#facc15'],
-      }),
-    )
-  }, [completed])
-
   // 히어로(진행·이어보기 CTA) — 본문 맨 위. lg+ 에선 가로 배너로 펼쳐진다(Story.css)
   const renderStoryHero = (cls: string) => (
     <div className={cls}>
           {/* 히어로 — 진행 상태에 따라 3가지 얼굴 */}
           {completed ? (
-            <div className="story-hero story-hero--done">
-              {/* 배경 광원·잔별 — 장식이라 스크린리더에서 숨긴다 */}
-              <div className="story-done__glow" aria-hidden />
-              <span className="story-done__spark story-done__spark--1" aria-hidden>
-                <Sparkle size={18} weight="duotone" />
-              </span>
-              <span className="story-done__spark story-done__spark--2" aria-hidden>
-                <Sparkle size={12} weight="duotone" />
-              </span>
-              <span className="story-done__spark story-done__spark--3" aria-hidden>
-                <Sparkle size={14} weight="duotone" />
-              </span>
-
-              <span className="story-done__eyebrow">처음 만나는 성경 · 완주</span>
-
-              {/* 완주 인장 — 통독표 도장과 같은 문법, 열릴 때 꾹 눌러 찍힌다 */}
-              <div className="story-done__seal" aria-label="완주 인장">
-                <span className="story-done__seal-ring" aria-hidden />
-                <span className="story-done__seal-text">완주</span>
-                <span className="story-done__seal-meta">{TOTAL_EPISODES}화</span>
-              </div>
-
-              <h3 className="story-done__title">
-                성경 한 편을
-                <br />
-                끝까지 걸었어요
-              </h3>
-              <p className="story-done__text">
-                창조에서 새 창조까지, 하나로 이어진 이야기의 지도를 손에 쥐었어요.
-                이제 진짜 말씀 속으로 떠날 차례입니다.
-              </p>
-
-              <dl className="story-done__stats">
-                <div className="story-done__stat">
-                  <dt>막</dt>
-                  <dd>{STORY_ACTS.length}</dd>
-                </div>
-                <div className="story-done__stat">
-                  <dt>이야기</dt>
-                  <dd>{TOTAL_EPISODES}</dd>
-                </div>
-                <div className="story-done__stat">
-                  <dt>다음은</dt>
-                  <dd>66권</dd>
-                </div>
-              </dl>
-
-              <button className="story-done__cta" onClick={() => navigate('/bible/plans')}>
-                <BookOpen size={18} weight="duotone" />
-                진짜 성경으로 떠나기
-                <ArrowRight size={16} weight="bold" className="story-done__cta-arrow" />
-              </button>
-              <span className="story-done__sub">아래에서 언제든 다시 읽을 수 있어요</span>
-            </div>
+            // 완주 — 처음 한 번 10막 추억 상영, 그 뒤로는 42칸 벽화(칸을 누르면 크게 보기)
+            <StoryFinale />
           ) : (
             <div className="story-hero">
               {/* lg+ 에선 __main(글)·__side(버튼·진행)가 좌우로 선다 — 모바일은 그대로 위아래 */}

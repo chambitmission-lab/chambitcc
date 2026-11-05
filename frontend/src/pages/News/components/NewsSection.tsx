@@ -1,6 +1,6 @@
 // 교회소식 게시판 섹션 (/news 의 '소식' 탭 본문)
 // Single Responsibility: 소식 목록(분류·검색·더보기)과 상세 열람 전환
-import { formatDotDate } from '../../../utils/dateUtils'
+import { formatDotDate, parseApiDate } from '../../../utils/date'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -23,7 +23,7 @@ const isFresh = (value: string | null): boolean => {
 }
 
 const NewsSection = () => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const admin = can('content:manage')
@@ -50,6 +50,30 @@ const NewsSection = () => {
   const { items, total, isLoading, error, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useNewsList({ category: category ?? undefined, search: search || undefined })
   const { data: categories = [] } = useNewsCategories()
+
+  const weekdays = useMemo(() => t('newsWeekdays').split(','), [t])
+  const featured = items[0]
+  const rest = useMemo(() => items.slice(1), [items])
+  // 남은 글은 게시 달로 묶는다 — 서버 정렬(고정 → 최신) 순서를 그대로 지킨다
+  const groups = useMemo(() => {
+    const out: { key: string; label: string; items: NewsItem[] }[] = []
+    for (const news of rest) {
+      const d = toDate(news.published_at)
+      const key = news.is_pinned ? 'pinned' : d ? `${d.getFullYear()}-${d.getMonth()}` : 'none'
+      const last = out[out.length - 1]
+      if (last && last.key === key) {
+        last.items.push(news)
+        continue
+      }
+      const label = news.is_pinned
+        ? t('newsPinned')
+        : d
+          ? d.toLocaleDateString(language === 'en' ? 'en-US' : 'ko-KR', { year: 'numeric', month: 'long' })
+          : ''
+      out.push({ key, label, items: [news] })
+    }
+    return out
+  }, [rest, t, language])
 
   const openDetail = (news: NewsItem) => {
     pushedDetail.current = true
@@ -167,12 +191,39 @@ const NewsSection = () => {
             <span className="font-bold text-ink-strong">{total}</span>
             {t('newsCountSuffix')}
           </p>
-          {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 — 칸 수는 폭으로 정해
-              PC 글씨 크기(zoom)로 좁아지면 한 열로 풀린다(제목이 두 줄 안에 들어오게) */}
-          <div className="space-y-2 lg:grid lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:gap-3 lg:space-y-0">
-            {items.map((news) => (
-              <NewsCard key={news.id} news={news} onClick={() => openDetail(news)} />
-            ))}
+          {/* 맨 위 글 = 대표 카드, 나머지 = 달별 묶음 리스트.
+              lg+: 남은 글이 있으면 대표 카드(왼쪽, 따라 붙음) | 리스트(오른쪽) 2단 */}
+          <div
+            className={
+              rest.length > 0
+                ? 'space-y-4 lg:space-y-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-5 lg:items-start'
+                : ''
+            }
+          >
+            <div className={rest.length > 0 ? 'lg:sticky lg:top-24' : 'lg:max-w-[760px]'}>
+              {featured && <FeaturedCard news={featured} onClick={() => openDetail(featured)} />}
+            </div>
+            {rest.length > 0 && (
+              <div className="space-y-4">
+                {groups.map((group) => (
+                  <section key={group.key}>
+                    <h3 className="px-1 pb-1.5 text-[12px] lg:text-[15px] font-bold text-gray-500 dark:text-white/50 tracking-[-0.01em]">
+                      {group.label}
+                    </h3>
+                    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_12px_rgba(0,0,0,0.25)] divide-y divide-gray-100 dark:divide-white/[0.06]">
+                      {group.items.map((news) => (
+                        <NewsRow
+                          key={news.id}
+                          news={news}
+                          weekdays={weekdays}
+                          onClick={() => openDetail(news)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
           </div>
         </>
       )}
@@ -194,81 +245,198 @@ const NewsSection = () => {
 }
 
 // ── 카드 ──────────────────────────────────────────────
-const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) => {
+const BADGE = 'inline-flex items-center h-[19px] lg:h-6 px-1.5 lg:px-2 rounded-md text-[10px] lg:text-[12.5px] font-bold'
+
+/** 고정·분류·NEW·비공개 뱃지 — 대표 카드와 리스트 행이 같이 쓴다 */
+const NewsBadges = ({ news }: { news: NewsItem }) => {
+  const { t } = useLanguage()
+  const fresh = isFresh(news.published_at)
+  if (!news.is_pinned && !news.category && !fresh && news.is_published) return null
+  return (
+    <>
+      {news.is_pinned && <span className={`${BADGE} bg-brand text-white`}>{t('newsPinned')}</span>}
+      {news.category && (
+        <span className={`${BADGE} bg-[var(--brand-soft)] text-brand`}>{news.category}</span>
+      )}
+      {fresh && (
+        <span className={`${BADGE} gap-1 bg-red-500/10 text-red-500 dark:text-red-300`}>
+          <span className="w-1 h-1 rounded-full bg-current" />
+          NEW
+        </span>
+      )}
+      {!news.is_published && (
+        <span className={`${BADGE} bg-gray-500/10 text-gray-600 dark:text-white/60`}>{t('newsPrivate')}</span>
+      )}
+    </>
+  )
+}
+
+/** 날짜 · 조회 · 첨부 */
+const NewsMeta = ({ news, className = '' }: { news: NewsItem; className?: string }) => {
   const { t } = useLanguage()
   return (
-  <button
-    type="button"
-    onClick={onClick}
-    className="group relative w-full text-left overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-3.5 lg:p-5 hover:border-[var(--brand-soft-strong)] transition-colors"
-  >
-    <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-    <div className="relative z-10 flex gap-3 lg:gap-4">
-      <div className="shrink-0 w-[74px] h-[74px] lg:w-[92px] lg:h-[92px] rounded-xl overflow-hidden bg-[var(--brand-soft)] border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
-        {news.thumbnail_url ? (
+    <div className={`flex items-center gap-1.5 text-gray-400 dark:text-white/40 ${className}`}>
+      <span>{formatDate(news.published_at)}</span>
+      <span className="text-gray-300 dark:text-white/20">·</span>
+      <span>{t('newsViewCount').replace('{n}', String(news.views))}</span>
+      {news.file_count > 0 && (
+        <>
+          <span className="text-gray-300 dark:text-white/20">·</span>
+          <span className="inline-flex items-center gap-0.5">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.4 17.24a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
+            {news.file_count}
+          </span>
+        </>
+      )}
+    </div>
+  )
+}
+
+const ChevronRight = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+)
+
+const toDate = (value: string | null): Date | null => {
+  if (!value) return null
+  const d = parseApiDate(value)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+/** 맨 위 글 — 사진이 있으면 위에 크게, 없으면 날짜를 표지 글자로 */
+const FeaturedCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) => {
+  const { t } = useLanguage()
+  const d = toDate(news.published_at)
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative block w-full text-left overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-[0_10px_30px_-18px_rgba(15,23,42,0.35)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-18px_var(--brand-glow)] active:scale-[0.99] transition-all duration-200"
+    >
+      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
+      {news.thumbnail_url ? (
+        <div className="relative aspect-[16/9] overflow-hidden bg-[var(--brand-soft)]">
           <img
             src={news.thumbnail_url}
             alt=""
             loading="lazy"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
           />
+        </div>
+      ) : (
+        // 사진이 없는 글 — 브랜드 색 은은한 면 위에 날짜를 크게
+        <div className="relative px-5 pt-5 lg:px-7 lg:pt-7">
+          <span className="absolute -top-16 -right-10 w-52 h-52 rounded-full bg-[var(--brand-soft-strong)] blur-2xl opacity-80 pointer-events-none" />
+          {d && (
+            <div className="relative flex items-end gap-2">
+              <span className="text-brand text-[40px] lg:text-[52px] font-extrabold leading-none tracking-[-0.04em] tabular-nums">
+                {d.getMonth() + 1}.{String(d.getDate()).padStart(2, '0')}
+              </span>
+              <span className="pb-1 text-[11px] lg:text-[13px] font-bold text-gray-400 dark:text-white/45 tracking-[0.08em]">
+                {d.getFullYear()}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="relative z-10 p-5 lg:p-7 pt-3.5 lg:pt-4">
+        <div className="flex flex-wrap items-center gap-1 mb-2">
+          <span className={`${BADGE} bg-gray-900 text-white dark:bg-white/90 dark:text-gray-900`}>
+            {t('newsLatest')}
+          </span>
+          <NewsBadges news={news} />
+        </div>
+        <p className="text-[19px] lg:text-[24px] font-bold text-ink-strong leading-[1.3] tracking-[-0.02em] line-clamp-2 group-hover:text-brand transition-colors">
+          {news.title}
+        </p>
+        {news.summary && (
+          <p className="mt-2 text-[13px] lg:text-[16px] text-gray-500 dark:text-white/55 lg:text-gray-600 lg:dark:text-white/65 leading-[1.6] line-clamp-3">
+            {news.summary}
+          </p>
+        )}
+        <div className="mt-4 lg:mt-5 flex items-center justify-between gap-3">
+          <NewsMeta news={news} className="text-[11.5px] lg:text-[14.5px] min-w-0" />
+          <span className="shrink-0 inline-flex items-center gap-0.5 h-8 lg:h-10 pl-3.5 pr-2.5 lg:pl-4 lg:pr-3 rounded-full bg-[var(--brand-soft)] text-brand text-[12px] lg:text-[14.5px] font-bold group-hover:bg-brand group-hover:text-white transition-colors">
+            {t('newsReadMore')}
+            <ChevronRight size={15} />
+          </span>
+        </div>
+      </div>
+    </button>
+  )
+}
+
+/** 리스트 한 줄 — 왼쪽 날짜 타일 + 제목·요약 + (사진) + 화살표 */
+const NewsRow = ({
+  news,
+  weekdays,
+  onClick,
+}: {
+  news: NewsItem
+  weekdays: string[]
+  onClick: () => void
+}) => {
+  const d = toDate(news.published_at)
+  const fresh = isFresh(news.published_at)
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative w-full text-left flex items-center gap-3 lg:gap-4 px-3.5 py-3.5 lg:px-5 lg:py-4 hover:bg-gray-50 dark:hover:bg-white/[0.03] active:bg-gray-100 dark:active:bg-white/[0.05] transition-colors"
+    >
+      <div
+        className={[
+          'shrink-0 w-12 h-12 lg:w-14 lg:h-14 rounded-2xl flex flex-col items-center justify-center leading-none',
+          fresh
+            ? 'bg-brand text-white shadow-[0_6px_14px_-8px_var(--brand-glow)]'
+            : 'bg-gray-100 dark:bg-white/[0.06] text-ink-strong',
+        ].join(' ')}
+      >
+        {d ? (
+          <>
+            <span className="text-[17px] lg:text-[20px] font-extrabold tracking-[-0.03em] tabular-nums">
+              {d.getDate()}
+            </span>
+            <span className={`mt-1 text-[9.5px] lg:text-[11.5px] font-bold ${fresh ? 'text-white/80' : 'text-gray-400 dark:text-white/45'}`}>
+              {weekdays[d.getDay()] ?? ''}
+            </span>
+          </>
         ) : (
-          <MegaphoneIcon width={26} height={26} className="text-brand opacity-60" />
+          <MegaphoneIcon width={20} height={20} className="opacity-60" />
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-1 mb-1 lg:mb-1.5">
-          {news.is_pinned && (
-            <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-brand text-white">
-              {t('newsPinned')}
-            </span>
-          )}
-          {news.category && (
-            <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand">
-              {news.category}
-            </span>
-          )}
-          {isFresh(news.published_at) && (
-            <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-red-500/10 border border-red-400/30 text-red-500 dark:text-red-300">
-              NEW
-            </span>
-          )}
-          {!news.is_published && (
-            <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
-              {t('newsPrivate')}
-            </span>
-          )}
+        <div className="flex flex-wrap items-center gap-1 empty:hidden">
+          <NewsBadges news={news} />
         </div>
-
-        <p className="text-[14.5px] lg:text-[19px] font-bold text-ink-strong leading-[1.35] line-clamp-2 group-hover:text-brand transition-colors">
+        <p className="mt-0.5 text-[14.5px] lg:text-[17.5px] font-bold text-ink-strong leading-[1.4] tracking-[-0.01em] line-clamp-1 group-hover:text-brand transition-colors">
           {news.title}
         </p>
         {news.summary && (
-          <p className="mt-1 lg:mt-1.5 text-[12px] lg:text-[15.5px] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65 leading-[1.5] line-clamp-2">
+          <p className="mt-0.5 text-[12px] lg:text-[14.5px] text-gray-500 dark:text-white/50 leading-[1.5] line-clamp-1">
             {news.summary}
           </p>
         )}
-
-        <div className="mt-1.5 lg:mt-2 flex items-center gap-1.5 text-[11px] lg:text-[14.5px] text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/50">
-          <span>{formatDate(news.published_at)}</span>
-          <span className="text-gray-300 dark:text-white/20">·</span>
-          <span>{t('newsViewCount').replace('{n}', String(news.views))}</span>
-          {news.file_count > 0 && (
-            <>
-              <span className="text-gray-300 dark:text-white/20">·</span>
-              <span className="inline-flex items-center gap-0.5">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.4 17.24a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                </svg>
-                {news.file_count}
-              </span>
-            </>
-          )}
-        </div>
+        <NewsMeta news={news} className="mt-1 text-[10.5px] lg:text-[13px]" />
       </div>
-    </div>
-  </button>
+
+      {news.thumbnail_url && (
+        <img
+          src={news.thumbnail_url}
+          alt=""
+          loading="lazy"
+          className="shrink-0 w-14 h-14 lg:w-16 lg:h-16 rounded-xl object-cover border border-gray-200/70 dark:border-white/[0.08]"
+        />
+      )}
+      <span className="shrink-0 text-gray-300 dark:text-white/25 group-hover:text-brand group-hover:translate-x-0.5 transition">
+        <ChevronRight />
+      </span>
+    </button>
   )
 }
 

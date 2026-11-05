@@ -11,20 +11,11 @@ import { StoryGlyph } from './StoryIcons'
 import './Story.css'
 import { bibleKeys } from '../../../hooks/queryKeys'
 import { placeForEpisode } from '../Atlas/storyPlaces'
+import { storyImage } from './storyImages'
 
 // 이 화의 무대를 지도 한 조각으로 보여 주는 카드. 지도 데이터(해안선·장소 사전)가
 // 스토리 청크에 딸려 오지 않도록 lazy 로 둔다.
 const AtlasPlaceCard = lazy(() => import('../Atlas/components/AtlasPlaceCard'))
-
-// 에피소드 일러스트 — img/{에피소드 id}.webp 파일을 넣기만 하면 자동으로 연결된다.
-// 아직 없는 화는 기존 이모지 히어로를 유지한다. eager여도 청크에는 URL 맵만 실리고
-// 이미지 바이너리는 해당 화를 열 때 로드된다.
-const STORY_IMAGES = import.meta.glob('./img/*.webp', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>
-const storyImage = (id: string) => STORY_IMAGES[`./img/${id}.webp`]
 
 // 원문 맛보기 — 절 본문은 기존 성경 API에서 런타임에 가져온다 (번역본 일치, 데이터 중복 없음)
 interface FetchedRef {

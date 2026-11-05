@@ -1,0 +1,573 @@
+/* 처음 만나는 성경 — 완주 히어로 (StoryFinale.tsx)
+ * 추억 상영(sf-reel) → 42칸 벽화(sf-wall) → 크게 보기(sf-lb).
+ * 그림이 주인공인 카드라 라이트·다크 모두 밤빛 바탕 위에 흰 글씨를 얹는다. */
+
+.sf {
+  --sf-night: #0b1220;
+  --sf-on: #fff;
+  --sf-on-soft: rgba(255, 255, 255, 0.78);
+  --sf-on-faint: rgba(255, 255, 255, 0.6);
+}
+
+.sf-reel,
+.sf-wall {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 1.5rem;
+  background: var(--sf-night);
+  color: var(--sf-on);
+  box-shadow: 0 18px 40px -24px rgba(11, 18, 32, 0.7);
+}
+
+/* ── 추억 상영 ───────────────────────────── */
+.sf-reel {
+  aspect-ratio: 4 / 5;
+}
+.sf-reel__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.sf-reel__slide.is-on {
+  opacity: 1;
+  z-index: 1;
+}
+.sf-reel__slide img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+}
+.sf-reel__slide.is-on img {
+  animation: sf-kenburns var(--sf-slide-ms, 4200ms) ease-out forwards;
+}
+@keyframes sf-kenburns {
+  from { transform: scale(1.02) translate(0, 0); }
+  to { transform: scale(1.14) translate(-2%, -1%); }
+}
+.sf-reel__slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 12, 24, 0.4) 0%,
+    transparent 28%,
+    transparent 42%,
+    rgba(6, 12, 24, 0.88) 100%
+  );
+}
+.sf-reel__bars {
+  position: absolute;
+  z-index: 3;
+  top: 0.85rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 4px;
+}
+.sf-reel__bars i {
+  flex: 1;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+.sf-reel__bars b {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: #fff;
+}
+.sf-reel__bars i.is-done b {
+  width: 100%;
+}
+.sf-reel__bars i.is-cur b {
+  animation: sf-bar var(--sf-slide-ms, 4200ms) linear forwards;
+}
+@keyframes sf-bar {
+  to { width: 100%; }
+}
+.sf-reel__txt {
+  position: absolute;
+  z-index: 2;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 1.4rem;
+  pointer-events: none;
+}
+.sf-reel__no {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: var(--sf-on-soft);
+}
+.sf-reel__act {
+  margin: 0.2rem 0 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+.sf-reel__eps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--sf-on-soft);
+}
+.sf-reel__tap {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: flex;
+}
+.sf-reel__tap button {
+  flex: 1;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.sf-reel__tap button:first-child {
+  flex: 0 0 35%;
+}
+.sf-reel__skip {
+  position: absolute;
+  z-index: 5;
+  top: 1.6rem;
+  right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.55rem 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(6, 12, 24, 0.35);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.sf-reel__skip .material-icons-round {
+  font-size: 18px;
+}
+
+/* ── 42칸 벽화 ───────────────────────────── */
+.sf-wall__grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 2px;
+}
+.sf-wall__tile {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #16213a;
+  cursor: zoom-in;
+  animation: sf-tile-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.sf-wall__tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+@keyframes sf-tile-in {
+  from { opacity: 0.12; transform: scale(0.86); }
+}
+.sf-wall__no {
+  position: absolute;
+  left: 5px;
+  top: 3px;
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.sf-wall__tile:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+  z-index: 1;
+}
+.sf-wall__tile:hover img {
+  transform: scale(1.1);
+}
+/* 가운데 글 — 그림을 둥글게 눌러 글만 읽히게 한다. 글 바깥 칸은 그대로 눌린다 */
+.sf-wall__over {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  text-align: center;
+  background: radial-gradient(
+    75% 65% at 50% 50%,
+    rgba(6, 12, 24, 0.84),
+    rgba(6, 12, 24, 0.45) 72%,
+    rgba(6, 12, 24, 0.2)
+  );
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.sf-wall__over > * {
+  pointer-events: auto;
+}
+.sf-wall__eye {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--sf-on-soft);
+}
+.sf-wall__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 900;
+  line-height: 1.22;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+.sf-wall__text {
+  margin: 0;
+  max-width: 30rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--sf-on-soft);
+  word-break: keep-all;
+}
+.sf-wall__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+.sf-wall__replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sf-on-faint);
+}
+.sf-wall__replay:hover {
+  color: #fff;
+}
+.sf-wall__replay .material-icons-round {
+  font-size: 16px;
+}
+.sf-wall.is-peek .sf-wall__over {
+  opacity: 0;
+  pointer-events: none;
+}
+.sf-wall.is-peek .sf-wall__over > * {
+  pointer-events: none;
+}
+.sf-wall.is-peek .sf-wall__no {
+  opacity: 1;
+}
+.sf-wall__peekbar {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.6rem 0.55rem 0.9rem;
+  border-radius: 0.9rem;
+  background: rgba(6, 12, 24, 0.72);
+  backdrop-filter: blur(8px);
+  font-size: 0.8rem;
+  color: var(--sf-on-soft);
+  animation: sf-fade 0.3s ease both;
+}
+.sf-wall__peekbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 0.6rem;
+  background: #fff;
+  color: #0b1220;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.sf-wall__peekbar .material-icons-round {
+  font-size: 16px;
+}
+@keyframes sf-fade {
+  from { opacity: 0; }
+}
+
+/* 버튼 */
+.sf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.8rem 1.15rem;
+  border-radius: 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.sf-btn:active {
+  transform: scale(0.98);
+}
+.sf-btn .material-icons-round {
+  font-size: 18px;
+}
+.sf-btn--light {
+  background: #fff;
+  color: #0b1f45;
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.5);
+}
+.sf-btn--glass {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  color: #fff;
+}
+.sf-btn--brand {
+  background: var(--brand);
+  color: #fff;
+}
+.sf-btn:hover {
+  filter: brightness(1.06);
+}
+
+/* ── 크게 보기 ───────────────────────────── */
+.sf-lb {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem max(1rem, env(safe-area-inset-bottom, 0px));
+  background: rgba(4, 8, 16, 0.86);
+  backdrop-filter: blur(6px);
+  animation: sf-fade 0.25s ease both;
+}
+.sf-lb__panel {
+  width: 100%;
+  max-width: 56rem;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: #0f1729;
+  color: #fff;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
+  animation: sf-lb-rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes sf-lb-rise {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+.sf-lb__figure {
+  position: relative;
+  flex: 0 1 auto;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  max-height: 68vh;
+  background: #0b1220;
+}
+.sf-lb__figure img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: sf-fade 0.35s ease both;
+}
+.sf-lb__count {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(6, 12, 24, 0.55);
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.sf-lb__close,
+.sf-lb__nav {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(6, 12, 24, 0.55);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s;
+}
+.sf-lb__close:hover,
+.sf-lb__nav:hover {
+  background: rgba(6, 12, 24, 0.8);
+}
+.sf-lb__close {
+  right: 0.6rem;
+  top: 0.6rem;
+  width: 2.25rem;
+  height: 2.25rem;
+}
+.sf-lb__nav {
+  top: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  transform: translateY(-50%);
+}
+.sf-lb__nav .material-icons-round {
+  font-size: 28px;
+}
+.sf-lb__nav--prev { left: 0.6rem; }
+.sf-lb__nav--next { right: 0.6rem; }
+.sf-lb__close:focus-visible,
+.sf-lb__nav:focus-visible,
+.sf-lb__read:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+.sf-lb__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.15rem 1.15rem;
+}
+.sf-lb__act {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #8fbaff;
+}
+.sf-lb__title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+}
+.sf-lb__hook {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  word-break: keep-all;
+}
+.sf-lb__read {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}
+
+/* ── PC (lg+) — 글씨·누름 영역 한 단계 크게, 상영은 가로 화면, 벽은 7열 ── */
+@media (min-width: 1024px) {
+  .sf-reel {
+    aspect-ratio: 16 / 8;
+  }
+  .sf-reel__txt {
+    left: 2rem;
+    right: 2rem;
+    bottom: 1.9rem;
+  }
+  .sf-reel__no {
+    font-size: 0.95rem;
+  }
+  .sf-reel__act {
+    font-size: 3.75rem;
+  }
+  .sf-reel__eps {
+    font-size: 1rem;
+  }
+  .sf-reel__skip {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.7rem 0.4rem 0.9rem;
+  }
+  .sf-wall__grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .sf-wall__tile {
+    aspect-ratio: 4 / 3;
+  }
+  .sf-wall__no {
+    font-size: 0.78rem;
+  }
+  .sf-wall__eye {
+    font-size: 0.85rem;
+  }
+  .sf-wall__title {
+    font-size: 2.6rem;
+  }
+  .sf-wall__text {
+    font-size: 1.05rem;
+  }
+  .sf-btn {
+    padding: 0.95rem 1.4rem;
+    font-size: 1.05rem;
+  }
+  .sf-wall__replay {
+    font-size: 0.9rem;
+  }
+  .sf-wall__peekbar {
+    font-size: 0.95rem;
+  }
+  .sf-wall__peekbar button {
+    font-size: 0.9rem;
+  }
+  .sf-lb__body {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+  .sf-lb__act {
+    font-size: 0.9rem;
+  }
+  .sf-lb__title {
+    font-size: 1.75rem;
+  }
+  .sf-lb__hook {
+    font-size: 1.05rem;
+  }
+  .sf-lb__close {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .sf-lb__nav {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-reel__slide.is-on img,
+  .sf-wall__tile,
+  .sf-lb,
+  .sf-lb__panel,
+  .sf-lb__figure img {
+    animation: none;
+  }
+  .sf-reel__bars i.is-cur b {
+    animation: none;
+    width: 100%;
+  }
+  .sf-wall__tile img {
+    transition: none;
+  }
+}

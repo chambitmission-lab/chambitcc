@@ -4,6 +4,9 @@
 // 댓글(prayer_reply) 이벤트는 피드·상세 캐시의 카운트만 서버 값으로 덮어쓴다.
 // 연결이 끊기면 지수 백오프로 재연결하고, 그동안 useNotifications의
 // 폴백 폴링(refetchInterval)이 다시 동작한다.
+// 서버가 큐 넘침으로 이벤트를 버렸으면 `resync` 를 보낸다 — 재연결과 똑같이 실시간 캐시를
+// 전부 다시 받는다('reconnected' 를 내보내 기능 모듈들도 따라오게). 유실을 서버가 알려 주므로
+// 화면마다 "혹시 놓쳤을까" 안전망 폴링을 촘촘히 돌릴 이유가 없다.
 import type { QueryClient } from '@tanstack/react-query'
 import { API_V1 } from '../config/api'
 import { streamSSE } from '../api/sse'
@@ -99,6 +102,14 @@ class NotificationStreamManager {
     this.queryClient.invalidateQueries({ queryKey: notificationKeys.all })
   }
 
+  /** 놓친 사이의 변경분 동기화 — 재연결 직후와 서버의 resync 신호가 같은 길을 탄다 */
+  private resyncAll(data: string): void {
+    this.invalidate()
+    if (this.queryClient) resyncReadingAfterReconnect(this.queryClient)
+    // 'connected' 는 첫 연결에도 오므로(presence 재전송 등이 쓴다) 재조회 전용 이벤트를 따로 낸다
+    this.dispatch('reconnected', data)
+  }
+
   /** 다른 사용자의 기도 반응/댓글 — 캐시된 카운트만 서버 값으로 동기화한다.
    * is_prayed 같은 사용자별 상태는 건드리지 않고, refetch 없이 setQueryData만
    * 쓰므로 네트워크 비용도 없다. 관심순 재정렬은 하지 않는다 — 읽는 중인
@@ -176,12 +187,10 @@ class NotificationStreamManager {
               this.everConnected = true
               // 끊겨 있던 사이의 변경분 동기화 — 재연결일 때만. 첫 연결은 홈 쿼리들이 막
               // 출발한 직후라 여기서 invalidate 하면 알림 목록·팝업이 곧바로 한 번 더 요청됐다.
-              if (reconnect) {
-                this.invalidate()
-                if (this.queryClient) resyncReadingAfterReconnect(this.queryClient)
-                // 'connected' 는 첫 연결에도 오므로(presence 재전송 등이 쓴다) 재조회 전용 이벤트를 따로 낸다
-                this.dispatch('reconnected', data)
-              }
+              if (reconnect) this.resyncAll(data)
+            } else if (event === 'resync') {
+              // 서버가 이 연결의 큐가 넘쳐 이벤트를 버렸다고 알렸다
+              this.resyncAll(data)
             } else if (event === 'notification' || event === 'refresh') {
               this.invalidate()
             } else if (event === 'prayer_reaction' || event === 'prayer_reply') {

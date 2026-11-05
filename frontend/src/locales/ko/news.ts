@@ -31,6 +31,8 @@ export const news = {
   newsPrivate: '비공개',
   newsPinned: '고정',
   newsViewCount: '조회 {n}',
+  newsLatest: '최신 소식',
+  newsReadMore: '자세히 보기',
   newsLoadFailed: '불러오지 못했습니다',
   newsAnimatedSticker: '움직이는 이모티콘',
   newsPhotoNth: '사진 {n}',

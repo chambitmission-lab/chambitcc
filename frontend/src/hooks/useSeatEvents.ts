@@ -1,4 +1,8 @@
 // 행사 좌석 예약 React Query 훅 — 캐시만 다루고 토스트는 호출부(feedback)에 맡긴다
+//
+// 실시간: 좌석이 바뀌면 서버가 SSE `seat_update` 를 방송하고 utils/seatLiveSync 가 캐시를 맞춘다.
+// 배치도·예약 목록의 주기 폴링은 스트림이 끊겨 있을 때(비로그인 포함)만 도는 폴백이다.
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import {
   adminAssignSeats,
@@ -22,16 +26,25 @@ import type {
   SeatEventStatus,
   SeatMyResult,
 } from '../types/seatEvent'
+import { notificationStream } from '../utils/notificationStream'
+import { applySeatUpdate } from '../utils/seatLiveSync'
 import type { MutationFeedback } from './mutationFeedback'
+import { seatKeys } from './queryKeys'
 
-export const seatKeys = {
-  all: ['seat-events'] as const,
-  list: () => [...seatKeys.all, 'list'] as const,
-  byEvent: (eventId: number) => [...seatKeys.all, 'by-event', eventId] as const,
-  adminList: () => [...seatKeys.all, 'admin'] as const,
-  detail: (id: number) => [...seatKeys.all, 'detail', id] as const,
-  reservations: (id: number) => [...seatKeys.all, 'reservations', id] as const,
+export { seatKeys }
+
+let streamInstalled = false
+/** SSE 핸들러를 한 번만 붙인다 — 배치도·현황판이 처음 마운트될 때 부른다 */
+const installSeatStream = (qc: QueryClient) => {
+  if (streamInstalled) return
+  streamInstalled = true
+  notificationStream.on('seat_update', (raw) => applySeatUpdate(qc, raw))
+  // 끊겨 있던 사이의 방송은 놓쳤다 — 떠 있는 좌석 화면만 다시 받는다
+  notificationStream.on('reconnected', () => void qc.invalidateQueries({ queryKey: seatKeys.all }))
 }
+
+/** 스트림이 붙어 있으면 SSE 가 갱신을 맡는다 — 폴백 폴링은 끊겼을 때만 */
+const fallbackInterval = (ms: number) => () => (notificationStream.connected ? false : ms)
 
 // ── 성도 ──────────────────────────────────────────────────────────────
 
@@ -81,18 +94,22 @@ export const useSeatEventsForEvent = (eventId: number) =>
   })
 
 /**
- * 배치도 — 다른 사람이 막 잡은 자리가 늦게 보이면 헛걸음이 되므로
- * 화면을 보고 있는 동안 15초마다 조용히 새로 받는다.
+ * 배치도 — 다른 사람이 막 잡은 자리가 늦게 보이면 헛걸음이 되므로 실시간으로 따라간다.
+ * 로그인 사용자는 SSE(seat_update)가 밀어 주고, 스트림이 없는 동안(비로그인·순단)만
+ * 15초마다 조용히 새로 받는다.
  */
-export const useSeatEvent = (id: number, live = true) =>
-  useQuery({
+export const useSeatEvent = (id: number, live = true) => {
+  const qc = useQueryClient()
+  useEffect(() => installSeatStream(qc), [qc])
+  return useQuery({
     queryKey: seatKeys.detail(id),
     queryFn: () => getSeatEvent(id),
     enabled: id > 0,
     staleTime: DETAIL_STALE,
-    refetchInterval: live ? 1000 * 15 : false,
+    refetchInterval: live ? fallbackInterval(1000 * 15) : false,
     refetchIntervalInBackground: false,
   })
+}
 
 /** 예약·취소 응답(SeatMyResult)으로 상세 캐시를 즉시 맞춘다 — 재조회를 기다리지 않는다 */
 const patchDetail = (
@@ -104,7 +121,7 @@ const patchDetail = (
     prev ? { ...prev, ...result } : prev
   )
   void qc.invalidateQueries({ queryKey: seatKeys.list() })
-  void qc.invalidateQueries({ queryKey: [...seatKeys.all, 'by-event'] })
+  void qc.invalidateQueries({ queryKey: seatKeys.byEvents() })
   void qc.invalidateQueries({ queryKey: seatKeys.adminList() })
 }
 
@@ -149,15 +166,19 @@ export const useAdminSeatEvents = () =>
     staleTime: 0,
   })
 
-export const useSeatReservations = (id: number, enabled = true) =>
-  useQuery({
+/** 현황판 예약 목록 — 배치도와 같이 SSE 가 갱신하고, 끊겼을 때만 20초 폴링 */
+export const useSeatReservations = (id: number, enabled = true) => {
+  const qc = useQueryClient()
+  useEffect(() => installSeatStream(qc), [qc])
+  return useQuery({
     queryKey: seatKeys.reservations(id),
     queryFn: () => getSeatReservations(id),
     enabled: enabled && id > 0,
     staleTime: 1000 * 10,
-    refetchInterval: enabled ? 1000 * 20 : false,
+    refetchInterval: enabled ? fallbackInterval(1000 * 20) : false,
     refetchIntervalInBackground: false,
   })
+}
 
 const invalidateAll = (qc: ReturnType<typeof useQueryClient>) =>
   void qc.invalidateQueries({ queryKey: seatKeys.all })
