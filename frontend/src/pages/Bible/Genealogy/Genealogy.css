@@ -1,96 +1,163 @@
-/* /bible/genealogy 히어로 — 우측에 생명나무 이미지를 페이드로 얹은 카드.
-   이미지는 public/images/genealogy/tree-hero-{light,dark}.webp (theme.css 토큰). */
-.gen-hero {
+/* /bible/genealogy 상단 노선 카드 (GenealogyHeader, gh-) ─────────────────
+   제목 · 시대 노선(역 = SKY_ERA_START 시대, --c 시대 색) · 다음 역 · 밑변 툴바.
+   카드가 스크롤로 지나가면 본문의 얇은 구간 바(.grl-bar-slot.is-stuck)가 이어받는다. */
+.gh {
+  --gh-card: var(--surface-container);
+  --gh-ink: var(--text-strong);
+  --gh-sub: var(--text-body);
+  --gh-faint: var(--text-muted);
+  --gh-soft: var(--surface-inset);
+  --gh-todo: color-mix(in srgb, var(--text-muted) 32%, transparent);
+  --gh-gold: #e8a900;
+  --gh-gold-ink: #9a6700;
   position: relative;
-  overflow: hidden;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 18px 16px 0;
   border-radius: 24px;
+  background: var(--gh-card);
   border: 1px solid var(--card-border);
-  background:
-    linear-gradient(135deg, var(--brand-soft) 0%, var(--card-bg, #fff) 55%);
-  padding: 20px 18px;
+  box-shadow: var(--card-shadow);
 }
-.dark .gen-hero {
-  /* 우측 바닥은 이미지의 바닥색(#111)에 맞춰 두어 그림 경계가 카드에 스며들게 */
-  background:
-    linear-gradient(135deg, rgba(49, 130, 246, 0.14) 0%, var(--card-bg, #201f1f) 55%, #131316 100%);
+.dark .gh, [data-theme="dark"] .gh { --gh-gold-ink: #ffd43b; }
+.gh-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.gh-eyebrow { margin: 0 0 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--brand); }
+.gh-title { margin: 0; font-size: 24px; font-weight: 800; line-height: 1.25; letter-spacing: -.02em; color: var(--gh-ink); }
+.gh-sum { margin: 6px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--gh-sub); word-break: keep-all; font-variant-numeric: tabular-nums; }
+.gh-sum b { color: var(--brand); font-weight: 800; }
+.gh-sum b.is-gold { color: var(--gh-gold-ink); }
+.gh-icon-btn {
+  width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  background: var(--gh-card); border: 1px solid var(--card-border); color: var(--gh-sub);
+  transition: color .15s, background .15s, border-color .15s;
 }
-.gen-hero__art {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: var(--genealogy-hero-image, none);
-  /* 이미지는 나무 영역만 크롭된 816x768 — 높이 100%로 맞춰 위·아래가 잘리지 않게 */
-  background-size: auto 100%;
-  background-position: right bottom;
-  background-repeat: no-repeat;
-  opacity: 0;
-  transition: opacity .45s ease;
-  /* 이미지 배경이 불투명(다크는 #111)이라 사방을 페더링해 카드에 녹인다:
-     가로(왼쪽으로 사라짐 + 오른쪽 끝 살짝) × 세로(위쪽 살짝) 두 마스크를 교차 */
-  -webkit-mask-image:
-    linear-gradient(90deg, transparent 15%, #000 55%, #000 94%, rgba(0,0,0,.6) 100%),
-    linear-gradient(180deg, rgba(0,0,0,.55) 0%, #000 28%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(90deg, transparent 15%, #000 55%, #000 94%, rgba(0,0,0,.6) 100%),
-    linear-gradient(180deg, rgba(0,0,0,.55) 0%, #000 28%);
-  mask-composite: intersect;
+.gh-icon-btn:hover, .gh-icon-btn.is-on { color: var(--brand); border-color: var(--brand-soft-strong); background: var(--brand-soft); }
+.gh-help {
+  margin: -4px 0 0; padding: 12px 14px; list-style: none; overflow: hidden;
+  border-radius: 14px; background: var(--gh-soft);
+  font-size: 12.5px; line-height: 1.6; color: var(--gh-sub);
+  display: flex; flex-direction: column; gap: 2px;
 }
-.gen-hero__art.is-loaded { opacity: 0.5; }
-@media (min-width: 768px) {
-  .gen-hero { padding: 26px 28px; }
-  .gen-hero__art {
-    background-size: auto 100%;
-    background-position: right bottom;
-    -webkit-mask-image:
-      linear-gradient(90deg, transparent 35%, #000 62%, #000 93%, rgba(0,0,0,.55) 100%),
-      linear-gradient(180deg, rgba(0,0,0,.5) 0%, #000 30%);
-    mask-image:
-      linear-gradient(90deg, transparent 35%, #000 62%, #000 93%, rgba(0,0,0,.55) 100%),
-      linear-gradient(180deg, rgba(0,0,0,.5) 0%, #000 30%);
-  }
-  .gen-hero__art.is-loaded { opacity: 0.95; }
-}
-.gen-hero__content { position: relative; z-index: 1; }
 
-/* 히어로 우측 상단 원형 액션 버튼 */
-.gen-hero__btn {
-  width: 36px; height: 36px; border-radius: 9999px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--card-bg, #fff);
-  border: 1px solid var(--card-border);
-  color: var(--text-muted);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: color .15s, transform .15s;
+/* 시대 노선 — 좁으면 가로 스크롤(열 때 지금 시대를 가운데로) */
+.gh-metro { position: relative; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 10px; }
+.gh-metro::-webkit-scrollbar { display: none; }
+.gh-metro__in { display: grid; grid-template-columns: repeat(var(--n, 8), minmax(70px, 1fr)); padding: 32px 0 2px; min-width: max-content; }
+.gh-st {
+  position: relative; display: grid; justify-items: center; gap: 6px;
+  padding: 0 2px; border: 0; background: none; cursor: pointer; font: inherit; color: inherit;
 }
-.gen-hero__btn:hover { color: var(--brand); transform: translateY(-1px); }
+.gh-st::before {
+  content: ''; position: absolute; top: 9px; left: -50%; right: 50%; height: 6px; border-radius: 3px;
+  background: var(--c);
+}
+.gh-st:first-child::before { display: none; }
+.gh-st.is-plain::before { opacity: .45; }
+.gh-st.is-now::before { background: linear-gradient(90deg, var(--prev), var(--c)); }
+.gh-st.is-todo::before { background: repeating-linear-gradient(90deg, var(--gh-todo) 0 8px, transparent 8px 13px); }
+.gh-dot {
+  position: relative; z-index: 1; width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--gh-card); border: 5px solid var(--c);
+  transition: transform .15s;
+}
+.gh-dot .material-icons-round { font-size: 13px; color: #fff; }
+.gh-st.is-done .gh-dot { background: var(--c); }
+.gh-st.is-todo .gh-dot { border-color: var(--gh-todo); }
+.gh-st.is-now .gh-dot { width: 30px; height: 30px; margin-top: -3px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent); }
+.gh-st.is-arrive .gh-dot { width: 30px; height: 30px; margin-top: -3px; background: var(--gh-gold); border-color: var(--gh-gold); box-shadow: 0 0 0 5px color-mix(in srgb, var(--gh-gold) 25%, transparent); }
+.gh-st:hover .gh-dot { transform: scale(1.08); }
+.gh-st:focus-visible { outline: none; }
+.gh-st:focus-visible .gh-dot { outline: 2px solid var(--brand); outline-offset: 3px; }
+.gh-st__name { font-size: 12px; font-weight: 700; color: var(--gh-ink); white-space: nowrap; }
+.gh-st.is-todo .gh-st__name { color: var(--gh-faint); font-weight: 500; }
+.gh-st__sub { margin-top: -5px; font-size: 10.5px; color: var(--gh-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gh-st.is-now .gh-st__sub { color: var(--c); font-weight: 700; }
+.gh-flag {
+  position: absolute; top: -31px; left: 50%; transform: translateX(-50%); z-index: 2;
+  display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; border-radius: 8px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+  background: var(--gh-ink); color: var(--gh-card);
+}
+.gh-flag .material-icons-round { font-size: 14px; }
+.gh-flag::after { content: ''; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); }
+.gh-flag.is-gold { background: var(--gh-gold); color: #1f1600; }
 
-/* 통계 타일 */
-.gen-stat {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: 14px;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
-  min-width: 0;
+/* 다음 역 */
+.gh-next {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px; border-radius: 16px; background: var(--gh-soft);
 }
-.gen-stat__icon {
-  flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--card-bg, #fff); color: var(--brand);
-  border: 1px solid var(--brand-soft-strong);
+.gh-next__ic {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px;
+  display: grid; place-items: center; color: #fff; background: var(--c, var(--brand));
 }
-.gen-stat__label { font-size: 11.5px; font-weight: 600; color: var(--brand); line-height: 1.2; }
-.gen-stat__value { font-size: 18px; font-weight: 800; color: var(--text-body); letter-spacing: -0.02em; line-height: 1.2; white-space: nowrap; }
+.gh-next__ic .material-icons-round { font-size: 21px; }
+.gh-next__ic.is-soft { background: var(--brand-soft-strong); color: var(--brand); }
+.gh-next__ic.is-gold { background: var(--gh-gold); color: #1f1600; }
+.gh-next__body { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 1px; }
+.gh-next__k { font-size: 11.5px; font-weight: 600; color: var(--gh-faint); }
+.gh-next__v { font-size: 14px; font-weight: 700; line-height: 1.45; color: var(--gh-ink); word-break: keep-all; }
+.gh-next__v em { font-style: normal; font-weight: 600; color: var(--gh-sub); }
+.gh-next__acts { display: flex; gap: 6px; margin-left: auto; }
+.gh-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+  height: 38px; padding: 0 14px; border-radius: 11px; border: 0; cursor: pointer;
+  font-size: 13.5px; font-weight: 700; white-space: nowrap;
+  transition: transform .1s, filter .15s;
+}
+.gh-btn--pri { background: var(--brand); color: #fff; padding-right: 9px; }
+.gh-btn--pri:hover { filter: brightness(1.06); }
+.gh-btn--sub { background: var(--gh-card); color: var(--gh-ink); border: 1px solid var(--card-border); }
+.gh-btn:active { transform: scale(.97); }
 
-/* 모바일(3칸이 ~100px) — 아이콘을 위로 올려 이름·숫자가 칸 폭을 다 쓰게.
-   가로 배치면 아이콘+여백이 66px를 먹어 "전체 …"로 잘리고 "100%"가 테두리를 넘는다 */
-@media (max-width: 639px) {
-  .gen-stat { flex-direction: column; align-items: flex-start; gap: 7px; padding: 10px; }
-  .gen-stat__icon { width: 28px; height: 28px; border-radius: 9px; }
-  .gen-stat__icon .material-icons-round { font-size: 16px !important; }
-  .gen-stat__label { font-size: 11px; }
-  .gen-stat > .min-w-0 { align-self: stretch; }
-  .gen-stat__value { margin-top: 2px; }
+/* 밑변 툴바 — 좁으면 [보기 전환 … 검색] / 칩 / 검색창 세 줄 */
+.gh-tb {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin: 0 -16px; padding: 10px 12px 12px;
+  border-top: 1px solid var(--card-border);
+}
+.gh-tb__divider { display: none; width: 1px; height: 22px; background: var(--card-border); flex-shrink: 0; }
+.gh-tb__search-btn { margin-left: auto; }
+.gh-tb__chips { order: 3; flex-basis: 100%; min-width: 0; display: flex; gap: 6px; overflow-x: auto; }
+.gh-chip {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+  height: 32px; padding: 0 12px; border-radius: 999px; border: 0; cursor: pointer;
+  font-size: 12.5px; font-weight: 600; white-space: nowrap;
+  background: var(--gh-soft); color: var(--gh-sub);
+  transition: background .15s, color .15s;
+}
+.gh-chip em { font-style: normal; font-weight: 500; color: var(--gh-faint); font-variant-numeric: tabular-nums; }
+.gh-chip:hover { color: var(--gh-ink); }
+.gh-chip.is-on { background: var(--brand-soft); color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand-soft-strong); }
+.gh-chip.is-on em { color: var(--brand); }
+.gh-tb__search { order: 4; flex-basis: 100%; position: relative; display: flex; align-items: center; }
+.gh-tb__search > .material-icons-round { position: absolute; left: 12px; color: var(--gh-faint); pointer-events: none; }
+.gh-tb__search input {
+  width: 100%; height: 40px; padding: 0 12px 0 40px; border-radius: 12px;
+  font-size: 13.5px; color: var(--gh-ink);
+  background: var(--gh-soft); border: 1px solid transparent; outline: none;
+  transition: border-color .15s;
+}
+.gh-tb__search input::placeholder { color: var(--gh-faint); }
+.gh-tb__search input:focus { border-color: var(--brand); }
+
+@media (min-width: 1024px) {
+  .gh { padding: 22px 24px 0; }
+  .gh-title { font-size: 28px; }
+  .gh-metro { margin: 0 -24px; padding: 0 14px; }
+  .gh-metro__in { min-width: 0; }
+  .gh-tb { margin: 0 -24px; padding: 10px 16px 12px; }
+  .gh-tb__divider { display: block; }
+  .gh-tb__chips { order: 0; flex: 1 1 0; }
+  .gh-tb__search-btn { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gh-st.is-now .gh-dot { animation: gh-pulse 2.4s ease-in-out infinite; }
+}
+@keyframes gh-pulse {
+  50% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--c) 10%, transparent); }
 }
 
 /* ── 가계도 = "내 열차 위치" 노선도 (GenealogyTree) ───────────────────
@@ -117,13 +184,25 @@
   --grl-gold-soft: rgba(255, 212, 59, 0.12);
 }
 
-/* 구간 바 — 헤더(56px) 바로 아래 붙는다. zoom 화면이라 top 을 배율로 나눈다 */
-.grl-bar {
+/* 구간 바 — 높이 0 인 sticky 자리(헤더 56px 아래, zoom 화면이라 top 을 배율로 나눈다)에 떠 있다.
+   상단 노선 카드가 같은 정보를 보여 주는 동안엔 숨고, 자리가 헤더 아래 붙으면(.is-stuck) 나타난다.
+   높이 0 이라 나타나고 사라져도 본문이 밀리지 않는다. */
+.grl-bar-slot {
   position: sticky; top: calc(3.5rem / var(--az, 1) + 8px); z-index: 20;
+  height: 0; margin-bottom: -10px; /* .grl gap 상쇄 */
+}
+.grl-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  opacity: 0; transform: translateY(-6px); pointer-events: none; visibility: hidden;
+  transition: opacity .2s, transform .2s, visibility 0s .2s;
   padding: 12px 14px 12px; border-radius: 18px;
   background: var(--grl-card); border: 1px solid var(--card-border);
   box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.35);
   display: flex; flex-direction: column; gap: 10px;
+}
+.grl-bar-slot.is-stuck .grl-bar {
+  opacity: 1; transform: none; pointer-events: auto; visibility: visible;
+  transition: opacity .2s, transform .2s, visibility 0s;
 }
 .grl-bar__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .grl-now { display: inline-flex; align-items: center; gap: 7px; min-width: 0; font-size: 12.5px; font-weight: 600; color: var(--grl-faint); }
@@ -138,26 +217,6 @@
   background: var(--grl-brand); border: 3px solid var(--grl-card);
   transform: translate(-50%, -50%); box-shadow: 0 1px 4px rgba(0, 0, 0, .25); pointer-events: none;
 }
-
-/* 내 열차 카드 */
-.grl-ticket {
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  padding: 14px 16px; border-radius: 18px;
-  background: var(--grl-card); border: 1px solid var(--card-border);
-}
-.grl-ticket__icon { width: 40px; height: 40px; border-radius: 12px; background: var(--grl-brand); display: grid; place-items: center; flex-shrink: 0; }
-.grl-ticket__icon svg { width: 22px; height: 22px; fill: #fff; }
-.grl-ticket__body { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 3px; }
-.grl-ticket__body b { font-size: 15.5px; font-weight: 800; color: var(--grl-ink); }
-.grl-ticket__body > span { font-size: 13px; color: var(--grl-sub); }
-.grl-ticket__body strong { color: var(--grl-ink); font-weight: 700; }
-.grl-ticket__bar { display: block; height: 6px; margin-top: 6px; border-radius: 3px; background: var(--grl-soft); overflow: hidden; }
-.grl-ticket__bar i { display: block; height: 100%; border-radius: 3px; background: var(--grl-brand); transition: width .6s ease; }
-.grl-ticket__acts { display: flex; gap: 6px; margin-left: auto; }
-.grl-btn { display: inline-flex; align-items: center; justify-content: center; height: 38px; padding: 0 14px; border-radius: 11px; border: 0; font-size: 13.5px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.grl-btn--pri { background: var(--grl-brand); color: #fff; }
-.grl-btn--sub { background: var(--grl-soft); color: var(--grl-ink); }
-.grl-btn:active { transform: scale(.97); }
 
 /* 노선 */
 .grl-route {

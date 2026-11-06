@@ -47,6 +47,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['bulletin-desk', () => import('../pages/dev/BulletinDeskPreview')],
       // 가계도 시대순 "말씀 오솔길" — 진도 표본(?read=0.3)으로 로그인 없이
       ['genealogy-trail', () => import('../pages/dev/GenealogyTrailPreview')],
+      // 가계도 상단 노선 카드 + 본문 노선 — 비로그인·진행 중(?read=0.6)·완주 전환
+      ['genealogy-head', () => import('../pages/dev/GenealogyHeadPreview')],
       // 따라쓰기 릴레이 방 — 칸 판·소식 띠·응원·바통 시트(표본 방)
       ['typing-relay', () => import('../pages/dev/TypingRelayRoomPreview')],
       // 필사 화면 개편 — 혼자 쓸 때(같은 장 사람·알아두면 좋은 말) / 릴레이 방 독서실(?room=1)
@@ -67,6 +69,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['title-unlock', () => import('../pages/dev/TitleUnlockPreview')],
       // 말씀 퍼즐 — 목록 카드(?state=progress|ready|done) · 맞추기 화면 · 조각 쪽지 (표본 데이터)
       ['puzzle', () => import('../pages/dev/PuzzlePreview')],
+      // /growth 하루하루의 발자취 — 순간 강조 피드 + 하루 한 문장(표본, 오늘 기준 상대 날짜)
+      ['footprints', () => import('../pages/dev/FootprintsPreview')],
     ]
   : []
 

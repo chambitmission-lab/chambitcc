@@ -197,11 +197,6 @@ export const AUDIO_RIDGE: ThemePair = {
   light: '/images/bible/audio-ridge-light.webp',
   dark: '/images/bible/audio-ridge-dark.webp',
 }
-/** /bible/genealogy 히어로 (theme.css --genealogy-hero-image) */
-export const GENEALOGY_HERO: ThemePair = {
-  light: '/images/genealogy/tree-hero-light.webp',
-  dark: '/images/genealogy/tree-hero-dark.webp',
-}
 /** 열두 지파 진영 배치도의 회막 (theme.css --tabernacle-image) — 지파 보기에서만, 컴포넌트가 등록 */
 export const TABERNACLE_ART: ThemePair = {
   light: '/images/genealogy/tabernacle-day-v1.webp',
@@ -380,7 +375,6 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/groups\/(?!join\/)[^/]+$/, pairs: [GROUP_DETAIL_HERO] },
   { match: /^\/bible$/, pairs: [READING_HERO, RESUME_CARD] },
   { match: /^\/bible\/plans$/, pairs: [PLAN_HERO] },
-  { match: /^\/bible\/genealogy$/, pairs: [GENEALOGY_HERO] },
   { match: /^\/bible\/photo-verse$/, pairs: [PHOTO_VERSE_INTRO] },
   { match: /^\/bible\/alarm$/, pairs: [ALARM_HERO, ALARM_BAND] },
   { match: /^\/bible\/atlas$/, pairs: [ATLAS_BG_MOBILE, ATLAS_BG_PC] },

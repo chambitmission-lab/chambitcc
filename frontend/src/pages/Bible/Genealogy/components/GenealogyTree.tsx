@@ -1,19 +1,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
 import type { BibleFigureSummary, GenealogyLink } from '../../../../types/bibleFigure'
-import { useBibleFigureDetail } from '../../../../hooks/useBibleFigure'
 import { smoothScrollToElement } from '../../../../utils/scrollTo'
-import {
-  FIGURE_HOOK,
-  JESUS_SLUG,
-  MAJOR_GLYPH,
-  MATTHEW_WOMEN,
-  SKY_ERA_START,
-  SKY_GAP_AFTER,
-  SKY_MT_MARK,
-  type GenGap,
-  type SkyEra,
-} from '../genealogyStory'
+import { FIGURE_HOOK, JESUS_SLUG, MAJOR_GLYPH, MATTHEW_WOMEN, SKY_MT_MARK } from '../genealogyStory'
+import { DONE, buildRoute, computeTrain, totalGenOf, type Slot } from '../genealogyRoute'
 
 interface GenealogyTreeProps {
   nodes: BibleFigureSummary[]
@@ -28,21 +17,6 @@ interface GenealogyTreeProps {
   highlightSlugs: Set<string> | null
 }
 
-/** 계보 한 칸 — 인물이거나, 성경이 건너뛴 세대 묶음 */
-type Slot =
-  | {
-      kind: 'fig'
-      id: string
-      figure: BibleFigureSummary
-      spouses: BibleFigureSummary[]
-      /** 계보에서 갈라진 자녀(현재 데이터엔 없음 — 생기면 이름 칩으로만) */
-      branches: BibleFigureSummary[]
-      gen: number
-      viaMother: boolean
-      era: number
-    }
-  | { kind: 'gap'; id: string; gap: GenGap; gen: number; era: number }
-
 /** 화면에 그리는 한 줄 — 구간 표지판 · 역 · 접힌 세대 · 건너뛴 세대 */
 type Row =
   | { kind: 'sign'; key: string; era: number }
@@ -50,7 +24,6 @@ type Row =
   | { kind: 'fold'; key: string; idxs: number[] }
   | { kind: 'gap'; key: string; idx: number }
 
-const DONE = 0.999
 const shortName = (name: string) => name.replace(/\s*\(.*\)\s*$/, '')
 const pct = (v: number) => `${Math.round(v * 100)}%`
 /** 앱 헤더(3.5rem) 아래 붙는 구간 바 높이까지 비켜 스크롤한다 */
@@ -79,115 +52,22 @@ export const GenealogyTree = ({
   highlightSlugs,
 }: GenealogyTreeProps) => {
   const rootRef = useRef<HTMLDivElement | null>(null)
+  const slotRef = useRef<HTMLDivElement | null>(null)
   const barRef = useRef<HTMLDivElement | null>(null)
+  // 상단 노선 카드가 지나가 구간 바가 헤더 아래 붙었을 때만 바를 보인다(그 전엔 카드가 같은 정보를 보여 준다)
+  const [stuck, setStuck] = useState(false)
   const [openFolds, setOpenFolds] = useState<Set<string>>(() => new Set())
   const [nowEra, setNowEra] = useState(0)
 
-  /* ── 한 줄기 계보 + 건너뛴 세대 + 구간 ── */
-  const { slots, eras } = useMemo(() => {
-    const bySlug = new Map<string, BibleFigureSummary>(nodes.map((n) => [n.slug, n]))
-    const parentOf = new Map<string, string>()
-    const viaMother = new Set<string>()
-    for (const link of links) {
-      if (link.type === 'father') parentOf.set(link.target, link.source)
-    }
-    for (const link of links) {
-      if (link.type === 'mother' && !parentOf.has(link.target)) {
-        parentOf.set(link.target, link.source)
-        viaMother.add(link.target)
-      }
-    }
+  /* ── 한 줄기 계보 + 건너뛴 세대 + 구간 (genealogyRoute — 상단 노선 카드와 같은 계산) ── */
+  const { slots, eras } = useMemo(() => buildRoute(nodes, links), [nodes, links])
 
-    const spousesOf = new Map<string, BibleFigureSummary[]>()
-    const addSpouse = (a: string, b: string) => {
-      const bFig = bySlug.get(b)
-      if (!bySlug.has(a) || !bFig) return
-      const list = spousesOf.get(a) || []
-      if (!list.find((f) => f.slug === b)) list.push(bFig)
-      spousesOf.set(a, list)
-    }
-    for (const link of links) {
-      if (link.type === 'spouse') {
-        addSpouse(link.source, link.target)
-        addSpouse(link.target, link.source)
-      }
-    }
-
-    const childrenOf = new Map<string, BibleFigureSummary[]>()
-    for (const [child, parent] of parentOf) {
-      const fig = bySlug.get(child)
-      if (!fig) continue
-      childrenOf.set(parent, [...(childrenOf.get(parent) || []), fig])
-    }
-
-    const rootSlug =
-      nodes.find((n) => !parentOf.has(n.slug) && n.is_messianic_line)?.slug ||
-      nodes.find((n) => !parentOf.has(n.slug))?.slug ||
-      nodes[0]?.slug
-
-    const out: Slot[] = []
-    const eraList: SkyEra[] = []
-    const startEra = (id: string) => {
-      const e = SKY_ERA_START[id]
-      if (e) eraList.push(e)
-    }
-    const seen = new Set<string>()
-    let gen = 1
-    let cur = rootSlug
-    while (cur && !seen.has(cur)) {
-      seen.add(cur)
-      const figure = bySlug.get(cur)
-      if (!figure) break
-      startEra(cur)
-      if (eraList.length === 0) eraList.push({ label: '계보의 시작', meta: '', color: '#12b886' })
-      const kids = (childrenOf.get(cur) || []).slice().sort((a, b) => a.sort_order - b.sort_order)
-      const next = kids.find((k) => k.is_messianic_line) ?? kids[0]
-      out.push({
-        kind: 'fig',
-        id: cur,
-        figure,
-        spouses: (spousesOf.get(cur) || []).filter((s) => !parentOf.has(s.slug)),
-        branches: kids.filter((k) => k !== next),
-        gen,
-        viaMother: viaMother.has(cur),
-        era: eraList.length - 1,
-      })
-      gen += 1
-      const gap = SKY_GAP_AFTER[cur]
-      if (gap && next?.slug === gap.until) {
-        const id = `gap:${cur}`
-        startEra(id)
-        out.push({ kind: 'gap', id, gap, gen, era: eraList.length - 1 })
-        gen += gap.count
-      }
-      cur = next?.slug
-    }
-    return { slots: out, eras: eraList }
-  }, [nodes, links])
-
-  const totalGen = useMemo(() => {
-    const last = slots[slots.length - 1]
-    if (!last) return 0
-    return last.kind === 'gap' ? last.gen + last.gap.count - 1 : last.gen
-  }, [slots])
+  const totalGen = useMemo(() => totalGenOf(slots), [slots])
 
   const progressOf = (slug: string) => Math.min(1, readingProgress[slug] ?? 0)
 
-  /* ── 열차 위치 — 아담역부터 끊기지 않고 다 읽은 마지막 역 (건너뛴 세대 구간은 통과) ── */
-  const train = useMemo(() => {
-    if (!isLoggedIn) return null
-    let at = -1
-    for (let i = 0; i < slots.length; i++) {
-      const s = slots[i]
-      if (s.kind === 'gap') continue
-      if ((readingProgress[s.id] ?? 0) >= DONE) at = i
-      else break
-    }
-    const next = slots.findIndex((s, i) => i > at && s.kind === 'fig' && (readingProgress[s.id] ?? 0) < DONE)
-    const doneCount = slots.filter((s) => s.kind === 'fig' && (readingProgress[s.id] ?? 0) >= DONE).length
-    const figCount = slots.filter((s) => s.kind === 'fig').length
-    return { at, next, doneCount, figCount }
-  }, [isLoggedIn, slots, readingProgress])
+  /* ── 열차 위치 — 아담역부터 끊기지 않고 다 읽은 마지막 역 ── */
+  const train = useMemo(() => computeTrain(slots, readingProgress, isLoggedIn), [isLoggedIn, slots, readingProgress])
 
   const filtering = !!highlightSlugs
   const hit = (slug: string) => !!highlightSlugs && highlightSlugs.has(slug)
@@ -236,12 +116,6 @@ export const GenealogyTree = ({
     return out
   }, [slots, filtering, openFolds, selectedSlug, train])
 
-  /* ── 다음 역의 대표 장 — "이어 읽기" 바로가기 ── */
-  const nextSlot = train && train.next >= 0 ? slots[train.next] : null
-  const nextSlug = nextSlot?.kind === 'fig' ? nextSlot.id : null
-  const { data: nextDetail } = useBibleFigureDetail(nextSlug)
-  const nextVerse = nextDetail?.key_verses?.find((kv) => kv.book_number && kv.chapter)
-
   /* ── 지금 구간 — 스크롤하며 구간 바의 이름·색이 바뀐다 ── */
   useEffect(() => {
     let raf = 0
@@ -249,7 +123,10 @@ export const GenealogyTree = ({
       raf = 0
       const root = rootRef.current
       const bar = barRef.current
-      if (!root || !bar) return
+      const slot = slotRef.current
+      if (!root || !bar || !slot) return
+      // 높이 0 인 sticky 자리 — 자리가 노선 머리보다 아래로 밀려 있으면 붙은 상태
+      setStuck(slot.getBoundingClientRect().top > root.getBoundingClientRect().top + 1)
       const line = bar.getBoundingClientRect().bottom + 8
       let era = 0
       root.querySelectorAll<HTMLElement>('[data-sign]').forEach((el) => {
@@ -412,7 +289,8 @@ export const GenealogyTree = ({
 
   return (
     <div ref={rootRef} className="grl">
-      {/* 구간 바 — 앱 헤더 아래 붙어 따라온다 */}
+      {/* 구간 바 — 높이 0 인 sticky 자리에 떠 있다가, 상단 노선 카드가 지나가면 헤더 아래 나타난다 */}
+      <div ref={slotRef} className={`grl-bar-slot${stuck ? ' is-stuck' : ''}`} aria-hidden={!stuck}>
       <div ref={barRef} className="grl-bar" style={eraStyle(nowEra)}>
         <div className="grl-bar__top">
           <span className="grl-now">
@@ -430,6 +308,7 @@ export const GenealogyTree = ({
               type="button"
               className={k === nowEra ? 'is-on' : undefined}
               style={{ flex: eraGens[k] || 1, background: e.color }}
+              tabIndex={stuck ? undefined : -1}
               onClick={() => jumpTo(`[data-sign="${k}"]`)}
               aria-label={`${e.label}로 이동`}
               title={e.label}
@@ -444,52 +323,7 @@ export const GenealogyTree = ({
           )}
         </div>
       </div>
-
-      {/* 내 열차 카드 */}
-      {train && (
-        <div className="grl-ticket">
-          <span className="grl-ticket__icon" aria-hidden>
-            <TrainIcon />
-          </span>
-          <div className="grl-ticket__body">
-            {arrived ? (
-              <>
-                <b>종착역에 도착했어요</b>
-                <span>아담에서 예수 그리스도까지 {totalGen}대를 모두 지나왔어요.</span>
-              </>
-            ) : (
-              <>
-                <b>
-                  {trainSlot && trainSlot.kind === 'fig'
-                    ? `내 열차는 ${trainSlot.figure.name_ko}역 · ${trainSlot.gen}대`
-                    : '아직 출발 전이에요'}
-                </b>
-                {nextSlot?.kind === 'fig' && (
-                  <span>
-                    다음 역 <strong>{nextSlot.figure.name_ko}</strong>
-                    {nextVerse && ` · ${[nextVerse.book_name_ko, `${nextVerse.chapter}장`].filter(Boolean).join(' ')}`}
-                  </span>
-                )}
-              </>
-            )}
-            <span className="grl-ticket__bar" aria-hidden>
-              <i style={{ width: `${totalGen ? (trainGen / totalGen) * 100 : 0}%` }} />
-            </span>
-          </div>
-          {!arrived && nextSlot?.kind === 'fig' && (
-            <div className="grl-ticket__acts">
-              <button type="button" className="grl-btn grl-btn--sub" onClick={select(nextSlot.id)}>
-                역 보기
-              </button>
-              {nextVerse && (
-                <Link to={`/bible/${nextVerse.book_number}/${nextVerse.chapter}`} className="grl-btn grl-btn--pri">
-                  이어 읽기
-                </Link>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      </div>
 
       <ol className="grl-route">
         {train && train.at < 0 && (

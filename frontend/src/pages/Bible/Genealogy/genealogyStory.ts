@@ -97,18 +97,19 @@ export const JESUS_SLUG = 'jesus_christ'
 /* ── 가계도(별자리) — 시대마다 한 굽이, 건너뛴 세대, 마태복음 1장 ───────────── */
 
 /** color = 노선도(가계도) 구간 색 — 지하철 노선처럼 시대마다 선 색이 바뀐다 */
-export interface SkyEra { label: string; meta: string; color: string }
+/** short = 상단 노선 카드의 역 이름(한 칸 폭) */
+export interface SkyEra { label: string; short: string; meta: string; color: string }
 
 /** 이 slug(또는 'gap:<앞 slug>')에서 새 시대가 시작된다 — 별자리가 시대마다 한 굽이를 돈다 */
 export const SKY_ERA_START: Record<string, SkyEra> = {
-  adam: { label: '창조와 홍수', meta: '창세기 1–9장', color: '#12b886' },
-  shem: { label: '홍수 이후, 흩어진 민족', meta: '창세기 10–11장', color: '#0ca5b0' },
-  abraham: { label: '족장 시대', meta: '약 BC 2100–1800 · 창세기 12–50장', color: '#f59f00' },
-  perez: { label: '애굽 · 광야 · 사사', meta: '출애굽기 – 룻기', color: '#f76707' },
-  jesse: { label: '왕국 시대', meta: '약 BC 1050–586 · 사무엘서 – 열왕기', color: '#3182f6' },
-  jeconiah: { label: '포로와 귀환', meta: 'BC 586–430 · 에스라 · 학개', color: '#a87b4f' },
-  'gap:zerubbabel': { label: '침묵의 400년', meta: '말라기 이후 · 마태복음 1:13–16', color: '#6b7a90' },
-  jesus_christ: { label: '때가 차매', meta: '갈라디아서 4:4', color: '#e8a900' },
+  adam: { label: '창조와 홍수', short: '창조', meta: '창세기 1–9장', color: '#12b886' },
+  shem: { label: '홍수 이후, 흩어진 민족', short: '홍수 이후', meta: '창세기 10–11장', color: '#0ca5b0' },
+  abraham: { label: '족장 시대', short: '족장', meta: '약 BC 2100–1800 · 창세기 12–50장', color: '#f59f00' },
+  perez: { label: '애굽 · 광야 · 사사', short: '애굽·사사', meta: '출애굽기 – 룻기', color: '#f76707' },
+  jesse: { label: '왕국 시대', short: '왕국', meta: '약 BC 1050–586 · 사무엘서 – 열왕기', color: '#3182f6' },
+  jeconiah: { label: '포로와 귀환', short: '포로·귀환', meta: 'BC 586–430 · 에스라 · 학개', color: '#a87b4f' },
+  'gap:zerubbabel': { label: '침묵의 400년', short: '침묵 400년', meta: '말라기 이후 · 마태복음 1:13–16', color: '#6b7a90' },
+  jesus_christ: { label: '때가 차매', short: '예수', meta: '갈라디아서 4:4', color: '#e8a900' },
 }
 
 export interface GenGap {

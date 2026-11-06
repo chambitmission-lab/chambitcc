@@ -90,7 +90,8 @@ export const useDeleteWordNote = () => {
   })
 }
 
-const WORDBOOK_PAGE_SIZE = 30
+// 단어장은 책 순서·가나다 정렬과 66권 막대에 전체가 필요해 서버 상한(100)으로 받는다
+const WORDBOOK_PAGE_SIZE = 100
 const WORDBOOK_STALE = 1000 * 60 * 2
 
 /**

@@ -5,15 +5,15 @@ import { useMessianicGenealogy, usePrefetchBibleFigure } from '../../../hooks/us
 import GenealogyTree from './components/GenealogyTree'
 import FigureDetailPanel from './components/FigureDetailPanel'
 import EraTimeline from './components/EraTimeline'
+import GenealogyHeader from './components/GenealogyHeader'
+import { buildRoute } from './genealogyRoute'
 import { isApostleId, isTribeId, type ApostleId, type TribeId } from './twelveIds'
 import type { BibleFigureSummary } from '../../../types/bibleFigure'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import './Genealogy.css'
 import { tokenStore } from '../../../utils/tokenStore'
-
-import { useThemeArt } from '../../../hooks/useThemeArt'
-import { GENEALOGY_HERO } from '../../../utils/themeAssets'
+import { smoothScrollToElement } from '../../../utils/scrollTo'
 import { warmGenealogySerif } from './warmSerifGlyphs'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
 
@@ -22,24 +22,22 @@ import { SheetGrabber } from '../../../components/common/SheetGrabber'
 const loadTwelveView = () => import('./components/TwelveView')
 const TwelveView = lazy(loadTwelveView)
 
-const encouragement = (p: number) => {
-  if (p >= 1) return '완독했어요!'
-  if (p >= 0.7) return '잘하고 있어요!'
-  if (p >= 0.3) return '순조롭게 가고 있어요'
-  if (p > 0) return '좋은 출발이에요'
-  return '첫 장을 펼쳐보세요'
-}
+/** 노선 시대 칸 → 본문 구간 표지판. 헤더(3.5rem)+얇은 구간 바 높이만큼 비켜 선다(GenealogyTree 와 같은 값) */
+const ERA_JUMP_OFFSET = 150
 
 type ViewMode = 'tree' | 'timeline' | 'tribes' | 'apostles'
 type RoleFilter = 'all' | 'messianic' | 'king' | 'prophet' | 'woman' | 'patriarch'
 
-const ROLE_FILTERS: { id: RoleFilter; label: string; icon: string }[] = [
-  { id: 'all', label: '전체', icon: '✶' },
-  { id: 'messianic', label: '메시아 라인', icon: '✦' },
-  { id: 'king', label: '왕', icon: '♛' },
-  { id: 'prophet', label: '선지자', icon: '✎' },
-  { id: 'woman', label: '여인', icon: '♀' },
-  { id: 'patriarch', label: '족장', icon: '⌖' },
+// 글자 기호(✶ ♛ ♀)는 OS 폰트마다 달라 보여 빼고, 대신 인원수를 붙인다
+const EMPTY_PROGRESS: Record<string, number> = {}
+
+const ROLE_FILTERS: { id: RoleFilter; label: string }[] = [
+  { id: 'all', label: '전체' },
+  { id: 'messianic', label: '메시아 라인' },
+  { id: 'king', label: '왕' },
+  { id: 'prophet', label: '선지자' },
+  { id: 'woman', label: '여인' },
+  { id: 'patriarch', label: '족장' },
 ]
 
 const matchRole = (figure: BibleFigureSummary, filter: RoleFilter): boolean => {
@@ -108,10 +106,8 @@ export const Genealogy = () => {
   }
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
-  const [helpOpen, setHelpOpen] = useState(false)
-  // 히어로 이미지는 CSS 배경(테마 토큰)이라 렌더된 뒤에야 받기 시작하고 현재 테마 한 장만
-  // 받는다 — 현재 테마를 받아 페이드인하고, 반대 테마는 유휴 시간에 데운다(themeAssets.ts)
-  const heroReady = useThemeArt(GENEALOGY_HERO)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const showSearch = searchOpen || !!query
   const prefetchFigure = usePrefetchBibleFigure()
 
   // 상세 요청은 FigureDetailPanel 이 마운트돼야 출발했다 — 탭 → 타임라인·시트 렌더가 끝난 뒤.
@@ -139,29 +135,12 @@ export const Genealogy = () => {
 
   const isLoggedIn = !!tokenStore.getAccess()
 
-  const overallProgress = useMemo(() => {
-    if (!data || !isLoggedIn) return null
-    const values = Object.values(data.reading_progress || {})
-    if (values.length === 0) return 0
-    const sum = values.reduce((a, b) => a + b, 0)
-    return sum / values.length
-  }, [data, isLoggedIn])
+  // 아담→예수 한 줄 노선 — 상단 노선 카드가 쓴다(가계도 본문도 같은 함수로 계산)
+  const route = useMemo(() => (data ? buildRoute(data.nodes, data.links) : null), [data])
 
-  // 메시아 라인 인물 중 통독을 마친(진도 100%) 인물 수
-  const readCounts = useMemo(() => {
-    if (!data) return { done: 0, total: 0 }
-    const line = data.nodes.filter((n) => n.is_messianic_line)
-    const done = line.filter((n) => (data.reading_progress?.[n.slug] ?? 0) >= 0.999).length
-    return { done, total: line.length }
-  }, [data])
-
-  const counts = useMemo(() => {
-    if (!data) return { total: 0, messianic: 0 }
-    return {
-      total: data.nodes.length,
-      messianic: data.nodes.filter((n) => n.is_messianic_line).length,
-    }
-  }, [data])
+  const jumpToEra = useCallback((era: number) => {
+    smoothScrollToElement(document.querySelector(`.grl [data-sign="${era}"]`), { offset: ERA_JUMP_OFFSET })
+  }, [])
 
   const filteredNodes = useMemo(() => {
     if (!data) return [] as BibleFigureSummary[]
@@ -180,9 +159,9 @@ export const Genealogy = () => {
 
   // 데이터에 실제로 존재하는 역할만 칩으로 노출 (선지자 등 0명인 칩 숨김)
   const visibleFilters = useMemo(() => {
-    if (!data) return ROLE_FILTERS
-    return ROLE_FILTERS.filter(
-      (rf) => rf.id === 'all' || data.nodes.some((n) => matchRole(n, rf.id)),
+    if (!data) return ROLE_FILTERS.map((rf) => ({ ...rf, count: 0 }))
+    return ROLE_FILTERS.map((rf) => ({ ...rf, count: data.nodes.filter((n) => matchRole(n, rf.id)).length })).filter(
+      (rf) => rf.id === 'all' || rf.count > 0,
     )
   }, [data])
 
@@ -212,184 +191,86 @@ export const Genealogy = () => {
           <span className="text-gray-700 dark:text-gray-300">믿음의 가계도</span>
         </div>
 
-        {/* 히어로 — 우측에 생명나무 이미지, 좌측 타이틀 + 통계 타일 */}
-        <header className="gen-hero mb-4">
-          <div className={`gen-hero__art${heroReady ? ' is-loaded' : ''}`} aria-hidden />
-          <div className="gen-hero__content">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-brand text-[11.5px] font-bold tracking-[0.14em] uppercase mb-1.5">
-                  Genealogy · 구속사 라인
-                </p>
-                <h1 className="text-ink-strong text-[26px] md:text-[30px] font-bold leading-[1.2] tracking-[-0.02em]">
-                  믿음의 가계도
-                </h1>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setHelpOpen((v) => !v)}
-                  aria-label="도움말"
-                  aria-expanded={helpOpen}
-                  className="gen-hero__btn"
-                >
-                  <span className="material-icons-round" style={{ fontSize: 18 }}>
-                    help_outline
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <p className="mt-2 max-w-[520px] text-[14px] text-gray-600 dark:text-white/65 leading-[1.65]">
-              아담부터 예수 그리스도까지, 하나님이 친히 보존하신 메시아 약속의 계보입니다.
-              {isLoggedIn ? (
-                <> 통독한 만큼 내 열차가 아담역에서 예수역까지 달려가요.</>
-              ) : (
+        {/* 노선 카드 — 제목 · 시대 노선(열차 위치) · 다음 역 · 밑변 툴바(보기 전환·필터·검색) */}
+        <GenealogyHeader
+          route={isTwelve ? null : route}
+          readingProgress={data?.reading_progress ?? EMPTY_PROGRESS}
+          isLoggedIn={isLoggedIn}
+          showMetro={viewMode === 'tree'}
+          onJumpEra={jumpToEra}
+          onSelectFigure={selectFigure}
+          description={
+            viewMode === 'tribes'
+              ? '야곱의 열두 아들에서 시작된 하나님의 백성'
+              : viewMode === 'apostles'
+                ? '예수님이 부르신 열두 사람, 새 이스라엘의 기초'
+                : '아담부터 예수 그리스도까지, 하나님이 친히 보존하신 메시아 약속의 계보예요.'
+          }
+          toolbar={
+            <>
+              <ViewToggle value={viewMode === 'apostles' ? 'tribes' : viewMode} onChange={setViewMode} onWarmTwelve={loadTwelveView} />
+              {!isTwelve && (
                 <>
-                  {' '}
-                  <Link to="/login" className="text-brand hover:underline font-medium">
-                    로그인
-                  </Link>
-                  하면 통독한 만큼 열차가 노선을 따라 달려가는 걸 볼 수 있어요.
+                  <span className="gh-tb__divider" aria-hidden />
+                  <div className="gh-tb__chips scrollbar-hide" role="group" aria-label="인물 거르기">
+                    {visibleFilters.map((rf) => {
+                      const active = roleFilter === rf.id
+                      return (
+                        <button
+                          key={rf.id}
+                          type="button"
+                          onClick={() => setRoleFilter(rf.id)}
+                          aria-pressed={active}
+                          className={`gh-chip${active ? ' is-on' : ''}`}
+                        >
+                          {rf.label}
+                          {data && <em>{rf.count}</em>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className={`gh-icon-btn gh-tb__search-btn${showSearch ? ' is-on' : ''}`}
+                    onClick={() => {
+                      if (showSearch) {
+                        setSearchOpen(false)
+                        setQuery('')
+                      } else setSearchOpen(true)
+                    }}
+                    aria-label={showSearch ? '검색 닫기' : '인물 검색'}
+                    aria-expanded={showSearch}
+                  >
+                    <span className="material-icons-round" style={{ fontSize: 18 }}>
+                      {showSearch ? 'close' : 'search'}
+                    </span>
+                  </button>
+                  {showSearch && (
+                    <div className="gh-tb__search">
+                      <span className="material-icons-round" aria-hidden style={{ fontSize: 18 }}>
+                        search
+                      </span>
+                      <input
+                        type="search"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setQuery('')
+                            setSearchOpen(false)
+                          }
+                        }}
+                        placeholder="인물·시대·역할 검색"
+                        aria-label="인물·시대·역할 검색"
+                        autoFocus
+                      />
+                    </div>
+                  )}
                 </>
               )}
-            </p>
-
-            <AnimatePresence>
-              {helpOpen && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <ul className="mt-3 max-w-[520px] rounded-xl bg-white/70 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08] px-3.5 py-3 text-[12.5px] text-gray-600 dark:text-white/65 leading-[1.6] space-y-1">
-                    <li>· 인물을 누르면 생애·관련 구절·가족 관계를 볼 수 있어요.</li>
-                    <li>· 인물과 연결된 장을 다 읽으면 그 역을 지나요. 아담역부터 이어서 다 읽은 역까지 열차가 내려와요.</li>
-                    <li>· <b className="text-brand">가계도</b>는 아담→예수까지 한 줄 노선이에요. 시대마다 노선 색이 바뀌고, 점선은 성경이 건너뛴 세대예요.</li>
-                  </ul>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* 통계 타일 — 가계도 인물 수라 지파·제자 보기에선 숨긴다 */}
-            {!isTwelve && (
-            <div className="mt-4 grid grid-cols-3 gap-2 max-w-[560px]">
-              <StatTile icon="groups" label="전체 인물" value={counts.total} />
-              <StatTile icon="account_tree" label="메시아 라인" value={counts.messianic} />
-              {overallProgress !== null && (
-                <StatTile
-                  icon="donut_large"
-                  label="통독 진도"
-                  value={`${Math.round(overallProgress * 100)}%`}
-                />
-              )}
-            </div>
-            )}
-          </div>
-        </header>
-
-        {/* 로그인 사용자 진도 카드 */}
-        {!isTwelve && overallProgress !== null && (
-          <div className="mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] px-4 py-4 md:px-5 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-50 dark:opacity-100 pointer-events-none bg-gradient-to-br from-[var(--brand-soft)] via-transparent to-transparent dark:from-white/[0.05] dark:via-transparent dark:to-white/[0.02]" />
-            <div className="relative">
-              <span className="text-[13px] font-semibold text-gray-700 dark:text-white/90">
-                메시아 라인 통독 진도
-              </span>
-              <div className="mt-2 flex items-center gap-3 md:gap-4">
-                <span className="brand-text-gradient text-[30px] md:text-[34px] font-extrabold leading-none tracking-[-0.03em] flex-shrink-0">
-                  {Math.round(overallProgress * 100)}%
-                </span>
-                <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-white/[0.06] overflow-hidden">
-                  <div
-                    className="h-full brand-gradient-bg transition-all duration-700 rounded-full"
-                    style={{ width: `${Math.max(2, overallProgress * 100)}%` }}
-                  />
-                </div>
-                <span className="hidden sm:inline-flex flex-shrink-0 px-2.5 h-7 items-center rounded-full text-[12px] font-semibold bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/70 border border-gray-200 dark:border-white/[0.06]">
-                  {readCounts.done} / {readCounts.total} 인물
-                </span>
-                <span className="hidden md:inline-flex flex-shrink-0 items-center gap-1 text-[12.5px] font-semibold text-brand">
-                  <span className="material-icons-round" style={{ fontSize: 16 }}>auto_awesome</span>
-                  {encouragement(overallProgress)}
-                </span>
-              </div>
-              <div className="mt-2 flex sm:hidden items-center justify-between text-[12px] text-gray-500 dark:text-white/60">
-                <span>{readCounts.done} / {readCounts.total} 인물</span>
-                <span className="inline-flex items-center gap-1 font-semibold text-brand">
-                  <span className="material-icons-round" style={{ fontSize: 14 }}>auto_awesome</span>
-                  {encouragement(overallProgress)}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 검색 + 필터 + 뷰 토글 카드 */}
-        <div className="mb-5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] p-3 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02]" />
-          <div className="relative flex flex-col gap-3">
-            {/* 검색 + 뷰 토글 한 줄 */}
-            <div className="flex items-center gap-2">
-              {isTwelve ? (
-                <p className="flex-1 min-w-0 px-1 text-[13px] text-gray-600 dark:text-white/65 leading-[1.5] break-keep">
-                  {viewMode === 'tribes' ? '야곱의 열두 아들에서 시작된 하나님의 백성' : '예수님이 부르신 열두 사람, 새 이스라엘의 기초'}
-                </p>
-              ) : (
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 material-icons-round" style={{ fontSize: 18 }}>
-                  search
-                </span>
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="인물·시대·역할 검색"
-                  className="w-full h-10 pl-10 pr-3 rounded-xl text-[13.5px] bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] text-ink-strong placeholder-gray-400 dark:placeholder-white/40 focus:outline-none focus:border-brand transition-colors"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    onClick={() => setQuery('')}
-                    aria-label="검색 지우기"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-              )}
-              <ViewToggle value={viewMode === 'apostles' ? 'tribes' : viewMode} onChange={setViewMode} onWarmTwelve={loadTwelveView} />
-            </div>
-
-            {/* 역할 필터 pill */}
-            {!isTwelve && (
-            <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 scrollbar-hide">
-              {visibleFilters.map((rf) => {
-                const active = roleFilter === rf.id
-                return (
-                  <button
-                    key={rf.id}
-                    type="button"
-                    onClick={() => setRoleFilter(rf.id)}
-                    className={[
-                      'inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-medium whitespace-nowrap flex-shrink-0 transition-all',
-                      active
-                        ? 'bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)]'
-                        : 'bg-gray-50 dark:bg-white/[0.04] text-gray-600 dark:text-white/60 border border-transparent hover:bg-gray-100 dark:hover:bg-white/[0.08]',
-                    ].join(' ')}
-                  >
-                    <span aria-hidden>{rf.icon}</span>
-                    {rf.label}
-                  </button>
-                )
-              })}
-            </div>
-            )}
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {isTwelve && (
           <Suspense fallback={<TwelveLoading />}>
@@ -526,26 +407,6 @@ const FigureSheet = ({ children, onClose }: { children: ReactNode; onClose: () =
     </div>
   )
 }
-
-const StatTile = ({
-  icon,
-  label,
-  value,
-}: {
-  icon: string
-  label: string
-  value: number | string
-}) => (
-  <div className="gen-stat">
-    <span className="gen-stat__icon">
-      <span className="material-icons-round" style={{ fontSize: 18 }}>{icon}</span>
-    </span>
-    <div className="min-w-0">
-      <div className="gen-stat__label truncate">{label}</div>
-      <div className="gen-stat__value">{value}</div>
-    </div>
-  </div>
-)
 
 /** 지파·제자 청크를 받는 동안 — 카드 자리의 빈 상자 */
 const TwelveLoading = () => (
