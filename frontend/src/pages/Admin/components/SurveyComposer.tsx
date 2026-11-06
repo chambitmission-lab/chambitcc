@@ -9,13 +9,8 @@ import AdminComposerShell from './AdminComposerShell'
 import { useCreateSurvey, useUpdateSurvey } from '../../../hooks/useSurvey'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { showToast, toastFeedback } from '../../../utils/toast'
-import {
-  QUESTION_TYPE_META,
-  QUESTION_TYPE_ORDER,
-  inputCls,
-  labelCls,
-  newOptionId,
-} from '../../Survey/surveyShared'
+import { QUESTION_TYPES, QUESTION_TYPE_ORDER, withDefaultSettings } from '../../Survey/questionTypes'
+import { inputCls, labelCls, newOptionId } from '../../Survey/surveyShared'
 import type {
   SurveyDetail,
   SurveyQuestionType,
@@ -39,14 +34,13 @@ const blankQuestion = (type: SurveyQuestionType): DraftQuestion => ({
   title: '',
   description: '',
   is_required: false,
-  options:
-    type === 'single' || type === 'multi'
-      ? [
-          { id: newOptionId(), label: '' },
-          { id: newOptionId(), label: '' },
-        ]
-      : [],
-  settings: type === 'rating' ? { max: 5 } : {},
+  options: QUESTION_TYPES[type].hasOptions
+    ? [
+        { id: newOptionId(), label: '' },
+        { id: newOptionId(), label: '' },
+      ]
+    : [],
+  settings: withDefaultSettings(type, {}),
 })
 
 /** 사진으로 받아 보던 셔틀버스 설문 — 문항 종류를 한 번에 보여주는 예시 */
@@ -213,7 +207,7 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
       return
     }
     const emptyOptions = questions.find(
-      (q) => QUESTION_TYPE_META[q.type].hasOptions && q.options.filter((o) => o.label.trim()).length < 2
+      (q) => QUESTION_TYPES[q.type].hasOptions && q.options.filter((o) => o.label.trim()).length < 2
     )
     if (emptyOptions) {
       showToast(`'${emptyOptions.title}' 의 보기를 2개 이상 입력해주세요`, 'error')
@@ -238,7 +232,7 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
         description: q.description.trim() || null,
         is_required: q.is_required,
         display_order: order,
-        options: QUESTION_TYPE_META[q.type].hasOptions
+        options: QUESTION_TYPES[q.type].hasOptions
           ? q.options.filter((o) => o.label.trim()).map((o) => ({ id: o.id, label: o.label.trim() }))
           : null,
         settings: Object.keys(q.settings).length ? q.settings : null,
@@ -432,9 +426,9 @@ const SurveyComposer = ({ survey, onClose, onSaved }: Props) => {
                       className="w-full text-left px-4 py-2.5 hover:bg-[var(--brand-soft)] transition-colors border-b border-gray-100 dark:border-white/[0.05] last:border-0"
                     >
                       <p className="text-[13.5px] font-semibold text-ink-strong">
-                        {QUESTION_TYPE_META[type].label}
+                        {QUESTION_TYPES[type].label}
                       </p>
-                      <p className="text-[11.5px] text-ink-muted">{QUESTION_TYPE_META[type].hint}</p>
+                      <p className="text-[11.5px] text-ink-muted">{QUESTION_TYPES[type].hint}</p>
                     </button>
                   ))}
                 </div>

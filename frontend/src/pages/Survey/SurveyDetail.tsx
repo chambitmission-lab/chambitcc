@@ -24,7 +24,6 @@ import {
   formatDate,
   formatDateTime,
   isAcceptingResponses,
-  OTHER_OPTION_ID,
   type AnswerDraft,
 } from './surveyShared'
 import {
@@ -48,18 +47,10 @@ const SurveyDetail = () => {
 
   // 서버가 내려준 내 답이 폼의 출발점이고, 사용자가 손대면 그때부터 edits 가 이긴다.
   // (effect 로 state 를 채우면 응답이 도착할 때마다 렌더가 한 번 더 돈다)
-  const serverDrafts = useMemo(() => {
-    if (!survey) return {}
-    const next = draftsFromAnswers(survey.questions, survey.my_answers)
-    // '기타' 직접입력이 있으면 가상 보기를 다시 켜 준다
-    for (const q of survey.questions) {
-      if ((q.type === 'single' || q.type === 'multi') && q.settings?.allow_other) {
-        const draft = next[q.id]
-        if (draft?.text) draft.optionIds = [...draft.optionIds, OTHER_OPTION_ID]
-      }
-    }
-    return next
-  }, [survey])
+  const serverDrafts = useMemo(
+    () => (survey ? draftsFromAnswers(survey.questions, survey.my_answers) : {}),
+    [survey]
+  )
 
   const [edits, setEdits] = useState<Record<number, AnswerDraft> | null>(null)
   const drafts = edits ?? serverDrafts

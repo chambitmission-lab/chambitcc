@@ -1,8 +1,9 @@
 // 설문 빌더(SurveyComposer)의 부분 컴포넌트 — 토글 줄·문항 편집 카드·아이콘 버튼.
-// 모달 파일이 길어 자리만 옮겼다(동작 변경 없음).
+// 모달 파일이 길어 자리만 옮겼다. 종류별 부가 설정은 questionTypes 전략의 SettingsEditor 가 그린다.
 import { memo } from 'react'
 import QuestionField from '../../Survey/QuestionField'
-import { QUESTION_TYPE_META, QUESTION_TYPE_ORDER, inputCls, newOptionId } from '../../Survey/surveyShared'
+import { QUESTION_TYPES, QUESTION_TYPE_ORDER, withDefaultSettings } from '../../Survey/questionTypes'
+import { inputCls, newOptionId } from '../../Survey/surveyShared'
 import type { SurveyOption, SurveyQuestionSettings, SurveyQuestionType } from '../../../types/survey'
 
 /** 편집 중 문항 — 신규 문항도 안정적인 key 를 갖도록 화면 전용 key 를 붙인다 */
@@ -74,7 +75,7 @@ export const QuestionEditor = memo(function QuestionEditor({
   onDuplicate: (question: DraftQuestion) => void
   onRemove: (question: DraftQuestion) => void
 }) {
-  const meta = QUESTION_TYPE_META[question.type]
+  const meta = QUESTION_TYPES[question.type]
   const settings = question.settings
 
   const patch = (next: Partial<DraftQuestion>) => onPatch(question.key, next)
@@ -82,7 +83,7 @@ export const QuestionEditor = memo(function QuestionEditor({
     patch({ settings: { ...settings, ...next } })
 
   const changeType = (type: SurveyQuestionType) => {
-    const needsOptions = QUESTION_TYPE_META[type].hasOptions
+    const needsOptions = QUESTION_TYPES[type].hasOptions
     patch({
       type,
       options:
@@ -92,7 +93,7 @@ export const QuestionEditor = memo(function QuestionEditor({
               { id: newOptionId(), label: '' },
             ]
           : question.options,
-      settings: type === 'rating' && !settings.max ? { ...settings, max: 5 } : settings,
+      settings: withDefaultSettings(type, settings),
     })
   }
 
@@ -126,7 +127,7 @@ export const QuestionEditor = memo(function QuestionEditor({
       >
         {QUESTION_TYPE_ORDER.map((type) => (
           <option key={type} value={type}>
-            {QUESTION_TYPE_META[type].label}
+            {QUESTION_TYPES[type].label}
           </option>
         ))}
       </select>
@@ -203,97 +204,7 @@ export const QuestionEditor = memo(function QuestionEditor({
           필수 응답
         </label>
 
-        {meta.hasOptions ? (
-          <label className="flex items-center gap-1.5 text-ink">
-            <input
-              type="checkbox"
-              checked={settings.allow_other === true}
-              onChange={(e) => patchSettings({ allow_other: e.target.checked || undefined })}
-              className="accent-[var(--brand)]"
-            />
-            기타 직접입력
-          </label>
-        ) : null}
-
-        {question.type === 'multi' ? (
-          <label className="flex items-center gap-1.5 text-ink">
-            최대 선택
-            <input
-              type="number"
-              min={1}
-              value={settings.max_select ?? ''}
-              onChange={(e) =>
-                patchSettings({ max_select: e.target.value ? Number(e.target.value) : undefined })
-              }
-              placeholder="제한 없음"
-              className="w-20 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12px]"
-            />
-          </label>
-        ) : null}
-
-        {question.type === 'number' ? (
-          <>
-            <label className="flex items-center gap-1.5 text-ink">
-              단위
-              <input
-                type="text"
-                value={settings.unit ?? ''}
-                onChange={(e) => patchSettings({ unit: e.target.value || undefined })}
-                placeholder="명"
-                className="w-16 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12px]"
-              />
-            </label>
-            <label className="flex items-center gap-1.5 text-ink">
-              최소
-              <input
-                type="number"
-                value={settings.min ?? ''}
-                onChange={(e) =>
-                  patchSettings({ min: e.target.value === '' ? undefined : Number(e.target.value) })
-                }
-                className="w-16 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12px]"
-              />
-            </label>
-            <label className="flex items-center gap-1.5 text-ink">
-              최대
-              <input
-                type="number"
-                value={settings.max ?? ''}
-                onChange={(e) =>
-                  patchSettings({ max: e.target.value === '' ? undefined : Number(e.target.value) })
-                }
-                className="w-16 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12px]"
-              />
-            </label>
-          </>
-        ) : null}
-
-        {question.type === 'rating' ? (
-          <label className="flex items-center gap-1.5 text-ink">
-            만점
-            <input
-              type="number"
-              min={3}
-              max={10}
-              value={settings.max ?? 5}
-              onChange={(e) => patchSettings({ max: Number(e.target.value) || 5 })}
-              className="w-16 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12px]"
-            />
-          </label>
-        ) : null}
-
-        {question.type === 'text' || question.type === 'long' ? (
-          <label className="flex items-center gap-1.5 text-ink flex-1 min-w-[140px]">
-            안내문구
-            <input
-              type="text"
-              value={settings.placeholder ?? ''}
-              onChange={(e) => patchSettings({ placeholder: e.target.value || undefined })}
-              placeholder="예: 시청 정문"
-              className="flex-1 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12px]"
-            />
-          </label>
-        ) : null}
+        {meta.SettingsEditor ? <meta.SettingsEditor settings={settings} patchSettings={patchSettings} /> : null}
 
         <button
           type="button"
