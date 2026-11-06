@@ -414,6 +414,58 @@ const ChevronRight = ({ size = 16 }: { size?: number }) => (
   </svg>
 )
 
+const HIGHLIGHT_PREVIEW = 4
+
+/** 맨 위 글 — 번호 원고의 항목 제목을 목차처럼 (앞 4개 + 나머지 개수) */
+const HighlightList = ({ items }: { items: string[] }) => {
+  const { t } = useLanguage()
+  const shown = items.slice(0, HIGHLIGHT_PREVIEW)
+  const rest = items.length - shown.length
+  return (
+    <div className="mt-3 lg:mt-4">
+      <p className="mb-1.5 text-[11px] lg:text-[13px] font-bold text-gray-400 dark:text-white/45">
+        {t('newsHighlightsCount').replace('{n}', String(items.length))}
+      </p>
+      <ol className="space-y-1.5 lg:space-y-2">
+        {shown.map((title, i) => (
+          <li key={i} className="flex items-start gap-2 lg:gap-2.5">
+            <span className="shrink-0 mt-[1px] w-[18px] h-[18px] lg:w-[22px] lg:h-[22px] rounded-full bg-[var(--brand-soft)] text-brand text-[10.5px] lg:text-[12.5px] font-extrabold tabular-nums flex items-center justify-center">
+              {i + 1}
+            </span>
+            <span className="min-w-0 text-[13.5px] lg:text-[16px] font-semibold text-gray-700 dark:text-white/75 leading-[1.45] line-clamp-1">
+              {title}
+            </span>
+          </li>
+        ))}
+      </ol>
+      {rest > 0 && (
+        <p className="mt-1.5 lg:mt-2 pl-[26px] lg:pl-[32px] text-[12px] lg:text-[14px] font-bold text-gray-400 dark:text-white/45">
+          {t('newsHighlightsMore').replace('{n}', String(rest))}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** 리스트 한 줄 — 첫 항목 제목 + 나머지 개수 */
+const HighlightLine = ({ items }: { items: string[] }) => {
+  const { t } = useLanguage()
+  const rest = items.length - 1
+  return (
+    <p className="mt-0.5 flex items-center gap-1.5 min-w-0 text-[12px] lg:text-[14.5px] leading-[1.5]">
+      <span className="min-w-0 truncate text-gray-600 dark:text-white/60 font-medium">
+        <span className="text-brand font-bold tabular-nums mr-1">1.</span>
+        {items[0]}
+      </span>
+      {rest > 0 && (
+        <span className="shrink-0 px-1.5 rounded-md bg-gray-100 dark:bg-white/[0.06] text-[10.5px] lg:text-[12.5px] font-bold text-gray-500 dark:text-white/50">
+          {t('newsHighlightsMore').replace('{n}', String(rest))}
+        </span>
+      )}
+    </p>
+  )
+}
+
 const toDate = (value: string | null): Date | null => {
   if (!value) return null
   const d = parseApiDate(value)
@@ -477,10 +529,14 @@ const FeaturedCard = ({
         <p className="text-[19px] lg:text-[24px] font-bold text-ink-strong leading-[1.3] tracking-[-0.02em] line-clamp-2 group-hover:text-brand transition-colors">
           {news.title}
         </p>
-        {news.summary && (
-          <p className="mt-2 text-[13px] lg:text-[16px] text-gray-500 dark:text-white/55 lg:text-gray-600 lg:dark:text-white/65 leading-[1.6] line-clamp-3">
-            {news.summary}
-          </p>
+        {news.highlights?.length ? (
+          <HighlightList items={news.highlights} />
+        ) : (
+          news.summary && (
+            <p className="mt-2 text-[13px] lg:text-[16px] text-gray-500 dark:text-white/55 lg:text-gray-600 lg:dark:text-white/65 leading-[1.6] line-clamp-3">
+              {news.summary}
+            </p>
+          )
         )}
         {fresh && <WeekSteps news={news} weekdays={weekdays} />}
         <div className="mt-4 lg:mt-5 flex items-center justify-between gap-3">
@@ -543,10 +599,14 @@ const NewsRow = ({
         <p className="mt-0.5 text-[14.5px] lg:text-[17.5px] font-bold text-ink-strong leading-[1.4] tracking-[-0.01em] line-clamp-1 group-hover:text-brand transition-colors">
           {news.title}
         </p>
-        {news.summary && (
-          <p className="mt-0.5 text-[12px] lg:text-[14.5px] text-gray-500 dark:text-white/50 leading-[1.5] line-clamp-1">
-            {news.summary}
-          </p>
+        {news.highlights?.length ? (
+          <HighlightLine items={news.highlights} />
+        ) : (
+          news.summary && (
+            <p className="mt-0.5 text-[12px] lg:text-[14.5px] text-gray-500 dark:text-white/50 leading-[1.5] line-clamp-1">
+              {news.summary}
+            </p>
+          )
         )}
         <NewsMeta news={news} className="mt-1 text-[10.5px] lg:text-[13px]" />
       </div>

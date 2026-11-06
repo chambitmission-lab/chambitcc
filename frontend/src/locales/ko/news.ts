@@ -32,6 +32,8 @@ export const news = {
   newsPinned: '고정',
   newsViewCount: '조회 {n}',
   newsLatest: '최신 소식',
+  newsHighlightsCount: '소식 {n}가지',
+  newsHighlightsMore: '외 {n}가지 더',
   // 새 글 표시 — 종(가장 최신 글) + 주일 D-day(주보 분류)
   newsFreshNew: '새 소식',
   newsFreshBulletin: '새 주보',

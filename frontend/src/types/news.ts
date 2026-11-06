@@ -18,6 +18,8 @@ export interface NewsItem {
   title: string
   /** 본문 앞부분 요약(서버 생성) — 목록 카드용 */
   summary: string
+  /** 번호 원고("1. 제목")의 항목 제목들 — 목록 카드 목차. 형식이 아니면 빈 배열(옛 응답엔 없음) */
+  highlights?: string[]
   category: string | null
   author: string | null
   thumbnail_url: string | null

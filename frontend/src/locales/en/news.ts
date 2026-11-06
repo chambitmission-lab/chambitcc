@@ -30,6 +30,8 @@ export const news = {
   newsPinned: 'Pinned',
   newsViewCount: '{n} views',
   newsLatest: 'Latest',
+  newsHighlightsCount: '{n} updates',
+  newsHighlightsMore: '+{n} more',
   newsFreshNew: 'New',
   newsFreshBulletin: 'New bulletin',
   newsSundayToday: 'Sunday today',
