@@ -92,6 +92,213 @@
   word-break: keep-all;
 }
 
+/* ── 칭호 퀘스트 히어로 (2026-11-06, 듀오링고 퀘스트 카드 벤치마킹) ──
+   배너 그림은 오른쪽 그대로, 왼쪽 빈 면은 제목 + 퀘스트 카드가 채운다. */
+.garden-hero.has-quests {
+  display: flex;
+  align-items: center;
+  padding: 18px 18px 20px;
+  background-image:
+    linear-gradient(90deg, var(--surface-container) 46%, rgba(0, 0, 0, 0) 92%),
+    var(--garden-hero-image, none);
+}
+
+.garden-hero.has-quests .garden-hero-body {
+  width: 100%;
+  max-width: 300px;
+  gap: 6px;
+}
+
+.garden-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.garden-hero-count {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--brand);
+  background: var(--brand-soft);
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.garden-hero.has-quests .garden-hero-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.garden-quest-card {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 10px 8px;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 2px solid color-mix(in srgb, var(--text-muted) 26%, transparent);
+  border-bottom-width: 4px;
+}
+
+.garden-quest-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 4px 2px;
+}
+
+.garden-quest-head b {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.garden-quest-head span {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.garden-quest-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.garden-quest-row:hover {
+  background: var(--surface-inset);
+}
+
+.garden-quest-row:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.garden-quest-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.garden-quest-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.garden-quest-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.garden-quest-line em {
+  flex: none;
+  font-style: normal;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 굵은 진행 막대 + 윗면 하이라이트 줄 */
+.garden-quest-bar {
+  position: relative;
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+
+.garden-quest-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--brand);
+  transition: width 0.6s ease;
+}
+
+.garden-quest-bar i::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.garden-quest-reward {
+  display: none; /* PC 에서만 — 보상 칭호 이름 */
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.garden-quest-row.is-done .garden-quest-bar i { background: var(--amber-icon); }
+.garden-quest-row.is-done .garden-quest-line em { color: var(--amber); }
+
+.garden-quest-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--amber-icon);
+  color: #fff;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+}
+
+.garden-quest-check .material-icons-round {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.garden-quest-empty {
+  margin: 0;
+  padding: 8px 4px 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
+.garden-quest-skel {
+  display: block;
+  border-radius: 8px;
+  background: var(--surface-inset);
+}
+.garden-quest-skel--head { width: 72px; height: 14px; }
+.garden-quest-skel--medal { width: 40px; height: 40px; border-radius: 50%; }
+.garden-quest-skel--text { width: 70%; height: 13px; }
+
 /* ── 정원 꾸미기 버튼 (플랫 브랜드 pill, hero 우측 하단 고정 느낌) ───── */
 .garden-customize-button {
   grid-column: 1 / -1;
@@ -275,5 +482,50 @@
     font-size: 13.5px;
     /* 1100px 폭에서 한 줄로 늘어지면 읽는 눈이 튄다 */
     max-width: 52ch;
+  }
+
+  /* 칭호 퀘스트 — 넓은 무대에선 카드 폭을 키우고 그라데이션을 그림 앞에서 끊는다 */
+  .garden-hero.has-quests {
+    padding: 28px 44px;
+    background-image:
+      linear-gradient(90deg, var(--surface-container) 34%, rgba(0, 0, 0, 0) 62%),
+      var(--garden-hero-image, none);
+  }
+
+  .garden-hero.has-quests .garden-hero-body {
+    max-width: 460px;
+    gap: 8px;
+  }
+
+  .garden-hero.has-quests .garden-hero-title {
+    font-size: 38px;
+  }
+
+  .garden-hero-count {
+    font-size: 13px;
+    padding: 3px 11px;
+  }
+
+  .garden-quest-card {
+    margin-top: 8px;
+    padding: 14px 14px 10px;
+    border-radius: 18px;
+    gap: 6px;
+  }
+
+  .garden-quest-head b { font-size: 16px; }
+  .garden-quest-head span { font-size: 12.5px; }
+  .garden-quest-row { gap: 12px; padding: 6px; }
+  .garden-quest-name { font-size: 14.5px; }
+  .garden-quest-line em { font-size: 12.5px; }
+  .garden-quest-bar { height: 14px; }
+  .garden-quest-reward { display: block; }
+  .garden-quest-check { width: 30px; height: 30px; }
+}
+
+/* 퀘스트 카드가 그림을 덮지 않도록, 중간 폭(태블릿)에서도 카드는 왼쪽 절반만 */
+@media (min-width: 481px) and (max-width: 1023px) {
+  .garden-hero.has-quests .garden-hero-body {
+    max-width: 320px;
   }
 }

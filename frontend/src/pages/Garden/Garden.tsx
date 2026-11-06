@@ -10,6 +10,8 @@ import { GardenCustomizeModal } from '../../components/garden/GardenCustomizeMod
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { GARDEN_HERO } from '../../utils/themeAssets'
+import { useTitles } from '../../hooks/useTitles'
+import { GardenHeroQuests } from './GardenHeroQuests'
 import './Garden.css'
 
 // 말씀 퍼즐 탭 — 탭을 열 때만 불러온다
@@ -25,6 +27,8 @@ export const Garden: React.FC = () => {
   const { t } = useLanguage()
   const versesRead = progress?.overall.read_verses ?? 0
   const totalVerses = progress?.overall.total_verses
+  const { data: titlesData } = useTitles(!SHOW_FAITH_TREE)
+  const titleSummary = titlesData?.summary
   const [showCustomizeModal, setShowCustomizeModal] = useState(false)
   const [themeKey, setThemeKey] = useState(0)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -68,16 +72,34 @@ export const Garden: React.FC = () => {
 
   return (
     <div className="garden-page">
-      {/* Hero — 브랜드 블루 액센트의 플랫 서피스 카드 */}
-      <section className="garden-hero">
-        <div className="garden-hero-emblem" aria-hidden>
-          <span className="material-icons-round">{SHOW_FAITH_TREE ? 'park' : 'military_tech'}</span>
-        </div>
-        <div className="garden-hero-body">
-          <span className="garden-hero-label">{t('gardenHeroLabel')}</span>
-          <h1 className="garden-hero-title">{t('gardenHeroTitle')}</h1>
-          <p className="garden-hero-subtitle">{t('gardenHeroSubtitle')}</p>
-        </div>
+      {/* Hero — 오른쪽 배너 그림 + 왼쪽 칭호 퀘스트 카드(듀오링고 퀘스트 벤치마킹, 2026-11-06).
+          예전엔 왼쪽에 작은 제목 한 줄만 있어 흰/검은 여백이 비어 보였다. */}
+      <section className={`garden-hero${SHOW_FAITH_TREE ? '' : ' has-quests'}`}>
+        {SHOW_FAITH_TREE ? (
+          <>
+            <div className="garden-hero-emblem" aria-hidden>
+              <span className="material-icons-round">park</span>
+            </div>
+            <div className="garden-hero-body">
+              <span className="garden-hero-label">{t('gardenHeroLabel')}</span>
+              <h1 className="garden-hero-title">{t('gardenHeroTitle')}</h1>
+              <p className="garden-hero-subtitle">{t('gardenHeroSubtitle')}</p>
+            </div>
+          </>
+        ) : (
+          <div className="garden-hero-body">
+            <div className="garden-hero-top">
+              <h1 className="garden-hero-title">{t('gardenHeroTitle')}</h1>
+              {titleSummary && (
+                <span className="garden-hero-count">
+                  {titleSummary.earned} / {titleSummary.total}
+                </span>
+              )}
+            </div>
+            <p className="garden-hero-subtitle">{t('gardenQuestSubtitle')}</p>
+            <GardenHeroQuests />
+          </div>
+        )}
         {SHOW_FAITH_TREE && (
           <button
             className="garden-customize-button"

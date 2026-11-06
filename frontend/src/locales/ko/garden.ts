@@ -10,6 +10,10 @@ export const garden = {
   gardenHeroLabel: '나의 신앙 여정',
   gardenHeroTitle: '성경 칭호',
   gardenHeroSubtitle: '말씀을 읽으며 모으는 나만의 성경 칭호',
+  gardenQuestSubtitle: '오늘 읽으면 가까워지는 칭호',
+  gardenQuestHeader: '칭호 퀘스트',
+  gardenQuestDone: '완료',
+  gardenQuestAllDone: '열린 칭호를 모두 모았어요. 숨은 칭호를 찾아보세요!',
   gardenTabTitles: '성경 칭호',
   gardenTabPuzzle: '말씀 퍼즐',
 

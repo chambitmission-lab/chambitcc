@@ -10,6 +10,10 @@ export const garden = {
   gardenHeroLabel: 'My Faith Journey',
   gardenHeroTitle: 'Bible Titles',
   gardenHeroSubtitle: 'Your own collection of Bible titles, earned as you read the Word',
+  gardenQuestSubtitle: 'Titles you get closer to by reading today',
+  gardenQuestHeader: 'Title Quests',
+  gardenQuestDone: 'Done',
+  gardenQuestAllDone: 'You have every open title. Go find the hidden ones!',
   gardenTabTitles: 'Titles',
   gardenTabPuzzle: 'Scripture Puzzles',
 
