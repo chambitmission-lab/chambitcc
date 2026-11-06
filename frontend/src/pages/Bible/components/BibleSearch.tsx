@@ -1,34 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { useBibleSearchInfinite, useBibleBooks, useBibleChapter } from '../../../hooks/useBible'
-import { useSituationCategories } from '../../../hooks/useSituation'
-import { useBookCardContexts } from '../../../hooks/useBibleReading'
 import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import type { BibleBook, BookMatchCount } from '../../../types/bible'
+import type { BibleBook } from '../../../types/bible'
 import SearchBookCard from './SearchBookCard'
-import type { BookCard } from './SearchBookCard'
 import BookQuickPicker from './BookQuickPicker'
 import SearchVerseCard from './SearchVerseCard'
 import SearchGlossaryCard from './SearchGlossaryCard'
-import { useGlossaryEntry } from '../hooks/useGlossaryEntry'
-import { BOOK_ABBREV_KO, BOOK_ABBREV_EN } from './bibleBookAbbrev'
 import { safeStorage } from '../../../utils/safeStorage'
-import { useSearchIndex } from './search/useSearchIndex'
 import { useVoiceSearch } from './search/useVoiceSearch'
-import { findFuzzyBook, isChoseongQuery, matchBooksByChoseong } from './search/bookFuzzy'
+import { useBibleSearchModel } from './search/useBibleSearchModel'
+import type { SearchScope } from './search/resultShaping'
 import { SearchEventRows, SearchEventTopCard, SearchKindTabs, SearchPlaceRows } from './search/SearchLocalResults'
 import type { SearchKind } from './search/SearchLocalResults'
 import type { EventRef } from './search/searchIndex'
 import SearchMindAnswer from './search/SearchMindAnswer'
-import { matchSituation } from './search/situationMatch'
 import SearchVerseGroups from './search/SearchVerseGroups'
 import SearchExploreHome from './search/SearchExploreHome'
 import '../styles/search.css'
 
-type SearchScope = 'ALL' | 'OLD' | 'NEW'
 type VerseView = 'list' | 'book'
 
 const RECENT_SEARCHES_KEY = 'bible_recent_searches'
@@ -62,6 +54,153 @@ interface SearchTopic {
   verse: number
   /** 대표 구절 본문(개역개정, DB 원문 그대로) — 없으면 참조만 */
   text?: string
+}
+
+// 화면 문구 — 언어별 라벨·예시·주제 카드. 컴포넌트 밖에 두어 렌더마다 다시 만들지 않는다
+const texts = {
+  ko: {
+    searchAria: '성경 검색 — 책 이름, 책+장, 또는 본문 키워드',
+    placeholderExamples: [
+      '"창세기 1장"을 검색해보세요',
+      '"고전 13"처럼 약칭으로 검색해도 돼요',
+      '"요 3:16"처럼 절까지 바로 찾을 수 있어요',
+      '"하나님 사랑"을 검색해보세요',
+      '"주 그리스도 아들"처럼 여러 단어로 좁혀보세요',
+      '"고린도전서"를 검색해보세요',
+      '책 이름 · 장 · 키워드로 검색',
+    ],
+    recentSearches: '최근 검색어',
+    recommendedKeywords: '추천 키워드',
+    clearAll: '전체 삭제',
+    removeRecent: '검색어 삭제',
+    clearSearch: '검색 지우기',
+    suggestedKeywords: ['사랑', '믿음', '소망', '위로', '평안', '감사', '은혜', '기도'],
+    scopeLabel: '검색 범위',
+    scopeAll: '전체',
+    scopeOld: '구약',
+    scopeNew: '신약',
+    resultsCount: (n: number) => `검색 결과 ${n.toLocaleString()}절`,
+    verseCount: (n: number) => `${n.toLocaleString()}절`,
+    chapterUnit: '장',
+    chapterRangeLabel: (book: string, c1: number, c2: number) => `${book} ${c1}-${c2}장`,
+    byBook: '책별로 보기',
+    allBooksChip: '전체',
+    bookChipAria: (book: string, n: number) => `${book} ${n}절`,
+    jumpTo: '바로 가기',
+    chapterSuggestion: (book: string, ch: number) => `${book} ${ch}장`,
+    noticeChapterOutOfRange: (book: string, ch: number, max: number) =>
+      `${book}은(는) ${max}장까지 있어요. ${ch}장은 없어서 장을 골라 볼 수 있게 펼쳤어요.`,
+    noticeVerseOutOfRange: (book: string, ch: number, max: number) =>
+      `${book} ${ch}장은 ${max}절까지예요. 장 전체를 보여 드릴게요.`,
+    noticeRangeClamped: (book: string, c1: number, c2: number) =>
+      `한 번에 10장까지만 볼 수 있어 ${book} ${c1}-${c2}장만 보여 드려요.`,
+    noResults: '검색 결과가 없습니다',
+    noResultsInScope: '선택한 범위에 검색 결과가 없습니다',
+    tooShort: '두 글자 이상 입력해 주세요',
+    tooShortHint: '한 글자 단어는 "빛이", "복을"처럼 뒤에 오는 말과 붙여서 찾아보세요',
+    searchFailed: '검색하지 못했어요',
+    searchFailedHint: '연결 상태를 확인하고 다시 시도해 주세요',
+    retry: '다시 시도',
+    bookFound: '해당 책을 찾았습니다',
+    heroTitle: '어떤 말씀을 찾고 계세요?',
+    fuzzyNotice: (typed: string, book: string) => `‘${typed}’에 맞는 결과가 없어 ‘${book}’으로 찾았어요.`,
+    didYouMean: '혹시 이걸 찾으셨나요?',
+    noVerseButLocal: (q: string) => `‘${q}’이(가) 본문에 그대로 나오는 절은 없어요`,
+    viewLabel: '절 보기 방식',
+    viewList: '목록',
+    viewBook: '책별',
+    voiceStart: '말로 검색',
+    voiceStop: '듣기 멈추기',
+    versePreview: '절 바로 가기',
+    topicsTitle: '주제별 말씀',
+    topicOpen: (ref: string) => `${ref} 읽기`,
+    topics: [
+      { word: '사랑', ref: '고전 13:4', book: 46, chapter: 13, verse: 4, text: '사랑은 오래 참고 사랑은 온유하며 시기하지 아니하며 사랑은 자랑하지 아니하며 교만하지 아니하며' },
+      { word: '믿음', ref: '히 11:1', book: 58, chapter: 11, verse: 1, text: '믿음은 바라는 것들의 실상이요 보이지 않는 것들의 증거니' },
+      { word: '소망', ref: '롬 5:5', book: 45, chapter: 5, verse: 5, text: '소망이 우리를 부끄럽게 하지 아니함은 우리에게 주신 성령으로 말미암아 하나님의 사랑이 우리 마음에 부은 바 됨이니' },
+      { word: '위로', ref: '고후 1:4', book: 47, chapter: 1, verse: 4, text: '우리의 모든 환난 중에서 우리를 위로하사 우리로 하여금 하나님께 받는 위로로써 모든 환난 중에 있는 자들을 능히 위로하게 하시는 이시로다' },
+      { word: '평안', ref: '요 14:27', book: 43, chapter: 14, verse: 27, text: '평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라' },
+      { word: '감사', ref: '살전 5:18', book: 52, chapter: 5, verse: 18, text: '범사에 감사하라 이것이 그리스도 예수 안에서 너희를 향하신 하나님의 뜻이니라' },
+      { word: '은혜', ref: '엡 2:8', book: 49, chapter: 2, verse: 8, text: '너희는 그 은혜에 의하여 믿음으로 말미암아 구원을 받았으니 이것은 너희에게서 난 것이 아니요 하나님의 선물이라' },
+      { word: '기도', ref: '빌 4:6', book: 50, chapter: 4, verse: 6, text: '아무 것도 염려하지 말고 다만 모든 일에 기도와 간구로, 너희 구할 것을 감사함으로 하나님께 아뢰라' },
+    ] as SearchTopic[],
+    keywordHeading: (q: string) => `‘${q}’`,
+    distTitle: '어디에 많이 나오나요?',
+    distClear: '선택 해제',
+    distMore: (n: number) => `${n}권 더 보기`,
+    distLess: '접기',
+  },
+  en: {
+    searchAria: 'Bible search — book name, book+chapter, or keyword',
+    placeholderExamples: [
+      'Try "Genesis 1"',
+      'Try "John 3:16" to jump to a verse',
+      'Try "God\'s love"',
+      'Narrow down with multiple words, e.g. "Lord Christ Son"',
+      'Try "1 Corinthians"',
+      'Search by book, chapter, or keyword',
+    ],
+    recentSearches: 'Recent searches',
+    recommendedKeywords: 'Suggested keywords',
+    clearAll: 'Clear all',
+    removeRecent: 'Remove keyword',
+    clearSearch: 'Clear search',
+    suggestedKeywords: ['love', 'faith', 'hope', 'comfort', 'peace', 'grace', 'prayer'],
+    scopeLabel: 'Search scope',
+    scopeAll: 'All',
+    scopeOld: 'OT',
+    scopeNew: 'NT',
+    resultsCount: (n: number) => `${n.toLocaleString()} verse${n === 1 ? '' : 's'} found`,
+    verseCount: (n: number) => `${n.toLocaleString()} verse${n === 1 ? '' : 's'}`,
+    chapterUnit: '',
+    chapterRangeLabel: (book: string, c1: number, c2: number) => `${book} ${c1}-${c2}`,
+    byBook: 'By book',
+    allBooksChip: 'All',
+    bookChipAria: (book: string, n: number) => `${book}, ${n} verse${n === 1 ? '' : 's'}`,
+    jumpTo: 'Jump to',
+    chapterSuggestion: (book: string, ch: number) => `${book} ${ch}`,
+    noticeChapterOutOfRange: (book: string, ch: number, max: number) =>
+      `${book} has ${max} chapters, so chapter ${ch} doesn't exist. Pick a chapter below.`,
+    noticeVerseOutOfRange: (book: string, ch: number, max: number) =>
+      `${book} ${ch} has ${max} verses. Showing the whole chapter instead.`,
+    noticeRangeClamped: (book: string, c1: number, c2: number) =>
+      `Up to 10 chapters at a time — showing ${book} ${c1}-${c2}.`,
+    noResults: 'No results found',
+    noResultsInScope: 'No results in the selected scope',
+    tooShort: 'Enter at least two characters',
+    tooShortHint: 'Try a longer word or add the word that follows it',
+    searchFailed: 'Search failed',
+    searchFailedHint: 'Check your connection and try again',
+    retry: 'Try again',
+    bookFound: 'Book found',
+    heroTitle: 'What are you looking for?',
+    fuzzyNotice: (typed: string, book: string) => `No results for “${typed}”, so we searched “${book}”.`,
+    didYouMean: 'Did you mean',
+    noVerseButLocal: (q: string) => `No verse contains “${q}” word for word`,
+    viewLabel: 'Verse view',
+    viewList: 'List',
+    viewBook: 'By book',
+    voiceStart: 'Search by voice',
+    voiceStop: 'Stop listening',
+    versePreview: 'Jump to verse',
+    topicsTitle: 'Verses by theme',
+    topicOpen: (ref: string) => `Read ${ref}`,
+    // 본문은 한국어 성경뿐이라 영문은 참조만 보여 준다
+    topics: [
+      { word: 'love', ref: '1 Cor 13:4', book: 46, chapter: 13, verse: 4 },
+      { word: 'faith', ref: 'Heb 11:1', book: 58, chapter: 11, verse: 1 },
+      { word: 'hope', ref: 'Rom 5:5', book: 45, chapter: 5, verse: 5 },
+      { word: 'comfort', ref: '2 Cor 1:4', book: 47, chapter: 1, verse: 4 },
+      { word: 'peace', ref: 'John 14:27', book: 43, chapter: 14, verse: 27 },
+      { word: 'grace', ref: 'Eph 2:8', book: 49, chapter: 2, verse: 8 },
+      { word: 'prayer', ref: 'Phil 4:6', book: 50, chapter: 4, verse: 6 },
+    ] as SearchTopic[],
+    keywordHeading: (q: string) => `“${q}”`,
+    distTitle: 'Where it appears most',
+    distClear: 'Clear',
+    distMore: (n: number) => `${n} more books`,
+    distLess: 'Show less',
+  }
 }
 
 const BibleSearch = () => {
@@ -147,253 +286,53 @@ const BibleSearch = () => {
     return () => ro.disconnect()
   }, [])
 
-  // 범위 필터는 서버로 넘긴다 — 페이지마다 프론트에서 거르면 페이지별 개수가 들쭉날쭉해진다
+  const t = texts[language]
+
+  // 서버 질의·로컬 색인·사전·상황 매칭을 화면이 그릴 값으로 정리하는 데이터 모델.
+  // 판단 규칙은 search/queryInterpretation·resultShaping 의 순수 함수(테스트 있음)에 있다
   const {
-    data: searchPages,
-    isLoading: searchLoading,
-    isError: searchError,
-    refetch: refetchSearch,
-    // 범위 전환 중 — 이전 결과를 흐리게 붙들고 새 결과를 기다리는 상태
-    isPlaceholderData: searchStale,
+    searchLoading,
+    searchError,
+    refetchSearch,
+    searchStale,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useBibleSearchInfinite(
-    // 초성("ㄱㄹㄷㅈㅅ")은 본문에 없는 글자라 서버에 묻지 않는다 — 로컬 책 매칭만으로 답한다
-    isChoseongQuery(searchQuery) ? '' : searchQuery,
-    scope === 'ALL' ? undefined : scope,
-    bookFilter ?? undefined
-  )
-  const { data: allBooks } = useBibleBooks()
-  // 검색어가 사전 표제어("바리새인", "삼위일체")면 결과 위에 뜻풀이 카드 — 사전은 한국어라 ko 에서만
-  const glossaryEntry = useGlossaryEntry(language === 'ko' ? searchQuery : '')
-
-  // 메타(책·장 검색 여부 등)는 첫 페이지에만 담겨 오고, 절은 모든 페이지를 이어붙인다
-  const searchResults = searchPages?.pages[0]
-  const loadedVerses = searchPages?.pages.flatMap(p => p.results) ?? []
-
-  // 책 이름 부분일치를 프론트에서 직접 처리 — "고린" → 고린도전서·후서처럼 모든 매칭 책을 보장.
-  // 장/절 검색(숫자 포함)이나 본문 키워드 검색은 건드리지 않는다.
-  const normalize = (s: string) => s.replace(/\s/g, '').toLowerCase()
-  const trimmedQuery = searchQuery.trim()
-  const isChapterLike = /\d/.test(trimmedQuery)
-  // 표준 약칭("고전"·"요일"·"1Co")은 이름 부분일치로는 안 잡히므로 따로 본다
-  const normalizedQuery = normalize(trimmedQuery)
-  const matchesAbbrev = (b: BibleBook) =>
-    BOOK_ABBREV_KO[b.book_number] === trimmedQuery ||
-    BOOK_ABBREV_EN[b.book_number]?.toLowerCase() === normalizedQuery
-  const localBookMatches: BookCard[] =
-    trimmedQuery && !isChapterLike
-      ? isChoseongQuery(trimmedQuery)
-        ? matchBooksByChoseong(allBooks || [], trimmedQuery)
-        : (allBooks || []).filter(
-            b =>
-              matchesAbbrev(b) ||
-              normalize(b.book_name_ko).includes(normalizedQuery) ||
-              normalize(b.book_name_en).includes(normalizedQuery)
-          )
-      : []
-
-  const backendIsBookSearch = !!(
-    searchResults?.is_book_search && (searchResults.books?.length || searchResults.book)
-  )
-
-  // 사건·지명 로컬 색인 — 숫자 없는 검색어에서만, 책 이름이 잡히면(책 카드가 답) 쓰지 않는다
-  const localEligible = language === 'ko' && trimmedQuery.length >= 2 && !isChapterLike && localBookMatches.length === 0
-  const searchIndex = useSearchIndex(!!trimmedQuery && language === 'ko')
-  const eventHits = useMemo(
-    () => (searchIndex && localEligible ? searchIndex.findEvents(trimmedQuery) : null),
-    [searchIndex, localEligible, trimmedQuery]
-  )
-  const placeHits = useMemo(
-    () => (searchIndex && localEligible ? searchIndex.findPlaces(trimmedQuery) : null),
-    [searchIndex, localEligible, trimmedQuery]
-  )
-  const events = backendIsBookSearch ? [] : (eventHits?.items ?? [])
-  const places = backendIsBookSearch ? [] : (placeHits?.items ?? [])
-  const hasLocal = events.length > 0 || places.length > 0
-
-  // 마음으로 찾기 — 상황별 성구 카테고리 이름·키워드
-  const { data: situationCategories } = useSituationCategories(localEligible)
-  const situationMatch =
-    localEligible && situationCategories ? matchSituation(situationCategories, trimmedQuery) : null
-
-  // 한 글자 오타 보정 — 책 이름도, 본문 낱말도, 사건도 아무것도 안 걸렸을 때만 책 이름에 가깝게 고쳐 본다
-  const fuzzyBook =
-    trimmedQuery &&
-    !isChapterLike &&
-    localBookMatches.length === 0 &&
-    !backendIsBookSearch &&
-    !hasLocal &&
-    !glossaryEntry &&
-    searchResults &&
-    !searchStale &&
-    (searchResults.total ?? 0) === 0 &&
-    loadedVerses.length === 0
-      ? findFuzzyBook(allBooks || [], trimmedQuery)
-      : null
-
-  // 백엔드가 책 검색으로 인식했으면, 누락 없이 전체 로컬 매칭으로 카드를 그린다(없으면 백엔드 응답 사용).
-  const booksToShow: BookCard[] =
-    localBookMatches.length > 0
-      ? localBookMatches
-      : backendIsBookSearch
-        ? searchResults!.books && searchResults!.books.length > 0
-          ? searchResults!.books
-          : searchResults!.book
-            ? [searchResults!.book]
-            : []
-        : fuzzyBook
-          ? [fuzzyBook]
-          : []
-
-  const texts = {
-    ko: {
-      searchAria: '성경 검색 — 책 이름, 책+장, 또는 본문 키워드',
-      placeholderExamples: [
-        '"창세기 1장"을 검색해보세요',
-        '"고전 13"처럼 약칭으로 검색해도 돼요',
-        '"요 3:16"처럼 절까지 바로 찾을 수 있어요',
-        '"하나님 사랑"을 검색해보세요',
-        '"주 그리스도 아들"처럼 여러 단어로 좁혀보세요',
-        '"고린도전서"를 검색해보세요',
-        '책 이름 · 장 · 키워드로 검색',
-      ],
-      recentSearches: '최근 검색어',
-      recommendedKeywords: '추천 키워드',
-      clearAll: '전체 삭제',
-      removeRecent: '검색어 삭제',
-      clearSearch: '검색 지우기',
-      suggestedKeywords: ['사랑', '믿음', '소망', '위로', '평안', '감사', '은혜', '기도'],
-      scopeLabel: '검색 범위',
-      scopeAll: '전체',
-      scopeOld: '구약',
-      scopeNew: '신약',
-      resultsCount: (n: number) => `검색 결과 ${n.toLocaleString()}절`,
-      verseCount: (n: number) => `${n.toLocaleString()}절`,
-      chapterUnit: '장',
-      chapterRangeLabel: (book: string, c1: number, c2: number) => `${book} ${c1}-${c2}장`,
-      byBook: '책별로 보기',
-      allBooksChip: '전체',
-      bookChipAria: (book: string, n: number) => `${book} ${n}절`,
-      jumpTo: '바로 가기',
-      chapterSuggestion: (book: string, ch: number) => `${book} ${ch}장`,
-      noticeChapterOutOfRange: (book: string, ch: number, max: number) =>
-        `${book}은(는) ${max}장까지 있어요. ${ch}장은 없어서 장을 골라 볼 수 있게 펼쳤어요.`,
-      noticeVerseOutOfRange: (book: string, ch: number, max: number) =>
-        `${book} ${ch}장은 ${max}절까지예요. 장 전체를 보여 드릴게요.`,
-      noticeRangeClamped: (book: string, c1: number, c2: number) =>
-        `한 번에 10장까지만 볼 수 있어 ${book} ${c1}-${c2}장만 보여 드려요.`,
-      noResults: '검색 결과가 없습니다',
-      noResultsInScope: '선택한 범위에 검색 결과가 없습니다',
-      tooShort: '두 글자 이상 입력해 주세요',
-      tooShortHint: '한 글자 단어는 "빛이", "복을"처럼 뒤에 오는 말과 붙여서 찾아보세요',
-      searchFailed: '검색하지 못했어요',
-      searchFailedHint: '연결 상태를 확인하고 다시 시도해 주세요',
-      retry: '다시 시도',
-      bookFound: '해당 책을 찾았습니다',
-      heroTitle: '어떤 말씀을 찾고 계세요?',
-      fuzzyNotice: (typed: string, book: string) => `‘${typed}’에 맞는 결과가 없어 ‘${book}’으로 찾았어요.`,
-      didYouMean: '혹시 이걸 찾으셨나요?',
-      noVerseButLocal: (q: string) => `‘${q}’이(가) 본문에 그대로 나오는 절은 없어요`,
-      viewLabel: '절 보기 방식',
-      viewList: '목록',
-      viewBook: '책별',
-      voiceStart: '말로 검색',
-      voiceStop: '듣기 멈추기',
-      versePreview: '절 바로 가기',
-      topicsTitle: '주제별 말씀',
-      topicOpen: (ref: string) => `${ref} 읽기`,
-      topics: [
-        { word: '사랑', ref: '고전 13:4', book: 46, chapter: 13, verse: 4, text: '사랑은 오래 참고 사랑은 온유하며 시기하지 아니하며 사랑은 자랑하지 아니하며 교만하지 아니하며' },
-        { word: '믿음', ref: '히 11:1', book: 58, chapter: 11, verse: 1, text: '믿음은 바라는 것들의 실상이요 보이지 않는 것들의 증거니' },
-        { word: '소망', ref: '롬 5:5', book: 45, chapter: 5, verse: 5, text: '소망이 우리를 부끄럽게 하지 아니함은 우리에게 주신 성령으로 말미암아 하나님의 사랑이 우리 마음에 부은 바 됨이니' },
-        { word: '위로', ref: '고후 1:4', book: 47, chapter: 1, verse: 4, text: '우리의 모든 환난 중에서 우리를 위로하사 우리로 하여금 하나님께 받는 위로로써 모든 환난 중에 있는 자들을 능히 위로하게 하시는 이시로다' },
-        { word: '평안', ref: '요 14:27', book: 43, chapter: 14, verse: 27, text: '평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라' },
-        { word: '감사', ref: '살전 5:18', book: 52, chapter: 5, verse: 18, text: '범사에 감사하라 이것이 그리스도 예수 안에서 너희를 향하신 하나님의 뜻이니라' },
-        { word: '은혜', ref: '엡 2:8', book: 49, chapter: 2, verse: 8, text: '너희는 그 은혜에 의하여 믿음으로 말미암아 구원을 받았으니 이것은 너희에게서 난 것이 아니요 하나님의 선물이라' },
-        { word: '기도', ref: '빌 4:6', book: 50, chapter: 4, verse: 6, text: '아무 것도 염려하지 말고 다만 모든 일에 기도와 간구로, 너희 구할 것을 감사함으로 하나님께 아뢰라' },
-      ] as SearchTopic[],
-      keywordHeading: (q: string) => `‘${q}’`,
-      distTitle: '어디에 많이 나오나요?',
-      distClear: '선택 해제',
-      distMore: (n: number) => `${n}권 더 보기`,
-      distLess: '접기',
-    },
-    en: {
-      searchAria: 'Bible search — book name, book+chapter, or keyword',
-      placeholderExamples: [
-        'Try "Genesis 1"',
-        'Try "John 3:16" to jump to a verse',
-        'Try "God\'s love"',
-        'Narrow down with multiple words, e.g. "Lord Christ Son"',
-        'Try "1 Corinthians"',
-        'Search by book, chapter, or keyword',
-      ],
-      recentSearches: 'Recent searches',
-      recommendedKeywords: 'Suggested keywords',
-      clearAll: 'Clear all',
-      removeRecent: 'Remove keyword',
-      clearSearch: 'Clear search',
-      suggestedKeywords: ['love', 'faith', 'hope', 'comfort', 'peace', 'grace', 'prayer'],
-      scopeLabel: 'Search scope',
-      scopeAll: 'All',
-      scopeOld: 'OT',
-      scopeNew: 'NT',
-      resultsCount: (n: number) => `${n.toLocaleString()} verse${n === 1 ? '' : 's'} found`,
-      verseCount: (n: number) => `${n.toLocaleString()} verse${n === 1 ? '' : 's'}`,
-      chapterUnit: '',
-      chapterRangeLabel: (book: string, c1: number, c2: number) => `${book} ${c1}-${c2}`,
-      byBook: 'By book',
-      allBooksChip: 'All',
-      bookChipAria: (book: string, n: number) => `${book}, ${n} verse${n === 1 ? '' : 's'}`,
-      jumpTo: 'Jump to',
-      chapterSuggestion: (book: string, ch: number) => `${book} ${ch}`,
-      noticeChapterOutOfRange: (book: string, ch: number, max: number) =>
-        `${book} has ${max} chapters, so chapter ${ch} doesn't exist. Pick a chapter below.`,
-      noticeVerseOutOfRange: (book: string, ch: number, max: number) =>
-        `${book} ${ch} has ${max} verses. Showing the whole chapter instead.`,
-      noticeRangeClamped: (book: string, c1: number, c2: number) =>
-        `Up to 10 chapters at a time — showing ${book} ${c1}-${c2}.`,
-      noResults: 'No results found',
-      noResultsInScope: 'No results in the selected scope',
-      tooShort: 'Enter at least two characters',
-      tooShortHint: 'Try a longer word or add the word that follows it',
-      searchFailed: 'Search failed',
-      searchFailedHint: 'Check your connection and try again',
-      retry: 'Try again',
-      bookFound: 'Book found',
-      heroTitle: 'What are you looking for?',
-      fuzzyNotice: (typed: string, book: string) => `No results for “${typed}”, so we searched “${book}”.`,
-      didYouMean: 'Did you mean',
-      noVerseButLocal: (q: string) => `No verse contains “${q}” word for word`,
-      viewLabel: 'Verse view',
-      viewList: 'List',
-      viewBook: 'By book',
-      voiceStart: 'Search by voice',
-      voiceStop: 'Stop listening',
-      versePreview: 'Jump to verse',
-      topicsTitle: 'Verses by theme',
-      topicOpen: (ref: string) => `Read ${ref}`,
-      // 본문은 한국어 성경뿐이라 영문은 참조만 보여 준다
-      topics: [
-        { word: 'love', ref: '1 Cor 13:4', book: 46, chapter: 13, verse: 4 },
-        { word: 'faith', ref: 'Heb 11:1', book: 58, chapter: 11, verse: 1 },
-        { word: 'hope', ref: 'Rom 5:5', book: 45, chapter: 5, verse: 5 },
-        { word: 'comfort', ref: '2 Cor 1:4', book: 47, chapter: 1, verse: 4 },
-        { word: 'peace', ref: 'John 14:27', book: 43, chapter: 14, verse: 27 },
-        { word: 'grace', ref: 'Eph 2:8', book: 49, chapter: 2, verse: 8 },
-        { word: 'prayer', ref: 'Phil 4:6', book: 50, chapter: 4, verse: 6 },
-      ] as SearchTopic[],
-      keywordHeading: (q: string) => `“${q}”`,
-      distTitle: 'Where it appears most',
-      distClear: 'Clear',
-      distMore: (n: number) => `${n} more books`,
-      distLess: 'Show less',
-    }
-  }
-
-  const t = texts[language]
+    searchResults,
+    loadedVerses,
+    glossaryEntry,
+    cardContexts,
+    allBooks,
+    trimmedQuery,
+    placeHits,
+    events,
+    places,
+    hasLocal,
+    situationMatch,
+    fuzzyBook,
+    booksToShow,
+    scopedBooks,
+    scopedVerses,
+    nameByNumber,
+    shownTotal,
+    hasAnyResult,
+    queryTooShort,
+    resultsHeading,
+    noticeText,
+    bookCounts,
+    bookCountsTotal,
+    showBookChips,
+    typeahead,
+    previewBook,
+    previewCh,
+    versePreview,
+    highlightPattern,
+    topEvent,
+    previewEvents,
+    strongLocal,
+    canGroup,
+    didYouMean,
+  } = useBibleSearchModel({ searchQuery, searchKeyword, scope, bookFilter, language, loggedIn, t })
 
   // 롤링 플레이스홀더 — 입력이 비어 있는 동안 검색 예시를 순차적으로 보여준다
   useEffect(() => {
@@ -501,151 +440,6 @@ const BibleSearch = () => {
     syncUrl(book.book_name_ko, nextScope, null)
   }
 
-  // 구약/신약 범위 필터 — 키워드 검색은 서버가 이미 걸러서 보내고,
-  // 장 검색 결과(페이징 대상 아님)만 여기서 거른다.
-  // 구절의 book_number(없으면 책 이름)로 신·구약을 판별하고, 판별 불가 시에는 표시를 유지한다.
-  const testamentByNumber = new Map((allBooks || []).map(b => [b.book_number, b.testament]))
-  const testamentByName = new Map((allBooks || []).map(b => [b.book_name_ko, b.testament]))
-  // 키워드 검색 응답의 절 객체에는 책 이름이 없다(book_number만) → 책 목록으로 이름을 복원
-  const nameByNumber = new Map((allBooks || []).map(b => [b.book_number, b.book_name_ko]))
-  const matchesScope = (bookNumber?: number | null, bookNameKo?: string) => {
-    if (scope === 'ALL') return true
-    const testament =
-      (bookNumber != null ? testamentByNumber.get(bookNumber) : undefined) ??
-      (bookNameKo ? testamentByName.get(bookNameKo) : undefined)
-    return testament ? testament === scope : true
-  }
-
-  const scopedBooks = scope === 'ALL' ? booksToShow : booksToShow.filter(b => b.testament === scope)
-  // 카드에 얹을 장별 진행률·표시 장 — 결과의 책 전부를 한 요청으로 받아 카드별로 나눠 준다
-  // (쿼리 키는 책 번호를 정렬해 이어 붙인 문자열이라 배열 참조가 바뀌어도 재요청하지 않는다)
-  const { data: cardContexts } = useBookCardContexts(scopedBooks.map(b => b.book_number), loggedIn)
-  const scopedVerses = searchResults
-    ? loadedVerses.filter(v =>
-        matchesScope(v.book_number ?? searchResults.book_number, v.book_name_ko)
-      )
-    : []
-  // 키워드 검색의 total은 서버가 센 전체 매칭 수(범위 필터 반영). 장 검색만 화면에 남은 절 수.
-  const shownTotal = searchResults?.is_chapter_search
-    ? scopedVerses.length
-    : (searchResults?.total ?? 0)
-
-  const hasAnyResult = booksToShow.length > 0 || loadedVerses.length > 0
-  // 백엔드가 2글자 미만을 422로 막아 요청 자체를 안 보낸다 — "결과 없음"이 아니라 안내로 분기.
-  // 단 "창"처럼 한 글자로도 책이 잡히면 책 카드 분기가 먼저라 여기 오지 않는다.
-  const queryTooShort = trimmedQuery.length > 0 && trimmedQuery.length < 2
-
-  // 결과 헤딩 — 장/절/범위 검색은 참조 표기, 키워드 검색은 건수
-  const resultsHeading = (() => {
-    if (!searchResults) return ''
-    if (searchResults.is_chapter_search && searchResults.book_name_ko && searchResults.chapter) {
-      const book = searchResults.book_name_ko
-      const ch = searchResults.chapter
-      if (searchResults.verse_start) {
-        const ref = `${book} ${ch}:${searchResults.verse_start}${
-          searchResults.verse_end ? `-${searchResults.verse_end}` : ''
-        }`
-        return searchResults.verse_end ? `${ref} · ${t.verseCount(shownTotal)}` : ref
-      }
-      if (searchResults.chapter_end) {
-        return `${t.chapterRangeLabel(book, ch, searchResults.chapter_end)} · ${t.verseCount(shownTotal)}`
-      }
-      return `${book} ${ch}${t.chapterUnit} · ${t.verseCount(shownTotal)}`
-    }
-    return t.resultsCount(shownTotal)
-  })()
-
-  // 서버 안내 코드 → 문구. 책 카드 위(장 초과) 또는 결과 위(절 초과·범위 축소)에 띄운다
-  const noticeText = (() => {
-    const r = searchResults
-    if (!r?.notice || !r.book_name_ko) return null
-    if (r.notice === 'chapter_out_of_range' && r.chapter && r.chapter_count)
-      return t.noticeChapterOutOfRange(r.book_name_ko, r.chapter, r.chapter_count)
-    if (r.notice === 'verse_out_of_range' && r.chapter && r.verse_count)
-      return t.noticeVerseOutOfRange(r.book_name_ko, r.chapter, r.verse_count)
-    if (r.notice === 'chapter_range_clamped' && r.chapter && r.chapter_end)
-      return t.noticeRangeClamped(r.book_name_ko, r.chapter, r.chapter_end)
-    return null
-  })()
-
-  // 책별 분포 칩 — 키워드 검색에서 매칭이 두 권 이상일 때. 많은 순으로 늘어놓아
-  // "어디에 몰려 있는지"가 먼저 읽히게 한다. 책 하나를 골라도 서버가 전체 분포를 계속 주므로
-  // 칩 개수는 흔들리지 않는다.
-  const bookCounts: BookMatchCount[] = searchResults?.is_chapter_search
-    ? []
-    : [...(searchResults?.book_counts ?? [])].sort((a, b) => b.count - a.count)
-  const bookCountsTotal = bookCounts.reduce((n, b) => n + b.count, 0)
-  const showBookChips = bookCounts.length > 1 || (bookFilter !== null && bookCounts.length > 0)
-
-  // 타이핑 중 책 제안 — Enter 전에 "고린" → 고린도전서·후서, "고전 13" → 고린도전서 13장.
-  // 로컬 책 목록만 보므로 요청이 없고, 실행한 검색어와 같으면(이미 결과가 떠 있으면) 숨긴다
-  const resolveBookLocal = (name: string): BibleBook | undefined => {
-    const books = allBooks || []
-    const n = normalize(name)
-    if (!n) return undefined
-    return (
-      books.find(b => normalize(b.book_name_ko) === n || normalize(b.book_name_en) === n) ??
-      books.find(b => BOOK_ABBREV_KO[b.book_number] === name.trim() || BOOK_ABBREV_EN[b.book_number]?.toLowerCase() === n) ??
-      books.find(b => normalize(b.book_name_ko).startsWith(n) || normalize(b.book_name_en).startsWith(n))
-    )
-  }
-  const typedRaw = searchKeyword.trim()
-  const typeahead: { label: string; query: string }[] = (() => {
-    if (!typedRaw || typedRaw === searchQuery || !allBooks?.length) return []
-    const chapterMatch = typedRaw.match(/^(.+?)\s*(\d+)\s*(?:장|편)?\s*(?:[:.]\s*\d*)?$/)
-    if (chapterMatch) {
-      const book = resolveBookLocal(chapterMatch[1])
-      const ch = Number(chapterMatch[2])
-      if (!book || ch < 1 || ch > book.chapter_count) return []
-      // 절까지 입력 중이면 그대로 두고, 장만 입력했을 때만 "○○ N장" 하나를 제안
-      if (/[:.]/.test(typedRaw)) return []
-      return [{ label: t.chapterSuggestion(book.book_name_ko, ch), query: `${book.book_name_ko} ${ch}` }]
-    }
-    if (/\d/.test(typedRaw)) return []
-    const n = normalize(typedRaw)
-    return allBooks
-      .filter(
-        b =>
-          BOOK_ABBREV_KO[b.book_number] === typedRaw ||
-          BOOK_ABBREV_EN[b.book_number]?.toLowerCase() === n ||
-          normalize(b.book_name_ko).includes(n) ||
-          normalize(b.book_name_en).includes(n)
-      )
-      .slice(0, 6)
-      .map(b => ({ label: b.book_name_ko, query: b.book_name_ko }))
-  })()
-
-  // 절 바로 가기 — "요 3:1"까지 치면 그 장의 3:1·3:10~19 를 본문 첫머리와 함께 미리 보여 준다.
-  // 장 본문은 읽기 화면과 같은 캐시 칸이라, 한 번 받은 장은 다시 묻지 않는다
-  const verseTyping =
-    typedRaw && typedRaw !== searchQuery ? typedRaw.match(/^(.+?)\s*(\d+)\s*(?:장)?\s*[:.]\s*(\d*)$/) : null
-  const previewBook = verseTyping ? resolveBookLocal(verseTyping[1]) : undefined
-  const previewCh = verseTyping ? Number(verseTyping[2]) : 0
-  const previewOk = !!previewBook && previewCh >= 1 && previewCh <= previewBook.chapter_count
-  const { data: previewChapter } = useBibleChapter(
-    previewOk ? previewBook!.book_number : 0,
-    previewOk ? previewCh : 0,
-    previewOk
-  )
-  const versePreview =
-    previewOk && previewChapter && verseTyping
-      ? previewChapter.verses
-          .filter(v => !v.merged_into && String(v.verse).startsWith(verseTyping[3]))
-          .slice(0, 5)
-      : []
-
-  // 키워드 검색 결과에서 매칭 단어 강조 — "왜 이 절이 걸렸는지"가 훑기만 해도 보이게.
-  // 여러 단어 AND 검색은 단어별로 각각 칠한다. 장 검색(창 1)은 키워드가 없으므로 제외.
-  const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const highlightTokens =
-    trimmedQuery && !searchResults?.is_chapter_search
-      ? // 백엔드가 공백·쉼표 모두로 토큰을 나누므로("주,그리스도") 같은 규칙으로 잘라야 강조가 빠지지 않는다
-        [...new Set(trimmedQuery.split(/[,\s]+/).filter(Boolean))]
-      : []
-  const highlightPattern =
-    highlightTokens.length > 0
-      ? new RegExp(`(${highlightTokens.map(escapeRegExp).join('|')})`, 'gi')
-      : null
   const renderVerseText = (text: string) => {
     if (!highlightPattern) return text
     // 캡처 그룹 split — 홀수 인덱스가 매칭 조각
@@ -749,25 +543,8 @@ const BibleSearch = () => {
 
   const isHome = !searchQuery
 
-  // 통합 결과 배치
-  const topEvent = !glossaryEntry && eventHits?.exact ? events[0] : undefined
-  const previewEvents = topEvent ? events.slice(1) : events
-  // 사건·지명을 절보다 위에 세우는 건 고유명사일 때만 — 사전의 인물·지명·칭호(모세·다윗·바로),
-  // 사건 이름 그 자체(십계명), 지도 장소(여리고). "은혜"처럼 제목 머리에 흔한 낱말은 절이 먼저다
-  const properNoun = !!glossaryEntry && ['person', 'place', 'title'].includes(glossaryEntry.type)
-  const strongLocal = !!(eventHits?.exact || placeHits?.strong || (properNoun && eventHits?.strong))
-  // 책별 묶음은 여러 책에 걸친 키워드 검색에서만 — 책 하나로 좁혔으면 목록이 곧 그 책이다
-  const canGroup = !!searchResults && !searchResults.is_chapter_search && bookCounts.length > 1 && bookFilter === null
   const verseViewShown: VerseView = canGroup ? verseView : 'list'
 
-  // 장·절 검색의 책 이름 오타("요한복은 3") — 결과가 없을 때 고친 검색어를 제안한다
-  const didYouMean = (() => {
-    if (!isChapterLike || !searchResults || loadedVerses.length > 0) return null
-    const m = trimmedQuery.match(/^(.+?)\s*(\d.*)$/)
-    if (!m || resolveBookLocal(m[1])) return null
-    const b = findFuzzyBook(allBooks || [], m[1])
-    return b ? `${b.book_name_ko} ${m[2]}` : null
-  })()
   // PC 레일 분포 막대 — 가장 많은 책 기준 비율
   const distMax = bookCounts[0]?.count ?? 1
   const DIST_COLLAPSED = 8
