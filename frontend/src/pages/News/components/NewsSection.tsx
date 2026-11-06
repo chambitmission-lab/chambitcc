@@ -14,12 +14,41 @@ import { can } from '../../../utils/access'
 
 const formatDate = (value: string | null) => (value ? formatDotDate(value) : '')
 
-/** 최근 7일 안에 올라온 글 — 목록에서 NEW로 표시 */
-const isFresh = (value: string | null): boolean => {
-  if (!value) return false
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return false
+/** 최근 7일 안에 올라온 글인지 — 주일 날짜로 미리 올린 글(미래)도 포함 */
+const isRecent = (value: string | null): boolean => {
+  const d = toDate(value)
+  if (!d) return false
   return Date.now() - d.getTime() < 7 * 24 * 60 * 60 * 1000
+}
+
+/** NEW는 목록에서 게시일이 가장 늦은 글 한 건에만 — 주보는 매주 쌓여서
+ *  7일 기준만 쓰면 지난주·이번 주 주보가 함께 NEW로 겹친다 */
+const pickNewestId = (items: NewsItem[]): number | null => {
+  let best: NewsItem | null = null
+  let bestTime = -Infinity
+  for (const news of items) {
+    const time = toDate(news.published_at)?.getTime()
+    if (time != null && time > bestTime) {
+      best = news
+      bestTime = time
+    }
+  }
+  return best && isRecent(best.published_at) ? best.id : null
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+
+/** 주보 글이면 게시일 당일 또는 그 뒤 첫 주일까지 남은 날(0 = 오늘 주일).
+ *  주보가 아니거나 그 주일이 이미 지났으면 null */
+const sundayLeft = (news: NewsItem): { sunday: Date; left: number } | null => {
+  if (!news.category?.includes('주보')) return null
+  const d = toDate(news.published_at)
+  if (!d) return null
+  const day = startOfDay(d)
+  const sunday = new Date(day.getFullYear(), day.getMonth(), day.getDate() + ((7 - day.getDay()) % 7))
+  const left = Math.round((sunday.getTime() - startOfDay(new Date()).getTime()) / DAY_MS)
+  return left >= 0 ? { sunday, left } : null
 }
 
 const NewsSection = () => {
@@ -54,6 +83,7 @@ const NewsSection = () => {
   const weekdays = useMemo(() => t('newsWeekdays').split(','), [t])
   const featured = items[0]
   const rest = useMemo(() => items.slice(1), [items])
+  const newestId = useMemo(() => pickNewestId(items), [items])
   // 남은 글은 게시 달로 묶는다 — 서버 정렬(고정 → 최신) 순서를 그대로 지킨다
   const groups = useMemo(() => {
     const out: { key: string; label: string; items: NewsItem[] }[] = []
@@ -201,7 +231,14 @@ const NewsSection = () => {
             }
           >
             <div className={rest.length > 0 ? 'lg:sticky lg:top-24' : 'lg:max-w-[760px]'}>
-              {featured && <FeaturedCard news={featured} onClick={() => openDetail(featured)} />}
+              {featured && (
+                <FeaturedCard
+                  news={featured}
+                  fresh={featured.id === newestId}
+                  weekdays={weekdays}
+                  onClick={() => openDetail(featured)}
+                />
+              )}
             </div>
             {rest.length > 0 && (
               <div className="space-y-4">
@@ -216,6 +253,7 @@ const NewsSection = () => {
                           key={news.id}
                           news={news}
                           weekdays={weekdays}
+                          fresh={news.id === newestId}
                           onClick={() => openDetail(news)}
                         />
                       ))}
@@ -248,9 +286,8 @@ const NewsSection = () => {
 const BADGE = 'inline-flex items-center h-[19px] lg:h-6 px-1.5 lg:px-2 rounded-md text-[10px] lg:text-[12.5px] font-bold'
 
 /** 고정·분류·NEW·비공개 뱃지 — 대표 카드와 리스트 행이 같이 쓴다 */
-const NewsBadges = ({ news }: { news: NewsItem }) => {
+const NewsBadges = ({ news, fresh }: { news: NewsItem; fresh: boolean }) => {
   const { t } = useLanguage()
-  const fresh = isFresh(news.published_at)
   if (!news.is_pinned && !news.category && !fresh && news.is_published) return null
   return (
     <>
@@ -258,16 +295,93 @@ const NewsBadges = ({ news }: { news: NewsItem }) => {
       {news.category && (
         <span className={`${BADGE} bg-[var(--brand-soft)] text-brand`}>{news.category}</span>
       )}
-      {fresh && (
-        <span className={`${BADGE} gap-1 bg-red-500/10 text-red-500 dark:text-red-300`}>
-          <span className="w-1 h-1 rounded-full bg-current" />
-          NEW
-        </span>
-      )}
+      {fresh && <FreshPill news={news} />}
       {!news.is_published && (
         <span className={`${BADGE} bg-gray-500/10 text-gray-600 dark:text-white/60`}>{t('newsPrivate')}</span>
       )}
     </>
+  )
+}
+
+const BellIcon = ({ size = 13 }: { size?: number }) => (
+  <svg className="nf-bell" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </svg>
+)
+
+/** 가장 최신 글 표시 — 왼쪽 진한 칸 = 종, 오른쪽 옅은 칸 = 주일 D-day(주보·주일 전까지만).
+ *  주일이 지나면 오른쪽 칸만 빠져 자리가 흔들리지 않는다 */
+const FreshPill = ({ news }: { news: NewsItem }) => {
+  const { t } = useLanguage()
+  const sun = sundayLeft(news)
+  const isBulletin = !!news.category?.includes('주보')
+  return (
+    <span className="inline-flex items-stretch h-[19px] lg:h-6 rounded-full overflow-hidden text-[10px] lg:text-[12.5px] font-bold whitespace-nowrap">
+      <span className="inline-flex items-center gap-1 pl-1.5 pr-2 lg:pl-2 lg:pr-2.5 bg-brand text-white">
+        <BellIcon />
+        {t(isBulletin ? 'newsFreshBulletin' : 'newsFreshNew')}
+      </span>
+      {sun && (
+        <span className="inline-flex items-center px-2 lg:px-2.5 bg-[var(--brand-soft-strong)] text-brand tabular-nums">
+          {sun.left === 0 ? t('newsSundayToday') : t('newsSundayDday').replace('{n}', String(sun.left))}
+        </span>
+      )}
+    </span>
+  )
+}
+
+/** 대표 카드 아래 한 주 징검다리 — 월~주일 일곱 칸, 오늘은 파랗게, 주일 칸엔 종 */
+const WeekSteps = ({ news, weekdays }: { news: NewsItem; weekdays: string[] }) => {
+  const { t } = useLanguage()
+  const sun = sundayLeft(news)
+  if (!sun) return null
+  const today = startOfDay(new Date()).getTime()
+  const label =
+    sun.left === 0
+      ? t('newsWeekToday')
+      : sun.left === 1
+        ? t('newsWeekTomorrow')
+        : t('newsWeekLeft').replace('{n}', String(sun.left))
+  return (
+    <div className="mt-4 pt-3.5 lg:mt-5 lg:pt-4 border-t border-gray-100 dark:border-white/[0.06]">
+      <p className="text-[12.5px] lg:text-[15px] font-bold text-ink-strong mb-2">{label}</p>
+      <div className="grid grid-cols-7 gap-1 lg:gap-1.5" aria-hidden="true">
+        {Array.from({ length: 7 }, (_, i) => {
+          const day = new Date(sun.sunday.getFullYear(), sun.sunday.getMonth(), sun.sunday.getDate() - 6 + i)
+          const time = day.getTime()
+          const isSunday = i === 6
+          const isToday = time === today
+          const passed = time < today
+          return (
+            <div
+              key={i}
+              className={[
+                'flex flex-col items-center gap-1 text-[10.5px] lg:text-[12.5px] font-bold',
+                isToday ? 'text-brand' : isSunday ? 'text-amber-700 dark:text-amber-300' : 'text-gray-400 dark:text-white/40',
+              ].join(' ')}
+            >
+              <span className="h-4 flex items-center">{isSunday && <BellIcon size={14} />}</span>
+              <span
+                className={[
+                  'w-full h-1.5 rounded-full',
+                  isToday
+                    ? isSunday
+                      ? 'bg-amber-500 shadow-[0_0_0_3px_rgba(245,158,11,0.2)]'
+                      : 'bg-brand shadow-[0_0_0_3px_var(--brand-soft-strong)]'
+                    : isSunday
+                      ? 'bg-amber-500/15 border-[1.5px] border-dashed border-amber-600 dark:border-amber-300'
+                      : passed
+                        ? 'bg-[var(--brand-soft-strong)]'
+                        : 'bg-gray-200 dark:bg-white/[0.08]',
+                ].join(' ')}
+              />
+              <span>{weekdays[day.getDay()] ?? ''}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -307,7 +421,17 @@ const toDate = (value: string | null): Date | null => {
 }
 
 /** 맨 위 글 — 사진이 있으면 위에 크게, 없으면 날짜를 표지 글자로 */
-const FeaturedCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) => {
+const FeaturedCard = ({
+  news,
+  fresh,
+  weekdays,
+  onClick,
+}: {
+  news: NewsItem
+  fresh: boolean
+  weekdays: string[]
+  onClick: () => void
+}) => {
   const { t } = useLanguage()
   const d = toDate(news.published_at)
   return (
@@ -348,7 +472,7 @@ const FeaturedCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }
           <span className={`${BADGE} bg-gray-900 text-white dark:bg-white/90 dark:text-gray-900`}>
             {t('newsLatest')}
           </span>
-          <NewsBadges news={news} />
+          <NewsBadges news={news} fresh={fresh} />
         </div>
         <p className="text-[19px] lg:text-[24px] font-bold text-ink-strong leading-[1.3] tracking-[-0.02em] line-clamp-2 group-hover:text-brand transition-colors">
           {news.title}
@@ -358,6 +482,7 @@ const FeaturedCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }
             {news.summary}
           </p>
         )}
+        {fresh && <WeekSteps news={news} weekdays={weekdays} />}
         <div className="mt-4 lg:mt-5 flex items-center justify-between gap-3">
           <NewsMeta news={news} className="text-[11.5px] lg:text-[14.5px] min-w-0" />
           <span className="shrink-0 inline-flex items-center gap-0.5 h-8 lg:h-10 pl-3.5 pr-2.5 lg:pl-4 lg:pr-3 rounded-full bg-[var(--brand-soft)] text-brand text-[12px] lg:text-[14.5px] font-bold group-hover:bg-brand group-hover:text-white transition-colors">
@@ -374,14 +499,15 @@ const FeaturedCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }
 const NewsRow = ({
   news,
   weekdays,
+  fresh,
   onClick,
 }: {
   news: NewsItem
   weekdays: string[]
+  fresh: boolean
   onClick: () => void
 }) => {
   const d = toDate(news.published_at)
-  const fresh = isFresh(news.published_at)
   return (
     <button
       type="button"
@@ -412,7 +538,7 @@ const NewsRow = ({
 
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1 empty:hidden">
-          <NewsBadges news={news} />
+          <NewsBadges news={news} fresh={fresh} />
         </div>
         <p className="mt-0.5 text-[14.5px] lg:text-[17.5px] font-bold text-ink-strong leading-[1.4] tracking-[-0.01em] line-clamp-1 group-hover:text-brand transition-colors">
           {news.title}
