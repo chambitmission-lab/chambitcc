@@ -24,6 +24,8 @@
 4. 비율 **16:9**, 변환: `cwebp -q 78 -crop 0 0 1280 720 -resize 1200 675 원본.png -o {에피소드 id}.webp`
    (장당 30~60KB쯤 나온다. `-crop`은 1376×768 원본 기준 — **우하단 제미나이 ✦ 워터마크를 잘라내는 단계**라
    생략 금지. 원본 해상도가 다르면 우하단 ~100px이 잘려나가도록 crop 폭·높이를 맞출 것)
+   **2026-11 기준 워터마크가 더 안쪽**(1376×768에서 ✦ 중심 ≈ x1256·y648, 지름 ~50px)이라 1280×720으론 남는다 →
+   `-crop 0 0 1216 684`로 자를 것(특별편 16장 이 값으로 적용, 잘린 우하단 확대로 확인).
 5. 저장: `src/pages/Bible/Story/img/{에피소드 id}.webp` — **파일만 넣으면 자동 연결**된다
    (`StoryEpisode.tsx`의 `import.meta.glob`이 감지, 없는 화는 이모지 히어로 유지).
    id는 각 프롬프트 제목의 값 그대로 (URL·진행 저장용 불변 슬러그). creation·fall·flood 3장 적용 완료.
@@ -455,4 +457,430 @@ book lies on the threshold and a gentle path runs forward through golden fields 
 the light. The sheep stands upright on its two hind legs, leaning its back against the
 open door to hold it, turned toward the viewer with one front hoof stretched out in
 invitation — after forty-one adventures, it is your turn to walk through.
+```
+
+---
+
+## 특별편 · 약속의 실 (메시아의 신호 16편)
+
+`src/pages/Bible/Story/data/promise.ts` 16편. 본편과 같은 시리즈 — 아래 블록은 **공통 스타일 블록이 이미 합쳐진
+완성본**이라 블록 하나를 통째로 복사해 Gemini에 붙이면 된다(따로 붙일 것 없음).
+
+- 기본은 본편처럼 **한 장**: `img/{id}.webp` — 라이트·다크 공용.
+- 라이트 테마용을 따로 두고 싶으면 같은 대화에서 맨 아래 **라이트 변환 블록**을 보내 낮 버전을 받고
+  `img/{id}-dark.webp`(기본 그림) + `img/{id}-light.webp`(낮 버전)로 저장한다. **두 장이 다 있어야** 테마별로 바뀐다.
+- 변환·워터마크 crop·캐릭터 일치 요령은 위 「사용법」과 같다.
+
+**P01. promise-seed — 여자의 후손**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+Night just outside the closed gate of Eden, a warm amber glow still burning behind it.
+A man and a woman in simple garments of skin walk away into the navy wilderness, small
+and close together. A defeated serpent slinks off into the dark under a rock, while one
+tiny green sprout glows faintly in the woman's footprint. The sheep crouches over the
+sprout on its four short legs, shielding its little light with its nose, eyes full of hope.
+```
+
+**P02. promise-abraham — 모든 민족이 받을 복**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+A desert hilltop at night above a small tent camp: an old robed man seen from behind lets
+a handful of sand slip through his fingers, every grain sparkling like a star, while far
+below the faint warm lights of countless distant lands stretch to the horizon. The sheep
+sits beside him with sparkling sand all over its nose, mid-sneeze, a tiny puff of stars
+bursting out.
+```
+
+**P03. promise-moriah — 하나님이 준비하신 어린양**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+Close view of a thorny thicket on a mountaintop at dawn: a calm ram with curling horns
+stands caught in the branches, lit by one warm amber beam from the sky as if placed there
+on purpose. In the soft background a father holds his son close beside a stone altar,
+both safe. The sheep stands nose to nose with the ram on its four short legs, looking at
+it with grateful, teary eyes. Quiet and tender.
+```
+
+**P04. promise-judah — 유다를 떠나지 않을 왕의 지팡이**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+Inside a lamplit tent at night: an aged patriarch on cushions rests one hand in blessing
+on the head of a kneeling son, a carved royal staff leaning beside them and a woven rug
+showing a simple lion shape. Through the open tent flap, distant hills glow amber under
+the stars. At the doorway the sheep, wearing a little crown folded from a leaf, quietly
+takes it off with one hoof out of respect.
+```
+
+**P05. promise-passover — 문설주에 바른 피**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+A row of small mud-brick houses under a deep navy night, every door shut. On the nearest
+house the wooden doorframe carries one clean crimson painted stripe across its top and
+both posts, and warm amber lamplight spills from inside where a family stands dressed for
+travel, staffs in hand. A soft silver wind sweeps over the rooftop and passes by. The sheep
+waits just inside the door in its tiny yellow raincoat, a travel bundle on its back, ready
+to leave tonight.
+```
+
+**P06. promise-serpent — 장대 위의 놋뱀**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+A desert camp at night: in the middle stands a tall wooden pole with a gleaming bronze
+serpent coiled at its top, catching the amber firelight like polished metal, simple
+rather than scary. All around, weary people slowly lift their heads to look up at it,
+their faces beginning to brighten. The sheep, one hind leg wrapped in a small bandage,
+tips its head back to look up too, its eyes just starting to sparkle.
+```
+
+**P07. promise-prophet — 모세 같은 선지자**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+A rocky slope at twilight above a sea of tents and campfires: an aged leader with white
+hair and a staff stands at the edge, one arm stretched toward the far horizon where a
+faint amber light glows beyond the river and the promised hills. The crowd below listens
+in silhouette. The sheep sits on a rock by his feet, ears perked straight up, a tiny
+scroll held in its mouth as if ready to take notes.
+```
+
+**P08. promise-david — 영원히 무너지지 않을 왕좌**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+A cedar-paneled royal chamber at night lit by one oil lamp: a king kneels in prayer, his
+crown set down on a cushion beside him, while through a tall window Jerusalem glows on its
+hills under the stars. A soft amber beam falls on an empty, simple wooden throne across the
+room, as if it is being kept for someone still to come. The sheep stands upright on its two
+hind legs beside the empty throne, both front hooves holding a tiny dust cloth, keeping it
+ready.
+```
+
+**P09. promise-psalm22 — 천 년 전에 부른 십자가의 노래**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+A lonely hillside at night: a young shepherd poet sits on a rock playing a small harp,
+head bowed, singing a sorrowful song, his flock asleep around him. Far away on the distant
+horizon, very small, stands the silhouette of a hill with a single cross under a faint
+amber glow, treated with deep reverence. The sheep sits close against the poet's feet,
+ears lowered, listening quietly. Solemn and tender, no humor.
+```
+
+**P10. promise-jonah — 물고기 배 속의 사흘**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+Dawn on a calm beach after a storm: a huge gentle fish slides back into the teal sea, and
+a prophet in soaked robes kneels on the sand, alive and astonished, the walls of a great
+city glowing amber on the horizon. The sheep stands beside him on its four short legs,
+shaking seawater from its wool in a big spray of sparkling droplets, a strand of seaweed
+stuck on its head.
+```
+
+**P11. promise-immanuel — 처녀가 낳을 아들, 임마누엘**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+The terrace of an old stone city at night under anxious storm clouds, the trees below
+bending in the wind. A prophet stands calm with one hand raised toward the sky, where the
+clouds part around one warm star and a faint glowing vision of a mother cradling a newborn
+wrapped in cloth, translucent and without facial detail. The sheep stands on the terrace
+wall, its little scarf whipping in the wind, looking up with sudden peace.
+```
+
+**P12. promise-bethlehem — 작은 마을 베들레헴**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+Seven centuries before the first Christmas: a tiny village of a few stone houses tucked
+between dark rolling hills, so small inside the vast navy landscape it is almost lost, no
+star above it yet. On a foreground hill an old prophet points toward it. On the road below
+the sheep stands upright on its two hind legs, both front hooves holding an unfolded map,
+pressing one small glowing star sticker onto the tiny village, delighted.
+```
+
+**P13. promise-servant — 우리 대신 상처 입은 종**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+A dry moonlit valley where many little sheep are scattered across the hills, each
+wandering off in a different direction. Along the path through the middle walks a gently
+radiant robed figure seen from behind, carrying a heavy burden on his shoulders, head
+slightly bowed, nothing graphic. Behind his footsteps the dry ground turns green and small
+flowers glow amber. Our sheep has stopped on a rock and turned to watch him, ears lowered,
+one tear on its cheek. Solemn and tender, no humor.
+```
+
+**P14. promise-donkey — 나귀 타고 오시는 왕**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+The half-rebuilt walls of Jerusalem at night, wooden scaffolding against the stars. A
+prophet on the wall points down at the empty road to the gate, where a translucent glowing
+vision shows a humble king riding a young donkey colt toward the city, while a broken war
+bow lies in the grass with flowers growing through it. The sheep, in its tiny hard hat,
+stands upright on its two hind legs with a little trowel in both front hooves, frozen
+mid-work to stare at the vision.
+```
+
+**P15. promise-messenger — 길을 닦는 사람**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+A small stone room at night lit by one oil lamp: an old prophet rolls up the last scroll
+on his table, and through the open window a long empty road runs across the dark land to
+a far horizon where the faintest line of amber dawn waits. The sheep sits on the window
+ledge with a tiny lantern and a small hourglass beside it, wrapped in its little blanket,
+settling in to wait for whoever comes down that road.
+```
+
+**P16. promise-amen — 모든 약속이 "예"가 되다**
+```
+A wide 16:9 hero illustration for a Bible storybook feature in a mobile app, one of a
+42-image series sharing a single consistent style. Style: cozy-epic children's storybook
+illustration — soft flat shapes with subtle grain texture, rounded friendly forms, gentle
+rim lighting. Base palette is deep navy night-blue (around #0A1428) with ONE warm amber
+glowing focal light and tiny sparkling blue-white stars. The recurring hero is a small
+chubby white sheep with stubby legs — the SAME sheep character every time — appearing in
+each scene as a tiny traveler and witness inside the Bible story: watching, marveling,
+helping, never playing the main biblical character. The sheep's short limbs are covered
+in white wool and end in small rounded dark hooves — never human-like hands, fingers,
+arms, or bare pink skin. Composition: epic and cinematic like
+a movie poster, but the witness is adorable, which makes it warm and inviting. When Jesus
+appears, show him only as a gently radiant robed figure seen from behind or at a distance,
+face never detailed, treated with reverence. Solemn scenes stay quiet and tender rather
+than funny. No text, no letters, no numbers, no logos, no frames or borders.
+
+Scene:
+Evening on a country road toward a small village with lamplit windows: two travelers walk
+beside a gently radiant robed figure seen from behind, leaning in as he speaks, their faces
+brightening. Above them, thin glowing golden threads of light drift in from every direction
+across the navy sky and gather into one warm knot of light over the road ahead. The sheep
+trots close behind them, head tipped up at the gathering threads, overjoyed.
+```
+
+**라이트 변환 블록** (선택 — 위 그림을 만든 같은 대화에서)
+```
+Make the daytime version of this exact image for the app's light theme. Keep everything
+identical — the same storybook style and grain, the same sheep, characters, poses, props
+and composition. Change only the time of day: soft early-morning light like the series'
+sunrise scenes, a pale warm sky with gentle blue, the single amber light becoming a low
+golden sun glow, shadows soft and light. Add nothing new. No text, no letters, no numbers,
+no logos, no frames or borders.
 ```

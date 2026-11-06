@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getBibleChapter } from '../../../api/bible'
@@ -11,7 +11,12 @@ import { StoryGlyph } from './StoryIcons'
 import './Story.css'
 import { bibleKeys } from '../../../hooks/queryKeys'
 import { placeForEpisode } from '../Atlas/storyPlaces'
-import { storyImage } from './storyImages'
+import { storyImage, storyImagePair } from './storyImages'
+import { useTheme } from '../../../contexts/ThemeContext'
+import { useThemeArt } from '../../../hooks/useThemeArt'
+
+// 테마별 그림이 없는 화에 넘기는 빈 쌍 — useThemeArt 는 active=false 면 아무것도 받지 않는다
+const NO_PAIR = { light: '', dark: '' }
 
 // 이 화의 무대를 지도 한 조각으로 보여 주는 카드. 지도 데이터(해안선·장소 사전)가
 // 스토리 청크에 딸려 오지 않도록 lazy 로 둔다.
@@ -158,6 +163,17 @@ const StoryEpisode = () => {
 
   const found = findEpisode(episodeId)
 
+  // 특별편처럼 라이트·다크 두 장이 있는 화 — 마운트 동안 쌍을 등록해 테마 토글 직전에
+  // 반대 테마 그림을 미리 받게 한다(ThemeContext). 공용 한 장인 본편 화는 등록하지 않는다
+  const { theme } = useTheme()
+  // 쌍 객체는 화가 바뀔 때만 새로 만든다 — useThemeArt 가 pair 를 의존성으로 등록·해제한다
+  const foundEpisodeId = found?.episode.id
+  const heroPair = useMemo(
+    () => (foundEpisodeId ? storyImagePair(foundEpisodeId) : undefined),
+    [foundEpisodeId]
+  )
+  useThemeArt(heroPair ?? NO_PAIR, !!heroPair)
+
   // 잘못된 id로 진입하면 지도(목차)로
   useEffect(() => {
     if (!found) navigate('/bible/story', { replace: true })
@@ -180,12 +196,12 @@ const StoryEpisode = () => {
     const timer = window.setTimeout(() => {
       for (const step of [1, -1]) {
         const neighbor = series[idx + step]
-        const url = neighbor && storyImage(neighbor.id)
+        const url = neighbor && storyImage(neighbor.id, theme)
         if (url) new Image().src = url
       }
     }, 200)
     return () => window.clearTimeout(timer)
-  }, [found?.index, series])
+  }, [found?.index, series, theme])
 
   // PC 키보드 넘기기 — ← 이전 화, → 다음 화(다음 이야기 버튼과 같이 읽음 처리), Esc 용어 닫기.
   // 입력 중이거나 조합키를 누른 경우엔 건드리지 않는다
@@ -323,11 +339,11 @@ const StoryEpisode = () => {
 
         {/* 타이틀 — 일러스트가 있는 화는 이모지 대신 장면 그림이 히어로가 된다 */}
         <div className="story-ep__hero">
-          {storyImage(episode.id) ? (
+          {storyImage(episode.id, theme) ? (
             <img
               key={episode.id}
               className="story-ep__img"
-              src={storyImage(episode.id)}
+              src={storyImage(episode.id, theme)}
               alt=""
               decoding="async"
               fetchPriority="high"
