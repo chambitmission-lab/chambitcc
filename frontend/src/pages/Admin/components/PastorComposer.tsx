@@ -21,11 +21,14 @@ import type { Pastor, PastorStatus, PastorTextField } from '../../../types/pasto
 interface PastorComposerProps {
   /** 넘기면 수정 모드, 없으면 등록 모드 */
   pastor?: Pastor
+  /** 처음 열 단계 — PC 상세의 섹션별 '수정'이 바로 그 탭으로 연다 */
+  initialStep?: PastorComposerStep
   onClose: () => void
   onSuccess: () => void
 }
 
-type Step = 'basic' | 'greeting' | 'profile'
+export type PastorComposerStep = 'basic' | 'greeting' | 'profile'
+type Step = PastorComposerStep
 
 const STEPS: { key: Step; label: string }[] = [
   { key: 'basic', label: '기본' },
@@ -44,14 +47,14 @@ const pair = (pastor: Pastor | undefined, field: PastorTextField): Bilingual => 
   en: (pastor?.[`${field}_en` as keyof Pastor] as string | null) ?? '',
 })
 
-const PastorComposer = ({ pastor, onClose, onSuccess }: PastorComposerProps) => {
+const PastorComposer = ({ pastor, initialStep = 'basic', onClose, onSuccess }: PastorComposerProps) => {
   const isEdit = !!pastor
   const createMutation = useCreatePastor()
   const updateMutation = useUpdatePastor()
   const uploadMutation = useUploadPastorPhoto()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [step, setStep] = useState<Step>('basic')
+  const [step, setStep] = useState<Step>(initialStep)
   const [error, setError] = useState<string | null>(null)
 
   // 사진 — 저장 시점에만 업로드한다(취소하면 R2에 고아 파일이 남지 않는다)

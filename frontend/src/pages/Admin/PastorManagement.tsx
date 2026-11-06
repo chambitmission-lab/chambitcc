@@ -15,7 +15,9 @@ import {
 } from '../../hooks/usePastors'
 import { pastorTermLabel } from '../../types/pastor'
 import type { Pastor, PastorStatus } from '../../types/pastor'
-import PastorComposer from './components/PastorComposer'
+import PastorComposer, { type PastorComposerStep } from './components/PastorComposer'
+import PastorDesk from './components/PastorDesk'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { can } from '../../utils/access'
 import { InfoRow, StatChip } from './components/AdminListBits'
@@ -32,6 +34,8 @@ const STATUS_LABEL: Record<PastorStatus, string> = {
 const PastorManagement = () => {
   const navigate = useNavigate()
   const admin = can('admin:access')
+  // PC(lg+)는 목록+상세 2단 작업대(PastorDesk), 모바일은 기존 행 펼침
+  const isLg = useMediaQuery('(min-width: 1024px)')
 
   const { data: pastors = [], isPending, isError, refetch } = useAllPastors(admin)
   const setCurrentMutation = useSetCurrentPastor()
@@ -44,6 +48,11 @@ const PastorManagement = () => {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   // null = 닫힘, 'new' = 등록, Pastor = 수정
   const [composer, setComposer] = useState<'new' | Pastor | null>(null)
+  const [composerStep, setComposerStep] = useState<PastorComposerStep>('basic')
+  const openComposer = (target: 'new' | Pastor, step: PastorComposerStep = 'basic') => {
+    setComposerStep(step)
+    setComposer(target)
+  }
 
   useEffect(() => {
     if (!admin) {
@@ -146,6 +155,45 @@ const PastorManagement = () => {
     }
   }
 
+  const composerEl = composer && (
+    <PastorComposer
+      // key — 다른 목사를 연속으로 수정할 때 폼 상태가 남지 않도록 재마운트
+      key={composer === 'new' ? 'new' : `${composer.id}-${composerStep}`}
+      pastor={composer === 'new' ? undefined : composer}
+      initialStep={composerStep}
+      onClose={() => setComposer(null)}
+      onSuccess={() => {
+        setComposer(null)
+        void refetch()
+      }}
+    />
+  )
+
+  if (isLg) {
+    return (
+      <>
+        <PastorDesk
+          pastors={pastors}
+          filtered={filtered}
+          loading={isPending}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          sortKey={sortKey}
+          onSortKeyChange={setSortKey}
+          onCreate={() => openComposer('new')}
+          onEdit={(p, step) => openComposer(p, step)}
+          onChangeStatus={handleChangeStatus}
+          onToggleVisibility={handleToggleVisibility}
+          onDelete={handleDelete}
+          onViewPublic={() => navigate('/greeting')}
+        />
+        {composerEl}
+      </>
+    )
+  }
+
   return (
     // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
     // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
@@ -173,7 +221,7 @@ const PastorManagement = () => {
           <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
             <button
               type="button"
-              onClick={() => setComposer('new')}
+              onClick={() => openComposer('new')}
               className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
@@ -310,7 +358,7 @@ const PastorManagement = () => {
                     onToggleExpand={() =>
                       setExpandedId((prev) => (prev === pastor.id ? null : pastor.id))
                     }
-                    onEdit={() => setComposer(pastor)}
+                    onEdit={() => openComposer(pastor)}
                     onSetCurrent={() => handleSetCurrent(pastor)}
                     onChangeStatus={(next) => handleChangeStatus(pastor, next)}
                     onToggleVisibility={() => handleToggleVisibility(pastor)}
@@ -325,7 +373,7 @@ const PastorManagement = () => {
         {/* FAB */}
         <button
           type="button"
-          onClick={() => setComposer('new')}
+          onClick={() => openComposer('new')}
           className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 lg:hidden inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
@@ -335,18 +383,7 @@ const PastorManagement = () => {
           <span>담임목사</span>
         </button>
 
-        {composer && (
-          <PastorComposer
-            // key — 다른 목사를 연속으로 수정할 때 폼 상태가 남지 않도록 재마운트
-            key={composer === 'new' ? 'new' : composer.id}
-            pastor={composer === 'new' ? undefined : composer}
-            onClose={() => setComposer(null)}
-            onSuccess={() => {
-              setComposer(null)
-              void refetch()
-            }}
-          />
-        )}
+        {composerEl}
       </div>
     </div>
   )
