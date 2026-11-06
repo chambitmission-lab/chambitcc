@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   ALL_EPISODES,
@@ -12,6 +12,7 @@ import type { StoryEpisode } from './storyTypes'
 import { useStoryProgress } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
 import StoryFinale from './StoryFinale'
+import { useVerseScroll } from '../hooks/useVerseScroll'
 import './Story.css'
 
 // 화 번호(1~42) — 맵의 카드 격자와 레일에서 순서를 보여 준다
@@ -28,14 +29,23 @@ const StoryMap = () => {
   const { readIds } = useStoryProgress()
 
   // 특별편 화에서 지도로 돌아오면 특별편 구역으로 바로 — HashRouter 라 #앵커 대신 state 로 받는다
+  // 브라우저 smooth scrollIntoView 는 모바일에서 소리 없이 실패한다(특별편 카드를 눌러도 안 내려가던 원인).
+  // /bible 절 스크롤과 같은 rAF 엔진으로 실제 스크롤러를 직접 움직이고, 고정 헤더 아래(112px)에 맞춘다
+  const { scrollVerseIntoView } = useVerseScroll()
+  const scrollToSection = useCallback(
+    (id: string) => {
+      const el = document.getElementById(id)
+      if (el) scrollVerseIntoView(el, 'start')
+    },
+    [scrollVerseIntoView]
+  )
+
   const scrollTo = (location.state as { scrollTo?: string } | null)?.scrollTo
   useEffect(() => {
     if (!scrollTo) return
-    const raf = requestAnimationFrame(() =>
-      document.getElementById(scrollTo)?.scrollIntoView({ block: 'start' })
-    )
+    const raf = requestAnimationFrame(() => scrollToSection(scrollTo))
     return () => cancelAnimationFrame(raf)
-  }, [scrollTo])
+  }, [scrollTo, scrollToSection])
 
   const promiseRead = useMemo(
     () => PROMISE_ACT.episodes.filter(e => readIds.has(e.id)).length,
@@ -43,8 +53,7 @@ const StoryMap = () => {
   )
   const promiseNext = useMemo(() => nextUnreadPromise(readIds), [readIds])
   const promiseTotal = PROMISE_ACT.episodes.length
-  const scrollToPromise = () =>
-    document.getElementById('story-promise')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const scrollToPromise = () => scrollToSection('story-promise')
 
   const readCount = useMemo(
     () => STORY_ACTS.reduce((n, a) => n + a.episodes.filter(e => readIds.has(e.id)).length, 0),
@@ -346,11 +355,7 @@ const StoryMap = () => {
                 <button
                   key={act.act}
                   type="button"
-                  onClick={() =>
-                    document
-                      .getElementById(`story-act-${act.act}`)
-                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }
+                  onClick={() => scrollToSection(`story-act-${act.act}`)}
                   className={`flex items-center gap-3 px-2 py-2.5 rounded-xl text-left transition-colors ${
                     isCurrentAct ? 'bg-[var(--brand-soft)]' : 'hover:bg-[var(--brand-soft)]'
                   }`}
