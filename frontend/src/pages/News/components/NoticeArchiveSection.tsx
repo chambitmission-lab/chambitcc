@@ -1,30 +1,86 @@
 // 공지 아카이브 섹션 (/news 의 '공지' 탭 본문)
-// Single Responsibility: 지난 공지 목록과 본문 펼쳐 읽기
+// Single Responsibility: 지난 공지 목록 + 한 건 읽기(공용 NoticeSheet)
 //
 // 홈 배너는 "지금 띄울 것"(is_popup + 기간 안 지남)만 보여주고, 알림함은 개인 알림과
 // 섞여 있어 지난 안내를 되찾아 읽기 어려웠다. 여기가 공지의 보관함이다 —
-// 읽음 상태 없이(알림함의 안 읽음 뱃지와 성격이 다르다) 최신순으로만 쌓는다.
-import { formatDotDateWeekday, relativeDayLabel } from '../../../utils/dateUtils'
-import { lazy, Suspense, useMemo, useState } from 'react'
+// 읽음 뱃지 없이(알림함의 안 읽음 뱃지와 성격이 다르다) 최신순으로만 쌓는다.
+//
+// 2026-11-07 전면 개편 — 예전엔 본문을 한 줄로 눕힌 미리보기("일시: … 장소: … [안내] 대상 | …")를
+// 두 줄 잘라 보여줘서 정보가 뒤엉켜 읽혔다. 공지는 사실상 전부 포스터 + `일시:/장소:` 줄로 쓰이므로
+//  ① 앞으로 올 일정은 위에 포스터 카드로 크게(Luma·티켓 앱의 "다가오는 이벤트" 문법)
+//  ② 전체는 올린 달로 묶은 인셋 리스트 — 포스터 썸네일 + 제목 + 일시·장소 두 칩
+//  ③ 탭하면 홈 팝업과 같은 "빛 드는 공지" 시트로 읽는다(펼침 아코디언 폐지)
+// 일시·장소는 새 스키마 없이 본문 문법에서 읽는다(utils/noticeHighlights).
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useNoticeArchive } from '../../../hooks/useNotifications'
-import NoticeContent from '../../../components/common/NoticeContent'
-import '../news-hero.css'
+import { useMarkAsRead, useNoticeArchive } from '../../../hooks/useNotifications'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import NoticeSheet from '../../../components/common/NoticeSheet'
 import { noticePreviewText } from '../../../utils/noticeMarkup'
-import { NoticeBoardIcon, SignalIcon, InboxIcon } from './NewsIcons'
+import {
+  extractNoticeHighlights,
+  noticeDday,
+  noticeDdayLabel,
+  noticeWeekday,
+  shortNoticePlace,
+  type NoticeWhen,
+} from '../../../utils/noticeHighlights'
+import { calendarDaysSince, relativeDayLabel } from '../../../utils/dateUtils'
+import { NoticeBoardIcon, SignalIcon, InboxIcon, CalendarIcon, PinIcon } from './NewsIcons'
 import type { Notification } from '../../../types/notification'
 import { can } from '../../../utils/access'
+import { tokenStore } from '../../../utils/tokenStore'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Translate } from '../../../locales'
+import './notice-archive.css'
 
 // 포스터 확대 보기는 탭해야 열린다 — lazy 로 분리 (홈 공지와 같은 청크)
 const ImageLightbox = lazy(() => import('../../../components/common/ImageLightbox'))
 
-const formatDate = (iso: string, t: Translate) => formatDotDateWeekday(iso, t('newsWeekdays').split(','))
+/** 한 건을 목록에 그리기 위한 요약 — 본문 파싱은 목록이 바뀔 때 한 번만 */
+interface NoticeItem {
+  notice: Notification
+  when: NoticeWhen | null
+  dday: number | null
+  place: string | null
+  /** 일시·장소를 못 읽은 공지의 한 줄 — 제목과 같으면 비운다 */
+  snippet: string
+}
 
-/** 오늘·어제는 날짜 대신 사람 말로 — 방금 올라온 공지라는 게 먼저 읽힌다 */
-const formatRelative = (iso: string, t: Translate) =>
-  relativeDayLabel(iso, { today: t('newsNoticeToday'), yesterday: t('newsNoticeYesterday') }, x => formatDate(x, t))
+const summarize = (notice: Notification): NoticeItem => {
+  const h = extractNoticeHighlights(notice.content)
+  const preview = noticePreviewText(h.rest || notice.content)
+  return {
+    notice,
+    when: h.when,
+    dday: h.when ? noticeDday(h.when) : null,
+    place: h.place ? shortNoticePlace(h.place) : null,
+    snippet: preview && preview !== notice.title.trim() ? preview : '',
+  }
+}
+
+/** '11월 8일 (일) 오전 8시' — 시각이 없으면 날짜만 */
+const formatWhen = (w: NoticeWhen, t: Translate, withTime = true) => {
+  const weekdays = t('newsWeekdays').split(',')
+  const date = t('newsNoticeDate')
+    .replace('{m}', String(w.month))
+    .replace('{d}', String(w.day))
+    .replace('{w}', weekdays[noticeWeekday(w)] ?? '')
+  if (!withTime || w.hour == null) return date
+  const mer = w.hour < 12 ? t('newsNoticeAm') : t('newsNoticePm')
+  const h12 = String(w.hour % 12 || 12)
+  const time = w.minute
+    ? t('newsNoticeHourMin').replace('{h}', h12).replace('{m}', String(w.minute).padStart(2, '0'))
+    : t('newsNoticeHour').replace('{h}', h12)
+  return `${date} ${mer} ${time}`
+}
+
+/** 올린 날 — 오늘·어제는 사람 말로, 그 외는 11.05 */
+const formatPosted = (iso: string, t: Translate) =>
+  relativeDayLabel(iso, { today: t('newsNoticeToday'), yesterday: t('newsNoticeYesterday') }, (x) => {
+    const d = new Date(x)
+    return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+  })
 
 /**
  * 공지 링크 → 실제 이동 대상.
@@ -43,75 +99,117 @@ const NoticeArchiveSection = () => {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const admin = can('content:manage')
+  const markAsRead = useMarkAsRead()
 
   const { data, isLoading, error, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useNoticeArchive()
 
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [openId, setOpenId] = useState<number | null>(null)
   const [zoomSrc, setZoomSrc] = useState<string | null>(null)
+  const readMarkedRef = useRef<Set<number>>(new Set())
 
-  const notices = useMemo(
-    () => data?.pages.flatMap((page) => page.notifications) ?? [],
+  const items = useMemo(
+    () => (data?.pages.flatMap((page) => page.notifications) ?? []).map(summarize),
     [data],
   )
   const total = data?.pages[0]?.total ?? 0
 
-  return (
-    <div className="px-4 pt-3 pb-8 lg:px-6 lg:pt-4">
-      {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--notice). 소식 탭과 같은 골격이다.
-          다크 상단 광택 span 은 두지 않는다 — 삽화 위에 얹히면 뿌옇게 뜬다(소식 세 장과 같은 이유).
-          PC 에서만 카드를 키운다(lg:min-h) — 136px 높이로는 삽화가 손톱만 해서 장면이 안 읽힌다.
-          news-hero.css 의 lg 배율(185.7%)과 짝이다. */}
-      <div className="nh-hero nh-hero--notice relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 lg:px-7 lg:min-h-[184px] lg:flex lg:flex-col lg:justify-center mb-4">
-        <div className="relative z-10">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-11 h-11 rounded-2xl bg-brand text-white flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)]">
-              <NoticeBoardIcon width={23} height={23} />
-            </div>
-            <div>
-              <p className="text-brand text-[10.5px] lg:text-[12.5px] font-bold tracking-[0.12em] uppercase">
-                NOTICE
-              </p>
-              <h2 className="text-ink-strong text-[17px] lg:text-[22px] font-bold tracking-[-0.015em]">
-                {t('newsNoticeTitle')}
-              </h2>
-            </div>
-            {/* ★ ml-auto 로 오른쪽 끝에 붙이지 않는다 — 카드가 낮고 넓어서 배경 삽화가
-                어느 배율에서든 우상단을 차지하고, 거기 두면 주인공 양 얼굴을 덮는다.
-                제목 바로 옆(왼쪽 빈 영역)이 삽화와 안 겹치는 유일한 자리다. */}
-            {admin && (
-              <button
-                type="button"
-                onClick={() => navigate('/admin/notifications')}
-                className="ml-2 inline-flex items-center gap-1 h-8 px-3 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-[11.5px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                {t('newsNoticeCreate')}
-              </button>
-            )}
-          </div>
+  // 앞으로 올 일정 — 가까운 날부터. 두 달 넘게 남은 것도 포함(칩만 안 붙는다)
+  const upcoming = useMemo(
+    () =>
+      items
+        .filter((it) => it.dday != null && it.dday >= 0)
+        .sort((a, b) => (a.dday as number) - (b.dday as number)),
+    [items],
+  )
 
-          {/* max-w 는 삽화와 짝이다 — 풀폭으로 두면 글줄이 양 위로 올라탄다.
-              삽화를 다시 뽑아 장면 위치가 바뀌면 이 값도 같이 다시 볼 것. */}
-          <p className="max-w-[62%] lg:max-w-[60%] text-gray-500 dark:text-white/55 text-[12.5px] lg:text-[15.5px] lg:text-gray-600 leading-[1.6]">
-            {t('newsNoticeIntro')}
-          </p>
+  // 올린 달로 묶기 (목록은 이미 최신순)
+  const groups = useMemo(() => {
+    const out: { key: string; y: number; m: number; items: NoticeItem[] }[] = []
+    for (const it of items) {
+      const d = new Date(it.notice.created_at)
+      const key = `${d.getFullYear()}-${d.getMonth()}`
+      const last = out[out.length - 1]
+      if (last?.key === key) last.items.push(it)
+      else out.push({ key, y: d.getFullYear(), m: d.getMonth() + 1, items: [it] })
+    }
+    return out
+  }, [items])
+
+  const openIndex = openId == null ? -1 : items.findIndex((it) => it.notice.id === openId)
+  const opened = openIndex >= 0 ? items[openIndex].notice : null
+  const nextItem = openIndex >= 0 ? items[openIndex + 1] : undefined
+
+  const close = useCallback(() => setOpenId(null), [])
+  useModalBackButton(close, opened != null)
+
+  // 보관함에서 연 공지도 읽음 처리 — 헤더 알림 뱃지가 이미 읽은 공지로 울리지 않게
+  useEffect(() => {
+    if (!opened || opened.is_read || !tokenStore.getAccess()) return
+    if (readMarkedRef.current.has(opened.id)) return
+    readMarkedRef.current.add(opened.id)
+    markAsRead.mutate(opened.id, { onError: () => {} })
+  }, [opened, markAsRead])
+
+  // PC 키보드 — Esc 닫기, ←/→ 이웃 공지. 포스터 확대 중에는 라이트박스가 키를 쓴다
+  useEffect(() => {
+    if (!opened || zoomSrc) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close()
+      else if (e.key === 'ArrowRight' && items[openIndex + 1]) setOpenId(items[openIndex + 1].notice.id)
+      else if (e.key === 'ArrowLeft' && openIndex > 0) setOpenId(items[openIndex - 1].notice.id)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [opened, zoomSrc, items, openIndex, close])
+
+  const handleLink = () => {
+    if (!opened?.link_url) return
+    const target = resolveTarget(opened.link_url)
+    setOpenId(null)
+    navigate(target.path, target.state ? { state: target.state } : undefined)
+  }
+
+  return (
+    <div className="na px-4 pt-4 pb-8 lg:px-6 lg:pt-5">
+      {/* 머리 — 큰 삽화 히어로 대신 한 줄. 첫 화면은 정보(다가오는 일정)가 차지해야 한다 */}
+      <div className="flex items-end justify-between gap-3 px-1 mb-4 lg:mb-5">
+        <div className="min-w-0">
+          <h2 className="text-ink-strong text-[20px] lg:text-[26px] font-bold tracking-[-0.02em] leading-tight">
+            {t('newsNoticeTitle')}
+          </h2>
+          {!isLoading && !error && total > 0 && (
+            <p className="mt-0.5 text-[12.5px] lg:text-[15px] text-[var(--text-muted)]">
+              {t('newsCountPrefix')}
+              <span className="font-bold text-ink-strong tabular-nums">{total}</span>
+              {t('newsCountSuffix')}
+            </p>
+          )}
         </div>
+        {admin && (
+          <button
+            type="button"
+            onClick={() => navigate('/admin/notifications')}
+            className="shrink-0 inline-flex items-center gap-1 h-9 px-3.5 lg:h-11 lg:px-5 lg:text-[15px] rounded-full bg-[var(--brand-soft)] text-brand text-[12.5px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {t('newsNoticeCreate')}
+          </button>
+        )}
       </div>
 
-      {/* 목록 */}
       {isLoading ? (
-        <SkeletonRows />
+        <ArchiveSkeleton />
       ) : error ? (
         <EmptyBox
           icon={<SignalIcon width={28} height={28} />}
           title={t('newsNoticeErrorTitle')}
           desc={t('newsNoticeErrorDesc')}
         />
-      ) : notices.length === 0 ? (
+      ) : items.length === 0 ? (
         <EmptyBox
           icon={<InboxIcon width={28} height={28} />}
           title={t('newsNoticeEmptyTitle')}
@@ -119,26 +217,35 @@ const NoticeArchiveSection = () => {
         />
       ) : (
         <>
-          <p className="px-1 pb-2 text-[11.5px] lg:text-[15px] lg:pb-3 text-gray-500 dark:text-white/50">
-            {t('newsCountPrefix')}
-            <span className="font-bold text-ink-strong">{total}</span>
-            {t('newsCountSuffix')}
-          </p>
-          <div className="space-y-2 lg:space-y-3">
-            {notices.map((notice) => (
-              <NoticeRow
-                key={notice.id}
-                notice={notice}
-                expanded={expandedId === notice.id}
-                onToggle={() =>
-                  setExpandedId((prev) => (prev === notice.id ? null : notice.id))
-                }
-                onZoom={setZoomSrc}
-                onOpenLink={(linkUrl) => {
-                  const target = resolveTarget(linkUrl)
-                  navigate(target.path, target.state ? { state: target.state } : undefined)
-                }}
-              />
+          {upcoming.length > 0 && (
+            <section className="mb-7 lg:mb-9" aria-label={t('newsNoticeUpcoming')}>
+              <SectionLabel>
+                {t('newsNoticeUpcoming')}
+                <span className="na-count">{upcoming.length}</span>
+              </SectionLabel>
+              <div className={`na-feat-track${upcoming.length > 1 ? ' na-feat-track--many' : ''}`}>
+                {upcoming.map((it) => (
+                  <FeaturedCard key={it.notice.id} item={it} onOpen={() => setOpenId(it.notice.id)} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <SectionLabel>{t('newsNoticeAll')}</SectionLabel>
+          <div className="space-y-5 lg:space-y-7">
+            {groups.map((g) => (
+              <section key={g.key} aria-label={t('newsNoticeMonth').replace('{y}', String(g.y)).replace('{m}', String(g.m))}>
+                <h3 className="na-month">
+                  {t('newsNoticeMonth').replace('{y}', String(g.y)).replace('{m}', String(g.m))}
+                </h3>
+                <ul className="na-list">
+                  {g.items.map((it) => (
+                    <li key={it.notice.id}>
+                      <NoticeRow item={it} onOpen={() => setOpenId(it.notice.id)} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
           </div>
         </>
@@ -157,153 +264,171 @@ const NoticeArchiveSection = () => {
         </div>
       )}
 
+      {opened && (
+        <NoticeSheet
+          notice={opened}
+          kicker={t('newsNoticeTitle')}
+          onClose={close}
+          onZoom={setZoomSrc}
+          onLink={handleLink}
+          primaryLabel={nextItem ? t('newsNoticeNext') : t('newsNoticeConfirm')}
+          onPrimary={() => (nextItem ? setOpenId(nextItem.notice.id) : close())}
+          footNote={
+            <span className="nl-kbd" aria-hidden>
+              <kbd>Esc</kbd>
+              {t('newsNoticeClose')}
+              <kbd>←</kbd>
+              <kbd>→</kbd>
+            </span>
+          }
+          labels={{
+            brand: t('newsNoticeBrand'),
+            zoom: t('newsNoticeZoom'),
+            link: t('newsNoticeLink'),
+            addCalendar: t('newsNoticeAddCalendar'),
+            past: t('newsNoticePast'),
+            close: t('newsNoticeClose'),
+          }}
+        />
+      )}
+
       {zoomSrc && (
         <Suspense fallback={null}>
-          <ImageLightbox src={zoomSrc} alt={t('newsNoticePosterAlt')} onClose={() => setZoomSrc(null)} />
+          <ImageLightbox src={zoomSrc} alt={t('newsNoticePosterAlt')} caption={opened?.title} onClose={() => setZoomSrc(null)} />
         </Suspense>
       )}
     </div>
   )
 }
 
-// ── 공지 한 줄 (탭하면 본문 펼침) ────────────────────────
-const NoticeRow = ({
-  notice,
-  expanded,
-  onToggle,
-  onZoom,
-  onOpenLink,
-}: {
-  notice: Notification
-  expanded: boolean
-  onToggle: () => void
-  onZoom: (src: string) => void
-  onOpenLink: (linkUrl: string) => void
-}) => {
+// ── 다가오는 일정 — 포스터 카드 ─────────────────────────
+// 포스터를 흐리게 깐 앰비언트 바탕 위에 포스터 원본 + D-day + 일시·장소.
+// 여러 건이면 모바일은 옆으로 넘기는 트랙, PC 는 두 칸 격자(notice-archive.css).
+const FeaturedCard = ({ item, onOpen }: { item: NoticeItem; onOpen: () => void }) => {
   const { t } = useLanguage()
-  const preview = noticePreviewText(notice.content)
+  const { notice, when, place } = item
+  const dday = when ? noticeDdayLabel(when) : null
 
   return (
-    <div
-      className={[
-        'relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border shadow-sm',
-        'dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-colors',
-        expanded ? 'border-[var(--brand-soft-strong)]' : 'border-[var(--card-border)]',
-      ].join(' ')}
-    >
-      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        className="relative z-10 w-full flex items-start gap-3 p-3.5 lg:gap-4 lg:p-5 text-left group"
-      >
-        <span className="shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
-          <NoticeBoardIcon width={19} height={19} />
-        </span>
-
-        <span className="flex-1 min-w-0">
-          <span className="flex items-center gap-1.5">
-            <span className="text-[10.5px] lg:text-[14px] font-bold text-gray-400 dark:text-white/40 lg:text-gray-500 lg:dark:text-white/55">
-              {formatRelative(notice.created_at, t)}
-            </span>
-            {notice.image_url && (
-              <span className="text-[9.5px] lg:text-[12.5px] lg:px-2 font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-brand">
-                {t('newsNoticePoster')}
+    <button type="button" onClick={onOpen} className="na-feat group">
+      {notice.image_url && (
+        <span aria-hidden className="na-feat__amb" style={{ backgroundImage: `url("${notice.image_url}")` }} />
+      )}
+      <span className="na-feat__body">
+        {notice.image_url ? (
+          <img src={notice.image_url} alt="" className="na-feat__poster" />
+        ) : (
+          <span className="na-feat__poster na-feat__poster--none" aria-hidden>
+            <NoticeBoardIcon width={30} height={30} />
+          </span>
+        )}
+        <span className="na-feat__info">
+          {dday && <span className="na-dday">{dday}</span>}
+          <span className="na-feat__title">{notice.title}</span>
+          <span className="na-feat__meta">
+            {when && (
+              <span className="na-meta-line">
+                <CalendarIcon width={15} height={15} />
+                {formatWhen(when, t)}
+              </span>
+            )}
+            {place && (
+              <span className="na-meta-line">
+                <PinIcon width={15} height={15} />
+                <span className="truncate">{place}</span>
               </span>
             )}
           </span>
-          <span className="mt-0.5 lg:mt-1 block text-[14.5px] lg:text-[19px] font-bold text-ink-strong leading-[1.35] group-hover:text-brand transition-colors">
-            {notice.title}
+          <span className="na-feat__cta">
+            {t('newsNoticeDetail')}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="transition-transform group-hover:translate-x-0.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </span>
-          {!expanded && preview && (
-            <span className="mt-0.5 lg:mt-1.5 block text-[12px] lg:text-[15.5px] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65 leading-[1.5] line-clamp-2">
-              {preview}
-            </span>
-          )}
         </span>
+      </span>
+    </button>
+  )
+}
 
-        <span className="shrink-0 mt-1 text-gray-400 dark:text-white/35">
-          <svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+// ── 전체 목록 한 줄 ─────────────────────────────────────
+const NoticeRow = ({ item, onOpen }: { item: NoticeItem; onOpen: () => void }) => {
+  const { t } = useLanguage()
+  const { notice, when, dday, place, snippet } = item
+  const ddayLabel = when ? noticeDdayLabel(when) : null
+  const ended = dday != null && dday < 0
+  const fresh = calendarDaysSince(notice.created_at) <= 2
+
+  return (
+    <button type="button" onClick={onOpen} className={`na-row group${ended ? ' na-row--ended' : ''}`}>
+      {notice.image_url ? (
+        <img src={notice.image_url} alt="" loading="lazy" className="na-thumb" />
+      ) : (
+        <span className="na-thumb na-thumb--none" aria-hidden>
+          <NoticeBoardIcon width={20} height={20} />
         </span>
-      </button>
-
-      {expanded && (
-        <div className="relative z-10 px-3.5 pb-4 -mt-1 lg:px-5 lg:pb-6">
-          <div className="pl-[52px] lg:pl-16">
-            {notice.image_url && (
-              <button
-                type="button"
-                onClick={() => onZoom(notice.image_url as string)}
-                className="group/poster relative block w-full mb-3 rounded-xl overflow-hidden border border-[var(--card-border)] bg-[var(--surface-inset)]"
-                aria-label={t('newsNoticePosterZoom').replace('{title}', notice.title)}
-              >
-                {/* 세로로 긴 포스터가 PC에서 화면을 통째로 먹지 않게 높이를 묶는다 */}
-                <img
-                  src={notice.image_url}
-                  alt=""
-                  loading="lazy"
-                  className="mx-auto block w-auto max-w-full max-h-[min(calc(70vh/var(--az,1)),560px)] lg:max-h-[min(calc(80vh/var(--az,1)),760px)] object-contain transition-transform duration-200 group-hover/poster:scale-[1.02]"
-                />
-                {/* 눌러야 읽힌다는 걸 알려주는 손잡이 — 없으면 그냥 작은 그림으로 끝난다 */}
-                <span className="pointer-events-none absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[11px] lg:text-[14px] lg:px-3.5 lg:py-1.5 font-semibold text-white backdrop-blur-[2px]">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="M20 20l-3.2-3.2M11 8.5v5M8.5 11h5" />
-                  </svg>
-                  {t('newsNoticeZoom')}
-                </span>
-              </button>
-            )}
-
-            {/* PC 는 읽기 칼럼 크기(18px·줄 폭 제한) — news-hero.css .news-notice-body */}
-            <NoticeContent source={notice.content} className="news-notice-body" />
-
-            <p className="mt-3 text-[11px] lg:text-[14px] lg:mt-4 text-gray-400 dark:text-white/40">
-              {formatDate(notice.created_at, t)}
-            </p>
-
-            {notice.link_url && (
-              <button
-                type="button"
-                onClick={() => onOpenLink(notice.link_url as string)}
-                className="mt-2.5 inline-flex items-center gap-1 h-9 px-4 lg:h-12 lg:px-6 lg:text-[16px] lg:mt-3.5 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] hover:bg-brand-dim transition-colors"
-              >
-                {t('newsNoticeDetail')}
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
       )}
-    </div>
+
+      <span className="flex-1 min-w-0">
+        <span className="na-row__top">
+          {ddayLabel ? (
+            <span className="na-tag na-tag--dday">{ddayLabel}</span>
+          ) : ended ? (
+            <span className="na-tag na-tag--ended">{t('newsNoticeEnded')}</span>
+          ) : null}
+          {fresh && !ended && <span className="na-tag na-tag--new">{t('newsNoticeNew')}</span>}
+          <span className="na-row__posted">{t('newsNoticePosted').replace('{date}', formatPosted(notice.created_at, t))}</span>
+        </span>
+        <span className="na-row__title">{notice.title}</span>
+        {when || place ? (
+          <span className="na-row__meta">
+            {when && (
+              <span className="na-meta-line">
+                <CalendarIcon width={14} height={14} />
+                {formatWhen(when, t, false)}
+              </span>
+            )}
+            {place && (
+              <span className="na-meta-line min-w-0">
+                <PinIcon width={14} height={14} />
+                <span className="truncate">{place}</span>
+              </span>
+            )}
+          </span>
+        ) : snippet ? (
+          <span className="na-row__snippet">{snippet}</span>
+        ) : null}
+      </span>
+
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="na-row__chev">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </button>
   )
 }
 
 // ── 작은 조각들 ────────────────────────────────────────
-const SkeletonRows = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 4 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-[88px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
-      />
-    ))}
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p className="na-sec">{children}</p>
+)
+
+/** 실제 골격(머리 → 포스터 카드 → 인셋 리스트)을 그대로 세워 도착 순간 흔들림이 없게 */
+const ArchiveSkeleton = () => (
+  <div aria-hidden>
+    <div className="na-sec"><span className="inline-block h-[1em] w-20 rounded bg-[var(--surface-inset)]" /></div>
+    <div className="na-feat na-feat--skel mb-7 lg:mb-9" />
+    <div className="na-list">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="na-row">
+          <span className="na-thumb animate-pulse" />
+          <span className="flex-1 space-y-2">
+            <span className="block h-3 w-16 rounded bg-[var(--surface-inset)] animate-pulse" />
+            <span className="block h-4 w-3/4 rounded bg-[var(--surface-inset)] animate-pulse" />
+            <span className="block h-3 w-1/2 rounded bg-[var(--surface-inset)] animate-pulse" />
+          </span>
+        </div>
+      ))}
+    </div>
   </div>
 )
 

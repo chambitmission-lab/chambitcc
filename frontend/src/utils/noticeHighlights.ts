@@ -86,6 +86,7 @@ const toProgram = (rest: string): NoticeProgramItem[] | null => {
 }
 
 const QUOTE_RE = /^>\s?(.*)$/
+const CALLOUT_LINE_RE = /^\s*(?:>\s?)?\[!\s*[A-Za-z가-힣]+\s*\]\s*(\S.*)$/
 const CALLOUT_RE = /^\[!\s*[A-Za-z가-힣]+\s*\]/
 // 끝에 붙은 성경 출처 — (창 1:31) · 창세기 1장 31절 · 요 3:16-17
 const VERSE_REF_RE =
@@ -155,6 +156,25 @@ export const noticeDday = (w: NoticeWhen): number => {
   return dayNumber(w.year, w.month, w.day) - dayNumber(t.y, t.m, t.d)
 }
 
+/** D-day 칩 문구 — 두 달 넘게 남았거나 지난 일정은 숫자가 의미가 없어 null */
+export const noticeDdayLabel = (w: NoticeWhen): string | null => {
+  const d = noticeDday(w)
+  if (d < 0 || d > 60) return null
+  return d === 0 ? 'D-DAY' : `D-${d}`
+}
+
+/** 일정 요일 (0=일) */
+export const noticeWeekday = (w: NoticeWhen): number =>
+  new Date(Date.UTC(w.year, w.month - 1, w.day)).getUTCDay()
+
+/** 목록 한 줄 요약 — 장소는 괄호 속 주소·앞의 교회 이름을 덜어 칩에 들어가게 */
+export const shortNoticePlace = (place: string): string => {
+  const cut = place.split(/\s*[(（]/)[0].trim() || place
+  const noChurch = cut.replace(/^(?:부천\s*)?참빛교회\s+/, '').trim()
+  // '1층 & 6층'처럼 층수만 남으면 어디인지 흐려진다 — 그땐 교회 이름을 둔다
+  return noChurch && !/^\d/.test(noChurch) ? noChurch : cut
+}
+
 export const extractNoticeHighlights = (source: string): NoticeHighlights => {
   const lines = (source ?? '').replace(/\r\n/g, '\n').split('\n')
   const drop = new Set<number>()
@@ -177,6 +197,20 @@ export const extractNoticeHighlights = (source: string): NoticeHighlights => {
     const kept = [...drop].sort((a, b) => a - b)
     kept.slice(MAX_ROWS).forEach((i) => drop.delete(i))
     rows.length = MAX_ROWS
+  }
+
+  // 한 줄짜리 콜아웃으로 쓴 정보 — `> [!안내] 대상 | 구역장` · `> [!주의] 참가비 : 무료`.
+  // 관리자가 강조하려고 콜아웃에 넣었을 뿐 내용은 정보 줄이라, 윗단 표로 모은다(| 구분자도 허용).
+  for (let i = 0; i < lines.length && rows.length < MAX_ROWS; i++) {
+    if (drop.has(i)) continue
+    const m = CALLOUT_LINE_RE.exec(lines[i])
+    if (!m) continue
+    const next = lines[i + 1]?.trim() ?? ''
+    if (next.startsWith('>') && !CALLOUT_LINE_RE.test(lines[i + 1])) continue // 여러 줄 콜아웃은 그대로
+    const row = matchInfoRow(m[1].replace(/\s*[|｜]\s*/, ': '))
+    if (!row) continue
+    rows.push(row)
+    drop.add(i)
   }
 
   // 출처로 끝나는 첫 인용 묶음 → 성구
