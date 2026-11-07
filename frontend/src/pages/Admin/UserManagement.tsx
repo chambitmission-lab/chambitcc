@@ -1,6 +1,6 @@
 import { formatLongDate, timeAgo } from '../../utils/dateUtils'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
 import {
   getUserList,
@@ -77,7 +77,9 @@ const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [tab, setTab] = useState<ListTab>('all')
+  // 가입 신청 알림(?tab=pending)에서 들어오면 승인 대기 탭부터 연다
+  const [searchParams] = useSearchParams()
+  const [tab, setTab] = useState<ListTab>(() => (searchParams.get('tab') === 'pending' ? 'pending' : 'all'))
   const [filterTitle, setFilterTitle] = useState<TitleFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('recentLogin')
   const [selectedId, setSelectedId] = useState<number | null>(null)
