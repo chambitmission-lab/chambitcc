@@ -118,8 +118,8 @@ const News = () => {
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
   // 히어로 쪽 띠에서 고른 쪽 — 뷰어를 그 쪽부터 연다
   const [startPage, setStartPage] = useState(0)
-  // 2026-11 개편 — 디지털 주보가 기본. 종이 원본은 탭이나 디지털 주보의 '원본' 버튼으로
-  const [tab, setTab] = useState<BulletinTabKey>('digital')
+  // 이미지 주보가 기본(2026-11-07 사용자 요청) — 디지털 주보는 옆 탭으로
+  const [tab, setTab] = useState<BulletinTabKey>('image')
 
   const handleSectionChange = (next: SectionKey) => {
     // replace — 탭 전환마다 히스토리가 쌓여 뒤로가기가 먹통이 되는 걸 막는다
@@ -331,8 +331,7 @@ const News = () => {
       {/* sticky top 은 본문 열의 실제 top(고정 헤더 56px + 컨테이너 lg:pt-3 12px = 68px)과
           같아야 한다. 72px(4.5rem)로 두면 sticky 가 정적 위치보다 아래로 밀어내서
           우측 열만 4px 내려앉는다 */}
-      {/* 넘겨보는 주보는 자체 목차를 가지니 PC 폭을 무대에 다 준다 */}
-      {!(section === 'bulletin' && tab === 'digital') && (
+      {/* 모든 탭이 같은 본문 폭을 쓴다 — 예전엔 디지털 주보만 레일을 숨겨 그 탭만 넓어졌다(2026-11-07) */}
       <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.25rem] lg:max-h-[calc((100vh-5.25rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
         <NewsSidebar
           bulletins={bulletins}
@@ -342,7 +341,6 @@ const News = () => {
           onBulletinClick={handleBulletinClick}
         />
       </aside>
-      )}
       </div>
     </div>
   )

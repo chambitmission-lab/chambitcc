@@ -4,8 +4,8 @@
  * 색은 theme.css 토큰만 쓴다 — 여기서 새로 두는 건 상태 칩 색 몇 개뿐(라이트/다크 한 쌍).
  *
  * 폭은 본문 칸 기준(container query):
- *   < 820px : 한 줄로 쌓기 (모바일 순서 그대로)
- *   ≥ 820px : 왼쪽 3가지·챙길 일·주보 전체 / 오른쪽 다음 예배·알림 설정·미리보기·미션
+ *   < 760px : 한 줄로 쌓기 (모바일 순서 그대로)
+ *   ≥ 760px : 왼쪽 3가지·챙길 일·주보 전체 / 오른쪽 다음 예배·알림 설정·미리보기·미션
  */
 .bw-root {
   container-type: inline-size;
@@ -250,14 +250,15 @@
 
 .bw-only-pc { display: none; }
 
-/* PC — 본문 칸이 넓으면 두 칸 */
-@container (min-width: 820px) {
+/* PC — 본문 칸이 넓으면 두 칸. /news 는 PC 에서 우측 레일과 함께라 본문 칸이 약 816px —
+   다른 탭과 폭을 맞추며 레일을 다시 둔 뒤에도 두 칸이 유지되게 기준·오른쪽 칸을 줄였다 */
+@container (min-width: 760px) {
   .bw-head { padding: 0 0 16px; }
   .bw-head-title { font-size: 26px; }
   .bw-head-sub { font-size: 13.5px; }
   .bw-cols { flex-direction: row; align-items: flex-start; gap: 16px; }
   .bw-col { flex: 1; gap: 16px; }
-  .bw-col.is-side { flex: 0 0 380px; position: sticky; top: 76px; }
+  .bw-col.is-side { flex: 0 0 340px; position: sticky; top: 76px; }
   .bw-blk { border-radius: 20px; padding: 24px; }
   .bw-arrived { border-radius: 16px; }
   .bw-only-mobile { display: none; }
