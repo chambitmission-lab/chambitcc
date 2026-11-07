@@ -279,7 +279,7 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
 
               <div className="min-w-0 flex-1 pt-0.5">
                 {content.trim() ? (
-                  <p className="text-[14.5px] leading-[1.6] text-ink-strong break-words whitespace-pre-wrap line-clamp-3">
+                  <p className="text-[14.5px] leading-[1.6] text-ink-strong break-keep break-words whitespace-pre-wrap line-clamp-3">
                     {content}
                   </p>
                 ) : (

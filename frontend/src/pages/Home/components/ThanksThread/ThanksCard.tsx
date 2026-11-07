@@ -181,7 +181,7 @@ const ThanksCard = ({
 
       {/* 본문 */}
       <p
-        className={`relative text-[15px] text-ink-strong leading-[1.65] mb-3.5 break-words whitespace-pre-wrap ${
+        className={`relative text-[15px] text-ink-strong leading-[1.65] mb-3.5 break-keep break-words whitespace-pre-wrap ${
           isList ? '' : 'line-clamp-4'
         }`}
       >

@@ -447,7 +447,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
                           </p>
                         )}
                         {content.trim() ? (
-                          <p className="text-[14.5px] lg:text-[17px] leading-[1.6] text-ink-strong break-words whitespace-pre-wrap line-clamp-3">
+                          <p className="text-[14.5px] lg:text-[17px] leading-[1.6] text-ink-strong break-keep break-words whitespace-pre-wrap line-clamp-3">
                             {content}
                           </p>
                         ) : (

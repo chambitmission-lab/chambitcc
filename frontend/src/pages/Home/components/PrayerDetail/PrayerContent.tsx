@@ -59,9 +59,11 @@ const PrayerContent = ({ title, content }: PrayerContentProps) => {
         </h3>
       )}
       {/* 빈 줄로 나뉜 문단은 <p> 로 묶어 간격을 1em 으로 고르게 — 빈 줄 그대로면 문단마다 눈이 크게 점프한다.
-          문단 안의 줄바꿈은 pre-wrap 으로 그대로 살린다. rd-text 는 다크 '등불 아래' 본문색(readingWarm.css) */}
+          문단 안의 줄바꿈은 pre-wrap 으로 그대로 살린다.
+          break-keep: 한글은 기본이 음절 단위 줄바꿈이라 '감사드립니|다.' 처럼 한 글자만 떨어진다 — 어절 단위로 끊고,
+          띄어쓰기 없는 긴 문자열(URL 등)만 break-words 로 넘침 방지. text-wrap:pretty 로 마지막 줄 외톨이도 줄인다. rd-text 는 다크 '등불 아래' 본문색(readingWarm.css) */}
       <div
-        className="rd-text text-[15px] lg:text-[length:calc(18px*var(--fs,1))] text-gray-700 dark:text-gray-300 lg:text-gray-800 dark:lg:text-gray-200 leading-[1.75] lg:leading-[1.8] tracking-[-0.01em]"
+        className="rd-text text-[15px] lg:text-[length:calc(18px*var(--fs,1))] text-gray-700 dark:text-gray-300 lg:text-gray-800 dark:lg:text-gray-200 leading-[1.75] lg:leading-[1.8] tracking-[-0.01em] break-keep break-words [text-wrap:pretty]"
         style={transitionStyles}
       >
         {paragraphs.map((para, i) => (
