@@ -71,7 +71,13 @@ const PastShelf = ({
   )
   const [picked, setPicked] = useState<number | null>(null)
   const year = picked ?? years[0] ?? latest.edition
-  const { data: yearList, isFetching } = useBulletinsByYear(year)
+  // 연도 목록의 count 가 최근 목록에서 센 그 해 개수와 같으면 한 해치 요청을 건너뛴다 —
+  // 3~7월엔 올해 주보가 최근 20개에 다 들어 있어 같은 데이터를 두 번 받던 것
+  const covered = useMemo(
+    () => yearRows?.find(r => r.year === year)?.count === recent.filter(i => i.edition === year).length,
+    [yearRows, recent, year],
+  )
+  const { data: yearList, isFetching } = useBulletinsByYear(covered ? null : year)
 
   const past = useMemo(() => {
     // 한 해치와 최근 목록을 합친다 — 백엔드가 year 를 모르던 시절엔 최근 10개만 돌아와 오히려 줄어들었다
@@ -423,11 +429,11 @@ const CoverFlow = ({
     const has = new Set(list.map(i => i.m))
     return EDITION_MONTHS.filter(m => has.has(m))
   }, [list])
-  const monthLabel = (m: number) =>
-    new Date(Date.UTC(2000, m - 1, 1)).toLocaleDateString(language === 'en' ? 'en-US' : 'ko-KR', {
-      month: 'short',
-      timeZone: 'UTC',
-    })
+  // 가운데 카드가 바뀔 때마다 리렌더되니 Intl 포맷은 언어당 한 번만
+  const monthLabels = useMemo(() => {
+    const f = new Intl.DateTimeFormat(language === 'en' ? 'en-US' : 'ko-KR', { month: 'short', timeZone: 'UTC' })
+    return new Map(EDITION_MONTHS.map(m => [m, f.format(new Date(Date.UTC(2000, m - 1, 1)))]))
+  }, [language])
 
   return (
     <>
@@ -561,7 +567,7 @@ const CoverFlow = ({
               // 목록이 최신순이라 그 달의 첫 칸 = 그 달 마지막 주일
               onClick={() => scrollToCard(list.findIndex(i => i.m === m))}
             >
-              {monthLabel(m)}
+              {monthLabels.get(m)}
             </button>
           ))}
         </nav>

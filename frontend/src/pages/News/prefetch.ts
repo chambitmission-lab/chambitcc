@@ -8,7 +8,7 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { queryClient } from '../../config/queryClient'
 import { getBulletinDetail } from '../../api/bulletin'
-import { bulletinKeys, prefetchBulletinList } from '../../hooks/useBulletins'
+import { bulletinKeys, prefetchBulletinList, prefetchBulletinYears } from '../../hooks/useBulletins'
 import { warmPagesAround } from './components/bulletinWarm'
 import type { Bulletin } from '../../types/bulletin'
 
@@ -30,6 +30,7 @@ export const prefetchNewsRoute = (search: string, qc: QueryClient = queryClient)
   const params = new URLSearchParams(search)
   if (params.get('tab') !== 'bulletin') return
   void prefetchBulletinList(qc)
+  void prefetchBulletinYears(qc)
   const id = bulletinDeepLinkId(search)
   if (id) void prefetchBulletinDeepLink(id, qc)
 }

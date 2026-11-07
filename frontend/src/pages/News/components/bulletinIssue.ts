@@ -28,6 +28,15 @@ export interface Issue {
   edition: number
 }
 
+/** 판 연도 규칙 — 3월~이듬해 2월을 한 해로. 백엔드 bulletin_service.edition_year 와 반드시 같아야 한다 */
+export const editionYearOf = (y: number, m: number) => (m >= 3 ? y : y - 1)
+
+/** 지금(KST)이 속한 판 연도 — 지난 해 캐시를 길게 둘지 가를 때 쓴다 */
+export const currentEditionYear = (now = new Date()) => {
+  const kst = new Date(now.getTime() + 9 * 3600_000)
+  return editionYearOf(kst.getUTCFullYear(), kst.getUTCMonth() + 1)
+}
+
 const seasonOf = (m: number): Season =>
   m >= 3 && m <= 5 ? 'spring' : m >= 6 && m <= 8 ? 'summer' : m >= 9 && m <= 11 ? 'autumn' : 'winter'
 
@@ -37,7 +46,7 @@ export const toIssue = (bulletin: Bulletin): Issue => {
   const jan1 = new Date(Date.UTC(y, 0, 1))
   const firstSunday = Date.UTC(y, 0, 1 + ((7 - jan1.getUTCDay()) % 7))
   const no = Math.floor((Date.UTC(y, m - 1, d) - firstSunday) / 864e5 / 7) + 1
-  return { bulletin, y, m, d, no: Math.max(no, 1), vol: y - VOLUME_BASE_YEAR, season: seasonOf(m), edition: m >= 3 ? y : y - 1 }
+  return { bulletin, y, m, d, no: Math.max(no, 1), vol: y - VOLUME_BASE_YEAR, season: seasonOf(m), edition: editionYearOf(y, m) }
 }
 
 /** '10월 25일' / 'October 25' */
