@@ -24,6 +24,8 @@ export interface Issue {
   no: number
   vol: number
   season: Season
+  /** 판 연도 — 3월~이듬해 2월을 한 해로(12·1·2월 겨울판이 한 해에 묶인다). 백엔드 edition_year 와 같은 규칙 */
+  edition: number
 }
 
 const seasonOf = (m: number): Season =>
@@ -35,12 +37,28 @@ export const toIssue = (bulletin: Bulletin): Issue => {
   const jan1 = new Date(Date.UTC(y, 0, 1))
   const firstSunday = Date.UTC(y, 0, 1 + ((7 - jan1.getUTCDay()) % 7))
   const no = Math.floor((Date.UTC(y, m - 1, d) - firstSunday) / 864e5 / 7) + 1
-  return { bulletin, y, m, d, no: Math.max(no, 1), vol: y - VOLUME_BASE_YEAR, season: seasonOf(m) }
+  return { bulletin, y, m, d, no: Math.max(no, 1), vol: y - VOLUME_BASE_YEAR, season: seasonOf(m), edition: m >= 3 ? y : y - 1 }
 }
 
 /** '10월 25일' / 'October 25' */
 export const issueDateText = (issue: Issue, language: string) =>
   new Date(Date.UTC(issue.y, issue.m - 1, issue.d)).toLocaleDateString(language === 'en' ? 'en-US' : 'ko-KR', {
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+
+/** 판 연도 안의 달 순서 — 3월이 첫 달, 이듬해 2월이 끝 */
+export const EDITION_MONTHS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2] as const
+
+/** '2026' / 겨울만 해를 넘겨 '2026–27' */
+export const editionYearText = (edition: number, season?: Season | 'all') =>
+  season === 'winter' ? `${edition}–${String((edition + 1) % 100).padStart(2, '0')}` : String(edition)
+
+/** '2026년 10월 25일' / 'October 25, 2026' — 지난 주보는 해가 섞이니 연도까지 */
+export const issueFullDateText = (issue: Issue, language: string) =>
+  new Date(Date.UTC(issue.y, issue.m - 1, issue.d)).toLocaleDateString(language === 'en' ? 'en-US' : 'ko-KR', {
+    year: 'numeric',
     month: 'long',
     day: 'numeric',
     timeZone: 'UTC',

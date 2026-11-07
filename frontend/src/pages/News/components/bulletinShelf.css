@@ -215,6 +215,82 @@
 }
 
 /* ── 커버플로우 ─────────────────────────────────── */
+/* 판 연도 넘기기 — ‹ 2026 › . 해가 하나뿐이면 화살표 없이 연도만 */
+.bsf-year {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  min-height: 34px;
+  border-radius: 999px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+}
+.bsf-year-label {
+  min-width: 3.4em;
+  padding: 0 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+}
+.bsf-year-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  color: var(--brand);
+  transition: background 0.2s, opacity 0.2s;
+}
+.bsf-year-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.bsf-year-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* 계절 칩 줄 — 연도 아래, 넘치면 옆으로 */
+.bsf-season-row {
+  margin-top: 10px;
+  padding: 0 4px;
+  overflow-x: auto;
+}
+
+.bsf-year-empty {
+  margin: 18px 4px 6px;
+  padding: 28px 16px;
+  border-radius: 18px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-container);
+  border: 1px dashed var(--card-border);
+}
+
+/* 달 바로 가기 — 카드 설명 아래 작은 눈금 줄, 지금 카드의 달이 파랑으로 */
+.bsf-months {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 2px 4px 6px;
+}
+/* 넘치지 않을 땐 가운데, 넘치면 왼쪽부터 (justify-content:center 는 넘칠 때 앞이 잘린다) */
+.bsf-months > :first-child { margin-left: auto; }
+.bsf-months > :last-child { margin-right: auto; }
+.bsf-month {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  transition: background 0.2s, color 0.2s;
+}
+.bsf-month:hover { background: var(--surface-container); }
+.bsf-month.is-on {
+  color: #fff;
+  background: var(--brand);
+}
+
 .bsf-season-chip {
   font-size: 12px;
   font-weight: 700;
@@ -291,6 +367,10 @@
 
 @media (min-width: 1024px) {
   .bsf-season-chip { font-size: 14px; padding: 7px 13px; }
+  .bsf-year { min-height: 40px; }
+  .bsf-year-label { font-size: 15px; }
+  .bsf-year-btn { width: 32px; height: 32px; }
+  .bsf-month { font-size: 14px; padding: 6px 12px; }
   .bsf-flow { --bsf-card-w: 168px; --bsf-persp: 900px; margin: 0; }
   .bsf-nav {
     position: absolute;

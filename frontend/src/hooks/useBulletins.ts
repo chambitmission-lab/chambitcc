@@ -1,9 +1,9 @@
 // 주보(이미지 주보) React Query 훅 — /news 주보 탭이 raw fetch 로 매 진입마다
 // 스켈레톤을 띄우던 것을 전역 캐시 우선 전략(캐시 먼저 그리고 stale 이면 백그라운드
 // 재조회)에 태운다. 같은 페이지의 새가족·행사 섹션과 동일한 패턴.
-import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { preload } from 'react-dom'
-import { getBulletinDetail, getBulletins } from '../api/bulletin'
+import { getBulletinDetail, getBulletins, getBulletinYears, getBulletinsByYear } from '../api/bulletin'
 
 export const bulletinKeys = {
   all: ['bulletins'] as const,
@@ -11,6 +11,10 @@ export const bulletinKeys = {
   detail: (id: number) => [...bulletinKeys.all, 'detail', id] as const,
   /** 목록 히어로의 쪽 미리보기 — 조회수를 올리지 않는 조회라 detail 과 캐시를 나눈다 */
   preview: (id: number) => [...bulletinKeys.all, 'preview', id] as const,
+  /** 주보가 있는 판 연도 목록 */
+  years: () => [...bulletinKeys.all, 'years'] as const,
+  /** 판 연도(3월~이듬해 2월) 한 해치 — 앞 두 칸으로 모든 연도 캐시를 한 번에 훑을 수 있다 */
+  year: (year: number) => [...bulletinKeys.all, 'year', year] as const,
 }
 
 /** 목록 queryFn — 훅과 선요청(pages/News/prefetch.ts)이 같은 함수를 써서 캐시를 공유한다 */
@@ -44,3 +48,17 @@ export const prefetchBulletinList = (qc: QueryClient, limit = 20) =>
 
 /** 히어로 쪽 미리보기 신선도 — prefetch 와 BulletinShelf 의 useQuery 가 같은 값을 쓴다 */
 export const BULLETIN_PREVIEW_STALE = 10 * 60_000
+
+/** 주보가 있는 판 연도(최신 먼저) — 지난 주보 연도 넘기기 */
+export const useBulletinYears = () =>
+  useQuery({ queryKey: bulletinKeys.years(), queryFn: getBulletinYears, staleTime: 10 * 60_000 })
+
+/** 판 연도 한 해치 주보 — 지난 해는 바뀔 일이 거의 없어 길게 둔다 */
+export const useBulletinsByYear = (year: number | null) =>
+  useQuery({
+    queryKey: bulletinKeys.year(year ?? 0),
+    queryFn: () => getBulletinsByYear(year as number),
+    enabled: year != null,
+    staleTime: 5 * 60_000,
+    placeholderData: keepPreviousData,
+  })

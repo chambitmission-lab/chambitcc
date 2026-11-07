@@ -184,9 +184,15 @@ const News = () => {
   }, [deepLinkId])
 
   if (viewMode === 'view' && selectedBulletin) {
-    // 마무리 카드의 '지난 주 주보' — 목록은 최신순이라 바로 다음 칸
-    const idx = bulletins.findIndex(b => b.id === selectedBulletin.id)
-    const older = idx >= 0 ? bulletins[idx + 1] : undefined
+    // 마무리 카드의 '지난 주 주보' — 최근 목록(20개)에 지난 주보 연도별 캐시까지 합쳐 날짜순으로 바로 다음 칸.
+    // 연도별로 연 옛 주보도, 최근 목록 끝 주보도 그 앞 주를 찾는다
+    const known = new Map<number, Bulletin>()
+    for (const b of bulletins) known.set(b.id, b)
+    for (const [, list] of qc.getQueriesData<Bulletin[]>({ queryKey: [...bulletinKeys.all, 'year'] }))
+      for (const b of list ?? []) known.set(b.id, b)
+    const ordered = [...known.values()].sort((a, b) => b.bulletin_date.localeCompare(a.bulletin_date))
+    const idx = ordered.findIndex(b => b.id === selectedBulletin.id)
+    const older = idx >= 0 ? ordered[idx + 1] : undefined
     return (
       <InstagramBulletinViewer
         key={selectedBulletin.id}

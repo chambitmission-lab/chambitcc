@@ -4,11 +4,23 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getBulletinDetail } from '../../../api/bulletin'
-import { BULLETIN_PREVIEW_STALE, bulletinKeys } from '../../../hooks/useBulletins'
+import { BULLETIN_PREVIEW_STALE, bulletinKeys, useBulletinYears, useBulletinsByYear } from '../../../hooks/useBulletins'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Bulletin } from '../../../types/bulletin'
 import { BulletinIcon } from './NewsIcons'
-import { SEASON_LABEL, fill, issueDateText, pageMini, pageThumb, toIssue, type Issue, type Season } from './bulletinIssue'
+import {
+  EDITION_MONTHS,
+  SEASON_LABEL,
+  editionYearText,
+  fill,
+  issueDateText,
+  issueFullDateText,
+  pageMini,
+  pageThumb,
+  toIssue,
+  type Issue,
+  type Season,
+} from './bulletinIssue'
 import { warmImage, warmPagesAround } from './bulletinWarm'
 import './bulletinShelf.css'
 
@@ -26,19 +38,68 @@ interface ShelfProps {
 }
 
 const BulletinShelf = ({ bulletins, openingId, onOpen }: ShelfProps) => {
-  const { t } = useLanguage()
   const issues = useMemo(() => bulletins.map(toIssue), [bulletins])
-  const [latest, ...past] = issues
+  const latest = issues[0]
 
   return (
     <div>
       {latest && <Hero issue={latest} busy={openingId === latest.bulletin.id} onOpen={onOpen} />}
-      {past.length > 0 && (
-        <section className="mt-7 lg:mt-9" aria-label={t('newsBulletinPast')}>
-          <CoverFlow issues={past} openingId={openingId} onOpen={onOpen} />
-        </section>
-      )}
+      {latest && <PastShelf latest={latest} recent={issues} openingId={openingId} onOpen={onOpen} />}
     </div>
+  )
+}
+
+// ── 지난 주보 — 판 연도(3월~이듬해 2월)별로 ──────────────
+// 최근 목록(20개)만으로는 몇 달 지나면 옛 주보가 사라져서, 연도마다 그 해 주보 전체를 따로 받는다.
+// 연도 목록·한 해치가 오기 전에는 이미 받은 최근 목록에서 그 해 것만 골라 먼저 그린다
+const PastShelf = ({
+  latest,
+  recent,
+  openingId,
+  onOpen,
+}: {
+  latest: Issue
+  recent: Issue[]
+  openingId: number | null
+  onOpen: ShelfProps['onOpen']
+}) => {
+  const { t } = useLanguage()
+  const { data: yearRows } = useBulletinYears()
+  const years = useMemo(
+    () => (yearRows?.length ? yearRows.map(r => r.year) : [...new Set(recent.map(i => i.edition))]),
+    [yearRows, recent],
+  )
+  const [picked, setPicked] = useState<number | null>(null)
+  const year = picked ?? years[0] ?? latest.edition
+  const { data: yearList, isFetching } = useBulletinsByYear(year)
+
+  const past = useMemo(() => {
+    // 한 해치와 최근 목록을 합친다 — 백엔드가 year 를 모르던 시절엔 최근 10개만 돌아와 오히려 줄어들었다
+    const byId = new Map<number, Issue>()
+    for (const i of [...recent, ...(yearList ?? []).map(toIssue)]) byId.set(i.bulletin.id, i)
+    return [...byId.values()]
+      .filter(i => i.edition === year && i.bulletin.id !== latest.bulletin.id)
+      .sort((a, b) => b.bulletin.bulletin_date.localeCompare(a.bulletin.bulletin_date))
+  }, [yearList, recent, year, latest.bulletin.id])
+
+  // 한 해뿐이고 지난 주보도 없으면(첫 주보) 칸을 그리지 않는다 — 예전과 같다
+  if (past.length === 0 && years.length <= 1 && !isFetching) return null
+
+  const idx = years.indexOf(year)
+  return (
+    <section className="mt-7 lg:mt-9" aria-label={t('newsBulletinPast')}>
+      <CoverFlow
+        key={year}
+        issues={past}
+        openingId={openingId}
+        onOpen={onOpen}
+        year={year}
+        older={idx >= 0 ? years[idx + 1] : undefined}
+        newer={idx > 0 ? years[idx - 1] : undefined}
+        onYear={setPicked}
+        loading={isFetching && past.length === 0}
+      />
+    </section>
   )
 }
 
@@ -207,10 +268,20 @@ const CoverFlow = ({
   issues,
   openingId,
   onOpen,
+  year,
+  older,
+  newer,
+  onYear,
+  loading,
 }: {
   issues: Issue[]
   openingId: number | null
   onOpen: ShelfProps['onOpen']
+  year: number
+  older?: number
+  newer?: number
+  onYear: (year: number) => void
+  loading: boolean
 }) => {
   const { t, language } = useLanguage()
   const qc = useQueryClient()
@@ -347,11 +418,52 @@ const CoverFlow = ({
 
   const current = list[center]
 
+  // 달 바로 가기 — 판 연도 순서(3월→이듬해 2월)로, 지금 목록에 있는 달만
+  const months = useMemo(() => {
+    const has = new Set(list.map(i => i.m))
+    return EDITION_MONTHS.filter(m => has.has(m))
+  }, [list])
+  const monthLabel = (m: number) =>
+    new Date(Date.UTC(2000, m - 1, 1)).toLocaleDateString(language === 'en' ? 'en-US' : 'ko-KR', {
+      month: 'short',
+      timeZone: 'UTC',
+    })
+
   return (
     <>
       <div className="flex items-center justify-between gap-2 px-1">
         <h3 className="text-[17px] lg:text-[20px] font-bold text-ink-strong">{t('newsBulletinPast')}</h3>
-        {seasons.length > 1 && (
+        <div className="bsf-year" role="group">
+          {(older !== undefined || newer !== undefined) && (
+            <button
+              type="button"
+              className="bsf-year-btn"
+              onClick={() => older !== undefined && onYear(older)}
+              disabled={older === undefined}
+              aria-label={t('newsBulletinYearOlder')}
+            >
+              <span className="rotate-180 inline-flex"><ChevronRight size={14} /></span>
+            </button>
+          )}
+          <span className="bsf-year-label" aria-live="polite">
+            {editionYearText(year, season)}
+          </span>
+          {(older !== undefined || newer !== undefined) && (
+            <button
+              type="button"
+              className="bsf-year-btn"
+              onClick={() => newer !== undefined && onYear(newer)}
+              disabled={newer === undefined}
+              aria-label={t('newsBulletinYearNewer')}
+            >
+              <ChevronRight size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {seasons.length > 1 && (
+        <div className="bsf-season-row scrollbar-hide">
           <div className="flex gap-1.5">
             {(['all', ...seasons] as const).map(s => (
               <button
@@ -365,10 +477,14 @@ const CoverFlow = ({
               </button>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="relative">
+      {list.length === 0 && (
+        <p className="bsf-year-empty">{t(loading ? 'newsBulletinYearLoading' : 'newsBulletinYearEmpty')}</p>
+      )}
+
+      <div className={`relative ${list.length === 0 ? 'hidden' : ''}`}>
         <div ref={trackRef} className="bsf-flow scrollbar-hide" onScroll={() => { if (!anim.current) schedule() }}>
           {list.map((issue, i) => (
             <button
@@ -425,13 +541,30 @@ const CoverFlow = ({
       {current && (
         <div className="text-center pb-2" aria-live="polite">
           <p className="text-[17px] lg:text-[20px] font-bold text-ink-strong">
-            {issueDateText(current, language)}
+            {issueFullDateText(current, language)}
           </p>
           <p className="mt-0.5 text-[13px] lg:text-[15px] font-semibold text-gray-500 dark:text-white/55">
             {fill(t('newsBulletinIssue'), { vol: current.vol, no: current.no })} · {t(SEASON_LABEL[current.season])}
             {current.bulletin.page_count ? ` · ${fill(t('newsBulletinPageCount'), { n: current.bulletin.page_count })}` : ''}
           </p>
         </div>
+      )}
+
+      {months.length > 1 && (
+        <nav className="bsf-months scrollbar-hide" aria-label={t('newsBulletinMonthJump')}>
+          {months.map(m => (
+            <button
+              key={m}
+              type="button"
+              className={`bsf-month ${current?.m === m ? 'is-on' : ''}`}
+              aria-current={current?.m === m || undefined}
+              // 목록이 최신순이라 그 달의 첫 칸 = 그 달 마지막 주일
+              onClick={() => scrollToCard(list.findIndex(i => i.m === m))}
+            >
+              {monthLabel(m)}
+            </button>
+          ))}
+        </nav>
       )}
     </>
   )

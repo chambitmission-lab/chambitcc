@@ -22,6 +22,18 @@ export const getBulletins = async (skip = 0, limit = 10, fresh = false): Promise
   return []
 }
 
+/** 판 연도(3월~이듬해 2월) 한 해의 공개 주보 전체 — 최신순. 지난 주보 연도 보기용 */
+export const getBulletinsByYear = (year: number): Promise<Bulletin[]> =>
+  request<Bulletin[]>(`/bulletins?year=${year}`, {
+    errorMessage: '주보 목록을 불러오는데 실패했습니다',
+  }).then(data => (Array.isArray(data) ? data : []))
+
+/** 공개 주보가 있는 판 연도 목록(최신 먼저) */
+export const getBulletinYears = (): Promise<{ year: number; count: number }[]> =>
+  request<{ year: number; count: number }[]>('/bulletins/years', {
+    errorMessage: '주보 연도를 불러오는데 실패했습니다',
+  }).then(data => (Array.isArray(data) ? data : []))
+
 /**
  * 주보 상세 조회
  *
