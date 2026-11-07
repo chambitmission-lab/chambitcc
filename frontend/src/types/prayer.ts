@@ -29,6 +29,8 @@ export interface Prayer {
   answered_at?: string  // 응답 시간
   testimony?: string  // 간증 내용
   emotion?: PrayerEmotion  // 감정 태그 (주간 스토리용)
+  /** 프론트 전용 — 등록 직후 서버 응답 전의 임시 카드(가짜 id). 카드는 이 동안 눌리지 않는다 */
+  pending?: boolean
   created_at: string
   time_ago: string
   recommended_verses?: RecommendedVerses  // 성경 구절 추천 (목록 응답에는 없음 — 아래 count 로 배지만 그린다)

@@ -56,6 +56,7 @@ import { usePrayerVisibility } from '../../hooks/usePrayerVisibility'
 import { useBottomStickyRail } from '../../hooks/useBottomStickyRail'
 import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { smoothScrollToElement } from '../../utils/scrollTo'
 import { showToast } from '../../utils/toast'
 import { safeStorage } from '../../utils/safeStorage'
 import { preloadNavRoutes, preloadRoute, isRoutePreloaded } from '../../utils/routePreload'
@@ -629,6 +630,7 @@ const NewHome = () => {
             <PrayerComposer
               sort={sort}
               groupId={selectedGroupId}  // ✅ selectedGroupId 전달
+              filter={selectedFilter}
               initialContent={composerPrefill}
               onClose={() => {
                 setShowComposer(false)
@@ -641,6 +643,12 @@ const NewHome = () => {
                 if (prayer.is_private) {
                   setSelectedGroupId(null)
                   setSelectedFilter('my_prayers')
+                }
+                // 피드를 한참 내려본 뒤 FAB 로 썼으면 새 카드는 맨 위에 꽂히는데 스크롤은 그 자리라
+                // "올라간 게 맞나?" 싶다 — 피드 머리가 화면 위로 지나가 있을 때만 거기로 올린다
+                const feedEl = feedRef.current
+                if (feedEl && feedEl.getBoundingClientRect().top < 0) {
+                  smoothScrollToElement(feedEl, { offset: 72 })
                 }
               }}
             />

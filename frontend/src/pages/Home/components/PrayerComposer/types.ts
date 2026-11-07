@@ -1,4 +1,4 @@
-import type { Prayer, SortType } from '../../../../types/prayer'
+import type { Prayer, PrayerFilterType, SortType } from '../../../../types/prayer'
 
 export interface PrayerComposerProps {
   onClose: () => void
@@ -6,6 +6,9 @@ export interface PrayerComposerProps {
   onSuccess?: (prayer: Prayer) => void
   sort?: SortType
   groupId?: number | null  // ✅ groupId 추가
+  /** 호출 화면이 보고 있는 목록 키의 나머지 — 임시 카드를 "지금 보는 목록"에 꽂기 위해 */
+  filter?: PrayerFilterType | null
+  isAnswered?: boolean
   /** 다른 화면에서 이어 쓰기 — 상황별 성구의 '이 마음으로 기도하기'(문장 + 붙든 말씀) */
   initialContent?: string
 }

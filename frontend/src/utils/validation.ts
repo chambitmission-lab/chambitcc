@@ -1,4 +1,7 @@
 // 입력 검증 유틸리티
+
+/** 기도 본문 최소 글자 수 — 백엔드 PrayerCreate.content(min_length=10)와 같은 값. 작성 시트의 "N자만 더" 힌트도 이 값을 본다 */
+export const PRAYER_CONTENT_MIN = 10
 export const validation = {
   // 제목 검증 (선택 — 비워도 되며, 쓴 경우 길이만 확인)
   validateTitle: (title: string): { valid: boolean; error?: string } => {
@@ -23,8 +26,8 @@ export const validation = {
       return { valid: false, error: '내용을 입력해주세요' }
     }
     
-    if (trimmed.length < 10) {
-      return { valid: false, error: '내용은 최소 10자 이상이어야 합니다' }
+    if (trimmed.length < PRAYER_CONTENT_MIN) {
+      return { valid: false, error: `내용은 최소 ${PRAYER_CONTENT_MIN}자 이상이어야 합니다` }
     }
     
     if (trimmed.length > 1000) {

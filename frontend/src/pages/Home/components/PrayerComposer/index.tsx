@@ -136,7 +136,7 @@ const makeBurst = (accent: string): BurstPiece[] =>
     }
   })
 
-const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initialContent }: PrayerComposerProps) => {
+const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, filter, isAnswered, initialContent }: PrayerComposerProps) => {
   const { t, language } = useLanguage()
   const ko = language === 'ko'
   const {
@@ -156,6 +156,10 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
     isLoggedIn,
     displayName,
     avatarUrl,
+    charsToGo,
+    pendingDraft,
+    restoreDraft,
+    discardDraft,
     setTitle,
     setContent,
     setIsAnonymous,
@@ -165,7 +169,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
     setEmotion,
     handleSubmit,
     handleVersesModalClose,
-  } = usePrayerComposer({ onClose, onSuccess, sort, groupId, initialContent })
+  } = usePrayerComposer({ onClose, onSuccess, sort, groupId, filter, isAnswered, initialContent })
 
   const { data: groupsData } = useMyGroups()
   const groups = groupsData?.data.items || []
@@ -265,7 +269,14 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
   }
 
   const handleContentKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!slashMatch || e.nativeEvent.isComposing) return
+    if (e.nativeEvent.isComposing) return
+    // PC: ⌘/Ctrl+Enter 로 등록 — 마우스로 버튼까지 내려가지 않아도 된다
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      if (canSubmit) e.currentTarget.form?.requestSubmit()
+      return
+    }
+    if (!slashMatch) return
     if (e.key === 'Escape') {
       // 모달 닫기(Esc)보다 말씀 찾기 닫기가 먼저
       e.preventDefault()
@@ -337,7 +348,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
 
   const ratio = Math.min(1, content.length / MAX_LEN)
   const nearLimit = MAX_LEN - content.length <= 50
-  const canSubmit = content.trim().length > 0 && !isCreating && !celebrating
+  const canSubmit = content.trim().length > 0 && charsToGo === 0 && !isCreating && !celebrating
 
   const RING_R = 9
   const RING_C = 2 * Math.PI * RING_R
@@ -364,7 +375,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
           글씨·버튼·타일을 키우고, 작성 칸이 남는 높이를 전부 차지한다. 모바일은 그대로 */}
       <div className="thanks-backdrop fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/55 backdrop-blur-[2px] sm:p-4 lg:p-6 overflow-hidden">
         <div
-          className="thanks-sheet relative w-full sm:max-w-[440px] lg:max-w-[1320px] lg:w-[calc(94vw/var(--az,1))] max-h-[92vh] lg:max-h-none lg:h-[calc(92vh/var(--az,1))] lg:flex lg:flex-col overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
+          className="thanks-sheet relative w-full sm:max-w-[440px] lg:max-w-[1320px] lg:w-[calc(94vw/var(--az,1))] max-h-[calc(var(--vvh,100dvh)*0.92)] lg:max-h-none lg:h-[calc(92vh/var(--az,1))] lg:flex lg:flex-col overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
           role="dialog"
           aria-modal="true"
         >
@@ -693,6 +704,37 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
               <div className="lg:min-w-0 lg:flex lg:flex-col">
                 {/* 기도 내용 — PC에선 남는 높이를 전부 채운다 */}
                 <div className="px-5 lg:px-0 pt-4 lg:pt-0 lg:flex-1 lg:flex lg:flex-col">
+                  {/* 쓰다 만 기도 — 이어 쓸지 묻는다. 새로 쓰기 시작하면 조용히 내려간다 */}
+                  {pendingDraft && (
+                    <div
+                      className="thanks-swap mb-2.5 lg:mb-3 flex items-center gap-2 lg:gap-3 rounded-xl px-3 py-2 lg:px-4 lg:py-3 border border-dashed"
+                      style={{ borderColor: 'color-mix(in srgb, var(--brand) 45%, transparent)', background: 'color-mix(in srgb, var(--brand) 6%, var(--surface-inset))' }}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11.5px] lg:text-[14.5px] font-bold text-brand">
+                          {ko ? '쓰다 만 기도가 있어요' : 'You left a prayer unfinished'}
+                        </p>
+                        <p className="truncate text-[11.5px] lg:text-[14px] text-ink-muted">
+                          {pendingDraft.content.replace(/\s+/g, ' ').trim()}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={restoreDraft}
+                        className="shrink-0 px-2.5 py-1.5 lg:px-4 lg:py-2 rounded-full bg-brand text-[var(--on-brand)] text-[11.5px] lg:text-[14.5px] font-bold active:scale-95 transition-transform"
+                      >
+                        {ko ? '이어 쓰기' : 'Continue'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={discardDraft}
+                        aria-label={ko ? '초안 지우기' : 'Discard draft'}
+                        className="shrink-0 w-7 h-7 lg:w-9 lg:h-9 flex items-center justify-center rounded-full text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                      >
+                        <span className="material-icons-outlined text-[16px] lg:text-[20px]">close</span>
+                      </button>
+                    </div>
+                  )}
                   <div
                     className="rounded-2xl border px-4 pt-3.5 pb-2.5 lg:px-7 lg:pt-5 lg:pb-4 lg:flex-1 lg:flex lg:flex-col transition-colors focus-within:border-brand lg:focus-within:shadow-[0_0_0_3px_var(--brand-soft)]"
                     style={{ background: 'var(--surface-inset)', borderColor: 'var(--card-border)' }}
@@ -813,6 +855,12 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, initial
                       )}
                       </div>
                       <div className="flex items-center gap-1.5 lg:gap-2 lg:[&>svg]:w-7 lg:[&>svg]:h-7">
+                        {/* 최소 글자 수는 버튼을 눌러 알게 하지 않고 미리 알려 준다 */}
+                        {charsToGo > 0 && (
+                          <span key={charsToGo} className="thanks-swap text-[11px] lg:text-[14.5px] font-semibold text-brand tabular-nums">
+                            {ko ? `${charsToGo}자만 더 적어주세요` : `${charsToGo} more to go`}
+                          </span>
+                        )}
                         <span
                           className="text-[11px] lg:text-[14.5px] font-bold tabular-nums"
                           style={{ color: nearLimit ? 'var(--amber)' : 'var(--text-muted)' }}

@@ -120,7 +120,11 @@ const PrayerArticle = ({
 
   return (
     <article
-      className={`prayer-card !bg-transparent !border-0 mb-5 cursor-pointer ${prayer.is_answered ? 'answered-article' : ''}`}
+      className={`prayer-card !bg-transparent !border-0 mb-5 cursor-pointer ${prayer.is_answered ? 'answered-article' : ''} ${
+        // 서버 응답 전 임시 카드 — 가짜 id 로 상세·댓글이 열리지 않게 잠시 눌리지 않는다
+        prayer.pending ? 'pointer-events-none opacity-70' : ''
+      }`}
+      aria-busy={prayer.pending || undefined}
       onClick={handleArticleClick}
       style={cssVars as React.CSSProperties}
     >

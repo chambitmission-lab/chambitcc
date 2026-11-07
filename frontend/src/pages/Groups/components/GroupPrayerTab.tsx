@@ -265,6 +265,8 @@ const GroupPrayerTab = ({ groupId }: GroupPrayerTabProps) => {
         <PrayerComposer
           sort={sort}
           groupId={groupId}
+          filter="all"
+          isAnswered={graceMode ? true : undefined}
           onClose={() => setShowComposer(false)}
           onSuccess={() => {
             /* Optimistic update가 캐시를 갱신한다 */

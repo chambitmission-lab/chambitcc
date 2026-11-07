@@ -119,6 +119,119 @@ export interface PrayerFeedback {
   cancelAnswer?: MutationFeedback<unknown, { prayerId: number }>
 }
 
+/**
+ * 기도 등록 mutation — 목록 구독 없이 "쓰기"만 한다.
+ *
+ * 작성 시트가 usePrayersInfinite 를 통째로 쓰면 시트를 열 때마다 목록 옵저버가 하나 더 붙어,
+ * 홈이 '내 기도' 같은 필터 탭일 때 보이지도 않는 전체 첫 페이지를 받아 오고, 낙관적 삽입도
+ * 그 보이지 않는 키에 들어갔다. 시트는 이 훅에 "화면이 보고 있는 키"(sort·groupId·filter·
+ * isAnswered)를 그대로 넘겨 임시 카드가 지금 보는 목록 맨 위에 꽂히게 한다.
+ */
+export const useCreatePrayer = (
+  sort: SortType = 'popular',
+  groupId?: number | null,
+  filter?: PrayerFilterType | null,
+  isAnswered?: boolean,
+  feedback?: PrayerFeedback,
+  options?: { beforeInvalidate?: () => void },
+) => {
+  const queryClient = useQueryClient()
+  const currentUser = getCurrentUser()
+  // 낙관적 업데이트 키는 반드시 화면 쿼리와 "완전히 같은" 키여야 한다 — username/isAnswered
+  // 를 빼먹으면 'anonymous' 자리로 채워진 다른 키에 임시 기도를 써서 즉시 반영이 조용히 죽는다.
+  const listKey = prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered)
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreatePrayerRequest) => createPrayer(data),
+    onMutate: async (data) => {
+      // 진행 중인 쿼리 취소
+      await queryClient.cancelQueries({ queryKey: listKey })
+
+      // 이전 데이터 백업
+      const previousData = queryClient.getQueryData(listKey)
+
+      // 비밀기도는 '내 기도' 탭에만 존재한다 — 전체/그룹 피드에 낙관적으로 꽂아 넣으면
+      // 서버 재조회 때 사라져 "글이 날아갔다"로 보인다
+      if (data.is_private && filter !== 'my_prayers') {
+        return { previousData }
+      }
+
+      // Optimistic Update - 임시 기도 추가. pending 은 서버 응답 전 카드를 눌러
+      // 가짜 id 로 상세가 열리는 것을 막는 표시(PrayerArticle 이 본다)
+      const tempPrayer: Prayer = {
+        id: Date.now(), // 임시 ID
+        display_name: data.display_name || '익명',
+        title: data.title,
+        content: data.content,
+        created_at: new Date().toISOString(),
+        time_ago: '방금 전',
+        prayer_count: 0,
+        reply_count: 0,
+        is_prayed: false,
+        is_owner: true,
+        group_id: data.group_id,
+        is_private: data.is_private,
+        shared_with_pastor: data.shared_with_pastor,
+        emotion: data.emotion,
+        pending: true,
+      }
+
+      queryClient.setQueryData<PrayerListCache>(listKey, (old) => {
+        if (!old) return old
+
+        const firstPage = old.pages[0]
+        return {
+          ...old,
+          pages: [
+            {
+              ...firstPage,
+              data: {
+                ...firstPage.data,
+                items: [tempPrayer, ...firstPage.data.items],
+              },
+            },
+            ...old.pages.slice(1),
+          ],
+        }
+      })
+
+      return { previousData }
+    },
+    onError: (error: Error, variables, context) => {
+      // 에러 시 롤백
+      if (context?.previousData) {
+        queryClient.setQueryData(listKey, context.previousData)
+      }
+      feedback?.create?.onError?.(error, variables)
+    },
+    onSuccess: (data, variables) => {
+      feedback?.create?.onSuccess?.(data, variables)
+      // 나누기 버튼 소인 — 오늘 한 장 보냈다
+      markPostcardSent()
+
+      // 실제 데이터로 갱신 (모든 사용자의 캐시) — 내 글이 제자리에 서도록 서버 순서로 받는다
+      options?.beforeInvalidate?.()
+      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+
+      // 기도방 통계(기도 수·응답률) 캐시 무효화 — 방 홈에 즉시 반영
+      invalidateGroupStats(queryClient)
+
+      // 프로필 캐시 무효화 (내 기도 +1)
+      // 'profile' 전체 — detail뿐 아니라 프로필 탭 무한 목록(my-prayers 등)도
+      // stale 처리해야 다음 방문 때 새 항목이 반영된다
+      queryClient.invalidateQueries({
+        queryKey: profileKeys.all,
+        refetchType: 'none',
+      })
+    },
+  })
+
+  return {
+    createPrayer: (data: CreatePrayerRequest) => createMutation.mutateAsync(data),
+    isCreating: createMutation.isPending,
+  }
+}
+
 export const usePrayersInfinite = (
   sort: SortType = 'popular',
   groupId?: number | null,
@@ -215,91 +328,11 @@ export const usePrayersInfinite = (
     onError: feedback?.toggle?.onError,
   })
 
-  // 기도 생성 Mutation
-  // 낙관적 업데이트 키는 반드시 화면 쿼리와 "완전히 같은" 키여야 한다 — username/isAnswered
-  // 를 빼먹으면 'anonymous' 자리로 채워진 다른 키에 임시 기도를 써서 즉시 반영이 조용히 죽는다.
-  const listKey = prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered)
-  const createMutation = useMutation({
-    mutationFn: (data: CreatePrayerRequest) => createPrayer(data),
-    onMutate: async (data) => {
-      // 진행 중인 쿼리 취소
-      await queryClient.cancelQueries({ queryKey: listKey })
-
-      // 이전 데이터 백업
-      const previousData = queryClient.getQueryData(listKey)
-
-      // 비밀기도는 '내 기도' 탭에만 존재한다 — 전체/그룹 피드에 낙관적으로 꽂아 넣으면
-      // 서버 재조회 때 사라져 "글이 날아갔다"로 보인다
-      if (data.is_private && filter !== 'my_prayers') {
-        return { previousData }
-      }
-
-      // Optimistic Update - 임시 기도 추가
-      const tempPrayer: Prayer = {
-        id: Date.now(), // 임시 ID
-        display_name: data.display_name || '익명',
-        title: data.title,
-        content: data.content,
-        created_at: new Date().toISOString(),
-        time_ago: '방금 전',
-        prayer_count: 0,
-        reply_count: 0,
-        is_prayed: false,
-        is_owner: true,
-        group_id: data.group_id,
-        is_private: data.is_private,
-        shared_with_pastor: data.shared_with_pastor,
-      }
-
-      queryClient.setQueryData<PrayerListCache>(listKey, (old) => {
-        if (!old) return old
-
-        const firstPage = old.pages[0]
-        return {
-          ...old,
-          pages: [
-            {
-              ...firstPage,
-              data: {
-                ...firstPage.data,
-                items: [tempPrayer, ...firstPage.data.items],
-              },
-            },
-            ...old.pages.slice(1),
-          ],
-        }
-      })
-
-      return { previousData }
-    },
-    onError: (error: Error, variables, context) => {
-      // 에러 시 롤백
-      if (context?.previousData) {
-        queryClient.setQueryData(listKey, context.previousData)
-      }
-      feedback?.create?.onError?.(error, variables)
-    },
-    onSuccess: (data, variables) => {
-      feedback?.create?.onSuccess?.(data, variables)
-      // 나누기 버튼 소인 — 오늘 한 장 보냈다
-      markPostcardSent()
-
-      // 실제 데이터로 갱신 (모든 사용자의 캐시) — 내 글이 제자리에 서도록 서버 순서로 받는다
-      requestServerOrder()
-      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
-
-      // 기도방 통계(기도 수·응답률) 캐시 무효화 — 방 홈에 즉시 반영
-      invalidateGroupStats(queryClient)
-
-      // 프로필 캐시 무효화 (내 기도 +1)
-      // 'profile' 전체 — detail뿐 아니라 프로필 탭 무한 목록(my-prayers 등)도
-      // stale 처리해야 다음 방문 때 새 항목이 반영된다
-      queryClient.invalidateQueries({
-        queryKey: profileKeys.all,
-        refetchType: 'none',
-      })
-    },
-  })
+  // 기도 생성 — 목록 훅과 분리된 useCreatePrayer 를 같은 키로 쓴다(아래 참고).
+  // 이 훅의 피드 인스턴스에서 올리면 재조회가 서버 순서를 따르도록 한다
+  const { createPrayer: createPrayerFn, isCreating } = useCreatePrayer(
+    sort, groupId, filter, isAnswered, feedback, { beforeInvalidate: requestServerOrder },
+  )
 
   // 응답 등록 Mutation (응답의 전당)
   // - 등록/수정 모두 처리: 이미 응답된 기도면 PUT, 아니면 POST
@@ -411,8 +444,8 @@ export const usePrayersInfinite = (
     isFetchingMore: query.isFetchingNextPage,
     handlePrayerToggle,
     isToggling,
-    createPrayer: (data: CreatePrayerRequest) => createMutation.mutateAsync(data),
-    isCreating: createMutation.isPending,
+    createPrayer: createPrayerFn,
+    isCreating,
     answerPrayer: (prayerId: number, testimony: string) =>
       answerMutation.mutateAsync({ prayerId, testimony }),
     updatePrayerAnswer: (prayerId: number, testimony: string) =>
