@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   ALL_EPISODES,
   PROMISE_ACT,
@@ -8,12 +9,19 @@ import {
   nextUnread,
   nextUnreadPromise,
 } from './data'
-import type { StoryEpisode } from './storyTypes'
+import type { StoryEpisodeToc } from './storyTypes'
 import { useStoryProgress } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
-import StoryFinale from './StoryFinale'
+import { warmEpisode, warmEpisodeShell } from './storyWarm'
 import { useVerseScroll } from '../hooks/useVerseScroll'
+import { useTheme } from '../../../contexts/ThemeContext'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../../utils/idlePreload'
 import './Story.css'
+
+// 완주 상영회·벽화 — 42화를 다 읽은 사람만 보는 화면이라 지도 청크에 싣지 않는다(코드+CSS 약 9KB).
+// 마지막 화에 닿으면(아래 유휴 예열) 미리 받아 두어 완주 순간엔 바로 뜬다
+const StoryFinale = lazy(() => import('./StoryFinale'))
+const warmFinale = () => void import('./StoryFinale').catch(() => undefined)
 
 // 화 번호(1~42) — 맵의 카드 격자와 레일에서 순서를 보여 준다
 const EPISODE_NO = new Map(ALL_EPISODES.map((e, i) => [e.id, i + 1]))
@@ -26,7 +34,15 @@ const EPISODE_NO = new Map(ALL_EPISODES.map((e, i) => [e.id, i + 1]))
 const StoryMap = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { readIds } = useStoryProgress()
+  const queryClient = useQueryClient()
+  const { theme } = useTheme()
+  const { readIds, ready } = useStoryProgress()
+
+  // 화 카드·이어 읽기 버튼 — 마우스가 올라오면 청크·본문만, 손가락이 닿으면 절·그림까지 미리 받는다
+  const warmOn = (id: string) => ({
+    onPointerEnter: () => warmEpisodeShell(queryClient, id),
+    onPointerDown: () => warmEpisode(queryClient, id, theme),
+  })
 
   // 특별편 화에서 지도로 돌아오면 특별편 구역으로 바로 — HashRouter 라 #앵커 대신 state 로 받는다
   // 브라우저 smooth scrollIntoView 는 모바일에서 소리 없이 실패한다(특별편 카드를 눌러도 안 내려가던 원인).
@@ -64,13 +80,53 @@ const StoryMap = () => {
   const completed = readCount >= TOTAL_EPISODES
   const pct = Math.round((readCount / TOTAL_EPISODES) * 100)
 
+  // 지도가 그려진 뒤 유휴 시간에 "이어서 읽을" 화를 통째로(청크·본문·절·그림) 받아 둔다 —
+  // 지도 방문의 대부분이 그 화로 이어진다. 마지막 화를 앞두면 완주 화면도 같이.
+  // 절약 모드·2G 는 건너뛰고, 3G 는 청크·본문만
+  const nextId = ready ? next?.id : undefined
+  useEffect(() => {
+    if (!nextId) return
+    return scheduleAfterFirstScreen(() => {
+      const budget = preloadBudget()
+      if (budget === 'none') return
+      if (budget === 'full') warmEpisode(queryClient, nextId, theme)
+      else warmEpisodeShell(queryClient, nextId)
+      if (readCount >= TOTAL_EPISODES - 1) warmFinale()
+    }, { settleMs: 800 })
+  }, [nextId, queryClient, theme, readCount])
+
   // 히어로(진행·이어보기 CTA) — 본문 맨 위. lg+ 에선 가로 배너로 펼쳐진다(Story.css)
   const renderStoryHero = (cls: string) => (
     <div className={cls}>
           {/* 히어로 — 진행 상태에 따라 3가지 얼굴 */}
-          {completed ? (
+          {!ready ? (
+            // 진행 응답 전 — 제목·본문·버튼 자리만 잡아 둔다. 빈 목록으로 먼저 그리면
+            // "1화부터 시작하기" → "이어서 읽기"로 문구가 바뀌어 깜빡인다
+            <div className="story-hero story-hero--pending" aria-busy="true">
+              <div className="story-hero__main">
+                <span className="story-hero__eyebrow">
+                  <span className="material-icons-round text-[14px]">auto_stories</span>
+                  성경이 처음이신가요?
+                </span>
+                <div className="story-hero__title story-hero__title--skeleton" />
+                <div className="story-hero__text story-hero__text--skeleton" />
+              </div>
+              <div className="story-hero__side">
+                <div className="story-hero__cta story-hero__cta--skeleton" />
+                <div className="story-progress">
+                  <div className="story-progress__row">
+                    <span className="story-progress__label">전체 여정</span>
+                    <span className="story-progress__count">— / {TOTAL_EPISODES}화</span>
+                  </div>
+                  <div className="story-progress__track" />
+                </div>
+              </div>
+            </div>
+          ) : completed ? (
             // 완주 — 처음 한 번 10막 추억 상영, 그 뒤로는 42칸 벽화(칸을 누르면 크게 보기)
-            <StoryFinale />
+            <Suspense fallback={null}>
+              <StoryFinale />
+            </Suspense>
           ) : (
             <div className="story-hero">
               {/* lg+ 에선 __main(글)·__side(버튼·진행)가 좌우로 선다 — 모바일은 그대로 위아래 */}
@@ -95,6 +151,7 @@ const StoryMap = () => {
                 <button
                   className="story-hero__cta"
                   onClick={() => navigate(`/bible/story/${next.id}`)}
+                  {...warmOn(next.id)}
                 >
                   <span className="material-icons-round text-[18px]">
                     {started ? 'play_arrow' : 'flag'}
@@ -126,7 +183,7 @@ const StoryMap = () => {
   )
 
   // 화 카드 — 본편·특별편 공용. noLabel 은 lg 격자에서 순서를 알려 주는 번호(모바일은 숨김)
-  const renderNode = (ep: StoryEpisode, isCurrent: boolean, noLabel: string) => {
+  const renderNode = (ep: StoryEpisodeToc, isCurrent: boolean, noLabel: string) => {
     const read = readIds.has(ep.id)
     return (
       <button
@@ -135,6 +192,7 @@ const StoryMap = () => {
           isCurrent ? 'story-node--current' : ''
         }`}
         onClick={() => navigate(`/bible/story/${ep.id}`)}
+        {...warmOn(ep.id)}
       >
         <span className="story-node__dot">
           <StoryGlyph emoji={ep.emoji} size={20} />
@@ -292,7 +350,7 @@ const StoryMap = () => {
                 renderNode(
                   ep,
                   promiseRead > 0 && promiseNext?.id === ep.id,
-                  `${i + 1}편${ep.promise ? ` · ${ep.promise.kind === 'prophecy' ? '예언' : '예표'}` : ''}`
+                  `${i + 1}편${ep.promiseKind ? ` · ${ep.promiseKind === 'prophecy' ? '예언' : '예표'}` : ''}`
                 )
               )}
             </div>
@@ -324,6 +382,7 @@ const StoryMap = () => {
             <button
               type="button"
               onClick={() => navigate(`/bible/story/${next.id}`)}
+              {...warmOn(next.id)}
               className="mt-4 w-full flex items-center gap-3 rounded-xl px-3.5 py-3 bg-brand text-white text-left shadow-[0_10px_24px_-12px_var(--brand-glow)] hover:brightness-110 transition"
             >
               <span className="shrink-0 w-9 h-9 rounded-full bg-white/20 grid place-items-center">

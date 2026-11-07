@@ -910,6 +910,7 @@ const BibleStudy = () => {
                     <button
                       type="button"
                       onClick={() => navigate(`/bible/story/${storyReturnEp}`)}
+                      {...warmRoute(`/bible/story/${storyReturnEp}`)}
                       className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand-soft)] px-3.5 py-2 text-[13px] lg:text-[14px] font-bold text-brand hover:bg-[var(--brand-soft-strong)] transition-colors"
                     >
                       <span className="material-icons-round text-[17px]">auto_stories</span>

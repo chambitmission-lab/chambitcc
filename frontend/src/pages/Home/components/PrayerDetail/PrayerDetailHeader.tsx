@@ -11,7 +11,7 @@ interface PrayerDetailHeaderProps {
 
 const PrayerDetailHeader = ({ canDelete, onClose, onDeleteClick }: PrayerDetailHeaderProps) => {
   return (
-    <div className="flex-shrink-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark px-5 py-3.5 lg:px-8 lg:py-4 flex items-center justify-between">
+    <div className="rd-chrome flex-shrink-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark px-5 py-3.5 lg:px-8 lg:py-4 flex items-center justify-between">
       <div className="flex items-center gap-1.5">
         <button
           onClick={onClose}

@@ -1,15 +1,13 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { getBibleChapter } from '../../../api/bible'
-import type { BibleVerse } from '../../../types/bible'
+import { useQueryClient } from '@tanstack/react-query'
 import type { StoryVerseRef } from './storyTypes'
 import { STORY_ACTS, TOTAL_EPISODES, findEpisode } from './data'
 import { GLOSSARY, parseGlossaryText } from './glossary'
 import { countMainRead, useStoryProgress } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
+import { episodeBodyQuery, useEpisodeBody, useEpisodeVerses, type FetchedRef } from './storyQueries'
 import './Story.css'
-import { bibleKeys } from '../../../hooks/queryKeys'
 import { placeForEpisode } from '../Atlas/storyPlaces'
 import { storyImage, storyImagePair } from './storyImages'
 import { useTheme } from '../../../contexts/ThemeContext'
@@ -22,51 +20,9 @@ const NO_PAIR = { light: '', dark: '' }
 // 스토리 청크에 딸려 오지 않도록 lazy 로 둔다.
 const AtlasPlaceCard = lazy(() => import('../Atlas/components/AtlasPlaceCard'))
 
-// 원문 맛보기 — 절 본문은 기존 성경 API에서 런타임에 가져온다 (번역본 일치, 데이터 중복 없음)
-interface FetchedRef {
-  ref: StoryVerseRef
-  verses: BibleVerse[]
-}
-
-// 절마다 /bible/verse 를 따로 부르지 않고 참조당 장 1회만 받아 필요한 절을 골라낸다.
-// 한 화에 같은 장을 두 번 참조하면 그 장은 한 번만 요청한다.
-const fetchEpisodeVerses = async (refs: StoryVerseRef[]): Promise<FetchedRef[]> => {
-  const chapterKey = (book: number, chapter: number) => `${book}:${chapter}`
-  const chapterFetches = new Map<string, ReturnType<typeof getBibleChapter>>()
-  for (const ref of refs) {
-    const key = chapterKey(ref.book, ref.chapter)
-    if (!chapterFetches.has(key)) chapterFetches.set(key, getBibleChapter(ref.book, ref.chapter))
-  }
-
-  return Promise.all(
-    refs.map(async ref => {
-      const chapter = await chapterFetches.get(chapterKey(ref.book, ref.chapter))!
-      const byVerse = new Map(chapter.verses.map(v => [v.verse, v]))
-      // 병합 구간(신 6:18-19)은 자리표시자 절의 본문이 비어 있다 — 묶음 첫 절로
-      // 옮겨 잡고 중복은 걸러낸다(18·19를 함께 인용해도 한 번만 나오게)
-      const picked = ref.verses.map(n => {
-        const v = byVerse.get(n)
-        return v?.merged_into ? byVerse.get(v.merged_into) : v
-      })
-      const seen = new Set<number>()
-      const verses = picked.filter((v): v is BibleVerse => {
-        if (!v || seen.has(v.id)) return false
-        seen.add(v.id)
-        return true
-      })
-      return { ref, verses }
-    })
-  )
-}
-
-const useEpisodeVerses = (episodeId: string, refs: StoryVerseRef[]) =>
-  useQuery<FetchedRef[]>({
-    queryKey: bibleKeys.storyVerses(episodeId),
-    queryFn: () => fetchEpisodeVerses(refs),
-    staleTime: 1000 * 60 * 60 * 24,
-    gcTime: 1000 * 60 * 60 * 24 * 7,
-    retry: 1,
-  })
+// 본문(이야기·절 참조)은 막 단위 청크를 React Query 로 받는다(storyQueries) — 지도에서 미리
+// 받아 두면 즉시, 딥링크면 히어로(목차) 먼저 그리고 본문은 한 박자 뒤에 채운다
+const NO_REFS: StoryVerseRef[] = []
 
 // 읽는 시간 — 지도 히어로가 "한 편에 3분"이라 약속하므로 화마다 실제 분량으로 보여 준다.
 // 본문 400~680자에 원문 맛보기·용어 풋노트까지 천천히 읽는 시간을 분당 200자로 잡는다(2~3분).
@@ -162,6 +118,8 @@ const StoryEpisode = () => {
     setOpenTermFor(term ? { id: episodeId, term } : null)
 
   const found = findEpisode(episodeId)
+  const queryClient = useQueryClient()
+  const { data: body } = useEpisodeBody(episodeId)
 
   // 특별편처럼 라이트·다크 두 장이 있는 화 — 마운트 동안 쌍을 등록해 테마 토글 직전에
   // 반대 테마 그림을 미리 받게 한다(ThemeContext). 공용 한 장인 본편 화는 등록하지 않는다
@@ -196,12 +154,17 @@ const StoryEpisode = () => {
     const timer = window.setTimeout(() => {
       for (const step of [1, -1]) {
         const neighbor = series[idx + step]
-        const url = neighbor && storyImage(neighbor.id, theme)
+        if (!neighbor) continue
+        const url = storyImage(neighbor.id, theme)
         if (url) new Image().src = url
+        // 막 경계를 넘는 다음 화는 본문 청크가 다르다 — 같은 막이면 이미 받은 모듈이라 즉시 끝난다
+        void queryClient.prefetchQuery(episodeBodyQuery(neighbor.id)).catch(() => undefined)
       }
+      // 마지막 화 — 다음은 지도의 완주 상영회(lazy 청크)
+      if (!series[idx + 1] && !series[0].id.startsWith('promise-')) void import('./StoryFinale').catch(() => undefined)
     }, 200)
     return () => window.clearTimeout(timer)
-  }, [found?.index, series, theme])
+  }, [found?.index, series, theme, queryClient])
 
   // PC 키보드 넘기기 — ← 이전 화, → 다음 화(다음 이야기 버튼과 같이 읽음 처리), Esc 용어 닫기.
   // 입력 중이거나 조합키를 누른 경우엔 건드리지 않는다
@@ -265,15 +228,17 @@ const StoryEpisode = () => {
     }
   }, [foundId, markRead])
 
-  // 특별편은 구약 약속 + 신약 성취를 한 번에 받아 앞뒤로 나눈다 (같은 장은 fetch 안에서 한 번만 요청)
-  const oldRefs = found?.episode.verseRefs ?? []
-  const fulfillRefs = found?.episode.promise?.fulfillRefs ?? []
-  const { data: fetchedAll, isLoading: versesLoading } = useEpisodeVerses(episodeId, [
-    ...oldRefs,
-    ...fulfillRefs,
-  ])
-  const fetchedRefs = fetchedAll?.slice(0, oldRefs.length)
-  const fetchedFulfill = fetchedAll?.slice(oldRefs.length)
+  // 특별편은 구약 약속 + 신약 성취를 한 번에 받아 앞뒤로 나눈다 (같은 장은 fetch 안에서 한 번만 요청).
+  // 본문이 오기 전엔 참조를 모르니 절 조회도 기다린다(훅이 enabled 로 막는다)
+  const oldRefs = body?.verseRefs ?? NO_REFS
+  const fulfillRefs = body?.promise?.fulfillRefs ?? NO_REFS
+  const { data: fetchedAll, isLoading: versesLoading } = useEpisodeVerses(
+    episodeId,
+    body ? [...oldRefs, ...fulfillRefs] : undefined
+  )
+  const versesPending = !body || versesLoading
+  const fetchedRefs: FetchedRef[] | undefined = fetchedAll?.slice(0, oldRefs.length)
+  const fetchedFulfill: FetchedRef[] | undefined = fetchedAll?.slice(oldRefs.length)
 
   if (!found || !series) return null
   const { episode, act, index } = found
@@ -287,17 +252,20 @@ const StoryEpisode = () => {
   // 진행 카드 — 본편은 42화 기준(특별편 읽음은 빼고), 특별편은 특별편 화 수 기준
   const seriesRead = special ? series.filter(e => readIds.has(e.id)).length : countMainRead(readIds)
   const seriesTotal = special ? series.length : TOTAL_EPISODES
-  const promise = episode.promise
+  // 성격 칩·'약속과 성취' 틀은 목차에 있어 본문보다 먼저 그린다. 성취 한 줄만 본문에서
+  const promiseKind = episode.promiseKind
+  const promise = body?.promise
 
   const goRead = () => {
-    const { book, chapter, verse } = episode.readLink
+    if (!body) return
+    const { book, chapter, verse } = body.readLink
     // 출처를 붙여 보낸다 — 장 화면이 '처음 만나는 성경으로 돌아가기' 칩을 띄운다
     const q = new URLSearchParams({ from: 'story', ep: episode.id })
     if (verse) q.set('verse', String(verse))
     navigate(`/bible/${book}/${chapter}?${q}`)
   }
 
-  const minutes = readingMinutes(episode.story, episode.why)
+  const minutes = body ? readingMinutes(body.story, body.why) : null
 
   const goNext = () => {
     markRead(episode.id)
@@ -354,19 +322,21 @@ const StoryEpisode = () => {
           <div className="story-ep__hook">{episode.hook}</div>
           <h2 className="story-ep__title">{episode.title}</h2>
           <div className="story-ep__meta">
-            <span className="story-ep__meta-item">
-              <span className="material-icons-round text-[13px]">schedule</span>약 {minutes}분
-            </span>
+            {minutes !== null && (
+              <span className="story-ep__meta-item">
+                <span className="material-icons-round text-[13px]">schedule</span>약 {minutes}분
+              </span>
+            )}
             <span className="story-ep__meta-item">
               <span className="material-icons-round text-[13px]">menu_book</span>{act.range}
             </span>
-            {promise && (
+            {promiseKind && (
               <span
                 className="story-ep__meta-item story-ep__meta-item--kind"
-                title={PROMISE_KIND[promise.kind].desc}
+                title={PROMISE_KIND[promiseKind].desc}
               >
-                <span className="material-icons-round text-[13px]">{PROMISE_KIND[promise.kind].icon}</span>
-                {PROMISE_KIND[promise.kind].label}
+                <span className="material-icons-round text-[13px]">{PROMISE_KIND[promiseKind].icon}</span>
+                {PROMISE_KIND[promiseKind].label}
               </span>
             )}
             {isRead && (
@@ -401,13 +371,15 @@ const StoryEpisode = () => {
         </div>
         )}
 
-        {/* 이야기 본문 */}
+        {/* 이야기 본문 — 막 청크가 아직이면 문단 자리만 잡아 둔다(히어로는 이미 서 있다) */}
         <div className="story-ep__body">
-          {episode.story.map((para, i) => (
-            <p key={i} className="story-ep__para">
-              <GlossaryText text={para} onTerm={setOpenTerm} />
-            </p>
-          ))}
+          {body
+            ? body.story.map((para, i) => (
+                <p key={i} className="story-ep__para">
+                  <GlossaryText text={para} onTerm={setOpenTerm} />
+                </p>
+              ))
+            : [0, 1, 2, 3].map(i => <div key={i} className="story-ep__para story-ep__para--skeleton" aria-hidden />)}
         </div>
 
         {/* 왜 중요할까 */}
@@ -415,22 +387,26 @@ const StoryEpisode = () => {
           <span className="story-ep__why-label">
             <span className="material-icons-round text-[14px]">lightbulb</span>왜 중요할까
           </span>
-          <p className="story-ep__why-text">
-            <GlossaryText text={episode.why} onTerm={setOpenTerm} />
-          </p>
+          {body ? (
+            <p className="story-ep__why-text">
+              <GlossaryText text={body.why} onTerm={setOpenTerm} />
+            </p>
+          ) : (
+            <div className="story-ep__para story-ep__para--skeleton" aria-hidden />
+          )}
         </div>
 
         {/* 원문 맛보기 — 특별편은 '구약의 약속 → 신약의 성취' 한 쌍으로 */}
-        <div className={`story-ep__verses ${promise ? 'story-promise' : ''}`}>
+        <div className={`story-ep__verses ${promiseKind ? 'story-promise' : ''}`}>
           <span className="story-ep__verses-label">
-            <span className="material-icons-round text-[14px]">{promise ? 'link' : 'format_quote'}</span>
-            {promise ? '약속과 성취' : '원문 맛보기'}
+            <span className="material-icons-round text-[14px]">{promiseKind ? 'link' : 'format_quote'}</span>
+            {promiseKind ? '약속과 성취' : '원문 맛보기'}
           </span>
-          {promise ? (
+          {promiseKind ? (
             <>
               <div className="story-promise__half">
                 <span className="story-promise__tag">구약의 약속</span>
-                <VerseCards refs={oldRefs} fetched={fetchedRefs} loading={versesLoading} />
+                <VerseCards refs={oldRefs} fetched={fetchedRefs} loading={versesPending} />
               </div>
               <div className="story-promise__joint" aria-hidden>
                 <span className="story-promise__knot">
@@ -439,18 +415,20 @@ const StoryEpisode = () => {
               </div>
               <div className="story-promise__half story-promise__half--fulfill">
                 <span className="story-promise__tag story-promise__tag--fulfill">신약의 성취</span>
-                <p className="story-promise__note">{promise.fulfillNote}</p>
-                <VerseCards refs={fulfillRefs} fetched={fetchedFulfill} loading={versesLoading} />
+                {promise && <p className="story-promise__note">{promise.fulfillNote}</p>}
+                <VerseCards refs={fulfillRefs} fetched={fetchedFulfill} loading={versesPending} />
               </div>
             </>
           ) : (
-            <VerseCards refs={oldRefs} fetched={fetchedRefs} loading={versesLoading} />
+            <VerseCards refs={oldRefs} fetched={fetchedRefs} loading={versesPending} />
           )}
-          <button className="story-ep__readlink" onClick={goRead}>
-            <span className="material-icons-round text-[17px]">menu_book</span>
-            성경에서 직접 읽기 · {episode.readLink.label}
-            <span className="material-icons-round text-[15px]">chevron_right</span>
-          </button>
+          {body && (
+            <button className="story-ep__readlink" onClick={goRead}>
+              <span className="material-icons-round text-[17px]">menu_book</span>
+              성경에서 직접 읽기 · {body.readLink.label}
+              <span className="material-icons-round text-[15px]">chevron_right</span>
+            </button>
+          )}
         </div>
 
         {/* 이 이야기가 일어난 곳 — 지도에 찍을 자리가 있는 화에만 붙는다 */}
@@ -464,12 +442,12 @@ const StoryEpisode = () => {
         )}
 
         {/* 다음 화 예고 */}
-        {episode.teaser && nextEp && (
+        {body?.teaser && nextEp && (
           <div className="story-ep__teaser">
             <span className="story-ep__teaser-label">
               다음 이야기 · <StoryGlyph emoji={nextEp.emoji} size={14} /> {nextEp.title}
             </span>
-            <p className="story-ep__teaser-text">{episode.teaser}</p>
+            <p className="story-ep__teaser-text">{body.teaser}</p>
           </div>
         )}
 

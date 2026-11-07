@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
-import { genealogyLoader, meditationLoader, menuRouteLoaders, verseAlarmLoader } from '../utils/routePreload'
+import { genealogyLoader, meditationLoader, menuRouteLoaders, storyEpisodeLoader, verseAlarmLoader } from '../utils/routePreload'
 
 // /bible 섹션 — 읽기·플랜·단어장·지도·스토리·필사·말씀 카드·묵상·알람
 
@@ -14,7 +14,7 @@ const BibleWordbook = lazy(menuRouteLoaders['/bible/wordbook'])
 const BibleAtlas = lazy(menuRouteLoaders['/bible/atlas'])
 const SituationBible = lazy(menuRouteLoaders['/bible/situation'])
 const BibleStoryMap = lazy(menuRouteLoaders['/bible/story'])
-const BibleStoryEpisode = lazy(() => import('../pages/Bible/Story/StoryEpisode'))
+const BibleStoryEpisode = lazy(storyEpisodeLoader)
 const BibleTypingHome = lazy(menuRouteLoaders['/bible/typing'])
 const BibleTypingSprint = lazy(() => import('../pages/Bible/Typing/TypingSprint'))
 const BibleTypingSession = lazy(() => import('../pages/Bible/Typing/TypingSession'))

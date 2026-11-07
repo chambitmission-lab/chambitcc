@@ -194,9 +194,10 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
           }`}
         >
         <div className={`flex-1 overflow-y-auto p-5 lg:p-0 ${split ? 'lg:contents' : ''}`}>
-          {/* 본문 칸 — 한 줄이 너무 길면 다음 줄을 놓치므로 읽기 폭(680px)으로 가운데 모은다 */}
+          {/* 본문 칸 — 한 줄이 너무 길면 다음 줄을 놓치므로 읽기 폭으로 가운데 모은다.
+              본문 18px×32em(한 줄 약 32자)에 작성자·기도 버튼까지 같은 칼럼으로 맞추고, 큰 글씨에선 680px 상한 */}
           <div className="lg:col-start-1 lg:row-start-1 lg:min-h-0 lg:overflow-y-auto lg:px-12 lg:pt-10 lg:pb-8">
-          <div className="lg:max-w-[680px] lg:mx-auto">
+          <div className="lg:max-w-[min(680px,calc(576px*var(--fs,1)))] lg:mx-auto">
           <PrayerAuthorInfo
             prayerId={prayer.id}
             displayName={prayer.display_name}
@@ -287,7 +288,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
           {split && (
           <div
             ref={repliesSectionRef}
-            className="scroll-mt-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:min-h-0 lg:flex lg:flex-col lg:border-l lg:border-[var(--card-border)] lg:bg-[var(--surface-inset)]"
+            className="scroll-mt-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:min-h-0 lg:flex lg:flex-col lg:border-l lg:border-[var(--card-border)] lg:bg-[var(--surface-inset)] rd-side"
           >
             {/* 목회자에게 — 이 자리의 답글은 피드 댓글과 달리 작성자 한 사람에게만 간다 */}
             {sharedWithPastor && !isOwner && (
@@ -323,8 +324,8 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
             hideActionBar ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-32 opacity-100'
           }`}
         >
-          <div className="px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-12 lg:py-5 border-t border-black/[0.06] dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
-            <div className="lg:max-w-[680px] lg:mx-auto">
+          <div className="rd-bar px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-12 lg:py-5 border-t border-black/[0.06] dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
+            <div className="lg:max-w-[min(680px,calc(576px*var(--fs,1)))] lg:mx-auto">
             <PrayerActions
               isPrayed={prayer.is_prayed}
               isToggling={isToggling}

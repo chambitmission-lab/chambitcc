@@ -21,6 +21,8 @@ export const eventDetailLoader: RouteLoader = () => import('../pages/Events/Even
 export const classReportLoader: RouteLoader = () => import('../pages/ClassRoom/ClassReport')
 export const classAttendanceLoader: RouteLoader = () => import('../pages/ClassRoom/ClassAttendance')
 export const classAlbumLoader: RouteLoader = () => import('../pages/ClassRoom/ClassAlbum')
+// 처음 만나는 성경 화 읽기 — 지도 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
+export const storyEpisodeLoader: RouteLoader = () => import('../pages/Bible/Story/StoryEpisode')
 
 // 홈 카드·성경 도크·메뉴 꼬리 링크로만 들어오는 화면 — 메뉴 카탈로그엔 없어 테이블에서 빠져 있었다.
 // 라우터가 전환을 startTransition 으로 돌려 청크가 올 때까지 이전 화면에 멈춰 보이던 곳들.
@@ -282,6 +284,8 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'bible/alarm', match: /^\/bible\/alarm$/, load: verseAlarmLoader },
   // 성경 도크·레일 "가계도" — 도크의 warmRoute 가 부르는데 테이블에 없어 무효였다
   { key: 'bible/genealogy', match: /^\/bible\/genealogy$/, load: genealogyLoader },
+  // 스토리 화 읽기 — 지도 카드·허브 '돌아가기' 칩이 부른다. 본문·절 선요청은 Story/storyWarm 이 한다
+  { key: 'bible/story/episode', match: /^\/bible\/story\/[^/]+$/, load: storyEpisodeLoader },
   // 목회자 홈 — 햄버거 메뉴 꼬리 링크(목회자에게만). 영역 안 섹션은 pages/Pastor/prefetch 가 데운다
   { key: 'pastor', match: /^\/pastor$/, load: pastorHomeLoader },
   // 비로그인 랜딩 "먼저 둘러볼게요" — 홈 피드 청크는 토큰이 있을 때만 미리 받아 두므로 버튼 호버·터치 때 데운다

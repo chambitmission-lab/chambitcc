@@ -57,3 +57,15 @@ export interface StoryAct {
   range: string
   episodes: StoryEpisode[]
 }
+
+/**
+ * 목차 항목 — 지도(StoryMap)·완주 벽화·에피소드 히어로가 쓰는 가벼운 메타.
+ * 본문(story·why·verseRefs…)은 막 단위 청크(data/actNN.ts)에 두고 읽을 때만 받는다.
+ * data/toc.ts 는 생성 파일이다 — `npm run gen:story-toc` 로 다시 만든다.
+ */
+export type StoryEpisodeToc = Pick<StoryEpisode, 'id' | 'emoji' | 'title' | 'hook'> & {
+  /** 특별편 화의 성격 — 지도 카드 라벨('예언'·'예표')에 쓴다 */
+  promiseKind?: StoryPromise['kind']
+}
+
+export type StoryActToc = Omit<StoryAct, 'episodes'> & { episodes: StoryEpisodeToc[] }

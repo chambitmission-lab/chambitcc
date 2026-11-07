@@ -75,7 +75,7 @@ export const useStoryProgress = (enabled: boolean = true) => {
   const authed = isAuthenticated()
   const queryClient = useQueryClient()
 
-  const { data: serverIds } = useQuery({
+  const { data: serverIds, isError } = useQuery({
     queryKey: STORY_PROGRESS_KEY,
     queryFn: getStoryProgress,
     // enabled=false 면 서버 조회만 미룬다(캐시가 있으면 그대로 보인다) — /bible 장 화면처럼 진도를 안 쓰는 곳
@@ -89,6 +89,9 @@ export const useStoryProgress = (enabled: boolean = true) => {
     () => (authed ? new Set(serverIds ?? []) : guestIds),
     [authed, serverIds, guestIds]
   )
+  // 서버 목록이 아직 안 왔는지 — 딥링크로 지도에 바로 들어오면 빈 목록으로 "1화부터 시작하기"를
+  // 그렸다가 응답 뒤 "이어서 읽기"로 바뀌어 깜빡였다. 실패하면 빈 목록 그대로 보여 준다(막지 않는다)
+  const ready = !authed || !enabled || serverIds !== undefined || isError
 
   const { mutate } = useMutation({
     mutationFn: markStoryEpisodeRead,
@@ -128,5 +131,5 @@ export const useStoryProgress = (enabled: boolean = true) => {
     [authed, mutate, queryClient]
   )
 
-  return { readIds, markRead }
+  return { readIds, markRead, ready }
 }

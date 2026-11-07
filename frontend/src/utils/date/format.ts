@@ -94,24 +94,31 @@ export const formatMonthDay = (value: string | Date, options: MonthDayOptions = 
   return `${yearPart}${c.getMonth() + 1}월 ${c.getDate()}일${weekdayPart}`
 }
 
-/** 서울 기준으로 포맷 (기기 타임존과 무관하게 교회 현지 시각). 예: 8/5(화) 오후 6:00 */
+/** 서울 기준으로 포맷 (기기 타임존과 무관하게 교회 현지 시각). 예: 8/5(화) 오후 6:00
+ *
+ * 오전/오후는 ICU 의 dayPeriod 에 맡기지 않고 24시 시각에서 직접 낸다 — CLDR 48(ICU 78, Node 25)부터
+ * ko-KR 축약 dayPeriod 가 'PM' 으로 바뀌어 기기·버전마다 '오후'/'PM' 이 갈렸다(테스트도 그래서 깨졌다) */
 export const formatKstDateTime = (value: string, lang: DateLang = 'ko'): string => {
   const d = parseKstDate(value)
   if (!isValidDate(d)) return ''
-  const parts = new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'ko-KR', {
+  const en = lang === 'en'
+  const parts = new Intl.DateTimeFormat(en ? 'en-US' : 'ko-KR', {
     timeZone: 'Asia/Seoul',
-    month: lang === 'en' ? 'short' : 'numeric',
+    month: en ? 'short' : 'numeric',
     day: 'numeric',
     weekday: 'short',
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true,
+    hourCycle: 'h23',
   }).formatToParts(d)
   const get = (type: string) => parts.find(p => p.type === type)?.value ?? ''
-  if (lang === 'en') {
-    return `${get('month')} ${get('day')} (${get('weekday')}) ${get('hour')}:${get('minute')} ${get('dayPeriod')} KST`
+  const h24 = Number(get('hour')) % 24
+  const period = h24 < 12 ? (en ? 'AM' : '오전') : (en ? 'PM' : '오후')
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12
+  if (en) {
+    return `${get('month')} ${get('day')} (${get('weekday')}) ${h12}:${get('minute')} ${period} KST`
   }
-  return `${get('month')}/${get('day')}(${get('weekday')}) ${get('dayPeriod')} ${get('hour')}:${get('minute')}`
+  return `${get('month')}/${get('day')}(${get('weekday')}) ${period} ${h12}:${get('minute')}`
 }
 
 /** 남은 시간을 사람이 읽는 단위로. 예: 3일 · 5시간 20분 · 12분 (0 이하면 null) */

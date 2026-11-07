@@ -1,0 +1,92 @@
+/* 기도 상세 — 다크 "등불 아래" 읽기 판 (2026-11-07)
+   다크에서 오래 읽어도 덜 피로하도록 모달 패널(data-reading="warm") 안에서만 색을 바꾼다.
+   - 바탕 #131313/#161616 두 판 → 따뜻한 차콜 한 장(#1a1815), 구분선은 따뜻한 알파 하나
+   - 본문 gray-200(대비 15:1, 할레이션) → 아이보리 #d6cfc2(11.4:1)
+   - 기도 버튼: 누르기 전 남색 톤 판, 누른 뒤 브랜드 블루 단색(그라데이션·글로우 없음)
+   라이트 테마는 손대지 않는다. Tailwind 의 dark: 유틸리티(0,2,0~0,3,0)를 이기도록
+   [data-theme="dark"] [data-reading="warm"] .hook 형태(0,3,0+)로만 적는다.
+   공용 댓글(ReplyComposer 등)은 reply-* 훅 클래스로만 덮는다. */
+
+[data-theme='dark'] [data-reading='warm'] {
+  --rd-bg: #1a1815;
+  --rd-bg-glass: rgba(26, 24, 21, 0.95);
+  --rd-line: rgba(235, 220, 195, 0.08);
+  --rd-input: #221f1b;
+  --rd-soft: rgba(235, 220, 195, 0.06);
+  --rd-soft-hover: rgba(235, 220, 195, 0.1);
+  --rd-cta-bg: #2a3550;
+  --rd-cta-bg-hover: #313e5d;
+  --rd-cta-fg: #b9cdf7;
+  --rd-cta-line: rgba(140, 170, 240, 0.22);
+  --rd-cta-done-bg: #4a74d6;
+  --rd-cta-done-fg: #f2f5fb;
+
+  /* ink 토큰(text-ink-*)과 카드 선·인셋을 판 안에서 따뜻한 값으로 */
+  --text-strong: #e6dfd2;
+  --text-body: #d6cfc2;
+  --text-muted: #8d867a;
+  --card-border: var(--rd-line);
+  --surface-inset: rgba(20, 16, 10, 0.35);
+  --surface-container: var(--rd-input);
+  --media-dim: brightness(0.88) saturate(0.9);
+}
+
+[data-theme='dark'] [data-reading='warm'].rd-panel {
+  background-color: var(--rd-bg);
+  border-color: var(--rd-line);
+}
+
+/* 헤더·하단 기도 바 — 판과 같은 색, 선 하나 */
+[data-theme='dark'] [data-reading='warm'] .rd-chrome {
+  background-color: var(--rd-bg-glass);
+  border-color: var(--rd-line);
+}
+[data-theme='dark'] [data-reading='warm'] .rd-bar {
+  background-color: var(--rd-bg);
+  border-color: var(--rd-line);
+}
+
+/* 댓글 칸 — 본문과 같은 판(별도 바탕 없음) */
+[data-theme='dark'] [data-reading='warm'] .rd-side {
+  background-color: transparent;
+}
+
+/* 기도 본문 */
+[data-theme='dark'] [data-reading='warm'] .rd-text {
+  color: var(--text-body);
+}
+
+[data-theme='dark'] [data-reading='warm'] .feed-avatar-img {
+  filter: var(--media-dim);
+}
+
+/* 기도 버튼 */
+[data-theme='dark'] [data-reading='warm'] .rd-cta[aria-pressed='false'] {
+  background-color: var(--rd-cta-bg);
+  border-color: var(--rd-cta-line);
+  color: var(--rd-cta-fg);
+}
+[data-theme='dark'] [data-reading='warm'] .rd-cta[aria-pressed='false']:hover {
+  background-color: var(--rd-cta-bg-hover);
+}
+[data-theme='dark'] [data-reading='warm'] .rd-cta[aria-pressed='true'] {
+  background-image: none;
+  background-color: var(--rd-cta-done-bg);
+  color: var(--rd-cta-done-fg);
+  box-shadow: none;
+}
+
+/* 모바일 댓글 바로가기 */
+[data-theme='dark'] [data-reading='warm'] .rd-ghost {
+  background-color: var(--rd-soft);
+  border-color: var(--rd-line);
+}
+[data-theme='dark'] [data-reading='warm'] .rd-ghost:hover {
+  background-color: var(--rd-soft-hover);
+}
+
+/* 공용 댓글 입력창 */
+[data-theme='dark'] [data-reading='warm'] .reply-composer-input {
+  background-color: var(--rd-input);
+  border-color: var(--rd-line);
+}

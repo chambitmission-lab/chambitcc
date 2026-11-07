@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "check-env": "node check-env.js",
     "gen:icons": "node scripts/gen-phosphor-icons.mjs",
+    "gen:story-toc": "node scripts/gen-story-toc.mjs",
     "gen:material-icons": "python3 scripts/gen-material-icons.py",
     "gen:gmarket-sans": "python3 scripts/gen-gmarket-sans.py"
   },

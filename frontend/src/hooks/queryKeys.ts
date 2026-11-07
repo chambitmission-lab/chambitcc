@@ -42,6 +42,8 @@ export const bibleKeys = {
   searchInfinite: (keyword: string, testament?: 'OLD' | 'NEW' | null, bookNumber?: number | null) =>
     [...bibleKeys.searches(), 'infinite', keyword, testament ?? 'ALL', bookNumber ?? 0] as const,
   storyVerses: (episodeId: string | number) => [...bibleKeys.all, 'story-verses', episodeId] as const,
+  // 화 본문(막 단위 청크) — 지도 청크엔 목차만 싣고 본문은 여기로 받는다 (Story/storyQueries)
+  storyBody: (episodeId: string) => [...bibleKeys.all, 'story-body', episodeId] as const,
 }
 
 /** 함께 읽기 — 실시간 읽기 현황 + 절 묵상 나눔. SSE 핸들러가 이 키로 캐시를 직접 갱신한다 */
