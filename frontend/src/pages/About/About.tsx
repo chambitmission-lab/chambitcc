@@ -17,6 +17,7 @@ import {
 import { EmojiText } from '../../components/common/EmojiText'
 import { SignatureLine } from '../../components/common/SignatureLine'
 import { ensureFontFamily } from '../../utils/deferredFonts'
+import { smoothScrollToElement } from '../../utils/scrollTo'
 import pastorPhoto from '../../assets/about-pastor/pastor.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
@@ -61,6 +62,8 @@ const MEET_FALLBACK = '/images/history/verse-dawn.webp'
 // 첫 화면 바로가기 — HashRouter 라 #앵커 링크 대신 scrollIntoView
 const SECTIONS = ['about-intro', 'about-meetings', 'about-pastor', 'about-cta'] as const
 type SectionId = (typeof SECTIONS)[number]
+/** 바로가기 착지 여백 — .ab-row 등의 scroll-margin-top(5rem)과 동일 */
+const JUMP_OFFSET = 80
 
 const toLines = (value: string): string[] =>
   value
@@ -178,9 +181,11 @@ const About = () => {
     }
   }
 
+  // scrollIntoView(smooth) 는 이 앱의 body 스크롤러 구조에서 모바일이 조용히 무시한다 —
+  // 공용 smoothScrollToElement 로 스크롤러를 직접 민다(감속 설정은 헬퍼가 처리).
+  // offset 은 장의 scroll-margin-top(5rem, magazine.css)과 같은 값.
   const jumpTo = (id: SectionId) => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    document.getElementById(id)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+    smoothScrollToElement(document.getElementById(id), { offset: JUMP_OFFSET })
   }
 
   const sectionLabels: Record<SectionId, string> = ko
