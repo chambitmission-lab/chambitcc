@@ -8,6 +8,7 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useEvents } from '../../../../hooks/useEvents'
 import { parseServiceTimes, serviceDays } from '../../../../utils/worshipSchedule'
 import { CATEGORY_VISUAL } from '../../../Events/utils/categoryConfig'
+import { isAllDayEvent } from '../../../Events/utils/dateGrouping'
 import { CalendarIcon } from './railIcons'
 import { Megaphone } from '../../../../components/icons/phosphor'
 import type { Event } from '../../../../types/event'
@@ -41,6 +42,8 @@ const isoToMinutes = (iso: string): number | null => {
 interface ScheduleItem {
   key: string
   startMin: number
+  /** 시각 없이 날짜만 등록된 일정(0:00~23:59) — 시각 대신 '종일'로 표기 */
+  allDay?: boolean
   title: string
   location?: string | null
   dot: string
@@ -150,6 +153,7 @@ const TodayScheduleWidget = () => {
       return [{
         key: `event-${ev.id}`,
         startMin,
+        allDay: isAllDayEvent(ev),
         title: ev.title,
         location: ev.location,
         dot: visual.dot,
@@ -162,7 +166,8 @@ const TodayScheduleWidget = () => {
 
   // 현재 시각 기준 — 지난 일정은 흐리게, 다음 일정 하나는 브랜드 틴트 행으로 띄운다
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
-  const nextKey = sorted.find((i) => i.startMin >= nowMin)?.key ?? null
+  // 종일 일정은 시각이 없으니 '곧' 후보에서 빼고, 지난 일정으로도 흐리지 않는다
+  const nextKey = sorted.find((i) => !i.allDay && i.startMin >= nowMin)?.key ?? null
   const visible = sorted.slice(0, 5)
   const restCount = sorted.length - visible.length
   const loading = (eventsLoading || worshipLoading) && sorted.length === 0
@@ -192,7 +197,7 @@ const TodayScheduleWidget = () => {
           <ul className="space-y-1">
             {visible.map((item) => {
               const isNext = item.key === nextKey
-              const isPast = nextKey !== null ? item.startMin < nowMin && !isNext : item.startMin < nowMin
+              const isPast = !item.allDay && item.startMin < nowMin && !isNext
               return (
                 <li key={item.key}>
                   <button
@@ -215,7 +220,7 @@ const TodayScheduleWidget = () => {
                         isNext ? 'text-brand' : 'text-ink-muted'
                       }`}
                     >
-                      {minutesToLabel(item.startMin)}
+                      {item.allDay ? t('homeRailScheduleAllDay') : minutesToLabel(item.startMin)}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] font-semibold text-ink-strong transition-colors group-hover:text-brand">

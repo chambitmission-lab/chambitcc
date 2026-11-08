@@ -90,6 +90,7 @@ export const home = {
   homeRailPickRead: 'Read',
   homeRailScheduleEmptyLead: 'Nothing scheduled today · how about these?',
   homeRailPlaceholderNews: 'Church news',
+  homeRailScheduleAllDay: 'All day',
   homeRailScheduleNext: 'Next',
   homeRailScheduleMore: '{n} more today',
   homeRailVerseCardTitle: 'Share a verse card',

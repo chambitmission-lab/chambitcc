@@ -56,6 +56,8 @@ export const prayerKeys = {
 const PAGE_SIZE = 20
 const LIST_STALE_MS = 1000 * 60 * 5
 const LIST_GC_MS = 1000 * 60 * 60 * 2
+/** 등록 후 서버 백그라운드(MyMemory 번역 + Gemini 구절 추천)가 끝나기를 기다리는 시간 */
+const ENRICH_SETTLE_MS = 8000
 
 /**
  * 목록 한 페이지를 받아 캐시에 넣을 모양으로 다듬는다 — 훅의 queryFn 과 아래 prefetch 가 공유.
@@ -212,6 +214,17 @@ export const useCreatePrayer = (
       // 실제 데이터로 갱신 (모든 사용자의 캐시) — 내 글이 제자리에 서도록 서버 순서로 받는다
       options?.beforeInvalidate?.()
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+
+      // 번역(상세 '번역' 버튼)과 추천 구절(카드 '함께 묵상')은 서버 백그라운드에서 몇 초 뒤에
+      // 채워진다 — 바로 위 재조회는 그 전이라 새 카드에 둘 다 빠져 있다. 한 번 더 받아 붙인다.
+      // (이 재조회는 requestServerOrder 없이 나가므로 화면 순서는 그대로 지킨다)
+      const createdId = data?.data?.id
+      if (createdId) {
+        window.setTimeout(() => {
+          void queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+          void queryClient.invalidateQueries({ queryKey: prayerKeys.detailPrefix(createdId) })
+        }, ENRICH_SETTLE_MS)
+      }
 
       // 기도방 통계(기도 수·응답률) 캐시 무효화 — 방 홈에 즉시 반영
       invalidateGroupStats(queryClient)

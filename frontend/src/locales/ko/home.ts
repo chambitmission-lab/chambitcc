@@ -90,6 +90,7 @@ export const home = {
   homeRailPickRead: '말씀 읽기',
   homeRailScheduleEmptyLead: '오늘 일정은 없어요 · 대신 이건 어때요?',
   homeRailPlaceholderNews: '교회 소식',
+  homeRailScheduleAllDay: '종일',
   homeRailScheduleNext: '곧',
   homeRailScheduleMore: '외 {n}개의 일정이 더 있어요',
   homeRailVerseCardTitle: '말씀 카드를 공유해 보세요',
