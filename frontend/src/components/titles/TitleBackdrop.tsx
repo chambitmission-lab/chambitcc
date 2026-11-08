@@ -1,4 +1,4 @@
-// 장착 칭호 → 프로필 커버 배너 일러스트 매핑 (코지-에픽 시리즈, 36종 전체).
+// 장착 칭호 → 프로필 커버 배너 일러스트 매핑 (코지-에픽 시리즈, 퍼즐 포함 전 칭호).
 // 이미지는 public/images/title-bg/<key>.webp — 새 칭호는 docs/title-bg-prompts.md 의
 // 프롬프트로 이미지를 만들어 저장한 뒤 여기에 키를 추가
 // (미등록 칭호는 배너 없이 기존 프로필 레이아웃 그대로)
@@ -52,6 +52,18 @@ const TITLE_BG_KEYS = [
   'everest_climber',
   'typing_jot_and_tittle',
   'living_legend',
+  // 퍼즐
+  'puzzle_red_sea',
+  'puzzle_creation',
+  'puzzle_noah',
+  'puzzle_abraham',
+  'puzzle_david',
+  'puzzle_daniel',
+  'puzzle_nativity',
+  'puzzle_five_loaves',
+  'puzzle_cross',
+  'puzzle_resurrection',
+  'puzzle_master',
 ] as const
 
 const TITLE_BG: Record<string, string> = Object.fromEntries(
@@ -64,6 +76,8 @@ const TITLE_BG_POSITION: Record<string, string> = {
   typing_jot_and_tittle: '50% 15%',
   typing_one_chapter: '50% 10%', // 치켜든 두루마리 윗끝이 원본 y≈72px
   bible_conqueror: '50% 4%', // 치켜든 트로피 윗끝이 원본 y≈40px — 기본 25% 면 PC 에서 ~54px 잘림
+  puzzle_five_loaves: '50% 5%', // 쌓아 올린 광주리 탑 윗끝이 원본 y≈64px
+  puzzle_master: '50% 5%', // 퍼즐 벽화 윗변이 원본 y≈62px
 }
 
 /** 이 칭호에 커버 배너가 등록돼 있는지 — 프로필 스켈레톤이 배너 자리를 미리 잡을 때 쓴다 */

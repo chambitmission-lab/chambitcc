@@ -879,3 +879,394 @@ surprised but happy, generous smile. The glowing basket is the one warm amber li
 deep navy sky with tiny blue-white stars and a faint hint of dawn on the horizon.
 Epic champion composition, humble sharing hero; the bottom-center stays dim, empty sand.
 ```
+
+---
+
+## 말씀 퍼즐 칭호 11종 한 번에 붙여넣기 (`puzzle_*`)
+퍼즐 칭호(백엔드 `registry.py` 의 🧩 말씀 퍼즐 묶음)는 2026-11-08 기준 배경이 한 장도 없다.
+각 블록을 **통째로 복사**해서 보낸다(공통 스타일 포함). 첨부 이미지를 먼저 올리고 보낼 것.
+
+- 첨부는 기존 칭호 배경 두 장 — 양 캐릭터·코지-에픽 화풍을 잡는 용도.
+  ★`public/images/puzzle/*.webp` 퍼즐 원화는 **첨부하지 말 것** — 사람 인물이 나오는 수채화풍이라 화풍이 섞인다.
+- ★십자가·빈 무덤(gold)은 다른 칭호보다 유머를 확 낮췄다. 십자가·무덤 안에 인물을 그리지 않고, 양이 예수님 역을 맡지 않는다.
+  결과물에 사람 인물이 생기면 다시 생성.
+- 결과는 `public/images/title-bg/<key>.webp`(1376×768, `cwebp -q 78`)로 저장 → `TitleBackdrop.tsx` 의
+  `TITLE_BG_KEYS` 에 `// 퍼즐` 묶음을 새로 만들어 키 추가. Gemini 워터마크(우하단 ✦)는 `docs/gemini-unwatermark.py` 로 제거.
+- 들어 올린 소품이 위쪽 끝에 닿은 그림(마스터의 퍼즐 벽화 등)은 PC 5:2 크롭에서 잘릴 수 있으니
+  필요하면 `TITLE_BG_POSITION` 에 기준점을 올려 준다.
+
+### 🌊 홍해를 건넌 발걸음 (`puzzle_red_sea` · silver)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Night scene of an epic parted sea: two towering walls of deep navy water rise on the
+left and right of the frame, glittering with tiny blue-white sparkles and the shadowy
+silhouettes of astonished fish pressed against the water like faces at an aquarium
+glass. Down the dry, sandy path between the walls, in the upper center of the frame,
+the sheep marches forward with tiny confident steps, chin up, wearing a pair of
+comically oversized rubber rain boots that turn out to be completely unnecessary —
+the boots are perfectly dry and it looks a little smug about it. Far ahead at the end
+of the path, a warm amber glow of the far shore is the one warm light, catching the
+sheep's face. A big curious fish peeks over the top of one water wall, eyes wide.
+The bottom-center stays dim, empty dry sand.
+```
+
+### 🌅 첫째 날의 빛 (`puzzle_creation` · silver)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+The very first morning of the world. A vast, calm, dark navy sea stretches under an
+empty sky; in the upper left of the frame a single brilliant warm amber light is just
+bursting open over the horizon, its soft rays spreading across the water for the
+first time. The sheep stands on a small smooth rock rising out of the water on the
+right, upright on its two hind legs, both front hooves raised to shade its eyes,
+squinting into the very first light with an expression of pure awe — its wool lit
+warm on one side, as if it is the first creature ever to see a sunrise. A few tiny
+blue-white stars are still fading out in the corners. Peaceful, grand, wonder-filled;
+the bottom-center stays dim, quiet dark water.
+```
+
+### 🌈 무지개 언약의 증인 (`puzzle_noah` · silver)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+After the great rain, dusk on a green mountaintop. A large, slightly tilted wooden
+ark rests on the peak in the upper left, with a giraffe's neck, an elephant's trunk
+and a pair of rabbits peeking out of the round window. In the upper right the sheep
+stands at the very edge of the mountain, still wearing a tiny yellow raincoat and hood
+dripping with the last raindrops, gazing up with sparkling, teary-happy eyes at a
+huge soft rainbow arching across the navy sky. A small white dove perches on the
+sheep's head holding a fresh olive leaf. The warm amber break in the clouds behind
+the rainbow is the one warm light. Muted rainbow colors, low contrast; the
+bottom-center stays dim, empty misty slope.
+```
+
+### 🐏 여호와 이레 (`puzzle_abraham` · silver)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+A quiet mountaintop at dawn. In the upper right of the frame, a small simple stone
+altar stands under the open sky. Next to it, a thorny thicket glows softly where a
+large, majestic ram with magnificent curled horns stands calmly, caught in the
+branches, lit by a warm amber beam of light breaking through the clouds — the one
+warm light, as if this ram was prepared and placed there long in advance. The sheep
+stands in the upper left looking up at the big ram with wide, astonished eyes and a
+slowly dawning grateful smile, its tiny horn-less head tilted, comparing itself to the
+enormous curly horns. A long winding mountain path behind them fades into navy
+hills with tiny blue-white stars. Reverent, warm, gently funny; the bottom-center
+stays dim, empty rocky ground.
+```
+
+### 🪨 물맷돌 하나 (`puzzle_david` · silver)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Epic valley standoff at dusk. On the right side of the frame towers an enormous
+empty suit of bronze armor with a huge plumed helmet and a giant spear — so huge it
+fills the whole right edge, casting a long shadow, but it is hollow and slightly
+rusty, with a little bird nesting inside the helmet. In the upper left, standing
+fearlessly on a smooth rock beside a small sparkling brook, the sheep stands upright
+on its two hind legs, holding a simple leather sling in both front hooves, with one
+round smooth stone in the pouch glowing faintly warm amber — the one warm light. Its
+face shows calm, unshakable confidence, a tiny shepherd's pouch slung across its
+body. David-and-Goliath movie-poster composition: tiny brave hero, giant hollow
+opponent. Navy sky with tiny blue-white stars; the bottom-center stays dim, empty
+valley floor.
+```
+
+### 🦁 사자 굴의 단잠 (`puzzle_daniel` · silver)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Night inside a large rocky lions' den, seen from below a round opening in the ceiling
+through which a warm amber shaft of moonlight-like light falls — the one warm light.
+In the upper center of the frame, in that soft beam, the sheep sleeps peacefully
+curled up on a gigantic, fluffy, sleeping lion's mane as if it were a pillow, tiny
+blanket over it, a little smile on its face. Around them several huge lions are also
+fast asleep like oversized house cats — one lying on its back with paws in the air,
+one snoring with a bubble, one with its tail curled around the sheep protectively.
+A gentle glowing figure-less shimmer of light (like a soft angelic glow, no person)
+hovers near the opening. Cozy, safe, comically peaceful; navy shadows, tiny
+blue-white sparkles in the air; the bottom-center stays dim, empty den floor.
+```
+
+### ⭐ 베들레헴 별을 따라 (`puzzle_nativity` · silver)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Quiet starry night over the hills of Bethlehem. One enormous, bright star hangs in
+the upper right of the deep navy sky, sending a long soft beam of warm light down
+toward a tiny humble stable with a warm amber glowing doorway in the right side of
+the frame — the one warm light (the inside of the stable is just warm light; no
+figures shown). Along a winding hillside path in the upper left, the sheep hurries
+toward the stable with a few other shepherds' lambs and an old shepherd's lantern,
+trotting fast, ears flapping, with an excited, breathless, joyful face, as if it
+just heard the best news in the world. Tiny blue-white stars everywhere, a faint
+shimmer of angelic sparkles in the sky. Silent-night mood with a little happy hustle;
+the bottom-center stays dim, empty grassy hillside.
+```
+
+### 🧺 열두 광주리 (`puzzle_five_loaves` · silver)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Golden dusk on a grassy hillside by a lake. Across the far hills in the background,
+a huge peaceful crowd rests in small groups, tiny and silhouetted, all happily full.
+In the upper left of the frame the sheep stands upright on its two hind legs, both
+front hooves straining to hold up one more woven basket on top of a comically tall,
+wobbling tower of overflowing baskets stacked beside it, each one heaped with round
+bread loaves and little fish — so many leftovers that it can barely balance them,
+cheeks puffed in effort but eyes shining with amazement. One loaf is tumbling off
+the top. A small boy's simple lunch cloth with crumbs lies on a rock nearby. The
+setting sun behind the lake is the one warm amber light; the navy sky shows the
+first tiny blue-white stars. The bottom-center stays dim, empty grass.
+```
+
+### ✝️ 다 이루었다 (`puzzle_cross` · gold)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+Reverent and quiet — keep the humor very gentle here. Late afternoon turning to dusk
+on a lonely hill outside an old walled city. A single simple, empty wooden cross
+stands on the top of the hill in the upper right of the frame, softly silhouetted;
+behind it, heavy navy clouds are parting and a few gentle warm amber rays of light
+pour down through the gap — the one warm light. At the foot of the hill, in the upper
+left area, the sheep sits very still on its folded legs in the grass, head slightly
+bowed, eyes closed, a single small tear on its cheek, a tiny wildflower placed in
+front of it. No people or figures on or near the cross. Peaceful, sacred, hopeful;
+tiny blue-white stars appearing in the clearing sky; the bottom-center stays dim,
+empty hillside.
+```
+
+### 🌸 빈 무덤의 아침 (`puzzle_resurrection` · gold)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+The first light of Easter morning in a quiet garden. On the right side of the frame
+a rock-cut tomb stands with its great round stone rolled away to the side; the
+open doorway is empty and glowing softly from within, and a bright warm amber
+sunrise breaks over the hills behind it — the one warm light. Spring blossoms and
+small white flowers have just burst open all around the garden, petals drifting in
+the air. In the upper left the sheep is mid-leap, all four stubby legs off the ground
+in a joyful spring-lamb hop, ears flying, face lit with pure astonished joy, as if it
+just peeked inside and found the tomb empty. Linen cloths folded neatly inside the
+doorway. No people or figures shown. Sacred, bright and celebratory; navy sky fading
+into dawn with the last tiny blue-white stars; the bottom-center stays dim, empty
+garden path.
+```
+
+### 🧩 구속사 퍼즐 마스터 (`puzzle_master` · legendary)
+
+첨부: `public/images/title-bg/gospel_witness.webp`, `public/images/title-bg/seen_the_end.webp`
+
+```
+Using the attached images as reference, draw the exact same sheep character in the
+exact same art style.
+
+A wide 16:9 background illustration for a mobile app profile screen in dark mode.
+Style: cozy-epic children's storybook illustration — soft flat shapes with subtle
+grain texture, rounded friendly forms, gentle rim lighting. Base palette is deep
+navy night-blue (around #0A1428) with ONE warm amber glowing focal light and tiny
+sparkling blue-white stars. The recurring hero is a small chubby white sheep with
+stubby legs and a serene, slightly smug smile — the SAME sheep character every time.
+Composition: epic and dramatic like a movie poster, but the subject is adorable,
+which makes it funny and heartwarming. Keep the main subject and the light source
+in the upper half or off to one side; the bottom-center third must stay dim, simple
+and almost empty (UI text will be overlaid there). Overall muted and low-contrast
+so white text stays readable on top. No text, no letters, no numbers, no logos,
+no frames or borders.
+
+Scene:
+The grand finale. Night on the highest hilltop under a vast navy starry sky. Floating
+in the upper half of the sky is an enormous glowing jigsaw mural made of ten large
+puzzle pieces fitted together, each piece softly showing a tiny scene from the
+Bible story — a first sunrise over the sea, a rainbow over an ark, a ram in a thicket,
+a sling and stone, a sleeping lion, a star over a stable, baskets of bread, an empty
+cross on a hill, an open empty tomb at dawn, and a parted sea. The very last piece is
+just clicking into place, sending a ripple of warm amber light across the whole mural
+— the one warm light. On the hilltop in the upper left the sheep stands upright on
+its two hind legs, both front hooves raised after placing it, wearing a tiny cape
+fluttering in the wind, gazing up with a deeply moved, triumphant, slightly teary
+smile. Shooting stars streak across the sky. Legendary epic finale composition; the
+bottom-center stays dim, empty dark hillside.
+```
