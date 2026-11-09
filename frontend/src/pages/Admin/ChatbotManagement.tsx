@@ -215,6 +215,10 @@ const ChatbotManagement = () => {
     )
   }
 
+  // 서버는 status 없이 부르면 weak·resolved 를 각 200건까지만 내려준다(backend chatbot/admin.LIST_LIMITS) —
+  // 꽉 찼으면 "200+" 로 더 있음을 표시한다
+  const LIST_CAP = 200
+  const countLabel = (n: number) => (n >= LIST_CAP ? `${LIST_CAP}+` : `${n}`)
   const openList = unanswered.filter((u) => u.status === 'open')
   // weak: 참비가 답은 했지만 저확신으로 남긴 질문 — 엉뚱한 답이 나갔는지 보고 인텐트로 승격한다
   const weakList = unanswered.filter((u) => u.status === 'weak')
@@ -258,7 +262,7 @@ const ChatbotManagement = () => {
             {/* 통계 칩 */}
             <div className="px-4 pt-4 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
               <StatChip label="미답변" value={openList.length} warn={openList.length > 0} />
-              <StatChip label="저확신" value={weakList.length} warn={weakList.length > 0} />
+              <StatChip label="저확신" value={countLabel(weakList.length)} warn={weakList.length > 0} />
               <StatChip label="인텐트" value={intents.length} />
               <StatChip label="활성" value={activeCount} accent />
             </div>
@@ -522,7 +526,7 @@ const ChatbotManagement = () => {
                         onClick={() => setShowWeak((v) => !v)}
                         className="w-full py-2 rounded-xl border border-dashed border-amber-300 dark:border-amber-400/40 text-[12.5px] text-amber-700 dark:text-amber-300 hover:border-amber-500 transition-colors"
                       >
-                        🤔 저확신 답변 {weakList.length}개 {showWeak ? '접기' : '보기'}
+                        🤔 저확신 답변 {countLabel(weakList.length)}개 {showWeak ? '접기' : '보기'}
                       </button>
                       {showWeak &&
                         weakList.map((u) => (
@@ -569,7 +573,7 @@ const ChatbotManagement = () => {
                         onClick={() => setShowResolved((v) => !v)}
                         className="w-full py-2 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.12] text-[12.5px] text-gray-500 dark:text-white/50 hover:border-brand hover:text-brand transition-colors"
                       >
-                        ✅ 해결된 질문 {resolvedList.length}개 {showResolved ? '접기' : '보기'}
+                        ✅ 해결된 질문 {countLabel(resolvedList.length)}개 {showResolved ? '접기' : '보기'}
                       </button>
                       {showResolved &&
                         resolvedList.map((u) => (
@@ -661,7 +665,7 @@ const ChatbotManagement = () => {
 // ── 통계 칩 ─────────────────────────────────────────────
 interface StatChipProps {
   label: string
-  value: number
+  value: number | string
   accent?: boolean
   warn?: boolean
 }
