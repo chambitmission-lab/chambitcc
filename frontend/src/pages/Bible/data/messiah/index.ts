@@ -72,6 +72,7 @@ export const STORY_EPISODE: Readonly<Record<string, string>> = {
 
 // "책:장" → 절 → 약속 목록. 58쌍(15KB 남짓)이라 한 번에 받아 색인한다
 let list: readonly MessiahPromise[] | null = null
+let noteMap: Readonly<Record<string, readonly [string, string]>> = {}
 let index: Map<string, Map<number, MessiahHit[]>> | null = null
 let loading: Promise<void> | null = null
 
@@ -99,7 +100,11 @@ export const isMessiahReady = () => index !== null
 
 export const loadMessiah = (): Promise<void> => {
   if (index) return Promise.resolve()
-  if (!loading) loading = import('./promises').then((m) => build(m.default))
+  if (!loading)
+    loading = Promise.all([import('./promises'), import('./notes')]).then(([m, n]) => {
+      noteMap = n.default
+      build(m.default)
+    })
   return loading
 }
 
@@ -118,3 +123,34 @@ export const coversPassage = (hits: readonly MessiahHit[], target: PassageRef): 
       return r.b === target.b && r.c === target.c && r.v <= target.to && target.v <= r.to
     }),
   )
+
+/** 연필 밑줄 옆 손글씨 메모 (notes.ts) — 없으면 약속 제목 */
+export const getPromiseNote = (promise: MessiahPromise, side: MessiahHit['side']): string =>
+  noteMap[promise.id]?.[side === 'ot' ? 0 : 1] ?? promise.title
+
+/**
+ * 이 절 본문에서 연필 밑줄을 그을 구간 — 구약 절은 otMarks, 신약 절은 ntMarks 가 나오는 자리 전부.
+ * (신약 ntMarks 는 여러 성취 본문 중 하나에만 있을 수 있어 못 찾으면 그냥 건너뛴다) 겹치는 구간은 합친다.
+ */
+export const promiseMarkRanges = (
+  hits: readonly MessiahHit[],
+  text: string,
+): { start: number; end: number; side: MessiahHit['side'] }[] => {
+  const spans: { start: number; end: number; side: MessiahHit['side'] }[] = []
+  for (const h of hits) {
+    for (const m of h.side === 'ot' ? h.promise.otMarks : h.promise.ntMarks) {
+      if (!m) continue
+      for (let i = text.indexOf(m); i !== -1; i = text.indexOf(m, i + m.length)) {
+        spans.push({ start: i, end: i + m.length, side: h.side })
+      }
+    }
+  }
+  spans.sort((a, b) => a.start - b.start)
+  const merged: typeof spans = []
+  for (const sp of spans) {
+    const last = merged[merged.length - 1]
+    if (last && sp.start <= last.end) last.end = Math.max(last.end, sp.end)
+    else merged.push({ ...sp })
+  }
+  return merged
+}

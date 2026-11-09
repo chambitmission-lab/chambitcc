@@ -1448,136 +1448,66 @@
   }
 }
 
-/* ── 약속과 성취 (읽기 도움 '약속과 성취') ──
-   구약 약속 = 금빛 바탕 + 왼쪽 금빛 줄, 신약 성취 = 왼쪽 푸른 줄만(바탕 없음).
+/* ── 약속과 성취 (읽기 도움 '약속과 성취') — E-1 연필 밑줄 ──
+   목사님이 성경책 여백에 연필로 적어 준 것처럼: 핵심 문구 아래 자 없이 그은 곧은 밑줄 두 번
+   (두 번째는 조금 짧고 옅게) + 절 아래 나눔펜 손글씨 메모 한 줄. 구약 = 금빛, 신약 = 푸른빛.
    ★ 글자색은 절대 바꾸지 않는다 — 예수님 말씀 붉은 글씨(.verse-jesus-words)가 그대로 보여야 한다.
-   신약 쪽에 바탕을 깔지 않는 이유: 묵상 노트 절이 이미 브랜드 블루 옅은 바탕(--brand-soft)을 쓴다.
-   형광펜·노트·선택 강조는 인라인 스타일(rowAccent)이라 이 클래스보다 앞선다 — 내 표시가 우선. */
-.bible-verse-body.verse-promise {
-  border-radius: 0.375rem;
-  padding: 0.375rem 0.5rem;
-}
+   밑줄은 배경 그림이라 줄이 바뀌면 clone 으로 줄마다 따로 긋는다(조각마다 100% 폭).
+   열쇠말 노란 띠(.verse-keyword-mark)와 같은 글자에 겹치면 두 배경을 겹쳐 그린다(아래 합성 규칙). */
+/* 연필 밑줄 그림(.verse-promise-pencil)은 styles/promise-pencil.css — 약속 시트(약속 지도 화면)도 같이 쓴다 */
 
-.bible-verse-body.verse-promise--ot {
-  background: linear-gradient(to right, rgba(200, 155, 69, 0.14), rgba(200, 155, 69, 0.05));
-  border-left: 3px solid #c89b45;
-}
-
-.bible-verse-body.verse-promise--nt {
-  border-left: 3px solid color-mix(in srgb, var(--brand) 70%, transparent);
-}
-
-[data-theme="dark"] .bible-verse-body.verse-promise--ot {
-  background: linear-gradient(to right, rgba(220, 180, 102, 0.12), rgba(220, 180, 102, 0.035));
-  border-left-color: #dcb466;
-}
-
-/* 이어읽기 — 문단을 깨지 않게 글자 뒤 마커 바탕 (줄이 바뀌어도 이어지게 clone) */
-.bible-verse-flow-body.verse-promise--ot {
-  background: rgba(200, 155, 69, 0.13);
-  border-radius: 0.25rem;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-
-.bible-verse-flow-body.verse-promise--nt {
-  background: linear-gradient(transparent 82%, color-mix(in srgb, var(--brand) 32%, transparent) 82%);
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-
-[data-theme="dark"] .bible-verse-flow-body.verse-promise--ot {
-  background: rgba(220, 180, 102, 0.12);
-}
-
-/* 배지 — 본문 범위 첫 절 위. 연결 구절 칩과 같은 들여쓰기로 번호 열을 비켜 선다 */
-.verse-promise-badge {
+/* 손글씨 메모 — 절별 보기: 본문 아래 한 줄 (연결 구절 칩과 같은 들여쓰기) */
+.verse-promise-note {
   align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   max-width: calc(100% - 3.25rem);
-  margin-left: 3.25rem;
-  margin-bottom: -0.25rem;
-  padding: 0.25rem 0.375rem 0.25rem 0.55rem;
+  margin: -0.375rem 0 0 3.25rem;
+  padding: 0.125rem 0.25rem;
   border: none;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  line-height: 1.3;
+  border-radius: 0.375rem;
+  background: none;
+  font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
+  /* 본문 글자 크기(Aa 가−/가+)를 따라 커진다 — 나눔펜은 같은 px 에서 작게 보여 1.3배 */
+  font-size: calc(1.0625rem * var(--bible-font-scale, 1) * 1.3);
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-align: left;
+  transform: rotate(-0.8deg);
+  transform-origin: left center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  animation: versePopIn 0.2s ease-out;
 }
 
-.verse-promise-badge--ot {
-  background: rgba(200, 155, 69, 0.16);
+.verse-promise-note--ot {
   color: #8a6219;
 }
 
-.verse-promise-badge--nt {
-  background: var(--brand-soft);
-  color: var(--brand);
+.verse-promise-note--nt {
+  color: #1b64da;
 }
 
-[data-theme="dark"] .verse-promise-badge--ot {
-  background: rgba(220, 180, 102, 0.15);
+[data-theme="dark"] .verse-promise-note--ot {
   color: #e8c887;
 }
 
-.verse-promise-badge__label {
-  font-weight: 800;
-  flex-shrink: 0;
+[data-theme="dark"] .verse-promise-note--nt {
+  color: #8fbcff;
 }
 
-.verse-promise-badge__title {
-  font-weight: 600;
-  opacity: 0.85;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.verse-promise-note:hover {
+  background: var(--ig-secondary-background);
+}
+
+/* 이어읽기 — 문단 안 절 끝에 짝 위치만 작게 ("→ 갈 3:16") */
+.verse-promise-note--inline {
+  display: inline;
+  max-width: none;
+  margin: 0 0 0 0.25rem;
+  padding: 0 0.125rem;
+  font-size: calc(1.0625rem * var(--bible-font-scale, 1) * 1.2);
+  line-height: 1;
+  transform: none;
   white-space: nowrap;
-}
-
-.verse-promise-badge__title::before {
-  content: '·';
-  margin-right: 0.3rem;
-}
-
-.verse-promise-badge__go {
-  font-size: 1rem !important;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.verse-promise-badge:hover {
-  filter: brightness(0.97);
-}
-
-/* 이어읽기 — 절 끝 작은 왕관/십자가 단추 */
-.verse-promise-inline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  vertical-align: super;
-  width: 1.125rem;
-  height: 1.125rem;
-  margin-left: 0.125rem;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.verse-promise-inline--ot {
-  background: #c89b45;
-  color: #fff;
-}
-
-.verse-promise-inline--nt {
-  background: var(--brand);
-  color: #fff;
-}
-
-[data-theme="dark"] .verse-promise-inline--ot {
-  background: #dcb466;
-  color: #2a1f08;
 }

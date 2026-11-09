@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useState, useEffect, useMemo, useRef, memo, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import type { WordNote } from '../../../api/bibleWordNote'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
@@ -12,8 +12,8 @@ import { useJesusWords } from '../hooks/useJesusWords'
 import { useKeywordRanges } from '../hooks/useKeywordRanges'
 import { useCrossLinks } from '../hooks/useCrossLinks'
 import { useMessiahHits } from '../hooks/useMessiahHits'
-import { coversPassage } from '../data/messiah'
-import VersePromiseBadge from './verse/VersePromiseBadge'
+import { coversPassage, promiseMarkRanges } from '../data/messiah'
+import VersePromiseNote from './verse/VersePromiseNote'
 import type { CrossLink } from '../data/crossRefs'
 import VerseCrossLinks from './verse/VerseCrossLinks'
 import type { GlossaryEntry } from '../data/bibleGlossary'
@@ -163,8 +163,11 @@ const VerseItem = ({
   const crossLinks = messiahHits.length
     ? rawCrossLinks.filter((l) => l.kind === 'parallel' || !coversPassage(messiahHits, l.target))
     : rawCrossLinks
-  // 바탕 표시 — 구약 약속(금빛)/신약 성취(푸른빛). 범위 안 모든 절에, 배지는 첫 절에만
-  const promiseSide = messiahHits[0]?.side
+  // 연필 밑줄 — 구약 약속(금빛)/신약 성취(푸른빛) 핵심 문구. 범위 안 절마다, 손글씨 메모는 첫 절에만
+  const promiseRanges = useMemo(
+    () => (messiahHits.length ? promiseMarkRanges(messiahHits, verse.text) : []),
+    [messiahHits, verse.text],
+  )
   const jesusRanges = useJesusWords(bookNumber ?? verse.book_number, chapter ?? verse.chapter, verse.verse, verse.text)
   const keywordRanges = useKeywordRanges(bookNumber ?? verse.book_number, chapter ?? verse.chapter, verse.text)
   const words = useWordSelection({ noteSegments, wordNotes })
@@ -264,6 +267,7 @@ const VerseItem = ({
       glossarySegments={glossarySegments}
       jesusRanges={jesusRanges}
       keywordRanges={keywordRanges}
+      promiseRanges={promiseRanges}
       onTokenTap={words.openForToken}
       onNoteTap={words.openForNote}
       onGlossaryTap={setGlossaryEntry}
@@ -348,7 +352,7 @@ const VerseItem = ({
         style={{ scrollMarginTop: '7rem' }}
       >
         <span
-          className={`bible-verse-flow-body${promiseSide && !selectionMode ? ` verse-promise verse-promise--${promiseSide}` : ''}`}
+          className="bible-verse-flow-body"
           onClick={handleBodyActivate}
           {...bodyA11y}
           style={{
@@ -374,7 +378,7 @@ const VerseItem = ({
             <VerseTogetherChip reflectionCount={reflectionCount} inline onOpen={openReflections} />
           )}
           {!selectionMode && <VerseCrossLinks links={crossLinks} inline onOpen={setCrossLink} />}
-          {!selectionMode && <VersePromiseBadge hits={messiahHits} inline onOpen={() => setMessiahOpen(true)} />}
+          {!selectionMode && <VersePromiseNote hits={messiahHits} inline onOpen={() => setMessiahOpen(true)} />}
         </span>
         {/* 묵상 노트 — 문단을 어지럽히지 않게 아이콘 칩만, 누르면 읽기 시트 */}
         {hasNote && (
@@ -444,12 +448,9 @@ const VerseItem = ({
         scrollMarginTop: '7rem',
       }}
     >
-      {/* 약속과 성취 배지 — 본문 범위 첫 절 위 (샘플: "메시아 약속 · 임마누엘") */}
-      {!selectionMode && <VersePromiseBadge hits={messiahHits} onOpen={() => setMessiahOpen(true)} />}
-
       {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
       <div
-        className={`bible-verse-body${promiseSide && !selectionMode ? ` verse-promise verse-promise--${promiseSide}` : ''}`}
+        className="bible-verse-body"
         onClick={handleBodyActivate}
         {...bodyA11y}
         style={{
@@ -470,7 +471,7 @@ const VerseItem = ({
           paddingRight: '1rem',
           // 강조(rowAccent) 행은 위쪽에 0.375rem 패딩이 붙는다 → 마커도 그만큼 내려
           // 어떤 상태에서도 첫 줄 라인박스 중앙에 앉는다
-          ...({ '--rt-mark-top': rowAccent.padding || (promiseSide && !selectionMode) ? '0.375rem' : '0px' } as CSSProperties),
+          ...({ '--rt-mark-top': rowAccent.padding ? '0.375rem' : '0px' } as CSSProperties),
         }}
       >
         {/* 읽음 완료 표시는 번호 자체의 색(초록) + 등장 팝으로 —
@@ -575,6 +576,9 @@ const VerseItem = ({
           </button>
         </div>
       )}
+
+      {/* 약속과 성취 손글씨 메모 — 연필 밑줄 아래 한 줄 (누르면 구약 약속 ↔ 신약 성취 시트) */}
+      {!selectionMode && <VersePromiseNote hits={messiahHits} onOpen={() => setMessiahOpen(true)} />}
 
       {/* 연결 구절 칩 — 구약 인용·신약의 인용·같은 이야기를 담은 다른 복음서 */}
       {!selectionMode && <VerseCrossLinks links={crossLinks} onOpen={setCrossLink} />}

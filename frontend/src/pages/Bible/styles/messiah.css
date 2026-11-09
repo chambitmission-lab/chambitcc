@@ -253,23 +253,24 @@
   color: var(--ig-secondary-text);
 }
 
-/* 밝히기 — 굵은 글자 + 아래쪽 얇은 띠 */
+/* 밝히기 — 읽기 화면과 같은 연필 밑줄 두 번 (그림은 verse-display.css 의 --pencil 을 재사용) */
 .msh-mark {
-  background: none;
-  font-weight: 800;
-  padding: 0 0.05em;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
+  /* <mark> 기본 노란 바탕만 지운다 — background 단축 속성을 쓰면 연필 밑줄 그림까지 지워진다 */
+  background-color: transparent;
+  color: inherit;
+  font-weight: 700;
+}
+
+.promise-mark--whole {
+  white-space: nowrap;
 }
 
 .msh-mark--ot {
   color: var(--msh-gold-ink);
-  background: linear-gradient(transparent 68%, rgba(200, 155, 69, 0.28) 68%);
 }
 
 .msh-mark--nt {
   color: var(--msh-blue-ink);
-  background: linear-gradient(transparent 68%, rgba(49, 130, 246, 0.2) 68%);
 }
 
 /* 약속 → 성취 연결 */

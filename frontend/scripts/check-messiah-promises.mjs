@@ -4,6 +4,7 @@
 //  ✗ id 중복이면 실패
 // 사용: node scripts/check-messiah-promises.mjs   (Node 22.18+ 는 .ts 를 그대로 import)
 const { default: promises } = await import(new URL('../src/pages/Bible/data/messiah/promises.ts', import.meta.url))
+const { default: notes } = await import(new URL('../src/pages/Bible/data/messiah/notes.ts', import.meta.url))
 
 const cache = new Map()
 const passage = async (ref) => {
@@ -26,6 +27,9 @@ const fail = (msg) => {
 const ids = new Set()
 for (const p of promises) {
   if (ids.has(p.id)) fail(`${p.id}: id 중복`)
+  const note = notes[p.id]
+  if (!note || !note[0] || !note[1]) fail(`${p.id}: 손글씨 메모(notes.ts) 없음`)
+  else for (const t of note) if (t.includes('"')) fail(`${p.id}: 메모에 큰따옴표 — ‘…’ 로`)
   ids.add(p.id)
   const ot = await passage(p.ot)
   if (!ot) {
@@ -43,5 +47,6 @@ for (const p of promises) {
   if (Number(p.ot.split(':')[0]) > 39) fail(`${p.id}: 구약 자리에 신약 ${p.ot}`)
   for (const r of p.nt) if (Number(r.split(':')[0]) < 40) fail(`${p.id}: 신약 자리에 구약 ${r}`)
 }
+for (const id of Object.keys(notes)) if (!ids.has(id)) fail(`notes.ts 에 없는 약속 id: ${id}`)
 console.log(`\n${promises.length}쌍 검사 · 실패 ${bad}`)
 process.exit(bad ? 1 : 0)

@@ -13,6 +13,9 @@ export const formatPromiseRef = (ref: string | PassageRef): string => {
  * 본문에서 marks 가 나오는 자리를 모두 <mark> 로 감싼다. 겹치는 구간은 하나로 합친다.
  * (데이터 검증 스크립트가 marks 가 본문에 있는지 확인하므로, 여기선 없으면 그냥 지나간다)
  */
+/** 이 글자 수 이하 문구는 줄바꿈 없이 한 덩어리 (모바일 시트 폭에서도 한 줄에 넉넉히 들어가는 길이) */
+const WHOLE_MAX = 12
+
 export const paintMarks = (text: string, marks: readonly string[], className: string): ReactNode[] => {
   const spans: [number, number][] = []
   for (const m of marks) {
@@ -31,8 +34,11 @@ export const paintMarks = (text: string, marks: readonly string[], className: st
   let at = 0
   merged.forEach(([s, e], i) => {
     if (s > at) out.push(text.slice(at, s))
+    // 짧은 문구('곧 그리스도라')는 줄 끝에서 둘로 쪼개지지 않게 한 덩어리로 — 밑줄도 한 줄로 이어진다.
+    // 긴 문구는 그대로 두어야 좁은 화면에서 넘치지 않는다.
+    const whole = e - s <= WHOLE_MAX
     out.push(
-      <mark key={i} className={className}>
+      <mark key={i} className={whole ? `${className} promise-mark--whole` : className}>
         {text.slice(s, e)}
       </mark>,
     )

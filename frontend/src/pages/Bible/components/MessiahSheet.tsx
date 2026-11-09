@@ -11,6 +11,7 @@ import { KIND_HINT, KIND_LABEL, STORY_EPISODE, THEME_LABEL, type MessiahPromise 
 import { ArrowDownIcon, BulbIcon, CrossIcon, CrownIcon, PathIcon, SparkleIcon } from './messiah/PromiseIcons'
 import { formatPromiseRef, paintMarks } from './messiah/promiseText'
 import '../styles/messiah.css'
+import '../styles/promise-pencil.css'
 
 // 포털 시트라 <main data-text-scale> 를 상속받지 못한다 — CrossRefSheet 와 같은 값으로 직접 세팅
 const TEXT_MUL: Record<FeedTextScale, number> = { base: 1, large: 1.1, xlarge: 1.2 }
@@ -30,7 +31,7 @@ const PassageQuote = ({ refStr, marks, tone }: { refStr: string; marks: readonly
         <span key={v.id}>
           {i > 0 && ' '}
           {multi && <sup className="msh-quote__num">{v.verse}</sup>}
-          {paintMarks(v.text, marks, `msh-mark msh-mark--${tone}`)}
+          {paintMarks(v.text, marks, `msh-mark msh-mark--${tone} verse-promise-pencil verse-promise-pencil--${tone}`)}
         </span>
       ))}
       ”

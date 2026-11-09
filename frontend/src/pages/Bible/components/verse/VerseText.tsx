@@ -19,6 +19,8 @@ interface VerseTextProps {
   jesusRanges: TextRange[]
   /** 길잡이 "이 장의 열쇠말"을 밝히는 중이면 그 말이 나오는 구간 — 형광 띠만 얹는다 */
   keywordRanges?: TextRange[]
+  /** 약속과 성취 — 연필 밑줄을 그을 핵심 문구 (구약 금빛 / 신약 푸른빛). 글자색은 안 바꾼다 */
+  promiseRanges?: (TextRange & { side: 'ot' | 'nt' })[]
   onTokenTap: (token: WordToken) => void
   onNoteTap: (seg: NoteSegment) => void
   onGlossaryTap: (entry: GlossaryEntry) => void
@@ -40,6 +42,7 @@ const VerseText = ({
   glossarySegments,
   jesusRanges,
   keywordRanges = [],
+  promiseRanges = [],
   onTokenTap,
   onNoteTap,
   onGlossaryTap,
@@ -49,18 +52,22 @@ const VerseText = ({
   const jesusPartial = jesusWhole ? [] : jesusRanges
 
   /**
-   * text[start, end) 를 예수님 말씀·열쇠말 경계에서 쪼개 그린다.
-   * 두 장식은 서로 다른 속성(글자색 / 형광 띠)이라 겹치면 둘 다 입힌다.
+   * text[start, end) 를 예수님 말씀·열쇠말·약속 밑줄 경계에서 쪼개 그린다.
+   * 세 장식은 서로 다른 층(글자색 / 형광 띠 / 연필 밑줄)이라 겹치면 모두 입힌다.
    */
   const paint = (start: number, end: number, key: string): ReactNode => {
-    if (!jesusPartial.length && !keywordRanges.length) return text.slice(start, end)
+    if (!jesusPartial.length && !keywordRanges.length && !promiseRanges.length) return text.slice(start, end)
     const cuts = new Set<number>([start, end])
-    for (const r of [...jesusPartial, ...keywordRanges]) {
+    for (const r of [...jesusPartial, ...keywordRanges, ...promiseRanges]) {
       if (r.start > start && r.start < end) cuts.add(r.start)
       if (r.end > start && r.end < end) cuts.add(r.end)
     }
     const points = [...cuts].sort((a, b) => a - b)
     const inside = (ranges: TextRange[], at: number) => ranges.some((r) => r.start <= at && at < r.end)
+    const promiseClass = (at: number) => {
+      const hit = promiseRanges.find((r) => r.start <= at && at < r.end)
+      return hit ? `verse-promise-pencil verse-promise-pencil--${hit.side}` : ''
+    }
     const parts: ReactNode[] = []
     for (let i = 0; i < points.length - 1; i++) {
       const s = points[i]
@@ -68,6 +75,7 @@ const VerseText = ({
       const cls = [
         inside(jesusPartial, s) ? 'verse-jesus-words' : '',
         inside(keywordRanges, s) ? 'verse-keyword-mark' : '',
+        promiseClass(s),
       ]
         .filter(Boolean)
         .join(' ')
