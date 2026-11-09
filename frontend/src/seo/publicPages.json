@@ -6,7 +6,7 @@
     "titleSuffix": "부천참빛교회",
     "defaultTitle": "부천참빛교회 | 상동 참빛교회 공식 홈페이지",
     "defaultDescription": "부천참빛교회(상동 참빛교회) 공식 홈페이지. 예배 안내, 교회 소개, 성경 읽기와 묵상, 교회 소식을 만나보세요.",
-    "ogImage": "/og-image.jpg",
+    "ogImage": "/og-image.jpg?v=20261109",
     "phone": "032-323-1004",
     "address": "경기도 부천시 송내대로265번길 29 (상동)",
     "postcode": "14542",
@@ -231,7 +231,7 @@
         "description": "경기도 부천시 상동에 있는 대한예수교장로회(고신) 소속 교회. 주일낮예배 오전 7:30 · 9:20 · 11:20 · 오후 1:30.",
         "url": "https://chambitcc.kro.kr/",
         "logo": "https://chambitcc.kro.kr/pwa-512x512.png",
-        "image": "https://chambitcc.kro.kr/og-image.jpg",
+        "image": "https://chambitcc.kro.kr/og-image.jpg?v=20261109",
         "telephone": "+82-32-323-1004",
         "address": {
           "@type": "PostalAddress",
