@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkle, Check } from '../icons/phosphor'
 import { chatViewerKey, getChatbotGreeting, prefetchChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import { tryGlossaryReply } from './localGlossary'
-import type { ChatAction, ChatReply } from '../../types/chatbot'
+import type { ChatAction, ChatContext, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { isRoutePreloaded, preloadRoute } from '../../utils/routePreload'
 import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
@@ -130,11 +130,25 @@ const ChatbotWidget = () => {
     if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current)
   }, [])
 
+  // 마지막 맥락 — 맥락이 실린 답(장·절·광고 목록·설교 목록)이 올 때 갈아 끼우고, 다음 질문에 되돌려 보낸다.
+  // 맥락 없는 답(예배 시간 등)이 끼어도 지우지 않되, 봇 답 6번이 지나면 묵은 것으로 보고 버린다 — "다음 장"이
+  // 한참 전 장으로 튀지 않게. "새로 시작"은 비운다
+  const lastContextRef = useRef<{ ctx: ChatContext; turn: number } | null>(null)
+  const botTurnRef = useRef(0)
+  const CONTEXT_MAX_AGE_TURNS = 6
   const appendReplies = useCallback((replies: ChatReply[]) => {
+    botTurnRef.current += 1
+    const withCtx = [...replies].reverse().find((r) => r.context)
+    if (withCtx?.context) lastContextRef.current = { ctx: withCtx.context, turn: botTurnRef.current }
     setMsgs((prev) => [
       ...prev,
       ...replies.map((reply) => ({ id: nextId++, role: 'bot' as const, reply })),
     ])
+  }, [])
+  const currentContext = useCallback((): ChatContext | null => {
+    const last = lastContextRef.current
+    if (!last || botTurnRef.current - last.turn >= CONTEXT_MAX_AGE_TURNS) return null
+    return last.ctx
   }, [])
 
   // 인사 + 메뉴 — 처음 열 때, 그리고 "새로 시작"에서 다시 받아온다
@@ -283,6 +297,7 @@ const ChatbotWidget = () => {
   const restart = useCallback(() => {
     if (loading) return
     setMsgs([])
+    lastContextRef.current = null
     loadGreeting()
   }, [loading, loadGreeting])
 
@@ -305,7 +320,7 @@ const ChatbotWidget = () => {
           appendReplies([local])
           return
         }
-        const res = await sendChatbotMessage(trimmed)
+        const res = await sendChatbotMessage(trimmed, currentContext())
         appendReplies(res.replies)
       } catch {
         appendReplies([
@@ -322,7 +337,7 @@ const ChatbotWidget = () => {
         inputRef.current?.focus()
       }
     },
-    [loading, appendReplies],
+    [loading, appendReplies, currentContext],
   )
 
   // 보류된 외부 질문은 인사(greeting) 로딩이 끝난 뒤 보낸다

@@ -64,6 +64,7 @@ const ChatbotManagement = () => {
   const [editor, setEditor] = useState<EditorState | null>(null)
   const [saving, setSaving] = useState(false)
   const [showResolved, setShowResolved] = useState(false)
+  const [showWeak, setShowWeak] = useState(false)
   const [showKeywordGuide, setShowKeywordGuide] = useState(false)
 
   const load = useCallback(async () => {
@@ -215,7 +216,9 @@ const ChatbotManagement = () => {
   }
 
   const openList = unanswered.filter((u) => u.status === 'open')
-  const resolvedList = unanswered.filter((u) => u.status !== 'open')
+  // weak: 참비가 답은 했지만 저확신으로 남긴 질문 — 엉뚱한 답이 나갔는지 보고 인텐트로 승격한다
+  const weakList = unanswered.filter((u) => u.status === 'weak')
+  const resolvedList = unanswered.filter((u) => u.status === 'resolved')
   const activeCount = intents.filter((i) => i.is_active).length
 
   const tabCls = (active: boolean) =>
@@ -255,6 +258,7 @@ const ChatbotManagement = () => {
             {/* 통계 칩 */}
             <div className="px-4 pt-4 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
               <StatChip label="미답변" value={openList.length} warn={openList.length > 0} />
+              <StatChip label="저확신" value={weakList.length} warn={weakList.length > 0} />
               <StatChip label="인텐트" value={intents.length} />
               <StatChip label="활성" value={activeCount} accent />
             </div>
@@ -510,6 +514,53 @@ const ChatbotManagement = () => {
                       </div>
                     </div>
                   ))}
+
+                  {/* 저확신 답변 — 답은 나갔지만 질문을 맞혔다고 보기 어려운 것. 무엇이 나갔는지 보여 주고 바로 승격 */}
+                  {weakList.length > 0 && (
+                    <>
+                      <button
+                        onClick={() => setShowWeak((v) => !v)}
+                        className="w-full py-2 rounded-xl border border-dashed border-amber-300 dark:border-amber-400/40 text-[12.5px] text-amber-700 dark:text-amber-300 hover:border-amber-500 transition-colors"
+                      >
+                        🤔 저확신 답변 {weakList.length}개 {showWeak ? '접기' : '보기'}
+                      </button>
+                      {showWeak &&
+                        weakList.map((u) => (
+                          <div
+                            key={u.id}
+                            className="rounded-2xl border border-amber-200/70 dark:border-amber-400/20 bg-amber-50/50 dark:bg-amber-400/[0.04] p-4"
+                          >
+                            <p className="m-0 text-[14.5px] font-semibold text-ink-strong break-words">
+                              “{u.text}”
+                            </p>
+                            {u.answer && (
+                              <p className="m-0 mt-1.5 text-[12.5px] text-gray-500 dark:text-white/55 break-words">
+                                참비의 답: {u.answer}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between gap-2 mt-2.5">
+                              <p className="m-0 text-[12px] text-gray-500 dark:text-white/50 shrink-0">
+                                {fmtDate(u.created_at)} · {u.ask_count}회 질문됨
+                              </p>
+                              <div className="flex gap-1.5">
+                                <button
+                                  onClick={() => promoteToIntent(u)}
+                                  className="px-2.5 py-1.5 rounded-lg bg-brand hover:bg-brand-dim text-white text-xs font-bold transition-colors"
+                                >
+                                  ✍️ 답변 만들기
+                                </button>
+                                <button onClick={() => void resolveUnanswered(u)} className={smallBtnCls}>
+                                  괜찮은 답
+                                </button>
+                                <button onClick={() => void removeUnanswered(u)} className={dangerBtnCls}>
+                                  삭제
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </>
+                  )}
 
                   {/* 해결된 질문 — 접어 두어 미답변에 집중 */}
                   {resolvedList.length > 0 && (

@@ -60,6 +60,18 @@ export interface ChatBriefItem {
   link?: string | null
 }
 
+// 직전 봇 답의 맥락 — 서버는 대화 상태를 들고 있지 않아, 위젯이 마지막 맥락을 다음 질문에 그대로 되돌려 준다.
+// "다음 장"·"이전 절"·"해석"(chapter/verse), "두 번째 광고 자세히"(announcements), "그 설교 보여줘"(sermons)
+export interface ChatContext {
+  kind: string
+  book?: number | null
+  chapter?: number | null
+  verse?: number | null
+  verse_end?: number | null
+  ids?: number[]
+  titles?: string[]
+}
+
 export interface ChatReply {
   kind: string
   text?: string | null
@@ -71,6 +83,8 @@ export interface ChatReply {
   actions: ChatAction[]
   // 아바타 표정: default|talking|thinking|joy|comfort|sorry|praying
   expression?: string | null
+  // 이 답의 맥락 — 있으면 다음 질문에 되돌려 보낸다 (옛 서버 응답엔 없다)
+  context?: ChatContext | null
 }
 
 export interface ChatbotAnswer {
@@ -83,7 +97,8 @@ export interface ChatbotUnanswered {
   id: number
   text: string
   ask_count: number
-  status: 'open' | 'resolved'
+  // weak: 답은 했지만 저확신(남은 낱말 구절 검색·시간표 전체 폴백·설교/칼럼 못 찾음) — answer 칸에 '[사유] 참비가 한 답'
+  status: 'open' | 'resolved' | 'weak'
   answer?: string | null
   created_at: string
   updated_at: string

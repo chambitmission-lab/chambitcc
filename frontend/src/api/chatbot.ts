@@ -1,5 +1,6 @@
 import { API_V1 } from '../config/api'
 import type {
+  ChatContext,
   ChatbotAnswer,
   ChatbotIntent,
   ChatbotIntentCreate,
@@ -46,11 +47,14 @@ export const getChatbotGreeting = async (): Promise<ChatbotAnswer> => {
   return hit ?? fetchGreeting()
 }
 
-/** 메시지 전송 — 로그인 상태면 토큰을 실어 미답변 로그에 질문자가 남는다 */
-export const sendChatbotMessage = async (message: string): Promise<ChatbotAnswer> => {
+/**
+ * 메시지 전송 — 로그인 상태면 토큰을 실어 미답변 로그에 질문자가 남는다.
+ * context 는 마지막 봇 답의 맥락(ChatReply.context)을 그대로 — "다음 장", "두 번째 광고 자세히"가 풀린다.
+ */
+export const sendChatbotMessage = async (message: string, context?: ChatContext | null): Promise<ChatbotAnswer> => {
   return request<ChatbotAnswer>(`${BASE}/message`, {
     method: 'POST',
-    json: { message },
+    json: context ? { message, context } : { message },
     errorMessage: '메시지 전송에 실패했습니다',
   })
 }
