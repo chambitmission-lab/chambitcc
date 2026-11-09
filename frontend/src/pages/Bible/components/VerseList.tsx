@@ -37,6 +37,7 @@ import { useChapterVerseIndex } from '../hooks/useChapterVerseIndex'
 import { useChapterVerseMeta } from '../hooks/useChapterVerseMeta'
 import { useChapterTogether } from '../hooks/useChapterTogether'
 import { getReaderLayout, subscribeReaderLayout } from '../data/readerLayout'
+import { getActiveKeyword, subscribeActiveKeyword } from '../data/keywordHighlight'
 import { isSectionHeadingsEnabled, subscribeSectionHeadings } from '../data/sectionHeadings'
 import { loadBookOutline, peekBookOutline, type BookOutline } from '../data/chapterOutlines'
 import { loadBookParaphrase, peekBookParaphrase, type BookParaphrase } from '../data/paraphrase'
@@ -434,6 +435,15 @@ const VerseList = ({
       fetchNextPage()
     }
   }, [scrollToVerse, index, bodyRendered, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
+
+  // 열쇠말 밝히기 중엔 이 장을 끝까지 받아 둔다 — 아직 안 받은 페이지의 절은 DOM 에 없어
+  // 하단 알약의 '다음'이 그 자리로 못 가고 처음으로 되돌아가던 문제. 한 장은 많아야 176절이라 부담이 작다.
+  const activeKeyword = useSyncExternalStore(subscribeActiveKeyword, getActiveKeyword)
+  const keywordHere =
+    !!activeKeyword && activeKeyword.book === bookNumber && activeKeyword.chapter === selectedChapter
+  useEffect(() => {
+    if (keywordHere && bodyRendered && hasNextPage && !isFetchingNextPage) fetchNextPage()
+  }, [keywordHere, bodyRendered, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   // 이전·다음 장을 미리 받아 둔다 — 장 넘김이 URL 을 안 바꿔 라우트 선요청을 못 타므로 여기서.
   // 본문이 그려지고 이 장의 부가 요청(해석·북마크·단어장·현황)이 먼저 나간 뒤 유휴 시간에 띄운다.
