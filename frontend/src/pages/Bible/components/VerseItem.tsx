@@ -160,9 +160,13 @@ const VerseItem = ({
     verse.merged_verses ?? [verse.verse],
   )
   // 같은 짝(마 1:23 ↔ 사 7:14)을 연결 구절 칩과 약속 배지가 두 번 말하지 않게 — 약속 배지가 대신한다
-  const crossLinks = messiahHits.length
-    ? rawCrossLinks.filter((l) => l.kind === 'parallel' || !coversPassage(messiahHits, l.target))
-    : rawCrossLinks
+  const crossLinks = useMemo(
+    () =>
+      messiahHits.length
+        ? rawCrossLinks.filter((l) => l.kind === 'parallel' || !coversPassage(messiahHits, l.target))
+        : rawCrossLinks,
+    [rawCrossLinks, messiahHits],
+  )
   // 연필 밑줄 — 구약 약속(금빛)/신약 성취(푸른빛) 핵심 문구. 범위 안 절마다, 손글씨 메모는 첫 절에만
   const promiseRanges = useMemo(
     () => (messiahHits.length ? promiseMarkRanges(messiahHits, verse.text) : []),

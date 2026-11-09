@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { preloadRoute } from '../../../utils/routePreload'
-import { useBibleChapter } from '../../../hooks/useBible'
+import { usePassageVerses } from '../hooks/usePassageVerses'
 import { useFeedTextScale, type FeedTextScale } from '../../../utils/feedTextScale'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
-import { parseRef } from '../data/crossRefs'
-import { KIND_HINT, KIND_LABEL, STORY_EPISODE, THEME_LABEL, type MessiahPromise } from '../data/messiah'
+import type { PassageRef } from '../data/crossRefs'
+import { getPromiseRefs, KIND_HINT, KIND_LABEL, STORY_EPISODE, THEME_LABEL, type MessiahPromise } from '../data/messiah'
 import { ArrowDownIcon, BulbIcon, CrossIcon, CrownIcon, PathIcon, SparkleIcon } from './messiah/PromiseIcons'
 import { formatPromiseRef, paintMarks } from './messiah/promiseText'
 import '../styles/messiah.css'
@@ -16,11 +16,9 @@ import '../styles/promise-pencil.css'
 // 포털 시트라 <main data-text-scale> 를 상속받지 못한다 — CrossRefSheet 와 같은 값으로 직접 세팅
 const TEXT_MUL: Record<FeedTextScale, number> = { base: 1, large: 1.1, xlarge: 1.2 }
 
-/** 한 본문(범위) 인용 — 대상 장은 읽기 화면과 같은 장 캐시(useBibleChapter)를 쓴다 */
-const PassageQuote = ({ refStr, marks, tone }: { refStr: string; marks: readonly string[]; tone: 'ot' | 'nt' }) => {
-  const r = parseRef(refStr)
-  const { data, isLoading } = useBibleChapter(r.b, r.c)
-  const verses = (data?.verses ?? []).filter((v) => v.verse >= r.v && v.verse <= r.to && v.text)
+/** 한 본문(범위) 인용 — 읽기 화면이 받아 둔 장이면 요청 없이 그 캐시에서, 아니면 전체 장을 받는다 */
+const PassageQuote = ({ passage, marks, tone }: { passage: PassageRef; marks: readonly string[]; tone: 'ot' | 'nt' }) => {
+  const { verses, isLoading } = usePassageVerses(passage)
   const multi = verses.length > 1
   if (isLoading) return <p className="msh-quote msh-quote--loading">본문을 불러오는 중…</p>
   if (!verses.length) return <p className="msh-quote msh-quote--loading">본문을 불러오지 못했어요.</p>
@@ -61,9 +59,9 @@ const MessiahSheet = ({ promises, currentSide, fromMap, onClose }: MessiahSheetP
   const [activeId, setActiveId] = useState(promises[0]?.id)
   const p = promises.find((x) => x.id === activeId) ?? promises[0]
   if (!p) return null
+  const refs = getPromiseRefs(p)
 
-  const go = (refStr: string) => {
-    const r = parseRef(refStr)
+  const go = (r: PassageRef) => {
     onClose()
     navigate(`/bible/${r.b}/${r.c}?verse=${r.v}`)
   }
@@ -129,8 +127,8 @@ const MessiahSheet = ({ promises, currentSide, fromMap, onClose }: MessiahSheetP
               </span>
               {currentSide === 'ot' && <span className="msh-here">지금 읽는 곳</span>}
             </div>
-            <h4 className="msh-card__ref">{formatPromiseRef(p.ot)}</h4>
-            <PassageQuote refStr={p.ot} marks={p.otMarks} tone="ot" />
+            <h4 className="msh-card__ref">{formatPromiseRef(refs.ot)}</h4>
+            <PassageQuote passage={refs.ot} marks={p.otMarks} tone="ot" />
           </section>
 
           <div className="msh-link" aria-hidden>
@@ -148,10 +146,10 @@ const MessiahSheet = ({ promises, currentSide, fromMap, onClose }: MessiahSheetP
               </span>
               {currentSide === 'nt' && <span className="msh-here msh-here--nt">지금 읽는 곳</span>}
             </div>
-            {p.nt.map((n, i) => (
-              <div key={n} className={i > 0 ? 'msh-card__more' : undefined}>
+            {refs.nt.map((n, i) => (
+              <div key={p.nt[i]} className={i > 0 ? 'msh-card__more' : undefined}>
                 <h4 className="msh-card__ref">{formatPromiseRef(n)}</h4>
-                <PassageQuote refStr={n} marks={p.ntMarks} tone="nt" />
+                <PassageQuote passage={n} marks={p.ntMarks} tone="nt" />
               </div>
             ))}
           </section>
@@ -166,11 +164,11 @@ const MessiahSheet = ({ promises, currentSide, fromMap, onClose }: MessiahSheetP
           </section>
 
           <div className="msh-actions">
-            <button type="button" className="msh-btn msh-btn--ot" onClick={() => go(p.ot)}>
+            <button type="button" className="msh-btn msh-btn--ot" onClick={() => go(refs.ot)}>
               <span className="material-icons-round text-[18px]" aria-hidden>auto_stories</span>
               구약 말씀 보기
             </button>
-            <button type="button" className="msh-btn msh-btn--nt" onClick={() => go(p.nt[0])}>
+            <button type="button" className="msh-btn msh-btn--nt" onClick={() => go(refs.nt[0])}>
               <span className="material-icons-round text-[18px]" aria-hidden>auto_stories</span>
               신약 말씀 보기
             </button>

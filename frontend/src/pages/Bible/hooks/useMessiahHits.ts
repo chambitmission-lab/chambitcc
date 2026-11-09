@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { getReadingAids, subscribeReadingAids } from '../data/readingAids'
-import { getMessiahHits, isMessiahReady, loadMessiah, type MessiahHit } from '../data/messiah'
+import { getMessiahHits, isMessiahReady, loadMessiah, subscribeMessiah, type MessiahHit } from '../data/messiah'
 
 /**
  * 이 절에 달린 약속과 성취(구약 약속·신약 성취). 읽기 도움 '약속과 성취'를 켰을 때만.
@@ -12,17 +12,11 @@ export const useMessiahHits = (
   verses: readonly number[],
 ): MessiahHit[] => {
   const enabled = useSyncExternalStore(subscribeReadingAids, getReadingAids).messiah
-  const [ready, setReady] = useState(isMessiahReady)
+  // 준비 여부는 모듈 스토어 하나를 함께 본다 — 절마다 상태를 복제하지 않고, 받아지면 한 번에 깨어난다
+  const ready = useSyncExternalStore(subscribeMessiah, isMessiahReady)
 
   useEffect(() => {
-    if (ready || !enabled) return
-    let alive = true
-    loadMessiah().then(() => {
-      if (alive) setReady(true)
-    })
-    return () => {
-      alive = false
-    }
+    if (enabled && !ready) void loadMessiah()
   }, [ready, enabled])
 
   const verseKey = verses.join(',')

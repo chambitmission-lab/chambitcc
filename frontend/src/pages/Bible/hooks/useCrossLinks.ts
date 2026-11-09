@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { getReadingAids, subscribeReadingAids } from '../data/readingAids'
-import { getCrossLinks, isCrossRefsReady, loadCrossRefs, type CrossLink } from '../data/crossRefs'
+import { getCrossLinks, isCrossRefsReady, loadCrossRefs, subscribeCrossRefs, type CrossLink } from '../data/crossRefs'
 
 /**
  * 이 절에 달린 연결 구절(구약 인용·신약의 인용·평행 본문).
@@ -13,17 +13,11 @@ export const useCrossLinks = (
   verses: readonly number[],
 ): CrossLink[] => {
   const enabled = useSyncExternalStore(subscribeReadingAids, getReadingAids).crossRefs
-  const [ready, setReady] = useState(isCrossRefsReady)
+  // 준비 여부는 모듈 스토어 하나를 함께 본다 — 절마다 상태를 복제하지 않고, 받아지면 한 번에 깨어난다
+  const ready = useSyncExternalStore(subscribeCrossRefs, isCrossRefsReady)
 
   useEffect(() => {
-    if (ready || !enabled) return
-    let alive = true
-    loadCrossRefs().then(() => {
-      if (alive) setReady(true)
-    })
-    return () => {
-      alive = false
-    }
+    if (enabled && !ready) void loadCrossRefs()
   }, [ready, enabled])
 
   const verseKey = verses.join(',')

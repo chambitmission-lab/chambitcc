@@ -112,11 +112,11 @@ const ReaderSettings = () => {
   // 함께 읽기 — 내 읽기 위치 공유 (presenceSharing 모듈이 저장·전파, VerseList 하트비트가 구독)
   const [sharingOn, setSharingOn] = useState(isPresenceSharingEnabled)
   const wrapRef = useRef<HTMLDivElement>(null)
-  // PC(lg+) 패널은 세 묶음을 옆으로 나란히 펼친다. 패널은 Aa 버튼 오른쪽 끝에 맞춰 왼쪽으로 펴지므로,
-  // 열 때 버튼 왼쪽에 남은 폭을 재서 그 안에서만 넓힌다(좁은 화면에서 왼쪽 밖으로 잘리지 않게).
+  // 패널은 Aa 버튼 오른쪽 끝에 맞춰 왼쪽으로 펴지므로, 열 때 버튼 왼쪽에 남은 폭을 재서 그 안에서만
+  // 넓힌다 — PC 는 세 묶음을 나란히 펼 때, 모바일은 화면 폭 가까이 넓힐 때 왼쪽 밖으로 잘리지 않게.
   const [panelMaxW, setPanelMaxW] = useState<number | null>(null)
   useLayoutEffect(() => {
-    if (!open || !wrapRef.current || !window.matchMedia('(min-width: 1024px)').matches) return
+    if (!open || !wrapRef.current) return
     setPanelMaxW(Math.floor(wrapRef.current.getBoundingClientRect().right - 16))
   }, [open])
 
@@ -258,10 +258,10 @@ const ReaderSettings = () => {
             길게 눌러 '여기부터 듣기'를 고르면 다시 나타나요.
           </p>
 
-          {/* 읽기 도움 — 단락 풀이 / 예수님 말씀 색 / 연결 구절 칩. 각각 독립 토글 */}
+          {/* 읽기 도움 — 단락 풀이 / 예수님 말씀 색 / 연결 구절 / 약속과 성취. 각각 독립 토글, 모바일은 2×2 */}
           <div className="reader-settings__row reader-settings__row--stack">
             <span className="reader-settings__label">읽기 도움</span>
-            <div className="reader-settings__chips">
+            <div className="reader-settings__chips reader-settings__chips--wrap">
               {READING_AID_OPTIONS.map(opt => (
                 <button
                   key={opt.key}

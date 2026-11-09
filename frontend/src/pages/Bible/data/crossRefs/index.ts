@@ -38,6 +38,8 @@ export const formatRef = (r: PassageRef): string =>
 // (구약 쪽 역방향 인용 칩도 같은 색인에서 나오므로 책별로 나눌 수 없다).
 let index: Map<string, Map<number, CrossLink[]>> | null = null
 let loading: Promise<void> | null = null
+// 색인이 준비되면 알린다 — 절마다 상태를 들고 있지 않고 useSyncExternalStore 로 함께 깨어나게
+const listeners = new Set<() => void>()
 
 const add = (anchor: PassageRef, link: CrossLink) => {
   const key = `${anchor.b}:${anchor.c}`
@@ -65,9 +67,18 @@ const build = (quotes: readonly QuoteRow[], parallels: readonly ParallelGroup[])
       }
     }
   }
+  listeners.forEach((fn) => fn())
 }
 
 export const isCrossRefsReady = () => index !== null
+
+/** 색인 준비를 구독 — useSyncExternalStore(subscribeCrossRefs, isCrossRefsReady) */
+export const subscribeCrossRefs = (fn: () => void): (() => void) => {
+  listeners.add(fn)
+  return () => {
+    listeners.delete(fn)
+  }
+}
 
 export const loadCrossRefs = (): Promise<void> => {
   if (index) return Promise.resolve()

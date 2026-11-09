@@ -2,7 +2,7 @@ import { type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import { useBibleChapter } from '../../../hooks/useBible'
+import { usePassageVerses } from '../hooks/usePassageVerses'
 import { useFeedTextScale, type FeedTextScale } from '../../../utils/feedTextScale'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
 import { formatRef, type CrossLink } from '../data/crossRefs'
@@ -24,15 +24,14 @@ const KIND_ICON: Record<CrossLink['kind'], string> = {
 
 /**
  * 연결 구절 칩을 탭하면 열리는 하단 시트 — 건너가지 않고도 그 본문을 바로 읽어 보게 하고,
- * 더 읽고 싶으면 그 자리로 이동한다. 대상 장은 읽기 화면과 같은 장 캐시(useBibleChapter)를 쓴다.
+ * 더 읽고 싶으면 그 자리로 이동한다. 대상 본문은 읽기 화면이 받아 둔 장이면 요청 없이 그 캐시에서 꺼낸다.
  */
 const CrossRefSheet = ({ link, onClose }: { link: CrossLink; onClose: () => void }) => {
   useModalBackButton(onClose)
   const navigate = useNavigate()
   const textScale = useFeedTextScale()
   const { target } = link
-  const { data, isLoading } = useBibleChapter(target.b, target.c)
-  const verses = (data?.verses ?? []).filter((v) => v.verse >= target.v && v.verse <= target.to && v.text)
+  const { verses, isLoading } = usePassageVerses(target)
 
   const goToPassage = () => {
     onClose()

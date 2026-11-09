@@ -47,7 +47,12 @@
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: 264px;
+  /* 모바일: 화면 양옆 16px 만 남기고 넓게 쓴다(최대 360px). 읽기 도움 칩이 넷으로 늘어 264px 에선
+     오른쪽으로 넘쳤다. 왼쪽 밖으로 나가지 않게 ReaderSettings 가 버튼 왼쪽 남은 폭을 maxWidth 로 넘긴다 */
+  width: min(360px, calc(100vw - 32px));
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 14px;
   border-radius: 16px;
   background: #ffffff;
@@ -151,6 +156,18 @@
   border-color: var(--brand);
   color: #ffffff;
   box-shadow: 0 3px 8px -3px var(--brand-glow);
+}
+
+/* 칩이 넷인 줄(읽기 도움) — 모바일에선 2×2 로 접는다. 넷을 한 줄에 두면 글자가 줄어들거나 넘친다 */
+@media (max-width: 1023px) {
+  .reader-settings__chips--wrap {
+    flex-wrap: wrap;
+  }
+
+  .reader-settings__chips--wrap button {
+    flex: 1 1 calc(50% - 3px);
+    padding: 7px 4px;
+  }
 }
 
 /* 스텝퍼 (글자 크기) */

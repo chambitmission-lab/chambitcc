@@ -1,4 +1,5 @@
 import { parseRef, type PassageRef } from '../crossRefs'
+import { findMarkSpans, mergeSpans } from './markSpans'
 import type { MessiahPromise, PromiseKind, PromiseTheme } from './types'
 
 export type { MessiahPromise, PromiseKind, PromiseTheme } from './types'
@@ -70,11 +71,20 @@ export const STORY_EPISODE: Readonly<Record<string, string>> = {
   elijah: 'promise-messenger',
 }
 
+/** 약속 한 쌍의 참조를 미리 파싱해 둔 것 — 렌더마다 "창 22:18" 문자열을 다시 쪼개지 않게 */
+export interface PromiseRefs {
+  ot: PassageRef
+  nt: readonly PassageRef[]
+}
+
 // "책:장" → 절 → 약속 목록. 58쌍(15KB 남짓)이라 한 번에 받아 색인한다
 let list: readonly MessiahPromise[] | null = null
 let noteMap: Readonly<Record<string, readonly [string, string]>> = {}
 let index: Map<string, Map<number, MessiahHit[]>> | null = null
+const refs = new Map<string, PromiseRefs>()
 let loading: Promise<void> | null = null
+// 색인이 준비되면 알린다 — 절마다 상태를 들고 있지 않고 useSyncExternalStore 로 함께 깨어나게
+const listeners = new Set<() => void>()
 
 const addRange = (r: PassageRef, promise: MessiahPromise, side: MessiahHit['side']) => {
   const key = `${r.b}:${r.c}`
@@ -91,12 +101,23 @@ const build = (data: readonly MessiahPromise[]) => {
   list = data
   index = new Map()
   for (const p of data) {
-    addRange(parseRef(p.ot), p, 'ot')
-    for (const n of p.nt) addRange(parseRef(n), p, 'nt')
+    const r: PromiseRefs = { ot: parseRef(p.ot), nt: p.nt.map(parseRef) }
+    refs.set(p.id, r)
+    addRange(r.ot, p, 'ot')
+    for (const n of r.nt) addRange(n, p, 'nt')
   }
+  listeners.forEach((fn) => fn())
 }
 
 export const isMessiahReady = () => index !== null
+
+/** 색인 준비를 구독 — useSyncExternalStore(subscribeMessiah, isMessiahReady) */
+export const subscribeMessiah = (fn: () => void): (() => void) => {
+  listeners.add(fn)
+  return () => {
+    listeners.delete(fn)
+  }
+}
 
 export const loadMessiah = (): Promise<void> => {
   if (index) return Promise.resolve()
@@ -115,14 +136,16 @@ export const getMessiahHits = (bookNumber: number, chapter: number, verse: numbe
 /** 전체 목록 (색인 전이면 빈 배열) — 약속 지도 */
 export const getMessiahPromises = (): readonly MessiahPromise[] => list ?? []
 
+/** 약속의 구약·신약 참조(파싱본). 색인 전에 불리면 그 자리에서 파싱한다 */
+export const getPromiseRefs = (promise: MessiahPromise): PromiseRefs =>
+  refs.get(promise.id) ?? { ot: parseRef(promise.ot), nt: promise.nt.map(parseRef) }
+
 /** 연결 구절 칩과 겹치는지 — 같은 짝이면 연결 구절 칩은 숨긴다(약속 배지가 대신한다) */
 export const coversPassage = (hits: readonly MessiahHit[], target: PassageRef): boolean =>
-  hits.some(({ promise }) =>
-    [promise.ot, ...promise.nt].some((s) => {
-      const r = parseRef(s)
-      return r.b === target.b && r.c === target.c && r.v <= target.to && target.v <= r.to
-    }),
-  )
+  hits.some(({ promise }) => {
+    const { ot, nt } = getPromiseRefs(promise)
+    return [ot, ...nt].some((r) => r.b === target.b && r.c === target.c && r.v <= target.to && target.v <= r.to)
+  })
 
 /** 연필 밑줄 옆 손글씨 메모 (notes.ts) — 없으면 약속 제목 */
 export const getPromiseNote = (promise: MessiahPromise, side: MessiahHit['side']): string =>
@@ -135,22 +158,13 @@ export const getPromiseNote = (promise: MessiahPromise, side: MessiahHit['side']
 export const promiseMarkRanges = (
   hits: readonly MessiahHit[],
   text: string,
-): { start: number; end: number; side: MessiahHit['side'] }[] => {
-  const spans: { start: number; end: number; side: MessiahHit['side'] }[] = []
-  for (const h of hits) {
-    for (const m of h.side === 'ot' ? h.promise.otMarks : h.promise.ntMarks) {
-      if (!m) continue
-      for (let i = text.indexOf(m); i !== -1; i = text.indexOf(m, i + m.length)) {
-        spans.push({ start: i, end: i + m.length, side: h.side })
-      }
-    }
-  }
-  spans.sort((a, b) => a.start - b.start)
-  const merged: typeof spans = []
-  for (const sp of spans) {
-    const last = merged[merged.length - 1]
-    if (last && sp.start <= last.end) last.end = Math.max(last.end, sp.end)
-    else merged.push({ ...sp })
-  }
-  return merged
-}
+): { start: number; end: number; side: MessiahHit['side'] }[] =>
+  mergeSpans(
+    hits.flatMap((h) =>
+      findMarkSpans(text, h.side === 'ot' ? h.promise.otMarks : h.promise.ntMarks, (start, end) => ({
+        start,
+        end,
+        side: h.side,
+      })),
+    ),
+  )

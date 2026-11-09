@@ -1,15 +1,12 @@
 import { useEffect } from 'react'
 import { ensureFontFamily } from '../../../../utils/deferredFonts'
-import { parseRef } from '../../data/crossRefs'
-import { getPromiseNote, type MessiahHit } from '../../data/messiah'
+import type { PassageRef } from '../../data/crossRefs'
+import { getPromiseNote, getPromiseRefs, type MessiahHit } from '../../data/messiah'
 import { BOOK_ABBREV_KO } from '../bibleBookAbbrev'
 import '../../styles/promise-pencil.css'
 
 /** "갈 3:16" — 여백 메모라 약칭으로 짧게 */
-const abbrevRef = (s: string) => {
-  const r = parseRef(s)
-  return `${BOOK_ABBREV_KO[r.b] ?? ''} ${r.c}:${r.v}`
-}
+const abbrevRef = (r: PassageRef) => `${BOOK_ABBREV_KO[r.b] ?? ''} ${r.c}:${r.v}`
 
 interface VersePromiseNoteProps {
   hits: MessiahHit[]
@@ -35,9 +32,10 @@ const VersePromiseNote = ({ hits, inline, onOpen }: VersePromiseNoteProps) => {
   const side = firsts[0].side
   const lines = firsts.map((h) => {
     const note = getPromiseNote(h.promise, h.side)
+    const { ot, nt } = getPromiseRefs(h.promise)
     return h.side === 'ot'
-      ? { key: h.promise.id, text: note, ref: `→ ${abbrevRef(h.promise.nt[0])}`, refFirst: false }
-      : { key: h.promise.id, text: note, ref: `← ${abbrevRef(h.promise.ot)}`, refFirst: true }
+      ? { key: h.promise.id, text: note, ref: `→ ${abbrevRef(nt[0])}`, refFirst: false }
+      : { key: h.promise.id, text: note, ref: `← ${abbrevRef(ot)}`, refFirst: true }
   })
   const label = side === 'ot' ? '메시아 약속' : '약속의 성취'
 
