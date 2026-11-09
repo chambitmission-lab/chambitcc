@@ -118,8 +118,11 @@ const News = () => {
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
   // 히어로 쪽 띠에서 고른 쪽 — 뷰어를 그 쪽부터 연다
   const [startPage, setStartPage] = useState(0)
-  // 이미지 주보가 기본(2026-11-07 사용자 요청) — 디지털 주보는 옆 탭으로
-  const [tab, setTab] = useState<BulletinTabKey>('image')
+  // 이미지 주보가 기본(2026-11-07 사용자 요청) — 디지털 주보는 옆 탭으로.
+  // 챗봇 참비의 "디지털 주보 보기" 칩(/news?tab=bulletin&view=digital)은 그 탭을 바로 연다
+  const [tab, setTab] = useState<BulletinTabKey>(() =>
+    searchParams.get('view') === 'digital' ? 'digital' : 'image',
+  )
 
   const handleSectionChange = (next: SectionKey) => {
     // replace — 탭 전환마다 히스토리가 쌓여 뒤로가기가 먹통이 되는 걸 막는다

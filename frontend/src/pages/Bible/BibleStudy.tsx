@@ -54,6 +54,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { isPastor } from '../../utils/access'
 import { safeStorage } from '../../utils/safeStorage'
 import { getReaderIntroCards, subscribeReaderIntroCards } from './data/readerIntroCards'
+import { dashTexts } from './bibleStudyTexts'
 import { AtlasIcon, StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon, TypingIcon } from './components/BibleToolIcons'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../components/bible/BibleSideRail'
@@ -142,60 +143,6 @@ const BibleStudy = () => {
   const { language } = useLanguage()
   const qc = useQueryClient()
 
-  // 나의 서재 카드 문구 — BookSelector와 같은 방식의 화면 내 ko/en 사전
-  const dashTexts = {
-    ko: {
-      storyTitle: '처음 만나는 성경',
-      storyProgress: (n: number) => `${n}화까지 읽었어요 · 이어서 보기`,
-      storyIntro: '창조부터 새 창조까지, 3분씩 42편의 이야기',
-      atlasTitle: '성경 지도여행',
-      atlasText: '말씀이 실제로 걸어간 길을 지도에서 따라 걷기',
-      situationTitle: '상황별 성구',
-      situationText: '두려울 때, 슬플 때… 지금 내 마음에 맞는 말씀',
-      photoTitle: '말씀 사진 카드',
-      photoText: '내 사진 위에 말씀을 담아 간직하고 나누기',
-      typingTitle: '말씀 필사',
-      typingText: '한 절씩 따라 쓰면 읽음으로 · 타자 기록과 칭호까지',
-      favTitle: '즐겨찾기 구절 듣기',
-      favCount: (n: number) => `즐겨찾기한 ${n}개 구절을 묵상 플레이리스트로`,
-      favIntro: '마음에 닿는 절을 모아 자기 전에 다시 듣기',
-      // 모바일 4열 타일용 짧은 문구
-      tileStory: '3분씩 42편의 이야기',
-      tileStoryProgress: (n: number) => `${n}화까지 읽음`,
-      tileAtlas: '지도 위에서 따라 걷기',
-      tileSituation: '두려울 때, 슬플 때…',
-      tilePhoto: '말씀을 담아 나누기',
-      tileTyping: '따라 쓰며 새기기',
-      tileFavTitle: '즐겨찾기 구절',
-      tileFav: '마음에 담는 말씀',
-      tileFavCount: (n: number) => `${n}개 구절 듣기`,
-    },
-    en: {
-      storyTitle: 'Meeting the Bible',
-      storyProgress: (n: number) => `Read up to episode ${n} · Continue`,
-      storyIntro: 'From creation to new creation — 42 stories, 3 min each',
-      atlasTitle: 'Bible Atlas Journey',
-      atlasText: 'Walk the roads Scripture actually travelled',
-      situationTitle: 'Verses for Your Moment',
-      situationText: 'When afraid, when sad… words that meet your heart now',
-      photoTitle: 'Verse Photo Cards',
-      photoText: 'Lay a verse over your photo to keep and share',
-      typingTitle: 'Scripture Typing',
-      typingText: 'Type each verse to mark it read · speed records & titles',
-      favTitle: 'Listen to Favorites',
-      favCount: (n: number) => `Turn your ${n} favorite verses into a playlist`,
-      favIntro: 'Gather verses that touch you, listen before sleep',
-      tileStory: '42 stories, 3 min each',
-      tileStoryProgress: (n: number) => `Read to ep. ${n}`,
-      tileAtlas: 'Walk it on the map',
-      tileSituation: 'When afraid, sad…',
-      tilePhoto: 'Verse over your photo',
-      tileTyping: 'Type to remember',
-      tileFavTitle: 'Favorites',
-      tileFav: 'Verses to keep',
-      tileFavCount: (n: number) => `Listen to ${n} verses`,
-    },
-  }
   const dt = dashTexts[language]
   // 허브(책 목록)에서만 쓰는 데이터 — 장 화면(/bible/:book/:chapter)에선 요청하지 않는다.
   // 전엔 장을 열 때마다 북마크 통계·진행률·스토리 진도까지 4건이 본문 요청과 경쟁했고,
