@@ -32,6 +32,8 @@ export const prayerTopicsLoader: RouteLoader = () => import('../pages/Prayer/Wee
 export const meditationLoader: RouteLoader = () => import('../pages/Bible/Meditation/MeditationPage')
 export const verseAlarmLoader: RouteLoader = () => import('../pages/Bible/VerseAlarm/VerseAlarmPage')
 export const genealogyLoader: RouteLoader = () => import('../pages/Bible/Genealogy/Genealogy')
+// 약속과 성취 지도 — 읽기 화면 약속 시트의 꼬리 링크로만 들어온다 (메뉴 스윕엔 넣지 않는다)
+export const promiseMapLoader: RouteLoader = () => import('../pages/Bible/Messiah/PromiseMap')
 export const pastorHomeLoader: RouteLoader = () => import('../pages/Pastor/PastorHome')
 
 // 관리자 화면 — 관리 메뉴(AdminMenu) 항목 호버·터치 때 받는다. 메뉴 스윕·유휴 프리로드엔 넣지 않는다
@@ -284,6 +286,7 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'bible/alarm', match: /^\/bible\/alarm$/, load: verseAlarmLoader },
   // 성경 도크·레일 "가계도" — 도크의 warmRoute 가 부르는데 테이블에 없어 무효였다
   { key: 'bible/genealogy', match: /^\/bible\/genealogy$/, load: genealogyLoader },
+  { key: 'bible/promises', match: /^\/bible\/promises$/, load: promiseMapLoader },
   // 스토리 화 읽기 — 지도 카드·허브 '돌아가기' 칩이 부른다. 본문·절 선요청은 Story/storyWarm 이 한다
   { key: 'bible/story/episode', match: /^\/bible\/story\/[^/]+$/, load: storyEpisodeLoader },
   // 목회자 홈 — 햄버거 메뉴 꼬리 링크(목회자에게만). 영역 안 섹션은 pages/Pastor/prefetch 가 데운다

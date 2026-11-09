@@ -243,6 +243,18 @@
   word-break: keep-all;
 }
 
+.reader-settings__hint-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--brand);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 /* 미리보기 */
 .reader-settings__preview {
   margin: 0;

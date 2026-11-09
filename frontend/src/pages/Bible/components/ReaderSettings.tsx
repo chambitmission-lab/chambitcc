@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './verseCopy'
 import { isGlossaryEnabled, setGlossaryEnabled } from '../data/bibleGlossary'
 import { getReaderLayout, setReaderLayout, type ReaderLayout } from '../data/readerLayout'
@@ -83,6 +84,7 @@ const READING_AID_OPTIONS: { key: keyof ReadingAids; label: string }[] = [
   { key: 'paraphrase', label: '쉽게 풀면' },
   { key: 'jesusWords', label: '예수님 말씀 색' },
   { key: 'crossRefs', label: '연결 구절' },
+  { key: 'messiah', label: '약속과 성취' },
 ]
 
 const COPY_STYLE_OPTIONS: { key: CopyStyle; label: string }[] = [
@@ -92,6 +94,7 @@ const COPY_STYLE_OPTIONS: { key: CopyStyle; label: string }[] = [
 ]
 
 const ReaderSettings = () => {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [prefs, setPrefs] = useState<ReaderPrefs>(loadPrefs)
   // 복사 형식은 읽기 설정과 저장소를 따로 쓴다 (복사 유틸이 매번 직접 읽어간다)
@@ -104,7 +107,7 @@ const ReaderSettings = () => {
   const [headingsOn, setHeadingsOn] = useState(isSectionHeadingsEnabled)
   // 본문 앞 안내 세 줄 — readerIntroCards 모듈이 저장·전파 (BibleStudy가 구독)
   const [introCards, setIntroCards] = useState<ReaderIntroCards>(getReaderIntroCards)
-  // 읽기 도움 세 가지 — readingAids 모듈이 저장·전파 (VerseList·VerseItem이 구독)
+  // 읽기 도움 네 가지 — readingAids 모듈이 저장·전파 (VerseList·VerseItem이 구독)
   const [aids, setAids] = useState<ReadingAids>(getReadingAids)
   // 함께 읽기 — 내 읽기 위치 공유 (presenceSharing 모듈이 저장·전파, VerseList 하트비트가 구독)
   const [sharingOn, setSharingOn] = useState(isPresenceSharingEnabled)
@@ -278,7 +281,18 @@ const ReaderSettings = () => {
           </div>
           <p className="reader-settings__hint">
             단락마다 오늘의 말로 푼 풀이, 복음서의 예수님 말씀 붉은 글씨, 구약 인용·같은 사건을 기록한
-            다른 복음서로 건너가는 칩이에요.
+            다른 복음서로 건너가는 칩이에요. 약속과 성취는 메시아를 약속한 구약 절(금빛)과 그 약속이
+            이루어진 신약 절(푸른 줄)을 표시하고, 누르면 두 말씀을 나란히 보여 줘요.{' '}
+            <button
+              type="button"
+              className="reader-settings__hint-link"
+              onClick={() => {
+                setOpen(false)
+                navigate('/bible/promises')
+              }}
+            >
+              약속 지도 보기
+            </button>
           </p>
 
           </div>

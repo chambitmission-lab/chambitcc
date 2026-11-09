@@ -1,6 +1,7 @@
 import type { VerseBookmark } from '../../../../api/bibleBookmark'
 import type { GlossaryEntry } from '../../data/bibleGlossary'
 import type { CrossLink } from '../../data/crossRefs'
+import type { MessiahHit } from '../../data/messiah'
 import { lazyModal } from '../../../../utils/lazyModal'
 // 전부 "탭해야 열리는" 시트·모달 — 절마다 렌더되는 컴포넌트라 읽기 화면 청크에서 뗀다
 const VerseBookmarkModal = lazyModal(() => import('../VerseBookmarkModal'))
@@ -8,6 +9,7 @@ const VerseNoteSheet = lazyModal(() => import('../VerseNoteSheet'))
 const WordNoteSheet = lazyModal(() => import('../WordNoteSheet'))
 const GlossarySheet = lazyModal(() => import('../GlossarySheet'))
 const CrossRefSheet = lazyModal(() => import('../CrossRefSheet'))
+const MessiahSheet = lazyModal(() => import('../MessiahSheet'))
 import type { WordSheetState } from './useWordSelection'
 
 interface VerseSheetsProps {
@@ -29,6 +31,10 @@ interface VerseSheetsProps {
   crossLink: CrossLink | null
   onCloseCrossLink: () => void
 
+  /** 약속과 성취 — 열려 있으면 이 절에 달린 약속들, 닫혀 있으면 null */
+  messiahHits: MessiahHit[] | null
+  onCloseMessiah: () => void
+
   showNoteSheet: boolean
   onCloseNoteSheet: () => void
   /** 노트 읽기 시트에서 "수정"을 누르면 편집 모달로 전환 */
@@ -49,6 +55,8 @@ const VerseSheets = ({
   onCloseGlossary,
   crossLink,
   onCloseCrossLink,
+  messiahHits,
+  onCloseMessiah,
   showNoteSheet,
   onCloseNoteSheet,
   onEditNote,
@@ -85,6 +93,15 @@ const VerseSheets = ({
     {/* 연결 구절 시트 — 구약 인용·평행 본문 칩을 탭했을 때 */}
     {crossLink && <CrossRefSheet link={crossLink} onClose={onCloseCrossLink} />}
 
+    {/* 약속과 성취 시트 — 금빛·푸른빛 배지를 탭했을 때 */}
+    {messiahHits && messiahHits.length > 0 && (
+      <MessiahSheet
+        promises={messiahHits.map((h) => h.promise)}
+        currentSide={messiahHits[0].side}
+        onClose={onCloseMessiah}
+      />
+    )}
+
     {/* 묵상 노트 읽기 시트 - 수정 누르면 편집 모달로 전환 */}
     {showNoteSheet && bookmark?.note && (
       <VerseNoteSheet
@@ -106,6 +123,7 @@ const VerseSheets = ({
 VerseSheets.preload = () => {
   void GlossarySheet.preload()
   void CrossRefSheet.preload()
+  void MessiahSheet.preload()
   void WordNoteSheet.preload()
   void VerseNoteSheet.preload()
   void VerseBookmarkModal.preload()

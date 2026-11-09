@@ -1,11 +1,12 @@
 import { lazy } from 'react'
 import { Route } from 'react-router-dom'
-import { genealogyLoader, meditationLoader, menuRouteLoaders, storyEpisodeLoader, verseAlarmLoader } from '../utils/routePreload'
+import { genealogyLoader, meditationLoader, menuRouteLoaders, promiseMapLoader, storyEpisodeLoader, verseAlarmLoader } from '../utils/routePreload'
 
 // /bible 섹션 — 읽기·플랜·단어장·지도·스토리·필사·말씀 카드·묵상·알람
 
 const BibleStudy = lazy(menuRouteLoaders['/bible'])
 const Genealogy = lazy(genealogyLoader)
+const PromiseMap = lazy(promiseMapLoader)
 const PlanList = lazy(menuRouteLoaders['/bible/plans'])
 const PlanDetail = lazy(() => import('../pages/Bible/Plans/PlanDetail'))
 const JoinPlan = lazy(() => import('../pages/Bible/Plans/JoinPlan'))
@@ -31,6 +32,7 @@ export const bibleRoutes = (
   <>
     <Route path="/bible" element={<BibleStudy />} />
     <Route path="/bible/genealogy" element={<Genealogy />} />
+    <Route path="/bible/promises" element={<PromiseMap />} />
     <Route path="/bible/plans" element={<PlanList />} />
     {/* 정적 경로를 :planId 보다 먼저 — 나만의 플랜 초대 링크 랜딩 */}
     <Route path="/bible/plans/join/:code" element={<JoinPlan />} />

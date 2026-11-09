@@ -1,0 +1,400 @@
+/* ── 약속과 성취 — 시트(MessiahSheet)·약속 지도(PromiseMap) 공용 ──
+   금빛 = 구약의 약속, 푸른빛 = 신약의 성취. 예수님 말씀의 붉은 글자색(.verse-jesus-words)과
+   열쇠말 노란 띠(.verse-keyword-mark)는 본문 쪽 장치라 여기선 쓰지 않는다 — 시트 안 밝히기는
+   글자 뒤 얇은 밑띠로만 해서 노란 형광 띠와도 겹쳐 보이지 않게.
+   본문 절 표시(.verse-promise*)는 절과 함께 그려져야 해서 verse-display.css 에 있다. */
+
+:root,
+[data-theme="light"] {
+  --msh-gold: #c89b45;
+  --msh-gold-ink: #8a6219;
+  --msh-gold-soft: #fbf4e4;
+  --msh-gold-line: rgba(200, 155, 69, 0.32);
+  --msh-blue-ink: #1f63d1;
+  --msh-blue-soft: #eef4fe;
+  --msh-blue-line: rgba(49, 130, 246, 0.26);
+  --msh-point-bg: #f6f7f9;
+}
+
+[data-theme="dark"] {
+  --msh-gold: #dcb466;
+  --msh-gold-ink: #e8c887;
+  --msh-gold-soft: rgba(200, 155, 69, 0.12);
+  --msh-gold-line: rgba(220, 180, 102, 0.3);
+  --msh-blue-ink: #8fbcff;
+  --msh-blue-soft: rgba(69, 147, 252, 0.11);
+  --msh-blue-line: rgba(143, 188, 255, 0.26);
+  --msh-point-bg: rgba(255, 255, 255, 0.045);
+}
+
+.msh-panel {
+  max-height: min(92dvh, calc(92 * var(--vvh, 1vh)));
+  display: flex;
+  flex-direction: column;
+}
+
+.msh-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.5rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 1024px) {
+  .msh-scroll {
+    padding: 1.75rem 1.5rem 1.5rem;
+  }
+}
+
+/* 머리 */
+.msh-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.msh-head__spark {
+  flex-shrink: 0;
+  color: var(--msh-gold);
+  margin-top: 0.125rem;
+}
+
+.msh-head__title {
+  color: var(--text-strong);
+  font-size: calc(19px * var(--text-mul, 1));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.msh-head__sub {
+  margin-top: 0.125rem;
+  color: var(--ig-secondary-text);
+  font-size: calc(13px * var(--text-mul, 1));
+  word-break: keep-all;
+}
+
+.msh-close {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+}
+
+.msh-close:hover {
+  background: var(--ig-secondary-background);
+}
+
+/* 한 절에 약속이 둘 이상 */
+.msh-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 1rem;
+}
+
+.msh-switch button {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--msh-gold-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  font-size: calc(12.5px * var(--text-mul, 1));
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.msh-switch button.is-on {
+  background: var(--msh-gold-soft);
+  color: var(--msh-gold-ink);
+  border-color: var(--msh-gold);
+}
+
+/* 종류 */
+.msh-kind {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.125rem;
+}
+
+.msh-kind__chip {
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.375rem;
+  font-size: calc(11.5px * var(--text-mul, 1));
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: var(--ig-secondary-background);
+  color: var(--text-strong);
+}
+
+.msh-kind__chip--prophecy {
+  background: var(--msh-gold-soft);
+  color: var(--msh-gold-ink);
+}
+
+/* 모형은 한 단계 약하게 — 점선 테두리 (직접 예언과 같은 무게로 보이지 않게) */
+.msh-kind__chip--type {
+  background: transparent;
+  border: 1px dashed var(--msh-gold-line);
+  color: var(--msh-gold-ink);
+}
+
+.msh-kind__theme {
+  color: var(--ig-secondary-text);
+  font-size: calc(12px * var(--text-mul, 1));
+  font-weight: 600;
+}
+
+.msh-kind__hint {
+  margin-top: 0.375rem;
+  color: var(--ig-secondary-text);
+  font-size: calc(12.5px * var(--text-mul, 1));
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+/* 카드 */
+.msh-card {
+  margin-top: 0.875rem;
+  padding: 1rem 1.0625rem 1.0625rem;
+  border-radius: 1.125rem;
+  border: 1px solid transparent;
+}
+
+.msh-card--ot {
+  background: var(--msh-gold-soft);
+  border-color: var(--msh-gold-line);
+}
+
+.msh-card--nt {
+  margin-top: 0;
+  background: var(--msh-blue-soft);
+  border-color: var(--msh-blue-line);
+}
+
+.msh-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.msh-card__ref {
+  margin-top: 0.625rem;
+  color: var(--text-strong);
+  font-size: calc(18px * var(--text-mul, 1));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.msh-card__more {
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px dashed var(--msh-blue-line);
+}
+
+.msh-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: calc(12px * var(--text-mul, 1));
+  font-weight: 800;
+  color: #fff;
+}
+
+.msh-badge--ot {
+  background: var(--msh-gold);
+}
+
+.msh-badge--nt {
+  background: var(--brand);
+}
+
+[data-theme="dark"] .msh-badge--ot {
+  color: #2a1f08;
+}
+
+.msh-here {
+  font-size: calc(11px * var(--text-mul, 1));
+  font-weight: 700;
+  color: var(--msh-gold-ink);
+}
+
+.msh-here--nt {
+  color: var(--msh-blue-ink);
+}
+
+.msh-quote {
+  margin-top: 0.5rem;
+  color: var(--text-body);
+  font-size: calc(15px * var(--text-mul, 1));
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+.msh-quote--loading {
+  color: var(--ig-secondary-text);
+  font-size: calc(13px * var(--text-mul, 1));
+}
+
+.msh-quote__num {
+  margin-right: 0.2rem;
+  font-size: 0.68em;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+
+/* 밝히기 — 굵은 글자 + 아래쪽 얇은 띠 */
+.msh-mark {
+  background: none;
+  font-weight: 800;
+  padding: 0 0.05em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.msh-mark--ot {
+  color: var(--msh-gold-ink);
+  background: linear-gradient(transparent 68%, rgba(200, 155, 69, 0.28) 68%);
+}
+
+.msh-mark--nt {
+  color: var(--msh-blue-ink);
+  background: linear-gradient(transparent 68%, rgba(49, 130, 246, 0.2) 68%);
+}
+
+/* 약속 → 성취 연결 */
+.msh-link {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: 1.75rem;
+  margin: -0.125rem 0;
+  z-index: 1;
+}
+
+.msh-link__dot {
+  width: 2rem;
+  height: 2rem;
+  margin-top: -0.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--msh-gold);
+  color: #fff;
+  box-shadow: 0 0 0 4px #f1f3f6;
+}
+
+[data-theme="dark"] .msh-link__dot {
+  color: #2a1f08;
+  box-shadow: 0 0 0 4px #201f1f;
+}
+
+/* 핵심 포인트 */
+.msh-point {
+  margin-top: 0.875rem;
+  padding: 0.9375rem 1.0625rem;
+  border-radius: 1.125rem;
+  background: var(--msh-point-bg);
+}
+
+.msh-point__label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--msh-gold-ink);
+  font-size: calc(13px * var(--text-mul, 1));
+  font-weight: 800;
+}
+
+.msh-point__text {
+  margin-top: 0.375rem;
+  color: var(--text-body);
+  font-size: calc(14.5px * var(--text-mul, 1));
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* 이동 버튼 */
+.msh-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.msh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 3rem;
+  padding: 0 0.75rem;
+  border-radius: 0.875rem;
+  font-size: calc(14px * var(--text-mul, 1));
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter 0.15s ease, background-color 0.15s ease;
+}
+
+.msh-btn--ot {
+  border: 1.5px solid var(--msh-gold);
+  background: transparent;
+  color: var(--msh-gold-ink);
+}
+
+.msh-btn--ot:hover {
+  background: var(--msh-gold-soft);
+}
+
+.msh-btn--nt {
+  border: 1.5px solid var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+
+.msh-btn--nt:hover {
+  filter: brightness(1.06);
+}
+
+.msh-maplink {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  border: none;
+  border-radius: 0.875rem;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  font-size: calc(13px * var(--text-mul, 1));
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.msh-maplink:hover {
+  background: var(--ig-secondary-background);
+}
+
+.msh-maplink svg {
+  color: var(--msh-gold);
+}
+
+.msh-maplink__story {
+  color: var(--msh-gold);
+}
+
+.msh-maplink + .msh-maplink {
+  margin-top: 0.125rem;
+}
