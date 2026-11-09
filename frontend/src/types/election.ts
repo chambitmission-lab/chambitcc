@@ -106,6 +106,17 @@ export interface ElectionSummary {
   /** 내가 이 선거의 선거관리위원(또는 관리자)인지 — 현황판을 열 수 있다 */
   is_manager?: boolean
   created_at?: string | null
+  // ── 관리자 목록에서 진행 중 회차에만 온다 (성도 목록·상세에는 없음) ──
+  round_opened_at?: string | null
+  /** 예약 마감 */
+  round_closes_at?: string | null
+  /** 이 회차에 들어올 수 있는 종이 표 (앱 없는 선거인 + 교부) */
+  paper_expected?: number | null
+  /** 이미 입력한 종이 표 */
+  paper_in?: number | null
+  /** 최근 recent_minutes 분 동안 들어온 표 — 합계만(무기명 유지). 잴 근거가 없으면 null */
+  recent_votes?: number | null
+  recent_minutes?: number | null
 }
 
 export interface ElectionDetail extends ElectionSummary {

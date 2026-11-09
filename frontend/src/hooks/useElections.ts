@@ -95,11 +95,16 @@ export const useCastVote = (feedback?: MutationFeedback<ElectionDetail, CastVote
 
 // ── 관리자 ────────────────────────────────────────────────────────────
 
-export const useAdminElections = () =>
+/** live — PC 중계 화면(ElectionDesk). 투표가 열려 있는 동안만 30초마다 조용히 다시 받는다.
+ * 투표율은 SSE 가 바로 고쳐 주지만 "최근 10분"·종이 표 입력 수는 이벤트에 없어서다. */
+export const useAdminElections = (live = false) =>
   useQuery({
     queryKey: electionKeys.adminList(),
     queryFn: getAllElections,
     staleTime: 0,
+    refetchInterval: (query) =>
+      live && query.state.data?.some((e) => e.current_round_status === 'open') ? 1000 * 30 : false,
+    refetchIntervalInBackground: false,
   })
 
 /** 현황판 — live 면 SSE 가 끊긴 동안 5초마다 새로 받는다(득표가 멈춰 보이지 않게).

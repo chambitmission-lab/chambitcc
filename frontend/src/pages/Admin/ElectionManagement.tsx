@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getElectionAdmin } from '../../api/election'
 import { useAdminElections, useDeleteElection } from '../../hooks/useElections'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { can } from '../../utils/access'
 import { confirmDialog, promptDialog } from '../../utils/confirmDialog'
 import { showToast, toastFeedback } from '../../utils/toast'
@@ -17,6 +18,7 @@ import { STATUS_META, phaseLabel, thresholdText, turnoutPercent } from '../Elect
 import { BallotIcon } from '../Election/electionUi'
 import ElectionBoard from './components/ElectionBoard'
 import ElectionComposer from './components/ElectionComposer'
+import ElectionDesk from './components/electionDesk/ElectionDesk'
 
 // 발표 화면의 카드와 같은 재질 — 솔리드 면 + 1px 빛줄 + 부드러운 그림자
 const cardShell =
@@ -102,7 +104,9 @@ const RoundBlock = ({ election }: { election: ElectionSummary }) => {
 
 const ElectionManagement = () => {
   const navigate = useNavigate()
-  const { data: elections, isLoading } = useAdminElections()
+  // PC(lg+)는 중계 스코어보드 화면(ElectionDesk), 그 아래 폭은 아래의 카드 목록 그대로
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const { data: elections, isLoading } = useAdminElections(isDesktop)
 
   const [composerTarget, setComposerTarget] = useState<ElectionAdminDetail | null | undefined>(undefined)
   const [boardId, setBoardId] = useState<number | null>(null)
@@ -189,6 +193,53 @@ const ElectionManagement = () => {
       <span className="text-[16px] leading-none">+</span> 새 선거
     </button>
   )
+
+  const modals = (
+    <>
+      {composerTarget !== undefined ? (
+        <ElectionComposer
+          election={composerTarget}
+          onClose={() => setComposerTarget(undefined)}
+          onSaved={() => setComposerTarget(undefined)}
+        />
+      ) : null}
+
+      {boardId ? (
+        <ElectionBoard
+          electionId={boardId}
+          onClose={() => setBoardId(null)}
+          // 모달 두 장을 겹치지 않는다 — 현황판을 닫고 편집기를 연다
+          onEdit={(election) => {
+            setBoardId(null)
+            setComposerTarget(election)
+          }}
+        />
+      ) : null}
+    </>
+  )
+
+  if (isDesktop) {
+    return (
+      <div className="min-h-screen bg-[var(--app-canvas)]">
+        {isLoading ? (
+          <div className="flex justify-center py-24">
+            <div className="w-9 h-9 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
+          </div>
+        ) : (
+          <ElectionDesk
+            elections={elections ?? []}
+            loadingEdit={loadingEdit}
+            onNew={() => setComposerTarget(null)}
+            onBoard={setBoardId}
+            onEdit={(e) => void openEdit(e)}
+            onCopyLink={(e) => void copyLink(e)}
+            onDelete={(e) => void confirmDelete(e)}
+          />
+        )}
+        {modals}
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100">
@@ -320,25 +371,7 @@ const ElectionManagement = () => {
         )}
       </div>
 
-      {composerTarget !== undefined ? (
-        <ElectionComposer
-          election={composerTarget}
-          onClose={() => setComposerTarget(undefined)}
-          onSaved={() => setComposerTarget(undefined)}
-        />
-      ) : null}
-
-      {boardId ? (
-        <ElectionBoard
-          electionId={boardId}
-          onClose={() => setBoardId(null)}
-          // 모달 두 장을 겹치지 않는다 — 현황판을 닫고 편집기를 연다
-          onEdit={(election) => {
-            setBoardId(null)
-            setComposerTarget(election)
-          }}
-        />
-      ) : null}
+      {modals}
     </div>
   )
 }
