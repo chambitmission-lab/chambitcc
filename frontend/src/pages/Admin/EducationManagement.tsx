@@ -21,6 +21,7 @@ import EducationComposer, { type ComposerTarget } from './components/EducationCo
 import { EduGlyph, SproutIcon } from '../Education/EduIcons'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { can } from '../../utils/access'
+import { SkeletonRows } from './components/AdminListBits'
 
 type VisibilityFilter = 'all' | 'active' | 'hidden'
 
@@ -214,7 +215,7 @@ const EducationManagement = () => {
 
             <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
               {isPending && categories.length === 0 ? (
-                <SkeletonRows />
+                <SkeletonRows rows={4} height={68} />
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <SproutIcon width={36} height={36} className="mx-auto mb-3 text-gray-400 dark:text-white/40" />
@@ -550,13 +551,5 @@ const RowAction = ({ onClick, accent, destructive, label }: { onClick: () => voi
     </button>
   )
 }
-
-const SkeletonRows = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 4 }).map((_, i) => (
-      <div key={i} className="h-[68px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-    ))}
-  </div>
-)
 
 export default EducationManagement

@@ -32,3 +32,16 @@ export const StatChip = ({
     <span className="font-bold">{value}</span>
   </span>
 )
+
+/** 목록 로딩 뼈대 — 화면마다 줄 수·줄 높이(px)만 다르다 */
+export const SkeletonRows = ({ rows, height }: { rows: number; height: number }) => (
+  <div className="space-y-2">
+    {Array.from({ length: rows }).map((_, i) => (
+      <div
+        key={i}
+        className="rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
+        style={{ height }}
+      />
+    ))}
+  </div>
+)

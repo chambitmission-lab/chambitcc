@@ -15,7 +15,7 @@ import { confirmDialog } from '../../utils/confirmDialog'
 import { CategoryIcon } from '../Events/components/CategoryIcons'
 import { can } from '../../utils/access'
 import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
-import { InfoRow } from './components/AdminListBits'
+import { InfoRow, SkeletonRows } from './components/AdminListBits'
 
 // bulletin = 주보 소식에서 자동으로 만든 비공개 초안 (알림의 ?status=bulletin 으로 바로 열린다)
 type PublishFilter = 'all' | 'published' | 'draft' | 'bulletin'
@@ -356,7 +356,7 @@ const EventManagement = () => {
             {/* 목록 */}
             <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
               {loading ? (
-                <SkeletonRows />
+                <SkeletonRows rows={5} height={72} />
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <span className="text-4xl block mb-3">📭</span>
@@ -624,17 +624,6 @@ const StatChip = ({
     </span>
   )
 }
-
-const SkeletonRows = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-[72px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
-      />
-    ))}
-  </div>
-)
 
 const ACTION_ICONS: Record<string, ReactNode> = {
   eye: (

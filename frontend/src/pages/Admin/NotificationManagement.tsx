@@ -10,7 +10,7 @@ import ChannelGuideNote from './components/ChannelGuideNote'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
-import { InfoRow } from './components/AdminListBits'
+import { InfoRow, SkeletonRows } from './components/AdminListBits'
 
 type ActiveFilter = 'all' | 'active' | 'inactive'
 type SortKey = 'recent' | 'oldest' | 'title'
@@ -260,7 +260,7 @@ const NotificationManagement = () => {
             {/* 목록 */}
             <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
               {loading ? (
-                <SkeletonRows />
+                <SkeletonRows rows={5} height={72} />
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <span className="text-4xl block mb-3">📢</span>
@@ -476,17 +476,6 @@ const StatChip = ({
     </span>
   )
 }
-
-const SkeletonRows = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-[72px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
-      />
-    ))}
-  </div>
-)
 
 const ACTION_ICONS: Record<string, ReactNode> = {
   edit: (

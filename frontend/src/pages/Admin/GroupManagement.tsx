@@ -16,7 +16,7 @@ import { groupInviteUrl } from '../../utils/inviteLink'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
-import { InfoRow } from './components/AdminListBits'
+import { InfoRow, SkeletonRows } from './components/AdminListBits'
 
 type AdminGroup = AdminGroupListResponse['data']['items'][number]
 
@@ -289,7 +289,7 @@ const GroupManagement = () => {
             {/* 목록 */}
             <div className="px-4 pb-16 lg:px-0 lg:pb-8 space-y-2">
               {loading ? (
-                <SkeletonRows />
+                <SkeletonRows rows={5} height={86} />
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <span className="text-4xl block mb-3">👥</span>
@@ -517,14 +517,6 @@ const StatChip = ({
     </span>
   )
 }
-
-const SkeletonRows = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <div key={i} className="h-[86px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-    ))}
-  </div>
-)
 
 const CopyIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

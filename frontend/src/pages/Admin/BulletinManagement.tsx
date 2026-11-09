@@ -21,7 +21,7 @@ import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
-import { InfoRow, StatChip } from './components/AdminListBits'
+import { InfoRow, StatChip, SkeletonRows } from './components/AdminListBits'
 
 type TimeFilter = 'all' | 'thisMonth' | 'past'
 type SortKey = 'recent' | 'oldest' | 'views'
@@ -398,7 +398,7 @@ const BulletinManagement = () => {
             {/* 목록 */}
             <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
               {loading ? (
-                <SkeletonRows />
+                <SkeletonRows rows={5} height={78} />
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <span className="text-4xl block mb-3">📰</span>
@@ -736,17 +736,6 @@ const BulletinRow = ({
 }
 
 // ── 작은 컴포넌트들 ──────────────────────────────────────
-const SkeletonRows = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-[78px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
-      />
-    ))}
-  </div>
-)
-
 const ACTION_ICONS: Record<string, ReactNode> = {
   phone: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">

@@ -18,6 +18,7 @@ import OfferingComposer, { type OfferingComposerTarget } from './components/Offe
 import { BankIcon, OfferingBoxIcon } from '../News/components/NewsIcons'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { can } from '../../utils/access'
+import { SkeletonRows } from './components/AdminListBits'
 
 type VisibilityFilter = 'all' | 'active' | 'hidden'
 
@@ -203,7 +204,7 @@ const OfferingManagement = () => {
 
             <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
               {isPending && accounts.length === 0 ? (
-                <SkeletonRows />
+                <SkeletonRows rows={4} height={68} />
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <BankIcon width={36} height={36} className="mx-auto mb-3 text-gray-400 dark:text-white/40" />
@@ -421,14 +422,6 @@ const StatChip = ({ label, value, accent, warn }: { label: string; value: number
     {label}
     <span className="font-bold">{value}</span>
   </span>
-)
-
-const SkeletonRows = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 4 }).map((_, i) => (
-      <div key={i} className="h-[68px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-    ))}
-  </div>
 )
 
 export default OfferingManagement

@@ -12,7 +12,7 @@ import NewsComposer from './components/NewsComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import ChannelGuideNote from './components/ChannelGuideNote'
 import { can } from '../../utils/access'
-import { InfoRow } from './components/AdminListBits'
+import { InfoRow, SkeletonRows } from './components/AdminListBits'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'views'
@@ -271,7 +271,7 @@ const NewsManagement = () => {
           <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
             <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
               {loading ? (
-                <SkeletonRows />
+                <SkeletonRows rows={5} height={86} />
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <span className="text-4xl block mb-3">📢</span>
@@ -494,14 +494,6 @@ const StatChip = ({ label, value, accent }: { label: string; value: number; acce
     {label}
     <span className="font-bold">{value}</span>
   </span>
-)
-
-const SkeletonRows = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 5 }).map((_, i) => (
-      <div key={i} className="h-[86px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-    ))}
-  </div>
 )
 
 const ACTION_ICONS: Record<string, ReactNode> = {
