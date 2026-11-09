@@ -129,7 +129,7 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
 
   return (
     // lg+에선 좌측 성경 레일(BibleSideRail)의 세로 내비가 대신한다 — 도크는 모바일 전용
-    <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden" aria-label="성경 메뉴">
+    <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden" aria-label="성경 메뉴" data-bible-dock>
       <div className="mx-auto max-w-md px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
         {/* Glass dock — 홈 BottomNavigation과 동일한 표면(블러 + 상단 빛줄 + soft shadow) */}
         <div className="relative backdrop-blur-xl bg-white/80 dark:bg-[#201f1f]/90 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-3 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]">

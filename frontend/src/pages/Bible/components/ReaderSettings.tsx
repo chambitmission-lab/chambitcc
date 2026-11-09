@@ -115,9 +115,23 @@ const ReaderSettings = () => {
   // 패널은 Aa 버튼 오른쪽 끝에 맞춰 왼쪽으로 펴지므로, 열 때 버튼 왼쪽에 남은 폭을 재서 그 안에서만
   // 넓힌다 — PC 는 세 묶음을 나란히 펼 때, 모바일은 화면 폭 가까이 넓힐 때 왼쪽 밖으로 잘리지 않게.
   const [panelMaxW, setPanelMaxW] = useState<number | null>(null)
+  // 높이도 같은 식으로 — 모바일은 하단 성경 도크(BibleBottomNav)가 화면 아래를 덮으므로, 패널 위끝부터
+  // 도크 위끝까지만 쓰고 나머지는 패널 안에서 스크롤한다. 고정 calc(100dvh - 120px)는
+  // 도크를 몰라서 마지막 줄들이 도크 뒤로 숨었다.
+  const [panelMaxH, setPanelMaxH] = useState<number | null>(null)
   useLayoutEffect(() => {
     if (!open || !wrapRef.current) return
-    setPanelMaxW(Math.floor(wrapRef.current.getBoundingClientRect().right - 16))
+    const rect = wrapRef.current.getBoundingClientRect()
+    setPanelMaxW(Math.floor(rect.right - 16))
+    const dock = document.querySelector<HTMLElement>('nav[data-bible-dock]')
+    // 도크가 없는 화면(PC lg+ 는 hidden)은 CSS 기본 max-height 를 그대로 둔다 — PC 는 글씨 zoom 이 걸려
+    // 측정값(px)과 패널 안 px 단위가 어긋날 수 있다
+    if (!dock || dock.offsetHeight === 0) {
+      setPanelMaxH(null)
+      return
+    }
+    const panelTop = rect.bottom + 10 // .reader-settings__panel top: calc(100% + 10px)
+    setPanelMaxH(Math.max(200, Math.floor(dock.getBoundingClientRect().top - panelTop - 12)))
   }, [open])
 
   // 마운트 시(및 변경 시) 저장된 설정을 CSS 변수로 반영
@@ -165,7 +179,10 @@ const ReaderSettings = () => {
           className="reader-settings__panel"
           role="dialog"
           aria-label="읽기 설정"
-          style={panelMaxW ? { maxWidth: panelMaxW } : undefined}
+          style={{
+            ...(panelMaxW ? { maxWidth: panelMaxW } : null),
+            ...(panelMaxH ? { maxHeight: panelMaxH } : null),
+          }}
         >
           {/* 묶음 1 — 본문을 어떻게 보여 줄지. 모바일은 묶음 상자가 없는 것처럼(display: contents) 한 줄로 쌓인다 */}
           <div className="reader-settings__group">
