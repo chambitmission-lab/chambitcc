@@ -50,6 +50,7 @@ import { AuditPanel } from './electionBoard/AuditPanel'
 import { ElectedPanel } from './electionBoard/ElectedPanel'
 import { IssuePanel } from './electionBoard/IssuePanel'
 import { PaperPanel } from './electionBoard/PaperPanel'
+import { ResultExportSheet } from './electionBoard/ResultExportSheet'
 import { RunoffPanel } from './electionBoard/RunoffPanel'
 import { SchedulePanel } from './electionBoard/SchedulePanel'
 import { StartPanel } from './electionBoard/StartPanel'
@@ -107,6 +108,8 @@ const BoardView = ({ electionId, onClose, onEdit, onSwitch }: Props & { onSwitch
   const [presenting, setPresenting] = useState(false)
   const [revealed, setRevealed] = useState(() => readReveal(electionId))
   const [showQr, setShowQr] = useState(false)
+  // 결과서·결과 파일은 버튼 하나로 모았다 (ResultExportSheet)
+  const [showExport, setShowExport] = useState(false)
   const [counting, setCounting] = useState(false)
   const [viewRoundNo, setViewRoundNo] = useState<number | null>(null)
 
@@ -328,6 +331,7 @@ const BoardView = ({ electionId, onClose, onEdit, onSwitch }: Props & { onSwitch
   }
 
   const canSetup = election.can_manage_setup !== false && !!onEdit
+  const groupStarted = !!group && siblings.some((e) => e.current_round_no)
   const canRunoff = !!lastRound && lastRound.status === 'closed' && election.seats_left > 0
   const turnout = round ? turnoutPercent(round.voted_count, round.voters_total) : 0
   const tallyHidden = hideTally && round?.status === 'open'
@@ -383,9 +387,9 @@ const BoardView = ({ electionId, onClose, onEdit, onSwitch }: Props & { onSwitch
           <button type="button" onClick={togglePresenting} className={chipBtn(false)}>
             발표 화면
           </button>
-          {lastRound ? (
-            <button type="button" onClick={() => void printReport()} className={chipBtn(false)}>
-              결과서
+          {lastRound || groupStarted ? (
+            <button type="button" onClick={() => setShowExport(true)} className={chipBtn(false)}>
+              결과 받기
             </button>
           ) : null}
         </div>
@@ -417,31 +421,12 @@ const BoardView = ({ electionId, onClose, onEdit, onSwitch }: Props & { onSwitch
               </button>
             )
           })}
-          <span className="shrink-0 ml-auto flex items-center gap-1.5">
-            {siblings.some((e) => e.current_round_no) ? (
-              <>
-                <button type="button" onClick={() => void printAllReports()} className={chipBtn(false)}>
-                  전체 결과서
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    group &&
-                    void downloadAssemblyCsv(group.id, `${group.title}_결과.csv`).catch((e: Error) => showToast(e.message, 'error'))
-                  }
-                  className={chipBtn(false)}
-                >
-                  전체 CSV
-                </button>
-              </>
-            ) : null}
-          </span>
           {openTogether.length > 1 ? (
             <button
               type="button"
               onClick={() => void closeTogether()}
               disabled={busy}
-              className="shrink-0 px-3.5 py-2 rounded-xl bg-ink-strong text-white dark:bg-white dark:text-[#16161d] text-[13px] font-bold whitespace-nowrap disabled:opacity-50"
+              className="shrink-0 ml-auto px-3.5 py-2 rounded-xl bg-ink-strong text-white dark:bg-white dark:text-[#16161d] text-[13px] font-bold whitespace-nowrap disabled:opacity-50"
             >
               열린 투표 {openTogether.length}개 함께 마감
             </button>
@@ -580,15 +565,6 @@ const BoardView = ({ electionId, onClose, onEdit, onSwitch }: Props & { onSwitch
                     기준·명부 수정
                   </button>
                 ) : null}
-                {lastRound ? (
-                  <button
-                    type="button"
-                    onClick={() => void downloadElectionCsv(election.id, `${election.title}_결과.csv`).catch((e: Error) => showToast(e.message, 'error'))}
-                    className={ghostBtn}
-                  >
-                    결과 CSV
-                  </button>
-                ) : null}
               </div>
             </div>
           </section>
@@ -666,6 +642,23 @@ const BoardView = ({ electionId, onClose, onEdit, onSwitch }: Props & { onSwitch
         </aside>
       </div>
 
+      {showExport ? (
+        <ResultExportSheet
+          electionTitle={election.title}
+          canThis={!!lastRound}
+          onPrintThis={() => void printReport()}
+          onCsvThis={() =>
+            void downloadElectionCsv(election.id, `${election.title}_결과.csv`).catch((e: Error) => showToast(e.message, 'error'))
+          }
+          groupTitle={groupStarted ? group?.title : null}
+          onPrintAll={() => void printAllReports()}
+          onCsvAll={() =>
+            group &&
+            void downloadAssemblyCsv(group.id, `${group.title}_결과.csv`).catch((e: Error) => showToast(e.message, 'error'))
+          }
+          onClose={() => setShowExport(false)}
+        />
+      ) : null}
       {showQr ? <ElectionQrModal electionId={election.id} title={election.title} onClose={() => setShowQr(false)} /> : null}
       {counting && isOpen && lastRound ? (
         <ElectionCountingMode

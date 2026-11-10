@@ -1,6 +1,7 @@
 // 선거인 명부 고르기·선관위원 지정 — 선거 편집기(ElectionComposer)와 공동의회 편집기(AssemblyComposer)가 함께 쓴다.
 //
 // 명부는 직분·구역·나이로 거르고, 지난 선거 명부를 불러오거나 이름 명단을 붙여 넣어 채운다.
+// 평소에는 '이름으로 찾기'와 목록만 보인다 — 조건 좁히기·명단 불러오기는 눌렀을 때만 펼친다.
 // 회원 목록(roster-pool)에는 동명이인을 가를 단서(직분·구역·출생 연도·전화 끝자리)가 함께 온다.
 // RosterPicker 는 감싸는 칸 없이 조각(fragment)으로 그린다 — 부모의 세로 flex 칸 안에서 목록이 남은 높이를 채운다.
 import { useMemo, useState } from 'react'
@@ -53,7 +54,9 @@ export const RosterPicker = ({
   const [titleFilter, setTitleFilter] = useState<Set<string>>(new Set())
   const [districtFilter, setDistrictFilter] = useState<Set<string>>(new Set())
   const [minAge, setMinAge] = useState<number>(0)
-  const [pasteOpen, setPasteOpen] = useState(false)
+  // 접어 두는 도구 두 가지 — 한 번에 하나만 편다
+  const [panel, setPanel] = useState<'filter' | 'import' | null>(null)
+  const togglePanel = (key: 'filter' | 'import') => setPanel((p) => (p === key ? null : key))
   const [pasteText, setPasteText] = useState('')
   const [pasteReport, setPasteReport] = useState<{ added: number; ambiguous: string[]; missing: string[] } | null>(null)
   const [importingFrom, setImportingFrom] = useState<number | null>(null)
@@ -81,6 +84,13 @@ export const RosterPicker = ({
     )
   }, [users, search, onlySelected, selected, titleFilter, districtFilter, minAge, thisYear])
   const unknownAge = minAge ? visibleUsers.filter((u) => !u.birth_year).length : 0
+  const filterCount = titleFilter.size + districtFilter.size + (minAge ? 1 : 0)
+  const clearFilters = () => {
+    setTitleFilter(new Set())
+    setDistrictFilter(new Set())
+    setMinAge(0)
+  }
+  const canImport = allowPaste || pastElections.length > 0
 
   const toggleIn = (setter: typeof setTitleFilter, value: string) =>
     setter((prev) => {
@@ -132,9 +142,7 @@ export const RosterPicker = ({
   const showAmbiguous = (name: string) => {
     setSearch(name)
     setOnlySelected(false)
-    setTitleFilter(new Set())
-    setDistrictFilter(new Set())
-    setMinAge(0)
+    clearFilters()
   }
 
   const toggle = (id: number) =>
@@ -157,44 +165,67 @@ export const RosterPicker = ({
 
   return (
     <>
-      {allowPaste || pastElections.length ? (
-        <div className="flex flex-wrap gap-1.5">
-          {allowPaste ? (
-            <button type="button" onClick={() => setPasteOpen((v) => !v)} className={chipBtn(pasteOpen)}>
-              명단 붙여넣기
-            </button>
-          ) : null}
-          {pastElections.map((e) => (
-            <button
-              key={e.id}
-              type="button"
-              onClick={() => void importRoster(e.id)}
-              disabled={importingFrom !== null}
-              className={chipBtn(false)}
-              title="이 선거의 명부를 지금 명부에 더해요"
-            >
-              {importingFrom === e.id ? '불러오는 중…' : `+ ${e.title} 명부`}
-            </button>
-          ))}
-        </div>
-      ) : null}
-      {allowPaste && pasteOpen ? (
-        <div className="rounded-2xl border border-gray-200/70 dark:border-white/[0.08] p-3 space-y-2">
-          <textarea
-            value={pasteText}
-            onChange={(e) => setPasteText(e.target.value)}
-            rows={4}
-            placeholder={'엑셀·한글에서 이름 열을 복사해 붙여 넣으세요\n김하나\n이두리, 박세찬'}
-            className={`${inputCls} resize-none`}
-          />
-          <button
-            type="button"
-            onClick={applyPaste}
-            disabled={!pasteText.trim()}
-            className="w-full py-2 rounded-xl bg-[var(--brand-soft)] text-brand text-[13px] font-bold disabled:opacity-50"
-          >
-            이름 맞춰서 명부에 넣기
+      <div className="flex items-center gap-2">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="이름으로 찾기" className={inputCls} />
+        <button type="button" onClick={() => setOnlySelected((v) => !v)} className={`shrink-0 ${chipBtn(onlySelected)}`}>
+          고른 사람만
+        </button>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button type="button" onClick={() => togglePanel('filter')} aria-expanded={panel === 'filter'} className={chipBtn(panel === 'filter')}>
+          직분·구역·나이로 좁히기{filterCount ? ` (${filterCount})` : ''}
+        </button>
+        {canImport ? (
+          <button type="button" onClick={() => togglePanel('import')} aria-expanded={panel === 'import'} className={chipBtn(panel === 'import')}>
+            명단 불러오기
           </button>
+        ) : null}
+        {filterCount && panel !== 'filter' ? (
+          <button type="button" onClick={clearFilters} className="text-[12px] font-bold text-brand underline underline-offset-2">
+            조건 지우기
+          </button>
+        ) : null}
+      </div>
+      {canImport && panel === 'import' ? (
+        <div className="rounded-2xl border border-gray-200/70 dark:border-white/[0.08] p-3 space-y-2">
+          {pastElections.length ? (
+            <div>
+              <p className="mb-1.5 text-[11.5px] font-bold text-ink-muted">지난 선거 명부 더하기</p>
+              <div className="flex flex-wrap gap-1.5">
+                {pastElections.map((e) => (
+                  <button
+                    key={e.id}
+                    type="button"
+                    onClick={() => void importRoster(e.id)}
+                    disabled={importingFrom !== null}
+                    className={chipBtn(false)}
+                    title="이 선거의 명부를 지금 명부에 더해요"
+                  >
+                    {importingFrom === e.id ? '불러오는 중…' : `+ ${e.title}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {allowPaste ? (
+            <>
+              <textarea
+                value={pasteText}
+                onChange={(e) => setPasteText(e.target.value)}
+                rows={4}
+                placeholder={'엑셀·한글에서 이름 열을 복사해 붙여 넣으세요\n김하나\n이두리, 박세찬'}
+                className={`${inputCls} resize-none`}
+              />
+              <button
+                type="button"
+                onClick={applyPaste}
+                disabled={!pasteText.trim()}
+                className="w-full py-2 rounded-xl bg-[var(--brand-soft)] text-brand text-[13px] font-bold disabled:opacity-50"
+              >
+                이름 맞춰서 명부에 넣기
+              </button>
+            </>
+          ) : null}
           {pasteReport ? (
             <div className="text-[12px] leading-relaxed text-ink break-keep">
               <p className="font-bold text-emerald-600 dark:text-emerald-300">{pasteReport.added}명을 넣었어요</p>
@@ -217,40 +248,38 @@ export const RosterPicker = ({
           ) : null}
         </div>
       ) : null}
-      <div className="flex items-center gap-2">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="이름으로 찾기" className={inputCls} />
-        <button type="button" onClick={() => setOnlySelected((v) => !v)} className={`shrink-0 ${chipBtn(onlySelected)}`}>
-          고른 사람만
-        </button>
-      </div>
-      {titleOptions.length > 1 ? (
-        <div className="flex flex-wrap gap-1.5">
-          <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">직분</span>
-          {titleOptions.map((t) => (
-            <button key={t} type="button" onClick={() => toggleIn(setTitleFilter, t)} className={chipBtn(titleFilter.has(t))}>
-              {t}
-            </button>
-          ))}
+      {panel === 'filter' ? (
+        <div className="rounded-2xl border border-gray-200/70 dark:border-white/[0.08] p-3 space-y-2">
+          {titleOptions.length > 1 ? (
+            <div className="flex flex-wrap gap-1.5">
+              <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">직분</span>
+              {titleOptions.map((t) => (
+                <button key={t} type="button" onClick={() => toggleIn(setTitleFilter, t)} className={chipBtn(titleFilter.has(t))}>
+                  {t}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {districtOptions.length ? (
+            <div className="flex flex-wrap gap-1.5">
+              <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">구역</span>
+              {districtOptions.map((d) => (
+                <button key={d} type="button" onClick={() => toggleIn(setDistrictFilter, d)} className={chipBtn(districtFilter.has(d))}>
+                  {d}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          <div className="flex flex-wrap gap-1.5">
+            <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">나이</span>
+            {AGE_LIMITS.map((age) => (
+              <button key={age} type="button" onClick={() => setMinAge(age)} className={chipBtn(minAge === age)}>
+                {age ? `${age}세 이상` : '제한 없음'}
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
-      {districtOptions.length ? (
-        <div className="flex flex-wrap gap-1.5">
-          <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">구역</span>
-          {districtOptions.map((d) => (
-            <button key={d} type="button" onClick={() => toggleIn(setDistrictFilter, d)} className={chipBtn(districtFilter.has(d))}>
-              {d}
-            </button>
-          ))}
-        </div>
-      ) : null}
-      <div className="flex flex-wrap gap-1.5">
-        <span className="self-center text-[11.5px] font-bold text-ink-muted mr-0.5">나이</span>
-        {AGE_LIMITS.map((age) => (
-          <button key={age} type="button" onClick={() => setMinAge(age)} className={chipBtn(minAge === age)}>
-            {age ? `${age}세 이상` : '제한 없음'}
-          </button>
-        ))}
-      </div>
       {unknownAge ? (
         <p className="text-[11.5px] text-amber-700 dark:text-amber-300 break-keep">
           출생 연도를 모르는 {unknownAge}명은 나이와 상관없이 목록에 남아 있어요. 확인 후 골라 주세요.
