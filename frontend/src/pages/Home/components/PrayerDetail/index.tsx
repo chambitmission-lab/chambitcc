@@ -193,10 +193,10 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
             split ? 'lg:grid lg:grid-cols-[minmax(0,1.3fr)_minmax(400px,1fr)] lg:grid-rows-[minmax(0,1fr)_auto]' : ''
           }`}
         >
-        <div className={`flex-1 overflow-y-auto p-5 lg:p-0 ${split ? 'lg:contents' : ''}`}>
+        <div className={`flex-1 overflow-y-auto p-3 pb-5 lg:p-0 ${split ? 'lg:contents' : ''}`}>
           {/* 본문 칸 — 한 줄이 너무 길면 다음 줄을 놓치므로 읽기 폭으로 가운데 모은다.
               본문 18px×32em(한 줄 약 32자)에 작성자·기도 버튼까지 같은 칼럼으로 맞추고, 큰 글씨에선 680px 상한 */}
-          <div className="lg:col-start-1 lg:row-start-1 lg:min-h-0 lg:overflow-y-auto lg:px-12 lg:pt-10 lg:pb-8">
+          <div className="pd-paper lg:col-start-1 lg:row-start-1 lg:min-h-0 lg:overflow-y-auto lg:px-12 lg:pt-10 lg:pb-8">
           <div className="lg:max-w-[min(680px,calc(576px*var(--fs,1)))] lg:mx-auto">
           <PrayerAuthorInfo
             prayerId={prayer.id}
@@ -215,7 +215,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
           <PrayerContent title={displayTitle} content={displayContent} />
 
           {isPrivate ? (
-            <div className="mt-2 rounded-2xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-4">
+            <div className="pd-notice mt-2 rounded-2xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-4">
               <div className="flex items-start gap-3">
                 <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-[var(--brand)]">
                   <span className="material-icons-outlined text-[18px]">lock</span>
@@ -252,7 +252,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
               </div>
             </div>
           ) : ownPastoral ? (
-            <div className="mt-2 mb-1 rounded-2xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-4">
+            <div className="pd-notice mt-2 mb-1 rounded-2xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-4">
               <div className="flex items-start gap-3">
                 <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-[var(--brand)]">
                   <PastorIcon size={18} />
@@ -288,7 +288,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
           {split && (
           <div
             ref={repliesSectionRef}
-            className="scroll-mt-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:min-h-0 lg:flex lg:flex-col lg:border-l lg:border-[var(--card-border)] lg:bg-[var(--surface-inset)] rd-side"
+            className="pd-replies scroll-mt-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:min-h-0 lg:flex lg:flex-col lg:border-l lg:border-[var(--card-border)] lg:bg-[var(--surface-inset)] rd-side"
           >
             {/* 목회자에게 — 이 자리의 답글은 피드 댓글과 달리 작성자 한 사람에게만 간다 */}
             {sharedWithPastor && !isOwner && (

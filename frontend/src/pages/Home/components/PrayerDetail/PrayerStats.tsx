@@ -6,7 +6,7 @@ interface PrayerStatsProps {
 
 const PrayerStats = ({ prayerCount }: PrayerStatsProps) => {
   return (
-    <div className="flex items-center gap-4 text-xs lg:text-[length:calc(14.5px*var(--fs,1))] text-gray-500 dark:text-gray-400 lg:text-gray-600 dark:lg:text-gray-300 mb-3 px-1">
+    <div className="pd-stats flex items-center gap-4 text-xs lg:text-[length:calc(14.5px*var(--fs,1))] text-gray-500 dark:text-gray-400 lg:text-gray-600 dark:lg:text-gray-300 mb-3 px-1">
       <span className="inline-flex items-center gap-1">
         <span className="material-icons-outlined text-[14px] lg:text-[length:calc(17px*var(--fs,1))] leading-none text-[var(--brand)]">
           groups

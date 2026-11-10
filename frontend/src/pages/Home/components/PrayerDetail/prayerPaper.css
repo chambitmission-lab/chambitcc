@@ -1,0 +1,59 @@
+/* 기도 상세 — 모바일 "흰 종이 + 회색 바닥" (2026-11-10 시안 A)
+   판 전체가 같은 회색(background-light)이라 기도문과 댓글이 한 덩어리로 보였다.
+   모바일(lg 미만)에서만 기도문 칸(작성자·본문·함께 기도 수)을 흰 카드로 띄우고,
+   댓글은 회색 바닥에 그대로 둔다. PC 2단(lg+)은 손대지 않는다.
+   다크는 '등불 아래' 차콜 판(readingWarm.css) 위에 한 단계 밝은 카드. */
+
+@media (max-width: 1023.98px) {
+  .pd-paper {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 20px 20px 16px;
+    box-shadow: 0 1px 2px rgba(0, 27, 55, 0.06), 0 6px 20px rgba(0, 27, 55, 0.06);
+  }
+  .pd-paper .pd-author {
+    margin-bottom: 16px;
+  }
+  .pd-paper .pd-content {
+    margin-bottom: 16px;
+  }
+  /* 본문은 화면의 주인공 — 댓글보다 한 단계 진하게 */
+  .pd-paper .rd-text {
+    color: var(--text-strong);
+  }
+  /* 함께 기도 수는 카드 안 맨 아래, 얇은 선으로 본문과 나눈다 */
+  .pd-paper .pd-stats {
+    margin-bottom: 0;
+    padding: 12px 0 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  /* 목양·나만 보기 안내 박스는 카드 안에서 인셋 대신 옅은 회색 */
+  .pd-paper .pd-notice {
+    background-color: #f2f4f6;
+  }
+
+  /* 댓글 — 회색 바닥 위에 바로. 카드 가장자리와 시작선을 맞춘다 */
+  .pd-replies {
+    padding: 0 4px;
+  }
+
+  [data-theme='dark'] [data-reading='warm'] .pd-paper {
+    background-color: var(--rd-input);
+    box-shadow: none;
+    border: 1px solid var(--rd-line);
+  }
+  [data-theme='dark'] [data-reading='warm'] .pd-paper .pd-stats {
+    border-top-color: var(--rd-line);
+  }
+  [data-theme='dark'] [data-reading='warm'] .pd-paper .pd-notice {
+    background-color: var(--rd-soft);
+  }
+}
+
+/* 익명 댓글 아바타 — 같은 회색 사람 아이콘이 줄줄이 반복되지 않게 파스텔 3색(댓글 id 고정) */
+.pd-replies .reply-avatar[data-tone='0'] { background-color: #ffe8cc; color: #d9730d; }
+.pd-replies .reply-avatar[data-tone='1'] { background-color: #dff5e6; color: #1f9d55; }
+.pd-replies .reply-avatar[data-tone='2'] { background-color: #ece6ff; color: #6b4fd8; }
+[data-theme='dark'] .pd-replies .reply-avatar[data-tone='0'] { background-color: #3a2a18; color: #f0a35a; }
+[data-theme='dark'] .pd-replies .reply-avatar[data-tone='1'] { background-color: #1b3324; color: #6fd29a; }
+[data-theme='dark'] .pd-replies .reply-avatar[data-tone='2'] { background-color: #2a2340; color: #b3a1f5; }

@@ -111,7 +111,8 @@ const ReplyList = ({
       {replies.map((reply) => (
         <div key={reply.id} className="reply-item flex gap-3">
           {isAnonymousReply(reply) ? (
-            <div className="reply-avatar w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-500 dark:text-gray-400 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
+            // data-tone: 화면별로 익명 아바타에 색을 입힐 수 있는 훅(기도 상세 prayerPaper.css). 기본은 회색 그대로
+            <div data-tone={reply.id % 3} className="reply-avatar w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-500 dark:text-gray-400 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
               <span className="material-icons-outlined text-[18px]">person</span>
             </div>
           ) : reply.avatar_url ? (

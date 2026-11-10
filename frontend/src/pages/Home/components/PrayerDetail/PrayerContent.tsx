@@ -49,7 +49,7 @@ const PrayerContent = ({ title, content }: PrayerContentProps) => {
   const paragraphs = useMemo(() => splitParagraphs(displayContent), [displayContent])
 
   return (
-    <div className="mb-7">
+    <div className="pd-content mb-7">
       {displayTitle && (
         <h3
           className="text-[22px] lg:text-[length:calc(25px*var(--fs,1))] font-bold text-ink-strong tracking-[-0.015em] leading-[1.3] mb-8"

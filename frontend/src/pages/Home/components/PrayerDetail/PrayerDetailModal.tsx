@@ -5,6 +5,7 @@
 import type { ReactNode } from 'react'
 import { useFeedTextScale } from '../../../../utils/feedTextScale'
 import './readingWarm.css'
+import './prayerPaper.css'
 
 interface PrayerDetailModalProps {
   children: ReactNode

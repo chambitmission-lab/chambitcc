@@ -45,7 +45,7 @@ const PrayerAuthorInfo = ({
   // 익명 아바타 링 컬러 — 피드와 같은 공식(id 기반 골든앵글)이라 목록↔상세 색이 일치
   const anonRing = `hsl(${Math.round((prayerId * 137.508) % 360)} 62% 58%)`
   return (
-    <div className="flex items-center justify-between gap-3 mb-6">
+    <div className="pd-author flex items-center justify-between gap-3 mb-6">
       <div className="flex items-center gap-3 min-w-0">
         {/* 피드 PrayerHeader와 동일한 아바타 — 화면 간 일관성 */}
         <div className="shrink-0">
