@@ -742,3 +742,29 @@
     margin-top: 2.5rem;
   }
 }
+
+/* PC 라이트 — 캔버스 위 큰 면(하늘 카드·사진·다섯 만남 판·초대 띠)을 띄운다(2026-11-10).
+   다른 PC 화면 큰 판의 lg:shadow-2xl 과 같은 결. 다크는 원래 값 그대로 */
+@media (min-width: 1024px) {
+  :root:not(.dark) .about-page .ab-dawn {
+    box-shadow:
+      inset 0 0 0 1px var(--ab-sky-border),
+      0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  :root:not(.dark) .about-page .ab-pic {
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.06),
+      0 24px 48px -16px rgba(24, 26, 40, 0.38);
+  }
+
+  :root:not(.dark) .about-page .ab-meet {
+    box-shadow:
+      inset 0 0 0 1px var(--card-border),
+      0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  :root:not(.dark) .about-page .ab-invite {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  }
+}

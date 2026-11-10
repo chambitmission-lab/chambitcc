@@ -46,6 +46,13 @@
     --worship-art-h: 230px;
     padding: 36px 36px 172px;
     border-radius: 28px;
+    /* 다른 PC 화면의 큰 판(lg:shadow-2xl)과 같은 깊이 — 이 화면은 큰 판 없이 히어로가 그 자리다 */
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  }
+  /* 히어로 아래 카드(평일 예배·더 알아보기·오늘 카드)도 캔버스에서 떠 보이게 — 홈 .home-lift 와 같은 값.
+     기본 --card-shadow 는 거의 안 보여 카드가 배경에 붙어 보인다. 다크는 기본값이 이미 깊다 */
+  :root:not(.dark) .worship-page {
+    --card-shadow: 0 1px 3px rgba(24, 26, 40, 0.05), 0 18px 36px -14px rgba(24, 26, 40, 0.2);
   }
 }
 

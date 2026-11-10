@@ -1258,6 +1258,18 @@ img.sheet-flag {
 
   .domestic-header { grid-column: 1 / -1; }
   .domestic-group { margin-bottom: 0; }
+
+  /* PC 라이트 — 카드가 캔버스에 붙어 보이지 않게 띄운다(2026-11-10, 홈 .home-lift 와 같은 깊이).
+     통계·대표 선교사·지도·국내 판이 이 값을 쓴다. 다크는 기본 --card-shadow 가 이미 깊다 */
+  :root:not(.dark) .mission-page {
+    --card-shadow: 0 1px 3px rgba(24, 26, 40, 0.05), 0 18px 36px -14px rgba(24, 26, 40, 0.2);
+  }
+  /* 나라 카드는 0.75rem 간격으로 촘촘해 긴 그림자가 서로 겹쳐 탁해진다 — 짧게.
+     지도 위 확대 알약도 작은 조각이라 짧은 그림자로 */
+  :root:not(.dark) .mission-page .country-group,
+  :root:not(.dark) .mission-page .map-zoom-toggle {
+    --card-shadow: 0 1px 3px rgba(24, 26, 40, 0.05), 0 8px 20px -10px rgba(24, 26, 40, 0.18);
+  }
   .mission-footer { margin-top: 3.5rem; }
 
   /* 노안 대응 글씨 — 모바일 기준 9~12px 이던 보조 글자를 PC에선 최소 12.5px 선으로 올린다.
