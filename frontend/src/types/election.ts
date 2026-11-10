@@ -247,3 +247,23 @@ export interface OpenRoundPayload {
   practice?: boolean
   notify?: boolean
 }
+
+/** 현황판 탭 — 같은 공동의회에서 내가 진행할 수 있는 선거들 (관리자 목록과 같은 요약) */
+export interface AssemblyBoard {
+  id: number
+  title: string
+  elections: ElectionSummary[]
+}
+
+export interface BulkItem {
+  id: number
+  title: string
+  /** 건너뛴 이유 (skipped 에만) */
+  reason?: string | null
+}
+
+/** 함께 시작·함께 마감·한 번에 교부의 결과 */
+export interface BulkResult {
+  done: BulkItem[]
+  skipped: BulkItem[]
+}

@@ -8,14 +8,28 @@
 // ★무기명: 진행 중에는 득표를 **기본으로 가린다**. 미투표자 명단이 바뀌는 순간 득표가 오르는 것을 같이
 // 보면 누가 누구를 찍었는지 짐작할 수 있어서다. 보려면 확인을 한 번 더 거치고, 선거마다 기억한다(세션).
 // 갱신은 SSE(election_update) + 5초 폴링 두 겹(hooks/useElections.ts).
+//
+// 공동의회 소속 선거는 위에 같은 공동의회 선거들의 탭이 붙는다 — 눌러서 현황판을 오가고, 1차 투표를 함께 시작하거나
+// 열려 있는 투표를 함께 마감하고, 투표용지를 한 번에 교부한다. 회차·표·득표 가림은 그대로 선거별이다.
 import { useEffect, useState } from 'react'
-import { downloadElectionCsv, getElectionAudit } from '../../../api/election'
-import { useElectionAdmin, useElectionAdminAction } from '../../../hooks/useElections'
+import { downloadAssemblyCsv, downloadElectionCsv, getElectionAdmin, getElectionAudit } from '../../../api/election'
+import {
+  useAssemblyAction,
+  useAssemblyBoard,
+  useElectionAdmin,
+  useElectionAdminAction,
+} from '../../../hooks/useElections'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { confirmDialog, promptDialog } from '../../../utils/confirmDialog'
 import { showToast } from '../../../utils/toast'
 import { safeSessionStorage } from '../../../utils/safeStorage'
-import type { ElectionAdminDetail, ElectionRound, OpenRoundPayload } from '../../../types/election'
+import type {
+  BulkResult,
+  ElectionAdminDetail,
+  ElectionRound,
+  ElectionSummary,
+  OpenRoundPayload,
+} from '../../../types/election'
 import {
   STATUS_META,
   closesAtLabel,
@@ -28,7 +42,7 @@ import { ClosesAtNote, PracticeBanner, ResultBreakdown, TallyBars } from '../../
 import ElectionCountingMode from './ElectionCountingMode'
 import ElectionQrModal from './ElectionQrModal'
 import ElectionStage from './ElectionStage'
-import { printElectionReport } from './electionReport'
+import { printAssemblyReport, printElectionReport } from './electionReport'
 import { CloseButton } from './SeatEventComposer'
 import { chipBtn, ghostBtn, panelCls } from './electionBoard/boardStyles'
 import { AnnouncePanel } from './electionBoard/AnnouncePanel'
@@ -57,10 +71,39 @@ interface Props {
   onEdit?: (election: ElectionAdminDetail) => void
 }
 
+/** 탭 한 칸의 상태 — 색이 아니라 말로 */
+const tabState = (e: ElectionSummary) =>
+  e.status === 'finished'
+    ? '끝남'
+    : e.current_round_status === 'open'
+      ? `투표 중 ${e.voted_count}/${e.voters_total}`
+      : e.current_round_no
+        ? `${e.current_round_no}차 마감`
+        : '준비 중'
+
+/** 함께 한 일의 결과를 한 줄로 — 안 된 선거는 이유와 함께 따로 알린다 */
+const reportBulk = (result: BulkResult, verb: string) => {
+  if (result.done.length) showToast(`${result.done.map((e) => e.title).join(' · ')} — ${verb}`, 'success')
+  if (result.skipped.length) {
+    showToast(result.skipped.map((e) => `${e.title}: ${e.reason ?? '건너뜀'}`).join(' / '), 'error')
+  }
+}
+
+/** 공동의회 탭으로 선거를 바꾸면 안쪽 현황판을 통째로 새로 단다(득표 가림·회차 탭·패널 입력이 선거별이라) */
 const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
   useModalBackButton(onClose)
+  const [activeId, setActiveId] = useState(electionId)
+  return <BoardView key={activeId} electionId={activeId} onClose={onClose} onEdit={onEdit} onSwitch={setActiveId} />
+}
 
+const BoardView = ({ electionId, onClose, onEdit, onSwitch }: Props & { onSwitch: (id: number) => void }) => {
   const { data: election, isLoading, error } = useElectionAdmin(electionId, true)
+  // 같은 공동의회의 선거들 — 둘 이상일 때만 탭·함께 진행을 보인다
+  const { data: group } = useAssemblyBoard(election?.assembly_id)
+  const siblings = group && group.elections.length > 1 ? group.elections : []
+  const others = siblings.filter((e) => e.id !== electionId)
+  const openTogether = siblings.filter((e) => e.current_round_status === 'open')
+  const startable = others.filter((e) => e.status !== 'finished' && !e.current_round_no)
   const [presenting, setPresenting] = useState(false)
   const [revealed, setRevealed] = useState(() => readReveal(electionId))
   const [showQr, setShowQr] = useState(false)
@@ -83,6 +126,21 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
   const hideTally = !revealed
 
   const action = useElectionAdminAction({ onError: (e) => showToast(e.message, 'error') })
+  const together = useAssemblyAction({
+    onSuccess: (result, vars) =>
+      reportBulk(
+        result,
+        vars.kind === 'open'
+          ? '투표를 시작했어요'
+          : vars.kind === 'close'
+            ? '투표를 마감했어요'
+            : vars.kind === 'remind'
+              ? '미투표자에게 알림을 보냈어요'
+              : '투표용지를 교부했어요'
+      ),
+    onError: (e) => showToast(e.message, 'error'),
+  })
+  const busy = action.isPending || together.isPending
 
   const toggleReveal = async () => {
     if (revealed) {
@@ -123,11 +181,14 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
   }, [])
 
   // ── 회차 제어 ───────────────────────────────────────────────────────
-  const openRound = async (data: OpenRoundPayload, label: string) => {
+  const openRound = async (data: OpenRoundPayload, label: string, withOthers = false) => {
     if (!election) return
+    const joint = withOthers && !!election.assembly_id && startable.length > 0
     const ok = await confirmDialog({
-      title: `${label}를 시작할까요?`,
-      message: `선거인 ${election.voter_count + election.offline_voter_count}명 · 당선 기준 ${thresholdText(election.rules)}`,
+      title: joint ? `${label} ${startable.length + 1}개를 함께 시작할까요?` : `${label}를 시작할까요?`,
+      message: joint
+        ? [election.title, ...startable.map((e) => e.title)].join(' · ')
+        : `선거인 ${election.voter_count + election.offline_voter_count}명 · 당선 기준 ${thresholdText(election.rules)}`,
       description: [
         data.closes_at ? `${closesAtLabel(data.closes_at)}에 자동으로 마감돼요.` : '마감은 직접 눌러야 해요.',
         data.notify ? '선거인에게 "투표가 시작됐어요" 알림이 가요.' : '알림은 보내지 않아요.',
@@ -138,7 +199,29 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
       confirmText: '투표 시작',
       tone: 'brand',
     })
-    if (ok) action.mutate({ kind: 'open', id: election.id, data })
+    if (!ok) return
+    if (joint) together.mutate({ kind: 'open', assemblyId: election.assembly_id as number, data })
+    else action.mutate({ kind: 'open', id: election.id, data })
+  }
+
+  // 함께 마감 — 선거마다 투표·종이 표가 어디까지 들어왔는지 보여 주고 한 번에 닫는다
+  const closeTogether = async () => {
+    if (!election?.assembly_id || openTogether.length < 2) return
+    const ok = await confirmDialog({
+      title: `열려 있는 투표 ${openTogether.length}개를 함께 마감할까요?`,
+      message: '선거마다 지금까지 들어온 표로 당선이 확정돼요.',
+      highlight: openTogether
+        .map(
+          (e) =>
+            `${e.title} — ${e.voted_count}/${e.voters_total}명 투표` +
+            (e.paper_expected ? ` · 종이 표 ${e.paper_in ?? 0}/${e.paper_expected}장` : '')
+        )
+        .join('\n'),
+      description: '종이 표를 아직 다 넣지 않은 선거가 있으면 취소하고, 그 선거만 따로 마감해 주세요.',
+      confirmText: `${openTogether.length}개 마감`,
+      tone: 'warning',
+    })
+    if (ok) together.mutate({ kind: 'close', assemblyId: election.assembly_id })
   }
 
   const closeRound = async () => {
@@ -209,6 +292,22 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
     try {
       const logs = await getElectionAudit(election.id)
       if (!printElectionReport(election, logs)) showToast('팝업이 막혀 결과서 창을 열지 못했어요', 'error')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '결과서를 만들지 못했어요', 'error')
+    }
+  }
+
+  // 공동의회 전체 결과서 — 선거마다 한 장씩 이어 인쇄한다
+  const printAllReports = async () => {
+    if (!group) return
+    try {
+      const items = await Promise.all(
+        siblings
+          .filter((e) => e.current_round_no)
+          .map(async (e) => ({ election: await getElectionAdmin(e.id), logs: await getElectionAudit(e.id) }))
+      )
+      if (!items.length) return showToast('아직 투표를 시작한 선거가 없어요', 'error')
+      if (!printAssemblyReport(group.title, items)) showToast('팝업이 막혀 결과서 창을 열지 못했어요', 'error')
     } catch (e) {
       showToast(e instanceof Error ? e.message : '결과서를 만들지 못했어요', 'error')
     }
@@ -292,6 +391,63 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
         </div>
         <CloseButton onClick={onClose} />
       </div>
+
+      {siblings.length ? (
+        <div className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark overflow-x-auto">
+          <span className="shrink-0 text-[12px] font-bold text-ink-muted">{group?.title}</span>
+          {siblings.map((e) => {
+            const current = e.id === electionId
+            return (
+              <button
+                key={e.id}
+                type="button"
+                onClick={() => onSwitch(e.id)}
+                disabled={current}
+                aria-current={current ? 'page' : undefined}
+                className={`shrink-0 text-left rounded-xl border px-3 py-1.5 transition-colors ${
+                  current
+                    ? 'border-brand bg-[var(--brand-soft)]'
+                    : 'border-gray-200 dark:border-white/[0.1] hover:border-brand'
+                }`}
+              >
+                <span className="block text-[13.5px] font-bold text-ink-strong whitespace-nowrap">{e.title}</span>
+                <span className={`block text-[11.5px] font-semibold tabular-nums whitespace-nowrap ${e.current_round_status === 'open' ? 'text-emerald-600 dark:text-emerald-300' : 'text-ink-muted'}`}>
+                  {tabState(e)}
+                </span>
+              </button>
+            )
+          })}
+          <span className="shrink-0 ml-auto flex items-center gap-1.5">
+            {siblings.some((e) => e.current_round_no) ? (
+              <>
+                <button type="button" onClick={() => void printAllReports()} className={chipBtn(false)}>
+                  전체 결과서
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    group &&
+                    void downloadAssemblyCsv(group.id, `${group.title}_결과.csv`).catch((e: Error) => showToast(e.message, 'error'))
+                  }
+                  className={chipBtn(false)}
+                >
+                  전체 CSV
+                </button>
+              </>
+            ) : null}
+          </span>
+          {openTogether.length > 1 ? (
+            <button
+              type="button"
+              onClick={() => void closeTogether()}
+              disabled={busy}
+              className="shrink-0 px-3.5 py-2 rounded-xl bg-ink-strong text-white dark:bg-white dark:text-[#16161d] text-[13px] font-bold whitespace-nowrap disabled:opacity-50"
+            >
+              열린 투표 {openTogether.length}개 함께 마감
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_400px]">
         {/* ── 보여 주는 화면 ── */}
@@ -394,8 +550,9 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
               {!lastRound ? (
                 <StartPanel
                   election={election}
-                  pending={action.isPending}
-                  onStart={(data) => void openRound(data, data.practice ? '연습 투표' : '1차 투표')}
+                  pending={busy}
+                  togetherTitles={startable.map((e) => e.title)}
+                  onStart={(data, withOthers) => void openRound(data, data.practice ? '연습 투표' : '1차 투표', withOthers)}
                 />
               ) : isOpen ? (
                 <button type="button" onClick={() => void closeRound()} disabled={action.isPending} className="w-full py-3 rounded-xl bg-ink-strong text-white dark:bg-white dark:text-[#16161d] text-[14.5px] font-bold disabled:opacity-50">
@@ -467,8 +624,13 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
           {isOpen && lastRound ? (
             <IssuePanel
               election={election}
-              pending={action.isPending}
-              onIssue={(userId) => action.mutate({ kind: 'paper-issue', id: election.id, userId })}
+              pending={busy}
+              togetherCount={openTogether.length}
+              onIssue={(userId) =>
+                election.assembly_id && openTogether.length > 1
+                  ? together.mutate({ kind: 'issue', assemblyId: election.assembly_id, userId })
+                  : action.mutate({ kind: 'paper-issue', id: election.id, userId })
+              }
               onCancel={(userId) => action.mutate({ kind: 'paper-issue-cancel', id: election.id, userId })}
             />
           ) : null}
@@ -476,8 +638,13 @@ const ElectionBoard = ({ electionId, onClose, onEdit }: Props) => {
           {isOpen ? (
             <WaitingPanel
               election={election}
-              pending={action.isPending}
-              onRemind={() => action.mutate({ kind: 'remind', id: election.id })}
+              pending={busy}
+              togetherCount={openTogether.length}
+              onRemind={() =>
+                election.assembly_id && openTogether.length > 1
+                  ? together.mutate({ kind: 'remind', assemblyId: election.assembly_id })
+                  : action.mutate({ kind: 'remind', id: election.id })
+              }
             />
           ) : null}
 

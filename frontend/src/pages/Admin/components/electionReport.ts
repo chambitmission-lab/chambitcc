@@ -61,9 +61,8 @@ const roundSection = (election: ElectionAdminDetail, round: ElectionRound): stri
 </section>`
 }
 
-export const printElectionReport = (election: ElectionAdminDetail, logs: ElectionAuditLog[]): boolean => {
-  const w = window.open('', '_blank', 'width=820,height=1000')
-  if (!w) return false
+/** 결과서 한 장의 본문 — 선거 하나 */
+const reportBody = (election: ElectionAdminDetail, logs: ElectionAuditLog[]): string => {
   const rounds = election.rounds.filter((r) => !r.is_practice && r.status === 'closed')
   const elected = election.candidates
     .filter((c) => c.elected_round_no != null)
@@ -78,8 +77,35 @@ export const printElectionReport = (election: ElectionAdminDetail, logs: Electio
     .join('')
   const managers = (election.managers ?? []).map((m) => esc(m.name)).join(', ')
 
+  return `<article>
+<h1>${esc(election.title)} 결과서</h1>
+<p class="sub">${election.seats}명 선출 · 당선 기준 ${esc(thresholdText(election.rules))}${
+    quorumText(election.rules) ? ` · 성원 ${esc(quorumText(election.rules)!)}` : ''
+  }</p>
+<table class="meta">
+  <tr><th>선거인</th><td>앱 명부 ${election.voter_count}명 + 앱 미사용 ${election.offline_voter_count}명</td></tr>
+  <tr><th>후보</th><td>${election.candidates.map((c) => `${c.number}. ${esc(c.name)}`).join(', ')}</td></tr>
+  ${managers ? `<tr><th>선거관리위원</th><td>${managers}</td></tr>` : ''}
+  <tr><th>무기명</th><td>누가 투표했는지와 어떤 표인지는 서로 연결 없이 따로 저장되었습니다.</td></tr>
+</table>
+${rounds.map((r) => roundSection(election, r)).join('') || '<p>마감된 회차가 없습니다.</p>'}
+<h2>당선자</h2>
+<p class="elected">${
+    elected.length
+      ? elected.map((c) => `${c.number}. ${esc(c.name)} (${c.elected_round_no}차)`).join(' · ')
+      : '당선자 없음'
+  } — 당선 ${elected.length} / ${election.seats}명</p>
+${logRows ? `<h2>운영 기록</h2><table class="log"><tbody>${logRows}</tbody></table>` : ''}
+<div class="sign"><div>선거관리위원장</div><div>선거관리위원</div><div>당회장</div></div>
+</article>`
+}
+
+/** 새 창에 결과서를 쓰고 인쇄 창을 띄운다 — 팝업이 막히면 false */
+const openReport = (title: string, bodies: string[]): boolean => {
+  const w = window.open('', '_blank', 'width=820,height=1000')
+  if (!w) return false
   w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8">
-<title>${esc(election.title)} 결과서</title>
+<title>${esc(title)} 결과서</title>
 <style>
   @page { size: A4; margin: 16mm; }
   body { margin: 0; font-family: system-ui, -apple-system, 'Malgun Gothic', sans-serif; color: #111; font-size: 13px; line-height: 1.55; }
@@ -102,29 +128,21 @@ export const printElectionReport = (election: ElectionAdminDetail, logs: Electio
   .sign div { border-top: 1px solid #111; padding-top: 6px; text-align: center; color: #333; }
   .foot { margin-top: 18px; color: #777; font-size: 11px; text-align: center; }
   section { break-inside: avoid; }
+  article + article { break-before: page; }
 </style></head><body>
-<h1>${esc(election.title)} 결과서</h1>
-<p class="sub">${election.seats}명 선출 · 당선 기준 ${esc(thresholdText(election.rules))}${
-    quorumText(election.rules) ? ` · 성원 ${esc(quorumText(election.rules)!)}` : ''
-  }</p>
-<table class="meta">
-  <tr><th>선거인</th><td>앱 명부 ${election.voter_count}명 + 앱 미사용 ${election.offline_voter_count}명</td></tr>
-  <tr><th>후보</th><td>${election.candidates.map((c) => `${c.number}. ${esc(c.name)}`).join(', ')}</td></tr>
-  ${managers ? `<tr><th>선거관리위원</th><td>${managers}</td></tr>` : ''}
-  <tr><th>무기명</th><td>누가 투표했는지와 어떤 표인지는 서로 연결 없이 따로 저장되었습니다.</td></tr>
-</table>
-${rounds.map((r) => roundSection(election, r)).join('') || '<p>마감된 회차가 없습니다.</p>'}
-<h2>당선자</h2>
-<p class="elected">${
-    elected.length
-      ? elected.map((c) => `${c.number}. ${esc(c.name)} (${c.elected_round_no}차)`).join(' · ')
-      : '당선자 없음'
-  } — 당선 ${elected.length} / ${election.seats}명</p>
-${logRows ? `<h2>운영 기록</h2><table class="log"><tbody>${logRows}</tbody></table>` : ''}
-<div class="sign"><div>선거관리위원장</div><div>선거관리위원</div><div>당회장</div></div>
+${bodies.join('\n')}
 <p class="foot">출력 ${esc(fmt(new Date().toISOString()))}</p>
 <script>window.onload = function () { window.print(); };</script>
 </body></html>`)
   w.document.close()
   return true
 }
+
+export const printElectionReport = (election: ElectionAdminDetail, logs: ElectionAuditLog[]): boolean =>
+  openReport(election.title, [reportBody(election, logs)])
+
+/** 공동의회 전체 결과서 — 선거마다 한 장씩, 쪽을 넘겨 이어 인쇄한다 */
+export const printAssemblyReport = (
+  title: string,
+  items: { election: ElectionAdminDetail; logs: ElectionAuditLog[] }[]
+): boolean => openReport(title, items.map((it) => reportBody(it.election, it.logs)))

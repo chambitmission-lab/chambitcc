@@ -9,11 +9,14 @@ export const IssuePanel = ({
   pending,
   onIssue,
   onCancel,
+  togetherCount = 0,
 }: {
   election: ElectionAdminDetail
   pending: boolean
   onIssue: (userId: number) => void
   onCancel: (userId: number) => void
+  /** 같은 공동의회에서 지금 함께 열려 있는 투표 수 — 2 이상이면 교부 한 번에 모두 교부한다 */
+  togetherCount?: number
 }) => {
   const [q, setQ] = useState('')
   const issued = election.voters.filter((v) => v.paper_issued)
@@ -27,6 +30,9 @@ export const IssuePanel = ({
       </h3>
       <p className="mt-1 text-[11.5px] text-ink-muted break-keep">
         앱 명부에 있는 분이 종이로 투표하면 이름을 찾아 교부를 누르세요. 앱으로 이미 투표한 분은 막아 드려요.
+        {togetherCount > 1
+          ? ` 지금 함께 열린 투표 ${togetherCount}개에 한 번에 교부돼요(그분이 선거인인 선거만). 되돌리기는 선거마다 따로 해요.`
+          : ''}
       </p>
       <input
         value={q}
@@ -55,7 +61,7 @@ export const IssuePanel = ({
                   }}
                   className="shrink-0 px-3 py-1.5 rounded-lg bg-brand text-white text-[12.5px] font-bold disabled:opacity-50"
                 >
-                  교부
+                  {togetherCount > 1 ? `교부 (${togetherCount}개 모두)` : '교부'}
                 </button>
               )}
             </div>

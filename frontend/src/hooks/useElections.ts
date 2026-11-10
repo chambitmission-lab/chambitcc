@@ -10,6 +10,7 @@ import {
   announceElection,
   cancelPaperIssue,
   castVote,
+  closeAssemblyRounds,
   closeElectionRound,
   createElection,
   deleteElection,
@@ -17,6 +18,7 @@ import {
   deletePaperBallot,
   finishElection,
   getAllElections,
+  getAssemblyBoard,
   getDefaultElectionRules,
   getElection,
   getElectionAdmin,
@@ -25,8 +27,11 @@ import {
   getElectionAudit,
   getElectionRosterPool,
   getElections,
+  issueAssemblyPaper,
   issuePaperBallot,
+  openAssemblyRounds,
   openElectionRound,
+  remindAssemblyVoters,
   remindElectionVoters,
   reopenElectionRound,
   resetElectionPractice,
@@ -36,6 +41,7 @@ import {
 } from '../api/election'
 import type {
   AssemblyPayload,
+  BulkResult,
   ElectionAdminDetail,
   ElectionAssemblyDetail,
   ElectionDetail,
@@ -56,6 +62,7 @@ export const electionKeys = {
   rosterPool: () => [...electionKeys.all, 'roster-pool'] as const,
   assemblies: () => [...electionKeys.all, 'assemblies'] as const,
   assembly: (id: number) => [...electionKeys.all, 'assembly', id] as const,
+  assemblyBoard: (id: number) => [...electionKeys.all, 'assembly-board', id] as const,
 }
 
 // ── 성도 ──────────────────────────────────────────────────────────────
@@ -233,6 +240,53 @@ export const useDeleteAssembly = (feedback?: MutationFeedback<void, number>) => 
       feedback?.onSuccess?.(undefined, id)
     },
     onError: (error: Error, id) => feedback?.onError?.(error, id),
+  })
+}
+
+/** 현황판 탭 — 같은 공동의회 선거들의 진행 상황. 회차 변화는 SSE 가 통째로 무효화해 주고,
+ * 표 수는 이벤트가 이 캐시를 고치지 않으므로 투표가 열려 있는 동안 15초마다 조용히 다시 받는다. */
+export const useAssemblyBoard = (id: number | null | undefined) =>
+  useQuery({
+    queryKey: electionKeys.assemblyBoard(id ?? 0),
+    queryFn: () => getAssemblyBoard(id as number),
+    enabled: !!id,
+    staleTime: 0,
+    refetchInterval: (query) =>
+      query.state.data?.elections.some((e) => e.current_round_status === 'open') ? 1000 * 15 : false,
+    refetchIntervalInBackground: false,
+    retry: false,
+  })
+
+export type AssemblyAction =
+  | { kind: 'open'; assemblyId: number; data?: OpenRoundPayload }
+  | { kind: 'close'; assemblyId: number }
+  | { kind: 'issue'; assemblyId: number; userId: number }
+  | { kind: 'remind'; assemblyId: number }
+
+/** 함께 시작·함께 마감·한 번에 교부 — 여러 선거가 바뀌므로 선거 캐시를 통째로 다시 받는다 */
+export const useAssemblyAction = (feedback?: MutationFeedback<BulkResult, AssemblyAction>) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (action: AssemblyAction) => {
+      switch (action.kind) {
+        case 'open':
+          return openAssemblyRounds(action.assemblyId, action.data)
+        case 'close':
+          return closeAssemblyRounds(action.assemblyId)
+        case 'issue':
+          return issueAssemblyPaper(action.assemblyId, action.userId)
+        case 'remind':
+          return remindAssemblyVoters(action.assemblyId)
+      }
+    },
+    onSuccess: (result, action) => {
+      void qc.invalidateQueries({ queryKey: electionKeys.all })
+      feedback?.onSuccess?.(result, action)
+    },
+    onError: (error: Error, action) => {
+      void qc.invalidateQueries({ queryKey: electionKeys.all })
+      feedback?.onError?.(error, action)
+    },
   })
 }
 

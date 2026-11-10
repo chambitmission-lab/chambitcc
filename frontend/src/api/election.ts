@@ -1,6 +1,8 @@
 // 선거(직분자 선출 투표) API
 import type {
+  AssemblyBoard,
   AssemblyPayload,
+  BulkResult,
   ElectionAdminDetail,
   ElectionAssembly,
   ElectionAssemblyDetail,
@@ -109,6 +111,32 @@ export const deleteElectionAssembly = async (id: number): Promise<void> => {
   })
 }
 
+// 함께 진행 — 관리자·선관위원. 같은 공동의회의 선거들에 같은 조작을 한 번에 건다
+
+export const getAssemblyBoard = async (id: number): Promise<AssemblyBoard> =>
+  request<AssemblyBoard>(`/elections/assemblies/${id}/board`, {
+    auth: 'required',
+    errorMessage: '공동의회 현황을 불러오지 못했습니다',
+  })
+
+const bulkPost = (path: string, errorMessage: string, json?: unknown) =>
+  request<BulkResult>(path, { method: 'POST', auth: 'required', json: json ?? {}, errorMessage })
+
+/** 아직 열지 않은 선거의 1차(연습) 투표를 한꺼번에 — 시작 알림은 한 번만 간다 */
+export const openAssemblyRounds = (id: number, data: OpenRoundPayload = {}) =>
+  bulkPost(`/elections/assemblies/${id}/rounds/open`, '투표를 시작하지 못했습니다', data)
+
+export const closeAssemblyRounds = (id: number) =>
+  bulkPost(`/elections/assemblies/${id}/rounds/close`, '투표를 마감하지 못했습니다')
+
+/** 열려 있는 선거 모두에 투표용지 교부 — 앱으로 이미 투표한 선거는 건너뛴다 */
+export const issueAssemblyPaper = (id: number, userId: number) =>
+  bulkPost(`/elections/assemblies/${id}/paper-issues`, '투표용지를 교부하지 못했습니다', { user_id: userId })
+
+/** 열려 있는 투표가 남은 앱 선거인에게 알림 한 통 (선거마다 따로 울리지 않게) */
+export const remindAssemblyVoters = (id: number) =>
+  bulkPost(`/elections/assemblies/${id}/remind`, '알림을 보내지 못했습니다')
+
 export const createElection = async (data: ElectionPayload): Promise<ElectionAdminDetail> =>
   request<ElectionAdminDetail>('/elections', {
     method: 'POST',
@@ -211,8 +239,15 @@ export const uploadCandidatePhoto = async (file: File): Promise<string> => {
 }
 
 /** 회차별 결과 CSV — 인증 헤더가 필요해 blob 으로 받아 저장한다 */
-export const downloadElectionCsv = async (id: number, filename: string): Promise<void> => {
-  const response = await requestRaw(`/elections/${id}/export`, {
+export const downloadElectionCsv = (id: number, filename: string): Promise<void> =>
+  downloadCsv(`/elections/${id}/export`, filename)
+
+/** 공동의회 전체 결과 CSV — 소속 선거를 한 파일에 */
+export const downloadAssemblyCsv = (id: number, filename: string): Promise<void> =>
+  downloadCsv(`/elections/assemblies/${id}/export`, filename)
+
+const downloadCsv = async (path: string, filename: string): Promise<void> => {
+  const response = await requestRaw(path, {
     auth: 'required',
     errorMessage: 'CSV 내려받기에 실패했습니다',
   })

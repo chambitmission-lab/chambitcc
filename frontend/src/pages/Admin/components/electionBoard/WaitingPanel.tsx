@@ -9,17 +9,23 @@ export const WaitingPanel = ({
   election,
   pending,
   onRemind,
+  togetherCount = 0,
 }: {
   election: ElectionAdminDetail
   pending: boolean
   onRemind: () => void
+  /** 같은 공동의회에서 함께 열려 있는 투표 수 — 2 이상이면 알림 한 통으로 묶어 보낸다 */
+  togetherCount?: number
 }) => {
   const waiting = election.voters.filter((v) => !v.has_voted)
   const [open, setOpen] = useState(false)
   const remind = async () => {
     const ok = await confirmDialog({
       title: '미투표자에게 알림을 보낼까요?',
-      message: `아직 투표하지 않은 앱 선거인 ${waiting.length}명에게 "아직 투표하지 않으셨어요" 알림이 가요.`,
+      message:
+        togetherCount > 1
+          ? `함께 열린 투표 ${togetherCount}개 중 하나라도 아직 안 한 앱 선거인에게 "아직 투표가 남았어요" 알림이 한 번만 가요.`
+          : `아직 투표하지 않은 앱 선거인 ${waiting.length}명에게 "아직 투표하지 않으셨어요" 알림이 가요.`,
       description: '같은 알림은 10분에 한 번만 보낼 수 있어요.',
       confirmText: '알림 보내기',
       tone: 'brand',
@@ -43,7 +49,7 @@ export const WaitingPanel = ({
       </p>
       {waiting.length ? (
         <button type="button" onClick={() => void remind()} disabled={pending} className={`mt-2.5 w-full ${ghostBtn}`}>
-          미투표자에게 알림 보내기
+          {togetherCount > 1 ? `미투표자에게 알림 보내기 (투표 ${togetherCount}개 한 번에)` : '미투표자에게 알림 보내기'}
         </button>
       ) : null}
       {open ? (
