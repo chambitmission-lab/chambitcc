@@ -443,11 +443,12 @@
   .nl-backdrop { align-items: center; padding: 24px; }
   .nl-beam { width: 1000px; height: 760px; top: -140px; }
   .nl-card {
-    max-width: 880px;
-    height: min(600px, 88vh);
+    /* PC 는 화면이 넉넉하다 — 포스터 글씨가 확대 없이 읽히고, 본문이 스크롤 없이 한눈에 들어오게 크게 */
+    max-width: 1120px;
+    height: min(800px, 90vh);
     max-height: none;
     display: grid;
-    grid-template-columns: 400px minmax(0, 1fr);
+    grid-template-columns: minmax(400px, 46%) minmax(0, 1fr);
     border-radius: 26px;
     padding-bottom: 0;
     box-shadow: 0 40px 90px -20px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--nl-line);
@@ -478,9 +479,9 @@
     position: absolute;
     left: 50%;
     top: -120px;
-    width: 500px;
-    height: 520px;
-    margin-left: -250px;
+    width: 640px;
+    height: 680px;
+    margin-left: -320px;
     pointer-events: none;
     background: radial-gradient(ellipse 40% 55% at 50% 0, var(--nl-beam), transparent 72%);
     animation: nl-breath 5s ease-in-out infinite alternate;
