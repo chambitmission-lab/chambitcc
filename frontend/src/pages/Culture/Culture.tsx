@@ -176,8 +176,10 @@ const Culture = () => {
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
-      {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/sermon 등과 같은 규격) */}
-      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/sermon 등과 같은 규격).
+          items-stretch + 레일만 self-start — 레일 높이가 줄 높이를 받쳐 줘서, 공지사항처럼
+          내용이 짧은 탭에서도 본문 판이 레일보다 짧아지지 않는다(탭 전환 때 판이 들쭉날쭉 X) */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-stretch lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0">
         {/* 헤더 — 오른쪽에 삽화(culture-hero.css)를 높이맞춤으로 깐다.
             안내 문구는 모바일에서 삽화 위를 지나가므로 폭을 묶어 두 줄로 접는다. */}
@@ -541,7 +543,7 @@ const Culture = () => {
 
       {/* 우측 위젯 레일 (lg+) — 모집 현황·이용 안내·문의를 본문 밖으로 빼
           넓어진 본문은 강좌 카드에 집중하게 한다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
+      <aside className="rail-lift hidden lg:flex lg:self-start lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
         {!loading && openClasses.length > 0 && (
           <section className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
             <div className="absolute -top-5 -right-3 opacity-20 rotate-12 pointer-events-none select-none text-brand">
