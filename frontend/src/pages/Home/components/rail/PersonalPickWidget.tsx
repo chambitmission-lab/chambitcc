@@ -89,7 +89,7 @@ const PersonalPickWidget = () => {
   return (
     <section className="px-4 pt-3">
       <div
-        className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] p-4"
+        className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] p-4 shadow-[var(--card-shadow)]"
         style={{
           background:
             'linear-gradient(160deg, var(--brand-soft) 0%, var(--surface-container) 45%, var(--surface-container) 100%)',

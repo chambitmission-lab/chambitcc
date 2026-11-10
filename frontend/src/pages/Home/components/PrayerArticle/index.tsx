@@ -129,7 +129,7 @@ const PrayerArticle = ({
       style={cssVars as React.CSSProperties}
     >
       {/* 하나의 카드 = 하나의 서사. 헤더·본문·푸터를 한 표면 안에 묶는다. */}
-      <div className="feed-card relative overflow-hidden rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--brand-glow)] hover:shadow-[0_8px_24px_-8px_var(--brand-glow)]">
+      <div className="home-glow feed-card relative overflow-hidden rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--brand-glow)] hover:shadow-[0_8px_24px_-8px_var(--brand-glow)]">
         {/* 다크모드 표면 그라데이션 — 평평한 회색 박스 느낌을 깨기 위함 */}
         <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-transparent pointer-events-none rounded-2xl"></div>
 

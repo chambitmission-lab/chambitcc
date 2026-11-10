@@ -43,7 +43,7 @@ const DesktopComposerCard = ({ onCompose, onThanks, onVerseCard }: DesktopCompos
   }, [])
 
   return (
-    <div className="feed-card rounded-2xl overflow-hidden transition-[border-color,box-shadow] duration-150 hover:border-[var(--brand-glow)] hover:shadow-[0_6px_18px_-6px_var(--brand-glow)]">
+    <div className="home-composer home-glow feed-card rounded-2xl overflow-hidden transition-[border-color,box-shadow] duration-150 hover:border-[var(--brand-glow)] hover:shadow-[0_6px_18px_-6px_var(--brand-glow)]">
       <button
         type="button"
         onClick={onCompose}
