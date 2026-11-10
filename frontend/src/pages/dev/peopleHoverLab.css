@@ -1,0 +1,1052 @@
+/* /dev/people-hover — 인물 카드 호버 시안 (DEV 전용) */
+
+.lab-page {
+  min-height: 100vh;
+  background: var(--app-canvas, #f4f5f7);
+  padding: 1.5rem 0 4rem;
+}
+[data-theme='dark'] .lab-page {
+  background: #0f1115;
+}
+
+.lab-head {
+  max-width: 1200px;
+  margin: 0 auto 1.25rem;
+  padding: 0 1.25rem;
+}
+.lab-kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: 0.02em;
+}
+.lab-title {
+  margin-top: 0.25rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+.lab-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+.lab-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.5rem;
+  padding: 0 0.95rem 0 0.4rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-body);
+  background: var(--surface-container, #fff);
+  border: 1px solid var(--card-border, rgba(0, 0, 0, 0.08));
+  transition: all 0.15s ease;
+}
+.lab-switch-btn:hover {
+  border-color: var(--brand);
+}
+.lab-switch-btn.is-on {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.lab-switch-letter {
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.8rem;
+}
+.lab-switch-btn.is-on .lab-switch-letter {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.lab-note {
+  margin-top: 0.9rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 1rem;
+  background: var(--surface-container, #fff);
+  border: 1px solid var(--card-border, rgba(0, 0, 0, 0.08));
+  color: var(--text-body);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.lab-note strong {
+  font-size: 1rem;
+  color: var(--text-strong);
+  margin-right: 0.5rem;
+}
+.lab-bench {
+  font-size: 0.78rem;
+  color: var(--brand);
+  font-weight: 600;
+}
+.lab-note p {
+  margin-top: 0.3rem;
+}
+.lab-cats {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+}
+.lab-cat {
+  height: 2rem;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--card-border, rgba(0, 0, 0, 0.1));
+}
+.lab-cat.is-on {
+  color: var(--brand);
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+.lab-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem 0;
+}
+
+.lab-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  --mx: 0.5;
+  --my: 0.5;
+}
+.lab-card {
+  --mx: 0.5;
+  --my: 0.5;
+}
+
+/* 공통 — 시안 겹은 기본으로 숨김 */
+.lab-front {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.lab-glare,
+.lab-light,
+.lab-ring,
+.lab-panel,
+.lab-tape,
+.lab-bubble,
+.lab-back {
+  display: none;
+}
+.lab-name {
+  position: relative;
+}
+
+/* 효과는 마우스 기기에서만 — 터치는 원래 카드 그대로 */
+@media (hover: hover) and (pointer: fine) {
+  /* 기존 호버(살짝 뜨기)는 시안마다 자기 걸로 바꾼다 */
+  .lab-grid .ppl-card.lab-card:hover {
+    transform: none;
+  }
+
+  /* ════════ A. 홀로그램 틸트 ════════ */
+  .lab-v-a {
+    perspective: 900px;
+  }
+  .lab-v-a .lab-card {
+    transform-style: preserve-3d;
+    transition:
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.3s ease;
+  }
+  .lab-v-a .lab-card:hover {
+    transition: transform 0.08s linear, box-shadow 0.3s ease;
+    transform: rotateX(calc((0.5 - var(--my)) * 14deg)) rotateY(calc((var(--mx) - 0.5) * 16deg))
+      scale(1.03) !important;
+    box-shadow:
+      calc((0.5 - var(--mx)) * 24px) calc((0.5 - var(--my)) * 24px + 22px) 40px -18px rgba(20, 40, 90, 0.45);
+  }
+  .lab-v-a .ppl-card-photo img {
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lab-v-a .lab-card:hover .ppl-card-photo img {
+    transition: transform 0.08s linear;
+    transform: scale(1.12) translate(calc((0.5 - var(--mx)) * 10px), calc((0.5 - var(--my)) * 10px));
+  }
+  .lab-v-a .lab-glare {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background:
+      radial-gradient(
+        circle at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0.12) 28%,
+        transparent 55%
+      ),
+      linear-gradient(
+        calc(var(--mx) * 90deg + 100deg),
+        transparent 30%,
+        rgba(140, 200, 255, 0.22) 45%,
+        rgba(255, 210, 240, 0.2) 52%,
+        rgba(255, 240, 170, 0.18) 58%,
+        transparent 70%
+      );
+    mix-blend-mode: soft-light;
+  }
+  .lab-v-a .lab-card:hover .lab-glare {
+    opacity: 1;
+  }
+
+  /* ════════ B. 새벽빛 손전등 — .lab-lit 로 다른 인사 시안에도 같이 입힌다 ════════ */
+  /* 흐림은 천천히 — 시안별 transform 전환과 합쳐 한 줄로(뒤 규칙이 덮어쓰지 않게 :is 로 올린다) */
+  .lab-grid.lab-lit .lab-card {
+    transition:
+      opacity 0.6s ease,
+      filter 0.6s ease,
+      box-shadow 0.4s ease,
+      transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+      border-radius 0.3s ease,
+      background 0.3s ease;
+  }
+  /* 다른 카드는 살짝만 물러난다.
+     카드가 아니라 그리드에 호버를 걸어, 카드 사이 빈틈을 지날 때 흐림이 풀렸다 다시
+     걸리며 깜빡이지 않게 한다. 세기도 약하게(눈부심 없이 '한발 뒤로' 정도) */
+  .lab-grid.lab-lit:hover .lab-card:not(:hover) {
+    /* 등장 애니메이션(fill: both)이 opacity 를 붙잡고 있어 !important 로 이긴다 */
+    opacity: 0.8 !important;
+    filter: saturate(0.82) brightness(0.98);
+  }
+  .lab-lit .lab-light {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    background: radial-gradient(
+      220px circle at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+      rgba(255, 226, 168, 0.5),
+      rgba(255, 200, 120, 0.12) 40%,
+      transparent 70%
+    );
+    mix-blend-mode: soft-light;
+  }
+  .lab-lit .lab-card:hover .lab-light {
+    opacity: 1;
+  }
+  /* 테두리 빛 — 커서 근처만 */
+  .lab-lit .lab-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: radial-gradient(
+      260px circle at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+      rgba(255, 196, 92, 0.95),
+      rgba(49, 130, 246, 0.55) 45%,
+      transparent 75%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .lab-lit .lab-card:hover::after {
+    opacity: 1;
+  }
+  .lab-lit .lab-card:hover {
+    box-shadow: 0 18px 40px -20px rgba(255, 170, 60, 0.6);
+  }
+  .lab-lit .lab-card:hover .ppl-card-photo img {
+    transform: scale(1.04);
+  }
+
+  /* ════════ C. 폴라로이드 인사 ════════ */
+  :is(.lab-v-c, .lab-v-g) .lab-card {
+    overflow: visible;
+    transition:
+      transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.3s ease,
+      border-radius 0.3s ease,
+      padding 0.3s ease,
+      background 0.3s ease;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:hover {
+    transform: rotate(-2.2deg) translateY(-6px) !important;
+    border-radius: 0.35rem;
+    background: #fffdf8;
+    box-shadow: 0 22px 34px -18px rgba(60, 40, 10, 0.45);
+    z-index: 2;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:nth-child(even):hover {
+    transform: rotate(2deg) translateY(-6px) !important;
+  }
+  :is(.lab-v-c, .lab-v-g) .ppl-card-photo {
+    transition:
+      margin 0.3s ease,
+      border-radius 0.3s ease;
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:hover .ppl-card-photo {
+    margin: 0.55rem 0.55rem 0;
+    border-radius: 0.15rem;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:hover .ppl-card-name {
+    font-family: 'Nanum Pen Script', var(--font-serif-kr);
+    font-size: 1.45rem;
+    font-weight: 400;
+    color: #3a2f22;
+    line-height: 1.1;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:hover .ppl-card-role {
+    color: #8a6a3d;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-tape {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    top: -9px;
+    left: 50%;
+    width: 64px;
+    height: 20px;
+    background: rgba(255, 236, 170, 0.82);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    transform: translateX(-50%) rotate(-4deg) scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.25s ease 0.05s;
+    clip-path: polygon(3% 0, 97% 4%, 100% 50%, 96% 100%, 2% 96%, 0 50%);
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:hover .lab-tape {
+    transform: translateX(-50%) rotate(-4deg) scaleX(1);
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-bubble {
+    display: block;
+    position: absolute;
+    z-index: 4;
+    top: 16%;
+    right: -10px;
+    padding: 0.3rem 0.75rem 0.4rem;
+    border-radius: 1rem 1rem 1rem 0.2rem;
+    background: #fff;
+    color: var(--brand);
+    font-family: 'Nanum Pen Script', var(--font-serif-kr);
+    font-size: 1.35rem;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 8px 20px -8px rgba(30, 60, 120, 0.45);
+    border: 1.5px solid var(--brand-soft-strong);
+    transform: scale(0) rotate(-12deg);
+    transform-origin: left bottom;
+    opacity: 0;
+    transition:
+      transform 0.4s cubic-bezier(0.34, 1.8, 0.64, 1) 0.12s,
+      opacity 0.15s ease 0.12s;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:hover .lab-bubble {
+    transform: scale(1) rotate(6deg);
+    opacity: 1;
+    animation: lab-wave 1.6s ease-in-out 0.55s infinite;
+  }
+  [data-theme='dark'] :is(.lab-v-c, .lab-v-g) .lab-card:hover {
+    background: #f3eee4;
+  }
+
+  /* ════════ D. 사역 펼침 ════════ */
+  .lab-v-d .lab-card {
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+  .lab-v-d .lab-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 36px -20px rgba(20, 50, 110, 0.55);
+  }
+  .lab-v-d .lab-card:hover .ppl-card-photo img {
+    transform: scale(1.08);
+    filter: brightness(0.85);
+  }
+  .lab-v-d .lab-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    position: absolute;
+    inset: 0;
+    padding: 0.9rem;
+    color: #fff;
+    background: linear-gradient(
+      180deg,
+      transparent 25%,
+      rgba(10, 30, 70, 0.55) 55%,
+      rgba(8, 22, 54, 0.92) 100%
+    );
+    opacity: 0;
+    transform: translateY(18%);
+    transition:
+      opacity 0.3s ease,
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lab-v-d .lab-card:hover .lab-panel {
+    opacity: 1;
+    transform: none;
+  }
+  .lab-v-d .lab-panel-bio {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+  }
+  .lab-v-d .lab-panel-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .lab-v-d .lab-panel-chip {
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+    transition:
+      opacity 0.25s ease,
+      transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .lab-v-d .lab-card:hover .lab-panel-chip {
+    opacity: 1;
+    transform: none;
+  }
+  .lab-v-d .lab-panel-more {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #bcd8ff;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.3s ease 0.3s;
+  }
+  .lab-v-d .lab-card:hover .lab-panel-more {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ════════ E. 뒤집어 보는 카드 (90° 바꿔 끼우기 — backface 미사용) ════════ */
+  .lab-v-e {
+    perspective: 1000px;
+  }
+  .lab-v-e .lab-card {
+    overflow: visible;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .lab-v-e .lab-front,
+  .lab-v-e .lab-back {
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background: var(--surface-container);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+  }
+  .lab-v-e .lab-front {
+    transform: rotateY(0deg);
+    transition: transform 0.2s ease-in 0.2s;
+  }
+  .lab-v-e .lab-card:hover .lab-front {
+    transform: rotateY(90deg);
+    transition: transform 0.2s ease-in 0s;
+  }
+  .lab-v-e .lab-back {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    position: absolute;
+    inset: 0;
+    padding: 1.1rem 1rem;
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgba(49, 130, 246, 0.14), transparent 60%),
+      linear-gradient(180deg, #ffffff, #f4f8ff);
+    color: var(--text-body);
+    transform: rotateY(-90deg);
+    transition: transform 0.2s ease-out 0s;
+  }
+  .lab-v-e .lab-card:hover .lab-back {
+    transform: rotateY(0deg);
+    transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1) 0.2s;
+  }
+  [data-theme='dark'] .lab-v-e .lab-back {
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgba(49, 130, 246, 0.25), transparent 60%),
+      linear-gradient(180deg, #1b2130, #141822);
+  }
+  .lab-back-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .lab-back-head img,
+  .lab-back-initial {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    object-fit: cover;
+    object-position: top;
+    border: 2px solid var(--brand);
+    flex-shrink: 0;
+  }
+  .lab-back-initial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: var(--brand);
+    background: var(--brand-soft);
+  }
+  .lab-back-name {
+    display: block;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--text-strong);
+  }
+  .lab-back-role {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--brand);
+  }
+  .lab-back-verse {
+    font-family: var(--font-serif-kr);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-strong);
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .lab-back-verse.is-soft {
+    color: var(--text-muted);
+  }
+  .lab-back-years {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .lab-back-years strong {
+    font-size: 1.6rem;
+    color: var(--brand);
+    margin-right: 0.15rem;
+  }
+  .lab-back-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.8rem;
+    color: var(--text-body);
+  }
+  .lab-back-more {
+    margin-top: auto;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--brand);
+  }
+
+  /* ════════ F. 자석 + 빛 링 ════════ */
+  .lab-v-f .lab-card {
+    transition:
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.3s ease;
+  }
+  .lab-v-f .lab-card:hover {
+    transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+    transform: translate(calc((var(--mx) - 0.5) * 14px), calc((var(--my) - 0.5) * 14px)) !important;
+    box-shadow: 0 18px 36px -18px var(--brand-glow);
+  }
+  .lab-v-f .ppl-card-photo img {
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lab-v-f .lab-card:hover .ppl-card-photo img {
+    transition: transform 0.15s ease-out;
+    transform: scale(1.06) translate(calc((var(--mx) - 0.5) * 8px), calc((var(--my) - 0.5) * 8px));
+  }
+  .lab-v-f .lab-ring {
+    display: block;
+    position: absolute;
+    inset: 6px;
+    border-radius: 1rem;
+    padding: 3px;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--lab-spin, 0deg),
+      #3182f6,
+      #8ec5ff,
+      #ffd27a,
+      #3182f6 60%,
+      transparent 70%,
+      #3182f6
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transform: scale(1.04);
+    transition:
+      opacity 0.3s ease,
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lab-v-f .lab-card:hover .lab-ring {
+    opacity: 1;
+    transform: none;
+    animation: lab-spin 2.4s linear infinite;
+  }
+  .lab-v-f .lab-name::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 0.35em;
+    border-radius: 2px;
+    background: var(--brand-soft-strong);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
+    z-index: -1;
+  }
+  .lab-v-f .lab-card:hover .lab-name::after {
+    transform: scaleX(1);
+  }
+}
+
+@property --lab-spin {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes lab-spin {
+  to {
+    --lab-spin: 360deg;
+  }
+}
+@keyframes lab-wave {
+  0%,
+  100% {
+    transform: scale(1) rotate(6deg);
+  }
+  50% {
+    transform: scale(1.06) rotate(-3deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-grid .lab-card,
+  .lab-grid .lab-card * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ═════════════ 인사 + 새벽빛 (G~K) ═════════════
+   G = C 폴라로이드 + 빛. H~K 는 폴라로이드 대신 다른 인사 — 모두 .lab-lit 빛을 같이 쓴다 */
+.lab-bow-tag,
+.lab-chat,
+.lab-tag,
+.lab-slip {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lab-lit .lab-card:hover {
+    transform: translateY(-4px) !important;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:hover {
+    transform: rotate(-2.2deg) translateY(-6px) !important;
+  }
+  :is(.lab-v-c, .lab-v-g) .lab-card:nth-child(even):hover {
+    transform: rotate(2deg) translateY(-6px) !important;
+  }
+
+  /* ── H. 꾸벅 인사 — 사진 속 분이 고개 숙여 인사 ── */
+  .lab-v-h .lab-card:hover .ppl-card-photo img {
+    transform-origin: 50% 100%;
+    animation: lab-bow 1.1s cubic-bezier(0.45, 0, 0.3, 1) 0.1s both;
+  }
+  .lab-v-h .lab-bow-tag {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    top: 0.7rem;
+    padding: 0.25rem 0.8rem 0.35rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #b06a12;
+    font-family: 'Nanum Pen Script', var(--font-serif-kr);
+    font-size: 1.4rem;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 6px 16px -6px rgba(120, 70, 10, 0.4);
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.8);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  .lab-v-h .lab-card:hover .lab-bow-tag {
+    animation: lab-bow-tag 1.1s ease 0.1s both;
+  }
+  .lab-v-h .lab-bow-tag b {
+    font-weight: 400;
+    color: var(--brand);
+  }
+
+  /* ── I. 채팅 인사 — 점 세 개 입력 중 → 말풍선 ── */
+  .lab-v-i .lab-chat {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    left: 0.6rem;
+    right: 0.6rem;
+    bottom: 0.6rem;
+  }
+  .lab-v-i .lab-chat-dots,
+  .lab-v-i .lab-chat-msg {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    background: #fff;
+    border-radius: 1.1rem 1.1rem 1.1rem 0.3rem;
+    box-shadow: 0 8px 22px -10px rgba(20, 40, 90, 0.5);
+  }
+  .lab-v-i .lab-chat-dots {
+    display: inline-flex;
+    gap: 4px;
+    padding: 0.6rem 0.75rem;
+    opacity: 0;
+    transform: scale(0.6);
+    transform-origin: left bottom;
+  }
+  .lab-v-i .lab-chat-dots i {
+    width: 6px;
+    height: 6px;
+    border-radius: 99px;
+    background: #9aa7bb;
+  }
+  .lab-v-i .lab-card:hover .lab-chat-dots {
+    animation: lab-dots-life 0.9s ease both;
+  }
+  .lab-v-i .lab-card:hover .lab-chat-dots i {
+    animation: lab-dot 0.6s ease-in-out infinite;
+  }
+  .lab-v-i .lab-chat-dots i:nth-child(2) {
+    animation-delay: 0.12s !important;
+  }
+  .lab-v-i .lab-chat-dots i:nth-child(3) {
+    animation-delay: 0.24s !important;
+  }
+  .lab-v-i .lab-chat-msg {
+    padding: 0.55rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--text-strong, #191f28);
+    max-width: 100%;
+    opacity: 0;
+    transform: scale(0.7) translateY(6px);
+    transform-origin: left bottom;
+  }
+  .lab-v-i .lab-card:hover .lab-chat-msg {
+    animation: lab-msg-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.85s both;
+  }
+  .lab-v-i .lab-chat-msg em {
+    font-style: normal;
+    color: var(--brand);
+  }
+  [data-theme='dark'] .lab-v-i :is(.lab-chat-dots, .lab-chat-msg) {
+    background: #232a38;
+    color: #eef2f8;
+  }
+
+  /* ── J. 이름표 스티커 — HELLO 명찰이 탁 붙는다 ── */
+  .lab-v-j .lab-tag {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    z-index: 3;
+    right: 0.55rem;
+    bottom: 0.6rem;
+    width: 7.2rem;
+    border-radius: 0.6rem;
+    overflow: hidden;
+    background: #fff;
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.04),
+      0 10px 22px -10px rgba(20, 40, 90, 0.55);
+    transform: rotate(-9deg) scale(1.7);
+    opacity: 0;
+  }
+  .lab-v-j .lab-card:hover .lab-tag {
+    animation: lab-slap 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.25) 0.08s both;
+  }
+  .lab-v-j .lab-tag-top {
+    padding: 0.3rem 0 0.25rem;
+    text-align: center;
+    background: var(--brand);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1.15;
+  }
+  .lab-v-j .lab-tag-top small {
+    display: block;
+    font-size: 0.55rem;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+    opacity: 0.85;
+  }
+  .lab-v-j .lab-tag-name {
+    padding: 0.3rem 0.4rem 0.4rem;
+    text-align: center;
+    font-family: 'Nanum Pen Script', var(--font-serif-kr);
+    font-size: 1.55rem;
+    line-height: 1;
+    color: #1d2b44;
+  }
+
+  /* ── K. 쪽지 인사 — 사진 뒤에서 손편지 쪽지가 쏙 ── */
+  .lab-v-k .lab-slip {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    left: 0.7rem;
+    right: 0.7rem;
+    bottom: -0.2rem;
+    padding: 0.7rem 0.85rem 1rem;
+    border-radius: 0.3rem 0.3rem 0 0;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 1.45rem, rgba(49, 130, 246, 0.13) 1.45rem 1.5rem),
+      #fffaf0;
+    color: #3a3125;
+    font-family: 'Nanum Pen Script', var(--font-serif-kr);
+    font-size: 1.3rem;
+    line-height: 1.5rem;
+    box-shadow: 0 -6px 20px -8px rgba(60, 40, 10, 0.35);
+    transform: translateY(105%) rotate(0deg);
+    transition: transform 0.35s ease;
+  }
+  .lab-v-k .lab-card:hover .lab-slip {
+    transform: translateY(0) rotate(-1.5deg);
+    transition: transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) 0.1s;
+  }
+  .lab-v-k .lab-slip-sign {
+    display: block;
+    text-align: right;
+    font-size: 1.1rem;
+    color: var(--brand);
+  }
+  .lab-v-k .lab-card:hover .ppl-card-photo img {
+    transform: scale(1.04) translateY(-4%);
+  }
+}
+
+@keyframes lab-bow {
+  0% {
+    transform: none;
+  }
+  35% {
+    transform: perspective(500px) rotateX(16deg) translateY(5%) scale(0.98);
+  }
+  55% {
+    transform: perspective(500px) rotateX(16deg) translateY(5%) scale(0.98);
+  }
+  100% {
+    transform: scale(1.03);
+  }
+}
+@keyframes lab-bow-tag {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.8);
+  }
+  30%,
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+@keyframes lab-dots-life {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  20%,
+  80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+@keyframes lab-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+@keyframes lab-msg-pop {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lab-slap {
+  0% {
+    opacity: 0;
+    transform: rotate(-20deg) scale(1.7);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-7deg) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-9deg) scale(1);
+  }
+}
+
+.lab-switch-group {
+  display: inline-flex;
+  align-items: center;
+  width: 6.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.lab-switch + .lab-switch {
+  margin-top: 0.5rem;
+}
+
+/* ── G 차분하게 — 어르신 눈높이: 사진·카드는 제자리, 인사 말풍선만 ──
+   카드 기울기·들림, 사진 확대, 폴라로이드 여백(사진이 안쪽으로 줄어드는 움직임),
+   이름 글꼴 바뀜(줄 높이가 출렁임), 말풍선 반복 흔들림을 모두 끈다 */
+@media (hover: hover) and (pointer: fine) {
+  .lab-grid.lab-v-g .lab-card:hover,
+  .lab-grid.lab-v-g .lab-card:nth-child(even):hover {
+    transform: none !important;
+    border-radius: 1.25rem;
+    background: var(--surface-container);
+  }
+  [data-theme='dark'] .lab-grid.lab-v-g .lab-card:hover {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  }
+  .lab-grid.lab-v-g .lab-card:hover .ppl-card-photo {
+    margin: 0;
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+  .lab-grid.lab-v-g .lab-card:hover .ppl-card-photo img {
+    transform: none;
+  }
+  .lab-grid.lab-v-g .lab-card:hover .ppl-card-name {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 700;
+    color: var(--text-strong);
+    line-height: 1.3;
+  }
+  .lab-grid.lab-v-g .lab-card:hover .ppl-card-role {
+    color: var(--brand);
+  }
+  /* 테이프는 사진 위로 넘친다 — 제자리 카드에선 군더더기라 뺀다 */
+  .lab-grid.lab-v-g .lab-tape {
+    display: none;
+  }
+  /* 말풍선: 카드 안쪽 오른쪽 위에서 한 번만 부드럽게 나타난다(튕김·반복 없음) */
+  .lab-grid.lab-v-g .lab-bubble {
+    right: 0.6rem;
+    top: 0.7rem;
+    transform: translateY(4px);
+    transform-origin: right bottom;
+    border-radius: 1rem 1rem 0.2rem 1rem;
+    transition:
+      opacity 0.35s ease 0.1s,
+      transform 0.35s ease 0.1s;
+  }
+  .lab-grid.lab-v-g .lab-card:hover .lab-bubble {
+    transform: none;
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* G — 주변 카드 흐림도 끈다(밝기가 바뀌는 것만으로도 눈이 피곤하다) */
+@media (hover: hover) and (pointer: fine) {
+  .lab-grid.lab-v-g.lab-lit:hover .lab-card:not(:hover) {
+    opacity: 1 !important;
+    filter: none;
+  }
+}
+
+/* G — 빛은 커서를 따라가지 않는다. 카드 위쪽에서 새벽빛이 살짝 번져 있는 고정 조명.
+   얼굴(사진 가운데) 쪽은 거의 닿지 않게 위 30% 안에서 사라진다 */
+@media (hover: hover) and (pointer: fine) {
+  .lab-grid.lab-v-g .lab-light {
+    background:
+      radial-gradient(
+        120% 42% at 50% 0%,
+        rgba(255, 214, 140, 0.42),
+        rgba(255, 214, 140, 0.12) 45%,
+        transparent 75%
+      );
+    mix-blend-mode: screen;
+    transition: opacity 0.5s ease;
+  }
+  [data-theme='dark'] .lab-grid.lab-v-g .lab-light {
+    background:
+      radial-gradient(
+        120% 42% at 50% 0%,
+        rgba(255, 200, 120, 0.3),
+        rgba(255, 200, 120, 0.08) 45%,
+        transparent 75%
+      );
+  }
+  /* 테두리도 고정 — 위쪽은 금빛, 아래로 갈수록 브랜드 블루로 옅어진다 */
+  .lab-grid.lab-v-g .lab-card::after {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 196, 92, 0.85),
+      rgba(49, 130, 246, 0.35) 55%,
+      rgba(49, 130, 246, 0.15)
+    );
+    transition: opacity 0.5s ease;
+  }
+}

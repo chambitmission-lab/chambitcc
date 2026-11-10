@@ -761,15 +761,115 @@ button.ppl-pola:active,
   }
 }
 
+/* 호버 = 인사 말풍선 + 고정 새벽빛 (시안 G, /dev/people-hover)
+   어르신 눈높이 — 카드·사진은 제자리, 주변 카드 밝기도 그대로. 빛은 커서를 따라가지 않고
+   카드 위쪽에서만 번진다(얼굴에 손전등을 비추는 느낌이 나지 않게). 겹은 터치 기기에선 안 켠다 */
+.ppl-card-dawn,
+.ppl-card-hello {
+  display: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .ppl-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--brand-glow);
-    box-shadow: 0 14px 30px -16px var(--brand-glow);
+  .ppl-card:not(.is-static) {
+    transition:
+      border-color 0.5s ease,
+      box-shadow 0.5s ease;
   }
 
-  .ppl-card:hover .ppl-card-photo img {
-    transform: scale(1.045);
+  .ppl-card:not(.is-static):hover {
+    box-shadow: 0 16px 34px -20px rgba(255, 170, 60, 0.55);
+  }
+
+  /* 사진 위 새벽빛 — 위 30% 안에서 사라진다 */
+  .ppl-card:not(.is-static) .ppl-card-dawn {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    background: radial-gradient(
+      120% 42% at 50% 0%,
+      rgba(255, 214, 140, 0.42),
+      rgba(255, 214, 140, 0.12) 45%,
+      transparent 75%
+    );
+    mix-blend-mode: screen;
+  }
+
+  /* 테두리 빛 — 위는 금빛, 아래로 브랜드 블루로 옅어진다(고정) */
+  .ppl-card:not(.is-static)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 196, 92, 0.85),
+      rgba(49, 130, 246, 0.35) 55%,
+      rgba(49, 130, 246, 0.15)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .ppl-card:not(.is-static):hover .ppl-card-dawn,
+  .ppl-card:not(.is-static):hover::after {
+    opacity: 1;
+  }
+
+  /* 인사 말풍선 — 오른쪽 위에서 한 번만 부드럽게(튕김·반복 없음) */
+  .ppl-card:not(.is-static) .ppl-card-hello {
+    display: block;
+    position: absolute;
+    z-index: 2;
+    top: 0.6rem;
+    right: 0.6rem;
+    padding: 0.3rem 0.75rem 0.4rem;
+    border-radius: 1rem 1rem 0.2rem 1rem;
+    background: #fff;
+    border: 1.5px solid var(--brand-soft-strong);
+    color: var(--brand);
+    font-family: 'Nanum Pen Script', var(--font-serif-kr);
+    font-size: 1.35rem;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 8px 20px -8px rgba(30, 60, 120, 0.45);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.35s ease 0.1s,
+      transform 0.35s ease 0.1s;
+  }
+
+  .ppl-card:not(.is-static):hover .ppl-card-hello {
+    opacity: 1;
+    transform: none;
+  }
+
+  [data-theme='dark'] .ppl-card:not(.is-static) .ppl-card-dawn {
+    background: radial-gradient(
+      120% 42% at 50% 0%,
+      rgba(255, 200, 120, 0.3),
+      rgba(255, 200, 120, 0.08) 45%,
+      transparent 75%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ppl-card-hello,
+  .ppl-card-dawn,
+  .ppl-card::after {
+    transition: none !important;
   }
 }
 

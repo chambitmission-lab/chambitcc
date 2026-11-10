@@ -84,6 +84,49 @@ export const uploadNotificationImage = async (file: File): Promise<string> => {
   return data.url as string
 }
 
+/** 포스터에서 읽어 낸 공지 초안 — 저장된 것이 아니라 작성 화면에 채워 넣을 값 */
+export interface NoticePosterDraft {
+  title: string
+  content: string
+  /** 행사 마지막 날(YYYY-MM-DD) — 팝업 종료일 제안. 날짜를 못 찾으면 null */
+  ends_on: string | null
+}
+
+/** AI 응답이 한없이 늦어지면 '읽는 중…'에 갇힌다 — 서버(50초)보다 조금 길게 기다리고 끊는다 */
+const POSTER_READ_TIMEOUT_MS = 60_000
+
+/**
+ * 포스터 이미지에서 공지 제목·본문 초안 읽기 (관리자, Gemini).
+ * 등록은 하지 않는다 — 관리자가 확인하고 고친 뒤 직접 저장한다.
+ * signal: 작성 창을 닫거나 이미지를 지우면 기다리던 요청도 함께 끊는다
+ */
+export const readNotificationPoster = async (file: File, signal?: AbortSignal): Promise<NoticePosterDraft> => {
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), POSTER_READ_TIMEOUT_MS)
+  const abortFromOuter = () => controller.abort(signal?.reason)
+  if (signal?.aborted) abortFromOuter()
+  else signal?.addEventListener('abort', abortFromOuter, { once: true })
+
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const data = await request<UntypedJson>('/notifications/read-poster', {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+      errorMessage: '포스터 내용을 읽지 못했습니다',
+    })
+    return {
+      title: typeof data.title === 'string' ? data.title : '',
+      content: typeof data.content === 'string' ? data.content : '',
+      ends_on: typeof data.ends_on === 'string' ? data.ends_on : null,
+    }
+  } finally {
+    window.clearTimeout(timer)
+    signal?.removeEventListener('abort', abortFromOuter)
+  }
+}
+
 /**
  * 알림 읽음 처리 (로그인 필수)
  */

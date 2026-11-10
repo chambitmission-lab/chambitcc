@@ -47,6 +47,27 @@ const CATEGORY_ICON: Record<PersonCategory, Icon> = {
   staff: Briefcase,
 }
 
+// 카드 호버 인사 — 같은 분은 늘 같은 인사(이름으로 고른다, 리렌더마다 바뀌지 않게)
+const HELLO_KO = ['샬롬!', '안녕하세요', '반가워요 :)', '함께해요', '축복합니다', '주님 안에서!']
+const HELLO_EN = ['Shalom!', 'Hello!', 'Nice to meet you', 'Welcome!', 'Blessings!', 'In Christ!']
+
+const helloFor = (seed: string, language: 'ko' | 'en'): string => {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
+  const list = language === 'ko' ? HELLO_KO : HELLO_EN
+  return list[h % list.length]
+}
+
+// 사진 위 새벽빛 + 인사 말풍선 — 마우스 기기에서만 CSS 가 켠다(장식이라 스크린리더엔 숨김)
+const CardHoverLayers = ({ hello }: { hello: string }) => (
+  <>
+    <span className="ppl-card-dawn" aria-hidden />
+    <span className="ppl-card-hello" aria-hidden>
+      {hello}
+    </span>
+  </>
+)
+
 const isCategory = (value: string | null): value is PersonCategory =>
   value !== null && (PERSON_CATEGORIES as string[]).includes(value)
 
@@ -389,6 +410,7 @@ const LeaderTile = ({
         ) : (
           <span className="ppl-card-initial">{personInitial(name)}</span>
         )}
+        {onOpen && <CardHoverLayers hello={helloFor(name, language)} />}
       </span>
 
       <span className="ppl-card-body">
@@ -448,6 +470,7 @@ const PersonTile = ({
             <CountryFlag code={person.country_code} />
           </span>
         )}
+        <CardHoverLayers hello={helloFor(person.name_ko, language)} />
       </span>
 
       <span className="ppl-card-body">

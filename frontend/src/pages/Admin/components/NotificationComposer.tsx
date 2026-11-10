@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   createNotification,
+  readNotificationPoster,
   updateNotification,
   uploadNotificationImage,
 } from '../../../api/notification'
@@ -75,6 +76,12 @@ const NotificationComposer = ({
   const [error, setError] = useState<string | null>(null)
   // 서식이 실제로 어떻게 보이는지 저장 전에 확인시킨다 — WYSIWYG이 아닌 대신의 안전장치
   const [contentMode, setContentMode] = useState<'edit' | 'preview'>('edit')
+  // 방금 올린 포스터(줄인 사본) — AI가 글을 읽어 제목·본문 초안을 채운다
+  const [posterFile, setPosterFile] = useState<File | null>(null)
+  const [reading, setReading] = useState(false)
+  // 초안이 AI가 옮긴 글임을 저장 전까지 알려 둔다(이름·날짜·연락처 확인)
+  const [aiFilled, setAiFilled] = useState(false)
+  const readAbortRef = useRef<AbortController | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const contentRef = useRef<HTMLTextAreaElement>(null)
 
@@ -98,7 +105,83 @@ const NotificationComposer = ({
     }
     setError(null)
     setContentMode('edit')
+    readAbortRef.current?.abort()
+    readAbortRef.current = null
+    setReading(false)
+    setPosterFile(null)
+    setAiFilled(false)
   }, [editingNotification])
+
+  // 창을 닫으면 기다리던 포스터 읽기도 끊는다
+  useEffect(() => () => readAbortRef.current?.abort(), [])
+
+  /**
+   * 포스터 글 읽기 → 제목·본문 초안 채우기.
+   * overwrite=false(첨부 직후 자동): 읽는 사이 관리자가 쓴 칸은 건드리지 않고 빈 칸만 채운다.
+   * overwrite=true(버튼): 물어본 뒤 통째로 바꾼다.
+   */
+  const readPoster = async (file: File, overwrite: boolean) => {
+    readAbortRef.current?.abort()
+    const controller = new AbortController()
+    readAbortRef.current = controller
+    setReading(true)
+    try {
+      const draft = await readNotificationPoster(file, controller.signal)
+      if (controller.signal.aborted) return
+      setForm((prev) => ({
+        ...prev,
+        title: overwrite || !prev.title.trim() ? draft.title || prev.title : prev.title,
+        content: overwrite || !prev.content.trim() ? draft.content || prev.content : prev.content,
+      }))
+      // 행사 마지막 날을 팝업 종료일로 제안한다 — 팝업을 켤 때 이미 들어가 있다
+      if (draft.ends_on) setPopupUntilDate((prev) => prev || draft.ends_on || '')
+      setAiFilled(true)
+      showToast('포스터 내용을 옮겨 적었어요. 이름·날짜·연락처를 확인해 주세요', 'success')
+    } catch (err) {
+      // 창을 닫았거나 이미지를 지워 끊은 것 — 알릴 일이 아니다
+      if (controller.signal.aborted) return
+      // 읽기 실패는 첨부와 무관하다 — 이미지는 그대로 두고 손으로 쓰거나 다시 읽으면 된다
+      const timedOut = err instanceof Error && err.name === 'AbortError'
+      showToast(
+        timedOut
+          ? '포스터 읽기가 너무 늦어 멈췄어요. 잠시 후 다시 읽어 보세요'
+          : err instanceof Error
+            ? err.message
+            : '포스터 내용을 읽지 못했습니다',
+        'error',
+      )
+    } finally {
+      if (readAbortRef.current === controller) {
+        readAbortRef.current = null
+        setReading(false)
+      }
+    }
+  }
+
+  const handleReadPosterClick = async () => {
+    if (!posterFile || reading) return
+    if (
+      (form.title.trim() || form.content.trim()) &&
+      !(await confirmDialog({
+        title: '포스터 내용으로 바꿀까요?',
+        message: '지금 적힌 제목과 내용이 포스터에서 읽은 글로 바뀝니다.',
+        confirmText: '바꾸기',
+        cancelText: '그대로 두기',
+        tone: 'warning',
+        icon: 'edit_note',
+      }))
+    )
+      return
+    void readPoster(posterFile, true)
+  }
+
+  const removeImage = () => {
+    readAbortRef.current?.abort()
+    readAbortRef.current = null
+    setReading(false)
+    setPosterFile(null)
+    setForm((prev) => ({ ...prev, image_url: null }))
+  }
 
   const applyTemplate = (template: NoticeTemplate) => {
     setForm((prev) => ({ ...prev, content: template.body }))
@@ -133,6 +216,9 @@ const NotificationComposer = ({
       // 긴 변 1280px·JPEG 0.85 로 줄여 올린다(팝업 최대 폭 512px 의 2.5배 → 고배율 화면에서도 선명).
       const resized = await resizeImageToBlob(file, POSTER_MAX_SIZE, 0.85)
       const upload = new File([resized], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' })
+      setPosterFile(upload)
+      // 제목·내용이 비어 있으면 올리는 동안 포스터 글도 함께 읽는다(이미 쓴 글이 있으면 버튼으로만)
+      if (!form.title.trim() && !form.content.trim()) void readPoster(upload, false)
       const url = await uploadNotificationImage(upload)
       setForm((prev) => ({ ...prev, image_url: url }))
       showToast('이미지를 첨부했습니다. 저장해야 공지에 반영됩니다', 'success')
@@ -348,7 +434,7 @@ const NotificationComposer = ({
                     />
                     <button
                       type="button"
-                      onClick={() => setForm({ ...form, image_url: null })}
+                      onClick={removeImage}
                       className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/75 transition-colors"
                       aria-label="이미지 삭제"
                     >
@@ -386,6 +472,40 @@ const NotificationComposer = ({
                       </>
                     )}
                   </button>
+                )}
+                {/* 포스터 글 읽기 — 첨부 직후엔 자동, 그 뒤엔 버튼으로 다시 */}
+                {reading ? (
+                  <p
+                    role="status"
+                    className="mt-2 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-brand/[0.07] text-brand text-[12.5px] font-semibold"
+                  >
+                    <svg className="animate-spin shrink-0" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                    포스터 글을 읽어 제목과 내용을 채우는 중이에요. 잠시만 기다려 주세요
+                  </p>
+                ) : (
+                  form.image_url &&
+                  posterFile && (
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                      <button
+                        type="button"
+                        onClick={handleReadPosterClick}
+                        disabled={uploading}
+                        className="inline-flex items-center gap-1.5 px-3 h-9 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[12.5px] font-bold text-ink-strong hover:border-brand hover:text-brand transition-colors disabled:opacity-50"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M8 9h8M8 12h8M8 15h5" />
+                        </svg>
+                        {aiFilled ? '포스터 내용 다시 읽어오기' : '포스터 내용 읽어오기'}
+                      </button>
+                      {aiFilled && (
+                        <span className="text-[11.5px] text-gray-500 dark:text-white/50">
+                          AI가 옮겨 적은 글이에요. 이름·날짜·연락처를 확인해 주세요.
+                        </span>
+                      )}
+                    </div>
+                  )
                 )}
                 <input
                   ref={fileInputRef}

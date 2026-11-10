@@ -33,6 +33,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['intercession', () => import('../pages/Intercession/IntercessionPreview')],
       // 섬기는 사람들 — 배치·다크모드 (표본 데이터)
       ['people', () => import('../pages/People/PeoplePreview')],
+      // 섬기는 사람들 카드 마우스 오버 시안 비교 — ?v=a~f (프록시로 운영 사진)
+      ['people-hover', () => import('../pages/dev/PeopleHoverLab')],
       // PC 좌측 내비 레일 — 아이콘/항목 시안 비교
       ['nav-rail', () => import('../pages/dev/NavRailPreview')],
       // 성경 읽기 현황 히어로 — 진행률 카드 배치
@@ -73,6 +75,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['puzzle', () => import('../pages/dev/PuzzlePreview')],
       // /growth 하루하루의 발자취 — 순간 강조 피드 + 하루 한 문장(표본, 오늘 기준 상대 날짜)
       ['footprints', () => import('../pages/dev/FootprintsPreview')],
+      // 마우스가 지나간 자리 빛 잔상 시안 비교 — ?v=a~f
+      ['cursor-trail', () => import('../pages/dev/CursorTrailLab')],
     ]
   : []
 
