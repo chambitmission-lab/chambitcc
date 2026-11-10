@@ -280,7 +280,7 @@ const StoryEpisode = () => {
           글씨 크기(zoom)를 키워도 옆으로 넘치지 않게 하려는 것.
           overflow-hidden은 주지 않는다 — 하단 CTA 바가 sticky로 붙어야 하기 때문 */}
       <div className="lg:max-w-[1180px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-6 lg:pt-4 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-32 lg:max-w-[760px] lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-32 lg:max-w-[760px] lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl">
         {/* 헤더 */}
         {/* 하단 실선을 두지 않는다 — 예전 #root overflow-x:hidden 시절 sticky 가 붙지 않아 바가 반투명
             앱 헤더 밑을 지날 때 실선만 비쳐 "중간에 끊긴 선"처럼 보였다. 이제 헤더 바로 아래(top-14)에 붙는다 */}

@@ -155,7 +155,7 @@ const People = () => {
   return (
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-none lg:mx-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-none lg:mx-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0 lg:shadow-2xl">
           {/* Hero */}
           <header className="ppl-hero">
             {isAdminUser && (

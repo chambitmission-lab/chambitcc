@@ -591,7 +591,7 @@ const PrayerTopicsPreview = () => {
         </div>
       </div>
 
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-28 lg:max-w-[64rem] xl:max-w-[76rem] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:min-h-0">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-28 lg:max-w-[64rem] xl:max-w-[76rem] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:min-h-0">
         <div className="border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between lg:px-8 lg:py-4">
           <button onClick={() => navigate(-1)} className="text-sm font-semibold text-gray-600 dark:text-white/70 lg:text-[16px]">‹ 뒤로</button>
           <h1 className="text-base font-bold text-ink-strong lg:text-[21px]">공동 기도제목</h1>

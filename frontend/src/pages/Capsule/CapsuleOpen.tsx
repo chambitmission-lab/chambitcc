@@ -197,7 +197,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
           편지지 자체는 capsule.css 가 읽기 폭으로 묶는다 — 카드는 넓혀야 하늘 삽화가 산다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div
-        className={`relative max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0 ${
+        className={`relative max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0 ${
           onSky ? 'capsule-stage' : ''
         }`}
       >

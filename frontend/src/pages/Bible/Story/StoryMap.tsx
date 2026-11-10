@@ -229,7 +229,7 @@ const StoryMap = () => {
           화 목록은 번호 붙은 카드 격자(Story.css lg 블록)라 점선 경로 대신 "N화" 번호가 순서를 잇는다.
           폭을 px 로 고정하지 않는 건 헤더 '가' 글씨 크기(zoom)를 키워도 옆으로 넘치지 않게 하려는 것 */}
       <div className="lg:max-w-[1280px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-6 lg:pt-4 lg:pb-16">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-none lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-none lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden">
         {/* 헤더 */}
         {/* 하단 실선을 두지 않는다 — 예전 #root overflow-x:hidden 시절 sticky 가 붙지 않아 바가 반투명
             앱 헤더 밑을 지날 때 실선만 비쳐 "중간에 끊긴 선"처럼 보였다. 모바일은 헤더 바로 아래(top-14)에 붙는다.
