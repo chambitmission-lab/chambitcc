@@ -20,6 +20,8 @@ interface Props {
   elections: ElectionSummary[]
   loadingEdit: number | null
   onNew: () => void
+  /** 공동의회 명부 — 여러 선거가 함께 쓰는 명부·선관위원 */
+  onAssemblies: () => void
   onBoard: (id: number) => void
   onEdit: (e: ElectionSummary) => void
   onCopyLink: (e: ElectionSummary) => void
@@ -205,7 +207,7 @@ const LiveStage = ({
   )
 }
 
-const ElectionDesk = ({ elections, loadingEdit, onNew, onBoard, onEdit, onCopyLink, onDelete }: Props) => {
+const ElectionDesk = ({ elections, loadingEdit, onNew, onAssemblies, onBoard, onEdit, onCopyLink, onDelete }: Props) => {
   const live = useMemo(() => elections.filter((e) => phaseOf(e) === 'live'), [elections])
   const next = useMemo(
     () => elections.filter((e) => ['wait', 'settle', 'draft'].includes(phaseOf(e))),
@@ -226,9 +228,19 @@ const ElectionDesk = ({ elections, loadingEdit, onNew, onBoard, onEdit, onCopyLi
           <h1>선거 관리</h1>
           <p>{summary}</p>
         </div>
-        <button type="button" className="eld-btn" onClick={onNew}>
-          + 새 선거 만들기
-        </button>
+        <div className="eld-head-acts">
+          <button
+            type="button"
+            className="eld-btn eld-btn--ghost"
+            onClick={onAssemblies}
+            title="같은 날 여러 선거를 치를 때 명부·선관위원을 한 번만 정해요"
+          >
+            공동의회 명부
+          </button>
+          <button type="button" className="eld-btn" onClick={onNew}>
+            + 새 선거 만들기
+          </button>
+        </div>
       </header>
 
       {live.map((e) => (
@@ -248,6 +260,7 @@ const ElectionDesk = ({ elections, loadingEdit, onNew, onBoard, onEdit, onCopyLi
                     <div className="eld-row-top">
                       <span className={`eld-chip ${chip.cls}`}>{chip.label(e)}</span>
                       <span className="eld-row-title">{e.title}</span>
+                      {e.assembly_title ? <span className="eld-row-group">{e.assembly_title}</span> : null}
                     </div>
                     <div className="eld-row-meta">{rowMeta(e, phase)}</div>
                     <div className="eld-row-meta">

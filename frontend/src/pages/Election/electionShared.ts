@@ -7,6 +7,7 @@ import type {
   ElectionStatus,
   ElectionSummary,
   ResultVisibility,
+  RosterPoolMember,
   RunoffRule,
 } from '../../types/election'
 import { KO_WEEKDAYS } from '../../utils/dateUtils'
@@ -125,3 +126,56 @@ export const labelCls =
 
 export const cardCls =
   'rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm'
+
+// ── 명부·선관위원 고르기 화면 공용 (선거 편집기·공동의회 편집기) ──────
+
+export const chipBtn = (active: boolean) =>
+  `px-3 py-1.5 rounded-full text-[12.5px] font-bold border transition-colors ${
+    active
+      ? 'bg-brand text-white border-transparent'
+      : 'border-gray-200 dark:border-white/[0.1] text-ink-muted hover:border-brand hover:text-brand'
+  }`
+
+/** 명부 한 줄의 단서 — "집사 · 3구역 · 1962년생 · ☎5678" */
+export const memberHint = (m: RosterPoolMember) =>
+  [m.church_title, m.district, m.birth_year ? `${m.birth_year}년생` : null, m.phone_tail ? `☎${m.phone_tail}` : null]
+    .filter(Boolean)
+    .join(' · ')
+
+// ── 공동의회 이어서 투표 (성도 화면) ──────────────────────────────────
+
+export interface AssemblyProgress {
+  title: string
+  /** 지금 열려 있고 내가 선거인인 선거 — 만든 순서(장로 → 권사 → 안수집사) */
+  ballots: ElectionSummary[]
+  /** 그중 아직 투표하지 않은 것 */
+  left: ElectionSummary[]
+  /** 지금 보는 선거 말고, 다음에 투표할 선거 */
+  next: ElectionSummary | null
+}
+
+/**
+ * 같은 공동의회에서 지금 함께 열려 있는 투표들. 둘 이상일 때만 돌려준다 —
+ * 하나뿐이면(순차 진행·단독 선거) 여느 선거와 똑같이 보이면 된다.
+ * 내 선거 목록(useElections)에서 계산한다: 투표권이 없는(제외된) 선거는 애초에 목록에 없다.
+ */
+export const assemblyProgress = (
+  list: ElectionSummary[] | undefined,
+  assemblyId: number | null | undefined,
+  currentId?: number
+): AssemblyProgress | null => {
+  if (!assemblyId || !list) return null
+  const ballots = list
+    .filter(
+      (e) => e.assembly_id === assemblyId && e.current_round_status === 'open' && (e.can_vote || e.has_voted)
+    )
+    .sort((a, b) => a.id - b.id)
+  if (ballots.length < 2) return null
+  const left = ballots.filter((e) => e.can_vote)
+  return {
+    title: ballots[0].assembly_title ?? '공동의회',
+    ballots,
+    left,
+    next: left.find((e) => e.id !== currentId) ?? null,
+  }
+}

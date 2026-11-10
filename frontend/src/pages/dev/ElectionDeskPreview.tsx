@@ -121,6 +121,7 @@ const ElectionDeskPreview = () => {
       <ElectionDesk
         elections={elections}
         loadingEdit={null}
+        onAssemblies={noop}
         onNew={noop}
         onBoard={noop}
         onEdit={noop}

@@ -13,12 +13,15 @@ import {
   closeElectionRound,
   createElection,
   deleteElection,
+  deleteElectionAssembly,
   deletePaperBallot,
   finishElection,
   getAllElections,
   getDefaultElectionRules,
   getElection,
   getElectionAdmin,
+  getElectionAssemblies,
+  getElectionAssembly,
   getElectionAudit,
   getElectionRosterPool,
   getElections,
@@ -27,11 +30,14 @@ import {
   remindElectionVoters,
   reopenElectionRound,
   resetElectionPractice,
+  saveElectionAssembly,
   setElectionSchedule,
   updateElection,
 } from '../api/election'
 import type {
+  AssemblyPayload,
   ElectionAdminDetail,
+  ElectionAssemblyDetail,
   ElectionDetail,
   ElectionPayload,
   OpenRoundPayload,
@@ -48,6 +54,8 @@ export const electionKeys = {
   defaultRules: () => [...electionKeys.all, 'default-rules'] as const,
   audit: (id: number) => [...electionKeys.all, 'audit', id] as const,
   rosterPool: () => [...electionKeys.all, 'roster-pool'] as const,
+  assemblies: () => [...electionKeys.all, 'assemblies'] as const,
+  assembly: (id: number) => [...electionKeys.all, 'assembly', id] as const,
 }
 
 // ── 성도 ──────────────────────────────────────────────────────────────
@@ -152,6 +160,7 @@ const applyAdminDetail = (qc: ReturnType<typeof useQueryClient>, result: Electio
   void qc.invalidateQueries({ queryKey: electionKeys.list() })
   void qc.invalidateQueries({ queryKey: electionKeys.detail(result.id) })
   void qc.invalidateQueries({ queryKey: electionKeys.audit(result.id) })
+  void qc.invalidateQueries({ queryKey: electionKeys.assemblies() }) // 소속 선거 목록·제외 인원
 }
 
 export const useSaveElection = (
@@ -173,6 +182,52 @@ export const useDeleteElection = (feedback?: MutationFeedback<void, number>) => 
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => deleteElection(id),
+    onSuccess: (_r, id) => {
+      void qc.invalidateQueries({ queryKey: electionKeys.all })
+      feedback?.onSuccess?.(undefined, id)
+    },
+    onError: (error: Error, id) => feedback?.onError?.(error, id),
+  })
+}
+
+// ── 공동의회 (관리자) ─────────────────────────────────────────────────
+
+export const useElectionAssemblies = (enabled = true) =>
+  useQuery({
+    queryKey: electionKeys.assemblies(),
+    queryFn: getElectionAssemblies,
+    enabled,
+    staleTime: 0,
+  })
+
+/** 명부까지 — 편집기와, 공동의회 소속 선거의 '제외' 고르기에 쓴다 */
+export const useElectionAssembly = (id: number | null | undefined) =>
+  useQuery({
+    queryKey: electionKeys.assembly(id ?? 0),
+    queryFn: () => getElectionAssembly(id as number),
+    enabled: !!id,
+    staleTime: 0,
+  })
+
+type SaveAssemblyVars = { id?: number; data: AssemblyPayload }
+
+/** 공동의회를 고치면 소속 선거의 명부가 따라 바뀐다 — 선거 캐시를 통째로 다시 받는다 */
+export const useSaveAssembly = (feedback?: MutationFeedback<ElectionAssemblyDetail, SaveAssemblyVars>) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: SaveAssemblyVars) => saveElectionAssembly(id, data),
+    onSuccess: (result, variables) => {
+      void qc.invalidateQueries({ queryKey: electionKeys.all })
+      feedback?.onSuccess?.(result, variables)
+    },
+    onError: (error: Error, variables) => feedback?.onError?.(error, variables),
+  })
+}
+
+export const useDeleteAssembly = (feedback?: MutationFeedback<void, number>) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => deleteElectionAssembly(id),
     onSuccess: (_r, id) => {
       void qc.invalidateQueries({ queryKey: electionKeys.all })
       feedback?.onSuccess?.(undefined, id)

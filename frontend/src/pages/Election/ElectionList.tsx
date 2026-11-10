@@ -5,7 +5,7 @@ import { isAuthenticated } from '../../utils/auth'
 import { preloadRoute } from '../../utils/routePreload'
 import type { ElectionSummary } from '../../types/election'
 import { CenterNote, ChevronRight, DoneChip, SectionTitle, Spinner, SurveyShell } from '../Survey/surveyUi'
-import { STATUS_META, cardCls, phaseLabel, thresholdText } from './electionShared'
+import { STATUS_META, assemblyProgress, cardCls, phaseLabel, thresholdText } from './electionShared'
 import { BallotIcon, TurnoutBar } from './electionUi'
 
 const chipCls = 'inline-flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full border leading-[1.5]'
@@ -64,6 +64,20 @@ const ElectionList = () => {
   const past = (data ?? []).filter((e) => e.status === 'finished')
   const open = (id: number) => navigate(`/elections/${id}`)
 
+  // 같은 공동의회의 투표가 함께 열려 있으면 한 묶음으로 — 처음 나오는 자리에 만든 순서대로 모아 그린다
+  const liveBlocks: { key: string; group: ReturnType<typeof assemblyProgress>; items: ElectionSummary[] }[] = []
+  const grouped = new Set<number>()
+  for (const e of live) {
+    if (grouped.has(e.id)) continue
+    const group = assemblyProgress(live, e.assembly_id)
+    if (!group) {
+      liveBlocks.push({ key: `e-${e.id}`, group: null, items: [e] })
+      continue
+    }
+    group.ballots.forEach((b) => grouped.add(b.id))
+    liveBlocks.push({ key: `a-${e.assembly_id}`, group, items: group.ballots })
+  }
+
   return (
     <SurveyShell onBack={() => navigate('/')} title="선거">
       <div className="px-4 pt-5 lg:px-6 lg:pt-6">
@@ -87,9 +101,36 @@ const ElectionList = () => {
               <section>
                 <SectionTitle count={live.length}>진행 중인 선거</SectionTitle>
                 <div className="space-y-3">
-                  {live.map((e) => (
-                    <ElectionCard key={e.id} election={e} onOpen={() => open(e.id)} />
-                  ))}
+                  {liveBlocks.map(({ key, group, items }) =>
+                    group ? (
+                      <div key={key} className="rounded-3xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] p-3 space-y-3 lg:p-4">
+                        <div className="flex items-center justify-between gap-3 px-1 pt-1">
+                          <div className="min-w-0">
+                            <p className="text-[15px] font-extrabold text-ink-strong break-keep lg:text-[20px]">{group.title}</p>
+                            <p className="mt-0.5 text-[12.5px] font-bold text-brand tabular-nums lg:text-[15.5px]">
+                              {group.left.length
+                                ? `투표 ${items.length}개 중 ${items.length - group.left.length}개 마침`
+                                : `투표 ${items.length}개 모두 마침`}
+                            </p>
+                          </div>
+                          {group.left.length ? (
+                            <button
+                              type="button"
+                              onClick={() => open(group.left[0].id)}
+                              className="shrink-0 px-4 py-2.5 rounded-xl bg-brand text-white text-[13.5px] font-bold lg:px-5 lg:py-3 lg:text-[17px]"
+                            >
+                              {group.left.length === items.length ? '투표 시작하기' : '이어서 투표하기'}
+                            </button>
+                          ) : null}
+                        </div>
+                        {items.map((e) => (
+                          <ElectionCard key={e.id} election={e} onOpen={() => open(e.id)} />
+                        ))}
+                      </div>
+                    ) : (
+                      items.map((e) => <ElectionCard key={e.id} election={e} onOpen={() => open(e.id)} />)
+                    )
+                  )}
                 </div>
               </section>
             ) : null}

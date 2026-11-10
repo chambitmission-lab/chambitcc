@@ -16,6 +16,7 @@ import { showToast, toastFeedback } from '../../utils/toast'
 import type { ElectionAdminDetail, ElectionSummary } from '../../types/election'
 import { STATUS_META, phaseLabel, thresholdText, turnoutPercent } from '../Election/electionShared'
 import { BallotIcon } from '../Election/electionUi'
+import ElectionAssemblyManager from './components/ElectionAssemblyManager'
 import ElectionBoard from './components/ElectionBoard'
 import ElectionComposer from './components/ElectionComposer'
 import ElectionDesk from './components/electionDesk/ElectionDesk'
@@ -110,6 +111,13 @@ const ElectionManagement = () => {
 
   const [composerTarget, setComposerTarget] = useState<ElectionAdminDetail | null | undefined>(undefined)
   const [boardId, setBoardId] = useState<number | null>(null)
+  // 공동의회 — 여러 선거가 함께 쓰는 명부. '이 명부로 선거 만들기'는 이 모달을 닫고 편집기를 연다
+  const [assemblyOpen, setAssemblyOpen] = useState(false)
+  const [newInAssembly, setNewInAssembly] = useState<number | null>(null)
+  const closeComposer = () => {
+    setComposerTarget(undefined)
+    setNewInAssembly(null)
+  }
   const [loadingEdit, setLoadingEdit] = useState<number | null>(null)
 
   useEffect(() => {
@@ -199,8 +207,20 @@ const ElectionManagement = () => {
       {composerTarget !== undefined ? (
         <ElectionComposer
           election={composerTarget}
-          onClose={() => setComposerTarget(undefined)}
-          onSaved={() => setComposerTarget(undefined)}
+          assemblyId={newInAssembly}
+          onClose={closeComposer}
+          onSaved={closeComposer}
+        />
+      ) : null}
+
+      {assemblyOpen ? (
+        <ElectionAssemblyManager
+          onClose={() => setAssemblyOpen(false)}
+          onAddElection={(assemblyId) => {
+            setAssemblyOpen(false)
+            setNewInAssembly(assemblyId)
+            setComposerTarget(null)
+          }}
         />
       ) : null}
 
@@ -230,6 +250,7 @@ const ElectionManagement = () => {
             elections={elections ?? []}
             loadingEdit={loadingEdit}
             onNew={() => setComposerTarget(null)}
+            onAssemblies={() => setAssemblyOpen(true)}
             onBoard={setBoardId}
             onEdit={(e) => void openEdit(e)}
             onCopyLink={(e) => void copyLink(e)}
@@ -264,6 +285,16 @@ const ElectionManagement = () => {
             <Stat label="종료" value={`${counts.finished}건`} />
           </div>
           {newButton('sm:hidden mt-3 w-full')}
+          <button
+            type="button"
+            onClick={() => setAssemblyOpen(true)}
+            className="mt-2.5 w-full rounded-xl border border-gray-200 dark:border-white/[0.1] px-3.5 py-2.5 text-left transition-colors hover:border-brand"
+          >
+            <span className="block text-[13.5px] font-bold text-ink-strong">공동의회 명부 →</span>
+            <span className="block mt-0.5 text-[12px] text-ink-muted break-keep">
+              여러 선거를 한 날에 치를 때 명부·선관위원을 한 번만 정해요
+            </span>
+          </button>
         </header>
 
         {isLoading ? (
@@ -306,6 +337,11 @@ const ElectionManagement = () => {
                           <span className="inline-flex items-center gap-1 text-[10.5px] font-extrabold tracking-[0.1em] text-emerald-600 dark:text-emerald-300">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                             LIVE
+                          </span>
+                        ) : null}
+                        {e.assembly_title ? (
+                          <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-[var(--surface-inset)] text-ink-muted">
+                            {e.assembly_title}
                           </span>
                         ) : null}
                       </div>

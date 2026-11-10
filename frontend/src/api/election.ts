@@ -1,6 +1,9 @@
 // 선거(직분자 선출 투표) API
 import type {
+  AssemblyPayload,
   ElectionAdminDetail,
+  ElectionAssembly,
+  ElectionAssemblyDetail,
   ElectionAuditLog,
   ElectionDetail,
   ElectionPayload,
@@ -70,6 +73,41 @@ export const getDefaultElectionRules = async (): Promise<ElectionRules> =>
     auth: 'required',
     errorMessage: '기본 기준을 불러오지 못했습니다',
   })
+
+// ── 공동의회 (관리자) — 명부·선관위원을 한 번만 정해 여러 선거가 함께 쓴다 ──
+
+export const getElectionAssemblies = async (): Promise<ElectionAssembly[]> =>
+  request<ElectionAssembly[]>('/elections/assemblies', {
+    auth: 'required',
+    errorMessage: '공동의회를 불러오지 못했습니다',
+  })
+
+export const getElectionAssembly = async (id: number): Promise<ElectionAssemblyDetail> =>
+  request<ElectionAssemblyDetail>(`/elections/assemblies/${id}`, {
+    auth: 'required',
+    errorMessage: '공동의회를 불러오지 못했습니다',
+  })
+
+/** 고치면 소속 선거의 명부·선관위원에 바로 반영된다 — 이미 투표한 선거인을 빼면 400 */
+export const saveElectionAssembly = async (
+  id: number | undefined,
+  data: AssemblyPayload
+): Promise<ElectionAssemblyDetail> =>
+  request<ElectionAssemblyDetail>(id ? `/elections/assemblies/${id}` : '/elections/assemblies', {
+    method: id ? 'PUT' : 'POST',
+    auth: 'required',
+    json: data,
+    errorMessage: '공동의회를 저장하지 못했습니다',
+  })
+
+/** 소속 선거는 지워지지 않고 단독 선거로 남는다 */
+export const deleteElectionAssembly = async (id: number): Promise<void> => {
+  await requestRaw(`/elections/assemblies/${id}`, {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '공동의회를 삭제하지 못했습니다',
+  })
+}
 
 export const createElection = async (data: ElectionPayload): Promise<ElectionAdminDetail> =>
   request<ElectionAdminDetail>('/elections', {

@@ -8,18 +8,22 @@
 // 고른 후보·남은 칸·투표하기가 스크롤과 상관없이 늘 보이고, 후보 카드는 이름·기호를 크게,
 // 고른 카드엔 글자로 "선택함"을 붙인다(색·링만으론 구분이 어렵다). 모바일은 하단 고정 바 그대로.
 //
+// 공동의회로 여러 선거가 함께 열려 있으면 위에 진행 단계(AssemblySteps)를, 투표를 마치면 다음 투표로 가는
+// 큰 버튼(AssemblyNext)을 보여 준다. 표는 선거마다 따로 제출된다 — 저절로 넘기지 않는다.
+//
 // 현장 QR(관리자 현황판 '투표 QR')로 곧장 들어오는 화면이다. 로그인 안 한 폰이면 선거를 묻기 전에
 // 로그인부터 청하고, 로그인 뒤 이 주소로 돌아온다(redirect_after_login). 투표 자격(선거인 명부)은
 // 서버가 가른다 — 명부 밖이면 403 → 아래 "참여할 수 없어요" 안내.
 import { Suspense, lazy, useMemo, useState } from 'react'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useCastVote, useElection } from '../../hooks/useElections'
+import { useCastVote, useElection, useElections } from '../../hooks/useElections'
 import { showToast } from '../../utils/toast'
 import { isAuthenticated } from '../../utils/auth'
 import type { ElectionCandidate, ElectionDetail as ElectionDetailData, ElectionRound } from '../../types/election'
 import { CenterNote, CheckIcon, RailCard, Spinner, SurveyShell } from '../Survey/surveyUi'
-import { cardCls, phaseLabel, thresholdText } from './electionShared'
+import { AssemblyNext, AssemblySteps } from './AssemblySteps'
+import { assemblyProgress, cardCls, phaseLabel, thresholdText } from './electionShared'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { CandidateAvatar, ClosesAtNote, PracticeBanner, ResultBreakdown, TallyBars, TurnoutBar } from './electionUi'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
@@ -307,6 +311,9 @@ const ElectionDetail = () => {
   const id = Number(useParams().id) || 0
   const loggedIn = isAuthenticated()
   const { data: election, isLoading, error } = useElection(id, loggedIn)
+  // 공동의회 이어서 투표 — 같은 공동의회에서 함께 열려 있는 내 투표들 (투표하면 목록이 다시 받아진다)
+  const { data: myElections } = useElections(loggedIn && !!election?.assembly_id)
+  const assembly = assemblyProgress(myElections, election?.assembly_id, id)
   const [selected, setSelected] = useState<number[]>([])
   const [confirming, setConfirming] = useState(false)
   const [abstaining, setAbstaining] = useState(false)
@@ -426,6 +433,10 @@ const ElectionDetail = () => {
       <div className={`px-4 pt-5 space-y-4 lg:px-6 lg:pt-6 lg:space-y-5 ${canVote ? 'pb-28 lg:pb-8' : 'lg:pb-4'}`}>
         {round?.is_practice ? <PracticeBanner large /> : null}
 
+        {assembly ? (
+          <AssemblySteps progress={assembly} currentId={election.id} onOpen={(eid) => navigate(`/elections/${eid}`)} />
+        ) : null}
+
         {election.is_manager ? (
           <section className={`${cardCls} p-4 lg:p-5 flex items-center gap-3`}>
             <div className="min-w-0 flex-1">
@@ -514,6 +525,9 @@ const ElectionDetail = () => {
                     누구를 골랐는지는 어디에도 남지 않아요. 결과는 투표가 마감되면 알려드릴게요.
                   </p>
                 </section>
+              ) : null}
+              {election.has_voted && assembly ? (
+                <AssemblyNext progress={assembly} onOpen={(eid) => navigate(`/elections/${eid}`)} />
               ) : null}
               <RoundResultCard round={openRound} candidates={election.candidates} />
             </>

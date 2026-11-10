@@ -106,6 +106,9 @@ export interface ElectionSummary {
   /** 내가 이 선거의 선거관리위원(또는 관리자)인지 — 현황판을 열 수 있다 */
   is_manager?: boolean
   created_at?: string | null
+  /** 소속 공동의회 — 명부·선관위원을 거기서 내려받는다 (단독 선거는 없음) */
+  assembly_id?: number | null
+  assembly_title?: string | null
   // ── 관리자 목록에서 진행 중 회차에만 온다 (성도 목록·상세에는 없음) ──
   round_opened_at?: string | null
   /** 예약 마감 */
@@ -175,6 +178,10 @@ export interface ElectionAdminDetail extends ElectionDetail {
   paper_allowance?: number
   /** 기준·명부·후보 수정·삭제 (관리자만 — 선관위원은 진행만) */
   can_manage_setup?: boolean
+  /** 공동의회 명부 중 이 선거에서 뺀 사람 */
+  excluded_voter_ids?: number[]
+  /** 앱 미사용 선거인 수를 공동의회 값 대신 따로 정했는지 */
+  offline_custom?: boolean
 }
 
 export interface ElectionCandidateInput {
@@ -192,6 +199,42 @@ export interface ElectionPayload {
   offline_voter_count: number
   rules: Partial<ElectionRules>
   candidates: ElectionCandidateInput[]
+  voter_ids: number[]
+  manager_ids: number[]
+  /** 공동의회 소속으로 만들 때 — 이후에는 바꿀 수 없다. 서버는 voter_ids·manager_ids 대신 공동의회 것을 쓴다 */
+  assembly_id?: number | null
+  excluded_voter_ids?: number[]
+  offline_custom?: boolean
+}
+
+// ── 공동의회 — 같은 날 여러 선거가 함께 쓰는 명부·선관위원 ──────────────
+
+export interface AssemblyElectionBrief {
+  id: number
+  title: string
+  status: ElectionStatus
+  /** 이 선거의 앱 선거인 (공동의회 명부 − 제외) */
+  voter_count: number
+}
+
+export interface ElectionAssembly {
+  id: number
+  title: string
+  offline_voter_count: number
+  voter_count: number
+  manager_count: number
+  elections: AssemblyElectionBrief[]
+  created_at?: string | null
+}
+
+export interface ElectionAssemblyDetail extends ElectionAssembly {
+  voters: ElectionManager[]
+  managers: ElectionManager[]
+}
+
+export interface AssemblyPayload {
+  title: string
+  offline_voter_count: number
   voter_ids: number[]
   manager_ids: number[]
 }
