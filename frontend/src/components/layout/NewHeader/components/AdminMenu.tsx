@@ -256,14 +256,14 @@ const ToolRow = ({
         to={item.path}
         {...warmOnTouch(item.path)}
         onClick={() => pushRecent(item.path)}
-        className={`flex items-center gap-3 rounded-lg pl-3 py-2.5 transition-colors duration-150 hover:bg-[var(--brand-soft)] focus-visible:bg-[var(--brand-soft)] outline-none ${active ? 'bg-[var(--brand-soft)]' : ''} ${
+        className={`flex items-center gap-3 rounded-lg pl-3 py-[calc(10px+4px*var(--mr,0))] transition-colors duration-150 hover:bg-[var(--brand-soft)] focus-visible:bg-[var(--brand-soft)] outline-none ${active ? 'bg-[var(--brand-soft)]' : ''} ${
           pinned ? 'pr-8' : 'pr-3 group-hover:pr-8 group-focus-within:pr-8'
         }`}
       >
-        <span className="shrink-0 text-ink-muted group-hover:text-brand transition-colors [&_svg]:w-[calc(18px*var(--mm,1))] [&_svg]:h-[calc(18px*var(--mm,1))]">
+        <span className="shrink-0 text-ink-muted group-hover:text-brand transition-colors [&_svg]:w-[calc((18px+2px*var(--mr,0))*var(--mm,1))] [&_svg]:h-[calc((18px+2px*var(--mr,0))*var(--mm,1))]">
           <Icon />
         </span>
-        <span className={`min-w-0 truncate text-[length:calc(15px*var(--mm,1))] leading-tight text-ink-strong group-hover:text-brand transition-colors ${badge ? 'font-bold' : 'font-medium'}`}>
+        <span className={`min-w-0 truncate text-[length:calc((15px+1px*var(--mr,0))*var(--mm,1))] leading-tight text-ink-strong group-hover:text-brand transition-colors ${badge ? 'font-bold' : 'font-medium'}`}>
           {label}
         </span>
         {badge && <Badge badge={badge} />}
@@ -384,7 +384,7 @@ const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
     .filter((i): i is AdminItem => !!i)
 
   return (
-    <div className="px-7 pt-6 pb-7">
+    <div className="px-7 pt-[calc(24px+8px*var(--mr,0))] pb-[calc(28px+8px*var(--mr,0))]">
       {/* 검색 줄 — 메뉴 탭과 같은 높이·자리(탭을 바꿔도 위가 안 흔들린다) */}
       <div className="flex items-center gap-3">
         {leading}
@@ -413,12 +413,12 @@ const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
           )}
         </div>
       ) : (
-        <div className="mt-7 grid grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)] gap-x-10 items-start">
+        <div className="mt-[calc(28px+4px*var(--mr,0))] grid grid-cols-[minmax(0,17.5rem)_minmax(0,1fr)] gap-x-10 items-start">
           {/* 빠른 작업 — 매주 하는 등록 일. 파란 카드 6장 대신 회색 면 한 장 안의 목록으로.
               순서는 고정(손이 위치를 외운다), 할 일이 걸린 행만 흰 면으로 떠오른다 */}
-          <aside className="rounded-2xl bg-surface-high p-3">
+          <aside className="rounded-2xl bg-surface-high p-[calc(12px+4px*var(--mr,0))]">
             <div className="flex items-baseline justify-between gap-2 px-2.5 pt-1 pb-3">
-              <h4 className="whitespace-nowrap text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">{t('adminQuickTitle')}</h4>
+              <h4 className="whitespace-nowrap text-[length:calc((14.5px+1px*var(--mr,0))*var(--mm,1))] font-bold text-ink-strong">{t('adminQuickTitle')}</h4>
               {/* 현황을 받기 전엔 비워 둔다 — '할 일 없음'이 먼저 떴다가 숫자로 바뀌면 헷갈린다 */}
               {status && (
                 <span className={`whitespace-nowrap text-[length:calc(12.5px*var(--mm,1))] font-semibold ${
@@ -428,7 +428,7 @@ const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
                 </span>
               )}
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-[calc(4px+4px*var(--mr,0))]">
               {QUICK_ACTIONS.map(action => {
                 const Icon = ADMIN_ICONS[action.icon]
                 const badge = badges[action.badgeKey]
@@ -440,14 +440,14 @@ const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
                     title={t(action.descKey)}
                     className={`group flex gap-3 rounded-xl px-3 transition-colors ${
                       badge
-                        ? 'items-start py-3 bg-background-light dark:bg-card-dark shadow-[0_1px_3px_rgba(0,0,0,0.08)] ring-1 ring-inset ring-black/[0.04] dark:ring-white/[0.06]'
-                        : 'items-center py-2.5 hover:bg-background-light dark:hover:bg-card-dark'
-                    } [&_svg]:w-[calc(20px*var(--mm,1))] [&_svg]:h-[calc(20px*var(--mm,1))]`}
+                        ? 'items-start py-[calc(12px+4px*var(--mr,0))] bg-background-light dark:bg-card-dark shadow-[0_1px_3px_rgba(0,0,0,0.08)] ring-1 ring-inset ring-black/[0.04] dark:ring-white/[0.06]'
+                        : 'items-center py-[calc(10px+4px*var(--mr,0))] hover:bg-background-light dark:hover:bg-card-dark'
+                    } [&_svg]:w-[calc((20px+2px*var(--mr,0))*var(--mm,1))] [&_svg]:h-[calc((20px+2px*var(--mr,0))*var(--mm,1))]`}
                   >
                     <span className={`shrink-0 ${badge ? `mt-px ${ICON_TONE[badge.tone]}` : 'text-brand'}`}><Icon /></span>
                     {/* 할 일이 걸린 행은 두 줄 — 이름이 '주보 올리…'로 잘리지 않고, 무엇이 밀렸는지 문장으로 보인다 */}
                     <span className="min-w-0 flex-1">
-                      <span className={`block truncate text-[length:calc(15px*var(--mm,1))] leading-tight text-ink-strong group-hover:text-brand transition-colors ${badge ? 'font-bold' : 'font-medium'}`}>
+                      <span className={`block truncate text-[length:calc((15px+1px*var(--mr,0))*var(--mm,1))] leading-tight text-ink-strong group-hover:text-brand transition-colors ${badge ? 'font-bold' : 'font-medium'}`}>
                         {t(action.labelKey)}
                       </span>
                       {badge && (
@@ -467,7 +467,7 @@ const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
 
           <div className="min-w-0">
             {/* 즐겨찾기 — 내가 고른 도구만. 제목과 같은 줄에 칩으로(세로 자리를 덜 먹게) */}
-            <div className="flex flex-wrap items-center gap-2.5 min-h-[calc(40px*var(--mm,1))] pb-6 border-b border-border-light dark:border-border-dark">
+            <div className="flex flex-wrap items-center gap-2.5 min-h-[calc(40px*var(--mm,1))] pb-[calc(24px+4px*var(--mr,0))] border-b border-border-light dark:border-border-dark">
               <h4 className="mr-1 flex items-center gap-1 text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">
                 <span className="text-[var(--amber-icon)]"><IconStar filled /></span>
                 {t('adminFavorites')}
@@ -496,14 +496,14 @@ const AdminDesktopPanel = ({ leading }: { leading?: ReactNode }) => {
             </div>
 
             {/* 전체 — 제목 진하게+밑줄. 14개짜리 말씀·콘텐츠는 두 줄로 펴고 폭도 그만큼 더 준다 */}
-            <div className="mt-6 grid grid-cols-[minmax(0,0.95fr)_minmax(0,2.5fr)_minmax(0,1.1fr)_minmax(0,0.95fr)] gap-x-8 items-start">
+            <div className="mt-[calc(24px+6px*var(--mr,0))] grid grid-cols-[minmax(0,0.95fr)_minmax(0,2.5fr)_minmax(0,1.1fr)_minmax(0,0.95fr)] gap-x-8 items-start">
               {DESKTOP_COLUMNS.map((groups, ci) => (
-                <div key={groups[0].titleKey} className="min-w-0 flex flex-col gap-7">
+                <div key={groups[0].titleKey} className="min-w-0 flex flex-col gap-[calc(28px+12px*var(--mr,0))]">
                   {groups.map(group => {
                     const wide = group.items.length > 8
                     return (
                       <div key={group.titleKey}>
-                        <h4 className="mx-3 mb-2 pb-2.5 flex items-baseline justify-between border-b border-border-light dark:border-border-dark text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">
+                        <h4 className="mx-3 mb-[calc(8px+4px*var(--mr,0))] pb-2.5 flex items-baseline justify-between border-b border-border-light dark:border-border-dark text-[length:calc((14.5px+1px*var(--mr,0))*var(--mm,1))] font-bold text-ink-strong">
                           {t(group.titleKey)}
                           <span className="text-[length:calc(12.5px*var(--mm,1))] font-medium text-ink-muted">{group.items.length}</span>
                         </h4>

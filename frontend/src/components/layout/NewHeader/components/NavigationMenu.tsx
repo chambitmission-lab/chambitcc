@@ -161,7 +161,7 @@ const FeaturedCard = ({
         to={item.path}
         {...warmOnTouch(item.path)}
         className={`flex items-center rounded-2xl bg-[var(--brand-soft)] transition-colors duration-150 hover:bg-[var(--brand-soft-strong)] ${
-          compact ? 'gap-3 pl-3 pr-9 py-2.5' : 'gap-3.5 pl-4 pr-9 py-3.5'
+          compact ? 'gap-3 pl-3 pr-9 py-[calc(10px+4px*var(--mr,0))]' : 'gap-3.5 pl-4 pr-9 py-[calc(14px+4px*var(--mr,0))]'
         }`}
       >
         <span className={`flex items-center justify-center rounded-xl shrink-0 bg-background-light dark:bg-background-dark text-brand ${
@@ -208,14 +208,14 @@ const DesktopItem = ({
     <Link
       to={item.path}
       {...warmOnTouch(item.path)}
-      className={`flex items-center gap-2.5 rounded-lg pl-3 py-2 transition-colors duration-150 hover:bg-[var(--brand-soft)] focus-visible:bg-[var(--brand-soft)] outline-none ${
+      className={`flex items-center gap-2.5 rounded-lg pl-3 py-[calc(8px+6px*var(--mr,0))] transition-colors duration-150 hover:bg-[var(--brand-soft)] focus-visible:bg-[var(--brand-soft)] outline-none ${
         pin.pinned ? 'pr-8' : 'pr-3 group-hover:pr-8 group-focus-within:pr-8'
       }`}
     >
       <span className="shrink-0 text-ink-muted group-hover:text-brand transition-colors">
-        {Icon && <Icon className="w-[calc(18px*var(--mm,1))] h-[calc(18px*var(--mm,1))]" />}
+        {Icon && <Icon className="w-[calc((18px+2px*var(--mr,0))*var(--mm,1))] h-[calc((18px+2px*var(--mr,0))*var(--mm,1))]" />}
       </span>
-      <span className="min-w-0 truncate text-[length:calc(15.5px*var(--mm,1))] font-medium leading-tight text-ink-strong group-hover:text-brand transition-colors">
+      <span className="min-w-0 truncate text-[length:calc((15.5px+1px*var(--mr,0))*var(--mm,1))] font-medium leading-tight text-ink-strong group-hover:text-brand transition-colors">
         {label}
       </span>
       <span
@@ -299,7 +299,7 @@ const DesktopMegaMenu = ({ visible, searchLeading }: { visible: (item: NavEntry)
   }
 
   return (
-    <div className="px-5 pt-5 pb-4">
+    <div className="px-5 pt-[calc(20px+8px*var(--mr,0))] pb-[calc(16px+8px*var(--mr,0))]">
       {/* 메뉴 찾기 — 20개 넘는 항목은 훑기보다 치는 게 빠르다. 메뉴에 없으면 ⌘K 팔레트로 이어준다.
           관리자는 왼쪽에 메뉴/관리 탭(searchLeading)이 붙는다 — 관리 탭도 같은 자리에 같은 줄이라 전환해도 안 흔들린다 */}
       <div className="flex items-center gap-3">
@@ -352,14 +352,14 @@ const DesktopMegaMenu = ({ visible, searchLeading }: { visible: (item: NavEntry)
           )}
         </div>
       ) : (
-        <div className="mt-5 grid grid-cols-[minmax(0,15.5rem)_minmax(0,1fr)] gap-x-7">
+        <div className="mt-[calc(20px+6px*var(--mr,0))] grid grid-cols-[minmax(0,15.5rem)_minmax(0,1fr)] gap-x-7">
           {/* 자주 찾는 — 내가 고른 메뉴. 처음엔 예배·성경·일정(누구나 가장 먼저 찾는다) */}
           <div className="min-w-0">
             <h3 className="px-1 pb-2.5 text-[length:calc(14.5px*var(--mm,1))] font-bold text-brand">
               {t('navMenuFeatured')}
             </h3>
             {featuredItems.length > 0 ? (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-[calc(8px+4px*var(--mr,0))]">
                 {featuredItems.map(item => (
                   <FeaturedCard
                     key={item.path}
@@ -389,7 +389,7 @@ const DesktopMegaMenu = ({ visible, searchLeading }: { visible: (item: NavEntry)
           <nav className="grid grid-cols-4 gap-x-4 items-start">
             {DESKTOP_SECTIONS.map((section, si) => (
               <div key={section.titleKey} className="min-w-0">
-                <h3 className="mx-3 mb-1.5 pb-2 border-b border-border-light dark:border-border-dark text-[length:calc(14.5px*var(--mm,1))] font-bold text-ink-strong">
+                <h3 className="mx-3 mb-[calc(6px+6px*var(--mr,0))] pb-[calc(8px+2px*var(--mr,0))] border-b border-border-light dark:border-border-dark text-[length:calc((14.5px+1px*var(--mr,0))*var(--mm,1))] font-bold text-ink-strong">
                   {t(section.titleKey)}
                 </h3>
                 <div className="flex flex-col">
