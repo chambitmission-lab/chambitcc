@@ -267,3 +267,10 @@ export interface BulkResult {
   done: BulkItem[]
   skipped: BulkItem[]
 }
+
+/** 직분별 당선 기준 묶음 — 새 선거 폼에서 한 번에 불러오는 출발값 */
+export interface ElectionRulePreset {
+  id: number
+  name: string
+  rules: ElectionRules
+}

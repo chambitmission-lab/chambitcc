@@ -15,6 +15,7 @@ import {
   createElection,
   deleteElection,
   deleteElectionAssembly,
+  deleteElectionRulePreset,
   deletePaperBallot,
   finishElection,
   getAllElections,
@@ -26,6 +27,7 @@ import {
   getElectionAssembly,
   getElectionAudit,
   getElectionRosterPool,
+  getElectionRulePresets,
   getElections,
   issueAssemblyPaper,
   issuePaperBallot,
@@ -36,6 +38,7 @@ import {
   reopenElectionRound,
   resetElectionPractice,
   saveElectionAssembly,
+  saveElectionRulePreset,
   setElectionSchedule,
   updateElection,
 } from '../api/election'
@@ -44,6 +47,8 @@ import type {
   BulkResult,
   ElectionAdminDetail,
   ElectionAssemblyDetail,
+  ElectionRulePreset,
+  ElectionRules,
   ElectionDetail,
   ElectionPayload,
   OpenRoundPayload,
@@ -58,6 +63,7 @@ export const electionKeys = {
   detail: (id: number) => [...electionKeys.all, 'detail', id] as const,
   adminDetail: (id: number) => [...electionKeys.all, 'admin-detail', id] as const,
   defaultRules: () => [...electionKeys.all, 'default-rules'] as const,
+  rulePresets: () => [...electionKeys.all, 'rule-presets'] as const,
   audit: (id: number) => [...electionKeys.all, 'audit', id] as const,
   rosterPool: () => [...electionKeys.all, 'roster-pool'] as const,
   assemblies: () => [...electionKeys.all, 'assemblies'] as const,
@@ -160,6 +166,41 @@ export const useDefaultElectionRules = (enabled = true) =>
     enabled,
     staleTime: 1000 * 60 * 10,
   })
+
+/** 직분별 당선 기준 묶음 (장로·권사·안수집사 …) */
+export const useElectionRulePresets = (enabled = true) =>
+  useQuery({
+    queryKey: electionKeys.rulePresets(),
+    queryFn: getElectionRulePresets,
+    enabled,
+    staleTime: 1000 * 60 * 5,
+  })
+
+type SaveRulePresetVars = { name: string; rules: ElectionRules }
+
+export const useSaveRulePreset = (feedback?: MutationFeedback<ElectionRulePreset, SaveRulePresetVars>) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ name, rules }: SaveRulePresetVars) => saveElectionRulePreset(name, rules),
+    onSuccess: (result, variables) => {
+      void qc.invalidateQueries({ queryKey: electionKeys.rulePresets() })
+      feedback?.onSuccess?.(result, variables)
+    },
+    onError: (error: Error, variables) => feedback?.onError?.(error, variables),
+  })
+}
+
+export const useDeleteRulePreset = (feedback?: MutationFeedback<void, number>) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => deleteElectionRulePreset(id),
+    onSuccess: (_r, id) => {
+      void qc.invalidateQueries({ queryKey: electionKeys.rulePresets() })
+      feedback?.onSuccess?.(undefined, id)
+    },
+    onError: (error: Error, id) => feedback?.onError?.(error, id),
+  })
+}
 
 const applyAdminDetail = (qc: ReturnType<typeof useQueryClient>, result: ElectionAdminDetail) => {
   qc.setQueryData(electionKeys.adminDetail(result.id), result)

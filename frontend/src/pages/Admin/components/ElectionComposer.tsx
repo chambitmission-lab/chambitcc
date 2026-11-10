@@ -1,19 +1,21 @@
 // 선거 만들기/고치기 — ① 선거 정보·선관위원·당선 기준 ② 후보(사진·기호) ③ 선거인 명부.
+// 당선 기준은 ElectionRulesSection 이 그린다 — 평소엔 요약 한 덩어리, 고칠 때만 펼친다.
 //
 // 기준의 기본값은 서버(election_rules.DEFAULT_RULES)에서 받아 온다 — 이 화면에는 숫자를
 // 박아 두지 않는다. 투표가 시작된 뒤에는 후보를 넣고 뺄 수 없고(이름·사진 오타만),
 // 이미 투표한 선거인은 명부에서 뺄 수 없다(서버가 거절한다).
 // 명부 고르기·선관위원 지정은 ElectionRosterPicker 가 그린다(공동의회 편집기와 함께 쓴다).
 // 공동의회 소속 선거는 명부·선관위원을 공동의회에서 내려받고, 여기서는 '이 선거에서 제외'만 고른다.
+// 어느 공동의회 소속인지는 만들기 흐름(ElectionNewChooser)이 정해서 넘겨 준다 — 이 화면에서는 고르지 않는다.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Reorder, motion, useDragControls } from 'framer-motion'
 import { uploadCandidatePhoto } from '../../../api/election'
 import {
   useAdminElections,
   useDefaultElectionRules,
-  useElectionAssemblies,
   useElectionAssembly,
   useElectionRosterPool,
+  useElectionRulePresets,
   useSaveElection,
 } from '../../../hooks/useElections'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -21,21 +23,11 @@ import { showToast } from '../../../utils/toast'
 import type {
   ElectionAdminDetail,
   ElectionRules,
-  ResultVisibility,
   RosterPoolMember,
-  RunoffRule,
 } from '../../../types/election'
-import {
-  RUNOFF_META,
-  THRESHOLD_PRESETS,
-  VISIBILITY_META,
-  chipBtn,
-  inputCls,
-  labelCls,
-  matchPreset,
-  thresholdText,
-} from '../../Election/electionShared'
+import { inputCls, labelCls, presetForTitle } from '../../Election/electionShared'
 import { ManagerPicker, RosterPicker } from './ElectionRosterPicker'
+import ElectionRulesSection from './ElectionRulesSection'
 import { CloseButton, Stepper } from './SeatEventComposer'
 
 interface CandidateDraft {
@@ -65,31 +57,12 @@ const nameFromFile = (file: File) => {
   return (name || base).slice(0, 100)
 }
 
-const QUORUM_PRESETS: { key: string; label: string; num: number; den: number }[] = [
-  { key: 'none', label: '확인 안 함', num: 0, den: 2 },
-  { key: 'half', label: '재적 1/2 이상', num: 1, den: 2 },
-  { key: 'two-thirds', label: '재적 2/3 이상', num: 2, den: 3 },
-]
-
 const StepTitle = ({ n, children, aside }: { n: number; children: string; aside?: string }) => (
   <div className="flex items-center gap-2">
     <span className="w-5 h-5 rounded-full bg-brand text-white text-[11px] font-extrabold flex items-center justify-center">{n}</span>
     <h3 className="text-[14px] font-extrabold text-ink-strong tracking-[-0.02em]">{children}</h3>
     {aside ? <span className="ml-auto text-[12px] font-semibold text-ink-muted tabular-nums">{aside}</span> : null}
   </div>
-)
-
-/** 작은 숫자 입력 — 비율의 분자·분모처럼 Stepper 로 누르기엔 범위가 넓은 값 */
-const NumberBox = ({ value, onChange, min, max }: { value: number; onChange: (v: number) => void; min: number; max: number }) => (
-  <input
-    value={value}
-    inputMode="numeric"
-    onChange={(e) => {
-      const n = Number(e.target.value.replace(/\D/g, ''))
-      onChange(Math.max(min, Math.min(max, n || min)))
-    }}
-    className="w-14 px-2 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-center text-[14px] font-bold text-ink-strong tabular-nums focus:outline-none focus:border-brand"
-  />
 )
 
 interface CandidateRowProps {
@@ -179,7 +152,7 @@ interface Props {
   /** 새 선거를 이 공동의회 소속으로 시작한다 (명부·선관위원을 함께 쓴다) */
   assemblyId?: number | null
   onClose: () => void
-  onSaved: () => void
+  onSaved: (saved: ElectionAdminDetail) => void
 }
 
 const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onSaved }: Props) => {
@@ -188,6 +161,7 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
   const { data: defaultRules } = useDefaultElectionRules(!election)
   const { data: pool, isLoading: usersLoading } = useElectionRosterPool()
   const { data: allElections } = useAdminElections()
+  const { data: presets } = useElectionRulePresets()
   const pastElections = useMemo(
     () => (allElections ?? []).filter((e) => e.id !== election?.id).slice(0, 6),
     [allElections, election?.id]
@@ -199,7 +173,6 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
   const [seats, setSeats] = useState(election?.seats ?? 1)
   const [offlineCount, setOfflineCount] = useState(election?.offline_voter_count ?? 0)
   const [rules, setRules] = useState<ElectionRules | null>(election?.rules ?? null)
-  const [customThreshold, setCustomThreshold] = useState(election ? matchPreset(election.rules) === 'custom' : false)
   const [candidates, setCandidates] = useState<CandidateDraft[]>(
     election?.candidates.map((c) => ({
       key: `c-${c.id}`,
@@ -212,11 +185,8 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
   const [voterIds, setVoterIds] = useState<Set<number>>(new Set(election?.voters.map((v) => v.user_id) ?? []))
   const [managerIds, setManagerIds] = useState<Set<number>>(new Set(election?.managers?.map((m) => m.user_id) ?? []))
   // 공동의회 소속 선거 — 만들 때만 정한다(고칠 때는 그대로). voterIds 는 '공동의회 명부 중 투표권이 있는 사람'이 된다
-  const [assemblyId, setAssemblyId] = useState<number | null>(
-    election ? (election.assembly_id ?? null) : (presetAssemblyId ?? null)
-  )
+  const assemblyId = election ? (election.assembly_id ?? null) : (presetAssemblyId ?? null)
   const [offlineCustom, setOfflineCustom] = useState(election?.offline_custom ?? false)
-  const { data: assemblies } = useElectionAssemblies(!election)
   const { data: assembly } = useElectionAssembly(assemblyId)
 
   // 새 선거: 서버 기본 기준이 도착하면 폼의 출발값으로
@@ -231,7 +201,23 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
   )
   const hasOpenRound = election?.current_round_status === 'open'
 
-  const patchRules = (patch: Partial<ElectionRules>) => setRules((prev) => (prev ? { ...prev, ...patch } : prev))
+  // 새 선거: 이름에 저장해 둔 기준의 이름(장로·권사 …)이 들어 있으면 그 기준으로 시작한다.
+  // 기준을 한 번이라도 직접 만졌으면 더는 건드리지 않는다.
+  const rulesTouched = useRef(false)
+  const [autoNote, setAutoNote] = useState<string | null>(null)
+  const changeTitle = (value: string) => {
+    setTitle(value)
+    if (election || rulesTouched.current) return
+    const hit = presetForTitle(presets, value)
+    if (hit && hit.name !== autoNote) {
+      setRules({ ...hit.rules })
+      setAutoNote(hit.name)
+    }
+  }
+  const changeRules = (next: ElectionRules) => {
+    rulesTouched.current = true
+    setRules(next)
+  }
 
   // ── 후보 ────────────────────────────────────────────────────────────
 
@@ -348,13 +334,8 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
   const appCount = assemblyId ? rosterUsers.length - excludedIds.length : voterIds.size
   const offlineValue = assemblyId && !offlineCustom ? (assembly?.offline_voter_count ?? offlineCount) : offlineCount
 
-  // 새 선거에서 공동의회를 고르면 그 명부 전원으로 시작한다. '직접 고르기'로 돌아가도 고른 사람은 남는다
+  // 공동의회 소속 새 선거는 그 명부 전원으로 시작한다
   const seededFor = useRef<number | null>(null)
-  const pickAssembly = (id: number | null) => {
-    if (id === null) seededFor.current = null
-    setAssemblyId(id)
-    setOfflineCustom(false)
-  }
   useEffect(() => {
     if (election || !assembly || assembly.id !== assemblyId || seededFor.current === assembly.id) return
     seededFor.current = assembly.id
@@ -364,9 +345,9 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
   // ── 저장 ────────────────────────────────────────────────────────────
 
   const save = useSaveElection({
-    onSuccess: () => {
+    onSuccess: (saved) => {
       showToast(election ? '선거를 저장했어요' : '선거를 만들었어요. 준비가 되면 투표를 시작하세요', 'success')
-      onSaved()
+      onSaved(saved)
     },
     onError: (e) => showToast(e.message, 'error'),
   })
@@ -405,7 +386,6 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
     })
   }
 
-  const presetKey = rules ? (customThreshold ? 'custom' : matchPreset(rules)) : ''
   const exampleBase = rules?.threshold_basis === 'voters' ? appCount + offlineValue : 100
 
   // 배경을 눌러도 닫지 않는다 — 입력이 많은 폼이라 드래그·사진 끌어 놓기 중 빗나간 클릭 한 번에
@@ -423,6 +403,9 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {election ? '선거 수정' : '새 선거'}
+              {assemblyId && (assembly?.title ?? election?.assembly_title) ? (
+                <span className="ml-2 text-[13px] font-bold text-ink-muted">{assembly?.title ?? election?.assembly_title}</span>
+              ) : null}
             </h2>
           </div>
           <CloseButton onClick={onClose} />
@@ -436,7 +419,7 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
               <StepTitle n={1}>선거 정보</StepTitle>
               <div>
                 <label className={labelCls}>선거 이름</label>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예) 2026 장로 선출" className={inputCls} />
+                <input value={title} onChange={(e) => changeTitle(e.target.value)} placeholder="예) 2026 장로 선출" className={inputCls} />
               </div>
               <div>
                 <label className={labelCls}>소개 (선택)</label>
@@ -477,211 +460,17 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
             </section>
 
             {rules ? (
-              <section className="space-y-4">
-                <StepTitle n={2}>당선 기준</StepTitle>
-                {pastElections.length ? (
-                  <div>
-                    <label className={labelCls}>지난 선거 기준 가져오기</label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {pastElections.map((e) => (
-                        <button
-                          key={e.id}
-                          type="button"
-                          onClick={() => {
-                            setRules({ ...e.rules })
-                            setCustomThreshold(matchPreset(e.rules) === 'custom')
-                            showToast(`'${e.title}'의 기준을 가져왔어요`, 'success')
-                          }}
-                          className={chipBtn(false)}
-                        >
-                          {e.title}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                <div>
-                  <label className={labelCls}>득표 기준</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {THRESHOLD_PRESETS.map((p) => (
-                      <button
-                        key={p.key}
-                        type="button"
-                        onClick={() => {
-                          setCustomThreshold(false)
-                          patchRules(p.rules)
-                        }}
-                        className={chipBtn(presetKey === p.key)}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                    <button type="button" onClick={() => setCustomThreshold(true)} className={chipBtn(presetKey === 'custom')}>
-                      직접 입력
-                    </button>
-                  </div>
-                  {presetKey === 'custom' ? (
-                    <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-                      <NumberBox value={rules.threshold_num} min={1} max={100} onChange={(v) => patchRules({ threshold_num: v })} />
-                      <span className="text-[15px] font-bold text-ink-muted">/</span>
-                      <NumberBox value={rules.threshold_den} min={1} max={100} onChange={(v) => patchRules({ threshold_den: v })} />
-                      <div className="flex gap-1.5 ml-1">
-                        <button type="button" onClick={() => patchRules({ threshold_comparison: 'gte' })} className={chipBtn(rules.threshold_comparison === 'gte')}>이상</button>
-                        <button type="button" onClick={() => patchRules({ threshold_comparison: 'gt' })} className={chipBtn(rules.threshold_comparison === 'gt')}>초과</button>
-                      </div>
-                      <p className="w-full text-[11.5px] text-ink-muted">예) 100명 중 90표 이상 → 9 / 10 이상</p>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div>
-                  <label className={labelCls}>무엇의 비율인가요</label>
-                  <div className="flex gap-1.5">
-                    <button type="button" onClick={() => patchRules({ threshold_basis: 'ballots' })} className={chipBtn(rules.threshold_basis === 'ballots')}>투표수 (투표한 사람)</button>
-                    <button type="button" onClick={() => patchRules({ threshold_basis: 'voters' })} className={chipBtn(rules.threshold_basis === 'voters')}>재적 선거인 전체</button>
-                  </div>
-                </div>
-
-                <p className="px-3 py-2.5 rounded-xl bg-[var(--brand-soft)] text-[12.5px] text-ink leading-relaxed break-keep">
-                  <b className="text-brand">{thresholdText(rules)}</b> 득표하면 당선이에요.
-                  {exampleBase > 0 ? (
-                    <>
-                      {' '}
-                      {rules.threshold_basis === 'voters' ? `재적 ${exampleBase}명이면` : `${exampleBase}명이 투표하면`}{' '}
-                      <b className="tabular-nums">
-                        {rules.threshold_comparison === 'gt'
-                          ? Math.floor((exampleBase * rules.threshold_num) / rules.threshold_den) + 1
-                          : Math.ceil((exampleBase * rules.threshold_num) / rules.threshold_den)}
-                        표
-                      </b>
-                      가 필요해요.
-                    </>
-                  ) : null}
-                </p>
-
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[13.5px] font-bold text-ink-strong">한 표에 고를 수 있는 인원</p>
-                    <p className="text-[11.5px] text-ink-muted break-keep">
-                      {rules.max_select == null ? '남은 자리 수만큼 (1차는 선출 인원, 2차는 남은 자리)' : '정한 인원까지'}
-                    </p>
-                  </div>
-                  {rules.max_select == null ? (
-                    <button type="button" onClick={() => patchRules({ max_select: Math.max(1, seats) })} className={chipBtn(false)}>직접 정하기</button>
-                  ) : (
-                    <div className="flex items-center gap-1.5">
-                      <Stepper value={rules.max_select} min={1} max={50} onChange={(v) => patchRules({ max_select: v })} suffix="명" />
-                      <button type="button" onClick={() => patchRules({ max_select: null })} className="text-[12px] font-semibold text-ink-muted hover:text-brand">자동</button>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className={labelCls}>자리가 남으면 — 다음 회차 후보</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(Object.keys(RUNOFF_META) as RunoffRule[]).map((key) => (
-                      <button key={key} type="button" onClick={() => patchRules({ runoff_rule: key })} className={chipBtn(rules.runoff_rule === key)}>
-                        {RUNOFF_META[key].label}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="mt-1.5 text-[11.5px] text-ink-muted break-keep">
-                    {RUNOFF_META[rules.runoff_rule].hint}. 회차를 열 때 후보를 직접 고칠 수도 있어요.
-                  </p>
-                  {rules.runoff_rule === 'top_multiple' ? (
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-[12.5px] text-ink">남은 자리의</span>
-                      <Stepper value={rules.runoff_multiple} min={1} max={10} onChange={(v) => patchRules({ runoff_multiple: v })} suffix="배" />
-                    </div>
-                  ) : rules.runoff_rule === 'min_share' ? (
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-[12.5px] text-ink">투표수의</span>
-                      <NumberBox value={rules.runoff_min_num} min={0} max={100} onChange={(v) => patchRules({ runoff_min_num: v })} />
-                      <span className="text-[15px] font-bold text-ink-muted">/</span>
-                      <NumberBox value={rules.runoff_min_den} min={1} max={100} onChange={(v) => patchRules({ runoff_min_den: v })} />
-                      <span className="text-[12.5px] text-ink">이상</span>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div>
-                  <label className={labelCls}>성원 (정족수)</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {QUORUM_PRESETS.map((q) => (
-                      <button
-                        key={q.key}
-                        type="button"
-                        onClick={() => patchRules({ quorum_num: q.num, quorum_den: q.den })}
-                        className={chipBtn(
-                          q.num === 0 ? rules.quorum_num === 0 : rules.quorum_num === q.num && rules.quorum_den === q.den
-                        )}
-                      >
-                        {q.label}
-                      </button>
-                    ))}
-                  </div>
-                  {rules.quorum_num > 0 && !QUORUM_PRESETS.some((q) => q.num === rules.quorum_num && q.den === rules.quorum_den) ? (
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-[12.5px] text-ink">재적의</span>
-                      <NumberBox value={rules.quorum_num} min={1} max={100} onChange={(v) => patchRules({ quorum_num: v })} />
-                      <span className="text-[15px] font-bold text-ink-muted">/</span>
-                      <NumberBox value={rules.quorum_den} min={1} max={100} onChange={(v) => patchRules({ quorum_den: v })} />
-                      <span className="text-[12.5px] text-ink">이상</span>
-                    </div>
-                  ) : null}
-                  <p className="mt-1.5 text-[11.5px] text-ink-muted break-keep">
-                    투표에 참여한 인원으로 셈해요. 미달이면 마감 전에 경고하고 결과서에 &lsquo;성원 미달&rsquo;로 남겨요(판정은 그대로).
-                  </p>
-                </div>
-
-                <div>
-                  <label className={labelCls}>기권 · 무효표</label>
-                  <label className="flex items-center gap-2.5 text-[13px] font-semibold text-ink cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={rules.allow_abstain}
-                      onChange={(e) => patchRules({ allow_abstain: e.target.checked })}
-                      className="w-[18px] h-[18px] accent-[var(--brand)]"
-                    />
-                    앱에서 &lsquo;기권&rsquo; 표를 낼 수 있게 하기
-                  </label>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    <button type="button" onClick={() => patchRules({ blank_in_base: true })} className={chipBtn(rules.blank_in_base)}>
-                      투표수에 넣기
-                    </button>
-                    <button type="button" onClick={() => patchRules({ blank_in_base: false })} className={chipBtn(!rules.blank_in_base)}>
-                      투표수에서 빼기
-                    </button>
-                  </div>
-                  <p className="mt-1.5 text-[11.5px] text-ink-muted break-keep">
-                    {rules.blank_in_base
-                      ? '기권·무효표도 당선 기준의 분모(투표수)에 들어가요 — 기준이 더 엄격해져요.'
-                      : '기권·무효표를 뺀 유효표로 당선 기준을 계산해요.'}{' '}
-                    교회 규정에 맞춰 골라 주세요.
-                  </p>
-                </div>
-
-                <div>
-                  <label className={labelCls}>성도 화면에 결과 공개</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(Object.keys(VISIBILITY_META) as ResultVisibility[]).map((key) => (
-                      <button key={key} type="button" onClick={() => patchRules({ result_visibility: key })} className={chipBtn(rules.result_visibility === key)}>
-                        {VISIBILITY_META[key].label}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="mt-1.5 text-[11.5px] text-ink-muted break-keep">
-                    {VISIBILITY_META[rules.result_visibility].hint}. 현황판에서는 진행 중 득표가 기본으로 가려져 있어요.
-                  </p>
-                </div>
-
-                {hasOpenRound ? (
-                  <p className="px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-[12px] text-amber-800 dark:text-amber-200 leading-relaxed break-keep">
-                    지금 투표가 진행 중이에요. 표가 한 장이라도 들어온 회차의 당선 기준은 바뀌지 않고, 고친 기준은 다음 회차부터 적용돼요. (결과 공개 범위는 바로 적용)
-                  </p>
-                ) : null}
-              </section>
+              <ElectionRulesSection
+                header={<StepTitle n={2}>당선 기준</StepTitle>}
+                rules={rules}
+                onChange={changeRules}
+                presets={presets ?? []}
+                autoNote={autoNote}
+                seats={seats}
+                exampleBase={exampleBase}
+                pastElections={pastElections}
+                hasOpenRound={hasOpenRound}
+              />
             ) : (
               <p className="text-[13px] text-ink-muted">기본 기준을 불러오는 중…</p>
             )}
@@ -771,18 +560,6 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
           {/* ③ 선거인 명부 */}
           <div className="space-y-3 lg:flex lg:flex-col lg:space-y-0 lg:gap-3 lg:min-h-0 lg:px-5 lg:py-4">
             <StepTitle n={4} aside={`앱 ${appCount}명 + 종이 ${offlineValue}명`}>선거인 명부</StepTitle>
-            {!election && assemblies?.length ? (
-              <div className="flex flex-wrap gap-1.5">
-                <button type="button" onClick={() => pickAssembly(null)} className={chipBtn(!assemblyId)}>
-                  직접 고르기
-                </button>
-                {assemblies.map((a) => (
-                  <button key={a.id} type="button" onClick={() => pickAssembly(a.id)} className={chipBtn(assemblyId === a.id)}>
-                    {a.title} 명부
-                  </button>
-                ))}
-              </div>
-            ) : null}
             {assemblyId ? (
               <p className="px-3 py-2.5 rounded-xl bg-[var(--brand-soft)] text-[12.5px] text-ink leading-relaxed break-keep">
                 <b className="text-brand">{assembly?.title ?? election?.assembly_title ?? '공동의회'}</b> 명부를 함께 써요.

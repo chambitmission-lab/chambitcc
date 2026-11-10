@@ -19,6 +19,7 @@ import { BallotIcon } from '../Election/electionUi'
 import ElectionAssemblyManager from './components/ElectionAssemblyManager'
 import ElectionBoard from './components/ElectionBoard'
 import ElectionComposer from './components/ElectionComposer'
+import ElectionNewChooser from './components/ElectionNewChooser'
 import ElectionDesk from './components/electionDesk/ElectionDesk'
 
 // 발표 화면의 카드와 같은 재질 — 솔리드 면 + 1px 빛줄 + 부드러운 그림자
@@ -112,11 +113,42 @@ const ElectionManagement = () => {
   const [composerTarget, setComposerTarget] = useState<ElectionAdminDetail | null | undefined>(undefined)
   const [boardId, setBoardId] = useState<number | null>(null)
   // 공동의회 — 여러 선거가 함께 쓰는 명부. '이 명부로 선거 만들기'는 이 모달을 닫고 편집기를 연다
-  const [assemblyOpen, setAssemblyOpen] = useState(false)
+  // 'new' = 만들기 흐름에서 열렸다(새 명부부터, 저장하면 바로 첫 선거로)
+  const [assemblyOpen, setAssemblyOpen] = useState<false | 'list' | 'new'>(false)
   const [newInAssembly, setNewInAssembly] = useState<number | null>(null)
+  // 새 선거의 입구는 하나 — "한 날에 여러 직분을 뽑나요?"부터 묻는다
+  const [chooserOpen, setChooserOpen] = useState(false)
+  // 같은 명부로 선거를 이어 만들 때 편집기를 새로 단다
+  const [composerSeq, setComposerSeq] = useState(0)
   const closeComposer = () => {
     setComposerTarget(undefined)
     setNewInAssembly(null)
+  }
+  const openNewIn = (assemblyId: number | null) => {
+    setChooserOpen(false)
+    setAssemblyOpen(false)
+    setNewInAssembly(assemblyId)
+    setComposerSeq((n) => n + 1)
+    setComposerTarget(null)
+  }
+  // 공동의회 소속 선거를 새로 만들었으면 "다음 직분"을 이어 만들지 묻는다 — 자동으로 넘기지 않는다
+  const afterSaved = async (saved: ElectionAdminDetail, wasNew: boolean) => {
+    closeComposer()
+    const assemblyId = saved.assembly_id
+    if (!wasNew || !assemblyId) return
+    const made = [
+      ...(elections ?? []).filter((e) => e.assembly_id === assemblyId && e.id !== saved.id).map((e) => e.title),
+      saved.title,
+    ]
+    const more = await confirmDialog({
+      title: '같은 날 뽑을 직분이 더 있나요?',
+      message: `지금까지 만든 선거: ${made.join(' · ')}`,
+      description: '선거인 명부는 그대로 쓰고, 후보만 새로 넣으면 돼요. 나중에 [새 선거]에서 이어 만들 수도 있어요.',
+      confirmText: '다음 선거 만들기',
+      cancelText: '다 만들었어요',
+      tone: 'brand',
+    })
+    if (more) openNewIn(assemblyId)
   }
   const [loadingEdit, setLoadingEdit] = useState<number | null>(null)
 
@@ -194,7 +226,7 @@ const ElectionManagement = () => {
   const newButton = (extra: string) => (
     <button
       type="button"
-      onClick={() => setComposerTarget(null)}
+      onClick={() => setChooserOpen(true)}
       className={`inline-flex items-center justify-center gap-1 rounded-full bg-brand text-[var(--on-brand)] text-[13.5px] font-bold px-4 py-2.5 transition-[filter] hover:brightness-105 ${extra}`}
       style={{ boxShadow: '0 10px 22px -12px var(--brand-glow)' }}
     >
@@ -206,21 +238,32 @@ const ElectionManagement = () => {
     <>
       {composerTarget !== undefined ? (
         <ElectionComposer
+          key={composerTarget?.id ?? `new-${composerSeq}`}
           election={composerTarget}
           assemblyId={newInAssembly}
           onClose={closeComposer}
-          onSaved={closeComposer}
+          onSaved={(saved) => void afterSaved(saved, !composerTarget)}
+        />
+      ) : null}
+
+      {chooserOpen ? (
+        <ElectionNewChooser
+          onClose={() => setChooserOpen(false)}
+          onSingle={() => openNewIn(null)}
+          onMulti={() => {
+            setChooserOpen(false)
+            setAssemblyOpen('new')
+          }}
+          onAssembly={openNewIn}
         />
       ) : null}
 
       {assemblyOpen ? (
         <ElectionAssemblyManager
+          key={assemblyOpen}
+          startNew={assemblyOpen === 'new'}
           onClose={() => setAssemblyOpen(false)}
-          onAddElection={(assemblyId) => {
-            setAssemblyOpen(false)
-            setNewInAssembly(assemblyId)
-            setComposerTarget(null)
-          }}
+          onAddElection={openNewIn}
         />
       ) : null}
 
@@ -249,8 +292,8 @@ const ElectionManagement = () => {
           <ElectionDesk
             elections={elections ?? []}
             loadingEdit={loadingEdit}
-            onNew={() => setComposerTarget(null)}
-            onAssemblies={() => setAssemblyOpen(true)}
+            onNew={() => setChooserOpen(true)}
+            onAssemblies={() => setAssemblyOpen('list')}
             onBoard={setBoardId}
             onEdit={(e) => void openEdit(e)}
             onCopyLink={(e) => void copyLink(e)}
@@ -287,12 +330,12 @@ const ElectionManagement = () => {
           {newButton('sm:hidden mt-3 w-full')}
           <button
             type="button"
-            onClick={() => setAssemblyOpen(true)}
+            onClick={() => setAssemblyOpen('list')}
             className="mt-2.5 w-full rounded-xl border border-gray-200 dark:border-white/[0.1] px-3.5 py-2.5 text-left transition-colors hover:border-brand"
           >
             <span className="block text-[13.5px] font-bold text-ink-strong">공동의회 명부 →</span>
             <span className="block mt-0.5 text-[12px] text-ink-muted break-keep">
-              여러 선거를 한 날에 치를 때 명부·선관위원을 한 번만 정해요
+              이미 만든 공동의회의 명부·선관위원을 고쳐요
             </span>
           </button>
         </header>

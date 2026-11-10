@@ -27,9 +27,11 @@ const brandBtn = 'px-4 py-2 rounded-xl bg-brand text-white text-[13.5px] font-bo
 interface EditorProps {
   assembly: ElectionAssemblyDetail | null
   onBack: () => void
+  /** 새로 만든 직후 — 만들기 흐름에서는 곧바로 첫 선거 만들기로 넘어간다 */
+  onCreated?: (assemblyId: number) => void
 }
 
-const AssemblyEditor = ({ assembly, onBack }: EditorProps) => {
+const AssemblyEditor = ({ assembly, onBack, onCreated }: EditorProps) => {
   const { data: pool, isLoading } = useElectionRosterPool()
   const [title, setTitle] = useState(assembly?.title ?? '')
   const [offlineCount, setOfflineCount] = useState(assembly?.offline_voter_count ?? 0)
@@ -57,10 +59,13 @@ const AssemblyEditor = ({ assembly, onBack }: EditorProps) => {
           ? n
             ? `저장했어요. 소속 선거 ${n}개의 명부에도 반영됐어요`
             : '공동의회를 저장했어요'
-          : '공동의회를 만들었어요. 이제 이 명부로 선거를 만들어 보세요',
+          : onCreated
+            ? '명부를 만들었어요. 이제 첫 번째 선거의 후보를 넣어 주세요'
+            : '공동의회를 만들었어요. 이제 이 명부로 선거를 만들어 보세요',
         'success'
       )
-      onBack()
+      if (!assembly && onCreated) onCreated(saved.id)
+      else onBack()
     },
     onError: (e) => showToast(e.message, 'error'),
   })
@@ -134,7 +139,7 @@ const AssemblyEditor = ({ assembly, onBack }: EditorProps) => {
           disabled={save.isPending}
           className="flex-[2] sm:flex-none px-7 py-2.5 rounded-xl bg-brand text-white text-[14px] font-bold disabled:opacity-50"
         >
-          {save.isPending ? '저장하는 중…' : '저장'}
+          {save.isPending ? '저장하는 중…' : !assembly && onCreated ? '저장하고 선거 만들기' : '저장'}
         </button>
       </div>
     </>
@@ -145,13 +150,15 @@ interface Props {
   onClose: () => void
   /** 이 공동의회 명부로 새 선거 만들기 — 부모가 이 모달을 닫고 선거 편집기를 연다 */
   onAddElection: (assemblyId: number) => void
+  /** 만들기 흐름('여러 직분을 뽑아요')에서 열렸다 — 목록 없이 새 명부부터, 저장하면 바로 첫 선거로 */
+  startNew?: boolean
 }
 
-const ElectionAssemblyManager = ({ onClose, onAddElection }: Props) => {
+const ElectionAssemblyManager = ({ onClose, onAddElection, startNew = false }: Props) => {
   useModalBackButton(onClose)
   const { data: assemblies, isLoading } = useElectionAssemblies()
   // undefined = 목록, null = 새로 만들기, 객체 = 고치기
-  const [editing, setEditing] = useState<ElectionAssemblyDetail | null | undefined>(undefined)
+  const [editing, setEditing] = useState<ElectionAssemblyDetail | null | undefined>(startNew ? null : undefined)
   const [loadingEdit, setLoadingEdit] = useState<number | null>(null)
   const remove = useDeleteAssembly(toastFeedback({ success: '공동의회를 삭제했어요' }))
 
@@ -192,14 +199,19 @@ const ElectionAssemblyManager = ({ onClose, onAddElection }: Props) => {
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-              {!isEditor ? '공동의회 명부' : editing ? '공동의회 수정' : '새 공동의회'}
+              {!isEditor ? '공동의회 명부' : editing ? '공동의회 수정' : startNew ? '먼저, 함께 쓸 선거인 명부' : '새 공동의회'}
             </h2>
           </div>
           <CloseButton onClick={onClose} />
         </div>
 
         {isEditor ? (
-          <AssemblyEditor key={editing?.id ?? 'new'} assembly={editing} onBack={() => setEditing(undefined)} />
+          <AssemblyEditor
+            key={editing?.id ?? 'new'}
+            assembly={editing}
+            onBack={startNew ? onClose : () => setEditing(undefined)}
+            onCreated={startNew ? onAddElection : undefined}
+          />
         ) : (
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
             <p className="text-[13px] text-ink-muted leading-relaxed break-keep">

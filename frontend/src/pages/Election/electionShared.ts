@@ -3,6 +3,7 @@
 // 기준의 "값"은 서버(services/election_rules.py)가 정한다. 여기는 그 값을 사람 말로
 // 옮기고, 관리 화면에서 고르기 쉬운 프리셋을 늘어놓을 뿐이다.
 import type {
+  ElectionRulePreset,
   ElectionRules,
   ElectionStatus,
   ElectionSummary,
@@ -117,6 +118,41 @@ export const VISIBILITY_META: Record<ResultVisibility, { label: string; hint: st
   },
   admin_only: { label: '공개 안 함', hint: '성도 화면에는 결과가 뜨지 않아요 (현장 발표)' },
 }
+
+/** 두 기준이 같은지 견주는 열쇠 — 서버가 양쪽 다 정규화해 주므로 키 집합이 같다 */
+export const rulesKey = (rules: ElectionRules): string =>
+  JSON.stringify(
+    Object.entries(rules)
+      .filter(([, v]) => v !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b))
+  )
+
+/** 득표 기준 말고 나머지 기준을 사람 말로 — 접어 둔 당선 기준 요약에 쓴다 */
+export const rulesSummary = (rules: ElectionRules): { label: string; text: string }[] => {
+  const runoff =
+    rules.runoff_rule === 'top_multiple'
+      ? `득표순으로 남은 자리의 ${rules.runoff_multiple}배수가 다음 회차 후보`
+      : rules.runoff_rule === 'min_share'
+        ? `투표수의 ${rules.runoff_min_num}/${rules.runoff_min_den} 이상 받은 후보가 다음 회차로`
+        : '당선되지 않은 후보 모두 다음 회차로'
+  return [
+    { label: '한 표에', text: rules.max_select == null ? '남은 자리 수만큼 고를 수 있어요' : `${rules.max_select}명까지 고를 수 있어요` },
+    { label: '자리가 남으면', text: runoff },
+    { label: '성원', text: quorumText(rules) ?? '확인하지 않아요' },
+    {
+      label: '기권·무효표',
+      text: `${rules.allow_abstain ? '앱에서 기권할 수 있고' : '앱에서는 기권할 수 없고'}, 투표수에 ${rules.blank_in_base ? '넣어요' : '넣지 않아요'}`,
+    },
+    { label: '결과 공개', text: VISIBILITY_META[rules.result_visibility].label },
+  ]
+}
+
+/** 선거 이름에 들어 있는 저장한 기준 — '안수집사'가 '집사'보다 먼저 맞도록 긴 이름부터 */
+export const presetForTitle = (
+  presets: ElectionRulePreset[] | undefined,
+  title: string
+): ElectionRulePreset | null =>
+  [...(presets ?? [])].sort((a, b) => b.name.length - a.name.length).find((p) => title.includes(p.name)) ?? null
 
 export const inputCls =
   'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'

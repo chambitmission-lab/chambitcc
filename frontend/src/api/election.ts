@@ -6,6 +6,7 @@ import type {
   ElectionAdminDetail,
   ElectionAssembly,
   ElectionAssemblyDetail,
+  ElectionRulePreset,
   ElectionAuditLog,
   ElectionDetail,
   ElectionPayload,
@@ -75,6 +76,31 @@ export const getDefaultElectionRules = async (): Promise<ElectionRules> =>
     auth: 'required',
     errorMessage: '기본 기준을 불러오지 못했습니다',
   })
+
+// ── 직분별 당선 기준 묶음 (관리자) ────────────────────────────────────
+
+export const getElectionRulePresets = async (): Promise<ElectionRulePreset[]> =>
+  request<ElectionRulePreset[]>('/elections/admin/rule-presets', {
+    auth: 'required',
+    errorMessage: '저장한 기준을 불러오지 못했습니다',
+  })
+
+/** 같은 이름이면 덮어쓴다. 이미 만든 선거의 기준은 바뀌지 않는다 */
+export const saveElectionRulePreset = async (name: string, rules: ElectionRules): Promise<ElectionRulePreset> =>
+  request<ElectionRulePreset>('/elections/admin/rule-presets', {
+    method: 'PUT',
+    auth: 'required',
+    json: { name, rules },
+    errorMessage: '기준을 저장하지 못했습니다',
+  })
+
+export const deleteElectionRulePreset = async (id: number): Promise<void> => {
+  await requestRaw(`/elections/admin/rule-presets/${id}`, {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '저장한 기준을 지우지 못했습니다',
+  })
+}
 
 // ── 공동의회 (관리자) — 명부·선관위원을 한 번만 정해 여러 선거가 함께 쓴다 ──
 
