@@ -13,9 +13,12 @@ interface ReplyComposerProps {
   isSubmitting: boolean
   /** 펼침/접힘 상태 알림 — 상세 모달이 작성 중에 하단 기도 바를 숨겨 오탭을 막는 데 사용 */
   onExpandedChange?: (expanded: boolean) => void
+  /** 한 번 눌러 남기는 짧은 말(접힌 상태에서 입력창 위 칩) — 글을 쓰지 않아도 마음을 남길 수 있게.
+   *  작성 폼의 기본값과 같이 익명(골방 기도자)으로 올라간다 */
+  quickReplies?: string[]
 }
 
-const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyComposerProps) => {
+const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange, quickReplies }: ReplyComposerProps) => {
   const { t } = useLanguage()
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
@@ -91,6 +94,14 @@ const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyCompos
     setExpanded(false)
   }
 
+  const submitQuick = (text: string) => {
+    if (!isLoggedIn) {
+      showToast('로그인이 필요합니다', 'error')
+      return
+    }
+    onSubmit(text, displayName)
+  }
+
   const avatarEl = isAnonymous ? (
     /* 골방 기도자 — 피드/작성 모달과 동일한 뉴트럴 아바타 */
     <div className="reply-avatar mt-0.5 w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-500 dark:text-gray-400 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
@@ -113,6 +124,22 @@ const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyCompos
   // 접힌 상태 — 아바타 + 한 줄 알약. 탭하면 전체 폼으로 펼쳐진다
   if (!expanded) {
     return (
+      <div className="min-w-0">
+        {quickReplies && quickReplies.length > 0 && (
+          <div className="flex gap-2 mb-2.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {quickReplies.map((text) => (
+              <button
+                key={text}
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => submitQuick(text)}
+                className="reply-quick reply-composer-label shrink-0 h-11 px-4 rounded-full border border-border-light dark:border-border-dark text-sm font-medium text-ink hover:bg-[var(--brand-soft)] active:scale-[0.97] transition-all disabled:opacity-50"
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+        )}
       <div className="flex items-center gap-3">
         {avatarEl}
         <button
@@ -124,6 +151,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyCompos
             ? '함께 기도하는 마음을 전해주세요...'
             : '로그인 후 댓글을 작성할 수 있습니다'}
         </button>
+      </div>
       </div>
     )
   }

@@ -63,6 +63,8 @@ export interface CurrentWeather {
   precipitationProbability: number | null
   /* 지금 실제로 비/눈이 내리는 중인지 (mm) */
   isPrecipitating: boolean
+  /* 많은 눈(WMO 75 함박눈·86 강한 눈 소나기) — 레일 삽화가 눈보라 연출로 갈라진다 */
+  isHeavySnow: boolean
 }
 
 /* WMO 날씨 코드 → 하늘 상태. 애매한 코드는 맑음으로 떨어뜨려
@@ -112,6 +114,7 @@ const fetchCurrentWeather = async (): Promise<CurrentWeather | null> => {
     condition,
     precipitationProbability: typeof probability === 'number' ? probability : null,
     isPrecipitating: (data.current?.precipitation ?? 0) > 0,
+    isHeavySnow: code === 75 || code === 86,
   }
 }
 

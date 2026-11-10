@@ -57,6 +57,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['typing-together', () => import('../pages/dev/TypingTogetherPreview')],
       // 공동 기도제목(/prayer-topics) 개편 시안 비교 — ?v=a|b|c
       ['prayer-topics', () => import('../pages/dev/PrayerTopicsPreview')],
+      // 기도 상세(감정 풍경 + 대화처럼) — ?emotion=grateful|sad|none… · ?mode=private|pastoral|empty (표본 데이터)
+      ['prayer-detail', () => import('../pages/dev/PrayerDetailPreview')],
       // 설교 본문 작업대 · 원고 쓰기 · 강단 보기 — 표본 데이터(?v=study|manuscript|pulpit)
       ['sermon-desk', () => import('../pages/dev/SermonDeskPreview')],
       // 바이블 퀘스트 첫 진입 준비 중 화면(스켈레톤) — ?error=1 이면 실패 상태

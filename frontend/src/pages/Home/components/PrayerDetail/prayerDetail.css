@@ -1,0 +1,328 @@
+/* 기도 상세 — "감정 풍경 + 대화처럼" 배치 (2026-11-10, 시안 B2)
+   위: 감정 그림 띠(PC 는 두 칸 전체 폭) → 작성자 → 본문 / 오른쪽(모바일은 아래): 곁에 머문 마음(말풍선) → 입력 바.
+   DOM 은 하나만 그린다(댓글 쿼리·작성 상태가 둘로 갈리지 않게): 모바일은 .pd-scroll 안에서 세로로 흐르고,
+   lg 2단에선 .pd-scroll 을 display:contents 로 풀어 조각들을 바깥 그리드 칸에 직접 앉힌다.
+   다크 색은 readingWarm.css 의 '등불 아래' 변수(--rd-*)를 그대로 쓴다. 골드는 기도 버튼에만. */
+
+.pd-panel {
+  --pd-bg: #ffffff;
+  --pd-line: rgba(0, 0, 0, 0.07);
+  --pd-glass: rgba(255, 255, 255, 0.92);
+  --pd-glass-ink: #3a3744;
+  --pd-bubble: #f3f4f6;
+  --pd-bubble-ink: #2b2833;
+  --pd-mine: #3182f6;
+  --pd-mine-ink: #ffffff;
+  --pd-input: #f3f4f6;
+  --pd-pray-bg: #ffffff;
+  --pd-pray-ink: #8a5a00;
+  --pd-pray-ring: rgba(233, 178, 60, 0.6);
+  --pd-pray-done-bg: #e9b23c;
+  --pd-pray-done-ink: #3d2800;
+  position: relative;
+  background-color: var(--pd-bg);
+}
+[data-theme='dark'] .pd-panel {
+  --pd-bg: var(--rd-bg, #1a1815);
+  --pd-line: var(--rd-line, rgba(235, 220, 195, 0.09));
+  --pd-glass: rgba(26, 24, 21, 0.86);
+  --pd-glass-ink: #d6cfc2;
+  --pd-bubble: #26221d;
+  --pd-bubble-ink: #e0d9cc;
+  --pd-mine: #2a3550;
+  --pd-mine-ink: #dbe6fb;
+  --pd-input: var(--rd-input, #221f1b);
+  --pd-pray-bg: #26221c;
+  --pd-pray-ink: #e2c07c;
+  --pd-pray-ring: rgba(217, 181, 110, 0.5);
+  --pd-pray-done-bg: #d9a441;
+  --pd-pray-done-ink: #2a1c00;
+}
+
+/* ── 배치 ── */
+.pd-grid {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pd-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.pd-author {
+  position: relative;
+  z-index: 1;
+  margin-top: -56px;
+  padding: 0 20px;
+}
+.pd-body {
+  padding: 4px 20px 8px;
+}
+.pd-replies {
+  padding: 18px 20px 20px;
+  border-top: 1px solid var(--pd-line);
+  scroll-margin-top: 8px;
+}
+.pd-dock {
+  flex-shrink: 0;
+  padding: 10px 12px max(0.75rem, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--pd-line);
+  background-color: var(--pd-bg);
+  /* 펼친 작성 폼(이모티콘 판 포함)이 화면을 넘지 않게 */
+  max-height: 70%;
+  overflow-y: auto;
+}
+
+@media (min-width: 1024px) {
+  .pd-grid--split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(400px, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+  .pd-grid--split > .pd-scroll {
+    display: contents;
+  }
+  .pd-grid--split .pd-art {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .pd-grid--split .pd-author {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .pd-grid--split .pd-body {
+    grid-column: 1;
+    grid-row: 3 / 5;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .pd-grid--split .pd-replies {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    min-height: 0;
+    overflow-y: auto;
+    border-top: 0;
+    border-left: 1px solid var(--pd-line);
+    padding: 14px 32px 20px;
+  }
+  .pd-grid--split > .pd-dock {
+    grid-column: 2;
+    grid-row: 4;
+    border-top: 0;
+    border-left: 1px solid var(--pd-line);
+    padding: 10px 24px 20px;
+    max-height: none;
+    overflow: visible;
+  }
+  .pd-author {
+    margin-top: -64px;
+    padding: 0 48px;
+  }
+  .pd-body {
+    padding: 8px 48px 32px;
+  }
+  /* 한 줄이 너무 길면 다음 줄을 놓친다 — 본문 18px×32em 읽기 폭으로 가운데 모으고, 큰 글씨에선 680px 상한 */
+  .pd-measure {
+    max-width: min(680px, calc(576px * var(--fs, 1)));
+    margin-inline: auto;
+  }
+}
+
+/* ── 감정 그림 띠 ── */
+.pd-art {
+  position: relative;
+  flex-shrink: 0;
+  height: 190px;
+  background-color: var(--pd-bg);
+  background-image: var(--pd-art-light);
+  background-size: cover;
+  background-position: var(--pd-art-pos, 50% 50%);
+}
+[data-theme='dark'] .pd-art {
+  background-image: var(--pd-art-dark);
+}
+/* 아래쪽을 판 색으로 풀어 작성자 줄이 그림 위에 자연스럽게 걸친다 */
+.pd-art::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 46%;
+  background: linear-gradient(to bottom, transparent, var(--pd-bg));
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .pd-art {
+    height: 216px;
+  }
+  .pd-art::after {
+    height: 38%;
+  }
+}
+
+.pd-art__tag {
+  position: absolute;
+  top: 14px;
+  left: 64px; /* 모바일: 뒤로가기 버튼 옆 */
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 15px;
+  background: var(--pd-glass);
+  color: var(--pd-glass-ink);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+@media (min-width: 768px) {
+  .pd-art__tag {
+    top: 20px;
+    left: 20px;
+  }
+}
+@media (min-width: 1024px) {
+  .pd-art__tag {
+    left: 48px;
+    font-size: calc(13px * var(--fs, 1));
+  }
+}
+
+/* ── 그림 위에 뜬 조작 버튼 ── */
+.pd-chrome {
+  position: absolute;
+  inset: 10px 10px auto 10px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.pd-chrome > * {
+  pointer-events: auto;
+}
+.pd-glass {
+  background: var(--pd-glass);
+  color: var(--pd-glass-ink);
+  /* 모바일은 본문이 버튼 밑으로 스크롤된다 — 글자와 겹쳐도 버튼이 또렷하게 */
+  box-shadow: 0 1px 4px rgba(24, 26, 40, 0.14);
+}
+.pd-glass-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  /* display 는 여기서 정하지 않는다 — md:hidden / hidden md:flex 유틸리티가 이기도록 */
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+}
+.pd-glass-btn:active {
+  transform: scale(0.94);
+}
+
+/* ── 기도 버튼 (골드는 여기에만) ── */
+.pd-pray {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 24px;
+  background: var(--pd-pray-bg);
+  color: var(--pd-pray-ink);
+  box-shadow: 0 0 0 1.5px var(--pd-pray-ring), 0 8px 20px -10px rgba(190, 130, 20, 0.6);
+  font-size: 14.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 0.25s, color 0.25s, transform 0.15s;
+}
+.pd-pray:active {
+  transform: scale(0.96);
+}
+.pd-pray:disabled {
+  opacity: 0.7;
+}
+.pd-pray[aria-pressed='true'] {
+  background: var(--pd-pray-done-bg);
+  color: var(--pd-pray-done-ink);
+}
+.pd-pray--round {
+  width: 48px;
+  padding: 0;
+}
+@media (min-width: 1024px) {
+  .pd-pray {
+    height: calc(48px * var(--fs, 1));
+    border-radius: 999px;
+    font-size: calc(15px * var(--fs, 1));
+  }
+}
+@keyframes pd-pray-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35) rotate(-8deg); }
+  65% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.pd-pray__icon--pop {
+  animation: pd-pray-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── 말풍선 ── */
+.pd-bubble {
+  background: var(--pd-bubble);
+  color: var(--pd-bubble-ink);
+  border-radius: 18px 18px 18px 4px;
+  padding: 9px 14px;
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+.pd-bubble--mine {
+  background: var(--pd-mine);
+  color: var(--pd-mine-ink);
+  border-radius: 18px 18px 4px 18px;
+}
+[data-theme='dark'] .pd-bubble--mine {
+  box-shadow: inset 0 0 0 1px rgba(140, 170, 240, 0.22);
+}
+.pd-chat-name {
+  font-size: 12.5px;
+}
+.pd-chat-meta {
+  font-size: 12px;
+}
+.pd-chat-avatar {
+  width: 32px;
+  height: 32px;
+}
+@media (min-width: 1024px) {
+  .pd-bubble {
+    font-size: calc(15.5px * var(--fs, 1));
+  }
+  .pd-chat-name {
+    font-size: calc(13px * var(--fs, 1));
+  }
+  .pd-chat-meta {
+    font-size: calc(12.5px * var(--fs, 1));
+  }
+  .pd-chat-avatar {
+    width: calc(34px * var(--fs, 1));
+    height: calc(34px * var(--fs, 1));
+  }
+}
+
+/* ── 한 번 눌러 남기기 칩 (ReplyComposer quickReplies) ── */
+.pd-panel .reply-quick {
+  border-color: var(--card-border);
+  background: var(--pd-bg);
+}
+.pd-panel .reply-composer-input {
+  background-color: var(--pd-input);
+  border-color: transparent;
+}

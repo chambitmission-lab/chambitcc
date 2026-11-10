@@ -6,21 +6,25 @@
 
 ```
 PrayerDetail/
-├── index.tsx                    # 메인 컨테이너 (데이터 페칭, 상태 관리)
+├── index.tsx                    # 컨테이너 (데이터 페칭·변경, 삭제 확인)
+├── PrayerDetailView.tsx         # 화면 그리기 (감정 그림 띠 → 작성자 → 본문 / 곁에 머문 마음 → 입력 바)
 ├── PrayerDetailModal.tsx        # 모달 래퍼
-├── PrayerDetailHeader.tsx       # 헤더 (닫기, 삭제 버튼)
-├── PrayerAuthorInfo.tsx         # 작성자 정보 (내 기도 태그 포함)
-├── PrayerContent.tsx            # 기도 내용 (번역 버튼 포함)
-├── PrayerActions.tsx            # 기도하기 토글, 댓글 버튼
-├── PrayerStats.tsx              # 통계 정보 (기도 버튼 위 배치)
-├── RepliesSection.tsx           # 댓글 섹션
+├── PrayerDetailHeader.tsx       # 그림 위에 뜬 버튼 (뒤로·글씨 크기·더보기·닫기)
+├── PrayerAuthorInfo.tsx         # 작성자 정보 (내 기도 태그·번역 버튼 포함)
+├── PrayerContent.tsx            # 기도 내용
+├── PrayerActions.tsx            # 함께 기도하기 버튼 (PC 작성자 줄 / 모바일 하단 바 둥근 버튼)
+├── RepliesSection.tsx           # 곁에 머문 마음 (기도·쪽지 수 + 말풍선)
+├── ReplyBubbles.tsx             # 말풍선 대화 (수정·삭제·더보기)
+├── prayerArt.ts                 # 기도 감정 → 감정 삽화(없으면 창가 그림)
+├── prayerDetail.css             # 배치·그림 띠·말풍선·기도 버튼 (pd-)
+├── readingWarm.css              # 다크 '등불 아래' 색
 ├── LoadingState.tsx             # 로딩 상태
 ├── ErrorState.tsx               # 에러 상태
 ├── DeleteConfirmModal.tsx       # 삭제 확인 모달
-├── useTranslation.ts            # 번역 로직 훅
-├── usePrayerDelete.ts           # 삭제 로직 훅
-└── README.md                    # 이 파일
+└── useTranslation.ts            # 번역 로직 훅
 ```
+
+백엔드 없이 보기: `/#/dev/prayer-detail` (`?emotion=sad|none…`, `?mode=private|pastoral|empty`)
 
 ## SOLID 원칙 적용
 

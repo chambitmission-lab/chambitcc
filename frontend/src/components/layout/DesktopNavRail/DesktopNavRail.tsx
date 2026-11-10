@@ -29,6 +29,7 @@ import { prewarmPostcardFont, type PostcardKey } from '../../share/sharePostcard
 
 // 레일 표시 여부 훅은 ./useDesktopRailVisible 로 분리 — 이 파일은 PC 에서만 lazy 로 받는다.
 import { useDesktopRailVisible } from './useDesktopRailVisible'
+import RailWeatherFx from './railWeather/RailWeatherFx'
 import './DesktopNavRail.css'
 
 /** 라벨이 보이는 폭(xl)인가 — 하단 삽화는 이 폭에서만 쓰므로, 좁은 화면 사용자에게는
@@ -412,7 +413,10 @@ const DesktopNavRail = () => {
           className={`rail-bottom-art${railArtReady ? ' is-loaded' : ''}`}
           style={{ backgroundImage: `url(${pairSrc(RAIL_BOTTOM, theme)})` }}
           aria-hidden
-        />
+        >
+          {/* 비·뇌우·눈·폭설일 때만 같은 그림 위에 날씨 연출을 겹친다 (맑은 날엔 아무것도 그리지 않음) */}
+          {railArtReady && <RailWeatherFx src={pairSrc(RAIL_BOTTOM, theme)} theme={theme} />}
+        </div>
       )}
 
       {/* 하단 유틸리티 — 사이트 설정 성격의 액션(테마·전체 메뉴)만 남긴다.
