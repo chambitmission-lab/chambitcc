@@ -367,7 +367,7 @@ const BoardView = ({ electionId, onClose, onEdit, onSwitch }: Props & { onSwitch
             {isOpen ? (
               <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-600 dark:text-emerald-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                LIVE
+                실시간
               </span>
             ) : null}
           </div>

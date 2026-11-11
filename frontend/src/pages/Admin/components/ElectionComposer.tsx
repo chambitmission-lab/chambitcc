@@ -203,15 +203,22 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
 
   // 새 선거: 이름에 저장해 둔 기준의 이름(장로·권사 …)이 들어 있으면 그 기준으로 시작한다.
   // 기준을 한 번이라도 직접 만졌으면 더는 건드리지 않는다.
+  // 이름을 고쳐 그 직분이 빠지면(장로 → 권사) 자동으로 넣었던 기준도 기본값으로 되돌린다 —
+  // 안 그러면 '장로 기준' 표시와 함께 다른 직분 선거가 장로 기준으로 저장된다.
   const rulesTouched = useRef(false)
   const [autoNote, setAutoNote] = useState<string | null>(null)
   const changeTitle = (value: string) => {
     setTitle(value)
     if (election || rulesTouched.current) return
     const hit = presetForTitle(presets, value)
-    if (hit && hit.name !== autoNote) {
-      setRules({ ...hit.rules })
-      setAutoNote(hit.name)
+    if (hit) {
+      if (hit.name !== autoNote) {
+        setRules({ ...hit.rules })
+        setAutoNote(hit.name)
+      }
+    } else if (autoNote) {
+      if (defaultRules) setRules({ ...defaultRules })
+      setAutoNote(null)
     }
   }
   const changeRules = (next: ElectionRules) => {
