@@ -453,6 +453,13 @@ const NewHome = () => {
               <HomeNotice />
             </div>
 
+            {/* lg+: 헤더 밑 안개 — 카드들이 헤더 선에서 일직선으로 잘리지 않고 캔버스색으로 스며들며 사라지게 한다.
+                높이 0 sticky 라 배치에 영향이 없고, 16px 은 고정된 사이드 컬럼 윗선(top 72px)에 딱 닿는 길이다.
+                z-20: 카드 위, 필터 툴바(z-30) 아래 — 툴바는 안개에 덮이지 않는다 */}
+            <div aria-hidden className="hidden lg:block sticky top-14 z-20 h-0 pointer-events-none">
+              <div className="h-4 bg-[linear-gradient(to_bottom,var(--app-canvas),color-mix(in_srgb,var(--app-canvas)_55%,transparent)_45%,transparent)]" />
+            </div>
+
             {/* lg+: 인스타그램식 2컬럼 — 기도 피드(좌) + 오늘/공동체 카드 사이드바(우, sticky).
                 모바일에선 이 래퍼가 그냥 세로 스택이라 기존 순서(카드들 → 피드) 그대로다 */}
             <div className="lg:flex lg:items-start lg:justify-center lg:gap-8 lg:px-6 lg:pt-6">
@@ -558,11 +565,17 @@ const NewHome = () => {
 
             {/* 소그룹 필터 — scroll-mt는 고정 헤더에 안 가리게 하는 오프셋 */}
             {/* lg+: 세그먼트 탭 + 정렬 토글을 한 줄 툴바로 묶어 헤더(56px) 아래에 고정.
-                z-30은 SortTabs와 같은 이유(드롭다운 딤막 z-40 아래), overflow-visible은 팝오버가 잘리지 않게 */}
+                z-30은 SortTabs와 같은 이유(드롭다운 딤막 z-40 아래), overflow-visible은 팝오버가 잘리지 않게.
+                바탕을 통짜 색 띠로 깔면 카드가 허공에서 잘려 보여서, 툴바 자체를 피드 카드와 같은 면(떠 있는 카드)으로
+                만들고 기도 카드가 그 밑으로 지나가게 한다. 고정 위치는 헤더 바로 밑 4px(top-12 + pt-3) — 틈이 넓으면
+                그 사이로 카드 글줄이 비친다. 남은 틈과 툴바 윗모서리 둥근 귀퉁이는 툴바 폭만큼의 캔버스색 가림막(::before)
+                으로 덮는다. 가림막을 컬럼 전체 폭으로 깔면 옆 여백의 카드 그림자까지 지워져 네모난 면이 비치니 폭을 넓히지 말 것.
+                backdrop-filter 는 금지 — GroupFilter 의 fixed 바깥클릭 막이 이 상자 안에 갇힌다 */}
             <div
               ref={feedRef}
-              className="px-4 py-3 overflow-x-auto scrollbar-hide scroll-mt-16 lg:flex lg:items-center lg:gap-1.5 lg:overflow-visible lg:sticky lg:top-14 lg:z-30 lg:bg-[var(--app-canvas)]"
+              className="px-4 py-3 overflow-x-auto scrollbar-hide scroll-mt-16 lg:overflow-visible lg:sticky lg:top-12 lg:z-30 lg:pb-0 lg:mb-3 lg:pointer-events-none lg:[&>*]:pointer-events-auto"
             >
+              <div className="lg:relative lg:before:content-[''] lg:before:absolute lg:before:inset-x-0 lg:before:-top-3 lg:before:h-7 lg:before:-z-10 lg:before:bg-[var(--app-canvas)] lg:flex lg:items-center lg:gap-1.5 lg:p-1.5 lg:rounded-2xl lg:bg-[var(--surface-container)] lg:border lg:border-[var(--card-border)] lg:shadow-[0_10px_24px_-12px_rgba(15,23,42,0.28)] dark:lg:shadow-[0_12px_28px_-10px_rgba(0,0,0,0.7)]">
               <div className="lg:flex-1 lg:min-w-0">
               <GroupFilter
                 selectedGroupId={selectedGroupId}
@@ -574,6 +587,7 @@ const NewHome = () => {
               />
               </div>
               <DesktopSortToggle currentSort={sort} onSortChange={setSort} />
+              </div>
             </div>
             
             <SortTabs currentSort={sort} onSortChange={setSort} />
