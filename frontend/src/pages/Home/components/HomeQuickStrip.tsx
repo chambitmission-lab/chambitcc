@@ -1,6 +1,6 @@
 // 홈 모바일 "요약 스트립" — 기도 피드로 내려가 상단 카드들이 화면 밖으로 나간 뒤,
 // 위로 살짝 스크롤하면 헤더 밑에 칩 한 줄이 내려온다.
-//   오늘의 묵상 · 오늘의 읽기 · 함께 읽는 말씀 · 올해의 말씀 · 함께 나누는 은혜 · 타임캡슐 D-N
+//   오늘의 묵상 · 오늘의 읽기 · 함께 읽는 말씀 · 함께 나누는 은혜 · 타임캡슐 D-N · 올해의 말씀
 // 칩을 누르면 해당 카드로 바로 스크롤한다. 피드를 한참 내려간 뒤 "맨 위로 → 다시 찾기"
 // 두 단계였던 동선을 한 탭으로 줄이는 장치.
 //
@@ -57,9 +57,9 @@ const CHIPS: ChipDef[] = [
   { key: 'meditation', label: '오늘의 묵상', Icon: SunHorizon },
   { key: 'plan', label: '오늘의 읽기', Icon: BookOpen },
   { key: 'live', label: '함께 읽는 말씀', Icon: Broadcast },
-  { key: 'verse', label: '올해의 말씀', Icon: Sparkle },
   { key: 'grace', label: '함께 나누는 은혜', Icon: HandHeart },
   { key: 'capsule', label: '타임캡슐', Icon: EnvelopeSimple },
+  { key: 'verse', label: '올해의 말씀', Icon: Sparkle },
 ]
 
 interface Props {

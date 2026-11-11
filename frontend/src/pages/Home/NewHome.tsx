@@ -492,12 +492,6 @@ const NewHome = () => {
               <LiveReadingCard />
             </div>
 
-            {/* 올해의 말씀 — 교회 연간 비전. 매일 바뀌는 '오늘' 영역과
-                커뮤니티(감사·기도) 영역 사이를 잇는 다리 위치 */}
-            <div id={HOME_CARD_IDS.verse}>
-              <AnnualThemeVerse />
-            </div>
-
             {/* 공동체 소식 — 감사 한 줄 + 응답의 전당을 하나의 그룹 리스트 카드로 묶어
                 "관련 항목 한 덩어리"로 스캔되게 한다 (토스식 grouped list) */}
             <section id={HOME_CARD_IDS.grace} className="px-4 pt-3 pb-1.5">
@@ -530,6 +524,12 @@ const NewHome = () => {
             {/* 타임캡슐 — 밤하늘 봉인 편지 히어로 (내 캡슐 상태 반영 동적 문구) */}
             <div id={HOME_CARD_IDS.capsule}>
               <TimeCapsuleCard />
+            </div>
+
+            {/* 올해의 말씀 — 교회 연간 비전. 카드 묶음의 맨 끝에 둔다: 접고 펼 때 높이가 크게 바뀌는
+                카드라, 중간에 있으면 아래 카드들이 전부 오르내려 어수선했다. 끝자리면 밀리는 카드가 없다 */}
+            <div id={HOME_CARD_IDS.verse}>
+              <AnnualThemeVerse />
             </div>
 
             {/* 오늘의 감사 (Small Thanks Thread) — 임시 비활성화 */}
