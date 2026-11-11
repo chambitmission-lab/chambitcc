@@ -114,17 +114,52 @@
     background: transparent;
   }
 
+  /* 카드 띄우기(2026-11-11 B안 "깊게 뜬 판") — 낙하 그림자 한 겹(-12px 수축)뿐이라 밑변이 캔버스에 박혀 보였다.
+     밑변에 닿는 짧은 그림자 + 낙하 그림자를 겹친다. 큰 카드 두 장(이어 읽기·현황)은 세 겹으로 깊게,
+     도구 타일은 간격이 10px 라 긴 그림자가 아래 타일로 번지므로 간격 안에서 끝나는 두 겹만.
+     색 그림자(브랜드·도구 톤)는 쓰지 않는다 — 중립 남색 한 가지 */
+  .bible-hub {
+    --lift-rim: inset 0 1px 0 var(--glass-edge), 0 0 0 1px var(--glass-line);
+    --lift-big:
+      0 2px 4px rgba(22, 40, 90, 0.06),
+      0 14px 24px -8px rgba(22, 40, 90, 0.16),
+      0 34px 56px -24px rgba(22, 40, 90, 0.34);
+    --lift-big-hover:
+      0 3px 5px rgba(22, 40, 90, 0.06),
+      0 18px 30px -8px rgba(22, 40, 90, 0.18),
+      0 44px 64px -24px rgba(22, 40, 90, 0.4);
+    --lift-tile:
+      0 1px 2px rgba(22, 40, 90, 0.08),
+      0 7px 12px -4px rgba(22, 40, 90, 0.18);
+    --lift-tile-hover:
+      0 2px 4px rgba(22, 40, 90, 0.08),
+      0 12px 18px -6px rgba(22, 40, 90, 0.24);
+  }
+  [data-theme="dark"] .bible-hub {
+    --lift-rim: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 0 1px var(--glass-line);
+    --lift-big:
+      0 2px 4px rgba(0, 0, 0, 0.5),
+      0 14px 24px -8px rgba(0, 0, 0, 0.6),
+      0 36px 60px -22px rgba(0, 0, 0, 0.85);
+    --lift-big-hover:
+      0 3px 5px rgba(0, 0, 0, 0.5),
+      0 18px 30px -8px rgba(0, 0, 0, 0.65),
+      0 46px 68px -22px rgba(0, 0, 0, 0.9);
+    --lift-tile: 0 1px 2px rgba(0, 0, 0, 0.5), 0 7px 12px -4px rgba(0, 0, 0, 0.65);
+    --lift-tile-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 18px -6px rgba(0, 0, 0, 0.75);
+  }
+
   /* ① 이어 읽기 — 유리 테두리 + 브랜드 빛 그림자 */
   .bible-hub .dash-card--resume {
     border-color: transparent;
     border-radius: 1.375rem;
-    box-shadow: var(--glass-shadow), 0 18px 40px -18px var(--brand-glow);
+    box-shadow: var(--lift-rim), var(--lift-big);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   @media (hover: hover) {
     .bible-hub .dash-card--resume:hover {
       transform: translateY(-2px);
-      box-shadow: var(--glass-shadow), 0 24px 48px -18px var(--brand-glow);
+      box-shadow: var(--lift-rim), var(--lift-big-hover);
     }
   }
   .bible-hub .dash-card--resume .dash-card__icon {
@@ -142,7 +177,7 @@
   .bible-hub .reading-summary[data-scene="day"] {
     --rs-radius: 1.5rem;
     border-color: transparent;
-    box-shadow: var(--glass-shadow);
+    box-shadow: var(--lift-rim), var(--lift-big);
   }
   .bible-hub .reading-hero {
     border-radius: 1.125rem;
@@ -228,6 +263,8 @@
   }
   .bible-hub .dash-bento .dash-card--fav {
     --t: var(--brand);
+    /* 면은 거의 불투명 — 0.62 유리는 옆 타일 그림자가 속으로 비쳤다 */
+    --glass: rgba(255, 255, 255, 0.94);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -241,10 +278,13 @@
     background:
       radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--t) calc(var(--tint) * 100%), transparent), transparent 65%),
       var(--glass);
-    box-shadow: var(--glass-shadow);
+    box-shadow: var(--lift-rim), var(--lift-tile);
     -webkit-backdrop-filter: blur(18px) saturate(1.4);
     backdrop-filter: blur(18px) saturate(1.4);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  [data-theme="dark"] .bible-hub .dash-bento .dash-card--fav {
+    --glass: rgba(42, 46, 58, 0.94);
   }
   /* 오른쪽 아래 같은 톤 빛 웅덩이 */
   .bible-hub .dash-bento .dash-card--fav::after {
@@ -263,7 +303,7 @@
     .bible-hub .dash-bento .dash-card--fav:hover {
       transform: translateY(-3px);
       border-color: transparent;
-      box-shadow: var(--glass-shadow), 0 18px 36px -14px color-mix(in srgb, var(--t) 65%, transparent);
+      box-shadow: var(--lift-rim), var(--lift-tile-hover);
     }
     .bible-hub .dash-bento .dash-card--fav:hover .dash-card__chevron {
       color: var(--t);
