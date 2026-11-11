@@ -27,6 +27,8 @@ import {
   STATUS_LABEL,
   STATUS_BADGE,
   EMPTY_CLASS_FORM,
+  classToForm,
+  formToPayload,
   EMPTY_NOTICE_FORM,
   type ClassForm,
   type NoticeForm,
@@ -104,19 +106,7 @@ const CultureManagement = () => {
 
   const handleSaveClass = async (form: ClassForm) => {
     if (!form.title.trim()) return showToast('강좌명을 입력하세요', 'error')
-    const payload = {
-      title: form.title.trim(),
-      description: form.description.trim() || undefined,
-      instructor: form.instructor.trim() || undefined,
-      schedule: form.schedule.trim() || undefined,
-      fee: form.fee.trim() || undefined,
-      capacity: form.capacity ? Number(form.capacity) : undefined,
-      location: form.location.trim() || undefined,
-      quarter: form.quarter.trim() || undefined,
-      is_open: form.is_open,
-      is_active: form.is_active,
-      display_order: form.display_order,
-    }
+    const payload = formToPayload(form)
     try {
       setSaving(true)
       if (classTarget) {
@@ -548,19 +538,7 @@ const CultureManagement = () => {
         <ClassFormPanel
           initial={
             classTarget
-              ? {
-                  title: classTarget.title,
-                  description: classTarget.description ?? '',
-                  instructor: classTarget.instructor ?? '',
-                  schedule: classTarget.schedule ?? '',
-                  fee: classTarget.fee ?? '',
-                  capacity: classTarget.capacity ? String(classTarget.capacity) : '',
-                  location: classTarget.location ?? '',
-                  quarter: classTarget.quarter ?? '',
-                  is_open: classTarget.is_open,
-                  is_active: classTarget.is_active,
-                  display_order: classTarget.display_order,
-                }
+              ? classToForm(classTarget)
               : EMPTY_CLASS_FORM
           }
           onSave={handleSaveClass}

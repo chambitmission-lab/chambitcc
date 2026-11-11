@@ -1,5 +1,34 @@
 // 문화교실 타입 정의
 
+/** 수업 계획표 한 주 — 주차 번호는 순서로 매긴다 */
+export interface CultureCurriculumRow {
+  title: string
+  note: string
+}
+
+/** 자유 꼭지 — text 글 · list 줄마다 한 항목 · quote 강조 문구 · image 사진+설명 */
+export type CultureSectionType = 'text' | 'list' | 'quote' | 'image'
+
+export interface CultureDetailSection {
+  type: CultureSectionType
+  title: string
+  body: string
+  image_url?: string | null
+}
+
+/** 강좌 상세 — 기본 틀(대표 사진·대상·기간·강사 소개·수업 계획표) + 자유 꼭지 */
+export interface CultureClassDetail {
+  cover_image_url?: string | null
+  /** 강좌 대표 색 #rrggbb — 없으면 강좌명으로 고른 색 */
+  accent?: string | null
+  target?: string | null
+  duration?: string | null
+  /** 줄마다 경력 한 줄 */
+  instructor_bio?: string | null
+  curriculum: CultureCurriculumRow[]
+  sections: CultureDetailSection[]
+}
+
 export interface CultureClass {
   id: number
   title: string
@@ -10,6 +39,8 @@ export interface CultureClass {
   capacity?: number | null
   location?: string | null
   quarter?: string | null
+  /** 구버전 백엔드 응답·기존 강좌엔 없을 수 있음 */
+  detail?: CultureClassDetail | null
   is_open: boolean
   is_active: boolean
   display_order: number
@@ -32,6 +63,7 @@ export interface CreateCultureClassRequest {
   capacity?: number | null
   location?: string
   quarter?: string
+  detail?: CultureClassDetail
   is_open?: boolean
   is_active?: boolean
   display_order?: number

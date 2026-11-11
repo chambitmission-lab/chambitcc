@@ -81,6 +81,22 @@ export const getCultureAccent = (title: string): CultureAccent => {
   return found ? found.accent : DEFAULT_ACCENT
 }
 
+/** 강좌의 아이콘·색 — 관리자가 고른 대표 색(detail.accent)이 있으면 그 색을 쓴다 */
+export const getClassAccent = (c: {
+  title?: string | null
+  detail?: { accent?: string | null } | null
+}): CultureAccent => {
+  const base = getCultureAccent(c.title ?? '')
+  const picked = c.detail?.accent
+  return picked && /^#[0-9a-f]{6}$/i.test(picked) ? { ...base, color: picked } : base
+}
+
+/** 관리자 등록 폼의 대표 색 선택지 — 흰 글씨가 읽히는 중간 명도만 */
+export const ACCENT_CHOICES = [
+  '#4a9fd4', '#6d8df0', '#818cf8', '#a78bfa', '#fb7185',
+  '#f59e0b', '#e8793a', '#2eb8a6', '#4caf7d', '#8d7b68',
+]
+
 /** #rrggbb → rgba(r,g,b,a) — 파스텔 틴트·게이지 트랙 등 인라인 스타일용 */
 export const withAlpha = (hex: string, alpha: number): string => {
   const n = parseInt(hex.slice(1), 16)

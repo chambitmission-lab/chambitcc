@@ -1,17 +1,21 @@
 // 문화교실 강좌 카드 — 잔여석 게이지 · 상태 배지 · 신청 CTA.
 
 import type { CultureClass } from '../../../types/culture'
-import { getCultureAccent, withAlpha, parseScheduleDays } from '../cultureAccents'
+import { getClassAccent, withAlpha, parseScheduleDays } from '../cultureAccents'
 import { cardClass } from './styles'
 
 const ClassCard = ({
   cultureClass,
   onApply,
+  onOpen,
 }: {
   cultureClass: CultureClass
   onApply: (c: CultureClass) => void
+  /** 강좌 상세 열기 */
+  onOpen: (c: CultureClass) => void
 }) => {
-  const accent = getCultureAccent(cultureClass.title)
+  const accent = getClassAccent(cultureClass)
+  const cover = cultureClass.detail?.cover_image_url
   const days = parseScheduleDays(cultureClass.schedule)
 
   const capacity = cultureClass.capacity ?? null
@@ -24,6 +28,17 @@ const ClassCard = ({
 
   return (
     <div className={`${cardClass} overflow-hidden`}>
+      {/* 대표 사진 — 등록한 강좌만. 누르면 상세 */}
+      {cover && (
+        <button type="button" onClick={() => onOpen(cultureClass)} className="block w-full" aria-label={`${cultureClass.title} 자세히 보기`}>
+          <img
+            src={cover}
+            alt=""
+            loading="lazy"
+            className="block h-36 lg:h-44 w-full object-cover dark:[filter:var(--media-dim)]"
+          />
+        </button>
+      )}
       {/* 상단 파스텔 틴트 헤더 */}
       <div
         className="flex items-center gap-3 px-4 pt-4 pb-3 lg:px-5 lg:pt-5"
@@ -89,7 +104,7 @@ const ClassCard = ({
 
       <div className="px-4 pb-4 lg:px-5 lg:pb-5">
         {cultureClass.description && (
-          <p className="text-[13px] lg:text-[16.5px] text-gray-600 dark:text-white/60 lg:text-gray-700 lg:dark:text-white/75 leading-relaxed whitespace-pre-wrap">
+          <p className="text-[13px] lg:text-[16.5px] text-gray-600 dark:text-white/60 lg:text-gray-700 lg:dark:text-white/75 leading-relaxed whitespace-pre-wrap line-clamp-3">
             {cultureClass.description}
           </p>
         )}
@@ -103,11 +118,12 @@ const ClassCard = ({
           ]
             .filter((row) => row.value)
             .map((row) => (
-              <div key={row.icon} className="flex items-center gap-2">
-                <span className="material-icons-outlined text-[15px] lg:text-[19px] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/50">
+              <div key={row.icon} className="flex items-start gap-2">
+                <span className="material-icons-outlined text-[15px] lg:text-[19px] leading-[1.25] text-gray-400 dark:text-white/35 lg:text-gray-500 lg:dark:text-white/50">
                   {row.icon}
                 </span>
-                <span className="text-[12.5px] lg:text-[15.5px] text-gray-600 dark:text-white/55 lg:text-gray-700 lg:dark:text-white/70">{row.value}</span>
+                {/* 시간은 반마다 줄을 바꿔 적을 수 있다 */}
+                <span className="text-[12.5px] lg:text-[15.5px] text-gray-600 dark:text-white/55 lg:text-gray-700 lg:dark:text-white/70 whitespace-pre-line">{row.value}</span>
               </div>
             ))}
         </div>
@@ -156,11 +172,22 @@ const ClassCard = ({
           )
         )}
 
+        {/* 자세히 보기 — 강좌 소개 전문·강사 소개·수업 계획표 */}
+        <button
+          type="button"
+          onClick={() => onOpen(cultureClass)}
+          className="mt-3.5 flex w-full items-center justify-center gap-1 py-2.5 text-sm lg:h-12 lg:py-0 lg:text-[16px] font-semibold rounded-xl border transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.04]"
+          style={{ borderColor: withAlpha(accent.color, 0.4), color: accent.color }}
+        >
+          강좌 자세히 보기
+          <span className="material-icons-outlined text-[18px] lg:text-[20px]">chevron_right</span>
+        </button>
+
         {cultureClass.is_open && (
           <button
             onClick={() => onApply(cultureClass)}
             disabled={isFull}
-            className={`relative mt-3.5 w-full py-2.5 text-sm lg:h-14 lg:py-0 lg:text-[17px] lg:font-bold font-semibold rounded-xl transition-colors [--seal-radius:0.75rem] ${
+            className={`relative mt-2 w-full py-2.5 text-sm lg:h-14 lg:py-0 lg:text-[17px] lg:font-bold font-semibold rounded-xl transition-colors [--seal-radius:0.75rem] ${
               isFull
                 ? 'bg-gray-200 text-gray-400 dark:bg-white/[0.06] dark:text-white/35'
                 : 'seal-chip bg-brand hover:bg-brand-dim text-white'

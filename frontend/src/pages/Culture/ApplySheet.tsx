@@ -6,7 +6,7 @@ import { showToast } from '../../utils/toast'
 import { writeToClipboard } from '../Bible/components/verseCopy'
 import { createCultureApplication } from '../../api/culture'
 import type { CultureClass, CultureApplication } from '../../types/culture'
-import { getCultureAccent, withAlpha } from './cultureAccents'
+import { getClassAccent, withAlpha } from './cultureAccents'
 import { useFeedTextScale } from '../../utils/feedTextScale'
 import './culture-apply.css'
 import { SheetGrabber } from '../../components/common/SheetGrabber'
@@ -89,7 +89,7 @@ interface ApplySheetProps {
 const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => {
   // 뒤로가기 → 시트만 닫기
   useModalBackButton(onClose)
-  const accent = getCultureAccent(cultureClass.title)
+  const accent = getClassAccent(cultureClass)
   // 헤더 '가' 배율 — 시트는 body 포털이라 <main data-app-scale> zoom 을 받지 못해 패널이 직접 따라간다(lg 에서만)
   const textScale = useFeedTextScale()
   const [form, setForm] = useState({

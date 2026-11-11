@@ -31,6 +31,7 @@ import {
 } from './CultureIcons'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { ClassCard } from './components/ClassCard'
+import ClassDetailSheet from './components/ClassDetailSheet'
 import { cardClass, datePickerTriggerClass, inputClass, labelClass } from './components/styles'
 import './culture-hero.css'
 
@@ -43,6 +44,13 @@ const SECTIONS: { key: SectionKey; label: string; Icon: IconComponent }[] = [
   { key: 'lookup', label: '신청 내역', Icon: ClipboardCheckIcon },
   { key: 'notice', label: '공지사항', Icon: MegaphoneIcon },
   { key: 'contact', label: '문의', Icon: SupportIcon },
+]
+
+// 우측 레일 '신청은 이렇게' 단계
+const GUIDE_STEPS = [
+  '강좌 카드에서 수강신청 버튼을 눌러 신청서를 작성해 주세요',
+  '수강료를 입금하시면 등록이 완료됩니다',
+  '12회 일괄 또는 5회 분할 입금이 가능합니다',
 ]
 
 const STATUS_LABEL: Record<CultureApplicationStatus, string> = {
@@ -87,6 +95,9 @@ const Culture = () => {
 
   // 수강신청 바텀시트
   const [applyTarget, setApplyTarget] = useState<CultureClass | null>(null)
+  // 상세는 id 로 들고 있다 — 신청 뒤 목록이 새로 오면 남은 자리 수가 따라 바뀐다
+  const [detailId, setDetailId] = useState<number | null>(null)
+  const detailTarget = detailId === null ? null : (classes.find((c) => c.id === detailId) ?? null)
 
   // 신청 확인·취소
   const [lookupForm, setLookupForm] = useState({ phone: '', birth_date: '' })
@@ -177,10 +188,10 @@ const Culture = () => {
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
       {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/sermon 등과 같은 규격).
-          items-stretch + 레일만 self-start — 레일 높이가 줄 높이를 받쳐 줘서, 공지사항처럼
-          내용이 짧은 탭에서도 본문 판이 레일보다 짧아지지 않는다(탭 전환 때 판이 들쭉날쭉 X) */}
+          items-stretch 로 두 칸의 높이를 항상 같게 — 어느 탭에서든 본문 판 밑변 = 레일 밑변.
+          본문이 짧으면(공지사항) 레일 높이가 판을 받치고, 본문이 길면 레일의 안내 카드가 늘어나 맞춘다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-stretch lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0">
+      <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:pb-6 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0">
         {/* 헤더 — 오른쪽에 삽화(culture-hero.css)를 높이맞춤으로 깐다.
             안내 문구는 모바일에서 삽화 위를 지나가므로 폭을 묶어 두 줄로 접는다. */}
         <header className="culture-hero px-4 pt-5 pb-3">
@@ -238,9 +249,9 @@ const Culture = () => {
               {/* ── 강좌 ── */}
               {section === 'classes' && (
                 <>
-                  {/* 시즌 모집 히어로 배너 */}
+                  {/* 시즌 모집 히어로 배너 — lg+ 에선 우측 레일 맨 위에 같은 배너가 있어 숨긴다 */}
                   {openClasses.length > 0 && (
-                    <div className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
+                    <div className="relative overflow-hidden lg:hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
                       <div className="absolute -top-6 -right-4 opacity-20 rotate-12 pointer-events-none select-none text-brand">
                         <HeroSeasonIcon width={78} height={78} strokeWidth={1.4} />
                       </div>
@@ -275,7 +286,7 @@ const Culture = () => {
                     // lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 카드 그리드
                     <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
                       {classes.map((c) => (
-                        <ClassCard key={c.id} cultureClass={c} onApply={setApplyTarget} />
+                        <ClassCard key={c.id} cultureClass={c} onApply={setApplyTarget} onOpen={(cls) => setDetailId(cls.id)} />
                       ))}
                     </div>
                   )}
@@ -543,9 +554,11 @@ const Culture = () => {
 
       {/* 우측 위젯 레일 (lg+) — 모집 현황·이용 안내·문의를 본문 밖으로 빼
           넓어진 본문은 강좌 카드에 집중하게 한다 */}
-      <aside className="rail-lift hidden lg:flex lg:self-start lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
+      <aside className="hidden lg:block lg:w-[312px] lg:shrink-0">
+        {/* 안쪽 묶음이 줄 높이(h-full)를 채우되 화면 높이를 넘지 않고(max-h) 따라 내려온다(sticky) */}
+        <div className="rail-lift lg:sticky lg:top-[4.5rem] lg:flex lg:h-full lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:flex-col lg:gap-3 lg:overflow-y-auto scrollbar-hide">
         {!loading && openClasses.length > 0 && (
-          <section className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
+          <section className="relative shrink-0 overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
             <div className="absolute -top-5 -right-3 opacity-20 rotate-12 pointer-events-none select-none text-brand">
               <HeroSeasonIcon width={64} height={64} strokeWidth={1.4} />
             </div>
@@ -559,25 +572,33 @@ const Culture = () => {
           </section>
         )}
 
-        <section className={`${cardClass} p-4`}>
-          <p className="flex items-center gap-1.5 mb-2 text-[11.5px] lg:text-[14px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65">
+        {/* 남는 높이는 이 카드가 받는다 — 단계 사이 이음선이 늘어나 빈칸 없이 채워진다 */}
+        <section className={`${cardClass} flex flex-[1_0_auto] flex-col p-4`}>
+          <p className="flex items-center gap-1.5 mb-3 text-[11.5px] lg:text-[14px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65">
             <span className="material-icons-outlined text-[15px] lg:text-[18px] text-brand">info</span>
             신청은 이렇게
           </p>
-          <div className="space-y-1.5">
-            {[
-              '① 강좌 카드에서 수강신청 버튼을 눌러 신청서를 작성해 주세요',
-              '② 수강료를 입금하시면 등록이 완료됩니다',
-              '③ 12회 일괄 또는 5회 분할 입금이 가능합니다',
-            ].map((step) => (
-              <p key={step} className="text-[12.5px] lg:text-[15px] text-gray-600 dark:text-white/55 lg:text-gray-700 lg:dark:text-white/70 leading-[1.6]">
-                {step}
-              </p>
-            ))}
-          </div>
+          <ol className="flex flex-1 flex-col">
+            {GUIDE_STEPS.map((step, i) => {
+              const last = i === GUIDE_STEPS.length - 1
+              return (
+                <li key={step} className={`flex gap-2.5 ${last ? '' : 'flex-1'}`}>
+                  <span className="flex flex-col items-center">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[12.5px] font-bold text-brand tabular-nums">
+                      {i + 1}
+                    </span>
+                    {!last && <span className="my-1 min-h-[10px] w-px flex-1 bg-[var(--brand-soft-strong)]" />}
+                  </span>
+                  <span className={`text-[12.5px] lg:text-[15px] text-gray-600 dark:text-white/55 lg:text-gray-700 lg:dark:text-white/70 leading-[1.6] ${last ? '' : 'pb-3'}`}>
+                    {step}
+                  </span>
+                </li>
+              )
+            })}
+          </ol>
         </section>
 
-        <section className={`${cardClass} p-4`}>
+        <section className={`${cardClass} shrink-0 p-4`}>
           <p className="mb-2.5 text-[11.5px] lg:text-[14px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50 lg:text-gray-600 lg:dark:text-white/65">
             강좌 문의
           </p>
@@ -602,8 +623,18 @@ const Culture = () => {
             카카오 채널 · 입금 계좌 보기
           </button>
         </section>
+        </div>
       </aside>
       </div>
+
+      {/* 강좌 상세 — 신청 시트는 그 위에 겹쳐 뜬다 */}
+      {detailTarget && (
+        <ClassDetailSheet
+          cultureClass={detailTarget}
+          onClose={() => setDetailId(null)}
+          onApply={setApplyTarget}
+        />
+      )}
 
       {/* 수강신청 바텀시트 */}
       {applyTarget && (

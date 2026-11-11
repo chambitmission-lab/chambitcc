@@ -14,3 +14,20 @@
   .culture-apply-panel[data-scale='large'] { --apply-z: 1.15; }
   .culture-apply-panel[data-scale='xlarge'] { --apply-z: 1.3; }
 }
+
+/* 강좌 상세(ClassDetailSheet) — 모바일은 아래 시트(92vh), PC 는 오른쪽 패널(화면 높이).
+ * 같은 이유로 body 포털이라 헤더 '가' 배율을 패널 zoom 으로 직접 따라간다. */
+.culture-detail-panel {
+  max-height: 92vh;
+}
+
+@media (min-width: 1024px) {
+  .culture-detail-panel {
+    --detail-z: 1;
+    zoom: var(--detail-z);
+    max-height: none;
+    height: calc(100vh / var(--detail-z));
+  }
+  .culture-detail-panel[data-scale='large'] { --detail-z: 1.15; }
+  .culture-detail-panel[data-scale='xlarge'] { --detail-z: 1.3; }
+}

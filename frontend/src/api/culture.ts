@@ -54,6 +54,18 @@ export const deleteCultureClass = async (id: number): Promise<void> => {
   await requestRaw(`/culture/classes/${id}`, { method: 'DELETE', errorMessage: '강좌 삭제에 실패했습니다' })
 }
 
+/** 강좌 사진 업로드 (관리자, R2). URL 저장은 등록/수정 요청이 담당한다 */
+export const uploadCultureImage = async (file: File): Promise<string> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const body = await request<{ url: string }>('/culture/upload-image', {
+    method: 'POST',
+    body: formData,
+    errorMessage: '사진 업로드에 실패했습니다',
+  })
+  return body.url
+}
+
 // ── 수강신청 ──────────────────────────────────────────────────────────
 
 // 수강신청 (비회원 가능)

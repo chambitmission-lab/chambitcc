@@ -76,6 +76,7 @@
     "directions_walk",
     "diversity_3",
     "dock",
+    "domain",
     "done",
     "download",
     "drag_indicator",
@@ -112,6 +113,7 @@
     "format_align_left",
     "format_align_right",
     "format_color_reset",
+    "format_list_bulleted",
     "format_list_numbered",
     "format_quote",
     "format_size",
@@ -176,6 +178,7 @@
     "menu",
     "menu_book",
     "message",
+    "messenger",
     "mic",
     "mode",
     "mood",
@@ -344,10 +347,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 27476
+    "bytes": 27480
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 30304
+    "bytes": 30620
   }
 }
