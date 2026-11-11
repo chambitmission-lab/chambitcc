@@ -3,10 +3,12 @@
 
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useQuery } from '@tanstack/react-query'
 import type { CultureClass, CultureDetailSection } from '../../../types/culture'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useFeedTextScale } from '../../../utils/feedTextScale'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
+import { classDetailQuery } from '../classDetailQuery'
 import { getClassAccent, withAlpha } from '../cultureAccents'
 import '../culture-apply.css'
 
@@ -107,7 +109,10 @@ const ClassDetailSheet = ({
   const textScale = useFeedTextScale()
 
   const c = cultureClass
-  const d = c.detail
+  // 목록엔 카드 칸만 실려 온다 — 계획표·꼭지·강사 소개는 여기서 받는다(카드에 손이 닿을 때 미리 받아 둔다).
+  // 받는 동안·실패(옛 서버)엔 목록에 실린 것으로 그린다. 잔여석 등 나머지는 늘 목록 값.
+  const { data: full } = useQuery(classDetailQuery(c.id))
+  const d = full?.detail ?? c.detail
   const accent = getClassAccent(c)
   const color = accent.color
 

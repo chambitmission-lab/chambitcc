@@ -8,14 +8,18 @@ const ClassCard = ({
   cultureClass,
   onApply,
   onOpen,
+  onPeek,
 }: {
   cultureClass: CultureClass
   onApply: (c: CultureClass) => void
   /** 강좌 상세 열기 */
   onOpen: (c: CultureClass) => void
+  /** 카드에 손·커서가 닿음 — 상세를 미리 받아 둘 때 */
+  onPeek?: (c: CultureClass) => void
 }) => {
   const accent = getClassAccent(cultureClass)
-  const cover = cultureClass.detail?.cover_image_url
+  // 카드는 작은 사본을 쓴다 — 사본이 없는 예전 사진은 본 사진 그대로
+  const cover = cultureClass.detail?.cover_thumb_url || cultureClass.detail?.cover_image_url
   const days = parseScheduleDays(cultureClass.schedule)
 
   const capacity = cultureClass.capacity ?? null
@@ -27,7 +31,11 @@ const ClassCard = ({
   const almostFull = hasSeatInfo && !isFull && (remaining! <= 3 || ratio >= 0.8)
 
   return (
-    <div className={`${cardClass} overflow-hidden`}>
+    <div
+      className={`${cardClass} overflow-hidden`}
+      onPointerEnter={onPeek && (() => onPeek(cultureClass))}
+      onFocus={onPeek && (() => onPeek(cultureClass))}
+    >
       {/* 대표 사진 — 등록한 강좌만. 누르면 상세 */}
       {cover && (
         <button type="button" onClick={() => onOpen(cultureClass)} className="block w-full" aria-label={`${cultureClass.title} 자세히 보기`}>

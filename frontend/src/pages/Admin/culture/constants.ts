@@ -44,6 +44,7 @@ export const EMPTY_CLASS_FORM = {
   display_order: 0,
   // ── 강좌 상세 ──
   cover_image_url: '',
+  cover_thumb_url: '',
   accent: '',
   target: '',
   duration: '',
@@ -68,6 +69,7 @@ export const classToForm = (c: CultureClass): ClassForm => ({
   is_active: c.is_active,
   display_order: c.display_order,
   cover_image_url: c.detail?.cover_image_url ?? '',
+  cover_thumb_url: c.detail?.cover_thumb_url ?? '',
   accent: c.detail?.accent ?? '',
   target: c.detail?.target ?? '',
   duration: c.detail?.duration ?? '',
@@ -99,6 +101,7 @@ export const formToPayload = (form: ClassForm): CreateCultureClassRequest => {
     display_order: form.display_order,
     detail: {
       cover_image_url: form.cover_image_url || null,
+      cover_thumb_url: (form.cover_image_url && form.cover_thumb_url) || null,
       accent: form.accent || null,
       target: form.target.trim() || null,
       duration: form.duration.trim() || null,

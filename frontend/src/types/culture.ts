@@ -19,6 +19,8 @@ export interface CultureDetailSection {
 /** 강좌 상세 — 기본 틀(대표 사진·대상·기간·강사 소개·수업 계획표) + 자유 꼭지 */
 export interface CultureClassDetail {
   cover_image_url?: string | null
+  /** 목록 카드용 작은 사본 — 사진을 올릴 때 함께 만들어진다. 없으면 카드도 본 사진을 쓴다 */
+  cover_thumb_url?: string | null
   /** 강좌 대표 색 #rrggbb — 없으면 강좌명으로 고른 색 */
   accent?: string | null
   target?: string | null
@@ -39,7 +41,8 @@ export interface CultureClass {
   capacity?: number | null
   location?: string | null
   quarter?: string | null
-  /** 구버전 백엔드 응답·기존 강좌엔 없을 수 있음 */
+  /** 구버전 백엔드 응답·기존 강좌엔 없을 수 있음.
+   * 공개 목록은 카드에 쓰는 칸(사진·색·대상·기간)만 온다 — 계획표·꼭지는 getCultureClass 로 받는다 */
   detail?: CultureClassDetail | null
   is_open: boolean
   is_active: boolean

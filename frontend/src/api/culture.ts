@@ -16,9 +16,14 @@ import { request, requestRaw } from './utils/request'
 
 // ── 강좌 ──────────────────────────────────────────────────────────────
 
-// 공개 강좌 목록 (인증 불필요)
+// 공개 강좌 목록 (인증 불필요) — 상세는 카드에 쓰는 칸만 온다(slim). 계획표·꼭지는 getCultureClass
 export const getCultureClasses = async (): Promise<CultureClass[]> => {
-  return request<CultureClass[]>('/culture/classes', { errorMessage: '강좌 목록을 불러오지 못했습니다' })
+  return request<CultureClass[]>('/culture/classes?slim=1', { errorMessage: '강좌 목록을 불러오지 못했습니다' })
+}
+
+// 공개 강좌 한 건 — 상세 전체 (강좌를 열 때)
+export const getCultureClass = async (id: number): Promise<CultureClass> => {
+  return request<CultureClass>(`/culture/classes/${id}`, { errorMessage: '강좌 안내를 불러오지 못했습니다' })
 }
 
 // 전체 강좌 목록 + 신청자 수 (관리자)
@@ -54,16 +59,23 @@ export const deleteCultureClass = async (id: number): Promise<void> => {
   await requestRaw(`/culture/classes/${id}`, { method: 'DELETE', errorMessage: '강좌 삭제에 실패했습니다' })
 }
 
-/** 강좌 사진 업로드 (관리자, R2). URL 저장은 등록/수정 요청이 담당한다 */
-export const uploadCultureImage = async (file: File): Promise<string> => {
+/** 강좌 사진 업로드 (관리자, R2). URL 저장은 등록/수정 요청이 담당한다.
+ * withThumb: 대표 사진은 목록 카드용 작은 사본도 함께 만든다(thumbUrl) */
+export const uploadCultureImage = async (
+  file: File,
+  withThumb = false,
+): Promise<{ url: string; thumbUrl: string | null }> => {
   const formData = new FormData()
   formData.append('file', file)
-  const body = await request<{ url: string }>('/culture/upload-image', {
-    method: 'POST',
-    body: formData,
-    errorMessage: '사진 업로드에 실패했습니다',
-  })
-  return body.url
+  const body = await request<{ url: string; thumb_url?: string | null }>(
+    `/culture/upload-image${withThumb ? '?thumb=1' : ''}`,
+    {
+      method: 'POST',
+      body: formData,
+      errorMessage: '사진 업로드에 실패했습니다',
+    },
+  )
+  return { url: body.url, thumbUrl: body.thumb_url ?? null }
 }
 
 // ── 수강신청 ──────────────────────────────────────────────────────────

@@ -55,10 +55,14 @@ const ImageField = ({
   url,
   onChange,
   tall,
+  withThumb,
 }: {
   url: string
-  onChange: (url: string) => void
+  /** thumbUrl — withThumb 로 올렸을 때 목록 카드용 작은 사본 */
+  onChange: (url: string, thumbUrl?: string | null) => void
   tall?: boolean
+  /** 대표 사진 — 카드용 작은 사본도 함께 만든다 */
+  withThumb?: boolean
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -67,7 +71,8 @@ const ImageField = ({
     if (!file) return
     try {
       setUploading(true)
-      onChange(await uploadCultureImage(file))
+      const uploaded = await uploadCultureImage(file, withThumb)
+      onChange(uploaded.url, uploaded.thumbUrl)
     } catch (error) {
       showToast(error instanceof Error ? error.message : '사진 업로드에 실패했습니다', 'error')
     } finally {
@@ -208,8 +213,9 @@ const ClassFormPanel = ({
             <label className={labelClass}>대표 사진 (강좌 상세 맨 위 · 강좌 카드)</label>
             <ImageField
               url={form.cover_image_url}
-              onChange={(url) => set({ cover_image_url: url })}
+              onChange={(url, thumbUrl) => set({ cover_image_url: url, cover_thumb_url: (url && thumbUrl) || '' })}
               tall
+              withThumb
             />
           </div>
           <div>

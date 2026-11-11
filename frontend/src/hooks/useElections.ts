@@ -53,6 +53,7 @@ import type {
   ElectionPayload,
   OpenRoundPayload,
 } from '../types/election'
+import { invalidateThrottled } from '../utils/invalidateThrottled'
 import { notificationStream } from '../utils/notificationStream'
 import type { MutationFeedback } from './mutationFeedback'
 
@@ -284,8 +285,9 @@ export const useDeleteAssembly = (feedback?: MutationFeedback<void, number>) => 
   })
 }
 
-/** 현황판 탭 — 같은 공동의회 선거들의 진행 상황. 회차 변화는 SSE 가 통째로 무효화해 주고,
- * 표 수는 이벤트가 이 캐시를 고치지 않으므로 투표가 열려 있는 동안 15초마다 조용히 다시 받는다. */
+/** 현황판 탭 — 같은 공동의회 선거들의 진행 상황. 회차 변화는 SSE 가 통째로 무효화하고,
+ * 투표 수는 표 이벤트가 이 캐시를 바로 고친다(electionLiveSync.patchBoards).
+ * 종이 표·최근 흐름은 이벤트에 없어 투표가 열려 있는 동안 30초(끊긴 동안 15초)마다 다시 받는다. */
 export const useAssemblyBoard = (id: number | null | undefined) =>
   useQuery({
     queryKey: electionKeys.assemblyBoard(id ?? 0),
@@ -293,7 +295,11 @@ export const useAssemblyBoard = (id: number | null | undefined) =>
     enabled: !!id,
     staleTime: 0,
     refetchInterval: (query) =>
-      query.state.data?.elections.some((e) => e.current_round_status === 'open') ? 1000 * 15 : false,
+      query.state.data?.elections.some((e) => e.current_round_status === 'open')
+        ? notificationStream.connected
+          ? 1000 * 30
+          : 1000 * 15
+        : false,
     refetchIntervalInBackground: false,
     retry: false,
   })
@@ -321,7 +327,17 @@ export const useAssemblyAction = (feedback?: MutationFeedback<BulkResult, Assemb
       }
     },
     onSuccess: (result, action) => {
-      void qc.invalidateQueries({ queryKey: electionKeys.all })
+      if (action.kind === 'issue') {
+        // 교부는 줄 선 분들께 연달아 누른다 — 바뀌는 건 교부한 선거의 현황판·운영 기록과 탭 요약뿐이라
+        // 그것만 다시 받는다(전체 무효화는 건당 요청 4~5개). 현황판은 SSE 되울림과 한 번으로 모은다.
+        for (const { id } of result.done) {
+          invalidateThrottled(qc, electionKeys.adminDetail(id))
+          void qc.invalidateQueries({ queryKey: electionKeys.audit(id) })
+        }
+        void qc.invalidateQueries({ queryKey: electionKeys.assemblyBoard(action.assemblyId) })
+      } else {
+        void qc.invalidateQueries({ queryKey: electionKeys.all })
+      }
       feedback?.onSuccess?.(result, action)
     },
     onError: (error: Error, action) => {

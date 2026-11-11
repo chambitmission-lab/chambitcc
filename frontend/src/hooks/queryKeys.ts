@@ -242,6 +242,8 @@ export const gardenKeys = {
 export const cultureKeys = {
   all: ['culture'] as const,
   classes: () => [...cultureKeys.all, 'classes'] as const,
+  /** 강좌 한 건(상세 전체) — 목록은 카드 칸만 싣는다 */
+  classDetail: (id: number) => [...cultureKeys.all, 'class', id] as const,
   notices: () => [...cultureKeys.all, 'notices'] as const,
 }
 

@@ -1,6 +1,7 @@
 import { formatLongDate } from '../../utils/dateUtils'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { cultureKeys } from '../../hooks/queryKeys'
+import { classDetailQuery } from './classDetailQuery'
 import { useEffect, useState } from 'react'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { CULTURE_HERO } from '../../utils/themeAssets'
@@ -98,6 +99,8 @@ const Culture = () => {
   // 상세는 id 로 들고 있다 — 신청 뒤 목록이 새로 오면 남은 자리 수가 따라 바뀐다
   const [detailId, setDetailId] = useState<number | null>(null)
   const detailTarget = detailId === null ? null : (classes.find((c) => c.id === detailId) ?? null)
+  // 카드에 손·커서가 닿으면 상세(계획표·꼭지)를 미리 받아 둔다 — 열었을 때 내용이 뒤늦게 밀려 나오지 않게
+  const peekDetail = (cls: CultureClass) => void qc.prefetchQuery(classDetailQuery(cls.id))
 
   // 신청 확인·취소
   const [lookupForm, setLookupForm] = useState({ phone: '', birth_date: '' })
@@ -286,7 +289,7 @@ const Culture = () => {
                     // lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 카드 그리드
                     <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
                       {classes.map((c) => (
-                        <ClassCard key={c.id} cultureClass={c} onApply={setApplyTarget} onOpen={(cls) => setDetailId(cls.id)} />
+                        <ClassCard key={c.id} cultureClass={c} onApply={setApplyTarget} onOpen={(cls) => setDetailId(cls.id)} onPeek={peekDetail} />
                       ))}
                     </div>
                   )}

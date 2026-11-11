@@ -11,7 +11,7 @@
 // 키는 hooks/useElections.ts 의 electionKeys 와 같은 리터럴이다 — 그쪽이
 // notificationStream 을 import 하므로 여기서 되가져오면 순환한다.
 import type { QueryClient, QueryKey } from '@tanstack/react-query'
-import type { ElectionDetail, ElectionRoundStatus, ElectionSummary } from '../types/election'
+import type { AssemblyBoard, ElectionDetail, ElectionRoundStatus, ElectionSummary } from '../types/election'
 import { invalidateThrottled } from './invalidateThrottled'
 
 const ALL: QueryKey = ['elections']
@@ -19,6 +19,8 @@ const LIST_KEYS: QueryKey[] = [
   ['elections', 'list'],
   ['elections', 'admin'],
 ]
+/** 공동의회 현황판 탭 — ['elections', 'assembly-board', 공동의회 id] 들의 앞머리 */
+const BOARDS: QueryKey = ['elections', 'assembly-board']
 const detailKey = (id: number): QueryKey => ['elections', 'detail', id]
 const adminDetailKey = (id: number): QueryKey => ['elections', 'admin-detail', id]
 
@@ -93,6 +95,32 @@ const patchDetail = (qc: QueryClient, ev: ElectionUpdateEvent): void => {
   )
 }
 
+/** 공동의회 현황판 탭(소속 선거 요약 묶음) — 목록과 같은 방식으로 투표 수만 고친다(요청 0).
+ * 예전엔 이 캐시를 15초 폴링으로만 맞췄다. 종이 표·최근 흐름은 이벤트에 없어 폴링 안전망이 채운다. */
+const patchBoards = (qc: QueryClient, ev: ElectionUpdateEvent): void => {
+  for (const [queryKey, board] of qc.getQueriesData<AssemblyBoard>({ queryKey: BOARDS })) {
+    const row = board?.elections.find((e) => e.id === ev.election_id)
+    if (!row || !patchable(qc, queryKey)) continue
+    if (row.current_round_no !== ev.round_no || row.current_round_status !== ev.round_status) {
+      void qc.invalidateQueries({ queryKey })
+      continue
+    }
+    if (row.voted_count === ev.voted_count && row.voters_total === ev.voters_total) continue
+    qc.setQueryData<AssemblyBoard>(
+      queryKey,
+      (old) =>
+        old && {
+          ...old,
+          elections: old.elections.map((e) =>
+            e.id === ev.election_id
+              ? { ...e, voted_count: ev.voted_count, voters_total: ev.voters_total }
+              : e,
+          ),
+        },
+    )
+  }
+}
+
 export const applyElectionUpdate = (qc: QueryClient, raw: string): void => {
   const ev = parse(raw)
   if (!ev || !ev.kind) {
@@ -104,6 +132,7 @@ export const applyElectionUpdate = (qc: QueryClient, raw: string): void => {
     return
   }
   for (const key of LIST_KEYS) patchList(qc, key, ev)
+  patchBoards(qc, ev)
   patchDetail(qc, ev)
   // 현황판은 득표·선거인별 투표 여부·종이 표까지 바뀐다 — 다시 받되 몰아서.
   // 표 수가 이미 같으면 내가 방금 넣은 종이 표의 되울림이다(응답으로 캐시를 맞춰 둔 상태).
