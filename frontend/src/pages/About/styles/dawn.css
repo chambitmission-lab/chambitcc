@@ -1,30 +1,55 @@
-/* 첫 화면 — 어둠 속 한 줄기 빛
-   하늘 카드(테마별) 하나: 빛줄기 → 빛 무리(진입 때 한 번 개화) → 교회 이름(주인공) · 요 1:9(곁에).
-   모바일은 이름 → 말씀 위아래, PC 는 이름 왼쪽 · 말씀 오른쪽(가운데 빛기둥을 사이에 둔다).
-   카드 아래 가장자리엔 바로가기 알약(.ab-jump, magazine.css)이 걸친다. */
+/* 첫 화면 — 하늘에 걸린 말씀 족자 (2026-11-12 C1 세로쓰기)
+   땅 없는 새벽/아침 하늘 사진(테마별) 위에, 오른쪽 위로 세로쓰기 '참빛' + 요 1:9 + 출처가 족자처럼 걸린다.
+   아래 한 줄: 왼쪽 바로가기 · 오른쪽 교회 이름 묶음 + 예배 버튼(같은 가운데 선).
+   마을 풍경은 "저기가 어디지?" 느낌이 강해 걷어냈다 — 배경엔 땅·건물을 넣지 말 것.
+   세로쓰기는 한국어만(.is-vertical). 다른 언어는 같은 자리에 가로로 오른쪽 정렬. */
 
 .ab-dawn {
+  /* 라이트: 아침 하늘 위 진한 먹색 글씨 */
+  --ab-dawn-ink: #18202e;
+  --ab-dawn-sub: rgba(24, 32, 46, 0.78);
+  --ab-dawn-accent: #a8650a;
+  --ab-dawn-glyph: 0 0 14px rgba(255, 255, 255, 0.9), 0 0 3px rgba(255, 255, 255, 0.8);
+  --ab-dawn-shade:
+    linear-gradient(270deg, rgba(246, 249, 252, 0.45) 0%, transparent 45%),
+    linear-gradient(0deg, rgba(246, 249, 252, 0.45), transparent 25%);
+  --ab-dawn-cta-bg: #1c2230;
+  --ab-dawn-cta-ink: #ffffff;
+
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 2.5rem;
   /* 본문 폭(.ab-body 와 같은 1240 - 좌우 거터) 안의 라운드 카드 */
   width: min(100% - 2 * var(--ab-gutter), 1240px - 2 * var(--ab-gutter));
   margin: 1rem auto 0;
   /* 첫 화면을 채우되 아래 이야기 첫머리가 살짝 보이게.
      PC 는 zoom(--az) 안이라 vh 가 함께 커진다 → 나눠서 되돌린다 */
-  min-height: 520px;
+  min-height: 560px;
   min-height: calc((100svh - 56px) / var(--az, 1) - 4.5rem);
-  gap: 2.5rem;
-  padding: 3.5rem 1.5rem 9rem;
+  padding: 2.25rem 1.5rem 1.75rem;
   overflow: hidden;
   border-radius: 28px;
-  text-align: center;
+  color: var(--ab-dawn-ink);
 }
 
-/* 그림 — 위 가운데 빛기둥 + 아래 안개 낀 마을(창마다 불). 아래 그라데이션(.ab-sky)이 로딩 전 자리를 지킨다.
-   CSS 배경은 preload 스캐너 사각지대라 선요청은 themeAssets.ts 의 ABOUT_DAWN_* 가 맡는다 */
+/* 다크: 동트기 직전 하늘 위 아이보리 글씨 + 먹빛 그림자 테두리 */
+.dark .ab-dawn {
+  --ab-dawn-ink: #fffaf0;
+  --ab-dawn-sub: rgba(239, 233, 223, 0.78);
+  --ab-dawn-accent: #ffc56b;
+  --ab-dawn-glyph: 0 0 14px rgba(4, 8, 16, 0.85), 0 0 3px rgba(4, 8, 16, 0.9);
+  --ab-dawn-shade:
+    linear-gradient(180deg, rgba(6, 10, 20, 0.45) 0%, transparent 45%),
+    linear-gradient(0deg, rgba(6, 10, 20, 0.85) 0%, transparent 30%);
+  --ab-dawn-cta-bg: #ffc56b;
+  --ab-dawn-cta-ink: #0a0f1a;
+}
+
+/* 하늘 사진 — 아래 그라데이션(.ab-sky)이 로딩 전 자리를 지킨다.
+   CSS 배경은 preload 스캐너 사각지대라 선요청은 themeAssets.ts 의 ABOUT_DAWN_* 가 맡는다.
+   빛은 사진 왼쪽 아래에서 번진다 → 아래 기준으로 자른다 */
 .ab-dawn-art {
   position: absolute;
   inset: 0;
@@ -42,99 +67,86 @@
   background-image: url('../../../assets/about/dawn-dark-m.webp');
 }
 
-/* 그림에 빛기둥이 그려져 있다 — CSS 빛줄기를 겹치면 두 줄이 된다 */
-.ab-dawn-art.is-loaded ~ .ab-dawn-beam {
-  opacity: 0;
-}
-
-/* 위에서 내려오는 빛줄기 */
-.ab-dawn-beam {
+/* 글씨 쪽에만 옅은 막 — 하늘이 비쳐 글자가 묻히지 않게 */
+.ab-dawn-shade {
   position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 22%;
-  transform: translateX(-50%);
-  /* 말씀에 닿기 전에 사그라든다 — 글자를 관통하지 않게 */
-  background: linear-gradient(to bottom, transparent, var(--ab-beam) 55%, transparent);
+  inset: 0;
+  background: var(--ab-dawn-shade);
   pointer-events: none;
 }
 
-/* 빛 무리 — 첫 화면이 열릴 때 한 번 피어나 그대로 머문다 */
-.ab-dawn-glow {
-  position: absolute;
-  top: 30%;
-  left: 50%;
-  width: 520px;
-  height: 520px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(1.35);
-  background: radial-gradient(
-    circle,
-    var(--ab-glow-1) 0,
-    var(--ab-glow-2) 14%,
-    var(--ab-glow-3) 38%,
-    transparent 68%
-  );
-  animation: ab-glow-bloom 1.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both;
-  pointer-events: none;
-}
-
-@keyframes ab-glow-bloom {
-  from {
-    transform: translate(-50%, -50%) scale(0.3);
-    opacity: 0.4;
-  }
-  to {
-    transform: translate(-50%, -50%) scale(1.35);
-    opacity: 1;
-  }
-}
-
-/* 말씀 — 딱딱한 명조 대신 둥근 고운돋움(한 웨이트뿐이라 400) */
-.ab-dawn-verse {
+/* ── 족자: 세로쓰기 묶음(오른쪽 위) — vertical-rl 이라 첫 자식이 가장 오른쪽 ── */
+.ab-dawn-scroll {
   position: relative;
-  max-width: 22em;
-  font-family: var(--ab-verse);
-  font-size: 1.5rem;
-  font-weight: 400;
-  line-height: 1.75;
-  letter-spacing: -0.01em;
-  word-break: keep-all;
-  /* 빛줄기·빛 무리 위로, 하늘색 번짐을 글자 뒤에 깔아 또렷하게 */
   z-index: 1;
-  text-shadow: 0 0 14px var(--ab-sky-2), 0 0 28px var(--ab-sky-2);
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  writing-mode: vertical-rl;
+  text-shadow: var(--ab-dawn-glyph);
 }
 
-/* '빛' — 글자 자체가 은은하게 빛난다.
-   예전 형광펜(아래쪽 띠)은 한글 받침 자리에만 걸려 '빛'의 ㅊ만 칠한 것처럼 보였다 → 띠·배경 칠 금지 */
-.ab-hl {
-  background: none;
-  color: var(--ab-hl-ink);
-  text-shadow: var(--ab-hl-glow);
+/* '참빛' — 교회 이름에서 '교회'를 뗀 두 글자. '빛'만 금빛 */
+.ab-dawn-mark {
+  margin: 0;
+  font-family: 'Noto Serif KR', 'Gowun Batang', serif;
+  font-size: 3.75rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
 }
 
-/* 시처럼 짧게 끊은 줄 — 첫 줄("참 빛,")은 한 호흡 크게, 자간을 벌려 부르듯 */
+.ab-dawn-mark .is-light {
+  color: var(--ab-dawn-accent);
+}
+
+/* 말씀 — 관리자가 끊은 줄 하나가 세로 한 줄. 굵은 고운바탕 + 낱말 사이를 넉넉히 */
+.ab-dawn-verse {
+  margin: 0;
+  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 2;
+  letter-spacing: 0.06em;
+  word-spacing: 0.55em;
+  word-break: keep-all;
+}
+
 .ab-dawn-verse .ab-line {
   display: block;
 }
 
-.ab-dawn-verse .ab-line.is-lead {
-  margin-bottom: 0.2em;
-  font-size: 1.25em;
-  letter-spacing: 0.08em;
+/* '빛' — 금빛 글자 */
+.ab-dawn .ab-hl {
+  color: var(--ab-dawn-accent);
+}
+
+/* 출처 — 숫자 '1:9'는 세로줄 안에서 가로로 한 칸(.ab-tcy) */
+.ab-dawn-ref {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--ab-dawn-sub);
+}
+
+.ab-tcy {
+  text-combine-upright: all;
+  letter-spacing: 0;
 }
 
 /* 글자 하나하나 — 흐린 안개 속에서 '빛'부터 번지듯 켜진다(지연은 DawnVerse 가 거리로 계산).
-   transform 을 쓰지 않아 줄 배치·자간이 흔들리지 않는다 */
+   끝 상태는 항상 또렷(both) — 애니메이션이 멈춰도 흐리게 남지 않는다 */
 .ab-ch {
-  animation: ab-ch-lit 1.1s ease-out both;
+  animation: ab-ch-lit 1s ease-out both;
 }
 
 @keyframes ab-ch-lit {
   from {
-    opacity: 0.06;
-    filter: blur(4px);
+    opacity: 0.12;
+    filter: blur(3px);
   }
   to {
     opacity: 1;
@@ -142,81 +154,130 @@
   }
 }
 
-/* '빛'은 켜진 뒤 번짐이 한 번 더 차오른다 */
-.ab-ch.ab-hl {
-  animation-name: ab-ch-lit, ab-hl-light;
-  animation-duration: 1.1s, 1.6s;
+/* ── 다른 언어: 가로쓰기로 같은 자리(오른쪽 위) ── */
+.ab-dawn:not(.is-vertical) .ab-dawn-scroll {
+  writing-mode: horizontal-tb;
+  align-items: flex-end;
+  gap: 0.75rem;
+  max-width: 34rem;
+  text-align: right;
 }
 
-@keyframes ab-hl-light {
-  from {
-    text-shadow: 0 0 0 transparent, 0 0 0 transparent;
-  }
+.ab-dawn:not(.is-vertical) .ab-dawn-verse {
+  font-size: 1.375rem;
+  line-height: 1.6;
+  letter-spacing: 0;
+  word-spacing: normal;
 }
 
-/* 말씀 묶음(말씀 + 출처) */
-.ab-dawn-word {
+.ab-dawn:not(.is-vertical) .ab-dawn-ref {
+  letter-spacing: 0.12em;
+}
+
+/* ── 아래 한 줄: 바로가기 · 이름 묶음 + 예배 버튼 ── */
+.ab-dawn-base {
   position: relative;
   z-index: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: column-reverse;
+  gap: 1.25rem;
 }
 
-/* 출처 — 작은 알약 */
-.ab-dawn-ref {
-  position: relative;
-  z-index: 1;
-  margin-top: 1.25rem;
-  padding: 0.4rem 0.95rem;
-  border-radius: 999px;
-  background: var(--ab-row-bg);
-  box-shadow: inset 0 0 0 1px var(--ab-row-border);
+.ab-dawn-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+.ab-dawn-jump button {
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: var(--ab-dawn-sub);
+  font: inherit;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--ab-ink-2);
+  line-height: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+  text-shadow: var(--ab-dawn-glyph);
+  cursor: pointer;
+  transition: color 0.15s ease;
 }
 
-.ab-dawn-name {
-  position: relative;
-  z-index: 1;
+.ab-dawn-jump button:hover,
+.ab-dawn-jump button:focus-visible {
+  color: var(--ab-dawn-ink);
 }
 
-/* 키커 — 교회 이름 위 작은 본문 글씨(손글씨는 목사님 별칭에만 남겨 첫 화면 서체를 줄였다) */
-.ab-dawn-kicker {
-  display: inline-block;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-  color: var(--ab-ink-3);
+/* 모바일은 이름 아래 버튼 — 오른쪽 아래 떠 있는 챗봇 단추에 버튼이 가리지 않게 왼쪽에 쌓는다 */
+.ab-dawn-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
-/* 교회 이름 — 크롬·로그인과 같은 G마켓 산스(둥근 기하 획). "참빛교회"는 서브셋에 있다 */
-.ab-dawn-name h1 {
-  margin: 0.375rem 0 0;
+.ab-dawn-id {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+  text-shadow: var(--ab-dawn-glyph);
+}
+
+/* 교회 이름 — 크롬·로그인과 같은 G마켓 산스. "참빛교회"는 서브셋에 있다 */
+.ab-dawn-id h1 {
+  margin: 0;
   font-family: 'Gmarket Sans', 'Pretendard Variable', sans-serif;
-  font-size: 2.5rem;
+  font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-  color: var(--ab-ink);
-  text-shadow: var(--ab-name-glow);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--ab-dawn-ink);
 }
 
-/* 이름 아래 한 줄 — 관리자 문구(aboutTagline) */
-.ab-dawn-tagline {
-  margin: 0.75rem 0 0;
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.5;
+.ab-dawn-id p {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
   word-break: keep-all;
-  color: var(--ab-ink-2);
+  color: var(--ab-dawn-sub);
+}
+
+/* 예배 버튼 — 어르신 눈높이: 움직임 없이 색만 */
+.ab-dawn-cta {
+  flex: none;
+  min-height: 44px;
+  padding: 0 1.125rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ab-dawn-cta-bg);
+  color: var(--ab-dawn-cta-ink);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.ab-dawn-cta:hover {
+  filter: brightness(1.08);
+}
+
+.ab-dawn-cta:focus-visible,
+.ab-dawn-jump button:focus-visible {
+  outline: 2px solid var(--ab-dawn-ink);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ab-ch,
-  .ab-dawn-glow {
+  .ab-ch {
     animation: none;
   }
 
@@ -225,24 +286,19 @@
   }
 }
 
+/* ── PC: 가로 사진, 빛은 왼쪽 아래 · 글씨는 오른쪽 ── */
 @media (min-width: 1024px) {
   .ab-dawn {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: center;
-    gap: 3rem;
-    padding: 3rem 4.5rem 10rem;
-    text-align: left;
+    --ab-dawn-shade:
+      linear-gradient(270deg, rgba(246, 249, 252, 0.45) 0%, transparent 45%),
+      linear-gradient(0deg, rgba(246, 249, 252, 0.45), transparent 25%);
+    padding: 3.5rem 4.5rem 3rem 3.5rem;
   }
 
-  .ab-dawn-word {
-    align-items: flex-end;
-    text-align: right;
-  }
-
-  .ab-dawn-tagline {
-    margin-top: 1rem;
-    font-size: 1.1875rem;
+  .dark .ab-dawn {
+    --ab-dawn-shade:
+      linear-gradient(270deg, rgba(6, 10, 20, 0.78) 0%, rgba(6, 10, 20, 0.5) 28%, transparent 48%),
+      linear-gradient(0deg, rgba(6, 10, 20, 0.7), transparent 35%);
   }
 
   .ab-dawn-art {
@@ -253,16 +309,65 @@
     background-image: url('../../../assets/about/dawn-dark.webp');
   }
 
+  .ab-dawn-scroll {
+    gap: 2rem;
+  }
+
+  .ab-dawn-mark {
+    font-size: 6.5rem;
+  }
+
   .ab-dawn-verse {
+    font-size: 1.6875rem;
+    line-height: 2.1;
+  }
+
+  .ab-dawn-ref {
+    font-size: 0.875rem;
+  }
+
+  .ab-dawn:not(.is-vertical) .ab-dawn-verse {
     font-size: 1.875rem;
   }
 
-  .ab-dawn-kicker {
-    font-size: 1.125rem;
+  .ab-dawn-base {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
   }
 
-  .ab-dawn-name h1 {
-    margin-top: 0.5rem;
-    font-size: 4.25rem;
+  .ab-dawn-jump {
+    gap: 1.5rem;
+  }
+
+  .ab-dawn-jump button {
+    font-size: 0.875rem;
+  }
+
+  .ab-dawn-foot {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .ab-dawn-id {
+    align-items: flex-end;
+    padding-right: 1.5rem;
+    border-right: 1px solid color-mix(in srgb, var(--ab-dawn-sub) 35%, transparent);
+  }
+
+  .ab-dawn-id h1 {
+    font-size: 1.625rem;
+  }
+
+  .ab-dawn-id p {
+    font-size: 0.875rem;
+  }
+
+  .ab-dawn-cta {
+    min-height: 48px;
+    padding: 0 1.5rem;
+    font-size: 0.9375rem;
   }
 }

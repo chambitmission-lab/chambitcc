@@ -4,51 +4,6 @@
           └ 담임목사 ┬ 사진 ┘
           초대 — 들판 길 사진 띠 위에 초대 글 + 한눈에 정보 */
 
-/* ── 첫 화면 아래 바로가기 알약 — 하늘 카드 아래 가장자리에 걸친다 ── */
-.ab-jump {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  gap: 0.25rem;
-  width: max-content;
-  max-width: calc(100% - 2 * var(--ab-gutter));
-  margin: -1.5rem auto 0;
-  padding: 0.3125rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-radius: 999px;
-  background: var(--surface-container);
-  box-shadow:
-    0 0 0 1px var(--card-border),
-    0 10px 28px -12px rgba(0, 0, 0, 0.22);
-}
-
-.ab-jump::-webkit-scrollbar {
-  display: none;
-}
-
-.ab-jump button {
-  flex: none;
-  min-height: 40px;
-  padding: 0 1rem;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  color: var(--text-body);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.ab-jump button:hover,
-.ab-jump button:focus-visible {
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-
 /* 바로가기로 내려왔을 때 헤더에 가리지 않게 */
 .ab-row,
 .ab-meet,
@@ -653,16 +608,6 @@
 
 /* ── PC: 좌우 번갈아 ── */
 @media (min-width: 1024px) {
-  .ab-jump {
-    margin-top: -1.75rem;
-  }
-
-  .ab-jump button {
-    min-height: 44px;
-    padding: 0 1.25rem;
-    font-size: 0.9375rem;
-  }
-
   .ab-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

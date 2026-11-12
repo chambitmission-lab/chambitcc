@@ -287,7 +287,7 @@ export const QUEST_MAP_MOBILE: ThemePair = {
   when: () => !questWide(),
 }
 
-/** /about 첫 화면 하늘 카드(dawn.css .ab-dawn-art) — 요 1:9 "위에서 내려온 빛이 마을 창마다 닿는" 장면.
+/** /about 첫 화면 하늘 카드(dawn.css .ab-dawn-art) — 땅 없는 하늘 사진(빛은 왼쪽 아래), 세로쓰기 말씀 족자의 바탕.
  *  PC 는 가로 그림, 모바일은 세로 그림(카드가 약 1:2). dawn.css 의 @media (min-width: 1024px) 와 짝 */
 const aboutWide = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches

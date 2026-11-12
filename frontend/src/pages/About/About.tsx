@@ -25,13 +25,15 @@ import { useThemeArt } from '../../hooks/useThemeArt'
 import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC } from '../../utils/themeAssets'
 
 /* /about — "참 빛" 잡지형 소개.
-   첫 화면은 하늘 카드(교회 이름이 주인공 · 요 1:9 는 곁에) + 바로가기 알약.
+   첫 화면은 하늘에 걸린 말씀 족자(세로쓰기 '참빛' + 요 1:9) + 아래 한 줄 바로가기·예배 버튼.
    그 아래는 그림·글을 좌우로 번갈아 놓은 장들 — 만남 → 다섯 만남(사진 카드 5장 + 약속) → 담임목사 → 초대.
    예전 스티키 고정 그림은 세로로 길고 장면이 겹쳐 보여 걷어냈다. */
 
-// 서체는 셋만 — 교회 이름 G마켓 · 말씀·인용 고운돋움(--ab-verse) · 손글씨는 목사님 별칭에만
+// 서체 — 교회 이름 G마켓 · 첫 화면 세로 말씀 고운바탕 · 인용 고운돋움(--ab-verse) · 손글씨는 목사님 별칭에만
 ensureFontFamily('nanumPen')
 ensureFontFamily('gowunDodum')
+ensureFontFamily('gowunBatang') // 첫 화면 세로 말씀
+ensureFontFamily('gowunBatang') // 첫 화면 세로 말씀
 
 // 다섯 가지 만남 — key 는 이미지 파일명(./img/{key}.webp)이자 프롬프트 문서의 슬러그
 const PASSING_MEETINGS = [
@@ -62,6 +64,8 @@ const MEET_FALLBACK = '/images/history/verse-dawn.webp'
 // 첫 화면 바로가기 — HashRouter 라 #앵커 링크 대신 scrollIntoView
 const SECTIONS = ['about-intro', 'about-meetings', 'about-pastor', 'about-cta'] as const
 type SectionId = (typeof SECTIONS)[number]
+// 첫 화면 아래 줄 바로가기 — '함께 예배'는 오른쪽 예배 버튼이 맡는다
+const JUMP_SECTIONS = SECTIONS.filter((id) => id !== 'about-cta')
 /** 바로가기 착지 여백 — .ab-row 등의 scroll-margin-top(5rem)과 동일 */
 const JUMP_OFFSET = 80
 
@@ -133,6 +137,25 @@ const DawnVerse = ({ text }: { text: string }) => {
   )
 }
 
+// 출처 — 세로쓰기 안의 '1:9' 같은 숫자 묶음은 가로로 한 칸에 세운다(text-combine-upright)
+const REF_NUM_RE = /(\d+(?::\d+)?)/
+const VerseRef = ({ text, upright }: { text: string; upright: boolean }) =>
+  upright ? (
+    <>
+      {text.split(REF_NUM_RE).map((part, i) =>
+        REF_NUM_RE.test(part) ? (
+          <span key={i} className="ab-tcy">
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  ) : (
+    <>{text}</>
+  )
+
 // 사인 잉크는 이름(성+이름)으로 찾는다 — 표시용 이름은 "안동철 담임목사" 처럼 직함이 붙는다
 const bareName = (displayName: string): string => displayName.trim().split(/\s+/)[0] ?? ''
 
@@ -165,6 +188,8 @@ const About = () => {
     [handleHeroLoaded],
   )
 
+  // 족자의 큰 두 글자 — 교회 이름에서 '교회'를 뗀다(참빛교회 → 참빛)
+  const churchMark = tx('aboutChurchName').trim().replace(/\s*교회$/, '') || '참빛'
   const phone = tx('aboutPhone').trim()
   const pastorPhotoUrl = tx('aboutPastorPhoto').trim()
 
@@ -208,30 +233,23 @@ const About = () => {
 
   return (
     <div className="about-page page-stage">
-      {/* ── 첫 화면: 하늘 카드 — 왼쪽 교회 이름(주인공) · 오른쪽 요 1:9 (모바일은 위아래) ── */}
-      <section className="ab-dawn ab-sky" aria-label={tx('aboutChurchName')}>
-        {/* 그림 — 위 가운데에서 내려온 빛이 아래 마을 창마다 하나씩 닿는다("각 사람에게 비추는 빛") */}
+      {/* ── 첫 화면: 하늘에 걸린 말씀 족자 — 오른쪽 위 세로쓰기 '참빛' + 요 1:9,
+             아래 한 줄은 바로가기 · 교회 이름 묶음 + 예배 버튼 (dawn.css) ── */}
+      <section className={`ab-dawn ab-sky${ko ? ' is-vertical' : ''}`} aria-label={tx('aboutChurchName')}>
         <span className={`ab-dawn-art${dawnArtReady ? ' is-loaded' : ''}`} aria-hidden="true" />
-        <span className="ab-dawn-beam" aria-hidden="true" />
-        <span className="ab-dawn-glow" aria-hidden="true" />
-        <div className="ab-dawn-name">
-          <span className="ab-dawn-kicker">
-            <EditableText fieldKey="aboutDawnKicker" isAdmin={isAdminUser}>
-              {tx('aboutDawnKicker')}
-            </EditableText>
-          </span>
-          <h1>
-            <EditableText fieldKey="aboutChurchName" isAdmin={isAdminUser}>
-              {tx('aboutChurchName')}
-            </EditableText>
-          </h1>
-          <p className="ab-dawn-tagline">
-            <EditableText fieldKey="aboutTagline" isAdmin={isAdminUser}>
-              {tx('aboutTagline')}
-            </EditableText>
-          </p>
-        </div>
-        <div className="ab-dawn-word">
+        <span className="ab-dawn-shade" aria-hidden="true" />
+
+        <div className="ab-dawn-scroll">
+          {/* '참빛' — 교회 이름이 곧 요 1:9 의 첫 말씀. 세로쓰기는 한국어만 */}
+          {ko && (
+            <p className="ab-dawn-mark" aria-hidden="true">
+              {Array.from(churchMark).map((ch, i) => (
+                <span key={i} className={ch === '빛' ? 'is-light' : undefined}>
+                  {ch}
+                </span>
+              ))}
+            </p>
+          )}
           <p className="ab-dawn-verse">
             <EditableText fieldKey="aboutDawnVerse" multiline isAdmin={isAdminUser}>
               <DawnVerse text={tx('aboutDawnVerse')} />
@@ -239,20 +257,38 @@ const About = () => {
           </p>
           <p className="ab-dawn-ref">
             <EditableText fieldKey="aboutDawnRef" isAdmin={isAdminUser}>
-              {tx('aboutDawnRef')}
+              <VerseRef text={tx('aboutDawnRef')} upright={ko} />
             </EditableText>
           </p>
         </div>
-      </section>
 
-      {/* 바로가기 — 카드 아래 가장자리에 걸친 알약 */}
-      <nav className="ab-jump" aria-label={ko ? '소개 바로가기' : 'Jump to section'}>
-        {SECTIONS.map((id) => (
-          <button key={id} type="button" onClick={() => jumpTo(id)}>
-            {sectionLabels[id]}
-          </button>
-        ))}
-      </nav>
+        <div className="ab-dawn-base">
+          <nav className="ab-dawn-jump" aria-label={ko ? '소개 바로가기' : 'Jump to section'}>
+            {JUMP_SECTIONS.map((id) => (
+              <button key={id} type="button" onClick={() => jumpTo(id)}>
+                {sectionLabels[id]}
+              </button>
+            ))}
+          </nav>
+          <div className="ab-dawn-foot">
+            <div className="ab-dawn-id">
+              <h1>
+                <EditableText fieldKey="aboutChurchName" isAdmin={isAdminUser}>
+                  {tx('aboutChurchName')}
+                </EditableText>
+              </h1>
+              <p>
+                <EditableText fieldKey="aboutTagline" isAdmin={isAdminUser}>
+                  {tx('aboutTagline')}
+                </EditableText>
+              </p>
+            </div>
+            <button type="button" className="ab-dawn-cta" onClick={() => jumpTo('about-cta')}>
+              {ko ? '주일 오전 11시 함께 예배' : 'Worship with us · Sun 11 AM'}
+            </button>
+          </div>
+        </div>
+      </section>
 
       <div className="ab-body">
         {/* ── 만남 — 그림 왼쪽 · 글 오른쪽 ── */}
