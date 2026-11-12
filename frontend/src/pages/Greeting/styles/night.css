@@ -1,0 +1,114 @@
+/* 인사말 - 다크 테마 "유리 편지 + 달빛 테두리" (2026-11-12 시안 B1)
+   다크에서 회색 편지 카드가 검정 바닥에 붙어 보이던 문제(그림자가 바닥에 묻힘) 대응.
+   - 밤하늘 사진을 둥근 히어로 카드가 아니라 페이지 카드(.gr-page) 윗부분 전체에 깔고
+     아래로 바닥색(#131313 = background-dark)까지 페이드한다.
+   - 편지 카드는 반투명 유리(backdrop-filter)로 하늘을 흐리게 비추고,
+     왼쪽 위에서 사라지는 1px 달빛 테두리 + 카드 위로 옅은 브랜드 블루 번짐으로 띄운다.
+   라이트 테마는 건드리지 않는다 — 모든 규칙이 .dark 아래에 있다.
+   편집 팝업·PastorSheet 는 portal/페이지 밖이라 backdrop-filter 컨테이닝 블록 영향이 없다. */
+
+.dark .gr-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.dark .gr-page::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 560px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(19, 19, 19, 0) 45%, #131313 100%),
+    linear-gradient(103deg, rgba(11, 18, 38, 0.66) 0%, rgba(11, 18, 38, 0.24) 100%),
+    url('../../../assets/hero/winter-evening.webp') center 22% / cover no-repeat;
+}
+
+.dark .gr-page > .gr-hero,
+.dark .gr-page > .gr-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* 히어로는 이제 하늘 위의 글자만 — 사진 카드 껍데기(배경·링·그림자)를 걷는다 */
+.dark .gr-hero-card {
+  background: none;
+  box-shadow: none;
+}
+
+.dark .gr-hero-title,
+.dark .gr-hero-subtitle {
+  text-shadow: 0 1px 2px rgba(10, 24, 60, 0.35), 0 2px 18px rgba(10, 24, 60, 0.45);
+}
+
+.dark .gr-hero-rule {
+  box-shadow: 0 0 10px rgba(110, 168, 255, 0.6);
+}
+
+/* ── 편지 = 유리 카드 ───────────────────────────── */
+.dark .gr-letter {
+  background:
+    radial-gradient(60% 30% at 86% 0%, rgba(140, 185, 255, 0.1), transparent 70%),
+    rgba(20, 25, 40, 0.56);
+  border-color: transparent;
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  backdrop-filter: blur(18px) saturate(1.25);
+  box-shadow:
+    0 -10px 36px -20px rgba(69, 147, 252, 0.38),
+    0 30px 60px -24px rgba(0, 0, 0, 0.8);
+}
+
+/* 유리 미지원 브라우저 — 하늘이 그대로 비쳐 글이 흐려지지 않게 짙게 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .dark .gr-letter {
+    background:
+      radial-gradient(60% 30% at 86% 0%, rgba(140, 185, 255, 0.1), transparent 70%),
+      rgba(20, 25, 40, 0.92);
+  }
+}
+
+/* 달빛 테두리 — 반투명 카드라 border-box 그라데이션 대신 마스크 링으로 그린다 */
+.dark .gr-letter::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    170deg,
+    rgba(160, 200, 255, 0.42),
+    rgba(160, 200, 255, 0.1) 26%,
+    rgba(255, 255, 255, 0.05) 60%,
+    rgba(255, 255, 255, 0.08)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+.dark .gr-letter-card,
+.dark .gr-letter-actions {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .gr-letter .gr-photo {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 14px 30px -12px rgba(0, 0, 0, 0.6);
+}
+
+.dark .gr-letter .gr-quote-mark {
+  opacity: 0.4;
+}
+
+/* 본문은 보랏빛 회색(--text-body) 대신 밤하늘에 맞춘 푸른 회색 */
+.dark .gr-letter-text,
+.dark .gr-enum-text {
+  color: #d2d6e2;
+}
+
+@media (min-width: 1024px) {
+  .dark .gr-page::before {
+    height: 640px;
+  }
+}
