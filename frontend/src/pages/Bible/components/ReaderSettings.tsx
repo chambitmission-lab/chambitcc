@@ -76,6 +76,7 @@ const applyPrefs = (p: ReaderPrefs) => {
 const INTRO_CARD_OPTIONS: { key: keyof ReaderIntroCards; label: string }[] = [
   { key: 'audio', label: '오디오북' },
   { key: 'bookIntro', label: '권 개관' },
+  { key: 'story', label: '줄거리' },
   { key: 'brief', label: '길잡이' },
 ]
 

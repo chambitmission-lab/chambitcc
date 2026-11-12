@@ -1,0 +1,378 @@
+/* 책 줄거리 지도 — BookStory.tsx (bstory- 접두사)
+   색은 권 개관·길잡이와 같은 장르 액센트(--genre)를 작게만 쓴다. */
+
+/* ── 본문 위 "지금 여기" 띠 ── */
+.bstory {
+  border-radius: 1rem;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  overflow: hidden;
+}
+
+/* 머리 높이는 고정 — 자리 표시자(.bstory-placeholder)와 같아야 본문이 밀리지 않는다 */
+.bstory__head {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 96px;
+  padding: 0 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.bstory-placeholder {
+  height: 98px; /* 머리 96 + 테두리 2 */
+  border-radius: 1rem;
+  background: var(--surface-inset, rgba(0, 0, 0, 0.04));
+  opacity: 0.6;
+}
+
+.bstory__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bstory__where {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bstory__kicker {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--genre);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bstory__now {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bstory__chev {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.bstory.is-open .bstory__chev {
+  transform: rotate(180deg);
+}
+
+.bstory__track {
+  display: flex;
+  gap: 4px;
+}
+.bstory__seg {
+  flex: 1 1 0;
+  /* 장 수가 적은 묶음(계 21–22 등)도 이름이 잘리지 않게 — 이름 폭만큼은 지킨다 */
+  min-width: max-content;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.bstory__bar {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--genre) 16%, transparent);
+  overflow: hidden;
+}
+.bstory__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--genre);
+}
+.bstory__name {
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bstory__seg.is-now .bstory__name {
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+/* ── 펼친 지도 ── */
+.bstory__body {
+  padding: 2px 14px 14px;
+}
+.bstory__q {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--genre-soft);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+.bstory__q span {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--genre);
+}
+.bstory__acts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bstory__act {
+  padding: 10px 12px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+.bstory__act.is-now {
+  border-color: var(--genre-line);
+  background: var(--genre-soft);
+}
+.bstory__act-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.bstory__act-no {
+  color: var(--genre);
+}
+.bstory__act-range {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.bstory__here {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--genre);
+  color: var(--surface-container); /* 다크는 장르색이 밝아져 흰 글씨가 묻힌다 */
+  font-size: 10.5px;
+}
+.bstory__act-title {
+  margin: 4px 0 2px;
+  font-size: 14.5px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+.bstory__act-line {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.bstory__scenes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.bstory__scene {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  font-size: 12.5px;
+  color: var(--text-body);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.bstory__scene b {
+  font-weight: 800;
+  color: var(--genre);
+  font-variant-numeric: tabular-nums;
+}
+.bstory__scene:hover {
+  border-color: var(--genre-line);
+  background: var(--genre-soft);
+}
+
+/* ── 장 끝: 막 정리 / 한 권 돌아보기 ── */
+.bstory-end {
+  width: 100%;
+  max-width: 30rem;
+  margin: 1.25rem auto 0;
+  padding: 1.1rem 1rem 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  text-align: left;
+}
+/* 책 끝 돌아보기는 바로 아래 완주 카드(.bfin)와 한 묶음으로 읽히게 폭을 맞춘다 */
+.bstory-end--book {
+  max-width: 26rem;
+}
+.bstory-end__eyebrow {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--genre) 14%, transparent);
+  color: var(--genre);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.bstory-end__title {
+  margin: 8px 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+
+.bstory-end__wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: bstory;
+}
+.bstory-end__wrap li {
+  position: relative;
+  padding-left: 30px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-body);
+  word-break: keep-all;
+  counter-increment: bstory;
+}
+.bstory-end__wrap li::before {
+  content: counter(bstory);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--genre) 14%, transparent);
+  color: var(--genre);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.bstory-end__acts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 0 0 0 14px;
+  list-style: none;
+  border-left: 2px solid var(--genre-line);
+}
+.bstory-end__act-tag {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--genre);
+}
+.bstory-end__act-tag small {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.bstory-end__acts p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+
+.bstory-end__note {
+  margin-top: 14px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+}
+.bstory-end__note--next {
+  margin-top: 8px;
+  background: var(--genre-soft);
+}
+.bstory-end__note span {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--genre);
+}
+.bstory-end__note p {
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+
+/* PC — 노안 성도 기준으로 한 단계 크게 */
+@media (min-width: 1024px) {
+  .bstory__head {
+    height: 104px;
+  }
+  .bstory-placeholder {
+    height: 106px;
+  }
+  .bstory__kicker,
+  .bstory__name {
+    font-size: 12.5px;
+  }
+  .bstory__now {
+    font-size: 15.5px;
+  }
+  .bstory__q,
+  .bstory__act-line {
+    font-size: 14.5px;
+  }
+  .bstory__act-title {
+    font-size: 16px;
+  }
+  .bstory__scene {
+    font-size: 13.5px;
+  }
+  .bstory-end__wrap li,
+  .bstory-end__acts p,
+  .bstory-end__note p {
+    font-size: 15px;
+  }
+  .bstory-end__title {
+    font-size: 1.15rem;
+  }
+  .bstory-end__eyebrow,
+  .bstory-end__note span,
+  .bstory-end__act-tag {
+    font-size: 12.5px;
+  }
+}

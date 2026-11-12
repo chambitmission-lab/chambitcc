@@ -50,6 +50,7 @@ import BookIntroCard from '../../components/bible/BookIntroCard'
 import ChapterBriefCard from './components/ChapterBriefCard'
 import ReadAgainCard from './components/ReadAgainCard'
 import { ChapterGuidePanel, ChapterGuideTab } from './components/ChapterGuidePanel'
+import { BookStoryStrip } from './components/BookStory'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { isPastor } from '../../utils/access'
 import { safeStorage } from '../../utils/safeStorage'
@@ -133,7 +134,7 @@ const BibleStudy = () => {
   const [researchOn, setResearchOn] = useState<boolean>(false)
   const researchActive = researchAvailable && researchOn
   // Aa 설정에서 두 카드를 다 꺼 뒀다면 옮길 것이 없으니 패널·손잡이 모두 내지 않는다
-  const hasGuideCards = introCards.bookIntro || introCards.brief
+  const hasGuideCards = introCards.bookIntro || introCards.brief || introCards.story
   // 카드는 본문 칼럼과 패널 중 한 곳에만 마운트한다 — 같은 카드를 두 번 띄우지 않는다.
   // 연구 모드에선 오른쪽 자리를 바구니가 쓰므로 카드는 본문 위로 돌아간다
   const guideInPanel = isWideReader && guidePanelOpen && hasGuideCards && !researchActive
@@ -713,6 +714,17 @@ const BibleStudy = () => {
           bookNameKo={selectedBook}
           totalChapters={selectedBookData.chapter_count}
           currentChapter={selectedChapter}
+          onJumpToChapter={handleChapterChange}
+        />
+      )}
+
+      {/* 책 줄거리 띠 — 책을 몇 개의 막으로 묶어 "지금 어디쯤인지" 보여 준다.
+          모든 장에서 같은 높이로 같은 자리에 있고, 펼치면 막 전체 지도. 데이터 없는 책은 빠진다 */}
+      {introCards.story && (
+        <BookStoryStrip
+          bookNumber={selectedBookData.book_number}
+          bookName={selectedBook}
+          chapter={selectedChapter}
           onJumpToChapter={handleChapterChange}
         />
       )}

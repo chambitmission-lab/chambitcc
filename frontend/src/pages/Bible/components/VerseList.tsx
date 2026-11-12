@@ -43,6 +43,7 @@ import { loadBookOutline, peekBookOutline, type BookOutline } from '../data/chap
 import { loadBookParaphrase, peekBookParaphrase, type BookParaphrase } from '../data/paraphrase'
 import { getReadingAids, subscribeReadingAids } from '../data/readingAids'
 import SectionParaphrase from './SectionParaphrase'
+import { BookStoryEnd } from './BookStory'
 // 열 때만 받는 패널 — 읽기 화면 청크에서 분리
 const BibleCommentaryPanel = lazyModal(() => import('../../../components/bible/BibleCommentaryPanel'))
 
@@ -740,6 +741,17 @@ const VerseList = ({
                 </span>
               </button>
             </div>
+
+            {/* 막의 마지막 장이면 막 정리, 책의 마지막 장이면 한 권 돌아보기 (줄거리 데이터 있는 책만) */}
+            {bookFinish && (
+              <BookStoryEnd
+                bookNumber={bookNumber}
+                bookName={index.bookNameKo}
+                chapter={selectedChapter}
+                totalChapters={totalChapters}
+                nextBookName={bookFinish.nextBook?.name}
+              />
+            )}
 
             {isLastChapter && bookFinish && (
               <BookFinishCard

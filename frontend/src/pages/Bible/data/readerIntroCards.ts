@@ -15,10 +15,12 @@ export interface ReaderIntroCards {
   bookIntro: boolean
   /** 오늘의 길잡이 (장별 3줄) */
   brief: boolean
+  /** 책 줄거리 띠 (막 구분 — 지금 어디쯤인지). 데이터 있는 책만 나타난다 */
+  story: boolean
 }
 
 const STORAGE_KEY = 'bible-reader-intro-cards'
-const DEFAULTS: ReaderIntroCards = { audio: true, bookIntro: true, brief: true }
+const DEFAULTS: ReaderIntroCards = { audio: true, bookIntro: true, brief: true, story: true }
 
 let cache: ReaderIntroCards | null = null
 const listeners = new Set<() => void>()
@@ -32,6 +34,7 @@ export const getReaderIntroCards = (): ReaderIntroCards => {
             audio: p.audio !== false,
             bookIntro: p.bookIntro !== false,
             brief: p.brief !== false,
+            story: p.story !== false,
           }
         : DEFAULTS
   }
