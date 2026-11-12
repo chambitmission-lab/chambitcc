@@ -4,7 +4,7 @@
 // 이 화면을 고치는 게 아니라 /admin/pastors 에서 새 레코드를 현직으로 지정한다.
 // 페이지가 하는 말(히어로 문구·섹션 제목)만 about_content.fields 를 공유해
 // 기존 ✏️ 인라인 편집(EditableText)으로 고칠 수 있다.
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -18,7 +18,6 @@ import EditablePastorPhoto from './components/EditablePastorPhoto'
 import PastorSheet from './components/PastorSheet'
 import LetterBody from './components/LetterBody'
 import GreetingRail from './components/GreetingRail'
-import GreetingMeteor from './components/GreetingMeteor'
 import { SignatureLine } from '../../components/common/SignatureLine'
 import CredentialTimeline, { CREDENTIAL_ICONS } from './components/CredentialTimeline'
 import {
@@ -54,7 +53,6 @@ const Greeting = () => {
 
   // 역대 목사 카드를 누르면 그분의 인사말·약력을 하단 시트로 연다
   const [sheetPastor, setSheetPastor] = useState<Pastor | null>(null)
-  const pageCardRef = useRef<HTMLDivElement>(null)
   // 공유하기 — Web Share 미지원 브라우저에서 링크 복사 피드백
   const [copied, setCopied] = useState(false)
 
@@ -107,11 +105,9 @@ const Greeting = () => {
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       {/* lg+: 본문(읽기 폭 유지) + 우측 위젯 레일 2단 — /about 과 같은 규격 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-        <div ref={pageCardRef} className="relative max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-clip lg:min-h-0">
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-clip lg:min-h-0">
           {/* Hero — 실사 하늘 카드 한 장 (라이트=계절의 낮, 다크=겨울 밤 은하수 고정).
               장식은 사진뿐, 주인공은 문장이다 (인물 사진은 아래 편지의 몫). */}
-          {/* 다크 첫 진입 때 한 번 — 히어로 하늘에서 목사님 사진으로 떨어지는 별똥별 */}
-          <GreetingMeteor hostRef={pageCardRef} />
           <header className="gr-hero">
             <div
               className="gr-hero-card"
