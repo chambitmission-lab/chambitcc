@@ -252,7 +252,8 @@ const About = () => {
           )}
           <p className="ab-dawn-verse">
             <EditableText fieldKey="aboutDawnVerse" multiline isAdmin={isAdminUser}>
-              <DawnVerse text={tx('aboutDawnVerse')} />
+              {/* 세로쓰기에선 쉼표가 글자 아래 점처럼 떠 어색하다 — 줄바꿈이 쉼표를 대신한다 */}
+              <DawnVerse text={ko ? tx('aboutDawnVerse').replace(/[,，、]/g, '') : tx('aboutDawnVerse')} />
             </EditableText>
           </p>
           <p className="ab-dawn-ref">
