@@ -1,6 +1,7 @@
 // 행사 앨범 넘겨보기 (Single Responsibility: 모바일 전체 화면 몰입 열람)
 // 행사 하나가 한 화면 — 위아래로 넘기면 다음/이전 행사, 좌우로 넘기면 그 행사의 사진.
-// 반응·댓글은 오른쪽 세로 줄에 두어 엄지로 바로 누른다. 목록(EventAlbumList)에서 고른 앨범부터 열린다.
+// 화면은 위(행사 이름)·가운데(사진)·아래(반응·댓글 한 줄) 세 칸 — 사진 위에는 아무것도 얹지 않는다.
+// 목록(EventAlbumList)에서 고른 앨범부터 열린다.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -113,7 +114,7 @@ const EventAlbumReel = ({
         type="button"
         onClick={onClose}
         aria-label={t('newsClose')}
-        className="absolute left-3 w-11 h-11 rounded-full flex items-center justify-center bg-black/35 backdrop-blur-md text-white z-20"
+        className="absolute left-3 w-11 h-11 rounded-full flex items-center justify-center bg-white/15 text-white z-20"
         style={{ top: 'calc(env(safe-area-inset-top, 0px) + 22px)' }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -158,153 +159,134 @@ const ReelItem = ({
   }
 
   return (
-    <section className="relative h-full w-full snap-start snap-always overflow-hidden" aria-label={post.title}>
-      {/* 사진 — 단체·풍경 사진이 많아 잘라내지 않고(contain) 검은 바탕에 띄운다 */}
-      <div
-        ref={photoRef}
-        onScroll={handlePhotoScroll}
-        className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+    // 위(제목)·가운데(사진)·아래(반응) 세 칸으로 나눠, 사진 위에는 아무것도 얹지 않는다
+    <section className="h-full w-full snap-start snap-always overflow-hidden flex flex-col" aria-label={post.title}>
+      {/* 위: 진행 막대 + 행사 이름·날짜 + 몇 번째 사진 (닫기 버튼 자리만큼 왼쪽을 비운다) */}
+      <header
+        className="shrink-0 px-3 pb-2"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}
       >
-        {photos.length === 0 ? (
-          <div className="w-full h-full shrink-0" />
+        {total > 1 && total <= MAX_BARS ? (
+          <div className="flex gap-[3px]">
+            {post.photos.map((p, i) => (
+              <span
+                key={p.id}
+                className={`h-[3px] flex-1 rounded-full ${i <= photoIndex ? 'bg-white' : 'bg-white/35'}`}
+              />
+            ))}
+          </div>
+        ) : total > 1 ? (
+          <div className="h-[3px] rounded-full bg-white/35 overflow-hidden">
+            <span
+              className="block h-full bg-white rounded-full transition-[width] duration-200"
+              style={{ width: `${((photoIndex + 1) / total) * 100}%` }}
+            />
+          </div>
         ) : (
-          photos.map((photo, i) => (
-            <div key={photo.id} className="w-full h-full shrink-0 snap-center flex items-center justify-center">
-              <img
-                src={photo.url}
-                alt={`${post.title} ${i + 1} / ${total}`}
-                draggable={false}
-                loading={i === 0 ? 'eager' : 'lazy'}
-                className="max-w-full max-h-full object-contain select-none"
-              />
-            </div>
-          ))
+          <div className="h-[3px]" />
         )}
-      </div>
-
-      {/* 글자가 사진 위에서도 읽히게 위·아래만 어둡게 */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/60 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-
-      {/* 위: 진행 막대 + 몇 번째 사진 */}
-      {total > 1 && (
-        <div
-          className="pointer-events-none absolute inset-x-3 flex flex-col gap-2"
-          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}
-        >
-          {total <= MAX_BARS ? (
-            <div className="flex gap-[3px]">
-              {post.photos.map((p, i) => (
-                <span
-                  key={p.id}
-                  className={`h-[3px] flex-1 rounded-full ${i <= photoIndex ? 'bg-white' : 'bg-white/35'}`}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="h-[3px] rounded-full bg-white/35 overflow-hidden">
-              <span
-                className="block h-full bg-white rounded-full transition-[width] duration-200"
-                style={{ width: `${((photoIndex + 1) / total) * 100}%` }}
-              />
-            </div>
-          )}
-          <span className="self-end mt-1.5 px-2.5 h-7 inline-flex items-center rounded-full bg-black/35 backdrop-blur-md text-[13px] font-bold tabular-nums">
-            {photoIndex + 1} / {total}
-          </span>
-        </div>
-      )}
-
-      {/* 오른쪽: 반응 + 댓글 */}
-      <div className="absolute right-2.5 bottom-[calc(env(safe-area-inset-bottom,0px)+150px)] flex flex-col items-center gap-3">
-        {EVENT_ALBUM_EMOJI_META.map((meta) => {
-          const count = post.reaction_breakdown[meta.char] ?? 0
-          const active = post.my_reaction === meta.char
-          return (
-            <button
-              key={meta.char}
-              type="button"
-              onClick={() => onToggleReaction(meta.char)}
-              aria-label={t(meta.labelKey)}
-              aria-pressed={active}
-              className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
-            >
-              <span
-                className={[
-                  'w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md',
-                  active ? 'bg-[var(--brand)]/45 ring-2 ring-white' : 'bg-white/15',
-                ].join(' ')}
-              >
-                <EventAlbumEmojiImg meta={meta} size={26} />
-              </span>
-              <span className="text-[12.5px] font-bold tabular-nums min-h-[1em] drop-shadow">
-                {count > 0 ? count : ''}
-              </span>
-            </button>
-          )
-        })}
-        <button
-          type="button"
-          onClick={onOpenComments}
-          aria-label={t('newsNfViewComments')}
-          className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
-        >
-          <span className="w-12 h-12 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-md">
-            <CommentIcon size={22} />
-          </span>
-          <span className="text-[12.5px] font-bold tabular-nums drop-shadow">{post.comment_count}</span>
-        </button>
-      </div>
-
-      {/* 아래: 행사 정보 */}
-      <div
-        className="absolute left-4 right-[76px]"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 34px)' }}
-      >
-        <span className="inline-flex items-center px-2.5 h-6 rounded-full bg-white/20 backdrop-blur-md text-[12.5px] font-bold">
-          {post.tag}
-        </span>
-        <h3 className="mt-2 text-[22px] font-bold leading-[1.3] tracking-[-0.025em] drop-shadow">
-          {post.title}
-        </h3>
-        <p className="mt-1 text-[13.5px] text-white/80">
-          {formatEventDate(post.event_date, t)} · {t('newsEaPhotoCount').replace('{n}', String(total))}
-        </p>
-        {post.caption && (
-          <p className="mt-2 text-[14px] leading-[1.6] text-white/85 line-clamp-2 whitespace-pre-wrap">
-            {post.caption}
-          </p>
-        )}
-        <div className="mt-3 flex flex-wrap gap-2">
-          {post.event_id != null && (
-            <button
-              type="button"
-              onClick={() => onOpenEvent(post.event_id!)}
-              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-white text-[#191f28] text-[14px] font-bold active:scale-[0.97] transition-transform"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="3" y="5" width="18" height="16" rx="2.5" />
-                <path d="M8 3v4M16 3v4M3 10h18" />
-              </svg>
-              {t('newsEaViewEvent')}
-            </button>
-          )}
-          {post.reaction_count > 0 && (
-            <span className="inline-flex items-center h-10 text-[13px] font-bold text-white/80">
-              {t('newsEaReactedCount').replace('{n}', String(post.reaction_count))}
+        <div className="mt-[9px] min-h-11 pl-[52px] flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[17px] font-bold leading-[1.3] tracking-[-0.025em] truncate">
+              {post.title}
+            </h3>
+            <p className="mt-0.5 text-[12.5px] text-white/70 truncate">
+              {post.tag} · {formatEventDate(post.event_date, t)} · {t('newsEaPhotoCount').replace('{n}', String(total))}
+            </p>
+          </div>
+          {total > 1 && (
+            <span className="shrink-0 px-2.5 h-7 inline-flex items-center rounded-full bg-white/15 text-[13px] font-bold tabular-nums">
+              {photoIndex + 1} / {total}
             </span>
           )}
         </div>
+      </header>
+
+      {/* 가운데: 사진 — 단체·풍경 사진이 많아 잘라내지 않고(contain) 검은 바탕에 띄운다 */}
+      <div className="relative flex-1 min-h-0">
+        <div
+          ref={photoRef}
+          onScroll={handlePhotoScroll}
+          className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+        >
+          {photos.length === 0 ? (
+            <div className="w-full h-full shrink-0" />
+          ) : (
+            photos.map((photo, i) => (
+              <div key={photo.id} className="w-full h-full shrink-0 snap-center flex items-center justify-center">
+                <img
+                  src={photo.url}
+                  alt={`${post.title} ${i + 1} / ${total}`}
+                  draggable={false}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  className="max-w-full max-h-full object-contain select-none"
+                />
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
-      {showHint && (
-        <p
-          className="pointer-events-none absolute inset-x-0 text-center text-[12px] font-semibold text-white/60"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}
-        >
-          {t('newsEaSwipeHint')}
-        </p>
-      )}
+      {/* 아래: 설명 + 반응·댓글 한 줄 */}
+      <footer
+        className="shrink-0 px-3 pt-3"
+        style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${showHint ? 8 : 14}px)` }}
+      >
+        {post.caption && (
+          <p className="px-1 text-[14px] leading-[1.6] text-white/85 line-clamp-2 whitespace-pre-wrap">
+            {post.caption}
+          </p>
+        )}
+        {post.event_id != null && (
+          <button
+            type="button"
+            onClick={() => onOpenEvent(post.event_id!)}
+            className="mt-2.5 inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-white text-[#191f28] text-[14px] font-bold active:scale-[0.97] transition-transform"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="16" rx="2.5" />
+              <path d="M8 3v4M16 3v4M3 10h18" />
+            </svg>
+            {t('newsEaViewEvent')}
+          </button>
+        )}
+        <div className="mt-3 grid grid-cols-5 gap-1.5">
+          {EVENT_ALBUM_EMOJI_META.map((meta) => {
+            const count = post.reaction_breakdown[meta.char] ?? 0
+            const active = post.my_reaction === meta.char
+            return (
+              <button
+                key={meta.char}
+                type="button"
+                onClick={() => onToggleReaction(meta.char)}
+                aria-label={t(meta.labelKey)}
+                aria-pressed={active}
+                className={[
+                  'h-12 rounded-full flex items-center justify-center gap-1.5 active:scale-95 transition-transform',
+                  active ? 'bg-[var(--brand)]/45 ring-2 ring-white' : 'bg-white/[0.13]',
+                ].join(' ')}
+              >
+                <EventAlbumEmojiImg meta={meta} size={24} />
+                {count > 0 && <span className="text-[13.5px] font-bold tabular-nums">{count}</span>}
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            onClick={onOpenComments}
+            aria-label={t('newsNfViewComments')}
+            className="h-12 rounded-full flex items-center justify-center gap-1.5 bg-white/[0.13] active:scale-95 transition-transform"
+          >
+            <CommentIcon size={21} />
+            <span className="text-[13.5px] font-bold tabular-nums">{post.comment_count}</span>
+          </button>
+        </div>
+        {showHint && (
+          <p className="pointer-events-none mt-2.5 text-center text-[12px] font-semibold text-white/60">
+            {t('newsEaSwipeHint')}
+          </p>
+        )}
+      </footer>
     </section>
   )
 }
