@@ -1,3 +1,5 @@
+import type { TodayMemory } from '../api/todayChurch'
+
 // 신앙 성장 여정 타입 — backend/app/schemas/growth.py 와 동기화
 
 export interface GrowthTotals {
@@ -156,4 +158,40 @@ export interface FaithJourneyData {
 export interface FaithJourneyResponse {
   success: boolean
   data: FaithJourneyData
+}
+
+// =========================================================================
+// 다시 꺼내보는 기록 (backend app/services/growth/rewind.py, 2026-11-12 인사이트 대체)
+// =========================================================================
+/** 아직 응답을 기다리는 내 기도 — 쓴 지 2주~1년, 오래된 순 */
+export interface WaitingPrayer {
+  id: number
+  title: string | null
+  text: string
+  created_date: string
+  /** 기도한 지 며칠 */
+  days: number
+  prayer_count: number
+}
+
+/** 마음에 담아 둔 말씀 — 밑줄·노트·즐겨찾기·같은 구절 묵상 수로 고른 순 */
+export interface HeldVerse {
+  reference: string
+  text: string
+  book_number: number
+  chapter: number
+  verse: number
+  highlight: boolean
+  note: boolean
+  favorite: boolean
+  meditations: number
+  /** 처음 담은 날 (YYYY-MM-DD) */
+  since: string | null
+}
+
+export interface GrowthRewind {
+  date: string
+  memories: TodayMemory[]
+  waiting: WaitingPrayer[]
+  verses: HeldVerse[]
 }

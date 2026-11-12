@@ -75,6 +75,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['puzzle', () => import('../pages/dev/PuzzlePreview')],
       // /growth 하루하루의 발자취 — 순간 강조 피드 + 하루 한 문장(표본, 오늘 기준 상대 날짜)
       ['footprints', () => import('../pages/dev/FootprintsPreview')],
+      // /growth 인사이트 자리 대안 시안 — ?v=a|b|c|d|mix, &sparse=1
+      ['growth-rewind', () => import('../pages/dev/GrowthRewindPreview')],
       // 마우스가 지나간 자리 빛 잔상 시안 비교 — ?v=a~f
       ['cursor-trail', () => import('../pages/dev/CursorTrailLab')],
     ]

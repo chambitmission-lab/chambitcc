@@ -371,7 +371,7 @@ const Sermon = ({ variant = 'light' }: SermonProps) => {
         </div>
 
         {/* 우측 위젯 레일 (lg+) — 나의 말씀 노트 · 필터 · 월별 아카이브 */}
-        <aside className="sermon-rail hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
+        <aside className="sermon-rail rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
           {!isLoading && !error && sermons.length > 0 && (
             <SermonNotesRail
               loggedIn={loggedIn}

@@ -25,7 +25,7 @@ const CompanionPrayer = ({ c }: { c: CompanionDetail }) => {
   return (
     <section className="px-4 lg:px-0 pt-8">
       <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-3 px-0.5">서로를 위한 기도</h3>
-      <div className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark p-4">
+      <div className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark shadow-sm dark:shadow-none p-4">
         {c.cheer?.by_partner_today && (
           <p className="mb-3 rounded-xl bg-[var(--brand-soft)] px-3.5 py-2.5 text-[13px] font-semibold text-ink-strong">
             {name}님이 오늘 당신을 위해 기도했어요

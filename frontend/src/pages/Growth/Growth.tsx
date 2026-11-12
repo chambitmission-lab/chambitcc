@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGrowthSummary, useGrowthTimeline } from '../../hooks/useGrowth'
 import type { TimelineEvent } from '../../types/growth'
 import GrowthHero from './components/GrowthHero'
-import JourneyInsightCard from './components/JourneyInsightCard'
+import GrowthRewind from './components/GrowthRewind'
 import GrowthStats from './components/GrowthStats'
 import ActivityTimeline from './components/ActivityTimeline'
 import GrowthRecap from './components/GrowthRecap'
@@ -69,6 +69,8 @@ const Growth = () => {
     () => timelineData?.pages.flatMap((p) => p.data.events) ?? [],
     [timelineData],
   )
+  // '그날의 발자취 보기'는 이미 불러온 날에만 — 먼 날은 앵커가 없다
+  const loadedDates = useMemo(() => new Set(events.map((e) => e.date)), [events])
 
   // 첫 화면이 비어있고 더 이전 기록이 있으면 자동으로 다음 구간을 당겨온다
   useEffect(() => {
@@ -128,10 +130,10 @@ const Growth = () => {
         {/* 지난 8주 돌아보기 — 발자국 달력·기록의 결·한 줄 회고 (모바일·PC 공통 본문) */}
         <GrowthRecap events={events} onJumpToDay={jumpToDay} />
 
-        {/* 말씀 여정 인사이트 · 통계 — lg에선 우측 레일이 대신한다 */}
+        {/* 다시 꺼내보는 기록 · 통계 — lg에선 우측 레일이 대신한다 */}
         {!isDesktop && (
           <div>
-            <JourneyInsightCard />
+            <GrowthRewind loadedDates={loadedDates} onJumpToDay={jumpToDay} />
             {summary.has_activity && <GrowthStats summary={summary} />}
           </div>
         )}
@@ -171,7 +173,7 @@ const Growth = () => {
       {isDesktop && (
       <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc((100vh-88px)/var(--az,1))] lg:overflow-y-auto scrollbar-hide">
         {!summary || summaryLoading ? <GrowthCardsSkeleton /> : (<>
-        <JourneyInsightCard />
+        <GrowthRewind loadedDates={loadedDates} onJumpToDay={jumpToDay} />
         {summary.has_activity && <GrowthStats summary={summary} />}
         </>)}
       </aside>

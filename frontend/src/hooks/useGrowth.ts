@@ -2,12 +2,12 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
 import {
-  getFaithJourneyInsight,
+  getGrowthRewind,
   getGrowthSummary,
   getGrowthTimeline,
 } from '../api/growth'
 import type {
-  FaithJourneyResponse,
+  GrowthRewind,
   GrowthSummaryResponse,
   GrowthTimelineResponse,
 } from '../types/growth'
@@ -26,7 +26,7 @@ const nextTimelineParam = (lastPage: GrowthTimelineResponse) =>
   lastPage.data.has_more ? lastPage.data.next_before : undefined
 
 /**
- * /growth 첫 화면 데이터(요약·타임라인 첫 구간·말씀 여정 인사이트)를 훅과 같은 키로 미리 받는다.
+ * /growth 첫 화면 데이터(요약·타임라인 첫 구간·다시 꺼내보는 기록)를 훅과 같은 키로 미리 받는다.
  * coldOnly: 유휴 프리로드용 — 캐시가 아예 없을 때만 받는다(최신화는 진입 시 refetchOnMount 몫).
  */
 export const prefetchGrowth = (qc: QueryClient, coldOnly = false): void => {
@@ -39,7 +39,7 @@ export const prefetchGrowth = (qc: QueryClient, coldOnly = false): void => {
     getNextPageParam: nextTimelineParam,
     staleTime: stale(1000 * 60 * 5),
   })
-  void qc.prefetchQuery({ queryKey: growthKeys.insight, queryFn: getFaithJourneyInsight, staleTime: stale(1000 * 60 * 10) })
+  void qc.prefetchQuery({ queryKey: growthKeys.rewind, queryFn: getGrowthRewind, staleTime: stale(1000 * 60 * 10) })
 }
 
 /**
@@ -81,14 +81,13 @@ export const useGrowthRecentDays = (days = 14, enabled = true) => {
 }
 
 /**
- * 말씀 여정 인사이트 (읽기 동선 기반 영적 자리 진단 — 룰 기반).
- * - 백엔드가 사용자별 10분 캐시로 계산하므로 staleTime 을 넉넉히 둔다.
- * - refetchOnMount 'always': 요약과 같은 이유 — 진입 시마다 백그라운드 최신화.
+ * 다시 꺼내보는 기록 (그때 오늘의 내 기록·응답 기다리는 기도·마음에 담아 둔 말씀).
+ * - 하루 단위로 바뀌는 내용이라 staleTime 10분, 진입 시 백그라운드 최신화(요약과 같은 이유).
  */
-export const useFaithJourneyInsight = (enabled = true) => {
-  return useQuery<FaithJourneyResponse>({
-    queryKey: growthKeys.insight,
-    queryFn: getFaithJourneyInsight,
+export const useGrowthRewind = (enabled = true) => {
+  return useQuery<GrowthRewind>({
+    queryKey: growthKeys.rewind,
+    queryFn: getGrowthRewind,
     staleTime: 1000 * 60 * 10,
     refetchOnMount: true,
     enabled,

@@ -391,6 +391,10 @@
   :root:not(.dark) :where(.ab-meet) {
     box-shadow: inset 0 0 0 1px var(--card-border), var(--card-shadow);
   }
+  /* /companion 히어로 — ring-1 테두리가 box-shadow 라 그림자 자리를 덮고 있었다. 링 + 히어로 그림자 */
+  :root:not(.dark) :where(.cp-hero) {
+    box-shadow: 0 0 0 1px rgba(49, 130, 246, 0.12), var(--card-shadow-hero);
+  }
 }
 
 /* PC 홈 카드 띄우기 — 조직도·섬기는 사람들 큰 판과 같은 결의 그림자.

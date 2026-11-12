@@ -356,7 +356,7 @@ const RestedView = ({ c }: { c: CompanionDetailData }) => {
 const HistoryList = ({ history, restedBefore = 0 }: { history: CompanionWeek[]; restedBefore?: number }) => (
   <section className="px-4 lg:px-0 pt-8">
     <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-3 px-0.5">지나온 주</h3>
-    <ul className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark">
+    <ul className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark shadow-sm dark:shadow-none divide-y divide-border-light dark:divide-border-dark">
       {restedBefore > 0 && <RestedRow weeks={restedBefore} />}
       {history.map((w) => (
         <Fragment key={w.week_start}>

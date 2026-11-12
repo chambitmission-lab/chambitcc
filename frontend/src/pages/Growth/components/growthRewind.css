@@ -1,0 +1,93 @@
+/* /growth 다시 꺼내보는 기록(GrowthRewind) + 마음에 담아 둔 말씀 띠 */
+
+.grw-card {
+  --grw-card: #ffffff;
+  --grw-ink: #3b3a36;
+  --grw-gold: #b07f22;
+  --grw-gold-soft: rgba(176, 127, 34, 0.1);
+}
+.dark .grw-card {
+  --grw-card: #1c1c26;
+  --grw-ink: rgba(255, 255, 255, 0.88);
+  --grw-gold: #e2b860;
+  --grw-gold-soft: rgba(226, 184, 96, 0.12);
+}
+
+/* 예수님과 양이 같은 곳을 바라보는 언덕 — 지난 기록을 '함께 돌아본다' */
+.grw-art {
+  position: relative;
+  height: 140px;
+  overflow: hidden;
+}
+.grw-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 100% 78%;
+}
+/* 삽화 아래 → 카드 면으로 녹아드는 스크림 (인물이 묻히지 않게 낮게) */
+.grw-art::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 24%;
+  background: linear-gradient(to bottom, transparent, var(--grw-card));
+  pointer-events: none;
+}
+/* 언덕 위 은은하게 숨 쉬는 빛 */
+.grw-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 80% at 82% 30%, rgba(255, 244, 210, 0.55), transparent 70%);
+  animation: grw-breathe 6s ease-in-out infinite;
+  pointer-events: none;
+}
+.dark .grw-glow {
+  background: radial-gradient(60% 80% at 82% 30%, rgba(255, 214, 140, 0.18), transparent 70%);
+}
+@keyframes grw-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* 내가 쓴 글 — 편지 서체 */
+.grw-letter {
+  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
+  color: var(--grw-ink);
+  letter-spacing: -0.01em;
+}
+
+/* 응답 도장 */
+.grw-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 9999px;
+  border: 2px solid var(--grw-gold);
+  color: var(--grw-gold);
+  background: var(--grw-gold-soft);
+  font-weight: 800;
+  font-size: 13px;
+  transform: rotate(-12deg);
+  animation: grw-stamp 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes grw-stamp {
+  0% { transform: rotate(-12deg) scale(1.8); opacity: 0; }
+  100% { transform: rotate(-12deg) scale(1); opacity: 1; }
+}
+
+/* 기억 넘김 — 제자리 페이드(이동 없음, 어르신 어지러움 배려) */
+.grw-fade {
+  animation: grw-fade 360ms ease both;
+}
+@keyframes grw-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grw-glow, .grw-stamp, .grw-fade { animation: none; }
+}

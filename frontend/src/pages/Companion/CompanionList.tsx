@@ -187,7 +187,7 @@ const CompanionList = () => {
           {!!data?.incoming.length && (
             <Section title="받은 초대">
               {data.incoming.map((c) => (
-                <div key={c.id} className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark p-4">
+                <div key={c.id} className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark shadow-sm dark:shadow-none p-4">
                   <div className="flex items-center gap-3">
                     <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" />
                     <div className="min-w-0 flex-1">
@@ -239,7 +239,7 @@ const CompanionList = () => {
           {!!data?.outgoing.length && (
             <Section title="보낸 초대">
               {data.outgoing.map((c) => (
-                <div key={c.id} className="flex items-center gap-3 rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark px-4 py-3">
+                <div key={c.id} className="flex items-center gap-3 rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark shadow-sm dark:shadow-none px-4 py-3">
                   <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" size={32} />
                   <div className="min-w-0 flex-1">
                     <div className="text-[14px] font-bold text-ink-strong truncate">{c.partner.name}</div>
@@ -345,7 +345,7 @@ const ActiveCard = ({ c, onOpen }: { c: CompanionSummary; onOpen: () => void }) 
 
 // 쉬어가는 짝 — 지난 기록 요약 + 다시 걷자고 하기
 const RestedCard = ({ c, onOpen, onResume }: { c: CompanionSummary; onOpen: () => void; onResume: () => void }) => (
-  <div className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark p-4">
+  <div className="rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark shadow-sm dark:shadow-none p-4">
     <button type="button" onClick={onOpen} className="w-full flex items-center gap-3 text-left">
       <Avatar name={c.partner.name} url={c.partner.avatar_url} tone="you" size={32} />
       <div className="min-w-0 flex-1">

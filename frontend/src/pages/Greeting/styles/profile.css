@@ -273,7 +273,9 @@
 /* 목사님의 다음 이야기 — 최근 목양 편지 · 최근 설교 */
 /* 레일 카드 — 유리 질감(.glass-card 토큰)으로 본문 카드와 층을 나눈다.
    블러는 레일 고정 카드 2장뿐이라 성능 예산 안(theme.css 원칙 3).
-   1px 보더를 한 단계 진하게, 위쪽 하이라이트 한 줄로 유리의 두께감을 준다 */
+   1px 보더를 한 단계 진하게, 위쪽 하이라이트 한 줄로 유리의 두께감을 준다.
+   그림자는 레일 공통 .rail-lift(theme.css)가 맡는다 — 카드 간격 12px 안에서 끝나는 짧은 그림자.
+   예전의 긴 그림자(14px/32px)는 아래 카드 위로 번지고 레일 가장자리에서 일자로 잘렸다 */
 .gr-next,
 .gr-visit {
   position: relative;
@@ -285,8 +287,7 @@
   border-radius: 20px;
   box-shadow:
     inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
-    var(--card-shadow),
-    0 14px 32px -16px rgba(10, 24, 60, 0.28);
+    var(--card-shadow);
 }
 
 .gr-next-title,

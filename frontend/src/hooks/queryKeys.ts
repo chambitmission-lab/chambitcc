@@ -124,7 +124,7 @@ export const growthKeys = {
   summary: ['growth', 'summary'] as const,
   timeline: ['growth', 'timeline'] as const,
   recent: ['growth', 'recent'] as const,
-  insight: ['growth', 'insight'] as const,
+  rewind: ['growth', 'rewind'] as const,
 }
 
 /** 홈 오늘의 묵상 카드 — 날짜·시간대·감정까지 모두 키에 들어간다(setQueryData 는 card 로) */
