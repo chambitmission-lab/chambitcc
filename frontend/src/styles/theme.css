@@ -355,6 +355,21 @@
   box-shadow: var(--card-shadow);
 }
 
+/* 모바일 카드 띄우기(2026-11-12, /worship 시범 뒤 전 화면) — 라이트 모바일에서 카드가 캔버스에 붙어 보였다.
+   PC 의 긴 그림자를 옮기지 않는다: 카드 간격이 10~12px 라 간격 안에서 끝나는 짧고 또렷한 두 겹만.
+   ① --card-shadow 토큰을 쓰는 카드(.feed-card·.glass-card·화면별 CSS) ② Tailwind 카드 관용구
+   (둥근 모서리 2xl 이상 + shadow-sm). 버튼·칩(rounded-full/xl)은 건드리지 않는다.
+   다크는 기본값이 이미 깊고, PC(lg+)는 화면별 lift 규칙이 따로 있다. */
+@media (max-width: 1023.98px) {
+  :root:not(.dark) {
+    --card-shadow: 0 1px 2px rgba(24, 26, 40, 0.06), 0 8px 16px -6px rgba(24, 26, 40, 0.18);
+  }
+  :root:not(.dark) :is(.rounded-2xl, .rounded-3xl, .rounded-\[20px\], .rounded-\[22px\]).shadow-sm {
+    --tw-shadow: 0 1px 2px rgba(24, 26, 40, 0.06), 0 6px 14px -6px rgba(24, 26, 40, 0.16);
+    --tw-shadow-colored: 0 1px 2px var(--tw-shadow-color), 0 6px 14px -6px var(--tw-shadow-color);
+  }
+}
+
 /* PC 홈 카드 띄우기 — 조직도·섬기는 사람들 큰 판과 같은 결의 그림자.
    기본 --card-shadow 는 거의 안 보여 카드가 배경에 붙어 보였다(2026-11-10). 라이트 PC만. */
 @media (min-width: 1024px) {

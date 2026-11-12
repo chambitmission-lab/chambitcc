@@ -59,11 +59,9 @@
 /* 모바일 카드 띄우기(2026-11-12 시범) — PC 그림자를 그대로 옮기지 않는다.
    히어로는 아래가 28px 여백 + 섹션 제목이라 깊은 세 겹(음수 spread 로 좌우 16px 여백 안에서 끝남),
    아래 쌓인 카드(평일 예배·더 알아보기)는 간격이 10px 라 짧고 또렷한 두 겹,
-   히어로 속 시간 타일은 하늘 위에 살짝 뜨는 정도. 다크는 기본 --card-shadow 가 이미 깊다 */
+   히어로 속 시간 타일은 하늘 위에 살짝 뜨는 정도. 다크는 기본 --card-shadow 가 이미 깊다.
+   쌓인 카드의 --card-shadow 는 theme.css 모바일 공통 규칙이 맡는다 */
 @media (max-width: 1023.98px) {
-  :root:not(.dark) .worship-page {
-    --card-shadow: 0 1px 2px rgba(24, 26, 40, 0.06), 0 8px 16px -6px rgba(24, 26, 40, 0.18);
-  }
   :root:not(.dark) .worship-hero {
     box-shadow:
       0 2px 4px rgba(24, 26, 40, 0.05),
