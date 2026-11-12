@@ -340,6 +340,8 @@ export const news = {
   newsEaSwipeView: 'Swipe through',
   newsEaSwipeHint: 'Swipe up for the next event',
   newsEaPhotoCount: '{n} photos',
+  newsEaPrevPhoto: 'Previous photo',
+  newsEaNextPhoto: 'Next photo',
 
   // ── Comment form (New Family · Events) ───────
   newsCommentNameFallback: 'Member',

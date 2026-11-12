@@ -344,6 +344,8 @@ export const news = {
   newsEaSwipeView: '넘겨보기',
   newsEaSwipeHint: '위로 넘기면 다음 행사',
   newsEaPhotoCount: '사진 {n}장',
+  newsEaPrevPhoto: '이전 사진',
+  newsEaNextPhoto: '다음 사진',
 
   // ── 댓글 작성 폼(새가족 · 행사 공용) ─────────
   newsCommentNameFallback: '성도',
