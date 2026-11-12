@@ -17,7 +17,7 @@ const AgendaSection = ({ group }: AgendaSectionProps) => {
           {group.events.length}건
         </span>
       </div>
-      <div className="flex flex-col gap-2 lg:gap-3">
+      <div className="flex flex-col gap-2.5 lg:gap-3">
         {group.events.map(ev => (
           <AgendaCard key={ev.id} event={ev} />
         ))}

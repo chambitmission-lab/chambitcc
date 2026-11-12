@@ -48,7 +48,9 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
           'relative overflow-hidden rounded-3xl p-5',
           'bg-gradient-to-br',
           v.gradient,
-          'shadow-[0_18px_44px_-18px_var(--brand-glow)]',
+          // 모바일: 옅은 브랜드 글로우만으론 캔버스에 붙어 보여 /worship 히어로와 같은 세 겹 낙하 그림자(2026-11-12)
+          'shadow-[0_2px_4px_rgba(24,26,40,0.06),0_14px_24px_-10px_rgba(24,26,40,0.22),0_30px_44px_-24px_rgba(24,26,40,0.34)]',
+          'lg:shadow-[0_18px_44px_-18px_var(--brand-glow)]',
           // 다크: 브랜드 글로우 절제 + 1px 빛줄로 카드 경계만 살림
           'dark:border dark:border-white/10',
           'dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_16px_36px_-20px_rgba(0,0,0,0.8)]',

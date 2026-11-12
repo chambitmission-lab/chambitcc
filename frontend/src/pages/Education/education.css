@@ -1163,3 +1163,16 @@
     padding: 1.25rem 1.4rem 1.25rem 2.5rem;
   }
 }
+
+/* 모바일 카드 띄우기(2026-11-12) — 타일은 그림자가 없고 주간·강좌 카드는 1px 뿐이라 캔버스에 붙어 보였다.
+   theme.css 모바일 공통 값(--card-shadow: 간격 10px 안팎에서 끝나는 짧은 두 겹)으로 맞춘다. 다크·PC 는 그대로 */
+@media (max-width: 1023.98px) {
+  :root:not(.dark) .edu-tile:not(.is-selected),
+  :root:not(.dark) .edu-week,
+  :root:not(.dark) .edu-course {
+    box-shadow: var(--card-shadow);
+  }
+  :root:not(.dark) .edu-tile.is-selected {
+    box-shadow: 0 0 0 3px rgba(var(--chip-rgb), 0.14), var(--card-shadow);
+  }
+}

@@ -350,7 +350,7 @@ const People = () => {
           <div className="px-4 pt-4 lg:px-5">
             <Link
               to="/organization"
-              className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] hover:border-brand transition-colors"
+              className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none hover:border-brand transition-colors"
             >
               <span className="w-9 h-9 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center shrink-0">
                 <UsersThree size={18} weight="duotone" />

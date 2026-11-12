@@ -364,9 +364,32 @@
   :root:not(.dark) {
     --card-shadow: 0 1px 2px rgba(24, 26, 40, 0.06), 0 8px 16px -6px rgba(24, 26, 40, 0.18);
   }
-  :root:not(.dark) :is(.rounded-2xl, .rounded-3xl, .rounded-\[20px\], .rounded-\[22px\]).shadow-sm {
-    --tw-shadow: 0 1px 2px rgba(24, 26, 40, 0.06), 0 6px 14px -6px rgba(24, 26, 40, 0.16);
-    --tw-shadow-colored: 0 1px 2px var(--tw-shadow-color), 0 6px 14px -6px var(--tw-shadow-color);
+  :root:not(.dark) :is(.rounded-2xl, .rounded-3xl, .rounded-\[20px\], .rounded-\[22px\], .rounded-\[24px\]).shadow-sm {
+    --tw-shadow: 0 1px 2px rgba(24, 26, 40, 0.06), 0 8px 16px -6px rgba(24, 26, 40, 0.18);
+    --tw-shadow-colored: 0 1px 2px var(--tw-shadow-color), 0 8px 16px -6px var(--tw-shadow-color);
+  }
+
+  /* ③ 화면별 CSS 로 그린 카드 중 그림자가 없던 것(2026-11-12 모바일 폭 computed style 전수 점검으로 찾음).
+     :where 라 명시도는 낮다 — 화면 CSS 의 상태 규칙(.is-flash·:hover 등)이 그대로 이긴다.
+     히어로급 큰 카드는 아래 여백이 넉넉해 /worship 히어로와 같은 깊은 세 겹(--card-shadow-hero) */
+  :root:not(.dark) {
+    --card-shadow-hero:
+      0 2px 4px rgba(24, 26, 40, 0.05),
+      0 14px 24px -10px rgba(24, 26, 40, 0.18),
+      0 30px 44px -24px rgba(24, 26, 40, 0.3);
+  }
+  :root:not(.dark) :where(.pm-toggle, .pm-item, .atl-summary, .atl-next, .hw-play, .pd-card, .grc-card) {
+    box-shadow: var(--card-shadow);
+  }
+  :root:not(.dark) :where(.sl-sky, .story-hero, .pm-hero, .history-epilogue, .ab-invite, .va-hero) {
+    box-shadow: var(--card-shadow-hero);
+  }
+  /* 안쪽 1px 링을 그림자로 그리던 카드 — 링을 지키며 얹는다 */
+  :root:not(.dark) :where(.ab-dawn) {
+    box-shadow: inset 0 0 0 1px rgba(25, 23, 34, 0.06), var(--card-shadow-hero);
+  }
+  :root:not(.dark) :where(.ab-meet) {
+    box-shadow: inset 0 0 0 1px var(--card-border), var(--card-shadow);
   }
 }
 

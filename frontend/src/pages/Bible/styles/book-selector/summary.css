@@ -29,6 +29,18 @@
   border-color: rgba(255, 255, 255, 0.07);
 }
 
+/* 모바일 카드 띄우기(2026-11-12) — 위 이어 읽기·도구 타일은 빛 번짐+유리 그림자로 이미 떠 있는데
+   이 판만 테두리뿐이라 회색 캔버스에 붙어 보였다. 아래 '책 선택'까지 20px 라 그 안에서 끝나는 두 겹.
+   바로 밑 .book-nav::before(고정 시 가림막)가 위로 16px 올라와 그림자를 일자로 자르므로 한 층 위에 둔다
+   (.book-nav z-index 8). 다크는 판이 어두워 그림자가 안 보이니 라이트만 */
+@media (max-width: 1023.98px) {
+  :root:not(.dark) .reading-summary {
+    position: relative;
+    z-index: 9;
+    box-shadow: 0 1px 2px rgba(22, 40, 90, 0.06), 0 10px 18px -8px rgba(22, 40, 90, 0.2);
+  }
+}
+
 .reading-summary__head {
   display: flex;
   align-items: center;

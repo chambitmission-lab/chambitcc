@@ -543,7 +543,7 @@ const EmptyCard = ({
   body?: ReactNode
   action?: { label: string; onClick: () => void }
 }) => (
-  <div className="rounded-[24px] bg-white dark:bg-card-dark border border-transparent dark:border-white/[0.06] px-6 py-16 text-center">
+  <div className="rounded-[24px] shadow-sm dark:shadow-none bg-white dark:bg-card-dark border border-transparent dark:border-white/[0.06] px-6 py-16 text-center">
     <span className="material-icons-round text-[44px] text-gray-300 dark:text-white/20" aria-hidden="true">{icon}</span>
     <p className="mt-3 text-[15px] font-semibold text-gray-700 dark:text-white/70">{title}</p>
     {body && <p className="mt-1.5 text-[13px] leading-[1.75] text-gray-500 dark:text-white/45">{body}</p>}

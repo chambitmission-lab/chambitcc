@@ -351,7 +351,7 @@ const Organization = () => {
               </p>
             ) : (
               <>
-                <section className="org-committees px-4 pt-4 space-y-2">
+                <section className="org-committees px-4 pt-4 space-y-2.5">
                   <p className="org-section-title">
                     <Buildings size={18} weight="duotone" />
                     위원회

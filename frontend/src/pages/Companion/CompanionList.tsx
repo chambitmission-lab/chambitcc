@@ -310,7 +310,7 @@ const ActiveCard = ({ c, onOpen }: { c: CompanionSummary; onOpen: () => void }) 
     <button
       type="button"
       onClick={onOpen}
-      className="w-full text-left rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark p-4 active:scale-[0.99] transition-transform"
+      className="w-full text-left rounded-2xl bg-white dark:bg-card-dark border border-border-light dark:border-border-dark p-4 shadow-sm dark:shadow-none active:scale-[0.99] transition-transform"
     >
       <div className="flex items-center gap-3">
         <div className="flex -space-x-2 shrink-0">
