@@ -24,7 +24,7 @@
   /* 본문 폭(.ab-body 와 같은 1240 - 좌우 거터) 안의 라운드 카드 */
   width: min(100% - 2 * var(--ab-gutter), 1240px - 2 * var(--ab-gutter));
   margin: 1rem auto 0;
-  /* 모바일은 내용 높이만큼 — 화면 높이를 채우면 세로 말씀과 아래 줄 사이가 텅 빈다 */
+  /* 높이는 내용만큼(PC·모바일 모두) — 화면 높이를 채우면 세로 말씀과 아래 줄 사이가 텅 빈다 */
   padding: 2.25rem 1.5rem 1.75rem;
   overflow: hidden;
   border-radius: 28px;
@@ -289,11 +289,8 @@
     --ab-dawn-shade:
       linear-gradient(270deg, rgba(246, 249, 252, 0.45) 0%, transparent 45%),
       linear-gradient(0deg, rgba(246, 249, 252, 0.45), transparent 25%);
-    /* PC 는 첫 화면을 채우되 아래 이야기 첫머리가 살짝 보이게.
-       zoom(--az) 안이라 vh 가 함께 커진다 → 나눠서 되돌린다 */
-    min-height: 560px;
-    min-height: calc((100svh - 56px) / var(--az, 1) - 4.5rem);
-    gap: 2.5rem;
+    /* PC 도 내용 높이만큼 — 화면 높이를 채우면 하늘만 넓게 비어 보인다 */
+    gap: 3.5rem;
     padding: 3.5rem 4.5rem 3rem 3.5rem;
   }
 
