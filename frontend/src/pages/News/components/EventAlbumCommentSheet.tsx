@@ -1,57 +1,23 @@
-// 행사 앨범 댓글 하단 시트 (Single Responsibility: 댓글 열람/작성 UI)
-// NewFamilyCommentSheet 미러링 — 목록은 공용 ReplyList 재사용, 작성은 실명 고정.
-import { useState } from 'react'
-import ReplyList from '../../../components/common/ReplyList'
-import EmojiPickerPanel from '../../../components/common/EmojiPickerPanel'
+// 행사 앨범 댓글 하단 시트 (Single Responsibility: 댓글 시트 껍데기)
+// 본문(목록+작성)은 EventAlbumCommentThread — PC 2단 상세와 같은 것을 쓴다.
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import { useMyIdentity } from '../../../hooks/useProfile'
-import {
-  useCreateEventAlbumComment,
-  useDeleteEventAlbumComment,
-  useEventAlbumComments,
-  useUpdateEventAlbumComment,
-} from '../../../hooks/useEventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
-import { toastFeedback } from '../../../utils/toast'
-import { can } from '../../../utils/access'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
+import EventAlbumCommentThread from './EventAlbumCommentThread'
 
 interface EventAlbumCommentSheetProps {
   post: EventAlbumPost
   onClose: () => void
 }
 
-const MAX_LENGTH = 500
-
 const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) => {
   const { t } = useLanguage()
-  const [content, setContent] = useState('')
-  const [showStickers, setShowStickers] = useState(false)
 
   useModalBackButton(onClose)
 
-  // 내 사진·이름 — 헤더가 캐시한 가벼운 /profile/stats(useMyIdentity). 시트를 열 때마다
-  // 무거운 프로필 상세(통계+목록 집계)를 다시 부르지 않는다
-  const { avatarUrl, displayName: myName } = useMyIdentity()
-  const displayName = myName || t('newsCommentNameFallback')
-
-  const { comments, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useEventAlbumComments(post.id)
-  const { createComment, isCreating } = useCreateEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: t('newsCommentCreateFailed') }))
-  const { updateComment, isUpdating } = useUpdateEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: t('newsCommentUpdateFailed') }))
-  const { deleteComment } = useDeleteEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: t('newsCommentDeleteFailed') }))
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const trimmed = content.trim()
-    if (!trimmed || isCreating) return
-    createComment(trimmed)
-    setContent('')
-    setShowStickers(false)
-  }
-
   return (
+    // 넘겨보기(EventAlbumReel, z-[115]) 위에서도 열리므로 그보다 위에 둔다
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[120] flex items-end sm:items-center justify-center sm:p-4"
       onClick={onClose}
@@ -90,89 +56,7 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
           </div>
         </div>
 
-        {/* 댓글 목록 */}
-        <div className="relative z-10 flex-1 overflow-y-auto px-5 py-4">
-          <ReplyList
-            replies={comments}
-            isLoading={isLoading}
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            onLoadMore={() => fetchNextPage()}
-            onReplyUpdate={(commentId, newContent) =>
-              updateComment({ commentId, content: newContent })
-            }
-            onReplyDelete={(commentId) => deleteComment(commentId)}
-            isUpdating={isUpdating}
-            canModerate={can('community:moderate')}
-          />
-        </div>
-
-        {/* 작성 폼 */}
-        <form
-          onSubmit={handleSubmit}
-          className="relative z-10 shrink-0 border-t border-black/[0.04] dark:border-white/[0.06] bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm px-4 py-3"
-        >
-          {showStickers && (
-            <EmojiPickerPanel
-              className="mb-2"
-              disabled={isCreating}
-              onSelect={(char) =>
-                setContent((c) => (c + char).slice(0, MAX_LENGTH))
-              }
-            />
-          )}
-
-          <div className="flex items-end gap-2.5">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt=""
-                className="w-8 h-8 rounded-full object-cover shadow-[0_0_0_1px_var(--card-border)] shrink-0"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full brand-gradient flex items-center justify-center text-[13px] font-semibold shrink-0 shadow-[0_2px_10px_var(--brand-glow)]">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
-
-            <div className="flex-1 min-w-0 flex items-end gap-1.5 rounded-2xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-2 py-1.5 focus-within:border-[var(--brand)] transition-colors">
-              <button
-                type="button"
-                aria-label={t('newsAnimatedSticker')}
-                aria-expanded={showStickers}
-                disabled={isCreating}
-                onClick={() => setShowStickers((v) => !v)}
-                className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
-                  showStickers
-                    ? 'text-[var(--brand)] bg-[var(--brand-soft)]'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-[var(--brand)]'
-                }`}
-              >
-                <span className="material-icons-round text-[21px]">mood</span>
-              </button>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value.slice(0, MAX_LENGTH))}
-                placeholder={t('newsEaCommentPlaceholder')}
-                rows={1}
-                disabled={isCreating}
-                className="flex-1 min-w-0 bg-transparent resize-none py-1.5 text-[14px] leading-[1.5] text-ink-strong placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none max-h-24 disabled:opacity-50"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={!content.trim() || isCreating}
-              className="shrink-0 px-4 h-9 rounded-full brand-gradient text-[13px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-            >
-              {isCreating ? t('newsCommentSending') : t('newsCommentSubmit')}
-            </button>
-          </div>
-
-          <p className="mt-1.5 pl-[42px] text-[10.5px] text-gray-400 dark:text-white/35">
-            {t('newsCommentSignature').replace('{name}', displayName)}
-          </p>
-        </form>
+        <EventAlbumCommentThread postId={post.id} variant="sheet" />
       </div>
     </div>
   )

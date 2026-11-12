@@ -341,6 +341,9 @@ export const news = {
   newsEaEmojiLove: '사랑해요',
   newsEaEmojiJoy: '즐거웠어요',
   newsEaEmojiTogether: '함께해요',
+  newsEaSwipeView: '넘겨보기',
+  newsEaSwipeHint: '위로 넘기면 다음 행사',
+  newsEaPhotoCount: '사진 {n}장',
 
   // ── 댓글 작성 폼(새가족 · 행사 공용) ─────────
   newsCommentNameFallback: '성도',

@@ -221,7 +221,9 @@ const News = () => {
           좌측 레일 오프셋은 전역 main(App.tsx)이 이미 잡아주므로 여기선
           레일 바로 옆까지 붙는 여백(px-5)만 두어 본문에 시선이 모이게 한다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0">
+      {/* lg:overflow-clip(hidden 아님) — 둥근 모서리는 똑같이 자르면서 스크롤 컨테이너를 만들지 않아
+          안쪽 sticky(행사 앨범 2단의 왼쪽 목록)가 화면에 붙는다 */}
+      <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-clip lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2 lg:px-6 lg:pt-7 lg:pb-3">
           <p className="text-brand text-[11.5px] lg:text-[13px] font-bold tracking-[0.12em] uppercase mb-1.5">

@@ -1,13 +1,17 @@
 import { Lock } from '../../../components/icons/phosphor'
 // 행사 앨범 섹션 (/news 의 '행사' 탭 본문)
-// Single Responsibility: 행사 피드/그리드 구성과 필터·모달 상태 관리
-// 새가족 섹션(NewFamilySection)을 미러링하되, 태그·연도 필터와 "N년 전 오늘" 회상 카드가 추가된다.
+// Single Responsibility: 필터·목록 데이터와 열람 상태(선택·넘겨보기·뷰어·댓글) 관리
+// 2026-11-12 E안 개편 — 피드 카드+모달 대신
+//   PC(lg+): 왼쪽 앨범 목록 | 오른쪽 상세(사진 격자·반응·댓글) 2단
+//   모바일: 연도별 앨범 목록 → 누르면 전체 화면 넘겨보기(위아래=행사, 좌우=사진)
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import EventAlbumPostCard from './EventAlbumPostCard'
 import EventAlbumCommentSheet from './EventAlbumCommentSheet'
 import EventAlbumViewer from './EventAlbumViewer'
+import EventAlbumList from './EventAlbumList'
+import EventAlbumDetail from './EventAlbumDetail'
+import EventAlbumReel from './EventAlbumReel'
 import {
   invalidateEventAlbum,
   useEventAlbumOnThisDay,
@@ -15,6 +19,7 @@ import {
   useEventAlbumStats,
   useToggleEventAlbumReaction,
 } from '../../../hooks/useEventAlbum'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import { tokenStore } from '../../../utils/tokenStore'
 import { deleteEventAlbumPost, fetchEventAlbumPost } from '../../../api/eventAlbum'
 import { showToast, toastFeedback } from '../../../utils/toast'
@@ -28,20 +33,24 @@ import { can } from '../../../utils/access'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Translate } from '../../../locales'
 
-type ViewMode = 'feed' | 'grid'
-
 const EventAlbumSection = () => {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
 
   const isLoggedIn = !!tokenStore.getAccess()
   const admin = can('content:manage')
 
-  const [viewMode, setViewMode] = useState<ViewMode>('feed')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
+  /** PC 2단에서 오른쪽에 펼친 앨범 (없으면 목록 첫 앨범) */
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  /** 목록 밖에서 들어온 앨범(딥링크·"그날의 추억") — 목록 맨 앞에 끼워 연다 */
+  const [pinned, setPinned] = useState<EventAlbumPost | null>(null)
+  /** 모바일 넘겨보기 — 열려 있으면 시작 앨범 id */
+  const [reelStartId, setReelStartId] = useState<number | null>(null)
   const [commentPost, setCommentPost] = useState<EventAlbumPost | null>(null)
   const [viewer, setViewer] = useState<{ post: EventAlbumPost; index: number } | null>(null)
 
@@ -61,7 +70,21 @@ const EventAlbumSection = () => {
   const { data: onThisDay } = useEventAlbumOnThisDay(isLoggedIn)
   const { toggleReaction } = useToggleEventAlbumReaction(toastFeedback({ error: t('newsEaReactionFailed') }))
 
-  // ── 딥링크: /news?tab=event-album&post=123 → 해당 포스트 뷰어 자동 오픈 ──
+  // 목록 밖 앨범은 맨 앞에 붙인다. 목록에 이미 있으면 목록 쪽(반응이 실시간으로 반영되는 캐시)을 쓴다
+  const listPosts = useMemo(
+    () => (pinned && !posts.some((p) => p.id === pinned.id) ? [pinned, ...posts] : posts),
+    [pinned, posts],
+  )
+  const selectedPost = listPosts.find((p) => p.id === selectedId) ?? listPosts[0] ?? null
+
+  /** 앨범 하나를 연다 — PC 는 오른쪽 상세로, 모바일은 넘겨보기로 */
+  const openAlbum = (post: EventAlbumPost, fromOutside = false) => {
+    if (fromOutside) setPinned(post)
+    if (isDesktop) setSelectedId(post.id)
+    else setReelStartId(post.id)
+  }
+
+  // ── 딥링크: /news?tab=event-album&post=123 → 해당 앨범을 연다 ──
   const openedDeepLink = useRef(false)
   const postParam = searchParams.get('post')
   useEffect(() => {
@@ -73,7 +96,7 @@ const EventAlbumSection = () => {
     let cancelled = false
     fetchEventAlbumPost(postId)
       .then((post) => {
-        if (!cancelled) setViewer({ post, index: 0 })
+        if (!cancelled) openAlbum(post, true)
       })
       .catch(() => {
         if (!cancelled) showToast(t('newsEaNotFound'), 'error')
@@ -87,12 +110,12 @@ const EventAlbumSection = () => {
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- t: 딥링크는 한 번만 연다. 언어가 바뀌었다고 진행 중인 fetch 를 끊을 이유가 없다
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t·openAlbum: 딥링크는 한 번만 연다. 진행 중인 fetch 를 끊을 이유가 없다
   }, [isLoggedIn, postParam, setSearchParams])
 
   // 시트가 열려 있는 동안 목록이 갱신되면 최신 카운트로 따라가게 한다
   const activeCommentPost = commentPost
-    ? posts.find((p) => p.id === commentPost.id) ?? commentPost
+    ? listPosts.find((p) => p.id === commentPost.id) ?? commentPost
     : null
 
   const handleDelete = async (post: EventAlbumPost) => {
@@ -109,6 +132,8 @@ const EventAlbumSection = () => {
     try {
       await deleteEventAlbumPost(post.id)
       showToast(t('newsEaDeleted'), 'success')
+      if (pinned?.id === post.id) setPinned(null)
+      if (selectedId === post.id) setSelectedId(null)
       invalidateEventAlbum(queryClient)
     } catch (err) {
       showToast(err instanceof Error ? err.message : t('newsEaDeleteFailed'), 'error')
@@ -148,9 +173,23 @@ const EventAlbumSection = () => {
 
   const years = stats?.years ?? []
   const hasFilter = selectedTag !== null || selectedYear !== null
+  const reelIndex = reelStartId != null ? listPosts.findIndex((p) => p.id === reelStartId) : -1
+
+  const loadMoreButton = hasNextPage && !switching && !knownEmpty && (
+    <div className="flex justify-center pt-4 pb-1">
+      <button
+        type="button"
+        onClick={() => fetchNextPage()}
+        disabled={isFetchingNextPage}
+        className="px-5 h-10 lg:h-12 lg:px-7 rounded-full text-[12.5px] lg:text-[15.5px] font-bold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
+      >
+        {isFetchingNextPage ? t('newsLoadingMore') : t('newsEaLoadMore')}
+      </button>
+    </div>
+  )
 
   return (
-    <div className="px-4 pt-3 pb-8">
+    <div className="px-4 pt-3 pb-8 lg:px-6">
       {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--album).
           그림은 오른쪽 끝에 높이맞춤으로 서고, 왼쪽·아래는 알파로 카드에 녹는다 */}
       <div className="nh-hero nh-hero--album relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
@@ -180,29 +219,25 @@ const EventAlbumSection = () => {
             <HeroStat label={t('newsEaStatPhotos')} value={stats?.total_photos ?? 0} />
             <HeroStat label={t('newsEaStatYears')} value={years.length} />
 
-            {/* 뷰 전환 */}
-            <div className="ml-auto inline-flex p-0.5 rounded-full bg-gray-100/90 dark:bg-white/[0.05] backdrop-blur-sm border border-gray-200/70 dark:border-white/[0.06]">
-              <ViewToggle active={viewMode === 'feed'} onClick={() => setViewMode('feed')} label={t('newsNfViewFeed')}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="8" rx="2" />
-                  <rect x="3" y="13" width="18" height="8" rx="2" />
+            {/* 모바일: 첫 앨범부터 넘겨보기 */}
+            {!isDesktop && listPosts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setReelStartId(listPosts[0].id)}
+                className="ml-auto inline-flex items-center gap-1.5 pl-3 pr-3.5 h-10 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] active:scale-[0.97] transition-transform"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.2-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
                 </svg>
-              </ViewToggle>
-              <ViewToggle active={viewMode === 'grid'} onClick={() => setViewMode('grid')} label={t('newsNfViewGrid')}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                </svg>
-              </ViewToggle>
-            </div>
+                {t('newsEaSwipeView')}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* 태그 필터 — 가로 스크롤 칩 */}
-      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
+      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 lg:-mx-6 lg:px-6 pb-2">
         <FilterPill active={selectedTag === null} onClick={() => setSelectedTag(null)}>
           {t('newsEaTagAll')}
         </FilterPill>
@@ -228,7 +263,7 @@ const EventAlbumSection = () => {
 
       {/* 연도 필터 — stats.years 기반 */}
       {years.length > 0 && (
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-3">
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 lg:-mx-6 lg:px-6 pb-3">
           <FilterPill active={selectedYear === null} onClick={() => setSelectedYear(null)}>
             {t('newsEaYearAll')}
           </FilterPill>
@@ -246,89 +281,68 @@ const EventAlbumSection = () => {
 
       {/* "N년 전 오늘" 회상 카드 — 필터가 없을 때만, 결과 있을 때만 */}
       {!hasFilter && (onThisDay?.length ?? 0) > 0 && (
-        <OnThisDayCard
-          posts={onThisDay!}
-          onOpen={(post) => setViewer({ post, index: 0 })}
-        />
+        <OnThisDayCard posts={onThisDay!} onOpen={(post) => openAlbum(post, true)} />
       )}
 
-      {/* 목록 — 필터 전환 중엔 직전 목록을 흐리게 두고 누르지 못하게 */}
+      {/* 목록(+PC 상세) — 필터 전환 중엔 직전 목록을 흐리게 두고 누르지 못하게 */}
       <div
         className={`transition-opacity duration-150 ${switching ? 'opacity-50 pointer-events-none' : ''}`}
         aria-busy={switching}
       >
-      {knownEmpty ? (
-        <EmptyState filtered />
-      ) : isLoading && !isPlaceholderData ? (
-        <SkeletonFeed />
-      ) : error ? (
-        <ErrorState message={error instanceof Error ? error.message : t('newsLoadFailed')} />
-      ) : posts.length === 0 ? (
-        <EmptyState filtered={hasFilter} />
-      ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-3 gap-1 lg:grid-cols-4 lg:gap-1.5">
-          {posts.map((post) => (
-            <button
-              key={post.id}
-              type="button"
-              onClick={() => setViewer({ post, index: 0 })}
-              className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-white/[0.04] active:scale-[0.97] transition-transform"
-            >
-              {post.cover_url ? (
-                <img
-                  src={post.cover_url}
-                  alt={post.title}
-                  loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <span className="absolute inset-0 flex items-center justify-center text-brand opacity-55">
-                  <AlbumIcon width={24} height={24} />
-                </span>
-              )}
-              {post.photo_count > 1 && (
-                <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 backdrop-blur-sm text-white text-[9px] lg:text-[11.5px] font-bold flex items-center justify-center">
-                  {post.photo_count}
-                </span>
-              )}
-              <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/75 to-transparent text-white text-[10px] lg:text-[12.5px] font-bold truncate text-left">
-                {post.title}
-              </span>
-            </button>
-          ))}
-        </div>
-      ) : (
-        // lg+: 넓어진 본문을 한 줄로만 쓰지 않도록 2열 카드 그리드
-        <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 lg:items-start">
-          {posts.map((post) => (
-            <EventAlbumPostCard
-              key={post.id}
-              post={post}
-              isAdmin={admin}
-              onToggleReaction={(emoji) => toggleReaction({ postId: post.id, emoji })}
-              onOpenComments={() => setCommentPost(post)}
-              onOpenViewer={(index) => setViewer({ post, index })}
-              onOpenEvent={(eventId) => navigate(`/events/${eventId}`)}
-              onDelete={() => handleDelete(post)}
-            />
-          ))}
-        </div>
-      )}
+        {knownEmpty ? (
+          <EmptyState filtered />
+        ) : isLoading && !isPlaceholderData ? (
+          <SkeletonList />
+        ) : error ? (
+          <ErrorState message={error instanceof Error ? error.message : t('newsLoadFailed')} />
+        ) : listPosts.length === 0 ? (
+          <EmptyState filtered={hasFilter} />
+        ) : isDesktop ? (
+          // PC 2단 — 목록은 화면에 붙어(sticky) 제 안에서 스크롤, 상세는 본문 흐름대로
+          <div className="grid grid-cols-[300px_minmax(0,1fr)] gap-5 items-start">
+            <div className="sticky top-[4.75rem] max-h-[calc((100vh-6rem)/var(--az,1))] overflow-y-auto overscroll-contain rounded-3xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm px-2 pb-2">
+              <EventAlbumList
+                posts={listPosts}
+                selectedId={selectedPost?.id}
+                onSelect={(post) => setSelectedId(post.id)}
+                isAdmin={admin}
+              />
+              {loadMoreButton}
+            </div>
+            {selectedPost && (
+              <EventAlbumDetail
+                post={selectedPost}
+                isAdmin={admin}
+                onToggleReaction={(emoji) => toggleReaction({ postId: selectedPost.id, emoji })}
+                onOpenViewer={(index) => setViewer({ post: selectedPost, index })}
+                onOpenEvent={(eventId) => navigate(`/events/${eventId}`)}
+                onDelete={() => handleDelete(selectedPost)}
+              />
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="rounded-3xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm px-2 pb-2">
+              <EventAlbumList posts={listPosts} onSelect={(post) => openAlbum(post)} isAdmin={admin} />
+            </div>
+            {loadMoreButton}
+          </>
+        )}
       </div>
 
-      {hasNextPage && !switching && !knownEmpty && (
-        <div className="flex justify-center pt-5">
-          <button
-            type="button"
-            onClick={() => fetchNextPage()}
-            disabled={isFetchingNextPage}
-            className="px-5 h-10 lg:h-12 lg:px-7 rounded-full text-[12.5px] lg:text-[15.5px] font-bold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors disabled:opacity-50"
-          >
-            {isFetchingNextPage ? t('newsLoadingMore') : t('newsEaLoadMore')}
-          </button>
-        </div>
+      {reelIndex >= 0 && (
+        <EventAlbumReel
+          posts={listPosts}
+          initialIndex={reelIndex}
+          onClose={() => setReelStartId(null)}
+          onToggleReaction={(postId, emoji) => toggleReaction({ postId, emoji })}
+          onOpenComments={(post) => setCommentPost(post)}
+          onOpenEvent={(eventId) => navigate(`/events/${eventId}`)}
+          hasNextPage={hasNextPage && !knownEmpty}
+          isFetchingNextPage={isFetchingNextPage}
+          fetchNextPage={() => void fetchNextPage()}
+        />
       )}
-
       {activeCommentPost && (
         <EventAlbumCommentSheet post={activeCommentPost} onClose={() => setCommentPost(null)} />
       )}
@@ -446,45 +460,21 @@ const FilterPill = ({
   </button>
 )
 
-const ViewToggle = ({
-  active,
-  onClick,
-  label,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  label: string
-  children: React.ReactNode
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    aria-label={label}
-    aria-pressed={active}
-    className={[
-      'w-8 h-8 rounded-full flex items-center justify-center transition-all',
-      active
-        ? 'bg-brand text-white shadow-[0_3px_10px_-3px_var(--brand-glow)]'
-        : 'text-gray-500 dark:text-white/50 hover:text-brand',
-    ].join(' ')}
-  >
-    {children}
-  </button>
-)
-
-const SkeletonFeed = () => (
-  <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-    {Array.from({ length: 2 }).map((_, i) => (
-      <div
-        key={i}
-        className="rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] overflow-hidden animate-pulse"
-      >
-        <div className="h-16" />
-        <div className="aspect-square bg-gray-200/60 dark:bg-white/[0.05]" />
-        <div className="h-20" />
-      </div>
-    ))}
+const SkeletonList = () => (
+  <div className="lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-5">
+    <div className="rounded-3xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] p-2 space-y-1 animate-pulse">
+      <div className="h-6 w-14 mx-2 mt-2 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 p-2">
+          <div className="w-[68px] h-[68px] lg:w-16 lg:h-16 rounded-xl bg-gray-200/70 dark:bg-white/[0.06]" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-3/4 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
+            <div className="h-3 w-1/2 rounded bg-gray-200/50 dark:bg-white/[0.04]" />
+          </div>
+        </div>
+      ))}
+    </div>
+    <div className="hidden lg:block h-[560px] rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
   </div>
 )
 

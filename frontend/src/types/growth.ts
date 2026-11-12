@@ -25,7 +25,7 @@ export interface GrowthTotals {
 export interface MonthDelta {
   key: string
   label: string
-  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type/stage_key 로 고른다 */
+  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type 으로 고른다 */
   icon?: string
   this_month: number
   last_month: number
@@ -40,7 +40,7 @@ export interface StreakInfo {
 
 export interface GrowthMilestone {
   key: string
-  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type/stage_key 로 고른다 */
+  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type 으로 고른다 */
   icon?: string
   label: string
   value?: string | null
@@ -94,7 +94,7 @@ export interface TimelineEvent {
   time: string | null // HH:MM (KST), 하루 묶음은 null
   title: string
   snippet?: string | null
-  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type/stage_key 로 고른다 */
+  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type 으로 고른다 */
   icon?: string
   accent: string
   meta: Record<string, unknown>
@@ -115,7 +115,7 @@ export interface GrowthTimelineResponse {
 }
 
 // =========================================================================
-// 말씀 여정 인사이트 (룰 기반 — backend faith_journey_service)
+// 말씀 여정 단계 키 — 인사이트 API 는 삭제(2026-11-12), 단계 아이콘(JourneyStageGlyph)만 남아 쓴다
 // =========================================================================
 export type JourneyStageKey =
   | 'calling'
@@ -126,39 +126,6 @@ export type JourneyStageKey =
   | 'canaan'
   | 'zion'
   | 'pilgrim'
-
-/** 읽기 동선의 한 정거장 — 연속으로 읽은 같은 책 묶음 */
-export interface JourneyFlowStop {
-  book: string
-  theme: string
-  verses: number
-}
-
-/** 지금 단계에 맞게 큐레이션된 추천 말씀 */
-export interface JourneyVerse {
-  reference: string
-  text: string
-  reason: string
-}
-
-export interface FaithJourneyData {
-  has_data: boolean
-  stage_key: JourneyStageKey
-  stage_title: string
-  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type/stage_key 로 고른다 */
-  stage_icon?: string
-  headline: string
-  metaphor: string
-  narrative: string
-  emotion_note: string | null
-  flow: JourneyFlowStop[]
-  verses: JourneyVerse[]
-}
-
-export interface FaithJourneyResponse {
-  success: boolean
-  data: FaithJourneyData
-}
 
 // =========================================================================
 // 다시 꺼내보는 기록 (backend app/services/growth/rewind.py, 2026-11-12 인사이트 대체)

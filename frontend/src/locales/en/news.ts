@@ -337,6 +337,9 @@ export const news = {
   newsEaEmojiLove: 'With love',
   newsEaEmojiJoy: 'What joy',
   newsEaEmojiTogether: 'Together',
+  newsEaSwipeView: 'Swipe through',
+  newsEaSwipeHint: 'Swipe up for the next event',
+  newsEaPhotoCount: '{n} photos',
 
   // ── Comment form (New Family · Events) ───────
   newsCommentNameFallback: 'Member',
