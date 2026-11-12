@@ -471,5 +471,5 @@ html.dark .thanks-side-top li:nth-child(3) .thanks-side-rank {
   }
 
   /* 작성 시트 — 포털 아님(zoom 안)이라 크기는 함께 커지고, 화면 높이만 --az 로 나눈다 */
-  .thanks-page .thanks-sheet { max-height: calc(92vh / var(--az, 1)); }
+  .thanks-page .thanks-sheet { max-height: calc(92dvh / var(--az, 1)); }
 }

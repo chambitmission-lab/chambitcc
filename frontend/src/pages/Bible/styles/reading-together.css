@@ -807,8 +807,8 @@
 @media (min-width: 1024px) {
   .rt-sheet.rt-sheet {
     max-width: 980px;
-    height: min(660px, calc(88vh / var(--pc-zoom, 1)));
-    max-height: calc(88vh / var(--pc-zoom, 1));
+    height: min(660px, calc(88dvh / var(--pc-zoom, 1)));
+    max-height: calc(88dvh / var(--pc-zoom, 1));
   }
   .rt-sheet .rt-sheet__body {
     display: grid;

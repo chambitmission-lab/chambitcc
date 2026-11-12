@@ -13,7 +13,7 @@
 }
 
 .atl-page {
-  min-height: 100vh;
+  min-height: calc(var(--vvh, 100dvh) - 3.5rem);
   /* ★화면의 좌우선은 하나다 — 헤드·칩·지도·요약·목록 카드가 모두 이 값을 쓴다.
      예전엔 블록마다 1rem 과 0.75rem 이 섞여 있어 위아래 판의 좌우 끝이 4px 씩
      어긋났다. "넓이가 안 맞는다"는 인상의 실제 원인이 이것이었다. */
@@ -38,7 +38,7 @@
   }
 
   .atl-page {
-    height: calc(100vh - 3.5rem);
+    height: calc(100dvh - 3.5rem);
     height: calc(100dvh - 3.5rem);
     height: calc(var(--vvh, 100dvh) - 3.5rem);
     min-height: 0;
@@ -139,7 +139,7 @@
   /* PC 글씨 크기 zoom(common.css `[data-app-scale]`) — 화면 높이 기준 값은 zoom 안에서 함께 커지므로
      배율로 나눈다. 안 나누면 목록 판 아래쪽이 화면 밖으로 밀려 끝까지 스크롤이 안 닿는다 */
   .main-content[data-app-scale] .atl-page {
-    min-height: calc(100vh / var(--az, 1));
+    min-height: calc((var(--vvh, 100dvh) - 3.5rem) / var(--az, 1));
   }
   .main-content[data-app-scale] .atl-pane-list {
     max-height: calc((var(--vvh, 100vh) - 12rem) / var(--az, 1));

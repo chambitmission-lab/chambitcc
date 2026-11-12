@@ -404,7 +404,7 @@ const ElectionComposer = ({ election, assemblyId: presetAssemblyId, onClose, onS
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => e.preventDefault()}
     >
-      <div className="relative w-full sm:max-w-3xl lg:max-w-[1320px] max-h-[94vh] sm:max-h-[92vh] lg:h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col">
+      <div className="relative w-full sm:max-w-3xl lg:max-w-[1320px] max-h-[94dvh] sm:max-h-[92dvh] lg:h-[90dvh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col">
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">ADMIN</p>

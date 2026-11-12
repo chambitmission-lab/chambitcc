@@ -24,7 +24,7 @@ const ElectionNewChooser = ({ onClose, onSingle, onMulti, onAssembly }: Props) =
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden">
-      <div className="relative w-full sm:max-w-lg max-h-[94vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col">
+      <div className="relative w-full sm:max-w-lg max-h-[94dvh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">새 선거</p>

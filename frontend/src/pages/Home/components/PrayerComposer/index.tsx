@@ -375,7 +375,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId, filter,
           글씨·버튼·타일을 키우고, 작성 칸이 남는 높이를 전부 차지한다. 모바일은 그대로 */}
       <div className="thanks-backdrop fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/55 backdrop-blur-[2px] sm:p-4 lg:p-6 overflow-hidden">
         <div
-          className="thanks-sheet relative w-full sm:max-w-[440px] lg:max-w-[1320px] lg:w-[calc(94vw/var(--az,1))] max-h-[calc(var(--vvh,100dvh)*0.92)] lg:max-h-none lg:h-[calc(92vh/var(--az,1))] lg:flex lg:flex-col overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
+          className="thanks-sheet relative w-full sm:max-w-[440px] lg:max-w-[1320px] lg:w-[calc(94vw/var(--az,1))] max-h-[calc(var(--vvh,100dvh)*0.92)] lg:max-h-none lg:h-[calc(92dvh/var(--az,1))] lg:flex lg:flex-col overflow-y-auto overflow-x-hidden rounded-t-[28px] sm:rounded-[24px] border border-[var(--card-border)] bg-[var(--surface-container)] shadow-[0_-18px_50px_rgba(0,0,0,0.30)] sm:shadow-[var(--card-shadow)]"
           role="dialog"
           aria-modal="true"
         >

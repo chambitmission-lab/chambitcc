@@ -58,7 +58,7 @@ export const ResultExportSheet = ({ electionTitle, canThis, onPrintThis, onCsvTh
         role="dialog"
         aria-label="결과 받기"
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-background-light dark:bg-[#1c1c26] border border-black/[0.04] dark:border-white/[0.08] px-5 py-5 space-y-4"
+        className="w-full sm:max-w-md max-h-[90dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-background-light dark:bg-[#1c1c26] border border-black/[0.04] dark:border-white/[0.08] px-5 py-5 space-y-4"
       >
         <h3 className="text-[18px] font-extrabold text-ink-strong tracking-[-0.02em]">결과 받기</h3>
         {mine.length ? (

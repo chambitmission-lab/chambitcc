@@ -637,7 +637,7 @@ const UserManagement = () => {
     // PC(lg+): 목록·상세가 각자 스크롤하는 고정 높이 2단. 모바일: 목록 ↔ 상세 한 화면씩
     <div
       id="user-mgmt-top"
-      className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:p-4 lg:overflow-hidden"
+      className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100dvh-56px)] lg:min-h-0 lg:p-4 lg:overflow-hidden"
     >
       <div className="max-w-md mx-auto lg:max-w-[1240px] lg:h-full lg:flex lg:rounded-3xl lg:overflow-hidden lg:border border-gray-200/70 dark:border-white/[0.08]">
         {showMobileDetail ? (

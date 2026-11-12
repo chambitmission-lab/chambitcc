@@ -34,7 +34,7 @@
 @media (min-width: 1024px) {
   .ld-cine-wrap { max-width: 1240px; margin: 0 auto; padding: 20px 20px 0; }
   .ld-cine {
-    height: min(calc(100vh - 96px), 760px);
+    height: min(calc(100dvh - 96px), 760px);
     min-height: 600px;
     border-radius: 28px;
     box-shadow: 0 30px 60px -36px rgba(8, 15, 30, 0.6);

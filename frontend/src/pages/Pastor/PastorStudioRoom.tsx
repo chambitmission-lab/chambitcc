@@ -344,8 +344,8 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
           onClick={companionOpen ? e => e.target === e.currentTarget && closeCompanion() : undefined}
           className={
             companionOpen
-              ? 'fixed inset-x-0 bottom-0 top-0 pt-[6vh] z-[105] px-2 bg-black/40 lg:bg-transparent pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:inset-auto lg:z-auto lg:p-0 lg:pr-4 lg:pt-4 lg:sticky lg:top-[72px] lg:h-[calc((100vh-88px)/var(--pz,1))]'
-              : 'hidden lg:block pr-4 pt-4 lg:sticky lg:top-[72px] lg:h-[calc((100vh-88px)/var(--pz,1))]'
+              ? 'fixed inset-x-0 bottom-0 top-0 pt-[6vh] z-[105] px-2 bg-black/40 lg:bg-transparent pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:inset-auto lg:z-auto lg:p-0 lg:pr-4 lg:pt-4 lg:sticky lg:top-[72px] lg:h-[calc((100dvh-88px)/var(--pz,1))]'
+              : 'hidden lg:block pr-4 pt-4 lg:sticky lg:top-[72px] lg:h-[calc((100dvh-88px)/var(--pz,1))]'
           }
         >
           {companionOpen && <CloseOnBack onClose={closeCompanion} />}

@@ -613,7 +613,7 @@
 .sb-all--list .sb-all__items {
   display: flex;
   flex-direction: column;
-  max-height: 52vh;
+  max-height: 52dvh;
   overflow-y: auto;
   margin-left: -6px;
   scrollbar-width: thin;

@@ -227,7 +227,7 @@ const ClassList = () => {
 
       {/* 우측 위젯 레일 (lg+) — 반 만들기·코드 참여를 항상 손 닿는 곳에,
           본문은 반 카드에만 집중하게 한다 */}
-      <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
+      <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100dvh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
         <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
           <button
             type="button"
@@ -434,7 +434,7 @@ const CreateClassSheet = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/45" onClick={onClose} />
-      <div className="relative w-full max-w-md max-h-[88vh] lg:max-h-[calc(88vh/var(--az,1))] overflow-y-auto rounded-t-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
+      <div className="relative w-full max-w-md max-h-[88dvh] lg:max-h-[calc(88dvh/var(--az,1))] overflow-y-auto rounded-t-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
         <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
         <h3 className="text-[17px] font-bold text-ink-strong mb-1">우리 반 만들기</h3>
         <p className="text-[12px] text-gray-400 dark:text-white/45 mb-4">

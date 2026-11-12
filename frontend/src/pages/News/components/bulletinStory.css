@@ -418,7 +418,7 @@
 }
 @media (min-width: 1024px) {
   .bs-deck {
-    height: clamp(560px, calc((100vh - 220px) / var(--az, 1)), 800px);
+    height: clamp(560px, calc((100dvh - 220px) / var(--az, 1)), 800px);
     border-radius: 30px;
   }
 }

@@ -244,7 +244,7 @@ const WeeklyPrayerTopics = () => {
               </div>
 
               {/* 우: 이번 주 숫자 + 기도 순서 + 지난 기도제목 (PC 전용) */}
-              <aside className="hidden lg:block lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide space-y-4">
+              <aside className="hidden lg:block lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100dvh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide space-y-4">
                 <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-5">
                   <p className="text-[16px] font-bold text-ink-strong">이번 주 함께한 기도</p>
                   <div className="mt-4 grid grid-cols-2 gap-2 pt-4 border-t border-gray-200/70 dark:border-white/[0.08]">
@@ -284,7 +284,7 @@ const WeeklyPrayerTopics = () => {
 
                 <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-4">
                   <p className="px-1 pb-2.5 text-[16px] font-bold text-ink-strong">지난 기도제목</p>
-                  <div className="max-h-[calc(36vh/var(--az,1))] overflow-y-auto pr-0.5">{archiveList}</div>
+                  <div className="max-h-[calc(36dvh/var(--az,1))] overflow-y-auto pr-0.5">{archiveList}</div>
                 </div>
               </aside>
             </div>

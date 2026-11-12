@@ -268,7 +268,7 @@ const WeeklyPrayerManagement = () => {
   return (
     // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
     // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 작업 레일 sticky 가 산다.
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100dvh-56px)] lg:min-h-0 lg:overflow-y-auto">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-24 lg:max-w-[1180px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl">
         {/* 헤더 — lg 에선 우측 작업 레일이 sticky 를 맡으므로 풀어 둔다
             (sticky 인 채로 라운드 모서리를 주면 스크롤 중 둥근 막대가 떠 보인다) */}
@@ -292,7 +292,7 @@ const WeeklyPrayerManagement = () => {
             래퍼 2개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
         <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-6 lg:items-start lg:px-5 lg:pt-5">
           {/* ── 작업 레일 ── 폼이 길어지면 레일 안에서만 스크롤한다 */}
-          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto lg:pr-1 lg:space-y-3">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:max-h-[calc(100dvh-88px)] lg:overflow-y-auto lg:pr-1 lg:space-y-3">
             {/* 통계 칩 */}
             <div className="px-4 pt-4 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
               <StatChip label="전체" value={list.length} />

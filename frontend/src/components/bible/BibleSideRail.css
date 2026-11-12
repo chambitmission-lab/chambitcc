@@ -34,7 +34,7 @@
     width: var(--corl-w);
     position: fixed;
     top: 4.5rem;
-    max-height: calc(100vh - 5.5rem);
+    max-height: calc(100dvh - 5.5rem);
     overflow-y: auto;
     padding: 1rem 0.75rem 1.5rem 0;
     margin-top: 0.5rem;
@@ -58,7 +58,7 @@
      배율로 되돌린다(common.css `[data-app-scale]` 주석). left 는 BibleSideRail.tsx measure 가 나눈다 */
   .main-content[data-app-scale] .corl {
     top: calc(4.5rem / var(--az, 1));
-    max-height: calc((100vh - 5.5rem) / var(--az, 1));
+    max-height: calc((100dvh - 5.5rem) / var(--az, 1));
   }
 }
 @media (min-width: 1440px) {

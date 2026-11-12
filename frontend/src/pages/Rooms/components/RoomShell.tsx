@@ -34,7 +34,7 @@ export const Shell = ({
       </div>
 
       {rail && (
-        <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">{rail}</aside>
+        <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100dvh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">{rail}</aside>
       )}
     </div>
   </div>

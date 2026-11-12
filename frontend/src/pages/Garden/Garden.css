@@ -425,7 +425,7 @@
 @media (min-width: 1024px) {
   .main-content > .garden-page {
     max-width: none;
-    height: calc((100vh - 56px) / var(--az, 1));
+    height: calc((100dvh - 56px) / var(--az, 1));
     padding: 12px 24px 48px;
     overflow-y: auto;
     scrollbar-width: thin;

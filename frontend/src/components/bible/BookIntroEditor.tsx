@@ -133,7 +133,7 @@ const BookIntroEditor = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[94vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="relative w-full sm:max-w-lg max-h-[94dvh] sm:max-h-[90dvh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 카드 표면 그라데이션 + 글로우 */}

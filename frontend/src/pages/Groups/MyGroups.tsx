@@ -140,7 +140,7 @@ const MyGroups = () => {
         ) : isDesktop && selected ? (
           // PC — 왼쪽 라이브러리(방 목록 + 둘러보기) / 오른쪽 무대(고른 방)
           <div className="grid grid-cols-[300px_minmax(0,1fr)] gap-5 items-start">
-            <aside className="sticky top-[4.5rem] max-h-[calc((100vh-5.5rem)/var(--az,1))] overflow-y-auto scrollbar-hide rounded-3xl bg-[var(--surface-container)] border border-black/[0.05] dark:border-white/[0.07] p-2.5">
+            <aside className="sticky top-[4.5rem] max-h-[calc((100dvh-5.5rem)/var(--az,1))] overflow-y-auto scrollbar-hide rounded-3xl bg-[var(--surface-container)] border border-black/[0.05] dark:border-white/[0.07] p-2.5">
               <p className="px-2 pt-1.5 pb-2 text-[12px] font-bold text-gray-400 dark:text-white/40 tracking-[0.06em]">
                 {fill(t('groupsLibraryTitle'), { count: groups.length })}
               </p>

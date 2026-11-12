@@ -40,7 +40,7 @@ const UnitComposer = ({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
-      <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-pop-in">
+      <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col animate-pop-in">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
           <div className="min-w-0">
             <h3 className="font-bold text-ink-strong text-[15px]">

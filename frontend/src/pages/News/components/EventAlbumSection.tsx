@@ -300,7 +300,7 @@ const EventAlbumSection = () => {
         ) : isDesktop ? (
           // PC 2단 — 목록은 화면에 붙어(sticky) 제 안에서 스크롤, 상세는 본문 흐름대로
           <div className="grid grid-cols-[300px_minmax(0,1fr)] gap-5 items-start">
-            <div className="sticky top-[4.75rem] max-h-[calc((100vh-6rem)/var(--az,1))] overflow-y-auto overscroll-contain rounded-3xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm px-2 pb-2">
+            <div className="sticky top-[4.75rem] max-h-[calc((100dvh-6rem)/var(--az,1))] overflow-y-auto overscroll-contain rounded-3xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm px-2 pb-2">
               <EventAlbumList
                 posts={listPosts}
                 selectedId={selectedPost?.id}

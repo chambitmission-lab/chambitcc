@@ -190,7 +190,7 @@ const SeatBoard = ({ summary, onClose }: { summary: SeatEventSummary; onClose: (
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-4xl h-[94vh] sm:h-[92vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
+        className="relative w-full sm:max-w-4xl h-[94dvh] sm:h-[92dvh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 머리 */}

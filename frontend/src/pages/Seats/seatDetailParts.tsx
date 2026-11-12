@@ -203,7 +203,7 @@ export const PickRail = ({
         <b className={`text-[40px] font-extrabold leading-none ${danger ? 'text-red-500' : 'text-brand'}`}>{sorted.length}</b>
         <span className="text-[20px] font-bold">{max ? ` / ${max}석` : '석'}</span>
       </p>
-      <ul className="mt-4 space-y-2 max-h-[calc(40vh/var(--az,1))] overflow-y-auto">
+      <ul className="mt-4 space-y-2 max-h-[calc(40dvh/var(--az,1))] overflow-y-auto">
         {sorted.map((s) => (
           <li
             key={s}
@@ -298,7 +298,7 @@ export const SeatConfirm = ({
         aria-modal="true"
         aria-labelledby="seat-confirm-title"
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md lg:max-w-[560px] max-h-[calc(90vh/var(--az,1))] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] sm:pb-5 lg:p-8 shadow-2xl animate-pop-in"
+        className="w-full sm:max-w-md lg:max-w-[560px] max-h-[calc(90dvh/var(--az,1))] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] sm:pb-5 lg:p-8 shadow-2xl animate-pop-in"
       >
         <h3 id="seat-confirm-title" className="text-[19px] lg:text-[26px] font-extrabold text-ink-strong tracking-[-0.02em]">
           {title}

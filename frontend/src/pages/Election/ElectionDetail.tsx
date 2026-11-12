@@ -209,7 +209,7 @@ const BallotConfirm = ({
         aria-modal="true"
         aria-labelledby="ballot-confirm-title"
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md lg:max-w-[560px] max-h-[calc(90vh/var(--az,1))] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] sm:pb-5 lg:p-8 shadow-2xl animate-pop-in"
+        className="w-full sm:max-w-md lg:max-w-[560px] max-h-[calc(90dvh/var(--az,1))] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] sm:pb-5 lg:p-8 shadow-2xl animate-pop-in"
       >
         <h3 id="ballot-confirm-title" className="text-[19px] lg:text-[26px] font-extrabold text-ink-strong tracking-[-0.02em]">
           {abstain ? '기권할까요?' : '이대로 투표할까요?'}

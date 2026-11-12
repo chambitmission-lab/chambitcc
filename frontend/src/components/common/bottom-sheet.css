@@ -6,7 +6,7 @@
     --sheet-z: 1;
     zoom: var(--sheet-z);
     height: auto;
-    max-height: calc(88vh / var(--sheet-z));
+    max-height: calc(88dvh / var(--sheet-z));
   }
   .bottom-sheet-panel[data-scale='large'] { --sheet-z: 1.15; }
   .bottom-sheet-panel[data-scale='xlarge'] { --sheet-z: 1.3; }

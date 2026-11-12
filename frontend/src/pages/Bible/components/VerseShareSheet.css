@@ -25,7 +25,7 @@
 .vss-sheet {
   width: 100%;
   max-width: 32rem;
-  max-height: 88vh;
+  max-height: 88dvh;
   display: flex;
   flex-direction: column;
   border-radius: 20px 20px 0 0;
@@ -292,7 +292,7 @@
 .vss-card {
   width: auto;
   max-width: 100%;
-  max-height: 42vh;
+  max-height: 42dvh;
   border-radius: 12px;
   box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.45);
 }
@@ -300,7 +300,7 @@
 .vss-card-loading {
   width: 60%;
   aspect-ratio: 4 / 5;
-  max-height: 42vh;
+  max-height: 42dvh;
   border-radius: 12px;
   background: var(--ig-secondary-background);
   border: 1px solid var(--ig-border);

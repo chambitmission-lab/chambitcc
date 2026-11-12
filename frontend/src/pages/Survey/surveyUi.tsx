@@ -63,7 +63,7 @@ export const SurveyShell = ({
   <div
     ref={scrollRef}
     className={`min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage ${
-      pinRail ? 'lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto' : ''
+      pinRail ? 'lg:h-[calc((100dvh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto' : ''
     }`}
   >
     <div
@@ -103,7 +103,7 @@ export const SurveyShell = ({
       {rail ? (
         <aside
           className={`hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky ${
-            pinRail ? 'lg:top-3' : 'lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0'
+            pinRail ? 'lg:top-3' : 'lg:top-[4.5rem] lg:max-h-[calc((100dvh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0'
           }`}
         >
           {rail}

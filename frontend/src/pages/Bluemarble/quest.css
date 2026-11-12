@@ -371,7 +371,7 @@
 .qj-scrim > .qj-scene { grid-area: 1 / 1; }
 .qj-scene {
   position: relative;
-  width: 100%; max-width: 500px; max-height: calc(100vh - 32px); overflow-y: auto;
+  width: 100%; max-width: 500px; max-height: calc(100dvh - 32px); overflow-y: auto;
   border-radius: 26px;
   padding: 26px 22px 22px;
   background: url('../../assets/atlas/parchment.webp') center / cover, #fbf5e8;

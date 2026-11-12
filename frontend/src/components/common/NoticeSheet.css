@@ -76,7 +76,7 @@
   position: relative;
   width: 100%;
   max-width: 520px;
-  max-height: 92vh;
+  max-height: 92dvh;
   max-height: 92dvh;
   display: flex;
   flex-direction: column;
@@ -445,7 +445,7 @@
   .nl-card {
     /* PC 는 화면이 넉넉하다 — 포스터 글씨가 확대 없이 읽히고, 본문이 스크롤 없이 한눈에 들어오게 크게 */
     max-width: 1120px;
-    height: min(800px, 90vh);
+    height: min(800px, 90dvh);
     max-height: none;
     display: grid;
     grid-template-columns: minmax(400px, 46%) minmax(0, 1fr);
@@ -456,7 +456,7 @@
     animation-duration: 0.55s;
   }
   /* 포스터 없는 공지는 정보 한 단 — 그리드 대신 세로 flex 여야 max-height 안에서 본문이 스크롤된다 */
-  .nl-card--plain { max-width: 560px; display: flex; height: auto; max-height: 88vh; }
+  .nl-card--plain { max-width: 560px; display: flex; height: auto; max-height: 88dvh; }
   .nl-grab { display: none; }
   .nl-close { display: grid; }
   .nl-media {

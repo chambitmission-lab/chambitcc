@@ -109,7 +109,7 @@ const TribesView = ({ selectedId, onSelect }: Props) => {
         <aside className="hidden lg:block lg:col-span-2 min-w-0">
           <div
             ref={panelRef}
-            className={`${CARD} sticky lg:top-[4.5rem] max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain !rounded-[28px]`}
+            className={`${CARD} sticky lg:top-[4.5rem] max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain !rounded-[28px]`}
           >
             <TribeStoryHero tribe={shown} variant="full" />
             <TribeStoryBody tribe={shown} next={next} onSelect={pick} />

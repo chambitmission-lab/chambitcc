@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { hasViewportOverlay, lockBodyScroll } from './useBodyScrollLock'
 
 /**
  * 모달이 열린 동안 브라우저/안드로이드 뒤로가기를 가로채 모달만 닫는다.
@@ -9,6 +10,9 @@ import { useEffect, useRef } from 'react'
  *
  * 여러 모달이 겹쳐 열려도 뒤로가기 한 번에 최상단 모달 하나만 닫히도록
  * 모듈 전역 스택으로 닫기 콜백을 관리한다.
+ *
+ * 열려 있는 동안 뒤 페이지 스크롤도 잠근다 — 단, 화면 전체를 덮는 오버레이가 실제로 떠 있을 때만
+ * (hasViewportOverlay). 이 훅은 검색어 지우기·PC 도킹 패널처럼 화면을 덮지 않는 곳에서도 쓰인다.
  *
  * @param onClose 모달을 닫는 콜백
  * @param enabled 기본 true. isOpen 처럼 조건부로 떠야 하면 열림 여부를 넘긴다.
@@ -89,7 +93,18 @@ export function useModalBackButton(onClose: () => void, enabled = true) {
       listenerAttached = true
     }
 
+    // 뒤 페이지 스크롤 잠금 — 오버레이가 한 프레임 늦게 그려지는 모달도 있어 다음 프레임에 한 번 더 본다
+    let releaseScroll: (() => void) | null = null
+    const lockIfOverlay = () => {
+      if (!releaseScroll && hasViewportOverlay()) releaseScroll = lockBodyScroll()
+    }
+    lockIfOverlay()
+    const lockRaf = window.requestAnimationFrame(lockIfOverlay)
+
     return () => {
+      window.cancelAnimationFrame(lockRaf)
+      releaseScroll?.()
+
       const idx = closeStack.findIndex((e) => e.id === id)
       const stillOnTop = idx !== -1
       if (stillOnTop) closeStack.splice(idx, 1)

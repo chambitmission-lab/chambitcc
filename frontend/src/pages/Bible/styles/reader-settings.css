@@ -308,7 +308,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     row-gap: 20px;
-    max-height: calc(100vh - 160px);
+    max-height: calc(100dvh - 160px);
     overflow-y: auto;
     overscroll-behavior: contain;
   }

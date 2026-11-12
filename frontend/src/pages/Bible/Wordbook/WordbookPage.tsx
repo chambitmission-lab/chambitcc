@@ -471,7 +471,7 @@ const WordDetail = ({
 }) => {
   const note = cleanNote(item.note)
   return (
-    <div className="max-h-[calc(100vh-6rem)] overflow-y-auto rounded-[28px] bg-white dark:bg-card-dark border border-transparent dark:border-white/[0.06] shadow-[0_12px_32px_rgba(0,23,51,0.06)] dark:shadow-none px-8 pt-8 pb-7 space-y-6">
+    <div className="max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-[28px] bg-white dark:bg-card-dark border border-transparent dark:border-white/[0.06] shadow-[0_12px_32px_rgba(0,23,51,0.06)] dark:shadow-none px-8 pt-8 pb-7 space-y-6">
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"

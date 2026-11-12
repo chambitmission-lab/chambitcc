@@ -109,7 +109,7 @@ const ContestComposer = ({
   return (
     <div className="fixed inset-0 z-[110] flex items-end lg:items-center justify-center">
       <div className="absolute inset-0 bg-black/45" onClick={onClose} />
-      <div className="relative w-full max-w-lg max-h-[calc(90vh/var(--az,1))] overflow-y-auto rounded-t-[24px] lg:rounded-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
+      <div className="relative w-full max-w-lg max-h-[calc(90dvh/var(--az,1))] overflow-y-auto rounded-t-[24px] lg:rounded-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
         <h2 className="text-[18px] font-bold text-ink-strong mb-4">{target ? '대회 고치기' : '새 필사대회 열기'}</h2>
         <div className="space-y-3.5">
           <div>

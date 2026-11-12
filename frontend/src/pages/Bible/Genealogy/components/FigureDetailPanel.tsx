@@ -118,7 +118,7 @@ export const FigureDetailPanel = ({
       </button>
 
       <div
-        className={`gfd-scroll${variant === 'card' ? '' : ' max-h-[82vh]'}`}
+        className={`gfd-scroll${variant === 'card' ? '' : ' max-h-[82dvh]'}`}
         // PC 사이드 카드는 sticky(top 4.5rem) 아래 화면을 채운다 — 글씨 크기 zoom 배율로 나눈다
         style={variant === 'card' ? { maxHeight: 'calc((100vh - 6rem) / var(--az, 1))' } : undefined}
       >

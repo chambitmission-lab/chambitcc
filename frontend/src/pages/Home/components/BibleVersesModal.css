@@ -14,7 +14,7 @@
 }
 @media (min-width: 640px) {
   .bvm-sheet {
-    height: min(85vh, 780px);
+    height: min(85dvh, 780px);
   }
 }
 

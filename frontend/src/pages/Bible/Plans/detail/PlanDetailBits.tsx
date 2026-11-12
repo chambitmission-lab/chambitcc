@@ -84,7 +84,7 @@ const Shell = ({
   // 높이는 PC 글씨 크기 zoom 안이라 var(--az) 로 나눈다
   <div
     className={`min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage ${
-      rail ? 'lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto' : ''
+      rail ? 'lg:h-[calc((100dvh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto' : ''
     }`}
   >
     <div
@@ -124,7 +124,7 @@ const Shell = ({
     </div>
 
     {rail && (
-      <aside className="hidden lg:flex lg:w-[340px] lg:shrink-0 lg:flex-col lg:sticky lg:top-3 lg:max-h-[calc((100vh-56px-24px)/var(--az,1))] lg:overflow-y-auto scrollbar-hide">
+      <aside className="hidden lg:flex lg:w-[340px] lg:shrink-0 lg:flex-col lg:sticky lg:top-3 lg:max-h-[calc((100dvh-56px-24px)/var(--az,1))] lg:overflow-y-auto scrollbar-hide">
         {rail}
       </aside>
     )}

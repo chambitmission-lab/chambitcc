@@ -343,7 +343,7 @@ const News = () => {
           같아야 한다. 72px(4.5rem)로 두면 sticky 가 정적 위치보다 아래로 밀어내서
           우측 열만 4px 내려앉는다 */}
       {/* 모든 탭이 같은 본문 폭을 쓴다 — 예전엔 디지털 주보만 레일을 숨겨 그 탭만 넓어졌다(2026-11-07) */}
-      <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.25rem] lg:max-h-[calc((100vh-5.25rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
+      <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.25rem] lg:max-h-[calc((100dvh-5.25rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
         <NewsSidebar
           bulletins={bulletins}
           section={section}

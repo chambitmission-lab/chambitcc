@@ -165,7 +165,7 @@ const VerseReflectionSheet = ({
     >
       {/* 바깥(딤) 탭으로는 닫지 않는다 — 쓰던 묵상이 날아가지 않게 × 버튼·손잡이·뒤로가기로만 닫힘 */}
       <div
-        className="rt-sheet pc-scale-sheet relative w-full sm:max-w-[480px] sheet-rise max-h-[92vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex flex-col"
+        className="rt-sheet pc-scale-sheet relative w-full sm:max-w-[480px] sheet-rise max-h-[92dvh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label={`${verseReference} 함께 읽는 성도의 묵상`}

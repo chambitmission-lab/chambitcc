@@ -2,7 +2,7 @@
 
 /* Error Boundary - 인스타그램 에러 스타일 */
 .error-boundary {
-  min-height: 100vh;
+  min-height: calc(var(--vvh, 100dvh) - 3.5rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -346,7 +346,7 @@
   .main-content[data-app-scale] > * { zoom: var(--az, 1); }
 
   /* 페이지 공통 유틸 — 화면 높이 채움·sticky 레일 위치를 배율로 되돌린다 */
-  .main-content[data-app-scale] .min-h-screen:not([class*='lg:min-h-']) { min-height: calc(100vh / var(--az, 1)); }
+  .main-content[data-app-scale] .min-h-screen:not([class*='lg:min-h-']) { min-height: calc((var(--vvh, 100dvh) - 3.5rem) / var(--az, 1)); }
   .main-content[data-app-scale] .screen-fit-minus-header { min-height: calc((var(--vvh, 100dvh) - 3.5rem) / var(--az, 1)); }
   /* sticky top-14(헤더 56px 바로 아래) — zoom 안에선 56px 도 커져 헤더 아래 틈으로 본문이 비친다.
      lg:top-* 을 따로 준 요소는 제외 — 이 규칙(특이도 0,4,0)이 lg:top-0 같은 PC 값을 덮어,
@@ -356,16 +356,16 @@
   .main-content[data-app-scale] .lg\:top-\[4\.25rem\] { top: calc(4.25rem / var(--az, 1)); }
   /* zoom 화면 안에 뜨는(포털 아닌) 모달·시트의 높이 상한 — 반응형 max-h 를 따로 준 요소는 그 값을 존중한다.
      포털(body)로 뜨는 모달은 zoom 밖이라 이 규칙이 닿지 않고, 닿을 필요도 없다 */
-  .main-content[data-app-scale] .max-h-\[68vh\]:not([class*=':max-h-']) { max-height: calc(68vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[70vh\]:not([class*=':max-h-']) { max-height: calc(70vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[78vh\]:not([class*=':max-h-']) { max-height: calc(78vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[80vh\]:not([class*=':max-h-']) { max-height: calc(80vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[82vh\]:not([class*=':max-h-']) { max-height: calc(82vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[85vh\]:not([class*=':max-h-']) { max-height: calc(85vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[88vh\]:not([class*=':max-h-']) { max-height: calc(88vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[90vh\]:not([class*=':max-h-']) { max-height: calc(90vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[92vh\]:not([class*=':max-h-']) { max-height: calc(92vh / var(--az, 1)); }
-  .main-content[data-app-scale] .max-h-\[94vh\]:not([class*=':max-h-']) { max-height: calc(94vh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[68dvh\]:not([class*=':max-h-']) { max-height: calc(68dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[70dvh\]:not([class*=':max-h-']) { max-height: calc(70dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[78dvh\]:not([class*=':max-h-']) { max-height: calc(78dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[80dvh\]:not([class*=':max-h-']) { max-height: calc(80dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[82dvh\]:not([class*=':max-h-']) { max-height: calc(82dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[85dvh\]:not([class*=':max-h-']) { max-height: calc(85dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[88dvh\]:not([class*=':max-h-']) { max-height: calc(88dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[90dvh\]:not([class*=':max-h-']) { max-height: calc(90dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[92dvh\]:not([class*=':max-h-']) { max-height: calc(92dvh / var(--az, 1)); }
+  .main-content[data-app-scale] .max-h-\[94dvh\]:not([class*=':max-h-']) { max-height: calc(94dvh / var(--az, 1)); }
 }
 
 /* 대형 모니터 확대 — 페이지 폭이 px 고정(1440~1920 기준)이라 배율 100% 의 2560px 모니터에선 좌우가
@@ -388,7 +388,7 @@
 
   .home-wide-zoom { --az: var(--wide-zoom); zoom: var(--az); }
   .home-wide-zoom .lg\:top-14 { top: calc(3.5rem / var(--az)); }
-  .home-wide-zoom .max-h-\[88vh\] { max-height: calc(88vh / var(--az)); }
+  .home-wide-zoom .max-h-\[88dvh\] { max-height: calc(88dvh / var(--az)); }
 }
 @media (min-width: 2480px) {
   html { --wide-zoom: 1.4; }
@@ -419,8 +419,8 @@
    시트가 쓰는 max-h 값만 여기 둔다(새 값을 쓰면 한 줄 추가) */
 @media (min-width: 1024px) {
   .pc-scale-sheet { zoom: var(--pc-zoom, 1); }
-  .pc-scale-sheet.max-h-\[88vh\] { max-height: calc(88vh / var(--pc-zoom, 1)); }
-  .pc-scale-sheet.sm\:max-h-\[90vh\] { max-height: calc(90vh / var(--pc-zoom, 1)); }
+  .pc-scale-sheet.max-h-\[88dvh\] { max-height: calc(88dvh / var(--pc-zoom, 1)); }
+  .pc-scale-sheet.sm\:max-h-\[90dvh\] { max-height: calc(90dvh / var(--pc-zoom, 1)); }
 }
 
 /* PC 알림 모달(헤더 종) — 모바일 400px 드롭다운 그대로면 본문이 두 줄씩 꺾이고 글씨가 13px대라 어르신이
@@ -435,7 +435,7 @@
     right: calc(24px / var(--pc-zoom, 1));
     width: min(560px, calc((100vw - 48px) / var(--pc-zoom, 1)));
     max-width: none;
-    max-height: calc((100vh - 88px) / var(--pc-zoom, 1));
+    max-height: calc((100dvh - 88px) / var(--pc-zoom, 1));
     border-radius: 1.5rem;
   }
 }

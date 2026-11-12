@@ -191,8 +191,8 @@ const ElectionAssemblyManager = ({ onClose, onAddElection, startNew = false }: P
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden">
       <div
-        className={`relative w-full max-h-[94vh] sm:max-h-[92vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col ${
-          isEditor ? 'sm:max-w-3xl lg:max-w-[1000px] lg:h-[90vh]' : 'sm:max-w-2xl'
+        className={`relative w-full max-h-[94dvh] sm:max-h-[92dvh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col ${
+          isEditor ? 'sm:max-w-3xl lg:max-w-[1000px] lg:h-[90dvh]' : 'sm:max-w-2xl'
         }`}
       >
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">

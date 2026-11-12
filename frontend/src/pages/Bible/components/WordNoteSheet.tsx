@@ -168,8 +168,8 @@ const WordNoteSheet = ({
       <div
         className={`pc-scale-sheet relative w-full sm:max-w-md ${
           // PC(lg+): 좁은 시트 대신 2칸 편집 책상 — 왼쪽 말씀·단어, 오른쪽 넓은 메모
-          mode === 'edit' ? 'lg:max-w-[1000px] lg:h-[min(86vh,820px)]' : 'lg:max-w-[880px]'
-        } sheet-rise max-h-[94vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col`}
+          mode === 'edit' ? 'lg:max-w-[1000px] lg:h-[min(86dvh,820px)]' : 'lg:max-w-[880px]'
+        } sheet-rise max-h-[94dvh] sm:max-h-[90dvh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 표면 그라데이션 + 글로우 */}

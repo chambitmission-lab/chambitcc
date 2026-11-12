@@ -473,7 +473,7 @@ const CommandPalette = () => {
         </div>
 
         {/* 결과 */}
-        <div ref={listRef} className="max-h-[min(64vh,560px)] lg:max-h-[calc(94vh-6vh-120px)] overflow-y-auto py-2 lg:py-3">
+        <div ref={listRef} className="max-h-[min(64dvh,560px)] lg:max-h-[calc(94dvh-6dvh-120px)] overflow-y-auto py-2 lg:py-3">
           {/* ── 커맨드 센터 첫 화면: 퀵 액션 타일(벤토) → 최근 → 빠른 이동 ── */}
           {!debounced && actions.length > 0 && (
             <div className="px-3 lg:px-5 pt-1 pb-2 lg:pb-3">

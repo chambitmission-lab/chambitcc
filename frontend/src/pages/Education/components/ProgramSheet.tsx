@@ -64,7 +64,7 @@ export const ProgramSheet = ({
         role="dialog"
         aria-modal="true"
         aria-label={stripStage(programText(program, 'name', language))}
-        className="pc-scale-sheet relative w-full sm:max-w-lg sheet-rise max-h-[88vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.35)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="pc-scale-sheet relative w-full sm:max-w-lg sheet-rise max-h-[88dvh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.35)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_8px_28px_var(--brand-glow)] flex flex-col"
         style={toneVars(tone)}
         onClick={(e) => e.stopPropagation()}
       >

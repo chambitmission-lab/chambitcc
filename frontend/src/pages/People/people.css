@@ -1022,7 +1022,7 @@ button.ppl-pola:active,
 .ppl-sheet {
   position: relative;
   width: 100%;
-  max-height: calc(90vh / var(--az, 1));
+  max-height: calc(90dvh / var(--az, 1));
   overflow-y: auto;
   border-radius: 1.75rem 1.75rem 0 0;
   background: var(--surface-container);

@@ -559,7 +559,7 @@ const Culture = () => {
           넓어진 본문은 강좌 카드에 집중하게 한다 */}
       <aside className="hidden lg:block lg:w-[312px] lg:shrink-0">
         {/* 안쪽 묶음이 줄 높이(h-full)를 채우되 화면 높이를 넘지 않고(max-h) 따라 내려온다(sticky) */}
-        <div className="rail-lift lg:sticky lg:top-[4.5rem] lg:flex lg:h-full lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:flex-col lg:gap-3 lg:overflow-y-auto scrollbar-hide">
+        <div className="rail-lift lg:sticky lg:top-[4.5rem] lg:flex lg:h-full lg:max-h-[calc((100dvh-5.5rem)/var(--az,1))] lg:flex-col lg:gap-3 lg:overflow-y-auto scrollbar-hide">
         {!loading && openClasses.length > 0 && (
           <section className="relative shrink-0 overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
             <div className="absolute -top-5 -right-3 opacity-20 rotate-12 pointer-events-none select-none text-brand">

@@ -43,6 +43,13 @@ export default {
           muted: "var(--text-muted)",
         },
       },
+      // min-h-screen = "헤더(3.5rem)를 뺀 실제 보이는 높이".
+      // 모든 페이지는 .main-content(padding-top 56px) 안에 놓이므로 기본값 100vh 를 쓰면
+      // 내용이 짧아도 문서가 56px + (모바일 주소창·WebAPK 시스템 바 오차)만큼 넘쳐
+      // 필요 없는 세로 스크롤이 생겼다. --vvh 는 index.html 이 실측해 넣는다(.screen-fit-minus-header 와 같은 식).
+      minHeight: {
+        screen: "calc(var(--vvh, 100dvh) - 3.5rem)",
+      },
       fontFamily: {
         display: ["Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "sans-serif"],
         sans: ["Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "sans-serif"],

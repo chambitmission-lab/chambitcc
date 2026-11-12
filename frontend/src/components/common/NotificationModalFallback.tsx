@@ -7,7 +7,7 @@
 const NotificationModalFallback = ({ onClose }: { onClose: () => void }) => (
   <>
     <div className="fixed inset-0 bg-black/40 z-[999]" onClick={onClose} />
-    <div className="notif-panel fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100vh-100px)] z-[1000] flex flex-col rounded-[22px] overflow-hidden bg-white dark:bg-gray-900 ring-1 ring-black/[0.06] dark:ring-white/[0.08] shadow-[0_24px_60px_-12px_rgba(15,23,42,0.28)] dark:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.7)]">
+    <div className="notif-panel fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100dvh-100px)] z-[1000] flex flex-col rounded-[22px] overflow-hidden bg-white dark:bg-gray-900 ring-1 ring-black/[0.06] dark:ring-white/[0.08] shadow-[0_24px_60px_-12px_rgba(15,23,42,0.28)] dark:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.7)]">
       <div className="flex items-center justify-between px-5 pt-4 pb-3 lg:px-7 lg:pt-6 lg:pb-4">
         <h2 className="text-[19px] lg:text-[24px] font-extrabold text-ink-strong tracking-[-0.03em]">알림</h2>
         <button

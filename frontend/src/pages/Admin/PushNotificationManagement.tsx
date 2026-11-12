@@ -257,7 +257,7 @@ export const PushNotificationManagement = () => {
   return (
     // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
     // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100dvh-56px)] lg:min-h-0 lg:overflow-y-auto">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-28 lg:pb-6 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl">
         {/* 헤더 — lg 에선 템플릿이 우측 레일에 고정되므로 sticky 를 풀어 둔다 */}
         <div className="sticky top-14 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
@@ -279,7 +279,7 @@ export const PushNotificationManagement = () => {
         <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-2">
           {/* 레일은 스크롤 상자 높이에 맞춰 세로로 접고, 템플릿만 안에서 스크롤 —
               발송 카드가 항상 레일 바닥에 보이도록. */}
-          <div className="contents lg:flex lg:flex-col lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:max-h-[calc(100vh-56px-1.5rem)]">
+          <div className="contents lg:flex lg:flex-col lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:max-h-[calc(100dvh-56px-1.5rem)]">
             <div className="contents lg:block lg:min-h-0 lg:overflow-y-auto">
             {/* 통계 칩 */}
             <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">

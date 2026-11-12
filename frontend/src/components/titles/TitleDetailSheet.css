@@ -16,7 +16,7 @@
   position: relative;
   width: 100%;
   max-width: 480px;
-  max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -47,7 +47,7 @@
   .title-sheet {
     --sheet-z: var(--pc-zoom, 1);
     zoom: var(--sheet-z);
-    max-height: calc(88vh / var(--sheet-z));
+    max-height: calc(88dvh / var(--sheet-z));
   }
 }
 

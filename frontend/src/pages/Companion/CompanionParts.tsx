@@ -39,7 +39,7 @@ export const CompanionShell = ({
         {children}
       </div>
       {rail && (
-        <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100vh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
+        <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem] lg:max-h-[calc((100dvh-5.5rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
           {rail}
         </aside>
       )}
@@ -91,7 +91,7 @@ export const Avatar = ({
 export const Sheet = ({ onClose, children }: { onClose: () => void; children: ReactNode }) => (
   <div className="fixed inset-0 z-[110] flex items-end lg:items-center justify-center">
     <div className="absolute inset-0 bg-black/45" onClick={onClose} />
-    <div className="relative w-full max-w-md max-h-[calc(88vh/var(--az,1))] overflow-y-auto rounded-t-[24px] lg:rounded-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
+    <div className="relative w-full max-w-md max-h-[calc(88dvh/var(--az,1))] overflow-y-auto rounded-t-[24px] lg:rounded-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
       <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4 lg:hidden" />
       {children}
     </div>

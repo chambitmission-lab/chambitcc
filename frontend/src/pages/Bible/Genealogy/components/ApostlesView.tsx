@@ -47,7 +47,7 @@ const ApostlesView = ({ selectedId, onSelect }: Props) => {
         <aside className="hidden lg:block lg:col-span-1 min-w-0">
           <div className="sticky lg:top-[4.5rem]">
             {selected ? (
-              <div className={`${CARD} overflow-hidden max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain`}>
+              <div className={`${CARD} overflow-hidden max-h-[calc(100dvh-6rem)] overflow-y-auto overscroll-contain`}>
                 <ApostleStory key={selected.id} apostle={selected} onSelect={onSelect} onClose={close} />
               </div>
             ) : (

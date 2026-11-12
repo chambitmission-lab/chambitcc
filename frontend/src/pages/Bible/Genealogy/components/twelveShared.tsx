@@ -177,7 +177,7 @@ export const DetailSheet = ({
         transition={{ type: 'spring', damping: 32, stiffness: 280 }}
         className="fixed bottom-0 left-0 right-0 z-50"
       >
-        <div className="max-h-[88vh] rounded-t-[28px] bg-background-light dark:bg-card-dark border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden shadow-[0_-20px_60px_-10px_var(--brand-glow)]">
+        <div className="max-h-[88dvh] rounded-t-[28px] bg-background-light dark:bg-card-dark border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden shadow-[0_-20px_60px_-10px_var(--brand-glow)]">
           <div className="flex-shrink-0 flex justify-center py-2.5">
             <SheetGrabber onClose={onClose} className="w-10 h-1.5 bg-black/15 dark:bg-white/20 rounded-full" />
           </div>

@@ -137,7 +137,7 @@ const AdminComposerShell = ({
     'relative w-full',
     smWidth === '2xl' ? 'sm:max-w-2xl' : 'sm:max-w-lg',
     width === 'lg' ? 'lg:max-w-[1060px]' : 'lg:max-w-[880px]',
-    'max-h-[92vh] sm:max-h-[90vh]',
+    'max-h-[92dvh] sm:max-h-[90dvh]',
     height === 'fill' ? 'lg:h-[calc(100dvh-4rem)]' : '',
     'lg:max-h-[860px]',
     'bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden',

@@ -114,7 +114,7 @@ const PastorDesk = ({
   ]
 
   return (
-    <div className="h-[calc(100vh-56px)] p-4 overflow-hidden bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100">
+    <div className="h-[calc(100dvh-56px)] p-4 overflow-hidden bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100">
       <div className="max-w-[1320px] h-full mx-auto flex rounded-3xl overflow-hidden border border-gray-200/70 dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
         {/* ── 왼쪽: 목록 ─────────────────────────────── */}
         <aside className="w-[340px] shrink-0 flex flex-col border-r border-gray-200/70 dark:border-white/[0.08] bg-white/60 dark:bg-white/[0.015]">

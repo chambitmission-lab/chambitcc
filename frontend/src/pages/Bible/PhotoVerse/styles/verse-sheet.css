@@ -12,7 +12,7 @@
 .pv-sheet {
   width: 100%;
   max-width: 28rem; /* max-w-md 컨테이너와 정렬 */
-  max-height: 82vh;
+  max-height: 82dvh;
   display: flex;
   flex-direction: column;
   background: var(--surface-container);
@@ -104,7 +104,7 @@
   }
 
   .pv-sheet {
-    max-height: min(84vh, 42rem);
+    max-height: min(84dvh, 42rem);
     border-radius: 20px;
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
     animation-name: pv-sheet-in;

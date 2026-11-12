@@ -342,7 +342,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
         onClick={onClose}
       />
 
-      <div className="notif-modal notif-panel fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100vh-100px)] z-[1000] flex flex-col rounded-[22px] overflow-hidden bg-white dark:bg-gray-900 ring-1 ring-black/[0.06] dark:ring-white/[0.08] shadow-[0_24px_60px_-12px_rgba(15,23,42,0.28)] dark:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.7)]">
+      <div className="notif-modal notif-panel fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100dvh-100px)] z-[1000] flex flex-col rounded-[22px] overflow-hidden bg-white dark:bg-gray-900 ring-1 ring-black/[0.06] dark:ring-white/[0.08] shadow-[0_24px_60px_-12px_rgba(15,23,42,0.28)] dark:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.7)]">
         {/* Header — 제목 + 안 읽은 수, 그 아래 종류 필터 칩 */}
         <div
           className={`relative z-20 px-5 pt-4 pb-3 lg:px-7 lg:pt-6 lg:pb-4 transition-shadow ${

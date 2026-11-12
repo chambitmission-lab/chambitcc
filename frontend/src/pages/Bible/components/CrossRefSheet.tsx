@@ -80,7 +80,7 @@ const CrossRefSheet = ({ link, onClose }: { link: CrossLink; onClose: () => void
           )}
 
           {/* 대상 본문 — 길면(평행 본문은 10절 넘기도) 시트 안에서만 스크롤 */}
-          <div className="mt-3 max-h-[min(45vh,22rem)] overflow-y-auto rounded-xl bg-[var(--ig-secondary-background)] px-4 py-3">
+          <div className="mt-3 max-h-[min(45dvh,22rem)] overflow-y-auto rounded-xl bg-[var(--ig-secondary-background)] px-4 py-3">
             {isLoading ? (
               <p className="text-[13px] text-ink-muted">본문을 불러오는 중…</p>
             ) : verses.length ? (

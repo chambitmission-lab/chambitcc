@@ -123,7 +123,7 @@
 
   .pv-canvas {
     /* 폰 프레임에서 벗어난 만큼 크게 — 화면 높이에 맞춰 채운다 */
-    max-height: calc(100vh - 15rem);
+    max-height: calc(100dvh - 15rem);
   }
 
   .pv-drag-hint,

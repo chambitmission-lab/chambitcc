@@ -41,7 +41,7 @@
   /* 말씀·인용 서체 — 첫 화면 말씀·무대 문구·약속을 하나로(고운돋움은 400 한 웨이트뿐) */
   --ab-verse: 'Gowun Dodum', 'Pretendard Variable', sans-serif;
   --ab-gutter: 1.25rem;
-  min-height: 100vh;
+  min-height: calc(var(--vvh, 100dvh) - 3.5rem);
   background: var(--app-canvas);
   color: var(--text-strong);
 }

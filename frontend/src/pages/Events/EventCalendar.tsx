@@ -132,7 +132,7 @@ const EventCalendar = () => {
   return (
     // lg: 이 페이지를 스스로 스크롤하는 상자로 만든다 — #root overflow 탓에 sticky 가 전역에서 죽어 있어,
     // 이 상자가 있어야 우측 달력 레일이 화면에 붙어 있는다 (높이는 PC 글씨 크기 zoom 배율로 나눈다)
-    <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage lg:h-[calc((100vh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto">
+    <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage lg:h-[calc((100dvh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto">
       {/* lg+: 좁은 셸을 풀고 본문(일정 목록) + 우측 레일(달력·고른 날·다가오는 일정) 2단 */}
       <div className="lg:max-w-[1320px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0">
