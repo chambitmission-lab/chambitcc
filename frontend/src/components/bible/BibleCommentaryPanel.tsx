@@ -15,6 +15,7 @@ import { lazyModal } from '../../utils/lazyModal'
 // 관리자 전용 에디터(20KB)는 열 때만
 const BibleCommentaryEditor = lazyModal(() => import('./BibleCommentaryEditor'))
 import BibleCommentaryItem from './BibleCommentaryItem'
+import CommentarySummaryFlow, { type ScriptureVerse } from './CommentarySummaryFlow'
 import { genreStyle } from './bookGenre'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
@@ -88,21 +89,40 @@ const BibleCommentaryPanel = ({
     return (summaries.find(covers) ?? verses.find(covers))?.id ?? null
   }, [followVerse, focusVerse, summaries, verses])
 
+  // ── 요약 해석 목차 ──
+  // 한 번에 한 장면만 펼친다. undefined = 아직 손대지 않음(첫 장면을 펼쳐 둔다), null = 전부 접음
+  const [openSummaryId, setOpenSummaryId] = useState<number | null | undefined>(undefined)
+  const resolvedOpenId = openSummaryId === undefined ? (summaries[0]?.id ?? null) : openSummaryId
+  const toggleSummary = useCallback(
+    (id: number) => setOpenSummaryId(resolvedOpenId === id ? null : id),
+    [resolvedOpenId],
+  )
+
   const syncFollow = useCallback(() => {
     const scroller = scrollerRef.current
     if (!scroller || followTargetId == null || followedIdRef.current === followTargetId) return
     // 첫 위치 잡기는 예외 — 해석 버튼이 패널 자리에 있어 열자마자는 늘 hover 상태다
     if (followedIdRef.current != null && panelRef.current?.matches(':hover')) return
-    const el = scroller.querySelector<HTMLElement>(`[data-commentary-id="${followTargetId}"]`)
-    if (!el) return
+    if (!scroller.querySelector(`[data-commentary-id="${followTargetId}"]`)) return
     followedIdRef.current = followTargetId
-    const isFirst = el === scroller.querySelector('[data-commentary-id]')
-    const top = isFirst
-      ? 0
-      : scroller.scrollTop + el.getBoundingClientRect().top - scroller.getBoundingClientRect().top
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    scroller.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' })
-  }, [followTargetId])
+    // 따라간 곳이 요약 해석이면 그 장면을 펼친다. 앞 장면이 접히며 자리가 바뀌므로
+    // 펼침을 먼저 그리고, 위치는 그다음 프레임에 잰다
+    const isSummary = summaries.some((c) => c.id === followTargetId)
+    const scrollToTarget = () => {
+      const el = scroller.querySelector<HTMLElement>(`[data-commentary-id="${followTargetId}"]`)
+      if (!el) return
+      const isFirst = el === scroller.querySelector('[data-commentary-id]')
+      const top = isFirst
+        ? 0
+        : scroller.scrollTop + el.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      scroller.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' })
+    }
+    requestAnimationFrame(() => {
+      if (isSummary) setOpenSummaryId(followTargetId)
+      requestAnimationFrame(scrollToTarget)
+    })
+  }, [followTargetId, summaries])
 
   useEffect(() => {
     syncFollow()
@@ -122,6 +142,17 @@ const BibleCommentaryPanel = ({
       if (text) parts.push(text)
     }
     return parts.length > 0 ? parts.join(' ') : null
+  }
+
+  /** 같은 범위를 절 번호와 함께 — 목차형 요약 해석의 본문 판이 쓴다 */
+  const versesFor = (c: BibleCommentary): ScriptureVerse[] => {
+    if (!verseTexts?.size) return []
+    const out: ScriptureVerse[] = []
+    for (let v = c.verse_start; v <= c.verse_end; v += 1) {
+      const text = verseTexts.get(v)?.trim()
+      if (text) out.push({ verse: v, text })
+    }
+    return out
   }
 
   const handleCreateClick = () => {
@@ -256,18 +287,15 @@ const BibleCommentaryPanel = ({
             {!isLoading && summaries.length > 0 && (
               <section>
                 <SectionLabel text="요약 해석" count={summaries.length} />
-                <div className="divide-y divide-[var(--card-border)]">
-                  {summaries.map((c) => (
-                    <BibleCommentaryItem
-                      key={c.id}
-                      commentary={c}
-                      isAdmin={admin}
-                      scriptureText={scriptureFor(c)}
-                      onEdit={handleEditClick}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </div>
+                <CommentarySummaryFlow
+                  summaries={summaries}
+                  openId={resolvedOpenId}
+                  onToggle={toggleSummary}
+                  isAdmin={admin}
+                  versesFor={versesFor}
+                  onEdit={handleEditClick}
+                  onDelete={handleDelete}
+                />
               </section>
             )}
 

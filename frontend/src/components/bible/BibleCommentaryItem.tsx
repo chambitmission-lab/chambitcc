@@ -13,6 +13,8 @@ interface BibleCommentaryItemProps {
   isAdmin: boolean
   /** 이 해석이 다루는 실제 성경 본문. 없으면 해석 본문에서 뽑아낸 인용으로 대신한다 */
   scriptureText?: string | null
+  /** 목차형 요약 해석 안에 들어갈 때 — 절 범위·제목은 목차 행이 이미 보여 주므로 본문만 그린다 */
+  bare?: boolean
   onEdit?: (commentary: BibleCommentary) => void
   onDelete?: (commentary: BibleCommentary) => void
 }
@@ -54,6 +56,36 @@ const ScriptureBlock = ({ text }: { text: string }) => {
   )
 }
 
+interface CommentaryAdminActionsProps {
+  commentary: BibleCommentary
+  onEdit?: (commentary: BibleCommentary) => void
+  onDelete?: (commentary: BibleCommentary) => void
+}
+
+/** 관리자용 수정·삭제 버튼 — 지면형·목차형 해석이 함께 쓴다 */
+export const CommentaryAdminActions = ({ commentary, onEdit, onDelete }: CommentaryAdminActionsProps) => (
+  <div className="flex gap-1.5 justify-end mt-4">
+    {onEdit && (
+      <button
+        onClick={() => onEdit(commentary)}
+        className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft-strong)] transition-colors"
+      >
+        <span className="material-icons-round text-[15px]">edit</span>
+        수정
+      </button>
+    )}
+    {onDelete && (
+      <button
+        onClick={() => onDelete(commentary)}
+        className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-red-500/8 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-500/20 dark:border-red-400/30 hover:bg-red-500/15 dark:hover:bg-red-500/20 transition-colors"
+      >
+        <span className="material-icons-round text-[15px]">delete_outline</span>
+        삭제
+      </button>
+    )}
+  </div>
+)
+
 /**
  * 말씀 해석 한 건.
  *
@@ -66,10 +98,12 @@ const BibleCommentaryItem = ({
   commentary,
   isAdmin,
   scriptureText,
+  bare = false,
   onEdit,
   onDelete,
 }: BibleCommentaryItemProps) => {
-  const parsed = parseCommentary(commentary.content, !!commentary.title)
+  // ★ 는 저장 본문의 "핵심" 표시 — 이 지면에는 받아 줄 자리가 없어 걷어낸다
+  const parsed = parseCommentary(commentary.content.replace(/★\s?/g, ''), !!commentary.title)
   const scripture = scriptureText?.trim() || parsed.scripture
   // 절별 해석은 제목이 성경 본문 전문이라, 본문 블록과 나란히 두면 같은 문장이 두 번 보인다
   const title =
@@ -88,27 +122,32 @@ const BibleCommentaryItem = ({
   )
 
   return (
-    <article className="py-5 first:pt-1" data-commentary-id={commentary.id}>
-      <div className="flex items-baseline gap-2">
-        <span
-          className="cmt-meta text-[11.5px] font-bold tracking-[0.1em] shrink-0"
-          style={{ color: 'var(--genre)' }}
-        >
-          {formatRange(commentary)}
-        </span>
-        {commentary.category && (
-          <span className="cmt-meta cmt-meta--soft text-[11.5px] font-semibold text-ink-muted">
-            {commentary.category}
+    <article
+      className={bare ? '' : 'py-5 first:pt-1'}
+      data-commentary-id={bare ? undefined : commentary.id}
+    >
+      {!bare && (
+        <div className="flex items-baseline gap-2">
+          <span
+            className="cmt-meta text-[11.5px] font-bold tracking-[0.1em] shrink-0"
+            style={{ color: 'var(--genre)' }}
+          >
+            {formatRange(commentary)}
           </span>
-        )}
-        {isAdmin && (
-          <span className="ml-auto text-[11px] text-ink-muted tabular-nums shrink-0">
-            {formatDotDate(commentary.updated_at)}
-          </span>
-        )}
-      </div>
+          {commentary.category && (
+            <span className="cmt-meta cmt-meta--soft text-[11.5px] font-semibold text-ink-muted">
+              {commentary.category}
+            </span>
+          )}
+          {isAdmin && (
+            <span className="ml-auto text-[11px] text-ink-muted tabular-nums shrink-0">
+              {formatDotDate(commentary.updated_at)}
+            </span>
+          )}
+        </div>
+      )}
 
-      {title && (
+      {!bare && title && (
         <h4 className="cmt-item-title mt-1.5 text-[17px] font-bold tracking-[-0.02em] leading-[1.35] text-ink-strong">
           {title}
         </h4>
@@ -174,26 +213,7 @@ const BibleCommentaryItem = ({
       )}
 
       {isAdmin && (
-        <div className="flex gap-1.5 justify-end mt-4">
-          {onEdit && (
-            <button
-              onClick={() => onEdit(commentary)}
-              className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft-strong)] transition-colors"
-            >
-              <span className="material-icons-round text-[15px]">edit</span>
-              수정
-            </button>
-          )}
-          {onDelete && (
-            <button
-              onClick={() => onDelete(commentary)}
-              className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-red-500/8 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-500/20 dark:border-red-400/30 hover:bg-red-500/15 dark:hover:bg-red-500/20 transition-colors"
-            >
-              <span className="material-icons-round text-[15px]">delete_outline</span>
-              삭제
-            </button>
-          )}
-        </div>
+        <CommentaryAdminActions commentary={commentary} onEdit={onEdit} onDelete={onDelete} />
       )}
     </article>
   )

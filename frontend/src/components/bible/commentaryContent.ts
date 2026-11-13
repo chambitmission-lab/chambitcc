@@ -202,6 +202,13 @@ const toObservation = (segment: string): CommentaryObservation => {
   if (labelled) {
     return { heading: tidy(labelled[1]), text: labelled[2].trim() }
   }
+  // "'**핵심어**'는 점입니다. 설명…" — 첫 문장이 소제목을 되뇌는 것뿐이라 소제목으로만 남긴다
+  const announced = text.match(
+    /^['‘"“]?\*\*([^*]{2,40})\*\*['’"”]?\s?(?:이라는|라는|는)\s점입니다\.\s*(\S.+)$/s,
+  )
+  if (announced) {
+    return { heading: tidy(announced[1]), text: announced[2].trim() }
+  }
   const firstBold = text.match(/\*\*([^*]{2,24})\*\*/)
   return { heading: firstBold ? tidy(firstBold[1]) : null, text }
 }

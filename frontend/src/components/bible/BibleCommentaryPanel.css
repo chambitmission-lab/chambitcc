@@ -3,6 +3,25 @@
    패널은 우측 도킹(fixed)이라 폭(400/430 — layout.css --commentary-dock-w)은 그대로 두고 글씨만 키운다.
    ★(크기 × 굵기) 조합이 첫 열기 Layout 비용을 정한다([font-combo] useBibleCommentary PANEL_FONT_COMBOS_LG).
    여기서 조합을 늘리거나 바꾸면 그 목록도 맞춘다. 두 클래스 선택자로 Tailwind 기본 크기를 덮는다. */
+
+/* ── 요약 해석 목차(CommentarySummaryFlow) ── 색은 책 장르 액센트 하나.
+   번호 원은 접힘=테두리만, 펼침=채움. 채운 면 위 글자는 패널 바탕색을 빌려 라이트/다크를 함께 맞춘다. */
+.cmt-step {
+  border: 1.5px solid color-mix(in srgb, var(--genre) 38%, transparent);
+  color: var(--genre);
+}
+.cmt-step--on {
+  border-color: var(--genre);
+  background: var(--genre);
+  color: var(--surface-container);
+}
+.cmt-step-line { background: var(--genre-line); }
+.cmt-key { color: var(--surface-container); }
+.cmt-quote {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 @media (min-width: 1024px) {
   .cmt-panel .cmt-kicker { font-size: calc(13px * var(--text-mul, 1)); }
   .cmt-panel .cmt-head-title { font-size: calc(21px * var(--text-mul, 1)); }
@@ -32,4 +51,14 @@
   .cmt-panel .cmt-lead { font-size: calc(17px * var(--text-mul, 1)); }
   .cmt-panel .cmt-prose { font-size: calc(17px * var(--text-mul, 1)); }
   .cmt-panel .cmt-obs-head { font-size: calc(16px * var(--text-mul, 1)); }
+
+  /* 요약 해석 목차 — 기존 [크기, 굵기] 조합 안에서만 키운다(PANEL_FONT_COMBOS_LG) */
+  .cmt-panel .cmt-step { font-size: calc(13.5px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-key { font-size: calc(13px * var(--text-mul, 1)); }
+  .cmt-panel .cmt-quote { color: var(--text-body); }
+  .cmt-panel .cmt-ref {
+    height: 32px;
+    font-size: calc(13.5px * var(--text-mul, 1));
+    color: var(--text-body);
+  }
 }
