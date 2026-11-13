@@ -153,8 +153,12 @@ const KeywordSheet = ({ keyword, where, active, onToggleHighlight, onClose }: Ke
                 : 'bg-[#f6c544] text-[#3d2c00] hover:bg-[#f1bb2a]'
             }`}
           >
-            <span className="material-icons-round text-[20px]">{active ? 'format_color_reset' : 'highlight'}</span>
-            {active ? '밝히기 끄기' : `본문에서 밝혀 보기 · ${keyword.count}곳`}
+            {/* 아이콘은 1em 칸에 가둔다 — 리가처가 안 붙으면(옛 폰트 캐시 등) 이름 18글자가 1em씩
+                투명한 폭을 차지해 문구가 오른쪽 끝으로 밀려 세로로 한 글자씩 꺾였다 */}
+            <span aria-hidden className="material-icons-round text-[20px] w-[1em] overflow-hidden shrink-0">
+              {active ? 'format_color_reset' : 'highlight'}
+            </span>
+            <span className="whitespace-nowrap">{active ? '밝히기 끄기' : `본문에서 밝혀 보기 · ${keyword.count}곳`}</span>
           </button>
         </div>
       </div>

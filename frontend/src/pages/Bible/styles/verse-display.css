@@ -399,8 +399,12 @@
   border-radius: 2px;
   animation: verse-keyword-sweep 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+/* 다크 — 0.3 노랑은 남색 바탕에 섞여 흙빛으로 가라앉아 거의 안 보였다.
+   띠를 밝은 호박색으로 진하게 올리고, 맨 아래에 또렷한 노란 실선(inset 그림자)을 깔아
+   한눈에 보이게 한다. 글자는 흰색 그대로라 띠(아래 42%)와 겹쳐도 읽힌다. */
 [data-theme="dark"] .verse-keyword-mark {
-  --kw-ink: rgba(250, 204, 21, 0.3);
+  --kw-ink: rgba(253, 204, 60, 0.42);
+  box-shadow: inset 0 -2px 0 #fcd34d;
 }
 /* 밝히는 중 알약 — 모바일은 하단 글래스 독(5.5rem) 위, PC 는 바닥에서 조금 띄운다 */
 .keyword-pill {
