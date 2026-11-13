@@ -1,9 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
-import { getTtsStreamUrl, prewarmTts } from '../../../api/bibleTts'
+import { getTtsStreamUrl } from '../../../api/bibleTts'
 import { useTtsTimings } from '../hooks/useTtsTimings'
 import { useTtsResolve } from '../hooks/useTtsResolve'
+import { useSmoothProgress } from '../hooks/useSmoothProgress'
+import { useVerseSync } from '../hooks/useVerseSync'
+import { useNextChapterPrewarm } from '../hooks/useNextChapterPrewarm'
 import { formatRemain, useAudioSleepTimer } from '../hooks/useAudioSleepTimer'
 import {
   RATE_OPTIONS,
@@ -14,10 +17,12 @@ import {
   useAudioSettings,
 } from '../data/audioSettings'
 import AudioSettingsMenu from './AudioSettingsMenu'
+import AudioCollapsedBar from './AudioCollapsedBar'
+import AudioExpandedCard from './AudioExpandedCard'
+import AudioMiniBar from './AudioMiniBar'
 import { lazyModal } from '../../../utils/lazyModal'
 import { useThemeArt } from '../../../hooks/useThemeArt'
 import { AUDIO_RIDGE } from '../../../utils/themeAssets'
-import { formatClock } from '../../../utils/formatClock'
 // 열 때만 받는 오버레이·시트 — 읽기 화면 청크에서 분리
 const AudioSleepSheet = lazyModal(() => import('./AudioSleepSheet'))
 const CinemaReading = lazyModal(() => import('./CinemaReading'))
@@ -94,9 +99,6 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const audioRef = useRef<HTMLAudioElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
-  // '여기부터 듣기'로 요청됐지만 아직 점프하지 못한 절.
-  // 타이밍/총길이가 준비되는 즉시(타이밍 도착·메타데이터 로드 등) 점프를 재시도한다.
-  const pendingVerseRef = useRef<number | null>(null)
   const firstGenNoticeRef = useRef(false) // 첫 생성 중 안내 토스트는 장당 1회만
   // 직전 장이 끝나 자동으로 다음 장에 온 상태인지 — 리셋 effect가 소비한다
   const autoAdvanceRef = useRef(false)
@@ -119,8 +121,6 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const [duration, setDuration] = useState(0)
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
   const [cardVisible, setCardVisible] = useState(true) // 본 카드가 뷰포트에 보이는지
-  const [activeVerse, setActiveVerse] = useState<number | null>(null)
-  const activeVerseRef = useRef<number | null>(null)
   // 낭독 영화관 — 같은 <audio> 요소 위에 전체화면 뷰만 씌운다
   const [showCinema, setShowCinema] = useState(false)
 
@@ -130,8 +130,6 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const settingsBtnRef = useRef<HTMLButtonElement>(null)
   const miniSettingsBtnRef = useRef<HTMLButtonElement>(null)
   // 부모 콜백은 ref로 보관 — 렌더마다 바뀌어도 이펙트/핸들러를 재구성하지 않는다
-  const onActiveVerseChangeRef = useRef(onActiveVerseChange)
-  onActiveVerseChangeRef.current = onActiveVerseChange
   const onPlayingChangeRef = useRef(onPlayingChange)
   onPlayingChangeRef.current = onPlayingChange
 
@@ -168,59 +166,18 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   // 절별 타이밍 — 재생을 시작한 뒤에만 조회하고, 스트리밍 생성 중엔 최종본까지 폴링한다
   const timings = useTtsTimings({ enabled: started, bookNumber, chapter, voice, initial: resolved?.timings?.verses })
 
-  // 재생 시각 → 지금 낭독 중인 절 (마지막으로 start를 지난 절)
-  const syncActiveVerse = (time: number | null) => {
-    let v: number | null = null
-    if (time !== null && timings && timings.length > 0) {
-      for (const t of timings) {
-        if (time >= t.start) v = t.verse
-        else break
-      }
-    }
-    if (v !== activeVerseRef.current) {
-      activeVerseRef.current = v
-      setActiveVerse(v)
-      onActiveVerseChangeRef.current?.(v)
-    }
-  }
+  // 듣기-보기 동기화 — "지금 몇 절인지" 판정과 절 점프(준비 전 요청 보관)는 useVerseSync 가 담당.
+  // pendingVerseRef: '여기부터 듣기'로 요청됐지만 아직 점프하지 못한 절(준비되면 재시도).
+  const { activeVerse, pendingVerseRef, syncActiveVerse, trySeekToVerse, tryPendingSeek } = useVerseSync({
+    audioRef,
+    timings,
+    onActiveVerseChange,
+    onSeeked: setCurrentTime,
+  })
 
-  // 해당 절의 시작 시각으로 점프. 절별 타이밍과 총길이(캐시 mp3)가 있어야 가능 —
-  // 첫 스트리밍 생성 중엔 둘 다 없어 실패하고, 준비되면 tryPendingSeek로 재시도된다.
-  const trySeekToVerse = (verse: number): boolean => {
-    const audio = audioRef.current
-    if (!audio || !timings) return false
-    const t = timings.find((x) => x.verse === verse)
-    if (!t) return false
-    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return false
-    audio.currentTime = t.start
-    setCurrentTime(t.start)
-    syncActiveVerse(t.start)
-    return true
-  }
-
-  const tryPendingSeek = () => {
-    const v = pendingVerseRef.current
-    if (v == null) return
-    if (trySeekToVerse(v)) pendingVerseRef.current = null
-  }
-
-  // 타이밍이 재생 도중(첫 스트리밍 완료 후) 늦게 도착하면 즉시 한 번 동기화.
-  // 대기 중인 절 점프가 있으면 그 절로 이동하는 것이 곧 동기화다.
-  useEffect(() => {
-    if (!timings) return
-    const v = pendingVerseRef.current
-    if (v != null && trySeekToVerse(v)) {
-      pendingVerseRef.current = null
-      return
-    }
-    syncActiveVerse(audioRef.current?.currentTime ?? null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timings])
-
-  // 장 이동 등으로 언마운트되면 본문 하이라이트도 해제 (따라가기도 함께 종료)
+  // 장 이동 등으로 언마운트되면 따라가기도 함께 종료 (하이라이트 해제는 useVerseSync)
   useEffect(
     () => () => {
-      onActiveVerseChangeRef.current?.(null)
       onPlayingChangeRef.current?.(false)
     },
     []
@@ -404,6 +361,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     if (next) setShowSettings(false)
   }
 
+  const toggleSettings = () => setShowSettings(v => !v)
+
   const toggleAutoNext = () => {
     const next = !autoNext
     setAudioAutoNext(next)
@@ -432,73 +391,28 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const liveStream = started && !loading && !isError && duration <= 0
   const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
-  // 진행바·별은 리렌더 없이 DOM 을 직접 움직인다(재생 중엔 매 프레임).
-  // - currentTime 상태는 초 단위로만 바뀌어(리렌더 절약) 그대로 그리면 1초마다 뚝뚝 끊긴다.
-  // - width/left 는 정수 픽셀로 스냅돼 장 하나(수 분)를 수백 px 에 그리면 초당 1~2px 씩
-  //   계단처럼 움직인다 → transform(translateX)으로 서브픽셀 합성 이동.
-  // - audio.currentTime 은 브라우저에 따라 수십~수백 ms 단위로만 갱신돼 → 값이 그대로인
-  //   프레임은 마지막 값에서 경과 시간 × 배속으로 보간한다.
-  const fillRef = useRef<HTMLDivElement>(null)
-  const starRef = useRef<HTMLDivElement>(null)
-  const collapsedFillRef = useRef<HTMLSpanElement>(null)
-  const miniFillRef = useRef<HTMLDivElement>(null)
-  const applyProgress = (p: number) => {
-    const fill = `translate3d(${(p - 1) * 100}%,0,0)`
-    if (fillRef.current) fillRef.current.style.transform = fill
-    if (collapsedFillRef.current) collapsedFillRef.current.style.transform = fill
-    if (miniFillRef.current) miniFillRef.current.style.transform = fill
-    if (starRef.current) starRef.current.style.transform = `translate3d(${p * 100}%,0,0)`
-  }
-  // 멈춰 있을 때(일시정지·위치 이동·마운트)는 상태값으로 맞춘다
-  useLayoutEffect(() => {
-    if (!isPlaying) applyProgress(pct / 100)
+  // 진행바·별은 리렌더 없이 DOM 을 직접 움직인다(재생 중엔 매 프레임 보간) — useSmoothProgress
+  const { fillRef, starRef, collapsedFillRef, miniFillRef } = useSmoothProgress({
+    audioRef,
+    isPlaying,
+    duration,
+    progress: pct / 100,
   })
-  useEffect(() => {
-    if (!isPlaying || duration <= 0) return
-    let raf = 0
-    let lastMedia = -1
-    let lastAt = 0
-    const tick = (now: number) => {
-      const a = audioRef.current
-      if (a) {
-        let t = a.currentTime
-        if (t !== lastMedia) {
-          lastMedia = t
-          lastAt = now
-        } else if (!a.paused) {
-          // 갱신 주기 사이 보간 — 최대 0.5초까지만(버퍼링 멈춤 시 앞서 달리지 않게)
-          t += Math.min(0.5, ((now - lastAt) / 1000) * a.playbackRate)
-        }
-        applyProgress(Math.min(1, Math.max(0, t / duration)))
-      }
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [isPlaying, duration])
 
-  // 연속 재생 다음 장 준비: 현재 장을 절반(총길이 모르는 스트리밍이면 30초) 넘게 들었으면
-  // 다음 장을 백엔드에 미리 생성시키고, 캐시 URL 이 생길 때까지 resolve 를 다시 묻는다.
-  // 장이 끝나는 순간 생성 지연 없이 R2 파일로 바로 이어진다.
+  // 연속 재생 다음 장 준비: 절반(스트리밍이면 30초) 넘게 들으면 다음 장을 미리 생성시키고
+  // 캐시 URL 을 받아 둔다 — 장이 끝나는 순간 R2 파일로 바로 이어진다(useNextChapterPrewarm)
   const nextChapter = chapter + 1
-  const [prepNextKey, setPrepNextKey] = useState<string | null>(null)
-  const prepNext = prepNextKey === chapterKey && !!hasNextChapter
-  useEffect(() => {
-    if (prepNext || !started || !isPlaying || !autoNext || !hasNextChapter) return
-    if (currentTime < 30 && pct < 50) return
-    setPrepNextKey(chapterKey)
-  }, [prepNext, started, isPlaying, autoNext, hasNextChapter, currentTime, pct, chapterKey])
-  const nextResolved = useTtsResolve({
+  const nextResolved = useNextChapterPrewarm({
     bookNumber,
-    chapter: nextChapter,
+    chapter,
     voice,
-    enabled: prepNext,
-    pollUntilCached: true,
+    started,
+    isPlaying,
+    autoNext,
+    hasNextChapter,
+    currentTime,
+    pct,
   })
-  useEffect(() => {
-    if (!prepNext) return
-    prewarmTts(bookNumber, nextChapter, voice).catch(() => {})
-  }, [prepNext, bookNumber, nextChapter, voice])
 
   // 로딩 중에는 잔잔한 문구를 천천히 교체
   useEffect(() => {
@@ -569,286 +483,45 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
       {/* 접힌 상태 — 한 줄 띠. 안 듣는 사람에겐 본문이 그만큼 위로 올라오고,
           들으려는 사람은 펼치지 않고도 여기서 바로 재생할 수 있다. */}
       {collapsed && (
-        <div className="relative flex items-center gap-2 px-2.5 py-1.5">
-          <button
-            type="button"
-            onClick={togglePlay}
-            disabled={loading}
-            aria-label={isPlaying ? '일시정지' : '재생'}
-            className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_4px_10px_-4px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
-          >
-            <span className={`material-icons-round text-[16px] leading-none ${loading ? 'animate-pulse' : ''}`}>
-              {loading ? 'auto_awesome' : isPlaying ? 'pause' : 'play_arrow'}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            aria-expanded={false}
-            aria-label="오디오북 펼치기"
-            className="flex min-w-0 flex-1 items-center gap-1.5 py-0.5 text-left"
-          >
-            <span className="material-icons-round flex-shrink-0 text-[14px] text-brand">headphones</span>
-            <span className="flex-shrink-0 whitespace-nowrap text-[12.5px] font-extrabold tracking-tight text-brand">
-              오디오북
-            </span>
-            <span className="truncate text-[11px] font-medium text-gray-400 dark:text-white/40">
-              · {statusText}
-            </span>
-            <span className="ml-auto flex flex-shrink-0 items-center gap-1 pl-1">
-              {started && !loading && !liveStream && duration > 0 && (
-                <span className="text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
-                  {formatClock(currentTime)}
-                </span>
-              )}
-              <span className="material-icons-round text-[18px] leading-none text-gray-400 dark:text-white/40">
-                expand_more
-              </span>
-            </span>
-          </button>
-
-          {/* 접혀 있어도 어디까지 왔는지는 보이게 — 카드 아래 실선 한 줄 */}
-          {started && (
-            <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden bg-black/[0.06] dark:bg-white/[0.08]">
-              {liveStream ? (
-                <span className="block h-full w-full animate-pulse bg-brand" />
-              ) : (
-                <span ref={collapsedFillRef} className="block h-full w-full rounded-r-full bg-brand will-change-transform" />
-              )}
-            </span>
-          )}
-        </div>
+        <AudioCollapsedBar
+          isPlaying={isPlaying}
+          loading={loading}
+          started={started}
+          liveStream={liveStream}
+          currentTime={currentTime}
+          duration={duration}
+          statusText={statusText}
+          fillRef={collapsedFillRef}
+          onTogglePlay={togglePlay}
+          onExpand={toggleCollapsed}
+        />
       )}
 
-      <div className={`relative px-3 py-2.5 ${collapsed ? 'hidden' : ''}`}>
-        <div className="flex items-center gap-3">
-          {/* 재생 / 일시정지 — 그라데이션 + 글로우 + 재생 중 펄스 링 */}
-          <button
-            type="button"
-            onClick={togglePlay}
-            disabled={loading}
-            aria-label={isPlaying ? '일시정지' : '재생'}
-            className="relative grid h-11 w-11 flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_6px_16px_-5px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
-          >
-            {isPlaying && !loading && (
-              <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping [animation-duration:1.6s]" />
-            )}
-            {loading ? (
-              <>
-                {/* 퍼져나가는 빛의 파동 */}
-                <span className="absolute inset-0 rounded-full bg-white/25 animate-ping [animation-duration:2s]" />
-                <span className="absolute inset-0 rounded-full bg-white/20 animate-ping [animation-duration:2s] [animation-delay:0.7s]" />
-                {/* 회전하는 빛무리(후광) */}
-                <span className="absolute -inset-2 animate-spin rounded-full bg-[conic-gradient(from_0deg,transparent,rgba(255,255,255,0.65),transparent_55%)] blur-[1px] [animation-duration:2.6s]" />
-                {/* 은은히 빛나는 코어 */}
-                <span className="material-icons-round relative animate-pulse text-[20px] leading-none text-white [animation-duration:1.6s]">
-                  auto_awesome
-                </span>
-              </>
-            ) : (
-              <span className="material-icons-round relative text-[24px] leading-none">
-                {isPlaying ? 'pause' : 'play_arrow'}
-              </span>
-            )}
-          </button>
-
-          {/* 중앙: 라벨 + 진행바 + 시간 */}
-          <div className="min-w-0 flex-1">
-            <div className="mb-1.5 flex items-center justify-between">
-              {/* 배속(1.25× 등)으로 오른쪽 버튼이 넓어져도 줄바꿈 없이 말줄임 —
-                  카드 높이가 변해 본문이 아래로 밀리는 것을 막는다 */}
-              <span className="flex min-w-0 flex-1 items-center gap-1.5">
-                <span className="material-icons-round flex-shrink-0 text-[15px] text-brand">
-                  headphones
-                </span>
-                <span className="flex-shrink-0 whitespace-nowrap text-[13px] font-extrabold tracking-tight text-brand">
-                  오디오북
-                </span>
-                <span className="truncate text-[11px] font-medium text-gray-400 dark:text-white/40">
-                  · {statusText}
-                </span>
-              </span>
-              <span className="flex flex-shrink-0 items-center gap-1 whitespace-nowrap">
-                {/* 오디오 설정 — 배속·연속 재생·잠들기 전 듣기를 톱니 하나에.
-                    기본값이 아닌 설정(배속≠1×·타이머·연속 끔)은 톱니 옆에 요약해 보여줘
-                    "왜 빨리 읽지?", "왜 멈췄지?"의 원인을 바로 찾을 수 있게 한다. */}
-                <button
-                  type="button"
-                  ref={settingsBtnRef}
-                  onClick={() => setShowSettings(v => !v)}
-                  aria-haspopup="dialog"
-                  aria-expanded={showSettings}
-                  aria-label={settingsSummary ? `오디오 설정 (${settingsSummary})` : '오디오 설정 (배속·연속 재생·잠들기 전 듣기)'}
-                  title="오디오 설정"
-                  className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold tabular-nums transition active:scale-95 ${
-                    settingsSummary || showSettings
-                      ? 'border-transparent bg-[var(--brand-soft)] text-brand'
-                      : 'audio-chip-glow border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
-                  }`}
-                >
-                  {sleepRemainingMs != null && (
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-                  )}
-                  {settingsSummary}
-                  <span className="material-icons-round text-[13px] leading-none">tune</span>
-                </button>
-                {/* 낭독 영화관 — 설정이 아니라 "모드 진입"이라 메뉴에 넣지 않고 밖에 남긴다 */}
-                {canCinema && (
-                  <button
-                    type="button"
-                    onClick={openCinema}
-                    aria-label="낭독 영화관 (전체화면 몰입 낭독)"
-                    title="낭독 영화관"
-                    className="audio-chip-glow flex items-center gap-0.5 rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-400 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40"
-                  >
-                    <span className="material-icons-round text-[13px] leading-none">
-                      theaters
-                    </span>
-                  </button>
-                )}
-                {/* 접기 — 듣지 않을 땐 한 줄로 접어 본문에 자리를 내준다 */}
-                <button
-                  type="button"
-                  onClick={toggleCollapsed}
-                  aria-expanded={true}
-                  aria-label="오디오북 접기"
-                  title="접기"
-                  className="flex items-center rounded-full border border-black/10 bg-black/[0.03] px-1.5 py-0.5 text-gray-400 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40"
-                >
-                  <span className="material-icons-round text-[14px] leading-none">
-                    expand_less
-                  </span>
-                </button>
-              </span>
-            </div>
-
-            {/* 커스텀 그라데이션 진행바 (seek 가능) */}
-            <div className="group relative h-2">
-              <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-black/10 dark:bg-white/12" />
-              {loading && (
-                <span className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 animate-pulse rounded-full bg-brand [animation-duration:1.8s]" />
-              )}
-
-              {liveStream ? (
-                /* 실시간 생성 중 — 동방박사가 별을 따라가듯, 별이 천천히 길을 가로지른다.
-                   총길이를 모르므로 진행률 대신 "별의 동행"으로 라이브 상태를 표현. */
-                <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2">
-                  <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 animate-bible-star-travel">
-                    {/* 별똥별 꼬리 — 지나온 길에 남는 빛의 자취 */}
-                    <span className="absolute right-1/2 top-1/2 h-[2px] w-8 -translate-y-1/2 rounded-full bg-gradient-to-l from-[var(--brand)] via-[var(--brand-glow)] to-transparent blur-[0.5px]" />
-                    {/* 은은한 빛무리(후광) */}
-                    <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
-                    {/* 별 — 정상 재생 때와 같은 네 갈래 별. 밝은 테마에선 흰 카드 위라 브랜드색.
-                        카드 배경색 아웃라인(paint-order:stroke)이 같은 색 진행 트랙에서 형태를 분리한다 */}
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="relative block h-[14px] w-[14px] text-brand dark:text-white stroke-[#fafafa] dark:stroke-[#201f1f] [paint-order:stroke] drop-shadow-[0_0_6px_var(--brand-glow)]"
-                      fill="currentColor"
-                      strokeWidth={4}
-                      strokeLinejoin="round"
-                    >
-                      <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
-                    </svg>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 overflow-hidden rounded-full">
-                    <div ref={fillRef} className="h-full w-full rounded-full bg-brand will-change-transform" />
-                  </div>
-
-                  {/* 시작점 — 함께 출발한 자리 */}
-                  <span className="pointer-events-none absolute left-0 top-1/2 h-1 w-1 -translate-y-1/2 rounded-full bg-brand" />
-
-                  {/* 도착점 — 빛이 향해 가는 목적지(가까워질수록 환해진다) */}
-                  <span
-                    className="pointer-events-none absolute left-full top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity"
-                    style={{ opacity: 0.3 + (pct / 100) * 0.7 }}
-                  >
-                    <span className="material-icons-round block text-[12px] leading-none text-brand">
-                      auto_awesome
-                    </span>
-                  </span>
-
-                  {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 별빛 동행 */}
-                  {/* 트랙 폭 래퍼를 translateX(진행률%)로 밀어 별을 서브픽셀로 이동(카드가 overflow-hidden) */}
-                  <div ref={starRef} className="pointer-events-none absolute inset-0 will-change-transform">
-                  <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    {isPlaying && (
-                      <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
-                    )}
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="relative block h-[14px] w-[14px] text-brand dark:text-white stroke-[#fafafa] dark:stroke-[#201f1f] [paint-order:stroke] drop-shadow-[0_0_6px_var(--brand-glow)] transition-transform group-active:scale-110"
-                      fill="currentColor"
-                      strokeWidth={4}
-                      strokeLinejoin="round"
-                    >
-                      <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
-                    </svg>
-                  </div>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={duration || 0}
-                    step={0.1}
-                    value={currentTime}
-                    onChange={handleSeek}
-                    disabled={!duration}
-                    aria-label="재생 위치"
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-default"
-                  />
-                </>
-              )}
-            </div>
-
-            <div className="mt-1 flex items-center justify-between text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
-              <span>{formatClock(currentTime)}</span>
-              {loading ? (
-                /* 힌트를 별도 줄이 아닌 이 자리(총길이 자리)에 보여 카드 높이가 변하지 않는다 */
-                <span className="flex items-center gap-1">
-                  <span className="h-1 w-1 animate-pulse rounded-full bg-brand" />
-                  처음 재생은 조금 걸려요
-                </span>
-              ) : liveStream ? (
-                <span className="flex items-center gap-1 font-semibold text-brand">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-                  실시간 생성 중
-                </span>
-              ) : (
-                <span>{formatClock(duration)}</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 음성 선택(여성/남성) 세그먼트 — 현재는 숨기고 남성 고정.
-            다시 노출하려면 바깥 div의 `hidden`과 안쪽 div의 `!hidden`을 제거하고
-            `mt-2 flex items-center` 등 배치 클래스를 되살린다. */}
-        <div className="hidden">
-          <div className="relative !hidden inline-flex rounded-full bg-black/[0.05] p-0.5 dark:bg-white/[0.07]">
-            <span
-              className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-full bg-brand shadow-[0_4px_12px_-4px_var(--brand-glow)] transition-transform duration-300 ease-out"
-              style={{ transform: voice === 'male' ? 'translateX(100%)' : 'translateX(0)' }}
-            />
-            {(['female', 'male'] as BibleTTSVoice[]).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => handleVoiceChange(v)}
-                className={`relative z-10 w-[58px] rounded-full py-1 text-xs font-bold transition-colors ${
-                  voice === v ? 'text-white' : 'text-gray-500 dark:text-white/55'
-                }`}
-              >
-                {v === 'female' ? '여성' : '남성'}
-              </button>
-            ))}
-          </div>
-
-        </div>
-      </div>
+      {/* 접혀 있어도 마운트는 유지 — hidden 으로만 감춘다 */}
+      <AudioExpandedCard
+        collapsed={collapsed}
+        isPlaying={isPlaying}
+        loading={loading}
+        liveStream={liveStream}
+        currentTime={currentTime}
+        duration={duration}
+        pct={pct}
+        statusText={statusText}
+        voice={voice}
+        settingsSummary={settingsSummary}
+        showSettings={showSettings}
+        sleepRemainingMs={sleepRemainingMs}
+        canCinema={canCinema}
+        fillRef={fillRef}
+        starRef={starRef}
+        settingsBtnRef={settingsBtnRef}
+        onTogglePlay={togglePlay}
+        onToggleSettings={toggleSettings}
+        onOpenCinema={openCinema}
+        onCollapse={toggleCollapsed}
+        onSeek={handleSeek}
+        onVoiceChange={handleVoiceChange}
+      />
 
       <audio
         ref={audioRef}
@@ -957,68 +630,22 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
 
     {/* 미니 플레이어 — 본문을 읽으러 스크롤하면 카드 대신 앱바 아래 한 줄로.
         항상 렌더하고 transform/opacity로만 보였다 숨겨 전환이 부드럽다. */}
-    <div
-      className={`fixed inset-x-0 top-14 z-40 transition-all duration-300 ${
-        showMini ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-3 opacity-0'
-      }`}
-    >
-      <div className="mx-auto max-w-md px-3">
-        <div className="flex items-center gap-2.5 rounded-2xl border border-black/[0.06] bg-white/95 px-3 py-2 shadow-[0_10px_24px_-10px_rgba(0,0,0,0.35)] backdrop-blur-md dark:border-white/[0.1] dark:bg-[#1c1c26]/95">
-          <button
-            type="button"
-            onClick={togglePlay}
-            disabled={loading}
-            aria-label={isPlaying ? '일시정지' : '재생'}
-            className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
-          >
-            <span className={`material-icons-round text-[20px] leading-none ${loading ? 'animate-pulse' : ''}`}>
-              {loading ? 'auto_awesome' : isPlaying ? 'pause' : 'play_arrow'}
-            </span>
-          </button>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <span className="truncate text-[12px] font-bold text-gray-700 dark:text-white/85">
-                오디오북 <span className="font-medium text-gray-400 dark:text-white/45">· {statusText}</span>
-              </span>
-              <span className="flex-shrink-0 text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
-                {liveStream ? '실시간 생성 중' : `${formatClock(currentTime)} / ${formatClock(duration)}`}
-              </span>
-            </div>
-            {/* 얇은 진행바 (미니에서는 seek 없이 상태 표시만) */}
-            <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/[0.12]">
-              {liveStream ? (
-                <div className="h-full w-full animate-pulse bg-brand" />
-              ) : (
-                <div ref={miniFillRef} className="h-full w-full rounded-full bg-brand will-change-transform" />
-              )}
-            </div>
-          </div>
-
-          {/* 미니 플레이어도 설정은 톱니 하나로 — 본 카드와 같은 메뉴를 연다 */}
-          <button
-            type="button"
-            ref={miniSettingsBtnRef}
-            onClick={() => setShowSettings(v => !v)}
-            aria-haspopup="dialog"
-            aria-expanded={showSettings}
-            aria-label={settingsSummary ? `오디오 설정 (${settingsSummary})` : '오디오 설정'}
-            title="오디오 설정"
-            className={`flex flex-shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold tabular-nums transition active:scale-95 ${
-              settingsSummary || showSettings
-                ? 'border-transparent bg-[var(--brand-soft)] text-brand'
-                : 'border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
-            }`}
-          >
-            {sleepRemainingMs != null && (
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-            )}
-            {settingsSummary}
-            <span className="material-icons-round text-[13px] leading-none">tune</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    <AudioMiniBar
+      showMini={showMini}
+      isPlaying={isPlaying}
+      loading={loading}
+      liveStream={liveStream}
+      currentTime={currentTime}
+      duration={duration}
+      statusText={statusText}
+      settingsSummary={settingsSummary}
+      showSettings={showSettings}
+      sleepRemainingMs={sleepRemainingMs}
+      fillRef={miniFillRef}
+      settingsBtnRef={miniSettingsBtnRef}
+      onTogglePlay={togglePlay}
+      onToggleSettings={toggleSettings}
+    />
 
     {/* 낭독 영화관 — 같은 <audio> 요소를 공유하는 전체화면 뷰.
         닫아도 재생은 계속되고, 연속 재생(다음 장)도 뒤에서 그대로 이어진다. */}
