@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
 import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
 import { getTtsStreamUrl } from '../../../api/bibleTts'
@@ -36,7 +36,14 @@ export interface PlayFromVerseRequest {
   seq: number
 }
 
+/** 플레이어 밖(장 머리말의 '듣기' 버튼)에서 재생을 시작할 때 쓰는 손잡이 */
+export interface BibleAudioHandle {
+  /** 재생/일시정지 — 클릭 핸들러 안에서 바로 불러야 모바일 자동재생 정책에 안 걸린다 */
+  togglePlay: () => void
+}
+
 interface BibleAudioPlayerProps {
+  ref?: Ref<BibleAudioHandle>
   bookNumber: number
   chapter: number
   // BibleBook.id — 낭독 영화관이 절 본문을 조회할 때 쓴다 (없으면 영화관 버튼 숨김)
@@ -57,6 +64,8 @@ interface BibleAudioPlayerProps {
   // 플레이어가 실제로 보이는지. 설정에서 오디오북을 꺼 두면 hidden 으로 마운트만 되는데,
   // 그때는 장마다 resolve 를 묻지 않는다(재생을 시작했다면 보이지 않아도 계속 받는다).
   visible?: boolean
+  /** 이 장의 재생을 시작했는지 — 부모가 '듣기' 버튼과 플레이어 띠 중 무엇을 보일지 정한다 */
+  onStartedChange?: (started: boolean) => void
 }
 
 // 첫 생성(몇 초) 동안 번갈아 보여줄 잔잔한 대기 문구
@@ -92,7 +101,7 @@ const ensurePreconnect = (origin: string) => {
  * 호출해야 하는데, 모바일 자동재생 정책상 "한 번 재생했던 그 <audio> 요소"를
  * 재사용해야 허용되기 때문 — key 리마운트로 요소를 새로 만들면 iOS에서 막힌다.
  */
-const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter, totalChapters, bookName, visible = true }: BibleAudioPlayerProps) => {
+const BibleAudioPlayer = ({ ref, onStartedChange, bookNumber, chapter, bookId, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter, totalChapters, bookName, visible = true }: BibleAudioPlayerProps) => {
   // 능선 띠는 CSS 배경(audio-player.css)이라 테마 토글 순간 반대 테마 파일을 새로 받는다 —
   // 플레이어가 떠 있는 동안 등록해 두면 토글 직전 선요청이 챙긴다(themeAssets.ts)
   useThemeArt(AUDIO_RIDGE)
@@ -309,6 +318,13 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
       requestPlay()
     }
   }
+  useImperativeHandle(ref, () => ({ togglePlay }))
+
+  const onStartedChangeRef = useRef(onStartedChange)
+  onStartedChangeRef.current = onStartedChange
+  useEffect(() => {
+    onStartedChangeRef.current?.(started)
+  }, [started])
 
   // 낭독 영화관 — 소리 없는 영화관은 의미가 없으므로 열면서 재생도 시작한다
   const canCinema = bookId != null && bookId > 0

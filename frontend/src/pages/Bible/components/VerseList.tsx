@@ -44,6 +44,7 @@ import { loadBookParaphrase, peekBookParaphrase, type BookParaphrase } from '../
 import { getReadingAids, subscribeReadingAids } from '../data/readingAids'
 import SectionParaphrase from './SectionParaphrase'
 import { BookStoryEnd } from './BookStory'
+import ReadAgainCard from './ReadAgainCard'
 // 열 때만 받는 패널 — 읽기 화면 청크에서 분리
 const BibleCommentaryPanel = lazyModal(() => import('../../../components/bible/BibleCommentaryPanel'))
 
@@ -740,6 +741,17 @@ const VerseList = ({
                   chevron_right
                 </span>
               </button>
+            </div>
+
+            {/* 2독부터 — 이번 회차 렌즈의 질문을 다 읽은 뒤에 (읽기 전 숙제가 아니라 돌아보기) */}
+            <div style={{ textAlign: 'left' }}>
+              <ReadAgainCard
+                key={`${bookNumber}-${selectedChapter}`}
+                bookNumber={bookNumber}
+                chapter={selectedChapter}
+                enabled={loggedIn}
+                kicker="다 읽으셨나요? 이번 회차 질문"
+              />
             </div>
 
             {/* 막의 마지막 장이면 막 정리, 책의 마지막 장이면 한 권 돌아보기 (줄거리 데이터 있는 책만) */}

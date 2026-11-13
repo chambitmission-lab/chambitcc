@@ -162,7 +162,7 @@
   min-height: calc(100vh - 200px);
   /* 해석 패널 도킹 폭 — 우측 fixed 패널(400 / 1280px+ 430)과 같은 값 */
   --commentary-dock-w: 400px;
-  /* "이 장 안내"·말씀 바구니 패널 폭 — 해석보다 좁게 둬 본문 칼럼을 덜 줄인다 (ChapterGuidePanel.css · research.css) */
+  /* 말씀 바구니 패널 폭(연구 모드) — 해석보다 좁게 둬 본문 칼럼을 덜 줄인다 (research.css) */
   --guide-dock-w: 360px;
 }
 @media (min-width: 1280px) {

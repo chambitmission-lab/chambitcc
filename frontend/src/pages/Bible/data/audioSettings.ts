@@ -47,7 +47,9 @@ const load = (): AudioSettings => ({
   voice: loadVoice(),
   rate: loadRate(),
   autoNext: read(KEYS.autoNext) === 'on',
-  collapsed: read(KEYS.collapsed) === 'on',
+  // 기본은 접힌 한 줄 띠 — 재생 전엔 장 머리말의 '듣기' 버튼만 있고, 누르면 그 자리에 띠가 열린다.
+  // 풍경 카드로 펼쳐 둔 사람('off')만 펼친 채로
+  collapsed: read(KEYS.collapsed) !== 'off',
 })
 
 let cache: AudioSettings | null = null

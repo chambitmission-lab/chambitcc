@@ -1,13 +1,6 @@
-import { useEffect, useState } from 'react'
 import { genreStyle } from '../../../components/bible/bookGenre'
-import {
-  actIndexOf,
-  hasBookStoryline,
-  loadBookStoryline,
-  peekBookStoryline,
-  type BookStoryline,
-  type StoryAct,
-} from '../data/bookStorylines'
+import { actIndexOf, type BookStoryline, type StoryAct } from '../data/bookStorylines'
+import { useBookStoryline } from '../hooks/useBookStoryline'
 import './BookStory.css'
 
 /**
@@ -15,7 +8,7 @@ import './BookStory.css'
  *
  * 초심자는 50장을 한 장씩 따로 읽다가 "그래서 창세기가 무슨 이야기였지?"에서 길을 잃는다.
  * 책 한 권을 4~6개의 막으로 묶어 세 곳에서 보여 준다.
- *  - BookStoryStrip : 본문 위 "지금 여기" 띠 — 모든 장에서 같은 자리에. 펼치면 막 전체 지도.
+ *  - 장 머리말(ChapterHead) : 막 진행선 "지금 여기" — 누르면 BookStoryMap(막 전체 지도).
  *  - BookStoryEnd   : 막의 마지막 장 끝 "막 정리", 책 마지막 장 끝 "한 권 돌아보기".
  *
  * 데이터(data/bookStorylines)가 없는 책은 조용히 렌더하지 않는다.
@@ -23,133 +16,46 @@ import './BookStory.css'
 
 const rangeLabel = (act: StoryAct) => (act.from === act.to ? `${act.from}장` : `${act.from}–${act.to}장`)
 
-/** 책 줄거리 로드 — 캐시에 있으면 첫 렌더부터 바로 준다(장 이동 때 깜빡임 없음) */
-const useBookStoryline = (bookNumber: number) => {
-  const [loadedFor, setLoadedFor] = useState<{ book: number; story: BookStoryline | null } | null>(null)
-  const available = hasBookStoryline(bookNumber)
-
-  useEffect(() => {
-    if (!available || peekBookStoryline(bookNumber)) return
-    let alive = true
-    loadBookStoryline(bookNumber).then((story) => {
-      if (alive) setLoadedFor({ book: bookNumber, story })
-    })
-    return () => {
-      alive = false
-    }
-  }, [bookNumber, available])
-
-  const story = peekBookStoryline(bookNumber) ?? (loadedFor?.book === bookNumber ? loadedFor.story : null)
-  return { story, pending: available && !story }
-}
-
-interface StripProps {
-  bookNumber: number
-  bookName: string
+/** 막 전체 지도 — 장 머리말의 줄거리 띠를 누르면 펼쳐진다. 장면 칩으로 그 장에 바로 간다 */
+export const BookStoryMap = ({
+  story,
+  chapter,
+  onJump,
+}: {
+  story: BookStoryline
   chapter: number
-  onJumpToChapter: (chapter: number) => void
-}
-
-export const BookStoryStrip = ({ bookNumber, bookName, chapter, onJumpToChapter }: StripProps) => {
-  const { story, pending } = useBookStoryline(bookNumber)
-  const [open, setOpen] = useState(false)
-
-  // 청크를 받는 동안 띠와 같은 높이를 비워 둔다 — 뒤늦게 나타나 본문을 밀지 않게
-  if (pending) {
-    return (
-      <div className="px-4 mb-2" aria-hidden>
-        <div className="bstory-placeholder" />
-      </div>
-    )
-  }
-  if (!story) return null
+  onJump: (chapter: number) => void
+}) => {
   const nowIdx = actIndexOf(story.acts, chapter)
-  if (nowIdx < 0) return null
-  const now = story.acts[nowIdx]
   const unit = story.unit ?? '막'
-  const label = story.label ?? '줄거리'
-  // 한 장짜리 책은 묶음이 하나뿐 — "1막 중 1막" 대신 책 이름만
   const single = story.acts.length === 1
-  const kicker = single
-    ? `${bookName} ${label}`
-    : `${bookName} ${label} · ${story.acts.length}${unit} 중 ${nowIdx + 1}${unit}`
-
-  const jump = (ch: number) => {
-    setOpen(false)
-    if (ch !== chapter) onJumpToChapter(ch)
-  }
-
   return (
-    <div className="px-4 mb-2" style={genreStyle(bookNumber)}>
-      <div className={`bstory${open ? ' is-open' : ''}`}>
-        <button
-          type="button"
-          className="bstory__head"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-label={`${kicker} ${now.name}. ${open ? '접기' : `전체 ${label} 펼치기`}`}
-        >
-          <span className="bstory__top">
-            <span className="bstory__where">
-              <span className="bstory__kicker">{kicker}</span>
-              <span className="bstory__now">{now.title}</span>
-            </span>
-            <span className="material-icons-round bstory__chev" aria-hidden>
-              expand_more
-            </span>
-          </span>
-
-          {/* 막대 — 막 길이(장 수)에 비례. 지나온 막은 채우고, 지금 막은 읽는 장까지만 채운다 */}
-          <span className="bstory__track" aria-hidden>
-            {story.acts.map((act, i) => {
-              const len = act.to - act.from + 1
-              const fill = i < nowIdx ? 100 : i > nowIdx ? 0 : ((chapter - act.from + 1) / len) * 100
-              return (
-                <span
-                  key={act.from}
-                  className={`bstory__seg${i === nowIdx ? ' is-now' : ''}`}
-                  style={{ flexGrow: len }}
-                >
-                  <span className="bstory__bar">
-                    <i style={{ width: `${fill}%` }} />
-                  </span>
-                  <span className="bstory__name">{act.name}</span>
-                </span>
-              )
-            })}
-          </span>
-        </button>
-
-        {open && (
-          <div className="bstory__body">
-            <p className="bstory__q">
-              <span>이 책이 답하는 질문</span>
-              {story.question}
-            </p>
-            <ol className="bstory__acts">
-              {story.acts.map((act, i) => (
-                <li key={act.from} className={`bstory__act${i === nowIdx ? ' is-now' : ''}`}>
-                  <div className="bstory__act-head">
-                    {!single && <span className="bstory__act-no">{i + 1}{unit}</span>}
-                    <span className="bstory__act-range">{rangeLabel(act)}</span>
-                    {i === nowIdx && !single && <span className="bstory__here">지금 여기</span>}
-                  </div>
-                  <p className="bstory__act-title">{act.title}</p>
-                  <p className="bstory__act-line">{act.line}</p>
-                  <div className="bstory__scenes">
-                    {act.scenes.map((scene) => (
-                      <button key={`${scene.ch}-${scene.label}`} type="button" className="bstory__scene" onClick={() => jump(scene.ch)}>
-                        <b>{scene.ch}장</b>
-                        {scene.label}
-                      </button>
-                    ))}
-                  </div>
-                </li>
+    <div className="bstory__body">
+      <p className="bstory__q">
+        <span>이 책이 답하는 질문</span>
+        {story.question}
+      </p>
+      <ol className="bstory__acts">
+        {story.acts.map((act, i) => (
+          <li key={act.from} className={`bstory__act${i === nowIdx ? ' is-now' : ''}`}>
+            <div className="bstory__act-head">
+              {!single && <span className="bstory__act-no">{i + 1}{unit}</span>}
+              <span className="bstory__act-range">{rangeLabel(act)}</span>
+              {i === nowIdx && !single && <span className="bstory__here">지금 여기</span>}
+            </div>
+            <p className="bstory__act-title">{act.title}</p>
+            <p className="bstory__act-line">{act.line}</p>
+            <div className="bstory__scenes">
+              {act.scenes.map((scene) => (
+                <button key={`${scene.ch}-${scene.label}`} type="button" className="bstory__scene" onClick={() => onJump(scene.ch)}>
+                  <b>{scene.ch}장</b>
+                  {scene.label}
+                </button>
               ))}
-            </ol>
-          </div>
-        )}
-      </div>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }

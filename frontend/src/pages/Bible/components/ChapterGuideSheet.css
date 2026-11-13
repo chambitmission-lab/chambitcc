@@ -1,0 +1,194 @@
+/* 이 장 길잡이 시트 — ChapterGuideSheet.tsx (cgs- 접두사).
+   모바일 바텀시트, PC(lg+) 오른쪽 서랍. 색은 장르 액센트(--genre, genreStyle) 라벨만 */
+
+.cgs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+.cgs {
+  position: relative;
+  width: 100%;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.cgs-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 20px 10px;
+}
+.cgs-kicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--genre);
+}
+.cgs-title {
+  margin: 2px 0 0;
+  font-family: var(--font-serif-kr);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+.cgs-close {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin: -4px -8px 0 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--text-muted);
+}
+.cgs-close:hover {
+  background: var(--surface-container);
+}
+.cgs-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 20px calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.cgs-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--genre);
+}
+.cgs-text {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.cgs-catchup {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--genre-soft);
+}
+.cgs-catchup__ch {
+  margin-right: 6px;
+  color: var(--text-muted);
+}
+/* 권 개관 입구 — 시트 맨 위, 누르면 개관 읽기 시트 */
+.cgs-intro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 12px 14px 14px;
+  border-radius: 16px;
+  background: var(--genre-soft);
+  text-align: left;
+  transition: filter 0.15s;
+}
+.cgs-intro:hover {
+  filter: brightness(0.97);
+}
+.cgs-intro__icon {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--genre);
+}
+.cgs-intro__body {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cgs-intro__body b {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+.cgs-intro__body span {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.cgs-intro__chev {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--genre);
+}
+
+/* 줄거리 지도 — 시트 안에서는 바깥 여백 없이 */
+.cgs-story .bstory__body {
+  padding: 8px 0 0;
+}
+
+/* PC — 오른쪽 서랍. 앱바 아래부터 화면 끝까지 */
+@media (min-width: 1024px) {
+  .cgs-backdrop {
+    align-items: stretch;
+    justify-content: flex-end;
+    background: rgba(0, 0, 0, 0.25);
+  }
+  .cgs {
+    width: 440px;
+    max-height: none;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.18);
+    animation: cgs-slide 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .cgs-head {
+    padding: 28px 28px 12px;
+  }
+  .cgs-title {
+    font-size: 26px;
+  }
+  .cgs-close {
+    width: 44px;
+    height: 44px;
+  }
+  .cgs-body {
+    padding: 8px 28px 32px;
+    gap: 22px;
+  }
+  .cgs-label {
+    font-size: 13px;
+  }
+  .cgs-text {
+    font-size: 16.5px;
+  }
+  .cgs-intro__body b {
+    font-size: 16.5px;
+  }
+  .cgs-intro__body span {
+    font-size: 15px;
+  }
+}
+@keyframes cgs-slide {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cgs {
+    animation: none;
+  }
+}

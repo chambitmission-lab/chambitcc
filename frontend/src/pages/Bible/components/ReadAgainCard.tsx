@@ -8,7 +8,8 @@ import { showToast } from '../../../utils/toast'
 import { READING_LENSES, defaultLensFor, lensQuestion, resolveLens, type ReadingLensId } from '../data/readingLenses'
 import { formatMonthDay } from '../../../utils/date'
 
-const COLLAPSED_KEY = 'bible-readagain-collapsed'
+// 펼침 상태 — 질문은 한 줄에 이미 보이므로 기본은 접힘. 펼치면 지난 회차의 흔적·렌즈 고르기
+const OPEN_KEY = 'bible-readagain-open'
 // 흔적 목록은 처음엔 이만큼만 — 나머지는 '더 보기'
 const TRACE_PREVIEW = 3
 
@@ -17,6 +18,8 @@ interface ReadAgainCardProps {
   chapter: number
   /** 로그인했을 때만 — 회차는 개인 기록이다 */
   enabled: boolean
+  /** 한 줄 위 작은 머리글 (장 끝: "다 읽으셨나요? 이번 회차 질문") */
+  kicker?: string
 }
 
 const fmtDate = (iso: string): string => formatMonthDay(iso, { year: 'auto' })
@@ -120,19 +123,20 @@ const EchoSection = ({ echo, pending, cycleNo }: { echo: ReadingEcho | undefined
 }
 
 /**
- * 다시 읽는 길 — 2독부터 장 머리에 놓이는 카드.
+ * 다시 읽는 길 — 2독부터 장 끝(VerseList, 다 읽은 뒤)에 놓이는 이번 회차 질문 한 줄.
+ * 읽기 전에 숙제처럼 주지 않고, 읽고 나서 돌아보는 질문으로 (BibleProject 방식).
  *
  * ① 이번 회차의 렌즈(그리스도를 찾아서 등)로 이 장에 맞는 질문 하나를 준다.
  * ② 지난 회차에 이 장을 언제 읽었는지, 그때 남긴 메모·묵상·형광펜을 다시 보여 준다.
- * 1독 중이거나 로그인 전이면 렌더하지 않는다. 접힘 상태는 기기에 기억한다.
+ * 한 줄에 렌즈와 질문을 다 보이고, 펼치면 ②와 렌즈 고르기. 1독 중이거나 로그인 전이면 렌더하지 않는다.
  */
-const ReadAgainCard = ({ bookNumber, chapter, enabled }: ReadAgainCardProps) => {
+const ReadAgainCard = ({ bookNumber, chapter, enabled, kicker }: ReadAgainCardProps) => {
   const { data: cycles } = useReadingCycles(enabled)
   const cycleNo = cycles?.current_cycle ?? 1
   const active = enabled && cycleNo >= 2
   const { data: echo, isPending: echoPending } = useReadingCycleEcho(bookNumber, chapter, active)
   const setLens = useSetReadingLens()
-  const [collapsed, setCollapsed] = useState(() => safeStorage.get(COLLAPSED_KEY) === '1')
+  const [open, setOpen] = useState(() => safeStorage.get(OPEN_KEY) === '1')
   const [picking, setPicking] = useState(false)
 
   if (!active || !cycles) return null
@@ -141,9 +145,9 @@ const ReadAgainCard = ({ bookNumber, chapter, enabled }: ReadAgainCardProps) => 
   const lens = resolveLens(cycleNo, savedLens)
   const question = lensQuestion(lens.id, bookNumber, chapter)
 
-  const toggleCollapsed = () => {
-    setCollapsed((prev) => {
-      safeStorage.set(COLLAPSED_KEY, prev ? '0' : '1')
+  const toggleOpen = () => {
+    setOpen((prev) => {
+      safeStorage.set(OPEN_KEY, prev ? '0' : '1')
       return !prev
     })
     setPicking(false)
@@ -160,29 +164,24 @@ const ReadAgainCard = ({ bookNumber, chapter, enabled }: ReadAgainCardProps) => 
   }
 
   return (
-    <div className="px-4 mb-2" style={genreStyle(bookNumber)}>
-      <section className="ra-card" aria-label={`${cycleNo}독 다시 읽는 길`}>
-        <button type="button" className="ra-head" onClick={toggleCollapsed} aria-expanded={!collapsed}>
-          <span className="ra-head__badge" aria-hidden>
-            {cycleNo}독
-          </span>
+    <div style={genreStyle(bookNumber)} className={kicker ? 'ra-wrap--end' : undefined}>
+      {kicker && <p className="ra-kicker">{kicker}</p>}
+      <section className={`ra-card${open ? ' is-open' : ''}`} aria-label={`${cycleNo}독 다시 읽는 길`}>
+        <button type="button" className="ra-head" onClick={toggleOpen} aria-expanded={open}>
+          <span className="material-icons-round ra-head__icon" aria-hidden>{lens.icon}</span>
           <span className="ra-head__body">
-            <span className="ra-head__eyebrow">다시 읽는 길</span>
-            <span className="ra-head__title">
-              <span className="material-icons-round" aria-hidden>{lens.icon}</span>
-              {lens.name}
-            </span>
-            {collapsed && <span className="ra-head__peek">{question}</span>}
+            <b className="ra-head__title">
+              {cycleNo}독 · {lens.name}
+            </b>
+            <span className="ra-head__question"> — {question}</span>
           </span>
-          <span className={`material-icons-round ra-head__chev${collapsed ? '' : ' is-open'}`} aria-hidden>
+          <span className={`material-icons-round ra-head__chev${open ? ' is-open' : ''}`} aria-hidden>
             expand_more
           </span>
         </button>
 
-        {!collapsed && (
+        {open && (
           <div className="ra-content">
-            <p className="ra-question">{question}</p>
-
             <EchoSection key={`${bookNumber}-${chapter}`} echo={echo} pending={echoPending} cycleNo={cycleNo} />
 
             <div className="ra-lens">

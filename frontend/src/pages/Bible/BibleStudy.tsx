@@ -44,16 +44,11 @@ const FocusReading = lazyModal(() => import('./components/FocusReading'))
 // 연구 모드(목회자 · PC) — 켤 때만 받는다. 성도 읽기 화면 청크에는 실리지 않는다
 const ResearchCompare = lazyModal(() => import('./components/research/ResearchCompare'), <ChapterLoader />)
 const ResearchBasketPanel = lazyModal(() => import('./components/research/ResearchBasketPanel'))
-import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
+import type { BibleAudioHandle, PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats, prefetchFavoritesPlaylist } from '../../hooks/useBibleBookmark'
-import BookIntroCard from '../../components/bible/BookIntroCard'
-import ChapterBriefCard from './components/ChapterBriefCard'
-import ReadAgainCard from './components/ReadAgainCard'
-import { ChapterGuidePanel, ChapterGuideTab } from './components/ChapterGuidePanel'
-import { BookStoryStrip } from './components/BookStory'
+import ChapterHead from './components/ChapterHead'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { isPastor } from '../../utils/access'
-import { safeStorage } from '../../utils/safeStorage'
 import { getReaderIntroCards, subscribeReaderIntroCards } from './data/readerIntroCards'
 import { dashTexts } from './bibleStudyTexts'
 import { AtlasIcon, StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon, TypingIcon } from './components/BibleToolIcons'
@@ -64,9 +59,6 @@ import { requestPageZoom } from '../../utils/textScaleRoutes'
 import { countMainRead, useStoryProgress } from './Story/storyProgress'
 import { isAuthenticated } from '../../utils/auth'
 import './BibleStudy.css'
-
-// 오른쪽 "이 장 안내" 패널 펼침 여부 (PC 1680px+). 기본은 펼침, '0' 이면 접힘
-const GUIDE_PANEL_KEY = 'bible-guide-panel-open'
 
 const BibleStudy = () => {
   const navigate = useNavigate()
@@ -116,28 +108,16 @@ const BibleStudy = () => {
   }, [introCards.audio])
   // PC(lg+) 해석 패널이 우측에 도킹 중인지 — 본문 컬럼을 왼쪽으로 비켜 나란히 보이게 한다
   const [commentaryOpen, setCommentaryOpen] = useState<boolean>(false)
-  // PC 넓은 화면(1680px+) 오른쪽 "이 장 안내" 패널 — 권 개관·길잡이를 본문 위에서 옆으로 옮긴다.
-  // 1680px 은 패널을 붙여도 본문 칼럼이 640px 이상 남는 폭(그보다 좁으면 카드는 본문 위 그대로).
-  // 기본은 펼침이고, 한 번 접으면 그 기기에선 접힌 채로 기억한다. 모바일은 해당 없음.
-  const isWideReader = useMediaQuery('(min-width: 1680px)')
-  const [guidePanelOpen, setGuidePanelOpen] = useState<boolean>(
-    () => safeStorage.get(GUIDE_PANEL_KEY) !== '0'
-  )
-  const toggleGuidePanel = useCallback((open: boolean) => {
-    setGuidePanelOpen(open)
-    safeStorage.set(GUIDE_PANEL_KEY, open ? '1' : '0')
-  }, [])
   // 목회자 연구 모드(PC lg+) — 본문 자리에 나란히 보기, 오른쪽에 말씀 바구니.
   // 끄면 읽기 화면 그대로. 켬 상태는 이 화면에 머무는 동안만 유지한다(다음 방문은 읽기로 시작)
   const isDesktopReader = useMediaQuery('(min-width: 1024px)')
   const researchAvailable = isDesktopReader && isPastor()
   const [researchOn, setResearchOn] = useState<boolean>(false)
   const researchActive = researchAvailable && researchOn
-  // Aa 설정에서 두 카드를 다 꺼 뒀다면 옮길 것이 없으니 패널·손잡이 모두 내지 않는다
-  const hasGuideCards = introCards.bookIntro || introCards.brief || introCards.story
-  // 카드는 본문 칼럼과 패널 중 한 곳에만 마운트한다 — 같은 카드를 두 번 띄우지 않는다.
-  // 연구 모드에선 오른쪽 자리를 바구니가 쓰므로 카드는 본문 위로 돌아간다
-  const guideInPanel = isWideReader && guidePanelOpen && hasGuideCards && !researchActive
+  // 오디오북 — 재생 전엔 장 머리말의 '듣기' 버튼만, 이 장을 재생하기 시작하면 그 자리에 플레이어 띠.
+  // 버튼은 클릭 핸들러 안에서 곧장 플레이어를 부른다(모바일 자동재생 정책)
+  const audioRef = useRef<BibleAudioHandle>(null)
+  const [audioStarted, setAudioStarted] = useState<boolean>(false)
 
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { isLoggedIn } = useAuth()
@@ -696,50 +676,6 @@ const BibleStudy = () => {
     </div>
   )
 
-  // 본문 앞 안내 카드 — 본문 칼럼 또는 PC 오른쪽 "이 장 안내" 패널 중 한 곳에 놓인다
-  const guideCards = selectedBookData ? (
-    <>
-      {/* 다시 읽는 길 — 2독부터만 보인다(회차 렌즈 질문 + 지난 회차의 나) */}
-      <ReadAgainCard
-        key={`${selectedBookData.book_number}-${selectedChapter}`}
-        bookNumber={selectedBookData.book_number}
-        chapter={selectedChapter}
-        enabled={isLoggedIn()}
-      />
-      {/* 권 개관 — 한 줄 진입 바. 실제 소개는 탭하면 열리는 읽기 시트라
-          본문을 밀지 않는다. 그래서 1장뿐 아니라 모든 장에서 열 수 있다. */}
-      {introCards.bookIntro && (
-        <BookIntroCard
-          bookNumber={selectedBookData.book_number}
-          bookNameKo={selectedBook}
-          totalChapters={selectedBookData.chapter_count}
-          currentChapter={selectedChapter}
-          onJumpToChapter={handleChapterChange}
-        />
-      )}
-
-      {/* 책 줄거리 띠 — 책을 몇 개의 막으로 묶어 "지금 어디쯤인지" 보여 준다.
-          모든 장에서 같은 높이로 같은 자리에 있고, 펼치면 막 전체 지도. 데이터 없는 책은 빠진다 */}
-      {introCards.story && (
-        <BookStoryStrip
-          bookNumber={selectedBookData.book_number}
-          bookName={selectedBook}
-          chapter={selectedChapter}
-          onJumpToChapter={handleChapterChange}
-        />
-      )}
-
-      {/* 오늘의 길잡이 — 읽기 직전 3줄 지도 (지금까지·이 장에서·눈여겨보기).
-          데이터 없는 책은 조용히 빠지고, 오랜만에 오면 지난 이야기를 덧붙인다 */}
-      {introCards.brief && (
-        <ChapterBriefCard
-          bookNumber={selectedBookData.book_number}
-          chapter={selectedChapter}
-        />
-      )}
-    </>
-  ) : null
-
   return (
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark screen-fit-minus-header page-stage">
       {/* 하단 고정 네비게이션에 가리지 않도록 컨테이너에 바 높이만큼 하단 여백.
@@ -832,7 +768,7 @@ const BibleStudy = () => {
                 해석 패널이 우측에 도킹되면 컬럼이 왼쪽으로 비켜 나란히 보인다 */}
             {!showBookList && selectedBookId > 0 && selectedBookData && (
               <div
-                className={`bible-chapter-section${commentaryOpen ? ' commentary-docked' : ''}${guideInPanel || researchActive ? ' guide-docked' : ''}`}
+                className={`bible-chapter-section${commentaryOpen ? ' commentary-docked' : ''}${researchActive ? ' guide-docked' : ''}`}
               >
                 <div className="bible-chapter-inner">
                 {/* PC 좌측 레일 — 섹션 내비 + 장 개요(단락 소제목 + 절 격자). 모바일에선 CSS로 숨김 */}
@@ -878,27 +814,46 @@ const BibleStudy = () => {
                   </div>
                 )}
 
-                {/* 오디오북 — 현재 장을 음성으로 듣기.
-                    key로 리마운트하지 않는다: 연속 재생(장 끝 → 다음 장 자동 재생)이
-                    같은 <audio> 요소를 재사용해야 모바일 자동재생 정책에 안 걸린다. */}
-                <div hidden={!introCards.audio && !audioRevealed}>
-                <BibleAudioPlayer
+                {/* 장 머리말 — 책·막·장 제목·리드 한 문장(+더 보기)·2독 한 줄, 그리고 오디오북.
+                    오디오북은 key로 리마운트하지 않는다: 연속 재생(장 끝 → 다음 장 자동 재생)이
+                    같은 <audio> 요소를 재사용해야 모바일 자동재생 정책에 안 걸린다.
+                    그래서 머리말도 key 없이 늘 같은 자리에 둔다. */}
+                <ChapterHead
                   bookNumber={selectedBookData.book_number}
-                  chapter={selectedChapter}
-                  bookId={selectedBookId}
-                  onActiveVerseChange={setAudioActiveVerse}
-                  onPlayingChange={setAudioPlaying}
-                  playFromVerse={playFromVerse}
-                  hasNextChapter={selectedChapter < selectedBookData.chapter_count}
-                  onAutoNextChapter={() => handleChapterChange(selectedChapter + 1)}
-                  totalChapters={selectedBookData.chapter_count}
                   bookName={selectedBook}
-                  visible={introCards.audio || audioRevealed}
+                  chapter={selectedChapter}
+                  totalChapters={selectedBookData.chapter_count}
+                  onJumpToChapter={handleChapterChange}
+                  show={introCards}
+                  listenButton={
+                    introCards.audio && !audioStarted ? (
+                      <button type="button" className="chd-listen" onClick={() => audioRef.current?.togglePlay()}>
+                        <span className="material-icons-round" aria-hidden>play_arrow</span>
+                        듣기
+                      </button>
+                    ) : null
+                  }
+                  audio={
+                    // 재생을 시작했거나('여기부터 듣기' 포함) 오디오북을 꺼 둔 채 '여기부터 듣기'로 불렀을 때만 띠가 보인다
+                    <div data-chd-audio hidden={!audioStarted && !audioRevealed}>
+                      <BibleAudioPlayer
+                        ref={audioRef}
+                        bookNumber={selectedBookData.book_number}
+                        chapter={selectedChapter}
+                        bookId={selectedBookId}
+                        onActiveVerseChange={setAudioActiveVerse}
+                        onPlayingChange={setAudioPlaying}
+                        onStartedChange={setAudioStarted}
+                        playFromVerse={playFromVerse}
+                        hasNextChapter={selectedChapter < selectedBookData.chapter_count}
+                        onAutoNextChapter={() => handleChapterChange(selectedChapter + 1)}
+                        totalChapters={selectedBookData.chapter_count}
+                        bookName={selectedBook}
+                        visible={introCards.audio || audioRevealed}
+                      />
+                    </div>
+                  }
                 />
-                </div>
-
-                {/* 권 개관·오늘의 길잡이 — PC 1680px+ 에서 오른쪽 패널을 펼쳤으면 패널 쪽에 뜬다 */}
-                {!guideInPanel && guideCards}
 
                 {/* 연구 모드(목회자)면 본문 자리에 나란히 보기. 끄면 VerseList 가 다시 마운트되어
                     읽음 기록·해석·오디오 따라가기가 그대로 이어진다 */}
@@ -948,15 +903,6 @@ const BibleStudy = () => {
                 {/* 연구 모드 — 오른쪽은 말씀 바구니 */}
                 {researchActive && <ResearchBasketPanel />}
 
-                {/* PC 1680px+ 오른쪽 "이 장 안내" — 펼치면 패널, 접으면 가장자리 손잡이.
-                    해석 패널이 열려 있으면 그 아래 층에 깔리고, 손잡이는 해석과 겹치지 않게 숨긴다 */}
-                {!researchActive && isWideReader && hasGuideCards && (
-                  guideInPanel ? (
-                    <ChapterGuidePanel onClose={() => toggleGuidePanel(false)}>{guideCards}</ChapterGuidePanel>
-                  ) : (
-                    !commentaryOpen && <ChapterGuideTab onOpen={() => toggleGuidePanel(true)} />
-                  )
-                )}
               </div>
             )}
           </div>

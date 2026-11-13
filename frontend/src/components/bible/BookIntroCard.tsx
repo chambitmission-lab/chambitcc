@@ -6,7 +6,6 @@ import {
   useUpsertBookIntro,
 } from '../../hooks/useBibleBookIntro'
 import type { BibleBookIntroUpsertRequest } from '../../types/bibleBookIntro'
-import { getBookGenre, genreStyle } from './bookGenre'
 import { lazyModal } from '../../utils/lazyModal'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 // 개관 읽기 시트·(관리자) 에디터는 열 때만 — 읽기 화면 청크에서 분리
@@ -22,17 +21,18 @@ interface BookIntroCardProps {
   currentChapter: number
   /** 구조 단락 탭 → 해당 장으로 이동 */
   onJumpToChapter?: (chapter: number) => void
+  /** 개관 시트 열림을 바깥이 쥘 때 — 길잡이 시트·1장 안내 줄에서도 같은 시트를 연다 */
+  sheetOpen?: boolean
+  onSheetOpenChange?: (open: boolean) => void
 }
 
 /**
- * 읽기 화면의 '권 개관' 진입점 — 한 줄짜리 슬림 바.
+ * 읽기 화면의 '권 개관' 진입점 — 장 머리말(ChapterHead) 첫 줄의 책 이름 "창세기 ›".
  *
- * 예전에는 본문 위에 큰 카드로 펼쳐져 있어서, 성경을 읽으러 온 사람이
- * 매번 텍스트 벽을 넘어가야 했다. 지금은 바만 남기고 실제 개관은
- * BookIntroSheet(읽기 시트)로 분리한다 — 본문이 먼저, 소개는 원할 때.
- *
- * 관리자는 개관이 없을 때 추가 유도 배너를 보고, 시트 안에서 수정/삭제한다.
- * 개관이 없고 관리자가 아니면 아무것도 렌더하지 않는다.
+ * 예전엔 본문 위 큰 카드 → 한 줄 바였는데, 바도 다른 안내 카드들과 같은 무게로 쌓여
+ * 첫 화면을 흐렸다. 지금은 책 이름 자체가 입구고, 실제 개관은 BookIntroSheet(읽기 시트).
+ * 개관이 없거나 불러오는 중이면 같은 자리에 책 이름 글자만 둔다(자리가 흔들리지 않게).
+ * 관리자는 개관이 없을 때 '개관 추가' 작은 버튼을 보고, 시트 안에서 수정/삭제한다.
  */
 const BookIntroCard = ({
   bookNumber,
@@ -40,6 +40,8 @@ const BookIntroCard = ({
   totalChapters,
   currentChapter,
   onJumpToChapter,
+  sheetOpen: sheetOpenProp,
+  onSheetOpenChange,
 }: BookIntroCardProps) => {
   const admin = can('bible:edit')
   const { data: intro, isLoading } = useBookIntro(bookNumber)
@@ -48,7 +50,12 @@ const BookIntroCard = ({
   const deleteMutation = useDeleteBookIntro()
 
   const [editorOpen, setEditorOpen] = useState(false)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const [sheetOpenLocal, setSheetOpenLocal] = useState(false)
+  const sheetOpen = sheetOpenProp ?? sheetOpenLocal
+  const setSheetOpen = (open: boolean) => {
+    setSheetOpenLocal(open)
+    onSheetOpenChange?.(open)
+  }
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // 시트는 lazy 청크(JS+CSS 두 파일)라 첫 탭이 네트워크 왕복만큼 늦게 열렸고, fallback 이
@@ -106,107 +113,63 @@ const BookIntroCard = ({
     />
   )
 
-  // 로딩 중이거나, 개관도 없고 관리자도 아니면 아무것도 보여주지 않는다
-  // 로딩 중엔 바와 같은 높이를 비워 둔다 — null 이었다가 나타나면 아래 절 목록이 통째로 밀린다
-  if (isLoading) return <div className="mt-3 mb-2 px-4" aria-hidden><div className="book-intro-bar-placeholder" /></div>
-  if (!intro && !admin) return null
+  const sheet = sheetOpen && intro && (
+    <BookIntroSheet
+      intro={intro}
+      bookNameKo={bookNameKo}
+      totalChapters={totalChapters}
+      currentChapter={currentChapter}
+      onJumpToChapter={onJumpToChapter}
+      admin={admin}
+      onEdit={() => {
+        setErrorMessage(null)
+        setSheetOpen(false)
+        setEditorOpen(true)
+      }}
+      onDelete={handleDelete}
+      onClose={() => setSheetOpen(false)}
+    />
+  )
 
-  // 관리자인데 개관이 아직 없는 경우 — 추가 유도 슬림 배너
   if (!intro) {
     return (
       <>
-        <div className="mx-4 mt-3 mb-2 rounded-2xl border border-dashed border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-3.5 flex items-center gap-3">
-          <span className="material-icons-round text-brand text-[22px]">auto_stories</span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] font-bold text-ink-strong">
-              {bookNameKo} 권 개관이 아직 없어요
-            </p>
-            <p className="text-[11.5px] text-ink-muted">
-              교인들이 이 책의 큰 그림을 잡도록 개관을 추가해보세요
-            </p>
-          </div>
+        <span className="chd-book">{bookNameKo}</span>
+        {/* 관리자만 — 개관이 아직 없으면 책 이름 옆에 작은 추가 버튼 */}
+        {!isLoading && admin && (
           <button
+            type="button"
+            className="chd-book-add"
             onClick={() => {
               setErrorMessage(null)
               setEditorOpen(true)
             }}
-            className="shrink-0 inline-flex items-center gap-1 px-3 h-9 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)]"
           >
-            <span className="material-icons-round text-[16px]">add</span>
-            추가
+            <span className="material-icons-round" aria-hidden>add</span>
+            개관 추가
           </button>
-        </div>
+        )}
         {editor}
       </>
     )
   }
-
-  const genre = getBookGenre(bookNumber)
-
   return (
     <>
       <button
         type="button"
+        className="chd-book is-link"
         onClick={() => setSheetOpen(true)}
         onPointerEnter={warmSheet}
         onTouchStart={warmSheet}
         onFocus={warmSheet}
-        style={genreStyle(bookNumber)}
         aria-haspopup="dialog"
-        className="w-full mt-3 mb-2 px-4 text-left"
+        aria-label={`${bookNameKo} 개관 보기 — ${intro.one_liner}`}
+        title={intro.one_liner}
       >
-        <span
-          className="flex items-center gap-3 rounded-2xl px-3.5 py-3 border transition-colors active:scale-[0.995]"
-          style={{
-            background: 'var(--genre-soft)',
-            borderColor: 'var(--genre-line)',
-          }}
-        >
-          <span
-            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-            /* 바 배경도 tint라서, 아이콘 칩은 한 단계 진하게 섞어야 형태가 살아난다 */
-            style={{
-              background: 'color-mix(in srgb, var(--genre) 16%, transparent)',
-              color: 'var(--genre)',
-            }}
-          >
-            <span className="material-icons-round text-[19px]">{genre.icon}</span>
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-[13.5px] font-bold text-ink-strong leading-tight">
-              {bookNameKo}는 어떤 책인가요?
-            </span>
-            <span className="block mt-0.5 text-[12px] text-ink-muted leading-snug truncate">
-              {intro.one_liner}
-            </span>
-          </span>
-          <span
-            className="material-icons-round text-[20px] shrink-0"
-            style={{ color: 'var(--genre)' }}
-          >
-            chevron_right
-          </span>
-        </span>
+        {bookNameKo}
+        <span className="material-icons-round" aria-hidden>chevron_right</span>
       </button>
-
-      {sheetOpen && (
-        <BookIntroSheet
-          intro={intro}
-          bookNameKo={bookNameKo}
-          totalChapters={totalChapters}
-          currentChapter={currentChapter}
-          onJumpToChapter={onJumpToChapter}
-          admin={admin}
-          onEdit={() => {
-            setErrorMessage(null)
-            setSheetOpen(false)
-            setEditorOpen(true)
-          }}
-          onDelete={handleDelete}
-          onClose={() => setSheetOpen(false)}
-        />
-      )}
-
+      {sheet}
       {editor}
     </>
   )
