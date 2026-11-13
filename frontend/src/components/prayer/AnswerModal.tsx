@@ -51,7 +51,7 @@ const AnswerModal = ({
       onClick={onClose}
     >
       <div
-        className="relative rounded-2xl max-w-md w-full max-h-[90dvh] lg:max-h-[calc(90dvh/var(--az,1))] overflow-y-auto overflow-x-hidden"
+        className="relative rounded-2xl max-w-md lg:max-w-[720px] w-full max-h-[90dvh] lg:max-h-[calc(90dvh/var(--az,1))] overflow-y-auto overflow-x-hidden"
         style={{
           background: 'var(--surface-container)',
           border: '1px solid var(--card-border)',
@@ -61,7 +61,7 @@ const AnswerModal = ({
       >
         {/* 헤더 */}
         <div
-          className="relative z-10 sticky top-0 backdrop-blur-xl px-5 py-3.5 flex items-center justify-between"
+          className="relative z-10 sticky top-0 backdrop-blur-xl px-5 py-3.5 lg:px-7 lg:py-4 flex items-center justify-between"
           style={{
             background: 'color-mix(in srgb, var(--surface-container) 90%, transparent)',
             borderBottom: '1px solid var(--card-border)',
@@ -72,7 +72,7 @@ const AnswerModal = ({
             <span className="material-icons-round text-[20px]" style={{ color: 'var(--amber-icon)' }}>
               auto_awesome
             </span>
-            <h2 className="text-[18px] font-bold tracking-[-0.015em]" style={{ color: 'var(--text-strong)' }}>
+            <h2 className="text-[18px] lg:text-[20px] font-bold tracking-[-0.015em]" style={{ color: 'var(--text-strong)' }}>
               {isEditMode ? '간증 수정' : '기도 응답 간증'}
             </h2>
           </div>
@@ -88,17 +88,17 @@ const AnswerModal = ({
         </div>
 
         {/* 본문 */}
-        <div className="relative z-10 p-5 space-y-5">
+        <div className="relative z-10 p-5 space-y-5 lg:p-7 lg:space-y-6">
           {prayerTitle.trim() && (
             <div>
               <label
-                className="block text-[13px] font-semibold mb-2 tracking-[-0.01em]"
+                className="block text-[13px] lg:text-[14px] font-semibold mb-2 tracking-[-0.01em]"
                 style={{ color: 'var(--text-muted)' }}
               >
                 기도 제목
               </label>
               <div
-                className="px-3.5 py-3 rounded-xl text-[14px] leading-[1.5]"
+                className="px-3.5 py-3 lg:px-4 lg:py-3.5 rounded-xl text-[14px] lg:text-[16px] leading-[1.5]"
                 style={{
                   background: 'var(--surface-inset)',
                   border: '1px solid var(--card-border)',
@@ -112,13 +112,13 @@ const AnswerModal = ({
 
           <div>
             <label
-              className="flex items-center justify-between text-[13px] font-semibold mb-2 tracking-[-0.01em]"
+              className="flex items-center justify-between text-[13px] lg:text-[14px] font-semibold mb-2 tracking-[-0.01em]"
               style={{ color: 'var(--text-muted)' }}
             >
               <span>
                 간증 내용 <span style={{ color: 'var(--brand)' }}>*</span>
               </span>
-              <span className="text-[11px] font-normal tabular-nums" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-[11px] lg:text-[13px] font-normal tabular-nums" style={{ color: 'var(--text-muted)' }}>
                 {testimony.length} / 500
               </span>
             </label>
@@ -128,7 +128,7 @@ const AnswerModal = ({
               placeholder={'하나님께서 어떻게 응답하셨는지 나눠주세요.\n\n· 구체적으로 어떤 일이 일어났나요?\n· 언제 응답을 받으셨나요?\n· 어떤 마음이 드셨나요?'}
               rows={8}
               maxLength={500}
-              className="w-full px-3.5 py-3 rounded-xl text-[14px] leading-[1.6] resize-none transition-colors focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] placeholder:text-[var(--text-muted)]"
+              className="w-full px-3.5 py-3 lg:px-5 lg:py-4 rounded-xl text-[14px] lg:text-[17px] leading-[1.6] lg:leading-[1.75] lg:min-h-[360px] lg:resize-y resize-none transition-colors focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] placeholder:text-[var(--text-muted)]"
               style={{
                 background: 'var(--surface-inset)',
                 border: '1px solid var(--card-border)',
@@ -137,11 +137,11 @@ const AnswerModal = ({
             />
           </div>
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex gap-2 lg:gap-3 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-transparent font-semibold text-[14px] rounded-full transition-colors hover:bg-[var(--brand-soft)] hover:text-[var(--brand)] hover:border-[var(--brand)]"
+              className="flex-1 px-4 py-2.5 lg:py-3.5 bg-transparent font-semibold text-[14px] lg:text-[16px] rounded-full transition-colors hover:bg-[var(--brand-soft)] hover:text-[var(--brand)] hover:border-[var(--brand)]"
               style={{ color: 'var(--text-body)', border: '1px solid var(--card-border)' }}
             >
               취소
@@ -150,7 +150,7 @@ const AnswerModal = ({
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="flex-1 px-4 py-2.5 font-bold text-[14px] rounded-full transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-2.5 lg:py-3.5 font-bold text-[14px] lg:text-[16px] rounded-full transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
               style={{
                 background: 'var(--brand)',
                 color: 'var(--on-brand)',
