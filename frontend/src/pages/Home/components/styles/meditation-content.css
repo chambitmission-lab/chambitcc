@@ -103,7 +103,11 @@
   --verse-ink-faint: rgba(240, 232, 214, 0.4);
   --verse-ref-ink: var(--verse-ink-soft);
   --verse-halo: 0 0 18px rgba(6, 12, 26, 0.7);
-  border-color: rgba(255, 255, 255, 0.08);
+  /* 다크는 테두리를 아예 없앤다. overflow:hidden 은 패딩 상자로 자르므로 삽화(::before)는
+   * 테두리 1px 칸을 못 덮는다 — 그 칸에 박스 바탕+흰 8% 가 남아, 삽화 왼쪽의 짙은 밤하늘과
+   * 대비되며 흰 세로줄처럼 보였다(2026-11-14). 밤 장면 자체가 카드와 충분히 구분된다.
+   * border:none 이 아니라 폭 0 — none 은 색이 currentcolor 로 되돌아가는 함정이 있다. */
+  border-width: 0;
 }
 
 /* 삽화 레이어 — 오른쪽 끝·세로 중앙 기준 cover. 세로 여백이 없도록 박스 높이가
