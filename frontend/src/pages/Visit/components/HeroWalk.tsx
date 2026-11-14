@@ -99,7 +99,25 @@ const Footprint = () => (
   </svg>
 )
 
+/** 눈 발자국(겨울 풍경) — 눈밭에 찍힌 겨울 신발 자국: 앞꿈치 판 + 뒤꿈치 판, 그 안에 눌린 밑창 홈(∧ 무늬).
+ *  판은 currentColor(다크=눈빛 흰색 / 라이트=눈 그늘 파랑), 홈은 --walk-groove(desktop.css). 샌들 자국과 같은 12×28 자리 */
+const SNOW_FORE =
+  'M10.5 1.4C14.6 1.4 17.2 4.9 17.2 10 17.2 14.8 15.8 19.4 14.8 23.2L6.2 23.2C5.2 19.4 3.8 14.8 3.8 10 3.8 4.9 6.4 1.4 10.5 1.4Z'
+const SNOW_HEEL =
+  'M6.3 26.6L14.7 26.6C15.4 30 15.6 33 15 35.4 14.4 37.9 12.6 39 10.5 39 8.4 39 6.6 37.9 6 35.4 5.4 33 5.6 30 6.3 26.6Z'
+const SNOW_GROOVES = 'M6 8L10.5 6L15 8M5.4 12.4L10.5 10.4L15.6 12.4M5.8 16.8L10.5 14.8L15.2 16.8M6.6 21L10.5 19.2L14.4 21M7 30.6L10.5 29.2L14 30.6M6.8 34.6L10.5 33.2L14.2 34.6'
+
+const SnowPrint = () => (
+  <svg viewBox="2 0 17 39.6" width="12" height="28">
+    <path d={SNOW_FORE} fill="currentColor" />
+    <path d={SNOW_HEEL} fill="currentColor" />
+    <path className="visit-hero-walk-groove" d={SNOW_GROOVES} fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
 type HeroWalkProps = {
+  /** 겨울 풍경 — 샌들 자국 대신 눈 발자국 */
+  snow?: boolean
   /** 전면 풍경 사진 위일 때 출입문 자리(무대 %) — 도착점·시간 알약 자리가 달라진다 */
   goal?: Pt
   station?: string
@@ -108,7 +126,7 @@ type HeroWalkProps = {
   time?: string
 }
 
-const HeroWalk = ({ goal, station, line, alley, time }: HeroWalkProps) => {
+const HeroWalk = ({ goal, snow = false, station, line, alley, time }: HeroWalkProps) => {
   const ref = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 })
 
@@ -137,7 +155,7 @@ const HeroWalk = ({ goal, station, line, alley, time }: HeroWalkProps) => {
       {steps.map((s, i) => (
         <span
           key={i}
-          className={`visit-hero-walk-step${s.left ? ' is-left' : ''}`}
+          className={`visit-hero-walk-step${s.left ? ' is-left' : ''}${snow ? ' is-snow' : ''}`}
           style={
             {
               left: `${s.x}%`,
@@ -147,7 +165,7 @@ const HeroWalk = ({ goal, station, line, alley, time }: HeroWalkProps) => {
             } as CSSProperties
           }
         >
-          <Footprint />
+          {snow ? <SnowPrint /> : <Footprint />}
         </span>
       ))}
       {station && (

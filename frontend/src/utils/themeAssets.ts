@@ -287,8 +287,14 @@ const VISIT_SCENES: Record<NaturalSeason, { light: VisitScene; dark: VisitScene 
     dark: { src: '/images/visit/scene-winter-night.webp', goal: [69.7, 90], ink: 'white' },
   },
 }
-export const visitSceneFor = (theme: 'light' | 'dark', date: Date = new Date()): VisitScene | undefined =>
-  VISIT_SCENES[getNaturalSeason(date)]?.[theme]
+export const visitSceneFor = (
+  theme: 'light' | 'dark',
+  date: Date = new Date(),
+): (VisitScene & { season: NaturalSeason }) | undefined => {
+  const season = getNaturalSeason(date)
+  const scene = VISIT_SCENES[season]?.[theme]
+  return scene && { ...scene, season }
+}
 /** 이번 계절의 풍경 한 쌍 — 경로 선요청·반대 테마 예열용(실제로 화면에 깔리는 사진) */
 export const VISIT_SCENE_PAIR: ThemePair = (() => {
   const s = VISIT_SCENES[getNaturalSeason(new Date())]

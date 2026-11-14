@@ -702,3 +702,35 @@
 .dark .visit-hero.has-scene .visit-route {
   border-top-color: var(--card-border);
 }
+
+/* ── 겨울: 눈 발자국(2026-11-14) ──
+   겨울 풍경에서는 샌들 자국 대신 눈밭에 찍힌 겨울 신발 자국(HeroWalk SnowPrint, .is-snow)을 쓴다.
+   1차(샌들 모양에 색만 눈빛)는 "눈 발자국 느낌이 아니다" → 모양 자체를 밑창 홈이 팬 신발 자국으로.
+   다크: 달빛 받은 흰 눈 자국 + 푸른 그늘 홈 + 옅은 번짐, 옆에 튄 눈 알갱이.
+   라이트: 눈 위에 팬 푸른 그늘 자국 + 흰 홈. */
+@media (min-width: 1024px) {
+  .visit-hero-walk-step.is-snow .visit-hero-walk-groove {
+    stroke: var(--walk-groove, rgba(255, 255, 255, 0.9));
+  }
+  :root:not(.dark) .visit-hero[data-scene-season='winter'] .visit-hero-walk.is-scene {
+    --walk-ink: rgba(72, 112, 190, 0.72);
+    --walk-groove: rgba(255, 255, 255, 0.92);
+  }
+  .dark .visit-hero[data-scene-season='winter'] .visit-hero-walk.is-scene {
+    --walk-ink: rgba(244, 248, 255, 0.97);
+    --walk-groove: rgba(92, 120, 182, 0.9);
+  }
+  .dark .visit-hero-walk-step.is-snow svg {
+    filter: drop-shadow(0 0 3px rgba(190, 215, 255, 0.7)) drop-shadow(0 1px 1px rgba(20, 40, 90, 0.6));
+  }
+  .dark .visit-hero-walk-step.is-snow::after {
+    content: '';
+    position: absolute;
+    inset: -5px -7px;
+    background:
+      radial-gradient(circle at 8% 22%, rgba(255, 255, 255, 0.9) 0 1.3px, transparent 1.9px),
+      radial-gradient(circle at 94% 58%, rgba(255, 255, 255, 0.8) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 16% 86%, rgba(255, 255, 255, 0.7) 0 0.9px, transparent 1.5px);
+    pointer-events: none;
+  }
+}
