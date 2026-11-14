@@ -166,6 +166,52 @@
 [data-theme='dark'] .rail-sun.is-veiled {
   --sun-color: color-mix(in srgb, var(--sun-hue) 52%, #2a2c33);
 }
+/* ── 달(밤) — 그날 위상의 달 + 엷은 달무리 ──
+   ★ 꽉 찬 푸른 원반은 '파란 점'으로, 마스크로 깎은 반듯한 초승달은 '아이콘'으로 읽혀 둘 다 실패(2026-11-14).
+     지금은 RailSun 의 MoonGlyph(SVG)가 실제 위상을 그린다 — 어두운 면이 옅게 비치고, 밝은 면에
+     바다 얼룩이 있고, 가장자리가 번진다. 색은 --sun-color 하나로 테마·흐림을 가른다.
+   ::before = 달무리, svg.rail-moon = 달. */
+.rail-sun.is-moon {
+  --sun-hue: #d2a24a;
+  --sun-color: var(--sun-hue);
+  background: none;
+}
+.rail-sun.is-moon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--sun-color) 18%, transparent) 0,
+    color-mix(in srgb, var(--sun-color) 8%, transparent) 20%,
+    transparent 46%
+  );
+}
+.rail-moon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -17px 0 0 -17px;
+  overflow: visible;
+}
+/* 어두운 면 — 라이트에서는 아예 안 그린다: 밝은 바탕 위의 옅은 원반이 '무언가에 가려진 달'로 읽혔다(2026-11-14) */
+.rail-moon-dark { fill: var(--sun-color); opacity: 0; }
+.rail-moon-lit { fill: var(--sun-color); opacity: 0.94; }
+/* 달의 바다 — 밝은 면 안에서만 보이는 옅은 얼룩 */
+.rail-moon-mare { fill: #7a5a1e; opacity: 0.16; }
+[data-theme='dark'] .rail-moon-mare { fill: #2b2a33; opacity: 0.2; }
+[data-theme='dark'] .rail-moon-dark { opacity: 0.06; }
+.rail-sun.is-moon.is-veiled {
+  --sun-color: color-mix(in srgb, var(--sun-hue) 62%, #dfe3ec);
+}
+[data-theme='dark'] .rail-sun.is-moon {
+  --sun-hue: #f3e7bd;
+  --sun-color: var(--sun-hue);
+}
+[data-theme='dark'] .rail-sun.is-moon.is-veiled {
+  --sun-color: color-mix(in srgb, var(--sun-hue) 55%, #2a2c33);
+}
 /* 미리보기(하루를 빠르게 돌림)는 0.1초마다 값이 오므로 보간을 짧게 */
 .rail-sun.is-sweep {
   transition-duration: 0.12s;

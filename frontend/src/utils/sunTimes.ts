@@ -28,3 +28,19 @@ export const sunTimes = (at: number, lat: number, lon: number): SunTimes | null 
   const toMs = (jd: number) => (jd - J1970) * DAY_MS
   return { rise: toMs(transit - w / 360), set: toMs(transit + w / 360) }
 }
+
+/* 달의 위상 — 평균 삭망월(29.53일)로 어림한다(실제와 최대 반나절쯤 어긋날 수 있다. 장식용).
+ * phase: 0 삭 → 0.25 상현 → 0.5 보름 → 0.75 하현 → 1 삭, lit: 밝은 면의 비율(0~1) */
+const SYNODIC_DAYS = 29.530588853
+const NEW_MOON_2000 = Date.UTC(2000, 0, 6, 18, 14) // 2000-01-06 18:14 UTC 의 삭
+
+export interface MoonPhase {
+  phase: number
+  lit: number
+}
+
+export const moonPhase = (at: number): MoonPhase => {
+  const age = (((at - NEW_MOON_2000) / DAY_MS) % SYNODIC_DAYS + SYNODIC_DAYS) % SYNODIC_DAYS
+  const phase = age / SYNODIC_DAYS
+  return { phase, lit: (1 - Math.cos(2 * Math.PI * phase)) / 2 }
+}
