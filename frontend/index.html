@@ -218,7 +218,8 @@
           var h = now.getHours();
           var dark = document.documentElement.getAttribute('data-theme') === 'dark';
           var slot = dark && (h >= 20 || h < 4) ? 'night' : h >= 4 && h < 11 ? 'morning' : h >= 11 && h < 17 ? 'afternoon' : 'evening';
-          var url = day[slot];
+          // 교회 전경 히어로는 테마로만 고른다(light·dark 칸) — 없으면 계절 슬롯
+          var url = (dark ? day.dark : day.light) || day[slot];
           if (!url) return;
           var link = document.createElement('link');
           link.rel = 'preload';

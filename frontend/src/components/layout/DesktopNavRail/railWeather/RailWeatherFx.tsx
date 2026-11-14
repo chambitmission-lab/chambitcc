@@ -10,7 +10,7 @@ import { weatherToRailMode } from './railWeatherMode'
 
 /* 개발·확인용: localStorage 'rail-weather-preview' = rain | storm | snow | blizzard */
 const PREVIEW_KEY = 'rail-weather-preview'
-const PREVIEW_MODES: RailWeatherMode[] = ['rain', 'storm', 'snow', 'blizzard']
+const PREVIEW_MODES: RailWeatherMode[] = ['drizzle', 'rain', 'storm', 'snow', 'blizzard']
 
 const readPreview = (): RailWeatherMode | null => {
   try {

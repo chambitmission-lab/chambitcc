@@ -65,6 +65,12 @@
   background-position: center 25%;
 }
 
+/* 교회 전경(세로 사진) — 종탑 십자가가 사진 맨 위쪽에 있다. 가운데 정렬이면 넓은 카드에서
+ * 십자가가 위로 잘려 나가므로 위쪽에 붙인다(에셋이 종탑 위 여백만 남기고 잘려 있다). */
+.meditation-hero[data-hero^='church-']::before {
+  background-position: center top;
+}
+
 .meditation-hero-overlay {
   position: absolute;
   inset: 0;

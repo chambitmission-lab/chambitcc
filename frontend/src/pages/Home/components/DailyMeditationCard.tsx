@@ -43,6 +43,8 @@ import heroAutumnNight from '../../../assets/hero/autumn-night.webp'
 import heroChristmasMorning from '../../../assets/hero/christmas-morning.webp'
 import heroChristmasAfternoon from '../../../assets/hero/christmas-afternoon.webp'
 import heroChristmasEvening from '../../../assets/hero/christmas-evening.webp'
+import heroChurchDay from '../../../assets/hero/church-day.webp'
+import heroChurchNight from '../../../assets/hero/church-night.webp'
 import { WeatherGlyph, type WeatherGlyphName } from './WeatherIcons'
 import TodayChurchEnvelope from './TodayChurchEnvelope'
 import CompanionHeroButton from './CompanionHeroButton'
@@ -104,6 +106,22 @@ const HERO_IMAGES: Record<HeroSet, Record<HeroSlot, string>> = {
     evening: heroWinterEvening,
     night: heroWinterEvening,
   },
+}
+
+/* 교회 전경 히어로(2026-11-14 시범) — 계절·시간대와 무관하게 테마로만 고른다.
+ * 라이트 = 낮의 예배당, 다크 = 불 켜진 저녁 예배당. 끄면(false) 위 계절×슬롯 표로 돌아간다.
+ * 사진은 세로 원본에서 종탑 위 여백만 남기고 잘라 둔 것이라 CSS 는 위쪽 정렬(center top)이다. */
+const USE_CHURCH_HERO = true
+const CHURCH_HERO = { light: heroChurchDay, dark: heroChurchNight } as const
+
+/* 지금 보여줄 히어로 한 장 — 렌더·엔트리 프리로드가 같은 판정을 쓴다 */
+const resolveHero = (date: Date, isDark: boolean): { key: string; src: string } => {
+  if (USE_CHURCH_HERO) {
+    return isDark ? { key: 'church-night', src: CHURCH_HERO.dark } : { key: 'church-day', src: CHURCH_HERO.light }
+  }
+  const set = getHeroSet(date)
+  const slot = deriveHeroSlot(date.getHours(), isDark)
+  return { key: `${set}-${slot}`, src: HERO_IMAGES[set][slot] }
 }
 
 /* 히어로 사진 세트 — 대림절 첫 주일부터 주현절(1/6)까지는 성탄 세트, 그 밖엔 자연 계절.
@@ -185,7 +203,7 @@ const preloadCurrentHero = () => {
   if (!isHome) return
   const now = new Date()
   // 테마는 index.html 선적용 스크립트가 이미 .dark 를 붙인 뒤라 DOM 에서 바로 읽는다
-  const src = HERO_IMAGES[getHeroSet(now)][deriveHeroSlot(now.getHours(), currentTheme() === 'dark')]
+  const { src } = resolveHero(now, currentTheme() === 'dark')
   if (document.querySelector(`link[rel="preload"][href="${src}"]`)) return
   const link = document.createElement('link')
   link.rel = 'preload'
@@ -204,12 +222,13 @@ preloadCurrentHero()
 const HERO_PLAN_KEY = 'home_hero_plan'
 const saveHeroPlan = () => {
   try {
-    const plan: Record<string, Record<HeroSlot, string>> = {}
+    const plan: Record<string, Partial<Record<HeroSlot | 'light' | 'dark', string>>> = {}
     const base = new Date()
     for (let i = 0; i < 3; i++) {
       const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i)
       const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
-      plan[key] = HERO_IMAGES[getHeroSet(d)]
+      // light·dark 칸이 있으면 index.html 이 슬롯보다 먼저 본다(교회 전경 = 테마로만 고름)
+      plan[key] = USE_CHURCH_HERO ? CHURCH_HERO : HERO_IMAGES[getHeroSet(d)]
     }
     const json = JSON.stringify(plan)
     if (localStorage.getItem(HERO_PLAN_KEY) !== json) localStorage.setItem(HERO_PLAN_KEY, json)
@@ -352,10 +371,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
    * 백엔드 plan_day.season은 시드 플레이스홀더(전부 epiphany)라
    * 절기 태그·리본 모두 프론트 계산값(churchCalendar)을 쓴다. */
   const season = getCurrentSeason(today)
-  /* 자연 계절 — 히어로 배경·앰비언트 연출용 (교회력 절기와 별개) */
-  const heroSet = getHeroSet(today)
-  /* 히어로 사진만 밤 슬롯을 따로 본다 — 서버가 준 time_of_day 와 무관하게 로컬 시각·테마 기준 */
-  const heroSlot = deriveHeroSlot(today.getHours(), theme === 'dark')
+  /* 히어로 사진 — 서버가 준 time_of_day 와 무관하게 로컬 시각·테마 기준 */
+  const hero = resolveHero(today, theme === 'dark')
 
   /* ── 날씨 연출 ──
    * 앰비언트는 실제 하늘(비·눈)일 때만 흐른다 — 계절 배경 사진은 그대로 두되
@@ -442,8 +459,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
          * 이미지는 ::before 레이어에서 하단 마스크로 카드 배경에 녹아든다 (Apple TV/Netflix식 페이드) */}
         <div
           className="meditation-hero"
-          data-hero={`${heroSet}-${heroSlot}`}
-          style={{ '--hero-image': `url(${HERO_IMAGES[heroSet][heroSlot]})` } as React.CSSProperties}
+          data-hero={hero.key}
+          style={{ '--hero-image': `url(${hero.src})` } as React.CSSProperties}
         >
           <div className="meditation-hero-overlay" aria-hidden />
           {/* 비 앰비언트 — 비·가랑비·뇌우일 때 계절 연출 대신 빗줄기가 흐른다 */}

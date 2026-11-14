@@ -4,19 +4,23 @@
  * 실제 칸이 400 보다 높으면 상자 위로 남는 하늘(this.top < 0)까지 비·눈·구름이 이어진다.
  * 레일 칸의 네 변 페이드 마스크는 부모(.rail-bottom-art)가 쥐므로 여기선 신경 쓰지 않는다.
  *
+ *  - drizzle  : 가랑비 — 가늘고 짧은 빗방울이 드문드문 천천히, 커튼·물보라 거의 없음
  *  - rain     : A 빗속의 등불 — 세 겹 비 + 빗줄기 커튼, 번개 없음
  *  - storm    : B 폭풍 속 예배당 — 돌풍·물보라 + 가지 친 번개(천둥 흔들림)
  *  - snow     : C 첫눈 소복 — 능선 셋·지붕·창턱에 쌓임
  *  - blizzard : D 눈보라 — 옆바람·눈안개·드문 눈번개
  * 창 불빛은 어떤 날씨에도 꺼지지 않는다. */
 
-export type RailWeatherMode = 'rain' | 'storm' | 'snow' | 'blizzard'
+export type RailWeatherMode = 'drizzle' | 'rain' | 'storm' | 'snow' | 'blizzard'
 export type RailTheme = 'light' | 'dark'
 
 const W = 248
 const BOX_H = 400
 const IH = 349
 const OY = BOX_H - IH
+/* 삽화를 칸 바닥 아래로 내리는 양 — 그림 밑 빈 바탕을 잘라낸다.
+ * ★ DesktopNavRail.css 의 .rail-bottom-art background-position(100% + 30px)과 같은 값 */
+const ART_DROP = 30
 const WIN = { x: 183.7, y: 281.6 }
 const SILL: [number, number, number] = [181.4, 186.0, 284.8]
 // 지붕(왼쪽 처마 → 박공 꼭대기 → 용마루 끝 → 오른쪽 처마)과 십자가 팔
@@ -42,6 +46,9 @@ interface Variant {
   // rain
   layers?: [number, number, number]
   speed?: number
+  /** 빗줄기 길이·농도 배율(기본 1) — 가랑비는 짧고 옅게 */
+  lenMul?: number
+  alphaMul?: number
   slant?: number
   gustAmp?: number
   gustRate?: number
@@ -62,7 +69,10 @@ interface Variant {
 
 /* 입자 수는 시안의 약 75% — 레일은 모든 화면에 떠 있으므로 가볍게 */
 const VARIANTS: Record<RailWeatherMode, Variant> = {
-  rain: { kind: 'rain', layers: [68, 45, 5], speed: 1, slant: -0.12, gustAmp: 0.05, gustRate: 0.35,
+  // 가랑비: 방울 수 절반 이하·속도 0.4배·짧고 옅게 — 굵은 앞줄 비와 빗줄기 커튼은 없다
+  drizzle: { kind: 'rain', layers: [34, 18, 0], speed: 0.4, lenMul: 0.6, alphaMul: 0.7, slant: -0.06, gustAmp: 0.03, gustRate: 0.25,
+    overlay: 0.1, clouds: 2, cloudSpeed: 2.5, veils: 0, splash: 0.12, glow: 1.0 },
+  rain: { kind: 'rain', layers: [68, 45, 5], speed: 0.8, slant: -0.12, gustAmp: 0.05, gustRate: 0.35,
     overlay: 0.26, clouds: 3, cloudSpeed: 4, veils: 2, veilA: 0.07, splash: 0.35, glow: 1.0 },
   storm: { kind: 'rain', layers: [128, 98, 18], speed: 1.3, slant: -0.3, gustAmp: 0.13, gustRate: 0.55,
     overlay: 0.52, clouds: 5, cloudSpeed: 13, veils: 4, veilA: 0.16, mist: true,
@@ -135,6 +145,13 @@ function contourOf(img: HTMLImageElement, theme: RailTheme): Float32Array {
   while (lastX > 0 && raw[lastX] >= BOX_H) lastX--
   for (let x = 0; x < firstX; x++) raw[x] = raw[firstX]
   for (let x = lastX + 1; x < W; x++) raw[x] = raw[lastX]
+  /* 먼 언덕은 오른쪽 끝이 물에 풀려 사라지는데, 문턱값 판정은 그 자리에서 경계를 한 열 만에
+   * 70px 떨어뜨린다 — 그 수직 절벽을 따라 구름(회색)이 잘려 예배당 오른쪽에 회색 기둥이 섰다
+   * (2026-11-14). 경계가 내려가는 기울기를 묶어, 능선이 완만하게 이어 내려가게 한다
+   * (옅은 물감 때문에 생긴 좁은 틈도 같이 메워진다). */
+  const MAX_DROP = 0.8
+  for (let x = 1; x < W; x++) raw[x] = Math.min(raw[x], raw[x - 1] + MAX_DROP)
+  for (let x = W - 2; x >= 0; x--) raw[x] = Math.min(raw[x], raw[x + 1] + MAX_DROP)
   for (let x = 0; x < W; x++) {
     let s = 0, n = 0
     for (let k = -2; k <= 2; k++) { const xx = x + k; if (xx >= 0 && xx < W) { s += raw[xx]; n++ } }
@@ -289,7 +306,7 @@ export class RailWeatherScene {
     const s = cssW / W
     this.h = cssH / s
     // 칸이 400 보다 높으면 음수(위로 하늘이 더), 낮으면 양수(삽화 윗부분이 잘린다 — CSS 배경과 같은 바닥 정렬)
-    this.top = BOX_H - this.h
+    this.top = BOX_H - this.h - ART_DROP
     this.cv.width = this.layer.width = Math.max(1, Math.round(cssW * dpr))
     this.cv.height = this.layer.height = Math.max(1, Math.round(cssH * dpr))
     this.scale = s * dpr
@@ -324,7 +341,7 @@ export class RailWeatherScene {
     const s = RAIN_LAYER[L], sp = this.cfg.speed ?? 1
     return {
       L, x: rand(-20, W + 140), y: initial ? rand(this.top - BOX_H, BOX_H) : rand(this.top - 80, this.top - 10),
-      v: randIn(s.v) * sp, len: randIn(s.len) * (sp > 1 ? 1.15 : 1), jit: rand(-0.04, 0.04), half: Math.random() < 0.5,
+      v: randIn(s.v) * sp, len: randIn(s.len) * (sp > 1 ? 1.15 : 1) * (this.cfg.lenMul ?? 1), jit: rand(-0.04, 0.04), half: Math.random() < 0.5,
     }
   }
 
@@ -531,7 +548,9 @@ export class RailWeatherScene {
     const ov = c.overlay
     const sky = g.createLinearGradient(0, top, 0, BOX_H)
     if (light) {
-      sky.addColorStop(0, `rgba(78,92,114,${ov})`); sky.addColorStop(0.62, `rgba(78,92,114,${ov * 0.55})`); sky.addColorStop(1, `rgba(78,92,114,${ov * 0.3})`)
+      sky.addColorStop(0, `rgba(78,92,114,${ov})`); sky.addColorStop(0.62, `rgba(78,92,114,${ov * 0.5})`)
+      // 언덕 아래 빈 바탕까지 회색으로 물들면 라이트에서 뿌연 상자가 보인다 — 바닥으로 갈수록 0
+      sky.addColorStop(0.8, `rgba(78,92,114,${ov * 0.12})`); sky.addColorStop(0.9, 'rgba(78,92,114,0)')
       g.globalCompositeOperation = 'multiply'
     } else {
       sky.addColorStop(0, `rgba(0,0,0,${ov * 0.5})`); sky.addColorStop(1, `rgba(0,0,0,${ov * 0.35})`)
@@ -633,7 +652,7 @@ export class RailWeatherScene {
   private drawRainLayer(g: CanvasRenderingContext2D, L: number, light: boolean, f: number) {
     const s = RAIN_LAYER[L], sl = this.curSlant
     const col = this.rainColor(light, f, L)
-    const a = Math.min(1, s.a * (light ? 1 : 0.9) + f * 0.35)
+    const a = Math.min(1, s.a * (this.cfg.alphaMul ?? 1) * (light ? 1 : 0.9) + f * 0.35)
     g.lineCap = 'round'
     const warm: RainDrop[] = []
     g.beginPath()

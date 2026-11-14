@@ -21,15 +21,23 @@
   /* 좌우 패딩(px-4)을 뚫고 레일 폭 248px 을 꽉 채운다 */
   margin: 0.5rem -1rem 0;
   background-size: 100% auto;
-  background-position: bottom center;
+  /* 그림 아래 30px 은 빈 바탕이다 — 그만큼 칸 밖으로 내려 언덕이 구분선 가까이 앉게 한다.
+     ★ railWeatherScene.ts 의 ART_DROP 과 같은 값(캔버스가 같은 그림을 같은 자리에 그린다) */
+  background-position: center calc(100% + 30px);
+  /* 위 페이드 끝 — 예배당 십자가(바닥에서 ≈128px) 바로 위에서 멈춘다. 칸이 낮은 화면(≈150px)에서
+     40% 페이드가 예배당까지 지워 버리던 문제(2026-11-14). 칸이 높으면 예전처럼 40% */
+  --rba-top-fade: clamp(14px, calc(100% - 134px), 40%);
   background-repeat: no-repeat;
-  /* 네 변 모두 배경으로 녹인다 — 그림이 실제로 그려진 구간(세로 48~87%, 좌우 6~94%)은
-     건드리지 않는 범위다 */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 40%, #000 93%, transparent 100%),
-    linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  /* 네 변 모두 배경으로 녹인다. 좌우는 넓고 완만하게 — 앞 언덕이 오른쪽 끝까지 이어져 있어
+     좁은(8%) 직선 페이드로는 언덕이 세로로 잘린 것처럼 보였다(2026-11-14). 예배당·창 불빛
+     (가로 63~83%)은 온전히 남긴다 */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--rba-top-fade), #000 calc(100% - 14px), transparent 100%),
+    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.3) 5%, rgba(0, 0, 0, 0.8) 11%, #000 16%,
+      #000 85%, rgba(0, 0, 0, 0.75) 90%, rgba(0, 0, 0, 0.3) 95%, transparent 100%);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 40%, #000 93%, transparent 100%),
-    linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--rba-top-fade), #000 calc(100% - 14px), transparent 100%),
+    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.3) 5%, rgba(0, 0, 0, 0.8) 11%, #000 16%,
+      #000 85%, rgba(0, 0, 0, 0.75) 90%, rgba(0, 0, 0, 0.3) 95%, transparent 100%);
   mask-composite: intersect;
   pointer-events: none;
   opacity: 0;
