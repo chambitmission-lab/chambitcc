@@ -52,7 +52,7 @@ const useAnsweredTotal = (enabled: boolean) =>
   })
 
 // ── 빛 알갱이 (숫자 카운트업은 hooks/useCountUp — 1초, 움직임 줄이기 설정이면 바로 최종값) ──────────
-// 아멘 수만큼(제곱근으로 눌러 최대 24개) 창턱 빛 웅덩이에서 떠오르는 알갱이.
+// 아멘 수만큼(제곱근으로 눌러 최대 24개) 본당 강단(십자가 아래, 가로 ~66%)에서 떠오르는 알갱이.
 // 위치·속도는 고정 시드라 리렌더마다 자리가 튀지 않는다.
 const makeMotes = (amens: number): CSSProperties[] => {
   const count = Math.min(24, Math.round(Math.sqrt(amens) * 2.2))
@@ -61,7 +61,7 @@ const makeMotes = (amens: number): CSSProperties[] => {
   return Array.from({ length: count }, () => {
     const size = 2 + rnd() * 3
     return {
-      left: `${30 + rnd() * 40}%`,
+      left: `${50 + rnd() * 30}%`,
       width: size,
       height: size,
       animationDuration: `${5 + rnd() * 5}s`,
@@ -257,7 +257,7 @@ const PrayerStatsWidget = () => {
   return (
     <section className="px-4 pt-3">
       <div className="feed-card overflow-hidden rounded-2xl">
-        {/* 창가 삽화 — 위쪽 빈 하늘에 한 문장, 창턱 빛 웅덩이에서 아멘만큼 빛 알갱이가 떠오른다 */}
+        {/* 본당 사진 — 위쪽 천장에 한 문장, 강단에서 아멘만큼 빛 알갱이가 떠오른다 */}
         <div className="pw-art">
           <div
             className={`pw-art-img${artReady ? ' is-loaded' : ''}`}
@@ -265,8 +265,8 @@ const PrayerStatsWidget = () => {
             aria-hidden
           />
           {!!amens && <Motes amens={amens} />}
-          <div className="absolute inset-x-4 top-3.5">
-            <p className="flex items-center text-[11.5px] font-bold text-gray-500 dark:text-white/55">
+          <div className="absolute inset-x-4 top-3.5 z-[2]">
+            <p className="pw-art-meta flex items-center text-[11.5px] font-bold text-gray-500 dark:text-white/55">
               {weekly.data ? t('homeRailPrayerWeekTitle') : t('homeRailPrayerTitle')}
               {weekly.data && (
                 <span className="ml-auto font-semibold tabular-nums">
@@ -274,14 +274,14 @@ const PrayerStatsWidget = () => {
                 </span>
               )}
             </p>
-            <h3 className="mt-1.5 text-[20px] font-bold leading-[1.38] tracking-[-0.035em] text-ink-strong">
+            <h3 className="pw-art-title mt-1.5 text-[20px] font-bold leading-[1.38] tracking-[-0.035em] text-ink-strong">
               {lead}
               <br />
               {waiting ? (
-                <strong className="font-extrabold text-brand">{t('homeRailWeekEmptyAmen')}</strong>
+                <strong className="pw-art-amen font-extrabold text-brand">{t('homeRailWeekEmptyAmen')}</strong>
               ) : (
                 <>
-                  <strong className="font-extrabold text-brand tabular-nums">
+                  <strong className="pw-art-amen font-extrabold text-brand tabular-nums">
                     {amens === undefined ? '—' : t('homeRailAmenCount').replace('{n}', shownAmens.toLocaleString())}
                   </strong>
                   {t('homeRailAmenTail')}

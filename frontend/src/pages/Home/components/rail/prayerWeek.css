@@ -1,17 +1,60 @@
-/* 홈 우측 레일 '이번주 기도' 카드 — 창가 삽화 머리 + 빛 알갱이. 접두사 pw-.
-   삽화(src/assets/prayer-week/window-*.webp, 960x644)는 위 45% 가 빈 하늘(제목 자리),
-   창턱 가운데 빛 웅덩이(세로 ~80%)가 빛 알갱이의 출발점, 맨 아래 12% 가 카드 바탕색으로
-   녹아 있다. 아래쪽 흰 띠는 보여줄 필요가 없어 비율을 960x600 으로 잘라 쓴다. */
+/* 홈 우측 레일 '이번주 기도' 카드 — 참빛교회 본당 사진 머리 + 빛 알갱이. 접두사 pw-.
+   삽화(src/assets/prayer-week/window-*.webp, 960x700)는 실제 본당 사진을 제미나이로 다듬은
+   1264x848 원본(라이트=주일 오전 햇살, 다크=새벽 달빛·빛나는 십자가)에서 왼쪽 위 960x700 만 잘랐다.
+   ★자른 이유: 카드 폭 280px 에서 원본을 통째로 쓰면 십자가가 제목 둘째 줄("30번 아멘했어요")
+   끝과 겹친다. 960 폭으로 자르면 십자가가 가로 66%·세로 51~66% 로 내려와 글씨 오른쪽 아래에 선다.
+   오른쪽 ✦ 워터마크·드럼 세트도 같이 빠진다. 다시 자를 땐 십자가-제목 간격부터 잴 것.
+   위는 천장(제목 자리) — 라이트도 흰 글씨+따뜻한 갈색 베일(흰 베일은 사진이 바래 폐기),
+   다크는 옅은 어둠 베일. 아래는 장의자 위에서 잘려 카드 바탕색으로
+   녹인다. 빛 알갱이는 강단(십자가 아래)에서 떠오른다. */
 
 .pw-art {
   position: relative;
-  aspect-ratio: 960 / 600;
-  /* 그림이 오기 전엔 맨 위 하늘색으로 자리를 지킨다 */
-  background-color: #caebfa;
+  aspect-ratio: 960 / 700;
+  /* 그림이 오기 전엔 본당 벽 톤으로 자리를 지킨다 */
+  background-color: #e9dfcf;
   overflow: hidden;
 }
 :root.dark .pw-art {
-  background-color: #0c1831;
+  background-color: #1a2026;
+}
+/* 위 베일(제목 대비) + 아래 바탕색 녹임 — 그림 위, 빛 알갱이·글씨 아래 */
+.pw-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(46, 32, 16, 0.6) 0%,
+      rgba(46, 32, 16, 0.42) 32%,
+      rgba(46, 32, 16, 0.12) 48%,
+      rgba(46, 32, 16, 0) 58%
+    ),
+    linear-gradient(to bottom, transparent 70%, var(--surface-container) 100%);
+}
+/* 제목은 두 테마 모두 사진 위 흰 글씨 — 라이트도 흰 베일+검은 글씨는 사진이 바래 보여 버렸다(2026-11-14).
+   다크는 원래 클래스(text-ink-strong·text-brand) 그대로 두고 라이트만 덮어쓴다. */
+:root:not(.dark) .pw-art-title {
+  color: #fff;
+  text-shadow: 0 1px 10px rgba(30, 20, 8, 0.35);
+}
+:root:not(.dark) .pw-art-meta {
+  color: rgba(255, 255, 255, 0.8);
+}
+:root:not(.dark) .pw-art-amen {
+  color: #a9d0ff;
+}
+:root.dark .pw-art::after {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.42) 0%,
+      rgba(0, 0, 0, 0.3) 34%,
+      rgba(0, 0, 0, 0) 52%
+    ),
+    linear-gradient(to bottom, transparent 70%, var(--surface-container) 100%);
 }
 .pw-art-img {
   position: absolute;
@@ -30,10 +73,12 @@
 /* 빛 알갱이 — 아멘이 많은 주일수록 창턱에서 더 많이 떠오른다 */
 .pw-mote {
   position: absolute;
-  bottom: 16%;
+  bottom: 18%;
+  z-index: 1;
   border-radius: 9999px;
-  background: #fff;
-  box-shadow: 0 0 8px 2px rgba(150, 200, 255, 0.85);
+  /* 라이트는 채광창 햇살의 금빛 먼지 */
+  background: #fffaf0;
+  box-shadow: 0 0 8px 2px rgba(255, 196, 110, 0.8);
   opacity: 0;
   animation: pw-rise linear infinite;
   pointer-events: none;
