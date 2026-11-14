@@ -3,8 +3,8 @@ import { weatherKeys } from './queryKeys'
 
 /* 교회(부천 상동) 좌표 고정 — 위치 권한 팝업 없이 교인 생활권 날씨를 보여준다.
  * Open-Meteo는 API 키 없이 CORS 허용이라 프론트에서 직접 호출한다. */
-const CHURCH_LAT = 37.5
-const CHURCH_LON = 126.75
+export const CHURCH_LAT = 37.5
+export const CHURCH_LON = 126.75
 
 /* forecast_hours=1 → 현재 시각 1개 구간만 받아 강수확률을 얻는다 (응답 크기 최소) */
 const WEATHER_URL =

@@ -30,6 +30,8 @@ import { prewarmPostcardFont, type PostcardKey } from '../../share/sharePostcard
 // 레일 표시 여부 훅은 ./useDesktopRailVisible 로 분리 — 이 파일은 PC 에서만 lazy 로 받는다.
 import { useDesktopRailVisible } from './useDesktopRailVisible'
 import RailWeatherFx from './railWeather/RailWeatherFx'
+import RailSun from './railWeather/RailSun'
+import RailClouds from './railWeather/RailClouds'
 import './DesktopNavRail.css'
 
 /** 라벨이 보이는 폭(xl)인가 — 하단 삽화는 이 폭에서만 쓰므로, 좁은 화면 사용자에게는
@@ -370,6 +372,11 @@ const DesktopNavRail = () => {
         >
           {/* 비·뇌우·눈·폭설일 때만 같은 그림 위에 날씨 연출을 겹친다 (맑은 날엔 아무것도 그리지 않음) */}
           {railArtReady && <RailWeatherFx src={pairSrc(RAIL_BOTTOM, theme)} theme={theme} />}
+          {/* 라이트 테마의 해 — 일출~일몰을 따라 언덕 위 하늘을 건너는 옅은 빛무리(2026-11-14).
+              날씨 연출과는 함께 뜨지 않는다(비·눈이면 해가 숨는다) — 캔버스 뒤에 두면 미리보기 때 가려진다 */}
+          {railArtReady && theme === 'light' && <RailSun />}
+          {/* 갠 날의 옅은 하늘빛 구름 — 해 앞을 천천히 지나간다(비·눈일 때는 캔버스의 먹구름이 대신한다) */}
+          {railArtReady && theme === 'light' && <RailClouds />}
         </div>
       )}
 

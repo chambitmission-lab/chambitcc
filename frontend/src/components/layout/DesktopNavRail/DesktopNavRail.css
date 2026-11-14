@@ -79,6 +79,129 @@
 }
 .rail-weather-fx.is-ready { opacity: 1; }
 
+/* ── 삽화의 해(라이트 전용) — 물감이 번진 빛무리 ─────────────────────
+   윤곽 있는 원이 아니다: 가운데만 살짝 짙고 가장자리는 바탕으로 녹는다.
+   자리는 RailSun.tsx 가 주는 두 값으로 정한다 — --sun-x(0 일출 → 1 일몰), --sun-lift(0 지평선 → 1 정오).
+   ★ 해는 언덕 '뒤'에서 뜨고 진다: 길의 양 끝이 능선보다 45px 쯤 아래라서, 아래 .rail-sun-sky 의
+     하늘 모양 오려내기(clip-path)가 언덕에 걸린 부분을 가린다. 왼쪽 먼 언덕 뒤(x 30px)에서 올라와
+     예배당 뒤 언덕(x 196px) 너머로 넘어간다. */
+/* 하늘만 남기는 오려내기 — 라이트 삽화의 능선(하늘 경계)을 8px 간격으로 읽은 값이다.
+   ★ 삽화(rail/bottom-light.webp)를 다시 굽거나 그림 내림(76px)을 바꾸면 이 좌표도 다시 뽑아야 한다
+     (바닥에서의 높이 = 273 − 이미지 y, 248px 폭 기준). 레일 폭은 xl 에서 248px 고정이다. */
+.rail-sun-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 74px),
+    240px calc(100% - 80px),
+    232px calc(100% - 86px),
+    224px calc(100% - 93px),
+    216px calc(100% - 99px),
+    208px calc(100% - 106px),
+    200px calc(100% - 106px),
+    192px calc(100% - 106px),
+    184px calc(100% - 105px),
+    176px calc(100% - 104px),
+    168px calc(100% - 102px),
+    160px calc(100% - 100px),
+    152px calc(100% - 96px),
+    144px calc(100% - 92px),
+    136px calc(100% - 88px),
+    128px calc(100% - 85px),
+    120px calc(100% - 83px),
+    112px calc(100% - 81px),
+    104px calc(100% - 80px),
+    96px calc(100% - 77px),
+    88px calc(100% - 74px),
+    80px calc(100% - 70px),
+    72px calc(100% - 66px),
+    64px calc(100% - 69px),
+    56px calc(100% - 71px),
+    48px calc(100% - 73px),
+    40px calc(100% - 74px),
+    32px calc(100% - 75px),
+    24px calc(100% - 75px),
+    16px calc(100% - 74px),
+    8px calc(100% - 67px),
+    0px calc(100% - 61px)
+  );
+}
+.rail-sun {
+  --sun-color: color-mix(in srgb, #ff9d5c var(--sun-warm, 0%), #ffcf7a);
+  position: absolute;
+  left: calc(30px + 166px * var(--sun-x, 0.5));
+  /* 양 끝(28px·58px)은 능선 아래, 정오에는 칸 윗변 아래 52px 까지 */
+  bottom: calc(28px + 30px * var(--sun-x, 0.5) + max(60px, 100% - 95px) * var(--sun-lift, 1));
+  width: 132px;
+  height: 132px;
+  margin: 0 0 -66px -66px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 46% 54%, color-mix(in srgb, var(--sun-color) 34%, transparent) 0, transparent 30%),
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--sun-color) 62%, transparent) 0,
+      color-mix(in srgb, var(--sun-color) 46%, transparent) 13%,
+      color-mix(in srgb, var(--sun-color) 20%, transparent) 24%,
+      color-mix(in srgb, var(--sun-color) 8%, transparent) 42%,
+      transparent 68%
+    );
+  pointer-events: none;
+  /* 5분에 한 번 옮길 때 툭 건너뛰지 않게 */
+  transition: left 2s ease, bottom 2s ease, opacity 2s ease;
+}
+/* 미리보기(하루를 빠르게 돌림)는 0.1초마다 값이 오므로 보간을 짧게 */
+.rail-sun.is-sweep {
+  transition-duration: 0.12s;
+  transition-timing-function: linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-sun { transition: none; }
+}
+
+/* ── 갠 날 구름(라이트 전용) — 옅은 하늘빛 수채 번짐 ─────────────────
+   타원 번짐 넷을 겹쳐 구름 한 점. 세로 자리는 --ck(0 위 → 1 능선 바로 위)로, 하늘 구간
+   (윗변 아래 22px ~ 능선 위)에 놓는다. 왼쪽 밖에서 들어와 오른쪽 밖으로 나가며, 칸의 좌우
+   페이드 마스크가 드나드는 순간을 녹여 준다. */
+.rail-clouds {
+  --cloud: #6f9fe0;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.rail-clouds[data-sky='overcast'] { --cloud: #7f93b4; }
+.rail-cloud {
+  --c1: color-mix(in srgb, var(--cloud) 30%, transparent);
+  --c2: color-mix(in srgb, var(--cloud) 20%, transparent);
+  position: absolute;
+  left: 0;
+  top: calc(22px + max(0px, 100% - 190px) * var(--ck, 0.3));
+  width: 104px;
+  height: 44px;
+  background:
+    radial-gradient(ellipse 30px 15px at 36% 58%, var(--c1), transparent 100%),
+    radial-gradient(ellipse 25px 17px at 58% 42%, var(--c1), transparent 100%),
+    radial-gradient(ellipse 36px 12px at 58% 72%, var(--c2), transparent 100%),
+    radial-gradient(ellipse 22px 10px at 20% 72%, var(--c2), transparent 100%);
+  transform-origin: left center;
+  animation: rail-cloud-drift 180s linear infinite;
+  will-change: transform;
+}
+@keyframes rail-cloud-drift {
+  from { transform: translateX(-120px) scale(var(--cs, 1)); }
+  to { transform: translateX(270px) scale(var(--cs, 1)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-cloud {
+    animation: none;
+    transform: translateX(calc(20px + 150px * var(--ck, 0.3))) scale(var(--cs, 1));
+  }
+}
+
 /* ── 레일 글씨 크기 — 노안 대응 ─────────────────────────────────────
    기본 라벨 17px·글리프 26px로 올렸고, 헤더 '가' 단계(<html data-text-scale> 의 --text-mul)를 --rl 로 곱한다.
    ★ 레일 폭(76/248px)은 그대로 둔다 — 모든 화면의 본문 시작점이 이 폭에 맞춰져 있다.
