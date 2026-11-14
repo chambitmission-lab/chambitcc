@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { weatherKeys } from './queryKeys'
+import { safeStorage } from '../utils/safeStorage'
 
 /* 교회(부천 상동) 좌표 고정 — 위치 권한 팝업 없이 교인 생활권 날씨를 보여준다.
  * Open-Meteo는 API 키 없이 CORS 허용이라 프론트에서 직접 호출한다. */
@@ -97,9 +98,42 @@ const conditionToIcon = (
   }
 }
 
+/* 시도 1회당 제한 시간. 평소 응답은 0.4초지만 첫 연결이 가끔 수십 초씩 걸려
+ * (2026-11-14 실측 59초) 4초 제한이면 칩이 됐다 안 됐다 했다. 기다리는 동안은
+ * 칩 자리 스켈레톤이 있어 화면이 흔들리지 않으므로 넉넉히 둔다. */
+const WEATHER_TIMEOUT_MS = 8_000
+
+/* ── 마지막 성공값 저장 ──
+ * 쿼리 캐시는 persist에서 빠져 있어(며칠 전 기온이 얼어붙는 문제) 새로고침마다 빈손이었다.
+ * 대신 성공값을 따로 적어두고 1시간 안쪽 것만 첫 화면에 쓴다 — 칩이 바로 뜨고
+ * 뒤에서 최신값으로 바뀐다. 1시간을 넘긴 값은 버려 낡은 기온이 남지 않게 한다. */
+const LAST_WEATHER_KEY = 'chambit.weather.last'
+const LAST_WEATHER_MAX_AGE_MS = 1000 * 60 * 60
+
+interface SavedWeather {
+  savedAt: number
+  weather: CurrentWeather
+}
+
+const readSavedWeather = (): SavedWeather | undefined => {
+  const raw = safeStorage.getJson(LAST_WEATHER_KEY) as Partial<SavedWeather> | undefined
+  if (!raw || typeof raw.savedAt !== 'number' || !raw.weather) return undefined
+  const w = raw.weather
+  if (typeof w.temperature !== 'number' || typeof w.icon !== 'string' || typeof w.condition !== 'string') {
+    return undefined
+  }
+  if (Date.now() - raw.savedAt > LAST_WEATHER_MAX_AGE_MS) return undefined
+  return { savedAt: raw.savedAt, weather: w as CurrentWeather }
+}
+
 const fetchCurrentWeather = async (): Promise<CurrentWeather | null> => {
-  // 날씨는 장식이므로 오래 기다리지 않는다 — 4초 넘으면 포기하고 폴백
-  const response = await fetch(WEATHER_URL, { signal: AbortSignal.timeout(4_000) })
+  const weather = await requestCurrentWeather()
+  if (weather) safeStorage.setJson(LAST_WEATHER_KEY, { savedAt: Date.now(), weather })
+  return weather
+}
+
+const requestCurrentWeather = async (): Promise<CurrentWeather | null> => {
+  const response = await fetch(WEATHER_URL, { signal: AbortSignal.timeout(WEATHER_TIMEOUT_MS) })
   if (!response.ok) throw new Error('Failed to fetch weather')
   const data: OpenMeteoResponse = await response.json()
   const code = data.current?.weather_code
@@ -137,9 +171,15 @@ export const useCurrentWeather = (): CurrentWeatherState => {
   const { data, isLoading } = useQuery({
     queryKey: weatherKeys.current(),
     queryFn: fetchCurrentWeather,
+    /* 1시간 안쪽 마지막 성공값으로 시작한다. 저장 시각을 함께 넘겨 15분이 지났으면
+     * 마운트 즉시 새로 받는다. 새 조회가 실패해도 이 값은 그대로 남는다. */
+    initialData: () => readSavedWeather()?.weather,
+    initialDataUpdatedAt: () => readSavedWeather()?.savedAt,
     staleTime: WEATHER_REFRESH_MS,
     gcTime: 1000 * 60 * 60,
-    retry: false,
+    /* 첫 연결만 느린 경우가 대부분이라 다시 시도하면 바로 받아진다 */
+    retry: 2,
+    retryDelay: (attempt) => 1000 * (attempt + 1),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchInterval: WEATHER_REFRESH_MS,

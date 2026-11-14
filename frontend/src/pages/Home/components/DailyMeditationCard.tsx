@@ -603,7 +603,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               </span>
               {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)}
               {/* 날씨 조회가 끝났는데도 값이 없을 때(실패)만 폴백 아이콘.
-                * 타임아웃(4초) 뒤에 붙을 수 있어 살짝 페이드인시킨다 */}
+                * 재시도까지 실패한 뒤에 붙을 수 있어 살짝 페이드인시킨다 */}
               {!weather && !isWeatherLoading && (
                 <span className="meditation-hero-greeting-emoji" aria-hidden>
                   <WeatherGlyph name={HERO_FALLBACK_GLYPH[timeOfDay]} size={15} />
