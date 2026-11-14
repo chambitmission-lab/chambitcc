@@ -569,3 +569,116 @@
     font-size: 13.5px;
   }
 }
+
+/* ── 전면 풍경 히어로(2026-11-14, PC 만) ──
+   계절·테마별 가로 풍경 사진(themeAssets visitSceneFor)을 무대 전체에 깐다. 건물 컷아웃·햇살 장식은 숨긴다.
+   사진은 3:1 안팎, 무대는 13:5 — cover·오른쪽 아래 정렬이라 왼쪽 하늘만 조금 잘리고 교회·바닥은 그대로다.
+   사진을 흐리게 덮는 워시는 쓰지 않는다(라이트 사진 히어로 공통 레시피).
+   글자 색은 사진마다 다르다(data-scene-ink):
+     white = 진한 하늘(여름·가을 낮, 모든 밤) → 흰 글씨 + 진한 3겹 그림자
+     navy  = 옅은 하늘(봄·겨울 낮) → 원래 남색 글씨·파란 발자국 그대로 */
+@media (min-width: 1024px) {
+  .visit-hero.has-scene .visit-hero-stage {
+    background: var(--visit-scene) right bottom / cover no-repeat, #6fb0f0;
+  }
+  .dark .visit-hero.has-scene .visit-hero-stage {
+    background-color: #0b1640;
+  }
+  .visit-hero.has-scene .visit-hero-photo,
+  .visit-hero.has-scene .visit-hero-deco,
+  .visit-hero.has-scene .visit-hero-branch {
+    display: none;
+  }
+
+  .visit-hero.has-scene[data-scene-ink='white'] .visit-hero-label,
+  .visit-hero.has-scene[data-scene-ink='white'] .visit-hero-title,
+  .visit-hero.has-scene[data-scene-ink='white'] .visit-hero-subtitle {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8), 0 2px 10px rgba(0, 0, 0, 0.65), 0 8px 28px rgba(0, 0, 0, 0.55);
+  }
+  .visit-hero.has-scene[data-scene-ink='white'] .visit-hero-label svg {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+  }
+  /* 다크: 라벨은 원래 금빛 유지(남색 밤하늘 위라 잘 읽힌다) */
+  .dark .visit-hero.has-scene .visit-hero-label {
+    color: var(--hero-accent);
+  }
+  /* 옅은 하늘 위 남색 글씨 — 구름 결 위에서도 또렷하게 흰 번짐만 살짝 */
+  :root:not(.dark) .visit-hero.has-scene[data-scene-ink='navy'] .visit-hero-title,
+  :root:not(.dark) .visit-hero.has-scene[data-scene-ink='navy'] .visit-hero-subtitle {
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+  }
+  :root:not(.dark) .visit-hero.has-scene[data-scene-ink='navy'] .visit-hero-subtitle {
+    color: #2c3e5c;
+  }
+
+  /* 라이트 + 진한 하늘: 버튼은 흰 유리를 진하게, 발자국은 흰색 + 옅은 그림자(파란 잉크는 하늘에 묻힌다).
+     다크(밤 사진)는 원래 금빛 링·금빛 잉크·남색 칩 그대로 */
+  :root:not(.dark) .visit-hero.has-scene[data-scene-ink='white'] .visit-hero-stage {
+    --hero-cta-bg: rgba(255, 255, 255, 0.86);
+    --hero-cta-bg-hover: rgba(255, 255, 255, 0.97);
+    --hero-cta-border: rgba(255, 255, 255, 0.9);
+  }
+  :root:not(.dark) .visit-hero[data-scene-ink='white'] .visit-hero-walk.is-scene {
+    --walk-ink: rgba(255, 255, 255, 0.95);
+    --walk-chip-bg: rgba(255, 255, 255, 0.92);
+  }
+  :root:not(.dark) .visit-hero[data-scene-ink='white'] .visit-hero-walk.is-scene .visit-hero-walk-step svg {
+    filter: drop-shadow(0 1px 2px rgba(10, 30, 70, 0.55));
+  }
+  /* 옅은 하늘·눈·잔디 위 파란 발자국은 조금 진하게 */
+  :root:not(.dark) .visit-hero[data-scene-ink='navy'] .visit-hero-walk.is-scene {
+    --walk-ink: rgba(37, 99, 235, 0.85);
+    --walk-chip-bg: rgba(255, 255, 255, 0.92);
+  }
+
+  /* 도착점 자리는 HeroWalk 가 인라인으로 준다(사진마다 출입문 자리가 다르다).
+     시간 알약은 가로수·건물을 가리지 않게 첫 구간(역→골목) 한가운데로 */
+  .visit-hero-walk.is-scene .visit-hero-walk-time {
+    left: 29.4%;
+    top: 76%;
+    animation-delay: 0.6s;
+  }
+}
+
+/* ── 전면 풍경 히어로 — 모바일(7:5 카드) ──
+   같은 가로 사진을 cover 로 깔면 폭의 절반쯤만 보인다. 맨 오른쪽(100%)에 붙이면 글자 뒤로 건물이 들어오므로
+   86% 지점에 맞춘다 — 왼쪽 위는 하늘(제목·부제 자리), 오른쪽 아래에 교회. 여름·가을은 건물 오른쪽 끝이 살짝 잘린다.
+   글자 색은 data-scene-ink-m(모바일 크롭 기준). 발자국 길은 원래 PC 전용이라 없다. */
+@media (max-width: 1023px) {
+  .visit-hero.has-scene .visit-hero-stage {
+    background: var(--visit-scene) 86% bottom / cover no-repeat, #6fb0f0;
+  }
+  .dark .visit-hero.has-scene .visit-hero-stage {
+    background-color: #0b1640;
+  }
+  .visit-hero.has-scene .visit-hero-photo,
+  .visit-hero.has-scene .visit-hero-deco,
+  .visit-hero.has-scene .visit-hero-branch {
+    display: none;
+  }
+  .visit-hero.has-scene[data-scene-ink-m='white'] .visit-hero-label,
+  .visit-hero.has-scene[data-scene-ink-m='white'] .visit-hero-title,
+  .visit-hero.has-scene[data-scene-ink-m='white'] .visit-hero-subtitle {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8), 0 2px 10px rgba(0, 0, 0, 0.65), 0 8px 28px rgba(0, 0, 0, 0.55);
+  }
+  .visit-hero.has-scene[data-scene-ink-m='white'] .visit-hero-label svg {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+  }
+  .dark .visit-hero.has-scene .visit-hero-label {
+    color: var(--hero-accent);
+  }
+  :root:not(.dark) .visit-hero.has-scene[data-scene-ink-m='navy'] .visit-hero-title,
+  :root:not(.dark) .visit-hero.has-scene[data-scene-ink-m='navy'] .visit-hero-subtitle {
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+  }
+  :root:not(.dark) .visit-hero.has-scene[data-scene-ink-m='navy'] .visit-hero-subtitle {
+    color: #2c3e5c;
+  }
+  :root:not(.dark) .visit-hero.has-scene[data-scene-ink-m='white'] .visit-hero-stage {
+    --hero-cta-bg: rgba(255, 255, 255, 0.86);
+    --hero-cta-bg-hover: rgba(255, 255, 255, 0.97);
+    --hero-cta-border: rgba(255, 255, 255, 0.9);
+  }
+}

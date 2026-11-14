@@ -15,6 +15,14 @@ const WALK_SEGMENTS: readonly (readonly [Pt, Pt, Pt, Pt])[] = [
   [[42, 88], [55, 88], [64, 93], [71.5, 94]],
 ]
 
+/* 전면 풍경 사진(themeAssets visitSceneFor)일 때 — 출입문 자리(goal, 무대 %)가 사진마다 달라
+ * 둘째 구간(골목→입구)을 goal 로 다시 긋는다. 골목을 수평으로 떠나 입구에 수평으로 닿는 같은 모양. */
+const sceneSegments = ([gx, gy]: Pt): typeof WALK_SEGMENTS => {
+  const [ax, ay] = WALK_SEGMENTS[0][3]
+  const span = gx - ax
+  return [WALK_SEGMENTS[0], [[ax, ay], [ax + span * 0.37, ay], [gx - span * 0.3, gy], [gx, gy]]]
+}
+
 const STRIDE = 34        // 한 걸음(px)
 const SIDE = 6           // 길 중심에서 발까지(px)
 const SKIP_START = 26    // 역 배지 아래는 비운다
@@ -36,11 +44,11 @@ const bezier = ([p0, p1, p2, p3]: readonly [Pt, Pt, Pt, Pt], t: number, w: numbe
 
 type Step = { x: number; y: number; angle: number; left: boolean; delay: number }
 
-const layoutSteps = (w: number, h: number): Step[] => {
+const layoutSteps = (w: number, h: number, segments: typeof WALK_SEGMENTS): Step[] => {
   if (!w || !h) return []
   // 곡선을 잘게 펼쳐 누적 길이를 잰다
   const pts: (readonly [number, number])[] = []
-  for (const seg of WALK_SEGMENTS) {
+  for (const seg of segments) {
     for (let i = pts.length ? 1 : 0; i <= 120; i++) pts.push(bezier(seg, i / 120, w, h))
   }
   const acc = [0]
@@ -92,13 +100,15 @@ const Footprint = () => (
 )
 
 type HeroWalkProps = {
+  /** 전면 풍경 사진 위일 때 출입문 자리(무대 %) — 도착점·시간 알약 자리가 달라진다 */
+  goal?: Pt
   station?: string
   line?: string
   alley?: string
   time?: string
 }
 
-const HeroWalk = ({ station, line, alley, time }: HeroWalkProps) => {
+const HeroWalk = ({ goal, station, line, alley, time }: HeroWalkProps) => {
   const ref = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 })
 
@@ -116,10 +126,14 @@ const HeroWalk = ({ station, line, alley, time }: HeroWalkProps) => {
     return () => ro.disconnect()
   }, [])
 
-  const steps = useMemo(() => layoutSteps(size.w, size.h), [size.w, size.h])
+  const steps = useMemo(
+    () => layoutSteps(size.w, size.h, goal ? sceneSegments(goal) : WALK_SEGMENTS),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- goal 은 좌표 두 개로 비교
+    [size.w, size.h, goal?.[0], goal?.[1]],
+  )
 
   return (
-    <div ref={ref} className="visit-hero-walk" aria-hidden="true">
+    <div ref={ref} className={`visit-hero-walk${goal ? ' is-scene' : ''}`} aria-hidden="true">
       {steps.map((s, i) => (
         <span
           key={i}
@@ -161,7 +175,10 @@ const HeroWalk = ({ station, line, alley, time }: HeroWalkProps) => {
           {time}
         </span>
       )}
-      <span className="visit-hero-walk-goal" />
+      <span
+        className="visit-hero-walk-goal"
+        style={goal ? { left: `${goal[0]}%`, top: `${goal[1]}%` } : undefined}
+      />
     </div>
   )
 }

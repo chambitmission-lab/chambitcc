@@ -4,7 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useThemeArt } from '../../hooks/useThemeArt'
-import { VISIT_HERO } from '../../utils/themeAssets'
+import { VISIT_HERO, VISIT_SCENE_PAIR, visitSceneFor } from '../../utils/themeAssets'
 import { EditableText } from '../../components/AboutEditor'
 import { showToast } from '../../utils/toast'
 import { useWorshipServices } from '../../hooks/useWorshipServices'
@@ -46,9 +46,11 @@ const Visit = () => {
   // 히어로 사진 — /visit 전용 자산(왼쪽 하늘 여백 + 오른쪽 교회 구도)을 테마에 맞춰 고르고,
   // 없으면 /about 의 교회 사진으로 대체한다
   const heroImage = VISIT_HERO_IMAGES[theme] || heroBackgroundUrl
+  // 전면 풍경 — 계절·테마별 가로 사진(desktop.css .has-scene)이 컷아웃 대신 무대 전체에 깔린다
+  const heroScene = visitSceneFor(theme)
 
   // 반대 테마 사진을 한가할 때 미리 받아 둔다 — 토글 크로스페이드 순간에 빈 화면이 끼지 않도록
-  useThemeArt(VISIT_HERO)
+  useThemeArt(VISIT_SCENE_PAIR)
   const isAdminUser = can('content:manage')
 
   // 예배 시간표는 홈·/worship 과 같은 캐시(useWorshipServices) — 못 불러와도 오시는 길 자체는
@@ -137,17 +139,23 @@ const Visit = () => {
           {/* Hero — 레퍼런스 구도(2026-09-03): 매트한 배경(낮=하늘·햇살 / 밤=남색·금빛) 위에
               왼쪽 글자 + 길찾기 CTA, 오른쪽에서 교회가 배경에서 스며 나온다. 사진(RGBA)은 교회만 담고
               배경·글로우·나뭇가지·동심원은 전부 CSS. 모바일은 글자 위 / 교회 아래-오른쪽으로 세로 구도 */}
-          <header className={`visit-hero visit-hero--${mood}${heroImage ? ' has-photo' : ''}`}>
+          <header
+            className={`visit-hero visit-hero--${mood}${heroImage ? ' has-photo' : ''}${heroScene ? ' has-scene' : ''}`}
+            data-scene-ink={heroScene?.ink}
+            data-scene-ink-m={heroScene ? (heroScene.inkMobile ?? heroScene.ink) : undefined}
+            style={heroScene ? ({ '--visit-scene': `url(${heroScene.src})` } as CSSProperties) : undefined}
+          >
             <div className="visit-hero-stage">
               <div className="visit-hero-deco" aria-hidden="true" />
               <div className="visit-hero-branch" aria-hidden="true" />
-              {heroImage && (
+              {/* 건물 컷아웃 — 풍경 사진이 깔리면 안 그린다(숨겨도 내려받기는 일어나므로) */}
+              {heroImage && !heroScene && (
                 <div className="visit-hero-photo" aria-hidden="true">
                   <img className="visit-hero-img" src={heroImage} alt="" decoding="async" fetchPriority="high" />
                 </div>
               )}
               {/* 걷는 길(PC 만) — 역 → 골목 → 1층 입구를 발자국으로. 문구는 아래 경로 레일과 같은 편집 문구 */}
-              {heroImage && <HeroWalk station={walkStation} line={walkLine} alley={walkAlley} time={walkTime} />}
+              {heroImage && <HeroWalk goal={heroScene?.goal} station={walkStation} line={walkLine} alley={walkAlley} time={walkTime} />}
               <div className="visit-hero-body">
                 <span className="visit-hero-label">
                   <PinIcon size={13} strokeWidth={2.2} />

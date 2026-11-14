@@ -261,6 +261,40 @@ export const GROWTH_HERO: ThemePair = {
 /** /visit 히어로 사진 — Visit.tsx 가 인라인 style 로 고른다(라이트=낮, 다크=밤) */
 export const VISIT_HERO: ThemePair = { light: '/images/visit/church-day.webp', dark: '/images/visit/church-night.webp' }
 
+/** /visit 히어로 전면 풍경(2026-11-14) — 교회 앞 전경을 무대 전체에 까는 가로 사진, 자연 계절 × 테마 8장.
+ *  PC 는 사진 거의 전체, 모바일(7:5 카드)은 같은 사진의 오른쪽 절반(교회 + 왼쪽 위 하늘)을 잘라 쓴다.
+ *  위 VISIT_HERO(건물 컷아웃)는 더 이상 화면에 안 보이지만 원복용으로 남겨 두었다.
+ *  - goal: 1층 출입문 앞 바닥의 무대 %(무대 13:5 에 cover·오른쪽 아래로 깔았을 때) — 발자국 길의 도착점.
+ *    사진마다 건물 크기·자리가 달라 장마다 잰 값이다. 사진을 바꾸면 다시 잴 것.
+ *  - ink: 글자 색. 'white' = 진한 하늘 위 흰 글씨+그림자, 'navy' = 옅은 하늘(봄·겨울 낮) 위 원래 남색 글씨.
+ *  - inkMobile: 모바일 크롭에서 글자 뒤 하늘이 PC 와 다를 때만(봄 낮: PC 왼쪽은 흰 구름, 모바일은 파란 하늘). */
+export type VisitScene = { src: string; goal: readonly [number, number]; ink: 'white' | 'navy'; inkMobile?: 'white' | 'navy' }
+const VISIT_SCENES: Record<NaturalSeason, { light: VisitScene; dark: VisitScene }> = {
+  spring: {
+    light: { src: '/images/visit/scene-spring-day.webp', goal: [71.6, 90], ink: 'navy', inkMobile: 'white' },
+    dark: { src: '/images/visit/scene-spring-night.webp', goal: [73.6, 90.5], ink: 'white' },
+  },
+  summer: {
+    light: { src: '/images/visit/scene-summer-day.webp', goal: [68.6, 97.5], ink: 'white' },
+    dark: { src: '/images/visit/scene-summer-night.webp', goal: [71.2, 97], ink: 'white' },
+  },
+  autumn: {
+    light: { src: '/images/visit/scene-autumn-day.webp', goal: [66.5, 96.5], ink: 'white' },
+    dark: { src: '/images/visit/scene-autumn-night.webp', goal: [68.5, 96.5], ink: 'white' },
+  },
+  winter: {
+    light: { src: '/images/visit/scene-winter-day.webp', goal: [68.2, 87.5], ink: 'navy' },
+    dark: { src: '/images/visit/scene-winter-night.webp', goal: [69.7, 90], ink: 'white' },
+  },
+}
+export const visitSceneFor = (theme: 'light' | 'dark', date: Date = new Date()): VisitScene | undefined =>
+  VISIT_SCENES[getNaturalSeason(date)]?.[theme]
+/** 이번 계절의 풍경 한 쌍 — 경로 선요청·반대 테마 예열용(실제로 화면에 깔리는 사진) */
+export const VISIT_SCENE_PAIR: ThemePair = (() => {
+  const s = VISIT_SCENES[getNaturalSeason(new Date())]
+  return { light: s.light.src, dark: s.dark.src }
+})()
+
 /** 지도 판이 좌우로 갈라지는 폭인가 — Atlas.css 의 @media (min-width: 1024px) 와 짝 */
 const atlasWide = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
@@ -350,7 +384,7 @@ interface RouteAssets {
 const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/about$/, pairs: [ABOUT_DAWN_PC, ABOUT_DAWN_MOBILE] },
   { match: /^\/greeting$/, pairs: [GREETING_HERO] },
-  { match: /^\/visit$/, pairs: [VISIT_HERO] },
+  { match: /^\/visit$/, pairs: [VISIT_SCENE_PAIR] },
   { match: /^\/worship$/, pairs: [WORSHIP_HERO] },
   { match: /^\/mission$/, pairs: [MISSION_HERO] },
   { match: /^\/pastor\/studio$/, pairs: [STUDIO_HERO] },
