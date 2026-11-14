@@ -682,3 +682,23 @@
     --hero-cta-border: rgba(255, 255, 255, 0.9);
   }
 }
+
+/* ── 전면 풍경 히어로 — 다크(밤 사진)와 아래 경로 레일의 만남(PC·모바일 공통, 2026-11-14) ──
+   옛 컷아웃 시절엔 무대가 CSS 남색이라 카드 전체(레일 포함)를 남색으로 칠하고 바닥을 그 색으로 녹였다
+   (.dark .visit-hero 의 토큰 덮어쓰기 + .visit-hero-stage::after). 풍경 사진에서는 둘 다 어긋난다:
+     · 페이드는 불 켜진 1층·가로수·발자국·도착점을 회색으로 덮는다 → 없앤다(사진은 끝까지 또렷하게).
+     · 남색 레일은 사진 하늘색과 비슷하지만 같지 않아 '이어 붙인 색'으로 떴다(차콜·짙은 남색 둘 다 반려) →
+       색을 사진에 맞추려 하지 않고, 라이트와 같은 문법으로 간다: 사진은 사진, 레일은 이 페이지의 다른 카드와
+       같은 앱 기본 다크 카드 표면(theme.css). 경계는 기본 카드 헤어라인. */
+.dark .visit-hero.has-scene {
+  --surface-container: #201f1f;
+  --surface-inset: rgba(10, 8, 20, 0.4);
+  --card-border: rgba(147, 143, 154, 0.14);
+  border-color: var(--card-border);
+}
+.dark .visit-hero.has-scene .visit-hero-stage::after {
+  display: none;
+}
+.dark .visit-hero.has-scene .visit-route {
+  border-top-color: var(--card-border);
+}
