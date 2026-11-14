@@ -43,8 +43,14 @@ import heroAutumnNight from '../../../assets/hero/autumn-night.webp'
 import heroChristmasMorning from '../../../assets/hero/christmas-morning.webp'
 import heroChristmasAfternoon from '../../../assets/hero/christmas-afternoon.webp'
 import heroChristmasEvening from '../../../assets/hero/christmas-evening.webp'
-import heroChurchDay from '../../../assets/hero/church-day.webp'
-import heroChurchNight from '../../../assets/hero/church-night.webp'
+import heroChurchSpringDay from '../../../assets/hero/church-spring-day.webp'
+import heroChurchSpringNight from '../../../assets/hero/church-spring-night.webp'
+import heroChurchSummerDay from '../../../assets/hero/church-summer-day.webp'
+import heroChurchSummerNight from '../../../assets/hero/church-summer-night.webp'
+import heroChurchAutumnDay from '../../../assets/hero/church-autumn-day.webp'
+import heroChurchAutumnNight from '../../../assets/hero/church-autumn-night.webp'
+import heroChurchWinterDay from '../../../assets/hero/church-winter-day.webp'
+import heroChurchWinterNight from '../../../assets/hero/church-winter-night.webp'
 import { WeatherGlyph, type WeatherGlyphName } from './WeatherIcons'
 import TodayChurchEnvelope from './TodayChurchEnvelope'
 import CompanionHeroButton from './CompanionHeroButton'
@@ -108,16 +114,27 @@ const HERO_IMAGES: Record<HeroSet, Record<HeroSlot, string>> = {
   },
 }
 
-/* 교회 전경 히어로(2026-11-14 시범) — 계절·시간대와 무관하게 테마로만 고른다.
- * 라이트 = 낮의 예배당, 다크 = 불 켜진 저녁 예배당. 끄면(false) 위 계절×슬롯 표로 돌아간다.
- * 사진은 세로 원본에서 종탑 위 여백만 남기고 잘라 둔 것이라 CSS 는 위쪽 정렬(center top)이다. */
+/* 교회 전경 히어로(2026-11-14) — 자연 계절 × 테마로 고른다(시간대와는 무관).
+ * 라이트 = 낮의 예배당, 다크 = 불 켜진 저녁 예배당. 봄 벚꽃·여름 신록·가을 단풍·겨울 눈.
+ * 끄면(false) 위 계절×슬롯 표로 돌아간다.
+ * 여덟 장 모두 같은 구도(704×900, 종탑 꼭대기 y≈65)로 잘라 둔 것이라 CSS 는 위쪽 정렬(center top)
+ * 하나로 맞는다 — 새 사진을 넣을 때도 세로 원본(704×1524)에서 y 430~1330 을 자를 것. */
 const USE_CHURCH_HERO = true
-const CHURCH_HERO = { light: heroChurchDay, dark: heroChurchNight } as const
+const CHURCH_HERO: Record<NaturalSeason, { light: string; dark: string }> = {
+  spring: { light: heroChurchSpringDay, dark: heroChurchSpringNight },
+  summer: { light: heroChurchSummerDay, dark: heroChurchSummerNight },
+  autumn: { light: heroChurchAutumnDay, dark: heroChurchAutumnNight },
+  winter: { light: heroChurchWinterDay, dark: heroChurchWinterNight },
+}
 
 /* 지금 보여줄 히어로 한 장 — 렌더·엔트리 프리로드가 같은 판정을 쓴다 */
 const resolveHero = (date: Date, isDark: boolean): { key: string; src: string } => {
   if (USE_CHURCH_HERO) {
-    return isDark ? { key: 'church-night', src: CHURCH_HERO.dark } : { key: 'church-day', src: CHURCH_HERO.light }
+    const season = getNaturalSeason(date)
+    const pair = CHURCH_HERO[season]
+    return isDark
+      ? { key: `church-${season}-night`, src: pair.dark }
+      : { key: `church-${season}-day`, src: pair.light }
   }
   const set = getHeroSet(date)
   const slot = deriveHeroSlot(date.getHours(), isDark)
@@ -228,7 +245,7 @@ const saveHeroPlan = () => {
       const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i)
       const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
       // light·dark 칸이 있으면 index.html 이 슬롯보다 먼저 본다(교회 전경 = 테마로만 고름)
-      plan[key] = USE_CHURCH_HERO ? CHURCH_HERO : HERO_IMAGES[getHeroSet(d)]
+      plan[key] = USE_CHURCH_HERO ? CHURCH_HERO[getNaturalSeason(d)] : HERO_IMAGES[getHeroSet(d)]
     }
     const json = JSON.stringify(plan)
     if (localStorage.getItem(HERO_PLAN_KEY) !== json) localStorage.setItem(HERO_PLAN_KEY, json)

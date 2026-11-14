@@ -4,8 +4,15 @@ import { EditableText } from '../../../components/AboutEditor'
 import { useAboutContent } from '../../../hooks/useAboutContent'
 import type { AboutFieldKey } from '../../../types/aboutContent'
 import { ChevronRightIcon, ClockIcon, MapPinIcon } from '../../About/icons'
-import churchDay from '../../../assets/landing/church-day.webp'
-import churchNight from '../../../assets/landing/church-night.webp'
+import { getNaturalSeason, type NaturalSeason } from '../../../utils/naturalSeason'
+import churchSpringDay from '../../../assets/hero/church-spring-day.webp'
+import churchSpringNight from '../../../assets/hero/church-spring-night.webp'
+import churchSummerDay from '../../../assets/landing/church-summer-day-tall.webp'
+import churchSummerNight from '../../../assets/landing/church-summer-night-tall.webp'
+import churchAutumnDay from '../../../assets/landing/church-autumn-day-tall.webp'
+import churchAutumnNight from '../../../assets/landing/church-autumn-night-tall.webp'
+import churchWinterDay from '../../../assets/landing/church-winter-day-tall.webp'
+import churchWinterNight from '../../../assets/landing/church-winter-night-tall.webp'
 import morningField from '../../../assets/hero/autumn-morning.webp'
 import eveningField from '../../../assets/hero/autumn-evening.webp'
 
@@ -32,13 +39,24 @@ const SCENES: Scene[] = [
   { time: 'landingStory4Time', label: 'landingStory4Label', title: 'landingStory4Title', body: 'landingStory4Body' },
 ]
 
+/* 첫 장면 = 교회 전경, 자연 계절 × 테마(홈 히어로와 같은 사진의 세로 긴 판).
+ * 여름·가을·겨울은 세로 원본(704×1330, 나뭇가지 하늘부터 입구까지)을 통째로 보여준다.
+ * 봄은 긴 원본이 없어 홈 히어로용 704×900 을 그대로 쓴다 — 액자 비율(ratio)이 사진을 따라간다. */
+const CHURCH_ART: Record<NaturalSeason, { light: string; dark: string; ratio: string }> = {
+  spring: { light: churchSpringDay, dark: churchSpringNight, ratio: '704 / 900' },
+  summer: { light: churchSummerDay, dark: churchSummerNight, ratio: '704 / 1330' },
+  autumn: { light: churchAutumnDay, dark: churchAutumnNight, ratio: '704 / 1330' },
+  winter: { light: churchWinterDay, dark: churchWinterNight, ratio: '704 / 1330' },
+}
+const churchArt = CHURCH_ART[getNaturalSeason(new Date())]
+
 const SceneArt = ({ index, heroUrl }: { index: number; heroUrl?: string | null }) => {
   const cls = 'absolute inset-0 w-full h-full object-cover'
   if (index === 0) {
     return (
       <>
-        <img src={churchDay} alt="" loading="lazy" decoding="async" className={`${cls} object-center dark:hidden`} />
-        <img src={churchNight} alt="" loading="lazy" decoding="async" className={`${cls} object-center hidden dark:block`} />
+        <img src={churchArt.light} alt="" loading="lazy" decoding="async" className={`${cls} object-center dark:hidden`} />
+        <img src={churchArt.dark} alt="" loading="lazy" decoding="async" className={`${cls} object-center hidden dark:block`} />
       </>
     )
   }
@@ -127,7 +145,10 @@ const SundayStory = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
               }}
               className={`ld-scene${i === active ? ' is-on' : ''}`}
             >
-              <div className={`ld-scene-art${i === 0 ? ' ld-scene-art--tall' : ''}`}>
+              <div
+                className={`ld-scene-art${i === 0 ? ' ld-scene-art--tall' : ''}`}
+                style={i === 0 ? { aspectRatio: churchArt.ratio } : undefined}
+              >
                 <SceneArt index={i} heroUrl={heroBackgroundUrl} />
               </div>
               {/* 모바일에선 시계 띠가 이미 시각을 보여주지만, 장면마다 작은 꼬리표로 한 번 더 */}

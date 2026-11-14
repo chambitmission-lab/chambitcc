@@ -168,9 +168,10 @@ html:not(.dark) .ld-cine-title {
   overflow: hidden;
   background: rgba(0, 0, 0, 0.05);
 }
-/* 교회 외관은 세로 사진 — 4:3 에 넣으면 건물 위아래가 잘려 사진 비율 그대로 보여준다 */
+/* 교회 외관은 세로 사진 — 4:3 에 넣으면 건물 위아래가 잘려 사진 비율 그대로 보여준다.
+ * 비율은 계절 사진마다 달라 SundayStory 가 인라인으로 덮어쓴다(아래는 기본값). */
 .ld-scene-art--tall {
-  aspect-ratio: 570 / 776;
+  aspect-ratio: 704 / 1330;
   width: min(100%, 400px);
 }
 .ld-scene-tag {
