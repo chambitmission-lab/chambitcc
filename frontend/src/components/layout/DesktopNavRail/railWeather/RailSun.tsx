@@ -12,7 +12,8 @@ import { weatherToRailMode } from './railWeatherMode'
  *   오른쪽 언덕 뒤로 진다. 5분에 한 번만 옮긴다(루프 없음 — CSS 변수 두 개만 바꾼다).
  * - 언덕 뒤에서 뜨고 진다 — 길의 양 끝이 능선보다 아래에 있고, 하늘 모양으로 오려 낸 틀
  *   (.rail-sun-sky 의 clip-path, DesktopNavRail.css)이 언덕에 걸린 부분을 가린다.
- * - 비·눈(날씨 연출이 도는 동안)·안개·완전 흐림에는 숨고, 구름 조금이면 옅게.
+ * - 비·뇌우·눈에는 숨는다(가랑비만 예외 — 희미하게 비친다). 구름 조금이면 조금 옅게, 흐림·안개에는 구름 뒤로
+ *   비치는 정도로 옅고 창백하게(veiled) — 흐린 날에도 해 위치로 시간을 가늠할 수 있게.
  *
  * 개발·확인용: localStorage 'rail-sun-preview' = 'sweep'(하루를 40초에 한 바퀴) 또는 0~1 숫자(진행률) */
 const PREVIEW_KEY = 'rail-sun-preview'
@@ -66,10 +67,20 @@ export default function RailSun() {
 
   // 하늘 상태 — 미리보기 중에는 날씨를 보지 않는다
   let sky = 1
+  let veiled = false
   if (preview === null && weather) {
-    if (weatherToRailMode(weather)) return null
-    if (weather.icon === 'cloudSun') sky = 0.6
-    else if (weather.icon !== 'sun') return null
+    const mode = weatherToRailMode(weather)
+    if (mode === 'drizzle') {
+      // 가랑비 — 엷은 비구름 뒤로 희미하게(비·뇌우·눈에는 숨는다)
+      sky = 0.5
+      veiled = true
+    } else if (mode) return null
+    else if (weather.condition === 'cloudy' && weather.icon !== 'cloud') sky = 0.7 // 구름 조금
+    else if (weather.condition !== 'clear') {
+      // 흐림·안개 — 구름 뒤로 비치는 해
+      sky = 0.68 // 0.42 는 밝은 바탕에서 거의 안 보였다(2026-11-14)
+      veiled = true
+    }
   }
 
   const lift = Math.sin(Math.PI * progress) // 0(지평선) → 1(정오)
@@ -84,7 +95,7 @@ export default function RailSun() {
 
   return (
     <div className="rail-sun-sky" aria-hidden>
-      <span className={`rail-sun${sweeping ? ' is-sweep' : ''}`} style={style} />
+      <span className={`rail-sun${sweeping ? ' is-sweep' : ''}${veiled ? ' is-veiled' : ''}`} style={style} />
     </div>
   )
 }

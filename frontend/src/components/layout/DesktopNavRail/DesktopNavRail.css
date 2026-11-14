@@ -153,6 +153,10 @@
   /* 5분에 한 번 옮길 때 툭 건너뛰지 않게 */
   transition: left 2s ease, bottom 2s ease, opacity 2s ease;
 }
+/* 흐림·안개 — 구름 뒤로 비치는 해: 붉은 기를 빼 창백한 볕색으로(농도는 RailSun 이 opacity 로 낮춘다) */
+.rail-sun.is-veiled {
+  --sun-color: color-mix(in srgb, color-mix(in srgb, #ff9d5c var(--sun-warm, 0%), #ffcf7a) 72%, #efe2c4);
+}
 /* 미리보기(하루를 빠르게 돌림)는 0.1초마다 값이 오므로 보간을 짧게 */
 .rail-sun.is-sweep {
   transition-duration: 0.12s;
