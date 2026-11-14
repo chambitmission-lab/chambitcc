@@ -130,3 +130,68 @@
   background:
     radial-gradient(120% 70% at 0% 100%, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.2) 55%, transparent 80%);
 }
+
+/* 인사말은 두 줄로 접어 왼쪽에 모은다 — "○○ 님," / "오늘 하루도 수고하셨어요".
+ * 한 줄이면 오른쪽 외벽의 "참빛교회" 간판 글자를 정확히 가로질렀다.
+ * max-width 는 이름이 길거나 영어일 때의 안전선(간판은 사진 폭 64% 지점부터). */
+.meditation-hero[data-hero^='church-'] .meditation-hero-greeting {
+  max-width: 60%;
+  word-break: keep-all;
+}
+
+.meditation-hero[data-hero^='church-'] .meditation-hero-greeting-part.is-base {
+  display: block;
+}
+
+/* 우상단 클러스터(날씨 칩+알람)는 한 치수 작게, 사진 맨 윗줄로 올린다.
+ * 기본 크기·위치(top 17)면 종탑 십자가 머리 높이까지 내려와 걸렸다 — 위쪽 하늘
+ * 띠 안에 납작하게 붙여 십자가와 겹치지 않게 한다. (아래 줄로 쌓는 안은 부산해 폐기) */
+.meditation-hero[data-hero^='church-'] .meditation-hero-top {
+  top: 10px;
+  right: 10px;
+  gap: 6px;
+}
+
+.meditation-hero[data-hero^='church-'] .meditation-weather-chip {
+  gap: 4px;
+  padding: 3px 9px 3px 8px;
+  font-size: 12px;
+}
+
+.meditation-hero[data-hero^='church-'] .meditation-weather-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.meditation-hero[data-hero^='church-'] .meditation-weather-pop {
+  padding-left: 5px;
+  font-size: 10.5px;
+}
+
+.meditation-hero[data-hero^='church-'] .meditation-alarm-btn {
+  width: 28px;
+  height: 28px;
+}
+
+.meditation-hero[data-hero^='church-'] .meditation-alarm-btn .material-icons-round {
+  font-size: 15px;
+}
+
+/* 로딩 자리표시도 작아진 칩 높이에 맞춘다 — 안 맞추면 칩이 들어오는 순간 클러스터가 출렁인다 */
+.meditation-hero[data-hero^='church-'] .meditation-weather-chip.is-skeleton {
+  width: 58px;
+  height: 25px;
+}
+
+/* 알림 종은 헤드라인 둘째 줄("…마무리해요") 오른쪽 끝에 선다(사용자 요청 2026-11-14).
+ * 줄 상자(.meditation-hero-headline-row)가 기준이라 우산 속삭임이 아래에 붙어도
+ * 종은 헤드라인 줄에 머문다. 헤드라인 줄높이 24×1.32≈32px 안에 28px 버튼을 가운데로. */
+.meditation-hero-headline-row {
+  position: relative;
+}
+
+.meditation-hero[data-hero^='church-'] .meditation-hero-headline-row .meditation-alarm-btn {
+  position: absolute;
+  right: -10px; /* 본문 여백 20px 중 10px 를 내줘 윗줄 날씨 칩(right 10px)과 오른쪽 끝을 맞춘다 */
+  bottom: 2px;
+}

@@ -312,9 +312,17 @@ const MONTH_NAMES_EN = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ] as const
 
-const buildGreeting = (base: string, fullName: string | null, language: Language): string => {
+/* 호명과 인사를 따로 감싼다 — 교회 전경 히어로에서는 CSS 가 인사(.is-base)를 다음 줄로
+ * 내려 글줄을 왼쪽에 모은다. 한 줄로 길게 뻗으면 오른쪽 "참빛교회" 간판을 가렸다. */
+const buildGreeting = (base: string, fullName: string | null, language: Language): React.ReactNode => {
   if (!fullName) return base
-  return language === 'en' ? `${base}, ${fullName}` : `${fullName} 님, ${base}`
+  if (language === 'en') return `${base}, ${fullName}`
+  return (
+    <>
+      <span className="meditation-hero-greeting-part">{fullName} 님,</span>{' '}
+      <span className="meditation-hero-greeting-part is-base">{base}</span>
+    </>
+  )
 }
 
 /* 예상 소요시간 — 절당 약 10초(묵독 기준) 가정, 최소 1분 */
@@ -394,6 +402,23 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   /* ── 날씨 연출 ──
    * 앰비언트는 실제 하늘(비·눈)일 때만 흐른다 — 계절 배경 사진은 그대로 두되
    * 맑은 날에 장식이 떨어지지는 않는다. */
+  /* 교회 전경 히어로 — 우상단이 종탑 십자가와 겹쳐 알람 종을 헤드라인 줄로 옮긴다 */
+  const isChurchHero = hero.key.startsWith('church-')
+  /* 구절 알람 설정 진입점 — 원하는 시간에 오늘의 말씀 푸시 */
+  const alarmButton = (
+    <button
+      type="button"
+      className="meditation-alarm-btn"
+      onClick={() => navigate('/bible/alarm')}
+      onPointerEnter={() => void preloadRoute('/bible/alarm')}
+      onPointerDown={() => void preloadRoute('/bible/alarm')}
+      aria-label={t('homeVerseAlarmAria')}
+      title={t('homeVerseAlarmAria')}
+    >
+      <span className="material-icons-round" aria-hidden>notifications</span>
+    </button>
+  )
+
   const condition = weather?.condition
   const isRaining =
     condition === 'rain' || condition === 'drizzle' || condition === 'thunder'
@@ -581,18 +606,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               )}
             </span>
           )}
-            {/* 구절 알람 설정 진입점 — 원하는 시간에 오늘의 말씀 푸시 */}
-            <button
-              type="button"
-              className="meditation-alarm-btn"
-              onClick={() => navigate('/bible/alarm')}
-              onPointerEnter={() => void preloadRoute('/bible/alarm')}
-              onPointerDown={() => void preloadRoute('/bible/alarm')}
-              aria-label={t('homeVerseAlarmAria')}
-              title={t('homeVerseAlarmAria')}
-            >
-              <span className="material-icons-round" aria-hidden>notifications</span>
-            </button>
+            {!isChurchHero && alarmButton}
           </div>
           <div className="meditation-hero-text">
             <p className="meditation-hero-greeting">
@@ -610,11 +624,16 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
                 </span>
               )}
             </p>
-            <h2 className="meditation-hero-headline">
-              {renderHeadline(t(HEADLINE_KEYS[timeOfDay][0]))}
-              <br />
-              {renderHeadline(t(HEADLINE_KEYS[timeOfDay][1]))}
-            </h2>
+            {/* 교회 전경에서는 알람 종이 헤드라인 둘째 줄 오른쪽 끝에 선다 —
+              * 우상단에 두면 날씨 칩과 함께 종탑 십자가 쪽으로 붐볐다 */}
+            <div className="meditation-hero-headline-row">
+              <h2 className="meditation-hero-headline">
+                {renderHeadline(t(HEADLINE_KEYS[timeOfDay][0]))}
+                <br />
+                {renderHeadline(t(HEADLINE_KEYS[timeOfDay][1]))}
+              </h2>
+              {isChurchHero && alarmButton}
+            </div>
             {/* 주일 우산 속삭임 — 주일이 가까우면서(3일 내) 비 확률이 높을 때만.
               * 알림 박스가 아니라 풍경 속 한 줄로, 헤드라인 아래에 나직이 얹힌다.
               * 이 카드에서 날씨가 하는 일은 예보가 아니라 예배 가는 길을 챙기는 것. */}
