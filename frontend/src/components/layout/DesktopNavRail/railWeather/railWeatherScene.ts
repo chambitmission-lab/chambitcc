@@ -6,7 +6,7 @@
  *
  *  - drizzle  : 가랑비 — 가늘고 짧은 빗방울이 드문드문 천천히, 커튼·물보라 거의 없음
  *  - rain     : A 빗속의 등불 — 세 겹 비 + 빗줄기 커튼, 번개 없음
- *  - storm    : B 폭풍 속 예배당 — 돌풍·물보라 + 가지 친 번개(천둥 흔들림)
+ *  - storm    : B 폭풍 속 예배당 — 돌풍·물보라 + 가지 친 번개(화면 흔들림 없음)
  *  - snow     : C 첫눈 소복 — 능선 셋·지붕·창턱에 쌓임
  *  - blizzard : D 눈보라 — 옆바람·눈안개·드문 눈번개
  * 창 불빛은 어떤 날씨에도 꺼지지 않는다. */
@@ -19,8 +19,8 @@ const BOX_H = 400
 const IH = 349
 const OY = BOX_H - IH
 /* 삽화를 칸 바닥 아래로 내리는 양 — 그림 밑 빈 바탕을 잘라낸다.
- * ★ DesktopNavRail.css 의 .rail-bottom-art background-position(100% + 30px)과 같은 값 */
-const ART_DROP = 30
+ * ★ DesktopNavRail.css 의 .rail-bottom-art background-position(100% + 76px)과 같은 값 */
+const ART_DROP = 76
 const WIN = { x: 183.7, y: 281.6 }
 const SILL: [number, number, number] = [181.4, 186.0, 284.8]
 // 지붕(왼쪽 처마 → 박공 꼭대기 → 용마루 끝 → 오른쪽 처마)과 십자가 팔
@@ -76,7 +76,8 @@ const VARIANTS: Record<RailWeatherMode, Variant> = {
     overlay: 0.26, clouds: 3, cloudSpeed: 4, veils: 2, veilA: 0.07, splash: 0.35, glow: 1.0 },
   storm: { kind: 'rain', layers: [128, 98, 18], speed: 1.3, slant: -0.3, gustAmp: 0.13, gustRate: 0.55,
     overlay: 0.52, clouds: 5, cloudSpeed: 13, veils: 4, veilA: 0.16, mist: true,
-    bolt: 'near', every: [6, 11], first: 1.4, shake: 1.6, splash: 1, glow: 1.25 },
+    bolt: 'near', every: [6, 11], first: 1.4, splash: 1, glow: 1.25 },
+  // ★천둥 흔들림(shake)은 껐다(2026-11-14) — 그림 전체가 떨려 어지럽다는 피드백. 창 불빛 떨림은 유지
   snow: { kind: 'snow', count: 72, fall: [14, 30], wind: 5, overlay: 0.12, clouds: 2, cloudSpeed: 2,
     maxDepth: 5, growth: 0.15, glow: 1.05 },
   blizzard: { kind: 'snow', count: 190, fall: [55, 95], wind: -70, gust: true, overlay: 0.3, clouds: 4, cloudSpeed: 10,

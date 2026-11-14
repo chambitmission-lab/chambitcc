@@ -8,7 +8,7 @@ import { weatherToRailMode } from './railWeatherMode'
  * 부모 .rail-bottom-art 의 네 변 페이드 마스크를 그대로 함께 받는다.
  * 소리는 없다(묵상 화면 자동 소리 금지 원칙). 동작 줄이기 설정이면 끈다. */
 
-/* 개발·확인용: localStorage 'rail-weather-preview' = rain | storm | snow | blizzard */
+/* 개발·확인용: localStorage 'rail-weather-preview' = drizzle | rain | storm | snow | blizzard */
 const PREVIEW_KEY = 'rail-weather-preview'
 const PREVIEW_MODES: RailWeatherMode[] = ['drizzle', 'rain', 'storm', 'snow', 'blizzard']
 
