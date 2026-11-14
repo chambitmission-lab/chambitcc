@@ -359,12 +359,29 @@ const DesktopNavRail = () => {
         ))}
       </nav>
 
+      {/* 레일 하단 삽화 — 남는 세로를 다 가져가고 그림은 바닥에 붙는다.
+          보이는 조건(xl 폭 · 높이 티어 tall)과 네 변 페이드는 DesktopNavRail.css 가 쥔다.
+          장식이므로 aria-hidden — 스크린리더의 메뉴 읽기 흐름에 끼어들지 않는다 */}
+      {showRailArt && (
+        <div
+          className={`rail-bottom-art${railArtReady ? ' is-loaded' : ''}`}
+          style={{ backgroundImage: `url(${pairSrc(RAIL_BOTTOM, theme)})` }}
+          aria-hidden
+        >
+          {/* 비·뇌우·눈·폭설일 때만 같은 그림 위에 날씨 연출을 겹친다 (맑은 날엔 아무것도 그리지 않음) */}
+          {railArtReady && <RailWeatherFx src={pairSrc(RAIL_BOTTOM, theme)} theme={theme} />}
+        </div>
+      )}
+
       {/* 나눔 액션 — X/인스타 데스크톱 문법의 단일 주 CTA. 누르면 모바일 홈 FAB과
           같은 3액션 스피드 다이얼(기도·감사·말씀 카드)이 팝오버로 열린다.
           두 버튼을 세로로 쌓던 이전 형태보다 위계가 분명하고 확장에도 유리하다.
           ★ 폭은 내용만큼(알약형) — 레일 폭을 꽉 채우던 풀폭은 좌측 정렬 메뉴와 따로 놀아
-            위 메뉴 아이콘 열에 맞춰 왼쪽으로 붙인다(items-start). 좁은 바에서는 원형 */}
-      <div className="mt-6 relative flex flex-col items-center xl:items-start">
+            위 메뉴 아이콘 열에 맞춰 왼쪽으로 붙인다(items-start). 좁은 바에서는 원형
+          ★ 삽화 아래에 둔다(2026-11-14) — 메뉴 바로 밑에 있으면 노트북 높이에서 삽화 위 하늘을
+            가려 구름·번개가 보일 자리가 없었다. 삽화가 없는 화면·높이에서는 삽화 칸이 사라지므로
+            예전처럼 메뉴 바로 아래에 온다(간격은 DesktopNavRail.css 의 .rail-share) */}
+      <div className="rail-share mt-6 relative flex flex-col items-center xl:items-start">
         {dialOpen && (
           <>
             {/* 엽서가 레일 메뉴 위에 겹치므로 뒤를 바탕색으로 살짝 덮어 물러서게 한다 */}
@@ -404,20 +421,6 @@ const DesktopNavRail = () => {
           {!dialOpen && <RailTip label={`${t('railShare')} · N`} />}
         </SharePostcardButton>
       </div>
-
-      {/* 레일 하단 삽화 — 남는 세로를 다 가져가고 그림은 바닥에 붙는다.
-          보이는 조건(xl 폭 · 높이 티어 tall)과 네 변 페이드는 DesktopNavRail.css 가 쥔다.
-          장식이므로 aria-hidden — 스크린리더의 메뉴 읽기 흐름에 끼어들지 않는다 */}
-      {showRailArt && (
-        <div
-          className={`rail-bottom-art${railArtReady ? ' is-loaded' : ''}`}
-          style={{ backgroundImage: `url(${pairSrc(RAIL_BOTTOM, theme)})` }}
-          aria-hidden
-        >
-          {/* 비·뇌우·눈·폭설일 때만 같은 그림 위에 날씨 연출을 겹친다 (맑은 날엔 아무것도 그리지 않음) */}
-          {railArtReady && <RailWeatherFx src={pairSrc(RAIL_BOTTOM, theme)} theme={theme} />}
-        </div>
-      )}
 
       {/* 하단 유틸리티 — 사이트 설정 성격의 액션(테마·전체 메뉴)만 남긴다.
           "내 것"인 알림과 계정은 헤더 우상단 클러스터(HeaderAccountCluster)가 담당한다.

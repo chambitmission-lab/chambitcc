@@ -50,6 +50,14 @@
     display: block;
   }
 }
+/* 나누기 버튼은 삽화 바로 아래 — 삽화가 보일 때만 위 간격(mt-6)을 줄여 언덕 밑에 붙이고,
+   아래 구분선과는 띄운다(삽화가 없으면 하단 유틸의 mt-auto 가 알아서 띄운다) */
+@media (min-width: 1280px) {
+  :root[data-vh-tier='tall'] .rail-bottom-art + .rail-share {
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+  }
+}
 /* 파일이 도착한 뒤에 떠오른다 — 빈 칸에서 그림이 툭 나타나지 않게 */
 .rail-bottom-art.is-loaded {
   opacity: 1;
