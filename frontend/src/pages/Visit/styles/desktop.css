@@ -244,6 +244,20 @@
     }
   }
 
+  /* 별똥별이 문 앞에 닿는 순간(2.4s+2.2s) 도착 점이 태어난다 — 별똥별 본체는 이 블록 아래 공통 규칙 */
+  .dark .visit-hero-walk-goal {
+    animation-delay: 4.55s;
+  }
+  .dark .visit-hero-walk-goal::after {
+    animation-delay: 4.7s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dark .visit-hero-walk-goal,
+    .dark .visit-hero-walk-goal::after {
+      animation: none;
+    }
+  }
+
   .visit-hero-branch {
     width: 55%;
     opacity: 0.6;
@@ -379,6 +393,198 @@
 
   .visit-admin-hint {
     margin-top: 4px;
+  }
+}
+
+/* ── 별똥별(다크 전용, 2026-11-14) — 발자국이 입구에 닿은 뒤 왼쪽 위 하늘에서 유성이 출입문으로 떨어져 터진다.
+   위치는 도착 점과 같은 자리(HeroWalk.tsx 가 goal 을 인라인 left/top 으로), 궤적은 도착 점 기준 px 직선 --meteor-path.
+   1판(직선 0.9s)은 "너무 일직선(빠름)" → 2판 곡선+부스러기 불씨는 "여러 개 나와 어색·곡선 이상"(재도입 금지) →
+   3판: 직선 하나를 2.2s 동안 천천히 가속하며, 다가올수록 꼬리가 길고 굵어지고 머리가 깜빡이며, 지나간 자리엔 빛줄기가 잠깐 남는다.
+   16초 주기: 0~13.75%(2.2s) 낙하 → 13.75~23% 섬광·충격파·불티 → 나머지는 고요.
+   도착 점은 다크에서 충돌 순간(2.4s+2.2s)에 태어나도록 등장·링 지연을 맞춘다(PC 블록).
+   PC·모바일 공통 — 모바일은 발자국 길 없이 별똥별만(아래 max-width:1023px, 문 자리는 HeroWalk.tsx mobileGoal) */
+.visit-hero-meteor {
+  display: none;
+  position: absolute;
+  left: 71.5%;
+  top: 94%;
+  width: 0;
+  height: 0;
+  --meteor-cycle: 16s;
+  --meteor-len-from: 90px;   /* 꼬리 길이 — 멀 때 → 문 앞 */
+  --meteor-len-to: 230px;
+  --meteor-delay: 2.4s;
+  --meteor-core: #fff8e6;
+  --meteor-glow: rgba(255, 214, 140, 0.9);
+  --meteor-tail: rgba(217, 184, 119, 0.85);
+}
+.dark .visit-hero-meteor {
+  display: block;
+}
+
+/* 낙하 — 직선 위를 진행 방향으로 돌려(offset-rotate auto) 따라간다. 꼬리 오른쪽 끝(머리)이 곡선에 붙는다.
+   처음엔 느릿하게 미끄러지다 땅에 가까워질수록 빨라진다(ease-in) */
+.visit-hero-meteor-head {
+  position: absolute;
+  left: 0;
+  top: 0;
+  offset-path: var(--meteor-path);
+  offset-rotate: auto;
+  offset-distance: 0%;
+  opacity: 0;
+}
+.visit-hero-meteor-head {
+  width: var(--meteor-len-from);
+  height: 1.5px;
+  offset-anchor: 100% 50%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--meteor-tail) 72%, var(--meteor-core));
+  filter: drop-shadow(0 0 4px var(--meteor-glow));
+  animation: visit-meteor-fall var(--meteor-cycle) linear var(--meteor-delay) infinite;
+}
+.visit-hero-meteor-head::after {
+  content: '';
+  position: absolute;
+  /* 머리 — 동그란 구슬은 "운석 같다"(2026-11-14) → 진행 방향으로 길쭉한 빛 바늘, 번짐도 얇게 */
+  right: -2px;
+  top: calc(50% - 1px);
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--meteor-core) 70%);
+  box-shadow: 0 0 5px 1px var(--meteor-glow);
+  animation: visit-meteor-flicker 0.18s steps(2, jump-none) infinite alternate;
+}
+@keyframes visit-meteor-flicker {
+  from { opacity: 1; }
+  to { opacity: 0.72; }
+}
+/* 머리 — 다가올수록 꼬리가 길고 굵어진다(원근). scale 은 offset 바깥에 적용돼 축이 틀어지므로 폭·높이로 키운다 */
+@keyframes visit-meteor-fall {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+    width: var(--meteor-len-from);
+    height: 1.5px;
+    animation-timing-function: cubic-bezier(0.55, 0.05, 0.85, 0.45);
+  }
+  2% { opacity: 0.9; }
+  13.75% { offset-distance: 100%; opacity: 1; width: var(--meteor-len-to); height: 3px; }
+  13.8%, 100% { offset-distance: 100%; opacity: 0; width: var(--meteor-len-to); height: 3px; }
+}
+
+/* 빛줄기 — 머리와 같은 박자로 선이 그려지고(pathLength=1), 충돌 뒤 1~2초 동안 번지며 스러진다 */
+.visit-hero-meteor-train {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  filter: drop-shadow(0 0 3px rgba(255, 210, 140, 0.55));
+}
+.visit-hero-meteor-train path {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: visit-meteor-train var(--meteor-cycle) linear var(--meteor-delay) infinite;
+}
+@keyframes visit-meteor-train {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0.9;
+    stroke-width: 1.6;
+    animation-timing-function: cubic-bezier(0.55, 0.05, 0.85, 0.45);
+  }
+  13.75% { stroke-dashoffset: 0; opacity: 0.9; stroke-width: 1.6; animation-timing-function: ease-out; }
+  18% { stroke-dashoffset: 0; opacity: 0; stroke-width: 2.6; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+/* 섬광 — 문 앞에서 확 피었다 스러진다 */
+.visit-hero-meteor-flash {
+  position: absolute;
+  left: -40px;
+  top: -40px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--meteor-core) 0%, rgba(255, 214, 140, 0.75) 22%, rgba(255, 190, 110, 0.25) 48%, transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: visit-meteor-flash var(--meteor-cycle) ease-out var(--meteor-delay) infinite;
+}
+@keyframes visit-meteor-flash {
+  0%, 13.7% { transform: scale(0.3); opacity: 0; }
+  13.85% { transform: scale(1.1); opacity: 1; }
+  19% { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* 충격파 — 바닥에 닿았으니 납작한 타원으로 번진다 */
+.visit-hero-meteor-ring {
+  position: absolute;
+  left: -10px;
+  top: -5px;
+  width: 20px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--meteor-glow);
+  opacity: 0;
+  animation: visit-meteor-ring var(--meteor-cycle) ease-out var(--meteor-delay) infinite;
+}
+@keyframes visit-meteor-ring {
+  0%, 13.7% { transform: scale(0.3); opacity: 0; }
+  13.8% { transform: scale(0.6); opacity: 0.9; }
+  22% { transform: scale(5); opacity: 0; }
+  100% { transform: scale(5); opacity: 0; }
+}
+
+/* 불티 — 위쪽 반원으로 튀었다가 잦아들며 꺼진다(각도·거리는 HeroWalk.tsx SPARKS) */
+.visit-hero-meteor-spark {
+  position: absolute;
+  left: -1.5px;
+  top: -1.5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--meteor-core);
+  box-shadow: 0 0 6px 1px var(--meteor-glow);
+  opacity: 0;
+  animation: visit-meteor-spark var(--meteor-cycle) cubic-bezier(0.2, 0.7, 0.4, 1) var(--meteor-delay) infinite;
+}
+@keyframes visit-meteor-spark {
+  0%, 13.7% { transform: rotate(var(--spark-angle)) translateX(0) scale(1); opacity: 0; }
+  13.8% { opacity: 1; }
+  18% { transform: rotate(var(--spark-angle)) translateX(var(--spark-r)) scale(0.8); opacity: 0.85; }
+  21% { transform: rotate(var(--spark-angle)) translateX(calc(var(--spark-r) * 1.15)) scale(0.3); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark .visit-hero-meteor {
+    display: none;
+  }
+}
+
+/* 모바일 — 걷는 길 층은 원래 숨김(hero.css). 다크 풍경 사진일 때만 열어 별똥별만 남기고, 7:5 작은 카드라 꼬리·섬광을 줄인다 */
+@media (max-width: 1023px) {
+  .dark .visit-hero.has-scene .visit-hero-walk {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .visit-hero-walk > :not(.visit-hero-meteor) {
+    display: none;
+  }
+  .visit-hero-meteor {
+    --meteor-len-from: 50px;
+    --meteor-len-to: 130px;
+  }
+  .visit-hero-meteor-flash {
+    left: -30px;
+    top: -30px;
+    width: 60px;
+    height: 60px;
   }
 }
 

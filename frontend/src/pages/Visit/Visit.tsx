@@ -156,7 +156,7 @@ const Visit = () => {
                 </div>
               )}
               {/* 걷는 길(PC 만) — 역 → 골목 → 1층 입구를 발자국으로. 문구는 아래 경로 레일과 같은 편집 문구 */}
-              {heroImage && <HeroWalk goal={heroScene?.goal} snow={heroScene?.season === 'winter'} station={walkStation} line={walkLine} alley={walkAlley} time={walkTime} />}
+              {heroImage && <HeroWalk goal={heroScene?.goal} sceneAspect={heroScene?.aspect} snow={heroScene?.season === 'winter'} station={walkStation} line={walkLine} alley={walkAlley} time={walkTime} />}
               <div className="visit-hero-body">
                 <span className="visit-hero-label">
                   <PinIcon size={13} strokeWidth={2.2} />

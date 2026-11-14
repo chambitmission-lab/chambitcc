@@ -268,23 +268,25 @@ export const VISIT_HERO: ThemePair = { light: '/images/visit/church-day.webp', d
  *    사진마다 건물 크기·자리가 달라 장마다 잰 값이다. 사진을 바꾸면 다시 잴 것.
  *  - ink: 글자 색. 'white' = 진한 하늘 위 흰 글씨+그림자, 'navy' = 옅은 하늘(봄·겨울 낮) 위 원래 남색 글씨.
  *  - inkMobile: 모바일 크롭에서 글자 뒤 하늘이 PC 와 다를 때만(봄 낮: PC 왼쪽은 흰 구름, 모바일은 파란 하늘). */
-export type VisitScene = { src: string; goal: readonly [number, number]; ink: 'white' | 'navy'; inkMobile?: 'white' | 'navy' }
+/** goal = PC 무대(13:5, 사진 cover·오른쪽 아래) 기준 출입문 %. aspect = 사진 가로/세로 — 모바일 무대(7:5, 86% 정렬)로
+ *  출입문 자리를 옮겨 계산할 때 쓴다(HeroWalk 별똥별) */
+export type VisitScene = { src: string; goal: readonly [number, number]; aspect: number; ink: 'white' | 'navy'; inkMobile?: 'white' | 'navy' }
 const VISIT_SCENES: Record<NaturalSeason, { light: VisitScene; dark: VisitScene }> = {
   spring: {
-    light: { src: '/images/visit/scene-spring-day.webp', goal: [71.6, 90], ink: 'navy', inkMobile: 'white' },
-    dark: { src: '/images/visit/scene-spring-night.webp', goal: [73.6, 90.5], ink: 'white' },
+    light: { src: '/images/visit/scene-spring-day.webp', goal: [71.6, 90], aspect: 2048 / 768, ink: 'navy', inkMobile: 'white' },
+    dark: { src: '/images/visit/scene-spring-night.webp', goal: [73.6, 90.5], aspect: 2048 / 768, ink: 'white' },
   },
   summer: {
-    light: { src: '/images/visit/scene-summer-day.webp', goal: [68.6, 97.5], ink: 'white' },
-    dark: { src: '/images/visit/scene-summer-night.webp', goal: [71.2, 97], ink: 'white' },
+    light: { src: '/images/visit/scene-summer-day.webp', goal: [68.6, 97.5], aspect: 2172 / 724, ink: 'white' },
+    dark: { src: '/images/visit/scene-summer-night.webp', goal: [71.2, 97], aspect: 2172 / 724, ink: 'white' },
   },
   autumn: {
-    light: { src: '/images/visit/scene-autumn-day.webp', goal: [66.5, 96.5], ink: 'white' },
-    dark: { src: '/images/visit/scene-autumn-night.webp', goal: [68.5, 96.5], ink: 'white' },
+    light: { src: '/images/visit/scene-autumn-day.webp', goal: [66.5, 96.5], aspect: 2172 / 724, ink: 'white' },
+    dark: { src: '/images/visit/scene-autumn-night.webp', goal: [68.5, 96.5], aspect: 2172 / 724, ink: 'white' },
   },
   winter: {
-    light: { src: '/images/visit/scene-winter-day.webp', goal: [68.2, 87.5], ink: 'navy' },
-    dark: { src: '/images/visit/scene-winter-night.webp', goal: [69.7, 90], ink: 'white' },
+    light: { src: '/images/visit/scene-winter-day.webp', goal: [68.2, 87.5], aspect: 2048 / 768, ink: 'navy' },
+    dark: { src: '/images/visit/scene-winter-night.webp', goal: [69.7, 90], aspect: 2048 / 768, ink: 'white' },
   },
 }
 export const visitSceneFor = (

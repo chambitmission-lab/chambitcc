@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { StoreIcon, SubwayIcon } from '../icons'
 
 /**
@@ -115,22 +115,60 @@ const SnowPrint = () => (
   </svg>
 )
 
+/* 별똥별(다크 전용, desktop.css .visit-hero-meteor) — 왼쪽 위 하늘에서 출입문(goal)으로 떨어져 터진다.
+ * 출발점은 무대 %: 제목·부제·칩 위를 가로지르지 않도록 제목 오른쪽 위 하늘에서 시작한다.
+ * 1판 직선 0.9s "너무 일직선(빠름)" → 2판 곡선+부스러기 불씨 3개는 "여러 개 나와 어색·곡선 이상" →
+ * 3판: 직선 하나로 되돌리고 느리게(2.2s) 가속하며 꼬리가 자라는 것만 남긴다. 선은 도착 점(0,0) 기준 px */
+const METEOR_FROM: Pt = [16, -4]
+const DEFAULT_GOAL: Pt = [71.5, 94]
+
+/* 모바일(7:5 카드, 2026-11-14) — 발자국 길 없이 별똥별만. 같은 사진을 86% 지점에 맞춰 cover 로 깔므로(desktop.css
+ * max-width:1023px .has-scene) PC 무대 % 출입문을 사진 좌표로 되돌렸다가 모바일 무대 % 로 다시 옮긴다.
+ * 출발점은 제목 오른쪽 위 하늘 — 좁은 카드라 글자 뒤(.visit-hero-body z-index 1)를 스치며 떨어진다 */
+const MOBILE_QUERY = '(max-width: 1023px)'
+const METEOR_FROM_MOBILE: Pt = [34, -6]
+const PC_STAGE = 13 / 5
+const MOBILE_STAGE_X = 0.86
+const mobileGoal = ([gx, gy]: Pt, aspect: number, w: number, h: number): Pt => {
+  // PC: 사진 높이 = 무대 높이(사진이 더 넓다), 오른쪽 정렬 → 사진 가로 비율 fx
+  const fx = ((gx / 100) * PC_STAGE - PC_STAGE + aspect) / aspect
+  // 모바일: 사진 높이 = 카드 높이, 가로 위치 = (카드 폭 - 사진 폭) × 86%
+  const imgW = aspect * h
+  const x = (w - imgW) * MOBILE_STAGE_X + fx * imgW
+  return [(x / w) * 100, gy]
+}
+/* 불티 — 땅에 부딪혀 위쪽 반원으로 튄다(각도 deg, 거리 px) */
+const SPARKS: readonly (readonly [number, number])[] = [
+  [-172, 30], [-150, 44], [-128, 36], [-108, 52], [-90, 40], [-72, 54], [-52, 38], [-30, 46], [-10, 30], [-140, 22], [-62, 24],
+]
+
+const meteorPath = (w: number, h: number, [gx, gy]: Pt, from: Pt) => {
+  const dx = ((gx - from[0]) * w) / 100
+  const dy = ((gy - from[1]) * h) / 100
+  const r = (n: number) => Math.round(n * 10) / 10
+  const sx = r(-dx)
+  const sy = r(-dy)
+  return { d: `M${sx} ${sy}L0 0`, sx, sy }
+}
+
 type HeroWalkProps = {
   /** 겨울 풍경 — 샌들 자국 대신 눈 발자국 */
   snow?: boolean
   /** 전면 풍경 사진 위일 때 출입문 자리(무대 %) — 도착점·시간 알약 자리가 달라진다 */
   goal?: Pt
+  /** 풍경 사진 가로/세로 — 모바일에서 출입문 자리를 다시 계산(별똥별) */
+  sceneAspect?: number
   station?: string
   line?: string
   alley?: string
   time?: string
 }
 
-const HeroWalk = ({ goal, snow = false, station, line, alley, time }: HeroWalkProps) => {
+const HeroWalk = ({ goal, sceneAspect, snow = false, station, line, alley, time }: HeroWalkProps) => {
   const ref = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 })
 
-  // 모바일에선 display:none 이라 0 → 발자국을 만들지 않는다
+  // 모바일 라이트는 display:none 이라 0 → 아무것도 만들지 않는다. 모바일 다크는 별똥별만 쓴다
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
@@ -144,11 +182,26 @@ const HeroWalk = ({ goal, snow = false, station, line, alley, time }: HeroWalkPr
     return () => ro.disconnect()
   }, [])
 
+  // 폭이 바뀌면(ResizeObserver) 크기도 바뀌므로 그때 함께 다시 읽는다
+  const mobile = size.w > 0 && typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches
+
   const steps = useMemo(
-    () => layoutSteps(size.w, size.h, goal ? sceneSegments(goal) : WALK_SEGMENTS),
+    () => (mobile ? [] : layoutSteps(size.w, size.h, goal ? sceneSegments(goal) : WALK_SEGMENTS)),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- goal 은 좌표 두 개로 비교
-    [size.w, size.h, goal?.[0], goal?.[1]],
+    [mobile, size.w, size.h, goal?.[0], goal?.[1]],
   )
+
+  const meteorId = `meteor-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
+  // 모바일은 풍경 사진(goal·aspect)이 있을 때만 — 옛 컷아웃 구도엔 문 자리를 모른다
+  const meteorGoal: Pt | null =
+    !size.w || !size.h
+      ? null
+      : mobile
+        ? goal && sceneAspect
+          ? mobileGoal(goal, sceneAspect, size.w, size.h)
+          : null
+        : (goal ?? DEFAULT_GOAL)
+  const meteor = meteorGoal ? meteorPath(size.w, size.h, meteorGoal, mobile ? METEOR_FROM_MOBILE : METEOR_FROM) : null
 
   return (
     <div ref={ref} className={`visit-hero-walk${goal ? ' is-scene' : ''}`} aria-hidden="true">
@@ -197,6 +250,40 @@ const HeroWalk = ({ goal, snow = false, station, line, alley, time }: HeroWalkPr
         className="visit-hero-walk-goal"
         style={goal ? { left: `${goal[0]}%`, top: `${goal[1]}%` } : undefined}
       />
+      {meteor && meteorGoal && (
+        <span
+          className="visit-hero-meteor"
+          style={
+            {
+              left: `${meteorGoal[0]}%`,
+              top: `${meteorGoal[1]}%`,
+              '--meteor-path': `path('${meteor.d}')`,
+            } as CSSProperties
+          }
+        >
+          {/* 지나간 자리에 잠깐 남는 빛줄기(유성 흔적) — 머리를 따라 그려지고 천천히 스러진다 */}
+          <svg className="visit-hero-meteor-train" width="1" height="1">
+            <defs>
+              <linearGradient id={meteorId} gradientUnits="userSpaceOnUse" x1={meteor.sx} y1={meteor.sy} x2="0" y2="0">
+                <stop offset="0" stopColor="#d9b877" stopOpacity="0" />
+                <stop offset="0.55" stopColor="#d9b877" stopOpacity="0.25" />
+                <stop offset="1" stopColor="#fff1cc" stopOpacity="0.85" />
+              </linearGradient>
+            </defs>
+            <path d={meteor.d} pathLength={1} fill="none" stroke={`url(#${meteorId})`} strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+          <span className="visit-hero-meteor-head" />
+          <span className="visit-hero-meteor-flash" />
+          <span className="visit-hero-meteor-ring" />
+          {SPARKS.map(([a, r], i) => (
+            <span
+              key={i}
+              className="visit-hero-meteor-spark"
+              style={{ '--spark-angle': `${a}deg`, '--spark-r': `${r}px` } as CSSProperties}
+            />
+          ))}
+        </span>
+      )}
     </div>
   )
 }
