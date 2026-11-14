@@ -4,7 +4,7 @@ import { useTickingNow } from '../../../../hooks/useTickingNow'
 import { sunTimes } from '../../../../utils/sunTimes'
 import { weatherToRailMode } from './railWeatherMode'
 
-/* PC 좌측 레일 하단 삽화의 해 — 라이트 테마 전용(다크 그림은 창에 불 켜진 밤이라 비운다).
+/* PC 좌측 레일 하단 삽화의 해 — 라이트·다크 공통(다크는 테마만 어두울 뿐 낮에는 해가 떠 있다).
  *
  * ★ 윤곽 있는 원이 아니라 '물감이 번진 빛무리'다. 이 자리는 하늘까지 그린 완성 장면을 깔면
  *   액자처럼 보여 실패했던 곳이라(rail-bottom-art), 해도 바탕에 스며드는 옅은 워시로만 둔다.

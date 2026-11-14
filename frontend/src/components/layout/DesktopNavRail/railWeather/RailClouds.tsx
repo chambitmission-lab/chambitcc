@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { useCurrentWeather } from '../../../../hooks/useWeather'
 import { weatherToRailMode } from './railWeatherMode'
 
-/* PC 좌측 레일 하단 삽화의 갠 날 구름 — 라이트 테마 전용.
+/* PC 좌측 레일 하단 삽화의 갠 날 구름 — 라이트·다크 공통(색만 테마별, DesktopNavRail.css).
  *
  * 비·눈이 올 때의 먹구름은 캔버스(RailWeatherFx)가 그린다. 여기는 그 밖의 날:
  * 옅은 하늘빛 수채 번짐 몇 점이 언덕 위 하늘을 아주 천천히 건너간다.

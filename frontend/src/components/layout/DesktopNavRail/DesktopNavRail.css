@@ -79,7 +79,7 @@
 }
 .rail-weather-fx.is-ready { opacity: 1; }
 
-/* ── 삽화의 해(라이트 전용) — 물감이 번진 빛무리 ─────────────────────
+/* ── 삽화의 해 — 물감이 번진 빛무리 ─────────────────────
    윤곽 있는 원이 아니다: 가운데만 살짝 짙고 가장자리는 바탕으로 녹는다.
    자리는 RailSun.tsx 가 주는 두 값으로 정한다 — --sun-x(0 일출 → 1 일몰), --sun-lift(0 지평선 → 1 정오).
    ★ 해는 언덕 '뒤'에서 뜨고 진다: 길의 양 끝이 능선보다 45px 쯤 아래라서, 아래 .rail-sun-sky 의
@@ -130,7 +130,8 @@
   );
 }
 .rail-sun {
-  --sun-color: color-mix(in srgb, #ff9d5c var(--sun-warm, 0%), #ffcf7a);
+  --sun-hue: color-mix(in srgb, #ff9d5c var(--sun-warm, 0%), #ffcf7a);
+  --sun-color: var(--sun-hue);
   position: absolute;
   left: calc(30px + 166px * var(--sun-x, 0.5));
   /* 양 끝(28px·58px)은 능선 아래, 정오에는 칸 윗변 아래 52px 까지 */
@@ -155,7 +156,15 @@
 }
 /* 흐림·안개 — 구름 뒤로 비치는 해: 붉은 기를 빼 창백한 볕색으로(농도는 RailSun 이 opacity 로 낮춘다) */
 .rail-sun.is-veiled {
-  --sun-color: color-mix(in srgb, color-mix(in srgb, #ff9d5c var(--sun-warm, 0%), #ffcf7a) 72%, #efe2c4);
+  --sun-color: color-mix(in srgb, var(--sun-hue) 72%, #efe2c4);
+}
+/* 다크 테마 — 테마만 어두울 뿐 낮에는 해가 떠 있다(2026-11-14). 어두운 바탕에서는 같은 색도
+   훨씬 밝게 빛나 보이므로 바탕색을 섞어 한 단계 가라앉힌다 */
+[data-theme='dark'] .rail-sun {
+  --sun-color: color-mix(in srgb, var(--sun-hue) 78%, #131313);
+}
+[data-theme='dark'] .rail-sun.is-veiled {
+  --sun-color: color-mix(in srgb, var(--sun-hue) 52%, #2a2c33);
 }
 /* 미리보기(하루를 빠르게 돌림)는 0.1초마다 값이 오므로 보간을 짧게 */
 .rail-sun.is-sweep {
@@ -166,7 +175,7 @@
   .rail-sun { transition: none; }
 }
 
-/* ── 갠 날 구름(라이트 전용) — 옅은 하늘빛 수채 번짐 ─────────────────
+/* ── 갠 날 구름 — 옅은 하늘빛 수채 번짐 ─────────────────
    타원 번짐 넷을 겹쳐 구름 한 점. 세로 자리는 --ck(0 위 → 1 능선 바로 위)로, 하늘 구간
    (윗변 아래 22px ~ 능선 위)에 놓는다. 왼쪽 밖에서 들어와 오른쪽 밖으로 나가며, 칸의 좌우
    페이드 마스크가 드나드는 순간을 녹여 준다. */
@@ -178,6 +187,9 @@
   pointer-events: none;
 }
 .rail-clouds[data-sky='overcast'] { --cloud: #7f93b4; }
+/* 다크 — 어두운 바탕 위에 은은한 남청색 번짐 */
+[data-theme='dark'] .rail-clouds { --cloud: #6488c4; }
+[data-theme='dark'] .rail-clouds[data-sky='overcast'] { --cloud: #6d7890; }
 .rail-cloud {
   --c1: color-mix(in srgb, var(--cloud) 30%, transparent);
   --c2: color-mix(in srgb, var(--cloud) 20%, transparent);

@@ -372,11 +372,11 @@ const DesktopNavRail = () => {
         >
           {/* 비·뇌우·눈·폭설일 때만 같은 그림 위에 날씨 연출을 겹친다 (맑은 날엔 아무것도 그리지 않음) */}
           {railArtReady && <RailWeatherFx src={pairSrc(RAIL_BOTTOM, theme)} theme={theme} />}
-          {/* 라이트 테마의 해 — 일출~일몰을 따라 언덕 위 하늘을 건너는 옅은 빛무리(2026-11-14).
+          {/* 해 — 일출~일몰을 따라 언덕 위 하늘을 건너는 옅은 빛무리(2026-11-14).
               날씨 연출과는 함께 뜨지 않는다(비·눈이면 해가 숨는다) — 캔버스 뒤에 두면 미리보기 때 가려진다 */}
-          {railArtReady && theme === 'light' && <RailSun />}
+          {railArtReady && <RailSun />}
           {/* 갠 날의 옅은 하늘빛 구름 — 해 앞을 천천히 지나간다(비·눈일 때는 캔버스의 먹구름이 대신한다) */}
-          {railArtReady && theme === 'light' && <RailClouds />}
+          {railArtReady && <RailClouds />}
         </div>
       )}
 
