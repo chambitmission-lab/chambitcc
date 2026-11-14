@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EditableText } from '../../../components/AboutEditor'
 import { useAboutContent } from '../../../hooks/useAboutContent'
@@ -40,8 +40,10 @@ const SCENES: Scene[] = [
 ]
 
 /* 첫 장면 = 교회 전경, 자연 계절 × 테마(홈 히어로와 같은 사진의 세로 긴 판).
- * 여름·가을·겨울은 세로 원본(704×1330, 나뭇가지 하늘부터 입구까지)을 통째로 보여준다.
- * 봄은 긴 원본이 없어 홈 히어로용 704×900 을 그대로 쓴다 — 액자 비율(ratio)이 사진을 따라간다. */
+ * 여름·가을·겨울은 세로 원본(704×1330, 나뭇가지 하늘부터 입구까지), 봄은 긴 원본이 없어
+ * 홈 히어로용 704×900 을 그대로 쓴다.
+ * 모바일: 사진 비율(ratio) 그대로 긴 액자에 통째로.
+ * PC: 다른 장면과 같은 폭·4:3 액자 안에서 스크롤에 따라 위→아래로 흐른다(panRef·--pan). */
 const CHURCH_ART: Record<NaturalSeason, { light: string; dark: string; ratio: string }> = {
   spring: { light: churchSpringDay, dark: churchSpringNight, ratio: '704 / 900' },
   summer: { light: churchSummerDay, dark: churchSummerNight, ratio: '704 / 1330' },
@@ -55,8 +57,8 @@ const SceneArt = ({ index, heroUrl }: { index: number; heroUrl?: string | null }
   if (index === 0) {
     return (
       <>
-        <img src={churchArt.light} alt="" loading="lazy" decoding="async" className={`${cls} object-center dark:hidden`} />
-        <img src={churchArt.dark} alt="" loading="lazy" decoding="async" className={`${cls} object-center hidden dark:block`} />
+        <img src={churchArt.light} alt="" loading="lazy" decoding="async" className={`${cls} dark:hidden`} />
+        <img src={churchArt.dark} alt="" loading="lazy" decoding="async" className={`${cls} hidden dark:block`} />
       </>
     )
   }
@@ -74,6 +76,8 @@ const SundayStory = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
   const { tx, heroBackgroundUrl } = useAboutContent()
   const [active, setActive] = useState(0)
   const sceneRefs = useRef<(HTMLElement | null)[]>([])
+  // 첫 장면(교회 전경) 액자 — PC 에서는 스크롤에 따라 긴 사진이 하늘에서 입구까지 흐른다
+  const panRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let raf = 0
@@ -93,7 +97,19 @@ const SundayStory = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
         }
       })
       setActive(best)
+
+      /* 교회 사진 흐름: 액자 윗변이 화면 62% → 12% 높이로 올라오는 동안 0 → 1.
+       * 리렌더 없이 CSS 변수만 바꾼다(--pan 은 Landing.css 의 object-position 이 읽는다). */
+      const art = panRef.current
+      if (art && !reduceMotion) {
+        const vh = window.innerHeight
+        const from = vh * 0.62
+        const to = vh * 0.12
+        const p = Math.min(1, Math.max(0, (from - art.getBoundingClientRect().top) / (from - to)))
+        art.style.setProperty('--pan', p.toFixed(4))
+      }
     }
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(measure)
     }
@@ -146,8 +162,9 @@ const SundayStory = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
               className={`ld-scene${i === active ? ' is-on' : ''}`}
             >
               <div
+                ref={i === 0 ? panRef : undefined}
                 className={`ld-scene-art${i === 0 ? ' ld-scene-art--tall' : ''}`}
-                style={i === 0 ? { aspectRatio: churchArt.ratio } : undefined}
+                style={i === 0 ? ({ '--art-ratio': churchArt.ratio } as CSSProperties) : undefined}
               >
                 <SceneArt index={i} heroUrl={heroBackgroundUrl} />
               </div>
