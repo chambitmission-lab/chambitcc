@@ -93,3 +93,40 @@
   );
 }
 
+
+/* ── 교회 전경 히어로: 건물이 주인공 (2026-11-14) ──
+ * 계절 풍경 사진과 달리 교회 사진은 건물·간판이 보여야 의미가 있다.
+ * ① 히어로를 키워 cover 가 잘라내던 아래쪽(간판·정면 외벽)을 더 드러내고
+ * ② 페이드 시작을 42% → 64%로 내려 건물이 일찍 흐려지지 않게 하고
+ * ③ 스크림은 글자가 앉는 왼쪽 아래에만 모아, 오른쪽 건물·간판은 덮지 않는다. */
+.meditation-hero[data-hero^='church-'] {
+  min-height: 296px;
+}
+
+.meditation-hero[data-hero^='church-']::before,
+.meditation-hero[data-hero^='church-'] .meditation-hero-overlay {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 64%,
+    rgba(0, 0, 0, 0.7) 80%,
+    rgba(0, 0, 0, 0.25) 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black 64%,
+    rgba(0, 0, 0, 0.7) 80%,
+    rgba(0, 0, 0, 0.25) 92%,
+    transparent 100%
+  );
+}
+
+.meditation-hero[data-hero^='church-'] .meditation-hero-overlay {
+  background:
+    radial-gradient(120% 70% at 0% 100%, rgba(18, 24, 38, 0.5) 0%, rgba(18, 24, 38, 0.18) 55%, transparent 80%);
+}
+
+.dark .meditation-hero[data-hero^='church-'] .meditation-hero-overlay {
+  background:
+    radial-gradient(120% 70% at 0% 100%, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.2) 55%, transparent 80%);
+}
