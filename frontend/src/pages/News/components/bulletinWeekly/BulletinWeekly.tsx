@@ -63,6 +63,7 @@ import {
   nextWorship,
   parseAccounts,
   sermonEntries,
+  sermonForNow,
   sundayServices,
   weekAlarms,
   weekKeyOf,
@@ -247,6 +248,7 @@ const BulletinWeekly = ({ onOpenPaper }: BulletinWeeklyProps) => {
   const next = isLatest ? nextWorship(data, now) : null
   const services = sundayServices(data)
   const sermons = sermonEntries(data)
+  const currentSermon = isLatest ? sermonForNow(data, now) : null
   const extras = data.extras ?? []
   const preview = weekAlarms(data, alarms.settings, alarms.reminders, now)
   const firstMine = [...chosen.entries()]
@@ -435,7 +437,9 @@ const BulletinWeekly = ({ onOpenPaper }: BulletinWeeklyProps) => {
     </section>
   ) : null
 
-  const bibleTarget = sermons.find(s => s.link)?.link ?? null
+  // 설교가 여럿이면 지금 시각의 예배 것으로(주일 4부 시간엔 4부 설교 본문). 주중엔 '지금 예배'가 없으니 시트에서 고른다
+  const linked = sermons.filter(s => s.link)
+  const bibleTarget = isLatest ? (currentSermon ? currentSermon.link : linked.length === 1 ? linked[0].link : null) : null
   const missionBlock = isLatest ? (
     <section className="bw-blk">
       <div className="bw-row" style={{ justifyContent: 'space-between' }}>
@@ -496,7 +500,7 @@ const BulletinWeekly = ({ onOpenPaper }: BulletinWeeklyProps) => {
   type Row = { key: string; icon: WeeklyIconName; label: string; value: string; open: () => void }
   const rows: Row[] = [
     data.title && { key: 'verse', icon: 'book' as const, label: verseLabel(data.title, t), value: data.subtitle.replace(/[()]/g, ''), open: () => setSheet({ k: 'verse' }) },
-    sermons.length > 0 && { key: 'sermon', icon: 'mega' as const, label: t('bwSermon'), value: sermons[0].title, open: () => setSheet({ k: 'sermon' }) },
+    sermons.length > 0 && { key: 'sermon', icon: 'mega' as const, label: t('bwSermon'), value: currentSermon?.title || sermons[0].title, open: () => setSheet({ k: 'sermon' }) },
     services.length > 0 && {
       key: 'worship',
       icon: 'clock' as const,

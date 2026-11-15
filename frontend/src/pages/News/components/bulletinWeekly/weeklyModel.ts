@@ -160,6 +160,30 @@ export const sermonEntries = (data: BulletinData): SermonEntry[] => {
   }))
 }
 
+/**
+ * 지금 시각에 맞는 설교 — 주보는 설교가 여럿일 때 어느 예배 것인지 따로 적지 않아 순서로 짝짓는다.
+ * 설교 수 = 예배 수면 1:1, 아니면 설교자가 바뀌는 지점으로 묶는다(1~3부 담임목사 / 4부 다른 목사).
+ * 주일엔 드리는 중이거나 곧 시작할 예배(nextWorship 과 같은 75분 창), 다 끝났으면 마지막 예배.
+ * 설교가 여럿인데 주중이거나 짝을 못 지으면 null — 부르는 쪽이 고르게 한다.
+ */
+export const sermonForNow = (data: BulletinData, now: Date): SermonEntry | null => {
+  const sermons = sermonEntries(data)
+  if (sermons.length <= 1) return sermons[0] ?? null
+  if (now.getDay() !== 0) return null
+  const services = [...sundayServices(data)].sort((a, b) => a.minutes - b.minutes)
+  if (!services.length) return null
+
+  let group = 0
+  const groupOf = services.map((s, i) => (i > 0 && s.preacher !== services[i - 1].preacher ? ++group : group))
+  const sermonOf =
+    sermons.length === services.length ? services.map((_, i) => i) : group + 1 === sermons.length ? groupOf : null
+  if (!sermonOf) return null
+
+  const mins = now.getHours() * 60 + now.getMinutes()
+  const cur = services.findIndex(s => s.minutes + 75 > mins)
+  return sermons[sermonOf[cur < 0 ? services.length - 1 : cur]]
+}
+
 /* ── 헌금 계좌 ─────────────────────────────────────── */
 
 export interface AccountLine {

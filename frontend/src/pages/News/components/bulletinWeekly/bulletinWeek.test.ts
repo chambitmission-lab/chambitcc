@@ -14,6 +14,7 @@ import {
   topThree,
   whenLabel,
 } from './bulletinWeek'
+import { sermonForNow } from './weeklyModel'
 
 const at = (m: number, d: number, h = 0, mi = 0) => new Date(2026, m - 1, d, h, mi)
 const week = parseBulletinWeek(BULLETIN_1101)
@@ -106,5 +107,32 @@ describe('KST ISO', () => {
     const d = at(11, 5, 20)
     expect(toKstIso(d)).toBe('2026-11-05T20:00:00+09:00')
     expect(fromKstIso('2026-11-05T11:00:00Z')).toEqual(d)
+  })
+})
+
+describe('sermonForNow — 지금 예배의 설교', () => {
+  const ref = (d: Date) => sermonForNow(BULLETIN_1101, d)?.ref
+  const A = '열왕기하 23장 21~30절'
+  const B = '마가복음 5장 1~20절'
+
+  it('주일 1~3부 시간엔 담임목사 설교', () => {
+    expect(ref(at(11, 1, 6))).toBe(A)
+    expect(ref(at(11, 1, 11, 30))).toBe(A)
+    expect(ref(at(11, 1, 12, 30))).toBe(A)
+  })
+
+  it('3부가 끝나면 4부(열린 예배) 설교, 예배가 다 끝난 저녁에도', () => {
+    expect(ref(at(11, 1, 12, 40))).toBe(B)
+    expect(ref(at(11, 1, 14))).toBe(B)
+    expect(ref(at(11, 1, 18))).toBe(B)
+  })
+
+  it('주중엔 정하지 않는다(고르는 시트로)', () => {
+    expect(sermonForNow(BULLETIN_1101, at(11, 4, 14))).toBeNull()
+  })
+
+  it('설교가 하나면 언제나 그 설교', () => {
+    const one = { ...BULLETIN_1101, worship: { ...BULLETIN_1101.worship, sermon: { title: '악의 패배', subtitle: B } } }
+    expect(sermonForNow(one, at(11, 4, 14))?.ref).toBe(B)
   })
 })
