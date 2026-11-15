@@ -825,6 +825,16 @@
   border-radius: 0.375rem;
 }
 
+/* 이어 읽기 도착 — 읽던 절을 찾을 때까지 본문을 숨겼다가, 숨김이 풀릴 때 그 자리에서
+   0.32초 동안 떠오른다. 스크롤 이동은 없다(멀미 피드백, VerseList resumeHold) */
+.bible-content--resume-fade {
+  transition: opacity 0.32s ease;
+}
+.bible-content--resume-hold {
+  opacity: 0;
+  transition: none;
+}
+
 /* 이어 읽기 하이라이트 - 도착한 절을 잠깐 강조 */
 .bible-verse-item.verse-resume-highlight {
   animation: verse-resume-flash 2.4s ease-out;

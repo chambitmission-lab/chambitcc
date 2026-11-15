@@ -6,7 +6,7 @@
 //  - 함께 읽기(현황·하트비트)                      → hooks/useChapterTogether + together/ChapterTogether
 //  - 낭독 따라가기                                  → AudioFollowLayer
 //  - 수정 모달·공유 시트                            → verse/VerseListSheets
-import { useEffect, useRef, useState, useMemo, useCallback, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useMemo, useCallback, useSyncExternalStore } from 'react'
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -420,21 +420,31 @@ const VerseList = ({
   // 없으면 자동으로 다음 페이지를 미리 받는다.
   // 절 DOM 은 bodyRendered 와 같은 조건으로 그려진다 — 게이트 조건과 이 값은 반드시 같이
   // 움직여야 한다(스피너 상태에서 getElementById 가 null 인 채 끝나던 버그).
-  useEffect(() => {
+  // 스르륵 내려가는 스크롤은 멀미가 난다는 피드백으로 없앴다(2026-11-16). 읽던 절을 찾을 때까지
+  // 본문을 숨겼다가(resumeHold) 움직임 없이 그 자리에서 은은히 떠오르게 한다.
+  // 그리기 전에 자리를 잡아야 장 맨 위가 한 프레임 비치지 않으므로 layout effect 로 돈다.
+  const resumeHold = !!scrollToVerse
+  useLayoutEffect(() => {
     if (!scrollToVerse || !bodyRendered || !chapterData) return
     // ?verse=19 처럼 병합 자리표시자를 가리키면 화면에 그 절이 없다 — 첫 절로
     const el = document.getElementById(`bible-verse-${index.anchorVerse(scrollToVerse)}`)
     if (el) {
-      scrollVerseIntoView(el)
+      scrollVerseIntoView(el, 'center', true)
       el.classList.add('verse-resume-highlight')
       const timer = setTimeout(() => {
         el.classList.remove('verse-resume-highlight')
       }, 2400)
+      // 숨긴 상태를 한 번 확정해 둬야 숨김이 풀릴 때 떠오르는 전환이 걸린다
+      const holder = el.closest('.bible-content')
+      if (holder) void getComputedStyle(holder).opacity
       onScrolled?.()
       return () => clearTimeout(timer)
     }
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
+    } else if (!hasNextPage && !isFetchingNextPage) {
+      // 끝까지 받아도 그 절이 없다 — 본문을 숨긴 채로 두지 않는다
+      onScrolled?.()
     }
   }, [scrollToVerse, index, bodyRendered, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
 
@@ -553,7 +563,7 @@ const VerseList = ({
   return (
     <VerseListProvider actions={verseActions} settings={verseSettings}>
     {/* 절 하나에 등불이 켜지면(액션 메뉴 열림) 나머지 절은 살짝 물러난다 — verse-display.css */}
-    <div className={`bible-content${openVerseId !== null && !selectionMode ? ' verses-lamp-on' : ''}`}>
+    <div className={`bible-content${openVerseId !== null && !selectionMode ? ' verses-lamp-on' : ''} bible-content--resume-fade${resumeHold ? ' bible-content--resume-hold' : ''}`}>
       {/* 함께 읽기 — 상단 캡션 + 묵상 배너 + 묵상 시트 */}
       <ChapterTogether
         bookNumber={bookNumber}

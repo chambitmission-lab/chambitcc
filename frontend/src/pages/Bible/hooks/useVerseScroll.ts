@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-/** 절을 화면 어디에 맞출지 — 이어읽기(start/center)와 낭독 따라가기(follow) */
+/** 절을 화면 어디에 맞출지 — 이어읽기(start/center)와 낭독 따라가기(follow).
+ *  이어 읽기 도착은 instant=true 로 애니메이션 없이 바로 놓는다 */
 export type VerseScrollBlock = 'start' | 'center' | 'follow'
 
 /**
@@ -25,7 +26,7 @@ export const useVerseScroll = () => {
   useEffect(() => () => cancelVerseScroll(), [cancelVerseScroll])
 
   const scrollVerseIntoView = useCallback(
-    (el: HTMLElement, block: VerseScrollBlock = 'center') => {
+    (el: HTMLElement, block: VerseScrollBlock = 'center', instant = false) => {
       cancelVerseScroll()
       // 실제 스크롤 컨테이너가 기기/브라우저에 따라 갈린다(이 앱은 html/body
       // overflow-x:hidden + height:100% 구조라 body가 스크롤러인 환경이 있음).
@@ -79,6 +80,11 @@ export const useVerseScroll = () => {
       if (Math.abs(dist) < 2) return // 이미 제자리
       const maxTop = scroller.scrollHeight - scroller.clientHeight
       const endTop = Math.max(0, Math.min(startTop + dist, maxTop))
+      if (instant) {
+        // 움직임 없이 그 자리로 — html 의 scroll-behavior:smooth 에 끌려가지 않게 instant 명시
+        scroller.scrollTo({ top: endTop, behavior: 'instant' })
+        return
+      }
       // 거리에 비례하되 420~900ms로 클램프. easeInOut(천천히 출발-천천히 정지)이라
       // easeOut처럼 시작 순간 확 움직이는 '뚝' 느낌이 없다 — 낭독 따라가기처럼
       // 주기적으로 반복되는 스크롤은 가감속이 완만해야 멀미가 안 난다.
