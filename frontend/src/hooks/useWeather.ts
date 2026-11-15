@@ -1,9 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { weatherKeys } from './queryKeys'
 import { safeStorage } from '../utils/safeStorage'
+import { fetchWeatherSnapshot } from '../api/weather'
 
 /* 교회(부천 상동) 좌표 고정 — 위치 권한 팝업 없이 교인 생활권 날씨를 보여준다.
- * Open-Meteo는 API 키 없이 CORS 허용이라 프론트에서 직접 호출한다. */
+ * (백엔드 app/services/weather_service.py 의 CHURCH_LAT/LON 과 같아야 한다)
+ *
+ * 날씨는 두 길로 받는다.
+ *  1) 백엔드 /weather — 서버가 10분 캐시하고, Open-Meteo 가 먹통이면 예비 제공처로 넘어간다.
+ *  2) Open-Meteo 직접 호출(API 키 없이 CORS 허용) — 백엔드에 닿지 않을 때의 폴백. */
 export const CHURCH_LAT = 37.5
 export const CHURCH_LON = 126.75
 
@@ -98,10 +103,14 @@ const conditionToIcon = (
   }
 }
 
-/* 시도 1회당 제한 시간. 평소 응답은 0.4초지만 첫 연결이 가끔 수십 초씩 걸려
- * (2026-11-14 실측 59초) 4초 제한이면 칩이 됐다 안 됐다 했다. 기다리는 동안은
- * 칩 자리 스켈레톤이 있어 화면이 흔들리지 않으므로 넉넉히 둔다. */
-const WEATHER_TIMEOUT_MS = 8_000
+/* Open-Meteo 직접 호출 1회의 제한 시간. 평소 응답은 0.4초지만 첫 연결이 가끔 수십 초씩
+ * 걸리고(2026-11-14 실측 59초) 서버가 통째로 먹통인 날도 있다(2026-11-15). 길게 기다려도
+ * 소용없는 경우가 대부분이라 짧게 끊고, 나머지는 뒤에서 도는 재시도에 맡긴다. */
+const WEATHER_TIMEOUT_MS = 5_000
+
+/* 백엔드가 이 시간 안에 답하지 않으면 Open-Meteo 직접 호출을 나란히 띄운다.
+ * 차례로 기다리면 한쪽이 느린 날 스켈레톤이 두 제한 시간의 합만큼 길어진다. */
+const DIRECT_HEDGE_MS = 1_500
 
 /* ── 마지막 성공값 저장 ──
  * 쿼리 캐시는 persist에서 빠져 있어(며칠 전 기온이 얼어붙는 문제) 새로고침마다 빈손이었다.
@@ -132,31 +141,81 @@ const fetchCurrentWeather = async (): Promise<CurrentWeather | null> => {
   return weather
 }
 
-const requestCurrentWeather = async (): Promise<CurrentWeather | null> => {
+/* 어느 길로 받았든 같은 모양으로 맞춘 원자료 */
+interface RawWeather {
+  code: number
+  isDay: boolean
+  temperature: number
+  precipitation: number
+  probability: number | null
+}
+
+const toCurrentWeather = (raw: RawWeather): CurrentWeather => {
+  const condition = classifyWeatherCode(raw.code)
+  return {
+    icon: conditionToIcon(condition, raw.code, raw.isDay),
+    temperature: Math.round(raw.temperature),
+    condition,
+    precipitationProbability: raw.probability,
+    isPrecipitating: raw.precipitation > 0,
+    isHeavySnow: raw.code === 75 || raw.code === 86,
+  }
+}
+
+const requestViaBackend = async (): Promise<CurrentWeather> => {
+  const snapshot = await fetchWeatherSnapshot()
+  return toCurrentWeather({
+    code: snapshot.weather_code,
+    isDay: snapshot.is_day,
+    temperature: snapshot.temperature,
+    precipitation: snapshot.precipitation,
+    probability: snapshot.precipitation_probability,
+  })
+}
+
+const requestViaOpenMeteo = async (): Promise<CurrentWeather | null> => {
   const response = await fetch(WEATHER_URL, { signal: AbortSignal.timeout(WEATHER_TIMEOUT_MS) })
   if (!response.ok) throw new Error('Failed to fetch weather')
   const data: OpenMeteoResponse = await response.json()
   const code = data.current?.weather_code
   const temperature = data.current?.temperature_2m
   if (typeof code !== 'number' || typeof temperature !== 'number') return null
-  const isDay = (data.current?.is_day ?? 1) === 1
-  const condition = classifyWeatherCode(code)
   const probability = data.hourly?.precipitation_probability?.[0]
-  return {
-    icon: conditionToIcon(condition, code, isDay),
-    temperature: Math.round(temperature),
-    condition,
-    precipitationProbability: typeof probability === 'number' ? probability : null,
-    isPrecipitating: (data.current?.precipitation ?? 0) > 0,
-    isHeavySnow: code === 75 || code === 86,
-  }
+  return toCurrentWeather({
+    code,
+    isDay: (data.current?.is_day ?? 1) === 1,
+    temperature,
+    precipitation: data.current?.precipitation ?? 0,
+    probability: typeof probability === 'number' ? probability : null,
+  })
+}
+
+/* 백엔드를 먼저 부르고, 실패하면 즉시·늦으면 DIRECT_HEDGE_MS 뒤에 Open-Meteo 직접 호출을
+ * 띄워 먼저 성공한 쪽을 쓴다. 백엔드가 제때 답하면 직접 호출은 나가지 않는다.
+ * 둘 다 실패해야 실패다(React Query 가 재시도한다). */
+const requestCurrentWeather = (): Promise<CurrentWeather | null> => {
+  const viaBackend = requestViaBackend()
+  const viaDirect = new Promise<CurrentWeather | null>((resolve, reject) => {
+    let started = false
+    const start = () => {
+      if (started) return
+      started = true
+      clearTimeout(timer)
+      requestViaOpenMeteo().then(resolve, reject)
+    }
+    const timer = setTimeout(start, DIRECT_HEDGE_MS)
+    /* 성공하면 직접 호출을 취소한다 — 이 약속은 끝나지 않은 채 버려진다 */
+    viaBackend.then(() => clearTimeout(timer), start)
+  })
+  return Promise.any([viaBackend, viaDirect])
 }
 
 export interface CurrentWeatherState {
   /* 아직 못 받았거나 실패하면 null */
   weather: CurrentWeather | null
-  /* 첫 조회가 진행 중. 실패와 반드시 구분해야 한다 — 둘 다 null로 뭉뚱그리면
-   * 호출부의 폴백 아이콘이 로딩 동안 떴다가 응답 도착과 함께 사라진다. */
+  /* 첫 조회의 첫 시도가 진행 중. 실패와 반드시 구분해야 한다 — 둘 다 null로 뭉뚱그리면
+   * 호출부의 폴백 아이콘이 로딩 동안 떴다가 응답 도착과 함께 사라진다.
+   * 첫 시도가 실패하면 재시도가 남아 있어도 false 다(아래 useCurrentWeather 참고). */
   isLoading: boolean
 }
 
@@ -168,7 +227,7 @@ export interface CurrentWeatherState {
  * 기온이 그대로 남는다. 그래서 이 쿼리만 mount·포커스·주기 리페치를 되살린다.
  * (persist 제외는 main.tsx의 shouldDehydrateQuery에서 처리) */
 export const useCurrentWeather = (): CurrentWeatherState => {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, failureCount } = useQuery({
     queryKey: weatherKeys.current(),
     queryFn: fetchCurrentWeather,
     /* 1시간 안쪽 마지막 성공값으로 시작한다. 저장 시각을 함께 넘겨 15분이 지났으면
@@ -177,7 +236,8 @@ export const useCurrentWeather = (): CurrentWeatherState => {
     initialDataUpdatedAt: () => readSavedWeather()?.savedAt,
     staleTime: WEATHER_REFRESH_MS,
     gcTime: 1000 * 60 * 60,
-    /* 첫 연결만 느린 경우가 대부분이라 다시 시도하면 바로 받아진다 */
+    /* 첫 연결만 느린 경우가 대부분이라 다시 시도하면 바로 받아진다.
+     * 재시도는 화면 뒤에서 돈다 — 스켈레톤은 첫 시도까지만 보인다(아래). */
     retry: 2,
     retryDelay: (attempt) => 1000 * (attempt + 1),
     refetchOnMount: true,
@@ -188,7 +248,10 @@ export const useCurrentWeather = (): CurrentWeatherState => {
   })
   /* 캐시가 이미 있으면(세션 내 재진입) 백그라운드 리페치 중이어도 isLoading은
    * false다 — 이전 값이 그대로 보이므로 깜빡임이 없다. */
-  return { weather: data ?? null, isLoading }
+  /* 스켈레톤은 첫 시도 동안만 — 재시도까지 다 기다리면 장애 날 빈 칩이 20초 넘게 남는다
+   * (2026-11-15). 첫 시도가 실패하면 폴백 아이콘으로 넘어가고, 뒤에서 도는 재시도가
+   * 성공하면 그때 칩이 나타난다. */
+  return { weather: data ?? null, isLoading: isLoading && failureCount === 0 }
 }
 
 /* ── 주일 우산 안내 ──
@@ -207,7 +270,27 @@ const sundayForecastUrl = (remaining: number) =>
   `https://api.open-meteo.com/v1/forecast?latitude=${CHURCH_LAT}&longitude=${CHURCH_LON}` +
   `&daily=precipitation_probability_max&forecast_days=${remaining + 1}&timezone=Asia%2FSeoul`
 
+/* 로컬 날짜 YYYY-MM-DD — toISOString 은 UTC 라 한국 오전에는 하루 전 날짜가 나온다 */
+const localDateKey = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+/* 백엔드 스냅샷의 일별 강수확률에서 주일 칸을 찾는다. 서버 날짜는 한국 기준이라 날짜로
+ * 먼저 맞추고, 기기 시간대가 달라 못 찾으면 순서(오늘=0)로 고른다. */
+const fetchSundayPopViaBackend = async (remaining: number): Promise<number | null> => {
+  const { daily_pop } = await fetchWeatherSnapshot()
+  const sunday = new Date()
+  sunday.setDate(sunday.getDate() + remaining)
+  const key = localDateKey(sunday)
+  const entry = daily_pop.find((d) => d.date === key) ?? daily_pop[remaining]
+  return entry?.pop ?? null
+}
+
 const fetchSundayPop = async (remaining: number): Promise<number | null> => {
+  try {
+    return await fetchSundayPopViaBackend(remaining)
+  } catch {
+    /* 백엔드에 닿지 않으면 Open-Meteo 직접 호출로 */
+  }
   const response = await fetch(sundayForecastUrl(remaining), {
     signal: AbortSignal.timeout(6_000),
   })
