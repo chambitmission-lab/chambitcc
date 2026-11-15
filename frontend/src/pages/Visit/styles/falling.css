@@ -1,0 +1,120 @@
+/* ── 히어로에 내려앉는 것들(라이트 전용, 2026-11-15) — HeroFalling.tsx
+   봄 벚꽃잎 · 가을 낙엽 · 겨울 눈송이. 가을 낙엽 "느낌이 너무 좋다" → 같은 틀로 봄·겨울 확장.
+   하나(.visit-fall)는 무대 위에서 착지 높이(land %)까지 닿는 투명 기둥이고, 알맹이는 기둥 맨 아래에 붙어 있다.
+   기둥을 translateY(-100%) → 0 으로 내리면 무대 꼭대기에서 바닥까지 떨어진다(% 는 기둥 자기 높이라 무대 크기와 무관).
+   한 주기 타임라인(세 겹 모두 같은 --fall-dur):
+     0~70%  흔들리며 낙하(바람에 왼쪽으로 밀림) → 70~88% 바닥에서 쉼 → 88~100% 스러짐 → 반복 */
+.visit-hero-fall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* 글자(.visit-hero-body z-index 1) 뒤 */
+  z-index: 0;
+}
+.dark .visit-hero-fall {
+  display: none;
+}
+
+.visit-fall {
+  position: absolute;
+  top: 0;
+  width: 0;
+  transform: translate(0, -100%);
+  animation: visit-fall-drop var(--fall-dur) linear var(--fall-delay) infinite both;
+  will-change: transform, opacity;
+}
+@keyframes visit-fall-drop {
+  0% { transform: translate(0, -100%) translateY(-24px); opacity: 0; }
+  4% { opacity: 1; }
+  /* 공기 저항으로 가속하지 않는다 — 일정한 속도(linear) */
+  70% { transform: translate(var(--fall-drift), 0); opacity: 1; }
+  88% { transform: translate(var(--fall-drift), 0); opacity: 1; }
+  100% { transform: translate(var(--fall-drift), 0); opacity: 0; }
+}
+
+/* 좌우 진자 — 폭이 점점 줄며 착지(70%) 때 0 */
+.visit-fall-sway {
+  position: absolute;
+  bottom: 0;
+  left: calc(var(--fall-size) / -2);
+  width: var(--fall-size);
+  height: var(--fall-size);
+  animation: visit-fall-sway var(--fall-dur) ease-in-out var(--fall-delay) infinite both;
+}
+@keyframes visit-fall-sway {
+  0% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(var(--fall-sway)) rotate(28deg); }
+  21% { transform: translateX(calc(var(--fall-sway) * -0.8)) rotate(-24deg); }
+  32% { transform: translateX(calc(var(--fall-sway) * 0.75)) rotate(22deg); }
+  43% { transform: translateX(calc(var(--fall-sway) * -0.6)) rotate(-18deg); }
+  54% { transform: translateX(calc(var(--fall-sway) * 0.45)) rotate(14deg); }
+  63% { transform: translateX(calc(var(--fall-sway) * -0.2)) rotate(-6deg); }
+  70%, 100% { transform: translateX(0) rotate(8deg); }
+}
+
+/* 팔랑임 — 공중에선 뒤집히듯 돌고, 땅에 닿으면 납작하게 눕는다(rotateX 로 원근) */
+.visit-fall-flutter {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 1px 1.5px rgba(80, 30, 0, 0.25));
+  animation: visit-fall-flutter var(--fall-dur) ease-in-out var(--fall-delay) infinite both;
+}
+@keyframes visit-fall-flutter {
+  0% { transform: perspective(60px) rotateY(0deg) rotateX(0deg); }
+  15% { transform: perspective(60px) rotateY(160deg) rotateX(20deg); }
+  30% { transform: perspective(60px) rotateY(320deg) rotateX(-15deg); }
+  45% { transform: perspective(60px) rotateY(470deg) rotateX(25deg); }
+  60% { transform: perspective(60px) rotateY(600deg) rotateX(-10deg); }
+  70%, 100% { transform: perspective(60px) rotateY(720deg) rotateX(62deg); }
+}
+
+/* 봄 — 꽃잎은 가벼워 천천히 반 바퀴씩만 뒤집히고, 그림자도 분홍빛으로 옅게 */
+.visit-hero-fall--spring .visit-fall-flutter {
+  filter: drop-shadow(0 1px 1.5px rgba(190, 70, 110, 0.22));
+  animation-name: visit-fall-flutter-soft;
+}
+@keyframes visit-fall-flutter-soft {
+  0% { transform: perspective(50px) rotateY(0deg) rotateX(0deg); }
+  20% { transform: perspective(50px) rotateY(120deg) rotateX(35deg); }
+  40% { transform: perspective(50px) rotateY(220deg) rotateX(-20deg); }
+  58% { transform: perspective(50px) rotateY(330deg) rotateX(30deg); }
+  70%, 100% { transform: perspective(50px) rotateY(360deg) rotateX(62deg); }
+}
+
+/* 겨울 — 눈은 뒤집히거나 기울지 않는다. 동그란 솜뭉치가 잔잔히 좌우로 흔들리며 내려와 녹는다.
+   옅은 하늘·눈밭 위라 흰색만으론 묻히므로 푸른 회색 그림자로 윤곽을 준다 */
+.visit-hero-fall--winter .visit-fall-sway {
+  animation-name: visit-fall-sway-snow;
+}
+@keyframes visit-fall-sway-snow {
+  0% { transform: translateX(0); }
+  14% { transform: translateX(var(--fall-sway)); }
+  28% { transform: translateX(calc(var(--fall-sway) * -0.7)); }
+  42% { transform: translateX(calc(var(--fall-sway) * 0.8)); }
+  56% { transform: translateX(calc(var(--fall-sway) * -0.5)); }
+  70%, 100% { transform: translateX(0); }
+}
+.visit-hero-fall--winter .visit-fall-flutter {
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 38%, #fff 0%, #fff 45%, rgba(255, 255, 255, 0.75) 70%, rgba(255, 255, 255, 0) 100%);
+  filter: drop-shadow(0 0.5px 1.5px rgba(70, 100, 150, 0.45));
+  animation: none;
+}
+
+/* 모바일(7:5 작은 카드) — 알맹이를 줄이고 수를 덜어 글자 주변이 번잡하지 않게 */
+@media (max-width: 1023px) {
+  .visit-fall.is-pc-only {
+    display: none;
+  }
+  .visit-fall-sway {
+    scale: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visit-hero-fall {
+    display: none;
+  }
+}

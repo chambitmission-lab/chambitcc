@@ -13,6 +13,7 @@ import { writeToClipboard } from '../Bible/components/verseCopy'
 import ChurchMap from './components/ChurchMap'
 import TransportInfo from './components/TransportInfo'
 import HeroWalk from './components/HeroWalk'
+import HeroFalling from './components/HeroFalling'
 import InviteCard from './components/InviteCard'
 import LeaveNowCard from './components/LeaveNowCard'
 import { parseCoords } from './geo'
@@ -156,6 +157,8 @@ const Visit = () => {
                 </div>
               )}
               {/* 걷는 길(PC 만) — 역 → 골목 → 1층 입구를 발자국으로. 문구는 아래 경로 레일과 같은 편집 문구 */}
+              {/* 내려앉는 것들 — 라이트 풍경일 때만: 봄 벚꽃잎·가을 낙엽·겨울 눈송이(styles/falling.css), 여름은 없음 */}
+              {theme === 'light' && <HeroFalling season={heroScene?.season} />}
               {heroImage && <HeroWalk goal={heroScene?.goal} sceneAspect={heroScene?.aspect} snow={heroScene?.season === 'winter'} station={walkStation} line={walkLine} alley={walkAlley} time={walkTime} />}
               <div className="visit-hero-body">
                 <span className="visit-hero-label">
