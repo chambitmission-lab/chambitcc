@@ -121,7 +121,8 @@ const DIRECT_HEDGE_MS = 1_500
  * 쿼리 캐시는 persist에서 빠져 있어(며칠 전 기온이 얼어붙는 문제) 새로고침마다 빈손이었다.
  * 대신 성공값을 따로 적어두고 1시간 안쪽 것만 첫 화면에 쓴다 — 칩이 바로 뜨고
  * 뒤에서 최신값으로 바뀐다. 1시간을 넘긴 값은 버려 낡은 기온이 남지 않게 한다. */
-const LAST_WEATHER_KEY = 'chambit.weather.last'
+/* v2 — 낡은 스냅샷이 '방금 받은 값'으로 적혀 있던 옛 저장분을 버린다(2026-11-15) */
+const LAST_WEATHER_KEY = 'chambit.weather.last.v2'
 const LAST_WEATHER_MAX_AGE_MS = 1000 * 60 * 60
 
 interface SavedWeather {
@@ -170,7 +171,7 @@ const toCurrentWeather = (raw: RawWeather): CurrentWeather => {
 /* 서버가 실제로 받아 온 시각이 이보다 오래됐으면 버린다. 응답이 성공이어도 내용은 낡았을 수
  * 있다 — 서비스워커는 서버에 닿지 않으면 하루 전 응답까지 꺼내 주고(sw.js Network First),
  * 그걸 그대로 믿으면 오전 기온이 '방금 받은 값'으로 저장된다. 버리면 직접 호출이 대신한다. */
-const SNAPSHOT_MAX_AGE_MS = 1000 * 60 * 60
+const SNAPSHOT_MAX_AGE_MS = 1000 * 60 * 20
 
 const requestViaBackend = async (): Promise<CurrentWeather> => {
   const snapshot = await fetchWeatherSnapshot()
