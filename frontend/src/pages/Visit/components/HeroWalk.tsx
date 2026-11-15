@@ -137,10 +137,35 @@ const mobileGoal = ([gx, gy]: Pt, aspect: number, w: number, h: number): Pt => {
   const x = (w - imgW) * MOBILE_STAGE_X + fx * imgW
   return [(x / w) * 100, gy]
 }
-/* 불티 — 땅에 부딪혀 위쪽 반원으로 튄다(각도 deg, 거리 px) */
-const SPARKS: readonly (readonly [number, number])[] = [
-  [-172, 30], [-150, 44], [-128, 36], [-108, 52], [-90, 40], [-72, 54], [-52, 38], [-30, 46], [-10, 30], [-140, 22], [-62, 24],
-]
+/* 불티 — 땅에 부딪혀 솟았다가 곧장 떨어진다. 2026-11-15 3판: 실제 포물선(중력 G).
+ * 1판 반원 직선은 "공중에서 멈춤", 2판 부채꼴 26개는 "어색하게 퍼짐"(각도가 고르고 모두 같은 순간 꼭짓점) →
+ * 각도는 위쪽에 몰리게(두 난수 평균), 세기·크기는 제각각, 불티마다 체공 시간을 물리로 계산한다.
+ * 떨어지는 거리 = 솟은 높이 × SPARK_DROP 로 두면 꼭짓점 시점 비율이 모두 같아(약 46%) 키프레임 하나로 정확한 포물선이 된다.
+ * dx·up px, t 체공 s, d 지연 s, size px. 값은 결정적 난수라 새로고침해도 같은 모양 */
+const SPARK_COUNT = 22
+const SPARK_G = 1100   // px/s²
+const SPARK_DROP = 0.4
+const rand = (n: number) => {
+  const x = Math.sin(n * 12.9898) * 43758.5453
+  return x - Math.floor(x)
+}
+const SPARKS: readonly { dx: number; up: number; t: number; d: number; size: number }[] = Array.from({ length: SPARK_COUNT }, (_, i) => {
+  const spread = (rand(i + 1) + rand(i + 31)) / 2 - 0.5   // -0.5~0.5, 가운데(수직)에 몰림
+  const a = ((-90 + spread * 150) * Math.PI) / 180
+  const v = 260 + rand(i + 7) ** 0.8 * 360   // 초속 260~620px
+  const vy = -Math.sin(a) * v
+  const vx = Math.cos(a) * v
+  const up = (vy * vy) / (2 * SPARK_G)
+  const t = vy / SPARK_G + Math.sqrt((2 * up * (1 + SPARK_DROP)) / SPARK_G)
+  const r1 = (n: number) => Math.round(n * 10) / 10
+  return {
+    dx: r1(vx * t),
+    up: r1(up),
+    t: Math.round(t * 1000) / 1000,
+    d: Math.round(rand(i + 21) * 60) / 1000,
+    size: r1(1.8 + rand(i + 41) * 1.8),
+  }
+})
 
 const meteorPath = (w: number, h: number, [gx, gy]: Pt, from: Pt) => {
   const dx = ((gx - from[0]) * w) / 100
@@ -275,12 +300,23 @@ const HeroWalk = ({ goal, sceneAspect, snow = false, station, line, alley, time 
           <span className="visit-hero-meteor-head" />
           <span className="visit-hero-meteor-flash" />
           <span className="visit-hero-meteor-ring" />
-          {SPARKS.map(([a, r], i) => (
+          {SPARKS.map(({ dx, up, t, d, size }, i) => (
             <span
               key={i}
               className="visit-hero-meteor-spark"
-              style={{ '--spark-angle': `${a}deg`, '--spark-r': `${r}px` } as CSSProperties}
-            />
+              style={
+                {
+                  '--spark-dx': `${dx}px`,
+                  '--spark-up': `${-up}px`,
+                  '--spark-land': `${up * SPARK_DROP}px`,
+                  '--spark-t': `${t}s`,
+                  '--spark-d': `${d}s`,
+                  '--spark-size': `${size}px`,
+                } as CSSProperties
+              }
+            >
+              <span className="visit-hero-meteor-spark-dot" />
+            </span>
           ))}
         </span>
       )}

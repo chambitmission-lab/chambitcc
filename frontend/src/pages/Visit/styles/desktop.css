@@ -538,25 +538,49 @@
   100% { transform: scale(5); opacity: 0; }
 }
 
-/* 불티 — 위쪽 반원으로 튀었다가 잦아들며 꺼진다(각도·거리는 HeroWalk.tsx SPARKS) */
+/* 불티 — 솟았다가 곧장 떨어진다(값은 HeroWalk.tsx SPARKS, 2026-11-15 3판 물리 포물선).
+ * 바깥 span = 가로 등속+식어 꺼짐, 안쪽 dot = 세로(이차 감속 → 꼭짓점 → 이차 가속). 불티마다 체공 --spark-t 가 다르다.
+ * 시작 = 별똥별 충돌 순간(주기의 13.7%). 꼭짓점 45.8% = 1/(1+√1.4) — SPARK_DROP 0.4 와 짝 */
 .visit-hero-meteor-spark {
+  --spark-start: calc(var(--meteor-delay) + var(--meteor-cycle) * 0.137 + var(--spark-d, 0s));
   position: absolute;
-  left: -1.5px;
-  top: -1.5px;
-  width: 3px;
-  height: 3px;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  animation: visit-meteor-spark-x var(--spark-t) linear var(--spark-start) 1 both;   /* 진입 때 한 번만 */
+}
+.visit-hero-meteor-spark-dot {
+  position: absolute;
+  left: calc(var(--spark-size) / -2);
+  top: calc(var(--spark-size) / -2);
+  width: var(--spark-size);
+  height: var(--spark-size);
   border-radius: 50%;
   background: var(--meteor-core);
   box-shadow: 0 0 6px 1px var(--meteor-glow);
-  opacity: 0;
-  animation: visit-meteor-spark var(--meteor-cycle) cubic-bezier(0.2, 0.7, 0.4, 1) var(--meteor-delay) 1;   /* 2026-11-15 진입 때 한 번만 */
+  animation: visit-meteor-spark-y var(--spark-t) linear var(--spark-start) 1 both;
 }
-@keyframes visit-meteor-spark {
-  0%, 13.7% { transform: rotate(var(--spark-angle)) translateX(0) scale(1); opacity: 0; }
-  13.8% { opacity: 1; }
-  18% { transform: rotate(var(--spark-angle)) translateX(var(--spark-r)) scale(0.8); opacity: 0.85; }
-  21% { transform: rotate(var(--spark-angle)) translateX(calc(var(--spark-r) * 1.15)) scale(0.3); opacity: 0; }
-  100% { opacity: 0; }
+@keyframes visit-meteor-spark-x {
+  0% { transform: translateX(0); opacity: 1; }
+  55% { opacity: 0.95; }
+  100% { transform: translateX(var(--spark-dx)); opacity: 0; }
+}
+@keyframes visit-meteor-spark-y {
+  0% {
+    transform: translateY(0) scale(1);
+    background: var(--meteor-core);
+    animation-timing-function: cubic-bezier(0.333, 0.667, 0.667, 1);   /* 이차 감속(던져 올림) */
+  }
+  45.8% {
+    transform: translateY(var(--spark-up)) scale(0.9);
+    animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333);   /* 이차 가속(낙하) */
+  }
+  100% {
+    transform: translateY(var(--spark-land)) scale(0.5);
+    background: #ffb35c;   /* 식으며 주황빛 */
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
