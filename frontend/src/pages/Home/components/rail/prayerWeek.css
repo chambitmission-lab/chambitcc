@@ -110,3 +110,71 @@
   .pw-mote { display: none; }
   .pw-bar { animation: none; }
 }
+
+/* ── 본당 십자가 점등(다크, 2026-11-16) — PrayerCrossLight.tsx
+   그림이 뜰 때 꺼진 조각이 함께 떠(0.5s, .pw-art-img 페이드와 짝) 불 꺼진 십자가로 보이고 →
+   2.2s 부터 '틱·틱·팟' 깜빡이며 걷힌다 → 켜지는 순간 번쩍 → 3.6s~ 아주 은은하게 숨쉰다.
+   그림 위·사진 베일(.pw-art::after) 아래에 깔리도록 .pw-art-img 바로 뒤에 둔다. */
+.pw-cross {
+  position: absolute;
+  pointer-events: none;
+}
+.pw-cross-piece {
+  position: absolute;
+  inset: 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.pw-cross-off {
+  opacity: 0;
+}
+.pw-cross.is-playing .pw-cross-off {
+  animation:
+    pw-cross-dim 0.5s ease both,
+    pw-cross-flicker 0.8s linear 2.2s both;
+}
+@keyframes pw-cross-dim {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* 꺼진 조각의 불투명도 — 1=꺼짐, 0=켜짐. 짧은 구간으로 끊어 지직거리는 맛 */
+@keyframes pw-cross-flicker {
+  0% { opacity: 1; }
+  10% { opacity: 0.25; }
+  16% { opacity: 1; }
+  30% { opacity: 0.1; }
+  38% { opacity: 0.9; }
+  52% { opacity: 0; }
+  60% { opacity: 0.6; }
+  72%, 100% { opacity: 0; }
+}
+.pw-cross-bloom,
+.pw-cross-breathe {
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.pw-cross-bloom {
+  filter: blur(1.5px) brightness(1.5);
+  animation: pw-cross-bloom 1s ease-out 2.75s both;
+}
+@keyframes pw-cross-bloom {
+  0% { opacity: 0; }
+  14% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+.pw-cross-breathe {
+  filter: blur(2.5px) brightness(1.2);
+  animation: pw-cross-breathe 3s ease-in-out infinite alternate both;
+}
+.pw-cross.is-playing .pw-cross-breathe {
+  animation-delay: 3.6s;
+}
+@keyframes pw-cross-breathe {
+  from { opacity: 0; }
+  to { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pw-cross-breathe {
+    animation: none;
+  }
+}

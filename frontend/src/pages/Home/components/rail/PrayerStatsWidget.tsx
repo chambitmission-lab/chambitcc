@@ -14,6 +14,7 @@ import { prayerStatsKeys } from '../../../../hooks/queryKeys'
 import type { WeeklyPrayerStats } from './queries'
 import { useWeeklyPrayerStats } from './queries'
 import './prayerWeek.css'
+import PrayerCrossLight from './PrayerCrossLight'
 
 // ── 데이터 훅 ─────────────────────────────────────────────────────────
 
@@ -264,6 +265,8 @@ const PrayerStatsWidget = () => {
             style={{ backgroundImage: `url(${pairSrc(PRAYER_WEEK_WINDOW, theme)})` }}
             aria-hidden
           />
+          {/* 다크 — 강단 십자가가 꺼졌다가 켜진다(페이지 첫 진입 1회) */}
+          {theme === 'dark' && artReady && <PrayerCrossLight />}
           {!!amens && <Motes amens={amens} />}
           <div className="absolute inset-x-4 top-3.5 z-[2]">
             <p className="pw-art-meta flex items-center text-[11.5px] font-bold text-gray-500 dark:text-white/55">
