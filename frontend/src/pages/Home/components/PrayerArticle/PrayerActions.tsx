@@ -90,12 +90,12 @@ const PrayerActions = ({
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="prayer-actions-row flex items-center justify-between gap-3">
         {/* 트렌디한 아이콘+숫자 액션 클러스터.
             p-2/-m-2: 보이는 크기는 그대로 두고 누를 수 있는 영역만 넓히는 트릭 —
             아이콘을 살짝 빗나가도 카드(상세보기)가 아니라 버튼이 잡힌다.
             호버 시 은은한 원형 배경으로 "여긴 버튼" 피드백 (X 문법) */}
-        <div className="flex items-center gap-4 lg:gap-7">
+        <div className="prayer-actions-cluster flex items-center gap-4 lg:gap-7 min-w-0">
           {/* 나만 보는 기도 — 함께 기도·댓글은 없다. 헤더 칩이 이미 '나만 보기'를 말하므로
               여기선 공개 전환 액션 하나만 (문구까지 두면 두 줄로 접힌다) */}
           {isPrivate ? (
@@ -115,7 +115,7 @@ const PrayerActions = ({
             onClick={handlePrayClick}
             disabled={isPraying}
             title={prayLabel}
-            className={`relative flex items-center gap-1.5 rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-300 ${
+            className={`relative flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all duration-300 ${
               !useGroupColor && isPrayed ? 'text-brand' :
               !useGroupColor ? 'text-gray-600 dark:text-gray-400 hover:text-brand' : ''
             }`}
@@ -132,7 +132,7 @@ const PrayerActions = ({
             />
             {/* 숫자 자리는 항상 확보 — 0→1이 될 때 옆 버튼들이 밀리지 않도록 */}
             {/* PC: 아이콘만으론 뜻을 짐작하기 어려운 분들을 위해 글자 라벨을 곁들인다 */}
-            <span className="hidden lg:inline text-[length:calc(14.5px*var(--fs,1))] font-medium">{prayActionLabel}</span>
+            <span className="pa-label hidden lg:inline whitespace-nowrap text-[length:calc(14.5px*var(--fs,1))] font-medium">{prayActionLabel}</span>
             <span className="text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-bold tabular-nums min-w-[10px]">
               {prayerCount > 0 ? prayerCount : ''}
             </span>
@@ -141,10 +141,10 @@ const PrayerActions = ({
           {/* 댓글 */}
           <button
             onClick={onReplyClick}
-            className="flex items-center gap-1.5 rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
+            className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
           >
             <CommentIcon size={18} />
-            <span className="hidden lg:inline text-[length:calc(14.5px*var(--fs,1))] font-medium">{language === 'ko' ? '댓글' : 'Reply'}</span>
+            <span className="pa-label hidden lg:inline whitespace-nowrap text-[length:calc(14.5px*var(--fs,1))] font-medium">{language === 'ko' ? '댓글' : 'Reply'}</span>
             {replyCount > 0 && (
               <span className="text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-bold tabular-nums">{replyCount}</span>
             )}
@@ -157,10 +157,10 @@ const PrayerActions = ({
             <button
               onClick={onVersesClick}
               title={language === 'ko' ? '함께 묵상해볼 수 있는 말씀' : 'Verses to meditate on'}
-              className="flex items-center gap-1.5 rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
+              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full p-2 -m-2 lg:p-3 lg:-m-3 lg:[&>svg]:w-[calc(20px*var(--fs,1))] lg:[&>svg]:h-[calc(20px*var(--fs,1))] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
             >
               <BookOpenIcon size={18} />
-              <span className="hidden lg:inline text-[length:calc(14.5px*var(--fs,1))] font-medium">{language === 'ko' ? '말씀' : 'Verses'}</span>
+              <span className="pa-label hidden lg:inline whitespace-nowrap text-[length:calc(14.5px*var(--fs,1))] font-medium">{language === 'ko' ? '말씀' : 'Verses'}</span>
               <span className="text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-bold tabular-nums">{versesCount}</span>
             </button>
           )}
@@ -171,7 +171,7 @@ const PrayerActions = ({
         {isOwner && !isAnswered && onAnswerClick && (
           <button
             onClick={onAnswerClick}
-            className="flex items-center gap-1.5 whitespace-nowrap rounded-full p-2 -m-2 lg:p-3 lg:-m-3 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-[var(--amber)] transition-colors text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-medium"
+            className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full p-2 -m-2 lg:p-3 lg:-m-3 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-[var(--amber)] transition-colors text-[12.5px] lg:text-[length:calc(14.5px*var(--fs,1))] font-medium"
           >
             <svg width="10" height="10" viewBox="0 0 10 10" className="text-[var(--amber-icon)] shrink-0" aria-hidden>
               <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
@@ -224,6 +224,15 @@ const PrayerActions = ({
       ))}
 
       <style>{`
+        /* 카드 폭 기준(창 폭 아님) — PC에서 창을 조금 줄여 카드가 좁아지면
+           '기도·댓글·말씀' 글자가 '기/도'로 꺾이던 문제. 좁으면 글자 라벨만 접고
+           아이콘+숫자(모바일과 같은 모양)로 한 줄을 지킨다. */
+        .prayer-actions-row { container-type: inline-size; }
+        @container (max-width: 420px) {
+          .prayer-actions-row .pa-label { display: none; }
+          .prayer-actions-row .prayer-actions-cluster { gap: 1.25rem; }
+        }
+
         @keyframes pray-pop {
           0% { transform: scale(1); }
           35% { transform: scale(1.35) rotate(-8deg); }
