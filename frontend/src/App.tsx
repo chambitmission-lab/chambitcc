@@ -4,10 +4,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { clearPersistedCache } from './config/persister'
 import NewHeader from './components/layout/NewHeader/NewHeader'
+import DesktopNavRailShell from './components/layout/DesktopNavRail/DesktopNavRailShell'
+import { loadDesktopNavRail } from './components/layout/desktopChromeChunks'
 import { useDesktopRailVisible } from './components/layout/DesktopNavRail/useDesktopRailVisible'
 import { useMediaQuery } from './hooks/useMediaQuery'
 // PC 전용 좌측 레일(lg+) — 모바일은 받을 이유가 없으므로 lazy + matchMedia 게이트
-const DesktopNavRail = lazy(() => import('./components/layout/DesktopNavRail/DesktopNavRail'))
+const DesktopNavRail = lazy(loadDesktopNavRail)
 import ErrorBoundary from './components/common/ErrorBoundary'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
@@ -165,7 +167,7 @@ function App() {
           {/* PC 전용 전역 좌측 내비 레일 (lg+) — 몰입형·인증 화면에선 스스로 숨는다.
               lg 미만에선 마운트조차 하지 않아 레일 청크를 내려받지 않는다 */}
           {isLg && (
-            <Suspense fallback={null}>
+            <Suspense fallback={<DesktopNavRailShell />}>
               <DesktopNavRail />
             </Suspense>
           )}

@@ -9,6 +9,7 @@ import { autoEscapeKakaoInApp } from './utils/inappBrowser'
 import { rewriteShareEntry } from './utils/shareEntry'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { loadDeferredFonts } from './utils/deferredFonts'
+import { warmDesktopChrome } from './components/layout/desktopChromeChunks'
 // 폰트 @font-face 는 index.css 보다 먼저 — 첫 CSSOM 에 폰트 선언이 있어야
 // index.html 의 preload 와 곧바로 매칭된다 (Pretendard 핵심 조각·아이콘 폰트)
 import './styles/pretendard.css'
@@ -36,6 +37,9 @@ if (import.meta.env.PROD) {
 
 // 푸시 알림용 Service Worker 등록 (개발/프로덕션 모두)
 registerPushServiceWorker()
+
+// PC 헤더 메뉴·좌측 레일 청크를 첫 렌더보다 먼저 요청한다 (PC 폭에서만)
+warmDesktopChrome()
 
 // 니치 서체(명조·손글씨·스코어보드)는 첫 화면이 끝난 뒤 붙인다
 loadDeferredFonts()

@@ -2,10 +2,18 @@ import { useCallback, useEffect, useRef, useState, type ReactElement } from 'rea
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useLanguage } from '../../../../contexts/LanguageContext'
-import type { Translation } from '../../../../locales'
 import { preloadMenuRoutes, preloadRoute } from '../../../../utils/routePreload'
 import { NAV_ICONS, Svg } from './NavIcons'
-import { navEntries, navEntry, navEntryMatches, type NavEntry } from '../../navCatalog'
+import { navEntryMatches } from '../../navCatalog'
+import {
+  NAV_TOP_GROUPS as GROUPS,
+  NAV_TOP_NEWS as NEWS,
+  NAV_TOP_PILL_CLASS,
+  NAV_TOP_ROOT_CLASS,
+  activeNavTopGroupId,
+  navTopClass as topClass,
+} from './desktopNavGroups'
+import { NavChevron } from './DesktopNavFallback'
 import NewsMegaPanel from './NewsMegaPanel'
 
 // PC(lg+) 전용 헤더 메뉴 — 교회 안내 페이지를 4축(교회 · 예배·말씀 · 함께 · 소식)으로 묶고,
@@ -13,36 +21,6 @@ import NewsMegaPanel from './NewsMegaPanel'
 // 평평한 8개 텍스트 + 별도 '전체 메뉴' 버튼보다 위계가 생기고, 메뉴 자체가 교회를 설명한다.
 // 좌측 레일(개인 활동: 성경·기도·모임…)과 축을 나눠 여기엔 교회 안내·콘텐츠만 담는다.
 // 활성 축 pill은 framer-motion layoutId 로 축 사이를 미끄러진다 (토스 세그먼트 문법).
-
-type LabelKey = keyof Translation
-
-type Group = {
-  id: string
-  labelKey: LabelKey
-  items: NavEntry[]
-}
-
-// 항목의 이름·설명·아이콘은 layout/navCatalog.ts 한 곳 — 여기선 축과 순서만 고른다
-const GROUPS: Group[] = [
-  {
-    id: 'church',
-    labelKey: 'navTopChurch',
-    items: navEntries(['/about', '/greeting', '/visit', '/history', '/people', '/organization']),
-  },
-  {
-    id: 'word',
-    labelKey: 'navTopWord',
-    items: navEntries(['/worship', '/education', '/sermon', '/ministry', '/news?tab=bulletin']),
-  },
-  {
-    id: 'together',
-    labelKey: 'navTopTogether',
-    items: navEntries(['/events', '/seats', '/mission', '/culture', '/survey', '/news?tab=new-family']),
-  },
-]
-
-// 소식 — 클릭은 /news 로 바로 이동, 호버는 미리보기 메가 패널(NewsMegaPanel)
-const NEWS = navEntry('/news')
 
 // NAV_ICONS 에 없는 항목(카탈로그 icon: null)용 라인 아이콘 (같은 1.6 스트로크 문법)
 const FALLBACK_ICONS: Record<string, ReactElement> = {
@@ -67,7 +45,7 @@ const HOVER_CLOSE_DELAY = 120
 const ActivePill = () => (
   <motion.span
     layoutId="header-nav-pill"
-    className="absolute inset-0 rounded-full bg-[var(--brand-soft-strong)]"
+    className={NAV_TOP_PILL_CLASS}
     transition={{ type: 'spring', bounce: 0.18, duration: 0.45 }}
     aria-hidden
   />
@@ -129,25 +107,13 @@ const DesktopNav = () => {
     navigate(to)
   }, [navigate])
 
-  // 현재 페이지가 속한 축 (뉴스 탭 딥링크는 해당 축으로 귀속, 단순 /news 는 소식)
-  const activeGroupId =
-    GROUPS.find((g) => g.items.some((it) => navEntryMatches(it, pathname, search)))?.id ??
-    (navEntryMatches(NEWS, pathname, search) ? 'news' : null)
-
-  // 내비 라벨은 전부 semibold 이상 — medium 회색은 "그냥 놓인 글자"로 읽힌다 (토스 문법)
-  const topClass = (active: boolean, isOpen: boolean) =>
-    `relative flex items-center gap-1 h-10 px-3.5 rounded-full text-[length:calc(16px*var(--hn,1))] whitespace-nowrap transition-colors duration-150 ${
-      active
-        ? 'text-brand font-bold'
-        : isOpen
-          ? 'text-ink-strong font-semibold bg-black/[0.04] dark:bg-white/[0.06]'
-          : 'text-gray-600 dark:text-white/70 font-semibold hover:text-ink-strong hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-    }`
+  // 현재 페이지가 속한 축 — 축·버튼 모양은 desktopNavGroups.ts (자리 잡이 DesktopNavFallback 과 공유)
+  const activeGroupId = activeNavTopGroupId(pathname, search)
 
   return (
     <nav
       ref={navRef}
-      className="desktop-nav relative hidden lg:flex items-center gap-0.5"
+      className={NAV_TOP_ROOT_CLASS}
       aria-label="주요 페이지"
       // 메뉴에 마우스가 올라온 순간 = 곧 이동한다는 신호 → lazy 청크 프리로드
       // (청크를 다 받은 뒤엔 즉시 돌아온다 — 데이터 선요청은 항목 호버 때 그 경로만)
@@ -173,18 +139,7 @@ const DesktopNav = () => {
             >
               {active && <ActivePill />}
               <span className="relative z-10">{t(group.labelKey)}</span>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`relative z-10 w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                aria-hidden
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              <NavChevron open={isOpen} />
             </button>
 
             <AnimatePresence>
@@ -256,18 +211,7 @@ const DesktopNav = () => {
             <>
               {isActive && <ActivePill />}
               <span className="relative z-10">{t(NEWS.labelKey)}</span>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`relative z-10 w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${open === 'news' ? 'rotate-180' : ''}`}
-                aria-hidden
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              <NavChevron open={open === 'news'} />
             </>
           )}
         </NavLink>

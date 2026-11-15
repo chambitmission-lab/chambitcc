@@ -13,10 +13,13 @@ import NotificationModalFallback from '../../common/NotificationModalFallback'
 const LazyNotificationModal = lazy(loadNotificationModal)
 type NotificationModalType = ComponentType<{ isOpen: boolean; onClose: () => void }>
 import Logo from './components/Logo'
+import DesktopNavFallback from './components/DesktopNavFallback'
+import { loadDesktopNav } from '../desktopChromeChunks'
 // PC(lg+) 전용 메뉴 — framer-motion(layoutId 투영 엔진 ~120KB)을 끌고 오므로
 // 엔트리 청크에서 떼어 lg 이상 화면에서만 내려받는다. 모바일 사용자는 영영 받지 않는다.
 // (vite.config.ts manualChunks 의 "lazy 전용 패키지" 규칙을 지키는 유일한 방법)
-const DesktopNav = lazy(() => import('./components/DesktopNav'))
+// 로더는 desktopChromeChunks 와 공유 — main.tsx 가 렌더 전에 같은 약속으로 요청을 앞당긴다
+const DesktopNav = lazy(loadDesktopNav)
 
 import { SearchCapsule } from '../../command/SearchTrigger'
 import HeaderActions from './components/HeaderActions'
@@ -156,7 +159,8 @@ const NewHeader = () => {
             }`}
           >
             {isDesktop && (
-              <Suspense fallback={null}>
+              // 청크가 오기 전에도 같은 폭의 정적 메뉴가 자리를 지킨다 — 검색창이 밀리지 않는다
+              <Suspense fallback={<DesktopNavFallback />}>
                 <DesktopNav />
               </Suspense>
             )}
