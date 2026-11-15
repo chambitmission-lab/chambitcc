@@ -244,12 +244,12 @@
     }
   }
 
-  /* 별똥별이 문 앞에 닿는 순간(2.4s+2.2s) 도착 점이 태어난다 — 별똥별 본체는 이 블록 아래 공통 규칙 */
+  /* 별똥별이 문 앞에 닿는 순간(진입 즉시 0s+2.2s) 도착 점이 태어난다 — 별똥별 본체는 이 블록 아래 공통 규칙 */
   .dark .visit-hero-walk-goal {
-    animation-delay: 4.55s;
+    animation-delay: 2.15s;
   }
   .dark .visit-hero-walk-goal::after {
-    animation-delay: 4.7s;
+    animation-delay: 2.3s;
   }
   @media (prefers-reduced-motion: reduce) {
     .dark .visit-hero-walk-goal,
@@ -400,8 +400,8 @@
    위치는 도착 점과 같은 자리(HeroWalk.tsx 가 goal 을 인라인 left/top 으로), 궤적은 도착 점 기준 px 직선 --meteor-path.
    1판(직선 0.9s)은 "너무 일직선(빠름)" → 2판 곡선+부스러기 불씨는 "여러 개 나와 어색·곡선 이상"(재도입 금지) →
    3판: 직선 하나를 2.2s 동안 천천히 가속하며, 다가올수록 꼬리가 길고 굵어지고 머리가 깜빡이며, 지나간 자리엔 빛줄기가 잠깐 남는다.
-   16초 주기: 0~13.75%(2.2s) 낙하 → 13.75~23% 섬광·충격파·불티 → 나머지는 고요.
-   도착 점은 다크에서 충돌 순간(2.4s+2.2s)에 태어나도록 등장·링 지연을 맞춘다(PC 블록).
+   한 번만(2026-11-15, 반복 없음) 16s 타임라인: 0~13.75%(2.2s) 낙하 → 13.75~23% 섬광·충격파·불티 → 나머지는 고요.
+   도착 점은 다크에서 충돌 순간(0s+2.2s)에 태어나도록 등장·링 지연을 맞춘다(PC 블록).
    PC·모바일 공통 — 모바일은 발자국 길 없이 별똥별만(아래 max-width:1023px, 문 자리는 HeroWalk.tsx mobileGoal) */
 .visit-hero-meteor {
   display: none;
@@ -413,7 +413,7 @@
   --meteor-cycle: 16s;
   --meteor-len-from: 90px;   /* 꼬리 길이 — 멀 때 → 문 앞 */
   --meteor-len-to: 230px;
-  --meteor-delay: 2.4s;
+  --meteor-delay: 0s;   /* 2026-11-15 화면 들어오자마자 떨어진다(발자국 기다리던 2.4s 제거) */
   --meteor-core: #fff8e6;
   --meteor-glow: rgba(255, 214, 140, 0.9);
   --meteor-tail: rgba(217, 184, 119, 0.85);
@@ -440,7 +440,7 @@
   border-radius: 999px;
   background: linear-gradient(90deg, transparent, var(--meteor-tail) 72%, var(--meteor-core));
   filter: drop-shadow(0 0 4px var(--meteor-glow));
-  animation: visit-meteor-fall var(--meteor-cycle) linear var(--meteor-delay) infinite;
+  animation: visit-meteor-fall var(--meteor-cycle) linear var(--meteor-delay) 1;   /* 2026-11-15 진입 때 한 번만 */
 }
 .visit-hero-meteor-head::after {
   content: '';
@@ -485,7 +485,7 @@
   stroke-dasharray: 1 1;
   stroke-dashoffset: 1;
   opacity: 0;
-  animation: visit-meteor-train var(--meteor-cycle) linear var(--meteor-delay) infinite;
+  animation: visit-meteor-train var(--meteor-cycle) linear var(--meteor-delay) 1;   /* 2026-11-15 진입 때 한 번만 */
 }
 @keyframes visit-meteor-train {
   0% {
@@ -510,7 +510,7 @@
   background: radial-gradient(circle, var(--meteor-core) 0%, rgba(255, 214, 140, 0.75) 22%, rgba(255, 190, 110, 0.25) 48%, transparent 70%);
   mix-blend-mode: screen;
   opacity: 0;
-  animation: visit-meteor-flash var(--meteor-cycle) ease-out var(--meteor-delay) infinite;
+  animation: visit-meteor-flash var(--meteor-cycle) ease-out var(--meteor-delay) 1;   /* 2026-11-15 진입 때 한 번만 */
 }
 @keyframes visit-meteor-flash {
   0%, 13.7% { transform: scale(0.3); opacity: 0; }
@@ -529,7 +529,7 @@
   border-radius: 50%;
   border: 1.5px solid var(--meteor-glow);
   opacity: 0;
-  animation: visit-meteor-ring var(--meteor-cycle) ease-out var(--meteor-delay) infinite;
+  animation: visit-meteor-ring var(--meteor-cycle) ease-out var(--meteor-delay) 1;   /* 2026-11-15 진입 때 한 번만 */
 }
 @keyframes visit-meteor-ring {
   0%, 13.7% { transform: scale(0.3); opacity: 0; }
@@ -549,7 +549,7 @@
   background: var(--meteor-core);
   box-shadow: 0 0 6px 1px var(--meteor-glow);
   opacity: 0;
-  animation: visit-meteor-spark var(--meteor-cycle) cubic-bezier(0.2, 0.7, 0.4, 1) var(--meteor-delay) infinite;
+  animation: visit-meteor-spark var(--meteor-cycle) cubic-bezier(0.2, 0.7, 0.4, 1) var(--meteor-delay) 1;   /* 2026-11-15 진입 때 한 번만 */
 }
 @keyframes visit-meteor-spark {
   0%, 13.7% { transform: rotate(var(--spark-angle)) translateX(0) scale(1); opacity: 0; }
