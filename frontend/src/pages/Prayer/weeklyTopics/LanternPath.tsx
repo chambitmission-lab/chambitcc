@@ -41,7 +41,7 @@ const LanternPath = (props: PrayerStageProps & { art: string; artReady: boolean 
 
         {!done && item ? (
           <div key={idx} className="wpt-fade mt-6">
-            {item.title && <p className="wpt-l-head">{item.title}</p>}
+            {item.title && item.body && item.body.trim() !== item.title.trim() && <p className="wpt-l-head">{item.title}</p>}
             <p className="wpt-l-body">{item.body || item.title}</p>
             {item.scripture && <p className="wpt-l-scripture">{item.scripture}</p>}
             <div className="relative mt-8">

@@ -54,7 +54,7 @@ const OfferingCards = (props: PrayerStageProps & { arts: string[] }) => {
                   </span>
                 </div>
                 <div className="wpt-card-body">
-                  {p.title && <p className="mb-1.5 text-[17px] font-bold leading-[1.55] text-ink-strong break-keep lg:text-[22px]">{p.title}</p>}
+                  {p.title && p.body && p.body.trim() !== p.title.trim() && <p className="mb-1.5 text-[17px] font-bold leading-[1.55] text-ink-strong break-keep lg:text-[22px]">{p.title}</p>}
                   <p className="text-[17px] font-semibold leading-[1.75] tracking-[-0.02em] text-ink-strong break-keep lg:text-[22px]">
                     {p.body || p.title}
                   </p>
