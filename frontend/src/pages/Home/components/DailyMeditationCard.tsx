@@ -56,6 +56,7 @@ import TodayChurchEnvelope from './TodayChurchEnvelope'
 import CompanionHeroButton from './CompanionHeroButton'
 import { formatMonthDay } from '../../../utils/date'
 import './DailyMeditationCard.css'
+import HeroLights from './HeroLights'
 
 const GREETING_KEYS = {
   morning: 'homeGreetingMorning',
@@ -504,6 +505,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           data-hero={hero.key}
           style={{ '--hero-image': `url(${hero.src})` } as React.CSSProperties}
         >
+          {/* 별똥별 점화 — 다크 교회 밤 사진일 때만: 꺼진 예배당에 별똥별이 떨어져 십자가·처마·간판에 불이 들어온다 */}
+          {isChurchHero && theme === 'dark' && <HeroLights season={getNaturalSeason(today)} />}
           <div className="meditation-hero-overlay" aria-hidden />
           {/* 비 앰비언트 — 비·가랑비·뇌우일 때 계절 연출 대신 빗줄기가 흐른다 */}
           {isRaining && (

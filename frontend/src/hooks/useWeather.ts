@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { weatherKeys } from './queryKeys'
+import { useTickingNow } from './useTickingNow'
 import { safeStorage } from '../utils/safeStorage'
 import { fetchWeatherSnapshot } from '../api/weather'
 
@@ -21,6 +23,9 @@ const WEATHER_URL =
 /* Open-Meteo 실황은 15분 간격으로 갱신된다(응답의 current.interval=900).
  * 같은 주기로 맞춰 불필요한 호출 없이 최신값을 유지한다. */
 const WEATHER_REFRESH_MS = 1000 * 60 * 15
+
+/* 값이 낡았는지 벽시계로 확인하는 간격 (useCurrentWeather 참고) */
+const WEATHER_AGE_CHECK_MS = 1000 * 60
 
 interface OpenMeteoResponse {
   current?: {
@@ -162,8 +167,17 @@ const toCurrentWeather = (raw: RawWeather): CurrentWeather => {
   }
 }
 
+/* 서버가 실제로 받아 온 시각이 이보다 오래됐으면 버린다. 응답이 성공이어도 내용은 낡았을 수
+ * 있다 — 서비스워커는 서버에 닿지 않으면 하루 전 응답까지 꺼내 주고(sw.js Network First),
+ * 그걸 그대로 믿으면 오전 기온이 '방금 받은 값'으로 저장된다. 버리면 직접 호출이 대신한다. */
+const SNAPSHOT_MAX_AGE_MS = 1000 * 60 * 60
+
 const requestViaBackend = async (): Promise<CurrentWeather> => {
   const snapshot = await fetchWeatherSnapshot()
+  const fetchedAt = Date.parse(snapshot.fetched_at)
+  if (Number.isFinite(fetchedAt) && Date.now() - fetchedAt > SNAPSHOT_MAX_AGE_MS) {
+    throw new Error('Stale weather snapshot')
+  }
   return toCurrentWeather({
     code: snapshot.weather_code,
     isDay: snapshot.is_day,
@@ -227,7 +241,34 @@ export interface CurrentWeatherState {
  * 기온이 그대로 남는다. 그래서 이 쿼리만 mount·포커스·주기 리페치를 되살린다.
  * (persist 제외는 main.tsx의 shouldDehydrateQuery에서 처리) */
 export const useCurrentWeather = (): CurrentWeatherState => {
-  const { data, isLoading, failureCount } = useQuery({
+  const queryClient = useQueryClient()
+  /* 아래 '낡은 값 숨기기' 판정용 — 5분에 한 번이면 충분하다 */
+  const now = useTickingNow(1000 * 60 * 5)
+  /* 잠들었다 깨어난 기기 챙기기. refetchInterval 타이머는 기기가 자는 동안 멈춰서, 오전에 덮은
+   * 노트북을 저녁에 열면 오전 기온이 최대 15분 더 남는다(2026-11-15 — 해 진 뒤에 해 아이콘과
+   * 오전 기온). 화면이 계속 '보이는' 상태였다면 포커스 리페치도 돌지 않는다. 그래서 벽시계로
+   * 값의 나이를 직접 잰다 — 1분마다, 그리고 창을 다시 잡을 때. */
+  useEffect(() => {
+    const refreshIfOld = () => {
+      if (document.visibilityState !== 'visible') return
+      const state = queryClient.getQueryState(weatherKeys.current())
+      if (!state || state.fetchStatus !== 'idle') return
+      /* 실패한 직후에도 다시 두드리지 않게 마지막 시도 시각(성공·실패 중 늦은 쪽)으로 잰다 */
+      const lastTriedAt = Math.max(state.dataUpdatedAt, state.errorUpdatedAt)
+      if (Date.now() - lastTriedAt < WEATHER_REFRESH_MS) return
+      void queryClient.refetchQueries({ queryKey: weatherKeys.current(), type: 'active' })
+    }
+    const timer = setInterval(refreshIfOld, WEATHER_AGE_CHECK_MS)
+    window.addEventListener('focus', refreshIfOld)
+    window.addEventListener('pageshow', refreshIfOld)
+    return () => {
+      clearInterval(timer)
+      window.removeEventListener('focus', refreshIfOld)
+      window.removeEventListener('pageshow', refreshIfOld)
+    }
+  }, [queryClient])
+
+  const { data, isLoading, failureCount, dataUpdatedAt } = useQuery({
     queryKey: weatherKeys.current(),
     queryFn: fetchCurrentWeather,
     /* 1시간 안쪽 마지막 성공값으로 시작한다. 저장 시각을 함께 넘겨 15분이 지났으면
@@ -251,7 +292,10 @@ export const useCurrentWeather = (): CurrentWeatherState => {
   /* 스켈레톤은 첫 시도 동안만 — 재시도까지 다 기다리면 장애 날 빈 칩이 20초 넘게 남는다
    * (2026-11-15). 첫 시도가 실패하면 폴백 아이콘으로 넘어가고, 뒤에서 도는 재시도가
    * 성공하면 그때 칩이 나타난다. */
-  return { weather: data ?? null, isLoading: isLoading && failureCount === 0 }
+  /* 1시간 넘게 못 바꾼 값은 '지금 날씨'로 내보이지 않는다 — 새로 받는 데 실패하는 동안
+   * 몇 시간 전 기온이 남는 것보다 시간대 아이콘으로 물러나는 쪽이 정직하다. */
+  const isExpired = !!data && now - dataUpdatedAt > LAST_WEATHER_MAX_AGE_MS
+  return { weather: data && !isExpired ? data : null, isLoading: isLoading && failureCount === 0 }
 }
 
 /* ── 주일 우산 안내 ──
