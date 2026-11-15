@@ -11,10 +11,10 @@ import glowWinter from '../../../assets/hero/church-winter-night-glow.webp'
 import './styles/meditation-hero-lights.css'
 
 /**
- * 별똥별 점화(다크 · 교회 밤 히어로 전용, 2026-11-15, styles/meditation-hero-lights.css)
- * 불이 꺼진 예배당 → 왼쪽 위 하늘에서 별똥별이 십자가 꼭대기에 떨어져 번갯불이 튀고 →
- * 십자가 네온이 '틱·틱·팟' 켜지고 → 불빛이 종탑 밑에서 처마 LED 띠를 따라 흐르고 →
- * 간판 '참·빛·교·회'가 한 글자씩 켜진다. 그 뒤엔 십자가만 아주 은은하게 숨쉰다.
+ * 별똥별 점화(다크 · 교회 밤 히어로 전용, 2026-11-15 · 2026-11-16 간판 낙뢰로 변경, styles/meditation-hero-lights.css)
+ * 불이 꺼진 예배당 → 하늘에서 별똥별이 간판 '참빛교회' 한가운데 벽에 떨어져 번갯불이 튀고 →
+ * 가운데 '빛·교'부터 바깥 '참·회'로 글자가 '틱·틱·팟' 켜지고 → 처마 LED 띠가 흐르고 →
+ * 마지막에 십자가가 조용히 켜진다. 그 뒤엔 십자가만 아주 은은하게 숨쉰다.
  * 페이지를 새로 열 때 한 번만(모듈 플래그) — 홈을 오갈 때마다 3초씩 보여 주면 지친다.
  *
  * 꺼진 모습은 사진에서 빛 픽셀만 오려 벽으로 메운 조각(scripts/gen-hero-lights.py → *-off.webp)을
@@ -79,25 +79,31 @@ const letterClip = (i: number) => {
   ])
 }
 
-/* 타임라인(s) — CSS 키프레임 길이와 짝 */
+/* 타임라인(s) — CSS 키프레임 길이와 짝.
+ * 번개는 십자가가 아니라 간판 '참빛교회' 한가운데 벽에 떨어진다(십자가에 번개 = 보수적인 교회 정서에 거슬림, 2026-11-16).
+ * 가운데 '빛·교'부터 바깥 '참·회'로 → 처마 띠 → 마지막에 십자가가 조용히 켜진다.
+ */
 const T_METEOR = 0.45 // 별똥별 출발(1.0s 비행)
-const T_IMPACT = 1.45 // 십자가 꼭대기에 닿음 — 번갯불
-const T_CROSS = 1.5 // 십자가 깜빡이며 켜짐(0.7s)
-const T_STRIP = 2.2 // 처마 띠 흐름(0.8s)
-const T_LETTER = 2.85 // 첫 글자, 이후 0.22s 간격
-const T_BREATHE = 4.4
+const T_IMPACT = 1.45 // 간판 벽에 닿음 — 번갯불
+const T_LETTER = [1.78, 1.5, 1.56, 1.84] as const // 참·빛·교·회 — 맞은 자리에서 가까운 글자부터
+const T_STRIP = 2.0 // 처마 띠 흐름(0.8s)
+const T_CROSS = 2.75 // 십자가 깜빡이며 켜짐(0.7s)
+const T_BREATHE = 4.0
 
-/* 별똥별 — 왼쪽 위 하늘(120,-40)에서 십자가 꼭대기(390,100)로 */
-const IMPACT: Pt = [390, 100]
-const FROM: Pt = [120, -40]
+/* 별똥별 — 종탑과 나무 사이 빈 하늘(455,-40)에서 간판 '빛'과 '교' 사이 벽(528,316)으로 */
+const IMPACT: Pt = [528, 316]
+const FROM: Pt = [455, -40]
 const METEOR_LEN = Math.hypot(IMPACT[0] - FROM[0], IMPACT[1] - FROM[1])
 const METEOR_ANGLE = (Math.atan2(IMPACT[1] - FROM[1], IMPACT[0] - FROM[0]) * 180) / Math.PI
+/* 섬광 배율 — 벽에 맞으니 조금 크게 */
+const FLASH_SCALE = 1.35
 
-/* 번갯불 — 꼭대기 둘레로 튀는 짧은 지그재그(꼭대기 기준 px, 상자 폭과 무관한 작은 크기) */
+/* 번갯불 — 맞은 자리 둘레로 튀는 짧은 지그재그(px, 상자 폭과 무관한 작은 크기) */
 const BOLTS = ['M0 0l-7 -5l3 -2l-8 -7', 'M0 0l8 -4l-2 -3l9 -5', 'M0 0l-9 3l2 3l-8 4', 'M0 0l6 6l-3 1l5 8'] as const
-/* 불티 — 각도 deg, 거리 px */
+/* 불티 — 각도 deg, 거리 px. 벽에 맞으니 사방으로 */
 const SPARKS = [
-  [-160, 22], [-130, 30], [-100, 26], [-70, 32], [-40, 24], [-15, 20], [20, 16], [160, 18], [-85, 40],
+  [-165, 26], [-140, 34], [-115, 28], [-90, 38], [-65, 30], [-40, 34], [-15, 26],
+  [10, 24], [35, 20], [150, 22], [175, 28], [-100, 46], [-55, 44],
 ] as const
 
 let played = false
@@ -169,11 +175,11 @@ const HeroLights = ({ season }: { season: NaturalSeason }) => {
                 '--clip-from': STRIP_CLIP,
                 '--clip-to': STRIP_CLIP_DONE,
               } as CSSProperties)}
-              {[0, 1, 2, 3].map((i) => sprite(`off-l${i}`, off, letterClip(i), 'mhl-off', on(T_LETTER + i * 0.22)))}
+              {[0, 1, 2, 3].map((i) => sprite(`off-l${i}`, off, letterClip(i), 'mhl-off', on(T_LETTER[i])))}
               {/* 켜지는 순간 번쩍 */}
               {sprite('bloom-cross', glow, CROSS_CLIP, 'mhl-bloom', on(T_CROSS + 0.55))}
               {sprite('bloom-strip', glow, STRIP_CLIP, 'mhl-bloom', on(T_STRIP + 0.3))}
-              {[0, 1, 2, 3].map((i) => sprite(`bloom-l${i}`, glow, letterClip(i), 'mhl-bloom', on(T_LETTER + i * 0.22 + 0.4)))}
+              {[0, 1, 2, 3].map((i) => sprite(`bloom-l${i}`, glow, letterClip(i), 'mhl-bloom', on(T_LETTER[i] + 0.4)))}
             </>
           )}
           {/* 숨쉬기 — 십자가만 은은하게(점화 뒤, 다시 들어와도 계속) */}
@@ -199,7 +205,7 @@ const HeroLights = ({ season }: { season: NaturalSeason }) => {
             </span>
             <span
               className="mhl-impact"
-              style={{ left: pct(IMPACT[0], IMG_W), top: pct(IMPACT[1], IMG_H), '--on': `${T_IMPACT}s` } as CSSProperties}
+              style={{ left: pct(IMPACT[0], IMG_W), top: pct(IMPACT[1], IMG_H), '--on': `${T_IMPACT}s`, '--flash-scale': FLASH_SCALE } as CSSProperties}
             >
               <span className="mhl-flash" />
               <svg className="mhl-bolts" width="1" height="1">

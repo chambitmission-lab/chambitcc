@@ -1,7 +1,7 @@
 /* ── 별똥별 점화(다크 · 교회 밤 히어로, 2026-11-15) — HeroLights.tsx
-   타임라인(s, 페이지 첫 진입 1회): 0~0.3 불이 꺼짐 → 0.45~1.45 별똥별 → 1.45 번갯불 →
-   1.5~2.2 십자가 네온 깜빡이며 켜짐 → 2.2~3.0 처마 띠가 종탑 쪽에서 오른쪽으로 흐르며 켜짐 →
-   2.85 부터 0.22s 간격 '참·빛·교·회' → 4.4~ 십자가 숨쉬기(무한, 아주 옅게).
+   타임라인(s, 페이지 첫 진입 1회): 0~0.3 불이 꺼짐 → 0.45~1.45 별똥별 → 1.45 간판 벽에 번갯불 →
+   1.5 '빛·교' → 1.78 '참·회' 깜빡이며 켜짐 → 2.0~2.8 처마 띠 흐름 → 2.75 십자가 켜짐 →
+   4.0~ 십자가 숨쉬기(무한, 아주 옅게). 십자가에는 번개를 치지 않는다(2026-11-16).
    각 조각의 시작 시각은 인라인 --on. */
 .mhl {
   position: absolute;
@@ -143,7 +143,7 @@
   100% { transform: scaleX(1); opacity: 0; }
 }
 
-/* ── 번갯불 — 십자가 꼭대기에서 푸른 섬광·지그재그 전기·불티가 튄다(네온과 같은 찬 빛) */
+/* ── 번갯불 — 맞은 자리(간판 벽)에서 푸른 섬광·지그재그 전기·불티가 튄다(네온과 같은 찬 빛) */
 .mhl-impact {
   position: absolute;
   width: 0;
@@ -163,10 +163,10 @@
 }
 @keyframes mhl-flash {
   0% { transform: scale(0.3); opacity: 0; }
-  12% { transform: scale(1.1); opacity: 1; }
+  12% { transform: scale(calc(1.1 * var(--flash-scale, 1))); opacity: 1; }
   30% { opacity: 0.4; }
   40% { opacity: 0.85; }
-  100% { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(calc(1.8 * var(--flash-scale, 1))); opacity: 0; }
 }
 .mhl-bolts {
   position: absolute;
