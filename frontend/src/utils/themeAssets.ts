@@ -56,9 +56,14 @@ import heroSummerDay from '../assets/hero/afternoon.webp'
 import heroAutumnDay from '../assets/hero/autumn-afternoon.webp'
 import heroWinterDay from '../assets/hero/winter-afternoon.webp'
 import heroWinterEvening from '../assets/hero/winter-evening.webp'
-import heroAutumnMorning from '../assets/hero/autumn-morning.webp'
-import heroWinterMorning from '../assets/hero/winter-morning.webp'
-import heroSpringMorning from '../assets/hero/spring-morning.webp'
+import churchSpringDay from '../assets/hero/church-spring-day.webp'
+import churchSpringNight from '../assets/hero/church-spring-night.webp'
+import churchSummerDay from '../assets/hero/church-summer-day.webp'
+import churchSummerNight from '../assets/hero/church-summer-night.webp'
+import churchAutumnDay from '../assets/hero/church-autumn-day.webp'
+import churchAutumnNight from '../assets/hero/church-autumn-night.webp'
+import churchWinterDay from '../assets/hero/church-winter-day.webp'
+import churchWinterNight from '../assets/hero/church-winter-night.webp'
 import atlasBgMobileLight from '../assets/atlas/bg-mobile.webp'
 import atlasBgMobileDark from '../assets/atlas/bg-mobile-night.webp'
 import atlasBgPcLight from '../assets/atlas/bg-pc.webp'
@@ -163,13 +168,24 @@ export const RAIL_BOTTOM: ThemePair = {
 }
 /** 홈 PC 우측 레일 '이번주 기도' 카드 머리 — 창가 삽화 (rail/PrayerStatsWidget.tsx) */
 export const PRAYER_WEEK_WINDOW: ThemePair = { light: prayerWeekWindowLight, dark: prayerWeekWindowDark }
-/** 공동 기도제목(/prayer-topics) — 라이트는 '올려드리는 카드' 사진(기도 순서대로 돌려 씀),
- *  다크는 '등불 길' 삽화 한 장. 테마마다 화면 자체가 달라 쌍이 "같은 자리"는 아니지만,
- *  토글 직전 선요청(ThemeContext)이 반대 테마 그림을 챙기도록 같은 틀로 등록한다. */
-export const WEEKLY_PRAYER_ART: ThemePair[] = [heroAutumnMorning, heroWinterMorning, heroSpringMorning].map((light) => ({
-  light,
-  dark: growthHeroEveningDark,
-}))
+/** 공동 기도제목(/prayer-topics) '시네마 포스터' — 자연 계절의 교회 전경 세로 사진(라이트=낮, 다크=밤).
+ *  홈 묵상 카드 히어로(DailyMeditationCard CHURCH_HERO)와 같은 파일이라 홈에서 왔으면 이미 받아져 있다.
+ *  한 장이 선명한 포스터와 흐린 배경을 겸한다(weeklyTopics/CinemaPoster). 지난 주 썸네일은 그 주의 계절 낮 사진. */
+export const CHURCH_SEASON_PHOTO: Record<NaturalSeason, ThemePair> = {
+  spring: { light: churchSpringDay, dark: churchSpringNight },
+  summer: { light: churchSummerDay, dark: churchSummerNight },
+  autumn: { light: churchAutumnDay, dark: churchAutumnNight },
+  winter: { light: churchWinterDay, dark: churchWinterNight },
+}
+/** 지금 계절의 포스터 쌍 — 네 장을 다 받지 않게 getter 로 지금 것만 노출(GREETING_HERO 와 같은 방식) */
+export const WEEKLY_PRAYER_POSTER: ThemePair = {
+  get light() {
+    return CHURCH_SEASON_PHOTO[getNaturalSeason(new Date())].light
+  },
+  get dark() {
+    return CHURCH_SEASON_PHOTO[getNaturalSeason(new Date())].dark
+  },
+}
 /** 홈 공지 배너 마스코트 (HomeNotice.tsx 인라인 스타일) */
 export const NOTICE_BANNER: ThemePair = { light: '/images/notice/banner-light.webp', dark: '/images/notice/banner-dark.webp' }
 /** /bible 성경 읽기 현황 카드 배경 — 예수님·어린양 치비 삽화 (book-selector/summary.css .reading-hero)
@@ -392,6 +408,7 @@ interface RouteAssets {
 const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/about$/, pairs: [ABOUT_DAWN_PC, ABOUT_DAWN_MOBILE] },
   { match: /^\/greeting$/, pairs: [GREETING_HERO] },
+  { match: /^\/prayer-topics$/, pairs: [WEEKLY_PRAYER_POSTER] },
   { match: /^\/visit$/, pairs: [VISIT_SCENE_PAIR] },
   { match: /^\/worship$/, pairs: [WORSHIP_HERO] },
   { match: /^\/mission$/, pairs: [MISSION_HERO] },

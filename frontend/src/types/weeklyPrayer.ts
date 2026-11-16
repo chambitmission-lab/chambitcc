@@ -32,6 +32,10 @@ export interface WeeklyPrayerListItem {
   title: string
   is_published: boolean
   item_count: number
+  /** 첫 기도 한 줄 — 백엔드 배포 전에는 없을 수 있다 */
+  preview?: string | null
+  /** 그 주 아멘 합계 — 백엔드 배포 전에는 없을 수 있다 */
+  amen_total?: number
 }
 
 export interface WeeklyPrayerCreateRequest {

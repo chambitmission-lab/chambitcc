@@ -1,8 +1,6 @@
-// 공동 기도제목 — "다 읽고 길게 눌러 아멘" 버튼과 그 흐름.
-// 라이트(올려드리는 카드)·다크(등불 길) 두 화면이 같은 흐름을 쓴다. 진행 위치(idx)는 페이지가 갖고 있어
-// 테마를 바꿔도 몇 번째 기도인지 이어진다.
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { HandHeartIcon } from '../../../components/icons/ActionIcons'
+// 공동 기도제목 — "다 읽고 길게 눌러 아멘" 흐름(누르는 타이머·다음 기도로 넘김·빛 알갱이).
+// 화면은 CinemaPoster 가 그린다. 진행 위치(idx)는 페이지가 갖고 있어 테마를 바꿔도 몇 번째 기도인지 이어진다.
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { WeeklyPrayerItem } from '../../../types/weeklyPrayer'
 
 export const HOLD_MS = 1300
@@ -69,64 +67,6 @@ export const CheckIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 )
 
-/** 둘레 링이 HOLD_MS 동안 차오르는 아멘 버튼. 키보드는 Space/Enter 를 누르고 있으면 된다 */
-export const HoldAmenButton = ({
-  step,
-  tone,
-  hint,
-  onUnamen,
-}: {
-  step: AmenStep
-  tone: 'brand' | 'ember'
-  hint: ReactNode
-  onUnamen: () => void
-}) => {
-  const on = step.item?.is_amened ?? false
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <button
-        type="button"
-        onPointerDown={step.start}
-        onPointerUp={step.cancel}
-        onPointerLeave={step.cancel}
-        onPointerCancel={step.cancel}
-        onKeyDown={(e) => {
-          if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
-            e.preventDefault()
-            step.start()
-          }
-        }}
-        onKeyUp={step.cancel}
-        onContextMenu={(e) => e.preventDefault()}
-        className={`wpt-hold wpt-hold--${tone} ${step.holding ? 'is-holding' : ''} ${on ? 'is-on' : ''}`}
-        style={{ ['--hold' as string]: `${HOLD_MS}ms` } as CSSProperties}
-        aria-label={on ? '함께 기도했어요' : '길게 눌러 아멘'}
-        aria-pressed={on}
-      >
-        <svg className="wpt-hold-ring" viewBox="0 0 100 100" aria-hidden>
-          <circle cx="50" cy="50" r="46" />
-          <circle cx="50" cy="50" r="46" className="wpt-hold-fill" />
-        </svg>
-        {on ? <CheckIcon size={28} /> : <HandHeartIcon size={30} strokeWidth={1.7} />}
-      </button>
-      <p className="wpt-hold-hint">
-        {on ? (
-          <>
-            아멘 ·{' '}
-            <button type="button" onClick={onUnamen} className="underline underline-offset-2 opacity-70 hover:opacity-100">
-              취소
-            </button>
-          </>
-        ) : step.holding ? (
-          '마음을 모아…'
-        ) : (
-          hint
-        )}
-      </p>
-    </div>
-  )
-}
-
 // 시드 고정 난수 — 빛 알갱이 위치가 렌더마다 흔들리지 않게
 const seeded = (seed: number) => () => {
   seed = (seed * 9301 + 49297) % 233280
@@ -150,17 +90,3 @@ export const AmenBurst = ({ seed, color }: { seed: number; color: string }) => {
     </span>
   )
 }
-
-/** 이전 / 다음(마지막엔 마치기) */
-export const StepNav = ({ idx, count, setIdx, onDark }: { idx: number; count: number; setIdx: (n: number) => void; onDark?: boolean }) => (
-  <div className="flex justify-between">
-    <button type="button" disabled={idx === 0} onClick={() => setIdx(idx - 1)} className={`wpt-nav ${onDark ? 'wpt-nav--dark' : ''}`}>
-      ← 이전
-    </button>
-    <button type="button" onClick={() => setIdx(idx + 1)} className={`wpt-nav ${onDark ? 'wpt-nav--dark' : ''}`}>
-      {idx === count - 1 ? '마치기' : '다음'} →
-    </button>
-  </div>
-)
-
-export const ORDINAL = ['첫 번째', '두 번째', '세 번째', '네 번째', '다섯 번째', '여섯 번째', '일곱 번째', '여덟 번째', '아홉 번째', '열 번째']
