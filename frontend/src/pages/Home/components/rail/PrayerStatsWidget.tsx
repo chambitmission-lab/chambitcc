@@ -106,7 +106,7 @@ const WeekdayBars = ({
   const labels = language === 'en' ? DOW_EN : DOW_KO
   return (
     <div>
-      <div className="grid grid-cols-7 gap-2.5" style={{ height: 72 }}>
+      <div className="grid grid-cols-7 gap-2.5" style={{ height: 56 }}>
         {daily.slice(0, 7).map((d, i) => {
           const isToday = i === todayIndex
           const isFuture = i > todayIndex
@@ -293,7 +293,8 @@ const PrayerStatsWidget = () => {
             </h3>
           </div>
         </div>
-        <div className="px-4 pb-4 pt-1">
+        {/* 사진 아래 녹는 구간(하단 ~20%)은 거의 바탕색이라, 요일 막대를 그 위로 끌어올려 빈 띠를 없앤다 */}
+        <div className="relative z-[3] -mt-7 px-4 pb-4">
           {weekly.data?.daily && weekly.data.daily.length === 7 && (
             <WeekdayBars
               daily={weekly.data.daily}
