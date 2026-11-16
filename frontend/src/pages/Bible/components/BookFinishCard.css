@@ -284,6 +284,34 @@
   opacity: 0.75;
 }
 
+/* PC — 위 '돌아보기' 카드와 같은 본문 폭, 넓으면 가로 한 줄(제목 | 이어서 읽기) */
+@media (min-width: 1024px) {
+  .bfin {
+    max-width: none;
+    padding: 1.35rem 1.4rem;
+    container-type: inline-size;
+  }
+}
+@container (min-width: 40rem) {
+  .bfin__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    column-gap: 1.5rem;
+    align-items: center;
+  }
+  .bfin__layout > :not(.bfin__actions) {
+    grid-column: 1;
+  }
+  .bfin__layout > .bfin__fill-gap {
+    justify-self: start;
+  }
+  .bfin__actions {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    margin-top: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bfin__ring-fill,
   .bfin__ring-check {

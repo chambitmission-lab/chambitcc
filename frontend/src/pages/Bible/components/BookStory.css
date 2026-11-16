@@ -251,6 +251,28 @@
   .bstory-end__title {
     font-size: 1.15rem;
   }
+  /* 한 권 돌아보기 — PC에선 위 '이번 회차 질문' 카드와 같은 본문 폭 */
+  .bstory-end--book {
+    max-width: none;
+    padding: 1.35rem 1.4rem 1.4rem;
+    container-type: inline-size;
+  }
+}
+
+/* 카드가 충분히 넓을 때만 2단 (오른쪽 패널을 열어 본문이 좁아지면 1단 유지) */
+@container (min-width: 40rem) {
+  .bstory-end__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .bstory-end__side {
+    padding-top: 2px;
+  }
+  .bstory-end__side .bstory-end__note:first-child {
+    margin-top: 0;
+  }
   .bstory-end__eyebrow,
   .bstory-end__note span,
   .bstory-end__act-tag {

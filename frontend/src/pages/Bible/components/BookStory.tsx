@@ -81,30 +81,37 @@ export const BookStoryEnd = ({ bookNumber, bookName, chapter, totalChapters, nex
   if (chapter >= totalChapters) {
     return (
       <section className="bstory-end bstory-end--book" style={genreStyle(bookNumber)} aria-label={`${bookName} 돌아보기`}>
-        <span className="bstory-end__eyebrow">{bookName} 돌아보기</span>
-        <h3 className="bstory-end__title">{story.thread}</h3>
-        <ol className="bstory-end__acts">
-          {story.acts.map((a, i) => (
-            <li key={a.from}>
-              <span className="bstory-end__act-tag">
-                {story.acts.length > 1 ? `${i + 1}${unit} · ` : ''}
-                {a.name}
-                <small>{rangeLabel(a)}</small>
-              </span>
-              <p>{a.line}</p>
-            </li>
-          ))}
-        </ol>
-        <div className="bstory-end__note">
-          <span>{story.christLabel ?? '예수님께로 이어지는 선'}</span>
-          <p>{story.christ}</p>
-        </div>
-        {nextBookName && (
-          <div className="bstory-end__note bstory-end__note--next">
-            <span>다음 책 · {nextBookName}</span>
-            <p>{story.bridge}</p>
+        {/* 넓은 화면(카드 폭 기준)에선 왼쪽 줄거리 | 오른쪽 메모 2단 */}
+        <div className="bstory-end__grid">
+          <div className="bstory-end__main">
+            <span className="bstory-end__eyebrow">{bookName} 돌아보기</span>
+            <h3 className="bstory-end__title">{story.thread}</h3>
+            <ol className="bstory-end__acts">
+              {story.acts.map((a, i) => (
+                <li key={a.from}>
+                  <span className="bstory-end__act-tag">
+                    {story.acts.length > 1 ? `${i + 1}${unit} · ` : ''}
+                    {a.name}
+                    <small>{rangeLabel(a)}</small>
+                  </span>
+                  <p>{a.line}</p>
+                </li>
+              ))}
+            </ol>
           </div>
-        )}
+          <div className="bstory-end__side">
+            <div className="bstory-end__note">
+              <span>{story.christLabel ?? '예수님께로 이어지는 선'}</span>
+              <p>{story.christ}</p>
+            </div>
+            {nextBookName && (
+              <div className="bstory-end__note bstory-end__note--next">
+                <span>다음 책 · {nextBookName}</span>
+                <p>{story.bridge}</p>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
     )
   }

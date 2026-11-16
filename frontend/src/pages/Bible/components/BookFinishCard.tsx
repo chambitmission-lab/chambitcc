@@ -84,6 +84,8 @@ const BookFinishCard = ({
 
   return (
     <section className={`bfin${complete ? ' bfin--complete' : ''}`} aria-label={title}>
+      {/* 넓은 화면(카드 폭 기준)에선 왼쪽 제목·진행 | 오른쪽 이어서 읽기 */}
+      <div className="bfin__layout">
       <div className="bfin__head">
         {hasProgress && (
           <div className="bfin__ring" aria-hidden>
@@ -180,6 +182,7 @@ const BookFinishCard = ({
           </svg>
           {nextBook ? '다른 책 고르기' : '성경 목록으로'}
         </button>
+      </div>
       </div>
     </section>
   )
