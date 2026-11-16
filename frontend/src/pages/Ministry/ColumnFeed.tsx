@@ -1,36 +1,32 @@
 import type { Column } from '../../types/column'
-import { HandHeartIcon } from '../../components/icons/ActionIcons'
-import { useMediaQuery } from '../../hooks/useMediaQuery'
-import andongProfile from '../../assets/andong.webp'
 import { columnPlainText } from './blockFormat'
-import {
-  SERIF,
-  firstHighlight,
-  firstHighlightAccent,
-  formatLetterDate,
-  highlightKeyword,
-  isThisWeek,
-  monthAnchorId,
-  readingLabel,
-  type MonthGroup,
-} from './letterFormat'
+import { SERIF, firstHighlight, formatLetterDate, highlightKeyword } from './letterFormat'
+import { specialSundayLabel } from './letterSeason'
+import LetterArrivalCover from './LetterArrivalCover'
 
 interface ColumnFeedProps {
   language: string
   loading: boolean
-  /** 검색 중이면 피처드 없이 전부 인덱스 행으로 */
+  /** 검색 중이면 표지 없이 결과 전체를 목록으로 */
   appliedQuery: string
   /** 최신 편지 (검색 중엔 null) */
   featured: Column | null
-  /** 피처드를 제외한 나머지 — 검색 중엔 결과 전체 */
+  /** 표지를 제외한 나머지 — 검색 중엔 결과 전체 */
   restColumns: Column[]
-  monthGroups: MonthGroup[]
+  /** 편지의 호수(몇 번째 편지인지) */
+  issueNumberOf: (column: Column) => number
+  /** 읽기 모달이 열려 있으면 표지 입자를 멈춘다 */
+  coverPaused: boolean
   onOpen: (column: Column) => void
 }
 
-/** 목양칼럼 목록 — 인트로·피처드 카드·지난 편지 인덱스(월별 그룹) */
-const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, monthGroups, onOpen }: ColumnFeedProps) => {
-  const isLg = useMediaQuery('(min-width: 1024px)')
+/**
+ * 목양칼럼 목록 (2026-11 '목회서신 매거진' 개편)
+ * 편지 도착 표지(최신 편지) → 이번 호에서 밑줄 그은 문장 → 지난 호 목차(호수·날짜·절기·제목·두 줄).
+ */
+const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, issueNumberOf, coverPaused, onOpen }: ColumnFeedProps) => {
+  const ko = language === 'ko'
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -43,10 +39,10 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
     return (
       <div className="text-center py-20 text-gray-600 dark:text-gray-400">
         {appliedQuery
-          ? language === 'ko'
+          ? ko
             ? `"${appliedQuery}" 검색 결과가 없습니다`
             : `No results for "${appliedQuery}"`
-          : language === 'ko'
+          : ko
             ? '등록된 목양컬럼이 없습니다'
             : 'No columns available'}
       </div>
@@ -54,152 +50,88 @@ const ColumnFeed = ({ language, loading, appliedQuery, featured, restColumns, mo
   }
 
   const featuredQuote = featured ? firstHighlight(featured.content) : null
-  const featuredQuoteAccent = featured ? firstHighlightAccent(featured.content) : undefined
 
-  // 인덱스 행 — 일반 목록과 검색 결과가 공유
-  const renderIndexRow = (column: Column) => (
-    <button key={column.id} className="w-full text-left py-4 lg:py-5 group" onClick={() => onOpen(column)}>
-      <h3 className="min-w-0">
-        <span
-          className="text-[16px] lg:text-[20px] font-semibold text-ink-strong line-clamp-1 lg:line-clamp-2 tracking-[-0.01em] leading-[1.4] group-hover:text-[var(--brand)] transition-colors"
+  // 지난 호 한 줄 — 호수 번호 + 날짜·절기 + 세리프 제목 + 두 줄 발췌 (검색 결과와 공유)
+  const renderIssueRow = (column: Column) => {
+    const special = specialSundayLabel(column.date, ko)
+    return (
+      <button
+        key={column.id}
+        onClick={() => onOpen(column)}
+        className="group grid grid-cols-[52px_1fr] lg:grid-cols-[72px_1fr] gap-3 lg:gap-4 py-5 lg:py-6 border-b border-gray-200 dark:border-white/10 text-left"
+      >
+        <div
+          className="text-[24px] lg:text-[30px] leading-none font-semibold text-gray-300 dark:text-white/25 group-hover:text-[var(--brand)] transition-colors tabular-nums"
           style={{ fontFamily: SERIF }}
         >
-          {highlightKeyword(column.title, appliedQuery)}
-        </span>
-      </h3>
-      <p className="text-[13px] lg:text-[16px] text-gray-500 dark:text-gray-400 lg:text-gray-600 lg:dark:text-gray-300 line-clamp-1 lg:line-clamp-2 leading-[1.6] lg:leading-[1.7] mt-1.5 lg:mt-2">
-        {highlightKeyword(columnPlainText(column.content), appliedQuery)}
-      </p>
-      <div className="text-[11.5px] lg:text-[14px] text-gray-400 dark:text-gray-500 lg:text-gray-500 lg:dark:text-gray-400 mt-1.5 lg:mt-2">
-        {formatLetterDate(column.date, language)}
-        <span className="mx-1.5 opacity-60">·</span>
-        {readingLabel(column.content, language)}
-      </div>
-    </button>
-  )
+          {String(issueNumberOf(column)).padStart(2, '0')}
+        </div>
+        <div className="min-w-0">
+          <div className="text-[13px] text-gray-500 dark:text-gray-400 mb-1.5">
+            {formatLetterDate(column.date, language)}
+            {special && <span className="ml-2 text-amber-600 dark:text-amber-400 font-semibold">{special}</span>}
+          </div>
+          <h3
+            className="text-[19px] lg:text-[22px] font-semibold text-ink-strong leading-[1.4] tracking-[-0.01em] break-keep group-hover:text-[var(--brand)] transition-colors"
+            style={{ fontFamily: SERIF }}
+          >
+            {highlightKeyword(column.title, appliedQuery)}
+          </h3>
+          <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-[1.7] mt-2 line-clamp-2 break-keep">
+            {highlightKeyword(columnPlainText(column.content), appliedQuery)}
+          </p>
+        </div>
+      </button>
+    )
+  }
 
   return (
-    <div className="px-4 pb-8 lg:px-0">
-      {/* 인트로 — 작성자는 한 분이므로 사진은 여기서 단 한 번만 */}
+    <div className="px-4 pb-10 lg:px-0">
       {featured && (
-        <div className="px-1 pt-6 pb-5 flex items-center gap-4 lg:hidden">
-          <img
-            src={andongProfile}
-            alt={featured.author}
-            className="w-14 h-14 rounded-full object-cover ring-1 ring-black/[0.07] dark:ring-white/[0.12] flex-shrink-0"
-          />
-          <div className="min-w-0">
-            <div className="font-semibold text-ink-strong text-[15px] tracking-[-0.01em]">
-              {featured.author} {featured.role}
-            </div>
-            <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.5] mt-1">
-              {language === 'ko'
-                ? '매주 마음을 담아 성도님들께 띄우는 목회 서신입니다'
-                : 'A weekly letter to our congregation, written with care'}
-            </p>
-          </div>
-        </div>
+        <LetterArrivalCover
+          language={language}
+          column={featured}
+          issueNumber={issueNumberOf(featured)}
+          paused={coverPaused}
+          onOpen={onOpen}
+        />
       )}
 
-      {/* 피처드 — 최신 편지 한 통을 크게 */}
-      {featured && (
-        <article
-          className="feed-card relative rounded-2xl overflow-hidden hover:-translate-y-0.5 hover:border-[var(--brand-glow)] hover:shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all duration-200 cursor-pointer"
+      {/* 이번 호에서 밑줄 그은 문장 — 목사님이 하이라이트한 첫 문장 */}
+      {featured && featuredQuote && (
+        <button
           onClick={() => onOpen(featured)}
+          className="w-full text-left grid lg:grid-cols-[1fr_280px] gap-3 lg:gap-6 mt-8 lg:mt-10 lg:items-end group"
         >
-          {/* 다크모드 표면 그라데이션 — 홈 피드 카드와 동일 문법 */}
-          <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-transparent pointer-events-none rounded-2xl"></div>
-
-          {/* lg+: 2단 분할 대신 한 흐름(배지→날짜→제목→인용→발췌)으로 두고
-              줄 길이만 max-w로 제한 — 폭이 넓어도 "편지 한 통"으로 읽히게 */}
-          <div className="relative z-10 p-6 lg:p-9 lg:max-w-[72ch]">
-            <div>
-              {isThisWeek(featured.date) && (
-                <span className="inline-flex items-center px-2.5 py-1 mb-3 rounded-full bg-[var(--brand-soft-strong)] text-[var(--brand)] text-[11px] lg:text-[14px] lg:px-3.5 lg:py-1.5 lg:mb-4 font-semibold tracking-[-0.005em]">
-                  {language === 'ko' ? '이번 주 편지' : "This Week's Letter"}
-                </span>
-              )}
-              <div className="text-[12px] lg:text-[15px] text-gray-500 dark:text-gray-400 mb-2.5 lg:mb-3">
-                {formatLetterDate(featured.date, language)}
-                <span className="mx-1.5 opacity-60">·</span>
-                {readingLabel(featured.content, language, true)}
-                {/* 아멘은 모인 편지에만 조용히 — 지난 편지 인덱스에는 숫자를 두지 않는다 */}
-                {(featured.amen_count ?? 0) > 0 && (
-                  <>
-                    <span className="mx-1.5 opacity-60">·</span>
-                    <span className="inline-flex items-center gap-1 text-brand">
-                      <HandHeartIcon size={isLg ? 16 : 13} strokeWidth={1.9} />
-                      {featured.amen_count}
-                    </span>
-                  </>
-                )}
-              </div>
-              <h2
-                className="text-[21px] lg:text-[31px] font-semibold text-ink-strong mb-3 lg:mb-5 line-clamp-2 tracking-[-0.01em] leading-[1.4] break-keep"
-                style={{ fontFamily: SERIF }}
-              >
-                {featured.title}
-              </h2>
-            </div>
-
-            <div>
-              {featuredQuote ? (
-                // 목사님이 하이라이트한 문장을 인용구로 — 편지의 핵심 한 줄이 먼저 닿게
-                <>
-                  <blockquote className="border-l-2 pl-4 py-0.5" style={{ borderColor: featuredQuoteAccent }}>
-                    <p
-                      className="text-[15.5px] lg:text-[20px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em] break-keep"
-                      style={{ fontFamily: SERIF }}
-                    >
-                      “{featuredQuote}”
-                    </p>
-                  </blockquote>
-                  <p className="text-[14px] lg:text-[17px] text-gray-600 dark:text-gray-300 line-clamp-2 lg:line-clamp-3 leading-[1.8] tracking-[-0.01em] mt-3.5 lg:mt-4 break-keep">
-                    {columnPlainText(featured.content)}
-                  </p>
-                </>
-              ) : (
-                <p className="text-[15px] lg:text-[17px] text-gray-600 dark:text-gray-300 line-clamp-4 leading-[1.8] tracking-[-0.01em] break-keep">
-                  {columnPlainText(featured.content)}
-                </p>
-              )}
-            </div>
+          <blockquote
+            className="text-[21px] lg:text-[30px] leading-[1.6] text-ink-strong tracking-[-0.01em] break-keep"
+            style={{ fontFamily: SERIF }}
+          >
+            <span className="text-[var(--brand)]">“</span>
+            {featuredQuote}
+            <span className="text-[var(--brand)]">”</span>
+          </blockquote>
+          <div className="text-[14px] lg:text-[15px] text-gray-500 dark:text-gray-400 lg:text-right">
+            {ko ? '이번 호에서 밑줄 그은 문장' : 'Underlined in this issue'}
+            <div className="mt-1 text-ink-strong font-semibold">{formatLetterDate(featured.date, language)}</div>
           </div>
-        </article>
+        </button>
       )}
 
-      {/* 지난 편지 — 컴팩트 인덱스, 월별 그룹 (검색 중에는 결과 전체가 평면 리스트) */}
-      {restColumns.length > 0 &&
-        (appliedQuery ? (
-          <div className="feed-card rounded-2xl px-5 divide-y divide-border-light dark:divide-white/[0.06] mt-4">
-            {restColumns.map(renderIndexRow)}
+      {/* 지난 호 목차 — 검색 중엔 결과 */}
+      {restColumns.length > 0 && (
+        <section className="mt-12 lg:mt-14">
+          <div className="flex items-end justify-between border-b-2 border-gray-900 dark:border-white/80 pb-3">
+            <h2 className="text-[22px] lg:text-[26px] font-bold text-ink-strong" style={{ fontFamily: SERIF }}>
+              {appliedQuery ? (ko ? '찾은 편지' : 'Results') : ko ? '지난 호' : 'Past issues'}
+            </h2>
+            <span className="text-[14px] lg:text-[15px] text-gray-500 dark:text-gray-400">
+              {ko ? `${restColumns.length}통` : `${restColumns.length} letters`}
+            </span>
           </div>
-        ) : (
-          <>
-            <div className="px-1 mt-8 mb-3 text-[13px] lg:text-[18px] lg:mt-10 lg:mb-4 font-semibold text-gray-500 dark:text-gray-400 lg:text-ink-strong tracking-[-0.005em]">
-              {language === 'ko' ? '지난 편지' : 'Earlier Letters'}
-            </div>
-            {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 월 카드를 2열로 (한 달치뿐이면 그대로 한 줄).
-                칸 수는 폭으로 정한다 — 글씨를 키우면(PC 글씨 크기 zoom) 한 열로 풀려 제목이 잘리지 않는다 */}
-            <div className={monthGroups.length > 1 ? 'lg:grid lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:gap-x-5 lg:gap-y-6 lg:items-start' : ''}>
-              {monthGroups.map((group, gi) => (
-                <div key={group.label} id={monthAnchorId(gi)} className="scroll-mt-20">
-                  {/* 한 달치뿐이면 월 라벨은 소음 — 여러 달 쌓였을 때만 */}
-                  {monthGroups.length > 1 && (
-                    <div
-                      className={`px-1 mb-2 text-[12px] lg:text-[15px] lg:mb-2.5 font-medium lg:font-semibold text-gray-400 dark:text-gray-500 lg:mt-0 ${gi > 0 ? 'mt-6' : ''}`}
-                    >
-                      {group.label}
-                    </div>
-                  )}
-                  <div className="feed-card rounded-2xl px-5 divide-y divide-border-light dark:divide-white/[0.06]">
-                    {group.items.map(renderIndexRow)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        ))}
+          <div className="grid lg:grid-cols-2 lg:gap-x-12">{restColumns.map(renderIssueRow)}</div>
+        </section>
+      )}
     </div>
   )
 }

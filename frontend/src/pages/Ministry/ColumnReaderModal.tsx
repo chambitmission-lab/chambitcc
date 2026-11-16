@@ -6,10 +6,13 @@ import KakaoIcon from '../../components/icons/KakaoIcon'
 import { canKakaoShare, loadKakaoShare } from '../../utils/kakaoShare'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import ColumnLetter from './ColumnLetter'
+import LetterPostmark from './LetterPostmark'
+import { letterSeasonOf, seasonScene } from './letterSeason'
 import { shareColumnKakao, shareColumnLink } from './columnShare'
 import {
   FONT_STEPS,
   FONT_STEPS_LG,
+  PEN,
   SERIF,
   formatLetterDate,
   loadFontStep,
@@ -20,6 +23,8 @@ interface ColumnReaderModalProps {
   language: string
   /** 읽고 있는 편지 — 아멘 수는 캐시 쪽이 최신이므로 부모가 목록 캐시의 같은 편지를 넘긴다 */
   column: Column
+  /** 몇 번째 편지인지(호수) — 머리띠에 No. 로 */
+  issueNumber: number
   /** 이어 읽기 — 다음(더 최신)·이전(더 과거) */
   newerColumn: Column | null
   olderColumn: Column | null
@@ -39,6 +44,7 @@ interface ColumnReaderModalProps {
 const ColumnReaderModal = ({
   language,
   column,
+  issueNumber,
   newerColumn,
   olderColumn,
   isAdminUser,
@@ -238,8 +244,43 @@ const ColumnReaderModal = ({
           </div>
         </div>
 
+        {/* 머리띠 — 목록 표지와 같은 계절 교회 사진 + 소인 도장. 편지를 '받아 펼친' 이어짐 */}
+        <div className="relative h-[120px] lg:h-[170px] overflow-hidden" aria-hidden="true">
+          <img
+            src={seasonScene(letterSeasonOf(column.date), 'day')}
+            alt=""
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover object-[85%_45%] dark:hidden"
+          />
+          <img
+            src={seasonScene(letterSeasonOf(column.date), 'night')}
+            alt=""
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover object-[85%_45%] hidden dark:block"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-background-light dark:to-background-dark" />
+          <div
+            className="absolute left-6 top-4 lg:left-14 lg:top-6 flex items-center gap-2 text-white [text-shadow:0_1px_10px_rgba(0,40,100,0.5)]"
+          >
+            <span className="text-[16px] lg:text-[20px] font-semibold" style={{ fontFamily: SERIF }}>
+              {ko ? '참빛 목회서신' : 'Chambit Pastoral Letter'}
+            </span>
+            {issueNumber > 0 && <span className="text-[12.5px] lg:text-[14px] text-white/90">No.{issueNumber}</span>}
+          </div>
+        </div>
+
         {/* 편지 본문 */}
-        <div className="px-6 pt-6 pb-12 lg:px-14 lg:pt-10 lg:pb-16">
+        <div className="relative px-6 pt-2 pb-12 lg:px-14 lg:pt-4 lg:pb-16">
+          <LetterPostmark
+            date={column.date}
+            language={language}
+            className="absolute -top-14 right-4 lg:-top-20 lg:right-10 w-[84px] h-[84px] lg:w-[110px] lg:h-[110px] rotate-[-12deg] text-[#c2410c]/80 dark:text-amber-300/80 pointer-events-none"
+          />
+          {ko && (
+            <div className="text-[24px] lg:text-[30px] text-gray-600 dark:text-gray-300 mb-4 lg:mb-6" style={{ fontFamily: PEN }}>
+              사랑하는 참빛 성도님께,
+            </div>
+          )}
           <ColumnLetter language={language} column={column} fontSize={fontPx} />
 
           {/* 아멘 — 편지를 다 읽고 조용히 화답하는 자리 (좋아요가 아니라 응답) */}

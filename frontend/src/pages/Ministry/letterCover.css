@@ -1,0 +1,36 @@
+/* 목양칼럼 '편지 도착' 표지 — 들어올 때 한 번만 움직인다(반복 움직임은 계절 입자 캔버스뿐).
+   편지지가 하늘에서 내려앉고 → 소인 도장이 찍히고 → 서명이 써진다. */
+
+@keyframes lc-letter-in {
+  from { opacity: 0; transform: translateY(48px) rotate(-1.6deg); }
+  to { opacity: 1; transform: rotate(var(--lc-tilt, 0deg)); }
+}
+@keyframes lc-stamp-in {
+  0% { opacity: 0; transform: scale(1.8) rotate(-24deg); }
+  60% { opacity: 1; transform: scale(0.94) rotate(-10deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-12deg); }
+}
+@keyframes lc-sign-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+.lc-letter {
+  transform: rotate(var(--lc-tilt, 0deg));
+  animation: lc-letter-in 0.95s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
+}
+/* PC 에서만 살짝 기울여 '놓인' 느낌 — 모바일은 반듯하게 */
+@media (min-width: 1024px) {
+  .lc-letter { --lc-tilt: -1deg; }
+}
+.lc-stamp {
+  transform: rotate(-12deg);
+  animation: lc-stamp-in 0.7s cubic-bezier(0.3, 1.4, 0.5, 1) 0.95s both;
+}
+.lc-sign {
+  animation: lc-sign-in 1.5s ease-out 1.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc-letter, .lc-stamp, .lc-sign { animation: none; }
+}

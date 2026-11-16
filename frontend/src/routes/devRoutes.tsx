@@ -79,6 +79,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['growth-rewind', () => import('../pages/dev/GrowthRewindPreview')],
       // 마우스가 지나간 자리 빛 잔상 시안 비교 — ?v=a~f
       ['cursor-trail', () => import('../pages/dev/CursorTrailLab')],
+      // 목양칼럼(/ministry) 전면 개편 시안 비교 — ?v=a|b|c|d (운영 칼럼 스냅샷)
+      ['ministry-redesign', () => import('../pages/dev/MinistryRedesignPreview')],
     ]
   : []
 

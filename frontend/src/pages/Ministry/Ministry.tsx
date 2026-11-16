@@ -6,12 +6,10 @@ import { showToast } from '../../utils/toast'
 import { deleteColumn, getColumn } from '../../api/column'
 import type { Column } from '../../types/column'
 import { useColumnAmen, useColumns } from './useColumns'
-import { firstHighlight, groupByMonth } from './letterFormat'
 import MinistryHeader from './MinistryHeader'
 import ColumnFeed from './ColumnFeed'
 import ColumnReaderModal from './ColumnReaderModal'
 import DeleteColumnDialog from './DeleteColumnDialog'
-import MinistryRail, { type RailHighlight } from './MinistryRail'
 import { can } from '../../utils/access'
 import { lazyModal } from '../../utils/lazyModal'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
@@ -32,7 +30,7 @@ const newColumnDraft = (): Partial<Column> => ({
 
 /**
  * 목양칼럼 페이지. 데이터(useColumns)와 열림 상태만 들고,
- * 목록(ColumnFeed)·읽기(ColumnReaderModal)·편집(ColumnEditorModal)·레일(MinistryRail)에 나눠준다.
+ * 목록(ColumnFeed — 편지 도착 표지·지난 호)·읽기(ColumnReaderModal)·편집(ColumnEditorModal)에 나눠준다.
  */
 const Ministry = () => {
   const { language } = useLanguage()
@@ -43,8 +41,6 @@ const Ministry = () => {
   // 편집 모달 — null이면 닫힘, 객체면 그 초기값으로 열림(id 있으면 수정)
   const [editorDraft, setEditorDraft] = useState<Partial<Column> | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  // PC: 우측 레일을 타이틀 행 아래(피처드 카드 윗선)에 맞추기 위한 헤더 실측 높이
-  const [headerHeight, setHeaderHeight] = useState(0)
   const { columns, allColumns, loading, syncColumnsCache, patchColumnCache } = useColumns(appliedQuery)
 
   const handleAmen = useColumnAmen(patchColumnCache, language)
@@ -112,16 +108,10 @@ const Ministry = () => {
   // 검색 중에는 피처드 없이 전부 인덱스 행으로
   const featured = !appliedQuery && columns.length > 0 ? columns[0] : null
   const restColumns = featured ? columns.slice(1) : columns
-  const monthGroups = appliedQuery ? [] : groupByMonth(restColumns, language)
 
-  // 우측 위젯 '편지함' — 지금까지 쌓인 전체 통수와, 지난 편지에서 밑줄 그은 문장.
-  // 검색 중에는 columns가 결과만 담으므로 전체 목록(allColumns)을 쓴다.
-  // 최신 편지는 피처드 카드에서 이미 인용구로 보여주므로 여기선 제외한다
-  const railHighlights: RailHighlight[] = allColumns
-    .slice(1)
-    .map((c) => ({ column: c, quote: firstHighlight(c.content) }))
-    .filter((h): h is RailHighlight => !!h.quote)
-    .slice(0, 3)
+  // 호수 — 지금까지 쌓인 편지 중 몇 번째인지(가장 오래된 편지가 1호). 검색 중에도 전체 목록 기준
+  const issueIndex = new Map(allColumns.map((c, i) => [c.id, allColumns.length - i]))
+  const issueNumberOf = (column: Column) => issueIndex.get(column.id) ?? 0
 
   // 상세 하단 이어읽기 — 다음(더 최신)·이전(더 과거) 편지
   const selectedIdx = selectedColumn ? columns.findIndex((c) => c.id === selectedColumn.id) : -1
@@ -132,18 +122,18 @@ const Ministry = () => {
 
   return (
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage home-lift">
-      {/* lg+: 좁은 폰 프레임을 풀고 본문(편지) + 우측 위젯 레일 2컬럼으로 (/news와 같은 문법).
+      {/* lg+: 좁은 폰 프레임을 풀고 한 칸 넓은 매거진 — 표지(편지 도착)가 폭을 다 쓴다.
+          (예전 우측 위젯 레일의 목사님·편지함·밑줄 문장은 표지와 '밑줄 그은 문장'으로 옮겨 갔다)
           좌측 레일 오프셋은 전역 main(App.tsx)이 잡아주므로 여기선 px-5만 둔다 */}
-      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="lg:max-w-[1180px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
         {/* lg+: 셸(배경·테두리·라운드)을 걷어낸다 — 안쪽이 전부 feed-card라 셸까지 두면
             스테이지 → 셸 → 헤더 띠 → 카드로 톤이 다른 층이 겹쳐 "상자 속 상자"가 된다 */}
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:border-0 lg:min-h-0">
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:bg-transparent lg:dark:bg-transparent lg:border-0 lg:min-h-0">
           <MinistryHeader
             language={language}
             isAdminUser={isAdminUser}
             onQueryChange={setAppliedQuery}
             onAddNew={() => setEditorDraft(newColumnDraft())}
-            onHeightChange={setHeaderHeight}
           />
 
           <ColumnFeed
@@ -152,7 +142,8 @@ const Ministry = () => {
             appliedQuery={appliedQuery}
             featured={featured}
             restColumns={restColumns}
-            monthGroups={monthGroups}
+            issueNumberOf={issueNumberOf}
+            coverPaused={!!liveSelected || !!editorDraft}
             onOpen={setSelectedColumn}
           />
 
@@ -160,6 +151,7 @@ const Ministry = () => {
             <ColumnReaderModal
               language={language}
               column={liveSelected}
+              issueNumber={issueNumberOf(liveSelected)}
               newerColumn={newerColumn}
               olderColumn={olderColumn}
               isAdminUser={isAdminUser}
@@ -188,16 +180,6 @@ const Ministry = () => {
             <DeleteColumnDialog language={language} onConfirm={handleDelete} onClose={() => setShowDeleteConfirm(false)} />
           )}
         </div>
-
-        <MinistryRail
-          language={language}
-          featured={featured}
-          totalLetters={allColumns.length}
-          railHighlights={railHighlights}
-          monthGroups={monthGroups}
-          topOffset={headerHeight}
-          onOpen={setSelectedColumn}
-        />
       </div>
     </div>
   )
