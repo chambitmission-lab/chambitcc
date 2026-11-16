@@ -199,7 +199,9 @@ const LetterSeasonFx = ({ season: s, boxRef, targetRef, paused = false }: Letter
     }
 
     // 멀리 있는 것부터 그리도록 깊이순
-    let ps: P[] = Array.from({ length: spec.count }, () => spawn(null, true)).sort((a, b) => a.z - b.z)
+    // 모바일은 판이 좁아 같은 개수면 화면 가득 쏟아져 보인다 → 사계절 입자는 절반만(여름밤 반딧불만 그대로)
+    const density = window.matchMedia('(min-width: 1024px)').matches ? 1 : 0.5
+    let ps: P[] = Array.from({ length: Math.max(1, Math.round(spec.count * density)) }, () => spawn(null, true)).sort((a, b) => a.z - b.z)
 
     const flies: Firefly[] = Array.from({ length: 16 }, (_, i) => {
       const near = i % 3 === 0
