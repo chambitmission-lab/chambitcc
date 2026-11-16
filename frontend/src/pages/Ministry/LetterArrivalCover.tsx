@@ -35,41 +35,47 @@ const LetterArrivalCover = ({ language, column, issueNumber, paused, onOpen }: L
     <section
       ref={boxRef}
       aria-label={ko ? '이번 주 목양칼럼' : "This week's letter"}
-      className="relative overflow-hidden rounded-[26px] lg:rounded-[32px] lg:h-[620px] bg-sky-400 dark:bg-[#0b1838]"
+      className="relative overflow-hidden lg:rounded-[32px] lg:h-[620px] lg:bg-sky-400 lg:dark:bg-[#0b1838]"
     >
-      {/* 계절 교회 사진 — 교회가 오른쪽에 오도록 */}
-      <div className="absolute inset-0" aria-hidden="true">
+      {/* 계절 교회 사진 — 교회가 오른쪽에 오도록.
+          모바일은 표지 전체가 아니라 위쪽 가로 띠로만 깐다: 세로로 긴 판에 3:1 사진을 채우면
+          18%만 보여 교회가 잘리고 판이 길쭉해 보인다 → 띠로 두면 교회 건물이 통째로 보이고,
+          편지지는 띠 아래 끝에 걸쳐 놓인다. */}
+      <div
+        className="absolute inset-x-0 top-0 h-[236px] sm:h-[280px] rounded-[26px] overflow-hidden bg-sky-400 dark:bg-[#0b1838] lg:inset-0 lg:h-auto lg:rounded-none"
+        aria-hidden="true"
+      >
         <img
           src={seasonScene(season, 'day')}
           alt=""
           decoding="async"
           fetchPriority="high"
-          className="absolute inset-0 w-full h-full object-cover object-[85%_50%] dark:hidden"
+          className="absolute inset-0 w-full h-full object-cover object-[100%_50%] lg:object-[85%_50%] dark:hidden"
         />
         <img
           src={seasonScene(season, 'night')}
           alt=""
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover object-[85%_50%] hidden dark:block"
+          className="absolute inset-0 w-full h-full object-cover object-[100%_50%] lg:object-[85%_50%] hidden dark:block"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-transparent dark:from-black/30" />
       </div>
 
       <LetterSeasonFx key={season} season={season} boxRef={boxRef} targetRef={letterRef} paused={paused} />
 
-      <div className="relative px-4 lg:px-12 pt-5 lg:pt-9 pb-4 lg:pb-0 h-full">
+      <div className="relative px-4 lg:px-12 pt-5 lg:pt-9 pb-8 lg:pb-0 h-full">
         <div className="flex items-center gap-2.5 text-white [text-shadow:0_1px_10px_rgba(0,40,100,0.45)]">
           <span className="text-[18px] lg:text-[22px] font-semibold" style={{ fontFamily: SERIF }}>
             {ko ? '참빛 목회서신' : 'Chambit Pastoral Letter'}
           </span>
           <span className="text-[13px] lg:text-[14px] text-white/90">No.{issueNumber}</span>
         </div>
-        {/* 모바일은 편지 위로 교회 사진이 보이게 하늘을 남긴다 */}
-        <div className="h-[170px] sm:h-[220px] lg:hidden" aria-hidden="true" />
+        {/* 모바일은 편지 위로 교회 사진이 보이게 하늘을 남긴다(사진 띠 아래 끝에 편지가 70px쯤 걸친다) */}
+        <div className="h-[120px] sm:h-[160px] lg:hidden" aria-hidden="true" />
 
         <div ref={letterRef} className="lg:absolute lg:left-12 lg:bottom-12 w-full lg:w-[600px]">
           <article
-            className="lc-letter relative cursor-pointer rounded-[20px] lg:rounded-[22px] bg-white dark:bg-[#141c2e] px-5 lg:px-10 pt-7 lg:pt-8 pb-6 lg:pb-7 shadow-[0_30px_70px_-20px_rgba(10,40,100,0.55)] dark:ring-1 dark:ring-white/10"
+            className="lc-letter relative cursor-pointer rounded-[20px] lg:rounded-[22px] bg-white dark:bg-[#141c2e] px-5 lg:px-10 pt-7 lg:pt-8 pb-5 lg:pb-7 ring-1 ring-black/[0.04] shadow-[0_16px_36px_-16px_rgba(10,40,100,0.4)] lg:shadow-[0_30px_70px_-20px_rgba(10,40,100,0.55)] dark:ring-white/10"
             onClick={() => onOpen(column)}
           >
             <LetterPostmark
@@ -106,13 +112,13 @@ const LetterArrivalCover = ({ language, column, issueNumber, paused, onOpen }: L
               {column.title}
             </h2>
             <p
-              className="text-[16px] lg:text-[18px] leading-[1.85] text-gray-600 dark:text-gray-300 mt-3 lg:mt-4 line-clamp-3 break-keep"
+              className="text-[16px] lg:text-[18px] leading-[1.85] text-gray-600 dark:text-gray-300 mt-2.5 lg:mt-4 line-clamp-2 lg:line-clamp-3 break-keep"
               style={{ fontFamily: SERIF }}
             >
               {columnPlainText(column.content)}
             </p>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 mt-5 lg:mt-6 pt-4 lg:pt-5 border-t border-dashed border-gray-200 dark:border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-4 lg:mt-6 pt-4 lg:pt-5 border-t border-dashed border-gray-200 dark:border-white/10">
               <div className="flex items-center gap-3 min-w-0">
                 <img src={andongProfile} alt="" className="w-10 h-10 lg:w-11 lg:h-11 rounded-full object-cover flex-shrink-0" />
                 <img src={signature} alt={column.author} className="lc-sign h-8 lg:h-9 dark:invert" />
