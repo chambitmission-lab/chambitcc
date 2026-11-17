@@ -5,7 +5,8 @@
 //   내리면 영상이 위에 한 줄로 붙고(docked), ⌄/'작게 띄우기'로 구석에 띄운 채 목록을 둘러본다(float).
 // 플레이어(iframe)는 스크롤 영역 밖 한 자리에 두고, 펼친 상태에선 자리표시(slot) 위치를 따라간다 —
 // 그래서 내용과 함께 자연스럽게 스크롤되면서도 붙거나 떠도 다시 로드되지 않는다.
-// 화면 전체가 다크 섬(data-theme="dark")이라 안쪽 공용 조각(본문·구절·한 줄)은 다크 토큰으로 그려진다.
+// 화면 색은 둘 — '계절 색'(기본, 늘 어두운 극장 + 설교 날짜의 계절 빛)과 '기본 색'(앱 라이트/다크를 그대로).
+// 루트 data-theme 을 화면 색에 맞춰 두어 안쪽 공용 조각(본문·구절·한 줄)이 그 테마 토큰으로 그려진다.
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
@@ -35,6 +36,7 @@ import { pastorShortName, stampParts, worshipSlot } from '../utils/sermonLetter'
 import { letterSeasonOf, seasonScene } from '../../Ministry/letterSeason'
 import LetterSeasonFx from '../../Ministry/LetterSeasonFx'
 import { safeStorage } from '../../../utils/safeStorage'
+import { useTheme } from '../../../contexts/ThemeContext'
 import './SermonDetail.css'
 import { toastFeedback } from '../../../utils/toast'
 import { can } from '../../../utils/access'
@@ -69,6 +71,11 @@ const preconnectYouTube = () => {
 const HINT_KEY = 'sermon-lights-hint'
 const HINT_MAX = 3
 
+// 화면 색 — 기기에 기억한다(계절 연출이 부담스러운 분은 한 번 바꾸면 계속 기본 색)
+type Palette = 'season' | 'plain'
+const PALETTE_KEY = 'sermon-theater-palette'
+const readPalette = (): Palette => (safeStorage.get(PALETTE_KEY) === 'plain' ? 'plain' : 'season')
+
 type Mode = 'full' | 'docked' | 'float'
 
 interface SermonDetailProps {
@@ -81,7 +88,8 @@ interface SermonDetailProps {
   onClose: () => void
   onDelete?: () => void
   onEdit?: () => void
-  /** 설교 날짜의 계절 색(봄 벚꽃·여름 숲·가을 금빛·겨울 눈). 끄면 가을 금빛 하나(시안 비교용) */
+  /** 설교 날짜의 계절 색(봄 벚꽃·여름 숲·가을 금빛·겨울 눈)을 쓸 수 있는지. 끄면 가을 금빛 하나(시안 비교용).
+   *  성도가 '기본 색'을 고르면 이 값과 상관없이 앱 라이트/다크 기본 화면 */
   seasonTheme?: boolean
   /** 재생 전 표지 위로 계절 입자(꽃잎·반딧불·단풍·눈). 재생·불 끄기·스크롤하면 사라진다 */
   seasonFx?: boolean
@@ -117,6 +125,15 @@ const SermonDetail = ({
 }: SermonDetailProps) => {
   const rootRef = useRef<HTMLDivElement>(null)
   const fxBoxRef = useRef<HTMLDivElement>(null)
+  const { theme } = useTheme()
+  const [palette, setPalette] = useState<Palette>(readPalette)
+  const choosePalette = (next: Palette) => {
+    setPalette(next)
+    safeStorage.set(PALETTE_KEY, next)
+  }
+  const plain = palette === 'plain'
+  const plainLight = plain && theme === 'light'
+  const seasonal = seasonTheme && !plain
   const topRef = useRef<HTMLElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const slotRef = useRef<HTMLDivElement>(null)
@@ -324,7 +341,10 @@ const SermonDetail = ({
   const heading = referenceLabel || titleText
   const eyebrow = [sermon.pastor, referenceLabel ? titleText : null].filter(Boolean).join(' · ')
   const season = letterSeasonOf(sermon.sermon_date)
-  const coverPhoto = seasonScene(season, 'night')
+  // 기본 색은 계절 없이 교회 사진(앱 테마에 맞춰 낮/밤)
+  const coverPhoto = plain
+    ? `/images/visit/church-${plainLight ? 'day' : 'night'}.webp`
+    : seasonScene(season, 'night')
 
   // "▶ …" 한 줄은 본문에서 빼내 핵심 포인트로 (없으면 본문 그대로)
   const { highlight, body: bodyContent } = useMemo(
@@ -378,9 +398,18 @@ const SermonDetail = ({
   return (
     <div
       ref={rootRef}
-      data-theme="dark"
-      data-season={seasonTheme ? season : undefined}
-      className={`sermon-theater dark is-${mode}${lightsOff ? ' is-lights-off' : ''}${videoId ? ' has-video' : ''}${seasonTheme ? ' is-seasonal' : ''}`}
+      data-theme={plainLight ? 'light' : 'dark'}
+      data-season={seasonal ? season : undefined}
+      className={[
+        'sermon-theater',
+        plainLight ? '' : 'dark',
+        `is-${mode}`,
+        lightsOff ? 'is-lights-off' : '',
+        videoId ? 'has-video' : '',
+        seasonal ? 'is-seasonal' : '',
+        plain ? 'is-plain' : '',
+        plainLight ? 'is-plain-light' : '',
+      ].filter(Boolean).join(' ')}
       role="dialog"
       aria-modal={!floating}
       aria-label={`${heading} 설교`}
@@ -388,10 +417,10 @@ const SermonDetail = ({
       <div className="st-stage" aria-hidden={floating}>
         <div className="st-ambient" aria-hidden>
           {/* 계절 색이면 그 계절 교회 사진을 빛 재료로(유튜브 썸네일은 매주 같은 주황 템플릿이라 계절을 덮는다) */}
-          <img src={videoId && !seasonTheme ? youtubeThumbnailUrl(videoId) : coverPhoto} alt="" decoding="async" />
+          <img src={videoId && !seasonal ? youtubeThumbnailUrl(videoId) : coverPhoto} alt="" decoding="async" />
         </div>
 
-        {seasonFx && (
+        {seasonFx && seasonal && (
           <div
             ref={fxBoxRef}
             className={`st-fx${videoSrc || lightsOff || mode !== 'full' ? ' is-paused' : ''}`}
@@ -491,6 +520,19 @@ const SermonDetail = ({
                   <button type="button" className="st-act" onClick={openBible}>
                     <Icon n="menu_book" />성경에서 열기
                   </button>
+                )}
+                {seasonTheme && (
+                  <div className="st-palette" role="group" aria-label="화면 색">
+                    <span className="st-palette-label">화면 색</span>
+                    <div className="st-palette-seg">
+                      <button type="button" aria-pressed={!plain} onClick={() => choosePalette('season')}>
+                        계절
+                      </button>
+                      <button type="button" aria-pressed={plain} onClick={() => choosePalette('plain')}>
+                        기본
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </section>

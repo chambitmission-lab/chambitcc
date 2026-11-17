@@ -19,6 +19,18 @@
   --st-glow: rgba(235, 135, 55, 0.6);
   --st-glow-2: rgba(205, 70, 40, 0.35);
   --st-line: rgba(255, 255, 255, 0.08);
+  /* 면·버튼 — 기본 색(라이트)에서 바뀌므로 변수로 */
+  --st-raise: rgba(255, 255, 255, 0.08);
+  --st-raise-hover: rgba(255, 255, 255, 0.15);
+  --st-panel: rgba(255, 255, 255, 0.04);
+  --st-panel-2: rgba(255, 255, 255, 0.05);
+  --st-border: rgba(255, 255, 255, 0.14);
+  --st-danger: #ff8a93;
+  --st-depth:
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    0 18px 36px -12px rgba(0, 0, 0, 0.7),
+    0 50px 100px -30px rgba(0, 0, 0, 0.8);
+  --st-rim: inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
   --st-top: calc(60px + env(safe-area-inset-top));
   --sl-pen-ink: #f1d9a8;
   color: var(--st-ink);
@@ -43,7 +55,8 @@
   overflow: hidden;
   background: var(--st-bg);
   animation: st-in 0.28s ease-out;
-  transition: transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease, visibility 0s linear 0s;
+  transition: transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease, visibility 0s linear 0s,
+    background-color 0.7s ease;
 }
 
 @keyframes st-in {
@@ -130,7 +143,7 @@
   border: 0;
   cursor: pointer;
   color: var(--st-ink);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--st-raise);
   transition: opacity 0.6s ease, background 0.15s ease;
 }
 
@@ -155,14 +168,14 @@
 .st-pill-label { display: none; }
 
 .st-icon:hover,
-.st-pill:hover { background: rgba(255, 255, 255, 0.16); }
+.st-pill:hover { background: var(--st-raise-hover); }
 
 .st-pill.is-on {
   background: var(--st-ink);
   color: var(--st-bg);
 }
 
-.st-pill--danger { color: #ff8a93; }
+.st-pill--danger { color: var(--st-danger); }
 
 .st-icon:focus-visible,
 .st-pill:focus-visible,
@@ -285,16 +298,16 @@
   gap: 6px;
   min-height: 48px;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--st-border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--st-panel-2);
   color: var(--st-ink);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.st-act:hover { background: rgba(255, 255, 255, 0.12); }
+.st-act:hover { background: var(--st-raise-hover); }
 .st-act .material-icons-outlined { font-size: 20px; }
 
 /* ── 블록(음성·본문·한 줄·구절·내용) ───────────────── */
@@ -302,7 +315,7 @@
   margin: 22px 14px 0;
   padding: 20px 18px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--st-panel);
   border: 1px solid var(--st-line);
 }
 
@@ -377,7 +390,7 @@
 .st-take .sl-btn { background: color-mix(in srgb, var(--st-gold) 12%, transparent); color: var(--st-gold); font-size: 15px; padding: 11px 16px; }
 .st-take .sl-btn--solid { background: var(--st-gold); color: var(--st-on-gold); }
 .st-take .sl-btn--plain { background: none; color: var(--st-faint); }
-.st-take .sl-input { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.14); color: var(--st-ink); }
+.st-take .sl-input { background: var(--st-panel-2); border-color: var(--st-border); color: var(--st-ink); }
 .st-take .sl-input:focus { outline-color: var(--st-gold); }
 .st-take .sl-share input { accent-color: var(--st-gold); }
 .st-take .sl-pen { font-size: 26px; }
@@ -434,13 +447,13 @@
   padding: 16px;
   border-radius: 16px;
   border: 1px solid var(--st-line);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--st-panel-2);
   color: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.st-rail button:hover { background: rgba(255, 255, 255, 0.1); }
+.st-rail button:hover { background: var(--st-raise-hover); }
 
 .st-rail-date { font-size: 12.5px; color: var(--st-faint); }
 .st-rail-date b { margin-right: 6px; font-size: 13px; color: var(--st-gold); }
@@ -508,11 +521,7 @@
 /* 떠 있는 화면 — 움직임 없이 빛과 그림자로만 입체감(어르신 어지러움 때문에 기울이기·따라오기 금지).
  * 가까운 그림자 + 멀리 퍼지는 그림자 + 계절 빛 번짐을 겹쳐 바탕에서 한 뼘 떠 보이게 한다. */
 .is-full .st-player-wrap {
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.35),
-    0 18px 36px -12px rgba(0, 0, 0, 0.7),
-    0 50px 100px -30px rgba(0, 0, 0, 0.8),
-    0 40px 160px -30px var(--st-glow);
+  box-shadow: var(--st-depth), 0 40px 160px -30px var(--st-glow);
   animation: st-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
@@ -537,9 +546,7 @@
   z-index: 2;
   border-radius: inherit;
   pointer-events: none;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  box-shadow: var(--st-rim);
 }
 
 /* 빛 웅덩이 — 영상 아래 바닥에 고이는 계절 빛(프로젝터 빛이 바닥에 비친 느낌) */
@@ -776,6 +783,105 @@
   --sl-pen-ink: #d6e5f8;
 }
 
+/* ── 기본 색(palette=plain) ───────────────────────────
+ * 계절 연출이 부담스러운 분을 위한 무난한 화면. 앱의 라이트/다크 설정을 그대로 따른다
+ * (루트 data-theme 이 앱 테마라 아래 var(--text-*) 등은 그 테마 값으로 풀린다).
+ * 계절 빛·입자·빛 웅덩이는 없고 차분한 그림자만. */
+.sermon-theater.is-plain {
+  --st-bg: var(--app-canvas);
+  --st-ink: var(--text-strong);
+  --st-soft: var(--text-body);
+  --st-faint: var(--text-muted);
+  --st-gold: var(--brand);
+  --st-on-gold: #fff;
+  --st-glow: transparent;
+  --st-glow-2: transparent;
+  --st-line: var(--card-border);
+  --sl-pen-ink: var(--brand-muted);
+}
+
+.is-plain .st-ambient,
+.is-plain .st-slot::after { display: none; }
+
+/* 라이트 — 흰 면 + 토스 블루, 그림자는 가볍게 */
+.sermon-theater.is-plain-light {
+  --st-raise: rgba(0, 0, 0, 0.05);
+  --st-raise-hover: rgba(0, 0, 0, 0.09);
+  --st-panel: var(--surface-container);
+  --st-panel-2: var(--surface-container);
+  --st-border: var(--card-border);
+  --st-danger: #e5484d;
+  --st-depth:
+    0 1px 3px rgba(20, 30, 50, 0.12),
+    0 20px 50px -18px rgba(20, 30, 50, 0.35);
+  --st-rim: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.is-plain-light .st-block { box-shadow: var(--card-shadow); }
+
+/* 라이트에서 불 끄기 — 극장처럼 어두워졌다가 켜면 다시 밝아진다 */
+.sermon-theater.is-plain-light.is-lights-off {
+  --st-bg: #0b0a0c;
+  --st-ink: #f4efe6;
+  --st-soft: rgba(244, 239, 230, 0.68);
+  --st-faint: rgba(244, 239, 230, 0.5);
+  --st-raise: rgba(255, 255, 255, 0.08);
+  --st-raise-hover: rgba(255, 255, 255, 0.15);
+  /* 흰 카드가 어둠 속에 회색으로 비치지 않게 면도 함께 어둡게 */
+  --st-panel: rgba(255, 255, 255, 0.04);
+  --st-panel-2: rgba(255, 255, 255, 0.05);
+  --st-depth:
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 24px 48px -12px rgba(0, 0, 0, 0.9),
+    0 60px 140px -30px rgba(0, 0, 0, 0.95);
+}
+
+/* 화면 색 고르기 — 계절 / 기본 두 칸 */
+.st-palette {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.st-palette-label {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--st-faint);
+}
+
+.st-palette-seg {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--st-raise);
+}
+
+.st-palette-seg button {
+  flex: 1;
+  min-height: 40px;
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  color: var(--st-soft);
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.st-palette-seg button[aria-pressed='true'] {
+  background: var(--st-gold);
+  color: var(--st-on-gold);
+}
+
+.st-palette-seg button:focus-visible {
+  outline: 3px solid var(--st-gold);
+  outline-offset: 2px;
+}
+
 /* 계절 입자 — 재생 전 표지 위에만. 재생·불 끄기·스크롤하면 조용히 사라진다 */
 .st-fx {
   position: absolute;
@@ -894,6 +1000,9 @@
   .st-title { font-size: 40px; }
   .st-lead { font-size: 20px; max-width: 42rem; }
   .st-actions { flex-direction: column; min-width: 13rem; }
+  .st-palette { margin-top: 4px; }
+  .st-palette-label { font-size: 15px; }
+  .st-palette-seg button { font-size: 15.5px; min-height: 44px; }
   .st-act { justify-content: flex-start; min-height: 52px; padding: 14px 18px; font-size: 16.5px; }
 
   .st-block { max-width: 66rem; margin: 32px auto 0; padding: 28px 32px; }
