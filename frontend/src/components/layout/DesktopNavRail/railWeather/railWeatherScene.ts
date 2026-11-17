@@ -276,6 +276,12 @@ function makeBolt(x0: number, y0: number, x1: number, y1: number, rough: number,
 /* 번쩍임 곡선(ms): 번쩍 → 꺼짐 → 다시 번쩍 → 서서히 사라짐 */
 const flashEnv = (t: number) => t < 0 ? 0 : t < 60 ? 1 : t < 130 ? 0.22 : t < 200 ? 0.85 : Math.max(0, 0.85 * Math.exp(-(t - 200) / 230))
 
+/* 라이트 하늘 가장자리 풀림 — 좌우 폭(상자 좌표)과 0→1 곡선. 처음 0.3 은 0 으로 비워 둔다:
+ * 칸의 CSS 마스크가 아직 반쯤 가리는 자리라, 여기에 구름·회색이 남으면 잘린 얼룩으로 보인다.
+ * 그 뒤는 smoothstep 을 잘게 나눠 꺾이는 자리가 없게 한다 */
+const EDGE = 104
+const EASE: [number, number][] = [[0, 0], [0.3, 0], [0.44, 0.104], [0.58, 0.352], [0.72, 0.648], [0.86, 0.896], [1, 1]]
+
 /* CSS 색 문자열 → "r,g,b" (한 점 찍어 읽는다) */
 function rgbOf(color: string): string {
   const c = document.createElement('canvas'); c.width = c.height = 1
@@ -454,8 +460,10 @@ export class RailWeatherScene {
       sky.addColorStop(0.8, `rgba(78,92,114,${ov * 0.12})`); sky.addColorStop(0.9, 'rgba(78,92,114,0)')
       tg.fillStyle = sky; tg.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
       const side = tg.createLinearGradient(0, 0, W, 0)
-      side.addColorStop(0, 'rgba(0,0,0,0)'); side.addColorStop(0.12, 'rgba(0,0,0,0.25)'); side.addColorStop(0.32, 'rgba(0,0,0,1)')
-      side.addColorStop(0.74, 'rgba(0,0,0,1)'); side.addColorStop(0.92, 'rgba(0,0,0,0.25)'); side.addColorStop(1, 'rgba(0,0,0,0)')
+      // 좌우는 fadeSkyEdges 와 같은 폭·같은 곡선으로 — 꺾이는 자리가 있으면 세로 줄로 보인다
+      for (const [t, s] of EASE) {
+        side.addColorStop(t * EDGE / W, `rgba(0,0,0,${s})`); side.addColorStop(1 - t * EDGE / W, `rgba(0,0,0,${s})`)
+      }
       tg.globalCompositeOperation = 'destination-in'
       tg.fillStyle = side; tg.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
       b.setTransform(1, 0, 0, 1, 0, 0)
@@ -472,9 +480,10 @@ export class RailWeatherScene {
   /* 라이트: 먹구름(레일보다 넓다)이 칸 옆·위에서 잘려 짙은 얼룩으로 남지 않게, 하늘 가장자리를
    * 바탕색으로 풀어 준다. 하늘 클립 안에서 구름 바로 뒤에 부르므로 언덕·비는 건드리지 않는다 */
   private fadeSkyEdges(g: CanvasRenderingContext2D) {
-    const top = this.top, c = this.bgRgb, E = 64, hgt = BOX_H - top
+    const top = this.top, c = this.bgRgb, E = EDGE, hgt = BOX_H - top
+    // 가장자리 = 바탕색 그대로, 안쪽으로 부드럽게(꺾임 없이) 0
     const ramp = (gr: CanvasGradient) => {
-      gr.addColorStop(0, `rgba(${c},1)`); gr.addColorStop(0.45, `rgba(${c},0.5)`); gr.addColorStop(1, `rgba(${c},0)`)
+      for (const [t, s] of EASE) gr.addColorStop(t, `rgba(${c},${1 - s})`)
       return gr
     }
     g.fillStyle = ramp(g.createLinearGradient(0, 0, E, 0)); g.fillRect(-4, top - 4, E + 4, hgt + 8)
