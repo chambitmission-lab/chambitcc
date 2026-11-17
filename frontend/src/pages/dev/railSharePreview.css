@@ -1,0 +1,267 @@
+/* /#/dev/rail-share — 나누기 버튼 × 레일 삽화 시안 */
+.rsp-page {
+  min-height: 100vh;
+  padding: 32px 24px 64px;
+  background: var(--surface);
+  color: var(--text-strong);
+  /* 삽화 물감에서 뽑은 색 — 언덕 회청, 하늘 안개 */
+  --hill: color-mix(in srgb, #8fa7c4 34%, var(--surface));
+  --hill-deep: color-mix(in srgb, #6f8cb0 48%, var(--surface));
+  --mist: color-mix(in srgb, #dfe7f1 70%, var(--surface));
+}
+:root[data-theme='dark'] .rsp-page,
+.dark .rsp-page {
+  --hill: color-mix(in srgb, #3a5277 46%, var(--surface));
+  --hill-deep: color-mix(in srgb, #4b6a96 52%, var(--surface));
+  --mist: color-mix(in srgb, #24324a 70%, var(--surface));
+}
+.rsp-head {
+  max-width: 1320px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.rsp-head h1 { font-size: 22px; font-weight: 800; }
+.rsp-head p { margin-top: 6px; font-size: 14px; color: var(--text-body); }
+.rsp-theme {
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 700;
+  font-size: 14px;
+}
+.rsp-grid {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 248px);
+  gap: 28px 20px;
+}
+.rsp-col figcaption { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; min-height: 52px; }
+.rsp-col figcaption b { font-size: 16px; font-weight: 800; }
+.rsp-col figcaption span { font-size: 12.5px; color: var(--text-body); line-height: 1.45; }
+
+/* 레일 축소판 — 실제 레일 폭 248 / 좌우 16 */
+.rsp-rail {
+  width: 248px;
+  height: 420px;
+  padding: 16px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.rsp-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+.rsp-art {
+  display: block !important;
+  flex: 1 1 auto;
+}
+.rsp-share {
+  position: relative;
+  margin: 4px 0 16px;
+  display: flex;
+  align-items: flex-start;
+  min-height: 0;
+}
+.rsp-foot {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+.rsp-more { margin-left: auto; margin-right: 6px; }
+
+/* 공통 소인 — 이중 링 (지금 버튼과 같은 문법, 잉크만 살짝 번지게) */
+.rsp-mark {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 9999px;
+  border: 1.5px solid var(--brand);
+  color: var(--brand);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: rotate(-12deg);
+  transition: transform 0.3s cubic-bezier(0.34, 1.6, 0.5, 1);
+}
+.rsp-mark::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 1px solid currentColor;
+  opacity: 0.45;
+}
+.rsp-mark small { font-size: 7.5px; font-weight: 800; opacity: 0.85; }
+.rsp-mark b { margin-top: 1px; font-size: 14px; font-weight: 900; letter-spacing: -0.04em; }
+.rsp-mark--sm { width: 28px; height: 28px; }
+.rsp-mark--sm b { font-size: 12px; }
+.rsp-mark--sm small { font-size: 6.5px; }
+
+.rsp-col .rsp-share { margin-bottom: 16px; }
+
+/* ── 3차: 그림 속 우체통 ─────────────────────────────
+   그림 픽셀(496×698) → 화면: 1px = 100cqw/496. 그림 바닥은 칸 바닥보다 48px 아래 */
+.rsp-art--mailbox {
+  container-type: inline-size;
+  background-position: center calc(100% + 48px) !important;
+  margin-bottom: 4px;
+  --u: calc(100cqw / 496);
+  --drop: 48px;
+  /* 우체통 머리 상자(그림 픽셀) */
+  --mb-x: 113;
+  --mb-r: 160;
+  --mb-top: 490;
+  --mb-foot: 568;
+}
+.rsp-mb--dark.rsp-art--mailbox {
+  --mb-x: 114;
+  --mb-r: 163;
+  --mb-top: 470;
+  --mb-foot: 553;
+}
+.rsp-art--mailbox::after { content: none; }
+/* 누를 영역 — 우체통(머리~기둥) + 오른쪽 꼬리표까지 */
+.rsp-mb {
+  position: absolute;
+  z-index: 3;
+  pointer-events: auto;
+  left: calc(var(--mb-x) * var(--u) - 8px);
+  bottom: calc((698 - var(--mb-foot)) * var(--u) - var(--drop) - 4px);
+  height: calc((var(--mb-foot) - var(--mb-top)) * var(--u) + 12px);
+  width: calc((var(--mb-r) - var(--mb-x)) * var(--u) + 16px);
+  border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.rsp-mb--m1,
+.rsp-mb--m3 {
+  width: calc((var(--mb-r) - var(--mb-x)) * var(--u) + 84px);
+}
+.rsp-mb:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* 호버 — 우체통 머리 뒤로 예배당 창과 같은 따뜻한 빛이 번진다(그림 아래에 깔리는 빛이라 multiply/screen) */
+.rsp-mb__halo {
+  position: absolute;
+  left: calc((var(--mb-r) - var(--mb-x)) * var(--u) / 2 + 8px);
+  top: calc(18 * var(--u) + 6px);
+  width: 64px;
+  height: 52px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 26%, transparent), transparent);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.rsp-mb--dark .rsp-mb__halo {
+  background: radial-gradient(closest-side, rgba(255, 196, 110, 0.32), transparent);
+  mix-blend-mode: screen;
+}
+/* 손글씨 꼬리표 — 상자 없이 그림 위에 직접 쓴 잉크. 색은 언덕의 짙은 회청 */
+.rsp-mb__word {
+  position: absolute;
+  left: calc((var(--mb-r) - var(--mb-x)) * var(--u) + 14px);
+  top: calc(22 * var(--u));
+  font-family: 'Gaegu', var(--font-sans, system-ui), cursive;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  color: #5d7698;
+  transition: color 0.25s ease;
+}
+.rsp-mb--dark .rsp-mb__word { color: #b8c7dc; }
+/* 꼬리표 밑 붓선 — 호버 때만 그려진다 */
+.rsp-mb__word::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: -5px;
+  height: 3px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--brand) 60%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+/* M3 소인 — 꼬리표 오른쪽 위, 작게 비스듬히 */
+.rsp-mb__stamp {
+  position: absolute;
+  left: calc((var(--mb-r) - var(--mb-x)) * var(--u) + 66px);
+  top: calc(10 * var(--u) - 6px);
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 1.4px solid color-mix(in srgb, var(--brand) 75%, transparent);
+  color: var(--brand);
+  font: 900 10.5px/1 var(--font-sans, system-ui);
+  display: grid;
+  place-items: center;
+  transform: rotate(-14deg);
+  opacity: 0.85;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+.rsp-mb.is-sent .rsp-mb__stamp {
+  background: var(--brand);
+  color: #fff;
+  animation: rsp-stamp 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+@keyframes rsp-stamp {
+  0% { transform: rotate(-14deg) scale(1.5); opacity: 0.3; }
+  60% { transform: rotate(-14deg) scale(0.9); opacity: 1; }
+  100% { transform: rotate(-14deg) scale(1); }
+}
+/* M2 말풍선 */
+.rsp-mb__tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  translate: -50% 4px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: var(--text-strong);
+  color: var(--surface);
+  font: 700 12px/1 var(--font-sans, system-ui);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease, translate 0.2s ease;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .rsp-mb:hover .rsp-mb__halo { opacity: 1; transform: scale(1); }
+  .rsp-mb:hover .rsp-mb__word { color: var(--brand); }
+  .rsp-mb:hover .rsp-mb__word::after { transform: scaleX(1); }
+  .rsp-mb:hover .rsp-mb__tip { opacity: 1; translate: -50% 0; }
+}
+:root[data-theme='dark'] .rsp-mb:hover .rsp-mb__word { color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  .rsp-mb__halo, .rsp-mb__word::after { transition: none; }
+  .rsp-mb.is-sent .rsp-mb__stamp { animation: none; }
+}

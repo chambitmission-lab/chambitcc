@@ -21,14 +21,15 @@
   /* 좌우 패딩(px-4)을 뚫고 레일 폭 248px 을 꽉 채운다 */
   margin: 0.5rem -1rem 0;
   background-size: 100% auto;
-  /* 그림 아래 45px 은 빈 바탕, 그 위 10px 남짓은 언덕 밑 번진 물감이다 — 76px 을 칸 밖으로 내려
-     언덕 밑동을 자르고 그만큼 하늘(구름·번개 자리)을 더 보여 준다.
+  /* 그림 아래쪽은 빈 바탕과 언덕 밑 번진 물감이다 — 48px 을 칸 밖으로 내려 밑동을 자른다.
+     ★ 2026-11-17 76px → 48px: 앞 언덕에 우체통(나누기 버튼)이 서면서 기둥까지 보이게 28px 올렸다.
+       칸 바닥에서 재는 값(해 길·하늘 오려내기·구름 높이·위 페이드)도 모두 +28px 했다.
      ★ railWeatherScene.ts 의 ART_DROP 과 같은 값(캔버스가 같은 그림을 같은 자리에 그린다) */
-  background-position: center calc(100% + 76px);
-  /* 위 페이드 끝 — 예배당 십자가(바닥에서 ≈73px) 바로 위에서 멈춘다. 칸이 낮은 화면(≈150px)에서
+  background-position: center calc(100% + 48px);
+  /* 위 페이드 끝 — 예배당 십자가(바닥에서 ≈101px) 바로 위에서 멈춘다. 칸이 낮은 화면(≈150px)에서
      40% 페이드가 예배당까지 지워 버리던 문제(2026-11-14). 칸이 높아도 36px 까지만 —
      40% 를 녹이면 언덕 위 하늘(구름·비·번개가 보이는 자리)의 절반이 흐려진다 */
-  --rba-top-fade: clamp(14px, calc(100% - 88px), 36px);
+  --rba-top-fade: clamp(14px, calc(100% - 116px), 36px);
   background-repeat: no-repeat;
   /* 네 변 모두 배경으로 녹인다. 좌우는 넓고 완만하게 — 앞 언덕이 오른쪽 끝까지 이어져 있어
      좁은(8%) 직선 페이드로는 언덕이 세로로 잘린 것처럼 보였다(2026-11-14). 예배당·창 불빛
@@ -52,14 +53,78 @@
     display: block;
   }
 }
-/* 나누기 버튼은 삽화 바로 아래 — 삽화가 보일 때만 위 간격(mt-6)을 줄여 언덕 밑에 붙이고,
-   아래 구분선과는 띄운다(삽화가 없으면 하단 유틸의 mt-auto 가 알아서 띄운다) */
+/* 나누기 — 삽화가 보이면 그림 속 우체통이 버튼이다(.rail-mailbox). 엽서 버튼은 숨기고
+   .rail-share 는 높이 0 의 닻만 남는다(엽서 다이얼·우체통 누를 영역이 여기에 붙는다).
+   삽화가 없는 화면·높이에서는 예전처럼 엽서 버튼이 메뉴 아래에 온다 */
+.rail-mailbox { display: none; }
 @media (min-width: 1280px) {
   :root[data-vh-tier='tall'] .rail-bottom-art + .rail-share {
-    margin-top: 0.25rem;
+    margin-top: 0;
     margin-bottom: 1rem;
   }
+  :root[data-vh-tier='tall'] .rail-bottom-art + .rail-share.has-mailbox > .share-pcb {
+    display: none;
+  }
+  :root[data-vh-tier='tall'] .rail-bottom-art + .rail-share.has-mailbox > .rail-mailbox {
+    display: block;
+  }
 }
+
+/* ── 그림 속 우체통 = 나누기 버튼 ─────────────────────────
+   우체통은 삽화(bottom-mailbox-*.webp)에 그려져 있고, 여기는 그 위에 겹친 투명한 누를 영역이다.
+   삽화 칸 안에 두면 네 변 페이드 마스크가 툴팁·빛무리까지 지우므로 칸 밖(.rail-share)에서 위로 띄운다.
+   좌표: 우체통 머리~기둥 = 이미지 x 118~162, y 477~560(496×698) → 248px 폭에서 절반,
+   그림 내림 48px 을 빼면 칸 바닥 위 21~62px, 레일 내용 왼쪽(16px 안)에서 43~65px. */
+.rail-mailbox {
+  position: absolute;
+  left: 30px;
+  bottom: calc(100% + 14px);
+  width: 48px;
+  height: 56px;
+  border-radius: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.rail-mailbox:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+/* 호버·열림 — 우체통 머리 뒤로 은은한 빛이 번진다(라이트 = 브랜드 하늘빛, 다크 = 예배당 창과 같은 등불빛) */
+.rail-mailbox__halo {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  width: 72px;
+  height: 56px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--brand) 26%, transparent), transparent);
+  mix-blend-mode: multiply;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
+  pointer-events: none;
+}
+[data-theme='dark'] .rail-mailbox__halo {
+  background: radial-gradient(closest-side, rgba(255, 196, 110, 0.32), transparent);
+  mix-blend-mode: screen;
+}
+.rail-mailbox:hover .rail-mailbox__halo,
+.rail-mailbox:focus-visible .rail-mailbox__halo,
+.rail-mailbox[aria-expanded='true'] .rail-mailbox__halo {
+  opacity: 1;
+  transform: scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-mailbox__halo { transition: none; }
+}
+/* 우체통에서 연 엽서 다이얼 — 우체통 머리(칸 바닥 위 ≈62px) 위로 올라온다 */
+.rail-share-dial--mailbox { bottom: calc(100% + 76px); }
+/* 삽화가 숨는 높이(엽서 버튼으로 돌아간 때)에는 원래 자리 */
+@media (max-width: 1279.98px) {
+  .rail-share-dial--mailbox { bottom: calc(100% + 14px); }
+}
+:root:not([data-vh-tier='tall']) .rail-share-dial--mailbox { bottom: calc(100% + 14px); }
 /* 파일이 도착한 뒤에 떠오른다 — 빈 칸에서 그림이 툭 나타나지 않게 */
 .rail-bottom-art.is-loaded {
   opacity: 1;
@@ -86,8 +151,8 @@
      하늘 모양 오려내기(clip-path)가 언덕에 걸린 부분을 가린다. 왼쪽 먼 언덕 뒤(x 30px)에서 올라와
      예배당 뒤 언덕(x 196px) 너머로 넘어간다. */
 /* 하늘만 남기는 오려내기 — 라이트 삽화의 능선(하늘 경계)을 8px 간격으로 읽은 값이다.
-   ★ 삽화(rail/bottom-light.webp)를 다시 굽거나 그림 내림(76px)을 바꾸면 이 좌표도 다시 뽑아야 한다
-     (바닥에서의 높이 = 273 − 이미지 y, 248px 폭 기준). 레일 폭은 xl 에서 248px 고정이다. */
+   ★ 삽화(rail/bottom-*.webp)를 다시 굽거나 그림 내림(48px)을 바꾸면 이 좌표도 다시 뽑아야 한다
+     (바닥에서의 높이 = 301 − 이미지 y, 248px 폭 기준). 우체통 그림은 원본 구도에 맞춰 정렬해 같은 좌표를 쓴다. 레일 폭은 xl 에서 248px 고정이다. */
 .rail-sun-sky {
   position: absolute;
   inset: 0;
@@ -95,38 +160,38 @@
   clip-path: polygon(
     0 0,
     100% 0,
-    100% calc(100% - 74px),
-    240px calc(100% - 80px),
-    232px calc(100% - 86px),
-    224px calc(100% - 93px),
-    216px calc(100% - 99px),
-    208px calc(100% - 106px),
-    200px calc(100% - 106px),
-    192px calc(100% - 106px),
-    184px calc(100% - 105px),
-    176px calc(100% - 104px),
-    168px calc(100% - 102px),
-    160px calc(100% - 100px),
-    152px calc(100% - 96px),
-    144px calc(100% - 92px),
-    136px calc(100% - 88px),
-    128px calc(100% - 85px),
-    120px calc(100% - 83px),
-    112px calc(100% - 81px),
-    104px calc(100% - 80px),
-    96px calc(100% - 77px),
-    88px calc(100% - 74px),
-    80px calc(100% - 70px),
-    72px calc(100% - 66px),
-    64px calc(100% - 69px),
-    56px calc(100% - 71px),
-    48px calc(100% - 73px),
-    40px calc(100% - 74px),
-    32px calc(100% - 75px),
-    24px calc(100% - 75px),
-    16px calc(100% - 74px),
-    8px calc(100% - 67px),
-    0px calc(100% - 61px)
+    100% calc(100% - 102px),
+    240px calc(100% - 108px),
+    232px calc(100% - 114px),
+    224px calc(100% - 121px),
+    216px calc(100% - 127px),
+    208px calc(100% - 134px),
+    200px calc(100% - 134px),
+    192px calc(100% - 134px),
+    184px calc(100% - 133px),
+    176px calc(100% - 132px),
+    168px calc(100% - 130px),
+    160px calc(100% - 128px),
+    152px calc(100% - 124px),
+    144px calc(100% - 120px),
+    136px calc(100% - 116px),
+    128px calc(100% - 113px),
+    120px calc(100% - 111px),
+    112px calc(100% - 109px),
+    104px calc(100% - 108px),
+    96px calc(100% - 105px),
+    88px calc(100% - 102px),
+    80px calc(100% - 98px),
+    72px calc(100% - 94px),
+    64px calc(100% - 97px),
+    56px calc(100% - 99px),
+    48px calc(100% - 101px),
+    40px calc(100% - 102px),
+    32px calc(100% - 103px),
+    24px calc(100% - 103px),
+    16px calc(100% - 102px),
+    8px calc(100% - 95px),
+    0px calc(100% - 89px)
   );
 }
 .rail-sun {
@@ -134,8 +199,8 @@
   --sun-color: var(--sun-hue);
   position: absolute;
   left: calc(30px + 166px * var(--sun-x, 0.5));
-  /* 양 끝(28px·58px)은 능선 아래, 정오에는 칸 윗변 아래 52px 까지 */
-  bottom: calc(28px + 30px * var(--sun-x, 0.5) + max(60px, 100% - 95px) * var(--sun-lift, 1));
+  /* 양 끝(56px·86px)은 능선 아래, 정오에는 칸 윗변 아래 52px 까지 */
+  bottom: calc(56px + 30px * var(--sun-x, 0.5) + max(60px, 100% - 123px) * var(--sun-lift, 1));
   width: 132px;
   height: 132px;
   margin: 0 0 -66px -66px;
@@ -241,7 +306,7 @@
   --c2: color-mix(in srgb, var(--cloud) 20%, transparent);
   position: absolute;
   left: 0;
-  top: calc(22px + max(0px, 100% - 190px) * var(--ck, 0.3));
+  top: calc(22px + max(0px, 100% - 218px) * var(--ck, 0.3));
   width: 104px;
   height: 44px;
   background:

@@ -23,6 +23,44 @@
 /* 히어로 — 걸어온 길 전용 그림(memory-path, 3:2). 길이 S자로 지평선까지, 굽이마다 돌무더기(1년 전)·이정표·벤치.
    모바일 띠는 아래쪽(y 80%)을 보여 인물 발까지, PC 정사각은 x 72%로 지평선 돌무더기와 인물이 함께 들어온다 */
 .tmp-hero { min-height: 150px; --hx: 1; --hy: 0.8; }
+
+/* 공중에 뜬 그림 — 움직임 없이 그림자만으로 띄운다(어르신 어지러움: 호버 이동 금지).
+   붙는 그림자(가까움) → 중간 → 멀리 퍼지는 그림자 3겹, 바깥 두 겹은 그림 색(새벽 보라·노을 살구)을 머금는다.
+   가장자리 안쪽 1px 빛줄 + 아래쪽 어두운 테가 두께감을 준다 */
+.tmp-card.tmp-hero {
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 1px 2px rgba(40, 32, 70, 0.10),
+    0 6px 14px -4px rgba(60, 44, 90, 0.16),
+    0 22px 40px -14px rgba(120, 84, 140, 0.30),
+    0 48px 80px -28px rgba(214, 150, 110, 0.42);
+}
+.tmp-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 -18px 28px -18px rgba(40, 52, 30, 0.28);
+}
+.dark .tmp-card.tmp-hero {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 10px 20px -6px rgba(0, 0, 0, 0.55),
+    0 30px 56px -18px rgba(0, 0, 0, 0.7),
+    0 56px 96px -30px rgba(255, 196, 92, 0.22);
+}
+.dark .tmp-hero::after {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 -20px 30px -20px rgba(0, 0, 0, 0.5);
+}
 /* 그림과 빛 레이어를 같은 3:2 무대에 얹는다 — 크기·위치는 HeroScene 이 --hx/--hy 로 계산(cover + 크롭 비율) */
 .tmp-hero-stage { position: absolute; inset: 0; }
 .tmp-hero-layer,

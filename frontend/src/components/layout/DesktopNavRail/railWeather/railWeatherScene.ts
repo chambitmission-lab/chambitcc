@@ -19,8 +19,9 @@ const BOX_H = 400
 const IH = 349
 const OY = BOX_H - IH
 /* 삽화를 칸 바닥 아래로 내리는 양 — 그림 밑 빈 바탕을 잘라낸다.
- * ★ DesktopNavRail.css 의 .rail-bottom-art background-position(100% + 76px)과 같은 값 */
-const ART_DROP = 76
+ * ★ DesktopNavRail.css 의 .rail-bottom-art background-position(100% + 48px)과 같은 값
+ *   (2026-11-17 우체통 그림으로 바꾸며 76 → 48. 우체통 그림은 원본 구도에 정렬해 아래 좌표를 그대로 쓴다) */
+const ART_DROP = 48
 const WIN = { x: 183.7, y: 281.6 }
 const SILL: [number, number, number] = [181.4, 186.0, 284.8]
 // 지붕(왼쪽 처마 → 박공 꼭대기 → 용마루 끝 → 오른쪽 처마)과 십자가 팔

@@ -149,6 +149,8 @@ const DesktopNavRail = () => {
   const isXl = useIsXl()
   const showRailArt = isXl && !ART_FREE_PATHS.some((p) => pathname.startsWith(p))
   const railArtReady = useThemeArt(RAIL_BOTTOM, showRailArt)
+  // 삽화가 그려졌으면 그 속 우체통이 나누기 버튼이 된다(보이는 높이 조건은 CSS 가 판단)
+  const mailbox = showRailArt && railArtReady
   const { t } = useLanguage()
   // 상태 한 줄은 글자가 보이는 xl 폭 + 로그인일 때만 받는다(좁은 바에선 보여줄 자리가 없다)
   const wantStatus = visible && isXl && isLoggedIn()
@@ -388,7 +390,11 @@ const DesktopNavRail = () => {
           ★ 삽화 아래에 둔다(2026-11-14) — 메뉴 바로 밑에 있으면 노트북 높이에서 삽화 위 하늘을
             가려 구름·번개가 보일 자리가 없었다. 삽화가 없는 화면·높이에서는 삽화 칸이 사라지므로
             예전처럼 메뉴 바로 아래에 온다(간격은 DesktopNavRail.css 의 .rail-share) */}
-      <div className="rail-share mt-6 relative flex flex-col items-center xl:items-start">
+      <div
+        className={`rail-share mt-6 relative flex flex-col items-center xl:items-start${
+          mailbox ? ' has-mailbox' : ''
+        }`}
+      >
         {dialOpen && (
           <>
             {/* 엽서가 레일 메뉴 위에 겹치므로 뒤를 바탕색으로 살짝 덮어 물러서게 한다 */}
@@ -403,11 +409,32 @@ const DesktopNavRail = () => {
                 하늘로 날아간 뒤 작성 창이 열린다. 움직임은 열 때·고를 때만(유휴 반복 없음). */}
             <SharePostcards
               variant="rail"
-              className="absolute z-50 bottom-[calc(100%_+_14px)] left-0"
+              // 우체통에서 열면 엽서가 우체통 위로 올라온다(우체통을 가리지 않게)
+              className={`absolute z-50 left-0 ${
+                mailbox ? 'rail-share-dial--mailbox' : 'bottom-[calc(100%_+_14px)]'
+              }`}
               onSend={sendPostcard}
               onVerseCardIntent={() => void preloadRoute('/bible/photo-verse')}
             />
           </>
+        )}
+
+        {/* 그림 속 우체통 = 나누기 버튼 (2026-11-17). 삽화가 실제로 보이는 폭·높이에서만 CSS 가
+            드러내고, 그때는 아래 엽서 버튼을 숨긴다. 우체통은 그림에 그려져 있고 이건 투명한 누를 영역 */}
+        {mailbox && (
+          <button
+            type="button"
+            className="rail-mailbox group z-50"
+            onClick={() => setDialOpen((open) => !open)}
+            onMouseEnter={prewarmPostcardFont}
+            aria-label={t('railShare')}
+            aria-keyshortcuts="n"
+            aria-haspopup="menu"
+            aria-expanded={dialOpen}
+          >
+            <span className="rail-mailbox__halo" aria-hidden />
+            {!dialOpen && <RailTip label={`${t('railShare')} · N`} placement="top" />}
+          </button>
         )}
 
         {/* 엽서 묶음 버튼 — 누르면 깔린 엽서가 빠져나가 위의 엽서 부채가 된다 */}

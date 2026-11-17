@@ -163,8 +163,10 @@ export const VERSE_SCENE: ThemePair = {
  * 모든 페이지에 뜨지만 xl(1280px+) 레일에서만 쓰므로, 매니페스트(ROUTE_ASSETS)가 아니라
  * 레일이 useThemeArt 로 조건부 등록한다 — 좁은 화면 사용자에게는 파일을 물리지 않는다. */
 export const RAIL_BOTTOM: ThemePair = {
-  light: '/images/rail/bottom-light.webp',
-  dark: '/images/rail/bottom-dark.webp',
+  // 2026-11-17 앞 언덕에 우체통(= 나누기 버튼)을 그려 넣은 판. 예배당·능선은 원본 구도에 정렬해
+  // 날씨 연출 좌표(railWeatherScene.ts)를 그대로 쓴다. 새 파일명은 SW 캐시 때문(같은 이름 덮어쓰기 금지)
+  light: '/images/rail/bottom-mailbox-light.webp',
+  dark: '/images/rail/bottom-mailbox-dark.webp',
 }
 /** 홈 PC 우측 레일 '이번주 기도' 카드 머리 — 창가 삽화 (rail/PrayerStatsWidget.tsx) */
 export const PRAYER_WEEK_WINDOW: ThemePair = { light: prayerWeekWindowLight, dark: prayerWeekWindowDark }
