@@ -11,8 +11,6 @@ type RouteLoader = () => Promise<{ default: ComponentType }>
 
 // 발자취 시범 화면 — App.tsx lazy 와 딥링크 프리로드가 같은 로더를 쓴다
 export const historyLabLoader: RouteLoader = withChurchHistory(() => import('../pages/History/labs/HistoryLab'))
-// 설교 시범 화면(영상 히어로) — /sermon 상단 배너로만 들어온다
-export const sermonLabLoader: RouteLoader = () => import('../pages/Sermon/SermonLab')
 // 기도방 상세 — /groups 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
 export const groupDetailLoader: RouteLoader = () => import('../pages/Groups/GroupDetail')
 // 일정 상세 — /events 히어로·어젠다 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
@@ -236,8 +234,6 @@ const routeDataPrefetchers: Record<string, (run: Run) => Promise<void>> = {
     ),
   // 설교 — 목록 첫 페이지 + 최신 설교 인용절. 청크만 받아 두면 진입 시 목록 → 인용절 두 왕복이 직렬로 남았다
   '/sermon': (run) => import('../pages/Sermon/prefetch').then((m) => run(() => m.prefetchSermonPage())),
-  // 시범 화면도 같은 목록·인용절을 쓴다 (키는 deepLinkRouteLoaders 의 key)
-  'sermon/new': (run) => import('../pages/Sermon/prefetch').then((m) => run(() => m.prefetchSermonPage())),
 }
 
 const runNow: Run = (fn) => fn()
@@ -277,7 +273,6 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
   // 발자취 시범 화면 — 기존 /history 상단 배너로만 들어오므로 메뉴 프리로드에 넣지 않는다
   { key: 'history/new', match: /^\/history\/new$/, load: historyLabLoader },
-  { key: 'sermon/new', match: /^\/sermon\/new$/, load: sermonLabLoader },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
   { key: 'seats/detail', match: /^\/seats\/[^/]+$/, load: () => import('../pages/Seats/SeatEventDetail') },
   // 일정 상세 — 표에 없어 청크 프리로드가 무효였다. 라우터가 전환을 startTransition 으로 돌려

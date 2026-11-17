@@ -1,17 +1,13 @@
 // 설교 말씀 — '주일의 말씀 편지' (2026-10 개편)
 //   이번 주 편지 히어로 → 동행 3단계(본문 읽기·설교 듣기·한 줄 붙잡기) → 지난 주일의 편지들
-// 히어로는 두 갈래를 성도 의견으로 고르는 중이다:
-//   /sermon      variant="light" — 계절 교회 사진 히어로 (기본)
-//   /sermon/new  variant="video" — 영상 히어로 + 겹친 편지 (시범, SermonLab)
-// 의견 수렴이 끝나면 고른 쪽만 남기고 배너·SermonLab·다른 variant 를 정리한다.
+// 히어로 = 계절 교회 사진 편지
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { getSermon } from '../../api/sermon'
 import { useInfiniteSermons } from '../../hooks/useSermons'
 import { useSermonTakeaways } from '../../hooks/useSermonTakeaways'
-import { useSurveys } from '../../hooks/useSurvey'
 import { useAuth } from '../../hooks/useAuth'
-import SermonLetterHero, { type SermonHeroVariant } from './components/SermonLetterHero'
+import SermonLetterHero from './components/SermonLetterHero'
 import SermonWalk from './components/SermonWalk'
 import SermonLetterCard from './components/SermonLetterCard'
 import SermonNotesRail from './components/SermonNotesRail'
@@ -23,7 +19,6 @@ import type { WorshipType } from './utils/sermonMeta'
 import { weekdayGreeting } from './utils/sermonLetter'
 import type { Sermon as SermonType } from '../../types/sermon'
 import { ensureFontFamily } from '../../utils/deferredFonts'
-import { preloadRoute } from '../../utils/routePreload'
 import './Sermon.css'
 import './components/SermonLetter.css'
 import { can } from '../../utils/access'
@@ -32,10 +27,6 @@ import { can } from '../../utils/access'
 void ensureFontFamily('nanumPen')
 void ensureFontFamily('gowunBatang')
 
-/* 시범 화면 의견은 기존 설문으로 받는다 — 제목에 이 말이 든 진행 중 설문이 있으면 그리로,
- * 없으면 설문 목록으로 (설문 id 를 코드에 박지 않기 위함, /history/new 와 같은 방식) */
-const FEEDBACK_KEYWORD = '설교 화면'
-
 type Filter = '전체' | WorshipType
 
 interface SelectedSermon {
@@ -43,19 +34,13 @@ interface SelectedSermon {
   media: 'audio' | 'video' | null
 }
 
-interface SermonProps {
-  variant?: SermonHeroVariant
-}
-
-const Sermon = ({ variant = 'light' }: SermonProps) => {
-  const navigate = useNavigate()
+const Sermon = () => {
   const [showForm, setShowForm] = useState(false)
   const [editingSermon, setEditingSermon] = useState<SermonType | null>(null)
   const [selected, setSelected] = useState<SelectedSermon | null>(null)
   const [filter, setFilter] = useState<Filter>('전체')
   const [passageSignal, setPassageSignal] = useState(0)
   const adminUser = can('sermons:manage')
-  const isLab = variant === 'video'
 
   const {
     data,
@@ -72,10 +57,6 @@ const Sermon = ({ variant = 'light' }: SermonProps) => {
 
   const { requireAuth } = useAuth()
   const { loggedIn, bySermon, data: takeaways } = useSermonTakeaways()
-
-  const { data: surveys } = useSurveys(isLab && loggedIn)
-  const feedbackSurvey = surveys?.find((s) => s.status === 'open' && s.title.includes(FEEDBACK_KEYWORD))
-  const feedbackPath = feedbackSurvey ? `/survey/${feedbackSurvey.id}` : '/survey'
 
   // 예배 유형 칩 — 로드된 설교에 실제로 존재하는 유형만 노출
   const filterOptions = useMemo<Filter[]>(() => {
@@ -178,28 +159,6 @@ const Sermon = ({ variant = 'light' }: SermonProps) => {
         {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/ministry·/worship과 같은 문법) */}
         <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
         <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0">
-          {/* 시범 운영 안내 — 기본 화면은 배너로 시범 화면을, 시범 화면은 돌아가기를 건다 */}
-          {isLab ? (
-            <div className="sl-lab-notice">
-              <span className="sl-lab-badge">시범 운영</span>
-              <span className="sl-lab-text">영상이 먼저 보이는 설교 화면을 미리 보고 계세요</span>
-              <button type="button" className="sl-lab-go" onClick={() => navigate('/sermon')}>
-                ← 지금 화면으로
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="sl-lab-notice sl-lab-notice--link"
-              onClick={() => navigate('/sermon/new')}
-              onPointerEnter={() => void preloadRoute('/sermon/new')}
-            >
-              <span className="sl-lab-badge">시범</span>
-              <span className="sl-lab-text">영상이 먼저 보이는 설교 화면도 미리 만나 보세요</span>
-              <span className="sl-lab-go" aria-hidden>미리 보기 →</span>
-            </button>
-          )}
-
           {/* 헤더 — 캔버스 위 편집 헤더(/news와 같은 문법) */}
           <header className="sermon-page-header">
             <div className="sermon-page-heading">
@@ -279,14 +238,12 @@ const Sermon = ({ variant = 'light' }: SermonProps) => {
                   </p>
                   <SermonLetterHero
                     sermon={heroSermon}
-                    variant={variant}
                     onOpen={(media) => openDetail(heroSermon, media)}
                     onReadPassage={readPassage}
                   />
                   <SermonWalk
                     key={heroSermon.id}
                     sermon={heroSermon}
-                    variant={variant}
                     passageSignal={passageSignal}
                     onOpen={(media) => openDetail(heroSermon, media)}
                   />
@@ -325,24 +282,6 @@ const Sermon = ({ variant = 'light' }: SermonProps) => {
               <div ref={loadMoreRef} className="sermon-load-more">
                 {isFetchingNextPage && <div className="sermon-load-spinner" />}
               </div>
-
-              {/* 시범 화면 의견 */}
-              {isLab && (
-                <section className="sl-feedback feed-card">
-                  <div>
-                    <h2>이 화면, 어떠셨어요?</h2>
-                    <p>빛이 비치는 지금 화면과 영상이 먼저 보이는 이 화면 중 어느 쪽이 좋으셨는지 알려 주세요. 여러분의 의견으로 설교 화면을 정합니다.</p>
-                  </div>
-                  <div className="sl-step-actions">
-                    <button type="button" className="sl-btn sl-btn--solid" onClick={() => navigate(feedbackPath)}>
-                      의견 남기기
-                    </button>
-                    <button type="button" className="sl-btn" onClick={() => navigate('/sermon')}>
-                      지금 화면 보기
-                    </button>
-                  </div>
-                </section>
-              )}
             </div>
           )}
 

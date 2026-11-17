@@ -108,7 +108,7 @@ const RouteDataPrefetch = () => {
     }
     // 설교 — 목록 첫 페이지 + 최신 설교 인용절을 청크와 나란히 (딥링크·새로고침 진입용.
     // 설교 유틸이 메인 번들에 섞이지 않게 동적 import — 페이지 청크와 나란히 온다)
-    if (pathname === '/sermon' || pathname === '/sermon/new') {
+    if (pathname === '/sermon') {
       void import('../../pages/Sermon/prefetch')
         .then((m) => m.prefetchSermonPage(queryClient))
         .catch(() => undefined)

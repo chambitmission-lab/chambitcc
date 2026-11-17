@@ -177,7 +177,6 @@
     ["/elections/*", "선거"],
     ["/worship", "예배 안내"],
     ["/sermon", "설교 말씀"],
-    ["/sermon/new", "설교 말씀"],
     ["/events", "교회 일정"],
     ["/events/*", "교회 일정"],
     ["/prayer-focus", "집중 기도"],

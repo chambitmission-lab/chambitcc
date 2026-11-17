@@ -16,13 +16,11 @@ import {
 } from '../../../hooks/useSermonTakeaways'
 import { formatReference, parseBibleReference } from '../utils/sermonMeta'
 import { primaryMedia, readWalk, writeWalk, type WalkState } from '../utils/sermonLetter'
-import type { SermonHeroVariant } from './SermonLetterHero'
 import SermonDiscussionBlock from './SermonDiscussionBlock'
 import SermonWeekPackBlock from './SermonWeekPackBlock'
 
 interface SermonWalkProps {
   sermon: Sermon
-  variant: SermonHeroVariant
   /** 히어로 '본문 읽기'를 누를 때마다 올라간다 — 1단계를 펼친다 */
   passageSignal: number
   onOpen: (media: 'audio' | 'video' | null) => void
@@ -36,7 +34,7 @@ const StepNumber = ({ n, done }: { n: number; done: boolean }) => (
   </span>
 )
 
-const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps) => {
+const SermonWalk = ({ sermon, passageSignal, onOpen }: SermonWalkProps) => {
   const parsed = useMemo(() => parseBibleReference(sermon.bible_verse), [sermon.bible_verse])
   const [walk, setWalk] = useState<WalkState>(() => readWalk(sermon.id))
   const [passageOpen, setPassageOpen] = useState(false)
@@ -172,34 +170,20 @@ const SermonWalk = ({ sermon, variant, passageSignal, onOpen }: SermonWalkProps)
           <p className="sl-step-title">
             설교 듣기<small>{sermon.pastor}</small>
           </p>
-          {variant === 'video' && media && (
-            <p className="sl-step-desc">위 영상으로 들으셨다면 표시해 두세요</p>
-          )}
           <div className="sl-step-actions">
-            {variant === 'video' && media ? (
-              <button
-                type="button"
-                className={`sl-btn${walk.watch ? ' sl-btn--solid' : ''}`}
-                onClick={() => mark({ watch: !walk.watch })}
-                aria-pressed={walk.watch}
-              >
-                <span className="material-icons-outlined">check</span>들었어요
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="sl-btn"
-                onClick={() => {
-                  mark({ watch: true })
-                  onOpen(media)
-                }}
-              >
-                <span className="material-icons-outlined">
-                  {media === 'video' ? 'play_arrow' : media === 'audio' ? 'headphones' : 'menu_book'}
-                </span>
-                {media === 'video' ? '설교 영상 보기' : media === 'audio' ? '음성으로 듣기' : '설교 전문 읽기'}
-              </button>
-            )}
+            <button
+              type="button"
+              className="sl-btn"
+              onClick={() => {
+                mark({ watch: true })
+                onOpen(media)
+              }}
+            >
+              <span className="material-icons-outlined">
+                {media === 'video' ? 'play_arrow' : media === 'audio' ? 'headphones' : 'menu_book'}
+              </span>
+              {media === 'video' ? '설교 영상 보기' : media === 'audio' ? '음성으로 듣기' : '설교 전문 읽기'}
+            </button>
           </div>
         </div>
       </div>
