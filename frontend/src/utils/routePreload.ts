@@ -187,9 +187,16 @@ const routeDataPrefetchers: Record<string, (run: Run) => Promise<void>> = {
   // unicode-range 조각이라 스타일시트만 붙여선 안 받고, 글자가 그려진 뒤에야 조각을 받아 진입 시
   // 폴백 서체 → 손글씨로 한 박자 늦게 바뀌었다. 기록 글자로 조각까지 미리 받아 둔다.
   '/today': (run) =>
-    Promise.all([import('../pages/TodayChurch/memoryCopy'), import('../config/queryClient')]).then(
-      ([m, q]) => run(() => m.warmMemoryFonts(q.queryClient)),
-    ),
+    Promise.all([
+      import('../pages/TodayChurch/memoryCopy'),
+      import('../config/queryClient'),
+      import('../pages/TodayChurch/memoryPathArt'),
+      import('../hooks/queryKeys'),
+    ]).then(([m, q, path, keys]) => {
+      // 히어로 그림(지금 테마 한 장)도 같이 — <img> 라 화면이 그려진 뒤에야 요청이 나가던 것
+      if (preloadBudget() === 'full') void path.warmMemoryHero(q.queryClient.getQueryData(keys.todayChurchKeys.today()))
+      return run(() => m.warmMemoryFonts(q.queryClient))
+    }),
   '/bible/situation': (run) =>
     Promise.all([import('../hooks/useSituation'), import('../config/queryClient')]).then(
       ([m, q]) => run(() => m.prefetchSituation(q.queryClient)),

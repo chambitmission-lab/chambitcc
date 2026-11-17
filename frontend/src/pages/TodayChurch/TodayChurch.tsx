@@ -8,7 +8,7 @@ import type { AnsweredEcho, ChurchDay, TodayChurch as TodayChurchData } from '..
 import { useTodayChurch } from '../../hooks/useTodayChurch'
 import { ChurchLetter } from './ChurchLetter'
 import { MemoryPath } from './MemoryPath'
-import { formatKoreanDate, markTodayChurchOpened } from './memoryCopy'
+import { formatKoreanDate, markTodayChurchOpened, warmTodayFonts } from './memoryCopy'
 
 type Tab = 'me' | 'church'
 const TABS = [
@@ -83,6 +83,11 @@ const TodayChurch = () => {
   useEffect(() => {
     if (serverDate) markTodayChurchOpened(serverDate)
   }, [serverDate])
+
+  // 메뉴로 바로 들어온 날(봉투 선요청 없음) — 안 보이는 탭의 손글씨 조각까지 받아 두어 탭을 바꿀 때 서체가 튀지 않게
+  useEffect(() => {
+    if (data) void warmTodayFonts(data)
+  }, [data])
 
   const setTab = (next: Tab) => setParams(next === 'church' ? { tab: 'church' } : {}, { replace: true })
   const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'))
