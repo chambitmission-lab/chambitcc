@@ -96,8 +96,12 @@
   line-height: 1.2;
 }
 
-/* ════════ light — 새벽 하늘 빛 히어로 ════════ */
+/* ════════ light — 계절 교회 사진 히어로 (2026-11 B안) ════════
+ * 설교 날짜의 계절 사진(/visit scene-계절-day|night)을 깔고, 하늘 쪽(왼쪽)에 편지를 쓴다.
+ * 라이트=낮, 다크=밤 사진. 스크림에 계절색을 섞어 흰 글씨를 받친다. */
 .sl-sky {
+  --sl-scrim: rgba(25, 45, 80, 0.62);
+  --sl-scrim-mid: rgba(40, 65, 110, 0.28);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -108,51 +112,94 @@
   border-radius: 26px;
   color: #fff;
   cursor: pointer;
-  background: linear-gradient(180deg, #0c1f45 0%, #163a7a 38%, #3f78d6 72%, #a9c9fb 100%);
+  background: #1d3566; /* 사진이 오기 전 */
 }
-[data-theme="dark"] .sl-sky {
-  background: linear-gradient(180deg, #070f22 0%, #0f2550 42%, #2a5aa8 78%, #5d8fd8 100%);
-}
-.sl-sky-stars,
-.sl-sky-beam,
-.sl-sky-glow { position: absolute; z-index: -1; pointer-events: none; }
-.sl-sky-stars {
+.sl-sky--spring { --sl-scrim: rgba(70, 50, 100, 0.62); --sl-scrim-mid: rgba(90, 70, 130, 0.3); background: #5a4f86; }
+.sl-sky--summer { --sl-scrim: rgba(8, 60, 110, 0.62); --sl-scrim-mid: rgba(20, 90, 150, 0.28); background: #1f5f9e; }
+.sl-sky--autumn { --sl-scrim: rgba(60, 40, 70, 0.62); --sl-scrim-mid: rgba(90, 60, 80, 0.28); background: #4f4a78; }
+.sl-sky--winter { background: #3e5a88; }
+[data-theme="dark"] .sl-sky { --sl-scrim: rgba(4, 8, 22, 0.72); --sl-scrim-mid: rgba(6, 12, 30, 0.35); background: #0b1630; }
+
+.sl-sky-photo,
+.sl-sky-fx { position: absolute; inset: 0; pointer-events: none; }
+.sl-sky-photo { z-index: -2; background-size: cover; background-position: 78% 60%; }
+.sl-sky-photo::after {
+  content: '';
+  position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.55), transparent),
-    radial-gradient(1px 1px at 78% 12%, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1.4px 1.4px at 88% 34%, rgba(255, 255, 255, 0.45), transparent),
-    radial-gradient(1px 1px at 30% 8%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1px 1px at 62% 24%, rgba(255, 255, 255, 0.35), transparent);
+  background:
+    linear-gradient(90deg, var(--sl-scrim) 0%, var(--sl-scrim-mid) 46%, transparent 74%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.28), transparent 40%);
 }
-/* 위에서 내려오는 빛줄기 — 요 1:9 '참 빛' */
-.sl-sky-beam {
-  left: 50%;
-  top: -40px;
-  width: 520px;
-  height: 560px;
-  transform: translateX(-50%);
-  background: conic-gradient(
-    from 180deg at 50% 0%,
-    transparent 160deg,
-    rgba(255, 255, 255, 0.26) 170deg,
-    rgba(255, 255, 255, 0.46) 180deg,
-    rgba(255, 255, 255, 0.26) 190deg,
-    transparent 200deg
-  );
-  filter: blur(6px);
+.sl-sky--spring .sl-sky-photo { background-image: url(/images/visit/scene-spring-day.webp); }
+.sl-sky--summer .sl-sky-photo { background-image: url(/images/visit/scene-summer-day.webp); }
+.sl-sky--autumn .sl-sky-photo { background-image: url(/images/visit/scene-autumn-day.webp); }
+.sl-sky--winter .sl-sky-photo { background-image: url(/images/visit/scene-winter-day.webp); }
+[data-theme="dark"] .sl-sky--spring .sl-sky-photo { background-image: url(/images/visit/scene-spring-night.webp); }
+[data-theme="dark"] .sl-sky--summer .sl-sky-photo { background-image: url(/images/visit/scene-summer-night.webp); }
+[data-theme="dark"] .sl-sky--autumn .sl-sky-photo { background-image: url(/images/visit/scene-autumn-night.webp); }
+[data-theme="dark"] .sl-sky--winter .sl-sky-photo { background-image: url(/images/visit/scene-winter-night.webp); }
+
+/* 계절 입자 — 천천히 떨어지기만(움직임 줄이기면 멈춤) */
+.sl-sky-fx { z-index: -1; overflow: hidden; }
+.sl-sky-fx i {
+  position: absolute;
+  top: -8%;
+  width: calc(9px * var(--s));
+  height: calc(9px * var(--s));
+  opacity: 0;
+  animation: sl-fall linear infinite;
 }
-.sl-sky-glow {
-  left: 50%;
-  bottom: -120px;
-  width: 420px;
-  height: 240px;
-  transform: translateX(-50%);
-  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0));
+@keyframes sl-fall {
+  0% { transform: translate(0, 0) rotate(0); opacity: 0; }
+  8% { opacity: 0.55; }
+  50% { transform: translate(calc(26px * var(--sway)), 240px) rotate(160deg); }
+  90% { opacity: 0.5; }
+  100% { transform: translate(calc(-14px * var(--sway)), 520px) rotate(340deg); opacity: 0; }
 }
-[data-theme="dark"] .sl-sky-glow { opacity: 0.45; }
-.sl-sky .sl-stamp { color: rgba(255, 255, 255, 0.85); }
-.sl-sky .sl-to { color: rgba(255, 255, 255, 0.88); }
+@keyframes sl-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  20% { opacity: 0.6; }
+  60% { transform: translate(calc(18px * var(--sway)), -160px); opacity: 0.5; }
+  100% { transform: translate(calc(-10px * var(--sway)), -300px); opacity: 0; }
+}
+@keyframes sl-blink { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.9; } }
+.sl-sky--spring .sl-sky-fx i { border-radius: 100% 0 100% 0; background: linear-gradient(135deg, #ffe3ec, #f6a9c1); }
+.sl-sky--summer .sl-sky-fx i {
+  top: auto;
+  bottom: -4%;
+  width: calc(4px * var(--s));
+  height: calc(4px * var(--s));
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8);
+  animation-name: sl-rise;
+}
+[data-theme="dark"] .sl-sky--summer .sl-sky-fx i {
+  background: #e9ff9a;
+  box-shadow: 0 0 10px 3px rgba(214, 255, 120, 0.7);
+  animation-name: sl-rise, sl-blink;
+}
+.sl-sky--autumn .sl-sky-fx i { border-radius: 0 100% 0 100%; background: linear-gradient(135deg, #ffc067, #e0603a); }
+.sl-sky--autumn .sl-sky-fx i:nth-child(3n) { background: linear-gradient(135deg, #f7d27a, #c98a2e); }
+.sl-sky--winter .sl-sky-fx i {
+  width: calc(5px * var(--s));
+  height: calc(5px * var(--s));
+  border-radius: 50%;
+  background: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sl-sky-fx { display: none; }
+}
+
+/* 소인 — 사진 위(건물과 겹치는 자리)라 옅은 유리판을 받친다 */
+.sl-sky .sl-stamp {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(10, 20, 40, 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.sl-sky .sl-to { color: rgba(255, 255, 255, 0.9); }
 
 .sl-sky-quote {
   margin: auto 0 0;
@@ -160,29 +207,26 @@
   font-family: var(--sl-serif);
   font-size: 20px;
   line-height: 1.75;
-  text-align: center;
   word-break: keep-all;
   text-wrap: balance;
-  text-shadow: 0 1px 12px rgba(10, 30, 80, 0.35);
+  text-shadow: 0 1px 14px rgba(0, 10, 40, 0.55);
 }
 .sl-sky-quote--empty { min-height: 40px; }
 .sl-sky-ref {
   margin-top: 14px;
-  text-align: center;
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.02em;
+  text-shadow: 0 1px 8px rgba(0, 10, 40, 0.5);
 }
 .sl-sky-sign {
   margin-top: 2px;
-  text-align: center;
   font-family: var(--sl-pen);
   font-size: 25px;
   opacity: 0.95;
 }
 .sl-sky-actions {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 18px;
@@ -201,13 +245,26 @@
 .sl-sky-btn--primary { border: 0; background: #fff; color: #1b4fae; }
 .sl-sky-btn--ghost {
   border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(20, 50, 110, 0.35);
+  background: rgba(10, 20, 40, 0.38);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: #fff;
+}
+
+/* 모바일 — 교회가 오른쪽으로 비켜서고, 스크림은 아래로 깔아 글씨를 받친다 */
+@media (max-width: 1023px) {
+  .sl-sky-photo { background-position: 84% 50%; }
+  .sl-sky-photo::after {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, var(--sl-scrim) 55%, var(--sl-scrim) 100%);
+  }
 }
 
 @media (min-width: 1024px) {
   .sl-sky { min-height: 440px; padding: 30px 40px 26px; }
-  .sl-sky-quote { font-size: 26px; max-width: 680px; margin-left: auto; margin-right: auto; }
+  .sl-sky-quote,
+  .sl-sky-ref,
+  .sl-sky-sign { max-width: 56%; }
+  .sl-sky-quote { font-size: 26px; }
   .sl-stamp { top: 24px; right: 28px; width: 78px; height: 78px; }
   .sl-stamp b { font-size: 18px; }
 }

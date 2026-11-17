@@ -1,7 +1,7 @@
 // 설교 말씀 — '주일의 말씀 편지' (2026-10 개편)
 //   이번 주 편지 히어로 → 동행 3단계(본문 읽기·설교 듣기·한 줄 붙잡기) → 지난 주일의 편지들
 // 히어로는 두 갈래를 성도 의견으로 고르는 중이다:
-//   /sermon      variant="light" — 새벽 하늘 빛 히어로 (기본)
+//   /sermon      variant="light" — 계절 교회 사진 히어로 (기본)
 //   /sermon/new  variant="video" — 영상 히어로 + 겹친 편지 (시범, SermonLab)
 // 의견 수렴이 끝나면 고른 쪽만 남기고 배너·SermonLab·다른 variant 를 정리한다.
 import { useEffect, useMemo, useRef, useState } from 'react'
