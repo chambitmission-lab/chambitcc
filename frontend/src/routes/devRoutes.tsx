@@ -91,6 +91,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['rail-share', () => import('../pages/dev/RailSharePreview')],
       // /sermon 설교 영상 모달 감성 개편 시안 — ?v=a|b|c|d, &device=mobile
       ['sermon-player', () => import('../pages/dev/SermonPlayerPreview')],
+      // 설교 극장 사계절 색 시안 — ?s=none|spring|summer|autumn|winter, &fx=1 계절 입자
+      ['sermon-seasons', () => import('../pages/dev/SermonSeasonsPreview')],
     ]
   : []
 

@@ -33,6 +33,7 @@ import {
 } from '../utils/sermonMeta'
 import { pastorShortName, stampParts, worshipSlot } from '../utils/sermonLetter'
 import { letterSeasonOf, seasonScene } from '../../Ministry/letterSeason'
+import LetterSeasonFx from '../../Ministry/LetterSeasonFx'
 import { safeStorage } from '../../../utils/safeStorage'
 import './SermonDetail.css'
 import { toastFeedback } from '../../../utils/toast'
@@ -80,6 +81,10 @@ interface SermonDetailProps {
   onClose: () => void
   onDelete?: () => void
   onEdit?: () => void
+  /** 설교 날짜의 계절 색(봄 벚꽃·여름 숲·가을 금빛·겨울 눈). 끄면 가을 금빛 하나(시안 비교용) */
+  seasonTheme?: boolean
+  /** 재생 전 표지 위로 계절 입자(꽃잎·반딧불·단풍·눈). 재생·불 끄기·스크롤하면 사라진다 */
+  seasonFx?: boolean
 }
 
 const Icon = ({ n }: { n: string }) => (
@@ -107,8 +112,11 @@ const SermonDetail = ({
   onClose,
   onDelete,
   onEdit,
+  seasonTheme = true,
+  seasonFx = true,
 }: SermonDetailProps) => {
   const rootRef = useRef<HTMLDivElement>(null)
+  const fxBoxRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const slotRef = useRef<HTMLDivElement>(null)
@@ -315,7 +323,8 @@ const SermonDetail = ({
   const titleText = stripTitleDate(sermon.title)
   const heading = referenceLabel || titleText
   const eyebrow = [sermon.pastor, referenceLabel ? titleText : null].filter(Boolean).join(' · ')
-  const coverPhoto = seasonScene(letterSeasonOf(sermon.sermon_date), 'night')
+  const season = letterSeasonOf(sermon.sermon_date)
+  const coverPhoto = seasonScene(season, 'night')
 
   // "▶ …" 한 줄은 본문에서 빼내 핵심 포인트로 (없으면 본문 그대로)
   const { highlight, body: bodyContent } = useMemo(
@@ -370,15 +379,33 @@ const SermonDetail = ({
     <div
       ref={rootRef}
       data-theme="dark"
-      className={`sermon-theater dark is-${mode}${lightsOff ? ' is-lights-off' : ''}${videoId ? ' has-video' : ''}`}
+      data-season={seasonTheme ? season : undefined}
+      className={`sermon-theater dark is-${mode}${lightsOff ? ' is-lights-off' : ''}${videoId ? ' has-video' : ''}${seasonTheme ? ' is-seasonal' : ''}`}
       role="dialog"
       aria-modal={!floating}
       aria-label={`${heading} 설교`}
     >
       <div className="st-stage" aria-hidden={floating}>
         <div className="st-ambient" aria-hidden>
-          <img src={videoId ? youtubeThumbnailUrl(videoId) : coverPhoto} alt="" decoding="async" />
+          {/* 계절 색이면 그 계절 교회 사진을 빛 재료로(유튜브 썸네일은 매주 같은 주황 템플릿이라 계절을 덮는다) */}
+          <img src={videoId && !seasonTheme ? youtubeThumbnailUrl(videoId) : coverPhoto} alt="" decoding="async" />
         </div>
+
+        {seasonFx && (
+          <div
+            ref={fxBoxRef}
+            className={`st-fx${videoSrc || lightsOff || mode !== 'full' ? ' is-paused' : ''}`}
+            aria-hidden
+          >
+            <LetterSeasonFx
+              season={season}
+              boxRef={fxBoxRef}
+              targetRef={slotRef}
+              paused={!!videoSrc || lightsOff || mode !== 'full'}
+              night
+            />
+          </div>
+        )}
 
         <header ref={topRef} className="st-top">
           {videoId ? (
@@ -424,7 +451,7 @@ const SermonDetail = ({
             <div ref={slotRef} className="st-slot" />
           ) : (
             // 영상이 없는 설교 — 같은 자리에 계절 교회 사진 표지(썸네일이 있으면 그것)
-            <div className="st-slot st-still">
+            <div ref={slotRef} className="st-slot st-still">
               <img src={sermon.thumbnail_url || coverPhoto} alt="" decoding="async" />
               <span className="st-cover-text">
                 <span className="st-cover-ref">{heading}</span>

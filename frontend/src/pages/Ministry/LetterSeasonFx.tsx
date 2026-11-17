@@ -115,14 +115,21 @@ interface LetterSeasonFxProps {
   targetRef: RefObject<HTMLElement | null>
   /** 읽기 모달이 덮고 있을 땐 그리지 않는다 */
   paused?: boolean
+  /** 밤 장면(여름 반딧불·눈이 종이에 앉지 않음)을 강제 — 늘 어두운 설교 극장용. 없으면 페이지 테마를 따른다 */
+  night?: boolean
 }
 
-const LetterSeasonFx = ({ season: s, boxRef, targetRef, paused = false }: LetterSeasonFxProps) => {
+const LetterSeasonFx = ({ season: s, boxRef, targetRef, paused = false, night }: LetterSeasonFxProps) => {
   // 그리기 루프는 effect 안에서 한 번만 만들고, 멈춤 여부는 ref 로만 읽는다(루프를 다시 만들지 않게)
   const pausedRef = useRef(paused)
   useEffect(() => {
     pausedRef.current = paused
   }, [paused])
+  const nightRef = useRef(night)
+  useEffect(() => {
+    nightRef.current = night
+  }, [night])
+  const isNight = () => nightRef.current ?? document.documentElement.classList.contains('dark')
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // useLayoutEffect 면 부모(표지·편지) ref 가 아직 안 붙은 시점이라 null — 커밋이 끝난 뒤 시작한다
@@ -338,7 +345,7 @@ const LetterSeasonFx = ({ season: s, boxRef, targetRef, paused = false }: Letter
     const drawSnow = (p: P) => {
       const onPaper =
         (p.landed >= 0 || (p.x > geo.t.x && p.x < geo.t.x + geo.t.w && p.y > geo.t.y && p.y < geo.t.y + geo.t.h)) &&
-        !document.documentElement.classList.contains('dark')
+        !isNight()
       if (p.kind === 0 || !sprites) {
         // 먼 가루 — 작고 흐린 점
         const r = p.size * 0.8
@@ -374,7 +381,7 @@ const LetterSeasonFx = ({ season: s, boxRef, targetRef, paused = false }: Letter
       windT += dt
       // 천천히 바뀌는 돌풍 — 서로 다른 주기 둘을 겹쳐 반복이 티 나지 않게
       const gust = Math.sin(windT * 0.23) * 0.6 + Math.sin(windT * 0.071 + 1.3) * 0.4
-      const isDark = document.documentElement.classList.contains('dark')
+      const isDark = isNight()
 
       ctx.clearRect(0, 0, geo.w, geo.h)
 
