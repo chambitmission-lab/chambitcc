@@ -71,7 +71,7 @@ const preconnectYouTube = () => {
 const HINT_KEY = 'sermon-lights-hint'
 const HINT_MAX = 3
 
-// 화면 색 — 기기에 기억한다(계절 연출이 부담스러운 분은 한 번 바꾸면 계속 기본 색)
+// 화면 색 — 기본값은 '계절'. 고른 값은 기기에 기억한다(계절 연출이 부담스러운 분은 한 번 바꾸면 계속 기본 색)
 type Palette = 'season' | 'plain'
 const PALETTE_KEY = 'sermon-theater-palette'
 const readPalette = (): Palette => (safeStorage.get(PALETTE_KEY) === 'plain' ? 'plain' : 'season')

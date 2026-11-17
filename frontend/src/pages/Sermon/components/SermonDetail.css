@@ -37,8 +37,10 @@
   font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
 }
 
-/* 다크 섬 속성([data-theme="dark"])이 테마 기본 바탕까지 칠한다 — 루트는 비워 둬야 떠 있을 때 뒤 목록이 보인다 */
-.sermon-theater.dark {
+/* 루트의 data-theme 속성은 dark·light 모두 index.css 에서 테마 바탕까지 칠한다
+ * ('기본' 화면 색 + 라이트면 data-theme="light" 라 .dark 클래스가 없다).
+ * 루트는 늘 비워 둬야 떠 있을 때 뒤 목록이 보인다 — 바탕은 .st-stage 가 칠한다. */
+.sermon-theater[data-theme] {
   background: transparent;
 }
 
@@ -219,6 +221,9 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* 교회 사진(scene-*·church-*)은 3:1·2:1 와이드에 건물이 오른쪽 끝에 있다.
+   * 가운데 기준으로 16:9 를 자르면 건물 절반이 잘리므로 오른쪽 끝에 맞춘다(왼쪽 하늘은 제목 자리) */
+  object-position: right center;
   filter: brightness(0.62) saturate(1.1);
 }
 
