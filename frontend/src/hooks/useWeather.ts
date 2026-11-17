@@ -14,11 +14,16 @@ import { fetchWeatherSnapshot } from '../api/weather'
 export const CHURCH_LAT = 37.5
 export const CHURCH_LON = 126.75
 
-/* forecast_hours=1 → 현재 시각 1개 구간만 받아 강수확률을 얻는다 (응답 크기 최소) */
+/* forecast_hours=1 → 현재 시각 1개 구간만 받아 강수확률을 얻는다 (응답 크기 최소).
+ * 시간별 날씨 코드·강수량도 같이 받는다 — 아래 confirmDry 가 쓴다. */
 const WEATHER_URL =
   `https://api.open-meteo.com/v1/forecast?latitude=${CHURCH_LAT}&longitude=${CHURCH_LON}` +
   `&current=weather_code,is_day,temperature_2m,precipitation` +
-  `&hourly=precipitation_probability&forecast_hours=1&timezone=Asia%2FSeoul`
+  `&hourly=precipitation_probability,weather_code,precipitation&forecast_hours=1&timezone=Asia%2FSeoul`
+
+/* '안 온다'는 실황을 시간별 값으로 다시 확인하는 강수확률 문턱(%).
+ * (백엔드 weather_service.py 의 SECOND_OPINION_MIN_POP 과 같아야 한다) */
+const SECOND_OPINION_MIN_POP = 50
 
 /* Open-Meteo 실황은 15분 간격으로 갱신된다(응답의 current.interval=900).
  * 같은 주기로 맞춰 불필요한 호출 없이 최신값을 유지한다. */
@@ -36,6 +41,8 @@ interface OpenMeteoResponse {
   }
   hourly?: {
     precipitation_probability?: (number | null)[]
+    weather_code?: (number | null)[]
+    precipitation?: (number | null)[]
   }
   daily?: {
     precipitation_probability_max?: (number | null)[]
@@ -122,7 +129,8 @@ const DIRECT_HEDGE_MS = 1_500
  * 대신 성공값을 따로 적어두고 1시간 안쪽 것만 첫 화면에 쓴다 — 칩이 바로 뜨고
  * 뒤에서 최신값으로 바뀐다. 1시간을 넘긴 값은 버려 낡은 기온이 남지 않게 한다. */
 /* v2 — 낡은 스냅샷이 '방금 받은 값'으로 적혀 있던 옛 저장분을 버린다(2026-11-15) */
-const LAST_WEATHER_KEY = 'chambit.weather.last.v2'
+/* v3 — 비가 오는데 '구름 조금'으로 적힌 저장분을 버린다(2026-11-17, confirmDry 참고) */
+const LAST_WEATHER_KEY = 'chambit.weather.last.v3'
 const LAST_WEATHER_MAX_AGE_MS = 1000 * 60 * 60
 
 interface SavedWeather {
@@ -188,6 +196,22 @@ const requestViaBackend = async (): Promise<CurrentWeather> => {
   })
 }
 
+const isWetCondition = (condition: WeatherCondition): boolean =>
+  condition === 'drizzle' || condition === 'rain' || condition === 'snow' || condition === 'thunder'
+
+/* Open-Meteo 의 current 는 관측이 아니라 15분 단위 모델 값이라 약한 비를 '구름 조금·0mm'로
+ * 내보내는 일이 있다(2026-11-17: 비가 오는데 current 는 코드 2, 같은 응답의 시간별 값은 이슬비 51).
+ * 실황이 말랐는데 그 시각 강수확률이 높고 시간별 코드가 젖었으면 시간별 값을 따른다.
+ * 백엔드는 같은 경우를 예비 제공처에 다시 물어 고친다 — 이 길(직접 호출)만 빠져 있어서,
+ * 백엔드가 늦거나 스냅샷이 낡은 순간마다 비가 그친 것처럼 보였다. */
+const confirmDry = (raw: RawWeather, hourly: OpenMeteoResponse['hourly']): RawWeather => {
+  if (isWetCondition(classifyWeatherCode(raw.code)) || raw.precipitation > 0) return raw
+  if (raw.probability === null || raw.probability < SECOND_OPINION_MIN_POP) return raw
+  const hourlyCode = hourly?.weather_code?.[0]
+  if (typeof hourlyCode !== 'number' || !isWetCondition(classifyWeatherCode(hourlyCode))) return raw
+  return { ...raw, code: hourlyCode, precipitation: hourly?.precipitation?.[0] ?? 0 }
+}
+
 const requestViaOpenMeteo = async (): Promise<CurrentWeather | null> => {
   const response = await fetch(WEATHER_URL, { signal: AbortSignal.timeout(WEATHER_TIMEOUT_MS) })
   if (!response.ok) throw new Error('Failed to fetch weather')
@@ -196,13 +220,18 @@ const requestViaOpenMeteo = async (): Promise<CurrentWeather | null> => {
   const temperature = data.current?.temperature_2m
   if (typeof code !== 'number' || typeof temperature !== 'number') return null
   const probability = data.hourly?.precipitation_probability?.[0]
-  return toCurrentWeather({
-    code,
-    isDay: (data.current?.is_day ?? 1) === 1,
-    temperature,
-    precipitation: data.current?.precipitation ?? 0,
-    probability: typeof probability === 'number' ? probability : null,
-  })
+  return toCurrentWeather(
+    confirmDry(
+      {
+        code,
+        isDay: (data.current?.is_day ?? 1) === 1,
+        temperature,
+        precipitation: data.current?.precipitation ?? 0,
+        probability: typeof probability === 'number' ? probability : null,
+      },
+      data.hourly,
+    ),
+  )
 }
 
 /* 백엔드를 먼저 부르고, 실패하면 즉시·늦으면 DIRECT_HEDGE_MS 뒤에 Open-Meteo 직접 호출을
