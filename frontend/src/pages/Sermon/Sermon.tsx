@@ -16,7 +16,7 @@ import SermonForm from './components/SermonForm'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import { deriveWorshipType, groupSermonsByMonth, WORSHIP_TYPES } from './utils/sermonMeta'
 import type { WorshipType } from './utils/sermonMeta'
-import { weekdayGreeting } from './utils/sermonLetter'
+import { primaryMedia, weekdayGreeting } from './utils/sermonLetter'
 import type { Sermon as SermonType } from '../../types/sermon'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 import './Sermon.css'
@@ -108,6 +108,14 @@ const Sermon = () => {
   const openDetail = (sermon: SermonType, media: 'audio' | 'video' | null = null) => {
     setSelected({ sermon, media })
   }
+
+  // 상세 아래 '이어서 들을 말씀' — 지금 설교보다 지난 것부터, 모자라면 최근 것으로 채운다
+  const nextSermons = useMemo(() => {
+    if (!selected) return []
+    const idx = sermons.findIndex((s) => s.id === selected.sermon.id)
+    const ordered = idx === -1 ? sermons : [...sermons.slice(idx + 1), ...sermons.slice(0, idx)]
+    return ordered.filter((s) => s.id !== selected.sermon.id).slice(0, 8)
+  }, [sermons, selected])
 
   const openById = (id: number) => {
     const found = sermonsById.get(id)
@@ -297,8 +305,11 @@ const Sermon = () => {
           {/* 설교 상세 모달 */}
           {selected && (
             <SermonDetail
+              key={selected.sermon.id}
               sermon={selected.sermon}
               initialMedia={selected.media}
+              others={nextSermons}
+              onOpenSermon={(s) => openDetail(s, primaryMedia(s))}
               onClose={() => setSelected(null)}
               onEdit={() => handleEdit(selected.sermon)}
               onDelete={() => {

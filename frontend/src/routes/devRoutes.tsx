@@ -89,6 +89,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['today-memory', () => import('../pages/dev/TodayMemoryPreview')],
       // PC 좌측 레일 '나누기' 버튼 × 하단 삽화 어울림 시안 — 지금/A/B/C/D
       ['rail-share', () => import('../pages/dev/RailSharePreview')],
+      // /sermon 설교 영상 모달 감성 개편 시안 — ?v=a|b|c|d, &device=mobile
+      ['sermon-player', () => import('../pages/dev/SermonPlayerPreview')],
     ]
   : []
 

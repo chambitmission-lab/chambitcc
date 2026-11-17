@@ -4,16 +4,10 @@
 // 목사님이 나눔 질문을 공개하면 맨 아래에 함께 나눌 질문이 붙는다.
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
-import { getBibleChapter } from '../../../api/bible'
-import { bibleKeys } from '../../../hooks/queryKeys'
-import { useAuth } from '../../../hooks/useAuth'
-import {
-  useDeleteSermonTakeaway,
-  useSaveSermonTakeaway,
-  useSermonTakeaways,
-} from '../../../hooks/useSermonTakeaways'
+import { useSermonTakeaways } from '../../../hooks/useSermonTakeaways'
+import { useSermonPassage } from '../hooks/useSermonPassage'
+import SermonTakeawayEditor from './SermonTakeawayEditor'
 import { formatReference, parseBibleReference } from '../utils/sermonMeta'
 import { primaryMedia, readWalk, writeWalk, type WalkState } from '../utils/sermonLetter'
 import SermonDiscussionBlock from './SermonDiscussionBlock'
@@ -26,8 +20,6 @@ interface SermonWalkProps {
   onOpen: (media: 'audio' | 'video' | null) => void
 }
 
-const TAKEAWAY_MAX = 200
-
 const StepNumber = ({ n, done }: { n: number; done: boolean }) => (
   <span className="sl-step-n" aria-hidden>
     {done ? <span className="material-icons-outlined">check</span> : n}
@@ -38,10 +30,6 @@ const SermonWalk = ({ sermon, passageSignal, onOpen }: SermonWalkProps) => {
   const parsed = useMemo(() => parseBibleReference(sermon.bible_verse), [sermon.bible_verse])
   const [walk, setWalk] = useState<WalkState>(() => readWalk(sermon.id))
   const [passageOpen, setPassageOpen] = useState(false)
-  const [draft, setDraft] = useState('')
-  const [editing, setEditing] = useState(false)
-  // 목사님께 이름 없이 전하기 — 새 한 줄은 켠 채로 시작, 고쳐 쓸 땐 저장된 값에서
-  const [share, setShare] = useState(true)
 
   // 히어로 '본문 읽기' 신호가 바뀌면 1단계를 펼친다 (렌더 중 조정 — 설교가 바뀌면 부모가 key 로 새로 그린다)
   const [seenSignal, setSeenSignal] = useState(passageSignal)
@@ -59,34 +47,12 @@ const SermonWalk = ({ sermon, passageSignal, onOpen }: SermonWalkProps) => {
   }
 
   // 본문 — 장 전체를 받아 범위만 자른다(성경 화면과 같은 캐시 칸)
-  const bookNumber = parsed?.bookNumber ?? null
-  const { data: chapter, isLoading: chapterLoading } = useQuery({
-    queryKey: bibleKeys.chapter(bookNumber ?? 0, parsed?.chapter ?? 0),
-    queryFn: () => getBibleChapter(bookNumber!, parsed!.chapter),
-    enabled: passageOpen && bookNumber != null,
-    staleTime: Infinity,
-  })
-  const passage = useMemo(() => {
-    if (!chapter || !parsed) return []
-    const from = parsed.verse ?? 1
-    const to = parsed.verseEnd ?? (parsed.verse ?? Number.MAX_SAFE_INTEGER)
-    return chapter.verses.filter((v) => v.verse >= from && v.verse <= to && v.merged_into == null)
-  }, [chapter, parsed])
+  const { verses: passage, isLoading: chapterLoading } = useSermonPassage(parsed, passageOpen)
   const verseCount = parsed?.verse != null ? (parsed.verseEnd ?? parsed.verse) - parsed.verse + 1 : null
 
-  // 한 줄 붙잡기
-  const { requireAuth } = useAuth()
-  const { loggedIn, bySermon } = useSermonTakeaways()
+  // 한 줄 붙잡기 — 완료 표시에만 쓴다(쓰기 칸은 SermonTakeawayEditor)
+  const { bySermon } = useSermonTakeaways()
   const saved = bySermon.get(sermon.id)
-  const save = useSaveSermonTakeaway()
-  const remove = useDeleteSermonTakeaway()
-  const showInput = loggedIn && (!saved || editing)
-
-  const submit = () => {
-    const text = draft.trim()
-    if (!text) return
-    save.mutate({ sermonId: sermon.id, text, shared: share }, { onSuccess: () => { setEditing(false); setDraft('') } })
-  }
 
   const media = primaryMedia(sermon)
   const doneCount = [walk.read, walk.watch, !!saved].filter(Boolean).length
@@ -195,82 +161,7 @@ const SermonWalk = ({ sermon, passageSignal, onOpen }: SermonWalkProps) => {
           <p className="sl-step-title">한 줄 붙잡기</p>
           <p className="sl-step-desc">말씀 중 마음에 남은 한 문장을 적어 두면, 지난 편지 위에 손글씨로 남아요</p>
 
-          {!loggedIn && (
-            <div className="sl-step-actions">
-              <button type="button" className="sl-btn" onClick={() => requireAuth(() => {})}>
-                <span className="material-icons-outlined">edit</span>로그인하고 붙잡기
-              </button>
-            </div>
-          )}
-
-          {loggedIn && saved && !editing && (
-            <div className="sl-kept">
-              <p className="sl-pen">{saved.text}</p>
-              <p className="sl-share-note">
-                <span className="material-icons-outlined" aria-hidden>
-                  {saved.shared ? 'mark_email_read' : 'lock'}
-                </span>
-                {saved.shared ? '목사님께 이름 없이 전했어요' : '나만 보는 한 줄이에요'}
-              </p>
-              <div className="sl-step-actions">
-                <button
-                  type="button"
-                  className="sl-btn sl-btn--plain"
-                  onClick={() => {
-                    setDraft(saved.text)
-                    setShare(saved.shared)
-                    setEditing(true)
-                  }}
-                >
-                  고쳐 쓰기
-                </button>
-                <button
-                  type="button"
-                  className="sl-btn sl-btn--plain"
-                  disabled={remove.isPending}
-                  onClick={() => remove.mutate(sermon.id)}
-                >
-                  지우기
-                </button>
-              </div>
-            </div>
-          )}
-
-          {showInput && (
-            <>
-              <textarea
-                className="sl-input"
-                value={draft}
-                maxLength={TAKEAWAY_MAX}
-                rows={2}
-                placeholder="오늘 마음에 남은 한 문장을 적어 보세요"
-                onChange={(e) => setDraft(e.target.value)}
-              />
-              <label className="sl-share">
-                <input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} />
-                <span>
-                  목사님께 이름 없이 전하기
-                  <small>이름 없이 한 줄만 전해져요. 설교 준비와 함께 나눌 질문에 쓰여요</small>
-                </span>
-              </label>
-              <div className="sl-step-actions">
-                <button
-                  type="button"
-                  className="sl-btn sl-btn--solid"
-                  disabled={!draft.trim() || save.isPending}
-                  onClick={submit}
-                >
-                  <span className="material-icons-outlined">edit</span>
-                  {save.isPending ? '붙잡는 중…' : '붙잡기'}
-                </button>
-                {editing && (
-                  <button type="button" className="sl-btn sl-btn--plain" onClick={() => setEditing(false)}>
-                    취소
-                  </button>
-                )}
-              </div>
-            </>
-          )}
+          <SermonTakeawayEditor sermonId={sermon.id} />
         </div>
       </div>
 
