@@ -24,7 +24,7 @@ export const mission = {
   missionStatusPrayed: 'Prayed',
   missionGateAll: 'All gates',
   missionPassHint: 'Tap a row to change the boarding pass',
-  missionPassFrom: 'Seoul · Chambit Church',
+  missionPassFrom: 'Bucheon · Chambit Church',
   missionPassMissionary: 'Missionary',
   missionPassLocalTime: 'Local time',
   missionPassTimeDiff: 'Time diff',
@@ -42,6 +42,6 @@ export const mission = {
   missionProgressUnit: 'routes prayed',
   missionLampsLit: 'lamps I lit today',
   missionLampLegend: 'Mission lamps',
-  missionSeoulLegend: 'Seoul · Chambit Church',
+  missionSeoulLegend: 'Bucheon · Chambit Church',
   missionDomesticRoutes: 'Domestic routes',
 } as const

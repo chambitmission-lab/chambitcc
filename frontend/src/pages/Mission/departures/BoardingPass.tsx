@@ -157,7 +157,7 @@ export function BoardingPass({
           <div className="bp-label">PRAYER BOARDING PASS · {route.flight}</div>
           <div className="bp-route">
             <b>
-              SEL<small>{t('missionPassFrom')}</small>
+              CBC<small>{t('missionPassFrom')}</small>
             </b>
             <i aria-hidden="true" />
             <b className="bp-to">

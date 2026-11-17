@@ -24,7 +24,7 @@ export const mission = {
   missionStatusPrayed: '기도 완료',
   missionGateAll: '모든 게이트',
   missionPassHint: '행을 누르면 탑승권이 바뀌어요',
-  missionPassFrom: '서울 참빛교회',
+  missionPassFrom: '부천 참빛교회',
   missionPassMissionary: '선교사',
   missionPassLocalTime: '현지 시각',
   missionPassTimeDiff: '시차',
@@ -42,6 +42,6 @@ export const mission = {
   missionProgressUnit: '노선 기도 완료',
   missionLampsLit: '오늘 내가 밝힌 등불',
   missionLampLegend: '선교지 등불',
-  missionSeoulLegend: '서울 참빛교회',
+  missionSeoulLegend: '부천 참빛교회',
   missionDomesticRoutes: '국내 노선',
 } as const
