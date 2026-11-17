@@ -17,6 +17,7 @@ import {
   deriveWorshipType,
   extractSermonHighlight,
   extractYouTubeVideoId,
+  youtubeThumbnailUrl,
   parseBibleReference,
   formatReference,
   formatSermonDate,
@@ -25,6 +26,32 @@ import {
 import './SermonDetail.css'
 import { toastFeedback } from '../../../utils/toast'
 import { can } from '../../../utils/access'
+
+const YOUTUBE_ORIGIN = 'https://www.youtube.com'
+
+// 끼우는 순간 = 보겠다는 뜻이므로 항상 autoplay. enablejsapi는 타임스탬프 이동(postMessage)용.
+const buildYouTubeEmbedSrc = (videoId: string, startSeconds?: number): string => {
+  const params = new URLSearchParams({
+    autoplay: '1',
+    playsinline: '1',
+    rel: '0',
+    enablejsapi: '1',
+    origin: window.location.origin,
+  })
+  if (startSeconds && startSeconds > 0) params.set('start', String(startSeconds))
+  return `${YOUTUBE_ORIGIN}/embed/${videoId}?${params.toString()}`
+}
+
+// 플레이어·썸네일 서버와의 연결을 미리 연다 (한 번만 head에 추가)
+const preconnectYouTube = () => {
+  for (const href of [YOUTUBE_ORIGIN, 'https://i.ytimg.com']) {
+    if (document.head.querySelector(`link[rel="preconnect"][href="${href}"]`)) continue
+    const link = document.createElement('link')
+    link.rel = 'preconnect'
+    link.href = href
+    document.head.appendChild(link)
+  }
+}
 
 interface SermonDetailProps {
   sermon: Sermon
@@ -38,6 +65,7 @@ interface SermonDetailProps {
 const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }: SermonDetailProps) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const videoPlayerRef = useRef<HTMLIFrameElement>(null)
+  const videoStageRef = useRef<HTMLDivElement>(null)
   const audioPlayerRef = useRef<HTMLAudioElement>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const adminUser = can('sermons:manage')
@@ -89,6 +117,38 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
 
   const videoId = sermon.video_url ? extractYouTubeVideoId(sermon.video_url) : null
 
+  // 유튜브 플레이어는 무거워서(스크립트·요청 수십 개) 볼 뜻이 확인된 뒤에만 끼운다.
+  // null = 아직 표지(썸네일+재생 버튼)만. 목록의 영상 버튼으로 들어왔으면 바로 끼운다.
+  // src는 한 번 정하면 바꾸지 않는다 — 바꾸면 플레이어가 통째로 다시 로드되고 히스토리도 쌓인다.
+  const [videoSrc, setVideoSrc] = useState<string | null>(() =>
+    videoId && initialMedia === 'video' ? buildYouTubeEmbedSrc(videoId) : null
+  )
+  const videoReadyRef = useRef(false)
+  const pendingSeekRef = useRef<number | null>(null)
+
+  // 표지 단계에서 연결(DNS·TLS)만 미리 열어 두어, 재생을 눌렀을 때 첫 화면이 빨리 뜬다
+  useEffect(() => {
+    if (videoId) preconnectYouTube()
+  }, [videoId])
+
+  // 플레이어에 명령 전달 — 다시 로드하지 않고 제자리에서 이동·재생
+  const seekVideo = (seconds: number) => {
+    const target = videoPlayerRef.current?.contentWindow
+    if (!target) return
+    const send = (func: string, args: unknown[]) =>
+      target.postMessage(JSON.stringify({ event: 'command', func, args }), YOUTUBE_ORIGIN)
+    send('seekTo', [seconds, true])
+    send('playVideo', [])
+  }
+
+  const handleVideoLoad = () => {
+    videoReadyRef.current = true
+    if (pendingSeekRef.current !== null) {
+      seekVideo(pendingSeekRef.current)
+      pendingSeekRef.current = null
+    }
+  }
+
   // 성구 첫 절 인용 — 목록 히어로와 같은 파서·쿼리키라 캐시를 공유한다
   const parsed = useMemo(() => parseBibleReference(sermon.bible_verse), [sermon.bible_verse])
   const { data: leadVerse } = useSermonLeadVerse(parsed)
@@ -119,8 +179,8 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
         audioPlayerRef.current.play().catch(() => {
           // 브라우저 자동재생 정책에 막히면 사용자가 직접 재생
         })
-      } else if (initialMedia === 'video' && videoPlayerRef.current) {
-        videoPlayerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      } else if (initialMedia === 'video' && videoStageRef.current) {
+        videoStageRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }, 300)
 
@@ -139,14 +199,20 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
       audioPlayerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
     // 2. 오디오가 없고 비디오가 있으면 비디오 재생
-    else if (videoPlayerRef.current && videoId) {
-      const iframe = videoPlayerRef.current
-      const currentSrc = iframe.src
-      const newSrc = currentSrc.split('?')[0] + `?start=${Math.floor(timestamp)}&autoplay=1&playsinline=1&rel=0&modestbranding=1`
-      iframe.src = newSrc
-      
+    else if (videoId) {
+      const seconds = Math.floor(timestamp)
+      if (!videoSrc) {
+        // 아직 표지 상태 — 그 시각부터 시작하도록 처음 한 번만 끼운다
+        setVideoSrc(buildYouTubeEmbedSrc(videoId, seconds))
+      } else if (videoReadyRef.current) {
+        seekVideo(seconds)
+      } else {
+        // 로드 중 — 준비되면 이동
+        pendingSeekRef.current = seconds
+      }
+
       // 비디오 위치로 스크롤
-      iframe.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      videoStageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }
 
@@ -272,15 +338,37 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
             <div className="sermon-detail-stage">
               {/* YouTube 비디오 플레이어 */}
               {videoId && (
-                <div className="sermon-detail-video-container">
-                  <iframe
-                    ref={videoPlayerRef}
-                    src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1${initialMedia === 'video' ? '&autoplay=1' : ''}`}
-                    title="설교 영상"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    className="sermon-detail-video-iframe"
-                  />
+                <div ref={videoStageRef} className="sermon-detail-video-container">
+                  {videoSrc ? (
+                    <iframe
+                      ref={videoPlayerRef}
+                      src={videoSrc}
+                      title="설교 영상"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      onLoad={handleVideoLoad}
+                      className="sermon-detail-video-iframe"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="sermon-detail-video-cover"
+                      onClick={() => setVideoSrc(buildYouTubeEmbedSrc(videoId))}
+                      aria-label="설교 영상 재생"
+                    >
+                      <img
+                        src={sermon.thumbnail_url || youtubeThumbnailUrl(videoId)}
+                        alt=""
+                        decoding="async"
+                        className="sermon-detail-video-cover-img"
+                      />
+                      <span className="sermon-detail-video-cover-play" aria-hidden>
+                        <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
+                          <path d="M8 5.14v13.72a1 1 0 0 0 1.52.86l11.2-6.86a1 1 0 0 0 0-1.72L9.52 4.28A1 1 0 0 0 8 5.14z" />
+                        </svg>
+                      </span>
+                    </button>
+                  )}
                 </div>
               )}
 
