@@ -243,6 +243,7 @@ const Mission = () => {
                   flight={flight}
                   onSelect={handleMapSelect}
                   onLanded={handleLanded}
+                  originLabel={t('missionMapOrigin')}
                 />
                 <div className="lamp-map__count">
                   <b>{lit.size}</b>

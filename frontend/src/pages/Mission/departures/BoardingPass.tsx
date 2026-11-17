@@ -4,6 +4,7 @@ import { prefersReducedMotion } from '../../../utils/prefersReducedMotion'
 import { countryPrayerLine, regionMeta } from '../missionData'
 import { distanceFromSeoulKm, formatOffset, localHM, offsetFromSeoul } from './missionTime'
 import { playPunchClack, playScanBeep } from './ticketSounds'
+import { playSpacebarSound, preloadSpacebarSound } from '../../Bible/Typing/typingSound'
 import type { PrayerRoute } from './routes'
 
 // 기도 탑승권 — "기도 탑승"을 누르면 실제 탑승구처럼 검표한다.
@@ -110,6 +111,7 @@ export function BoardingPass({
       return
     }
     const at = (ms: number, fn: () => void) => timers.current.push(setTimeout(fn, ms))
+    preloadSpacebarSound() // 검표(1.3초 뒤)까지 녹음을 받아 둔다
     setStage('scanning')
     at(620, () => {
       playScanBeep()
@@ -123,7 +125,8 @@ export function BoardingPass({
       tool.classList.add('is-go')
     })
     at(1290, () => {
-      playPunchClack()
+      // 키보드 스페이스바 소리 — 녹음을 아직 못 받았으면 합성 찰칵으로
+      if (!playSpacebarSound()) playPunchClack()
       setStage('punched')
       const chad = chadRef.current
       if (chad) {

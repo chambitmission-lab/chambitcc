@@ -69,7 +69,10 @@ export function LampMap({
   flight,
   onSelect,
   onLanded,
+  originLabel,
 }: {
+  /** 출발지(파란 점) 이름 — 예: 대한민국 */
+  originLabel?: string
   points: LampPoint[]
   selectedCountry: string | null
   litCountries: ReadonlySet<string>
@@ -81,9 +84,9 @@ export function LampMap({
   const { theme } = useTheme()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const colors = useRef<Colors | null>(null)
-  const props = useRef({ points, selectedCountry, litCountries, onSelect, onLanded })
+  const props = useRef({ points, selectedCountry, litCountries, onSelect, onLanded, originLabel })
   useEffect(() => {
-    props.current = { points, selectedCountry, litCountries, onSelect, onLanded }
+    props.current = { points, selectedCountry, litCountries, onSelect, onLanded, originLabel }
   })
   const flights = useRef<{ country: string; start: number }[]>([])
   const bursts = useRef<{ country: string; start: number }[]>([])
@@ -199,6 +202,15 @@ export function LampMap({
       ctx.beginPath()
       ctx.arc(seoul[0], seoul[1], 3.4 * sc, 0, Math.PI * 2)
       ctx.fill()
+      // 출발지 이름 — 위엔 중국, 오른쪽엔 일본 이름이 있어 왼쪽 아래에 둔다
+      const origin = props.current.originLabel
+      if (origin) {
+        ctx.font = `700 ${11 * sc}px ${c.font}`
+        ctx.fillStyle = c.brand
+        ctx.textAlign = 'right'
+        ctx.fillText(origin, seoul[0] - 6 * sc, seoul[1] + 13 * sc)
+        ctx.textAlign = 'left'
+      }
 
       // 비행 — 이륙·착륙은 천천히, 고도(가운데)일수록 크고 그림자가 멀다
       flights.current = flights.current.filter(f => {

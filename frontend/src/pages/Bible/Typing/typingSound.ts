@@ -276,6 +276,25 @@ export const preloadTypingSound = () => {
   if (isRecorded(theme)) void loadSamples(theme)
 }
 
+// ── 다른 화면에서 빌려 쓰는 스페이스바 한 타 ─────────────
+// /mission 탑승권 검표 소리. 필사 설정(테마 꺼짐 포함)과 무관하게 '커스텀' 녹음을 쓴다
+const SPACEBAR_THEME: RecordedTheme = 'real-custom'
+
+/** 탭 안에서 미리 받아 둔다 — 오디오 컨텍스트도 이때 깨어난다 */
+export const preloadSpacebarSound = () => void loadSamples(SPACEBAR_THEME)
+
+export const playSpacebarSound = () => {
+  const ac = audio()
+  const set = samples[SPACEBAR_THEME]
+  if (!ac || !set) return false
+  try {
+    playRecorded(ac, set, 'space')
+    return true
+  } catch {
+    return false
+  }
+}
+
 // ── 마무리 종 ─────────────────────────────────────────
 // 모든 테마가 같이 쓴다(타자기만 녹음에 든 제 종소리·줄 넘김을 그대로). 받는 중이면 아래 합성 종소리로 대신한다
 let chimes: { verse: AudioBuffer; finish: AudioBuffer } | null = null
