@@ -1,0 +1,165 @@
+/* /today 작년 오늘의 나 — 걸어온 길 (tmp- 접두, 시안 /#/dev/today-memory?v=b)
+   1년 전 → 오늘을 한 줄 길로. 움직임은 없다 — 정거장은 제자리에 놓여 있다. */
+
+.tmp {
+  display: grid;
+  gap: 12px;
+  grid-template-areas: 'hero' 'path' 'echo';
+  padding: 16px 16px 24px;
+}
+.tmp-hero { grid-area: hero; }
+.tmp-path { grid-area: path; }
+.tmp-echo { grid-area: echo; }
+
+.tmp-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+/* 히어로 — 예수님과 양이 함께 걷는 길(reading-walk). 인물이 그림 한가운데 오른쪽이라 정사각에 가까운 PC 칸에서도
+   잘리지 않는다 — 가로로 긴 언덕 그림(verse-scene)은 인물이 오른쪽 끝에 붙어 반쯤 잘렸다 */
+.tmp-hero { min-height: 150px; }
+.tmp-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 100% 62%; }
+.tmp-hero-text { position: relative; z-index: 1; padding: 20px; max-width: 60%; }
+.tmp-hero-text .eyebrow { font-size: 12.5px; font-weight: 700; color: var(--amber); }
+.tmp-hero-text h2 {
+  margin-top: 4px;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+  color: #23304d;
+  word-break: keep-all;
+}
+/* 모바일 띠에선 설명 줄이 양 삽화와 겹친다 — PC 에서만 보인다 */
+.tmp-hero-text p { display: none; margin-top: 6px; font-size: 13.5px; line-height: 1.55; color: #44506c; word-break: keep-all; }
+.dark .tmp-hero-text h2 { color: #f1eee9; }
+.dark .tmp-hero-text p { color: rgba(255, 255, 255, 0.72); }
+
+/* 길 */
+.tmp-path { position: relative; padding-left: 30px; }
+.tmp-path::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  bottom: 26px;
+  border-left: 2px dashed var(--brand-soft-strong);
+}
+.tmp-stop { position: relative; padding-bottom: 14px; }
+.tmp-stop::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface-container);
+  border: 3px solid var(--brand);
+}
+.tmp-stop.is-quiet::before { border-color: var(--card-border); border-width: 2px; }
+.tmp-stop.is-today::before {
+  background: var(--amber-icon);
+  border-color: var(--amber-icon);
+  box-shadow: 0 0 0 5px var(--amber-soft);
+}
+.tmp-stop-head { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+.tmp-stop-head b { font-size: 15px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.02em; }
+.tmp-stop-head span { font-size: 12.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.tmp-stop.is-quiet .tmp-stop-head b { color: var(--text-muted); font-weight: 700; }
+.tmp-stop-quiet { margin-top: 4px; font-size: 14px; line-height: 1.6; color: var(--text-muted); word-break: keep-all; }
+.tmp-stop-card { margin-top: 8px; padding: 18px 20px; }
+
+.tmp-kind { font-size: 12.5px; font-weight: 600; color: var(--text-muted); word-break: keep-all; }
+.tmp-kind b { font-weight: 700; color: var(--brand); }
+
+/* 그날 하루 꼬리표 */
+.tmp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tmp-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-body);
+  background: var(--surface-inset);
+}
+.tmp-tag svg { flex: none; color: var(--brand); }
+.tmp-underline {
+  margin-top: 12px;
+  border-left: 3px solid var(--amber-soft-strong);
+  padding: 2px 0 2px 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+.tmp-underline small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--text-muted); }
+
+.tmp-link { margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--brand); }
+
+/* 오늘 */
+.tmp-today {
+  margin-top: 8px;
+  border-radius: 18px;
+  padding: 16px 18px;
+  border: 1px dashed var(--amber-soft-strong);
+  background: var(--amber-soft);
+}
+.tmp-today-line {
+  font-family: 'Nanum Pen Script', var(--font-serif-kr), serif;
+  font-size: 25px;
+  line-height: 1.25;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+.tmp-today-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tmp-btn,
+.tmp-btn-ghost {
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.tmp-btn { color: #fff; background: var(--brand); }
+.tmp-btn-ghost { color: var(--text-body); background: var(--surface-container); border: 1px solid var(--card-border); }
+
+@media (min-width: 1024px) {
+  .tmp {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: 'hero path' 'echo path' '. path';
+    gap: 20px 28px;
+    padding: 24px 0 0;
+  }
+  .tmp-hero { min-height: 420px; }
+  .tmp-hero img { object-position: 80% 50%; }
+  .tmp-hero-text { max-width: none; padding: 30px; }
+  .tmp-hero-text .eyebrow { font-size: 15px; }
+  .tmp-hero-text h2 { font-size: 30px; }
+  .tmp-hero-text p { display: block; max-width: 15em; font-size: 16px; }
+  .tmp-path { padding-left: 40px; }
+  .tmp-path::before { left: 13px; }
+  .tmp-stop { padding-bottom: 22px; }
+  .tmp-stop::before { left: -34px; top: 7px; width: 16px; height: 16px; }
+  .tmp-stop-head b { font-size: 19px; }
+  .tmp-stop-head span { font-size: 15px; }
+  .tmp-stop-quiet { font-size: 16px; }
+  .tmp-stop-card { padding: 24px 28px; }
+  .tmp-kind { font-size: 15px; }
+  .tmp-tag { font-size: 14px; padding: 6px 12px; }
+  .tmp-underline { font-size: 16px; }
+  .tmp-underline small { font-size: 14px; }
+  .tmp-link { font-size: 16px; }
+  .tmp-today { padding: 22px 26px; }
+  .tmp-today-line { font-size: 32px; }
+  .tmp-btn,
+  .tmp-btn-ghost { height: 48px; padding: 0 20px; font-size: 16px; }
+}

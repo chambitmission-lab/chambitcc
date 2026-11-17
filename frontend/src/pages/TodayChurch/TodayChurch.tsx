@@ -1,14 +1,14 @@
 // /today — 오늘의 교회 상세. 홈 묵상 히어로 우상단 봉투 버튼을 누르면 온다.
-//   탭 1 작년 오늘의 나: 1년·6개월·1개월 전 오늘의 기록 + 작년 이맘때 응답된 기도
+//   탭 1 작년 오늘의 나: 걸어온 길 — 1년·6개월·1개월 전 오늘의 기록을 오늘까지 한 줄 길로 + 작년 이맘때 응답된 기도
 //   탭 2 어제 우리 교회: 참비의 손편지 — 익명 집계로 쓴 편지 · 폴라로이드 · 이번 주 마음 · 하루의 언덕길 · 숫자 티켓
 // ?tab=church 면 두 번째 탭이 먼저 열린다.
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import type { AnsweredEcho, ChurchDay, TodayChurch as TodayChurchData, TodayMemory } from '../../api/todayChurch'
+import type { AnsweredEcho, ChurchDay, TodayChurch as TodayChurchData } from '../../api/todayChurch'
 import { useTodayChurch } from '../../hooks/useTodayChurch'
 import { ChurchLetter } from './ChurchLetter'
-import { AnswerAsk, MemoryQuote } from './MemoryLetter'
-import { formatKoreanDate, markTodayChurchOpened, memoryMeta, memoryWhen } from './memoryCopy'
+import { MemoryPath } from './MemoryPath'
+import { formatKoreanDate, markTodayChurchOpened } from './memoryCopy'
 
 type Tab = 'me' | 'church'
 const TABS = [
@@ -16,32 +16,7 @@ const TABS = [
   ['church', '어제 우리 교회'],
 ] as const
 
-// ── 탭 1: 작년 오늘의 나 ──────────────────────────────
-const MemoryCard = ({ memory }: { memory: TodayMemory }) => {
-  const navigate = useNavigate()
-  const canOpenChapter = memory.kind === 'typing' && memory.book_number && memory.chapter
-  return (
-    <article className="feed-card rounded-2xl px-4 py-4 lg:px-7 lg:py-6">
-      <div className="flex items-baseline justify-between gap-2 text-[12px] lg:text-[15px]">
-        <b className="font-bold text-[var(--amber)]">{memoryWhen(memory)}</b>
-        <span className="text-[var(--text-muted)] tabular-nums">{memory.date.replaceAll('-', '.')}</span>
-      </div>
-      <MemoryQuote memory={memory} className="mt-2.5" />
-      <p className="mt-1.5 text-[12px] text-[var(--text-muted)] lg:mt-2.5 lg:text-[15px]">{memoryMeta(memory)}</p>
-      <AnswerAsk memory={memory} />
-      {canOpenChapter && (
-        <button
-          type="button"
-          onClick={() => navigate(`/bible/${memory.book_number}/${memory.chapter}`)}
-          className="mt-3 text-[13px] font-semibold text-brand lg:text-[16px]"
-        >
-          그 장 다시 읽기
-        </button>
-      )}
-    </article>
-  )
-}
-
+// ── 탭 1: 작년 오늘의 나 — 걸어온 길(MemoryPath) + 작년 이맘때 응답된 기도 ──
 const EchoCard = ({ echo }: { echo: AnsweredEcho }) => (
   <article className="feed-card rounded-2xl px-4 py-4 lg:px-7 lg:py-6">
     <div className="flex items-baseline justify-between gap-2 text-[12px] lg:text-[15px]">
@@ -79,14 +54,11 @@ const MeTab = ({ data }: { data: TodayChurchData }) => {
       </div>
     )
   }
-  return (
-    <div className="flex flex-col gap-2.5 px-4 pt-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:px-0 lg:pt-6">
-      {memories.map((m) => (
-        <MemoryCard key={`${m.kind}-${m.id}`} memory={m} />
-      ))}
-      {echo && <EchoCard echo={echo} />}
-    </div>
-  )
+  // 꺼내 볼 기억은 없고 응답된 기도만 있는 날 — 길 없이 그 한 장만
+  if (!memories.length) {
+    return <div className="px-4 pt-4 lg:max-w-[620px] lg:px-0 lg:pt-6">{echo && <EchoCard echo={echo} />}</div>
+  }
+  return <MemoryPath data={data} echo={echo && <EchoCard echo={echo} />} />
 }
 
 // ── 탭 2: 어제 우리 교회 — 참비의 손편지(ChurchLetter) ──

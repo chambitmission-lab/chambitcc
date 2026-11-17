@@ -457,6 +457,13 @@ html:not([data-viewport-settled]) .bottom-dock-anchor {
    Markdown 렌더러가 문단·리스트에 인라인 style로 line-height/margin을 직접 박아서
    클래스만으로는 덮이지 않는다. 이어 읽는 긴 글이라 행간을 넓히고 문단 사이를
    벌려야 해서, 이 스코프에 한해 !important로 되돌린다. */
+/* 한글은 기본이 글자 단위 줄바꿈이라 "마칩니|다."처럼 끝 글자 하나가 홀로 다음 줄로
+   떨어진다. 어절 단위로 끊고(keep-all) 마지막 줄 고아를 피하게(pretty) 한다. */
+.book-intro-prose {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
 .book-intro-prose p,
 .book-intro-prose li {
   line-height: 1.85 !important;

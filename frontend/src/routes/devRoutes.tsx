@@ -81,6 +81,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['cursor-trail', () => import('../pages/dev/CursorTrailLab')],
       // 목양칼럼(/ministry) 전면 개편 시안 비교 — ?v=a|b|c|d (운영 칼럼 스냅샷)
       ['ministry-redesign', () => import('../pages/dev/MinistryRedesignPreview')],
+      // /today '작년 오늘의 나' 개편 시안 비교 — ?v=a|b|c, &data=one(기록 하나)|rich
+      ['today-memory', () => import('../pages/dev/TodayMemoryPreview')],
     ]
   : []
 

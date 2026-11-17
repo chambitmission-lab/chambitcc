@@ -29,12 +29,33 @@ export const formatKoreanDate = (ymd: string) => {
   return `${y}년 ${mo}월 ${d}일`
 }
 
-export const memoryMeta = (m: TodayMemory) => {
-  const parts = [formatKoreanDate(m.date), KIND_NAME[m.kind]]
+/** "한 달 전 오늘" — 기록이 없는 빈 정거장의 이름 */
+export const offsetWhen = (offset: Exclude<MemoryOffset, 'first'>) => `${OFFSET_LABEL[offset]} 오늘`
+
+const WEEKDAYS = ['주일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+
+/** "2026-10-17" → "토요일" */
+export const weekdayOf = (ymd: string) => {
+  const [y, mo, d] = ymd.split('-').map(Number)
+  return WEEKDAYS[new Date(y, mo - 1, d).getDay()]
+}
+
+/** "21:42" → "밤 9:42" */
+export const formatClock = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number)
+  if (Number.isNaN(h) || Number.isNaN(m)) return ''
+  const part = h < 5 ? '새벽' : h < 9 ? '아침' : h < 12 ? '오전' : h < 18 ? '오후' : h < 21 ? '저녁' : '밤'
+  return `${part} ${h % 12 || 12}:${String(m).padStart(2, '0')}`
+}
+
+/** 기록 종류 옆에 붙는 한 줄 — "창세기 2:8 · 10절" / "어머니 수술 · 함께 기도 3명" */
+export const memoryKind = (m: TodayMemory) => {
+  const parts: string[] = []
+  if (m.kind === 'prayer' && m.title) parts.push(m.title)
   if (m.kind === 'prayer' && (m.prayer_count ?? 0) > 0) parts.push(`함께 기도 ${m.prayer_count}명`)
   if ((m.kind === 'typing' || m.kind === 'meditation') && m.reference) parts.push(m.reference)
   if (m.kind === 'typing' && (m.verse_count ?? 0) > 1) parts.push(`${m.verse_count}절`)
-  return parts.join(' · ')
+  return { name: KIND_NAME[m.kind], detail: parts.join(' · ') }
 }
 
 /** 응답 질문을 붙일 기도인가 — 응답 전이고, 이 기기에서 '아직 기도 중'을 누르지 않은 것 */

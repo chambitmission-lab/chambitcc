@@ -24,6 +24,28 @@ export interface TodayMemory {
   verse_count?: number
   book_number?: number
   chapter?: number
+  /** 남긴 시각 "HH:MM" (KST) — 묵상은 날짜만 남아 없다. 옛 백엔드는 필드 없음 */
+  time?: string | null
+  /** 그날 하루 — /today 걸어온 길의 꼬리표 (옛 백엔드·/growth 는 필드 없음) */
+  day?: MemoryDay
+}
+
+export interface MemoryDay {
+  read: { book_number: number; book_name: string; chapters: number[] }[]
+  underline: { reference: string; text: string } | null
+  /** 그날 다른 성도의 기도에 누른 '기도했어요' 수 */
+  prayed_for: number
+  /** 그날까지 7일 안에 선포된 주일 말씀 */
+  sermon: { title: string; bible_verse: string | null } | null
+}
+
+/** 걸어온 길 — 기록이 없는 시점(빈 정거장)과 그날부터 오늘까지 */
+export interface MemoryPath {
+  joined_date: string | null
+  /** before = 아직 함께하기 전, quiet = 기록 없이 지나간 날 */
+  stops: { offset: Exclude<MemoryOffset, 'first'>; date: string; state: 'before' | 'quiet' }[]
+  since: { from: string; days: number; chapters: number } | null
+  now_reading: { book_number: number; chapter: number; book_name: string } | null
 }
 
 export interface AnsweredEcho {
@@ -58,6 +80,8 @@ export interface ChurchDay {
 export interface TodayChurch {
   date: string
   memories: TodayMemory[]
+  /** 옛 백엔드는 필드 없음 */
+  path?: MemoryPath
   answered_echo: AnsweredEcho | null
   church: ChurchDay
 }
