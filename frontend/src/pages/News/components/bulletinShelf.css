@@ -319,7 +319,7 @@
      원근은 카드마다 perspective() 로 — 스크롤 상자에 perspective 를 걸면 모바일 Chrome 이
      원근 기준점을 스크롤된 내용에 묶어 넘길수록 그려진 자리와 실제 자리가 어긋났다(왼쪽 카드가 안 눌림) */
   position: relative;
-  --bsf-persp: 700px;
+  --bsf-persp: 800px;
 }
 .bsf-card {
   position: relative;
@@ -348,6 +348,29 @@
   place-items: center;
   color: var(--brand);
 }
+
+/* ── 회전 링 ──
+   JS 가 카드마다 --a(돌아선 정도 0~1)·--o(뒤로 돌아 들어가며 사라지는 정도)를 쓴다 */
+.bsf-card { --a: 0; --o: 1; }
+.bsf-flow { --bsf-shade: 0.42; }
+.dark .bsf-flow { --bsf-shade: 0.6; }
+.bsf-cover {
+  position: relative;
+  display: block;
+  width: var(--bsf-card-w);
+  height: calc(var(--bsf-card-w) * 1.485);
+  /* 카드 자체의 opacity 는 전환(0.15s)이 걸려 있어 프레임마다 쓰면 늦게 따라온다 — 여기서 받는다 */
+  opacity: var(--o);
+}
+.bsf-cover img { display: block; }
+.bsf-shade {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: #000;
+  opacity: calc(var(--a) * var(--bsf-shade));
+  pointer-events: none;
+}
 .bsf-card-no {
   position: absolute;
   top: 8px;
@@ -371,7 +394,7 @@
   .bsf-year-label { font-size: 15px; }
   .bsf-year-btn { width: 32px; height: 32px; }
   .bsf-month { font-size: 14px; padding: 6px 12px; }
-  .bsf-flow { --bsf-card-w: 168px; --bsf-persp: 900px; margin: 0; }
+  .bsf-flow { --bsf-card-w: 168px; --bsf-persp: 1100px; margin: 0; }
   .bsf-nav {
     position: absolute;
     top: calc(1.375rem + 168px * 1.485 / 2);

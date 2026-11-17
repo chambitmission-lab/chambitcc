@@ -270,6 +270,10 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
 }
 
 // ── 지난 주보 커버플로우 ─────────────────────────────
+// 지난 주보 회전 링 — 한 칸에 30도(열두 장이 한 바퀴), 반지름은 이웃 표지가 살짝 떨어지는 값(카드 폭 배수)
+const RING_STEP = 30
+const RING_RADIUS = 0.5 / Math.tan(((RING_STEP / 2) * Math.PI) / 180) + 0.16
+
 const CoverFlow = ({
   issues,
   openingId,
@@ -326,8 +330,29 @@ const CoverFlow = ({
     let bestDist = Infinity
     track.querySelectorAll<HTMLElement>('.bsf-card').forEach((card, i) => {
       const dist = (card.offsetLeft + card.offsetWidth / 2 - cx) / card.offsetWidth
-      const k = Math.max(-1.6, Math.min(1.6, dist))
-      card.style.transform = `perspective(var(--bsf-persp)) rotateY(${-k * 38}deg) translateZ(${-Math.abs(k) * 70}px) scale(${1 - Math.min(Math.abs(k), 1) * 0.06})`
+      // 표지는 원통 둘레에 놓인다 — 한 칸에 RING_STEP 도씩, 넘기면 링 전체가 돈다.
+      // 원근·회전의 기준점(transform-origin)을 카드마다 무대 한가운데로 옮겨 써서, 카드별 perspective() 로도
+      // 모든 카드가 한 소실점·한 회전축을 나눠 쓴다(스크롤 상자에 perspective 를 걸 수 없는 사정은 CSS 주석)
+      const phi = dist * RING_STEP
+      const absPhi = Math.abs(phi)
+      if (absPhi >= 90) {
+        // 링 뒤편으로 넘어간 표지는 그리지 않는다(눌리지도 않게)
+        if (card.style.visibility !== 'hidden') card.style.visibility = 'hidden'
+      } else {
+        if (card.style.visibility) card.style.visibility = ''
+        const w = card.offsetWidth
+        const r = w * RING_RADIUS
+        const off = dist * w
+        card.style.transformOrigin = `${(w / 2 - off).toFixed(2)}px 50%`
+        card.style.transform = `perspective(var(--bsf-persp)) translateZ(${(-r).toFixed(1)}px) rotateX(-3deg) rotateY(${phi.toFixed(2)}deg) translateZ(${r.toFixed(1)}px) translateX(${(-off).toFixed(2)}px)`
+        // 그늘(--a)과 뒤로 돌아 들어가며 사라지는 정도(--o)는 CSS 가 그린다
+        const av = Math.min(absPhi / 90, 1).toFixed(3)
+        if (card.dataset.a !== av) {
+          card.dataset.a = av
+          card.style.setProperty('--a', av)
+          card.style.setProperty('--o', Math.min((90 - absPhi) / 20, 1).toFixed(3))
+        }
+      }
       // 겹침 순서는 두 카드가 가운데에서 같은 거리가 되는 순간(0.5 간격)에만 바뀌면 된다 —
       // 프레임마다 다른 값을 쓰면 레이어가 매번 다시 정렬되어 옆 카드가 덜컥거렸다
       const z = String(100 - Math.round(Math.abs(dist)))
@@ -505,20 +530,24 @@ const CoverFlow = ({
               aria-current={i === center || undefined}
             >
               <span className="bsf-card-no">{fill(t('newsBulletinIssueShort'), { no: issue.no })}</span>
-              {issue.bulletin.thumbnail_url ? (
-                <img
-                  src={issue.bulletin.thumbnail_url}
-                  alt=""
-                  // 가운데 근처 카드는 넘기는 도중 그림이 툭 뜨지 않게 미리 받아 둔다
-                  loading={Math.abs(i - center) <= 4 ? 'eager' : 'lazy'}
-                  decoding="async"
-                  fetchPriority="low"
-                />
-              ) : (
-                <span className="bsf-card-empty">
-                  <BulletinIcon width={30} height={30} />
-                </span>
-              )}
+              <span className="bsf-cover">
+                {issue.bulletin.thumbnail_url ? (
+                  <img
+                    src={issue.bulletin.thumbnail_url}
+                    alt=""
+                    // 가운데 근처 카드는 넘기는 도중 그림이 툭 뜨지 않게 미리 받아 둔다
+                    loading={Math.abs(i - center) <= 4 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    fetchPriority="low"
+                  />
+                ) : (
+                  <span className="bsf-card-empty">
+                    <BulletinIcon width={30} height={30} />
+                  </span>
+                )}
+                {/* 링을 따라 돌아선 표지에 드는 그늘 */}
+                <span className="bsf-shade" aria-hidden="true" />
+              </span>
             </button>
           ))}
         </div>
