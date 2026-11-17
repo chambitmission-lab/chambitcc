@@ -121,7 +121,8 @@ interface Bolt { main: Pt[]; branches: Pt[][] }
 interface Strike { t0: number; bolt: Bolt | null; bx: number }
 interface RainDrop { L: number; x: number; y: number; v: number; len: number; jit: number; half: boolean }
 interface Flake { x: number; y: number; r: number; v: number; ph: number; sway: number; depth: number; a: number; target: number }
-interface Splash { x: number; y: number; t: number; drops: { x: number; y: number; vx: number; vy: number }[] }
+/* ring = 땅에 번지는 물결 선. 우체통 머리처럼 좁은 쇠 위에서는 선이 허공으로 삐져나와 방울만 튄다 */
+interface Splash { x: number; y: number; t: number; ring: boolean; drops: { x: number; y: number; vx: number; vy: number }[] }
 interface Ridge { y: Float32Array; k: number; noise: Float32Array; d: Float32Array }
 /* k = 하늘 구간 안 세로 자리(0~1) — 칸 높이가 바뀌어도 같은 구름이 같은 자리에 */
 interface Cloud { x: number; k: number; y: number; s: number; v: number }
@@ -593,7 +594,18 @@ export class RailWeatherScene {
     for (let i = 0; i < this.rain.length; i++) {
       const p = this.rain[i]
       const v = p.v * gs
+      const prevY = p.y
       p.y += v * dt; p.x += v * (sl + p.jit) * dt
+      // 우체통 머리를 위에서 지나는 가운데 줄 비는 거기서 튄다(눈이 우체통에 얹히는 것과 같은 자리).
+      // 이번 프레임에 윗면을 넘은 방울만 — 옆을 스쳐 내려가던 방울이 허공에서 사라지지 않게
+      if (p.L === 1 && c.splash) {
+        const mb = MAILBOX[this.theme]
+        if (prevY <= mb.y && p.y > mb.y && p.x > mb.l + 1 && p.x < mb.r - 1) {
+          this.splash(p.x, mb.y, true)
+          this.rain[i] = this.spawnRain(p.L, false)
+          continue
+        }
+      }
       const stop = this.rainStop(p, res)
       if (p.y > stop) {
         if (p.L === 1 && c.splash && p.x > 6 && p.x < W - 6 && Math.random() < c.splash) this.splash(p.x, stop)
@@ -613,11 +625,13 @@ export class RailWeatherScene {
     this.splashes = this.splashes.filter((s) => s.t < 0.32)
   }
 
-  private splash(x: number, y: number) {
+  /* hard = 쇠(우체통 머리)에 맞은 방울 — 흙보다 높이, 한 방울 더 튄다 */
+  private splash(x: number, y: number, hard = false) {
     if (this.splashes.length > 60) return
-    const n = (this.cfg.splash ?? 0) >= 1 ? 3 : 2
-    const drops = Array.from({ length: n }, () => ({ x, y, vx: rand(-22, 22) + this.curSlant * 30, vy: rand(-55, -25) }))
-    this.splashes.push({ x, y, t: 0, drops })
+    const n = ((this.cfg.splash ?? 0) >= 1 ? 3 : 2) + (hard ? 1 : 0)
+    const up: [number, number] = hard ? [-70, -38] : [-55, -25]
+    const drops = Array.from({ length: n }, () => ({ x, y, vx: rand(-22, 22) + this.curSlant * 30, vy: randIn(up) }))
+    this.splashes.push({ x, y, t: 0, ring: !hard, drops })
   }
 
   private updateSnow(dt: number) {
@@ -923,7 +937,7 @@ export class RailWeatherScene {
       const k = s.t / 0.32
       g.globalAlpha = 1 - k
       for (const d of s.drops) { g.beginPath(); g.arc(d.x, d.y, 0.55, 0, Math.PI * 2); g.fill() }
-      if (k < 0.5) { const r = 1 + k * 6; g.beginPath(); g.moveTo(s.x - r, s.y); g.lineTo(s.x + r, s.y); g.stroke() }
+      if (s.ring && k < 0.5) { const r = 1 + k * 6; g.beginPath(); g.moveTo(s.x - r, s.y); g.lineTo(s.x + r, s.y); g.stroke() }
     }
     g.globalAlpha = 1
   }
