@@ -9,7 +9,8 @@ import { weatherToRailMode } from './railWeatherMode'
  *  - 맑음      : 2점
  *  - 구름 조금 : 3점
  *  - 흐림      : 4점, 한 톤 가라앉은 회청색
- *  - 안개·비·눈: 없음(비·눈은 캔버스 몫)
+ *  - 안개      : 구름 대신 능선에 걸친 안개 띠 두 줄(.rail-fog)
+ *  - 비·눈     : 없음(캔버스 몫)
  * 바탕이 밝은 회색(#f1f3f6)이라 흰 구름은 안 보인다 — 바탕보다 살짝 짙은 푸른 워시로 그린다.
  * 움직임은 CSS 애니메이션(transform)뿐이라 JS 루프가 없다. 동작 줄이기면 제자리에 멈춘다. */
 
@@ -25,14 +26,23 @@ const CLOUDS = [
 const COUNT: Record<Sky, number> = { clear: 2, partly: 3, overcast: 4 }
 
 export default function RailClouds() {
-  const { weather } = useCurrentWeather()
+  const { weather, isLoading } = useCurrentWeather()
+  // 날씨를 아직 못 받았으면 기다린다 — 맑은 날 구름을 먼저 띄웠다가 거두지 않게(실패로 끝나면 맑은 날로)
+  if (isLoading) return null
 
   let sky: Sky = 'clear'
   if (weather) {
     if (weatherToRailMode(weather)) return null
     if (weather.condition === 'clear') sky = 'clear'
     else if (weather.condition === 'cloudy') sky = weather.icon === 'cloud' ? 'overcast' : 'partly'
-    else return null
+    else if (weather.condition === 'fog') {
+      return (
+        <div className="rail-fog" aria-hidden>
+          <span />
+          <span />
+        </div>
+      )
+    } else return null
   }
 
   return (

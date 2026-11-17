@@ -97,7 +97,7 @@ function MoonGlyph({ phase }: { phase: number }) {
 }
 
 export default function RailSun() {
-  const { weather } = useCurrentWeather()
+  const { weather, isLoading } = useCurrentWeather()
   const [preview] = useState(readPreview)
   const sweeping = preview === 'sweep'
   const sweep = useSweep(sweeping)
@@ -128,6 +128,9 @@ export default function RailSun() {
     } else progress = (now - sun.rise) / (sun.set - sun.rise)
   }
   if (!(progress > 0 && progress < 1)) return null
+  // 날씨를 아직 못 받았으면 기다린다 — 맑은 날로 먼저 그렸다가 비 소식이 오면 해가 뚝 사라졌다(2026-11-17).
+  // 조회가 실패로 끝나면(weather 없음·로딩 아님) 맑은 날로 그린다
+  if (preview === null && isLoading) return null
   const phase = sweeping ? ((Math.floor(sweep) % 8) + 0.5) / 8 : moonPhase(now).phase
 
   // 하늘 상태 — 미리보기 중에는 날씨를 보지 않는다

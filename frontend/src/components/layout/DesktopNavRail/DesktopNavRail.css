@@ -329,6 +329,48 @@
   }
 }
 
+/* ── 안개 낀 날 — 능선에 걸친 안개 띠 두 줄 ─────────────────
+   넓고 납작한 번짐이 언덕 위를 아주 천천히 오간다(JS 루프 없음). 밝은 바탕에서는 하늘 쪽은
+   거의 안 보이고 푸른 언덕에 걸친 부분만 뿌옇게 읽힌다 — 그게 의도다.
+   위 띠는 먼 능선(바닥에서 ≈100px), 아래 띠는 앞 언덕 밑동. 예배당 창(바닥에서 ≈70px)은
+   두 띠의 옅은 가장자리 사이에 놓여 불빛이 묻히지 않는다. */
+.rail-fog {
+  --fog: 255, 255, 255;
+  --fog-a: 0.6;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+[data-theme='dark'] .rail-fog {
+  --fog: 170, 180, 196;
+  --fog-a: 0.2;
+}
+.rail-fog > span {
+  position: absolute;
+  left: -60px;
+  bottom: 84px;
+  width: 368px;
+  height: 52px;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(var(--fog), var(--fog-a)), rgba(var(--fog), 0) 100%);
+  animation: rail-fog-drift 70s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.rail-fog > span + span {
+  bottom: 12px;
+  height: 44px;
+  opacity: 0.8;
+  animation-duration: 95s;
+  animation-direction: alternate-reverse;
+}
+@keyframes rail-fog-drift {
+  from { transform: translateX(-36px); }
+  to { transform: translateX(36px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-fog > span { animation: none; }
+}
+
 /* ── 레일 글씨 크기 — 노안 대응 ─────────────────────────────────────
    기본 라벨 17px·글리프 26px로 올렸고, 헤더 '가' 단계(<html data-text-scale> 의 --text-mul)를 --rl 로 곱한다.
    ★ 레일 폭(76/248px)은 그대로 둔다 — 모든 화면의 본문 시작점이 이 폭에 맞춰져 있다.

@@ -9,9 +9,18 @@
  *  - storm    : B 폭풍 속 예배당 — 돌풍·물보라 + 가지 친 번개(화면 흔들림 없음)
  *  - snow     : C 첫눈 소복 — 능선 셋·지붕·창턱에 쌓임
  *  - blizzard : D 눈보라 — 옆바람·눈안개·드문 눈번개
- * 창 불빛은 어떤 날씨에도 꺼지지 않는다. */
+ *  - thaw     : 눈 그친 뒤 — 내리는 것 없이 쌓인 눈만 남아 천천히 녹는다(날씨가 아니라 뒷이야기)
+ * 창 불빛은 어떤 날씨에도 꺼지지 않는다.
+ *
+ * 그리는 비용(2026-11-17): 변하지 않는 바탕(바탕색 + 삽화 + 흐린 하늘)은 크기가 바뀔 때 한 번만
+ * 구워 두고(base) 프레임마다 한 장으로 찍는다. 물보라·눈안개·빗줄기 커튼도 미리 구운 번짐을 찍는다 —
+ * 프레임마다 그라데이션을 수십 개씩 새로 만들지 않는다. */
+
+import { readSnowMemory, saveSnowMemory } from './railSnowMemory'
 
 export type RailWeatherMode = 'drizzle' | 'rain' | 'storm' | 'snow' | 'blizzard'
+/* 엔진이 그릴 수 있는 장면 — 날씨 다섯 + 눈 그친 뒤 */
+export type RailSceneMode = RailWeatherMode | 'thaw'
 export type RailTheme = 'light' | 'dark'
 
 const W = 248
@@ -28,6 +37,12 @@ const SILL: [number, number, number] = [181.4, 186.0, 284.8]
 const ROOF: [number, number][] = [[157.5, 276], [166.9, 261], [187.5, 261.6], [193.8, 276]]
 const ROOF_GABLE_R: [number, number] = [175.6, 276]
 const ARM: [number, number][] = [[164.6, 254.8], [169.9, 254.8]]
+/* 앞 언덕 우체통(= 나누기 버튼) 머리 윗면 — 왼끝·오른끝 x, 윗면 y. 라이트·다크 그림에서 우체통이
+ * 몇 px 다르게 그려져 테마별로 짚었다(bottom-mailbox-*.webp, 2026-11-17). 둥근 양 끝은 그릴 때 처리 */
+const MAILBOX: Record<RailTheme, { l: number; r: number; y: number }> = {
+  light: { l: 59, r: 76, y: 293.8 },
+  dark: { l: 58.5, r: 73.5, y: 289.5 },
+}
 // 그림 속 능선(이미지 기준 y) — 하늘 경계는 그림에서 읽고, 앞의 두 능선은 손으로 짚었다.
 // 삽화(rail/bottom-*.webp)를 다시 구우면 이 좌표도 함께 확인해야 한다.
 const RIDGE_L_PTS: [number, number][] = [[70, 207], [80, 212], [92, 218], [104, 221], [116, 223], [128, 226], [140, 231], [150, 235]]
@@ -43,7 +58,6 @@ interface Variant {
   bolt?: 'near' | 'snow'
   every?: [number, number]
   first?: number
-  shake?: number
   // rain
   layers?: [number, number, number]
   speed?: number
@@ -66,10 +80,12 @@ interface Variant {
   growth?: number
   fog?: boolean
   drift?: boolean
+  /** 눈 그친 뒤 — 눈송이 없이 쌓인 눈만 녹아 내린다 */
+  thaw?: boolean
 }
 
 /* 입자 수는 시안의 약 75% — 레일은 모든 화면에 떠 있으므로 가볍게 */
-const VARIANTS: Record<RailWeatherMode, Variant> = {
+const VARIANTS: Record<RailSceneMode, Variant> = {
   // 가랑비: 방울 수 절반 이하·속도 0.4배·짧고 옅게 — 굵은 앞줄 비와 빗줄기 커튼은 없다
   drizzle: { kind: 'rain', layers: [34, 18, 0], speed: 0.4, lenMul: 0.6, alphaMul: 0.7, slant: -0.06, gustAmp: 0.03, gustRate: 0.25,
     overlay: 0.1, clouds: 2, cloudSpeed: 2.5, veils: 0, splash: 0.12, glow: 1.0 },
@@ -78,12 +94,18 @@ const VARIANTS: Record<RailWeatherMode, Variant> = {
   storm: { kind: 'rain', layers: [128, 98, 18], speed: 1.3, slant: -0.3, gustAmp: 0.13, gustRate: 0.55,
     overlay: 0.52, clouds: 5, cloudSpeed: 13, veils: 4, veilA: 0.16, mist: true,
     bolt: 'near', every: [6, 11], first: 1.4, splash: 1, glow: 1.25 },
-  // ★천둥 흔들림(shake)은 껐다(2026-11-14) — 그림 전체가 떨려 어지럽다는 피드백. 창 불빛 떨림은 유지
+  // ★천둥 흔들림(shake)은 없앴다(2026-11-14) — 그림 전체가 떨려 어지럽다는 피드백. 창 불빛 떨림은 유지.
+  //   덕분에 바탕이 한 프레임도 움직이지 않아 base 로 구워 둘 수 있다 — 되살리면 base 도 같이 손봐야 한다
   snow: { kind: 'snow', count: 72, fall: [14, 30], wind: 5, overlay: 0.12, clouds: 2, cloudSpeed: 2,
     maxDepth: 5, growth: 0.15, glow: 1.05 },
   blizzard: { kind: 'snow', count: 190, fall: [55, 95], wind: -70, gust: true, overlay: 0.3, clouds: 4, cloudSpeed: 10,
     maxDepth: 6.4, growth: 0.32, fog: true, bolt: 'snow', every: [16, 28], first: 3.5, glow: 1.1, drift: true },
+  // 눈 그친 뒤: 하늘은 이미 갰다(해·구름은 RailSun·RailClouds 몫) — 흐린 하늘도 먹구름도 창 불빛 번짐도 없다
+  thaw: { kind: 'snow', thaw: true, count: 0, overlay: 0, clouds: 0, cloudSpeed: 0, maxDepth: 5, glow: 0 },
 }
+
+/* 눈이 녹는 빠르기(두께/초) — 소복이 쌓인 눈(≈5)이 20분쯤에 걸쳐 사라진다 */
+const THAW_RATE = 0.004
 
 const RAIN_LAYER = [
   { v: [360, 430] as [number, number], len: [5, 8] as [number, number], w: 0.55, a: 0.32 },
@@ -101,7 +123,8 @@ interface RainDrop { L: number; x: number; y: number; v: number; len: number; ji
 interface Flake { x: number; y: number; r: number; v: number; ph: number; sway: number; depth: number; a: number; target: number }
 interface Splash { x: number; y: number; t: number; drops: { x: number; y: number; vx: number; vy: number }[] }
 interface Ridge { y: Float32Array; k: number; noise: Float32Array; d: Float32Array }
-interface Cloud { x: number; y: number; s: number; v: number }
+/* k = 하늘 구간 안 세로 자리(0~1) — 칸 높이가 바뀌어도 같은 구름이 같은 자리에 */
+interface Cloud { x: number; k: number; y: number; s: number; v: number }
 interface Veil { x: number; w: number; a: number; v: number }
 
 interface ArtRes {
@@ -111,11 +134,11 @@ interface ArtRes {
   ridgeF: Float32Array
   cloud: HTMLCanvasElement
   flake: HTMLCanvasElement
+  /* 미리 구운 번짐 — 물보라·눈안개(둥근 번짐), 빗줄기 커튼(가로로 0→1→0) */
+  mist: HTMLCanvasElement
+  fog: HTMLCanvasElement
+  veil: HTMLCanvasElement
 }
-
-/* 쌓인 눈은 레일이 잠깐 내려갔다 다시 떠도(삽화 없는 화면 → 돌아옴) 이어서 보이게 기억한다 */
-let snowMemory: { ridges: Float32Array[]; roof: number; at: number } | null = null
-const SNOW_MEMORY_MS = 1000 * 60 * 60 * 6
 
 function ridgeFrom(pts: Pt[]): Float32Array {
   const out = new Float32Array(W).fill(NaN)
@@ -189,6 +212,27 @@ function makeFlake(theme: RailTheme): HTMLCanvasElement {
   return c
 }
 
+/* 가운데가 짙고 가장자리로 풀리는 둥근 번짐 — globalAlpha 로 농도를 정해 찍는다 */
+function makeGlow(col: string, size: number): HTMLCanvasElement {
+  const c = document.createElement('canvas'); c.width = c.height = size
+  const g = c.getContext('2d'); if (!g) return c
+  const h = size / 2
+  const gr = g.createRadialGradient(h, h, 0, h, h, h)
+  gr.addColorStop(0, `rgba(${col},1)`); gr.addColorStop(1, `rgba(${col},0)`)
+  g.fillStyle = gr; g.fillRect(0, 0, size, size)
+  return c
+}
+
+/* 빗줄기 커튼 한 폭 — 가로로 투명 → 색 → 투명. 세로로 늘여 찍는다 */
+function makeVeil(col: string): HTMLCanvasElement {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 2
+  const g = c.getContext('2d'); if (!g) return c
+  const gr = g.createLinearGradient(0, 0, 64, 0)
+  gr.addColorStop(0, `rgba(${col},0)`); gr.addColorStop(0.5, `rgba(${col},1)`); gr.addColorStop(1, `rgba(${col},0)`)
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 2)
+  return c
+}
+
 /* 부드러운 1차원 잡음 — 눈 더미의 울퉁불퉁함과 쌓이는 속도 차이 */
 function noise1d(seedCount = 4): Float32Array {
   const ph = Array.from({ length: seedCount }, () => [rand(0, 6.28), rand(0.04, 0.22), rand(0.3, 1)])
@@ -240,6 +284,9 @@ export function buildArtRes(img: HTMLImageElement, theme: RailTheme): ArtRes {
   const res: ArtRes = {
     img, sky: contourOf(img, theme), ridgeL: ridgeFrom(RIDGE_L_PTS), ridgeF: ridgeFrom(RIDGE_F_PTS),
     cloud: makeCloud(theme), flake: makeFlake(theme),
+    mist: makeGlow(theme === 'light' ? '238,242,248' : '150,165,185', 64),
+    fog: makeGlow(theme === 'light' ? '255,255,255' : '170,180,196', 128),
+    veil: makeVeil(theme === 'light' ? '232,238,246' : '110,124,146'),
   }
   resCache.set(key, res)
   return res
@@ -250,7 +297,19 @@ export class RailWeatherScene {
   private ctx: CanvasRenderingContext2D
   private layer: HTMLCanvasElement
   private lctx: CanvasRenderingContext2D
+  /* 변하지 않는 바탕(바탕색 + 삽화 + 흐린 하늘) — 크기가 바뀔 때만 다시 굽는다 */
+  private base: HTMLCanvasElement
+  private bctx: CanvasRenderingContext2D
   private cfg: Variant
+  /* 정지 화면(동작 줄이기) — 내리는 것 없이 하늘빛·먹구름·쌓인 눈만 한 장 */
+  private still: boolean
+  /* 미리보기용 thaw — 기억해 둔 눈이 없어도 채워서 보여 준다 */
+  private demo: boolean
+  /* 지어낸 눈(정지 화면·미리보기)은 기억에 남기지 않는다 */
+  private fake = false
+  private seeded = false
+  /** thaw 가 다 녹았다 — 바깥(RailWeatherFx)이 보고 캔버스를 거둔다 */
+  done = false
   private theme: RailTheme = 'light'
   private bg = '#f1f3f6'
   private res: ArtRes | null = null
@@ -268,17 +327,23 @@ export class RailWeatherScene {
   private sparkles: { x: number; y: number; t: number; life: number }[] = []
   private ridges: Ridge[] = []
   private roof = 0
+  /* 우체통 위에 쌓인 눈 두께 */
+  private mbox = 0
   private clouds: Cloud[] = []
   private veils: Veil[] = []
   private curSlant: number
   private lamp = 1
 
-  constructor(canvas: HTMLCanvasElement, mode: RailWeatherMode) {
+  constructor(canvas: HTMLCanvasElement, mode: RailSceneMode, opts: { still?: boolean; demo?: boolean } = {}) {
     this.cv = canvas
     this.cfg = VARIANTS[mode]
+    this.still = !!opts.still
+    this.demo = !!opts.demo
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D
     this.layer = document.createElement('canvas')
     this.lctx = this.layer.getContext('2d') as CanvasRenderingContext2D
+    this.base = document.createElement('canvas')
+    this.bctx = this.base.getContext('2d') as CanvasRenderingContext2D
     this.nextStrike = this.cfg.first ?? Infinity
     this.curSlant = this.cfg.slant ?? 0
   }
@@ -292,38 +357,92 @@ export class RailWeatherScene {
         { y: res.ridgeL, k: 0.82, noise: noise1d(), d: new Float32Array(W) },
         { y: res.ridgeF, k: 1, noise: noise1d(), d: new Float32Array(W) },
       ]
-      if (this.cfg.kind === 'snow' && snowMemory && Date.now() - snowMemory.at < SNOW_MEMORY_MS) {
-        snowMemory.ridges.forEach((d, i) => this.ridges[i].d.set(d))
-        this.roof = snowMemory.roof
+      const mem = this.cfg.kind === 'snow' ? readSnowMemory() : null
+      if (mem) {
+        mem.ridges.forEach((d, i) => this.ridges[i].d.set(d))
+        this.roof = mem.roof
+        this.mbox = mem.mbox
+      } else if (this.cfg.thaw) {
+        // 녹일 눈이 없다 — 미리보기만 채워서 보여 주고, 실제로는 곧바로 끝낸다
+        if (this.demo) this.fillSnow(0.9)
+        else this.done = true
+      } else if (this.still && this.cfg.kind === 'snow') {
+        // 정지 화면: 눈송이가 없으니 쌓인 눈으로 "눈 오는 날"을 알린다
+        this.fillSnow(0.5)
       }
-      this.spawnAll()
+      if (!this.still) this.spawnAll()
     } else {
       // 테마가 바뀌면 하늘 경계만 갈아 끼운다 — 쌓인 눈은 그대로
       this.ridges[0].y = res.sky
     }
+    this.renderBase()
+  }
+
+  /* 능선·지붕·우체통을 한도의 k 배만큼 미리 덮는다(정지 화면·미리보기) */
+  private fillSnow(k: number) {
+    const maxDepth = this.cfg.maxDepth ?? 4
+    for (const R of this.ridges) {
+      for (let x = 0; x < W; x++) if (!Number.isNaN(R.y[x])) R.d[x] = maxDepth * R.k * (0.7 + 0.3 * R.noise[x]) * k
+    }
+    this.roof = maxDepth * 0.85 * k
+    this.mbox = maxDepth * 0.5 * k
+    this.fake = true
   }
 
   /* cssW·cssH 는 칸의 실제 크기(px) */
   resize(cssW: number, cssH: number, dpr: number) {
     const s = cssW / W
+    const pw = Math.max(1, Math.round(cssW * dpr)), ph = Math.max(1, Math.round(cssH * dpr))
+    const scale = s * dpr
+    // 같은 크기면 건드리지 않는다 — 캔버스 크기를 다시 넣으면 그림이 지워진다
+    if (this.seeded && pw === this.cv.width && ph === this.cv.height && scale === this.scale) return
     this.h = cssH / s
     // 칸이 400 보다 높으면 음수(위로 하늘이 더), 낮으면 양수(삽화 윗부분이 잘린다 — CSS 배경과 같은 바닥 정렬)
     this.top = BOX_H - this.h - ART_DROP
-    this.cv.width = this.layer.width = Math.max(1, Math.round(cssW * dpr))
-    this.cv.height = this.layer.height = Math.max(1, Math.round(cssH * dpr))
-    this.scale = s * dpr
-    this.clouds = Array.from({ length: this.cfg.clouds }, () => ({
-      x: rand(-200, W), y: this.top + rand(8, 150 - this.top * 0.5), s: rand(0.8, 1.5), v: this.cfg.cloudSpeed * rand(0.6, 1.3),
-    }))
-    this.veils = Array.from({ length: this.cfg.veils ?? 0 }, () => ({
-      x: rand(-60, W + 60), w: rand(40, 90), a: (this.cfg.veilA ?? 0) * rand(0.6, 1.1), v: rand(0.7, 1.2),
-    }))
+    for (const cv of [this.cv, this.layer, this.base]) { cv.width = pw; cv.height = ph }
+    this.scale = scale
+    // 구름·빗줄기 커튼은 처음 한 번만 뽑는다 — 창 크기를 끌어 바꾸는 동안 구름이 이리저리 튀었다(2026-11-17)
+    if (!this.seeded) {
+      this.seeded = true
+      this.clouds = Array.from({ length: this.cfg.clouds }, () => ({
+        x: rand(-200, W), k: Math.random(), y: 0, s: rand(0.8, 1.5), v: this.cfg.cloudSpeed * rand(0.6, 1.3),
+      }))
+      this.veils = Array.from({ length: this.still ? 0 : this.cfg.veils ?? 0 }, () => ({
+        x: rand(-60, W + 60), w: rand(40, 90), a: (this.cfg.veilA ?? 0) * rand(0.6, 1.1), v: rand(0.7, 1.2),
+      }))
+    }
+    for (const cl of this.clouds) cl.y = this.top + 8 + cl.k * (142 - this.top * 0.5)
+    this.renderBase()
+  }
+
+  /* 바탕색 + 삽화 + 흐린 하늘 — 한 번 구워 두고 프레임마다 한 장으로 찍는다 */
+  private renderBase() {
+    const res = this.res, b = this.bctx
+    if (!res) return
+    const top = this.top, ov = this.cfg.overlay, light = this.theme === 'light'
+    b.setTransform(this.scale, 0, 0, this.scale, 0, -top * this.scale)
+    b.globalCompositeOperation = 'source-over'
+    b.fillStyle = this.bg
+    b.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
+    b.drawImage(res.img, 0, OY, W, IH)
+    if (ov <= 0) return
+    const sky = b.createLinearGradient(0, top, 0, BOX_H)
+    if (light) {
+      sky.addColorStop(0, `rgba(78,92,114,${ov})`); sky.addColorStop(0.62, `rgba(78,92,114,${ov * 0.5})`)
+      // 언덕 아래 빈 바탕까지 회색으로 물들면 라이트에서 뿌연 상자가 보인다 — 바닥으로 갈수록 0
+      sky.addColorStop(0.8, `rgba(78,92,114,${ov * 0.12})`); sky.addColorStop(0.9, 'rgba(78,92,114,0)')
+      b.globalCompositeOperation = 'multiply'
+    } else {
+      sky.addColorStop(0, `rgba(0,0,0,${ov * 0.5})`); sky.addColorStop(1, `rgba(0,0,0,${ov * 0.35})`)
+    }
+    b.fillStyle = sky; b.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
+    b.globalCompositeOperation = 'source-over'
   }
 
   /* 언마운트 때 쌓인 눈을 기억해 둔다 */
   dispose() {
-    if (this.cfg.kind === 'snow' && this.ridges.length) {
-      snowMemory = { ridges: this.ridges.map((r) => new Float32Array(r.d)), roof: this.roof, at: Date.now() }
+    if (this.cfg.kind === 'snow' && this.ridges.length && !this.fake) {
+      saveSnowMemory({ ridges: this.ridges.map((r) => new Float32Array(r.d)), roof: this.roof, mbox: this.mbox })
     }
   }
 
@@ -450,6 +569,7 @@ export class RailWeatherScene {
 
   private updateSnow(dt: number) {
     const c = this.cfg, w = this.wind(this.time), maxDepth = c.maxDepth ?? 4
+    if (c.thaw) { this.melt(dt); this.tickSparkles(dt); return }
     for (let i = 0; i < this.flakes.length; i++) {
       const p = this.flakes[i]
       p.y += p.v * dt
@@ -468,6 +588,19 @@ export class RailWeatherScene {
               this.land(p, roofY)
               this.flakes[i] = this.spawnSnow(false)
               continue
+            }
+          }
+          // 우체통 머리 위로 떨어지는 눈송이는 우체통에 얹힌다
+          if (p.target === 2) {
+            const mb = MAILBOX[this.theme]
+            if (p.x > mb.l + 1 && p.x < mb.r - 1) {
+              const mbY = mb.y - this.mbox * 0.6
+              if (p.y > mbY && p.y < mb.y + 4) {
+                this.mbox = Math.min(maxDepth * 0.5, this.mbox + 0.05)
+                this.land(p, mbY)
+                this.flakes[i] = this.spawnSnow(false)
+                continue
+              }
             }
           }
           const top = ry - R.d[xi] * 0.8
@@ -497,9 +630,30 @@ export class RailWeatherScene {
       for (let x = 1; x < W - 1; x++) d[x] += 0.12 * ((d[x - 1] + d[x + 1]) / 2 - d[x])
     }
     this.roof = Math.min(maxDepth * 0.85, this.roof + (c.growth ?? 0) * 0.9 * dt)
+    this.mbox = Math.min(maxDepth * 0.5, this.mbox + (c.growth ?? 0) * 0.7 * dt)
     for (const l of this.landed) l.t += dt
     this.landed = this.landed.filter((l) => l.t < 1.6)
-    // 반짝임
+    this.tickSparkles(dt)
+  }
+
+  /* 눈 그친 뒤 — 얇은 곳부터 조금씩 녹아 사라진다 */
+  private melt(dt: number) {
+    let left = 0
+    for (const R of this.ridges) {
+      const d = R.d
+      for (let x = 0; x < W; x++) {
+        if (d[x] <= 0) continue
+        d[x] = Math.max(0, d[x] - THAW_RATE * (0.6 + 0.8 * R.noise[x]) * dt)
+        if (d[x] > left) left = d[x]
+      }
+    }
+    this.roof = Math.max(0, this.roof - THAW_RATE * 1.2 * dt)
+    this.mbox = Math.max(0, this.mbox - THAW_RATE * 1.2 * dt)
+    if (Math.max(left, this.roof, this.mbox) < 0.1) this.done = true
+  }
+
+  /* 반짝임 */
+  private tickSparkles(dt: number) {
     if (Math.random() < dt * (this.theme === 'dark' ? 3 : 1.6)) {
       const R = this.ridges[Math.random() < 0.7 ? 2 : 1], x = Math.floor(rand(20, 228))
       if (!Number.isNaN(R.y[x]) && R.d[x] > 1) this.sparkles.push({ x, y: R.y[x] - R.d[x] * 0.7 + rand(0, 1.2), t: 0, life: rand(0.5, 1.1) })
@@ -537,28 +691,10 @@ export class RailWeatherScene {
     const f = st ? flashEnv(ts) : 0
     if (st && ts > 1600) this.strike = null
     const top = this.top
+    // 1. 바탕색 + 삽화 + 흐린 하늘 — 구워 둔 한 장
+    g.setTransform(1, 0, 0, 1, 0, 0)
+    g.drawImage(this.base, 0, 0)
     g.setTransform(this.scale, 0, 0, this.scale, 0, -top * this.scale)
-    if (c.shake && st && ts > 260 && ts < 900) {
-      const k = c.shake * (1 - (ts - 260) / 640)
-      g.translate(rand(-k, k), rand(-k * 0.6, k * 0.6))
-    }
-    g.fillStyle = this.bg
-    g.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
-    g.drawImage(res.img, 0, OY, W, IH)
-
-    // 1. 흐린 하늘
-    const ov = c.overlay
-    const sky = g.createLinearGradient(0, top, 0, BOX_H)
-    if (light) {
-      sky.addColorStop(0, `rgba(78,92,114,${ov})`); sky.addColorStop(0.62, `rgba(78,92,114,${ov * 0.5})`)
-      // 언덕 아래 빈 바탕까지 회색으로 물들면 라이트에서 뿌연 상자가 보인다 — 바닥으로 갈수록 0
-      sky.addColorStop(0.8, `rgba(78,92,114,${ov * 0.12})`); sky.addColorStop(0.9, 'rgba(78,92,114,0)')
-      g.globalCompositeOperation = 'multiply'
-    } else {
-      sky.addColorStop(0, `rgba(0,0,0,${ov * 0.5})`); sky.addColorStop(1, `rgba(0,0,0,${ov * 0.35})`)
-    }
-    g.fillStyle = sky; g.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
-    g.globalCompositeOperation = 'source-over'
 
     // 2. 언덕 뒤 하늘: 구름 · 먼 비 · 번개
     g.save(); this.skyClip(g, res)
@@ -595,12 +731,11 @@ export class RailWeatherScene {
       for (let i = 0; i < 3; i++) {
         const y = 230 + i * 38
         const x = ((this.time * (20 + i * 9) * Math.sign(w) + i * 140) % (W + 300) + (W + 300)) % (W + 300) - 150
-        const gr = g.createRadialGradient(x, y, 0, x, y, 130)
-        const col = light ? '255,255,255' : '170,180,196'
-        gr.addColorStop(0, `rgba(${col},${light ? 0.55 : 0.16})`); gr.addColorStop(1, `rgba(${col},0)`)
-        g.fillStyle = gr; g.save(); g.translate(x, y); g.scale(1.8, 0.35); g.translate(-x, -y)
-        g.beginPath(); g.arc(x, y, 130, 0, Math.PI * 2); g.fill(); g.restore()
+        // 반지름 130 번짐을 가로 1.8배·세로 0.35배로 눌러 찍는다
+        g.globalAlpha = light ? 0.55 : 0.16
+        g.drawImage(res.fog, x - 234, y - 45.5, 468, 91)
       }
+      g.globalAlpha = 1
     }
 
     // 5. 쌓인 눈
@@ -610,20 +745,22 @@ export class RailWeatherScene {
     let lamp = c.glow * (0.92 + 0.08 * Math.sin(this.time * 7.3) * Math.sin(this.time * 3.1))
     if (st && c.bolt === 'near' && ts > 250 && ts < 800) lamp *= 0.45 + 0.55 * Math.abs(Math.sin(ts / 40))
     this.lamp = lamp
-    const lr = 26 * lamp
-    const lg = g.createRadialGradient(WIN.x, WIN.y, 0, WIN.x, WIN.y, lr)
-    if (light) {
-      lg.addColorStop(0, `rgba(255,196,96,${0.55 * lamp})`); lg.addColorStop(0.35, `rgba(255,190,90,${0.22 * lamp})`); lg.addColorStop(1, 'rgba(255,190,90,0)')
-    } else {
-      lg.addColorStop(0, `rgba(255,190,90,${0.55 * lamp})`); lg.addColorStop(0.4, `rgba(255,160,60,${0.18 * lamp})`); lg.addColorStop(1, 'rgba(255,160,60,0)')
-      g.globalCompositeOperation = 'lighter'
+    if (lamp > 0) {
+      const lr = 26 * lamp
+      const lg = g.createRadialGradient(WIN.x, WIN.y, 0, WIN.x, WIN.y, lr)
+      if (light) {
+        lg.addColorStop(0, `rgba(255,196,96,${0.55 * lamp})`); lg.addColorStop(0.35, `rgba(255,190,90,${0.22 * lamp})`); lg.addColorStop(1, 'rgba(255,190,90,0)')
+      } else {
+        lg.addColorStop(0, `rgba(255,190,90,${0.55 * lamp})`); lg.addColorStop(0.4, `rgba(255,160,60,${0.18 * lamp})`); lg.addColorStop(1, 'rgba(255,160,60,0)')
+        g.globalCompositeOperation = 'lighter'
+      }
+      g.fillStyle = lg; g.fillRect(WIN.x - lr, WIN.y - lr, lr * 2, lr * 2)
+      g.globalCompositeOperation = 'source-over'
     }
-    g.fillStyle = lg; g.fillRect(WIN.x - lr, WIN.y - lr, lr * 2, lr * 2)
-    g.globalCompositeOperation = 'source-over'
 
     // 7. 비 · 눈
     if (c.kind === 'rain') {
-      this.drawVeils(g, light, f)
+      this.drawVeils(g, light, f, res)
       if (c.mist) this.drawMist(g, light, res)
       this.drawRainLayer(g, 1, light, f)
       this.drawSplashes(g, light)
@@ -691,17 +828,23 @@ export class RailWeatherScene {
     }
   }
 
-  private drawVeils(g: CanvasRenderingContext2D, light: boolean, f: number) {
+  private drawVeils(g: CanvasRenderingContext2D, light: boolean, f: number, res: ArtRes) {
     if (!this.veils.length) return
     const sl = this.curSlant, gs = 0.7 + 0.6 * this.gustStrength(this.time)
-    const col = f > 0.25 ? '235,242,255' : light ? '232,238,246' : '110,124,146'
+    // 번개가 번쩍이는 짧은 순간만 색이 달라 그라데이션을 새로 만든다 — 평소에는 구워 둔 한 폭을 늘여 찍는다
+    const flash = f > 0.25
     for (const vl of this.veils) {
       g.save()
       g.setTransform(this.scale, 0, sl * this.scale, this.scale, vl.x * this.scale, -this.top * this.scale)
-      const gr = g.createLinearGradient(-vl.w, 0, vl.w, 0)
       const a = vl.a * gs * (light ? 1 : 0.8) + f * 0.1
-      gr.addColorStop(0, `rgba(${col},0)`); gr.addColorStop(0.5, `rgba(${col},${a})`); gr.addColorStop(1, `rgba(${col},0)`)
-      g.fillStyle = gr; g.fillRect(-vl.w, this.top, vl.w * 2, BOX_H - this.top)
+      if (flash) {
+        const gr = g.createLinearGradient(-vl.w, 0, vl.w, 0)
+        gr.addColorStop(0, 'rgba(235,242,255,0)'); gr.addColorStop(0.5, `rgba(235,242,255,${a})`); gr.addColorStop(1, 'rgba(235,242,255,0)')
+        g.fillStyle = gr; g.fillRect(-vl.w, this.top, vl.w * 2, BOX_H - this.top)
+      } else {
+        g.globalAlpha = Math.min(1, a)
+        g.drawImage(res.veil, -vl.w, this.top, vl.w * 2, BOX_H - this.top)
+      }
       g.restore()
     }
   }
@@ -709,15 +852,13 @@ export class RailWeatherScene {
   /* 앞 능선을 따라 낮게 깔리는 물보라 */
   private drawMist(g: CanvasRenderingContext2D, light: boolean, res: ArtRes) {
     const F = res.ridgeF, t = this.time
-    const col = light ? '238,242,248' : '150,165,185'
     for (let x = 30; x < W; x += 10) {
       const y = F[x]
       if (Number.isNaN(y)) continue
-      const a = (light ? 0.35 : 0.1) * (0.6 + 0.4 * Math.sin(x * 0.11 - t * 1.4))
-      const gr = g.createRadialGradient(x, y + 1, 0, x, y + 1, 14)
-      gr.addColorStop(0, `rgba(${col},${a})`); gr.addColorStop(1, `rgba(${col},0)`)
-      g.fillStyle = gr; g.fillRect(x - 14, y - 13, 28, 28)
+      g.globalAlpha = (light ? 0.35 : 0.1) * (0.6 + 0.4 * Math.sin(x * 0.11 - t * 1.4))
+      g.drawImage(res.mist, x - 14, y - 13, 28, 28)
     }
+    g.globalAlpha = 1
   }
 
   private drawSplashes(g: CanvasRenderingContext2D, light: boolean) {
@@ -797,6 +938,7 @@ export class RailWeatherScene {
       }
     })
     this.drawChurchSnow(L, light, body)
+    this.drawMailboxSnow(L, light, body)
     // 창 불빛이 비친 눈
     L.globalCompositeOperation = 'source-atop'
     const wr = L.createRadialGradient(WIN.x, WIN.y + 4, 0, WIN.x, WIN.y + 4, 34)
@@ -816,6 +958,42 @@ export class RailWeatherScene {
     g.setTransform(1, 0, 0, 1, 0, 0)
     g.drawImage(this.layer, 0, 0)
     g.restore()
+  }
+
+  /* 우체통 머리 위 — 둥글게 부푼 눈 모자 + 양 끝으로 살짝 흘러내린 눈 */
+  private drawMailboxSnow(L: CanvasRenderingContext2D, light: boolean, body: string) {
+    const d = this.mbox
+    if (d < 0.12) return
+    const { l, r, y } = MAILBOX[this.theme]
+    const k = Math.min(1, d / 1.6)
+    const fill = `rgba(${body},${light ? 1 : 0.95})`
+    // 아래 그림자 — 눈 모자에 두께가 보이게
+    L.fillStyle = light ? 'rgba(104,124,156,0.22)' : 'rgba(0,0,0,0.3)'
+    L.beginPath()
+    L.moveTo(l + 0.4, y + 0.9); L.quadraticCurveTo((l + r) / 2, y + 1.4 + d * 0.25, r - 0.4, y + 0.9)
+    L.lineTo(r - 0.4, y + 0.3); L.lineTo(l + 0.4, y + 0.3); L.closePath(); L.fill()
+    // 몸통
+    const gr = L.createLinearGradient(0, y - d * 1.2, 0, y + 1)
+    gr.addColorStop(0, fill)
+    gr.addColorStop(1, light ? 'rgba(226,234,246,0.95)' : 'rgba(170,184,206,0.85)')
+    L.fillStyle = gr
+    L.beginPath()
+    L.moveTo(l - 0.2 * k, y + 0.8)
+    L.quadraticCurveTo(l + 1, y - d * 0.9, (l + r) / 2, y - d * 1.15)
+    L.quadraticCurveTo(r - 1, y - d * 0.9, r + 0.2 * k, y + 0.8)
+    L.lineTo(l - 0.2 * k, y + 0.8)
+    L.closePath(); L.fill()
+    // 둥근 양 끝으로 흘러내린 눈
+    if (d > 0.7) {
+      const e = Math.min(1, (d - 0.7) / 1.2)
+      L.fillStyle = fill
+      L.beginPath(); L.arc(l + 0.2, y + 1.2, 0.7 * e + 0.1, 0, Math.PI * 2); L.fill()
+      L.beginPath(); L.arc(r - 0.2, y + 1.1, 0.6 * e + 0.1, 0, Math.PI * 2); L.fill()
+    }
+    if (!light) {
+      L.beginPath(); L.moveTo(l + 1, y - d * 0.55); L.quadraticCurveTo((l + r) / 2, y - d * 1.1, r - 1, y - d * 0.55)
+      L.strokeStyle = 'rgba(255,255,255,0.7)'; L.lineWidth = 0.5; L.stroke()
+    }
   }
 
   private drawChurchSnow(L: CanvasRenderingContext2D, light: boolean, body: string) {
