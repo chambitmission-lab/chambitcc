@@ -1,18 +1,37 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { prefersReducedMotion } from '../../utils/prefersReducedMotion'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { safeStorage } from '../../utils/safeStorage'
-import { missionaryByRegion, allMissionaries, regionMeta, countryCoordinates, countryDetail, domesticChurches, domesticOrganizations, missionStats, type RegionKey, type Missionary } from './missionData'
-import WorldGlobe from './WorldGlobe'
-import CountryFlag from './CountryFlag'
+import { smoothScrollToElement } from '../../utils/scrollTo'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useThemeArt } from '../../hooks/useThemeArt'
+import { useTickingNow } from '../../hooks/useTickingNow'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { MISSION_HERO } from '../../utils/themeAssets'
+import {
+  allMissionaries,
+  regionMeta,
+  domesticChurches,
+  domesticOrganizations,
+  missionStats,
+  type RegionKey,
+} from './missionData'
+import { HandHeartIcon } from './MissionIcons'
+import { buildRoutes, type PrayerRoute } from './departures/routes'
+import { localHour, morningFirstKey } from './departures/missionTime'
+import { SplitFlap } from './departures/SplitFlap'
+import { DepartureBoard } from './departures/DepartureBoard'
+import { BoardingPass } from './departures/BoardingPass'
+import { NowCard } from './departures/NowCard'
+import { LampMap, type LampPoint } from './departures/LampMap'
 import './Mission.css'
-import { PinIcon, GlobeIcon, ZoomIcon, CheckIcon, HandHeartIcon, PersonIcon, MapIcon, HandshakeIcon } from './MissionIcons'
-import { MissionaryGroups } from './components/MissionaryGroups'
-import { MissionarySheet } from './components/MissionarySheet'
+
+// 선교 — "출발 안내판" 화면 (2026-11-17 개편).
+// 선교사 한 분이 기도 노선 하나다. 안내판에서 노선을 고르면 탑승권이 열리고, "기도 탑승"으로 검표(펀치)한다.
+//   모바일: 글자판 통계 → 지금 이 시간 카드 → 게이트 칩 → 안내판 → 탑승권 → 오늘 탑승 현황 → 국내 노선
+//   PC:     왼쪽 등불 지도(고정)+탑승권 / 오른쪽 지금 이 시간 카드·안내판·국내 노선.
+//           탑승을 마치면 지도에서 서울발 여객기가 그 나라로 날아가 등불을 켠다.
 
 const REGION_ORDER: RegionKey[] = ['asia', 'europe', 'africa', 'americas']
+type Gate = 'all' | RegionKey
 
 const REGION_LABEL_KEY: Record<RegionKey, 'regionAsia' | 'regionEurope' | 'regionAfrica' | 'regionAmericas'> = {
   asia: 'regionAsia',
@@ -21,168 +40,185 @@ const REGION_LABEL_KEY: Record<RegionKey, 'regionAsia' | 'regionEurope' | 'regio
   americas: 'regionAmericas',
 }
 
-
-/** 숫자 카운트업 — 화면에 들어오면 0→값으로 차오른다 (reduced-motion 시 즉시 표시) */
-
-const CountUpNum = ({ value }: { value: number }) => {
-  const ref = useRef<HTMLSpanElement>(null)
-  // reduced-motion 이면 처음부터 최종값 — 이펙트에서 setState 로 되돌리지 않는다
-  const [display, setDisplay] = useState(() => (prefersReducedMotion() ? value : 0))
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || prefersReducedMotion()) return
-    let raf = 0
-    const io = new IntersectionObserver(
-      entries => {
-        if (!entries[0]?.isIntersecting) return
-        io.disconnect()
-        const start = performance.now()
-        const duration = 1200
-        const tick = (t: number) => {
-          const p = Math.min((t - start) / duration, 1)
-          const eased = 1 - Math.pow(1 - p, 3)
-          setDisplay(Math.round(value * eased))
-          if (p < 1) raf = requestAnimationFrame(tick)
-        }
-        raf = requestAnimationFrame(tick)
-      },
-      { threshold: 0.4 }
-    )
-    io.observe(el)
-    return () => {
-      io.disconnect()
-      cancelAnimationFrame(raf)
-    }
-  }, [value])
-
-  return (
-    <span ref={ref} className="stat-num">
-      {display}
-    </span>
-  )
+/** 오늘 탑승 기록 — 기기 기준 하루 단위(서버 없음). 날짜가 바뀌면 새 키라 저절로 비워진다 */
+const todayKey = () => {
+  const d = new Date()
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `mission-boarded-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
-
-/** 통계 카드 아이콘 — 인라인 SVG(스트로크 1.8), 카드별 컬러는 --sc 로 받는다 */
-const STAT_ICONS = {
-  missionary: <PersonIcon />,
-  countries: <GlobeIcon />,
-  continents: <MapIcon />,
-  partners: <HandshakeIcon />,
-} as const
-
-/** PC(lg+)에선 지구본이 우측에 고정되어 늘 보이므로 지도로 스크롤할 필요가 없다 */
-const isDesktopTwoCol = () => window.matchMedia('(min-width: 1024px)').matches
-
+const readBoarded = (): Set<string> => {
+  const raw = safeStorage.getJson(todayKey())
+  return new Set(Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [])
+}
 
 const Mission = () => {
   const { t, language } = useLanguage()
-  // 히어로 삽화(라이트/다크 한 쌍) — 도착에 맞춰 페이드인
+  const ko = language === 'ko'
   const heroArtReady = useThemeArt(MISSION_HERO)
-  const [activeRegion, setActiveRegion] = useState<RegionKey>('asia')
-  const [hoverCountry, setHoverCountry] = useState<string | null>(null)
-  const [selectedKey, setSelectedKey] = useState<string | null>(null) // "country|name"
-  // 기본은 지구 전체 보기 — 확대는 토글로만. 배율이 대륙마다 달라지지 않게
-  // 확대도 고정 배율이라 대륙 탭 전환 시 지구본 크기는 항상 그대로다
-  const [mapZoomOut, setMapZoomOut] = useState(true)
-  const mapRef = useRef<HTMLDivElement>(null)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const nowMs = useTickingNow(30_000)
 
-  // 함께 기도하기 — 개인 기기 기준 하루 한 번. 서버 없이도 참여감을 주는 소박한 액션
-  const prayKey = `mission-prayed-${new Date().toISOString().slice(0, 10)}`
-  const [prayedToday, setPrayedToday] = useState(
-    () => safeStorage.get(prayKey) === '1'
-  )
-  const handlePray = () => {
-    safeStorage.set(prayKey, '1')
-    setPrayedToday(true)
-  }
-
-  const missionaries = useMemo(
-    () => missionaryByRegion[activeRegion],
-    [activeRegion]
-  )
-
-  // 오늘의 기도 선교사 — 날짜 기반 로테이션 (약 7주 주기로 전원 순환)
-  const featured = useMemo(() => {
-    const now = new Date()
-    const dayNum = Math.floor((now.getTime() - now.getTimezoneOffset() * 60000) / 86400000)
-    return allMissionaries[dayNum % allMissionaries.length]
-  }, [])
-  const featuredRegion: RegionKey = countryCoordinates[featured.country]?.region ?? 'asia'
-  const featuredColor = regionMeta[featuredRegion].color
-
-  const activeMeta = regionMeta[activeRegion]
-  const activeRegionLabel = t(REGION_LABEL_KEY[activeRegion])
-
-  // selectedKey → 국가명 추출
-  const selectedCountry = selectedKey ? selectedKey.split('|')[0] : null
-
-  // 선교사 개인 탭 → 현지 시간 바텀시트
-  const [sheetTarget, setSheetTarget] = useState<Missionary | null>(null)
-
-  // 국가 그룹 헤더 클릭 → 지도에서 해당 국가 강조 (재클릭 시 해제)
-  const handleCountryClick = (country: string) => {
-    if (selectedCountry === country) {
-      setSelectedKey(null)
-      return
-    }
-    setSelectedKey(`${country}|@list`)
-    // 지도를 화면에 부드럽게 가져오기
-    if (!isDesktopTwoCol()) mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-
-  // 바텀시트의 "지도에서 위치 보기"
-  const handleSheetLocate = (m: Missionary) => {
-    setSheetTarget(null)
-    const region = countryCoordinates[m.country]?.region
-    if (region) setActiveRegion(region)
-    setMapZoomOut(false)
-    setSelectedKey(`${m.country}|${m.name}`)
-    if (!isDesktopTwoCol()) mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-
-  // 지역 탭 변경 시 선택만 초기화 — 확대/전체 보기 상태는 사용자가 토글한 그대로 유지
-  const handleRegionChange = (key: RegionKey) => {
-    setActiveRegion(key)
-    setSelectedKey(null)
-  }
-
-  // 지도 점 탭 → 국가 선택 (같은 국가 재탭 시 해제). 해당 대륙 탭도 함께 전환
-  const handleMapSelect = useCallback((country: string) => {
-    const coord = countryCoordinates[country]
-    if (!coord) return
-    setActiveRegion(coord.region)
-    setMapZoomOut(false)
-    setSelectedKey(prev => (prev?.split('|')[0] === country ? null : `${country}|@map`))
+  // 대륙 순서로 묶은 노선 — 게이트 칩이 같은 순서다
+  const routes = useMemo(() => {
+    const all = buildRoutes(allMissionaries)
+    return REGION_ORDER.flatMap(r => all.filter(x => x.region === r))
   }, [])
 
-  // 오늘의 선교사 카드 탭 → 해당 국가를 지도에서 강조
-  const handleFeaturedClick = () => {
-    setActiveRegion(featuredRegion)
-    setMapZoomOut(false)
-    setSelectedKey(`${featured.country}|${featured.name}`)
-    if (!isDesktopTwoCol()) mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
+  const [gate, setGate] = useState<Gate>('all')
+  const visibleRoutes = useMemo(() => (gate === 'all' ? routes : routes.filter(r => r.region === gate)), [routes, gate])
 
-  // 지구본에 찍을 점: 전체 선교지 (활성 지역 강조) — 실좌표(countryDetail) 기준
-  const mapPoints = useMemo(() => {
-    return Object.entries(countryCoordinates).flatMap(([country, coord]) => {
-      const geo = countryDetail[country]
-      if (!geo) return []
-      return [{
-        country,
-        lat: geo.lat,
-        lng: geo.lng,
-        active: coord.region === activeRegion,
-        color: regionMeta[coord.region].color,
-      }]
+  // 처음 고른 노선 = 현지에서 하루를 막 시작한 곳
+  const [selectedKey, setSelectedKey] = useState<string | null>(() => {
+    const now = Date.now()
+    const first = [...routes].sort(
+      (a, b) => morningFirstKey(localHour(a.detail.tz, now)) - morningFirstKey(localHour(b.detail.tz, now)),
+    )[0]
+    return first?.key ?? null
+  })
+  const selected: PrayerRoute | undefined = routes.find(r => r.key === selectedKey) ?? routes[0]
+
+  const [boarded, setBoarded] = useState<Set<string>>(readBoarded)
+  // 등불은 비행기가 도착해야 켜진다 — 처음엔 이미 탑승한 나라들
+  const [lit, setLit] = useState<Set<string>>(() => {
+    const keys = readBoarded()
+    return new Set(routes.filter(r => keys.has(r.key)).map(r => r.country))
+  })
+  const [flight, setFlight] = useState<{ country: string; id: number } | null>(null)
+  const flightSeq = useRef(0)
+  const passRef = useRef<HTMLDivElement>(null)
+
+  const handleBoarded = useCallback(
+    (key: string) => {
+      setBoarded(prev => {
+        if (prev.has(key)) return prev
+        const next = new Set(prev).add(key)
+        safeStorage.setJson(todayKey(), [...next])
+        return next
+      })
+      const route = routes.find(r => r.key === key)
+      if (!route) return
+      if (isDesktop) setFlight({ country: route.country, id: ++flightSeq.current })
+      else setLit(prev => new Set(prev).add(route.country))
+    },
+    [routes, isDesktop],
+  )
+
+  const handleSelect = useCallback(
+    (key: string) => {
+      setSelectedKey(key)
+      if (isDesktop) return
+      // 모바일 — 노선이 길어 탑승권이 화면 밖이면 데려온다
+      requestAnimationFrame(() => {
+        const el = passRef.current
+        if (!el) return
+        const r = el.getBoundingClientRect()
+        if (r.top > window.innerHeight * 0.75 || r.bottom < 0) smoothScrollToElement(el, { offset: 72 })
+      })
+    },
+    [isDesktop],
+  )
+
+  // 지도 등불 탭 → 그 나라의 첫 노선 (게이트가 다른 대륙이면 '모든 게이트'로)
+  const handleMapSelect = useCallback(
+    (country: string) => {
+      const r = routes.find(x => x.country === country)
+      if (!r) return
+      if (gate !== 'all' && gate !== r.region) setGate('all')
+      setSelectedKey(r.key)
+    },
+    [routes, gate],
+  )
+  const handleLanded = useCallback((country: string) => setLit(prev => new Set(prev).add(country)), [])
+
+  const lampPoints = useMemo<LampPoint[]>(() => {
+    const seen = new Set<string>()
+    return routes.flatMap(r => {
+      if (seen.has(r.country)) return []
+      seen.add(r.country)
+      return [{ country: r.country, lat: r.detail.lat, lng: r.detail.lng }]
     })
-  }, [activeRegion])
+  }, [routes])
+
+  const ticker = ko
+    ? `${missionStats.total}명 ${missionStats.countries}개국 ${missionStats.regions}대륙 ${missionStats.domesticPartners}협력`
+    : `${missionStats.total} SENT ${missionStats.countries} NATIONS`
+
+  const gateChips = (
+    <div className="gate-chips" role="tablist" aria-label={t('missionGateAll')}>
+      {(['all', ...REGION_ORDER] as Gate[]).map(g => (
+        <button
+          key={g}
+          type="button"
+          role="tab"
+          aria-selected={gate === g}
+          className={`gate-chip${gate === g ? ' is-on' : ''}`}
+          onClick={() => setGate(g)}
+        >
+          {g === 'all' ? (
+            t('missionGateAll')
+          ) : (
+            <>
+              <i style={{ background: regionMeta[g].color }} />
+              {t(REGION_LABEL_KEY[g])}
+            </>
+          )}
+        </button>
+      ))}
+    </div>
+  )
+
+  const board = (
+    <DepartureBoard
+      routes={visibleRoutes}
+      nowMs={nowMs}
+      selectedKey={selected?.key ?? null}
+      boarded={boarded}
+      onSelect={handleSelect}
+    />
+  )
+
+  const pass = selected ? (
+    <div ref={passRef} className="mission-pass-slot">
+      <BoardingPass
+        key={selected.key}
+        route={selected}
+        nowMs={nowMs}
+        boarded={boarded.has(selected.key)}
+        layout={isDesktop ? 'bottom' : 'side'}
+        onBoarded={handleBoarded}
+      />
+    </div>
+  ) : null
+
+  const domestic = (
+    <section className="dep-card domestic-routes">
+      <h2 className="domestic-routes__title">
+        {t('missionDomesticRoutes')}
+        <small>DOMESTIC</small>
+      </h2>
+      <div className="domestic-routes__group">{t('missionDomesticChurches')}</div>
+      <div className="domestic-routes__tix">
+        {domesticChurches.map(name => (
+          <span key={name}>{name}</span>
+        ))}
+      </div>
+      <div className="domestic-routes__group">{t('missionDomesticOrgs')}</div>
+      <div className="domestic-routes__tix">
+        {domesticOrganizations.map(name => (
+          <span key={name} className="is-org">
+            {name}
+          </span>
+        ))}
+      </div>
+    </section>
+  )
+
+  const boardedCount = routes.filter(r => boarded.has(r.key)).length
 
   return (
     <div className="mission-page">
       <div className="mission-shell">
-        {/* ===== HERO ===== */}
+        {/* ===== HERO (그대로) ===== */}
         <section className={`mission-hero${heroArtReady ? ' is-art-ready' : ''}`}>
           <div className="hero-eyebrow">CHAMBIT CHURCH · MISSION</div>
           <h1 className="hero-title">
@@ -190,234 +226,74 @@ const Mission = () => {
             <br />
             {t('missionHeroTitleLine2')}
           </h1>
-
           <div className="hero-verse">
             {t('missionHeroVerse')}
             <span className="hero-verse-ref">{t('missionHeroVerseRef')}</span>
           </div>
         </section>
 
-        {/* ===== STATS ===== */}
-        <div className="mission-stats">
-          {([
-            { key: 'missionary', value: missionStats.total, label: 'missionStatDispatched', desc: 'missionStatDispatchedDesc' },
-            { key: 'countries', value: missionStats.countries, label: 'missionStatCountries', desc: 'missionStatCountriesDesc' },
-            { key: 'continents', value: missionStats.regions, label: 'missionStatContinents', desc: 'missionStatContinentsDesc' },
-            { key: 'partners', value: missionStats.domesticPartners, label: 'missionStatDomesticPartners', desc: 'missionStatDomesticPartnersDesc' },
-          ] as const).map(s => (
-            <div key={s.key} className="stat-card">
-              <div className="stat-icon">{STAT_ICONS[s.key]}</div>
-              <div className="stat-main">
-                <CountUpNum value={s.value} />
-                <span className="stat-label">{t(s.label)}</span>
-              </div>
-              <p className="stat-desc">{t(s.desc)}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ===== PRAY CTA BANNER ===== */}
-        <section className="mission-cta">
-          <div className="cta-icon" aria-hidden>
-            <HandHeartIcon size={26} />
-          </div>
-          <div className="cta-text">
-            <div className="cta-title">{t('missionCtaTitle')}</div>
-            <div className="cta-sub">{t('missionCtaSub')}</div>
-          </div>
-          <button
-            type="button"
-            className={`cta-btn ${prayedToday ? 'done' : ''}`}
-            onClick={handlePray}
-            disabled={prayedToday}
-          >
-            {prayedToday ? (
-              <>
-                <CheckIcon className="mi-inline" width={14} height={14} />
-                {t('missionPrayDone')}
-              </>
-            ) : (
-              <>
-                {t('missionCtaBtn')}
-                <span className="cta-arrow">›</span>
-              </>
-            )}
-          </button>
-        </section>
-
-        {/* ===== PC 2단 (모바일에선 display:contents 라 흐름 그대로) =====
-            좌: 선교사 명단 / 우: 오늘의 선교사 + 지구본(sticky) */}
-        <div className="mission-columns">
-          <div className="mission-col-side">
-            {/* ===== TODAY'S PRAYER MISSIONARY ===== */}
-            {/* 매일 한 분씩 로테이션 — "읽는 화면"이 아니라 매일 들러 기도하는 화면으로 */}
-            <section
-              className="featured-card"
-              style={{
-                ['--fc' as string]: featuredColor,
-              }}
-              onClick={handleFeaturedClick}
-            >
-              <div className="featured-eyebrow">{t('missionTodayEyebrow')}</div>
-              <div className="featured-body">
-                <CountryFlag className="featured-flag" country={featured.country} />
-                <div className="featured-text">
-                  <p className="featured-sentence">
-                    {language === 'ko' ? (
-                      <>오늘은 <em>{featured.country}</em>의 <strong>{featured.name}</strong> 선교사님을 위해 기도해요</>
-                    ) : (
-                      <>Today, let&apos;s pray for <strong>{featured.name}</strong> serving in <em>{featured.country}</em></>
-                    )}
-                  </p>
-                  <span className="featured-locate">
-                    <PinIcon className="mi-inline" width={13} height={13} />
-                    {t('missionTodayLocate')}
+        {isDesktop ? (
+          <div className="dep-layout">
+            <div className="dep-layout__side">
+              <section className="dep-card lamp-map">
+                <LampMap
+                  points={lampPoints}
+                  selectedCountry={selected?.country ?? null}
+                  litCountries={lit}
+                  flight={flight}
+                  onSelect={handleMapSelect}
+                  onLanded={handleLanded}
+                />
+                <div className="lamp-map__count">
+                  <b>{lit.size}</b>
+                  <span>{t('missionLampsLit')}</span>
+                </div>
+                <div className="lamp-map__legend">
+                  <span>
+                    <i className="is-lamp" />
+                    {t('missionLampLegend')}
+                  </span>
+                  <span>
+                    <i className="is-seoul" />
+                    {t('missionSeoulLegend')}
                   </span>
                 </div>
+              </section>
+              {pass}
+            </div>
+            <div className="dep-layout__main">
+              {selected && <NowCard route={selected} nowMs={nowMs} />}
+              {gateChips}
+              {board}
+              {domestic}
+            </div>
+          </div>
+        ) : (
+          <div className="dep-mobile">
+            <div className="dep-section-label">{t('missionRoutesLabel')}</div>
+            <div className="dep-ticker">
+              <SplitFlap text={ticker} />
+            </div>
+            {selected && <NowCard route={selected} nowMs={nowMs} />}
+            {gateChips}
+            {board}
+            <div className="dep-section-label">{t('missionPassHint')}</div>
+            {pass}
+            <section className="dep-card dep-progress">
+              <div className="dep-progress__label">{t('missionProgressTitle')}</div>
+              <div className="dep-progress__num">
+                <b>{boardedCount}</b>
+                <span>
+                  / {routes.length} {t('missionProgressUnit')}
+                </span>
               </div>
-              <button
-                type="button"
-                className={`mission-pray-btn ${prayedToday ? 'done' : ''}`}
-                onClick={e => {
-                  e.stopPropagation()
-                  handlePray()
-                }}
-                disabled={prayedToday}
-              >
-                {prayedToday ? (
-                  <>
-                    <CheckIcon className="mi-inline" width={15} height={15} />
-                    {t('missionPrayDone')}
-                  </>
-                ) : (
-                  <>
-                    <HandHeartIcon size={16} className="mi-inline" />
-                    {t('missionPrayCta')}
-                  </>
-                )}
-              </button>
+              <div className="dep-progress__bar">
+                <i style={{ width: `${routes.length ? (boardedCount / routes.length) * 100 : 0}%` }} />
+              </div>
             </section>
-
-            {/* ===== WORLD MAP ===== */}
-            <div className="mission-map-wrap" ref={mapRef}>
-              <div className="map-heading">
-                <span className="map-title">
-                  <GlobeIcon className="mi-inline" width={15} height={15} />
-                  {t('missionMapTitle')}
-                </span>
-                <span className="map-hint">
-                  {selectedCountry ?? hoverCountry ?? `${activeRegionLabel} ${t('missionRegionEmphasize')}`}
-                </span>
-              </div>
-              <div className="map-canvas">
-                <WorldGlobe
-                  points={mapPoints}
-                  onHover={setHoverCountry}
-                  onSelect={handleMapSelect}
-                  selectedCountry={selectedCountry}
-                  zoomOut={mapZoomOut}
-                />
-                <button
-                  type="button"
-                  className="map-zoom-toggle"
-                  onClick={() => setMapZoomOut(v => !v)}
-                >
-                  {mapZoomOut ? (
-                    <>
-                      <ZoomIcon className="mi-inline" width={13} height={13} />
-                      {t('missionMapZoomRegion')}
-                    </>
-                  ) : (
-                    <>
-                      <GlobeIcon className="mi-inline" width={13} height={13} />
-                      {t('missionMapZoomWorld')}
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* 대륙 탭을 지도 카드 안에 붙여 "탭 → 지도 점·명단이 함께 반응"이
-                  한 덩어리 인터랙션으로 읽히게 한다 */}
-              <div className="region-tabs in-map">
-                {REGION_ORDER.map(key => {
-                  const meta = regionMeta[key]
-                  const count = missionaryByRegion[key].length
-                  return (
-                    <button
-                      key={key}
-                      className={`region-tab ${activeRegion === key ? 'active' : ''}`}
-                      onClick={() => handleRegionChange(key)}
-                      style={{ ['--rc' as string]: meta.color }}
-                    >
-                      <span>{meta.emoji}</span>
-                      <span>{t(REGION_LABEL_KEY[key])}</span>
-                      <span className="tab-count">{count}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
+            {domestic}
           </div>
-
-          <div className="mission-col-main">
-            {/* ===== OVERSEAS LIST ===== */}
-            <div className="mission-section-title">
-              <span className="line" />
-              <span>OVERSEAS MISSION</span>
-              <span className="line" />
-            </div>
-
-            <div className="region-header" style={{ ['--rc' as string]: activeMeta.color }}>
-              <div className="region-eyebrow">{activeMeta.labelEn}</div>
-              <div className="region-label">
-                {activeRegionLabel} {t('missionRegionArea')}
-              </div>
-            </div>
-
-            {/* ===== MISSIONARY GROUPS (국가별) ===== */}
-            <MissionaryGroups
-              missionaries={missionaries}
-              color={activeMeta.color}
-              key={activeRegion}
-              selectedCountry={selectedCountry}
-              onCountryClick={handleCountryClick}
-              onMemberClick={setSheetTarget}
-            />
-          </div>
-        </div>
-
-        {/* ===== DOMESTIC SECTION ===== */}
-        {/* 해외 → 국내 전환점: 따뜻한 색의 구분선으로 공간이 바뀌었음을 명확히 */}
-        <div className="mission-section-title domestic">
-          <span className="line" />
-          <span>DOMESTIC MISSION</span>
-          <span className="line" />
-        </div>
-
-        <section className="domestic-section">
-          <div className="domestic-header">
-            <div className="domestic-eyebrow">{t('missionDomesticEyebrow')}</div>
-            <span className="domestic-title">{t('missionDomesticTitle')}</span>
-          </div>
-
-          <div className="domestic-group">
-            <div className="domestic-group-title">{t('missionDomesticChurches')}</div>
-            <div className="domestic-chips">
-              {domesticChurches.map(name => (
-                <div key={name} className="domestic-chip">{name}</div>
-              ))}
-            </div>
-          </div>
-
-          <div className="domestic-group">
-            <div className="domestic-group-title">{t('missionDomesticOrgs')}</div>
-            <div className="domestic-chips">
-              {domesticOrganizations.map(name => (
-                <div key={name} className="domestic-chip">{name}</div>
-              ))}
-            </div>
-          </div>
-        </section>
+        )}
 
         {/* ===== FOOTER ===== */}
         <section className="mission-footer">
@@ -432,21 +308,8 @@ const Mission = () => {
           <span className="footer-sign">FOR HIS GLORY</span>
         </section>
       </div>
-
-      {/* ===== MISSIONARY DETAIL SHEET ===== */}
-      {sheetTarget && (
-        <MissionarySheet
-          missionary={sheetTarget}
-          color={regionMeta[countryCoordinates[sheetTarget.country]?.region ?? 'asia'].color}
-          prayedToday={prayedToday}
-          onPray={handlePray}
-          onLocate={() => handleSheetLocate(sheetTarget)}
-          onClose={() => setSheetTarget(null)}
-        />
-      )}
     </div>
   )
 }
-
 
 export default Mission

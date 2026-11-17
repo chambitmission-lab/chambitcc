@@ -1,11 +1,9 @@
 /* ============================================
-   참빛교회 선교 현황 - Mission Page
+   참빛교회 선교 - Mission Page
    ──────────────────────────────────────────
-   앱 공통 토스 블루 플랫 테마(theme.css 토큰)로 그린다.
-   · 색은 정보에만: 대륙(regionMeta.color → --rc)과 그 대륙의 선교사 카드·지도 점.
-     통계·CTA·버튼은 브랜드 블루 하나, 나머지는 회색 위계.
-   · 글로우·글래스 블러·그라데이션 텍스트·네온 섀도는 쓰지 않는다 — 다른 화면과
-     같은 헤어라인 카드 문법. 라이트/다크는 토큰이 분기하므로 여기엔 테마 분기가 없다.
+   히어로(양·교회·등잔 삽화 + 사도행전 1:8) 아래는 "출발 안내판"이다(2026-11-17 개편).
+   선교사 한 분 = 기도 노선 하나. 안내판 → 탑승권(펀치 검표) → PC 에선 등불 지도로 비행.
+   조각은 ./departures/ 에 있고, 색은 아래 .mission-page 토큰 두 벌(라이트/다크)로만 분기한다.
    ============================================ */
 
 /* ---------- Page ---------- */
@@ -208,890 +206,7 @@
   color: var(--text-strong);
 }
 
-/* ---------- Stats ---------- */
-.mission-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-  padding: 0 1.25rem;
-  margin-top: 1.5rem;
-  position: relative;
-  z-index: 2;
-}
 
-.stat-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 0.75rem;
-  row-gap: 0.5rem;
-  align-items: start;
-  padding: 1rem 0.95rem;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  border-radius: 1.1rem;
-  box-shadow: var(--card-shadow);
-  text-align: left;
-  transition: transform 0.2s ease;
-}
-
-.stat-card:hover { transform: translateY(-2px); }
-
-.stat-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.8rem;
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-
-.stat-icon svg {
-  width: 1.3rem;
-  height: 1.3rem;
-}
-
-.stat-main { min-width: 0; }
-
-.stat-num {
-  display: block;
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: var(--text-strong);
-  letter-spacing: -0.04em;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-label {
-  display: block;
-  margin-top: 0.3rem;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--text-body);
-}
-
-.stat-desc {
-  grid-column: 2;
-  margin: 0;
-  font-size: 0.68rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-  word-break: keep-all;
-}
-
-/* ---------- Pray CTA Banner — 브랜드 솔리드 카드 ---------- */
-.mission-cta {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin: 1rem 1.25rem 0;
-  padding: 0.95rem 1.05rem;
-  /* 인장(도장) 문법 — /news 세그먼트 마커·/events 카테고리 칩과 같은 감각:
-     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
-  background:
-    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.22), transparent 46%),
-    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
-  border-radius: 1.1rem;
-  color: var(--on-brand);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 3px rgba(49, 130, 246, 0.09),
-    0 8px 20px -8px var(--brand-glow);
-}
-
-/* 배너 안쪽을 한 바퀴 도는 점선 — 도장 눌린 자리 */
-.mission-cta::after {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  border-radius: calc(1.1rem - 6px);
-  border: 1px dashed rgba(255, 255, 255, 0.32);
-  pointer-events: none;
-}
-
-[data-theme="dark"] .mission-cta {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 0 0 3px rgba(69, 147, 252, 0.09),
-    0 8px 22px -8px rgba(69, 147, 252, 0.5);
-}
-
-.cta-icon {
-  display: inline-flex;
-  flex-shrink: 0;
-  line-height: 1;
-  color: var(--on-brand);
-}
-
-.cta-text {
-  min-width: 0;
-  flex: 1;
-}
-
-.cta-title {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: var(--on-brand);
-  letter-spacing: -0.01em;
-  word-break: keep-all;
-}
-
-.cta-sub {
-  margin-top: 0.15rem;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.78);
-  word-break: keep-all;
-}
-
-.cta-btn {
-  position: relative;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.55rem 1.05rem;
-  border: none;
-  border-radius: 999px;
-  background: var(--on-brand);
-  color: var(--brand);
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.cta-btn:hover:not(:disabled) { transform: translateY(-1px); }
-.cta-btn:active:not(:disabled) { transform: scale(0.96); }
-
-.cta-btn.done {
-  background: rgba(255, 255, 255, 0.18);
-  color: var(--on-brand);
-  cursor: default;
-  font-size: 0.74rem;
-  animation: pray-done-pop 0.45s ease;
-}
-
-.cta-arrow {
-  font-size: 1rem;
-  line-height: 1;
-  margin-top: -1px;
-}
-
-/* ---------- Today's Prayer Missionary ---------- */
-.featured-card {
-  position: relative;
-  z-index: 2;
-  margin: 1.25rem 1.25rem 0;
-  padding: 1.1rem 1.15rem 1.15rem;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  border-left: 4px solid var(--fc, var(--brand));
-  border-radius: 1.1rem;
-  box-shadow: var(--card-shadow);
-  cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.featured-card:active { transform: scale(0.985); }
-
-.featured-eyebrow {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--fc, var(--brand));
-  margin-bottom: 0.7rem;
-}
-
-.featured-body {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.featured-flag {
-  font-size: 2.1rem;
-  line-height: 1;
-}
-
-/* 국기 이미지(flagcdn) — 이모지 자리의 font-size를 em으로 그대로 따라 스케일 */
-img.featured-flag,
-img.group-flag,
-img.sheet-flag {
-  width: 1.25em;
-  height: auto;
-  border-radius: 0.12em;
-  flex-shrink: 0;
-  box-shadow: 0 0 0 1px var(--card-border);
-}
-
-.featured-text { min-width: 0; }
-
-.featured-sentence {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--text-body);
-  letter-spacing: -0.01em;
-  word-break: keep-all;
-}
-
-.featured-sentence strong {
-  font-weight: 800;
-  color: var(--text-strong);
-}
-
-.featured-sentence em {
-  font-style: normal;
-  font-weight: 700;
-  color: var(--fc, var(--brand));
-}
-
-.featured-locate {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 0.35rem;
-  font-size: 0.68rem;
-  color: var(--text-muted);
-}
-
-/* ---------- Pray Button (오늘의 선교사 카드·시트 안) ---------- */
-.mission-pray-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  width: 100%;
-  margin-top: 0.9rem;
-  padding: 0.7rem 1.5rem;
-  border: none;
-  border-radius: 999px;
-  background: var(--brand);
-  color: var(--on-brand);
-  font-family: inherit;
-  font-size: 0.84rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.mission-pray-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: var(--brand-dim);
-}
-
-.mission-pray-btn:active:not(:disabled) { transform: scale(0.96); }
-
-.mission-pray-btn.done {
-  background: var(--brand-soft);
-  color: var(--brand);
-  cursor: default;
-  animation: pray-done-pop 0.45s ease;
-}
-
-@keyframes pray-done-pop {
-  0% { transform: scale(0.9); }
-  55% { transform: scale(1.06); }
-  100% { transform: scale(1); }
-}
-
-/* ---------- Missionary Detail Sheet ---------- */
-.sheet-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1200; /* NewHeader(z-index 1000~1105)보다 위 */
-  background: rgba(10, 12, 20, 0.45);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  animation: sheet-fade 0.2s ease;
-}
-
-@keyframes sheet-fade {
-  from { opacity: 0; }
-}
-
-.sheet-panel {
-  width: 100%;
-  max-width: 28rem;
-  background: var(--surface-container);
-  border-top: 4px solid var(--fc, var(--brand));
-  border-radius: 1.4rem 1.4rem 0 0;
-  padding: 0.6rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
-  animation: sheet-up 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
-  box-shadow: 0 -12px 40px rgba(10, 12, 20, 0.25);
-}
-
-@keyframes sheet-up {
-  from { transform: translateY(100%); }
-}
-
-.sheet-grabber {
-  width: 2.4rem;
-  height: 0.28rem;
-  border-radius: 999px;
-  background: var(--card-border);
-  margin: 0 auto 0.95rem;
-}
-
-.sheet-head {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.sheet-flag {
-  font-size: 2.2rem;
-  line-height: 1;
-}
-
-.sheet-titles { min-width: 0; }
-
-.sheet-name {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text-strong);
-  letter-spacing: -0.01em;
-}
-
-.sheet-suffix {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.sheet-country {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.2rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--fc, var(--brand));
-}
-
-.sheet-note,
-.member-note {
-  padding: 0.1rem 0.4rem;
-  background: var(--amber-soft);
-  border: 1px solid var(--amber-soft-strong);
-  border-radius: 999px;
-  font-size: 0.58rem;
-  font-weight: 700;
-  color: var(--amber);
-  letter-spacing: 0.05em;
-}
-
-.sheet-close {
-  margin-left: auto;
-  align-self: flex-start;
-  width: 1.9rem;
-  height: 1.9rem;
-  flex-shrink: 0;
-  border: none;
-  border-radius: 999px;
-  background: var(--surface-inset);
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.sheet-close:hover { background: var(--card-border); }
-
-.sheet-rows {
-  margin-top: 1rem;
-  padding: 0.2rem 0.95rem;
-  background: var(--surface-inset);
-  border-radius: 0.95rem;
-}
-
-.sheet-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--card-border);
-}
-
-.sheet-row:last-child { border-bottom: none; }
-
-.sheet-row-label {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.sheet-row-value {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-body);
-  text-align: right;
-}
-
-.sheet-row-value.strong {
-  font-size: 0.98rem;
-  font-weight: 800;
-  color: var(--text-strong);
-}
-
-.sheet-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.sheet-locate-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 0.65rem 1rem;
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-  background: none;
-  color: var(--text-body);
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
-}
-
-.sheet-locate-btn:hover {
-  border-color: var(--brand);
-  color: var(--brand);
-}
-
-.mission-pray-btn.in-sheet { margin-top: 0; }
-
-/* ---------- World Map ---------- */
-.mission-map-wrap {
-  margin: 2rem 1.25rem 0;
-  padding: 1rem;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  border-radius: 1.25rem;
-  box-shadow: var(--card-shadow);
-  position: relative;
-  overflow: hidden;
-}
-
-.map-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-  padding: 0 0.25rem;
-}
-
-.map-title {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-strong);
-  letter-spacing: -0.01em;
-}
-
-.map-hint {
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-/* 도트 지구본 — canvas가 래퍼 크기를 따라간다 */
-.world-globe {
-  width: 100%;
-  aspect-ratio: 10 / 8.5;
-  position: relative;
-  overflow: hidden;
-  border-radius: 0.9rem;
-  background: var(--surface-inset);
-}
-
-.world-globe__canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  cursor: grab;
-  /* 가로 드래그 = 지구본 회전, 세로 제스처 = 페이지 스크롤 그대로 */
-  touch-action: pan-y;
-}
-
-.world-globe__canvas:active { cursor: grabbing; }
-
-.map-canvas { position: relative; }
-
-.map-zoom-toggle {
-  position: absolute;
-  right: 0.5rem;
-  bottom: 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.35rem 0.75rem;
-  font-family: inherit;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--text-body);
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  border-radius: 999px;
-  box-shadow: var(--card-shadow);
-  cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
-}
-
-.map-zoom-toggle:hover {
-  border-color: var(--brand);
-  color: var(--brand);
-}
-
-/* ---------- Region Tabs — 색은 여기서부터 대륙색(--rc) ---------- */
-.region-tabs {
-  display: flex;
-  gap: 0.5rem;
-  padding: 1.5rem 1.25rem 0.75rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.region-tabs.in-map {
-  padding: 0.9rem 0.1rem 0.1rem;
-}
-
-.region-tabs::-webkit-scrollbar { display: none; }
-
-.region-tab {
-  --rc: var(--brand);
-  flex-shrink: 0;
-  padding: 0.55rem 1rem;
-  border: 1px solid var(--card-border);
-  background: none;
-  border-radius: 999px;
-  color: var(--text-body);
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  white-space: nowrap;
-}
-
-.region-tab:hover {
-  border-color: var(--rc);
-  color: var(--rc);
-}
-
-.region-tab.active {
-  background: color-mix(in srgb, var(--rc) 12%, transparent);
-  border-color: var(--rc);
-  color: var(--rc);
-}
-
-.tab-count {
-  display: inline-block;
-  min-width: 1.4rem;
-  padding: 0.05rem 0.4rem;
-  background: var(--surface-inset);
-  border-radius: 999px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.region-tab.active .tab-count {
-  background: var(--rc);
-  color: #fff;
-}
-
-/* ---------- Region Header ---------- */
-.region-header {
-  --rc: var(--brand);
-  padding: 0.5rem 1.25rem 1rem;
-  text-align: center;
-}
-
-.region-eyebrow {
-  display: inline-block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: var(--rc);
-  margin-bottom: 0.35rem;
-}
-
-.region-label {
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-strong);
-}
-
-/* ---------- Country Groups (국가별 선교사 묶음) ---------- */
-.country-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  padding: 0 1.25rem;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.country-group {
-  --rc: var(--brand);
-  position: relative;
-  cursor: pointer;
-  padding: 0.85rem 0.95rem 0.95rem;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  border-radius: 1rem;
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  animation: fadeInUp 0.5s ease both;
-}
-
-.country-group.selected {
-  border-color: var(--rc);
-  box-shadow: 0 0 0 1px var(--rc), var(--card-shadow);
-}
-
-.group-head {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-
-.group-flag {
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.group-country {
-  font-size: 0.98rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text-strong);
-}
-
-.group-count {
-  min-width: 1.4rem;
-  padding: 0.05rem 0.45rem;
-  background: color-mix(in srgb, var(--rc) 12%, transparent);
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--rc);
-  text-align: center;
-}
-
-/* 카드 우측 배경의 미니 지역 지도 */
-.group-map {
-  position: absolute;
-  top: 50%;
-  right: -0.75rem;
-  width: 9rem;
-  height: 9rem;
-  transform: translateY(-50%);
-  pointer-events: none;
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 68%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 68%);
-}
-
-.group-map-svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.mini-land circle {
-  fill: color-mix(in srgb, var(--rc) 16%, transparent);
-  transition: fill 0.25s ease;
-}
-
-.mini-pin path {
-  fill: var(--rc);
-  opacity: 0.75;
-  transition: opacity 0.25s ease;
-}
-
-.mini-pin-hole { fill: var(--surface-container); }
-
-.country-group.selected .mini-land circle {
-  fill: color-mix(in srgb, var(--rc) 26%, transparent);
-}
-
-.country-group.selected .mini-pin path { opacity: 1; }
-
-/* 국가별 기도 문장 */
-.group-desc {
-  position: relative;
-  margin: 0.5rem 0 0;
-  font-size: 0.76rem;
-  line-height: 1.55;
-  color: var(--text-muted);
-  word-break: keep-all;
-  padding-right: 4.75rem; /* 우측 핀·지도와 겹치지 않게 */
-}
-
-/* ---------- Member Avatars ---------- */
-.group-members {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem 0.65rem;
-  margin-top: 0.9rem;
-}
-
-.member-avatar-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  width: 3.6rem;
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  /* 링 사이 틈 색 — 카드 배경과 같게 */
-  --av-gap: var(--surface-container);
-}
-
-.member-avatar-item:hover { transform: translateY(-2px); }
-.member-avatar-item:active { transform: scale(0.94); }
-
-.member-avatar {
-  width: 2.7rem;
-  height: 2.7rem;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.02rem;
-  font-weight: 800;
-  color: #fff;
-  transition: filter 0.2s ease;
-}
-
-.member-avatar-item:hover .member-avatar { filter: brightness(1.08); }
-
-.member-name {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-body);
-  text-align: center;
-  word-break: keep-all;
-  line-height: 1.25;
-}
-
-/* ---------- Domestic Section — 국내는 앰버 한 톤으로 온도만 바꾼다 ---------- */
-.domestic-section {
-  margin: 3rem 1.25rem 0;
-  padding: 1.5rem 1.25rem 1.75rem;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  border-radius: 1.25rem;
-  box-shadow: var(--card-shadow);
-  position: relative;
-}
-
-.domestic-header {
-  position: relative;
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.domestic-eyebrow {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: var(--amber);
-}
-
-.domestic-title {
-  display: block;
-  margin-top: 0.3rem;
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--text-strong);
-  letter-spacing: -0.02em;
-}
-
-.domestic-group {
-  position: relative;
-  margin-bottom: 1.25rem;
-}
-
-.domestic-group:last-child { margin-bottom: 0; }
-
-.domestic-group-title {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--amber);
-  margin-bottom: 0.6rem;
-}
-
-.domestic-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.domestic-chip {
-  padding: 0.45rem 0.7rem;
-  background: var(--surface-inset);
-  border-radius: 0.6rem;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--text-body);
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.domestic-chip:hover {
-  background: var(--amber-soft);
-  color: var(--amber);
-}
-
-/* ---------- Footer Prayer ---------- */
 .mission-footer {
   margin: 3rem 1.25rem 0;
   padding: 1.5rem 1.25rem;
@@ -1121,41 +236,585 @@ img.sheet-flag {
   font-weight: 700;
 }
 
-/* ---------- Section Title (shared) ---------- */
-.mission-section-title {
+
+/* ============================================
+   출발 안내판 (2026-11-17 개편)
+   ──────────────────────────────────────────
+   다크 = 검은 공항 안내판 + 크림색 종이 탑승권 + 밤의 지구
+   라이트 = 흰 판 + 회색 글자칸 + 흰 탑승권 + 새벽녘 지구
+   테마 분기는 아래 토큰 두 벌로만 한다.
+   ============================================ */
+.mission-page {
+  --dep-mono: ui-monospace, 'SF Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+  --dep-board-bg: var(--surface-container);
+  --dep-board-line: #eef0f3;
+  --dep-flap: #eef1f5;
+  --dep-flap-ink: #191f28;
+  --dep-flap-cut: #ffffff;
+  --dep-wait: #c27a00;
+  --dep-wait-bg: #fff4e0;
+  --dep-done: #0f9a4a;
+  --dep-done-bg: #e7f8ee;
+  --pass-bg: #ffffff;
+  --pass-ink: #191f28;
+  --pass-sub: #8b95a1;
+  --pass-stub: #f6f7f9;
+  --pass-cut: #d1d6db;
+  --map-bg: #e9eef5;
+  --map-dot: rgba(80, 95, 125, 0.22);
+  --map-plane: #191f28;
+  --lamp: #f59f00;
+  --lamp-core: #fff8e6;
+  --lamp-rgb: 245, 159, 0;
+}
+
+[data-theme="dark"] .mission-page {
+  --dep-board-bg: #08090a;
+  --dep-board-line: #1a1c20;
+  --dep-flap: #1b1c1f;
+  --dep-flap-ink: #f3e9cf;
+  --dep-flap-cut: #000000;
+  --dep-wait: #e3a548;
+  --dep-wait-bg: rgba(227, 165, 72, 0.12);
+  --dep-done: #6cc28b;
+  --dep-done-bg: rgba(108, 194, 139, 0.12);
+  --pass-bg: #f4f1ea;
+  --pass-ink: #1a1a1a;
+  --pass-sub: #8a857a;
+  --pass-stub: #ece7dc;
+  --pass-cut: #c9c3b6;
+  --map-bg: #080a0f;
+  --map-dot: rgba(125, 140, 170, 0.26);
+  --map-plane: #e9eaee;
+  --lamp: #ffcf7a;
+  --lamp-core: #fff3d6;
+  --lamp-rgb: 255, 207, 122;
+}
+
+/* ---------- 공통 카드·라벨 ---------- */
+.dep-card {
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+}
+
+.dep-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.5rem 1rem 0;
+}
+
+.dep-section-label {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* ---------- 글자판 ---------- */
+.sf { display: inline-flex; min-width: 0; max-width: 100%; }
+.sf-cells { display: flex; gap: 2px; min-width: 0; overflow: hidden; }
+.sf-cell {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 13px;
+  height: 24px;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: var(--dep-flap);
+  color: var(--dep-flap-ink);
+  font: 700 12.5px/1 var(--dep-mono);
+  letter-spacing: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  margin: 2.5rem 1.25rem 0.5rem;
 }
-
-.mission-section-title .line {
-  flex: 1;
+.sf-cell.is-wide { min-width: 17px; font-family: inherit; font-size: 12px; }
+/* 가운데 접힘 선 — 실물 글자판 */
+.sf-cell::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
   height: 1px;
-  background: var(--card-border);
+  background: var(--dep-flap-cut);
+  opacity: 0.9;
 }
+.sf--tight .sf-cell { min-width: 11px; font-size: 11px; padding: 0 1px; }
+.sf--tight .sf-cell.is-wide { min-width: 14px; font-size: 10.5px; }
 
-.mission-section-title span {
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  color: var(--text-muted);
+.dep-ticker .sf-cell { background: var(--surface-container); height: 22px; font-size: 11px; min-width: 11px; box-shadow: inset 0 0 0 1px var(--card-border); }
+.dep-ticker .sf-cell.is-wide { min-width: 15px; }
+.dep-ticker .sf-cells { flex-wrap: wrap; }
+
+/* ---------- 안내판 ---------- */
+.dep-board {
+  background: var(--dep-board-bg);
+  border: 1px solid var(--dep-board-line);
+  border-radius: 16px;
+  padding: 12px 10px 4px;
+  box-shadow: var(--card-shadow);
+}
+.dep-board__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2px 10px;
+}
+.dep-board__title {
+  font: 700 13px var(--dep-mono);
+  letter-spacing: 0.14em;
+  color: var(--dep-wait);
+}
+.dep-board__sub {
+  margin-top: 2px;
+  font-size: 10.5px;
   font-weight: 700;
+  color: var(--text-muted);
+}
+.dep-board__clock { text-align: right; font: 700 12px var(--dep-mono); color: var(--text-body); }
+.dep-board__clock small { display: block; font-size: 9.5px; letter-spacing: 0.1em; color: var(--text-muted); }
+
+.dep-cols,
+.dep-row {
+  display: grid;
+  grid-template-columns: 3.6rem minmax(0, 1fr) 4rem 4.2rem;
+  gap: 6px;
+  align-items: center;
+}
+.dep-cols {
+  padding: 0 4px 7px;
+  border-bottom: 1px solid var(--dep-board-line);
+  font: 700 9.5px var(--dep-mono);
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.dep-row {
+  position: relative;
+  width: 100%;
+  padding: 8px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--dep-board-line);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.dep-row:last-child { border-bottom-color: transparent; }
+.dep-row:hover { background: color-mix(in srgb, var(--brand) 6%, transparent); }
+.dep-row:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.dep-row.is-selected { background: var(--brand-soft-strong); }
+.dep-row.is-selected::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--brand);
 }
 
-.mission-section-title.domestic { margin-top: 3.5rem; }
-.mission-section-title.domestic span { color: var(--amber); }
+.dep-status {
+  padding: 5px 2px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--dep-wait);
+  background: var(--dep-wait-bg);
+  animation: dep-blink 1.8s ease-in-out infinite;
+}
+.dep-status.is-done { color: var(--dep-done); background: var(--dep-done-bg); animation: none; }
+@keyframes dep-blink { 50% { opacity: 0.5; } }
 
-/* ---------- Reduced Motion ---------- */
+/* ---------- 게이트 칩 ---------- */
+.gate-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -1rem;
+  padding: 0 1rem;
+}
+.gate-chips::-webkit-scrollbar { display: none; }
+.gate-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-body);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.gate-chip i { width: 7px; height: 7px; border-radius: 50%; }
+.gate-chip.is-on { background: var(--text-strong); border-color: var(--text-strong); color: var(--app-canvas); font-weight: 700; }
+
+/* ---------- 지금 이 시간 카드 ---------- */
+.now-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+}
+img.now-card__flag,
+.now-card__flag {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 27px;
+  border-radius: 4px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--card-border);
+  font-size: 1.6rem;
+  line-height: 27px;
+  text-align: center;
+}
+.now-card__text { min-width: 0; }
+.now-card__title,
+.now-card__line { word-break: keep-all; text-wrap: pretty; }
+.now-card__title { font-size: 15px; font-weight: 700; color: var(--text-strong); line-height: 1.4; }
+.now-card__time { font-family: var(--dep-mono); letter-spacing: 0; }
+.now-card__line { margin-top: 3px; font-size: 12.5px; color: var(--text-body); line-height: 1.5; }
+
+/* ---------- 탑승권 ----------
+   좌석 예약 티켓과 같은 문법 — 절취선 양 끝 반원 홈과 검표 구멍을 mask 로 실제로 뚫는다.
+   그림자는 mask 에 잘리지 않게 바깥(.bp-wrap)의 drop-shadow 로 준다. */
+@property --ph {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+.bp-wrap {
+  position: relative;
+  filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.08)) drop-shadow(0 8px 18px rgba(15, 23, 42, 0.08));
+}
+[data-theme="dark"] .bp-wrap { filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45)); }
+
+.bp {
+  --ph: 0px;
+  --notch: 7px;
+  --hole: #0000 var(--ph), #000 calc(var(--ph) + 0.5px);
+  --cut: #0000 var(--notch), #000 calc(var(--notch) + 0.5px);
+  position: relative;
+  display: grid;
+  border-radius: 18px;
+  background: var(--pass-bg);
+  color: var(--pass-ink);
+  overflow: hidden;
+  transition: --ph 0.09s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.bp.is-punched { --ph: 9px; }
+
+.bp--side .bp {
+  grid-template-columns: minmax(0, 1fr) 6rem;
+  -webkit-mask:
+    radial-gradient(circle at var(--perf, calc(100% - 6rem)) 0, var(--cut)),
+    radial-gradient(circle at var(--perf, calc(100% - 6rem)) 100%, var(--cut)),
+    radial-gradient(circle at var(--hx, -50px) var(--hy, -50px), var(--hole));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at var(--perf, calc(100% - 6rem)) 0, var(--cut)),
+    radial-gradient(circle at var(--perf, calc(100% - 6rem)) 100%, var(--cut)),
+    radial-gradient(circle at var(--hx, -50px) var(--hy, -50px), var(--hole));
+  mask-composite: intersect;
+}
+.bp--bottom .bp {
+  grid-template-columns: minmax(0, 1fr);
+  -webkit-mask:
+    radial-gradient(circle at 0 var(--perf, 75%), var(--cut)),
+    radial-gradient(circle at 100% var(--perf, 75%), var(--cut)),
+    radial-gradient(circle at var(--hx, -50px) var(--hy, -50px), var(--hole));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at 0 var(--perf, 75%), var(--cut)),
+    radial-gradient(circle at 100% var(--perf, 75%), var(--cut)),
+    radial-gradient(circle at var(--hx, -50px) var(--hy, -50px), var(--hole));
+  mask-composite: intersect;
+}
+
+.bp-main { padding: 16px 16px 14px; min-width: 0; }
+.bp-label {
+  font: 700 9px var(--dep-mono);
+  letter-spacing: 0.1em;
+  color: var(--pass-sub);
+}
+.bp-route { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; }
+.bp-route b { font: 700 30px/1.1 var(--dep-mono); letter-spacing: -0.02em; }
+.bp-route b small {
+  display: block;
+  margin-top: 2px;
+  font: 500 10.5px var(--font-sans, inherit);
+  letter-spacing: 0;
+  color: var(--pass-sub);
+}
+.bp-route .bp-to { text-align: right; }
+.bp-route i { flex: 1; height: 0; border-top: 1.5px dashed var(--pass-cut); position: relative; }
+.bp-route i::after {
+  content: '✈';
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  transform: translateX(-50%);
+  font-style: normal;
+  font-size: 14px;
+  color: var(--brand);
+}
+.bp-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 6px;
+  margin: 0;
+}
+.bp-meta dd { margin: 2px 0 0; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.bp-num { font-family: var(--dep-mono); letter-spacing: 0; }
+.bp-note {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+}
+.bp-gate-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+.bp-req {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--pass-cut);
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.bp-stub {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 10px;
+  background: var(--pass-stub);
+  border-left: 2px dashed var(--pass-cut);
+}
+.bp--bottom .bp-stub {
+  flex-direction: row;
+  gap: 14px;
+  padding: 14px 16px;
+  border-left: 0;
+  border-top: 2px dashed var(--pass-cut);
+}
+.bp-stub-label { white-space: nowrap; letter-spacing: 0.14em; }
+/* PC(가로 꼬리표): 구멍 자리를 맨 앞에 고정 — 라벨 글자 폭이 바뀌어도 구멍이 밀리지 않게 */
+.bp--bottom .bp-spot { order: -1; }
+.bp--bottom .bp-stub-label { min-width: 4.5rem; }
+
+.bp-spot {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--pass-cut);
+}
+.bp.is-punched .bp-spot { border-color: transparent; }
+
+.bp-bar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 64px;
+  height: 30px;
+  opacity: 0.75;
+  background: repeating-linear-gradient(90deg, var(--pass-ink) 0 2px, transparent 2px 3px, var(--pass-ink) 3px 4px, transparent 4px 7px, var(--pass-ink) 7px 8px, transparent 8px 10px);
+}
+.bp-scan {
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: 0;
+  height: 2px;
+  background: #ff3b30;
+  box-shadow: 0 0 10px 2px rgba(255, 59, 48, 0.7);
+  opacity: 0;
+}
+.bp.is-scanning .bp-scan { animation: bp-scan 0.3s ease-in-out 2 alternate; }
+@keyframes bp-scan {
+  from { top: -2px; opacity: 1; }
+  to { top: 100%; opacity: 1; }
+}
+.bp-ok {
+  position: absolute;
+  inset: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--dep-done);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.18s, transform 0.18s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.bp.is-scanned .bp-ok { opacity: 1; transform: none; }
+
+.bp-go {
+  width: 100%;
+  padding: 11px 2px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s, background 0.2s;
+}
+.bp-go:active:not(:disabled) { transform: scale(0.96); }
+.bp.is-scanned .bp-go { background: var(--dep-done); }
+.bp-go.is-done { background: var(--dep-done-bg); color: var(--dep-done); cursor: default; }
+.bp--bottom .bp-go { width: auto; flex: 1; padding: 13px; font-size: 14px; }
+
+/* 검표 펀치 — 위에서 내려와 꾹 누르고 올라간다 */
+.bp-punch { position: absolute; width: 0; height: 0; pointer-events: none; z-index: 3; }
+.bp-punch i {
+  position: absolute;
+  left: -17px;
+  top: -17px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #f4f6f9, #a9b1bd 45%, #5d6572 80%, #3b414a);
+  box-shadow: 0 0 0 3px rgba(60, 66, 76, 0.35), 0 14px 18px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+}
+.bp-punch i::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #d8dde4, #7c8592);
+}
+.bp-punch.is-go i { animation: bp-punch 0.62s cubic-bezier(0.3, 0.7, 0.3, 1) forwards; }
+@keyframes bp-punch {
+  0% { transform: translate(18px, -46px) scale(1.5); opacity: 0; }
+  38% { transform: translate(0, -6px) scale(1.12); opacity: 1; }
+  48% { transform: none; opacity: 1; box-shadow: 0 0 0 3px rgba(60, 66, 76, 0.35), 0 2px 3px rgba(0, 0, 0, 0.4); }
+  58% { transform: scale(0.9); opacity: 1; }
+  72% { transform: translate(0, -8px) scale(1.1); opacity: 1; }
+  100% { transform: translate(22px, -50px) scale(1.5); opacity: 0; }
+}
+/* 뚫려 나온 동그란 종잇조각 */
+.bp-chad {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: var(--pass-stub);
+  box-shadow: inset 0 0 0 1px var(--pass-cut), 0 2px 4px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.bp-chad.is-falling { animation: bp-chad 1s cubic-bezier(0.4, 0, 0.8, 0.5) forwards; }
+@keyframes bp-chad {
+  0% { opacity: 1; transform: none; }
+  25% { transform: translate(6px, 14px) rotateX(70deg) scale(0.95); }
+  60% { opacity: 1; transform: translate(-4px, 70px) rotateX(200deg) scale(0.9); }
+  100% { opacity: 0; transform: translate(8px, 150px) rotateX(360deg) scale(0.85); }
+}
+
+/* ---------- 오늘 탑승 현황 (모바일) ---------- */
+.dep-progress { padding: 16px; }
+.dep-progress__label { font: 700 11px var(--dep-mono); letter-spacing: 0.1em; color: var(--text-muted); }
+.dep-progress__num { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+.dep-progress__num b { font: 700 30px var(--dep-mono); letter-spacing: -0.03em; color: var(--text-strong); }
+.dep-progress__num span { font-size: 13px; color: var(--text-muted); }
+.dep-progress__bar { height: 8px; margin-top: 10px; border-radius: 8px; background: var(--surface-inset); overflow: hidden; }
+.dep-progress__bar i { display: block; height: 100%; border-radius: 8px; background: var(--dep-done); transition: width 0.5s; }
+
+/* ---------- 국내 노선 ---------- */
+.domestic-routes { padding: 16px; }
+.domestic-routes__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.domestic-routes__title small { font: 700 10px var(--dep-mono); letter-spacing: 0.12em; color: var(--text-muted); }
+.domestic-routes__group { margin: 14px 0 8px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+.domestic-routes__tix { display: flex; flex-wrap: wrap; gap: 6px; }
+.domestic-routes__tix span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border-left: 3px solid #c98a2e;
+  background: var(--surface-inset);
+  color: var(--text-body);
+  font-size: 12px;
+}
+.domestic-routes__tix span.is-org { border-left-color: var(--brand); }
+
+/* ---------- 등불 지도 (PC) ---------- */
+.lamp-map {
+  position: relative;
+  overflow: hidden;
+  background: var(--map-bg);
+  aspect-ratio: 16 / 10;
+  border-radius: 20px;
+}
+.lamp-map__canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+.lamp-map__count { position: absolute; left: 20px; top: 18px; pointer-events: none; }
+.lamp-map__count b {
+  display: block;
+  font: 700 34px var(--dep-mono);
+  letter-spacing: -0.04em;
+  color: var(--lamp);
+  text-shadow: 0 0 22px rgba(var(--lamp-rgb), 0.35);
+}
+.lamp-map__count span { font-size: 13px; color: var(--text-body); }
+.lamp-map__legend {
+  position: absolute;
+  left: 18px;
+  bottom: 14px;
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.lamp-map__legend i { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; vertical-align: -1px; }
+.lamp-map__legend i.is-lamp { background: var(--lamp); }
+.lamp-map__legend i.is-seoul { background: var(--brand); }
+
 @media (prefers-reduced-motion: reduce) {
-  .country-group { animation: none; }
+  .dep-status { animation: none; }
+  .bp { transition: none; }
+  .bp-punch,
+  .bp-chad { display: none; }
 }
+
 
 /* ============================================
-   PC (lg+) — "나란히 놓고 보는" 2단 레이아웃
-   모바일은 지도 → 명단 순으로 훑고 국가를 누르면 지도로 스크롤해 올라간다.
-   PC에선 지구본을 우측에 고정(sticky)해 두고 왼쪽 명단을 읽는다.
-   래퍼 3개는 lg 미만에서 display:contents 라 기존 화면과 완전히 동일하다.
+   PC (lg+) — 왼쪽 등불 지도+탑승권(고정) / 오른쪽 지금 이 시간·안내판·국내 노선
    ============================================ */
 @media (min-width: 1024px) {
   /* #root 에 overflow-y:auto 가 걸려 있어 sticky 가 전역으로 죽어 있다 —
@@ -1177,9 +836,7 @@ img.sheet-flag {
 
   .hero-title {
     font-size: 3rem;
-    /* 성구 카드와 같은 폭으로 묶는다 — 언어가 바뀌어도 가운데 텍스트 칼럼은 480px.
-       안 묶으면 영어 제목("With the Light of the Gospel")이 한 줄로 700px 을 넘어
-       삽화의 좌우 날개를 통째로 덮는다. */
+    /* 성구 카드와 같은 폭으로 묶는다 — 영어 제목이 삽화의 좌우 날개를 덮지 않게 */
     max-width: 30rem;
     margin: 0 auto 1.25rem;
     word-break: keep-all;
@@ -1190,157 +847,70 @@ img.sheet-flag {
     font-size: 1.1rem;
   }
 
-  .mission-stats {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    padding: 0 1.25rem;
-    margin-top: 2rem;
-  }
-
-  .stat-num { font-size: 2.2rem; }
-
-  .mission-columns {
+  .dep-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 424px;
-    gap: 1.75rem;
+    grid-template-columns: minmax(0, 1fr) 440px;
+    gap: 1.5rem;
     align-items: start;
     padding: 0 1.25rem;
-    margin-top: 1.5rem;
+    margin-top: 1.75rem;
   }
-
-  .mission-col-main {
-    display: block;
-    grid-column: 1;
-    grid-row: 1;
-    min-width: 0;
-  }
-
-  .mission-col-side {
-    display: block;
-    grid-column: 2;
-    grid-row: 1;
+  .dep-layout__side {
     position: sticky;
     top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
-
-  .mission-col-side > .featured-card { margin: 0; }
-  .mission-col-side > .mission-map-wrap { margin: 0.9rem 0 0; }
-  .mission-col-main > .mission-section-title { margin: 0 0 0.75rem; }
-
-  .mission-col-main > .region-header {
-    padding: 0 0 1rem;
-    text-align: left;
+  .dep-layout__main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    min-width: 0;
   }
+  .dep-layout .gate-chips { margin: 0; padding: 0; flex-wrap: wrap; }
 
-  .mission-col-main > .country-groups {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-    gap: 0.75rem;
-    padding: 0;
-  }
-
-  .mission-col-side .region-tabs.in-map {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    overflow: visible;
-  }
-
-  .mission-col-side .region-tab { justify-content: center; }
-
-  .domestic-section {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 2.5rem;
-    padding: 1.75rem 2rem 2.25rem;
-  }
-
-  .domestic-header { grid-column: 1 / -1; }
-  .domestic-group { margin-bottom: 0; }
-
-  /* PC 라이트 — 카드가 캔버스에 붙어 보이지 않게 띄운다(2026-11-10, 홈 .home-lift 와 같은 깊이).
-     통계·대표 선교사·지도·국내 판이 이 값을 쓴다. 다크는 기본 --card-shadow 가 이미 깊다 */
+  /* PC 라이트 — 카드가 캔버스에 붙어 보이지 않게 띄운다(홈 .home-lift 와 같은 깊이) */
   :root:not(.dark) .mission-page {
     --card-shadow: 0 1px 3px rgba(24, 26, 40, 0.05), 0 18px 36px -14px rgba(24, 26, 40, 0.2);
   }
-  /* 나라 카드는 0.75rem 간격으로 촘촘해 긴 그림자가 서로 겹쳐 탁해진다 — 짧게.
-     지도 위 확대 알약도 작은 조각이라 짧은 그림자로 */
-  :root:not(.dark) .mission-page .country-group,
-  :root:not(.dark) .mission-page .map-zoom-toggle {
-    --card-shadow: 0 1px 3px rgba(24, 26, 40, 0.05), 0 8px 20px -10px rgba(24, 26, 40, 0.18);
-  }
+
+  /* 노안 대응 글씨 — 보조 글자 최소 12.5px 선. 헤더 '가' zoom 은 이 위에 한 번 더 곱해진다 */
+  .dep-cols,
+  .dep-row { grid-template-columns: 4rem minmax(0, 1fr) 4.6rem 5rem; }
+  .sf-cell { height: 28px; min-width: 15px; font-size: 14px; }
+  .sf-cell.is-wide { min-width: 20px; font-size: 13.5px; }
+  .sf--tight .sf-cell { min-width: 12px; font-size: 12.5px; }
+  .sf--tight .sf-cell.is-wide { min-width: 16px; font-size: 12px; }
+  .dep-status { font-size: 12.5px; padding: 6px 2px; }
+  .dep-cols { font-size: 11px; }
+  .dep-board__title { font-size: 14px; }
+  .dep-board__sub,
+  .dep-board__clock small { font-size: 12px; }
+  .dep-board__clock { font-size: 14px; }
+  .gate-chip { font-size: 14px; padding: 8px 14px; }
+  .now-card__title { font-size: 17px; }
+  .now-card__line { font-size: 14.5px; }
+  .bp-label { font-size: 11px; }
+  .bp-route b { font-size: 34px; }
+  .bp-route b small { font-size: 12.5px; }
+  .bp-meta dd { font-size: 14.5px; }
+  .bp-note { font-size: 11px; }
+  .bp-req { font-size: 15px; }
+  .domestic-routes__title { font-size: 17px; }
+  .domestic-routes__group,
+  .domestic-routes__tix span { font-size: 13.5px; }
+  .lamp-map__count span,
+  .lamp-map__legend { font-size: 13.5px; }
+
   .mission-footer { margin-top: 3.5rem; }
-
-  /* 노안 대응 글씨 — 모바일 기준 9~12px 이던 보조 글자를 PC에선 최소 12.5px 선으로 올린다.
-     헤더 '가' zoom(textScaleRoutes)은 이 위에 한 번 더 곱해진다 */
   .hero-eyebrow,
-  .featured-eyebrow,
-  .featured-locate,
-  .region-eyebrow,
-  .domestic-eyebrow,
-  .map-hint,
-  .map-zoom-toggle,
-  .group-count,
-  .stat-desc,
-  .footer-sign,
-  .mission-section-title span { font-size: 0.82rem; }
-
-  .hero-verse-ref,
-  .cta-sub,
-  .cta-btn.done,
-  .sheet-country,
-  .sheet-row-label,
-  .domestic-chip { font-size: 0.88rem; }
-
-  .stat-label,
-  .cta-btn,
-  .sheet-row-value,
-  .sheet-close,
-  .sheet-locate-btn,
-  .region-tab,
-  .group-desc,
-  .domestic-group-title { font-size: 0.92rem; }
-
-  .tab-count { font-size: 0.78rem; }
-  .member-note,
-  .sheet-note { font-size: 0.72rem; }
-
-  .map-title,
-  .footer-text,
-  .mission-pray-btn { font-size: 1rem; }
-
-  .cta-title { font-size: 1.05rem; }
-  .featured-sentence { font-size: 1.08rem; }
-  .sheet-row-value.strong { font-size: 1.08rem; }
-  .group-country { font-size: 1.1rem; }
-  .sheet-name { font-size: 1.3rem; }
-  .region-label { font-size: 1.75rem; }
-  .domestic-title { font-size: 1.6rem; }
-
-  /* 선교사 아바타 — 이름이 커진 만큼 칸도 넓힌다 */
-  .member-avatar-item { width: 4.4rem; }
-  .member-avatar { width: 3.1rem; height: 3.1rem; font-size: 1.12rem; }
-  .member-name { font-size: 0.84rem; }
+  .footer-sign { font-size: 0.82rem; }
+  .hero-verse-ref { font-size: 0.88rem; }
+  .footer-text { font-size: 1rem; }
 }
 
-/* 좁은 PC 폭 + 글씨 크기 zoom — 명단 칸이 ~300px 로 줄어 2열 국가 카드가 찌그러진다 → 1열.
-   기준 폭은 common.css 의 .zoom-narrow-* 와 같다 */
-@media (min-width: 1024px) and (max-width: 1639px) {
-  .main-content[data-app-scale='xlarge'] .mission-col-main > .country-groups { grid-template-columns: minmax(0, 1fr); }
-}
-@media (min-width: 1024px) and (max-width: 1479px) {
-  .main-content[data-app-scale='large'] .mission-col-main > .country-groups { grid-template-columns: minmax(0, 1fr); }
-}
-
-/* 노트북처럼 세로가 짧은 PC — 고정된 지구본 카드가 대륙 탭까지 한 화면에 들어오게 */
+/* 세로가 짧은 노트북 — 지도와 탑승권이 한 화면에 들어오게 */
 @media (min-width: 1024px) and (max-height: 820px) {
-  .mission-col-side .world-globe { aspect-ratio: 10 / 7; }
-}
-
-/* 텍스트 옆에 서는 선화 아이콘 공통 — 글자 크기와 무관하게 광학 중앙에 맞춘다 */
-.mi-inline {
-  flex-shrink: 0;
-  margin-right: 0.32em;
-  vertical-align: -0.16em;
+  .lamp-map { aspect-ratio: 16 / 8; }
 }

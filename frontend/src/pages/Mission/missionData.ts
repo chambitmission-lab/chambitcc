@@ -208,55 +208,53 @@ export const countryPrayerLine = (country: string, lang: 'ko' | 'en') => {
   return EN_PRAYER_TEMPLATES[idx](country)
 }
 
-/** 아바타 링·배경 컬러 — 이름 해시로 고정 배정 */
-const AVATAR_COLORS = ['#3182f6', '#7c4fbf', '#a1503c', '#b45309', '#0f766e', '#4a7c59']
-export const avatarColor = (name: string) =>
-  AVATAR_COLORS[strHash(name) % AVATAR_COLORS.length]
 
 /**
  * 국가 → 상세 정보(타임존·대표 도시·실좌표).
- * 바텀시트의 "지금 그곳은" 현지 시간·시차·거리 계산에 쓰인다.
+ * 출발 안내판·탑승권의 현지 시각·시차·거리와 등불 지도 좌표에 쓰인다.
  * 도시는 수도 또는 대표 사역 도시 기준의 근사값.
  */
 export interface CountryDetail {
   tz: string
   city: string
   cityEn: string
+  /** 출발 안내판·탑승권의 세 글자 노선 코드 — 대표 도시의 공항(도시) 코드 */
+  code: string
   lat: number
   lng: number
 }
 
 export const countryDetail: Record<string, CountryDetail> = {
-  '튀르키예': { tz: 'Europe/Istanbul', city: '앙카라', cityEn: 'Ankara', lat: 39.93, lng: 32.86 },
-  '베트남': { tz: 'Asia/Ho_Chi_Minh', city: '하노이', cityEn: 'Hanoi', lat: 21.03, lng: 105.85 },
-  '태국': { tz: 'Asia/Bangkok', city: '방콕', cityEn: 'Bangkok', lat: 13.76, lng: 100.5 },
-  '미얀마': { tz: 'Asia/Yangon', city: '양곤', cityEn: 'Yangon', lat: 16.87, lng: 96.2 },
-  '인도네시아': { tz: 'Asia/Jakarta', city: '자카르타', cityEn: 'Jakarta', lat: -6.21, lng: 106.85 },
-  '인도': { tz: 'Asia/Kolkata', city: '델리', cityEn: 'Delhi', lat: 28.61, lng: 77.21 },
-  '네팔': { tz: 'Asia/Kathmandu', city: '카트만두', cityEn: 'Kathmandu', lat: 27.72, lng: 85.32 },
-  '말레이시아': { tz: 'Asia/Kuala_Lumpur', city: '쿠알라룸푸르', cityEn: 'Kuala Lumpur', lat: 3.14, lng: 101.69 },
-  '필리핀': { tz: 'Asia/Manila', city: '마닐라', cityEn: 'Manila', lat: 14.6, lng: 120.98 },
-  '요르단': { tz: 'Asia/Amman', city: '암만', cityEn: 'Amman', lat: 31.95, lng: 35.93 },
-  '위구르': { tz: 'Asia/Urumqi', city: '우루무치', cityEn: 'Urumqi', lat: 43.83, lng: 87.62 },
-  '일본': { tz: 'Asia/Tokyo', city: '도쿄', cityEn: 'Tokyo', lat: 35.68, lng: 139.69 },
-  '중국': { tz: 'Asia/Shanghai', city: '베이징', cityEn: 'Beijing', lat: 39.9, lng: 116.4 },
-  '캄보디아': { tz: 'Asia/Phnom_Penh', city: '프놈펜', cityEn: 'Phnom Penh', lat: 11.56, lng: 104.92 },
-  '포르투갈': { tz: 'Europe/Lisbon', city: '리스본', cityEn: 'Lisbon', lat: 38.72, lng: -9.14 },
-  '키르기스스탄': { tz: 'Asia/Bishkek', city: '비슈케크', cityEn: 'Bishkek', lat: 42.87, lng: 74.59 },
-  '아제르바이잔': { tz: 'Asia/Baku', city: '바쿠', cityEn: 'Baku', lat: 40.41, lng: 49.87 },
-  '독일': { tz: 'Europe/Berlin', city: '베를린', cityEn: 'Berlin', lat: 52.52, lng: 13.4 },
-  '코소보': { tz: 'Europe/Belgrade', city: '프리슈티나', cityEn: 'Pristina', lat: 42.66, lng: 21.17 },
-  '러시아': { tz: 'Europe/Moscow', city: '모스크바', cityEn: 'Moscow', lat: 55.76, lng: 37.62 },
-  '러시아 연해주': { tz: 'Asia/Vladivostok', city: '블라디보스토크', cityEn: 'Vladivostok', lat: 43.12, lng: 131.89 },
-  '알바니아': { tz: 'Europe/Tirane', city: '티라나', cityEn: 'Tirana', lat: 41.33, lng: 19.82 },
-  '우크라이나': { tz: 'Europe/Kiev', city: '키이우', cityEn: 'Kyiv', lat: 50.45, lng: 30.52 },
-  '잠비아': { tz: 'Africa/Lusaka', city: '루사카', cityEn: 'Lusaka', lat: -15.39, lng: 28.32 },
-  '우간다': { tz: 'Africa/Kampala', city: '캄팔라', cityEn: 'Kampala', lat: 0.35, lng: 32.58 },
-  '남아프리카공화국': { tz: 'Africa/Johannesburg', city: '요하네스버그', cityEn: 'Johannesburg', lat: -26.2, lng: 28.05 },
-  '모로코': { tz: 'Africa/Casablanca', city: '라바트', cityEn: 'Rabat', lat: 34.02, lng: -6.84 },
-  '탄자니아': { tz: 'Africa/Dar_es_Salaam', city: '다르에스살람', cityEn: 'Dar es Salaam', lat: -6.79, lng: 39.21 },
-  '파라과이': { tz: 'America/Asuncion', city: '아순시온', cityEn: 'Asunción', lat: -25.28, lng: -57.63 },
-  '페루': { tz: 'America/Lima', city: '리마', cityEn: 'Lima', lat: -12.05, lng: -77.04 },
+  '튀르키예': { tz: 'Europe/Istanbul', city: '앙카라', cityEn: 'Ankara', code: 'ESB', lat: 39.93, lng: 32.86 },
+  '베트남': { tz: 'Asia/Ho_Chi_Minh', city: '하노이', cityEn: 'Hanoi', code: 'HAN', lat: 21.03, lng: 105.85 },
+  '태국': { tz: 'Asia/Bangkok', city: '방콕', cityEn: 'Bangkok', code: 'BKK', lat: 13.76, lng: 100.5 },
+  '미얀마': { tz: 'Asia/Yangon', city: '양곤', cityEn: 'Yangon', code: 'RGN', lat: 16.87, lng: 96.2 },
+  '인도네시아': { tz: 'Asia/Jakarta', city: '자카르타', cityEn: 'Jakarta', code: 'CGK', lat: -6.21, lng: 106.85 },
+  '인도': { tz: 'Asia/Kolkata', city: '델리', cityEn: 'Delhi', code: 'DEL', lat: 28.61, lng: 77.21 },
+  '네팔': { tz: 'Asia/Kathmandu', city: '카트만두', cityEn: 'Kathmandu', code: 'KTM', lat: 27.72, lng: 85.32 },
+  '말레이시아': { tz: 'Asia/Kuala_Lumpur', city: '쿠알라룸푸르', cityEn: 'Kuala Lumpur', code: 'KUL', lat: 3.14, lng: 101.69 },
+  '필리핀': { tz: 'Asia/Manila', city: '마닐라', cityEn: 'Manila', code: 'MNL', lat: 14.6, lng: 120.98 },
+  '요르단': { tz: 'Asia/Amman', city: '암만', cityEn: 'Amman', code: 'AMM', lat: 31.95, lng: 35.93 },
+  '위구르': { tz: 'Asia/Urumqi', city: '우루무치', cityEn: 'Urumqi', code: 'URC', lat: 43.83, lng: 87.62 },
+  '일본': { tz: 'Asia/Tokyo', city: '도쿄', cityEn: 'Tokyo', code: 'TYO', lat: 35.68, lng: 139.69 },
+  '중국': { tz: 'Asia/Shanghai', city: '베이징', cityEn: 'Beijing', code: 'PEK', lat: 39.9, lng: 116.4 },
+  '캄보디아': { tz: 'Asia/Phnom_Penh', city: '프놈펜', cityEn: 'Phnom Penh', code: 'PNH', lat: 11.56, lng: 104.92 },
+  '포르투갈': { tz: 'Europe/Lisbon', city: '리스본', cityEn: 'Lisbon', code: 'LIS', lat: 38.72, lng: -9.14 },
+  '키르기스스탄': { tz: 'Asia/Bishkek', city: '비슈케크', cityEn: 'Bishkek', code: 'FRU', lat: 42.87, lng: 74.59 },
+  '아제르바이잔': { tz: 'Asia/Baku', city: '바쿠', cityEn: 'Baku', code: 'GYD', lat: 40.41, lng: 49.87 },
+  '독일': { tz: 'Europe/Berlin', city: '베를린', cityEn: 'Berlin', code: 'BER', lat: 52.52, lng: 13.4 },
+  '코소보': { tz: 'Europe/Belgrade', city: '프리슈티나', cityEn: 'Pristina', code: 'PRN', lat: 42.66, lng: 21.17 },
+  '러시아': { tz: 'Europe/Moscow', city: '모스크바', cityEn: 'Moscow', code: 'MOW', lat: 55.76, lng: 37.62 },
+  '러시아 연해주': { tz: 'Asia/Vladivostok', city: '블라디보스토크', cityEn: 'Vladivostok', code: 'VVO', lat: 43.12, lng: 131.89 },
+  '알바니아': { tz: 'Europe/Tirane', city: '티라나', cityEn: 'Tirana', code: 'TIA', lat: 41.33, lng: 19.82 },
+  '우크라이나': { tz: 'Europe/Kiev', city: '키이우', cityEn: 'Kyiv', code: 'IEV', lat: 50.45, lng: 30.52 },
+  '잠비아': { tz: 'Africa/Lusaka', city: '루사카', cityEn: 'Lusaka', code: 'LUN', lat: -15.39, lng: 28.32 },
+  '우간다': { tz: 'Africa/Kampala', city: '캄팔라', cityEn: 'Kampala', code: 'EBB', lat: 0.35, lng: 32.58 },
+  '남아프리카공화국': { tz: 'Africa/Johannesburg', city: '요하네스버그', cityEn: 'Johannesburg', code: 'JNB', lat: -26.2, lng: 28.05 },
+  '모로코': { tz: 'Africa/Casablanca', city: '라바트', cityEn: 'Rabat', code: 'RBA', lat: 34.02, lng: -6.84 },
+  '탄자니아': { tz: 'Africa/Dar_es_Salaam', city: '다르에스살람', cityEn: 'Dar es Salaam', code: 'DAR', lat: -6.79, lng: 39.21 },
+  '파라과이': { tz: 'America/Asuncion', city: '아순시온', cityEn: 'Asunción', code: 'ASU', lat: -25.28, lng: -57.63 },
+  '페루': { tz: 'America/Lima', city: '리마', cityEn: 'Lima', code: 'LIM', lat: -12.05, lng: -77.04 },
 }
 
 /** 국내 선교 — 미자립 교회 지원 */
