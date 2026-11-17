@@ -514,7 +514,7 @@ button.ppl-pola:active,
   .ppl-leader.is-static:hover {
     transform: none;
     border-color: var(--card-border);
-    box-shadow: var(--card-shadow);
+    box-shadow: var(--ppl-lift);
   }
 
   .ppl-leader.is-static:hover .ppl-card-photo img {
@@ -524,7 +524,7 @@ button.ppl-pola:active,
 
 [data-theme='dark'] .ppl-leader.is-static:hover {
   border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 18px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ppl-lift);
 }
 
 /* ── 탭 (세그먼트 pill) ───────────────────────────────── */
@@ -732,7 +732,13 @@ button.ppl-pola:active,
   overflow: hidden;
   background: var(--surface-container);
   border: 1px solid var(--card-border);
-  box-shadow: var(--card-shadow);
+  /* 사진 카드 띄우기 — 닿는 그림자 + 짧은 번짐 + 아래로 떨어지는 깊은 그림자 세 겹.
+     카드는 움직이지 않고 그림자만으로 떠 보이게(어르신 눈높이, 호버 이동 금지) */
+  --ppl-lift:
+    0 1px 2px rgba(24, 26, 40, 0.07),
+    0 6px 12px -4px rgba(24, 26, 40, 0.1),
+    0 18px 30px -14px rgba(24, 26, 40, 0.3);
+  box-shadow: var(--ppl-lift);
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   animation: ppl-rise 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
   -webkit-tap-highlight-color: transparent;
@@ -741,7 +747,11 @@ button.ppl-pola:active,
 [data-theme='dark'] .ppl-card {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
   border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 18px rgba(0, 0, 0, 0.3);
+  --ppl-lift:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    0 18px 32px -12px rgba(0, 0, 0, 0.65);
+  box-shadow: var(--ppl-lift);
 }
 
 @keyframes ppl-rise {
@@ -777,7 +787,7 @@ button.ppl-pola:active,
   }
 
   .ppl-card:not(.is-static):hover {
-    box-shadow: 0 16px 34px -20px rgba(255, 170, 60, 0.55);
+    box-shadow: var(--ppl-lift), 0 16px 34px -20px rgba(255, 170, 60, 0.55);
   }
 
   /* 사진 위 새벽빛 — 위 30% 안에서 사라진다 */
