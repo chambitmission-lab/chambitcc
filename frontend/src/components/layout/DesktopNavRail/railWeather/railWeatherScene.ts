@@ -276,6 +276,16 @@ function makeBolt(x0: number, y0: number, x1: number, y1: number, rough: number,
 /* 번쩍임 곡선(ms): 번쩍 → 꺼짐 → 다시 번쩍 → 서서히 사라짐 */
 const flashEnv = (t: number) => t < 0 ? 0 : t < 60 ? 1 : t < 130 ? 0.22 : t < 200 ? 0.85 : Math.max(0, 0.85 * Math.exp(-(t - 200) / 230))
 
+/* CSS 색 문자열 → "r,g,b" (한 점 찍어 읽는다) */
+function rgbOf(color: string): string {
+  const c = document.createElement('canvas'); c.width = c.height = 1
+  const g = c.getContext('2d', { willReadFrequently: true })
+  if (!g) return '241,243,246'
+  g.fillStyle = color; g.fillRect(0, 0, 1, 1)
+  const d = g.getImageData(0, 0, 1, 1).data
+  return `${d[0]},${d[1]},${d[2]}`
+}
+
 const resCache = new Map<string, ArtRes>()
 export function buildArtRes(img: HTMLImageElement, theme: RailTheme): ArtRes {
   const key = `${theme}:${img.src}`
@@ -312,6 +322,8 @@ export class RailWeatherScene {
   done = false
   private theme: RailTheme = 'light'
   private bg = '#f1f3f6'
+  /* bg 를 "r,g,b" 로 — 투명으로 풀리는 그라데이션용 */
+  private bgRgb = '241,243,246'
   private res: ArtRes | null = null
   private scale = 1
   /* 캔버스 맨 위가 상자 좌표로 어디인지 — 칸이 400 보다 높으면 음수 */
@@ -351,6 +363,7 @@ export class RailWeatherScene {
   setArt(res: ArtRes, theme: RailTheme, bg: string) {
     const first = !this.res
     this.res = res; this.theme = theme; this.bg = bg
+    this.bgRgb = rgbOf(bg)
     if (first) {
       this.ridges = [
         { y: res.sky, k: 0.62, noise: noise1d(), d: new Float32Array(W) },
@@ -426,17 +439,48 @@ export class RailWeatherScene {
     b.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
     b.drawImage(res.img, 0, OY, W, IH)
     if (ov <= 0) return
-    const sky = b.createLinearGradient(0, top, 0, BOX_H)
     if (light) {
-      sky.addColorStop(0, `rgba(78,92,114,${ov})`); sky.addColorStop(0.62, `rgba(78,92,114,${ov * 0.5})`)
-      // 언덕 아래 빈 바탕까지 회색으로 물들면 라이트에서 뿌연 상자가 보인다 — 바닥으로 갈수록 0
+      /* 라이트: 밝은 레일 위에 회색 면이 네모 상자로 드러났다(2026-11-17). 맨 위·좌우·바닥은 0 으로 풀고
+       * 능선 위 하늘에서만 짙게 — 상자가 아니라 언덕 위에 낀 비구름으로 보이게 한다.
+       * 곱하기는 가로·세로 두 방향 그라데이션을 한 번에 못 주므로, 따로 그려 좌우를 깎은 뒤 얹는다 */
+      const t = document.createElement('canvas'); t.width = this.base.width; t.height = this.base.height
+      const tg = t.getContext('2d')
+      if (!tg) return
+      tg.setTransform(this.scale, 0, 0, this.scale, 0, -top * this.scale)
+      const sky = tg.createLinearGradient(0, top, 0, BOX_H)
+      sky.addColorStop(0, 'rgba(78,92,114,0)'); sky.addColorStop(0.1, `rgba(78,92,114,${ov * 0.3})`)
+      sky.addColorStop(0.24, `rgba(78,92,114,${ov * 0.82})`); sky.addColorStop(0.62, `rgba(78,92,114,${ov * 0.5})`)
+      // 언덕 아래 빈 바탕까지 회색으로 물들면 뿌연 상자가 보인다 — 바닥으로 갈수록 0
       sky.addColorStop(0.8, `rgba(78,92,114,${ov * 0.12})`); sky.addColorStop(0.9, 'rgba(78,92,114,0)')
+      tg.fillStyle = sky; tg.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
+      const side = tg.createLinearGradient(0, 0, W, 0)
+      side.addColorStop(0, 'rgba(0,0,0,0)'); side.addColorStop(0.12, 'rgba(0,0,0,0.25)'); side.addColorStop(0.32, 'rgba(0,0,0,1)')
+      side.addColorStop(0.74, 'rgba(0,0,0,1)'); side.addColorStop(0.92, 'rgba(0,0,0,0.25)'); side.addColorStop(1, 'rgba(0,0,0,0)')
+      tg.globalCompositeOperation = 'destination-in'
+      tg.fillStyle = side; tg.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
+      b.setTransform(1, 0, 0, 1, 0, 0)
       b.globalCompositeOperation = 'multiply'
-    } else {
-      sky.addColorStop(0, `rgba(0,0,0,${ov * 0.5})`); sky.addColorStop(1, `rgba(0,0,0,${ov * 0.35})`)
+      b.drawImage(t, 0, 0)
+      b.globalCompositeOperation = 'source-over'
+      return
     }
+    const sky = b.createLinearGradient(0, top, 0, BOX_H)
+    sky.addColorStop(0, `rgba(0,0,0,${ov * 0.5})`); sky.addColorStop(1, `rgba(0,0,0,${ov * 0.35})`)
     b.fillStyle = sky; b.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
-    b.globalCompositeOperation = 'source-over'
+  }
+
+  /* 라이트: 먹구름(레일보다 넓다)이 칸 옆·위에서 잘려 짙은 얼룩으로 남지 않게, 하늘 가장자리를
+   * 바탕색으로 풀어 준다. 하늘 클립 안에서 구름 바로 뒤에 부르므로 언덕·비는 건드리지 않는다 */
+  private fadeSkyEdges(g: CanvasRenderingContext2D) {
+    const top = this.top, c = this.bgRgb, E = 64, hgt = BOX_H - top
+    const ramp = (gr: CanvasGradient) => {
+      gr.addColorStop(0, `rgba(${c},1)`); gr.addColorStop(0.45, `rgba(${c},0.5)`); gr.addColorStop(1, `rgba(${c},0)`)
+      return gr
+    }
+    g.fillStyle = ramp(g.createLinearGradient(0, 0, E, 0)); g.fillRect(-4, top - 4, E + 4, hgt + 8)
+    g.fillStyle = ramp(g.createLinearGradient(W, 0, W - E, 0)); g.fillRect(W - E, top - 4, E + 4, hgt + 8)
+    const th = Math.max(24, Math.min(72, (240 - top) * 0.3))
+    g.fillStyle = ramp(g.createLinearGradient(0, top, 0, top + th)); g.fillRect(-4, top - 4, W + 8, th + 4)
   }
 
   /* 언마운트 때 쌓인 눈을 기억해 둔다 */
@@ -704,6 +748,7 @@ export class RailWeatherScene {
       g.drawImage(res.cloud, cl.x, cl.y, 220 * cl.s, 90 * cl.s)
     }
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'
+    if (light && this.clouds.length) this.fadeSkyEdges(g)
     if (c.kind === 'rain') this.drawRainLayer(g, 0, light, f)
     if (st && f > 0) {
       const hue = c.bolt === 'snow' ? '214,200,255' : '225,235,255'

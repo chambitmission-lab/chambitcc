@@ -17,6 +17,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['profile-header', () => import('../pages/Profile/components/ProfileHeaderPreview')],
       // 홈 묵상 카드 — 목 데이터로 레이아웃
       ['meditation-card', () => import('../pages/Home/components/DailyMeditationCardPreview')],
+      // 홈 묵상 카드 본문(핵심 절·질문·CTA) 시안 비교
+      ['meditation-content', () => import('../pages/dev/MeditationContentLab')],
       // 오디오북 재생 배경/애니메이션 시안 비교
       ['audio-bg', () => import('../pages/Bible/components/AudioBgPreview')],
       // 공지 포스터 확대 보기
