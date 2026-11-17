@@ -35,6 +35,10 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['people', () => import('../pages/People/PeoplePreview')],
       // 섬기는 사람들 카드 마우스 오버 시안 비교 — ?v=a~f (프록시로 운영 사진)
       ['people-hover', () => import('../pages/dev/PeopleHoverLab')],
+      // 섬기는 사람들 사진 카드 입체감 시안 — 정적 효과 A~F 한 화면 비교
+      ['people-depth', () => import('../pages/dev/PeopleDepthLab')],
+      // 섬기는 사람들 사진 카드 움직임 시안 — 현상·보더 빔·빛 스윕·낙서·스티커·글래스
+      ['people-motion', () => import('../pages/dev/PeopleMotionLab')],
       // PC 좌측 내비 레일 — 아이콘/항목 시안 비교
       ['nav-rail', () => import('../pages/dev/NavRailPreview')],
       // 성경 읽기 현황 히어로 — 진행률 카드 배치

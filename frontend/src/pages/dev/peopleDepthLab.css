@@ -1,0 +1,299 @@
+/* /dev/people-depth — 사진 카드 입체감 시안 (DEV 전용). 전부 정적 — 움직임 없음 */
+
+.dl-page {
+  min-height: 100vh;
+  background: var(--app-canvas, #f4f5f7);
+  padding: 1.5rem 0 5rem;
+}
+[data-theme='dark'] .dl-page {
+  background: #0f1115;
+}
+.dl-head,
+.dl-section {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.dl-head {
+  padding: 0 1.25rem 0.5rem;
+}
+.dl-kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+.dl-title {
+  margin-top: 0.25rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+}
+.dl-sub {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.dl-tools,
+.dl-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+}
+.dl-chip {
+  height: 2.1rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-body);
+  background: var(--surface-container, #fff);
+  border: 1px solid var(--card-border, rgba(0, 0, 0, 0.1));
+}
+.dl-chip.is-on {
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.dl-jump a {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--brand);
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.5rem;
+  background: var(--brand-soft);
+}
+.dl-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem 0;
+}
+.dl-section {
+  margin-top: 2.25rem;
+  scroll-margin-top: 1rem;
+}
+.dl-note {
+  padding: 0 1.25rem 0.9rem;
+  color: var(--text-body);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.dl-note strong {
+  font-size: 1.05rem;
+  color: var(--text-strong);
+}
+.dl-grid {
+  padding-bottom: 1.5rem;
+}
+
+/* 공통 */
+.dl-stack {
+  position: relative;
+  display: flex;
+}
+.dl-stack > .ppl-card {
+  flex: 1;
+  width: 100%;
+  animation: none;
+}
+.dl-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: none;
+}
+
+/* ── A. 창문 깊이 — 사진이 카드 안으로 한 단 들어간다 ───────────── */
+.dl-v-a .ppl-card-photo {
+  margin: 0.45rem 0.45rem 0;
+  border-radius: 0.9rem;
+}
+.dl-v-a .dl-fx {
+  display: block;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 6px 10px -4px rgba(10, 20, 40, 0.45),
+    inset 0 0 0 1px rgba(10, 20, 40, 0.1),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
+}
+.dl-v-a .ppl-card {
+  background: linear-gradient(180deg, #ffffff, #f3f6fb);
+}
+[data-theme='dark'] .dl-v-a .ppl-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+}
+[data-theme='dark'] .dl-v-a .dl-fx {
+  box-shadow:
+    inset 0 6px 12px -4px rgba(0, 0, 0, 0.75),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ── B. 인화지 광택 — 비스듬한 광택 + 모서리 비네트 ─────────────── */
+.dl-v-b .dl-fx {
+  display: block;
+  background:
+    linear-gradient(
+      128deg,
+      rgba(255, 255, 255, 0.38) 0%,
+      rgba(255, 255, 255, 0.12) 22%,
+      rgba(255, 255, 255, 0) 38%
+    ),
+    radial-gradient(130% 95% at 50% 30%, transparent 58%, rgba(10, 20, 40, 0.28) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+[data-theme='dark'] .dl-v-b .dl-fx {
+  background:
+    linear-gradient(
+      128deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(255, 255, 255, 0.06) 22%,
+      rgba(255, 255, 255, 0) 38%
+    ),
+    radial-gradient(130% 95% at 50% 30%, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+/* ── C. 액자 매트 — 흰 여백 안에 사진을 파묻는다 ─────────────────── */
+.dl-v-c .ppl-card {
+  background: #fdfcf9;
+}
+.dl-v-c .ppl-card-photo {
+  margin: 0.6rem 0.6rem 0;
+  border-radius: 0.35rem;
+}
+.dl-v-c .dl-fx {
+  display: block;
+  border-radius: inherit;
+  /* 매트를 비스듬히 잘라낸 단면(베벨) — 위·왼쪽은 그늘, 아래·오른쪽은 빛 */
+  box-shadow:
+    inset 2px 3px 5px rgba(60, 40, 10, 0.35),
+    inset -1px -1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 0 0 1px rgba(60, 40, 10, 0.12);
+}
+.dl-v-c .ppl-card-body {
+  text-align: center;
+  align-items: center;
+}
+[data-theme='dark'] .dl-v-c .ppl-card {
+  background: linear-gradient(180deg, #23262e, #1c1f26);
+}
+[data-theme='dark'] .dl-v-c .dl-fx {
+  box-shadow:
+    inset 2px 3px 6px rgba(0, 0, 0, 0.7),
+    inset -1px -1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+/* ── D. 사진 겹쳐 쌓기 — 뒤에 종이 두 장(고정) ─────────────────── */
+.dl-v-d .dl-stack::before,
+.dl-v-d .dl-stack::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1.25rem;
+  background: var(--surface-container, #fff);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 6px 14px -6px rgba(24, 26, 40, 0.25);
+}
+.dl-v-d .dl-stack::before {
+  transform: rotate(-3.2deg) translate(-3px, 4px);
+  background: #eef3fb;
+}
+.dl-v-d .dl-stack::after {
+  transform: rotate(2.2deg) translate(4px, 2px);
+  background: #f7f3ea;
+}
+.dl-v-d .dl-stack > .ppl-card {
+  z-index: 1;
+}
+.dl-v-d .ppl-grid,
+.dl-grid.dl-v-d {
+  gap: 1.4rem;
+}
+[data-theme='dark'] .dl-v-d .dl-stack::before {
+  background: #1d2433;
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.6);
+}
+[data-theme='dark'] .dl-v-d .dl-stack::after {
+  background: #262420;
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.6);
+}
+
+/* ── E. 두께 있는 타일 — 아래에 옆면 + 위 모서리 빛 ───────────────── */
+.dl-v-e .ppl-card {
+  margin-bottom: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 0 #e3e8f0,
+    0 2px 0 #dde3ec,
+    0 3px 0 #d7dee8,
+    0 4px 0 #d1d9e4,
+    0 5px 0 #cbd4e0,
+    0 6px 0 #c4cedb,
+    0 8px 6px rgba(24, 26, 40, 0.18),
+    0 20px 30px -12px rgba(24, 26, 40, 0.32);
+}
+.dl-v-e .dl-fx {
+  display: block;
+  box-shadow: inset 0 -1px 0 rgba(10, 20, 40, 0.12);
+}
+[data-theme='dark'] .dl-v-e .ppl-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 1px 0 #2a2e38,
+    0 2px 0 #262a33,
+    0 3px 0 #22262e,
+    0 4px 0 #1f222a,
+    0 5px 0 #1b1e25,
+    0 6px 0 #181a20,
+    0 8px 8px rgba(0, 0, 0, 0.5),
+    0 22px 32px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* ── F. 이름판 띄우기 — 사진 아래에 겹쳐 뜬 이름판 ───────────────── */
+.dl-v-f .ppl-card {
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.dl-v-f .ppl-card-photo {
+  border-radius: 1.25rem;
+  aspect-ratio: 3 / 3.7;
+  box-shadow:
+    0 1px 2px rgba(24, 26, 40, 0.08),
+    0 14px 26px -14px rgba(24, 26, 40, 0.35);
+}
+.dl-v-f .dl-fx {
+  display: block;
+  background: linear-gradient(180deg, transparent 60%, rgba(10, 20, 40, 0.28));
+}
+.dl-v-f .ppl-card-body {
+  position: relative;
+  z-index: 2;
+  margin: -2.2rem 0.6rem 0;
+  border-radius: 0.95rem;
+  background: var(--surface-container, #fff);
+  border: 1px solid var(--card-border);
+  box-shadow:
+    0 1px 2px rgba(24, 26, 40, 0.08),
+    0 10px 22px -8px rgba(24, 26, 40, 0.32);
+  min-height: 0;
+}
+[data-theme='dark'] .dl-v-f .ppl-card {
+  background: transparent;
+  box-shadow: none;
+}
+[data-theme='dark'] .dl-v-f .ppl-card-photo {
+  box-shadow: 0 16px 30px -12px rgba(0, 0, 0, 0.7);
+}
+[data-theme='dark'] .dl-v-f .ppl-card-body {
+  background: #23262e;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 24px -8px rgba(0, 0, 0, 0.7);
+}

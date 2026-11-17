@@ -1,5 +1,5 @@
 /* /today 작년 오늘의 나 — 걸어온 길 (tmp- 접두, 시안 /#/dev/today-memory?v=b)
-   1년 전 → 오늘을 한 줄 길로. 움직임은 없다 — 정거장은 제자리에 놓여 있다. */
+   1년 전 → 오늘을 한 줄 길로. 정거장 목록은 움직이지 않고, 히어로 그림 위 빛만 은은히 움직인다. */
 
 .tmp {
   display: grid;
@@ -20,10 +20,51 @@
   box-shadow: var(--card-shadow);
 }
 
-/* 히어로 — 예수님과 양이 함께 걷는 길(reading-walk). 인물이 그림 한가운데 오른쪽이라 정사각에 가까운 PC 칸에서도
-   잘리지 않는다 — 가로로 긴 언덕 그림(verse-scene)은 인물이 오른쪽 끝에 붙어 반쯤 잘렸다 */
-.tmp-hero { min-height: 150px; }
-.tmp-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 100% 62%; }
+/* 히어로 — 걸어온 길 전용 그림(memory-path, 3:2). 길이 S자로 지평선까지, 굽이마다 돌무더기(1년 전)·이정표·벤치.
+   모바일 띠는 아래쪽(y 80%)을 보여 인물 발까지, PC 정사각은 x 72%로 지평선 돌무더기와 인물이 함께 들어온다 */
+.tmp-hero { min-height: 150px; --hx: 1; --hy: 0.8; }
+/* 그림과 빛 레이어를 같은 3:2 무대에 얹는다 — 크기·위치는 HeroScene 이 --hx/--hy 로 계산(cover + 크롭 비율) */
+.tmp-hero-stage { position: absolute; inset: 0; }
+.tmp-hero-layer,
+.tmp-hero-layer img,
+.tmp-fx { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.tmp-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, rgba(10, 16, 40, 0.78) 0%, rgba(10, 16, 40, 0.5) 32%, rgba(10, 16, 40, 0) 52%);
+}
+
+/* 빛 — 그림엔 굽지 않고 여기서만. 기록 있는 정거장만 켜진다 */
+.tmp-fx-pulse { transform-box: fill-box; transform-origin: center; animation: tmp-breathe 3.8s ease-in-out infinite; }
+@keyframes tmp-breathe { 0%, 100% { opacity: 0.55; transform: scale(0.88); } 50% { opacity: 1; transform: scale(1.12); } }
+.tmp-fx-sun { animation: tmp-sun 7s ease-in-out infinite; }
+@keyframes tmp-sun { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.8; } }
+.tmp-fx-mote { fill: #fff3c8; animation: tmp-rise 9s linear infinite; }
+@keyframes tmp-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  15%, 80% { opacity: 0.9; }
+  100% { transform: translate(14px, -150px); opacity: 0; }
+}
+.dark .tmp-fx-sun { display: none; }
+.dark .tmp-fx-mote { fill: #ffe58a; animation-name: tmp-firefly; }
+@keyframes tmp-firefly {
+  0%, 100% { transform: translate(0, 0); opacity: 0.1; }
+  50% { transform: translate(12px, -18px); opacity: 1; }
+}
+.tmp-fx-chip { display: none; font-size: 26px; font-weight: 700; }
+.tmp-fx-chip rect { fill: rgba(255, 255, 255, 0.72); }
+.tmp-fx-chip text { fill: #6b7489; }
+.is-lit .tmp-fx-chip rect { fill: #ffd27a; }
+.is-lit .tmp-fx-chip text { fill: #4a2e05; }
+.dark .tmp-fx-chip rect { fill: rgba(20, 26, 52, 0.66); }
+.dark .tmp-fx-chip text { fill: #aab1c8; }
+.dark .is-lit .tmp-fx-chip rect { fill: #ffcf6e; }
+.dark .is-lit .tmp-fx-chip text { fill: #3d2604; }
+@media (prefers-reduced-motion: reduce) {
+  .tmp-fx-pulse, .tmp-fx-sun, .tmp-fx-mote { animation: none; }
+  .tmp-fx-mote, .tmp-fx-travel { display: none; }
+}
 .tmp-hero-text { position: relative; z-index: 1; padding: 20px; max-width: 60%; }
 .tmp-hero-text .eyebrow { font-size: 12.5px; font-weight: 700; color: var(--amber); }
 .tmp-hero-text h2 {
@@ -36,9 +77,9 @@
   word-break: keep-all;
 }
 /* 모바일 띠에선 설명 줄이 양 삽화와 겹친다 — PC 에서만 보인다 */
-.tmp-hero-text p { display: none; margin-top: 6px; font-size: 13.5px; line-height: 1.55; color: #44506c; word-break: keep-all; }
+.tmp-hero-text p:not(.eyebrow) { display: none; margin-top: 6px; font-size: 13.5px; line-height: 1.55; color: #44506c; word-break: keep-all; }
 .dark .tmp-hero-text h2 { color: #f1eee9; }
-.dark .tmp-hero-text p { color: rgba(255, 255, 255, 0.72); }
+.dark .tmp-hero-text p:not(.eyebrow) { color: rgba(255, 255, 255, 0.72); }
 
 /* 길 */
 .tmp-path { position: relative; padding-left: 30px; }
@@ -139,12 +180,12 @@
     gap: 20px 28px;
     padding: 24px 0 0;
   }
-  .tmp-hero { min-height: 420px; }
-  .tmp-hero img { object-position: 80% 50%; }
+  .tmp-hero { min-height: 420px; --hx: 0.72; --hy: 0.5; }
+  .tmp-fx-chip { display: inline; }
   .tmp-hero-text { max-width: none; padding: 30px; }
   .tmp-hero-text .eyebrow { font-size: 15px; }
   .tmp-hero-text h2 { font-size: 30px; }
-  .tmp-hero-text p { display: block; max-width: 15em; font-size: 16px; }
+  .tmp-hero-text p:not(.eyebrow) { display: block; max-width: 15em; font-size: 16px; }
   .tmp-path { padding-left: 40px; }
   .tmp-path::before { left: 13px; }
   .tmp-stop { padding-bottom: 22px; }

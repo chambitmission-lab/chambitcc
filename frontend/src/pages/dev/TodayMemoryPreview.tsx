@@ -556,6 +556,7 @@ export default function TodayMemoryPreview() {
   const [params, setParams] = useSearchParams()
   const v = params.get('v') ?? 'a'
   const data = params.get('data') === 'rich' ? 'rich' : 'one'
+  const art = params.get('art') === 'v1' ? 'v1' : 'v2'
   const { theme, toggleTheme } = useTheme()
   const meta = VARIANTS.find((x) => x.key === v) ?? VARIANTS[0]
 
@@ -585,6 +586,13 @@ export default function TodayMemoryPreview() {
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <button onClick={() => set('data', 'one')} className={pill(data === 'one')}>기록 하나뿐 (지금 내 화면)</button>
           <button onClick={() => set('data', 'rich')} className={pill(data === 'rich')}>기록이 여럿</button>
+          {meta.key === 'b' && (
+            <>
+              <span className="ml-2 text-[12px] text-gray-400">그림</span>
+              <button onClick={() => set('art', 'v1')} className={pill(art === 'v1')}>v1 이전 그림</button>
+              <button onClick={() => set('art', 'v2')} className={pill(art === 'v2')}>v2 지금</button>
+            </>
+          )}
           <button onClick={toggleTheme} className="ml-2 text-[13px] underline text-gray-500 dark:text-white/55">
             {theme === 'dark' ? '라이트로' : '다크로'}
           </button>
@@ -594,7 +602,7 @@ export default function TodayMemoryPreview() {
         {meta.key === 'b' ? (
           // 실제 컴포넌트는 화면 폭(lg)으로 갈린다 — 모바일은 창을 좁혀서 본다
           <div className="mt-6">
-            <MemoryPath data={LIVE[data]} />
+            <MemoryPath data={LIVE[data]} artSet={art} />
           </div>
         ) : (
           <>
