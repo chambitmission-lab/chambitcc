@@ -9,8 +9,6 @@ import { loadHome } from './homeChunk'
 
 type RouteLoader = () => Promise<{ default: ComponentType }>
 
-// 발자취 시범 화면 — App.tsx lazy 와 딥링크 프리로드가 같은 로더를 쓴다
-export const historyLabLoader: RouteLoader = withChurchHistory(() => import('../pages/History/labs/HistoryLab'))
 // 기도방 상세 — /groups 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
 export const groupDetailLoader: RouteLoader = () => import('../pages/Groups/GroupDetail')
 // 일정 상세 — /events 히어로·어젠다 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
@@ -272,7 +270,6 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   // 프로필 스토리 카드 목적지 — 메뉴 테이블에 없어 청크 프리로드 대상이 아니었다
   { key: 'weekly-story', match: /^\/weekly-story$/, load: () => import('../pages/WeeklyStory/WeeklyStory') },
   // 발자취 시범 화면 — 기존 /history 상단 배너로만 들어오므로 메뉴 프리로드에 넣지 않는다
-  { key: 'history/new', match: /^\/history\/new$/, load: historyLabLoader },
   { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
   { key: 'seats/detail', match: /^\/seats\/[^/]+$/, load: () => import('../pages/Seats/SeatEventDetail') },
   // 일정 상세 — 표에 없어 청크 프리로드가 무효였다. 라우터가 전환을 startTransition 으로 돌려

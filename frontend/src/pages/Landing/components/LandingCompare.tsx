@@ -6,7 +6,7 @@ import { tokenStore } from '../../../utils/tokenStore'
 // 성도가 고르게 한다. 의견 수렴이 끝나면 이 파일·classic 폴더·/welcome/classic 라우트를 함께 정리한다.
 //
 // 의견은 기존 설문으로 받는다 — 제목에 이 말이 든 진행 중 설문이 있으면 그리로, 없으면 설문 목록으로
-// (설문 id 를 코드에 박지 않기 위함, /history/new 와 같은 방식)
+// (설문 id 를 코드에 박지 않기 위함)
 const FEEDBACK_KEYWORD = '첫 화면'
 
 export type LandingVariant = 'new' | 'classic'

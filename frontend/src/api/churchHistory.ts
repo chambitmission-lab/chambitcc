@@ -59,7 +59,7 @@ export const loadChurchHistory = (): Promise<void> => {
   return inflight
 }
 
-/** 발자취 화면 청크 로더를 감싼다 — 기록을 먼저 채우고 청크를 연다 (/history · /history/new 공용) */
+/** 발자취 화면 청크 로더를 감싼다 — 기록을 먼저 채우고 청크를 연다 (/history) */
 export const withChurchHistory =
   <T,>(load: () => Promise<T>) =>
   (): Promise<T> =>
