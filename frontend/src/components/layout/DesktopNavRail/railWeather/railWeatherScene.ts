@@ -280,6 +280,8 @@ const flashEnv = (t: number) => t < 0 ? 0 : t < 60 ? 1 : t < 130 ? 0.22 : t < 20
 /* 라이트 하늘 가장자리 풀림 — 좌우 폭(상자 좌표)과 0→1 곡선. 처음 0.3 은 0 으로 비워 둔다:
  * 칸의 CSS 마스크가 아직 반쯤 가리는 자리라, 여기에 구름·회색이 남으면 잘린 얼룩으로 보인다.
  * 그 뒤는 smoothstep 을 잘게 나눠 꺾이는 자리가 없게 한다 */
+/* 라이트에서 흐린 하늘 덧칠 농도 배율 — 0 이면 덧칠 없음(시험 중, 2026-11-17) */
+const LIGHT_OVERLAY = 0
 const EDGE = 104
 const EASE: [number, number][] = [[0, 0], [0.3, 0], [0.44, 0.104], [0.58, 0.352], [0.72, 0.648], [0.86, 0.896], [1, 1]]
 
@@ -439,7 +441,8 @@ export class RailWeatherScene {
   private renderBase() {
     const res = this.res, b = this.bctx
     if (!res) return
-    const top = this.top, ov = this.cfg.overlay, light = this.theme === 'light'
+    const top = this.top, light = this.theme === 'light'
+    const ov = this.cfg.overlay * (light ? LIGHT_OVERLAY : 1)
     b.setTransform(this.scale, 0, 0, this.scale, 0, -top * this.scale)
     b.globalCompositeOperation = 'source-over'
     b.fillStyle = this.bg
@@ -771,15 +774,19 @@ export class RailWeatherScene {
       g.drawImage(res.cloud, cl.x, cl.y, 220 * cl.s, 90 * cl.s)
     }
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'
-    if (light && this.clouds.length) this.fadeSkyEdges(g)
+    // 번쩍임이 없을 때는 여기서, 있을 때는 번쩍임 빛까지 칠한 뒤에 가장자리를 푼다(노란 빛이 상자로 남지 않게)
+    if (light && this.clouds.length && !(st && f > 0)) this.fadeSkyEdges(g)
     if (c.kind === 'rain') this.drawRainLayer(g, 0, light, f)
     if (st && f > 0) {
-      const hue = c.bolt === 'snow' ? '214,200,255' : '225,235,255'
+      /* 라이트(2026-11-17): 밝은 바탕은 더 밝힐 수 없어 흰 번쩍임·흰 번개가 안 보였다 —
+       * 어두운 하늘을 깔지 않는 대신 번개를 노란빛으로 치고, 번쩍임도 따뜻한 빛을 옅게 물들인다 */
+      const hue = light ? (c.bolt === 'snow' ? '190,176,250' : '244,214,158') : c.bolt === 'snow' ? '214,200,255' : '225,235,255'
       const gr = g.createRadialGradient(st.bx, 90, 10, st.bx, 120, 260)
-      gr.addColorStop(0, `rgba(${hue},${0.75 * f})`); gr.addColorStop(1, `rgba(${hue},0)`)
-      g.globalCompositeOperation = light ? 'screen' : 'lighter'
+      gr.addColorStop(0, `rgba(${hue},${(light ? 0.3 : 0.75) * f})`); gr.addColorStop(1, `rgba(${hue},0)`)
+      g.globalCompositeOperation = light ? 'source-over' : 'lighter'
       g.fillStyle = gr; g.fillRect(0, top, W, BOX_H - top)
       g.globalCompositeOperation = 'source-over'
+      if (light) this.fadeSkyEdges(g)
       if (st.bolt && ts < 700) this.drawBolt(g, st.bolt, f)
     }
     g.restore()
@@ -787,8 +794,10 @@ export class RailWeatherScene {
     // 3. 언덕까지 함께 드러나는 순간 빛
     if (f > 0) {
       const k = c.bolt === 'near' ? 0.55 : 0.32
-      g.globalCompositeOperation = light ? 'screen' : 'lighter'
-      g.fillStyle = c.bolt === 'snow' ? `rgba(200,190,255,${k * f})` : `rgba(210,225,255,${k * f * (light ? 1 : 0.7)})`
+      g.globalCompositeOperation = light ? 'source-over' : 'lighter'
+      // 라이트는 하얗게 날리지 않고(빗줄기·번개까지 지워졌다) 옅게 물들이기만 한다
+      if (light) g.fillStyle = c.bolt === 'snow' ? `rgba(190,176,250,${k * f * 0.12})` : `rgba(244,214,158,${k * f * 0.08})`
+      else g.fillStyle = c.bolt === 'snow' ? `rgba(200,190,255,${k * f})` : `rgba(210,225,255,${k * f * 0.7})`
       g.fillRect(-4, top - 4, W + 8, BOX_H - top + 8)
       g.globalCompositeOperation = 'source-over'
     }
@@ -841,7 +850,22 @@ export class RailWeatherScene {
   private drawBolt(g: CanvasRenderingContext2D, bolt: Bolt, f: number) {
     const line = (pts: Pt[]) => { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const p of pts) g.lineTo(p[0], p[1]); g.stroke() }
     g.lineJoin = 'round'; g.lineCap = 'round'
-    g.globalCompositeOperation = this.theme === 'light' ? 'source-over' : 'lighter'
+    const light = this.theme === 'light'
+    g.globalCompositeOperation = light ? 'source-over' : 'lighter'
+    if (light) {
+      /* 라이트: 정직한 노랑 한 색은 크레용 선처럼 보였다(2026-11-18). 실제 번개처럼 세 겹 —
+       * 바깥은 보랏빛 어스름(밝은 바탕에서 줄기를 세워 주는 그늘), 가운데는 채도 낮춘 금빛,
+       * 심은 흰빛에 가까운 샴페인색. 어두운 테두리 안에 밝은 심이 있어야 '빛나는 줄기'로 읽힌다 */
+      const a = Math.min(1, f * 1.2)
+      g.strokeStyle = `rgba(112,98,160,${0.26 * f})`; g.lineWidth = 7.5; line(bolt.main)
+      g.lineWidth = 3.8; for (const b of bolt.branches) line(b)
+      g.strokeStyle = `rgba(222,164,62,${0.95 * a})`; g.lineWidth = 3.2; line(bolt.main)
+      g.lineWidth = 1.7; for (const b of bolt.branches) line(b)
+      g.strokeStyle = `rgba(255,244,206,${a})`; g.lineWidth = 0.9; line(bolt.main)
+      g.lineWidth = 0.45; for (const b of bolt.branches) line(b)
+      g.globalCompositeOperation = 'source-over'
+      return
+    }
     g.strokeStyle = `rgba(170,200,255,${0.35 * f})`; g.lineWidth = 6; line(bolt.main)
     g.lineWidth = 3; for (const b of bolt.branches) line(b)
     g.strokeStyle = `rgba(255,255,255,${Math.min(1, f * 1.2)})`; g.lineWidth = 1.5; line(bolt.main)
@@ -850,7 +874,8 @@ export class RailWeatherScene {
   }
 
   private rainColor(light: boolean, f: number, L: number) {
-    if (f > 0.25) return '255,255,255'
+    // 번쩍일 때 흰 빗줄기 — 라이트에서는 흰색이 바탕에 묻히므로 제 색을 지킨다
+    if (f > 0.25 && !light) return '255,255,255'
     if (light) return L === 2 ? '92,110,138' : '76,94,122'
     return L === 0 ? '170,186,210' : '200,216,240'
   }
