@@ -1,0 +1,154 @@
+/* 앱 공통 확인/삭제 모달의 생김새 (cdl-) — 아이콘·그림 없이 큰 질문 한 문장 + 옅은 색 버튼.
+   ConfirmDialogHost · 기도 DeleteConfirmModal · 목양칼럼 DeleteColumnDialog 가 같이 쓴다.
+   PC = 가운데 카드, 모바일(<640) = 아래에서 올라오는 시트. 시안: /#/dev/confirm-dialog?v=d */
+
+.cdl-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+  animation: cdl-fade 0.14s ease-out;
+}
+.dark .cdl-overlay { background: rgba(0, 0, 0, 0.66); }
+
+.cdl-panel {
+  width: 100%;
+  max-width: 384px;
+  padding: 28px 24px 20px;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 24px 60px -18px rgba(15, 23, 42, 0.35);
+  animation: cdl-pop 0.16s ease-out;
+}
+.dark .cdl-panel {
+  background: #1b1f27;
+  box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.cdl-grab { display: none; }
+
+.cdl-eyebrow {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.cdl-title {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.4;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+.cdl-highlight {
+  margin-top: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.6;
+  word-break: keep-all;
+  color: #d93036;
+}
+.dark .cdl-highlight { color: #ff8589; }
+.cdl-highlight.is-warning { color: #b96a00; }
+.dark .cdl-highlight.is-warning { color: #ffb454; }
+.cdl-highlight.is-brand { color: var(--brand); }
+.cdl-sub {
+  margin-top: 6px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
+.cdl-input {
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  font-size: 15px;
+  color: var(--text-strong);
+}
+.cdl-input:focus { outline: none; border-color: var(--brand); }
+.dark .cdl-input { border-color: rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); }
+
+.cdl-actions { display: flex; gap: 10px; margin-top: 24px; }
+.cdl-btn {
+  flex: 1;
+  min-height: 50px;
+  padding: 0 14px;
+  border-radius: 16px;
+  font-size: 15.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  word-break: keep-all;
+  transition: background-color 0.15s, filter 0.15s;
+}
+.cdl-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.cdl-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.cdl-btn.is-keep { background: #f2f4f6; color: var(--text-strong); }
+.cdl-btn.is-keep:hover { background: #e9ecef; }
+.dark .cdl-btn.is-keep { background: rgba(255, 255, 255, 0.07); }
+.dark .cdl-btn.is-keep:hover { background: rgba(255, 255, 255, 0.11); }
+
+/* 지우기 — 번쩍이는 그라데이션·그림자 없이 옅은 붉은 면 + 붉은 글씨 */
+.cdl-btn.is-danger { background: rgba(229, 72, 77, 0.1); color: #d93036; }
+.cdl-btn.is-danger:hover { background: rgba(229, 72, 77, 0.17); }
+.dark .cdl-btn.is-danger { background: rgba(255, 99, 105, 0.14); color: #ff8589; }
+.dark .cdl-btn.is-danger:hover { background: rgba(255, 99, 105, 0.2); }
+
+.cdl-btn.is-warning { background: rgba(232, 137, 12, 0.13); color: #b96a00; }
+.cdl-btn.is-warning:hover { background: rgba(232, 137, 12, 0.2); }
+.dark .cdl-btn.is-warning { background: rgba(255, 170, 60, 0.14); color: #ffb454; }
+.dark .cdl-btn.is-warning:hover { background: rgba(255, 170, 60, 0.2); }
+
+.cdl-btn.is-brand { background: var(--brand); color: var(--on-brand, #fff); }
+.cdl-btn.is-brand:hover { filter: brightness(1.07); }
+
+.cdl-spin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: cdl-spin 0.7s linear infinite;
+}
+
+/* 모바일 — 아래에서 올라오는 시트. 입력란이 있으면 키보드에 가리지 않게 가운데 카드 그대로 */
+@media (max-width: 639px) {
+  .cdl-overlay:not(.has-input) { align-items: flex-end; padding: 0; }
+  .cdl-overlay:not(.has-input) .cdl-panel {
+    max-width: none;
+    padding: 10px 24px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 28px 28px 0 0;
+    animation-name: cdl-rise;
+  }
+  .cdl-overlay:not(.has-input) .cdl-grab {
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 0 auto 20px;
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.14);
+  }
+  .dark .cdl-overlay:not(.has-input) .cdl-grab { background: rgba(255, 255, 255, 0.2); }
+}
+
+@keyframes cdl-fade { from { opacity: 0; } }
+@keyframes cdl-pop { from { opacity: 0; transform: scale(0.97); } }
+@keyframes cdl-rise { from { opacity: 0; transform: translateY(16px); } }
+@keyframes cdl-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cdl-overlay,
+  .cdl-panel { animation: none; }
+}

@@ -334,11 +334,10 @@ const Thanks = () => {
 
   const handleDelete = async (id: number) => {
     const ok = await confirmDialog({
-      title: ko ? '감사 삭제' : 'Delete thanks',
-      message: ko ? '이 감사를 삭제할까요?' : 'Delete this thanks?',
-      description: ko ? '삭제된 내용은 복구할 수 없습니다.' : 'This cannot be undone.',
-      confirmText: ko ? '삭제' : 'Delete',
-      icon: 'delete_outline',
+      message: ko ? '앗, 이 감사 지우려고요?' : 'Oops, deleting this thanks?',
+      description: ko ? '지우개는 있는데, 되돌리기는 아직 없어요.' : "We have an eraser, but no undo yet.",
+      cancelText: ko ? '앗, 실수예요' : 'Oops, my mistake',
+      confirmText: ko ? '네, 지울게요' : 'Yes, delete',
     })
     if (!ok) return
     removeMutation.mutate(id)

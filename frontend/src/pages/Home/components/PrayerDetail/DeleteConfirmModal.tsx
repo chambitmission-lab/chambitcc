@@ -1,60 +1,48 @@
-// 삭제 확인 모달 컴포넌트
+// 기도 삭제 확인 — 공통 확인창(ConfirmDialogHost)과 같은 생김새에 '삭제 중' 상태만 더했다.
+import { createPortal } from 'react-dom'
+import '../../../../components/common/confirmDialog.css'
+
 interface DeleteConfirmModalProps {
   isAdminDelete?: boolean
   isDeleting: boolean
+  /** 함께 기도한 사람 수 — 있으면 문구에 넣는다 */
+  prayerCount?: number
   onConfirm: () => void
   onCancel: () => void
 }
 
-const DeleteConfirmModal = ({ isAdminDelete = false, isDeleting, onConfirm, onCancel }: DeleteConfirmModalProps) => {
-  return (
-    <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[120] flex items-center justify-center p-4">
-      <div className="bg-background-light dark:bg-background-dark rounded-3xl p-6 max-w-sm w-full border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(239,68,68,0.25),0_0_0_1px_rgba(255,255,255,0.04)]">
-        <div className="flex items-center gap-3 mb-4">
-          {/* 경고 아이콘 — 다른 화면 아바타와 같은 펄스 글로우 패턴, 톤만 빨강 */}
-          <div className="relative flex-shrink-0">
-            <div className="absolute inset-0 rounded-full bg-red-400/30 dark:bg-red-500/40 blur-md animate-pulse"></div>
-            <div className="w-12 h-12 rounded-full bg-gradient-to-b from-red-400/60 via-red-500/40 to-red-600/25 dark:from-red-400/50 dark:via-red-500/30 dark:to-red-600/20 border-2 border-red-500/70 dark:border-red-400/50 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.4),inset_0_1px_3px_rgba(255,255,255,0.6)] dark:shadow-[0_0_20px_rgba(239,68,68,0.3),inset_0_1px_3px_rgba(255,255,255,0.25)] relative z-10">
-              <span className="material-icons-outlined text-white text-xl">warning</span>
-            </div>
-          </div>
-          <h3 className="text-[18px] font-bold text-ink-strong tracking-[-0.015em]">기도 요청 삭제</h3>
-        </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400 leading-[1.7] mb-6">
-          {isAdminDelete && (
-            <>
-              <span className="font-semibold text-red-500 dark:text-red-400">관리자 권한으로 다른 성도의 기도 요청을 삭제합니다.</span>
-              <br />
-            </>
-          )}
-          이 기도 요청을 삭제하시겠습니까?<br />
-          삭제된 내용은 복구할 수 없습니다.
+const DeleteConfirmModal = ({ isAdminDelete = false, isDeleting, prayerCount = 0, onConfirm, onCancel }: DeleteConfirmModalProps) => {
+  const gone = '지우면 다시 못 불러와요.'
+  return createPortal(
+    <div className="cdl-overlay z-[1100]" role="presentation" onClick={() => !isDeleting && onCancel()}>
+      <div role="alertdialog" aria-modal="true" className="cdl-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="cdl-grab" aria-hidden />
+        {/* 다른 성도의 기도를 지우는 관리자에게는 농담 없이 또렷하게 */}
+        <h3 className="cdl-title">{isAdminDelete ? '이 기도 요청을 지울까요?' : '잠깐만요, 이 기도 지워요?'}</h3>
+        {isAdminDelete && <p className="cdl-highlight is-danger">관리자 권한으로 다른 성도의 기도 요청을 지웁니다.</p>}
+        <p className="cdl-sub">
+          {!isAdminDelete && prayerCount > 0 ? `${prayerCount}명이 같이 손 모은 기도예요. ${gone}` : gone}
         </p>
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            disabled={isDeleting}
-            className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong rounded-2xl font-semibold text-sm hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-colors disabled:opacity-50"
-          >
-            취소
+        <div className="cdl-actions">
+          <button onClick={onCancel} disabled={isDeleting} className="cdl-btn is-keep">
+            {isAdminDelete ? '취소' : '아직 둘게요'}
           </button>
-          <button
-            onClick={onConfirm}
-            disabled={isDeleting}
-            className="flex-1 py-3 px-4 bg-gradient-to-tr from-red-500 to-rose-500 text-white rounded-2xl font-semibold text-sm shadow-lg shadow-red-500/30 dark:shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
+          <button onClick={onConfirm} disabled={isDeleting} className="cdl-btn is-danger">
             {isDeleting ? (
               <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                삭제 중...
+                <span className="cdl-spin" />
+                지우는 중...
               </>
+            ) : isAdminDelete ? (
+              '지울게요'
             ) : (
-              '삭제'
+              '네, 지울게요'
             )}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

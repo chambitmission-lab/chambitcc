@@ -22,7 +22,7 @@ export interface ConfirmOptions {
   cancelText?: string
   /** 기본값: confirm은 danger, alert은 brand */
   tone?: ConfirmTone
-  /** material-icons-outlined 아이콘 이름 — 생략 시 톤별 기본값 */
+  /** @deprecated 2026-11 개편으로 아이콘을 그리지 않는다 — 넘겨도 무시된다 */
   icon?: string
 }
 

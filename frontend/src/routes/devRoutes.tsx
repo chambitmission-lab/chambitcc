@@ -89,12 +89,16 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['ministry-redesign', () => import('../pages/dev/MinistryRedesignPreview')],
       // /today '작년 오늘의 나' 개편 시안 비교 — ?v=a|b|c, &data=one(기록 하나)|rich
       ['today-memory', () => import('../pages/dev/TodayMemoryPreview')],
+      // /news 주보 탭 '이번 주 주보' 히어로 개선 시안 — ?v=now|a|b|c|d, &device=mobile
+      ['bulletin-hero', () => import('../pages/dev/BulletinHeroPreview')],
       // PC 좌측 레일 '나누기' 버튼 × 하단 삽화 어울림 시안 — 지금/A/B/C/D
       ['rail-share', () => import('../pages/dev/RailSharePreview')],
       // /sermon 설교 영상 모달 감성 개편 시안 — ?v=a|b|c|d, &device=mobile
       ['sermon-player', () => import('../pages/dev/SermonPlayerPreview')],
       // 설교 극장 사계절 색 시안 — ?s=none|spring|summer|autumn|winter, &fx=1 계절 입자
       ['sermon-seasons', () => import('../pages/dev/SermonSeasonsPreview')],
+      // 삭제·확인 모달(ConfirmDialog) 감성 개편 시안 — ?v=now|a|b|c|d
+      ['confirm-dialog', () => import('../pages/dev/ConfirmDialogPreview')],
     ]
   : []
 

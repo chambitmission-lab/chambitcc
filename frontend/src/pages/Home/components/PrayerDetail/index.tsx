@@ -344,6 +344,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
         <DeleteConfirmModal
           isAdminDelete={isAdminDelete}
           isDeleting={isDeleting}
+          prayerCount={prayer?.prayer_count}
           onConfirm={handleDelete}
           onCancel={() => setShowDeleteConfirm(false)}
         />

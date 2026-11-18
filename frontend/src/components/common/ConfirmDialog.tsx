@@ -1,4 +1,4 @@
-// 앱 공통 확인/안내 모달의 화면 — 기도 상세의 삭제 확인 모달과 같은 톤이다.
+// 앱 공통 확인/안내 모달의 화면 — 아이콘 없이 큰 질문 한 문장(생김새는 confirmDialog.css).
 // 호출은 utils/confirmDialog 의 confirmDialog() / alertDialog() 로 하고,
 // 이 호스트는 App에 한 번만 마운트된다.
 import { useCallback, useEffect, useState } from 'react'
@@ -11,42 +11,7 @@ import {
   setDialogEmitter,
   type DialogRequest,
 } from '../../utils/confirmDialog'
-
-const TONE = {
-  danger: {
-    icon: 'warning',
-    glow: 'bg-red-400/30 dark:bg-red-500/40',
-    badge:
-      'bg-gradient-to-b from-red-400/60 via-red-500/40 to-red-600/25 dark:from-red-400/50 dark:via-red-500/30 dark:to-red-600/20 border-red-500/70 dark:border-red-400/50 shadow-[0_0_20px_rgba(239,68,68,0.4),inset_0_1px_3px_rgba(255,255,255,0.6)] dark:shadow-[0_0_20px_rgba(239,68,68,0.3),inset_0_1px_3px_rgba(255,255,255,0.25)]',
-    panel:
-      'shadow-[0_30px_80px_-20px_rgba(239,68,68,0.25),0_0_0_1px_rgba(255,255,255,0.04)]',
-    confirm:
-      'bg-gradient-to-tr from-red-500 to-rose-500 text-white shadow-lg shadow-red-500/30 dark:shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/40',
-    highlight: 'text-red-500 dark:text-red-400',
-  },
-  warning: {
-    icon: 'error_outline',
-    glow: 'bg-amber-400/30 dark:bg-amber-500/40',
-    badge:
-      'bg-gradient-to-b from-amber-400/60 via-amber-500/40 to-amber-600/25 dark:from-amber-400/50 dark:via-amber-500/30 dark:to-amber-600/20 border-amber-500/70 dark:border-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.4),inset_0_1px_3px_rgba(255,255,255,0.6)] dark:shadow-[0_0_20px_rgba(245,158,11,0.3),inset_0_1px_3px_rgba(255,255,255,0.25)]',
-    panel:
-      'shadow-[0_30px_80px_-20px_rgba(245,158,11,0.25),0_0_0_1px_rgba(255,255,255,0.04)]',
-    confirm:
-      'bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30 dark:shadow-amber-500/20 hover:shadow-xl hover:shadow-amber-500/40',
-    highlight: 'text-amber-600 dark:text-amber-400',
-  },
-  brand: {
-    icon: 'help_outline',
-    glow: 'bg-[var(--brand-soft-strong)]',
-    badge:
-      'bg-[var(--brand)] border-[var(--brand)] shadow-[0_0_20px_rgba(49,130,246,0.35),inset_0_1px_3px_rgba(255,255,255,0.35)]',
-    panel:
-      'shadow-[0_30px_80px_-20px_rgba(49,130,246,0.25),0_0_0_1px_rgba(255,255,255,0.04)]',
-    confirm:
-      'bg-[var(--brand)] text-[var(--on-brand)] shadow-lg shadow-[rgba(49,130,246,0.3)] hover:brightness-110',
-    highlight: 'text-[var(--brand)]',
-  },
-} as const
+import './confirmDialog.css'
 
 const LABELS = {
   ko: { title: '확인', confirm: '확인', cancel: '취소' },
@@ -108,55 +73,28 @@ export const ConfirmDialogHost = () => {
   if (!current) return null
 
   const labels = LABELS[getStoredLanguage() === 'en' ? 'en' : 'ko']
-  const tone = TONE[current.tone ?? (current.alertOnly ? 'brand' : 'danger')]
+  const tone = current.tone ?? (current.alertOnly ? 'brand' : 'danger')
+
+  // 큰 글씨 한 문장 고르기 — 본문이 짧은 한 줄이면 그 문장이 주인공이고 제목은 작은 머리말로 물러난다.
+  // 본문이 여러 줄·긴 안내면 제목이 큰 글씨, 본문은 아래 설명으로 내려간다.
+  const shortMessage = !current.message.includes('\n') && current.message.length <= 44
+  const headline = shortMessage ? current.message : (current.title ?? labels.title)
+  const eyebrow = shortMessage ? current.title : undefined
+  const body = shortMessage ? undefined : current.message
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[1100] flex items-center justify-center p-4"
+      className={`cdl-overlay z-[1100] ${current.input ? 'has-input' : ''}`}
       onClick={() => close(false)}
       role="presentation"
     >
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-        className={`bg-background-light dark:bg-background-dark rounded-3xl p-6 max-w-sm w-full border border-border-light dark:border-border-dark animate-pop-in ${tone.panel}`}
-      >
-        <div className="flex items-center gap-3 mb-4">
-          {/* 아이콘 — 다른 화면 아바타와 같은 펄스 글로우 패턴, 톤만 바뀐다 */}
-          <div className="relative flex-shrink-0">
-            <div
-              className={`absolute inset-0 rounded-full blur-md animate-pulse ${tone.glow}`}
-            ></div>
-            <div
-              className={`w-12 h-12 rounded-full border-2 flex items-center justify-center relative z-10 ${tone.badge}`}
-            >
-              <span className="material-icons-outlined text-white text-xl">
-                {current.icon ?? tone.icon}
-              </span>
-            </div>
-          </div>
-          <h3 className="text-[18px] font-bold text-ink-strong tracking-[-0.015em] break-keep">
-            {current.title ?? labels.title}
-          </h3>
-        </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400 leading-[1.7] mb-6 break-keep">
-          {current.highlight && (
-            <>
-              <span className={`font-semibold ${tone.highlight}`}>
-                {renderLines(current.highlight)}
-              </span>
-              <br />
-            </>
-          )}
-          {renderLines(current.message)}
-          {current.description && (
-            <>
-              <br />
-              {renderLines(current.description)}
-            </>
-          )}
-        </p>
+      <div role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()} className="cdl-panel">
+        <div className="cdl-grab" aria-hidden />
+        {eyebrow && <p className="cdl-eyebrow">{eyebrow}</p>}
+        <h3 className="cdl-title">{renderLines(headline)}</h3>
+        {current.highlight && <p className={`cdl-highlight is-${tone}`}>{renderLines(current.highlight)}</p>}
+        {body && <p className="cdl-sub">{renderLines(body)}</p>}
+        {current.description && <p className="cdl-sub">{renderLines(current.description)}</p>}
         {current.input ? (
           <input
             autoFocus
@@ -164,15 +102,12 @@ export const ConfirmDialogHost = () => {
             onChange={(e) => setText(e.target.value)}
             placeholder={current.input.placeholder ?? current.input.mustMatch}
             maxLength={current.input.maxLength ?? 300}
-            className="-mt-3 mb-5 w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.04] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand"
+            className="cdl-input"
           />
         ) : null}
-        <div className="flex gap-3">
+        <div className="cdl-actions">
           {!current.alertOnly && (
-            <button
-              onClick={() => close(false)}
-              className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong rounded-2xl font-semibold text-sm hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-colors"
-            >
+            <button onClick={() => close(false)} className="cdl-btn is-keep">
               {current.cancelText ?? labels.cancel}
             </button>
           )}
@@ -180,7 +115,7 @@ export const ConfirmDialogHost = () => {
             autoFocus={!current.input}
             onClick={() => close(true)}
             disabled={!canConfirm}
-            className={`flex-1 py-3 px-4 rounded-2xl font-semibold text-sm transition-all disabled:opacity-40 disabled:shadow-none ${tone.confirm}`}
+            className={`cdl-btn is-${tone}`}
           >
             {current.confirmText ?? labels.confirm}
           </button>

@@ -60,11 +60,10 @@ const ReplyList = ({
   const handleDelete = async (reply: Reply) => {
     if (
       !(await confirmDialog({
-        title: '댓글 삭제',
-        message: '이 댓글을 삭제할까요?',
-        description: '삭제된 내용은 복구할 수 없습니다.',
-        confirmText: '삭제',
-        icon: 'delete_outline',
+        message: '앗, 이 댓글 지우려고요?',
+        description: '지우개는 있는데, 되돌리기는 아직 없어요.',
+        cancelText: '앗, 실수예요',
+        confirmText: '네, 지울게요',
       }))
     )
       return
