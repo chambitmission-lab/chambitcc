@@ -44,5 +44,8 @@ export const mission = {
   missionLampLegend: '선교지 등불',
   missionSeoulLegend: '부천 참빛교회',
   missionMapOrigin: '대한민국',
+  missionTodayRoute: '오늘의 노선',
+  missionRouteFrom: '부천',
+  missionLampsUnit: '등불',
   missionDomesticRoutes: '국내 노선',
 } as const

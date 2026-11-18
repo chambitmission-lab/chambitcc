@@ -16,7 +16,7 @@ import {
 } from './missionData'
 import { HandHeartIcon } from './MissionIcons'
 import { buildRoutes, type PrayerRoute } from './departures/routes'
-import { localHour, morningFirstKey } from './departures/missionTime'
+import { distanceFromSeoulKm, localHour, morningFirstKey } from './departures/missionTime'
 import { SplitFlap } from './departures/SplitFlap'
 import { DepartureBoard } from './departures/DepartureBoard'
 import { BoardingPass } from './departures/BoardingPass'
@@ -24,12 +24,14 @@ import { NowCard } from './departures/NowCard'
 import type { LampPoint } from './departures/LampMap'
 import './Mission.css'
 
-// 등불 지도는 PC 전용 — 세계 지도 데이터(약 100KB)를 모바일이 받지 않게 따로 불러온다
+// 등불 지도 — 세계 지도 데이터(약 100KB)가 첫 화면 번들에 실리지 않게 따로 불러온다
+// PC 는 세계 전체(view=world), 모바일은 탑승권 위에서 고른 노선만 확대(view=route)
 const LampMap = lazy(() => import('./departures/LampMap'))
 
 // 선교 — "출발 안내판" 화면 (2026-11-17 개편).
 // 선교사 한 분이 기도 노선 하나다. 안내판에서 노선을 고르면 탑승권이 열리고, "기도 탑승"으로 검표(펀치)한다.
-//   모바일: 글자판 통계 → 지금 이 시간 카드 → 게이트 칩 → 안내판 → 탑승권 → 오늘 탑승 현황 → 국내 노선
+//   모바일: 글자판 통계 → 지금 이 시간 카드 → 게이트 칩 → 안내판 → 오늘의 노선 지도 → 탑승권 → 오늘 탑승 현황 → 국내 노선
+//           (2026-11-18 M2: 탑승하면 탑승권 바로 위 노선 지도에서 부천발 여객기가 날아간다)
 //   PC:     왼쪽 등불 지도(고정)+탑승권 / 오른쪽 지금 이 시간 카드·안내판·국내 노선.
 //           탑승을 마치면 지도(항공 노선도)에서 부천발 여객기가 그 나라로 날아가 등불을 켠다.
 
@@ -100,10 +102,10 @@ const Mission = () => {
       })
       const route = routes.find(r => r.key === key)
       if (!route) return
-      if (isDesktop) setFlight({ country: route.country, id: ++flightSeq.current })
-      else setLit(prev => new Set(prev).add(route.country))
+      // PC·모바일 모두 지도에서 비행 — 착륙하면 등불이 켜진다(handleLanded)
+      setFlight({ country: route.country, id: ++flightSeq.current })
     },
-    [routes, isDesktop],
+    [routes],
   )
 
   const handleSelect = useCallback(
@@ -283,6 +285,32 @@ const Mission = () => {
             {selected && <NowCard route={selected} nowMs={nowMs} />}
             {gateChips}
             {board}
+            {selected && (
+              <>
+                <div className="dep-section-label">{t('missionTodayRoute')}</div>
+                <section className="dep-card lamp-map lamp-map--route">
+                  <Suspense fallback={null}>
+                    <LampMap
+                      view="route"
+                      points={lampPoints}
+                      selectedCountry={selected.country}
+                      litCountries={lit}
+                      flight={flight}
+                      onSelect={handleMapSelect}
+                      onLanded={handleLanded}
+                      originLabel={t('missionMapOrigin')}
+                    />
+                  </Suspense>
+                  <div className="lamp-map__route-tag">
+                    {t('missionRouteFrom')} <i>→</i> {ko ? selected.detail.city : selected.detail.cityEn} ·{' '}
+                    {(Math.round(distanceFromSeoulKm(selected.detail) / 100) * 100).toLocaleString()}km
+                  </div>
+                  <div className="lamp-map__lit">
+                    <b>{lit.size}</b> {t('missionLampsUnit')}
+                  </div>
+                </section>
+              </>
+            )}
             <div className="dep-section-label">{t('missionPassHint')}</div>
             {pass}
             <section className="dep-card dep-progress">

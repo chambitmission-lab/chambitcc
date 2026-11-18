@@ -557,7 +557,9 @@ img.now-card__flag,
 .bp-route b small {
   display: block;
   margin-top: 2px;
-  font: 500 10.5px var(--font-sans, inherit);
+  /* --font-sans 는 정의된 곳이 없어 var(..., inherit) 쓰면 선언 전체가 무효 → 30px 코드 서체를 물려받았다 */
+  font: 500 10.5px/1.35 'Pretendard Variable', 'Pretendard', -apple-system, system-ui, sans-serif;
+  white-space: nowrap;
   letter-spacing: 0;
   color: var(--pass-sub);
 }
@@ -804,6 +806,35 @@ img.now-card__flag,
   color: var(--text-muted);
   pointer-events: none;
 }
+/* 모바일 '오늘의 노선' — 탑승권 위 노선 확대 지도(M2) */
+.lamp-map--route { aspect-ratio: 16 / 10; border-radius: 18px; }
+.lamp-map--route .lamp-map__canvas { cursor: default; }
+.lamp-map__route-tag {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #191f28;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(20, 60, 110, 0.15);
+  pointer-events: none;
+}
+.lamp-map__route-tag i { font-style: normal; color: var(--brand); }
+[data-theme='dark'] .lamp-map__route-tag { background: rgba(20, 36, 62, 0.88); color: #eef3fb; }
+.lamp-map__lit {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 12px;
+  color: var(--text-body);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+[data-theme='dark'] .lamp-map__lit { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55); }
+.lamp-map__lit b { font: 700 18px var(--dep-mono); color: var(--lamp); margin-right: 2px; }
 .lamp-map__legend i { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; vertical-align: -1px; }
 .lamp-map__legend i.is-lamp { background: var(--lamp); }
 .lamp-map__legend i.is-seoul { background: var(--brand); }

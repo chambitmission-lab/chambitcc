@@ -44,5 +44,8 @@ export const mission = {
   missionLampLegend: 'Mission lamps',
   missionSeoulLegend: 'Bucheon · Chambit Church',
   missionMapOrigin: 'Korea',
+  missionTodayRoute: "Today's route",
+  missionRouteFrom: 'Bucheon',
+  missionLampsUnit: 'lit',
   missionDomesticRoutes: 'Domestic routes',
 } as const

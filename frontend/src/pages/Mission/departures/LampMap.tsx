@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { geoGraticule, geoNaturalEarth1, geoPath, type GeoProjection } from 'd3-geo'
+import { geoGraticule, geoInterpolate, geoNaturalEarth1, geoPath, type GeoProjection } from 'd3-geo'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { prefersReducedMotion } from '../../../utils/prefersReducedMotion'
 import {
@@ -19,7 +19,8 @@ import {
   type MapInk,
 } from './worldMap'
 
-// 등불 지도(PC 전용) — 항공 노선도. 하늘빛 바다 위 실제 국경, 부천(CBC)에서 선교지마다 노선이 뻗는다.
+// 등불 지도 — 항공 노선도. PC 는 세계 전체(view=world), 모바일은 탑승권 위 '오늘의 노선'(view=route, 2026-11-18 M2).
+// 하늘빛 바다 위 실제 국경, 부천(CBC)에서 선교지마다 노선이 뻗는다.
 // 기도 탑승을 마치면 여객기가 노선을 따라 날아가 착륙과 함께 그 나라가 금빛으로 켜진다.
 // 2026-11-18 C1 '맑은 바다' 채택(시안 4종 중). 입체감 = 바다 그라데이션·비네트, 해안 얕은 물빛,
 // 땅 그림자, 켠 노선 그림자, 핀 그림자. 다크는 깊은 남색 밤바다.
@@ -128,6 +129,22 @@ const routeArc = (o: [number, number], to: [number, number]) => {
   }
 }
 
+/** 세계 보기(PC) — 중심 경도 30°, 페루부터 일본까지 한 장에, 남극·북극해는 잘라 낸다 */
+const fitWorld = (W: number, H: number) => fitBand(geoNaturalEarth1().rotate([-30, 0]), W, H, 72, -44, 6, 132)
+
+/** 노선 보기(모바일) — 부천과 목적지가 함께 들어오게 확대. 가까운 나라도 너무 커지지 않게 최소 범위를 둔다 */
+const fitRoute = (W: number, H: number, dest: [number, number]) => {
+  const gi = geoInterpolate(ORIGIN, dest)
+  const mid = gi(0.5)
+  const pts: [number, number][] = []
+  for (let u = 0; u <= 1.0001; u += 0.1) pts.push(gi(u))
+  pts.push([mid[0] - 22, mid[1] - 13], [mid[0] + 22, mid[1] + 13])
+  // 노선이 위로 휘니 위쪽 여백을 넉넉히
+  return geoNaturalEarth1()
+    .rotate([-mid[0], 0])
+    .fitExtent([[26, H * 0.2], [W - 26, H - 22]], { type: 'MultiPoint', coordinates: pts })
+}
+
 const hexToRgb = (hex: string) => {
   const h = hex.replace('#', '')
   const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h.slice(0, 6), 16)
@@ -142,6 +159,7 @@ export function LampMap({
   onSelect,
   onLanded,
   originLabel,
+  view = 'world',
 }: {
   points: LampPoint[]
   selectedCountry: string | null
@@ -152,6 +170,8 @@ export function LampMap({
   onLanded: (country: string) => void
   /** 출발지(파란 점) 이름 — 예: 대한민국 */
   originLabel?: string
+  /** world = 세계 전체(PC) · route = 고른 노선만 확대(모바일), 노선이 바뀌면 부드럽게 넘어간다 */
+  view?: 'world' | 'route'
 }) {
   const { theme } = useTheme()
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -213,6 +233,19 @@ export function LampMap({
     // 바다·땅·물들임은 켠 나라·고른 나라·테마가 바뀔 때만 다시 굽는다
     const base = document.createElement('canvas')
     let baseKey = ''
+    // 노선 보기 — 지금 맞춘 목적지, 바뀔 때 앞 장면을 겹쳐 서서히 지운다
+    let fittedFor: string | null = null
+    const prev = document.createElement('canvas')
+    let fadeStart = -1
+
+    const fit = () => {
+      const { selectedCountry: sel, points: pts } = props.current
+      const dest = view === 'route' ? pts.find(p => p.country === sel) : undefined
+      proj = dest ? fitRoute(W, H, [dest.lng, dest.lat]) : fitWorld(W, H)
+      fittedFor = dest ? dest.country : null
+      xyKey = null
+      baseKey = ''
+    }
 
     const project = () => {
       const pts = props.current.points
@@ -231,10 +264,7 @@ export function LampMap({
       canvas.width = Math.round(W * dpr)
       canvas.height = Math.round(H * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      // 중심 경도 30° — 페루부터 일본까지 한 장에, 남극·북극해는 잘라 낸다
-      proj = fitBand(geoNaturalEarth1().rotate([-30, 0]), W, H, 72, -44, 6, 132)
-      xyKey = null
-      baseKey = ''
+      fit()
     }
     resize()
     const ro = new ResizeObserver(resize)
@@ -347,6 +377,14 @@ export function LampMap({
       const { c, pal } = k
       const { selectedCountry: sel, litCountries: lit, originLabel: originName } = props.current
       const sc = Math.max(1, W / 620)
+      if (view === 'route' && (sel ?? null) !== fittedFor && props.current.points.some(p => p.country === sel)) {
+        // 지금 그림을 떠 두고 새 노선에 맞춘 뒤, 앞 그림을 서서히 지운다
+        prev.width = canvas.width
+        prev.height = canvas.height
+        prev.getContext('2d')!.drawImage(canvas, 0, 0)
+        fadeStart = still ? -1 : t
+        fit()
+      }
       project()
       renderBase(pal, c, sc)
       ctx.clearRect(0, 0, W, H)
@@ -359,7 +397,7 @@ export function LampMap({
       ctx.setLineDash([2, 4])
       ctx.beginPath()
       for (const { p, x, y } of xy) {
-        if (lit.has(p.country) || p.country === sel) continue
+        if (view === 'route' || lit.has(p.country) || p.country === sel) continue
         const { mx, my } = routeArc(o, [x, y])
         ctx.moveTo(o[0], o[1])
         ctx.quadraticCurveTo(mx, my, x, y)
@@ -456,13 +494,23 @@ export function LampMap({
         })
       }
       placeLabels(ctx, items, sc, c, W, H)
+      if (fadeStart >= 0) {
+        const kk = (t - fadeStart) / 450
+        if (kk < 1) {
+          ctx.save()
+          ctx.setTransform(1, 0, 0, 1, 0, 0)
+          ctx.globalAlpha = 1 - kk
+          ctx.drawImage(prev, 0, 0)
+          ctx.restore()
+        } else fadeStart = -1
+      }
       schedule()
     }
     // 정적 모드(움직임 줄이기)에선 비행이 없으니 1초에 한 번만 다시 그린다
     let slow: ReturnType<typeof setTimeout> | null = null
     const schedule = () => {
       if (!visible || raf || slow) return
-      if (still && flights.current.length === 0) {
+      if (still && flights.current.length === 0 && fadeStart < 0) {
         slow = setTimeout(() => {
           slow = null
           raf = requestAnimationFrame(frame)
@@ -524,7 +572,7 @@ export function LampMap({
       canvas.removeEventListener('mousemove', onMove)
       canvas.removeEventListener('mouseleave', onLeave)
     }
-  }, [])
+  }, [view])
 
   return <canvas ref={canvasRef} className="lamp-map__canvas" aria-hidden="true" />
 }
