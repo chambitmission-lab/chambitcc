@@ -218,7 +218,10 @@ const ReelItem = ({
                   src={photo.url}
                   alt={`${post.title} ${i + 1} / ${total}`}
                   draggable={false}
-                  loading={i === 0 ? 'eager' : 'lazy'}
+                  // 지금 보는 앨범과 바로 위·아래의 첫 장만 미리 받는다.
+                  // 멀리 있는 앨범까지 eager 로 두면 넘겨보기를 여는 순간 목록의 모든 앨범 원본을 한꺼번에 받는다
+                  loading={near && i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
                   className="max-w-full max-h-full object-contain select-none"
                 />
               </div>

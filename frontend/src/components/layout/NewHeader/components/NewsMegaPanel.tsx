@@ -6,6 +6,7 @@ import { useNoticeArchive } from '../../../../hooks/useNotifications'
 import { useBulletins } from '../../../../hooks/useBulletins'
 import { useNewFamilyPosts } from '../../../../hooks/useNewFamily'
 import { useEventAlbumPosts } from '../../../../hooks/useEventAlbum'
+import { coverThumb } from '../../../../types/eventAlbum'
 import { useOffering } from '../../../../hooks/useOffering'
 import { accountText } from '../../../../types/offering'
 import { tokenStore } from '../../../../utils/tokenStore'
@@ -323,7 +324,7 @@ const EventAlbumPreview = ({ go }: { go: (to: string) => void }) => {
     <ThumbGrid
       items={posts.slice(0, 3).map((p) => ({
         id: p.id,
-        src: p.cover_url,
+        src: coverThumb(p),
         title: p.title,
         sub: `${formatDotDate(p.event_date)} · ${t('navNewsMenuPhotos').replace('{n}', String(p.photo_count))}`,
         onClick: () => go(`/news?tab=event-album&post=${p.id}`),

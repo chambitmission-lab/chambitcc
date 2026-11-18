@@ -2,6 +2,7 @@
 // 피드 카드 + 댓글 모달을 오가던 것을 한 판에 펼친다. 사진을 누르면 풀스크린 뷰어(EventAlbumViewer).
 import { useState } from 'react'
 import { AnimatedEmojiText } from '../../../components/common/animatedEmoji'
+import { photoThumb } from '../../../types/eventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { formatEventDate } from './eventAlbumDate'
@@ -110,6 +111,9 @@ const EventAlbumDetail = ({
         <div className={`grid ${GRID_COLS[Math.min(shown.length, 5)]} gap-1.5 rounded-2xl overflow-hidden`}>
           {shown.map((photo, i) => {
             const isLast = i === shown.length - 1 && rest > 0
+            const isBig = shown.length >= 5 && i === 0
+            // 작은 칸(3장 이상일 때의 한 칸)은 480px 사본으로 충분하다 — 크게 보이는 칸만 원본
+            const src = shown.length >= 3 && !isBig ? photoThumb(photo) : photo.url
             return (
               <button
                 key={photo.id}
@@ -118,7 +122,7 @@ const EventAlbumDetail = ({
                 aria-label={`${post.title} ${i + 1} / ${photos.length}`}
                 className={[
                   'relative overflow-hidden bg-gray-100 dark:bg-white/[0.04] rounded-lg',
-                  shown.length >= 5 && i === 0
+                  isBig
                     ? 'col-span-2 row-span-2'
                     : shown.length === 1
                       ? 'aspect-[16/10]'
@@ -126,9 +130,10 @@ const EventAlbumDetail = ({
                 ].join(' ')}
               >
                 <img
-                  src={photo.url}
+                  src={src}
                   alt=""
                   loading={i < 5 ? 'eager' : 'lazy'}
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 {isLast && (

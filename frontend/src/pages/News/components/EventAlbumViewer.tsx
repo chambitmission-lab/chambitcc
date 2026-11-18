@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { formatEventDate } from './eventAlbumDate'
+import { photoThumb } from '../../../types/eventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { useLanguage } from '../../../contexts/LanguageContext'
 
@@ -90,9 +91,11 @@ const EventAlbumViewer = ({ post, initialIndex = 0, onClose }: EventAlbumViewerP
           Math.abs(i - index) <= 1 ? (
             <img
               key={photo.id}
-              src={photo.url}
+              // 70px 로 흐려 까는 빛이라 작은 사본이면 충분하다 (큰 원본을 전체 화면에 흐리면 GPU 가 무겁다)
+              src={photoThumb(photo)}
               alt=""
               draggable={false}
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover scale-125 blur-[70px] saturate-[1.6] transition-opacity duration-700 ease-out"
               style={{ opacity: i === index ? 0.55 : 0 }}
             />
@@ -155,6 +158,7 @@ const EventAlbumViewer = ({ post, initialIndex = 0, onClose }: EventAlbumViewerP
                   alt={`${post.title} ${i + 1} / ${total}`}
                   draggable={false}
                   loading={Math.abs(i - initialIndex) <= 1 ? 'eager' : 'lazy'}
+                  decoding="async"
                   className={[
                     'max-w-full max-h-full object-contain select-none rounded-[14px] lg:rounded-[20px]',
                     'shadow-[0_30px_80px_-20px_rgba(0,0,0,0.75),0_0_0_1px_rgba(255,255,255,0.06)]',

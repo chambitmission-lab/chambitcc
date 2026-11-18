@@ -24,7 +24,7 @@ import { tokenStore } from '../../../utils/tokenStore'
 import { deleteEventAlbumPost, fetchEventAlbumPost } from '../../../api/eventAlbum'
 import { showToast, toastFeedback } from '../../../utils/toast'
 import { confirmDialog } from '../../../utils/confirmDialog'
-import { EVENT_ALBUM_TAGS } from '../../../types/eventAlbum'
+import { EVENT_ALBUM_TAGS, coverThumb } from '../../../types/eventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { AlbumIcon } from './NewsIcons'
 import { EventTagIcon } from './NewsIcons'
@@ -402,9 +402,10 @@ const OnThisDayCard = ({
           >
             {post.cover_url ? (
               <img
-                src={post.cover_url}
+                src={coverThumb(post)!}
                 alt={post.title}
                 loading="lazy"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (

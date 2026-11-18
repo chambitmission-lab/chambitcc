@@ -384,7 +384,7 @@ const PostRow = ({
       >
         <div className="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-[var(--brand-soft-strong)] border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
           {post.cover_url ? (
-            <img src={post.cover_url} alt={post.title} className="w-full h-full object-cover" />
+            <img src={post.cover_thumb_url || post.cover_url} alt={post.title} loading="lazy" className="w-full h-full object-cover" />
           ) : (
             <span className="text-[22px]">📸</span>
           )}
@@ -459,7 +459,7 @@ const PostRow = ({
                   className="aspect-square rounded-lg overflow-hidden border border-gray-200/70 dark:border-white/[0.08] bg-gray-100 dark:bg-white/[0.03]"
                 >
                   <img
-                    src={photo.url}
+                    src={photo.thumb_url || photo.url}
                     alt={post.title}
                     loading="lazy"
                     className="w-full h-full object-cover"

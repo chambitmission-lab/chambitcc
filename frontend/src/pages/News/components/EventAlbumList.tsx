@@ -1,6 +1,7 @@
 // 행사 앨범 목록 (Single Responsibility: 연도별로 묶은 앨범 한 줄 목록)
 // 모바일: 누르면 넘겨보기(EventAlbumReel)가 그 앨범부터 열린다.
 // PC: 2단의 왼쪽 칸 — 누르면 오른쪽 상세가 바뀌고, 고른 줄은 브랜드 면으로 표시된다.
+import { coverThumb } from '../../../types/eventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { AlbumIcon } from './NewsIcons'
@@ -52,9 +53,10 @@ const EventAlbumList = ({ posts, selectedId, onSelect, isAdmin }: EventAlbumList
                     <span className="relative shrink-0 w-[68px] h-[68px] lg:w-16 lg:h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-white/[0.05]">
                       {post.cover_url ? (
                         <img
-                          src={post.cover_url}
+                          src={coverThumb(post)!}
                           alt=""
                           loading="lazy"
+                          decoding="async"
                           className="absolute inset-0 w-full h-full object-cover"
                         />
                       ) : (

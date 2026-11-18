@@ -69,11 +69,13 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
   const [caption, setCaption] = useState(post?.caption ?? '')
   const [eventId, setEventId] = useState<number | null>(post?.event_id ?? null)
   const [slots, setSlots] = useState<PhotoSlot[]>(
-    () => post?.photos.map(p => ({ kind: 'existing' as const, id: p.id, url: p.url })) ?? [],
+    () => post?.photos.map(p => ({ kind: 'existing' as const, id: p.id, url: p.thumb_url || p.url })) ?? [],
   )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  /** 파일을 사진 칸 위로 끌고 있는 중 */
+  const [dragging, setDragging] = useState(false)
   const initialSignature = useRef(slotSignature(slots))
 
   // ── 연결할 일정 목록 (관리자 전체 일정, 최근 50개) ──
@@ -106,9 +108,23 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files
-    if (!selected || selected.length === 0) return
+  // 끌어온 파일이 칸을 살짝 벗어나 떨어지면 브라우저가 그 사진을 열어 버려 쓰던 내용이 날아간다 —
+  // 등록 창이 떠 있는 동안은 창 어디에 떨어뜨려도 페이지가 바뀌지 않게 막는다
+  useEffect(() => {
+    const block = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes('Files')) e.preventDefault()
+    }
+    window.addEventListener('dragover', block)
+    window.addEventListener('drop', block)
+    return () => {
+      window.removeEventListener('dragover', block)
+      window.removeEventListener('drop', block)
+    }
+  }, [])
+
+  /** 고르거나 끌어다 놓은 파일을 사진 칸에 더한다 (이미지가 아니면 건너뛰고, 최대 장수에서 멈춘다) */
+  const addFiles = (selected: File[]) => {
+    if (selected.length === 0) return
 
     const accepted: PhotoSlot[] = []
     for (let i = 0; i < selected.length; i++) {
@@ -125,7 +141,30 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
     }
 
     setSlots(prev => [...prev, ...accepted])
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    addFiles(Array.from(e.target.files ?? []))
     if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    if (!e.dataTransfer.types.includes('Files')) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = submitting ? 'none' : 'copy'
+    if (!submitting) setDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
+    // 칸 안의 아이콘·글자 위를 지날 때도 leave 가 오므로, 칸 밖으로 나갔을 때만 끈다
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault()
+    setDragging(false)
+    if (submitting) return
+    addFiles(Array.from(e.dataTransfer.files))
   }
 
   const handleRemove = (idx: number) => {
@@ -163,7 +202,8 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
       } else {
         order.push(`new:${files.length}`)
         // 원본(수 MB)을 그대로 올리지 않도록 업로드 전에 줄인다
-        files.push(await resizeImageToBlob(slot.file, UPLOAD_MAX_SIZE, 0.85))
+        // WebP 로 올린다 — 성도 전체가 반복해 내려받는 사진이라 용량이 곧 로딩 속도다
+        files.push(await resizeImageToBlob(slot.file, UPLOAD_MAX_SIZE, 0.85, true))
       }
     }
     return { files, order }
@@ -377,7 +417,17 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
                 첫 번째 사진이 대표 이미지가 돼요. 최대 {MAX_PHOTOS}장, 업로드 전 자동으로 줄여서 올립니다.
               </p>
 
-              <label className="relative block rounded-2xl border-2 border-dashed border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors cursor-pointer p-5 lg:py-9 text-center">
+              <label
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={[
+                  'relative block rounded-2xl border-2 border-dashed transition-colors cursor-pointer p-5 lg:py-9 text-center',
+                  dragging
+                    ? 'border-brand bg-[var(--brand-soft-strong)]'
+                    : 'border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)]',
+                ].join(' ')}
+              >
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -394,8 +444,13 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
                 </div>
-                <p className="text-[13px] font-bold text-ink-strong">사진 추가</p>
-                <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">여러 장 선택 가능</p>
+                <p className="text-[13px] font-bold text-ink-strong">
+                  {dragging ? '여기에 놓으세요' : '사진 추가'}
+                </p>
+                <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
+                  <span className="hidden lg:inline">눌러서 고르거나 사진을 여기로 끌어다 놓으세요 · </span>
+                  여러 장 선택 가능
+                </p>
               </label>
 
               {slots.length > 0 && (

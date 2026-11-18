@@ -10,6 +10,7 @@ import type {
   EventAlbumStats,
   ReactionToggleResponse,
 } from '../types/eventAlbum'
+import { blobExtension } from '../utils/imageResize'
 import { request, requestRaw, type UntypedJson } from './utils/request'
 
 const BASE = `${API_V1}/event-albums`
@@ -79,7 +80,7 @@ export const createEventAlbumPost = async (payload: {
   formData.append('tag', payload.tag)
   if (payload.eventId != null) formData.append('event_id', String(payload.eventId))
   payload.files.forEach((file, idx) => {
-    formData.append('files', file, `event-album-${idx + 1}.jpg`)
+    formData.append('files', file, `event-album-${idx + 1}.${blobExtension(file)}`)
   })
 
   // Content-Type은 브라우저가 boundary와 함께 자동 설정
@@ -116,7 +117,7 @@ export const syncEventAlbumPhotos = async (
   const formData = new FormData()
   formData.append('order', JSON.stringify(order))
   files.forEach((file, idx) => {
-    formData.append('files', file, `event-album-${idx + 1}.jpg`)
+    formData.append('files', file, `event-album-${idx + 1}.${blobExtension(file)}`)
   })
 
   const body = await request<UntypedJson>(`${BASE}/${postId}/photos`, {

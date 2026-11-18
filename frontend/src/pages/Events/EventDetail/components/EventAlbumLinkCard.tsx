@@ -35,7 +35,7 @@ export const EventAlbumLinkCard = ({ eventId }: EventAlbumLinkCardProps) => {
           <div className="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-[var(--brand-soft-strong)] border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
             {first.cover_url ? (
               <img
-                src={first.cover_url}
+                src={first.cover_thumb_url || first.cover_url}
                 alt={first.title}
                 loading="lazy"
                 className="w-full h-full object-cover"

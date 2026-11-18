@@ -22,8 +22,16 @@ export type EventAlbumTag = (typeof EVENT_ALBUM_TAGS)[number]
 export interface EventAlbumPhoto {
   id: number
   url: string
+  /** 목록·격자용 작은 사본(480px WebP). 사본이 없는 옛 사진은 null — url 로 대신한다 */
+  thumb_url?: string | null
   sort_order: number
 }
+
+/** 작은 칸(목록 표지·격자·배경 빛)에 실을 주소 — 사본이 있으면 사본, 없으면 원본 */
+export const photoThumb = (photo: EventAlbumPhoto): string => photo.thumb_url || photo.url
+/** 앨범 표지의 작은 사본 — 없으면 원본 표지 */
+export const coverThumb = (post: EventAlbumPost): string | null =>
+  post.cover_thumb_url || post.cover_url
 
 export interface EventAlbumPost {
   id: number
@@ -37,6 +45,7 @@ export interface EventAlbumPost {
 
   photos: EventAlbumPhoto[]
   cover_url: string | null
+  cover_thumb_url?: string | null
   photo_count: number
 
   reaction_count: number
