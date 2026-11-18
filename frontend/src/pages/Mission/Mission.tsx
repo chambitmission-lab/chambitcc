@@ -233,18 +233,29 @@ const Mission = () => {
     </section>
   )
 
+  // 제목의 '빛'(영어는 Light) 한 낱말만 등불빛으로 켠다
+  const heroLine2 = t('missionHeroTitleLine2').match(/^(.*?)(빛|Light)(.*)$/)
+
   const boardedCount = routes.filter(r => boarded.has(r.key)).length
 
   return (
     <div className="mission-page">
       <div className="mission-shell">
-        {/* ===== HERO (그대로) ===== */}
+        {/* ===== HERO — 창밖 하늘 위 제목, 바다 위 말씀 ===== */}
         <section className={`mission-hero${heroArtReady ? ' is-art-ready' : ''}`}>
           <div className="hero-eyebrow">CHAMBIT CHURCH · MISSION</div>
           <h1 className="hero-title">
             {t('missionHeroTitleLine1')}
             <br />
-            {t('missionHeroTitleLine2')}
+            {heroLine2 ? (
+              <>
+                {heroLine2[1]}
+                <em className="hero-title__light">{heroLine2[2]}</em>
+                {heroLine2[3]}
+              </>
+            ) : (
+              t('missionHeroTitleLine2')
+            )}
           </h1>
           <div className="hero-verse">
             {t('missionHeroVerse')}

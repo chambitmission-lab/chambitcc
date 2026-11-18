@@ -24,32 +24,47 @@
 
 /* ---------- Hero ---------- */
 /* 창가 자리에서 본 새벽 바다(2026-11-18 개편) — 아래 등불 지도와 같은 맑은 바다색 세계.
-   그림 한 장(16:9, 테마당)을 둥근 카드 전체에 cover 로 깐다. 수평선이 그림 세로 52% 에 있어
-   제목은 하늘, 성구 카드는 수평선 위에 걸친다. 예전 좌우 날개(양·언덕 삽화) 방식은 폐기. */
+   그림 한 장(16:9, 테마당)을 둥근 카드 전체에 깐다. 예전 좌우 날개(양·언덕 삽화) 방식은 폐기.
+   글자는 상자 없이 그림 위에 바로 쓴다 — 제목은 하늘에, 말씀은 PC 에서 수평선 아래 바다에.
+   읽히게 하는 건 상자가 아니라 하늘·바다를 조금 깊게 물들이는 ::after 그라데이션과 글자 그림자다. */
 .mission-hero {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin: 0.75rem 1rem 0;
-  /* 성구 카드 아래로 날개·수평선·바다가 보이게 바닥을 비운다 */
-  padding: 1.75rem 1rem 8.5rem;
+  /* 말씀 아래로 날개·수평선·바다가 보이게 바닥을 비운다 */
+  padding: 2rem 1.25rem 9.5rem;
   text-align: center;
   overflow: hidden;
   border-radius: 24px;
   /* 그림이 오기 전 빈칸 — 그림의 하늘색 */
-  background: #7fbdf5;
-  box-shadow: 0 1px 3px rgba(24, 26, 40, 0.05), 0 18px 36px -16px rgba(30, 80, 150, 0.35);
+  background: #5fa8f0;
+  /* 캔버스 위에 떠 있는 판 — 가까운 그림자 + 멀리 번지는 하늘빛 그림자 + 테두리 빛 한 줄 */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 2px 4px rgba(20, 50, 110, 0.12),
+    0 14px 24px -10px rgba(20, 60, 130, 0.38),
+    0 36px 60px -28px rgba(20, 70, 160, 0.6);
   --mission-hero-art: url('../../assets/mission/hero-light.webp');
-  --hero-ink: #10233f;
-  --hero-eyebrow: #0b4fb3;
-  --hero-ink-glow: 0 1px 14px rgba(255, 255, 255, 0.55);
+  --hero-ink: #ffffff;
+  --hero-eyebrow: #fff1c9;
+  --hero-gold: #ffe08a;
+  --hero-ink-glow: 0 1px 2px rgba(8, 40, 110, 0.55), 0 2px 18px rgba(8, 40, 110, 0.55);
+  --hero-scrim: linear-gradient(180deg, rgba(12, 58, 140, 0.5) 0%, rgba(12, 58, 140, 0.38) 50%, rgba(12, 58, 140, 0) 82%);
 }
 
 [data-theme="dark"] .mission-hero {
   background: #0c2f8a;
-  box-shadow: 0 18px 36px -16px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 18px 30px -10px rgba(0, 0, 0, 0.7),
+    0 40px 70px -28px rgba(20, 70, 200, 0.5);
   --mission-hero-art: url('../../assets/mission/hero-dark.webp');
-  --hero-ink: #ffffff;
   --hero-eyebrow: #ffd98a;
-  --hero-ink-glow: 0 1px 14px rgba(4, 16, 60, 0.6);
+  --hero-ink-glow: 0 1px 2px rgba(2, 10, 40, 0.7), 0 2px 18px rgba(2, 10, 40, 0.7);
+  --hero-scrim: linear-gradient(180deg, rgba(3, 12, 48, 0.35) 0%, rgba(3, 12, 48, 0.2) 50%, rgba(3, 12, 48, 0) 82%);
 }
 
 /* 글자는 그림 위로 */
@@ -66,12 +81,21 @@
   pointer-events: none;
   background: var(--mission-hero-art) no-repeat;
   /* 모바일 — 세로로 긴 카드라 가로는 3분의 1만 보인다. 창밖 느낌을 내는 왼쪽(창틀·날개)을 고르고,
-     그림을 141% 로 키워 위에 붙여 수평선(그림 세로 52%)이 성구 카드 아래로 내려오게 한다 */
-  background-size: auto 141%;
+     그림을 키워 위에 붙여 수평선(그림 세로 52%)이 말씀 아래로 내려오게 한다 */
+  background-size: auto 150%;
   background-position: 2% top;
   /* CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다 — 도착에 맞춰 페이드인 */
   opacity: 0;
   transition: opacity 320ms ease-out;
+}
+/* 글자 뒤 하늘(·바다)을 조금 깊게 */
+.mission-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--hero-scrim);
 }
 
 .mission-hero.is-art-ready::before { opacity: 1; }
@@ -84,79 +108,76 @@
   display: inline-block;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   color: var(--hero-eyebrow);
   text-shadow: var(--hero-ink-glow);
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.8rem;
 }
 
 .hero-title {
-  font-size: 2.2rem;
+  font-size: 2.35rem;
   font-weight: 800;
   color: var(--hero-ink);
   text-shadow: var(--hero-ink-glow);
   letter-spacing: -0.03em;
-  line-height: 1.18;
-  margin: 0 0 1.25rem;
+  line-height: 1.16;
+  margin: 0 0 1.1rem;
+}
+/* '빛' 한 글자만 등불빛으로 켠다 */
+.hero-title__light {
+  font-style: normal;
+  color: var(--hero-gold);
+  text-shadow:
+    0 1px 2px rgba(120, 70, 0, 0.45),
+    0 0 18px rgba(255, 205, 90, 0.85),
+    0 0 44px rgba(255, 190, 60, 0.55);
 }
 
-/* 성구 카드 — 흰 반투명(frosted) 카드 위에 세리프 인용.
-   틴트 박스+테두리 대신 유리 질감의 흰 카드 + 부드러운 그림자로 히어로 위에 "올려진" 느낌.
-   여는 따옴표는 별도 여백에 띄우지 않고 본문 첫 줄과 같은 줄에서 시작한다(잡지식 인용). */
+/* 성구 — 상자 없이 그림 위에 바로 쓴 한 구절. 위에 등불빛 따옴표, 아래에 가는 줄 사이 출처 */
 .hero-verse {
   position: relative;
-  max-width: 22rem;
+  max-width: 21rem;
   margin: 0 auto;
-  padding: 1.15rem 1.3rem 1.05rem;
-  background: rgba(255, 255, 255, 0.78);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  backdrop-filter: blur(14px) saturate(1.2);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 1.1rem;
-  box-shadow:
-    0 10px 28px -12px rgba(30, 60, 120, 0.22),
-    0 1px 2px rgba(30, 60, 120, 0.06);
   font-family: 'Noto Serif KR', 'Nanum Myeongjo', serif;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   line-height: 1.75;
-  color: #2f3a52;
-  text-align: left;
+  color: var(--hero-ink);
+  text-shadow: var(--hero-ink-glow);
   word-break: keep-all;
+  text-wrap: balance;
 }
-
-/* 여는 따옴표 — 본문 앞에 인라인으로 붙여 첫 줄과 같은 베이스라인에서 시작 */
 .hero-verse::before {
   content: '\201C';
-  float: left;
-  margin: 0.05rem 0.35rem 0 -0.1rem;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 2.4rem;
-  font-weight: 700;
-  line-height: 0.85;
-  color: var(--brand);
-}
-
-.hero-verse-ref {
   display: block;
-  clear: both;
-  margin-top: 0.7rem;
-  font-family: inherit;
+  height: 1.5rem;
+  margin-bottom: 0.1rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--hero-gold);
+}
+.hero-verse-ref {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+  font-family: 'Pretendard Variable', 'Pretendard', -apple-system, system-ui, sans-serif;
   font-size: 0.74rem;
   font-weight: 700;
-  color: var(--brand);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  color: var(--hero-gold);
 }
-
-[data-theme="dark"] .hero-verse {
-  /* 깊은 파랑 하늘 위 — 흰 유리 대신 남색 유리라야 글자가 선다 */
-  background: rgba(8, 22, 60, 0.5);
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.5);
-  color: var(--text-strong);
+.hero-verse-ref::before,
+.hero-verse-ref::after {
+  content: '';
+  width: 1.75rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
 }
-/* 남색 유리 위 브랜드 파랑은 묻힌다 — 따옴표·출처는 등불빛으로 */
-[data-theme="dark"] .hero-verse::before,
-[data-theme="dark"] .hero-verse-ref { color: #ffd98a; }
 
 
 .mission-footer {
@@ -1180,27 +1201,43 @@ img.now-card__flag,
 
   .mission-hero {
     margin: 1rem 1.25rem 0;
-    padding: 3rem 1.25rem 3.5rem;
+    min-height: 27.5rem;
+    padding: 2.75rem 1.5rem 2.4rem;
     border-radius: 28px;
+    /* 하늘(제목)과 바다(말씀)를 각각 조금 깊게 — 수평선 띠는 그대로 밝게 둔다 */
+    --hero-scrim: linear-gradient(
+      180deg,
+      rgba(12, 58, 140, 0.42) 0%,
+      rgba(12, 58, 140, 0.12) 38%,
+      rgba(12, 58, 140, 0) 50%,
+      rgba(6, 36, 100, 0) 58%,
+      rgba(6, 36, 100, 0.42) 100%
+    );
   }
-  /* 가로로 긴 카드 — 그림 세로의 가운데 띠(하늘 절반·바다 절반)만 보인다 */
+  [data-theme="dark"] .mission-hero {
+    --hero-scrim: linear-gradient(180deg, rgba(3, 12, 48, 0.3) 0%, rgba(3, 12, 48, 0) 45%, rgba(3, 12, 48, 0) 60%, rgba(3, 12, 48, 0.4) 100%);
+  }
+  /* 가로로 긴 카드 — 수평선이 카드 가운데쯤. 위는 하늘, 아래는 바다 */
   .mission-hero::before {
     background-size: cover;
-    background-position: center 54%;
+    background-position: center 44%;
   }
 
   .hero-title {
-    font-size: 3rem;
-    /* 성구 카드와 같은 폭으로 묶는다 — 영어 제목이 너무 길게 퍼지지 않게 */
-    max-width: 30rem;
-    margin: 0 auto 1.25rem;
+    font-size: 3.5rem;
+    max-width: 34rem;
+    margin: 0 auto;
     word-break: keep-all;
   }
 
+  /* 말씀은 수평선 아래, 바다 위에 */
   .hero-verse {
-    max-width: 30rem;
-    font-size: 1.1rem;
+    max-width: 40rem;
+    margin-top: auto;
+    font-size: 1.2rem;
+    line-height: 1.7;
   }
+  .hero-verse::before { height: 1.7rem; font-size: 3rem; }
 
   .dep-layout {
     display: grid;
