@@ -70,3 +70,42 @@
 @media (prefers-reduced-motion: reduce) {
   .nf-bell { animation: none; }
 }
+
+/* 히어로 띄우기(2026-11-18) — /news 탭마다 맨 위 큰 판(소식·새가족·행사·헌금 히어로, 주보 표지)이
+ * 캔버스에 붙어 보였다. 닿는 그림자 + 낙하 두 겹. 히어로 밑은 여백이 넉넉해 긴 그림자도 번지지 않는다.
+ * Tailwind shadow-* 와 함께 쓰지 말 것(덮어쓰기 순서가 꼬인다). */
+.news-lift {
+  box-shadow:
+    0 2px 4px rgba(24, 26, 40, 0.05),
+    0 14px 24px -10px rgba(24, 26, 40, 0.18),
+    0 30px 44px -24px rgba(24, 26, 40, 0.3);
+}
+.dark .news-lift {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 16px 28px -10px rgba(0, 0, 0, 0.55),
+    0 34px 50px -24px rgba(0, 0, 0, 0.7);
+}
+/* 공지 목록처럼 히어로가 아닌 판 — 아래 구역 라벨과 간격이 좁아 짧은 두 겹 */
+.news-lift-soft {
+  box-shadow: 0 1px 2px rgba(24, 26, 40, 0.06), 0 10px 22px -10px rgba(24, 26, 40, 0.2);
+}
+.dark .news-lift-soft {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.4), 0 12px 24px -10px rgba(0, 0, 0, 0.55);
+}
+@media (min-width: 1024px) {
+  .news-lift {
+    box-shadow:
+      0 2px 4px rgba(24, 26, 40, 0.05),
+      0 20px 34px -14px rgba(24, 26, 40, 0.22),
+      0 44px 64px -30px rgba(24, 26, 40, 0.32);
+  }
+  .dark .news-lift {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 2px 4px rgba(0, 0, 0, 0.4),
+      0 22px 38px -14px rgba(0, 0, 0, 0.6),
+      0 48px 70px -30px rgba(0, 0, 0, 0.75);
+  }
+}

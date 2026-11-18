@@ -57,7 +57,7 @@ const OfferingSection = () => {
     <div className="px-4 pt-3 pb-8">
       {/* Hero — 배경 삽화는 offering.css(.off-hero). 장면이 오른쪽 아래에 몰려 있어
           왼쪽에 카드색 워시가 깔리고 그 위로 제목·안내가 지나간다 */}
-      <div className="off-hero relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
+      <div className="off-hero relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] news-lift p-5 mb-4">
         {/* 글줄이 삽화의 양·헌금함 위로 넘어가지 않게 폭을 잡는다 —
             삽화는 오른쪽 끝에 높이맞춤으로 서고, 왼쪽 46%는 알파로 카드에 녹는다 */}
         <div className="relative z-10 max-w-[70%] lg:max-w-[64%]">

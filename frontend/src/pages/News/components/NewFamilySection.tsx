@@ -97,7 +97,7 @@ const NewFamilySection = () => {
     <div className="px-4 pt-3 pb-8">
       {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--family).
           그림은 오른쪽 끝에 높이맞춤으로 서고, 왼쪽·아래는 알파로 카드에 녹는다 */}
-      <div className="nh-hero nh-hero--family relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
+      <div className="nh-hero nh-hero--family relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] news-lift p-5 mb-4">
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-[0_6px_18px_-6px_rgba(168,85,247,0.7)]">

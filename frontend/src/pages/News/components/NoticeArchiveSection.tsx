@@ -238,7 +238,7 @@ const NoticeArchiveSection = () => {
                 <h3 className="na-month">
                   {t('newsNoticeMonth').replace('{y}', String(g.y)).replace('{m}', String(g.m))}
                 </h3>
-                <ul className="na-list">
+                <ul className="na-list news-lift-soft">
                   {g.items.map((it) => (
                     <li key={it.notice.id}>
                       <NoticeRow item={it} onOpen={() => setOpenId(it.notice.id)} />
@@ -417,7 +417,7 @@ const ArchiveSkeleton = () => (
   <div aria-hidden>
     <div className="na-sec"><span className="inline-block h-[1em] w-20 rounded bg-[var(--surface-inset)]" /></div>
     <div className="na-feat na-feat--skel mb-7 lg:mb-9" />
-    <div className="na-list">
+    <div className="na-list news-lift-soft">
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="na-row">
           <span className="na-thumb animate-pulse" />

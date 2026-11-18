@@ -128,7 +128,7 @@ const NewsSection = () => {
     <div className="px-4 pt-3 pb-8 lg:px-6 lg:pt-4">
       {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--news).
           그림은 오른쪽 끝에 높이맞춤으로 서고, 왼쪽·아래(검색창 자리)는 알파로 카드에 녹는다 */}
-      <div className="nh-hero nh-hero--news relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4 lg:p-7 lg:mb-5">
+      <div className="nh-hero nh-hero--news relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] news-lift p-5 mb-4 lg:p-7 lg:mb-5">
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-11 h-11 rounded-2xl bg-brand text-white flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)]">

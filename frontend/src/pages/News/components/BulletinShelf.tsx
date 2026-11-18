@@ -189,7 +189,7 @@ const Hero = ({ issue, busy, onOpen }: { issue: Issue; busy: boolean; onOpen: Sh
 
   return (
     <article
-      className={`bsf-hero bsf-${issue.season} ${busy ? 'opacity-70' : ''}`}
+      className={`bsf-hero news-lift bsf-${issue.season} ${busy ? 'opacity-70' : ''}`}
       aria-busy={busy || undefined}
     >
       {cover && (
