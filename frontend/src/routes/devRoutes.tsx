@@ -99,6 +99,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['sermon-seasons', () => import('../pages/dev/SermonSeasonsPreview')],
       // 삭제·확인 모달(ConfirmDialog) 감성 개편 시안 — ?v=now|a|b|c|d
       ['confirm-dialog', () => import('../pages/dev/ConfirmDialogPreview')],
+      // /about '다섯 만남' 장 개편 시안 — ?v=now|a|b|c|d
+      ['about-meet', () => import('../pages/dev/AboutMeetPreview')],
     ]
   : []
 

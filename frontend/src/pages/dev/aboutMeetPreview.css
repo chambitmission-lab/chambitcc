@@ -1,0 +1,766 @@
+/* /#/dev/about-meet — 다섯 만남 개편 시안 */
+
+.about-page.amp-pc,
+.about-page.amp-frame {
+  min-height: 0;
+}
+
+.amp-pc .ab-body > section {
+  margin-top: 1.5rem;
+}
+
+.amp-frame .ab-body {
+  padding-top: 0.5rem;
+  padding-bottom: 2rem;
+}
+
+.amp-frame .ab-body > section {
+  margin-top: 0;
+}
+
+.amp-phone {
+  width: 390px;
+  height: 780px;
+  border: 0;
+  border-radius: 28px;
+  background: var(--app-canvas);
+  box-shadow:
+    0 0 0 8px #1d1d1f,
+    0 20px 50px -16px rgba(0, 0, 0, 0.45);
+}
+
+/* 공통 — 약속 서명 */
+.amp-sign {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 공통 판 */
+.amp-a,
+.amp-c,
+.amp-d {
+  padding: 2rem 1.25rem;
+  border-radius: 24px;
+  background: var(--surface-container);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+/* ───────── A 지워지는 네 줄 ───────── */
+.amp-a {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.amp-a-list {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--ab-verse);
+  font-size: 1.1875rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.amp-a-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.amp-a-list s {
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: color-mix(in srgb, var(--text-muted) 55%, transparent);
+  opacity: 0.8;
+}
+
+.amp-a-good {
+  margin: 1.75rem 0 0;
+  font-family: var(--ab-verse);
+  font-size: 1.5rem;
+  line-height: 1.55;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  color: var(--text-strong);
+}
+
+.amp-a-good small {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: 'Pretendard Variable', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--ab-hl-ink);
+}
+
+.dark .amp-a-good small {
+  color: #f5cf86;
+}
+
+.amp-a-good span {
+  display: block;
+}
+
+.amp-a-good .is-last,
+.amp-b-promise .is-last,
+.amp-c-promise .is-last,
+.amp-d-promise .is-last {
+  color: var(--brand);
+}
+
+.amp-a-pic {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  aspect-ratio: 4 / 5;
+}
+
+.amp-a-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.amp-a-pic figcaption {
+  position: absolute;
+  left: 1rem;
+  bottom: 0.875rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(6px);
+}
+
+/* ───────── B 사진 한 장 + 한 문장 ───────── */
+.amp-b {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  min-height: 560px;
+  display: flex;
+  align-items: flex-end;
+  color: #fff;
+  background: #1b1d22;
+}
+
+.amp-b-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 60% 30%;
+}
+
+.amp-b-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 12, 18, 0) 25%, rgba(10, 12, 18, 0.72) 62%, rgba(10, 12, 18, 0.9));
+}
+
+.amp-b-txt {
+  position: relative;
+  padding: 1.75rem 1.375rem 1.75rem;
+}
+
+.amp-b .ab-tag {
+  color: #bcd6ff;
+}
+
+.amp-b-world {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  word-break: keep-all;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.amp-b-world em {
+  font-style: normal;
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+}
+
+.amp-b-promise {
+  margin: 1.25rem 0 0;
+  font-family: var(--ab-verse);
+  font-size: 1.625rem;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+}
+
+.amp-b-promise span {
+  display: block;
+}
+
+.amp-b-promise .is-last {
+  color: #ffd27a;
+}
+
+.amp-b .amp-sign {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ───────── C 손수건이 하는 일 ───────── */
+.amp-c-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.amp-c-world {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+}
+
+.amp-c-promise {
+  margin: 0.75rem 0 0;
+  font-family: var(--ab-verse);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  color: var(--text-strong);
+}
+
+.amp-c-promise span {
+  display: block;
+}
+
+.amp-c-cards {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.amp-c-cards li {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.25rem 1.125rem;
+  border-radius: 18px;
+  background: var(--app-canvas);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+.amp-c-cards svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.amp-c-cards small {
+  margin-top: 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ab-hl-ink);
+}
+
+.dark .amp-c-cards small {
+  color: #f5cf86;
+}
+
+.amp-c-cards strong {
+  margin-top: 0.2rem;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.amp-c-cards p {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  word-break: keep-all;
+  color: var(--text-body);
+}
+
+.amp-c-go {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* ───────── D 세상의 만남 / 참빛의 만남 ───────── */
+.amp-d {
+  text-align: center;
+}
+
+.amp-d-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.amp-d-table {
+  margin: 1.75rem auto 0;
+  max-width: 820px;
+  text-align: left;
+}
+
+.amp-d-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+  padding: 0.875rem 0.25rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.amp-d-row.is-head {
+  display: none;
+}
+
+.amp-d-row i {
+  display: none;
+}
+
+.amp-d-row .is-world {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--text-muted) 45%, transparent);
+}
+
+.amp-d-row .is-church {
+  font-family: var(--ab-verse);
+  font-size: 1.1875rem;
+  color: var(--text-strong);
+}
+
+.amp-d-row .is-church::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin: 0 0.6rem 0.18rem 0;
+  border-radius: 50%;
+  background: #f1b44c;
+  box-shadow: 0 0 8px rgba(241, 180, 76, 0.7);
+}
+
+.amp-d-promise {
+  margin: 2rem 0 0;
+  font-family: var(--ab-verse);
+  font-size: 1.375rem;
+  line-height: 1.6;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  color: var(--text-strong);
+}
+
+.amp-d-promise span {
+  display: block;
+}
+
+/* ───────── 태블릿 이상 ───────── */
+@media (min-width: 768px) {
+  .amp-c-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .amp-d-row {
+    grid-template-columns: minmax(0, 1fr) 2.5rem minmax(0, 1fr);
+    align-items: center;
+    padding: 1.125rem 0.5rem;
+  }
+
+  .amp-d-row i {
+    display: block;
+    font-style: normal;
+    text-align: center;
+    color: var(--text-muted);
+    opacity: 0.6;
+  }
+
+  .amp-d-row.is-head {
+    display: grid;
+    padding-bottom: 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+  }
+
+  .amp-d-row.is-head span:last-child {
+    color: var(--ab-hl-ink);
+  }
+
+  .dark .amp-d-row.is-head span:last-child {
+    color: #f5cf86;
+  }
+
+  .amp-d-row .is-world {
+    font-size: 1.0625rem;
+  }
+
+  .amp-d-row .is-church {
+    font-size: 1.3125rem;
+  }
+}
+
+/* ───────── PC ───────── */
+@media (min-width: 1024px) {
+  .amp-a,
+  .amp-c,
+  .amp-d {
+    padding: 3rem 2.75rem;
+    border-radius: 28px;
+  }
+
+  :root:not(.dark) .amp-a,
+  :root:not(.dark) .amp-c,
+  :root:not(.dark) .amp-d {
+    box-shadow:
+      inset 0 0 0 1px var(--card-border),
+      0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  .amp-a {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: center;
+    gap: 4rem;
+  }
+
+  .amp-a-list {
+    font-size: 1.375rem;
+  }
+
+  .amp-a-good {
+    font-size: 2rem;
+  }
+
+  .amp-a-pic {
+    aspect-ratio: 4 / 5;
+    max-height: 600px;
+  }
+
+  .amp-b {
+    min-height: 620px;
+    align-items: center;
+    border-radius: 28px;
+  }
+
+  :root:not(.dark) .amp-b {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  }
+
+  .amp-b-photo {
+    object-position: 50% 35%;
+  }
+
+  .amp-b-shade {
+    background: linear-gradient(90deg, rgba(10, 12, 18, 0.88), rgba(10, 12, 18, 0.55) 45%, rgba(10, 12, 18, 0.05) 75%);
+  }
+
+  .amp-b-txt {
+    max-width: 560px;
+    padding: 3.5rem;
+  }
+
+  .amp-b-world {
+    font-size: 1.125rem;
+  }
+
+  .amp-b-promise {
+    font-size: 2.25rem;
+  }
+
+  .amp-c-promise {
+    font-size: 2rem;
+  }
+
+  .amp-c-cards {
+    gap: 1rem;
+    margin-top: 2.5rem;
+  }
+
+  .amp-c-cards li {
+    padding: 1.625rem 1.5rem 1.375rem;
+  }
+
+  .amp-d-promise {
+    font-size: 1.75rem;
+  }
+}
+
+/* ═════════ A 변형 (a1~a4) ═════════ */
+.amp-ax .amp-a-good .amp-sign {
+  font-family: 'Pretendard Variable', sans-serif;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+}
+
+.amp-ax-lead {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+/* ── a1·a3: 줄이 그어지는 순간 — 선과 투명도만, 자리 이동 없음 ── */
+.amp-ax.is-anim .amp-a-list s {
+  position: relative;
+  text-decoration: none;
+  opacity: 1;
+  color: var(--text-strong);
+  transition: color 0.6s ease calc(var(--i) * 0.5s + 0.45s);
+}
+
+.amp-ax.is-anim .amp-a-list s::after {
+  content: '';
+  position: absolute;
+  left: -0.1em;
+  right: -0.1em;
+  top: 52%;
+  height: 1.5px;
+  background: color-mix(in srgb, var(--text-muted) 70%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.45, 0, 0.2, 1) calc(var(--i) * 0.5s + 0.2s);
+}
+
+.amp-ax.is-anim.is-on .amp-a-list s {
+  color: var(--text-muted);
+}
+
+.amp-ax.is-anim.is-on .amp-a-list s::after {
+  transform: scaleX(1);
+}
+
+.amp-ax.is-anim .amp-a-good {
+  opacity: 0;
+  transition: opacity 1.1s ease 2.4s;
+}
+
+.amp-ax.is-anim.is-on .amp-a-good {
+  opacity: 1;
+}
+
+/* ── a2: 다섯째 줄 ── */
+.amp-ax.is-a2 .amp-a-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.875rem;
+}
+
+.amp-a-num {
+  flex: none;
+  width: 1.75rem;
+  font-family: 'Pretendard Variable', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.amp-ax.is-a2 .amp-a-good {
+  display: flex;
+  align-items: baseline;
+  gap: 0.875rem;
+  margin-top: 0;
+  padding-top: 1.25rem;
+}
+
+.amp-ax.is-a2 .amp-a-good > .amp-a-num {
+  display: inline;
+  font-size: 0.875rem;
+  opacity: 1;
+  color: var(--ab-hl-ink);
+}
+
+.dark .amp-ax.is-a2 .amp-a-good > .amp-a-num {
+  color: #f5cf86;
+}
+
+.amp-ax-visit {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0.1rem;
+  left: 1rem !important;
+  right: 1rem;
+  bottom: 1rem !important;
+  padding: 0.875rem 1rem !important;
+  border-radius: 16px !important;
+  background: rgba(10, 12, 18, 0.5) !important;
+  backdrop-filter: blur(10px);
+}
+
+.amp-ax-visit strong {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.amp-ax-visit span {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.amp-ax-visit em {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-style: normal;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #ffd27a;
+}
+
+/* ── a3: 불이 켜지는 교회 — 704×900 같은 비율 상자, 조각은 (340,90) 364×290 ── */
+.amp-ax.is-a3 .amp-a-pic {
+  aspect-ratio: 704 / 900;
+}
+
+.amp-lit {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.amp-lit img {
+  position: absolute;
+  display: block;
+}
+
+.amp-lit .amp-lit-photo {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.amp-lit-off,
+.amp-lit-glow {
+  left: calc(340 / 704 * 100%);
+  top: calc(90 / 900 * 100%);
+  width: calc(364 / 704 * 100%) !important;
+  height: calc(290 / 900 * 100%) !important;
+}
+
+.amp-lit-off {
+  opacity: 1;
+  transition: opacity 2.2s ease 3.4s;
+}
+
+.amp-lit-glow {
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+.amp-ax.is-a3.is-on .amp-lit-off {
+  opacity: 0;
+}
+
+.amp-ax.is-a3.is-on .amp-lit-glow {
+  animation: amp-glow 4s ease 3.4s both;
+}
+
+@keyframes amp-glow {
+  0% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0.18;
+  }
+}
+
+/* ── a4: 사진이 판 끝까지 ── */
+.amp-ax.is-a4 {
+  position: relative;
+  overflow: hidden;
+  padding-top: 0;
+}
+
+.amp-ax.is-a4 .amp-a-pic {
+  order: -1;
+  margin: 0 -1.25rem;
+  border-radius: 0;
+  aspect-ratio: 5 / 4;
+}
+
+.amp-ax.is-a4 .amp-a-pic::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, var(--surface-container));
+}
+
+.amp-ax.is-a4 .amp-a-pic figcaption {
+  top: 1rem;
+  bottom: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .amp-ax.is-anim .amp-a-list s,
+  .amp-ax.is-anim .amp-a-list s::after,
+  .amp-ax.is-anim .amp-a-good,
+  .amp-lit-off {
+    transition: none;
+  }
+
+  .amp-ax.is-a3.is-on .amp-lit-glow {
+    animation: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .amp-ax.is-a3 .amp-a-pic {
+    max-height: none;
+    width: 100%;
+    max-width: 470px;
+    justify-self: end;
+  }
+
+  .amp-ax.is-a4 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: 3rem 0 3rem 2.75rem;
+    min-height: 600px;
+  }
+
+  .amp-ax.is-a4 .amp-a-pic {
+    order: 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 48%;
+    margin: 0;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+
+  .amp-ax.is-a4 .amp-a-pic::after {
+    background: linear-gradient(90deg, var(--surface-container) 0%, transparent 28%);
+  }
+
+  .amp-ax.is-a4 .amp-a-pic figcaption {
+    top: auto;
+    bottom: 1.25rem;
+    left: auto;
+    right: 1.25rem;
+  }
+}

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
@@ -22,11 +22,13 @@ import pastorPhoto from '../../assets/about-pastor/pastor.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
 import { useThemeArt } from '../../hooks/useThemeArt'
-import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC } from '../../utils/themeAssets'
+import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC, CHURCH_SEASON_PHOTO, pairSrc } from '../../utils/themeAssets'
+import { getNaturalSeason } from '../../utils/naturalSeason'
+import { useTheme } from '../../contexts/ThemeContext'
 
 /* /about — "참 빛" 잡지형 소개.
    첫 화면은 하늘에 걸린 말씀 족자(세로쓰기 '참빛' + 요 1:9) + 아래 한 줄 바로가기·예배 버튼.
-   그 아래는 그림·글을 좌우로 번갈아 놓은 장들 — 만남 → 다섯 만남(사진 카드 5장 + 약속) → 담임목사 → 초대.
+   그 아래는 그림·글을 좌우로 번갈아 놓은 장들 — 만남 → 다섯 만남(지워지는 네 줄 + 약속 | 계절 교회 사진) → 담임목사 → 초대.
    예전 스티키 고정 그림은 세로로 길고 장면이 겹쳐 보여 걷어냈다. */
 
 // 서체 — 교회 이름 G마켓 · 첫 화면 세로 말씀 고운바탕 · 인용 고운돋움(--ab-verse) · 손글씨는 목사님 별칭에만
@@ -35,28 +37,14 @@ ensureFontFamily('gowunDodum')
 ensureFontFamily('gowunBatang') // 첫 화면 세로 말씀
 ensureFontFamily('gowunBatang') // 첫 화면 세로 말씀
 
-// 다섯 가지 만남 — key 는 이미지 파일명(./img/{key}.webp)이자 프롬프트 문서의 슬러그
-const PASSING_MEETINGS = [
-  { key: 'fishy', field: 'aboutMeetingBad1' },
-  { key: 'wilted', field: 'aboutMeetingBad2' },
-  { key: 'worn_out', field: 'aboutMeetingBad3' },
-  { key: 'deleted', field: 'aboutMeetingBad4' },
-] as const
-type MeetingKey = (typeof PASSING_MEETINGS)[number]['key'] | 'handkerchief'
+// 다섯 만남 중 스쳐 가는 네 만남 — 관리자 문구 키
+const PASSING_MEETINGS = ['aboutMeetingBad1', 'aboutMeetingBad2', 'aboutMeetingBad3', 'aboutMeetingBad4'] as const
 
 const CREDENTIALS = [
   ['aboutEducationLabel', 'aboutEducationValue'],
   ['aboutCareerLabel', 'aboutCareerValue'],
   ['aboutAwardLabel', 'aboutAwardValue'],
 ] as const
-
-// 만남 장면 이미지 — 파일만 넣으면 자동 연결 (생성 프롬프트: frontend/docs/meeting-image-prompts.md)
-const MEETING_IMAGES = import.meta.glob('./img/*.webp', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>
-const meetingImage = (key: MeetingKey): string | undefined => MEETING_IMAGES[`./img/${key}.webp`]
 
 // 01 만남 — 관리자 히어로 사진이 없을 때 빈 상자 대신 깔 새벽 그림
 const MEET_FALLBACK = '/images/history/verse-dawn.webp'
@@ -169,6 +157,28 @@ const About = () => {
   // 하늘 카드 그림 — 지금 폭의 한 쌍만 받는다(CSS 가 같은 폭 기준으로 고른다)
   const [dawnPair] = useState(() => (ABOUT_DAWN_PC.when?.() ? ABOUT_DAWN_PC : ABOUT_DAWN_MOBILE))
   const dawnArtReady = useThemeArt(dawnPair)
+  const { theme } = useTheme()
+  const meetPhoto = pairSrc(CHURCH_SEASON_PHOTO[getNaturalSeason(new Date())], theme)
+
+  // 다섯 만남 — 화면에 들어올 때 한 번 줄을 긋는다
+  const meetRef = useRef<HTMLElement | null>(null)
+  // IntersectionObserver 가 없는 옛 브라우저는 처음부터 다 그어진 모습
+  const [meetShown, setMeetShown] = useState(() => typeof IntersectionObserver === 'undefined')
+  useEffect(() => {
+    const el = meetRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setMeetShown(true)
+          io.disconnect()
+        }
+      },
+      { threshold: 0.35 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   // ── 사진: CSS 배경이 아니라 <img> + onLoad 페이드, 첫 프레임엔 지난 방문의 LQIP ──
   const [heroLoaded, setHeroLoaded] = useState(false)
@@ -336,52 +346,50 @@ const About = () => {
           </div>
         </section>
 
-        {/* ── 다섯 만남 — 흑백 넷 + 단 하나 컬러(손수건), 이어서 약속 ── */}
-        <section id="about-meetings" className="ab-meet">
-          <header className="ab-meet-head">
+        {/* ── 다섯 만남 — 지워지는 네 줄 + 약속 | 계절 교회 사진 (2026-11-18 A1) ──
+             화면에 들어오면 네 줄에 차례로 취소선이 그어지고 약속이 제자리에서 떠오른다(선·투명도만, 자리 이동 없음) */}
+        <section
+          id="about-meetings"
+          ref={meetRef}
+          className={`ab-meet${meetShown ? ' is-on' : ''}`}
+        >
+          <div className="ab-meet-txt">
             {tag(ko ? '다섯 만남' : 'Five meetings')}
             <h2 className="ab-title">
               <EditableText fieldKey="aboutMeetingTitle" isAdmin={isAdminUser}>
                 {tx('aboutMeetingTitle')}
               </EditableText>
             </h2>
-            <p className="ab-lead">
-              {ko ? '세상엔 쓰고 버리는 만남이 많습니다.' : 'Many meetings are used and thrown away.'}
-            </p>
-          </header>
-          <ul className="ab-meet-cards">
-            {PASSING_MEETINGS.map(({ key, field }) => (
-              <li key={key} className="ab-meet-card">
-                <img src={meetingImage(key)} alt="" aria-hidden="true" loading="lazy" decoding="async" />
-                <span className="ab-meet-label">
-                  <EditableText fieldKey={field} isAdmin={isAdminUser}>
-                    {tx(field)}
-                  </EditableText>
-                </span>
-              </li>
-            ))}
-            <li className="ab-meet-card is-good">
-              <img src={meetingImage('handkerchief')} alt="" aria-hidden="true" loading="lazy" decoding="async" />
-              <span className="ab-meet-label">
-                <small>{ko ? '단 하나의 만남' : 'The one meeting'}</small>
-                <EditableText fieldKey="aboutMeetingGood" multiline isAdmin={isAdminUser}>
-                  {toLines(tx('aboutMeetingGood')).join(' ')}
+            <ol className="ab-meet-list">
+              {PASSING_MEETINGS.map((field, i) => (
+                <li key={field} style={{ '--i': i } as React.CSSProperties}>
+                  <s>
+                    <EditableText fieldKey={field} isAdmin={isAdminUser}>
+                      {tx(field)}
+                    </EditableText>
+                  </s>
+                </li>
+              ))}
+            </ol>
+            <blockquote className="ab-promise">
+              <small>{ko ? '그리고, 단 하나의 만남' : 'And the one meeting'}</small>
+              <p className="ab-promise-text">
+                <EditableText fieldKey="aboutPromiseQuote" multiline isAdmin={isAdminUser}>
+                  <Lines text={tx('aboutPromiseQuote')} />
+                </EditableText>
+              </p>
+              <span className="ab-promise-author">
+                <EditableText fieldKey="aboutPromiseAuthor" isAdmin={isAdminUser}>
+                  {tx('aboutPromiseAuthor').replace(/^[-–—]\s*/, '')}
                 </EditableText>
               </span>
-            </li>
-          </ul>
-          <blockquote className="ab-promise">
-            <p className="ab-promise-text">
-              <EditableText fieldKey="aboutPromiseQuote" multiline isAdmin={isAdminUser}>
-                <Lines text={tx('aboutPromiseQuote')} />
-              </EditableText>
-            </p>
-            <span className="ab-promise-author">
-              <EditableText fieldKey="aboutPromiseAuthor" isAdmin={isAdminUser}>
-                {tx('aboutPromiseAuthor').replace(/^[-–—]\s*/, '')}
-              </EditableText>
-            </span>
-          </blockquote>
+            </blockquote>
+          </div>
+          {/* 오시는 길·홈과 같은 교회 전경 — 지금 계절 × 라이트(낮)/다크(밤) */}
+          <figure className="ab-meet-pic">
+            <img src={meetPhoto} alt={ko ? '참빛교회 전경' : 'Chambit Church'} loading="lazy" decoding="async" />
+            <figcaption>{ko ? '부천 상동 · 참빛교회' : 'Sangdong, Bucheon'}</figcaption>
+          </figure>
         </section>
 
         {/* ── 담임목사 — 글 왼쪽 · 사진 오른쪽 ── */}

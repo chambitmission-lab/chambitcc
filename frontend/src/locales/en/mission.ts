@@ -3,7 +3,7 @@ export const mission = {
   missionHeroTitleLine1: 'To the Ends of the Earth',
   missionHeroTitleLine2: 'With the Light of the Gospel',
   missionHeroVerse:
-    '"But you will receive power when the Holy Spirit comes on you; and you will be my witnesses in Jerusalem, and in all Judea and Samaria, and to the ends of the earth."',
+    'But you will receive power when the Holy Spirit comes on you; and you will be my witnesses in Jerusalem, and in all Judea and Samaria, and to the ends of the earth.',
   missionHeroVerseRef: '– Acts 1:8',
   regionAsia: 'Asia',
   regionEurope: 'Europe & Central Asia',

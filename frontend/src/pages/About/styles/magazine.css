@@ -141,113 +141,96 @@
   min-width: 0;
 }
 
-/* ── 다섯 만남 — 흰 판 위 카드 5장 + 약속 ── */
+/* ── 다섯 만남 — 지워지는 네 줄 + 약속 | 계절 교회 사진 (2026-11-18 A1) ──
+   동물 삽화 카드 5장은 "인위적"이라 걷어냈다. 움직임은 선·투명도만(자리 이동 없음 — 어르신 어지러움) */
 .ab-meet {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
   margin-top: 3.5rem;
-  padding: 2rem 1.125rem;
+  padding: 2rem 1.25rem;
   border-radius: 24px;
   background: var(--surface-container);
   box-shadow: inset 0 0 0 1px var(--card-border);
 }
 
-.ab-meet-head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+.ab-meet-txt {
+  min-width: 0;
 }
 
-.ab-meet-head .ab-lead {
-  margin-top: 0.5rem;
-}
-
-/* 모바일 2열 — 손수건(단 하나)은 한 줄 전체 */
-.ab-meet-cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.625rem;
+.ab-meet-list {
   margin: 1.5rem 0 0;
   padding: 0;
   list-style: none;
+  font-family: var(--ab-verse);
+  font-size: 1.1875rem;
+  line-height: 1.5;
 }
 
-.ab-meet-card {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: 16px;
-  background: var(--app-canvas);
-  box-shadow: inset 0 0 0 1px var(--card-border);
+.ab-meet-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--card-border);
 }
 
-/* 삽화는 4:3(960×717) — 카드도 같은 비율이라 잘림이 없다 */
-.ab-meet-card img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 960 / 717;
-  object-fit: cover;
-  /* 스쳐 가는 만남 — 빛이 빠진 흑백 */
-  filter: grayscale(0.9) brightness(0.92);
-  transition: filter 0.3s ease;
+/* 취소선은 글자 위로 그어지는 선(::after) — 화면에 들어오면 한 줄씩 0.5초 간격 */
+.ab-meet-list s {
+  position: relative;
+  text-decoration: none;
+  color: var(--text-strong);
+  transition: color 0.6s ease calc(var(--i) * 0.5s + 0.45s);
 }
 
-.ab-meet-card:hover img {
-  filter: grayscale(0.5) brightness(0.96);
+.ab-meet-list s::after {
+  content: '';
+  position: absolute;
+  left: -0.1em;
+  right: -0.1em;
+  top: 52%;
+  height: 1.5px;
+  background: color-mix(in srgb, var(--text-muted) 70%, transparent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+  transition: transform 0.5s cubic-bezier(0.45, 0, 0.2, 1) calc(var(--i) * 0.5s + 0.2s);
 }
 
-.ab-meet-label {
-  display: block;
-  padding: 0.75rem 0.875rem 0.875rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.45;
-  word-break: keep-all;
+.ab-meet.is-on .ab-meet-list s {
   color: var(--text-muted);
 }
 
-.ab-meet-label small {
+.ab-meet.is-on .ab-meet-list s::after {
+  transform: scaleX(1);
+}
+
+/* 약속 — 네 줄이 다 그어진 뒤 제자리에서 떠오른다 */
+.ab-promise {
+  margin: 1.75rem 0 0;
+  opacity: 0;
+  transition: opacity 1.1s ease 2.4s;
+}
+
+.ab-meet.is-on .ab-promise {
+  opacity: 1;
+}
+
+.ab-promise small {
   display: block;
-  margin-bottom: 0.2rem;
-  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--ab-hl-ink);
 }
 
-/* 단 하나 켜진 만남 — 컬러 + 금빛 테두리 */
-.ab-meet-card.is-good {
-  grid-column: 1 / -1;
-  background: color-mix(in srgb, #ffc35a 12%, var(--surface-container));
-  box-shadow:
-    inset 0 0 0 1.5px color-mix(in srgb, #f1b44c 70%, transparent),
-    0 12px 28px -16px rgba(214, 150, 40, 0.55);
-}
-
-.ab-meet-card.is-good img {
-  filter: none;
-}
-
-.ab-meet-card.is-good .ab-meet-label {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--text-strong);
-}
-
-.dark .ab-meet-card.is-good .ab-meet-label small {
+.dark .ab-promise small {
   color: #f5cf86;
-}
-
-/* 약속 — 다섯 만남의 결론으로 같은 판 안에 */
-.ab-promise {
-  margin: 2rem 0 0;
-  text-align: center;
 }
 
 .ab-promise-text {
   margin: 0;
   font-family: var(--ab-verse);
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.55;
   letter-spacing: -0.02em;
   word-break: keep-all;
   color: var(--text-strong);
@@ -267,6 +250,36 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-muted);
+}
+
+/* 교회 전경 — CHURCH_SEASON_PHOTO(오시는 길·홈과 같은 사진), 계절 × 낮/밤 */
+.ab-meet-pic {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  aspect-ratio: 4 / 5;
+  background: var(--app-canvas);
+}
+
+.ab-meet-pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ab-meet-pic figcaption {
+  position: absolute;
+  left: 1rem;
+  bottom: 0.875rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(6px);
 }
 
 /* ── 담임목사 ── */
@@ -586,23 +599,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ab-meet-card img,
+  .ab-meet-list s,
+  .ab-meet-list s::after,
+  .ab-promise,
   .ab-hero-img,
   .ab-invite-cta {
     transition: none;
-  }
-}
-
-/* ── 태블릿 이상: 다섯 만남 한 줄 ── */
-@media (min-width: 768px) {
-  .ab-meet-cards {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
-  /* 한 줄일 땐 다섯째도 한 칸 — 살짝 떠올라 혼자 켜진 것처럼 */
-  .ab-meet-card.is-good {
-    grid-column: auto;
-    transform: translateY(-6px);
   }
 }
 
@@ -650,22 +652,25 @@
   }
 
   .ab-meet {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: center;
+    gap: 4rem;
     margin-top: 6rem;
     padding: 3rem 2.75rem;
     border-radius: 28px;
   }
 
-  .ab-meet-cards {
-    gap: 0.875rem;
-    margin-top: 2.25rem;
-  }
-
-  .ab-promise {
-    margin-top: 2.75rem;
+  .ab-meet-list {
+    font-size: 1.375rem;
   }
 
   .ab-promise-text {
-    font-size: 1.75rem;
+    font-size: 2rem;
+  }
+
+  .ab-meet-pic {
+    max-height: 600px;
   }
 
   .ab-invite {
