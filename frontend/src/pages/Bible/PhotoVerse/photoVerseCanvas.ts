@@ -30,7 +30,7 @@ export type {
 export { DEFAULT_CARD_STYLE } from './canvas/cardStyle'
 export { CARD_FILTERS } from './canvas/filters'
 export { CARD_LAYOUTS } from './canvas/layouts'
-export { getSeasonStamp, LOCK_SAFE } from './canvas/frames'
+export { getSeasonStamp, LOCK_SAFE, layoutFromCanvas } from './canvas/frames'
 export { cropRect } from './canvas/baseLayer'
 export type { SeasonStamp } from './canvas/frames'
 export { BACKGROUNDS, backgroundCss, createBackgroundImage } from './canvas/backgrounds'
@@ -52,6 +52,7 @@ import {
 } from './canvas/frames'
 import { drawGreeting, drawLayout, drawSignature, fitFontPx, greetingBand } from './canvas/layouts'
 import type { TypeContext } from './canvas/layouts'
+import { drawSubjectOver } from './canvas/depth'
 
 /** 사진 전체의 평균 밝기(0~1) — 밝은 사진은 어두운 글자로 시작해야 읽힌다 */
 export const measureImageLuminance = (img: HTMLImageElement): number => {
@@ -80,6 +81,11 @@ export interface DrawCardOptions {
   sampleFrom?: HTMLCanvasElement
   /** 맨 위 손글씨 인사말(상황별 카드) — 잠금화면에서는 시계 자리라 그리지 않는다 */
   greeting?: string
+  /**
+   * 글자 뒤로 숨기 — 앞으로 나올 피사체의 알파 마스크(사진 좌표계, 축소본 가능).
+   * 있으면 글 위에 피사체를 한 번 더 얹는다. 사진과 글을 따로 그리는 층 모드에서는 쓰지 않는다
+   */
+  subject?: HTMLCanvasElement | null
 }
 
 /** 사진 + 말씀 텍스트를 canvas에 합성한다. canvas 크기는 호출자가 정한다. */
@@ -135,6 +141,9 @@ export const drawVerseCard = (
   }
 
   if (greeting && text && withText) drawGreeting(ctx, l, greeting, style)
+
+  // 피사체를 글 위에 다시 — 그레인·빛샘·프레임은 그 위에 얹혀 한 장의 사진처럼 묶인다
+  if (opts.subject && layer === 'all' && text) drawSubjectOver(ctx, l, img, opts.subject, style)
 
   if (withBase) drawBaseOver(ctx, canvas, l, refLabel, style)
 

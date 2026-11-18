@@ -56,6 +56,7 @@
     "close_fullscreen",
     "cloud",
     "cloud_off",
+    "code",
     "comment",
     "content_copy",
     "content_cut",
@@ -153,6 +154,7 @@
     "keyboard_double_arrow_down",
     "label",
     "language",
+    "layers",
     "leaderboard",
     "library_books",
     "light",
@@ -200,6 +202,7 @@
     "notifications",
     "notifications_active",
     "notifications_off",
+    "opacity",
     "open_in_full",
     "open_in_new",
     "pages",
@@ -341,16 +344,17 @@
     "wb_twilight",
     "west",
     "wifi_off",
+    "window",
     "woman",
     "work_outline",
     "workspace_premium"
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 27480
+    "bytes": 27644
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 30620
+    "bytes": 30912
   }
 }

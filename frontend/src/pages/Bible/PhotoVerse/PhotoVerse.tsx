@@ -1,6 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { markPostcardSent } from '../../../components/share/sharePostcardsShared'
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleBooks } from '../../../hooks/useBible'
@@ -17,7 +17,7 @@ import { compactReference, getTodayRecommended } from './recommendedVerses'
 import type { PickedVerse } from './recommendedVerses'
 import { CARD_PRESETS } from './cardPresets'
 import type { CardPreset } from './cardPresets'
-import { BACKGROUNDS, DEFAULT_CARD_STYLE, backgroundCss, createBackgroundImage, createCardCanvas, drawVerseCard, ensureCardFonts, measureImageLuminance } from './photoVerseCanvas'
+import { BACKGROUNDS, DEFAULT_CARD_STYLE, backgroundCss, createBackgroundImage, createCardCanvas, cropRect, drawVerseCard, ensureCardFonts, layoutFromCanvas, measureImageLuminance } from './photoVerseCanvas'
 import type { CardRatioId, CardTextBg, CardTextureId, VerseBackground, VerseCardStyle } from './photoVerseCanvas'
 import { PresetStrip } from './components/StyleStrips'
 import DetailControls from './components/DetailControls'
@@ -37,6 +37,9 @@ import { useRecentSermonPassage } from './churchVerses'
 import type { SermonPassage } from './churchVerses'
 import { PHOTO_VERSE_TEXTS } from './texts'
 import { usePhotoGesture } from './usePhotoGesture'
+import { preloadSegmenter, segmentSubjectAt } from './subjectSegmenter'
+import { REMIX_PARAM, buildRemixLink, decodeRemix } from './remix'
+import { smoothScrollToElement } from '../../../utils/scrollTo'
 import './PhotoVerse.css'
 
 // 미리보기는 화면용으로 캡, 저장본은 원본 해상도(최대 2048px)로 다시 그린다
@@ -73,8 +76,11 @@ const PhotoVerse = () => {
   const [todayVerse] = useState(() => getTodayRecommended(Date.now()))
   // 지난번에 만들던 카드 — 스타일은 곧바로 이어 쓰고, 말씀·배경은 '이어서 만들기'로 권한다
   const [draft] = useState(() => loadDraft())
+  // 받은 스타일 링크(?remix=) — 지난번 스타일보다 앞선다. 이어서 만들기 제안은 접어 둔다
+  const [remixIn] = useState(() => decodeRemix(new URLSearchParams(location.search).get(REMIX_PARAM)))
+  const [remixOffer, setRemixOffer] = useState(() => remixIn)
   const [resumeOffer, setResumeOffer] = useState(() =>
-    !presetVerse && !routeSermon && isResumable(draft, Date.now()) ? draft : null,
+    !remixIn && !presetVerse && !routeSermon && isResumable(draft, Date.now()) ? draft : null,
   )
   // 상황별 카드 — 맨 위 손글씨 인사말과, '다른 말씀'으로 돌려 볼 상황의 말씀 순번
   const [greeting, setGreeting] = useState('')
@@ -93,6 +99,7 @@ const PhotoVerse = () => {
   const [style, setStyle] = useState<VerseCardStyle>(() => ({
     ...DEFAULT_CARD_STYLE,
     ...(draft?.style ?? {}),
+    ...(remixIn?.style ?? {}),
     // 사진마다 다른 값 — 새 사진은 가운데에서 시작한다
     focus: DEFAULT_CARD_STYLE.focus,
     lang,
@@ -100,7 +107,7 @@ const PhotoVerse = () => {
   // 사진/배경에 맞춘 기본 글자색 — 프리셋을 바꿔도 형광펜처럼 룩이 요구하지 않는 한 이 색으로 돌아온다
   const [baseColor, setBaseColor] = useState(DEFAULT_CARD_STYLE.color)
   const [activePreset, setActivePreset] = useState<string | null>(() =>
-    draft ? draft.activePreset : CARD_PRESETS[0].id,
+    remixIn ? remixIn.presetId : draft ? draft.activePreset : CARD_PRESETS[0].id,
   )
   // 여러 장으로 나누기 — 1이면 한 장, 2~4면 캐러셀. previewSlide 는 미리보기 중인 장
   const [slideCount, setSlideCount] = useState(1)
@@ -111,7 +118,8 @@ const PhotoVerse = () => {
   const [editOpen, setEditOpen] = useState(false)
   const [motionOpen, setMotionOpen] = useState(false)
   // 잠금화면으로 바꾸기 전 비율 — 카드로 돌아올 때 되살린다
-  const cardRatioRef = useRef<CardRatioId>(draft?.style.ratio && draft.style.ratio !== 'lock' ? draft.style.ratio : 'original')
+  const initialRatio = remixIn?.style.ratio ?? draft?.style.ratio
+  const cardRatioRef = useRef<CardRatioId>(initialRatio && initialRatio !== 'lock' ? initialRatio : 'original')
   const [canRecordMotion] = useState(() => !!pickMotionMime())
   const { data: bibleBooks } = useBibleBooks()
   const [showDetails, setShowDetails] = useState(false)
@@ -123,9 +131,15 @@ const PhotoVerse = () => {
   // 저장 인화 연출 — 다운로드 후 카드가 폴라로이드처럼 서서히 현상된다
   const [printed, setPrinted] = useState<string | null>(null)
   const [printDeveloped, setPrintDeveloped] = useState(false)
+  // 글자 뒤로 숨기 — 누른 대상의 마스크(그 사진에만 유효), 대상 고르는 중, 찾는 중
+  const [subject, setSubject] = useState<{ img: HTMLImageElement; mask: HTMLCanvasElement } | null>(null)
+  const [depthPicking, setDepthPicking] = useState(false)
+  const [depthBusy, setDepthBusy] = useState(false)
+  const [depthReady, setDepthReady] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasWrapRef = useRef<HTMLDivElement>(null)
   // 예시 카드에서 고른 프리셋 — 배경 이미지가 준비된 뒤 적용한다
   const pendingPresetRef = useRef<CardPreset | null>(null)
 
@@ -182,6 +196,8 @@ const PhotoVerse = () => {
   const slideIdx = Math.min(previewSlide, Math.max(0, slides.length - 1))
   const current = slides[slideIdx]
   const isLock = style.ratio === 'lock'
+  // 감성 배경에는 오려낼 대상이 없다. 사진을 바꾸면 이전 사진의 마스크는 버린다
+  const subjectMask = !bgId && subject && photo && subject.img === photo.img ? subject.mask : null
 
   // 말씀 교체 — 나누기는 한 장으로 돌아간다 (조각 수가 말씀마다 다르다)
   const chooseVerse = useCallback((v: PickedVerse) => {
@@ -191,18 +207,20 @@ const PhotoVerse = () => {
   }, [])
 
   // 카드 공유에 곁들일 말씀 링크 — 받은 사람이 카드를 보고 곧바로 그 절을 연다
+  // 그 아래 '이 스타일로 나도 만들기' 링크 — 받은 사람이 같은 룩에 자기 사진을 넣는다
   const shareText = useMemo(() => {
     if (!verse) return undefined
     const link = verseLinkFromRef(verse.refLabel, bibleBooks)
-    return link ? `${verse.refLabel}\n${link}` : undefined
-  }, [verse, bibleBooks])
+    const remix = `${t.remixShareLine}\n${buildRemixLink(style, activePreset, bgId)}`
+    return link ? `${verse.refLabel}\n${link}\n\n${remix}` : remix
+  }, [verse, bibleBooks, style, activePreset, bgId, t])
 
   // 상태가 바뀔 때마다 미리보기 다시 그리기
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || !photo) return
-    drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style, { greeting: current?.greeting })
-  }, [photo, current, style, fontsReady])
+    drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style, { greeting: current?.greeting, subject: subjectMask })
+  }, [photo, current, style, fontsReady, subjectMask])
 
   // 만들던 카드 기억 — 드래그 중 매 프레임 쓰지 않게 잠깐 모았다가 저장한다
   useEffect(() => {
@@ -390,9 +408,9 @@ const PhotoVerse = () => {
     if (canvas.width !== sized.width || canvas.height !== sized.height) {
       canvas.width = sized.width
       canvas.height = sized.height
-      drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style, { greeting: current?.greeting })
+      drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style, { greeting: current?.greeting, subject: subjectMask })
     }
-  }, [photo, current, style])
+  }, [photo, current, style, subjectMask])
 
   // 캔버스 제스처 — 글/사진 끌기와 두 손가락 글자 크기 (usePhotoGesture)
   const { canPan, dragMode, onPointerDown, onPointerMove, onPointerUp } = usePhotoGesture({
@@ -413,14 +431,14 @@ const PhotoVerse = () => {
     const files: File[] = []
     for (let i = 0; i < slides.length; i++) {
       const canvas = createCardCanvas(photo.img, maxSide, style.frame, style.ratio)
-      drawVerseCard(canvas, photo.img, slides[i].text, slides[i].refLabel, style, { greeting: slides[i].greeting })
+      drawVerseCard(canvas, photo.img, slides[i].text, slides[i].refLabel, style, { greeting: slides[i].greeting, subject: subjectMask })
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.94))
       if (!blob) return []
       const name = slides.length > 1 ? `${base}_${i + 1}.jpg` : `${base}.jpg`
       files.push(new File([blob], name, { type: 'image/jpeg' }))
     }
     return files
-  }, [photo, verse, slides, style, greeting])
+  }, [photo, verse, slides, style, greeting, subjectMask])
 
   // 저장 — 파일 다운로드 (모바일은 다운로드 폴더/파일 앱, 데스크톱은 다운로드 폴더)
   const handleDownload = useCallback(async () => {
@@ -503,6 +521,91 @@ const PhotoVerse = () => {
       color: textBg === 'marker' && s.color !== '#111111' ? '#111111' : s.color,
     }))
     setActivePreset(null)
+  }
+
+  // ── 받은 스타일 ──
+  // 주소의 ?remix= 는 한 번 읽고 지운다 — 새로고침·뒤로 가기 때 다시 덮어쓰지 않게
+  useEffect(() => {
+    if (!new URLSearchParams(location.search).has(REMIX_PARAM)) return
+    navigate({ pathname: location.pathname, search: '' }, { replace: true, state: location.state })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const remixBg = remixOffer?.bgId ? (BACKGROUNDS.find((b) => b.id === remixOffer.bgId) ?? null) : null
+
+  // 보낸 사람과 같은 배경으로 — 배경이 글자색을 바꾸지 않게 받은 색을 되돌린다
+  const startRemixBg = async () => {
+    if (!remixOffer || !remixBg) return
+    const { style: rs, presetId } = remixOffer
+    setRemixOffer(null)
+    await pickBackground(remixBg)
+    if (rs.color) setStyle((s) => ({ ...s, color: rs.color ?? s.color }))
+    setActivePreset(presetId)
+  }
+
+  const dismissRemix = () => {
+    setRemixOffer(null)
+    setStyle({ ...DEFAULT_CARD_STYLE, ...(draft?.style ?? {}), focus: DEFAULT_CARD_STYLE.focus, lang })
+    setActivePreset(draft ? draft.activePreset : CARD_PRESETS[0].id)
+    cardRatioRef.current = draft?.style.ratio && draft.style.ratio !== 'lock' ? draft.style.ratio : 'original'
+  }
+
+  // 이 스타일 나눠 주기 — 이미지 없이 링크만 (PC처럼 파일 공유가 안 되는 곳에서도)
+  const copyRemixLink = async () => {
+    try {
+      await navigator.clipboard.writeText(buildRemixLink(style, activePreset, bgId))
+      showToast(t.remixCopied)
+    } catch {
+      showToast(t.remixCopyFailed)
+    }
+  }
+
+  // ── 글자 뒤로 숨기 ──
+  // 새 사진이면 고르던 중이던 것도 접는다
+  useEffect(() => {
+    setDepthPicking(false)
+  }, [photo])
+
+  const startDepthPick = () => {
+    preloadSegmenter()
+    setDepthPicking(true)
+    // 모바일은 컨트롤이 캔버스 아래 — 누를 사진이 화면 밖이면 끌어올린다
+    const el = canvasWrapRef.current
+    if (el && el.getBoundingClientRect().top < 56) smoothScrollToElement(el, { offset: 72 })
+  }
+
+  // 캔버스에서 누른 자리 → 원본 사진 좌표(0~1) → 그 대상을 오려낸다
+  const pickSubjectAt = async (e: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (!photo || depthBusy) return
+    const canvas = e.currentTarget
+    const rect = canvas.getBoundingClientRect()
+    const cx = ((e.clientX - rect.left) / rect.width) * canvas.width
+    const cy = ((e.clientY - rect.top) / rect.height) * canvas.height
+    const l = layoutFromCanvas(canvas.width, canvas.height, style.frame)
+    const pu = (cx - l.px) / l.pw
+    const pv = (cy - l.py) / l.ph
+    if (pu < 0 || pu > 1 || pv < 0 || pv > 1) return
+    const img = photo.img
+    const crop = cropRect(img, style.ratio, style.focus)
+    const u = (crop.sx + pu * crop.sw) / img.naturalWidth
+    const v = (crop.sy + pv * crop.sh) / img.naturalHeight
+    setDepthBusy(true)
+    try {
+      // 분할은 메인 스레드를 잠깐 붙잡는다 — '찾는 중'이 먼저 그려지게 한 프레임 양보
+      await new Promise<void>((r) => requestAnimationFrame(() => window.setTimeout(r, 0)))
+      const mask = await segmentSubjectAt(img, u, v)
+      if (mask) {
+        setSubject({ img, mask })
+        setDepthPicking(false)
+      } else {
+        showToast(t.depthNotFound)
+      }
+    } catch {
+      showToast(t.depthFailed)
+    } finally {
+      setDepthBusy(false)
+      setDepthReady(true)
+    }
   }
 
   const bgStrip = (
@@ -598,25 +701,46 @@ const PhotoVerse = () => {
             onStartOccasion={startOccasion}
             onStartChurchVerse={startChurchVerse}
             onStartSample={startFromSample}
+            remix={remixOffer ? { bg: remixBg } : null}
+            onStartRemixBg={() => void startRemixBg()}
+            onDismissRemix={dismissRemix}
           />
         )}
 
         {/* 편집 화면 */}
         {photo && (
           <div className="pv-editor">
-            <div className="pv-canvas-wrap">
+            <div className="pv-canvas-wrap" ref={canvasWrapRef}>
               {/* 캔버스 + 잠금화면 겹침 — 겹침이 캔버스 크기를 정확히 따라가도록 한 상자에 묶는다 */}
               <div className={`pv-canvas-stage${isLock ? ' pv-canvas-stage--lock' : ''}`}>
                 <canvas
                   ref={canvasRef}
-                  className="pv-canvas"
-                  onPointerDown={onPointerDown}
+                  className={`pv-canvas${depthPicking ? ' pv-canvas--picking' : ''}`}
+                  onPointerDown={depthPicking ? (e) => void pickSubjectAt(e) : onPointerDown}
                   onPointerMove={onPointerMove}
                   onPointerUp={onPointerUp}
                   onPointerCancel={onPointerUp}
                 />
-                {isLock && showLockGuide && <LockScreenGuide language={language} />}
-                {isLock && (
+                {isLock && showLockGuide && !depthPicking && <LockScreenGuide language={language} />}
+                {depthPicking && (
+                  <div className="pv-depth-pick" role="status">
+                    <span className="pv-depth-pick__pill">
+                      <span className="material-icons-round text-[16px]">
+                        {depthBusy ? 'hourglass_top' : 'touch_app'}
+                      </span>
+                      <span>
+                        {depthBusy ? t.depthFinding : t.depthPick}
+                        {depthBusy && !depthReady && <small>{t.depthFirstLoad}</small>}
+                      </span>
+                    </span>
+                    {!depthBusy && (
+                      <button type="button" className="pv-depth-pick__cancel" onClick={() => setDepthPicking(false)}>
+                        {t.depthCancel}
+                      </button>
+                    )}
+                  </div>
+                )}
+                {isLock && !depthPicking && (
                   <button
                     type="button"
                     className="pv-lock-toggle"
@@ -806,11 +930,61 @@ const PhotoVerse = () => {
                     </span>
                     <span className="pv-motion-cta__text">
                       <span className="pv-motion-cta__title">{t.motion}</span>
-                      <span className="pv-motion-cta__body">{t.motionHint}</span>
+                      <span className="pv-motion-cta__body">{subjectMask ? t.depthMotionNote : t.motionHint}</span>
                     </span>
                     <span className="material-icons-round pv-motion-cta__chevron">chevron_right</span>
                   </button>
                 )}
+
+                {/* 글자 뒤로 숨기 — 내 사진일 때만 (감성 배경엔 오려낼 대상이 없다) */}
+                {!bgId &&
+                  (subjectMask ? (
+                    <div className="pv-motion-cta pv-depth-on">
+                      <span className="pv-motion-cta__icon">
+                        <span className="material-icons-round">layers</span>
+                      </span>
+                      <span className="pv-motion-cta__text">
+                        <span className="pv-motion-cta__title">{t.depthTitle}</span>
+                        <span className="pv-motion-cta__body">{t.depthOnHint}</span>
+                      </span>
+                      <span className="pv-depth-on__actions">
+                        <button type="button" className="pv-depth-on__btn" onClick={startDepthPick}>
+                          {t.depthRepick}
+                        </button>
+                        <button type="button" className="pv-depth-on__btn" onClick={() => setSubject(null)}>
+                          {t.depthOff}
+                        </button>
+                      </span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="pv-motion-cta"
+                      onClick={startDepthPick}
+                      aria-pressed={depthPicking}
+                    >
+                      <span className="pv-motion-cta__icon">
+                        <span className="material-icons-round">layers</span>
+                      </span>
+                      <span className="pv-motion-cta__text">
+                        <span className="pv-motion-cta__title">{t.depthTitle}</span>
+                        <span className="pv-motion-cta__body">{t.depthHint}</span>
+                      </span>
+                      <span className="material-icons-round pv-motion-cta__chevron">chevron_right</span>
+                    </button>
+                  ))}
+
+                {/* 이 스타일 나눠 주기 — 받은 사람이 같은 룩으로 자기 카드를 만든다 */}
+                <button type="button" className="pv-motion-cta" onClick={() => void copyRemixLink()}>
+                  <span className="pv-motion-cta__icon">
+                    <span className="material-icons-round">style</span>
+                  </span>
+                  <span className="pv-motion-cta__text">
+                    <span className="pv-motion-cta__title">{t.remixCopy}</span>
+                    <span className="pv-motion-cta__body">{t.remixCopyHint}</span>
+                  </span>
+                  <span className="material-icons-round pv-motion-cta__chevron">link</span>
+                </button>
 
                 {/* 세부 조정 — 접혀 있다. 프리셋으로 충분한 사람에게는 보이지 않아야 화면이 차분하다 */}
                 <button

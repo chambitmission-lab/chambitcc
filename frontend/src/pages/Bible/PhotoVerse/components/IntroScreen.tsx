@@ -31,6 +31,10 @@ interface IntroScreenProps {
   onStartOccasion: (o: CardOccasion) => void
   onStartChurchVerse: (v?: PickedVerse) => void
   onStartSample: (bg: VerseBackground, preset: CardPreset) => void
+  /** 받은 스타일 링크로 들어왔을 때 — 보낸 사람이 감성 배경을 썼으면 그 배경 */
+  remix: { bg: VerseBackground | null } | null
+  onStartRemixBg: () => void
+  onDismissRemix: () => void
 }
 
 /** 사진 선택 전 인트로 — 사진 고르기·이어서 만들기·상황별·우리 교회 말씀·예시 카드·감성 배경 */
@@ -51,6 +55,9 @@ const IntroScreen = ({
   onStartOccasion,
   onStartChurchVerse,
   onStartSample,
+  remix,
+  onStartRemixBg,
+  onDismissRemix,
 }: IntroScreenProps) => (
   <div className="pv-intro">
     {/* 인트로 그림 — 누르는 자리가 아니라서 버튼처럼 보이는 아이콘 타일 대신,
@@ -78,6 +85,38 @@ const IntroScreen = ({
       {/* 글자를 span 으로 감싼다 — 맨 텍스트 노드는 광택·빛줄(절대 위치 가상 요소) 아래에 깔린다 */}
       <span>{t.pickPhoto}</span>
     </button>
+
+    {/* 받은 스타일 — 링크로 들어오면 그 룩이 이미 담겨 있다. 배경 카드였으면 같은 배경으로 바로 */}
+    {remix && (
+      <div className="pv-resume">
+        <button
+          type="button"
+          className="pv-resume__main"
+          onClick={remix.bg ? onStartRemixBg : onPickPhoto}
+        >
+          <span className="material-icons-round pv-resume__icon">style</span>
+          <span className="pv-resume__text">
+            <span className="pv-resume__title">{t.remixTitle}</span>
+            <span className="pv-resume__ref">
+              {remix.bg
+                ? `${t.remixWithBg} · ${language === 'ko' ? remix.bg.nameKo : remix.bg.nameEn}`
+                : t.remixBody}
+            </span>
+          </span>
+          <span className="material-icons-round pv-resume__chevron">chevron_right</span>
+        </button>
+        <div className="pv-remix__more">
+          {remix.bg && (
+            <button type="button" className="pv-resume__dismiss" onClick={onPickPhoto}>
+              {t.remixWithPhoto}
+            </button>
+          )}
+          <button type="button" className="pv-resume__dismiss" onClick={onDismissRemix}>
+            {t.remixDismiss}
+          </button>
+        </div>
+      </div>
+    )}
 
     {/* 이어서 만들기 — 지난번 말씀과 스타일이 남아 있을 때만 */}
     {resumeOffer && (
