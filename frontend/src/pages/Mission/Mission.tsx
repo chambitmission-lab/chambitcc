@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useMemo, useRef, useState } from 'react'
 import { safeStorage } from '../../utils/safeStorage'
 import { smoothScrollToElement } from '../../utils/scrollTo'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -21,14 +21,17 @@ import { SplitFlap } from './departures/SplitFlap'
 import { DepartureBoard } from './departures/DepartureBoard'
 import { BoardingPass } from './departures/BoardingPass'
 import { NowCard } from './departures/NowCard'
-import { LampMap, type LampPoint } from './departures/LampMap'
+import type { LampPoint } from './departures/LampMap'
 import './Mission.css'
+
+// 등불 지도는 PC 전용 — 세계 지도 데이터(약 100KB)를 모바일이 받지 않게 따로 불러온다
+const LampMap = lazy(() => import('./departures/LampMap'))
 
 // 선교 — "출발 안내판" 화면 (2026-11-17 개편).
 // 선교사 한 분이 기도 노선 하나다. 안내판에서 노선을 고르면 탑승권이 열리고, "기도 탑승"으로 검표(펀치)한다.
 //   모바일: 글자판 통계 → 지금 이 시간 카드 → 게이트 칩 → 안내판 → 탑승권 → 오늘 탑승 현황 → 국내 노선
 //   PC:     왼쪽 등불 지도(고정)+탑승권 / 오른쪽 지금 이 시간 카드·안내판·국내 노선.
-//           탑승을 마치면 지도에서 서울발 여객기가 그 나라로 날아가 등불을 켠다.
+//           탑승을 마치면 지도(항공 노선도)에서 부천발 여객기가 그 나라로 날아가 등불을 켠다.
 
 const REGION_ORDER: RegionKey[] = ['asia', 'europe', 'africa', 'americas']
 type Gate = 'all' | RegionKey
@@ -135,7 +138,7 @@ const Mission = () => {
     return routes.flatMap(r => {
       if (seen.has(r.country)) return []
       seen.add(r.country)
-      return [{ country: r.country, lat: r.detail.lat, lng: r.detail.lng }]
+      return [{ country: r.country, lat: r.detail.lat, lng: r.detail.lng, code: r.detail.code }]
     })
   }, [routes])
 
@@ -236,15 +239,17 @@ const Mission = () => {
           <div className="dep-layout">
             <div className="dep-layout__side">
               <section className="dep-card lamp-map">
-                <LampMap
-                  points={lampPoints}
-                  selectedCountry={selected?.country ?? null}
-                  litCountries={lit}
-                  flight={flight}
-                  onSelect={handleMapSelect}
-                  onLanded={handleLanded}
-                  originLabel={t('missionMapOrigin')}
-                />
+                <Suspense fallback={null}>
+                  <LampMap
+                    points={lampPoints}
+                    selectedCountry={selected?.country ?? null}
+                    litCountries={lit}
+                    flight={flight}
+                    onSelect={handleMapSelect}
+                    onLanded={handleLanded}
+                    originLabel={t('missionMapOrigin')}
+                  />
+                </Suspense>
                 <div className="lamp-map__count">
                   <b>{lit.size}</b>
                   <span>{t('missionLampsLit')}</span>

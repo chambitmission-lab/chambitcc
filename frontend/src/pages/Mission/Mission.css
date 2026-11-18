@@ -260,8 +260,7 @@
   --pass-sub: #8b95a1;
   --pass-stub: #f6f7f9;
   --pass-cut: #d1d6db;
-  --map-bg: #e9eef5;
-  --map-dot: rgba(80, 95, 125, 0.22);
+  --map-bg: #c4e1f7; /* 등불 지도 바다색 — 캔버스가 그려지기 전 빈칸 */
   --map-plane: #191f28;
   --lamp: #f59f00;
   --lamp-core: #fff8e6;
@@ -283,8 +282,7 @@
   --pass-sub: #8a857a;
   --pass-stub: #ece7dc;
   --pass-cut: #c9c3b6;
-  --map-bg: #080a0f;
-  --map-dot: rgba(125, 140, 170, 0.26);
+  --map-bg: #0a1a33;
   --map-plane: #e9eaee;
   --lamp: #ffcf7a;
   --lamp-core: #fff3d6;
@@ -791,6 +789,11 @@ img.now-card__flag,
   text-shadow: 0 0 22px rgba(var(--lamp-rgb), 0.35);
 }
 .lamp-map__count span { font-size: 13px; color: var(--text-body); }
+/* 색 있는 바다 위 숫자·범례 가독성 */
+.lamp-map__count span,
+.lamp-map__legend { text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45); }
+[data-theme='dark'] .lamp-map__count span,
+[data-theme='dark'] .lamp-map__legend { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55); }
 .lamp-map__legend {
   position: absolute;
   left: 18px;
