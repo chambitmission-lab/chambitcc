@@ -44,19 +44,12 @@ export const formatOffset = (h: number) => (h === 0 ? '0h' : `${h > 0 ? '+' : ''
 
 export type DayPhase = 'morning' | 'midday' | 'evening' | 'night'
 
-/** 하루의 때 — 기도 문구와 '지금 이 시간' 카드 색이 이걸 따른다 */
+/** 하루의 때 — 기도 문구와 '지금 이 시간' 카드 하늘빛(Mission.css .now-card--*)이 이걸 따른다 */
 export const dayPhase = (hour: number): DayPhase => {
   if (hour >= 5 && hour < 11) return 'morning'
   if (hour >= 11 && hour < 17) return 'midday'
   if (hour >= 17 && hour < 22) return 'evening'
   return 'night'
-}
-
-export const PHASE_COLOR: Record<DayPhase, string> = {
-  morning: '#e9a23b',
-  midday: '#c9a227',
-  evening: '#c9784a',
-  night: '#5a72b8',
 }
 
 /** "하루를 막 시작한 순" 정렬 키 — 현지 새벽 5시가 0, 그 뒤로 커진다 */

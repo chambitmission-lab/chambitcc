@@ -470,61 +470,152 @@
 @keyframes dep-blink { 50% { opacity: 0.25; } }
 
 /* ---------- 게이트 칩 ---------- */
+/* 한 줄 선택 띠 — 칩이 두 줄로 흩어지지 않게 한 통에 담는다. 넘치면 통 안에서 옆으로 민다 */
 .gate-chips {
   display: flex;
-  gap: 6px;
+  gap: 2px;
+  padding: 4px;
   overflow-x: auto;
   scrollbar-width: none;
-  margin: 0 -1rem;
-  padding: 0 1rem;
-}
-.gate-chips::-webkit-scrollbar { display: none; }
-.gate-chip {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
   border-radius: 999px;
   border: 1px solid var(--card-border);
   background: var(--surface-container);
-  color: var(--text-body);
-  font-size: 12.5px;
-  font-weight: 500;
-  cursor: pointer;
-}
-.gate-chip i { width: 7px; height: 7px; border-radius: 50%; }
-.gate-chip.is-on { background: var(--text-strong); border-color: var(--text-strong); color: var(--app-canvas); font-weight: 700; }
-
-/* ---------- 지금 이 시간 카드 ---------- */
-.now-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 18px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  border-radius: 18px;
   box-shadow: var(--card-shadow);
 }
+.gate-chips::-webkit-scrollbar { display: none; }
+.gate-chip {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--text-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.gate-chip i { width: 7px; height: 7px; border-radius: 50%; }
+.gate-chip:hover:not(.is-on) { background: var(--surface-inset); }
+.gate-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.gate-chip.is-on {
+  background: var(--text-strong);
+  color: var(--app-canvas);
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+}
+
+/* ---------- 지금 이 시간 카드 ---------- */
+/* 그곳의 지금 하늘 — 아침·한낮·저녁·밤에 따라 카드 하늘빛이 바뀐다(히어로의 창밖 하늘과 같은 말투).
+   그곳의 하늘이라 앱 테마와 무관하게 같은 색이고, 다크에서만 눈부시지 않게 살짝 낮춘다. */
+.now-card {
+  --now-ink: #10233f;
+  --now-sub: rgba(16, 35, 63, 0.78);
+  --now-chip: rgba(255, 255, 255, 0.6);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 15px 18px 16px;
+  overflow: hidden;
+  border-radius: 18px;
+  color: var(--now-ink);
+  background: var(--now-sky);
+  box-shadow: 0 1px 2px rgba(15, 30, 60, 0.08), 0 14px 26px -14px rgba(20, 50, 110, 0.45);
+}
+[data-theme='dark'] .now-card { filter: brightness(0.9) saturate(0.95); box-shadow: 0 14px 26px -14px rgba(0, 0, 0, 0.7); }
+.now-card > * { position: relative; z-index: 1; }
+
+.now-card--morning {
+  --now-sky: linear-gradient(115deg, #fff4dd 0%, #ffe3b5 42%, #c4e2fb 100%);
+  --now-ink: #3d2a06;
+  --now-sub: rgba(61, 42, 6, 0.8);
+  --now-orb: radial-gradient(circle, #fff 0 16%, #ffe08a 30%, rgba(255, 196, 80, 0.45) 48%, rgba(255, 196, 80, 0) 70%);
+}
+.now-card--midday {
+  --now-sky: linear-gradient(115deg, #e3f3ff 0%, #b9defa 55%, #8fc8f6 100%);
+  --now-orb: radial-gradient(circle, #fff 0 20%, #fff6c9 34%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 72%);
+}
+.now-card--evening {
+  --now-sky: linear-gradient(115deg, #3a2f6e 0%, #8c4a78 45%, #e98f5c 100%);
+  --now-ink: #fff;
+  --now-sub: rgba(255, 255, 255, 0.86);
+  --now-chip: rgba(255, 255, 255, 0.2);
+  --now-orb: radial-gradient(circle, #fff3c4 0 16%, #ffc56e 30%, rgba(255, 150, 80, 0.45) 50%, rgba(255, 150, 80, 0) 72%);
+}
+.now-card--night {
+  --now-sky: linear-gradient(115deg, #0b1738 0%, #172a5e 60%, #26407f 100%);
+  --now-ink: #fff;
+  --now-sub: rgba(255, 255, 255, 0.84);
+  --now-chip: rgba(255, 255, 255, 0.16);
+  --now-orb: radial-gradient(circle, rgba(253, 251, 234, 0.6) 0 16%, rgba(220, 230, 255, 0.22) 34%, rgba(220, 230, 255, 0) 66%);
+}
+/* 해·달 — 시각 뒤에서 번지는 빛. 아침은 낮게, 한낮은 높게, 저녁은 다시 낮게 */
+.now-card::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  right: -14px;
+  top: 50%;
+  width: 150px;
+  height: 150px;
+  margin-top: -75px;
+  background: var(--now-orb);
+  pointer-events: none;
+}
+.now-card--morning::before,
+.now-card--evening::before { top: 100%; }
+.now-card--midday::before { top: 8%; }
+/* 달은 시각 글자를 가리지 않게 오른쪽 위 모서리에 반쯤 걸친다 */
+.now-card--night::before { top: -30px; right: -30px; width: 100px; height: 100px; margin-top: 0; }
+/* 밤 — 별 몇 개 */
+.now-card--night::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 24%, #fff 0 1px, transparent 1.6px),
+    radial-gradient(circle at 31% 72%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 47% 18%, rgba(255, 255, 255, 0.8) 0 0.8px, transparent 1.4px),
+    radial-gradient(circle at 63% 80%, rgba(255, 255, 255, 0.6) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 72% 30%, #fff 0 0.8px, transparent 1.4px);
+}
+
+.now-card__place { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
 img.now-card__flag,
 .now-card__flag {
   flex: 0 0 auto;
-  width: 40px;
-  height: 27px;
-  border-radius: 4px;
+  width: 28px;
+  height: 19px;
+  border-radius: 3px;
   object-fit: cover;
-  box-shadow: 0 0 0 1px var(--card-border);
-  font-size: 1.6rem;
-  line-height: 27px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7), 0 1px 3px rgba(0, 0, 0, 0.25);
+  font-size: 1.1rem;
+  line-height: 19px;
   text-align: center;
 }
-.now-card__text { min-width: 0; }
-.now-card__title,
-.now-card__line { word-break: keep-all; text-wrap: pretty; }
-.now-card__title { font-size: 15px; font-weight: 700; color: var(--text-strong); line-height: 1.4; }
-.now-card__time { font-family: var(--dep-mono); letter-spacing: 0; }
-.now-card__line { margin-top: 3px; font-size: 12.5px; color: var(--text-body); line-height: 1.5; }
+.now-card__title { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.35; word-break: keep-all; }
+.now-card__phase {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--now-chip);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.now-card__line { grid-column: 1; margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--now-sub); word-break: keep-all; text-wrap: pretty; }
+.now-card__clock { grid-column: 2; grid-row: 1 / span 2; text-align: right; }
+.now-card__time { display: block; font: 800 28px/1 var(--dep-mono); letter-spacing: -0.03em; }
+.now-card__clock small { display: block; margin-top: 4px; font: 700 9.5px var(--dep-mono); letter-spacing: 0.12em; color: var(--now-sub); }
 
 /* ---------- 탑승권 ----------
    좌석 예약 티켓과 같은 문법 — 절취선 양 끝 반원 홈과 검표 구멍을 mask 로 실제로 뚫는다.
@@ -1132,7 +1223,6 @@ img.now-card__flag,
     gap: 0.9rem;
     min-width: 0;
   }
-  .dep-layout .gate-chips { margin: 0; padding: 0; flex-wrap: wrap; }
 
   /* PC 라이트 — 카드가 캔버스에 붙어 보이지 않게 띄운다(홈 .home-lift 와 같은 깊이) */
   :root:not(.dark) .mission-page {
@@ -1156,9 +1246,13 @@ img.now-card__flag,
   .dep-board__sub,
   .dep-board__clock small { font-size: 12px; }
   .dep-board__clock { font-size: 14px; }
-  .gate-chip { font-size: 14px; padding: 8px 14px; }
-  .now-card__title { font-size: 17px; }
+  .gate-chip { font-size: 13.5px; padding: 9px 8px; }
+  .now-card { padding: 18px 22px 19px; }
+  .now-card__title { font-size: 18px; }
+  .now-card__phase { font-size: 13px; }
   .now-card__line { font-size: 14.5px; }
+  .now-card__time { font-size: 34px; }
+  .now-card__clock small { font-size: 11px; }
   .bp-label { font-size: 11px; }
   .bp-route b { font-size: 34px; }
   .bp-route b small { font-size: 12.5px; }
