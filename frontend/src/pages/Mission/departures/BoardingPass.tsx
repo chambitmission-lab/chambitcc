@@ -12,6 +12,12 @@ import type { PrayerRoute } from './routes'
 //   ⑤ 뚫린 종잇조각이 떨어진다 → 끝나면 onBoarded (안내판 '기도 완료'·지도 비행이 이어진다)
 // 구멍·절취선 홈은 좌석 예약 티켓(Seats/seat-ticket.css)과 같은 문법 — 색을 칠하지 않고 mask 로 진짜로 뚫는다.
 // layout: side = 꼬리표가 오른쪽(모바일) / bottom = 꼬리표가 아래(PC 좁은 칼럼 아래 가로형)
+// 2026-11-18 입체 개편: 하늘색 머리띠 + 지도와 같은 휜 노선 + 정보 칸 + 눌리는 탑승 단추.
+// 구멍·홈·펀치·스캔 동작은 그대로다.
+
+/** 위를 보는 여객기(24×24) — CSS 로 90° 돌려 진행 방향(→)을 보게 한다. ✈ 글리프는 OS 마다 이모지로 바뀐다 */
+const PLANE_PATH =
+  'M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'
 
 type Stage = 'idle' | 'scanning' | 'scanned' | 'punched'
 
@@ -156,13 +162,28 @@ export function BoardingPass({
         ref={ticketRef}
         className={`bp${stage === 'scanning' ? ' is-scanning' : ''}${stage === 'scanned' ? ' is-scanned' : ''}${punched ? ' is-punched' : ''}`}
       >
+        <div className="bp-head">
+          <span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d={PLANE_PATH} />
+            </svg>
+            PRAYER BOARDING PASS
+          </span>
+          <b>{route.flight}</b>
+        </div>
         <div className="bp-main">
-          <div className="bp-label">PRAYER BOARDING PASS · {route.flight}</div>
           <div className="bp-route">
             <b>
               CBC<small>{t('missionPassFrom')}</small>
             </b>
-            <i aria-hidden="true" />
+            <span className="bp-arc" aria-hidden="true">
+              <svg className="bp-arc__line" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <path d="M3 26 Q50 -14 97 26" />
+              </svg>
+              <svg className="bp-arc__plane" viewBox="0 0 24 24">
+                <path d={PLANE_PATH} />
+              </svg>
+            </span>
             <b className="bp-to">
               {detail.code}
               <small>
@@ -214,6 +235,11 @@ export function BoardingPass({
           </span>
           <button type="button" className={`bp-go${punched ? ' is-done' : ''}`} onClick={board} disabled={punched} aria-live="polite">
             {btnLabel}
+            {!punched && stage === 'idle' && (
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d={PLANE_PATH} />
+              </svg>
+            )}
           </button>
         </div>
       </div>

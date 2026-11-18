@@ -1,5 +1,5 @@
 // 등불 지도(LampMap) 재료 — 실제 국경(world-atlas 110m) + 그리기 도구.
-// LampMap 은 PC 에서만 lazy 로 불러, 이 데이터(약 100KB)가 모바일 번들에 실리지 않는다.
+// LampMap 청크에만 실린다(약 100KB) — 라우트 로더가 화면 청크와 나란히 미리 받는다(lampMapLoader.ts).
 
 import { feature, merge, mesh } from 'topojson-client'
 import type { GeometryCollection, Topology } from 'topojson-specification'

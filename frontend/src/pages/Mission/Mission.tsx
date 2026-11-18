@@ -22,11 +22,12 @@ import { DepartureBoard } from './departures/DepartureBoard'
 import { BoardingPass } from './departures/BoardingPass'
 import { NowCard } from './departures/NowCard'
 import type { LampPoint } from './departures/LampMap'
+import { loadLampMap } from './lampMapLoader'
 import './Mission.css'
 
-// 등불 지도 — 세계 지도 데이터(약 100KB)가 첫 화면 번들에 실리지 않게 따로 불러온다
-// PC 는 세계 전체(view=world), 모바일은 탑승권 위에서 고른 노선만 확대(view=route)
-const LampMap = lazy(() => import('./departures/LampMap'))
+// 등불 지도 — 세계 지도 데이터(약 100KB)는 따로 청크로 두되, 라우트 로더가 화면 청크와 나란히 미리 받는다
+// (lampMapLoader.ts). PC 는 세계 전체(view=world), 모바일은 탑승권 위에서 고른 노선만 확대(view=route)
+const LampMap = lazy(loadLampMap)
 
 // 선교 — "출발 안내판" 화면 (2026-11-17 개편).
 // 선교사 한 분이 기도 노선 하나다. 안내판에서 노선을 고르면 탑승권이 열리고, "기도 탑승"으로 검표(펀치)한다.

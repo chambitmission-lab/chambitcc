@@ -4,10 +4,13 @@ import { preloadBudget, scheduleAfterFirstScreen } from './idlePreload'
 import { warmRouteThemeAssets } from './themeAssets'
 import { withChurchHistory } from '../api/churchHistory'
 import { withMissionRoster } from '../api/missionRoster'
+import { warmLampMap } from '../pages/Mission/lampMapLoader'
 import { withRequestPriority } from '../api/utils/request'
 import { loadHome } from './homeChunk'
 
 type RouteLoader = () => Promise<{ default: ComponentType }>
+
+const loadMission = withMissionRoster(() => import('../pages/Mission/Mission'))
 
 // 기도방 상세 — /groups 카드 터치·호버 때 미리 받는다 (lazy 와 같은 함수 공유)
 export const groupDetailLoader: RouteLoader = () => import('../pages/Groups/GroupDetail')
@@ -88,7 +91,12 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/groups': () => import('../pages/Groups/MyGroups'),
   '/companion': () => import('../pages/Companion/CompanionList'),
   // 선교사 명단(섬기는 사람들 DB)을 먼저 채우고 연다 — 화면이 명단을 동기로 읽는다
-  '/mission': withMissionRoster(() => import('../pages/Mission/Mission')),
+  // 등불 지도 청크(세계 지도 데이터)는 명단·화면 청크를 기다리지 않고 나란히 받는다 — 화면이 뜬 뒤에야
+  // 요청이 나가 지도 칸만 늦게 채워지던 것
+  '/mission': () => {
+    warmLampMap()
+    return loadMission()
+  },
   '/news': () => import('../pages/News/News'),
   '/garden': () =>
     import('../pages/Garden/Garden').then((m) => ({ default: m.Garden })),
