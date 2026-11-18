@@ -48,4 +48,5 @@ export const mission = {
   missionRouteFrom: '부천',
   missionLampsUnit: '등불',
   missionDomesticRoutes: '국내 노선',
+  missionDomesticUnit: '곳과 동행',
 } as const

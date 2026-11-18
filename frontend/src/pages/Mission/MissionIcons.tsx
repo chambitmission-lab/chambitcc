@@ -3,7 +3,7 @@
  * 기존 소비처가 width/height 를 넘기던 관행을 그대로 받아 size 로 흡수한다.
  */
 import type { CSSProperties } from 'react'
-import { HandHeart, type Icon } from '../../components/icons/phosphor'
+import { Buildings, Church, HandHeart, type Icon } from '../../components/icons/phosphor'
 
 export type MissionIconProps = {
   size?: number
@@ -28,3 +28,7 @@ const duotone =
 
 /** 손 위의 하트 — 기도·중보 */
 export const HandHeartIcon = duotone(HandHeart)
+/** 예배당 — 국내 미자립 교회 */
+export const ChurchIcon = duotone(Church)
+/** 건물 — 국내 협력 기관 */
+export const BuildingsIcon = duotone(Buildings)

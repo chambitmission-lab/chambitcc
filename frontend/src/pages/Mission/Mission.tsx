@@ -14,7 +14,7 @@ import {
   missionStats,
   type RegionKey,
 } from './missionData'
-import { HandHeartIcon } from './MissionIcons'
+import { BuildingsIcon, ChurchIcon, HandHeartIcon } from './MissionIcons'
 import { buildRoutes, type PrayerRoute } from './departures/routes'
 import { distanceFromSeoulKm, localHour, morningFirstKey } from './departures/missionTime'
 import { SplitFlap } from './departures/SplitFlap'
@@ -196,26 +196,40 @@ const Mission = () => {
     </div>
   ) : null
 
+  // 국내 노선 — 국내선 안내판. 머리띠(곳 수) + 두 묶음(미자립 교회·협력 기관)을 번호 달린 두 줄 목록으로
+  const domesticGroups = [
+    { key: 'church', label: t('missionDomesticChurches'), names: domesticChurches, icon: <ChurchIcon size={17} /> },
+    { key: 'org', label: t('missionDomesticOrgs'), names: domesticOrganizations, icon: <BuildingsIcon size={17} /> },
+  ]
   const domestic = (
-    <section className="dep-card domestic-routes">
-      <h2 className="domestic-routes__title">
-        {t('missionDomesticRoutes')}
-        <small>DOMESTIC</small>
-      </h2>
-      <div className="domestic-routes__group">{t('missionDomesticChurches')}</div>
-      <div className="domestic-routes__tix">
-        {domesticChurches.map(name => (
-          <span key={name}>{name}</span>
-        ))}
-      </div>
-      <div className="domestic-routes__group">{t('missionDomesticOrgs')}</div>
-      <div className="domestic-routes__tix">
-        {domesticOrganizations.map(name => (
-          <span key={name} className="is-org">
-            {name}
-          </span>
-        ))}
-      </div>
+    <section className="dep-card dom">
+      <header className="dom-head">
+        <div>
+          <span className="dom-eyebrow">DOMESTIC</span>
+          <h2 className="dom-title">{t('missionDomesticRoutes')}</h2>
+        </div>
+        <p className="dom-count">
+          <b>{missionStats.domesticPartners}</b>
+          {t('missionDomesticUnit')}
+        </p>
+      </header>
+      {domesticGroups.map(g => (
+        <div key={g.key} className={`dom-group dom-group--${g.key}`}>
+          <h3 className="dom-group__head">
+            <i aria-hidden="true">{g.icon}</i>
+            {g.label}
+            <b>{g.names.length}</b>
+          </h3>
+          <ul className="dom-list">
+            {g.names.map((name, i) => (
+              <li key={name}>
+                <span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                {name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </section>
   )
 

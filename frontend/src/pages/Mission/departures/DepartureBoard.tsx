@@ -7,6 +7,7 @@ import type { PrayerRoute } from './routes'
 
 // 출발 안내판 — 노선(선교사) 한 줄에 현지 시각·도시·선교사·기도 상태.
 // 행을 누르면 그 노선의 탑승권이 열린다.
+// 글자판(넘어가는 칸)은 시각·도시만 — 사람 이름까지 칸으로 쪼개면 읽기 어렵고 어수선했다(2026-11-18).
 
 const cityLabel = (r: PrayerRoute, ko: boolean) =>
   ko ? r.detail.city : r.detail.cityEn.toUpperCase().slice(0, 10)
@@ -31,7 +32,7 @@ const BoardRow = memo(function BoardRow({
   statusDone: string
 }) {
   const city = cityLabel(route, ko)
-  const time = localHM(route.detail.tz, nowMs).replace(':', '')
+  const time = localHM(route.detail.tz, nowMs)
   return (
     <button
       type="button"
@@ -41,8 +42,11 @@ const BoardRow = memo(function BoardRow({
       aria-pressed={selected}
     >
       <SplitFlap text={time} />
-      <SplitFlap text={city} tight={city.length > (ko ? 4 : 6)} />
-      <SplitFlap text={route.missionary.name} tight={route.missionary.name.length > 3} />
+      <span className="dep-city">
+        <i aria-hidden="true" />
+        <SplitFlap text={city} tight={city.length > (ko ? 3 : 6)} dense={city.length > (ko ? 5 : 8)} />
+      </span>
+      <span className="dep-name">{route.missionary.name}</span>
       <span className={`dep-status${boarded ? ' is-done' : ''}`}>{boarded ? statusDone : statusWait}</span>
     </button>
   )

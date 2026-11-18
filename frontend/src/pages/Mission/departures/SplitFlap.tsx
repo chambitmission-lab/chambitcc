@@ -8,6 +8,8 @@ import { prefersReducedMotion } from '../../../utils/prefersReducedMotion'
 const LATIN = 'ABCDEFGHJKLMNPRSTUVWXYZ0123456789'
 const HANGUL = '가나다라마바사아자차카타파하'
 const isWide = (ch: string) => /[ㄱ-힣○〇]/.test(ch)
+/** 시각의 ':' — 글자판 칸이 아니라 칸 사이에 찍힌 구분 글자. 넘어가지 않는다 */
+const isSep = (ch: string) => ch === ':'
 
 interface Spin {
   el: HTMLElement
@@ -46,8 +48,16 @@ const stopSpinsIn = (root: HTMLElement) => {
 
 const show = (ch: string) => (ch === ' ' ? '\u00a0' : ch)
 
-/** 글자판 한 줄. `tight` 는 긴 도시 이름처럼 칸을 좁혀 한 줄에 넣을 때 */
-export const SplitFlap = memo(function SplitFlap({ text, tight = false }: { text: string; tight?: boolean }) {
+/** 글자판 한 줄. `tight` 는 긴 도시 이름처럼 칸을 좁혀 한 줄에 넣을 때, `dense` 는 그보다 더 긴 이름(모바일에서만 한 단계 더 좁힌다) */
+export const SplitFlap = memo(function SplitFlap({
+  text,
+  tight = false,
+  dense = false,
+}: {
+  text: string
+  tight?: boolean
+  dense?: boolean
+}) {
   const ref = useRef<HTMLSpanElement>(null)
   const prev = useRef<string | null>(null)
   const chars = [...text]
@@ -62,7 +72,7 @@ export const SplitFlap = memo(function SplitFlap({ text, tight = false }: { text
       const ch = chars[i] ?? ' '
       const final = show(ch)
       // 이미 같은 글자면 그대로 — 30초마다 시각이 바뀌어도 바뀐 칸만 넘어간다
-      if (still || ch === ' ' || (before && before[i] === ch)) {
+      if (still || ch === ' ' || isSep(ch) || (before && before[i] === ch)) {
         el.textContent = final
         return
       }
@@ -77,11 +87,11 @@ export const SplitFlap = memo(function SplitFlap({ text, tight = false }: { text
   }, [text])
 
   return (
-    <span className={`sf${tight ? ' sf--tight' : ''}`}>
+    <span className={`sf${tight || dense ? ' sf--tight' : ''}${dense ? ' sf--dense' : ''}`}>
       <span className="sr-only">{text}</span>
       <span ref={ref} className="sf-cells" aria-hidden="true">
         {chars.map((ch, i) => (
-          <span key={i} className={`sf-cell${isWide(ch) ? ' is-wide' : ''}`} />
+          <span key={i} className={`sf-cell${isWide(ch) ? ' is-wide' : ''}${isSep(ch) ? ' is-sep' : ''}`} />
         ))}
       </span>
     </span>

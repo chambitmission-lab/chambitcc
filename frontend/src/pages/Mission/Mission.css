@@ -200,9 +200,12 @@
   --dep-mono: ui-monospace, 'SF Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
   --dep-board-bg: var(--surface-container);
   --dep-board-line: #eef0f3;
-  --dep-flap: #eef1f5;
+  --dep-flap: #e6eaf0;
+  --dep-flap-hi: #f3f5f8;
+  --dep-flap-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 1px 1.5px rgba(15, 30, 60, 0.16);
+  --dep-sign: linear-gradient(105deg, #15223c 0%, #24385f 100%);
   --dep-flap-ink: #191f28;
-  --dep-flap-cut: #ffffff;
+  --dep-flap-cut: rgba(20, 40, 80, 0.14);
   --dep-wait: #c27a00;
   --dep-wait-bg: #fff4e0;
   --dep-done: #0f9a4a;
@@ -217,6 +220,9 @@
   --pass-tint: #f5f8fd;
   --pass-line: #e6ebf2;
   --pass-under: #e3e8ef;
+  --dom-band: linear-gradient(105deg, #fff3da 0%, #ffe6b3 100%);
+  --dom-ink: #6a4300;
+  --dom-line: rgba(194, 122, 0, 0.18);
   --map-bg: #c4e1f7; /* 등불 지도 바다색 — 캔버스가 그려지기 전 빈칸 */
   --map-plane: #191f28;
   --lamp: #f59f00;
@@ -227,7 +233,10 @@
 [data-theme="dark"] .mission-page {
   --dep-board-bg: #08090a;
   --dep-board-line: #1a1c20;
-  --dep-flap: #1b1c1f;
+  --dep-flap: #17181b;
+  --dep-flap-hi: #222327;
+  --dep-flap-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.6);
+  --dep-sign: linear-gradient(105deg, #121418 0%, #1b1e24 100%);
   --dep-flap-ink: #f3e9cf;
   --dep-flap-cut: #000000;
   --dep-wait: #e3a548;
@@ -244,6 +253,9 @@
   --pass-tint: #ece7dc;
   --pass-line: #dcd6c8;
   --pass-under: #b9b3a6;
+  --dom-band: linear-gradient(105deg, rgba(227, 165, 72, 0.2) 0%, rgba(227, 165, 72, 0.08) 100%);
+  --dom-ink: #ffd98a;
+  --dom-line: rgba(227, 165, 72, 0.2);
   --map-bg: #0a1a33;
   --map-plane: #e9eaee;
   --lamp: #ffcf7a;
@@ -282,8 +294,10 @@
   min-width: 13px;
   height: 24px;
   padding: 0 2px;
-  border-radius: 3px;
-  background: var(--dep-flap);
+  border-radius: 4px;
+  /* 위·아래 두 장이 맞물린 칸 — 위 장이 조금 밝다 */
+  background: linear-gradient(180deg, var(--dep-flap-hi) 0 50%, var(--dep-flap) 50% 100%);
+  box-shadow: var(--dep-flap-shadow);
   color: var(--dep-flap-ink);
   font: 700 12.5px/1 var(--dep-mono);
   letter-spacing: 0;
@@ -301,12 +315,27 @@
   top: 50%;
   height: 1px;
   background: var(--dep-flap-cut);
-  opacity: 0.9;
 }
+/* 시각의 ':' — 칸 없이 */
+.sf-cell.is-sep {
+  min-width: 4px;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+.sf-cell.is-sep::after { content: none; }
 .sf--tight .sf-cell { min-width: 11px; font-size: 11px; padding: 0 1px; }
 .sf--tight .sf-cell.is-wide { min-width: 14px; font-size: 10.5px; }
+.sf--tight .sf-cells { gap: 1px; }
+/* 여섯 글자 넘는 도시(쿠알라룸푸르·블라디보스토크) — 모바일 폭에서도 잘리지 않게 한 단계 더 */
+@media (max-width: 1023.98px) {
+  .sf--dense .sf-cells { gap: 0.5px; }
+  .sf--dense .sf-cell.is-wide { min-width: 11px; padding: 0; font-size: 9.5px; letter-spacing: -0.04em; }
+  .sf--dense .sf-cell { min-width: 9px; padding: 0; font-size: 9.5px; }
+}
 
-.dep-ticker .sf-cell { background: var(--surface-container); height: 22px; font-size: 11px; min-width: 11px; box-shadow: inset 0 0 0 1px var(--card-border); }
+.dep-ticker .sf-cell { background: var(--surface-container); border-radius: 3px; height: 22px; font-size: 11px; min-width: 11px; box-shadow: inset 0 0 0 1px var(--card-border); }
 .dep-ticker .sf-cell.is-wide { min-width: 15px; }
 .dep-ticker .sf-cells { flex-wrap: wrap; }
 
@@ -315,50 +344,57 @@
   background: var(--dep-board-bg);
   border: 1px solid var(--dep-board-line);
   border-radius: 16px;
-  padding: 12px 10px 4px;
+  overflow: hidden;
   box-shadow: var(--card-shadow);
 }
+/* 머리띠 — 공항 천장에 걸린 어두운 표지판. 탑승권(하늘색)·국내 노선(등불빛) 띠와 짝 */
 .dep-board__head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2px 10px;
+  padding: 11px 14px;
+  background:
+    radial-gradient(120% 180% at 0% 0%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 60%),
+    var(--dep-sign);
 }
 .dep-board__title {
   font: 700 13px var(--dep-mono);
   letter-spacing: 0.14em;
-  color: var(--dep-wait);
+  color: #ffc45a;
 }
 .dep-board__sub {
   margin-top: 2px;
   font-size: 10.5px;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
 }
-.dep-board__clock { text-align: right; font: 700 12px var(--dep-mono); color: var(--text-body); }
-.dep-board__clock small { display: block; font-size: 9.5px; letter-spacing: 0.1em; color: var(--text-muted); }
+.dep-board__clock { text-align: right; font: 700 13px var(--dep-mono); color: #fff; }
+.dep-board__clock small { display: block; font-size: 9.5px; letter-spacing: 0.1em; color: rgba(255, 255, 255, 0.6); }
 
 .dep-cols,
 .dep-row {
   display: grid;
-  grid-template-columns: 3.6rem minmax(0, 1fr) 4rem 4.2rem;
+  grid-template-columns: 4.1rem minmax(0, 1fr) 3.6rem 4.6rem;
   gap: 6px;
   align-items: center;
 }
 .dep-cols {
-  padding: 0 4px 7px;
+  margin: 0 8px;
+  padding: 9px 8px 7px;
   border-bottom: 1px solid var(--dep-board-line);
   font: 700 9.5px var(--dep-mono);
   letter-spacing: 0.06em;
   color: var(--text-muted);
 }
+.dep-cols span:last-child { text-align: center; }
+.dep-rows { padding: 2px 8px 6px; }
 .dep-row {
   position: relative;
   width: 100%;
-  padding: 8px 4px;
+  padding: 9px 8px;
   border: 0;
   border-bottom: 1px solid var(--dep-board-line);
-  border-radius: 6px;
+  border-radius: 10px;
   background: transparent;
   color: inherit;
   text-align: left;
@@ -368,31 +404,70 @@
 .dep-row:last-child { border-bottom-color: transparent; }
 .dep-row:hover { background: color-mix(in srgb, var(--brand) 6%, transparent); }
 .dep-row:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
-.dep-row.is-selected { background: var(--brand-soft-strong); }
+.dep-row.is-selected {
+  background: var(--brand-soft-strong);
+  border-bottom-color: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 28%, transparent);
+}
 .dep-row.is-selected::before {
   content: '';
   position: absolute;
-  left: -6px;
-  top: 8px;
-  bottom: 8px;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
   width: 3px;
-  border-radius: 3px;
+  border-radius: 0 3px 3px 0;
   background: var(--brand);
 }
 
+/* 도시 — 대륙 색 점 + 글자판 */
+.dep-city { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.dep-city i { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--rc, var(--text-muted)); }
+/* 선교사 — 글자판이 아니라 또렷한 이름 */
+.dep-name {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .dep-status {
-  padding: 5px 2px;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 6px;
+  border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
-  text-align: center;
   white-space: nowrap;
   color: var(--dep-wait);
   background: var(--dep-wait-bg);
+}
+/* 대기 = 깜빡이는 점(글자는 가만히) / 완료 = 체크 */
+.dep-status::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
   animation: dep-blink 1.8s ease-in-out infinite;
 }
-.dep-status.is-done { color: var(--dep-done); background: var(--dep-done-bg); animation: none; }
-@keyframes dep-blink { 50% { opacity: 0.5; } }
+.dep-status.is-done { color: var(--dep-done); background: var(--dep-done-bg); }
+.dep-status.is-done::before {
+  content: '✓';
+  width: auto;
+  height: auto;
+  background: none;
+  font-size: 11px;
+  line-height: 1;
+  animation: none;
+}
+@keyframes dep-blink { 50% { opacity: 0.25; } }
 
 /* ---------- 게이트 칩 ---------- */
 .gate-chips {
@@ -840,27 +915,84 @@ img.now-card__flag,
 .dep-progress__bar i { display: block; height: 100%; border-radius: 8px; background: var(--dep-done); transition: width 0.5s; }
 
 /* ---------- 국내 노선 ---------- */
-.domestic-routes { padding: 16px; }
-.domestic-routes__title {
+.dom { overflow: hidden; }
+/* 머리띠 — 탑승권의 하늘색 띠와 짝. 국내는 등불빛 */
+.dom-head {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: baseline;
-  font-size: 15px;
+  gap: 12px;
+  padding: 14px 16px 13px;
+  background:
+    radial-gradient(120% 180% at 100% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 60%),
+    var(--dom-band);
+  box-shadow: inset 0 -1px 0 var(--dom-line);
+}
+.dom-eyebrow { display: block; font: 700 10px var(--dep-mono); letter-spacing: 0.16em; color: var(--dom-ink); opacity: 0.75; }
+.dom-title { margin: 3px 0 0; font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: var(--dom-ink); }
+.dom-count { margin: 0; display: flex; align-items: baseline; gap: 5px; font-size: 12px; font-weight: 600; color: var(--dom-ink); white-space: nowrap; }
+.dom-count b { font: 800 26px/1 var(--dep-mono); letter-spacing: -0.04em; }
+
+.dom-group { padding: 14px 16px 6px; }
+.dom-group + .dom-group { border-top: 1px dashed var(--card-border); }
+.dom-group:last-child { padding-bottom: 12px; }
+.dom-group__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-strong);
 }
-.domestic-routes__title small { font: 700 10px var(--dep-mono); letter-spacing: 0.12em; color: var(--text-muted); }
-.domestic-routes__group { margin: 14px 0 8px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
-.domestic-routes__tix { display: flex; flex-wrap: wrap; gap: 6px; }
-.domestic-routes__tix span {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border-left: 3px solid #c98a2e;
-  background: var(--surface-inset);
-  color: var(--text-body);
-  font-size: 12px;
+.dom-group__head i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  color: var(--dom-accent);
+  background: var(--dom-accent-soft);
 }
-.domestic-routes__tix span.is-org { border-left-color: var(--brand); }
+.dom-group__head b {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font: 700 11px var(--dep-mono);
+  color: var(--dom-accent);
+  background: var(--dom-accent-soft);
+}
+.dom-group--church { --dom-accent: var(--dep-wait); --dom-accent-soft: var(--dep-wait-bg); }
+.dom-group--org { --dom-accent: var(--brand); --dom-accent-soft: var(--brand-soft-strong); }
+
+/* 번호 달린 두 줄 목록 — 안내판의 행처럼 가는 줄로만 나눈다 */
+.dom-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dom-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--dep-board-line);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-body);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+/* 마지막 줄(두 칸)은 밑줄을 뺀다 */
+.dom-list li:nth-last-child(-n + 2):nth-child(odd),
+.dom-list li:nth-last-child(-n + 2):nth-child(odd) ~ li,
+.dom-list li:last-child { border-bottom: 0; }
+.dom-list li span { flex: 0 0 auto; font: 700 10.5px var(--dep-mono); color: var(--dom-accent); opacity: 0.8; }
 
 /* ---------- 등불 지도 (PC) ---------- */
 .lamp-map {
@@ -929,7 +1061,7 @@ img.now-card__flag,
 .lamp-map__legend i.is-seoul { background: var(--brand); }
 
 @media (prefers-reduced-motion: reduce) {
-  .dep-status { animation: none; }
+  .dep-status::before { animation: none; }
   .bp { transition: none; }
   .bp-punch,
   .bp-chad { display: none; }
@@ -1009,12 +1141,16 @@ img.now-card__flag,
 
   /* 노안 대응 글씨 — 보조 글자 최소 12.5px 선. 헤더 '가' zoom 은 이 위에 한 번 더 곱해진다 */
   .dep-cols,
-  .dep-row { grid-template-columns: 4rem minmax(0, 1fr) 4.6rem 5rem; }
+  .dep-row { grid-template-columns: 5rem minmax(0, 1fr) 4.4rem 5.8rem; }
+  .dep-name { font-size: 15px; }
+  .dep-cols,
+  .dep-row { gap: 8px; }
+  .sf--tight .sf-cells { gap: 2px; }
   .sf-cell { height: 28px; min-width: 15px; font-size: 14px; }
   .sf-cell.is-wide { min-width: 20px; font-size: 13.5px; }
   .sf--tight .sf-cell { min-width: 12px; font-size: 12.5px; }
   .sf--tight .sf-cell.is-wide { min-width: 16px; font-size: 12px; }
-  .dep-status { font-size: 12.5px; padding: 6px 2px; }
+  .dep-status { font-size: 12.5px; padding: 6px 8px; }
   .dep-cols { font-size: 11px; }
   .dep-board__title { font-size: 14px; }
   .dep-board__sub,
@@ -1029,9 +1165,13 @@ img.now-card__flag,
   .bp-meta dd { font-size: 14.5px; }
   .bp-note { font-size: 11px; }
   .bp-req { font-size: 15px; }
-  .domestic-routes__title { font-size: 17px; }
-  .domestic-routes__group,
-  .domestic-routes__tix span { font-size: 13.5px; }
+  .dom-title { font-size: 19px; }
+  .dom-count { font-size: 13.5px; }
+  .dom-count b { font-size: 30px; }
+  .dom-group__head { font-size: 15px; }
+  .dom-group__head b { font-size: 12.5px; }
+  .dom-list li { font-size: 14.5px; padding: 10px 2px; }
+  .dom-list li span { font-size: 12px; }
   .lamp-map__count span,
   .lamp-map__legend { font-size: 13.5px; }
 

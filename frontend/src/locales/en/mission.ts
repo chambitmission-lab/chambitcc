@@ -48,4 +48,5 @@ export const mission = {
   missionRouteFrom: 'Bucheon',
   missionLampsUnit: 'lit',
   missionDomesticRoutes: 'Domestic routes',
+  missionDomesticUnit: 'partners',
 } as const
