@@ -129,12 +129,13 @@
 [data-theme='dark'] .pd-face-me {
   box-shadow: 0 0 0 2px #221f1b, 0 0 0 3.5px #c98a26;
 }
-/* "+N" — 얼굴과 같은 크기의 알약, 바탕과 확실히 구분되게 */
+
+/* "+N" — 얼굴과 같은 높이의 알약, 바탕과 확실히 구분되게 */
 .pd-face-more {
   background-color: #e8f3ff;
   color: #1b64da;
 }
 [data-theme='dark'] .pd-face-more {
-  background-color: #2c2a26;
-  color: #e6dfd2;
+  background-color: #3a3631;
+  color: #f2ece2;
 }

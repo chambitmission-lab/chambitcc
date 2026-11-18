@@ -26,7 +26,7 @@ const PrayerStats = ({ prayerCount, prayedBy, isPrayed = false }: PrayerStatsPro
   const { avatarUrl, displayName } = useMyIdentity()
 
   const faces = useMemo(() => {
-    // 서버가 얼굴 목록을 안 준 경우(구버전 백엔드·목록 카드 데이터) — 내 얼굴만 덩그러니 + "+12" 로
+    // 상세를 받아 오기 전(목록 카드 데이터)엔 얼굴 목록이 없다 — 내 얼굴만 덩그러니 + "+17" 로
     // 보이지 않게 얼굴 줄 자체를 그리지 않는다(아이콘 + 숫자 폴백)
     if (!prayedBy) return []
     const others = prayedBy.filter((f) => !f.is_me)
@@ -79,7 +79,7 @@ const PrayerStats = ({ prayerCount, prayedBy, isPrayed = false }: PrayerStatsPro
         // 얼굴이 앞에 서면 "성도가"는 군더더기 — 한 줄에 들어가게 짧게
         <span className="min-w-0 whitespace-nowrap overflow-hidden text-ellipsis">
           <span className="font-semibold text-ink-strong">{prayerCount}명</span>
-          {faces.length > 0 ? '이 함께 기도하고 있어요' : '의 성도가 함께 기도하고 있어요'}
+          {faces.length > 0 ? '이 함께 기도해요' : '의 성도가 함께 기도하고 있어요'}
         </span>
       ) : (
         <span>가장 먼저 함께 기도해 보세요</span>
