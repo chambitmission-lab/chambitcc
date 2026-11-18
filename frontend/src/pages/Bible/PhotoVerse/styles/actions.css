@@ -12,6 +12,13 @@
   cursor: pointer;
 }
 
+/* 카카오 브랜드 가이드 — 노란 바탕 + 검은 말풍선 (테마와 무관하게 같은 색) */
+.pv-share-button--kakao {
+  border-color: transparent;
+  background: #fee500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
 .pv-share-button:disabled {
   opacity: 0.6;
 }

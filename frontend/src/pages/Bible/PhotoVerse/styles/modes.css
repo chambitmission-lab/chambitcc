@@ -780,3 +780,122 @@
   justify-content: center;
   gap: 4px;
 }
+
+/* 카카오톡 말씀 엽서 시트 */
+.pv-kakao__body {
+  padding: 12px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+/* 엽서는 테마와 무관하게 종이색 — 받는 사람 대화방에 뜰 그대로 보여 준다 */
+.pv-kakao__preview {
+  width: min(100%, 300px);
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.pv-kakao__field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pv-kakao__label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pv-kakao__label em {
+  font-style: normal;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.pv-kakao__input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: var(--text-strong);
+  font-size: 16px; /* iOS 확대 방지 */
+}
+
+.pv-kakao__input:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.pv-kakao__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pv-kakao__row {
+  display: flex;
+  gap: 8px;
+}
+
+.pv-kakao__send {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  background: #fee500;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.16s ease;
+}
+
+.pv-kakao__send:hover {
+  filter: brightness(0.97);
+}
+
+.pv-kakao__send:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.pv-kakao__other {
+  flex-shrink: 0;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.pv-kakao__send:focus-visible,
+.pv-kakao__other:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.pv-kakao__hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+}

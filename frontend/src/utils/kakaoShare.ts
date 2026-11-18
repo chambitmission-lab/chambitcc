@@ -28,6 +28,7 @@ interface KakaoFeedTemplate {
     imageHeight?: number
     link: { webUrl: string; mobileWebUrl: string }
   }
+  buttons?: { title: string; link: { webUrl: string; mobileWebUrl: string } }[]
 }
 
 interface KakaoShareSdk {
@@ -36,6 +37,7 @@ interface KakaoShareSdk {
   Share: {
     sendScrap: (opts: { requestUrl: string }) => void
     sendDefault: (template: KakaoFeedTemplate) => void
+    uploadImage: (opts: { file: FileList | File[] }) => Promise<{ infos?: { original?: { url?: string } } }>
   }
 }
 
@@ -48,6 +50,8 @@ export interface KakaoFeedCard {
   imageHeight?: number
   /** 카드를 누르면 열리는 주소 */
   link: string
+  /** 카드 아래 버튼(최대 2개) — 없으면 카카오 기본 버튼 하나 */
+  buttons?: { title: string; link: string }[]
 }
 
 let sdkPromise: Promise<KakaoShareSdk> | null = null
@@ -55,7 +59,7 @@ let sdk: KakaoShareSdk | null = null
 
 export const canKakaoShare = () => Boolean(KAKAO_JS_KEY)
 
-const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+export const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
 /** SDK 를 받아 init 까지 — 여러 번 불러도 한 번만 받는다 */
 export const loadKakaoShare = (): Promise<KakaoShareSdk> => {
@@ -130,9 +134,34 @@ export const kakaoShareFeed = (card: KakaoFeedCard): Promise<boolean> =>
           imageHeight: card.imageHeight,
           link: { webUrl: card.link, mobileWebUrl: card.link },
         },
+        buttons: card.buttons?.slice(0, 2).map(b => ({ title: b.title, link: { webUrl: b.link, mobileWebUrl: b.link } })),
       }),
     ),
   )
+
+/**
+ * 앱이 그린 그림(말씀 엽서처럼 주소가 없는 것)을 카카오 이미지 서버에 올리고 그 주소를 받는다. 실패하면 null.
+ * 카카오가 일정 기간만 보관한다 — 오래된 대화에서는 그림이 빠질 수 있다(글·링크는 남는다).
+ * 등록 도메인이 아닌 곳(로컬)에서는 거절된다.
+ */
+export const kakaoUploadImage = async (file: File): Promise<string | null> => {
+  try {
+    const k = sdk ?? (await loadKakaoShare())
+    // SDK 는 FileList 를 기대한다 — DataTransfer 가 없는 옛 브라우저는 배열로
+    let files: FileList | File[] = [file]
+    try {
+      const dt = new DataTransfer()
+      dt.items.add(file)
+      files = dt.files
+    } catch {
+      /* 배열 그대로 */
+    }
+    const res = await k.Share.uploadImage({ file: files })
+    return res?.infos?.original?.url ?? null
+  } catch {
+    return null
+  }
+}
 
 // ── 스크랩 예열 ──
 // sendScrap 은 SDK 가 카카오 API(/talk/template/scrap)에 주소를 넘기고, 카카오가 그 자리에서 페이지와

@@ -24,6 +24,7 @@ import DetailControls from './components/DetailControls'
 import IntroScreen from './components/IntroScreen'
 import LockScreenGuide from './components/LockScreenGuide'
 import MotionCardSheet from './components/MotionCardSheet'
+import KakaoPostcardSheet from './components/KakaoPostcardSheet'
 import OccasionSection from './components/OccasionSection'
 import PrintOverlay from './components/PrintOverlay'
 import VerseEditSheet from './components/VerseEditSheet'
@@ -40,6 +41,8 @@ import { usePhotoGesture } from './usePhotoGesture'
 import { preloadSegmenter, segmentSubjectAt } from './subjectSegmenter'
 import { REMIX_PARAM, buildRemixLink, decodeRemix } from './remix'
 import { smoothScrollToElement } from '../../../utils/scrollTo'
+import { canKakaoShare } from '../../../utils/kakaoShare'
+import KakaoIcon from '../../../components/icons/KakaoIcon'
 import './PhotoVerse.css'
 
 // 미리보기는 화면용으로 캡, 저장본은 원본 해상도(최대 2048px)로 다시 그린다
@@ -47,6 +50,8 @@ const PREVIEW_MAX_SIDE = 1280
 const EXPORT_MAX_SIDE = 2048
 // 잠금화면은 요즘 폰 세로 해상도(2556~2400px)에 맞춰 더 크게 — 원본보다 키우지는 않는다
 const EXPORT_MAX_SIDE_LOCK = 2560
+// 카톡 엽서 안의 인화지는 400px 남짓으로 줄어든다 — 그 두 배면 충분하다
+const POSTCARD_CARD_MAX_SIDE = 1080
 
 // 우리 교회 말씀(설교 본문·올해의 말씀)으로 시작할 때의 룩 — 종이 배경 + 절기 에디션 프레임
 const CHURCH_BG_ID = 'cream'
@@ -117,6 +122,9 @@ const PhotoVerse = () => {
   const [showLockGuide, setShowLockGuide] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
   const [motionOpen, setMotionOpen] = useState(false)
+  // 카카오톡 말씀 엽서 — 시트를 열 때 지금 보이는 장을 그려 둔 캔버스
+  const [kakaoCard, setKakaoCard] = useState<HTMLCanvasElement | null>(null)
+  const [kakaoEnabled] = useState(() => canKakaoShare())
   // 잠금화면으로 바꾸기 전 비율 — 카드로 돌아올 때 되살린다
   const initialRatio = remixIn?.style.ratio ?? draft?.style.ratio
   const cardRatioRef = useRef<CardRatioId>(initialRatio && initialRatio !== 'lock' ? initialRatio : 'original')
@@ -488,6 +496,15 @@ const PhotoVerse = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buildCardFiles, verse, saving, shareText])
 
+  // 카카오톡 말씀 엽서 — 지금 미리보기 중인 장을 엽서용으로 그려 시트에 넘긴다
+  const openKakaoPostcard = useCallback(async () => {
+    if (!photo || !verse || !current) return
+    await ensureCardFonts(`${verse.text} ${verse.refLabel} ${greeting}`)
+    const canvas = createCardCanvas(photo.img, POSTCARD_CARD_MAX_SIDE, style.frame, style.ratio)
+    drawVerseCard(canvas, photo.img, current.text, current.refLabel, style, { greeting: current.greeting, subject: subjectMask })
+    setKakaoCard(canvas)
+  }, [photo, verse, current, style, greeting, subjectMask])
+
   // 파일 공유를 지원하는 환경에서만 공유 버튼 노출
   const [canShareFile] = useState(() => {
     try {
@@ -647,6 +664,18 @@ const PhotoVerse = () => {
             </h1>
             {photo && verse && (
               <div className="flex items-center gap-2">
+                {kakaoEnabled && (
+                  <button
+                    type="button"
+                    className="pv-share-button pv-share-button--kakao"
+                    onClick={openKakaoPostcard}
+                    disabled={saving}
+                    aria-label={t.kakaoSend}
+                    title={t.kakaoSend}
+                  >
+                    <KakaoIcon size={19} />
+                  </button>
+                )}
                 {canShareFile && (
                   <button
                     type="button"
@@ -1087,6 +1116,25 @@ const PhotoVerse = () => {
             shareText={shareText}
             language={language}
             onClose={() => setMotionOpen(false)}
+          />
+        )}
+
+        {kakaoCard && verse && (
+          <KakaoPostcardSheet
+            card={kakaoCard}
+            refLabel={verse.refLabel}
+            greeting={current?.greeting}
+            hasOwnMat={style.frame === 'polaroid'}
+            verseLink={verseLinkFromRef(verse.refLabel, bibleBooks)}
+            remixLink={buildRemixLink(style, activePreset, bgId)}
+            language={lang}
+            onShareFile={canShareFile ? handleShare : undefined}
+            onSent={() => {
+              markPostcardSent()
+              setKakaoCard(null)
+            }}
+            onFailed={showToast}
+            onClose={() => setKakaoCard(null)}
           />
         )}
       </div>
