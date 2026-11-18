@@ -252,7 +252,7 @@
   color: var(--text-muted);
 }
 
-/* 교회 전경 — CHURCH_SEASON_PHOTO(오시는 길·홈과 같은 사진), 계절 × 낮/밤 */
+/* 본당 안 빛 — PRAYER_WEEK_WINDOW(960×848). 십자가가 오른쪽이라 가로 자를 땐 오른쪽을 살린다 */
 .ab-meet-pic {
   position: relative;
   margin: 0;
@@ -267,17 +267,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.ab-meet-noland {
-  position: absolute;
-  width: 0;
-  height: 0;
+  object-position: 66% 50%;
 }
 
 .ab-meet-pic figcaption {
   position: absolute;
-  z-index: 21; /* 여름 입자 캔버스(z-20) 위 */
+  z-index: 1;
   left: 1rem;
   bottom: 0.875rem;
   padding: 0.3rem 0.7rem;

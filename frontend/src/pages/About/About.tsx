@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
 import { useAboutContent } from '../../hooks/useAboutContent'
@@ -21,19 +21,15 @@ import pastorPhoto from '../../assets/about-pastor/pastor.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
 import { useThemeArt } from '../../hooks/useThemeArt'
-import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC, CHURCH_SEASON_PHOTO, pairSrc, visitSceneFor } from '../../utils/themeAssets'
-import { getNaturalSeason } from '../../utils/naturalSeason'
+import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC, PRAYER_WEEK_WINDOW, pairSrc, visitSceneFor } from '../../utils/themeAssets'
 import { useTheme } from '../../contexts/ThemeContext'
-// 다섯 만남 사진 위 계절 낙하물 — 오시는 길 히어로와 같은 부품(봄 꽃잎·가을 낙엽·겨울 눈, 라이트만)
+// 초대장 풍경 위 계절 낙하물 — 오시는 길 히어로와 같은 부품(봄 꽃잎·가을 낙엽·겨울 눈, 라이트만)
 import HeroFalling from '../Visit/components/HeroFalling'
 import '../Visit/styles/falling.css'
-// 여름은 목양칼럼 표지와 같은 캔버스 입자 — 낮 초록잎 · 밤 반딧불
-import LetterSeasonFx from '../Ministry/LetterSeasonFx'
-import { type NaturalSeason } from '../../utils/naturalSeason'
 
 /* /about — "참 빛" 잡지형 소개.
    첫 화면은 하늘에 걸린 말씀 족자(세로쓰기 '참빛' + 요 1:9) + 아래 한 줄 바로가기·예배 버튼.
-   그 아래는 그림·글을 좌우로 번갈아 놓은 장들 — 만남 → 다섯 만남(지워지는 네 줄 + 약속 | 계절 교회 사진) → 담임목사 → 초대(이번 주일 초대장).
+   그 아래는 그림·글을 좌우로 번갈아 놓은 장들 — 만남 → 다섯 만남(지워지는 네 줄 + 약속 | 본당 안 빛) → 담임목사 → 초대(이번 주일 초대장).
    예전 스티키 고정 그림은 세로로 길고 장면이 겹쳐 보여 걷어냈다. */
 
 // 서체 — 교회 이름 G마켓 · 첫 화면 세로 말씀 고운바탕 · 인용 고운돋움(--ab-verse) · 손글씨는 목사님 별칭에만
@@ -189,16 +185,7 @@ const About = () => {
   const [dawnPair] = useState(() => (ABOUT_DAWN_PC.when?.() ? ABOUT_DAWN_PC : ABOUT_DAWN_MOBILE))
   const dawnArtReady = useThemeArt(dawnPair)
   const { theme } = useTheme()
-  // 로컬 확인용 — /#/about?season=summer 로 계절을 바꿔 본다(운영 빌드에선 무시)
-  const [searchParams] = useSearchParams()
-  const seasonOverride = import.meta.env.DEV ? (searchParams.get('season') as NaturalSeason | null) : null
-  const [naturalSeason] = useState(() => getNaturalSeason(new Date()))
-  const season: NaturalSeason =
-    seasonOverride && seasonOverride in CHURCH_SEASON_PHOTO ? seasonOverride : naturalSeason
-  const meetPicRef = useRef<HTMLElement | null>(null)
-  // 입자가 내려앉을 편지가 없다 — 크기 0 표적이면 아무 데도 앉지 않고 흘러간다
-  const noLandRef = useRef<HTMLElement | null>(null)
-  const meetPhoto = pairSrc(CHURCH_SEASON_PHOTO[season], theme)
+  const meetPhoto = pairSrc(PRAYER_WEEK_WINDOW, theme)
 
   // 다섯 만남 — 화면에 들어올 때 한 번 줄을 긋는다
   const meetRef = useRef<HTMLElement | null>(null)
@@ -431,26 +418,11 @@ const About = () => {
               </span>
             </blockquote>
           </div>
-          {/* 오시는 길·홈과 같은 교회 전경 — 지금 계절 × 라이트(낮)/다크(밤) */}
-          <figure className="ab-meet-pic" ref={meetPicRef}>
-            <img src={meetPhoto} alt={ko ? '참빛교회 전경' : 'Chambit Church'} loading="lazy" decoding="async" />
-            {/* 계절 입자 — 봄 벚꽃잎 · 가을 낙엽 · 겨울 눈은 오시는 길과 같은 부품(낮 사진만),
-                여름은 낮 초록잎 · 밤 반딧불(목양칼럼 캔버스). 동작 줄이기면 둘 다 그리지 않는다 */}
-            {season === 'summer' ? (
-              <>
-                <span ref={noLandRef} className="ab-meet-noland" aria-hidden="true" />
-                <LetterSeasonFx
-                  key={theme}
-                  season="summer"
-                  boxRef={meetPicRef}
-                  targetRef={noLandRef}
-                  night={theme === 'dark'}
-                />
-              </>
-            ) : (
-              theme === 'light' && <HeroFalling season={season} />
-            )}
-            <figcaption>{ko ? '부천 상동 · 참빛교회' : 'Sangdong, Bucheon'}</figcaption>
+          {/* 본당 안 — 십자가 벽에 비스듬히 떨어지는 빛(라이트 = 낮 햇살, 다크 = 푸른 밤빛·켜진 십자가).
+               아래 초대장이 교회 밖 풍경이라 여기는 안. 실내라 계절 입자는 없다 */}
+          <figure className="ab-meet-pic">
+            <img src={meetPhoto} alt={ko ? '참빛교회 본당' : 'Chambit Church sanctuary'} loading="lazy" decoding="async" />
+            <figcaption>{ko ? '참빛교회 본당' : 'Our sanctuary'}</figcaption>
           </figure>
         </section>
 

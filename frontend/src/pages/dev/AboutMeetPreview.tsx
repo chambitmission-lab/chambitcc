@@ -12,6 +12,21 @@ import glowSpring from '../../assets/hero/church-spring-night-glow.webp'
 import glowSummer from '../../assets/hero/church-summer-night-glow.webp'
 import glowAutumn from '../../assets/hero/church-autumn-night-glow.webp'
 import glowWinter from '../../assets/hero/church-winter-night-glow.webp'
+import chapelLight from '../../assets/prayer-week/window-light.webp'
+import chapelDark from '../../assets/prayer-week/window-dark.webp'
+import jesusDay from '../../assets/bible/hero-reading-together.webp'
+import jesusNight from '../../assets/bible/hero-reading-together-night.webp'
+import windowLight from '../../assets/intercession/hero-light.webp'
+import windowDark from '../../assets/intercession/hero-dark.webp'
+
+/* A1 사진 자리 후보 — 교회 전경 말고 프로젝트에 이미 있는 그림 */
+const PHOTOS = [
+  { key: 'church', label: '교회 전경(지금)', light: '', dark: '', pos: '50% 50%' },
+  { key: 'chapel', label: '예배당 안 빛', light: chapelLight, dark: chapelDark, pos: '66% 50%' },
+  { key: 'jesus', label: '예수님과 어린 양', light: jesusDay, dark: jesusNight, pos: '62% 50%' },
+  { key: 'window', label: '열린 창가', light: windowLight, dark: windowDark, pos: '50% 50%' },
+  { key: 'hands', label: '건네는 손', light: '/images/events/service.webp', dark: '/images/events/service.webp', pos: '84% 50%' },
+] as const
 import { about } from '../../locales/ko/about'
 import '../About/styles/index.css'
 import './aboutMeetPreview.css'
@@ -118,7 +133,7 @@ const useReveal = (replay: number) => {
   const ref = useRef<HTMLElement | null>(null)
   const [on, setOn] = useState(false)
   useEffect(() => {
-    setOn(false)
+    // 다시 보기는 key 로 통째로 다시 마운트되므로 여기서 끌 필요가 없다
     const el = ref.current
     if (!el) return
     const io = new IntersectionObserver(
@@ -162,17 +177,18 @@ const PromiseBlock = ({ kicker, num }: { kicker?: string; num?: boolean }) => (
   </div>
 )
 
-type AxProps = { kind: 'a1' | 'a2' | 'a3' | 'a4'; replay: number }
+type AxProps = { kind: 'a1' | 'a2' | 'a3' | 'a4'; replay: number; photoKey?: string }
 
-const VariantAx = ({ kind, replay }: AxProps) => {
+const VariantAx = ({ kind, replay, photoKey }: AxProps) => {
   const { theme } = useTheme()
+  const alt = PHOTOS.find((x) => x.key === photoKey && x.key !== 'church')
   const season = getNaturalSeason(new Date())
   const pair = CHURCH_SEASON_PHOTO[season]
   const animated = kind === 'a1' || kind === 'a3'
   const { ref, on } = useReveal(replay)
   const numbered = kind === 'a2'
   // a3 는 '불이 켜지는' 이야기라 테마와 상관없이 밤 사진
-  const photo = kind === 'a3' ? pair.dark : pairSrc(pair, theme)
+  const photo = alt ? (theme === 'dark' ? alt.dark : alt.light) : kind === 'a3' ? pair.dark : pairSrc(pair, theme)
   const sprite = LIGHT_SPRITES[season]
 
   return (
@@ -203,7 +219,7 @@ const VariantAx = ({ kind, replay }: AxProps) => {
             <img className="amp-lit-glow" src={sprite.glow} alt="" aria-hidden="true" />
           </div>
         ) : (
-          <img src={photo} alt="참빛교회 전경" />
+          <img src={photo} alt="" style={alt ? { objectPosition: alt.pos } : undefined} />
         )}
         {numbered ? (
           <figcaption className="amp-ax-visit">
@@ -211,7 +227,7 @@ const VariantAx = ({ kind, replay }: AxProps) => {
             <span>부천 상동 · 7호선 상동역</span>
             <em>오시는 길 →</em>
           </figcaption>
-        ) : (
+        ) : alt ? null : (
           <figcaption>부천 상동 · 참빛교회</figcaption>
         )}
       </figure>
@@ -389,8 +405,8 @@ const VARIANTS = [
   },
 ] as const
 
-const Variant = ({ v, replay = 0 }: { v: string; replay?: number }) => {
-  if (v === 'a1' || v === 'a2' || v === 'a3' || v === 'a4') return <VariantAx key={replay} kind={v} replay={replay} />
+const Variant = ({ v, replay = 0, photo }: { v: string; replay?: number; photo?: string }) => {
+  if (v === 'a1' || v === 'a2' || v === 'a3' || v === 'a4') return <VariantAx key={replay} kind={v} replay={replay} photoKey={photo} />
   if (v === 'a') return <VariantA />
   if (v === 'b') return <VariantB />
   if (v === 'c') return <VariantC />
@@ -404,6 +420,7 @@ export default function AboutMeetPreview() {
   const meta = VARIANTS.find((x) => x.key === params.get('v')) ?? VARIANTS[1]
   const frame = params.get('frame') === '1'
   const [replay, setReplay] = useState(0)
+  const photo = params.get('photo') ?? 'church'
   const animated = meta.key === 'a1' || meta.key === 'a3'
 
   useEffect(() => {
@@ -415,7 +432,7 @@ export default function AboutMeetPreview() {
     return (
       <div className="about-page amp-frame">
         <div className="ab-body">
-          <Variant v={meta.key} replay={replay} />
+          <Variant v={meta.key} replay={replay} photo={photo} />
         </div>
       </div>
     )
@@ -446,20 +463,30 @@ export default function AboutMeetPreview() {
           )}
         </div>
         <p className="mt-2 text-[13px] leading-[1.6] text-gray-500 dark:text-white/55 break-keep">{meta.note}</p>
+        {meta.key === 'a1' && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <span className="text-[12px] text-gray-400">사진 자리</span>
+            {PHOTOS.map((x) => (
+              <button key={x.key} onClick={() => setParams({ v: 'a1', photo: x.key }, { replace: true })} className={pill(x.key === photo)}>
+                {x.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mx-auto mt-2 max-w-[1280px]">
         <div className="about-page amp-pc">
           <div className="ab-body">
-            <Variant v={meta.key} replay={replay} />
+            <Variant v={meta.key} replay={replay} photo={photo} />
           </div>
         </div>
         <figure className="px-5">
           <figcaption className="mb-2 text-[12px] text-gray-400">모바일 (390)</figcaption>
           <iframe
-            key={`${meta.key}-${theme}-${replay}`}
+            key={`${meta.key}-${theme}-${replay}-${photo}`}
             title="모바일"
-            src={`${window.location.pathname}#/dev/about-meet?v=${meta.key}&frame=1`}
+            src={`${window.location.pathname}#/dev/about-meet?v=${meta.key}&photo=${photo}&frame=1`}
             className="amp-phone"
           />
         </figure>
