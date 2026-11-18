@@ -172,12 +172,12 @@
   border-bottom: 1px solid var(--card-border);
 }
 
-/* 취소선은 글자 위로 그어지는 선(::after) — 화면에 들어오면 한 줄씩 0.5초 간격 */
+/* 취소선은 글자 위로 그어지는 선(::after) — 화면에 들어오면 네 줄이 한꺼번에(한 줄씩 기다리게 하지 않는다) */
 .ab-meet-list s {
   position: relative;
   text-decoration: none;
   color: var(--text-strong);
-  transition: color 0.6s ease calc(var(--i) * 0.5s + 0.45s);
+  transition: color 0.4s ease;
 }
 
 .ab-meet-list s::after {
@@ -191,7 +191,7 @@
   transform: scaleX(0);
   transform-origin: left center;
   pointer-events: none;
-  transition: transform 0.5s cubic-bezier(0.45, 0, 0.2, 1) calc(var(--i) * 0.5s + 0.2s);
+  transition: transform 0.4s cubic-bezier(0.45, 0, 0.2, 1);
 }
 
 .ab-meet.is-on .ab-meet-list s {
@@ -202,11 +202,11 @@
   transform: scaleX(1);
 }
 
-/* 약속 — 네 줄이 다 그어진 뒤 제자리에서 떠오른다 */
+/* 약속 — 취소선과 같은 순간에 함께 나타난다 */
 .ab-promise {
   margin: 1.75rem 0 0;
   opacity: 0;
-  transition: opacity 1.1s ease 2.4s;
+  transition: opacity 0.4s ease;
 }
 
 .ab-meet.is-on .ab-promise {
@@ -295,36 +295,58 @@
 }
 
 .ab-pastor-text.is-lead {
-  margin-top: 1rem;
-  font-weight: 700;
+  /* 목사님을 한마디로 — 위 "약속"과 같은 말씀 서체. 상자·따옴표 장식 없이 글씨 결만 바꾼다 */
+  margin-top: 1.125rem;
+  font-family: var(--ab-verse);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.02em;
   color: var(--text-strong);
 }
 
+.ab-pastor-text.is-lead + .ab-pastor-text {
+  margin-top: 1rem;
+}
+
+/* 약력 — 판 안의 조용한 표: 금빛 머리글(위 "약속" 머리글과 같은 잉크) + 값. 줄·점·카드·아이콘 장식 없음 */
 .ab-facts {
+  display: grid;
   align-self: stretch;
-  margin: 1.25rem 0 0;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
   border-top: 1px solid var(--card-border);
 }
 
 .ab-fact {
-  display: flex;
-  gap: 0.875rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--card-border);
-  font-size: 0.875rem;
-  line-height: 1.55;
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  column-gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.9375rem;
+  line-height: 1.6;
 }
 
 .ab-fact dt {
-  flex: none;
-  width: 4.5rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ab-hl-ink);
+}
+
+.dark .ab-fact dt {
+  color: #f5cf86;
 }
 
 .ab-fact dd {
   margin: 0;
+  word-break: keep-all;
   color: var(--text-strong);
+}
+
+.ab-fact-lines {
+  display: inline-flex;
+  flex-direction: column;
 }
 
 /* 인사말 링크(왼쪽) · 서명(오른쪽) 한 줄 */
@@ -335,7 +357,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  margin-top: 0.75rem;
+  margin-top: 1.5rem;
 }
 
 .ab-pastor-foot .ab-link-btn {
@@ -783,6 +805,16 @@
     font-size: 1.0625rem;
   }
 
+  .ab-pastor-text.is-lead {
+    font-size: 1.5rem;
+    line-height: 1.55;
+  }
+
+  .ab-fact {
+    grid-template-columns: 5rem minmax(0, 1fr);
+    font-size: 1rem;
+  }
+
   .ab-meet {
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
@@ -869,5 +901,73 @@
 
   :root:not(.dark) .about-page .ab-invite {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ── 담임목사 판(2026-11-18) — 사진과 글이 캔버스 위에 따로 떠 있어 겉돌았다.
+   다섯 만남 판(.ab-meet)과 같은 면·모서리·그림자에 둘을 함께 담고, 사진은 판 안 그림이라 제 그림자를 뗀다 ── */
+.ab-pastor {
+  padding: 1.25rem 1.25rem 1.75rem;
+  border-radius: 24px;
+  background: var(--surface-container);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+/* 사진은 판 위에 놓인 인화지처럼 — 흰 테두리 + 가까운·중간·먼 그림자 세 겹으로 떠 보이게 */
+.about-page .ab-pastor .ab-pic {
+  --ab-print-rim: #fff;
+  border: 5px solid var(--ab-print-rim);
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 1px rgba(24, 26, 40, 0.07),
+    0 2px 4px rgba(24, 26, 40, 0.1),
+    0 12px 22px -8px rgba(24, 26, 40, 0.24),
+    0 34px 48px -22px rgba(24, 26, 40, 0.42);
+}
+
+.dark .about-page .ab-pastor .ab-pic {
+  --ab-print-rim: #2c2c31;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 14px 24px -8px rgba(0, 0, 0, 0.6),
+    0 36px 52px -20px rgba(0, 0, 0, 0.85);
+}
+
+.ab-pastor .ab-txt {
+  padding: 0 0.25rem;
+}
+
+@media (min-width: 1024px) {
+  .ab-pastor {
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1fr);
+    gap: 3.25rem;
+    padding: 2.5rem 3.25rem 2.5rem 2.5rem;
+    border-radius: 28px;
+  }
+
+  :root:not(.dark) .about-page .ab-pastor {
+    box-shadow:
+      inset 0 0 0 1px var(--card-border),
+      0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  /* PC 는 살짝 기울여 얹은 느낌(1도 안쪽 — 얼굴이 비뚤어 보이지 않을 만큼만) */
+  .about-page .ab-pastor .ab-pic {
+    border-width: 6px;
+    border-radius: 22px;
+    transform: rotate(-1.2deg);
+  }
+
+  :root:not(.dark) .about-page .ab-pastor .ab-pic {
+    box-shadow:
+      0 0 0 1px rgba(24, 26, 40, 0.07),
+      0 2px 4px rgba(24, 26, 40, 0.1),
+      0 14px 26px -8px rgba(24, 26, 40, 0.26),
+      0 44px 60px -26px rgba(24, 26, 40, 0.48);
+  }
+
+  .ab-pastor .ab-txt {
+    padding: 0;
   }
 }

@@ -426,8 +426,8 @@ const About = () => {
           </figure>
         </section>
 
-        {/* ── 담임목사 — 글 왼쪽 · 사진 오른쪽 ── */}
-        <section id="about-pastor" className="ab-row is-flip">
+        {/* ── 담임목사 — 사진과 글을 한 판에 담는다(사진 왼쪽 · 글 오른쪽, 위 다섯 만남 판과 좌우 엇갈림) ── */}
+        <section id="about-pastor" className="ab-row ab-pastor">
           <figure className="ab-pic is-portrait">
             <EditableImage
               fieldKey="aboutPastorPhoto"
@@ -478,9 +478,14 @@ const About = () => {
                       {tx(labelKey)}
                     </EditableText>
                   </dt>
+                  {/* 관리자 문구의 줄바꿈 한 줄 = 항목 하나 */}
                   <dd>
                     <EditableText fieldKey={valueKey} multiline isAdmin={isAdminUser}>
-                      {toLines(tx(valueKey)).join(' · ')}
+                      <span className="ab-fact-lines">
+                        {toLines(tx(valueKey)).map((line) => (
+                          <span key={line}>{line}</span>
+                        ))}
+                      </span>
                     </EditableText>
                   </dd>
                 </div>
