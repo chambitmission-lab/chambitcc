@@ -594,10 +594,9 @@
   bottom: 0;
   z-index: 30;
   padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom));
-  background: var(--surface); /* color-mix 미지원 브라우저 폴백 */
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* 본문 칼럼(bg-background-light = --app-canvas)과 같은 색, 불투명.
+   * 예전엔 --surface 92% 반투명이라 칼럼보다 밝은 띠가 생기고 밑 글자가 비쳐 겹쳐 보였다. */
+  background: var(--app-canvas);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 [data-theme='dark'] .story-ep__bar {
@@ -1000,15 +999,17 @@
     font-size: 0.95rem;
   }
 
-  /* 하단 CTA 바 — viewport 고정(fixed)이면 2단 레이아웃에서 본문 컬럼이 아니라 화면 전체
-   * 기준으로 가운데 정렬돼 어긋난다. sticky 로 본문 컬럼에 붙이면 폭·위치가 자동으로 맞고,
-   * 글 끝에서는 자연스럽게 제자리에 앉는다. */
+  /* 하단 CTA 바 — PC 에선 본문 끝 제자리(흐름 안)에 둔다.
+   * 예전엔 sticky 로 화면 아래에 떠 있었는데, PC 는 글씨·히어로가 커서 화면 높이가 낮으면
+   * 바가 본문 글줄을 덮어 "내용이 잘려 보인다"는 지적을 받았다(2026-11-18).
+   * 이동은 우측 목록·←→ 키로도 되므로 바를 띄워 둘 필요가 없다. 본문은 절대 가리지 않는다. */
   .story-ep__bar {
-    position: sticky;
+    position: static;
     left: auto;
     right: auto;
-    bottom: 0;
+    bottom: auto;
     margin-top: 2.5rem;
+    border-top: 0;
     padding: 1rem 2.5rem;
     border-radius: 0 0 1.5rem 1.5rem;
   }
