@@ -5,6 +5,7 @@ import { ALL_EPISODES, STORY_ACTS, TOTAL_EPISODES } from './data'
 import { hasCelebrated, markCelebrated } from './storyProgress'
 import { storyImage, storyThumb } from './storyImages'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { ArrowRight } from '../../../components/icons/phosphor'
 import './StoryFinale.css'
 
@@ -263,14 +264,11 @@ const SceneLightbox = ({ index, onIndex, onClose }: LightboxProps) => {
     }
   }, [index])
 
-  // 열린 동안 뒤 페이지 스크롤을 잠근다
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  // 열린 동안 뒤 페이지 스크롤을 잠근다 — 반드시 개수로 세는 공용 잠금을 쓴다.
+  // 예전엔 여기서 "잠그기 전 값"을 따로 기억했다가 되돌렸는데, useModalBackButton 이 먼저 잠근
+  // 뒤라 그 값이 'hidden' 이었다. 닫힐 때 공용 잠금이 풀린 직후 이 정리가 'hidden' 을 도로 써넣어
+  // body 스크롤이 새로고침 전까지 죽었다("이 이야기 다시 읽기"로 간 화에서 스크롤이 안 되던 원인)
+  useBodyScrollLock()
 
   return createPortal(
     <div
