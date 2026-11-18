@@ -9,6 +9,19 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 // 피드 카드와 동일한 아바타 스타일(feed-avatar/anon-avatar) — 목록↔상세 일관성
 import { PastorIcon } from '../EmotionIcons'
 import '../PrayerArticle/PrayerHeader.css'
+import type { PrayerEmotion } from '../../../../types/prayer'
+
+// 감정 태그 이름 — PrayerComposer MOODS 와 같은 낱말(작성 시트 청크를 끌어오지 않으려고 여기 둔다)
+const EMOTION_LABEL: Record<PrayerEmotion, [ko: string, en: string]> = {
+  tired: ['지침', 'Weary'],
+  anxious: ['불안', 'Anxious'],
+  grateful: ['감사', 'Grateful'],
+  sad: ['슬픔', 'Sad'],
+  lonely: ['외로움', 'Lonely'],
+  angry: ['분노', 'Angry'],
+  hopeful: ['소망', 'Hopeful'],
+  confused: ['혼란', 'Lost'],
+}
 
 interface PrayerAuthorInfoProps {
   prayerId: number
@@ -22,6 +35,10 @@ interface PrayerAuthorInfoProps {
   showTranslation: boolean
   nextLanguage: string
   onTranslationToggle: () => void
+  /** 감정 태그 — 이름 옆 작은 칩 */
+  emotion?: PrayerEmotion | null
+  /** 모달 머리(제목 띠 자리)에 앉을 때 — 아래 여백 없이 */
+  inHeader?: boolean
 }
 
 const PrayerAuthorInfo = ({
@@ -36,8 +53,11 @@ const PrayerAuthorInfo = ({
   showTranslation,
   nextLanguage,
   onTranslationToggle,
+  emotion = null,
+  inHeader = false,
 }: PrayerAuthorInfoProps) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const emotionLabel = emotion && EMOTION_LABEL[emotion] ? EMOTION_LABEL[emotion][language === 'ko' ? 0 : 1] : null
   // 익명 기도는 아바타를 튀지 않게(뉴트럴) 처리 — 브랜드 색 미사용
   const isAnonymous = displayName === '익명' || displayName === 'Anonymous'
   // 익명 표시 이름 — "익명" 대신 마 6:6의 골방 기도자 (데이터 값은 그대로 둔다)
@@ -45,7 +65,7 @@ const PrayerAuthorInfo = ({
   // 익명 아바타 링 컬러 — 피드와 같은 공식(id 기반 골든앵글)이라 목록↔상세 색이 일치
   const anonRing = `hsl(${Math.round((prayerId * 137.508) % 360)} 62% 58%)`
   return (
-    <div className="pd-author flex items-center justify-between gap-3 mb-6">
+    <div className={`pd-author flex items-center justify-between gap-3 min-w-0 ${inHeader ? 'flex-1' : 'mb-6'}`}>
       <div className="flex items-center gap-3 min-w-0">
         {/* 피드 PrayerHeader와 동일한 아바타 — 화면 간 일관성 */}
         <div className="shrink-0">
@@ -86,6 +106,11 @@ const PrayerAuthorInfo = ({
             ) : isOwner && (
               <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] lg:text-[length:calc(12px*var(--fs,1))] lg:px-2 lg:py-1 font-bold leading-none text-[var(--brand)]">
                 내 기도
+              </span>
+            )}
+            {emotionLabel && (
+              <span className="shrink-0 px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-[10.5px] lg:text-[length:calc(12.5px*var(--fs,1))] lg:px-2.5 lg:py-1 font-semibold leading-none text-[var(--brand)]">
+                {emotionLabel}
               </span>
             )}
           </p>

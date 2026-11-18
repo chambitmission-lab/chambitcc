@@ -35,6 +35,9 @@ interface PrayerDetailProps {
   initialOpenReplies?: boolean
 }
 
+// 한 번 눌러 남기는 짧은 말 (D안) — 골방 기도자로 바로 등록
+const QUICK_REPLIES = ['아멘', '함께 기도해요', '평안을 빌어요']
+
 const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, initialOpenReplies = false }: PrayerDetailProps) => {
   const { t } = useLanguage()
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData, prayerToastFeedback)
@@ -186,6 +189,23 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
           canDelete={isOwner || isAdminDelete}
           onClose={onClose}
           onDeleteClick={() => setShowDeleteConfirm(true)}
+          leading={
+            <PrayerAuthorInfo
+              prayerId={prayer.id}
+              displayName={prayer.display_name}
+              avatarUrl={prayer.avatar_url ?? null}
+              timeAgo={prayer.time_ago}
+              isOwner={isOwner}
+              isPrivate={isPrivate}
+              sharedWithPastor={sharedWithPastor}
+              hasTranslation={hasTranslation}
+              showTranslation={showTranslation}
+              nextLanguage={nextLanguage}
+              onTranslationToggle={toggleTranslation}
+              emotion={prayer.emotion ?? null}
+              inHeader
+            />
+          }
         />
 
         <div
@@ -198,20 +218,6 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
               본문 18px×32em(한 줄 약 32자)에 작성자·기도 버튼까지 같은 칼럼으로 맞추고, 큰 글씨에선 680px 상한 */}
           <div className="pd-paper lg:col-start-1 lg:row-start-1 lg:min-h-0 lg:overflow-y-auto lg:px-12 lg:pt-10 lg:pb-8">
           <div className="lg:max-w-[min(680px,calc(576px*var(--fs,1)))] lg:mx-auto">
-          <PrayerAuthorInfo
-            prayerId={prayer.id}
-            displayName={prayer.display_name}
-            avatarUrl={prayer.avatar_url ?? null}
-            timeAgo={prayer.time_ago}
-            isOwner={isOwner}
-            isPrivate={isPrivate}
-            sharedWithPastor={sharedWithPastor}
-            hasTranslation={hasTranslation}
-            showTranslation={showTranslation}
-            nextLanguage={nextLanguage}
-            onTranslationToggle={toggleTranslation}
-          />
-
           <PrayerContent title={displayTitle} content={displayContent} />
 
           {isPrivate ? (
@@ -277,7 +283,10 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
               </div>
             </div>
           ) : (
-            <PrayerStats prayerCount={prayer.prayer_count} />
+            // PC 2단에선 "함께 N명"이 하단 기도 바 왼쪽으로 내려간다 (D안) — 본문 카드엔 모바일만
+            <div className={split ? 'lg:hidden' : ''}>
+              <PrayerStats prayerCount={prayer.prayer_count} prayedBy={prayer.prayed_by} isPrayed={prayer.is_prayed} />
+            </div>
           )}
           </div>
           </div>{/* /본문 칸 */}
@@ -286,14 +295,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
               댓글·입력창이 자연스럽게 이어져 화면을 채운다.
               lg: 오른쪽 칸 전체 높이(기도 바 줄까지)를 차지하고 안에서 따로 스크롤한다 */}
           {split && (
-          <div
-            ref={repliesSectionRef}
-            className="pd-replies scroll-mt-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:min-h-0 lg:flex lg:flex-col lg:border-l lg:border-[var(--card-border)] lg:bg-[var(--surface-inset)] rd-side"
-          >
-            {/* 목회자에게 — 이 자리의 답글은 피드 댓글과 달리 작성자 한 사람에게만 간다 */}
-            {sharedWithPastor && !isOwner && (
-              <p className="mb-1 px-1 lg:mb-0 lg:px-8 lg:pt-6 text-[12px] lg:text-[length:calc(14px*var(--fs,1))] font-medium text-brand">{t('pastorReplySectionHint')}</p>
-            )}
+          <div ref={repliesSectionRef} className="pd-replies scroll-mt-2 lg:contents">
             <RepliesSection
               replyCount={prayer.reply_count}
               replies={replies}
@@ -307,6 +309,12 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
               onReplyDelete={handleReplyDelete}
               onLoadMore={fetchNextPage}
               onComposerExpandedChange={setIsComposing}
+              // 목회자에게 — 이 자리의 답글은 피드 댓글과 달리 작성자 한 사람에게만 간다
+              hint={sharedWithPastor && !isOwner ? (
+                <p className="-mt-2 mb-4 text-[12px] lg:text-[length:calc(14px*var(--fs,1))] font-medium text-brand">{t('pastorReplySectionHint')}</p>
+              ) : undefined}
+              // 목양 기도는 한 사람에게 가는 답글이라 짧은 말 칩을 두지 않는다
+              quickReplies={sharedWithPastor ? undefined : QUICK_REPLIES}
             />
           </div>
           )}
@@ -325,7 +333,12 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
           }`}
         >
           <div className="rd-bar px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-12 lg:py-5 border-t border-black/[0.06] dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
-            <div className="lg:max-w-[min(680px,calc(576px*var(--fs,1)))] lg:mx-auto">
+            {/* lg: 왼쪽 "함께 N명" · 오른쪽 기도 버튼 — 옆 칸 댓글 입력과 같은 줄 (D안) */}
+            <div className="lg:max-w-[min(680px,calc(576px*var(--fs,1)))] lg:mx-auto lg:flex lg:items-center lg:gap-6">
+            <div className="hidden lg:block lg:flex-1 lg:min-w-0 [&_.pd-stats]:mb-0 [&_.pd-stats]:px-0">
+              <PrayerStats prayerCount={prayer.prayer_count} prayedBy={prayer.prayed_by} isPrayed={prayer.is_prayed} />
+            </div>
+            <div className="lg:w-[calc(240px*var(--fs,1))] lg:shrink-0">
             <PrayerActions
               isPrayed={prayer.is_prayed}
               isToggling={isToggling}
@@ -333,6 +346,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, 
               onPrayerToggle={handlePrayerToggle}
               onCommentClick={scrollToReplies}
             />
+            </div>
             </div>
           </div>
         </div>

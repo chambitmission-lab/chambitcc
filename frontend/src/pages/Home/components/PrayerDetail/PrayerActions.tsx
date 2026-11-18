@@ -35,11 +35,8 @@ const PrayerActions = ({
         onClick={handlePrayerToggle}
         disabled={isToggling}
         aria-pressed={isPrayed}
-        className={`rd-cta flex-1 flex items-center justify-center gap-2 py-3.5 lg:py-4 rounded-2xl font-semibold text-[15px] lg:text-[length:calc(17px*var(--fs,1))] lg:[&>svg]:w-[calc(22px*var(--fs,1))] lg:[&>svg]:h-[calc(22px*var(--fs,1))] transition-all duration-200 active:scale-[0.97] ${
-          isPrayed
-            ? 'brand-gradient shadow-[0_8px_24px_-8px_var(--brand-glow)]'
-            : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08]'
-        }`}
+        // 골드는 '기도 순간'에만 — 이 버튼이 상세 화면의 유일한 골드 (prayerPaper.css .pd-pray)
+        className="pd-pray flex-1 flex items-center justify-center gap-2 py-3.5 lg:py-4 rounded-2xl font-bold text-[15px] lg:text-[length:calc(17px*var(--fs,1))] lg:[&>svg]:w-[calc(22px*var(--fs,1))] lg:[&>svg]:h-[calc(22px*var(--fs,1))] transition-[background-color,color,box-shadow] duration-200 active:scale-[0.97] disabled:opacity-60"
       >
         <HandHeartIcon
           size={20}

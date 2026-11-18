@@ -2,7 +2,7 @@
    다크에서 오래 읽어도 덜 피로하도록 모달 패널(data-reading="warm") 안에서만 색을 바꾼다.
    - 바탕 #131313/#161616 두 판 → 따뜻한 차콜 한 장(#1a1815), 구분선은 따뜻한 알파 하나
    - 본문 gray-200(대비 15:1, 할레이션) → 아이보리 #d6cfc2(11.4:1)
-   - 기도 버튼: 누르기 전 남색 톤 판, 누른 뒤 브랜드 블루 단색(그라데이션·글로우 없음)
+   - 기도 버튼: 골드(prayerPaper.css .pd-pray, 2026-11-18 D안)
    라이트 테마는 손대지 않는다. Tailwind 의 dark: 유틸리티(0,2,0~0,3,0)를 이기도록
    [data-theme="dark"] [data-reading="warm"] .hook 형태(0,3,0+)로만 적는다.
    공용 댓글(ReplyComposer 등)은 reply-* 훅 클래스로만 덮는다. */
@@ -14,12 +14,6 @@
   --rd-input: #221f1b;
   --rd-soft: rgba(235, 220, 195, 0.06);
   --rd-soft-hover: rgba(235, 220, 195, 0.1);
-  --rd-cta-bg: #2a3550;
-  --rd-cta-bg-hover: #313e5d;
-  --rd-cta-fg: #b9cdf7;
-  --rd-cta-line: rgba(140, 170, 240, 0.22);
-  --rd-cta-done-bg: #4a74d6;
-  --rd-cta-done-fg: #f2f5fb;
 
   /* ink 토큰(text-ink-*)과 카드 선·인셋을 판 안에서 따뜻한 값으로 */
   --text-strong: #e6dfd2;
@@ -58,22 +52,6 @@
 
 [data-theme='dark'] [data-reading='warm'] .feed-avatar-img {
   filter: var(--media-dim);
-}
-
-/* 기도 버튼 */
-[data-theme='dark'] [data-reading='warm'] .rd-cta[aria-pressed='false'] {
-  background-color: var(--rd-cta-bg);
-  border-color: var(--rd-cta-line);
-  color: var(--rd-cta-fg);
-}
-[data-theme='dark'] [data-reading='warm'] .rd-cta[aria-pressed='false']:hover {
-  background-color: var(--rd-cta-bg-hover);
-}
-[data-theme='dark'] [data-reading='warm'] .rd-cta[aria-pressed='true'] {
-  background-image: none;
-  background-color: var(--rd-cta-done-bg);
-  color: var(--rd-cta-done-fg);
-  box-shadow: none;
 }
 
 /* 모바일 댓글 바로가기 */

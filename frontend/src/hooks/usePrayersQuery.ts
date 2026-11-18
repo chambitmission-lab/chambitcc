@@ -515,6 +515,9 @@ export const usePrayerDetail = (
       // initialData의 is_owner도 재계산
       is_owner: currentUser.username ? initialData.is_owner : false,
     } : undefined,
+    // 목록 카드에서 넘겨받은 값은 '바로 그리기'용일 뿐 — 상세 전용 필드(함께 기도한 얼굴 prayed_by 등)가 없다.
+    // 0(=아주 오래된 데이터)으로 두면 카드 내용은 즉시 보이고 상세는 열 때 한 번 받아 온다
+    initialDataUpdatedAt: 0,
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)

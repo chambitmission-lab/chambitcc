@@ -1,18 +1,21 @@
 // 헤더 컴포넌트 (닫기, 삭제 버튼)
 // 모바일에서는 전체 화면(페이지처럼 보임) → 좌측 상단 뒤로가기(←),
 // 데스크톱에서는 중앙 모달 → 우측 상단 닫기(X). 플랫폼 관례에 맞춘다.
+import type { ReactNode } from 'react'
 import FeedTextScaleToggle from '../FeedTextScaleToggle'
 
 interface PrayerDetailHeaderProps {
   canDelete: boolean
   onClose: () => void
   onDeleteClick: () => void
+  /** 제목 대신 머리에 앉힐 내용(작성자 줄) — 정보 없는 "기도 요청 상세" 띠를 작성자로 바꾼다 (2026-11-18 D안) */
+  leading?: ReactNode
 }
 
-const PrayerDetailHeader = ({ canDelete, onClose, onDeleteClick }: PrayerDetailHeaderProps) => {
+const PrayerDetailHeader = ({ canDelete, onClose, onDeleteClick, leading }: PrayerDetailHeaderProps) => {
   return (
-    <div className="rd-chrome flex-shrink-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark px-5 py-3.5 lg:px-8 lg:py-4 flex items-center justify-between">
-      <div className="flex items-center gap-1.5">
+    <div className="rd-chrome flex-shrink-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark px-5 py-3.5 lg:pl-10 lg:pr-6 lg:py-5 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-1.5 min-w-0 flex-1">
         <button
           onClick={onClose}
           className="md:hidden -ml-2 w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
@@ -21,9 +24,11 @@ const PrayerDetailHeader = ({ canDelete, onClose, onDeleteClick }: PrayerDetailH
         >
           <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">arrow_back</span>
         </button>
-        <h2 className="text-[15px] lg:text-[length:calc(17px*var(--fs,1))] font-semibold text-ink-strong tracking-[-0.01em]">기도 요청 상세</h2>
+        {leading ?? (
+          <h2 className="text-[15px] lg:text-[length:calc(17px*var(--fs,1))] font-semibold text-ink-strong tracking-[-0.01em]">기도 요청 상세</h2>
+        )}
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 shrink-0">
         {/* PC 글씨 크기 — 피드에서 고른 값과 같은 설정이라 여기서 바꾸면 피드도 따라간다 */}
         <div className="hidden lg:block mr-2">
           <FeedTextScaleToggle />

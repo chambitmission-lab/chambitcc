@@ -40,6 +40,14 @@ export interface Prayer {
   is_private?: boolean  // 나만 보는 기도 (비밀기도) — 작성자에게만 내려온다
   // 목사님과 함께 — is_private 위에 얹힌다. 작성자와 목회자에게만 내려온다
   shared_with_pastor?: boolean
+  /** 함께 기도한 사람 얼굴(최근 5명) — 상세 응답에만. 이름 없이 사진/첫 글자 */
+  prayed_by?: PrayedByUser[]
+}
+
+export interface PrayedByUser {
+  avatar_url?: string | null
+  initial: string
+  is_me: boolean
 }
 
 export interface PrayerDetailResponse {
