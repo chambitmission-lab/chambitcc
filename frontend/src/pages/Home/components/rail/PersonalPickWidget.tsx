@@ -1,147 +1,86 @@
-// 2.5 참비의 오늘 추천 (맞춤 말씀·기도).
+// 2.5 참비의 오늘 추천 (맞춤 말씀) — '한 단어 포스터'.
+//
+// 추천 근거인 감정 단어가 카드의 주인공이다: 색면 위에 큰 글자로 세우고, 말씀은 그 아래 명조로 놓는다.
+// 근거가 없으면(감정 태그 없음) 단어 자리에 '오늘'이 선다.
+// 말씀 카드 만들기는 별도 타일 대신 이 카드의 보조 액션으로 붙어, 지금 보는 절을 그대로 얹어 연다.
 
-import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { fetchPrayers } from '../../../../api/prayer'
 import chambiAvatar from '../../../../components/chatbot/img/default.webp'
 import { useLanguage } from '../../../../contexts/LanguageContext'
-import { useHomeRailPending } from '../../../../hooks/useHomeRail'
-import { useSituationCategories, useSituationVerses } from '../../../../hooks/useSituation'
-import { EmotionGlyph } from '../EmotionGlyph'
-import type { SituationCategory } from '../../../../types/situation'
-import { tokenStore } from '../../../../utils/tokenStore'
-import { prayerKeys } from '../../../../hooks/usePrayersQuery'
+import { preloadRoute } from '../../../../utils/routePreload'
+import { ImageIcon } from '../EmotionIcons'
 import { EMOTION_META, pick } from './shared'
-import { useWeeklyPrayerStats } from './queries'
-
-// ── 2.5 참비의 오늘 추천 (맞춤 말씀·기도) ───────────────────────────────
-//
-// 개인화 근거 우선순위: ① 내 최근 기도의 감정 태그 → ② 이번주 성도들 1위 감정 → ③ 기본 카테고리.
-// 감정은 상황별 성구 카테고리(emotion_keys)로 이어지고, 그 카테고리 구절 중 하나를
-// 날짜 기준으로 고정 선택해 하루 동안 같은 말씀이 유지되게 한다. 백엔드 무변경.
-
-// 내 최근 기도 1건 — 로그인 사용자만. 감정 태그만 쓴다.
-const useMyLatestPrayer = (enabled: boolean) =>
-  useQuery({
-    queryKey: prayerKeys.mineLatest(),
-    queryFn: async () => {
-      const res = await fetchPrayers(1, 1, 'latest', null, 'my_prayers')
-      return res.data.items[0] ?? null
-    },
-    enabled,
-    staleTime: 1000 * 60 * 10,
-  })
-
-const dayOfYear = () => {
-  const now = new Date()
-  const start = new Date(now.getFullYear(), 0, 0)
-  return Math.floor((now.getTime() - start.getTime()) / 86_400_000)
-}
+import { goMakeCard, goReadPick, useTodayPick, verseRef } from './useTodayPick'
+import './pickPoster.css'
 
 const PersonalPickWidget = () => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
-  const loggedIn = !!tokenStore.getAccess()
-  // 홈 레일 묶음(useHomeRail)이 내 최근 기도·카테고리·추천 구절까지 심어 줄 때까지 단건 요청은 미룬다.
-  // 아래 category 규칙은 서버(home_rail_service.pick_category)와 같아 묶음이 심은 구절 키와 맞는다.
-  const railPending = useHomeRailPending()
-  const { data: myPrayer } = useMyLatestPrayer(loggedIn && !railPending)
-  const weekly = useWeeklyPrayerStats()
-  const { data: categories = [] } = useSituationCategories(!railPending)
-
-  // 근거 결정 — 어떤 감정으로 추천했는지 카드에 그대로 밝힌다(블랙박스 금지)
-  const basis = useMemo<{ emotion: string | null; source: 'mine' | 'week' | 'default' }>(() => {
-    if (myPrayer?.emotion) return { emotion: myPrayer.emotion, source: 'mine' }
-    const top = weekly.data?.emotions?.[0]?.emotion
-    if (top) return { emotion: top, source: 'week' }
-    return { emotion: null, source: 'default' }
-  }, [myPrayer, weekly.data])
-
-  const category = useMemo<SituationCategory | undefined>(() => {
-    const withVerses = categories.filter((c) => c.verse_count > 0)
-    if (basis.emotion) {
-      const hit = withVerses.find((c) => c.emotion_keys?.includes(basis.emotion!))
-      if (hit) return hit
-    }
-    return withVerses.find((c) => c.is_default) ?? withVerses[0]
-  }, [categories, basis])
-
-  const { data: withVerses, isLoading } = useSituationVerses(category?.id ?? 0, !!category)
-  const verse = useMemo(() => {
-    const list = withVerses?.verses ?? []
-    if (list.length === 0) return null
-    return list[dayOfYear() % list.length]
-  }, [withVerses])
+  const { basis, category, verse, isLoading } = useTodayPick()
 
   if (!category) return null
 
   const meta = basis.emotion ? EMOTION_META[basis.emotion] : undefined
-  const emotionLabel = meta ? pick(language, meta.label, meta.labelEn) : ''
-  const reason =
-    basis.source === 'mine'
-      ? t('homeRailPickReasonMine').replace('{e}', emotionLabel)
-      : basis.source === 'week'
-        ? t('homeRailPickReasonWeek').replace('{e}', emotionLabel)
-        : t('homeRailPickReasonDefault')
-  const ref = verse ? `${verse.book_name_ko} ${verse.chapter}:${verse.verse}` : ''
+  const word = meta ? pick(language, meta.label, meta.labelEn) : t('homeRailPickWordDefault')
+  const sub = !meta
+    ? t('homeRailPickSubDefault')
+    : basis.source === 'mine'
+      ? t('homeRailPickSubMine')
+      : t('homeRailPickSubWeek')
 
   return (
-    <section className="px-4 pt-3">
-      <div
-        className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] p-4 shadow-[var(--card-shadow)]"
-        style={{
-          background:
-            'linear-gradient(160deg, var(--brand-soft) 0%, var(--surface-container) 45%, var(--surface-container) 100%)',
-        }}
-      >
-        {/* 우상단 오로라 — 추천 카드를 은은하게 띄워주는 장식 */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full"
-          style={{ background: 'radial-gradient(circle, var(--brand-glow), rgba(0,0,0,0) 70%)', opacity: 0.6 }}
-        />
-        <div className="relative flex items-center gap-2">
-          <img src={chambiAvatar} alt="" className="h-7 w-7 rounded-full ring-2 ring-white/70 dark:ring-white/10" draggable={false} />
-          <p className="text-[13.5px] font-bold tracking-[-0.02em] text-ink-strong">{t('homeRailPickTitle')}</p>
+    <section className="pp px-4 pt-3">
+      <div className="pp-card">
+        <span className="pp-ghost" aria-hidden>
+          {word}
+        </span>
+        <div className="pp-head">
+          <img src={chambiAvatar} alt="" className="pp-ava" draggable={false} />
+          <span>{t('homeRailPickTitle')}</span>
+        </div>
+        {/* 한글 3자까지는 큰 크기, 그보다 길면(영어 등) 한 단계 줄인다 */}
+        <h3 className="pp-word" data-long={word.length > 4 ? '' : undefined}>
+          {word}
+        </h3>
+        <p className="pp-sub">{sub}</p>
+
+        <div className="pp-body">
+          {isLoading || !verse ? (
+            <div className="pp-skel animate-pulse" aria-hidden>
+              <span style={{ width: '92%' }} />
+              <span style={{ width: '74%' }} />
+              <span style={{ width: '34%' }} />
+            </div>
+          ) : (
+            <>
+              <p className="pp-verse font-serif-kr line-clamp-4">{verse.text}</p>
+              <p className="pp-ref">{verseRef(verse)}</p>
+              {verse.message && <p className="pp-msg line-clamp-2">{verse.message}</p>}
+            </>
+          )}
         </div>
 
-        <p className="relative mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-[11px] font-semibold text-brand">
-          {meta && <EmotionGlyph emotion={basis.emotion!} fallback={meta.emoji} size={12} className="shrink-0" />}
-          {reason}
-        </p>
-
-        {isLoading || !verse ? (
-          <div className="relative mt-3 space-y-2" aria-hidden>
-            <div className="h-3 w-11/12 animate-pulse rounded-full bg-[var(--surface-inset)]" />
-            <div className="h-3 w-9/12 animate-pulse rounded-full bg-[var(--surface-inset)]" />
-            <div className="h-3 w-4/12 animate-pulse rounded-full bg-[var(--surface-inset)]" />
-          </div>
-        ) : (
-          <>
-            <p className="font-serif-kr relative mt-3 text-[15px] font-normal leading-[1.7] text-ink-strong line-clamp-3 break-keep">
-              “{verse.text}”
-            </p>
-            <p className="relative mt-1 text-[11.5px] font-bold text-brand tabular-nums">{ref}</p>
-            {verse.message && (
-              <p className="relative mt-1.5 text-[11.5px] leading-relaxed text-ink-muted line-clamp-2 break-keep">
-                {verse.message}
-              </p>
-            )}
-          </>
-        )}
-
-        <div className="relative mt-3">
+        <div className="pp-acts">
           <button
             type="button"
-            onClick={() =>
-              verse &&
-              navigate(`/bible/${verse.book_number}/${verse.chapter}${verse.verse > 0 ? `?verse=${verse.verse}` : ''}`)
-            }
+            onClick={() => verse && goReadPick(navigate, verse)}
             disabled={!verse}
-            className="w-full rounded-full bg-[var(--brand)] px-3 py-1.5 text-[12px] font-bold text-white shadow-[0_6px_14px_-6px_var(--brand-glow)] active:scale-[0.97] transition-transform duration-150 disabled:opacity-50"
+            className="pp-btn pp-btn--pri"
           >
             {t('homeRailPickRead')}
+          </button>
+          <button
+            type="button"
+            onClick={() => goMakeCard(navigate, verse)}
+            onPointerEnter={() => void preloadRoute('/bible/photo-verse')}
+            onPointerDown={() => void preloadRoute('/bible/photo-verse')}
+            disabled={!verse}
+            aria-label={t('homeRailPickCardAria')}
+            title={t('homeRailPickCardAria')}
+            className="pp-btn pp-btn--sec"
+          >
+            <ImageIcon size={15} />
+            {t('homeRailPickCard')}
           </button>
         </div>
       </div>

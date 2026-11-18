@@ -214,6 +214,8 @@ export const useCreatePrayer = (
       // 실제 데이터로 갱신 (모든 사용자의 캐시) — 내 글이 제자리에 서도록 서버 순서로 받는다
       options?.beforeInvalidate?.()
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+      // 홈 레일 '오늘의 한 걸음' — 방금 올린 기도가 곧바로 체크되게 내 최근 기도 1건도 새로 받는다
+      queryClient.invalidateQueries({ queryKey: prayerKeys.mineLatest() })
 
       // 번역(상세 '번역' 버튼)과 추천 구절(카드 '함께 묵상')은 서버 백그라운드에서 몇 초 뒤에
       // 채워진다 — 바로 위 재조회는 그 전이라 새 카드에 둘 다 빠져 있다. 한 번 더 받아 붙인다.
