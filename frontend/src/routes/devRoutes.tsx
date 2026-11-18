@@ -101,6 +101,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['confirm-dialog', () => import('../pages/dev/ConfirmDialogPreview')],
       // /about '다섯 만남' 장 개편 시안 — ?v=now|a|b|c|d
       ['about-meet', () => import('../pages/dev/AboutMeetPreview')],
+      // /about 맨 아래 '초대' 장 개편 시안 — ?v=now|a|b|c|d
+      ['about-invite', () => import('../pages/dev/AboutInvitePreview')],
     ]
   : []
 

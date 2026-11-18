@@ -1,0 +1,756 @@
+/* /#/dev/about-invite — 초대 장 개편 시안 */
+
+.about-page.aip-pc,
+.about-page.aip-frame {
+  min-height: 0;
+}
+
+.aip-pc .ab-body > section {
+  margin-top: 1.5rem;
+}
+
+.aip-frame .ab-body {
+  padding-top: 0.5rem;
+  padding-bottom: 2rem;
+}
+
+.aip-frame .ab-body > section {
+  margin-top: 0;
+}
+
+.aip-phone {
+  width: 390px;
+  height: 780px;
+  border: 0;
+  border-radius: 28px;
+  background: var(--app-canvas);
+  box-shadow:
+    0 0 0 8px #1d1d1f,
+    0 20px 50px -16px rgba(0, 0, 0, 0.45);
+}
+
+/* 공통 — 버튼 */
+.aip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.aip-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 1.5rem;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--brand);
+  box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--brand) 80%, transparent);
+}
+
+/* 계절 풍경 — 오시는 길과 같은 가로 사진. 모바일은 교회가 있는 오른쪽을 */
+.aip-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.aip-scene img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 82% 100%;
+  display: block;
+}
+
+/* ───────── A 이번 주일 초대장 ───────── */
+.aip-a,
+.aip-d {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #1b2333;
+  color: #fff;
+}
+
+.aip-a {
+  min-height: 640px;
+  display: flex;
+  align-items: flex-start;
+}
+
+/* 모바일 — 위는 하늘(글), 아래는 교회. 글자 뒤만 살짝 눌러 준다 */
+.aip-a-shade,
+.aip-d-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 16, 28, 0.55), rgba(10, 16, 28, 0.15) 55%, transparent 75%);
+}
+
+.aip-a.ink-navy .aip-a-shade,
+.aip-d.ink-navy .aip-d-shade {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.2) 55%, transparent 75%);
+}
+
+.aip-a-body {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 1.75rem 1.375rem;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+}
+
+.aip-a .ab-tag,
+.aip-d .ab-tag {
+  color: #ffd27a;
+}
+
+.aip-a.ink-navy,
+.aip-d.ink-navy {
+  color: #182235;
+}
+
+.aip-a.ink-navy .aip-a-body,
+.aip-d.ink-navy .aip-d-copy {
+  text-shadow: none;
+}
+
+.aip-a.ink-navy .ab-tag,
+.aip-d.ink-navy .ab-tag {
+  color: #b8720f;
+}
+
+.aip-a-date {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+.aip-a-date strong {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.aip-a-title {
+  margin: 0.5rem 0 0;
+  font-family: var(--ab-verse);
+  font-weight: 400;
+  font-size: 1.875rem;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+.aip-times {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.375rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  text-shadow: none;
+}
+
+.aip-times li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 0.25rem;
+  border-radius: 14px;
+  color: #182235;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(8px);
+}
+
+.dark .aip-times li {
+  color: #f1efee;
+  background: rgba(20, 22, 28, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.aip-times small {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.aip-times b {
+  margin-top: 0.125rem;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.aip-times em {
+  font-style: normal;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.aip-times li.is-pick {
+  color: #fff;
+  background: var(--brand);
+}
+
+.aip-times li.is-pick span {
+  position: absolute;
+  top: -0.6rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: #6b4100;
+  background: #ffd27a;
+  white-space: nowrap;
+}
+
+.aip-a-where {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+/* ───────── B 주일 아침 미리 걷기 ───────── */
+.aip-b,
+.aip-c {
+  padding: 2rem 1.25rem;
+  border-radius: 24px;
+  background: var(--surface-container);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+.aip-b-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.aip-b-basis {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.aip-route {
+  position: relative;
+  display: grid;
+  gap: 0;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aip-route li {
+  position: relative;
+  padding: 0 0 1.5rem 1.75rem;
+}
+
+/* 세로 노선 — 점 사이를 잇는 선 */
+.aip-route li::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 14px;
+  bottom: -2px;
+  width: 2px;
+  background: color-mix(in srgb, var(--brand) 30%, transparent);
+}
+
+.aip-route li.is-last::before {
+  display: none;
+}
+
+.aip-route-dot {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface-container);
+  box-shadow: inset 0 0 0 2.5px var(--brand);
+}
+
+.aip-route li:nth-child(3) .aip-route-dot {
+  background: var(--brand);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 22%, transparent);
+}
+
+.aip-route time {
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.aip-route small {
+  margin-left: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.aip-route p {
+  margin: 0.375rem 0 0;
+  font-family: var(--ab-verse);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  word-break: keep-all;
+  color: var(--text-strong);
+}
+
+.aip-b-foot {
+  margin-top: 0.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--card-border);
+}
+
+.aip-b-foot > p {
+  margin: 0;
+  font-family: var(--ab-verse);
+  font-size: 1.375rem;
+  color: var(--text-strong);
+}
+
+.aip-b-other {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ───────── C 걱정 풀고 오세요 ───────── */
+.aip-c {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.aip-c-info {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1.25rem 0 1.5rem;
+}
+
+.aip-c-info p {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--text-body);
+}
+
+.aip-c-info svg {
+  flex: none;
+  color: var(--brand);
+}
+
+.aip-c-info b {
+  color: var(--text-strong);
+}
+
+.aip-c-kicker {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ab-hl-ink);
+}
+
+.dark .aip-c-kicker {
+  color: #f5cf86;
+}
+
+.aip-q {
+  border-bottom: 1px solid var(--card-border);
+}
+
+.aip-q button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.125rem 0;
+  text-align: left;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.aip-q i {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 1.125rem;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+}
+
+.aip-q p {
+  margin: -0.25rem 0 1.125rem;
+  font-family: var(--ab-verse);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  white-space: pre-line;
+  word-break: keep-all;
+  color: var(--text-body);
+}
+
+/* ───────── D 풍경 + 한 줄 정보 ───────── */
+.aip-d {
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.aip-d-copy {
+  position: relative;
+  z-index: 1;
+  padding: 1.75rem 1.375rem 0;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+}
+
+.aip-d-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.aip-d-lead {
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
+  line-height: 1.75;
+  white-space: pre-line;
+  word-break: keep-all;
+  opacity: 0.92;
+}
+
+.aip-d .aip-cta {
+  margin-top: 1.25rem;
+  text-shadow: none;
+}
+
+.aip-d-strip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  color: #182235;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(10px);
+}
+
+.dark .aip-d-strip {
+  color: #f1efee;
+  background: rgba(20, 22, 28, 0.72);
+}
+
+.aip-d-strip span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aip-d-strip svg {
+  flex: none;
+  color: var(--brand);
+}
+
+.aip-d-strip em {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* ───────── 태블릿 이상 ───────── */
+@media (min-width: 768px) {
+  .aip-route {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .aip-route li {
+    padding: 1.75rem 0 0;
+  }
+
+  .aip-route li::before {
+    left: 14px;
+    right: -1.25rem;
+    top: 5px;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+  }
+
+  .aip-route-dot {
+    top: 0;
+  }
+
+  .aip-route small {
+    display: block;
+    margin: 0.125rem 0 0;
+  }
+
+  .aip-d-strip {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .aip-d-strip em {
+    margin-left: auto;
+  }
+}
+
+/* ───────── PC ───────── */
+@media (min-width: 1024px) {
+  .aip-b,
+  .aip-c {
+    padding: 3rem 2.75rem;
+    border-radius: 28px;
+  }
+
+  :root:not(.dark) .aip-b,
+  :root:not(.dark) .aip-c {
+    box-shadow:
+      inset 0 0 0 1px var(--card-border),
+      0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  :root:not(.dark) .aip-a,
+  :root:not(.dark) .aip-d {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  }
+
+  .aip-a,
+  .aip-d {
+    border-radius: 28px;
+  }
+
+  .aip-scene img {
+    object-position: 100% 100%;
+  }
+
+  /* PC — 글은 왼쪽 하늘, 교회는 오른쪽 */
+  .aip-a {
+    min-height: 520px;
+    align-items: center;
+  }
+
+  .aip-a-shade,
+  .aip-d-shade {
+    background: linear-gradient(90deg, rgba(10, 16, 28, 0.5), rgba(10, 16, 28, 0.15) 45%, transparent 65%);
+  }
+
+  .aip-a.ink-navy .aip-a-shade,
+  .aip-d.ink-navy .aip-d-shade {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.1) 45%, transparent 65%);
+  }
+
+  .aip-a-body {
+    max-width: 560px;
+    padding: 3.5rem;
+  }
+
+  .aip-a-title {
+    font-size: 2.5rem;
+  }
+
+  .aip-times b {
+    font-size: 1.25rem;
+  }
+
+  .aip-b-head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .aip-route {
+    margin-top: 2.5rem;
+  }
+
+  .aip-route p {
+    font-size: 1.1875rem;
+  }
+
+  .aip-b-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-top: 1rem;
+  }
+
+  .aip-b-foot .aip-actions {
+    margin-top: 0;
+  }
+
+  .aip-b-foot > p {
+    font-size: 1.625rem;
+  }
+
+  .aip-c {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .aip-d {
+    min-height: 480px;
+  }
+
+  .aip-d-copy {
+    max-width: 560px;
+    padding: 3.5rem 3.5rem 0;
+  }
+
+  .aip-d-title {
+    font-size: 2.5rem;
+  }
+
+  .aip-d-lead {
+    font-size: 1.125rem;
+  }
+
+  .aip-d-strip {
+    margin: 1.5rem;
+    padding: 1rem 1.5rem;
+    font-size: 0.9375rem;
+  }
+}
+
+/* 모바일 — 좁은 칸에선 '오전/오후'를 시각 위 한 줄로 */
+@media (max-width: 767px) {
+  .aip-times b {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+}
+
+/* ── A2 하늘 — 첫 화면 하늘을 좌우로 뒤집어 빛이 오른쪽 아래 ── */
+.aip-sky img {
+  transform: scaleX(-1);
+  object-position: 50% 100%;
+}
+
+.aip-a.bg-sky {
+  background: var(--ab-sky-2);
+}
+
+.aip-a.bg-sky.ink-navy .aip-a-shade {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 60%);
+}
+
+.aip-a.bg-sky .aip-times li:not(.is-pick) {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dark .aip-a.bg-sky .aip-times li:not(.is-pick) {
+  background: rgba(20, 22, 28, 0.6);
+}
+
+/* ── A3 사진 없음 — 흰 판 + 옅은 큰 날짜 ── */
+.aip-a.bg-none {
+  min-height: 0;
+  color: var(--text-strong);
+  background: var(--surface-container);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+.aip-a.bg-none .aip-a-body {
+  text-shadow: none;
+}
+
+.aip-a.bg-none .ab-tag {
+  color: var(--brand);
+}
+
+.aip-a.bg-none .aip-a-date {
+  color: var(--brand);
+}
+
+.aip-a.bg-none .aip-times li:not(.is-pick) {
+  color: var(--text-strong);
+  background: var(--app-canvas);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+  backdrop-filter: none;
+}
+
+.aip-a.bg-none .aip-a-where {
+  color: var(--text-muted);
+}
+
+.aip-a-bigdate {
+  position: absolute;
+  right: -0.04em;
+  bottom: -0.18em;
+  margin: 0;
+  font-size: 9rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--brand) 9%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (min-width: 1024px) {
+  .aip-sky img {
+    object-position: 50% 100%;
+  }
+
+  .aip-a.bg-sky.ink-navy .aip-a-shade {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.35), transparent 55%);
+  }
+
+  .aip-a.bg-none {
+    min-height: 460px;
+  }
+
+  :root:not(.dark) .aip-a.bg-none {
+    box-shadow:
+      inset 0 0 0 1px var(--card-border),
+      0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  .aip-a-bigdate {
+    font-size: 19rem;
+  }
+}

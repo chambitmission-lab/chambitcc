@@ -269,8 +269,15 @@
   object-fit: cover;
 }
 
+.ab-meet-noland {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
 .ab-meet-pic figcaption {
   position: absolute;
+  z-index: 21; /* 여름 입자 캔버스(z-20) 위 */
   left: 1rem;
   bottom: 0.875rem;
   padding: 0.3rem 0.7rem;
@@ -386,74 +393,197 @@
   text-underline-offset: 3px;
 }
 
-/* ── 초대 — 들판 길 사진 띠. 라이트·다크 모두 사진 위 흰 글씨 ── */
+/* ── 초대 — 이번 주일 초대장(2026-11-18 A안) ──
+   오시는 길 계절 풍경(VISIT_SCENES, 교회는 오른쪽) 위 글. ink 는 사진마다: white = 흰 글씨+그림자, navy = 옅은 하늘 위 남색.
+   모바일은 위 하늘(글) · 아래 교회, PC 는 왼쪽 하늘(글) · 오른쪽 교회 */
 .ab-invite {
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
+  align-items: flex-start;
+  min-height: 640px;
   margin-top: 3.5rem;
-  padding: 2.25rem 1.25rem 1.25rem;
   overflow: hidden;
   border-radius: 24px;
-  background: #1b2a1a;
+  background: #1b2333;
   color: #fff;
 }
 
-.ab-invite-bg {
+.ab-invite-scene {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+}
+
+.ab-invite-scene img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 38% 60%;
+  object-position: 82% 100%;
 }
 
-/* 글 쪽(위·왼쪽)을 어둡게 눌러 흰 글씨를 받친다 */
-.ab-invite::before {
-  content: '';
+.ab-invite-shade {
   position: absolute;
   inset: 0;
-  z-index: 1;
-  background: linear-gradient(to bottom, rgba(8, 16, 10, 0.72), rgba(8, 16, 10, 0.25) 70%, rgba(8, 16, 10, 0.45));
   pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 16, 28, 0.55), rgba(10, 16, 28, 0.15) 55%, transparent 75%);
 }
 
-.ab-invite-copy,
-.ab-invite .ab-info {
+.ab-invite.ink-navy {
+  color: #182235;
+}
+
+.ab-invite.ink-navy .ab-invite-shade {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.2) 55%, transparent 75%);
+}
+
+.ab-invite-body {
   position: relative;
-  z-index: 2;
+  z-index: 1;
+  width: 100%;
+  padding: 1.75rem 1.375rem;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
 }
 
-.ab-invite-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+.ab-invite.ink-navy .ab-invite-body {
+  text-shadow: none;
 }
 
 .ab-invite .ab-tag {
-  color: #f5cf86;
+  color: #ffd27a;
 }
 
-.ab-invite .ab-title {
+.ab-invite.ink-navy .ab-tag {
+  color: #b8720f;
+}
+
+.ab-invite-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+.ab-invite-date strong {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.ab-invite-title {
+  margin: 0.5rem 0 0;
+  font-family: var(--ab-verse);
+  font-size: 1.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+/* 예배 시간 타일 — 처음 오신 분께 권하는 예배만 브랜드 색 */
+.ab-times {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.375rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  text-shadow: none;
+}
+
+.ab-times li {
+  position: relative;
+}
+
+.ab-times button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 0.25rem;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  color: #182235;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+
+.dark .ab-times button {
+  color: #f1efee;
+  background: rgba(20, 22, 28, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.ab-times small {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.ab-times b {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 0.125rem;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ab-times em {
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.ab-times li.is-pick button {
   color: #fff;
+  background: var(--brand);
+  box-shadow: none;
 }
 
-.ab-invite .ab-lead {
-  color: rgba(255, 255, 255, 0.88);
+.ab-times li.is-pick > span {
+  position: absolute;
+  top: -0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  white-space: nowrap;
+  color: #6b4100;
+  background: #ffd27a;
+  pointer-events: none;
+}
+
+.ab-invite-admin {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  opacity: 0.85;
 }
 
 .ab-invite-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 1.25rem;
+  gap: 0.75rem 1.25rem;
   margin-top: 1.5rem;
 }
 
 .ab-invite-actions .ab-link-btn {
   margin-top: 0;
-  color: #fff;
+  color: inherit;
 }
 
 .ab-invite-cta {
@@ -469,89 +599,27 @@
   font: inherit;
   font-size: 1rem;
   font-weight: 700;
+  text-shadow: none;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 10px 24px -12px rgba(49, 130, 246, 0.8);
+  transition: background 0.15s ease;
 }
 
 .ab-invite-cta:hover {
   background: #1b6ef3;
-  transform: translateY(-1px);
 }
 
-/* 한눈에 정보 — 사진 위 불투명 카드(테마 표면) */
-.ab-info {
-  display: flex;
-  flex-direction: column;
-  padding: 0.25rem 1.125rem;
-  border-radius: 18px;
-  background: var(--surface-container);
-  color: var(--text-strong);
-  box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.55);
-}
-
-.ab-info-row {
-  display: flex;
+.ab-invite-where {
+  display: inline-flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.9375rem 0;
-  border-bottom: 1px solid var(--card-border);
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.ab-info-row:last-of-type {
-  border-bottom: 0;
-}
-
-.ab-info-row:hover .ab-info-main b,
-.ab-info-row:focus-visible .ab-info-main b {
-  color: var(--brand);
-}
-
-.ab-info-icon {
-  flex: none;
-  color: var(--brand);
-}
-
-.ab-info-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.ab-info-main small {
-  display: block;
-  font-size: 0.78rem;
+  gap: 0.35rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-muted);
+  opacity: 0.92;
 }
 
-.ab-info-main b {
-  display: block;
-  margin-top: 0.2rem;
-  font-size: 0.97rem;
-  font-weight: 700;
-  line-height: 1.45;
-  color: var(--text-strong);
-  transition: color 0.15s ease;
-}
-
-.ab-info-main b.is-empty {
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.ab-info-chevron {
-  flex: none;
-  color: var(--text-muted);
-}
-
-.ab-info-admin {
-  margin: 0 0 0.875rem;
-  padding: 0.625rem 0.875rem;
-  border-radius: 12px;
-  border: 1px dashed var(--card-border);
-  font-size: 0.8rem;
-  color: var(--text-body);
+.ab-invite-where.is-phone {
+  cursor: pointer;
 }
 
 /* ── 이야기 뒤 — 더 알아보기 알약 · 감사 ── */
@@ -674,18 +742,39 @@
   }
 
   .ab-invite {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
-    align-items: end;
-    gap: 3rem;
+    min-height: 520px;
+    align-items: center;
     margin-top: 6rem;
-    padding: 3.5rem;
     border-radius: 28px;
   }
 
-  /* PC 는 글이 왼쪽 — 왼쪽을 눌러 받친다 */
-  .ab-invite::before {
-    background: linear-gradient(90deg, rgba(8, 16, 10, 0.75), rgba(8, 16, 10, 0.2) 65%, rgba(8, 16, 10, 0.1));
+  .ab-invite-scene img {
+    object-position: 100% 100%;
+  }
+
+  /* PC 는 글이 왼쪽 하늘 — 왼쪽만 눌러 받친다 */
+  .ab-invite-shade {
+    background: linear-gradient(90deg, rgba(10, 16, 28, 0.5), rgba(10, 16, 28, 0.15) 45%, transparent 65%);
+  }
+
+  .ab-invite.ink-navy .ab-invite-shade {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.1) 45%, transparent 65%);
+  }
+
+  .ab-invite-body {
+    max-width: 560px;
+    padding: 3.5rem;
+  }
+
+  .ab-invite-title {
+    font-size: 2.5rem;
+  }
+
+  .ab-times b {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.25rem;
+    font-size: 1.25rem;
   }
 
   .ab-more {

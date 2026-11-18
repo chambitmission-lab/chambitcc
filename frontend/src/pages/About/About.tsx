@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
 import { useAboutContent } from '../../hooks/useAboutContent'
@@ -8,7 +8,6 @@ import { captureAboutHeroLqip, readAboutHeroLqip } from '../../utils/aboutHeroLq
 import {
   BookOpenIcon,
   ChevronRightIcon,
-  ClockIcon,
   FlagIcon,
   MapPinIcon,
   PeopleIcon,
@@ -22,13 +21,19 @@ import pastorPhoto from '../../assets/about-pastor/pastor.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
 import { useThemeArt } from '../../hooks/useThemeArt'
-import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC, CHURCH_SEASON_PHOTO, pairSrc } from '../../utils/themeAssets'
+import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC, CHURCH_SEASON_PHOTO, pairSrc, visitSceneFor } from '../../utils/themeAssets'
 import { getNaturalSeason } from '../../utils/naturalSeason'
 import { useTheme } from '../../contexts/ThemeContext'
+// 다섯 만남 사진 위 계절 낙하물 — 오시는 길 히어로와 같은 부품(봄 꽃잎·가을 낙엽·겨울 눈, 라이트만)
+import HeroFalling from '../Visit/components/HeroFalling'
+import '../Visit/styles/falling.css'
+// 여름은 목양칼럼 표지와 같은 캔버스 입자 — 낮 초록잎 · 밤 반딧불
+import LetterSeasonFx from '../Ministry/LetterSeasonFx'
+import { type NaturalSeason } from '../../utils/naturalSeason'
 
 /* /about — "참 빛" 잡지형 소개.
    첫 화면은 하늘에 걸린 말씀 족자(세로쓰기 '참빛' + 요 1:9) + 아래 한 줄 바로가기·예배 버튼.
-   그 아래는 그림·글을 좌우로 번갈아 놓은 장들 — 만남 → 다섯 만남(지워지는 네 줄 + 약속 | 계절 교회 사진) → 담임목사 → 초대.
+   그 아래는 그림·글을 좌우로 번갈아 놓은 장들 — 만남 → 다섯 만남(지워지는 네 줄 + 약속 | 계절 교회 사진) → 담임목사 → 초대(이번 주일 초대장).
    예전 스티키 고정 그림은 세로로 길고 장면이 겹쳐 보여 걷어냈다. */
 
 // 서체 — 교회 이름 G마켓 · 첫 화면 세로 말씀 고운바탕 · 인용 고운돋움(--ab-verse) · 손글씨는 목사님 별칭에만
@@ -144,6 +149,32 @@ const VerseRef = ({ text, upright }: { text: string; upright: boolean }) =>
     <>{text}</>
   )
 
+// 초대 — 다음 주일(오늘이 주일이면 오늘)
+const nextSunday = (ko: boolean) => {
+  const d = new Date()
+  const isToday = d.getDay() === 0
+  if (!isToday) d.setDate(d.getDate() + (7 - d.getDay()))
+  const label = ko
+    ? `${d.getMonth() + 1}월 ${d.getDate()}일`
+    : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  return { label, isToday }
+}
+
+// "주일 오전 7:30 · 9:20 · 11:20 · 오후 1:30" → [{오전,7:30}, …] — 오전/오후는 앞 값을 이어받는다
+const parseServices = (text: string): { ampm: string; time: string }[] => {
+  let ampm = ''
+  const out: { ampm: string; time: string }[] = []
+  for (const part of text.split(/[·,]/)) {
+    const mer = part.match(/오전|오후|AM|PM/i)
+    if (mer) ampm = mer[0]
+    const t = part.match(/\d{1,2}:\d{2}/)
+    if (t) out.push({ ampm, time: t[0] })
+  }
+  return out
+}
+
+const ordinal = (n: number) => `${n}${n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'}`
+
 // 사인 잉크는 이름(성+이름)으로 찾는다 — 표시용 이름은 "안동철 담임목사" 처럼 직함이 붙는다
 const bareName = (displayName: string): string => displayName.trim().split(/\s+/)[0] ?? ''
 
@@ -158,7 +189,16 @@ const About = () => {
   const [dawnPair] = useState(() => (ABOUT_DAWN_PC.when?.() ? ABOUT_DAWN_PC : ABOUT_DAWN_MOBILE))
   const dawnArtReady = useThemeArt(dawnPair)
   const { theme } = useTheme()
-  const meetPhoto = pairSrc(CHURCH_SEASON_PHOTO[getNaturalSeason(new Date())], theme)
+  // 로컬 확인용 — /#/about?season=summer 로 계절을 바꿔 본다(운영 빌드에선 무시)
+  const [searchParams] = useSearchParams()
+  const seasonOverride = import.meta.env.DEV ? (searchParams.get('season') as NaturalSeason | null) : null
+  const [naturalSeason] = useState(() => getNaturalSeason(new Date()))
+  const season: NaturalSeason =
+    seasonOverride && seasonOverride in CHURCH_SEASON_PHOTO ? seasonOverride : naturalSeason
+  const meetPicRef = useRef<HTMLElement | null>(null)
+  // 입자가 내려앉을 편지가 없다 — 크기 0 표적이면 아무 데도 앉지 않고 흘러간다
+  const noLandRef = useRef<HTMLElement | null>(null)
+  const meetPhoto = pairSrc(CHURCH_SEASON_PHOTO[season], theme)
 
   // 다섯 만남 — 화면에 들어올 때 한 번 줄을 긋는다
   const meetRef = useRef<HTMLElement | null>(null)
@@ -202,6 +242,12 @@ const About = () => {
   const churchMark = tx('aboutChurchName').trim().replace(/\s*교회$/, '') || '참빛'
   const phone = tx('aboutPhone').trim()
   const pastorPhotoUrl = tx('aboutPastorPhoto').trim()
+  // 초대 — 오시는 길과 같은 계절 풍경, 예배 시간 타일(처음 오신 분께는 11:20 3부, 없으면 가운데)
+  const inviteScene = visitSceneFor(theme)
+  const sunday = nextSunday(ko)
+  const services = parseServices(tx('aboutInfoWorship'))
+  const firstTimer = services.findIndex((sv) => sv.time === '11:20')
+  const pickIndex = firstTimer >= 0 ? firstTimer : Math.floor((services.length - 1) / 2)
 
   const callPhone = () => {
     if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
@@ -386,8 +432,24 @@ const About = () => {
             </blockquote>
           </div>
           {/* 오시는 길·홈과 같은 교회 전경 — 지금 계절 × 라이트(낮)/다크(밤) */}
-          <figure className="ab-meet-pic">
+          <figure className="ab-meet-pic" ref={meetPicRef}>
             <img src={meetPhoto} alt={ko ? '참빛교회 전경' : 'Chambit Church'} loading="lazy" decoding="async" />
+            {/* 계절 입자 — 봄 벚꽃잎 · 가을 낙엽 · 겨울 눈은 오시는 길과 같은 부품(낮 사진만),
+                여름은 낮 초록잎 · 밤 반딧불(목양칼럼 캔버스). 동작 줄이기면 둘 다 그리지 않는다 */}
+            {season === 'summer' ? (
+              <>
+                <span ref={noLandRef} className="ab-meet-noland" aria-hidden="true" />
+                <LetterSeasonFx
+                  key={theme}
+                  season="summer"
+                  boxRef={meetPicRef}
+                  targetRef={noLandRef}
+                  night={theme === 'dark'}
+                />
+              </>
+            ) : (
+              theme === 'light' && <HeroFalling season={season} />
+            )}
             <figcaption>{ko ? '부천 상동 · 참빛교회' : 'Sangdong, Bucheon'}</figcaption>
           </figure>
         </section>
@@ -473,28 +535,74 @@ const About = () => {
           </div>
         </section>
 
-        {/* ── 초대 — 들판 길 사진 띠 위에 초대 글 + 한눈에 정보 ── */}
-        <section id="about-cta" className="ab-invite">
-          {/* /visit 의 예배당 이미지는 배경 위에 겹치려고 건물만 오려낸 합성이라 단독 배경으론 테두리가 드러났다 */}
-          <img className="ab-invite-bg" src="/images/history/verse-path.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" />
-          <div className="ab-invite-copy">
+        {/* ── 초대 — 이번 주일 초대장(2026-11-18 A안): 오시는 길 계절 풍경 위에 다음 주일 날짜 +
+             예배 시간 타일(처음이라면 3부) + 오시는 길. 낮엔 오시는 길과 같은 꽃잎·낙엽·눈 ── */}
+        <section id="about-cta" className={`ab-invite ink-${inviteScene?.ink ?? 'white'}`}>
+          {inviteScene && (
+            <div className="ab-invite-scene" aria-hidden="true">
+              <img src={inviteScene.src} alt="" loading="lazy" decoding="async" />
+              {theme === 'light' && <HeroFalling season={inviteScene.season} />}
+            </div>
+          )}
+          <span className="ab-invite-shade" aria-hidden="true" />
+          <div className="ab-invite-body">
             {tag(ko ? '초대' : 'Invitation')}
-            <h2 className="ab-title">
-              <EditableText fieldKey="aboutCtaTitle" isAdmin={isAdminUser}>
-                {tx('aboutCtaTitle')}
-              </EditableText>
-            </h2>
-            <p className="ab-lead">
-              <EditableText fieldKey="aboutCtaText" multiline isAdmin={isAdminUser}>
-                {tx('aboutCtaText')}
-              </EditableText>
+            <p className="ab-invite-date">
+              <span>{sunday.isToday ? (ko ? '오늘' : 'Today') : ko ? '이번 주일' : 'This Sunday'} ·</span>
+              <strong>{sunday.label}</strong>
             </p>
-            {/* 교회에서 "등록"은 새가족 등록으로 읽힌다 — 방문자에겐 주일 예배 길 안내가 먼저,
-                앱 가입은 비로그인일 때만 보조 링크로 */}
+            <h2 className="ab-invite-title">{ko ? '자리 하나\n비워둘게요.' : "We'll save\na seat for you."}</h2>
+
+            {services.length > 0 && (
+              <ul className="ab-times" aria-label={ko ? '주일 예배 시간' : 'Sunday services'}>
+                {services.map((sv, i) => (
+                  <li key={`${sv.ampm}-${sv.time}`} className={i === pickIndex ? 'is-pick' : undefined}>
+                    <button type="button" onClick={() => navigate('/worship')}>
+                      <small>{ko ? `${i + 1}부` : `${ordinal(i + 1)}`}</small>
+                      <b>
+                        <em>{sv.ampm}</em> {sv.time}
+                      </b>
+                    </button>
+                    {i === pickIndex && <span>{ko ? '처음이라면' : 'First time?'}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {/* 관리자는 예배 시간 문구를 그대로 고친다(타일은 이 문구를 읽어 만든다) */}
+            {isAdminUser && (
+              <p className="ab-invite-admin">
+                <EditableText fieldKey="aboutInfoWorship" isAdmin={isAdminUser}>
+                  {tx('aboutInfoWorship')}
+                </EditableText>
+              </p>
+            )}
+
+            {/* 교회에서 "등록"은 새가족 등록으로 읽힌다 — 방문자에겐 길 안내가 먼저, 앱 가입은 비로그인일 때만 보조 링크로 */}
             <div className="ab-invite-actions">
               <button type="button" className="ab-invite-cta" onClick={() => navigate('/visit')}>
-                {ko ? '이번 주일, 함께 예배드려요' : 'Join us this Sunday'}
+                {ko ? '오시는 길 보기' : 'Get directions'}
               </button>
+              <span className="ab-invite-where">
+                <MapPinIcon size={16} />
+                <EditableText fieldKey="aboutAddress" isAdmin={isAdminUser}>
+                  {tx('aboutAddress')}
+                </EditableText>
+              </span>
+              {(phone.length > 0 || isAdminUser) && (
+                // EditableText 가 <button> 을 렌더하므로 button 이 아닌 span(role=button) — 중첩 인터랙티브 회피
+                <span
+                  className="ab-invite-where is-phone"
+                  role="button"
+                  tabIndex={0}
+                  onClick={callPhone}
+                  onKeyDown={rowKeyDown(callPhone)}
+                >
+                  <PhoneIcon size={16} />
+                  <EditableText fieldKey="aboutPhone" isAdmin={isAdminUser}>
+                    {phone || (ko ? '전화번호를 등록해주세요' : 'Add a phone number')}
+                  </EditableText>
+                </span>
+              )}
               {!isLoggedIn && (
                 <button type="button" className="ab-link-btn" onClick={() => navigate('/register')}>
                   <span>{ko ? '참빛 앱 가입하기' : 'Sign up for the app'}</span>
@@ -502,76 +610,6 @@ const About = () => {
                 </button>
               )}
             </div>
-          </div>
-
-          <div className="ab-info" aria-label={ko ? '한눈에 정보' : 'Quick info'}>
-            <div
-              className="ab-info-row"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate('/worship')}
-              onKeyDown={rowKeyDown(() => navigate('/worship'))}
-            >
-              <ClockIcon size={20} className="ab-info-icon" />
-              <span className="ab-info-main">
-                <small>{ko ? '주일예배' : 'Sunday Worship'}</small>
-                <b>
-                  <EditableText fieldKey="aboutInfoWorship" isAdmin={isAdminUser}>
-                    {tx('aboutInfoWorship')}
-                  </EditableText>
-                </b>
-              </span>
-              <ChevronRightIcon size={16} className="ab-info-chevron" />
-            </div>
-
-            {/* 길찾기 앱 연결은 /visit 이 각 지도 앱 버튼으로 담당한다 */}
-            <div
-              className="ab-info-row"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate('/visit')}
-              onKeyDown={rowKeyDown(() => navigate('/visit'))}
-            >
-              <MapPinIcon size={20} className="ab-info-icon" />
-              <span className="ab-info-main">
-                <small>{ko ? '오시는 길' : 'Directions'}</small>
-                <b>
-                  <EditableText fieldKey="aboutAddress" isAdmin={isAdminUser}>
-                    {tx('aboutAddress')}
-                  </EditableText>
-                </b>
-              </span>
-              <ChevronRightIcon size={16} className="ab-info-chevron" />
-            </div>
-
-            {(phone.length > 0 || isAdminUser) && (
-              <div
-                className="ab-info-row"
-                role="button"
-                tabIndex={0}
-                onClick={callPhone}
-                onKeyDown={rowKeyDown(callPhone)}
-              >
-                <PhoneIcon size={20} className="ab-info-icon" />
-                <span className="ab-info-main">
-                  <small>{ko ? '전화' : 'Phone'}</small>
-                  <b className={phone ? undefined : 'is-empty'}>
-                    <EditableText fieldKey="aboutPhone" isAdmin={isAdminUser}>
-                      {phone || (ko ? '전화번호를 등록해주세요' : 'Add a phone number')}
-                    </EditableText>
-                  </b>
-                </span>
-                {phone.length > 0 && <ChevronRightIcon size={16} className="ab-info-chevron" />}
-              </div>
-            )}
-
-            {isAdminUser && (
-              <p className="ab-info-admin">
-                {ko
-                  ? '지도 검색어·주차·사진 안내는 오시는 길 페이지에서 수정합니다.'
-                  : 'Map query, parking and photos are edited on the Directions page.'}
-              </p>
-            )}
           </div>
         </section>
 
