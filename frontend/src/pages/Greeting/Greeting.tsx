@@ -33,9 +33,14 @@ import { GREETING_HERO_DAY_BY_SEASON } from '../../utils/themeAssets'
 import './styles/index.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 
-// 담임목사 이름 → 가위로 오린 인물 사진(public/images/greeting). 없으면 photo_url 을 쓴다
-const CUT_PORTRAITS: Record<string, string> = {
-  안동철: '/images/greeting/pastor-greeting.webp',
+import { CUT_PORTRAIT_SIZE, cutPortraitFor, warmCutPortraits } from './cutPortraits'
+import { readPastorsCache } from '../../utils/pastorsCache'
+
+// 주소로 바로 들어와 선요청(prefetch.ts)이 돌지 않았어도, 청크가 로드되는 순간
+// pastors 응답을 기다리지 않고 오린 사진 요청을 시작한다 (첫 방문 = 표의 사진, 재방문 = 캐시 기준)
+{
+  const cached = readPastorsCache()
+  warmCutPortraits(cached ? (cached.current?.name_ko ?? null) : undefined)
 }
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
@@ -92,12 +97,11 @@ const Greeting = () => {
   const photoUrl = current?.photo_url?.trim() ?? ''
   // 인물 사진 = 가위로 오린 사진 한 장(흰 여백·칼선은 그림에, 종이 그림자·말풍선은 CSS).
   // 업로드 경로가 투명 이미지를 아직 보존하지 않아, 지금 담임목사의 오린 사진을 정적 파일로 둔다.
-  // 회전·축소를 그림에 미리 구워(480px, Lanczos) 브라우저 재샘플링 흐림을 없앴다.
   // 담임목사가 바뀌면 이 표에 없으니 자동으로 업로드 사진(photo_url)으로 돌아간다.
   // /#/greeting?portrait=off 로 업로드 사진과 비교
   const [params] = useSearchParams()
   const popPortrait =
-    params.get('portrait') !== 'off' ? (CUT_PORTRAITS[current?.name_ko?.trim() ?? ''] ?? '') : ''
+    params.get('portrait') !== 'off' ? cutPortraitFor(current?.name_ko) : ''
   const heroDayImage = HERO_DAY_BY_SEASON[getNaturalSeason(new Date())]
 
   const credentials = current
@@ -165,6 +169,8 @@ const Greeting = () => {
                             className="gr-portrait-person"
                             src={popPortrait}
                             alt={name}
+                            width={CUT_PORTRAIT_SIZE.width}
+                            height={CUT_PORTRAIT_SIZE.height}
                             fetchPriority="high"
                             decoding="async"
                           />
