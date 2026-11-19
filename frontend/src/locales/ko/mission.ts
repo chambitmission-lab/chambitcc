@@ -38,6 +38,7 @@ export const mission = {
   missionPassBoarded: '✓ 탑승 완료',
   missionPassCheck: '검표',
   missionPassChecked: '검표 완료',
+  missionPassStamp: '탑승 완료',
   missionProgressTitle: '오늘 내 탑승 현황',
   missionProgressUnit: '노선 기도 완료',
   missionLampsLit: '오늘 내가 밝힌 등불',

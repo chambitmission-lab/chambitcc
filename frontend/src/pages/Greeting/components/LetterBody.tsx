@@ -16,6 +16,39 @@ const SIMILE_RE = /^(.*?)(\S+?)((?:과|와|처럼)?\s*같은\s+\S+)\s*$/
 /* 영어는 어순이 반대라 비유가 줄 앞에 온다 — "a meeting like a fish — the more you meet, …" */
 const SIMILE_EN_RE = /^(.*?)\b((?:an?|the)\s+\w+\s+like\s+(?:an?|the)\s+[^—–,.;:]+?)(\s*(?:[—–,.;:].*)?)$/i
 
+/* 핵심 문장 강조 — 원문에 표시 기호를 넣지 않고 렌더 시점에 찾는다
+   (기호를 넣으면 관리자 미리보기·목사님 시트 등 평문 화면에 그대로 드러난다).
+   1) 따옴표로 인용한 말은 언제나  2) 지금 인사말의 결론 문장들 — 원문이 바뀌어 못 찾으면 조용히 평문 */
+const KEY_PHRASES = [
+  '좋은 교회를 만난다는 것은 이 세상의 다른 어떤 것보다 더욱 중요합니다',
+  '인생 궤도는 완전히 바뀌게 되었습니다',
+  '손수건과 같은 만남입니다',
+  '흐르는 땀을 닦아주고, 눈물을 닦아주고 싶습니다',
+]
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const EMPHASIS_RE = new RegExp(
+  /* 인용은 문장 길이(12자+)만 — "True Light" 같은 짧은 이름 따옴표는 강조하지 않는다 */
+  `(["“][^"”\\n]{12,}["”]|${KEY_PHRASES.map(escapeRe).join('|')})`,
+  'g',
+)
+
+function Emphasized({ text }: { text: string }) {
+  const parts = text.split(EMPHASIS_RE)
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? (
+          <em key={i} className="gr-em">
+            {part}
+          </em>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  )
+}
+
 type Block =
   | { kind: 'text'; text: string }
   | { kind: 'list'; items: { ordinal: string; body: string }[] }
@@ -58,14 +91,11 @@ function parseLetter(text: string): Block[] {
   return blocks
 }
 
-function Item({ ordinal, body, index }: { ordinal: string; body: string; index: number }) {
+function Item({ ordinal, body }: { ordinal: string; body: string }) {
   const m = body.match(SIMILE_RE)
   const en = m ? null : body.match(SIMILE_EN_RE)
   return (
     <li className="gr-enum-item">
-      <span className="gr-enum-num" aria-hidden="true">
-        {String(index + 1).padStart(2, '0')}
-      </span>
       <span className="gr-enum-text">
         <span className="gr-enum-ordinal">{ordinal},</span>{' '}
         {m ? (
@@ -98,12 +128,12 @@ export default function LetterBody({ text }: { text: string }) {
         b.kind === 'list' ? (
           <ol key={i} className="gr-enum">
             {b.items.map((it, j) => (
-              <Item key={j} index={j} ordinal={it.ordinal} body={it.body} />
+              <Item key={j} ordinal={it.ordinal} body={it.body} />
             ))}
           </ol>
         ) : (
           <p key={i} className="gr-letter-text" style={{ whiteSpace: 'pre-line' }}>
-            {b.text}
+            <Emphasized text={b.text} />
           </p>
         ),
       )}

@@ -38,6 +38,7 @@ export const mission = {
   missionPassBoarded: '✓ Boarded',
   missionPassCheck: 'CHECK',
   missionPassChecked: 'CHECKED',
+  missionPassStamp: 'Boarded',
   missionProgressTitle: 'My boarding today',
   missionProgressUnit: 'routes prayed',
   missionLampsLit: 'lamps I lit today',

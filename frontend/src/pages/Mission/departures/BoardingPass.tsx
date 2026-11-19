@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { prefersReducedMotion } from '../../../utils/prefersReducedMotion'
 import { countryPrayerLine, regionMeta } from '../missionData'
-import { distanceFromSeoulKm, formatOffset, localHM, offsetFromSeoul } from './missionTime'
+import { dayPhase, distanceFromSeoulKm, formatOffset, localHM, localHour, offsetFromSeoul, type DayPhase } from './missionTime'
 import { playPunchClack, playScanBeep } from './ticketSounds'
 import { playSpacebarSound, preloadSpacebarSound } from '../../Bible/Typing/typingSound'
 import type { PrayerRoute } from './routes'
@@ -18,6 +18,27 @@ import type { PrayerRoute } from './routes'
 /** 위를 보는 여객기(24×24) — CSS 로 90° 돌려 진행 방향(→)을 보게 한다. ✈ 글리프는 OS 마다 이모지로 바뀐다 */
 const PLANE_PATH =
   'M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'
+
+const PHASE_KO: Record<DayPhase, string> = { morning: '아침', midday: '한낮', evening: '저녁', night: '밤' }
+const PHASE_EN: Record<DayPhase, string> = { morning: 'Morning there', midday: 'Midday there', evening: 'Evening there', night: 'Night there' }
+
+/** 현지 때 표시 — 아침·한낮 해, 저녁 지는 해, 밤 초승달 (이모지는 OS 마다 달라 SVG 로) */
+function PhaseIcon({ phase }: { phase: DayPhase }) {
+  return (
+    <svg className={`bp-phase bp-phase--${phase}`} viewBox="0 0 16 16" aria-hidden="true">
+      {phase === 'night' ? (
+        <path d="M10.6 2.2A6 6 0 1 0 13.8 11a5 5 0 0 1-3.2-8.8z" />
+      ) : phase === 'evening' ? (
+        <>
+          <path d="M3 11a5 5 0 0 1 10 0z" />
+          <rect x="1.5" y="12.4" width="13" height="1.6" rx="0.8" />
+        </>
+      ) : (
+        <circle cx="8" cy="8" r="4.6" />
+      )}
+    </svg>
+  )
+}
 
 type Stage = 'idle' | 'scanning' | 'scanned' | 'punched'
 
@@ -50,6 +71,7 @@ export function BoardingPass({
   const { t, language } = useLanguage()
   const ko = language === 'ko'
   const [stage, setStage] = useState<Stage>('idle')
+  const punched = boarded || stage === 'punched'
   const wrapRef = useRef<HTMLDivElement>(null)
   const ticketRef = useRef<HTMLDivElement>(null)
   const stubRef = useRef<HTMLDivElement>(null)
@@ -98,10 +120,9 @@ export function BoardingPass({
     place()
     const ro = new ResizeObserver(place)
     ro.observe(ticket)
+    ro.observe(stub)
     return () => ro.disconnect()
-  }, [layout])
-
-  const punched = boarded || stage === 'punched'
+  }, [layout, punched])
 
   const board = () => {
     if (boarded || stage !== 'idle') return
@@ -153,6 +174,15 @@ export function BoardingPass({
   const meta = regionMeta[route.region]
   const km = Math.round(distanceFromSeoulKm(detail) / 100) * 100
   const city = ko ? detail.city : detail.cityEn
+  const phase = dayPhase(localHour(detail.tz, nowMs))
+  const offset = offsetFromSeoul(detail.tz, nowMs)
+  const gap = Math.abs(offset)
+  const offsetLine =
+    offset === 0
+      ? ko ? '서울과 같은 시간' : 'Same as Seoul'
+      : ko ? `서울보다 ${gap}시간 ${offset < 0 ? '늦어요' : '빨라요'}` : `${gap}h ${offset < 0 ? 'behind' : 'ahead of'} Seoul`
+  // 여객기 순항 약 800km/h — 감으로 읽는 숫자라 시간 단위로 반올림
+  const flightH = Math.max(1, Math.round(km / 800))
   const btnLabel =
     punched ? t('missionPassBoarded') : stage === 'scanning' ? t('missionPassChecking') : stage === 'scanned' ? t('missionPassVerified') : t('missionPassBoard')
 
@@ -193,54 +223,92 @@ export function BoardingPass({
           </div>
           <dl className="bp-meta">
             <div>
-              <dt className="bp-label">{t('missionPassMissionary')}</dt>
+              <dt>{t('missionPassMissionary')}</dt>
               <dd>
-                {missionary.name}
-                {missionary.note && <span className="bp-note">{missionary.note}</span>}
+                <span className="bp-val">
+                  {missionary.name}
+                  {missionary.note && <span className="bp-note">{missionary.note}</span>}
+                </span>
+                <span className="bp-sub">{ko ? `${route.country} 선교` : `Serving in ${route.country}`}</span>
               </dd>
             </div>
             <div>
-              <dt className="bp-label">{t('missionPassLocalTime')}</dt>
-              <dd className="bp-num">{localHM(detail.tz, nowMs)}</dd>
-            </div>
-            <div>
-              <dt className="bp-label">{t('missionPassTimeDiff')}</dt>
-              <dd className="bp-num">{formatOffset(offsetFromSeoul(detail.tz, nowMs))}</dd>
-            </div>
-            <div>
-              <dt className="bp-label">{t('missionPassGate')}</dt>
+              <dt>{t('missionPassLocalTime')}</dt>
               <dd>
-                <span className="bp-gate-dot" style={{ background: meta.color }} />
-                {ko ? meta.label : meta.labelEn}
+                <span className="bp-val bp-num">
+                  <PhaseIcon phase={phase} />
+                  {localHM(detail.tz, nowMs)}
+                </span>
+                <span className="bp-sub">{ko ? `현지는 ${PHASE_KO[phase]}` : PHASE_EN[phase]}</span>
               </dd>
             </div>
             <div>
-              <dt className="bp-label">{t('missionPassDistance')}</dt>
-              <dd className="bp-num">{km.toLocaleString()}km</dd>
+              <dt>{t('missionPassTimeDiff')}</dt>
+              <dd>
+                <span className="bp-val bp-num">{formatOffset(offset).replace('-', '−')}</span>
+                <span className="bp-sub">{offsetLine}</span>
+              </dd>
             </div>
             <div>
-              <dt className="bp-label">{t('missionPassSeat')}</dt>
-              <dd>{t('missionPassSeatValue')}</dd>
+              <dt>{t('missionPassGate')}</dt>
+              <dd>
+                <span className="bp-val">
+                  <span className="bp-gate-dot" style={{ background: meta.color }} />
+                  {ko ? meta.label : meta.labelEn}
+                </span>
+                <span className="bp-sub">{ko ? `노선 ${route.flight}` : `Route ${route.flight}`}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>{t('missionPassDistance')}</dt>
+              <dd>
+                <span className="bp-val bp-num">
+                  {km.toLocaleString()}
+                  <small>km</small>
+                </span>
+                <span className="bp-sub">{ko ? `비행 약 ${flightH}시간` : `About ${flightH}h by air`}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>{t('missionPassSeat')}</dt>
+              <dd>
+                <span className="bp-val">{t('missionPassSeatValue')}</span>
+                <span className="bp-sub">{ko ? '언제든 앉을 수 있어요' : 'Always open'}</span>
+              </dd>
             </div>
           </dl>
           <p className="bp-req">{countryPrayerLine(route.country, ko ? 'ko' : 'en')}</p>
         </div>
 
         <div className="bp-stub" ref={stubRef}>
-          <span className="bp-label bp-stub-label">{punched ? t('missionPassChecked') : t('missionPassCheck')}</span>
-          <span className="bp-spot" ref={spotRef} aria-hidden="true" />
-          <span className="bp-bar" aria-hidden="true">
-            <span className="bp-scan" />
-            <span className="bp-ok">✓</span>
+          <span className="bp-check">
+            <span className="bp-spot" ref={spotRef} aria-hidden="true" />
+            <span className="bp-stub-label">{punched ? t('missionPassChecked') : t('missionPassCheck')}</span>
           </span>
-          <button type="button" className={`bp-go${punched ? ' is-done' : ''}`} onClick={board} disabled={punched} aria-live="polite">
-            {btnLabel}
-            {!punched && stage === 'idle' && (
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d={PLANE_PATH} />
-              </svg>
-            )}
-          </button>
+          <span className="bp-plate" aria-hidden="true">
+            <span className="bp-bar">
+              <span className="bp-scan" />
+              <span className="bp-ok">✓</span>
+            </span>
+            <span className="bp-plate__code">{route.flight}</span>
+          </span>
+          {punched ? (
+            <span className="bp-stamp" role="status">
+              <b>{t('missionPassStamp')}</b>
+              <small>BOARDED · {route.flight}</small>
+            </span>
+          ) : (
+            <button type="button" className="bp-go" onClick={board} disabled={stage !== 'idle'} aria-live="polite">
+              <span className="bp-go__text">{btnLabel}</span>
+              {stage === 'idle' && (
+                <span className="bp-go__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d={PLANE_PATH} />
+                  </svg>
+                </span>
+              )}
+            </button>
+          )}
         </div>
       </div>
       <span className="bp-punch" ref={toolRef} aria-hidden="true">

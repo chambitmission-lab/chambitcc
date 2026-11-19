@@ -87,6 +87,12 @@
     border-top: 0;
   }
 
+  /* 사진이 없으면 인물 블록이 짧아 본문이 문단 중간에서 그 아래로 감겨 들어간다
+     (들쭉날쭉한 왼쪽 정렬). 이때만 본문을 오른쪽 기둥(BFC)에 묶어 끝까지 같은 선을 지킨다 */
+  .gr-letter--no-photo .gr-letter-card {
+    display: flow-root;
+  }
+
   .gr-quote-mark {
     margin-top: 0.25rem;
   }
@@ -126,6 +132,27 @@
 
   .gr-letter-title {
     font-size: 1.7rem;
+  }
+
+  /* 오린 사진 — 인물 블록 폭을 다 쓰고, 말풍선도 한 단계 크게 */
+  .gr-portrait {
+    width: 100%;
+    margin-top: 2.5rem;
+  }
+
+  .gr-portrait-bubble {
+    left: 52%;
+    bottom: calc(100% - 4px);
+    padding: 0.35rem 0.7rem;
+    border-radius: 14px;
+    font-size: 1.35rem;
+  }
+
+  .gr-portrait-bubble::after {
+    left: 16px;
+    bottom: -7px;
+    width: 11px;
+    height: 11px;
   }
 
   /* 가로 스크롤 대신 그리드로 — 역대 목사가 한눈에 들어온다 */

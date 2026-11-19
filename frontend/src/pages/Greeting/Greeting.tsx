@@ -6,7 +6,7 @@
 // 기존 ✏️ 인라인 편집(EditableText)으로 고칠 수 있다.
 import { useState } from 'react'
 import type { CSSProperties } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { usePastors } from '../../hooks/usePastors'
@@ -32,6 +32,11 @@ import { getNaturalSeason } from '../../utils/naturalSeason'
 import { GREETING_HERO_DAY_BY_SEASON } from '../../utils/themeAssets'
 import './styles/index.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 담임목사 이름 → 가위로 오린 인물 사진(public/images/greeting). 없으면 photo_url 을 쓴다
+const CUT_PORTRAITS: Record<string, string> = {
+  안동철: '/images/greeting/pastor-greeting.webp',
+}
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
@@ -85,6 +90,14 @@ const Greeting = () => {
   const profileHeadline = pastorText(current, 'profile_headline', language)
   const profileIntro = pastorText(current, 'profile_intro', language)
   const photoUrl = current?.photo_url?.trim() ?? ''
+  // 인물 사진 = 가위로 오린 사진 한 장(흰 여백·칼선은 그림에, 종이 그림자·말풍선은 CSS).
+  // 업로드 경로가 투명 이미지를 아직 보존하지 않아, 지금 담임목사의 오린 사진을 정적 파일로 둔다.
+  // 회전·축소를 그림에 미리 구워(480px, Lanczos) 브라우저 재샘플링 흐림을 없앴다.
+  // 담임목사가 바뀌면 이 표에 없으니 자동으로 업로드 사진(photo_url)으로 돌아간다.
+  // /#/greeting?portrait=off 로 업로드 사진과 비교
+  const [params] = useSearchParams()
+  const popPortrait =
+    params.get('portrait') !== 'off' ? (CUT_PORTRAITS[current?.name_ko?.trim() ?? ''] ?? '') : ''
   const heroDayImage = HERO_DAY_BY_SEASON[getNaturalSeason(new Date())]
 
   const credentials = current
@@ -140,10 +153,26 @@ const Greeting = () => {
             ) : (
               <>
                 {/* 인사말 — 이력서가 아니라 편지 */}
-                <section id="greeting-letter" className="gr-letter">
+                <section
+                  id="greeting-letter"
+                  className={`gr-letter${!photoUrl && !popPortrait && !isAdminUser ? ' gr-letter--no-photo' : ''}`}
+                >
                   <div className="gr-letter-head">
                     <EditablePastorPhoto pastor={current} isAdmin={isAdminUser}>
-                      {photoUrl ? (
+                      {popPortrait ? (
+                        <span className="gr-portrait">
+                          <img
+                            className="gr-portrait-person"
+                            src={popPortrait}
+                            alt={name}
+                            fetchPriority="high"
+                            decoding="async"
+                          />
+                          <span className="gr-portrait-bubble" aria-hidden="true">
+                            {ko ? '어서 오세요!' : 'Welcome!'}
+                          </span>
+                        </span>
+                      ) : photoUrl ? (
                         <img
                           className="gr-photo"
                           src={photoUrl}
