@@ -2,6 +2,8 @@ import type { CSSProperties } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { VISIT_HERO, VISIT_SCENE_PAIR } from '../../utils/themeAssets'
 import { ensureFontFamily } from '../../utils/deferredFonts'
+import personUrl from './assets/pastor-cutout.webp'
+import scissorUrl from './assets/pastor-scissor.webp'
 import './greetingPortraitPreview.css'
 
 ensureFontFamily('nanumPen')
@@ -13,9 +15,9 @@ ensureFontFamily('nanumPen')
  * 유머는 "반갑게 인사하는 장난기"까지 — 캐리커처(큰 머리 등)는 목회자 톤에 맞지 않아 뺀다.
  */
 
-const PERSON = '/images/greeting/pastor-cutout.webp'
+const PERSON = personUrl
 // 제미나이 '가위로 오린 종이 사진'(흰 여백+칼선) — 종이 윤곽까지 누끼, 그림자는 CSS
-const SCISSOR = '/images/greeting/pastor-scissor.webp'
+const SCISSOR = scissorUrl
 
 interface Variant {
   key: string

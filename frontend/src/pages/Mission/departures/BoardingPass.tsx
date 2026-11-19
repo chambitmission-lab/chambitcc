@@ -19,8 +19,13 @@ import type { PrayerRoute } from './routes'
 const PLANE_PATH =
   'M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z'
 
-const PHASE_KO: Record<DayPhase, string> = { morning: '아침', midday: '한낮', evening: '저녁', night: '밤' }
-const PHASE_EN: Record<DayPhase, string> = { morning: 'Morning there', midday: 'Midday there', evening: 'Evening there', night: 'Night there' }
+// 현지 때 한 줄 — 문구는 locales 의 mission.ts (ko·en)
+const PHASE_KEY = {
+  morning: 'missionPassPhaseMorning',
+  midday: 'missionPassPhaseMidday',
+  evening: 'missionPassPhaseEvening',
+  night: 'missionPassPhaseNight',
+} as const satisfies Record<DayPhase, string>
 
 /** 현지 때 표시 — 아침·한낮 해, 저녁 지는 해, 밤 초승달 (이모지는 OS 마다 달라 SVG 로) */
 function PhaseIcon({ phase }: { phase: DayPhase }) {
@@ -179,8 +184,8 @@ export function BoardingPass({
   const gap = Math.abs(offset)
   const offsetLine =
     offset === 0
-      ? ko ? '서울과 같은 시간' : 'Same as Seoul'
-      : ko ? `서울보다 ${gap}시간 ${offset < 0 ? '늦어요' : '빨라요'}` : `${gap}h ${offset < 0 ? 'behind' : 'ahead of'} Seoul`
+      ? t('missionPassSameTime')
+      : t(offset < 0 ? 'missionPassBehind' : 'missionPassAhead').replace('{n}', String(gap))
   // 여객기 순항 약 800km/h — 감으로 읽는 숫자라 시간 단위로 반올림
   const flightH = Math.max(1, Math.round(km / 800))
   const btnLabel =
@@ -229,7 +234,7 @@ export function BoardingPass({
                   {missionary.name}
                   {missionary.note && <span className="bp-note">{missionary.note}</span>}
                 </span>
-                <span className="bp-sub">{ko ? `${route.country} 선교` : `Serving in ${route.country}`}</span>
+                <span className="bp-sub">{t('missionPassServing').replace('{country}', route.country)}</span>
               </dd>
             </div>
             <div>
@@ -239,7 +244,7 @@ export function BoardingPass({
                   <PhaseIcon phase={phase} />
                   {localHM(detail.tz, nowMs)}
                 </span>
-                <span className="bp-sub">{ko ? `현지는 ${PHASE_KO[phase]}` : PHASE_EN[phase]}</span>
+                <span className="bp-sub">{t(PHASE_KEY[phase])}</span>
               </dd>
             </div>
             <div>
@@ -256,7 +261,7 @@ export function BoardingPass({
                   <span className="bp-gate-dot" style={{ background: meta.color }} />
                   {ko ? meta.label : meta.labelEn}
                 </span>
-                <span className="bp-sub">{ko ? `노선 ${route.flight}` : `Route ${route.flight}`}</span>
+                <span className="bp-sub">{t('missionPassRoute').replace('{code}', route.flight)}</span>
               </dd>
             </div>
             <div>
@@ -266,14 +271,14 @@ export function BoardingPass({
                   {km.toLocaleString()}
                   <small>km</small>
                 </span>
-                <span className="bp-sub">{ko ? `비행 약 ${flightH}시간` : `About ${flightH}h by air`}</span>
+                <span className="bp-sub">{t('missionPassFlightTime').replace('{n}', String(flightH))}</span>
               </dd>
             </div>
             <div>
               <dt>{t('missionPassSeat')}</dt>
               <dd>
                 <span className="bp-val">{t('missionPassSeatValue')}</span>
-                <span className="bp-sub">{ko ? '언제든 앉을 수 있어요' : 'Always open'}</span>
+                <span className="bp-sub">{t('missionPassSeatOpen')}</span>
               </dd>
             </div>
           </dl>

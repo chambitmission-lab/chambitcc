@@ -15,4 +15,6 @@ export const greeting = {
   greetingHistoryHint: 'Those who have shepherded Chambit Church',
   greetingClosing: 'Everyone is welcome at Chambit Church',
   greetingClosingSub: 'First-time visitors are embraced and blessed with the love of the Lord',
+  // Sentences to emphasize in the letter, one per line (quoted speech is always emphasized)
+  greetingKeyPhrases: '',
 } as const

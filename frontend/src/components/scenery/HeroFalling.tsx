@@ -1,8 +1,10 @@
 import type { CSSProperties } from "react";
-import type { NaturalSeason } from "../../../utils/naturalSeason";
+import type { NaturalSeason } from "../../utils/naturalSeason";
+import "./heroFalling.css";
 
 /**
- * 히어로에 내려앉는 것들(라이트 전용, 2026-11-15, styles/falling.css .visit-hero-fall)
+ * 오시는 길(/visit) 히어로와 소개(/about) 초대장이 같이 쓴다 — 스타일은 이 부품이 직접 가져온다.
+ * 히어로에 내려앉는 것들(라이트 전용, 2026-11-15, heroFalling.css .visit-hero-fall)
  *   봄 = 벚꽃잎(오른쪽 위 벚나무에서) · 가을 = 낙엽(오른쪽 위 단풍나무에서) · 겨울 = 눈송이(하늘 전체에서)
  *   여름은 없다. 다크는 별똥별(HeroWalk)만.
  * 바닥(무대 아래 끝)에 닿으면 잠깐 머물렀다 스러진다. 잎·꽃잎은 납작하게 눕고, 눈은 그대로 녹는다.

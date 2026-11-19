@@ -1,6 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { markPostcardSent } from '../../../components/share/sharePostcardsShared'
-import type { ChangeEvent, PointerEvent as ReactPointerEvent } from 'react'
+import type { ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleBooks } from '../../../hooks/useBible'
@@ -17,7 +17,7 @@ import { compactReference, getTodayRecommended } from './recommendedVerses'
 import type { PickedVerse } from './recommendedVerses'
 import { CARD_PRESETS } from './cardPresets'
 import type { CardPreset } from './cardPresets'
-import { BACKGROUNDS, DEFAULT_CARD_STYLE, backgroundCss, createBackgroundImage, createCardCanvas, cropRect, drawVerseCard, ensureCardFonts, layoutFromCanvas, measureImageLuminance } from './photoVerseCanvas'
+import { BACKGROUNDS, DEFAULT_CARD_STYLE, backgroundCss, createBackgroundImage, createCardCanvas, drawSlide, ensureCardFonts, measureImageLuminance } from './photoVerseCanvas'
 import type { CardRatioId, CardTextBg, CardTextureId, VerseBackground, VerseCardStyle } from './photoVerseCanvas'
 import { PresetStrip } from './components/StyleStrips'
 import DetailControls from './components/DetailControls'
@@ -38,20 +38,15 @@ import { useRecentSermonPassage } from './churchVerses'
 import type { SermonPassage } from './churchVerses'
 import { PHOTO_VERSE_TEXTS } from './texts'
 import { usePhotoGesture } from './usePhotoGesture'
-import { preloadSegmenter, segmentSubjectAt } from './subjectSegmenter'
-import { REMIX_PARAM, buildRemixLink, decodeRemix } from './remix'
-import { smoothScrollToElement } from '../../../utils/scrollTo'
-import { canKakaoShare } from '../../../utils/kakaoShare'
+import { useCardExport } from './useCardExport'
+import { useDepthSubject } from './useDepthSubject'
+import { useRemixOffer } from './useRemixOffer'
+import { buildRemixLink } from './remix'
 import KakaoIcon from '../../../components/icons/KakaoIcon'
 import './PhotoVerse.css'
 
-// 미리보기는 화면용으로 캡, 저장본은 원본 해상도(최대 2048px)로 다시 그린다
+// 미리보기는 화면용으로 캡 — 저장본·엽서 해상도는 useCardExport 가 정한다
 const PREVIEW_MAX_SIDE = 1280
-const EXPORT_MAX_SIDE = 2048
-// 잠금화면은 요즘 폰 세로 해상도(2556~2400px)에 맞춰 더 크게 — 원본보다 키우지는 않는다
-const EXPORT_MAX_SIDE_LOCK = 2560
-// 카톡 엽서 안의 인화지는 400px 남짓으로 줄어든다 — 그 두 배면 충분하다
-const POSTCARD_CARD_MAX_SIDE = 1080
 
 // 우리 교회 말씀(설교 본문·올해의 말씀)으로 시작할 때의 룩 — 종이 배경 + 절기 에디션 프레임
 const CHURCH_BG_ID = 'cream'
@@ -82,8 +77,7 @@ const PhotoVerse = () => {
   // 지난번에 만들던 카드 — 스타일은 곧바로 이어 쓰고, 말씀·배경은 '이어서 만들기'로 권한다
   const [draft] = useState(() => loadDraft())
   // 받은 스타일 링크(?remix=) — 지난번 스타일보다 앞선다. 이어서 만들기 제안은 접어 둔다
-  const [remixIn] = useState(() => decodeRemix(new URLSearchParams(location.search).get(REMIX_PARAM)))
-  const [remixOffer, setRemixOffer] = useState(() => remixIn)
+  const { remixIn, remixOffer, setRemixOffer } = useRemixOffer()
   const [resumeOffer, setResumeOffer] = useState(() =>
     !remixIn && !presetVerse && !routeSermon && isResumable(draft, Date.now()) ? draft : null,
   )
@@ -122,9 +116,6 @@ const PhotoVerse = () => {
   const [showLockGuide, setShowLockGuide] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
   const [motionOpen, setMotionOpen] = useState(false)
-  // 카카오톡 말씀 엽서 — 시트를 열 때 지금 보이는 장을 그려 둔 캔버스
-  const [kakaoCard, setKakaoCard] = useState<HTMLCanvasElement | null>(null)
-  const [kakaoEnabled] = useState(() => canKakaoShare())
   // 잠금화면으로 바꾸기 전 비율 — 카드로 돌아올 때 되살린다
   const initialRatio = remixIn?.style.ratio ?? draft?.style.ratio
   const cardRatioRef = useRef<CardRatioId>(initialRatio && initialRatio !== 'lock' ? initialRatio : 'original')
@@ -134,16 +125,7 @@ const PhotoVerse = () => {
   const [pickerOpen, setPickerOpen] = useState(false)
   // 폰트 로드 세대 — 구절이 바뀌어 새 서브셋 조각이 로드될 때마다 올라가 다시 그리게 한다
   const [fontsReady, setFontsReady] = useState(0)
-  const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  // 저장 인화 연출 — 다운로드 후 카드가 폴라로이드처럼 서서히 현상된다
-  const [printed, setPrinted] = useState<string | null>(null)
-  const [printDeveloped, setPrintDeveloped] = useState(false)
-  // 글자 뒤로 숨기 — 누른 대상의 마스크(그 사진에만 유효), 대상 고르는 중, 찾는 중
-  const [subject, setSubject] = useState<{ img: HTMLImageElement; mask: HTMLCanvasElement } | null>(null)
-  const [depthPicking, setDepthPicking] = useState(false)
-  const [depthBusy, setDepthBusy] = useState(false)
-  const [depthReady, setDepthReady] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -152,6 +134,15 @@ const PhotoVerse = () => {
   const pendingPresetRef = useRef<CardPreset | null>(null)
 
   const t = PHOTO_VERSE_TEXTS[language]
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg)
+    window.setTimeout(() => setToast(null), 2500)
+  }, [])
+
+  // 글자 뒤로 숨기 — 누른 대상을 오려 글자 앞으로 (감성 배경엔 오려낼 대상이 없다)
+  const { subjectMask, depthPicking, depthBusy, depthReady, startDepthPick, cancelDepthPick, clearSubject, pickSubjectAt } =
+    useDepthSubject({ img: photo?.img ?? null, isBackground: !!bgId, style, canvasWrapRef, t, showToast })
 
   // 웹폰트(명조/손글씨)가 로드되기 전에 그리면 시스템 폰트로 그려진다.
   // 한글 폰트는 서브셋 조각으로 나뉘어 있어 구절 텍스트를 넘겨 해당 글자의
@@ -173,19 +164,6 @@ const PhotoVerse = () => {
     setStyle((s) => (s.lang === lang ? s : { ...s, lang }))
   }, [lang])
 
-  // 인화 연출 — 오버레이가 뜨고 잠깐 뒤 현상이 시작된다
-  useEffect(() => {
-    if (!printed) return
-    const id = window.setTimeout(() => setPrintDeveloped(true), 80)
-    return () => window.clearTimeout(id)
-  }, [printed])
-
-  const closePrint = useCallback(() => {
-    if (printed) URL.revokeObjectURL(printed)
-    setPrinted(null)
-    setPrintDeveloped(false)
-  }, [printed])
-
   // 선택 해제된 objectURL 정리 (배경의 dataURL revoke는 무해한 no-op)
   useEffect(() => {
     return () => {
@@ -204,8 +182,6 @@ const PhotoVerse = () => {
   const slideIdx = Math.min(previewSlide, Math.max(0, slides.length - 1))
   const current = slides[slideIdx]
   const isLock = style.ratio === 'lock'
-  // 감성 배경에는 오려낼 대상이 없다. 사진을 바꾸면 이전 사진의 마스크는 버린다
-  const subjectMask = !bgId && subject && photo && subject.img === photo.img ? subject.mask : null
 
   // 말씀 교체 — 나누기는 한 장으로 돌아간다 (조각 수가 말씀마다 다르다)
   const chooseVerse = useCallback((v: PickedVerse) => {
@@ -227,7 +203,7 @@ const PhotoVerse = () => {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || !photo) return
-    drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style, { greeting: current?.greeting, subject: subjectMask })
+    drawSlide(canvas, photo.img, current, style, subjectMask)
   }, [photo, current, style, fontsReady, subjectMask])
 
   // 만들던 카드 기억 — 드래그 중 매 프레임 쓰지 않게 잠깐 모았다가 저장한다
@@ -239,11 +215,6 @@ const PhotoVerse = () => {
     )
     return () => window.clearTimeout(id)
   }, [style, activePreset, verse, bgId, slideCount, photo, greeting, occasionId])
-
-  const showToast = (msg: string) => {
-    setToast(msg)
-    window.setTimeout(() => setToast(null), 2500)
-  }
 
   // 프리셋 적용 — 비율·언어·위치·글자 크기는 그대로, 룩(레이아웃·필터·서체·질감·프레임)만 바꾼다
   const applyPreset = useCallback(
@@ -416,7 +387,7 @@ const PhotoVerse = () => {
     if (canvas.width !== sized.width || canvas.height !== sized.height) {
       canvas.width = sized.width
       canvas.height = sized.height
-      drawVerseCard(canvas, photo.img, current?.text ?? '', current?.refLabel ?? '', style, { greeting: current?.greeting, subject: subjectMask })
+      drawSlide(canvas, photo.img, current, style, subjectMask)
     }
   }, [photo, current, style, subjectMask])
 
@@ -429,91 +400,30 @@ const PhotoVerse = () => {
     dragTarget,
   })
 
-  // ── 저장/공유 — 원본 해상도로 다시 그려 JPEG 파일 생성 (나누기면 장마다 한 장씩) ──
-  const buildCardFiles = useCallback(async (): Promise<File[]> => {
-    if (!photo || !verse || !slides.length) return []
-    await ensureCardFonts(`${verse.text} ${verse.refLabel} ${greeting}`)
-    const maxSide = style.ratio === 'lock' ? EXPORT_MAX_SIDE_LOCK : EXPORT_MAX_SIDE
-    const prefix = style.ratio === 'lock' ? '잠금화면' : '말씀카드'
-    const base = `${prefix}_${verse.refLabel.replace(/[\s:]/g, '_')}`
-    const files: File[] = []
-    for (let i = 0; i < slides.length; i++) {
-      const canvas = createCardCanvas(photo.img, maxSide, style.frame, style.ratio)
-      drawVerseCard(canvas, photo.img, slides[i].text, slides[i].refLabel, style, { greeting: slides[i].greeting, subject: subjectMask })
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.94))
-      if (!blob) return []
-      const name = slides.length > 1 ? `${base}_${i + 1}.jpg` : `${base}.jpg`
-      files.push(new File([blob], name, { type: 'image/jpeg' }))
-    }
-    return files
-  }, [photo, verse, slides, style, greeting, subjectMask])
-
-  // 저장 — 파일 다운로드 (모바일은 다운로드 폴더/파일 앱, 데스크톱은 다운로드 폴더)
-  const handleDownload = useCallback(async () => {
-    if (saving) return
-    setSaving(true)
-    try {
-      const files = await buildCardFiles()
-      if (!files.length) throw new Error('export failed')
-      const urls = files.map((f) => URL.createObjectURL(f))
-      files.forEach((f, i) => {
-        const a = document.createElement('a')
-        a.href = urls[i]
-        a.download = f.name
-        a.click()
-      })
-      // 첫 장 말고는 인화 연출에 쓰지 않으니 다운로드가 시작된 뒤 해제한다
-      window.setTimeout(() => urls.slice(1).forEach((u) => URL.revokeObjectURL(u)), 4000)
-      if (files.length > 1) showToast(t.savedMany(files.length))
-      // 다운로드 직후 인화 연출 — URL은 오버레이를 닫을 때 해제한다
-      setPrintDeveloped(false)
-      setPrinted(urls[0])
-      markPostcardSent()
-    } catch {
-      showToast(t.saveFailed)
-    } finally {
-      setSaving(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buildCardFiles, saving])
-
-  // 공유 — OS 공유 시트 (아이폰에서는 여기의 "이미지 저장"으로 갤러리 저장).
-  // 말씀 링크를 문구로 곁들인다 — 문구를 받지 않는 앱(인스타 등)은 조용히 이미지만 올라간다
-  const handleShare = useCallback(async () => {
-    if (saving) return
-    setSaving(true)
-    try {
-      const files = await buildCardFiles()
-      if (!files.length) throw new Error('export failed')
-      await navigator.share({ files, title: verse?.refLabel, text: shareText })
-      markPostcardSent()
-    } catch (err) {
-      // 공유 시트를 사용자가 닫은 경우는 실패가 아니다
-      if ((err as DOMException)?.name !== 'AbortError') showToast(t.saveFailed)
-    } finally {
-      setSaving(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buildCardFiles, verse, saving, shareText])
-
-  // 카카오톡 말씀 엽서 — 지금 미리보기 중인 장을 엽서용으로 그려 시트에 넘긴다
-  const openKakaoPostcard = useCallback(async () => {
-    if (!photo || !verse || !current) return
-    await ensureCardFonts(`${verse.text} ${verse.refLabel} ${greeting}`)
-    const canvas = createCardCanvas(photo.img, POSTCARD_CARD_MAX_SIDE, style.frame, style.ratio)
-    drawVerseCard(canvas, photo.img, current.text, current.refLabel, style, { greeting: current.greeting, subject: subjectMask })
-    setKakaoCard(canvas)
-  }, [photo, verse, current, style, greeting, subjectMask])
-
-  // 파일 공유를 지원하는 환경에서만 공유 버튼 노출
-  const [canShareFile] = useState(() => {
-    try {
-      return !!navigator.canShare?.({
-        files: [new File([], 'card.jpg', { type: 'image/jpeg' })],
-      })
-    } catch {
-      return false
-    }
+  // ── 저장·공유·카카오톡 엽서 (useCardExport) ──
+  const {
+    saving,
+    printed,
+    printDeveloped,
+    closePrint,
+    handleDownload,
+    handleShare,
+    canShareFile,
+    kakaoEnabled,
+    kakaoCard,
+    openKakaoPostcard,
+    closeKakaoPostcard,
+  } = useCardExport({
+    img: photo?.img ?? null,
+    verse,
+    slides,
+    current,
+    style,
+    greeting,
+    subjectMask,
+    shareText,
+    t,
+    showToast,
   })
 
   // 세부 조정 — 프리셋에서 벗어난 '나만의 조합'이 된다
@@ -541,13 +451,6 @@ const PhotoVerse = () => {
   }
 
   // ── 받은 스타일 ──
-  // 주소의 ?remix= 는 한 번 읽고 지운다 — 새로고침·뒤로 가기 때 다시 덮어쓰지 않게
-  useEffect(() => {
-    if (!new URLSearchParams(location.search).has(REMIX_PARAM)) return
-    navigate({ pathname: location.pathname, search: '' }, { replace: true, state: location.state })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   const remixBg = remixOffer?.bgId ? (BACKGROUNDS.find((b) => b.id === remixOffer.bgId) ?? null) : null
 
   // 보낸 사람과 같은 배경으로 — 배경이 글자색을 바꾸지 않게 받은 색을 되돌린다
@@ -574,54 +477,6 @@ const PhotoVerse = () => {
       showToast(t.remixCopied)
     } catch {
       showToast(t.remixCopyFailed)
-    }
-  }
-
-  // ── 글자 뒤로 숨기 ──
-  // 새 사진이면 고르던 중이던 것도 접는다
-  useEffect(() => {
-    setDepthPicking(false)
-  }, [photo])
-
-  const startDepthPick = () => {
-    preloadSegmenter()
-    setDepthPicking(true)
-    // 모바일은 컨트롤이 캔버스 아래 — 누를 사진이 화면 밖이면 끌어올린다
-    const el = canvasWrapRef.current
-    if (el && el.getBoundingClientRect().top < 56) smoothScrollToElement(el, { offset: 72 })
-  }
-
-  // 캔버스에서 누른 자리 → 원본 사진 좌표(0~1) → 그 대상을 오려낸다
-  const pickSubjectAt = async (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (!photo || depthBusy) return
-    const canvas = e.currentTarget
-    const rect = canvas.getBoundingClientRect()
-    const cx = ((e.clientX - rect.left) / rect.width) * canvas.width
-    const cy = ((e.clientY - rect.top) / rect.height) * canvas.height
-    const l = layoutFromCanvas(canvas.width, canvas.height, style.frame)
-    const pu = (cx - l.px) / l.pw
-    const pv = (cy - l.py) / l.ph
-    if (pu < 0 || pu > 1 || pv < 0 || pv > 1) return
-    const img = photo.img
-    const crop = cropRect(img, style.ratio, style.focus)
-    const u = (crop.sx + pu * crop.sw) / img.naturalWidth
-    const v = (crop.sy + pv * crop.sh) / img.naturalHeight
-    setDepthBusy(true)
-    try {
-      // 분할은 메인 스레드를 잠깐 붙잡는다 — '찾는 중'이 먼저 그려지게 한 프레임 양보
-      await new Promise<void>((r) => requestAnimationFrame(() => window.setTimeout(r, 0)))
-      const mask = await segmentSubjectAt(img, u, v)
-      if (mask) {
-        setSubject({ img, mask })
-        setDepthPicking(false)
-      } else {
-        showToast(t.depthNotFound)
-      }
-    } catch {
-      showToast(t.depthFailed)
-    } finally {
-      setDepthBusy(false)
-      setDepthReady(true)
     }
   }
 
@@ -763,7 +618,7 @@ const PhotoVerse = () => {
                       </span>
                     </span>
                     {!depthBusy && (
-                      <button type="button" className="pv-depth-pick__cancel" onClick={() => setDepthPicking(false)}>
+                      <button type="button" className="pv-depth-pick__cancel" onClick={cancelDepthPick}>
                         {t.depthCancel}
                       </button>
                     )}
@@ -980,7 +835,7 @@ const PhotoVerse = () => {
                         <button type="button" className="pv-depth-on__btn" onClick={startDepthPick}>
                           {t.depthRepick}
                         </button>
-                        <button type="button" className="pv-depth-on__btn" onClick={() => setSubject(null)}>
+                        <button type="button" className="pv-depth-on__btn" onClick={clearSubject}>
                           {t.depthOff}
                         </button>
                       </span>
@@ -1130,10 +985,10 @@ const PhotoVerse = () => {
             onShareFile={canShareFile ? handleShare : undefined}
             onSent={() => {
               markPostcardSent()
-              setKakaoCard(null)
+              closeKakaoPostcard()
             }}
             onFailed={showToast}
-            onClose={() => setKakaoCard(null)}
+            onClose={closeKakaoPostcard}
           />
         )}
       </div>

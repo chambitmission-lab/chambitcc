@@ -4,6 +4,7 @@
    대목이라 평문으로 흘려보내면 아깝다. 렌더 시점에 그 구간만 찾아
    번호 목록 블록으로 세우고, "○○과 같은 만남" 의 비유 명사를 강조한다.
    원문은 손대지 않는다 — 감지에 실패하면 그대로 문단이 된다. */
+import { useMemo } from 'react'
 
 const ORDINALS = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째', '아홉째', '열째']
 /* 영어 번역본(greeting_body_en)도 같은 목록 블록으로 선다 — "First, … / Second, …" */
@@ -18,22 +19,16 @@ const SIMILE_EN_RE = /^(.*?)\b((?:an?|the)\s+\w+\s+like\s+(?:an?|the)\s+[^—–
 
 /* 핵심 문장 강조 — 원문에 표시 기호를 넣지 않고 렌더 시점에 찾는다
    (기호를 넣으면 관리자 미리보기·목사님 시트 등 평문 화면에 그대로 드러난다).
-   1) 따옴표로 인용한 말은 언제나  2) 지금 인사말의 결론 문장들 — 원문이 바뀌어 못 찾으면 조용히 평문 */
-const KEY_PHRASES = [
-  '좋은 교회를 만난다는 것은 이 세상의 다른 어떤 것보다 더욱 중요합니다',
-  '인생 궤도는 완전히 바뀌게 되었습니다',
-  '손수건과 같은 만남입니다',
-  '흐르는 땀을 닦아주고, 눈물을 닦아주고 싶습니다',
-]
+   1) 따옴표로 인용한 말은 언제나  2) 관리자가 정한 핵심 문장(keyPhrases — about_content 의
+   greetingKeyPhrases, 한 줄에 하나) — 원문이 바뀌어 못 찾으면 조용히 평문 */
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-const EMPHASIS_RE = new RegExp(
-  /* 인용은 문장 길이(12자+)만 — "True Light" 같은 짧은 이름 따옴표는 강조하지 않는다 */
-  `(["“][^"”\\n]{12,}["”]|${KEY_PHRASES.map(escapeRe).join('|')})`,
-  'g',
-)
+/* 인용은 문장 길이(12자+)만 — "True Light" 같은 짧은 이름 따옴표는 강조하지 않는다 */
+const QUOTE_SRC = `["“][^"”\\n]{12,}["”]`
+const emphasisRe = (keyPhrases: readonly string[]) =>
+  new RegExp(`(${[QUOTE_SRC, ...keyPhrases.map(escapeRe)].join('|')})`, 'g')
 
-function Emphasized({ text }: { text: string }) {
-  const parts = text.split(EMPHASIS_RE)
+function Emphasized({ text, re }: { text: string; re: RegExp }) {
+  const parts = text.split(re)
   return (
     <>
       {parts.map((part, i) =>
@@ -120,8 +115,17 @@ function Item({ ordinal, body }: { ordinal: string; body: string }) {
   )
 }
 
-export default function LetterBody({ text }: { text: string }) {
-  const blocks = parseLetter(text)
+interface LetterBodyProps {
+  text: string
+  /** 본문에서 강조할 문장들 — 없으면 따옴표 인용만 강조한다 */
+  keyPhrases?: readonly string[]
+}
+
+export default function LetterBody({ text, keyPhrases }: LetterBodyProps) {
+  const blocks = useMemo(() => parseLetter(text), [text])
+  // 목록 내용이 같으면 정규식을 다시 만들지 않는다(부모가 매 렌더 새 배열을 넘겨도)
+  const phraseKey = (keyPhrases ?? []).join('\n')
+  const re = useMemo(() => emphasisRe(phraseKey ? phraseKey.split('\n') : []), [phraseKey])
   return (
     <>
       {blocks.map((b, i) =>
@@ -133,7 +137,7 @@ export default function LetterBody({ text }: { text: string }) {
           </ol>
         ) : (
           <p key={i} className="gr-letter-text" style={{ whiteSpace: 'pre-line' }}>
-            <Emphasized text={b.text} />
+            <Emphasized text={b.text} re={re} />
           </p>
         ),
       )}

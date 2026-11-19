@@ -4,6 +4,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { kstDateKey } from '../../../../utils/date'
+import { KST_OFFSET_MS } from '../../../../utils/kstTime'
 import { safeStorage } from '../../../../utils/safeStorage'
 
 type LocalStep = 'read' | 'card'
@@ -12,13 +13,36 @@ const STEPS_KEY = 'home-rail-today-steps'
 const ALARM_NUDGE_KEY = 'home-rail-alarm-nudge-dismissed'
 
 const listeners = new Set<() => void>()
+const emit = () => listeners.forEach((fn) => fn())
+
+// 홈을 켜 둔 채 날짜(KST)가 바뀌면 어제 걸음이 남아 보인다 — 자정에 한 번, 그리고 탭으로 돌아올 때
+// (잠든 탭은 타이머가 밀린다) 다시 읽게 한다. 스냅숏이 문자열이라 값이 같으면 다시 그리지 않는다.
+let dayTimer: number | undefined
+const armDayTimer = () => {
+  const untilNextDay = 86_400_000 - ((Date.now() + KST_OFFSET_MS) % 86_400_000)
+  dayTimer = window.setTimeout(() => {
+    emit()
+    if (listeners.size > 0) armDayTimer()
+  }, untilNextDay + 1000)
+}
+const onVisible = () => {
+  if (document.visibilityState === 'visible') emit()
+}
+
 const subscribe = (fn: () => void) => {
+  if (listeners.size === 0) {
+    armDayTimer()
+    document.addEventListener('visibilitychange', onVisible)
+  }
   listeners.add(fn)
   return () => {
     listeners.delete(fn)
+    if (listeners.size === 0) {
+      window.clearTimeout(dayTimer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }
 }
-const emit = () => listeners.forEach((fn) => fn())
 
 const todayKey = () => kstDateKey(new Date())
 

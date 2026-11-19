@@ -9,9 +9,7 @@ import {
   BookOpenIcon,
   ChevronRightIcon,
   FlagIcon,
-  MapPinIcon,
   PeopleIcon,
-  PhoneIcon,
 } from './icons'
 import { EmojiText } from '../../components/common/EmojiText'
 import { SignatureLine } from '../../components/common/SignatureLine'
@@ -21,11 +19,9 @@ import pastorPhoto from '../../assets/about-pastor/pastor.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
 import { useThemeArt } from '../../hooks/useThemeArt'
-import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC, PRAYER_WEEK_WINDOW, pairSrc, visitSceneFor } from '../../utils/themeAssets'
+import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC, PRAYER_WEEK_WINDOW, pairSrc } from '../../utils/themeAssets'
 import { useTheme } from '../../contexts/ThemeContext'
-// 초대장 풍경 위 계절 낙하물 — 오시는 길 히어로와 같은 부품(봄 꽃잎·가을 낙엽·겨울 눈, 라이트만)
-import HeroFalling from '../Visit/components/HeroFalling'
-import '../Visit/styles/falling.css'
+import InviteSection from './components/InviteSection'
 
 /* /about — "참 빛" 잡지형 소개.
    첫 화면은 하늘에 걸린 말씀 족자(세로쓰기 '참빛' + 요 1:9) + 아래 한 줄 바로가기·예배 버튼.
@@ -35,7 +31,6 @@ import '../Visit/styles/falling.css'
 // 서체 — 교회 이름 G마켓 · 첫 화면 세로 말씀 고운바탕 · 인용 고운돋움(--ab-verse) · 손글씨는 목사님 별칭에만
 ensureFontFamily('nanumPen')
 ensureFontFamily('gowunDodum')
-ensureFontFamily('gowunBatang') // 첫 화면 세로 말씀
 ensureFontFamily('gowunBatang') // 첫 화면 세로 말씀
 
 // 다섯 만남 중 스쳐 가는 네 만남 — 관리자 문구 키
@@ -145,32 +140,6 @@ const VerseRef = ({ text, upright }: { text: string; upright: boolean }) =>
     <>{text}</>
   )
 
-// 초대 — 다음 주일(오늘이 주일이면 오늘)
-const nextSunday = (ko: boolean) => {
-  const d = new Date()
-  const isToday = d.getDay() === 0
-  if (!isToday) d.setDate(d.getDate() + (7 - d.getDay()))
-  const label = ko
-    ? `${d.getMonth() + 1}월 ${d.getDate()}일`
-    : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-  return { label, isToday }
-}
-
-// "주일 오전 7:30 · 9:20 · 11:20 · 오후 1:30" → [{오전,7:30}, …] — 오전/오후는 앞 값을 이어받는다
-const parseServices = (text: string): { ampm: string; time: string }[] => {
-  let ampm = ''
-  const out: { ampm: string; time: string }[] = []
-  for (const part of text.split(/[·,]/)) {
-    const mer = part.match(/오전|오후|AM|PM/i)
-    if (mer) ampm = mer[0]
-    const t = part.match(/\d{1,2}:\d{2}/)
-    if (t) out.push({ ampm, time: t[0] })
-  }
-  return out
-}
-
-const ordinal = (n: number) => `${n}${n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'}`
-
 // 사인 잉크는 이름(성+이름)으로 찾는다 — 표시용 이름은 "안동철 담임목사" 처럼 직함이 붙는다
 const bareName = (displayName: string): string => displayName.trim().split(/\s+/)[0] ?? ''
 
@@ -227,28 +196,7 @@ const About = () => {
 
   // 족자의 큰 두 글자 — 교회 이름에서 '교회'를 뗀다(참빛교회 → 참빛)
   const churchMark = tx('aboutChurchName').trim().replace(/\s*교회$/, '') || '참빛'
-  const phone = tx('aboutPhone').trim()
   const pastorPhotoUrl = tx('aboutPastorPhoto').trim()
-  // 초대 — 오시는 길과 같은 계절 풍경, 예배 시간 타일(처음 오신 분께는 11:20 3부, 없으면 가운데)
-  const inviteScene = visitSceneFor(theme)
-  const sunday = nextSunday(ko)
-  const services = parseServices(tx('aboutInfoWorship'))
-  const firstTimer = services.findIndex((sv) => sv.time === '11:20')
-  const pickIndex = firstTimer >= 0 ? firstTimer : Math.floor((services.length - 1) / 2)
-
-  const callPhone = () => {
-    if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
-  }
-
-  // EditableText 가 <button> 을 렌더하므로 클릭 행은 button 이 아닌 div(role=button) —
-  // 중첩 인터랙티브 요소를 피한다 (편집 버튼은 stopPropagation 으로 행 클릭과 분리됨)
-  const rowKeyDown = (action: () => void) => (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      action()
-    }
-  }
-
   // scrollIntoView(smooth) 는 이 앱의 body 스크롤러 구조에서 모바일이 조용히 무시한다 —
   // 공용 smoothScrollToElement 로 스크롤러를 직접 민다(감속 설정은 헬퍼가 처리).
   // offset 은 장의 scroll-margin-top(5rem, magazine.css)과 같은 값.
@@ -482,8 +430,8 @@ const About = () => {
                   <dd>
                     <EditableText fieldKey={valueKey} multiline isAdmin={isAdminUser}>
                       <span className="ab-fact-lines">
-                        {toLines(tx(valueKey)).map((line) => (
-                          <span key={line}>{line}</span>
+                        {toLines(tx(valueKey)).map((line, i) => (
+                          <span key={`${i}-${line}`}>{line}</span>
                         ))}
                       </span>
                     </EditableText>
@@ -512,83 +460,13 @@ const About = () => {
           </div>
         </section>
 
-        {/* ── 초대 — 이번 주일 초대장(2026-11-18 A안): 오시는 길 계절 풍경 위에 다음 주일 날짜 +
-             예배 시간 타일(처음이라면 3부) + 오시는 길. 낮엔 오시는 길과 같은 꽃잎·낙엽·눈 ── */}
-        <section id="about-cta" className={`ab-invite ink-${inviteScene?.ink ?? 'white'}`}>
-          {inviteScene && (
-            <div className="ab-invite-scene" aria-hidden="true">
-              <img src={inviteScene.src} alt="" loading="lazy" decoding="async" />
-              {theme === 'light' && <HeroFalling season={inviteScene.season} />}
-            </div>
-          )}
-          <span className="ab-invite-shade" aria-hidden="true" />
-          <div className="ab-invite-body">
-            {tag(ko ? '초대' : 'Invitation')}
-            <p className="ab-invite-date">
-              <span>{sunday.isToday ? (ko ? '오늘' : 'Today') : ko ? '이번 주일' : 'This Sunday'} ·</span>
-              <strong>{sunday.label}</strong>
-            </p>
-            <h2 className="ab-invite-title">{ko ? '자리 하나\n비워둘게요.' : "We'll save\na seat for you."}</h2>
-
-            {services.length > 0 && (
-              <ul className="ab-times" aria-label={ko ? '주일 예배 시간' : 'Sunday services'}>
-                {services.map((sv, i) => (
-                  <li key={`${sv.ampm}-${sv.time}`} className={i === pickIndex ? 'is-pick' : undefined}>
-                    <button type="button" onClick={() => navigate('/worship')}>
-                      <small>{ko ? `${i + 1}부` : `${ordinal(i + 1)}`}</small>
-                      <b>
-                        <em>{sv.ampm}</em> {sv.time}
-                      </b>
-                    </button>
-                    {i === pickIndex && <span>{ko ? '처음이라면' : 'First time?'}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {/* 관리자는 예배 시간 문구를 그대로 고친다(타일은 이 문구를 읽어 만든다) */}
-            {isAdminUser && (
-              <p className="ab-invite-admin">
-                <EditableText fieldKey="aboutInfoWorship" isAdmin={isAdminUser}>
-                  {tx('aboutInfoWorship')}
-                </EditableText>
-              </p>
-            )}
-
-            {/* 교회에서 "등록"은 새가족 등록으로 읽힌다 — 방문자에겐 길 안내가 먼저, 앱 가입은 비로그인일 때만 보조 링크로 */}
-            <div className="ab-invite-actions">
-              <button type="button" className="ab-invite-cta" onClick={() => navigate('/visit')}>
-                {ko ? '오시는 길 보기' : 'Get directions'}
-              </button>
-              <span className="ab-invite-where">
-                <MapPinIcon size={16} />
-                <EditableText fieldKey="aboutAddress" isAdmin={isAdminUser}>
-                  {tx('aboutAddress')}
-                </EditableText>
-              </span>
-              {(phone.length > 0 || isAdminUser) && (
-                // EditableText 가 <button> 을 렌더하므로 button 이 아닌 span(role=button) — 중첩 인터랙티브 회피
-                <span
-                  className="ab-invite-where is-phone"
-                  role="button"
-                  tabIndex={0}
-                  onClick={callPhone}
-                  onKeyDown={rowKeyDown(callPhone)}
-                >
-                  <PhoneIcon size={16} />
-                  <EditableText fieldKey="aboutPhone" isAdmin={isAdminUser}>
-                    {phone || (ko ? '전화번호를 등록해주세요' : 'Add a phone number')}
-                  </EditableText>
-                </span>
-              )}
-              {!isLoggedIn && (
-                <button type="button" className="ab-link-btn" onClick={() => navigate('/register')}>
-                  <span>{ko ? '참빛 앱 가입하기' : 'Sign up for the app'}</span>
-                  <ChevronRightIcon size={15} />
-                </button>
-              )}
-            </div>
-          </div>
-        </section>
+        {/* ── 초대 — 이번 주일 초대장 (components/InviteSection) ── */}
+        <InviteSection
+          tag={tag(ko ? '초대' : 'Invitation')}
+          tx={tx}
+          isAdminUser={isAdminUser}
+          isLoggedIn={isLoggedIn()}
+        />
 
         {/* 더 알아보기 — 마무리를 한 번 더 세우지 않게 작은 알약 한 줄 */}
         <nav className="ab-more" aria-label={ko ? '더 알아보기' : 'Learn more'}>

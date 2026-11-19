@@ -11,11 +11,12 @@ import { isAuthenticated } from '../utils/auth'
 
 const ALARMS_KEY = ['verse-alarms']
 
-export const useVerseAlarms = () => {
+/** enabled=false 면 요청하지 않는다 — 목록이 꼭 필요할 때만 받는 화면(홈 레일 안내)용 */
+export const useVerseAlarms = (enabled = true) => {
   return useQuery({
     queryKey: ALARMS_KEY,
     queryFn: getMyVerseAlarms,
-    enabled: isAuthenticated(),
+    enabled: enabled && isAuthenticated(),
     staleTime: 1000 * 60,
   })
 }

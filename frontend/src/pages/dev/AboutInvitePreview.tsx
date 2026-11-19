@@ -5,10 +5,9 @@ import { ensureFontFamily } from '../../utils/deferredFonts'
 import { ABOUT_DAWN_MOBILE, ABOUT_DAWN_PC, pairSrc, visitSceneFor } from '../../utils/themeAssets'
 import { about } from '../../locales/ko/about'
 import { landing } from '../../locales/ko/landing'
-import HeroFalling from '../Visit/components/HeroFalling'
+import HeroFalling from '../../components/scenery/HeroFalling'
 import { ChevronRightIcon, ClockIcon, MapPinIcon } from '../About/icons'
 import '../About/styles/index.css'
-import '../Visit/styles/falling.css'
 import './aboutInvitePreview.css'
 
 /**

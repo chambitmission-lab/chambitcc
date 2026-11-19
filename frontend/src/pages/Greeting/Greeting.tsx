@@ -32,20 +32,15 @@ import { getNaturalSeason } from '../../utils/naturalSeason'
 import { GREETING_HERO_DAY_BY_SEASON } from '../../utils/themeAssets'
 import './styles/index.css'
 import { ensureFontFamily } from '../../utils/deferredFonts'
-
-import { CUT_PORTRAIT_SIZE, cutPortraitFor, warmCutPortraits } from './cutPortraits'
-import { readPastorsCache } from '../../utils/pastorsCache'
+import { CUT_PORTRAIT_SIZE, cutPortraitFor, warmPortraitFromCache } from './cutPortraits'
+import { can } from '../../utils/access'
 
 // 주소로 바로 들어와 선요청(prefetch.ts)이 돌지 않았어도, 청크가 로드되는 순간
-// pastors 응답을 기다리지 않고 오린 사진 요청을 시작한다 (첫 방문 = 표의 사진, 재방문 = 캐시 기준)
-{
-  const cached = readPastorsCache()
-  warmCutPortraits(cached ? (cached.current?.name_ko ?? null) : undefined)
-}
+// pastors 응답을 기다리지 않고 인물 사진 요청을 시작한다 (첫 방문 = 표의 사진, 재방문 = 캐시 기준)
+warmPortraitFromCache()
 
 // 손글씨 서체는 이 화면이 쓸 때만 받는다 (src/utils/deferredFonts.ts)
 ensureFontFamily('nanumPen')
-import { can } from '../../utils/access'
 
 /* 히어로 배경 — 라이트 테마용 계절 낮 사진(홈 히어로와 같은 자산).
  * 다크 테마는 계절 무관 겨울 밤 은하수 고정이라 theme.css 가 직접 url 을 갖는다.
@@ -91,6 +86,11 @@ const Greeting = () => {
   const nickname = pastorText(current, 'nickname', language)
   const greetingTitle = pastorText(current, 'greeting_title', language)
   const greetingBody = pastorText(current, 'greeting_body', language)
+  // 편지에서 강조할 문장 — 관리자 문구(한 줄에 하나)
+  const keyPhrases = tx('greetingKeyPhrases')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
   const signature = pastorText(current, 'signature', language)
   const profileHeadline = pastorText(current, 'profile_headline', language)
   const profileIntro = pastorText(current, 'profile_intro', language)
@@ -241,7 +241,7 @@ const Greeting = () => {
                       isAdmin={isAdminUser}
                     >
                       {greetingBody ? (
-                        <LetterBody text={greetingBody} />
+                        <LetterBody text={greetingBody} keyPhrases={keyPhrases} />
                       ) : (
                         <p className="gr-letter-text">
                           {isAdminUser ? (ko ? '인사말 본문을 등록해주세요.' : 'Add the greeting letter.') : ''}
@@ -458,6 +458,17 @@ const Greeting = () => {
                   </div>
                 </section>
               </>
+            )}
+
+            {/* 편지에서 강조할 문장 — 화면에는 안 보이는 목록이라 관리자에게만 고치는 자리를 둔다 */}
+            {isAdminUser && current && (
+              <p className="gr-admin-keys">
+                <EditableText fieldKey="greetingKeyPhrases" multiline isAdmin={isAdminUser}>
+                  {ko
+                    ? `편지에서 강조할 문장 ${keyPhrases.length}개 · 한 줄에 하나씩 고치기`
+                    : `${keyPhrases.length} highlighted sentence(s) in the letter · one per line`}
+                </EditableText>
+              </p>
             )}
 
             {isAdminUser && (

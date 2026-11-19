@@ -203,6 +203,15 @@
 }
 
 /* ── 관리자 안내 ─────────────────────────────────── */
+/* 편지 강조 문장 고치기 — 관리자에게만 보이는 한 줄 */
+.gr-admin-keys {
+  margin: 1.5rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--brand);
+  text-align: center;
+}
+
 .gr-admin-hint {
   margin: 1.5rem 0 1rem;
   padding: 0.9rem 1rem;

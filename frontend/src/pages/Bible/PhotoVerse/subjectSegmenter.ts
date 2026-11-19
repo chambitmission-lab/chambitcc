@@ -3,10 +3,14 @@
 // 모델(약 6MB)과 런타임(wasm)은 처음 쓸 때 한 번만 받고, 그 뒤엔 브라우저 캐시를 탄다.
 
 import type { InteractiveSegmenterLegacy } from '@mediapipe/tasks-vision'
+// wasm 런타임은 설치한 패키지의 파일을 그대로 번들 자산(/assets, 해시 이름)으로 내보낸다 —
+// 외부 CDN 을 거치지 않고, 패키지를 올리면 런타임도 같이 올라가 버전이 어긋날 일이 없다.
+// (FilesetResolver.forVisionTasks(base) 가 돌려주는 것과 같은 두 경로다)
+import wasmLoaderUrl from '@mediapipe/tasks-vision/vision_wasm_internal.js?url'
+import wasmBinaryUrl from '@mediapipe/tasks-vision/vision_wasm_internal.wasm?url'
 
-// wasm 런타임은 설치한 패키지와 같은 버전을 CDN에서 — 버전이 어긋나면 로더가 깨진다
-const TASKS_VISION_VERSION = '1.2.2'
-const WASM_BASE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${TASKS_VISION_VERSION}/wasm`
+const WASM_FILESET = { wasmLoaderPath: wasmLoaderUrl, wasmBinaryPath: wasmBinaryUrl }
+// 모델은 구글 공개 저장소의 버전 고정 주소(…/float32/1/) — 우리 저장소(R2)로 옮기면 이 한 줄만 바꾼다
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/interactive_segmenter/magic_touch/float32/1/magic_touch.tflite'
 
@@ -20,17 +24,17 @@ let segmenterPromise: Promise<InteractiveSegmenterLegacy> | null = null
 const loadSegmenter = () => {
   if (!segmenterPromise) {
     segmenterPromise = (async () => {
-      const { FilesetResolver, InteractiveSegmenterLegacy } = await import('@mediapipe/tasks-vision')
-      const fileset = await FilesetResolver.forVisionTasks(WASM_BASE)
-      return InteractiveSegmenterLegacy.createFromOptions(fileset, {
+      const { InteractiveSegmenterLegacy } = await import('@mediapipe/tasks-vision')
+      return InteractiveSegmenterLegacy.createFromOptions(WASM_FILESET, {
         baseOptions: { modelAssetPath: MODEL_URL, delegate: 'CPU' },
         outputConfidenceMasks: true,
         outputCategoryMask: false,
       })
     })()
     // 네트워크 실패면 다음 시도에서 다시 받는다
-    segmenterPromise.catch(() => {
-      segmenterPromise = null
+    const mine = segmenterPromise
+    mine.catch(() => {
+      if (segmenterPromise === mine) segmenterPromise = null
     })
   }
   return segmenterPromise
@@ -39,6 +43,16 @@ const loadSegmenter = () => {
 /** 편집 화면에 들어오면 미리 받아 둘 수 있게 — 실패는 조용히 */
 export const preloadSegmenter = () => {
   loadSegmenter().catch(() => undefined)
+}
+
+/**
+ * 만들어 둔 분할기를 내려놓는다 — 모델과 wasm 힙(수십 MB)이 탭에 남지 않게 화면을 떠날 때 부른다.
+ * 받는 중이었으면 다 받은 뒤 닫는다. 다시 쓰면 loadSegmenter 가 새로 만든다(파일은 브라우저 캐시).
+ */
+export const disposeSegmenter = () => {
+  const loading = segmenterPromise
+  segmenterPromise = null
+  loading?.then((segmenter) => segmenter.close()).catch(() => undefined)
 }
 
 const smoothstep = (a: number, b: number, x: number) => {

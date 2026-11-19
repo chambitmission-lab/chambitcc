@@ -1,0 +1,88 @@
+/* ---------- 오늘 탑승 현황 (모바일) ---------- */
+.dep-progress { padding: 16px; }
+.dep-progress__label { font: 700 11px var(--dep-mono); letter-spacing: 0.1em; color: var(--text-muted); }
+.dep-progress__num { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+.dep-progress__num b { font: 700 30px var(--dep-mono); letter-spacing: -0.03em; color: var(--text-strong); }
+.dep-progress__num span { font-size: 13px; color: var(--text-muted); }
+.dep-progress__bar { height: 8px; margin-top: 10px; border-radius: 8px; background: var(--surface-inset); overflow: hidden; }
+.dep-progress__bar i { display: block; height: 100%; border-radius: 8px; background: var(--dep-done); transition: width 0.5s; }
+
+/* ---------- 국내 노선 ---------- */
+.dom { overflow: hidden; }
+/* 머리띠 — 탑승권의 하늘색 띠와 짝. 국내는 등불빛 */
+.dom-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 13px;
+  background:
+    radial-gradient(120% 180% at 100% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 60%),
+    var(--dom-band);
+  box-shadow: inset 0 -1px 0 var(--dom-line);
+}
+.dom-eyebrow { display: block; font: 700 10px var(--dep-mono); letter-spacing: 0.16em; color: var(--dom-ink); opacity: 0.75; }
+.dom-title { margin: 3px 0 0; font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: var(--dom-ink); }
+.dom-count { margin: 0; display: flex; align-items: baseline; gap: 5px; font-size: 12px; font-weight: 600; color: var(--dom-ink); white-space: nowrap; }
+.dom-count b { font: 800 26px/1 var(--dep-mono); letter-spacing: -0.04em; }
+
+.dom-group { padding: 14px 16px 6px; }
+.dom-group + .dom-group { border-top: 1px dashed var(--card-border); }
+.dom-group:last-child { padding-bottom: 12px; }
+.dom-group__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.dom-group__head i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  color: var(--dom-accent);
+  background: var(--dom-accent-soft);
+}
+.dom-group__head b {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font: 700 11px var(--dep-mono);
+  color: var(--dom-accent);
+  background: var(--dom-accent-soft);
+}
+.dom-group--church { --dom-accent: var(--dep-wait); --dom-accent-soft: var(--dep-wait-bg); }
+.dom-group--org { --dom-accent: var(--brand); --dom-accent-soft: var(--brand-soft-strong); }
+
+/* 번호 달린 두 줄 목록 — 안내판의 행처럼 가는 줄로만 나눈다 */
+.dom-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dom-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--dep-board-line);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-body);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+/* 마지막 줄(두 칸)은 밑줄을 뺀다 */
+.dom-list li:nth-last-child(-n + 2):nth-child(odd),
+.dom-list li:nth-last-child(-n + 2):nth-child(odd) ~ li,
+.dom-list li:last-child { border-bottom: 0; }
+.dom-list li span { flex: 0 0 auto; font: 700 10.5px var(--dep-mono); color: var(--dom-accent); opacity: 0.8; }

@@ -9,14 +9,11 @@
 import { queryClient } from '../../config/queryClient'
 import { fetchPastors } from '../../api/pastors'
 import { pastorKeys } from '../../hooks/usePastors'
-import { readPastorsCache } from '../../utils/pastorsCache'
-import { cutPortraitFor, warmCutPortraits, warmImage } from './cutPortraits'
+import { cutPortraitFor, warmImage, warmPortraitFromCache } from './cutPortraits'
 
 export const prefetch = (): void => {
   // 응답을 기다리지 않고 바로 데운다 — 지난 방문 캐시가 있으면 그 사람 기준
-  const cached = readPastorsCache()
-  warmCutPortraits(cached ? (cached.current?.name_ko ?? null) : undefined)
-  if (cached && !cutPortraitFor(cached.current?.name_ko)) warmImage(cached.current?.photo_url)
+  warmPortraitFromCache()
   void queryClient
     .fetchQuery({ queryKey: pastorKeys.all, queryFn: fetchPastors, staleTime: 1000 * 60 * 5 })
     .then((data) => {

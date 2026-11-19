@@ -6,6 +6,7 @@
 
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
+import { useHomeRailPending } from '../../../../hooks/useHomeRail'
 import { useVerseAlarms } from '../../../../hooks/useVerseAlarms'
 import { kstDateKey } from '../../../../utils/date'
 import { preloadRoute } from '../../../../utils/routePreload'
@@ -69,7 +70,10 @@ const TodayStepsWidget = () => {
   const { verse } = useTodayPick()
   const { data: myPrayer } = useMyLatestPrayer()
   const { readDone, cardDone, alarmNudgeDismissed } = useTodaySteps()
-  const { data: alarms } = useVerseAlarms()
+  // 알림 목록은 "하나도 없음" 안내에만 쓴다 — 안내를 닫은 사람은 받지 않고,
+  // 아직 닫지 않은 사람도 홈 첫 요청 묶음이 끝난 뒤에 받는다
+  const railPending = useHomeRailPending()
+  const { data: alarms } = useVerseAlarms(!alarmNudgeDismissed && !railPending)
 
   const prayedToday = !!myPrayer?.created_at && kstDateKey(myPrayer.created_at) === kstDateKey(new Date())
 

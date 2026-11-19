@@ -241,6 +241,40 @@ export const createCardCanvas = (
   return canvas
 }
 
+/** 한 장(슬라이드)에 그릴 내용 — slides.ts 의 CardSlide 와 같은 모양 */
+export interface SlideContent {
+  text: string
+  refLabel: string
+  greeting?: string
+}
+
+/**
+ * 이미 크기가 맞춰진 canvas 에 한 장을 그린다 — 미리보기·저장·카카오 엽서가 모두 이 한 곳을 지난다.
+ * 그리기 옵션이 늘면 여기만 고치면 된다. 말씀을 고르기 전(slide 없음)에는 사진만 그려진다.
+ */
+export const drawSlide = (
+  canvas: HTMLCanvasElement,
+  img: HTMLImageElement,
+  slide: SlideContent | undefined,
+  style: VerseCardStyle,
+  subject?: HTMLCanvasElement | null,
+) => {
+  drawVerseCard(canvas, img, slide?.text ?? '', slide?.refLabel ?? '', style, { greeting: slide?.greeting, subject })
+}
+
+/** 긴 변 maxSide 로 새 canvas 를 만들어 한 장을 그려 돌려준다 (저장본·엽서용) */
+export const renderSlideCanvas = (
+  img: HTMLImageElement,
+  slide: SlideContent,
+  style: VerseCardStyle,
+  maxSide: number,
+  subject?: HTMLCanvasElement | null,
+): HTMLCanvasElement => {
+  const canvas = createCardCanvas(img, maxSide, style.frame, style.ratio)
+  drawSlide(canvas, img, slide, style, subject)
+  return canvas
+}
+
 // 한글 웹폰트는 유니코드 범위별 서브셋 조각으로 나뉘어 배포되는데, canvas는
 // 안 받아진 조각을 기다리지 않고 폴백으로 그려버려 글자가 섞여 보인다.
 // 그릴 텍스트를 load()에 넘기면 그 글자들이 속한 조각까지 전부 받아온다.
