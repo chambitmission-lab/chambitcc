@@ -1,13 +1,12 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getBibleVerse } from '../../../../api/bible'
 import { bibleKeys } from '../../../../hooks/queryKeys'
 import { useUpdateTypingGoal } from '../../../../hooks/useBibleTyping'
+import { useMediaQuery } from '../../../../hooks/useMediaQuery'
 import { chapterLabel } from '../../../../utils/bibleLabels'
-import { DAILY_GOALS, type TypingCalendar, type TypingMode, type TypingStats } from '../../../../api/bibleTyping'
-import Lamp from './Lamp'
-import { WEEKDAYS, addDays, kstToday, mondayOf } from './dates'
+import { DAILY_GOALS, type TypingMode, type TypingStats } from '../../../../api/bibleTyping'
 import { teaser } from './teaser'
 
 // 처음 오는 성도의 첫 자리
@@ -25,7 +24,6 @@ interface TodayCardProps {
   /** 로그인은 했는데 허브 묶음이 아직 안 왔다 — 첫 방문자 문구 대신 조용한 자리표시자를 그린다 */
   loading?: boolean
   stats?: TypingStats
-  calendar?: TypingCalendar
   mode: TypingMode
   setMode: (m: TypingMode) => void
   ignorePunct: boolean
@@ -59,15 +57,16 @@ const GoalPicker = ({ current, onPick, busy }: { current: number | null; onPick:
 )
 
 /**
- * 허브 첫 화면의 단 하나 — "오늘의 필사".
- * 등잔(연속 기록·오늘 채운 기름) + 이번 주 7칸 + 이어 쓸 말씀 첫 줄 + 버튼 하나.
- * 모드·문장부호는 아래 작은 줄로 내린다(매일 오는 사람은 고를 게 없다).
+ * 허브 첫 화면의 단 하나 — "오늘의 필사" (2026-11-19 A2 몰입 무대).
+ * 숫자·버튼은 위아래 가는 줄에만(자리·쓰기 방식·연속·오늘 N/목표·설정 / 목표 진행선·골라 쓰기),
+ * 가운데는 이어 쓸 말씀 하나만 크게. PC 는 버튼 없이 아무 키나 누르면 바로 이어 쓰기로,
+ * 모바일은 화면 키보드 때문에 아래 버튼을 남긴다. 부호 무시·하루 목표는 ⚙ 팝오버로.
+ * 시안: /#/dev/typing-hub?v=a2
  */
 const TodayCard = ({
   loggedIn,
   loading = false,
   stats,
-  calendar,
   mode,
   setMode,
   ignorePunct,
@@ -78,7 +77,11 @@ const TodayCard = ({
   onPick,
 }: TodayCardProps) => {
   const [editingGoal, setEditingGoal] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const updateGoal = useUpdateTypingGoal()
+  const isDesk = useMediaQuery('(min-width: 1024px)')
+  const cardRef = useRef<HTMLElement>(null)
+  const setRef = useRef<HTMLSpanElement>(null)
 
   const spot = stats?.next_position ?? FIRST_SPOT
   // 로그인 사용자의 본문은 묶음이 준다(전권 완필이면 null) — 묶음을 기다리는 동안 시편 23:1 을 따로 받던 요청을 없앤다
@@ -97,27 +100,6 @@ const TodayCard = ({
   const remaining = Math.max(0, goal - today)
   const choosingGoal = loggedIn && !!stats && (stats.daily_goal === null || editingGoal)
 
-  const todayStr = calendar?.today ?? kstToday()
-  const monday = mondayOf(todayStr)
-  const rests = new Set(stats?.rest_days ?? [])
-  const week = WEEKDAYS.map((label, i) => {
-    const date = addDays(monday, i)
-    const n = calendar?.days[date] ?? 0
-    const state =
-      date > todayStr
-        ? 'future'
-        : n > 0
-          ? n >= goal
-            ? 'full'
-            : 'done'
-          : rests.has(date)
-            ? 'rest'
-            : date === todayStr
-              ? 'today'
-              : 'miss'
-    return { date, label, n, state, isToday: date === todayStr }
-  })
-
   const ref = `${bookName(spot.book_number)} ${chapterLabel(spot.book_number, spot.chapter)} ${spot.verse}절`
   const isFirst = !stats?.next_position
 
@@ -134,76 +116,164 @@ const TodayCard = ({
       onSuccess: () => setEditingGoal(false),
     })
 
+  const { book_number: goBook, chapter: goChapter, verse: goVerse } = spot
+  const goNext = useCallback(() => onGo(goBook, goChapter, goVerse), [onGo, goBook, goChapter, goVerse])
+
+  // PC — 허브에서 입력칸 밖에 있을 때 글자 키를 누르면 바로 이어 쓰기로 들어간다 (Monkeytype 처럼 버튼 없이).
+  // 다른 입력칸·버튼에 포커스가 있거나 조합키(Ctrl+K 등)면 건드리지 않는다
+  const startable = !loading && !choosingGoal && !settingsOpen && !!nextVerse?.text
+  useEffect(() => {
+    if (!isDesk || !startable) return
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return
+      const el = document.activeElement
+      if (el && el !== document.body && el !== cardRef.current) return
+      if (e.key === 'Enter' || e.key === 'Process' || (e.key.length === 1 && e.key !== ' ')) {
+        e.preventDefault()
+        goNext()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [isDesk, startable, goNext])
+
+  // 설정 팝오버 — 바깥을 누르거나 Esc 면 닫는다
+  useEffect(() => {
+    if (!settingsOpen) return
+    const onDown = (e: PointerEvent) => {
+      if (!setRef.current?.contains(e.target as Node)) setSettingsOpen(false)
+    }
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') setSettingsOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [settingsOpen])
+
   if (loading) {
     return (
-      <section className="bt-today bt-today--loading" aria-busy="true" aria-label="오늘의 필사 불러오는 중">
-        <div className="bt-today__top">
-          <Lamp fill={0} lit={false} className="bt-today__lamp" />
-          <div className="bt-today__head">
-            <p className="bt-today__eyebrow">오늘의 필사</p>
-            <span className="bt-skel bt-skel--title" />
-            <span className="bt-skel bt-skel--sub" />
-          </div>
-        </div>
-        <span className="bt-skel bt-skel--week" />
-        <span className="bt-skel bt-skel--next" />
-        <span className="bt-skel bt-skel--cta" />
+      <section className="bt-today bt-stage" aria-busy="true" aria-label="오늘의 필사 불러오는 중">
+        <span className="bt-skel bt-skel--bar" />
+        <span className="bt-skel bt-skel--verse" />
+        <span className="bt-skel bt-skel--verse is-short" />
+        <span className="bt-skel bt-skel--track" />
+        {!isDesk && <span className="bt-skel bt-skel--cta" />}
       </section>
     )
   }
 
+  const shortRef = `${bookName(spot.book_number)} ${spot.chapter}:${spot.verse}`
+  const progress = loggedIn ? Math.min(1, today / Math.max(1, goal)) : 0
+  const footLabel = !loggedIn
+    ? '매일 한 절, 등불을 켜요'
+    : met
+      ? `오늘 목표 ${goal}절 달성 · 더 써도 좋아요`
+      : today === 0
+        ? `오늘 목표 ${goal}절`
+        : `${remaining}절 더 쓰면 오늘 목표`
+
   return (
-    <section className={`bt-today${met ? ' is-met' : ''}`} aria-labelledby="bt-today-title">
-      <div className="bt-today__top">
-        <Lamp fill={loggedIn ? today / Math.max(1, goal) : 0} lit={loggedIn && (streak > 0 || today > 0)} full={met} className="bt-today__lamp" />
-        <div className="bt-today__head">
-          <p className="bt-today__eyebrow">오늘의 필사</p>
+    <section
+      ref={cardRef}
+      className={`bt-today bt-stage${met ? ' is-met' : ''}`}
+      aria-labelledby="bt-today-title"
+      tabIndex={isDesk ? -1 : undefined}
+    >
+      <header className="bt-stage__top">
+        <h1 id="bt-today-title" className="bt-stage__ref">
+          <span className="sr-only">오늘의 필사 · </span>
+          {isFirst && <span className="bt-stage__first">처음이라면</span>}
+          {shortRef}
+        </h1>
+        <div className="bt-stage__seg" role="radiogroup" aria-label="쓰기 방식">
+          {(
+            [
+              ['copy', '따라 쓰기'],
+              ['memorize', '암송 쓰기'],
+            ] as const
+          ).map(([k, label]) => (
+            <button key={k} type="button" role="radio" aria-checked={mode === k} className={mode === k ? 'is-on' : ''} onClick={() => setMode(k)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <span
+          className="bt-stage__stat"
+          title={loggedIn ? (stats?.rest_used_this_week ? '이번 주 쉼표를 썼어요' : '한 주에 하루는 쉬어도 등불이 꺼지지 않아요') : undefined}
+        >
           {loggedIn ? (
             <>
-              <h1 id="bt-today-title" className="bt-today__title">
-                {streak > 0 ? (
-                  <>
-                    <b>{streak}</b>일째 등불이 켜져 있어요
-                  </>
-                ) : (
-                  '오늘 첫 불을 밝혀 볼까요?'
-                )}
-              </h1>
-              <p className="bt-today__sub">
-                오늘 <b>{today}</b>/{goal}절
-                <span aria-hidden> · </span>
-                {stats?.rest_used_this_week ? '이번 주 쉼표를 썼어요' : '한 주에 하루는 쉬어도 꺼지지 않아요'}
-              </p>
+              <span className={`bt-stage__flame${streak > 0 || today > 0 ? '' : ' is-off'}`} aria-hidden />
+              <span className="sr-only">연속 </span>
+              {streak}일
+              <span className="bt-stage__sep" aria-hidden />
+              오늘 <b>{today}</b>/{goal}
             </>
           ) : (
             <>
-              <h1 id="bt-today-title" className="bt-today__title">
-                매일 한 절, 등불을 켜요
-              </h1>
-              <p className="bt-today__sub">
-                <Link to="/login">로그인</Link>하면 연속 기록·하루 목표가 저장돼요
-              </p>
+              <Link to="/login">로그인</Link>하면 기록이 남아요
             </>
           )}
-        </div>
-      </div>
-
-      {loggedIn && (
-        <ol className="bt-week" aria-label="이번 주 필사">
-          {week.map((d) => (
-            <li
-              key={d.date}
-              className={`bt-week__day is-${d.state}${d.isToday ? ' is-now' : ''}`}
-              title={d.state === 'rest' ? `${d.label} · 쉼표` : d.n ? `${d.label} · ${d.n}절` : d.label}
-            >
-              <span className="bt-week__dot" aria-hidden>
-                {d.state === 'rest' ? ',' : null}
-              </span>
-              <span className="bt-week__label">{d.label}</span>
-            </li>
-          ))}
-        </ol>
-      )}
+        </span>
+        <span className="bt-stage__set" ref={setRef}>
+          <button
+            type="button"
+            className="bt-stage__icon"
+            aria-label="쓰기 설정"
+            aria-expanded={settingsOpen}
+            onClick={() => setSettingsOpen((o) => !o)}
+          >
+            <span className="material-icons-round" aria-hidden>
+              tune
+            </span>
+          </button>
+          {settingsOpen && (
+            <div className="bt-stage__pop" role="dialog" aria-label="쓰기 설정">
+              <div className="bt-stage__pop-row">
+                <span>
+                  <b>문장부호 건너뛰기</b>
+                  <small>쉼표·마침표는 안 쳐도 돼요</small>
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={ignorePunct}
+                  aria-label="문장부호 건너뛰기"
+                  className={`bt-stage__switch${ignorePunct ? ' is-on' : ''}`}
+                  onClick={() => setIgnorePunct(!ignorePunct)}
+                >
+                  <i />
+                </button>
+              </div>
+              {loggedIn && stats?.daily_goal !== null && (
+                <button
+                  type="button"
+                  className="bt-stage__pop-row bt-stage__pop-goal"
+                  onClick={() => {
+                    setSettingsOpen(false)
+                    setEditingGoal(true)
+                  }}
+                >
+                  <span>
+                    <b>하루 목표 {goal}절</b>
+                    <small>등잔에 기름이 차는 기준이에요</small>
+                  </span>
+                  <span className="bt-stage__pop-more">
+                    바꾸기
+                    <span className="material-icons-round" aria-hidden>
+                      chevron_right
+                    </span>
+                  </span>
+                </button>
+              )}
+            </div>
+          )}
+        </span>
+      </header>
 
       {choosingGoal ? (
         <div className="bt-today__goal">
@@ -216,69 +286,40 @@ const TodayCard = ({
           )}
         </div>
       ) : (
-        <>
-          <button type="button" className="bt-today__next" onClick={() => onGo(spot.book_number, spot.chapter, spot.verse)}>
-            <span className="bt-today__ref">
-              {isFirst ? '처음이라면 여기서부터' : '이어서'} · {ref}
-            </span>
-            <span className={`bt-today__verse${mode === 'memorize' ? ' is-masked' : ''}`}>
-              {nextVerse?.text
-                ? mode === 'memorize'
-                  ? `${teaser(nextVerse.text, 2)} (기억으로 이어 쓰기)`
-                  : nextVerse.text
-                : ' '}
-            </span>
-          </button>
-          {/* 이어 쓰기와 골라 쓰기는 같은 줄 — 오늘 쓰고 싶은 곳을 들고 온 성도가 첫눈에 찾게 */}
-          <div className="bt-today__ctas">
-            <button
-              type="button"
-              className="bt-btn bt-btn--primary bt-today__cta"
-              onClick={() => onGo(spot.book_number, spot.chapter, spot.verse)}
-            >
-              {cta}
-              <span className="material-icons-round" aria-hidden>
-                arrow_forward
-              </span>
-            </button>
-            <button type="button" className="bt-btn bt-today__cta bt-today__pick" onClick={onPick}>
-              <span className="material-icons-round" aria-hidden>
-                menu_book
-              </span>
-              골라 쓰기
-            </button>
-          </div>
-        </>
+        <button type="button" className="bt-stage__stage" onClick={goNext} aria-label={`${ref} 이어 쓰기`}>
+          <span className={`bt-stage__verse${mode === 'memorize' ? ' is-masked' : ''}`}>
+            {isDesk && <i className="bt-stage__caret" aria-hidden />}
+            {nextVerse?.text ? (mode === 'memorize' ? `${teaser(nextVerse.text, 2)} (기억으로 이어 쓰기)` : nextVerse.text) : ' '}
+          </span>
+        </button>
       )}
 
-      <div className="bt-today__opts">
-        <div className="bt-mini-seg" role="radiogroup" aria-label="쓰기 방식">
-          {(
-            [
-              ['copy', '따라 쓰기'],
-              ['memorize', '암송 쓰기'],
-            ] as const
-          ).map(([k, label]) => (
-            <button key={k} type="button" role="radio" aria-checked={mode === k} className={mode === k ? 'is-on' : ''} onClick={() => setMode(k)}>
-              {label}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          className={`bt-chip bt-chip--sm${ignorePunct ? ' is-on' : ''}`}
-          aria-pressed={ignorePunct}
-          onClick={() => setIgnorePunct(!ignorePunct)}
-          title="쉼표·마침표는 치지 않아도 돼요"
-        >
-          부호 무시
-        </button>
-        {loggedIn && stats?.daily_goal !== null && !choosingGoal && (
-          <button type="button" className="bt-today__goal-link" onClick={() => setEditingGoal(true)}>
-            목표 {goal}절 · 바꾸기
-          </button>
-        )}
+      <div className={`bt-stage__track${met ? ' is-met' : ''}`} aria-hidden>
+        <i style={{ width: `${progress * 100}%` }} />
       </div>
+      <footer className="bt-stage__foot">
+        <span className="bt-stage__goal">{footLabel}</span>
+        {isDesk && !choosingGoal && (
+          <span className="bt-stage__keys">
+            <kbd>아무 키</kbd>나 누르면 시작
+          </span>
+        )}
+        <button type="button" className="bt-stage__pick" onClick={onPick}>
+          골라 쓰기
+          <span className="material-icons-round" aria-hidden>
+            south
+          </span>
+        </button>
+      </footer>
+
+      {!isDesk && !choosingGoal && (
+        <button type="button" className="bt-btn bt-btn--primary bt-btn--block bt-stage__cta" onClick={goNext}>
+          {cta}
+          <span className="material-icons-round" aria-hidden>
+            arrow_forward
+          </span>
+        </button>
+      )}
     </section>
   )
 }

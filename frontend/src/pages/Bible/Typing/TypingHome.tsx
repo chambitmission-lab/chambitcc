@@ -20,7 +20,7 @@ import './typing.css'
 
 /**
  * 말씀 필사 허브 — "매일 한 페이지씩 쌓이는 나의 필사 노트".
- * 첫 화면은 '오늘의 필사' 하나(등잔·이번 주·이어 쓸 말씀·버튼 하나), 그 아래로
+ * 첫 화면은 '오늘의 필사' 하나(몰입 무대 — 이어 쓸 말씀 크게, PC 는 아무 키나 누르면 시작), 그 아래로
  * 골라 쓰기(펼친 책·장 격자) → 오늘의 한 절 → 잉크 달력 → 스프린트. 오른쪽(모바일은 아래)은 함께 쓰는 것들.
  */
 const TypingHome = () => {
@@ -64,7 +64,6 @@ const TypingHome = () => {
               loggedIn={loggedIn}
               loading={loading}
               stats={stats}
-              calendar={calendar}
               mode={mode}
               setMode={setMode}
               ignorePunct={ignorePunct}
