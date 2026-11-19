@@ -56,7 +56,8 @@ import { drawSubjectOver } from './canvas/depth'
 import { drawInkBlock } from './canvas/inkLayer'
 import type { CardInk } from './canvas/inkLayer'
 
-export type { CardInk, InkPlace } from './canvas/inkLayer'
+export type { CardInk, InkQuickPlace } from './canvas/inkLayer'
+export { INK_QUICK_Y } from './canvas/inkLayer'
 
 /** 사진 전체의 평균 밝기(0~1) — 밝은 사진은 어두운 글자로 시작해야 읽힌다 */
 export const measureImageLuminance = (img: HTMLImageElement): number => {

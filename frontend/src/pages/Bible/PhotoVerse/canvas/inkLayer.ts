@@ -9,13 +9,14 @@ import { INK_PAGE_W } from '../../../Capsule/ink/inkModel'
 import type { InkPage, InkStroke } from '../../../Capsule/ink/inkModel'
 import { strokePath } from '../../../Capsule/ink/inkRender'
 
-/** 글씨 자리 — 사진 영역의 위·가운데·아래 (가로는 늘 가운데) */
-export type InkPlace = 'top' | 'center' | 'bottom'
-
+/** 글씨 자리는 서체 글과 같은 style.pos(글 영역 대비 0~1, 블록 중심)를 쓴다 — 끌어서 옮긴다 */
 export interface CardInk {
   page: InkPage
-  place: InkPlace
 }
+
+/** 위·가운데·아래 빠른 자리 — 끌어 옮기기 전의 출발점 (실제 자리는 영역 안으로 당겨진다) */
+export const INK_QUICK_Y = { top: 0.2, center: 0.5, bottom: 0.8 } as const
+export type InkQuickPlace = keyof typeof INK_QUICK_Y
 
 interface Box {
   x: number
@@ -89,7 +90,7 @@ const bakeInk = (page: InkPage, b: Box, scale: number, color: string): HTMLCanva
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max)
 
 /**
- * 손글씨 블록 — 글 영역 안에 자동으로 맞춰 넣고(가로 가운데), 위·가운데·아래 중 한 자리에 놓는다.
+ * 손글씨 블록 — 글 영역 안에 맞춰 넣고, 중심을 style.pos 자리에 놓는다(영역 밖으로는 나가지 않게 당긴다).
  * 크기는 글자 크기 값(슬라이더·두 손가락)을 그대로 따라 키우고 줄인다. 출처는 글씨 바로 아래.
  */
 export const drawInkBlock = (tc: TypeContext, ink: CardInk) => {
@@ -114,13 +115,13 @@ export const drawInkBlock = (tc: TypeContext, ink: CardInk) => {
   const blockW = b.w * scale
   const blockH = b.h * scale
   const groupH = blockH + refH
-  const cx = l.px + l.pw / 2
-  const top =
-    ink.place === 'top'
-      ? l.py + padTop
-      : ink.place === 'bottom'
-        ? l.py + l.ph - padBottom - groupH
-        : l.py + padTop + (availH + refH - groupH) / 2
+  // 끌어 옮긴 자리 — 블록이 여백 안쪽에 머물도록 중심을 당긴다(위·아래 빠른 자리는 이 당김으로 가장자리에 붙는다)
+  const minCx = l.px + padX + blockW / 2
+  const maxCx = l.px + l.pw - padX - blockW / 2
+  const cx = clamp(l.px + style.pos.x * l.pw, minCx, Math.max(minCx, maxCx))
+  const minTop = l.py + padTop
+  const maxTop = l.py + l.ph - padBottom - groupH
+  const top = clamp(l.py + style.pos.y * l.ph - groupH / 2, minTop, Math.max(minTop, maxTop))
 
   // 손글씨에는 박스·형광펜이 어울리지 않는다 — 글 배경을 켰으면 모두 은은한 스크림으로
   if (style.textBg !== 'none') {

@@ -18,8 +18,8 @@ import { compactReference, getTodayRecommended } from './recommendedVerses'
 import type { PickedVerse } from './recommendedVerses'
 import { CARD_PRESETS } from './cardPresets'
 import type { CardPreset } from './cardPresets'
-import { BACKGROUNDS, DEFAULT_CARD_STYLE, backgroundCss, createBackgroundImage, createCardCanvas, drawSlide, ensureCardFonts, measureImageLuminance } from './photoVerseCanvas'
-import type { CardInk, CardRatioId, CardTextBg, CardTextureId, InkPlace, VerseBackground, VerseCardStyle } from './photoVerseCanvas'
+import { BACKGROUNDS, DEFAULT_CARD_STYLE, INK_QUICK_Y, backgroundCss, createBackgroundImage, createCardCanvas, drawSlide, ensureCardFonts, measureImageLuminance } from './photoVerseCanvas'
+import type { CardInk, CardRatioId, CardTextBg, CardTextureId, InkQuickPlace, VerseBackground, VerseCardStyle } from './photoVerseCanvas'
 import { emptyInkPage, isInkPageEmpty, parseInkPageFile } from '../../Capsule/ink/inkModel'
 import type { InkPage } from '../../Capsule/ink/inkModel'
 import { PresetStrip } from './components/StyleStrips'
@@ -140,7 +140,6 @@ const PhotoVerse = () => {
   // 손글씨로 보기를 골랐는지, 그리고 그 글씨가 어느 말씀을 따라 쓴 것인지 — 말씀을 바꾸면 서체로 돌아간다
   const [inkOn, setInkOn] = useState(!!routeInk)
   const [inkFor, setInkFor] = useState<string | null>(routeInk ? (presetVerse?.refLabel ?? null) : null)
-  const [inkPlace, setInkPlace] = useState<InkPlace>('center')
   const [writing, setWriting] = useState(false)
   // 손글씨를 한 번이라도 건드린 뒤에만 초안을 쓴다 — 들어오자마자 지난 글씨를 지우지 않게
   const inkTouchedRef = useRef(!!routeInk)
@@ -202,8 +201,8 @@ const PhotoVerse = () => {
   const inkActive = inkOn && hasInk && !!verse && inkFor === verse.refLabel
   // 쓰는 동안에는 카드를 다시 그리지 않는다(획마다 썸네일까지 다시 그리게 된다) — 완료로 닫히면 한 번에 올라간다
   const cardInk = useMemo<CardInk | null>(
-    () => (inkActive && !writing && inkPage ? { page: inkPage, place: inkPlace } : null),
-    [inkActive, writing, inkPage, inkPlace],
+    () => (inkActive && !writing && inkPage ? { page: inkPage } : null),
+    [inkActive, writing, inkPage],
   )
   const slides = useMemo(() => {
     if (!verse) return []
@@ -253,11 +252,14 @@ const PhotoVerse = () => {
   useEffect(() => {
     if (writing || !inkTouchedRef.current) return
     const id = window.setTimeout(
-      () => saveInkDraft(hasInk && inkFor && inkPage ? { refLabel: inkFor, page: inkPage, place: inkPlace, on: inkOn } : null),
+      () => saveInkDraft(hasInk && inkFor && inkPage ? { refLabel: inkFor, page: inkPage, on: inkOn } : null),
       400,
     )
     return () => window.clearTimeout(id)
-  }, [writing, hasInk, inkFor, inkPage, inkPlace, inkOn])
+  }, [writing, hasInk, inkFor, inkPage, inkOn])
+
+  // 글씨 빠른 자리 — 가로는 가운데로 되돌리고 위·가운데·아래에 붙인다. 그 뒤로는 끌어서 미세하게 옮긴다
+  const snapInk = (place: InkQuickPlace) => setStyle((s) => ({ ...s, pos: { x: 0.5, y: INK_QUICK_Y[place] } }))
 
   // 직접 쓰기 열기 — 다른 말씀을 따라 쓴 글씨가 남아 있으면 새 종이에서 시작한다
   const openInkSheet = () => {
@@ -436,7 +438,6 @@ const PhotoVerse = () => {
       inkTouchedRef.current = true
       setInkPages([ink.page])
       setInkFor(ink.refLabel)
-      setInkPlace(ink.place)
       setInkOn(ink.on)
     }
     const bg = d.bgId ? BACKGROUNDS.find((b) => b.id === d.bgId) : undefined
@@ -488,7 +489,7 @@ const PhotoVerse = () => {
     style,
     setStyle,
     dragTarget,
-    textLocked: !!cardInk,
+    inkMode: !!cardInk,
   })
 
   // ── 저장·공유·카카오톡 엽서 (useCardExport) ──
@@ -769,7 +770,7 @@ const PhotoVerse = () => {
             {/* 끌기 대상 — 자유 레이아웃이면서 사진이 잘렸을 때만 고른다. 나머지는 알아서 정해진다 */}
             {verse && dragMode && (
               <div className="pv-drag-row">
-                {style.layout === 'classic' && canPan && !cardInk ? (
+                {(style.layout === 'classic' || cardInk) && canPan ? (
                   <div className="pv-seg pv-seg--small" role="radiogroup" aria-label={t.dragText}>
                     {(['text', 'photo'] as const).map((d) => (
                       <button
@@ -858,12 +859,9 @@ const PhotoVerse = () => {
                           key={p}
                           type="button"
                           role="radio"
-                          aria-checked={inkPlace === p}
-                          className={`pv-seg__item${inkPlace === p ? ' pv-seg__item--active' : ''}`}
-                          onClick={() => {
-                            inkTouchedRef.current = true
-                            setInkPlace(p)
-                          }}
+                          aria-checked={style.pos.x === 0.5 && style.pos.y === INK_QUICK_Y[p]}
+                          className={`pv-seg__item${style.pos.x === 0.5 && style.pos.y === INK_QUICK_Y[p] ? ' pv-seg__item--active' : ''}`}
+                          onClick={() => snapInk(p)}
                         >
                           {t.inkPlace[p]}
                         </button>
