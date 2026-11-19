@@ -5,7 +5,7 @@ import type { PickedVerse } from '../recommendedVerses'
 import { CARD_PRESETS } from '../cardPresets'
 import type { CardPreset } from '../cardPresets'
 import { CARD_FILTERS, createCardCanvas, drawFilterThumb, drawVerseCard } from '../photoVerseCanvas'
-import type { VerseCardStyle } from '../photoVerseCanvas'
+import type { CardInk, VerseCardStyle } from '../photoVerseCanvas'
 import { DEFAULT_CARD_STYLE } from '../photoVerseCanvas'
 
 // 프리셋 썸네일 — CSS 84px 폭에 2배 해상도. 카드 구도가 그대로 축소돼 보인다
@@ -68,6 +68,7 @@ const PresetStrip = ({
   active,
   fontsReady,
   greeting,
+  ink,
   onSelect,
 }: {
   img: HTMLImageElement
@@ -79,6 +80,8 @@ const PresetStrip = ({
   fontsReady: number
   /** 상황별 카드의 인사말 — 썸네일도 실제 카드와 같은 구도로 */
   greeting?: string
+  /** 직접 쓴 손글씨 — 썸네일도 서체 대신 내 글씨로 */
+  ink?: CardInk | null
   onSelect: (preset: CardPreset) => void
 }) => {
   const thumbRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
@@ -99,9 +102,9 @@ const PresetStrip = ({
         canvas.width = sized.width
         canvas.height = sized.height
       }
-      drawVerseCard(canvas, img, verse.text, verse.refLabel, style, { greeting })
+      drawVerseCard(canvas, img, verse.text, verse.refLabel, style, { greeting, ink })
     }
-  }, [img, verse, baseColor, lang, fontsReady, greeting])
+  }, [img, verse, baseColor, lang, fontsReady, greeting, ink])
 
   return (
     <div className="pv-presets" role="radiogroup" aria-label="스타일">

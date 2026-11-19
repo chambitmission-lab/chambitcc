@@ -1,6 +1,7 @@
 // 여러 장으로 나누기 — 긴 말씀을 인스타 캐러셀처럼 2~4장에 나눠 담는다.
 // 절 정보가 있으면 절 경계에서, 없으면(애송 성구·올해의 말씀) 문장 끝에서 자른다.
 
+import type { CardInk } from './canvas/inkLayer'
 import type { PickedVerse } from './recommendedVerses'
 
 export interface CardSlide {
@@ -8,6 +9,8 @@ export interface CardSlide {
   refLabel: string
   /** 맨 위 인사말 — 상황별 카드의 첫 장에만 (PhotoVerse 가 채운다) */
   greeting?: string
+  /** 직접 쓴 손글씨 — 한 장짜리 카드에만 (PhotoVerse 가 채운다) */
+  ink?: CardInk | null
 }
 
 export const MAX_SLIDES = 4

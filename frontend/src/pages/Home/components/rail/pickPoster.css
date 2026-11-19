@@ -16,6 +16,31 @@
   --pp-ring: rgba(143, 186, 255, 0.55);
 }
 
+/* ── 감정별 색면 — 추천 근거 감정(data-emotion)에 따라 카드와 마친 걸음 타일이 함께 물든다.
+   라이트는 흰 글자가 읽히는 깊이의 색면, 다크는 그 색을 머금은 어두운 면 + 단어만 밝은 빛.
+   근거가 없거나 모르는 감정이면 위 기본 파랑 그대로. */
+.pp[data-emotion='anxious'] { --pp-field: #0e7c86; } /* 불안 — 잔잔한 물빛 */
+.pp[data-emotion='tired'] { --pp-field: #7458bd; } /* 지침 — 해 질 녘 라벤더 */
+.pp[data-emotion='sad'] { --pp-field: #4c6a92; } /* 슬픔 — 비 오는 날 회청 */
+.pp[data-emotion='lonely'] { --pp-field: #4f56c9; } /* 외로움 — 저녁 남보라 */
+.pp[data-emotion='angry'] { --pp-field: #b8483a; } /* 분노 — 가라앉는 벽돌빛 */
+.pp[data-emotion='confused'] { --pp-field: #86683a; } /* 혼란 — 발 딛는 흙빛 */
+.pp[data-emotion='hopeful'] { --pp-field: #23884d; } /* 소망 — 새싹 초록 */
+.pp[data-emotion='grateful'] { --pp-field: #b0680c; } /* 감사 — 따뜻한 금빛 */
+
+:root.dark .pp[data-emotion] {
+  --pp-ghost: color-mix(in srgb, var(--pp-word) 10%, transparent);
+  --pp-ring: color-mix(in srgb, var(--pp-word) 55%, transparent);
+}
+:root.dark .pp[data-emotion='anxious'] { --pp-field: #0f2a2e; --pp-word: #6fd3d3; }
+:root.dark .pp[data-emotion='tired'] { --pp-field: #221d3a; --pp-word: #bba8ff; }
+:root.dark .pp[data-emotion='sad'] { --pp-field: #18243a; --pp-word: #9fbadf; }
+:root.dark .pp[data-emotion='lonely'] { --pp-field: #1b1d40; --pp-word: #a7acff; }
+:root.dark .pp[data-emotion='angry'] { --pp-field: #33191a; --pp-word: #ff9f8a; }
+:root.dark .pp[data-emotion='confused'] { --pp-field: #2b2416; --pp-word: #e2c283; }
+:root.dark .pp[data-emotion='hopeful'] { --pp-field: #10291c; --pp-word: #82d9a3; }
+:root.dark .pp[data-emotion='grateful'] { --pp-field: #2e2310; --pp-word: #f2c45e; }
+
 .pp-card {
   position: relative;
   display: flex;
@@ -26,6 +51,7 @@
   padding: 16px 18px;
   background: var(--pp-field);
   color: var(--pp-ink);
+  transition: background-color 0.4s;
 }
 /* 뒤에 깔리는 같은 단어 — 색면의 결 */
 .pp-ghost {
@@ -203,6 +229,7 @@
   -webkit-text-stroke: 0;
 }
 @media (prefers-reduced-motion: reduce) {
+  .pp-card,
   .pp-btn,
   .pp-tile {
     transition: none;

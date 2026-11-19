@@ -15,13 +15,15 @@ interface PhotoGestureArgs {
   setStyle: Dispatch<SetStateAction<VerseCardStyle>>
   /** 자유 레이아웃에서 사용자가 고른 끌기 대상 */
   dragTarget: 'text' | 'photo'
+  /** 손글씨 카드 — 글씨 자리는 위·가운데·아래로만 고르니 끌기는 사진만 옮긴다 */
+  textLocked?: boolean
 }
 
 /**
  * 캔버스 제스처 — 한 손가락: 글(자유 레이아웃) 또는 사진 크롭 이동, 두 손가락: 글자 크기.
  * 사진 옮기기는 비율로 잘렸을 때만 의미가 있다.
  */
-export const usePhotoGesture = ({ hasVerse, photo, style, setStyle, dragTarget }: PhotoGestureArgs) => {
+export const usePhotoGesture = ({ hasVerse, photo, style, setStyle, dragTarget, textLocked }: PhotoGestureArgs) => {
   // 캔버스 위 손가락들과 진행 중인 제스처 (끌기: 글/사진, 벌리기: 글자 크기)
   const pointersRef = useRef(new Map<number, { x: number; y: number }>())
   const gestureRef = useRef<
@@ -34,7 +36,7 @@ export const usePhotoGesture = ({ hasVerse, photo, style, setStyle, dragTarget }
   const canPan = style.ratio !== 'original'
   const dragMode: DragMode = !hasVerse
     ? null
-    : style.layout === 'classic' && (dragTarget === 'text' || !canPan)
+    : !textLocked && style.layout === 'classic' && (dragTarget === 'text' || !canPan)
       ? 'text'
       : canPan
         ? 'photo'

@@ -7,7 +7,7 @@ import { useContest, useContestEntry, useContestEntryInk } from '../../hooks/use
 import { showToast } from '../../utils/toast'
 import { BACKGROUNDS, backgroundCss } from '../Bible/PhotoVerse/canvas/backgrounds'
 import { shareOrDownload } from '../Bible/Typing/dailyCard'
-import { parseInkPageFile } from '../Capsule/ink/inkModel'
+import { parseInkPageFile, toInkPageFile } from '../Capsule/ink/inkModel'
 import { Spinner, SurveyShell } from '../Survey/surveyUi'
 import { CenterNote } from './contestShared'
 import { RANK_META, errorText } from './contestFormat'
@@ -173,6 +173,20 @@ const ContestCard = () => {
           >
             {busy ? '만드는 중…' : '저장 · 공유하기'}
           </button>
+          {entry.is_mine && page ? (
+            <button
+              type="button"
+              onClick={() =>
+                navigate('/bible/photo-verse', {
+                  state: { presetVerse: { text: entry.verse_text, refLabel: entry.verse_ref }, inkPage: toInkPageFile(page) },
+                })
+              }
+              className="w-full inline-flex items-center justify-center gap-1.5 py-3 rounded-2xl border border-gray-200 dark:border-white/10 text-[14px] font-bold text-ink-strong"
+            >
+              <span className="material-icons-round text-[18px] text-brand">add_photo_alternate</span>
+              내 사진 위에 올리기
+            </button>
+          ) : null}
           <p className="text-[12px] leading-relaxed text-ink-muted">
             {entry.author.name}님이 손으로 쓴 <b className="text-ink-strong">{entry.verse_ref}</b> 말씀이에요. 카드는 내 기기에서 만들어져요.
           </p>

@@ -1,0 +1,39 @@
+/* 말씀 카드 '직접 쓰기' 시트 — 종이 위 '따라 쓸 말씀' 안내.
+   시트 자체(책상·종이·도구 막대)는 Capsule/styles/ink.css 를 그대로 쓴다. 책상이 늘 어두워 색은 고정값이다 */
+.pv-ink-guide {
+  display: block;
+  flex-shrink: 0;
+  width: calc(100% - 24px);
+  margin: 0 12px 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(239, 230, 210, 0.07);
+  border: 1px solid rgba(239, 230, 210, 0.1);
+  color: rgba(239, 230, 210, 0.88);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pv-ink-guide__text {
+  display: block;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+  white-space: pre-line;
+}
+
+.pv-ink-guide--folded .pv-ink-guide__text {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pv-ink-guide__meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(239, 230, 210, 0.5);
+}

@@ -1,10 +1,11 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { markPostcardSent } from '../../../components/share/sharePostcardsShared'
 import type { ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleBooks } from '../../../hooks/useBible'
 import { useDailyVerse } from '../../../hooks/useDailyVerse'
+import { isAuthenticated } from '../../../utils/auth'
 import { ensureFontFamily } from '../../../utils/deferredFonts'
 import { KST_OFFSET_MS } from '../../../utils/kstTime'
 
@@ -18,7 +19,9 @@ import type { PickedVerse } from './recommendedVerses'
 import { CARD_PRESETS } from './cardPresets'
 import type { CardPreset } from './cardPresets'
 import { BACKGROUNDS, DEFAULT_CARD_STYLE, backgroundCss, createBackgroundImage, createCardCanvas, drawSlide, ensureCardFonts, measureImageLuminance } from './photoVerseCanvas'
-import type { CardRatioId, CardTextBg, CardTextureId, VerseBackground, VerseCardStyle } from './photoVerseCanvas'
+import type { CardInk, CardRatioId, CardTextBg, CardTextureId, InkPlace, VerseBackground, VerseCardStyle } from './photoVerseCanvas'
+import { emptyInkPage, isInkPageEmpty, parseInkPageFile } from '../../Capsule/ink/inkModel'
+import type { InkPage } from '../../Capsule/ink/inkModel'
 import { PresetStrip } from './components/StyleStrips'
 import DetailControls from './components/DetailControls'
 import IntroScreen from './components/IntroScreen'
@@ -31,7 +34,8 @@ import VerseEditSheet from './components/VerseEditSheet'
 import { pickMotionMime } from './motionCard'
 import { MAX_SLIDES, canSplit, splitIntoSlides, suggestedSlideCount } from './slides'
 import { verseLinkFromRef } from './verseLink'
-import { isResumable, loadDraft, saveDraft } from './draft'
+import { isResumable, loadDraft, loadInkDraft, saveDraft, saveInkDraft } from './draft'
+import ContestInkImport from './components/ContestInkImport'
 import { findOccasion } from './occasions'
 import type { CardOccasion } from './occasions'
 import { useRecentSermonPassage } from './churchVerses'
@@ -44,6 +48,9 @@ import { useRemixOffer } from './useRemixOffer'
 import { buildRemixLink } from './remix'
 import KakaoIcon from '../../../components/icons/KakaoIcon'
 import './PhotoVerse.css'
+
+// 직접 쓰기 종이 — 손글씨 시트와 그 스타일은 쓸 때만 받는다
+const InkWriteSheet = lazy(() => import('./components/InkWriteSheet'))
 
 // 미리보기는 화면용으로 캡 — 저장본·엽서 해상도는 useCardExport 가 정한다
 const PREVIEW_MAX_SIDE = 1280
@@ -63,7 +70,8 @@ const PhotoVerse = () => {
   const lang: 'ko' | 'en' = language === 'en' ? 'en' : 'ko'
 
   // 다른 화면(예: 기도 완료)에서 말씀을, 설교 화면에서 본문을 미리 실어 보낼 수 있다
-  const routeState = location.state as { presetVerse?: PickedVerse; sermonPassage?: SermonPassage } | null
+  // 필사대회 '내 사진 위에 올리기'는 말씀과 함께 내 글씨(획)를 실어 보낸다
+  const routeState = location.state as { presetVerse?: PickedVerse; sermonPassage?: SermonPassage; inkPage?: unknown } | null
   const presetVerse = routeState?.presetVerse
   const routeSermon = routeState?.sermonPassage
 
@@ -122,6 +130,21 @@ const PhotoVerse = () => {
   const [canRecordMotion] = useState(() => !!pickMotionMime())
   const { data: bibleBooks } = useBibleBooks()
   const [showDetails, setShowDetails] = useState(false)
+  // ── 직접 쓰기(손글씨) — 서체 대신 내가 쓴 획을 사진 위에 얹는다. 획은 사진처럼 이 기기 안에만 있다 ──
+  const [routeInk] = useState(() => {
+    if (!presetVerse?.refLabel || !routeState?.inkPage) return null
+    const page = parseInkPageFile(routeState.inkPage)
+    return page && !isInkPageEmpty(page) ? page : null
+  })
+  const [inkPages, setInkPages] = useState<InkPage[]>(() => [routeInk ?? emptyInkPage()])
+  // 손글씨로 보기를 골랐는지, 그리고 그 글씨가 어느 말씀을 따라 쓴 것인지 — 말씀을 바꾸면 서체로 돌아간다
+  const [inkOn, setInkOn] = useState(!!routeInk)
+  const [inkFor, setInkFor] = useState<string | null>(routeInk ? (presetVerse?.refLabel ?? null) : null)
+  const [inkPlace, setInkPlace] = useState<InkPlace>('center')
+  const [writing, setWriting] = useState(false)
+  // 손글씨를 한 번이라도 건드린 뒤에만 초안을 쓴다 — 들어오자마자 지난 글씨를 지우지 않게
+  const inkTouchedRef = useRef(!!routeInk)
+  const [signedIn] = useState(() => isAuthenticated())
   const [pickerOpen, setPickerOpen] = useState(false)
   // 폰트 로드 세대 — 구절이 바뀌어 새 서브셋 조각이 로드될 때마다 올라가 다시 그리게 한다
   const [fontsReady, setFontsReady] = useState(0)
@@ -174,11 +197,21 @@ const PhotoVerse = () => {
   // 여러 장으로 나누기 — 미리보기·저장·영상이 같은 조각을 쓴다
   // 인사말은 첫 장에만 — 넘겨 보는 카드의 표지처럼. 타이핑 중엔 프리셋 썸네일까지 다시 그리니 한 박자 늦춘다
   const drawnGreeting = useDeferredValue(greeting.trim())
+  const inkPage = inkPages[0]
+  const hasInk = !!inkPage && !isInkPageEmpty(inkPage)
+  const inkActive = inkOn && hasInk && !!verse && inkFor === verse.refLabel
+  // 쓰는 동안에는 카드를 다시 그리지 않는다(획마다 썸네일까지 다시 그리게 된다) — 완료로 닫히면 한 번에 올라간다
+  const cardInk = useMemo<CardInk | null>(
+    () => (inkActive && !writing && inkPage ? { page: inkPage, place: inkPlace } : null),
+    [inkActive, writing, inkPage, inkPlace],
+  )
   const slides = useMemo(() => {
     if (!verse) return []
+    // 손글씨는 한 장에 쓴 그대로 — 나누지 않는다
+    if (cardInk) return [{ text: verse.text, refLabel: verse.refLabel, greeting: drawnGreeting || undefined, ink: cardInk }]
     const list = splitIntoSlides(verse, slideCount)
     return drawnGreeting ? list.map((sl, i) => (i === 0 ? { ...sl, greeting: drawnGreeting } : sl)) : list
-  }, [verse, slideCount, drawnGreeting])
+  }, [verse, slideCount, drawnGreeting, cardInk])
   const slideIdx = Math.min(previewSlide, Math.max(0, slides.length - 1))
   const current = slides[slideIdx]
   const isLock = style.ratio === 'lock'
@@ -215,6 +248,54 @@ const PhotoVerse = () => {
     )
     return () => window.clearTimeout(id)
   }, [style, activePreset, verse, bgId, slideCount, photo, greeting, occasionId])
+
+  // 손글씨 기억 — 쓰는 중에는 저장하지 않는다(획마다 직렬화 수십 KB), 닫히는 순간 한 번
+  useEffect(() => {
+    if (writing || !inkTouchedRef.current) return
+    const id = window.setTimeout(
+      () => saveInkDraft(hasInk && inkFor && inkPage ? { refLabel: inkFor, page: inkPage, place: inkPlace, on: inkOn } : null),
+      400,
+    )
+    return () => window.clearTimeout(id)
+  }, [writing, hasInk, inkFor, inkPage, inkPlace, inkOn])
+
+  // 직접 쓰기 열기 — 다른 말씀을 따라 쓴 글씨가 남아 있으면 새 종이에서 시작한다
+  const openInkSheet = () => {
+    if (!verse) return
+    if (hasInk && inkFor !== verse.refLabel) setInkPages([emptyInkPage()])
+    setWriting(true)
+  }
+
+  // 완료 — 쓴 글씨가 있으면 그대로 사진 위에 올라간다(없으면 inkActive 가 꺼져 서체 그대로)
+  const closeInkSheet = () => {
+    inkTouchedRef.current = true
+    setWriting(false)
+    setInkOn(true)
+    setInkFor(verse?.refLabel ?? null)
+  }
+
+  // 서체 ↔ 직접 쓰기 — 이 말씀으로 써 둔 글씨가 있으면 바로 바꾸고, 없으면 종이부터 편다
+  const pickInkMode = (ink: boolean) => {
+    if (!ink) {
+      if (inkOn) inkTouchedRef.current = true
+      setInkOn(false)
+      return
+    }
+    if (hasInk && verse && inkFor === verse.refLabel) {
+      inkTouchedRef.current = true
+      setInkOn(true)
+    } else openInkSheet()
+  }
+
+  // 필사대회에 낸 내 글씨 — 그 말씀과 함께 통째로 가져온다
+  const importContestInk = (v: PickedVerse, page: InkPage) => {
+    inkTouchedRef.current = true
+    chooseVerse(v)
+    setOccasionId(null)
+    setInkPages([page])
+    setInkFor(v.refLabel)
+    setInkOn(true)
+  }
 
   // 프리셋 적용 — 비율·언어·위치·글자 크기는 그대로, 룩(레이아웃·필터·서체·질감·프레임)만 바꾼다
   const applyPreset = useCallback(
@@ -349,6 +430,15 @@ const PhotoVerse = () => {
     const o = findOccasion(d.occasionId)
     setOccasionId(o ? o.id : null)
     setOccasionVerseIdx(o ? Math.max(0, o.verses.findIndex((v) => v.refLabel === d.verse.refLabel)) : 0)
+    // 그 말씀을 직접 써 둔 글씨가 있으면 함께 되살린다
+    const ink = loadInkDraft()
+    if (ink && ink.refLabel === d.verse.refLabel) {
+      inkTouchedRef.current = true
+      setInkPages([ink.page])
+      setInkFor(ink.refLabel)
+      setInkPlace(ink.place)
+      setInkOn(ink.on)
+    }
     const bg = d.bgId ? BACKGROUNDS.find((b) => b.id === d.bgId) : undefined
     if (bg) void pickBackground(bg, undefined, true)
     else fileInputRef.current?.click()
@@ -398,6 +488,7 @@ const PhotoVerse = () => {
     style,
     setStyle,
     dragTarget,
+    textLocked: !!cardInk,
   })
 
   // ── 저장·공유·카카오톡 엽서 (useCardExport) ──
@@ -678,7 +769,7 @@ const PhotoVerse = () => {
             {/* 끌기 대상 — 자유 레이아웃이면서 사진이 잘렸을 때만 고른다. 나머지는 알아서 정해진다 */}
             {verse && dragMode && (
               <div className="pv-drag-row">
-                {style.layout === 'classic' && canPan ? (
+                {style.layout === 'classic' && canPan && !cardInk ? (
                   <div className="pv-seg pv-seg--small" role="radiogroup" aria-label={t.dragText}>
                     {(['text', 'photo'] as const).map((d) => (
                       <button
@@ -737,7 +828,62 @@ const PhotoVerse = () => {
                 {t.changePhoto}
               </button>
             </div>
+            {/* 글씨 넣는 방법 — 서체로 조판하거나, 종이를 펴고 직접 쓴 글씨를 그대로 얹는다 */}
             {verse && (
+              <div className="pv-ink">
+                <div className="pv-seg pv-seg--wide" role="radiogroup" aria-label={t.inkModeLabel}>
+                  {([false, true] as const).map((ink) => (
+                    <button
+                      key={String(ink)}
+                      type="button"
+                      role="radio"
+                      aria-checked={inkActive === ink}
+                      className={`pv-seg__item${inkActive === ink ? ' pv-seg__item--active' : ''}`}
+                      onClick={() => pickInkMode(ink)}
+                    >
+                      <span className="material-icons-round text-[16px]">{ink ? 'draw' : 'text_fields'}</span>
+                      {ink ? t.inkWrite : t.inkType}
+                    </button>
+                  ))}
+                </div>
+                {inkActive ? (
+                  <div className="pv-ink__row">
+                    <button type="button" className="pv-edit-chip" onClick={openInkSheet}>
+                      <span className="material-icons-round text-[16px]">edit</span>
+                      {t.inkRewrite}
+                    </button>
+                    <div className="pv-seg pv-seg--small" role="radiogroup" aria-label={t.inkPlaceLabel}>
+                      {(['top', 'center', 'bottom'] as const).map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          role="radio"
+                          aria-checked={inkPlace === p}
+                          className={`pv-seg__item${inkPlace === p ? ' pv-seg__item--active' : ''}`}
+                          onClick={() => {
+                            inkTouchedRef.current = true
+                            setInkPlace(p)
+                          }}
+                        >
+                          {t.inkPlace[p]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="pv-section__note">{t.inkHint}</p>
+                )}
+                {signedIn && (
+                  <ContestInkImport
+                    t={t}
+                    activeRef={inkActive ? inkFor : null}
+                    onImport={importContestInk}
+                    onFailed={showToast}
+                  />
+                )}
+              </div>
+            )}
+            {verse && !inkActive && (
               <button type="button" className="pv-edit-chip" onClick={() => setEditOpen(true)}>
                 <span className="material-icons-round text-[16px]">edit_note</span>
                 {t.editText}
@@ -774,12 +920,13 @@ const PhotoVerse = () => {
                     active={activePreset}
                     fontsReady={fontsReady}
                     greeting={current?.greeting}
+                    ink={cardInk}
                     onSelect={(p) => applyPreset(p)}
                   />
                 </div>
 
                 {/* 여러 장으로 나누기 — 긴 말씀일 때만. 캐러셀로 넘겨 보는 카드 */}
-                {canSplit(verse) && (
+                {!inkActive && canSplit(verse) && (
                   <div className="pv-section">
                     <p className="pv-section__title">{t.slidesTitle}</p>
                     <div className="pv-seg pv-seg--wide" role="radiogroup" aria-label={t.slidesTitle}>
@@ -807,7 +954,7 @@ const PhotoVerse = () => {
                 )}
 
                 {/* 움직이는 카드 — 녹화를 지원하는 브라우저에서만 */}
-                {canRecordMotion && (
+                {canRecordMotion && !inkActive && (
                   <button type="button" className="pv-motion-cta" onClick={() => setMotionOpen(true)}>
                     <span className="pv-motion-cta__icon">
                       <span className="material-icons-round">movie</span>
@@ -889,6 +1036,7 @@ const PhotoVerse = () => {
                     lang={lang}
                     img={photo.img}
                     style={style}
+                    inkMode={inkActive}
                     onPartial={setPartial}
                     onToggleTexture={toggleTexture}
                     onPickTextBg={pickTextBg}
@@ -960,6 +1108,12 @@ const PhotoVerse = () => {
             }}
             onClose={() => setEditOpen(false)}
           />
+        )}
+
+        {writing && verse && (
+          <Suspense fallback={null}>
+            <InkWriteSheet t={t} verse={verse} pages={inkPages} onChange={setInkPages} onClose={closeInkSheet} />
+          </Suspense>
         )}
 
         {motionOpen && photo && verse && slides.length > 0 && (

@@ -67,7 +67,7 @@ const AlarmNudge = () => {
 const TodayStepsWidget = () => {
   const navigate = useNavigate()
   const { t } = useLanguage()
-  const { verse } = useTodayPick()
+  const { verse, basis } = useTodayPick()
   const { data: myPrayer } = useMyLatestPrayer()
   const { readDone, cardDone, alarmNudgeDismissed } = useTodaySteps()
   // 알림 목록은 "하나도 없음" 안내에만 쓴다 — 안내를 닫은 사람은 받지 않고,
@@ -109,7 +109,7 @@ const TodayStepsWidget = () => {
   const showAlarmNudge = !alarmNudgeDismissed && Array.isArray(alarms) && alarms.length === 0
 
   return (
-    <section className="pp px-4 pt-2">
+    <section className="pp px-4 pt-2" data-emotion={basis.emotion ?? undefined}>
       <div className="pp-tiles" role="group" aria-label={t('homeRailStepsTitle')}>
         {steps.map((step, i) => {
           const sub = step.done ? t('homeRailStepDone') : step.go

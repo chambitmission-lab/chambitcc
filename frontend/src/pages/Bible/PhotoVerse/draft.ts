@@ -4,6 +4,9 @@
 import type { VerseCardStyle } from './photoVerseCanvas'
 import type { PickedVerse } from './recommendedVerses'
 import { safeStorage } from '../../../utils/safeStorage'
+import { isInkPageEmpty, parseInkPageFile, toInkPageFile } from '../../Capsule/ink/inkModel'
+import type { InkPage } from '../../Capsule/ink/inkModel'
+import type { InkPlace } from './canvas/inkLayer'
 
 const KEY = 'chambit.photoVerse.draft.v1'
 /** 이보다 오래된 말씀은 '이어서 만들기'로 권하지 않는다 */
@@ -44,3 +47,32 @@ export const saveDraft = (d: Omit<PhotoVerseDraft, 'savedAt'>) => {
 
 export const isResumable = (d: PhotoVerseDraft | null, nowMs: number): d is PhotoVerseDraft & { verse: PickedVerse } =>
   !!d?.verse && nowMs - d.savedAt < RESUME_TTL_MS
+
+// ── 직접 쓴 손글씨 — 획이 수십 KB라 스타일 초안과 따로 둔다. 사진처럼 이 기기 밖으로는 나가지 않는다 ──
+const INK_KEY = 'chambit.photoVerse.ink.v1'
+
+export interface PhotoVerseInkDraft {
+  /** 이 글씨가 따라 쓴 말씀 — 같은 말씀을 이어 만들 때만 되살린다 */
+  refLabel: string
+  page: InkPage
+  place: InkPlace
+  /** 손글씨로 보고 있었는지(서체로 돌려 둔 채 나갔으면 false) */
+  on: boolean
+}
+
+export const loadInkDraft = (): PhotoVerseInkDraft | null => {
+  const d = safeStorage.getJson(INK_KEY) as { refLabel?: unknown; page?: unknown; place?: unknown; on?: unknown } | null | undefined
+  if (!d || typeof d !== 'object' || typeof d.refLabel !== 'string') return null
+  const page = parseInkPageFile(d.page)
+  if (!page || isInkPageEmpty(page)) return null
+  const place: InkPlace = d.place === 'top' || d.place === 'bottom' ? d.place : 'center'
+  return { refLabel: d.refLabel, page, place, on: d.on !== false }
+}
+
+export const saveInkDraft = (d: PhotoVerseInkDraft | null) => {
+  if (!d || isInkPageEmpty(d.page)) {
+    safeStorage.remove(INK_KEY)
+    return
+  }
+  safeStorage.setJson(INK_KEY, { refLabel: d.refLabel, page: toInkPageFile(d.page), place: d.place, on: d.on })
+}

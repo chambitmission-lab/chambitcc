@@ -21,6 +21,8 @@ interface DetailControlsProps {
   lang: 'ko' | 'en'
   img: HTMLImageElement
   style: VerseCardStyle
+  /** 손글씨 카드 — 서체 조판에만 쓰이는 조정(레이아웃·서체·정렬·박스·형광펜)은 숨긴다 */
+  inkMode?: boolean
   /** 프리셋에서 벗어난 '나만의 조합'이 되는 부분 변경 */
   onPartial: (patch: Partial<VerseCardStyle>) => void
   onToggleTexture: (id: CardTextureId) => void
@@ -37,6 +39,7 @@ const DetailControls = ({
   lang,
   img,
   style,
+  inkMode = false,
   onPartial,
   onToggleTexture,
   onPickTextBg,
@@ -45,12 +48,12 @@ const DetailControls = ({
 }: DetailControlsProps) => {
   const seasonStamp = getSeasonStamp(lang)
   const textBgOptions: CardTextBg[] =
-    style.layout === 'classic' ? ['none', 'soft', 'scrim', 'marker'] : ['none', 'soft']
+    style.layout === 'classic' && !inkMode ? ['none', 'soft', 'scrim', 'marker'] : ['none', 'soft']
 
   return (
     <div className="pv-details">
       {/* 레이아웃 — 옵션 조합이 아니라 디자이너가 완성한 구도를 고른다 */}
-      <div className="pv-layouts" role="radiogroup" aria-label={t.layoutTitle}>
+      {!inkMode && <div className="pv-layouts" role="radiogroup" aria-label={t.layoutTitle}>
         {CARD_LAYOUTS.map((lay) => (
           <button
             key={lay.id}
@@ -66,7 +69,7 @@ const DetailControls = ({
             <span className="pv-layout__name">{language === 'ko' ? lay.nameKo : lay.nameEn}</span>
           </button>
         ))}
-      </div>
+      </div>}
 
       <FilterStrip img={img} active={style.filter} language={language} onSelect={(filter) => onPartial({ filter })} />
 
@@ -85,7 +88,7 @@ const DetailControls = ({
       </div>
 
       <div className="pv-control-row">
-        <div className="pv-seg" role="radiogroup" aria-label="서체">
+        {!inkMode && <div className="pv-seg" role="radiogroup" aria-label="서체">
           {(['serif', 'sans', 'hand', 'brush'] as const).map((f) => (
             <button
               key={f}
@@ -98,9 +101,9 @@ const DetailControls = ({
               {t.font[f]}
             </button>
           ))}
-        </div>
+        </div>}
 
-        {style.layout === 'classic' && (
+        {style.layout === 'classic' && !inkMode && (
           <div className="pv-seg" role="radiogroup" aria-label={t.alignLabel}>
             {(
               [

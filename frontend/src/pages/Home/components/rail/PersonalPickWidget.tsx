@@ -29,7 +29,7 @@ const PersonalPickWidget = () => {
       : t('homeRailPickSubWeek')
 
   return (
-    <section className="pp px-4 pt-3">
+    <section className="pp px-4 pt-3" data-emotion={meta ? basis.emotion! : undefined}>
       <div className="pp-card">
         <span className="pp-ghost" aria-hidden>
           {word}

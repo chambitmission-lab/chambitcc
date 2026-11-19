@@ -899,3 +899,29 @@
   color: var(--text-muted);
   text-align: center;
 }
+
+/* 글씨 넣는 방법 — 서체로 넣기 / 직접 쓰기, 그 아래 고치기·글씨 자리 */
+.pv-ink {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.pv-ink__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pv-ink__row .pv-edit-chip {
+  align-self: center;
+  margin-top: 0;
+}
+
+.pv-ink__import:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

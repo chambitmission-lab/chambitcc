@@ -53,6 +53,10 @@ import {
 import { drawGreeting, drawLayout, drawSignature, fitFontPx, greetingBand } from './canvas/layouts'
 import type { TypeContext } from './canvas/layouts'
 import { drawSubjectOver } from './canvas/depth'
+import { drawInkBlock } from './canvas/inkLayer'
+import type { CardInk } from './canvas/inkLayer'
+
+export type { CardInk, InkPlace } from './canvas/inkLayer'
 
 /** 사진 전체의 평균 밝기(0~1) — 밝은 사진은 어두운 글자로 시작해야 읽힌다 */
 export const measureImageLuminance = (img: HTMLImageElement): number => {
@@ -86,6 +90,8 @@ export interface DrawCardOptions {
    * 있으면 글 위에 피사체를 한 번 더 얹는다. 사진과 글을 따로 그리는 층 모드에서는 쓰지 않는다
    */
   subject?: HTMLCanvasElement | null
+  /** 직접 쓴 손글씨 — 있으면 서체 조판 대신 이 획을 얹는다 (text 는 비어 있지 않아야 한다) */
+  ink?: CardInk | null
 }
 
 /** 사진 + 말씀 텍스트를 canvas에 합성한다. canvas 크기는 호출자가 정한다. */
@@ -94,11 +100,14 @@ export const drawVerseCard = (
   img: HTMLImageElement,
   text: string,
   refLabel: string,
-  style: VerseCardStyle,
+  styleIn: VerseCardStyle,
   opts: DrawCardOptions = {},
 ) => {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
+  // 손글씨에는 조판 구도가 없다 — 구도에 딸린 장식(세로쓰기 낙관·엽서 안쪽 여백)이 따라오지 않게 자유 구도로 본다
+  const style: VerseCardStyle =
+    opts.ink && styleIn.layout !== 'classic' ? { ...styleIn, layout: 'classic' } : styleIn
   const layer = opts.layer ?? 'all'
   const withBase = layer !== 'text'
   const withText = layer !== 'base'
@@ -136,8 +145,12 @@ export const drawVerseCard = (
       refOnPhoto,
       lightText: isLightColor(style.color),
     }
-    tc.fontPx = fitFontPx(tc)
-    drawLayout(tc)
+    if (opts.ink) {
+      drawInkBlock(tc, opts.ink)
+    } else {
+      tc.fontPx = fitFontPx(tc)
+      drawLayout(tc)
+    }
   }
 
   if (greeting && text && withText) drawGreeting(ctx, l, greeting, style)
@@ -246,6 +259,8 @@ export interface SlideContent {
   text: string
   refLabel: string
   greeting?: string
+  /** 직접 쓴 손글씨 — 있으면 서체 대신 이 글씨로 */
+  ink?: CardInk | null
 }
 
 /**
@@ -259,7 +274,7 @@ export const drawSlide = (
   style: VerseCardStyle,
   subject?: HTMLCanvasElement | null,
 ) => {
-  drawVerseCard(canvas, img, slide?.text ?? '', slide?.refLabel ?? '', style, { greeting: slide?.greeting, subject })
+  drawVerseCard(canvas, img, slide?.text ?? '', slide?.refLabel ?? '', style, { greeting: slide?.greeting, subject, ink: slide?.ink })
 }
 
 /** 긴 변 maxSide 로 새 canvas 를 만들어 한 장을 그려 돌려준다 (저장본·엽서용) */
