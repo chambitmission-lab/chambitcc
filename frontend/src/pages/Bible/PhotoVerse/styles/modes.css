@@ -791,7 +791,7 @@
   overflow-y: auto;
 }
 
-/* 엽서는 테마와 무관하게 종이색 — 받는 사람 대화방에 뜰 그대로 보여 준다 */
+/* 받는 사람 대화방에 뜰 그림 그대로 보여 준다 */
 .pv-kakao__preview {
   width: min(100%, 300px);
   height: auto;

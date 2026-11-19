@@ -11,8 +11,6 @@ interface KakaoPostcardSheetProps {
   refLabel: string
   /** 카드에 쓴 인사말 — 있으면 엽서 한마디의 첫 값 */
   greeting?: string
-  /** 카드가 폴라로이드 프레임이라 흰 여백·출처를 이미 갖고 있는지 */
-  hasOwnMat: boolean
   /** 그 절이 열리는 링크 — 출처를 못 풀면 null */
   verseLink: string | null
   /** 같은 스타일로 시작하는 링크 */
@@ -29,44 +27,41 @@ const NOTE_MAX = 28
 
 const TEXTS = {
   ko: {
-    title: '말씀 엽서 보내기',
-    noteLabel: '엽서에 쓸 한마디',
+    title: '카카오톡으로 보내기',
+    noteLabel: '카드와 함께 보낼 한마디',
     defaultNote: '오늘 이 말씀이 생각났어요',
-    sign: (name: string) => `${name} 드림`,
     send: '카카오톡으로 보내기',
-    uploading: '엽서를 준비하고 있어요…',
+    uploading: '카드를 준비하고 있어요…',
     ready: '준비됐어요 · 카카오톡 열기',
     other: '사진 파일로 다른 앱에 보내기',
-    hint: '보내기를 누르면 이 엽서 그림만 카카오 서버에 올라가요. 원본 사진은 기기에 남아요.',
-    failed: '엽서를 올리지 못했어요. 잠시 뒤 다시 시도해 주세요.',
-    cardTitle: (name: string | null) => (name ? `${name} 님이 보낸 말씀 엽서` : '말씀 엽서가 도착했어요'),
+    hint: '한마디는 카톡에서 카드 제목으로 보여요. 보내기를 누르면 이 그림만 카카오 서버에 올라가고, 원본 사진은 기기에 남아요.',
+    failed: '카드를 올리지 못했어요. 잠시 뒤 다시 시도해 주세요.',
+    cardTitle: (name: string | null) => (name ? `${name} 님이 말씀 카드를 보냈어요` : '말씀 카드가 도착했어요'),
+    madeBy: (name: string | null, ref: string) => (name ? `${name} 님이 만든 말씀 카드 · ${ref}` : `말씀 카드 · ${ref}`),
     read: '말씀 읽기',
-    reply: '답장 엽서 쓰기',
+    reply: '나도 만들기',
     close: '닫기',
   },
   en: {
-    title: 'Send a verse postcard',
-    noteLabel: 'A line for the postcard',
+    title: 'Send with KakaoTalk',
+    noteLabel: 'A line to send with the card',
     defaultNote: 'This verse made me think of you',
-    sign: (name: string) => `— ${name}`,
     send: 'Send with KakaoTalk',
-    uploading: 'Preparing your postcard…',
+    uploading: 'Preparing your card…',
     ready: 'Ready · Open KakaoTalk',
     other: 'Share the photo file to another app',
-    hint: 'Only this postcard image is uploaded to Kakao when you send. Your original photo stays on your device.',
-    failed: "Couldn't upload the postcard. Please try again.",
-    cardTitle: (name: string | null) => (name ? `A verse postcard from ${name}` : 'A verse postcard for you'),
+    hint: 'Your line shows as the card title in KakaoTalk. Only this image is uploaded to Kakao when you send; your original photo stays on your device.',
+    failed: "Couldn't upload the card. Please try again.",
+    cardTitle: (name: string | null) => (name ? `${name} sent you a verse card` : 'A verse card for you'),
+    madeBy: (name: string | null, ref: string) => (name ? `A verse card by ${name} · ${ref}` : `Verse card · ${ref}`),
     read: 'Read the verse',
-    reply: 'Reply with a card',
+    reply: 'Make my own',
     close: 'Close',
   },
 }
 
-const describeDate = (d: Date, language: 'ko' | 'en') =>
-  d.toLocaleDateString(language === 'ko' ? 'ko-KR' : 'en-US', { month: 'long', day: 'numeric', weekday: 'long' })
-
 /**
- * 카드를 '말씀 엽서'로 다시 구워 카카오톡 피드 카드로 보낸다.
+ * 카드를 정사각 판에 그대로 올려(P1 '카드 그대로') 카카오톡 피드 카드로 보낸다. 한마디는 카드 제목이 된다.
  * 그림 주소가 있어야 해서 누른 뒤에 올린다 — 모바일은 올라가자마자 이어서 보내고,
  * PC 는 카톡 창이 팝업이라(누른 직후가 아니면 막힌다) 버튼이 '카카오톡 열기'로 바뀐 뒤 한 번 더 누른다.
  */
@@ -74,7 +69,6 @@ const KakaoPostcardSheet = ({
   card,
   refLabel,
   greeting,
-  hasOwnMat,
   verseLink,
   remixLink,
   language,
@@ -90,9 +84,9 @@ const KakaoPostcardSheet = ({
   const [name] = useState(() => sessionStore.get('fullName')?.trim() || null)
   const [date] = useState(() => new Date())
   const [uploading, setUploading] = useState(false)
-  // 올려 둔 그림 — 한마디를 고치면 그 그림은 못 쓴다
-  const [uploaded, setUploaded] = useState<{ note: string; url: string } | null>(null)
-  const ready = uploaded?.note === note
+  // 올려 둔 그림 주소 — 한마디는 그림에 들어가지 않으니 한 번 올리면 계속 쓴다
+  const [uploaded, setUploaded] = useState<string | null>(null)
+  const ready = uploaded !== null
 
   // SDK 는 시트가 열릴 때 받아 둔다 (그림은 아직 올리지 않는다)
   useEffect(() => {
@@ -102,21 +96,14 @@ const KakaoPostcardSheet = ({
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    drawKakaoPostcard(canvas, card, {
-      refLabel,
-      note,
-      signature: name ? t.sign(name) : undefined,
-      date,
-      lang: language,
-      hasOwnMat,
-    })
-  }, [card, refLabel, note, name, date, language, hasOwnMat, t])
+    drawKakaoPostcard(canvas, card, { sender: name ?? undefined, date, lang: language })
+  }, [card, name, date, language])
 
   const send = async (imageUrl: string) => {
     const link = verseLink ?? remixLink
     const ok = await kakaoShareFeed({
-      title: t.cardTitle(name),
-      description: `${refLabel} · ${describeDate(date, language)}`,
+      title: note.trim() || t.cardTitle(name),
+      description: t.madeBy(name, refLabel),
       imageUrl,
       imageWidth: POSTCARD_SIZE,
       imageHeight: POSTCARD_SIZE,
@@ -135,22 +122,21 @@ const KakaoPostcardSheet = ({
   const handleSend = async () => {
     if (uploading) return
     // 이미 올려 둔 그림이면 누른 그 자리에서 바로 보낸다 (PC 팝업이 막히지 않게 await 없이)
-    if (ready && uploaded) {
-      void send(uploaded.url)
+    if (uploaded) {
+      void send(uploaded)
       return
     }
     const canvas = canvasRef.current
     if (!canvas) return
     setUploading(true)
-    const sentNote = note
     try {
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9))
-      const url = blob ? await kakaoUploadImage(new File([blob], 'verse-postcard.jpg', { type: 'image/jpeg' })) : null
+      const url = blob ? await kakaoUploadImage(new File([blob], 'verse-card.jpg', { type: 'image/jpeg' })) : null
       if (!url) {
         onFailed(t.failed)
         return
       }
-      setUploaded({ note: sentNote, url })
+      setUploaded(url)
       if (isMobile()) await send(url)
     } finally {
       setUploading(false)

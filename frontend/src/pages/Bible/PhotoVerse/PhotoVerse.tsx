@@ -1124,7 +1124,6 @@ const PhotoVerse = () => {
             card={kakaoCard}
             refLabel={verse.refLabel}
             greeting={current?.greeting}
-            hasOwnMat={style.frame === 'polaroid'}
             verseLink={verseLinkFromRef(verse.refLabel, bibleBooks)}
             remixLink={buildRemixLink(style, activePreset, bgId)}
             language={lang}

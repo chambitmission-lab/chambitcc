@@ -103,6 +103,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['about-meet', () => import('../pages/dev/AboutMeetPreview')],
       // /about 맨 아래 '초대' 장 개편 시안 — ?v=now|a|b|c|d
       ['about-invite', () => import('../pages/dev/AboutInvitePreview')],
+      // 말씀 카드 카카오톡 피드 카드 개편 시안 — ?v=all|now|a|b|c|d|e
+      ['kakao-postcard', () => import('../pages/dev/KakaoPostcardPreview')],
     ]
   : []
 

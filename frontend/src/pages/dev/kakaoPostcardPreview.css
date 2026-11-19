@@ -1,0 +1,207 @@
+.kpp {
+  min-height: 100vh;
+  background: #f2f4f6;
+  color: #191f28;
+  padding: 32px 16px 80px;
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+}
+.kpp-head {
+  max-width: 1400px;
+  margin: 0 auto 24px;
+}
+.kpp-head h1 {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+.kpp-head p {
+  margin: 0 0 16px;
+  color: #6b7684;
+  font-size: 15px;
+}
+.kpp-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.kpp-tabs button {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #fff;
+  color: #4e5968;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.kpp-tabs button.is-on {
+  background: #3182f6;
+  color: #fff;
+}
+.kpp-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+.kpp-grid.is-single {
+  grid-template-columns: minmax(0, 420px);
+  justify-content: center;
+}
+.kpp-col {
+  background: #fff;
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.kpp-col.is-now {
+  opacity: 0.85;
+}
+.kpp-col__head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.kpp-col__head p {
+  margin: 4px 0 0;
+  color: #3182f6;
+  font-weight: 600;
+  font-size: 14px;
+}
+.kpp-col.is-now .kpp-col__head p {
+  color: #8b95a1;
+}
+
+/* 카톡 대화방 */
+.kpp-chat {
+  background: #b2c7da;
+  border-radius: 14px;
+  padding: 16px 12px 18px;
+}
+.kpp-msg {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.kpp-avatar {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  background: #e7c9a9;
+  color: #6b4a2e;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+}
+.kpp-msg__col {
+  min-width: 0;
+}
+.kpp-name {
+  font-size: 12px;
+  color: #4a5560;
+  margin: 1px 0 5px;
+}
+.kpp-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.kpp-time {
+  font-size: 10px;
+  color: #56616b;
+  white-space: nowrap;
+}
+.kpp-card {
+  width: 236px;
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+.kpp-card__img img,
+.kpp-card__ph {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #e5e8eb;
+}
+.kpp-card__text {
+  padding: 11px 12px 4px;
+}
+.kpp-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #000;
+}
+.kpp-card__desc {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: #8a8a8a;
+  line-height: 1.35;
+}
+.kpp-card__btns {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 10px;
+}
+.kpp-card__btn {
+  flex: 1;
+  background: #f1f2f4;
+  border-radius: 5px;
+  padding: 10px 4px;
+  font-size: 13px;
+  text-align: center;
+  color: #222;
+}
+.kpp-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 9px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 11.5px;
+  color: #555;
+}
+.kpp-card__app {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3182f6;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.kpp-card__chev {
+  margin-left: auto;
+  font-size: 15px;
+}
+
+.kpp-why {
+  margin: 0;
+  padding-left: 18px;
+  color: #4e5968;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.kpp-landing {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f2f7ff;
+  color: #33475b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.kpp-landing b {
+  color: #3182f6;
+  margin-right: 4px;
+}
