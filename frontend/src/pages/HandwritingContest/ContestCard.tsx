@@ -29,7 +29,9 @@ const ContestCard = () => {
   const ink = useContestEntryInk(contestId, entryId, allowed && !!entry?.has_ink)
   const page = useMemo(() => (ink.data ? parseInkPageFile(ink.data) : null), [ink.data])
 
-  const [bgId, setBgId] = useState(CARD_BGS[0].id)
+  // 고르기 전에는 출품 때 고른 배경에서 시작한다(없으면 종이)
+  const [pickedBgId, setBgId] = useState<string | null>(null)
+  const bgId = pickedBgId ?? (CARD_BGS.find((b) => b.id === entry?.paper)?.id ?? CARD_BGS[0].id)
   const [ratio, setRatio] = useState<CardRatio>('4:5')
   const [showCredit, setShowCredit] = useState(true)
   const [busy, setBusy] = useState(false)

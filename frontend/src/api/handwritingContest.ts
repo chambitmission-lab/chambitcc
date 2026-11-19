@@ -44,6 +44,7 @@ export const submitContestEntry = (id: number, payload: EntrySubmit): Promise<Co
   form.append('verse_text', payload.verse_text)
   if (payload.comment.trim()) form.append('comment', payload.comment.trim())
   form.append('card_consent', payload.card_consent ? 'true' : 'false')
+  if (payload.paper) form.append('paper', payload.paper)
   form.append('width', String(payload.width))
   form.append('height', String(payload.height))
   form.append('image', payload.png, 'handwriting.png')

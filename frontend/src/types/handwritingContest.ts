@@ -22,6 +22,8 @@ export interface ContestEntry {
   height: number | null
   has_ink: boolean
   card_consent: boolean
+  /** 출품 때 고른 배경 id — 없으면 기본 크림 종이 */
+  paper?: string | null
   /** 순위 비공개 대회는 발표 전까지 null */
   vote_count: number | null
   voted_by_me: boolean
@@ -76,6 +78,8 @@ export interface EntrySubmit {
   verse_text: string
   comment: string
   card_consent: boolean
+  /** 고른 배경 id — null 이면 기본 크림 종이 */
+  paper?: string | null
   png: Blob
   ink: Blob
   width: number

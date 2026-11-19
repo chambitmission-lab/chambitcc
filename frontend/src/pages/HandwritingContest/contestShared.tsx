@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { ContestEntry, ContestPhase } from '../../types/handwritingContest'
 import { PHASE_META, RANK_META } from './contestFormat'
+import { LIGHT_INK_IMG_FILTER, usePaperSurface } from './paper'
 
 export const PhaseChip = ({ phase }: { phase: ContestPhase }) => (
   <span
@@ -26,7 +27,8 @@ export const Medal = ({ rank, size = 26 }: { rank: number; size?: number }) => {
   )
 }
 
-/** 종이 위 글씨 — 투명 PNG 를 크림 종이에 얹는다(종이·잉크는 실물이라 다크에서도 크림) */
+/** 종이 위 글씨 — 투명 PNG 를 크림 종이에 얹는다(종이·잉크는 실물이라 다크에서도 크림).
+    출품 때 배경을 골랐으면 그 배경 위에 — 어두운 배경이면 잉크를 밝게 뒤집는다 */
 export const PaperThumb = ({
   entry,
   className = '',
@@ -34,7 +36,7 @@ export const PaperThumb = ({
   ratio: fixedRatio,
   style,
 }: {
-  entry: Pick<ContestEntry, 'image_url' | 'width' | 'height' | 'verse_ref'>
+  entry: Pick<ContestEntry, 'image_url' | 'width' | 'height' | 'verse_ref' | 'paper'>
   className?: string
   /** 세로로 긴 글씨도 카드가 너무 길어지지 않게 */
   maxRatio?: number
@@ -43,10 +45,18 @@ export const PaperThumb = ({
   style?: CSSProperties
 }) => {
   const ratio = fixedRatio ?? (entry.width && entry.height ? Math.min(maxRatio, Math.max(0.55, entry.height / entry.width)) : 1)
+  const surface = usePaperSurface(entry.paper)
   return (
-    <div className={`hw-paper ${className}`} style={{ ...style, aspectRatio: `1 / ${ratio}` }}>
+    <div className={`hw-paper ${className}`} style={{ ...surface.style, ...style, aspectRatio: `1 / ${ratio}` }}>
       {entry.image_url ? (
-        <img src={entry.image_url} alt={`${entry.verse_ref} 손글씨`} loading="lazy" decoding="async" draggable={false} />
+        <img
+          src={entry.image_url}
+          alt={`${entry.verse_ref} 손글씨`}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          style={surface.lightInk ? { filter: LIGHT_INK_IMG_FILTER } : undefined}
+        />
       ) : null}
     </div>
   )

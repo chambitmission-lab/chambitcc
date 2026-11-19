@@ -10,6 +10,7 @@ import { inkPointCount, parseInkPageFile } from '../Capsule/ink/inkModel'
 import { drawStroke } from '../Capsule/ink/inkRender'
 import { PaperThumb } from './contestShared'
 import { inkBounds } from './inkCard'
+import { usePaperSurface } from './paper'
 
 const MIN_MS = 4000
 const MAX_MS = 12000
@@ -37,6 +38,9 @@ interface Props {
 const InkReplay = ({ entry, maxRatio = 1.5, className = '', ratio: fixedRatio, bare = false, onPlay, style }: Props) => {
   const ink = useContestEntryInk(entry.contest_id, entry.id, entry.has_ink)
   const page = useMemo(() => (ink.data ? parseInkPageFile(ink.data) : null), [ink.data])
+  // 출품 때 고른 배경 — 어두운 배경이면 밝은 잉크로 다시 쓴다
+  const surface = usePaperSurface(entry.paper)
+  const theme = surface.theme
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [size, setSize] = useState({ w: 0, h: 0 })
@@ -92,7 +96,7 @@ const InkReplay = ({ entry, maxRatio = 1.5, className = '', ratio: fixedRatio, b
 
     const drawAll = () => {
       reset()
-      for (const st of strokes) drawStroke(ctx, st, 'light')
+      for (const st of strokes) drawStroke(ctx, st, theme)
       setPlaying(false)
     }
     const total = inkPointCount(page)
@@ -116,13 +120,13 @@ const InkReplay = ({ entry, maxRatio = 1.5, className = '', ratio: fixedRatio, b
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
       const target = Math.floor(eased * total)
       while (strokeIdx < strokes.length && drawnPoints + strokes[strokeIdx].p.length / 3 <= target) {
-        drawStroke(ctx, strokes[strokeIdx], 'light')
+        drawStroke(ctx, strokes[strokeIdx], theme)
         drawnPoints += strokes[strokeIdx].p.length / 3
         strokeIdx++
       }
       if (strokeIdx < strokes.length) {
         const partial = target - drawnPoints
-        if (partial > 0) drawStroke(ctx, strokes[strokeIdx], 'light', partial, false)
+        if (partial > 0) drawStroke(ctx, strokes[strokeIdx], theme, partial, false)
       }
       if (t >= 1) {
         drawAll()
@@ -132,7 +136,7 @@ const InkReplay = ({ entry, maxRatio = 1.5, className = '', ratio: fixedRatio, b
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
-  }, [page, size.w, size.h, skipped, replayKey])
+  }, [page, size.w, size.h, skipped, replayKey, theme])
 
   // 받기 전·획 없음·실패 — 출품 PNG
   if (!page) return <PaperThumb entry={entry} maxRatio={maxRatio} ratio={fixedRatio} className={className} style={style} />
@@ -141,7 +145,7 @@ const InkReplay = ({ entry, maxRatio = 1.5, className = '', ratio: fixedRatio, b
     <div
       ref={wrapRef}
       className={`hw-paper ${playing && !bare ? 'cursor-pointer' : ''} ${className}`}
-      style={{ ...style, aspectRatio: `1 / ${ratio}` }}
+      style={{ ...surface.style, ...style, aspectRatio: `1 / ${ratio}` }}
       onClick={bare ? undefined : () => playing && setSkipped(true)}
       role={playing && !bare ? 'button' : 'img'}
       aria-label={playing && !bare ? '손글씨 다 보기' : `${entry.verse_ref} 손글씨`}

@@ -15,6 +15,8 @@ import { Spinner, SurveyShell } from '../Survey/surveyUi'
 import { CenterNote, QuillIcon } from './contestShared'
 import { errorText } from './contestFormat'
 import { exportCroppedInkPng } from './inkCard'
+import { CONTEST_PAPERS, findPaper, paperSwatchCss } from './paper'
+import PaperPreview from './PaperPreview'
 import '../Bible/PhotoVerse/styles/verse-sheet.css'
 import './contest.css'
 
@@ -27,15 +29,18 @@ interface Draft {
   verse: PickedVerse | null
   page: unknown
   comment: string
+  /** 고른 배경 id — 없으면 기본 종이 */
+  paper?: string | null
 }
 
-const loadDraft = (id: number): { verse: PickedVerse | null; page: InkPage; comment: string } => {
+const loadDraft = (id: number): { verse: PickedVerse | null; page: InkPage; comment: string; paper: string | null } => {
   const raw = safeStorage.getJson(draftKey(id)) as Partial<Draft> | undefined
   const verse = raw?.verse && typeof raw.verse.text === 'string' && typeof raw.verse.refLabel === 'string' ? raw.verse : null
   return {
     verse,
     page: (raw?.page ? parseInkPageFile(raw.page) : null) ?? emptyInkPage(),
     comment: typeof raw?.comment === 'string' ? raw.comment.slice(0, COMMENT_MAX) : '',
+    paper: findPaper(raw?.paper)?.id ?? null,
   }
 }
 
@@ -73,6 +78,7 @@ const ContestWrite = () => {
   const [verse, setVerse] = useState<PickedVerse | null>(initial.verse)
   const [pages, setPages] = useState<InkPage[]>([initial.page])
   const [comment, setComment] = useState(initial.comment)
+  const [paper, setPaper] = useState<string | null>(initial.paper)
   const [agree, setAgree] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [writing, setWriting] = useState(false)
@@ -93,10 +99,10 @@ const ContestWrite = () => {
   useEffect(() => {
     if (!contestId || writing) return
     const t = window.setTimeout(() => {
-      safeStorage.setJson(draftKey(contestId), { verse, page: toInkPageFile(page), comment } satisfies Draft)
+      safeStorage.setJson(draftKey(contestId), { verse, page: toInkPageFile(page), comment, paper } satisfies Draft)
     }, 400)
     return () => window.clearTimeout(t)
-  }, [contestId, verse, page, comment, writing])
+  }, [contestId, verse, page, comment, paper, writing])
 
   const goBack = () => navigate(`/handwriting/${contestId}`)
   const thumbWidth = useMemo(() => Math.min(280, typeof window !== 'undefined' ? window.innerWidth - 80 : 280), [])
@@ -139,6 +145,7 @@ const ContestWrite = () => {
         verse_text: verse.text,
         comment,
         card_consent: agree,
+        paper,
         png,
         ink,
         width,
@@ -222,7 +229,41 @@ const ContestWrite = () => {
           )}
         </Step>
 
-        <Step n={3} title="한마디 남기고 내기" done={agree}>
+        <Step n={3} title="배경 고르기" done={written}>
+          {written ? (
+            <div className="mx-auto mb-3" style={{ maxWidth: thumbWidth }}>
+              <PaperPreview page={page} paperId={paper} className="shadow-sm" />
+            </div>
+          ) : null}
+          <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="배경">
+            {[null, ...CONTEST_PAPERS].map((bg) => {
+              const id = bg?.id ?? null
+              const on = paper === id
+              const name = bg?.nameKo ?? '기본 종이'
+              return (
+                <button
+                  key={id ?? 'default'}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => setPaper(id)}
+                  className="flex flex-col items-center gap-1 w-[52px]"
+                >
+                  <span
+                    className={`w-11 h-11 rounded-full border border-black/5 transition-transform ${on ? 'ring-2 ring-brand ring-offset-2 ring-offset-white dark:ring-offset-[#1c1c1e] scale-105' : ''}`}
+                    style={{ background: bg ? paperSwatchCss(bg) : '#fbf6ea' }}
+                  />
+                  <span className={`text-[11px] leading-tight ${on ? 'font-bold text-brand' : 'text-ink-muted'}`}>{name}</span>
+                </button>
+              )
+            })}
+          </div>
+          <p className="mt-2.5 text-[12px] leading-relaxed text-ink-muted">
+            고른 배경 위에 내 글씨가 놓여 갤러리에 걸려요. 어두운 배경에서는 글씨가 밝은 잉크로 바뀌어요.
+          </p>
+        </Step>
+
+        <Step n={4} title="한마디 남기고 내기" done={agree}>
           <label className="block text-[12.5px] font-bold text-ink-muted mb-1.5" htmlFor="hw-comment">
             이 구절을 고른 이유 (선택)
           </label>
