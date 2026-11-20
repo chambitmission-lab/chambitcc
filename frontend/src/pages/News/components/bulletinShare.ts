@@ -3,6 +3,7 @@
 import type { BulletinShareCard } from '../../../api/bulletin'
 import { kakaoShareFeed, prewarmKakaoScrap } from '../../../utils/kakaoShare'
 import { isLocalHost, SHARE_ORIGIN } from '../../../utils/shareOrigin'
+import { fetchR2 } from '../../../utils/r2Fetch'
 import { isAbortError, shareKakaoOrUrl, shareUrl } from '../../../utils/shareLink'
 
 /**
@@ -75,8 +76,8 @@ export const shareBulletinPage = async (file: File | undefined, title: string, i
 export const prefetchPageFile = async (src: string, baseName: string): Promise<File | undefined> => {
   if (!navigator.canShare) return undefined
   try {
-    const res = await fetch(src, { cache: 'force-cache' })
-    if (!res.ok) return undefined
+    // 새 주보는 R2(r2.dev — CORS 헤더 없음)라 같은 출처 프록시로 받는다. 옛 Supabase 주소는 그대로 간다.
+    const res = await fetchR2(src, { cache: 'force-cache' })
     const blob = await res.blob()
     const type = blob.type || 'image/png'
     const file = new File([blob], `${baseName}.${type.split('/')[1]?.replace('jpeg', 'jpg') || 'png'}`, { type })
