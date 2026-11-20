@@ -190,7 +190,22 @@
   .bw-later-h { margin-top: 26px !important; }
   .bw-later { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
   .bw-later .bw-kv:nth-child(2) { border-top: 0; }
+  /* 이번 주 일정 시트 — 왼쪽 이번 주 · 오른쪽 다가오는 일정, 오른쪽 목록은 한 줄씩 */
+  .bw-week { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; align-items: start; }
+  .bw-week > div + div { padding-left: 32px; margin-left: -32px; border-left: 1px solid var(--bw-line); }
+  .bw-week .bw-later-h { margin-top: 2px !important; }
+  .bw-week .bw-later { display: block; }
+  .bw-week .bw-later .bw-kv:nth-child(2) { border-top: 1px solid var(--bw-line); }
 }
+/* 표어 말씀 시트 — 말씀은 옅은 카드 안 가운데, 출처는 아래 브랜드색 한 줄 */
+.bw-verse { position: relative; margin: 4px 0 14px; padding: 26px 22px 20px; border-radius: 18px; background: var(--bw-card); text-align: center; }
+.bw-verse::before { content: '“'; position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 40px; line-height: 1; font-weight: 800; color: var(--brand); opacity: 0.35; }
+.bw-verse blockquote { margin: 6px 0 0; font-size: 21px; font-weight: 800; line-height: 1.5; letter-spacing: -0.01em; color: var(--bw-ink); white-space: pre-line; text-wrap: balance; word-break: keep-all; }
+.bw-verse figcaption { margin-top: 12px; font-size: 13.5px; font-weight: 700; color: var(--brand); }
+.bw-verse figcaption::before { content: '— '; opacity: 0.6; }
+/* 날짜 없는 다가오는 일정 — 문장 한 덩어리, 머리말은 위 줄에 */
+.bw-later-note .bw-kv-v { color: var(--bw-ink); overflow-wrap: anywhere; }
+.bw-later-lbl { display: block; color: var(--brand) !important; font-size: 13px; margin-bottom: 2px; }
 /* 안내 블록 시트 — 번호 목록(당회 결정) · 계좌 카드 · 봉사표 타일 */
 .bw-xl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .bw-xl li { display: flex; gap: 12px; align-items: flex-start; padding: 14px 0; border-top: 1px solid var(--bw-line); }

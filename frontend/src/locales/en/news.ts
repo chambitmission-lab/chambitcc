@@ -480,6 +480,7 @@ export const news = {
   bwPlaces: '{n}',
   bwTapCopy: 'Tap to copy',
   bwReadChapter: 'Read this chapter',
+  bwReadChapterOf: 'Read {book} {n}',
   bwText: 'Passage',
   bwHymn: 'Hymns',
   bwPrayer: 'Prayer',

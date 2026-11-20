@@ -196,14 +196,15 @@ export const VerseSheet = ({ data, onClose, onRead }: { data: BulletinData; onCl
   const { t } = useLanguage()
   const navigate = useNavigate()
   const link = bibleLink(data.subtitle)
+  // "(에스겔 37:5, 10)" → 괄호를 벗겨 출처 줄로, 버튼은 "에스겔 37장 읽기"
+  const ref = data.subtitle.replace(/[()（）]/g, '').trim()
+  const chapter = ref.match(/^(.+?)\s*(\d+)\s*[:장]/)
   return (
     <WeeklySheet title={verseLabel(data.title, t)} onClose={onClose}>
-      <p style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.45, margin: 0, whiteSpace: 'pre-line', textWrap: 'balance' }}>
-        {data.title.replace(/^\d{4}\s*표어\s*\n?/, '')}
-      </p>
-      <p className="bw-cap" style={{ margin: '8px 0 18px' }}>
-        {data.subtitle}
-      </p>
+      <figure className="bw-verse">
+        <blockquote>{data.title.replace(/^\d{4}\s*표어\s*\n?/, '')}</blockquote>
+        {ref && <figcaption>{ref}</figcaption>}
+      </figure>
       {link && (
         <button
           type="button"
@@ -214,7 +215,7 @@ export const VerseSheet = ({ data, onClose, onRead }: { data: BulletinData; onCl
           }}
         >
           <WIcon name="book" />
-          {t('bwReadChapter')}
+          {chapter ? t('bwReadChapterOf').replace('{book}', chapter[1].trim()).replace('{n}', chapter[2]) : t('bwReadChapter')}
         </button>
       )}
     </WeeklySheet>
@@ -339,14 +340,24 @@ const LaterList = ({ week }: { week: BulletinWeek }) => {
         {t('bwLater')}
       </p>
       <div className="bw-later">
-      {week.later.map((x, i) => (
-        <div className="bw-kv" key={i}>
-          <span className="bw-kv-l is-brand bw-tnum" style={{ minWidth: 76 }}>
-            {x.date ? `${x.date.getMonth() + 1}/${x.date.getDate()}(${WEEKDAY_KO[x.date.getDay()]})` : x.label}
-          </span>
-          <span className="bw-kv-v">{x.text}</span>
-        </div>
-      ))}
+        {week.later.map((x, i) =>
+          x.date ? (
+            <div className="bw-kv" key={i}>
+              <span className="bw-kv-l is-brand bw-tnum" style={{ minWidth: 76 }}>
+                {`${x.date.getMonth() + 1}/${x.date.getDate()}(${WEEKDAY_KO[x.date.getDay()]})`}
+              </span>
+              <span className="bw-kv-v">{x.text}</span>
+            </div>
+          ) : (
+            // 날짜를 못 읽은 항목 — 긴 문장을 좁은 라벨칸에 넣지 않고 한 덩어리로 (머리말이 따로 있으면 위에 굵게)
+            <div className="bw-kv bw-later-note" key={i}>
+              <span className="bw-kv-v">
+                {x.label && x.label !== x.text && <b className="bw-later-lbl">{x.label}</b>}
+                {x.text}
+              </span>
+            </div>
+          ),
+        )}
       </div>
     </>
   )
@@ -356,7 +367,10 @@ export const WeekSheet = ({ data, week, now, onClose }: { data: BulletinData; we
   const { t } = useLanguage()
   const sunday = week.sunday
   return (
-    <WeeklySheet title={t('bwWeek')} onClose={onClose}>
+    // PC(lg+)는 넓은 카드에 왼쪽 이번 주 · 오른쪽 다가오는 일정 두 칸, 모바일은 위아래로
+    <WeeklySheet title={t('bwWeek')} onClose={onClose} wide={week.later.length > 0}>
+      <div className={week.later.length > 0 ? 'bw-week' : undefined}>
+      <div>
       {data.weeklySchedule.map((w, i) => {
         const wd = weekdayIndex(w.day)
         // 주보 주일 다음 날(월)부터 다음 주일까지
@@ -377,7 +391,13 @@ export const WeekSheet = ({ data, week, now, onClose }: { data: BulletinData; we
           </div>
         )
       })}
-      {week.later.length > 0 && <LaterList week={week} />}
+      </div>
+      {week.later.length > 0 && (
+        <div>
+          <LaterList week={week} />
+        </div>
+      )}
+      </div>
     </WeeklySheet>
   )
 }

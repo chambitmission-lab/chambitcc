@@ -484,6 +484,7 @@ export const news = {
   bwPlaces: '{n}곳',
   bwTapCopy: '눌러서 복사',
   bwReadChapter: '이 장 읽기',
+  bwReadChapterOf: '{book} {n}장 읽기',
   bwText: '본문',
   bwHymn: '찬송',
   bwPrayer: '대표 기도',
