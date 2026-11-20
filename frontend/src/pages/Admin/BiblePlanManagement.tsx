@@ -271,6 +271,7 @@ const PlanRow = ({
           </div>
           <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
             {plan.total_days}일{plan.category ? ` · ${plan.category}` : ''}{plan.level ? ` · ${plan.level}` : ''}
+            {plan.participant_count ? ` · 참여 ${plan.participant_count}명` : ''}
           </div>
         </div>
         <svg
@@ -293,6 +294,10 @@ const PlanRow = ({
                   ? `교회 달력 고정${plan.anchor_date ? ` · 1일차 ${plan.anchor_date.slice(0, 10)}` : ''}`
                   : '각자 속도'
               }
+            />
+            <InfoRow
+              label="참여"
+              value={plan.participant_count ? `${plan.participant_count}명 · 완주 ${plan.completed_count ?? 0}명` : '아직 없음'}
             />
             <InfoRow label="카테고리" value={plan.category ?? '-'} />
             <InfoRow label="난이도" value={plan.level ?? '-'} />

@@ -170,6 +170,7 @@ export const pastorKeys = {
   suggestions: () => ['pastor-suggestions'] as const,
   reports: () => ['pastor-report'] as const,
   report: (week: number) => [...pastorKeys.reports(), week] as const,
+  planProgress: () => ['pastor-plan-progress'] as const,
   sermonPrep: (years: number) => ['pastor-sermon-prep', years] as const,
   sermonOptions: () => ['pastor-sermon-options'] as const,
   /** 설교 메모 목록 — 설교 준비 요약 카드와 메모장 첫 화면이 같은 캐시를 쓴다 */

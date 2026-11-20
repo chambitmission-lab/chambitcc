@@ -538,7 +538,7 @@ const ActivityCard = ({ data }: { data: MemberDetail }) => (
       </div>
     </div>
     <p className="text-[12px] text-gray-500 dark:text-white/50 leading-relaxed">
-      말씀 읽기·기도·감사·묵상 등 남긴 기록의 수와 시점만 셉니다. 무엇을 썼는지는 보이지 않습니다.
+      말씀 읽기·기도·감사·묵상·필사·읽기 플랜·묵상방 등 활동의 수와 시점만 셉니다. 무엇을 썼는지는 보이지 않습니다.
     </p>
   </SectionCard>
 )

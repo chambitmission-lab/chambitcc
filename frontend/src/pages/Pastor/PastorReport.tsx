@@ -7,10 +7,11 @@ import { VISIT_KIND_ICON, VISIT_KIND_LABEL } from './labels'
 import { EmptyHint, SectionCard, StatSpinner } from '../Admin/components/StatCards'
 import PastorShell from './components/PastorShell'
 import EmotionFlowCard from './components/EmotionFlowCard'
+import PlanProgressCard from './components/PlanProgressCard'
 import { Avatar } from './components/ui'
 import { agoLabel, formatDay, usePastorGate } from './components/pastorUtils'
 
-// 주간 목양 리포트 — 좌: 한 주 돌아보기 · 구역별 심방 커버리지 / 우: 기도 감정 흐름(익명 집계).
+// 주간 목양 리포트 — 좌: 한 주 돌아보기 · 구역별 심방 커버리지 · 읽기 플랜 현황 / 우: 기도 감정 흐름(익명 집계).
 // 모두 규칙·집계라 숫자의 뜻이 화면에 그대로 적혀 있어야 한다.
 
 const PastorReport = () => {
@@ -37,6 +38,7 @@ const PastorReport = () => {
           <div className="contents lg:block lg:min-w-0">
             <SummaryCard data={data} />
             <CoverageCard data={data} />
+            <PlanProgressCard enabled={pastor} />
           </div>
           <div className="contents lg:block">
             <EmotionFlowCard emotions={data.emotions} />

@@ -167,7 +167,7 @@ const AdminDashboard = () => {
                     })}
                   </div>
                   <p className="text-[11px] text-gray-400 dark:text-white/35 leading-relaxed">
-                    기도·감사·묵상·말씀 읽기 등 기록을 남긴 성도 수입니다. 주황 막대가 주일입니다.
+                    기도·감사·묵상·말씀 읽기·필사·읽기 플랜·묵상방 등 앱에서 활동한 성도 수입니다. 주황 막대가 주일입니다.
                   </p>
                 </SectionCard>
               </div>
