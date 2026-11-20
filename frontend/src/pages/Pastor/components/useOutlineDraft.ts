@@ -142,5 +142,14 @@ export const useOutlineDraft = (id: number, enabled: boolean) => {
     if (d) await run(d)
   }
 
-  return { data, isPending, draft, dirty, saving: save.isPending, notes, setNotes, edit, editSections, flush, saveNow }
+  /** 서버에서 통째로 바뀐 개요(지난 원고로 되돌리기)를 편집 상태에 그대로 옮긴다 — 입력 중이던 글은 flush 로 먼저 저장해 둘 것 */
+  const replace = (o: SermonOutline) => {
+    rememberSaved(o)
+    qc.setQueryData(pastorKeys.outline(id), o)
+    setDraft(toDraft(o))
+    setDirty(false)
+    void qc.invalidateQueries({ queryKey: pastorKeys.outlines() })
+  }
+
+  return { data, isPending, draft, dirty, saving: save.isPending, notes, setNotes, edit, editSections, flush, saveNow, replace }
 }

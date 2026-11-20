@@ -60,3 +60,27 @@ export const finishOutline = (
   id: number,
   data: { sermon_id?: number | null; preached_on?: string | null },
 ): Promise<SermonOutline> => pastorSend(`/pastor/outlines/${id}/finish`, 'POST', data, '설교 마침을 기록하지 못했습니다')
+
+// ── 지난 원고(되돌리기) — 자동 저장이 덮어쓰기 전 남겨 둔 모습 ──
+export interface OutlineVersionSummary {
+  id: number
+  created_at: string | null
+  /** 개요 글 + 원고 글자 수 */
+  chars: number
+  /** auto: 일정 간격 · shrink: 글이 크게 줄기 직전 · restore: 되돌리기 직전 */
+  reason: 'auto' | 'shrink' | 'restore'
+  title: string
+}
+
+export interface OutlineVersion extends OutlineVersionSummary {
+  sections: OutlineSection[]
+}
+
+export const fetchOutlineVersions = (id: number): Promise<OutlineVersionSummary[]> =>
+  pastorGet(`/pastor/outlines/${id}/versions`, '지난 원고를 불러오지 못했습니다')
+
+export const fetchOutlineVersion = (id: number, versionId: number): Promise<OutlineVersion> =>
+  pastorGet(`/pastor/outlines/${id}/versions/${versionId}`, '지난 원고를 불러오지 못했습니다')
+
+export const restoreOutlineVersion = (id: number, versionId: number): Promise<SermonOutline> =>
+  pastorSend(`/pastor/outlines/${id}/versions/${versionId}/restore`, 'POST', {}, '되돌리지 못했습니다')

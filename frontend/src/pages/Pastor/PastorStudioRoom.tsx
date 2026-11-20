@@ -17,6 +17,8 @@ import OutlineOptionsCard from './components/OutlineOptionsCard'
 import SermonBriefCard from './components/SermonBriefCard'
 import SermonBridgeCard from './components/SermonBridgeCard'
 import { MANUSCRIPT_MAX } from './components/manuscript'
+import { OutlineVersionsButton } from './components/OutlineVersions'
+import StudioCommentaryCard from './components/studio/StudioCommentaryCard'
 import StudioCompanion, { type DraftTarget } from './components/studio/StudioCompanion'
 import StudioGate from './components/studio/StudioGate'
 import { StepPassage, StepPulpit, StepReview, StepSkeleton } from './components/studio/StudioSteps'
@@ -62,7 +64,7 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
     if (opts.scroll !== false) document.getElementById('studio-top')?.scrollIntoView({ block: 'start' })
   }
 
-  const { data, isPending, draft, dirty, saving, notes, edit, editSections, flush } = useOutlineDraft(id, true)
+  const { data, isPending, draft, dirty, saving, notes, edit, editSections, flush, replace } = useOutlineDraft(id, true)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [draftTarget, setDraftTarget] = useState<DraftTarget | null>(null)
   const [draftBusy, setDraftBusy] = useState(false)
@@ -157,7 +159,10 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
         <Link to="/pastor/studio" className="flex items-center gap-0.5 font-semibold text-gray-600 dark:text-white/60 hover:text-brand">
           <span className="material-icons-outlined text-[18px]">chevron_left</span>설교 준비실
         </Link>
-        <span className="ml-auto text-gray-500 dark:text-white/50">{saving ? '저장 중...' : dirty ? '입력 중' : '저장됨'}</span>
+        <span className="ml-auto">
+          <OutlineVersionsButton outlineId={id} flush={flush} onRestored={replace} />
+        </span>
+        <span className="text-gray-500 dark:text-white/50">{saving ? '저장 중...' : dirty ? '입력 중' : '저장됨'}</span>
       </div>
       <div className="px-4 pt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <h1 className="min-w-0 max-w-full truncate text-[20px] lg:text-[26px] font-bold tracking-[-0.025em] text-ink-strong">
@@ -262,6 +267,7 @@ export const StudioRoom = ({ id, step, onStep }: { id: number; step: StudioStep;
           {step === 'study' &&
             (label ? (
               <>
+                <StudioCommentaryCard study={study.data} />
                 <SermonBriefCard label={label} />
                 <SermonBridgeCard label={label} />
               </>

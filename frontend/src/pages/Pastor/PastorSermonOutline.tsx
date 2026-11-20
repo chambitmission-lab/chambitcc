@@ -21,6 +21,7 @@ import WeekPackEditor from './components/WeekPackEditor'
 import { GhostButton, PastorModal, PrimaryButton } from './components/ui'
 import { IconButton, NoteCard, SermonPicker, SermonTabs } from './components/sermonNotes'
 import { invalidateNoteQueries } from './components/sermonNoteUtils'
+import { OutlineVersionsButton } from './components/OutlineVersions'
 import { useOutlineDraft, type OutlineDraft } from './components/useOutlineDraft'
 import { formatDay, inputCls, pickerCls, usePastorGate } from './components/pastorUtils'
 import { escapeHtml } from '../../utils/escapeHtml'
@@ -45,7 +46,7 @@ const PastorSermonOutline = () => {
   const mode: Mode = rawMode === 'manuscript' || rawMode === 'week' ? rawMode : 'outline'
   const setMode = (m: Mode) => setParams(m === 'outline' ? {} : { mode: m }, { replace: true })
 
-  const { data, isPending, draft, dirty, saving, notes, setNotes, edit, editSections, flush, saveNow } = useOutlineDraft(id, pastor)
+  const { data, isPending, draft, dirty, saving, notes, setNotes, edit, editSections, flush, saveNow, replace } = useOutlineDraft(id, pastor)
   const [picked, setActive] = useState<string | null>(null)
   const [picking, setPicking] = useState<string | null>(null)
   const [openNote, setOpenNote] = useState<SermonNote | null>(null)
@@ -141,7 +142,10 @@ const PastorSermonOutline = () => {
         <Link to="/pastor/sermon/outlines" className="flex items-center gap-0.5 font-semibold text-gray-600 dark:text-white/60 hover:text-brand">
           <span className="material-icons-outlined text-[18px]">chevron_left</span>개요 목록
         </Link>
-        <span className="ml-auto text-gray-500 dark:text-white/50">
+        <span className="ml-auto">
+          <OutlineVersionsButton outlineId={id} flush={flush} onRestored={replace} />
+        </span>
+        <span className="text-gray-500 dark:text-white/50">
           {saving ? '저장 중...' : dirty ? '입력 중' : '저장됨'}
         </span>
       </div>
