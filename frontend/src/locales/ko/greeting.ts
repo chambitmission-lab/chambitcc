@@ -12,6 +12,17 @@ export const greeting = {
   greetingEducationLabel: '학력',
   greetingCareerLabel: '주요 경력',
   greetingAwardLabel: '수상 내역',
+  // 담임목사 소개 "철을 따라"(시 1:3) — 별명 '복있는 사람'의 출처인 시편 1편으로 약력을 계절에 엮는다.
+  // 말씀은 줄바꿈 그대로 그리고 가운데 줄을 초록으로 강조한다
+  greetingSeasonVerse: '그는 시냇가에 심은 나무가\n철을 따라 열매를 맺으며\n그 잎사귀가 마르지 아니함 같으니',
+  greetingSeasonVerseRef: '시편 1편 3절',
+  greetingSpringTitle: '뿌리를 내리다',
+  greetingSummerTitle: '가지를 뻗다',
+  greetingAutumnTitle: '열매를 맺다',
+  greetingBrookLead: '그리고 지금,',
+  greetingBrookSub: '시냇가에 뿌리내려, 성도들을 은혜의 강가로',
+  // 소개 글에서 형광펜으로 칠할 말 — 한 줄에 하나. 소개 글에 그대로 있을 때만 칠해진다
+  greetingProfileHighlights: '한 영혼의 소중함\n15년\n은혜의 강가로',
   greetingHistoryTitle: '역대 담임목사',
   greetingHistoryHint: '참빛교회를 섬겨오신 분들입니다',
   greetingClosing: '참빛교회는 누구나 환영합니다',

@@ -19,7 +19,7 @@ import PastorSheet from './components/PastorSheet'
 import LetterBody from './components/LetterBody'
 import GreetingRail from './components/GreetingRail'
 import { SignatureLine } from '../../components/common/SignatureLine'
-import CredentialTimeline, { CREDENTIAL_ICONS } from './components/CredentialTimeline'
+import ProfileSeasons from './components/ProfileSeasons'
 import {
   CameraIcon,
   ChevronRightIcon,
@@ -92,8 +92,6 @@ const Greeting = () => {
     .map((line) => line.trim())
     .filter(Boolean)
   const signature = pastorText(current, 'signature', language)
-  const profileHeadline = pastorText(current, 'profile_headline', language)
-  const profileIntro = pastorText(current, 'profile_intro', language)
   const photoUrl = current?.photo_url?.trim() ?? ''
   // 인물 사진 = 가위로 오린 사진 한 장(흰 여백·칼선은 그림에, 종이 그림자·말풍선은 CSS).
   // 업로드 경로가 투명 이미지를 아직 보존하지 않아, 지금 담임목사의 오린 사진을 정적 파일로 둔다.
@@ -103,20 +101,6 @@ const Greeting = () => {
   const popPortrait =
     params.get('portrait') !== 'off' ? cutPortraitFor(current?.name_ko) : ''
   const heroDayImage = HERO_DAY_BY_SEASON[getNaturalSeason(new Date())]
-
-  const credentials = current
-    ? ([
-        ['greetingEducationLabel', 'education'],
-        ['greetingCareerLabel', 'career'],
-        ['greetingAwardLabel', 'awards'],
-      ] as const
-    ).filter(([, field]) => pastorText(current, field, language).trim().length > 0 || isAdminUser)
-    : []
-
-  const hasProfile =
-    profileHeadline.trim().length > 0 ||
-    profileIntro.trim().length > 0 ||
-    credentials.length > 0
 
   return (
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
@@ -285,80 +269,9 @@ const Greeting = () => {
                   </div>
                 </section>
 
-                {/* 담임목사 소개 — 인사말을 다 읽은 사람이 "이분은 누구지?"에 답한다 */}
-                {hasProfile && (
-                  <section id="greeting-profile" className="gr-profile">
-                    <h2 className="gr-section-title">
-                      <EditableText fieldKey="greetingProfileTitle" isAdmin={isAdminUser}>
-                        {tx('greetingProfileTitle')}
-                      </EditableText>
-                    </h2>
-                    <span className="gr-rule" aria-hidden="true" />
-
-                    {(profileHeadline || isAdminUser) && (
-                      <p className="gr-profile-headline">
-                        <EditablePastorText
-                          pastor={current}
-                          field="profile_headline"
-                          isAdmin={isAdminUser}
-                        >
-                          {profileHeadline ||
-                            (ko ? '한 줄 소개를 등록해주세요' : 'Add a one-line headline')}
-                        </EditablePastorText>
-                      </p>
-                    )}
-
-                    {(profileIntro || isAdminUser) && (
-                      <EditablePastorText
-                        pastor={current}
-                        field="profile_intro"
-                        multiline
-                        rows={8}
-                        isAdmin={isAdminUser}
-                      >
-                        <p className="gr-profile-intro" style={{ whiteSpace: 'pre-line' }}>
-                          {profileIntro ||
-                            (ko ? '소개 글을 등록해주세요.' : 'Add an introduction.')}
-                        </p>
-                      </EditablePastorText>
-                    )}
-
-                    {credentials.length > 0 && (
-                      <div className="gr-credentials">
-                        {credentials.map(([labelKey, field]) => {
-                          const value = pastorText(current, field, language)
-                          return (
-                            <div className="gr-credential" key={field}>
-                              <div className="gr-credential-label">
-                                <span className="gr-cred-icon" aria-hidden="true">
-                                  {CREDENTIAL_ICONS[field]}
-                                </span>
-                                <EditableText fieldKey={labelKey} isAdmin={isAdminUser}>
-                                  {tx(labelKey)}
-                                </EditableText>
-                              </div>
-                              <EditablePastorText
-                                pastor={current}
-                                field={field}
-                                multiline
-                                rows={7}
-                                isAdmin={isAdminUser}
-                              >
-                                {value ? (
-                                  <CredentialTimeline value={value} ko={ko} />
-                                ) : (
-                                  <p className="gr-credential-empty">
-                                    {ko ? '아직 등록되지 않았습니다' : 'Not added yet'}
-                                  </p>
-                                )}
-                              </EditablePastorText>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </section>
-                )}
+                {/* 담임목사 소개 — 인사말을 다 읽은 사람이 "이분은 누구지?"에 답한다.
+                    시편 1편 "철을 따라"로 약력을 계절에 엮는다 (components/ProfileSeasons) */}
+                <ProfileSeasons pastor={current} isAdmin={isAdminUser} />
 
                 {/* 역대 담임목사 — 교체해도 기록이 남는다는 것이 이 페이지의 뼈대다 */}
                 {past.length > 0 && (

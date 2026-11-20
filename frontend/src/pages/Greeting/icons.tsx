@@ -121,3 +121,33 @@ export const AwardIcon = (props: IconProps) => (
     <path d="M15.5 13 17 22l-5-3-5 3 1.5-9" />
   </Svg>
 )
+
+/* ── 담임목사 소개 "철을 따라"(시 1:3) 계절 아이콘 ── */
+
+/** 새싹 — 봄 · 뿌리를 내리다(학력) */
+export const SeedlingIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M12 21v-9" />
+    <path d="M12 13.5c-4.5 0-6.8-3-6.8-6.8 4.5 0 6.8 3 6.8 6.8z" />
+    <path d="M12 12c0-3.8 2.3-6 6.8-6 0 3.8-2.3 6-6.8 6z" />
+    <path d="M6 21h12" />
+  </Svg>
+)
+
+/** 가지 — 여름 · 가지를 뻗다(경력) */
+export const BranchIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M12 22V8" />
+    <path d="M12 14 6.8 9.5M12 11l4.5-3.8" />
+    <path d="M6.8 9.5c-3 0-4.5-2.2-4.5-4.5 3 0 4.5 1.5 4.5 4.5zM16.5 7.2c0-3 2.2-4.5 5.2-4.5 0 3-2.2 4.5-5.2 4.5zM12 8c-1.5-1.5-1.5-3.8 0-5.3 1.5 1.5 1.5 3.8 0 5.3z" />
+  </Svg>
+)
+
+/** 열매 — 가을 · 열매를 맺다(수상) */
+export const FruitIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <circle cx="12" cy="14.5" r="6.8" />
+    <path d="M12 7.7V3.5" />
+    <path d="M12 5.2c1.5-2.2 3.8-2.2 5.2-1.5-1.5 2.2-3.8 2.2-5.2 1.5z" />
+  </Svg>
+)

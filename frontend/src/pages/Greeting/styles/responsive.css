@@ -249,6 +249,33 @@
     font-size: 0.95rem;
   }
 
+  .gr-psalm-text {
+    font-size: 1.35rem;
+  }
+
+  .gr-psalm-ref {
+    font-size: 0.875rem;
+    color: var(--text-body);
+  }
+
+  .gr-season-item {
+    font-size: 0.95rem;
+  }
+
+  .gr-season-label,
+  .gr-season-tag {
+    font-size: 0.85rem;
+    color: var(--text-body);
+  }
+
+  .gr-brook-title {
+    font-size: 1.125rem;
+  }
+
+  .gr-brook-sub {
+    font-size: 0.95rem;
+  }
+
   /* 역대 목사 */
   .gr-history-hint {
     font-size: 0.875rem;
