@@ -117,27 +117,50 @@
 @container (min-width: 560px) {
   .gr-seasons {
     grid-template-columns: 1fr 1.25fr 1fr;
-    align-items: start;
   }
 }
 
 .gr-season {
   --gr-s-c: #5aae6a;
   --gr-s-bg: #f1f8f1;
+  --gr-s-art: url('../../../assets/greeting/season-spring-light.webp');
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-width: 0;
-  padding: 1.1rem 1rem 0.6rem;
+  /* 아래 여백 = 시냇가 풍경이 글 밑으로 드러나는 자리 (% 는 카드 폭 기준) */
+  padding: 1.1rem 1rem 60%;
   border-radius: 20px;
   background: var(--gr-s-bg);
+}
+
+/* 계절 수채 풍경 — 같은 시냇가·같은 나무의 봄·여름·가을 (Gemini, 2026-11-20).
+   그림 위쪽은 카드 색으로 사라지게 마스크 — 카드 높이가 달라도 바닥에 붙어 자연스럽다.
+   원본 오른쪽 아래 ✦ 워터마크·종이 가장자리는 잘라낸 파일(1040/1200) */
+.gr-season::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  aspect-ratio: 640 / 743;
+  background: var(--gr-s-art) center bottom / 100% auto no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 34%, #000 64%);
+  mask-image: linear-gradient(to bottom, transparent 34%, #000 64%);
+  pointer-events: none;
 }
 
 .gr-season--summer {
   --gr-s-c: #2f8f5f;
   --gr-s-bg: #ecf6ef;
+  --gr-s-art: url('../../../assets/greeting/season-summer-light.webp');
 }
 
 .gr-season--autumn {
   --gr-s-c: #d4712a;
   --gr-s-bg: #fff5ec;
+  --gr-s-art: url('../../../assets/greeting/season-autumn-light.webp');
 }
 
 .gr-season-head {

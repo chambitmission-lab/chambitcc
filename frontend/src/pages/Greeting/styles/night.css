@@ -127,17 +127,20 @@
 .dark .gr-season {
   --gr-s-c: #8fd39b;
   --gr-s-bg: rgba(127, 208, 156, 0.07);
+  --gr-s-art: url('../../../assets/greeting/season-spring-dark.webp');
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .dark .gr-season--summer {
   --gr-s-c: #6cc895;
   --gr-s-bg: rgba(108, 200, 149, 0.08);
+  --gr-s-art: url('../../../assets/greeting/season-summer-dark.webp');
 }
 
 .dark .gr-season--autumn {
   --gr-s-c: #f0a868;
   --gr-s-bg: rgba(240, 168, 104, 0.08);
+  --gr-s-art: url('../../../assets/greeting/season-autumn-dark.webp');
 }
 
 .dark .gr-season-item {
