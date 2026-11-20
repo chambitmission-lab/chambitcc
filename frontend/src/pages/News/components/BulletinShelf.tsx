@@ -396,15 +396,24 @@ const CoverFlow = ({
     if (trackRef.current) trackRef.current.style.scrollSnapType = ''
   }, [])
 
+  // 이징이 향하는 칸 — 넘기는 도중 또 누르면 (아직 안 바뀐) 가운데가 아니라 여기서 한 칸 더 간다
+  const goal = useRef(0)
+
   const scrollToCard = (index: number) => {
     const track = trackRef.current
     const card = track?.querySelectorAll<HTMLElement>('.bsf-card')[index]
     if (!track || !card) return
     const target = card.offsetLeft + card.offsetWidth / 2 - track.clientWidth / 2
-    stopAnim()
+    // 진행 중이던 이징은 스냅을 되살리지 않고 프레임만 끊는다 — stopAnim 으로 스냅을 켜면
+    // 브라우저가 그 순간 가까운(= 떠나온) 칸으로 되튕겨, 연달아 누를 때 제자리에서 들락날락했다
+    const interrupted = anim.current !== 0
+    cancelAnimationFrame(anim.current)
+    anim.current = 0
+    goal.current = index
     const from = track.scrollLeft
     const delta = target - from
     if (Math.abs(delta) < 1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      track.style.scrollSnapType = ''
       track.scrollLeft = target
       update()
       return
@@ -415,7 +424,10 @@ const CoverFlow = ({
     const step = (now: number) => {
       if (!t0) t0 = now
       const p = Math.min(1, (now - t0) / duration)
-      const eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+      // 움직이던 중에 이어 받을 땐 다시 느리게 출발하지 않게 감속 곡선만 쓴다
+      const eased = interrupted
+        ? 1 - Math.pow(1 - p, 3)
+        : p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
       track.scrollLeft = from + delta * eased
       update()
       if (p < 1) {
@@ -441,8 +453,16 @@ const CoverFlow = ({
     }
   }, [stopAnim])
 
+  // 좌우 버튼 — 넘기는 중이면 향하던 칸에서, 아니면 가운데에서 한 칸
+  const stepBy = (dir: number) => {
+    const base = anim.current ? goal.current : center
+    scrollToCard(Math.max(0, Math.min(list.length - 1, base + dir)))
+  }
+
   // 옆 카드는 가운데로 데려오고, 가운데 카드를 누르면 연다
   const handleCard = (index: number) => {
+    // 넘기는 도중의 연타(더블클릭)는 이미 향하는 칸이면 그대로 둔다 — 다시 출발시키지 않는다
+    if (anim.current && index === goal.current) return
     if (index !== center) scrollToCard(index)
     else onOpen(list[index].bulletin)
   }
@@ -556,7 +576,7 @@ const CoverFlow = ({
         <button
           type="button"
           className="bsf-nav bsf-nav-prev"
-          onClick={() => scrollToCard(center - 1)}
+          onClick={() => stepBy(-1)}
           disabled={center <= 0}
           aria-label={t('newsBulletinPrev')}
         >
@@ -565,7 +585,7 @@ const CoverFlow = ({
         <button
           type="button"
           className="bsf-nav bsf-nav-next"
-          onClick={() => scrollToCard(center + 1)}
+          onClick={() => stepBy(1)}
           disabled={center >= list.length - 1}
           aria-label={t('newsBulletinNext')}
         >
