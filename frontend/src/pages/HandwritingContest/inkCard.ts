@@ -44,18 +44,32 @@ export const inkBounds = (page: InkPage, pad = 36): InkBox => {
   }
 }
 
-/** 출품 PNG — 쓴 자리만, 논리 1단위 = 1.5px (종이 폭 1000 → 최대 1500px) */
-export const exportCroppedInkPng = async (page: InkPage): Promise<{ png: Blob; width: number; height: number }> => {
+/** 출품 PNG 의 긴 변 상한 — 비율을 맞추느라 여백이 붙어도 이보다 커지지 않게 */
+const EXPORT_MAX_SIDE = 2400
+
+/** 출품 PNG — 쓴 자리만, 논리 1단위 = 1.5px (종이 폭 1000 → 최대 1500px).
+    paperRatio(세로/가로)를 주면 그 비율이 되도록 투명 여백을 둘러 글씨를 가운데 둔다 —
+    내 사진 배경은 종이가 사진 모양을 따라야 해서, 작품 크기(width·height)에 그 비율을 싣는다 */
+export const exportCroppedInkPng = async (
+  page: InkPage,
+  paperRatio?: number | null,
+): Promise<{ png: Blob; width: number; height: number }> => {
   const box = inkBounds(page)
-  const scale = 1.5
-  const width = Math.max(1, Math.round(box.w * scale))
-  const height = Math.max(1, Math.round(box.h * scale))
+  let outW = box.w
+  let outH = box.h
+  if (paperRatio && paperRatio > 0) {
+    if (outH / outW < paperRatio) outH = outW * paperRatio
+    else outW = outH / paperRatio
+  }
+  const scale = Math.min(1.5, EXPORT_MAX_SIDE / Math.max(outW, outH))
+  const width = Math.max(1, Math.round(outW * scale))
+  const height = Math.max(1, Math.round(outH * scale))
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('canvas 2d 컨텍스트를 만들 수 없습니다')
-  ctx.setTransform(scale, 0, 0, scale, -box.x * scale, -box.y * scale)
+  ctx.setTransform(scale, 0, 0, scale, ((outW - box.w) / 2 - box.x) * scale, ((outH - box.h) / 2 - box.y) * scale)
   drawStrokes(ctx, page.strokes, 'light')
   const png = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG 변환 실패'))), 'image/png')

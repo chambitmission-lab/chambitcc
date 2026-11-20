@@ -162,7 +162,7 @@ const ContestWrite = () => {
   const handleSubmit = async () => {
     if (!verse || !written || !agree) return
     try {
-      const { png, width, height } = await exportCroppedInkPng(page)
+      const { png, width, height } = await exportCroppedInkPng(page, photoPaper && photo ? photo.ratio : null)
       const ink = new Blob([JSON.stringify(toInkPageFile(page))], { type: 'application/json' })
       await submit.mutateAsync({
         verse_ref: verse.refLabel,
@@ -257,7 +257,7 @@ const ContestWrite = () => {
         <Step n={3} title="배경 고르기" done={written}>
           {written ? (
             <div className="mx-auto mb-3" style={{ maxWidth: thumbWidth }}>
-              <PaperPreview page={page} paperId={photoPaper ?? paper} photoUrl={photoPaper ? photo?.url : null} className="shadow-sm" />
+              <PaperPreview page={page} paperId={photoPaper ?? paper} photoUrl={photoPaper ? photo?.url : null} paperRatio={photoPaper ? photo?.ratio : null} className="shadow-sm" />
             </div>
           ) : null}
           <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoFile} />

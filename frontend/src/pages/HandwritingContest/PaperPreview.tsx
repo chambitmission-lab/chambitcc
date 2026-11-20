@@ -7,13 +7,26 @@ import { usePaperSurface } from './paper'
 const INSET = 0.07
 
 /** 쓰는 화면의 미리보기 — 고른 배경 위에 지금까지 쓴 글씨를 갤러리와 같은 구도로 놓는다 */
-const PaperPreview = ({ page, paperId, photoUrl, className = '' }: { page: InkPage; paperId: string | null; photoUrl?: string | null; className?: string }) => {
+const PaperPreview = ({
+  page,
+  paperId,
+  photoUrl,
+  paperRatio,
+  className = '',
+}: {
+  page: InkPage
+  paperId: string | null
+  photoUrl?: string | null
+  /** 종이 비율(세로/가로) 고정 — 내 사진 배경은 사진 모양을 따른다 */
+  paperRatio?: number | null
+  className?: string
+}) => {
   const surface = usePaperSurface(paperId, photoUrl)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [width, setWidth] = useState(0)
   const b = inkBounds(page)
-  const ratio = Math.min(1.25, Math.max(0.55, b.h / b.w))
+  const ratio = paperRatio ?? Math.min(1.25, Math.max(0.55, b.h / b.w))
 
   useLayoutEffect(() => {
     const el = wrapRef.current

@@ -29,11 +29,24 @@ export interface PaperPhoto {
   url: string
   /** 사진이 어두워 밝은 잉크로 써야 하는지 */
   lightInk: boolean
+  /** 종이 비율(세로/가로) — 사진 모양을 따른다. 종이가 글씨 띠 모양이면 사진이 크게 잘려 확대돼 보인다 */
+  ratio: number
 }
 
-const PHOTO_MAX_SIDE = 1280
+// PC 히어로처럼 넓게 걸리는 자리에서도 뭉개지지 않게 넉넉히 남긴다
+const PHOTO_MAX_SIDE = 1920
+/** 서버가 받는 배경 사진 크기(3MB)보다 여유 있게 */
+const PHOTO_MAX_BYTES = 2.5 * 1024 * 1024
+/** 사진 종이의 비율 범위 — 갤러리 칸(최대 1.25)과 맞춘다 */
+export const PHOTO_RATIO_MIN = 0.6
+export const PHOTO_RATIO_MAX = 1.25
 
-/** 고른 사진을 올리기 좋게 줄이고(긴 변 1280px JPEG), 밝기를 재서 잉크 밝기를 정한다 */
+const toJpeg = (canvas: HTMLCanvasElement, quality: number): Promise<Blob> =>
+  new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('사진을 준비하지 못했어요'))), 'image/jpeg', quality),
+  )
+
+/** 고른 사진을 올리기 좋게 줄이고(긴 변 1920px JPEG), 밝기를 재서 잉크 밝기를 정한다 */
 export const preparePaperPhoto = async (file: File): Promise<PaperPhoto> => {
   const src = URL.createObjectURL(file)
   try {
@@ -46,6 +59,8 @@ export const preparePaperPhoto = async (file: File): Promise<PaperPhoto> => {
     canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('canvas unavailable')
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
     // 평균 밝기 — 작게 줄여 잰다
@@ -61,10 +76,10 @@ export const preparePaperPhoto = async (file: File): Promise<PaperPhoto> => {
       for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]
       lum = sum / (d.length / 4) / 255
     }
-    const blob = await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('사진을 준비하지 못했어요'))), 'image/jpeg', 0.86),
-    )
-    return { blob, url: URL.createObjectURL(blob), lightInk: lum < 0.62 }
+    let blob = await toJpeg(canvas, 0.9)
+    if (blob.size > PHOTO_MAX_BYTES) blob = await toJpeg(canvas, 0.78)
+    const ratio = Math.min(PHOTO_RATIO_MAX, Math.max(PHOTO_RATIO_MIN, canvas.height / canvas.width))
+    return { blob, url: URL.createObjectURL(blob), lightInk: lum < 0.62, ratio }
   } finally {
     URL.revokeObjectURL(src)
   }
@@ -119,7 +134,7 @@ export const usePaperSurface = (paperId: string | null | undefined, photoUrl?: s
   // 내 사진 배경 — 글씨가 묻히지 않게 사진 위에 옅은 막을 한 겹 깐다
   if (isPhotoPaper(paperId) && photoUrl) {
     const lightInk = paperId === PHOTO_PAPER_LIGHT
-    const veil = lightInk ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.42)'
+    const veil = lightInk ? 'rgba(0, 0, 0, 0.26)' : 'rgba(255, 255, 255, 0.3)'
     return {
       style: { background: `linear-gradient(${veil}, ${veil}), url("${photoUrl}") center / cover no-repeat` },
       lightInk,
