@@ -686,10 +686,29 @@ const BulletinWeekly = ({ onOpenPaper }: BulletinWeeklyProps) => {
         />
       )}
       {sheet?.k === 'verse' && <VerseSheet data={data} onClose={() => setSheet(null)} onRead={() => mark('bible')} />}
-      {sheet?.k === 'sermon' && <SermonSheet data={data} onClose={() => setSheet(null)} onRead={() => mark('bible')} />}
+      {sheet?.k === 'sermon' && <SermonSheet data={data} now={now} onClose={() => setSheet(null)} onRead={() => mark('bible')} />}
       {sheet?.k === 'worship' && <WorshipSheet data={data} now={now} onClose={() => setSheet(null)} />}
-      {sheet?.k === 'news' && <NewsSheet week={week} now={now} onOpen={index => setSheet({ k: 'event', index })} onClose={() => setSheet(null)} />}
-      {sheet?.k === 'week' && <WeekSheet data={data} week={week} now={now} onClose={() => setSheet(null)} />}
+      {sheet?.k === 'news' && <NewsSheet week={week} now={now} onOpen={index => setSheet({ k: 'event', index })} onOpenWeek={() => setSheet({ k: 'week' })} onClose={() => setSheet(null)} />}
+      {sheet?.k === 'week' && (
+        <WeekSheet
+          data={data}
+          week={week}
+          now={now}
+          dawn={
+            isLatest && alarms.loggedIn
+              ? {
+                  settings: alarms.settings,
+                  busy: alarms.busy,
+                  onChange: (patch, on) =>
+                    void alarms.setSettings(patch, on).then(ok => {
+                      if (ok) showToast(on ? t('bwTlAlarmToastOn') : t('bwTlAlarmToastOff'), 'success')
+                    }),
+                }
+              : null
+          }
+          onClose={() => setSheet(null)}
+        />
+      )}
       {sheet?.k === 'extra' && extras[sheet.i] && <ExtraSheet block={extras[sheet.i]} onClose={() => setSheet(null)} />}
       {sheet?.k === 'bulk' && (
         <BulkSheet todos={todos} now={now} chosen={chosen} busy={alarms.busy} onSubmit={p => void saveItems(p)} onClose={() => setSheet(null)} />

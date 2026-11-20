@@ -20,8 +20,8 @@ export const BottomSheet = ({
 }: {
   onClose: () => void
   children: ReactNode
-  /** lg+ 에서 넓게 (위저드) */
-  wide?: boolean
+  /** lg+ 에서 넓게 (위저드) · 'md' 는 한 칸 목록이 답답하지 않을 만큼만(560px) */
+  wide?: boolean | 'md'
   /** 화면 높이를 거의 다 쓴다 (위저드) */
   tall?: boolean
   ariaLabel?: string
@@ -37,7 +37,7 @@ export const BottomSheet = ({
         aria-modal="true"
         aria-label={ariaLabel}
         data-scale={textScale}
-        className={`bottom-sheet-panel relative w-full ${wide ? 'lg:max-w-2xl' : 'max-w-md'} ${
+        className={`bottom-sheet-panel relative w-full ${wide === 'md' ? 'max-w-md lg:max-w-[560px]' : wide ? 'lg:max-w-2xl' : 'max-w-md'} ${
           tall ? 'h-[94dvh]' : 'max-h-[90dvh]'
         } flex flex-col rounded-t-[26px] lg:rounded-[26px] bg-white dark:bg-[#15151d] shadow-2xl overflow-hidden`}
       >

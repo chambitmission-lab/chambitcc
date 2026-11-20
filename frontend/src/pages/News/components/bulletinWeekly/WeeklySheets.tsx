@@ -1,6 +1,6 @@
 // 디지털 주보 바텀시트들 — 소식 상세 · 말씀 · 설교 · 예배 시간 · 소식 전체 · 이번 주 일정 · 안내 블록 ·
 // 챙길 일 한 번에 고르기 · 알림 설정(PC 에선 같은 패널을 오른쪽 칸에 펼친다).
-import { useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomSheet, SheetBody } from '../../../../components/common/BottomSheet'
 import { useLanguage } from '../../../../contexts/LanguageContext'
@@ -9,6 +9,7 @@ import { copyToClipboard } from '../../../../utils/clipboard'
 import { showToast } from '../../../../utils/toast'
 import {
   bestOption,
+  daysBetween,
   eventStatus,
   formatMinutes,
   remindAt,
@@ -20,15 +21,16 @@ import {
   whenLabel,
   WEEKDAY_KO,
 } from './bulletinWeek'
+import { buildWeekTimeline, countdown, icsFor, type TimelineNext } from './weekTimeline'
 import { WIcon } from './WeeklyIcons'
 import {
   dayLabel,
   dayTimeLabel,
   parseAccounts,
   sermonEntries,
+  sermonForNow,
   bibleLink,
   sundayServices,
-  weekdayIndex,
   type PreviewAlarm,
 } from './weeklyModel'
 
@@ -94,8 +96,8 @@ export const WeeklySheet = ({
   onClose: () => void
   children: ReactNode
   footer?: ReactNode
-  /** lg+ 에서 넓은 카드로 (소식 전체) */
-  wide?: boolean
+  /** lg+ 에서 넓은 카드로 (소식 전체) · 'md' 는 560px */
+  wide?: boolean | 'md'
 }) => {
   const { t } = useLanguage()
   return (
@@ -139,6 +141,7 @@ export const EventSheet = ({
 }) => {
   const { t } = useLanguage()
   const when = whenLabel(ev)
+  const st = eventStatus(ev, now)
   const suggested = todo ? bestOption(todo, now) : null
   const suggestedAt = todo && suggested ? remindAt(todo, suggested, now) : null
   const setAt = todo && alarmOpt ? remindAt(todo, alarmOpt, now) : null
@@ -157,28 +160,37 @@ export const EventSheet = ({
         ) : undefined
       }
     >
-      {(when || ev.place) && (
-        <div className="bw-row" style={{ marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
-          <StatusChip st={eventStatus(ev, now)} />
-          <span className="bw-cap">{[when, ev.place].filter(Boolean).join(' · ')}</span>
+      {(ev.start || ev.place) && (
+        // 언제 · 어디서 — 소식 카드와 같은 날짜 칸 + 옅은 상자
+        <div className={`bw-nc is-info ${st && st.kind !== 'past' && st.kind !== 'later' ? 'is-near' : ''}`}>
+          <NewsDate ev={ev} />
+          <span className="bw-nc-m">
+            {when && <span className="bw-nc-t">{when}</span>}
+            {ev.place && <span className="bw-nc-s">{ev.place}</span>}
+          </span>
+          <StatusChip st={st} />
         </div>
       )}
       {ev.body && <p className="bw-body">{ev.body}</p>}
       {ev.phone && (
-        <div className="bw-kv" style={{ borderTop: '1px solid var(--bw-line)' }}>
-          <span className="bw-kv-v">
-            {t('bwContact')} {ev.contact ?? ''}
-            <br />
-            <b className="bw-tnum">{ev.phone}</b>
-          </span>
-          <a className="bw-btn is-sm is-soft" href={`tel:${ev.phone.replace(/-/g, '')}`}>
-            <WIcon name="phone" />
-            {t('bwCall')}
-          </a>
-          <button type="button" className="bw-btn is-sm" onClick={() => copy(ev.phone!, t('bwPhone'), t)}>
-            {t('bwCopy')}
-          </button>
-        </div>
+        <>
+          <p className="bw-tl-sec">{t('bwContact')}</p>
+          <div className="bw-nc is-info">
+            <span className="bw-ic is-brand" aria-hidden="true">
+              <WIcon name="phone" />
+            </span>
+            <span className="bw-nc-m">
+              {ev.contact && <span className="bw-nc-s" style={{ marginTop: 0 }}>{ev.contact}</span>}
+              <span className="bw-nc-t bw-tnum">{ev.phone}</span>
+            </span>
+            <a className="bw-btn is-sm is-soft" href={`tel:${ev.phone.replace(/-/g, '')}`}>
+              {t('bwCall')}
+            </a>
+            <button type="button" className="bw-btn is-sm" onClick={() => copy(ev.phone!, t('bwPhone'), t)}>
+              {t('bwCopy')}
+            </button>
+          </div>
+        </>
       )}
     </WeeklySheet>
   )
@@ -222,49 +234,68 @@ export const VerseSheet = ({ data, onClose, onRead }: { data: BulletinData; onCl
   )
 }
 
-export const SermonSheet = ({ data, onClose, onRead }: { data: BulletinData; onClose: () => void; onRead: () => void }) => {
+/** 옅은 상자 안 이름-값 줄들(헌금 찬송 · 대표기도 등) */
+const InfoBox = ({ title, rows }: { title?: string; rows: [string, string][] }) => {
+  const shown = rows.filter(([, v]) => v.trim())
+  if (!shown.length) return null
+  return (
+    <>
+      {title && <p className="bw-tl-sec">{title}</p>}
+      <div className="bw-ib">
+        {shown.map(([k, v]) => (
+          <div className="bw-ib-r" key={k}>
+            <span className="bw-ib-k">{k}</span>
+            <span className="bw-ib-v">{v}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+export const SermonSheet = ({ data, now, onClose, onRead }: { data: BulletinData; now: Date; onClose: () => void; onRead: () => void }) => {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const sermons = sermonEntries(data)
+  // 설교가 여럿이면 지금 예배 것을 강조(주일만 정해짐)
+  const current = sermons.length > 1 ? sermonForNow(data, now) : null
   return (
     <WeeklySheet title={t('bwSermon')} onClose={onClose}>
-      {sermons.map((s, i) => (
-        <div className="bw-kv" key={i}>
-          <span className="bw-kv-v">
-            <b style={{ fontSize: 15 }}>{s.title || t('bwSermon')}</b>
-            {s.ref && (
-              <>
-                <br />
-                {s.ref}
-              </>
-            )}
-          </span>
-          {s.link && (
-            <button
-              type="button"
-              className="bw-btn is-sm is-soft"
-              onClick={() => {
-                onRead()
-                navigate(s.link!)
-              }}
-            >
-              {t('bwText')}
-            </button>
-          )}
-        </div>
-      ))}
-      {data.worship.offering && (
-        <div className="bw-kv">
-          <span className="bw-kv-l">{t('bwHymn')}</span>
-          <span className="bw-kv-v bw-tnum">{data.worship.offering}</span>
-        </div>
-      )}
-      {data.worship.prayer && (
-        <div className="bw-kv">
-          <span className="bw-kv-l">{t('bwPrayer')}</span>
-          <span className="bw-kv-v">{data.worship.prayer}</span>
-        </div>
-      )}
+      <div className="bw-ng" style={{ display: 'flex' }}>
+        {sermons.map((s, i) => {
+          const on = !!current && current.title === s.title && current.ref === s.ref
+          return (
+            <div className={`bw-nc is-sermon ${on ? 'is-near' : ''}`} key={i}>
+              <span className="bw-nc-m">
+                {on && <span className="bw-nc-k">{t('bwSermonNow')}</span>}
+                <span className="bw-nc-t is-lg">{s.title || t('bwSermon')}</span>
+                {s.ref && <span className="bw-nc-ref">{s.ref.replace(/[()（）]/g, '').replace(/\s*((?:신약|구약)\s*\d+\s*쪽)/, ' · $1')}</span>}
+                {s.link && (
+                  <button
+                    type="button"
+                    className="bw-btn is-sm is-soft"
+                    style={{ alignSelf: 'flex-start', marginTop: 12 }}
+                    onClick={() => {
+                      onRead()
+                      navigate(s.link!)
+                    }}
+                  >
+                    <WIcon name="book" />
+                    {t('bwReadText')}
+                  </button>
+                )}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      <InfoBox
+        title={t('bwWorshipOrder')}
+        rows={[
+          [t('bwHymn'), data.worship.offering ?? ''],
+          [t('bwPrayer'), data.worship.prayer ?? ''],
+        ]}
+      />
     </WeeklySheet>
   )
 }
@@ -274,131 +305,336 @@ export const WorshipSheet = ({ data, now, onClose }: { data: BulletinData; now: 
   const slots = sundayServices(data)
   const nowMin = now.getHours() * 60 + now.getMinutes()
   const sunday = now.getDay() === 0
+  // 주일엔 드리는 중인 예배, 없으면 다음 예배를 강조
+  const liveName = sunday ? slots.find(s => s.minutes <= nowMin && nowMin < s.minutes + 75)?.name : undefined
+  const nextName = sunday && !liveName ? slots.filter(s => s.minutes > nowMin).sort((a, b) => a.minutes - b.minutes)[0]?.name : undefined
   return (
     <WeeklySheet title={t('bwWorship')} onClose={onClose}>
-      {data.worship.schedule.map((s, i) => {
-        const slot = slots.find(x => x.name === s.name.trim())
-        const done = sunday && slot && slot.minutes + 75 <= nowMin
-        const live = sunday && slot && slot.minutes <= nowMin && !done
-        return (
-          <div className="bw-kv" key={i} style={done ? { opacity: 0.45 } : undefined}>
-            <span className={`bw-kv-l bw-tnum ${live ? 'is-brand' : ''}`} style={{ fontSize: 16, minWidth: 76 }}>
-              {slot ? formatMinutes(slot.minutes) : s.time}
-            </span>
-            <span className="bw-kv-v">
-              <b>{s.name}</b>
-              <br />
-              {s.preacher}
-            </span>
-            {live && <span className="bw-chip is-now">{t('bwLive')}</span>}
-          </div>
-        )
-      })}
-      {data.worship.prayer && (
-        <p className="bw-cap" style={{ marginTop: 10 }}>
-          {t('bwPrayer')} · {data.worship.prayer}
-        </p>
-      )}
+      <p className="bw-tl-sec" style={{ paddingTop: 0 }}>
+        {t('bwSundayWorship')}
+      </p>
+      <div className="bw-ng" style={{ display: 'flex' }}>
+        {data.worship.schedule.map((s, i) => {
+          const slot = slots.find(x => x.name === s.name.trim())
+          const done = sunday && slot && slot.minutes + 75 <= nowMin
+          const live = slot?.name === liveName
+          const near = live || slot?.name === nextName
+          const time = slot ? formatMinutes(slot.minutes) : s.time
+          const [ap, hm] = time.includes(' ') ? time.split(' ') : ['', time]
+          return (
+            <div key={i} className={`bw-nc is-info ${done ? 'is-past' : ''} ${near ? 'is-near' : ''}`}>
+              <span className="bw-nd is-time" aria-hidden="true">
+                <b className="bw-tnum">{hm.replace('시', ':00')}</b>
+                <span>{ap}</span>
+              </span>
+              <span className="bw-nc-m">
+                <span className="bw-nc-t">{s.name}</span>
+                {s.preacher && <span className="bw-nc-s">{s.preacher}</span>}
+              </span>
+              {live ? <span className="bw-chip is-now">{t('bwLive')}</span> : near ? <span className="bw-chip is-soon">{t('bwNextChip')}</span> : null}
+            </div>
+          )
+        })}
+      </div>
+      <InfoBox rows={[[t('bwPrayer'), data.worship.prayer ?? '']]} />
     </WeeklySheet>
   )
 }
 
 /* ── 소식 전체 · 이번 주 일정 ───────────────────────── */
 
-export const NewsSheet = ({ week, now, onOpen, onClose }: { week: BulletinWeek; now: Date; onOpen: (index: number) => void; onClose: () => void }) => {
+/** 소식 카드 왼쪽 날짜 칸 — "23 월" · 기간이면 "23–27 월–금" */
+const NewsDate = ({ ev }: { ev: WeekEvent }) => {
+  if (!ev.start) return null
+  const s = ev.start
+  const e = ev.end
+  const sun = !e && s.getDay() === 0
+  return (
+    <span className={`bw-nd ${sun ? 'is-sun' : ''} ${e ? 'is-range' : ''}`} aria-hidden="true">
+      <b className="bw-tnum">{e ? `${s.getDate()}–${e.getDate()}` : s.getDate()}</b>
+      <span>{e ? `${WEEKDAY_KO[s.getDay()]}–${WEEKDAY_KO[e.getDay()]}` : WEEKDAY_KO[s.getDay()]}</span>
+    </span>
+  )
+}
+
+export const NewsSheet = ({
+  week,
+  now,
+  onOpen,
+  onOpenWeek,
+  onClose,
+}: {
+  week: BulletinWeek
+  now: Date
+  onOpen: (index: number) => void
+  /** '이번 주 일정' 시트로 — 다가오는 일정은 거기서 타임라인으로 본다 */
+  onOpenWeek: () => void
+  onClose: () => void
+}) => {
   const { t } = useLanguage()
+  const withSt = week.events.map(ev => ({ ev, st: eventStatus(ev, now) }))
+  const upcoming = withSt.filter(x => x.ev.start && x.st?.kind !== 'past').sort((a, b) => a.ev.start!.getTime() - b.ev.start!.getTime())
+  const notices = withSt.filter(x => !x.ev.start)
+  const past = withSt.filter(x => x.st?.kind === 'past')
+  const later = week.later.filter(x => x.date && daysBetween(now, x.date) >= 0).sort((a, b) => a.date!.getTime() - b.date!.getTime())
+  // 가장 가까운 하나만 파란 테두리
+  const nearest = upcoming[0]?.ev.index
+
+  const card = ({ ev, st }: (typeof withSt)[number]) => {
+    const time = ev.minutes != null ? formatMinutes(ev.minutes) : ''
+    // 날짜 칸이 있으니 부제는 시각·장소만. 날짜 없는 안내는 본문 첫 줄
+    const sub = ev.start ? [time, ev.place].filter(Boolean).join(' · ') : ''
+    const preview = ev.body.replace(/\s*\n\s*/g, ' ').trim()
+    return (
+      <button
+        type="button"
+        key={ev.index}
+        className={`bw-nc ${ev.start ? '' : 'is-plain'} ${st?.kind === 'past' ? 'is-past' : ''} ${ev.index === nearest ? 'is-near' : ''}`}
+        onClick={() => onOpen(ev.index)}
+      >
+        <NewsDate ev={ev} />
+        <span className="bw-nc-m">
+          <span className="bw-nc-t">{ev.title}</span>
+          {sub && <span className="bw-nc-s">{sub}</span>}
+          {preview && <span className="bw-nc-b">{preview}</span>}
+        </span>
+        {st && st.kind !== 'past' && st.kind !== 'later' && <StatusChip st={st} />}
+      </button>
+    )
+  }
+
   return (
     <WeeklySheet title={t('bwNewsCount').replace('{n}', String(week.events.length))} onClose={onClose} wide>
-      {/* 모바일은 한 줄 목록, lg+ 는 2열 카드(본문 두 줄 미리보기) — bw-nl */}
-      <div className="bw-nl">
-        {week.events.map(ev => {
-          const st = eventStatus(ev, now)
-          const when = whenLabel(ev)
-          const preview = when ? ev.body.replace(/\s*\n\s*/g, ' ').trim() : ''
-          return (
-            <button type="button" key={ev.index} className={`bw-nl-item ${st?.kind === 'past' ? 'is-past' : ''}`} onClick={() => onOpen(ev.index)}>
-              <span className="bw-m">
-                <span className="bw-tt">{ev.title}</span>
-                <span className="bw-ss">{when || ev.body.split('\n')[0]}</span>
-                {preview && <span className="bw-nl-body">{preview}</span>}
-              </span>
-              <StatusChip st={st} />
-            </button>
-          )
-        })}
-      </div>
-      {week.later.length > 0 && <LaterList week={week} />}
+      {upcoming.length > 0 && (
+        <>
+          <p className="bw-tl-sec">{t('bwNcUpcoming')}</p>
+          <div className="bw-ng">{upcoming.map(card)}</div>
+        </>
+      )}
+      {notices.length > 0 && (
+        <>
+          <p className="bw-tl-sec">{t('bwNcNotice')}</p>
+          <div className="bw-ng">{notices.map(card)}</div>
+        </>
+      )}
+      {past.length > 0 && (
+        <>
+          <p className="bw-tl-sec">{t('bwNcPast')}</p>
+          <div className="bw-ng">{past.map(card)}</div>
+        </>
+      )}
+      {later.length > 0 && (
+        <button type="button" className="bw-nc-week" onClick={onOpenWeek}>
+          <span className="bw-ic is-brand" aria-hidden="true">
+            <WIcon name="cal" />
+          </span>
+          <span className="bw-nc-m">
+            <span className="bw-nc-t">{t('bwNcLater').replace('{n}', String(later.length))}</span>
+            <span className="bw-nc-s">
+              {later
+                .slice(0, 2)
+                .map(x => `${x.date!.getMonth() + 1}/${x.date!.getDate()} ${x.text.split(/\s*\*\s*/)[0]}`)
+                .join(' · ')}
+              {later.length > 2 ? ` ${t('bwNcMore').replace('{n}', String(later.length - 2))}` : ''}
+            </span>
+          </span>
+          <WIcon name="chev" className="bw-chev" />
+        </button>
+      )}
     </WeeklySheet>
   )
 }
 
-const LaterList = ({ week }: { week: BulletinWeek }) => {
-  const { t } = useLanguage()
-  return (
-    <>
-      <p className="bw-h2 bw-later-h" style={{ fontSize: 16, margin: '20px 0 4px' }}>
-        {t('bwLater')}
-      </p>
-      <div className="bw-later">
-        {week.later.map((x, i) =>
-          x.date ? (
-            <div className="bw-kv" key={i}>
-              <span className="bw-kv-l is-brand bw-tnum" style={{ minWidth: 76 }}>
-                {`${x.date.getMonth() + 1}/${x.date.getDate()}(${WEEKDAY_KO[x.date.getDay()]})`}
-              </span>
-              <span className="bw-kv-v">{x.text}</span>
-            </div>
-          ) : (
-            // 날짜를 못 읽은 항목 — 긴 문장을 좁은 라벨칸에 넣지 않고 한 덩어리로 (머리말이 따로 있으면 위에 굵게)
-            <div className="bw-kv bw-later-note" key={i}>
-              <span className="bw-kv-v">
-                {x.label && x.label !== x.text && <b className="bw-later-lbl">{x.label}</b>}
-                {x.text}
-              </span>
-            </div>
-          ),
-        )}
-      </div>
-    </>
-  )
+/* 이번 주 일정 — 맨 위 '다음 일정' 카드 + 날짜·점·내용 타임라인 (2026-11 개편 최종 시안) */
+
+/** 새벽 일정 알림 — 알림 설정의 '새벽기도 30분 전'(요일별)을 그 일정의 요일만큼 켜고 끈다 */
+export interface WeekDawnAlarm {
+  settings: BulletinNotifySettings
+  busy: boolean
+  onChange: (patch: Partial<BulletinNotifySettings>, turningOn: boolean) => void
 }
 
-export const WeekSheet = ({ data, week, now, onClose }: { data: BulletinData; week: BulletinWeek; now: Date; onClose: () => void }) => {
+const downloadIcs = (next: TimelineNext) => {
+  const blob = new Blob([icsFor(next, new Date())], { type: 'text/calendar;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${next.entry.title.slice(0, 30)}-${next.at.getMonth() + 1}${String(next.at.getDate()).padStart(2, '0')}.ics`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+const NextCard = ({ next, now, dawn }: { next: TimelineNext; now: Date; dawn: WeekDawnAlarm | null }) => {
   const { t } = useLanguage()
-  const sunday = week.sunday
+  const { entry, at, live, dayIndex, total } = next
+  const cd = countdown(next, now)
+  const liveMin = Math.max(1, Math.floor((now.getTime() - at.getTime()) / 60_000))
+  const timeLabel = entry.minutes != null ? ` ${formatMinutes(entry.minutes)}` : ''
+  const kicker = live
+    ? `● ${t('bwTlLive')}${entry.place ? ` · ${entry.place}` : ''}`
+    : `${t('bwTlNext')} · ${dayLabel(at, now)}${timeLabel}`
+  const title = total > 1 && dayIndex > 0 ? `${entry.title} ${t('bwTlDayN').replace('{n}', String(dayIndex + 1))}` : entry.title
+  const sub = live
+    ? entry.minutes != null
+      ? t('bwTlStarted').replace('{time}', formatMinutes(entry.minutes))
+      : ''
+    : [entry.place, total > 1 && dayIndex === 0 ? t('bwTlDaily').replace('{n}', String(total)) : ''].filter(Boolean).join(' · ')
+
+  // 새벽(7시 전) 이번 주 일정만 — 알림 설정의 새벽기도 요일과 같은 규칙
+  const dawnIdx =
+    dawn && entry.section === 'week' && entry.minutes != null && entry.minutes < 7 * 60
+      ? (entry.days.length ? entry.days.map(d => d.date) : entry.start ? [entry.start] : []).map(d => (d.getDay() + 6) % 7)
+      : []
+  const dawnOn = !!dawn && dawnIdx.length > 0 && dawn.settings.dawn && dawnIdx.every(i => dawn.settings.dawn_days[i] === '1')
+  const toggleDawn = () => {
+    if (!dawn) return
+    const days = dawn.settings.dawn_days.padEnd(7, '0').split('')
+    for (const i of dawnIdx) days[i] = dawnOn ? '0' : '1'
+    const nextDays = days.join('')
+    dawn.onChange({ dawn_days: nextDays, dawn: nextDays.includes('1') }, !dawnOn)
+  }
+
   return (
-    // PC(lg+)는 넓은 카드에 왼쪽 이번 주 · 오른쪽 다가오는 일정 두 칸, 모바일은 위아래로
-    <WeeklySheet title={t('bwWeek')} onClose={onClose} wide={week.later.length > 0}>
-      <div className={week.later.length > 0 ? 'bw-week' : undefined}>
-      <div>
-      {data.weeklySchedule.map((w, i) => {
-        const wd = weekdayIndex(w.day)
-        // 주보 주일 다음 날(월)부터 다음 주일까지
-        const date = sunday && wd != null ? new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + (wd === 0 ? 7 : wd)) : null
-        const isToday = date ? dayLabel(date, now) === '오늘' : false
-        return (
-          <div className="bw-kv" key={i}>
-            <span className={`bw-kv-l ${isToday ? 'is-brand' : ''}`} style={{ minWidth: 64 }}>
-              {w.day}
-              {date ? ` ${date.getDate()}일` : ''}
-            </span>
-            <span className="bw-kv-v">
-              <b>{w.event}</b>
-              <br />
-              {[w.time, w.location].filter(Boolean).join(' · ')}
-            </span>
-            {isToday && <span className="bw-chip is-today">{t('bwStToday')}</span>}
-          </div>
-        )
-      })}
+    <div className={`bw-next ${live ? 'is-live' : ''}`}>
+      <p className="bw-next-k">{kicker}</p>
+      <p className="bw-next-t">{title}</p>
+      {sub && <p className="bw-next-m">{sub}</p>}
+      <div className="bw-next-cd bw-tnum" aria-hidden="true">
+        <b>{live ? 'LIVE' : t(cd.unit === 'day' ? 'bwTlDays' : cd.unit === 'hour' ? 'bwTlHours' : 'bwTlMins').replace('{n}', String(cd.value))}</b>
+        <span>{live ? t('bwTlMinIn').replace('{n}', String(liveMin)) : t('bwTlLeft')}</span>
       </div>
-      {week.later.length > 0 && (
-        <div>
-          <LaterList week={week} />
+      {total > 1 && (
+        <div className="bw-next-prog" aria-hidden="true">
+          {entry.days.map((d, i) => (
+            <i key={i} className={d.state === 'done' ? 'is-done' : live && i === dayIndex ? 'is-now' : ''} />
+          ))}
         </div>
       )}
+      {!live && (
+        <div className="bw-next-acts">
+          {dawnIdx.length > 0 && (
+            <button type="button" className={`bw-next-btn ${dawnOn ? 'is-on' : ''}`} disabled={dawn!.busy} onClick={toggleDawn}>
+              <WIcon name={dawnOn ? 'check' : 'bell'} />
+              {dawnOn ? t('bwTlAlarmOn') : t('bwTlAlarm')}
+            </button>
+          )}
+          <button type="button" className="bw-next-btn" onClick={() => downloadIcs(next)}>
+            <WIcon name="cal" />
+            {t('bwTlCal')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export const WeekSheet = ({
+  data,
+  week,
+  now,
+  dawn,
+  onClose,
+}: {
+  data: BulletinData
+  week: BulletinWeek
+  now: Date
+  /** 지난 주보이거나 로그인 전이면 null — 알림 버튼을 숨긴다 */
+  dawn: WeekDawnAlarm | null
+  onClose: () => void
+}) => {
+  const { t } = useLanguage()
+  const tl = useMemo(() => buildWeekTimeline(data, week, now), [data, week, now])
+  const sunday = week.sunday
+  const range = sunday
+    ? (() => {
+        const mon = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 1)
+        const sun = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 7)
+        return `${mon.getMonth() + 1}/${mon.getDate()}(월) – ${sun.getMonth() !== mon.getMonth() ? `${sun.getMonth() + 1}/` : ''}${sun.getDate()}(주일)`
+      })()
+    : ''
+  const lastOf = (i: number) => i === tl.entries.length - 1 || tl.entries[i + 1].section !== tl.entries[i].section
+
+  return (
+    <WeeklySheet title={t('bwWeek')} onClose={onClose} wide="md">
+      {range && <p className="bw-cap bw-tl-range">{range}</p>}
+      {tl.next && <NextCard next={tl.next} now={now} dawn={dawn} />}
+      <div className="bw-tl">
+        {tl.entries.map((e, i) => {
+          const firstOfSection = i === 0 || tl.entries[i - 1].section !== e.section
+          const laterIdx = typeof e.section === 'number' ? tl.entries.findIndex(x => typeof x.section === 'number') : -1
+          const head = !firstOfSection
+            ? null
+            : e.section === 'week'
+              ? t('bwTlThisWeek')
+              : i === laterIdx
+                ? t('bwTlUpcoming').replace('{m}', String(e.section))
+                : t('bwTlMonth').replace('{m}', String(e.section))
+          const dday = e.start && !e.past && e.section !== 'week' ? daysBetween(now, e.start) : null
+          const meta = [[e.timeText, e.place].filter(Boolean).join(' · '), dday != null && dday > 0 ? `D-${dday}` : ''].filter(Boolean).join(' · ')
+          const isNext = tl.next?.entry.key === e.key
+          return (
+            <Fragment key={e.key}>
+              {tl.todayAt === i && <TodayLine />}
+              {head && <p className="bw-tl-sec">{head}</p>}
+              <div className={`bw-tl-it ${firstOfSection ? 'is-first' : ''} ${lastOf(i) ? 'is-last' : ''} ${isNext ? 'is-hl' : ''} ${e.past ? 'is-past' : ''}`}>
+                <div className={`bw-tl-d ${e.sunday ? 'is-sun' : ''}`}>
+                  <b className="bw-tnum">{e.start ? e.start.getDate() : ''}</b>
+                  <span>{e.dayText}</span>
+                </div>
+                <div className="bw-tl-rail" aria-hidden="true">
+                  <i />
+                </div>
+                <div className="bw-tl-c">
+                  <p className={`bw-tl-t ${e.muted ? 'is-muted' : ''}`}>
+                    {e.title}
+                    {e.section === 'week' && isNext && !tl.next!.live && e.start && daysBetween(now, tl.next!.at) > 0 && (
+                      <span className="bw-chip is-soon">D-{daysBetween(now, tl.next!.at)}</span>
+                    )}
+                  </p>
+                  {meta && <p className="bw-tl-m">{meta}</p>}
+                  {e.days.length > 0 && !e.past && (
+                    <div className="bw-tl-wk" aria-hidden="true">
+                      {e.days.map((d, k) => (
+                        <span key={k} className={`is-${d.state}`}>
+                          {WEEKDAY_KO[d.date.getDay()].replace('주일', '일')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Fragment>
+          )
+        })}
+        {tl.todayAt === tl.entries.length && tl.entries.length > 0 && <TodayLine />}
       </div>
+      {tl.notes.length > 0 && (
+        <div className="bw-tl-note">
+          <span className="bw-tl-note-h">{t('bwTlNote')}</span>
+          <span>
+            {tl.notes.map((n, i) => (
+              <span key={i} className="bw-tl-note-i">
+                {n.label && <b>{n.label} </b>}
+                {n.text.replace(/[,，]\s*$/, '')}
+              </span>
+            ))}
+          </span>
+        </div>
+      )}
     </WeeklySheet>
+  )
+}
+
+const TodayLine = () => {
+  const { t } = useLanguage()
+  return (
+    <div className="bw-tl-now" role="separator" aria-label={t('bwTlToday')}>
+      <b>{t('bwTlToday')}</b>
+      <i />
+      <span />
+    </div>
   )
 }
 
@@ -454,7 +690,7 @@ export const ExtraSheet = ({ block, onClose }: { block: ExtraBlock; onClose: () 
             ))}
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="bw-tablewrap">
             <table className="bw-table">
               <thead>
                 <tr>
