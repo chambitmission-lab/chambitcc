@@ -35,14 +35,14 @@ const LetterArrivalCover = ({ language, column, issueNumber, paused, onOpen }: L
     <section
       ref={boxRef}
       aria-label={ko ? '이번 주 목양칼럼' : "This week's letter"}
-      className="relative overflow-hidden lg:rounded-[32px] lg:h-[620px] lg:bg-sky-400 lg:dark:bg-[#0b1838]"
+      className="lc-cover-lift relative overflow-hidden lg:rounded-[32px] lg:h-[620px] lg:bg-sky-400 lg:dark:bg-[#0b1838]"
     >
       {/* 계절 교회 사진 — 교회가 오른쪽에 오도록.
           모바일은 표지 전체가 아니라 위쪽 가로 띠로만 깐다: 세로로 긴 판에 3:1 사진을 채우면
           18%만 보여 교회가 잘리고 판이 길쭉해 보인다 → 띠로 두면 교회 건물이 통째로 보이고,
           편지지는 띠 아래 끝에 걸쳐 놓인다. */}
       <div
-        className="absolute inset-x-0 top-0 h-[236px] sm:h-[280px] rounded-[26px] overflow-hidden bg-sky-400 dark:bg-[#0b1838] lg:inset-0 lg:h-auto lg:rounded-none"
+        className="lc-photo-lift absolute inset-x-0 top-0 h-[236px] sm:h-[280px] rounded-[26px] overflow-hidden bg-sky-400 dark:bg-[#0b1838] lg:inset-0 lg:h-auto lg:rounded-none"
         aria-hidden="true"
       >
         <img

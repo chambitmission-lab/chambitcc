@@ -24,6 +24,8 @@ export interface ContestEntry {
   card_consent: boolean
   /** 출품 때 고른 배경 id — 없으면 기본 크림 종이 */
   paper?: string | null
+  /** 내 사진 배경(paper 가 photolight / photodark 일 때) */
+  paper_url?: string | null
   /** 순위 비공개 대회는 발표 전까지 null */
   vote_count: number | null
   voted_by_me: boolean
@@ -80,6 +82,8 @@ export interface EntrySubmit {
   card_consent: boolean
   /** 고른 배경 id — null 이면 기본 크림 종이 */
   paper?: string | null
+  /** 내 사진 배경 — paper 가 photolight / photodark 일 때 함께 보낸다 */
+  paper_image?: Blob | null
   png: Blob
   ink: Blob
   width: number

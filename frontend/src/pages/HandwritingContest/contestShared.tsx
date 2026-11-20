@@ -36,7 +36,7 @@ export const PaperThumb = ({
   ratio: fixedRatio,
   style,
 }: {
-  entry: Pick<ContestEntry, 'image_url' | 'width' | 'height' | 'verse_ref' | 'paper'>
+  entry: Pick<ContestEntry, 'image_url' | 'width' | 'height' | 'verse_ref' | 'paper' | 'paper_url'>
   className?: string
   /** 세로로 긴 글씨도 카드가 너무 길어지지 않게 */
   maxRatio?: number
@@ -45,7 +45,7 @@ export const PaperThumb = ({
   style?: CSSProperties
 }) => {
   const ratio = fixedRatio ?? (entry.width && entry.height ? Math.min(maxRatio, Math.max(0.55, entry.height / entry.width)) : 1)
-  const surface = usePaperSurface(entry.paper)
+  const surface = usePaperSurface(entry.paper, entry.paper_url)
   return (
     <div className={`hw-paper ${className}`} style={{ ...surface.style, ...style, aspectRatio: `1 / ${ratio}` }}>
       {entry.image_url ? (

@@ -34,3 +34,37 @@
 @media (prefers-reduced-motion: reduce) {
   .lc-letter, .lc-stamp, .lc-sign { animation: none; }
 }
+
+/* 표지 판 띄우기 — 사진 판이 바닥(앱 캔버스)에 붙어 보인다는 피드백(2026-11-20).
+   /bible 허브 '깊게 뜬 판'(--lift-big)과 같은 세 겹: 닿는 그림자 + 낙하 두 겹, 중립 남색.
+   PC 는 판 전체, 모바일은 위쪽 사진 띠(판 자체는 모서리·배경이 없다)에 건다. */
+.lc-cover-lift {
+  box-shadow:
+    0 2px 4px rgba(22, 40, 90, 0.06),
+    0 14px 24px -8px rgba(22, 40, 90, 0.16),
+    0 34px 56px -24px rgba(22, 40, 90, 0.34);
+}
+.dark .lc-cover-lift {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 14px 24px -8px rgba(0, 0, 0, 0.6),
+    0 36px 60px -22px rgba(0, 0, 0, 0.85);
+}
+/* 모바일 사진 띠 — 바로 아래 편지지가 걸치므로 짧은 두 겹만 */
+.lc-photo-lift {
+  box-shadow:
+    0 1px 2px rgba(22, 40, 90, 0.08),
+    0 10px 20px -8px rgba(22, 40, 90, 0.22);
+}
+.dark .lc-photo-lift {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 10px 20px -8px rgba(0, 0, 0, 0.6);
+}
+@media (min-width: 1024px) {
+  .lc-photo-lift,
+  .dark .lc-photo-lift { box-shadow: none; }
+}
+@media (max-width: 1023.98px) {
+  .lc-cover-lift,
+  .dark .lc-cover-lift { box-shadow: none; }
+}

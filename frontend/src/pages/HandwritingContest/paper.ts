@@ -1,6 +1,7 @@
 // 출품작의 배경(종이) — 출품할 때 고른 감성 배경 위에 글씨를 놓는다.
 // 배경은 말씀 사진 카드와 같은 장면(새벽·별밤·한지…)이고, 서버에는 그 id 만 남는다(entry.paper).
 // id 가 없거나 모르는 값이면 기본 크림 종이 그대로다.
+// 내 사진을 배경으로 올린 작품은 paper 가 photolight(밝은 잉크) / photodark(어두운 잉크)이고 사진은 entry.paper_url 에 있다.
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { BACKGROUNDS, backgroundCss, createBackgroundImage } from '../Bible/PhotoVerse/canvas/backgrounds'
@@ -18,6 +19,56 @@ export const findPaper = (id: string | null | undefined): VerseBackground | null
   (id && CONTEST_PAPERS.find((b) => b.id === id)) || null
 
 export const paperSwatchCss = (bg: VerseBackground) => backgroundCss(bg)
+
+export const PHOTO_PAPER_LIGHT = 'photolight'
+export const PHOTO_PAPER_DARK = 'photodark'
+export const isPhotoPaper = (id: string | null | undefined): boolean => id === PHOTO_PAPER_LIGHT || id === PHOTO_PAPER_DARK
+
+export interface PaperPhoto {
+  blob: Blob
+  url: string
+  /** 사진이 어두워 밝은 잉크로 써야 하는지 */
+  lightInk: boolean
+}
+
+const PHOTO_MAX_SIDE = 1280
+
+/** 고른 사진을 올리기 좋게 줄이고(긴 변 1280px JPEG), 밝기를 재서 잉크 밝기를 정한다 */
+export const preparePaperPhoto = async (file: File): Promise<PaperPhoto> => {
+  const src = URL.createObjectURL(file)
+  try {
+    const img = new Image()
+    img.src = src
+    await img.decode()
+    const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale))
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('canvas unavailable')
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+    // 평균 밝기 — 작게 줄여 잰다
+    const probe = document.createElement('canvas')
+    probe.width = 24
+    probe.height = 24
+    const pctx = probe.getContext('2d')
+    let lum = 0.5
+    if (pctx) {
+      pctx.drawImage(canvas, 0, 0, 24, 24)
+      const d = pctx.getImageData(0, 0, 24, 24).data
+      let sum = 0
+      for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]
+      lum = sum / (d.length / 4) / 255
+    }
+    const blob = await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('사진을 준비하지 못했어요'))), 'image/jpeg', 0.86),
+    )
+    return { blob, url: URL.createObjectURL(blob), lightInk: lum < 0.62 }
+  } finally {
+    URL.revokeObjectURL(src)
+  }
+}
 
 // 장면 그림은 배경마다 한 번만 그려 blob URL 로 돌려쓴다 — 갤러리 칸마다 dataURL 을 인라인으로 싣지 않게
 const sceneUrls = new Map<string, string>()
@@ -52,7 +103,7 @@ export interface PaperSurface {
 const DEFAULT_SURFACE: PaperSurface = { style: undefined, lightInk: false, theme: 'light' }
 
 /** 배경 id → 종이 면. 장면 그림이 준비되기 전에는 같은 색의 그라데이션을 먼저 보여 준다 */
-export const usePaperSurface = (paperId: string | null | undefined): PaperSurface => {
+export const usePaperSurface = (paperId: string | null | undefined, photoUrl?: string | null): PaperSurface => {
   const bg = findPaper(paperId)
   const [, bump] = useState(0)
   useEffect(() => {
@@ -65,6 +116,16 @@ export const usePaperSurface = (paperId: string | null | undefined): PaperSurfac
       alive = false
     }
   }, [bg])
+  // 내 사진 배경 — 글씨가 묻히지 않게 사진 위에 옅은 막을 한 겹 깐다
+  if (isPhotoPaper(paperId) && photoUrl) {
+    const lightInk = paperId === PHOTO_PAPER_LIGHT
+    const veil = lightInk ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.42)'
+    return {
+      style: { background: `linear-gradient(${veil}, ${veil}), url("${photoUrl}") center / cover no-repeat` },
+      lightInk,
+      theme: lightInk ? 'dark' : 'light',
+    }
+  }
   if (!bg) return DEFAULT_SURFACE
   const scene = sceneUrls.get(bg.id)
   const lightInk = isLightColor(bg.textColor)

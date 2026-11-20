@@ -1,6 +1,6 @@
 // 필사대회 참여 (/handwriting/:id/write) — ① 구절 고르기 → ② 손글씨로 쓰기 → ③ 한마디·동의 → 출품
 // 쓰는 도중 나가도 이 기기에 초안(구절·획)이 남는다 — 다시 들어오면 이어 쓴다.
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useContest, useSubmitEntry } from '../../hooks/useHandwritingContest'
 import { isAuthenticated } from '../../utils/auth'
@@ -15,7 +15,8 @@ import { Spinner, SurveyShell } from '../Survey/surveyUi'
 import { CenterNote, QuillIcon } from './contestShared'
 import { errorText } from './contestFormat'
 import { exportCroppedInkPng } from './inkCard'
-import { CONTEST_PAPERS, findPaper, paperSwatchCss } from './paper'
+import { CONTEST_PAPERS, PHOTO_PAPER_DARK, PHOTO_PAPER_LIGHT, findPaper, paperSwatchCss, preparePaperPhoto } from './paper'
+import type { PaperPhoto } from './paper'
 import PaperPreview from './PaperPreview'
 import '../Bible/PhotoVerse/styles/verse-sheet.css'
 import './contest.css'
@@ -79,6 +80,11 @@ const ContestWrite = () => {
   const [pages, setPages] = useState<InkPage[]>([initial.page])
   const [comment, setComment] = useState(initial.comment)
   const [paper, setPaper] = useState<string | null>(initial.paper)
+  // 내 사진 배경 — 사진은 초안에 남기지 않는다(다시 들어오면 사진만 다시 고른다). 출품할 때 함께 올라가 갤러리에 공개된다
+  const [photo, setPhoto] = useState<PaperPhoto | null>(null)
+  const [usePhoto, setUsePhoto] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+  const photoPaper = usePhoto && photo ? (photo.lightInk ? PHOTO_PAPER_LIGHT : PHOTO_PAPER_DARK) : null
   const [agree, setAgree] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [writing, setWriting] = useState(false)
@@ -103,6 +109,24 @@ const ContestWrite = () => {
     }, 400)
     return () => window.clearTimeout(t)
   }, [contestId, verse, page, comment, paper, writing])
+
+  useEffect(() => {
+    return () => {
+      if (photo) URL.revokeObjectURL(photo.url)
+    }
+  }, [photo])
+
+  const handlePhotoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    try {
+      setPhoto(await preparePaperPhoto(file))
+      setUsePhoto(true)
+    } catch {
+      showToast('사진을 불러오지 못했어요. 다른 사진으로 시도해주세요', 'error')
+    }
+  }
 
   const goBack = () => navigate(`/handwriting/${contestId}`)
   const thumbWidth = useMemo(() => Math.min(280, typeof window !== 'undefined' ? window.innerWidth - 80 : 280), [])
@@ -145,7 +169,8 @@ const ContestWrite = () => {
         verse_text: verse.text,
         comment,
         card_consent: agree,
-        paper,
+        paper: photoPaper ?? paper,
+        paper_image: photoPaper && photo ? photo.blob : null,
         png,
         ink,
         width,
@@ -232,13 +257,31 @@ const ContestWrite = () => {
         <Step n={3} title="배경 고르기" done={written}>
           {written ? (
             <div className="mx-auto mb-3" style={{ maxWidth: thumbWidth }}>
-              <PaperPreview page={page} paperId={paper} className="shadow-sm" />
+              <PaperPreview page={page} paperId={photoPaper ?? paper} photoUrl={photoPaper ? photo?.url : null} className="shadow-sm" />
             </div>
           ) : null}
+          <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoFile} />
           <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="배경">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={!!photoPaper}
+              onClick={() => (photo && !usePhoto ? setUsePhoto(true) : photoInputRef.current?.click())}
+              className="flex flex-col items-center gap-1 w-[52px]"
+            >
+              <span
+                className={`w-11 h-11 rounded-full border border-black/5 inline-flex items-center justify-center bg-[var(--brand-soft)] text-brand bg-cover bg-center transition-transform ${photoPaper ? 'ring-2 ring-brand ring-offset-2 ring-offset-white dark:ring-offset-[#1c1c1e] scale-105' : ''}`}
+                style={photo ? { backgroundImage: `url("${photo.url}")` } : undefined}
+              >
+                {photo ? null : <span className="material-icons-round text-[20px]">add_photo_alternate</span>}
+              </span>
+              <span className={`text-[11px] leading-tight ${photoPaper ? 'font-bold text-brand' : 'text-ink-muted'}`}>
+                {photoPaper ? '사진 바꾸기' : '내 사진'}
+              </span>
+            </button>
             {[null, ...CONTEST_PAPERS].map((bg) => {
               const id = bg?.id ?? null
-              const on = paper === id
+              const on = !photoPaper && paper === id
               const name = bg?.nameKo ?? '기본 종이'
               return (
                 <button
@@ -246,7 +289,10 @@ const ContestWrite = () => {
                   type="button"
                   role="radio"
                   aria-checked={on}
-                  onClick={() => setPaper(id)}
+                  onClick={() => {
+                    setUsePhoto(false)
+                    setPaper(id)
+                  }}
                   className="flex flex-col items-center gap-1 w-[52px]"
                 >
                   <span
@@ -260,6 +306,12 @@ const ContestWrite = () => {
           </div>
           <p className="mt-2.5 text-[12px] leading-relaxed text-ink-muted">
             고른 배경 위에 내 글씨가 놓여 갤러리에 걸려요. 어두운 배경에서는 글씨가 밝은 잉크로 바뀌어요.
+            {photoPaper ? (
+              <>
+                <br />
+                <b className="text-ink-strong">내 사진은 출품하면 갤러리에 함께 공개돼요.</b> 다른 사람이 나온 사진은 피해 주세요.
+              </>
+            ) : null}
           </p>
         </Step>
 

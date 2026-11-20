@@ -7,8 +7,8 @@ import { usePaperSurface } from './paper'
 const INSET = 0.07
 
 /** 쓰는 화면의 미리보기 — 고른 배경 위에 지금까지 쓴 글씨를 갤러리와 같은 구도로 놓는다 */
-const PaperPreview = ({ page, paperId, className = '' }: { page: InkPage; paperId: string | null; className?: string }) => {
-  const surface = usePaperSurface(paperId)
+const PaperPreview = ({ page, paperId, photoUrl, className = '' }: { page: InkPage; paperId: string | null; photoUrl?: string | null; className?: string }) => {
+  const surface = usePaperSurface(paperId, photoUrl)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [width, setWidth] = useState(0)

@@ -39,7 +39,7 @@ const InkReplay = ({ entry, maxRatio = 1.5, className = '', ratio: fixedRatio, b
   const ink = useContestEntryInk(entry.contest_id, entry.id, entry.has_ink)
   const page = useMemo(() => (ink.data ? parseInkPageFile(ink.data) : null), [ink.data])
   // 출품 때 고른 배경 — 어두운 배경이면 밝은 잉크로 다시 쓴다
-  const surface = usePaperSurface(entry.paper)
+  const surface = usePaperSurface(entry.paper, entry.paper_url)
   const theme = surface.theme
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
