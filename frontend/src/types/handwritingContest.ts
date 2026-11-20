@@ -26,6 +26,9 @@ export interface ContestEntry {
   paper?: string | null
   /** 내 사진 배경(paper 가 photolight / photodark 일 때) */
   paper_url?: string | null
+  /** 사진에서 보일 자리(0~100 %) — 없으면 가운데 */
+  paper_focus_x?: number | null
+  paper_focus_y?: number | null
   /** 순위 비공개 대회는 발표 전까지 null */
   vote_count: number | null
   voted_by_me: boolean
@@ -84,6 +87,9 @@ export interface EntrySubmit {
   paper?: string | null
   /** 내 사진 배경 — paper 가 photolight / photodark 일 때 함께 보낸다 */
   paper_image?: Blob | null
+  /** 사진에서 보일 자리(0~100 %) */
+  paper_focus_x?: number | null
+  paper_focus_y?: number | null
   png: Blob
   ink: Blob
   width: number

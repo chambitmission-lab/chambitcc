@@ -31,7 +31,24 @@ export interface PaperPhoto {
   lightInk: boolean
   /** 종이 비율(세로/가로) — 사진 모양을 따른다. 종이가 글씨 띠 모양이면 사진이 크게 잘려 확대돼 보인다 */
   ratio: number
+  /** 사진 원래 비율(세로/가로) — 보일 자리를 끌어 맞출 때 넘치는 폭을 잰다 */
+  naturalRatio: number
 }
+
+/** 사진에서 보일 자리(0~100 %, CSS background-position). 종이 모양마다 잘리는 곳이 달라 출품할 때 고른다 */
+export interface PaperFocus {
+  x: number
+  y: number
+}
+export const CENTER_FOCUS: PaperFocus = { x: 50, y: 50 }
+
+export const entryFocus = (entry: { paper_focus_x?: number | null; paper_focus_y?: number | null }): PaperFocus | null =>
+  entry.paper_focus_x == null && entry.paper_focus_y == null
+    ? null
+    : { x: entry.paper_focus_x ?? 50, y: entry.paper_focus_y ?? 50 }
+
+/** 대회 첫 화면 히어로의 종이 비율(세로/가로) — 가로로 긴 띠 */
+export const HERO_PAPER_RATIO = 0.56
 
 // PC 히어로처럼 넓게 걸리는 자리에서도 뭉개지지 않게 넉넉히 남긴다
 const PHOTO_MAX_SIDE = 1920
@@ -78,8 +95,9 @@ export const preparePaperPhoto = async (file: File): Promise<PaperPhoto> => {
     }
     let blob = await toJpeg(canvas, 0.9)
     if (blob.size > PHOTO_MAX_BYTES) blob = await toJpeg(canvas, 0.78)
-    const ratio = Math.min(PHOTO_RATIO_MAX, Math.max(PHOTO_RATIO_MIN, canvas.height / canvas.width))
-    return { blob, url: URL.createObjectURL(blob), lightInk: lum < 0.62, ratio }
+    const naturalRatio = canvas.height / canvas.width
+    const ratio = Math.min(PHOTO_RATIO_MAX, Math.max(PHOTO_RATIO_MIN, naturalRatio))
+    return { blob, url: URL.createObjectURL(blob), lightInk: lum < 0.62, ratio, naturalRatio }
   } finally {
     URL.revokeObjectURL(src)
   }
@@ -118,7 +136,11 @@ export interface PaperSurface {
 const DEFAULT_SURFACE: PaperSurface = { style: undefined, lightInk: false, theme: 'light' }
 
 /** 배경 id → 종이 면. 장면 그림이 준비되기 전에는 같은 색의 그라데이션을 먼저 보여 준다 */
-export const usePaperSurface = (paperId: string | null | undefined, photoUrl?: string | null): PaperSurface => {
+export const usePaperSurface = (
+  paperId: string | null | undefined,
+  photoUrl?: string | null,
+  focus?: PaperFocus | null,
+): PaperSurface => {
   const bg = findPaper(paperId)
   const [, bump] = useState(0)
   useEffect(() => {
@@ -136,7 +158,9 @@ export const usePaperSurface = (paperId: string | null | undefined, photoUrl?: s
     const lightInk = paperId === PHOTO_PAPER_LIGHT
     const veil = lightInk ? 'rgba(0, 0, 0, 0.26)' : 'rgba(255, 255, 255, 0.3)'
     return {
-      style: { background: `linear-gradient(${veil}, ${veil}), url("${photoUrl}") center / cover no-repeat` },
+      style: {
+        background: `linear-gradient(${veil}, ${veil}), url("${photoUrl}") ${focus ? `${focus.x}% ${focus.y}%` : 'center'} / cover no-repeat`,
+      },
       lightInk,
       theme: lightInk ? 'dark' : 'light',
     }

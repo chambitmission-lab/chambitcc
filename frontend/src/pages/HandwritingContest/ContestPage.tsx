@@ -27,6 +27,7 @@ import InkReplay from './InkReplay'
 import StoryViewer from './StoryViewer'
 import { Avatar, CardIcon, CenterNote, HeartIcon, Medal, PaperThumb, PhaseChip, QuillIcon, TrophyIcon } from './contestShared'
 import { RANK_META, errorText, periodText, phaseLine } from './contestFormat'
+import { HERO_PAPER_RATIO } from './paper'
 import './contest.css'
 
 const SORTS: { id: EntrySort; label: string }[] = [
@@ -547,7 +548,7 @@ const ContestBody = ({
 }
 
 /** 히어로 — 받아 둔 작품 몇 편이 쓴 순서대로 번갈아 다시 써진다. 탭하면 그 작품부터 넘겨 보기 */
-const HERO_RATIO = 0.56
+const HERO_RATIO = HERO_PAPER_RATIO
 const HERO_TURNS = 3
 const HERO_REST_MS = 2800
 

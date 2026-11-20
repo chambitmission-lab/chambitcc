@@ -15,8 +15,8 @@ import { Spinner, SurveyShell } from '../Survey/surveyUi'
 import { CenterNote, QuillIcon } from './contestShared'
 import { errorText } from './contestFormat'
 import { exportCroppedInkPng } from './inkCard'
-import { CONTEST_PAPERS, PHOTO_PAPER_DARK, PHOTO_PAPER_LIGHT, findPaper, paperSwatchCss, preparePaperPhoto } from './paper'
-import type { PaperPhoto } from './paper'
+import { CENTER_FOCUS, CONTEST_PAPERS, HERO_PAPER_RATIO, PHOTO_PAPER_DARK, PHOTO_PAPER_LIGHT, findPaper, paperSwatchCss, preparePaperPhoto } from './paper'
+import type { PaperFocus, PaperPhoto } from './paper'
 import PaperPreview from './PaperPreview'
 import '../Bible/PhotoVerse/styles/verse-sheet.css'
 import './contest.css'
@@ -83,6 +83,8 @@ const ContestWrite = () => {
   // 내 사진 배경 — 사진은 초안에 남기지 않는다(다시 들어오면 사진만 다시 고른다). 출품할 때 함께 올라가 갤러리에 공개된다
   const [photo, setPhoto] = useState<PaperPhoto | null>(null)
   const [usePhoto, setUsePhoto] = useState(false)
+  // 사진에서 보일 자리 — 종이 모양(갤러리 칸·첫 화면 띠)마다 잘리는 곳이 달라, 끌어서 맞춘다
+  const [focus, setFocus] = useState<PaperFocus>(CENTER_FOCUS)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const photoPaper = usePhoto && photo ? (photo.lightInk ? PHOTO_PAPER_LIGHT : PHOTO_PAPER_DARK) : null
   const [agree, setAgree] = useState(false)
@@ -122,6 +124,7 @@ const ContestWrite = () => {
     if (!file) return
     try {
       setPhoto(await preparePaperPhoto(file))
+      setFocus(CENTER_FOCUS)
       setUsePhoto(true)
     } catch {
       showToast('사진을 불러오지 못했어요. 다른 사진으로 시도해주세요', 'error')
@@ -171,6 +174,8 @@ const ContestWrite = () => {
         card_consent: agree,
         paper: photoPaper ?? paper,
         paper_image: photoPaper && photo ? photo.blob : null,
+        paper_focus_x: photoPaper ? focus.x : null,
+        paper_focus_y: photoPaper ? focus.y : null,
         png,
         ink,
         width,
@@ -257,7 +262,34 @@ const ContestWrite = () => {
         <Step n={3} title="배경 고르기" done={written}>
           {written ? (
             <div className="mx-auto mb-3" style={{ maxWidth: thumbWidth }}>
-              <PaperPreview page={page} paperId={photoPaper ?? paper} photoUrl={photoPaper ? photo?.url : null} paperRatio={photoPaper ? photo?.ratio : null} className="shadow-sm" />
+              <PaperPreview
+                page={page}
+                paperId={photoPaper ?? paper}
+                photoUrl={photoPaper ? photo?.url : null}
+                paperRatio={photoPaper ? photo?.ratio : null}
+                focus={photoPaper ? focus : null}
+                photoRatio={photoPaper ? photo?.naturalRatio : null}
+                onFocusChange={setFocus}
+                className="shadow-sm"
+              />
+              {photoPaper && photo ? (
+                <div className="mt-3">
+                  <p className="mb-1.5 text-[12px] font-bold text-ink-strong">
+                    대회 첫 화면에서는 이렇게 보여요
+                    <span className="ml-1 font-medium text-ink-muted">· 사진을 끌어 보일 자리를 맞춰 주세요</span>
+                  </p>
+                  <PaperPreview
+                    page={page}
+                    paperId={photoPaper}
+                    photoUrl={photo.url}
+                    paperRatio={HERO_PAPER_RATIO}
+                    focus={focus}
+                    photoRatio={photo.naturalRatio}
+                    onFocusChange={setFocus}
+                    className="shadow-sm"
+                  />
+                </div>
+              ) : null}
             </div>
           ) : null}
           <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoFile} />

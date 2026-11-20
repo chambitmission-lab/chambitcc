@@ -49,7 +49,11 @@ export const submitContestEntry = (id: number, payload: EntrySubmit): Promise<Co
   form.append('height', String(payload.height))
   form.append('image', payload.png, 'handwriting.png')
   form.append('ink', payload.ink, 'handwriting.json')
-  if (payload.paper_image) form.append('paper_image', payload.paper_image, 'paper.jpg')
+  if (payload.paper_image) {
+    form.append('paper_image', payload.paper_image, 'paper.jpg')
+    if (payload.paper_focus_x != null) form.append('paper_focus_x', String(Math.round(payload.paper_focus_x)))
+    if (payload.paper_focus_y != null) form.append('paper_focus_y', String(Math.round(payload.paper_focus_y)))
+  }
   return request<ContestEntry>(`${BASE}/${id}/entries`, {
     method: 'POST',
     body: form,
