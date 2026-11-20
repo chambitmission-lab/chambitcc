@@ -76,6 +76,12 @@ import aboutDawnPcLight from '../assets/about/dawn-light.webp'
 import aboutDawnPcDark from '../assets/about/dawn-dark.webp'
 import aboutDawnMobileLight from '../assets/about/dawn-light-m.webp'
 import aboutDawnMobileDark from '../assets/about/dawn-dark-m.webp'
+import seasonSpringLight from '../assets/greeting/season-spring-light.webp'
+import seasonSpringDark from '../assets/greeting/season-spring-dark.webp'
+import seasonSummerLight from '../assets/greeting/season-summer-light.webp'
+import seasonSummerDark from '../assets/greeting/season-summer-dark.webp'
+import seasonAutumnLight from '../assets/greeting/season-autumn-light.webp'
+import seasonAutumnDark from '../assets/greeting/season-autumn-dark.webp'
 
 export type ThemeName = 'light' | 'dark'
 
@@ -84,6 +90,8 @@ export interface ThemePair {
   dark: string
   /** 화면 폭 등 조건 — false 를 돌려주면 이 쌍은 지금 쓰이지 않는 것으로 본다 */
   when?: () => boolean
+  /** 현재 테마 파일을 받을 때의 우선순위 — 첫 화면 아래(스크롤해야 보이는) 그림은 'low' 로 히어로와 다투지 않게 */
+  priority?: 'high' | 'low' | 'auto'
 }
 
 // ── 테마 판정 ────────────────────────────────────────────────
@@ -382,6 +390,14 @@ export const GREETING_HERO: ThemePair = {
   },
   dark: heroWinterEvening,
 }
+/** /greeting 담임목사 소개 "철을 따라" 계절 카드 배경 (profile.css / night.css 의 --gr-s-art 와 같은 파일).
+ *  CSS ::before 배경이라 담임목사 응답 → 카드 렌더 뒤에야 발견되던 것을 청크와 함께 받아 둔다.
+ *  편지 아래에 있는 그림이라 히어로·인물 사진보다 낮은 우선순위. */
+export const GREETING_SEASONS: ThemePair[] = [
+  { light: seasonSpringLight, dark: seasonSpringDark, priority: 'low' },
+  { light: seasonSummerLight, dark: seasonSummerDark, priority: 'low' },
+  { light: seasonAutumnLight, dark: seasonAutumnDark, priority: 'low' },
+]
 
 /** /bible/situation 감정 타일 그림(-sm, SituationBible.css .sb-mood__art) — 타일은 카테고리 API 가
  *  돌아온 뒤에야 렌더돼 그림 요청이 API 뒤로 밀렸다. 청크·API 와 나란히 받는다.
@@ -409,7 +425,7 @@ interface RouteAssets {
 // 각 컴포넌트(TimeCapsuleCard·HomeNotice·LiveReadingCard)가 뜰 때 useThemeArt 로 등록한다.
 const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/about$/, pairs: [ABOUT_DAWN_PC, ABOUT_DAWN_MOBILE] },
-  { match: /^\/greeting$/, pairs: [GREETING_HERO] },
+  { match: /^\/greeting$/, pairs: [GREETING_HERO, ...GREETING_SEASONS] },
   { match: /^\/prayer-topics$/, pairs: [WEEKLY_PRAYER_POSTER] },
   { match: /^\/visit$/, pairs: [VISIT_SCENE_PAIR] },
   { match: /^\/worship$/, pairs: [WORSHIP_HERO] },
@@ -555,7 +571,7 @@ export const isPairWarm = (pair: ThemePair): boolean => isImageWarm(pairSrc(pair
  */
 export const warmPair = (pair: ThemePair): Promise<void> => {
   const theme = currentTheme()
-  const promise = warmImage(pairSrc(pair, theme))
+  const promise = warmImage(pairSrc(pair, theme), pair.priority)
   if (preloadBudget() !== 'none') {
     void promise.then(() => whenIdle(() => void warmImage(pairSrc(pair, oppositeTheme(theme)), 'low')))
   }
