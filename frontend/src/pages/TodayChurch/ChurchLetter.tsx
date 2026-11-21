@@ -2,13 +2,14 @@
 //   편지지(규칙 기반 문장) · 폴라로이드(가장 많이 펼친 장) · 포스트잇(이번 주 마음)
 //   · 하루의 언덕길(기도한 순간만 촛불, 모바일은 기도 일기 시간표) · 숫자 티켓
 // 숫자는 전부 익명 집계. 표본이 적은 날(hidden)은 편지만 쉬어 가는 문장으로 쓴다.
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { ChurchDay, ChurchMetricKey } from '../../api/todayChurch'
 import { chapterLabel } from '../../utils/bibleLabels'
-import { getBookGenre } from '../../components/bible/bookGenre'
 import { ensureFontFamily } from '../../utils/deferredFonts'
+import { isImageWarm, warmImage } from '../../utils/themeAssets'
 import { buildLetter, EMOTION_NOTE, filmDate, prayerMoments, weekdayOf, type PrayerMoment } from './churchLetterCopy'
+import { polaroidBook, polaroidSrc } from './polaroidArt'
 import './styles/churchLetter.css'
 
 ensureFontFamily('nanumPen')
@@ -83,12 +84,26 @@ const Letter = ({ church }: { church: ChurchDay }) => {
 }
 
 // ── 폴라로이드 ────────────────────────────────────────
-/* 폴라로이드 사진 — 어제 가장 많이 펼친 책의 장르(BOOK_GENRES 8개)마다 양 한 마리가 다른 곳에서 책을 편다.
- * 사람은 등장하지 않는다(사용자 요청). 그림은 밤 장면 한 벌이라 라이트/다크 공용. */
-const POLAROID_GENRES = new Set(['law', 'history', 'poetry', 'prophets', 'gospels', 'acts', 'epistles', 'revelation'])
-const polaroidPhoto = (bookNumber: number) => {
-  const id = getBookGenre(bookNumber).id
-  return POLAROID_GENRES.has(id) ? `url('/images/today/polaroid-${id}.webp')` : undefined
+/** 사진 한 장 — 파일이 도착한 뒤에야 '현상'을 시작한다(빈 프레임이 혼자 현상되다 사진이 툭 뜨지 않게) */
+const PolaroidPhoto = ({ src, date }: { src: string; date: string }) => {
+  const [ready, setReady] = useState(() => isImageWarm(src))
+  useEffect(() => {
+    if (ready) return
+    let alive = true
+    void warmImage(src).then(() => alive && setReady(true))
+    return () => {
+      alive = false
+    }
+  }, [src, ready])
+  return (
+    <span
+      className={`tcl-pol-photo${ready ? ' is-ready' : ''}`}
+      style={ready ? { backgroundImage: `url('${src}')` } : undefined}
+      aria-hidden
+    >
+      <span className="tcl-pol-date">{filmDate(date)}</span>
+    </span>
+  )
 }
 
 const Polaroid = ({ church }: { church: ChurchDay }) => {
@@ -101,19 +116,13 @@ const Polaroid = ({ church }: { church: ChurchDay }) => {
       ? { title: book.book_name, sub: '어제 가장 많이 읽은 책', to: `/bible/${book.book_number}/1` }
       : null
   if (!pick) return null
-  const photo = polaroidPhoto(top?.book_number ?? book!.book_number)
+  const photo = polaroidSrc(polaroidBook(church) ?? 1)
   const others = church.top_chapters.slice(1, 3)
   return (
     <div className="tcl-pol-wrap">
       <button type="button" className="tcl-pol" onClick={() => navigate(pick.to)} aria-label={`${pick.title} 펼치기 — ${pick.sub}`}>
         <span className="tcl-tape tcl-pol-tape" aria-hidden />
-        <span
-          className={`tcl-pol-photo${photo ? ' is-genre' : ''}`}
-          style={photo ? { backgroundImage: photo } : undefined}
-          aria-hidden
-        >
-          <span className="tcl-pol-date">{filmDate(church.date)}</span>
-        </span>
+        <PolaroidPhoto key={photo} src={photo} date={church.date} />
         <span className="tcl-pol-cap">
           <span className="tcl-pen tcl-pol-title">{pick.title}</span>
           <span className="tcl-pen tcl-pol-sub">{pick.sub}</span>

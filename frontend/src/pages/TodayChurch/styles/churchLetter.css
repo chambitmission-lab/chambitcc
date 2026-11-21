@@ -27,7 +27,6 @@
   --tcl-ground: #d8ccb2;
   --tcl-time: #b86a00;
   --tcl-up: #0a7d4f;
-  --tcl-photo: url('/images/bible/reading-scene-light.webp');
   --tcl-pen-size: 23px;
   --tcl-lh: 34px;
 
@@ -66,7 +65,6 @@
   --tcl-ground: #4a443a;
   --tcl-time: #fbbf24;
   --tcl-up: #6ee7b7;
-  --tcl-photo: url('/images/bible/reading-scene-dark.webp');
 }
 
 @media (min-width: 1024px) {
@@ -285,15 +283,17 @@
   position: relative;
   display: block;
   aspect-ratio: 1 / 1;
-  background-image: var(--tcl-photo);
+  /* 사진이 도착하기 전 — 아직 현상되지 않은 인화면(밤 장면이라 어두운 바탕) */
+  background-color: #2a3147;
   background-size: cover;
-  background-position: 68% center;
+  background-position: center;
+  filter: saturate(0.2) contrast(0.7) sepia(0.35) brightness(1.18);
+}
+/* 폴라로이드가 현상되듯 — 바랜 빛에서 색이 천천히 올라온다. 사진 파일이 도착한 뒤(.is-ready)에 한 번 */
+.tcl-pol-photo.is-ready {
   filter: saturate(0.88) contrast(0.96) sepia(0.08);
-  /* 폴라로이드가 현상되듯 — 바랜 빛에서 색이 천천히 올라온다(화면에 들어올 때 한 번) */
   animation: tcl-pol-develop 2.2s ease-out both;
 }
-/* 장르별 사진은 정사각 원본이라 가운데 그대로 */
-.tcl-pol-photo.is-genre { background-position: center; }
 @keyframes tcl-pol-develop {
   from { filter: saturate(0.2) contrast(0.7) sepia(0.35) brightness(1.18); }
   to { filter: saturate(0.88) contrast(0.96) sepia(0.08); }
@@ -318,8 +318,9 @@
   color: #ff8a3d;
   text-shadow: 0 0 4px rgba(255, 120, 40, 0.6);
   /* 날짜는 사진이 거의 다 올라온 뒤에 찍힌다 */
-  animation: tcl-pol-date-in 0.6s ease-out 1.6s both;
+  opacity: 0;
 }
+.tcl-pol-photo.is-ready .tcl-pol-date { animation: tcl-pol-date-in 0.6s ease-out 1.6s both; }
 @keyframes tcl-pol-date-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -471,6 +472,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tcl-pol { transition: none; }
-  .tcl-pol-photo,
-  .tcl-pol-date { animation: none; }
+  .tcl-pol-photo.is-ready,
+  .tcl-pol-photo.is-ready .tcl-pol-date { animation: none; }
+  .tcl-pol-photo.is-ready .tcl-pol-date { opacity: 1; }
 }

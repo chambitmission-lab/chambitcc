@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import type { TodayChurch } from '../api/todayChurch'
 import { tokenStore } from './tokenStore'
 import { preloadBudget, scheduleAfterFirstScreen } from './idlePreload'
 import { warmRouteThemeAssets } from './themeAssets'
@@ -196,9 +197,15 @@ const routeDataPrefetchers: Record<string, (run: Run) => Promise<void>> = {
       import('../config/queryClient'),
       import('../pages/TodayChurch/memoryPathArt'),
       import('../hooks/queryKeys'),
-    ]).then(([m, q, path, keys]) => {
+      import('../pages/TodayChurch/polaroidArt'),
+    ]).then(([m, q, path, keys, pol]) => {
       // 히어로 그림(지금 테마 한 장)도 같이 — <img> 라 화면이 그려진 뒤에야 요청이 나가던 것
-      if (preloadBudget() === 'full') void path.warmMemoryHero(q.queryClient.getQueryData(keys.todayChurchKeys.today()))
+      // 교회 탭 폴라로이드(어제의 장르 사진 한 장)도 — 인라인 배경이라 탭이 그려진 뒤에야 요청이 나가던 것
+      if (preloadBudget() === 'full') {
+        const data = q.queryClient.getQueryData<TodayChurch>(keys.todayChurchKeys.today())
+        void path.warmMemoryHero(data)
+        void pol.warmPolaroid(data)
+      }
       return run(() => m.warmMemoryFonts(q.queryClient))
     }),
   '/bible/situation': (run) =>
