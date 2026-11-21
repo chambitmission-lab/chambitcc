@@ -351,8 +351,10 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const [enteredFromSkeleton] = useState(() => !data)
   /* 실황 날씨(아이콘+기온) — 못 불러오면 null: 칩을 숨기고 인사말 아이콘으로 폴백.
    * 로딩 중(isWeatherLoading)에는 폴백을 띄우지 않는다 — 띄우면 응답이 도착하는
-   * 순간 사라져 새로고침마다 아이콘이 깜빡인다. 대신 칩 자리에 스켈레톤을 둔다. */
+   * 순간 사라져 새로고침마다 아이콘이 깜빡인다. 대신 칩 자리에 '어디 날씨인지'(교회 지명)를 둔다. */
   const { weather, isLoading: isWeatherLoading } = useCurrentWeather()
+  /* 지명 칩을 거쳐 기온이 도착한 경우에만 칩을 살짝 올려 바꾼다 — 캐시로 바로 그려지면 그대로 */
+  const [weatherEnteredFromPlace] = useState(() => isWeatherLoading)
   /* 다가오는 주일의 강수확률 — 주일이 3일 안으로 들어왔을 때만 조회된다 */
   const sundayPop = useSundayRain()
   const { fullName } = getCurrentUser()
@@ -577,14 +579,22 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           {/* 실황 날씨 칩 — 유리 칩(라인 아이콘+기온). 맑으면 해/달,
            * 비·눈이면 한 단어 라벨, 강수확률 40% 이상이면 확률까지 붙는다.
            * API 실패 시엔 칩을 숨기고 인사말 끝 아이콘으로 폴백한다. */}
-          {/* 로딩 동안은 칩 크기의 스켈레톤으로 자리를 잡아둔다 — 칩이 뒤늦게
-            * 나타나며 히어로 우측이 흔들리는 것을 막는다 */}
-          {isWeatherLoading && (
-            <span className="meditation-weather-chip is-skeleton" aria-hidden />
+          {/* 로딩 동안은 빈 스켈레톤 대신 '어디 날씨인지'를 먼저 밝힌다 —
+            * 날씨는 사용자 위치가 아니라 교회(부천 상동) 좌표 기준이다.
+            * 칩과 같은 유리 모양이라 기온이 도착해도 히어로 우측이 흔들리지 않는다 */}
+          {isWeatherLoading && !weather && (
+            <span
+              className="meditation-weather-chip is-place"
+              role="img"
+              aria-label={t('homeWeatherPlaceAria')}
+            >
+              <WeatherGlyph name="pin" className="meditation-weather-icon" />
+              <span className="meditation-weather-place">{t('homeWeatherPlace')}</span>
+            </span>
           )}
           {weather && (
             <span
-              className="meditation-weather-chip"
+              className={`meditation-weather-chip${weatherEnteredFromPlace ? ' is-arriving' : ''}`}
               data-wet={isRaining || isSnowing ? '' : undefined}
               role="img"
               aria-label={[

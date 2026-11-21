@@ -33,32 +33,31 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-/* 날씨 로딩 자리표시자 — 칩과 같은 유리 모양·크기의 빈 알약.
- * 내용이 없으므로 폭을 직접 잡아준다(⛅ 24° 기준).
- * 본문 스켈레톤과 같은 시머 스윕을 쓴다(히어로 사진 위라 항상 다크 유리).
- * position은 덮어쓰지 않는다 — relative로 바꾸면 인라인 흐름을 타고
- * 히어로 좌측 상단에 잠깐 나타났다 사라진다(시머 ::after는 absolute로도 담긴다). */
-.meditation-weather-chip.is-skeleton {
-  overflow: hidden;
-  width: 66px;
-  height: 30px;
-  padding: 0;
-  background: rgba(20, 24, 32, 0.24);
-  border-color: rgba(255, 255, 255, 0.12);
+/* 날씨 로딩 동안 — '어디 날씨인지'(교회 지명)를 같은 유리 칩에 먼저 밝힌다.
+ * 글자만 천천히 숨쉬어 "불러오는 중"임을 알리고, 기온이 오면 칩이 위로 밀려 바뀐다. */
+.meditation-weather-chip.is-place .meditation-weather-place {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.9;
+  animation: meditation-weather-breathe 1.8s ease-in-out infinite;
 }
 
-.meditation-weather-chip.is-skeleton::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    100deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.1) 50%,
-    transparent 70%
-  );
-  transform: translateX(-100%);
-  animation: meditation-shimmer 1.5s ease-in-out infinite;
+.meditation-weather-chip.is-arriving {
+  animation: meditation-weather-arrive 0.35s ease-out both;
+}
+
+@keyframes meditation-weather-breathe {
+  50% { opacity: 0.5; }
+}
+
+@keyframes meditation-weather-arrive {
+  from { opacity: 0; transform: translateY(40%); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meditation-weather-chip.is-place .meditation-weather-place,
+  .meditation-weather-chip.is-arriving { animation: none; }
 }
 
 /* 비·눈 오는 날은 칩도 젖은 톤(푸른 유리)으로 바뀐다 */

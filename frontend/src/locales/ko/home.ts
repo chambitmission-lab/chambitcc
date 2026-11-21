@@ -32,6 +32,8 @@ export const home = {
   homeWeatherThunder: '뇌우',
   homeWeatherPop: '{n}%',
   homeWeatherPopAria: '강수확률 {n}%',
+  homeWeatherPlace: '상동',
+  homeWeatherPlaceAria: '교회(부천 상동) 날씨 불러오는 중',
   homeWeatherSundayRain1: '주일에 비가 온대요 — 우산 챙기고, 마음은 맑게 오세요',
   homeWeatherSundayRain2: '비 오는 주일도 은혜는 맑음이에요, 우산 잊지 마세요',
   homeWeatherSundayRain3: '주일 아침 빗소리가 들리면, 우산 하나 챙겨 주세요',

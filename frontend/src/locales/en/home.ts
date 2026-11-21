@@ -32,6 +32,8 @@ export const home = {
   homeWeatherThunder: 'Storm',
   homeWeatherPop: '{n}%',
   homeWeatherPopAria: 'Chance of precipitation {n}%',
+  homeWeatherPlace: 'Sangdong',
+  homeWeatherPlaceAria: 'Loading weather at the church (Sangdong, Bucheon)',
   homeWeatherSundayRain1: 'Rain is coming this Sunday — bring an umbrella, and a clear heart',
   homeWeatherSundayRain2: 'Even a rainy Sunday shines with grace, so keep an umbrella close',
   homeWeatherSundayRain3: 'If rain greets you Sunday morning, take an umbrella along',

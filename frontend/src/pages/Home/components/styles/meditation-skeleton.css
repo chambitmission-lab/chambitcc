@@ -58,8 +58,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .meditation-skeleton { opacity: 0.65; }
-  .meditation-skeleton::after,
-  .meditation-weather-chip.is-skeleton::after { animation: none; }
+  .meditation-skeleton::after { animation: none; }
   .meditation-content.is-entering { animation: none; }
 }
 

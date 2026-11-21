@@ -177,10 +177,9 @@
   font-size: 15px;
 }
 
-/* 로딩 자리표시도 작아진 칩 높이에 맞춘다 — 안 맞추면 칩이 들어오는 순간 클러스터가 출렁인다 */
-.meditation-hero[data-hero^='church-'] .meditation-weather-chip.is-skeleton {
-  width: 58px;
-  height: 25px;
+/* 지명 칩도 작아진 칩 글씨에 맞춘다 */
+.meditation-hero[data-hero^='church-'] .meditation-weather-chip .meditation-weather-place {
+  font-size: 11px;
 }
 
 /* 알림 종은 헤드라인 둘째 줄("…마무리해요") 오른쪽 끝에 선다(사용자 요청 2026-11-14).

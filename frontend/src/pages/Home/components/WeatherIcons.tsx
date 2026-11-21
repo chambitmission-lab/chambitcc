@@ -4,7 +4,7 @@
 import type React from 'react'
 import type { WeatherIconKey } from '../../../hooks/useWeather'
 
-export type WeatherGlyphName = WeatherIconKey | 'drop' | 'umbrella'
+export type WeatherGlyphName = WeatherIconKey | 'drop' | 'umbrella' | 'pin'
 
 /* 비·눈·뇌우가 공유하는 구름 윗부분 — 아래로 떨어지는 것들의 자리를 비워둔 반쪽 구름 */
 const CLOUD_TOP = 'M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.24'
@@ -68,6 +68,13 @@ const PATHS: Record<WeatherGlyphName, React.ReactNode> = {
     <>
       <path d="M22 12a10 10 0 0 0-20 0Z" />
       <path d="M12 12v8a2 2 0 0 0 4 0M12 2v1" />
+    </>
+  ),
+  /* 날씨 로딩 중 '어디 날씨인지'(교회 좌표) 밝히는 지도 핀 */
+  pin: (
+    <>
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
+      <circle cx="12" cy="10" r="2.3" />
     </>
   ),
 }
