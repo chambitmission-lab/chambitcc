@@ -4,27 +4,30 @@ import type { TitleStatus, TitleTier, TitleCategory } from '../../api/titles'
 import { TitleUnlockModal } from '../../components/titles/TitleUnlockModal'
 
 /**
- * /#/dev/title-unlock — 칭호 해금 팝업(B1 풀아트 카드). ?key=puzzle_cross 로 칭호를 고른다.
- * 표본: 퍼즐 칭호(그림) · 퍼즐 마스터(모자이크) · 그림 없는 칭호(선화 기본 카드).
+ * /#/dev/title-unlock — 칭호 해금 팝업(E안 기록 카드). ?key=eutychus_escape 로 칭호를 고른다.
+ * 표본: 히든+희귀도(rarity) · 퍼즐 · 전설 · 희귀도 없는 구버전 응답.
  */
-const SAMPLES: Array<Pick<TitleStatus, 'key' | 'name' | 'icon' | 'category' | 'tier' | 'description'>> = [
-  { key: 'puzzle_creation', name: '첫째 날의 빛', icon: '🌅', category: 'puzzle', tier: 'silver',
-    description: '빛이 있으라! 아홉 조각을 다 맞추고 나니, 세상이 처음 열리던 그 아침을 본 것 같아요.' },
-  { key: 'puzzle_cross', name: '다 이루었다', icon: '✝️', category: 'puzzle', tier: 'gold',
-    description: '우리를 위해 다 이루신 십자가의 사랑 앞에, 마지막 조각을 조용히 내려놓았습니다.' },
-  { key: 'puzzle_master', name: '구속사 퍼즐 마스터', icon: '🧩', category: 'puzzle', tier: 'legendary',
-    description: '창조에서 부활까지, 열 장의 그림이 하나의 이야기로 이어졌어요.' },
-  { key: 'dawn_riser', name: '새벽을 깨우는 자', icon: '🌄', category: 'time', tier: 'bronze',
-    description: '새벽 시간에 말씀을 읽었어요.' },
+type Sample = Pick<TitleStatus, 'key' | 'name' | 'icon' | 'category' | 'tier' | 'description' | 'hidden' | 'rarity'>
+const SAMPLES: Sample[] = [
+  { key: 'eutychus_escape', name: '유두고 탈출', icon: '🪟', category: 'hidden', tier: 'bronze', hidden: true,
+    description: '설교 중에 졸다가 3층 창문에서 떨어진 유두고(행 20:9)… 당신은 식곤증 마의 시간에 오히려 말씀을 붙잡았습니다. 이제 창가에 앉아도 안전해요!',
+    rarity: { holder_count: 12, holder_rank: 12, member_count: 184 } },
+  { key: 'puzzle_cross', name: '다 이루었다', icon: '✝️', category: 'puzzle', tier: 'gold', hidden: false,
+    description: '우리를 위해 다 이루신 십자가의 사랑 앞에, 마지막 조각을 조용히 내려놓았습니다.',
+    rarity: { holder_count: 3, holder_rank: 3, member_count: 184 } },
+  { key: 'bible_conqueror', name: '성경 통독의 전설', icon: '🏆', category: 'pattern', tier: 'legendary', hidden: false,
+    description: '창세기 1장부터 요한계시록 마지막 장까지, 66권 전권 완독! 당신의 이름이 전설로 새겨졌습니다.',
+    rarity: { holder_count: 1, holder_rank: 1, member_count: 184 } },
+  { key: 'dawn_riser', name: '새벽을 깨우는 자', icon: '🌄', category: 'time', tier: 'silver', hidden: false,
+    description: '알람 다섯 개와 싸워 이긴 새벽! 닭보다 먼저 눈 뜬 부지런쟁이.' },
 ]
 
-const toStatus = (s: (typeof SAMPLES)[number]): TitleStatus => ({
+const toStatus = (s: Sample): TitleStatus => ({
   ...s,
   category: s.category as TitleCategory,
   tier: s.tier as TitleTier,
   category_label: '',
   hint: '',
-  hidden: false,
   earned: true,
   earned_at: null,
   equipped: false,

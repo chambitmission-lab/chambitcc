@@ -80,6 +80,10 @@ const TITLE_BG_POSITION: Record<string, string> = {
   puzzle_master: '50% 5%', // 퍼즐 벽화 윗변이 원본 y≈62px
 }
 
+/** 칭호 key → 커버 그림 경로·자르는 기준점(해금 팝업 기록 카드도 같은 그림을 쓴다) */
+export const titleBackdropSrc = (key: string): string | undefined => TITLE_BG[key]
+export const titleBackdropPosition = (key: string): string | undefined => TITLE_BG_POSITION[key]
+
 /** 이 칭호에 커버 배너가 등록돼 있는지 — 프로필 스켈레톤이 배너 자리를 미리 잡을 때 쓴다 */
 export const hasTitleBackdrop = (key: string): boolean => key in TITLE_BG
 

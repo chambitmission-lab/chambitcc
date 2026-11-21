@@ -55,6 +55,16 @@ export const garden = {
   titleUnlockEquipNow: 'Wear on Profile',
   titleUnlockLater: 'Later',
   titleUnlockNext: 'Next',
+  titleUnlockHiddenEyebrow: 'Hidden title',
+  titleUnlockNewEyebrow: 'New title',
+  titleUnlockStatTime: 'Earned at',
+  titleUnlockStatRank: 'Order',
+  titleUnlockRankValue: '#{n}',
+  titleUnlockStatHolders: 'Members',
+  titleUnlockStatTier: 'Tier',
+  titleUnlockStatCategory: 'Category',
+  titleUnlockPreviewLabel: 'Profile preview',
+  titleUnlockPreviewYou: 'Me',
 
   // Profile title chip
   titleChipEmpty: 'Add a title',

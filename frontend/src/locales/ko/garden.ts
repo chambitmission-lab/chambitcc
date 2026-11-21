@@ -55,6 +55,16 @@ export const garden = {
   titleUnlockEquipNow: '프로필에 달기',
   titleUnlockLater: '나중에',
   titleUnlockNext: '다음',
+  titleUnlockHiddenEyebrow: '히든 칭호',
+  titleUnlockNewEyebrow: '새 칭호',
+  titleUnlockStatTime: '받은 시각',
+  titleUnlockStatRank: '받은 순서',
+  titleUnlockRankValue: '{n}번째',
+  titleUnlockStatHolders: '받은 성도',
+  titleUnlockStatTier: '등급',
+  titleUnlockStatCategory: '분류',
+  titleUnlockPreviewLabel: '프로필 미리보기',
+  titleUnlockPreviewYou: '나',
 
   // 프로필 칭호 칩
   titleChipEmpty: '칭호 달기',
