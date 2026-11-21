@@ -20,6 +20,9 @@
   --tcl-tape: rgba(250, 228, 160, 0.72);
   --tcl-tape-2: rgba(190, 220, 255, 0.75);
   --tcl-shadow: rgba(60, 40, 10, 0.35);
+  /* 편지지 가장자리 — 종이 결의 얇은 테두리와 모서리 들뜸 음영 */
+  --tcl-paper-edge: rgba(120, 95, 50, 0.1);
+  --tcl-paper-lift: rgba(120, 95, 50, 0.07);
   --tcl-path: #c9b791;
   --tcl-ground: #d8ccb2;
   --tcl-time: #b86a00;
@@ -57,6 +60,8 @@
   --tcl-tape: rgba(250, 228, 160, 0.38);
   --tcl-tape-2: rgba(160, 200, 255, 0.35);
   --tcl-shadow: rgba(0, 0, 0, 0.6);
+  --tcl-paper-edge: rgba(255, 240, 210, 0.07);
+  --tcl-paper-lift: rgba(0, 0, 0, 0.18);
   --tcl-path: #7d7260;
   --tcl-ground: #4a443a;
   --tcl-time: #fbbf24;
@@ -99,17 +104,36 @@
   flex: 999 1 520px;
   min-width: 0;
   position: relative;
-  background: var(--tcl-paper);
-  border-radius: 4px;
+  background-color: var(--tcl-paper);
+  /* 모서리가 자로 잰 듯 똑같으면 화면 카드처럼 읽힌다 — 네 귀를 조금씩 다르게 굴려 손으로 뜯은 종이처럼 */
+  border-radius: 4px 7px 5px 8px / 7px 4px 8px 5px;
   padding: 18px 18px 20px 40px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05), 0 22px 40px -18px var(--tcl-shadow);
-  background-image: linear-gradient(90deg, transparent 26px, var(--tcl-margin) 26px, var(--tcl-margin) 27px, transparent 27px);
+  /* 1) 가장자리 결 테두리 — 책상과의 경계를 칼선 대신 종이 두께로
+   * 2) 바닥에 닿은 얇은 그림자  3) 가운데가 뜬 넓고 부드러운 그림자(두 겹으로 번지게) */
+  box-shadow:
+    inset 0 0 0 1px var(--tcl-paper-edge),
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 10px 18px -12px var(--tcl-shadow),
+    0 28px 48px -26px var(--tcl-shadow);
+  /* 여백 선 + 네 귀의 옅은 음영(살짝 들뜬 모서리) */
+  background-image:
+    linear-gradient(90deg, transparent 26px, var(--tcl-margin) 26px, var(--tcl-margin) 27px, transparent 27px),
+    radial-gradient(circle at 100% 100%, var(--tcl-paper-lift), transparent 56px),
+    radial-gradient(circle at 0 100%, var(--tcl-paper-lift), transparent 44px),
+    radial-gradient(circle at 100% 0, var(--tcl-paper-lift), transparent 36px);
 }
 @media (min-width: 1024px) {
   .tcl-paper {
     padding: 28px 40px 32px 80px;
-    transform: rotate(-0.6deg);
-    background-image: linear-gradient(90deg, transparent 54px, var(--tcl-margin) 54px, var(--tcl-margin) 55px, transparent 55px);
+    /* 기울인 상자는 가장자리가 계단처럼 깨진다 — 별도 레이어로 올려 매끈하게 그린다 */
+    transform: rotate(-0.6deg) translateZ(0);
+    backface-visibility: hidden;
+    outline: 1px solid transparent;
+    background-image:
+      linear-gradient(90deg, transparent 54px, var(--tcl-margin) 54px, var(--tcl-margin) 55px, transparent 55px),
+      radial-gradient(circle at 100% 100%, var(--tcl-paper-lift), transparent 90px),
+      radial-gradient(circle at 0 100%, var(--tcl-paper-lift), transparent 64px),
+      radial-gradient(circle at 100% 0, var(--tcl-paper-lift), transparent 52px);
   }
 }
 
@@ -206,7 +230,11 @@
 .tcl-tape {
   position: absolute;
   height: 26px;
-  background: var(--tcl-tape);
+  /* 마스킹 테이프 — 단색이면 색종이처럼 보인다. 결 따라 옅은 광택 띠와 가로 섬유 줄을 겹쳐 반투명 테이프로 */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0.04) 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 5px),
+    var(--tcl-tape);
   clip-path: polygon(3% 0, 97% 4%, 100% 22%, 97% 40%, 100% 60%, 97% 80%, 99% 100%, 2% 96%, 0 78%, 3% 58%, 0 38%, 3% 18%);
   pointer-events: none;
 }
@@ -227,14 +255,30 @@
   position: relative;
   display: block;
   width: 100%;
-  background: var(--tcl-frame);
+  /* 인화지 프레임 — 위는 빛을 받아 밝고 아래로 갈수록 아주 조금 가라앉는다. 귀는 1~2px만 굴린다 */
+  background: linear-gradient(175deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 40%, rgba(120, 95, 50, 0.05)), var(--tcl-frame);
+  border-radius: 2px 3px 2px 3px;
   padding: 12px 12px 0;
-  transform: rotate(2.4deg);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(60, 40, 10, 0.08), 0 18px 30px -10px var(--tcl-shadow);
-  transition: transform 0.25s ease;
+  /* 기울인 상자의 계단 깨짐 방지 — 편지지(.tcl-paper)와 같은 처방 */
+  transform: rotate(2.4deg) translateZ(0);
+  backface-visibility: hidden;
+  outline: 1px solid transparent;
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 95, 50, 0.08),
+    0 1px 1px rgba(0, 0, 0, 0.06),
+    0 2px 4px rgba(60, 40, 10, 0.08),
+    0 18px 30px -10px var(--tcl-shadow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   text-align: center;
 }
-.tcl-pol:hover { transform: rotate(0.8deg) translateY(-2px); }
+.tcl-pol:hover {
+  transform: rotate(0.8deg) translateY(-2px) translateZ(0);
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 95, 50, 0.08),
+    0 1px 1px rgba(0, 0, 0, 0.06),
+    0 4px 8px rgba(60, 40, 10, 0.08),
+    0 26px 38px -12px var(--tcl-shadow);
+}
 .tcl-pol:focus-visible { outline: 2px solid var(--tcl-link); outline-offset: 4px; }
 .tcl-pol-tape { top: -13px; left: 50%; width: 104px; margin-left: -52px; transform: rotate(-4deg); }
 .tcl-pol-photo {
@@ -245,12 +289,21 @@
   background-size: cover;
   background-position: 68% center;
   filter: saturate(0.88) contrast(0.96) sepia(0.08);
+  /* 폴라로이드가 현상되듯 — 바랜 빛에서 색이 천천히 올라온다(화면에 들어올 때 한 번) */
+  animation: tcl-pol-develop 2.2s ease-out both;
+}
+/* 장르별 사진은 정사각 원본이라 가운데 그대로 */
+.tcl-pol-photo.is-genre { background-position: center; }
+@keyframes tcl-pol-develop {
+  from { filter: saturate(0.2) contrast(0.7) sepia(0.35) brightness(1.18); }
+  to { filter: saturate(0.88) contrast(0.96) sepia(0.08); }
 }
 .tcl-pol-photo::after {
   content: '';
   position: absolute;
   inset: 0;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 0 40px rgba(80, 50, 10, 0.18);
+  /* 프레임 안으로 살짝 꺼진 인화면 — 윗변에만 얇은 그늘 */
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 2px 3px rgba(0, 0, 0, 0.1), inset 0 0 40px rgba(80, 50, 10, 0.18);
   background: linear-gradient(125deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 32%, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, 0.12) 100%);
 }
 .tcl-pol-date {
@@ -264,6 +317,12 @@
   letter-spacing: 1px;
   color: #ff8a3d;
   text-shadow: 0 0 4px rgba(255, 120, 40, 0.6);
+  /* 날짜는 사진이 거의 다 올라온 뒤에 찍힌다 */
+  animation: tcl-pol-date-in 0.6s ease-out 1.6s both;
+}
+@keyframes tcl-pol-date-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .tcl-pol-cap {
   height: 56px;
@@ -412,4 +471,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tcl-pol { transition: none; }
+  .tcl-pol-photo,
+  .tcl-pol-date { animation: none; }
 }

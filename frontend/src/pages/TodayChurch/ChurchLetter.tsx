@@ -6,6 +6,7 @@ import { useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { ChurchDay, ChurchMetricKey } from '../../api/todayChurch'
 import { chapterLabel } from '../../utils/bibleLabels'
+import { getBookGenre } from '../../components/bible/bookGenre'
 import { ensureFontFamily } from '../../utils/deferredFonts'
 import { buildLetter, EMOTION_NOTE, filmDate, prayerMoments, weekdayOf, type PrayerMoment } from './churchLetterCopy'
 import './styles/churchLetter.css'
@@ -82,6 +83,14 @@ const Letter = ({ church }: { church: ChurchDay }) => {
 }
 
 // ── 폴라로이드 ────────────────────────────────────────
+/* 폴라로이드 사진 — 어제 가장 많이 펼친 책의 장르(BOOK_GENRES 8개)마다 양 한 마리가 다른 곳에서 책을 편다.
+ * 사람은 등장하지 않는다(사용자 요청). 그림은 밤 장면 한 벌이라 라이트/다크 공용. */
+const POLAROID_GENRES = new Set(['law', 'history', 'poetry', 'prophets', 'gospels', 'acts', 'epistles', 'revelation'])
+const polaroidPhoto = (bookNumber: number) => {
+  const id = getBookGenre(bookNumber).id
+  return POLAROID_GENRES.has(id) ? `url('/images/today/polaroid-${id}.webp')` : undefined
+}
+
 const Polaroid = ({ church }: { church: ChurchDay }) => {
   const navigate = useNavigate()
   const top = church.top_chapters[0]
@@ -92,12 +101,17 @@ const Polaroid = ({ church }: { church: ChurchDay }) => {
       ? { title: book.book_name, sub: '어제 가장 많이 읽은 책', to: `/bible/${book.book_number}/1` }
       : null
   if (!pick) return null
+  const photo = polaroidPhoto(top?.book_number ?? book!.book_number)
   const others = church.top_chapters.slice(1, 3)
   return (
     <div className="tcl-pol-wrap">
       <button type="button" className="tcl-pol" onClick={() => navigate(pick.to)} aria-label={`${pick.title} 펼치기 — ${pick.sub}`}>
         <span className="tcl-tape tcl-pol-tape" aria-hidden />
-        <span className="tcl-pol-photo" aria-hidden>
+        <span
+          className={`tcl-pol-photo${photo ? ' is-genre' : ''}`}
+          style={photo ? { backgroundImage: photo } : undefined}
+          aria-hidden
+        >
           <span className="tcl-pol-date">{filmDate(church.date)}</span>
         </span>
         <span className="tcl-pol-cap">
