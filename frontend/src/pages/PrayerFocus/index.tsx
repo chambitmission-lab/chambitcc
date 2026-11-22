@@ -28,6 +28,7 @@ import CarryPicker from './CarryPicker'
 import CarryCards from './CarryCards'
 import { CARRY_MAX, useCarryCandidates, type CarryItem } from './carryPrayers'
 import { tokenStore } from '../../utils/tokenStore'
+import { preloadRoute } from '../../utils/routePreload'
 
 type Stage = 'setup' | 'ritual' | 'praying'
 
@@ -513,6 +514,19 @@ const PrayerFocus = () => {
           <h2 className="font-serif-kr text-[22px] lg:text-[28px] leading-relaxed text-white/95">{tx(mood.greetingKey)}</h2>
           <p className="mt-1.5 text-[13px] lg:text-[16px] text-white/40 lg:text-white/65">{t('focusGreetingSub')}</p>
         </div>
+
+        {/* 기도멍 — 타이머 없이 향연을 바라보며 그냥 머무는 곳 */}
+        <button
+          type="button"
+          onClick={() => navigate('/prayer-rest')}
+          onPointerEnter={() => void preloadRoute('/prayer-rest')}
+          onPointerDown={() => void preloadRoute('/prayer-rest')}
+          className="-mt-3 mb-6 inline-flex items-center gap-1.5 text-[12.5px] lg:text-[15px] text-white/50 hover:text-white/80 transition-colors font-serif-kr"
+        >
+          <span className="material-icons-outlined text-[15px] lg:text-[18px]" style={{ color: CANDLE_TONE.textMuted }}>water_drop</span>
+          시간 없이, 그냥 머물기 · 비 오는 창가
+          <span className="material-icons-outlined text-[15px] lg:text-[18px]">chevron_right</span>
+        </button>
 
         {/* 지난 기도 그대로 — 조용한 원탭 재시작 */}
         {lastSetup && (

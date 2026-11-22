@@ -1,0 +1,266 @@
+/* 기도멍 — 비 오는 밤 창가. 다크 고정, 앱 테마와 무관하게 같은 밤.
+   창틀·창턱은 요즘 집의 얇은 검은 알루미늄 새시 + 무광 창턱(나무 테·촛불 없음). */
+
+.pr-root {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  height: var(--vvh, 100dvh);
+  overflow: hidden;
+  color: #eceef3;
+  background: #0b0f1d;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── 숨김 문법: 손대지 않으면 크롬이 스르르 사라진다 */
+.pr-chrome,
+.pr-chrome-soft {
+  transition: opacity 1.6s ease;
+}
+.pr-root.is-quiet .pr-chrome {
+  opacity: 0;
+  pointer-events: none;
+}
+.pr-root.is-quiet .pr-chrome-soft {
+  opacity: 0.35;
+}
+
+/* ── 위 */
+.pr-top {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+.pr-title {
+  font-size: 14px;
+  letter-spacing: 0.24em;
+  padding-left: 0.24em;
+  color: rgba(236, 238, 243, 0.62);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+.pr-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: rgba(236, 238, 243, 0.78);
+  background: rgba(12, 14, 22, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background 0.2s, color 0.2s;
+}
+.pr-icon-btn:hover { background: rgba(12, 14, 22, 0.5); }
+.pr-icon-btn.is-on { color: #bcd3ff; }
+.pr-icon-btn .material-icons-outlined { font-size: 21px; }
+
+/* ── 말씀 ↔ 올려드린 뒤 한 줄 — 같은 자리에서 교차한다 */
+.pr-under {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(env(safe-area-inset-top, 0px) + 70px);
+  z-index: 3;
+  display: grid;
+  place-items: start center;
+  pointer-events: none;
+}
+.pr-under > * { grid-area: 1 / 1; }
+.pr-verse {
+  text-align: center;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: rgba(236, 238, 243, 0.72);
+  text-shadow: 0 1px 10px rgba(8, 10, 20, 0.6);
+  word-break: keep-all;
+  padding: 0 28px;
+  transition: opacity 1.2s ease;
+}
+.pr-verse.is-away { opacity: 0 !important; }
+.pr-verse span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  color: rgba(236, 238, 243, 0.48);
+}
+.pr-heard {
+  text-align: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 1.4s ease, transform 1.4s ease;
+  padding: 0 24px;
+}
+.pr-heard.is-shown {
+  opacity: 1;
+  transform: none;
+  transition-delay: 2.2s;
+}
+.pr-heard p {
+  font-size: 17px;
+  color: #f2f4f8;
+  text-shadow: 0 1px 12px rgba(8, 10, 20, 0.7);
+}
+.pr-heard span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(236, 238, 243, 0.6);
+  text-shadow: 0 1px 8px rgba(8, 10, 20, 0.7);
+  word-break: keep-all;
+}
+
+/* ── 창 — 얇은 검은 새시 */
+.pws-frame {
+  position: absolute;
+  inset: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 190px);
+  border: 7px solid #121418;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    inset 0 0 50px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 1;
+}
+/* 창턱 + 실내 벽 — 글상자가 놓이는 곳. 창 너머 빛이 창턱 윗면에 살짝 떨어진다 */
+.pws-sill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(env(safe-area-inset-bottom, 0px) + 190px);
+  background: linear-gradient(180deg, #2b2f37 0px, #1c1f25 9px, #0e1014 10px, #0a0b0e 100%);
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.09);
+  pointer-events: none;
+  z-index: 1;
+}
+.pws-sill::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 0;
+  height: 9px;
+  background: radial-gradient(60% 100% at 50% 0%, rgba(190, 205, 235, 0.16), transparent);
+}
+
+/* 창턱 바로 위 — 함께 깨어 있는 사람 */
+.pws-vigil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 202px);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  color: rgba(236, 238, 243, 0.78);
+  text-shadow: 0 1px 10px rgba(8, 10, 20, 0.7);
+  pointer-events: none;
+  text-align: center;
+  padding: 0 20px;
+}
+.pws-vigil-dot {
+  width: 6px;
+  height: 6px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: #ffcf8a;
+  box-shadow: 0 0 10px 2px rgba(255, 196, 120, 0.6);
+  animation: pws-dot 3.2s ease-in-out infinite;
+}
+@keyframes pws-dot {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+.pws-vigil-sub {
+  font-size: 11.5px;
+  color: rgba(236, 238, 243, 0.52);
+  word-break: keep-all;
+}
+
+/* ── 아래 글상자 (창턱 위) */
+.pr-compose {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  display: flex;
+  justify-content: center;
+}
+.pr-compose-card {
+  width: min(560px, 100%);
+  border-radius: 20px;
+  padding: 6px 6px 8px;
+  background: rgba(30, 33, 40, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.pr-textarea {
+  display: block;
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 12px 14px 6px;
+  font-size: 16px; /* iOS 확대 방지 */
+  line-height: 1.7;
+  color: #f2f4f8;
+}
+.pr-textarea::placeholder { color: rgba(236, 238, 243, 0.38); }
+.pr-compose-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 6px 0 14px;
+}
+.pr-compose-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: rgba(236, 238, 243, 0.42);
+}
+.pr-compose-note .material-icons-outlined { font-size: 13px; }
+.pr-offer-btn {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #10131a;
+  background: #e9edf5;
+  transition: opacity 0.3s, transform 0.15s;
+}
+.pr-offer-btn:active { transform: scale(0.97); }
+.pr-offer-btn:disabled { opacity: 0.32; }
+
+@media (min-width: 1024px) {
+  .pr-title { font-size: 16px; }
+  .pr-verse { font-size: 16px; }
+  .pws-vigil { font-size: 15px; }
+  .pws-vigil-sub { font-size: 13px; }
+  .pr-textarea { font-size: 17px; }
+  .pr-compose-note { font-size: 13px; }
+  .pr-heard p { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pws-vigil-dot { animation: none; }
+}

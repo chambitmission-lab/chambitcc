@@ -6,6 +6,7 @@ import {
   classReportLoader,
   groupDetailLoader,
   menuRouteLoaders,
+  prayerRestLoader,
   prayerTopicsLoader,
   thanksLoader,
 } from '../utils/routePreload'
@@ -13,6 +14,7 @@ import {
 // 나의 신앙·공동체 — 기도·감사·그룹·반·묵상방·동행·타임캡슐·손글씨 필사대회·게임/회상 화면
 
 const PrayerFocus = lazy(menuRouteLoaders['/prayer-focus'])
+const PrayerRest = lazy(prayerRestLoader)
 const WeeklyPrayerTopics = lazy(prayerTopicsLoader)
 const WeeklyPrayerScreen = lazy(() => import('../pages/Prayer/WeeklyPrayerScreen'))
 const AnsweredPrayers = lazy(menuRouteLoaders['/answered-prayers'])
@@ -49,6 +51,7 @@ const HandwritingContestCard = lazy(() => import('../pages/HandwritingContest/Co
 export const communityRoutes = (
   <>
     <Route path="/prayer-focus" element={<PrayerFocus />} />
+    <Route path="/prayer-rest" element={<PrayerRest />} />
     <Route path="/prayer-topics" element={<WeeklyPrayerTopics />} />
     <Route path="/prayer-topics/screen" element={<WeeklyPrayerScreen />} />
     <Route path="/answered-prayers" element={<AnsweredPrayers />} />

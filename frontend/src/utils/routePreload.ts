@@ -35,6 +35,8 @@ export const genealogyLoader: RouteLoader = () => import('../pages/Bible/Genealo
 // 약속과 성취 지도 — 읽기 화면 약속 시트의 꼬리 링크로만 들어온다 (메뉴 스윕엔 넣지 않는다)
 export const promiseMapLoader: RouteLoader = () => import('../pages/Bible/Messiah/PromiseMap')
 export const pastorHomeLoader: RouteLoader = () => import('../pages/Pastor/PastorHome')
+// 기도멍(비 오는 창가) — /prayer-focus 첫 화면 '그냥 머물기' 버튼으로만 들어온다 (메뉴 스윕엔 넣지 않는다)
+export const prayerRestLoader: RouteLoader = () => import('../pages/PrayerRest')
 
 // 관리자 화면 — 관리 메뉴(AdminMenu) 항목 호버·터치 때 받는다. 메뉴 스윕·유휴 프리로드엔 넣지 않는다
 // (29개를 관리자가 아닌 사람까지 받을 이유가 없다). routes/adminRoutes.tsx 의 lazy 가 같은 함수를 쓴다
@@ -295,6 +297,7 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'elections/detail', match: /^\/elections\/[^/]+$/, load: () => import('../pages/Election/ElectionDetail') },
   // 홈 카드 목적지 — 감사 티커·공동 기도제목 배너·묵상 카드(알람·이어서 묵상)·PC 레일 벤토
   { key: 'thanks', match: /^\/thanks$/, load: thanksLoader },
+  { key: 'prayer-rest', match: /^\/prayer-rest$/, load: prayerRestLoader },
   { key: 'prayer-topics', match: /^\/prayer-topics$/, load: prayerTopicsLoader },
   { key: 'bible/meditation', match: /^\/bible\/meditation$/, load: meditationLoader },
   { key: 'bible/alarm', match: /^\/bible\/alarm$/, load: verseAlarmLoader },
