@@ -17,6 +17,8 @@
  * 프레임마다 그라데이션을 수십 개씩 새로 만들지 않는다. */
 
 import { readSnowMemory, saveSnowMemory } from './railSnowMemory'
+import { RIDGE_F_PTS, RIDGE_L_PTS as RIDGE_L_ALL } from './railGeometry'
+import { claimStrike } from './railStrike'
 
 export type RailWeatherMode = 'drizzle' | 'rain' | 'storm' | 'snow' | 'blizzard'
 /* 엔진이 그릴 수 있는 장면 — 날씨 다섯 + 눈 그친 뒤 */
@@ -45,9 +47,9 @@ const MAILBOX: Record<RailTheme, { l: number; r: number; y: number }> = {
 }
 // 그림 속 능선(이미지 기준 y) — 하늘 경계는 그림에서 읽고, 앞의 두 능선은 손으로 짚었다.
 // 삽화(rail/bottom-*.webp)를 다시 구우면 이 좌표도 함께 확인해야 한다.
-const RIDGE_L_PTS: [number, number][] = [[70, 207], [80, 212], [92, 218], [104, 221], [116, 223], [128, 226], [140, 231], [150, 235]]
-const RIDGE_F_PTS: [number, number][] = [[34, 277], [44, 272], [56, 269], [68, 268], [80, 265], [92, 261], [104, 255], [116, 251], [128, 246],
-  [140, 242], [152, 239.5], [158, 239], [194, 239.5], [200, 238.5], [212, 240], [224, 245], [236, 248], [246, 252]]
+// 뒷언덕은 원래 x 70~150 만 썼다 — 공유 좌표(railGeometry)는 왼쪽 마루까지 늘렸으므로 여기선 그 구간만 잘라 쓴다
+const RIDGE_L_PTS = RIDGE_L_ALL.filter(([x]) => x >= 70)
+// 앞 능선은 나무 연출(railTreeScene)도 함께 쓴다 — railGeometry.ts 한 곳에 둔다
 
 interface Variant {
   kind: 'rain' | 'snow'
@@ -539,6 +541,13 @@ export class RailWeatherScene {
     const c = this.cfg, res = this.res
     if (!c.bolt || !res) return
     let bolt: Bolt | null = null
+    // 아주 드물게 나무가 번개를 맞는다(다크·폭풍) — 그때는 나무 캔버스가 번개를 긋는다(railStrike.ts)
+    const hit = c.bolt === 'near' ? claimStrike(this.cv.parentElement) : null
+    if (hit) {
+      this.strike = { t0: this.time, bolt: null, bx: hit.x }
+      this.nextStrike = this.time + randIn(c.every ?? [10, 20])
+      return
+    }
     if (c.bolt === 'near') {
       const ex = Math.random() < 0.5 ? rand(120, 158) : rand(196, 215)
       bolt = makeBolt(ex + rand(-40, 40), this.top - 10, ex, res.sky[Math.round(ex)] + 2, 28, 2)

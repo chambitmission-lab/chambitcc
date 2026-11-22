@@ -53,12 +53,15 @@ interface Props {
   /** 지금 테마의 삽화 경로 (RAIL_BOTTOM 쌍 중 하나) */
   src: string
   theme: RailTheme
+  /** 시연용 — 실제 날씨·미리보기 키 대신 이 장면을 띄운다 */
+  forceMode?: RailSceneMode
 }
 
-export default function RailWeatherFx({ src, theme }: Props) {
+export default function RailWeatherFx({ src, theme, forceMode }: Props) {
   const { weather } = useCurrentWeather()
   const reduced = usePrefersReducedMotion()
-  const [preview] = useState(readPreview)
+  const [storedPreview] = useState(readPreview)
+  const preview = forceMode ?? storedPreview
   const live = weatherToRailMode(weather)
 
   /* 눈 그친 뒤 — 방금까지 눈이 왔거나, 레일이 다시 떴는데 기억해 둔 눈이 남아 있으면 켠다 */

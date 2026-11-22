@@ -1,0 +1,56 @@
+/* /#/dev/rail-seasons — 사계절 나무 시연 */
+.rsn-page {
+  min-height: 100vh;
+  padding: 32px 24px 64px;
+  background: var(--surface);
+  color: var(--text-strong);
+}
+.rsn-head {
+  max-width: 1400px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.rsn-head h1 { font-size: 22px; font-weight: 800; }
+.rsn-head p { margin-top: 6px; font-size: 14px; color: var(--text-body); }
+.rsn-actions { display: flex; gap: 8px; }
+.rsn-actions button,
+.rsn-scrub button {
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 700;
+  font-size: 14px;
+}
+.rsn-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 248px);
+  gap: 28px 24px;
+}
+.rsn-col figcaption { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; min-height: 56px; }
+.rsn-col figcaption b { font-size: 16px; font-weight: 800; }
+.rsn-col figcaption span { font-size: 12.5px; color: var(--text-body); line-height: 1.45; }
+/* 레일 칸과 같은 폭·바탕 — 실제 레일의 삽화 칸 높이(≈300px) */
+.rsn-rail {
+  width: 248px;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--desktop-chrome, var(--surface));
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.rsn-art {
+  display: block !important;
+  flex: 1 1 auto;
+  margin: 0 !important;
+}
+.rsn-scrub { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+.rsn-scrub input { flex: 1; accent-color: var(--brand); }
+.rsn-actions button.is-on { background: var(--brand); color: #fff; }

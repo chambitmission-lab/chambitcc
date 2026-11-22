@@ -95,6 +95,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['bulletin-hero', () => import('../pages/dev/BulletinHeroPreview')],
       // PC 좌측 레일 '나누기' 버튼 × 하단 삽화 어울림 시안 — 지금/A/B/C/D
       ['rail-share', () => import('../pages/dev/RailSharePreview')],
+      // PC 좌측 레일 하단 삽화 사계절 나무 시연 — 봄·여름·가을·겨울(눈) + 한 해 흘려 보기
+      ['rail-seasons', () => import('../pages/dev/RailSeasonsPreview')],
       // /sermon 설교 영상 모달 감성 개편 시안 — ?v=a|b|c|d, &device=mobile
       ['sermon-player', () => import('../pages/dev/SermonPlayerPreview')],
       // 설교 극장 사계절 색 시안 — ?s=none|spring|summer|autumn|winter, &fx=1 계절 입자

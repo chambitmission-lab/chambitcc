@@ -32,6 +32,7 @@ import { useDesktopRailVisible } from './useDesktopRailVisible'
 import RailWeatherFx from './railWeather/RailWeatherFx'
 import RailSun from './railWeather/RailSun'
 import RailClouds from './railWeather/RailClouds'
+import RailTree from './railWeather/RailTree'
 import './DesktopNavRail.css'
 
 /** 라벨이 보이는 폭(xl)인가 — 하단 삽화는 이 폭에서만 쓰므로, 좁은 화면 사용자에게는
@@ -379,6 +380,8 @@ const DesktopNavRail = () => {
           {railArtReady && <RailSun />}
           {/* 갠 날의 옅은 하늘빛 구름 — 해 앞을 천천히 지나간다(비·눈일 때는 캔버스의 먹구름이 대신한다) */}
           {railArtReady && <RailClouds />}
+          {/* 사계절 나무 — 예배당 왼쪽 앞 언덕(2026-11-22 시연). 해·구름보다 앞(나무 뒤로 해가 지나간다) */}
+          {railArtReady && <RailTree theme={theme} />}
         </div>
       )}
 
