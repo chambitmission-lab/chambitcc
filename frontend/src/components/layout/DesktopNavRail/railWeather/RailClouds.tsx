@@ -12,7 +12,7 @@ import { weatherToRailMode } from './railWeatherMode'
  *  - 안개      : 구름 대신 능선에 걸친 안개 띠 두 줄(.rail-fog)
  *  - 비·눈     : 없음(캔버스 몫)
  * 바탕이 밝은 회색(#f1f3f6)이라 흰 구름은 안 보인다 — 바탕보다 살짝 짙은 푸른 워시로 그린다.
- * 움직임은 CSS 애니메이션(transform)뿐이라 JS 루프가 없다. 동작 줄이기면 제자리에 멈춘다. */
+ * 움직임은 CSS 애니메이션(transform, 계단식 — 아래 STEPS_PER_SEC)뿐이라 JS 루프가 없다. 동작 줄이기면 제자리에 멈춘다. */
 
 type Sky = 'clear' | 'partly' | 'overcast'
 
@@ -23,6 +23,9 @@ const CLOUDS = [
   { k: 0.36, scale: 0.85, dur: 180, delay: -105 },
   { k: 0.82, scale: 0.6, dur: 240, delay: -20 },
 ]
+/* 구름은 초당 2px 남짓 움직인다 — 매 프레임(60fps) 옮기면 마스크 걸린 칸 전체를 그때마다 다시 합성한다.
+ * 초당 5번만 옮겨도(한 걸음 ≈0.4px) 눈에는 같다(2026-11-22 실측: 레일 상시 비용의 절반 이상이 구름이었다) */
+const STEPS_PER_SEC = 5
 const COUNT: Record<Sky, number> = { clear: 2, partly: 3, overcast: 4 }
 
 export default function RailClouds() {
@@ -56,6 +59,7 @@ export default function RailClouds() {
               '--ck': c.k,
               '--cs': c.scale,
               animationDuration: `${c.dur}s`,
+              animationTimingFunction: `steps(${c.dur * STEPS_PER_SEC})`,
               animationDelay: `${c.delay}s`,
             } as CSSProperties
           }

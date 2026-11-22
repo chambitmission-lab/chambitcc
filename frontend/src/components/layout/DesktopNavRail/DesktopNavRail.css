@@ -374,7 +374,8 @@
   width: 368px;
   height: 52px;
   background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(var(--fog), var(--fog-a)), rgba(var(--fog), 0) 100%);
-  animation: rail-fog-drift 70s ease-in-out infinite alternate;
+  /* 계단식 — 초당 3번쯤만 옮긴다(매 프레임 합성 방지, 구름과 같은 이유) */
+  animation: rail-fog-drift 70s steps(210) infinite alternate;
   will-change: transform;
 }
 .rail-fog > span + span {

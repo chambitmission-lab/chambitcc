@@ -523,7 +523,7 @@ interface Sprout { x: number; y: number; blades: { a: number; len: number; bend:
 /* ── 번개 맞은 나무 (다크·폭풍, 아주 드물게) ────────────────
    번개 한 번에 3% — 폭풍은 6~11초마다 치니 폭풍 속에서 대략 5분에 한 번꼴. 한 번 타면 10분은 다시 안 탄다.
    불은 빗속이라 오래 못 간다: 1.5초에 번져 9초까지 타오르다 24초쯤 꺼지고, 김·연기가 조금 더 남는다 */
-const FIRE_CHANCE = 0.03
+const FIRE_CHANCE = 0.2
 const FIRE_COOLDOWN_MS = 10 * 60 * 1000
 const FIRE_LEN = 24
 /* 꺼진 뒤 김·연기가 남는 시간 — 2026-11-22 "꺼질 때 연기가 더 나면 자연스럽겠다"로 10 → 18초 */
@@ -778,7 +778,7 @@ export class RailTreeScene {
     this.flies.push(f)
   }
 
-  /** 날씨 엔진이 번개를 칠 때 묻는다 — 다크 테마·폭풍(바람 세기 ≥ 2.9)에서만, 아주 드물게 받는다 */
+  /** 날씨 엔진이 번개를 칠 때 묻는다 — 다크 테마·폭풍(바람 세기 ≥ 2.9)에서만, 다섯 번에 한 번쯤 받는다(쿨다운 10분) */
   claimStrike(): StrikeHit | null {
     if (this.theme !== 'dark' || this.opts.still || this.fireT !== null || this.wind < 2.9) return null
     const forced = takeArmed()
@@ -1117,6 +1117,16 @@ export class RailTreeScene {
 
   get animating() {
     return !this.opts.still
+  }
+
+  /** 빠르게 그려야 할 것이 있나 — 날리는 잎·꽃잎, 바람 한 자락, 비, 불, 피어나기.
+   *  없으면 느린 흔들림뿐이라 루프(RailTree)가 프레임을 낮춘다 */
+  get busy() {
+    return (
+      this.fireT !== null || this.rainMode !== null || this.bloomIn < 1 || this.gustT < 6 ||
+      this.drops.length > 0 || this.splats.length > 0 || this.drips.length > 0 || this.sparks.length > 0 ||
+      this.flies.some((f) => !f.landed)
+    )
   }
 
   update(dt: number) {

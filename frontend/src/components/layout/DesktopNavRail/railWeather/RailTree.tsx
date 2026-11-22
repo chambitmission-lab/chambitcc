@@ -45,6 +45,8 @@ const usePrefersReducedMotion = () => {
 }
 
 const FRAME_MS = 1000 / 24
+/* 날리는 잎·비·불이 없을 때는 느린 흔들림뿐이다 — 10fps 면 충분하다(레일은 모든 화면에 떠 있다) */
+const IDLE_FRAME_MS = 1000 / 10
 
 interface Props {
   theme: RailTheme
@@ -116,8 +118,10 @@ export default function RailTree({ theme, date, weatherMode, demo, placement = '
         const dt = Math.min(0.1, (now - last) / 1000)
         last = now
         acc += dt * 1000
-        if (acc < FRAME_MS || !sized || !scene) return
-        const step = Math.min(0.08, acc / 1000)
+        if (!sized || !scene) return
+        if (acc < (scene.busy ? FRAME_MS : IDLE_FRAME_MS)) return
+        // 한 걸음의 상한 — 느린 프레임(100ms)에서도 시간이 느려지지 않게
+        const step = Math.min(0.15, acc / 1000)
         acc = 0
         scene.update(step)
         scene.draw()
