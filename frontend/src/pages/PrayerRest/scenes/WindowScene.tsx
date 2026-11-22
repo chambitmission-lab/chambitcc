@@ -11,7 +11,7 @@
 //    정한다. 캔버스를 조금씩 지워 서서히 사라지게 하면 8비트 알파 반올림에 막혀 자국이 영영 남는다
 //    (1차 시안의 검은 줄기 원인).
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
-import { fitCanvas } from './glyphLayout'
+import { fitCanvas, wrapPrayerText, type WrappedLine } from './glyphLayout'
 import type { SceneHandle, SceneProps } from './types'
 
 /** 창턱(글상자 자리) 높이 — CSS .pws-sill 과 같은 값 */
@@ -111,31 +111,25 @@ const WindowScene = forwardRef<SceneHandle, SceneProps>(({ others }, ref) => {
       // 손가락 글씨 크기 — 길면 줄여 유리 안에 들인다. 한 블록은 유리 폭의 80%까지만
       const maxW = Math.min(w * 0.8, 520)
       let size = Math.max(24, Math.min(36, w * 0.07))
-      let lines: string[] = []
+      let lines: WrappedLine[] = []
       for (;;) {
         measure.font = `500 ${size}px ${family}`
-        lines = []
-        let cur = ''
-        for (const ch of Array.from(layout.text)) {
-          if (ch === '\n') {
-            lines.push(cur)
-            cur = ''
-            continue
-          }
-          if (measure.measureText(cur + ch).width > maxW && cur) {
-            lines.push(cur)
-            cur = ch.trim() ? ch : ''
-            continue
-          }
-          cur += ch
-        }
-        if (cur) lines.push(cur)
-        if (lines.length * size * 1.45 <= room * 0.8 || size <= 15) break
+        lines = wrapPrayerText(layout.text, (t) => measure.measureText(t).width, maxW)
+        const units = lines.reduce((sum, l) => sum + 1 + l.gap, 0)
+        if (units * size * 1.45 <= room * 0.8 || size <= 15) break
         size -= 2
       }
       const lh = size * 1.45
-      const bw = Math.max(...lines.map((l) => measure.measureText(l).width))
-      const bh = lines.length * lh
+      // 줄마다 가운데 y — 문단 간격만큼 아래로 밀린다
+      const lineYs: number[] = []
+      let acc = 0
+      for (const l of lines) {
+        acc += l.gap * lh
+        lineYs.push(acc + lh / 2)
+        acc += lh
+      }
+      const bw = Math.max(1, ...lines.map((l) => measure.measureText(l.text).width))
+      const bh = acc
 
       // ── 자리 고르기 — 아직 남아 있는 글씨와 가장 덜 겹치는 곳 (새 글씨일수록 피한다)
       const now = clockRef.current
@@ -173,15 +167,15 @@ const WindowScene = forwardRef<SceneHandle, SceneProps>(({ others }, ref) => {
       const chars: Block['chars'] = []
       let order = 0
       lines.forEach((ln, li) => {
-        const lw = measure.measureText(ln).width
+        const lw = measure.measureText(ln.text).width
         let x = pad + (bw - lw) / 2
-        for (const ch of Array.from(ln)) {
+        for (const ch of Array.from(ln.text)) {
           const cw = measure.measureText(ch).width
           if (ch.trim()) {
             chars.push({
               ch,
               x: x + cw / 2,
-              y: pad + li * lh + lh / 2,
+              y: pad + lineYs[li],
               at: now + 0.2 + order * WRITE_STEP,
               done: false,
               drip: Math.random() < 0.22 ? rand(1, 4) : -1,
