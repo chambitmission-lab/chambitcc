@@ -37,6 +37,8 @@ export const home = {
   homeWeatherSundayRain1: 'Rain is coming this Sunday — bring an umbrella, and a clear heart',
   homeWeatherSundayRain2: 'Even a rainy Sunday shines with grace, so keep an umbrella close',
   homeWeatherSundayRain3: 'If rain greets you Sunday morning, take an umbrella along',
+  homeRainWindow: "It's raining · Sit by the window with the rain for a while",
+  homeRainWindowAria: 'Rest and pray by the rainy window',
   homePassageFromVerse: 'From v.{v} · ~{m} min',
   homePassageMinutes: '~{m} min',
   homeTodaysQuestion: "Today's Question",

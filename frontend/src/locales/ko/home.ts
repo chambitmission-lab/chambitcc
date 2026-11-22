@@ -37,6 +37,8 @@ export const home = {
   homeWeatherSundayRain1: '주일에 비가 온대요 — 우산 챙기고, 마음은 맑게 오세요',
   homeWeatherSundayRain2: '비 오는 주일도 은혜는 맑음이에요, 우산 잊지 마세요',
   homeWeatherSundayRain3: '주일 아침 빗소리가 들리면, 우산 하나 챙겨 주세요',
+  homeRainWindow: '비가 오네요 · 빗소리 들으며 창가에 잠시 머물러요',
+  homeRainWindowAria: '비 오는 창가에서 기도하며 머물기',
   homePassageFromVerse: '{v}절부터 · 약 {m}분',
   homePassageMinutes: '약 {m}분',
   homeTodaysQuestion: '오늘의 질문',

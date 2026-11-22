@@ -435,6 +435,10 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const showPop = pop !== null && pop >= POP_VISIBLE_THRESHOLD
   /* 우산 안내도 칩과 같은 판단선을 쓴다 — 낮은 확률까지 알리면 양치기 소년이 된다 */
   const showSundayRain = sundayPop !== null && sundayPop >= POP_VISIBLE_THRESHOLD
+  /* 비 오는 창가(/prayer-rest) 입구 — 교회 좌표에 지금 비가 올 때만 헤드라인 아래 한 줄로.
+   * 눈은 제외(창가 장면이 빗방울이라). dev 서버에선 홈 주소에 ?rain=1 을 붙여 미리 본다 */
+  const rainDemo = import.meta.env.DEV && window.location.hash.includes('rain=1')
+  const showRainWindow = (weather && (condition === 'rain' || condition === 'drizzle' || condition === 'thunder')) || rainDemo
   /* 지금 이미 비·눈 연출이 흐르고 있으면 힌트 가랑비는 겹치지 않는다 */
   const showRainHint = showSundayRain && !isRaining && !isSnowing
   const todayDoy = dayOfYear(today)
@@ -650,7 +654,23 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             {/* 주일 우산 속삭임 — 주일이 가까우면서(3일 내) 비 확률이 높을 때만.
               * 알림 박스가 아니라 풍경 속 한 줄로, 헤드라인 아래에 나직이 얹힌다.
               * 이 카드에서 날씨가 하는 일은 예보가 아니라 예배 가는 길을 챙기는 것. */}
-            {showSundayRain && (
+            {/* 지금 비가 오면 창가 입구가 우산 속삭임 자리를 대신한다 — 이미 비가 오니 우산은 알고 있다 */}
+            {showRainWindow && (
+              <button
+                type="button"
+                className="meditation-hero-whisper meditation-rain-window"
+                aria-label={t('homeRainWindowAria')}
+                onPointerEnter={() => void preloadRoute('/prayer-rest')}
+                onPointerDown={() => void preloadRoute('/prayer-rest')}
+                onFocus={() => void preloadRoute('/prayer-rest')}
+                onClick={() => navigate('/prayer-rest')}
+              >
+                <WeatherGlyph name="drop" size={14} />
+                <span>{t('homeRainWindow')}</span>
+                <span className="meditation-rain-window-arrow" aria-hidden>›</span>
+              </button>
+            )}
+            {showSundayRain && !showRainWindow && (
               <p className="meditation-hero-whisper">
                 <WeatherGlyph name="umbrella" size={14} />
                 {t(SUNDAY_RAIN_WHISPER_KEYS[todayDoy % SUNDAY_RAIN_WHISPER_KEYS.length])}

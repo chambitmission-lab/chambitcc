@@ -64,6 +64,34 @@
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
+/* 비 오는 창가 입구 — 속삭임과 같은 결의 한 줄이되, 누를 수 있음을 옅은 유리 밑줄과 › 로만 알린다 */
+.meditation-rain-window {
+  align-items: center;
+  padding: 4px 10px 4px 8px;
+  margin-left: -8px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(150, 190, 240, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(200, 225, 255, 0.18);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.meditation-rain-window > svg {
+  margin-top: 0;
+}
+.meditation-rain-window:hover {
+  background: rgba(150, 190, 240, 0.24);
+}
+.meditation-rain-window-arrow {
+  margin-left: 2px;
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
 @keyframes meditation-whisper-in {
   from {
     opacity: 0;
