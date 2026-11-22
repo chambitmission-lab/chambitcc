@@ -137,8 +137,9 @@ const PALETTE: Record<RailTheme, Palette> = {
     barkLight: '#3b414b',
     summer: ['#3c5248', '#33483f', '#465c4f', '#2d4038'],
     freshLeaf: ['#5d7550', '#6a8058', '#536c4b'],
-    autumn: ['#8b6a3c', '#7d5234', '#9a7a45', '#6f4630', '#8a6340'],
-    leaf: ['#a17a42', '#93603a', '#b08a4d', '#845136', '#9c7044'],
+    // 밤 단풍 — 달빛 아래 색이 가라앉는다(2026-11-22: 한 단계 어둡고 덜 붉게, 밝으면 등불·열매처럼 읽혔다)
+    autumn: ['#6c5636', '#634630', '#76603c', '#584030', '#6a5238'],
+    leaf: ['#86683e', '#7a5536', '#917548', '#6c4a33', '#82633f'],
     blossom: ['#c9a9b2', '#d8c1c7', '#bc97a2', '#e2d3d7'],
     bud: '#5f6f48',
     sprout: ['#56714c', '#4b6744', '#628055'],
@@ -403,15 +404,42 @@ function bakeTree(theme: RailTheme, inp: BakeInput, dpr: number): HTMLCanvasElem
   }
 
   // 앞 잎 겹
+  /* 다크에서 잎이 성글 때(늦가을·이른 봄) — 동그란 얼룩 몇 개만 따로 남으면 밤하늘 앞에서 등불·열매처럼 읽혔다
+     (2026-11-22). 얼룩은 옅은 기운으로만 남기고, 그 자리에 작은 잎 조각을 흩어 가지에 몇 잎씩 매달린 모습으로 */
+  const sparse = theme === 'dark' ? clamp01((0.65 - st.foliage) / 0.4) : 0
   if (leafy) {
     for (const c of clusters) {
       const v = visible(c) * grownIn
       if (v <= 0.01) continue
       const r = mulberry(c.seed)
       const col = leafColor(c)
-      stain(ctx, c.x, c.y, c.r * (0.55 + 0.45 * Math.min(1, st.foliage * 1.3)), col, P.wash * v, r)
+      stain(ctx, c.x, c.y, c.r * (0.55 + 0.45 * Math.min(1, st.foliage * 1.3)), col, P.wash * v * (1 - sparse * 0.75), r)
       // 빛 받는 왼쪽 위 — 한 톤 밝은 얼룩을 작게
-      if (c.r > 4) stain(ctx, c.x - c.r * 0.3, c.y - c.r * 0.35, c.r * 0.45, P.freshLeaf[0], P.wash * 0.45 * v, r, { layers: 4 })
+      if (c.r > 4) stain(ctx, c.x - c.r * 0.3, c.y - c.r * 0.35, c.r * 0.45, P.freshLeaf[0], P.wash * 0.45 * v * (1 - sparse), r, { layers: 4 })
+      if (sparse > 0.01) {
+        // 잎 조각 — 덩어리 둘레(가운데보다 가장자리)에 흩는다. 끝이 뾰족한 작은 잎, 방향은 제각각
+        const n = Math.round(c.r * 2.4 * v * sparse)
+        const lr = mulberry(c.seed + 7)
+        for (let i = 0; i < n; i++) {
+          const a = lr() * Math.PI * 2
+          const d = Math.pow(lr(), 0.6) * c.r * 1.05
+          const x = c.x + Math.cos(a) * d
+          const y = c.y + Math.sin(a) * d * 0.85
+          const L = 0.75 + lr() * 0.45, Wd = 0.42 + lr() * 0.2
+          ctx.save()
+          ctx.translate(x, y)
+          ctx.rotate(lr() * Math.PI)
+          ctx.fillStyle = mix(col, P.bark, lr() * 0.35)
+          ctx.globalAlpha = (0.5 + lr() * 0.3) * v * sparse
+          ctx.beginPath()
+          ctx.moveTo(-L, 0)
+          ctx.quadraticCurveTo(0, -Wd * 1.6, L, 0)
+          ctx.quadraticCurveTo(0, Wd * 1.6, -L, 0)
+          ctx.fill()
+          ctx.restore()
+        }
+        ctx.globalAlpha = 1
+      }
     }
   }
 
@@ -1220,7 +1248,8 @@ export class RailTreeScene {
       ctx.rotate(f.rot)
       ctx.scale(1, Math.max(0.18, Math.abs(Math.cos(f.flip))))
       ctx.fillStyle = f.color
-      ctx.globalAlpha = (f.kind === 'leaf' ? 0.82 : 0.9) * fade * (f.landed ? 0.85 : 1)
+      // 땅에 누운 잎 — 다크에선 언덕에 스며들게 한 톤 더 낮춘다(어두운 언덕 위에서 불티처럼 반짝였다)
+      ctx.globalAlpha = (f.kind === 'leaf' ? 0.82 : 0.9) * fade * (f.landed ? (this.theme === 'dark' ? 0.5 : 0.85) : 1)
       ctx.beginPath()
       if (f.kind === 'leaf') {
         // 끝이 뾰족한 잎 — 두 호를 맞댄 모양
