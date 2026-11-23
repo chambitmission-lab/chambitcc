@@ -1,7 +1,8 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import type { Parable } from '../data/parables'
+import { PARABLE_CHAPTERS } from '../data/parables/chapters'
 
-// 읽기 화면 비유 카드 — 비유 데이터(34편 풀이)는 복음서를 열었을 때만 받는다.
+// 읽기 화면 비유 카드 — 비유 데이터(34편 풀이)는 비유가 있는 장(PARABLE_CHAPTERS)을 열었을 때만 받는다.
 // 장('책:장') → 카드를 끼울 절(핵심 절 quote 의 첫 절) → 그 절의 비유들.
 const GOSPELS = new Set([40, 41, 42, 43])
 
@@ -36,7 +37,7 @@ const getIndex = () => index
 
 /** 이 장에서 비유 카드를 끼울 절 → 비유들. 복음서가 아니거나 꺼져 있으면 null */
 export const useChapterParables = (book: number, chapter: number, enabled: boolean): Map<number, Parable[]> | null => {
-  const active = enabled && GOSPELS.has(book)
+  const active = enabled && GOSPELS.has(book) && PARABLE_CHAPTERS.has(`${book}:${chapter}`)
   useEffect(() => {
     if (active) load()
   }, [active])

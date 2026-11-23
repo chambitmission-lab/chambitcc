@@ -15,12 +15,11 @@ import {
 import ParableVisual from './ParableVisual'
 import { hasParableImage } from './parableImages'
 import { useParableRead } from './parableProgress'
+import { warmParable } from './parableWarm'
 import './parables-tone.css'
 import './ParablesPage.css'
 
 const ParableSheet = lazy(() => import('./ParableSheet'))
-// 손가락이 닿는 순간 시트 청크를 받기 시작한다
-const warmSheet = () => void import('./ParableSheet')
 
 type Filter = 'all' | ParableTopic
 
@@ -104,7 +103,7 @@ const ParablesPage = () => {
                         <button
                           type="button"
                           className={`pb-step is-${state}`}
-                          onPointerDown={warmSheet}
+                          onPointerDown={() => warmParable(p)}
                           onClick={() => setOpen(p)}
                         >
                           <span className="pb-step__num">{state === 'done' ? <CheckIcon /> : i + 1}</span>
@@ -125,7 +124,7 @@ const ParablesPage = () => {
                 <button
                   type="button"
                   className={`pb-today pb-tone--${today.topic}`}
-                  onPointerDown={warmSheet}
+                  onPointerDown={() => warmParable(today)}
                   onClick={() => setOpen(today)}
                 >
                   <span className={`pb-today__art${hasParableImage(today.id) ? ' has-img' : ''}`}>
@@ -177,7 +176,7 @@ const ParablesPage = () => {
                         <button
                           type="button"
                           className={`pb-card pb-tone--${p.topic}${done ? ' is-read' : ''}`}
-                          onPointerDown={warmSheet}
+                          onPointerDown={() => warmParable(p)}
                           onClick={() => setOpen(p)}
                         >
                           <span className={`pb-card__art${hasParableImage(p.id) ? ' has-img' : ''}`}>

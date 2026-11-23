@@ -13,10 +13,25 @@ export const parableArtVars = (id: string, size: 'sm' | 'full'): CSSProperties |
   const light = urlOf(`${id}-light${suffix}`) ?? urlOf(`${id}-light`)
   const dark = urlOf(`${id}-dark${suffix}`) ?? urlOf(`${id}-dark`)
   if (!light && !dark) return null
-  return {
+  const vars: Record<string, string> = {
     '--art-light': `url(${light ?? dark})`,
     '--art-dark': `url(${dark ?? light})`,
-  } as CSSProperties
+  }
+  // 원본 자리 밑에는 작은 그림(카드에서 이미 받은 것)을 깔아 둔다 — 원본이 오기 전에도 빈 상자가 아니게
+  if (size === 'full') {
+    const lightSm = urlOf(`${id}-light-sm`) ?? urlOf(`${id}-dark-sm`)
+    const darkSm = urlOf(`${id}-dark-sm`) ?? urlOf(`${id}-light-sm`)
+    vars['--art-light-sm'] = lightSm ? `url(${lightSm})` : 'none'
+    vars['--art-dark-sm'] = darkSm ? `url(${darkSm})` : 'none'
+  }
+  return vars as CSSProperties
+}
+
+/** 그림 주소 하나 — 미리 받을 때(parableWarm). 고르는 규칙은 parableArtVars 와 같다 */
+export const parableArtUrl = (id: string, size: 'sm' | 'full', theme: 'light' | 'dark'): string | undefined => {
+  const other = theme === 'light' ? 'dark' : 'light'
+  const suffix = size === 'sm' ? '-sm' : ''
+  return urlOf(`${id}-${theme}${suffix}`) ?? urlOf(`${id}-${theme}`) ?? urlOf(`${id}-${other}${suffix}`) ?? urlOf(`${id}-${other}`)
 }
 
 /** 그림이 있는 비유인지 — 상자에 has-img 클래스를 붙일 때 */

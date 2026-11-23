@@ -395,6 +395,11 @@
 }
 .pbs-art.has-img .pv-img {
   background-position: 50% 50%;
+  /* 원본 밑에 작은 그림 — 원본이 도착하면 그대로 덮인다 */
+  background-image: var(--art-light), var(--art-light-sm, none);
+}
+[data-theme="dark"] .pbs-art.has-img .pv-img {
+  background-image: var(--art-dark), var(--art-dark-sm, none);
 }
 
 /* ── PC 두 칸 — 좁은 512px 한 줄 시트는 넓은 화면에서 답답했다.

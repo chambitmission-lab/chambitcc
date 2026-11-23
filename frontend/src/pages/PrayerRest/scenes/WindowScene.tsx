@@ -224,6 +224,27 @@ const WindowScene = forwardRef<SceneHandle, SceneProps>(({ others }, ref) => {
     let cells: Cell[] = []
     const drops: Drop[] = []
     let beads: Bead[] = []
+    // 맺힌 물방울 층은 물방울이 빠졌을 때(흡수·정리)만 다시 그린다 — 더해질 때는 addBead 가 그 자리에 덧그린다
+    let beadsDirty = false
+    // 건너편 창 빛망울 — 색마다 한 번 구워 두고 켜짐 정도는 globalAlpha 로 (매 프레임 그라데이션을 만들지 않는다)
+    const GLOW_R = 26
+    const glowSprites = new Map<string, HTMLCanvasElement>()
+    const glowOf = (color: string) => {
+      let c = glowSprites.get(color)
+      if (!c) {
+        c = document.createElement('canvas')
+        c.width = c.height = Math.ceil(GLOW_R * 2 * dpr)
+        const g = c.getContext('2d')!
+        g.setTransform(dpr, 0, 0, dpr, 0, 0)
+        const gr = g.createRadialGradient(GLOW_R, GLOW_R, 0, GLOW_R, GLOW_R, GLOW_R)
+        gr.addColorStop(0, `rgba(${color},0.55)`)
+        gr.addColorStop(1, `rgba(${color},0)`)
+        g.fillStyle = gr
+        g.fillRect(0, 0, GLOW_R * 2, GLOW_R * 2)
+        glowSprites.set(color, c)
+      }
+      return c
+    }
 
     const paintScenery = () => {
       const g = sharp.g
@@ -374,6 +395,7 @@ const WindowScene = forwardRef<SceneHandle, SceneProps>(({ others }, ref) => {
       h = fit.h
       dpr = fit.dpr
       sizeRef.current = { w, h, dpr }
+      glowSprites.clear()
       for (const l of [sharp, blur, fogTex, beadMask, beadLayer, clear, tmp, fogFrame]) {
         l.c.width = canvas.width
         l.c.height = canvas.height
@@ -483,6 +505,7 @@ const WindowScene = forwardRef<SceneHandle, SceneProps>(({ others }, ref) => {
           if (Math.abs(b.x - d.x) < d.r && Math.abs(b.y - d.y) < d.r && b.r > 0.9) {
             d.r = Math.min(5, d.r + b.r * 0.12)
             beads.splice(j, 1)
+            beadsDirty = true
             break
           }
         }
@@ -570,12 +593,10 @@ const WindowScene = forwardRef<SceneHandle, SceneProps>(({ others }, ref) => {
       ctx.drawImage(blur.c, 0, 0, w, h)
       for (const c of cells) {
         if (c.on < 0.02) continue
-        const gr = ctx.createRadialGradient(c.x + c.w / 2, c.y + c.h / 2, 0, c.x + c.w / 2, c.y + c.h / 2, 26)
-        gr.addColorStop(0, `rgba(${c.color},${0.55 * c.on})`)
-        gr.addColorStop(1, `rgba(${c.color},0)`)
-        ctx.fillStyle = gr
-        ctx.fillRect(c.x - 20, c.y - 20, c.w + 40, c.h + 40)
+        ctx.globalAlpha = Math.min(1, c.on)
+        ctx.drawImage(glowOf(c.color), c.x + c.w / 2 - GLOW_R, c.y + c.h / 2 - GLOW_R, GLOW_R * 2, GLOW_R * 2)
       }
+      ctx.globalAlpha = 1
       const tg = tmp.g
       tg.globalCompositeOperation = 'source-over'
       tg.clearRect(0, 0, w, h)
@@ -601,6 +622,14 @@ const WindowScene = forwardRef<SceneHandle, SceneProps>(({ others }, ref) => {
 
       // 흡수된 물방울은 그림에서도 빠지도록, 맺힌 물방울 층은 가끔 다시 그린다
       if (Math.floor(t * 2) !== Math.floor((t - dt) * 2)) {
+        // 오래 쌓이면 무거워진다 — 너무 많으면 오래된 것부터 버린다
+        if (beads.length > 900) {
+          beads = beads.slice(beads.length - 900)
+          beadsDirty = true
+        }
+      }
+      if (beadsDirty && Math.floor(t * 2) !== Math.floor((t - dt) * 2)) {
+        beadsDirty = false
         beadLayer.g.clearRect(0, 0, w, h)
         beadMask.g.clearRect(0, 0, w, h)
         beadMask.g.fillStyle = 'rgba(255,255,255,0.45)'
@@ -610,8 +639,6 @@ const WindowScene = forwardRef<SceneHandle, SceneProps>(({ others }, ref) => {
           beadMask.g.arc(b.x, b.y, b.r * 1.5, 0, Math.PI * 2)
           beadMask.g.fill()
         }
-        // 오래 쌓이면 무거워진다 — 너무 많으면 오래된 것부터 버린다
-        if (beads.length > 900) beads = beads.slice(beads.length - 900)
       }
       ctx.drawImage(beadLayer.c, 0, 0, w, h)
       for (const d of drops) if (!d.gone) drawDrop(d)

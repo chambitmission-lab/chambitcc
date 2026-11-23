@@ -13,6 +13,7 @@ import ParableArt from './ParableArt'
 import ParableVisual from './ParableVisual'
 import { hasParableImage } from './parableImages'
 import { markParableRead, useParableRead } from './parableProgress'
+import { warmParable } from './parableWarm'
 import './parables-tone.css'
 import './ParableSheet.css'
 
@@ -233,7 +234,7 @@ const ParableSheet = ({ parable: p, onClose, onOpen }: ParableSheetProps) => {
                 비유 도감 {read.size} / {PARABLES.length}
               </p>
               {next && (
-                <button type="button" className={`pbs-next pb-tone--${next.topic}`} onClick={() => openNext(next)}>
+                <button type="button" className={`pbs-next pb-tone--${next.topic}`} onPointerDown={() => warmParable(next)} onClick={() => openNext(next)}>
                   <span className={`pbs-next__art${hasParableImage(next.id) ? ' has-img' : ''}`}>
                     <ParableVisual p={next} />
                   </span>

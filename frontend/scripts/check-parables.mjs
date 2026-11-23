@@ -4,8 +4,11 @@
 //  ✗ marks.text 가 quote 본문에 없으면 실패
 //  ✗ 큰따옴표 "…" 인용이 passage·parallels 본문에 그대로 없으면 실패 (풀이·낱말 언급은 ‘…’)
 //  ✗ id 중복·필수 필드 누락·입문 코스 id 누락이면 실패
+//  ✗ quote 의 책:장 목록이 data/parables/chapters.ts(PARABLE_CHAPTERS)와 다르면 실패
 // 사용: node scripts/check-parables.mjs   (Node 22.18+ 는 .ts 를 그대로 import)
 const { PARABLES, INTRO_COURSE } = await import(new URL('../src/pages/Bible/data/parables/index.ts', import.meta.url))
+
+const { PARABLE_CHAPTERS } = await import(new URL('../src/pages/Bible/data/parables/chapters.ts', import.meta.url))
 
 const cache = new Map()
 const parse = (ref) => {
@@ -70,6 +73,9 @@ for (const p of PARABLES) {
     if (/[“”]/.test(t)) fail(`${p.id}: 둥근 큰따옴표 “” 대신 곧은 "…"(원문 인용) 또는 ‘…’(풀이)`)
   }
 }
+const quoteChapters = new Set(PARABLES.map((p) => p.quote.split(':').slice(0, 2).join(':')))
+for (const k of quoteChapters) if (!PARABLE_CHAPTERS.has(k)) fail(`chapters.ts 에 ${k} 없음 — 이 장의 비유 카드가 읽기 화면에 안 뜬다`)
+for (const k of PARABLE_CHAPTERS) if (!quoteChapters.has(k)) fail(`chapters.ts 의 ${k} 에는 비유가 없음`)
 for (const id of INTRO_COURSE) if (!ids.has(id)) fail(`입문 코스 id ${id} 가 데이터에 없음`)
 console.log(`\n비유 ${PARABLES.length}편 검사 · 실패 ${bad}`)
 process.exit(bad ? 1 : 0)

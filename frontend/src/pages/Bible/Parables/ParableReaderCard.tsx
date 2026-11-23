@@ -3,11 +3,11 @@ import type { Parable } from '../data/parables'
 import ParableVisual from './ParableVisual'
 import { hasParableImage } from './parableImages'
 import { useParableRead } from './parableProgress'
+import { warmParable } from './parableWarm'
 import './parables-tone.css'
 import './ParableReaderCard.css'
 
 const ParableSheet = lazy(() => import('./ParableSheet'))
-const warmSheet = () => void import('./ParableSheet')
 
 /**
  * 읽기 화면 비유 카드 — 복음서 본문에서 비유 핵심 절 바로 위에 끼운다.
@@ -26,8 +26,8 @@ const ParableReaderCard = ({ parables }: { parables: readonly Parable[] }) => {
             key={p.id}
             type="button"
             className={`prc pb-tone--${p.topic}${img ? ' prc--img' : ''}`}
-            onPointerEnter={warmSheet}
-            onPointerDown={warmSheet}
+            onPointerEnter={() => warmParable(p)}
+            onPointerDown={() => warmParable(p)}
             onClick={(e) => {
               e.stopPropagation()
               setOpen(p)
