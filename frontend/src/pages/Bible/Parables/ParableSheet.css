@@ -1,0 +1,367 @@
+/* 비유 시트(.pbs-*) — 도감 화면과 읽기 화면 비유 카드 양쪽에서 연다. 색 토큰은 parables-tone.css */
+
+/* ── 비유 시트 ── */
+.pbs-panel {
+  max-height: min(92dvh, calc(92 * var(--vvh, 1vh)));
+  display: flex;
+  flex-direction: column;
+}
+.pbs-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .pbs-scroll {
+    padding: 1.5rem 1.5rem 1.5rem;
+  }
+}
+.pbs-art {
+  position: relative;
+  height: 7.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.25rem;
+  background: var(--pb-soft);
+  color: var(--pb-c);
+  font-size: 4.75rem;
+}
+.pbs-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+[data-theme="dark"] .pbs-close {
+  background: rgba(0, 0, 0, 0.3);
+}
+.pbs-kicker {
+  margin-top: 1rem;
+  color: var(--pb-c);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.pbs-title {
+  margin-top: 0.125rem;
+  color: var(--text-strong);
+  font-size: calc(1.5rem * var(--text-mul, 1));
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+.pbs-summary {
+  margin-top: 0.375rem;
+  color: var(--ig-secondary-text);
+  font-size: calc(0.95rem * var(--text-mul, 1));
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.pbs-block {
+  margin-top: 1.5rem;
+}
+.pbs-label {
+  margin-bottom: 0.5rem;
+  color: var(--ig-secondary-text);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.pbs-label__hint {
+  font-weight: 600;
+  opacity: 0.8;
+}
+.pbs-who {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.pbs-who div {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.8rem;
+  background: var(--pb-sub);
+}
+.pbs-who span {
+  display: block;
+  color: var(--ig-secondary-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.pbs-who b {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--text-strong);
+  font-size: calc(0.85rem * var(--text-mul, 1));
+  font-weight: 800;
+  word-break: keep-all;
+}
+.pbs-context {
+  padding: 0.8rem 0.875rem;
+  border-radius: 0.875rem;
+  background: var(--pb-sub);
+  color: var(--text-strong);
+  font-size: calc(0.9rem * var(--text-mul, 1));
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* 말씀 — 예수님 말씀 붉은 글씨 + 눌러 볼 낱말(파란 밑줄) */
+.pbs-quote {
+  font-family: var(--font-serif-kr);
+  color: var(--pb-red);
+  font-size: calc(1.02rem * var(--text-mul, 1));
+  line-height: 1.95;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+.pbs-quote--loading {
+  color: var(--ig-secondary-text);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+.pbs-quote__num {
+  margin-right: 0.2em;
+  color: var(--ig-secondary-text);
+  font-family: Pretendard, system-ui, sans-serif;
+  font-size: 0.62em;
+  font-weight: 700;
+}
+.pbs-quote__ref {
+  margin-top: 0.25rem;
+  color: var(--ig-secondary-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.pbs-mark {
+  display: inline;
+  padding: 0 0.06em;
+  border: none;
+  border-bottom: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  -webkit-tap-highlight-color: transparent;
+}
+.pbs-mark.is-on {
+  border-bottom-color: var(--brand);
+  border-radius: 0.25rem 0.25rem 0 0;
+  background: var(--brand-soft-strong);
+}
+.pbs-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.8rem;
+  border-radius: 0.875rem;
+  background: var(--brand-soft);
+}
+.pbs-tip__key {
+  flex-shrink: 0;
+  max-width: 40%;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.pbs-tip p {
+  color: var(--text-strong);
+  font-size: calc(0.86rem * var(--text-mul, 1));
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+.pbs-shock {
+  padding: 0.8rem 0.875rem;
+  border-radius: 0.875rem;
+  background: var(--pb-gold-soft);
+  color: var(--pb-gold-ink);
+  font-size: calc(0.9rem * var(--text-mul, 1));
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.pbs-par {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.pbs-par button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--pb-sub);
+  color: var(--text-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pbs-ask {
+  padding: 0.875rem;
+  border: 1.5px dashed var(--brand);
+  border-radius: 0.875rem;
+  color: var(--text-strong);
+  font-size: calc(0.98rem * var(--text-mul, 1));
+  font-weight: 700;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+.pbs-ask__sub {
+  display: block;
+  margin-top: 0.375rem;
+  color: var(--ig-secondary-text);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* 마무리 — 점선 도장 + 이어 읽기 */
+.pbs-done {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1rem 1rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, var(--brand-soft), transparent 70%);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, transparent);
+  text-align: center;
+}
+.pbs-stamp {
+  width: 4.75rem;
+  height: 4.75rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 2.4px dashed var(--brand);
+  background: var(--pb-card);
+  color: var(--brand);
+  transform: rotate(-10deg);
+}
+.pbs-stamp__glyph {
+  font-size: 1.75rem;
+}
+.pbs-stamp b {
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.pbs-done.is-new .pbs-stamp {
+  animation: pbs-stamp-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+@keyframes pbs-stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.8) rotate(-24deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.92) rotate(-8deg);
+  }
+  100% {
+    transform: scale(1) rotate(-10deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pbs-done.is-new .pbs-stamp {
+    animation: none;
+  }
+}
+.pbs-done__title {
+  margin-top: 0.75rem;
+  color: var(--text-strong);
+  font-size: 1rem;
+  font-weight: 800;
+}
+.pbs-done__sub {
+  margin-top: 0.125rem;
+  color: var(--ig-secondary-text);
+  font-size: 0.75rem;
+}
+.pbs-next {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.875rem;
+  padding: 0.625rem 0.625rem 0.625rem 0.625rem;
+  border: none;
+  border-radius: 1rem;
+  background: var(--pb-card);
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+}
+.pbs-next__art {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: var(--pb-soft);
+  color: var(--pb-c);
+  font-size: 1.875rem;
+}
+.pbs-next__k {
+  display: block;
+  color: var(--brand);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.pbs-next__t {
+  display: block;
+  color: var(--text-strong);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+.pbs-next__g {
+  display: block;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pbs-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+.pbs-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.875rem 0;
+  border: none;
+  border-radius: 0.875rem;
+  background: var(--pb-sub);
+  color: var(--text-strong);
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.pbs-btn--primary {
+  flex: 1.4;
+  background: var(--brand);
+  color: #fff;
+}

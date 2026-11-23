@@ -1,0 +1,36 @@
+/* 예수님의 비유 — 공용 색 토큰. 도감 화면(ParablesPage.css)·비유 시트(ParableSheet.css)·읽기 화면 카드가 함께 쓴다.
+   토스 플랫 문법: 옅은 캔버스 위 흰 카드. 주제마다 삽화 색 한 가지(--pb-c)와 그 옅은 바탕(--pb-soft).
+   ★보라 금지 · 붉은색은 예수님 말씀 글씨(#b42318) 전용이라 주제 색으로 쓰지 않는다. */
+
+.pb-tone--heart { --pb-c: #d9612f; --pb-soft: #fdeee6; }
+.pb-tone--kingdom { --pb-c: #b0761b; --pb-soft: #fbf2df; }
+.pb-tone--prayer { --pb-c: #2f74db; --pb-soft: #e8f1ff; }
+.pb-tone--neighbor { --pb-c: #23885a; --pb-soft: #e3f4eb; }
+.pb-tone--life { --pb-c: #0e8584; --pb-soft: #e0f3f2; }
+.pb-tone--ready { --pb-c: #52648a; --pb-soft: #eaeef5; }
+
+[data-theme="dark"] .pb-tone--heart { --pb-c: #f39a72; --pb-soft: rgba(243, 154, 114, 0.13); }
+[data-theme="dark"] .pb-tone--kingdom { --pb-c: #e2b25f; --pb-soft: rgba(226, 178, 95, 0.13); }
+[data-theme="dark"] .pb-tone--prayer { --pb-c: #8fbcff; --pb-soft: rgba(143, 188, 255, 0.13); }
+[data-theme="dark"] .pb-tone--neighbor { --pb-c: #6fd3a2; --pb-soft: rgba(111, 211, 162, 0.12); }
+[data-theme="dark"] .pb-tone--life { --pb-c: #5fd0ce; --pb-soft: rgba(95, 208, 206, 0.12); }
+[data-theme="dark"] .pb-tone--ready { --pb-c: #a9b8d8; --pb-soft: rgba(169, 184, 216, 0.13); }
+
+:root,
+[data-theme="light"] {
+  --pb-card: #fff;
+  --pb-sub: #f3f5f7;
+  --pb-line: #eef0f3;
+  --pb-red: #b42318;
+  --pb-gold-soft: #fff6e2;
+  --pb-gold-ink: #5f4511;
+}
+[data-theme="dark"] {
+  --pb-card: #201f1f;
+  --pb-sub: rgba(255, 255, 255, 0.05);
+  --pb-line: rgba(255, 255, 255, 0.07);
+  --pb-red: #f0a198;
+  --pb-gold-soft: rgba(226, 178, 95, 0.1);
+  --pb-gold-ink: #ecd3a0;
+}
+

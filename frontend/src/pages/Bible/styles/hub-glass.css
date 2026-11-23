@@ -23,6 +23,7 @@
   --tone-situation: #f08a24;
   --tone-photo: #ec4f8a;
   --tone-listen: #4f63e8;
+  --tone-parable: #23885a;
 }
 [data-theme="dark"] .bible-hub {
   --glass: rgba(34, 37, 46, 0.58);
@@ -43,6 +44,7 @@
   --tone-situation: #ffa24d;
   --tone-photo: #ff6fa3;
   --tone-listen: #7b8bff;
+  --tone-parable: #4cc48a;
 }
 
 /* 빛 번짐은 요소 자체 배경으로 깐다 — ::before + z-index:-1 은 isolation(쌓임 맥락)이 필요한데,
@@ -97,6 +99,7 @@
   .bible-hub .dash-tile--tone-situation { --t: var(--tone-situation); }
   .bible-hub .dash-tile--tone-photo { --t: var(--tone-photo); }
   .bible-hub .dash-tile--tone-listen { --t: var(--tone-listen); }
+  .bible-hub .dash-tile--tone-parable { --t: var(--tone-parable); }
 }
 
 @media (min-width: 1024px) {
@@ -333,6 +336,7 @@
   }
   /* 와이드 타일 — 첫 칸(처음 만나는 성경)과 마지막 듣기. 아이콘 좌·글 우 한 줄 */
   .bible-hub .dash-bento .dash-card--tone-story,
+  .bible-hub .dash-bento .dash-card--tone-parable,
   .bible-hub .dash-bento .dash-card--tone-listen {
     grid-column: 1 / -1;
     flex-direction: row;
@@ -341,6 +345,7 @@
     padding: 1rem;
   }
   .bible-hub .dash-bento .dash-card--tone-story .dash-card__chevron,
+  .bible-hub .dash-bento .dash-card--tone-parable .dash-card__chevron,
   .bible-hub .dash-bento .dash-card--tone-listen .dash-card__chevron {
     position: static;
   }
@@ -358,6 +363,7 @@
   .bible-hub .dash-bento .dash-card--tone-situation { --t: var(--tone-situation); }
   .bible-hub .dash-bento .dash-card--tone-photo { --t: var(--tone-photo); }
   .bible-hub .dash-bento .dash-card--tone-listen { --t: var(--tone-listen); }
+  .bible-hub .dash-bento .dash-card--tone-parable { --t: var(--tone-parable); }
 
   @media (prefers-reduced-motion: reduce) {
     .bible-hub .dash-card--resume,

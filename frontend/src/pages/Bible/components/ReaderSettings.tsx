@@ -86,6 +86,7 @@ const READING_AID_OPTIONS: { key: keyof ReadingAids; label: string }[] = [
   { key: 'jesusWords', label: '예수님 말씀 색' },
   { key: 'crossRefs', label: '연결 구절' },
   { key: 'messiah', label: '약속과 성취' },
+  { key: 'parables', label: '비유 카드' },
 ]
 
 const COPY_STYLE_OPTIONS: { key: CopyStyle; label: string }[] = [
@@ -300,7 +301,8 @@ const ReaderSettings = () => {
           <p className="reader-settings__hint">
             단락마다 오늘의 말로 푼 풀이, 복음서의 예수님 말씀 붉은 글씨, 구약 인용·같은 사건을 기록한
             다른 복음서로 건너가는 칩이에요. 약속과 성취는 메시아를 약속한 구약 절(금빛)과 그 약속이
-            이루어진 신약 절(푸른 줄)을 표시하고, 누르면 두 말씀을 나란히 보여 줘요.{' '}
+            이루어진 신약 절(푸른 줄)을 표시하고, 누르면 두 말씀을 나란히 보여 줘요. 비유 카드는 복음서에서
+            예수님의 비유가 나오는 자리에 풀이 카드를 끼워 줘요.{' '}
             <button
               type="button"
               className="reader-settings__hint-link"

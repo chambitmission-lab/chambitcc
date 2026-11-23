@@ -1,0 +1,77 @@
+/* 읽기 화면 비유 카드(.prc) — 본문 흐름 안 한 줄 카드. 장 머리엔 두지 않는다(본문 위 카드 더미 금지).
+   이어읽기(문단) 보기에서도 문단 중간에 블록으로 끼어든다. 색 토큰은 parables-tone.css */
+
+.prc {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.625rem 0.75rem 0.625rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--pb-c) 22%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--pb-soft) 70%, transparent);
+  font-family: Pretendard, system-ui, sans-serif;
+  text-align: left;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+}
+.prc:active {
+  transform: scale(0.99);
+}
+.prc__art {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.7rem;
+  background: var(--pb-card);
+  color: var(--pb-c);
+  font-size: 1.625rem;
+}
+.prc__body {
+  min-width: 0;
+  flex: 1;
+}
+.prc__k {
+  display: block;
+  color: var(--pb-c);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.prc__t {
+  display: block;
+  color: var(--text-strong);
+  font-size: calc(0.9rem * var(--text-mul, 1));
+  font-weight: 800;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.prc__g {
+  color: var(--ig-secondary-text);
+  font-weight: 600;
+}
+.prc__go {
+  flex-shrink: 0;
+  color: var(--pb-c);
+  font-size: 20px;
+}
+.prc__stamp {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1.5px dashed var(--brand);
+  color: var(--brand);
+  transform: rotate(-12deg);
+}

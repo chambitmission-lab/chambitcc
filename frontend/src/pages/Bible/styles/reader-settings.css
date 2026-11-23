@@ -158,15 +158,23 @@
   box-shadow: 0 3px 8px -3px var(--brand-glow);
 }
 
-/* 칩이 넷인 줄(읽기 도움) — 모바일에선 2×2 로 접는다. 넷을 한 줄에 두면 글자가 줄어들거나 넘친다 */
-@media (max-width: 1023px) {
-  .reader-settings__chips--wrap {
-    flex-wrap: wrap;
-  }
+/* 칩이 여러 개인 줄(읽기 도움, 다섯) — 모바일·PC 모두 줄바꿈으로 접는다.
+   한 줄에 두면 PC 칸(300px+) 밖으로 넘쳐 옆 칸 경계선을 뚫었다. 칩은 글자 폭만큼 잡고
+   남는 폭은 나눠 채운다 — 고정 열 격자는 PC 큰 글씨(14.5px)에서 '예수님 말씀 색'이 칸을 넘친다 */
+.reader-settings__chips--wrap {
+  flex-wrap: wrap;
+}
 
-  .reader-settings__chips--wrap button {
-    flex: 1 1 calc(50% - 3px);
-    padding: 7px 4px;
+.reader-settings__chips.reader-settings__chips--wrap button {
+  flex: 1 1 auto;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+@media (max-width: 1023px) {
+  .reader-settings__chips.reader-settings__chips--wrap button {
+    padding-top: 7px;
+    padding-bottom: 7px;
   }
 }
 

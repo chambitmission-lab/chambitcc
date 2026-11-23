@@ -6,7 +6,7 @@
 //  - 함께 읽기(현황·하트비트)                      → hooks/useChapterTogether + together/ChapterTogether
 //  - 낭독 따라가기                                  → AudioFollowLayer
 //  - 수정 모달·공유 시트                            → verse/VerseListSheets
-import { useEffect, useLayoutEffect, useRef, useState, useMemo, useCallback, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useMemo, useCallback, useSyncExternalStore, lazy, Suspense } from 'react'
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -41,11 +41,14 @@ import { getActiveKeyword, subscribeActiveKeyword } from '../data/keywordHighlig
 import { isSectionHeadingsEnabled, subscribeSectionHeadings } from '../data/sectionHeadings'
 import { loadBookOutline, peekBookOutline, type BookOutline } from '../data/chapterOutlines'
 import { loadBookParaphrase, peekBookParaphrase, type BookParaphrase } from '../data/paraphrase'
+import { useChapterParables } from '../Parables/parableAnchors'
 import { getReadingAids, subscribeReadingAids } from '../data/readingAids'
 import SectionParaphrase from './SectionParaphrase'
 import { BookStoryEnd } from './BookStory'
 import ReadAgainCard from './ReadAgainCard'
 // 열 때만 받는 패널 — 읽기 화면 청크에서 분리
+// 비유 카드 — 비유가 있는 복음서 장에서만 받는다
+const ParableReaderCard = lazy(() => import('../Parables/ParableReaderCard'))
 const BibleCommentaryPanel = lazyModal(() => import('../../../components/bible/BibleCommentaryPanel'))
 
 /** 절 번호 길게 누르기 안내를 이미 본 적 있는지 (한 번 보면 다시 안 뜬다) */
@@ -195,6 +198,17 @@ const VerseList = ({
     }
   }, [bookNumber, readingAids.paraphrase])
   const chapterParaphrase = readingAids.paraphrase ? bookParaphrase?.[selectedChapter] : undefined
+  // 비유 카드 — 비유 핵심 절 바로 위에 끼운다(병합 절이면 품은 절 중 하나라도)
+  const chapterParables = useChapterParables(bookNumber, selectedChapter, readingAids.parables)
+  const renderParableCard = (verse: BibleVerse) => {
+    if (!chapterParables) return null
+    const list = (verse.merged_verses ?? [verse.verse]).flatMap((n) => chapterParables.get(n) ?? [])
+    return list.length ? (
+      <Suspense key={`parable-${verse.id}`} fallback={null}>
+        <ParableReaderCard parables={list} />
+      </Suspense>
+    ) : null
+  }
   // PC 넓은 화면 — 본문 컬럼(보통 폭 42rem) 오른쪽 여백이 노트(18.5rem)+간격을 품을 만하면 풀이를 옆 노트로 띄운다.
   // 해석 패널 도킹·창 크기에 따라 여백이 바뀌므로 미디어쿼리 대신 실제 폭을 잰다.
   const versesContainerRef = useRef<HTMLDivElement>(null)
@@ -628,7 +642,7 @@ const VerseList = ({
                   )}
                   {renderParaphrase(para)}
                   <div className="verse-paragraph__body">
-                    {para.verses.map((verse) => renderVerse(verse, 'flow'))}
+                    {para.verses.map((verse) => [renderParableCard(verse), renderVerse(verse, 'flow')])}
                   </div>
                 </section>
               ))
@@ -648,7 +662,7 @@ const VerseList = ({
                     </h3>
                   )}
                   {renderParaphrase(para)}
-                  {para.verses.map((verse) => renderVerse(verse, 'list'))}
+                  {para.verses.map((verse) => [renderParableCard(verse), renderVerse(verse, 'list')])}
                 </div>
               ))}
         </div>

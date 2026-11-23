@@ -3,8 +3,10 @@
 //  - jesusWords: 복음서 등에서 예수님이 하신 말씀을 다른 색으로 (data/jesusWords)
 //  - crossRefs: 신약의 구약 인용·복음서 평행 본문 칩 (data/crossRefs)
 //  - messiah: 약속과 성취 — 구약의 메시아 약속(금빛)과 신약의 성취(푸른빛) 절 표시 (data/messiah)
+//  - parables: 예수님의 비유 — 복음서에서 비유 핵심 절 바로 위 카드 (data/parables)
 // 저장·전파 방식은 readerIntroCards 와 같다 — 바꾸는 즉시 열린 본문에 반영.
-// 기본은 전부 끔 — 처음 보는 분들이 칩·색·풀이를 헷갈려 해서, 원하는 분만 Aa에서 켜도록.
+// 기본은 끔 — 처음 보는 분들이 칩·색·풀이를 헷갈려 해서, 원하는 분만 Aa에서 켜도록.
+// 단 비유 카드는 초보자용 입구라 기본 켬(저장값이 명시적으로 false 일 때만 끔).
 import { safeStorage } from '../../../utils/safeStorage'
 
 export interface ReadingAids {
@@ -12,10 +14,11 @@ export interface ReadingAids {
   jesusWords: boolean
   crossRefs: boolean
   messiah: boolean
+  parables: boolean
 }
 
 const STORAGE_KEY = 'bible-reading-aids'
-const DEFAULTS: ReadingAids = { paraphrase: false, jesusWords: false, crossRefs: false, messiah: false }
+const DEFAULTS: ReadingAids = { paraphrase: false, jesusWords: false, crossRefs: false, messiah: false, parables: true }
 
 let cache: ReadingAids | null = null
 const listeners = new Set<() => void>()
@@ -30,6 +33,7 @@ export const getReadingAids = (): ReadingAids => {
             jesusWords: p.jesusWords === true,
             crossRefs: p.crossRefs === true,
             messiah: p.messiah === true,
+            parables: p.parables !== false,
           }
         : DEFAULTS
   }

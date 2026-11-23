@@ -36,7 +36,7 @@ const warmRoute = (path: string) => ({
 })
 /** 허브 타일이 유휴 시간에 순서대로 데워 둘 목적지 — 상황별 성구(청크+카테고리+히어로 구절)가 먼저,
  *  나머지는 'low' 우선순위. 지도·필사 청크는 하단 도크/레일도 받지만 inflight 맵이 중복을 막는다 */
-const HUB_TILE_PRELOAD_ROUTES = ['/bible/story', '/bible/photo-verse', '/bible/atlas', '/bible/typing']
+const HUB_TILE_PRELOAD_ROUTES = ['/bible/story', '/bible/photo-verse', '/bible/atlas', '/bible/typing', '/bible/parables']
 
 const BibleSearch = lazyModal(() => import('./components/BibleSearch'), <ChapterLoader />)
 const FavoritesPlaylistModal = lazyModal(() => import('./components/FavoritesPlaylistModal'))
@@ -51,7 +51,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { isPastor } from '../../utils/access'
 import { getReaderIntroCards, subscribeReaderIntroCards } from './data/readerIntroCards'
 import { dashTexts } from './bibleStudyTexts'
-import { AtlasIcon, StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon, TypingIcon } from './components/BibleToolIcons'
+import { AtlasIcon, StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon, TypingIcon, ParableIcon } from './components/BibleToolIcons'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../components/bible/BibleSideRail'
 import { requestPageZoom } from '../../utils/textScaleRoutes'
@@ -512,6 +512,23 @@ const BibleStudy = () => {
         <span className="material-icons-round dash-card__chevron">chevron_right</span>
       </button>
 
+      {/* 예수님의 비유 — 초보자용 비유 도감 (와이드) */}
+      <button
+        type="button"
+        onClick={() => navigate('/bible/parables')}
+        {...warmRoute('/bible/parables')}
+        className="dash-card dash-card--fav dash-card--tone-parable"
+      >
+        <span className="dash-card__icon dash-card__icon--seal">
+          <ParableIcon className="dash-card__glyph" />
+        </span>
+        <span className="dash-card__body">
+          <span className="dash-card__title">{dt.parableTitle}</span>
+          <span className="dash-card__text">{dt.parableText}</span>
+        </span>
+        <span className="material-icons-round dash-card__chevron">chevron_right</span>
+      </button>
+
       {/* 성경 지도여행 — 사건이 일어난 자리를 지도에서 */}
       <button
         type="button"
@@ -607,7 +624,7 @@ const BibleStudy = () => {
   // 4열 세로형은 한글 제목이 두 줄로 깨져 폐기. 높이는 4열 때와 비슷하면서 줄바꿈이 없다.
   // 아이콘은 참빛 인장(모노 스탬프) — BibleToolIcons + .dash-card__icon--seal
   const dashToolTiles = (
-    <div className={`dash-tiles${isLoggedIn() ? '' : ' dash-tiles--odd'}`}>
+    <div className={`dash-tiles${isLoggedIn() ? ' dash-tiles--odd' : ''}`}>
       <button type="button" onClick={() => navigate('/bible/story')} {...warmRoute('/bible/story')} className="dash-tile dash-tile--tone-story">
         <span className="dash-tile__icon dash-card__icon--seal">
           <StoryIcon className="dash-card__glyph" />
@@ -617,6 +634,15 @@ const BibleStudy = () => {
           <span className="dash-tile__text">
             {storyReadCount > 0 ? dt.tileStoryProgress(storyReadCount) : dt.tileStory}
           </span>
+        </span>
+      </button>
+      <button type="button" onClick={() => navigate('/bible/parables')} {...warmRoute('/bible/parables')} className="dash-tile dash-tile--tone-parable">
+        <span className="dash-tile__icon dash-card__icon--seal">
+          <ParableIcon className="dash-card__glyph" />
+        </span>
+        <span className="dash-tile__body">
+          <span className="dash-tile__title">{dt.parableTitle}</span>
+          <span className="dash-tile__text">{dt.tileParable}</span>
         </span>
       </button>
       <button type="button" onClick={() => navigate('/bible/atlas')} {...warmRoute('/bible/atlas')} className="dash-tile dash-tile--tone-atlas">
