@@ -86,9 +86,9 @@ const SermonWalk = ({ sermon, passageSignal, onOpen }: SermonWalkProps) => {
                 ) : (
                   <p>
                     {passage.map((v) => (
-                      <span key={v.id}>
+                      <span key={v.id} className="sl-verse">
                         <sup>{v.verse_label || v.verse}</sup>
-                        {v.text}{' '}
+                        <span>{v.text} </span>
                       </span>
                     ))}
                   </p>

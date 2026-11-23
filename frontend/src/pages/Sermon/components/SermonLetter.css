@@ -310,6 +310,45 @@
 .sl-passage-loading { font-family: Pretendard, sans-serif; font-size: 13px; color: var(--text-muted); }
 .sl-passage .sl-step-actions { font-family: Pretendard, sans-serif; }
 
+/* 모바일 본문 읽기 — 절마다 한 줄씩, 번호는 왼쪽 기둥으로. 단계 번호 들여쓰기만큼
+   상자를 왼쪽으로 넓혀 한 줄에 들어가는 글자 수를 늘린다. PC는 이어 쓰기 그대로. */
+@media (max-width: 1023px) {
+  .sl-passage {
+    --sl-passage-lh: 30px;
+    margin-left: -40px; /* 단계 번호 28px + 간격 12px */
+    padding: 18px 16px 16px;
+    border-radius: 14px;
+    font-size: 17px;
+    line-height: var(--sl-passage-lh);
+    color: var(--text-strong);
+  }
+  .sl-passage .sl-verse {
+    display: grid;
+    grid-template-columns: minmax(20px, auto) 1fr;
+    column-gap: 10px;
+  }
+  .sl-passage .sl-verse + .sl-verse { margin-top: 10px; }
+  .sl-passage .sl-verse sup {
+    position: static;
+    margin-right: 0;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: var(--sl-passage-lh); /* 첫 줄 라인박스 가운데 */
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+  }
+  .sl-passage .sl-step-actions { margin-top: 18px; gap: 4px 14px; }
+  .sl-passage .sl-btn--solid {
+    flex: 1 0 100%;
+    justify-content: center;
+    padding: 13px 14px;
+    margin-bottom: 4px;
+    font-size: 15px;
+  }
+  .sl-passage .sl-btn--plain { padding-top: 8px; padding-bottom: 8px; }
+}
+
 .sl-pen {
   font-family: var(--sl-pen);
   font-size: 22px;
