@@ -5,7 +5,8 @@
  * 레일 칸의 네 변 페이드 마스크는 부모(.rail-bottom-art)가 쥐므로 여기선 신경 쓰지 않는다.
  *
  *  - drizzle  : 가랑비 — 가늘고 짧은 빗방울이 드문드문 천천히, 커튼·물보라 거의 없음
- *  - rain     : A 빗속의 등불 — 세 겹 비 + 빗줄기 커튼, 번개 없음
+ *  - rain     : A 빗속의 등불 — 세 겹 비 + 빗줄기 커튼, 언덕 너머 먼 번쩍임만 가끔(번개 줄기·나무 벼락은 없다)
+ *               (장대비면 opts.heavy — 번쩍임이 더 잦다)
  *  - storm    : B 폭풍 속 예배당 — 돌풍·물보라 + 가지 친 번개(화면 흔들림 없음)
  *  - snow     : C 첫눈 소복 — 능선 셋·지붕·창턱에 쌓임
  *  - blizzard : D 눈보라 — 옆바람·눈안개·드문 눈번개
@@ -57,7 +58,8 @@ interface Variant {
   clouds: number
   cloudSpeed: number
   glow: number
-  bolt?: 'near' | 'snow'
+  /** near = 가지 친 번개(폭풍) · snow = 눈번개 · far = 줄기 없이 먼 번쩍임만(장대비) */
+  bolt?: 'near' | 'snow' | 'far'
   every?: [number, number]
   first?: number
   // rain
@@ -92,10 +94,13 @@ const VARIANTS: Record<RailSceneMode, Variant> = {
   drizzle: { kind: 'rain', layers: [34, 18, 0], speed: 0.4, lenMul: 0.6, alphaMul: 0.7, slant: -0.06, gustAmp: 0.03, gustRate: 0.25,
     overlay: 0.1, clouds: 2, cloudSpeed: 2.5, veils: 0, splash: 0.12, glow: 1.0 },
   rain: { kind: 'rain', layers: [68, 45, 5], speed: 0.8, slant: -0.12, gustAmp: 0.05, gustRate: 0.35,
-    overlay: 0.26, clouds: 3, cloudSpeed: 4, veils: 2, veilA: 0.07, splash: 0.35, glow: 1.0 },
+    overlay: 0.26, clouds: 3, cloudSpeed: 4, veils: 2, veilA: 0.07, splash: 0.35, glow: 1.0,
+    // 보통 비에도 먼 번쩍임이 가끔(1분 반~3분에 한 번) — 2026-11-23 "비 올 때도 가끔 치게"
+    bolt: 'far', every: [90, 180], first: 25 },
   storm: { kind: 'rain', layers: [128, 98, 18], speed: 1.3, slant: -0.3, gustAmp: 0.13, gustRate: 0.55,
     overlay: 0.52, clouds: 5, cloudSpeed: 13, veils: 4, veilA: 0.16, mist: true,
     bolt: 'near', every: [6, 11], first: 1.4, splash: 1, glow: 1.25 },
+  // 장대비(opts.heavy)는 rain 의 번쩍임 간격을 FAR_LIGHTNING 으로 당긴다 — 아래 상수
   // ★천둥 흔들림(shake)은 없앴다(2026-11-14) — 그림 전체가 떨려 어지럽다는 피드백. 창 불빛 떨림은 유지.
   //   덕분에 바탕이 한 프레임도 움직이지 않아 base 로 구워 둘 수 있다 — 되살리면 base 도 같이 손봐야 한다
   snow: { kind: 'snow', count: 72, fall: [14, 30], wind: 5, overlay: 0.12, clouds: 2, cloudSpeed: 2,
@@ -120,6 +125,10 @@ const randIn = (r: [number, number]) => rand(r[0], r[1])
 
 type Pt = [number, number]
 interface Bolt { main: Pt[]; branches: Pt[][] }
+/* 장대비의 먼 번쩍임 — 보통 비(VARIANTS.rain, 90~180초)보다 잦게 40~90초에 한 번.
+ * 뇌우가 아니니 어느 쪽도 줄기 없이 하늘만 옅게 밝아진다. 가랑비에는 없다 */
+const FAR_LIGHTNING: Pick<Variant, 'bolt' | 'every' | 'first'> = { bolt: 'far', every: [40, 90], first: 12 }
+
 interface Strike { t0: number; bolt: Bolt | null; bx: number }
 interface RainDrop { L: number; x: number; y: number; v: number; len: number; jit: number; half: boolean }
 interface Flake { x: number; y: number; r: number; v: number; ph: number; sway: number; depth: number; a: number; target: number }
@@ -357,9 +366,9 @@ export class RailWeatherScene {
   private curSlant: number
   private lamp = 1
 
-  constructor(canvas: HTMLCanvasElement, mode: RailSceneMode, opts: { still?: boolean; demo?: boolean } = {}) {
+  constructor(canvas: HTMLCanvasElement, mode: RailSceneMode, opts: { still?: boolean; demo?: boolean; heavy?: boolean } = {}) {
     this.cv = canvas
-    this.cfg = VARIANTS[mode]
+    this.cfg = mode === 'rain' && opts.heavy ? { ...VARIANTS.rain, ...FAR_LIGHTNING } : VARIANTS[mode]
     this.still = !!opts.still
     this.demo = !!opts.demo
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D

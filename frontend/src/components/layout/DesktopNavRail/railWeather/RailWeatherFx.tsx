@@ -14,16 +14,27 @@ import { clearSnowMemory, hasSnowLeft } from './railSnowMemory'
  * - 동작 줄이기 설정이면 루프 없이 정지 화면 한 장만 그린다 — 흐린 하늘·먹구름·쌓인 눈으로
  *   날씨는 알리되 움직이는 것은 없다. (예전에는 통째로 꺼서 궂은 날 빈 삽화만 남았다) */
 
-/* 개발·확인용: localStorage 'rail-weather-preview' = drizzle | rain | storm | snow | blizzard | thaw */
+/* 개발·확인용: localStorage 'rail-weather-preview' = drizzle | rain | storm | snow | blizzard | thaw
+ * 장대비(비 + 잦은 먼 번쩍임)는 'downpour' */
 const PREVIEW_KEY = 'rail-weather-preview'
+const PREVIEW_HEAVY = 'downpour'
 const PREVIEW_MODES: RailSceneMode[] = ['drizzle', 'rain', 'storm', 'snow', 'blizzard', 'thaw']
 
 const readPreview = (): RailSceneMode | null => {
   try {
     const v = localStorage.getItem(PREVIEW_KEY)
+    if (v === PREVIEW_HEAVY) return 'rain'
     return v && (PREVIEW_MODES as string[]).includes(v) ? (v as RailSceneMode) : null
   } catch {
     return null
+  }
+}
+
+const readPreviewHeavy = (): boolean => {
+  try {
+    return localStorage.getItem(PREVIEW_KEY) === PREVIEW_HEAVY
+  } catch {
+    return false
   }
 }
 
@@ -62,6 +73,7 @@ export default function RailWeatherFx({ src, theme, forceMode }: Props) {
   const reduced = usePrefersReducedMotion()
   const [storedPreview] = useState(readPreview)
   const preview = forceMode ?? storedPreview
+  const [previewHeavy] = useState(readPreviewHeavy)
   const live = weatherToRailMode(weather)
 
   /* 눈 그친 뒤 — 방금까지 눈이 왔거나, 레일이 다시 떴는데 기억해 둔 눈이 남아 있으면 켠다 */
@@ -80,6 +92,8 @@ export default function RailWeatherFx({ src, theme, forceMode }: Props) {
 
   // 정지 화면에서는 녹는 과정을 보여 줄 수 없으니 thaw 를 쓰지 않는다
   const mode: RailSceneMode | null = preview ?? live ?? (thaw && !reduced ? 'thaw' : null)
+  /* 장대비 — 비 장면의 먼 번쩍임이 잦아진다(미리보기는 'downpour' 키로만) */
+  const heavy = mode === 'rain' && (preview ? previewHeavy && !forceMode : !!weather?.isHeavyRain)
   const active = !!mode
 
   /* 날씨가 개어도 캔버스는 스러지는 동안(FADE_MS) 남겨 둔다 */
@@ -116,7 +130,7 @@ export default function RailWeatherFx({ src, theme, forceMode }: Props) {
         }),
       ])
       if (disposed || !img) return
-      const scene = new RailWeatherScene(canvas, mode, { still: reduced, demo: preview === 'thaw' })
+      const scene = new RailWeatherScene(canvas, mode, { still: reduced, demo: preview === 'thaw', heavy })
       const bg =
         getComputedStyle(document.documentElement).getPropertyValue('--desktop-chrome').trim() ||
         (theme === 'dark' ? '#131313' : '#f1f3f6')
@@ -169,7 +183,7 @@ export default function RailWeatherFx({ src, theme, forceMode }: Props) {
       ro?.disconnect()
       cleanupScene?.()
     }
-  }, [mode, src, theme, reduced, preview])
+  }, [mode, src, theme, reduced, preview, heavy])
 
   if (!mounted) return null
   /* ready 는 장면이 바뀌어도 내리지 않는다 — 새 장면이 첫 장을 그릴 때까지 앞 장면의 마지막 그림이
