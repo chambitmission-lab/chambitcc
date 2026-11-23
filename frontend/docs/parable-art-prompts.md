@@ -40,7 +40,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A rocky hillside at golden evening. A shepherd walks home carrying the small white lamb across his shoulders, holding its legs gently; the lamb is the lost sheep that has just been found, resting safe and content. Behind them the warm low sun is the golden light, glowing around the shepherd and the lamb. Far off at the left edge, a small calm flock waits in the field.
 ```
@@ -72,7 +72,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: Inside a small stone house. A woman bends low, sweeping the floor with a simple broom; a small clay oil lamp set on the floor is the golden light, and in its glow a single silver coin glints between the floor stones. The lamb peers at the coin with her, nose close to the floor. Plain stone walls fade softly at the edges.
 ```
@@ -104,7 +104,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A long dusty road leading to a farmhouse. An old father in a flowing robe is running down the road, arms open, toward his thin son in ragged clothes who walks slowly with his head bowed; they are just about to meet in the centre. The golden light glows from the open doorway of the house behind the father. The lamb stands at the roadside, watching them.
 ```
@@ -136,7 +136,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A vineyard gate in the late afternoon. The landowner stands at the gate welcoming a few tired workers who have only just arrived, while rows of vines stretch behind. The low warm sun is the golden light, falling on the latecomers. The lamb stands among the vines at the gate.
 ```
@@ -168,7 +168,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A low dinner table in a courtyard house. A woman kneels quietly beside the table with a small alabaster jar of perfume; the jar softly glows as the golden light. Other guests sit back in shadow, simple and small. The lamb sits near the woman, watching.
 ```
@@ -205,7 +205,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A sloping field at early morning. A sower walks with a cloth bag at his side, throwing seed in a wide arc. Around him the ground changes: a hard footpath where small birds peck, a rocky patch, a tangle of thorns, and rich dark soil where green shoots already rise. The rising sun is the golden light, low behind him. The lamb walks along the good soil, looking at the shoots.
 ```
@@ -237,7 +237,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A small field beside a farmer's hut at dawn. In the field the grain has grown by itself: tiny sprouts, then green blades, then full golden ears of wheat, in gentle rows. The farmer stands at the hut door, just waking, surprised. The golden light glows from the hut's window. The lamb stands among the sprouts.
 ```
@@ -269,7 +269,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A large, wide mustard plant grown into a tree beside a field, its branches full of small birds resting and nesting. The lamb rests in its shade at the foot of the trunk. Sunlight breaking through the branches is the golden light, falling on the lamb. In front of the lamb lies one tiny round seed on a flat stone.
 ```
@@ -301,7 +301,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A simple kitchen. A woman kneads a large bowl of dough that is softly rising over the rim of the bowl. A clay oven in the corner glows as the golden light. The lamb sniffs the rising dough curiously.
 ```
@@ -333,7 +333,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A wheat field near harvest, the good wheat golden while darker weeds grow mixed among it. The farmer stands calmly at the edge of the field, one hand raised gently to tell his servants to wait. The warm low sun is the golden light over the wheat. The lamb stands between the stalks.
 ```
@@ -365,7 +365,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A quiet field. A man kneels by a freshly dug hole, amazed; in the hole a small wooden chest has opened and its golden glow is the golden light, lighting his face from below. The lamb peeks into the hole beside him.
 ```
@@ -397,7 +397,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A small market stall at sunset. A merchant holds up a single large, luminous pearl, gazing at it; the pearl itself softly shines as the golden light. Simple jars and cloths rest on the stall. The lamb looks up at the pearl.
 ```
@@ -429,7 +429,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: The shore of a calm lake at sunset. Fishermen have pulled a large dragnet full of fish onto the sand and sit sorting the fish into baskets. The setting sun over the lake is the golden light. The lamb stands on the sand beside a basket.
 ```
@@ -466,7 +466,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A sleeping village lane under the moon. A man stands knocking at a closed wooden door; above it, a small window has just lit up as the golden light, someone inside about to get up. The lamb stands beside the man at the door.
 ```
@@ -498,7 +498,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A stone courtyard with a judge's seat under an arch. A small widow in a simple shawl stands before the seat once again, hands open, steady and not giving up. A shaft of sunlight is the golden light, falling on the widow. The lamb stands faithfully beside her.
 ```
@@ -530,7 +530,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A temple courtyard with tall stone pillars. In the middle a richly dressed man stands proudly upright. Far to the side, a humble man stands with his head bowed and his hand on his chest. A beam of warm light, the golden light, falls only on the humble man. The lamb stands quietly near him.
 ```
@@ -567,7 +567,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A rocky desert road winding down between hills. A traveler kneels beside a wounded man lying by the road, gently binding his wounds; a patient donkey waits beside them. Two figures walk away far down the road. A small lantern set on the ground is the golden light, glowing on the traveler's caring hands. The lamb stands close to the donkey, watching.
 ```
@@ -599,7 +599,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A king's hall with simple arches. A servant kneels before the throne; above him a long scroll of debts is torn in two and drifting down in the golden light from a high window. The lamb stands at the side of the hall, looking up at the torn scroll.
 ```
@@ -631,7 +631,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: Huge new storehouses overflowing with grain at evening. A rich man stands with arms folded, admiring his barns. A single lamp in the storehouse doorway is the golden light. The lamb stands small beside a heap of grain, looking at the man.
 ```
@@ -663,7 +663,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: Outside the closed gate of a wealthy house. A poor man sits on the ground by the gate with a stray dog beside him; behind the gate a feast is faintly seen. The golden light falls on the poor man from above, gentle and kind. The lamb sits close to the poor man.
 ```
@@ -695,7 +695,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A long banquet table under hanging lanterns in a courtyard. A servant leads in guests from the streets: a man with a crutch, a blind man holding the servant's arm, people in worn clothes, all being welcomed to the table. The central lantern is the golden light. The lamb sits at the end of the table.
 ```
@@ -727,7 +727,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A wedding feast at a low table. The host gently takes a humble guest by the arm and leads him from the far end of the table toward the place of honour. A lamp near the head of the table is the golden light. The lamb sits at the humble end of the table.
 ```
@@ -764,7 +764,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A storm by a river. On the right, a small stone house stands firm on solid rock, its window glowing as the golden light. On the left, a house built on sand is sliding into the flooding water. The lamb stands safe on the rock beside the strong house.
 ```
@@ -796,7 +796,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A vineyard gate in the morning. One son walks into the vineyard carrying a basket, while another son walks away down the road. The father stands at the gate. The low morning sun is the golden light, shining on the son who went in. The lamb stands at the gate.
 ```
@@ -828,7 +828,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A vineyard on a hillside with a stone watchtower and a winepress. A young man, the owner's son, walks up the path toward the vineyard alone; the tenants stand at the top, small and unwelcoming. The golden light glows around the son on the path. The lamb stands at the bottom of the path. Calm and quiet, no violence.
 ```
@@ -860,7 +860,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A vineyard corner with a fig tree that has leaves but no fruit. A gardener kneels and gently digs around its roots, a basket of soil beside him; the owner stands nearby. Warm sunlight is the golden light on the gardener and the tree. The lamb watches beside the basket.
 ```
@@ -892,7 +892,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A building site with only the stone foundation of a tower. A man sits on a stone with a measuring cord and a small pile of counted stones, thinking carefully before he builds. The low sun is the golden light. The lamb sits beside the pile of stones.
 ```
@@ -924,7 +924,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A cellar room with a small window. An old cracked leather wineskin hangs on the wall, and a fresh new wineskin rests beside a jar of new wine being poured. Sunlight from the window is the golden light on the new wineskin. The lamb looks at the new wineskin.
 ```
@@ -961,7 +961,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: The doorway of a large house at evening. A servant is handing out bread to the household at a table, while the master has just come home and stands at the door with a lantern, the golden light. The lamb stands by the table.
 ```
@@ -993,7 +993,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A fig tree in early summer, its branches covered in fresh tender green leaves. The lamb stands under the tree looking up at the new leaves. Warm sunlight through the leaves is the golden light. Behind, a soft summer landscape.
 ```
@@ -1025,7 +1025,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: The entrance of a king's wedding hall. Servants welcome guests gathered from the roads, and each guest is given a clean white wedding garment at the door. A lamp at the doorway is the golden light, shining on the white garments. The lamb stands at the doorway.
 ```
@@ -1057,7 +1057,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A village lane at night. A row of young women in simple dresses wait with small clay oil lamps: those on the right hold lamps burning brightly, those on the left hold lamps that have gone out. Far down the lane, the bridegroom's procession approaches with a torch, the golden light. The lamb stands beside the women with bright lamps.
 ```
@@ -1089,7 +1089,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: A master's courtyard. A servant joyfully opens a cloth bag to show the master that the money has doubled; the coins catch the golden light from a lamp. In the background another servant is digging up a buried bag. The lamb stands beside the joyful servant.
 ```
@@ -1121,7 +1121,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene: Evening at the edge of a field. A shepherd gently separates his flock: the sheep gathered on his right, the goats on his left. The low warm sun behind the shepherd is the golden light. The lamb stands among the sheep on the right.
 ```
@@ -1144,7 +1144,7 @@ Everything important stays in the centre of the image (30-70% of the width, 28-7
 ## 적용 메모 (그림이 오면)
 
 - 저장: `src/pages/Bible/Parables/img/{id}-{light|dark}.webp` — `import.meta.glob` 으로 있는 것만 연결, 없으면 선화.
-- 크롭: 워터마크(우하단 ✦)를 자르고 1200×675, 시트 띠·카드·정사각 썸네일은 CSS `object-position: center`.
+- ★자르지 않는다(사용자: 하단 그림자까지 전부 보이게). ✦ 는 `gemini-unwatermark.py`(다크)·`gemini-unwatermark-transfer.py`(밝아서 못 찾는 라이트 — 다크에서 잰 알파를 옮김)로 지우고 원본 비율 그대로 1200×670 + 720 -sm. 시트 머리·읽기 카드 그림 칸은 `aspect-ratio: 1376/768`.
 - 테마: `[data-theme=dark]` 일 때 dark 파일, 한쪽만 있으면 있는 쪽.
 
 ## 원본 조각 (수정은 여기서 하고 스크립트로 다시 굽는다)
@@ -1162,7 +1162,7 @@ IMPORTANT composition: the lamb, the golden light and the main figure or object 
 
 Colour mood for light mode: bright, airy and soft. Pale warm cream, soft sky blue and gentle sage green, like a clear morning or soft afternoon. No harsh contrast, no dark heavy areas.
 
-No text, no letters, no numbers, no logos. No frame, border or vignette.
+No text, no letters, no numbers, no logos. No frame, border or vignette. It is ONE single continuous painting that fills the whole canvas edge to edge - no inset panel, no square picture inside the picture, no box or change of tone in the middle.
 
 Scene:
 ```

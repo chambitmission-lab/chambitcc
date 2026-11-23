@@ -1,14 +1,17 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useFeedTextScale, type FeedTextScale } from '../../../utils/feedTextScale'
 import { SheetGrabber } from '../../../components/common/SheetGrabber'
+import { ensureFontFamily } from '../../../utils/deferredFonts'
 import { usePassageVerses } from '../hooks/usePassageVerses'
 import { parseRef } from '../data/crossRefs'
 import { formatPromiseRef } from '../components/messiah/promiseText'
 import { nextParable, TOPIC_LABEL, PARABLES, type Parable, type ParableMark } from '../data/parables'
 import ParableArt from './ParableArt'
+import ParableVisual from './ParableVisual'
+import { hasParableImage } from './parableImages'
 import { markParableRead, useParableRead } from './parableProgress'
 import './parables-tone.css'
 import './ParableSheet.css'
@@ -42,7 +45,7 @@ const findMarks = (text: string, marks: readonly ParableMark[], taken: Set<numbe
   return out
 }
 
-/** 핵심 절 인용 — 붉은 글씨(예수님 말씀) 위에 눌러 볼 낱말을 파란 밑줄 단추로 */
+/** 핵심 절 인용 — 붉은 글씨(예수님 말씀) 위에 눌러 볼 낱말을 연필 밑줄 단추로 */
 const QuoteWithMarks = ({ p, active, onPick }: { p: Parable; active: number; onPick: (i: number) => void }) => {
   const ref = useMemo(() => parseRef(p.quote), [p.quote])
   const { verses, isLoading } = usePassageVerses(ref)
@@ -95,6 +98,10 @@ interface ParableSheetProps {
  */
 const ParableSheet = ({ parable: p, onClose, onOpen }: ParableSheetProps) => {
   useModalBackButton(onClose)
+  // 낱말 풀이의 손글씨(나눔펜)는 지연 서체 — 시트를 열 때 받는다(못 받으면 명조로)
+  useEffect(() => {
+    void ensureFontFamily('nanumPen')
+  }, [])
   const navigate = useNavigate()
   const textScale = useFeedTextScale()
   const read = useParableRead()
@@ -126,7 +133,7 @@ const ParableSheet = ({ parable: p, onClose, onOpen }: ParableSheetProps) => {
       onClick={onClose}
     >
       <div
-        className={`pbs-panel pb-tone--${p.topic} bg-background-light dark:bg-card-dark relative w-full sm:max-w-md lg:max-w-lg sheet-rise rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-[0_-12px_40px_rgba(0,0,0,0.35)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.45)]`}
+        className={`pbs-panel pb-tone--${p.topic} bg-background-light dark:bg-card-dark relative w-full sm:max-w-md lg:max-w-[1040px] sheet-rise rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-[0_-12px_40px_rgba(0,0,0,0.35)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.45)]`}
         role="dialog"
         aria-modal="true"
         aria-label={`예수님의 비유 · ${p.title}`}
@@ -135,9 +142,12 @@ const ParableSheet = ({ parable: p, onClose, onOpen }: ParableSheetProps) => {
         <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
 
         <div className="pbs-scroll" ref={setScrollEl}>
+          {/* PC(lg+)에선 두 칸 — 왼쪽(그림·제목·맥락)은 붙어 있고 오른쪽(말씀·풀이·마무리)만 흘러간다 */}
+          <div className="pbs-cols">
+          <div className="pbs-col pbs-col--a">
           {/* 머리 — 삽화 띠 + 제목 */}
-          <div className="pbs-art">
-            <ParableArt kind={p.art} className="pbs-art__glyph" />
+          <div className={`pbs-art${hasParableImage(p.id) ? ' has-img' : ''}`}>
+            <ParableVisual p={p} size="full" />
             <button type="button" onClick={onClose} aria-label="닫기" className="pbs-close">
               <span className="material-icons-round text-[20px]">close</span>
             </button>
@@ -164,10 +174,12 @@ const ParableSheet = ({ parable: p, onClose, onOpen }: ParableSheetProps) => {
             <p className="pbs-context">{p.context}</p>
           </section>
 
+          </div>
+          <div className="pbs-col pbs-col--b">
           {/* 말씀 + 낱말 풀이 */}
           <section className="pbs-block">
             <h4 className="pbs-label">
-              예수님의 말씀 <span className="pbs-label__hint">· 파란 밑줄을 눌러 보세요</span>
+              예수님의 말씀 <span className="pbs-label__hint">· 연필 밑줄을 눌러 보세요</span>
             </h4>
             <QuoteWithMarks p={p} active={active} onPick={setActive} />
             <p className="pbs-quote__ref">{formatPromiseRef(p.quote)}</p>
@@ -222,8 +234,8 @@ const ParableSheet = ({ parable: p, onClose, onOpen }: ParableSheetProps) => {
               </p>
               {next && (
                 <button type="button" className={`pbs-next pb-tone--${next.topic}`} onClick={() => openNext(next)}>
-                  <span className="pbs-next__art">
-                    <ParableArt kind={next.art} />
+                  <span className={`pbs-next__art${hasParableImage(next.id) ? ' has-img' : ''}`}>
+                    <ParableVisual p={next} />
                   </span>
                   <span className="min-w-0 flex-1 text-left">
                     <span className="pbs-next__k">이어서 읽기</span>
@@ -253,6 +265,8 @@ const ParableSheet = ({ parable: p, onClose, onOpen }: ParableSheetProps) => {
               <span className="material-icons-round text-[18px]" aria-hidden>auto_stories</span>
               성경에서 읽기
             </button>
+          </div>
+          </div>
           </div>
         </div>
       </div>

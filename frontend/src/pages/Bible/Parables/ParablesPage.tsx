@@ -12,7 +12,8 @@ import {
   type Parable,
   type ParableTopic,
 } from '../data/parables'
-import ParableArt from './ParableArt'
+import ParableVisual from './ParableVisual'
+import { hasParableImage } from './parableImages'
 import { useParableRead } from './parableProgress'
 import './parables-tone.css'
 import './ParablesPage.css'
@@ -127,8 +128,8 @@ const ParablesPage = () => {
                   onPointerDown={warmSheet}
                   onClick={() => setOpen(today)}
                 >
-                  <span className="pb-today__art">
-                    <ParableArt kind={today.art} />
+                  <span className={`pb-today__art${hasParableImage(today.id) ? ' has-img' : ''}`}>
+                    <ParableVisual p={today} />
                   </span>
                   <span className="pb-today__body">
                     <span className="pb-today__k">오늘의 비유 · {TOPIC_LABEL[today.topic]}</span>
@@ -179,8 +180,8 @@ const ParablesPage = () => {
                           onPointerDown={warmSheet}
                           onClick={() => setOpen(p)}
                         >
-                          <span className="pb-card__art">
-                            <ParableArt kind={p.art} />
+                          <span className={`pb-card__art${hasParableImage(p.id) ? ' has-img' : ''}`}>
+                            <ParableVisual p={p} />
                           </span>
                           {done && (
                             <span className="pb-card__stamp" aria-label="읽음">

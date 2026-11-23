@@ -24,6 +24,10 @@
   --pb-red: #b42318;
   --pb-gold-soft: #fff6e2;
   --pb-gold-ink: #5f4511;
+  --pb-paper: #fbf6ea;
+  --pb-paper-line: rgba(122, 90, 50, 0.14);
+  --pb-sepia: #7a5a32;
+  --pb-tip-line: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'><path d='M1 5.5 C 30 4, 60 6.4, 99 4.6' fill='none' stroke='%237a5a32' stroke-opacity='0.5' stroke-width='1.2' stroke-linecap='round' vector-effect='non-scaling-stroke'/></svg>");
 }
 [data-theme="dark"] {
   --pb-card: #201f1f;
@@ -32,5 +36,27 @@
   --pb-red: #f0a198;
   --pb-gold-soft: rgba(226, 178, 95, 0.1);
   --pb-gold-ink: #ecd3a0;
+  --pb-paper: rgba(217, 185, 138, 0.07);
+  --pb-paper-line: rgba(217, 185, 138, 0.14);
+  --pb-sepia: #e2c493;
+  --pb-tip-line: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'><path d='M1 5.5 C 30 4, 60 6.4, 99 4.6' fill='none' stroke='%23d9b98a' stroke-opacity='0.5' stroke-width='1.2' stroke-linecap='round' vector-effect='non-scaling-stroke'/></svg>");
 }
 
+
+/* 비유 그림(ParableVisual) — 상자를 꽉 채우는 cover, 초점은 가운데 살짝 위(양·빛이 모인 자리) */
+.pv-img {
+  position: absolute;
+  inset: 0;
+  background-image: var(--art-light);
+  background-size: cover;
+  background-position: 50% 45%;
+  background-repeat: no-repeat;
+}
+[data-theme="dark"] .pv-img {
+  background-image: var(--art-dark);
+}
+.has-img {
+  position: relative;
+  overflow: hidden;
+  padding: 0 !important;
+}

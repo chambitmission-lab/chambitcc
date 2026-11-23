@@ -4,10 +4,11 @@
 .prc {
   width: 100%;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: stretch;
   margin: 0.5rem 0 0.75rem;
-  padding: 0.625rem 0.75rem 0.625rem 0.625rem;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--pb-c) 22%, transparent);
   border-radius: 1rem;
   background: color-mix(in srgb, var(--pb-soft) 70%, transparent);
@@ -17,6 +18,45 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.15s ease;
+}
+.prc__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem 0.625rem 0.625rem;
+}
+.prc--img {
+  flex-direction: row;
+  align-items: center;
+}
+.prc--img .prc__row {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.75rem 0.5rem 0.75rem;
+}
+/* 그림 엽서 — 원본과 같은 16:9 라 잘리는 곳이 없다. 모바일 ≈120×68, PC 최대 176×99 */
+.prc__pic {
+  flex-shrink: 0;
+  display: block;
+  width: clamp(7.5rem, 32%, 11rem);
+  aspect-ratio: 1376 / 768; /* 제미나이 원본 비율 그대로 — 한 픽셀도 안 잘리게 */
+  margin: 0.5rem 0 0.5rem 0.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--pb-c) 14%, transparent);
+}
+.prc__pic .pv-img {
+  background-position: 50% 50%;
+}
+.prc--img .prc__t {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.prc--img .prc__g {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.85em;
 }
 .prc:active {
   transform: scale(0.99);
