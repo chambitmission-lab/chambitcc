@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
@@ -15,7 +15,8 @@ import {
 import ParableVisual from './ParableVisual'
 import { hasParableImage } from './parableImages'
 import { useParableRead } from './parableProgress'
-import { warmParable } from './parableWarm'
+import { scheduleAfterFirstScreen } from '../../../utils/idlePreload'
+import { cancelHoverWarm, hoverWarmParable, warmParable, warmParableSheet } from './parableWarm'
 import './parables-tone.css'
 import './ParablesPage.css'
 
@@ -54,6 +55,19 @@ const ParablesPage = () => {
   const courseNow = course.find((p) => !read.has(p.id))
   const courseDone = course.filter((p) => read.has(p.id)).length
   const today = useMemo(() => (courseNow ? null : pickToday(read)), [courseNow, read])
+
+  // 시트 청크(JS·CSS 10여 개)를 첫 클릭 때에야 받으면 그동안 화면에 아무것도 안 뜬다 — 화면이 자리 잡으면 미리 받고,
+  // 맨 위에서 권하는 비유(지금 읽을 차례 · 오늘의 비유)는 그림과 본문까지 받아 둔다.
+  const firstPick = courseNow ?? today
+  useEffect(
+    () =>
+      scheduleAfterFirstScreen(() => (firstPick ? warmParable(firstPick) : warmParableSheet()), {
+        settleMs: 300,
+        idleTimeoutMs: 2000,
+      }),
+    [firstPick],
+  )
+  useEffect(() => cancelHoverWarm, [])
 
   const groups = useMemo(
     () =>
@@ -103,6 +117,8 @@ const ParablesPage = () => {
                         <button
                           type="button"
                           className={`pb-step is-${state}`}
+                          onPointerEnter={(e) => hoverWarmParable(e.pointerType, p)}
+                          onPointerLeave={cancelHoverWarm}
                           onPointerDown={() => warmParable(p)}
                           onClick={() => setOpen(p)}
                         >
@@ -124,6 +140,8 @@ const ParablesPage = () => {
                 <button
                   type="button"
                   className={`pb-today pb-tone--${today.topic}`}
+                  onPointerEnter={(e) => hoverWarmParable(e.pointerType, today)}
+                  onPointerLeave={cancelHoverWarm}
                   onPointerDown={() => warmParable(today)}
                   onClick={() => setOpen(today)}
                 >
@@ -176,6 +194,8 @@ const ParablesPage = () => {
                         <button
                           type="button"
                           className={`pb-card pb-tone--${p.topic}${done ? ' is-read' : ''}`}
+                          onPointerEnter={(e) => hoverWarmParable(e.pointerType, p)}
+                          onPointerLeave={cancelHoverWarm}
                           onPointerDown={() => warmParable(p)}
                           onClick={() => setOpen(p)}
                         >

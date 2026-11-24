@@ -30,3 +30,23 @@ export const warmParable = (p: Pick<Parable, 'id' | 'quote'>) => {
     staleTime: 1000 * 60 * 60 * 24, // useBibleChapter 와 같은 값
   })
 }
+
+// 마우스가 카드 위에 잠깐 머물면 미리 받는다 — 격자를 훑고 지나가는 동안엔 받지 않게 조금 기다린다.
+// (터치는 pointerdown 에서 바로 받으므로 마우스만)
+const HOVER_INTENT_MS = 90
+let hoverTimer: number | null = null
+
+export const cancelHoverWarm = () => {
+  if (hoverTimer === null) return
+  window.clearTimeout(hoverTimer)
+  hoverTimer = null
+}
+
+export const hoverWarmParable = (pointerType: string, p: Pick<Parable, 'id' | 'quote'>) => {
+  if (pointerType !== 'mouse') return
+  cancelHoverWarm()
+  hoverTimer = window.setTimeout(() => {
+    hoverTimer = null
+    warmParable(p)
+  }, HOVER_INTENT_MS)
+}

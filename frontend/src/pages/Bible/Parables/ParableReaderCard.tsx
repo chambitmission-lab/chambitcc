@@ -1,9 +1,10 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Parable } from '../data/parables'
 import ParableVisual from './ParableVisual'
 import { hasParableImage } from './parableImages'
 import { useParableRead } from './parableProgress'
-import { warmParable } from './parableWarm'
+import { scheduleAfterFirstScreen } from '../../../utils/idlePreload'
+import { warmParable, warmParableSheet } from './parableWarm'
 import './parables-tone.css'
 import './ParableReaderCard.css'
 
@@ -16,6 +17,8 @@ const ParableSheet = lazy(() => import('./ParableSheet'))
 const ParableReaderCard = ({ parables }: { parables: readonly Parable[] }) => {
   const read = useParableRead()
   const [open, setOpen] = useState<Parable | null>(null)
+  // 터치 기기는 hover 가 없어 첫 탭에서야 시트 청크를 받았다 — 본문이 자리 잡으면 청크만 미리 받는다
+  useEffect(() => scheduleAfterFirstScreen(warmParableSheet, { settleMs: 800, idleTimeoutMs: 3000 }), [])
   return (
     <>
       {parables.map((p) => {
