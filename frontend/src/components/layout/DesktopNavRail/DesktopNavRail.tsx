@@ -290,10 +290,10 @@ const DesktopNavRail = () => {
     },
   ]
 
-  // 활성은 인장 하나로만 — 글리프 칸에 블루 인장이 찍히고 라벨은 진하게.
-  // 흰 알약까지 겹치면 무거워서 줄 배경은 두지 않는다(호버만 옅은 면). 연한 블루 면·좌측 막대도 은퇴
+  // 활성 = 글리프 칸의 블루 인장 + 줄 전체의 수채 붓자국(2026-11-24, .rail-brush) + 진한 라벨.
+  // 흰 알약·연한 블루 면·좌측 막대는 은퇴 — 반듯한 면 대신 물감 자국만 둔다(비활성 호버만 옅은 면)
   const itemClass = (active: boolean) =>
-    `group relative flex items-center justify-center xl:justify-start gap-3 min-h-[50px] rounded-2xl px-0 xl:px-2 py-1.5 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
+    `group relative isolate flex items-center justify-center xl:justify-start gap-3 min-h-[50px] rounded-2xl px-0 xl:px-2 py-1.5 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
       active
         ? 'text-[var(--text-strong)] dark:text-white'
         : 'text-gray-600 dark:text-white/70 hover:text-[var(--text-strong)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
@@ -309,6 +309,13 @@ const DesktopNavRail = () => {
       className="desktop-rail chrome-type hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-[var(--desktop-chrome)] px-3 xl:px-4 pt-5 pb-5"
       aria-label={t('railAria')}
     >
+      {/* 수채 붓자국의 거친 가장자리(.rail-brush 가 참조) */}
+      <svg width="0" height="0" className="absolute" aria-hidden>
+        <filter id="rail-rough" x="-5%" y="-30%" width="110%" height="160%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.035 0.09" numOctaves="2" seed="7" />
+          <feDisplacementMap in="SourceGraphic" scale="9" />
+        </filter>
+      </svg>
       <nav className="flex flex-col">
         {sections.map((sec, si) => (
           <div key={sec.key} role="group" aria-label={sec.label} className="rail-sec flex flex-col gap-0.5">
@@ -330,6 +337,8 @@ const DesktopNavRail = () => {
                 aria-busy={path ? pendingPath === path : undefined}
                 className={itemClass(active)}
               >
+                {/* 지금 있는 줄 — 아래 언덕과 같은 물감으로 한 번 쓸어 칠한 붓자국(xl 에서만, DesktopNavRail.css) */}
+                {active && <span className="rail-brush" aria-hidden />}
                 {/* 글리프 자리 — 모든 줄이 같은 38px 칸을 써서 활성이 바뀌어도 라벨이 흔들리지 않는다.
                     활성만 인장(블루 그라데이션 + 안쪽 점선 압인 링, common.css .seal-marker)이 찍힌다 */}
                 <span

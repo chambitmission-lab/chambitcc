@@ -97,6 +97,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['rail-share', () => import('../pages/dev/RailSharePreview')],
       // PC 좌측 레일 하단 삽화 사계절 나무 시연 — 봄·여름·가을·겨울(눈) + 한 해 흘려 보기
       ['rail-seasons', () => import('../pages/dev/RailSeasonsPreview')],
+      // PC 좌측 레일 메뉴 '지금 있는 자리' 표시 개편 시안 — 지금/A 주보 차례/B 아치 창/C 수채 붓자국/D 소인
+      ['rail-menu', () => import('../pages/dev/RailMenuPreview')],
       // /sermon 설교 영상 모달 감성 개편 시안 — ?v=a|b|c|d, &device=mobile
       ['sermon-player', () => import('../pages/dev/SermonPlayerPreview')],
       // 설교 극장 사계절 색 시안 — ?s=none|spring|summer|autumn|winter, &fx=1 계절 입자
