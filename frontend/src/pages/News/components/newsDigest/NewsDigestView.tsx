@@ -11,6 +11,7 @@ import type { Translation } from '../../../../locales'
 import { copyToClipboard } from '../../../../utils/clipboard'
 import { formatMonthDay } from '../../../../utils/date'
 import { renderKeepTogether } from '../../../../utils/keepTogether'
+import NewsRawText from './NewsRawText'
 import { statusOf, type DigestItem, type DigestKind, type DigestStatus, type NewsDigest } from './parseNewsDigest'
 import './newsDigest.css'
 
@@ -174,7 +175,11 @@ const NewsDigestView = ({ digest, rawContent, postDate }: NewsDigestViewProps) =
       <button type="button" className="nd-raw-btn" onClick={() => setShowRaw((v) => !v)} aria-expanded={showRaw}>
         {showRaw ? t('newsDigestHideRaw') : t('newsDigestShowRaw')}
       </button>
-      {showRaw && <div className="nd-raw">{renderKeepTogether(rawContent)}</div>}
+      {showRaw && (
+        <div className="nd-raw">
+          <NewsRawText content={rawContent} />
+        </div>
+      )}
     </div>
   )
 }

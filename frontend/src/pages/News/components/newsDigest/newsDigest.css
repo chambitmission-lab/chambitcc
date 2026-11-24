@@ -226,7 +226,35 @@
   font-weight: 700;
   cursor: pointer;
 }
-.nd-raw { white-space: pre-wrap; font-size: 14px; line-height: 1.75; color: var(--text-body); }
+.nd-raw { font-size: 14px; line-height: 1.7; color: var(--text-body); }
+
+/* 주보 원문(NewsRawText, ndr-) — 글자는 원문 그대로, 줄 모양만 정리 */
+.ndr { display: grid; border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; }
+.ndr-sec { padding: 16px 16px 18px; }
+.ndr-sec + .ndr-sec { border-top: 1px solid var(--card-border); }
+.ndr-sec.is-lead { background: var(--nd-surface-2); }
+.ndr-head { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 8px; font-size: 16px; font-weight: 800; line-height: 1.45; color: var(--text-strong, var(--text-body)); }
+.ndr-no {
+  flex: none; display: inline-grid; place-items: center;
+  width: 24px; height: 24px; margin-top: -0.5px; border-radius: 999px;
+  background: var(--k-worship-soft); color: var(--k-worship);
+  font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.ndr-title { min-width: 0; }
+.ndr-body { display: grid; gap: 4px; padding-left: 34px; }
+.ndr-sec.is-lead .ndr-body { padding-left: 0; }
+.ndr-body p { margin: 0; }
+.ndr-gap { height: 6px; }
+.ndr-sub, .ndr-circled, .ndr-note, .ndr-bullet { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; }
+.ndr-sub .ndr-mark { min-width: 1.4em; font-weight: 700; color: var(--k-worship); font-variant-numeric: tabular-nums; }
+.ndr-circled { padding-left: 1.6em; }
+.ndr-circled .ndr-mark { color: var(--text-muted); }
+.ndr-bullet .ndr-mark { color: var(--text-muted); font-weight: 800; }
+.ndr-note {
+  margin-top: 2px !important; padding: 7px 10px; border-radius: 10px;
+  background: var(--nd-surface-2); font-size: 0.93em; color: var(--text-body);
+}
+.ndr-note .ndr-mark { color: var(--k-prayer); font-weight: 700; }
 
 .nd-root button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
@@ -267,7 +295,12 @@
   .nd-call { font-size: 15.5px; }
   .nd-call button { height: 38px; padding: 0 15px; font-size: 14.5px; }
   .nd-raw-btn { height: 52px; font-size: 15.5px; }
-  .nd-raw { font-size: 18px; line-height: 1.8; }
+  .nd-raw { font-size: 18px; line-height: 1.75; }
+  .ndr-sec { padding: 22px 26px 24px; }
+  .ndr-head { gap: 12px; margin-bottom: 10px; font-size: 19.5px; }
+  .ndr-no { width: 30px; height: 30px; font-size: 15px; }
+  .ndr-body { gap: 6px; padding-left: 42px; }
+  .ndr-note { padding: 9px 13px; }
   .nd-table { font-size: 15px; }
   .nd-table th, .nd-table td { padding: 9px 12px; }
 }
