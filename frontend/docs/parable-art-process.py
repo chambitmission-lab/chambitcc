@@ -22,13 +22,38 @@ def run(*args):
     return subprocess.run([sys.executable, *args], capture_output=True, text=True)
 
 
+def residual(out):
+    # gemini-unwatermark.py 출력의 '링 잔차 … → 결과 X' — 0 근처면 깨끗, 원본보다 커지면 테두리 자국(과잉 제거)
+    import re
+    m = re.search(r'원본 ([+-][\d.]+)\s+→\s+결과 ([+-][\d.]+)', out)
+    return (float(m.group(1)), float(m.group(2))) if m else None
+
+
 def clean(src, name, ref=None):
     dst = os.path.join(tmp, f'{name}.png')
     r = run(os.path.join(here, 'gemini-unwatermark.py'), src, dst)
+    same = ref and Image.open(ref).size == Image.open(src).size
+    # ★오탐 막기 — 로고 없는 편집본(1672×941 등)에서도 거친 모양이 잡히면 '제거'로 돈다(2026-11-24 충성된 종).
+    #   진짜 ✦ 는 코어 알파가 0.2~0.35, 오탐은 0 근처·음수 → 0.08 미만이면 원본 그대로.
+    import re
+    m = re.search(r'코어 알파 ([+-]?[\d.]+)', r.stdout)
+    if r.returncode == 0 and m and float(m.group(1)) < 0.08:
+        print(f'  {name}: ✦ 없음 (코어 알파 {float(m.group(1)):+.3f}, 오탐) — 그대로 사용')
+        return src
     if r.returncode == 0:
-        print(f'  {name}: ✦ 제거 (직접)')
-        return dst
-    if ref and Image.open(ref).size == Image.open(src).size:
+        res = residual(r.stdout)
+        # ★지운 뒤 잔차가 원본보다 오히려 커지면 ✦ 가 아니라 그림의 밝은 선을 잘못 잡은 것
+        #   (2026-11-24 바리새인과 세리 — 돌 이음선이 어둡게 패였다). 옮길 다크 알파도 없으면 원본 그대로.
+        if res and res[1] > res[0] + 1.0 and not same:
+            print(f'  {name}: ✦ 없음 (잔차 {res[0]:+.1f}→{res[1]:+.1f} 악화, 오탐) — 그대로 사용')
+            return src
+        # ★옅은 라이트 ✦ 는 직접 제거가 모양을 잘못 잡아 갈색 테두리 자국을 남기기도 한다(2026-11-24 무화과나무)
+        #   → 잔차가 2.5 를 넘으면 다크에서 잰 알파로 다시
+        if not (res and abs(res[1]) > 2.5 and same):
+            print(f'  {name}: ✦ 제거 (직접)')
+            return dst
+        print(f'  {name}: 직접 제거 잔차 {res[1]:+.1f} — 다크 알파로 재시도')
+    if same:
         r = run(os.path.join(here, 'gemini-unwatermark-transfer.py'), ref, src, dst)
         if r.returncode == 0:
             print(f'  {name}: ✦ 제거 (다크에서 알파 옮김)')
@@ -38,7 +63,8 @@ def clean(src, name, ref=None):
 
 
 d = clean(dark, 'dark')
-l = clean(light, 'light', ref=dark)
+# 다크에 진짜 ✦ 가 있을 때만 그 알파를 라이트로 옮긴다 (없는 다크에서 잰 '알파'는 허상)
+l = clean(light, 'light', ref=dark if d != dark else None)
 for theme, path in (('light', l), ('dark', d)):
     im = Image.open(path).convert('RGB')
     w, h = im.size
