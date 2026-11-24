@@ -40,7 +40,8 @@ const DigitalBulletin = ({ previewData }: DigitalBulletinProps = {}) => {
   const { data: fetched } = useDigitalBulletin()
   const data = previewData ?? fetched
   const replaceMutation = useReplaceDigitalBulletin()
-  // 종이 주보를 AI 가 읽어 둔 초안 — 관리자만 보고, 검토해 적용하기 전까지 방문자에겐 공개본만 보인다
+  // 종이 주보를 AI 가 읽어 둔 초안 — 이제 읽으면 바로 공개되고, 공개본을 덮으면 안 될 때(지난 주보 다시 읽기 등)만
+  // 초안으로 남는다. 관리자만 보고, 검토해 적용하기 전까지 방문자에겐 공개본만 보인다
   const { draft: aiDraft } = useDigitalBulletinDraft(isAdminUser)
   const discardDraftMutation = useDiscardDigitalBulletinDraft()
   const [expanded, setExpanded] = useState<Set<SectionKey>>(

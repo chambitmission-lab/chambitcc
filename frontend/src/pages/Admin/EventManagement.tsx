@@ -17,7 +17,7 @@ import { can } from '../../utils/access'
 import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
 import { InfoRow, SkeletonRows } from './components/AdminListBits'
 
-// bulletin = 주보 소식에서 자동으로 만든 비공개 초안 (알림의 ?status=bulletin 으로 바로 열린다)
+// bulletin = 주보 소식에서 만든 비공개 초안 — 2026-11-25부터 주보 일정은 바로 공개돼, 그 전에 남은 초안만 여기 걸린다
 type PublishFilter = 'all' | 'published' | 'draft' | 'bulletin'
 const PUBLISH_FILTERS: readonly PublishFilter[] = ['all', 'published', 'draft', 'bulletin']
 

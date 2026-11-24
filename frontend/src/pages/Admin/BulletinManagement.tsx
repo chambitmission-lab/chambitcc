@@ -129,7 +129,7 @@ const BulletinManagement = () => {
     setComposerOpen(true)
   }
 
-  // 소식 쪽 → 일정·교회소식 초안 (AI 1~2분). 자동 등록을 놓친 주보나 직접 올린 주보용
+  // 소식 쪽 → 일정 (AI 1~2분, 바로 공개). 자동 등록을 놓친 주보나 직접 올린 주보용
   const [importingId, setImportingId] = useState<number | null>(null)
   // state는 다음 렌더에야 반영되므로, 확인창 전후 빠른 연타까지 막는 동기 잠금
   const importLockRef = useRef(false)
@@ -162,14 +162,14 @@ const BulletinManagement = () => {
       }
     })
   }
-  // 주보 전체 → 디지털 주보 초안 (AI 1~2분). 공개되지 않고 소식 탭의 관리자 배너에서 검토 후 적용
+  // 주보 전체 → 디지털 주보 (AI 1~2분). 읽으면 바로 공개 — 공개본이 더 새 주보일 때만 초안으로 남는다
   const runImportDigital = async (bulletin: Bulletin) => {
     if (
       !(await confirmDialog({
-        title: '디지털 주보 초안 다시 만들기',
+        title: '디지털 주보 다시 읽기',
         message:
-          '등록된 주보는 서버가 알아서 읽어 초안을 만들어요. 다시 읽히고 싶거나 읽기가 3번 실패했을 때만 쓰세요. 1~2분 걸리고, 소식 탭에서 검토한 뒤 적용해야 공개됩니다. 있던 초안은 덮어써요.',
-        confirmText: '다시 만들기',
+          '등록된 주보는 서버가 알아서 읽어 바로 공개해요. 다시 읽히고 싶거나 읽기가 3번 실패했을 때만 쓰세요. 1~2분 걸리고, 지금 공개된 디지털 주보를 덮어써요(손으로 고친 내용도 사라져요). 지난 주보를 읽히면 공개본은 그대로 두고 초안으로만 남아요.',
+        confirmText: '다시 읽기',
       }))
     )
       return
@@ -178,8 +178,8 @@ const BulletinManagement = () => {
     try {
       const job = await waitImport(await importBulletinDigital(bulletin.id))
       const r = job.result.digital
-      // 초안이 바뀌었으니 소식 탭이 옛 초안(캐시)을 보여 주지 않게
-      void queryClient.invalidateQueries({ queryKey: bulletinKeys.draft, refetchType: 'all' })
+      // 공개본·초안·보관본이 바뀌었으니 소식 탭이 옛 캐시를 보여 주지 않게(all 이 draft·issues 의 앞머리)
+      void queryClient.invalidateQueries({ queryKey: bulletinKeys.all, refetchType: 'all' })
       if (!r) {
         showToast('주보를 읽지 못했어요. 잠시 후 다시 시도해 주세요', 'error')
         return
@@ -188,7 +188,13 @@ const BulletinManagement = () => {
         showToast('이 이미지를 주보로 읽지 못했어요', 'info')
         return
       }
-      showToast(`초안 완성 — 소식 ${r.announcements}건 · 안내 ${r.extras}개 · 일정 ${r.schedule}개. 소식 탭에서 검토 후 적용해 주세요`, 'success')
+      const summary = `소식 ${r.announcements}건 · 안내 ${r.extras}개 · 일정 ${r.schedule}개`
+      showToast(
+        r.published
+          ? `디지털 주보를 공개했어요 — ${summary}. 잘못 읽힌 곳이 있으면 고쳐 주세요`
+          : `초안 완성 — ${summary}. 지금 공개본이 더 새 주보라 초안으로 뒀어요. 소식 탭에서 검토 후 적용해 주세요`,
+        'success',
+      )
       navigate('/news?tab=bulletin')
     } catch (err) {
       showToast(err instanceof Error ? err.message : '주보를 읽지 못했어요', 'error')
@@ -200,9 +206,9 @@ const BulletinManagement = () => {
   const runImportNews = async (bulletin: Bulletin) => {
     if (
       !(await confirmDialog({
-        title: '소식 → 일정 초안 다시 만들기',
+        title: '소식 → 일정 다시 만들기',
         message:
-          '등록된 주보는 서버가 알아서 소식 쪽을 읽어 일정 초안을 만들어요. 다시 읽히고 싶거나 읽기가 3번 실패했을 때만 쓰세요. 1~2분 걸리고, 이미 있는 일정은 건너뜁니다. 교회소식 초안은 디지털 주보 초안을 적용할 때 만들어져요.',
+          '등록된 주보는 서버가 알아서 소식 쪽을 읽어 일정을 바로 공개해요. 다시 읽히고 싶거나 읽기가 3번 실패했을 때만 쓰세요. 1~2분 걸리고, 이미 있는 일정은 건너뜁니다. 교회소식 글은 디지털 주보가 공개될 때 함께 만들어져요.',
         confirmText: '다시 만들기',
       }))
     )
@@ -220,10 +226,10 @@ const BulletinManagement = () => {
         showToast('이 주보에서 소식 쪽을 찾지 못했어요', 'info')
         return
       }
-      const parts = [`일정 초안 ${r.events}건`]
+      const parts = [`일정 ${r.events}건 공개`]
       if (r.skipped_duplicates) parts.push(`중복 ${r.skipped_duplicates}건 건너뜀`)
-      showToast(`${parts.join(' · ')} — 일정 관리에서 확인 후 공개해 주세요`, 'success')
-      if (r.events) navigate('/admin/events?status=bulletin')
+      showToast(`${parts.join(' · ')} — 잘못 읽힌 곳이 있으면 일정 관리에서 고쳐 주세요`, 'success')
+      if (r.events) navigate('/admin/events')
     } catch (err) {
       showToast(err instanceof Error ? err.message : '주보 소식을 읽지 못했어요', 'error')
     } finally {
@@ -696,8 +702,8 @@ const BulletinRow = ({
             {needsHand
               ? '읽기가 3번 실패한 항목이 있어요. 아래 버튼으로 직접 다시 읽혀 주세요.'
               : outOfWindow
-                ? '2주 넘게 지난 주보라 자동으로 읽지 않아요. 초안이 필요하면 아래 버튼으로 읽혀 주세요. 디지털 초안은 지금 초안을 덮어써요.'
-                : '칼럼·일정·디지털 주보 초안은 등록되면 서버가 알아서 읽어요. 아래 버튼은 다시 읽히고 싶을 때만 쓰세요.'}
+                ? '2주 넘게 지난 주보라 자동으로 읽지 않아요. 필요하면 아래 버튼으로 읽혀 주세요. 지난 주보의 디지털 주보는 공개본을 덮지 않고 초안으로 남아요.'
+                : '칼럼·일정·디지털 주보는 등록되면 서버가 알아서 읽어 바로 공개해요. 아래 버튼은 다시 읽히고 싶을 때만 쓰세요.'}
           </p>
           <RowAction
             onClick={onImportNews}
@@ -709,7 +715,7 @@ const BulletinRow = ({
                 ? '소식 읽는 중… (1~2분)'
                 : importLocked
                   ? '다른 주보를 읽는 중이에요'
-                  : '소식 → 일정 초안 다시 만들기'
+                  : '소식 → 일정 다시 만들기'
             }
           />
           <RowAction
@@ -722,7 +728,7 @@ const BulletinRow = ({
                 ? '주보 읽는 중… (1~2분)'
                 : importLocked
                   ? '다른 주보를 읽는 중이에요'
-                  : '디지털 주보 초안 다시 만들기'
+                  : '디지털 주보 다시 읽기'
             }
           />
 

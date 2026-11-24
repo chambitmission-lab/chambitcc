@@ -167,6 +167,8 @@ export interface BulletinNewsImportResult {
 
 export interface BulletinDigitalImportResult {
   found: boolean
+  /** true 면 바로 공개됨, false 면 초안으로 남음(공개본이 더 새 주보일 때) */
+  published?: boolean
   announcements: number
   extras: number
   schedule: number
@@ -187,7 +189,7 @@ export interface BulletinImportJob {
 }
 
 /**
- * 주보 '소식' 쪽 → 일정 초안 다시 가져오기 (관리자 전용). 대기열에 넣고 바로 job 을 돌려준다.
+ * 주보 '소식' 쪽 → 일정 다시 가져오기 (관리자 전용, 바로 공개). 대기열에 넣고 바로 job 을 돌려준다.
  * 같은 날·같은 제목 일정은 서버가 건너뛰어 여러 번 눌러도 쌓이지 않는다.
  */
 export const importBulletinNews = (id: number): Promise<BulletinImportJob> =>
@@ -198,8 +200,9 @@ export const importBulletinNews = (id: number): Promise<BulletinImportJob> =>
   })
 
 /**
- * 주보 전체 → 디지털 주보 초안 다시 만들기 (관리자 전용). 대기열에 넣고 바로 job 을 돌려준다.
- * 초안은 공개되지 않고 /news?tab=bulletin 의 관리자 배너에서 검토 후 적용한다. 있던 초안은 덮어쓴다.
+ * 주보 전체 → 디지털 주보 다시 읽기 (관리자 전용). 대기열에 넣고 바로 job 을 돌려준다.
+ * 읽으면 바로 공개본을 덮어쓴다. 공개본이 더 새 주보일 때만 초안으로 남아 /news?tab=bulletin 의
+ * 관리자 배너에서 검토 후 적용한다(result.digital.published 로 구분).
  */
 export const importBulletinDigital = (id: number): Promise<BulletinImportJob> =>
   request<BulletinImportJob>(`/bulletins/${id}/import-digital`, {

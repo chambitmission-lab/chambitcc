@@ -39,8 +39,8 @@ const NewsDetailView = ({ newsId, onBack }: NewsDetailViewProps) => {
   const { t, language } = useLanguage()
   const { data: news, isLoading, error } = useNewsDetail(newsId)
   const [zoom, setZoom] = useState<string | null>(null)
-  // 관리자 줄 — 주보에서 가져온 소식 초안은 비공개로 만들어지는데, 보이는 자리에서 바로
-  // 공개·수정할 수 있어야 한다(소식 관리 화면까지 찾아가지 않아도 되게)
+  // 관리자 줄 — 주보 소식은 디지털 주보 적용 때 바로 공개된다. 보이는 자리에서 바로
+  // 고치거나 내릴 수 있어야 한다(소식 관리 화면까지 찾아가지 않아도 되게)
   const admin = can('content:manage')
   const queryClient = useQueryClient()
   const invalidateNews = useInvalidateNews()
