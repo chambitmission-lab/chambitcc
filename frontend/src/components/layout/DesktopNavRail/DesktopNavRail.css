@@ -257,8 +257,10 @@
      지금은 RailSun 의 MoonGlyph(SVG)가 실제 위상을 그린다 — 어두운 면이 옅게 비치고, 밝은 면에
      바다 얼룩이 있고, 가장자리가 번진다. 색은 --sun-color 하나로 테마·흐림을 가른다.
    ::before = 달무리, svg.rail-moon = 달. */
+/* 라이트 — 진한 황토 원반(#d2a24a·0.94)+또렷한 점 얼룩은 '쿠키'처럼 도드라졌다(2026-11-24).
+   밝은 하늘의 달답게: 옅은 밀짚빛, 살짝 비치는 농도, 번진 가장자리, 이어진 바다 얼룩. 다크는 그대로 */
 .rail-sun.is-moon {
-  --sun-hue: #d2a24a;
+  --sun-hue: #e9dcb8;
   --sun-color: var(--sun-hue);
   background: none;
 }
@@ -283,10 +285,14 @@
 }
 /* 어두운 면 — 라이트에서는 아예 안 그린다: 밝은 바탕 위의 옅은 원반이 '무언가에 가려진 달'로 읽혔다(2026-11-14) */
 .rail-moon-dark { fill: var(--sun-color); opacity: 0; }
-.rail-moon-lit { fill: var(--sun-color); opacity: 0.94; }
-/* 달의 바다 — 밝은 면 안에서만 보이는 옅은 얼룩 */
-.rail-moon-mare { fill: #7a5a1e; opacity: 0.16; }
-[data-theme='dark'] .rail-moon-mare { fill: #2b2a33; opacity: 0.2; }
+.rail-moon-lit { fill: var(--sun-color); opacity: 0.7; }
+[data-theme='dark'] .rail-moon-lit { opacity: 0.94; }
+:root:not([data-theme='dark']) .rail-moon { filter: blur(0.35px); }
+/* 달의 바다 — 밝은 면 안에서만 보이는 옅은 얼룩. 라이트는 번진 큰 얼룩(-soft), 다크는 점 얼룩 */
+.rail-moon-mare { display: none; }
+.rail-moon-mare-soft { fill: #9c8a68; opacity: 0.22; }
+[data-theme='dark'] .rail-moon-mare { display: inline; fill: #2b2a33; opacity: 0.2; }
+[data-theme='dark'] .rail-moon-mare-soft { display: none; }
 [data-theme='dark'] .rail-moon-dark { opacity: 0.06; }
 .rail-sun.is-moon.is-veiled {
   --sun-color: color-mix(in srgb, var(--sun-hue) 62%, #dfe3ec);

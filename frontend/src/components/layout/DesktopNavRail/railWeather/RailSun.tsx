@@ -80,6 +80,9 @@ function MoonGlyph({ phase }: { phase: number }) {
         <filter id={`${id}soft`} x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="0.45" />
         </filter>
+        <filter id={`${id}mare`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="1.1" />
+        </filter>
       </defs>
       <g transform="rotate(-20)" filter={`url(#${id}soft)`}>
         <circle r={MOON_R} className="rail-moon-dark" />
@@ -90,6 +93,19 @@ function MoonGlyph({ phase }: { phase: number }) {
           <ellipse cx="-1.6" cy="5.4" rx="2.4" ry="1.8" />
           <circle cx="5.6" cy="-6" r="1.5" />
           <circle cx="-7.2" cy="1.6" r="1.6" />
+        </g>
+        {/* 라이트 전용 바다 — 또렷한 점 다섯은 밝은 바탕에서 '쿠키'로 읽혔다(2026-11-24).
+            실제 달처럼 서로 이어진 큰 얼룩(비의 바다·폭풍의 대양·고요의 바다…)을 한 번 더 번지게 해서 얹는다 */}
+        <g clipPath={`url(#${id}lit)`} className="rail-moon-mare-soft">
+          <g filter={`url(#${id}mare)`}>
+            <ellipse cx="-3.5" cy="-5" rx="4.2" ry="3.4" />
+            <ellipse cx="-7" cy="0.5" rx="3" ry="4.8" />
+            <ellipse cx="2.6" cy="-4.6" rx="2.6" ry="2.4" />
+            <ellipse cx="5.2" cy="-1" rx="3" ry="2.6" />
+            <ellipse cx="-3" cy="5.5" rx="3.2" ry="2.2" />
+            <ellipse cx="7.4" cy="2.4" rx="1.6" ry="2.2" />
+            <circle cx="8.4" cy="-4.2" r="1.2" />
+          </g>
         </g>
       </g>
     </svg>
