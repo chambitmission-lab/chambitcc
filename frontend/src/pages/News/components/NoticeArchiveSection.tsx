@@ -48,7 +48,7 @@ interface NoticeItem {
 }
 
 const summarize = (notice: Notification): NoticeItem => {
-  const h = extractNoticeHighlights(notice.content)
+  const h = extractNoticeHighlights(notice.content, notice.created_at)
   const preview = noticePreviewText(h.rest || notice.content)
   return {
     notice,

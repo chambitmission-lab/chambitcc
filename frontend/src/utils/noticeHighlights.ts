@@ -98,10 +98,20 @@ const kstToday = () => {
   return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate() }
 }
 
+/** 공지 올린 날(KST) — 없거나 못 읽으면 오늘 */
+const kstDate = (iso?: string | null) => {
+  if (!iso) return kstToday()
+  // DB 시각은 시간대 없이 UTC로 오는 경우가 있다 — 표식이 없으면 UTC로 본다
+  const ms = Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(iso) ? iso : `${iso}Z`)
+  if (Number.isNaN(ms)) return kstToday()
+  const d = new Date(ms + 9 * 3600 * 1000)
+  return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate() }
+}
+
 const dayNumber = (y: number, m: number, d: number) => Math.floor(Date.UTC(y, m - 1, d) / 86400000)
 
 /** '11월 8일(주일) 오후 2시' · '2026.11.8 14:00' · '11/8' 같은 값에서 날짜·시각을 읽는다 */
-export const parseNoticeWhen = (value: string): NoticeWhen | null => {
+export const parseNoticeWhen = (value: string, postedAt?: string | null): NoticeWhen | null => {
   const v = stripInline(value)
   let year: number | null = null
   let month: number
@@ -125,8 +135,10 @@ export const parseNoticeWhen = (value: string): NoticeWhen | null => {
   if (month < 1 || month > 12 || day < 1 || day > 31) return null
 
   if (year == null) {
-    // 연도가 없으면 올해 — 다만 한 달 넘게 지난 날짜면 내년 일정으로 본다(12월에 올린 1월 공지)
-    const t = kstToday()
+    // 연도가 없으면 공지를 올린 해 — 다만 올린 날보다 한 달 넘게 앞선 날짜면 내년 일정으로 본다
+    // (12월에 올린 1월 공지). 기준을 '오늘'로 잡으면 지난 일정이 한 달만 지나도 내년으로 넘어가
+    // '다가오는 일정'에 다시 떠오른다(10/24 바자회가 11/25에 2027-10-24로 읽힌 버그).
+    const t = kstDate(postedAt)
     year = t.y
     if (dayNumber(year, month, day) < dayNumber(t.y, t.m, t.d) - 30) year += 1
   }
@@ -175,7 +187,7 @@ export const shortNoticePlace = (place: string): string => {
   return noChurch && !/^\d/.test(noChurch) ? noChurch : cut
 }
 
-export const extractNoticeHighlights = (source: string): NoticeHighlights => {
+export const extractNoticeHighlights = (source: string, postedAt?: string | null): NoticeHighlights => {
   const lines = (source ?? '').replace(/\r\n/g, '\n').split('\n')
   const drop = new Set<number>()
 
@@ -258,7 +270,7 @@ export const extractNoticeHighlights = (source: string): NoticeHighlights => {
   const whenRow =
     rows.find((r) => ['일시', '날짜'].includes(r.label.replace(/\s+/g, ''))) ??
     rows.find((r) => r.label.replace(/\s+/g, '') === '시간')
-  const when = whenRow ? parseNoticeWhen(whenRow.value) : null
+  const when = whenRow ? parseNoticeWhen(whenRow.value, postedAt) : null
   const placeRow = rows.find((r) => r.icon === 'place')
 
   return { rows, verse, program, rest: program ? '' : rest, when, place: placeRow ? stripInline(placeRow.value) : null }

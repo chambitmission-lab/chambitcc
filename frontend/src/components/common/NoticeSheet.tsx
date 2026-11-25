@@ -104,7 +104,10 @@ const NoticeSheet = ({
   labels: labelOverrides,
 }: NoticeSheetProps) => {
   const labels = { ...DEFAULT_LABELS, ...labelOverrides }
-  const highlights = useMemo(() => extractNoticeHighlights(notice.content), [notice.content])
+  const highlights = useMemo(
+    () => extractNoticeHighlights(notice.content, notice.created_at),
+    [notice.content, notice.created_at],
+  )
   const ddayValue = highlights.when ? noticeDday(highlights.when) : null
   const ddayLabel = highlights.when ? noticeDdayLabel(highlights.when) : null
   const isPast = ddayValue != null && ddayValue < 0
