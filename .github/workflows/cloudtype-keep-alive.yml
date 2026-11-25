@@ -47,10 +47,19 @@ jobs:
             exit 1
           fi
 
+          # 2026-11: /scope/{scope}/resource/stat 이 API 키로는 permission denied 가 되어
+          # 스테이지의 deployment 목록(각 항목 .stat.status)으로 바꿨다.
+          # 응답에 서비스 env 설정이 실려 오므로 원문은 로그에 찍지 않고,
+          # 예전 stat 형식({stats:[{name,stage,status}]})으로 줄여서 쓴다.
           fetch_stat() {
-            curl -sS --max-time 30 \
+            local raw
+            raw="$(curl -sS --max-time 30 \
               -H "Authorization: Bearer ${TOKEN}" \
-              "${API}/scope/${SCOPE}/resource/stat"
+              "${API}/project/${SCOPE}/${PROJECT}/stage/${STAGE}/deployment")" || return 1
+            printf '%s' "$raw" | jq -c \
+              'if type == "array"
+               then {stats: [.[] | {name, stage, status: (.stat.status // "unknown")}]}
+               else {stats: [], response: .} end'
           }
 
           # 서비스 이름으로 status 값을 뽑는다. 항목이 없으면 "absent".

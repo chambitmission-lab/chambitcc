@@ -26,13 +26,25 @@ const IN_PROGRESS = new Set([
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// 2026-11: /scope/{scope}/resource/stat 이 API 키로는 permission denied 가 되어
+// 스테이지의 deployment 목록(각 항목 .stat.status)으로 바꿨다.
+// 응답에 서비스 env 설정이 실려 오므로 원문은 로그에 남기지 않고,
+// 예전 stat 형식({stats:[{name,stage,status}]})으로 줄여서 쓴다.
 async function fetchStat(token) {
-  const res = await fetch(`${API}/scope/${SCOPE}/resource/stat`, {
+  const res = await fetch(`${API}/project/${SCOPE}/${PROJECT}/stage/${STAGE}/deployment`, {
     headers: { Authorization: `Bearer ${token}` },
     signal: AbortSignal.timeout(30_000),
   });
   if (!res.ok) throw new Error(`stat 조회 실패: HTTP ${res.status}`);
-  return res.json();
+  const body = await res.json();
+  if (!Array.isArray(body)) return { stats: [] };
+  return {
+    stats: body.map((d) => ({
+      name: d.name,
+      stage: d.stage,
+      status: d.stat?.status ?? 'unknown',
+    })),
+  };
 }
 
 function statusOf(statJson, name) {
