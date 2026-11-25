@@ -321,44 +321,6 @@
     font-size: 1rem;
   }
 
-  /* 우측 레일 */
-  .gr-next-title,
-  .gr-visit-title {
-    font-size: 13.5px;
-  }
-
-  .gr-next-title {
-    color: var(--text-body);
-  }
-
-  .gr-next-kind,
-  .gr-visit-next-label {
-    font-size: 13px;
-  }
-
-  .gr-next-name {
-    font-size: 15.5px;
-  }
-
-  .gr-next-meta,
-  .gr-visit-next-time {
-    font-size: 13.5px;
-    color: var(--text-body);
-  }
-
-  .gr-visit-lead {
-    font-size: 14.5px;
-  }
-
-  .gr-visit-next-name {
-    font-size: 16px;
-  }
-
-  .gr-visit-link {
-    min-height: 48px;
-    font-size: 14.5px;
-  }
-
   /* 빈 상태 · 관리자 안내 */
   .gr-empty-text {
     font-size: 1rem;

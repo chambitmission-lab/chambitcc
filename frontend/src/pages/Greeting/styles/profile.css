@@ -527,69 +527,109 @@
 
 /* ── PC 우측 레일 ────────────────────────────────── */
 
-/* 목사님의 다음 이야기 — 최근 목양 편지 · 최근 설교 */
-/* 레일 카드 — 유리 질감(.glass-card 토큰)으로 본문 카드와 층을 나눈다.
-   블러는 레일 고정 카드 2장뿐이라 성능 예산 안(theme.css 원칙 3).
-   1px 보더를 한 단계 진하게, 위쪽 하이라이트 한 줄로 유리의 두께감을 준다.
+/* 레일 카드 2장 — 영상 + 편지 / 주일 초대장 (2026-11-25 개편, 레일은 lg+ 전용).
    그림자는 레일 공통 .rail-lift(theme.css)가 맡는다 — 카드 간격 12px 안에서 끝나는 짧은 그림자.
-   예전의 긴 그림자(14px/32px)는 아래 카드 위로 번지고 레일 가장자리에서 일자로 잘렸다 */
+   라이트에선 .rail-lift 가 카드 면을 불투명 흰색으로 덮으므로, 색 면은 안쪽 요소에 칠한다 */
 .gr-next,
 .gr-visit {
   position: relative;
-  padding: 1.1rem 1.1rem 1rem;
+  overflow: hidden;
   background: var(--glass-bg);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
   border: 1px solid color-mix(in srgb, var(--card-border) 100%, var(--text-strong) 6%);
   border-radius: 20px;
-  box-shadow:
-    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
-    var(--card-shadow);
 }
 
-.gr-next-title,
-.gr-visit-title {
-  margin: 0 0 0.5rem;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.gr-next-item {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: calc(100% + 1rem);
-  margin: 0 -0.5rem;
-  padding: 0.6rem 1.6rem 0.6rem 0.5rem;
+/* ① 목사님의 다음 이야기 — 지난 설교 영상이 윗면, 목양 편지 발췌가 아랫면 */
+.gr-next-video,
+.gr-next-letter {
+  display: block;
+  width: 100%;
+  padding: 0;
   border: none;
-  border-radius: 12px;
   background: none;
   font-family: inherit;
   text-align: left;
+  color: inherit;
   cursor: pointer;
-  transition: background 0.15s ease;
 }
 
-.gr-next-item + .gr-next-item {
-  margin-top: 0.1rem;
+.gr-next-video {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: #0b0d12;
+  overflow: hidden;
 }
 
-.gr-next-item:hover {
-  background: var(--brand-soft);
+/* 썸네일이 없는 설교 — 사진 대신 브랜드 면 */
+.gr-next-video.is-plain {
+  background: linear-gradient(150deg, #2f7df2, #1b4fae);
+}
+
+.gr-next-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.gr-next-video:hover .gr-next-thumb {
+  transform: scale(1.04);
+}
+
+.gr-next-play {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  color: #191f28;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.gr-next-play svg {
+  margin-left: 2px;
+}
+
+.gr-next-video:hover .gr-next-play {
+  transform: scale(1.08);
+}
+
+/* 사진 위 글자 — 아래에서 올라오는 어두운 스크림. 흰 글자는 양 테마 공통(사진 위라 테마를 타지 않는다) */
+.gr-next-over {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  padding: 2.75rem 1rem 0.85rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.84));
+  color: #fff;
+}
+
+.gr-next-video.is-plain .gr-next-over {
+  background: none;
 }
 
 .gr-next-kind {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--brand);
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
+}
+
+.gr-next-over .gr-next-kind {
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .gr-next-name {
-  margin-top: 0.15rem;
-  font-size: 13.5px;
+  margin-top: 0.2rem;
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--text-strong);
   letter-spacing: -0.02em;
@@ -600,88 +640,242 @@
   overflow: hidden;
 }
 
+.gr-next-over .gr-next-name {
+  color: #fff;
+}
+
 .gr-next-meta {
-  margin-top: 0.15rem;
-  font-size: 12px;
+  margin-top: 0.2rem;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.gr-next-chev {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  opacity: 0.6;
+.gr-next-letter {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.1rem 1.1rem;
+  transition: background 0.15s ease;
 }
 
-/* 처음 오셨나요 — 편지의 "만남"을 실제 걸음으로 잇는 카드 */
+.gr-next-letter:hover {
+  background: var(--brand-soft);
+}
+
+/* 발췌는 왼쪽 편지 본문과 같은 세리프 — 목사님 글이라는 것을 글꼴로 잇는다 */
+.gr-next-excerpt {
+  margin-top: 0.45rem;
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+  font-size: 13.5px;
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+  color: var(--text-body);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gr-next-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  margin-top: 0.6rem;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* ② 주일 초대장 — 윗면(계절 색 면: 날짜)과 아랫면(시간·버튼) 사이에 뜯는 선.
+   윗면 색은 초대하는 주일의 계절(data-season)을 따른다 — 히어로 사진이 계절을 타는 것과 같은 결.
+   흰 글자가 올라가므로 밝은 쪽 끝도 충분히 진하게 잡는다. 다크는 같은 색에 어둠 한 겹만 덧씌운다 */
 .gr-visit {
-  background: linear-gradient(180deg, var(--brand-soft), transparent 60%), var(--glass-bg);
+  --gr-season-from: #2f7df2;
+  --gr-season-to: #1b4fae;
+  --gr-season-ink: #1b6ef3; /* 흰 면 위에 올리는 계절 글자색 (주일 당일 '곧 시작' 칩) */
+}
+
+.gr-visit[data-season='spring'] {
+  /* 봄 — 벚꽃·진달래 */
+  --gr-season-from: #d6587e;
+  --gr-season-to: #a63a66;
+  --gr-season-ink: #b8456f;
+}
+
+.gr-visit[data-season='summer'] {
+  /* 여름 — 짙은 녹음 */
+  --gr-season-from: #17906d;
+  --gr-season-to: #0b6257;
+  --gr-season-ink: #0f7a62;
+}
+
+.gr-visit[data-season='autumn'] {
+  /* 가을 — 단풍 */
+  --gr-season-from: #cb6524;
+  --gr-season-to: #9a3d1c;
+  --gr-season-ink: #b3501f;
+}
+
+.gr-visit[data-season='winter'] {
+  /* 겨울 — 서리 낀 남색 */
+  --gr-season-from: #4a78b0;
+  --gr-season-to: #223f72;
+  --gr-season-ink: #35609c;
+}
+
+.gr-visit-top {
+  padding: 1.1rem 1.1rem 1.15rem;
+  background: linear-gradient(150deg, var(--gr-season-from), var(--gr-season-to));
+  color: #fff;
+}
+
+html.dark .gr-visit-top {
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+    linear-gradient(150deg, var(--gr-season-from), var(--gr-season-to));
 }
 
 .gr-visit-title {
-  color: var(--brand);
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.gr-visit-date {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.4rem 0 0;
+}
+
+.gr-visit-day {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.gr-visit-when {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.gr-visit-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 12.5px;
+  font-weight: 700;
 }
 
 .gr-visit-lead {
-  margin: 0 0 0.75rem;
-  font-size: 13px;
+  margin: 0.7rem 0 0;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.55;
-  color: var(--text-body);
   letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.gr-visit-next {
+/* 뜯는 선 — 점선 + 양 끝 반달 구멍. 구멍은 레일 뒤 바탕과 같은 캔버스 색(--app-canvas)으로 메운다 */
+.gr-visit-cut {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed color-mix(in srgb, var(--text-muted) 38%, transparent);
+}
+
+.gr-visit-cut::before,
+.gr-visit-cut::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--app-canvas);
+}
+
+.gr-visit-cut::before {
+  left: -10px;
+}
+
+.gr-visit-cut::after {
+  right: -10px;
+}
+
+.gr-visit-bottom {
+  padding: 1rem 1.1rem 1.1rem;
+}
+
+.gr-visit-times {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gr-visit-times li {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  padding: 0.7rem 0.85rem;
-  border: 1px solid var(--brand-soft-strong);
-  border-radius: 14px;
-  background: var(--surface-container);
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.15s ease;
-}
-
-.gr-visit-next:hover {
-  border-color: var(--brand);
-}
-
-.gr-visit-next-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--brand);
-  letter-spacing: 0.02em;
-}
-
-.gr-visit-next-name {
-  margin-top: 0.15rem;
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--text-strong);
-  letter-spacing: -0.02em;
-}
-
-.gr-visit-next-time {
-  margin-top: 0.1rem;
-  font-size: 12.5px;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0 0.45rem;
+  border-radius: 12px;
+  background: var(--surface-inset);
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-body);
+  white-space: nowrap;
+}
+
+.gr-visit-times b {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.gr-visit-times .is-next {
+  background: color-mix(in srgb, var(--gr-season-text) 16%, transparent);
+  color: var(--gr-season-text);
+}
+
+.gr-visit-times .is-next b {
+  color: var(--gr-season-text);
 }
 
 .gr-visit-links {
   display: flex;
   gap: 0.4rem;
-  margin-top: 0.6rem;
+  margin-top: 0.75rem;
 }
 
-/* 링크 2개 — 방문자가 가장 많이 누르는 "예배 안내"만 브랜드 프라이머리(인장 문법),
-   "오시는 길"은 옅은 브랜드 틴트의 보조 버튼. 둘 다 회색 외곽선이던 때보다 위계가 선다 */
+.gr-visit-link--primary {
+  flex: 1.5;
+}
+
+/* 링크 2개 — "이번 주일에 갈게요"만 프라이머리(인장 문법), "예배 안내"는 옅은 틴트의 보조 버튼.
+   둘 다 초대장 윗면과 같은 계절 색을 쓴다(--gr-season-*). 흰 면 위 글자는 --gr-season-text —
+   다크에선 계절 잉크가 어두운 면에 묻히므로 흰색을 섞어 밝힌다 */
+.gr-visit {
+  --gr-season-text: var(--gr-season-ink);
+}
+
+html.dark .gr-visit {
+  --gr-season-text: color-mix(in srgb, var(--gr-season-ink) 55%, #fff);
+}
+
 .gr-visit-link {
   position: relative;
   flex: 1;
@@ -689,15 +883,15 @@
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  min-height: 2.5rem;
+  min-height: 48px;
   padding: 0.5rem 0.6rem;
-  border: 1px solid var(--brand-soft-strong);
+  border: 1px solid color-mix(in srgb, var(--gr-season-text) 22%, transparent);
   border-radius: 12px;
-  background: var(--brand-soft);
+  background: color-mix(in srgb, var(--gr-season-text) 9%, transparent);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: var(--brand);
+  color: var(--gr-season-text);
   cursor: pointer;
   transition:
     transform 0.15s ease,
@@ -707,8 +901,8 @@
 }
 
 .gr-visit-link:hover {
-  background: var(--brand-soft-strong);
-  border-color: var(--brand);
+  background: color-mix(in srgb, var(--gr-season-text) 16%, transparent);
+  border-color: var(--gr-season-text);
   transform: translateY(-1px);
 }
 
@@ -716,18 +910,18 @@
   transform: translateY(0);
 }
 
-/* 프라이머리 — 히어로 "예배 안내 보기"·/news 마커와 같은 인장(도장) 문법 */
+/* 프라이머리 — 히어로 "예배 안내 보기"·/news 마커와 같은 인장(도장) 문법, 색만 계절을 탄다 */
 .gr-visit-link--primary {
   color: #fff;
   border-color: transparent;
   background:
     radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
-    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+    linear-gradient(155deg, var(--gr-season-from), var(--gr-season-to));
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 3px rgba(49, 130, 246, 0.1),
-    0 6px 16px -4px var(--brand-glow);
+    0 0 0 3px color-mix(in srgb, var(--gr-season-from) 12%, transparent),
+    0 6px 16px -4px color-mix(in srgb, var(--gr-season-from) 40%, transparent);
 }
 
 .gr-visit-link--primary::after {
@@ -741,14 +935,15 @@
 
 .gr-visit-link--primary:hover {
   background:
-    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.22), transparent 48%),
-    linear-gradient(155deg, #3585f7, #1b6ef3);
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.2), transparent 48%),
+    linear-gradient(155deg, var(--gr-season-from), var(--gr-season-to));
   border-color: transparent;
+  filter: brightness(0.96);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 3px rgba(49, 130, 246, 0.14),
-    0 10px 22px -6px var(--brand-glow);
+    0 0 0 3px color-mix(in srgb, var(--gr-season-from) 16%, transparent),
+    0 10px 22px -6px color-mix(in srgb, var(--gr-season-from) 45%, transparent);
 }
 
 /* 인라인 편집 래퍼 보정 — letter.css 와 같은 이유(관리자에게만 존재) */
