@@ -1,0 +1,203 @@
+/* 설치 제안 — 참비 말풍선(.inn-*)과 안내 시트의 홈 화면 미리보기(.inz-*).
+   색은 테마 토큰만 쓴다(라이트/다크 공통). */
+
+/* ── 말풍선 (C-1 걸터앉은 아이콘) ─────────────────────
+   순서: 참비 빼꼼(0s) → 말풍선 통(0.45s) → 아이콘 착지(0.85s). PC 는 참비 버튼 까딱 → 말풍선. */
+.inn-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  object-fit: cover;
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 2px var(--surface-container), var(--card-shadow);
+  animation:
+    inn-peek 0.55s cubic-bezier(0.3, 1.3, 0.6, 1) both,
+    inn-bob 2.6s ease-in-out 0.7s infinite;
+}
+@keyframes inn-peek {
+  0% { transform: translateY(70px) rotate(-14deg); }
+  60% { transform: translateY(-6px) rotate(6deg); }
+  100% { transform: none; }
+}
+@keyframes inn-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-3deg); }
+}
+
+.inn-bubble {
+  position: relative;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: 18px;
+  transform-origin: 0 85%;
+  animation: inn-pop 0.38s cubic-bezier(0.3, 1.4, 0.6, 1) 0.45s both;
+}
+.inn-bubble.is-from-fab { transform-origin: 100% 85%; }
+@keyframes inn-pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  70% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* 꼬리 — 테두리 색 삼각형 위에 면 색 삼각형을 1px 겹친다. 기본은 왼쪽(아바타), PC 는 오른쪽(참비 버튼) */
+.inn-bubble::before,
+.inn-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: 15px;
+  left: -9px;
+  border-style: solid;
+  border-width: 7px 9px 7px 0;
+  border-color: transparent var(--card-border) transparent transparent;
+}
+.inn-bubble::after {
+  left: -8px;
+  border-right-color: var(--surface-container);
+}
+.inn-bubble.is-from-fab::before,
+.inn-bubble.is-from-fab::after {
+  left: auto;
+  right: -9px;
+  border-width: 7px 0 7px 9px;
+  border-color: transparent transparent transparent var(--card-border);
+}
+.inn-bubble.is-from-fab::after {
+  right: -8px;
+  border-left-color: var(--surface-container);
+}
+
+/* 모서리에 걸터앉은 앱 아이콘 */
+.inn-perch {
+  position: absolute;
+  top: -18px;
+  right: 14px;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  object-fit: cover;
+  box-shadow: 0 8px 18px -6px rgba(15, 23, 42, 0.45), 0 0 0 3px var(--surface-container);
+  animation:
+    inn-land 0.6s cubic-bezier(0.3, 1.5, 0.6, 1) 0.85s both,
+    inn-float 3s ease-in-out 1.5s infinite;
+}
+@keyframes inn-land {
+  0% { opacity: 0; transform: translateY(-46px) rotate(-30deg) scale(0.6); }
+  100% { opacity: 1; transform: rotate(9deg); }
+}
+@keyframes inn-float {
+  0%, 100% { transform: rotate(9deg); }
+  50% { transform: translateY(-4px) rotate(5deg); }
+}
+
+/* PC — 말을 걸기 직전 참비 버튼이 두 번 까딱한다. 버튼의 transform 과 다투지 않게 개별 속성 rotate 로 */
+.cb-fab-wrap.inn-fab-wiggle { animation: inn-wiggle 0.45s ease-in-out 0.1s 2; }
+@keyframes inn-wiggle {
+  0%, 100% { rotate: 0deg; }
+  25% { rotate: -8deg; }
+  75% { rotate: 8deg; }
+}
+
+/* ── 홈 화면 미리보기 ───────────────────────────────── */
+.inz-phone {
+  margin: 0 auto;
+  width: min(260px, 78%);
+  padding: 18px 18px 12px;
+  border-radius: 28px 28px 0 0;
+  border: 1px solid var(--card-border);
+  border-bottom: 0;
+  background: linear-gradient(180deg, var(--brand-soft-strong), var(--brand-soft) 70%, transparent);
+}
+.inz-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 12px;
+}
+.inz-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.inz-tile,
+.inz-app {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 28%;
+}
+.inz-tile { background: var(--surface-container); opacity: 0.7; }
+.inz-tile-name {
+  width: 70%;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--surface-container);
+  opacity: 0.6;
+}
+.inz-app {
+  object-fit: cover;
+  box-shadow: 0 6px 14px -4px rgba(15, 23, 42, 0.35);
+  animation: inz-drop 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.35s both;
+}
+.inz-app-name {
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text-strong);
+  animation: inz-fade 0.3s ease-out 0.85s both;
+}
+@keyframes inz-drop {
+  0% { opacity: 0; transform: translateY(-34px) scale(0.6); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes inz-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.inz-benefit-icon,
+.inz-step-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.inz-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 12px;
+  border-radius: 16px;
+  background: var(--surface-inset);
+}
+.inz-step-no {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--brand);
+  color: #fff;
+}
+.inz-step-icon { background: var(--surface-container); }
+
+@media (prefers-reduced-motion: reduce) {
+  .inn-avatar,
+  .inn-bubble,
+  .inn-perch,
+  .cb-fab-wrap.inn-fab-wiggle,
+  .inz-app,
+  .inz-app-name { animation: none; }
+}

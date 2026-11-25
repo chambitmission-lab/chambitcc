@@ -10,6 +10,7 @@ import {
 import { usePushNotification } from '../../../hooks/usePushNotification'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { isAuthenticated } from '../../../utils/auth'
+import { requestInstallNudge } from '../../../utils/installNudge'
 import { isIOS, isStandalonePWA } from '../../../utils/pwa'
 import { showToast } from '../../../utils/toast'
 import type { VerseAlarm } from '../../../api/verseAlarm'
@@ -357,6 +358,7 @@ const VerseAlarmPage = () => {
       if (editor.id === null) {
         await createAlarm.mutateAsync(payload)
         showToast('알람이 등록되었어요', 'success')
+        requestInstallNudge('alarm')
       } else {
         await updateAlarm.mutateAsync({ alarmId: editor.id, payload })
         showToast('알람이 수정되었어요', 'success')

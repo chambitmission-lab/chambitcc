@@ -12,7 +12,7 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 const DesktopNavRail = lazy(loadDesktopNavRail)
 import ErrorBoundary from './components/common/ErrorBoundary'
 import NewFooter from './components/layout/NewFooter/NewFooter'
-import PWAInstallButton from './components/common/PWAInstallButton'
+import InstallNudgeHost from './components/common/installNudge/InstallNudgeHost'
 import PullToRefresh from './components/common/PullToRefresh'
 import ScrollRestoration from './components/common/ScrollRestoration'
 import { RouteMeta } from './seo/RouteMeta'
@@ -193,8 +193,8 @@ function App() {
           <NewFooter />
           {/* 커스텀 당겨서 새로고침 — 전체 리로드 대신 활성 쿼리만 refetch */}
           <PullToRefresh />
-          {/* PWA 설치 버튼 */}
-          <PWAInstallButton />
+          {/* 설치 제안 — 방금 한 일에 이어 참비가 권하고, 시트로 안내한다 */}
+          <InstallNudgeHost />
           {/* 성경 칭호 해금 팝업 호스트 — 읽기 후 새 칭호를 축하 */}
           <TitleUnlockHost />
           {/* 말씀 퍼즐 조각 쪽지 — 읽는 중 조용히 조각 모음을 알린다 */}

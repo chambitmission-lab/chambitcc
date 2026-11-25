@@ -8,6 +8,13 @@ export const isStandalonePWA = (): boolean =>
   window.matchMedia('(display-mode: standalone)').matches ||
   (navigator as Navigator & { standalone?: boolean }).standalone === true
 
+/** 카카오톡·네이버·인스타 등 인앱 브라우저 — iOS 에서는 여기서 홈 화면 추가를 할 수 없다 */
+export const isInAppBrowser = (): boolean =>
+  /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(navigator.userAgent)
+
+/** iOS 에서 "공유 → 홈 화면에 추가" 안내를 띄울 만한가 (설치 프롬프트 이벤트가 없어 손으로 안내한다) */
+export const canGuideIOSInstall = (): boolean => isIOS() && !isStandalonePWA() && !isInAppBrowser()
+
 /** 아직 표준 lib.dom 에 없는 설치 프롬프트 이벤트 — 우리가 쓰는 부분만 선언 */
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>

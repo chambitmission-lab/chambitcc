@@ -13,6 +13,7 @@ import {
 import { usePushNotification } from '../../../../hooks/usePushNotification'
 import type { BulletinNotifySettings, BulletinReminder } from '../../../../types/digitalBulletin'
 import { isAuthenticated } from '../../../../utils/auth'
+import { requestInstallNudge } from '../../../../utils/installNudge'
 import { isIOS, isStandalonePWA } from '../../../../utils/pwa'
 import { showToast } from '../../../../utils/toast'
 
@@ -38,7 +39,8 @@ export const useBulletinAlarms = () => {
     }
     if (push.isSubscribed) return true
     if (isIOS() && !isStandalonePWA()) {
-      showToast(t('bwIosHomeScreen'), 'info')
+      // 홈 화면 추가 순서를 그림으로 안내한다 — 인앱 브라우저처럼 안내할 수 없으면 한 줄 토스트로
+      if (!requestInstallNudge('bulletin', { sheet: true })) showToast(t('bwIosHomeScreen'), 'info')
       return false
     }
     const res = await push.subscribeDetailed()
@@ -64,6 +66,7 @@ export const useBulletinAlarms = () => {
       if (!turningOn && !isAuthenticated()) return false
       try {
         await updateNotify.mutateAsync(patch)
+        if (turningOn) requestInstallNudge('bulletin')
         return true
       } catch (e) {
         showToast(e instanceof Error ? e.message : t('bwSaveFailed'), 'error')

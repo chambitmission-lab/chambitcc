@@ -3,6 +3,7 @@ import type { QueryClient } from '@tanstack/react-query'
 import { markVerseAsRead, getChapterReadStatus, getReadingProgress, getBookReadingProgress, getBookCardContexts, getResumeReading, unmarkVerseAsRead, markChapterAsRead, unmarkChapterAsRead, startReadingCycle, getReadingCycles, setReadingCycleLens, getReadingCycleEcho } from '../api/bibleReading'
 import type { BookCardContext, ChapterReadStatusResponse, ReadingCycleSummary, ReadingProgressResponse } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
+import { noteVerseReadForInstall } from '../utils/installNudge'
 import { isApiError } from '../api/utils/request'
 import type { RequestPriority } from '../api/utils/request'
 import type { ProfileDetail } from '../types/profile'
@@ -189,6 +190,9 @@ export const useMarkVerseAsRead = () => {
 
       // 성경 칭호 평가 예약(디바운스) — 읽기 세션 끝에 새 칭호 해금 팝업
       scheduleTitleEvaluation()
+
+      // 몇 절 읽어 "읽는 중"이 분명해지면 홈 화면 설치를 한 번 권한다
+      noteVerseReadForInstall()
 
       // 프로필 캐시 즉시 업데이트 (구절 읽기 +1P)
       queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {

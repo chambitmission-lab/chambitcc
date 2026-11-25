@@ -3,6 +3,7 @@ import { useCreatePrayer } from '../../../../hooks/usePrayersQuery'
 import { useMyIdentity } from '../../../../hooks/useProfile'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { validation, PRAYER_CONTENT_MIN } from '../../../../utils/validation'
+import { requestInstallNudge } from '../../../../utils/installNudge'
 import { safeStorage } from '../../../../utils/safeStorage'
 import type { Prayer, PrayerEmotion, PrayerFilterType, RecommendedVerses, SortType } from '../../../../types/prayer'
 import { tokenStore } from '../../../../utils/tokenStore'
@@ -204,6 +205,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId, filter, i
 
       onSuccess?.(prayer)
       setCreatedPrayerId(prayer.id)
+      requestInstallNudge('prayer')
 
       if (prayer.recommended_verses && prayer.recommended_verses.verses.length > 0) {
         setRecommendedVerses(prayer.recommended_verses)
