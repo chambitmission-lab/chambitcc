@@ -6,6 +6,7 @@
 // 오른쪽 "대조용 합계"는 종이 표만의 후보별 합계다. 다른 위원이 정자(正)로 센 개표지와 맞춰 본다.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ElectionAdminDetail, ElectionRound } from '../../../types/election'
+import { roundCandidates } from '../../Election/electionShared'
 import { CandidateAvatar } from '../../Election/electionUi'
 import { CloseButton } from './SeatEventComposer'
 
@@ -20,8 +21,7 @@ interface Props {
 
 const ElectionCountingMode = ({ election, round, pending, onAdd, onDelete, onClose }: Props) => {
   const candidates = useMemo(() => {
-    const ids = new Set(round.candidate_ids)
-    return election.candidates.filter((c) => ids.has(c.id))
+    return roundCandidates(election.candidates, round.candidate_ids)
   }, [election.candidates, round.candidate_ids])
   const [picked, setPicked] = useState<number[]>([])
   const [flash, setFlash] = useState<string | null>(null)

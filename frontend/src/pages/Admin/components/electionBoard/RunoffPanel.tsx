@@ -20,9 +20,14 @@ export const RunoffPanel = ({
   pending: boolean
 }) => {
   const nextNo = election.rounds.length + 1
-  const pool = election.candidates.filter((c) => c.elected_round_no == null)
   const lastResult = election.rounds[election.rounds.length - 1]?.result
   const votesOf = (cid: number) => lastResult?.tallies.find((t) => t.candidate_id === cid)?.votes
+  // 투표용지에 올라갈 순서 그대로 — 지난 회차 득표순(동률은 기호 순). 서버도 같은 순서로 저장한다
+  const pool = election.candidates
+    .filter((c) => c.elected_round_no == null)
+    .map((c, i) => ({ c, i, v: votesOf(c.id) ?? 0 }))
+    .sort((a, b) => b.v - a.v || a.i - b.i)
+    .map(({ c }) => c)
 
   const [picked, setPicked] = useState<Set<number>>(
     new Set(election.runoff_suggestion.length ? election.runoff_suggestion : pool.map((c) => c.id))
@@ -47,7 +52,7 @@ export const RunoffPanel = ({
         {nextNo}차 투표 — 남은 자리 <span className="text-brand tabular-nums">{election.seats_left}</span>명
       </h3>
       <p className="mt-1 text-[11.5px] text-ink-muted break-keep">
-        규칙이 고른 후보가 미리 선택돼 있어요. 눌러서 넣고 뺄 수 있어요. 선거인 명부는 그대로 이어져요.
+        지난 회차 득표순으로 투표용지에 올라가요. 규칙이 고른 후보가 미리 선택돼 있고, 눌러서 넣고 뺄 수 있어요. 선거인 명부는 그대로 이어져요.
       </p>
       <div className="mt-3 space-y-1.5">
         {pool.map((c) => {

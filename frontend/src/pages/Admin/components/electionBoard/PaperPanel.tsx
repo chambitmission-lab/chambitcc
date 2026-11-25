@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { ElectionAdminDetail, ElectionRound } from '../../../../types/election'
+import { roundCandidates } from '../../../Election/electionShared'
 import { Stepper } from '../SeatEventComposer'
 import { chipBtn, panelCls } from './boardStyles'
 
@@ -24,8 +25,7 @@ export const PaperPanel = ({
   const [count, setCount] = useState(1)
   const [blankKind, setBlankKind] = useState<'invalid' | 'abstain'>('invalid')
   const candidates = useMemo(() => {
-    const ids = new Set(round.candidate_ids)
-    return election.candidates.filter((c) => ids.has(c.id))
+    return roundCandidates(election.candidates, round.candidate_ids)
   }, [election.candidates, round.candidate_ids])
   const nameOf = (cid: number) => {
     const c = election.candidates.find((x) => x.id === cid)

@@ -23,7 +23,7 @@ import { isAuthenticated } from '../../utils/auth'
 import type { ElectionCandidate, ElectionDetail as ElectionDetailData, ElectionRound } from '../../types/election'
 import { CenterNote, CheckIcon, RailCard, Spinner, SurveyShell } from '../Survey/surveyUi'
 import { AssemblyNext, AssemblySteps } from './AssemblySteps'
-import { assemblyProgress, cardCls, phaseLabel, thresholdText } from './electionShared'
+import { assemblyProgress, cardCls, phaseLabel, roundCandidates, thresholdText } from './electionShared'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { CandidateAvatar, ClosesAtNote, PracticeBanner, ResultBreakdown, TallyBars, TurnoutBar } from './electionUi'
 import { redirectAfterLogin } from '../../utils/redirectAfterLogin'
@@ -333,8 +333,7 @@ const ElectionDetail = () => {
 
   const ballotCandidates = useMemo(() => {
     if (!election || !openRound) return []
-    const ids = new Set(openRound.candidate_ids)
-    return election.candidates.filter((c) => ids.has(c.id))
+    return roundCandidates(election.candidates, openRound.candidate_ids)
   }, [election, openRound])
 
   const vote = useCastVote({

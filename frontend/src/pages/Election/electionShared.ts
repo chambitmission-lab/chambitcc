@@ -3,6 +3,7 @@
 // 기준의 "값"은 서버(services/election_rules.py)가 정한다. 여기는 그 값을 사람 말로
 // 옮기고, 관리 화면에서 고르기 쉬운 프리셋을 늘어놓을 뿐이다.
 import type {
+  ElectionCandidate,
   ElectionRulePreset,
   ElectionRules,
   ElectionStatus,
@@ -104,10 +105,16 @@ export const matchPreset = (rules: ElectionRules): string =>
       p.rules.threshold_comparison === rules.threshold_comparison
   )?.key ?? 'custom'
 
+/** 회차 투표용지 후보 — 서버가 정한 순서(2차부터는 지난 회차 득표순) 그대로. 기호 순으로 다시 줄 세우지 말 것 */
+export const roundCandidates = <C extends ElectionCandidate>(candidates: C[], candidateIds: number[]): C[] => {
+  const byId = new Map(candidates.map((c) => [c.id, c]))
+  return candidateIds.map((id) => byId.get(id)).filter((c): c is C => c != null)
+}
+
 export const RUNOFF_META: Record<RunoffRule, { label: string; hint: string }> = {
   top_multiple: { label: '득표순 상위', hint: '남은 자리의 몇 배수만큼 득표순으로 올려요' },
   min_share: { label: '최소 득표율', hint: '투표수 대비 일정 비율 이상 받은 후보만 올려요' },
-  all: { label: '전원', hint: '당선되지 않은 후보 모두 다시 올려요' },
+  all: { label: '전원', hint: '당선되지 않은 후보 모두 득표순으로 다시 올려요' },
 }
 
 export const VISIBILITY_META: Record<ResultVisibility, { label: string; hint: string }> = {
@@ -134,7 +141,7 @@ export const rulesSummary = (rules: ElectionRules): { label: string; text: strin
       ? `득표순으로 남은 자리의 ${rules.runoff_multiple}배수가 다음 회차 후보`
       : rules.runoff_rule === 'min_share'
         ? `투표수의 ${rules.runoff_min_num}/${rules.runoff_min_den} 이상 받은 후보가 다음 회차로`
-        : '당선되지 않은 후보 모두 다음 회차로'
+        : '당선되지 않은 후보 모두 득표순으로 다음 회차에'
   return [
     { label: '한 표에', text: rules.max_select == null ? '남은 자리 수만큼 고를 수 있어요' : `${rules.max_select}명까지 고를 수 있어요` },
     { label: '자리가 남으면', text: runoff },
