@@ -12,7 +12,7 @@ import { copyToClipboard } from '../../../../utils/clipboard'
 import { formatMonthDay } from '../../../../utils/date'
 import { renderKeepTogether } from '../../../../utils/keepTogether'
 import NewsRawText from './NewsRawText'
-import { statusOf, type DigestItem, type DigestKind, type DigestStatus, type NewsDigest } from './parseNewsDigest'
+import { statusOf, type DigestItem, type DigestListGroup, type DigestKind, type DigestStatus, type NewsDigest } from './parseNewsDigest'
 import './newsDigest.css'
 
 interface NewsDigestViewProps {
@@ -29,6 +29,7 @@ const KIND_LABEL: Record<DigestKind, keyof Translation> = {
   apply: 'newsDigestKindApply',
   event: 'newsDigestKindEvent',
   share: 'newsDigestKindShare',
+  family: 'newsDigestKindFamily',
   notice: 'newsDigestKindNotice',
 }
 
@@ -45,6 +46,7 @@ const KIND_ICON: Record<DigestKind, ReactNode> = {
   apply: svg(<><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></>),
   event: svg(<path d="M5 21V4M5 4h11l-2 4 2 4H5" />),
   share: svg(<><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" /><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" /></>),
+  family: svg(<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />),
   notice: svg(<><path d="M4 10v4a1 1 0 0 0 1 1h2l5 4V5L7 9H5a1 1 0 0 0-1 1z" /><path d="M16 9a3.5 3.5 0 0 1 0 6" /></>),
 }
 const ICON_CLOCK = svg(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>)
@@ -261,6 +263,7 @@ const DigestDetail = ({ item }: { item: DigestItem }) => {
           {item.who && <span className="nd-pill is-who">{ICON_USER}{item.who}</span>}
         </div>
       )}
+      {item.groups && <DigestList groups={item.groups} />}
       {item.table && (
         <div className="nd-table-wrap">
           <table className="nd-table">
@@ -298,6 +301,48 @@ const DigestDetail = ({ item }: { item: DigestItem }) => {
         </div>
       )}
     </>
+  )
+}
+
+const WEEKDAY_KO = ['주일', '월', '화', '수', '목', '금', '토']
+const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+/** 줄마다 한 건인 안내 — 날짜가 있으면 왼쪽 날짜 칸(작은 일정표), 없으면 이름 줄 + 아래 소속 줄 */
+const DigestList = ({ groups }: { groups: DigestListGroup[] }) => {
+  const { language } = useLanguage()
+  const en = language === 'en'
+  const now = new Date()
+  return (
+    <div className="nd-groups">
+      {groups.map((g, gi) => (
+        <div key={gi} className="nd-group">
+          {g.label && <span className="nd-group-label">{g.label}</span>}
+          <ul className="nd-li-list">
+            {g.entries.map((e, i) => {
+              const past = e.date ? statusOf({ start: e.date, end: e.endDate ?? e.date, label: '' }, now).kind === 'past' : false
+              // 기간이면 아래 작은 글씨를 요일 대신 끝 날로 — "11.23 / ~27일"
+              const small = e.endDate
+                ? en ? `–${e.endDate.getMonth() + 1}/${e.endDate.getDate()}` : `~${e.endDate.getDate()}일`
+                : (en ? WEEKDAY_EN : WEEKDAY_KO)[e.date?.getDay() ?? 0]
+              return (
+                <li key={i} className={`nd-li${e.date ? ' has-date' : ''}${past ? ' is-past' : ''}`}>
+                  {e.date && (
+                    <span className="nd-li-date">
+                      <b>{en ? `${e.date.getMonth() + 1}/${e.date.getDate()}` : `${e.date.getMonth() + 1}.${e.date.getDate()}`}</b>
+                      <small>{small}</small>
+                    </span>
+                  )}
+                  <span className="nd-li-main">
+                    <span className="nd-li-text">{renderKeepTogether(e.text)}</span>
+                    {e.sub && <span className="nd-li-sub">{e.date ? ICON_CLOCK : null}{e.sub}</span>}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
   )
 }
 

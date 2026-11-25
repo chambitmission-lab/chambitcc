@@ -401,6 +401,7 @@ export const news = {
   newsDigestKindApply: '신청',
   newsDigestKindEvent: '행사',
   newsDigestKindShare: '나눔',
+  newsDigestKindFamily: '교우 소식',
   newsDigestKindNotice: '안내',
   // 디지털 주보 — 이번 주 한눈에 (BulletinWeekly)
   bwThisBulletin: '이번 주 주보',

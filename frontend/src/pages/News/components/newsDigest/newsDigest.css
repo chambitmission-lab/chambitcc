@@ -18,6 +18,7 @@
   --k-apply: #e5484d;   --k-apply-soft: rgba(229, 72, 77, 0.1);
   --k-event: #ea6a17;   --k-event-soft: rgba(242, 113, 28, 0.11);
   --k-share: #18a058;   --k-share-soft: rgba(24, 160, 88, 0.11);
+  --k-family: #8a6d57;  --k-family-soft: rgba(138, 109, 87, 0.12);
   --k-notice: #5b6b80;  --k-notice-soft: rgba(91, 107, 128, 0.11);
   --k-past: #8b95a1;
 }
@@ -29,6 +30,7 @@
   --k-apply: #ff7a7e;   --k-apply-soft: rgba(255, 122, 126, 0.13);
   --k-event: #ff9a55;   --k-event-soft: rgba(255, 154, 85, 0.13);
   --k-share: #4cd38a;   --k-share-soft: rgba(76, 211, 138, 0.13);
+  --k-family: #d2b49c;  --k-family-soft: rgba(210, 180, 156, 0.13);
   --k-notice: #9fb0c6;  --k-notice-soft: rgba(159, 176, 198, 0.13);
   --k-past: #7c8592;
 }
@@ -38,6 +40,7 @@
 .nd-root [data-k='apply'] { --k: var(--k-apply); --ks: var(--k-apply-soft); }
 .nd-root [data-k='event'] { --k: var(--k-event); --ks: var(--k-event-soft); }
 .nd-root [data-k='share'] { --k: var(--k-share); --ks: var(--k-share-soft); }
+.nd-root [data-k='family'] { --k: var(--k-family); --ks: var(--k-family-soft); }
 .nd-root [data-k='notice'] { --k: var(--k-notice); --ks: var(--k-notice-soft); }
 
 .nd-root { display: grid; gap: 16px; word-break: keep-all; overflow-wrap: break-word; }
@@ -173,7 +176,7 @@
 .nd-table th { background: var(--nd-surface-2); font-weight: 700; color: var(--text-muted); }
 .nd-table td { color: var(--text-strong); font-weight: 600; }
 .nd-table tr:last-child td { border-bottom: 0; }
-.nd-note { margin: 0; padding-left: 10px; border-left: 2px solid var(--ks); font-size: 13.5px; line-height: 1.65; color: var(--text-body); }
+.nd-note { margin: 0; white-space: pre-line; padding-left: 10px; border-left: 2px solid var(--ks); font-size: 13.5px; line-height: 1.65; color: var(--text-body); }
 .nd-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .nd-pill {
   display: inline-flex;
@@ -213,6 +216,38 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* 줄마다 한 건인 목록(교회 일정 ①②, 교우 소식 1) 2)) — 문단으로 뭉개지 않고 한 줄씩 */
+.nd-groups { display: grid; gap: 12px; }
+.nd-group { display: grid; gap: 6px; }
+.nd-group-label {
+  justify-self: start;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--ks);
+  color: var(--k);
+  font-size: 12px;
+  font-weight: 700;
+}
+.nd-li-list { margin: 0; padding: 0; list-style: none; display: grid; border-radius: 12px; background: var(--nd-surface-2); }
+.nd-li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; }
+.nd-li + .nd-li { border-top: 1px solid var(--card-border); }
+.nd-li.is-past { opacity: 0.55; }
+.nd-li-date {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  width: 42px;
+  padding-top: 1px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.nd-li-date b { font-size: 15px; font-weight: 800; color: var(--k-worship); }
+.nd-li-date small { font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
+.nd-li-main { display: grid; gap: 2px; min-width: 0; }
+.nd-li-text { font-size: 14px; font-weight: 600; line-height: 1.5; color: var(--text-strong); }
+.nd-li-sub { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+.nd-li-sub .nd-ico { width: 12px; height: 12px; }
 
 /* ── 원문 ── */
 .nd-raw-btn {
@@ -293,6 +328,14 @@
   .nd-pill { font-size: 15px; padding: 7px 11px; }
   .nd-pill .nd-ico { width: 15px; height: 15px; }
   .nd-call { font-size: 15.5px; }
+  .nd-group-label { font-size: 13.5px; padding: 3px 11px; }
+  .nd-li { gap: 14px; padding: 12px 14px; }
+  .nd-li-date { width: 48px; }
+  .nd-li-date b { font-size: 17px; }
+  .nd-li-date small { font-size: 13px; }
+  .nd-li-text { font-size: 16px; }
+  .nd-li-sub { font-size: 14px; }
+  .nd-li-sub .nd-ico { width: 14px; height: 14px; }
   .nd-call button { height: 38px; padding: 0 15px; font-size: 14.5px; }
   .nd-raw-btn { height: 52px; font-size: 15.5px; }
   .nd-raw { font-size: 18px; line-height: 1.75; }

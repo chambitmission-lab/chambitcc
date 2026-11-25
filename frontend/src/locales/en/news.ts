@@ -397,6 +397,7 @@ export const news = {
   newsDigestKindApply: 'Sign-up',
   newsDigestKindEvent: 'Event',
   newsDigestKindShare: 'Sharing',
+  newsDigestKindFamily: 'Church family',
   newsDigestKindNotice: 'Notice',
   // 디지털 주보 — 이번 주 한눈에 (BulletinWeekly)
   bwThisBulletin: 'This week\'s bulletin',

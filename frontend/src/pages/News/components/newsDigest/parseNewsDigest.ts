@@ -6,7 +6,7 @@
 // 화면은 지금처럼 원문을 그대로 보여 준다. 읽어 낸 값이 틀릴 수 있으니 원문은 늘 따로 열 수 있다.
 import { formatMonthDay } from '../../../../utils/date'
 
-export type DigestKind = 'worship' | 'prayer' | 'meet' | 'apply' | 'event' | 'share' | 'notice'
+export type DigestKind = 'worship' | 'prayer' | 'meet' | 'apply' | 'event' | 'share' | 'family' | 'notice'
 
 export interface DigestDate {
   /** 로컬 자정 기준 Date */
@@ -14,6 +14,24 @@ export interface DigestDate {
   end: Date
   /** 화면용 "11월 2일(월) ~ 4일(수)" */
   label: string
+}
+
+/** 줄마다 한 건인 안내(① 일정 / 1) 교우 소식)의 한 줄 */
+export interface DigestListEntry {
+  /** "정책당회" · "김학순 집사의 시모상" */
+  text: string
+  /** 줄 머리의 날짜("① 12월 5일(토) : …") — 있으면 왼쪽 날짜 칸 */
+  date: Date | null
+  /** 기간이면 끝 날("11월 23~27일") */
+  endDate: Date | null
+  /** '*' 뒤 시간·장소, 또는 끝 괄호 속 소속("1교구 5지구 김영선 구역 · 12여") */
+  sub: string | null
+}
+
+/** "입원 / 정용숙 집사 …"처럼 머리말로 갈리는 묶음. 머리말 없으면 label null */
+export interface DigestListGroup {
+  label: string | null
+  entries: DigestListEntry[]
 }
 
 export interface DigestItem {
@@ -31,6 +49,8 @@ export interface DigestItem {
   contact: { name: string; phone: string } | null
   /** "등록번호 | 새가족 | 인도자" 같은 | 구분 표 — 첫 줄이 머리글 */
   table: string[][] | null
+  /** 줄마다 한 건인 목록 — 있으면 desc 아래 목록으로 그린다(문단으로 뭉개지 않게) */
+  groups: DigestListGroup[] | null
 }
 
 export interface NewsDigest {
@@ -40,6 +60,8 @@ export interface NewsDigest {
 }
 
 const HEADER_RE = /^\s*(\d{1,2})\s*[.)]\s*(\S.*)$/
+// "1. 제목" 꼭지가 있는 원고에선 "1) …"은 꼭지 안 하위 줄 — 꼭지로 오인하면 뒤 꼭지들이 앞 항목 쪽지로 빨려 든다
+const DOT_HEADER_RE = /^\s*(\d{1,2})\s*\.\s*(\S.*)$/
 const MIN_ITEMS = 3
 
 // "11월 2일(월)~4일(수)" · "11월 22일(주일)" · "11월 2일~14일"
@@ -56,6 +78,7 @@ const WHO_RE = /([가-힣·&\s]{2,12}?)(?:들|분들)?은\s*(?:필히|꼭|반드
 const PHONE_RE = /(?<![\d-])0\d{1,2}-\d{3,4}-\d{4}(?![\d-])/
 
 const KIND_RULES: [DigestKind, RegExp][] = [
+  ['family', /교우\s*소식|장례|부고|소천|입원|출산|결혼|혼인/],
   ['apply', /신청|접수|등록|모집/],
   ['prayer', /기도/],
   ['worship', /예배|주일 기념|기념 주일|설립|성찬|세례식/],
@@ -171,6 +194,66 @@ const cleanLines = (s: string) =>
     .filter(Boolean)
     .join('\n')
 
+// 목록 줄 머리: ① · 1) · - · •
+const LIST_MARK_RE = /^(?:[①-⑳]|\d{1,2}\)|[-·•])\s*(\S.*)$/
+// "입원 / 정용숙 집사 …" — 짧은 머리말 + 빗금
+const GROUP_LINE_RE = /^([가-힣]{1,6})\s*\/\s*(\S.*)$/
+const LEAD_DATE_RE = new RegExp(`^(${KO_DATE_RE.source})\\s*[:：]?\\s*(.*)$`)
+// "11월 23~27일(월~금) : …" — 앞 날짜에 '일'이 빠진 기간
+const SHORT_RANGE_RE = /^(\d{1,2})월\s*(\d{1,2})\s*[~∼–-]\s*(\d{1,2})일(?:\s*\([^)]{1,7}\))?\s*[:：]?\s*(.*)$/
+
+const parseEntry = (raw: string, post: Date): DigestListEntry => {
+  const [main, ...stars] = raw.split('*')
+  let text = clean(main)
+  let date: Date | null = null
+  let endDate: Date | null = null
+  const range = SHORT_RANGE_RE.exec(text)
+  const lead = range ? null : LEAD_DATE_RE.exec(text)
+  const leadRest = lead ? clean(lead[lead.length - 1]) : ''
+  if (range && clean(range[4])) {
+    const pm = post.getMonth() + 1
+    date = makeDate(post.getFullYear(), pm, Number(range[1]), Number(range[2]))
+    endDate = makeDate(post.getFullYear(), pm, Number(range[1]), Number(range[3]))
+    text = clean(range[4])
+  } else if (lead && leadRest) {
+    const found = findDate(lead[1], post)
+    date = found?.start ?? null
+    endDate = found && found.end.getTime() !== found.start.getTime() ? found.end : null
+    text = leadRest
+  }
+  let sub = stars.map(clean).filter(Boolean).join(' · ') || null
+  // 끝 괄호(소속·구역)는 아래 작은 줄로 — "(1교구 5지구 김영선 구역. 12여)"
+  const paren = /\s*\(([^()]+)\)\s*$/.exec(text)
+  if (!sub && paren && paren.index > 0) {
+    sub = clean(paren[1].replace(/\s*[.,]\s*/g, ' · '))
+    text = clean(text.slice(0, paren.index))
+  }
+  return { text, date, endDate, sub }
+}
+
+/**
+ * 첫 목록 줄 뒤가 전부 목록 줄(또는 "머리말 / …")이면 목록으로 읽는다.
+ * 중간에 '*' 줄이나 이어지는 문장이 끼면(공동의회 안건처럼 겹친 구조) 건드리지 않는다.
+ */
+const parseList = (lines: string[], post: Date): { lead: string[]; groups: DigestListGroup[] } | null => {
+  const rows = lines.map((l) => l.trim()).filter(Boolean)
+  const first = rows.findIndex((l) => LIST_MARK_RE.test(l))
+  if (first === -1) return null
+  const rest = rows.slice(first)
+  if (rest.length < 2 || !rest.every((l) => LIST_MARK_RE.test(l) || GROUP_LINE_RE.test(l))) return null
+  const groups: DigestListGroup[] = [{ label: null, entries: [] }]
+  for (const l of rest) {
+    const m = LIST_MARK_RE.exec(l)
+    if (m) {
+      groups[groups.length - 1].entries.push(parseEntry(m[1], post))
+      continue
+    }
+    const g = GROUP_LINE_RE.exec(l)!
+    groups.push({ label: g[1], entries: [parseEntry(g[2], post)] })
+  }
+  return { lead: rows.slice(0, first), groups: groups.filter((g) => g.entries.length) }
+}
+
 const parseItem = (no: number, title: string, rawLines: string[], post: Date): DigestItem => {
   // | 구분 줄이 두 줄 이상이면 표로 뗀다(봉사 순서·새가족 명단)
   const pipeLines = rawLines.filter((l) => l.includes('|'))
@@ -186,9 +269,23 @@ const parseItem = (no: number, title: string, rawLines: string[], post: Date): D
     }
     return true
   })
-  const body = bodyLines.join('\n').trim()
+  const bodyRows = bodyLines.map((l) => l.trim()).filter(Boolean)
+  // 번호 없이 한 줄뿐인 교우 소식("신금희 성도 시모상 (3교구 …)")도 같은 모양으로 — 날짜가 있는 소식(결혼식 등)은 일정으로 둔다
+  const singleFamily =
+    bodyRows.length === 1 && /교우\s*소식|부고/.test(title) && !findDate(bodyRows[0], post)
+      ? { lead: [] as string[], groups: [{ label: null, entries: [parseEntry(bodyRows[0], post)] }] as DigestListGroup[] }
+      : null
+  const list = parseList(bodyLines, post) ?? singleFamily
+  // "교우 소식 / 장례" — 빗금 뒤 짧은 말은 첫 묶음 머리말로
+  const split = list && list.groups[0]?.label === null ? /^(.+?)\s*\/\s*([가-힣]{1,6})\s*$/.exec(title) : null
+  if (list && split) {
+    title = split[1]
+    list.groups[0].label = split[2]
+  }
+  // 목록이면 목록 앞 머리 문장만 본문으로 — 날짜·시간·장소도 거기서만 읽는다(줄마다 날짜는 목록이 맡는다)
+  const body = (list ? list.lead.join('\n') : bodyLines.join('\n')).trim()
   const all = `${title}\n${body}`
-  const kind = kindOf(title, body)
+  const kind = kindOf(title, list ? bodyLines.join('\n') : body)
   // "교회 일정 안내 ① 11월 15일 … ② 11월 16일 …"처럼 날짜가 여럿인 안내는 한 날짜로 못 박지 않는다
   const dateCount =
     (body.match(new RegExp(KO_DATE_RE.source, 'g'))?.length ?? 0) +
@@ -201,14 +298,31 @@ const parseItem = (no: number, title: string, rawLines: string[], post: Date): D
   const who = whoMatch ? `${clean(whoMatch[1])} 필참` : null
   const contact = findContact(body)
 
-  const [head, ...starParts] = body.split('*')
+  // 줄 머리 '*'는 그 줄(+바로 아래 ①② 줄)만 쪽지 — 뒤따르는 "2) …" 하위 줄까지 쪽지로 삼키지 않게
+  const descLines: string[] = []
+  const lineNotes: string[] = []
+  let inNote = false
+  for (const l of body.split('\n')) {
+    const star = /^\s*\*\s*(.*)$/.exec(l)
+    if (star) {
+      lineNotes.push(star[1])
+      inNote = true
+    } else if (inNote && /^\s*[①-⑳]/.test(l)) {
+      lineNotes[lineNotes.length - 1] += `\n${l}`
+    } else {
+      inNote = false
+      descLines.push(l)
+    }
+  }
+  const [head, ...inlineStars] = descLines.join('\n').split('*')
+  const starParts = [...inlineStars, ...lineNotes]
   let desc = cleanLines(contact ? head.replace(contact.raw, '') : head)
   if (leftover(desc, [date?.raw ?? '', place?.raw ?? '', time?.raw ?? '']).length < 2) desc = ''
 
   let timeLabel = time?.value ?? null
   const notes: string[] = []
   for (const part of starParts) {
-    const note = clean(contact ? part.replace(contact.raw, '') : part)
+    const note = cleanLines(contact ? part.replace(contact.raw, '') : part)
     if (!note) continue
     const rest = leftover(note, [date?.raw ?? '', time?.raw ?? '', place?.raw ?? '', '기간', '일시', '장소'])
     if (!rest) continue
@@ -233,6 +347,7 @@ const parseItem = (no: number, title: string, rawLines: string[], post: Date): D
     who,
     contact: contact ? { name: contact.name, phone: contact.phone } : null,
     table,
+    groups: list ? list.groups : null,
   }
 }
 
@@ -240,8 +355,9 @@ export const parseNewsDigest = (content: string, postDate: Date): NewsDigest | n
   const lines = content.replace(/\r\n?/g, '\n').split('\n')
   const intro: string[] = []
   const blocks: { no: number; title: string; body: string[] }[] = []
+  const headerRe = lines.some((l) => /^\s*1\s*\.\s*\S/.test(l)) ? DOT_HEADER_RE : HEADER_RE
   for (const line of lines) {
-    const h = HEADER_RE.exec(line)
+    const h = headerRe.exec(line)
     // 번호는 1부터 하나씩 — "2부 예배" 같은 본문 줄이나 엉뚱한 숫자를 항목으로 오인하지 않게
     if (h && Number(h[1]) === blocks.length + 1) {
       blocks.push({ no: Number(h[1]), title: h[2], body: [] })
