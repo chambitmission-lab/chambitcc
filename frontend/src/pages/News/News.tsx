@@ -264,7 +264,7 @@ const News = () => {
                   'inline-flex items-center justify-center gap-0.5 min-[400px]:gap-1 lg:gap-1.5 whitespace-nowrap',
                   section === s.key
                     ? 'text-white'
-                    : 'text-gray-600 dark:text-white/60 hover:text-brand hover:bg-[var(--brand-soft)] dark:hover:text-white dark:hover:bg-white/[0.06] active:scale-[0.97]',
+                    : 'text-gray-600 dark:text-white/60 hover:text-brand dark:hover:text-white active:scale-[0.97]',
                 ].join(' ')}
               >
                 <s.Icon width={14} height={14} className="hidden min-[360px]:block shrink-0 lg:w-[18px] lg:h-[18px]" />

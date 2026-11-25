@@ -85,14 +85,27 @@
     0 4px 16px -4px rgba(49, 130, 246, 0.6);
 }
 
-/* 비선택 칸 호버 — 회색 대신 반투명 흰 유리 */
+/* 비선택 칸 호버 — 칸 전체를 칠하면 옆 선택 구슬과 모서리가 맞붙어
+   구슬의 빛무리·광택을 덮고 겹쳐 보인다. 칸 안쪽으로 들인 알약(::before)만
+   은은히 띄워 구슬과 사이를 남긴다. */
+.news-seg > button::before {
+  content: '';
+  position: absolute;
+  inset: 3px 6px;
+  z-index: -1;
+  border-radius: 0.625rem;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+[data-theme="dark"] .news-seg > button::before {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
 @media (hover: hover) {
-  .news-seg > button[aria-pressed='false']:hover {
-    background: rgba(255, 255, 255, 0.6);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  }
-  [data-theme="dark"] .news-seg > button[aria-pressed='false']:hover {
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  .news-seg > button[aria-pressed='false']:hover::before {
+    opacity: 1;
   }
 }
