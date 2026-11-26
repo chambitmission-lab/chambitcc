@@ -113,6 +113,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['kakao-postcard', () => import('../pages/dev/KakaoPostcardPreview')],
       // /greeting 담임목사 사진 입체 연출 시안 — ?v=all|a|b|c|d
       ['greeting-portrait', () => import('../pages/dev/GreetingPortraitPreview')],
+      // /events 일정 목록 감성 개편 시안 — ?v=a 쪽지|b 일력|c 게시판|d 다이어리
+      ['events-board', () => import('../pages/dev/EventsBoardPreview')],
     ]
   : []
 

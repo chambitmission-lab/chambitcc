@@ -8,16 +8,25 @@ import type { EventCategory } from '../../types/event'
 import CategoryPills from './components/CategoryPills'
 import EventHeroCard from './components/EventHeroCard'
 import MiniMonthStrip from './components/MiniMonthStrip'
-import AgendaSection from './components/AgendaSection'
+import WeekPostcard, { PastPostcards } from './components/WeekPostcard'
 import EmptyState from './components/EmptyState'
 import { preloadCategoryBackgrounds } from './utils/categoryConfig'
 import { CategoryIcon } from './components/CategoryIcons'
-import { buildEventDateMap, formatEventStartTime, getNextEvent, groupEventsByDate } from './utils/dateGrouping'
+import { buildEventDateMap, formatEventStartTime, getNextEvent } from './utils/dateGrouping'
+import { buildWeekCards } from './utils/weekPostcards'
 import { CATEGORY_VISUAL } from './utils/categoryConfig'
 import { kstNow, toKstCalendarDate } from '../../utils/kstTime'
 import './styles/index.css'
 import { can } from '../../utils/access'
 import { KO_WEEKDAYS } from '../../utils/dateUtils'
+import { ensureFontFamily } from '../../utils/deferredFonts'
+
+// 우편엽서 손글씨(받는 사람·사진 설명·남은 쪽지) — 이 화면 청크가 로드될 때 붙인다
+void ensureFontFamily('nanumPen')
+
+/** PC 2단(lg) 여부 — 엽서 격자의 빈칸을 지난 일정으로 채울지 정할 때만 쓴다 */
+const isWideScreen = (): boolean =>
+  typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
 
 const formatYMD = (d: Date): string =>
   `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
@@ -80,12 +89,16 @@ const EventCalendar = () => {
   const holidays = useHolidayMap(holidayYears)
 
   const heroEvent = useMemo(() => getNextEvent(events), [events])
-  const groups = useMemo(() => {
-    // Hero에 표시된 이벤트는 어젠다에서 제외 (단, 오늘 여러 건 있으면 모두 보여줌)
-    if (!heroEvent) return groupEventsByDate(events)
-    const filtered = events.filter(e => e.id !== heroEvent.id)
-    return groupEventsByDate(filtered)
-  }, [events, heroEvent])
+  // 한 주 = 우편엽서 한 장. 히어로 일정도 그 주 엽서에 그대로 둔다 — 빠지면 한 주 흐름이 끊겨 보인다.
+  // 이번 주 엽서는 지금 달을 볼 때만(일정이 없어도 '오늘' 띠로 지금 위치를 알려준다)
+  const isCurrentMonth = useMemo(() => {
+    const now = kstNow()
+    return viewDate.getFullYear() === now.getFullYear() && viewDate.getMonth() === now.getMonth()
+  }, [viewDate])
+  const { weeks, past } = useMemo(
+    () => buildWeekCards(events, { includeThisWeek: isCurrentMonth && events.length > 0 }),
+    [events, isCurrentMonth],
+  )
 
   const totalCount = events.length
 
@@ -243,13 +256,18 @@ const EventCalendar = () => {
               <div key={i} className="h-20 rounded-2xl bg-gray-100 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
             ))}
           </div>
-        ) : groups.length === 0 && !heroEvent ? (
+        ) : events.length === 0 ? (
           <EmptyState category={selectedCategory} />
         ) : (
-          // lg+: 넓어진 본문을 세로로만 쓰지 않도록 날짜 그룹을 2열로 — 칸 수는 폭으로 정해
-          // 글씨를 키우면(PC 글씨 크기 zoom) 한 열로 풀린다
-          <div className="lg:grid lg:grid-cols-[repeat(auto-fill,minmax(360px,1fr))] lg:items-start lg:px-2">
-            {groups.map(group => <AgendaSection key={group.key} group={group} />)}
+          // 한 주 = 엽서 한 장. lg+: 넓어진 본문에 2장씩 — 칸 수는 폭으로 정해 글씨를 키우면(PC zoom) 한 열로 풀린다
+          // 지난 일정도 같은 격자의 한 칸 — PC 에서 엽서가 홀수 장이면 남는 오른쪽 칸에 펼쳐 둔다
+          <div className="px-4 lg:px-6 grid grid-cols-1 gap-6 lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:items-start">
+            {weeks.map((w, i) => <WeekPostcard key={w.mondayKey} week={w} first={i === 0} />)}
+            <PastPostcards
+              key={`${startDate}-${selectedCategory ?? 'all'}`}
+              events={past}
+              defaultOpen={weeks.length === 0 || (weeks.length % 2 === 1 && isWideScreen())}
+            />
           </div>
         )}
       </div>

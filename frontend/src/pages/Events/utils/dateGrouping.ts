@@ -6,12 +6,6 @@ import { KO_WEEKDAYS, calendarDateKey, formatMonthDay, kstNow, toKstCalendarDate
  * 반드시 toKstCalendarDate 로 서울 벽시계 필드를 담은 Date 를 만들어 쓴다. */
 const eventDate = (datetime: string): Date => toKstCalendarDate(datetime)
 
-export interface AgendaGroup {
-  key: 'today' | 'tomorrow' | 'thisWeek' | 'thisMonth' | 'later' | 'past'
-  label: string
-  events: Event[]
-}
-
 const startOfDay = (d: Date): Date => {
   const x = new Date(d)
   x.setHours(0, 0, 0, 0)
@@ -21,70 +15,6 @@ const startOfDay = (d: Date): Date => {
 const diffInDays = (a: Date, b: Date): number => {
   const ms = startOfDay(a).getTime() - startOfDay(b).getTime()
   return Math.round(ms / (1000 * 60 * 60 * 24))
-}
-
-const isSameMonth = (a: Date, b: Date): boolean =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
-
-/**
- * 다음 일요일까지 같은 주로 판단 (월~일 또는 일~토 어느 쪽이든 7일 범위 내).
- * 간단하게 "오늘로부터 7일 이내"를 이번 주로 봄.
- */
-const isWithinThisWeek = (target: Date, today: Date): boolean => {
-  const d = diffInDays(target, today)
-  return d >= 2 && d <= 7
-}
-
-export const groupEventsByDate = (events: Event[], now: Date = kstNow()): AgendaGroup[] => {
-  const today = startOfDay(now)
-  const sorted = [...events].sort(
-    (a, b) => eventDate(a.start_datetime).getTime() - eventDate(b.start_datetime).getTime(),
-  )
-
-  const upcoming = sorted.filter(e => eventDate(e.start_datetime).getTime() >= today.getTime())
-  const pastEvents = sorted
-    .filter(e => eventDate(e.start_datetime).getTime() < today.getTime())
-    .reverse()
-
-  const buckets: Record<AgendaGroup['key'], Event[]> = {
-    today: [],
-    tomorrow: [],
-    thisWeek: [],
-    thisMonth: [],
-    later: [],
-    past: pastEvents,
-  }
-
-  for (const ev of upcoming) {
-    const d = eventDate(ev.start_datetime)
-    const diff = diffInDays(d, today)
-
-    if (diff === 0) buckets.today.push(ev)
-    else if (diff === 1) buckets.tomorrow.push(ev)
-    else if (isWithinThisWeek(d, today)) buckets.thisWeek.push(ev)
-    else if (isSameMonth(d, today)) buckets.thisMonth.push(ev)
-    else buckets.later.push(ev)
-  }
-
-  const labels: Record<AgendaGroup['key'], string> = {
-    today: '오늘',
-    tomorrow: '내일',
-    thisWeek: '이번 주',
-    thisMonth: '이번 달',
-    later: '다가오는 일정',
-    past: '지난 일정',
-  }
-
-  const upcomingOrder: AgendaGroup['key'][] = ['today', 'tomorrow', 'thisWeek', 'thisMonth', 'later']
-  const result = upcomingOrder
-    .map(key => ({ key, label: labels[key], events: buckets[key] }))
-    .filter(g => g.events.length > 0)
-
-  if (buckets.past.length > 0) {
-    result.push({ key: 'past' as const, label: labels.past, events: buckets.past })
-  }
-
-  return result
 }
 
 /**

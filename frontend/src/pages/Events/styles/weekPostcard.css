@@ -1,0 +1,136 @@
+/* /events 우편엽서 — 바랜 아이보리 종이 · 남색 만년필 잉크 · 우체국 빨강. 시안 /#/dev/events-board?v=final2 */
+
+.wpc {
+  --wpc-paper: #f5eddb;
+  --wpc-ink: #2e3550;
+  --wpc-accent: #2a4d8f;
+  --wpc-red: #c4432d;
+  --wpc-sun: #c2402c;
+  --wpc-muted: rgba(46, 53, 80, 0.62);
+  --wpc-rule: #e3d6b8;
+  position: relative;
+  background: var(--wpc-paper);
+  color: var(--wpc-ink);
+  border-radius: 3px;
+  /* 가장자리만 아주 옅게 누렇게 — 오래 붙여 둔 종이 */
+  box-shadow:
+    inset 0 0 0 1px rgba(150, 115, 60, 0.12),
+    inset 0 0 36px rgba(170, 130, 60, 0.14),
+    0 14px 28px -18px rgba(70, 50, 20, 0.45);
+}
+.dark .wpc {
+  --wpc-paper: #232631;
+  --wpc-ink: #ece5d4;
+  --wpc-accent: #9dbaf0;
+  --wpc-red: #e7836c;
+  --wpc-sun: #f08f7b;
+  --wpc-muted: rgba(236, 229, 212, 0.62);
+  --wpc-rule: rgba(255, 240, 210, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(255, 240, 210, 0.06), 0 16px 28px -16px rgba(0, 0, 0, 0.85);
+}
+
+.wpc-hand { font-family: 'Nanum Pen Script', var(--font-serif-kr), cursive; font-weight: 400; }
+.wpc-serif { font-family: var(--font-serif-kr), 'Noto Serif KR', serif; }
+.wpc-accent { color: var(--wpc-accent); }
+.wpc-post { color: var(--wpc-red); }
+.wpc-week { color: var(--wpc-ink); }
+.wpc-sub { color: var(--wpc-ink); opacity: 0.8; }
+.wpc-to { border-bottom: 1px solid color-mix(in srgb, var(--wpc-ink) 40%, transparent); }
+
+/* ── 인화 사진 ── */
+.wpc-film { background: #fffdf7; padding: 7px 7px 4px; box-shadow: 0 1px 3px rgba(70, 50, 20, 0.2); transform: rotate(-0.6deg); }
+.dark .wpc-film { background: #e9e3d4; }
+.wpc-caption { color: #2e3550; }
+.wpc-film-img { filter: sepia(0.28) saturate(0.82) contrast(0.9) brightness(1.06); }
+.dark .wpc-film-img { filter: sepia(0.2) saturate(0.9) contrast(0.95); }
+.wpc-film-wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 214, 150, 0.16), rgba(255, 190, 120, 0.1));
+  mix-blend-mode: soft-light;
+  box-shadow: inset 0 0 40px rgba(80, 50, 10, 0.22);
+}
+/* 필름 날짜 도장 — 밝은 하늘·돌벽 어디에 떨어져도 읽히게:
+ * 오른쪽 아래 모서리만 살짝 어둡게 + 글자에 짙은 테두리를 두르고 그 위에 주황 빛 */
+.wpc-imprint-shade {
+
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 46%;
+  height: 46%;
+  background: radial-gradient(ellipse at 100% 100%, rgba(20, 12, 4, 0.62), rgba(20, 12, 4, 0) 72%);
+}
+.wpc-imprint {
+  position: absolute;
+  right: 10px;
+  bottom: 7px;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ff9a4d;
+  text-shadow:
+    0 0 1px rgba(40, 15, 0, 0.95),
+    0 0 2px rgba(40, 15, 0, 0.85),
+    0 0 6px rgba(255, 110, 30, 0.75);
+}
+
+/* ── 우표 · 소인 · 우편번호 칸 ── */
+.wpc-stamp {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding: 5px;
+  background: radial-gradient(circle, transparent 2.2px, #fff 2.6px) -4px -4px / 8px 8px;
+  filter: drop-shadow(0 1px 1.5px rgba(60, 45, 20, 0.3));
+  transform: rotate(3deg);
+}
+.dark .wpc-stamp { background: radial-gradient(circle, transparent 2.2px, #d9dde6 2.6px) -4px -4px / 8px 8px; }
+.wpc-postmark { position: relative; z-index: 2; display: block; width: 100%; color: var(--wpc-red); opacity: 0.75; transform: rotate(-10deg); pointer-events: none; }
+.wpc-zip { display: inline-flex; align-items: center; gap: 3px; }
+.wpc-zip i { display: block; width: 16px; height: 20px; border: 1.5px solid var(--wpc-red); opacity: 0.8; }
+.wpc-zip b { color: var(--wpc-red); font-weight: 700; margin: 0 1px; opacity: 0.8; }
+
+/* ── 일정 줄 — 어르신 눈높이 ── */
+.wpc-rows { border-top: 1px solid var(--wpc-rule); }
+.wpc-rows > li + li { border-top: 1px solid var(--wpc-rule); }
+.wpc-rows > .wpc-today + li, .wpc-rows > li + .wpc-today { border-top-color: transparent; }
+.wpc-row { border-radius: 8px; transition: background-color 0.15s; }
+.wpc-row:hover { background: color-mix(in srgb, var(--wpc-accent) 6%, transparent); }
+.wpc-row:focus-visible { outline: 2px solid var(--wpc-accent); outline-offset: 2px; }
+.wpc-day, .wpc-title { color: var(--wpc-ink); }
+.wpc-wd { color: var(--wpc-muted); }
+.wpc-day.is-sun, .wpc-wd.is-sun { color: var(--wpc-sun); }
+.wpc-meta { color: var(--wpc-ink); opacity: 0.85; }
+.wpc-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  color: var(--wpc-accent);
+  background: color-mix(in srgb, var(--wpc-accent) 12%, transparent);
+  white-space: nowrap;
+}
+.wpc-pill.is-done { color: var(--wpc-muted); background: color-mix(in srgb, var(--wpc-ink) 8%, transparent); }
+/* 지난 일 — 통째로 흐리지 않고 날짜·제목만 한 톤 낮춘다 */
+.wpc-row.is-gone .wpc-day:not(.is-sun), .wpc-row.is-gone .wpc-title { color: var(--wpc-muted); }
+.wpc-row.is-gone .wpc-meta { opacity: 0.7; }
+
+.wpc-today {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: 4px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--wpc-accent);
+  background: color-mix(in srgb, var(--wpc-accent) 9%, transparent);
+}
+.wpc-today-chip {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.85em;
+  color: var(--wpc-paper);
+  background: var(--wpc-accent);
+}

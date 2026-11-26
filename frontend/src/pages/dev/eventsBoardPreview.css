@@ -1,0 +1,501 @@
+/* /#/dev/events-board — 일정 목록 감성 시안. 재질은 흉내 내지 않고 '종이 한 장'의 단정함만 */
+
+.ebp-hand { font-family: 'Nanum Pen Script', var(--font-serif-kr), cursive; font-weight: 400; }
+
+/* ── A 냉장고 쪽지 ── */
+.ebp-fridge { background: linear-gradient(180deg, #f4f6fa 0%, #eef1f6 100%); }
+.dark .ebp-fridge { background: linear-gradient(180deg, #121722 0%, #0f141d 100%); }
+
+.ebp-slip {
+  position: relative;
+  padding: 22px 16px 16px;
+  background: #fffdf8;
+  border-radius: 3px;
+  transform: rotate(var(--tilt, 0deg));
+  box-shadow: 0 1px 1px rgba(30, 40, 60, 0.06), 0 8px 18px -10px rgba(30, 40, 60, 0.28);
+}
+.dark .ebp-slip {
+  background: #1d2431;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 22px -12px rgba(0, 0, 0, 0.8);
+}
+.ebp-tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 74px;
+  height: 20px;
+  transform: translateX(-50%) rotate(var(--tape-tilt, -3deg));
+  border-radius: 2px;
+  mix-blend-mode: multiply;
+}
+.dark .ebp-tape { mix-blend-mode: screen; opacity: 0.55; }
+.ebp-circle {
+  padding: 0 7px;
+  border: 1.6px solid currentColor;
+  border-radius: 50% 46% 52% 44%;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.ebp-slip.is-done { opacity: 0.72; }
+.ebp-done-mark {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 26px;
+  color: var(--brand);
+  transform: rotate(-4deg);
+}
+
+/* ── B 일력 ── */
+.ebp-day {
+  position: relative;
+  background: #ffffff;
+  border-radius: 6px 6px 16px 16px;
+  border: 1px solid rgba(25, 31, 40, 0.07);
+  box-shadow: 0 1px 2px rgba(25, 31, 40, 0.05), 0 14px 28px -20px rgba(25, 31, 40, 0.35);
+}
+.dark .ebp-day { background: #1b212c; border-color: rgba(255, 255, 255, 0.07); box-shadow: none; }
+.ebp-day.is-today { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft), 0 18px 34px -22px var(--brand-glow); }
+/* 위 철 제본 자리 — 작은 구멍 줄 하나 */
+.ebp-day-holes {
+  height: 14px;
+  border-bottom: 1px dashed rgba(25, 31, 40, 0.12);
+  background: radial-gradient(circle, rgba(25, 31, 40, 0.16) 2.2px, transparent 2.6px) center / 18px 14px repeat-x;
+}
+.dark .ebp-day-holes {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.55) 2.2px, transparent 2.6px);
+}
+.ebp-daynum { font-weight: 800; letter-spacing: -0.04em; font-family: var(--font-serif-kr), serif; }
+
+.ebp-torn-stack { position: relative; display: block; }
+.ebp-torn-stack > .relative {
+  background: #fbfaf6;
+  border-radius: 6px;
+  border: 1px solid rgba(25, 31, 40, 0.07);
+}
+.dark .ebp-torn-stack > .relative { background: #1b212c; border-color: rgba(255, 255, 255, 0.07); }
+.ebp-torn {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: #f1efe8;
+  border: 1px solid rgba(25, 31, 40, 0.06);
+}
+.ebp-torn:nth-child(1) { transform: translate(6px, -6px) rotate(1.4deg); }
+.ebp-torn:nth-child(2) { transform: translate(-4px, -3px) rotate(-1deg); }
+.dark .ebp-torn { background: #161b24; border-color: rgba(255, 255, 255, 0.05); }
+
+/* ── C 현관 게시판 ── */
+.ebp-board { background: #efe9df; }
+.dark .ebp-board { background: #14181f; }
+.ebp-flyer {
+  position: relative;
+  background: #fff;
+  border-radius: 4px;
+  overflow: visible;
+  transform: rotate(var(--tilt, 0deg));
+  box-shadow: 0 1px 1px rgba(40, 30, 20, 0.08), 0 10px 20px -12px rgba(40, 30, 20, 0.35);
+}
+.dark .ebp-flyer { background: #1d2431; box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.8); }
+.ebp-flyer-art { height: 84px; overflow: hidden; border-radius: 4px 4px 0 0; }
+.ebp-flyer.is-done { opacity: 0.8; }
+.ebp-flyer.is-done .ebp-flyer-art { filter: grayscale(0.7); }
+.ebp-pin {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  z-index: 2;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #8fb8ff, #3182f6 60%, #1d5fd0);
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.25);
+}
+.ebp-poster-date { font-weight: 800; letter-spacing: -0.03em; font-family: var(--font-serif-kr), serif; }
+.ebp-stamp {
+  position: absolute;
+  right: 10px;
+  bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  border: 2px solid rgba(49, 130, 246, 0.7);
+  border-radius: 50%;
+  color: rgba(49, 130, 246, 0.85);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  transform: rotate(-14deg);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0), inset 0 0 0 4px rgba(49, 130, 246, 0.35);
+}
+.dark .ebp-stamp { border-color: rgba(120, 170, 255, 0.7); color: rgba(150, 190, 255, 0.9); }
+
+/* ── D 주간 다이어리 ── */
+.ebp-diary {
+  background: #fffefa;
+  border-radius: 18px;
+  border: 1px solid rgba(25, 31, 40, 0.07);
+  box-shadow: 0 16px 32px -24px rgba(25, 31, 40, 0.4);
+  overflow: hidden;
+}
+.dark .ebp-diary { background: #1a202a; border-color: rgba(255, 255, 255, 0.07); box-shadow: none; }
+.ebp-diary.is-faded { opacity: 0.7; }
+.ebp-line { border-top: 1px solid rgba(49, 130, 246, 0.12); }
+.dark .ebp-line { border-top-color: rgba(255, 255, 255, 0.07); }
+.ebp-line.is-today { background: var(--brand-soft); }
+.ebp-line.is-gone { opacity: 0.6; }
+.ebp-marker {
+  background: linear-gradient(transparent 55%, var(--marker) 55%, var(--marker) 92%, transparent 92%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 0 2px;
+}
+
+/* ══ A 다듬기 (2차) — 같은 종이 · 같은 테이프 · 기울기 없음 ══ */
+.ebp-fridge-calm { background: #f3f4f7; }
+.dark .ebp-fridge-calm { background: #11161f; }
+
+.ebp-tidy,
+.ebp-strip,
+.ebp-magnet-slip,
+.ebp-weeknote,
+.ebp-paper {
+  position: relative;
+  background: #fffdf8;
+  border-radius: 6px;
+  box-shadow: 0 1px 1px rgba(30, 40, 60, 0.05), 0 10px 22px -16px rgba(30, 40, 60, 0.32);
+}
+.dark .ebp-tidy,
+.dark .ebp-strip,
+.dark .ebp-magnet-slip,
+.dark .ebp-weeknote,
+.dark .ebp-paper {
+  background: #1c2230;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 12px 24px -16px rgba(0, 0, 0, 0.8);
+}
+.ebp-paper { background: #faf8f3; box-shadow: none; border: 1px solid #ece7dc; }
+.dark .ebp-paper { background: #171c26; border-color: rgba(255, 255, 255, 0.06); box-shadow: none; }
+
+/* 테이프 — 브랜드 블루를 아주 옅게, 모두 같은 각도 */
+.ebp-tidy-tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 64px;
+  height: 18px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgba(49, 130, 246, 0.16);
+  border-left: 1px dashed rgba(49, 130, 246, 0.18);
+  border-right: 1px dashed rgba(49, 130, 246, 0.18);
+}
+.ebp-tidy-tape.is-wide { width: 96px; }
+.dark .ebp-tidy-tape { background: rgba(120, 170, 255, 0.2); border-color: rgba(120, 170, 255, 0.2); }
+
+/* 가로 띠 — 왼쪽 위 모서리에 짧은 테이프 */
+.ebp-strip-tape {
+  position: absolute;
+  top: -5px;
+  left: -10px;
+  width: 44px;
+  height: 16px;
+  transform: rotate(-32deg);
+  background: rgba(49, 130, 246, 0.16);
+}
+.dark .ebp-strip-tape { background: rgba(120, 170, 255, 0.2); }
+
+/* 자석 — 테이프 대신 둥근 자석 하나 */
+.ebp-magnet {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #9cc2ff, #3182f6 62%, #2468d8);
+  box-shadow: 0 3px 6px -1px rgba(30, 70, 150, 0.35);
+}
+.ebp-magnet.is-small { width: 16px; height: 16px; margin-left: -8px; top: -7px; }
+.ebp-magnet-slip.is-lead { border-radius: 10px; }
+
+.ebp-weeknote.is-faded { opacity: 0.75; }
+
+/* ══ A4 업그레이드 (3차) ══ */
+.ebp-serif { font-family: var(--font-serif-kr), 'Noto Serif KR', serif; }
+.ebp-fridge-calm { --ebp-rule: #ebe6dc; }
+.dark .ebp-fridge-calm { --ebp-rule: rgba(255, 255, 255, 0.08); }
+
+.ebp-cut, .ebp-postcard, .ebp-versenote, .ebp-pad-sheet {
+  position: relative;
+  background: #fffdf8;
+  box-shadow: 0 1px 1px rgba(30, 40, 60, 0.05), 0 12px 26px -18px rgba(30, 40, 60, 0.38);
+}
+.dark .ebp-cut, .dark .ebp-postcard, .dark .ebp-versenote, .dark .ebp-pad-sheet {
+  background: #1c2230;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 26px -16px rgba(0, 0, 0, 0.8);
+}
+
+/* A4-1 주보 머리 — 위아래 이중 괘선 */
+.ebp-cut { border-radius: 2px; }
+.ebp-masthead {
+  padding: 8px 0 10px;
+  margin-bottom: 4px;
+  border-top: 3px double #2b3a55;
+  border-bottom: 1px solid #2b3a55;
+}
+.dark .ebp-masthead { border-color: rgba(255, 255, 255, 0.55); }
+.ebp-tidy-tape.is-corner-l { left: 10px; top: -6px; width: 46px; transform: rotate(-28deg); }
+.ebp-tidy-tape.is-corner-r { left: auto; right: -12px; top: -6px; width: 46px; transform: rotate(28deg); }
+
+/* A4-2 엽서 */
+.ebp-postcard { border-radius: 10px; }
+.ebp-postcard > div:first-of-type { border-radius: 10px 10px 0 0; }
+.ebp-postcard > .ebp-tidy-tape { z-index: 2; }
+
+/* A4-3 말씀 머리 — 아주 옅은 새벽빛 */
+.ebp-versenote { border-radius: 8px; overflow: visible; }
+.ebp-versehead {
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, #eef4ff 0%, #f7f9fd 100%);
+  border-bottom: 1px dashed #d9e3f4;
+}
+.dark .ebp-versehead { background: linear-gradient(180deg, #1f2a40 0%, #1c2230 100%); border-bottom-color: rgba(255, 255, 255, 0.08); }
+
+/* A4-4 떡메모 패드 */
+.ebp-pad { position: relative; }
+.ebp-pad-sheet { border-radius: 4px; overflow: hidden; }
+.ebp-pad-glue { height: 30px; background: var(--brand); }
+.dark .ebp-pad-glue { background: #2b5fb8; }
+.ebp-pad-under {
+  position: absolute;
+  left: 6px; right: 6px; bottom: -6px; height: 20px;
+  border-radius: 0 0 4px 4px;
+  background: #f4f1ea;
+  box-shadow: 0 6px 12px -8px rgba(30, 40, 60, 0.35);
+}
+.dark .ebp-pad-under { background: #161b26; }
+
+/* 오늘 줄 */
+.ebp-today-row { border-top: 1px dashed var(--brand-soft-strong); border-bottom: 1px dashed var(--brand-soft-strong); }
+.ebp-today-circle {
+  display: inline-block;
+  padding: 2px 7px 0;
+  border: 2px solid currentColor;
+  border-radius: 52% 46% 55% 44% / 50% 54% 46% 50%;
+  transform: rotate(-6deg);
+}
+
+/* ══ 엽서 (4차) — 여행 엽서 색: 아이보리 종이 · 남색 잉크 · 코랄 우표/소인 · 항공우편 사선 ══ */
+.ebp-pc {
+  --pc-paper: #fbf6ea;
+  --pc-ink: #23355c;
+  --pc-accent: #2f62c4;
+  --pc-coral: #e0674f;
+  --ebp-rule: #e9dfc9;
+  position: relative;
+  background: var(--pc-paper);
+  border-radius: 6px;
+  box-shadow: 0 1px 1px rgba(60, 45, 20, 0.06), 0 14px 28px -18px rgba(60, 45, 20, 0.42);
+}
+.dark .ebp-pc {
+  --pc-paper: #1f2533;
+  --pc-ink: #e7ecf6;
+  --pc-accent: #8fb6ff;
+  --pc-coral: #f08f7b;
+  --ebp-rule: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 28px -16px rgba(0, 0, 0, 0.85);
+}
+/* 일정 줄 글씨를 엽서 잉크로 */
+.ebp-pc .text-brand { color: var(--pc-accent); }
+.ebp-pc .text-\[\#1f2a3d\], .ebp-pc .text-\[\#2b3a55\] { color: var(--pc-ink); }
+.ebp-pc .ebp-today-row { border-color: var(--ebp-rule); }
+
+/* 항공우편 사선 테두리 */
+.ebp-pc-air {
+  padding: 7px;
+  background: repeating-linear-gradient(135deg, var(--pc-coral) 0 12px, var(--pc-paper) 12px 18px, var(--pc-accent) 18px 30px, var(--pc-paper) 30px 36px);
+}
+.ebp-pc-air .ebp-pc-inner { background: var(--pc-paper); border-radius: 3px; }
+.dark .ebp-pc-air { opacity: 1; background: repeating-linear-gradient(135deg, rgba(240, 143, 123, 0.55) 0 12px, var(--pc-paper) 12px 18px, rgba(143, 182, 255, 0.55) 18px 30px, var(--pc-paper) 30px 36px); }
+
+/* 흰 여백 인화 사진 */
+.ebp-pc-print { background: #fff; padding: 6px; border-radius: 4px; box-shadow: 0 1px 3px rgba(60, 45, 20, 0.15); }
+.dark .ebp-pc-print { background: #2a3142; box-shadow: none; }
+.ebp-pc-print.is-vintage img { filter: saturate(1.15) contrast(1.05) sepia(0.14) brightness(1.02); }
+.ebp-pc-shadow { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 0 14px rgba(0, 0, 0, 0.25); }
+.ebp-pc-greet {
+  font-family: var(--font-serif-kr), 'Noto Serif KR', serif;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  text-shadow: 3px 3px 0 var(--pc-accent), 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* 쓰는 면 — 주소 줄처럼 옅은 괘선 */
+.ebp-pc-lines { border-top: 1px solid var(--ebp-rule); }
+
+/* 우표 — 톱니(구멍 뚫린) 흰 테두리 */
+.ebp-pc-stamp {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding: 5px;
+  background:
+    radial-gradient(circle, transparent 2.2px, #fff 2.6px) -4px -4px / 8px 8px;
+  filter: drop-shadow(0 1px 1.5px rgba(60, 45, 20, 0.3));
+  transform: rotate(3deg);
+}
+.dark .ebp-pc-stamp { background: radial-gradient(circle, transparent 2.2px, #d9dde6 2.6px) -4px -4px / 8px 8px; }
+.ebp-pc-postmark { z-index: 2; color: var(--pc-coral); opacity: 0.75; transform: rotate(-10deg); pointer-events: none; }
+
+/* ══ 향수 엽서 (5차) — 바랜 아이보리 · 만년필 파랑 · 우체국 빨강 ══ */
+.ebp-old {
+  --pc-paper: #f5eddb;
+  --pc-ink: #2e3550;
+  --pc-accent: #2a4d8f;
+  --pc-coral: #c4432d;
+  --ebp-rule: #e3d6b8;
+  border-radius: 3px;
+  /* 가장자리만 아주 옅게 누렇게 — 오래 붙여 둔 종이 */
+  box-shadow: inset 0 0 0 1px rgba(150, 115, 60, 0.12), inset 0 0 36px rgba(170, 130, 60, 0.14), 0 14px 28px -18px rgba(70, 50, 20, 0.45);
+}
+.dark .ebp-old {
+  --pc-paper: #232631;
+  --pc-ink: #ece5d4;
+  --pc-accent: #9dbaf0;
+  --pc-coral: #e7836c;
+  --ebp-rule: rgba(255, 240, 210, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(255, 240, 210, 0.06), 0 16px 28px -16px rgba(0, 0, 0, 0.85);
+}
+
+/* 인화 사진 */
+.ebp-film { background: #fffdf7; padding: 7px 7px 4px; box-shadow: 0 1px 3px rgba(70, 50, 20, 0.2); transform: rotate(-0.6deg); }
+.dark .ebp-film { background: #e9e3d4; }
+.dark .ebp-film figcaption { color: #2e3550; }
+.ebp-film-faded { filter: sepia(0.28) saturate(0.82) contrast(0.9) brightness(1.06); }
+.ebp-film-old { filter: grayscale(1) sepia(0.45) contrast(0.95) brightness(1.04); }
+/* 검은 부분을 살짝 들어 올리고 노란기 — 바랜 필름 */
+.ebp-film-wash {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 214, 150, 0.16), rgba(255, 190, 120, 0.1));
+  mix-blend-mode: soft-light;
+  box-shadow: inset 0 0 40px rgba(80, 50, 10, 0.22);
+}
+/* 필름 카메라 날짜 도장 */
+.ebp-imprint {
+  position: absolute;
+  right: 10px;
+  bottom: 7px;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ff8a3d;
+  text-shadow: 0 0 4px rgba(255, 120, 40, 0.85), 0 0 1px #ffb27a;
+  opacity: 0.92;
+}
+
+/* 빨간 우편번호 칸 */
+.ebp-zip { display: inline-flex; align-items: center; gap: 3px; }
+.ebp-zip i { display: block; width: 16px; height: 20px; border: 1.5px solid var(--pc-coral); opacity: 0.8; }
+.ebp-zip b { color: var(--pc-coral); font-weight: 700; margin: 0 1px; opacity: 0.8; }
+
+/* ══ 최종 — 양피지 (가운데 밝고 가장자리 그을린 황갈색 · 철분 잉크) ══ */
+.ebp-parch {
+  --pc-paper: #f1e3c4;
+  --pc-ink: #3a2816;
+  --pc-accent: #7a4a24;
+  --pc-coral: #a3392a;
+  --ebp-rule: rgba(120, 80, 35, 0.22);
+  background:
+    radial-gradient(ellipse 85% 70% at 50% 45%, rgba(255, 248, 228, 0.75), rgba(255, 248, 228, 0) 70%),
+    radial-gradient(circle at 18% 82%, rgba(160, 110, 50, 0.1), transparent 30%),
+    radial-gradient(circle at 85% 20%, rgba(160, 110, 50, 0.08), transparent 28%),
+    #ecd9b2;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 80, 35, 0.18),
+    inset 0 0 50px rgba(130, 85, 30, 0.28),
+    0 14px 28px -18px rgba(70, 45, 15, 0.55);
+}
+.dark .ebp-parch {
+  --pc-paper: #2b241b;
+  --pc-ink: #efe2c6;
+  --pc-accent: #d9a66b;
+  --pc-coral: #e58a72;
+  --ebp-rule: rgba(240, 210, 160, 0.14);
+  background:
+    radial-gradient(ellipse 85% 70% at 50% 45%, rgba(255, 230, 180, 0.06), transparent 70%),
+    #241e17;
+  box-shadow: inset 0 0 0 1px rgba(240, 210, 160, 0.1), inset 0 0 40px rgba(0, 0, 0, 0.35), 0 16px 28px -16px rgba(0, 0, 0, 0.85);
+}
+/* 글씨 — 고동 잉크, 주일 다홍, 손글씨 세피아 */
+.ebp-parch .text-\[\#1f2a3d\], .ebp-parch .text-\[\#2b3a55\], .ebp-parch .text-ink-strong { color: var(--pc-ink); }
+.ebp-parch .text-\[\#5b6577\] { color: rgba(58, 40, 22, 0.68); }
+.dark .ebp-parch .text-\[\#5b6577\] { color: rgba(239, 226, 198, 0.62); }
+.ebp-parch .text-rose-500 { color: var(--pc-coral); }
+.dark .ebp-parch .dark\:text-rose-300 { color: var(--pc-coral); }
+.ebp-parch .text-gray-400, .ebp-parch .text-gray-500 { color: rgba(58, 40, 22, 0.5); }
+.dark .ebp-parch .dark\:text-white\/45, .dark .ebp-parch .dark\:text-white\/90, .dark .ebp-parch .dark\:text-white { color: var(--pc-ink); }
+/* 줄 정리 — 가는 갈색 실선 하나, 오늘 줄은 옅은 띠 */
+.ebp-parch li { border-color: var(--ebp-rule) !important; }
+.ebp-parch .ebp-today-row {
+  border: 0;
+  margin: 2px -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 6px;
+  background: rgba(122, 74, 36, 0.08);
+}
+.dark .ebp-parch .ebp-today-row { background: rgba(217, 166, 107, 0.08); }
+.ebp-parch .ebp-today-row + li { border-top-color: transparent !important; }
+.ebp-parch .ebp-pc-lines { border-top: 1.5px solid rgba(120, 80, 35, 0.35); }
+/* 인화 사진 테두리도 양피지 쪽으로 */
+.ebp-parch .ebp-film { background: #fbf3df; box-shadow: 0 2px 5px rgba(70, 45, 15, 0.28); }
+.dark .ebp-parch .ebp-film { background: #e6d7b6; }
+.ebp-parch .ebp-zip i { border-color: rgba(163, 57, 42, 0.7); }
+
+/* ══ 최종 2 — 읽기 쉬운 줄 ══ */
+.ebp-rd { --rd-ink: var(--pc-ink); --rd-sun: #c2402c; --rd-muted: rgba(46, 53, 80, 0.62); }
+.dark .ebp-rd { --rd-sun: #f08f7b; --rd-muted: rgba(236, 229, 212, 0.62); }
+.ebp-rd-row + .ebp-rd-row, .ebp-rd-today + .ebp-rd-row, .ebp-rd-row + .ebp-rd-today { border-top: 1px solid var(--ebp-rule); }
+.ebp-rd-day, .ebp-rd-title { color: var(--rd-ink); }
+.ebp-rd-wd { color: var(--rd-muted); }
+.ebp-rd-day.is-sun, .ebp-rd-wd.is-sun { color: var(--rd-sun); }
+.ebp-rd-meta { color: var(--rd-ink); opacity: 0.85; }
+.ebp-rd-note { color: var(--pc-accent); }
+.ebp-rd-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  color: var(--pc-accent);
+  background: color-mix(in srgb, var(--pc-accent) 12%, transparent);
+  white-space: nowrap;
+}
+.ebp-rd-pill.is-done { color: var(--rd-muted); background: color-mix(in srgb, var(--rd-ink) 8%, transparent); }
+/* 지난 일 — 통째로 흐리지 않고 날짜·제목만 한 톤 낮춘다 */
+.ebp-rd-row.is-gone .ebp-rd-day, .ebp-rd-row.is-gone .ebp-rd-title { color: var(--rd-muted); }
+.ebp-rd-row.is-gone .ebp-rd-meta { opacity: 0.7; }
+/* 오늘 띠 */
+.ebp-rd-today {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: 4px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--pc-accent);
+  background: color-mix(in srgb, var(--pc-accent) 9%, transparent);
+}
+.ebp-rd-today-chip {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.85em;
+  color: var(--pc-paper);
+  background: var(--pc-accent);
+}
