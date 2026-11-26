@@ -602,8 +602,10 @@ export class RailWeatherScene {
     const cloudDir = c.gust ? Math.sign(this.wind(this.time)) : 1
     for (const cl of this.clouds) {
       cl.x += cl.v * dt * cloudDir * (c.kind === 'rain' ? 1 + this.gustStrength(this.time) : 1)
-      if (cl.x > W + 20) cl.x = -230
-      if (cl.x < -240) cl.x = W + 10
+      // 구름 폭(220×s, 최대 330)만큼 완전히 밖에서 드나든다 — 고정값(-230)이면 큰 구름이 이미 100px 들어온 채 불쑥 나타났다
+      const cw = 220 * cl.s
+      if (cl.x > W + 20) cl.x = -cw - 10
+      if (cl.x < -cw - 20) cl.x = W + 10
     }
     if (c.kind === 'rain') this.updateRain(dt, res)
     else this.updateSnow(dt)

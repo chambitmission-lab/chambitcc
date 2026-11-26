@@ -163,7 +163,9 @@ export default function RailWeatherFx({ src, theme, forceMode }: Props) {
         const dt = Math.min(0.1, (now - last) / 1000)
         last = now
         acc += dt * 1000
-        if (acc < frameMs || !sized) return
+        /* 문턱은 조금 낮춰 잡는다 — 60Hz 에서 두 프레임(33.3ms)이 30fps 문턱(33.33ms)에 아슬아슬하게 못 미치면
+         * 한 프레임을 더 기다려 30fps·20fps 가 뒤섞였고, 느린 먹구름이 끊겨 보였다(2026-11-26) */
+        if (acc < frameMs - 4 || !sized) return
         const step = Math.min(maxStep, acc / 1000)
         acc = 0
         scene.update(step)

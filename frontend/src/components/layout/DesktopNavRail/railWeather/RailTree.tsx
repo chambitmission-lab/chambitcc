@@ -119,7 +119,8 @@ export default function RailTree({ theme, date, weatherMode, demo, placement = '
         last = now
         acc += dt * 1000
         if (!sized || !scene) return
-        if (acc < (scene.busy ? FRAME_MS : IDLE_FRAME_MS)) return
+        // 문턱 -4ms: 60Hz 두 프레임이 문턱에 아슬아슬하게 못 미쳐 박자가 들쭉날쭉해지지 않게(RailWeatherFx 와 같다)
+        if (acc < (scene.busy ? FRAME_MS : IDLE_FRAME_MS) - 4) return
         // 한 걸음의 상한 — 느린 프레임(100ms)에서도 시간이 느려지지 않게
         const step = Math.min(0.15, acc / 1000)
         acc = 0

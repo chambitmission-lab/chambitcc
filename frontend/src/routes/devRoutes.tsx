@@ -119,6 +119,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['events-hero', () => import('../pages/dev/EventsHeroPreview')],
       // /events 달력 영역(달력+고른 날+다가오는 일정) 개편 시안 — ?v=a 벽달력|b 우표 시트|c 스티커판|d 일력
       ['events-calendar', () => import('../pages/dev/EventsCalendarPreview')],
+      // /news 오른쪽 레일(NewsSidebar) 개편 시안 — ?v=all|now|a 주보 꽂이|b 주일 사이|c 꼭 챙길 일|d 쪽 넘겨보기
+      ['news-rail', () => import('../pages/dev/NewsRailPreview')],
     ]
   : []
 
