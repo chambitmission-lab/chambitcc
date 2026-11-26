@@ -239,12 +239,15 @@
   padding: 0.45rem 0.8rem;
   border: 1px solid var(--pb-line);
   border-radius: 999px;
-  background: var(--pb-card);
   color: var(--ig-secondary-text);
   font-size: calc(0.82rem * var(--text-mul, 1));
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
+}
+/* 배경은 꺼진 칩에만 — .pb-chip 에 두면 나중에 로드돼 .seal-marker 파란 그라데이션을 덮어 흰 바탕+흰 글씨가 된다 */
+.pb-chip:not(.is-on) {
+  background: var(--pb-card);
 }
 .pb-chip.is-on {
   border-color: transparent;
