@@ -1,6 +1,8 @@
 /* /events 벽달력 + 일력 — 우편엽서(wpc)와 같은 종이·잉크. 시안 /#/dev/events-calendar */
 
+/* 모서리 둥글기는 .wpc(24px)에서 — 여기선 안쪽 내용이 둥근 모서리 밖으로 안 삐져나오게만 */
 .wcal { --wcal-soft: color-mix(in srgb, var(--wpc-accent) 10%, transparent); }
+.wpc.wcal { overflow: hidden; }
 .wcal button { font: inherit; color: inherit; }
 .wcal .is-red { color: var(--wpc-sun); }
 .wcal .is-sat { color: var(--wpc-accent); }

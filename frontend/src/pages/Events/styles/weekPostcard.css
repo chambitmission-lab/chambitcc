@@ -11,7 +11,7 @@
   position: relative;
   background: var(--wpc-paper);
   color: var(--wpc-ink);
-  border-radius: 3px;
+  border-radius: 24px; /* 교회 일정 본문 판(lg:rounded-3xl)과 같은 둥글기 */
   /* 가장자리만 아주 옅게 누렇게 — 오래 붙여 둔 종이 */
   box-shadow:
     inset 0 0 0 1px rgba(150, 115, 60, 0.12),
@@ -142,5 +142,6 @@
 }
 
 /* 히어로 사진 면 — 반듯하게 + 사진 위 손글씨 */
-.wpc-film-straight { transform: none; }
+.wpc-film-straight { transform: none; border-radius: 14px; }
+.wpc-film-straight > div { border-radius: 8px; } /* 둥근 엽서 안쪽 사진틀 — 바깥 24px − 여백 12px 남짓 */
 .wpc-photo-label { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 14px rgba(0, 0, 0, 0.3); }
