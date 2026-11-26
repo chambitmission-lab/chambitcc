@@ -41,28 +41,35 @@ const TimeCapsuleCard = () => {
   // sealed는 open_at 오름차순 — 첫 항목이 가장 가까운 개봉일
   const nextSealed = data?.sealed[0] ?? null
 
+  // 상태 줄 = 숫자만 크게(2026-11-27 S3안). 점·색 글씨·알약 없이 숫자 하나가 상태를 말한다.
+  // 항목 단위로만 줄바꿈된다 — 숫자 묶음과 개봉일 이름(open_label, 길 수 있음)을 따로 둔다
   let status: React.ReactNode
   if (unopened > 0) {
     status = (
       <span className="tc-card__status tc-card__status--arrived">
-        <span className="tc-card__pulse" aria-hidden />
-        도착한 캡슐 {unopened}개가 기다려요
+        <span>
+          기다리는 편지<strong className="tc-card__num">{unopened}</strong>통
+        </span>
       </span>
     )
   } else if (nextSealed) {
+    const days = daysUntil(nextSealed.open_at)
     status = (
       <span className="tc-card__status tc-card__status--sealed">
-        다음 개봉까지
-        <strong className="tc-card__dday tabular-nums">
-          D-{daysUntil(nextSealed.open_at)}
-        </strong>
+        {days > 0 ? (
+          <span>
+            열리기까지<strong className="tc-card__num">{days}</strong>일
+          </span>
+        ) : (
+          <span>오늘 열려요</span>
+        )}
         {nextSealed.open_label ? (
           <span className="tc-card__when">· {nextSealed.open_label}</span>
         ) : null}
       </span>
     )
   } else {
-    status = <span className="tc-card__status">지금 이 마음을 봉인해보세요</span>
+    status = <span className="tc-card__status">아직 봉인한 편지가 없어요</span>
   }
 
   return (
@@ -84,7 +91,9 @@ const TimeCapsuleCard = () => {
           <span className="tc-card__title">
             시간을 건너,
             <br />
-            그날 <em>도착하는 편지</em>
+            <span className="tc-card__title-main">
+              그날 <em>도착하는 편지</em>
+            </span>
           </span>
           {status}
         </span>

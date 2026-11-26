@@ -236,15 +236,25 @@
   color: rgba(163, 180, 216, 0.85);
 }
 
+/* 제목 두 단 위계(2026-11-27 A4안) — "시간을 건너,"는 가볍게, 둘째 줄을 크고 굵게 */
 .tc-card__title {
   display: block;
   margin-top: 7px;
-  font-size: 17.5px;
-  font-weight: 800;
-  line-height: 1.35;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.62);
   word-break: keep-all;
+}
+
+.tc-card__title-main {
+  display: inline-block;
+  margin-top: 1px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
 }
 
 /* 제목 둘째 줄의 액센트 — 카드에서 유일하게 브랜드색이 크게 쓰이는 자리 */
@@ -262,61 +272,28 @@
   /* 폭이 모자라도 항목(문구·D-day 칩) 안에서는 쪼개지지 않게 — 이게 없으면
      좁은 칼럼에서 "다음 / 개봉까지", "D- / 111" 처럼 낱글자로 끊긴다 */
   white-space: nowrap;
-  margin-top: 9px;
-  font-size: 11.5px;
-  line-height: 1.6;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.62);
   word-break: keep-all;
 }
 
-.tc-card__status--sealed {
-  color: rgba(157, 184, 255, 0.95);
-  font-weight: 600;
-}
-
-.tc-card__status--arrived {
-  color: #ffd479;
-  font-weight: 700;
-}
-
-/* D-day 칩 — 숫자가 문장에 묻히지 않게 알약으로 떼어 낸다 */
-.tc-card__dday {
-  display: inline-block;
-  padding: 1px 7px;
-  border-radius: 999px;
-  font-size: 11px;
+/* 상태 줄의 숫자 — 장식 없이 크기로만 강조한다(2026-11-27 S3안, 토스 홈 금액 문법) */
+.tc-card__num {
+  margin: 0 2px 0 4px;
+  font-size: 19px;
   font-weight: 800;
-  letter-spacing: 0;
-  color: #c3d8ff;
-  background: rgba(69, 147, 252, 0.2);
-  border: 1px solid rgba(120, 168, 255, 0.28);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #93b8ff;
 }
 
 .tc-card__when {
-  color: rgba(255, 255, 255, 0.55);
-  font-weight: 500;
-}
-
-.tc-card__pulse {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ffd479;
-  box-shadow: 0 0 8px rgba(255, 212, 121, 0.9);
-  animation: tc-pulse 1.6s ease-in-out infinite;
-  flex-shrink: 0;
-}
-
-@keyframes tc-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(0.72);
-    opacity: 0.55;
-  }
+  color: rgba(255, 255, 255, 0.45);
 }
 
 /* ── 우측 진입 버튼 ──
@@ -351,8 +328,7 @@
 @media (prefers-reduced-motion: reduce) {
   .tc-card__milkyway,
   .tc-card__stars::before,
-  .tc-card__stars::after,
-  .tc-card__pulse {
+  .tc-card__stars::after {
     animation: none;
   }
 
@@ -363,115 +339,58 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   라이트 테마 — 아침 하늘을 달리는 편지 배달부.
-   라이트는 대부분 낮에 보므로 인디고 밤하늘 대신 옅은 하늘빛 그라데이션,
-   별은 아침 햇살이 렌즈에 맺힌 보케·광선으로, 은하수는 비스듬한 햇살 한 줄기로,
-   별똥별은 고요한 아침에 맞지 않아 띄우지 않는다. 다크 값은 한 픽셀도 건드리지 않는다.
+   라이트 테마 — 흰 카드 위를 달리는 편지 배달부 (2026-11-27 A안, 시안 /#/dev/capsule-card).
+   예전 회청색 하늘 판(#cfe2f5)은 삽화에 구워진 거의 흰 하늘과 만나 "흰 종이를 파란 판에
+   붙인" 이음매가 보였다 → 카드를 흰색으로 두고 삽화를 multiply 로 얹어 바탕에 녹인다.
+   별·은하수·별똥별은 밤의 문법이라 라이트에선 띄우지 않는다. 다크 값은 건드리지 않는다.
    ═══════════════════════════════════════════════════════════════ */
 
 html:not(.dark) .tc-card {
-  background: linear-gradient(165deg, #cfe2f5 0%, #d9e6f4 55%, #e3ebf4 100%);
-  border: 1px solid rgba(49, 130, 246, 0.16);
-  box-shadow: 0 14px 30px -18px rgba(49, 110, 220, 0.3);
+  background: #fff;
+  border: 1px solid rgba(2, 32, 71, 0.06);
+  box-shadow: 0 10px 28px -18px rgba(2, 32, 71, 0.28);
 }
 
-html:not(.dark) .tc-card__art {
-  background-image: url('/images/capsule/home-banner-light.webp');
-}
-
-/* 은하수 → 햇살 한 줄기: 각도·호흡은 그대로, 빛만 따뜻하게 */
-html:not(.dark) .tc-card__milkyway {
-  background-image:
-    radial-gradient(26% 16% at 63% 46%, rgba(255, 226, 170, 0.28), transparent),
-    radial-gradient(22% 13% at 38% 53%, rgba(255, 245, 220, 0.3), transparent),
-    radial-gradient(18% 11% at 80% 50%, rgba(255, 234, 190, 0.22), transparent),
-    linear-gradient(
-      180deg,
-      transparent 33%,
-      rgba(255, 244, 220, 0.18) 42%,
-      rgba(255, 252, 240, 0.42) 50%,
-      rgba(255, 244, 220, 0.18) 58%,
-      transparent 67%
-    );
-}
-
-/* 잔별 베이스 → 옅은 금빛·하늘빛 보케 */
-html:not(.dark) .tc-card__stars {
-  background-image:
-    radial-gradient(3px 3px at 44% 78%, rgba(255, 214, 140, 0.32), transparent),
-    radial-gradient(2.5px 2.5px at 33% 14%, rgba(255, 255, 255, 0.85), transparent),
-    radial-gradient(3px 3px at 12% 76%, rgba(255, 220, 150, 0.3), transparent),
-    radial-gradient(2.5px 2.5px at 35% 22%, rgba(147, 197, 253, 0.4), transparent),
-    radial-gradient(2px 2px at 24% 55%, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(2.5px 2.5px at 8% 30%, rgba(147, 197, 253, 0.35), transparent);
-}
-
-/* 흰 별의 십자 광선 → 따뜻한 햇살 광선(렌즈 플레어) */
-html:not(.dark) .tc-card__stars::before {
-  background-image:
-    radial-gradient(1px 14px at 31% 24%, rgba(255, 196, 110, 0.55), transparent),
-    radial-gradient(14px 1px at 31% 24%, rgba(255, 196, 110, 0.5), transparent),
-    radial-gradient(7px 7px at 31% 24%, rgba(255, 224, 160, 0.45), transparent),
-    radial-gradient(2px 2px at 31% 24%, rgba(255, 255, 255, 1), transparent),
-    radial-gradient(0.9px 7px at 14% 46%, rgba(255, 210, 140, 0.5), transparent),
-    radial-gradient(7px 0.9px at 14% 46%, rgba(255, 210, 140, 0.45), transparent),
-    radial-gradient(2px 2px at 14% 46%, rgba(255, 255, 255, 0.95), transparent),
-    radial-gradient(2.5px 2.5px at 42% 12%, rgba(255, 255, 255, 0.9), transparent);
-}
-
-/* 금빛 별 겹 → 하늘빛 보케 (푸른 아침 공기) */
-html:not(.dark) .tc-card__stars::after {
-  background-image:
-    radial-gradient(1px 9px at 22% 16%, rgba(255, 200, 120, 0.45), transparent),
-    radial-gradient(9px 1px at 22% 16%, rgba(255, 200, 120, 0.4), transparent),
-    radial-gradient(6px 6px at 22% 16%, rgba(255, 228, 170, 0.4), transparent),
-    radial-gradient(1.8px 1.8px at 22% 16%, rgba(255, 255, 255, 1), transparent),
-    radial-gradient(3px 3px at 9% 62%, rgba(147, 197, 253, 0.4), transparent),
-    radial-gradient(2.5px 2.5px at 38% 60%, rgba(255, 224, 160, 0.4), transparent),
-    radial-gradient(2.5px 2.5px at 46% 40%, rgba(255, 255, 255, 0.85), transparent);
-}
-
-/* 별똥별은 밤의 사건 — 아침엔 띄우지 않는다 */
+html:not(.dark) .tc-card__milkyway,
+html:not(.dark) .tc-card__stars,
 html:not(.dark) .tc-card__meteor {
   display: none;
 }
 
-/* 타이포 — 흰 글씨 계열이 하나도 남지 않게 */
+html:not(.dark) .tc-card__art {
+  background-image: url('/images/capsule/home-banner-light.webp');
+  mix-blend-mode: multiply;
+  /* 구워진 하늘(#edf4f4 부근)을 흰색까지 끌어올려야 multiply 뒤에 회색 판이 안 남는다 */
+  filter: brightness(1.075) saturate(1.08);
+}
+
 html:not(.dark) .tc-card__label {
-  color: #6b86ad;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: #8b95a1;
 }
 
 html:not(.dark) .tc-card__title {
-  color: #1a2a4a;
+  color: #6b7684;
+}
+
+html:not(.dark) .tc-card__title-main {
+  color: #191f28;
 }
 
 html:not(.dark) .tc-card__title em {
-  color: #2563eb;
+  color: #3182f6;
 }
 
 html:not(.dark) .tc-card__status {
-  color: #5b6b85;
+  color: #6b7684;
 }
 
-html:not(.dark) .tc-card__status--sealed {
-  color: #3a5a86;
-}
-
-html:not(.dark) .tc-card__status--arrived {
-  color: #b45309;
-}
-
-html:not(.dark) .tc-card__dday {
-  color: #1d5fd0;
-  background: rgba(49, 130, 246, 0.13);
-  border-color: rgba(49, 130, 246, 0.22);
+html:not(.dark) .tc-card__num {
+  color: #3182f6;
 }
 
 html:not(.dark) .tc-card__when {
-  color: #5b6b85;
-}
-
-html:not(.dark) .tc-card__pulse {
-  background: #f59e0b;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+  color: #8b95a1;
 }

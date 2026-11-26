@@ -1,0 +1,431 @@
+/* /#/dev/capsule-card — 홈 타임캡슐 카드 라이트 색 시안.
+   공통 처방: 삽화를 mix-blend-mode: multiply 로 얹는다.
+   home-banner-light.webp 는 오른쪽·아래에 거의 흰 하늘(#edf4f4 부근)이 구워져 있어서
+   지금의 회청색 카드(#cfe2f5)와 만나면 "흰 종이를 파란 판 위에 붙인" 이음매가 보인다 → 어색함의 원인.
+   multiply 면 흰 부분이 카드 바탕색을 그대로 받아 이음매가 사라지고, 양 선은 그대로 남는다.
+   다크는 건드리지 않는다(시안 범위 = 라이트). */
+
+html:not(.dark) .tcv .tc-card__art {
+  mix-blend-mode: multiply;
+  /* 구워진 하늘(#edf4f4 부근)을 흰색까지 끌어올려야 multiply 뒤에 회색 판이 안 남는다 */
+  filter: brightness(1.075) saturate(1.08);
+}
+
+/* 별·은하수 레이어는 시안마다 끄거나 바꾼다 */
+html:not(.dark) .tcv--clean .tc-card__milkyway,
+html:not(.dark) .tcv--clean .tc-card__stars {
+  display: none;
+}
+
+/* ── A. 흰 카드 — 토스 기본 문법. 그림이 주인공, 글자는 또렷하게 ── */
+html:not(.dark) .tcv-a.tc-card {
+  background: #fff;
+  border: 1px solid rgba(2, 32, 71, 0.06);
+  box-shadow: 0 10px 28px -18px rgba(2, 32, 71, 0.28);
+}
+html:not(.dark) .tcv-a .tc-card__label {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #1b64da;
+  background: #e8f3ff;
+  letter-spacing: 0.02em;
+}
+html:not(.dark) .tcv-a .tc-card__title {
+  color: #191f28;
+}
+html:not(.dark) .tcv-a .tc-card__title em {
+  color: #3182f6;
+}
+html:not(.dark) .tcv-a .tc-card__status {
+  color: #6b7684;
+}
+html:not(.dark) .tcv-a .tc-card__status--arrived {
+  color: #e8590c;
+}
+html:not(.dark) .tcv-a .tc-card__pulse {
+  background: #ff8a3d;
+  box-shadow: 0 0 0 3px rgba(255, 138, 61, 0.18);
+}
+
+/* ── B. 새벽 하늘 — 위는 맑은 하늘빛, 아래로 갈수록 동트는 살구빛.
+   편지(아침 하늘 감성)·캡슐 도착 화면과 한 이야기. 양 발밑이 따뜻해진다 ── */
+html:not(.dark) .tcv-b.tc-card {
+  background:
+    radial-gradient(60% 90% at 78% 110%, rgba(255, 210, 160, 0.55), transparent 70%),
+    linear-gradient(180deg, #e6f0fe 0%, #f3f3fb 52%, #fdf0e3 100%);
+  border: 1px solid rgba(49, 130, 246, 0.12);
+  box-shadow: 0 12px 28px -18px rgba(120, 110, 200, 0.35);
+}
+html:not(.dark) .tcv-b .tc-card__milkyway {
+  display: none;
+}
+html:not(.dark) .tcv-b .tc-card__label {
+  color: #7d8fb3;
+}
+html:not(.dark) .tcv-b .tc-card__title {
+  color: #1b2742;
+}
+html:not(.dark) .tcv-b .tc-card__title em {
+  color: #2f6fe8;
+}
+html:not(.dark) .tcv-b .tc-card__status {
+  color: #5f6b82;
+}
+html:not(.dark) .tcv-b .tc-card__status--arrived {
+  color: #c2410c;
+}
+
+/* ── C. 편지지 아이보리 — 봉투·밀랍 도장 색에서 뽑은 따뜻한 종이색.
+   파랑은 제목 한 단어에만, 진입 버튼은 먹색 원 ── */
+html:not(.dark) .tcv-c.tc-card {
+  background: linear-gradient(165deg, #fdfaf3 0%, #f8f2e6 100%);
+  border: 1px solid rgba(150, 120, 70, 0.16);
+  box-shadow: 0 12px 28px -18px rgba(120, 90, 40, 0.3);
+}
+/* 삽화의 푸른 안개·땅 타원이 아이보리 위에서 차가운 판으로 떠서 살짝 데운다 */
+html:not(.dark) .tcv-c .tc-card__art {
+  filter: brightness(1.075) sepia(0.22) saturate(1.05);
+}
+html:not(.dark) .tcv-c .tc-card__label {
+  color: #a8875a;
+}
+html:not(.dark) .tcv-c .tc-card__title {
+  color: #2e2a24;
+}
+html:not(.dark) .tcv-c .tc-card__title em {
+  color: #2f6fe8;
+}
+html:not(.dark) .tcv-c .tc-card__status {
+  color: #7a6f5f;
+}
+html:not(.dark) .tcv-c .tc-card__status--arrived {
+  color: #b7791f;
+}
+html:not(.dark) .tcv-c .tc-card__pulse {
+  background: #d9a441;
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.2);
+}
+html:not(.dark) .tcv-c .tc-card__dday {
+  color: #8a5a12;
+  background: rgba(217, 164, 65, 0.14);
+  border-color: rgba(217, 164, 65, 0.3);
+}
+html:not(.dark) .tcv-c .tc-card__status--sealed {
+  color: #6b5a3f;
+}
+html:not(.dark) .tcv-c .tc-card__go {
+  background: #2e2a24;
+  box-shadow: 0 6px 14px -6px rgba(46, 42, 36, 0.6);
+}
+
+/* ── D. 지금 색 다듬기 — 하늘빛 정체성은 유지, 탁한 회청을 맑은 하늘로.
+   위 → 아래 옅어져 삽화의 흰 하늘과 자연스럽게 이어진다. 보케는 그대로 ── */
+html:not(.dark) .tcv-d.tc-card {
+  background: linear-gradient(180deg, #dcebff 0%, #ebf3ff 55%, #f6f9ff 100%);
+  border: 1px solid rgba(49, 130, 246, 0.14);
+  box-shadow: 0 12px 28px -18px rgba(49, 130, 246, 0.35);
+}
+html:not(.dark) .tcv-d .tc-card__label {
+  color: #5a7bb0;
+}
+html:not(.dark) .tcv-d .tc-card__title {
+  color: #15233f;
+}
+html:not(.dark) .tcv-d .tc-card__title em {
+  color: #3182f6;
+}
+html:not(.dark) .tcv-d .tc-card__status {
+  color: #56688a;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   A 흰 카드 위 글자 처리 시안 (A1~A5) — 바탕·삽화는 A 그대로
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 공통: 라벨은 알약 대신 조용한 회색 소자 (A3 제외) */
+html:not(.dark) .tcv-a1 .tc-card__label,
+html:not(.dark) .tcv-a2 .tc-card__label,
+html:not(.dark) .tcv-a4 .tc-card__label,
+html:not(.dark) .tcv-a5 .tc-card__label {
+  display: block;
+  padding: 0;
+  background: none;
+  color: #8b95a1;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* ── A1. 먹색 + 형광펜 — 제목은 한 색, '도착하는 편지'에 옅은 하늘빛 밑줄 ── */
+html:not(.dark) .tcv-a1 .tc-card__title {
+  color: #191f28;
+  font-size: 18px;
+}
+html:not(.dark) .tcv-a1 .tc-card__title em {
+  color: #191f28;
+  background: linear-gradient(transparent 60%, #cfe4ff 60%, #cfe4ff 92%, transparent 92%);
+  padding: 0 1px;
+}
+html:not(.dark) .tcv-a1 .tc-card__status {
+  color: #6b7684;
+  font-size: 12.5px;
+}
+html:not(.dark) .tcv-a1 .tc-card__status--arrived {
+  color: #3182f6;
+}
+html:not(.dark) .tcv-a1 .tc-card__pulse {
+  background: #3182f6;
+  box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.16);
+}
+
+/* ── A2. 편지 명조 — 제목만 Noto Serif KR, 나머지는 산스. 편지 한 통의 말투 ── */
+html:not(.dark) .tcv-a2 .tc-card__title {
+  font-family: 'Noto Serif KR', serif;
+  font-weight: 700;
+  font-size: 18.5px;
+  line-height: 1.42;
+  letter-spacing: -0.03em;
+  color: #22252b;
+}
+html:not(.dark) .tcv-a2 .tc-card__title em {
+  color: #1f5fd1;
+}
+html:not(.dark) .tcv-a2 .tc-card__status {
+  color: #6b7684;
+  font-size: 12.5px;
+}
+html:not(.dark) .tcv-a2 .tc-card__status--arrived {
+  color: #e8590c;
+}
+
+/* ── A3. 상태 알약 — 제목은 그대로, 상태 줄을 색 알약으로 떼어 한눈에 ── */
+html:not(.dark) .tcv-a3 .tc-card__label {
+  color: #8b95a1;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+html:not(.dark) .tcv-a3 .tc-card__title {
+  color: #191f28;
+}
+html:not(.dark) .tcv-a3 .tc-card__status {
+  margin-top: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4e5968;
+  background: #f2f4f6;
+}
+html:not(.dark) .tcv-a3 .tc-card__status--arrived {
+  color: #d9480f;
+  background: #fff1e6;
+}
+html:not(.dark) .tcv-a3 .tc-card__status--sealed {
+  color: #1b64da;
+  background: #e8f3ff;
+}
+html:not(.dark) .tcv-a3 .tc-card__dday {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12.5px;
+  color: #1b64da;
+}
+html:not(.dark) .tcv-a3 .tc-card__when {
+  color: #4e8be8;
+}
+
+/* ── A4. 두 단 위계 — 첫 줄은 가볍게 회색, 둘째 줄을 크고 굵게 ── */
+html:not(.dark) .tcv-a4 .tc-card__title {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #6b7684;
+}
+html:not(.dark) .tcv-a4 .tc-card__title .tcv-line2 {
+  display: inline-block;
+  margin-top: 1px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #191f28;
+}
+html:not(.dark) .tcv-a4 .tc-card__title em {
+  color: #3182f6;
+}
+html:not(.dark) .tcv-a4 .tc-card__status {
+  color: #6b7684;
+  font-size: 12.5px;
+}
+html:not(.dark) .tcv-a4 .tc-card__status--arrived {
+  color: #e8590c;
+}
+
+/* ── A5. 상태가 제목 — 내 캡슐 이야기를 크게, 카드 정체성은 위 라벨 한 줄로 ── */
+html:not(.dark) .tcv-a5 .tc-card__title {
+  font-size: 19px;
+  color: #191f28;
+}
+html:not(.dark) .tcv-a5 .tc-card__title em {
+  color: #3182f6;
+}
+html:not(.dark) .tcv-a5 .tcv-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #6b7684;
+}
+
+/* A3 알약은 글자 폭 178px 안에 한 줄로 — D-day 줄이 접히지 않게 간격·크기를 조인다 */
+html:not(.dark) .tcv-a3 .tc-card__status {
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  flex-wrap: nowrap;
+}
+html:not(.dark) .tcv-a3 .tc-card__dday {
+  font-size: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   A4 위 상태 줄 트렌디 시안 (S1~S5) — 한 줄, 글자 폭 178px 안
+   ═══════════════════════════════════════════════════════════════ */
+html:not(.dark) .tcs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: #333d4b;
+}
+html:not(.dark) .tcs-sub {
+  font-weight: 500;
+  color: #8b95a1;
+}
+
+/* S1 숫자 배지 */
+html:not(.dark) .tcv-s1 .tcs {
+  gap: 4px;
+}
+html:not(.dark) .tcs-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-right: 2px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: #3182f6;
+  font-variant-numeric: tabular-nums;
+}
+html:not(.dark) .tcs-badge--ghost {
+  color: #3182f6;
+  background: #e8f3ff;
+}
+
+/* S2 아이콘 타일 / S5 흰 칩 공통 타일 */
+html:not(.dark) .tcs-tile {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  color: #3182f6;
+  background: #e8f3ff;
+  flex-shrink: 0;
+}
+html:not(.dark) .tcs-tile svg {
+  width: 14px;
+  height: 14px;
+}
+html:not(.dark) .tcs-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f04452;
+  border: 2px solid #fff;
+}
+html:not(.dark) .tcs b {
+  font-weight: 700;
+  color: #191f28;
+}
+
+/* S3 숫자 크게 */
+html:not(.dark) .tcv-s3 .tcs {
+  gap: 0;
+  align-items: baseline;
+  font-weight: 500;
+  color: #6b7684;
+}
+html:not(.dark) .tcv-s3 .tcs .tcs-num {
+  font-size: 19px;
+  font-weight: 800;
+  color: #3182f6;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin: 0 2px 0 4px;
+}
+
+/* S4 반짝 그라데이션 — 도착일 때만, 3.6초에 한 번 빛이 스친다 */
+html:not(.dark) .tcv-s4 .tcs {
+  font-weight: 500;
+  color: #6b7684;
+}
+html:not(.dark) .tcs-blue {
+  color: #3182f6 !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) .tcs-shine {
+  font-weight: 700;
+  background: linear-gradient(100deg, #1b64da 0%, #3182f6 35%, #b9dcff 50%, #3182f6 65%, #6a5cff 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: tcs-shine 3.6s ease-in-out infinite;
+}
+@keyframes tcs-shine {
+  0%, 35% { background-position: 100% 0; }
+  75%, 100% { background-position: 0% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not(.dark) .tcs-shine { animation: none; }
+}
+
+/* S5 흰 칩 + 그림자 */
+html:not(.dark) .tcv-s5 .tcs {
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(2, 32, 71, 0.07);
+  box-shadow: 0 4px 12px -6px rgba(2, 32, 71, 0.22);
+  font-size: 12.5px;
+}
+html:not(.dark) .tcv-s5 .tcs-tile {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+html:not(.dark) .tcv-s5 .tcs-tile svg {
+  width: 12px;
+  height: 12px;
+}
