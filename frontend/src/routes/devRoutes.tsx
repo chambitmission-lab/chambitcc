@@ -121,6 +121,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['events-calendar', () => import('../pages/dev/EventsCalendarPreview')],
       // /news 오른쪽 레일(NewsSidebar) 개편 시안 — ?v=all|now|a 주보 꽂이|b 주일 사이|c 꼭 챙길 일|d 쪽 넘겨보기
       ['news-rail', () => import('../pages/dev/NewsRailPreview')],
+      // /worship 처음 온 성도 중심 전면 개편 시안 — ?v=a 초대+내 주일 아침|b 두 갈래 문|c 대림절 초대장
+      ['worship-redesign', () => import('../pages/dev/WorshipRedesignPreview')],
     ]
   : []
 

@@ -1,484 +1,201 @@
-/* ── 페이지 셸 ─────────────────────────── */
+/* ── 페이지 셸 + 계절 옷 ─────────────────────
+ * 2026-11 "처음 온 성도" 개편. 페이지 전체가 계절 색(--sea-*)을 입는다 — 봄 분홍 · 여름 초록 · 가을 단풍 · 겨울 눈빛.
+ * 계절 색은 theme.css 토큰에 없어 여기서 정의하고, 밤(다크)은 [data-theme] 으로 따로 둔다. */
 .worship-page {
   min-height: calc(100vh / var(--az, 1)); /* PC 글씨 크기 zoom 보정 (common.css [data-app-scale]) */
   background: var(--app-canvas);
 }
+.worship-season--spring { --sea: #d4587f; --sea-ink: #a8365c; --sea-soft: #fdeef3; --sea-wash: #fff6f8; --sea-path: #f1b8c9; }
+.worship-season--summer { --sea: #2e9a5c; --sea-ink: #1f7744; --sea-soft: #e7f6ec; --sea-wash: #f5fbf6; --sea-path: #a9dbb9; }
+.worship-season--autumn { --sea: #c9581f; --sea-ink: #9e4114; --sea-soft: #fbeee2; --sea-wash: #fffaf4; --sea-path: #ecc29f; }
+.worship-season--winter { --sea: #3b7cc2; --sea-ink: #275f9c; --sea-soft: #eaf2fb; --sea-wash: #f7faff; --sea-path: #b9d2ee; }
+[data-theme="dark"] .worship-season--spring { --sea: #f08fae; --sea-ink: #f6b3c8; --sea-soft: rgba(240,143,174,.12); --sea-wash: #221b20; --sea-path: rgba(240,143,174,.45); }
+[data-theme="dark"] .worship-season--summer { --sea: #63c98c; --sea-ink: #8fdcab; --sea-soft: rgba(99,201,140,.12); --sea-wash: #18211b; --sea-path: rgba(99,201,140,.45); }
+[data-theme="dark"] .worship-season--autumn { --sea: #f0935a; --sea-ink: #f6b48a; --sea-soft: rgba(240,147,90,.12); --sea-wash: #231d18; --sea-path: rgba(240,147,90,.45); }
+[data-theme="dark"] .worship-season--winter { --sea: #7fb2ec; --sea-ink: #a9cbf3; --sea-soft: rgba(127,178,236,.12); --sea-wash: #181d25; --sea-path: rgba(127,178,236,.45); }
 
-/* 모바일은 폰 프레임 폭, lg+ 는 레일 없이 한 장의 넓은 무대 —
-   예전 우측 레일(라이브·설교·오시는 길)은 본문 아래 '더 알아보기' 한 줄로 내려왔다 */
+/* 모바일은 폰 프레임 폭, lg+ 는 다른 PC 화면(/news·/sermon…)과 같은 셸 */
 .worship-wrap {
   max-width: 28rem;
   margin: 0 auto;
-  padding: 16px 16px 40px;
+  padding: 16px 16px 48px;
 }
 @media (min-width: 1024px) {
-  /* 다른 PC 화면(/news·/history·/sermon…)과 같은 셸 — lg:max-w-[1240px] lg:px-5 lg:pt-3.
-     예전 66rem·24px 는 본문 왼쪽 시작점이 다른 화면보다 안쪽으로 밀려 화면을 옮길 때 어긋나 보였다 */
-  .worship-wrap {
-    max-width: 1240px;
-    padding: 12px 20px 56px;
-  }
+  .worship-wrap { max-width: 1240px; padding: 12px 20px 64px; }
 }
 
-/* ── Hero ─────────────────────────────────
- * 배경 삽화(종 줄에 딸려 올라간 양)는 콘텐츠 '아래 띠'에 앉는다 — padding-bottom 이 그림 자리다.
- * 폭 비례(cover)가 아니라 --worship-art-h 로 '높이 고정': 어느 폭에서든 양 크기가 같다.
- * 두 번째 레이어(--worship-hero-ground)는 삽화의 배경 기둥을 카드 전체 폭으로 늘린 것 —
- * 이게 없으면 삽화가 카드 위에 '섬'처럼 뜬다. 둘 다 같은 높이·같은 정렬로 깐다.
- * 시간 타일·다음 예배 줄은 그림 띠 위쪽에 얹힌다. */
+/* 공통 제목 */
+.worship-h2 { margin: 0 0 12px; font-size: 20px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.01em; }
+.worship-sub { font-size: 16.5px; font-weight: 600; color: var(--text-body); word-break: keep-all; }
+@media (min-width: 1024px) { .worship-h2 { font-size: 22px; } }
+
+/* ── 히어로: 계절 교회 사진 ───────────────── */
 .worship-hero {
-  --worship-art-h: 176px;
-  position: relative;
-  padding: 22px 18px 138px;
-  border-radius: 24px;
-  border: 1px solid var(--card-border);
+  border-radius: 28px;
+  overflow: hidden;
   background: var(--surface-container);
-  background-image: var(--worship-hero-art), var(--worship-hero-ground);
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: auto var(--worship-art-h), 100% var(--worship-art-h);
+  border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
-  overflow: hidden;
-  isolation: isolate; /* ::before 하늘(z-index:-1)이 카드 밖으로 빠지지 않게 */
 }
-@media (min-width: 1024px) {
-  .worship-hero {
-    --worship-art-h: 230px;
-    padding: 36px 36px 172px;
-    border-radius: 28px;
-    /* 다른 PC 화면의 큰 판(lg:shadow-2xl)과 같은 깊이 — 이 화면은 큰 판 없이 히어로가 그 자리다 */
-    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  }
-  /* 히어로 아래 카드(평일 예배·더 알아보기·오늘 카드)도 캔버스에서 떠 보이게 — 홈 .home-lift 와 같은 값.
-     기본 --card-shadow 는 거의 안 보여 카드가 배경에 붙어 보인다. 다크는 기본값이 이미 깊다 */
-  :root:not(.dark) .worship-page {
-    --card-shadow: 0 1px 3px rgba(24, 26, 40, 0.05), 0 18px 36px -14px rgba(24, 26, 40, 0.2);
-  }
-}
+.worship-photo { position: relative; height: 300px; overflow: hidden; background: #6fa6e0; }
+[data-theme="dark"] .worship-photo { background: #0d1a3a; }
+.worship-photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 88% 80%; }
+@media (min-width: 641px) { .worship-photo > img { object-position: 92% 70%; } }
+@media (min-width: 1024px) { .worship-photo { height: 360px; } }
+.worship-photo > canvas { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+/* 잎·눈이 내려앉는 사진 속 땅 — 오른쪽 교회 앞 화단 쪽 */
+.worship-photo-ground { position: absolute; left: 45%; right: 0; bottom: 0; height: 14px; }
 
-/* 모바일 카드 띄우기(2026-11-12 시범) — PC 그림자를 그대로 옮기지 않는다.
-   히어로는 아래가 28px 여백 + 섹션 제목이라 깊은 세 겹(음수 spread 로 좌우 16px 여백 안에서 끝남),
-   아래 쌓인 카드(평일 예배·더 알아보기)는 간격이 10px 라 짧고 또렷한 두 겹,
-   히어로 속 시간 타일은 하늘 위에 살짝 뜨는 정도. 다크는 기본 --card-shadow 가 이미 깊다.
-   쌓인 카드의 --card-shadow 는 theme.css 모바일 공통 규칙이 맡는다 */
-@media (max-width: 1023.98px) {
-  :root:not(.dark) .worship-hero {
-    box-shadow:
-      0 2px 4px rgba(24, 26, 40, 0.05),
-      0 14px 24px -10px rgba(24, 26, 40, 0.18),
-      0 30px 44px -24px rgba(24, 26, 40, 0.3);
-  }
-  :root:not(.dark) .worship-tile:not(.is-next) {
-    box-shadow: 0 1px 2px rgba(22, 40, 90, 0.08), 0 7px 12px -4px rgba(22, 40, 90, 0.16);
-  }
-}
-
-/* 시간대 하늘 오버레이 — 다음(진행 중) 예배의 '시간의 빛'을 히어로가 입는다.
- * 색 값은 theme.css의 --worship-sky-* 토큰이 라이트/다크를 각각 담당 */
-.worship-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: var(--worship-sky, none);
-}
-.worship-hero--dawn { --worship-sky: var(--worship-sky-dawn); }
-.worship-hero--day { --worship-sky: var(--worship-sky-day); }
-.worship-hero--dusk { --worship-sky: var(--worship-sky-dusk); }
-.worship-hero--night { --worship-sky: var(--worship-sky-night); }
-
-.worship-hero-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 32px;
-}
-.worship-hero-copy {
-  min-width: 0;
-}
-
-.worship-hero-date {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 8px;
-}
-.worship-hero-sunday {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--brand);
-}
-/* "주일까지 N일" — lg+ 에선 오른쪽 '오늘' 카드가 같은 정보를 맡아 숨긴다 */
-.worship-hero-dday {
-  font-size: 11.5px;
-  font-weight: 800;
-  color: var(--on-brand);
-  background: var(--brand);
-  padding: 3px 8px;
-  border-radius: 999px;
-}
-@media (min-width: 1024px) {
-  .worship-hero-dday { display: none; }
-}
-
-/* 교회력 절기 배지 */
-.worship-season {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-.worship-season--amber {
-  color: var(--amber);
-  background: var(--amber-soft);
-  border: 1px solid var(--amber-soft-strong);
-}
-/* 전례 보라 — 토큰이 없는 시맨틱 색이라 양 테마에서 읽히는 중간 톤 단일 값 사용 */
-.worship-season--violet {
-  color: #977af5;
-  background: rgba(139, 92, 246, 0.12);
-  border: 1px solid rgba(139, 92, 246, 0.30);
-}
-
-.worship-hero-title {
-  margin: 8px 0 0;
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1.3;
-  letter-spacing: -0.03em;
-  color: var(--text-strong);
-}
-@media (min-width: 1024px) {
-  .worship-hero-title { font-size: 38px; line-height: 1.25; }
-}
-
-/* "이번 주일" 밑 펜 줄 — 처음 한 번만 그려진다 */
-.worship-hero-underline {
-  position: relative;
-  display: inline-block;
-  z-index: 0;
-}
-.worship-hero-underline svg {
-  position: absolute;
-  left: -2%;
-  bottom: -5px;
-  width: 104%;
-  height: 14px;
-  z-index: -1;
-  overflow: visible;
-}
-.worship-hero-underline path {
-  fill: none;
-  stroke: var(--brand);
-  stroke-opacity: 0.35;
-  stroke-width: 7;
-  stroke-linecap: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: worship-pen 0.9s 0.25s cubic-bezier(0.6, 0, 0.2, 1) forwards;
-}
-@keyframes worship-pen {
-  to { stroke-dashoffset: 0; }
-}
-
-.worship-hero-lead {
-  margin: 6px 0 0;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--text-body);
-}
-@media (min-width: 1024px) {
-  .worship-hero-lead { font-size: 16px; margin-top: 10px; }
-}
-
-/* ── 오늘 카드 (lg+) ─────────────────────── */
-.worship-today {
-  display: none;
-}
-@media (min-width: 1024px) {
-  .worship-today {
-    display: block;
-    flex: none;
-    min-width: 240px;
-    padding: 16px 18px 14px;
-    border-radius: 20px;
-    background: color-mix(in srgb, var(--surface-container) 86%, transparent);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--card-border);
-    box-shadow: var(--card-shadow);
-  }
-}
-.worship-today-label {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-.worship-today-big {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin: 2px 0 0;
-}
-.worship-today-big b {
-  font-size: 46px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
-  color: var(--text-strong);
-  font-variant-numeric: tabular-nums;
-}
-.worship-today-big span {
-  font-size: 14.5px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--text-body);
-}
-.worship-today-path {
-  display: flex;
-  align-items: center;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--card-border);
-}
-.worship-today-stepwrap {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-.worship-today-stepwrap:first-child {
-  flex: none;
-}
-.worship-today-line {
-  flex: 1;
-  min-width: 8px;
-  height: 2px;
-  margin: 0 3px 17px;
-  background: repeating-linear-gradient(90deg, var(--text-muted) 0 3px, transparent 3px 6px);
-  opacity: 0.5;
-}
-.worship-today-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex: none;
-}
-.worship-today-step i {
-  font-style: normal;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-.worship-today-step em {
-  font-style: normal;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-body);
-  background: var(--surface-inset);
-  border: 1px solid var(--card-border);
-  font-variant-numeric: tabular-nums;
-}
-.worship-today-step.is-now i { color: var(--brand); }
-.worship-today-step.is-now em {
-  color: var(--brand);
-  background: var(--brand-soft);
-  border-color: transparent;
-}
-.worship-today-step.is-sunday i { color: var(--brand); }
-.worship-today-step.is-sunday em {
-  color: var(--on-brand);
-  background: var(--brand);
-  border-color: transparent;
-}
-.worship-today-foot {
-  margin: 10px 0 0;
-  font-size: 13px;
-  color: var(--text-body);
-}
-.worship-today-foot b { color: var(--brand); }
-.worship-today-foot--sunday {
-  padding-top: 12px;
-  border-top: 1px solid var(--card-border);
-}
-
-/* ── 주일 시간 타일 ─────────────────────── */
-.worship-tiles {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 20px;
-}
-@media (min-width: 1024px) {
-  .worship-tiles {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-    margin-top: 28px;
-  }
-}
-.worship-tile {
-  position: relative;
-  padding: 15px 15px 13px;
-  border-radius: 18px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-@media (min-width: 1024px) {
-  .worship-tile { padding: 20px 20px 16px; }
-}
-.worship-tile p { margin: 0; }
-.worship-tile-order {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.worship-tile-time {
-  margin-top: 4px !important;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  color: var(--text-strong);
-  font-variant-numeric: tabular-nums;
-}
-.worship-tile-time em {
-  font-style: normal;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0;
-  color: var(--text-muted);
-  margin-right: 4px;
-}
-.worship-tile-time--raw {
-  font-size: 17px;
-  line-height: 1.4;
-}
-@media (min-width: 1024px) {
-  .worship-tile-time { font-size: 36px; }
-  .worship-tile-time em { font-size: 15px; }
-}
-.worship-tile-name {
-  margin-top: 2px !important;
-  font-size: 13.5px;
-  color: var(--text-body);
-}
-@media (min-width: 1024px) {
-  .worship-tile-name { font-size: 15px; }
-}
-.worship-tile-status {
+/* 글씨 받침 — 다크(밤 사진)만 남색 막. 라이트는 막 없이(밝은 하늘이 "어두워 보인다" 피드백) 글씨 그림자로 */
+.worship-photo-shade { position: absolute; inset: 0; display: none; }
+[data-theme="dark"] .worship-photo-shade {
   display: block;
-  margin-top: 8px;
+  background: linear-gradient(90deg, rgba(10,40,90,.42) 0%, rgba(10,40,90,.12) 45%, transparent 70%);
 }
-.worship-tile .worship-edit-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 30px;
-  height: 30px;
+@media (max-width: 640px) {
+  [data-theme="dark"] .worship-photo-shade { background: linear-gradient(180deg, rgba(10,40,90,.45) 0%, rgba(10,40,90,.1) 60%, transparent); }
+}
+/* 옅은 하늘(봄·겨울 낮, 장면 ink=navy)도 흰 글씨 — 남색 글씨는 "딱딱하다".
+   글씨 자리에만 번지는 파란 구름 + 하늘색 그림자로 하늘이 한 톤 진해진 것처럼 */
+.worship-photo-halo {
+  position: absolute; left: -6%; top: -12%; width: 62%; height: 115%; pointer-events: none; display: none;
+  background: radial-gradient(ellipse at 38% 48%, rgba(48,120,205,.42) 0%, rgba(70,140,215,.22) 45%, transparent 72%);
+  filter: blur(6px);
+}
+@media (max-width: 640px) { .worship-photo-halo { width: 110%; height: 80%; } }
+
+.worship-photo-copy {
+  position: relative; z-index: 2; padding: 28px 22px; color: #fff;
+  text-shadow: 0 1px 2px rgba(10,40,90,.25), 0 2px 14px rgba(10,40,90,.22);
+}
+@media (min-width: 1024px) { .worship-photo-copy { padding: 44px; } }
+[data-theme="light"] .worship-photo .worship-kicker-pill { background: rgba(255,255,255,.24); }
+@media (min-width: 641px) {
+  [data-theme="light"] .worship-photo[data-ink="navy"] .worship-photo-halo { display: block; }
+  [data-theme="light"] .worship-photo[data-ink="navy"] .worship-photo-copy { text-shadow: 0 1px 2px rgba(30,90,170,.35), 0 2px 18px rgba(40,110,200,.55), 0 0 40px rgba(60,130,215,.35); }
+  [data-theme="light"] .worship-photo[data-ink="navy"] .worship-kicker-pill { background: rgba(40,110,200,.28); }
+}
+@media (max-width: 640px) {
+  [data-theme="light"] .worship-photo[data-ink-m="navy"] .worship-photo-halo { display: block; }
+  [data-theme="light"] .worship-photo[data-ink-m="navy"] .worship-photo-copy { text-shadow: 0 1px 2px rgba(30,90,170,.35), 0 2px 18px rgba(40,110,200,.55), 0 0 40px rgba(60,130,215,.35); }
+  [data-theme="light"] .worship-photo[data-ink-m="navy"] .worship-kicker-pill { background: rgba(40,110,200,.28); }
 }
 
-/* 다음 예배 — 솔리드 브랜드 (오늘이든 며칠 뒤든 '다음'이면 칠한다) */
-.worship-tile.is-next {
-  background: var(--brand);
-  border-color: transparent;
-  box-shadow: 0 10px 24px -10px var(--brand-glow);
+.worship-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.worship-kicker-pill {
+  display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: 14.5px; font-weight: 700;
+  background: rgba(255,255,255,.2); backdrop-filter: blur(6px); text-shadow: none;
 }
-.worship-tile.is-next .worship-tile-order,
-.worship-tile.is-next .worship-tile-name,
-.worship-tile.is-next .worship-tile-time em {
-  color: rgba(255, 255, 255, 0.82);
+.worship-kicker-live {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+  font-size: 14.5px; font-weight: 800; background: #fff; color: #ef4444; text-shadow: none;
 }
-.worship-tile.is-next .worship-tile-time {
-  color: var(--on-brand);
-}
-/* 오늘 이미 끝난 회차 — 흐리게만 (정보는 남긴다) */
-.worship-tile.is-past {
-  opacity: 0.45;
-}
-
-/* ── 다음 예배 줄 (타일 아래, 그림 띠 위) ─── */
-.worship-nextbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  width: 100%;
-  margin-top: 14px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  border: 1px solid var(--card-border);
-  background: color-mix(in srgb, var(--surface-container) 82%, transparent);
-  backdrop-filter: blur(6px);
-  font-family: inherit;
-  font-size: 13px;
-  text-align: left;
-  color: var(--text-body);
-  white-space: nowrap;
-  cursor: pointer;
-}
+.worship-invite { margin-top: 14px; font-size: 30px; line-height: 1.28; font-weight: 800; letter-spacing: -0.02em; }
+.worship-invite-sub { margin-top: 10px; font-size: 17px; font-weight: 600; }
 @media (min-width: 1024px) {
-  .worship-nextbar { font-size: 14.5px; padding: 12px 18px; }
+  .worship-invite { font-size: 42px; }
+  .worship-invite-sub { font-size: 19px; }
 }
-.worship-nextbar b {
-  font-weight: 700;
-  color: var(--text-strong);
-}
-.worship-nextbar-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--brand);
-  flex-shrink: 0;
-}
-.worship-nextbar-end {
-  margin-left: auto;
-  font-weight: 700;
-  color: var(--brand);
-}
-button.worship-nextbar-link {
-  border: none;
-  background: none;
-  padding: 0;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-/* 예배 중 — 라이브 레드는 토큰이 없어 양 테마에서 읽히는 단일 값 */
-.worship-nextbar--live {
-  cursor: default;
-  border-color: rgba(239, 68, 68, 0.35);
-}
-.worship-nextbar--live b { color: #ef4444; }
-.worship-nextbar--live .worship-nextbar-link { color: #ef4444; }
 
+/* ── 시간 고르기 패널 (계절 색 바탕) ───────── */
+.worship-panel {
+  position: relative; padding: 24px 18px 26px;
+  background: linear-gradient(180deg, var(--sea-soft) 0%, var(--sea-wash) 140px, var(--surface-container) 100%);
+}
+[data-theme="dark"] .worship-panel {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sea) 14%, #121826) 0%, var(--sea-wash) 180px, var(--surface-container) 100%);
+}
+@media (min-width: 1024px) { .worship-panel { padding: 30px 40px 36px; } }
+
+.worship-times { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+@media (min-width: 1024px) { .worship-times { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; } }
+.worship-time-wrap { position: relative; }
+/* 관리자 연필은 카드 모서리 밖으로 — 좁은 카드에서 시각 숫자를 가리지 않게 */
+.worship-time-wrap > .worship-edit-btn { position: absolute; z-index: 2; right: -6px; top: -8px; width: 30px; height: 30px; }
+.worship-time {
+  position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; text-align: left;
+  border-radius: 18px; border: 2px solid var(--card-border); background: var(--surface-container);
+  transition: border-color .15s, box-shadow .15s;
+}
+.worship-time-sky { display: block; height: 18px; }
+[data-theme="dark"] .worship-time-sky { filter: brightness(.6) saturate(.9); }
+.worship-time-body { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 12px 16px 14px; }
+.worship-time-order { font-size: 15px; font-weight: 700; color: var(--text-body); }
+.worship-time-clock { font-size: 32px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.02em; line-height: 1.15; }
+.worship-time-clock em, .worship-walk-time em { font-style: normal; font-size: 16px; font-weight: 700; margin-right: 4px; }
+.worship-time.is-on { border-color: var(--sea); box-shadow: 0 10px 24px -14px var(--sea); }
+.worship-time.is-on .worship-time-clock { color: var(--sea-ink); }
+.worship-time-check {
+  position: absolute; right: 10px; top: 28px; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--sea); color: #fff;
+}
+[data-theme="dark"] .worship-time-check { color: #1a1a1a; }
+.worship-time-check .material-icons-round { font-size: 18px; }
+
+/* ── 그날 아침 = 발자국 길 (모바일 세로, PC 가로) ── */
+.worship-morning { margin-top: 30px; }
+.worship-walk-head { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.01em; }
+@media (min-width: 1024px) { .worship-walk-head { font-size: 24px; } }
+.worship-season-pill {
+  display: inline-grid; place-items: center; min-width: 44px; height: 30px; padding: 0 10px; border-radius: 999px;
+  background: var(--sea); color: #fff; font-size: 15px; font-weight: 800;
+}
+[data-theme="dark"] .worship-season-pill { color: #1a1a1a; }
+.worship-morning > .worship-sub { margin-top: 6px; }
+
+.worship-walk { margin-top: 20px; display: grid; }
+.worship-walk-stop { display: grid; grid-template-columns: 48px 1fr; gap: 12px; align-content: start; animation: worship-rise .4s ease both; }
+.worship-walk-rail { position: relative; display: flex; flex-direction: column; align-items: center; }
+.worship-walk-pin {
+  position: relative; z-index: 1; flex: none; width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--surface-container); color: var(--sea-ink);
+  border: 2px solid var(--sea); box-shadow: 0 0 0 5px var(--sea-soft);
+}
+.worship-stop-7 {
+  width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  background: #747f00; color: #fff; font-size: 17px; font-weight: 900;
+}
+.worship-walk-seg { flex: 1; min-height: 34px; width: 0; margin: 4px 0; border-left: 3px dotted var(--sea-path); position: relative; }
+.worship-walk-seg span { display: none; }
+.worship-walk-text { padding-bottom: 22px; min-width: 0; }
+.worship-walk-time { font-size: 22px; font-weight: 800; color: var(--text-strong); line-height: 1.2; }
+.worship-walk-time em { font-size: 15px; }
+.worship-walk-time span {
+  display: inline-block; margin-left: 6px; padding: 2px 10px; border-radius: 999px; vertical-align: 3px;
+  font-size: 14px; font-weight: 800; background: var(--sea-soft); color: var(--sea-ink);
+}
+.worship-walk-title { margin-top: 6px; font-size: 18.5px; font-weight: 800; color: var(--text-strong); line-height: 1.4; word-break: keep-all; }
+.worship-walk-body { margin-top: 4px; font-size: 16px; line-height: 1.6; color: var(--text-body); word-break: keep-all; }
+@media (min-width: 1024px) {
+  .worship-walk { grid-template-columns: repeat(4, minmax(0,1fr)); margin-top: 26px; }
+  .worship-walk-stop { grid-template-columns: 1fr; gap: 14px; }
+  .worship-walk-rail { flex-direction: row; align-items: center; }
+  .worship-walk-seg { min-height: 0; height: 0; width: auto; margin: 0 10px; border-left: 0; border-top: 3px dotted var(--sea-path); }
+  .worship-walk-seg span {
+    display: block; position: absolute; left: 50%; top: -30px; transform: translateX(-50%); white-space: nowrap;
+    font-size: 14px; font-weight: 700; color: var(--sea-ink);
+  }
+  .worship-walk-text { padding: 0 20px 0 0; }
+}
+@keyframes worship-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.worship-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.worship-action {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 50px; padding: 0 20px; border-radius: 14px; font-size: 17px; font-weight: 800;
+  background: var(--surface-container-high); color: var(--text-strong);
+}
+.worship-action .material-icons-round { font-size: 20px; }
+.worship-action--brand { background: var(--brand); color: var(--on-brand); }
+
+/* 예배 중 — 라이브 레드는 토큰이 없어 양 테마에서 읽히는 단일 값 */
 .worship-live-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ef4444;
-  flex-shrink: 0;
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0;
   animation: worship-breathe 2.6s ease-in-out infinite;
 }
-@keyframes worship-breathe {
-  50% { opacity: 0.35; }
-}
+@keyframes worship-breathe { 50% { opacity: 0.35; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .worship-hero-underline path { animation: none; stroke-dashoffset: 0; }
+  .worship-walk-stop { animation: none; }
   .worship-live-dot { animation: none; }
 }

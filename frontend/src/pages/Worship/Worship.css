@@ -1,9 +1,9 @@
-/* Worship 예배 안내 — 2026-10 '주일 중심' 개편
+/* Worship 예배 안내 — 2026-11 '처음 온 성도' 개편 (계절 옷 · 시안 /#/dev/worship-redesign?v=a2)
  * 원칙 (src/styles/theme.css):
  *   1. 색은 하드코딩하지 않고 --brand-* / --surface-* / --text-* 토큰만 참조
- *   2. 라이트/다크 분기는 theme.css 토큰이 담당 — 여기서는 [data-theme] 분기 금지
- *      (예외: '예배 중' 라이브 레드·전례 보라는 토큰이 없어 양 테마에서 읽히는 단일 값 사용)
+ *   2. 라이트/다크 분기는 theme.css 토큰이 담당. 예외: 계절 색(--sea-*)·사진 위 글씨 받침은 토큰이 없어
+ *      [data-theme] 으로 밤 값을 따로 둔다. '예배 중' 라이브 레드는 양 테마 단일 값
  */
 
-@import './styles/hero.css'; /* 페이지 셸 · Hero · 오늘 카드 · 주일 시간 타일 · 다음 예배 줄 */
-@import './styles/sections.css'; /* 평일 예배 · 더 알아보기 · 안내 · 상태 배지 · 관리자 수정 시트 */
+@import './styles/hero.css'; /* 페이지 셸 · 계절 토큰 · 사진 히어로 · 시간 고르기 · 주일 아침 길 */
+@import './styles/sections.css'; /* 평일 사진 카드 · 걱정 편지지 · 오시기 어려우면 · 상태 배지 · 관리자 수정 시트 */

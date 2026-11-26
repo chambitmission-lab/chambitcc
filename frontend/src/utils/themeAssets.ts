@@ -233,7 +233,7 @@ export const PHOTO_VERSE_INTRO: ThemePair = {
   light: '/images/photo-verse/intro-light.webp',
   dark: '/images/photo-verse/intro-dark.webp',
 }
-/** /worship 히어로 (theme.css --worship-hero-art) */
+/** 양 종탑 삽화 — 옛 /worship 히어로. 지금은 주보 스토리(BulletinStory)가 쓴다 */
 export const WORSHIP_HERO: ThemePair = { light: '/images/worship/hero-light.webp', dark: '/images/worship/hero-dark.webp' }
 /** /education 히어로 (education.css --edu-hero-art) */
 export const EDUCATION_HERO: ThemePair = {
@@ -428,7 +428,8 @@ const ROUTE_ASSETS: RouteAssets[] = [
   { match: /^\/greeting$/, pairs: [GREETING_HERO, ...GREETING_SEASONS] },
   { match: /^\/prayer-topics$/, pairs: [WEEKLY_PRAYER_POSTER] },
   { match: /^\/visit$/, pairs: [VISIT_SCENE_PAIR] },
-  { match: /^\/worship$/, pairs: [WORSHIP_HERO] },
+  // /worship 히어로 = /visit 과 같은 계절 교회 사진(2026-11 개편). WORSHIP_HERO(양 종탑)는 주보 스토리만 쓴다
+  { match: /^\/worship$/, pairs: [VISIT_SCENE_PAIR] },
   { match: /^\/mission$/, pairs: [MISSION_HERO] },
   { match: /^\/pastor\/studio$/, pairs: [STUDIO_HERO] },
   { match: /^\/education$/, pairs: [EDUCATION_HERO] },

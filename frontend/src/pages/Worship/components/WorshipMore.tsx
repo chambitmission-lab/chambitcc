@@ -1,6 +1,7 @@
-// '더 알아보기' — 지난 주일 설교 · 온라인 예배 · 처음 오시나요(오시는 길).
-// 예전 PC 우측 레일(WorshipRail)을 본문 아래 한 줄로 내렸다. 모바일은 세로로 쌓이고
-// lg+ 에선 3칸. 시간표는 위 히어로·평일 카드가 맡으므로 여기선 반복하지 않는다.
+// 오시기 어려우면 — 사진 카드 두 장(2026-11 개편).
+//  - 지난 주일 설교: 그 주일 실제 예배 영상 첫 장면(유튜브 썸네일). 재생 버튼은 오른쪽 아래 — 매주 바뀌는 표지 글씨를 가리지 않게
+//  - 온라인 예배: 불 켜진 밤 교회(히어로와 같은 계절). 방문자에겐 URL 이 있을 때만, 관리자에겐 등록 자리로 항상
+// 오시는 길은 위 "길찾기" 버튼이 맡아 여기서 반복하지 않는다.
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -9,19 +10,19 @@ import { EditableText } from '../../../components/AboutEditor'
 import { getSermons } from '../../../api/sermon'
 import { sermonKeys } from '../../../hooks/queryKeys'
 import { formatMonthDay } from '../../../utils/date'
+import type { NaturalSeason } from '../../../utils/naturalSeason'
+import { extractYouTubeVideoId, youtubeThumbnailUrl } from '../../Sermon/utils/sermonMeta'
 
 interface Props {
   isAdminUser: boolean
   /** 본문이 판정한 "지금 예배 중" — 온라인 예배 카드의 LIVE 표시에만 쓴다 */
   ongoing: boolean
+  season: NaturalSeason
 }
-
-/** '8월 5일' / 'Aug 5' — 파싱이 안 되면 입력을 그대로 */
-const fmtDate = (iso: string, ko: boolean) => formatMonthDay(iso, { lang: ko ? 'ko' : 'en' }) || iso
 
 const isHttp = (u: string) => /^https?:\/\//i.test(u)
 
-export default function WorshipMore({ isAdminUser, ongoing }: Props) {
+export default function WorshipMore({ isAdminUser, ongoing, season }: Props) {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
   const { tx } = useAboutContent()
@@ -41,44 +42,86 @@ export default function WorshipMore({ isAdminUser, ongoing }: Props) {
     sermons?.find((x) => /3\s*부/.test(x.title)) ??
     sermons?.find((x) => /주일|성수/.test(x.title)) ??
     sermons?.[0]
+  const vid = sermon?.video_url ? extractYouTubeVideoId(sermon.video_url) : null
+  const thumb = sermon?.thumbnail_url || (vid ? youtubeThumbnailUrl(vid) : null)
+
+  const showOnline = hasLive || isAdminUser
+  if (!sermon && !showOnline) return null
 
   return (
-    <div className="worship-more">
+    <div className="worship-mo">
       {sermon && (
-        <section className="worship-more-card">
-          <p className="worship-more-eyebrow">
-            {t('worshipRailSermonTitle')} · {fmtDate(sermon.sermon_date, ko)}
-          </p>
-          <p className="worship-more-title">{sermon.bible_verse || sermon.title}</p>
-          <p className="worship-more-sub worship-more-sub--brand">
-            {sermon.bible_verse ? sermon.title : ''}
-            {sermon.bible_verse && sermon.pastor ? ' · ' : ''}
-            {sermon.pastor ?? ''}
-          </p>
-          <button type="button" className="worship-more-cta" onClick={() => navigate('/sermon')}>
-            {sermon.video_url ? t('worshipRailSermonCta') : t('worshipRailSermonAll')}
-          </button>
-        </section>
+        <button type="button" className="worship-mo-card" onClick={() => navigate('/sermon')}>
+          <div className="worship-mo-photo">
+            {thumb ? (
+              <img src={thumb} alt="" aria-hidden="true" loading="lazy" className="worship-mo-thumb" />
+            ) : (
+              <img src={`/images/visit/scene-${season}-day.webp`} alt="" aria-hidden="true" loading="lazy" className="worship-mo-church" />
+            )}
+            <span className="worship-mo-veil" aria-hidden="true" />
+            {sermon.video_url && (
+              <span className="worship-mo-play" aria-hidden="true">
+                <span className="material-icons-round">play_arrow</span>
+              </span>
+            )}
+            <span className="worship-mo-tag">
+              {t('worshipSermonTag').replace('{date}', formatMonthDay(sermon.sermon_date, { lang: ko ? 'ko' : 'en' }) || sermon.sermon_date)}
+            </span>
+          </div>
+          <div className="worship-mo-body">
+            <p className="worship-mo-kicker">{t('worshipSermonKicker')}</p>
+            <p className="worship-mo-title">{sermon.bible_verse || sermon.title}</p>
+            <p className="worship-mo-sub">
+              {sermon.bible_verse ? sermon.title : ''}
+              {sermon.bible_verse && sermon.pastor ? ' · ' : ''}
+              {sermon.pastor ?? ''}
+            </p>
+            <span className="worship-mo-cta">
+              {sermon.video_url ? t('worshipRailSermonCta') : t('worshipRailSermonAll')}
+              <span className="material-icons-round" aria-hidden="true">chevron_right</span>
+            </span>
+          </div>
+        </button>
       )}
 
-      {/* 온라인 예배 — 방문자에겐 URL 이 있을 때만, 관리자에겐 등록 자리로 항상 */}
-      {(hasLive || isAdminUser) && (
-        <section className={`worship-more-card${ongoing && hasLive ? ' is-live' : ''}`}>
-          <p className="worship-more-eyebrow">
-            {ongoing && hasLive && <span className="worship-live-dot" aria-hidden />}
-            {ongoing && hasLive ? t('worshipRailLiveNow') : t('worshipRailLiveTitle')}
-          </p>
-          <p className="worship-more-title">{t('worshipMoreLiveTitle')}</p>
-          <p className="worship-more-sub">{t('worshipRailLiveDesc')}</p>
-          {hasLive && (
-            <button
-              type="button"
-              className="worship-more-cta"
-              onClick={() => window.open(liveUrl, '_blank', 'noopener,noreferrer')}
-            >
-              {ongoing ? t('worshipRailLiveCta') : t('worshipRailChannelCta')}
-            </button>
-          )}
+      {showOnline && (
+        <div className={`worship-mo-card${ongoing && hasLive ? ' is-live' : ''}`}>
+          <button
+            type="button"
+            className="worship-mo-hit"
+            disabled={!hasLive}
+            onClick={() => hasLive && window.open(liveUrl, '_blank', 'noopener,noreferrer')}
+          >
+            <div className="worship-mo-photo">
+              <img src={`/images/visit/scene-${season}-night.webp`} alt="" aria-hidden="true" loading="lazy" className="worship-mo-church" />
+              <span className="worship-mo-veil worship-mo-veil--night" aria-hidden="true" />
+              <span className="worship-mo-tag">
+                {ongoing && hasLive ? (
+                  <>
+                    <span className="worship-live-dot" aria-hidden />
+                    {t('worshipRailLiveNow')}
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons-round worship-mo-yt" aria-hidden="true">smart_display</span>
+                    {t('worshipOnlineTag')}
+                  </>
+                )}
+              </span>
+              <p className="worship-mo-photo-line whitespace-pre-line">{t('worshipOnlinePhoto')}</p>
+            </div>
+            <div className="worship-mo-body">
+              <p className="worship-mo-kicker">{t('worshipRailLiveTitle')}</p>
+              <p className="worship-mo-title">{t('worshipMoreLiveTitle')}</p>
+              <p className="worship-mo-sub">{t('worshipOnlineDesc')}</p>
+              {hasLive && (
+                <span className="worship-mo-cta">
+                  {ongoing ? t('worshipRailLiveCta') : t('worshipRailChannelCta')}
+                  <span className="material-icons-round" aria-hidden="true">chevron_right</span>
+                </span>
+              )}
+            </div>
+          </button>
           {isAdminUser && (
             <p className="worship-more-admin">
               <EditableText fieldKey="worshipLiveUrl" isAdmin={isAdminUser}>
@@ -86,17 +129,8 @@ export default function WorshipMore({ isAdminUser, ongoing }: Props) {
               </EditableText>
             </p>
           )}
-        </section>
+        </div>
       )}
-
-      <section className="worship-more-card">
-        <p className="worship-more-eyebrow">{t('worshipRailVisitTitle')}</p>
-        <p className="worship-more-title">{t('worshipMoreVisitTitle')}</p>
-        <p className="worship-more-sub">{t('worshipRailVisitDesc')}</p>
-        <button type="button" className="worship-more-cta" onClick={() => navigate('/visit')}>
-          {t('worshipRailVisitCta')}
-        </button>
-      </section>
     </div>
   )
 }

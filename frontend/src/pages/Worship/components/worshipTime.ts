@@ -9,6 +9,7 @@ import { computeAdventStart, computeEaster } from '../../../utils/churchCalendar
 const weekdayIcon = (name: string): string => {
   if (name.includes('새벽')) return 'wb_twilight'
   if (name.includes('수요')) return 'menu_book'
+  if (name.includes('금요')) return 'nights_stay'
   return 'volunteer_activism'
 }
 
