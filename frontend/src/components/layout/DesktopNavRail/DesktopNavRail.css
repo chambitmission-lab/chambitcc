@@ -342,7 +342,7 @@
     radial-gradient(ellipse 36px 12px at 58% 72%, var(--c2), transparent 100%),
     radial-gradient(ellipse 22px 10px at 20% 72%, var(--c2), transparent 100%);
   transform-origin: left center;
-  animation: rail-cloud-drift 180s linear infinite;
+  animation: rail-cloud-drift 540s linear infinite;
   will-change: transform;
 }
 @keyframes rail-cloud-drift {
