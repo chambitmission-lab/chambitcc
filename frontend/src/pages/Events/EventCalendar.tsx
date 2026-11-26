@@ -91,7 +91,17 @@ const EventCalendar = () => {
     [events, isCurrentMonth],
   )
 
-  const totalCount = events.length
+  // 머리 한 줄 — 조회 범위(이번 달 1일~다음 달 말일)엔 이미 지난 일정도 섞여 있어서
+  // 전체 개수를 '예정'이라 부르면 틀린다. 오늘(KST) 이후 시작하는 일정만 센다 — '다가오는 일정'·히어로와 같은 기준
+  const headline = useMemo(() => {
+    const todayKey = formatYMD(kstNow())
+    const lastDayKey = formatYMD(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0))
+    if (lastDayKey < todayKey) {
+      return events.length > 0 ? `이 달엔 ${events.length}건의 일정이 있었어요` : '이 달엔 일정이 없었어요'
+    }
+    const upcoming = events.filter(e => formatYMD(toKstCalendarDate(e.start_datetime)) >= todayKey).length
+    return upcoming > 0 ? `앞으로 ${upcoming}건의 일정이 예정되어 있어요` : '앞으로 예정된 일정이 없어요'
+  }, [events, viewDate])
 
   // 우측 레일 '다가오는 일정' — 오늘 이후 가까운 순 5건 (이미 받아둔 목록에서).
   // 날짜 비교는 어젠다와 같은 서울(KST) 벽시계 기준을 쓴다
@@ -147,7 +157,7 @@ const EventCalendar = () => {
                 {t.title}
               </h1>
               <p className="text-gray-500 dark:text-white/55 text-[13px] lg:text-[17px] lg:text-gray-600 lg:dark:text-white/70 mt-2 lg:mt-3">
-                {loading || isPlaceholder ? '불러오는 중...' : `${totalCount}건의 일정이 예정되어 있어요`}
+                {loading || isPlaceholder ? '불러오는 중...' : headline}
               </p>
             </div>
             {admin && (
