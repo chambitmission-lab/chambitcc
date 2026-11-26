@@ -12,8 +12,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { BibleBook } from '../../../types/bible'
 import type { ResumePosition } from '../../../api/bibleReading'
-import { parseApiDate } from '../../../utils/dateUtils'
 import { bookAbbrev } from './bibleBookAbbrev'
+import { findCurrentBookNumber, findNextBookNumber } from './bookSelector/readingPosition'
 import { aggregateRange, pctLabel, type BookInfoMap } from './readingProgressInfo'
 
 interface Milestone {
@@ -109,36 +109,16 @@ const BookJourneyPath = ({
         jump: '지금 위치로',
       }
 
-  // 여정의 현재 위치 — 표시 중인 책들 가운데 가장 최근에 읽은 책.
-  // 객체 하나에 담지 않고 원시값 둘로 두는 이유: 콜백 안에서만 재할당되는 let 객체는
-  // TS가 반환 지점에서 null로 좁혀 버려(tsc -b에서 never 에러) 빌드가 깨진다
-  const currentBookNumber = useMemo(() => {
-    let bestNumber: number | undefined
-    let bestTime = -Infinity
-    books.forEach(b => {
-      const pos = resumeMap?.get(b.book_number)
-      if (!pos?.read_at) return
-      const time = parseApiDate(pos.read_at).getTime()
-      if (time > bestTime) {
-        bestTime = time
-        bestNumber = b.book_number
-      }
-    })
-    return bestNumber
-  }, [books, resumeMap])
+  // 여정의 현재 위치 — 표시 중인 책들 가운데 가장 최근에 읽은 책(규칙은 readingPosition 이 단일 출처)
+  const currentBookNumber = useMemo(() => findCurrentBookNumber(books, resumeMap), [books, resumeMap])
 
   // 다음 정거장 — 현재 위치 바로 뒤에서 아직 완독하지 않은 첫 책 하나.
   // 순서 강제는 아니지만 "여기 다음은 어디"를 눈으로 집어 주는 힌트라 딱 하나만 밝힌다.
   // 읽은 기록이 아직 없으면 목록의 첫 미완독 책이 곧 출발점이 된다.
-  const nextBookNumber = useMemo(() => {
-    const startIdx =
-      currentBookNumber === undefined
-        ? 0
-        : books.findIndex(b => b.book_number === currentBookNumber) + 1
-    if (startIdx <= 0 && currentBookNumber !== undefined) return undefined
-    const next = books.slice(startIdx).find(b => (infoMap.get(b.book_number)?.rate ?? 0) < 100)
-    return next?.book_number
-  }, [books, infoMap, currentBookNumber])
+  const nextBookNumber = useMemo(
+    () => findNextBookNumber(books, infoMap, currentBookNumber),
+    [books, infoMap, currentBookNumber],
+  )
 
   // 레이아웃 계산 — 이정표를 사이사이 끼워 넣으며 y를 누적하고,
   // 책 노드 x는 사인 곡선(주기 6)으로 좌우를 오가는 뱀길을 그린다
