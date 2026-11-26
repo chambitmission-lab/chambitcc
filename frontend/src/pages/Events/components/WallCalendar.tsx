@@ -72,9 +72,30 @@ const shortTitle = (title: string): string => {
   const last = words[words.length - 1]
   return last.length <= 2 && words.length > 1 ? words.slice(-2).join('') : last
 }
-/** 칸 폭(네 글자)에 맞춰 두 줄로 고르게 — "특별새벽기도회" → 특별새벽 / 기도회 */
+/** 끝에 붙는 행사 낱말 — 줄을 낱말 경계에서 끊는 데 쓴다(긴 것부터) */
+const LABEL_TAILS = [
+  '기도회', '수련회', '부흥회', '헌신예배', '감사절', '세미나',
+  '예배', '주일', '기도', '대회', '교육', '의회', '집회', '모임', '축제', '잔치', '행사',
+  '김장', '심방', '세례', '입교', '성찬', '특강', '캠프', '여행', '찬양', '봉사', '훈련', '공부',
+]
+/** 칸 폭(네 글자)에 맞춰 두 줄로 — 낱말 중간에서 끊지 않는다
+ *  "학습·세례·입교" → 학습 / 세례·입교, "추수감사주일" → 추수감사 / 주일, "새벽기도회" → 새벽 / 기도회 */
 const twoLines = (label: string): string[] => {
   if (label.length <= 4) return [label]
+  // 1) 가운뎃점으로 이어진 이름은 점 자리에서 — 두 줄 중 긴 쪽이 가장 짧아지는 곳
+  const parts = label.split('·')
+  if (parts.length > 1) {
+    let best: string[] | null = null
+    for (let i = 1; i < parts.length; i++) {
+      const lines = [parts.slice(0, i).join('·'), parts.slice(i).join('·')]
+      if (!best || Math.max(...lines.map((l) => l.length)) < Math.max(...best.map((l) => l.length))) best = lines
+    }
+    if (best && best.every((l) => l.replace(/·/g, '').length <= 4)) return best
+  }
+  // 2) 끝 낱말(기도회·주일·대회…)을 아랫줄로
+  const tail = LABEL_TAILS.find((t) => label.endsWith(t) && label.length - t.length >= 1 && label.length - t.length <= 4)
+  if (tail) return [label.slice(0, -tail.length), tail]
+  // 3) 그 밖엔 글자 수로 고르게
   const cut = Math.min(4, Math.ceil(label.length / 2))
   return [label.slice(0, cut), label.slice(cut, cut + 4)]
 }
