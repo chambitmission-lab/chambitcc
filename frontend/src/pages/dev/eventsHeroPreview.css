@@ -1,0 +1,49 @@
+/* /#/dev/events-hero — 히어로를 우편엽서 언어로 (wpc 변수 공유) */
+
+/* H1 봉투 — 위 덮개 선 + 아래 항공우편 띠 */
+.ehp-envelope { overflow: hidden; }
+.ehp-flap {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 70%;
+  background:
+    linear-gradient(to bottom right, transparent 49.6%, var(--wpc-rule) 50%, transparent 50.6%) left / 50% 100% no-repeat,
+    linear-gradient(to bottom left, transparent 49.6%, var(--wpc-rule) 50%, transparent 50.6%) right / 50% 100% no-repeat;
+  opacity: 0.9;
+  pointer-events: none;
+}
+.ehp-airmail {
+  display: block;
+  height: 7px;
+  background: repeating-linear-gradient(135deg, var(--wpc-red) 0 12px, var(--wpc-paper) 12px 18px, var(--wpc-accent) 18px 30px, var(--wpc-paper) 30px 36px);
+  opacity: 0.85;
+}
+
+/* H2 사진 */
+.ehp-film-straight { transform: none; }
+.ehp-shadow { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 14px rgba(0, 0, 0, 0.3); }
+.ehp-mark-on-photo .wpc-postmark { color: #fff; opacity: 0.9; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
+
+/* H3 초대장 — 빨간 이중 테두리 */
+.ehp-invite { padding: 8px; }
+.ehp-invite-frame {
+  position: relative;
+  border: 3px double color-mix(in srgb, var(--wpc-red) 70%, transparent);
+  border-radius: 2px;
+}
+.ehp-seal {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 2px solid var(--wpc-red);
+  color: var(--wpc-red);
+  transform: rotate(-10deg);
+  opacity: 0.85;
+}

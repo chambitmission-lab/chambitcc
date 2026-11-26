@@ -1,14 +1,24 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Event } from '../../../types/event'
-import { CATEGORY_VISUAL } from '../utils/categoryConfig'
-import { formatDDay, formatEventStartTime, formatEventDateLabel } from '../utils/dateGrouping'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { useTheme } from '../../../contexts/ThemeContext'
 import { translations } from '../../../locales'
-import { CategoryIcon } from './CategoryIcons'
 import { queryClient } from '../../../config/queryClient'
 import { prefetchEventDetail } from '../../../hooks/useEvents'
 import { preloadRoute } from '../../../utils/routePreload'
+import { formatEventStartTime } from '../utils/dateGrouping'
+import { buildWeekCard, dayParts, daysLeftLabel, eventDayKey, mondayOf } from '../utils/weekPostcards'
+import { postcardFrameFor } from '../utils/postcardFrames'
+import '../styles/weekPostcard.css'
+
+/**
+ * /events 맨 위 '가장 가까운 일정' — 우편엽서의 사진 면(2026-11-26 H2 큰 사진 엽서).
+ * 아래 주간 엽서(WeekPostcard)는 쓰는 면만 두고, 사진은 여기 한 장만 크게 싣는다.
+ * 사진 = 그 일정 주의 계절 교회 전경을 주 번호로 돌린 구도(참빛 풍경 엽서 No.N), 필름 날짜 도장 = 일정 날짜.
+ * 시안: /#/dev/events-hero?v=h2
+ */
+
+const WD_FULL = ['주일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 
 interface EventHeroCardProps {
   event: Event
@@ -17,19 +27,18 @@ interface EventHeroCardProps {
 const EventHeroCard = ({ event }: EventHeroCardProps) => {
   const navigate = useNavigate()
   const { language } = useLanguage()
+  const { theme } = useTheme()
   const t = translations[language]
-  const v = CATEGORY_VISUAL[event.category]
-  const dday = formatDDay(event.start_datetime)
-  const time = formatEventStartTime(event)
-  const dateLabel = formatEventDateLabel(event.start_datetime)
 
-  // 배경 로드 전엔 그라데이션만 보이다가 부드럽게 페이드인 (팝인 방지)
-  // 어떤 배경이 로드됐는지로 기억해 카테고리(배경)가 바뀌면 자동으로 다시 페이드인한다
-  const [loadedBg, setLoadedBg] = useState<string | null>(null)
-  const imgLoaded = loadedBg === v.bg
+  const key = eventDayKey(event)
+  const { m, d, wd, date } = dayParts(key)
+  const week = buildWeekCard(mondayOf(date), [], mondayOf(date))
+  const sunday = dayParts(week.days[6]).date
+  const frame = postcardFrameFor(week.no, sunday, theme === 'dark' ? 'dark' : 'light')
+  const time = formatEventStartTime(event)
+  const imprint = `'${key.slice(2, 4)} ${key.slice(5, 7)} ${key.slice(8, 10)}`
 
   // 상세 청크와 상세 응답을 같은 순간에 띄운다 — 누르는 때엔 둘 다 거의 도착해 있다
-  // (예전엔 청크 → 마운트 → API 직렬이라 목록에 멈췄다가 스켈레톤이 한 번 더 보였다)
   const warm = () => {
     void preloadRoute(`/events/${event.id}`)
     prefetchEventDetail(queryClient, event.id)
@@ -41,137 +50,59 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
       onClick={() => navigate(`/events/${event.id}`)}
       onMouseEnter={warm}
       onTouchStart={warm}
-      className="mx-4 mb-4 w-[calc(100%-2rem)] text-left group block"
+      className="mx-4 mb-6 w-[calc(100%-2rem)] lg:mx-6 lg:w-[calc(100%-3rem)] text-left block group"
     >
-      <div
-        className={[
-          'relative overflow-hidden rounded-3xl p-5',
-          'bg-gradient-to-br',
-          v.gradient,
-          // 모바일: 옅은 브랜드 글로우만으론 캔버스에 붙어 보여 /worship 히어로와 같은 세 겹 낙하 그림자(2026-11-12)
-          'shadow-[0_2px_4px_rgba(24,26,40,0.06),0_14px_24px_-10px_rgba(24,26,40,0.22),0_30px_44px_-24px_rgba(24,26,40,0.34)]',
-          'lg:shadow-[0_18px_44px_-18px_var(--brand-glow)]',
-          // 다크: 브랜드 글로우 절제 + 1px 빛줄로 카드 경계만 살림
-          'dark:border dark:border-white/10',
-          'dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_16px_36px_-20px_rgba(0,0,0,0.8)]',
-          'transition-transform duration-200 group-active:scale-[0.99]',
-        ].join(' ')}
-      >
-        {/* 카테고리 배경 일러스트 — 우측 배치, 좌측은 그라데이션 여백 */}
-        <img
-          // 캐시 히트 시 onLoad가 이미 지나갔을 수 있어 complete로 보정
-          ref={(el) => {
-            if (el?.complete) setLoadedBg(v.bg)
-          }}
-          src={v.bg}
-          alt=""
-          aria-hidden="true"
-          decoding="async"
-          fetchPriority="high"
-          onLoad={() => setLoadedBg(v.bg)}
-          className={[
-            'absolute inset-0 w-full h-full object-cover object-right pointer-events-none',
-            'transition-opacity duration-500',
-            imgLoaded ? 'opacity-100' : 'opacity-0',
-            // 다크: 광량·채도를 한 단계 눌러 어두운 배경과 톤 맞춤
-            'dark:brightness-[0.86] dark:saturate-[0.92]',
-          ].join(' ')}
-        />
-        {/* 좌측·하단 스크림 — 텍스트 가독성 확보 */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(90deg, rgba(20,45,120,0.42) 0%, rgba(20,45,120,0.16) 42%, rgba(20,45,120,0) 68%), linear-gradient(0deg, rgba(15,32,90,0.35) 0%, rgba(15,32,90,0) 45%)',
-          }}
-        />
-        {/* 다크 전용 비네트 — 가장자리를 배경 쪽으로 가라앉혀 카드가 따로 놀지 않게 */}
-        <div
-          className="absolute inset-0 pointer-events-none hidden dark:block"
-          style={{
-            background:
-              'radial-gradient(135% 135% at 30% 20%, rgba(8,14,36,0) 45%, rgba(8,14,36,0.4) 100%)',
-          }}
-        />
-        {/* 미세 광택 — 카드 합의안 동일 패턴 */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,0.14) 100%)',
-          }}
-        />
-
-        <div className="relative">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full bg-white/25 backdrop-blur-sm text-white text-[12px] lg:text-[14.5px] lg:h-8 lg:px-3 font-bold tracking-wide">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              {dday}
-            </span>
-            <span className="inline-flex items-center px-2.5 h-7 rounded-full bg-black/20 text-white text-[12px] lg:text-[14.5px] lg:h-8 lg:px-3 font-semibold">
-              <CategoryIcon
-                category={event.category}
-                width={13}
-                height={13}
-                className="mr-1 shrink-0"
+      <article className="wpc">
+        <div className="px-3 pt-3 lg:px-3.5 lg:pt-3.5">
+          <figure className="wpc-film wpc-film-straight">
+            <div className="relative overflow-hidden h-[180px] lg:h-[240px]">
+              <img
+                src={frame.src}
+                alt=""
+                aria-hidden="true"
+                decoding="async"
+                fetchPriority="high"
+                className="wpc-film-img absolute inset-0 w-full h-full object-cover"
+                style={{ objectPosition: frame.pos }}
               />
-              {t.categories[event.category]}
-            </span>
-          </div>
-
-          <h2 className="text-white text-[22px] lg:text-[30px] font-bold leading-[1.25] tracking-[-0.015em] mb-3 lg:mb-4 line-clamp-2">
-            {event.title}
-          </h2>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/90 text-[13px] lg:text-[17px] font-medium">
-            <span className="inline-flex items-center gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              {dateLabel} · {time}
-            </span>
-            {event.location && (
-              <span className="inline-flex items-center gap-1 max-w-[55%] truncate">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span className="truncate">{event.location}</span>
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
-            <div className="flex items-center gap-3 text-white/90 text-[12.5px] lg:text-[15.5px] font-medium">
-              <span className="inline-flex items-center gap-1">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                <span>{event.attendance_count}</span>
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <span>{event.views}</span>
+              <span className="wpc-film-wash" aria-hidden="true" />
+              <span className="wpc-imprint-shade" aria-hidden="true" />
+              <span className="wpc-imprint text-[16px] lg:text-[18px]">{imprint}</span>
+              <span className="wpc-hand wpc-photo-label absolute left-3 top-2.5 lg:left-4 lg:top-3.5 text-[27px] lg:text-[34px] leading-none">
+                가장 가까운 일정
               </span>
             </div>
-            <span className="inline-flex items-center gap-1 text-white text-[13px] lg:text-[16px] font-bold">
-              자세히 보기
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <figcaption className="wpc-hand wpc-caption pt-1.5 text-[19px] lg:text-[21px] leading-tight">
+              참빛 풍경 엽서 No.{week.no} — {frame.caption}
+            </figcaption>
+          </figure>
+        </div>
+
+        <div className="px-4 pt-4 pb-4 lg:px-6 lg:pt-5 lg:pb-5">
+          <div className="flex items-center gap-2">
+            <span className="wpc-pill text-[14px] lg:text-[15px]">{daysLeftLabel(key)}</span>
+            <span className="wpc-pill is-done text-[14px] lg:text-[15px]">{t.categories[event.category]}</span>
+          </div>
+          <h2 className="wpc-week mt-2.5 font-extrabold leading-[1.25] tracking-[-0.015em] text-[23px] lg:text-[30px] break-keep line-clamp-2">
+            {event.title}
+          </h2>
+          <div className="mt-2 flex items-end justify-between gap-3">
+            <p className="wpc-week min-w-0 text-[16.5px] lg:text-[19px]">
+              <b className="font-extrabold">
+                {m}월 {d}일 {WD_FULL[wd]} · {time === '종일' ? '하루 종일' : time}
+              </b>
+              {event.location && <span className="opacity-80"> · {event.location}</span>}
+              {event.attendance_count > 0 && <span className="opacity-80"> · {event.attendance_count}명 함께</span>}
+            </p>
+            <span className="wpc-accent shrink-0 inline-flex items-center gap-1 font-extrabold text-[16px] lg:text-[17px] group-hover:underline underline-offset-4">
+              자세히
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </span>
           </div>
         </div>
-      </div>
+      </article>
     </button>
   )
 }

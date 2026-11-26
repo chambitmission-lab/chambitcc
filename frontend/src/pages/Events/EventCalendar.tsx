@@ -10,7 +10,6 @@ import EventHeroCard from './components/EventHeroCard'
 import MiniMonthStrip from './components/MiniMonthStrip'
 import WeekPostcard, { PastPostcards } from './components/WeekPostcard'
 import EmptyState from './components/EmptyState'
-import { preloadCategoryBackgrounds } from './utils/categoryConfig'
 import { CategoryIcon } from './components/CategoryIcons'
 import { buildEventDateMap, formatEventStartTime, getNextEvent } from './utils/dateGrouping'
 import { buildWeekCards } from './utils/weekPostcards'
@@ -42,11 +41,6 @@ const EventCalendar = () => {
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | undefined>()
   // PC 레일 달력에서 고른 날(YYYY-MM-DD) — 그날 일정을 레일에 크게 펼친다. 달을 넘기면 비운다
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
-
-  // 일정 API를 기다리는 동안 Hero 배경을 병렬로 받아둔다 (팝인 방지)
-  useEffect(() => {
-    preloadCategoryBackgrounds()
-  }, [])
 
   // 현재 보이는 달의 1일 ~ (과거 달이면 해당 달 말일 / 현재·미래 달이면 다음 달 말일) 까지 fetch
   const { startDate, endDate } = useMemo(() => {
@@ -262,7 +256,7 @@ const EventCalendar = () => {
           // 한 주 = 엽서 한 장. lg+: 넓어진 본문에 2장씩 — 칸 수는 폭으로 정해 글씨를 키우면(PC zoom) 한 열로 풀린다
           // 지난 일정도 같은 격자의 한 칸 — PC 에서 엽서가 홀수 장이면 남는 오른쪽 칸에 펼쳐 둔다
           <div className="px-4 lg:px-6 grid grid-cols-1 gap-6 lg:grid-cols-[repeat(auto-fill,minmax(380px,1fr))] lg:items-start">
-            {weeks.map((w, i) => <WeekPostcard key={w.mondayKey} week={w} first={i === 0} />)}
+            {weeks.map((w) => <WeekPostcard key={w.mondayKey} week={w} />)}
             <PastPostcards
               key={`${startDate}-${selectedCategory ?? 'all'}`}
               events={past}

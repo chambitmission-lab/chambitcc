@@ -8,13 +8,13 @@ import { prefetchEventDetail } from '../../../hooks/useEvents'
 import { preloadRoute } from '../../../utils/routePreload'
 import { formatEventStartTime } from '../utils/dateGrouping'
 import { dayParts, daysLeftLabel, eventDayKey, type WeekCard } from '../utils/weekPostcards'
-import { postcardFrameFor, postcardStampFor } from '../utils/postcardFrames'
+import { postcardStampFor } from '../utils/postcardFrames'
 import '../styles/weekPostcard.css'
 
 /**
- * /events 일정 목록 — 한 주 = 우편엽서 한 장 (2026-11-26 '향수 N2 풍경 엽서 세트, 읽기 쉽게').
- * 위: 그 주 계절의 교회 전경을 주마다 다른 구도로(풍경 엽서 No.=ISO 주 번호) + 필름 날짜 도장.
- * 아래: 80년대 '우편엽서' 머리(우표·소인·빨간 우편번호 칸) + 어르신 눈높이 일정 줄.
+ * /events 일정 목록 — 한 주 = 우편엽서 한 장(쓰는 면) (2026-11-26 '향수 N2 풍경 엽서 세트, 읽기 쉽게').
+ * 사진 면(계절 교회 전경·필름 날짜 도장)은 맨 위 히어로 한 장이 맡는다 — EventHeroCard.
+ * 80년대 '우편엽서' 머리(우표·소인·빨간 우편번호 칸) + 어르신 눈높이 일정 줄.
  * 감성은 머리·사진에만, 일정 줄은 큰 고딕 — 날짜·요일 온전히, 시간 굵게, 상태는 알약, 지난 일은 통째 흐리지 않는다.
  * 시안: /#/dev/events-board?v=final2
  */
@@ -30,11 +30,6 @@ const range = (days: string[]) => {
   const a = dayParts(days[0])
   const b = dayParts(days[6])
   return `${a.m}.${a.d} – ${b.m}.${b.d}`
-}
-
-const imprintOf = (key: string) => {
-  const [y, m, d] = key.split('-')
-  return `'${y.slice(2)} ${m} ${d}`
 }
 
 /** 소인 — 동그란 날짜 도장 + 물결선 */
@@ -106,11 +101,10 @@ const TodayBand = () => {
   )
 }
 
-const WeekPostcard = ({ week, first }: { week: WeekCard; first?: boolean }) => {
+const WeekPostcard = ({ week }: { week: WeekCard }) => {
   const { theme } = useTheme()
   const t = theme === 'dark' ? 'dark' : 'light'
   const sunday = dayParts(week.days[6]).date
-  const frame = postcardFrameFor(week.no, sunday, t)
   const stamp = postcardStampFor(sunday, t)
 
   // 이번 주면 '오늘' 띠를 오늘 일정이 아닌 첫 미래 일정 앞에 끼운다(오늘 일정이 있으면 띠 없이 그 줄이 곧 오늘)
@@ -129,34 +123,21 @@ const WeekPostcard = ({ week, first }: { week: WeekCard; first?: boolean }) => {
   if (!placed) items.push({ kind: 'today' })
 
   return (
+    // 사진 면은 맨 위 히어로(EventHeroCard) 한 장만 — 주간 엽서는 쓰는 면만 둔다
     <article className="wpc">
-      <div className="px-3 pt-3 lg:px-3.5 lg:pt-3.5">
-        <figure className="wpc-film">
-          <div className="relative overflow-hidden h-[150px] lg:h-[170px]">
-            <img src={frame.src} alt="" aria-hidden="true" decoding="async" className="wpc-film-img absolute inset-0 w-full h-full object-cover" style={{ objectPosition: frame.pos }} />
-            <span className="wpc-film-wash" aria-hidden="true" />
-            <span className="wpc-imprint-shade" aria-hidden="true" />
-            <span className="wpc-imprint text-[15px] lg:text-[16px]">{imprintOf(week.mondayKey)}</span>
-          </div>
-          <figcaption className="wpc-hand wpc-caption pt-1.5 text-[19px] lg:text-[21px] leading-tight">
-            {first ? '참빛 풍경 엽서 ' : ''}No.{week.no} — {frame.caption}
-          </figcaption>
-        </figure>
-      </div>
-
-      <div className="px-4 pt-3 pb-3 lg:px-5 lg:pt-3.5 lg:pb-4">
+      <div className="px-4 pt-4 pb-3 lg:px-5 lg:pt-5 lg:pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="pt-0.5 min-w-0">
             <h3 className="flex items-baseline gap-2.5">
               <span className="wpc-serif wpc-post font-extrabold tracking-[0.5em] text-[15px] lg:text-[17px]">우편엽서</span>
               <span className="wpc-week font-extrabold text-[17px] lg:text-[19px]">{week.title}</span>
             </h3>
-            <p className="wpc-sub mt-1 text-[13.5px] font-bold tabular-nums">
+            <p className="wpc-sub relative z-[3] mt-1 text-[13.5px] font-bold tabular-nums">
               {week.sundayName} · {range(week.days)}
             </p>
           </div>
           <div className="relative shrink-0 pt-0.5">
-            <span className="absolute -left-[62px] top-[14px] w-[96px]">
+            <span className="absolute -left-[44px] top-[18px] w-[76px] lg:-left-[62px] lg:top-[14px] lg:w-[96px]">
               <Postmark dayKey={week.mondayKey} />
             </span>
             <span className="wpc-stamp w-[44px] h-[53px] lg:w-[50px] lg:h-[60px]">
@@ -167,7 +148,7 @@ const WeekPostcard = ({ week, first }: { week: WeekCard; first?: boolean }) => {
         <div className="mt-2 flex items-end justify-between gap-3">
           <p className="wpc-to min-w-0 flex-1 pb-0.5 text-[13px] lg:text-[14px]">
             <span className="font-bold mr-2 opacity-70">받는 사람</span>
-            <span className="wpc-hand wpc-accent text-[23px] lg:text-[26px]">참빛 식구들에게</span>
+            <span className="wpc-hand wpc-accent whitespace-nowrap text-[23px] lg:text-[26px]">참빛 식구들에게</span>
           </p>
           <span className="wpc-zip shrink-0" aria-hidden="true">
             <i /><i /><i /><b>-</b><i /><i /><i />

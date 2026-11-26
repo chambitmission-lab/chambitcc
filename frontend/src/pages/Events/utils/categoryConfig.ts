@@ -12,7 +12,7 @@ export interface CategoryVisual {
   dot: string
   // 달력 dot 네온 글로우 (다크 배경에서 시인성 확보)
   dotGlow: string
-  // Hero 카드 배경 일러스트 (우측 배치, 좌측은 텍스트용 여백)
+  // 일정 상세 초대장(EventInvitation) 배경 일러스트
   bg: string
 }
 
@@ -71,19 +71,6 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     dotGlow: 'shadow-[0_0_6px_rgba(148,163,184,0.85)]',
     bg: '/images/events/other.webp',
   },
-}
-
-// Hero 배경 6장(총 ~140KB)을 페이지 진입 즉시 미리 받아둔다.
-// API 응답 후 카드가 렌더될 때야 다운로드가 시작돼 늦게 '툭' 뜨는 문제 방지.
-let bgPreloaded = false
-export const preloadCategoryBackgrounds = () => {
-  if (bgPreloaded || typeof window === 'undefined') return
-  bgPreloaded = true
-  for (const { bg } of Object.values(CATEGORY_VISUAL)) {
-    const img = new Image()
-    img.decoding = 'async'
-    img.src = bg
-  }
 }
 
 export const ALL_CATEGORIES: EventCategory[] = [

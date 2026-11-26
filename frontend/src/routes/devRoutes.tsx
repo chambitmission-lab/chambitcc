@@ -115,6 +115,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['greeting-portrait', () => import('../pages/dev/GreetingPortraitPreview')],
       // /events 일정 목록 감성 개편 시안 — ?v=a 쪽지|b 일력|c 게시판|d 다이어리
       ['events-board', () => import('../pages/dev/EventsBoardPreview')],
+      // /events 히어로를 우편엽서 목록과 맞추는 시안 — ?v=h1 봉투|h2 큰 사진|h3 초대장
+      ['events-hero', () => import('../pages/dev/EventsHeroPreview')],
     ]
   : []
 

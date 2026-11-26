@@ -134,3 +134,13 @@
   color: var(--wpc-paper);
   background: var(--wpc-accent);
 }
+
+/* 좁은 휴대폰 — 우편번호 칸을 줄여 '참빛 식구들에게'가 한 줄로 */
+@media (max-width: 400px) {
+  .wpc-zip { gap: 2px; }
+  .wpc-zip i { width: 12px; height: 16px; }
+}
+
+/* 히어로 사진 면 — 반듯하게 + 사진 위 손글씨 */
+.wpc-film-straight { transform: none; }
+.wpc-photo-label { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 14px rgba(0, 0, 0, 0.3); }
