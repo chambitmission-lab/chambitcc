@@ -57,8 +57,10 @@
  * 설교 날짜의 계절 사진(/visit scene-계절-day|night)을 깔고, 하늘 쪽(왼쪽)에 편지를 쓴다.
  * 라이트=낮, 다크=밤 사진. 스크림에 계절색을 섞어 흰 글씨를 받친다. */
 .sl-sky {
-  --sl-scrim: rgba(25, 45, 80, 0.62);
-  --sl-scrim-mid: rgba(40, 65, 110, 0.28);
+  /* 라이트 막은 /worship 히어로와 같은 옅은 남색 — 사진의 하늘이 그대로 보이게 (2026-11-26) */
+  --sl-scrim: rgba(10, 40, 90, 0.2);
+  --sl-scrim-mid: rgba(10, 40, 90, 0.05);
+  --sl-scrim-bottom: transparent;
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -71,11 +73,16 @@
   cursor: pointer;
   background: #1d3566; /* 사진이 오기 전 */
 }
-.sl-sky--spring { --sl-scrim: rgba(70, 50, 100, 0.62); --sl-scrim-mid: rgba(90, 70, 130, 0.3); background: #5a4f86; }
-.sl-sky--summer { --sl-scrim: rgba(8, 60, 110, 0.62); --sl-scrim-mid: rgba(20, 90, 150, 0.28); background: #1f5f9e; }
-.sl-sky--autumn { --sl-scrim: rgba(60, 40, 70, 0.62); --sl-scrim-mid: rgba(90, 60, 80, 0.28); background: #4f4a78; }
+.sl-sky--spring { background: #5a4f86; }
+.sl-sky--summer { background: #1f5f9e; }
+.sl-sky--autumn { background: #4f4a78; }
 .sl-sky--winter { background: #3e5a88; }
-[data-theme="dark"] .sl-sky { --sl-scrim: rgba(4, 8, 22, 0.72); --sl-scrim-mid: rgba(6, 12, 30, 0.35); background: #0b1630; }
+[data-theme="dark"] .sl-sky {
+  --sl-scrim: rgba(4, 8, 22, 0.72);
+  --sl-scrim-mid: rgba(6, 12, 30, 0.35);
+  --sl-scrim-bottom: rgba(0, 0, 0, 0.28);
+  background: #0b1630;
+}
 
 .sl-sky-photo,
 .sl-sky-fx { position: absolute; inset: 0; pointer-events: none; }
@@ -86,7 +93,7 @@
   inset: 0;
   background:
     linear-gradient(90deg, var(--sl-scrim) 0%, var(--sl-scrim-mid) 46%, transparent 74%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.28), transparent 40%);
+    linear-gradient(0deg, var(--sl-scrim-bottom), transparent 40%);
 }
 .sl-sky--spring .sl-sky-photo { background-image: url(/images/visit/scene-spring-day.webp); }
 .sl-sky--summer .sl-sky-photo { background-image: url(/images/visit/scene-summer-day.webp); }
@@ -166,7 +173,8 @@
   line-height: 1.75;
   word-break: keep-all;
   text-wrap: balance;
-  text-shadow: 0 1px 14px rgba(0, 10, 40, 0.55);
+  /* 막이 옅어진 만큼 글씨 그림자로 받친다 */
+  text-shadow: 0 1px 2px rgba(0, 20, 60, 0.35), 0 2px 16px rgba(0, 20, 60, 0.6);
 }
 .sl-sky-quote--empty { min-height: 40px; }
 .sl-sky-ref {
@@ -174,14 +182,16 @@
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.02em;
-  text-shadow: 0 1px 8px rgba(0, 10, 40, 0.5);
+  text-shadow: 0 1px 2px rgba(0, 20, 60, 0.4), 0 1px 10px rgba(0, 20, 60, 0.55);
 }
 .sl-sky-sign {
   margin-top: 2px;
   font-family: var(--sl-pen);
   font-size: 25px;
   opacity: 0.95;
+  text-shadow: 0 1px 2px rgba(0, 20, 60, 0.35), 0 1px 10px rgba(0, 20, 60, 0.5);
 }
+.sl-sky .sl-to { text-shadow: 0 1px 8px rgba(0, 20, 60, 0.45); }
 .sl-sky-actions {
   display: flex;
   flex-wrap: wrap;
@@ -202,7 +212,7 @@
 .sl-sky-btn--primary { border: 0; background: #fff; color: #1b4fae; }
 .sl-sky-btn--ghost {
   border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(10, 20, 40, 0.38);
+  background: rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: #fff;
@@ -212,6 +222,10 @@
 @media (max-width: 1023px) {
   .sl-sky-photo { background-position: 84% 50%; }
   .sl-sky-photo::after {
+    /* 글씨가 놓이는 아래쪽만 옅게 — 하늘은 사진 그대로 */
+    background: linear-gradient(0deg, rgba(10, 40, 90, 0.3) 0%, rgba(10, 40, 90, 0.18) 45%, transparent 75%);
+  }
+  [data-theme="dark"] .sl-sky-photo::after {
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, var(--sl-scrim) 55%, var(--sl-scrim) 100%);
   }
 }
