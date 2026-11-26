@@ -117,6 +117,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['events-board', () => import('../pages/dev/EventsBoardPreview')],
       // /events 히어로를 우편엽서 목록과 맞추는 시안 — ?v=h1 봉투|h2 큰 사진|h3 초대장
       ['events-hero', () => import('../pages/dev/EventsHeroPreview')],
+      // /events 달력 영역(달력+고른 날+다가오는 일정) 개편 시안 — ?v=a 벽달력|b 우표 시트|c 스티커판|d 일력
+      ['events-calendar', () => import('../pages/dev/EventsCalendarPreview')],
     ]
   : []
 
