@@ -86,6 +86,13 @@ export const news = {
   newsSidebarThisWeek: 'This week’s bulletin',
   newsSidebarShortcuts: 'Jump to a bulletin',
   newsSidebarOther: 'More sections',
+  newsPaperMasthead: 'Chambit Weekly',
+  newsPaperVolumeNo: 'Vol. {vol}\nNo. {no}',
+  newsPaperHeadline: 'Top story',
+  newsPaperSermons: 'This Sunday’s sermons',
+  newsPaperOpen: 'Open the full bulletin',
+  newsPaperIndex: 'In this issue',
+  newsPaperPast: 'Past issues',
 
   // ── News tab ─────────────────────────────────
   newsBoardTitle: 'Church News',

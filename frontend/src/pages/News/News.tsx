@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import type { Language, Translation } from '../../locales'
+import type { Translation } from '../../locales'
 import { useThemeArt } from '../../hooks/useThemeArt'
 import { NEWS_HERO, OFFERING_HERO, type ThemePair } from '../../utils/themeAssets'
 import { useQueryClient } from '@tanstack/react-query'
@@ -24,9 +24,7 @@ import NoticeArchiveSection from './components/NoticeArchiveSection'
 import NewFamilySection from './components/NewFamilySection'
 import EventAlbumSection from './components/EventAlbumSection'
 import OfferingSection from './components/OfferingSection'
-// 올해의 말씀 — 홈과 같은 쿼리(24h 캐시)라 /news에서 다시 불러오지 않는다
-import AnnualThemeVerse from '../Home/components/AnnualThemeVerse'
-import { formatLongDate } from '../../utils/dateUtils'
+import NewsPaperRail from './components/NewsPaperRail'
 import {
   MegaphoneIcon,
   NoticeBoardIcon,
@@ -36,8 +34,6 @@ import {
   OfferingBoxIcon,
   ImagePageIcon,
   ScreenPageIcon,
-  ArchiveIcon,
-  SparkleIcon,
   SignalIcon,
 } from './components/NewsIcons'
 
@@ -78,10 +74,6 @@ const isSectionKey = (value: string | null): value is SectionKey =>
   value === 'new-family' ||
   value === 'event-album' ||
   value === 'offering'
-
-const localeOf = (lang: Language) => (lang === 'en' ? 'en-US' : 'ko-KR')
-
-const formatBulletinDate = (date: string, lang: Language) => formatLongDate(date, localeOf(lang))
 
 
 /**
@@ -338,16 +330,16 @@ const News = () => {
         )}
       </div>
 
-      {/* 우측 위젯 레일 — 홈과 같은 문법(sticky). 본문이 어느 섹션이든
-          "이번 주 주보"로 한 번에 되돌아올 수 있는 길을 열어둔다 */}
+      {/* 우측 위젯 레일 — '참빛 주보 1면'(NewsPaperRail). 본문이 어느 섹션이든
+          이번 주 주보로 한 번에 되돌아올 수 있는 길을 열어둔다 */}
       {/* sticky top 은 본문 열의 실제 top(고정 헤더 56px + 컨테이너 lg:pt-3 12px = 68px)과
           같아야 한다. 72px(4.5rem)로 두면 sticky 가 정적 위치보다 아래로 밀어내서
           우측 열만 4px 내려앉는다 */}
       {/* 모든 탭이 같은 본문 폭을 쓴다 — 예전엔 디지털 주보만 레일을 숨겨 그 탭만 넓어졌다(2026-11-07) */}
       <aside className="rail-lift hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.25rem] lg:max-h-[calc((100dvh-5.25rem)/var(--az,1))] lg:overflow-y-auto scrollbar-hide lg:[&>*]:shrink-0">
-        <NewsSidebar
+        <NewsPaperRail
           bulletins={bulletins}
-          section={section}
+          sections={SECTIONS.filter(sec => sec.key !== section).map(sec => ({ key: sec.key, label: t(sec.labelKey), Icon: sec.Icon }))}
           openingId={openingId}
           onSectionChange={handleSectionChange}
           onBulletinClick={handleBulletinClick}
@@ -412,139 +404,6 @@ const TabPill = ({
   >
     {children}
   </button>
-)
-
-// ── Desktop Sidebar (lg+) ────────────────────────
-// 넓어진 화면의 우측을 채우는 보조 위젯 열. PC 전용이라 글씨는 어르신 기준(본문 15px+)으로 잡는다.
-// 새 API 없이 이미 받아둔 목록(useBulletins)과 캐시된 말씀만 재사용한다.
-const NewsSidebar = ({
-  bulletins,
-  section,
-  openingId,
-  onSectionChange,
-  onBulletinClick,
-}: {
-  bulletins: Bulletin[]
-  section: SectionKey
-  openingId: number | null
-  onSectionChange: (next: SectionKey) => void
-  onBulletinClick: (bulletin: Bulletin) => void
-}) => {
-  const { t, language } = useLanguage()
-  const latest = bulletins[0]
-  const recent = bulletins.slice(1, 6)
-
-  return (
-    <>
-      {/* 이번 주 주보 — 어느 섹션에 있든 최신 주보로 바로 들어가는 문 */}
-      {latest && (
-        <SidebarCard title={t('newsSidebarThisWeek')} Icon={BulletinIcon}>
-          <button
-            type="button"
-            onClick={() => onBulletinClick(latest)}
-            disabled={openingId === latest.id}
-            className={`group w-full text-left ${openingId === latest.id ? 'opacity-60' : ''}`}
-          >
-            <p className="text-[14.5px] font-semibold text-gray-500 dark:text-white/55">
-              {formatBulletinDate(latest.bulletin_date, language)}
-            </p>
-            <p className="mt-1 text-[17.5px] font-bold text-ink-strong leading-[1.4] line-clamp-2">
-              {latest.title}
-            </p>
-            <span className="mt-3 inline-flex items-center gap-1 h-11 px-5 rounded-full bg-brand text-white text-[15.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
-              {t('newsBulletinRead')}
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </span>
-          </button>
-        </SidebarCard>
-      )}
-
-      {/* 주보 바로가기 — 날짜만 훑고 바로 여는 얇은 목록 */}
-      {recent.length > 0 && (
-        <SidebarCard title={t('newsSidebarShortcuts')} Icon={ArchiveIcon}>
-          <ul className="-mx-1">
-            {recent.map(b => (
-              <li key={b.id}>
-                <button
-                  type="button"
-                  onClick={() => onBulletinClick(b)}
-                  disabled={openingId === b.id}
-                  className={`w-full flex items-center gap-2.5 px-1.5 py-2.5 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors ${
-                    openingId === b.id ? 'opacity-60' : ''
-                  }`}
-                >
-                  <span className="shrink-0 text-[14px] font-bold tabular-nums text-gray-500 dark:text-white/50">
-                    {new Date(b.bulletin_date).toLocaleDateString(localeOf(language), {
-                      month: 'numeric',
-                      day: 'numeric',
-                    })}
-                  </span>
-                  <span className="flex-1 min-w-0 truncate text-[15.5px] font-semibold text-ink-strong">
-                    {b.title}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </SidebarCard>
-      )}
-
-      {/* 다른 소식 — 세그먼트를 위로 올라가 누르지 않아도 되게 */}
-      <SidebarCard title={t('newsSidebarOther')} Icon={SparkleIcon}>
-        <div className="flex flex-col gap-1.5">
-          {SECTIONS.filter(sec => sec.key !== section).map(sec => (
-            <button
-              key={sec.key}
-              type="button"
-              onClick={() => onSectionChange(sec.key)}
-              className="flex items-center gap-2.5 h-12 px-3.5 rounded-xl border border-[var(--card-border)] text-[15.5px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
-            >
-              <sec.Icon width={19} height={19} className="shrink-0 text-brand" />
-              {t(sec.labelKey)}
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="ml-auto text-gray-400 dark:text-white/35"
-              >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          ))}
-        </div>
-      </SidebarCard>
-
-      {/* 올해의 말씀 — 소식을 다 읽고 내려온 시선이 머무는 자리 */}
-      <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm overflow-hidden">
-        <AnnualThemeVerse />
-      </div>
-    </>
-  )
-}
-
-const SidebarCard = ({
-  title,
-  Icon,
-  children,
-}: {
-  title: string
-  Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
-  children: React.ReactNode
-}) => (
-  <section className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-5">
-    <p className="flex items-center gap-1.5 mb-3 text-[14px] font-bold tracking-[0.02em] text-gray-600 dark:text-white/60">
-      <Icon width={17} height={17} className="shrink-0 text-brand" />
-      {title}
-    </p>
-    {children}
-  </section>
 )
 
 // ── Skeleton / Empty ─────────────────────────────

@@ -89,6 +89,13 @@ export const news = {
   newsSidebarThisWeek: '이번 주 주보',
   newsSidebarShortcuts: '주보 바로가기',
   newsSidebarOther: '다른 소식',
+  newsPaperMasthead: '참빛 주보',
+  newsPaperVolumeNo: '제{vol}권\n{no}호',
+  newsPaperHeadline: '머리기사',
+  newsPaperSermons: '이번 주일 말씀',
+  newsPaperOpen: '주보 전체 펼치기',
+  newsPaperIndex: '이번 호 차례',
+  newsPaperPast: '지난 호',
 
   // ── 소식 탭 ──────────────────────────────────
   newsBoardTitle: '교회소식',

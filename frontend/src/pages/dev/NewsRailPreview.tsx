@@ -693,11 +693,340 @@ const RailG = () => {
   )
 }
 
+// ═══ 3차 — E 신문 1면 다듬기 ════════════════════
+// "글자가 다 일정해서 보기 힘들다" → 크기·굵기·색·사진·숫자로 강약을 만든다
+
+const PAPER_INDEX = [
+  { label: '교회 소식', page: 2, Icon: MegaphoneIcon, fresh: true },
+  { label: '공지', page: 3, Icon: NoticeBoardIcon, fresh: true },
+  { label: '새가족', page: 4, Icon: SproutIcon, fresh: false },
+  { label: '행사 사진', page: 5, Icon: AlbumIcon, fresh: false },
+  { label: '헌금 안내', page: 6, Icon: OfferingBoxIcon, fresh: false },
+]
+const ORANGE = 'text-[#c2410c] dark:text-[#fb923c]'
+
+const Masthead = ({ tone = 'plain', motto = false }: { tone?: 'plain' | 'band'; motto?: boolean }) =>
+  tone === 'band' ? (
+    <div className="px-5 pt-4 pb-3.5 bg-[#1d2b4c] dark:bg-[#16213b] text-white">
+      <div className="flex items-end justify-between">
+        <p className="font-serif-kr text-[30px] font-bold tracking-[0.14em] leading-none">참빛 주보</p>
+        <p className="text-right text-[12.5px] font-bold leading-[1.35] text-white/85 tabular-nums">제33권<br />47호</p>
+      </div>
+      <p className="mt-2.5 pt-2 border-t border-white/25 text-[14px] font-bold text-white/90">2026년 11월 22일 주일</p>
+    </div>
+  ) : (
+    <div className="px-5 pt-4">
+      <div className="flex items-end justify-between">
+        <p className="font-serif-kr text-[30px] font-bold tracking-[0.14em] text-ink-strong leading-none">참빛 주보</p>
+        <p className="text-right text-[12.5px] font-bold leading-[1.35] text-ink-strong/75 tabular-nums">제33권<br />47호</p>
+      </div>
+      {motto && (
+        <p className="mt-2.5 text-center">
+          <span className="block text-[12px] font-extrabold tracking-[0.12em] text-[#a16207] dark:text-[#e5b75a]">2026 표어 · 에스겔 37:5, 10</span>
+          <span className="block mt-0.5 font-serif-kr text-[15.5px] font-bold text-ink-strong whitespace-nowrap">너희 마른 뼈들아, 이제 살아나리라!</span>
+        </p>
+      )}
+      <div className={`${motto ? 'mt-2' : 'mt-3'} border-t-[3px] border-double border-ink-strong/70`} />
+      <p className="py-1.5 text-[13.5px] font-bold text-ink-strong/80 border-b border-ink-strong/20">2026년 11월 22일 주일</p>
+    </div>
+  )
+
+const Kicker = ({ children, tone = 'orange' }: { children: ReactNode; tone?: 'orange' | 'blue' }) => (
+  <span
+    className={`inline-flex h-6 px-2 rounded-[4px] text-[12.5px] font-extrabold items-center ${
+      tone === 'orange' ? 'bg-[#c2410c] text-white dark:bg-[#ea7a3a]' : 'bg-brand text-white'
+    }`}
+  >
+    {children}
+  </span>
+)
+
+const PaperButton = () => (
+  <button className="w-full h-12 rounded-xl bg-brand text-white text-[16px] font-bold inline-flex items-center justify-center gap-1">
+    주보 전체 펼치기 <Chevron size={14} />
+  </button>
+)
+
+// ── E1 사진 있는 1면 ─────────────────────────────
+const RailE1 = () => {
+  useState(() => void ensureSerifKr())
+  return (
+    <>
+      <Card pad="p-0" className="overflow-hidden">
+        <Masthead />
+        <div className="px-5 pt-3">
+          <img src={ISSUES[0].cover} alt="" className="w-full h-[128px] object-cover object-[50%_20%] rounded-md" />
+          <p className="mt-1.5 text-[12.5px] font-semibold text-ink-strong/70">이번 호 표지 · 2026 표어 「마른 뼈들아, 살아나리라」</p>
+        </div>
+        <div className="px-5 pt-3.5">
+          <Kicker>머리기사</Kicker>
+          <p className="mt-2 font-serif-kr text-[24px] leading-[1.28] font-bold text-ink-strong">다음 주일, 직분자 선거 공동의회</p>
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            <span className="h-8 px-2.5 rounded-full bg-[#fff1e6] dark:bg-[#ea7a3a]/15 text-[#9a3412] dark:text-[#fdba74] text-[14px] font-extrabold inline-flex items-center">11월 29일 오전 11시</span>
+            <span className="h-8 px-2.5 rounded-full bg-gray-100 dark:bg-white/10 text-ink-strong text-[14px] font-extrabold inline-flex items-center">휴대폰 꼭 챙기기</span>
+          </div>
+        </div>
+        <div className="mx-5 mt-4 grid grid-cols-2 border-t border-ink-strong/20">
+          {[
+            { t: '특별새벽기도', s: '월~금 5:30', Icon: SparkleIcon },
+            { t: '세례·입교식', s: '함께 축하해요', Icon: SproutIcon },
+          ].map((x, n) => (
+            <div key={x.t} className={`pt-3 ${n === 0 ? 'pr-3 border-r border-ink-strong/20' : 'pl-3'}`}>
+              <x.Icon width={20} height={20} className="text-brand" />
+              <p className="mt-1 text-[16px] font-extrabold text-ink-strong leading-snug">{x.t}</p>
+              <p className="text-[14px] font-semibold text-ink-strong/75">{x.s}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mx-5 mt-4 rounded-xl bg-[var(--brand-soft)] p-4">
+          <p className="font-serif-kr text-[16px] font-bold text-brand">이번 주일 말씀</p>
+          <ul className="mt-2 flex flex-col gap-2.5">
+            {SERMONS.map(s => (
+              <li key={s.title}>
+                <p className="font-serif-kr text-[18px] font-bold text-ink-strong leading-snug">{s.title}</p>
+                <p className="text-[13.5px] font-semibold text-ink-strong/75">{s.ref}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="p-5 pt-4"><PaperButton /></div>
+      </Card>
+
+      <Card>
+        <p className="font-serif-kr text-[18px] font-bold text-ink-strong mb-1.5">이번 호 차례</p>
+        {PAPER_INDEX.map(x => (
+          <button key={x.label} className="w-full flex items-center gap-2.5 py-2 text-left group">
+            <span className="grid place-items-center w-9 h-9 rounded-full bg-[var(--brand-soft)] text-brand shrink-0"><x.Icon width={18} height={18} /></span>
+            <span className="text-[16px] font-bold text-ink-strong group-hover:text-brand">{x.label}</span>
+            {x.fresh && <span className="h-5 px-1.5 rounded-full bg-[#f04452] text-white text-[11.5px] font-bold grid place-items-center">새 글</span>}
+            <span className="flex-1 border-b-2 border-dotted border-ink-strong/20" />
+            <span className="font-serif-kr text-[15px] font-bold text-ink-strong/80">{x.page}면</span>
+          </button>
+        ))}
+      </Card>
+
+      <Card>
+        <p className="font-serif-kr text-[18px] font-bold text-ink-strong mb-2">지난 호</p>
+        <div className="grid grid-cols-4 gap-2">
+          {ISSUES.slice(1, 5).map(i => (
+            <button key={i.id} className="text-center">
+              <img src={i.cover} alt="" className="w-full aspect-[480/717] object-cover rounded-[3px] shadow-[0_4px_10px_-4px_rgba(0,0,0,.4)]" />
+              <span className="block mt-1 text-[14px] font-extrabold text-ink-strong">{i.md.replace(/\.$/, '')}</span>
+              <span className="block text-[12.5px] font-bold text-ink-strong/70">{i.no}호</span>
+            </button>
+          ))}
+        </div>
+      </Card>
+      <Verse />
+    </>
+  )
+}
+
+// ── E2 큰 숫자 1면 ───────────────────────────────
+// 신문 활자 위에 날짜·시간·면 번호만 크게 — 숫자가 눈의 디딤돌이 된다
+const VerseColumn = () => (
+  <Card>
+    <div className="border-y-[3px] border-double border-ink-strong/60 py-3.5 text-center">
+      <p className="text-[12.5px] font-extrabold tracking-[0.12em] text-[#a16207] dark:text-[#e5b75a]">2026 올해의 표어</p>
+      <p className="mt-2 font-serif-kr text-[21px] leading-[1.4] font-bold text-ink-strong">
+        너희 마른 뼈들아,
+        <br />
+        이제 살아나리라!
+      </p>
+      <p className="mt-1.5 text-[13.5px] font-bold text-ink-strong/75">에스겔 37:5, 10</p>
+    </div>
+    <button className="mt-2.5 w-full text-center text-[14px] font-bold text-brand">말씀 카드로 보내기 ›</button>
+  </Card>
+)
+
+const RailE2 = ({ verse = 'gold' }: { verse?: 'gold' | 'motto' | 'column' | 'none' }) => {
+  useState(() => void ensureSerifKr())
+  return (
+    <>
+      <Card pad="p-0" className="overflow-hidden">
+        <Masthead motto={verse === 'motto'} />
+        <div className="px-5 pt-3.5">
+          <Kicker>머리기사</Kicker>
+          <div className="mt-2.5 flex gap-3.5">
+            <div className="shrink-0 w-[68px] rounded-xl bg-[#fff1e6] dark:bg-[#ea7a3a]/15 py-2 text-center">
+              <p className={`text-[13px] font-extrabold ${ORANGE}`}>11월</p>
+              <p className={`font-serif-kr text-[38px] leading-none font-bold tabular-nums ${ORANGE}`}>29</p>
+              <p className={`mt-1 text-[13px] font-extrabold ${ORANGE}`}>주일</p>
+            </div>
+            <div className="min-w-0">
+              <p className="font-serif-kr text-[21px] leading-[1.3] font-bold text-ink-strong break-keep">직분자 선거 공동의회</p>
+              <p className="mt-1 text-[15px] font-bold text-ink-strong">오전 11시 통합예배 후</p>
+              <p className="text-[14px] font-semibold text-ink-strong/80">전자투표 — 휴대폰을 꼭 챙기세요</p>
+            </div>
+          </div>
+        </div>
+        <div className="mx-5 mt-4 border-t border-ink-strong/20 pt-3 flex items-center gap-3">
+          <p className="font-serif-kr text-[30px] leading-none font-bold text-ink-strong tabular-nums">5:30</p>
+          <div>
+            <p className="text-[16px] font-extrabold text-ink-strong">특별새벽기도</p>
+            <p className="text-[14px] font-semibold text-ink-strong/80">월~금 · 본당 · 내일 마지막</p>
+          </div>
+        </div>
+        <div className="mx-5 mt-4 border-t-[3px] border-double border-ink-strong/50 pt-3">
+          <p className="font-serif-kr text-[16px] font-bold text-ink-strong">이번 주일 말씀</p>
+          <ul className="mt-1">
+            {SERMONS.map(s => (
+              <li key={s.title} className="flex gap-3 py-2 border-b border-ink-strong/10 last:border-0">
+                <span className="shrink-0 w-[58px] font-serif-kr text-[17px] font-bold text-brand tabular-nums leading-tight">{s.time.split(' · ')[0]}</span>
+                <span className="min-w-0">
+                  <span className="block text-[16.5px] font-extrabold text-ink-strong leading-snug">{s.title}</span>
+                  <span className="block text-[13.5px] font-semibold text-ink-strong/75">{s.ref}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="p-5 pt-3"><PaperButton /></div>
+      </Card>
+
+      <Card>
+        <p className="font-serif-kr text-[18px] font-bold text-ink-strong mb-1">이번 호 차례</p>
+        {PAPER_INDEX.map(x => (
+          <button key={x.label} className="w-full flex items-center gap-3 py-1.5 text-left group">
+            <span className="w-9 font-serif-kr text-[26px] font-bold text-ink-strong/30 group-hover:text-brand tabular-nums leading-none text-center">{x.page}</span>
+            <span className="text-[16.5px] font-bold text-ink-strong">{x.label}</span>
+            {x.fresh && <span className="ml-auto h-5 px-1.5 rounded-full bg-[#f04452] text-white text-[11.5px] font-bold grid place-items-center">새 글</span>}
+          </button>
+        ))}
+      </Card>
+
+      <Card>
+        <p className="font-serif-kr text-[18px] font-bold text-ink-strong mb-1">지난 호</p>
+        {ISSUES.slice(1, 5).map(i => (
+          <button key={i.id} className="w-full flex items-center gap-3 py-2 border-b border-ink-strong/10 last:border-0 text-left">
+            <span className="font-serif-kr text-[24px] font-bold text-ink-strong/30 w-10 tabular-nums leading-none">{i.no}</span>
+            <span className="text-[16px] font-bold text-ink-strong">{i.date}</span>
+            <Chevron className="ml-auto text-ink-strong/40" />
+          </button>
+        ))}
+      </Card>
+      {verse === 'gold' && <Verse />}
+      {verse === 'column' && <VerseColumn />}
+    </>
+  )
+}
+
+// ── E3 색 띠 1면 ─────────────────────────────────
+// 제호는 남색 띠, 머리기사는 따뜻한 종이색, 말씀은 하늘색 — 단마다 바탕색이 달라 어디를 읽는지 바로 안다
+const RailE3 = () => {
+  useState(() => void ensureSerifKr())
+  return (
+    <>
+      <Card pad="p-0" className="overflow-hidden">
+        <Masthead tone="band" />
+        <div className="px-5 py-4 bg-[#fff6ec] dark:bg-[#ea7a3a]/10">
+          <Kicker>머리기사</Kicker>
+          <p className="mt-2 font-serif-kr text-[23px] leading-[1.28] font-bold text-ink-strong">다음 주일, 직분자 선거 공동의회</p>
+          <p className="mt-2 text-[16px] font-extrabold text-[#9a3412] dark:text-[#fdba74]">11월 29일 오전 11시</p>
+          <p className="text-[14.5px] font-semibold text-ink-strong/85">전자투표라 휴대폰을 꼭 챙기세요</p>
+        </div>
+        <div className="px-5 py-3.5 grid grid-cols-2">
+          <div className="pr-3 border-r border-ink-strong/15">
+            <p className="text-[12.5px] font-extrabold text-ink-strong/65">단신</p>
+            <p className="mt-0.5 text-[16px] font-extrabold text-ink-strong leading-snug">특별새벽기도</p>
+            <p className="text-[14px] font-semibold text-ink-strong/80">월~금 5:30</p>
+          </div>
+          <div className="pl-3">
+            <p className="text-[12.5px] font-extrabold text-ink-strong/65">단신</p>
+            <p className="mt-0.5 text-[16px] font-extrabold text-ink-strong leading-snug">세례·입교식</p>
+            <p className="text-[14px] font-semibold text-ink-strong/80">함께 축하해요</p>
+          </div>
+        </div>
+        <div className="px-5 py-4 bg-[var(--brand-soft)]">
+          <Kicker tone="blue">이번 주일 말씀</Kicker>
+          <ul className="mt-2.5 flex flex-col gap-2.5">
+            {SERMONS.map(s => (
+              <li key={s.title} className="border-l-[3px] border-brand pl-3">
+                <p className="font-serif-kr text-[18px] font-bold text-ink-strong leading-snug">{s.title}</p>
+                <p className="text-[13.5px] font-semibold text-ink-strong/75">{s.ref}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="p-5 pt-4"><PaperButton /></div>
+      </Card>
+
+      <Card pad="p-0" className="overflow-hidden">
+        <p className="px-5 py-3 bg-[#1d2b4c] dark:bg-[#16213b] font-serif-kr text-[17px] font-bold text-white">이번 호 차례</p>
+        <div className="p-3 flex flex-col gap-1.5">
+          {PAPER_INDEX.map(x => (
+            <button key={x.label} className="relative flex items-center gap-2.5 h-12 px-3.5 rounded-xl border border-[var(--card-border)] hover:border-brand text-left">
+              <x.Icon width={20} height={20} className="text-brand shrink-0" />
+              <span className="text-[15.5px] font-bold text-ink-strong">{x.label}</span>
+              <span className="ml-auto font-serif-kr text-[13.5px] font-bold text-ink-strong/60">{x.page}면</span>
+              {x.fresh && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#f04452]" />}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <p className="font-serif-kr text-[18px] font-bold text-ink-strong mb-1">지난 호</p>
+        {ISSUES.slice(1, 5).map(i => (
+          <button key={i.id} className="w-full flex items-center gap-3 py-2 border-b border-ink-strong/10 last:border-0 text-left">
+            <img src={i.cover} alt="" className="w-8 h-11 object-cover rounded-[2px] shadow-sm" />
+            <span className="text-[16px] font-bold text-ink-strong">{i.date}</span>
+            <span className="ml-auto text-[13.5px] font-bold text-ink-strong/70 tabular-nums">{i.no}호</span>
+          </button>
+        ))}
+      </Card>
+      <Verse />
+    </>
+  )
+}
+
 const VARIANTS = [
+  {
+    key: 'v-gold',
+    label: '말씀 · 지금(금빛 카드)',
+    note: 'E2 아래에 지금 금빛 카드 그대로. 홈·다른 화면과 같은 컴포넌트라 익숙하지만, 신문 활자 아래에서 혼자 다른 재질(금빛·그라데이션)이라 따로 노는 느낌.',
+    Rail: () => <RailE2 verse="gold" />,
+  },
+  {
+    key: 'v-motto',
+    label: '말씀 · 제호 아래 표어 줄',
+    note: '신문 제호 밑에 붙는 "사시(社是)" 한 줄처럼 — "참빛 주보" 바로 아래 2026 표어를 한 줄로. 카드 하나가 줄어 레일이 짧아지고, 주보를 열 때마다 표어를 먼저 보게 돼요. 실제 종이 주보 표지에도 표어가 있어 자연스러워요.',
+    Rail: () => <RailE2 verse="motto" />,
+  },
+  {
+    key: 'v-column',
+    label: '말씀 · 신문 끝 칼럼',
+    note: '자리는 그대로, 재질만 신문으로 — 위아래 겹줄 사이에 명조 표어, 금빛은 꼬리표 글자에만. 레일 맨 끝을 조용히 닫는 마지막 단처럼. 말씀 카드 보내기는 글자 링크로.',
+    Rail: () => <RailE2 verse="column" />,
+  },
+  {
+    key: 'v-none',
+    label: '말씀 · 빼기',
+    note: '표어는 표지·홈·/about에 이미 있어서 여기선 뺀다. 레일이 차례·지난 호에서 끝나 가장 간결. 대신 올해 표어를 주보 화면에서 볼 기회는 줄어요.',
+    Rail: () => <RailE2 verse="none" />,
+  },
   { key: 'now', label: '지금', note: '날짜가 두 번 반복되고, 목록 셋이 모두 비슷한 모양이라 눈이 머물 곳이 없어요.', Rail: RailNow },
   {
+    key: 'e1',
+    label: 'E1 사진 있는 1면',
+    note: '신문 1면엔 사진이 있다 — 이번 호 표지 사진을 보도 사진처럼. 머리기사는 24px 명조 + 날짜·준비물 알약. 단신은 아이콘, 말씀은 하늘색 상자로 묶고, 차례엔 아이콘·새 글 표시. 지난 호는 표지 4장.',
+    Rail: RailE1,
+  },
+  {
+    key: 'e2',
+    label: 'E2 큰 숫자 1면',
+    note: '글은 그대로 두고 숫자만 크게 — 머리기사 옆 "29 주일" 날짜 블록, 새벽기도 "5:30", 설교는 예배 시간, 차례·지난 호는 큰 면 번호·호수. 숫자가 눈의 디딤돌이 돼서 훑어보기 쉬워요.',
+    Rail: RailE2,
+  },
+  {
+    key: 'e3',
+    label: 'E3 색 띠 1면',
+    note: '단마다 바탕색이 달라요 — 제호는 남색 띠, 머리기사는 따뜻한 종이색, 말씀은 하늘색(설교마다 파란 줄). 차례도 남색 머리띠 + 아이콘 줄. 어디를 읽고 있는지 색으로 바로 알 수 있어요.',
+    Rail: RailE3,
+  },
+  {
     key: 'e',
-    label: 'E 참빛 신문 1면',
+    label: 'E 참빛 신문 1면(2차)',
     note: '주보를 교회 신문처럼 — 명조 제호 "참빛 주보", 머리기사(공동의회)·단신 두 칸·이번 주일 말씀 세 편. 다른 소식은 "이번 호 차례"의 면(2면 소식, 3면 공지…)이 되고, 지난 주보는 "지난 호".',
     Rail: RailE,
   },
@@ -743,13 +1072,13 @@ const NewsRailPreview = () => {
   const [params, setParams] = useSearchParams()
   const { theme, toggleTheme } = useTheme()
   const v = params.get('v') ?? 'all'
-  const shown = v === 'all' ? VARIANTS.filter(x => 'nowefg'.includes(x.key)) : v === 'old' ? VARIANTS.filter(x => !'efg'.includes(x.key)) : VARIANTS.filter(x => x.key === v)
+  const shown = v === 'all' ? VARIANTS.filter(x => x.key.startsWith('v-')) : v === 'v3' ? VARIANTS.filter(x => ['now', 'e', 'e1', 'e2', 'e3'].includes(x.key)) : v === 'old' ? VARIANTS.filter(x => ['now', 'a', 'b', 'c', 'd'].includes(x.key)) : v === 'v2' ? VARIANTS.filter(x => ['now', 'e', 'f', 'g'].includes(x.key)) : VARIANTS.filter(x => x.key === v)
 
   return (
     <div className="min-h-screen bg-[#f2f4f6] dark:bg-[#121212] px-6 py-6">
       <div className="flex flex-wrap items-center gap-2 mb-5">
         <h1 className="text-[18px] font-extrabold text-ink-strong mr-3">/news 오른쪽 레일 시안</h1>
-        {[{ key: 'all', label: '2차 나란히' }, { key: 'old', label: '1차 나란히' }, ...VARIANTS].map(x => (
+        {[{ key: 'all', label: '4차 올해의 말씀' }, { key: 'v3', label: '3차 E 다듬기' }, { key: 'v2', label: '2차 나란히' }, { key: 'old', label: '1차 나란히' }, ...VARIANTS].map(x => (
           <button
             key={x.key}
             onClick={() => setParams({ v: x.key })}
