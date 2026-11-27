@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { createPortal } from 'react-dom'
 import type { HighlightColor, VerseBookmark } from '../../../api/bibleBookmark'
@@ -32,6 +32,15 @@ const COLORS: { value: HighlightColor; label: string; bg: string }[] = [
   { value: 'blue', label: '파랑', bg: HIGHLIGHT_COLOR_BG.blue },
   { value: 'green', label: '초록', bg: HIGHLIGHT_COLOR_BG.green },
 ]
+
+/** 빈 메모에서 첫 문장을 열어 주는 말머리 — 누르면 그 말로 시작한다 */
+const STARTERS: { label: string; text: string }[] = [
+  { label: '마음에 남은 말', text: '마음에 남은 말: ' },
+  { label: '오늘 나에게', text: '오늘 나에게 주시는 말씀은 ' },
+  { label: '기도로 바꾸면', text: '주님, ' },
+]
+
+const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
 
 const VerseBookmarkModal = ({
   verseId,
@@ -79,174 +88,241 @@ const VerseBookmarkModal = ({
 
   const isBusy = upsert.isPending || del.isPending
   const charCount = note.length
+  // 아무것도 고르지 않은 새 노트는 저장할 게 없다
+  const isEmpty = color === null && !note.trim() && !isFavorite
+  const canSave = !isBusy && (!!existing || !isEmpty)
+  // 쓰던 메모가 있으면 바깥을 잘못 눌러도 닫히지 않는다(닫기·취소·Esc 로만)
+  const noteDirty = note !== (existing?.note ?? '')
+
+  const noteRef = useRef<HTMLTextAreaElement>(null)
+  // PC 에서는 열자마자 바로 쓸 수 있게 — 모바일은 키보드가 말씀을 가리므로 그대로 둔다
+  useEffect(() => {
+    if (!window.matchMedia?.('(min-width: 1024px)').matches) return
+    const el = noteRef.current
+    if (!el) return
+    el.focus({ preventScroll: true })
+    el.setSelectionRange(el.value.length, el.value.length)
+  }, [])
+
+  // Ctrl/⌘+Enter 저장 — 메모 칸 밖(색을 고른 직후 등)에서도 듣는다
+  const saveRef = useRef<() => void>(() => {})
+  useEffect(() => {
+    saveRef.current = () => {
+      if (canSave) void handleSave()
+    }
+  })
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        saveRef.current()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // 삭제는 형광펜·메모·즐겨찾기를 통째로 지운다 — 한 번 더 눌러야 실행
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  useEffect(() => {
+    if (!confirmDelete) return
+    const t = setTimeout(() => setConfirmDelete(false), 3500)
+    return () => clearTimeout(t)
+  }, [confirmDelete])
+
+  const startWith = (text: string) => {
+    setNote(text)
+    requestAnimationFrame(() => {
+      const el = noteRef.current
+      if (!el) return
+      el.focus()
+      el.setSelectionRange(text.length, text.length)
+    })
+  }
 
   return createPortal(
     <div
       className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/60 sheet-backdrop sm:p-4 overflow-hidden"
-      onClick={onClose}
+      onClick={noteDirty ? undefined : onClose}
     >
       <div
-        className="pc-scale-sheet relative w-full sm:max-w-md lg:max-w-[920px] lg:h-[580px] sheet-rise max-h-[94dvh] sm:max-h-[90dvh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className="pc-scale-sheet relative w-full sm:max-w-md lg:max-w-[880px] lg:h-[540px] sheet-rise max-h-[94dvh] sm:max-h-[90dvh] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border border-[var(--card-border)] shadow-[0_-12px_40px_rgba(0,0,0,0.35)] sm:shadow-[0_24px_64px_rgba(0,0,0,0.45)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${verseReference} 묵상 노트`}
       >
-        {/* 카드 표면 그라데이션 + 글로우 */}
-        <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-
-        {/* 헤더 */}
-        <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
-            <span className="material-icons-round text-[22px]">edit_note</span>
-          </div>
+        {/* 헤더 — 장식 없이 어느 절인지만 */}
+        <div className="relative shrink-0 flex items-center gap-3 pl-6 pr-4 pt-5 pb-3 lg:pl-8 lg:pr-5 lg:pt-6">
+          <SheetGrabber onClose={onClose} className="w-9 h-1 rounded-full bg-[var(--text-muted)]/40 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div className="min-w-0 flex-1">
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
-              묵상 노트
-            </p>
-            <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
+            <p className="text-brand text-[11px] font-bold tracking-[0.14em]">묵상 노트</p>
+            <h3 className="text-ink-strong text-[19px] lg:text-[21px] font-bold tracking-[-0.025em] truncate">
               {verseReference}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors shrink-0"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-ink-muted hover:bg-[var(--surface-inset)] transition-colors shrink-0"
             aria-label="닫기"
           >
-            <span className="material-icons-round text-[20px]">close</span>
+            <span className="material-icons-round text-[22px]">close</span>
           </button>
         </div>
 
-        {/* 본문 — PC(lg+)는 2단: 왼쪽 말씀·색·즐겨찾기 / 오른쪽 메모가 높이 전체를 쓴다.
-            모바일 DOM 순서(말씀→색→메모→즐겨찾기)는 그대로 두고 grid 배치로만 옮긴다 */}
-        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-5 py-5 space-y-5 lg:space-y-0 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:grid-rows-[auto_auto_1fr_auto] lg:gap-x-8 lg:gap-y-6 lg:px-8 lg:py-7">
-          {/* 말씀 본문 — PC는 고른 형광펜 색을 미리 칠해 보여준다 */}
-          <div className="rounded-xl border-l-[3px] border-brand bg-gray-50 dark:bg-white/[0.03] px-4 py-3 text-[14.5px] leading-[1.7] text-gray-700 dark:text-white/80 lg:col-start-1 lg:row-start-1 lg:px-5 lg:py-5 lg:text-[17px] lg:leading-[1.85] lg:max-h-[240px] lg:overflow-y-auto">
+        {/* 본문 — PC(lg+)는 2단: 왼쪽은 말씀과 표시(형광펜·즐겨찾기), 오른쪽은 메모가 높이 전체.
+            모바일은 말씀 → 표시 → 메모 순서로 한 줄기 */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-2 pb-5 flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:grid-rows-[minmax(0,1fr)_auto] lg:gap-x-7 lg:gap-y-5 lg:px-8 lg:pb-6 lg:overflow-hidden">
+          {/* 말씀 — 고른 형광펜 색이 그 자리에서 칠해진다(본문에 보일 모습 그대로) */}
+          <blockquote
+            className="m-0 rounded-[20px] bg-[var(--surface-inset)] px-5 py-4 text-[16px] leading-[1.9] text-ink lg:col-start-1 lg:row-start-1 lg:px-6 lg:py-5 lg:text-[18px] lg:leading-[2] lg:overflow-y-auto"
+            style={{ fontFamily: "var(--bible-font-family, 'Noto Serif KR', 'Nanum Myeongjo', serif)" }}
+          >
             <span
-              className="lg:rounded-[3px] lg:[box-decoration-break:clone] lg:[-webkit-box-decoration-break:clone] lg:px-0.5 lg:transition-colors lg:bg-[var(--hl-preview)]"
-              style={color ? ({ '--hl-preview': `color-mix(in srgb, ${HIGHLIGHT_COLOR_BG[color]} 34%, transparent)` } as CSSProperties) : undefined}
+              className="rounded-[4px] [box-decoration-break:clone] [-webkit-box-decoration-break:clone] px-0.5 transition-colors duration-300"
+              style={{
+                backgroundColor: color
+                  ? `color-mix(in srgb, ${HIGHLIGHT_COLOR_BG[color]} 38%, transparent)`
+                  : 'transparent',
+              } as CSSProperties}
             >
               {verseText}
             </span>
-          </div>
+          </blockquote>
 
-          {/* 하이라이트 색상 */}
-          <div className="lg:col-start-1 lg:row-start-2">
-            <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em] mb-2">
-              하이라이트 색상
-            </p>
-            <div className="flex gap-2 flex-wrap items-center">
-              {COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setColor(c.value)}
-                  className={`w-9 h-9 rounded-full transition-transform ${
-                    color === c.value
-                      ? 'ring-2 ring-offset-2 ring-brand dark:ring-offset-card-dark scale-110'
-                      : 'ring-1 ring-black/5 dark:ring-white/10'
-                  }`}
-                  style={{ backgroundColor: c.bg }}
-                  title={c.label}
-                />
-              ))}
+          {/* 표시 — 형광펜 색과 즐겨찾기를 한 줄에 */}
+          <div className="flex items-center justify-between gap-3 flex-wrap lg:col-start-1 lg:row-start-2">
+            <div className="flex items-center gap-2.5" role="group" aria-label="형광펜 색">
+              {COLORS.map((c) => {
+                const on = color === c.value
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setColor(c.value)}
+                    aria-label={`형광펜 ${c.label}`}
+                    aria-pressed={on}
+                    title={c.label}
+                    className={`w-9 h-9 rounded-full grid place-items-center transition-transform duration-200 ${
+                      on ? 'scale-[1.14] ring-2 ring-black/20 dark:ring-white/45' : 'ring-1 ring-black/[0.06] dark:ring-white/10 hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: c.bg }}
+                  >
+                    <span
+                      className={`material-icons-round text-[18px] text-black/60 transition-opacity ${on ? 'opacity-100' : 'opacity-0'}`}
+                      aria-hidden
+                    >
+                      check
+                    </span>
+                  </button>
+                )
+              })}
               <button
                 type="button"
                 onClick={() => setColor(null)}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                aria-label="형광펜 없이"
+                aria-pressed={color === null}
+                title="형광펜 없이"
+                className={`w-9 h-9 rounded-full grid place-items-center transition-colors ${
                   color === null
-                    ? 'ring-2 ring-offset-2 ring-brand dark:ring-offset-card-dark bg-gray-100 dark:bg-white/[0.08]'
-                    : 'ring-1 ring-black/10 dark:ring-white/15 text-gray-400 dark:text-white/40'
+                    ? 'bg-[var(--surface-inset)] text-ink ring-2 ring-black/20 dark:ring-white/45'
+                    : 'text-ink-muted ring-1 ring-black/10 dark:ring-white/15 hover:bg-[var(--surface-inset)]'
                 }`}
-                title="색상 제거"
               >
-                <span className="material-icons-round text-[18px]">block</span>
+                <span className="material-icons-round text-[18px]" aria-hidden>block</span>
               </button>
             </div>
-          </div>
 
-          {/* 묵상 메모 */}
-          <div className="lg:col-start-2 lg:row-start-1 lg:row-span-4 lg:flex lg:flex-col lg:min-h-0">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
-                묵상 메모 <span className="font-medium text-gray-400 dark:text-white/40">(선택)</span>
-              </p>
-              <span className="text-[11px] text-gray-400 dark:text-white/35">{charCount} / 2000</span>
-            </div>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value.slice(0, 2000))}
-              onKeyDown={(e) => {
-                // PC: Ctrl/⌘+Enter 로 바로 저장
-                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !isBusy) {
-                  e.preventDefault()
-                  void handleSave()
-                }
-              }}
-              rows={5}
-              placeholder="이 구절이 마음에 와닿은 이유나 받은 은혜를 적어보세요..."
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-y min-h-[120px] focus:outline-none focus:border-brand transition-colors lg:flex-1 lg:min-h-0 lg:resize-none lg:px-5 lg:py-4 lg:text-[16px] lg:leading-[1.8] lg:rounded-2xl"
-            />
-          </div>
-
-          {/* 즐겨찾기 토글 */}
-          <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl lg:col-start-1 lg:row-start-4 bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
-            <div className="min-w-0">
-              <p className="text-[13.5px] font-bold text-ink-strong">
-                ⭐ 즐겨찾기에 추가
-              </p>
-              <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
-                내 프로필 묵상 노트에서 모아볼 수 있어요
-              </p>
-            </div>
             <button
               type="button"
-              role="switch"
-              aria-checked={isFavorite}
+              aria-pressed={isFavorite}
               onClick={() => setIsFavorite((v) => !v)}
-              className={`relative shrink-0 w-12 h-7 rounded-full transition-colors ${
+              title="내 프로필 묵상 노트에서 모아볼 수 있어요"
+              className={`inline-flex items-center gap-1 h-9 pl-2.5 pr-3.5 rounded-full text-[13px] font-bold transition-colors ${
                 isFavorite
-                  ? 'bg-brand'
-                  : 'bg-gray-300 dark:bg-white/[0.1]'
+                  ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300'
+                  : 'bg-[var(--surface-inset)] text-ink-muted hover:text-ink'
               }`}
             >
               <span
-                className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${
-                  isFavorite ? 'translate-x-5' : 'translate-x-0'
+                className={`material-icons-round text-[18px] transition-transform duration-200 ${
+                  isFavorite ? 'text-amber-500 scale-110' : 'opacity-50'
                 }`}
-              />
+                aria-hidden
+              >
+                star
+              </span>
+              {isFavorite ? '즐겨찾기에 담음' : '즐겨찾기'}
             </button>
+          </div>
+
+          {/* 메모 */}
+          <div className="relative flex flex-col lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:min-h-0">
+            <textarea
+              ref={noteRef}
+              value={note}
+              onChange={(e) => setNote(e.target.value.slice(0, 2000))}
+              rows={5}
+              aria-label="묵상 메모"
+              placeholder="이 말씀이 마음에 닿은 까닭을 적어 보세요"
+              className="w-full px-4 pt-3.5 pb-12 rounded-[20px] border border-[var(--card-border)] bg-transparent text-[15px] leading-[1.75] text-ink-strong placeholder:text-ink-muted resize-none min-h-[150px] focus:outline-none focus:border-brand transition-colors lg:flex-1 lg:min-h-0 lg:px-5 lg:pt-4 lg:text-[16.5px] lg:leading-[1.85]"
+            />
+            {/* 칸 아래쪽 — 비어 있으면 말머리, 쓰기 시작하면 글자 수 */}
+            <div className="absolute inset-x-3 bottom-2.5 flex items-center gap-1.5 pointer-events-none">
+              {note.trim() === '' &&
+                STARTERS.map((st) => (
+                  <button
+                    key={st.label}
+                    type="button"
+                    onClick={() => startWith(st.text)}
+                    className="pointer-events-auto h-8 px-3 rounded-full bg-[var(--surface-inset)] text-[12.5px] font-semibold text-ink-muted hover:text-brand transition-colors whitespace-nowrap"
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              {note.trim() !== '' && (
+                <span
+                  className={`ml-auto pr-1.5 text-[11.5px] tabular-nums ${
+                    charCount >= 1900 ? 'text-red-500 font-bold' : 'text-ink-muted'
+                  }`}
+                >
+                  {charCount} / 2000
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* 푸터 */}
-        <div className="relative z-10 sticky bottom-0 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
-          {existing ? (
+        <div className="shrink-0 border-t border-[var(--card-border)] px-5 py-3 lg:px-7 flex items-center gap-2">
+          {existing && (
             <button
-              onClick={handleDelete}
+              onClick={confirmDelete ? handleDelete : () => setConfirmDelete(true)}
               disabled={isBusy}
-              className="inline-flex items-center gap-1 px-3 h-11 rounded-full text-[13px] font-bold text-red-600 dark:text-red-300 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+              className={`inline-flex items-center gap-1 px-3 h-11 rounded-full text-[13px] font-bold transition-colors disabled:opacity-50 ${
+                confirmDelete
+                  ? 'bg-red-500/12 text-red-600 dark:text-red-300'
+                  : 'text-ink-muted hover:text-red-600 dark:hover:text-red-300 hover:bg-red-500/10'
+              }`}
             >
               <span className="material-icons-round text-[18px]">delete_outline</span>
-              삭제
+              {confirmDelete ? '한 번 더 누르면 지워져요' : '삭제'}
             </button>
-          ) : (
-            <div />
           )}
-          <span className="hidden lg:inline text-[11.5px] text-gray-400 dark:text-white/35 ml-auto mr-1">
-            Ctrl + Enter 로 저장
+          <span className="hidden lg:inline text-[12px] text-ink-muted ml-auto mr-1">
+            {IS_MAC ? '⌘' : 'Ctrl'} + Enter 로 저장
           </span>
           <button
             onClick={onClose}
             disabled={isBusy}
-            className="ml-auto lg:ml-0 px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+            className="ml-auto lg:ml-0 px-4 h-11 rounded-full text-ink text-[14px] font-semibold hover:bg-[var(--surface-inset)] transition-colors disabled:opacity-50"
           >
             취소
           </button>
           <button
             onClick={handleSave}
-            disabled={isBusy}
-            className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            disabled={!canSave}
+            className="inline-flex items-center gap-1.5 px-6 h-11 rounded-full bg-brand text-white text-[14px] font-bold transition-opacity disabled:opacity-35 disabled:cursor-not-allowed"
           >
             <span className="material-icons-round text-[18px]">{isBusy ? 'hourglass_empty' : 'check'}</span>
             {isBusy ? '저장 중...' : '저장'}

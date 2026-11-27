@@ -903,3 +903,18 @@
     animation: none;
   }
 }
+
+/* ── 말씀 해석 패널 (PC) — 집중 읽기 안에서는 "떠 있는 카드"로 ─────────────
+   일반 읽기에선 헤더·본문에 맞붙는 우측 도킹 패널(각진 모서리)이 맞지만,
+   어두운 몰입 화면 위에선 흰 판이 칼같이 잘려 보인다. 화면 가장자리에서 띄우고
+   모서리를 둥글려 부드럽게 얹는다. (BibleCommentaryPanel 의 lg: 유틸을 덮어쓴다) */
+@media (min-width: 1024px) {
+  .focus-overlay .cmt-panel {
+    margin: 0.75rem 1rem 1rem 0;
+    border: 1px solid var(--card-border);
+    border-radius: 28px;
+    box-shadow:
+      0 24px 64px rgba(0, 0, 0, 0.45),
+      0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+}
