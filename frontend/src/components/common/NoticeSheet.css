@@ -223,12 +223,11 @@
 }
 .nl-kick .nl-chip { letter-spacing: 0; }
 .nl-title {
-  margin: 4px 0 0;
-  font-family: var(--font-serif-kr);
-  font-weight: 900;
-  font-size: 26px;
-  line-height: 1.24;
-  letter-spacing: -0.035em;
+  margin: 6px 0 0;
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1.34;
+  letter-spacing: -0.03em;
   word-break: keep-all;
   text-wrap: balance;
   color: var(--nl-title-to);
@@ -258,7 +257,8 @@
 .nl-row + .nl-row { border-top: 1px solid var(--nl-line); }
 .nl-row dt {
   flex: none;
-  min-width: 3.6em;
+  width: 4.8em;
+  word-break: keep-all;
   font-size: 12px;
   font-weight: 700;
   color: var(--nl-gold);
@@ -525,11 +525,11 @@
   }
   .nl-scroll { padding: 40px 40px 8px; gap: 18px; }
   .nl-card--plain .nl-scroll { padding-top: 40px; }
-  .nl-title { font-size: 34px; padding-right: 32px; }
+  .nl-title { font-size: 30px; padding-right: 32px; }
   .nl-meta { font-size: 14.5px; }
   .nl-rows { padding: 4px 18px; }
   .nl-row { font-size: 14.5px; padding: 13px 0; }
-  .nl-row dt { font-size: 13px; min-width: 4.6em; }
+  .nl-row dt { font-size: 13px; width: 5.6em; }
   .nl-verse { font-size: 14.5px; }
   .nl-foot { padding: 14px 40px 26px; gap: 12px; }
   .nl-btn { height: 54px; }

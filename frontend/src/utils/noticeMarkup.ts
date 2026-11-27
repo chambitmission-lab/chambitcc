@@ -92,7 +92,7 @@ export const CALLOUT_LABELS: Record<CalloutTone, string> = {
 /* 핵심 정보 줄 (문법 없이 자동 인식)                                   */
 /* ------------------------------------------------------------------ */
 
-export type InfoIcon = 'calendar' | 'place' | 'people' | 'kit' | 'phone' | 'won' | 'pen'
+export type InfoIcon = 'calendar' | 'place' | 'people' | 'kit' | 'phone' | 'won' | 'pen' | 'note'
 
 /**
  * `일시: ...`처럼 관리자가 원래 쓰던 형태를 그대로 정보 카드로 바꾼다.
@@ -110,6 +110,8 @@ const INFO_KEYS: Record<string, InfoIcon> = {
   대상: 'people',
   인원: 'people',
   모집: 'people',
+  주관: 'people',
+  주최: 'people',
   준비물: 'kit',
   지참물: 'kit',
   문의: 'phone',
@@ -141,12 +143,31 @@ export const matchInfoRow = (line: string): InfoRow | null => {
   return { label: rawLabel, value: m[2].trim(), icon }
 }
 
+/**
+ * 키워드 목록에 없는 `투표 방식: 전자투표` 같은 줄 — 단독으로는 정보 줄로 보지 않고,
+ * 이미 시작된 정보 묶음(일시·대상…)에 이어질 때만 같은 표로 받는다.
+ */
+export const matchLabeledRow = (line: string): InfoRow | null => {
+  const known = matchInfoRow(line)
+  if (known) return known
+  const m = INFO_RE.exec(line)
+  if (!m) return null
+  return { label: m[1].trim(), value: m[2].trim(), icon: 'note' }
+}
+
+/** 목록 항목 `나이: 만 40~65세` → 라벨/값. 라벨이 짧을 때만(문장 속 콜론 오인 방지) */
+const LABELED_ITEM_RE = /^\s*([가-힣A-Za-z]{1,8}(?:\s[가-힣A-Za-z]{1,6})?)\s*[:：]\s*(\S.*)$/
+export const splitLabeledItem = (item: string): { label: string; value: string } | null => {
+  const m = LABELED_ITEM_RE.exec(item)
+  return m ? { label: m[1].trim(), value: m[2].trim() } : null
+}
+
 /* ------------------------------------------------------------------ */
 /* 블록                                                                */
 /* ------------------------------------------------------------------ */
 
 export type NoticeBlock =
-  | { type: 'heading'; level: 2 | 3; text: string }
+  | { type: 'heading'; level: 2 | 3 | 4; text: string }
   | { type: 'paragraph'; lines: string[] }
   | { type: 'bullet'; items: string[] }
   | { type: 'ordered'; items: string[] }
@@ -155,7 +176,7 @@ export type NoticeBlock =
   | { type: 'info'; rows: InfoRow[] }
   | { type: 'divider' }
 
-const HEADING_RE = /^(#{1,3})\s+(.*)$/
+const HEADING_RE = /^(#{1,6})\s+(.*)$/
 const BULLET_RE = /^\s*[-*·]\s+(.*)$/
 const ORDERED_RE = /^\s*\d{1,2}[.)]\s+(.*)$/
 const DIVIDER_RE = /^\s*-{3,}\s*$/
@@ -201,11 +222,15 @@ export const parseNoticeBlocks = (source: string): NoticeBlock[] => {
     if (heading) {
       flush()
       // 공지 본문에 h1은 과하다 — 제목 필드가 이미 그 역할을 한다
-      blocks.push({
-        type: 'heading',
-        level: heading[1].length >= 3 ? 3 : 2,
-        text: heading[2].trim(),
-      })
+      const n = heading[1].length
+      const level: 2 | 3 | 4 = n >= 4 ? 4 : n === 3 ? 3 : 2
+      const text = heading[2].trim()
+      // `### 권사` 바로 밑 `#### 권사`처럼 같은 이름이 한 단계 아래로 반복되면 한 번만
+      const prev = blocks[blocks.length - 1]
+      if (prev?.type === 'heading' && prev.level < level && stripInline(prev.text) === stripInline(text)) {
+        continue
+      }
+      blocks.push({ type: 'heading', level, text })
       continue
     }
 
@@ -249,7 +274,8 @@ export const parseNoticeBlocks = (source: string): NoticeBlock[] => {
       continue
     }
 
-    const info = matchInfoRow(line)
+    // 정보 묶음이 열려 있으면 키워드 밖 라벨 줄(`투표 방식: …`)도 이어 받는다
+    const info = open?.type === 'info' ? matchLabeledRow(line) : matchInfoRow(line)
     if (info) {
       if (open?.type !== 'info') {
         flush()
@@ -412,7 +438,7 @@ export const toggleLinePrefix = (
         return matcher ? l.replace(matcher, '') : l.slice(prefix.length)
       }
       // 다른 표기가 이미 있으면 갈아끼운다
-      const bare = l.replace(/^\s*(?:[-*·]\s+|\d{1,2}[.)]\s+|#{1,3}\s+)/, '')
+      const bare = l.replace(/^\s*(?:[-*·]\s+|\d{1,2}[.)]\s+|#{1,6}\s+)/, '')
       return numbered ? `${i + 1}. ${bare}` : `${prefix}${bare}`
     })
     .join('\n')

@@ -4,6 +4,7 @@ import {
   flattenNoticeMarkup,
   parseInline,
   parseNoticeBlocks,
+  splitLabeledItem,
   type CalloutTone,
   type InfoIcon,
 } from '../../utils/noticeMarkup'
@@ -63,6 +64,12 @@ const INFO_ICON_PATHS: Record<InfoIcon, ReactNode> = {
     <>
       <path d="M12 20h8" />
       <path d="M16.5 3.9a2.1 2.1 0 0 1 3 3L8.4 18.1l-4 1 1-4z" />
+    </>
+  ),
+  note: (
+    <>
+      <rect x="4" y="3" width="16" height="18" rx="3" />
+      <path d="M8.5 8.5h7M8.5 12.5h7M8.5 16.5h4" />
     </>
   ),
 }
@@ -147,8 +154,45 @@ interface NoticeContentProps {
 }
 
 /** 공지 본문 — 경량 마크업을 카드/정보 박스/콜아웃으로 렌더 */
+/**
+ * 소제목 바로 아래 목록 → 한 장의 카드. `나이: …`처럼 항목이 전부 라벨/값이면 표로 정렬하고,
+ * 아니면 카드 안에 점 목록 그대로 둔다. 자격·조건처럼 같은 모양이 반복되는 공지가
+ * '#### 소제목 + 점 목록' 나열보다 훨씬 비교하기 쉽다.
+ */
+const ItemCard = ({ title, items, k }: { title?: string; items: string[]; k: string }) => {
+  const pairs = items.map(splitLabeledItem)
+  const allPairs = pairs.every(Boolean)
+  return (
+    <section className="nm-card">
+      {title && <h4 className="nm-card-title">{renderInline(title, `${k}-t`)}</h4>}
+      {allPairs ? (
+        <dl className="nm-card-rows">
+          {pairs.map((p, j) => (
+            <div key={`${k}-${j}`} className="nm-card-row">
+              <dt>{p!.label}</dt>
+              <dd>{renderInline(p!.value, `${k}-${j}`)}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <ul className="nm-list">
+          {items.map((item, j) => (
+            <li key={`${k}-${j}`} className="nm-li">
+              {renderInline(item, `${k}-${j}`)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+const NOTE_RE = /^\s*※\s*/
+
 const NoticeContent = ({ source, compact, className, style }: NoticeContentProps) => {
   const blocks = parseNoticeBlocks(source)
+  // 소제목에 붙은 목록은 카드 안으로 들어가므로 따로 그리지 않는다
+  const absorbed = new Set<number>()
 
   return (
     <div
@@ -158,25 +202,59 @@ const NoticeContent = ({ source, compact, className, style }: NoticeContentProps
       {blocks.map((block, i) => {
         const key = `b${i}`
         switch (block.type) {
-          case 'heading':
-            return block.level === 2 ? (
-              <h2 key={key} className="nm-h2">
-                {renderInline(block.text, key)}
-              </h2>
-            ) : (
+          case 'heading': {
+            if (block.level === 2) {
+              return (
+                <h2 key={key} className="nm-h2">
+                  {renderInline(block.text, key)}
+                </h2>
+              )
+            }
+            const next = blocks[i + 1]
+            if (block.level === 4) {
+              if (next?.type === 'bullet') {
+                absorbed.add(i + 1)
+                return <ItemCard key={key} k={key} title={block.text} items={next.items} />
+              }
+              return (
+                <h4 key={key} className="nm-card-title nm-card-title--loose">
+                  {renderInline(block.text, key)}
+                </h4>
+              )
+            }
+            return (
               <h3 key={key} className="nm-h3">
                 {renderInline(block.text, key)}
               </h3>
             )
+          }
 
-          case 'paragraph':
+          case 'paragraph': {
+            if (NOTE_RE.test(block.lines[0])) {
+              const lines = [block.lines[0].replace(NOTE_RE, ''), ...block.lines.slice(1)]
+              return (
+                <p key={key} className="nm-note">
+                  <span aria-hidden className="nm-note-mark">※</span>
+                  <span>{renderLines(lines, key)}</span>
+                </p>
+              )
+            }
             return (
               <p key={key} className="nm-p">
                 {renderLines(block.lines, key)}
               </p>
             )
+          }
 
           case 'bullet':
+            if (absorbed.has(i)) return null
+            // 그룹 소제목(### 권사) 바로 밑 목록 — 제목 없는 카드로 같은 모양을 맞춘다
+            {
+              const prev = blocks[i - 1]
+              if (prev?.type === 'heading' && prev.level === 3) {
+                return <ItemCard key={key} k={key} items={block.items} />
+              }
+            }
             return (
               <ul key={key} className="nm-list">
                 {block.items.map((item, j) => (

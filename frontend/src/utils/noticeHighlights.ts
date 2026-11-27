@@ -10,7 +10,7 @@
  * - rest: 위 둘을 뺀 나머지 본문 → 기존 NoticeContent 로 렌더(같은 줄이 두 번 안 보이게)
  * - when: 일시/날짜 줄에서 읽은 날짜(+시각) → D-day, 캘린더 담기
  */
-import { matchInfoRow, stripInline, type InfoRow } from './noticeMarkup'
+import { matchInfoRow, matchLabeledRow, stripInline, type InfoRow } from './noticeMarkup'
 
 export interface NoticeWhen {
   year: number
@@ -197,7 +197,8 @@ export const extractNoticeHighlights = (source: string, postedAt?: string | null
     const first = matchInfoRow(lines[i])
     if (!first) continue
     for (let j = i; j < lines.length; j++) {
-      const row = matchInfoRow(lines[j])
+      // 첫 줄은 키워드(일시·장소…)여야 하고, 이어지는 줄은 '투표 방식:'처럼 라벨만 있어도 된다
+      const row = j === i ? first : matchLabeledRow(lines[j])
       if (!row) break
       rows.push(row)
       drop.add(j)
