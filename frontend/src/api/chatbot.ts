@@ -4,6 +4,7 @@ import type {
   ChatbotAnswer,
   ChatbotIntent,
   ChatbotIntentCreate,
+  ChatbotStats,
   ChatbotUnanswered,
 } from '../types/chatbot'
 import { request, requestRaw } from './utils/request'
@@ -57,6 +58,12 @@ export const sendChatbotMessage = async (message: string, context?: ChatContext 
     json: context ? { message, context } : { message },
     errorMessage: '메시지 전송에 실패했습니다',
   })
+}
+
+// ── Admin: 하루 집계 ─────────────────────────────────────────────────
+
+export const getChatbotStats = async (days = 14): Promise<ChatbotStats> => {
+  return request<ChatbotStats>(`${BASE}/stats?days=${days}`, { errorMessage: '챗봇 통계를 불러오는데 실패했습니다' })
 }
 
 // ── Admin: 미답변 질문함 ─────────────────────────────────────────────

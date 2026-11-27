@@ -2,7 +2,7 @@
 //   머리: 참비 상태(남색 판) + 최근 7일 새 질문 막대
 //   데스크 탭: 질문함(목록|그때 대화|가르치기) · 아는 말(인텐트 표+살펴보기) · 성장 기록(해결 타임라인)
 // 미답변 질문을 답(인텐트)으로 승격하는 것이 참비가 자라는 핵심 경로다.
-// 백엔드엔 "답한 질문" 로그·답별 사용 횟수가 없다 — 비율·횟수를 지어내지 말고 미답변함에 있는 것만 보여 준다.
+// 답한 비율·요일 막대·인텐트별 사용 횟수는 하루 집계(GET /chatbot/stats, 2026-11-27~)에서 온다 — 못 받으면 미답변함 기준으로만.
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
@@ -12,16 +12,18 @@ import {
   updateChatbotUnanswered,
   deleteChatbotUnanswered,
   getChatbotIntents,
+  getChatbotStats,
   updateChatbotIntent,
   deleteChatbotIntent,
 } from '../../api/chatbot'
-import type { ChatbotIntent, ChatbotUnanswered } from '../../types/chatbot'
+import type { ChatbotIntent, ChatbotStats, ChatbotUnanswered } from '../../types/chatbot'
 import { can } from '../../utils/access'
 import ChatbotHero from './chatbot/ChatbotHero'
 import QuestionDesk from './chatbot/QuestionDesk'
 import KnownWords from './chatbot/KnownWords'
 import GrowthLog from './chatbot/GrowthLog'
 import { tone } from './chatbot/chatbotTheme'
+import { intentHitMap } from './chatbot/chatbotAdminUtils'
 
 type Tab = 'questions' | 'words' | 'growth'
 
@@ -34,15 +36,22 @@ const ChatbotManagement = () => {
   const [tab, setTab] = useState<Tab>('questions')
   const [unanswered, setUnanswered] = useState<ChatbotUnanswered[]>([])
   const [intents, setIntents] = useState<ChatbotIntent[]>([])
+  const [stats, setStats] = useState<ChatbotStats | null>(null)
   const [loading, setLoading] = useState(true)
 
   // silent: 저장 뒤 다시 불러올 땐 스피너로 화면을 갈아엎지 않는다(가르치기 완료 카드가 남아 있어야 한다)
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
     try {
-      const [u, i] = await Promise.all([getChatbotUnanswered(), getChatbotIntents()])
+      // 집계는 곁들이 — 실패(백엔드 배포 전 404 등)해도 화면은 미답변함 기준으로 그대로 뜬다
+      const [u, i, st] = await Promise.all([
+        getChatbotUnanswered(),
+        getChatbotIntents(),
+        getChatbotStats(14).catch(() => null),
+      ])
       setUnanswered(u)
       setIntents(i)
+      setStats(st)
     } catch (e) {
       showToast(e instanceof Error ? e.message : '불러오기에 실패했습니다', 'error')
     } finally {
@@ -137,7 +146,7 @@ const ChatbotManagement = () => {
           </div>
         ) : (
           <div className="space-y-4 px-4 lg:px-0">
-            <ChatbotHero unanswered={unanswered} intents={intents} />
+            <ChatbotHero unanswered={unanswered} intents={intents} stats={stats} />
 
             <section className={`rounded-3xl ${tone.panel} overflow-hidden lg:shadow-2xl`}>
               <div className={`px-5 lg:px-6 pt-4 border-b ${tone.line} flex gap-6 overflow-x-auto`}>
@@ -174,6 +183,7 @@ const ChatbotManagement = () => {
                   onSaved={reload}
                   onToggle={(it) => void toggleIntent(it)}
                   onDelete={(it) => void deleteIntent(it)}
+                  hits={stats ? intentHitMap(stats) : null}
                 />
               ) : (
                 <GrowthLog

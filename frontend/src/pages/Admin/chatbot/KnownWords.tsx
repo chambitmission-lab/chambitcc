@@ -12,13 +12,23 @@ interface Props {
   onSaved: () => void
   onToggle: (it: ChatbotIntent) => void
   onDelete: (it: ChatbotIntent) => void
+  // 최근 30일 인텐트별 답한 횟수 — 집계를 못 받았으면 null(버튼 수를 대신 보여 준다)
+  hits: Map<number, number> | null
 }
 
 type Pane = { kind: 'view'; id: number } | { kind: 'edit'; id: number } | { kind: 'new' } | null
 
 const isDesktop = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
 
-const KnownWords = ({ intents, onSaved, onToggle, onDelete }: Props) => {
+const KnownWords = ({ intents, onSaved, onToggle, onDelete, hits }: Props) => {
+  const maxHit = Math.max(1, ...(hits ? [...hits.values()] : []))
+  // Tailwind 는 조립한 클래스명을 못 찾는다 — 통째 리터럴로 고른다
+  const cols = hits
+    ? 'grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_150px_52px]'
+    : 'grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_64px_52px]'
+  const lgCols = hits
+    ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_150px_52px]'
+    : 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_64px_52px]'
   const [pane, setPane] = useState<Pane>(intents[0] ? { kind: 'view', id: intents[0].id } : null)
   const [sheet, setSheet] = useState(false)
   const [ask, setAsk] = useState('')
@@ -69,6 +79,11 @@ const KnownWords = ({ intents, onSaved, onToggle, onDelete }: Props) => {
             <p className={`m-0 text-[13.5px] ${cur.is_active ? 'text-emerald-600 dark:text-emerald-300' : tone.sub}`}>
               {cur.is_active ? '● 켜져 있어요 — 지금 답하는 중' : '○ 꺼져 있어요 — 답하지 않아요'}
             </p>
+            {hits && (
+              <p className={`m-0 mt-0.5 text-[13.5px] ${tone.body}`}>
+                최근 30일 <b className={tone.accentText}>{hits.get(cur.id) ?? 0}번</b> 답했어요
+              </p>
+            )}
           </div>
           <Switch on={cur.is_active} onClick={() => onToggle(cur)} label={`${cur.name} 켜기/끄기`} />
         </div>
@@ -164,11 +179,11 @@ const KnownWords = ({ intents, onSaved, onToggle, onDelete }: Props) => {
           ) : (
             <>
               <div
-                className={`hidden lg:grid grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)_64px_52px] gap-4 px-5 py-3 text-[12.5px] font-bold ${tone.sub} border-b ${tone.line}`}
+                className={`hidden lg:grid ${cols} gap-4 px-5 py-3 text-[12.5px] font-bold ${tone.sub} border-b ${tone.line}`}
               >
                 <span>이름</span>
                 <span>이런 말에 답해요</span>
-                <span>버튼</span>
+                <span>{hits ? '30일 답한 횟수' : '버튼'}</span>
                 <span>켜짐</span>
               </div>
               <div className="lg:max-h-[560px] lg:overflow-y-auto">
@@ -183,7 +198,7 @@ const KnownWords = ({ intents, onSaved, onToggle, onDelete }: Props) => {
                       tabIndex={0}
                       onClick={() => open({ kind: 'view', id: it.id })}
                       onKeyDown={(e) => e.key === 'Enter' && open({ kind: 'view', id: it.id })}
-                      className={`cursor-pointer px-5 py-4 border-b ${tone.line} lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)_64px_52px] lg:gap-4 lg:items-center transition-colors ${
+                      className={`cursor-pointer px-5 py-4 border-b ${tone.line} lg:grid ${lgCols} lg:gap-4 lg:items-center transition-colors ${
                         hit
                           ? 'bg-emerald-50 dark:bg-emerald-400/[0.08] shadow-[inset_3px_0_0_#34d399]'
                           : selected
@@ -208,9 +223,21 @@ const KnownWords = ({ intents, onSaved, onToggle, onDelete }: Props) => {
                           ),
                         )}
                       </div>
-                      <span className={`hidden lg:block text-[13.5px] ${tone.sub}`}>
-                        {it.actions.length ? `${it.actions.length}개` : '—'}
-                      </span>
+                      {hits ? (
+                        <span className="hidden lg:flex items-center gap-2">
+                          <span className="h-2 flex-1 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                            <span
+                              className={`block h-full rounded-full ${tone.accentBg}`}
+                              style={{ width: `${((hits.get(it.id) ?? 0) / maxHit) * 100}%` }}
+                            />
+                          </span>
+                          <span className={`w-9 text-right text-[13.5px] font-bold ${tone.body}`}>{hits.get(it.id) ?? 0}</span>
+                        </span>
+                      ) : (
+                        <span className={`hidden lg:block text-[13.5px] ${tone.sub}`}>
+                          {it.actions.length ? `${it.actions.length}개` : '—'}
+                        </span>
+                      )}
                       <span className="hidden lg:block">
                         <Switch on={it.is_active} onClick={() => onToggle(it)} label={`${it.name} 켜기/끄기`} />
                       </span>

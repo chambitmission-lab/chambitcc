@@ -9,7 +9,8 @@ import ChatbotHero from '../Admin/chatbot/ChatbotHero'
 import QuestionDesk from '../Admin/chatbot/QuestionDesk'
 import RealKnownWords from '../Admin/chatbot/KnownWords'
 import RealGrowthLog from '../Admin/chatbot/GrowthLog'
-import type { ChatbotIntent, ChatbotUnanswered } from '../../types/chatbot'
+import type { ChatbotIntent, ChatbotStats, ChatbotUnanswered } from '../../types/chatbot'
+import { intentHitMap } from '../Admin/chatbot/chatbotAdminUtils'
 
 /**
  * /#/dev/chatbot-admin — /admin/chatbot 전면 개편 시안.
@@ -1250,12 +1251,37 @@ const REAL_I: ChatbotIntent[] = INTENTS.map((it) => ({
   order: 0,
   created_at: dayAgo(30),
 }))
+// 표본 집계 14일 — ?stats=0 이면 집계 없이(백엔드 배포 전) 모습
+const REAL_STATS: ChatbotStats = {
+  days: Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(Date.now() - (13 - i) * 864e5)
+    const base = [9, 12, 30, 11, 14, 18, 15, 13, 11, 38, 12, 14, 20, 17][i]
+    return {
+      date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+      answered: base,
+      weak: i % 3 === 0 ? 2 : 1,
+      missed: i < 7 ? 3 : i % 2,
+    }
+  }),
+  intent_hits: [
+    { key: '1', count: 312 },
+    { key: '2', count: 141 },
+    { key: '3', count: 88 },
+    { key: '4', count: 57 },
+    { key: '5', count: 34 },
+  ],
+  top_kinds: [],
+  since: '2026-10-01',
+}
+
 const VariantReal = () => {
+  const [sp] = useSearchParams()
+  const stats = sp.get('stats') === '0' ? null : REAL_STATS
   const [tab, setTab] = useState<'q' | 'k' | 'g'>('q')
   const noop = () => undefined
   return (
     <div className="space-y-4">
-      <ChatbotHero unanswered={REAL_Q} intents={REAL_I} />
+      <ChatbotHero unanswered={REAL_Q} intents={REAL_I} stats={stats} />
       <section className="rounded-3xl bg-white dark:bg-[#0f1830] border border-gray-200/80 dark:border-white/10 overflow-hidden">
         <div className="px-6 pt-4 flex gap-6 border-b border-gray-100 dark:border-white/[0.07]">
           {(['q', 'k', 'g'] as const).map((k) => (
@@ -1267,7 +1293,7 @@ const VariantReal = () => {
         {tab === 'q' ? (
           <QuestionDesk unanswered={REAL_Q} intents={REAL_I} onSaved={noop} onResolve={noop} onDelete={noop} />
         ) : tab === 'k' ? (
-          <RealKnownWords intents={REAL_I} onSaved={noop} onToggle={noop} onDelete={noop} />
+          <RealKnownWords intents={REAL_I} onSaved={noop} onToggle={noop} onDelete={noop} hits={stats ? intentHitMap(stats) : null} />
         ) : (
           <RealGrowthLog unanswered={REAL_Q} intents={REAL_I} capLabel={(n) => `${n}`} onDelete={noop} />
         )}

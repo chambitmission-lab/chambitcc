@@ -123,3 +123,23 @@ export interface ChatbotIntentCreate {
   is_active: boolean
   order: number
 }
+
+// 하루 집계 (backend schemas/chatbot ChatbotStatsResponse) — 질문 원문 없이 숫자만
+export interface ChatbotStatDay {
+  date: string // YYYY-MM-DD (KST)
+  answered: number
+  weak: number
+  missed: number
+}
+
+export interface ChatbotStatCount {
+  key: string
+  count: number
+}
+
+export interface ChatbotStats {
+  days: ChatbotStatDay[] // 오래된 날 → 오늘
+  intent_hits: ChatbotStatCount[] // 최근 30일, key = 인텐트 id
+  top_kinds: ChatbotStatCount[] // 최근 7일, custom 은 'custom:<id>'
+  since: string | null // 집계가 처음 쌓인 날
+}

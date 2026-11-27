@@ -1,5 +1,5 @@
 // 챗봇 관리(참비 관제실) 공용 계산 — 화면과 떨어진 순수 함수만 둔다.
-import type { ChatbotIntent, ChatbotUnanswered } from '../../../types/chatbot'
+import type { ChatbotIntent, ChatbotStats, ChatbotUnanswered } from '../../../types/chatbot'
 
 export const compact = (s: string) => s.replace(/\s+/g, '')
 
@@ -99,4 +99,30 @@ export const lastSevenDays = (items: ChatbotUnanswered[]) => {
     if (row) row[u.status] += 1
   }
   return days
+}
+
+/**
+ * 하루 집계 → 최근 7일 요약. 답한 비율 = (답함 + 애매하게라도 답함) / 전체.
+ * 그 전 7일과의 차이(%p)는 그 기간이 통째로 집계 시작(since) 뒤이고 질문이 있을 때만 — 반쪽 비교는 하지 않는다.
+ */
+export const weekSummary = (stats: ChatbotStats) => {
+  const sum = (ds: ChatbotStats['days']) =>
+    ds.reduce(
+      (a, d) => ({ answered: a.answered + d.answered + d.weak, total: a.total + d.answered + d.weak + d.missed }),
+      { answered: 0, total: 0 },
+    )
+  const cur = sum(stats.days.slice(-7))
+  const prevDays = stats.days.slice(-14, -7)
+  const prev = sum(prevDays)
+  const rate = cur.total ? Math.round((cur.answered / cur.total) * 100) : 0
+  const prevComplete = !!stats.since && prevDays.length === 7 && stats.since <= prevDays[0].date
+  const diff = prevComplete && prev.total ? rate - Math.round((prev.answered / prev.total) * 100) : null
+  return { total: cur.total, answered: cur.answered, rate, diff }
+}
+
+/** 최근 30일 커스텀 인텐트별 답한 횟수 — 인텐트 id → 횟수 */
+export const intentHitMap = (stats: ChatbotStats | null) => {
+  const m = new Map<number, number>()
+  stats?.intent_hits.forEach((h) => m.set(Number(h.key), h.count))
+  return m
 }
