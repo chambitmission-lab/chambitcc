@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Reorder, useDragControls } from 'framer-motion'
+import { Reorder, motion, useDragControls } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import { API_V1 } from '../../../config/api'
 import {
@@ -38,6 +38,21 @@ const shuffledIds = (ids: number[], keepFirst?: number): number[] => {
   return keepFirst !== undefined ? [keepFirst, ...rest] : rest
 }
 
+/** 절 본문을 읽는 호흡 단위(쉼표·마침표, 길면 세 어절)로 나눈다 — 어절 표시용 */
+const splitPhrases = (text: string): string[] => {
+  const out: string[] = []
+  let buf: string[] = []
+  for (const w of text.trim().split(/\s+/).filter(Boolean)) {
+    buf.push(w)
+    if (/[,.;:!?]$/.test(w) || buf.length >= 3) {
+      out.push(buf.join(' '))
+      buf = []
+    }
+  }
+  if (buf.length) out.push(buf.join(' '))
+  return out
+}
+
 const verseUrl = (item: VerseBookmarkWithVerse) =>
   `${API_V1}/bible/tts/${item.book_number}/${item.chapter}/${item.verse}?voice=${VOICE}`
 
@@ -67,10 +82,15 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   const wantPlayRef = useRef(false)
 
   const [rate, setRate] = useState<number>(loadRate)
-  // 플레이어 카드 접기 — 목록을 더 넓게 보고 싶을 때. 상태는 기기에 유지.
-  const [collapsed, setCollapsed] = useState(
+  // 목록 시트 올림 여부 — 평소엔 다음 두 구절만 걸쳐 있다. 상태는 기기에 유지
+  // (예전 "플레이어 접기"와 같은 뜻이라 저장 키를 그대로 쓴다).
+  const [listOpen, setListOpen] = useState(
     () => safeStorage.get(COLLAPSE_STORAGE_KEY) === '1'
   )
+  // 구절이 하나뿐일 때만 쓰는 한 절 반복(암송용) — 기본은 꺼짐
+  const [repeatOne, setRepeatOne] = useState(false)
+  const listDragY = useRef<number | null>(null)
+  const listDraggedRef = useRef(false)
   const [isShuffle, setIsShuffle] = useState(false)
   const [isRepeat, setIsRepeat] = useState(true) // 기본: 마지막 절 후 처음으로 돌아 계속
   // 드래그 순서를 즉시 반영하기 위한 로컬 목록 (서버 데이터와 동기화)
@@ -110,6 +130,20 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   const nextItem = nextId !== undefined ? items.find((it) => it.id === nextId) : undefined
 
   const audioUrl = started && current ? verseUrl(current) : undefined
+
+  // 읽는 어절 표시 — 음성에 낱말 시각 정보가 없어, 글자 수 비율로 지금 읽는 덩어리를 어림한다
+  const phrases = useMemo(() => splitPhrases(current?.text ?? ''), [current?.text])
+  const phraseIdx = useMemo(() => {
+    if (!started || duration <= 0 || phrases.length === 0) return -1
+    const total = phrases.reduce((s, p) => s + p.length, 0) || 1
+    const target = Math.min(0.999, currentTime / duration) * total
+    let acc = 0
+    for (let i = 0; i < phrases.length; i++) {
+      acc += phrases[i].length
+      if (target < acc) return i
+    }
+    return phrases.length - 1
+  }, [started, duration, currentTime, phrases])
 
   // src(=현재 절)가 바뀌면 배속 적용 + 대기 중이던 재생 실행
   useEffect(() => {
@@ -212,6 +246,10 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
     } else if (isRepeat && queue.length > 1) {
       wantPlayRef.current = true
       setPos(0)
+    } else if (queue.length === 1 && repeatOne && audioRef.current) {
+      // 한 절 반복 — src가 그대로라 effect가 안 돈다. 다시 불러 canplay에서 재생
+      wantPlayRef.current = true
+      audioRef.current.load()
     } else {
       setIsPlaying(false)
     }
@@ -261,12 +299,32 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
     setItems((prev) => prev.filter((it) => it.id !== target.id))
   }
 
-  const toggleCollapse = () => {
-    setCollapsed((v) => {
-      const next = !v
-      safeStorage.set(COLLAPSE_STORAGE_KEY, next ? '1' : '0')
-      return next
-    })
+  const openList = (next: boolean) => {
+    setListOpen(next)
+    safeStorage.set(COLLAPSE_STORAGE_KEY, next ? '1' : '0')
+  }
+
+  // 목록 머리 — 누르면 올리고 내리기, 위·아래로 끌어도 같은 동작(끈 뒤 따라오는 click은 무시)
+  const handleListHeadDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    listDragY.current = e.clientY
+    listDraggedRef.current = false
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  const handleListHeadUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (listDragY.current === null) return
+    const dy = e.clientY - listDragY.current
+    listDragY.current = null
+    if (Math.abs(dy) > 24) {
+      listDraggedRef.current = true
+      openList(dy < 0)
+    }
+  }
+  const handleListHeadClick = () => {
+    if (listDraggedRef.current) {
+      listDraggedRef.current = false
+      return
+    }
+    openList(!listOpen)
   }
 
   const cycleRate = () => {
@@ -285,17 +343,47 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
 
   const loading = preparing && !isError
   const liveStream = started && !loading && !isError && duration <= 0
+  // 절을 넘길 때마다 준비 표시가 번쩍이지 않게 — 0.45초 넘게 걸릴 때만 "준비 중"을 드러낸다
+  // (다음 절은 미리 받아 두므로 보통은 그 안에 재생이 시작된다)
+  const [slowLoading, setSlowLoading] = useState(false)
+  useEffect(() => {
+    if (!loading) {
+      setSlowLoading(false)
+      return
+    }
+    const t = window.setTimeout(() => setSlowLoading(true), 450)
+    return () => window.clearTimeout(t)
+  }, [loading])
   const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
-  const statusText = isError
+  const single = items.length === 1
+  const refLabel = current ? `${current.book_name_ko} ${current.chapter}:${current.verse}` : ''
+  const remaining = Math.max(0, queue.length - pos - 1)
+  const counterText = isError
     ? '오디오를 불러오지 못했어요'
-    : loading
+    : slowLoading
       ? '말씀을 준비하고 있어요…'
-      : isPlaying
-        ? `재생 중 · ${pos + 1}/${items.length}`
-        : items.length > 0
-          ? `${items.length}개 구절`
-          : '즐겨찾기 없음'
+      : single
+        ? ''
+        : `${pos + 1} / ${items.length}`
+
+  // 걸쳐 있는 목록에 보여 줄 "이어서" 두 구절 — 전체 반복이면 끝에서 처음으로 이어진다
+  const upcoming: VerseBookmarkWithVerse[] = []
+  for (let k = 1; k <= 2 && k < queue.length; k++) {
+    let idx = pos + k
+    if (idx >= queue.length) {
+      if (!isRepeat) break
+      idx %= queue.length
+    }
+    const it = items.find((i) => i.id === queue[idx])
+    if (it) upcoming.push(it)
+  }
+  const peekPx = 56 + (upcoming.length > 0 ? upcoming.length * 58 : 76) + 10
+
+  const textLen = current?.text.length ?? 0
+  const verseSize = textLen <= 60 ? 'text-[21px]' : textLen <= 110 ? 'text-[18.5px]' : 'text-[16.5px]'
+
+  const hasItems = items.length > 0
 
   return createPortal(
     <div
@@ -303,26 +391,24 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-md max-h-[90dvh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+        className={`relative w-full sm:max-w-md bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col ${
+          hasItems ? 'h-[88dvh] sm:h-[min(720px,88dvh)]' : 'max-h-[90dvh]'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-
-        {/* 헤더 */}
-        <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+        {/* 머리말 — 한 줄. 목록을 올리면 지금 듣는 절 이름이 여기로 올라온다 */}
+        <div className="relative z-10 flex shrink-0 items-center gap-2 pl-6 pr-3 pt-5 sm:pt-3 pb-1">
           <SheetGrabber onClose={onClose} className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
-            <span className="material-icons-round text-[22px]">headphones</span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
-              나의 묵상 플레이리스트
-            </p>
-            <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
-              즐겨찾기 구절 듣기
-            </h3>
-          </div>
+          <h3 className="min-w-0 flex-1 truncate text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+            {hasItems && listOpen ? (
+              <>
+                <span className="font-bold text-brand">{refLabel}</span>
+                {!single && <span className="tabular-nums"> · {pos + 1} / {items.length}</span>}
+              </>
+            ) : (
+              '즐겨찾기 듣기'
+            )}
+          </h3>
           <button
             onClick={onClose}
             className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors shrink-0"
@@ -332,141 +418,78 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
           </button>
         </div>
 
-        {/* 플레이어 카드 — 접힌 상태: 목록을 넓게 보도록 컴팩트 바만 노출 */}
-        {items.length > 0 && collapsed && (
-          <div className="relative z-10 px-5 pt-4">
-            <div className="flex items-center gap-3 overflow-hidden rounded-2xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-background-dark px-3 py-2.5 shadow-[0_10px_30px_-16px_var(--brand-glow)]">
-              <button
-                type="button"
-                onClick={togglePlay}
-                disabled={loading}
-                aria-label={isPlaying ? '일시정지' : '재생'}
-                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_6px_16px_-6px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
-              >
-                {isPlaying && !loading && (
-                  <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping [animation-duration:1.6s]" />
-                )}
-                <span className="material-icons-round relative text-[24px] leading-none">
-                  {loading ? 'auto_awesome' : isPlaying ? 'pause' : 'play_arrow'}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={toggleCollapse}
-                className="min-w-0 flex-1 text-left"
-                aria-label="플레이어 펼치기"
-              >
-                <span className="block truncate text-[12px] font-bold text-brand">
-                  {current ? `${current.book_name_ko} ${current.chapter}:${current.verse}` : ''}
-                </span>
-                <span className="block truncate text-[11px] text-gray-500 dark:text-white/50">
-                  {statusText}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={toggleCollapse}
-                aria-label="플레이어 펼치기"
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-gray-400 dark:text-white/45 hover:text-brand hover:bg-black/[0.03] dark:hover:bg-white/[0.06] transition-colors"
-              >
-                <span className="material-icons-round text-[22px]">expand_more</span>
-              </button>
+        {isLoading ? (
+          <div className="relative z-10 px-5 py-4">
+            <div className="text-center text-[13px] text-gray-500 dark:text-white/55 py-8">
+              불러오는 중…
             </div>
           </div>
-        )}
-
-        {/* 플레이어 카드 — 펼친 상태 */}
-        {items.length > 0 && !collapsed && (
-          <div className="relative z-10 px-5 pt-4">
-            <div className="relative overflow-hidden rounded-3xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-background-dark p-4 shadow-[0_10px_30px_-16px_var(--brand-glow)]">
-              <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-[var(--brand-soft-strong)] blur-3xl" />
-
-              {/* 접기 핸들 */}
-              <div className="relative z-10 -mt-1 mb-1 flex justify-center">
-                <button
-                  type="button"
-                  onClick={toggleCollapse}
-                  aria-label="플레이어 접기"
-                  className="flex items-center gap-1 rounded-full px-3 py-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-brand hover:bg-black/[0.03] dark:hover:bg-white/[0.06] transition-colors"
+        ) : !hasItems ? (
+          <div className="relative z-10 px-5 py-4">
+            <div className="text-center py-12">
+              <span className="material-icons-outlined text-4xl text-gray-300 dark:text-white/25 block mb-2">
+                favorite_border
+              </span>
+              <p className="text-[13px] text-gray-500 dark:text-white/55">
+                즐겨찾기한 구절이 아직 없어요
+              </p>
+              <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
+                성경을 읽다가 마음에 닿는 절을 즐겨찾기 해보세요
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* 낭독 화면 — 본문이 주인공. 읽는 어절에 형광 표시가 따라간다(목록을 올리면 접힌다) */}
+            <div className="relative z-10 min-h-0 flex-1 basis-0 overflow-hidden" aria-hidden={listOpen}>
+              <div className="flex h-full flex-col overflow-y-auto overscroll-contain px-7">
+                <motion.div
+                  key={current?.id ?? 'none'}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.28, ease: 'easeOut' }}
+                  className="my-auto py-4 text-center"
                 >
-                  <span className="material-icons-round text-[16px]">expand_less</span>
-                  접기
-                </button>
+                  <p className="mb-3 text-[13px] font-bold text-brand">{refLabel}</p>
+                  <p
+                    className={`${verseSize} leading-[1.8] tracking-[-0.01em] text-gray-800 dark:text-white/85 [word-break:keep-all]`}
+                    style={{ fontFamily: 'var(--font-serif-kr)' }}
+                  >
+                    {phrases.map((p, i) => (
+                      <span key={i}>
+                        <span
+                          className={`rounded-[4px] transition-colors duration-200 ${
+                            phraseIdx < 0 || i < phraseIdx
+                              ? ''
+                              : i === phraseIdx
+                                ? 'bg-[var(--brand-soft-strong)] [box-decoration-break:clone] [-webkit-box-decoration-break:clone]'
+                                : 'text-gray-400 dark:text-white/35'
+                          }`}
+                        >
+                          {p}
+                        </span>{' '}
+                      </span>
+                    ))}
+                  </p>
+                </motion.div>
               </div>
+            </div>
 
-              {/* 현재 절 */}
-              <div className="relative mb-3 min-h-[3.5rem]">
-                <p className="text-[12px] font-bold text-brand mb-1">
-                  {current ? `${current.book_name_ko} ${current.chapter}:${current.verse}` : ''}
-                </p>
-                {/* 묵상용이라 절 전문을 그대로 보여준다 — 극단적으로 긴 절만 내부 스크롤로 흘린다 */}
-                <p className="text-[14px] leading-[1.6] text-gray-800 dark:text-white/85 max-h-40 overflow-y-auto overscroll-contain">
-                  {current?.text}
-                </p>
-              </div>
-
-              {/* 진행바 — 오디오북과 동일한 별빛 동행 */}
-              <div className="group relative h-2 mb-1">
-                <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-black/10 dark:bg-white/12" />
-                {loading && (
-                  <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 animate-pulse rounded-full bg-brand [animation-duration:1.8s]" />
+            {/* 진행 — 절 안 위치(시간)와 전체 위치(몇 번째)를 좌·가운데·우로 갈라 적는다 */}
+            <div className="relative z-10 shrink-0 px-6 pt-1">
+              <div className="relative h-4">
+                <div className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-black/10 dark:bg-white/12" />
+                {(slowLoading || liveStream) && (
+                  <span className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 animate-pulse rounded-full bg-brand [animation-duration:1.8s]" />
                 )}
-
-                {liveStream ? (
-                  /* 실시간 생성 중 — 별이 천천히 길을 가로지른다 */
-                  <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2">
-                    <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 animate-bible-star-travel">
-                      <span className="absolute right-1/2 top-1/2 h-[2px] w-8 -translate-y-1/2 rounded-full bg-gradient-to-l from-[var(--brand)] via-[var(--brand-glow)] to-transparent blur-[0.5px]" />
-                      <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="relative block h-[16px] w-[16px] text-brand dark:text-white stroke-[#fafafa] dark:stroke-[#131313] [paint-order:stroke] drop-shadow-[0_0_6px_var(--brand-glow)]"
-                        fill="currentColor"
-                        strokeWidth={4}
-                        strokeLinejoin="round"
-                      >
-                        <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
-                      </svg>
-                    </div>
-                  </div>
-                ) : (
+                {!liveStream && (
                   <>
                     <div
-                      className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand transition-[width] duration-300 ease-linear"
+                      className={`absolute left-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-brand ${
+                        currentTime > 0.4 ? 'transition-[width] duration-300 ease-linear' : ''
+                      }`}
                       style={{ width: `${pct}%` }}
                     />
-
-                    {/* 시작점 — 함께 출발한 자리 */}
-                    <span className="pointer-events-none absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-brand" />
-
-                    {/* 도착점 — 빛이 향해 가는 목적지(가까워질수록 환해진다) */}
-                    <span
-                      className="pointer-events-none absolute left-full top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity"
-                      style={{ opacity: 0.3 + (pct / 100) * 0.7 }}
-                    >
-                      <span className="material-icons-round block text-[14px] leading-none text-brand">
-                        auto_awesome
-                      </span>
-                    </span>
-
-                    {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 별빛 동행 */}
-                    <div
-                      className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-[left] duration-300 ease-linear"
-                      style={{ left: `${pct}%` }}
-                    >
-                      {isPlaying && (
-                        <span className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
-                      )}
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="relative block h-[18px] w-[18px] text-brand dark:text-white stroke-[#fafafa] dark:stroke-[#131313] [paint-order:stroke] drop-shadow-[0_0_6px_var(--brand-glow)] transition-transform group-active:scale-110"
-                        fill="currentColor"
-                        strokeWidth={4}
-                        strokeLinejoin="round"
-                      >
-                        <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
-                      </svg>
-                    </div>
                     <input
                       type="range"
                       min={0}
@@ -481,10 +504,11 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                   </>
                 )}
               </div>
-
-              <div className="flex items-center justify-between text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45 mb-2">
+              <div className="flex items-center justify-between text-[11px] font-medium tabular-nums text-gray-400 dark:text-white/45">
                 <span>{formatClock(currentTime)}</span>
-                <span className="text-brand font-semibold">{statusText}</span>
+                <span className={isError ? 'font-semibold text-red-500' : 'font-semibold text-gray-500 dark:text-white/55'}>
+                  {counterText}
+                </span>
                 {liveStream ? (
                   <span className="flex items-center gap-1 font-semibold text-brand">
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
@@ -494,134 +518,208 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                   <span>{formatClock(duration)}</span>
                 )}
               </div>
+            </div>
 
-              {/* 컨트롤 */}
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={toggleShuffle}
-                  aria-label="셔플"
-                  className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-95 ${
-                    isShuffle
-                      ? 'text-brand bg-[var(--brand-soft)]'
-                      : 'text-gray-400 dark:text-white/45'
-                  }`}
-                >
-                  <span className="material-icons-round text-[20px]">shuffle</span>
-                </button>
+            {/* 조작 — 목록을 올려도 이 줄은 그대로 남는다 */}
+            <div className="relative z-10 flex shrink-0 items-center justify-between px-5 pt-1 pb-3">
+              <button
+                type="button"
+                onClick={cycleRate}
+                aria-label={`재생 속도 ${rate}배`}
+                className="min-w-[52px] rounded-full bg-black/[0.05] px-3 py-1.5 text-[12px] font-bold tabular-nums text-gray-600 transition active:scale-95 dark:bg-white/[0.08] dark:text-white/70"
+              >
+                {rate}×
+              </button>
 
+              {!single && (
                 <button
                   type="button"
                   onClick={goPrev}
                   aria-label="이전 절"
-                  className="grid h-10 w-10 place-items-center rounded-full text-gray-600 dark:text-white/70 transition active:scale-95"
+                  className="grid h-11 w-11 place-items-center rounded-full text-gray-600 dark:text-white/70 transition active:scale-95"
                 >
                   <span className="material-icons-round text-[28px]">skip_previous</span>
                 </button>
+              )}
 
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  disabled={loading}
-                  aria-label={isPlaying ? '일시정지' : '재생'}
-                  className="relative grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_8px_22px_-6px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
-                >
-                  {isPlaying && !loading && (
-                    <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping [animation-duration:1.6s]" />
-                  )}
-                  {loading ? (
-                    <span className="material-icons-round relative animate-pulse text-[24px] leading-none">
-                      auto_awesome
-                    </span>
-                  ) : (
-                    <span className="material-icons-round relative text-[30px] leading-none">
-                      {isPlaying ? 'pause' : 'play_arrow'}
-                    </span>
-                  )}
-                </button>
+              <button
+                type="button"
+                onClick={togglePlay}
+                disabled={loading}
+                aria-label={isPlaying ? '일시정지' : '재생'}
+                className={`relative grid flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_8px_22px_-6px_var(--brand-glow)] transition-[width,height,transform] duration-300 active:scale-95 disabled:cursor-default ${
+                  listOpen ? 'h-12 w-12' : 'h-[60px] w-[60px]'
+                }`}
+              >
+                {slowLoading ? (
+                  <span className="material-icons-round relative animate-pulse text-[24px] leading-none">
+                    auto_awesome
+                  </span>
+                ) : (
+                  <span className={`material-icons-round relative leading-none ${listOpen ? 'text-[26px]' : 'text-[32px]'}`}>
+                    {isPlaying || loading ? 'pause' : 'play_arrow'}
+                  </span>
+                )}
+              </button>
 
+              {!single && (
                 <button
                   type="button"
                   onClick={goNext}
                   aria-label="다음 절"
-                  className="grid h-10 w-10 place-items-center rounded-full text-gray-600 dark:text-white/70 transition active:scale-95"
+                  className="grid h-11 w-11 place-items-center rounded-full text-gray-600 dark:text-white/70 transition active:scale-95"
                 >
                   <span className="material-icons-round text-[28px]">skip_next</span>
                 </button>
+              )}
 
+              {single ? (
+                <button
+                  type="button"
+                  onClick={() => setRepeatOne((v) => !v)}
+                  aria-pressed={repeatOne}
+                  className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-bold transition active:scale-95 ${
+                    repeatOne
+                      ? 'bg-[var(--brand-soft)] text-brand'
+                      : 'bg-black/[0.05] text-gray-500 dark:bg-white/[0.08] dark:text-white/55'
+                  }`}
+                >
+                  <span className="material-icons-round text-[15px]">repeat</span>
+                  한 절 반복
+                </button>
+              ) : (
                 <button
                   type="button"
                   onClick={() => setIsRepeat((v) => !v)}
                   aria-label="전체 반복"
-                  className={`relative grid h-9 w-9 place-items-center rounded-full transition active:scale-95 ${
-                    isRepeat ? 'text-brand bg-[var(--brand-soft)]' : 'text-gray-400 dark:text-white/45'
+                  aria-pressed={isRepeat}
+                  className={`flex min-w-[52px] items-center justify-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-bold transition active:scale-95 ${
+                    isRepeat
+                      ? 'bg-[var(--brand-soft)] text-brand'
+                      : 'bg-black/[0.05] text-gray-500 dark:bg-white/[0.08] dark:text-white/55'
                   }`}
                 >
-                  <span className="material-icons-round text-[20px]">repeat</span>
+                  <span className="material-icons-round text-[15px]">repeat</span>
+                  반복
                 </button>
-              </div>
+              )}
+            </div>
 
-              {/* 배속 */}
-              <div className="mt-2 flex justify-end">
+            {/* 목록 시트 — 평소엔 다음 두 구절만 걸쳐 있고, 머리를 누르거나 끌어올리면 전체 목록 */}
+            <div
+              className="relative z-10 flex min-h-0 shrink flex-col overflow-hidden rounded-t-3xl border-t border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-background-dark shadow-[0_-8px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_-8px_24px_rgba(0,0,0,0.4)] pb-[env(safe-area-inset-bottom)] transition-[height] duration-300 ease-out motion-reduce:transition-none"
+              style={{
+                height: listOpen ? '100%' : `calc(${peekPx}px + env(safe-area-inset-bottom, 0px))`,
+              }}
+            >
+              <div className="relative flex shrink-0 items-center">
                 <button
                   type="button"
-                  onClick={cycleRate}
-                  className="rounded-full border border-black/10 bg-black/[0.03] px-2.5 py-0.5 text-[11px] font-bold text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
+                  onClick={handleListHeadClick}
+                  onPointerDown={handleListHeadDown}
+                  onPointerUp={handleListHeadUp}
+                  onPointerCancel={() => {
+                    listDragY.current = null
+                  }}
+                  aria-expanded={listOpen}
+                  aria-label={listOpen ? '목록 내리기' : '목록 올리기'}
+                  className="flex min-w-0 flex-1 touch-none flex-col items-stretch pl-5 pr-3 pb-2 pt-2 text-left"
                 >
-                  {rate}×
+                  <span className="mx-auto mb-2 h-1 w-9 rounded-full bg-black/10 dark:bg-white/15" />
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-[14px] font-bold text-ink-strong">
+                      {listOpen ? '목록' : '이어서'}
+                    </span>
+                    <span className="text-[11.5px] text-gray-400 dark:text-white/45">
+                      {listOpen
+                        ? `${items.length}구절`
+                        : remaining > 0
+                          ? `${remaining}구절 남음`
+                          : !single && isRepeat
+                            ? '처음부터 다시'
+                            : ''}
+                    </span>
+                    <span className="material-icons-round text-[18px] text-gray-400 dark:text-white/40">
+                      {listOpen ? 'expand_more' : 'expand_less'}
+                    </span>
+                  </span>
                 </button>
+                {!single && (
+                  <button
+                    type="button"
+                    onClick={toggleShuffle}
+                    aria-label="셔플"
+                    aria-pressed={isShuffle}
+                    className={`mr-4 mt-3 flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-bold transition active:scale-95 ${
+                      isShuffle
+                        ? 'bg-[var(--brand-soft)] text-brand'
+                        : 'bg-black/[0.05] text-gray-500 dark:bg-white/[0.08] dark:text-white/55'
+                    }`}
+                  >
+                    <span className="material-icons-round text-[15px]">shuffle</span>
+                    셔플
+                  </button>
+                )}
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* 목록 — 우측 핸들 드래그로 순서 변경 */}
-        {isLoading ? (
-          <div className="relative z-10 flex-1 overflow-y-auto px-5 py-4">
-            <div className="text-center text-[13px] text-gray-500 dark:text-white/55 py-8">
-              불러오는 중…
+              {listOpen ? (
+                /* 전체 목록 — 우측 핸들 드래그로 순서 변경 */
+                <Reorder.Group
+                  as="div"
+                  axis="y"
+                  values={items}
+                  onReorder={handleReorder}
+                  layoutScroll
+                  className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 space-y-1"
+                >
+                  {items.map((item) => (
+                    <PlaylistRow
+                      key={item.id}
+                      item={item}
+                      active={current?.id === item.id}
+                      playing={isPlaying}
+                      onPlay={() => {
+                        const qp = queue.indexOf(item.id)
+                        if (qp >= 0) playAt(qp)
+                      }}
+                      onRemove={() => removeFromPlaylist(item)}
+                      onDragEnd={handleDragEnd}
+                    />
+                  ))}
+                </Reorder.Group>
+              ) : upcoming.length > 0 ? (
+                <div className="px-3">
+                  {upcoming.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        const qp = queue.indexOf(item.id)
+                        if (qp >= 0) playAt(qp)
+                      }}
+                      className="flex h-[58px] w-full flex-col justify-center rounded-2xl px-3 text-left transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+                    >
+                      <span className="text-[12.5px] font-bold text-gray-600 dark:text-white/65">
+                        {item.book_name_ko} {item.chapter}:{item.verse}
+                      </span>
+                      <span className="truncate text-[13px] text-gray-500 dark:text-white/50">
+                        {item.text}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mx-4 grid h-[64px] place-items-center rounded-2xl border border-dashed border-black/10 px-4 text-center text-[12.5px] leading-[1.5] text-gray-400 dark:border-white/15 dark:text-white/40">
+                  {single
+                    ? '성경을 읽다가 ♥ 를 누르면 여기에 담겨 이어서 들려요'
+                    : '마지막 구절이에요'}
+                </div>
+              )}
             </div>
-          </div>
-        ) : items.length === 0 ? (
-          <div className="relative z-10 flex-1 overflow-y-auto px-5 py-4">
-            <div className="text-center py-12">
-              <span className="material-icons-outlined text-4xl text-gray-300 dark:text-white/25 block mb-2">
-                favorite_border
-              </span>
-              <p className="text-[13px] text-gray-500 dark:text-white/55">
-                즐겨찾기한 구절이 아직 없어요
-              </p>
-              <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
-                성경을 읽다가 마음에 닿는 절을 즐겨찾기 해보세요
-              </p>
-            </div>
-          </div>
-        ) : (
-          <Reorder.Group
-            as="div"
-            axis="y"
-            values={items}
-            onReorder={handleReorder}
-            layoutScroll
-            className="relative z-10 flex-1 overflow-y-auto px-5 py-4 space-y-2"
-          >
-            {items.map((item) => (
-              <PlaylistRow
-                key={item.id}
-                item={item}
-                active={current?.id === item.id}
-                playing={isPlaying}
-                onPlay={() => {
-                  const qp = queue.indexOf(item.id)
-                  if (qp >= 0) playAt(qp)
-                }}
-                onRemove={() => removeFromPlaylist(item)}
-                onDragEnd={handleDragEnd}
-              />
-            ))}
-          </Reorder.Group>
+          </>
         )}
       </div>
+
 
       <audio
         ref={audioRef}
@@ -712,7 +810,7 @@ const PlaylistRow = ({ item, active, playing, onPlay, onRemove, onDragEnd }: Pla
       className={`relative flex items-center rounded-2xl transition-colors ${
         active
           ? 'bg-[var(--brand-soft)]'
-          : 'bg-background-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-white/[0.04]'
+          : 'bg-surface-light dark:bg-background-dark hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
       }`}
     >
       <button
