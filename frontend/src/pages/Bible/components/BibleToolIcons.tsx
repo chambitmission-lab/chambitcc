@@ -1,30 +1,13 @@
 /**
- * 성경 공부 도구 카드 전용 아이콘 — Phosphor Icons Duotone.
- * 플랜·기도방·홈 레일과 같은 세트로 맞춰 앱 전체 아이콘 결을 통일한다.
+ * 성경 허브 카드 아이콘 — Phosphor Icons Duotone.
  * 색은 currentColor라 부모(.dash-card__icon 의 흰색)를 따르고,
  * 크기는 className(.dash-card__glyph 등)의 width/height CSS가 정한다.
+ * (도구 일곱 개의 아이콘은 2026-11-27 무대+썸네일 개편으로 내용 미리보기가 대신한다 — components/HubTools.tsx)
  *
- * - StoryIcon      : 글이 적힌 펼친 책 (처음 만나는 성경 = 첫걸음)
- * - AtlasIcon      : 접힌 지도 (지도여행 = 말씀이 걸어간 길)
- * - SituationIcon  : 손 위의 마음 (상황별 성구 = 지금 마음에 맞는 말씀)
- * - PhotoVerseIcon : 사진 프레임 (말씀 사진 카드)
- * - ListenIcon     : 헤드폰 (즐겨찾기 구절 듣기)
- * - BibleBookIcon  : 책갈피 꽂힌 책 (이어 읽기 = 읽던 자리)
- * - TypingIcon     : 깃펜 (말씀 필사 = 따라 쓰며 새기기)
- * - ParableIcon    : 새싹 (예수님의 비유 = 씨 뿌리는 자·겨자씨)
+ * - BibleBookIcon : 책갈피 꽂힌 책 (이어 읽기 = 읽던 자리)
  */
 import type { CSSProperties } from 'react'
-import {
-  BookBookmark,
-  BookOpenText,
-  Feather,
-  HandHeart,
-  Headphones,
-  ImageSquare,
-  MapTrifold,
-  Plant,
-  type Icon,
-} from '../../../components/icons/phosphor'
+import { BookBookmark, type Icon } from '../../../components/icons/phosphor'
 
 export type BibleToolIconProps = {
   className?: string
@@ -46,11 +29,4 @@ const duotone =
     />
   )
 
-export const StoryIcon = duotone(BookOpenText)
-export const AtlasIcon = duotone(MapTrifold)
-export const SituationIcon = duotone(HandHeart)
-export const PhotoVerseIcon = duotone(ImageSquare)
-export const ListenIcon = duotone(Headphones)
 export const BibleBookIcon = duotone(BookBookmark)
-export const TypingIcon = duotone(Feather)
-export const ParableIcon = duotone(Plant)

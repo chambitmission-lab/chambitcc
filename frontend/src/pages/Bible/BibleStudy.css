@@ -19,6 +19,8 @@
 @import './styles/hub-desktop.css';
 /* PC(lg+) 허브 글래스 + 벤토 도구 — hub-desktop 뒤에서 덮는다 */
 @import './styles/hub-glass.css';
+/* 성경 공부 도구 — 무대 + 썸네일 (hub-glass 의 톤·그림자 토큰을 쓴다) */
+@import './styles/hub-tools.css';
 
 /* Chapter Navigation - 장 네비게이션 */
 @import './styles/chapter-navigation.css';

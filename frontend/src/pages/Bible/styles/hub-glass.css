@@ -1,8 +1,7 @@
 /* ── PC(lg+) 성경 허브 글래스 패스 (2026-10-28 B+C 시안) ─────────────────────
    테두리+얕은 그림자뿐이라 박스가 바닥에 붙어 밋밋했다. 허브 뒤에 은은한 빛 번짐을 깔고
    카드는 반투명 유리 + 위쪽 1px 빛줄 + 넓게 퍼지는 푸른 그림자로 띄운다.
-   오른쪽 '성경 공부 도구'만 벤토 타일(처음 만나는 성경·듣기 = 가로 와이드, 나머지 2×2)로 바꾸고
-   도구마다 고유 톤 한 방울. 모바일(lg 미만)은 도구 타일(.dash-tile)에만 같은 유리·톤을 입힌다.
+   '성경 공부 도구'(무대 + 썸네일)는 hub-tools.css 가 여기 토큰(--glass-shadow·--lift-*·--tone-*)을 받아 그린다.
    hub-desktop.css 뒤에 불러와 .bible-hub 한 단계 높은 명시도로 덮는다(BibleStudy.css). */
 .bible-hub {
   --glass: rgba(255, 255, 255, 0.62);
@@ -16,7 +15,6 @@
   --blob-1: rgba(120, 170, 255, 0.3);
   --blob-2: rgba(190, 170, 255, 0.22);
   --blob-3: rgba(255, 200, 170, 0.22);
-  --tint: 0.14;
   --tone-story: #3182f6;
   --tone-atlas: #0ea5a4;
   --tone-typing: #7c5cf0;
@@ -37,7 +35,6 @@
   --blob-1: rgba(49, 110, 246, 0.2);
   --blob-2: rgba(120, 90, 240, 0.15);
   --blob-3: rgba(240, 130, 80, 0.08);
-  --tint: 0.22;
   --tone-story: #5b9dff;
   --tone-atlas: #2cc4c2;
   --tone-typing: #9a80ff;
@@ -51,55 +48,13 @@
    그러면 안의 fixed 요소(좌측 레일·'지금 위치로')가 허브 안에 갇혀 다른 층과 겹침 순서가 틀어진다.
    타원이 상자 밖으로 나가면 가장자리에서 잘려 경계선이 보인다 — 중심·반경을 상자 안에서 다 사라지게 잡을 것 */
 @media (max-width: 1023.98px) {
-  /* 모바일 — 이어 읽기·도구 타일 묶음 뒤에만 */
+  /* 모바일 — 이어 읽기·도구 묶음 뒤에만 */
   .bible-hub .bible-dash {
     background:
       radial-gradient(35% 30% at 40% 35%, var(--blob-1), transparent),
       radial-gradient(30% 30% at 68% 65%, var(--blob-2), transparent),
       radial-gradient(35% 15% at 45% 84%, var(--blob-3), transparent);
   }
-
-  .bible-hub .dash-tile {
-    --t: var(--brand);
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    border-color: transparent;
-    border-radius: 1.125rem;
-    background:
-      radial-gradient(120% 110% at 0% 0%, color-mix(in srgb, var(--t) calc(var(--tint) * 100%), transparent), transparent 70%),
-      var(--glass);
-    box-shadow: var(--glass-shadow);
-    -webkit-backdrop-filter: blur(18px) saturate(1.4);
-    backdrop-filter: blur(18px) saturate(1.4);
-  }
-  .bible-hub .dash-tile::after {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    right: -1.75rem;
-    bottom: -2.25rem;
-    width: 5rem;
-    height: 5rem;
-    border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--t) 22%, transparent), transparent 70%);
-    pointer-events: none;
-  }
-  .bible-hub .dash-tile__icon.dash-card__icon--seal {
-    border-radius: 0.8rem;
-    background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--t) 45%, #fff), var(--t) 60%, color-mix(in srgb, var(--t) 75%, #000));
-    box-shadow: 0 6px 12px -5px var(--t), inset 0 1px 1px rgba(255, 255, 255, 0.6);
-  }
-  .bible-hub .dash-tile__icon.dash-card__icon--seal::after {
-    display: none;
-  }
-  .bible-hub .dash-tile--tone-story { --t: var(--tone-story); }
-  .bible-hub .dash-tile--tone-atlas { --t: var(--tone-atlas); }
-  .bible-hub .dash-tile--tone-typing { --t: var(--tone-typing); }
-  .bible-hub .dash-tile--tone-situation { --t: var(--tone-situation); }
-  .bible-hub .dash-tile--tone-photo { --t: var(--tone-photo); }
-  .bible-hub .dash-tile--tone-listen { --t: var(--tone-listen); }
-  .bible-hub .dash-tile--tone-parable { --t: var(--tone-parable); }
 }
 
 @media (min-width: 1024px) {
@@ -258,116 +213,8 @@
     background: rgba(255, 255, 255, 0.06);
   }
 
-  /* ④ 성경 공부 도구 — 벤토 타일 */
-  .bible-hub .dash-bento {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.625rem;
-  }
-  .bible-hub .dash-bento .dash-card--fav {
-    --t: var(--brand);
-    /* 면은 거의 불투명 — 0.62 유리는 옆 타일 그림자가 속으로 비쳤다 */
-    --glass: rgba(255, 255, 255, 0.94);
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-    min-height: 9.5rem;
-    padding: 1rem 0.875rem;
-    border-color: transparent;
-    border-radius: 1.375rem;
-    background:
-      radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--t) calc(var(--tint) * 100%), transparent), transparent 65%),
-      var(--glass);
-    box-shadow: var(--lift-rim), var(--lift-tile);
-    -webkit-backdrop-filter: blur(18px) saturate(1.4);
-    backdrop-filter: blur(18px) saturate(1.4);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  [data-theme="dark"] .bible-hub .dash-bento .dash-card--fav {
-    --glass: rgba(42, 46, 58, 0.94);
-  }
-  /* 오른쪽 아래 같은 톤 빛 웅덩이 */
-  .bible-hub .dash-bento .dash-card--fav::after {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    right: -2.5rem;
-    bottom: -3rem;
-    width: 7.5rem;
-    height: 7.5rem;
-    border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--t) 22%, transparent), transparent 70%);
-    pointer-events: none;
-  }
-  @media (hover: hover) {
-    .bible-hub .dash-bento .dash-card--fav:hover {
-      transform: translateY(-3px);
-      border-color: transparent;
-      box-shadow: var(--lift-rim), var(--lift-tile-hover);
-    }
-    .bible-hub .dash-bento .dash-card--fav:hover .dash-card__chevron {
-      color: var(--t);
-    }
-  }
-  .bible-hub .dash-bento .dash-card__icon--seal {
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 0.95rem;
-    background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--t) 45%, #fff), var(--t) 60%, color-mix(in srgb, var(--t) 75%, #000));
-    box-shadow: 0 8px 16px -6px var(--t), inset 0 1px 1px rgba(255, 255, 255, 0.6);
-  }
-  .bible-hub .dash-bento .dash-card__icon--seal::after {
-    display: none;
-  }
-  .bible-hub .dash-bento .dash-card__body {
-    width: 100%;
-  }
-  .bible-hub .dash-bento .dash-card__text {
-    -webkit-line-clamp: 3;
-    font-size: calc(0.75rem * var(--text-mul, 1));
-  }
-  .bible-hub .dash-bento .dash-card__chevron {
-    position: absolute;
-    top: 0.875rem;
-    right: 0.625rem;
-  }
-  /* 와이드 타일 — 첫 칸(처음 만나는 성경)과 마지막 듣기. 아이콘 좌·글 우 한 줄 */
-  .bible-hub .dash-bento .dash-card--tone-story,
-  .bible-hub .dash-bento .dash-card--tone-parable,
-  .bible-hub .dash-bento .dash-card--tone-listen {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    align-items: center;
-    min-height: 0;
-    padding: 1rem;
-  }
-  .bible-hub .dash-bento .dash-card--tone-story .dash-card__chevron,
-  .bible-hub .dash-bento .dash-card--tone-parable .dash-card__chevron,
-  .bible-hub .dash-bento .dash-card--tone-listen .dash-card__chevron {
-    position: static;
-  }
-  .bible-hub .dash-bento .dash-card--tone-story .dash-card__icon--seal {
-    width: 3.25rem;
-    height: 3.25rem;
-    border-radius: 1.05rem;
-  }
-  .bible-hub .dash-bento .dash-card--tone-story .dash-card__title {
-    font-size: calc(1rem * var(--text-mul, 1));
-  }
-  .bible-hub .dash-bento .dash-card--tone-story { --t: var(--tone-story); }
-  .bible-hub .dash-bento .dash-card--tone-atlas { --t: var(--tone-atlas); }
-  .bible-hub .dash-bento .dash-card--tone-typing { --t: var(--tone-typing); }
-  .bible-hub .dash-bento .dash-card--tone-situation { --t: var(--tone-situation); }
-  .bible-hub .dash-bento .dash-card--tone-photo { --t: var(--tone-photo); }
-  .bible-hub .dash-bento .dash-card--tone-listen { --t: var(--tone-listen); }
-  .bible-hub .dash-bento .dash-card--tone-parable { --t: var(--tone-parable); }
-
   @media (prefers-reduced-motion: reduce) {
-    .bible-hub .dash-card--resume,
-    .bible-hub .dash-bento .dash-card--fav {
+    .bible-hub .dash-card--resume {
       transition: none;
     }
   }

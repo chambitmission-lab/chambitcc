@@ -30,36 +30,6 @@
     font-size: calc(1.0625rem * var(--text-mul, 1));
   }
 
-  /* ⑥ 오른쪽 '성경 공부 도구' 레일 — 설명이 한 줄 말줄임이라 무슨 도구인지 끝까지 안 읽혔다.
-     두 줄까지 펼치고, 여섯 개가 나란히 빛나던 인장 후광은 걷어 레일을 차분하게 한다 */
-  .bible-tools-rail .dash-card--fav {
-    align-items: center;
-    padding: 0.875rem 0.875rem 0.875rem 1rem;
-  }
-  .bible-tools-rail .dash-card__text {
-    margin-top: 0.2rem;
-    line-height: 1.45;
-    white-space: normal;
-    /* 한 글자만 다음 줄로 떨어지던 것('걷기' → '기') 방지 */
-    word-break: keep-all;
-    text-wrap: pretty;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-  .bible-tools-rail .dash-card__icon--seal {
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25),
-      0 0 0 3px rgba(49, 130, 246, 0.09);
-  }
-  [data-theme="dark"] .bible-tools-rail .dash-card__icon--seal {
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      0 0 0 3px rgba(69, 147, 252, 0.09);
-  }
-
   /* ⑦ '지금 위치로' — 모바일 앱 컬럼 기준 좌표라 PC 에선 화면 가운데, 여정 길 위에 떠서
      책 이름·이정표를 가렸다. 화면 오른쪽 아래로 비켜 두되, PC 챗봇 버튼(lg:bottom-6 right-6, 리프트 없음)
      바로 위에 서도록 높이를 띄운다 */

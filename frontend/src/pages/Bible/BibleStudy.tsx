@@ -50,8 +50,7 @@ import ChapterHead from './components/ChapterHead'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { isPastor } from '../../utils/access'
 import { getReaderIntroCards, subscribeReaderIntroCards } from './data/readerIntroCards'
-import { dashTexts } from './bibleStudyTexts'
-import { AtlasIcon, StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon, TypingIcon, ParableIcon } from './components/BibleToolIcons'
+import HubTools from './components/HubTools'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../components/bible/BibleSideRail'
 import { requestPageZoom } from '../../utils/textScaleRoutes'
@@ -124,7 +123,6 @@ const BibleStudy = () => {
   const { language } = useLanguage()
   const qc = useQueryClient()
 
-  const dt = dashTexts[language]
   // 허브(책 목록)에서만 쓰는 데이터 — 장 화면(/bible/:book/:chapter)에선 요청하지 않는다.
   // 전엔 장을 열 때마다 북마크 통계·진행률·스토리 진도까지 4건이 본문 요청과 경쟁했고,
   // 진행률이 끝날 때까지 본문 요청을 게이트로 막기까지 했다. 허브로 돌아오면 그때 받는다.
@@ -490,216 +488,18 @@ const BibleStudy = () => {
     prefetchFavoritesPlaylist(qc)
   }
 
-  // 성경 공부 도구 카드 묶음 — 모바일에선 서재 스택 안에, PC(lg+)에선 우측 사이드바에 렌더
-  const dashToolCards = (
-    <>
-      {/* 처음 만나는 성경 — 초보자용 스토리 모드 */}
-      <button
-        type="button"
-        onClick={() => navigate('/bible/story')}
-        {...warmRoute('/bible/story')}
-        className="dash-card dash-card--fav dash-card--tone-story"
-      >
-        <span className="dash-card__icon dash-card__icon--seal">
-          <StoryIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-card__body">
-          <span className="dash-card__title">{dt.storyTitle}</span>
-          <span className="dash-card__text">
-            {storyReadCount > 0 ? dt.storyProgress(storyReadCount) : dt.storyIntro}
-          </span>
-        </span>
-        <span className="material-icons-round dash-card__chevron">chevron_right</span>
-      </button>
-
-      {/* 예수님의 비유 — 초보자용 비유 도감 (와이드) */}
-      <button
-        type="button"
-        onClick={() => navigate('/bible/parables')}
-        {...warmRoute('/bible/parables')}
-        className="dash-card dash-card--fav dash-card--tone-parable"
-      >
-        <span className="dash-card__icon dash-card__icon--seal">
-          <ParableIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-card__body">
-          <span className="dash-card__title">{dt.parableTitle}</span>
-          <span className="dash-card__text">{dt.parableText}</span>
-        </span>
-        <span className="material-icons-round dash-card__chevron">chevron_right</span>
-      </button>
-
-      {/* 성경 지도여행 — 사건이 일어난 자리를 지도에서 */}
-      <button
-        type="button"
-        onClick={() => navigate('/bible/atlas')}
-        {...warmRoute('/bible/atlas')}
-        className="dash-card dash-card--fav dash-card--tone-atlas"
-      >
-        <span className="dash-card__icon dash-card__icon--seal">
-          <AtlasIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-card__body">
-          <span className="dash-card__title">{dt.atlasTitle}</span>
-          <span className="dash-card__text">{dt.atlasText}</span>
-        </span>
-        <span className="material-icons-round dash-card__chevron">chevron_right</span>
-      </button>
-
-      {/* 말씀 필사 — 따라 쓰면 읽음 처리 + 타자 기록·칭호 */}
-      <button
-        type="button"
-        onClick={() => navigate('/bible/typing')}
-        {...warmRoute('/bible/typing')}
-        className="dash-card dash-card--fav dash-card--tone-typing"
-      >
-        <span className="dash-card__icon dash-card__icon--seal">
-          <TypingIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-card__body">
-          <span className="dash-card__title">{dt.typingTitle}</span>
-          <span className="dash-card__text">{dt.typingText}</span>
-        </span>
-        <span className="material-icons-round dash-card__chevron">chevron_right</span>
-      </button>
-
-      {/* 상황별 성구 */}
-      <button
-        type="button"
-        onClick={() => navigate('/bible/situation')}
-        {...warmRoute('/bible/situation')}
-        className="dash-card dash-card--fav dash-card--tone-situation"
-      >
-        <span className="dash-card__icon dash-card__icon--seal">
-          <SituationIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-card__body">
-          <span className="dash-card__title">{dt.situationTitle}</span>
-          <span className="dash-card__text">{dt.situationText}</span>
-        </span>
-        <span className="material-icons-round dash-card__chevron">chevron_right</span>
-      </button>
-
-      {/* 말씀 사진 카드 — 내 사진 위에 말씀을 올려 저장·공유 */}
-      <button
-        type="button"
-        onClick={() => navigate('/bible/photo-verse')}
-        {...warmRoute('/bible/photo-verse')}
-        className="dash-card dash-card--fav dash-card--tone-photo"
-      >
-        <span className="dash-card__icon dash-card__icon--seal">
-          <PhotoVerseIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-card__body">
-          <span className="dash-card__title">{dt.photoTitle}</span>
-          <span className="dash-card__text">{dt.photoText}</span>
-        </span>
-        <span className="material-icons-round dash-card__chevron">chevron_right</span>
-      </button>
-
-      {isLoggedIn() && (
-        <button
-          type="button"
-          onClick={() => setShowPlaylist(true)}
-          onPointerEnter={warmFavorites}
-          onPointerDown={warmFavorites}
-          className="dash-card dash-card--fav dash-card--tone-listen"
-        >
-          <span className="dash-card__icon dash-card__icon--seal">
-            <ListenIcon className="dash-card__glyph" />
-          </span>
-          <span className="dash-card__body">
-            <span className="dash-card__title">{dt.favTitle}</span>
-            <span className="dash-card__text">
-              {favoritesCount > 0 ? dt.favCount(favoritesCount) : dt.favIntro}
-            </span>
-          </span>
-          <span className="material-icons-round dash-card__chevron">chevron_right</span>
-        </button>
-      )}
-    </>
-  )
-
-  // 모바일(lg 미만) — 2×2 가로형 타일 그리드(아이콘 좌·제목/설명 우, 각 한 줄).
-  // 4열 세로형은 한글 제목이 두 줄로 깨져 폐기. 높이는 4열 때와 비슷하면서 줄바꿈이 없다.
-  // 아이콘은 참빛 인장(모노 스탬프) — BibleToolIcons + .dash-card__icon--seal
-  const dashToolTiles = (
-    <div className={`dash-tiles${isLoggedIn() ? ' dash-tiles--odd' : ''}`}>
-      <button type="button" onClick={() => navigate('/bible/story')} {...warmRoute('/bible/story')} className="dash-tile dash-tile--tone-story">
-        <span className="dash-tile__icon dash-card__icon--seal">
-          <StoryIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-tile__body">
-          <span className="dash-tile__title">{dt.storyTitle}</span>
-          <span className="dash-tile__text">
-            {storyReadCount > 0 ? dt.tileStoryProgress(storyReadCount) : dt.tileStory}
-          </span>
-        </span>
-      </button>
-      <button type="button" onClick={() => navigate('/bible/parables')} {...warmRoute('/bible/parables')} className="dash-tile dash-tile--tone-parable">
-        <span className="dash-tile__icon dash-card__icon--seal">
-          <ParableIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-tile__body">
-          <span className="dash-tile__title">{dt.parableTitle}</span>
-          <span className="dash-tile__text">{dt.tileParable}</span>
-        </span>
-      </button>
-      <button type="button" onClick={() => navigate('/bible/atlas')} {...warmRoute('/bible/atlas')} className="dash-tile dash-tile--tone-atlas">
-        <span className="dash-tile__icon dash-card__icon--seal">
-          <AtlasIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-tile__body">
-          <span className="dash-tile__title">{dt.atlasTitle}</span>
-          <span className="dash-tile__text">{dt.tileAtlas}</span>
-        </span>
-      </button>
-      <button
-        type="button"
-        onClick={() => navigate('/bible/typing')}
-        {...warmRoute('/bible/typing')}
-        className="dash-tile dash-tile--tone-typing"
-      >
-        <span className="dash-tile__icon dash-card__icon--seal">
-          <TypingIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-tile__body">
-          <span className="dash-tile__title">{dt.typingTitle}</span>
-          <span className="dash-tile__text">{dt.tileTyping}</span>
-        </span>
-      </button>
-      <button type="button" onClick={() => navigate('/bible/situation')} {...warmRoute('/bible/situation')} className="dash-tile dash-tile--tone-situation">
-        <span className="dash-tile__icon dash-card__icon--seal">
-          <SituationIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-tile__body">
-          <span className="dash-tile__title">{dt.situationTitle}</span>
-          <span className="dash-tile__text">{dt.tileSituation}</span>
-        </span>
-      </button>
-      <button type="button" onClick={() => navigate('/bible/photo-verse')} {...warmRoute('/bible/photo-verse')} className="dash-tile dash-tile--tone-photo">
-        <span className="dash-tile__icon dash-card__icon--seal">
-          <PhotoVerseIcon className="dash-card__glyph" />
-        </span>
-        <span className="dash-tile__body">
-          <span className="dash-tile__title">{dt.photoTitle}</span>
-          <span className="dash-tile__text">{dt.tilePhoto}</span>
-        </span>
-      </button>
-      {isLoggedIn() && (
-        <button type="button" onClick={() => setShowPlaylist(true)} onPointerEnter={warmFavorites} onPointerDown={warmFavorites} className="dash-tile dash-tile--tone-listen">
-          <span className="dash-tile__icon dash-card__icon--seal">
-            <ListenIcon className="dash-card__glyph" />
-          </span>
-          <span className="dash-tile__body">
-            <span className="dash-tile__title">{dt.tileFavTitle}</span>
-            <span className="dash-tile__text">
-            {favoritesCount > 0 ? dt.tileFavCount(favoritesCount) : dt.tileFav}
-          </span>
-          </span>
-          </button>
-      )}
-    </div>
+  // 성경 공부 도구(무대 + 썸네일) — 모바일에선 서재 스택 안에, PC(lg+)에선 우측 사이드바에 같은 묶음을 그린다
+  const hubTools = (layout: 'rail' | 'inline') => (
+    <HubTools
+      layout={layout}
+      language={language}
+      storyReadCount={storyReadCount}
+      showFavorites={isLoggedIn()}
+      favoritesCount={favoritesCount}
+      onOpenFavorites={() => setShowPlaylist(true)}
+      warmFavorites={warmFavorites}
+      warmRoute={warmRoute}
+    />
   )
 
   return (
@@ -764,7 +564,7 @@ const BibleStudy = () => {
                         bookNameEn={books?.find(b => b.book_number === resumeData.latest!.book_number)?.book_name_en}
                       />
                     )}
-                    <div className="lg:hidden zoom-narrow-show">{dashToolTiles}</div>
+                    <div className="lg:hidden zoom-narrow-show">{hubTools('inline')}</div>
                   </div>
 
                   {/* 책 선택 */}
@@ -785,7 +585,7 @@ const BibleStudy = () => {
                   <p className="px-1 mb-2 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
                     성경 공부 도구
                   </p>
-                  <div className="dash-bento">{dashToolCards}</div>
+                  {hubTools('rail')}
                 </aside>
               </div>
             )}

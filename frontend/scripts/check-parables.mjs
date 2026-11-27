@@ -5,10 +5,13 @@
 //  ✗ 큰따옴표 "…" 인용이 passage·parallels 본문에 그대로 없으면 실패 (풀이·낱말 언급은 ‘…’)
 //  ✗ id 중복·필수 필드 누락·입문 코스 id 누락이면 실패
 //  ✗ quote 의 책:장 목록이 data/parables/chapters.ts(PARABLE_CHAPTERS)와 다르면 실패
+//  ✗ 허브 무대 표 data/parables/hubPicks.ts 가 입문 코스·title·gist 와 다르면 실패
 // 사용: node scripts/check-parables.mjs   (Node 22.18+ 는 .ts 를 그대로 import)
 const { PARABLES, INTRO_COURSE } = await import(new URL('../src/pages/Bible/data/parables/index.ts', import.meta.url))
 
 const { PARABLE_CHAPTERS } = await import(new URL('../src/pages/Bible/data/parables/chapters.ts', import.meta.url))
+
+const { HUB_PARABLE_PICKS } = await import(new URL('../src/pages/Bible/data/parables/hubPicks.ts', import.meta.url))
 
 const cache = new Map()
 const parse = (ref) => {
@@ -77,5 +80,10 @@ const quoteChapters = new Set(PARABLES.map((p) => p.quote.split(':').slice(0, 2)
 for (const k of quoteChapters) if (!PARABLE_CHAPTERS.has(k)) fail(`chapters.ts 에 ${k} 없음 — 이 장의 비유 카드가 읽기 화면에 안 뜬다`)
 for (const k of PARABLE_CHAPTERS) if (!quoteChapters.has(k)) fail(`chapters.ts 의 ${k} 에는 비유가 없음`)
 for (const id of INTRO_COURSE) if (!ids.has(id)) fail(`입문 코스 id ${id} 가 데이터에 없음`)
+if (HUB_PARABLE_PICKS.map((x) => x.id).join() !== INTRO_COURSE.join()) fail('hubPicks.ts 의 순서·id 가 입문 코스(INTRO_COURSE)와 다름')
+for (const pick of HUB_PARABLE_PICKS) {
+  const p = PARABLES.find((x) => x.id === pick.id)
+  if (p && (p.title !== pick.title || p.gist !== pick.gist)) fail(`hubPicks.ts 의 ${pick.id} title·gist 가 데이터와 다름 — /bible 허브 무대 문구`)
+}
 console.log(`\n비유 ${PARABLES.length}편 검사 · 실패 ${bad}`)
 process.exit(bad ? 1 : 0)
