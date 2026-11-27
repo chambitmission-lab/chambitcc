@@ -6,33 +6,14 @@
 //            확인할 것 + 현황판(숫자 띠·배치도/명단·대리 예약·입장)을 그 자리에서 + 설정) — 각자 스크롤, ↑↓ 이동, / 검색
 //   모바일   목록 → 상세 한 화면(뒤로가기로 닫힘)
 // 배치 편집은 기존 SeatEventComposer, 현황판은 SeatBoard. 데이터·액션은 SeatEventManagement 가 쥔다.
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { SeatEventStatus, SeatEventSummary } from '../../../types/seatEvent'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { dDayLabel, formatShort, stubDate } from '../../Seats/seatShared'
 import { fillRate, groupSeatEvents, seatGroupOf, seatNotice } from './seatDeskUtils'
-
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
-
-// ── 아이콘 ───────────────────────────────────────────────
-
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
-const IC = {
-  search: <><circle cx="11" cy="11" r="7.5" /><path d="M21 21l-4.6-4.6" /></>,
-  plus: <path d="M12 5v14M5 12h14" />,
-  back: <path d="M15 18l-6-6 6-6" />,
-  close: <path d="M18 6L6 18M6 6l12 12" />,
-  edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
-  trash: <><path d="M3 6h18" /><path d="M19 6l-1.4 14a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 6" /><path d="M9 6V4h6v2" /></>,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
-  link: <><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></>,
-}
+import { I, TextBtn } from './deskBits'
+import { DESK_IC as IC } from './deskIcons'
+import { DESK_PAGE_CLS, DESK_FRAME_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
 // ── 작은 조각 ────────────────────────────────────────────
 
@@ -48,19 +29,6 @@ const Badge = ({ tone, children }: { tone: 'brand' | 'warn' | 'off'; children: R
   >
     {children}
   </span>
-)
-
-const TextBtn = ({ icon, label, onClick, danger }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-[13.5px] font-semibold whitespace-nowrap transition ${
-      danger ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10' : 'text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/[0.07]'
-    }`}
-  >
-    <I d={icon} size={16} />
-    <span>{label}</span>
-  </button>
 )
 
 const STATUS_STEPS: [SeatEventStatus, string][] = [
@@ -311,28 +279,17 @@ const SeatDesk = ({ events, filtered, loading, searchTerm, onSearchChange, selec
   }, [events])
 
   // '/' 검색, ↑↓ 이동 — PC 전용(확인창·모달이 떠 있거나 입력 중이면 무시)
-  useEffect(() => {
-    const onKey = (ev: KeyboardEvent) => {
-      if (ev.metaKey || ev.ctrlKey || ev.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (ev.key === '/') {
-        ev.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if ((ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp') || order.length === 0) return
-      ev.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    canMove: order.length > 0,
+    onMove: (dir) => {
       const i = order.findIndex((x) => x.id === activeId)
-      const next = ev.key === 'ArrowDown' ? Math.min(order.length - 1, i + 1) : Math.max(0, i - 1)
+      const next = stepIndex(order.length, i, dir)
       const id = order[next].id
       onSelect(id)
       document.getElementById(`seat-row-${id}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [order, activeId, onSelect])
+    },
+  })
 
   const select = (id: number) => {
     onSelect(id)
@@ -342,8 +299,8 @@ const SeatDesk = ({ events, filtered, loading, searchTerm, onSearchChange, selec
   const ctx: DetailCtx = { renderBoard, editingId }
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
-      <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
+    <div className={DESK_PAGE_CLS}>
+      <div className={DESK_FRAME_CLS}>
         {/* ── 왼쪽: 목록 ─────────────────────────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">
           <div className="shrink-0 px-4 pt-4 lg:pt-5 pb-3 space-y-3">

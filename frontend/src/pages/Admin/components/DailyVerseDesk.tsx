@@ -7,16 +7,15 @@
 //            홈 명판 미리보기 AnnualThemeVerse 그대로) — 각자 스크롤, ↑↓ 이동, / 검색
 //   모바일   목록 → 상세 한 화면(뒤로가기로 닫힘)
 // 작성·수정은 DailyVerseComposer(2단 모달). 데이터·액션은 DailyVerseManagement 가 쥔다.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { DailyVerse } from '../../../types/dailyVerse'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { calendarDaysSince, formatDotDateTime } from '../../../utils/dateUtils'
 import AnnualThemeVerse from '../../Home/components/AnnualThemeVerse'
 import { isLiveVerse } from './dailyVerseDeskUtils'
-
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
+import { I, TextBtn } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, DESK_FRAME_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
 const WD = ['일', '월', '화', '수', '목', '금', '토']
 const ageLabel = (iso: string) => {
@@ -29,39 +28,11 @@ const ageLabel = (iso: string) => {
 
 // ── 아이콘 ───────────────────────────────────────────────
 
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  search: <><circle cx="11" cy="11" r="7.5" /><path d="M21 21l-4.6-4.6" /></>,
-  plus: <path d="M12 5v14M5 12h14" />,
-  back: <path d="M15 18l-6-6 6-6" />,
-  close: <path d="M18 6L6 18M6 6l12 12" />,
-  edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
-  trash: <><path d="M3 6h18" /><path d="M19 6l-1.4 14a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 6" /><path d="M9 6V4h6v2" /></>,
-  eye: <><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z" /><circle cx="12" cy="12" r="3" /></>,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
+  ...DESK_IC,
   pin: <><path d="M12 17v5" /><path d="M9 2h6l-1 6 3.5 3.5V14h-11v-2.5L10 8 9 2z" /></>,
   repeat: <><path d="M17 2l4 4-4 4" /><path d="M3 11V9a3 3 0 0 1 3-3h15" /><path d="M7 22l-4-4 4-4" /><path d="M21 13v2a3 3 0 0 1-3 3H3" /></>,
-  book: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" /><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" /></>,
 }
-
-const TextBtn = ({ icon, label, onClick, danger }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-[13.5px] font-semibold whitespace-nowrap transition ${
-      danger
-        ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10'
-        : 'text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/[0.07]'
-    }`}
-  >
-    <I d={icon} size={16} />
-    <span>{label}</span>
-  </button>
-)
 
 const LiveBadge = () => (
   <span className="inline-flex items-center gap-1 shrink-0 h-[22px] px-2 rounded-md text-[12px] font-bold bg-brand text-white">
@@ -300,28 +271,17 @@ const DailyVerseDesk = ({
   const sheetVerse = sheetOpen ? (verses.find((v) => v.id === selectedId) ?? null) : null
 
   // '/' 검색, ↑↓ 이동 — PC 전용(확인창·모달이 떠 있거나 입력 중이면 무시)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key === '/') {
-        e.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || order.length === 0) return
-      e.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    canMove: order.length > 0,
+    onMove: (dir) => {
       const i = order.findIndex((v) => v.id === activeId)
-      const next = e.key === 'ArrowDown' ? Math.min(order.length - 1, i + 1) : Math.max(0, i - 1)
+      const next = stepIndex(order.length, i, dir)
       const id = order[next].id
       onSelect(id)
       document.getElementById(`verse-row-${id}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [order, activeId, onSelect])
+    },
+  })
 
   const select = (id: number) => {
     onSelect(id)
@@ -331,8 +291,8 @@ const DailyVerseDesk = ({
   const archiveTotal = verses.filter((v) => !isLiveVerse(v)).length
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
-      <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
+    <div className={DESK_PAGE_CLS}>
+      <div className={DESK_FRAME_CLS}>
         {/* ── 왼쪽: 지금 걸린 말씀 + 보관함 ─────────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">
           <div className="shrink-0 px-4 pt-4 lg:pt-5 pb-3 space-y-3">

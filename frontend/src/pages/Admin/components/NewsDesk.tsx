@@ -6,7 +6,7 @@
 //   모바일   목록 → 상세 한 화면(뒤로가기로 닫힘)
 // 미리보기는 /news 와 같은 NewsDigestView 를 그대로 써서, 올린 원고가 성도 화면에서 어떻게
 // 나뉘어 보이는지 관리 화면에서 바로 확인한다. 데이터·액션은 NewsManagement 가 쥔다.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { NewsItem } from '../../../types/news'
 import { useNewsDetail } from '../../../hooks/useNews'
@@ -15,6 +15,9 @@ import { formatBytes } from '../../../utils/formatBytes'
 import { renderKeepTogether } from '../../../utils/keepTogether'
 import NewsDigestView from '../../News/components/newsDigest/NewsDigestView'
 import { parseNewsDigest } from '../../News/components/newsDigest/parseNewsDigest'
+import { I, Switch } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, DESK_FRAME_CLS, useDeskHotkeys, stepIndex } from './deskUtils'
 
 export type NewsSeg = 'all' | 'published' | 'hidden' | 'pinned'
 
@@ -28,48 +31,17 @@ const dotDate = (d: Date) =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} (${d.getDay() === 0 ? '일' : WD[d.getDay()]})`
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString()
 
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-
 // ── 아이콘 ───────────────────────────────────────────────
 
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  search: <><circle cx="11" cy="11" r="7.5" /><path d="M21 21l-4.6-4.6" /></>,
-  plus: <path d="M12 5v14M5 12h14" />,
+  ...DESK_IC,
   pin: <><path d="M12 17v5" /><path d="M9 2h6l-1 6 3.5 3.5V14h-11v-2.5L10 8 9 2z" /></>,
-  eye: <><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z" /><circle cx="12" cy="12" r="3" /></>,
-  edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
-  trash: <><path d="M3 6h18" /><path d="M19 6l-1.4 14a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 6" /><path d="M9 6V4h6v2" /></>,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
-  photo: <><rect x="3" y="4" width="18" height="16" rx="2.5" /><circle cx="9" cy="10" r="2" /><path d="M21 16l-5-5-9 9" /></>,
   clip: <path d="M21 11.5l-8.6 8.6a5.3 5.3 0 0 1-7.5-7.5l8.6-8.6a3.5 3.5 0 0 1 5 5l-8.6 8.6a1.8 1.8 0 0 1-2.5-2.5l7.9-7.9" />,
-  back: <path d="M15 18l-6-6 6-6" />,
-  bell: <><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></>,
-  book: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" /><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" /></>,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
-  close: <path d="M18 6L6 18M6 6l12 12" />,
   download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></>,
 }
 
 // ── 작은 조각 ────────────────────────────────────────────
-
-const Switch = ({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={on}
-    aria-label={label}
-    onClick={onClick}
-    className={`relative shrink-0 w-11 h-[26px] rounded-full transition-colors ${on ? 'bg-brand' : 'bg-gray-300 dark:bg-white/15'}`}
-  >
-    <span className={`absolute top-[3px] left-[3px] w-5 h-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-[18px]' : ''}`} />
-  </button>
-)
 
 const Badge = ({ tone, children }: { tone: 'pin' | 'hidden' | 'cat'; children: ReactNode }) => (
   <span
@@ -452,28 +424,17 @@ const NewsDesk = ({
   }
 
   // '/' 검색, ↑↓ 이동 — PC 전용(확인창·모달이 떠 있거나 입력 중이면 무시)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!window.matchMedia('(min-width: 1024px)').matches) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key === '/') {
-        e.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || filtered.length === 0) return
-      e.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    canMove: filtered.length > 0,
+    onMove: (dir) => {
       const i = filtered.findIndex((n) => n.id === activeId)
-      const next = e.key === 'ArrowDown' ? Math.min(filtered.length - 1, i + 1) : Math.max(0, i - 1)
+      const next = stepIndex(filtered.length, i, dir)
       const id = filtered[next].id
       setSelectedId(id)
       document.getElementById(`news-row-${id}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [filtered, activeId])
+    },
+  })
 
   const select = (id: number) => {
     setSelectedId(id)
@@ -483,8 +444,8 @@ const NewsDesk = ({
   const filtering = !!searchTerm || seg !== 'all' || !!category
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
-      <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
+    <div className={DESK_PAGE_CLS}>
+      <div className={DESK_FRAME_CLS}>
         {/* ── 왼쪽: 목록 ─────────────────────────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">
           <div className="shrink-0 px-4 pt-4 lg:pt-5 pb-3 space-y-3">

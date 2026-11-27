@@ -5,10 +5,11 @@
 //   왼쪽  목록(검색·상태 세그먼트·정렬) — 각자 스크롤, ↑↓ 이동, / 검색
 //   오른쪽 상세 — 인사말 전문·프로필·약력을 실제 화면처럼 펼쳐 보고, 섹션별 '수정'이
 //          컴포저의 해당 단계로 바로 연다. 상태 전환·공개 스위치는 상단에서 한 번에.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { pastorTermLabel, pastorText } from '../../../types/pastor'
 import type { Pastor, PastorStatus, PastorTextField } from '../../../types/pastor'
 import type { PastorComposerStep } from './PastorComposer'
+import { useDeskHotkeys, stepIndex } from './deskUtils'
 
 type StatusFilter = 'all' | PastorStatus
 type SortKey = 'term' | 'name'
@@ -37,12 +38,6 @@ export interface PastorDeskProps {
   onDelete: (pastor: Pastor) => void
   onViewPublic: () => void
 }
-
-const isTypingTarget = (el: Element | null) =>
-  !!el &&
-  (el.tagName === 'INPUT' ||
-    el.tagName === 'TEXTAREA' ||
-    (el as HTMLElement).isContentEditable)
 
 const PastorDesk = ({
   pastors,
@@ -82,29 +77,18 @@ const PastorDesk = ({
   )
 
   // '/' 검색, ↑↓ 이동 (확인창이 떠 있거나 입력 중이면 무시)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key === '/') {
-        e.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-      if (filtered.length === 0) return
-      e.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    desktopOnly: false,
+    canMove: filtered.length > 0,
+    onMove: (dir) => {
       const i = filtered.findIndex((p) => p.id === activeId)
-      const next =
-        e.key === 'ArrowDown' ? Math.min(filtered.length - 1, i + 1) : Math.max(0, i - 1)
+      const next = stepIndex(filtered.length, i, dir)
       const id = filtered[next].id
       setSelectedId(id)
       document.getElementById(`pastor-row-${id}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [filtered, activeId])
+    },
+  })
 
   const SEGMENTS: [StatusFilter, string, number][] = [
     ['all', '전체', counts.all],
@@ -114,7 +98,7 @@ const PastorDesk = ({
   ]
 
   return (
-    <div className="h-[calc(100dvh-56px)] p-4 overflow-hidden bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100">
+    <div className="h-[calc(100dvh-56px)] !p-4 overflow-hidden bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100">
       <div className="max-w-[1320px] h-full mx-auto flex rounded-3xl overflow-hidden border border-gray-200/70 dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
         {/* ── 왼쪽: 목록 ─────────────────────────────── */}
         <aside className="w-[340px] shrink-0 flex flex-col border-r border-gray-200/70 dark:border-white/[0.08] bg-white/60 dark:bg-white/[0.015]">

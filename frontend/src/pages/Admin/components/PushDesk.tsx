@@ -6,26 +6,18 @@
 //            오른쪽 = 작성 패널(PushComposePanel) 또는 고른 기록의 상세(도달 숫자 띠·설정·기기 미리보기·다시 쓰기)
 //   모바일   목록 → 작성/상세 한 화면(뒤로가기로 닫힘)
 // 데이터·발송은 PushNotificationManagement 가 쥔다.
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { PushSendLog } from '../../../api/push'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { DevicePreview } from './PushComposePanel'
 import { AUDIENCE_MODE_LABEL, logMonthKey, logMonthLabel, logParts, reachOf, urlLabel } from './pushDeskUtils'
+import { I } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, DESK_FRAME_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
-
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  search: <><circle cx="11" cy="11" r="7.5" /><path d="M21 21l-4.6-4.6" /></>,
+  ...DESK_IC,
   pen: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
-  back: <path d="M15 18l-6-6 6-6" />,
-  close: <path d="M18 6L6 18M6 6l12 12" />,
   replay: <><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></>,
 }
 
@@ -229,27 +221,15 @@ const PushDesk = ({ logs, total, loading, error, hasMore, loadingMore, onLoadMor
 
   const lastSent = logs[0] ? logParts(logs[0].created_at) : null
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key === '/') {
-        e.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-      e.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    onMove: (dir) => {
       const i = order.indexOf(activeSel)
-      const next = order[e.key === 'ArrowDown' ? Math.min(order.length - 1, i + 1) : Math.max(0, i - 1)]
+      const next = order[stepIndex(order.length, i, dir)]
       setSel(next)
       if (next !== 'new') document.getElementById(`push-row-${next}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [order, activeSel])
+    },
+  })
 
   const select = (next: PushSel) => {
     setSel(next)
@@ -264,8 +244,8 @@ const PushDesk = ({ logs, total, loading, error, hasMore, loadingMore, onLoadMor
   const sheetLog = sel === 'new' ? null : (logs.find((l) => l.id === sel) ?? null)
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
-      <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
+    <div className={DESK_PAGE_CLS}>
+      <div className={DESK_FRAME_CLS}>
         {/* ── 왼쪽: 새 알림 + 보낸 기록 ───────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">
           <div className="shrink-0 px-4 pt-4 lg:pt-5 pb-3 space-y-3">

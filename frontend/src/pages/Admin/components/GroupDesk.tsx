@@ -7,13 +7,16 @@
 //            숫자 띠, 정리 안내, 정보) — 각자 스크롤, ↑↓ 이동, / 검색
 //   모바일   목록 → 상세 한 화면(뒤로가기로 닫힘)
 // 데이터·액션은 GroupManagement(실제) / dev/GroupAdminPreview(표본)가 쥔다.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { renderSVG } from 'uqr'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { groupInviteUrl } from '../../../utils/inviteLink'
 import { calendarDaysSince, formatDotDateWeekday } from '../../../utils/dateUtils'
 import { GroupGlyph } from '../../Groups/GroupIcons'
 import { isQuietGroup, type AdminGroup, type GroupSeg, type GroupSort } from './groupDeskUtils'
+import { I, TextBtn } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, DESK_FRAME_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
 const ageLabel = (iso: string) => {
   const d = calendarDaysSince(iso)
@@ -23,28 +26,12 @@ const ageLabel = (iso: string) => {
   return `${Math.floor(d / 365)}년 전`
 }
 
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
-
 // ── 아이콘 ───────────────────────────────────────────────
 
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  search: <><circle cx="11" cy="11" r="7.5" /><path d="M21 21l-4.6-4.6" /></>,
-  back: <path d="M15 18l-6-6 6-6" />,
-  close: <path d="M18 6L6 18M6 6l12 12" />,
+  ...DESK_IC,
   users: <><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20" /><circle cx="9" cy="7.5" r="3.5" /><path d="M22 20v-1.5a4 4 0 0 0-3-3.85" /><path d="M16 4.15a3.5 3.5 0 0 1 0 6.7" /></>,
   heart: <path d="M12 20.5s-7.5-4.6-9.6-9A5.4 5.4 0 0 1 12 6a5.4 5.4 0 0 1 9.6 5.5c-2.1 4.4-9.6 9-9.6 9z" />,
-  copy: <><rect x="9" y="9" width="12" height="12" rx="2.2" /><path d="M5 15H4.2A2.2 2.2 0 0 1 2 12.8V4.2A2.2 2.2 0 0 1 4.2 2h8.6A2.2 2.2 0 0 1 15 4.2V5" /></>,
-  link: <><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></>,
-  trash: <><path d="M3 6h18" /><path d="M19 6l-1.4 14a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 6" /><path d="M9 6V4h6v2" /></>,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
   moon: <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z" />,
   arrow: <path d="M9 6l6 6-6 6" />,
   qr: <><rect x="3" y="3" width="7" height="7" rx="1.2" /><rect x="14" y="3" width="7" height="7" rx="1.2" /><rect x="3" y="14" width="7" height="7" rx="1.2" /><path d="M14 14h3v3M21 14v.01M17 21h4v-4M14 18v3" /></>,
@@ -70,21 +57,6 @@ const QuietBadge = () => (
     <I d={IC.moon} size={11} />
     조용함
   </span>
-)
-
-const TextBtn = ({ icon, label, onClick, danger }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-[13.5px] font-semibold whitespace-nowrap transition ${
-      danger
-        ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10'
-        : 'text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/[0.07]'
-    }`}
-  >
-    <I d={icon} size={16} />
-    <span>{label}</span>
-  </button>
 )
 
 // ── 정리 후보 띠 ─────────────────────────────────────────
@@ -417,28 +389,17 @@ const GroupDesk = ({
   const totalPrayers = groups.reduce((s, g) => s + g.prayer_count, 0)
 
   // '/' 검색, ↑↓ 이동 — PC 전용(확인창·모달이 떠 있거나 입력 중이면 무시)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key === '/') {
-        e.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || filtered.length === 0) return
-      e.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    canMove: filtered.length > 0,
+    onMove: (dir) => {
       const i = filtered.findIndex((g) => g.id === activeId)
-      const next = e.key === 'ArrowDown' ? Math.min(filtered.length - 1, i + 1) : Math.max(0, i - 1)
+      const next = stepIndex(filtered.length, i, dir)
       const id = filtered[next].id
       setSelectedId(id)
       document.getElementById(`group-row-${id}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [filtered, activeId])
+    },
+  })
 
   const select = (id: number) => {
     setSelectedId(id)
@@ -448,8 +409,8 @@ const GroupDesk = ({
   const filtering = !!searchTerm || seg !== 'all'
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
-      <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
+    <div className={DESK_PAGE_CLS}>
+      <div className={DESK_FRAME_CLS}>
         {/* ── 왼쪽: 목록 ─────────────────────────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">
           <div className="shrink-0 px-4 pt-4 lg:pt-5 pb-3 space-y-3">

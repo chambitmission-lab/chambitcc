@@ -8,55 +8,27 @@
 //            — 각자 스크롤, ↑↓ 이동, / 검색
 //   모바일   트리 → 상세 한 화면(뒤로가기로 닫힘)
 // 작성·수정은 기존 EducationComposer(2단 모달). 데이터·액션은 EducationManagement 가 쥔다.
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import type { EducationCategory, EducationProgram } from '../../../types/education'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { EduGlyph } from '../../Education/EduIcons'
 import { DAY_SHORT_KO, formatTime, programSessions } from '../../Education/eduSchedule'
 import { flattenSel, isPendingProgram, missingFields, type EduSeg, type EduSel } from './educationDeskUtils'
+import { I, TextBtn, Switch } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, DESK_FRAME_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
 const rowId = (s: EduSel) => `edu-row-${s.kind}-${s.id}`
 
 // ── 아이콘 ───────────────────────────────────────────────
 
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  search: <><circle cx="11" cy="11" r="7.5" /><path d="M21 21l-4.6-4.6" /></>,
-  plus: <path d="M12 5v14M5 12h14" />,
-  back: <path d="M15 18l-6-6 6-6" />,
-  close: <path d="M18 6L6 18M6 6l12 12" />,
-  edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
-  trash: <><path d="M3 6h18" /><path d="M19 6l-1.4 14a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 6" /><path d="M9 6V4h6v2" /></>,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
+  ...DESK_IC,
   up: <path d="M18 15l-6-6-6 6" />,
-  down: <path d="M6 9l6 6 6-6" />,
-  chevron: <path d="M9 6l6 6-6 6" />,
-  pencil: <><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M13.5 6.5l4 4" /></>,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
-  link: <><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></>,
 }
 
 // ── 작은 조각 ────────────────────────────────────────────
-
-const Switch = ({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={on}
-    aria-label={label}
-    onClick={onClick}
-    className={`relative shrink-0 w-11 h-[26px] rounded-full transition-colors ${on ? 'bg-brand' : 'bg-gray-300 dark:bg-white/15'}`}
-  >
-    <span className={`absolute top-[3px] left-[3px] w-5 h-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-[18px]' : ''}`} />
-  </button>
-)
 
 const Badge = ({ tone, children }: { tone: 'hidden' | 'pending'; children: ReactNode }) => (
   <span
@@ -68,21 +40,6 @@ const Badge = ({ tone, children }: { tone: 'hidden' | 'pending'; children: React
   >
     {children}
   </span>
-)
-
-const TextBtn = ({ icon, label, onClick, danger }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-[13.5px] font-semibold whitespace-nowrap transition ${
-      danger
-        ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10'
-        : 'text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/[0.07]'
-    }`}
-  >
-    <I d={icon} size={16} />
-    <span>{label}</span>
-  </button>
 )
 
 const OrderPair = ({ onMove, first, last }: { onMove: (d: 'up' | 'down') => void; first: boolean; last: boolean }) => (
@@ -645,27 +602,16 @@ const EducationDesk = ({
   const totalOf = (id: number) => categories.find((c) => c.id === id)?.programs.length ?? 0
 
   // '/' 검색, ↑↓ 이동 — PC 전용(확인창·모달이 떠 있거나 입력 중이면 무시)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key === '/') {
-        e.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || order.length === 0) return
-      e.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    canMove: order.length > 0,
+    onMove: (dir) => {
       const i = order.findIndex((s) => sameSel(s, active))
-      const next = order[e.key === 'ArrowDown' ? Math.min(order.length - 1, i + 1) : Math.max(0, i - 1)]
+      const next = order[stepIndex(order.length, i, dir)]
       onSelect(next)
       document.getElementById(rowId(next))?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [order, active, onSelect])
+    },
+  })
 
   const select = (s: EduSel) => {
     onSelect(s)
@@ -676,8 +622,8 @@ const EducationDesk = ({
   const ctx = { categories, onSelect: select }
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
-      <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
+    <div className={DESK_PAGE_CLS}>
+      <div className={DESK_FRAME_CLS}>
         {/* ── 왼쪽: 트리 ─────────────────────────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">
           <div className="shrink-0 px-4 pt-4 lg:pt-5 pb-3 space-y-3">

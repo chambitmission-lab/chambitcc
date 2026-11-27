@@ -6,12 +6,15 @@
 //            수정·삭제 + 숫자 띠 + 성도 화면 미리보기 = /news 의 EventAlbumDetail 그대로)
 //   모바일   목록 → 상세 한 화면(뒤로가기로 닫힘)
 // 데이터·액션은 EventAlbumManagement 가 쥔다.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { coverThumb } from '../../../types/eventAlbum'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { EventTagIcon } from '../../News/components/NewsIcons'
 import EventAlbumDetail from '../../News/components/EventAlbumDetail'
+import { I, TextBtn, Switch } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
 export type AlbumSeg = 'all' | 'published' | 'hidden'
 export type AlbumSort = 'recent' | 'oldest' | 'reaction'
@@ -23,59 +26,16 @@ const ymd = (s: string) => {
 }
 const dayLabel = (d: Date) => (d.getDay() === 0 ? '주일' : WD[d.getDay()])
 
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
-
 // ── 아이콘 ───────────────────────────────────────────────
 
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  search: <><circle cx="11" cy="11" r="7.5" /><path d="M21 21l-4.6-4.6" /></>,
-  plus: <path d="M12 5v14M5 12h14" />,
-  edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
-  trash: <><path d="M3 6h18" /><path d="M19 6l-1.4 14a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 6" /><path d="M9 6V4h6v2" /></>,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
-  back: <path d="M15 18l-6-6 6-6" />,
-  close: <path d="M18 6L6 18M6 6l12 12" />,
-  eye: <><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z" /><circle cx="12" cy="12" r="3" /></>,
-  photo: <><rect x="3" y="4" width="18" height="16" rx="2.5" /><circle cx="9" cy="10" r="2" /><path d="M21 16l-5-5-9 9" /></>,
+  ...DESK_IC,
   heart: <path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.6 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" />,
   chat: <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />,
   cal: <><rect x="3" y="5" width="18" height="16" rx="2.5" /><path d="M8 3v4M16 3v4M3 10h18" /></>,
 }
 
 // ── 작은 조각 ────────────────────────────────────────────
-
-const Switch = ({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={on}
-    aria-label={label}
-    onClick={onClick}
-    className={`relative shrink-0 w-11 h-[26px] rounded-full transition-colors ${on ? 'bg-brand' : 'bg-gray-300 dark:bg-white/15'}`}
-  >
-    <span className={`absolute top-[3px] left-[3px] w-5 h-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-[18px]' : ''}`} />
-  </button>
-)
-
-const TextBtn = ({ icon, label, onClick, danger }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-[13.5px] font-semibold whitespace-nowrap transition ${
-      danger ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10' : 'text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/[0.07]'
-    }`}
-  >
-    <I d={icon} size={16} />
-    <span>{label}</span>
-  </button>
-)
 
 // ── 목록 행 ──────────────────────────────────────────────
 
@@ -354,28 +314,17 @@ const EventAlbumDesk = ({
     return out
   }, [filtered, sort])
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key === '/') {
-        e.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || filtered.length === 0) return
-      e.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    canMove: filtered.length > 0,
+    onMove: (dir) => {
       const i = filtered.findIndex((p) => p.id === activeId)
-      const next = e.key === 'ArrowDown' ? Math.min(filtered.length - 1, i + 1) : Math.max(0, i - 1)
+      const next = stepIndex(filtered.length, i, dir)
       const id = filtered[next].id
       setSelectedId(id)
       document.getElementById(`album-row-${id}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [filtered, activeId])
+    },
+  })
 
   const select = (id: number) => {
     setSelectedId(id)
@@ -385,7 +334,7 @@ const EventAlbumDesk = ({
   const filtering = !!searchTerm || seg !== 'all' || !!tag
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
+    <div className={DESK_PAGE_CLS}>
       <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[420px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
         {/* ── 왼쪽: 앨범 목록 ─────────────────────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">

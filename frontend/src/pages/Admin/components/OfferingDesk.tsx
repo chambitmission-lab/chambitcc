@@ -7,7 +7,7 @@
 //            계좌: 공개·순서·복사 확인) + 아래에 성도 화면(OfferingSection) 그대로 — ↑↓ 이동
 //   모바일   개요 → 상세 한 화면(뒤로가기로 닫힘)
 // 작성·수정은 기존 OfferingComposer(2단 모달). 데이터·액션은 OfferingManagement 가 쥔다.
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import type { OfferingAccount, OfferingGuide } from '../../../types/offering'
 import { plainAccountNumber } from '../../../types/offering'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -15,46 +15,20 @@ import { formatDotDateTime } from '../../../utils/dateUtils'
 import { BankIcon, OfferingBoxIcon } from '../../News/components/NewsIcons'
 import OfferingSection from '../../News/components/OfferingSection'
 import { GUIDE_FIELDS, accountMissing, guideMissing, type OfferingSel } from './offeringDeskUtils'
+import { I, TextBtn, Switch } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, DESK_FRAME_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
 const selKey = (s: OfferingSel) => (s.kind === 'guide' ? 'guide' : `account-${s.id}`)
 
 // ── 아이콘 ───────────────────────────────────────────────
 
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  plus: <path d="M12 5v14M5 12h14" />,
-  back: <path d="M15 18l-6-6 6-6" />,
-  edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
-  trash: <><path d="M3 6h18" /><path d="M19 6l-1.4 14a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 6" /><path d="M9 6V4h6v2" /></>,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
-  eye: <><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z" /><circle cx="12" cy="12" r="3" /></>,
+  ...DESK_IC,
   up: <path d="M18 15l-6-6-6 6" />,
-  down: <path d="M6 9l6 6 6-6" />,
-  copy: <><rect x="9" y="9" width="12" height="12" rx="2.2" /><path d="M5 15H4.2A2.2 2.2 0 0 1 2 12.8V4.2A2.2 2.2 0 0 1 4.2 2h8.6A2.2 2.2 0 0 1 15 4.2V5" /></>,
-  pencil: <><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M13.5 6.5l4 4" /></>,
 }
 
 // ── 작은 조각 ────────────────────────────────────────────
-
-const Switch = ({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={on}
-    aria-label={label}
-    onClick={onClick}
-    className={`relative shrink-0 w-11 h-[26px] rounded-full transition-colors ${on ? 'bg-brand' : 'bg-gray-300 dark:bg-white/15'}`}
-  >
-    <span className={`absolute top-[3px] left-[3px] w-5 h-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-[18px]' : ''}`} />
-  </button>
-)
 
 const Badge = ({ tone, children }: { tone: 'hidden' | 'pending'; children: ReactNode }) => (
   <span
@@ -66,21 +40,6 @@ const Badge = ({ tone, children }: { tone: 'hidden' | 'pending'; children: React
   >
     {children}
   </span>
-)
-
-const TextBtn = ({ icon, label, onClick, danger }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-[13.5px] font-semibold whitespace-nowrap transition ${
-      danger
-        ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10'
-        : 'text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/[0.07]'
-    }`}
-  >
-    <I d={icon} size={16} />
-    <span>{label}</span>
-  </button>
 )
 
 const EditBtn = ({ onClick }: { onClick: () => void }) => (
@@ -422,22 +381,14 @@ const OfferingDesk = ({ guide, accounts, loading, selected, onSelect, onCreateAc
   const pending = accounts.filter(accountMissing).length + (guideMissing(guide).length > 0 ? 1 : 0)
 
   // ↑↓ 이동 — PC 전용(확인창·모달이 떠 있거나 입력 중이면 무시)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-      e.preventDefault()
+  useDeskHotkeys({
+    onMove: (dir) => {
       const i = order.findIndex((s) => selKey(s) === selKey(active))
-      const next = order[e.key === 'ArrowDown' ? Math.min(order.length - 1, i + 1) : Math.max(0, i - 1)]
+      const next = order[stepIndex(order.length, i, dir)]
       onSelect(next)
       document.getElementById(`offering-row-${selKey(next)}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [order, active, onSelect])
+    },
+  })
 
   const select = (s: OfferingSel) => {
     onSelect(s)
@@ -447,8 +398,8 @@ const OfferingDesk = ({ guide, accounts, loading, selected, onSelect, onCreateAc
   const ctx = { guide, accounts }
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
-      <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
+    <div className={DESK_PAGE_CLS}>
+      <div className={DESK_FRAME_CLS}>
         {/* ── 왼쪽: 개요 ─────────────────────────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">
           <div className="shrink-0 px-4 pt-4 lg:pt-5 pb-3 space-y-3">

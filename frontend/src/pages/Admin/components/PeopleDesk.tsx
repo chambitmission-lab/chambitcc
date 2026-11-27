@@ -6,7 +6,7 @@
 //            + 채운 정보 + 성도 화면 미리보기 = /people 카드·시트 그대로) — 각자 스크롤, ↑↓, /
 //   모바일   명단 → 상세 한 화면(뒤로가기로 닫힘)
 // 데이터·액션은 PeopleManagement 가 쥔다.
-import { useEffect, useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { useDragSort } from '../../../hooks/useDragSort'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useReorderPeople } from '../../../hooks/usePeople'
@@ -27,6 +27,9 @@ import {
 import type { Person, PersonCategory } from '../../../types/people'
 import type { PersonComposerStep } from './PersonComposer'
 import { missingKeyLabels, personChecks } from './peopleChecks'
+import { I, TextBtn, Switch } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
 export type CategoryFilter = 'all' | PersonCategory
 export type PeopleFlag = 'none' | 'hidden' | 'missing'
@@ -38,48 +41,17 @@ const SHORT_LABEL: Record<PersonCategory, string> = {
   staff: '직원',
 }
 
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
-
 // ── 아이콘 ───────────────────────────────────────────────
 
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  search: <><circle cx="11" cy="11" r="7.5" /><path d="M21 21l-4.6-4.6" /></>,
-  plus: <path d="M12 5v14M5 12h14" />,
-  edit: <><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></>,
-  trash: <><path d="M3 6h18" /><path d="M19 6l-1.4 14a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 6" /><path d="M9 6V4h6v2" /></>,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
-  back: <path d="M15 18l-6-6 6-6" />,
-  close: <path d="M18 6L6 18M6 6l12 12" />,
+  ...DESK_IC,
   up: <path d="M6 15l6-6 6 6" />,
-  down: <path d="M6 9l6 6 6-6" />,
-  eye: <><path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z" /><circle cx="12" cy="12" r="3" /></>,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   crown: <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" />,
   pin: <><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></>,
 }
 
 // ── 작은 조각 ────────────────────────────────────────────
-
-const Switch = ({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={on}
-    aria-label={label}
-    onClick={onClick}
-    className={`relative shrink-0 w-11 h-[26px] rounded-full transition-colors ${on ? 'bg-brand' : 'bg-gray-300 dark:bg-white/15'}`}
-  >
-    <span className={`absolute top-[3px] left-[3px] w-5 h-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-[18px]' : ''}`} />
-  </button>
-)
 
 const Badge = ({ tone, children }: { tone: 'hidden' | 'leader' | 'warn'; children: ReactNode }) => (
   <span
@@ -93,21 +65,6 @@ const Badge = ({ tone, children }: { tone: 'hidden' | 'leader' | 'warn'; childre
   >
     {children}
   </span>
-)
-
-const TextBtn = ({ icon, label, onClick, danger }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-[13.5px] font-semibold whitespace-nowrap transition ${
-      danger
-        ? 'text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10'
-        : 'text-gray-700 dark:text-white/80 hover:bg-gray-100 dark:hover:bg-white/[0.07]'
-    }`}
-  >
-    <I d={icon} size={16} />
-    <span>{label}</span>
-  </button>
 )
 
 const Avatar = ({ person, size }: { person: Person; size: number }) => (
@@ -633,28 +590,17 @@ const PeopleDesk = ({
   // 검색·골라 보기 중엔 일부만 보여서 순서를 바꾸면 헷갈린다 — 그때는 손잡이를 감춘다
   const sortable = !searchTerm.trim() && flag === 'none'
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key === '/') {
-        e.preventDefault()
-        searchRef.current?.focus()
-        return
-      }
-      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || filtered.length === 0) return
-      e.preventDefault()
+  useDeskHotkeys({
+    searchRef,
+    canMove: filtered.length > 0,
+    onMove: (dir) => {
       const i = filtered.findIndex((p) => p.id === activeId)
-      const next = e.key === 'ArrowDown' ? Math.min(filtered.length - 1, i + 1) : Math.max(0, i - 1)
+      const next = stepIndex(filtered.length, i, dir)
       const id = filtered[next].id
       onSelect(id)
       document.getElementById(`ppl-row-${id}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [filtered, activeId, onSelect])
+    },
+  })
 
   const select = (id: number) => {
     onSelect(id)
@@ -665,7 +611,7 @@ const PeopleDesk = ({
   const SEGS: [CategoryFilter, string][] = [['all', '전체'], ...PERSON_CATEGORIES.map((c) => [c, SHORT_LABEL[c]] as [CategoryFilter, string])]
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
+    <div className={DESK_PAGE_CLS}>
       <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[420px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
         {/* ── 왼쪽: 명단 ─────────────────────────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">

@@ -6,27 +6,20 @@
 //   모바일   목록 → 상세 한 화면(뒤로가기로 닫힘)
 // 익명 원칙 — 누가 누구를 위해 기도하는지는 여기서도 숫자로만. 보낸 사람 이름은 신고된 편지에 한해서만 보인다.
 // 데이터·확인창·액션은 IntercessionManagement 가 쥔다.
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import type { IntercessionAdminOverview, IntercessionLetterReport } from '../../../api/intercession'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { formatDotDateTime } from '../../../utils/date'
 import { cycleMonthLabel, formatDay } from '../../Intercession/intercessionDates'
 import { CYCLE_STATS, PEOPLE_STATS, overviewLine, type IntercessionSel } from './intercessionDeskUtils'
-
-const isTypingTarget = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)
-const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches
+import { I } from './deskBits'
+import { DESK_IC } from './deskIcons'
+import { DESK_PAGE_CLS, DESK_FRAME_CLS, useDeskHotkeys, stepIndex, isDesktop } from './deskUtils'
 
 // ── 아이콘 ───────────────────────────────────────────────
 
-const I = ({ d, size = 16, className = '' }: { d: ReactNode; size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-    {d}
-  </svg>
-)
 const IC = {
-  back: <path d="M15 18l-6-6 6-6" />,
-  ext: <><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></>,
+  ...DESK_IC,
   play: <path d="M7 4.5v15l12-7.5z" />,
   hands: <><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z" /></>,
   flag: <><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></>,
@@ -322,22 +315,14 @@ const IntercessionDesk = ({ data, loading, reports, busy, onBack, ...actions }: 
   const activeSel: IntercessionSel = order.includes(sel) ? sel : 'overview'
   const selectedReport = activeSel === 'overview' ? null : (reports.find((r) => r.id === activeSel) ?? null)
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (!isDesktop()) return
-      if (document.querySelector('[role="alertdialog"], [role="dialog"]')) return
-      if (isTypingTarget(document.activeElement)) return
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-      e.preventDefault()
+  useDeskHotkeys({
+    onMove: (dir) => {
       const i = order.indexOf(activeSel)
-      const next = order[e.key === 'ArrowDown' ? Math.min(order.length - 1, i + 1) : Math.max(0, i - 1)]
+      const next = order[stepIndex(order.length, i, dir)]
       setSel(next)
       if (next !== 'overview') document.getElementById(`intercession-report-${next}`)?.scrollIntoView({ block: 'nearest' })
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [order, activeSel])
+    },
+  })
 
   const select = (next: IntercessionSel) => {
     setSel(next)
@@ -353,8 +338,8 @@ const IntercessionDesk = ({ data, loading, reports, busy, onBack, ...actions }: 
   }
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:min-h-0 lg:h-[calc(100dvh-56px)] lg:p-4 lg:overflow-hidden">
-      <div className="max-w-[1320px] mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:min-h-0 lg:h-full lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:rounded-3xl lg:overflow-hidden lg:border lg:border-gray-200/70 dark:lg:border-white/[0.08] lg:shadow-2xl">
+    <div className={DESK_PAGE_CLS}>
+      <div className={DESK_FRAME_CLS}>
         {/* ── 왼쪽: 운영 현황 + 신고된 편지 ───────────── */}
         <section className="flex flex-col lg:min-h-0 lg:border-r border-gray-200/70 dark:border-white/[0.07] lg:bg-white/60 dark:lg:bg-white/[0.015]">
           <div className="shrink-0 px-4 pt-4 lg:pt-5 pb-3 space-y-3">
