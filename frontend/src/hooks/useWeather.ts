@@ -86,6 +86,8 @@ export interface CurrentWeather {
   /* 장대비(WMO 65 강한 비·82 세찬 소나기) — 레일 삽화의 비 장면에서 먼 번쩍임이 보통 비보다 잦아진다.
    * 뇌우 코드(95~)가 아니라 번개 줄기는 없다. 옛 저장분에는 이 값이 없다(= 아님) */
   isHeavyRain?: boolean
+  /* 약한 비(WMO 61 약한 비·80 약한 소나기) — 레일 삽화의 비 장면에서 먼 번쩍임이 없다. 옛 저장분에는 없다(= 아님) */
+  isLightRain?: boolean
 }
 
 /* WMO 날씨 코드 → 하늘 상태. 애매한 코드는 맑음으로 떨어뜨려
@@ -177,6 +179,7 @@ const toCurrentWeather = (raw: RawWeather): CurrentWeather => {
     isPrecipitating: raw.precipitation > 0,
     isHeavySnow: raw.code === 75 || raw.code === 86,
     isHeavyRain: raw.code === 65 || raw.code === 82,
+    isLightRain: raw.code === 61 || raw.code === 80,
   }
 }
 

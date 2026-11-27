@@ -94,6 +94,8 @@ export default function RailWeatherFx({ src, theme, forceMode }: Props) {
   const mode: RailSceneMode | null = preview ?? live ?? (thaw && !reduced ? 'thaw' : null)
   /* 장대비 — 비 장면의 먼 번쩍임이 잦아진다(미리보기는 'downpour' 키로만) */
   const heavy = mode === 'rain' && (preview ? previewHeavy && !forceMode : !!weather?.isHeavyRain)
+  /* 약한 비 — 비는 내리되 번쩍임은 없다(미리보기 'rain' 은 보통 비로 본다) */
+  const calm = mode === 'rain' && !preview && !!weather?.isLightRain
   const active = !!mode
 
   /* 날씨가 개어도 캔버스는 스러지는 동안(FADE_MS) 남겨 둔다 */
@@ -130,7 +132,7 @@ export default function RailWeatherFx({ src, theme, forceMode }: Props) {
         }),
       ])
       if (disposed || !img) return
-      const scene = new RailWeatherScene(canvas, mode, { still: reduced, demo: preview === 'thaw', heavy })
+      const scene = new RailWeatherScene(canvas, mode, { still: reduced, demo: preview === 'thaw', heavy, calm })
       const bg =
         getComputedStyle(document.documentElement).getPropertyValue('--desktop-chrome').trim() ||
         (theme === 'dark' ? '#131313' : '#f1f3f6')
@@ -185,7 +187,7 @@ export default function RailWeatherFx({ src, theme, forceMode }: Props) {
       ro?.disconnect()
       cleanupScene?.()
     }
-  }, [mode, src, theme, reduced, preview, heavy])
+  }, [mode, src, theme, reduced, preview, heavy, calm])
 
   if (!mounted) return null
   /* ready 는 장면이 바뀌어도 내리지 않는다 — 새 장면이 첫 장을 그릴 때까지 앞 장면의 마지막 그림이

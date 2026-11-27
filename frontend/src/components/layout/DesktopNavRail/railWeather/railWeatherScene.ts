@@ -57,6 +57,8 @@ interface Variant {
   overlay: number
   clouds: number
   cloudSpeed: number
+  /** 돌풍 때 먹구름도 함께 빨라진다 — 폭풍만. 보통 비에서는 구름이 가다 서다 울컥거려 보였다(2026-11-27) */
+  cloudGust?: boolean
   glow: number
   /** near = 가지 친 번개(폭풍) · snow = 눈번개 · far = 줄기 없이 먼 번쩍임만(장대비) */
   bolt?: 'near' | 'snow' | 'far'
@@ -92,13 +94,15 @@ interface Variant {
 const VARIANTS: Record<RailSceneMode, Variant> = {
   // 가랑비: 방울 수 절반 이하·속도 0.4배·짧고 옅게 — 굵은 앞줄 비와 빗줄기 커튼은 없다
   drizzle: { kind: 'rain', layers: [34, 18, 0], speed: 0.4, lenMul: 0.6, alphaMul: 0.7, slant: -0.06, gustAmp: 0.03, gustRate: 0.25,
-    overlay: 0.1, clouds: 2, cloudSpeed: 2.5, veils: 0, splash: 0.12, glow: 1.0 },
+    overlay: 0.1, clouds: 2, cloudSpeed: 0.9, veils: 0, splash: 0.12, glow: 1.0 },
   rain: { kind: 'rain', layers: [68, 45, 5], speed: 0.8, slant: -0.12, gustAmp: 0.05, gustRate: 0.35,
-    overlay: 0.26, clouds: 3, cloudSpeed: 4, veils: 2, veilA: 0.07, splash: 0.35, glow: 1.0,
+    overlay: 0.26, clouds: 3, cloudSpeed: 1.4, veils: 2, veilA: 0.07, splash: 0.35, glow: 1.0,
     // 보통 비에도 먼 번쩍임이 가끔(1분 반~3분에 한 번) — 2026-11-23 "비 올 때도 가끔 치게"
-    bolt: 'far', every: [90, 180], first: 25 },
+    // 첫 번쩍임 시각(first)은 두지 않는다 — 고정값(25초)이면 화면을 열 때마다 곧 번쩍여 실제보다 훨씬 잦아 보였다.
+    // 약한 비(opts.calm)에는 번쩍임이 아예 없다(2026-11-27 "이 정도 비에 번개가 치진 않았을 것")
+    bolt: 'far', every: [90, 180] },
   storm: { kind: 'rain', layers: [128, 98, 18], speed: 1.3, slant: -0.3, gustAmp: 0.13, gustRate: 0.55,
-    overlay: 0.52, clouds: 5, cloudSpeed: 13, veils: 4, veilA: 0.16, mist: true,
+    overlay: 0.52, clouds: 5, cloudSpeed: 13, cloudGust: true, veils: 4, veilA: 0.16, mist: true,
     bolt: 'near', every: [6, 11], first: 1.4, splash: 1, glow: 1.25 },
   // 장대비(opts.heavy)는 rain 의 번쩍임 간격을 FAR_LIGHTNING 으로 당긴다 — 아래 상수
   // ★천둥 흔들림(shake)은 없앴다(2026-11-14) — 그림 전체가 떨려 어지럽다는 피드백. 창 불빛 떨림은 유지.
@@ -127,7 +131,7 @@ type Pt = [number, number]
 interface Bolt { main: Pt[]; branches: Pt[][] }
 /* 장대비의 먼 번쩍임 — 보통 비(VARIANTS.rain, 90~180초)보다 잦게 40~90초에 한 번.
  * 뇌우가 아니니 어느 쪽도 줄기 없이 하늘만 옅게 밝아진다. 가랑비에는 없다 */
-const FAR_LIGHTNING: Pick<Variant, 'bolt' | 'every' | 'first'> = { bolt: 'far', every: [40, 90], first: 12 }
+const FAR_LIGHTNING: Pick<Variant, 'bolt' | 'every'> = { bolt: 'far', every: [40, 90] }
 
 interface Strike { t0: number; bolt: Bolt | null; bx: number }
 interface RainDrop { L: number; x: number; y: number; v: number; len: number; jit: number; half: boolean }
@@ -366,9 +370,13 @@ export class RailWeatherScene {
   private curSlant: number
   private lamp = 1
 
-  constructor(canvas: HTMLCanvasElement, mode: RailSceneMode, opts: { still?: boolean; demo?: boolean; heavy?: boolean } = {}) {
+  constructor(canvas: HTMLCanvasElement, mode: RailSceneMode, opts: { still?: boolean; demo?: boolean; heavy?: boolean; calm?: boolean } = {}) {
     this.cv = canvas
-    this.cfg = mode === 'rain' && opts.heavy ? { ...VARIANTS.rain, ...FAR_LIGHTNING } : VARIANTS[mode]
+    this.cfg = mode !== 'rain' ? VARIANTS[mode]
+      : opts.heavy ? { ...VARIANTS.rain, ...FAR_LIGHTNING }
+      // 약한 비 — 비 내리는 모습은 같고 번쩍임만 없다
+      : opts.calm ? { ...VARIANTS.rain, bolt: undefined }
+      : VARIANTS.rain
     this.still = !!opts.still
     this.demo = !!opts.demo
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D
@@ -376,7 +384,9 @@ export class RailWeatherScene {
     this.lctx = this.layer.getContext('2d') as CanvasRenderingContext2D
     this.base = document.createElement('canvas')
     this.bctx = this.base.getContext('2d') as CanvasRenderingContext2D
-    this.nextStrike = this.cfg.first ?? Infinity
+    // 첫 번쩍임: 정해 둔 시각이 없으면 평소 간격 안에서 아무 때나(간격의 절반부터)
+    const every = this.cfg.every
+    this.nextStrike = !this.cfg.bolt ? Infinity : this.cfg.first ?? (every ? rand(every[0] * 0.5, every[1]) : Infinity)
     this.curSlant = this.cfg.slant ?? 0
   }
 
@@ -601,7 +611,7 @@ export class RailWeatherScene {
     if (c.bolt && this.time >= this.nextStrike) this.trigger()
     const cloudDir = c.gust ? Math.sign(this.wind(this.time)) : 1
     for (const cl of this.clouds) {
-      cl.x += cl.v * dt * cloudDir * (c.kind === 'rain' ? 1 + this.gustStrength(this.time) : 1)
+      cl.x += cl.v * dt * cloudDir * (c.cloudGust ? 1 + this.gustStrength(this.time) : 1)
       // 구름 폭(220×s, 최대 330)만큼 완전히 밖에서 드나든다 — 고정값(-230)이면 큰 구름이 이미 100px 들어온 채 불쑥 나타났다
       const cw = 220 * cl.s
       if (cl.x > W + 20) cl.x = -cw - 10
@@ -779,6 +789,10 @@ export class RailWeatherScene {
     const st = this.strike
     const ts = st ? (this.time - st.t0) * 1000 : -1
     const f = st ? flashEnv(ts) : 0
+    /* 먼 번쩍임(far)은 언덕 너머 하늘만 옅게 밝힌다 — 빗줄기가 하얗게 뜨거나 그림 전체가 번쩍이지 않는다.
+     * (폭풍과 같은 세기로 칠해져 보통 비에도 벼락이 친 것처럼 보였다, 2026-11-27) */
+    const far = c.bolt === 'far'
+    const fr = far ? 0 : f
     if (st && ts > 1600) this.strike = null
     const top = this.top
     // 1. 바탕색 + 삽화 + 흐린 하늘 — 구워 둔 한 장
@@ -796,13 +810,13 @@ export class RailWeatherScene {
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'
     // 번쩍임이 없을 때는 여기서, 있을 때는 번쩍임 빛까지 칠한 뒤에 가장자리를 푼다(노란 빛이 상자로 남지 않게)
     if (light && this.clouds.length && !(st && f > 0)) this.fadeSkyEdges(g)
-    if (c.kind === 'rain') this.drawRainLayer(g, 0, light, f)
+    if (c.kind === 'rain') this.drawRainLayer(g, 0, light, fr)
     if (st && f > 0) {
       /* 라이트(2026-11-17): 밝은 바탕은 더 밝힐 수 없어 흰 번쩍임·흰 번개가 안 보였다 —
        * 어두운 하늘을 깔지 않는 대신 번개를 노란빛으로 치고, 번쩍임도 따뜻한 빛을 옅게 물들인다 */
       const hue = light ? (c.bolt === 'snow' ? '190,176,250' : '244,214,158') : c.bolt === 'snow' ? '214,200,255' : '225,235,255'
       const gr = g.createRadialGradient(st.bx, 90, 10, st.bx, 120, 260)
-      gr.addColorStop(0, `rgba(${hue},${(light ? 0.3 : 0.75) * f})`); gr.addColorStop(1, `rgba(${hue},0)`)
+      gr.addColorStop(0, `rgba(${hue},${(light ? 0.3 : 0.75) * f * (far ? 0.55 : 1)})`); gr.addColorStop(1, `rgba(${hue},0)`)
       g.globalCompositeOperation = light ? 'source-over' : 'lighter'
       g.fillStyle = gr; g.fillRect(0, top, W, BOX_H - top)
       g.globalCompositeOperation = 'source-over'
@@ -813,7 +827,7 @@ export class RailWeatherScene {
 
     // 3. 언덕까지 함께 드러나는 순간 빛
     if (f > 0) {
-      const k = c.bolt === 'near' ? 0.55 : 0.32
+      const k = c.bolt === 'near' ? 0.55 : far ? 0.1 : 0.32
       g.globalCompositeOperation = light ? 'source-over' : 'lighter'
       // 라이트는 하얗게 날리지 않고(빗줄기·번개까지 지워졌다) 옅게 물들이기만 한다
       if (light) g.fillStyle = c.bolt === 'snow' ? `rgba(190,176,250,${k * f * 0.12})` : `rgba(244,214,158,${k * f * 0.08})`
@@ -857,11 +871,11 @@ export class RailWeatherScene {
 
     // 7. 비 · 눈
     if (c.kind === 'rain') {
-      this.drawVeils(g, light, f, res)
+      this.drawVeils(g, light, fr, res)
       if (c.mist) this.drawMist(g, light, res)
-      this.drawRainLayer(g, 1, light, f)
+      this.drawRainLayer(g, 1, light, fr)
       this.drawSplashes(g, light)
-      this.drawRainLayer(g, 2, light, f)
+      this.drawRainLayer(g, 2, light, fr)
     } else {
       this.drawSnow(g, res)
     }
