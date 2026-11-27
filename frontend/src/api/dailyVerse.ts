@@ -32,6 +32,14 @@ export const updateDailyVerse = async (id: number, data: UpdateDailyVerseRequest
   })
 }
 
+// 지난 말씀 다시 걸기 (관리자 전용) — 걸려 있던 말씀은 서버가 내린다
+export const activateDailyVerse = async (id: number): Promise<DailyVerse> => {
+  return request<DailyVerse>(`/daily-verse/${id}/activate`, {
+    method: 'PUT',
+    errorMessage: 'Failed to activate daily verse',
+  })
+}
+
 // 삭제 (관리자 전용)
 export const deleteDailyVerse = async (id: number): Promise<void> => {
   await requestRaw(`/daily-verse/${id}`, { method: 'DELETE', errorMessage: 'Failed to delete daily verse' })

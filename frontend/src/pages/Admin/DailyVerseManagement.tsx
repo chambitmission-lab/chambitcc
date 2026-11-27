@@ -1,58 +1,24 @@
-import { formatDotDateWeekday } from '../../utils/dateUtils'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+// 오늘의 말씀 관리 (관리자, /admin/daily-verse)
+// Single Responsibility: 말씀 목록 조회·검색과 다시 걸기/삭제 액션.
+// 화면은 DailyVerseDesk(관리 데스크 — 지금 걸린 말씀 + 보관함 + 홈 명판 미리보기, 2026-11-27),
+// 작성·수정은 DailyVerseComposer(2단 모달)가 그린다.
+//
+// 서버 구조: 한 번에 하나만 걸린다(is_active). 새로 등록하면 그 말씀이 바로 걸리고,
+// 지난 말씀은 PUT /daily-verse/{id}/activate 로 다시 건다. 날짜별 예약은 없다.
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../utils/toast'
-import { getAllDailyVerses, deleteDailyVerse } from '../../api/dailyVerse'
+import { activateDailyVerse, deleteDailyVerse, getAllDailyVerses } from '../../api/dailyVerse'
 import type { DailyVerse } from '../../types/dailyVerse'
 import DailyVerseComposer from './components/DailyVerseComposer'
-import { FilterChip, FilterRow } from './components/FilterControls'
+import DailyVerseDesk from './components/DailyVerseDesk'
+import { archiveOf, isLiveVerse } from './components/dailyVerseDeskUtils'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { dailyVerseKeys } from '../../hooks/queryKeys'
+import { homeKeys } from '../../hooks/useHomeSummary'
 import { can } from '../../utils/access'
-import { InfoRow, StatChip, SkeletonRows } from './components/AdminListBits'
-
-type VerseFilter = 'all' | 'today' | 'upcoming' | 'past'
-type SortKey = 'recent' | 'oldest'
-
-const startOfDay = (d: Date) => {
-  const x = new Date(d)
-  x.setHours(0, 0, 0, 0)
-  return x
-}
-
-const diffInDays = (a: Date, b: Date) =>
-  Math.round((startOfDay(a).getTime() - startOfDay(b).getTime()) / 86400000)
-
-const isValidDate = (d: Date) => !isNaN(d.getTime())
-
-const getVerseStatus = (verseDate: string | null | undefined): 'today' | 'upcoming' | 'past' => {
-  if (!verseDate) return 'past'
-  const d = new Date(verseDate)
-  if (!isValidDate(d)) return 'past'
-  const diff = diffInDays(d, new Date())
-  if (diff === 0) return 'today'
-  if (diff > 0) return 'upcoming'
-  return 'past'
-}
-
-const formatDateLabel = (verseDate: string | null | undefined) => {
-  if (!verseDate) return '날짜 없음'
-  return formatDotDateWeekday(verseDate) || '날짜 없음'
-}
-
-const formatRelativeLabel = (verseDate: string | null | undefined): string => {
-  if (!verseDate) return '날짜 없음'
-  const d = new Date(verseDate)
-  if (!isValidDate(d)) return '날짜 없음'
-  const diff = diffInDays(d, new Date())
-  if (diff === 0) return '오늘'
-  if (diff === 1) return '내일'
-  if (diff === -1) return '어제'
-  if (diff > 1 && diff < 7) return `D-${diff}`
-  if (diff < -1 && diff > -7) return `${-diff}일 전`
-  return formatDateLabel(verseDate)
-}
+import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
 
 const DailyVerseManagement = () => {
   const navigate = useNavigate()
@@ -61,25 +27,12 @@ const DailyVerseManagement = () => {
   const [verses, setVerses] = useState<DailyVerse[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filter, setFilter] = useState<VerseFilter>('all')
-  const [sortKey, setSortKey] = useState<SortKey>('recent')
-  const [expandedId, setExpandedId] = useState<number | null>(null)
-
-  const [composerOpen, setComposerOpen] = useState(false)
-  const [editingVerse, setEditingVerse] = useState<DailyVerse | null>(null)
-
-  useEffect(() => {
-    if (!can('admin:access')) {
-      showToast('관리자 권한이 필요합니다', 'error')
-      navigate('/')
-      return
-    }
-    loadVerses()
-  }, [navigate])
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  // null = 닫힘, 'new' = 등록, DailyVerse = 수정
+  const [composer, setComposer] = useState<'new' | DailyVerse | null>(null)
 
   const loadVerses = async () => {
     try {
-      setLoading(true)
       const data = await getAllDailyVerses()
       setVerses(Array.isArray(data) ? data : [])
     } catch (err) {
@@ -90,474 +43,98 @@ const DailyVerseManagement = () => {
     }
   }
 
-  const invalidateUserCache = () => {
-    queryClient.invalidateQueries({ queryKey: dailyVerseKeys.today() })
+  useEffect(() => {
+    if (!can('admin:access')) {
+      showToast('관리자 권한이 필요합니다', 'error')
+      navigate('/')
+      return
+    }
+    void loadVerses()
+  }, [navigate])
+
+  // 전체 메뉴 > 관리 도구 '빠른 작업' → ?new=1 로 들어오면 등록 창부터 연다
+  useOpenComposerFromUrl(() => setComposer('new'))
+
+  /** 홈 명판·참비·집중 기도·⌘K 가 보는 캐시까지 — 홈 묶음(summary)도 말씀을 실어 온다 */
+  const invalidatePublic = () => {
+    void queryClient.invalidateQueries({ queryKey: dailyVerseKeys.all })
+    void queryClient.invalidateQueries({ queryKey: dailyVerseKeys.current() })
+    void queryClient.invalidateQueries({ queryKey: homeKeys.summary() })
   }
 
-  const handleDelete = async (id: number) => {
+  const handleActivate = async (v: DailyVerse) => {
+    // 바로 바뀌어 보이게(낙관적) — 실패하면 되돌린다
+    const prev = verses
+    setVerses((list) => list.map((x) => ({ ...x, is_active: x.id === v.id ? 1 : 0 })))
+    try {
+      await activateDailyVerse(v.id)
+      invalidatePublic()
+      showToast(`${v.verse_reference}을(를) 다시 걸었어요`, 'success')
+    } catch (err) {
+      setVerses(prev)
+      showToast(err instanceof Error ? err.message : '다시 걸기에 실패했습니다', 'error')
+    }
+  }
+
+  const handleDelete = async (v: DailyVerse) => {
+    const live = isLiveVerse(v)
     if (
       !(await confirmDialog({
-        title: '오늘의 말씀 삭제',
-        message: '이 말씀을 삭제하시겠습니까?',
-        description: '삭제된 내용은 복구할 수 없습니다.',
-        confirmText: '삭제',
+        title: '말씀 삭제',
+        message: `${v.verse_reference}을(를) 지울까요?`,
+        description: live
+          ? '지금 홈에 걸린 말씀이라, 지우면 홈 명판이 비어요. 보관함의 다른 말씀을 먼저 거는 걸 권해요.'
+          : '되돌릴 수 없어요.',
+        confirmText: '네, 지울게요',
         icon: 'delete_outline',
       }))
     )
       return
     try {
-      await deleteDailyVerse(id)
-      showToast('오늘의 말씀이 삭제되었습니다', 'success')
-      invalidateUserCache()
-      loadVerses()
+      await deleteDailyVerse(v.id)
+      setVerses((list) => list.filter((x) => x.id !== v.id))
+      if (live) invalidatePublic()
+      showToast('삭제했어요', 'success')
     } catch (err) {
       showToast(err instanceof Error ? err.message : '삭제에 실패했습니다', 'error')
     }
   }
 
-  const handleEdit = (verse: DailyVerse) => {
-    setEditingVerse(verse)
-    setComposerOpen(true)
-  }
-
-  const handleCreate = () => {
-    setEditingVerse(null)
-    setComposerOpen(true)
-  }
-
-  const handleComposerClose = () => {
-    setComposerOpen(false)
-    setEditingVerse(null)
-  }
-
-  const handleComposerSuccess = () => {
-    handleComposerClose()
-    invalidateUserCache()
-    loadVerses()
-  }
-
-  const filtered = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase()
-    const arr = verses.filter(v => {
-      const matchesSearch =
-        !q ||
-        v.verse_reference.toLowerCase().includes(q) ||
-        v.verse_text.toLowerCase().includes(q)
-      const status = getVerseStatus(v.verse_date)
-      const matchesFilter = filter === 'all' || status === filter
-      return matchesSearch && matchesFilter
-    })
-
-    return [...arr].sort((a, b) => {
-      const at = new Date(a.verse_date).getTime()
-      const bt = new Date(b.verse_date).getTime()
-      return sortKey === 'recent' ? bt - at : at - bt
-    })
-  }, [verses, searchTerm, filter, sortKey])
-
-  const todayCount = verses.filter(v => getVerseStatus(v.verse_date) === 'today').length
-  const upcomingCount = verses.filter(v => getVerseStatus(v.verse_date) === 'upcoming').length
+  const archive = useMemo(() => archiveOf(verses, searchTerm), [verses, searchTerm])
+  const live = verses.find(isLiveVerse) ?? null
 
   return (
-    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
-    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100dvh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-24 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl">
-        {/* 헤더 — lg 에선 검색/필터가 우측 레일에 고정되므로 sticky 를 풀어 둔다
-            (sticky 인 채로 라운드 모서리를 주면 스크롤 중 둥근 막대가 떠 보인다) */}
-        <div className="sticky top-14 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            <span className="text-sm font-semibold">뒤로</span>
-          </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">
-            오늘의 말씀
-          </h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
-            ADMIN
-          </span>
-        </div>
+    <>
+      <DailyVerseDesk
+        verses={verses}
+        archive={archive}
+        loading={loading}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onCreate={() => setComposer('new')}
+        onBack={() => navigate(-1)}
+        onEdit={(v) => setComposer(v)}
+        onActivate={(v) => void handleActivate(v)}
+        onDelete={(v) => void handleDelete(v)}
+        onViewHome={() => navigate('/')}
+      />
 
-        {/* PC(lg+) 2단 — 좌: 말씀 목록 / 우: 도구(등록·통계·검색/필터)가 sticky.
-            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
-        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
-          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
-            {/* PC 전용 등록 버튼 — lg 에선 FAB 대신 레일 상단에서 연다 */}
-            <button
-              type="button"
-              onClick={handleCreate}
-              className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span>새 말씀</span>
-            </button>
-
-            {/* 통계 */}
-            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
-              <StatChip label="전체" value={verses.length} />
-              <StatChip label="오늘" value={todayCount} accent />
-              {upcomingCount > 0 && <StatChip label="예정" value={upcomingCount} />}
-            </div>
-
-            {/* 검색 + 필터 카드 */}
-            <div className="px-4 py-3 lg:px-0 lg:py-0">
-              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-
-                <div className="relative z-10 space-y-3">
-                  {/* 검색 */}
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                      </svg>
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="성경 구절 · 말씀 본문 검색"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-                    />
-                    {searchTerm && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
-                        aria-label="검색어 지우기"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* 상태 필터 */}
-                  <FilterRow label="시점">
-                    {(
-                      [
-                        ['all', '전체'],
-                        ['today', '오늘'],
-                        ['upcoming', '예정'],
-                        ['past', '지난'],
-                      ] as const
-                    ).map(([v, l]) => (
-                      <FilterChip key={v} active={filter === v} onClick={() => setFilter(v)}>
-                        {l}
-                      </FilterChip>
-                    ))}
-                  </FilterRow>
-
-                  {/* 정렬 */}
-                  <FilterRow label="정렬">
-                    {(
-                      [
-                        ['recent', '최신순'],
-                        ['oldest', '오래된순'],
-                      ] as const
-                    ).map(([v, l]) => (
-                      <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>
-                        {l}
-                      </FilterChip>
-                    ))}
-                  </FilterRow>
-                </div>
-              </div>
-            </div>
-
-            {/* 결과 카운트 */}
-            <div className="px-5 pb-2 lg:px-1 lg:pb-0 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
-              <span>
-                검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>건
-              </span>
-              {searchTerm && (
-                <span className="text-brand truncate">"{searchTerm}"</span>
-              )}
-            </div>
-
-          </div>
-
-          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
-            {/* 목록 */}
-            <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
-              {loading ? (
-                <SkeletonRows rows={5} height={72} />
-              ) : filtered.length === 0 ? (
-                <div className="text-center py-12">
-                  <span className="text-4xl block mb-3">📖</span>
-                  <p className="text-[13px] text-gray-500 dark:text-white/55">
-                    {searchTerm || filter !== 'all'
-                      ? '조건에 맞는 말씀이 없습니다'
-                      : '아직 등록된 말씀이 없어요'}
-                  </p>
-                  <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
-                    {searchTerm || filter !== 'all'
-                      ? '필터를 바꾸거나 검색어를 지워보세요'
-                      : '＋ 새 말씀 버튼으로 등록해 보세요'}
-                  </p>
-                </div>
-              ) : (
-                filtered.map(verse => (
-                  <VerseRow
-                    key={verse.id}
-                    verse={verse}
-                    expanded={expandedId === verse.id}
-                    onToggleExpand={() =>
-                      setExpandedId(prev => (prev === verse.id ? null : verse.id))
-                    }
-                    onEdit={() => handleEdit(verse)}
-                    onDelete={() => handleDelete(verse.id)}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* FAB */}
-        <button
-          type="button"
-          onClick={handleCreate}
-          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 lg:hidden inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          <span>새 말씀</span>
-        </button>
-
-        {composerOpen && (
-          <DailyVerseComposer
-            editingVerse={editingVerse}
-            onClose={handleComposerClose}
-            onSuccess={handleComposerSuccess}
-          />
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ── 행 ────────────────────────────────────────────────
-interface VerseRowProps {
-  verse: DailyVerse
-  expanded: boolean
-  onToggleExpand: () => void
-  onEdit: () => void
-  onDelete: () => void
-}
-
-// 오늘=브랜드 솔리드, 예정=브랜드 옅은 톤, 지난=중립 회색.
-// brand 계열은 CSS 변수 색이라 투명도 수식자(bg-brand/15 등)가 생성되지 않는다 —
-// 옅은 톤은 --brand-soft / --brand-glow / --brand-muted 토큰으로 쓴다.
-const STATUS_STYLE: Record<
-  'today' | 'upcoming' | 'past',
-  { bar: string; chipBg: string; chipText: string }
-> = {
-  today: {
-    bar: 'bg-brand',
-    chipBg: 'bg-[var(--brand-soft-strong)]',
-    chipText: 'text-brand',
-  },
-  upcoming: {
-    bar: 'bg-[var(--brand-glow)]',
-    chipBg: 'bg-[var(--brand-soft)]',
-    chipText: 'text-[var(--brand-muted)]',
-  },
-  past: {
-    bar: 'bg-gray-200 dark:bg-white/10',
-    chipBg: 'bg-gray-100 dark:bg-white/[0.06]',
-    chipText: 'text-gray-500 dark:text-white/55',
-  },
-}
-
-const VerseRow = ({ verse, expanded, onToggleExpand, onEdit, onDelete }: VerseRowProps) => {
-  const status = getVerseStatus(verse.verse_date)
-  const style = STATUS_STYLE[status]
-  const preview = verse.verse_text.replace(/\s+/g, ' ').trim()
-
-  return (
-    <div
-      className={[
-        'relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border transition-all duration-200',
-        'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]',
-        expanded
-          ? 'border-[var(--brand-glow)]'
-          : 'border-gray-200/70 dark:border-white/[0.08]',
-        status === 'past' && !expanded && 'opacity-75',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      {/* 좌측 컬러 바 */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.bar}`} />
-
-      <button
-        type="button"
-        onClick={onToggleExpand}
-        className="relative z-10 w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left"
-        aria-expanded={expanded}
-      >
-        <div className="shrink-0 w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-[18px] shadow-[0_4px_12px_-4px_var(--brand-glow)]">
-          📖
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
-              {verse.verse_reference}
-            </span>
-          </div>
-          <p className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
-            {preview || '내용 없음'}
-          </p>
-        </div>
-
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <span
-            className={`inline-flex items-center px-1.5 h-5 rounded-full ${style.chipBg} ${style.chipText} text-[10.5px] font-bold tracking-wide`}
-          >
-            {formatRelativeLabel(verse.verse_date)}
-          </span>
-        </div>
-
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 ${
-            expanded ? 'rotate-180' : ''
-          }`}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-
-      {expanded && (
-        <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-2.5">
-          {/* 그라데이션 미니 카드 (사용자 화면 미리보기) */}
-          <div className="relative overflow-hidden rounded-xl p-3.5 bg-brand shadow-[0_8px_22px_-10px_var(--brand-glow)]">
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,0.15) 100%)',
-              }}
-            />
-            <div
-              className="absolute -top-5 -right-5 w-28 h-28 opacity-20 pointer-events-none"
-              style={{
-                backgroundImage: 'radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px)',
-                backgroundSize: '12px 12px',
-              }}
-            />
-            <div className="relative">
-              <h4 className="text-white text-[14px] font-bold mb-1.5 leading-[1.3]">
-                {verse.verse_reference}
-              </h4>
-              <p className="text-white/95 text-[13px] leading-[1.7] font-medium whitespace-pre-wrap">
-                "{verse.verse_text}"
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-1.5 text-[12.5px]">
-            <InfoRow label="게시일" value={formatDateLabel(verse.verse_date)} />
-            <InfoRow
-              label="등록일"
-              value={new Date(verse.created_at).toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            />
-            {verse.updated_at !== verse.created_at && (
-              <InfoRow
-                label="마지막 수정"
-                value={new Date(verse.updated_at).toLocaleDateString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              />
-            )}
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <RowAction onClick={onEdit} accent icon="edit" label="수정" />
-            <RowAction onClick={onDelete} destructive icon="trash" label="삭제" />
-          </div>
-        </div>
+      {composer && (
+        <DailyVerseComposer
+          editingVerse={composer === 'new' ? null : composer}
+          currentVerse={live}
+          onClose={() => setComposer(null)}
+          onSuccess={(saved) => {
+            setComposer(null)
+            setSelectedId(saved.id)
+            invalidatePublic()
+            void loadVerses()
+          }}
+        />
       )}
-    </div>
-  )
-}
-
-// ── 작은 컴포넌트들 ──────────────────────────────────────
-const ACTION_ICONS: Record<string, ReactNode> = {
-  edit: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  ),
-  trash: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6" />
-      <line x1="10" y1="11" x2="10" y2="17" />
-      <line x1="14" y1="11" x2="14" y2="17" />
-    </svg>
-  ),
-}
-
-const RowAction = ({
-  onClick,
-  accent,
-  destructive,
-  icon,
-  label,
-}: {
-  onClick: () => void
-  accent?: boolean
-  destructive?: boolean
-  icon: keyof typeof ACTION_ICONS
-  label: string
-}) => {
-  let cls =
-    'flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
-  if (accent) {
-    cls += 'bg-brand hover:bg-brand-dim text-white'
-  } else if (destructive) {
-    cls +=
-      'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-400/30 hover:bg-red-100 dark:hover:bg-red-500/15'
-  } else {
-    cls +=
-      'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08]'
-  }
-  return (
-    <button type="button" onClick={onClick} className={cls}>
-      {ACTION_ICONS[icon]}
-      <span>{label}</span>
-    </button>
+    </>
   )
 }
 

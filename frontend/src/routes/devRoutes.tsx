@@ -135,6 +135,22 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['chatbot-admin', () => import('../pages/dev/ChatbotAdminPreview')],
       // /admin/news 전면 개편 시안 — ?v=a 편집 데스크|b 주일 연재판|c 게시판 표+서랍
       ['news-admin', () => import('../pages/dev/NewsAdminPreview')],
+      // /admin/groups 관리 데스크 미리보기 — 표본 6그룹(조용한 그룹 포함)
+      ['groups-admin', () => import('../pages/dev/GroupAdminPreview')],
+      // /admin/weekly-prayers 관리 데스크 미리보기 — 이번 주 빈 상태(?this=1 이면 채움)
+      ['weekly-prayers-admin', () => import('../pages/dev/WeeklyPrayerAdminPreview')],
+      // /admin/education 관리 데스크 미리보기 — 표본 4카테고리(채울 곳·숨김 포함)
+      ['education-admin', () => import('../pages/dev/EducationAdminPreview')],
+      // /admin/notifications 관리 데스크 미리보기 — 팝업 중·끝남·비공개·소식 연결 표본
+      ['notifications-admin', () => import('../pages/dev/NotificationAdminPreview')],
+      // /admin/daily-verse 관리 데스크 미리보기 — 걸린 말씀 + 보관함(?empty=1 이면 걸린 말씀 없음)
+      ['daily-verse-admin', () => import('../pages/dev/DailyVerseAdminPreview')],
+      // /admin/offering 관리 데스크 미리보기 — 안내 문구 + 계좌 4개(예금주 빈 칸·숨김 포함)
+      ['offering-admin', () => import('../pages/dev/OfferingAdminPreview')],
+      // /admin/bible-plans 관리 데스크 미리보기 — 일정 빈 플랜·임시저장·달력 고정 표본
+      ['bible-plans-admin', () => import('../pages/dev/BiblePlanAdminPreview')],
+      // /admin/situations 관리 데스크 미리보기 — 구절 빈 상황·숨김·기본 상황 표본 + 추천 시험기
+      ['situations-admin', () => import('../pages/dev/SituationAdminPreview')],
     ]
   : []
 
