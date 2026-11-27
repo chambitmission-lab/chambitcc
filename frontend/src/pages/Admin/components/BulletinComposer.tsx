@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   addBulletinPage,
   createBulletin,
@@ -10,6 +11,7 @@ import {
 import type { Bulletin } from '../../../types/bulletin'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { useGridDragSort } from '../../../hooks/useGridDragSort'
 import { FieldGroup, QuickChip, dateTriggerClass } from '../../../components/common/ComposerFields'
 import AdminComposerShell from './AdminComposerShell'
 import { ComposerFooter } from './AdminFormBits'
@@ -39,6 +41,9 @@ const autoTitle = (dateInput: string): string => {
 type PageItem =
   | { kind: 'existing'; id: number; src: string }
   | { kind: 'new'; file: File; src: string }
+
+/** 목록·드래그 정렬에서 한 장을 가리키는 고유 키 */
+const pageKey = (item: PageItem) => (item.kind === 'existing' ? `page-${item.id}` : item.src)
 
 
 // 주보는 "다가오는 주일"에 발행한다. 이번 주 일요일 = 오늘 이후 가장 가까운 일요일
@@ -166,6 +171,23 @@ const BulletinComposer = ({ onClose, onSuccess, bulletin = null, existing = [] }
       return next
     })
   }
+
+  // 끌어서 순서 바꾸기 — 끄는 카드를 놓일 칸으로 옮기고 사이의 카드들은 한 칸씩 밀린다
+  const {
+    setItemRef,
+    onPointerDown: startPageDrag,
+    ghost,
+    draggingKey,
+  } = useGridDragSort(items.map(pageKey), (from, to) => {
+    setItems(prev => {
+      if (from < 0 || from >= prev.length || to < 0 || to >= prev.length) return prev
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      return next
+    })
+  })
+  const ghostItem = ghost ? items.find(item => pageKey(item) === ghost.key) : undefined
 
   // 날짜는 DatePicker로 옮기며 네이티브 required가 없어졌으니 여기서 직접 확인한다
   const canSubmit =
@@ -332,8 +354,8 @@ const BulletinComposer = ({ onClose, onSuccess, bulletin = null, existing = [] }
             <FieldGroup label="주보 페이지" required>
               <p className="text-[11px] text-gray-400 dark:text-white/40 mb-2">
                 {isEdit
-                  ? '이미 올라간 페이지도 순서 변경·제거할 수 있어요. 변경은 저장할 때 한 번에 반영됩니다.'
-                  : '선택한 순서대로 페이지가 구성됩니다. 화살표로 순서 변경, ✕ 로 제거할 수 있어요.'}
+                  ? '페이지를 끌어다 놓아 순서를 바꾸고(휴대폰은 꾹 누른 뒤 끌기), ✕ 로 제거할 수 있어요. 변경은 저장할 때 한 번에 반영됩니다.'
+                  : '선택한 순서대로 페이지가 구성됩니다. 끌어다 놓거나(휴대폰은 꾹 누른 뒤 끌기) 화살표로 순서 변경, ✕ 로 제거할 수 있어요.'}
               </p>
 
               {/* 드롭존 */}
@@ -387,7 +409,10 @@ const BulletinComposer = ({ onClose, onSuccess, bulletin = null, existing = [] }
                   <div className="grid grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-3">
                     {items.map((item, idx) => (
                       <PagePreviewItem
-                        key={item.kind === 'existing' ? `page-${item.id}` : item.src}
+                        key={pageKey(item)}
+                        itemRef={setItemRef(pageKey(item))}
+                        onPointerDown={submitting ? undefined : startPageDrag(pageKey(item))}
+                        dragging={draggingKey === pageKey(item)}
                         src={item.src}
                         index={idx}
                         isNew={item.kind === 'new'}
@@ -400,6 +425,24 @@ const BulletinComposer = ({ onClose, onSuccess, bulletin = null, existing = [] }
                       />
                     ))}
                   </div>
+                  {/* 끄는 동안 손가락을 따라다니는 카드 — zoom·스크롤 상자 밖(body)에 띄운다 */}
+                  {ghost &&
+                    ghostItem &&
+                    createPortal(
+                      <div
+                        className="fixed z-[9999] pointer-events-none rounded-xl overflow-hidden ring-2 ring-brand shadow-[0_18px_40px_rgba(0,0,0,0.45)]"
+                        style={{
+                          left: ghost.x,
+                          top: ghost.y,
+                          width: ghost.width,
+                          height: ghost.height,
+                          transform: 'scale(1.04) rotate(1.5deg)',
+                        }}
+                      >
+                        <img src={ghostItem.src} alt="" className="w-full h-full object-cover" />
+                      </div>,
+                      document.body,
+                    )}
                 </div>
               ) : null}
             </FieldGroup>
@@ -428,6 +471,11 @@ interface PagePreviewItemProps {
   onRemove: () => void
   onMoveLeft: () => void
   onMoveRight: () => void
+  /** 끌어서 순서 바꾸기 — 카드 자체가 손잡이다 */
+  itemRef?: (el: HTMLElement | null) => void
+  onPointerDown?: (e: React.PointerEvent) => void
+  /** 지금 끌려가는 중 — 제자리는 빈 칸처럼 흐리게 남긴다 */
+  dragging?: boolean
 }
 
 const PagePreviewItem = ({
@@ -440,9 +488,27 @@ const PagePreviewItem = ({
   onRemove,
   onMoveLeft,
   onMoveRight,
+  itemRef,
+  onPointerDown,
+  dragging,
 }: PagePreviewItemProps) => (
-  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.08] group">
-    <img src={src} alt={`페이지 ${index + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+  <div
+    ref={itemRef}
+    onPointerDown={onPointerDown}
+    // 꾹 눌러 끌 때 iOS 이미지 미리보기·글자 선택이 끼어들지 않게
+    style={{ WebkitTouchCallout: 'none' }}
+    className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 dark:bg-white/[0.04] border group select-none cursor-grab active:cursor-grabbing ${
+      dragging
+        ? 'border-dashed border-brand opacity-35'
+        : 'border-gray-200 dark:border-white/[0.08]'
+    }`}
+  >
+    <img
+      src={src}
+      alt={`페이지 ${index + 1}`}
+      draggable={false}
+      className="absolute inset-0 w-full h-full object-cover"
+    />
     {/* 그라데이션 오버레이 */}
     <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/75 to-transparent pointer-events-none" />
     <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/65 to-transparent pointer-events-none" />
