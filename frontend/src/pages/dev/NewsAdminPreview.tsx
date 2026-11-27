@@ -4,6 +4,9 @@ import { showToast } from '../../utils/toast'
 import type { NewsItem } from '../../types/news'
 import NewsDigestView from '../News/components/newsDigest/NewsDigestView'
 import { parseNewsDigest } from '../News/components/newsDigest/parseNewsDigest'
+import { useQueryClient } from '@tanstack/react-query'
+import { newsKeys } from '../../hooks/useNews'
+import NewsDesk, { type NewsSeg } from '../Admin/components/NewsDesk'
 
 /**
  * /#/dev/news-admin — /admin/news(교회소식 게시판 관리) 전면 개편 시안.
@@ -743,9 +746,48 @@ const VariantC = () => {
   )
 }
 
+// ══ 적용본 — 실제 NewsDesk 에 표본 데이터 ═══════════════════
+
+const VariantReal = () => {
+  const qc = useQueryClient()
+  // 상세(본문·첨부)는 react-query 캐시에 미리 넣어 백엔드 없이 미리보기를 그린다
+  useState(() => {
+    for (const n of SEED) {
+      qc.setQueryData(newsKeys.detail(n.id), {
+        ...n,
+        attachments: n.file_count ? [{ id: n.id * 10, kind: 'file', url: '#', filename: '결산서.pdf', content_type: 'application/pdf', file_size: 182000, sort_order: 0 }] : [],
+      })
+    }
+    return null
+  })
+  const [items, setItems] = useState<NewsItem[]>(SEED)
+  const [q, setQ] = useState('')
+  const [seg, setSeg] = useState<NewsSeg>('all')
+  const [cat, setCat] = useState<string | null>(null)
+  const filtered = items
+    .filter((n) => (!q || n.title.includes(q)) && (seg === 'all' || (seg === 'published' && n.is_published) || (seg === 'hidden' && !n.is_published) || (seg === 'pinned' && n.is_pinned)) && (!cat || n.category === cat))
+    .sort((a, b) => (a.is_pinned !== b.is_pinned ? (a.is_pinned ? -1 : 1) : dateOf(b).getTime() - dateOf(a).getTime()))
+  const flip = (id: number, k: 'is_published' | 'is_pinned') => setItems((p) => p.map((n) => (n.id === id ? { ...n, [k]: !n[k] } : n)))
+  return (
+    <div className="-mx-3 lg:-mx-6 -my-6">
+      <NewsDesk
+        items={items} filtered={filtered} loading={false}
+        searchTerm={q} onSearchChange={setQ} seg={seg} onSegChange={setSeg}
+        category={cat} categories={Array.from(new Set(SEED.map((n) => n.category!)))} onCategoryChange={setCat}
+        onClearFilters={() => { setQ(''); setSeg('all'); setCat(null) }}
+        onCreate={() => openComposer('소식 쓰기')} onBack={() => {}}
+        onEdit={() => openComposer('수정')} onViewPublic={() => showToast('(시안) 성도 화면', 'info')}
+        onTogglePublished={(n) => flip(n.id, 'is_published')} onTogglePinned={(n) => flip(n.id, 'is_pinned')}
+        onDelete={(n) => setItems((p) => p.filter((x) => x.id !== n.id))}
+      />
+    </div>
+  )
+}
+
 // ── 껍데기 ───────────────────────────────────────────────
 
 const VARIANTS = [
+  { k: 'real', label: '적용본(실제 컴포넌트)', C: VariantReal },
   { k: 'a', label: 'A 편집 데스크', C: VariantA },
   { k: 'b', label: 'B 주일 연재판', C: VariantB },
   { k: 'c', label: 'C 게시판 표+서랍', C: VariantC },
