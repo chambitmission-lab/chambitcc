@@ -109,26 +109,43 @@
   text-wrap: balance;
 }
 
-/* 단어 하이라이트 — 낭독이 지나가면 은은하게 밝아진다 (노래방보다 촛불에 가깝게) */
+/* 낭독 빛 — 어절이 통째로 켜지는 대신, 빛이 글줄을 따라 왼쪽에서 오른쪽으로 번져 간다.
+   --p(0~1)는 그 어절이 얼마나 읽혔는지로, CinemaReading 이 매 프레임 써 준다.
+   글자를 배경 그라데이션으로 칠해(background-clip: text) 밝은 쪽과 흐린 쪽 사이를
+   --cinema-feather 폭만큼 풀어 놓는다 — 경계선이 아니라 번짐으로 보이게. */
 .cinema-word {
-  color: rgba(246, 242, 232, 0.32);
-  transition: color 0.5s ease, text-shadow 0.5s ease;
+  --p: 0;
+  --cinema-lit: #faf6ec;
+  --cinema-dim: rgba(246, 242, 232, 0.32);
+  --cinema-glow: 255, 240, 200;
+  --cinema-feather: 1.1em;
+  --cinema-edge: calc(var(--p) * (100% + var(--cinema-feather)));
+  /* 받침·획이 줄 상자 밖으로 살짝 나가도 잘리지 않게 칠 영역만 넓힌다(배치는 그대로) */
+  padding: 0.12em 0;
+  background-image: linear-gradient(
+    90deg,
+    var(--cinema-lit) calc(var(--cinema-edge) - var(--cinema-feather)),
+    var(--cinema-dim) var(--cinema-edge)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  /* 빛무리도 채워진 만큼만 — 다 읽힌 어절에서 가장 환하다 */
+  text-shadow: 0 0 22px rgba(var(--cinema-glow), calc(var(--p) * 0.22));
 }
 
-.cinema-word.is-lit {
-  color: #faf6ec;
-  text-shadow: 0 0 22px rgba(255, 240, 200, 0.22);
+/* 타이밍이 없을 때(첫 생성 중)는 절 전체를 밝게 */
+.cinema-verse__text.is-all-lit .cinema-word {
+  --p: 1 !important;
 }
 
 /* 예수님 말씀 — 본문(/bible)의 붉은 글씨와 같은 뜻. 영화관은 늘 어두우니 살구빛 붉은색,
    낭독이 지나가기 전엔 다른 어절처럼 흐리게 두었다가 같은 박자로 밝아진다 */
 .cinema-word.is-jesus {
-  color: rgba(244, 169, 159, 0.4);
-}
-
-.cinema-word.is-jesus.is-lit {
-  color: #f6b0a6;
-  text-shadow: 0 0 22px rgba(255, 170, 150, 0.22);
+  --cinema-lit: #f6b0a6;
+  --cinema-dim: rgba(244, 169, 159, 0.4);
+  --cinema-glow: 255, 170, 150;
 }
 
 .cinema-verse__ref {

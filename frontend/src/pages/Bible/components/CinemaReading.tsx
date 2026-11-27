@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { createPortal } from 'react-dom'
 import type { CSSProperties, RefObject } from 'react'
@@ -275,10 +275,15 @@ const CinemaReading = ({
     return set
   }, [currentVerseObj, jesusRangesOf])
 
-  // ── 단어 보간 하이라이트 — 절 시작~다음 절 시작 사이를 글자 수 비례로 나눈다 ──
-  const [litCount, setLitCount] = useState(0)
+  // ── 낭독 빛 — 절 시작~다음 절 시작 사이를 글자 수 비례로 나눠, 빛이 글줄을 따라
+  //    "번져" 간다. 예전엔 어절이 통째로 켜져서(litCount) 계단처럼 뚝뚝 채워졌다.
+  //    지금은 어절마다 채움 정도 --p(0~1)를 매 프레임 DOM에 직접 써서(리렌더 없음)
+  //    CSS 그라데이션이 어절 안을 왼쪽→오른쪽으로 부드럽게 지나간다.
+  const wordElsRef = useRef<(HTMLSpanElement | null)[]>([])
+  // 지금 화면에 그려진 진행(0~1). -1 = 아직 없음(첫 프레임은 목표로 바로 맞춘다)
+  const sweepRef = useRef(-1)
   useEffect(() => {
-    setLitCount(0)
+    sweepRef.current = -1
   }, [activeVerse, chapter, bookNumber])
 
   useEffect(() => {
@@ -295,6 +300,10 @@ const CinemaReading = ({
     let end: number
     if (idx + 1 < timings.length) {
       end = timings[idx + 1].start
+      // 다음 절 시작 직전은 절 사이 숨(무음 약 0.8초)이다 — 그 구간까지 글자에
+      // 나눠 주면 빛이 목소리보다 조금씩 뒤처진다. 끝자락 숨만큼은 덜어 낸다.
+      const gap = end - start
+      end -= Math.min(0.6, gap * 0.15)
     } else {
       let charsPerSec = 0
       if (idx > 0) {
@@ -315,9 +324,8 @@ const CinemaReading = ({
       if (duration > start + 1) end = Math.min(end, duration)
     }
     const span = Math.max(0.001, end - start)
-    // 단어 경계를 누적 글자 수 비율로 배치 — 긴 단어가 더 오래 밝아진다.
-    // bounds[i] = i번째 단어 낭독이 "끝나는" 지점(0~1). frac이 bounds[i]를
-    // 지나면 i+1번째 단어가 읽히는 중이므로, 밝힐 단어 수 = 지난 경계 수 + 1.
+    // 단어 경계를 누적 글자 수 비율로 배치 — 긴 단어가 더 오래 걸린다.
+    // bounds[i] = i번째 단어 낭독이 "끝나는" 지점(0~1).
     const totalChars = words.reduce((n, w) => n + w.length, 0)
     const bounds: number[] = []
     let acc = 0
@@ -325,26 +333,38 @@ const CinemaReading = ({
       acc += w.length
       bounds.push(acc / totalChars)
     }
+    const written: number[] = new Array(words.length).fill(-1)
     let raf = 0
-    const tick = () => {
+    let last = performance.now()
+    const tick = (now: number) => {
+      const dt = Math.min(0.1, (now - last) / 1000)
+      last = now
       const t = audioRef.current?.currentTime
       if (t != null) {
-        const frac = Math.min(1, Math.max(0, (t - start) / span))
-        let n = 1
-        while (n < words.length && frac >= bounds[n - 1]) n++
-        // 같은 절 안에서 하이라이트는 앞으로만 간다 — 부분 타이밍이 최종본으로
-        // 갱신되며 절 길이가 재계산될 때, 이미 밝힌 단어가 도로 어두워지며
-        // 뒤로 점프하던 현상 방지 (절이 바뀌면 위 effect가 0으로 리셋)
-        setLitCount(prev => (n > prev ? n : prev))
+        const target = Math.min(1, Math.max(0, (t - start) / span))
+        const cur = sweepRef.current
+        // 같은 절 안에서 빛은 앞으로만 간다(부분 타이밍이 최종본으로 갱신되며 절
+        // 길이가 재계산될 때 뒤로 점프 방지). 목표까지는 지수 감쇠로 따라가서
+        // currentTime 이 듬성듬성 갱신되는 브라우저에서도 끊기지 않고 흐른다.
+        const next =
+          cur < 0 ? target : target > cur ? cur + (target - cur) * (1 - Math.exp(-dt * 10)) : cur
+        sweepRef.current = next
+        for (let i = 0; i < words.length; i++) {
+          const ws = i === 0 ? 0 : bounds[i - 1]
+          const we = bounds[i]
+          const p = next >= we ? 1 : next <= ws ? 0 : (next - ws) / (we - ws)
+          const rounded = Math.round(p * 1000) / 1000
+          if (rounded !== written[i]) {
+            written[i] = rounded
+            wordElsRef.current[i]?.style.setProperty('--p', String(rounded))
+          }
+        }
       }
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [isPlaying, activeVerse, timings, duration, words, verses, currentVerseObj, audioRef])
-
-  // 타이밍이 없으면(첫 스트리밍 생성 중) 보간 불가 — 절 전체를 밝게
-  const effectiveLit = timings ? litCount : words.length
 
   // ── 배경 장면 — 절 진행(몇 절째인지)에 따라 느린 크로스페이드 ──
   const scenes = useMemo(() => getCinemaScenes(bookNumber, chapter), [bookNumber, chapter])
@@ -423,15 +443,20 @@ const CinemaReading = ({
         {currentVerseObj ? (
           /* key로 절이 바뀔 때마다 새로 페이드 인 */
           <div key={`${chapter}-${currentVerseObj.verse}`} className="cinema-verse">
-            <p className="cinema-verse__text">
+            {/* 타이밍이 없으면(첫 스트리밍 생성 중) 보간 불가 — 절 전체를 밝게 */}
+            <p className={`cinema-verse__text${timings ? '' : ' is-all-lit'}`}>
               {words.map((w, i) => (
-                <span
-                  key={i}
-                  className={`cinema-word${jesusWordSet.has(i) ? ' is-jesus' : ''}${i < effectiveLit ? ' is-lit' : ''}`}
-                >
-                  {w}
+                <Fragment key={i}>
+                  <span
+                    ref={el => {
+                      wordElsRef.current[i] = el
+                    }}
+                    className={`cinema-word${jesusWordSet.has(i) ? ' is-jesus' : ''}`}
+                  >
+                    {w}
+                  </span>
                   {i < words.length - 1 ? ' ' : ''}
-                </span>
+                </Fragment>
               ))}
             </p>
             <span className="cinema-verse__ref">
