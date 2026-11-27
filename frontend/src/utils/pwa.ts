@@ -201,22 +201,12 @@ export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistra
           console.log('🔄 Service Worker 업데이트 확인 완료');
         }
       } catch (updateErr) {
+        // ★여기서 unregister 하면 안 된다 — 등록을 해제하면 그 등록에 묶인 푸시 구독이
+        // 함께 사라진다. update() 는 오프라인·앱 복귀 직후처럼 네트워크가 잠깐 없을 때도
+        // 실패하는데(모바일에서 흔하다), 예전엔 그때마다 재등록해서 켜 둔 알림이 조용히 풀렸다.
+        // 스크립트가 다른 좀비 등록은 위 청소 루프가 이미 처리하므로, 실패는 다음 실행에 맡긴다.
         if (import.meta.env.DEV) {
-          console.warn('⚠️ SW update 실패 — 좀비 등록 가능성, 재등록 시도:', updateErr);
-        }
-        // 좀비 등록이 남아있던 경우 강제 재등록
-        try {
-          await registration.unregister();
-          registration = await navigator.serviceWorker.register(swPath, {
-            scope: base
-          });
-          if (import.meta.env.DEV) {
-            console.log('♻️ Service Worker 재등록 완료:', registration);
-          }
-        } catch (reregErr) {
-          if (import.meta.env.DEV) {
-            console.error('SW 재등록 실패:', reregErr);
-          }
+          console.warn('⚠️ SW update 실패 (등록은 유지, 다음 실행에 재시도):', updateErr);
         }
       }
     }

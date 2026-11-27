@@ -149,7 +149,12 @@ function App() {
       if (document.visibilityState === 'visible') selfCheck()
     }
     document.addEventListener('visibilitychange', onVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+    // 복귀 순간엔 네트워크가 아직 없어 점검이 실패하기 쉽다(모바일) — 연결되면 다시 본다
+    window.addEventListener('online', selfCheck)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('online', selfCheck)
+    }
   }, [])
 
   return (

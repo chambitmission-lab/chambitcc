@@ -273,8 +273,10 @@ export const restorePushSubscriptionForUser = async (
 };
 
 // healPushSubscription 중복 실행 방지용 (앱 시작 + visibilitychange가 겹칠 수 있음)
-let lastHealAttemptAt = 0;
-const HEAL_MIN_INTERVAL_MS = 60 * 60 * 1000; // 1시간
+let nextHealAllowedAt = 0;
+let healInFlight = false;
+const HEAL_MIN_INTERVAL_MS = 60 * 60 * 1000; // 확인 완료 후 1시간
+const HEAL_RETRY_INTERVAL_MS = 60 * 1000; // 실패 후 1분
 
 /**
  * 앱 시작·포그라운드 복귀 시 호출하는 푸시 구독 자가 치유.
@@ -300,9 +302,13 @@ export const healPushSubscription = async (username: string | null): Promise<voi
   if (checkNotificationPermission() !== 'granted') return;
 
   const now = Date.now();
-  if (now - lastHealAttemptAt < HEAL_MIN_INTERVAL_MS) return;
-  lastHealAttemptAt = now;
+  if (healInFlight || now < nextHealAllowedAt) return;
+  healInFlight = true;
 
+  // 확인이 끝까지 된 경우에만 1시간 쉰다. 실패(앱 복귀 직후 네트워크가 아직 없는 경우가
+  // 모바일에서 흔하다)면 1분 뒤 다시 시도할 수 있게 둔다 — 예전엔 시도 전에 시계를 찍어
+  // 한 번 실패하면 1시간 동안 복구 기회가 없었다.
+  let settled = false;
   try {
     const registration = await navigator.serviceWorker.ready;
     const browserSub = await registration.pushManager.getSubscription();
@@ -310,19 +316,26 @@ export const healPushSubscription = async (username: string | null): Promise<voi
     if (browserSub) {
       const mySubs = await getMySubscriptions();
       const matched = mySubs.some((sub) => sub.endpoint === browserSub.endpoint);
-      if (matched) return; // 브라우저 구독이 현재 사용자 소유로 정상 등록됨
+      if (matched) {
+        settled = true; // 브라우저 구독이 현재 사용자 소유로 정상 등록됨
+        return;
+      }
     }
 
     // 브라우저 구독이 없거나(만료·해제됨), 있어도 내 것이 아님(다른 계정이
     // 이 기기를 썼던 경우) → 재구독으로 현재 사용자에게 되돌린다.
     const success = await subscribeToPushNotifications();
     if (success) {
+      settled = true;
       console.log(`✅ ${username}의 푸시 구독을 자가 치유했습니다`);
     } else {
       console.warn(`푸시 구독 자가 치유 실패 (${username}): subscribe가 false 반환`);
     }
   } catch (error) {
     console.warn('푸시 구독 자가 치유 중 에러 (무시):', error);
+  } finally {
+    healInFlight = false;
+    nextHealAllowedAt = Date.now() + (settled ? HEAL_MIN_INTERVAL_MS : HEAL_RETRY_INTERVAL_MS);
   }
 };
 

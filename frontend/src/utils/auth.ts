@@ -162,6 +162,12 @@ export const refreshAccessToken = async (): Promise<string | null> => {
 
     // 새 access token 저장
     tokenStore.setAccess(newAccessToken)
+    // 슬라이딩 만료 — 서버는 refresh token 의 남은 기간이 절반 이하일 때만 새 것을 함께 준다.
+    // 저장해 두면 만료가 "로그인한 날"이 아니라 "마지막으로 쓴 날" 기준으로 밀려,
+    // 꾸준히 쓰는 사람은 로그아웃(=푸시 구독 해제)되지 않는다. 구버전 백엔드는 필드가 없다.
+    if (typeof data.refresh_token === 'string' && data.refresh_token) {
+      tokenStore.setRefresh(data.refresh_token)
+    }
     // 로그인 이후 목회자로 지정·해제된 경우도 재로그인 없이 반영 (구버전 백엔드는 필드가 없다)
     if (typeof data.is_pastor === 'boolean') {
       sessionStore.set('isPastor', data.is_pastor ? '1' : null)
