@@ -66,6 +66,18 @@ export const movePerson = async (personId: number, direction: 'up' | 'down'): Pr
   })
 }
 
+/**
+ * 드래그 정렬 — 같은 탭 사람들의 id 를 원하는 순서대로.
+ * 검색으로 일부만 보일 때는 그 사람들이 차지하던 자리 안에서만 바뀐다.
+ */
+export const reorderPeople = async (orderedIds: number[]): Promise<void> => {
+  await requestRaw(`${BASE}/reorder`, {
+    method: 'PATCH',
+    json: { ordered_ids: orderedIds },
+    errorMessage: '순서 변경에 실패했습니다',
+  })
+}
+
 export const deletePerson = async (personId: number): Promise<void> => {
   await requestRaw(`${BASE}/${personId}`, {
     method: 'DELETE',

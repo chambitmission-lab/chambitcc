@@ -127,6 +127,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['worship-redesign', () => import('../pages/dev/WorshipRedesignPreview')],
       // /admin/chatbot 전면 개편 시안 — ?v=a 가르치기 교실|b 말 사전|c 질문함 3단 데스크
       ['chatbot-admin', () => import('../pages/dev/ChatbotAdminPreview')],
+      // /admin/news 전면 개편 시안 — ?v=a 편집 데스크|b 주일 연재판|c 게시판 표+서랍
+      ['news-admin', () => import('../pages/dev/NewsAdminPreview')],
     ]
   : []
 

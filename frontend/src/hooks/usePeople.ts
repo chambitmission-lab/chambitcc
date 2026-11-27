@@ -6,6 +6,7 @@ import {
   fetchAllPeople,
   fetchPeople,
   movePerson,
+  reorderPeople,
   updatePerson,
   uploadPersonPhoto,
 } from '../api/people'
@@ -76,6 +77,14 @@ export const useMovePerson = () => {
   return useMutation({
     mutationFn: ({ id, direction }: { id: number; direction: 'up' | 'down' }) =>
       movePerson(id, direction),
+    onSuccess: invalidate,
+  })
+}
+
+export const useReorderPeople = () => {
+  const invalidate = useInvalidatePeople()
+  return useMutation({
+    mutationFn: (orderedIds: number[]) => reorderPeople(orderedIds),
     onSuccess: invalidate,
   })
 }

@@ -1,9 +1,9 @@
 // 섬기는 사람들 관리 (admin, /admin/people)
 //
 // 교역자·파송선교사·장로·교회직원이 한 목록에 모인다. 분류 필터로 탭을 좁히고,
-// 같은 분류 안에서 ↑↓ 로 순서를 잡는다(공개 화면의 표시 순서가 그대로 이 순서다).
+// 같은 분류 안에서 왼쪽 손잡이를 끌거나 ↑↓ 로 순서를 잡는다(공개 화면의 표시 순서가 그대로 이 순서다).
 // 담임·원로목사는 여기 없다 — /admin/pastors 가 단일 출처.
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
@@ -11,8 +11,10 @@ import {
   useAllPeople,
   useDeletePerson,
   useMovePerson,
+  useReorderPeople,
   useUpdatePerson,
 } from '../../hooks/usePeople'
+import { useDragSort } from '../../hooks/useDragSort'
 import {
   CATEGORY_DATE_LABEL,
   CATEGORY_LABEL,
@@ -97,6 +99,17 @@ const PeopleManagement = () => {
       return matchesSearch && matchesCategory
     })
   }, [people, searchTerm, categoryFilter])
+
+  // 끌어서 옮기기는 같은 분류 안에서만 — 이어진 같은 분류끼리 한 묶음으로 나눈다
+  const groups = useMemo(() => {
+    const runs: Person[][] = []
+    filtered.forEach((person) => {
+      const last = runs[runs.length - 1]
+      if (last && last[0].category === person.category) last.push(person)
+      else runs.push([person])
+    })
+    return runs
+  }, [filtered])
 
   const counts = useMemo(() => {
     const map = {} as Record<PersonCategory, number>
@@ -254,6 +267,9 @@ const PeopleManagement = () => {
               </span>
               {searchTerm && <span className="text-brand truncate">"{searchTerm}"</span>}
             </div>
+            <p className="px-5 pb-2 lg:px-1 lg:pb-0 text-[12px] leading-[1.55] text-gray-500 dark:text-white/55">
+              왼쪽 점 손잡이를 끌면 순서가 바뀌어요. 같은 분류 안에서만 옮겨집니다.
+            </p>
 
             <div className="px-5 pb-2 lg:px-1 flex flex-col gap-1 items-start">
               <button
@@ -292,28 +308,29 @@ const PeopleManagement = () => {
                   </p>
                 </div>
               ) : (
-                filtered.map((person, index) => {
-                  // ↑↓ 은 같은 분류 안에서만 의미가 있다 — 목록의 이웃이 다른 분류면 막는다
-                  const prev = filtered[index - 1]
-                  const next = filtered[index + 1]
-                  return (
-                    <PersonRow
-                      key={person.id}
-                      person={person}
-                      expanded={expandedId === person.id}
-                      canMoveUp={!!prev && prev.category === person.category}
-                      canMoveDown={!!next && next.category === person.category}
-                      onToggleExpand={() =>
-                        setExpandedId((prevId) => (prevId === person.id ? null : person.id))
-                      }
-                      onEdit={() => setComposer(person)}
-                      onMove={(direction) => handleMove(person, direction)}
-                      onToggleVisibility={() => handleToggleVisibility(person)}
-                      onDelete={() => handleDelete(person)}
-                      onGoPastors={() => navigate('/admin/pastors')}
-                    />
-                  )
-                })
+                groups.map((group) => (
+                  <SortablePeople
+                    key={group[0].category}
+                    people={group}
+                    renderRow={(person, { canMoveUp, canMoveDown, handle }) => (
+                      <PersonRow
+                        person={person}
+                        expanded={expandedId === person.id}
+                        canMoveUp={canMoveUp}
+                        canMoveDown={canMoveDown}
+                        handle={handle}
+                        onToggleExpand={() =>
+                          setExpandedId((prevId) => (prevId === person.id ? null : person.id))
+                        }
+                        onEdit={() => setComposer(person)}
+                        onMove={(direction) => handleMove(person, direction)}
+                        onToggleVisibility={() => handleToggleVisibility(person)}
+                        onDelete={() => handleDelete(person)}
+                        onGoPastors={() => navigate('/admin/pastors')}
+                      />
+                    )}
+                  />
+                ))
               )}
             </div>
           </div>
@@ -350,12 +367,92 @@ const PeopleManagement = () => {
   )
 }
 
+// ── 드래그 정렬 묶음 — 같은 분류 사람들끼리만 자리를 바꾼다 ──────────
+const DragHandle = (props: ComponentPropsWithoutRef<'span'>) => (
+  <span
+    {...props}
+    role="img"
+    title="끌어서 순서 변경"
+    aria-label="끌어서 순서 변경"
+    className="shrink-0 w-9 pl-1.5 flex items-center justify-center text-gray-300 dark:text-white/25 hover:text-gray-500 dark:hover:text-white/55 cursor-grab active:cursor-grabbing select-none transition-colors"
+  >
+    <svg width="14" height="20" viewBox="0 0 14 20" fill="currentColor" aria-hidden="true">
+      <circle cx="4" cy="4" r="1.6" />
+      <circle cx="10" cy="4" r="1.6" />
+      <circle cx="4" cy="10" r="1.6" />
+      <circle cx="10" cy="10" r="1.6" />
+      <circle cx="4" cy="16" r="1.6" />
+      <circle cx="10" cy="16" r="1.6" />
+    </svg>
+  </span>
+)
+
+const SortablePeople = ({
+  people,
+  renderRow,
+}: {
+  people: Person[]
+  renderRow: (
+    person: Person,
+    slot: { canMoveUp: boolean; canMoveDown: boolean; handle: ReactNode },
+  ) => ReactNode
+}) => {
+  const reorder = useReorderPeople()
+  const sort = useDragSort(
+    people.map((p) => p.id),
+    (ordered) =>
+      reorder.mutate(ordered, {
+        onError: (err) => {
+          showToast(err instanceof Error ? err.message : '순서 변경에 실패했습니다', 'error')
+          sort.resetOrder()
+        },
+      }),
+  )
+  const byId = new Map(people.map((p) => [p.id, p]))
+
+  return (
+    <>
+      {sort.orderedIds.map((id, index) => {
+        const person = byId.get(id)
+        if (!person) return null
+        return (
+          <div
+            key={id}
+            ref={sort.setItemRef(id)}
+            style={sort.itemStyle(id)}
+            className={
+              sort.draggingId === id
+                ? 'rounded-2xl bg-white dark:bg-card-dark shadow-xl ring-1 ring-[var(--brand-glow)]'
+                : undefined
+            }
+          >
+            {renderRow(person, {
+              // ↑↓ 은 같은 분류 안에서만 의미가 있다 — 묶음의 양 끝에서 막는다
+              canMoveUp: index > 0,
+              canMoveDown: index < sort.orderedIds.length - 1,
+              // 혼자뿐인 묶음은 옮길 곳이 없다 — 자리만 맞춘다
+              handle:
+                people.length > 1 ? (
+                  <DragHandle {...sort.handleProps(id)} />
+                ) : (
+                  <span className="shrink-0 w-3.5" />
+                ),
+            })}
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
 // ── Row ───────────────────────────────────────────────
 interface PersonRowProps {
   person: Person
   expanded: boolean
   canMoveUp: boolean
   canMoveDown: boolean
+  /** 끌어서 순서 바꾸는 손잡이 — 펼침 버튼 밖에 둬야 끌기와 누르기가 섞이지 않는다 */
+  handle: ReactNode
   onToggleExpand: () => void
   onEdit: () => void
   onMove: (direction: 'up' | 'down') => void
@@ -369,6 +466,7 @@ const PersonRow = ({
   expanded,
   canMoveUp,
   canMoveDown,
+  handle,
   onToggleExpand,
   onEdit,
   onMove,
@@ -398,10 +496,12 @@ const PersonRow = ({
         }`}
       />
 
+      <div className="relative z-10 flex items-stretch">
+      {handle}
       <button
         type="button"
         onClick={onToggleExpand}
-        className="relative z-10 w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left"
+        className="flex-1 min-w-0 flex items-center gap-3 pr-3 py-3 text-left"
         aria-expanded={expanded}
       >
         <div className="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-[var(--brand-soft-strong)] border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
@@ -470,6 +570,7 @@ const PersonRow = ({
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
+      </div>
 
       {expanded && (
         <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-2.5">
