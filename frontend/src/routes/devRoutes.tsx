@@ -125,6 +125,8 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['news-rail', () => import('../pages/dev/NewsRailPreview')],
       // /worship 처음 온 성도 중심 전면 개편 시안 — ?v=a 초대+내 주일 아침|b 두 갈래 문|c 대림절 초대장
       ['worship-redesign', () => import('../pages/dev/WorshipRedesignPreview')],
+      // /admin/chatbot 전면 개편 시안 — ?v=a 가르치기 교실|b 말 사전|c 질문함 3단 데스크
+      ['chatbot-admin', () => import('../pages/dev/ChatbotAdminPreview')],
     ]
   : []
 
