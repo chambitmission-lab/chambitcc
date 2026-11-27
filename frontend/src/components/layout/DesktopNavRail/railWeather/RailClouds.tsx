@@ -12,7 +12,7 @@ import { weatherToRailMode } from './railWeatherMode'
  *  - 안개      : 구름 대신 능선에 걸친 안개 띠 두 줄(.rail-fog)
  *  - 비·눈     : 없음(캔버스 몫)
  * 바탕이 밝은 회색(#f1f3f6)이라 흰 구름은 안 보인다 — 바탕보다 살짝 짙은 푸른 워시로 그린다.
- * 움직임은 CSS 애니메이션(transform, 계단식 — 아래 STEPS_PER_SEC)뿐이라 JS 루프가 없다. 동작 줄이기면 제자리에 멈춘다. */
+ * 움직임은 CSS 애니메이션(transform, linear)뿐이라 JS 루프가 없다. 동작 줄이기면 제자리에 멈춘다. */
 
 type Sky = 'clear' | 'partly' | 'overcast'
 
@@ -25,13 +25,11 @@ const CLOUDS = [
   { k: 0.36, scale: 0.85, dur: 540, delay: -315 },
   { k: 0.82, scale: 0.6, dur: 720, delay: -60 },
 ]
-/* 매 프레임(60fps) 옮기면 마스크 걸린 칸 전체를 그때마다 다시 합성한다.
- * 그래서 계단식으로 옮긴다(2026-11-22 실측: 레일 상시 비용의 절반 이상이 구름이었다).
- * ★ 끊겨 보이는지는 한 걸음의 크기가 정한다 — 한 걸음 ≈0.5px은 뚝뚝 끊겼고(2026-11-26), ≈0.17px은 괜찮았다.
- *   지금은 속도가 느려 초당 8번이면 한 걸음 ≈0.1px(가장 빠른 구름 기준)이다.
- *   실측: 비용은 초당 갱신 횟수에 비례한다(구름을 마스크 밖으로 빼도 줄지 않는다 — 구조 변경은 헛수고).
- *   지연(delay)이 정수 초라 구름들이 같은 프레임에 함께 옮겨진다 */
-const STEPS_PER_SEC = 8
+/* ★ 움직임은 linear(매 프레임)로 둔다 — 계단식(steps)으로 되돌리지 말 것.
+ *   합성 비용을 줄이려고 초당 5번 → 15번 → 8번 계단식으로 옮겨 봤지만(2026-11-22~27), 걸음을 아무리 잘게 해도
+ *   "득득득득 움직인다, 보고 있으면 멀미 난다"는 피드백이 반복됐다(2026-11-27). 멈췄다 가는 박자 자체가 눈에 걸린다.
+ *   매 프레임 옮기면 마스크 걸린 칸을 그때마다 다시 합성하는 비용이 들지만(실측: 갱신 횟수에 비례),
+ *   끊김 없이 흘러가는 쪽이 우선이다. 비용을 줄여야 하면 계단식 말고 다른 길(구름 수·칸 크기)을 찾을 것 */
 const COUNT: Record<Sky, number> = { clear: 2, partly: 3, overcast: 4 }
 
 export default function RailClouds() {
@@ -65,7 +63,6 @@ export default function RailClouds() {
               '--ck': c.k,
               '--cs': c.scale,
               animationDuration: `${c.dur}s`,
-              animationTimingFunction: `steps(${c.dur * STEPS_PER_SEC})`,
               animationDelay: `${c.delay}s`,
             } as CSSProperties
           }
