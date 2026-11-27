@@ -1,28 +1,30 @@
-import { formatYmdWeekday } from '../../utils/dateUtils'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+// 새가족 소식 관리 (admin, /admin/new-family)
+// Single Responsibility: 새가족 소식 목록 조회·거르기와 공개 전환/삭제 액션.
+// 화면은 NewFamilyDesk(관리 데스크 — 목록 + 상세 + /news 카드 미리보기, 2026-11-27),
+// 작성·수정(사진 순서 포함)은 NewFamilyComposer 가 그린다.
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { showToast } from '../../utils/toast'
-import {
-  deleteNewFamilyPost,
-  fetchNewFamilyPosts,
-  updateNewFamilyPost,
-} from '../../api/newFamily'
+import { deleteNewFamilyPost, fetchNewFamilyPosts, updateNewFamilyPost } from '../../api/newFamily'
 import type { NewFamilyPost } from '../../types/newFamily'
 import { invalidateNewFamily } from '../../hooks/useNewFamily'
 import NewFamilyComposer from './components/NewFamilyComposer'
-import { FilterChip, FilterRow } from './components/FilterControls'
+import NewFamilyDesk from './components/NewFamilyDesk'
+import { filterFamily, type FamilyTab } from './components/newFamilyDeskUtils'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
-import { InfoRow, StatChip, SkeletonRows } from './components/AdminListBits'
 
-type VisibilityFilter = 'all' | 'published' | 'hidden'
-type SortKey = 'recent' | 'oldest' | 'welcome'
-
-const isThisMonth = (value: string): boolean => {
-  const [y, m] = value.split('-').map(Number)
-  const now = new Date()
-  return y === now.getFullYear() && m === now.getMonth() + 1
+/** 서버 한 번 최대 50건 — 예전 화면은 첫 50명에서 끊겼다. 전부 이어 받는다(안전하게 20쪽까지) */
+const PAGE = 50
+const fetchAllPosts = async (): Promise<NewFamilyPost[]> => {
+  const all: NewFamilyPost[] = []
+  for (let page = 1; page <= 20; page++) {
+    const { data } = await fetchNewFamilyPosts(page, PAGE)
+    all.push(...data.items)
+    if (data.items.length < PAGE || all.length >= data.total) break
+  }
+  return all
 }
 
 const NewFamilyManagement = () => {
@@ -32,11 +34,21 @@ const NewFamilyManagement = () => {
   const [posts, setPosts] = useState<NewFamilyPost[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [visibility, setVisibility] = useState<VisibilityFilter>('all')
-  const [sortKey, setSortKey] = useState<SortKey>('recent')
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [tab, setTab] = useState<FamilyTab>('all')
+  const [selectedId, setSelectedId] = useState<number | null>(null)
   // null = 닫힘, 'new' = 등록, NewFamilyPost = 수정
   const [composer, setComposer] = useState<'new' | NewFamilyPost | null>(null)
+
+  const loadPosts = async () => {
+    try {
+      // 관리자는 비공개 소식도 함께 내려받는다 (백엔드에서 is_admin으로 분기)
+      setPosts(await fetchAllPosts())
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : '목록을 불러오지 못했습니다', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!can('admin:access')) {
@@ -44,499 +56,80 @@ const NewFamilyManagement = () => {
       navigate('/')
       return
     }
-    loadPosts()
+    void loadPosts()
   }, [navigate])
 
-  const loadPosts = async () => {
+  const handleTogglePublish = async (post: NewFamilyPost) => {
+    const next = !post.is_published
+    // 스위치가 바로 넘어가게(낙관적) — 실패하면 되돌린다
+    setPosts((l) => l.map((p) => (p.id === post.id ? { ...p, is_published: next } : p)))
     try {
-      setLoading(true)
-      // 관리자는 비공개 포스트도 함께 내려받는다 (백엔드에서 is_admin으로 분기)
-      const response = await fetchNewFamilyPosts(1, 50)
-      setPosts(response.data.items)
+      const updated = await updateNewFamilyPost(post.id, { is_published: next })
+      setPosts((l) => l.map((p) => (p.id === post.id ? { ...p, ...updated } : p)))
+      invalidateNewFamily(queryClient)
+      showToast(next ? '교회소식에 올렸어요' : '비공개로 내렸어요', 'success')
     } catch (err) {
-      showToast(err instanceof Error ? err.message : '목록을 불러오지 못했습니다', 'error')
-      setPosts([])
-    } finally {
-      setLoading(false)
+      setPosts((l) => l.map((p) => (p.id === post.id ? { ...p, is_published: post.is_published } : p)))
+      showToast(err instanceof Error ? err.message : '바꾸지 못했어요', 'error')
     }
   }
 
-  /** 관리 화면 mutation 뒤 — /news 목록(비활성 캐시)까지 최신화 */
-  const refreshEverywhere = () => {
-    invalidateNewFamily(queryClient)
-    loadPosts()
-  }
-
   const handleDelete = async (post: NewFamilyPost) => {
+    const extra = [post.photo_count > 0 && `사진 ${post.photo_count}장`, post.welcome_count > 0 && `환영 ${post.welcome_count}`, post.comment_count > 0 && `댓글 ${post.comment_count}개`].filter(Boolean)
     if (
       !(await confirmDialog({
         title: '새가족 소식 삭제',
-        message: `${post.member_name} 소식을 삭제하시겠습니까?`,
-        description: '등록된 사진과 환영 댓글도 함께 삭제됩니다.',
-        confirmText: '삭제',
+        message: `${post.member_name} 님 소식을 지울까요?`,
+        description: `${extra.length ? `${extra.join('·')}도 함께 사라져요. ` : ''}잠시 감추려면 공개 스위치를 끄세요.`,
+        confirmText: '네, 지울게요',
         icon: 'delete_outline',
       }))
     )
       return
     try {
       await deleteNewFamilyPost(post.id)
-      showToast('삭제되었습니다', 'success')
-      refreshEverywhere()
+      setPosts((l) => l.filter((p) => p.id !== post.id))
+      invalidateNewFamily(queryClient)
+      showToast('삭제했어요', 'success')
     } catch (err) {
       showToast(err instanceof Error ? err.message : '삭제에 실패했습니다', 'error')
     }
   }
 
-  const handleToggleVisibility = async (post: NewFamilyPost) => {
-    try {
-      const updated = await updateNewFamilyPost(post.id, { is_published: !post.is_published })
-      setPosts(prev => prev.map(p => (p.id === post.id ? { ...p, ...updated } : p)))
-      invalidateNewFamily(queryClient)
-      showToast(updated.is_published ? '공개로 전환했어요' : '비공개로 전환했어요', 'success')
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : '변경에 실패했습니다', 'error')
-    }
-  }
-
-  const filtered = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase()
-    const arr = posts.filter(p => {
-      const matchesSearch =
-        !q ||
-        p.member_name.toLowerCase().includes(q) ||
-        (p.group_name?.toLowerCase().includes(q) ?? false) ||
-        (p.greeting?.toLowerCase().includes(q) ?? false)
-      const matchesVisibility =
-        visibility === 'all' ||
-        (visibility === 'published' && p.is_published) ||
-        (visibility === 'hidden' && !p.is_published)
-      return matchesSearch && matchesVisibility
-    })
-    return [...arr].sort((a, b) => {
-      if (sortKey === 'welcome') return b.welcome_count - a.welcome_count
-      const at = a.registered_at
-      const bt = b.registered_at
-      return sortKey === 'recent' ? bt.localeCompare(at) : at.localeCompare(bt)
-    })
-  }, [posts, searchTerm, visibility, sortKey])
-
-  const thisMonthCount = posts.filter(p => isThisMonth(p.registered_at)).length
-  const hiddenCount = posts.filter(p => !p.is_published).length
+  const filtered = useMemo(() => filterFamily(posts, tab, searchTerm), [posts, tab, searchTerm])
 
   return (
-    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
-    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100dvh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-24 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl">
-        {/* 헤더 — lg 에선 검색/필터가 우측 레일에 고정되므로 sticky 를 풀어 둔다
-            (sticky 인 채로 라운드 모서리를 주면 스크롤 중 둥근 막대가 떠 보인다) */}
-        <div className="sticky top-14 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            <span className="text-sm font-semibold">뒤로</span>
-          </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">
-            새가족 앨범 관리
-          </h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
-            ADMIN
-          </span>
-        </div>
-
-        {/* PC(lg+) 2단 — 좌: 새가족 목록 / 우: 도구(등록·통계·검색/필터)가 sticky.
-            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
-        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
-          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
-            {/* PC 전용 등록 버튼 — lg 에선 FAB 대신 레일 상단에서 연다 */}
-            <button
-              type="button"
-              onClick={() => setComposer('new')}
-              className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span>새가족 등록</span>
-            </button>
-
-            {/* 통계 */}
-            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
-              <StatChip label="전체" value={posts.length} />
-              <StatChip label="이번 달" value={thisMonthCount} accent />
-              <StatChip label="비공개" value={hiddenCount} />
-            </div>
-
-            {/* 검색 + 필터 */}
-            <div className="px-4 py-3 lg:px-0 lg:py-0">
-              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-
-                <div className="relative z-10 space-y-3">
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                      </svg>
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="이름 · 부서 · 인사말 검색"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-                    />
-                    {searchTerm && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
-                        aria-label="검색어 지우기"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-
-                  <FilterRow label="공개">
-                    {(
-                      [
-                        ['all', '전체'],
-                        ['published', '공개'],
-                        ['hidden', '비공개'],
-                      ] as const
-                    ).map(([v, l]) => (
-                      <FilterChip key={v} active={visibility === v} onClick={() => setVisibility(v)}>
-                        {l}
-                      </FilterChip>
-                    ))}
-                  </FilterRow>
-
-                  <FilterRow label="정렬">
-                    {(
-                      [
-                        ['recent', '최신순'],
-                        ['oldest', '오래된순'],
-                        ['welcome', '환영 많은순'],
-                      ] as const
-                    ).map(([v, l]) => (
-                      <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>
-                        {l}
-                      </FilterChip>
-                    ))}
-                  </FilterRow>
-                </div>
-              </div>
-            </div>
-
-            {/* 결과 카운트 */}
-            <div className="px-5 pb-2 lg:px-1 lg:pb-0 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
-              <span>
-                검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>건
-              </span>
-              {searchTerm && (
-                <span className="text-brand truncate">"{searchTerm}"</span>
-              )}
-            </div>
-
-          </div>
-
-          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
-            {/* 목록 */}
-            <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
-              {loading ? (
-                <SkeletonRows rows={5} height={86} />
-              ) : filtered.length === 0 ? (
-                <div className="text-center py-12">
-                  <span className="text-4xl block mb-3">🌱</span>
-                  <p className="text-[13px] text-gray-500 dark:text-white/55">
-                    {searchTerm || visibility !== 'all'
-                      ? '조건에 맞는 새가족이 없습니다'
-                      : '아직 등록된 새가족이 없어요'}
-                  </p>
-                  <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
-                    {searchTerm || visibility !== 'all'
-                      ? '필터를 바꾸거나 검색어를 지워보세요'
-                      : '＋ 새가족 버튼으로 등록해 보세요'}
-                  </p>
-                </div>
-              ) : (
-                filtered.map(post => (
-                  <PostRow
-                    key={post.id}
-                    post={post}
-                    expanded={expandedId === post.id}
-                    onToggleExpand={() =>
-                      setExpandedId(prev => (prev === post.id ? null : post.id))
-                    }
-                    onDelete={() => handleDelete(post)}
-                    onEdit={() => setComposer(post)}
-                    onToggleVisibility={() => handleToggleVisibility(post)}
-                    onView={() => navigate('/news?tab=new-family')}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* FAB */}
-        <button
-          type="button"
-          onClick={() => setComposer('new')}
-          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 lg:hidden inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          <span>새가족</span>
-        </button>
-
-        {composer && (
-          <NewFamilyComposer
-            // key — 다른 포스트를 연속으로 수정할 때 폼 상태가 남지 않도록 재마운트
-            key={composer === 'new' ? 'new' : composer.id}
-            post={composer === 'new' ? undefined : composer}
-            onClose={() => setComposer(null)}
-            onSuccess={() => {
-              setComposer(null)
-              refreshEverywhere()
-            }}
-          />
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ── Row ───────────────────────────────────────────────
-interface PostRowProps {
-  post: NewFamilyPost
-  expanded: boolean
-  onToggleExpand: () => void
-  onDelete: () => void
-  onEdit: () => void
-  onToggleVisibility: () => void
-  onView: () => void
-}
-
-const PostRow = ({
-  post,
-  expanded,
-  onToggleExpand,
-  onDelete,
-  onEdit,
-  onToggleVisibility,
-  onView,
-}: PostRowProps) => {
-  const isCurrent = isThisMonth(post.registered_at)
-  return (
-    <div
-      className={[
-        'relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border transition-all duration-200',
-        'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]',
-        expanded
-          ? 'border-[var(--brand-glow)]'
-          : 'border-gray-200/70 dark:border-white/[0.08]',
-      ].join(' ')}
-    >
-      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      {/* 공개된 글만 브랜드 솔리드, 비공개는 중립 회색 */}
-      <div
-        className={`absolute left-0 top-0 bottom-0 w-1 ${
-          post.is_published ? 'bg-brand' : 'bg-gray-300 dark:bg-white/10'
-        }`}
+    <>
+      <NewFamilyDesk
+        posts={posts}
+        filtered={filtered}
+        loading={loading}
+        tab={tab}
+        onTabChange={setTab}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onCreate={() => setComposer('new')}
+        onBack={() => navigate(-1)}
+        onEdit={(p) => setComposer(p)}
+        onTogglePublish={(p) => void handleTogglePublish(p)}
+        onDelete={(p) => void handleDelete(p)}
+        onViewPublic={() => navigate('/news?tab=new-family')}
       />
 
-      <button
-        type="button"
-        onClick={onToggleExpand}
-        className="relative z-10 w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left"
-        aria-expanded={expanded}
-      >
-        <div className="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-[var(--brand-soft-strong)] border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
-          {post.cover_url ? (
-            <img src={post.cover_url} alt={post.member_name} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-[22px]">🌱</span>
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
-              {post.member_name}
-            </span>
-            {isCurrent && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.05em] shrink-0">
-                이번 달
-              </span>
-            )}
-            {!post.is_published && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60 shrink-0">
-                비공개
-              </span>
-            )}
-          </div>
-          <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
-            {formatYmdWeekday(post.registered_at)}
-            {post.group_name && (
-              <>
-                <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
-                {post.group_name}
-              </>
-            )}
-          </div>
-          <div className="text-[11px] text-gray-400 dark:text-white/40 truncate mt-0.5">
-            🖼️ {post.photo_count}장
-            <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
-            👋 {post.welcome_count}
-            <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
-            💬 {post.comment_count}
-          </div>
-        </div>
-
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 ${
-            expanded ? 'rotate-180' : ''
-          }`}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-
-      {expanded && (
-        <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-2.5">
-          {post.photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-1.5">
-              {post.photos.map(photo => (
-                <div
-                  key={photo.id}
-                  className="aspect-square rounded-lg overflow-hidden border border-gray-200/70 dark:border-white/[0.08] bg-gray-100 dark:bg-white/[0.03]"
-                >
-                  <img
-                    src={photo.image_url}
-                    alt={post.member_name}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {post.greeting && (
-            <p className="text-[12.5px] leading-[1.6] text-gray-700 dark:text-white/75 bg-gray-50 dark:bg-white/[0.03] rounded-xl px-3 py-2.5 whitespace-pre-wrap line-clamp-6">
-              {post.greeting}
-            </p>
-          )}
-
-          <div className="space-y-1.5 text-[12.5px]">
-            <InfoRow label="등록 주일" value={formatYmdWeekday(post.registered_at)} />
-            <InfoRow label="부서" value={post.group_name || '—'} />
-            <InfoRow label="사진" value={`${post.photo_count}장`} />
-            <InfoRow label="환영" value={`${post.welcome_count}명`} />
-            <InfoRow label="댓글" value={`${post.comment_count}개`} />
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <RowAction onClick={onEdit} accent icon="edit" label="수정" />
-            <RowAction onClick={onView} icon="eye" label="보기" />
-            <RowAction
-              onClick={onToggleVisibility}
-              icon={post.is_published ? 'hide' : 'eye'}
-              label={post.is_published ? '비공개' : '공개'}
-            />
-            <RowAction onClick={onDelete} destructive icon="trash" label="삭제" />
-          </div>
-
-          <p className="text-[11px] text-gray-400 dark:text-white/40 leading-[1.5] pt-1">
-            * 수정에서 이름·인사말은 물론 사진 추가·삭제·순서 변경까지 가능해요. 맨 앞 사진이 대표가 됩니다.
-          </p>
-        </div>
+      {composer && (
+        <NewFamilyComposer
+          post={composer === 'new' ? undefined : composer}
+          onClose={() => setComposer(null)}
+          onSuccess={() => {
+            setComposer(null)
+            invalidateNewFamily(queryClient)
+            void loadPosts()
+          }}
+        />
       )}
-    </div>
-  )
-}
-
-// ── 작은 컴포넌트들 ──────────────────────────────────────
-const ACTION_ICONS: Record<string, ReactNode> = {
-  eye: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ),
-  edit: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  ),
-  hide: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  ),
-  trash: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6" />
-      <line x1="10" y1="11" x2="10" y2="17" />
-      <line x1="14" y1="11" x2="14" y2="17" />
-    </svg>
-  ),
-}
-
-const RowAction = ({
-  onClick,
-  accent,
-  destructive,
-  icon,
-  label,
-}: {
-  onClick: () => void
-  accent?: boolean
-  destructive?: boolean
-  icon: keyof typeof ACTION_ICONS
-  label: string
-}) => {
-  let cls =
-    'flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
-  if (destructive) {
-    cls +=
-      'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-400/30 hover:bg-red-100 dark:hover:bg-red-500/15'
-  } else if (accent) {
-    cls +=
-      'bg-[var(--brand-soft)] text-brand border border-[var(--brand-glow)] hover:bg-[var(--brand-soft-strong)]'
-  } else {
-    cls +=
-      'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08]'
-  }
-  return (
-    <button type="button" onClick={onClick} className={cls}>
-      {ACTION_ICONS[icon]}
-      <span>{label}</span>
-    </button>
+    </>
   )
 }
 

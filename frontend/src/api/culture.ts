@@ -118,10 +118,15 @@ export const cancelCultureApplication = async (
 export const getCultureApplications = async (params?: {
   class_id?: number
   status?: CultureApplicationStatus
+  /** 서버 기본 0·200 — 관리 데스크는 이어 받아 전부 모은다 */
+  skip?: number
+  limit?: number
 }): Promise<CultureApplication[]> => {
   const search = new URLSearchParams()
   if (params?.class_id) search.set('class_id', String(params.class_id))
   if (params?.status) search.set('status', params.status)
+  if (params?.skip) search.set('skip', String(params.skip))
+  if (params?.limit) search.set('limit', String(params.limit))
   const qs = search.toString()
   return request<CultureApplication[]>(`/culture/applications${qs ? `?${qs}` : ''}`, { errorMessage: '신청 목록을 불러오지 못했습니다' })
 }

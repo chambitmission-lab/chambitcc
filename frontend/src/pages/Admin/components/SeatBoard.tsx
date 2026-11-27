@@ -1,4 +1,5 @@
 // 좌석 예약 현황판 — 관리자가 행사 당일까지 쓰는 한 화면.
+// 2026-11-27: 모달을 벗고 SeatDesk 상세 안에 바로 놓인다(숫자 띠·탭·배치도/명단·선택 바).
 //
 // 배치도 탭: 좌석을 눌러 고르면 아래 바가 상황에 맞는 일을 제안한다.
 //   빈 자리만 골랐으면 → 대리 예약(전화·현장 접수, 보류석 배정)
@@ -8,7 +9,6 @@
 import { useMemo, useState } from 'react'
 import MemberSearchInput from '../../../components/common/MemberSearchInput'
 import { downloadSeatCsv } from '../../../api/seatEvent'
-import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useSeatAdminAction, useSeatEvent, useSeatReservations } from '../../../hooks/useSeatEvents'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { showToast } from '../../../utils/toast'
@@ -16,8 +16,7 @@ import type { SeatEventSummary, SeatReservation } from '../../../types/seatEvent
 import SeatMap, { SeatLegend } from '../../Seats/SeatMap'
 import type { SeatVisual } from '../../Seats/SeatMap'
 import { sortSeats } from '../../Seats/seatLayout'
-import { formatShort, inputCls } from '../../Seats/seatShared'
-import { CloseButton } from './SeatEventComposer'
+import { inputCls } from '../../Seats/seatShared'
 
 interface Holder {
   code: string
@@ -53,8 +52,7 @@ const groupHolders = (rows: SeatReservation[]): Holder[] => {
     .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
 }
 
-const SeatBoard = ({ summary, onClose }: { summary: SeatEventSummary; onClose: () => void }) => {
-  useModalBackButton(onClose)
+const SeatBoard = ({ summary }: { summary: SeatEventSummary }) => {
   const id = summary.id
   const { data: event } = useSeatEvent(id)
   const { data: rows = [], isLoading } = useSeatReservations(id)
@@ -184,70 +182,57 @@ const SeatBoard = ({ summary, onClose }: { summary: SeatEventSummary; onClose: (
     setTab('map')
   }
 
+  const numbers: [string, string, string, string][] = [
+    ['예약', `${rows.length}`, `/${total}`, 'text-ink-strong'],
+    ['남은 좌석', `${event?.available_count ?? summary.available_count}`, '석', 'text-ink-strong'],
+    ['예약자', `${holders.length}`, '팀', 'text-ink-strong'],
+    ['입장', `${checkedTotal}`, `/${rows.length}`, 'text-emerald-600 dark:text-emerald-300'],
+  ]
+
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full sm:max-w-4xl h-[94dvh] sm:h-[92dvh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* 머리 */}
-        <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="min-w-0">
-            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">SEAT BOARD</p>
-            <h2 className="text-ink-strong text-[16.5px] font-bold tracking-[-0.015em] truncate">{summary.title}</h2>
-            {summary.performance_at ? (
-              <p className="text-[11.5px] text-ink-muted">{formatShort(summary.performance_at)}{summary.venue ? ` · ${summary.venue}` : ''}</p>
-            ) : null}
+    <section className="space-y-4">
+      <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded-2xl overflow-hidden bg-gray-200/70 dark:bg-white/[0.06]">
+        {numbers.map(([label, value, unit, cls]) => (
+          <div key={label} className="px-3 lg:px-4 py-3 min-w-0 bg-gray-50 dark:bg-card-dark">
+            <dt className="text-[13px] font-semibold text-gray-500 dark:text-white/55">{label}</dt>
+            <dd className={`mt-0.5 whitespace-nowrap ${cls}`}>
+              <span className="text-[22px] font-extrabold tabular-nums tracking-tight">{isLoading ? '–' : value}</span>
+              <span className="ml-0.5 text-[13px] font-semibold text-gray-500 dark:text-white/55">{unit}</span>
+            </dd>
           </div>
-          <CloseButton onClick={onClose} />
-        </div>
+        ))}
+      </dl>
 
-        {/* 숫자 */}
-        <div className="grid grid-cols-4 gap-2 px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
-          {[
-            ['예약', `${rows.length}`, `/${total}`, 'text-brand'],
-            ['남은 좌석', `${event?.available_count ?? summary.available_count}`, '', 'text-ink-strong'],
-            ['예약자', `${holders.length}`, '팀', 'text-ink-strong'],
-            ['입장', `${checkedTotal}`, `/${rows.length}`, 'text-emerald-600 dark:text-emerald-300'],
-          ].map(([label, value, unit, cls]) => (
-            <div key={label} className="rounded-xl bg-white dark:bg-white/[0.04] border border-gray-200/70 dark:border-white/[0.06] px-2.5 py-2">
-              <p className="text-[10.5px] font-semibold text-gray-400 dark:text-white/40">{label}</p>
-              <p className={`text-[17px] font-extrabold tabular-nums leading-tight ${cls}`}>
-                {value}
-                <span className="text-[11px] font-semibold text-gray-400 dark:text-white/40">{unit}</span>
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* 탭 */}
-        <div className="flex items-center gap-1.5 px-5 py-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
+      {/* 탭 */}
+      <div className="flex items-center gap-2">
+        <div role="tablist" className="inline-grid grid-cols-2 p-1 rounded-xl bg-gray-100 dark:bg-white/[0.05]">
           {(['map', 'list'] as const).map((key) => (
             <button
               key={key}
               type="button"
+              role="tab"
+              aria-selected={tab === key}
               onClick={() => setTab(key)}
-              className={`px-3.5 py-1.5 rounded-full text-[13px] font-semibold border transition-colors ${
-                tab === key ? 'bg-brand text-white border-transparent' : 'border-gray-200 dark:border-white/[0.08] text-ink-muted hover:border-brand'
+              className={`h-8 px-4 rounded-lg text-[13.5px] font-semibold transition ${
+                tab === key ? 'bg-white dark:bg-white/[0.12] text-ink-strong shadow-sm' : 'text-gray-500 dark:text-white/55 hover:text-gray-800 dark:hover:text-white/80'
               }`}
             >
               {key === 'map' ? '배치도' : `명단 ${holders.length}`}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => void download()}
-            disabled={downloading}
-            className="ml-auto text-[12.5px] font-semibold text-brand disabled:opacity-50"
-          >
-            {downloading ? '내려받는 중…' : '명단 CSV'}
-          </button>
         </div>
+        <div className="flex-1" />
+        <button
+          type="button"
+          onClick={() => void download()}
+          disabled={downloading || rows.length === 0}
+          className="h-9 px-3 rounded-xl text-[13.5px] font-semibold text-brand hover:bg-[var(--brand-soft)] disabled:opacity-40 transition"
+        >
+          {downloading ? '내려받는 중…' : '명단 CSV'}
+        </button>
+      </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div>
           {!layout || isLoading ? (
             <div className="flex justify-center py-14">
               <div className="w-7 h-7 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
@@ -316,7 +301,7 @@ const SeatBoard = ({ summary, onClose }: { summary: SeatEventSummary; onClose: (
 
         {/* 선택 액션 바 (배치도 탭) */}
         {tab === 'map' && picked.length ? (
-          <div className="border-t border-black/[0.06] dark:border-white/[0.08] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] bg-white dark:bg-[#20202b] space-y-2.5">
+          <div className="sticky bottom-0 z-10 -mx-4 lg:-mx-6 border-t border-gray-200/80 dark:border-white/[0.08] px-4 lg:px-6 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] bg-white/95 dark:bg-[#20202b]/95 backdrop-blur-md space-y-2.5">
             {pickedHolders.map((h) => {
               const mineHere = h.seats.filter((s) => pickedReserved.includes(s))
               return (
@@ -405,8 +390,7 @@ const SeatBoard = ({ summary, onClose }: { summary: SeatEventSummary; onClose: (
             ) : null}
           </div>
         ) : null}
-      </div>
-    </div>
+    </section>
   )
 }
 

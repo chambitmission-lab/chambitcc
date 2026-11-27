@@ -151,6 +151,17 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['bible-plans-admin', () => import('../pages/dev/BiblePlanAdminPreview')],
       // /admin/situations 관리 데스크 미리보기 — 구절 빈 상황·숨김·기본 상황 표본 + 추천 시험기
       ['situations-admin', () => import('../pages/dev/SituationAdminPreview')],
+      // /admin/events 관리 데스크 미리보기 — 진행 중·주보 초안·비공개·지난 일정 표본
+      ['events-admin', () => import('../pages/dev/EventAdminPreview')],
+      // /admin/new-family 관리 데스크 미리보기 — 사진·인사말 빈 소식·비공개·지난해 표본
+      ['new-family-admin', () => import('../pages/dev/NewFamilyAdminPreview')],
+      ['push-admin', () => import('../pages/dev/PushAdminPreview')],
+      ['surveys-admin', () => import('../pages/dev/SurveyAdminPreview')],
+      ['handwriting-admin', () => import('../pages/dev/HandwritingAdminPreview')],
+      ['intercession-admin', () => import('../pages/dev/IntercessionAdminPreview')],
+      ['seats-admin', () => import('../pages/dev/SeatAdminPreview')],
+      ['culture-admin', () => import('../pages/dev/CultureAdminPreview')],
+      ['organization-admin', () => import('../pages/dev/OrganizationAdminPreview')],
     ]
   : []
 

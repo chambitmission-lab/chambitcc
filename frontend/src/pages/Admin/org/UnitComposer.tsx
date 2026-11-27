@@ -1,6 +1,7 @@
 // 조직 단위 추가·수정 폼.
 
 import { useState } from 'react'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { type OrgUnitType } from '../../../types/organization'
 
 const TYPE_OPTIONS: { value: OrgUnitType; label: string; desc: string }[] = [
@@ -37,10 +38,18 @@ const UnitComposer = ({
   isPending: boolean
 }) => {
   const [form, setForm] = useState<FormState>(initial)
+  // 모바일 뒤로가기로 닫힌다 — 데스크의 상세 화면(z-60) 위에 뜨므로 z-[70]
+  useModalBackButton(onCancel)
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
-      <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col animate-pop-in">
+    <div className="fixed inset-0 bg-black/60 z-[70] flex items-end sm:items-center justify-center sm:p-4" onClick={onCancel}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={mode === 'create' ? '조직 추가' : '조직 수정'}
+        onClick={e => e.stopPropagation()}
+        className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col animate-pop-in"
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
           <div className="min-w-0">
             <h3 className="font-bold text-ink-strong text-[15px]">
@@ -52,9 +61,12 @@ const UnitComposer = ({
           </div>
           <button
             onClick={onCancel}
+            aria-label="닫기"
             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
           >
-            <span className="material-icons-round text-[20px]">close</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
 

@@ -1,113 +1,39 @@
-import { useState, useEffect, type ReactNode } from 'react'
+// 푸시 알림 관리 (admin, /admin/push)
+// Single Responsibility: 작성 상태·발송·보낸 기록 조회.
+// 화면은 PushDesk(관리 데스크 — 왼쪽 새 알림 + 보낸 기록, 오른쪽 작성 패널 또는 기록 상세, 2026-11-27),
+// 작성 패널은 PushComposePanel, 받는 사람 고르기는 AudiencePicker 가 그린다.
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import { getPushHistory, sendPush, PushResultUnavailableError, type PushPayload, type PushSendLog, type SendPushResult } from '../../api/push'
+import { getPushHistory, sendPush, PushResultUnavailableError, type PushPayload, type PushSendLog } from '../../api/push'
 import { useAudiencePicker } from '../../hooks/useAudiencePicker'
-import { showToast } from '../../utils/toast'
-import AudiencePicker from './components/AudiencePicker'
-import { FilterChip } from './components/FilterControls'
-import { confirmDialog } from '../../utils/confirmDialog'
-import { can } from '../../utils/access'
 import { adminKeys } from '../../hooks/queryKeys'
+import { confirmDialog } from '../../utils/confirmDialog'
+import { showToast } from '../../utils/toast'
+import { can } from '../../utils/access'
+import PushDesk from './components/PushDesk'
+import PushComposePanel, { type PushDraft, type PushResult } from './components/PushComposePanel'
+import { BODY_MAX, DEFAULT_ICON, NOTIFICATIONS_URL, TITLE_MAX, type PushPreset } from './components/pushDeskUtils'
 
-const TITLE_MAX = 50
-const BODY_MAX = 200
-// 상대 경로로 보내면 수신 측 sw.js가 자기 배포 위치(BASE_PATH) 기준으로 절대 URL을 만든다.
-// (Vercel 구독자는 루트, 구 GitHub Pages 구독자는 /chambitcc/ 기준으로 각각 올바르게 해석됨)
-const DEFAULT_ICON = 'notification-icon-192.png?v=2'
-
-interface Preset {
-  key: string
-  emoji: string
-  title: string
-  body: string
-  url: string
-  tag: string
-  hint: string
-}
-
-const PRESETS: Preset[] = [
-  {
-    key: 'bulletin',
-    emoji: '📰',
-    title: '새로운 공지사항',
-    body: '새로운 공지사항이 등록되었습니다. 확인해 주세요.',
-    url: '/news',
-    tag: 'bulletin',
-    hint: '공지 등록 직후',
-  },
-  {
-    key: 'sermon',
-    emoji: '🎙️',
-    title: '새로운 설교',
-    body: '새로운 설교 영상이 업로드되었습니다.',
-    url: '/sermon',
-    tag: 'sermon',
-    hint: '주일 설교 업로드 후',
-  },
-  {
-    key: 'prayer',
-    emoji: '🙏',
-    title: '함께 기도해요',
-    body: '오늘의 기도 제목에 함께 동참해 주세요.',
-    url: '/home',
-    tag: 'prayer',
-    hint: '기도 캠페인 시작',
-  },
-  {
-    key: 'event',
-    emoji: '📅',
-    title: '교회 일정 안내',
-    body: '곧 다가오는 교회 일정을 확인해 주세요.',
-    url: '/calendar',
-    tag: 'event',
-    hint: '주간 일정 리마인드',
-  },
-]
-
-// 특정 화면이 없는 인사·안내 푸시의 기본 도착지 — 앱을 열고 알림함을 펼쳐 방금 받은 내용을 다시 보게 한다.
-// (푸시는 기기에서 사라지지만 알림함에는 같은 내용이 기록돼 있다)
-const NOTIFICATIONS_URL = '/home?open=notifications'
-
-const URL_OPTIONS: Array<{ label: string; value: string }> = [
-  { label: '알림함', value: NOTIFICATIONS_URL },
-  { label: '홈', value: '/home' },
-  { label: '공지', value: '/news' },
-  { label: '설교', value: '/sermon' },
-  { label: '일정', value: '/calendar' },
-  { label: '기도', value: '/' },
-]
-
-const HISTORY_PAGE_SIZE = 10
+const HISTORY_PAGE_SIZE = 20
 const pushHistoryKey = adminKeys.pushHistory()
+
+const EMPTY_DRAFT: PushDraft = { title: '', body: '', url: NOTIFICATIONS_URL, tag: 'notification', icon: DEFAULT_ICON }
 
 export const PushNotificationManagement = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  // 폼 상태
-  const [title, setTitle] = useState('')
-  const [body, setBody] = useState('')
-  const [url, setUrl] = useState(NOTIFICATIONS_URL)
-  const [tag, setTag] = useState('notification')
-  const [icon, setIcon] = useState(DEFAULT_ICON)
-  const [advancedOpen, setAdvancedOpen] = useState(false)
-  const [infoOpen, setInfoOpen] = useState(false)
+  const [draft, setDraft] = useState<PushDraft>(EMPTY_DRAFT)
+  const patch = (p: Partial<PushDraft>) => setDraft((d) => ({ ...d, ...p }))
 
-  // 대상 상태 (사용자 목록 로딩 포함)
   const picker = useAudiencePicker({
     onLoadUsersError: () => showToast('사용자 목록을 불러오는데 실패했습니다', 'error'),
   })
   const { audienceMode, audienceUserIds, audienceCount, audienceLabel } = picker
 
-  // 전송 상태
   const [isSending, setIsSending] = useState(false)
-  const [result, setResult] = useState<
-    | { ok: true; data: SendPushResult; audienceLabel: string }
-    | { ok: 'pending'; audienceLabel: string }
-    | { ok: false; message: string }
-    | null
-  >(null)
+  const [result, setResult] = useState<PushResult>(null)
 
   useEffect(() => {
     if (!can('admin:access')) {
@@ -119,31 +45,37 @@ export const PushNotificationManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate])
 
-  // 액션
-  const applyPreset = (p: Preset) => {
-    setTitle(p.title)
-    setBody(p.body)
-    setUrl(p.url)
-    setTag(p.tag)
-    showToast(`'${p.title}' 템플릿이 적용되었습니다`, 'success')
+  const history = useInfiniteQuery({
+    queryKey: pushHistoryKey,
+    queryFn: ({ pageParam }) => getPushHistory({ page: pageParam as number, limit: HISTORY_PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.has_next ? last.page + 1 : undefined),
+    staleTime: 0,
+    refetchOnMount: 'always',
+  })
+  const logs = history.data?.pages.flatMap((p) => p.items) ?? []
+  const total = history.data?.pages[0]?.total ?? 0
+
+  const applyPreset = (p: PushPreset) => {
+    patch({ title: p.title, body: p.body, url: p.url, tag: p.tag })
+    showToast(`'${p.title}' 내용을 채웠어요`, 'success')
   }
 
   const handleSend = async () => {
-    if (!title.trim() || !body.trim()) {
+    if (!draft.title.trim() || !draft.body.trim()) {
       showToast('제목과 내용을 입력해주세요', 'error')
       return
     }
-    if ((audienceMode === 'selected' || audienceMode === 'active' || audienceMode === 'admin') &&
-        (!audienceUserIds || audienceUserIds.length === 0)) {
+    if (audienceMode !== 'all' && (!audienceUserIds || audienceUserIds.length === 0)) {
       showToast('전송할 대상이 없습니다', 'error')
       return
     }
     if (
       !(await confirmDialog({
-        title: '푸시 알림 전송',
-        message: `${audienceLabel}에게 푸시 알림을 전송하시겠습니까?`,
-        description: '전송한 알림은 취소할 수 없습니다. 알림함(알림 벨)에도 함께 기록됩니다.',
-        confirmText: '전송',
+        title: '푸시 알림 보내기',
+        message: `${audienceLabel}에게 보낼까요?`,
+        description: '보낸 알림은 취소할 수 없어요. 알림함(알림 벨)에도 함께 남아요.',
+        confirmText: '보내기',
         tone: 'brand',
         icon: 'send',
       }))
@@ -152,45 +84,34 @@ export const PushNotificationManagement = () => {
 
     setIsSending(true)
     setResult(null)
-
     try {
       const payload: PushPayload = {
-        title: title.trim(),
-        body: body.trim(),
-        icon: icon.trim() || DEFAULT_ICON,
+        title: draft.title.trim(),
+        body: draft.body.trim(),
+        icon: draft.icon.trim() || DEFAULT_ICON,
         image: 'pwa-512x512.png',
-        url: url.trim() || '/',
-        tag: tag.trim() || 'notification',
+        url: draft.url.trim() || '/',
+        tag: draft.tag.trim() || 'notification',
       }
       const data = await sendPush(
-        {
-          payload,
-          user_ids: audienceUserIds,
-          audience_mode: audienceMode,
-          audience_label: audienceLabel,
-        },
+        { payload, user_ids: audienceUserIds, audience_mode: audienceMode, audience_label: audienceLabel },
         // 서버가 발송을 받아 백그라운드로 보내는 동안 — 창을 닫아도 발송은 계속된다
-        { onStarted: () => setResult({ ok: 'pending', audienceLabel }) }
+        { onStarted: () => setResult({ ok: 'pending', audienceLabel }) },
       )
       setResult({ ok: true, data, audienceLabel })
       void queryClient.invalidateQueries({ queryKey: pushHistoryKey })
-      if (data.failed === 0 && data.sent > 0) {
-        showToast(`${data.sent}명에게 전송 완료`, 'success')
-      } else if (data.sent === 0) {
-        showToast('실제로 전송된 사용자가 없습니다', 'error')
-      } else {
-        showToast(`${data.sent}명 성공 · ${data.failed}명 실패`, 'success')
-      }
+      if (data.failed === 0 && data.sent > 0) showToast(`${data.sent}명에게 보냈어요`, 'success')
+      else if (data.sent === 0) showToast('실제로 닿은 사람이 없어요', 'error')
+      else showToast(`${data.sent}명 성공 · ${data.failed}명 실패`, 'success')
     } catch (error) {
       if (error instanceof PushResultUnavailableError) {
-        // 발송은 나갔거나 진행 중이고 결과만 못 받은 경우 — 실패로 보이지 않게 이력으로 안내
+        // 발송은 나갔거나 진행 중이고 결과만 못 받은 경우 — 실패로 보이지 않게 기록으로 안내
         setResult(null)
         void queryClient.invalidateQueries({ queryKey: pushHistoryKey })
         showToast(error.message, 'info')
         return
       }
-      const message =
-        error instanceof Error ? error.message : '푸시 알림 전송에 실패했습니다'
+      const message = error instanceof Error ? error.message : '푸시 알림 전송에 실패했습니다'
       setResult({ ok: false, message })
       showToast(message, 'error')
     } finally {
@@ -198,632 +119,54 @@ export const PushNotificationManagement = () => {
     }
   }
 
-  // 이력에서 "다시 쓰기" — 지난 발송 내용을 폼에 그대로 채운다 (대상은 다시 고르게 둔다)
+  // 기록에서 "다시 쓰기" — 지난 내용을 그대로 채운다 (받는 사람은 다시 고르게 둔다)
   const reuseLog = (log: PushSendLog) => {
-    setTitle(log.title.slice(0, TITLE_MAX))
-    setBody(log.body.slice(0, BODY_MAX))
-    setUrl(log.url || NOTIFICATIONS_URL)
-    setTag(log.tag || 'notification')
+    setDraft((d) => ({
+      ...d,
+      title: log.title.slice(0, TITLE_MAX),
+      body: log.body.slice(0, BODY_MAX),
+      url: log.url || NOTIFICATIONS_URL,
+      tag: log.tag || 'notification',
+    }))
     setResult(null)
-    showToast('지난 발송 내용을 불러왔습니다', 'success')
-    // #root overflow 탓에 window.scrollTo 가 죽어 있어 요소 기준으로 올린다
-    document.getElementById('push-title')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    showToast('지난 알림 내용을 채웠어요 — 받는 사람을 확인하세요', 'success')
   }
 
   const handleReset = () => {
-    setTitle('')
-    setBody('')
-    setUrl(NOTIFICATIONS_URL)
-    setTag('notification')
-    setIcon(DEFAULT_ICON)
+    setDraft(EMPTY_DRAFT)
     picker.reset()
     setResult(null)
   }
 
-  const canSend = title.trim().length > 0 && body.trim().length > 0 && !isSending && audienceCount > 0
-
-  // 발송 버튼 묶음 — 모바일 하단 고정 바와 PC 우측 레일 카드가 공유한다.
-  const sendActions = (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={handleReset}
-        disabled={isSending}
-        className="px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 text-[12.5px] font-semibold border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08] disabled:opacity-50"
-      >
-        초기화
-      </button>
-      <button
-        type="button"
-        onClick={handleSend}
-        disabled={!canSend}
-        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13.5px] font-semibold bg-brand hover:bg-brand-dim text-white disabled:opacity-50 transition-all"
-      >
-        {isSending ? (
-          <>
-            <span className="w-[16px] h-[16px] rounded-full border-2 border-white/40 border-t-white animate-spin" />
-            전송 중…
-          </>
-        ) : (
-          <>
-            <span className="material-icons-outlined text-[18px]">send</span>
-            {audienceLabel}에게 전송
-          </>
-        )}
-      </button>
-    </div>
-  )
+  const canSend = draft.title.trim().length > 0 && draft.body.trim().length > 0 && !isSending && audienceCount > 0
 
   return (
-    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
-    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100dvh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-28 lg:pb-6 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl">
-        {/* 헤더 — lg 에선 템플릿이 우측 레일에 고정되므로 sticky 를 풀어 둔다 */}
-        <div className="sticky top-14 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
-          >
-            <span className="material-icons-outlined">arrow_back</span>
-            <span className="text-sm font-semibold">뒤로</span>
-          </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">푸시 알림</h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
-            ADMIN
-          </span>
-        </div>
-
-        {/* PC(lg+) 2단 — 좌: 작성·대상·결과 / 우: 통계·빠른 템플릿이 sticky.
-            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
-        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-2">
-          {/* 레일은 스크롤 상자 높이에 맞춰 세로로 접고, 템플릿만 안에서 스크롤 —
-              발송 카드가 항상 레일 바닥에 보이도록. */}
-          <div className="contents lg:flex lg:flex-col lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:max-h-[calc(100dvh-56px-1.5rem)]">
-            <div className="contents lg:block lg:min-h-0 lg:overflow-y-auto">
-            {/* 통계 칩 */}
-            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
-              <StatChip label="회원" value={picker.users.length} />
-              <StatChip label="활성" value={picker.activeCount} />
-              <StatChip label="관리자" value={picker.adminCount} accent />
-            </div>
-
-            {/* 빠른 템플릿 */}
-            <SectionCard title="빠른 템플릿" subtitle="자주 보내는 알림을 한 번에 채워요">
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-                {PRESETS.map((p) => (
-                  <button
-                    key={p.key}
-                    type="button"
-                    onClick={() => applyPreset(p)}
-                    className="group text-left rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] hover:border-brand hover:bg-[var(--brand-soft)] transition-all p-3 flex flex-col gap-1"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[16px]">{p.emoji}</span>
-                      <span className="text-[12.5px] font-semibold text-ink-strong truncate">{p.title}</span>
-                    </div>
-                    <span className="text-[10.5px] text-gray-500 dark:text-white/50 truncate">{p.hint}</span>
-                  </button>
-                ))}
-              </div>
-            </SectionCard>
-            </div>
-
-            {/* PC 발송 카드 — 모바일은 하단 고정 바를 쓴다 */}
-            <div className="hidden lg:block lg:shrink-0 px-4 pt-1 pb-3">
-              <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-                <div className="flex items-baseline justify-between gap-2 mb-3">
-                  <span className="text-[11.5px] text-gray-500 dark:text-white/55">받는 사람</span>
-                  <span className="text-[14px] font-bold text-ink-strong truncate">{audienceLabel}</span>
-                </div>
-                {sendActions}
-                {!canSend && !isSending && (
-                  <p className="mt-2 text-[11px] text-gray-500 dark:text-white/50">
-                    {audienceCount === 0 ? '받는 사람을 선택해 주세요' : '제목과 내용을 입력해 주세요'}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
-            {/* 알림 작성 */}
-            <SectionCard title="알림 작성">
-              <FieldLabel htmlFor="push-title">
-                제목
-                <CharCount current={title.length} max={TITLE_MAX} />
-              </FieldLabel>
-              <input
-                id="push-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
-                placeholder="알림 제목"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-              />
-
-              <FieldLabel htmlFor="push-body" className="mt-4">
-                내용
-                <CharCount current={body.length} max={BODY_MAX} />
-              </FieldLabel>
-              <textarea
-                id="push-body"
-                value={body}
-                onChange={(e) => setBody(e.target.value.slice(0, BODY_MAX))}
-                placeholder="알림 내용"
-                rows={4}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors resize-none"
-              />
-
-              <FieldLabel className="mt-4">이동 위치</FieldLabel>
-              <div className="flex gap-1.5 flex-wrap mb-2">
-                {URL_OPTIONS.map((opt) => (
-                  <FilterChip key={opt.value} active={url === opt.value} onClick={() => setUrl(opt.value)}>
-                    {opt.label}
-                  </FilterChip>
-                ))}
-              </div>
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="/news"
-                className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
-              />
-              <p className="mt-1 text-[10.5px] text-gray-400 dark:text-white/40">
-                {url === NOTIFICATIONS_URL
-                  ? '인사·안내처럼 갈 화면이 따로 없을 때 — 앱을 열고 알림함을 펼쳐 받은 내용을 다시 보여줍니다'
-                  : '푸시를 탭하면 이 화면으로 바로 이동합니다 (앱 내 경로)'}
-              </p>
-
-              {/* 고급 옵션 */}
-              <button
-                type="button"
-                onClick={() => setAdvancedOpen((v) => !v)}
-                className="mt-4 w-full flex items-center justify-between text-[12px] text-gray-500 dark:text-white/55 hover:text-gray-700 dark:hover:text-white/80 transition-colors"
-              >
-                <span>고급 옵션 (태그 · 아이콘 URL)</span>
-                <span
-                  className={`material-icons-outlined text-[18px] transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`}
-                >
-                  expand_more
-                </span>
-              </button>
-              {advancedOpen && (
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <FieldLabel htmlFor="push-tag">태그</FieldLabel>
-                    <input
-                      id="push-tag"
-                      type="text"
-                      value={tag}
-                      onChange={(e) => setTag(e.target.value)}
-                      placeholder="notification"
-                      className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
-                    />
-                    <p className="mt-1 text-[10.5px] text-gray-400 dark:text-white/40">같은 태그의 이전 알림은 새 알림으로 대체됩니다</p>
-                  </div>
-                  <div>
-                    <FieldLabel htmlFor="push-icon">아이콘 URL</FieldLabel>
-                    <input
-                      id="push-icon"
-                      type="text"
-                      value={icon}
-                      onChange={(e) => setIcon(e.target.value)}
-                      placeholder={DEFAULT_ICON}
-                      className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
-                    />
-                  </div>
-                </div>
-              )}
-            </SectionCard>
-
-            {/* 미리보기 */}
-            <SectionCard title="미리보기" subtitle="기기에서 이렇게 표시됩니다">
-              <NotificationPreview
-                title={title || '알림 제목'}
-                body={body || '알림 내용이 여기에 표시됩니다'}
-                icon={icon || DEFAULT_ICON}
-              />
-            </SectionCard>
-
-            {/* 대상 */}
-            <SectionCard title="전송 대상">
-              <AudiencePicker picker={picker} />
-            </SectionCard>
-
-            {/* 전송 결과 */}
-            {result && (
-              <SectionCard title="전송 결과">
-                {result.ok === 'pending' ? (
-                  <div className="flex items-start gap-2">
-                    <span className="mt-0.5 w-[18px] h-[18px] shrink-0 rounded-full border-2 border-brand/30 border-t-brand animate-spin" />
-                    <div className="flex-1">
-                      <p className="text-[13px] font-semibold text-ink-strong">{result.audienceLabel} 대상 발송 중…</p>
-                      <p className="text-[12px] text-gray-600 dark:text-white/65 mt-1">
-                        서버가 백그라운드로 보내고 있습니다. 이 화면을 닫아도 발송은 계속되며, 결과는 아래 발송 이력에 남습니다.
-                      </p>
-                    </div>
-                  </div>
-                ) : result.ok ? (
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <span
-                        className={`material-icons-outlined text-[20px] ${
-                          result.data.failed === 0 && result.data.sent > 0
-                            ? 'text-green-500'
-                            : result.data.sent === 0
-                            ? 'text-red-500'
-                            : 'text-amber-500'
-                        }`}
-                      >
-                        {result.data.sent === 0
-                          ? 'error_outline'
-                          : result.data.failed === 0
-                          ? 'check_circle'
-                          : 'info'}
-                      </span>
-                      <span className="text-[13px] font-semibold text-ink-strong">
-                        {result.audienceLabel} 대상 전송 완료
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <ResultStat label="성공" value={result.data.sent} tone="success" />
-                      <ResultStat label="실패" value={result.data.failed} tone={result.data.failed > 0 ? 'danger' : 'muted'} />
-                      <ResultStat label="구독자" value={result.data.users_notified} tone="muted" />
-                    </div>
-                    {result.data.failed > 0 && (
-                      <p className="mt-3 text-[11.5px] text-gray-500 dark:text-white/55 leading-relaxed">
-                        실패한 사용자는 구독 만료 또는 미구독 상태입니다. 해당 사용자에게 프로필에서 알림 재구독을 안내해주세요.
-                      </p>
-                    )}
-                    <p className="mt-3 flex items-center gap-1.5 text-[11.5px] leading-relaxed text-gray-500 dark:text-white/55">
-                      <span className="material-icons-outlined text-[15px] text-brand">
-                        {(result.data.recorded ?? 0) > 0 ? 'notifications' : 'info'}
-                      </span>
-                      {(result.data.recorded ?? 0) > 0
-                        ? '알림함에도 기록되어 푸시를 놓친 사용자도 알림 벨에서 다시 볼 수 있습니다.'
-                        : '알림함 기록에 실패했습니다. 푸시는 전송됐지만 알림 벨에는 남지 않습니다.'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-2">
-                    <span className="material-icons-outlined text-[20px] text-red-500 mt-0.5">error</span>
-                    <div className="flex-1">
-                      <p className="text-[13px] font-semibold text-red-600 dark:text-red-300">전송 실패</p>
-                      <p className="text-[12px] text-gray-600 dark:text-white/65 mt-1">{result.message}</p>
-                    </div>
-                  </div>
-                )}
-              </SectionCard>
-            )}
-
-            {/* 발송 이력 */}
-            <SectionCard title="발송 이력" subtitle="지금까지 보낸 푸시와 도달 결과">
-              <PushHistoryList onReuse={reuseLog} />
-            </SectionCard>
-
-            {/* 안내 (접기) */}
-            <div className="px-4 py-3">
-              <button
-                type="button"
-                onClick={() => setInfoOpen((v) => !v)}
-                className="w-full flex items-center justify-between text-[12px] text-gray-500 dark:text-white/55 hover:text-gray-700 dark:hover:text-white/80 transition-colors"
-              >
-                <span className="flex items-center gap-1.5">
-                  <span className="material-icons-outlined text-[16px]">info</span>
-                  사용 안내
-                </span>
-                <span
-                  className={`material-icons-outlined text-[18px] transition-transform duration-200 ${infoOpen ? 'rotate-180' : ''}`}
-                >
-                  expand_more
-                </span>
-              </button>
-              {infoOpen && (
-                <ul className="mt-3 space-y-1.5 text-[11.5px] text-gray-500 dark:text-white/55 leading-relaxed pl-1.5">
-                  <li>· 프로필에서 알림을 활성화한 사용자에게만 전송됩니다.</li>
-                  <li>· 같은 태그의 이전 알림은 새 알림으로 대체되어 중복 푸시가 쌓이지 않습니다.</li>
-                  <li>· 전송 실패 사용자는 구독 만료/미구독 상태로, 재구독 안내가 필요합니다.</li>
-                  <li>· VAPID 키가 갱신되면 모든 사용자가 재구독해야 합니다.</li>
-                </ul>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 모바일 하단 고정 발송 바 — PC 는 우측 레일의 발송 카드를 쓴다 */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none lg:hidden">
-        <div className="max-w-md mx-auto pointer-events-auto">
-          <div className="m-3 rounded-2xl border border-white/[0.08] bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.18)] p-3">
-            {sendActions}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── 공통 컴포넌트 ─────────────────────────────────────────
-
-const SectionCard = ({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string
-  subtitle?: string
-  children: ReactNode
-}) => (
-  <div className="px-4 py-3">
-    <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      <div className="relative z-10">
-        <div className="mb-3">
-          <h2 className="text-[15px] font-bold tracking-[-0.01em] text-ink-strong">{title}</h2>
-          {subtitle && (
-            <p className="mt-0.5 text-[11.5px] text-gray-500 dark:text-white/55">{subtitle}</p>
-          )}
-        </div>
-        {children}
-      </div>
-    </div>
-  </div>
-)
-
-const StatChip = ({ label, value, accent }: { label: string; value: number; accent?: boolean }) => (
-  <span
-    className={
-      accent
-        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-[12px] font-semibold text-brand'
-        : 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-[12px] font-semibold text-gray-700 dark:text-white/75'
-    }
-  >
-    {label}
-    <span className="font-bold">{value}</span>
-  </span>
-)
-
-const FieldLabel = ({
-  htmlFor,
-  children,
-  className = '',
-}: {
-  htmlFor?: string
-  children: ReactNode
-  className?: string
-}) => (
-  <label
-    htmlFor={htmlFor}
-    className={`flex items-center justify-between text-[11.5px] font-semibold text-gray-500 dark:text-white/55 mb-1.5 ${className}`}
-  >
-    {children}
-  </label>
-)
-
-const CharCount = ({ current, max }: { current: number; max: number }) => {
-  const ratio = Math.min(1, current / max)
-  const tone = ratio >= 1 ? 'text-red-500' : ratio >= 0.85 ? 'text-amber-500' : 'text-gray-400 dark:text-white/40'
-  return (
-    <span className={`text-[10.5px] font-mono ${tone}`}>
-      {current}/{max}
-    </span>
-  )
-}
-
-// ─── 알림 미리보기 ────────────────────────────────────────
-
-const NotificationPreview = ({
-  title,
-  body,
-  icon,
-}: {
-  title: string
-  body: string
-  icon: string
-}) => {
-  const now = new Date()
-  const timeLabel = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
-  return (
-    <div className="rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-white/[0.06] dark:to-white/[0.02] border border-gray-200/70 dark:border-white/[0.06] p-3">
-      <div className="rounded-xl bg-white dark:bg-[#1f1f2a] border border-gray-200/80 dark:border-white/[0.06] shadow-sm p-3 flex items-start gap-3">
-        <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-brand flex items-center justify-center">
-          <img
-            src={icon}
-            alt="icon"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              ;(e.target as HTMLImageElement).style.display = 'none'
-            }}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[10.5px] font-semibold text-gray-500 dark:text-white/55">참빛교회</span>
-            <span className="text-[10.5px] text-gray-400 dark:text-white/40">{timeLabel}</span>
-          </div>
-          <p className="text-[13px] font-bold text-ink-strong truncate">{title}</p>
-          <p className="text-[12px] text-gray-700 dark:text-white/75 leading-snug line-clamp-2 break-words">{body}</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── 결과 통계 ────────────────────────────────────────────
-
-const ResultStat = ({
-  label,
-  value,
-  tone,
-}: {
-  label: string
-  value: number
-  tone: 'success' | 'danger' | 'muted'
-}) => {
-  const toneCls =
-    tone === 'success'
-      ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 border-green-200 dark:border-green-400/20'
-      : tone === 'danger'
-      ? 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 border-red-200 dark:border-red-400/20'
-      : 'bg-gray-50 dark:bg-white/[0.04] text-gray-700 dark:text-white/75 border-gray-200 dark:border-white/[0.06]'
-  return (
-    <div className={`rounded-xl border px-3 py-2 text-center ${toneCls}`}>
-      <div className="text-[10.5px] font-semibold opacity-75">{label}</div>
-      <div className="text-[18px] font-bold tracking-tight">{value}</div>
-    </div>
-  )
-}
-
-// ─── 발송 이력 ────────────────────────────────────────────
-
-const AUDIENCE_MODE_LABEL: Record<PushSendLog['audience_mode'], string> = {
-  all: '전체',
-  active: '활성',
-  admin: '관리자',
-  selected: '선택',
-}
-
-// created_at 은 DB 로컬(KST) naive 값 — 'Z' 가 없으니 new Date 가 로컬로 그대로 읽는다
-const formatLogTime = (iso: string): string => {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return ''
-  const now = new Date()
-  const sameYear = d.getFullYear() === now.getFullYear()
-  const md = `${d.getMonth() + 1}.${d.getDate()}`
-  const hm = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
-  return sameYear ? `${md} ${hm}` : `${d.getFullYear()}.${md} ${hm}`
-}
-
-const PushHistoryList = ({ onReuse }: { onReuse: (log: PushSendLog) => void }) => {
-  const [openId, setOpenId] = useState<number | null>(null)
-  const { data, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: pushHistoryKey,
-    queryFn: ({ pageParam }) => getPushHistory({ page: pageParam as number, limit: HISTORY_PAGE_SIZE }),
-    initialPageParam: 1,
-    getNextPageParam: (last) => (last.has_next ? last.page + 1 : undefined),
-    staleTime: 0,
-    refetchOnMount: 'always',
-  })
-
-  const logs = data?.pages.flatMap((p) => p.items) ?? []
-  const total = data?.pages[0]?.total ?? 0
-
-  if (isPending) {
-    return (
-      <div className="space-y-2">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-white/[0.04] animate-pulse" />
-        ))}
-      </div>
-    )
-  }
-  if (isError) {
-    return (
-      <p className="text-[12px] text-gray-500 dark:text-white/55">
-        발송 이력을 불러오지 못했습니다. 백엔드에 이력 테이블이 아직 없다면 마이그레이션이 필요합니다.
-      </p>
-    )
-  }
-  if (logs.length === 0) {
-    return (
-      <div className="flex flex-col items-center py-6 text-center">
-        <span className="material-icons-outlined text-[28px] text-gray-300 dark:text-white/25">history</span>
-        <p className="mt-2 text-[12.5px] text-gray-500 dark:text-white/55">아직 보낸 푸시가 없습니다</p>
-        <p className="mt-0.5 text-[11px] text-gray-400 dark:text-white/40">전송하면 여기에 결과가 쌓입니다</p>
-      </div>
-    )
-  }
-
-  return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[11px] text-gray-500 dark:text-white/50">
-          총 <span className="font-bold text-brand">{total}</span>건
-        </span>
-      </div>
-      <ul className="divide-y divide-gray-100 dark:divide-white/[0.06]">
-        {logs.map((log) => {
-          const open = openId === log.id
-          const reachTone =
-            log.sent === 0 ? 'text-red-500' : log.failed > 0 ? 'text-amber-500' : 'text-green-600 dark:text-green-400'
-          return (
-            <li key={log.id}>
-              <button
-                type="button"
-                onClick={() => setOpenId(open ? null : log.id)}
-                aria-expanded={open}
-                className="w-full flex items-center gap-2.5 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-white/[0.03] -mx-1 px-1 rounded-lg transition-colors"
-              >
-                <span className="shrink-0 w-[62px] text-[10.5px] font-mono text-gray-400 dark:text-white/40 tabular-nums">
-                  {formatLogTime(log.created_at)}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="block text-[13px] font-semibold text-ink-strong truncate">{log.title}</span>
-                  {!open && (
-                    <span className="block text-[11px] text-gray-500 dark:text-white/50 truncate">{log.body}</span>
-                  )}
-                </span>
-                <span className="shrink-0 inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.05] text-gray-600 dark:text-white/65">
-                  {AUDIENCE_MODE_LABEL[log.audience_mode] ?? log.audience_mode}
-                </span>
-                <span className={`shrink-0 text-[12px] font-bold tabular-nums ${reachTone}`}>{log.sent}</span>
-                <span
-                  className={`material-icons-outlined text-[18px] text-gray-400 dark:text-white/40 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-                >
-                  expand_more
-                </span>
-              </button>
-              {open && (
-                <div className="pb-3 pl-[70px] pr-1">
-                  <p className="text-[12.5px] text-gray-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap break-words">
-                    {log.body}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-500 dark:text-white/50">
-                    <span>
-                      대상 <span className="font-semibold text-gray-700 dark:text-white/75">{log.audience_label || AUDIENCE_MODE_LABEL[log.audience_mode]}</span>
-                    </span>
-                    <span>
-                      성공 <span className="font-semibold text-green-600 dark:text-green-400">{log.sent}</span>
-                    </span>
-                    <span>
-                      실패 <span className={`font-semibold ${log.failed > 0 ? 'text-red-500' : 'text-gray-700 dark:text-white/75'}`}>{log.failed}</span>
-                    </span>
-                    <span>
-                      구독자 <span className="font-semibold text-gray-700 dark:text-white/75">{log.users_notified}</span>
-                    </span>
-                    <span>
-                      알림함 <span className="font-semibold text-gray-700 dark:text-white/75">{log.recorded > 0 ? '기록됨' : '없음'}</span>
-                    </span>
-                    {log.url && <span className="font-mono">{log.url}</span>}
-                    {log.sender_name && <span>보낸이 {log.sender_name}</span>}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onReuse(log)}
-                    className="mt-2.5 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold bg-[var(--brand-soft)] text-brand border border-[var(--brand-glow)] hover:bg-[var(--brand-soft-strong)] transition-colors"
-                  >
-                    <span className="material-icons-outlined text-[15px]">replay</span>
-                    이 내용 다시 쓰기
-                  </button>
-                </div>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-      {hasNextPage && (
-        <button
-          type="button"
-          onClick={() => void fetchNextPage()}
-          disabled={isFetchingNextPage}
-          className="mt-2 w-full py-2 rounded-xl text-[12px] font-semibold text-gray-600 dark:text-white/65 bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] hover:bg-gray-100 dark:hover:bg-white/[0.07] disabled:opacity-50 transition-colors"
-        >
-          {isFetchingNextPage ? '불러오는 중…' : '더 보기'}
-        </button>
+    <PushDesk
+      logs={logs}
+      total={total}
+      loading={history.isPending}
+      error={history.isError}
+      hasMore={!!history.hasNextPage}
+      loadingMore={history.isFetchingNextPage}
+      onLoadMore={() => void history.fetchNextPage()}
+      members={{ all: picker.users.length, active: picker.activeCount }}
+      onBack={() => navigate(-1)}
+      onReuse={reuseLog}
+      renderCompose={(onClose) => (
+        <PushComposePanel
+          draft={draft}
+          onChange={patch}
+          onApplyPreset={applyPreset}
+          picker={picker}
+          sending={isSending}
+          result={result}
+          canSend={canSend}
+          onSend={() => void handleSend()}
+          onReset={handleReset}
+          onClose={onClose}
+        />
       )}
-    </div>
+    />
   )
 }
 
