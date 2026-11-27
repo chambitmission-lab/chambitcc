@@ -3,6 +3,12 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    // 운영 빌드에서는 번들에 들어가지 않는 파일을 스캔에서 뺀다 — dev 미리보기(src/pages/dev,
+    // devRoutes 가 import.meta.env.DEV 로 접어 버림)와 테스트 파일의 클래스가
+    // 첫 화면을 막는 공용 CSS 에 그대로 실려 나갔다. 개발 서버에서는 그대로 스캔한다.
+    ...(process.env.NODE_ENV === "production"
+      ? ["!./src/pages/dev/**", "!./src/**/*.test.{ts,tsx}"]
+      : []),
   ],
   darkMode: "class",
   theme: {
