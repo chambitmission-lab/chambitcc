@@ -125,6 +125,8 @@ const BibleAudioPlayer = ({ ref, onStartedChange, bookNumber, chapter, bookId, o
   const resolved = useTtsResolve({ bookNumber, chapter, voice, enabled: visible || started })
   const [isPlaying, setIsPlaying] = useState(false)
   const [preparing, setPreparing] = useState(false) // 첫 소리가 나기 전 대기 상태
+  // 끝까지 듣고 다음 장으로 넘어가지 않은 장 — 영화관이 맺음 카드를 띄운다(다시 재생하면 해제)
+  const [endedKey, setEndedKey] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -553,7 +555,10 @@ const BibleAudioPlayer = ({ ref, onStartedChange, bookNumber, chapter, bookId, o
             e.currentTarget.play().catch(() => {})
           }
         }}
-        onPlay={() => setIsPlaying(true)}
+        onPlay={() => {
+          setIsPlaying(true)
+          setEndedKey(null)
+        }}
         onPlaying={() => {
           // 첫 소리가 실제로 나기 시작 → 대기 상태 해제
           setIsPlaying(true)
@@ -579,6 +584,8 @@ const BibleAudioPlayer = ({ ref, onStartedChange, bookNumber, chapter, bookId, o
           // 끝까지 재생됐으면 절 점프 요청도 소멸 — 다음 재생은 처음부터
           pendingVerseRef.current = null
           syncActiveVerse(null)
+          const rangeDone = endChapter != null && chapter >= endChapter
+          if (rangeDone || !(autoNext && hasNextChapter && onAutoNextChapter)) setEndedKey(chapterKey)
           // 듣기 범위: 설정한 장까지 다 들었으면 다음 장으로 넘어가지 않고 멈춘다
           if (endChapter != null && chapter >= endChapter) {
             setEndChapter(null)
@@ -673,6 +680,7 @@ const BibleAudioPlayer = ({ ref, onStartedChange, bookNumber, chapter, bookId, o
         chapter={chapter}
         isPlaying={isPlaying}
         loading={loading}
+        ended={endedKey === chapterKey && !isPlaying}
         activeVerse={activeVerse}
         duration={duration}
         timings={timings}

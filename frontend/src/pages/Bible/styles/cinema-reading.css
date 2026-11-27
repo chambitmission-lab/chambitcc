@@ -38,7 +38,7 @@
 .cinema-bg__glow {
   position: absolute;
   inset: 0;
-  transition: background 4.5s ease;
+  transition: opacity 4.5s ease;
   animation: cinema-drift 38s ease-in-out infinite alternate;
 }
 
@@ -46,6 +46,16 @@
   position: absolute;
   inset: 0;
   background: radial-gradient(120% 90% at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* 필름 입자 — 아주 어두운 그라데이션의 띠(밴딩)를 흩어 주고 영화 질감을 더한다.
+   고정 무늬(움직이지 않음), 세기는 opacity 하나로 조절 */
+.cinema-bg__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
 }
 
 @keyframes cinema-breathe {
@@ -82,7 +92,36 @@
   margin: auto;
   max-width: 36rem;
   text-align: center;
-  animation: cinema-verse-in 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  /* 앞 절이 꺼질 틈(0.2s)을 두고 올라온다 — 두 절이 겹쳐 읽히지 않게 */
+  animation: cinema-verse-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+/* 떠나는 절 — CinemaReading 이 직전 카드를 복제해 무대와 같은 자리에 겹쳐 둔다 */
+.cinema-ghost {
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cinema-ghost .cinema-verse {
+  animation: cinema-verse-out 0.5s ease-in both;
+}
+
+@keyframes cinema-verse-out {
+  from {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+    filter: blur(3px);
+  }
+}
+
+/* 컨트롤이 숨으면 마우스 커서도 같이 숨는다 (움직이면 둘 다 돌아온다) */
+.cinema-overlay.is-idle {
+  cursor: none;
 }
 
 @keyframes cinema-verse-in {
@@ -228,6 +267,45 @@
   font-weight: 500;
   color: rgba(246, 242, 232, 0.45);
   animation: cinema-status-pulse 2.2s ease-in-out infinite;
+}
+
+/* ── 맺음 카드 (장 낭독 끝) ────────────────────────────────────── */
+.cinema-end__actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 2.25rem;
+}
+
+.cinema-end__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 2.75rem;
+  padding: 0 1.25rem;
+  border: 1px solid rgba(246, 242, 232, 0.22);
+  border-radius: 999px;
+  background: rgba(246, 242, 232, 0.1);
+  color: rgba(246, 242, 232, 0.92);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.cinema-end__btn:hover {
+  background: rgba(246, 242, 232, 0.18);
+  color: #fff;
+}
+
+.cinema-end__btn.is-quiet {
+  border-color: transparent;
+  background: transparent;
+  color: rgba(246, 242, 232, 0.6);
+}
+
+.cinema-end__btn .material-icons-round {
+  font-size: 1.1rem;
 }
 
 @keyframes cinema-status-pulse {
@@ -516,6 +594,9 @@
   .cinema-verse,
   .cinema-rotate-hint {
     animation: none;
+  }
+  .cinema-ghost {
+    display: none;
   }
   .cinema-bg__layer,
   .cinema-bg__glow {

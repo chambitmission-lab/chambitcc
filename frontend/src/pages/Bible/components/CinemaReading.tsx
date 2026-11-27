@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock'
 import { createPortal } from 'react-dom'
-import type { CSSProperties, RefObject } from 'react'
+import type { CSSProperties, PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { isOmittedVerseText, visibleVerses, verseNumberLabel } from './mergedVerses'
 import { useBibleChapter } from '../../../hooks/useBible'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
@@ -42,6 +42,8 @@ interface CinemaReadingProps {
   isPlaying: boolean
   /** 첫 소리가 나기 전 준비 중(스트리밍 생성 등) */
   loading: boolean
+  /** 이 장을 끝까지 듣고 멈춤(다음 장으로 안 넘어감) — 맺음 카드를 띄운다 */
+  ended: boolean
   /** 지금 낭독 중인 절 번호 (머리말 구간·정지 시 null) */
   activeVerse: number | null
   duration: number
@@ -56,6 +58,8 @@ interface CinemaReadingProps {
 const UI_HIDE_MS = 3500
 /** 이 시간 이상 낭독을 듣고 넘어간 절만 읽음으로 기록 — 빠른 절 스킵은 제외 */
 const NARRATE_MIN_MS = 2000
+/** 떠나는 절이 스르르 꺼지는 시간 — CSS cinema-verse-out 과 맞춘다(여유 포함) */
+const GHOST_MS = 700
 
 const CinemaReading = ({
   bookId,
@@ -64,6 +68,7 @@ const CinemaReading = ({
   chapter,
   isPlaying,
   loading,
+  ended,
   activeVerse,
   duration,
   timings,
@@ -141,13 +146,26 @@ const CinemaReading = ({
     }
   }, [pokeUi, isPlaying])
 
+  const tapHideAtRef = useRef(0)
   const handleBackdropTap = () => {
     if (uiVisible && isPlaying) {
       setUiVisible(false)
+      tapHideAtRef.current = performance.now()
       if (uiTimerRef.current) clearTimeout(uiTimerRef.current)
     } else {
       pokeUi()
     }
+  }
+
+  // PC — 마우스를 움직이면 컨트롤이 돌아오고, 가만히 두면 커서까지 같이 사라진다
+  // (영상 플레이어 문법). 터치는 탭 토글 그대로. 클릭으로 숨긴 직후의 손떨림은 무시.
+  const lastMoveRef = useRef(0)
+  const handlePointerMove = (e: ReactPointerEvent) => {
+    if (e.pointerType !== 'mouse') return
+    const now = performance.now()
+    if (now - tapHideAtRef.current < 600 || now - lastMoveRef.current < 200) return
+    lastMoveRef.current = now
+    pokeUi()
   }
 
   // ── 현재 절 텍스트 ──
@@ -180,10 +198,34 @@ const CinemaReading = ({
       window.removeEventListener('orientationchange', bump)
     }
   }, [])
-  const fitKey = currentVerseObj ? `${chapter}-${currentVerseObj.verse}` : `title-${chapter}`
+  const showEnd = ended && !currentVerseObj
+  const fitKey = currentVerseObj
+    ? `${chapter}-${currentVerseObj.verse}`
+    : `${showEnd ? 'end' : 'title'}-${chapter}`
+  // 지금 무대에 올라 있는 카드(절·타이틀·맺음)와, 직전 카드의 흔적
+  const cardElRef = useRef<HTMLDivElement | null>(null)
+  const prevCardRef = useRef<{ key: string; el: HTMLDivElement | null; fit: number }>({
+    key: '',
+    el: null,
+    fit: 1,
+  })
   useLayoutEffect(() => {
     const stage = stageRef.current
     if (!stage) return
+    // 떠나는 카드 — 예전엔 새 절만 페이드 인 하고 앞 절은 뚝 끊겨 사라졌다.
+    // React 가 떼어 낸 직전 노드를 복제해(빛이 채워진 상태 그대로) 같은 자리에 겹쳐
+    // 두고 스르르 꺼뜨린다. 무대와 같은 클래스라 여백·중앙정렬·글자 맞춤이 동일하다.
+    const prev = prevCardRef.current
+    if (prev.el && prev.key && prev.key !== fitKey && stage.parentElement) {
+      stage.parentElement.querySelectorAll('.cinema-ghost').forEach(g => g.remove())
+      const ghost = document.createElement('div')
+      ghost.className = 'cinema-stage cinema-ghost'
+      ghost.setAttribute('aria-hidden', 'true')
+      ghost.style.setProperty('--cinema-fit', String(prev.fit))
+      ghost.appendChild(prev.el.cloneNode(true))
+      stage.parentElement.insertBefore(ghost, stage)
+      window.setTimeout(() => ghost.remove(), GHOST_MS)
+    }
     let fit = 1
     stage.style.setProperty('--cinema-fit', '1')
     stage.scrollTop = 0
@@ -192,6 +234,7 @@ const CinemaReading = ({
       fit = Math.round((fit - 0.05) * 100) / 100
       stage.style.setProperty('--cinema-fit', String(fit))
     }
+    prevCardRef.current = { key: fitKey, el: cardElRef.current, fit }
   }, [fitKey, fitTick, scaleIdx])
 
   // ── 낭독 완료 자동 읽음 — 절 낭독이 끝나 다음 절로 넘어가는 순간 조용히 기록 ──
@@ -414,35 +457,47 @@ const CinemaReading = ({
   return createPortal(
     <div
       ref={rootRef}
-      className="cinema-overlay"
+      className={`cinema-overlay${uiVisible ? '' : ' is-idle'}`}
+      onPointerMove={handlePointerMove}
       style={{ '--cinema-scale': IMMERSIVE_SCALES[scaleIdx] } as CSSProperties}
       role="dialog"
       aria-label="성경 낭독 영화관"
     >
       {/* 배경 — 장면 레이어 크로스페이드 + 느린 빛무리. 항상 말씀보다 뒤·어둡게 */}
       <div className="cinema-bg" aria-hidden>
+        {/* 맨 아래 장면은 늘 불투명, 위 장면만 서서히 올라온다 — 둘 다 반투명으로
+            섞으면 중간 지점에서 검은 바탕이 비쳐 배경이 어두워졌다 밝아졌다 출렁인다 */}
         {scenes.map((s, i) => (
           <div
             key={i}
             className="cinema-bg__layer"
             style={{
               background: s.bg,
+              opacity: i === 0 ? 1 : Math.min(1, Math.max(0, scenePos - (i - 1))),
+            }}
+          />
+        ))}
+        {/* 빛무리도 장면마다 한 겹 — 그라데이션 색은 CSS 전환이 안 돼서(툭 바뀜)
+            투명도로 섞는다 */}
+        {scenes.map((s, i) => (
+          <div
+            key={`glow-${i}`}
+            className="cinema-bg__glow"
+            style={{
+              background: `radial-gradient(60% 45% at 50% 42%, ${s.glow}, transparent 70%)`,
               opacity: Math.max(0, 1 - Math.abs(scenePos - i)),
             }}
           />
         ))}
-        <div
-          className="cinema-bg__glow"
-          style={{ background: `radial-gradient(60% 45% at 50% 42%, ${scenes[Math.round(scenePos)]?.glow ?? 'rgba(255,255,255,0.06)'}, transparent 70%)` }}
-        />
         <div className="cinema-bg__vignette" />
+        <div className="cinema-bg__grain" />
       </div>
 
       {/* 탭 영역 — 컨트롤 표시/숨김 토글 */}
       <div ref={stageRef} className="cinema-stage" onClick={handleBackdropTap}>
         {currentVerseObj ? (
           /* key로 절이 바뀔 때마다 새로 페이드 인 */
-          <div key={`${chapter}-${currentVerseObj.verse}`} className="cinema-verse">
+          <div key={`${chapter}-${currentVerseObj.verse}`} ref={cardElRef} className="cinema-verse">
             {/* 타이밍이 없으면(첫 스트리밍 생성 중) 보간 불가 — 절 전체를 밝게 */}
             <p className={`cinema-verse__text${timings ? '' : ' is-all-lit'}`}>
               {words.map((w, i) => (
@@ -468,9 +523,26 @@ const CinemaReading = ({
               </span>
             )}
           </div>
+        ) : showEnd ? (
+          /* 장 낭독이 끝났고 다음 장으로 넘어가지 않을 때 — 맺음 카드
+             (예전엔 시작 타이틀 카드가 다시 떠서 막 시작하려는 화면처럼 보였다) */
+          <div key={`end-${chapter}`} ref={cardElRef} className="cinema-verse cinema-title cinema-end">
+            <span className="cinema-title__label">낭독을 마쳤습니다</span>
+            <h2 className="cinema-title__book">{bookName}</h2>
+            <span className="cinema-title__chapter">{chapter}장</span>
+            <div className="cinema-end__actions" onClick={e => e.stopPropagation()}>
+              <button type="button" className="cinema-end__btn" onClick={onTogglePlay}>
+                <span className="material-icons-round" aria-hidden>replay</span>
+                다시 듣기
+              </button>
+              <button type="button" className="cinema-end__btn is-quiet" onClick={onClose}>
+                닫기
+              </button>
+            </div>
+          </div>
         ) : (
           /* 머리말 낭독·준비 중 — 영화 타이틀 카드 */
-          <div key={`title-${chapter}`} className="cinema-verse cinema-title">
+          <div key={`title-${chapter}`} ref={cardElRef} className="cinema-verse cinema-title">
             <span className="cinema-title__label">{TRANSLATION_LABEL}</span>
             <h2 className="cinema-title__book">{bookName}</h2>
             <span className="cinema-title__chapter">{chapter}장</span>
