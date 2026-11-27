@@ -35,6 +35,10 @@ const previews: [path: string, load: Loader][] = import.meta.env.DEV
       ['intercession', () => import('../pages/Intercession/IntercessionPreview')],
       // 섬기는 사람들 — 배치·다크모드 (표본 데이터)
       ['people', () => import('../pages/People/PeoplePreview')],
+      // 섬기는 사람들 관리 데스크 — 관리자 로그인 없이 명단·상세·미리보기
+      ['people-admin', () => import('../pages/dev/PeopleAdminPreview')],
+      // 행사 앨범 관리 데스크 — 관리자 로그인 없이 목록·상세·미리보기
+      ['event-albums-admin', () => import('../pages/dev/EventAlbumAdminPreview')],
       // 섬기는 사람들 카드 마우스 오버 시안 비교 — ?v=a~f (프록시로 운영 사진)
       ['people-hover', () => import('../pages/dev/PeopleHoverLab')],
       // 섬기는 사람들 사진 카드 입체감 시안 — 정적 효과 A~F 한 화면 비교

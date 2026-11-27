@@ -35,16 +35,13 @@ interface PersonSheetProps {
 /** 전화 걸기/문자에 쓸 수 있게 숫자와 +만 남긴다 */
 const dialable = (phone: string) => phone.replace(/[^\d+]/g, '')
 
-const PersonSheet = ({ person, onClose }: PersonSheetProps) => {
-  const navigate = useNavigate()
+/**
+ * 시트 안 내용(머리·담당 사역·소개·삶의 말씀·연락처) — 관리 화면(/admin/people)이
+ * '성도에게 이렇게 보여요' 미리보기로 같은 생김새를 그대로 그린다.
+ */
+export const PersonSheetBody = ({ person }: { person: Person }) => {
   const { language } = useLanguage()
   const ko = language === 'ko'
-  const isAdminUser = can('content:manage')
-
-  useModalBackButton(onClose)
-
-  // 데스크톱에서 Esc — 모바일 뒤로가기는 useModalBackButton 이 맡는다
-  useEscapeKey(onClose)
 
   const name = personText(person, 'name', language)
   const role = personText(person, 'role', language)
@@ -57,6 +54,126 @@ const PersonSheet = ({ person, onClose }: PersonSheetProps) => {
   const since = personDateLabel(person.started_on)
   const phone = (person.phone ?? '').trim()
   const email = (person.email ?? '').trim()
+
+  return (
+    <>
+    {/* 머리 — 사진 + 이름/직분 + 메타 칩 */}
+    <div className="ppl-sheet-head">
+      <div className="ppl-sheet-photo">
+        {person.photo_url ? (
+          <img src={person.photo_url} alt={name} />
+        ) : (
+          <span className="ppl-card-initial">{personInitial(name)}</span>
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="ppl-sheet-name">{name}</p>
+        {role && <p className="ppl-sheet-role">{role}</p>}
+
+        <div className="ppl-sheet-meta">
+          {group && <span className="ppl-meta-chip">{group}</span>}
+          {field && (
+            <span className="ppl-meta-chip">
+              {person.country_code ? (
+                <CountryFlag code={person.country_code} />
+              ) : (
+                <MapPin size={12} weight="duotone" />
+              )}
+              {field}
+            </span>
+          )}
+          {org && <span className="ppl-meta-chip">{org}</span>}
+          {since && (
+            <span className="ppl-meta-chip">
+              <CalendarBlank size={12} weight="duotone" />
+              {CATEGORY_DATE_LABEL[person.category][ko ? 'ko' : 'en']} {since}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* 담당 사역 */}
+    {assignments.length > 0 && (
+      <div className="ppl-sheet-section">
+        <p className="ppl-sheet-label">{ko ? '담당 사역' : 'Serving'}</p>
+        <div className="ppl-chips">
+          {assignments.map((item) => (
+            <span key={item} className="ppl-chip">
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* 소개 */}
+    {bio && (
+      <div className="ppl-sheet-section">
+        <p className="ppl-sheet-label">{ko ? '소개' : 'About'}</p>
+        <p className="ppl-sheet-body">{bio}</p>
+      </div>
+    )}
+
+    {/* 삶의 말씀 */}
+    {verse && (
+      <div className="ppl-sheet-section">
+        <p className="ppl-sheet-label">{ko ? '삶의 말씀' : 'Life verse'}</p>
+        <div className="ppl-verse">
+          <Quotes size={16} weight="duotone" className="ppl-verse-mark" />
+          {verse}
+        </div>
+      </div>
+    )}
+
+    {/* 연락처 — 교회 대표·내선 성격이라 공개한다 */}
+    {(phone || email) && (
+      <div className="ppl-sheet-section">
+        <p className="ppl-sheet-label">{ko ? '연락처' : 'Contact'}</p>
+        <div className="ppl-contact">
+          {phone && (
+            <a className="ppl-contact-btn" href={`tel:${dialable(phone)}`}>
+              <Phone size={18} weight="duotone" />
+              {ko ? '전화' : 'Call'}
+            </a>
+          )}
+          {phone && (
+            <a className="ppl-contact-btn" href={`sms:${dialable(phone)}`}>
+              <ChatCircleText size={18} weight="duotone" />
+              {ko ? '문자' : 'Text'}
+            </a>
+          )}
+          {email && (
+            <a className="ppl-contact-btn" href={`mailto:${email}`}>
+              <EnvelopeSimple size={18} weight="duotone" />
+              {ko ? '메일' : 'Email'}
+            </a>
+          )}
+        </div>
+        <p className="ppl-contact-value">
+          {phone}
+          {phone && email && <span className="mx-1.5 opacity-40">·</span>}
+          {email}
+        </p>
+      </div>
+    )}
+    </>
+  )
+}
+
+const PersonSheet = ({ person, onClose }: PersonSheetProps) => {
+  const navigate = useNavigate()
+  const { language } = useLanguage()
+  const ko = language === 'ko'
+  const isAdminUser = can('content:manage')
+
+  useModalBackButton(onClose)
+
+  // 데스크톱에서 Esc — 모바일 뒤로가기는 useModalBackButton 이 맡는다
+  useEscapeKey(onClose)
+
+  const name = personText(person, 'name', language)
 
   return (
     <div className="ppl-sheet-backdrop" onClick={onClose} role="presentation">
@@ -72,107 +189,7 @@ const PersonSheet = ({ person, onClose }: PersonSheetProps) => {
           <X size={16} weight="bold" />
         </button>
 
-        {/* 머리 — 사진 + 이름/직분 + 메타 칩 */}
-        <div className="ppl-sheet-head">
-          <div className="ppl-sheet-photo">
-            {person.photo_url ? (
-              <img src={person.photo_url} alt={name} />
-            ) : (
-              <span className="ppl-card-initial">{personInitial(name)}</span>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <p className="ppl-sheet-name">{name}</p>
-            {role && <p className="ppl-sheet-role">{role}</p>}
-
-            <div className="ppl-sheet-meta">
-              {group && <span className="ppl-meta-chip">{group}</span>}
-              {field && (
-                <span className="ppl-meta-chip">
-                  {person.country_code ? (
-                    <CountryFlag code={person.country_code} />
-                  ) : (
-                    <MapPin size={12} weight="duotone" />
-                  )}
-                  {field}
-                </span>
-              )}
-              {org && <span className="ppl-meta-chip">{org}</span>}
-              {since && (
-                <span className="ppl-meta-chip">
-                  <CalendarBlank size={12} weight="duotone" />
-                  {CATEGORY_DATE_LABEL[person.category][ko ? 'ko' : 'en']} {since}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 담당 사역 */}
-        {assignments.length > 0 && (
-          <div className="ppl-sheet-section">
-            <p className="ppl-sheet-label">{ko ? '담당 사역' : 'Serving'}</p>
-            <div className="ppl-chips">
-              {assignments.map((item) => (
-                <span key={item} className="ppl-chip">
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 소개 */}
-        {bio && (
-          <div className="ppl-sheet-section">
-            <p className="ppl-sheet-label">{ko ? '소개' : 'About'}</p>
-            <p className="ppl-sheet-body">{bio}</p>
-          </div>
-        )}
-
-        {/* 삶의 말씀 */}
-        {verse && (
-          <div className="ppl-sheet-section">
-            <p className="ppl-sheet-label">{ko ? '삶의 말씀' : 'Life verse'}</p>
-            <div className="ppl-verse">
-              <Quotes size={16} weight="duotone" className="ppl-verse-mark" />
-              {verse}
-            </div>
-          </div>
-        )}
-
-        {/* 연락처 — 교회 대표·내선 성격이라 공개한다 */}
-        {(phone || email) && (
-          <div className="ppl-sheet-section">
-            <p className="ppl-sheet-label">{ko ? '연락처' : 'Contact'}</p>
-            <div className="ppl-contact">
-              {phone && (
-                <a className="ppl-contact-btn" href={`tel:${dialable(phone)}`}>
-                  <Phone size={18} weight="duotone" />
-                  {ko ? '전화' : 'Call'}
-                </a>
-              )}
-              {phone && (
-                <a className="ppl-contact-btn" href={`sms:${dialable(phone)}`}>
-                  <ChatCircleText size={18} weight="duotone" />
-                  {ko ? '문자' : 'Text'}
-                </a>
-              )}
-              {email && (
-                <a className="ppl-contact-btn" href={`mailto:${email}`}>
-                  <EnvelopeSimple size={18} weight="duotone" />
-                  {ko ? '메일' : 'Email'}
-                </a>
-              )}
-            </div>
-            <p className="ppl-contact-value">
-              {phone}
-              {phone && email && <span className="mx-1.5 opacity-40">·</span>}
-              {email}
-            </p>
-          </div>
-        )}
+        <PersonSheetBody person={person} />
 
         <div className="ppl-sheet-foot">
           {isAdminUser && (

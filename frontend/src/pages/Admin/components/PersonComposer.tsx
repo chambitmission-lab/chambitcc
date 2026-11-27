@@ -25,11 +25,14 @@ interface PersonComposerProps {
   person?: Person
   /** 등록 모드에서 미리 골라둘 분류 (지금 보고 있는 탭) */
   defaultCategory?: PersonCategory
+  /** 처음 펼칠 단계 — 관리 데스크의 '빠진 정보' 칩이 해당 단계로 바로 연다 */
+  initialStep?: PersonComposerStep
   onClose: () => void
   onSuccess: () => void
 }
 
-type Step = 'basic' | 'ministry' | 'contact'
+export type PersonComposerStep = 'basic' | 'ministry' | 'contact'
+type Step = PersonComposerStep
 
 const STEPS: { key: Step; label: string }[] = [
   { key: 'basic', label: '기본' },
@@ -66,6 +69,7 @@ const pair = (person: Person | undefined, field: PersonTextField): Bilingual => 
 const PersonComposer = ({
   person,
   defaultCategory = 'pastor',
+  initialStep = 'basic',
   onClose,
   onSuccess,
 }: PersonComposerProps) => {
@@ -75,7 +79,7 @@ const PersonComposer = ({
   const uploadMutation = useUploadPersonPhoto()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [step, setStep] = useState<Step>('basic')
+  const [step, setStep] = useState<Step>(initialStep)
   const [error, setError] = useState<string | null>(null)
 
   // 사진 — 저장 시점에만 업로드한다(취소하면 R2에 고아 파일이 남지 않는다)
