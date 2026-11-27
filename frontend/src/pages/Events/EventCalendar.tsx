@@ -142,21 +142,21 @@ const EventCalendar = () => {
   return (
     // lg: 이 페이지를 스스로 스크롤하는 상자로 만든다 — #root overflow 탓에 sticky 가 전역에서 죽어 있어,
     // 이 상자가 있어야 우측 달력 레일이 화면에 붙어 있는다 (높이는 PC 글씨 크기 zoom 배율로 나눈다)
-    <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage lg:h-[calc((100dvh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto">
+    <div className="evt-page bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage lg:h-[calc((100dvh-56px)/var(--az,1))] lg:min-h-0 lg:overflow-y-auto">
       {/* lg+: 좁은 셸을 풀고 본문(일정 목록) + 우측 레일(달력·고른 날·다가오는 일정) 2단 */}
       <div className="lg:max-w-[1320px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0">
+      <div className="evt-panel max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2 lg:px-6 lg:pt-7 lg:pb-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-brand text-[11.5px] lg:text-[14px] font-bold tracking-[0.12em] uppercase mb-1.5">
+              <p className="evt-eyebrow text-brand text-[11.5px] lg:text-[14px] font-bold tracking-[0.12em] uppercase mb-1.5">
                 CALENDAR
               </p>
-              <h1 className="text-ink-strong text-[26px] lg:text-[34px] font-bold leading-none tracking-[-0.02em]">
+              <h1 className="evt-title text-ink-strong text-[26px] lg:text-[34px] font-bold leading-none tracking-[-0.02em]">
                 {t.title}
               </h1>
-              <p className="text-gray-500 dark:text-white/55 text-[13px] lg:text-[17px] lg:text-gray-600 lg:dark:text-white/70 mt-2 lg:mt-3">
+              <p className="evt-sub text-gray-500 dark:text-white/55 text-[13px] lg:text-[17px] lg:text-gray-600 lg:dark:text-white/70 mt-2 lg:mt-3">
                 {loading || isPlaceholder ? '불러오는 중...' : headline}
               </p>
             </div>
@@ -164,7 +164,7 @@ const EventCalendar = () => {
               <button
                 type="button"
                 onClick={() => navigate('/admin/events')}
-                className="inline-flex items-center gap-1.5 px-3 h-9 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[12px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
+                className="evt-admin inline-flex items-center gap-1.5 px-3 h-9 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[12px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />

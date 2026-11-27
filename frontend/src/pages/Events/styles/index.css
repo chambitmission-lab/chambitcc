@@ -1,6 +1,6 @@
 /* Event Calendar — 어젠다 중심 재설계
  * 기존 react-big-calendar 스타일은 어젠다 뷰로 전환되며 더 이상 필요하지 않음.
- * Tailwind 토큰으로 충분하지만, scrollbar-hide 같은 페이지 전용 헬퍼만 남김.
+ * scrollbar-hide 헬퍼 + 라이트 머리·칩 톤(아래).
  */
 
 .scrollbar-hide {
@@ -9,4 +9,24 @@
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* 라이트 테마 머리·칩 톤 — 크림 엽서·달력(남색 잉크 #2a4d8f)과 맞춘 '흰 종이 + 남색'(2026-11-27, 시안 B).
+ * 패널은 따뜻한 흰 종이, 강조색은 토스 블루 대신 달력과 같은 남색. 다크는 기존 그대로 */
+:root:not([data-theme='dark']) .evt-panel { background: #fdfcfa; border-color: #e9e6df; }
+:root:not([data-theme='dark']) .evt-eyebrow { color: #2a4d8f; }
+:root:not([data-theme='dark']) .evt-title { color: #1f2433; }
+:root:not([data-theme='dark']) .evt-sub { color: #6b6f7d; }
+:root:not([data-theme='dark']) .evt-admin { background: #fff; border-color: #e5e2da; color: #2a4d8f; }
+:root:not([data-theme='dark']) .evt-admin:hover { background: #f5f3ee; }
+:root:not([data-theme='dark']) .evt-pill:not(.is-on) { background: #fff; border-color: #e5e2da; color: #555a68; }
+:root:not([data-theme='dark']) .evt-pill:not(.is-on):hover { background: #f5f3ee; color: #1f2433; }
+:root:not([data-theme='dark']) .evt-pill.is-on {
+  background: #2a4d8f;
+  color: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(42, 77, 143, 0.09),
+    0 4px 14px -4px rgba(42, 77, 143, 0.4);
 }
