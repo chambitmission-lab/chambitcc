@@ -996,6 +996,8 @@ export class RailTreeScene {
     const hits = this.drops.length ? this.canopyHits() : []
     const burning = this.fireT !== null ? fireLevel(this.fireT - 0.25) : 0
     const slant = cfg?.slant ?? -0.12
+    // 프레임마다 굴리는 확률 — 프레임 수가 달라져도 같은 세기가 되게 dt 로 환산한다(예전 24fps 한 프레임에 0.55·0.18)
+    const pFire = 1 - Math.pow(1 - 0.55, dt * 24), pLeaf = 1 - Math.pow(1 - 0.18, dt * 24)
     const keep: Drop[] = []
     for (const d of this.drops) {
       d.age += dt
@@ -1003,14 +1005,14 @@ export class RailTreeScene {
       d.x += slant * d.v * dt
       let gone = false
       // 불꽃에 떨어진 빗방울 — 치익: 불티 섞인 물보라 + 김 한 줌 + 그 자리 불꽃이 잠깐 죽는다
-      if (burning > 0.03 && Math.random() < 0.55 && this.nearFire(d.x, d.y, 8 * k)) {
+      if (burning > 0.03 && Math.random() < pFire && this.nearFire(d.x, d.y, 8 * k)) {
         this.fireHit(d.x, d.y, k)
         gone = true
       }
       // 잎 덩어리에 맞는다 — 다 맞지는 않는다(사이로 빠져나가는 비)
       if (!gone) for (const [hx, hy, hr] of hits) {
         const dx = d.x - hx, dy = d.y - hy
-        if (dx * dx + dy * dy < hr * hr && Math.random() < 0.18) {
+        if (dx * dx + dy * dy < hr * hr && Math.random() < pLeaf) {
           this.splat(d.x, d.y, 2 + Math.floor(Math.random() * 2))
           // 불꽃에 맞은 빗방울 — 치익, 작은 김
           if (burning > 0.03 && this.nearFire(d.x, d.y, 7 * k)) {

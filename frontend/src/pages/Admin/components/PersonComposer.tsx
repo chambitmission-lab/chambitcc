@@ -84,6 +84,7 @@ const PersonComposer = ({
 
   // 사진 — 저장 시점에만 업로드한다(취소하면 R2에 고아 파일이 남지 않는다)
   const [photoUrl, setPhotoUrl] = useState(person?.photo_url ?? '')
+  const [photoThumbUrl, setPhotoThumbUrl] = useState(person?.photo_thumb_url ?? '')
   const [pendingPhoto, setPendingPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(person?.photo_url ?? null)
 
@@ -131,6 +132,7 @@ const PersonComposer = ({
     setPendingPhoto(null)
     setPhotoPreview(null)
     setPhotoUrl('')
+    setPhotoThumbUrl('')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,8 +142,11 @@ const PersonComposer = ({
 
     try {
       let finalPhoto = photoUrl
+      let finalThumb = photoThumbUrl
       if (pendingPhoto) {
-        finalPhoto = await uploadMutation.mutateAsync(pendingPhoto)
+        const uploaded = await uploadMutation.mutateAsync(pendingPhoto)
+        finalPhoto = uploaded.url
+        finalThumb = uploaded.thumbUrl
       }
 
       const payload = {
@@ -153,6 +158,8 @@ const PersonComposer = ({
         role_ko: role.ko.trim(),
         role_en: role.en.trim(),
         photo_url: finalPhoto,
+        // 사진이 없으면 사본도 비운다. 예전 사진(사본 없음)은 null 로 두면 목록이 원본으로 대신한다
+        photo_thumb_url: finalPhoto ? finalThumb || null : null,
         phone: phone.trim(),
         email: email.trim(),
         assignments_ko: assignments.ko,

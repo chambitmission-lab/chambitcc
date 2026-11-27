@@ -86,7 +86,8 @@ export const deletePerson = async (personId: number): Promise<void> => {
 }
 
 /** 인물 사진 업로드 (R2). URL 저장은 등록/수정 요청이 담당한다 */
-export const uploadPersonPhoto = async (file: File): Promise<string> => {
+/** 본 사진(url)과 목록용 작은 사본(thumb_url). 원본이 작으면 둘이 같다 */
+export const uploadPersonPhoto = async (file: File): Promise<{ url: string; thumbUrl: string }> => {
   const formData = new FormData()
   formData.append('file', file)
   const body = await request<UntypedJson>(`${BASE}/upload-photo`, {
@@ -94,5 +95,5 @@ export const uploadPersonPhoto = async (file: File): Promise<string> => {
     body: formData,
     errorMessage: '사진 업로드에 실패했습니다',
   })
-  return body.url
+  return { url: body.url, thumbUrl: body.thumb_url ?? body.url }
 }

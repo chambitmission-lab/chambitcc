@@ -44,9 +44,13 @@ const usePrefersReducedMotion = () => {
   return reduced
 }
 
-const FRAME_MS = 1000 / 24
-/* 날리는 잎·비·불이 없을 때는 느린 흔들림뿐이다 — 10fps 면 충분하다(레일은 모든 화면에 떠 있다) */
-const IDLE_FRAME_MS = 1000 / 10
+/* ★ 60fps — 프레임을 낮춰 묶지 말 것(2026-11-27).
+ *   예전에는 날릴 때 24fps(60Hz 화면에서는 문턱 때문에 실제 20fps), 가만히 흔들릴 때 10fps 였다.
+ *   "뚝뚝 끊긴다"는 피드백이 구름을 고친 뒤에도 남았고, 화면을 연속 캡처해 보니 하늘은 1~2단계씩만 바뀌는데
+ *   나무·낙엽 쪽 픽셀이 매번 크게 튀고 있었다 — 가는 가지와 잎은 대비가 커서 10~20fps 가 그대로 눈에 걸린다.
+ *   그리는 양은 구운 나무 한 장 + 잎 몇 장이라 60fps 여도 가볍다(실측은 아래 RailWeatherFx 주석과 같이 볼 것).
+ *   120·144Hz 화면에서는 문턱(-4ms) 덕분에 두 프레임에 한 번(60~72fps)만 그린다 */
+const FRAME_MS = 1000 / 60
 
 interface Props {
   theme: RailTheme
@@ -120,7 +124,7 @@ export default function RailTree({ theme, date, weatherMode, demo, placement = '
         acc += dt * 1000
         if (!sized || !scene) return
         // 문턱 -4ms: 60Hz 두 프레임이 문턱에 아슬아슬하게 못 미쳐 박자가 들쭉날쭉해지지 않게(RailWeatherFx 와 같다)
-        if (acc < (scene.busy ? FRAME_MS : IDLE_FRAME_MS) - 4) return
+        if (acc < FRAME_MS - 4) return
         // 한 걸음의 상한 — 느린 프레임(100ms)에서도 시간이 느려지지 않게
         const step = Math.min(0.15, acc / 1000)
         acc = 0

@@ -51,8 +51,9 @@ const usePrefersReducedMotion = () => {
   return reduced
 }
 
-/* 레일 루프는 모든 화면에 떠 있으므로 30fps 로 묶는다 */
-const FRAME_MS = 1000 / 30
+/* ★ 60fps — 30fps 로 되돌리지 말 것(2026-11-27). 빗줄기·눈송이처럼 빠르게 지나가는 것은 30fps 면
+ *   60Hz 화면에서 한 장씩 건너뛰어 "뚝뚝 끊긴다"로 읽혔다. 120·144Hz 에서는 문턱(-4ms) 덕분에 두 프레임에 한 번만 그린다 */
+const FRAME_MS = 1000 / 60
 /* 눈 그친 뒤는 거의 멈춘 그림이다(녹는 눈·가끔 반짝임) — 10fps 면 충분하다 */
 const THAW_FRAME_MS = 1000 / 10
 /* .rail-weather-fx 의 opacity 전환 시간(DesktopNavRail.css)과 같은 값 */

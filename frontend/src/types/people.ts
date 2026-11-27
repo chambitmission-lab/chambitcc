@@ -45,6 +45,8 @@ export interface Person {
   role_ko?: string | null
   role_en?: string | null
   photo_url?: string | null
+  /** 목록 동그라미용 작은 사본(긴 변 200px). 예전 사진은 비어 있다 — photo_url 로 대신 */
+  photo_thumb_url?: string | null
 
   phone?: string | null
   email?: string | null

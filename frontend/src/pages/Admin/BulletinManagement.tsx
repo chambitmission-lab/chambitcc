@@ -1,5 +1,8 @@
-import { formatDotDateWeekday, formatLongDate } from '../../utils/dateUtils'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+// 주보 관리 (admin, /admin/bulletins)
+//
+// 화면은 BulletinDesk(목록 + 상세 2단, 2026-11-27 개편)가 그리고, 여기서는
+// 데이터·필터·AI 다시 읽기 같은 액션만 쥔다.
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../utils/toast'
 import { useQueryClient } from '@tanstack/react-query'
@@ -10,27 +13,19 @@ import {
   importBulletinDigital,
   importBulletinNews,
   waitForBulletinImportJob,
-  type BulletinAiReaderStatus,
+  getBulletinDetail,
   type BulletinAiStatus,
   type BulletinImportJob,
 } from '../../api/bulletin'
 import { bulletinKeys } from '../../hooks/useDigitalBulletin'
 import type { Bulletin } from '../../types/bulletin'
 import BulletinComposer from './components/BulletinComposer'
-import { FilterChip, FilterRow } from './components/FilterControls'
+import BulletinDesk, { type BulletinSeg, type BulletinSort } from './components/BulletinDesk'
+import { adminBulletinDetailKey, bulletinDay, overallAi } from './components/bulletinDeskUtils'
+import InstagramBulletinViewer from '../News/components/InstagramBulletinViewer'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 import { useOpenComposerFromUrl } from '../../hooks/useOpenComposerFromUrl'
-import { InfoRow, StatChip, SkeletonRows } from './components/AdminListBits'
-
-type TimeFilter = 'all' | 'thisMonth' | 'past'
-type SortKey = 'recent' | 'oldest' | 'views'
-
-const isThisMonth = (date: string): boolean => {
-  const d = new Date(date)
-  const now = new Date()
-  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-}
 
 const BulletinManagement = () => {
   const navigate = useNavigate()
@@ -41,9 +36,10 @@ const BulletinManagement = () => {
   const [aiStatus, setAiStatus] = useState<Record<string, BulletinAiStatus>>({})
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
-  const [sortKey, setSortKey] = useState<SortKey>('recent')
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [seg, setSeg] = useState<BulletinSeg>('all')
+  const [sortKey, setSortKey] = useState<BulletinSort>('recent')
+  /** 쪽을 눌러 연 성도 뷰어 — 상세(쪽 목록)가 있어야 열린다 */
+  const [viewer, setViewer] = useState<{ bulletin: Bulletin; page: number } | null>(null)
   const [composerOpen, setComposerOpen] = useState(false)
   /** 수정 모드로 열 주보 — null 이면 새 주보 등록 */
   const [editing, setEditing] = useState<Bulletin | null>(null)
@@ -96,19 +92,18 @@ const BulletinManagement = () => {
     return () => window.clearInterval(timer)
   }, [hasActiveReading, bulletins])
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (bulletin: Bulletin) => {
     if (
       !(await confirmDialog({
         title: '주보 삭제',
-        message: '이 주보를 삭제하시겠습니까?',
-        description: '등록된 페이지 이미지도 함께 삭제됩니다.',
-        confirmText: '삭제',
-        icon: 'delete_outline',
+        message: `"${bulletin.title}" 주보를 지울까요?`,
+        description: `쪽 이미지 ${bulletin.page_count ?? 0}장도 함께 지워지고 되돌릴 수 없어요.`,
+        confirmText: '네, 지울게요',
       }))
     )
       return
     try {
-      await deleteBulletin(id)
+      await deleteBulletin(bulletin.id)
       showToast('주보가 삭제되었습니다', 'success')
       loadBulletins()
     } catch (err) {
@@ -245,21 +240,37 @@ const BulletinManagement = () => {
 
   const handleComposerSuccess = () => {
     handleComposerClose()
+    // 쪽을 바꿨을 수 있으니 상세 미리보기도 다시 받는다
+    void queryClient.invalidateQueries({ queryKey: ['admin', 'bulletin-detail'] })
     loadBulletins()
+  }
+
+  const openViewer = async (bulletin: Bulletin, page: number) => {
+    try {
+      const detail = await queryClient.fetchQuery({
+        queryKey: adminBulletinDetailKey(bulletin.id),
+        queryFn: () => getBulletinDetail(bulletin.id, false),
+        staleTime: 60_000,
+      })
+      setViewer({ bulletin: { ...bulletin, ...detail }, page })
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : '주보를 열지 못했어요', 'error')
+    }
   }
 
   const filtered = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
+    const thisYear = new Date().getFullYear()
     const arr = bulletins.filter(b => {
       const matchesSearch =
         !q ||
         b.title.toLowerCase().includes(q) ||
         (b.description?.toLowerCase().includes(q) ?? false)
-      const matchesTime =
-        timeFilter === 'all' ||
-        (timeFilter === 'thisMonth' && isThisMonth(b.bulletin_date)) ||
-        (timeFilter === 'past' && !isThisMonth(b.bulletin_date))
-      return matchesSearch && matchesTime
+      const matchesSeg =
+        seg === 'all' ||
+        (seg === 'year' && bulletinDay(b.bulletin_date).getFullYear() === thisYear) ||
+        (seg === 'attention' && overallAi(aiStatus[String(b.id)]) === 'attention')
+      return matchesSearch && matchesSeg
     })
     return [...arr].sort((a, b) => {
       if (sortKey === 'views') return (b.views ?? 0) - (a.views ?? 0)
@@ -267,564 +278,52 @@ const BulletinManagement = () => {
       const bt = new Date(b.bulletin_date).getTime()
       return sortKey === 'recent' ? bt - at : at - bt
     })
-  }, [bulletins, searchTerm, timeFilter, sortKey])
-
-  const thisMonthCount = bulletins.filter(b => isThisMonth(b.bulletin_date)).length
-  const totalViews = bulletins.reduce((sum, b) => sum + (b.views ?? 0), 0)
+  }, [bulletins, searchTerm, seg, sortKey, aiStatus])
 
   return (
-    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
-    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
-    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100dvh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-24 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:shadow-2xl">
-        {/* 헤더 — lg 에선 검색/필터가 우측 레일에 고정되므로 sticky 를 풀어 둔다
-            (sticky 인 채로 라운드 모서리를 주면 스크롤 중 둥근 막대가 떠 보인다) */}
-        <div className="sticky top-14 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            <span className="text-sm font-semibold">뒤로</span>
-          </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">
-            주보 관리
-          </h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
-            ADMIN
-          </span>
-        </div>
-
-        {/* PC(lg+) 2단 — 좌: 주보 목록 / 우: 도구(등록·통계·검색/필터)가 sticky.
-            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
-        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
-          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
-            {/* PC 전용 등록 버튼 — lg 에선 FAB 대신 레일 상단에서 연다 */}
-            <button
-              type="button"
-              onClick={openCreate}
-              className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span>새 주보</span>
-            </button>
-
-            {/* 통계 */}
-            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
-              <StatChip label="전체" value={bulletins.length} />
-              <StatChip label="이번 달" value={thisMonthCount} accent />
-              <StatChip label="총 조회" value={totalViews} />
-            </div>
-
-            {/* 검색 + 필터 */}
-            <div className="px-4 py-3 lg:px-0 lg:py-0">
-              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-
-                <div className="relative z-10 space-y-3">
-                  {/* 검색 */}
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                      </svg>
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="제목 · 설명 검색"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-                    />
-                    {searchTerm && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchTerm('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
-                        aria-label="검색어 지우기"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-
-                  <FilterRow label="시점">
-                    {(
-                      [
-                        ['all', '전체'],
-                        ['thisMonth', '이번 달'],
-                        ['past', '지난 달들'],
-                      ] as const
-                    ).map(([v, l]) => (
-                      <FilterChip key={v} active={timeFilter === v} onClick={() => setTimeFilter(v)}>
-                        {l}
-                      </FilterChip>
-                    ))}
-                  </FilterRow>
-
-                  <FilterRow label="정렬">
-                    {(
-                      [
-                        ['recent', '최신순'],
-                        ['oldest', '오래된순'],
-                        ['views', '조회 많은순'],
-                      ] as const
-                    ).map(([v, l]) => (
-                      <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>
-                        {l}
-                      </FilterChip>
-                    ))}
-                  </FilterRow>
-                </div>
-              </div>
-            </div>
-
-            {/* 결과 카운트 */}
-            <div className="px-5 pb-2 lg:px-1 lg:pb-0 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
-              <span>
-                검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>건
-              </span>
-              {searchTerm && (
-                <span className="text-brand truncate">"{searchTerm}"</span>
-              )}
-            </div>
-
-          </div>
-
-          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
-            {/* 목록 */}
-            <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
-              {loading ? (
-                <SkeletonRows rows={5} height={78} />
-              ) : filtered.length === 0 ? (
-                <div className="text-center py-12">
-                  <span className="text-4xl block mb-3">📰</span>
-                  <p className="text-[13px] text-gray-500 dark:text-white/55">
-                    {searchTerm || timeFilter !== 'all'
-                      ? '조건에 맞는 주보가 없습니다'
-                      : '아직 등록된 주보가 없어요'}
-                  </p>
-                  <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
-                    {searchTerm || timeFilter !== 'all'
-                      ? '필터를 바꾸거나 검색어를 지워보세요'
-                      : '＋ 새 주보 버튼으로 등록해 보세요'}
-                  </p>
-                </div>
-              ) : (
-                filtered.map(bulletin => (
-                  <BulletinRow
-                    key={bulletin.id}
-                    bulletin={bulletin}
-                    expanded={expandedId === bulletin.id}
-                    onToggleExpand={() =>
-                      setExpandedId(prev => (prev === bulletin.id ? null : bulletin.id))
-                    }
-                    onEdit={() => openEdit(bulletin)}
-                    onDelete={() => handleDelete(bulletin.id)}
-                    onView={() => navigate('/news')}
-                    onImportNews={() => handleImportNews(bulletin)}
-                    onImportDigital={() => handleImportDigital(bulletin)}
-                    importing={importingId === bulletin.id}
-                    importLocked={importingId !== null}
-                    aiStatus={aiStatus[String(bulletin.id)]}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* FAB */}
-        <button
-          type="button"
-          onClick={openCreate}
-          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 lg:hidden inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          <span>새 주보</span>
-        </button>
-
-        {composerOpen && (
-          <BulletinComposer
-            key={editing?.id ?? 'new'}
-            bulletin={editing}
-            existing={bulletins}
-            onClose={handleComposerClose}
-            onSuccess={handleComposerSuccess}
-          />
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ── Row ───────────────────────────────────────────────
-interface BulletinRowProps {
-  bulletin: Bulletin
-  expanded: boolean
-  onToggleExpand: () => void
-  onEdit: () => void
-  onDelete: () => void
-  onView: () => void
-  onImportNews: () => void
-  onImportDigital: () => void
-  importing: boolean
-  /** 다른 주보(또는 이 주보)를 읽는 중 — 버튼 비활성 */
-  importLocked: boolean
-  /** 서버의 AI 읽기 상태(없으면 아직 못 받음) */
-  aiStatus?: BulletinAiStatus
-}
-
-const READER_NAMES = ['column', 'news', 'digital'] as const
-const READER_LABELS: Record<keyof BulletinAiStatus, string> = {
-  column: '칼럼',
-  news: '일정',
-  digital: '디지털',
-}
-
-const readerStateText = (r: BulletinAiReaderStatus): string => {
-  switch (r.state) {
-    case 'done':
-      return '읽음'
-    case 'queued':
-      return '대기'
-    case 'running':
-      return '읽는 중'
-    case 'gave_up':
-      return `${r.attempts}번 실패`
-    case 'idle':
-      return '안 읽음'
-    default:
-      return r.attempts > 0 ? `재시도 예정 ${r.attempts}/3` : '곧 읽음'
-  }
-}
-
-/** 읽기 하나의 상태 칩 — 끝남(차분)·진행(브랜드)·실패(주의) 세 톤 */
-const ReaderChip = ({ name, status }: { name: keyof BulletinAiStatus; status: BulletinAiReaderStatus }) => {
-  const tone =
-    status.state === 'done'
-      ? 'bg-gray-100 dark:bg-white/[0.05] border-gray-200 dark:border-white/[0.06] text-gray-600 dark:text-white/65'
-      : status.state === 'gave_up'
-        ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-400/30 text-rose-600 dark:text-rose-300'
-        : status.state === 'idle'
-          ? 'bg-transparent border-dashed border-gray-300 dark:border-white/[0.14] text-gray-400 dark:text-white/40'
-          : 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
-  const title =
-    status.state === 'done' && status.done_at
-      ? `${READER_LABELS[name]} 읽기 완료 · ${formatLongDate(status.done_at)}`
-      : status.state === 'gave_up'
-        ? `${READER_LABELS[name]} 읽기를 ${status.attempts}번 시도해도 안 됐어요 — 아래 '다시 만들기'로 직접 읽혀 주세요`
-        : status.state === 'idle'
-          ? `${READER_LABELS[name]}은 읽지 않았어요 — 2주 넘게 지난 주보는 자동으로 읽지 않아요. 필요하면 '다시 만들기'로`
-          : `${READER_LABELS[name]} 읽기는 서버가 자동으로 해요 — 기다리면 돼요`
-  return (
-    <span
-      title={title}
-      className={`inline-flex items-center gap-1 px-1.5 py-[1px] rounded-full border text-[10px] font-semibold leading-[1.5] whitespace-nowrap ${tone}`}
+    <BulletinDesk
+      bulletins={bulletins}
+      filtered={filtered}
+      loading={loading}
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      seg={seg}
+      onSegChange={setSeg}
+      sort={sortKey}
+      onSortChange={setSortKey}
+      onClearFilters={() => {
+        setSearchTerm('')
+        setSeg('all')
+      }}
+      onCreate={openCreate}
+      onBack={() => navigate(-1)}
+      onEdit={openEdit}
+      onDelete={handleDelete}
+      onViewPublic={b => navigate(`/news?tab=bulletin&b=${b.id}`)}
+      onOpenViewer={(b, page) => void openViewer(b, page)}
+      onImportNews={handleImportNews}
+      onImportDigital={handleImportDigital}
+      importingId={importingId}
+      aiStatus={aiStatus}
     >
-      {status.state === 'done' ? (
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      ) : status.state === 'gave_up' ? (
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" aria-hidden="true">
-          <line x1="12" y1="5" x2="12" y2="14" />
-          <circle cx="12" cy="19" r="0.6" fill="currentColor" />
-        </svg>
-      ) : status.state === 'idle' ? (
-        <span className="w-1.5 h-1.5 rounded-full border border-current" aria-hidden="true" />
-      ) : (
-        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" aria-hidden="true" />
+      {composerOpen && (
+        <BulletinComposer
+          key={editing?.id ?? 'new'}
+          bulletin={editing}
+          existing={bulletins}
+          onClose={handleComposerClose}
+          onSuccess={handleComposerSuccess}
+        />
       )}
-      {READER_LABELS[name]} {readerStateText(status)}
-    </span>
-  )
-}
-
-/** 세 읽기 상태를 한 줄로 — 전부 끝났으면 "AI 읽기 완료" 하나로 접는다 */
-const AiStatusLine = ({ status }: { status?: BulletinAiStatus }) => {
-  if (!status) return null
-  const allDone = READER_NAMES.every(n => status[n]?.state === 'done')
-  if (allDone) {
-    return (
-      <div className="flex items-center gap-1 mt-1.5 text-[10.5px] font-semibold text-gray-500 dark:text-white/50">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-        AI 읽기 완료 — 칼럼·일정·디지털
-      </div>
-    )
-  }
-  return (
-    <div className="flex flex-wrap items-center gap-1 mt-1.5">
-      {READER_NAMES.map(n => (status[n] ? <ReaderChip key={n} name={n} status={status[n]} /> : null))}
-    </div>
-  )
-}
-
-const BulletinRow = ({
-  bulletin,
-  expanded,
-  onToggleExpand,
-  onEdit,
-  onDelete,
-  onView,
-  onImportNews,
-  onImportDigital,
-  importing,
-  importLocked,
-  aiStatus,
-}: BulletinRowProps) => {
-  const isCurrent = isThisMonth(bulletin.bulletin_date)
-  const needsHand =
-    aiStatus !== undefined && Object.values(aiStatus).some(r => r.state === 'gave_up')
-  const outOfWindow =
-    aiStatus !== undefined && Object.values(aiStatus).some(r => r.state === 'idle')
-  return (
-    <div
-      className={[
-        'relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border transition-all duration-200',
-        'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]',
-        expanded
-          ? 'border-[var(--brand-glow)]'
-          : 'border-gray-200/70 dark:border-white/[0.08]',
-      ].join(' ')}
-    >
-      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      {/* 이번 달 주보만 브랜드 솔리드, 지난 주보는 옅은 톤 —
-          brand는 CSS 변수 색이라 bg-brand/40 같은 투명도 수식자를 쓸 수 없다 */}
-      <div
-        className={`absolute left-0 top-0 bottom-0 w-1 ${
-          isCurrent ? 'bg-brand' : 'bg-[var(--brand-glow)]'
-        }`}
-      />
-
-      <button
-        type="button"
-        onClick={onToggleExpand}
-        className="relative z-10 w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left"
-        aria-expanded={expanded}
-      >
-        {/* 썸네일 */}
-        <div className="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-[var(--brand-soft-strong)] border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
-          {bulletin.thumbnail_url ? (
-            <img
-              src={bulletin.thumbnail_url}
-              alt={bulletin.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="text-[22px]">📰</span>
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
-              {bulletin.title}
-            </span>
-            {isCurrent && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.05em] shrink-0">
-                이번 달
-              </span>
-            )}
-          </div>
-          <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
-            {formatDotDateWeekday(bulletin.bulletin_date)}
-            <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
-            📄 {bulletin.page_count ?? 0}P
-            <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
-            👁️ {bulletin.views ?? 0}
-          </div>
-          <AiStatusLine status={aiStatus} />
-        </div>
-
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 ${
-            expanded ? 'rotate-180' : ''
-          }`}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-
-      {expanded && (
-        <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-2.5">
-          {bulletin.thumbnail_url && (
-            <div className="rounded-xl overflow-hidden border border-gray-200/70 dark:border-white/[0.08] bg-gray-100 dark:bg-white/[0.03] aspect-[4/3]">
-              <img
-                src={bulletin.thumbnail_url}
-                alt={bulletin.title}
-                className="w-full h-full object-contain"
-              />
-            </div>
-          )}
-
-          {bulletin.description && (
-            <p className="text-[12.5px] leading-[1.6] text-gray-700 dark:text-white/75 bg-gray-50 dark:bg-white/[0.03] rounded-xl px-3 py-2.5 line-clamp-5 whitespace-pre-wrap">
-              {bulletin.description}
-            </p>
-          )}
-
-          <div className="space-y-1.5 text-[12.5px]">
-            <InfoRow label="주보 날짜" value={formatDotDateWeekday(bulletin.bulletin_date)} />
-            <InfoRow label="페이지" value={`${bulletin.page_count ?? 0}장`} />
-            <InfoRow label="조회수" value={`${bulletin.views ?? 0}회`} />
-            <InfoRow label="등록일" value={formatLongDate(bulletin.created_at)} />
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <RowAction onClick={onView} icon="eye" label="보기" />
-            <RowAction onClick={onEdit} accent icon="pencil" label="수정" />
-            <RowAction onClick={onDelete} destructive icon="trash" label="삭제" />
-          </div>
-          <p className="text-[11px] leading-[1.55] text-gray-500 dark:text-white/50 bg-gray-50 dark:bg-white/[0.03] rounded-xl px-3 py-2">
-            {needsHand
-              ? '읽기가 3번 실패한 항목이 있어요. 아래 버튼으로 직접 다시 읽혀 주세요.'
-              : outOfWindow
-                ? '2주 넘게 지난 주보라 자동으로 읽지 않아요. 필요하면 아래 버튼으로 읽혀 주세요. 지난 주보의 디지털 주보는 공개본을 덮지 않고 초안으로 남아요.'
-                : '칼럼·일정·디지털 주보는 등록되면 서버가 알아서 읽어 바로 공개해요. 아래 버튼은 다시 읽히고 싶을 때만 쓰세요.'}
-          </p>
-          <RowAction
-            onClick={onImportNews}
-            icon="calendar"
-            disabled={importLocked}
-            busy={importing}
-            label={
-              importing
-                ? '소식 읽는 중… (1~2분)'
-                : importLocked
-                  ? '다른 주보를 읽는 중이에요'
-                  : '소식 → 일정 다시 만들기'
-            }
-          />
-          <RowAction
-            onClick={onImportDigital}
-            icon="phone"
-            disabled={importLocked}
-            busy={importing}
-            label={
-              importing
-                ? '주보 읽는 중… (1~2분)'
-                : importLocked
-                  ? '다른 주보를 읽는 중이에요'
-                  : '디지털 주보 다시 읽기'
-            }
-          />
-
-          <p className="text-[11px] text-gray-400 dark:text-white/40 leading-[1.5] pt-1">
-            * 수정에서 제목·날짜·설명은 물론 페이지 추가·삭제·순서까지 바꿀 수 있어요.
-          </p>
-        </div>
+      {viewer && (
+        <InstagramBulletinViewer
+          key={viewer.bulletin.id}
+          bulletin={viewer.bulletin}
+          initialPage={viewer.page}
+          onClose={() => setViewer(null)}
+        />
       )}
-    </div>
-  )
-}
-
-// ── 작은 컴포넌트들 ──────────────────────────────────────
-const ACTION_ICONS: Record<string, ReactNode> = {
-  phone: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="6" y="2" width="12" height="20" rx="2.5" />
-      <path d="M10 18h4" />
-    </svg>
-  ),
-  eye: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ),
-  pencil: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </svg>
-  ),
-  calendar: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  ),
-  trash: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6" />
-      <line x1="10" y1="11" x2="10" y2="17" />
-      <line x1="14" y1="11" x2="14" y2="17" />
-    </svg>
-  ),
-}
-
-const RowAction = ({
-  onClick,
-  accent,
-  destructive,
-  icon,
-  label,
-  disabled,
-  busy,
-}: {
-  onClick: () => void
-  accent?: boolean
-  destructive?: boolean
-  icon: keyof typeof ACTION_ICONS
-  label: string
-  disabled?: boolean
-  busy?: boolean
-}) => {
-  let cls =
-    'flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
-  if (destructive) {
-    cls +=
-      'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-400/30 hover:bg-red-100 dark:hover:bg-red-500/15'
-  } else if (accent) {
-    cls +=
-      'bg-[var(--brand-soft)] text-brand border border-[var(--brand-glow)] hover:bg-[var(--brand-soft-strong)]'
-  } else {
-    cls +=
-      'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08]'
-  }
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-busy={busy || undefined}
-      className={`${cls} disabled:opacity-60 ${busy ? 'cursor-wait' : 'disabled:cursor-not-allowed'}`}
-    >
-      {busy ? (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" className="animate-spin" aria-hidden>
-          <path d="M21 12a9 9 0 1 1-6.2-8.56" />
-        </svg>
-      ) : (
-        ACTION_ICONS[icon]
-      )}
-      <span>{label}</span>
-    </button>
+    </BulletinDesk>
   )
 }
 

@@ -118,7 +118,15 @@ const Avatar = ({ person, size }: { person: Person; size: number }) => (
     style={{ width: size, height: size }}
   >
     {person.photo_url ? (
-      <img src={person.photo_url} alt="" loading="lazy" className="w-full h-full object-cover object-[50%_18%]" />
+      // 작은 사본(200px, 5KB 안팎)이 있으면 그걸 쓰고 바로 받는다 — 명단 전체가 300KB 남짓이라
+      // 스크롤을 기다릴 이유가 없다. 사본 없는 예전 사진은 원본(1200px, 80KB 안팎)이라 lazy 로 둔다
+      <img
+        src={person.photo_thumb_url || person.photo_url}
+        alt=""
+        loading={person.photo_thumb_url ? 'eager' : 'lazy'}
+        decoding="async"
+        className="w-full h-full object-cover object-[50%_18%]"
+      />
     ) : (
       <span className="font-bold text-brand" style={{ fontSize: size * 0.4 }}>
         {personInitial(person.name_ko)}
