@@ -208,7 +208,8 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
     const text = `🙏 '${createdGroup.name}' 기도방에 초대해요!\n함께 기도제목을 나누고, 응답이 쌓이는 걸 지켜봐요.\n\n${url}\n\n앱을 설치했다면 [내 그룹 → 초대 코드로 참여]에 코드 ${createdGroup.invite_code} 를 입력해도 돼요.`
     if (navigator.share) {
       try {
-        await navigator.share({ title: createdGroup.name, text, url })
+        // 주소는 text 안에 이미 있다 — url·title 을 같이 넘기면 카톡이 제목과 주소를 한 번 더 붙인다
+        await navigator.share({ text })
         return
       } catch {
         /* 사용자가 취소 — 폴백 없이 종료 */

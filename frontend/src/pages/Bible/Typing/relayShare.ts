@@ -11,7 +11,8 @@ export const shareRelayInvite = async (relay: { title: string; book_name: string
     `${relay.book_name} ${relay.chapter}${unit} ${relay.total}절을 함께 나눠 써요. 한 절씩 쓰면 한 칸씩 채워져요.\n\n${url}`
   if (navigator.share) {
     try {
-      await navigator.share({ title: relay.title, text, url })
+      // 주소는 text 안에 이미 있다 — url·title 을 같이 넘기면 카톡이 "제목 - 본문 주소 주소"로 이어 붙인다
+      await navigator.share({ text })
     } catch {
       /* 사용자가 취소 */
     }

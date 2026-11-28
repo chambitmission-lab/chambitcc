@@ -254,7 +254,8 @@ const PlanDetail = () => {
         : `${plan.title} — ${plan.subtitle || `${plan.total_days}일 성경 읽기 플랜`}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: plan.title, text, url })
+        // 초대 문구는 주소가 text 안에 이미 있다 — url·title 을 같이 넘기면 카톡이 제목과 주소를 한 번 더 붙인다
+        await navigator.share(text.includes(url) ? { text } : { text, url })
       } catch {
         // 사용자가 공유 시트를 닫은 경우 — 무시
       }
